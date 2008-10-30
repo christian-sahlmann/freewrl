@@ -1,4 +1,4 @@
-freewrl_snd_SOURCES = \
+freex3d_snd_SOURCES = \
 					main.c \
 					mixer.c \
 					wavmaker.c \

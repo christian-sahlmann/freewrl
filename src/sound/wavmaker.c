@@ -81,8 +81,8 @@ void playWavFragment() {
 		/*  lets try some scaling here.*/
 		/*  did we (or are we close to) running out of data?*/
 		/*if ((mydata <= 0x4ff) && (bytesPerCycle < BUFSIZE*16)) {
-			//printf ("increasing bps\n");
-			bytesPerCycle += 0x100;
+		//printf ("increasing bps\n");
+		bytesPerCycle += 0x100;
 		}*/
 	}
 	/* printf ("md %d, bps %d rate %f bytes/sec\n",mydata, bytesPerCycle, fps*bytesPerCycle);*/
@@ -123,16 +123,16 @@ void initiateDSP() {
 	audio_buf_info leftover;
 
 	if ( (dspFile = open("/dev/dsp",O_WRONLY|O_NONBLOCK))
-	/* if ( (dspFile = open("/dev/dsp",O_NDELAY))*/
-                                   == -1 ) {
-		printf ("FreeWRL::SoundEngine::open /dev/dsp problem (is something else using it?)\n");
+		 /* if ( (dspFile = open("/dev/dsp",O_NDELAY))*/
+		 == -1 ) {
+		printf ("FreeX3D::SoundEngine::open /dev/dsp problem (is something else using it?)\n");
 		dspFile=-1;
 		return;
 	}
 
 	i = (N_FRAGMENTS<<16) | FRAG_SIZE;
 	if ( ioctl(dspFile, SNDCTL_DSP_SETFRAGMENT,
-                             &i) == -1 ) {
+			   &i) == -1 ) {
 		printf("ioctl set fragment problem\n");
 		dspFile=-1;
 		return ;
@@ -195,56 +195,56 @@ void addToCombiningBuffer(int source,int readSize, int offset) {
 	if (ampl < 1) ampl = 1;	/*  stops divide by zero errors*/
 
 	switch (sndfile[source]->FormatChunk.wBitsPerSample) {
-		case SIXTEEN: {
-			siptr = (short int *)(sndfile[source]->data);
-			lbal = sndfile[source]->balance;
-			rbal = 100 - lbal;
+	case SIXTEEN: {
+		siptr = (short int *)(sndfile[source]->data);
+		lbal = sndfile[source]->balance;
+		rbal = 100 - lbal;
 
-			/*  lets try this... basically, either add to or*/
-			/*  reduce balance, but keep average at 1.0*/
-			rbal = rbal*2;
-			lbal = lbal*2;
+		/*  lets try this... basically, either add to or*/
+		/*  reduce balance, but keep average at 1.0*/
+		rbal = rbal*2;
+		lbal = lbal*2;
 
-			/* printf ("lbal %d rbal %d\n",lbal, rbal);*/
+		/* printf ("lbal %d rbal %d\n",lbal, rbal);*/
 
-			for (tc=0; tc<(readSize/2); tc++) {
-				/*  get value, and adjust for volume*/
-				if ((tc & 0x01) == 0) {
-					/* printf ("left\n");*/
-					tmp = *siptr;
-					tmp = (tmp *100)/ampl;
-					tmp = (tmp * lbal) / 50;
-					tmp = tmp/100;
-					/*  balance*/
-				} else {
-					/* printf ("right\n");*/
-					tmp = *siptr;
-					tmp = (tmp *100)/ampl;
-					tmp = (tmp * rbal) / 50;
-					tmp = tmp/100;
-				}
-
-				/*  combine them, then check for overflow*/
-				tmp = tmp + (int)CombiningBuffer[offset];
-				if ((tmp > 32767) || (tmp <-32768)) {
-					/* printf ("have a problem, %d\n",tmp);*/
-					if (tmp > 32767) {
-						tmp = 32767;
-					} else {
-						tmp = -32768;
-					}
-				}
-
-				/* CombiningBuffer[offset] += tmp;*/
-				CombiningBuffer[offset] = tmp;
-				offset++;
-				siptr++;
+		for (tc=0; tc<(readSize/2); tc++) {
+			/*  get value, and adjust for volume*/
+			if ((tc & 0x01) == 0) {
+				/* printf ("left\n");*/
+				tmp = *siptr;
+				tmp = (tmp *100)/ampl;
+				tmp = (tmp * lbal) / 50;
+				tmp = tmp/100;
+				/*  balance*/
+			} else {
+				/* printf ("right\n");*/
+				tmp = *siptr;
+				tmp = (tmp *100)/ampl;
+				tmp = (tmp * rbal) / 50;
+				tmp = tmp/100;
 			}
-			break;
-		}
 
-		default: {
-			 printf ("woops, addToStreaming not for this type\n");
+			/*  combine them, then check for overflow*/
+			tmp = tmp + (int)CombiningBuffer[offset];
+			if ((tmp > 32767) || (tmp <-32768)) {
+				/* printf ("have a problem, %d\n",tmp);*/
+				if (tmp > 32767) {
+					tmp = 32767;
+				} else {
+					tmp = -32768;
+				}
+			}
+
+			/* CombiningBuffer[offset] += tmp;*/
+			CombiningBuffer[offset] = tmp;
+			offset++;
+			siptr++;
 		}
+		break;
+	}
+
+	default: {
+		printf ("woops, addToStreaming not for this type\n");
+	}
 	}
 }

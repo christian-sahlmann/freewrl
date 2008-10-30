@@ -1,4 +1,4 @@
-# Helper program: FreeWRL message server
+# Helper program: FreeX3D message server
 #
 #
 
@@ -17,7 +17,7 @@ _EV=${top_srcdir}/versions/MESSAGEMGR
 export
 
 templ=${top_srcdir}/versions/template/version.c.in
-component=freewrl_snd
+component=freex3d_snd
 FREEWRL_VERSION=`cat $$_EV`
 
 # Generate the version source file
@@ -32,9 +32,9 @@ CLEANFILES=internal_version.c
 
 # AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
 
-bin_PROGRAMS = freewrl_msg
+bin_PROGRAMS = freex3d_msg
 
-include .SOURCES
+include Makefile.sources
 
-freewrl_msg_SOURCES += internal_version.c
+freex3d_msg_SOURCES += internal_version.c
 

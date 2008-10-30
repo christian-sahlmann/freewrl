@@ -1,4 +1,4 @@
-freewrl_msg_SOURCES = \
+freex3d_msg_SOURCES = \
 					main.c \
 					system.h
 

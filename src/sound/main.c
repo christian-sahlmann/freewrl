@@ -1,20 +1,17 @@
 /*********************************************************************
  *
- * FreeWRL SoundServer engine
+ * FreeX3D SoundServer engine
  *
  *  Copyright (C) 2002 John Stewart, CRC Canada.
  *  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  *  See the GNU Library General Public License (file COPYING in the distribution)
  *  for conditions of use and redistribution.
  *
- *
- *
  * Wav decoding data came from data sheets at:
  * http:www.borg.com/~jglatt/tech/wave.htm
  *
  * Some programming info from:
  * http: vengeance.et.tudelft.nl/ecfh/Articles/devdsp-0.1.txt
- *
  *
  *********************************************************************/
 
@@ -26,7 +23,7 @@
 #include "soundheader.h"
 
 
-int freewrlSystem (char *string);
+int freex3dSystem (char *string);
 
 key_t IPCKey;
 int msq_fromclnt;
@@ -48,24 +45,12 @@ char cp2[310];    /*  hold the current filename, in case of errors*/
 int S_Server_IPC = -1;
 int xx;
 
-
-/* testing...*/
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/soundcard.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <stdlib.h>
-
 unsigned char* data;
 
-/* ##########################################################################*/
-/* */
-/*  Sound file handling routines*/
-/* */
-/* */
+
+/*  
+ * Sound file handling routines
+ */
 
 /*  if the sndfile is open, rewind and set bytes_remaining*/
 void rewind_to_beginning (SNDFILE *wavfile) {
@@ -88,7 +73,6 @@ void rewind_to_beginning (SNDFILE *wavfile) {
 		}
 	}
 }
-
 
 
 /*  find a chunk start.*/
@@ -145,17 +129,16 @@ int querySoundType(SNDFILE *me) {
 	/*  copy over format header information*/
 	memcpy (&me->FormatChunk, &me->data[me->dataptr], sizeof (fmtChnk));
 
-
 	/*
-	printf ("fmt chunkid %c%c%c%c\n",me->FormatChunk.chunkID[0],
-		me->FormatChunk.chunkID[1],me->FormatChunk.chunkID[2],me->FormatChunk.chunkID[3]);
-	printf ("fmt chunkSize %ld\n", me->FormatChunk.chunkSize);
-	printf ("fmt wChannels %d\n", me->FormatChunk. wChannels);
-	printf ("fmt wFormatTag %d\n", me->FormatChunk. wFormatTag);
-	printf ("fmt dwSamplesPerSec %ld\n", me->FormatChunk. dwSamplesPerSec);
-	printf ("fmt dwAvgBytesPerSec %ld\n", me->FormatChunk. dwAvgBytesPerSec);
-	printf ("fmt wBlockAlign %d\n", me->FormatChunk. wBlockAlign);
-	printf ("fmt wBitsPerSample %d\n", me->FormatChunk. wBitsPerSample);
+	  printf ("fmt chunkid %c%c%c%c\n",me->FormatChunk.chunkID[0],
+	  me->FormatChunk.chunkID[1],me->FormatChunk.chunkID[2],me->FormatChunk.chunkID[3]);
+	  printf ("fmt chunkSize %ld\n", me->FormatChunk.chunkSize);
+	  printf ("fmt wChannels %d\n", me->FormatChunk. wChannels);
+	  printf ("fmt wFormatTag %d\n", me->FormatChunk. wFormatTag);
+	  printf ("fmt dwSamplesPerSec %ld\n", me->FormatChunk. dwSamplesPerSec);
+	  printf ("fmt dwAvgBytesPerSec %ld\n", me->FormatChunk. dwAvgBytesPerSec);
+	  printf ("fmt wBlockAlign %d\n", me->FormatChunk. wBlockAlign);
+	  printf ("fmt wBitsPerSample %d\n", me->FormatChunk. wBitsPerSample);
 	*/
 
 	if (me->FormatChunk. wFormatTag != 1) {
@@ -179,11 +162,11 @@ int querySoundType(SNDFILE *me) {
 	memcpy (&me->DataChunk, &me->data[me->dataptr], sizeof (datChnk));
 
 	/*
- 	printf ("data chunkid %c%c%c%c\n",me->DataChunk.chunkID[0],
-	me->DataChunk.chunkID[1],me->DataChunk.chunkID[2],me->DataChunk.chunkID[3]);
-	printf ("data chunkSize %lx\n", me->DataChunk.chunkSize);
-	printf ("actual number of sample frames %ld\n",me->DataChunk.chunkSize/me->FormatChunk.wBlockAlign);
-	printf ("dataptr is %d\n",me->dataptr);
+	  printf ("data chunkid %c%c%c%c\n",me->DataChunk.chunkID[0],
+	  me->DataChunk.chunkID[1],me->DataChunk.chunkID[2],me->DataChunk.chunkID[3]);
+	  printf ("data chunkSize %lx\n", me->DataChunk.chunkSize);
+	  printf ("actual number of sample frames %ld\n",me->DataChunk.chunkSize/me->FormatChunk.wBlockAlign);
+	  printf ("dataptr is %d\n",me->dataptr);
 	*/
 
 	/*  does this file have a zero chunksize?*/
@@ -193,7 +176,6 @@ int querySoundType(SNDFILE *me) {
 	}
 
 	/*  is this file compressed?*/
-
 
 	me->wavdataoffset = me->dataptr+8; /*  wavdataoffset is the actual position of start of data*/
 	return WAVFILE;
@@ -221,35 +203,32 @@ SNDFILE *openSound (char *path,int soundNo) {
 	/*  what we handle for now.*/
 
 	switch (querySoundType(mysound)) {
-		case WAVFILE: {
-					return initiateWAVSound(mysound,soundNo);
-					break;
-				}
-		case MP3FILE: {
-				     	mysound->type = MP3FILE;
-					break;
-				}
-		case MPGFILE: {
-				     	mysound->type = MPGFILE;
-					break;
-				}
-		default: {
-				 printf ("unknown file type: %s\n",cp2);
-				 free (mysound);
-				 return NULL;
-			}
-		}
+	case WAVFILE: {
+		return initiateWAVSound(mysound,soundNo);
+		break;
+	}
+	case MP3FILE: {
+		mysound->type = MP3FILE;
+		break;
+	}
+	case MPGFILE: {
+		mysound->type = MPGFILE;
+		break;
+	}
+	default: {
+		printf ("unknown file type: %s\n",cp2);
+		free (mysound);
+		return NULL;
+	}
+	}
 	/*  we should never reach here...*/
 	return NULL;
 }
 
-
-/* ##########################################################################*/
-/* */
-/*  Receive information from FreeWRL*/
-
-void
-toclnt(char *message_to_send) {
+/*
+ * Receive information from FreeX3D
+ */
+void toclnt(char *message_to_send) {
 	msg.mtype= 1;
 	(void) strcpy(msg.msg, message_to_send);
 	/* printf ("SoundEngine - sending back %s\n",msg.msg);*/
@@ -263,7 +242,7 @@ toclnt(char *message_to_send) {
 }
 
 int fromclnt () {
-		return msgrcv(msq_fromclnt,&msg,256,1,0);
+	return msgrcv(msq_fromclnt,&msg,256,1,0);
 }
 
 
@@ -324,10 +303,10 @@ void process_command () {
 		/* printf ("ST is %s\n cp is %s\n",st,cp);*/
 		strcat (cp,st);
 
-		/* strcat (cp, " 2>/tmp/FreeWRL_Errors");*/
+		/* strcat (cp, " 2>/tmp/FreeX3D_Errors");*/
 
 		/* printf ("going to system %s\n",cp); */
-		freewrlSystem (cp);
+		freex3dSystem (cp);
 
 		/*  make the new, converted file name, then later, open it*/
 		strcpy (cp,"/tmp/sound");
@@ -386,8 +365,8 @@ void process_command () {
 		}
 		/* printf ("ACTV parsing, active%d now is %d from message %s\n",a,b,msg.msg);*/
 
-	/* } else {*/
-	/* 	printf ("SoundEngine - unknown message recieved %s\n",msg.msg);*/
+		/* } else {*/
+		/* 	printf ("SoundEngine - unknown message recieved %s\n",msg.msg);*/
 	}
 }
 
@@ -403,7 +382,7 @@ int main(int argc,char **argv) {
 	}
 
 	if ((argc == 2) && !strcmp(argv[1],"-v")) {
-		printf("FreeWRL sound server\nVersion: %s\n", freewrl_snd_get_version());
+		printf("FreeX3D sound server\nVersion: %s\n", freex3d_snd_get_version());
 		exit(0);
 	}
 
@@ -451,7 +430,7 @@ int main(int argc,char **argv) {
 			exit (0);
 		}
 
-		/* printf ("server, from FreeWRL=%x message='%s'\n",xx,msg.msg);*/
+		/* printf ("server, from FreeX3D=%x message='%s'\n",xx,msg.msg);*/
 		process_command ();
 	} while (strncmp ("QUIT",msg.msg,4));
 	for (count=0; count<current_max; count++) {
@@ -467,19 +446,7 @@ int main(int argc,char **argv) {
 /* get all system commands, and pass them through here. What we do
  * is take parameters and execl them, in specific formats, to stop
  * people (or, to try to stop) from typing malicious code. */
-
-/* this is just a direct copy of the code from ../CFuncs/pluginUtils.c;
- * please ensure that this reflects that code. */
-#include <sys/types.h>
-#include <sys/wait.h>
-#ifndef TRUE
-	#define TRUE 1
-#endif
-#ifndef FALSE
-	#define FALSE 0
-#endif
-
-int freewrlSystem (char *sysline) {
+int freex3dSystem (char *sysline) {
 
 #define MAXEXECPARAMS 10
 #define EXECBUFSIZE	2000
@@ -502,7 +469,7 @@ int freewrlSystem (char *sysline) {
 	if (strlen(sysline)>=EXECBUFSIZE) return FALSE;
 	strcpy (buf,sysline);
 
-	/* printf ("freewrlSystem, have %s here\n",internbuf);*/
+	/* printf ("freex3dSystem, have %s here\n",internbuf);*/
 	for (count=0; count<MAXEXECPARAMS; count++) paramline[count] = NULL;
 
 	/* split the command off of internbuf, for execing. */
@@ -535,22 +502,22 @@ int freewrlSystem (char *sysline) {
 
 	if (count > 0) {
 		switch (childProcess=fork()) {
-			case -1:
-				perror ("fork"); exit(1);
+		case -1:
+			perror ("fork"); exit(1);
 
-			case 0: {
+		case 0: {
 			int Xrv;
 
 			/* child process */
 			/* printf ("child execing, pid %d %d\n",childProcess, getpid());*/
 		 	Xrv = execl(paramline[0],
-				paramline[0],paramline[1], paramline[2],
-				paramline[3],paramline[4],paramline[5],
-				paramline[6],paramline[7],NULL);
+						paramline[0],paramline[1], paramline[2],
+						paramline[3],paramline[4],paramline[5],
+						paramline[6],paramline[7],NULL);
 			/* printf ("child finished execing\n");*/
 			exit (Xrv);
-			}
-			default: {
+		}
+		default: {
 			/* parent process */
 			/* printf ("parent waiting for child %d\n",childProcess);*/
 
@@ -562,7 +529,7 @@ int freewrlSystem (char *sysline) {
 			waitpid (childProcess,&pidStatus,0);
 			/* printf ("parent - child finished - pidStatus %d \n",*/
 			/* 		pidStatus);*/
-			}
+		}
 		}
 		return pidStatus;
 	} else {

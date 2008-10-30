@@ -1,25 +1,17 @@
 /*********************************************************************
  *
- * FreeWRL SoundServer engine
+ * FreeX3D SoundServer engine
  *
  *  Copyright (C) 2002 John Stewart, CRC Canada.
  *  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  *  See the GNU Library General Public License (file COPYING in the distribution)
  *  for conditions of use and redistribution.
  *
- *
- *
- * Wav decoding data came from data sheets at:
- * http:www.borg.com/~jglatt/tech/wave.htm
- *
- * Some programming info from:
- * http: vengeance.et.tudelft.nl/ecfh/Articles/devdsp-0.1.txt
- *
- *
  *********************************************************************/
 
-#ifndef FREEWRL_SOUND_SYSTEM_H
-#define FREEWRL_SOUND_SYSTEM_H
+#ifndef __FREEX3D_SND_SYSTEM_H__
+#define __FREEX3D_SND_SYSTEM_H__
+
 
 #if STDC_HEADERS
 # include <stdio.h>
@@ -36,6 +28,26 @@ char *strchr (), *strrchr ();
 #  define memmove(d, s, n) bcopy ((s), (d), (n))
 # endif
 #endif
+
+#if HAVE_STDBOOL_H
+# include <stdbool.h>
+#else
+# if ! HAVE__BOOL
+#  ifdef __cplusplus
+typedef bool _Bool;
+#  else
+typedef unsigned char _Bool;
+#  endif
+# endif
+# define bool _Bool
+# define false 0
+# define true 1
+# define __bool_true_false_are_defined 1
+#endif
+
+#define BOOL _Bool
+#define TRUE 1
+#define FALSE 0
 
 #if HAVE_UNISTD_H
 # include <sys/types.h>
@@ -63,4 +75,4 @@ char *strchr (), *strrchr ();
 #include <linux/soundcard.h>
 
 
-#endif /* FREEWRL_SOUND_SYSTEM_H */
+#endif /* __FREEX3D_SND_SYSTEM_H__ */

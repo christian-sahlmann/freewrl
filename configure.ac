@@ -46,7 +46,7 @@ AC_PROG_LIBTOOL
 
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([fcntl.h stdio.h stdlib.h string.h sys/ioctl.h unistd.h sys/stat.h sys/ipc.h signal.h])
+AC_CHECK_HEADERS([fcntl.h stdio.h stdlib.h string.h sys/ioctl.h unistd.h sys/stat.h sys/socket.h sys/ipc.h signal.h errno.h time.h sys/time.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIGNAL
@@ -234,6 +234,19 @@ if test "$UNZIP" = "no"; then
 fi
 AC_DEFINE_UNQUOTED(UNZIP, "$UNZIP", [Path to unzip ((de-)compression program).])
 
+AC_ARG_VAR([WGET], [path to WGET])
+AC_PATH_PROG([WGET], [wget], [no])
+if test "$WGET" = "no"; then
+  AC_MSG_ERROR([unzip is required])
+fi
+AC_DEFINE_UNQUOTED(WGET, "$WGET", [Path to wget (http fetch program).])
+
+AC_ARG_VAR([IMAGECONVERT], [path to IMAGECONVERT])
+AC_PATH_PROG([IMAGECONVERT], [convert], [no])
+if test "$IMAGECONVERT" = "no"; then
+  AC_MSG_ERROR([unzip is required])
+fi
+AC_DEFINE_UNQUOTED(IMAGECONVERT, "$WGET", [Path to convert (image conversion program).])
 
 AC_CONFIG_FILES([Makefile
 src/Makefile

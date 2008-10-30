@@ -1,25 +1,17 @@
 /*********************************************************************
  *
- * FreeWRL SoundServer engine
+ * FreeX3D SoundServer engine
  *
  *  Copyright (C) 2002 John Stewart, CRC Canada.
  *  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  *  See the GNU Library General Public License (file COPYING in the distribution)
  *  for conditions of use and redistribution.
  *
- *
- *
- * Wav decoding data came from data sheets at:
- * http:www.borg.com/~jglatt/tech/wave.htm
- *
- * Some programming info from:
- * http: vengeance.et.tudelft.nl/ecfh/Articles/devdsp-0.1.txt
- *
- *
  *********************************************************************/
 
-#ifndef FREEWRL_SOUND_H
-#define FREEWRL_SOUND_H
+#ifndef __FREEX3D_SND_SOUND_H__
+#define __FREEX3D_SND_SOUND_H__
+
 
 #define  UNKNOWNFILE 0
 #define  WAVFILE 3
@@ -60,8 +52,8 @@ typedef struct {
 } datChnk;
 
 typedef struct {
-	        long     mtype;  /* message type */
-	        char    msg[256]; /* message data */
+	long     mtype;  /* message type */
+	char    msg[256]; /* message data */
 } FWSNDMSG;
 
 typedef struct {
@@ -72,8 +64,8 @@ typedef struct {
 	int	wavdataoffset;	/* // this is the offset from start of file to wave data */
 	float	pitch;		/* // pitch multiplier */
 	int bytes_remaining;	/* // how many bytes until EOF is reached - used in */
-					/* // playing the file */
-					/* // */
+	/* // playing the file */
+	/* // */
 	int ampl;               /* // Gain of this sound */
 	int balance;		/* // L-R pairing. */
 
@@ -110,4 +102,5 @@ void adjustAmplitude(int source, int readSize);
 
 #define UNINITWAV	-20000
 
-#endif /* FREEWRL_SOUND_H */
+
+#endif /* __FREEX3D_SND_SOUND_H__ */

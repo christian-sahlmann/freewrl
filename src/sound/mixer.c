@@ -41,7 +41,7 @@ void streamThisChannel(int source, int bytesToStream, int offset) {
 
 	if (wavfile->bytes_remaining <= 0) {
 		/* //printf ("EOF input, lets reset and re-read\n"); */
-	       if (loop[source] == 1) {
+		if (loop[source] == 1) {
 			rewind_to_beginning(wavfile);
 		} else {
 			/* // dont loop - just return */
@@ -80,7 +80,7 @@ void streamThisChannel(int source, int bytesToStream, int offset) {
 	/* // do we need to read some more? */
 	if (readSize < bytesToStream) {
 		streamThisChannel(source, bytesToStream-readSize,
-				offset+readSize);
+						  offset+readSize);
 	}
 }
 
@@ -107,7 +107,7 @@ void streamMoreData(int bytesToStream) {
 			if (sndfile[count]!=NULL) {
 			    sndfile[count]->ampl = (sndfile[count]->ampl) - 5;
 			    if ((sndfile[count]->ampl) <= 0) {
-				sndfile[count]->ampl = 0;
+					sndfile[count]->ampl = 0;
 			    }
 			}
 		}

@@ -8,14 +8,13 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = \
 				$(MOZILLA_PLUGIN_LIBS) \
-				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
-				-shared
+				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS)
 
 _EV=${top_srcdir}/versions/PLUGIN
 export
 
 templ=${top_srcdir}/versions/template/version.c.in
-component=freewrl_plugin
+component=freex3d_plugin
 PLUGIN_VERSION=`cat $$_EV`
 
 # Generate the version source file
@@ -30,10 +29,10 @@ LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
 
 AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
 
-lib_LTLIBRARIES = libfreewrlplugin.la
-libfreewrlplugin_la_LDFLAGS = -module -avoid-version
-libfreewrlplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la
+lib_LTLIBRARIES = libFreeX3Dplugin.la
+libFreeX3Dplugin_la_LDFLAGS = -module -avoid-version
+libFreeX3Dplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeX3D.la
 
-include .SOURCES
+include Makefile.sources
 
-libfreewrlplugin_la_SOURCES += internal_version.c
+libFreeX3Dplugin_la_SOURCES += internal_version.c

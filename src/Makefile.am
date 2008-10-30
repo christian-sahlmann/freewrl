@@ -1,1 +1,1 @@
-SUBDIRS = lib bin 
+SUBDIRS = lib bin plugin sound message
