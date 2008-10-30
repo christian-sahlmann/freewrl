@@ -1,0 +1,33 @@
+Automake simple usage
+---------------------
+
+Comments on automake features used in autotraining
+--------------------------------------------------
+
+
+Notes
+-----
+
+To manage embedded versioning, the first idea was:
+- define TRAINING_LIBRARY_VERSION through configure system
+- make the configure status depends on version files
+
+---- Example:
+# Version: simpliest way to implement versioning is to extract the version
+# from a source file and use it both as a Makefile variable (to invoke 
+# libtool in src/lib/Makefile.am) and as a C define (in compiler invocation).
+
+# But build system should know when to extract again (re-check) source
+# files for these variables, which are stored in config.status.
+CONFIG_STATUS_DEPENDENCIES='$(top_srcdir)/PROGRAM_VERSION $(top_srcdir)/LIBRARY_VERSION'
+AC_SUBST([CONFIG_STATUS_DEPENDENCIES])
+
+# Extract version number from a source file
+TRAINING_PROGRAM_VERSION=`cat $(top_srcdir)/PROGRAM_VERSION`
+# Export this variable to Makefile
+AC_SUBST(TRAINING_PROGRAM_VERSION)
+
+# The same for library's version
+TRAINING_LIBRARY_VERSION=`cat $(top_srcdir)/LIBRARY_VERSION`
+AC_SUBST(TRAINING_LIBRARY_VERSION)
+----

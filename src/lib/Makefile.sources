@@ -1,0 +1,2 @@
+libFreeX3D_la_SOURCES = \
+							main.c

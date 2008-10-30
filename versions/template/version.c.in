@@ -1,0 +1,13 @@
+/**
+ * FreeX3D
+ *
+ * Template for embedded versioning.
+ *
+ */
+
+const char *@_component@_version = "@_version@";
+
+const char *@_component@_get_version()
+{
+	return @_component@_version;
+}

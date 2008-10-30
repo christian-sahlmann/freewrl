@@ -1,0 +1,2 @@
+freex3d_SOURCES = \
+				main.c

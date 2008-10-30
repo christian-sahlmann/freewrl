@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# Transform a template containing @component@ and @VERSION@
+#
+
+# autoconf will search for a decent sed program and 
+# replace this pattern with its full path:
+SED='@SED@'
+
+if [ $# -ne 2 ] ; then
+	echo "Two arguments required: component and version." >&2
+	exit 1
+fi
+
+_component=$1
+_version=$2
+
+# Beware: keywords here must not conflit with autotools
+# variables!!! That's for I put an _
+
+"$SED" -e "s/@_component@/$_component/g" \
+       -e "s/@_version@/$_version/g"
+
+exit $?

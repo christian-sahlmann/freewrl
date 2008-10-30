@@ -1,0 +1,8 @@
+freewrl_snd_SOURCES = \
+					main.c \
+					mixer.c \
+					wavmaker.c \
+					system.h \
+					soundheader.h
+
+

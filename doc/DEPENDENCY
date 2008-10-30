@@ -1,0 +1,55 @@
+FreeWRL dependencies
+--------------------
+
+- xulrunner 1.9, provides Javascript engine libmozjs
+- freetype 2.x
+- X11
+- OpenGL
+- jpeg
+- png
+- wget
+- Motif
+
+Javascript engine dependency
+----------------------------
+
+We search for the Javascript engine 1.8+.
+In the future we will enforce version 1.9.
+
+Debian
+------
+
+  Stable (etch)
+  -------------
+
+  We have libmozjs-dev that provides:
+
+    /usr/lib/pkgconfig/xulrunner-js.pc
+
+  Test that works:
+
+    PKG_CHECK_MODULES(JAVASCRIPT_ENGINE, xulrunner-js >= 1.8)
+
+  Testing (lenny)
+  ---------------
+
+  We have libmozjs-dev that provides:
+
+    /usr/lib/pkgconfig/mozilla-js.pc
+
+  Test that works:
+
+    PKG_CHECK_MODULES(JAVASCRIPT_ENGINE, mozilla-js >= 1.8)
+
+Gentoo
+------
+
+Dependency tracking in case of program versioning
+-------------------------------------------------
+
+To be documented...
+
+_EV
+internal_version.c
+vtempl
+

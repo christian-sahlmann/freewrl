@@ -1,0 +1,29 @@
+Program & library versioning
+----------------------------
+
+Program
+-------
+
+Simple version like "1.0".
+
+Library
+-------
+
+Using libtool convention, we define 3 numbers.
+
+When library "natural" version is "1.0" we have:
+
+1:0:0
+
+When we'll release a new API, "natural" version will
+be "2.0", so we'll have:
+
+2:0:0
+
+If we release a new implementation of this version 2.0,
+without any API change, we'll have:
+
+2:1:1
+
+
+

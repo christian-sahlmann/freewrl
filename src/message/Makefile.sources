@@ -1,0 +1,5 @@
+freewrl_msg_SOURCES = \
+					main.c \
+					system.h
+
+

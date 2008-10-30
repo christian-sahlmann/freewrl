@@ -1,0 +1,3 @@
+libfreewrlplugin_la_SOURCES = \
+					 npfreewrl.c \
+					 npunix.c
