@@ -55,3 +55,18 @@ libFreeX3D_la_SOURCES += internal_version.c
 
 headers.h: internal_version.c
 	@echo "Internal version source has to be generated before compilation starts."
+
+#
+# WINDOW_USE_* are exclusive
+#
+if WINDOW_USE_X11
+libFreeX3D_la_SOURCES += Window_x11.c
+endif
+
+if WINDOW_USE_MOTIF
+libFreeX3D_la_SOURCES += Window_motif.c
+endif
+
+if WINDOW_USE_AQUA
+libFreeX3D_la_SOURCES += Window_aqua.c
+endif

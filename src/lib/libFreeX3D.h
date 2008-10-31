@@ -2,14 +2,9 @@
  *
  * FreeX3D support library
  *
- * libFreeX3D.h
+ * public API - libFreeX3D.h
  *
- * Main include file that:
- *  - collect all external dependencies
- *  - collect all internal declarations
- *
- * This file cannot be installed/used by another program for now.
- * All config.h stuff should be removed before.
+ * $Id: libFreeX3D.h,v 1.2 2008/10/31 19:30:36 couannette Exp $
  *
  *******************************************************************/
 
@@ -17,22 +12,73 @@
 #define __LIBFREEX3D_MAIN_H__
 
 
-/* 
- * All system specfic stuff
+/**
+ * Initialization
  */
-#include "libFreeX3D_system.h"
+void initFreewrl();
+void closeFreewrl();
 
-/*
- * All display (X11 or Mac) specific stuff
+/**
+ * General functions
  */
-#include "libFreeX3D_display.h"
+int ConsoleMessage(const char *fmt, ...);
 
-/*
- * All FreeX3D declarations
+/**
+ * General variables
  */
-#include "libFreeX3D_decl.h"
+char *BrowserFullPath;
 
-/*
+/**
+ * Network functions
+ */
+int checkNetworkFile(char *fn);
+void setFullPath(const char* file);
+void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
+
+/**
+ * Network variables
+ */
+
+/**
+ * Display functions
+ */
+void resetGeometry();
+
+/**
+ * Display variables
+ */
+int fullscreen;
+
+/**
+ * Threading functions
+ */
+#define STOP_DISPLAY_THREAD \
+        if (DispThrd != NULL) { \
+                quitThread = TRUE; \
+                pthread_join(DispThrd,NULL); \
+                DispThrd = NULL; \
+        }
+
+void displayThread();
+
+/**
+ * Threading variables
+ */
+pthread_t DispThrd;
+int quitThread;
+
+/**
+ * EAI functions
+ */
+void create_EAI();
+void shutdown_EAI(void);
+
+/**
+ * EAI variables
+ */
+int wantEAI;
+
+/**
  * Version embedded
  */
 extern const char *libFreeX3D_get_version();

@@ -4,13 +4,39 @@
  *
  * main.c
  *
+ * $Id: main.c,v 1.2 2008/10/31 19:30:36 couannette Exp $
+ *
  *******************************************************************/
 
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "config.h"
+#include "system.h"
+#include "display.h"
+#include "internal.h"
 
-#include "libFreeX3D.h"
+/**
+ * library initialization
+ */
+void __attribute__ ((constructor)) _init(void)
+{
+}
 
+/**
+ * library exit routine
+ */
+void __attribute__ ((destructor)) _fini(void)
+{
+}
 
-static int dummy = 1234567;
+/**
+ * Explicit initialization
+ */
+void initFreewrl()
+{
+}
+
+/**
+ * Explicit exit routine
+ */
+void closeFreewrl()
+{
+}
