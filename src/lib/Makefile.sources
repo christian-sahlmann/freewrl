@@ -1,2 +1,7 @@
 libFreeX3D_la_SOURCES = \
-							main.c
+			main.c \
+			internal.h \
+			system.h \
+			display.h \
+			display.c \
+			threads.c

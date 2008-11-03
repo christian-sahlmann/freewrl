@@ -18,6 +18,9 @@ AC_CONFIG_AUX_DIR([config])
 # If you have custom m4 files, declare this macro (and its twins in Makefile.am)
 AC_CONFIG_MACRO_DIR([m4])
 
+# For system detection
+AC_CANONICAL_HOST
+
 # automake startup
 AM_INIT_AUTOMAKE
 
@@ -61,10 +64,58 @@ AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([strchr strrchr])
 
+
 # ====================================================
-# FreeX3D specific configuration: see doc/DEPENDENCIES
+# FreeX3D specific configuration: target system
 # ====================================================
 
+# For cross-compilation (to be implemented later)
+# we'll use AC_CANONICAL_SYSTEM and target_* variables
+# Now we just use the host_* variables
+case "$host_os" in
+     mingw*) os_type=win32 ;;
+     darwin) os_type=mac ;;
+     *) os_type=unix ;;
+esac
+
+# OS conditionals
+AM_CONDITIONAL([OS_WIN32],[test "$os_type" = "win32"])
+AM_CONDITIONAL([OS_UNIX],[test "$os_type" != "win32"])
+AM_CONDITIONAL([OS_LINUX],[test "$host_os" = "linux"])
+AM_CONDITIONAL([OS_MAC],[test "$os_type" = "mac"])
+
+# Target conditionals
+AC_ARG_WITH([target],
+	AS_HELP_STRING([--with-target],[Select target windowing system (x11,motif,aqua,w32)]),
+	[TARGET=$withval],[TARGET=auto])
+
+if test "$TARGET" = auto; then
+   case "$os_type" in
+   	win32) TARGET=win32 ;;
+   	mac) TARGET=aqua ;;
+	*) TARGET=motif ;;
+   esac
+fi
+
+AC_MSG_RESULT([Target windowing system selected: $TARGET])
+
+
+# ====================================================
+# FreeX3D specific configuration: debug build
+# ====================================================
+AC_ARG_ENABLE([debug],
+     [  --enable-debug    Turn on debugging],
+     [case "${enableval}" in
+       yes) debug=true ;;
+       no)  debug=false ;;
+       *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+     esac],[debug=false])
+     AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
+
+
+# ====================================================
+# FreeX3D specific configuration: library checking
+# ====================================================
 # Threads
 ACX_PTHREAD
 
@@ -101,6 +152,7 @@ PKG_CHECK_MODULES( JAVASCRIPT_ENGINE_XULRUNNER_19,
 		PKG_CHECK_MODULES( JAVASCRIPT_ENGINE_SEAMONKEY,
   					   	   seamonkey-js,
 					   	   [JAVASCRIPT_ENGINE="seamonkey"],[
+
 				AC_MSG_WARN([seamonkey-js not found])
 				PKG_CHECK_MODULES( JAVASCRIPT_ENGINE_FIREFOX,
 								   firefox-js,
@@ -108,23 +160,6 @@ PKG_CHECK_MODULES( JAVASCRIPT_ENGINE_XULRUNNER_19,
 
 				AC_MSG_WARN([firefox-js not found])
 				AC_MSG_FAILURE([None Javascript engine were found. Configuration cannot continue.])
-
-dnl I tried this below, but it fails because of libmozjs.so own dependencies...
-dnl --> the check header works, but the check lib cannot be specified in a generic form
-dnl     so it will fails
-dnl
-dnl 		CPPFLAGS_save="$CPPFLAGS"
-dnl 		CPPFLAGS="$CPPFLAGS -I$js_engine_fallback_path/include -DXP_UNIX -DJS_THREADSAFE"
-dnl 		AC_CHECK_HEADERS([mozjs/jsapi.h],[],
-dnl 				[AC_MSG_FAILURE([Javascript engine not found, cannot continue.])])
-dnl 		LDFLAGS_save="$LDFLAGS"
-dnl 		LDFLAGS="$LDFLAGS -L$js_engine_fallback_path/lib -L/usr/lib/xulrunner-devel-1.9/lib -lplds4 -lplc4 -lnspr4 -lpthread -ldl"
-dnl 		AC_CHECK_LIB([mozjs],[JS_NewRuntime],[],
-dnl 				[AC_MSG_FAILURE([Javascript engine not found, cannot continue.])]
-dnl 				["-L$js_engine_fallback_path/lib -lplds4 -lplc4 -lnspr4 -lpthread -ldl"])
-dnl 		LDFLAGS="$LDFLAGS_save"
-dnl 		CPPFLAGS="$CPPFLAGS_save"
-
 ])])])])
 
 case $JAVASCRIPT_ENGINE in
@@ -148,37 +183,37 @@ AC_SUBST(JAVASCRIPT_ENGINE_LIBS)
 
 AC_MSG_NOTICE([Using $JAVASCRIPT_ENGINE for Javascript engine library])
 
-
 # XML
 PKG_CHECK_MODULES(XML, libxml-2.0)
 
 # Expat
 EXPAT_LIB=""
-AC_ARG_WITH(expat, [ --with-expat=<dir> Use expat from here],
-                      [
-                      expat=$withval
-                      CPPFLAGS="$CPPFLAGS -I$withval/include"
-                      LDFLAGS="$LDFLAGS -L$withval/lib"
-                      ]
-                      )
+AC_ARG_WITH(expat,AS_HELP_STRING([--with-expat=<dir>],[Use expat from here]),[
+		expat=$withval
+		CPPFLAGS="$CPPFLAGS -I$withval/include"
+		LDFLAGS="$LDFLAGS -L$withval/lib"])
+
 AC_CHECK_HEADERS(expat.h, [AC_DEFINE(HAVE_EXPAT_H)],
      [AC_MSG_ERROR([Can't find expat.h. Please install expat.])])
 AC_CHECK_LIB(expat, XML_ParserCreate, [EXPAT_LIBS="-lexpat"],
    [AC_MSG_ERROR([Can't find expat library. Please install expat.])])
 AC_SUBST(EXPAT_LIBS)
 
+# Aqua
+# test to implement here
+AM_CONDITIONAL([WINDOW_USE_AQUA], [test "$TARGET" = aqua])
+
 # X11 base
 AC_PATH_X
-
 # X11 extra libraries
 AC_PATH_XTRA
-
 # Check all X11 stuff with pkg-config
 PKG_CHECK_MODULES(XAW, xproto x11 xt xmu xaw7)
+AM_CONDITIONAL([WINDOW_USE_X11], [test "$TARGET" = x11])
 
 # X11 Motif
 AC_FIND_MOTIF
-AM_CONDITIONAL([WANT_MOTIF], [test $with_motif != no])
+AM_CONDITIONAL([WINDOW_USE_MOTIF], [test "$TARGET" = motif])
 
 # OpenGL
 AC_FIND_OPENGL
@@ -248,6 +283,8 @@ if test "$IMAGECONVERT" = "no"; then
 fi
 AC_DEFINE_UNQUOTED(IMAGECONVERT, "$WGET", [Path to convert (image conversion program).])
 
+
+# Final generation
 AC_CONFIG_FILES([Makefile
 src/Makefile
 src/bin/Makefile

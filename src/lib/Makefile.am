@@ -14,6 +14,10 @@ AM_CPPFLAGS = \
 				$(GL_CFLAGS) \
 				$(PNG_CFLAGS)
 
+if DEBUG
+AM_CPPFLAGS+=-g -DDEBUG
+endif
+
 AM_LDFLAGS = \
 				$(FREETYPE_LIBS) \
 				$(JAVASCRIPT_ENGINE_LIBS) \
@@ -46,7 +50,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libFreeX3D.pc
 
 lib_LTLIBRARIES = libFreeX3D.la
-include_HEADERS = headers.h
+include_HEADERS = libFreeX3D.h
 libFreeX3D_la_LDFLAGS = -version-info $(LIBFREEX3D_LTVERSION)
 
 include Makefile.sources
@@ -60,13 +64,13 @@ headers.h: internal_version.c
 # WINDOW_USE_* are exclusive
 #
 if WINDOW_USE_X11
-libFreeX3D_la_SOURCES += Window_x11.c
+libFreeX3D_la_SOURCES += display_x11.c
 endif
 
 if WINDOW_USE_MOTIF
-libFreeX3D_la_SOURCES += Window_motif.c
+libFreeX3D_la_SOURCES += display_motif.c
 endif
 
 if WINDOW_USE_AQUA
-libFreeX3D_la_SOURCES += Window_aqua.c
+libFreeX3D_la_SOURCES += display_aqua.c
 endif
