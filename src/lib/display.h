@@ -6,7 +6,7 @@
  *
  * Library display declarations: X11/Motif or OSX/Aqua
  *
- * $Id: display.h,v 1.2 2008/10/31 19:30:36 couannette Exp $
+ * $Id: display.h,v 1.3 2008/11/03 11:38:15 couannette Exp $
  *
  *******************************************************************/
 
@@ -62,27 +62,35 @@ int fullscreen;
 /**
  * OpenGL / Window initialization
  */
-void GL_create();
-void Window_create();
+extern void GL_create();
+extern void Window_create();
 
 /**
  * Windowing event handlers
  */
-void doQuit();
-void do_keyPress(const char kp, int type);
+extern void doQuit();
+extern void do_keyPress(const char kp, int type);
 
-void updateContext();
-float getWidth();
-float getHeight();
-void  setAquaCursor(int ctype);
-void setMenuButton_collision(int val);
-void setMenuButton_texSize(int size);
-void setMenuStatus(char* stat);
-void setMenuButton_headlight(int val);
-void setMenuFps(float fps);
-int aquaSetConsoleMessage(char* str);
-void setMenuButton_navModes(int type);
-void createAutoReleasePool();
+extern void updateContext();
+extern float getWidth();
+extern float getHeight();
+extern void  setAquaCursor(int ctype);
+extern void setMenuButton_collision(int val);
+extern void setMenuButton_texSize(int size);
+extern void setMenuStatus(char* stat);
+extern void setMenuButton_headlight(int val);
+extern void setMenuFps(float fps);
+extern int aquaSetConsoleMessage(char* str);
+extern void setMenuButton_navModes(int type);
+extern void createAutoReleasePool();
+
+extern void XEventStereo(void);
+
+extern void openMainWindow (void);
+extern void glpOpenGLInitialize(void);
+extern void EventLoop(void);
+extern void resetGeometry(void);
+
 
 
 #endif /* __LIBFREEX3D_DISPLAY_H__ */

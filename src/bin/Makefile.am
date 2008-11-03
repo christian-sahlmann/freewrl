@@ -48,9 +48,3 @@ freex3d_LDADD = $(LIBFREEX3D_BUILDDIR)/libFreeX3D.la
 include Makefile.sources
 
 freex3d_SOURCES += internal_version.c
-
-if WANT_MOTIF
-freex3d_SOURCES += fwMotifWindow.c
-else
-freex3d_SOURCES += fwBareWindow.c
-endif

@@ -1,2 +1,4 @@
 freex3d_SOURCES = \
-				main.c
+		main.c \
+		fwopts.c \
+		fwopts.h
