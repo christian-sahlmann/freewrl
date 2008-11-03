@@ -10,6 +10,7 @@
 #include "system.h"
 #include "internal.h"
 
+#include "display.h"
 #include "libFreeX3D.h"
 
 #include <getopt.h>

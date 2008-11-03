@@ -9,6 +9,7 @@
 #include "config.h"
 #include "system.h"
 
+#include "display.h"
 #include "libFreeX3D.h"
 
 #include "fwopts.h"
