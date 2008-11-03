@@ -23,6 +23,7 @@ doc/VERSION \
 versions/FREEX3D \
 versions/JAVACLASSES \
 versions/LIBFREEX3D \
+versions/LIBFREEX3D_LTVERSION \
 versions/MESSAGEMGR \
 versions/PLUGIN \
 versions/SOUNDMGR \

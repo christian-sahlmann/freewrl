@@ -4,4 +4,5 @@ libFreeX3D_la_SOURCES = \
 			system.h \
 			display.h \
 			display.c \
-			threads.c
+			threads.c \
+			plugin.c

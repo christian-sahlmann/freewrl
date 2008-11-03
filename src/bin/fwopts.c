@@ -6,9 +6,11 @@
  *
  *******************************************************************/
 
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "config.h"
+#include "system.h"
+#include "internal.h"
+
+#include "libFreeX3D.h"
 
 #include <getopt.h>
 
@@ -110,7 +112,7 @@ int parseCommandLine (int argc, char **argv)
 		case 'i': sscanf (optarg,"pipe:%d",&_fw_pipe); isBrowserPlugin = TRUE; break;
 		case 'j': sscanf (optarg,"%d",&_fw_browser_plugin);  break;
 		case 'k': sscanf (optarg,"%u",&_fw_instance); break;
-		case 'v': printf ("FreeWRL version: %s\n",FWVER); exit(0);break;
+		case 'v': printf ("FreeWRL version: %s\n",freex3d_get_version); exit(0);break;
 			/* Petr Mikiluk - ILS line width */
 		case 'W': sscanf (optarg,"%g",&tmp); setLineWidth(tmp); break;
 

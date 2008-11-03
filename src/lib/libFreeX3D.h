@@ -4,7 +4,7 @@
  *
  * public API - libFreeX3D.h
  *
- * $Id: libFreeX3D.h,v 1.2 2008/10/31 19:30:36 couannette Exp $
+ * $Id: libFreeX3D.h,v 1.3 2008/11/03 14:14:12 couannette Exp $
  *
  *******************************************************************/
 
@@ -27,6 +27,20 @@ int ConsoleMessage(const char *fmt, ...);
  * General variables
  */
 char *BrowserFullPath;
+int be_collision;
+char *keypress_string;
+
+/**
+ * Plugin functions
+ */
+
+/**
+ * Plugin variables
+ */
+int isBrowserPlugin;
+int _fw_pipe;
+int _fw_browser_plugin;
+unsigned _fw_instance;
 
 /**
  * Network functions
@@ -43,11 +57,14 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
  * Display functions
  */
 void resetGeometry();
+void setLineWidth(float lwidth);
 
 /**
  * Display variables
  */
+int feHeight, feWidth;
 int fullscreen;
+float gl_linewidth;
 
 /**
  * Threading functions
@@ -72,11 +89,13 @@ int quitThread;
  */
 void create_EAI();
 void shutdown_EAI(void);
+void setEaiVerbose();
 
 /**
  * EAI variables
  */
 int wantEAI;
+int EAIverbose;
 
 /**
  * Version embedded

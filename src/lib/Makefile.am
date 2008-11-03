@@ -57,9 +57,6 @@ include Makefile.sources
 
 libFreeX3D_la_SOURCES += internal_version.c
 
-headers.h: internal_version.c
-	@echo "Internal version source has to be generated before compilation starts."
-
 #
 # WINDOW_USE_* are exclusive
 #
