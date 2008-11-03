@@ -4,7 +4,7 @@
  *
  * public API - libFreeX3D.h
  *
- * $Id: libFreeX3D.h,v 1.5 2008/11/03 14:58:18 couannette Exp $
+ * $Id: old_stuff.h,v 1.1 2008/11/03 17:09:01 couannette Exp $
  *
  *******************************************************************/
 
@@ -1977,6 +1977,7 @@ extern int eaiverbose;
 extern int displayOpenGLErrors;
 extern int sound_from_audioclip;
 extern int have_texture;
+extern float last_transparency;
 extern int global_lineProperties;
 extern int global_fillProperties;
 extern int fullscreen;
@@ -2109,7 +2110,7 @@ extern float AC_LastDuration[];
 extern int SoundEngineStarted;
 
 /* Material optimizations */
-void do_shininess (GLenum face, float shininess);
+void do_shininess (float shininess);
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
 
 /* used to determine whether we have transparent materials. */
@@ -2431,7 +2432,7 @@ extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_siz
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
-int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes, int* removeIt);
+int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes);
 void removeFilenameFromPath (char *path);
 
 
