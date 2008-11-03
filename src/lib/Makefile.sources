@@ -5,4 +5,5 @@ libFreeX3D_la_SOURCES = \
 			display.h \
 			display.c \
 			threads.c \
-			plugin.c
+			plugin.c \
+			VrmlTypeList.h

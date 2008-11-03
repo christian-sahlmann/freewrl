@@ -4,7 +4,7 @@
  *
  * public API - libFreeX3D.h
  *
- * $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
+ * $Id: libFreeX3D.h,v 1.5 2008/11/03 14:58:18 couannette Exp $
  *
  *******************************************************************/
 
@@ -107,8 +107,12 @@ int EAIverbose;
  *
  * 1. strip all #include
  *    except VrmlTypeList.h
- * 2. strip all #ifdef #ifndef
+ * 2. strip all #ifdef #ifndef #endif related to include armor
+ * 3. strip all declarations that we know we handle with system.h
+ * 4. strip VrmlTypeList.h declaration and recreate that file
  */
+
+#include "Structs.h" /* generated code */
 
 /*
   aquaInterface.h
@@ -164,32 +168,16 @@ extern int navi_tos;
 extern uintptr_t viewpoint_stack[];
 extern uintptr_t navi_stack[];
 
-void
-reset_upvector(void);
-
-void
-set_naviinfo(struct X3D_NavigationInfo *node);
-
-void
-send_bind_to(struct X3D_Node *node, int value);
-
-void
-bind_node(struct X3D_Node *node, int *tos, uintptr_t *stack);
-
-void
-render_Fog(struct X3D_Fog *node);
-
-void
-render_NavigationInfo(struct X3D_NavigationInfo *node);
-
+void reset_upvector(void);
+void set_naviinfo(struct X3D_NavigationInfo *node);
+void send_bind_to(struct X3D_Node *node, int value);
+void bind_node(struct X3D_Node *node, int *tos, uintptr_t *stack);
+void render_Fog(struct X3D_Fog *node);
+void render_NavigationInfo(struct X3D_NavigationInfo *node);
 void render_Background(struct X3D_Background *node);
 void render_TextureBackground(struct X3D_TextureBackground *node);
 
-
 /* This is a common base class for FieldDeclarations on PROTOs and Scripts */
-
-#ifndef CFIELDDECL_H
-#define CFIELDDECL_H
 
 /* ************************************************************************** */
 /* ************************************ FieldDecl *************************** */
@@ -236,17 +224,12 @@ struct FieldDecl* newFieldDecl(indexT, indexT, indexT);
 #define fieldDecl_isField(me, nam, mod) \
  ((me)->name==(nam) && (me)->mode==(mod))
 
-#endif /* Once-check */
-/* $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
- *
+/*
  * Copyright (C) 2002 Nicolas Coderre CRC Canada
  * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  * See the GNU Library General Public License (file COPYING in the distribution)
  * for conditions of use and redistribution.
  */
-#ifndef COLLISIONH
-#define COLLISIONH
-
 
 /* Collision detection results structure*/
 struct sCollisionInfo {
@@ -466,11 +449,6 @@ void printpolyrep(struct X3D_PolyRep pr, int npoints);
 void printmatrix(GLdouble* mat);
 #endif
 
-#endif
-
-
-
-
 void render_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *node);
 void render_GeneratedCubeMapTexture(struct X3D_GeneratedCubeMapTexture *node);
 void render_ImageCubeMapTexture(struct X3D_ImageCubeMapTexture *node);
@@ -482,9 +460,6 @@ void render_ImageCubeMapTexture(struct X3D_ImageCubeMapTexture *node);
 *********************************************************************/
 
 /* General header for VRML-parser (lexer/parser) */
-
-#ifndef CPARSEGENERAL_H
-#define CPARSEGENERAL_H
 
 /* Typedefs for VRML-types. */
 typedef int	vrmlBoolT;
@@ -537,11 +512,7 @@ union anyVrml
 #define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
 void fw_assert(char *,int);
 
-#endif /* Once-check */
 /* VRML-parsing routines in C. */
-
-#ifndef CPARSE_H
-#define CPARSE_H
 
 /* for scanning and determining whether a character is part of a valid X3D name */
 #define IS_ID_REST(c) \
@@ -564,11 +535,122 @@ extern struct VRMLParser* globalParser;
 #define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
 void fw_assert(char *,int);
 
-#endif /* Once-check */
-/* Lexer (input of terminal symbols) for CParse */
 
-#ifndef CPARSELEXER_H
-#define CPARSELEXER_H
+/* 
+Vector.h
+General purpose containers - vector and stack (implemented on top of it)
+*/
+
+/* ************************************************************************** */
+/* ******************************** Vector ********************************** */
+/* ************************************************************************** */
+
+/* This is the vector structure. */
+struct Vector
+{
+ size_t	n;
+ size_t	allocn;
+ void*	data;
+};
+
+/* Constructor/destructor */
+struct Vector* newVector_(size_t elSize, size_t initSize);
+#define newVector(type, initSize) \
+ newVector_(sizeof(type), initSize)
+
+#ifdef DEBUG_MALLOC
+	void deleteVector_(char *file, int line, size_t elSize, struct Vector*);
+	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,sizeof(type), me)
+#else
+	void deleteVector_(size_t elSize, struct Vector*);
+	#define deleteVector(type, me) deleteVector_(sizeof(type), me)
+#endif
+
+/* Ensures there's at least one space free. */
+void vector_ensureSpace_(size_t, struct Vector*);
+
+/* Element retrieval. */
+#define vector_get(type, me, ind) \
+ ((type*)((struct Vector*)me)->data)[ind]
+
+/* Size of vector */
+#define vector_size(me) \
+ (((struct Vector*)me)->n)
+
+/* Back of a vector */
+#define vector_back(type, me) \
+ vector_get(type, me, vector_size(me)-1)
+
+/* Is the vector empty? */
+#define vector_empty(me) \
+ (!vector_size(me))
+
+/* Shrink the vector to minimum required space. */
+void vector_shrink_(size_t, struct Vector*);
+#define vector_shrink(type, me) \
+ vector_shrink_(sizeof(type), me)
+
+/* Push back operation. */
+#define vector_pushBack(type, me, el) \
+ { \
+  vector_ensureSpace_(sizeof(type), me); \
+  ASSERT(((struct Vector*)me)->n<((struct Vector*)me)->allocn); \
+  vector_get(type, me, ((struct Vector*)me)->n)=el; \
+  ++((struct Vector*)me)->n; \
+ }
+
+/* Pop back operation */
+#define vector_popBack(type, me) \
+ { \
+  ASSERT(!vector_empty(me)); \
+  --((struct Vector*)me)->n; \
+ }
+#define vector_popBackN(type, me, popn) \
+ { \
+  ASSERT(popn<=vector_size(me)); \
+  ((struct Vector*)me)->n-=popn; \
+ }
+
+/* Release and get vector data. */
+void* vector_releaseData_(size_t, struct Vector*);
+#define vector_releaseData(type, me) \
+ vector_releaseData_(sizeof(type), me)
+
+/* ************************************************************************** */
+/* ************************************ Stack ******************************* */
+/* ************************************************************************** */
+
+/* A stack is essentially a vector */
+typedef struct Vector Stack;
+
+/* Constructor and destructor */
+#define newStack(type) \
+ newVector(sizeof(type), 4)
+#define deleteStack(type, me) \
+ deleteVector(sizeof(type), me)
+
+/* Push and pop */
+#define stack_push(type, me, el) \
+ vector_pushBack(type, me, el)
+#define stack_pop(type, me) \
+ vector_popBack(type, me)
+
+/* Top of stack */
+#define stack_top(type, me) \
+ vector_get(type, me, vector_size(me)-1)
+
+/* Is the stack empty? */
+#define stack_empty(me) \
+ vector_empty(me)
+
+/* tie assert in here to give better failure methodology */
+#define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
+void fw_assert(char *,int);
+
+
+
+
+/* Lexer (input of terminal symbols) for CParse */
 
 /* Tables of user-defined IDs:
  * userNodeNames (DEFs) is scoped with a simple stack, as every PROTO has its
@@ -710,11 +792,7 @@ void skipToEndOfOpenCurly(struct VRMLLexer *me, int level);
 
 void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b);
 
-#endif /* Once-check */
 /* Parser (input of non-terminal symbols) for CParse */
-
-#ifndef CPARSEPARSER_H
-#define CPARSEPARSER_H
 
 struct ProtoDefinition;
 struct ProtoFieldDecl;
@@ -867,7 +945,7 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 /*
 void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode);
 */
-#endif /* Once-check */
+
 /* CProto.h - this is the object representing a PROTO definition and being
  * capable of instantiating it.
  * 
@@ -877,9 +955,6 @@ void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* re
  * copied, their new positions put in the new vector, and afterwards are all
  * pointers there updated.
  */
-
-#ifndef CPROTO_H
-#define CPROTO_H
 
 struct PointerHash;
 struct VRMLParser;
@@ -944,10 +1019,10 @@ struct ProtoFieldDecl
  indexT type; /* field type */
  indexT name; /* field "name" (its lexer-index) */
  char *fieldString; /* the field, in ascii form */
- #ifdef OLDDEST
+# ifdef OLDDEST
 /* This is the list of desination pointers for this field */
  struct Vector* dests; 
-#endif
+# endif
 
  /* Only for exposedField or field */
  BOOL alreadySet; /* Has the value already been set? */
@@ -975,9 +1050,9 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer*, struct ProtoFieldD
   protoFieldDecl_getAccessType(me))
  
 #ifdef OLDDEST
-#define protoFieldDecl_getDestinationCount(me) \
+# define protoFieldDecl_getDestinationCount(me) \
  vector_size((me)->dests)
-#define protoFieldDecl_getDestination(me, i) \
+# define protoFieldDecl_getDestination(me, i) \
  vector_get(struct OffsetPointer*, (me)->dests, i)
 #endif
 
@@ -988,10 +1063,9 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer*, struct ProtoFieldD
 
 /* Add a destination this field's value must be assigned to */
 #ifdef OLDDEST
-
-#define protoFieldDecl_addDestinationOptr(me, optr) \
+# define protoFieldDecl_addDestinationOptr(me, optr) \
  vector_pushBack(struct OffsetPointer*, me->dests, optr)
-#define protoFieldDecl_addDestination(me, n, o) \
+# define protoFieldDecl_addDestination(me, n, o) \
  protoFieldDecl_addDestinationOptr(me, newOffsetPointer(n, o))
 #endif
 
@@ -1157,11 +1231,7 @@ void tokenizeProtoBody(struct ProtoDefinition *, char *);
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto);
 BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, struct X3D_Node **Node);
 
-#endif /* Once-check */
 /* Class to wrap a java script for CParser */
-
-#ifndef CSCRIPTS_H
-#define CSCRIPTS_H
 
 /* ************************************************************************** */
 /* ************************ Methods used by X3D Parser  ********************* */
@@ -1281,7 +1351,7 @@ struct CRscriptStruct {
 	char *scriptText;
 	struct ScriptParamList *paramList;
 };
-#endif /* Once-check */
+
 /* headers for EAI and java CLASS invocation */
 
 /* function prototypes */
@@ -1415,11 +1485,6 @@ extern char EAIListenerArea[40];
  for conditions of use and redistribution.
 *********************************************************************/
 
-
-
-#ifndef __HEADERS_H__
-#define __HEADERS_H__
-
 /* see if an inputOnly "set_" field has changed */
 #define IO_FLOAT -2335549.0
 
@@ -1481,8 +1546,6 @@ void *freewrlStrdup (int line, char *file, char *str);
 #define JS_SET_PROPERTY_STUB7 JS_PropertyStub
 #endif
 
-#define ID_UNDEFINED -1
-
 /* stop the display thread. Used (when this comment was made) by the OSX Safari plugin; keeps
 most things around, just stops display thread, when the user exits a world. */
 #define STOP_DISPLAY_THREAD \
@@ -1539,9 +1602,6 @@ extern int MAXJSparamNames;
 
 extern char *BrowserName;
 extern char *BrowserFullPath;
-
-/* To allow BOOL for boolean values */
-#define BOOL	int
 
 /* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
    blows plugins out of the water, because of the XLib threaded call in FrontEnd
@@ -1891,14 +1951,6 @@ extern int eaiverbose;
 #define TESS_MAX_COORDS  500
 
 #define offset_of(p_type,field) ((unsigned int)(&(((p_type)NULL)->field)-NULL))
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
 
 #define UNUSED(v) ((void) v)
 #define ISUSED(v) ((void) v)
@@ -2272,10 +2324,6 @@ extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data.
 #define JAVASCRIPT	1
 #define SHADERSCRIPT	4
 
-/* printf is defined by perl; causes segfault in threaded freewrl */
-#ifdef printf
-#undef printf
-#endif
 #ifdef die
 #undef die
 #endif
@@ -2410,11 +2458,6 @@ extern int screenWidth, screenHeight;
 #define MotionNotify    6
 #define MapNotify       19
 
-#endif
-
-/* Unix front end height/width */
-#ifndef AQUA
-extern int feWidth, feHeight;
 #endif
 
 /* SD AQUA FUNCTIONS */
@@ -3078,7 +3121,6 @@ void proximity_##type (struct X3D_##type *node) { \
 	*/ \
 } 
 
-#endif /* __HEADERS_H__ */
 /*
  * Copyright (C) 1998 Tuomas J. Lukka, 2002 John Stewart, Ayla Khan CRC Canada
  * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -3087,13 +3129,7 @@ void proximity_##type (struct X3D_##type *node) { \
  * redistribution, EXCEPT on the files which belong under the
  * Mozilla public license.
  *
- * $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
- *
- *
  */
-
-#ifndef __jsNative_h__
-#define __jsNative_h__
 
 typedef struct _BrowserNative {
 	/* int magic; does this really do anything ??? */
@@ -3142,6 +3178,8 @@ typedef struct _SFColorRGBANative {
 	struct SFColorRGBA v;
 } SFColorRGBANative;
 
+
+#include <jsapi.h>
 
 /*
  * Adds additional (touchable) property to instance of a native
@@ -3216,7 +3254,6 @@ SFColorNativeAssign(void *top, void *fromp);
 extern void
 SFColorNativeSet(void *p, struct Uni_String *sv);
 
-#endif /* __jsNative_h__ */
 /*
  * Copyright (C) 1998 Tuomas J. Lukka, 2002 John Stewart, Ayla Khan CRC Canada
  * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -3225,11 +3262,7 @@ SFColorNativeSet(void *p, struct Uni_String *sv);
  * redistribution, EXCEPT on the files which belong under the
  * Mozilla public license.
  *
- * $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
  */
-
-#ifndef __jsUtils_h__
-#define __jsUtils_h__
 
 #define CLEANUP_JAVASCRIPT(cx) \
 	/* printf ("calling JS_GC at %s:%d cx %u thread %u\n",__FILE__,__LINE__,cx,pthread_self()); */ \
@@ -3311,7 +3344,6 @@ void JSInit(uintptr_t num);
 void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, jsval *ret);
 JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 
-#endif /* __jsUtils_h__ */
 /*
  * Copyright (C) 1998 Tuomas J. Lukka, 2002 John Stewart, Ayla Khan CRC Canada
  * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -3320,13 +3352,9 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
  * redistribution, EXCEPT on the files which belong under the
  * Mozilla public license.
  *
- * $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
- *
  */
 
 
-#ifndef __jsVRMLBrowser_h__
-#define __jsVRMLBrowser_h__
 #ifndef UNUSED
 #define UNUSED(v) ((void) v)
 #endif
@@ -3470,9 +3498,6 @@ static JSClass Browser = {
 	JS_FinalizeStub
 };
 
-
-
-#endif /* __jsVRMLBrowser_h__ */
 /*
  * Copyright (C) 1998 Tuomas J. Lukka, 2002, 2007  John Stewart, Ayla Khan CRC Canada
  * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -3481,14 +3506,9 @@ static JSClass Browser = {
  * redistribution, EXCEPT on the files which belong under the
  * Mozilla public license.
  *
- * $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
- *
  * Complex VRML nodes as Javascript classes.
  *
  */
-
-#ifndef __jsVRMLClasses_h__
-#define  __jsVRMLClasses_h__
 
 #ifndef UNUSED
 #define UNUSED(v) ((void) v)
@@ -4452,20 +4472,15 @@ JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval 
 JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 #endif
 
-#endif /*  __jsVRMLClasses_h__ */
-/* $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
- *
+/*
  * Copyright (C) 2002 Nicolas Coderre CRC Canada
  * Portions Copyright (C) 1998 Tuomas J. Lukka 1998 Bernhard Reiter 1999 John Stewart CRC Canada
  * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  * See the GNU Library General Public License (file COPYING in the distribution)
  * for conditions of use and redistribution.
  */
-#ifndef LINEARALGEBRAH
-#define LINEARALGEBRAH
 
 /*Fast macros */
-
 
 #define VECSQ(a) VECPT(a,a)
 #define VECPT(a,b) ((a).x*(b).x + (a).y*(b).y + (a).z*(b).z)
@@ -4638,9 +4653,6 @@ double matrotate2v(GLdouble* res, struct point_XYZ iv/*original*/, struct point_
 GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz);
 
 GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n);
-
-
-#endif
 
 /*
  * Copyright (c) 1995 The Regents of the University of California.
@@ -5676,14 +5688,6 @@ void j_rev_dct (DCTBLOCK data);
  for conditions of use and redistribution.
 *********************************************************************/
 
-#ifndef __OPENGL_UTILS_H_
-#define __OPENGL_UTILS_H_
-
-/*
- * $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
- *
- */
-
 void start_textureTransform (void *textureNode, int ttnum);
 void end_textureTransform (void *textureNode, int ttnum);
 
@@ -5699,7 +5703,6 @@ BackEndLightsOff(void);
 
 void lightState (GLint light, int state);
 
-
 #ifndef AQUA
 extern Display *Xdpy;
 extern GLXContext GLcx;
@@ -5710,56 +5713,9 @@ extern void resetGeometry();
 #endif
 extern void glpOpenGLInitialize(void);
 
-#endif /* __OPENGL_UTILS_H_ */
 /*
- * $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
- */
-
-#ifndef __pluginSocket_h__
-#define __pluginSocket_h__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* what Browser are we running under? eg, netscape, mozilla, konqueror, etc */
-
-#define MAXNETSCAPENAMELEN 256
-extern char NetscapeName[MAXNETSCAPENAMELEN];
-
-char *requestUrlfromPlugin(int sockDesc, uintptr_t plugin_instance, const char *url);
-void  requestNewWindowfromPlugin( int sockDesc, uintptr_t plugin_instance, const char *url);
-void requestPluginPrint(int sockDesc, const char* msg);
-int receiveUrl(int sockDesc, urlRequest *request);
-
-
-#ifdef __cplusplus
-}
-#endif
-
-
-#endif /*__pluginSocket_h__ */
-/*
- * $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
- *
  * FreeWRL plugin utilities header file.
  */
-
-#ifndef __pluginUtils_h__
-#define __pluginUtils_h__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
 
 #ifndef _DEBUG
 #define _DEBUG 0
@@ -5782,25 +5738,26 @@ extern "C" {
 
 #define UNUSED(v) ((void) v)
 
-
 typedef struct _urlRequest {
     char url[FILENAME_MAX]; /* limit url length (defined in stdio.h) */
     void *instance;   /* NPP instance for plugin */
     unsigned int notifyCode; /* NPN_GetURLNotify, NPP_URLNotify */
 } urlRequest;
 
-
 const char* XEventToString(int type);
 const char* XErrorToString(int error);
 
 void URLencod (char *dest, const char *src, int maxlen);
 
-#ifdef __cplusplus
-}
-#endif
+/* what Browser are we running under? eg, netscape, mozilla, konqueror, etc */
+#define MAXNETSCAPENAMELEN 256
+extern char NetscapeName[MAXNETSCAPENAMELEN];
 
+char *requestUrlfromPlugin(int sockDesc, uintptr_t plugin_instance, const char *url);
+void  requestNewWindowfromPlugin( int sockDesc, uintptr_t plugin_instance, const char *url);
+void requestPluginPrint(int sockDesc, const char* msg);
+int receiveUrl(int sockDesc, urlRequest *request);
 
-#endif /*  __pluginUtils_h__ */
 /*******************************************************************
  Copyright (C) 1998 Tuomas J. Lukka
  Copyright (C) 2002 John Stewart, CRC Canada.
@@ -5813,8 +5770,6 @@ void URLencod (char *dest, const char *src, int maxlen);
 extern struct point_XYZ t_r1;
 extern struct point_XYZ t_r2;
 extern struct point_XYZ t_r3;
-
-
 
 int
 count_IFS_faces(int cin,
@@ -5902,15 +5857,6 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
 *******************************************************************************/
-
-/*
- * $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
- *
- */
-
-#ifndef __QUATERNION_H__
-#define __QUATERNION_H__
-
 
 #define DELTA 0.0001
 
@@ -6003,7 +5949,6 @@ slerp(Quaternion *ret,
 	  const Quaternion *q2,
 	  const double t);
 
-#endif /* __QUATERNION_H__ */
 /*---------------------------------------------------------------------------
 
    rpng - simple PNG display program                              readpng.h
@@ -6034,11 +5979,6 @@ slerp(Quaternion *ret,
             published by O'Reilly and Associates.
 
   ---------------------------------------------------------------------------*/
-
-#ifndef TRUE
-#  define TRUE 1
-#  define FALSE 0
-#endif
 
 #ifndef MAX
 #  define MAX(a,b)  ((a) > (b)? (a) : (b))
@@ -6074,10 +6014,6 @@ void readpng_cleanup(int free_image_data);
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
 *********************************************************************/
-
-#ifndef __SENSINTERPS_H__
-#define __SENSINTERPS_H__
-
 
 #define ASLEN 500
 
@@ -6126,8 +6062,6 @@ void do_PlaneSensor(void *ptr, int typ, int but1, int over);
 void do_CylinderSensor(void *ptr, int typ, int but1, int over);
 void do_SphereSensor(void *ptr, int typ, int but1, int over);
 
-
-#endif /* __SENSINTERPS_H__ */
 extern int snapCount;
 extern int maxSnapImages;          /* --maximg command line parameter              */
 extern int snapGif;            /* --gif save as an animated GIF, not mpg       */
@@ -6148,9 +6082,6 @@ extern void abort();
 
 /* include file for sound engine client/server */
 
-
-#ifndef __SOUNDS_H__
-#define __SOUNDS_H__
 
 #define SNDMAXMSGSIZE 256
 
@@ -6193,7 +6124,6 @@ SoundSourceInit(int num,
 void
 SetAudioActive(int num, int stat);
 
-#endif /* __SOUNDS_H__ */
 /*******************************************************************
  Copyright (C) 1998 Tuomas J. Lukka
  Copyright (C) 2002 John Stewart, CRC Canada.
@@ -6272,136 +6202,13 @@ void bind_image(int type, struct Uni_String *parenturl, struct Multi_String url,
 				int repeatS,
 				int repeatT,
 				void  *param);
-/* 
-Vector.h
-General purpose containers - vector and stack (implemented on top of it)
-*/
 
-#ifndef VECTOR_H
-#define VECTOR_H
-
-/* ************************************************************************** */
-/* ******************************** Vector ********************************** */
-/* ************************************************************************** */
-
-/* This is the vector structure. */
-struct Vector
-{
- size_t	n;
- size_t	allocn;
- void*	data;
-};
-
-/* Constructor/destructor */
-struct Vector* newVector_(size_t elSize, size_t initSize);
-#define newVector(type, initSize) \
- newVector_(sizeof(type), initSize)
-
-#ifdef DEBUG_MALLOC
-	void deleteVector_(char *file, int line, size_t elSize, struct Vector*);
-	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,sizeof(type), me)
-#else
-	void deleteVector_(size_t elSize, struct Vector*);
-	#define deleteVector(type, me) deleteVector_(sizeof(type), me)
-#endif
-
-/* Ensures there's at least one space free. */
-void vector_ensureSpace_(size_t, struct Vector*);
-
-/* Element retrieval. */
-#define vector_get(type, me, ind) \
- ((type*)((struct Vector*)me)->data)[ind]
-
-/* Size of vector */
-#define vector_size(me) \
- (((struct Vector*)me)->n)
-
-/* Back of a vector */
-#define vector_back(type, me) \
- vector_get(type, me, vector_size(me)-1)
-
-/* Is the vector empty? */
-#define vector_empty(me) \
- (!vector_size(me))
-
-/* Shrink the vector to minimum required space. */
-void vector_shrink_(size_t, struct Vector*);
-#define vector_shrink(type, me) \
- vector_shrink_(sizeof(type), me)
-
-/* Push back operation. */
-#define vector_pushBack(type, me, el) \
- { \
-  vector_ensureSpace_(sizeof(type), me); \
-  ASSERT(((struct Vector*)me)->n<((struct Vector*)me)->allocn); \
-  vector_get(type, me, ((struct Vector*)me)->n)=el; \
-  ++((struct Vector*)me)->n; \
- }
-
-/* Pop back operation */
-#define vector_popBack(type, me) \
- { \
-  ASSERT(!vector_empty(me)); \
-  --((struct Vector*)me)->n; \
- }
-#define vector_popBackN(type, me, popn) \
- { \
-  ASSERT(popn<=vector_size(me)); \
-  ((struct Vector*)me)->n-=popn; \
- }
-
-/* Release and get vector data. */
-void* vector_releaseData_(size_t, struct Vector*);
-#define vector_releaseData(type, me) \
- vector_releaseData_(sizeof(type), me)
-
-/* ************************************************************************** */
-/* ************************************ Stack ******************************* */
-/* ************************************************************************** */
-
-/* A stack is essentially a vector */
-typedef struct Vector Stack;
-
-/* Constructor and destructor */
-#define newStack(type) \
- newVector(sizeof(type), 4)
-#define deleteStack(type, me) \
- deleteVector(sizeof(type), me)
-
-/* Push and pop */
-#define stack_push(type, me, el) \
- vector_pushBack(type, me, el)
-#define stack_pop(type, me) \
- vector_popBack(type, me)
-
-/* Top of stack */
-#define stack_top(type, me) \
- vector_get(type, me, vector_size(me)-1)
-
-/* Is the stack empty? */
-#define stack_empty(me) \
- vector_empty(me)
-
-/* tie assert in here to give better failure methodology */
-#define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
-void fw_assert(char *,int);
-
-#endif /* Once-check */
 /*******************************************************************
  Copyright (C) 2003 John Stewart, CRC Canada.
  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
 *********************************************************************/
-
-
-#ifndef __VIEWER_H_
-#define __VIEWER_H_
-
-/*
- * $Id: libFreeX3D.h,v 1.4 2008/11/03 14:30:33 couannette Exp $
- *
- */
 
 #define NONE 0
 #define EXAMINE 1
@@ -6625,47 +6432,6 @@ extern float screendist;
 void XEventStereo(void);
 
 void getCurrentSpeed();
-#endif /* __VIEWER_H_ */
-/* A header simply containing all VRML types; this is needed sometimes. */
-
-SF_TYPE(SFBool, sfbool, Bool)
-MF_TYPE(MFBool, mfbool, Bool)
-SF_TYPE(SFColor, sfcolor, Color)
-MF_TYPE(MFColor, mfcolor, Color)
-SF_TYPE(SFColorRGBA, sfcolorrgba, ColorRGBA)
-MF_TYPE(MFColorRGBA, mfcolorrgba, ColorRGBA)
-SF_TYPE(SFFloat, sffloat, Float)
-MF_TYPE(MFFloat, mffloat, Float)
-SF_TYPE(SFImage, sfimage, Image)
-SF_TYPE(SFInt32, sfint32, Int32)
-MF_TYPE(MFInt32, mfint32, Int32)
-SF_TYPE(SFNode, sfnode, Node)
-MF_TYPE(MFNode, mfnode, Node)
-SF_TYPE(SFRotation, sfrotation, Rotation)
-MF_TYPE(MFRotation, mfrotation, Rotation)
-SF_TYPE(SFString, sfstring, String)
-MF_TYPE(MFString, mfstring, String)
-SF_TYPE(SFTime, sftime, Time)
-MF_TYPE(MFTime, mftime, Time)
-SF_TYPE(SFVec2f, sfvec2f, Vec2f)
-MF_TYPE(MFVec2f, mfvec2f, Vec2f)
-SF_TYPE(SFVec2d, sfvec2d, Vec2d)
-MF_TYPE(MFVec2d, mfvec2d, Vec2d)
-SF_TYPE(SFVec3f, sfvec3f, Vec3f)
-MF_TYPE(MFVec3f, mfvec3f, Vec3f)
-SF_TYPE(SFVec3d, sfvec3d, Vec3d)
-MF_TYPE(MFVec3d, mfvec3d, Vec3d)
-
-SF_TYPE(SFMatrix3f, sfmatrix3f, Matrix3f)
-MF_TYPE(MFMatrix3f, mfmatrix3f, Matrix3f)
-SF_TYPE(SFVec4d, sfvec4d, Vec4d)
-MF_TYPE(MFVec4d, mfvec4d, Vec4d)
-SF_TYPE(SFMatrix3d, sfmatrix3d, Matrix3d)
-MF_TYPE(MFMatrix3d, mfmatrix3d, Matrix3d)
-SF_TYPE(SFMatrix4f, sfmatrix4f, Matrix4f)
-MF_TYPE(MFMatrix4f, mfmatrix4f, Matrix4f)
-SF_TYPE(SFMatrix4d, sfmatrix4d, Matrix4d)
-MF_TYPE(MFMatrix4d, mfmatrix4d, Matrix4d)
 
 /* header file for the X3D parser, only items common between the X3DParser files should be here. */
 
