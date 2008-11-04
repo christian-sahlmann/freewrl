@@ -1,3 +1,5 @@
 libFreeX3Dplugin_la_SOURCES = \
-					 plugin_main.c \
-					 npunix.c
+			plugin_main.c \
+			npunix.c \
+			system.h \
+			plugin_utils.h

@@ -12,7 +12,7 @@
 #include "display.h"
 #include "libFreeX3D.h"
 
-#include "fwopts.h"
+#include "options.h"
 
 /**
  * Local variables
@@ -21,7 +21,7 @@ static int CaughtSEGV = FALSE;
 
 /**
  * Signal handlers 
-*/
+ */
 void catch_SIGQUIT();
 void catch_SIGSEGV();
 void catch_SIGHUP();
@@ -32,91 +32,63 @@ void catch_SIGALRM(int);
  */
 int main(int argc, char *argv[])
 {
-	char *pwd;
-	char *initialFilename;	/* file to start FreeWRL with */
+  char *pwd;
+  char *initialFilename;	/* file to start FreeWRL with */
 
-	/**
-	 * TODO: check the library version
-	 */
+  /**
+   * TODO: check the library version
+   */
 
-	/* set the screen width and height before getting into arguments */
-	feWidth = 600; feHeight=400;
-	fullscreen = 0;
-	wantEAI = 0;
+  /* set the screen width and height before getting into arguments */
+  win_width = 600;
+  win_height = 400;
 
-	/* install the signal handler for SIGQUIT */
-	signal (SIGQUIT, (void(*)(int))catch_SIGQUIT);
-	signal (SIGTERM, (void(*)(int))catch_SIGQUIT);
-	signal (SIGSEGV,(void(*)(int))catch_SIGSEGV);
-	signal (SIGALRM,(void(*)(int))catch_SIGALRM);
-	signal (SIGHUP, (void(*)(int))catch_SIGHUP);
+  fullscreen = 0;
 
-	/* parse command line arguments */
-	/* JAS - for last parameter of long_options entries, choose
-	 * ANY character that is not 'h', and that is not used */
-	if (parseCommandLine (argc, argv)) {
-        	/* create the initial scene, from the file passed in
-		   and place it as a child of the rootNode. */
+  /* install the signal handler for SIGQUIT */
+  signal(SIGQUIT, (void(*)(int))catch_SIGQUIT);
+  signal(SIGTERM, (void(*)(int))catch_SIGQUIT);
+  signal(SIGSEGV,(void(*)(int))catch_SIGSEGV);
+  signal(SIGALRM,(void(*)(int))catch_SIGALRM);
+  signal(SIGHUP, (void(*)(int))catch_SIGHUP);
 
-        	initialFilename = (char *)MALLOC(1000 * sizeof (char));
-        	pwd = (char *)MALLOC(1000 * sizeof (char));
-        	getcwd(pwd,1000);
-        	/* if this is a network file, leave the name as is. If it is
-        	   a local file, prepend the path to it */
+  if (parseCommandLine (argc, argv)) {
+  }
 
-	        if (checkNetworkFile(argv[optind])) {
-			setFullPath(argv[optind]);
-	
-	        } else {
-	                makeAbsoluteFileName(initialFilename, pwd, argv[optind]);
-	                setFullPath(initialFilename);
-	        }
-		FREE_IF_NZ (initialFilename);
-	} else {
-		BrowserFullPath = NULL;
-	}
+  if (!initFreeX3D()) {
+      fprintf(stderr,"init error\n");
+      exit(1);
+  }
 
-	/* start threads, parse initial scene, etc */
-	initFreewrl();
+  sleep(3);
 
-	/* do we require EAI? */
-	if (wantEAI) create_EAI();
-
-	/* now wait around until something kills this thread. */
-	pthread_join(DispThrd, NULL);
+  closeFreeX3D();
 }
 
 void catch_SIGQUIT()
 {
-	/* ConsoleMessage ("FreeWRL got a SIGQUIT signal - exiting"); */
-	/* Shut up any SIGSEGVs we might get now. */
-	CaughtSEGV = TRUE;
-    	doQuit();
+  /* Shut up any SIGSEGVs we might get now. */
+  CaughtSEGV = TRUE;
+  /* doQuit(); */
 }
 
 void catch_SIGHUP()
 {
-	/* ConsoleMessage ("FreeWRL got a SIGHUP signal - reloading"); */
-	Anchor_ReplaceWorld(BrowserFullPath);
+  /* Anchor_ReplaceWorld(BrowserFullPath); */
 }
 
 void catch_SIGSEGV()
 {
-	if (!CaughtSEGV) {
-		ConsoleMessage ("FreeWRL got a SIGSEGV - can you please mail the file(s) to\n freewrl-09@rogers.com with a valid subject line. Thanks.\n");
-		CaughtSEGV = TRUE;
-	}
-	exit(1);
+  if (!CaughtSEGV) {
+    CaughtSEGV = TRUE;
+  }
+  exit(1);
 }
 
 void catch_SIGALRM(int sig)
 {
-	signal(SIGALRM, SIG_IGN);
+  signal(SIGALRM, SIG_IGN);
 
-	/* stuffs to do on alarm */
-	fprintf(stderr,"An alarm signal just arrived ...IT WAS IGNORED!\n");
-	/* end of alarm actions */
-
-	alarm(0);
-	signal(SIGALRM, catch_SIGALRM);
+  alarm(0);
+  signal(SIGALRM, catch_SIGALRM);
 }

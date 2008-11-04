@@ -34,4 +34,8 @@ read DUMMY
 
 autoreconf --force --install
 
-CONFIG_SHELL=$shell $shell ./configure
+my_options="--with-fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera --with-target=x11 --disable-static"
+
+CONFIG_SHELL=$shell $shell ./configure "$my_options" 
+
+

@@ -6,7 +6,7 @@
  *
  * Library internal declarations.
  *
- * $Id: internal.h,v 1.2 2008/10/31 19:30:36 couannette Exp $
+ * $Id: internal.h,v 1.3 2008/11/04 00:40:34 couannette Exp $
  *
  *******************************************************************/
 
@@ -17,6 +17,7 @@
 /**
  * internal stuff needed by multiple C files in the library
  */
+#define ERROR _error
 
 
 #endif /* __LIBFREEX3D_DECL_H__ */

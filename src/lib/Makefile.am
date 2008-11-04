@@ -62,12 +62,15 @@ libFreeX3D_la_SOURCES += internal_version.c
 #
 if WINDOW_USE_X11
 libFreeX3D_la_SOURCES += display_x11.c
+AM_CPPFLAGS+=-DTARGET_X11
 endif
 
 if WINDOW_USE_MOTIF
 libFreeX3D_la_SOURCES += display_motif.c
+AM_CPPFLAGS+=-DTARGET_MOTIF
 endif
 
 if WINDOW_USE_AQUA
 libFreeX3D_la_SOURCES += display_aqua.c
+AM_CPPFLAGS+=-DTARGET_AQUA
 endif

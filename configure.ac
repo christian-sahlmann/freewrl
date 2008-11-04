@@ -99,7 +99,6 @@ fi
 
 AC_MSG_RESULT([Target windowing system selected: $TARGET])
 
-
 # ====================================================
 # FreeX3D specific configuration: debug build
 # ====================================================
@@ -112,6 +111,12 @@ AC_ARG_ENABLE([debug],
      esac],[debug=false])
      AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
 
+AC_ARG_WITH(fontsdir,
+            AC_HELP_STRING([--with-fontsdir=@<:@dir@:>@],
+                           [Select <dir> as font path (default=$datadir/$PACKAGE/fonts)]),
+            [fontsdir=$withval],[fontsdir=$datadir/$PACKAGE/fonts])
+
+AC_DEFINE_DIR([FONTS_DIR],[fontsdir],[Directory for fonts.])
 
 # ====================================================
 # FreeX3D specific configuration: library checking
@@ -211,6 +216,10 @@ AC_PATH_XTRA
 PKG_CHECK_MODULES(XAW, xproto x11 xt xmu xaw7)
 AM_CONDITIONAL([WINDOW_USE_X11], [test "$TARGET" = x11])
 
+AC_CHECK_HEADERS([X11/extensions/xf86vmode.h],
+		 [HAVE_XF86_VMODE_H=1; X_EXTRA_LIBS="$X_EXTRA_LIBS -lXxf86vm"],
+		 [])
+
 # X11 Motif
 AC_FIND_MOTIF
 AM_CONDITIONAL([WINDOW_USE_MOTIF], [test "$TARGET" = motif])
@@ -255,28 +264,28 @@ if ! test -z "${MOZILLA_PLUGIN_CFLAGS}" ; then
 fi
 
 # FreeX3D help programs
-AC_ARG_VAR([SOUNDCONV], [path to SOUNDCONV])
+AC_ARG_VAR([SOUNDCONV], [Path to sox (sound conversion program).])
 AC_PATH_PROG([SOUNDCONV], [sox], [no])
 if test "$SOUNDCONV" = "no"; then
   AC_MSG_ERROR([sox is required])
 fi
 AC_DEFINE_UNQUOTED(SOUNDCONV, "$SOUNDCONV", [Path to sox (sound conversion program).])
 
-AC_ARG_VAR([UNZIP], [path to UNZIP])
+AC_ARG_VAR([UNZIP], [Path to unzip ((de-)compression program).])
 AC_PATH_PROG([UNZIP], [unzip], [no])
 if test "$UNZIP" = "no"; then
   AC_MSG_ERROR([unzip is required])
 fi
 AC_DEFINE_UNQUOTED(UNZIP, "$UNZIP", [Path to unzip ((de-)compression program).])
 
-AC_ARG_VAR([WGET], [path to WGET])
+AC_ARG_VAR([WGET], [Path to wget (http fetch program).])
 AC_PATH_PROG([WGET], [wget], [no])
 if test "$WGET" = "no"; then
   AC_MSG_ERROR([unzip is required])
 fi
 AC_DEFINE_UNQUOTED(WGET, "$WGET", [Path to wget (http fetch program).])
 
-AC_ARG_VAR([IMAGECONVERT], [path to IMAGECONVERT])
+AC_ARG_VAR([IMAGECONVERT], [Path to convert (image conversion program).])
 AC_PATH_PROG([IMAGECONVERT], [convert], [no])
 if test "$IMAGECONVERT" = "no"; then
   AC_MSG_ERROR([unzip is required])

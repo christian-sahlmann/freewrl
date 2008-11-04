@@ -6,7 +6,7 @@
  *
  * Library internal display declarations: X11/Motif or OSX/Aqua
  *
- * $Id: display.h,v 1.4 2008/11/03 14:14:12 couannette Exp $
+ * $Id: display.h,v 1.5 2008/11/04 00:40:34 couannette Exp $
  *
  *******************************************************************/
 
@@ -17,7 +17,7 @@
  * All declarations here are internal to the library.
  */
 
-#ifdef AQUA /* Mac stuff */
+#ifdef TARGET_AQUA /* Mac stuff */
 
 # include <OpenGL.h>
 # include <glu.h>
@@ -36,35 +36,53 @@ AGLContext aqglobalContext;
 
 #else /* X-Window display/window stuff, future would be to support Windows */
 
-# include <X11/X.h>
 # include <X11/Xlib.h>
 # include <X11/keysym.h>
-# include <X11/cursorfont.h>
-
-# ifdef XF86V4
-#  include <X11/extensions/xf86vmode.h>
-# endif
-
-# include <X11/Intrinsic.h>
+# include <X11/extensions/xf86vmode.h>
 
 # include <GL/gl.h>
-# include <GL/glx.h>
 # include <GL/glu.h>
-# include <GL/glext.h>
+# include <GL/glx.h>
 
 Display *Xdpy;
+int Xscreen;
+Window Xroot_window;
 GLXContext GLcx;
 XVisualInfo *Xvi;
 Window Xwin;
 Window GLwin;
 
+# ifdef TARGET_MOTIF
+# include <X11/Intrinsic.h>
+# include <Xm/Xm.h>
 #endif
+
+#endif
+
+/**
+ * General display variables
+ */
+int win_height; /* window */
+int win_width;
+int fullscreen;
+int view_height; /* viewport */
+int view_width;
+
+char *window_title;
+
+int mouse_x;
+int mouse_y;
+
+int show_mouse;
+
 
 /**
  * OpenGL / Window initialization
  */
-extern void GL_create();
-extern void Window_create();
+extern int display_initialize();
+extern int open_display();
+extern int create_main_window();
+extern int create_GL_context();
 
 /**
  * Windowing event handlers
@@ -91,7 +109,7 @@ extern void openMainWindow (void);
 extern void glpOpenGLInitialize(void);
 extern void EventLoop(void);
 extern void resetGeometry(void);
-
+void setLineWidth(float lwidth);
 
 
 #endif /* __LIBFREEX3D_DISPLAY_H__ */

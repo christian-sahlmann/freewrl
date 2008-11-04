@@ -1,8 +1,8 @@
 freex3d_snd_SOURCES = \
-					main.c \
-					mixer.c \
-					wavmaker.c \
-					system.h \
-					soundheader.h
+			main.c \
+			mixer.c \
+			wavmaker.c \
+			system.h \
+			soundheader.h
 
 

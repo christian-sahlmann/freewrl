@@ -6,7 +6,7 @@
  *
  * Program system dependencies.
  *
- * $Id: system.h,v 1.1 2008/11/03 14:14:12 couannette Exp $
+ * $Id: system.h,v 1.2 2008/11/04 00:40:34 couannette Exp $
  *
  *******************************************************************/
 
@@ -46,7 +46,6 @@ typedef unsigned char _Bool;
 # define __bool_true_false_are_defined 1
 #endif
 
-#define BOOL _Bool
 #define TRUE 1
 #define FALSE 0
 

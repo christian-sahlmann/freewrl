@@ -4,7 +4,7 @@
  *
  * display_motif.c
  *
- * $Id: display_motif.c,v 1.2 2008/11/03 13:01:32 couannette Exp $
+ * $Id: display_motif.c,v 1.3 2008/11/04 00:40:34 couannette Exp $
  *
  *******************************************************************/
 
@@ -15,5 +15,19 @@
 
 /* display part specific to X11/Motif */
 
-XtAppContext freewrlXtAppContext;
+XtAppContext Xtcx;
 
+int open_display()
+{
+    return FALSE;
+}
+
+int create_main_window()
+{
+    return FALSE;
+}
+
+int create_GL_context()
+{
+    return FALSE;
+}

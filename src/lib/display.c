@@ -4,7 +4,7 @@
  *
  * display.c
  *
- * $Id: display.c,v 1.2 2008/11/03 14:14:12 couannette Exp $
+ * $Id: display.c,v 1.3 2008/11/04 00:40:34 couannette Exp $
  *
  *******************************************************************/
 
@@ -15,9 +15,35 @@
 
 /* common function between display_x11, display_motif and display_aqua */
 
-int feHeight = 0; /* screen height and width */
-int feWidth = 0;
+int win_height = 0; /* window */
+int win_width = 0;
+int fullscreen = FALSE;
+int view_height = 0; /* viewport */
+int view_width = 0;
 
-int fullscreen = FALSE;	/* do fullscreen rendering? */
+char *window_title = NULL;
 
-float gl_linewidth = 1.0;
+int mouse_x;
+int mouse_y;
+
+int show_mouse;
+
+int display_initialize()
+{
+    // Default width / height
+    if (!win_width)
+	win_width = 800;
+    if (!win_height)
+	win_height = 600;
+
+    if (!open_display())
+	return FALSE;
+
+    if (!create_GL_context())
+	return FALSE;
+
+    if (!create_main_window())
+	return FALSE;
+
+    return TRUE;
+}

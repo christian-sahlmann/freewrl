@@ -1,5 +1,5 @@
 freex3d_msg_SOURCES = \
-					main.c \
-					system.h
+			main.c \
+			system.h
 
 
