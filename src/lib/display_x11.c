@@ -4,7 +4,7 @@
  *
  * display_x11.c
  *
- * $Id: display_x11.c,v 1.3 2008/11/04 00:40:34 couannette Exp $
+ * $Id: display_x11.c,v 1.4 2008/11/19 18:19:12 couannette Exp $
  *
  *******************************************************************/
 
@@ -18,7 +18,10 @@
 XSetWindowAttributes attr;
 unsigned long mask = 0;
 int num_modes = 0;
-XF86VidModeModeInfo **modes = NULL;
+#if HAVE_XF86_VMODE
+static XF86VidModeModeInfo **modes = NULL;
+static int mode_selected = -1;
+#endif
 static Atom WM_DELETE_WINDOW;
 
 Window root_ret;
@@ -30,12 +33,32 @@ unsigned int mask_ret;
 /**
  * quick sort comparison function to sort X modes
  */
-static int mode_cmp(const void *pa,const void *pb) {
+static int mode_cmp(const void *pa,const void *pb)
+{
     XF86VidModeModeInfo *a = *(XF86VidModeModeInfo**)pa;
     XF86VidModeModeInfo *b = *(XF86VidModeModeInfo**)pb;
     if(a->hdisplay > b->hdisplay) return -1;
     return b->vdisplay - a->vdisplay;
 }
+
+#if HAVE_XF86_VMODE
+void switch_to_mode(int i)
+{
+    if ((!modes) || (i<0)) {
+	ERROR("switch_to_mode: no valid mode available.\n");
+	return;
+    }
+
+    mode_selected = i;
+
+    win_width = modes[i]->hdisplay;
+    win_height = modes[i]->vdisplay;
+    TRACE("switch_to_mode: mode selected: %d (%d,%d).\n", 
+	  mode_selected, win_width, win_height);
+    XF86VidModeSwitchToMode(Xdpy, Xscreen, modes[i]);
+    XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
+}
+#endif
 
 /**
  * Initialize X-Window
@@ -48,7 +71,7 @@ int open_display()
     display = getenv("DISPLAY");
     Xdpy = XOpenDisplay(display);
     if (!Xdpy) {
-	//ERROR
+	ERROR("can't open display %s.\n", display);
 	return FALSE;
     }
 
@@ -56,25 +79,26 @@ int open_display()
     Xroot_window = RootWindow(Xdpy,Xscreen);
 
     if (fullscreen) {
+#if HAVE_XF86_VMODE
 	if (modes == NULL) {
-	    if (XF86VidModeGetAllModeLines(Xdpy, Xscreen, &num_modes, &modes) == 0)
-		//ERROR("can`t get mode lines");
-		qsort(modes, num_modes, sizeof(XF86VidModeModeInfo*), mode_cmp);
+	    if (XF86VidModeGetAllModeLines(Xdpy, Xscreen, &num_modes, &modes) == 0) {
+		ERROR("can`t get mode lines through XF86VidModeGetAllModeLines.\n");
+		return FALSE;
+	    }
+	    qsort(modes, num_modes, sizeof(XF86VidModeModeInfo*), mode_cmp);
 	}
 	for (i = 0; i < num_modes; i++) {
 	    if (modes[i]->hdisplay <= win_width && modes[i]->vdisplay <= win_height) {
-		win_width = modes[i]->hdisplay;
-		win_height = modes[i]->vdisplay;
-		XF86VidModeSwitchToMode(Xdpy, Xscreen, modes[i]);
-		XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
+		switch_to_mode(i);
 		break;
 	    }
 	}
+#endif
     }
     return TRUE;
 }
 
-int create_main_window()
+int create_main_window_x11()
 {
     attr.background_pixel = 0;
     attr.border_pixel = 0;
@@ -107,7 +131,7 @@ int create_main_window()
 	XSetWMProtocols(Xdpy, Xwin, &WM_DELETE_WINDOW, 1);
     }
 		
-    XFlush(Xdpy);
+/*     XFlush(Xdpy); */
 
     XQueryPointer(Xdpy, Xwin, &root_ret, &child_ret, &root_x_ret, &root_y_ret,
 		  &mouse_x, &mouse_y, &mask_ret);
@@ -115,13 +139,6 @@ int create_main_window()
     window_title = "FreeX3D";
     XStoreName(Xdpy, Xwin, window_title);
     XSetIconName(Xdpy, Xwin, window_title);
-
-    if (!glXMakeCurrent(Xdpy, Xwin, GLcx)) {
-	//ERROR("glXMakeCurrent() failed");
-	return FALSE;
-    }
-
-    glViewport(0, 0, win_width, win_height);
 		
     XFlush(Xdpy);
 
@@ -149,16 +166,29 @@ int create_GL_context()
 
     Xvi = glXChooseVisual(Xdpy, Xscreen, attribs);
     if (!Xvi) {
-	//ERROR
+	ERROR("can't choose appropriate visual (component weight=%d).\n", 
+	      DEFAULT_COMPONENT_WEIGHT);
 	return FALSE;
     }
 
     GLcx = glXCreateContext(Xdpy, Xvi, GLcx, TRUE);
     if (!GLcx) {
-	//ERROR("glXCreateContext() failed");
+	ERROR("can't create OpenGL context.\n");
 	return FALSE;
     }
 
     return TRUE;
 }
 
+int initialize_gl_context()
+{
+    if (!Xwin) {
+	ERROR("window not initialized, can't initialize OpenGL context.\n");
+	return FALSE;
+    }
+    if (!glXMakeCurrent(Xdpy, Xwin, GLcx)) {
+	ERROR("can't initialize OpenGL context (glXMakeCurrent: %s).\n", GL_ERROR_MSG);
+	return FALSE;
+    }
+    return TRUE;
+}

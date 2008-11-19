@@ -84,37 +84,22 @@ AM_CONDITIONAL([OS_UNIX],[test "$os_type" != "win32"])
 AM_CONDITIONAL([OS_LINUX],[test "$host_os" = "linux"])
 AM_CONDITIONAL([OS_MAC],[test "$os_type" = "mac"])
 
-# Target conditionals
-AC_ARG_WITH([target],
-	AS_HELP_STRING([--with-target],[Select target windowing system (x11,motif,aqua,w32)]),
-	[TARGET=$withval],[TARGET=auto])
-
-if test "$TARGET" = auto; then
-   case "$os_type" in
-   	win32) TARGET=win32 ;;
-   	mac) TARGET=aqua ;;
-	*) TARGET=motif ;;
-   esac
-fi
-
-AC_MSG_RESULT([Target windowing system selected: $TARGET])
-
 # ====================================================
 # FreeX3D specific configuration: debug build
 # ====================================================
-AC_ARG_ENABLE([debug],
-     [  --enable-debug    Turn on debugging],
-     [case "${enableval}" in
-       yes) debug=true ;;
-       no)  debug=false ;;
-       *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
-     esac],[debug=false])
-     AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
 
-AC_ARG_WITH(fontsdir,
-            AC_HELP_STRING([--with-fontsdir=@<:@dir@:>@],
-                           [Select <dir> as font path (default=$datadir/$PACKAGE/fonts)]),
-            [fontsdir=$withval],[fontsdir=$datadir/$PACKAGE/fonts])
+AC_MY_SWITCH([debug],[Turn on debugging (default=off)],off,_DEBUG)
+AM_CONDITIONAL([DEBUG],[test "$sw_debug" != no])
+
+AC_MY_SWITCH([optimization],[Turn on optimization (default=off)],off,_OPTIMIZATION)
+AM_CONDITIONAL([OPTIMIZATION],[test "$sw_optimization" != no])
+
+# Fonts configuration
+AC_ARG_WITH([fontsdir],
+            [AS_HELP_STRING([--with-fontsdir=@<:@dir@:>@],
+                           [Select <dir> as font path (default=$datadir/$PACKAGE/fonts)])],
+            [fontsdir=$withval],
+            [fontsdir=$datadir/$PACKAGE/fonts])
 
 AC_DEFINE_DIR([FONTS_DIR],[fontsdir],[Directory for fonts.])
 
@@ -204,25 +189,77 @@ AC_CHECK_LIB(expat, XML_ParserCreate, [EXPAT_LIBS="-lexpat"],
    [AC_MSG_ERROR([Can't find expat library. Please install expat.])])
 AC_SUBST(EXPAT_LIBS)
 
-# Aqua
-# test to implement here
-AM_CONDITIONAL([WINDOW_USE_AQUA], [test "$TARGET" = aqua])
+# ===================================
+# Platform specific: windowing system
+# ===================================
 
+AC_ARG_WITH([target],
+	[AS_HELP_STRING([--with-target],[Select target windowing system (x11,motif,aqua,w32)])],
+	[TARGET=$withval],
+	[TARGET=auto])
+
+test_x11=no
+case "$os_type" in
+     win32) # Target available: w32
+          TARGET=w32
+	  AC_MSG_FAILURE([Windows not supported yet.])
+	  ;;
+     mac) # Target available: Aqua
+          TARGET=aqua
+	  AC_MSG_FAILURE([Mac not supported yet.])
+	  ;;
+     *) # Target available: x11,motif
+          test_x11=yes
+	  case "$TARGET" in
+	       auto) TARGET=motif ;;
+	       x11|motif) : ;;
+	       *) AC_MSG_FAILURE([Platform is $os_type, target available are: x11,motif.]) ;;
+	  esac
+	  ;;
+esac
+
+# Aqua
+if test "$os_type" = mac ; then
+AC_MSG_WARN([...implement Aqua test here...])
+fi
+
+# X11
+if test "$test_x11" = yes ; then
 # X11 base
 AC_PATH_X
 # X11 extra libraries
 AC_PATH_XTRA
 # Check all X11 stuff with pkg-config
 PKG_CHECK_MODULES(XAW, xproto x11 xt xmu xaw7)
-AM_CONDITIONAL([WINDOW_USE_X11], [test "$TARGET" = x11])
 
-AC_CHECK_HEADERS([X11/extensions/xf86vmode.h],
-		 [HAVE_XF86_VMODE_H=1; X_EXTRA_LIBS="$X_EXTRA_LIBS -lXxf86vm"],
-		 [])
+# Check for XFree86/Xorg VMODE extension
+AC_CHECK_HEADERS(X11/extensions/xf86vmode.h,
+	[ dnl *** If X11/extensions/xf86vmode.h exists...
+	AC_CHECK_LIB(Xxf86vm, XF86VidModeQueryExtension,
+		[AC_DEFINE(HAVE_XF86_VMODE, 1, [Define if you have the Xxf86vm library.])
+			X_PRE_LIBS="$X_PRE_LIBS -lXxf86vm"
+		],,
+		$X_LIBS -lXext -lX11 $X_EXTRA_LIBS)
+	],
+	AC_MSG_WARN([[XFree86 VMODE extension not found, Wine will be built without it]]),
+	[#include <X11/Xlib.h>])
+fi
 
+if test "$TARGET" = motif ; then
 # X11 Motif
 AC_FIND_MOTIF
+fi
+
+# ================================
+# Platform conditional compilation
+# ================================
+
+# automake conditional must not be declared conditionaly ;)
+AM_CONDITIONAL([WINDOW_USE_AQUA], [test "$TARGET" = aqua])
+AM_CONDITIONAL([WINDOW_USE_X11], [test "$TARGET" = x11])
 AM_CONDITIONAL([WINDOW_USE_MOTIF], [test "$TARGET" = motif])
+
+AC_MSG_RESULT([Target windowing system selected: $TARGET])
 
 # OpenGL
 AC_FIND_OPENGL

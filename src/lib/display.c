@@ -4,7 +4,7 @@
  *
  * display.c
  *
- * $Id: display.c,v 1.3 2008/11/04 00:40:34 couannette Exp $
+ * $Id: display.c,v 1.4 2008/11/19 18:19:12 couannette Exp $
  *
  *******************************************************************/
 
@@ -28,6 +28,7 @@ int mouse_y;
 
 int show_mouse;
 
+
 int display_initialize()
 {
     // Default width / height
@@ -45,5 +46,35 @@ int display_initialize()
     if (!create_main_window())
 	return FALSE;
 
+    if (!initialize_gl_context()) {
+	return FALSE;
+    }
+
+    if (!initialize_viewport()) {
+	return FALSE;
+    }
+
     return TRUE;
+}
+
+int create_main_window()
+{
+    /* theses flags are exclusive */
+
+#if (defined TARGET_X11)
+    return create_main_window_x11();
+#endif
+
+#if (defined TARGET_MOTIF)
+    return create_main_window_motif();
+#endif
+
+#if (defined TARGET_AQUA)
+    return create_main_window_aqua();
+#endif
+}
+
+int initialize_viewport()
+{
+    glViewport(0, 0, win_width, win_height);
 }

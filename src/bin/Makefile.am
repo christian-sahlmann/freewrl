@@ -2,8 +2,11 @@
 # Uses libFreeX3D in ../lib
 #
 
-# Here we can use variable checked and defined by toplevel configure
-AM_CPPFLAGS = \
+# Get global variables for Makefile defined by toplevel Makefile.globals
+include $(top_srcdir)/Makefile.globals
+
+# Just add variables tested and checked by troplevel configure
+AM_CPPFLAGS += \
 				$(PTHREAD_CFLAGS) \
 				$(JAVASCRIPT_ENGINE_CFLAGS) \
 				$(X_CFLAGS) \
@@ -11,7 +14,7 @@ AM_CPPFLAGS = \
 				$(MOTIF_CFLAGS) \
 				$(GL_CFLAGS)
 
-AM_LDFLAGS = \
+AM_LDFLAGS += \
 				$(FREETYPE_LIBS) \
 				$(JAVASCRIPT_ENGINE_LIBS) \
 				$(XML_LIBS) $(EXPAT_LIBS) \
@@ -23,16 +26,16 @@ AM_LDFLAGS = \
 				$(PNG_LIBS)
 
 
-_EV=${top_srcdir}/versions/FREEX3D
+_EV=$(top_srcdir)/versions/FREEX3D
 export
 
-templ=${top_srcdir}/versions/template/version.c.in
+templ=$(top_srcdir)/versions/template/version.c.in
 component=freex3d
 FREEX3D_VERSION=`cat $$_EV`
 
 # Generate the version source file
 internal_version.c: $(_EV)
-	${top_srcdir}/vtempl $(component) \
+	$(top_srcdir)/vtempl $(component) \
 	$(FREEX3D_VERSION) < $(templ) > $@
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c

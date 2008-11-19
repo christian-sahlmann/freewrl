@@ -4,7 +4,7 @@
  *
  * display_motif.c
  *
- * $Id: display_motif.c,v 1.3 2008/11/04 00:40:34 couannette Exp $
+ * $Id: display_motif.c,v 1.4 2008/11/19 18:19:12 couannette Exp $
  *
  *******************************************************************/
 
@@ -17,17 +17,50 @@
 
 XtAppContext Xtcx;
 
-int open_display()
-{
-    return FALSE;
-}
 
-int create_main_window()
+int create_main_window_motif()
 {
-    return FALSE;
-}
+    attr.background_pixel = 0;
+    attr.border_pixel = 0;
+    attr.colormap = XCreateColormap(Xdpy, Xroot_window, Xvi->visual, AllocNone);
 
-int create_GL_context()
-{
-    return FALSE;
+    attr.event_mask = StructureNotifyMask | KeyPressMask | KeyReleaseMask | PointerMotionMask | LeaveWindowMask | MapNotify | ButtonPressMask | ButtonReleaseMask | FocusChangeMask;
+
+    if (fullscreen) {
+	mask = CWBackPixel | CWColormap | CWOverrideRedirect | CWSaveUnder | CWBackingStore | CWEventMask;
+	attr.override_redirect = true;
+	attr.backing_store = NotUseful;
+	attr.save_under = false;
+    } else {
+	mask = CWBackPixel | CWBorderPixel | CWColormap | CWEventMask;
+    }
+		
+    Xwin = XCreateWindow(Xdpy, Xroot_window, 0, 0, win_width, win_height,
+			 0, Xvi->depth, InputOutput, Xvi->visual, mask, &attr);
+    XMapWindow(Xdpy, Xwin);
+		
+    if (fullscreen) {
+	XMoveWindow(Xdpy, Xwin, 0, 0);
+	XRaiseWindow(Xdpy, Xwin);
+	XFlush(Xdpy);
+	XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
+	XGrabPointer(Xdpy, Xwin, TRUE, 0, GrabModeAsync, GrabModeAsync, Xwin, None, CurrentTime);
+	XGrabKeyboard(Xdpy, Xwin, TRUE, GrabModeAsync, GrabModeAsync, CurrentTime);
+    } else {
+	WM_DELETE_WINDOW = XInternAtom(Xdpy, "WM_DELETE_WINDOW", FALSE);
+	XSetWMProtocols(Xdpy, Xwin, &WM_DELETE_WINDOW, 1);
+    }
+		
+/*     XFlush(Xdpy); */
+
+    XQueryPointer(Xdpy, Xwin, &root_ret, &child_ret, &root_x_ret, &root_y_ret,
+		  &mouse_x, &mouse_y, &mask_ret);
+
+    window_title = "FreeX3D";
+    XStoreName(Xdpy, Xwin, window_title);
+    XSetIconName(Xdpy, Xwin, window_title);
+		
+    XFlush(Xdpy);
+
+    return TRUE;
 }

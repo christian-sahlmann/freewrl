@@ -2,8 +2,11 @@
 # Will generates its own pkg-config definition file (soon).
 #
 
-# Here we can use variable checked and defined by toplevel configure
-AM_CPPFLAGS = \
+# Get global variables for Makefile defined by toplevel Makefile.globals
+include $(top_srcdir)/Makefile.globals
+
+# Just add variables tested and checked by troplevel configure
+AM_CPPFLAGS += \
 				$(PTHREAD_CFLAGS) \
 				$(FREETYPE_CFLAGS) \
 				$(JAVASCRIPT_ENGINE_CFLAGS) \
@@ -14,11 +17,7 @@ AM_CPPFLAGS = \
 				$(GL_CFLAGS) \
 				$(PNG_CFLAGS)
 
-if DEBUG
-AM_CPPFLAGS+=-g -DDEBUG
-endif
-
-AM_LDFLAGS = \
+AM_LDFLAGS += \
 				$(FREETYPE_LIBS) \
 				$(JAVASCRIPT_ENGINE_LIBS) \
 				$(XML_LIBS) $(EXPAT_LIBS) \
@@ -29,18 +28,18 @@ AM_LDFLAGS = \
 				$(JPEG_LIBS) \
 				$(PNG_LIBS)
 
-_EV=${top_srcdir}/versions/LIBFREEX3D
-_EV2=${top_srcdir}/versions/LIBFREEX3D_LTVERSION
+_EV=$(top_srcdir)/versions/LIBFREEX3D
+_EV2=$(top_srcdir)/versions/LIBFREEX3D_LTVERSION
 export
 
-templ=${top_srcdir}/versions/template/version.c.in
+templ=$(top_srcdir)/versions/template/version.c.in
 component=libFreeX3D
 LIBFREEX3D_VERSION=`cat $$_EV`
 LIBFREEX3D_LTVERSION=`cat $$_EV2`
 
 # Generate the version source file
 internal_version.c: $(_EV)
-	${top_srcdir}/vtempl $(component) \
+	$(top_srcdir)/vtempl $(component) \
 	$(LIBFREEX3D_VERSION) < $(templ) > $@
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c
@@ -66,7 +65,7 @@ AM_CPPFLAGS+=-DTARGET_X11
 endif
 
 if WINDOW_USE_MOTIF
-libFreeX3D_la_SOURCES += display_motif.c
+libFreeX3D_la_SOURCES += display_x11.c display_motif.c
 AM_CPPFLAGS+=-DTARGET_MOTIF
 endif
 

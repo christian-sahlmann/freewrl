@@ -1,5 +1,5 @@
 dnl
-dnl $Header: /cvsroot/freewrl/freewrl/freex3d/m4/ac_find_motif.m4,v 1.1 2008/10/30 15:37:45 couannette Exp $
+dnl $Header: /cvsroot/freewrl/freewrl/freex3d/m4/ac_find_motif.m4,v 1.2 2008/11/19 18:19:12 couannette Exp $
 dnl
 dnl AC_FIND_MOTIF : find OSF/Motif or LessTif, and provide variables
 dnl	to easily use them in a Makefile.
@@ -16,7 +16,7 @@ dnl The link_motif and include_motif variables should be fit to put on
 dnl your application's link line in your Makefile.
 dnl
 dnl Oleo CVS Id: motif.m4,v 1.9 1999/04/09 11:46:49 danny
-dnl LessTif CVS $Id: ac_find_motif.m4,v 1.1 2008/10/30 15:37:45 couannette Exp $
+dnl LessTif CVS $Id: ac_find_motif.m4,v 1.2 2008/11/19 18:19:12 couannette Exp $
 dnl
 AC_DEFUN([AC_FIND_MOTIF],
 [
@@ -186,7 +186,7 @@ if test "$with_motif" != "no"; then
                 include_motif="-I$motif_includes"
                 MOTIF_CFLAGS="-I$motif_includes"
         fi
-		AC_DEFINE([HAVE_MOTIF], [1], [Define to 1 of Motif is available.])
+	AC_DEFINE([HAVE_MOTIF], [1], [Define to 1 if you have Motif.])
 else
         with_motif="no"
 fi
@@ -245,13 +245,14 @@ exit(0);
 	lt_cv_libxp=no)
 	])
 	if test "$lt_cv_libxp" = "yes"; then
-		AC_DEFINE([HAVE_LIB_XP],[1],[Define to 1 of X11/extensions/Print.h is available.])
-		LT_HAVE_XP="yes"
+		AC_DEFINE([HAVE_LIB_XP],[1],[Define to 1 if you have the <X11/extensions/Print.h> header file.])
+dnl		LT_HAVE_XP="yes"
 	else
-		LT_HAVE_XP="no"
+		:
+dnl		LT_HAVE_XP="no"
 	fi
-	AM_CONDITIONAL(Have_Libxp, test "$lt_cv_libxp" = "yes")
-	AC_SUBST(LT_HAVE_XP)
+dnl	AM_CONDITIONAL(Have_Libxp, test "$lt_cv_libxp" = "yes")
+dnl	AC_SUBST(LT_HAVE_XP)
 	CFLAGS="$lt_save_CFLAGS"
 	CPPFLAGS="$lt_save_CPPFLAGS"
 	LIBS="$lt_save_LIBS"

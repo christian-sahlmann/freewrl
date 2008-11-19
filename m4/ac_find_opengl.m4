@@ -7,19 +7,20 @@ AC_DEFUN([AC_FIND_OPENGL],
   AC_CACHE_CHECK([for OpenGL], mdl_cv_have_OpenGL,
   [
 dnl Check for Mesa first, unless we were asked not to.
-    AC_ARG_WITH([--with-Mesa],
-                   [Prefer the Mesa library over a vendors native OpenGL library (default=yes)],
-                   with_Mesa_help_string)
-    AC_ARG_ENABLE(Mesa, $with_Mesa_help_string, use_Mesa=$enableval, use_Mesa=yes)
+    AC_ARG_WITH([mesa],
+		[AS_HELP_STRING([--with-mesa],
+                   [Prefer the Mesa library over a vendors native OpenGL library (default=no)])],
+		[],
+		[with_mesa=no])
 
-    if test x"$use_Mesa" = xyes; then
-       GL_search_list="MesaGL   GL"
-      GLU_search_list="MesaGLU GLU"
-      GLX_search_list="MesaGLX GLX"
+    if test x"$with_mesa" = xyes; then
+	GL_search_list="MesaGL   GL"
+	GLU_search_list="MesaGLU GLU"
+	GLX_search_list="MesaGLX GLX"
     else
-       GL_search_list="GL  MesaGL"
-      GLU_search_list="GLU MesaGLU"
-      GLX_search_list="GLX MesaGLX"
+	GL_search_list="GL  MesaGL"
+	GLU_search_list="GLU MesaGLU"
+	GLX_search_list="GLX MesaGLX"
     fi
 
     AC_LANG_SAVE
@@ -38,7 +39,6 @@ fi
     GL_save_LIBS="$LIBS"
     LIBS="$GL_X_LIBS"
 
-
     # Save the "AC_MSG_RESULT file descriptor" to FD 8.
     exec 8>&AC_FD_MSG
 
@@ -46,11 +46,10 @@ fi
     # messages.
     exec AC_FD_MSG>/dev/null
 
-    AC_SEARCH_LIBS(glAccum,          $GL_search_list, have_GL=yes,   have_GL=no)
+    AC_SEARCH_LIBS(glAccum,         $GL_search_list,  have_GL=yes,   have_GL=no)
     AC_SEARCH_LIBS(gluBeginCurve,   $GLU_search_list, have_GLU=yes,  have_GLU=no)
     AC_SEARCH_LIBS(glXChooseVisual, $GLX_search_list, have_GLX=yes,  have_GLX=no)
     AC_SEARCH_LIBS(glutInit,        glut,             have_glut=yes, have_glut=no)
-
 
 
     # Restore pretty messages.

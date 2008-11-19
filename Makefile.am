@@ -15,6 +15,7 @@ COPYING \
 INSTALL \
 NEWS \
 vtempl.in \
+Makefile.globals \
 doc/AUTOCONF \
 doc/AUTOMAKE \
 doc/DEPENDENCY \

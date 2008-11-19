@@ -1,0 +1,25 @@
+# -*-makefile-*-
+#
+# Toplevel Makefile.globals
+# 
+# Define global variable for Makefiles
+#
+
+if DEBUG
+DEBUG_FLAGS=-g
+else
+DEBUG_FLAGS=
+endif
+
+if OPTIMIZATION
+OPTIMIZATION_FLAGS=-O2
+OPTIMIZATION_LINK=
+else
+OPTIMIZATION_FLAGS=-O0
+OPTIMIZATION_LINK=
+endif
+
+# Define this globally
+AM_CPPFLAGS = $(DEBUG_FLAGS) $(OPTIMIZATION_FLAGS)
+
+AM_LDFLAGS = $(DEBUG_FLAGS) $(OPTIMIZATION_LINK)
