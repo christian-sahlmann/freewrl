@@ -88,11 +88,8 @@ AM_CONDITIONAL([OS_MAC],[test "$os_type" = "mac"])
 # FreeX3D specific configuration: debug build
 # ====================================================
 
-AC_MY_SWITCH([debug],[Turn on debugging (default=off)],off,_DEBUG)
+AC_MY_DEFINE_SWITCH([debug],[enable debugging (default=off)],off,_DEBUG)
 AM_CONDITIONAL([DEBUG],[test "$sw_debug" != no])
-
-AC_MY_SWITCH([optimization],[Turn on optimization (default=off)],off,_OPTIMIZATION)
-AM_CONDITIONAL([OPTIMIZATION],[test "$sw_optimization" != no])
 
 # Fonts configuration
 AC_ARG_WITH([fontsdir],
@@ -116,62 +113,30 @@ PKG_CHECK_MODULES(FREETYPE, freetype2 >= 9.3.0)
 # check order:
 # xulrunner 1.9 (provides mozilla-js.pc, from the libmozjs-dev package in testing)
 # xulrunner 1.8 (provides xulrunner-js.pc, from the libmozjs-dev package in stable)
-# firefox 2.0 
-# firefox 1.5
+# seamonkey (firefox-2.0 equivalent packaging)
+# firefox (2.0 or 1.5)
+# firefox (firefox-2.0 possible alternate packaging)
 
 AC_MSG_NOTICE([Determining Javascript engine to build against])
+found_JAVASCRIPT_ENGINE=no
+AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,mozilla-js,1.9)
+AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,xulrunner-js,1.8)
+AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,seamonkey-js)
+AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox-js)
+AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox2-js)
 
-JAVASCRIPT_ENGINE=""
+## if no package yet, test for spidermonkey or other 'js' library
+if test x$found_JAVASCRIPT_ENGINE = xno; then
+  AC_MSG_ERROR([Unable to find an appropriate javascript engine])
+fi
 
-AC_ARG_WITH([javascript-engine],
-	[AS_HELP_STRING([--with-javascript-engine=PATH],
-		[Search Javascript engine development files in PATH.])],
-	[js_engine_fallback_path=$withval],
-	[js_engine_fallback_path=/usr])
+# I don't think these are necessary anymore, are they?
+#AC_SUBST(JAVASCRIPT_ENGINE)
+#AC_SUBST(JAVASCRIPT_ENGINE_CFLAGS)
+#AC_SUBST(JAVASCRIPT_ENGINE_LIBS)
 
-PKG_CHECK_MODULES( JAVASCRIPT_ENGINE_XULRUNNER_19,
-				   mozilla-js >= 1.9,
-				   [JAVASCRIPT_ENGINE="xulrunner19"],[
+AC_MSG_NOTICE([Using $found_JAVASCRIPT_ENGINE for Javascript engine library])
 
-	AC_MSG_WARN([mozilla-js not found])
-	PKG_CHECK_MODULES( JAVASCRIPT_ENGINE_XULRUNNER_18,
-  					   xulrunner-js >= 1.8,
-					   [JAVASCRIPT_ENGINE="xulrunner18"],[
-
-		AC_MSG_WARN([xulrunner-js not found])
-		PKG_CHECK_MODULES( JAVASCRIPT_ENGINE_SEAMONKEY,
-  					   	   seamonkey-js,
-					   	   [JAVASCRIPT_ENGINE="seamonkey"],[
-
-				AC_MSG_WARN([seamonkey-js not found])
-				PKG_CHECK_MODULES( JAVASCRIPT_ENGINE_FIREFOX,
-								   firefox-js,
-								   [JAVASCRIPT_ENGINE="firefox"],[
-
-				AC_MSG_WARN([firefox-js not found])
-				AC_MSG_FAILURE([None Javascript engine were found. Configuration cannot continue.])
-])])])])
-
-case $JAVASCRIPT_ENGINE in
-	 xulrunner19)
-		JAVASCRIPT_ENGINE_CFLAGS="$JAVASCRIPT_ENGINE_XULRUNNER_19_CFLAGS"
-		JAVASCRIPT_ENGINE_LIBS="$JAVASCRIPT_ENGINE_XULRUNNER_19_LIBS"
-		;;
-	 xulrunner18)
-		JAVASCRIPT_ENGINE_CFLAGS="$JAVASCRIPT_ENGINE_XULRUNNER_18_CFLAGS"
-		JAVASCRIPT_ENGINE_LIBS="$JAVASCRIPT_ENGINE_XULRUNNER_18_LIBS"
-		;;
-	 fallback)
-		JAVASCRIPT_ENGINE_CFLAGS="$JAVASCRIPT_ENGINE_FALLBACK_CFLAGS"
-		JAVASCRIPT_ENGINE_LIBS="$JAVASCRIPT_ENGINE_FALLBACK_LIBS"
-		;;
-	 *)
-esac
-AC_SUBST(JAVASCRIPT_ENGINE)
-AC_SUBST(JAVASCRIPT_ENGINE_CFLAGS)
-AC_SUBST(JAVASCRIPT_ENGINE_LIBS)
-
-AC_MSG_NOTICE([Using $JAVASCRIPT_ENGINE for Javascript engine library])
 
 # XML
 PKG_CHECK_MODULES(XML, libxml-2.0)
@@ -273,32 +238,27 @@ AC_SUBST(JPEG_LIBS)
 PKG_CHECK_MODULES(PNG, libpng)
 
 # Mozilla plugin devel
-AC_MSG_NOTICE([Determining browser plug-in framework to build against])
-PKG_CHECK_MODULES(MOZILLA_PLUGIN, iceape-plugin, [
-  PLUGENG="iceape"
+AC_MY_SWITCH(plugin,[enable building of browser plugin],on,[
+  AC_MSG_NOTICE([Determining browser plug-in framework to build against])
+  found_MOZILLA_PLUGIN=no
+  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN, iceape-plugin)
+  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN, xulrunner-plugin)
+  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN, seamonkey-plugin)
+  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN, firefox-plugin)
+  if test x$found_MOZILLA_PLUGIN = xno; then
+    AC_MSG_WARN([Unable to find an appropriate browser plug-in framework])
+    MAYBE_PLUGIN=
+  else
+    # If Mozilla plugin is to be compiled we have to define MOZ_X11
+    MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS -DMOZ_X11"
+    AC_MSG_NOTICE([Using $fx3d_module_found for Mozilla plugin library])
+    MAYBE_PLUGIN=plugin
+  fi
 ],[
-  AC_MSG_WARN([iceape-plugin not found])
-  PKG_CHECK_MODULES(MOZILLA_PLUGIN, xulrunner-plugin, [
-    PLUGENG="xulrunner"
-  ],[
-    AC_MSG_WARN([xulrunner-plugin not found])
-    PKG_CHECK_MODULES(MOZILLA_PLUGIN, seamonkey-plugin, [
-      PLUGENG="seamonkey"
-    ],[
-      AC_MSG_WARN([seamonkey-plugin not found])
-      PKG_CHECK_MODULES(MOZILLA_PLUGIN, firefox-plugin, [
-        PLUGENG="firefox"
-      ],[
-        AC_MSG_WARN([firefox-plugin not found])
-        AC_MSG_ERROR([Unable to find an appropriate browser plug-in framework])
-      ])
-    ])
-  ])
+  AC_MSG_NOTICE([Not building browser plug-in])
+  MAYBE_PLUGIN=
 ])
-# If Mozilla plugin is to be compiled we have to define MOZ_X11
-if ! test -z "${MOZILLA_PLUGIN_CFLAGS}" ; then
-   MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS -DMOZ_X11"
-fi
+AC_SUBST(MAYBE_PLUGIN)
 
 # FreeX3D help programs
 AC_ARG_VAR([SOUNDCONV], [Path to sox (sound conversion program).])

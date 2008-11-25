@@ -6,7 +6,7 @@
  *
  * Library internal display declarations: X11/Motif or OSX/Aqua
  *
- * $Id: display.h,v 1.6 2008/11/19 18:19:12 couannette Exp $
+ * $Id: display.h,v 1.7 2008/11/25 14:35:53 couannette Exp $
  *
  *******************************************************************/
 
@@ -67,8 +67,11 @@ Window Xroot_window;
 XVisualInfo *Xvi;
 Window Xwin;
 Window GLwin;
+XSetWindowAttributes attr;
+unsigned long mask;
+Atom WM_DELETE_WINDOW;
 
-# if defined TARGET_MOTIF
+# if defined(TARGET_MOTIF)
 
 # include <X11/Intrinsic.h>
 # include <Xm/Xm.h>
@@ -79,7 +82,7 @@ extern int create_main_window_motif();
 
 extern int create_main_window_x11();
 
-# endif /* defined TARGET_MOTIF */
+# endif /* defined(TARGET_MOTIF) */
 
 # include <GL/gl.h>
 # include <GL/glu.h>

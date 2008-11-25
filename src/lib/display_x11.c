@@ -4,7 +4,7 @@
  *
  * display_x11.c
  *
- * $Id: display_x11.c,v 1.4 2008/11/19 18:19:12 couannette Exp $
+ * $Id: display_x11.c,v 1.5 2008/11/25 14:35:53 couannette Exp $
  *
  *******************************************************************/
 
@@ -15,20 +15,28 @@
 
 /* display part specific to bare X11 */
 
+/**
+ * public variables
+ */
+Display *Xdpy;
+int Xscreen;
+Window Xroot_window;
+XVisualInfo *Xvi;
+Window Xwin;
+Window GLwin;
 XSetWindowAttributes attr;
 unsigned long mask = 0;
-int num_modes = 0;
+Atom WM_DELETE_WINDOW;
+
+/**
+ * local variables
+ */
+static int num_modes = 0;
 #if HAVE_XF86_VMODE
 static XF86VidModeModeInfo **modes = NULL;
 static int mode_selected = -1;
 #endif
-static Atom WM_DELETE_WINDOW;
 
-Window root_ret;
-Window child_ret;
-int root_x_ret;
-int root_y_ret;
-unsigned int mask_ret;
 
 /**
  * quick sort comparison function to sort X modes
@@ -100,6 +108,12 @@ int open_display()
 
 int create_main_window_x11()
 {
+    Window root_ret;
+    Window child_ret;
+    int root_x_ret;
+    int root_y_ret;
+    unsigned int mask_ret;
+
     attr.background_pixel = 0;
     attr.border_pixel = 0;
     attr.colormap = XCreateColormap(Xdpy, Xroot_window, Xvi->visual, AllocNone);

@@ -4,7 +4,7 @@
  *
  * display_motif.c
  *
- * $Id: display_motif.c,v 1.4 2008/11/19 18:19:12 couannette Exp $
+ * $Id: display_motif.c,v 1.5 2008/11/25 14:35:53 couannette Exp $
  *
  *******************************************************************/
 
@@ -20,6 +20,12 @@ XtAppContext Xtcx;
 
 int create_main_window_motif()
 {
+    Window root_ret;
+    Window child_ret;
+    int root_x_ret;
+    int root_y_ret;
+    unsigned int mask_ret;
+
     attr.background_pixel = 0;
     attr.border_pixel = 0;
     attr.colormap = XCreateColormap(Xdpy, Xroot_window, Xvi->visual, AllocNone);
