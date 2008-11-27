@@ -58,8 +58,6 @@ fi
     if test -n "$LIBS"; then
       mdl_cv_have_OpenGL=yes
       GL_LIBS="$LIBS"
-      AC_SUBST(GL_CFLAGS)
-      AC_SUBST(GL_LIBS)
     else
       mdl_cv_have_OpenGL=no
       GL_CFLAGS=
@@ -88,5 +86,7 @@ dnl bugfix: dont forget to cache this variables, too
   have_GLU="$mdl_cv_have_GLU"
   have_GLX="$mdl_cv_have_GLX"
   have_glut="$mdl_cv_have_glut"
+  AC_SUBST(GL_CFLAGS)
+  AC_SUBST(GL_LIBS)
 ])
 dnl endof bugfix -ainan

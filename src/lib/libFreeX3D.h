@@ -4,7 +4,7 @@
  *
  * public API - libFreeX3D.h
  *
- * $Id: libFreeX3D.h,v 1.8 2008/11/27 00:27:17 couannette Exp $
+ * $Id: libFreeX3D.h,v 1.9 2008/11/27 01:51:43 couannette Exp $
  *
  *******************************************************************/
 
@@ -42,6 +42,12 @@ int win_width;
 int fullscreen;
 char *BrowserFullPath;
 pthread_t DispThrd;
+int _fw_pipe, _fw_FD;
+int _fw_browser_plugin;
+int isBrowserPlugin;
+uintptr_t _fw_instance;
+int be_collision;
+char *keypress_string;
 
 
 #endif /* __LIBFREEX3D_MAIN_H__ */

@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.7 2008/11/27 00:27:17 couannette Exp $
+# $Id: Makefile.sources,v 1.8 2008/11/27 01:51:43 couannette Exp $
 #
 # List all source files
 #
@@ -21,6 +21,7 @@ main/MainLoop.c \
 main/SoundEngineClient.c \
 main/ProdCon.c \
 main/Snapshot.h \
+main/Snapshot.c \
 main/ConsoleMessage.c \
 main/installdir.h \
 main/utils.c \
@@ -137,6 +138,11 @@ opengl/Material.c \
  \
 ui/statusbar.c \
 ui/aquaInt.h \
+ui/fwMotifWindow.c \
+ui/fwWindow.c \
+ui/GLwDrawA.c \
+ui/GLwDrawA.h \
+ui/GLwDrawAP.h \
  \
 plugin/pluginUtils.c \
 plugin/pluginUtils.h \

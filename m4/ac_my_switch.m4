@@ -52,6 +52,7 @@ AC_DEFUN([AC_MY_SWITCH], [
 	])
     )
 ])
+
 dnl
 dnl ===========================================================
 dnl AC_MY_DEFINE_SWITCH

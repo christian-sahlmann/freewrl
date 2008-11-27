@@ -6,13 +6,17 @@
  *
  * Program system dependencies.
  *
- * $Id: system.h,v 1.2 2008/11/04 00:40:34 couannette Exp $
+ * $Id: system.h,v 1.3 2008/11/27 01:51:43 couannette Exp $
  *
  *******************************************************************/
 
 #ifndef __FREEX3D_SYSTEM_H__
 #define __FREEX3D_SYSTEM_H__
 
+
+#if HAVE_STDINT_H
+# include <stdint.h>
+#endif
 
 #if STDC_HEADERS
 # include <stdio.h>

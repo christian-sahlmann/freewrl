@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: headers.h,v 1.3 2008/11/27 01:51:43 couannette Exp $
 
 Global includes.
 
@@ -636,8 +636,6 @@ extern int isTextureAlpha(int n);
 extern int displayDepth;
 extern int display_status;
 
-extern int _fw_pipe, _fw_FD;
-extern int _fw_browser_plugin;
 #define RUNNINGASPLUGIN (isBrowserPlugin)
 
 #define RUNNINGONAMD64 (sizeof(void *) == 8)
@@ -706,7 +704,6 @@ extern double defaultExamineDist;
 /* Sending events back to Browser (eg, Anchor) */
 extern int BrowserAction;
 extern struct X3D_Anchor *AnchorsAnchor;
-extern uintptr_t _fw_instance;
 int checkIfX3DVRMLFile(char *fn);
 void EAI_Anchor_Response (int resp);
 extern int wantEAI;
@@ -964,9 +961,7 @@ extern int isPerlinitialized(void);
 #endif
 
 extern char *getInputURL(void);
-extern char *keypress_string;
 extern char *lastReadFile; 		/* name last file read in */
-extern int be_collision;		/* toggle collision detection - defined in VRMLC.pm */
 extern int  lightingOn;			/* state of GL_LIGHTING */
 extern int cullFace;			/* state of GL_CULL_FACE */
 extern double hpdist;			/* in VRMLC.pm */
@@ -1516,14 +1511,6 @@ void replaceWorldNeeded(char* str);
 /* X3D C parser */
 int X3DParse (struct X3D_Group *parent, char *inputstring);
 void *createNewX3DNode (int nt);
-
-/* this is set by OSX, or to FALSE if on Linux. */
-#ifdef AQUA
-extern Boolean isBrowserPlugin;
-#else
-extern int isBrowserPlugin;
-#endif
-
 
 /* threading stuff */
 extern pthread_t PCthread;

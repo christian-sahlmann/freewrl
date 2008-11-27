@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: MainLoop.c,v 1.3 2008/11/27 01:51:43 couannette Exp $
 
 CProto ???
 
@@ -208,14 +208,7 @@ struct X3D_Node*  getRayHit(void);
 void get_hyperhit(void);
 void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
 Boolean pluginRunning;
-/*
-Boolean inLoop;
-*/
-#ifdef AQUA
-Boolean isBrowserPlugin = FALSE;
-#else
 int isBrowserPlugin = FALSE;
-#endif
 
 /******************************************************************************/
 /* Jens Rieks sent in some changes - some of which uses strndup, which does not

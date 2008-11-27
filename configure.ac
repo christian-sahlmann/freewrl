@@ -49,7 +49,7 @@ AC_PROG_LIBTOOL
 
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([fcntl.h stdio.h stdlib.h string.h sys/ioctl.h unistd.h sys/stat.h sys/socket.h sys/ipc.h signal.h errno.h time.h sys/time.h])
+AC_CHECK_HEADERS([fcntl.h stdio.h stdlib.h string.h sys/ioctl.h unistd.h sys/stat.h sys/socket.h sys/ipc.h signal.h errno.h time.h sys/time.h dirent.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIGNAL
