@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.2 2008/11/27 00:27:17 couannette Exp $
+$Id: EAIEventsIn.c,v 1.3 2008/11/27 16:06:33 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -326,7 +326,7 @@ void EAI_parse_commands () {
 					/* ok, lets make a real name from this; maybe it is local to us? */
 					ctmp[rb] = 0;
 					dtmp[0] = 0;
-					makeAbsoluteFileName (dtmp, "./",ctmp);
+					makeAbsoluteFileName (dtmp, BrowserFullPath, ctmp);
 
 					if (eaiverbose) {	
 						printf ("CREATEVU %s\n",dtmp);

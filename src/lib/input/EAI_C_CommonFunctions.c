@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.3 2008/11/27 16:06:33 crc_canada Exp $
 
 ???
 
@@ -203,8 +203,18 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 
 	/* we NEED MFStrings to have quotes on; so if this is a MFString, ensure quotes are ok */
 	if (ctype == FIELDTYPE_MFString) {
-		/* printf ("parsing type %s, string :%s:\n",stringFieldtypeType(ctype),value);  */
-		if ((value[0] != '"') && (value[0] != '\'')) {
+		#ifdef SETFIELDVERBOSE
+		printf ("parsing type %s, string :%s:\n",stringFieldtypeType(ctype),value); 
+		#endif
+
+		/* go to the first non-space character, and see if this is required;
+		   sometimes people will encode mfstrings as:
+			url=' "images/earth.gif" "http://ww
+		   note the space in the value */
+		while ((*value == ' ') && (*value != '\0')) value ++;
+
+		/* now, does the value string need quoting? */
+		if ((*value != '"') && (*value != '\'')) {
 			int len;
 			/* printf ("have to quote this string\n"); */
 			len = strlen(value);
@@ -213,7 +223,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 			mfstringtmp[0] = '"';
 			mfstringtmp[len+1] = '"';
 			mfstringtmp[len+2] = '\0';
-			/* printf ("so, mfstring is :%s:\n",mfstringtmp); */
+			printf ("so, mfstring is :%s:\n",mfstringtmp);
 			
 			parser_fromString(parser,mfstringtmp);
 		} else {
@@ -309,35 +319,3 @@ MF_TYPE(MFNode, mfnode, Node)
 	/* did we have to do any mfstring quoting stuff? */
 	FREE_IF_NZ(mfstringtmp);
 }
-
-#ifdef OLDCODE
-OLDCODE		case FIELDTYPE_FreeWRLPTR:
-OLDCODE		case FIELDTYPE_SFNode: { 
-OLDCODE				/* JAS - changed %d to %ld for 1.18.15 */
-OLDCODE				sscanf (value,"%ld",inNode); 
-OLDCODE				/*
-OLDCODE				if (inNode[0] != 0) {
-OLDCODE					printf (" andof type %s\n",stringNodeType(X3D_NODE(inNode[0])->_nodeType));
-OLDCODE				} */
-OLDCODE				memcpy(nst,inNode,datasize); 
-OLDCODE				/* FIELDTYPE_SFNodeS need to have the parent field linked in */
-OLDCODE				if (ctype == FIELDTYPE_SFNode) {
-OLDCODE					ADD_PARENT(X3D_NODE(inNode[0]), node); 
-OLDCODE				}
-OLDCODE				
-OLDCODE			break;}
-OLDCODE
-OLDCODE		case FIELDTYPE_MFNode: {
-OLDCODE			for (tmp = 0; tmp < elementCount; tmp++) {
-OLDCODE				/* JAS changed %d to %ld for 1.18.15 */
-OLDCODE				sscanf(value, "%ld",inNode);
-OLDCODE				AddRemoveChildren(node,(struct Multi_Node *) nst, inNode, 1, 1);
-OLDCODE				/* skip past the number and trailing comma, if there is one */
-OLDCODE				if (*value == '-') value++;
-OLDCODE				while (*value>='0') value++;
-OLDCODE				if ((*value == ' ') || (*value == ',')) value++;
-OLDCODE			}
-OLDCODE			break;
-OLDCODE			}
-#endif
-
