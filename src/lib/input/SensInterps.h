@@ -1,31 +1,14 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-#ifndef __SENSINTERPS_H__
-#define __SENSINTERPS_H__
+$Id: SensInterps.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
+SensInterps ???
 
-#include "headers.h"
+*/
 
-#include <math.h>
-
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
-#include "LinearAlgebra.h"
-#include "quaternion.h"
-#include "sounds.h"
+#ifndef __FREEX3D_SENS_INTERPS_H__
+#define __FREEX3D_SENS_INTERPS_H__
 
 
 #define ASLEN 500
@@ -76,4 +59,4 @@ void do_CylinderSensor(void *ptr, int typ, int but1, int over);
 void do_SphereSensor(void *ptr, int typ, int but1, int over);
 
 
-#endif /* __SENSINTERPS_H__ */
+#endif /* __FREEX3D_SENS_INTERPS_H__ */

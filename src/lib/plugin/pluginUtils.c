@@ -1,16 +1,37 @@
-/*******************************************************************
- *  Copyright (C) 2004 John Stewart, CRC Canada.
- *  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- *  See the GNU Library General Public License (file COPYING in the distribution)
- *  for conditions of use and redistribution.
- **********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-#include <stdlib.h>
-#include "headers.h"
-#include "Bindable.h"
-#include "PluginSocket.h"
-#include "Viewer.h"
-#include <ctype.h>
+$Id: pluginUtils.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+/* #include "../vrml_parser/CParseGeneral.h" */
+/* #include "../scenegraph/Vector.h" */
+/* #include "../vrml_parser/CFieldDecls.h" */
+/* #include "../world_script/CScripts.h" */
+/* #include "../vrml_parser/CParseParser.h" */
+/* #include "../vrml_parser/CParseLexer.h" */
+/* #include "../vrml_parser/CParse.h" */
+
+/* #include <float.h> */
+
+#include "../x3d_parser/Bindable.h"
+/* #include "../scenegraph/Collision.h" */
+/* #include "../scenegraph/quaternion.h" */
+/* #include "../scenegraph/Viewer.h" */
+
+#include "pluginUtils.h"
 
 
 /* get all system commands, and pass them through here. What we do
@@ -59,7 +80,7 @@ int freewrlSystem (const char *sysline) {
 	memset(paramline, 0, sizeof(paramline));
 		
 	waitForChild = TRUE;
-	haveXmessage = !strncmp(sysline,XMESSAGE,strlen(XMESSAGE));
+	haveXmessage = !strncmp(sysline, FREEX3D_MESSAGE_WRAPPER, strlen(FREEX3D_MESSAGE_WRAPPER));
 
 	internbuf = buf;
 
@@ -72,7 +93,7 @@ int freewrlSystem (const char *sysline) {
 
 	/* do we have a console message - (which is text with spaces) */
 	if (haveXmessage) {
-		paramline[0] = XMESSAGE;
+		paramline[0] = FREEX3D_MESSAGE_WRAPPER;
 		paramline[1] = strchr(internbuf,' ');
 		count = 2;
 	} else {
@@ -277,19 +298,23 @@ void doBrowserAction () {
 			/* printf ("IS NOT a vrml/x3d file\n");
 			printf ("Anchor: -DBROWSER is :%s:\n",BROWSER); */
 
-
-			char *browser = getenv("BROWSER");
+		    /* char *browser = getenv("BROWSER"); */
+		    char *browser = freex3d_get_browser_program();
+		    if (!browser) {
+			ConsoleMessage ("Error: no Internet browser found.");
+			return;
+		    }
 
 			/* bounds check here */
 			if (browser) testlen = strlen(browser);
-			else testlen = strlen(BROWSER);
+			else testlen = strlen(browser);
 			testlen += strlen(filename) + 10; 
 			if (testlen > LINELEN) {
 				ConsoleMessage ("Anchor: combination of browser name and file name too long.");
 			} else {
 
 				if (browser) strcpy (sysline, browser);
-				else strcpy (sysline, BROWSER);
+				else strcpy (sysline, browser);
 				strcat (sysline, " ");
 				strcat (sysline, filename);
 				strcat (sysline, " &");
@@ -298,14 +323,14 @@ void doBrowserAction () {
 
 			/* bounds check here */
 			if (browser) testlen = strlen(browser) + strlen(filename) + 20;
-			else testlen = strlen (BROWSER) + strlen(filename) + 20;
+			else testlen = strlen (browser) + strlen(filename) + 20;
 
 
 			if (testlen > LINELEN) {
 				ConsoleMessage ("Anchor: combination of browser name and file name too long.");
 			} else {
 				if (browser) sprintf(sysline, "open -a %s %s &", browser, filename);
-				else sprintf(sysline, "open -a %s %s &",  BROWSER, filename);
+				else sprintf(sysline, "open -a %s %s &",  browser, filename);
 				system (sysline);
 			}
 		#ifdef AQUA
@@ -343,8 +368,8 @@ int checkIfX3DVRMLFile(char *fn) {
 /* we are an Anchor, and we are not running in a browser, and we are
  * trying to do an external VRML or X3D world.
  */
-
-void Anchor_ReplaceWorld (char *name) {
+void Anchor_ReplaceWorld (char *name)
+{
 	int tmp;
 	void *tt;
 	char filename[1000];

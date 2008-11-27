@@ -1,40 +1,20 @@
 /*
- * $Id: pluginUtils.h,v 1.1 2008/11/26 11:24:13 couannette Exp $
- *
- * FreeWRL plugin utilities header file.
- */
+=INSERT_TEMPLATE_HERE=
 
-#ifndef __pluginUtils_h__
-#define __pluginUtils_h__
+$Id: pluginUtils.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include <errno.h>
-#include <signal.h>
-#include <string.h>
-#include <stdio.h>
-#include <sys/wait.h>
+FreeWRL plugin utilities header file.
 
-#ifdef AQUA
-#include <unistd.h>
-#else
-#include <X11/X.h>
-#endif
+*/
+
+#ifndef __FREEX3D_PLUGIN_UTILS_H__
+#define __FREEX3D_PLUGIN_UTILS_H__
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-
-#ifndef _DEBUG
-#define _DEBUG 0
-#endif
 
 #define SMALLSTRINGSIZE 64
 #define STRINGSIZE 128
@@ -71,4 +51,4 @@ void URLencod (char *dest, const char *src, int maxlen);
 #endif
 
 
-#endif /*  __pluginUtils_h__ */
+#endif /* __FREEX3D_PLUGIN_UTILS_H__ */

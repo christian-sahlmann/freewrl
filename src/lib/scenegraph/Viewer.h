@@ -1,28 +1,14 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
-
-
-#ifndef __VIEWER_H_
-#define __VIEWER_H_
-
 /*
- * $Id: Viewer.h,v 1.1 2008/11/26 11:24:14 couannette Exp $
- *
- */
+=INSERT_TEMPLATE_HERE=
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <math.h>
+$Id: Viewer.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include "headers.h"
-#include "quaternion.h"
-#include "OpenGL_Utils.h"
-#include "LinearAlgebra.h"
+Viewer ???
+
+*/
+
+#ifndef __FREEX3D_VIEWER_H__
+#define __FREEX3D_VIEWER_H__
 
 
 #define NONE 0
@@ -247,4 +233,6 @@ extern float screendist;
 void XEventStereo(void);
 
 void getCurrentSpeed();
-#endif /* __VIEWER_H_ */
+
+
+#endif /* __FREEX3D_VIEWER_H__ */

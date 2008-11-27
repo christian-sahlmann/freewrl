@@ -1,3 +1,15 @@
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: readpng.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+Read PNG images.
+
+*/
+
+#ifndef __FREEX3D_READ_PNG_H__
+#define __FREEX3D_READ_PNG_H__
+
 /*---------------------------------------------------------------------------
 
    rpng - simple PNG display program                              readpng.h
@@ -62,3 +74,6 @@ uch *readpng_get_image(double display_exponent, int *pChannels,
                        ulg *pRowbytes);
 
 void readpng_cleanup(int free_image_data);
+
+
+#endif /* __FREEX3D_READ_PNG_H__ */

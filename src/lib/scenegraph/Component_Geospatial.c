@@ -1,15 +1,32 @@
-/*******************************************************************
- Copyright (C) 2005, 2006 John Stewart, Ayla Khan, Sarah Dumoulin, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/*******************************************************************
+$Id: Component_Geospatial.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-	X3D Geospatial Component
+X3D Geospatial Component
 
+*/
 
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
+
+#include "../x3d_parser/Bindable.h"
+#include "Collision.h"
+#include "quaternion.h"
+#include "Viewer.h"
+
+#include "Polyrep.h"
+#include "LinearAlgebra.h"
+#include "Component_Geospatial.h"
+
+/*
 Coordinate Conversion algorithms were taken from 2 locations after
 reading and comprehending the references. The code selected was
 taken and modified, because the original coders "knew their stuff";
@@ -58,14 +75,6 @@ Geodetic to Geocentric:
 
 
 *********************************************************************/
-#include "headers.h"
-#include "Viewer.h"
-#include "Bindable.h"
-#include "Collision.h"
-#include "Polyrep.h"
-#include "Component_Geospatial.h"
-#include "OpenGL_Utils.h"
-
 
 /* defines used to get a SFVec3d into/outof a function that expects a MFVec3d */
 #define MF_SF_TEMPS	struct Multi_Vec3d mIN; struct Multi_Vec3d  mOUT; struct Multi_Vec3d gdCoords;
@@ -2501,7 +2510,7 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 		node->__movedOrientation.r[2]); 
 	glTranslated(-node->__movedPosition.c[0],-node->__movedPosition.c[1],-node->__movedPosition.c[2]);
 
-	#ifdef CALCULATE HEIGHT HERE
+#ifdef CALCULATE_HEIGHT_HERE
 	/* get the matrix, find out z distance for nearPlane/farPlane calculations */
         fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
         fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
@@ -2509,7 +2518,7 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	/* printf ("modelMatrix %lf %lf %lf\n", modelMatrix[12], modelMatrix[13], modelMatrix[14]);
 	printf ("projMatrix %lf %lf %lf\n", projMatrix[12], projMatrix[13], projMatrix[14]); */
 	geoHeightinZAxis = -modelMatrix[14];
-	#endif
+#endif
 
 
 	/* now, lets work on the GeoViewpoint fieldOfView */

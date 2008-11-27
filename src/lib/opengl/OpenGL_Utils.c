@@ -1,22 +1,36 @@
-/*******************************************************************
- Copyright (C) 1998 Tuomas J. Lukka 2003 John Stewart, Ayla Khan CRC Canada,
- 2007 Daniel Tremblay
- Portions Copyright (C) 1998 John Breen
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
-
 /*
- * $Id: OpenGL_Utils.c,v 1.1 2008/11/26 11:24:13 couannette Exp $
- *
- */
-#include "headers.h"
-#include "Bindable.h"
-#include "CParse.h"
+=INSERT_TEMPLATE_HERE=
+
+$Id: OpenGL_Utils.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
+#include "../vrml_parser/CParseParser.h"
+#include "../vrml_parser/CParseLexer.h"
+#include "../vrml_parser/CParse.h"
+
 #include <float.h>
 
-#include "OpenGL_Utils.h"
+#include "../x3d_parser/Bindable.h"
+
+/* #include "OpenGL_Utils.h" */
+
+
 #ifdef AQUA
 #include <OpenGL.h>
 extern CGLContextObj myglobalContext;
@@ -27,7 +41,6 @@ Window Xwin;
 Window GLwin;
 GLXContext GLcx;
 XVisualInfo *Xvi;
-int fullscreen = 0;
 #endif
 
 void kill_rendering(void);

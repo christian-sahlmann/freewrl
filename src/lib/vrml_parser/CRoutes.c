@@ -1,24 +1,31 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-#include "headers.h"
-#include <math.h>
+$Id: CRoutes.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
+???
 
-#include "jsapi.h"
-#include "jsUtils.h"
-#include "jsNative.h"
-#include "jsVRMLClasses.h"
-#include "CScripts.h"
+*/
 
-#include "SensInterps.h"
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
 
 
-
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
+#include "CParseParser.h"
+#include "CParseLexer.h"
+#include "../world_script/jsUtils.h"
+#include "../world_script/jsNative.h"
+#include "../input/SensInterps.h"
 
 
 /* defines for getting touched flags and exact Javascript pointers */

@@ -144,9 +144,9 @@ PKG_CHECK_MODULES(XML, libxml-2.0)
 # Expat
 EXPAT_LIB=""
 AC_ARG_WITH(expat,AS_HELP_STRING([--with-expat=<dir>],[Use expat from here]),[
-		expat=$withval
-		CPPFLAGS="$CPPFLAGS -I$withval/include"
-		LDFLAGS="$LDFLAGS -L$withval/lib"])
+                expat=$withval
+                CPPFLAGS="$CPPFLAGS -I$withval/include"
+                LDFLAGS="$LDFLAGS -L$withval/lib"])
 
 AC_CHECK_HEADERS(expat.h, [AC_DEFINE(HAVE_EXPAT_H)],
      [AC_MSG_ERROR([Can't find expat.h. Please install expat.])])
@@ -159,28 +159,28 @@ AC_SUBST(EXPAT_LIBS)
 # ===================================
 
 AC_ARG_WITH([target],
-	[AS_HELP_STRING([--with-target],[Select target windowing system (x11,motif,aqua,w32)])],
-	[TARGET=$withval],
-	[TARGET=auto])
+        [AS_HELP_STRING([--with-target],[Select target windowing system (x11,motif,aqua,w32)])],
+        [TARGET=$withval],
+        [TARGET=auto])
 
 test_x11=no
 case "$os_type" in
      win32) # Target available: w32
           TARGET=w32
-	  AC_MSG_FAILURE([Windows not supported yet.])
-	  ;;
+          AC_MSG_FAILURE([Windows not supported yet.])
+          ;;
      mac) # Target available: Aqua
           TARGET=aqua
-	  AC_MSG_FAILURE([Mac not supported yet.])
-	  ;;
+          AC_MSG_FAILURE([Mac not supported yet.])
+          ;;
      *) # Target available: x11,motif
           test_x11=yes
-	  case "$TARGET" in
-	       auto) TARGET=motif ;;
-	       x11|motif) : ;;
-	       *) AC_MSG_FAILURE([Platform is $os_type, target available are: x11,motif.]) ;;
-	  esac
-	  ;;
+          case "$TARGET" in
+               auto) TARGET=motif ;;
+               x11|motif) : ;;
+               *) AC_MSG_FAILURE([Platform is $os_type, target available are: x11,motif.]) ;;
+          esac
+          ;;
 esac
 
 # Aqua
@@ -199,15 +199,15 @@ PKG_CHECK_MODULES(XAW, xproto x11 xt xmu xaw7)
 
 # Check for XFree86/Xorg VMODE extension
 AC_CHECK_HEADERS(X11/extensions/xf86vmode.h,
-	[ dnl *** If X11/extensions/xf86vmode.h exists...
-	AC_CHECK_LIB(Xxf86vm, XF86VidModeQueryExtension,
-		[AC_DEFINE(HAVE_XF86_VMODE, 1, [Define if you have the Xxf86vm library.])
-			X_PRE_LIBS="$X_PRE_LIBS -lXxf86vm"
-		],,
-		$X_LIBS -lXext -lX11 $X_EXTRA_LIBS)
-	],
-	AC_MSG_WARN([[XFree86 VMODE extension not found, Wine will be built without it]]),
-	[#include <X11/Xlib.h>])
+        [ dnl *** If X11/extensions/xf86vmode.h exists...
+        AC_CHECK_LIB(Xxf86vm, XF86VidModeQueryExtension,
+                [AC_DEFINE(HAVE_XF86_VMODE, 1, [Define if you have the Xxf86vm library.])
+                        X_PRE_LIBS="$X_PRE_LIBS -lXxf86vm"
+                ],,
+                $X_LIBS -lXext -lX11 $X_EXTRA_LIBS)
+        ],
+        AC_MSG_WARN([[XFree86 VMODE extension not found, Wine will be built without it]]),
+        [#include <X11/Xlib.h>])
 fi
 
 if test "$TARGET" = motif ; then
@@ -260,7 +260,16 @@ AC_MY_SWITCH(plugin,[enable building of browser plugin],on,[
 ])
 AC_SUBST(MAYBE_PLUGIN)
 
-# FreeX3D help programs
+# FreeX3D helpers programs
+
+# FIXME: environment variable BROWSER takes precedent over --with-browser= ???
+AC_ARG_VAR([BROWSER], [Path to Internet browser.])
+AC_PATH_PROG([BROWSER], [firefox], [no])
+if test "$BROWSER" = "no"; then
+  AC_MSG_ERROR([Internet browser is required])
+fi
+AC_DEFINE_UNQUOTED(BROWSER, "$BROWSER", [Path to Internet browser.])
+
 AC_ARG_VAR([SOUNDCONV], [Path to sox (sound conversion program).])
 AC_PATH_PROG([SOUNDCONV], [sox], [no])
 if test "$SOUNDCONV" = "no"; then
@@ -288,6 +297,32 @@ if test "$IMAGECONVERT" = "no"; then
   AC_MSG_ERROR([unzip is required])
 fi
 AC_DEFINE_UNQUOTED(IMAGECONVERT, "$WGET", [Path to convert (image conversion program).])
+
+# =======
+# Targets
+# =======
+
+FREEX3D_PROGRAM="freex3d"
+FREEX3D_SOUND_MANAGER="freex3d_snd"
+FREEX3D_MESSAGE_WRAPPER="freex3d_msg"
+case $os_type in
+     # FIXME: name of plugin?
+     win32) FREEX3D_PLUGIN="plugin_windows.dll" ;;
+     mac)   FREEX3D_PLUGIN="plugin_max.idontknow" ;;
+     unix)  FREEX3D_PLUGIN="npfreex3d.so" ;;
+esac
+
+AC_SUBST(FREEX3D_PROGRAM)
+AC_DEFINE_UNQUOTED(FREEX3D_PROGRAM, "$FREEX3D_PROGRAM", [The FreeX3D program name.])
+
+AC_SUBST(FREEX3D_SOUND_MANAGER)
+AC_DEFINE_UNQUOTED(FREEX3D_SOUND_MANAGER, "$FREEX3D_SOUND_MANAGER", [The FreeX3D sound wrapper program name.])
+
+AC_SUBST(FREEX3D_MESSAGE_WRAPPER)
+AC_DEFINE_UNQUOTED(FREEX3D_MESSAGE_WRAPPER, "$FREEX3D_MESSAGE_WRAPPER", [The FreeX3D message wrapper program name.])
+
+AC_SUBST(FREEX3D_PLUGIN)
+AC_DEFINE_UNQUOTED(FREEX3D_PLUGIN, "$FREEX3D_PLUGIN", [The FreeX3D plugin shared object name.])
 
 
 # Final generation

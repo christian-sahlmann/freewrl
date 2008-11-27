@@ -1,11 +1,15 @@
-/* General header for VRML-parser (lexer/parser) */
+/*
+=INSERT_TEMPLATE_HERE=
 
-#ifndef CPARSEGENERAL_H
-#define CPARSEGENERAL_H
+$Id: CParseGeneral.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include <stdio.h>
+General header for VRML-parser (lexer/parser)
 
-#include "headers.h"
+*/
+
+#ifndef __FREEX3D_CPARSE_GENERAL_H__
+#define __FREEX3D_CPARSE_GENERAL_H__
+
 
 /* Typedefs for VRML-types. */
 typedef int	vrmlBoolT;
@@ -58,4 +62,5 @@ union anyVrml
 #define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
 void fw_assert(char *,int);
 
-#endif /* Once-check */
+
+#endif /* __FREEX3D_CPARSE_GENERAL_H__ */

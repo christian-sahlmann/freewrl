@@ -1,21 +1,40 @@
-/*******************************************************************
-  Copyright (C) 2007 John Stewart, CRC Canada.
-  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
-  See the GNU Library General Public License (file COPYING in the distribution)
-  for conditions of use and redistribution.
- *********************************************************************/
-
-
-
 /*
- * $Id: PluginSocket.c,v 1.1 2008/11/26 11:24:13 couannette Exp $
- *
- * Common functions used by Mozilla and Netscape plugins...(maybe
- * PluginGlue too?)
- */
+=INSERT_TEMPLATE_HERE=
 
-#include "headers.h"
+$Id: PluginSocket.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+/* #include "../vrml_parser/CParseGeneral.h" */
+/* #include "../scenegraph/Vector.h" */
+/* #include "../vrml_parser/CFieldDecls.h" */
+/* #include "../world_script/CScripts.h" */
+/* #include "../vrml_parser/CParseParser.h" */
+/* #include "../vrml_parser/CParseLexer.h" */
+/* #include "../vrml_parser/CParse.h" */
+
+/* #include <float.h> */
+
+#include "../x3d_parser/Bindable.h"
+/* #include "../scenegraph/Collision.h" */
+/* #include "../scenegraph/quaternion.h" */
+/* #include "../scenegraph/Viewer.h" */
+
+#include "pluginUtils.h"
 #include "PluginSocket.h"
+
+
 #ifdef F_SETSIG
 #define FSIGOK
 #endif

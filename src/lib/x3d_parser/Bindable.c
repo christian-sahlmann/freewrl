@@ -1,20 +1,33 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/*****************************************
+$Id: Bindable.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
-******************************************/
-#include "headers.h"
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
+#include "../vrml_parser/CParseParser.h"
+#include "../vrml_parser/CParseLexer.h"
 
 #include "Bindable.h"
-#include "Viewer.h"
-#include "Component_Geospatial.h"
+#include "../scenegraph/quaternion.h"
+#include "../scenegraph/Viewer.h"
+#include "../scenegraph/Component_Geospatial.h"
+
 
 /* Viewport data */
 GLint viewPort[10];

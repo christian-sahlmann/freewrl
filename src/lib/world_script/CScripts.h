@@ -1,13 +1,14 @@
-/* Class to wrap a java script for CParser */
+/*
+=INSERT_TEMPLATE_HERE=
 
-#ifndef CSCRIPTS_H
-#define CSCRIPTS_H
+$Id: CScripts.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include "headers.h"
-#include "Vector.h"
+Class to wrap a java script for CParser
 
-#include "CFieldDecls.h"
-#include "CParseGeneral.h"
+*/
+
+#ifndef __FREEX3D_CSCRIPTS_H__
+#define __FREEX3D_CSCRIPTS_H__
 
 
 /* ************************************************************************** */
@@ -48,7 +49,7 @@ struct ScriptFieldInstanceInfo {
 
 /* Constructor and destructor */
 /* ************************** */
-
+struct VRMLLexer;
 struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer*, indexT, indexT, indexT);
 struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDecl*, struct Shader_Script*);
 struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer*, struct ScriptFieldDecl*);
@@ -128,4 +129,6 @@ struct CRscriptStruct {
 	char *scriptText;
 	struct ScriptParamList *paramList;
 };
-#endif /* Once-check */
+
+
+#endif /* __FREEX3D_CSCRIPTS_H__ */

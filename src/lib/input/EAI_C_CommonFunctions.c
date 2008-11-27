@@ -1,24 +1,38 @@
-/*******************************************************************
-Copyright (C) 2007 John Stewart (CRC Canada)
-DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
-See the GNU Library General Public License (file COPYING in the distribution)
-for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/* Common functions between the FreeWRL code and the ReWire C code */
-#ifdef  REWIRE
-	#include "Eai_C.h"
-	#define ADD_PARENT(a,b)
-	#define MALLOC(a) malloc(a)
-	int eaiverbose = FALSE;
-#else
-	#include "headers.h"
+$Id: EAI_C_CommonFunctions.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
+#include "../vrml_parser/CParseParser.h"
+#include "../vrml_parser/CParseLexer.h"
+#include "EAIheaders.h"
 
 
+/* TODO: clean-up Rewire */
+#ifdef REWIRE
+# include "Eai_C.h"
+# define ADD_PARENT(a,b)
+# define MALLOC(a) malloc(a)
 #endif
 
-#include "CParse.h"
-#include "CParseParser.h"
+int eaiverbose = FALSE;
 
 #define PST_MF_STRUCT_ELEMENT(type1,type2) \
 	case FIELDTYPE_MF##type1: { \

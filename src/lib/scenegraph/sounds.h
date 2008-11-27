@@ -1,48 +1,14 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/* include file for sound engine client/server */
+$Id: sounds.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
+Sound engine client code
 
-#ifndef __SOUNDS_H__
-#define __SOUNDS_H__
+*/
 
-#include "headers.h"
-
-#include <math.h>
-
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
-
-
-#ifndef __APPLE__
-#include <sys/msg.h>
-
-/* from Ian Stakenvicius */
-#if defined(__linux__)
-#include <unistd.h>
-#endif
-#endif
-#if defined(__APPLE__)
-#include <unistd.h>
-#include <sys/uio.h>
-#include <sys/ipc.h>
-#endif
+#ifndef __FREEX3D_SOUND_CLIENT_H__
+#define __FREEX3D_SOUND_CLIENT_H__
 
 
 #define SNDMAXMSGSIZE 256
@@ -86,4 +52,5 @@ SoundSourceInit(int num,
 void
 SetAudioActive(int num, int stat);
 
-#endif /* __SOUNDS_H__ */
+
+#endif /* __FREEX3D_SOUND_CLIENT_H__ */

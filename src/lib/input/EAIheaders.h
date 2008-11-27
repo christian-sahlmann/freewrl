@@ -1,4 +1,17 @@
-/* headers for EAI and java CLASS invocation */
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: EAIheaders.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+EAI and java CLASS invocation
+
+*/
+
+#ifndef __FREEX3D_EAI_H__
+#define __FREEX3D_EAI_H__
+
+
+int eaiverbose;
 
 /* function prototypes */
 void handle_Listener (void);
@@ -123,3 +136,6 @@ extern char EAIListenerArea[40];
 #define MIDI_CONTROLLER_FADER 1
 #define MIDI_CONTROLLER_KEYPRESS 2
 #define MIDI_CONTROLLER_UNKNOWN 999
+
+
+#endif /* __FREEX3D_EAI_H__ */

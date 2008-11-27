@@ -1,46 +1,44 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
-
-#include "headers.h"
-#include "PluginSocket.h"
-
-#include "jsapi.h"
-#include "jsUtils.h"
-#include "jsNative.h"
-#include "jsVRMLClasses.h"
-#include "CScripts.h"
-
-
 /*
- * handle X events.
- */
+=INSERT_TEMPLATE_HERE=
 
-#include <unistd.h>
-#include <stdio.h>
-#include "Bindable.h"
+$Id: MainLoop.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+CProto ???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../world_script/jsUtils.h"
+#include "../world_script/CScripts.h"
 #include "Snapshot.h"
-#include "EAIheaders.h"
+#include "../scenegraph/Collision.h"
+#include "../scenegraph/quaternion.h"
+#include "../scenegraph/Viewer.h"
+#include "../input/SensInterps.h"
+#include "../x3d_parser/Bindable.h"
+#include "../input/EAIheaders.h"
 
-#include "OpenGL_Utils.h"
-#include "Viewer.h"
-#include "Collision.h"
-#include "SensInterps.h"
 
 #ifndef AQUA
-	#define SENSOR_CURSOR cursor= sensorc;
-	#define ARROW_CURSOR  cursor = arrowc;
+# define SENSOR_CURSOR cursor= sensorc;
+# define ARROW_CURSOR  cursor = arrowc;
 #else
-	#define SENSOR_CURSOR 	ccurse = SCURSE;
-	#define ARROW_CURSOR    ccurse = ACURSE;
+# define SENSOR_CURSOR ccurse = SCURSE;
+# define ARROW_CURSOR  ccurse = ACURSE;
 #endif
+
 
 /* do we want OpenGL errors to be printed to the console?? */
 int displayOpenGLErrors = FALSE;
-
 
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;
@@ -74,9 +72,7 @@ static char debs[300];
 	void handle_Xevents(XEvent event);
 #endif
 
-#include <pthread.h>
-pthread_t DispThrd = 0;
-int eaiverbose = FALSE;
+pthread_t DispThrd = -1;
 char* threadmsg;
 char* PluginFullPath;
 
@@ -237,8 +233,8 @@ char *fw_strndup (const char *str, int len) {
 }
 
 /* a simple routine to allow the front end to get our version */
-char *getLibVersion() {
-	return (FWVER);
+const char *getLibVersion() {
+	return libFreeX3D_get_version();
 }
 
 /* Main eventloop for FreeWRL!!! */
@@ -283,7 +279,7 @@ void EventLoop() {
 	TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 	
 	/* any scripts to do?? */
-	INITIALIZE_ANY_SCRIPTS
+	INITIALIZE_ANY_SCRIPTS;
 
 	/* has the default background changed? */
 	if (cc_changed) doglClearColor();
@@ -1129,14 +1125,15 @@ void setInstance (uintptr_t instance) {
 }
 
 /* osx Safari plugin is telling us where the initial file is */
-void setFullPath(const char* file) {
-	if (!be_collision) {
-		char ks = 'c';
-		do_keyPress(ks, KeyPress);
-	}
-	FREE_IF_NZ (BrowserFullPath);
-	BrowserFullPath = STRDUP((char *) file);
-	/* printf ("setBrowserFullPath is %s (%d)\n",BrowserFullPath,strlen(BrowserFullPath));  */
+void setFullPath(const char* file) 
+{
+    if (!be_collision) {
+	char ks = 'c';
+	do_keyPress(ks, KeyPress);
+    }
+    FREE_IF_NZ (BrowserFullPath);
+    BrowserFullPath = STRDUP((char *) file);
+    /* printf ("setBrowserFullPath is %s (%d)\n",BrowserFullPath,strlen(BrowserFullPath));  */
 }
 
 
@@ -1545,26 +1542,26 @@ void *freewrlStrdup (int line, char *file, char *str) {
 
 
 /* quit key pressed, or Plugin sends SIGQUIT */
-void doQuit(void) {
-	STOP_DISPLAY_THREAD
+void doQuit()
+{
+    STOP_DISPLAY_THREAD;
 
-	kill_oldWorld(TRUE,TRUE,TRUE);
+    kill_oldWorld(TRUE,TRUE,TRUE);
 
-	/* set geometry to normal size from fullscreen */
-	#ifndef AQUA
-	resetGeometry();
-	#endif
+    /* set geometry to normal size from fullscreen */
+#ifndef AQUA
+    resetGeometry();
+#endif
 
-	/* kill any remaining children */
-	killErrantChildren();
+    /* kill any remaining children */
+    killErrantChildren();
+    
+#ifdef DEBUG_MALLOC
+    void scanMallocTableOnQuit(void);
+    scanMallocTableOnQuit();
+#endif
 
-	#ifdef DEBUG_MALLOC
-	void scanMallocTableOnQuit(void);
-	scanMallocTableOnQuit();
-	#endif
-
-
-	exit(EXIT_SUCCESS);
+    exit(EXIT_SUCCESS);
 }
 
 void freewrlDie (const char *format) {

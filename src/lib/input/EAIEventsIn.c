@@ -1,31 +1,24 @@
-/*******************************************************************
- Copyright (C) 1998 Tuomas J. Lukka 2003,2005 John Stewart, Ayla Khan CRC Canada
- Portions Copyright (C) 1998 John Breen
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/************************************************************************
+$Id: EAIEventsIn.c,v 1.2 2008/11/27 00:27:17 couannette Exp $
 
-EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
+Handle incoming EAI (and java class) events with panache.
 
-************************************************************************/
+*/
 
-#include "headers.h"
-#include "CParse.h"
-#include "CParseParser.h"
-#include "CProto.h"
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
 
-#include "Viewer.h"
-#include <sys/time.h>
+#include <libFreeX3D.h>
 
-/* include socket.h for irix and apple */
-#ifndef LINUX
-#include <sys/socket.h>
-#endif
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
 
-#include "EAIheaders.h"
+#include "../input/EAIheaders.h"
+
 
 #define EAI_BUFFER_CUR EAIbuffer[bufPtr]
 
@@ -184,7 +177,8 @@ void EAI_parse_commands () {
 				if (eaiverbose) {
 					printf ("GETVERSION\n");
 				}
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,FWVER);
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,
+					 libFreeX3D_get_version());
 				break;
 				}
 			case GETENCODING: {

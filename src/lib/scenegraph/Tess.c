@@ -1,10 +1,22 @@
-/*******************************************************************
- Copyright (C) 1998 Tuomas J. Lukka
- Copyright (C) 2002 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: Tess.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
+
 
 /*********************************************************************
  * General tessellation functions
@@ -23,16 +35,6 @@
  * global_tess_polyrep->ntri will contain the absolute
  * number of triangles in global_tess_polyrep after tessellation.
  */
-
-
-#include <math.h>
-#include "headers.h"
-
-#ifdef AQUA
-typedef GLvoid (*_GLUfuncptr)(GLvoid);
-#endif
-
-
 
 GLUtriangulatorObj *global_tessobj;
 struct X3D_PolyRep *global_tess_polyrep=NULL;

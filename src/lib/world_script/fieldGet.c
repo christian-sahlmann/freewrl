@@ -1,14 +1,36 @@
-/*******************************************************************
- Copyright (C) 2006 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-#include "headers.h"
-#include "EAIheaders.h"
+$Id: fieldGet.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+Javascript C language binding.
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../world_script/jsUtils.h"
+#include "../world_script/CScripts.h"
+#include "../main/Snapshot.h"
+#include "../scenegraph/Collision.h"
+#include "../scenegraph/quaternion.h"
+#include "../scenegraph/Viewer.h"
+#include "../input/EAIheaders.h"
+#include "../input/SensInterps.h"
+#include "../x3d_parser/Bindable.h"
+
+#include "jsUtils.h"
+#include "jsNative.h"
 #include "jsVRMLClasses.h"
-#include "CScripts.h"
+
 
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
 int setMFElementtype (uintptr_t num);

@@ -1,37 +1,19 @@
 /*
- * Copyright (C) 1998 Tuomas J. Lukka, 2002, 2007  John Stewart, Ayla Khan CRC Canada
- * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- * See the GNU Library General Public License
- * (file COPYING in the distribution) for conditions of use and
- * redistribution, EXCEPT on the files which belong under the
- * Mozilla public license.
- *
- * $Id: jsVRMLClasses.h,v 1.1 2008/11/26 11:24:15 couannette Exp $
- *
- * Complex VRML nodes as Javascript classes.
- *
- */
+=INSERT_TEMPLATE_HERE=
 
-#ifndef __jsVRMLClasses_h__
-#define  __jsVRMLClasses_h__
+$Id: jsVRMLClasses.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+Complex VRML nodes as Javascript classes.
+
+*/
+
+#ifndef __FREEX3D_JS_VRML_CLASSES_H__
+#define __FREEX3D_JS_VRML_CLASSES_H__
+
 
 #ifndef UNUSED
 #define UNUSED(v) ((void) v)
 #endif
-
-#include <math.h>
-#include "LinearAlgebra.h" /* FreeWRL math */
-#include "quaternion.h" /* more math */
-
-#ifndef __jsUtils_h__
-#include "jsUtils.h"
-#endif /* __jsUtils_h__ */
-
-#ifndef __jsNative_h__
-#include "jsNative.h"
-#endif /* __jsNative_h__ */
-
-#include "jsVRMLBrowser.h"
 
 #define INIT_ARGC_NODE 1
 #define INIT_ARGC 0
@@ -991,4 +973,5 @@ JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval 
 JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 #endif
 
-#endif /*  __jsVRMLClasses_h__ */
+
+#endif /*  JS_VRML_CLASSES */

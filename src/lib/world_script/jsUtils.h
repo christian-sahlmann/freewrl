@@ -1,25 +1,25 @@
 /*
- * Copyright (C) 1998 Tuomas J. Lukka, 2002 John Stewart, Ayla Khan CRC Canada
- * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- * See the GNU Library General Public License
- * (file COPYING in the distribution) for conditions of use and
- * redistribution, EXCEPT on the files which belong under the
- * Mozilla public license.
- *
- * $Id: jsUtils.h,v 1.1 2008/11/26 11:24:15 couannette Exp $
- */
+=INSERT_TEMPLATE_HERE=
 
-#ifndef __jsUtils_h__
-#define __jsUtils_h__
+$Id: jsUtils.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include <stdlib.h>
-#include <stdarg.h>
-#include <stdio.h>
+CProto.h - this is the object representing a PROTO definition and being
+capable of instantiating it.
+ 
+We keep a vector of pointers to all that pointers which point to "inner
+memory" and need therefore be updated when copying.  Such pointers include
+field-destinations and parts of ROUTEs.  Those pointers are then simply
+copied, their new positions put in the new vector, and afterwards are all
+pointers there updated.
 
-#include "jsapi.h" /* JS compiler */
-#include "jsdbgapi.h" /* JS debugger */
+*/
 
-#include "headers.h"
+#ifndef __FREEX3D_JS_UTILS_H__
+#define __FREEX3D_JS_UTILS_H__
+
+
+#include <jsapi.h> /* JS compiler */
+#include <jsdbgapi.h> /* JS debugger */
 
 #ifndef FALSE
 #define FALSE 0
@@ -105,4 +105,5 @@ void JSInit(uintptr_t num);
 void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, jsval *ret);
 JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 
-#endif /* __jsUtils_h__ */
+
+#endif /* __FREEX3D_JS_UTILS_H__ */

@@ -1,4 +1,23 @@
 /*
+=INSERT_TEMPLATE_HERE=
+
+$Id: MPEG_Utils.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
+
+/*
  * Copyright (c) 1995 The Regents of the University of California.
  * All rights reserved.
  *
@@ -40,39 +59,7 @@
  * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-/* ones in headers.h, but we dont include this here */
-#include "vrmlconf.h"
-#include "headers.h"
-
-
-
-
-#ifndef AQUA
-#include <stdlib.h>
-#include <math.h>
-#include <stdio.h>
-#endif
-#include <assert.h>
-
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
 #include "mpeg.h"
-
-#include <sys/time.h>
-
-#ifdef __STDC__
-#include <stdlib.h>
-#endif
-
-#include <netinet/in.h>
 
 #define NO_SANITY_CHECKS
 extern const int zigzag_direct[];

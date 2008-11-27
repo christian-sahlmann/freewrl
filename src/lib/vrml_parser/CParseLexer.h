@@ -1,21 +1,22 @@
-/* Lexer (input of terminal symbols) for CParse */
+/*
+=INSERT_TEMPLATE_HERE=
 
-#ifndef CPARSELEXER_H
-#define CPARSELEXER_H
+$Id: CParseLexer.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include "headers.h"
-#include "Vector.h"
+Lexer (input of terminal symbols) for CParse
 
-#include "CParseGeneral.h"
+Tables of user-defined IDs: userNodeNames (DEFs) is scoped with a
+simple stack, as every PROTO has its scope completely *different* from
+the rest of the world.  userNodeTypes (PROTO definitions) needs to be
+available up through the whole stack, values are stored in a vector,
+and the indices where each stack level ends are stored in a stack.
+fields are not scoped and therefore stored in a simple vector.
 
-/* Tables of user-defined IDs:
- * userNodeNames (DEFs) is scoped with a simple stack, as every PROTO has its
-   scope completely *different* from the rest of the world.
- * userNodeTypes (PROTO definitions) needs to be available up through the whole
-   stack, values are stored in a vector, and the indices where each stack level
-   ends are stored in a stack.
- * fields are not scoped and therefore stored in a simple vector.
- */
+*/
+
+#ifndef __FREEX3D_CPARSE_LEXER_H__
+#define __FREEX3D_CPARSE_LEXER_H__
+
 
 /* Undefined ID (for special "class", like builtIn and exposed) */
 #ifdef ID_UNDEFINED
@@ -148,4 +149,5 @@ void skipToEndOfOpenCurly(struct VRMLLexer *me, int level);
 
 void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b);
 
-#endif /* Once-check */
+
+#endif /* __FREEX3D_CPARSE_LEXER_H__ */

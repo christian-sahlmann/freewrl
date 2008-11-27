@@ -1,12 +1,23 @@
-/*******************************************************************
- * Copyright (C) 2004 John Stewart, CRC Canada.
- * Copyright (C) 2000 2002 John Stewart, CRC Canada.
- * Copyright (C) 1998 Bernhard Reiter and Tuomas J. Lukka
- *
- * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- * See the GNU Library General Public License (file COPYING in the distribution)
- * for conditions of use and redistribution.
- **********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: GenPolyRep.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
+
+#include "Polyrep.h"
 
 /*****************************************
  *
@@ -18,9 +29,6 @@
  * Polyreps are streamed in Polyrep.c
  *
  *******************************************/
-
-#include "headers.h"
-#include "Polyrep.h"
 
 #define X3DCOMPOSED_STRING(f) ( \
         f == NODE_IndexedFaceSet          ? "IndexedFaceSet" : ( \

@@ -4,16 +4,16 @@
  *
  * main.c
  *
- * $Id: main.c,v 1.6 2008/11/19 18:19:12 couannette Exp $
+ * $Id: main.c,v 1.7 2008/11/27 00:27:17 couannette Exp $
  *
  *******************************************************************/
 
-#include "config.h"
-#include "system.h"
-#include "display.h"
-#include "internal.h"
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
 
-#include "libFreeX3D.h"
+#include <libFreeX3D.h>
 
 
 /**

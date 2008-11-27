@@ -1,29 +1,40 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-#include <stdio.h>
+$Id: ProdCon.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+CProto ???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
 #include "headers.h"
-#include "installdir.h"
-#include "PluginSocket.h"
-#include "Bindable.h"
-#include "CParse.h"
-#include <pthread.h>
+#include "../vrml_parser/CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
+#include "../vrml_parser/CParseParser.h"
+#include "../vrml_parser/CParseLexer.h"
+#include "../vrml_parser/CParse.h"
+#include "../world_script/jsUtils.h"
+#include "Snapshot.h"
+#include "../scenegraph/Collision.h"
+#include "../scenegraph/quaternion.h"
+#include "../scenegraph/Viewer.h"
+#include "../input/SensInterps.h"
+#include "../x3d_parser/Bindable.h"
+#include "../input/EAIheaders.h"
 
-#ifndef __jsUtils_h__
-#include "jsUtils.h" /* misc helper C functions and globals */
-#endif
+/* #include "jsVRMLBrowser.h" /\* VRML browser script interface implementation *\/ */
+/* #include "jsVRMLClasses.h" /\* VRML field type implementation *\/ */
 
-#ifndef __jsVRMLBrowser_h__
-#include "jsVRMLBrowser.h" /* VRML browser script interface implementation */
-#endif
-
-#include "jsVRMLClasses.h" /* VRML field type implementation */
-
-#include "Viewer.h"
 
 #define MAX_RUNTIME_BYTES 0x100000L
 #define STACK_CHUNK_SIZE 0x2000L
@@ -229,26 +240,23 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
  * Check to see if the file name is a local file, or a network file.
  * return TRUE if it looks like a file from the network, false if it
  * is local to this machine
-
  * October 2007 - Michel Briand suggested the https:// lines.
-
  */
-
-
-int checkNetworkFile(char *fn) {
-	if ((strncmp(fn,"ftp://", strlen("ftp://"))) &&
-	   (strncmp(fn,"FTP://", strlen("FTP://"))) &&
-	   (strncmp(fn,"http://", strlen("http://"))) &&
-	   (strncmp(fn,"HTTP://", strlen("HTTP://"))) &&
-	   (strncmp(fn,"https://", strlen("https://"))) &&
-	   (strncmp(fn,"HTTPS://", strlen("HTTPS://"))) &&
-	   (strncmp(fn,"file://", strlen("file://"))) &&
-	   (strncmp(fn,"FILE://", strlen("FILE://"))) &&
-	   (strncmp(fn,"urn://", strlen("urn://"))) &&
-	   (strncmp(fn,"URN://", strlen("URN://")))) {
-	   return FALSE;
-	}
-	return TRUE;
+int checkNetworkFile(char *fn) 
+{
+    if ((strncmp(fn,"ftp://", strlen("ftp://"))) &&
+	(strncmp(fn,"FTP://", strlen("FTP://"))) &&
+	(strncmp(fn,"http://", strlen("http://"))) &&
+	(strncmp(fn,"HTTP://", strlen("HTTP://"))) &&
+	(strncmp(fn,"https://", strlen("https://"))) &&
+	(strncmp(fn,"HTTPS://", strlen("HTTPS://"))) &&
+	(strncmp(fn,"file://", strlen("file://"))) &&
+	(strncmp(fn,"FILE://", strlen("FILE://"))) &&
+	(strncmp(fn,"urn://", strlen("urn://"))) &&
+	(strncmp(fn,"URN://", strlen("URN://")))) {
+	return FALSE;
+    }
+    return TRUE;
 }
 
 
@@ -349,64 +357,65 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 
 /* filename is MALLOC'd, combine pspath and thisurl to make an
    absolute file name */
-void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
-	char *end;
+void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl)
+{
+    char *end;
 
-	/* remove whitespace from beginning and ends of pspath and thisurl */
-	while ((*pspath <= ' ') && (*pspath != '\0')) pspath++;
-	while ((*thisurl <= ' ') && (*thisurl != '\0')) thisurl++;
+    /* remove whitespace from beginning and ends of pspath and thisurl */
+    while ((*pspath <= ' ') && (*pspath != '\0')) pspath++;
+    while ((*thisurl <= ' ') && (*thisurl != '\0')) thisurl++;
 
-	if (*pspath != '\0') {
-		end = strchr(pspath,'\0'); 
-		while ((*end <= ' ') && (end != pspath)) end--; end++; *end = '\0';
-	}
+    if (*pspath != '\0') {
+        end = strchr(pspath,'\0'); 
+        while ((*end <= ' ') && (end != pspath)) end--; end++; *end = '\0';
+    }
 
-	if (*thisurl != '\0') {
-		end = strchr(thisurl,'\0'); 
-		while ((*end <= ' ') && (end != thisurl)) end--; end++; *end = '\0';
-	}
-	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl);  */
+    if (*thisurl != '\0') {
+        end = strchr(thisurl,'\0'); 
+        while ((*end <= ' ') && (end != thisurl)) end--; end++; *end = '\0';
+    }
+    /* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl);  */
 
-	/* does this name start off with a ftp, http, or a "/"? */
-	if ((!checkNetworkFile(thisurl)) && (strncmp(thisurl,"/",strlen("/"))!=0)) {
-		/* printf ("copying psppath over for %s\n",thisurl); */
-		strcpy (filename,pspath);
-		/* do we actually have anything here? */
-		if (strlen(pspath) > 0) {
-			if (pspath[strlen(pspath)-1] != '/')
-				strcat (filename,"/");
-		}
+    /* does this name start off with a ftp, http, or a "/"? */
+    if ((!checkNetworkFile(thisurl)) && (strncmp(thisurl,"/",strlen("/"))!=0)) {
+        /* printf ("copying psppath over for %s\n",thisurl); */
+        strcpy (filename,pspath);
+        /* do we actually have anything here? */
+        if (strlen(pspath) > 0) {
+            if (pspath[strlen(pspath)-1] != '/')
+                strcat (filename,"/");
+        }
 
-		/* does this "thisurl" start with file:, as in "freewrl file:test.wrl" ? */
-		if ((strncmp(thisurl,"file:",strlen("file:"))==0) || 
-				(strncmp(thisurl,"FILE:",strlen("FILE:"))==0)) {
-			/* printf ("stripping file off of start\n"); */
-			thisurl += strlen ("file:");
+        /* does this "thisurl" start with file:, as in "freewrl file:test.wrl" ? */
+        if ((strncmp(thisurl,"file:",strlen("file:"))==0) || 
+            (strncmp(thisurl,"FILE:",strlen("FILE:"))==0)) {
+            /* printf ("stripping file off of start\n"); */
+            thisurl += strlen ("file:");
 
-			/* now, is this a relative or absolute filename? */
-			if (strncmp(thisurl,"/",strlen("/")) !=0) {
-				/* printf ("we have a leading slash after removing file: from name\n");
-				printf ("makeAbsolute, going to copy %s to %s\n",thisurl, filename); */
-				strcat(filename,thisurl);
-			
-			} else {
-				/* printf ("we have no leading slash after removing file: from name\n"); */
-				strcpy (filename,thisurl);
-			}	
-			
-		} else {
-			/* printf ("makeAbsolute, going to copy %s to %s\n",thisurl, filename); */
-			strcat(filename,thisurl);
+            /* now, is this a relative or absolute filename? */
+            if (strncmp(thisurl,"/",strlen("/")) !=0) {
+                /* printf ("we have a leading slash after removing file: from name\n");
+                   printf ("makeAbsolute, going to copy %s to %s\n",thisurl, filename); */
+                strcat(filename,thisurl);
+                        
+            } else {
+                /* printf ("we have no leading slash after removing file: from name\n"); */
+                strcpy (filename,thisurl);
+            }   
+                        
+        } else {
+            /* printf ("makeAbsolute, going to copy %s to %s\n",thisurl, filename); */
+            strcat(filename,thisurl);
 
-		}
+        }
 
 
-	} else {
-		strcpy (filename,thisurl);
-	}
+    } else {
+        strcpy (filename,thisurl);
+    }
 
-	/* and, return in the ptr filename, the filename created... */
-	 /* printf ("makeAbsoluteFileName, just made :%s:\n",filename); */
+    /* and, return in the ptr filename, the filename created... */
+    /* printf ("makeAbsoluteFileName, just made :%s:\n",filename); */
 }
 
 

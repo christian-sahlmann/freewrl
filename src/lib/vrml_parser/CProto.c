@@ -1,21 +1,31 @@
-/*******************************************************************
-  Copyright (C) 2007, 2008 Daniel Kraft,  John Stewart, CRC Canada.
-  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
-  See the GNU Library General Public License (file COPYING in the distribution)
-  for conditions of use and redistribution.
- *********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
+$Id: CProto.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-/* CProto.c - Sourcecode for CProto.h */
-/* TODO:  Pointer updating could be made more efficient! */
+CProto ???
 
-#include <stdlib.h>
-#include <assert.h>
+*/
 
-#include "CProto.h"
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
 #include "CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
+#include "CProto.h"
+
+
+/* TODO:  Pointer updating could be made more efficient! */
 
 #undef CPROTOVERBOSE
 
@@ -312,7 +322,8 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
 }
 
 /* Copies the PROTO */
-struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct ProtoDefinition* me) {
+struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct ProtoDefinition* me)
+{
 	struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
 	size_t i;
 
@@ -906,7 +917,8 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 }
 
 /* find the proto field declare for a particular proto */
-struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID) {
+struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID)
+{
 	indexT retUO;
 	const char** userArr;
 	size_t userCnt;

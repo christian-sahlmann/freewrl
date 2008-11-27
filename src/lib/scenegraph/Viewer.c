@@ -1,18 +1,25 @@
-/*******************************************************************
- Copyright (C) 1998 Tuomas J. Lukka 2003 John Stewart, Ayla Khan CRC Canada
- Portions Copyright (C) 1998 John Breen
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
-
 /*
- * $Id: Viewer.c,v 1.1 2008/11/26 11:24:14 couannette Exp $
- *
- */
+=INSERT_TEMPLATE_HERE=
 
-#include "headers.h"
+$Id: Viewer.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+CProto ???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+
+#include "quaternion.h"
 #include "Viewer.h"
+
 
 static int viewer_type = NONE;
 int viewer_initialized = FALSE;

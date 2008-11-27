@@ -1,11 +1,21 @@
-/* $Id: Collision.c,v 1.1 2008/11/26 11:24:13 couannette Exp $
- *
- * Copyright (C) 2002 Nicolas Coderre CRC Canada
- * Copyright (C) 2003 John Stewart CRC Canada
- * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- * See the GNU Library General Public License (file COPYING in the distribution)
- * for conditions of use and redistribution.
- */
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: Collision.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+Render the children of nodes.
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+
 #include "Collision.h"
 
 
@@ -1312,8 +1322,9 @@ struct point_XYZ cylinder_disp(double y1, double y2, double ystep, double r, str
 	make_orthogonal_vector_space(&bn,&tmpj,tmpn);
     }
     vecscale(&sidebase,&bn,baseradius);
-    sidetop = top; VECADD(sidetop,sidebase)
-		       VECADD(sidebase,base);
+    sidetop = top; 
+    VECADD(sidetop,sidebase);
+    VECADD(sidebase,base);
 
     /* find normals ;*/
     h = vecnormal(&i,&i);

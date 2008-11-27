@@ -1,27 +1,14 @@
 /*
- * $Id: PluginSocket.h,v 1.1 2008/11/26 11:24:13 couannette Exp $
- */
+=INSERT_TEMPLATE_HERE=
 
-#ifndef __pluginSocket_h__
-#define __pluginSocket_h__
+$Id: PluginSocket.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
+FreeWRL plugin utilities header file.
 
-#ifndef AQUA
+*/
 
-#include <unistd.h>
-
-#endif /* AQUA */
-
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-
-#include "pluginUtils.h"
+#ifndef __FREEX3D_PLUGIN_SOCKET_H__
+#define __FREEX3D_PLUGIN_SOCKET_H__
 
 
 #ifdef __cplusplus
@@ -44,4 +31,4 @@ int receiveUrl(int sockDesc, urlRequest *request);
 #endif
 
 
-#endif /*__pluginSocket_h__ */
+#endif /* __FREEX3D_PLUGIN_SOCKET_H__ */

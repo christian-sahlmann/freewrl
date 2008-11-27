@@ -1,32 +1,15 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/*****************************************
+$Id: Bindable.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 
-******************************************/
+*/
 
+#ifndef __FREEX3D_BINDABLE_H__
+#define __FREEX3D_BINDABLE_H__
 
-#include <math.h>
-#include <stdint.h>
-
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
-#include "headers.h"
-#include "Textures.h"
 
 /* Bind stack */
 #define MAX_STACK 20
@@ -71,3 +54,4 @@ void render_Background(struct X3D_Background *node);
 void render_TextureBackground(struct X3D_TextureBackground *node);
 
 
+#endif /* __FREEX3D_BINDABLE_H__ */

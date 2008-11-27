@@ -1,9 +1,24 @@
-/*******************************************************************
- Copyright (C) 2004 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: Frustum.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+
+#include "Textures.h"
+
 
 /*********************************************************************
  * OLD - NOW USE Occlusion tests
@@ -13,9 +28,6 @@
  * Thanks Steve!
  *
  */
-
-#include <math.h>
-#include "headers.h"
 
 #undef OCCLUSIONVERBOSE
 

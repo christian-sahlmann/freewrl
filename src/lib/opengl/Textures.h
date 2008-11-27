@@ -1,27 +1,14 @@
-/*******************************************************************
- Copyright (C) 1998 Tuomas J. Lukka
- Copyright (C) 2002 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
+$Id: Textures.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include <math.h>
+Screen snapshot.
 
+*/
 
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#include "jpeglib.h"
-#endif
-
-#include "headers.h"
+#ifndef __FREEX3D_TEXTURES_H__
+#define __FREEX3D_TEXTURES_H__
 
 
 #define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
@@ -94,3 +81,6 @@ void bind_image(int type, struct Uni_String *parenturl, struct Multi_String url,
 				int repeatS,
 				int repeatT,
 				void  *param);
+
+
+#endif /* __FREEX3D_TEXTURES_H__ */

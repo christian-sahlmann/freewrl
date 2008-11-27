@@ -1,14 +1,41 @@
-/*******************************************************************
- Copyright (C) 2006 John Stewart, CRC Canada
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/************************************************************************
+$Id: EAIHelpers.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-EAIHelpers.c  - small routines to help with interfacing EAI to Daniel Kraft's
-parser.
+Small routines to help with interfacing EAI to Daniel Kraft's parser.
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
+
+#include "../x3d_parser/Bindable.h"
+#include "../scenegraph/Collision.h"
+#include "../scenegraph/quaternion.h"
+
+#include "EAIheaders.h"
+#include "SensInterps.h"
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
+#include "../vrml_parser/CParseParser.h"
+#include "../vrml_parser/CParseLexer.h"
+#include "../vrml_parser/CParse.h"
+
+
+/*
 
 NOTE - originally, when perl parsing was used, there used to be a perl
 NodeNumber, and a memory location. Now, there is only a memory location...
@@ -39,22 +66,6 @@ This struct contains both a node and an ofs field.
 
 ************************************************************************/
 
-#include "headers.h"
-#include "CParse.h"
-#include "CParseParser.h"
-#include "Viewer.h"
-#include <sys/time.h>
-#include <string.h>
-
-/* include socket.h for irix and apple */
-#ifndef LINUX
-#include <sys/socket.h>
-#endif
-
-#include "EAIheaders.h"
-#include "CProto.h"
-#include "CParse.h"
-#include "CParseLexer.h"
 struct DEFnameStruct {
 	struct X3D_Node *node;
 	struct Uni_String *name;

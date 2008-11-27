@@ -1,20 +1,21 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/*****************************************
+$Id: Material.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-Material.c - only do material settings that "matter"
-		and bounds check all values.
+Only do material settings that "matter" and bounds check all values.
 
-******************************************/
+*/
 
-#include <math.h>
-#include "headers.h"
-#include "LinearAlgebra.h"
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+/* #include "LinearAlgebra.h" */
+
 
 /* default - set in the OpenGL initialization */
 GLfloat default_shininess = 25.6;

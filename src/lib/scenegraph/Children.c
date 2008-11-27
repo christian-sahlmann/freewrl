@@ -1,17 +1,24 @@
-/*******************************************************************
- Copyright (C) 2004 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/*********************************************************************
- * Render the children of nodes.
- */
+$Id: Children.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include "headers.h"
-#include <math.h>
+Render the children of nodes.
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "quaternion.h"
+
 #include "Collision.h"
+
 
 /* sort children - use bubble sort with early exit flag */
 void sortChildren (struct Multi_Node ch) {

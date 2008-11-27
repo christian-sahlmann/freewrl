@@ -1,24 +1,24 @@
-/*******************************************************************
- Copyright (C) 1998 Tuomas J. Lukka 2003,2005 John Stewart, Ayla Khan CRC Canada
- Portions Copyright (C) 1998 John Breen
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/************************************************************************/
-/************************************************************************/
+$Id: EAIEventsOut.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include "headers.h"
-#include "Viewer.h"
-#include <sys/time.h>
+Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
-/* include socket.h for irix and apple */
-#ifndef LINUX
-#include <sys/socket.h>
-#endif
+*/
 
-#include "EAIheaders.h"
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
+
+#include "../input/EAIheaders.h"
+
 
 /*****************************************************************
 *

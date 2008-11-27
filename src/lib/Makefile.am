@@ -73,3 +73,13 @@ if WINDOW_USE_AQUA
 libFreeX3D_la_SOURCES += display_aqua.c
 AM_CPPFLAGS+=-DTARGET_AQUA
 endif
+
+# # quickcompile:
+# # 	@-rm -f .quickcompile.log
+# # 	@for i in $(filter %.c, $(libFreeX3D_la_SOURCES)); do \
+# # 		echo "compile: $$i"; \
+# # 		$(COMPILE) $(CFLAGS) -c $$i 2>&1 >> .quickcompile.log || { \
+# # 			echo "failed to compile: $$i"; \
+# # 			exit 1; \
+# # 		}; \
+# # 	done

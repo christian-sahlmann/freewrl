@@ -1,26 +1,36 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/********************************************************************
+$Id: JScript.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
 Javascript C language binding.
 
-*********************************************************************/
+*/
 
-#include <math.h>
-#include "headers.h"
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
 
-#include "jsapi.h"
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../world_script/jsUtils.h"
+#include "../world_script/CScripts.h"
+#include "../main/Snapshot.h"
+#include "../scenegraph/Collision.h"
+#include "../scenegraph/quaternion.h"
+#include "../scenegraph/Viewer.h"
+#include "../input/SensInterps.h"
+#include "../x3d_parser/Bindable.h"
+/* #include "../input/EAIheaders.h" */
+
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
-#include "CScripts.h"
 
-#include "CParseGeneral.h"
 
 /* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
 #define MAX_RUNTIME_BYTES 0x1000000L

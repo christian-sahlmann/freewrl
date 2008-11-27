@@ -1,21 +1,28 @@
-/*******************************************************************
-  Copyright (C) 2007 Daniel Kraft,  John Stewart, CRC Canada.
-  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
-  See the GNU Library General Public License (file COPYING in the distribution)
-  for conditions of use and redistribution.
- *********************************************************************/
-
-
 /*
-Sourcecode for CParse.h
+=INSERT_TEMPLATE_HERE=
+
+$Id: CParse.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
 */
 
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
 
-#include "CParse.h"
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
 #include "CParseParser.h"
+#include "CParseLexer.h"
+
  
 /* Keep a pointer to the parser for the main URL */
 struct VRMLParser* globalParser = NULL;

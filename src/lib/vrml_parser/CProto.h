@@ -1,21 +1,22 @@
-/* CProto.h - this is the object representing a PROTO definition and being
- * capable of instantiating it.
- * 
- * We keep a vector of pointers to all that pointers which point to "inner
- * memory" and need therefore be updated when copying.  Such pointers include
- * field-destinations and parts of ROUTEs.  Those pointers are then simply
- * copied, their new positions put in the new vector, and afterwards are all
- * pointers there updated.
- */
+/*
+=INSERT_TEMPLATE_HERE=
 
-#ifndef CPROTO_H
-#define CPROTO_H
+$Id: CProto.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include "headers.h"
+CProto.h - this is the object representing a PROTO definition and being
+capable of instantiating it.
+ 
+We keep a vector of pointers to all that pointers which point to "inner
+memory" and need therefore be updated when copying.  Such pointers include
+field-destinations and parts of ROUTEs.  Those pointers are then simply
+copied, their new positions put in the new vector, and afterwards are all
+pointers there updated.
 
-#include "CParseGeneral.h"
-#include "Vector.h"
-#include "CScripts.h"
+*/
+
+#ifndef __FREEX3D_CPROTO_H__
+#define __FREEX3D_CPROTO_H__
+
 
 struct PointerHash;
 struct VRMLParser;
@@ -219,7 +220,7 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition*,
  indexT, indexT);
 
 /* Copies a ProtoDefinition, so that we can afterwards fill in field values */
-struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer*, struct ProtoDefinition*);
+/* struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct ProtoDefinition* me); */
 
 /* Extracts the scene graph out of a ProtoDefinition */
 struct X3D_Group* protoDefinition_extractScene(struct VRMLLexer* lex, struct ProtoDefinition*);
@@ -293,4 +294,5 @@ void tokenizeProtoBody(struct ProtoDefinition *, char *);
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto);
 BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, struct X3D_Node **Node);
 
-#endif /* Once-check */
+
+#endif /* __FREEX3D_CPROTO_H__ */

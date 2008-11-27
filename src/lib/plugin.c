@@ -4,7 +4,7 @@
  *
  * plugin.c
  *
- * $Id: plugin.c,v 1.1 2008/11/03 14:14:12 couannette Exp $
+ * $Id: plugin.c,v 1.2 2008/11/27 00:27:17 couannette Exp $
  *
  *******************************************************************/
 
@@ -14,7 +14,4 @@
 #include "internal.h"
 
 
-int isBrowserPlugin = FALSE; /* are we running as plugin child ? */
-int _fw_pipe = 0; /* pipe to communicate with plugin */
-int _fw_browser_plugin = 0; /* socket to communicate with plugin */
-unsigned _fw_instance = 0; /* ??? */
+

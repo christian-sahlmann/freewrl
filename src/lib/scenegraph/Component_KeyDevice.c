@@ -1,15 +1,24 @@
-/*******************************************************************
- Copyright (C) 2007 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: Component_KeyDevice.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+X3D Key Device Component
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
 
 
-/*******************************************************************
-
-	X3D Key Device Component
-
+/*
 I'll leave off comments about the validity of this part of the spec - it does
 not seem well thought out. I'll leave off my comments on what I really think
 about this part of the X3D Spec, because I'm nice, and I don't want to 
@@ -26,7 +35,6 @@ death!
 Anyway, with that, lets blindly forge along...
 
 *********************************************************************/
-#include "headers.h"
 
 #define X3D_KEYSENSOR(node) ((struct X3D_KeySensor*)node)
 #define X3D_STRINGSENSOR(node) ((struct X3D_StringSensor*)node)

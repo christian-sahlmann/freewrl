@@ -1,18 +1,25 @@
-/*******************************************************************
-  Copyright (C) 2007 Daniel Kraft,  John Stewart, CRC Canada.
-  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
-  See the GNU Library General Public License (file COPYING in the distribution)
-  for conditions of use and redistribution.
- *********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
+$Id: CFieldDecls.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
+???
 
-/* CFieldDecls.c - Sourcecode for CFieldDecls.h */
+*/
 
-#include <stdlib.h>
-#include <assert.h>
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
 
-#include "CFieldDecls.h"
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+
 
 /* ************************************************************************** */
 /* ********************************** FieldDecl ***************************** */

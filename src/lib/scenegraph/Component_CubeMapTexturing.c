@@ -1,19 +1,22 @@
-/*******************************************************************
- Copyright (C) 2008 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/*******************************************************************
+$Id: Component_CubeMapTexturing.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-	X3D Cubemap Texturing Component
+X3D Cubemap Texturing Component
 
-*********************************************************************/
+*/
 
-#include <math.h>
-#include "headers.h"
-#include "installdir.h"
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
+
 
 /* testing */
 

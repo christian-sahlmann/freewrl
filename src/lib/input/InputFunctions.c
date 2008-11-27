@@ -1,18 +1,24 @@
 /*
- * Copyright(C) 2004 John Stewart. CRC Canada.
- * NO WARRANTY. See the license (the file COPYING in the VRML::Browser
- * distribution) for details.
- */
+=INSERT_TEMPLATE_HERE=
 
-#include "headers.h"
-#include "installdir.h"
+$Id: InputFunctions.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+CProto ???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+
+
 #define READSIZE 2048
-
-/* for stat and access */
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 
 int dirExists(const char *dir)
 {
@@ -36,18 +42,11 @@ char* makeFontDirectory()
     
     /* If environment variable is defined
        then it prevails */
-    tmp = getenv("FREEWRL_FONTSDIR");
+    tmp = getenv("FREEWRL_FONTS_DIR");
     
     /* Get dir from configuration */
     if (!tmp) {
-	/* If we are running on OSX, 99.999999% of people use the dmg install */
-	/* Linux is different; so it is possible that a user can have fonts probs */
-
-	#ifdef AQUA
-		tmp = INSTALLDIR;
-	#else
-        	tmp = FONTSDIR;
-	#endif
+	tmp = FONTS_DIR;
     }
     
     /* Check if dir exists */

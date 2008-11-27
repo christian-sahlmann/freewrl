@@ -1,13 +1,9 @@
-/*******************************************************************
- Copyright (C) 2005 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/*****************************************
+$Id: ConsoleMessage.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-ConsoleMessage.c - when running in a plugin, there is no way
+When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
 way to say "Syntax error in X3D file".
 
@@ -20,12 +16,20 @@ NOTE: Parts of this came from on line examples; apologies
 for loosing the reference. Also, most if it is found in
 "the C programming language" second edition.
 
-**********************************************/
+*/
 
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
 #include "headers.h"
-#include "PluginSocket.h"
-#include <stdarg.h>
-#include <syslog.h>
+#include "../plugin/pluginUtils.h"
+#include "../plugin/PluginSocket.h"
+
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
 #define MAXMESSAGES 5 

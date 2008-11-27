@@ -1,27 +1,15 @@
-/******************************************************************************
- Copyright (C) 1998 Tuomas J. Lukka, 2003 John Stewart, Ayla Khan, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*******************************************************************************/
-
 /*
- * $Id: quaternion.h,v 1.1 2008/11/26 11:24:14 couannette Exp $
- *
- */
+=INSERT_TEMPLATE_HERE=
 
-#ifndef __QUATERNION_H__
-#define __QUATERNION_H__
+$Id: quaternion.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
+Quaternion ???
 
-#include "headers.h"
+*/
 
-#ifndef AQUA
-#include <GL/gl.h>
-#else
-#include <gl.h>
-#endif
-#include <math.h>
+#ifndef __FREEX3D_QUATERNION_H__
+#define __FREEX3D_QUATERNION_H__
+
 
 #define DELTA 0.0001
 
@@ -114,4 +102,5 @@ slerp(Quaternion *ret,
 	  const Quaternion *q2,
 	  const double t);
 
-#endif /* __QUATERNION_H__ */
+
+#endif /* __FREEX3D_QUATERNION_H__ */

@@ -1,27 +1,21 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: headers.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+Global includes.
+
+*/
+
+#ifndef __FREEX3D_HEADERS_H__
+#define __FREEX3D_HEADERS_H__
 
 
-
-#ifndef __HEADERS_H__
-#define __HEADERS_H__
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
-#include <float.h>
-#include <stddef.h>
-#include <pthread.h>
-#include <fcntl.h>
-#include <string.h>
-
-/* get the definitions from the command line */
-#include "vrmlconf.h"
+/**
+ * in utils.c
+ */
+char *BrowserName;
+const char* freex3d_get_browser_program();
 
 /**
  * in InputFunctions.c
@@ -103,20 +97,6 @@ most things around, just stops display thread, when the user exits a world. */
                 DispThrd = NULL; \
         }
 
-
-/* vrmlconf.h should have the AQUA definition - so get the GL headers */
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
-/* now get all of our structures */
-#include "Structs.h"
 
 typedef struct _CRnodeStruct {
         struct X3D_Node *routeToNode;
@@ -509,13 +489,7 @@ extern void* *occluderNodePointer;
 /* Capabilities of x3dv and x3d */
 #undef CAPABILITIESVERBOSE
 
-/* External Authoring Interface */
-extern int eaiverbose;
-
-#ifndef AQUA
-#include <GL/glu.h>
-#else
-#include <glu.h>
+#ifdef AQUA
 #include <CGLTypes.h>
 #include <AGL/AGL.h>
 #include "aquaInt.h"
@@ -563,7 +537,6 @@ extern int sound_from_audioclip;
 extern int have_texture;
 extern int global_lineProperties;
 extern int global_fillProperties;
-extern int fullscreen;
 extern float gl_linewidth;
 extern int soundWarned;
 extern int cur_hits;
@@ -735,7 +708,6 @@ extern int BrowserAction;
 extern struct X3D_Anchor *AnchorsAnchor;
 extern uintptr_t _fw_instance;
 int checkIfX3DVRMLFile(char *fn);
-void Anchor_ReplaceWorld (char *fn);
 void EAI_Anchor_Response (int resp);
 extern int wantEAI;
 struct Uni_String *newASCIIString(char *str);
@@ -1012,17 +984,13 @@ extern int navi_tos;
 extern void initializeTextureThread(void);
 extern int isTextureinitialized(void);
 extern int fileExists(char *fname, char *firstBytes, int GetIt, int *isTemp);
-extern int checkNetworkFile(char *fn);
 extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
-void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
 int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes, int* removeIt);
 void removeFilenameFromPath (char *path);
 
-
-void create_EAI(void);
 int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, int retarrsize);
 void EAI_Route(char cmnd, const char *tf);
 void EAI_replaceWorld(const char *inputstring);
@@ -1076,12 +1044,10 @@ extern void setSnapFile(const char* file);
 extern void setMaxImages(int max);
 extern void setBrowserFullPath(const char *str);
 extern void setSeqTemp(const char* file);
-extern void setFullPath(const char *str);
 extern void setInstance(uintptr_t instance);
 extern void setScreenDim(int w, int h);
 
-extern char *getLibVersion();
-extern void doQuit(void);
+extern const char *getLibVersion();
 extern void doBrowserAction ();
 
 
@@ -1560,7 +1526,6 @@ extern int isBrowserPlugin;
 
 
 /* threading stuff */
-extern pthread_t DispThrd;
 extern pthread_t PCthread;
 extern pthread_t shapeThread;
 extern pthread_t loadThread;
@@ -1715,7 +1680,5 @@ void proximity_##type (struct X3D_##type *node) { \
 	*/ \
 } 
 
-/* Cube map component */
-#include "Component_CubeMapTexturing.h"
 
-#endif /* __HEADERS_H__ */
+#endif /* __FREEX3D_HEADERS_H__ */

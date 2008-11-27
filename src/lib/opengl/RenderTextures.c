@@ -1,24 +1,25 @@
-/*******************************************************************
- Copyright (C) 1998 Tuomas J. Lukka
- Copyright (C) 2002 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/*********************************************************************************
-*
-* Texturing during Runtime 
-*
-* texture enabling - works for single texture, for multitexture. 
-*********************************************************************************/
+$Id: RenderTextures.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
+Texturing during Runtime 
+texture enabling - works for single texture, for multitexture. 
 
-#include "headers.h"
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+
 #include "Textures.h"
-#include <pthread.h>
-#include <stdio.h>
-#include "readpng.h"
+/* #include "readpng.h" */
 
 #undef TEXVERBOSE
 

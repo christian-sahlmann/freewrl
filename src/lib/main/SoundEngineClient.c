@@ -1,21 +1,35 @@
-/*******************************************************************
- Copyright (C) 2002 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
+/*
+=INSERT_TEMPLATE_HERE=
 
+$Id: SoundEngineClient.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
- This is the SoundEngine code for FreeWRL.
+This is the SoundEngine client code for FreeWRL.
 
- Some of this stuff came from files from "wavplay"  - see information below
+Some of this stuff came from files from "wavplay"  - see information below
 
+*/
 
-*********************************************************************/
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
 
+#include <libFreeX3D.h>
 
-#include "sounds.h"
-#include <errno.h>
-#include <string.h>
+/* #include "../vrml_parser/Structs.h" */
+/* #include "headers.h" */
+/* #include "../vrml_parser/CParseGeneral.h" */
+/* #include "../world_script/jsUtils.h" */
+/* #include "../world_script/CScripts.h" */
+/* #include "Snapshot.h" */
+/* #include "../scenegraph/Collision.h" */
+/* #include "../scenegraph/quaternion.h" */
+/* #include "../scenegraph/Viewer.h" */
+/* #include "../input/SensInterps.h" */
+/* #include "../x3d_parser/Bindable.h" */
+/* #include "../input/EAIheaders.h" */
+#include "../scenegraph/sounds.h"
+
 
 int SReg[MAXSOUNDS];
 
@@ -23,7 +37,8 @@ int my_ipc_key;
 
 FWSNDMSG msg;		/* message buffer */
 
-char sspath[] = SOUNDSERVERBINARY; /* compile line flag */
+/* TODO: integrate this variable into configure */
+char sspath[] = "freex3d_snd" /*SOUNDSERVERBINARY*/; /* compile line flag */
 
 static int initialized = SOUND_NEEDS_STARTING; /* are we able to run? */
 

@@ -1,13 +1,36 @@
 /*
- * Copyright(C) 1998 Tuomas J. Lukka, 2001, 2002, 2007 John Stewart. CRC Canada.
- * NO WARRANTY. See the license (the file COPYING in the VRML::Browser
- * distribution) for details.
- */
+=INSERT_TEMPLATE_HERE=
 
-#include <math.h>
+$Id: statusbar.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include "headers.h"
-#include "Viewer.h"
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
+#include "../vrml_parser/CParseParser.h"
+#include "../vrml_parser/CParseLexer.h"
+#include "../vrml_parser/CParse.h"
+
+#include <float.h>
+
+#include "../x3d_parser/Bindable.h"
+#include "../scenegraph/Collision.h"
+#include "../scenegraph/quaternion.h"
+#include "../scenegraph/Viewer.h"
+
 
 /* DO NOT CHANGE THESE DEFINES WITHOUT CHECKING THE USE OF THE CODE, BELOW */
 #define PROX "ProximitySensor { enabled FALSE size 1000 1000 1000 }"

@@ -1,20 +1,24 @@
-/*******************************************************************
- Copyright (C) 2005, 2006 John Stewart, Ayla Khan, Sarah Dumoulin, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/*******************************************************************
+$Id: Component_Grouping.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-	X3D Grouping Component
+X3D Grouping Component
 
-*********************************************************************/
+*/
 
-#include <math.h>
-#include "headers.h"
-#include "installdir.h"
-#include "OpenGL_Utils.h"
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
+
+#include "../opengl/OpenGL_Utils.h"
+
 
 void changed_Transform (struct X3D_Transform *node) { 
 	INITIALIZE_EXTENT 

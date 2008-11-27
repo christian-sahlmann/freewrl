@@ -1,21 +1,28 @@
-/*******************************************************************
-  Copyright (C) 2007 Daniel Kraft,  John Stewart, CRC Canada.
-  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
-  See the GNU Library General Public License (file COPYING in the distribution)
-  for conditions of use and redistribution.
- *********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
+$Id: CParseLexer.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-/* Sourcecode for CParseLexer.h */
+???
 
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h> /* Using pow() to parse floats */
+*/
 
-#include "CParse.h"
-#include "CProto.h"
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
+#include "CParseParser.h"
 #include "CParseLexer.h"
+
 
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me);
 char *externProtoPointer = NULL;
@@ -1040,8 +1047,8 @@ if (me->curID) {
   return; \
  }
 
-#define parser_sfstringValue(me, ret) \
- lexer_string(me, ret)
+/* #define parser_sfstringValue(me, ret) \ */
+/*  lexer_string(me, ret) */
 
 #define FIND_PROTO_IN_proto_BUFFER \
                 do { \

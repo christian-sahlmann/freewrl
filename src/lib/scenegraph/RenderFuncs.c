@@ -1,25 +1,28 @@
-/*******************************************************************
- Copyright (C) 2006 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/*****************************************
+$Id: RenderFuncs.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-RenderFuncs.c - do scenegraph rendering.
+Scenegraph rendering.
 
-******************************************/
+*/
 
-#include <math.h>
-#include <pthread.h>
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
 
-#include "headers.h"
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+
 #include "Polyrep.h"
 #include "Collision.h"
+#include "../scenegraph/quaternion.h"
 #include "Viewer.h"
 #include "LinearAlgebra.h"
-#include "SensInterps.h"
+#include "../input/SensInterps.h"
 
 
 /* Rearrange to take advantage of headlight when off */
@@ -145,9 +148,7 @@ float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
 int SoundEngineStarted = FALSE;
 
 /* stored FreeWRL version, pointers to initialize data */
-char *BrowserFullPath = NULL;
-char *BrowserName = "FreeWRL VRML/X3D Browser";
-pthread_t shapeThread = NULL;
+pthread_t shapeThread = -1;
 
 void *rootNode=NULL;	/* scene graph root node */
 void *empty_group=0;

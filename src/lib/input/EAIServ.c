@@ -1,14 +1,25 @@
-/*******************************************************************
- Copyright (C) 1998 Tuomas J. Lukka 2003, 2005 John Stewart, Ayla Khan CRC Canada
- Portions Copyright (C) 1998 John Breen
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-/************************************************************************/
-/*									*/
-/* implement EAI server functionality for FreeWRL.			*/
+$Id: EAIServ.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+Implement EAI server functionality for FreeWRL.
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
+
+#include "../input/EAIheaders.h"
+
+
 /*									*/
 /* Design notes:							*/
 /*	FreeWRL is a server, the Java (or whatever) program is a client	*/
@@ -43,21 +54,6 @@
 /*									*/
 /************************************************************************/
 
-#include "headers.h"
-#include "Viewer.h"
-#include <sys/time.h>
-
-/* include socket.h for irix and apple */
-#ifndef LINUX
-#include <sys/socket.h>
-#endif
-
-#include "EAIheaders.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <netinet/in.h>
 
 int EAIport = 9877;				/* port we are connecting to*/
 int EAIinitialized = FALSE;		/* are we running?*/
@@ -214,7 +210,9 @@ void shutdown_EAI() {
 	}
 
 }
-void create_EAI() {
+
+void create_EAI()
+{
         if (eaiverbose) { 
 	printf ("EAISERVER:create_EAI called\n");
 	}

@@ -29,8 +29,8 @@ AC_DEFUN([AC_MY_SWITCH], [
     AC_ARG_ENABLE(
 	[$1], 
 	m4_if([$3], [on],
-	    [AC_HELP_STRING([--disable-$1],[$2])],
-	    [AC_HELP_STRING([--enable-$1],[$2])]
+	    [AS_HELP_STRING([--disable-$1],[$2])],
+	    [AS_HELP_STRING([--enable-$1],[$2])]
 	),
 	[if test x$enableval = xno; then
 	    AC_MSG_RESULT([no])

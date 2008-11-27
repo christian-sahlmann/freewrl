@@ -1,18 +1,25 @@
-/* $Id: LinearAlgebra.c,v 1.1 2008/11/26 11:24:14 couannette Exp $
- *
- * Copyright (C) 2002 Nicolas Coderre CRC Canada
- * Copyright (C) 2003 John Stewart CRC Canada
- * Portions Copyright (C) 1998 Tuomas J. Lukka 1998 Bernhard Reiter 1999 John Stewart CRC Canada
- * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- * See the GNU Library General Public License (file COPYING in the distribution)
- * for conditions of use and redistribution.
- */
-#include "headers.h"
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: LinearAlgebra.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
+
 #include "LinearAlgebra.h"
 
 
-#include <stdio.h>
-#include <memory.h>
 /* Altenate implemetations available, should merge them eventually */
 
 void veccross(struct point_XYZ *c, struct point_XYZ a, struct point_XYZ b)

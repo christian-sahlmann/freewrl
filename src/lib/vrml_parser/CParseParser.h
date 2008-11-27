@@ -1,15 +1,15 @@
-/* Parser (input of non-terminal symbols) for CParse */
+/* 
+=INSERT_TEMPLATE_HERE=
 
-#ifndef CPARSEPARSER_H
-#define CPARSEPARSER_H
+$Id: CParseParser.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include <stddef.h>
+Parser (input of non-terminal symbols) for CParse
 
-#include "headers.h"
-#include "Vector.h"
+*/
 
-#include "CParseGeneral.h"
-#include "CParseLexer.h"
+#ifndef __FREEX3D_CPARSE_PARSER_H__
+#define __FREEX3D_CPARSE_PARSER_H__
+
 
 struct ProtoDefinition;
 struct ProtoFieldDecl;
@@ -109,8 +109,8 @@ BOOL parser_sfint32Value_(struct VRMLParser*, vrmlInt32T*);
 BOOL parser_sfnodeValue(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_sfrotationValue(struct VRMLParser*, vrmlRotationT*);
 BOOL parser_sfstringValue_(struct VRMLParser*, vrmlStringT*);
-#define parser_sfstringValue(me, ret) \
- lexer_string(me->lexer, ret)
+/* #define parser_sfstringValue(me, ret) \ */
+/*  lexer_string(me->lexer, ret) */
 BOOL parser_sftimeValue(struct VRMLParser*, vrmlTimeT*);
 BOOL parser_sfvec2fValue(struct VRMLParser*, vrmlVec2fT*);
 BOOL parser_sfvec2dValue(struct VRMLParser*, vrmlVec2dT*);
@@ -165,4 +165,6 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 /*
 void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode);
 */
-#endif /* Once-check */
+
+
+#endif /* __FREEX3D_CPARSE_PARSER_H__ */

@@ -1,12 +1,25 @@
-/*******************************************************************
- Copyright (C) 1998 Tuomas J. Lukka
- Copyright (C) 2002 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
-#include "headers.h"
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: Polyrep.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
+
 #include "Polyrep.h"
+#include "LinearAlgebra.h"
+
 
 /* reset colors to defaults, if we have to */
 static GLfloat diffuseColor[] = {0.3, 0.3, 0.8,1.0};

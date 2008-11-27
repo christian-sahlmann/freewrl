@@ -1,19 +1,33 @@
-/*******************************************************************
- Copyright (C) 2006 John Stewart, CRC Canada
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
-
 /*
- * $Id: X3DParser.c,v 1.1 2008/11/26 11:24:15 couannette Exp $
- *
- */
+=INSERT_TEMPLATE_HERE=
 
-#include "jsapi.h"
-#include "jsUtils.h"
-#include "headers.h"
+$Id: X3DParser.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
+#include "../vrml_parser/CParseParser.h"
+#include "../vrml_parser/CParseLexer.h"
+#include "../vrml_parser/CProto.h"
+#include "../vrml_parser/CParse.h"
+
 #include "X3DParser.h"
+
 
 /* If XMLCALL isn't defined, use empty one */
 #ifndef XMLCALL

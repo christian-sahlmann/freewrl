@@ -4,7 +4,7 @@
  *
  * public API - libFreeX3D.h
  *
- * $Id: libFreeX3D.h,v 1.7 2008/11/04 00:40:34 couannette Exp $
+ * $Id: libFreeX3D.h,v 1.8 2008/11/27 00:27:17 couannette Exp $
  *
  *******************************************************************/
 
@@ -27,42 +27,21 @@ void closeFreeX3D();
  * General functions
  */
 int ConsoleMessage(const char *fmt, ...);
+int checkNetworkFile(char *fn);
+void setFullPath(const char* file);
+void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
+void create_EAI();
+void doQuit();
+void Anchor_ReplaceWorld(char *name);
 
 /**
  * General variables
  */
-
-/**
- * Plugin functions
- */
-
-/**
- * Plugin variables
- */
-
-/**
- * Network functions
- */
-
-/**
- * Network variables
- */
-
-/**
- * Display functions
- */
-
-/**
- * Display variables
- */
-
-/**
- * Threading functions
- */
-
-/**
- * Threading variables
- */
+int win_height;
+int win_width;
+int fullscreen;
+char *BrowserFullPath;
+pthread_t DispThrd;
 
 
 #endif /* __LIBFREEX3D_MAIN_H__ */

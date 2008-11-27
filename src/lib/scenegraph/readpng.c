@@ -1,10 +1,24 @@
-# ifndef AQUA
+/*
+=INSERT_TEMPLATE_HERE=
 
-/* FreeWRL now only uses this on Linux machines. */
+$Id: readpng.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
+FreeWRL now only uses this on Linux machines.
 
+*/
 
+#ifndef AQUA
 
+#include <png.h>        /* libpng header; includes zlib.h */
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "readpng.h"    /* typedefs, common macros, public prototypes */
 
 /*---------------------------------------------------------------------------
 
@@ -41,16 +55,10 @@
 
   ---------------------------------------------------------------------------*/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "headers.h"
 
 #ifndef UNUSED
 #define UNUSED(v) ((void) v)
 #endif
-
-#include "png.h"        /* libpng header; includes zlib.h */
-#include "readpng.h"    /* typedefs, common macros, public prototypes */
 
 /* future versions of libpng will provide this macro: */
 #ifndef png_jmpbuf

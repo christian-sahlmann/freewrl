@@ -1,21 +1,15 @@
-/* This is a common base class for FieldDeclarations on PROTOs and Scripts */
+/*
+=INSERT_TEMPLATE_HERE=
 
-#ifndef CFIELDDECL_H
-#define CFIELDDECL_H
+$Id: CFieldDecls.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include "headers.h"
+This is a common base class for FieldDeclarations on PROTOs and Scripts
 
-#include "CParseGeneral.h"
-#include "CParseLexer.h"
+*/
 
-#include <stdlib.h>
+#ifndef __FREEX3D_FIELD_DECLS_H__
+#define __FREEX3D_FIELD_DECLS_H__
 
-/* ************************************************************************** */
-/* ************************************ FieldDecl *************************** */
-/* ************************************************************************** */
-
-/* Struct */
-/* ****** */
 
 struct FieldDecl
 {
@@ -55,4 +49,5 @@ struct FieldDecl* newFieldDecl(indexT, indexT, indexT);
 #define fieldDecl_isField(me, nam, mod) \
  ((me)->name==(nam) && (me)->mode==(mod))
 
-#endif /* Once-check */
+
+#endif /* __FREEX3D_FIELD_DECLS_H__ */

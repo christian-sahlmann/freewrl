@@ -1,20 +1,22 @@
 /*
- * Copyright (C) 1998 Tuomas J. Lukka, 2002 John Stewart, Ayla Khan CRC Canada
- * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- * See the GNU Library General Public License
- * (file COPYING in the distribution) for conditions of use and
- * redistribution, EXCEPT on the files which belong under the
- * Mozilla public license.
- *
- * $Id: jsNative.h,v 1.1 2008/11/26 11:24:15 couannette Exp $
- *
- *
- */
+=INSERT_TEMPLATE_HERE=
 
-#ifndef __jsNative_h__
-#define __jsNative_h__
+$Id: jsNative.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include "Structs.h" /* FreeWRL C structs */
+CProto.h - this is the object representing a PROTO definition and being
+capable of instantiating it.
+ 
+We keep a vector of pointers to all that pointers which point to "inner
+memory" and need therefore be updated when copying.  Such pointers include
+field-destinations and parts of ROUTEs.  Those pointers are then simply
+copied, their new positions put in the new vector, and afterwards are all
+pointers there updated.
+
+*/
+
+#ifndef __FREEX3D_JS_NATIVE_H__
+#define __FREEX3D_JS_NATIVE_H__
+
 
 typedef struct _BrowserNative {
 	/* int magic; does this really do anything ??? */
@@ -137,4 +139,5 @@ SFColorNativeAssign(void *top, void *fromp);
 extern void
 SFColorNativeSet(void *p, struct Uni_String *sv);
 
-#endif /* __jsNative_h__ */
+
+#endif /* __FREEX3D_JS_NATIVE_H__ */

@@ -1,19 +1,33 @@
-/*******************************************************************
- Copyright (C) 2006,2008 John Stewart, CRC Canada
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
-
 /*
- * 
- *
- */
-#include "jsapi.h"
-#include "jsUtils.h"
-#include "headers.h"
+=INSERT_TEMPLATE_HERE=
+
+$Id: X3DProtoScript.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../scenegraph/Vector.h"
+#include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/CScripts.h"
+#include "../vrml_parser/CParseParser.h"
+#include "../vrml_parser/CParseLexer.h"
+#include "../vrml_parser/CProto.h"
+#include "../vrml_parser/CParse.h"
+
 #include "X3DParser.h"
-#include "CParseGeneral.h"
+
 
 static int currentProtoDeclare  = ID_UNDEFINED;
 static int MAXProtos = 0;

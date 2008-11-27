@@ -1,25 +1,14 @@
-/* $Id: LinearAlgebra.h,v 1.1 2008/11/26 11:24:14 couannette Exp $
- *
- * Copyright (C) 2002 Nicolas Coderre CRC Canada
- * Portions Copyright (C) 1998 Tuomas J. Lukka 1998 Bernhard Reiter 1999 John Stewart CRC Canada
- * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- * See the GNU Library General Public License (file COPYING in the distribution)
- * for conditions of use and redistribution.
- */
-#ifndef LINEARALGEBRAH
-#define LINEARALGEBRAH
+/*
+=INSERT_TEMPLATE_HERE=
 
+$Id: LinearAlgebra.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
-#include <math.h>
-#ifdef AQUA
-#include <gl.h>
-#else
-#include <GL/gl.h>
-#endif
-#include "Structs.h"
-#include "headers.h"
+Linear algebra.
 
-/*Fast macros */
+*/
+
+#ifndef __FREEX3D_LINEAR_ALGEBRA_H__
+#define __FREEX3D_LINEAR_ALGEBRA_H__
 
 
 #define VECSQ(a) VECPT(a,a)
@@ -195,5 +184,4 @@ GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz);
 GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n);
 
 
-#endif
-
+#endif /* __FREEX3D_LINEAR_ALGEBRA_H__ */

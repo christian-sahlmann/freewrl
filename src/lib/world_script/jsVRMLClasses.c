@@ -1,18 +1,37 @@
 /*
- * Copyright (C) 1998 Tuomas J. Lukka, 2002 John Stewart, Ayla Khan CRC Canada
- * 2007 John Stewart CRC Canada.
- *
- * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- * See the GNU Library General Public License
- * (file COPYING in the distribution) for conditions of use and
- * redistribution, EXCEPT on the files which belong under the
- * Mozilla public license.
- *
- * $Id: jsVRMLClasses.c,v 1.1 2008/11/26 11:24:15 couannette Exp $
- *
- */
-#include "headers.h"
+=INSERT_TEMPLATE_HERE=
+
+$Id: jsVRMLClasses.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+
+#include "../vrml_parser/Structs.h"
+#include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../world_script/jsUtils.h"
+#include "../world_script/CScripts.h"
+#include "../main/Snapshot.h"
+#include "../scenegraph/Collision.h"
+#include "../scenegraph/quaternion.h"
+#include "../scenegraph/Viewer.h"
+#include "../input/SensInterps.h"
+#include "../x3d_parser/Bindable.h"
+/* #include "../input/EAIheaders.h" */
+
+#include "jsUtils.h"
+#include "jsNative.h"
 #include "jsVRMLClasses.h"
+
 
 /********************************************************/
 /*							*/
