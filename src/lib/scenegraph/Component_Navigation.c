@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Component_Navigation.c,v 1.3 2008/12/02 15:14:16 couannette Exp $
 
 X3D Navigation Component
 
@@ -18,6 +18,7 @@ X3D Navigation Component
 #include "../main/headers.h"
 
 #include "../x3d_parser/Bindable.h"
+#include "LinearAlgebra.h"
 #include "Collision.h"
 #include "quaternion.h"
 #include "Viewer.h"
