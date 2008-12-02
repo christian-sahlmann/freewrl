@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.3 2008/11/27 01:51:43 couannette Exp $
+$Id: MainLoop.c,v 1.4 2008/12/02 14:26:00 couannette Exp $
 
 CProto ???
 
@@ -20,6 +20,7 @@ CProto ???
 #include "../world_script/jsUtils.h"
 #include "../world_script/CScripts.h"
 #include "Snapshot.h"
+#include "../scenegraph/LinearAlgebra.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
