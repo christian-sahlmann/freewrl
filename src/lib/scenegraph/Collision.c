@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.3 2008/12/02 14:26:00 couannette Exp $
+$Id: Collision.c,v 1.4 2008/12/02 14:38:40 couannette Exp $
 
 Render the children of nodes.
 
@@ -15,6 +15,7 @@ Render the children of nodes.
 #include <libFreeX3D.h>
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
 
 #include "LinearAlgebra.h"
 #include "Collision.h"
