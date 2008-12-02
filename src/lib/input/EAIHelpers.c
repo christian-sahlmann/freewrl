@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: EAIHelpers.c,v 1.3 2008/12/02 14:34:21 couannette Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -33,6 +33,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"
+#include "../vrml_parser/CProto.h"
 
 
 /*
