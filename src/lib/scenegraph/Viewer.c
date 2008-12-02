@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Viewer.c,v 1.3 2008/12/02 15:23:56 couannette Exp $
 
 CProto ???
 
@@ -17,6 +17,7 @@ CProto ???
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
+#include "LinearAlgebra.h"
 #include "quaternion.h"
 #include "Viewer.h"
 

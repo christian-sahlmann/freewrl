@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: quaternion.c,v 1.3 2008/12/02 15:23:56 couannette Exp $
 
 ???
 
@@ -17,13 +17,11 @@ $Id: quaternion.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
 
+#include "LinearAlgebra.h"
 #include "quaternion.h"
 
-/* #include "LinearAlgebra.h" */
 
 /*
- * $Id: quaternion.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
- *
  * Quaternion math ported from Perl to C
  * (originally in Quaternion.pm)
  *

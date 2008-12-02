@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Sound.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Component_Sound.c,v 1.3 2008/12/02 15:23:56 couannette Exp $
 
 X3D Sound Component
 
@@ -16,6 +16,8 @@ X3D Sound Component
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
+
+#include "LinearAlgebra.h"
 
 
 void render_AudioControl (struct X3D_AudioControl *node) {
