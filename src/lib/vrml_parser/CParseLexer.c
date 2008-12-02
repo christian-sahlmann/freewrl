@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: CParseLexer.c,v 1.3 2008/12/02 14:31:07 couannette Exp $
 
 ???
 
@@ -22,6 +22,7 @@ $Id: CParseLexer.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 #include "../world_script/CScripts.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
+#include "CParse.h"
 
 
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me);
