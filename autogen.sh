@@ -25,7 +25,7 @@ if [ $try_dash -eq 1 ] ; then
 	fi
 fi
 
-my_options="--enable-debug --with-fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera --disable-static --disable-fast-install --with-pic $*"
+my_options="--with-fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera --disable-static --disable-fast-install --with-pic --enable-debug $*"
 
 echo "We will use $shell as the configure shell... "
 if [ $try_dash -eq 1 ] ; then

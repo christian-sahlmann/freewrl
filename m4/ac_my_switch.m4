@@ -42,8 +42,8 @@ AC_DEFUN([AC_MY_SWITCH], [
 	    m4_if([$4],[],[],[$4])
 	fi],
         m4_if([$3], [on], [
-	    AC_MSG_RESULT([no])
-	    sw_$1=no
+	    AC_MSG_RESULT([yes])
+	    sw_$1=yes
 	    m4_if([$4],[],[],[$4])
         ],[
 	    AC_MSG_RESULT(no)

@@ -11,6 +11,10 @@ else
 DEBUG_FLAGS=
 endif
 
+# GCC warnings: 
+# http://gcc.gnu.org/onlinedocs/gcc-4.3.2/gcc/Preprocessor-Options.html#Preprocessor-Options
+CC_WARNINGS=-Wall -Wundef -Wunused-macros 
+
 # Define this globally
-AM_CPPFLAGS = $(DEBUG_FLAGS)
+AM_CPPFLAGS = $(CC_WARNINGS) $(DEBUG_FLAGS)
 AM_LDFLAGS = $(DEBUG_FLAGS)

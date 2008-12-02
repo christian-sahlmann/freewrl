@@ -49,7 +49,7 @@ AC_PROG_LIBTOOL
 
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([fcntl.h stdio.h stdlib.h string.h sys/ioctl.h unistd.h sys/stat.h sys/socket.h sys/ipc.h signal.h errno.h time.h sys/time.h dirent.h])
+AC_CHECK_HEADERS([dirent.h errno.h fcntl.h math.h signal.h stdbool.h stdio.h stdint.h stdlib.h string.h sys/ioctl.h sys/ipc.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/wait.h time.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIGNAL
@@ -130,13 +130,7 @@ if test x$found_JAVASCRIPT_ENGINE = xno; then
   AC_MSG_ERROR([Unable to find an appropriate javascript engine])
 fi
 
-# I don't think these are necessary anymore, are they?
-#AC_SUBST(JAVASCRIPT_ENGINE)
-#AC_SUBST(JAVASCRIPT_ENGINE_CFLAGS)
-#AC_SUBST(JAVASCRIPT_ENGINE_LIBS)
-
 AC_MSG_NOTICE([Using $found_JAVASCRIPT_ENGINE for Javascript engine library])
-
 
 # XML
 PKG_CHECK_MODULES(XML, libxml-2.0)
@@ -238,26 +232,27 @@ AC_SUBST(JPEG_LIBS)
 PKG_CHECK_MODULES(PNG, libpng)
 
 # Mozilla plugin devel
-AC_MY_SWITCH(plugin,[enable building of browser plugin],on,[
+AC_MY_SWITCH(plugin,[enable building of browser plugin],on)
+if test x$sw_plugin = xno; then
+  AC_MSG_NOTICE([Not building browser plug-in])
+  MAYBE_PLUGIN=
+else
   AC_MSG_NOTICE([Determining browser plug-in framework to build against])
   found_MOZILLA_PLUGIN=no
-  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN, iceape-plugin)
-  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN, xulrunner-plugin)
-  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN, seamonkey-plugin)
-  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN, firefox-plugin)
+  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,iceape-plugin)
+  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,xulrunner-plugin)
+  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,seamonkey-plugin)
+  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,firefox-plugin)
   if test x$found_MOZILLA_PLUGIN = xno; then
-    AC_MSG_WARN([Unable to find an appropriate browser plug-in framework])
+    AC_MSG_WARN([Unable to find an appropriate browser plugin framework, not building plugin])
     MAYBE_PLUGIN=
   else
     # If Mozilla plugin is to be compiled we have to define MOZ_X11
     MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS -DMOZ_X11"
-    AC_MSG_NOTICE([Using $fx3d_module_found for Mozilla plugin library])
+    AC_MSG_NOTICE([Using $found_MOZILLA_PLUGIN for Mozilla plugin library])
     MAYBE_PLUGIN=plugin
   fi
-],[
-  AC_MSG_NOTICE([Not building browser plug-in])
-  MAYBE_PLUGIN=
-])
+fi
 AC_SUBST(MAYBE_PLUGIN)
 
 # FreeX3D helpers programs
