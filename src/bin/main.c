@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: main.c,v 1.6 2008/11/27 00:27:17 couannette Exp $
+$Id: main.c,v 1.7 2008/12/02 14:10:41 couannette Exp $
 
 FreeX3D main program.
 
@@ -19,7 +19,7 @@ FreeX3D main program.
  * Local variables
  */
 static int CaughtSEGV = FALSE;
-static int wantEAI = FALSE;
+int wantEAI = FALSE;
 
 /**
  * Signal handlers 
