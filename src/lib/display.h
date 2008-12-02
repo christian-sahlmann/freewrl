@@ -6,7 +6,7 @@
  *
  * Library internal display declarations: X11/Motif or OSX/Aqua
  *
- * $Id: display.h,v 1.7 2008/11/25 14:35:53 couannette Exp $
+ * $Id: display.h,v 1.8 2008/12/02 17:41:38 couannette Exp $
  *
  *******************************************************************/
 
@@ -71,16 +71,26 @@ XSetWindowAttributes attr;
 unsigned long mask;
 Atom WM_DELETE_WINDOW;
 
+# if HAVE_XF86_VMODE
+
+int vmode_nb_modes;
+XF86VidModeModeInfo **vmode_modes;
+int vmode_mode_selected;
+
+# endif /* HAVE_XF86_VMODE */
+
 # if defined(TARGET_MOTIF)
 
 # include <X11/Intrinsic.h>
 # include <Xm/Xm.h>
 
-extern int create_main_window_motif();
+XtAppContext Xtcx;
+
+int create_main_window_motif();
 
 # else
 
-extern int create_main_window_x11();
+int create_main_window_x11();
 
 # endif /* defined(TARGET_MOTIF) */
 
@@ -95,12 +105,12 @@ GLXContext GLcx;
 /**
  * OpenGL / Window initialization
  */
-extern int display_initialize();
-extern int open_display();
-extern int create_main_window();
-extern int create_GL_context();
-extern int initialize_gl_context();
-extern int initialize_viewport();
+int display_initialize();
+int open_display();
+int create_main_window();
+int create_GL_context();
+int initialize_gl_context();
+int initialize_viewport();
 
 #define GL_ERROR_MSG gluErrorString(glGetError())
 

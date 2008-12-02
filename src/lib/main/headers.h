@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.4 2008/12/02 15:14:16 couannette Exp $
+$Id: headers.h,v 1.5 2008/12/02 17:41:38 couannette Exp $
 
 Global includes.
 
@@ -28,23 +28,22 @@ char *readInputString(char *fn);
 /* see if an inputOnly "set_" field has changed */
 #define IO_FLOAT -2335549.0
 
-void *freewrlMalloc(int line, char *file, size_t sz);
-void *freewrlRealloc (int line, char *file, void *ptr, size_t size);
-void *freewrlStrdup (int line, char *file, char *str);
-#define MALLOC(sz) FWMALLOC (__LINE__,__FILE__,sz)
-#define FWMALLOC(l,f,sz) freewrlMalloc(l,f,sz)
-#define REALLOC(a,b) freewrlRealloc(__LINE__,__FILE__,a,b)
-#define STRDUP(a) freewrlStrdup(__LINE__,__FILE__,a)
-#ifdef DEBUG_MALLOC
-	/* free a malloc'd pointer */
-	void freewrlFree(int line, char *file, void *a);
-	#define FREE_IF_NZ(a) if(a) {freewrlFree(__LINE__,__FILE__,a); a = 0;}
+/* void *freewrlMalloc(int line, char *file, size_t sz); */
+/* void *freewrlRealloc (int line, char *file, void *ptr, size_t size); */
+/* void *freewrlStrdup (int line, char *file, char *str); */
+/* #define MALLOC(sz) FWMALLOC (__LINE__,__FILE__,sz) */
+/* #define FWMALLOC(l,f,sz) freewrlMalloc(l,f,sz) */
+/* #define REALLOC(a,b) freewrlRealloc(__LINE__,__FILE__,a,b) */
+/* #define STRDUP(a) freewrlStrdup(__LINE__,__FILE__,a) */
+/* #ifdef DEBUG_MALLOC */
+/* 	/\* free a malloc'd pointer *\/ */
+/* 	void freewrlFree(int line, char *file, void *a); */
+/* 	#define FREE_IF_NZ(a) if(a) {freewrlFree(__LINE__,__FILE__,a); a = 0;} */
+/* #else  */
+/* 	#define FREE_IF_NZ(a) if(a) {free(a); a = 0;} */
+/* #endif */
 
-#else 
-	#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
-#endif
-
-#define UNLINK(fdd) {/* printf ("unlinking %s at %s:%d\n",fdd,__FILE__,__LINE__); */ unlink (fdd); }
+/* #define UNLINK(fdd) {/\* printf ("unlinking %s at %s:%d\n",fdd,__FILE__,__LINE__); *\/ unlink (fdd); } */
 
 /* children fields path optimizations */
 #define CHILDREN_COUNT int nc = node->children.n;
@@ -1010,10 +1009,10 @@ extern int screenWidth, screenHeight;
 
 #endif
 
-/* Unix front end height/width */
-#ifndef AQUA
-extern int feWidth, feHeight;
-#endif
+/* /\* Unix front end height/width *\/ */
+/* #ifndef AQUA */
+/* extern int feWidth, feHeight; */
+/* #endif */
 
 /* SD AQUA FUNCTIONS */
 #ifdef AQUA

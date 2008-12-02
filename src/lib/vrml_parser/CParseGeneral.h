@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseGeneral.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: CParseGeneral.h,v 1.3 2008/12/02 17:41:38 couannette Exp $
 
 General header for VRML-parser (lexer/parser)
 
@@ -59,8 +59,8 @@ union anyVrml
 		fprintf (stderr,"%s\n",fw_outline);
 
 /* tie assert in here to give better failure methodology */
-#define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
-void fw_assert(char *,int);
+/* #define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);} */
+/* void fw_assert(char *,int); */
 
 
 #endif /* __FREEX3D_CPARSE_GENERAL_H__ */

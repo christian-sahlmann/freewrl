@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.4 2008/12/02 14:48:32 couannette Exp $
+$Id: CParseLexer.c,v 1.5 2008/12/02 17:41:38 couannette Exp $
 
 ???
 
@@ -533,7 +533,7 @@ BOOL lexer_event(struct VRMLLexer* me,
 #endif
 
  if(found)
-  FREE_IF_NZ(me->curID)
+     FREE_IF_NZ(me->curID);
 
  return found;
 }
@@ -1256,7 +1256,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 
                         buffer = readInputString(testname);
 			if (removeIt) UNLINK (testname);
-                        FREE_IF_NZ(testname)
+                        FREE_IF_NZ(testname);
                         embedEXTERNPROTO(me,myName,buffer,pound);
 
                         /* ok - we are replacing EXTERNPROTO with PROTO */
@@ -1268,7 +1268,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 
         }
 
-        FREE_IF_NZ(testname)
+        FREE_IF_NZ(testname);
 
         /* print up an error message, then get the next token */
         strcpy (emptyString, "Not Successful at getting EXTERNPROTO \"");

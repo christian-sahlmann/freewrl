@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.3 2008/11/27 16:06:33 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.4 2008/12/02 17:41:38 couannette Exp $
 
 ???
 
@@ -29,6 +29,7 @@ $Id: EAI_C_CommonFunctions.c,v 1.3 2008/11/27 16:06:33 crc_canada Exp $
 #ifdef REWIRE
 # include "Eai_C.h"
 # define ADD_PARENT(a,b)
+/* FIXME: is there a problem with MALLOC when building with REWIRE ? */
 # define MALLOC(a) malloc(a)
 #endif
 

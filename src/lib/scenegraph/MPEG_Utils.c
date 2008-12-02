@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MPEG_Utils.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: MPEG_Utils.c,v 1.3 2008/12/02 17:41:38 couannette Exp $
 
 ???
 
@@ -661,7 +661,7 @@ init_tables()
 
 }
 
-#if OLDCODE
+#if defined(OLDCODE)
 
 /*
  *--------------------------------------------------------------
@@ -3481,14 +3481,14 @@ ParseMacroBlock(
  *
  *--------------------------------------------------------------
  */
-#ifndef NDEBUG
+#if defined(_DEBUG)
 /* If people really want to see such things, check 'em */
-#define myassert(x,expression)\
-  if (!(expression)) {\
-  fprintf (stderr,"Bad crop value (%d) at line %d\n", x, __LINE__);\
-  next_start_code(vid_stream); return;}
-#define assertCrop(x)	myassert(x,((x) >= -MAX_NEG_CROP) && \
-				 ((x) <= 2048+MAX_NEG_CROP))
+/* #define myassert(x,expression)\ */
+/*   if (!(expression)) {\ */
+/*   fprintf (stderr,"Bad crop value (%d) at line %d\n", x, __LINE__);\ */
+/*   next_start_code(vid_stream); return;} */
+#define assertCrop(x)	ASSERT(((x) >= -MAX_NEG_CROP) && \
+			       ((x) <= 2048+MAX_NEG_CROP))
 #else
 #define assertCrop(x)
 #endif

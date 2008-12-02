@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwWindow.c,v 1.1 2008/11/27 01:51:43 couannette Exp $
+$Id: fwWindow.c,v 1.2 2008/12/02 17:41:38 couannette Exp $
 
 ???
 
@@ -33,6 +33,7 @@ $Id: fwWindow.c,v 1.1 2008/11/27 01:51:43 couannette Exp $
 
 #include <X11/cursorfont.h>
 
+static int oldx = 0, oldy = 0;
 
 /* #undef XTDEBUG */
 
@@ -189,64 +190,66 @@ void createGLContext(void) {
 }
 
 
-void openMainWindow (int argc, char **argv) {
-	int bestMode;
+void openMainWindow (int argc, char **argv)
+{
+    int bestMode, i;
 
-	#ifdef DO_MULTI_OPENGL_THREADS
-	XInitThreads();
-	#endif
-
-
-	/* start up a XLib error handler to catch issues with FreeWRL. There
-	   should not be any issues, but, if there are, we'll most likely just
-	   throw our hands up, and continue */
-	XSetErrorHandler(catch_XLIB);
-
-
-	/* zero status stuff */
-	myMenuStatus[0] = '\0';
-
-	OPEN_TOOLKIT_MAINWINDOW
-
-	bestMode = -1;
-	screen = DefaultScreen(Xdpy);
-
-	arrowc = XCreateFontCursor(Xdpy, XC_left_ptr);
-	sensorc = XCreateFontCursor(Xdpy, XC_diamond_cross);
-
-#ifdef XF86V4
-		XF86VidModeGetAllModeLines(Xdpy, screen, &modeNum, &modes);
-
-		bestMode = 0;
-		for (i=0; i < modeNum; i++) {
-			if ((modes[i]->hdisplay == feWidth) && (modes[i]->vdisplay==feHeight)) {
-				bestMode = i;
-				break;
-			}
-		}
-		/* There is no mode equivalent to the geometry specified */
-		if (bestMode == -1) {
-			fullscreen = 0;
-			printf("No video mode for geometry %d x %d found.  Please use the --geo flag to specify an appropriate geometry, or add the required video mode\n", feWidth, feHeight);
-		}
-		XF86VidModeGetViewPort(Xdpy, DefaultScreen(Xdpy), &oldx, &oldy);
+#ifdef DO_MULTI_OPENGL_THREADS
+    XInitThreads();
 #endif
 
-	/* Find an OpenGL-capable RGB visual with depth buffer. */
-	getVisual();
 
-	CREATE_TOOLKIT_MAIN_WINDOW
+    /* start up a XLib error handler to catch issues with FreeWRL. There
+       should not be any issues, but, if there are, we'll most likely just
+       throw our hands up, and continue */
+    XSetErrorHandler(catch_XLIB);
+    
+    
+    /* zero status stuff */
+    myMenuStatus[0] = '\0';
+    
+    OPEN_TOOLKIT_MAINWINDOW;
 
-	if (RUNNINGASPLUGIN) {
-		sendXwinToPlugin();
+    bestMode = -1;
+    screen = DefaultScreen(Xdpy);
+    
+    arrowc = XCreateFontCursor(Xdpy, XC_left_ptr);
+    sensorc = XCreateFontCursor(Xdpy, XC_diamond_cross);
+    
+#if HAVE_XF86_VMODE
+    XF86VidModeGetAllModeLines(Xdpy, screen, &vmode_nb_modes, &vmode_modes);
+    
+    bestMode = 0;
+    for (i=0; i < vmode_nb_modes; i++) {
+	if ((vmode_modes[i]->hdisplay == win_width) && (vmode_modes[i]->vdisplay == win_height)) {
+	    bestMode = i;
+	    break;
 	}
+    }
+    /* There is no mode equivalent to the geometry specified */
+    if (bestMode == -1) {
+	fullscreen = 0;
+	printf("No video mode for geometry %d x %d found.  Please use the --geo flag to specify an appropriate geometry, or add the required video mode\n", win_width, win_height);
+    }
+    XF86VidModeGetViewPort(Xdpy, DefaultScreen(Xdpy), &oldx, &oldy);
+#endif /* HAVE_XF86_VMODE */
+    
+    /* Find an OpenGL-capable RGB visual with depth buffer. */
+    getVisual();
+    
+    CREATE_TOOLKIT_MAIN_WINDOW;
+    
+    if (RUNNINGASPLUGIN) {
+	sendXwinToPlugin();
+    }
 }
 
-void setGeometry (const char *gstring) {
-	int c;
-	c = sscanf(gstring,"%dx%d+%d+%d",&feWidth,&feHeight,&xPos,&yPos);
-	/* tell OpenGL what the screen dims are */
-	setScreenDim (feWidth,feHeight);
+void setGeometry (const char *gstring)
+{
+    int c;
+    c = sscanf(gstring,"%dx%d+%d+%d", &win_width, &win_height, &xPos, &yPos);
+    /* tell OpenGL what the screen dims are */
+    setScreenDim(win_width,win_height);
 }
 
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
@@ -316,28 +319,27 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
    return(NULL);
 }
 
-void resetGeometry() {
-#ifdef XF86V4
-		XF86VidModeModeInfo info;
-		int oldMode;
+void resetGeometry()
+{
+#if HAVE_XF86_VMODE
+    int oldMode, i;
 
-	if (fullscreen) {
-	 	XF86VidModeGetAllModeLines(Xdpy, screen, &modeNum, &modes);
- 		oldMode = 0;
-
- 		for (i=0; i < modeNum; i++) {
- 			if ((modes[i]->hdisplay == oldx) && (modes[i]->vdisplay==oldy)) {
- 				oldMode = i;
-				break;
- 			}
- 		}
-
-	 	XF86VidModeSwitchToMode(Xdpy, screen, modes[oldMode]);
-	 	XF86VidModeSetViewPort(Xdpy, screen, 0, 0);
-		XFlush(Xdpy);
+    if (fullscreen) {
+	XF86VidModeGetAllModeLines(Xdpy, screen, &vmode_nb_modes, &vmode_modes);
+	oldMode = 0;
+	
+	for (i=0; i < vmode_nb_modes; i++) {
+	    if ((vmode_modes[i]->hdisplay == oldx) && (vmode_modes[i]->vdisplay==oldy)) {
+		oldMode = i;
+		break;
+	    }
 	}
-
-#endif
+	
+	XF86VidModeSwitchToMode(Xdpy, screen, vmode_modes[oldMode]);
+	XF86VidModeSetViewPort(Xdpy, screen, 0, 0);
+	XFlush(Xdpy);
+    }
+#endif /* HAVE_XF86_VMODE */
 }
 
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: JScript.c,v 1.3 2008/12/02 17:41:38 couannette Exp $
 
 Javascript C language binding.
 
@@ -130,8 +130,8 @@ void kill_javascript(void) {
 	JSMaxScript = 0;
 	max_script_found = -1;
 	max_script_found_and_initialized = -1;
-	FREE_IF_NZ (ScriptControl)
-	FREE_IF_NZ(scr_act)
+	FREE_IF_NZ (ScriptControl);
+	FREE_IF_NZ(scr_act);
 
 	/* Script name/type table */
 	FREE_IF_NZ(JSparamnames);

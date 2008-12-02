@@ -4,7 +4,7 @@
  *
  * display_x11.c
  *
- * $Id: display_x11.c,v 1.5 2008/11/25 14:35:53 couannette Exp $
+ * $Id: display_x11.c,v 1.6 2008/12/02 17:41:38 couannette Exp $
  *
  *******************************************************************/
 
@@ -31,10 +31,12 @@ Atom WM_DELETE_WINDOW;
 /**
  * local variables
  */
-static int num_modes = 0;
 #if HAVE_XF86_VMODE
-static XF86VidModeModeInfo **modes = NULL;
-static int mode_selected = -1;
+
+int vmode_nb_modes;
+XF86VidModeModeInfo **vmode_modes = NULL;
+int vmode_mode_selected = -1;
+
 #endif
 
 
@@ -52,18 +54,18 @@ static int mode_cmp(const void *pa,const void *pb)
 #if HAVE_XF86_VMODE
 void switch_to_mode(int i)
 {
-    if ((!modes) || (i<0)) {
-	ERROR("switch_to_mode: no valid mode available.\n");
+    if ((!vmode_modes) || (i<0)) {
+	ERROR_MSG("switch_to_mode: no valid mode available.\n");
 	return;
     }
 
-    mode_selected = i;
+    vmode_mode_selected = i;
 
-    win_width = modes[i]->hdisplay;
-    win_height = modes[i]->vdisplay;
-    TRACE("switch_to_mode: mode selected: %d (%d,%d).\n", 
-	  mode_selected, win_width, win_height);
-    XF86VidModeSwitchToMode(Xdpy, Xscreen, modes[i]);
+    win_width = vmode_modes[i]->hdisplay;
+    win_height = vmode_modes[i]->vdisplay;
+    TRACE_MSG("switch_to_mode: mode selected: %d (%d,%d).\n", 
+	  vmode_mode_selected, win_width, win_height);
+    XF86VidModeSwitchToMode(Xdpy, Xscreen, vmode_modes[i]);
     XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
 }
 #endif
@@ -79,7 +81,7 @@ int open_display()
     display = getenv("DISPLAY");
     Xdpy = XOpenDisplay(display);
     if (!Xdpy) {
-	ERROR("can't open display %s.\n", display);
+	ERROR_MSG("can't open display %s.\n", display);
 	return FALSE;
     }
 
@@ -88,15 +90,15 @@ int open_display()
 
     if (fullscreen) {
 #if HAVE_XF86_VMODE
-	if (modes == NULL) {
-	    if (XF86VidModeGetAllModeLines(Xdpy, Xscreen, &num_modes, &modes) == 0) {
-		ERROR("can`t get mode lines through XF86VidModeGetAllModeLines.\n");
+	if (vmode_modes == NULL) {
+	    if (XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes) == 0) {
+		ERROR_MSG("can`t get mode lines through XF86VidModeGetAllModeLines.\n");
 		return FALSE;
 	    }
-	    qsort(modes, num_modes, sizeof(XF86VidModeModeInfo*), mode_cmp);
+	    qsort(vmode_modes, vmode_nb_modes, sizeof(XF86VidModeModeInfo*), mode_cmp);
 	}
-	for (i = 0; i < num_modes; i++) {
-	    if (modes[i]->hdisplay <= win_width && modes[i]->vdisplay <= win_height) {
+	for (i = 0; i < vmode_nb_modes; i++) {
+	    if (vmode_modes[i]->hdisplay <= win_width && vmode_modes[i]->vdisplay <= win_height) {
 		switch_to_mode(i);
 		break;
 	    }
@@ -180,14 +182,14 @@ int create_GL_context()
 
     Xvi = glXChooseVisual(Xdpy, Xscreen, attribs);
     if (!Xvi) {
-	ERROR("can't choose appropriate visual (component weight=%d).\n", 
+	ERROR_MSG("can't choose appropriate visual (component weight=%d).\n", 
 	      DEFAULT_COMPONENT_WEIGHT);
 	return FALSE;
     }
 
     GLcx = glXCreateContext(Xdpy, Xvi, GLcx, TRUE);
     if (!GLcx) {
-	ERROR("can't create OpenGL context.\n");
+	ERROR_MSG("can't create OpenGL context.\n");
 	return FALSE;
     }
 
@@ -197,11 +199,11 @@ int create_GL_context()
 int initialize_gl_context()
 {
     if (!Xwin) {
-	ERROR("window not initialized, can't initialize OpenGL context.\n");
+	ERROR_MSG("window not initialized, can't initialize OpenGL context.\n");
 	return FALSE;
     }
     if (!glXMakeCurrent(Xdpy, Xwin, GLcx)) {
-	ERROR("can't initialize OpenGL context (glXMakeCurrent: %s).\n", GL_ERROR_MSG);
+	ERROR_MSG("can't initialize OpenGL context (glXMakeCurrent: %s).\n", GL_ERROR_MSG);
 	return FALSE;
     }
     return TRUE;

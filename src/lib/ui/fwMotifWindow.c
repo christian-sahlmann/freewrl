@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwMotifWindow.c,v 1.1 2008/11/27 01:51:43 couannette Exp $
+$Id: fwMotifWindow.c,v 1.2 2008/12/02 17:41:38 couannette Exp $
 
 ???
 
@@ -132,7 +132,7 @@ float backgroundColours[] = {
 Arg args[10];
 Arg buttonArgs[10]; int buttonArgc = 0;
 Arg textArgs[10]; int textArgc = 0;
-XtAppContext freewrlXtAppContext;
+/* XtAppContext freewrlXtAppContext; */
 extern char myMenuStatus[];
 extern float myFps;
 
@@ -770,9 +770,9 @@ void openMotifMainWindow (int argc, char **argv) {
 	#endif
 
 	XtSetArg(initArgs[initArgc],XmNlabelString,XmStringCreate("FreeWRL VRML X3D Browser",XmSTRING_DEFAULT_CHARSET)); initArgc++;
-	XtSetArg(initArgs[initArgc],XmNheight, feHeight); initArgc++;
-	XtSetArg(initArgs[initArgc],XmNwidth, feWidth); initArgc++;
-	freewrlTopWidget = XtAppInitialize (&freewrlXtAppContext, "FreeWRL", NULL, 0, 
+	XtSetArg(initArgs[initArgc],XmNheight, win_height); initArgc++;
+	XtSetArg(initArgs[initArgc],XmNwidth, win_width); initArgc++;
+	freewrlTopWidget = XtAppInitialize (&Xtcx, "FreeWRL", NULL, 0, 
 		&argc, dummyargc, NULL, initArgs, initArgc);
 
 	Xdpy = XtDisplay (freewrlTopWidget);

@@ -69,7 +69,7 @@ void createBareMainWindow () {
 
 	Pwin = RootWindow(Xdpy, Xvi->screen);
 	Xwin = XCreateWindow(Xdpy, Pwin,
-		xPos, yPos, feWidth, feHeight, 0, Xvi->depth, InputOutput,
+		xPos, yPos, win_width, win_height, 0, Xvi->depth, InputOutput,
 		Xvi->visual, CWBorderPixel | CWColormap | CWEventMask, &Swa);
 
 	/* create window and icon name */

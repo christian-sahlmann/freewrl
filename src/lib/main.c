@@ -4,7 +4,7 @@
  *
  * main.c
  *
- * $Id: main.c,v 1.7 2008/11/27 00:27:17 couannette Exp $
+ * $Id: main.c,v 1.8 2008/12/02 17:41:38 couannette Exp $
  *
  *******************************************************************/
 
@@ -40,7 +40,7 @@ void __attribute__ ((destructor)) libFreeX3D_fini(void)
 int initFreeX3D()
 {
     if (!display_initialize()) {
-	ERROR("error in initialization.\n");
+	ERROR_MSG("error in initialization.\n");
 	return FALSE;
     }
     return TRUE;

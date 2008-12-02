@@ -111,7 +111,7 @@ typedef struct Vector Stack;
  vector_empty(me)
 
 /* tie assert in here to give better failure methodology */
-#define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
-void fw_assert(char *,int);
+/* #define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);} */
+/* void fw_assert(char *,int); */
 
 #endif /* Once-check */
