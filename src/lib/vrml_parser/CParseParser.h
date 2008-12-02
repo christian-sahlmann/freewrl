@@ -1,7 +1,7 @@
 /* 
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseParser.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: CParseParser.h,v 1.3 2008/12/02 14:48:32 couannette Exp $
 
 Parser (input of non-terminal symbols) for CParse
 
@@ -109,8 +109,10 @@ BOOL parser_sfint32Value_(struct VRMLParser*, vrmlInt32T*);
 BOOL parser_sfnodeValue(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_sfrotationValue(struct VRMLParser*, vrmlRotationT*);
 BOOL parser_sfstringValue_(struct VRMLParser*, vrmlStringT*);
-/* #define parser_sfstringValue(me, ret) \ */
-/*  lexer_string(me->lexer, ret) */
+#define parser_sfstringValue(me, ret) \
+ lexer_string(me->lexer, ret)
+#define lexer_sfstringValue(me, ret) \
+ lexer_string(me, ret)
 BOOL parser_sftimeValue(struct VRMLParser*, vrmlTimeT*);
 BOOL parser_sfvec2fValue(struct VRMLParser*, vrmlVec2fT*);
 BOOL parser_sfvec2dValue(struct VRMLParser*, vrmlVec2dT*);

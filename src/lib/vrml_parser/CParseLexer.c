@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.3 2008/12/02 14:31:07 couannette Exp $
+$Id: CParseLexer.c,v 1.4 2008/12/02 14:48:32 couannette Exp $
 
 ???
 
@@ -1069,7 +1069,8 @@ int lexer_EXTERNPROTO_mfstringValue(struct VRMLLexer* me, struct Multi_String* r
         /* Just a single value? */
         if(!lexer_openSquare(me)) {
                 ret->p=MALLOC(sizeof(vrmlStringT));
-                if(!parser_sfstringValue(me, (void*)ret->p))
+		/* FIXME: John, I've just fixed this for compilation... is it correct??? */
+                if(!lexer_sfstringValue(me, (void*)ret->p))
                         return FALSE;
                 ret->n=1;
                 return TRUE;
@@ -1079,7 +1080,8 @@ int lexer_EXTERNPROTO_mfstringValue(struct VRMLLexer* me, struct Multi_String* r
         vec=newVector(vrmlStringT, 128);
         while(!lexer_closeSquare(me)) {
                 vrmlStringT val;
-                if(!parser_sfstringValue (me, &val)) {
+		/* FIXME: idem */
+                if(!lexer_sfstringValue (me, &val)) {
                         /* parseError("Expected ] before end of MF-Value!"); */
                         strcpy (fw_outline,"ERROR:Expected \"]\" before end of EXTERNPROTO URL value, found \"");
                         if (me->curID != ((void *)0))
