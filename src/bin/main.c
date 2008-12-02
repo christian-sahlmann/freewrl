@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: main.c,v 1.7 2008/12/02 14:10:41 couannette Exp $
+$Id: main.c,v 1.8 2008/12/02 18:17:18 couannette Exp $
 
 FreeX3D main program.
 
@@ -83,7 +83,7 @@ int main (int argc, char **argv)
     }
 
     /* start threads, parse initial scene, etc */
-    initFreeX3D();
+    initFreewrl();
 
     /* do we require EAI? */
     if (wantEAI) {

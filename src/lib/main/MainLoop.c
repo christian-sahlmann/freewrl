@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.5 2008/12/02 17:41:38 couannette Exp $
+$Id: MainLoop.c,v 1.6 2008/12/02 18:17:18 couannette Exp $
 
 CProto ???
 
@@ -76,7 +76,7 @@ static char debs[300];
         void handle_Xevents(XEvent event);
 #endif
 
-pthread_t DispThrd = -1;
+pthread_t DispThrd = 0;
 char* threadmsg;
 char* PluginFullPath;
 
@@ -1260,7 +1260,7 @@ void initFreewrl() {
 
         /* printf ("initFreewrl, hows the DispThrd? %u\n",DispThrd); */
 
-        if (DispThrd == NULL) {
+        if (DispThrd == 0) {
                 pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
 
                 #ifndef AQUA

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: OpenGL_Utils.c,v 1.3 2008/12/02 18:17:18 couannette Exp $
 
 ???
 
@@ -9,6 +9,7 @@ $Id: OpenGL_Utils.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 

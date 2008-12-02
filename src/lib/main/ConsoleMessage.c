@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: ConsoleMessage.c,v 1.3 2008/12/02 18:17:18 couannette Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -22,6 +22,9 @@ for loosing the reference. Also, most if it is found in
 #include <system.h>
 #include <display.h>
 #include <internal.h>
+
+#include <syslog.h> //TODO: configure check
+#include <stdarg.h> //TODO: configure check
 
 #include <libFreeX3D.h>
 

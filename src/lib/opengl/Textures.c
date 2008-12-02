@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Textures.c,v 1.3 2008/12/02 18:17:18 couannette Exp $
 
 General Texture objects.
 
@@ -9,6 +9,7 @@ General Texture objects.
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 
@@ -26,6 +27,7 @@ General Texture objects.
 #else
 # if HAVE_JPEGLIB_H
 #  include <jpeglib.h>
+#  include <setjmp.h>
 # endif
 #endif
 

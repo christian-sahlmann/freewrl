@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.5 2008/12/02 14:25:23 couannette Exp $
+$Id: system.h,v 1.6 2008/12/02 18:17:18 couannette Exp $
 
 FreeX3D support library.
 Internal header: system dependencies.
@@ -26,7 +26,6 @@ Internal header: system dependencies.
 # include <stdint.h>
 #endif
 
-
 #if STDC_HEADERS
 # include <stdio.h>
 # include <stdlib.h>
@@ -43,9 +42,9 @@ char *strchr (), *strrchr ();
 # endif
 #endif
 
-#if HAVE_ERRNO_H
-# include <errno.h>
-#endif
+/* #if HAVE_ERRNO_H */
+/* # include <errno.h> */
+/* #endif */
 
 #if HAVE_STDBOOL_H
 # include <stdbool.h>
@@ -81,42 +80,43 @@ typedef unsigned char _Bool;
 # define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
 #endif
 
-#if HAVE_PTHREAD
-# include <pthread.h>
+/* #if HAVE_PTHREAD */
+/* # include <pthread.h> */
+/* #endif */
+
+#if HAVE_MATH_H
+# include <math.h>
 #endif
 
-/**
- * TODO:
- * finish the armor job...
- */
-#include <math.h>
+/* #include <ft2build.h> */
+/* #include FT_FREETYPE_H */
+/* #include FT_GLYPH_H */
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_GLYPH_H
+/* #include <syslog.h> */
 
-#include <syslog.h>
-#include <stdarg.h>
+/* #include <stdarg.h> */
 
 #if HAVE_SYS_STAT_H
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #endif
 
-#include <sys/time.h>
-#include <time.h>
+#if HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
+#if HAVE_TIME_H
+# include <time.h>
+#endif
 
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
+#if HAVE_FCNTL_H
+# include <fcntl.h>
+#endif
 
-#include <syslog.h>
-
-#include <fcntl.h>
-
-#include <netinet/in.h>
-#include <sys/socket.h>
+/* #include <netinet/in.h> */
+/* #include <sys/socket.h> */
+/* #if HAVE_SYS_IPC_H */
+/* # include <sys/ipc.h> */
+/* #endif */
+/* #include <sys/msg.h> */
 
 
 

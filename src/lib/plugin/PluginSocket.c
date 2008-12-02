@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: PluginSocket.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: PluginSocket.c,v 1.3 2008/12/02 18:17:18 couannette Exp $
 
 Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
@@ -9,6 +9,7 @@ Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 
