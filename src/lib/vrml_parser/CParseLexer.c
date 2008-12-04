@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.5 2008/12/02 17:41:38 couannette Exp $
+$Id: CParseLexer.c,v 1.6 2008/12/04 05:59:52 couannette Exp $
 
 ???
 
@@ -24,6 +24,7 @@ $Id: CParseLexer.c,v 1.5 2008/12/02 17:41:38 couannette Exp $
 #include "CParseLexer.h"
 #include "CParse.h"
 
+#define CPARSERVERBOSE 1
 
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me);
 char *externProtoPointer = NULL;
@@ -304,8 +305,8 @@ BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
 	#endif
 
 	if(lexer_specialID_string(me, retB, retU, builtIn, builtInCount, user, me->curID)) {
-		FREE_IF_NZ (me->curID);
-		return TRUE;
+	    FREE_IF_NZ (me->curID);
+	    return TRUE;
 	}
 
 	return FALSE;
@@ -1027,13 +1028,13 @@ if (me->curID) {
 
  lexer_skip(me);
 
- LEXER_GETINPUT(c)
- CHECK_EOF(c)
+ LEXER_GETINPUT(c);
+ CHECK_EOF(c);
  /* printf ("lxer_opr, got %d\n",c); */
 
  if(c!=op)
  {
-  LEXER_UNGETINPUT(c)
+     LEXER_UNGETINPUT(c);
   return FALSE;
  }
 

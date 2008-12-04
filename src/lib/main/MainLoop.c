@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.6 2008/12/02 18:17:18 couannette Exp $
+$Id: MainLoop.c,v 1.7 2008/12/04 05:59:52 couannette Exp $
 
 CProto ???
 
@@ -492,7 +492,7 @@ void EventLoop() {
                 /* do we need to re-define cursor style?        */
                 /* do we need to send an isOver event?          */
                 if (CursorOverSensitive!= NULL) {
-                        SENSOR_CURSOR
+		    SENSOR_CURSOR;
 
                         /* is this a new node that we are now over?
                            don't change the node pointer if we are clicked down */
@@ -506,9 +506,9 @@ void EventLoop() {
                 } else {
                         /* hold off on cursor change if dragging a sensor */
                         if (lastPressedOver!=NULL) {
-                                SENSOR_CURSOR
+			    SENSOR_CURSOR;
                         } else {
-                                ARROW_CURSOR
+			    ARROW_CURSOR;
                         }
 
                         /* were we over a sensitive node? */
