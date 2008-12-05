@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: utils.c,v 1.3 2008/12/04 05:59:52 couannette Exp $
+$Id: utils.c,v 1.4 2008/12/05 13:20:52 couannette Exp $
 
 General utility functions.
 
@@ -72,7 +72,7 @@ static int mcount;
 
 void freewrlFree(int line, char *file, void *a)
 {
-    printf ("%x xfree at %s:%d\n",a,file,line); 
+/*     printf ("%x xfree at %s:%d\n",a,file,line);  */
     FREETABLE(a,file,line);
     free(a);
 }

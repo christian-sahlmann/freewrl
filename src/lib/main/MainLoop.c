@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.7 2008/12/04 05:59:52 couannette Exp $
+$Id: MainLoop.c,v 1.8 2008/12/05 13:20:52 couannette Exp $
 
 CProto ???
 
@@ -211,7 +211,7 @@ void EventLoop(void);
 struct X3D_Node*  getRayHit(void);
 void get_hyperhit(void);
 void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
-Boolean pluginRunning;
+bool pluginRunning;
 int isBrowserPlugin = FALSE;
 
 /******************************************************************************/

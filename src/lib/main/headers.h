@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.5 2008/12/02 17:41:38 couannette Exp $
+$Id: headers.h,v 1.6 2008/12/05 13:20:52 couannette Exp $
 
 Global includes.
 
@@ -635,8 +635,6 @@ extern int isTextureAlpha(int n);
 extern int displayDepth;
 extern int display_status;
 
-#define RUNNINGASPLUGIN (isBrowserPlugin)
-
 #define RUNNINGONAMD64 (sizeof(void *) == 8)
 
 /* appearance does material depending on last texture depth */
@@ -928,36 +926,6 @@ extern void setStereoParameter (const char *optArg);
 extern void setEyeDist (const char *optArg);
 
 extern int isPerlinitialized(void);
-
-#ifdef HAVE_MOTIF
-	#define ISDISPLAYINITIALIZED isMotifDisplayInitialized()
-	#define GET_GLWIN getMotifWindowedGLwin (&GLwin);
-	#define OPEN_TOOLKIT_MAINWINDOW openMotifMainWindow (argc, argv);
-	#define CREATE_TOOLKIT_MAIN_WINDOW createMotifMainWindow();
-	int isMotifDisplayInitialized(void);
-	void getMotifWindowedGLwin (Window *);
-	void openMotifMainWindow (int argc, char ** argv);
-	void createMotifMainWindow(void);
-#else
-
-	#ifdef HAVE_GTK2
-		#define ISDISPLAYINITIALIZED isGtkDisplayInitialized()
-		#define GET_GLWIN getGtkWindowedGLwin (&GLwin);
-		#define OPEN_TOOLKIT_MAINWINDOW openGtkMainWindow (argc, argv);
-		#define CREATE_TOOLKIT_MAIN_WINDOW createGtkMainWindow();
-		int isGtkDisplayInitialized(void);
-		void getGtkWindowedGLwin (Window *);
-		void openGtkMainWindow (int argc, char ** argv);
-		void createGtkMainWindow(void);
-
-	#else
-		#define HAVE_NOTOOLKIT
-		#define ISDISPLAYINITIALIZED TRUE
-		#define GET_GLWIN getBareWindowedGLwin (&GLwin);
-		#define OPEN_TOOLKIT_MAINWINDOW openBareMainWindow (argc, argv);
-		#define CREATE_TOOLKIT_MAIN_WINDOW createBareMainWindow();
-	#endif
-#endif
 
 extern char *getInputURL(void);
 extern char *lastReadFile; 		/* name last file read in */
@@ -1495,7 +1463,7 @@ void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr);
 struct Multi_Vec3f *getCoordinate (void *node, char *str);
 
 #ifdef AQUA
-Boolean notFinished();
+bool notFinished();
 void disposeContext();
 void setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height);
 void createContext(CGrafPtr grafPtr);

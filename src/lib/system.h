@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.6 2008/12/02 18:17:18 couannette Exp $
+$Id: system.h,v 1.7 2008/12/05 13:20:52 couannette Exp $
 
 FreeX3D support library.
 Internal header: system dependencies.
@@ -41,10 +41,6 @@ char *strchr (), *strrchr ();
 #  define memmove(d, s, n) bcopy ((s), (d), (n))
 # endif
 #endif
-
-/* #if HAVE_ERRNO_H */
-/* # include <errno.h> */
-/* #endif */
 
 #if HAVE_STDBOOL_H
 # include <stdbool.h>

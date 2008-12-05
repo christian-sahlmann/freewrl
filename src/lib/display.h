@@ -1,14 +1,12 @@
-/*******************************************************************
- *
- * FreeX3D support library
- *
- * internal header - display.h
- *
- * Library internal display declarations: X11/Motif or OSX/Aqua
- *
- * $Id: display.h,v 1.8 2008/12/02 17:41:38 couannette Exp $
- *
- *******************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: display.h,v 1.9 2008/12/05 13:20:52 couannette Exp $
+
+FreeX3D support library.
+Internal header: display (X11/Motif or OSX/Aqua) dependencies.
+
+*/
 
 #ifndef __LIBFREEX3D_DISPLAY_H__
 #define __LIBFREEX3D_DISPLAY_H__
@@ -56,10 +54,19 @@ AGLContext aqglobalContext;
  */
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
 
+/**
+ * X11 common: weither we use Motif or not
+ */
+
+# include <GL/gl.h>
+# include <GL/glu.h>
+# include <GL/glx.h>
+
+GLXContext GLcx;
+
 # include <X11/Xlib.h>
 # include <X11/Xutil.h>
 # include <X11/keysym.h>
-# include <X11/extensions/xf86vmode.h>
 
 Display *Xdpy;
 int Xscreen;
@@ -72,47 +79,62 @@ unsigned long mask;
 Atom WM_DELETE_WINDOW;
 
 # if HAVE_XF86_VMODE
-
+#  include <X11/extensions/xf86vmode.h>
 int vmode_nb_modes;
 XF86VidModeModeInfo **vmode_modes;
 int vmode_mode_selected;
-
 # endif /* HAVE_XF86_VMODE */
 
 # if defined(TARGET_MOTIF)
 
+/**
+ * Motif
+ */
 # include <X11/Intrinsic.h>
 # include <Xm/Xm.h>
 
 XtAppContext Xtcx;
 
-int create_main_window_motif();
+int create_main_window_motif(); /* mb */
 
-# else
+int isMotifDisplayInitialized();
+void getMotifWindowedGLwin(Window *win);
+void openMotifMainWindow(int argc, char ** argv);
+void createMotifMainWindow();
+# define ISDISPLAYINITIALIZED isMotifDisplayInitialized()
+# define GET_GLWIN getMotifWindowedGLwin(&GLwin)
+# define OPEN_TOOLKIT_MAINWINDOW openMotifMainWindow(argc, argv)
+# define CREATE_TOOLKIT_MAIN_WINDOW createMotifMainWindow()
 
-int create_main_window_x11();
+# else /* defined(TARGET_MOTIF) */
+
+/**
+ * Only X11, no Motif
+ */
+int create_main_window_x11(); /* mb */
+
+# define HAVE_NOTOOLKIT
+# define ISDISPLAYINITIALIZED TRUE
+# define GET_GLWIN getBareWindowedGLwin (&GLwin);
+# define OPEN_TOOLKIT_MAINWINDOW openBareMainWindow (argc, argv);
+# define CREATE_TOOLKIT_MAIN_WINDOW createBareMainWindow();
 
 # endif /* defined(TARGET_MOTIF) */
-
-# include <GL/gl.h>
-# include <GL/glu.h>
-# include <GL/glx.h>
-
-GLXContext GLcx;
 
 #endif /* defined(TARGET_X11) || defined(TARGET_MOTIF) */
 
 /**
- * OpenGL / Window initialization
+ * General : all systems
  */
-int display_initialize();
-int open_display();
-int create_main_window();
-int create_GL_context();
-int initialize_gl_context();
-int initialize_viewport();
 
 #define GL_ERROR_MSG gluErrorString(glGetError())
+
+int display_initialize(); /* mb */
+int open_display(); /* mb */
+int create_main_window(); /* mb */
+int create_GL_context(); /* mb */
+int initialize_gl_context(); /* mb */
+int initialize_viewport(); /* mb */
 
 
 #endif /* __LIBFREEX3D_DISPLAY_H__ */

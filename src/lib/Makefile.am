@@ -10,23 +10,44 @@ AM_CPPFLAGS += \
 				$(PTHREAD_CFLAGS) \
 				$(FREETYPE_CFLAGS) \
 				$(JAVASCRIPT_ENGINE_CFLAGS) \
-				$(XML_CFLAGS) $(EXPAT_CFLAGS) \
-				$(X_CFLAGS) \
-				$(XAW_CFLAGS) \
-				$(MOTIF_CFLAGS) \
+				$(XML_CFLAGS) $(EXPAT_CFLAGS)
 				$(GL_CFLAGS) \
 				$(PNG_CFLAGS)
+
+if WINDOW_USE_X11
+AM_CPPFLAGS += \
+				$(X_CFLAGS) \
+				$(XAW_CFLAGS)
+endif
+
+if WINDOW_USE_MOTIF
+AM_CPPFLAGS += \
+				$(X_CFLAGS) \
+				$(XAW_CFLAGS) \
+				$(MOTIF_CFLAGS)
+endif
 
 AM_LDFLAGS += \
 				$(FREETYPE_LIBS) \
 				$(JAVASCRIPT_ENGINE_LIBS) \
 				$(XML_LIBS) $(EXPAT_LIBS) \
-				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
-				$(XAW_LIBS) \
-				$(MOTIF_LIBS) \
 				$(GL_LIBS) \
 				$(JPEG_LIBS) \
 				$(PNG_LIBS)
+
+if WINDOW_USE_X11
+AM_LDFLAGS += \
+				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
+				$(XAW_LIBS)
+endif
+
+if WINDOW_USE_MOTIF
+AM_LDFLAGS += \
+				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
+				$(XAW_LIBS) \
+				$(MOTIF_LIBS)
+endif
+
 
 _EV=$(top_srcdir)/versions/LIBFREEX3D
 _EV2=$(top_srcdir)/versions/LIBFREEX3D_LTVERSION
@@ -60,12 +81,12 @@ libFreeX3D_la_SOURCES += internal_version.c
 # WINDOW_USE_* are exclusive
 #
 if WINDOW_USE_X11
-libFreeX3D_la_SOURCES += display_x11.c
+libFreeX3D_la_SOURCES += display_x11.c ui/fwBareWindow.c
 AM_CPPFLAGS+=-DTARGET_X11
 endif
 
 if WINDOW_USE_MOTIF
-libFreeX3D_la_SOURCES += display_x11.c display_motif.c
+libFreeX3D_la_SOURCES += display_x11.c display_motif.c ui/fwMotifWindow.c
 AM_CPPFLAGS+=-DTARGET_MOTIF
 endif
 

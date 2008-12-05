@@ -4,7 +4,7 @@
  *
  * public API - libFreeX3D.h
  *
- * $Id: libFreeX3D.h,v 1.9 2008/11/27 01:51:43 couannette Exp $
+ * $Id: libFreeX3D.h,v 1.10 2008/12/05 13:20:52 couannette Exp $
  *
  *******************************************************************/
 
@@ -37,6 +37,9 @@ void Anchor_ReplaceWorld(char *name);
 /**
  * General variables
  */
+
+#define RUNNINGASPLUGIN (isBrowserPlugin)
+
 int win_height;
 int win_width;
 int fullscreen;

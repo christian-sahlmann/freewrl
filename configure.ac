@@ -170,7 +170,7 @@ case "$os_type" in
      *) # Target available: x11,motif
           test_x11=yes
           case "$TARGET" in
-               auto) TARGET=motif ;;
+               auto) TARGET=x11 ;;
                x11|motif) : ;;
                *) AC_MSG_FAILURE([Platform is $os_type, target available are: x11,motif.]) ;;
           esac
