@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.6 2008/12/05 13:20:52 couannette Exp $
+$Id: headers.h,v 1.7 2008/12/08 18:18:52 crc_canada Exp $
 
 Global includes.
 
@@ -1394,7 +1394,7 @@ void killErrantChildren(void);
 void kill_routing(void);
 void kill_bindables(void);
 void kill_javascript(void);
-void kill_oldWorld(int a, int b, int c);
+void kill_oldWorld(int, int, int, char *, int);
 void kill_clockEvents(void);
 void kill_openGLTextures(void);
 void kill_X3DDefs(void);
