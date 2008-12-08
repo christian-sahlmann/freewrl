@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.h,v 1.3 2008/12/02 17:41:38 couannette Exp $
+$Id: CParse.h,v 1.4 2008/12/08 17:58:48 crc_canada Exp $
 
 VRML-parsing routines in C.
 
@@ -26,6 +26,7 @@ BOOL cParse(void*, unsigned, const char*);
 
 /* Some accessor-methods */
 struct X3D_Node* parser_getNodeFromName(const char*);
+char* parser_getNameFromNode(struct X3D_Node*);
 extern struct VRMLParser* globalParser;
 
 /* tie assert in here to give better failure methodology */

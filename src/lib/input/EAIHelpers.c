@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.3 2008/12/02 14:34:21 couannette Exp $
+$Id: EAIHelpers.c,v 1.4 2008/12/08 17:58:48 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -67,39 +67,119 @@ This struct contains both a node and an ofs field.
 
 ************************************************************************/
 
-struct DEFnameStruct {
-	struct X3D_Node *node;
-	struct Uni_String *name;
+/* keep a list of node requests, so that we can keep info on each node */
+#define MAXFIELDSPERNODE 20
+static int lastNodeRequested = 0;
+
+/* store enough stuff in here so that each field can be read/written, no matter whether it is a 
+   PROTO, SCRIPT, regular node, pint of beer, or whatever */
+
+struct EAINodeParams {
+	int fieldOffset;
+	int datalen;
+	int typeString;
+	int scripttype;
+	char *invokedValue; 	/* proto field value on invocation (default, or supplied) */
 };
-extern struct DEFnameStruct *DEFnames;
-extern int DEFtableSize;
+
+struct EAINodeIndexStruct {
+	struct X3D_Node*	actualNodePtr;
+	struct EAINodeParams 	params[MAXFIELDSPERNODE];
+	int    maxparamindex;
+};
+static struct  EAINodeIndexStruct EAINodeIndex[1000];
+
+
+
+
+/* get an actual memory pointer to field, assumes both node has passed ok check */
+uintptr_t *getEAIMemoryPointer (int node, int field) {
+	char *memptr;
+
+	/* do memory pointer math in char formats, as this ensures 8 bit compatibility */
+	memptr = (char *)getEAINodeFromTable(node);
+	memptr += EAINodeIndex[node].params[field].fieldOffset;
+	/* printf ("getEAIMemoryPointer, nf %d:%d, node %u offset %d total %u\n",
+		node,field,getEAINodeFromTable(node), EAINodeIndex[node].params[field].fieldOffset, memptr);
+	*/
+
+	return (uintptr_t *)memptr;
+}
+
+/* get the parameters during proto invocation. Might not ever have been ISd */
+char * getEAIInvokedValue(int node, int field) {
+	return EAINodeIndex[node].params[field].invokedValue;
+}
+
+
+/* return the actual field offset as defined; change fieldHandle into an actual value */
+int getEAIActualOffset(int node, int field) {
+	return EAINodeIndex[node].params[field].fieldOffset;
+}
+
+/* return a registered node. If index==0, return NULL */
+struct X3D_Node *getEAINodeFromTable(int index) {
+	if (index==0) return NULL;
+	if (index>lastNodeRequested) {
+		printf ("internal EAI error - requesting %d, highest node %d\n",
+			index,lastNodeRequested);
+		return NULL;
+	}
+
+	return EAINodeIndex[index].actualNodePtr;
+}
+
+/* return an index to a node table. return value 0 means ERROR!!! */
+int registerEAINodeForAccess(struct X3D_Node* myn) {
+	int ctr;
+	int mynindex = 0;
+
+	printf ("registerEAINodeForAccess, remember to MALLOC this stuff... passed in %u\n",myn);
+	for (ctr=1; ctr<lastNodeRequested; ctr++) {
+		if (EAINodeIndex[ctr].actualNodePtr == myn) {
+			if (eaiverbose) printf ("registerEAINodeForAccess - already got node\n");
+			mynindex = ctr;
+			break;
+		}
+	}
+
+	/* did we find this node already? */
+	if (mynindex == 0) {
+		lastNodeRequested++;
+		mynindex = lastNodeRequested;
+		EAINodeIndex[mynindex].actualNodePtr = myn;
+		EAINodeIndex[mynindex].maxparamindex = -1;
+	}
+
+	if (eaiverbose) printf ("registerEAINodeForAccess returning index %d\n",mynindex);
+	return mynindex;
+}
+
+/******************************************************************************************/
+
+/* this is like EAI_GetNode, but is just for the rootNode of the scene graph */
+int EAI_GetRootNode(void) {
+	return registerEAINodeForAccess(rootNode);
+}
 
 
 /* get a node pointer in memory for a node. Return the node pointer, or NULL if it fails */
-uintptr_t EAI_GetNode(const char *str) {
-	struct X3D_Node *myn;
-	int ctr;
-	struct Uni_String* tmp;
+int EAI_GetNode(const char *str) {
+
+	struct X3D_Node * myNode;
 
 	if (eaiverbose) {
 		printf ("EAI_GetNode - getting %s\n",str);
 	}	
 	
 	/* Try to get X3D node name */
-	for (ctr = 0; ctr <= DEFtableSize; ctr++) {
-		tmp = DEFnames[ctr].name;
-		if (strcmp(str, tmp->strptr) == 0) {
-			return (uintptr_t) DEFnames[ctr].node;
-		}
+	myNode = X3DParser_getNodeFromName(str);
+	if (myNode != NULL) {
+			return registerEAINodeForAccess(myNode);
 	}
 
 	/* Try to get VRML node name */
-	myn = parser_getNodeFromName(str);
-	if (eaiverbose) {
-		if (myn == NULL) printf ("EAI_GetNode for %s returns %u\n",str,myn);
-		else printf ("EAI_GetNode for %s returns %x - it is a %s\n",str,myn,stringNodeType(myn->_nodeType));
-	}	
-	return (uintptr_t) myn;
+	return registerEAINodeForAccess(parser_getNodeFromName(str));
 }
 
 
@@ -154,33 +234,20 @@ parameters:
 	int *accessType 	returns one of KW_exposedField, KW_eventIn, KW_eventOut, KW_field, or 0 
 				if field not found.
 
-	int *myProtoIndex	index into the proto field value tables for this field. returns
-				-1 if this field is not found or table overflow.
+	char **invokedValue	a MALLOCd string containing the invocation value of this field
 
 *********************************************************************************/
-
-
-/* for keeping track of PROTO field values - hold on to last 10 values from a getType call */
-char * myProtoFields[] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-int myProtoFieldIndex = 0;
-
-void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uintptr_t *myNodeP,
-					int *myOfs, int *myType, int *accessType, 
-					int *myProtoIndex) {
+static void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uintptr_t *myNodeP,
+					int *myOfs, int *myType, int *accessType, char **invokedValue) {
 
 	struct X3D_Group *group;
 	struct ProtoDefinition *myProtoDecl;
 	struct ProtoFieldDecl *thisIndex;
-	int fc, fc2;
-	union anyVrml myDefaultValue;
-	struct OffsetPointer *myP;
-	char *cp;
 
 
 	/* set these values, so that we KNOW if we have found the correct field */
 	*myType = 0;
 	*myOfs = 0;
-	*myProtoIndex = -1;
 	*myNodeP = 0;
 
 	#ifdef FF_PROTO_PRINT
@@ -239,34 +306,19 @@ void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uintptr_t 
 				}
 
 			}
-			/* printf ("TESTING - got replace as %s\n",newTl); */
+			printf ("TESTING - got replace as %s\n",newTl); 
 
-			FREE_IF_NZ(myProtoFields[myProtoFieldIndex]);
-			myProtoFields[myProtoFieldIndex] = newTl;
-			*myProtoIndex = myProtoFieldIndex;
-			myProtoFieldIndex++; 
-			if (myProtoFieldIndex >= 10) {
-				printf ("EAI - re-using the protoFieldIndex values\n");
-				myProtoFieldIndex = 0;
-			}
-
+			*invokedValue = newTl;
 			*myType = mapFieldTypeToEAItype(protoFieldDecl_getType(thisIndex));
 			*accessType = mapToKEYWORDindex(protoFieldDecl_getAccessType(thisIndex));
-
 		}
 	}
 }
 
 
-void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr, uintptr_t *fieldOffset,
-			uintptr_t *dataLen, uintptr_t *typeString,  unsigned int *scripttype, int *accessType) {
-
-	struct X3D_Node *nodePtr;
-	int myField;
-	int *myofs;
-	int ctype;
+/* get the type of a node; node must exist in table */
 /* 	
-	cNode = node pointer into memory - assumed to be valid
+	cNode = handle for node pointer into memory - if not valid, this routine returns everything as zeroes
 	ctmp = field as a string - eg, "addChildren"
 	dtmp = access method = "eventIn", "eventOut", "field" or...???
 	cNodePtr = C node pointer;
@@ -274,41 +326,46 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 	dataLen = data len;
 	typeString = mapFieldTypeToEAItype (ctype);
 	scripttype = 0 - meaning, not to/from a javascript. (see CRoutes.c for more info)
-	
 */
 
+void EAI_GetType (int cNode,  char *ctmp, char *dtmp, 
+		uintptr_t *cNodePtr, uintptr_t *fieldOffset,
+		uintptr_t *dataLen, uintptr_t *typeString,  unsigned int *scripttype, int *accessType) {
+
+	struct X3D_Node* nodePtr = getEAINodeFromTable(cNode);
+	int myField;
+	int ctype;
 	int myProtoIndex;
 	int myFieldOffs;
+	int maxparamindex = 0;
+	char *invokedValPtr = NULL;  /* for PROTOs - invocation value */
 
-	nodePtr = X3D_NODE(cNode);
-	
+	/* is this a valid C node? if so, lets just get the info... */
+	if ((cNode == 0) || (cNode > lastNodeRequested)) {
+		printf ("THIS IS AN ERROR! CNode is zero!!!\n");
+		*cNodePtr = 0; *fieldOffset = 0; *dataLen = 0; *typeString = 0; *scripttype=0; *accessType=KW_eventIn;
+		return;
+	}
+
 	if (eaiverbose) {
 		printf ("start of EAI_GetType, this is a valid C node %d\n",nodePtr);
 		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
 	}	
 
-					
-
-	if ((strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) || 
-	(strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0)) {
-		myField = findFieldInFIELDNAMES("children");
-	} else {
-		/* try finding it, maybe with a "set_" or "changed" removed */
-		myField = findRoutedFieldInFIELDNAMES(nodePtr,ctmp,0);
-		if (myField == -1) 
-			myField = findRoutedFieldInFIELDNAMES(nodePtr,ctmp,1);
-	}
-	myofs = (int *)NODE_OFFSETS[nodePtr->_nodeType];
+	/* try finding it, maybe with a "set_" or "changed" removed */
+	myField = findRoutedFieldInFIELDNAMES(nodePtr,ctmp,0);
+	if (myField == -1) 
+		myField = findRoutedFieldInFIELDNAMES(nodePtr,ctmp,1);
 
 	/* find offsets, etc */
-       	findFieldInOFFSETS(myofs, myField, &myFieldOffs, &ctype, accessType);
+       	findFieldInOFFSETS((int *)NODE_OFFSETS[nodePtr->_nodeType], myField, &myFieldOffs, &ctype, accessType);
 
 	/* is this a PROTO, or just an invalid field?? */ 
 	if (myFieldOffs <= 0) {
 		if (eaiverbose) {
 			printf ("EAI_GetType, myFieldOffs %d, try findFieldInPROTOOFFSETS\n",myFieldOffs);
 		}	
-		findFieldInPROTOOFFSETS (nodePtr, ctmp, cNodePtr, &myFieldOffs, &ctype, accessType ,&myProtoIndex);
+		findFieldInPROTOOFFSETS (nodePtr, ctmp, cNodePtr, &myFieldOffs, &ctype, accessType ,&invokedValPtr);
 
 		/* did we find an actual proto expansion field? If not, just return the original node
 		   (the one we pointed to in the first case) and the protoIndex as an offset, as the
@@ -326,16 +383,25 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 	}
 
 	/* return values. */
-	/* fieldOffset - assigned above - offset */
-	*fieldOffset = (uintptr_t) myFieldOffs;
+	/* save these indexes */
+	EAINodeIndex[cNode].maxparamindex++;
+	maxparamindex = EAINodeIndex[cNode].maxparamindex;
+	if (maxparamindex >= MAXFIELDSPERNODE) {
+		maxparamindex = MAXFIELDSPERNODE-1;
+		EAINodeIndex[cNode].maxparamindex = maxparamindex;
+		printf ("recompile with MAXFIELDSPERNODE increased in value\n");
+	}
+	EAINodeIndex[cNode].params[maxparamindex].fieldOffset = myFieldOffs;
+	EAINodeIndex[cNode].params[maxparamindex].datalen = returnRoutingElementLength(mapEAItypeToFieldType(ctype));
+	EAINodeIndex[cNode].params[maxparamindex].typeString = ctype;
+	EAINodeIndex[cNode].params[maxparamindex].scripttype = 0;
+	EAINodeIndex[cNode].params[maxparamindex].invokedValue = invokedValPtr;
+
+	*fieldOffset = (uintptr_t) maxparamindex;
 	*dataLen = returnRoutingElementLength(mapEAItypeToFieldType(ctype));	/* data len */
 	*typeString = (uintptr_t) ctype;	
 	*scripttype =0;
 
-	/* re-map the access type back for children fields */
-	if (strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) *accessType = KW_eventIn; 
-	if (strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0) *accessType = KW_eventOut;
-					
 	if (eaiverbose) {
 		printf ("EAI_GetType, returning cNodePtr %u, coffset %d, ctype %x, ctmp %s\n",
 			*cNodePtr,*fieldOffset,ctype, stringKeywordType(*accessType));
@@ -360,11 +426,44 @@ char * SAI_StrRetCommand (char cmnd, const char *fn) {
 	return "iunknownreturn";
 }
 
-char* EAI_GetValue(unsigned int nodenum, const char *fieldname, const char *nodename) {
-	printf ("HELP::EAI_GetValue, %d, %s %s\n",nodenum, fieldname, nodename);
-}
-
 unsigned int EAI_GetViewpoint(const char *str) {
 	printf ("HELP::EAI_GetViewpoint %s\n",str);
 	return 0;
+}
+
+
+
+/* we have a GETVALUE command coming in */
+void handleEAIGetValue (char command, char *bufptr, char *buf, int repno) {
+	int getValueFromPROTOField = FALSE;
+	struct X3D_Node *myNode;
+	int nodeIndex, fieldIndex, length;
+	char ctmp[4000];
+	int retint;
+
+	if (eaiverbose) printf ("GETVALUE %s \n",bufptr);
+	printf ("GETVALUE %s \n",bufptr);
+
+
+	/* format: ptr, offset, type, length (bytes)*/
+	retint=sscanf (bufptr, "%d %d %c %d", &nodeIndex,&fieldIndex,ctmp,&length);
+	myNode = getEAINodeFromTable(nodeIndex);
+
+	/* if myNode is NULL, we have an error, baby */
+	if (myNode == NULL) {
+		printf ("handleEAIGetValue - node does not exist!\n");
+		return;
+	}
+
+	
+	/* is the pointer a pointer to a PROTO?? If so, then the getType did not find
+	an actual field (an IS'd field??) in a proto expansion for us.  We have to 
+	go through, as the offset will be the index in the PROTO field for us to get
+	the value for */
+
+	if (EAINodeIndex[nodeIndex].params[fieldIndex].invokedValue != NULL) {
+		sprintf (buf,"RE\n%f\n%d\n%s",TickTime,repno,getEAIInvokedValue(nodeIndex,fieldIndex));	
+	} else {
+		EAI_Convert_mem_to_ASCII (repno,"RE",mapEAItypeToFieldType(ctmp[0]),getEAIMemoryPointer(nodeIndex,fieldIndex), buf);
+	}
 }

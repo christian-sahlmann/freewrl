@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIheaders.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: EAIheaders.h,v 1.3 2008/12/08 17:58:48 crc_canada Exp $
 
 EAI and java CLASS invocation
 
@@ -28,6 +28,7 @@ void EAI_RW(char *bufptr);
 
 /* these are commands accepted from the EAI client */
 #define GETNODE		'A'
+#define GETEAINODETYPE	'B'
 #define SENDCHILD 	'C'
 #define SENDEVENT	'D'
 #define GETVALUE	'E'

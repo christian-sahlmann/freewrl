@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.3 2008/12/02 18:17:18 couannette Exp $
+$Id: OpenGL_Utils.c,v 1.4 2008/12/08 17:58:48 crc_canada Exp $
 
 ???
 
@@ -386,7 +386,7 @@ void kill_rendering() {kill_X3DNodes();}
    ones, really, it's just replace the rootNode children, as WE DO NOT KNOW
    what the user has programmed, and what nodes are (re) used in the Scene Graph */
 
-void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
+void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL, char *file, int line) {
 	#ifndef AQUA
         char mystring[20];
 	#endif
@@ -394,66 +394,55 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
 	/* close the Console Message system, if required. */
 	closeConsoleMessage();
 
-	if (loadedFromURL) {
-		/* occlusion testing - zero total count, but keep MALLOC'd memory around */
-		zeroOcclusion();
+	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
+	zeroOcclusion();
 
-		/* clock events - stop them from ticking */
-		kill_clockEvents();
+	/* clock events - stop them from ticking */
+	kill_clockEvents();
 
-		/* kill DEFS, handles */
-		EAI_killBindables();
-		kill_bindables();
-		killKeySensorNodeList();
+	/* kill DEFS, handles */
+	EAI_killBindables();
+	kill_bindables();
+	killKeySensorNodeList();
 
-		/* stop routing */
-		kill_routing();
+	/* stop routing */
+	kill_routing();
 
-		/* stop rendering */
-		X3D_GROUP(rootNode)->children.n = 0;
+	/* stop rendering */
+	X3D_GROUP(rootNode)->children.n = 0;
 
-		/* tell the statusbar that it needs to reinitialize */
-		kill_status();
+	/* tell the statusbar that it needs to reinitialize */
+	kill_status();
 
-		/* free textures */
-		kill_openGLTextures();
+	/* free textures */
+	kill_openGLTextures();
 	
-		/* free scripts */
-		kill_javascript();
+	/* free scripts */
+	kill_javascript();
 
-		/* free EAI */
-		if (kill_EAI) {
-	        	shutdown_EAI();
-		}
+	/* free EAI */
+	if (kill_EAI) {
+	       	shutdown_EAI();
+	}
 
-		/* free memory */
-		kill_X3DNodes();
+	/* free memory */
+	kill_X3DNodes();
 
 
-		#ifndef AQUA
-	        sprintf (mystring, "QUIT");
-	        Sound_toserver(mystring);
-		#endif
+	#ifndef AQUA
+		sprintf (mystring, "QUIT");
+		Sound_toserver(mystring);
+	#endif
 
-		/* reset any VRML Parser data */
-		if (globalParser != NULL) {
-			parser_destroyData(globalParser);
-			globalParser = NULL;
-		}
+	/* reset any VRML Parser data */
+	if (globalParser != NULL) {
+		parser_destroyData(globalParser);
+		globalParser = NULL;
+	}
 
-	        /* tell statusbar that we have none */
-	        viewer_default();
-	        setMenuStatus("NONE");
-	} else {
-		/* just a replaceWorld from EAI or from Javascript */
-
-		/* stop rendering */
-		X3D_GROUP(rootNode)->children.n = 0;
-
-	        /* tell statusbar that we have none */
-	        viewer_default();
-	        setMenuStatus("NONE");
-	}	
+	/* tell statusbar that we have none */
+	viewer_default();
+	setMenuStatus("NONE");
 }
 
 /* for verifying that a memory pointer exists */

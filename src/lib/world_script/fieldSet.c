@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: fieldSet.c,v 1.3 2008/12/08 17:58:48 crc_canada Exp $
 
 ???
 
@@ -51,6 +51,36 @@ scene graph.
 Different methods are used, depending on the format of the call.
 
 *********************************************************************/
+
+/* copy new scanned in data over to the memory area in the scene graph. */
+uintptr_t Multi_Struct_memptr (int type, void *memptr) {
+	struct Multi_Vec3f *mp;
+	uintptr_t retval;
+
+	/* is this a straight copy, or do we have a struct to send to? */
+	/* now, some internal reps use a structure defined as:
+	   struct Multi_Vec3f { int n; struct SFColor  *p; };
+	   so, we have to put the data in the p pointer, so as to
+	   not overwrite the data. */
+
+	retval = (uintptr_t) memptr;
+
+	switch (type) {
+		case FIELDTYPE_MFInt32:
+		case FIELDTYPE_MFFloat:
+		case FIELDTYPE_MFRotation:
+		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_MFColorRGBA:
+		case FIELDTYPE_MFColor:
+		case FIELDTYPE_MFVec2f:
+			mp = (struct Multi_Vec3f*) memptr;
+			retval = (uintptr_t) (mp->p);
+
+		default: {}
+		}
+	return retval;
+}
+
 
 /* set a field; used in JavaScript, and in the Parser VRML parser 
 
@@ -114,6 +144,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value) {
 unsigned int setField_FromEAI (char *ptr) {
 	unsigned char nt;
 	int nodetype;
+	int tmp_a, tmp_b;
 	uintptr_t nodeptr;
 	uintptr_t offset;
 	unsigned int scripttype;
@@ -144,7 +175,7 @@ unsigned int setField_FromEAI (char *ptr) {
 	ptr++;
 
 	/* nodeptr, offset */
-	retint=sscanf (ptr, "%d %d %d",&nodeptr, &offset, &scripttype);
+	retint=sscanf (ptr, "%d %d %d",&tmp_a, &tmp_b, &scripttype);
 	if (retint != 3) ConsoleMessage ("setField_FromEAI: error reading 3 numbers from the string :%s:\n",ptr);
 
 	while ((*ptr) > ' ') ptr++; 	/* node ptr */
@@ -168,7 +199,9 @@ unsigned int setField_FromEAI (char *ptr) {
 	/* We have either a event to a memory location, or to a script. */
 	/* the field scripttype tells us whether this is true or not.   */
 
-	memptr = nodeptr+offset;	/* actual pointer to start of destination data in memory */
+	memptr = (uintptr_t) getEAIMemoryPointer (tmp_a,tmp_b);
+	offset = getEAIActualOffset(tmp_a, tmp_b);
+	nodeptr = (uintptr_t) getEAINodeFromTable(tmp_a);
 
 	/* now, we are at start of data. */
 

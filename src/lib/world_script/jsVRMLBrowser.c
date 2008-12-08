@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: jsVRMLBrowser.c,v 1.3 2008/12/08 17:58:48 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -387,6 +387,7 @@ VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
 	return JS_TRUE;
 }
 
+
 JSBool
 VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
@@ -429,7 +430,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		strcpy (xstr,"new MFNode(");
 		for (count=0; count<ra; count += 2) {
 			tmpstr = MALLOC(strlen(_c) + 100);
-			sprintf (tmpstr,"new SFNode('%s','%d')",_c,nodarr[count*2+1]);
+			sprintf (tmpstr,"new SFNode('%s','%ld')",_c,nodarr[count*2+1]);
 			wantedsize = strlen(tmpstr) + strlen(xstr);
 			if (wantedsize > MallocdSize) {
 				MallocdSize = wantedsize +200;
@@ -466,7 +467,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	JSString *_str[2];
 	JSClass *_cls[2];
 	SFNodeNative *oldPtr;
-	char *_c,
+	char *fieldStr,
 		*_costr0;
 	uintptr_t nodarr[200];
 	struct X3D_Node *myptr;
@@ -477,9 +478,19 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	char *tfptr; 
 	char *coptr;
 	char *bfp;
+	int flag;
 	int found;
 	int count;
 	int removeIt = FALSE;
+	int offset;
+	int fromtype;
+	int xxx;
+	int myField;
+	char *address;
+
+	#ifdef JSVERBOSE
+	printf ("JS start of createVrmlFromURL\n");
+	#endif
 
 	/* rval is always zero, so lets just set it */
 	*rval = INT_TO_JSVAL(0);
@@ -507,23 +518,33 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 		return JS_FALSE;
 	}
 
+	#ifdef JSVERBOSE
+	printf ("JS createVrml - step 2\n");
+	printf ("JS create - we should havve a MFString and SFNode, have :%s: :%s:\n",(_cls[0])->name, (_cls[1])->name);
+	#endif
+
 	/* make sure these 2 objects are really MFString and SFNode */
 	if (memcmp("MFString", (_cls[0])->name, strlen((_cls[0])->name)) != 0 &&
 		memcmp("SFNode", (_cls[1])->name, strlen((_cls[1])->name)) != 0) {
-		printf( "\nIncorrect arguments in VrmlBrowserLoadURL.\n");
+		printf( "Incorrect arguments in VrmlBrowserLoadURL.\n");
 		return JS_FALSE;
 	}
 
 	/* third parameter should be a string */
 	if (JSVAL_IS_STRING(argv[2])) {
 		_str[1] = JSVAL_TO_STRING(argv[2]);
-		_c = JS_GetStringBytes(_str[1]);
+		fieldStr = JS_GetStringBytes(_str[1]);
 		#ifdef JSVERBOSE
-		printf ("field string is %s\n",_c); 
+		printf ("field string is %s\n",fieldStr); 
 		#endif
+	 } else {
+		printf ("Expected a string in createVrmlFromURL\n");
+		return JS_FALSE;
 	}
 
-	/* printf ("passed object type tests\n"); */
+	#ifdef JSVERBOSE
+	printf ("passed object type tests\n");
+	#endif
 
 	/* get the URL listing as a string */
 	_str[0] = JS_ValueToString(context, argv[0]);
@@ -541,6 +562,11 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 		return JS_FALSE;
 	}
 	myptr = X3D_NODE(oldPtr->handle);
+	if (myptr == NULL) {
+		printf ("CreateVrmlFromURL, internal error - SFNodeNative memory pointer is NULL\n");
+		return JS_FALSE;
+	}
+
 
 	#ifdef JSVERBOSE
 	printf ("SFNode handle %d, old X3DString %s\n",oldPtr->handle, oldPtr->X3DString);
@@ -551,13 +577,13 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 	/* bounds checks */
 	if (sizeof (_costr0) > (myFileSizeLimit-200)) {
-		printf ("VrmlBrowserCreateVrmlFromURL, url too long...\n"); return;
+		printf ("VrmlBrowserCreateVrmlFromURL, url too long...\n"); return JS_FALSE;
 	}
 
 	/* ok - here we have:
-		_costr0	: the url string array; eg: [ "vrml.wrl" ]
-		opldPtr	: pointer to a SFNode, with oldPtr->handle as C memory location. 
-		_c	: the field to send this to, eg: addChildren
+		_costr0		: the url string array; eg: [ "vrml.wrl" ]
+		opldPtr		: pointer to a SFNode, with oldPtr->handle as C memory location. 
+		fielsStr	: the field to send this to, eg: addChildren
 	*/
 
 	/* find a file name that exists. If not, return JS_FALSE */
@@ -565,13 +591,21 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	/* and strip off the file name, leaving any path */
 	removeFilenameFromPath (bfp);
 
+	#ifdef JSVERBOSE
+	printf ("have path now, of :%s:\n",bfp);
+	#endif
+
 	/* go through the elements and find which (if any) url exists */	
 	found = FALSE;
 	coptr = _costr0;
 
 	while (!found) {
 		tfptr = tfilename;
-		/*printf ("start of loop, coptr :%s:\n",coptr); */
+
+		#ifdef JSVERBOSE
+		printf ("start of loop, coptr :%s:\n",coptr);
+		#endif
+
 		if (*coptr == '[') coptr++;
 		while ((*coptr != '\0') && (*coptr == ' ')) coptr++;
 		if (*coptr == '\0') {
@@ -587,7 +621,9 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 				tfptr++; coptr++;
 			}
 			*tfptr = '\0';
-			/* printf ("found string is :%s:\n",tfilename); */
+			#ifdef JSVERBOSE
+			printf ("found string is :%s:\n",tfilename);
+			#endif
 		}
 
 
@@ -619,31 +655,59 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 	if (removeIt) UNLINK (filename);
 
-	/* now, we make up a string of nodes, pass it to setField_fromJavascript that
-	takes this string apart. oh well... */
+	/* add (1), remove (2) or replace (0) for the add/remove/set flag. But,
+	   we only have addChildren or removeChildren, so flag can be 1 or 2 only */
 
-	filename[0] = '\0'; /* just reuse these variables */
+	if (strcmp(fieldStr,"removeChildren")==0) { flag = 2;} 
+	else if (strcmp(fieldStr,"addChildren") == 0) {flag = 1;}
+	else flag=0;
 	
-	for (count = 1; count < ra; count +=2) {
-		sprintf (tfilename, "%d,",nodarr[count]);	
-		strcat (filename, tfilename);
-	}
-
-	#ifdef JSVERBOSE
-	printf ("node string is %s\n",filename);
-	#endif
-
-	/* remember the freewrl addChildren removeChildren stuff? */
-	if ((strcmp (_c,"addChildren") == 0) ||
-	(strcmp (_c,"removeChildren") == 0)) {
-		setField_fromJavascript (myptr, "children", filename);
+	/* get the field from the beginning of this node as an offset */
+	if ((strcmp (fieldStr,"addChildren") == 0) || 
+	(strcmp (fieldStr,"removeChildren") == 0)) {
+		myField = findFieldInFIELDNAMES("children");
 	} else {
-		setField_fromJavascript (myptr, _c, filename);
+		/* try finding it, maybe with a "set_" or "changed" removed */
+		myField = findRoutedFieldInFIELDNAMES(myptr,fieldStr,0);
+		if (myField == -1) 
+			myField = findRoutedFieldInFIELDNAMES(myptr,fieldStr,1);
 	}
 
+	/* is this a valid X3D field? */
+	if (myField == -1) {
+		printf ("createVrmlFromURL - field %s is not a valid field\n",fieldStr);
+		return JS_FALSE;
+	}
+
+	/* find offsets, etc */
+       	findFieldInOFFSETS(NODE_OFFSETS[myptr->_nodeType], myField, &offset, &fromtype, &xxx);
+	if (offset == -1) {
+		printf ("createVrmlFromURL - field %s is not a valid field of a node of type %s\n",fieldStr,stringNodeType(myptr->_nodeType));
+		return JS_FALSE;
+	}
+
+	/* did we find the field? */
+	address = ((char *) myptr) + offset;
+
+	/* now go through, and add the nodes to the parent node */
+	for (count = 1; count < ra; count +=2) {
+		char dtmp[100];
+
+		/* ensure that this node is not NULL */
+		if (nodarr[count] != 0) {
+			sprintf (dtmp,"%lu",nodarr[count]);
+			/* so, we send in the new node encoded as a string, 
+			   the actual pointer in memory of the MFNode field,
+			   the node pointer containing this field, 
+			   and a flag, telling us whether this is an add or remove or what */
+			getMFNodetype (dtmp,(struct Multi_Node *)address, myptr, flag);
+
+		}
+	}
+
+	MARK_EVENT(myptr,offset);
 	return JS_TRUE;
 }
-
 
 JSBool
 VrmlBrowserAddRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)

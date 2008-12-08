@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: CParse.c,v 1.3 2008/12/08 17:58:48 crc_canada Exp $
 
 ???
 
@@ -89,6 +89,30 @@ struct X3D_Node* parser_getNodeFromName(const char* name)
 }
 
 
+/* Return DEFed name from its node, or NULL if not found */
+char* parser_getNameFromNode(struct X3D_Node *node)
+{
+	indexT ind;
+	struct Vector *curNameStackTop = stack_top(struct Vector *, globalParser->lexer->userNodeNames);
+
+	/* go through the DEFedNodes, looking for the X3D_Node pointer. If it is found, use that
+	   index, and look in the userNodeNames list for it */
+
+	/* for (ind=0; ind < vector_size(curNameStackTop); ind ++) {
+		printf ("DEBUG: userNodeNames index %d is %s\n",ind, vector_get (const char*, curNameStackTop,ind));
+	} */
+
+	for (ind=0; ind < vector_size(stack_top(struct Vector*, globalParser->DEFedNodes)); ind++) {
+		/* did we find this index? */
+		if (vector_get(struct X3D_Node*, stack_top(struct Vector*, globalParser->DEFedNodes), ind) == node) {
+			return vector_get (const char*, curNameStackTop, ind);
+		}
+	}
+		
+	return NULL;
+}
+
+/* this is a real assert; hopefully we will never get one of these, as it kills FreeWRL, which is a bad thing. */
 void fw_assert (char *file, int line) {
 	int looper;
 	printf ("FreeWRL Internal Error at line %d in %s\n",line,file);

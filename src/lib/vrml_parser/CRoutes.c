@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.3 2008/12/02 18:17:18 couannette Exp $
+$Id: CRoutes.c,v 1.4 2008/12/08 17:58:48 crc_canada Exp $
 
 ???
 
@@ -1639,6 +1639,7 @@ void do_first() {
 			MARK_EVENT(preEvents[counter].from, preEvents[counter].totalptr);
 		}
 		initialEventBeforeRoutesCount = 0;
+		preRouteTableSize = 0;
 		FREE_IF_NZ(preEvents);
 		UNLOCK_PREROUTETABLE
 		}

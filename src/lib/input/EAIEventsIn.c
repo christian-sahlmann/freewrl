@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.3 2008/11/27 16:06:33 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.4 2008/12/08 17:58:48 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -33,39 +33,6 @@ void handleGETNODE (char *bufptr, char *buf, int repno);
 void handleGETROUTES (char *bufptr, char *buf, int repno);
 
 
-/* copy new scanned in data over to the memory area in the scene graph. */
-
-uintptr_t Multi_Struct_memptr (int type, void *memptr) {
-	struct Multi_Vec3f *mp;
-	uintptr_t retval;
-
-	/* is this a straight copy, or do we have a struct to send to? */
-	/* now, some internal reps use a structure defined as:
-	   struct Multi_Vec3f { int n; struct SFColor  *p; };
-	   so, we have to put the data in the p pointer, so as to
-	   not overwrite the data. */
-
-	retval = (uintptr_t) memptr;
-
-	switch (type) {
-		case FIELDTYPE_MFInt32:
-		case FIELDTYPE_MFFloat:
-		case FIELDTYPE_MFRotation:
-		case FIELDTYPE_MFVec3f:
-		case FIELDTYPE_MFColorRGBA:
-		case FIELDTYPE_MFColor:
-		case FIELDTYPE_MFVec2f:
-			mp = (struct Multi_Vec3f*) memptr;
-			retval = (uintptr_t) (mp->p);
-
-		default: {}
-		}
-	return retval;
-}
-
-
-
-
 /******************************************************************************
 *
 * EAI_parse_commands
@@ -84,6 +51,7 @@ uintptr_t Multi_Struct_memptr (int type, void *memptr) {
 *
 *********************************************************************************/
 
+
 void EAI_parse_commands () {
 	char buf[EAIREADSIZE];	/* return value place*/
 	char ctmp[EAIREADSIZE];	/* temporary character buffer*/
@@ -96,6 +64,7 @@ void EAI_parse_commands () {
 	int bufPtr = 0;		/* where we are in the EAI input buffer */
 	
 	uintptr_t ra,rb,rc,rd;	/* temps*/
+	int tmp_a, tmp_b, tmp_c, tmp_d;
 
 	unsigned int scripttype;
 	char *EOT;		/* ptr to End of Text marker*/
@@ -177,8 +146,7 @@ void EAI_parse_commands () {
 				if (eaiverbose) {
 					printf ("GETVERSION\n");
 				}
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,
-					 libFreeX3D_get_version());
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,FWVER);
 				break;
 				}
 			case GETENCODING: {
@@ -220,6 +188,11 @@ void EAI_parse_commands () {
 				break;
 			}
 
+			case GETEAINODETYPE: {
+				handleGETEAINODETYPE(&EAI_BUFFER_CUR,buf,count);
+				break;
+			}
+
 			case GETNODETYPE: {
 				if (eaiverbose) {	
 					printf ("GENODETYPE\n");
@@ -239,20 +212,12 @@ void EAI_parse_commands () {
 			case GETFIELDTYPE:  {
 				/*format int seq# COMMAND  int node#   string fieldname   string direction*/
 
-				xxx = KW_exposedField; /* set this to something */
-
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %s",&perlNode, &cNode, ctmp,dtmp);
 				if (eaiverbose) {	
 					printf ("GETFIELDTYPE cptr %d %s %s\n",cNode, ctmp, dtmp);
 				}	
 
-				/* is this a valid C node? if so, lets just get the info... */
-				if (cNode != 0) {
-					EAI_GetType (cNode, ctmp,dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
-				} else { 
-					printf ("THIS IS AN ERROR! CNode is zero!!!\n");
-					ra = 0; rb = 0; rc = 0; rd = 0; scripttype=0; xxx=KW_eventIn;
-				}
+				EAI_GetType (cNode, ctmp, dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
 
 				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d %s",TickTime,count,ra,rb,rc,rd,
 						scripttype,KEYWORDS[xxx]);
@@ -318,6 +283,9 @@ void EAI_parse_commands () {
 					/* finish this, note the pointer maths */
 					bufPtr = EOT+3-EAIbuffer;
 				} else {
+ 					char *filename = (char *)MALLOC(1000);
+					char *mypath;
+
 					/* sanitize this string - remove leading and trailing garbage */
 					rb = 0;
 					while ((EAI_BUFFER_CUR!=0) && (EAI_BUFFER_CUR <= ' ')) bufPtr++;
@@ -325,28 +293,53 @@ void EAI_parse_commands () {
 
 					/* ok, lets make a real name from this; maybe it is local to us? */
 					ctmp[rb] = 0;
-					dtmp[0] = 0;
-					makeAbsoluteFileName (dtmp, BrowserFullPath, ctmp);
+
+					/* get the current parent */
+					mypath = STRDUP(ctmp);
+					/* printf ("CREATEVU, mypath %s\n",mypath); */
+
+					/* and strip off the file name, leaving any path */
+					removeFilenameFromPath (mypath);
+					/* printf ("CREATEVU, mypath sans file: %s\n",mypath); */
+
+					/* add the two together */
+					makeAbsoluteFileName(filename,mypath,ctmp);
+					/* printf ("CREATEVU, filename, %s\n",filename); */
 
 					if (eaiverbose) {	
-						printf ("CREATEVU %s\n",dtmp);
+						printf ("CREATEVU %s\n",filename);
 					}	
-					ra = EAI_CreateVrml("URL",dtmp,nodarr,200);
+					ra = EAI_CreateVrml("URL",filename,nodarr,200);
+					FREE_IF_NZ(filename);
+					FREE_IF_NZ(mypath);
 				}
 
 				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
 				for (rb = 0; rb < ra; rb++) {
-					sprintf (ctmp,"%d ", nodarr[rb]);
-					strcat (buf,ctmp);
+					/* printf ("create returns %d of %d %u\n",rb, ra, nodarr[rb]); */
+					/* we have to skip the "perl" nodes, as they are not used and are
+					   always going to be zero, but the real ones have to be EAIregistered */
+					if (nodarr[rb] == 0)
+						strcat (buf, "0 ");
+					else {
+						sprintf (ctmp,"%d ", registerEAINodeForAccess(X3D_NODE(nodarr[rb])));
+						strcat (buf,ctmp);
+					}
 				}
-
 				break;
 				}
+
 			case SENDCHILD :  {
+				struct X3D_Node *node;
+				uintptr_t *address;
+
 				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
 
-				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
-				rc = ra+rb; /* final pointer- should point to a Multi_Node*/
+				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %d",&ra,&rb,ctmp,&rc);
+
+				node = getEAINodeFromTable(ra);
+				address = getEAIMemoryPointer (ra,rb);
+				sprintf (dtmp,"%u",getEAINodeFromTable(rc));
 
 				if (eaiverbose) {	
 					printf ("SENDCHILD Parent: %d ParentField: %d %s Child: %s\n",ra, rb, ctmp, dtmp);
@@ -356,94 +349,80 @@ void EAI_parse_commands () {
 				   we only have addChildren or removeChildren, so flag can be 1 or 2 only */
 				if (strcmp(ctmp,"removeChildren")==0) { flag = 2;} else {flag = 1;}
 
-				getMFNodetype (dtmp,(struct Multi_Node *)rc, X3D_NODE(ra), flag);
+
+				getMFNodetype (dtmp,(struct Multi_Node *)address, node, flag);
 
 				/* tell the routing table that this node is updated - used for RegisterListeners */
-				MARK_EVENT(X3D_NODE(ra),rb);
+				MARK_EVENT(node,getEAIActualOffset(ra,rb));
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 			case REGLISTENER: {
+				struct X3D_Node * node;
+				int offset;
+
 				if (eaiverbose) {	
 					printf ("REGISTERLISTENER %s \n",&EAI_BUFFER_CUR);
 				}	
 
 				/*143024848 88 8 e 6*/
-				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&ra,&rb,ctmp,&rc);
-				/* so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length*/
+				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&tmp_a,&tmp_b,ctmp,&tmp_c);
+				node = getEAINodeFromTable(tmp_a);
+				offset = getEAIActualOffset(tmp_a,tmp_b);
+
+				/* so, count = query id, tmp_a pointer, tmp_b, offset, ctmp[0] type, tmp_c, length*/
 				ctmp[1]=0;
 
-				if (eaiverbose) printf ("REGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",
-						ra, rb,rc,ctmp);
+				if (eaiverbose) printf ("REGISTERLISTENER from %lu foffset %d fieldlen %d type %s \n",
+						(uintptr_t)node, offset ,tmp_c,ctmp);
 
 
 				/* put the address of the listener area in a string format for registering
 				   the route - the route propagation will copy data to here */
-				sprintf (EAIListenerArea,"%d:0",(int)&EAIListenerData);
+				sprintf (EAIListenerArea,"%lu:0",(uintptr_t)&EAIListenerData);
 
 				/* set up the route from this variable to the handle_Listener routine */
-				CRoutes_Register  (1,(void *)ra,(int)rb, 1, EAIListenerArea, (int) rc,(void *) 
+				CRoutes_Register  (1,node, offset, 1, EAIListenerArea, (int) tmp_c,(void *) 
+					&handle_Listener, 0, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
+				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
+				break;
+				}
+
+			case UNREGLISTENER: {
+				struct X3D_Node * node;
+				int offset;
+
+				if (eaiverbose) {	
+					printf ("UNREGISTERLISTENER %s \n",&EAI_BUFFER_CUR);
+				}	
+
+				/*143024848 88 8 e 6*/
+				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&tmp_a,&tmp_b,ctmp,&tmp_c);
+				node = getEAINodeFromTable(tmp_a);
+				offset = getEAIActualOffset(tmp_a,tmp_b);
+
+				/* so, count = query id, tmp_a pointer, tmp_b, offset, ctmp[0] type, tmp_c, length*/
+				ctmp[1]=0;
+
+				if (eaiverbose) printf ("UNREGISTERLISTENER from %lu foffset %d fieldlen %d type %s \n",
+						(uintptr_t)node, offset ,tmp_c,ctmp);
+
+
+				/* put the address of the listener area in a string format for registering
+				   the route - the route propagation will copy data to here */
+				sprintf (EAIListenerArea,"%lu:0",(uintptr_t)&EAIListenerData);
+
+				/* set up the route from this variable to the handle_Listener routine */
+				CRoutes_Register  (0,node, offset, 1, EAIListenerArea, (int) tmp_c,(void *) 
 					&handle_Listener, 0, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 
-			case UNREGLISTENER: {
-				if (eaiverbose) {	
-					printf ("UNREGISTERLISTENER %s \n",&EAI_BUFFER_CUR);
-				}	
-
-				/*143024848 88 8 e 6*/
-				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&ra,&rb,ctmp,&rc);
-				/* so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length*/
-				ctmp[1]=0;
-
-				if (eaiverbose) printf ("UNREGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",
-						ra, rb,rc,ctmp); 
-
-
-				/* put the address of the listener area in a string format for registering
-				   the route - the route propagation will copy data to here */
-				sprintf (EAIListenerArea,"%d:0",(int)&EAIListenerData);
-
-				/* set up the route from this variable to the handle_Listener routine */
-				CRoutes_Register  (0,(void *)ra,(int)rb, 1, EAIListenerArea, (int) rc,(void *) &handle_Listener, 0, (count<<8)+ctmp[0]); /* encode id and type here*/
-
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
-				break;
-				}
-
 			case GETVALUE: {
-				int getValueFromPROTOField = FALSE;
-				if (eaiverbose) {	
-					printf ("GETVALUE %s \n",&EAI_BUFFER_CUR);
-				}	
-
-
-				/* format: ptr, offset, type, length (bytes)*/
-				retint=sscanf (&EAI_BUFFER_CUR, "%d %d %c %d", &ra,&rb,ctmp,&rc);
-
-
-				/* is the pointer a pointer to a PROTO?? If so, then the getType did not find
-				   an actual field (an IS'd field??) in a proto expansion for us.  We have to 
-				   go through, as the offset will be the index in the PROTO field for us to get
-				   the value for */
-				if (X3D_NODE(ra)->_nodeType == NODE_Group) {
-					if (X3D_GROUP(ra)->FreeWRL__protoDef != 0) {
-						/* printf ("have a pointer to a PROTO... \n"); */
-						getValueFromPROTOField = TRUE;
-					}
-				}
-
-				if (getValueFromPROTOField) {
-					extern char * myProtoFields[];
-					sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,myProtoFields[rb]);	
-				} else {
-					ra = ra + rb;   /* get absolute pointer offset*/
-					EAI_Convert_mem_to_ASCII (count,"RE",mapEAItypeToFieldType(ctmp[0]),(char *)ra, buf);
-				}
+				handleEAIGetValue(command, &EAI_BUFFER_CUR,buf,count);
 				break;
 				}
 			case REPLACEWORLD:  {
@@ -607,7 +586,6 @@ void EAI_parse_commands () {
 		/* printf ("and %d : indx %d thread %d\n",strlen(&EAI_BUFFER_CUR),bufPtr,pthread_self()); */
 	}
 }
-
 /* read in a C pointer, and field offset, and make sense of it */
 int getEAINodeAndOffset (char *bufptr, struct X3D_Node **Node, int *FieldInt, int fromto) {
 	int rv;
@@ -616,8 +594,9 @@ int getEAINodeAndOffset (char *bufptr, struct X3D_Node **Node, int *FieldInt, in
 	struct X3D_Node *sn;
 
 	rv = TRUE;
-	sscanf (bufptr, "%d", Node);
-	sn = *Node;
+	sscanf (bufptr, "%d", &tmp);
+	sn = getEAINodeFromTable(tmp);
+	*Node = sn;
 
 	/* copy the from field */
 	x = fieldTemp;
@@ -693,12 +672,52 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 		sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,repno, EAI_GetNode(ctmp));
 	} else {
 		/* yep i this is a call for the rootNode */
-		sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,repno, rootNode);
+		sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,repno, EAI_GetRootNode());
 	}
 	if (eaiverbose) {	
 		printf ("GETNODE returns %s\n",buf); 
 	}	
 }
+
+/* get the actual node type, whether Group, IndexedFaceSet, etc, and its DEF name, if applicapable */
+void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
+	int retint;
+	int nodeHandle;
+	struct X3D_Node * myNode;
+	int ctr;
+	char *cptr;
+
+	/*format int seq# COMMAND    string nodename*/
+
+	retint=sscanf (bufptr," %d",&nodeHandle);
+	myNode = getEAINodeFromTable(nodeHandle);
+
+	if (myNode == NULL) {
+		printf ("Internal EAI error, node %d not found\n",nodeHandle);
+		sprintf (buf,"RE\n%f\n%d\n__UNDEFINED __UNDEFINED",TickTime,repno);
+		return;
+	}
+		
+	/* so, this is a valid node, lets find out if it is DEFined or whatever... */
+
+        /* Try to get X3D node name */
+	cptr = X3DParser_getNameFromNode(myNode);
+	if (cptr != NULL) {
+		sprintf (buf,"RE\n%f\n%d\n%s %s",TickTime,repno,stringNodeType(myNode->_nodeType), cptr);
+		return;
+	}
+
+        /* Try to get VRML node name */
+	cptr= parser_getNameFromNode(myNode);
+	if (cptr != NULL) {
+		sprintf (buf,"RE\n%f\n%d\n%s %s",TickTime,repno,stringNodeType(myNode->_nodeType), cptr);
+		return;
+	}
+
+	/* no, this node is just undefined */
+	sprintf (buf,"RE\n%f\n%d\n%s __UNDEFINED",TickTime,repno,stringNodeType(myNode->_nodeType));
+}
+
 
 /* add or delete a route */
 void handleRoute (char command, char *bufptr, char *buf, int repno) {
@@ -866,7 +885,7 @@ void EAI_RW(char *str) {
 	int i;
 
 	/* clean the slate! keep EAI running, though */
-	kill_oldWorld(FALSE,TRUE,FALSE);
+	kill_oldWorld(FALSE,TRUE,FALSE,__FILE__,__LINE__);
 
 	/* go through the string, and send the nodes into the rootnode */
 	/* first, remove the command, and get to the beginning of node */

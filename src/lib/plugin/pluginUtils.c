@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: pluginUtils.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: pluginUtils.c,v 1.3 2008/12/08 17:58:48 crc_canada Exp $
 
 ???
 
@@ -386,7 +386,7 @@ void Anchor_ReplaceWorld (char *name)
 
 	                if (fileExists(filename,NULL,TRUE,&removeIt)) {
 				/* kill off the old world, but keep EAI open, if it is... */
-				kill_oldWorld(FALSE,TRUE,TRUE);
+				kill_oldWorld(FALSE,TRUE,TRUE,__FILE__,__LINE__);
 
 				inputParse(FROMURL, filename,TRUE,FALSE, 
 					rootNode, offsetof (struct X3D_Group, children),&tmp,

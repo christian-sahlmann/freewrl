@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: fieldGet.c,v 1.3 2008/12/08 17:58:48 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -1052,7 +1052,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			printf ("EAI_SFNODE\n");
 			}
 			memcpy(&uval,memptr,sizeof(unsigned int));
-			sprintf (buf, "%s\n%f\n%d\n%u",reptype,TickTime,id,uval);
+			sprintf (buf, "%s\n%f\n%d\n%u",reptype,TickTime,id,registerEAINodeForAccess(X3D_NODE(uval)));
 			break;
 		}
 
@@ -1153,14 +1153,14 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			MNptr = (struct Multi_Node *) memptr;
 
 			if (eaiverbose) { 
-			printf ("EAI_MFNode, there are %d nodes at %d\n",(*MNptr).n,(intptr_t) memptr);
+			printf ("EAI_Convert_mem_to_ASCII: EAI_MFNode, there are %d nodes at %d\n",(*MNptr).n,(intptr_t) memptr);
 			}
 
 			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
 			ptr = buf + strlen(buf);
 
 			for (row=0; row<(*MNptr).n; row++) {
-				sprintf (ptr, "%d ",(uintptr_t) (*MNptr).p[row]);
+				sprintf (ptr, "%d ",registerEAINodeForAccess(X3D_NODE((*MNptr).p[row])));
 				ptr = buf + strlen (buf);
 			}
 			break;

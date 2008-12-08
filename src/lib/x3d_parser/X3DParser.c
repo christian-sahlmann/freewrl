@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: X3DParser.c,v 1.3 2008/12/08 17:58:48 crc_canada Exp $
 
 ???
 
@@ -178,6 +178,31 @@ void setFieldValueDataActive(void) {
 
 /**************************************************************************************/
 
+/* for EAI/SAI - if we have a Node, look up the name in the DEF names */
+char *X3DParser_getNameFromNode(struct X3D_Node* myNode) {
+	int ctr;
+        for (ctr = 0; ctr <= DEFtableSize; ctr++) {
+		if (myNode == DEFnames[ctr].node) {
+			return DEFnames[ctr].name;
+		}
+        }
+	return NULL;
+}
+
+/* for EAI/SAI - if we have a DEF name, look up the node pointer */
+struct X3D_Node *X3DParser_getNodeFromName(char *name) {
+	int ctr;
+	struct Uni_String* tmp;
+	for (ctr = 0; ctr <= DEFtableSize; ctr++) {
+		tmp = DEFnames[ctr].name;
+		if (strcmp(name, tmp->strptr) == 0) {
+			return DEFnames[ctr].node;
+		}
+	}
+	return NULL;
+}
+
+/**************************************************************************************/
 
 
 

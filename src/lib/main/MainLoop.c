@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.8 2008/12/05 13:20:52 couannette Exp $
+$Id: MainLoop.c,v 1.9 2008/12/08 17:58:48 crc_canada Exp $
 
 CProto ???
 
@@ -80,8 +80,8 @@ pthread_t DispThrd = 0;
 char* threadmsg;
 char* PluginFullPath;
 
-int replaceWorld = FALSE;
-char  replace_name[FILENAME_MAX];
+static int replaceWorld = FALSE;
+static char  replace_name[FILENAME_MAX];
 
 /* linewidth for lines and points - passed in on command line */
 float gl_linewidth = 1.0;
@@ -1435,7 +1435,7 @@ void doQuit()
 {
     STOP_DISPLAY_THREAD;
 
-    kill_oldWorld(TRUE,TRUE,TRUE);
+    kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
 
     /* set geometry to normal size from fullscreen */
 #ifndef AQUA
@@ -1791,7 +1791,7 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
                                         case NODE_TouchSensor: ns = ((struct X3D_TouchSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
                                         case NODE_GeoTouchSensor: ns = ((struct X3D_GeoTouchSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
                                         case NODE_CylinderSensor: ns = ((struct X3D_CylinderSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
-                                default: {}
+				default: {printf ("sendDesc; unknown node type %d\n",SensorEvents[tmp].datanode->_nodeType);}
                                 }
                                 /* if there is no description, put the node type on the screen */
                                 if (ns == NULL) {ns = "(over sensitive)";}
