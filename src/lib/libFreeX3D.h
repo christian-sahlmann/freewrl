@@ -4,7 +4,7 @@
  *
  * public API - libFreeX3D.h
  *
- * $Id: libFreeX3D.h,v 1.10 2008/12/05 13:20:52 couannette Exp $
+ * $Id: libFreeX3D.h,v 1.11 2008/12/09 12:12:41 couannette Exp $
  *
  *******************************************************************/
 
@@ -14,7 +14,7 @@
 /**
  * Version embedded
  */
-extern const char *libFreeX3D_get_version();
+const char *libFreeX3D_get_version();
 
 
 /**

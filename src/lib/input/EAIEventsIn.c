@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.4 2008/12/08 17:58:48 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.5 2008/12/09 12:12:41 couannette Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -18,6 +18,8 @@ Handle incoming EAI (and java class) events with panache.
 #include "../main/headers.h"
 
 #include "../input/EAIheaders.h"
+
+#include <ctype.h> /* FIXME: config armor */
 
 
 #define EAI_BUFFER_CUR EAIbuffer[bufPtr]
@@ -146,7 +148,7 @@ void EAI_parse_commands () {
 				if (eaiverbose) {
 					printf ("GETVERSION\n");
 				}
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,FWVER);
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,libFreeX3D_get_version());
 				break;
 				}
 			case GETENCODING: {
@@ -586,6 +588,7 @@ void EAI_parse_commands () {
 		/* printf ("and %d : indx %d thread %d\n",strlen(&EAI_BUFFER_CUR),bufPtr,pthread_self()); */
 	}
 }
+
 /* read in a C pointer, and field offset, and make sense of it */
 int getEAINodeAndOffset (char *bufptr, struct X3D_Node **Node, int *FieldInt, int fromto) {
 	int rv;
@@ -594,8 +597,8 @@ int getEAINodeAndOffset (char *bufptr, struct X3D_Node **Node, int *FieldInt, in
 	struct X3D_Node *sn;
 
 	rv = TRUE;
-	sscanf (bufptr, "%d", &tmp);
-	sn = getEAINodeFromTable(tmp);
+	sscanf(bufptr, "%d", &fieldTemp); /* WARNING: buffer overflow */
+	sn = getEAINodeFromTable(fieldTemp);
 	*Node = sn;
 
 	/* copy the from field */

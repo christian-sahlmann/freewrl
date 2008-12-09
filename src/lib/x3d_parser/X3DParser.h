@@ -1,6 +1,21 @@
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id: X3DParser.h,v 1.2 2008/12/09 12:12:41 couannette Exp $
+
+X3D parser functions.
+
+*/
+
+#ifndef __FREEX3D_X3D_PARSER_H__
+#define __FREEX3D_X3D_PARSER_H__
+
+
 /* header file for the X3D parser, only items common between the X3DParser files should be here. */
 
+/* FIXME: This should be avoided:
 #include "expat.h"
+*/
 
 #define PARSING_NODES 1
 #define PARSING_SCRIPT 2
@@ -55,3 +70,7 @@ int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type, int
 void expandProtoInstance(struct X3D_Group * myGroup);
 void freeProtoMemory (void);
 void kill_X3DProtoScripts(void);
+
+struct X3D_Node *X3DParser_getNodeFromName(const char *name);
+
+#endif /*  __FREEX3D_X3D_PARSER_H__ */
