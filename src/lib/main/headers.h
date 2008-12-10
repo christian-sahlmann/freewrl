@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.8 2008/12/09 12:12:41 couannette Exp $
+$Id: headers.h,v 1.9 2008/12/10 13:18:30 couannette Exp $
 
 Global includes.
 
@@ -399,7 +399,6 @@ extern GLuint *OccQueries;
 extern void * *OccNodes;
 int newOcclude(void);
 void zeroOcclusion(void);
-/* extern int QueryCount; */
 extern GLuint potentialOccluderCount;
 extern void* *occluderNodePointer;
 
@@ -1388,7 +1387,7 @@ void killErrantChildren(void);
 void kill_routing(void);
 void kill_bindables(void);
 void kill_javascript(void);
-void kill_oldWorld(int, int, int, char *, int);
+void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL, char *file, int line);
 void kill_clockEvents(void);
 void kill_openGLTextures(void);
 void kill_X3DDefs(void);
