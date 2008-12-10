@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.3 2008/12/08 17:58:48 crc_canada Exp $
+$Id: fieldGet.c,v 1.4 2008/12/10 14:31:53 couannette Exp $
 
 Javascript C language binding.
 
@@ -30,6 +30,7 @@ Javascript C language binding.
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
+#include "fieldSet.h"
 
 
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);

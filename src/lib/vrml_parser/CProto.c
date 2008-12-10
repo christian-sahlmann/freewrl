@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: CProto.c,v 1.3 2008/12/10 14:31:53 couannette Exp $
 
 CProto ???
 
@@ -20,6 +20,7 @@ CProto ???
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
+#include "../world_script/fieldSet.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "CProto.h"

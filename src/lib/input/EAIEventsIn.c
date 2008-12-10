@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.5 2008/12/09 12:12:41 couannette Exp $
+$Id: EAIEventsIn.c,v 1.6 2008/12/10 14:31:53 couannette Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -18,6 +18,7 @@ Handle incoming EAI (and java class) events with panache.
 #include "../main/headers.h"
 
 #include "../input/EAIheaders.h"
+#include "../world_script/fieldSet.h"
 
 #include <ctype.h> /* FIXME: config armor */
 

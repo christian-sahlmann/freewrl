@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: jsVRML_MFClasses.c,v 1.3 2008/12/10 14:31:53 couannette Exp $
 
 ???
 
@@ -30,7 +30,7 @@ $Id: jsVRML_MFClasses.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
-
+#include "JScript.h"
 
 
 /********************************************************/

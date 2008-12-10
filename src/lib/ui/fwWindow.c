@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwWindow.c,v 1.2 2008/12/02 17:41:38 couannette Exp $
+$Id: fwWindow.c,v 1.3 2008/12/10 14:31:53 couannette Exp $
 
 ???
 
@@ -154,7 +154,7 @@ void createGLContext(void) {
 	}
 
 	/* get window id for later calls - we use more window refs than widget refs */
-	GET_GLWIN
+	GET_GLWIN;
 
 	/* tell the X window system that we desire the following
 	   attributes for this window */

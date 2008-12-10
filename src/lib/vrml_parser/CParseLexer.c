@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.7 2008/12/08 17:58:48 crc_canada Exp $
+$Id: CParseLexer.c,v 1.8 2008/12/10 14:31:53 couannette Exp $
 
 ???
 
@@ -20,6 +20,7 @@ $Id: CParseLexer.c,v 1.7 2008/12/08 17:58:48 crc_canada Exp $
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
+#include "../world_script/fieldSet.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "CParse.h"

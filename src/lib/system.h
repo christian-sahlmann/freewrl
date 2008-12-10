@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.7 2008/12/05 13:20:52 couannette Exp $
+$Id: system.h,v 1.8 2008/12/10 14:31:53 couannette Exp $
 
 FreeX3D support library.
 Internal header: system dependencies.
@@ -18,12 +18,18 @@ Internal header: system dependencies.
  *
  * for modularity some headers are defined for special needs:
  *
- * system_net.h all network related headers
- * display.h    all Aqua/X11 related headers
+ * system_net.h		network related headers
+ * system_threads.h	threading related headers
+ * system_fonts.h		fonts related headers
+ * display.h		window system (Aqua/X11 + OpenGL) related headers
  */
 
 #if HAVE_STDINT_H
 # include <stdint.h>
+#endif
+
+#if HAVE_CTYPE_H
+#include <ctype.h>
 #endif
 
 #if STDC_HEADERS
@@ -76,21 +82,9 @@ typedef unsigned char _Bool;
 # define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
 #endif
 
-/* #if HAVE_PTHREAD */
-/* # include <pthread.h> */
-/* #endif */
-
 #if HAVE_MATH_H
 # include <math.h>
 #endif
-
-/* #include <ft2build.h> */
-/* #include FT_FREETYPE_H */
-/* #include FT_GLYPH_H */
-
-/* #include <syslog.h> */
-
-/* #include <stdarg.h> */
 
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -106,14 +100,6 @@ typedef unsigned char _Bool;
 #if HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
-
-/* #include <netinet/in.h> */
-/* #include <sys/socket.h> */
-/* #if HAVE_SYS_IPC_H */
-/* # include <sys/ipc.h> */
-/* #endif */
-/* #include <sys/msg.h> */
-
 
 
 #endif /* __LIBFREEX3D_SYSTEM_H__ */

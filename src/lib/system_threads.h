@@ -1,10 +1,10 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_threads.h,v 1.1 2008/12/02 18:19:25 couannette Exp $
+$Id: system_threads.h,v 1.2 2008/12/10 14:31:53 couannette Exp $
 
 FreeX3D support library.
-Internal header: threads dependencies.
+Internal header: threading library, and processor control (sched).
 
 */
 
@@ -14,6 +14,10 @@ Internal header: threads dependencies.
 
 #if HAVE_PTHREAD
 # include <pthread.h>
+#endif
+
+#if HAVE_SCHED_H
+#include <sched.h>
 #endif
 
 

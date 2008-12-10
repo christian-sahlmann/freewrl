@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: jsVRMLClasses.h,v 1.3 2008/12/10 14:31:53 couannette Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -913,6 +913,9 @@ VrmlMatrixSetProperty(JSContext *cx,
 				   jsval id,
 				   jsval *vp);
 
+JSBool _standardMFAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval, JSClass *myClass, int type);
+JSBool _standardMFGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *makeNewElement, int type);
+void printJSNodeType (JSContext *context, JSObject *myobj);
 
 extern JSClass SFColorClass;
 extern JSPropertySpec (SFColorProperties)[];

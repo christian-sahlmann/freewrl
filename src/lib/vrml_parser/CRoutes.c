@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.4 2008/12/08 17:58:48 crc_canada Exp $
+$Id: CRoutes.c,v 1.5 2008/12/10 14:31:53 couannette Exp $
 
 ???
 
@@ -22,6 +22,7 @@ $Id: CRoutes.c,v 1.4 2008/12/08 17:58:48 crc_canada Exp $
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
+#include "../world_script/fieldSet.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "../world_script/jsUtils.h"

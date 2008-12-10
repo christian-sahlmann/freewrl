@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.3 2008/12/04 05:59:52 couannette Exp $
+  $Id: CParseParser.c,v 1.4 2008/12/10 14:31:53 couannette Exp $
 
   ???
 
@@ -21,6 +21,7 @@
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
+#include "../world_script/fieldSet.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "CProto.h"

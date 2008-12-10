@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.3 2008/12/02 17:41:38 couannette Exp $
+$Id: JScript.c,v 1.4 2008/12/10 14:31:53 couannette Exp $
 
 Javascript C language binding.
 
@@ -25,17 +25,19 @@ Javascript C language binding.
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
-/* #include "../input/EAIheaders.h" */
 
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
+#include "jsVRMLBrowser.h"
+#include "JScript.h"
 
 
 /* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
 #define MAX_RUNTIME_BYTES 0x1000000L
 /* #define MAX_RUNTIME_BYTES 0x4000000L */
 /* #define MAX_RUNTIME_BYTES 0xC00000L */
+
 #define STACK_CHUNK_SIZE 8192
 
 /*
@@ -70,7 +72,6 @@ Javascript C language binding.
  * global JSClass  - populated by stubs
  *
  */
-
 
 char *DefaultScriptMethods = "function initialize() {}; " \
 			" function shutdown() {}; " \
@@ -111,13 +112,11 @@ static JSClass globalClass = {
 	JS_FinalizeStub
 };
 
-
 int JSMaxScript = 0;
 /* Script name/type table */
 struct CRjsnameStruct *JSparamnames = NULL;
 int jsnameindex = -1;
 int MAXJSparamNames = 0;
-
 
 /* housekeeping routines */
 void kill_javascript(void) {
@@ -139,7 +138,6 @@ void kill_javascript(void) {
 	MAXJSparamNames = 0;
 
 }
-
 
 void cleanupDie(uintptr_t num, const char *msg) {
 	kill_javascript();
@@ -181,7 +179,6 @@ void JSInit(uintptr_t num) {
 		JSMaxAlloc();
 	}
 }
-
 
 /* Save the text, so that when the script is initialized in the EventLoop thread, it will be there */
 void SaveScriptText(uintptr_t num, char *text) {
@@ -234,8 +231,6 @@ void JSInitializeScriptAndFields (uintptr_t num) {
 	ScriptControl[num]._initialized = TRUE;
 }
 
-
-
 /* create the script context for this script. This is called from the thread
    that handles script calling in the EventLoop */
 void JSCreateScriptContext(uintptr_t num) {
@@ -278,8 +273,6 @@ void JSCreateScriptContext(uintptr_t num) {
 	printf("\tJS standard classes initialized,\n");
 	#endif
 
-
-
 	#ifdef JAVASCRIPTVERBOSE 
 	 	reportWarningsOn();
 	#endif
@@ -302,8 +295,6 @@ void JSCreateScriptContext(uintptr_t num) {
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tVRML classes loaded,\n");
 	#endif
-
-
 
 	if (!VrmlBrowserInit(_context, _globalObj, br))
 		freewrlDie("VrmlBrowserInit failed");
@@ -338,8 +329,6 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-
-
 	#ifdef JAVASCRIPTVERBOSE
 		printf("ActualrunScript script called at %s:%d  num: %d cx %x \"%s\", \n", 
 			fn, line, num, _context, script);
@@ -360,7 +349,6 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 
 	return JS_TRUE;
 }
-
 
 /* run the script from within Javascript  */
 int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval) {
@@ -386,11 +374,8 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 	return JS_TRUE;
 }
 
-
 /* FROM VRMLC.pm */
-
-void *
-SFNodeNativeNew()
+void *SFNodeNativeNew()
 {
 	SFNodeNative *ptr;
 	ptr = (SFNodeNative *) MALLOC(sizeof(*ptr));
@@ -405,8 +390,7 @@ SFNodeNativeNew()
 }
 
 /* assign this internally to the Javascript engine environment */
-int
-SFNodeNativeAssign(void *top, void *fromp)
+int SFNodeNativeAssign(void *top, void *fromp)
 {
 	SFNodeNative *to = (SFNodeNative *)top;
 	SFNodeNative *from = (SFNodeNative *)fromp;
@@ -429,9 +413,7 @@ SFNodeNativeAssign(void *top, void *fromp)
 	return JS_TRUE;
 }
 
-
-void *
-SFColorRGBANativeNew()
+void *SFColorRGBANativeNew()
 {
 	SFColorRGBANative *ptr;
 	ptr = (SFColorRGBANative *)MALLOC(sizeof(*ptr));
@@ -439,8 +421,7 @@ SFColorRGBANativeNew()
 	return ptr;
 }
 
-void
-SFColorRGBANativeAssign(void *top, void *fromp)
+void SFColorRGBANativeAssign(void *top, void *fromp)
 {
 	SFColorRGBANative *to = (SFColorRGBANative *)top;
 	SFColorRGBANative *from = (SFColorRGBANative *)fromp;
@@ -448,8 +429,7 @@ SFColorRGBANativeAssign(void *top, void *fromp)
 	(to->v) = (from->v);
 }
 
-void *
-SFColorNativeNew()
+void *SFColorNativeNew()
 {
 	SFColorNative *ptr;
 	ptr = (SFColorNative *)MALLOC(sizeof(*ptr));
@@ -457,8 +437,7 @@ SFColorNativeNew()
 	return ptr;
 }
 
-void
-SFColorNativeAssign(void *top, void *fromp)
+void SFColorNativeAssign(void *top, void *fromp)
 {
 	SFColorNative *to = (SFColorNative *)top;
 	SFColorNative *from = (SFColorNative *)fromp;
@@ -466,8 +445,7 @@ SFColorNativeAssign(void *top, void *fromp)
 	(to->v) = (from->v);
 }
 
-void *
-SFImageNativeNew()
+void *SFImageNativeNew()
 {
 	SFImageNative *ptr;
 	ptr =(SFImageNative *) MALLOC(sizeof(*ptr));
@@ -475,8 +453,7 @@ SFImageNativeNew()
 	return ptr;
 }
 
-void
-SFImageNativeAssign(void *top, void *fromp)
+void SFImageNativeAssign(void *top, void *fromp)
 {
 	SFImageNative *to = (SFImageNative *)top;
 	/* SFImageNative *from = fromp; */
@@ -486,8 +463,7 @@ SFImageNativeAssign(void *top, void *fromp)
 /* 	(to->v) = (from->v); */
 }
 
-void *
-SFRotationNativeNew()
+void *SFRotationNativeNew()
 {
 	SFRotationNative *ptr;
 	ptr = (SFRotationNative *)MALLOC(sizeof(*ptr));
@@ -495,8 +471,7 @@ SFRotationNativeNew()
 	return ptr;
 }
 
-void
-SFRotationNativeAssign(void *top, void *fromp)
+void SFRotationNativeAssign(void *top, void *fromp)
 {
 	SFRotationNative *to = (SFRotationNative *)top;
 	SFRotationNative *from = (SFRotationNative *)fromp;
@@ -504,8 +479,7 @@ SFRotationNativeAssign(void *top, void *fromp)
 	(to->v) = (from->v);
 }
 
-void *
-SFVec2fNativeNew()
+void *SFVec2fNativeNew()
 {
 	SFVec2fNative *ptr;
 	ptr = (SFVec2fNative *)MALLOC(sizeof(*ptr));
@@ -513,8 +487,7 @@ SFVec2fNativeNew()
 	return ptr;
 }
 
-void
-SFVec2fNativeAssign(void *top, void *fromp)
+void SFVec2fNativeAssign(void *top, void *fromp)
 {
 	SFVec2fNative *to = (SFVec2fNative *)top;
 	SFVec2fNative *from = (SFVec2fNative *)fromp;
@@ -522,7 +495,7 @@ SFVec2fNativeAssign(void *top, void *fromp)
 	(to->v) = (from->v);
 }
 
-void * SFVec3fNativeNew() {
+void *SFVec3fNativeNew() {
 	SFVec3fNative *ptr;
 	ptr = (SFVec3fNative *)MALLOC(sizeof(*ptr));
 	ptr->valueChanged = 0;
@@ -536,7 +509,7 @@ void SFVec3fNativeAssign(void *top, void *fromp) {
 	(to->v) = (from->v);
 }
 
-void * SFVec3dNativeNew() {
+void *SFVec3dNativeNew() {
 	SFVec3dNative *ptr;
 	ptr = (SFVec3dNative *)MALLOC(sizeof(*ptr));
 	ptr->valueChanged = 0;

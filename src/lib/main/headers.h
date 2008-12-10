@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.9 2008/12/10 13:18:30 couannette Exp $
+$Id: headers.h,v 1.10 2008/12/10 14:31:53 couannette Exp $
 
 Global includes.
 
@@ -1393,31 +1393,6 @@ void kill_openGLTextures(void);
 void kill_X3DDefs(void);
 extern int currentFileVersion;
 
-int findFieldInFIELDNAMES(const char *field);
-int findFieldInFIELD(const char* field);
-int findFieldInFIELDTYPES(const char *field);
-int findFieldInX3DACCESSORS(const char *field);
-int findFieldInEXPOSED_FIELD(const char* field);
-int findFieldInEVENT_IN(const char* field);
-int findFieldInEVENT_OUT(const char* field);
-int findFieldInX3DSPECIALKEYWORDS(const char *field);
-int findFieldInGEOSPATIAL(const char *field);
-
-/* Values for fromTo */
-#define ROUTED_FIELD_EVENT_OUT 0
-#define ROUTED_FIELD_EVENT_IN  1
-int findRoutedFieldInFIELDNAMES(struct X3D_Node *node, const char *field, int fromTo);
-int findRoutedFieldInEXPOSED_FIELD(struct X3D_Node*, const char*, int);
-int findRoutedFieldInEVENT_IN(struct X3D_Node*, const char*, int);
-int findRoutedFieldInEVENT_OUT(struct X3D_Node*, const char*, int);
-int findFieldInNODES(const char *node);
-int findFieldInCOMPONENTS(const char *node);
-int findFieldInPROFILES(const char *node);
-int findFieldInALLFIELDNAMES(const char *field);
-void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
-char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset);
-int findFieldInKEYWORDS(const char *field);
-int findFieldInPROTOKEYWORDS(const char *field);
 int countCommas (char *instr);
 void sortChildren (struct Multi_Node ch);
 void dirlightChildren(struct Multi_Node ch);

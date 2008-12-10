@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.3 2008/12/02 18:17:18 couannette Exp $
+$Id: ProdCon.c,v 1.4 2008/12/10 14:31:53 couannette Exp $
 
 CProto ???
 
@@ -33,12 +33,6 @@ CProto ???
 #include "../x3d_parser/Bindable.h"
 #include "../input/EAIheaders.h"
 
-/* #include "jsVRMLBrowser.h" /\* VRML browser script interface implementation *\/ */
-/* #include "jsVRMLClasses.h" /\* VRML field type implementation *\/ */
-
-
-#define MAX_RUNTIME_BYTES 0x100000L
-#define STACK_CHUNK_SIZE 0x2000L
 
 #define VRML1ERRORMSG "FreeWRL does not parse VRML Version 1; please convert to VRML 2 or later"
 

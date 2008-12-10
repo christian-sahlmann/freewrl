@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.9 2008/12/05 13:20:52 couannette Exp $
+$Id: display.h,v 1.10 2008/12/10 14:31:53 couannette Exp $
 
 FreeX3D support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -115,7 +115,7 @@ int create_main_window_x11(); /* mb */
 
 # define HAVE_NOTOOLKIT
 # define ISDISPLAYINITIALIZED TRUE
-# define GET_GLWIN getBareWindowedGLwin (&GLwin);
+# define GET_GLWIN getBareWindowedGLwin(&GLwin)
 # define OPEN_TOOLKIT_MAINWINDOW openBareMainWindow (argc, argv);
 # define CREATE_TOOLKIT_MAIN_WINDOW createBareMainWindow();
 
