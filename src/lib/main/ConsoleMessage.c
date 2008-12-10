@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.3 2008/12/02 18:17:18 couannette Exp $
+$Id: ConsoleMessage.c,v 1.4 2008/12/10 18:46:54 crc_canada Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -215,7 +215,7 @@ int ConsoleMessage(const char *fmt, ...) {
 		}
 
 		/* and call freewrlSystem to speak to the user */
-                sprintf(systemBuffer, "%s \"%s\"", XMESSAGE, FWbuffer);
+                sprintf(systemBuffer, "%s \"%s\"", FREEX3D_MESSAGE_WRAPPER, FWbuffer);
                 freewrlSystem(systemBuffer); 
 	}
 #else

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIheaders.h,v 1.4 2008/12/09 12:12:41 couannette Exp $
+$Id: EAIheaders.h,v 1.5 2008/12/10 18:46:54 crc_canada Exp $
 
 EAI and java CLASS invocation
 
@@ -11,7 +11,7 @@ EAI and java CLASS invocation
 #define __FREEX3D_EAI_H__
 
 
-int eaiverbose;
+extern int eaiverbose;
 
 void shutdown_EAI(void);
 int EAI_GetNode(const char *str);

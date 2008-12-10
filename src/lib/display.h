@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.10 2008/12/10 14:31:53 couannette Exp $
+$Id: display.h,v 1.11 2008/12/10 18:46:54 crc_canada Exp $
 
 FreeX3D support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -14,18 +14,18 @@ Internal header: display (X11/Motif or OSX/Aqua) dependencies.
 /**
  * Main window parameters
  */
-int win_height; /* window */
-int win_width;
-int fullscreen;
-int view_height; /* viewport */
-int view_width;
+extern int win_height; /* window */
+extern int win_width;
+extern int fullscreen;
+extern int view_height; /* viewport */
+extern int view_width;
 
-char *window_title;
+extern char *window_title;
 
-int mouse_x;
-int mouse_y;
+extern int mouse_x;
+extern int mouse_y;
 
-int show_mouse;
+extern int show_mouse;
 
 /**
  * Specific platform : Mac
@@ -37,8 +37,8 @@ int show_mouse;
 # include <CGLTypes.h>
 # include <AGL/AGL.h>
 
-CGLContextObj myglobalContext;
-AGLContext aqglobalContext;
+extern CGLContextObj myglobalContext;
+extern AGLContext aqglobalContext;
 
 # if WANT_MULTI_OPENGL_THREADS
 /* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but

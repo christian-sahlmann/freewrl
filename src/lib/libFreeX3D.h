@@ -4,7 +4,7 @@
  *
  * public API - libFreeX3D.h
  *
- * $Id: libFreeX3D.h,v 1.11 2008/12/09 12:12:41 couannette Exp $
+ * $Id: libFreeX3D.h,v 1.12 2008/12/10 18:46:54 crc_canada Exp $
  *
  *******************************************************************/
 
@@ -40,17 +40,17 @@ void Anchor_ReplaceWorld(char *name);
 
 #define RUNNINGASPLUGIN (isBrowserPlugin)
 
-int win_height;
-int win_width;
-int fullscreen;
-char *BrowserFullPath;
-pthread_t DispThrd;
-int _fw_pipe, _fw_FD;
-int _fw_browser_plugin;
-int isBrowserPlugin;
-uintptr_t _fw_instance;
-int be_collision;
-char *keypress_string;
+extern int win_height;
+extern int win_width;
+extern int fullscreen;
+extern char *BrowserFullPath;
+extern pthread_t DispThrd;
+extern int _fw_pipe, _fw_FD;
+extern int _fw_browser_plugin;
+extern int isBrowserPlugin;
+extern uintptr_t _fw_instance;
+extern int be_collision;
+extern char *keypress_string;
 
 
 #endif /* __LIBFREEX3D_MAIN_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.10 2008/12/10 14:31:53 couannette Exp $
+$Id: headers.h,v 1.11 2008/12/10 18:46:54 crc_canada Exp $
 
 Global includes.
 
@@ -14,7 +14,7 @@ Global includes.
 /**
  * in utils.c
  */
-char *BrowserName;
+extern char *BrowserName;
 const char* freex3d_get_browser_program();
 
 /**
