@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.4 2008/12/10 14:31:53 couannette Exp $
+  $Id: CParseParser.c,v 1.5 2008/12/11 16:47:55 crc_canada Exp $
 
   ???
 
@@ -26,8 +26,6 @@
 #include "CParseLexer.h"
 #include "CProto.h"
 #include "CParse.h"
-
-#define CPARSERVERBOSE 1
 
 #define PARSE_ERROR(msg) \
  { \
@@ -187,7 +185,7 @@ char fw_outline[2000];
  }
 #define EVENT_NODE_DEFAULT \
  default: \
-  PARSE_ERROR("Unsupported node!")
+  PARSE_ERROR("Parser - PROCESS_EVENT: Unsupported node!")
 
 /************************************************************************************************/
 /* parse an SF/MF; return the parsed value in the defaultVal field */
@@ -2323,11 +2321,11 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 /* Default action if node is not encountered in list of known nodes */
 #define NODE_DEFAULT \
   default: \
-   PARSE_ERROR("Unsupported node!")
+   PARSE_ERROR("Parser PROCESS_FIELD, Unsupported node!")
 
 /* printf ("at XXX, fieldE = %d, fieldO = %d nodeType %s\n",fieldE, fieldO,stringNodeType (node->_nodeType));
    if (fieldE!=ID_UNDEFINED) printf (".... field is %s\n",EXPOSED_FIELD[fieldE]);
-   if (fieldO!=ID_UNDEFINED) printf (".... field is %s\n",FIELD[fieldO]); */
+   if (fieldO!=ID_UNDEFINED) printf (".... field is %s\n",FIELD[fieldO]);  */
 
 /* Field was found in EXPOSED_FIELD list.  Parse value or IS statement */
 if(fieldE!=ID_UNDEFINED)
@@ -2339,6 +2337,7 @@ if(fieldE!=ID_UNDEFINED)
     case NODE_##type: \
     { \
      struct X3D_##type* node2=(struct X3D_##type*)node; \
+	/* printf ("at YYY, in case for node %s\n",stringNodeType(NODE_##type)); */ \
      UNUSED(node2); /* for compiler warning reductions */ \
      switch(fieldE) \
      {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.8 2008/12/10 14:31:53 couannette Exp $
+$Id: CParseLexer.c,v 1.9 2008/12/11 16:47:55 crc_canada Exp $
 
 ???
 
@@ -24,8 +24,6 @@ $Id: CParseLexer.c,v 1.8 2008/12/10 14:31:53 couannette Exp $
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "CParse.h"
-
-#define CPARSERVERBOSE 1
 
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me);
 char *externProtoPointer = NULL;
