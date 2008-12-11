@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.3 2008/12/10 14:31:53 couannette Exp $
+$Id: X3DProtoScript.c,v 1.4 2008/12/11 22:18:03 crc_canada Exp $
 
 ???
 
@@ -30,10 +30,10 @@ $Id: X3DProtoScript.c,v 1.3 2008/12/10 14:31:53 couannette Exp $
 #include "X3DParser.h"
 
 
-static int currentProtoDeclare  = ID_UNDEFINED;
+static int currentProtoDeclare  = INT_ID_UNDEFINED;
 static int MAXProtos = 0;
 static int curProDecStackInd = 0;
-static int currentProtoInstance = ID_UNDEFINED;
+static int currentProtoInstance = INT_ID_UNDEFINED;
 
 /* for parsing fields in PROTO expansions */
 /* FIELD_END is an ascii string that will pass the XML parser, but should not be found in a field value */
@@ -89,7 +89,7 @@ struct ScriptFieldStruct {
 };
 
 struct ScriptFieldStruct *ScriptFieldNames = NULL;
-int ScriptFieldTableSize = ID_UNDEFINED;
+int ScriptFieldTableSize = INT_ID_UNDEFINED;
 int MAXScriptFieldParams = 0;
 
 
@@ -117,7 +117,7 @@ void freeProtoMemory () {
 		FREE_IF_NZ(PROTONames);
 	}
 
-	currentProtoDeclare  = ID_UNDEFINED;
+	currentProtoDeclare  = INT_ID_UNDEFINED;
 	MAXProtos = 0;
 
 	#ifdef X3DPARSERVERBOSE
@@ -137,7 +137,7 @@ void freeProtoMemory () {
 		}
 		FREE_IF_NZ(ScriptFieldNames);
 	}
-	ScriptFieldTableSize = ID_UNDEFINED;
+	ScriptFieldTableSize = INT_ID_UNDEFINED;
 	MAXScriptFieldParams = 0;
 }
 
@@ -384,10 +384,10 @@ static char *getProtoValue(int ProtoInvoc, char *id) {
 /* handle a <ProtoInstance> tag */
 void parseProtoInstance (const char **atts) {
 	int count;
-	int nameIndex = ID_UNDEFINED;
-	int containerIndex = ID_UNDEFINED;
-	int containerField = ID_UNDEFINED;
-	int defNameIndex = ID_UNDEFINED;
+	int nameIndex = INT_ID_UNDEFINED;
+	int containerIndex = INT_ID_UNDEFINED;
+	int containerField = INT_ID_UNDEFINED;
+	int defNameIndex = INT_ID_UNDEFINED;
 	int protoTableIndex = 0;
 
 	parserMode = PARSING_PROTOINSTANCE;
@@ -397,7 +397,7 @@ void parseProtoInstance (const char **atts) {
 	printf ("parseProtoInstance, incremented curProtoInsStackInd to %d\n",curProtoInsStackInd);
 	#endif
 
-	currentProtoInstance = ID_UNDEFINED;
+	currentProtoInstance = INT_ID_UNDEFINED;
 	
 
 	for (count = 0; atts[count]; count += 2) {
@@ -425,7 +425,7 @@ void parseProtoInstance (const char **atts) {
 	#endif
 
 	/* did we have a containerField? */
-	if (containerIndex != ID_UNDEFINED) {
+	if (containerIndex != INT_ID_UNDEFINED) {
 		containerField = findFieldInFIELDNAMES(atts[containerIndex]);
 		/* printf ("parseProtoInstance, found a containerField of %s, id is %d\n",atts[containerIndex],containerField); */
 	}
@@ -434,11 +434,11 @@ void parseProtoInstance (const char **atts) {
 	ProtoInstanceTable[curProtoInsStackInd].container = containerField;
 
 	/* did we have a DEF in the instance? */
-	if (defNameIndex == ID_UNDEFINED) ProtoInstanceTable[curProtoInsStackInd].defName = NULL;
+	if (defNameIndex == INT_ID_UNDEFINED) ProtoInstanceTable[curProtoInsStackInd].defName = NULL;
 	else ProtoInstanceTable[curProtoInsStackInd].defName = STRDUP(atts[defNameIndex]);
 
 	/* did we find the name? */
-	if (nameIndex != ID_UNDEFINED) {
+	if (nameIndex != INT_ID_UNDEFINED) {
 		#ifdef X3DPARSERVERBOSE
 		printf ("parseProtoInstance, found name :%s:\n",atts[nameIndex]);
 		#endif
@@ -669,7 +669,7 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 
 
 	/* first, do we actually have a valid proto here? */
-	if (currentProtoInstance == ID_UNDEFINED) 
+	if (currentProtoInstance == INT_ID_UNDEFINED) 
 		return;
 
 	#ifdef X3DPARSERVERBOSE
@@ -753,7 +753,7 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 		printf ("PARSED OK\n");
 		#endif
 
-		if (ProtoInstanceTable[curProtoInsStackInd].container == ID_UNDEFINED) 
+		if (ProtoInstanceTable[curProtoInsStackInd].container == INT_ID_UNDEFINED) 
 			pf = FIELDNAMES_children;
 		else
 			pf = ProtoInstanceTable[curProtoInsStackInd].container;
@@ -798,7 +798,7 @@ void parseProtoBody (const char **atts) {
 
 void parseProtoDeclare (const char **atts) {
 	int count;
-	int nameIndex = ID_UNDEFINED;
+	int nameIndex = INT_ID_UNDEFINED;
 
 	/* increment the currentProtoDeclare field. Check to see how many PROTOS we (bounds check) */
 	currentProtoDeclare++;
@@ -822,7 +822,7 @@ void parseProtoDeclare (const char **atts) {
 	}
 
 	/* did we find the name? */
-	if (nameIndex != ID_UNDEFINED) {
+	if (nameIndex != INT_ID_UNDEFINED) {
 		/* found it, lets open a new PROTO for this one */
 		registerProto(atts[nameIndex]);
 	} else {
@@ -904,7 +904,7 @@ void parseScriptProtoField(const char **atts) {
 
 
 	/* set up defaults for field parsing */
-	for (i=0;i<MPFIELDS;i++) myparams[i] = ID_UNDEFINED;
+	for (i=0;i<MPFIELDS;i++) myparams[i] = INT_ID_UNDEFINED;
 	
 
 	/* copy the fields over */
@@ -925,7 +925,7 @@ void parseScriptProtoField(const char **atts) {
 				ConsoleMessage ("X3D Proto/Script parsing line %d: unknown field type %s",LINE,atts[i]);
 				return;
 			}
-			if (myparams[which] != ID_UNDEFINED) {
+			if (myparams[which] != INT_ID_UNDEFINED) {
 				ConsoleMessage ("X3DScriptParsing line %d, field %s already defined in this Script/Proto",
 					LINE,atts[i],atts[i+1]);
 			}
@@ -940,21 +940,21 @@ void parseScriptProtoField(const char **atts) {
 	#endif
 
 	/* ok now, we have a couple of checks to make here. Do we have all the parameters required? */
-	if (myparams[MP_NAME] == ID_UNDEFINED) {
+	if (myparams[MP_NAME] == INT_ID_UNDEFINED) {
 		ConsoleMessage("have a Script/PROTO at line %d with no parameter name",LINE);
 		return;
 	}
-	if (myparams[MP_TYPE] == ID_UNDEFINED) {
+	if (myparams[MP_TYPE] == INT_ID_UNDEFINED) {
 		ConsoleMessage("have a Script/PROTO at line %d with no parameter type",LINE);
 		return;
 	}
 
-	if (myparams[MP_ACCESSTYPE] == ID_UNDEFINED) {
+	if (myparams[MP_ACCESSTYPE] == INT_ID_UNDEFINED) {
 		ConsoleMessage ("have a Script/PROTO at line %d with no paramater accessType ",LINE);
 		return;
 	}
 
-	if (myparams[MP_VALUE] != ID_UNDEFINED) myValueString = atts[myparams[MP_VALUE]];
+	if (myparams[MP_VALUE] != INT_ID_UNDEFINED) myValueString = atts[myparams[MP_VALUE]];
 
 	/* register this field with the Javascript Field Indexer */
 	myFieldNumber = JSparamIndex((char *)atts[myparams[MP_NAME]],(char *)atts[myparams[MP_TYPE]]);
@@ -1234,6 +1234,6 @@ int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type, int
 	#endif
 	
 	/* did not find it */
-	*offs = ID_UNDEFINED;  *type = 0;
+	*offs = INT_ID_UNDEFINED;  *type = 0;
 	return FALSE;
 }

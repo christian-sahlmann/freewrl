@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.11 2008/12/10 18:46:54 crc_canada Exp $
+$Id: headers.h,v 1.12 2008/12/11 22:18:03 crc_canada Exp $
 
 Global includes.
 
@@ -85,7 +85,7 @@ char *readInputString(char *fn);
 #define JS_SET_PROPERTY_STUB7 JS_PropertyStub
 #endif
 
-#define ID_UNDEFINED -1
+#define INT_ID_UNDEFINED -1
 
 /* stop the display thread. Used (when this comment was made) by the OSX Safari plugin; keeps
 most things around, just stops display thread, when the user exits a world. */

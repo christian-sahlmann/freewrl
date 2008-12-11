@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.5 2008/12/10 14:31:53 couannette Exp $
+$Id: X3DParser.c,v 1.6 2008/12/11 22:18:03 crc_canada Exp $
 
 ???
 
@@ -46,7 +46,7 @@ int CDATA_Text_curlen = 0;
 
 /* for testing Johannes Behrs fieldValue hack for getting data in */
 static int in3_3_fieldValue = FALSE;
-static int in3_3_fieldIndex = ID_UNDEFINED;
+static int in3_3_fieldIndex = INT_ID_UNDEFINED;
 
 
 /* this ifdef sequence is kept around, for a possible Microsoft Vista port */
@@ -84,11 +84,11 @@ struct DEFnameStruct {
 };
 
 struct DEFnameStruct *DEFnames = 0;
-int DEFtableSize = ID_UNDEFINED;
+int DEFtableSize = INT_ID_UNDEFINED;
 int MAXDEFNames = 0;
 
 /* XML parser variables */
-static int X3DParserRecurseLevel = ID_UNDEFINED;
+static int X3DParserRecurseLevel = INT_ID_UNDEFINED;
 static XML_Parser x3dparser[PROTOINSTANCE_MAX_LEVELS];
 static XML_Parser currentX3DParser = NULL;
 
@@ -96,7 +96,7 @@ static XML_Parser currentX3DParser = NULL;
 int freewrl_XML_GetCurrentLineNumber(void) {
 	if (currentX3DParser != NULL) 
 		return XML_GetCurrentLineNumber(currentX3DParser);
-	return ID_UNDEFINED;
+	return INT_ID_UNDEFINED;
 }
 
 
@@ -165,7 +165,7 @@ void setFieldValueDataActive(void) {
 	if (!in3_3_fieldValue) printf ("expected this to be in a fieldValue\n");
 
 	/* if we had a valid field for this node... */
-	if (in3_3_fieldIndex != ID_UNDEFINED) {
+	if (in3_3_fieldIndex != INT_ID_UNDEFINED) {
 
 		/* printf ("setFieldValueDataActive field %s, parent is a %s\n",
 			stringFieldType(in3_3_fieldIndex),stringNodeType(parentStack[parentIndex]->_nodeType)); */
@@ -177,7 +177,7 @@ void setFieldValueDataActive(void) {
 	/* free data */
 	in3_3_fieldValue = FALSE;
 	CDATA_Text_curlen = 0;
-	in3_3_fieldIndex = ID_UNDEFINED;
+	in3_3_fieldIndex = INT_ID_UNDEFINED;
 }
 
 /**************************************************************************************/
@@ -212,7 +212,7 @@ struct X3D_Node *X3DParser_getNodeFromName(const char *name) {
 
 /* "forget" the DEFs. Keep the table around, though, as the entries will simply be used again. */
 void kill_X3DDefs(void) {
-	DEFtableSize = ID_UNDEFINED;
+	DEFtableSize = INT_ID_UNDEFINED;
 }
 
 /* return a node assoicated with this name. If the name exists, return the previous node. If not, return
@@ -273,7 +273,7 @@ static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *nam
                 	case PKW_outputOnly: accessType = KW_outputOnly; break;
                 	case PKW_inputOutput: accessType = KW_inputOutput; break;
                 	case PKW_initializeOnly: accessType = KW_initializeOnly; break;
-                	default: {accessType = ID_UNDEFINED;}
+                	default: {accessType = INT_ID_UNDEFINED;}
         	}
 	} else {
 
@@ -314,8 +314,8 @@ static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *nam
 static void parseRoutes (const char **atts) {
 	struct X3D_Node *fromNode = NULL;
 	struct X3D_Node *toNode = NULL;	
-	int fromOffset = ID_UNDEFINED;
-	int toOffset = ID_UNDEFINED;
+	int fromOffset = INT_ID_UNDEFINED;
+	int toOffset = INT_ID_UNDEFINED;
 	int i;
 	int error = FALSE;
 
@@ -500,7 +500,7 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 			indexT tmp;
 			/* printf ("SETTING CONTAINER FIELD TO %s for node of type %s\n",(char *)atts[i+1], stringNodeType(thisNode->_nodeType )); */
 			tmp = findFieldInFIELDNAMES((char *)atts[i+1]);
-			if (tmp == ID_UNDEFINED) {
+			if (tmp == INT_ID_UNDEFINED) {
 				ConsoleMessage ("Error line %d: setting containerField to :%s: for node of type :%s:\n", LINE,
 					(char *)atts[i+1], stringNodeType(thisNode->_nodeType ));
 			} else {
@@ -595,8 +595,8 @@ return;
 /* parse a component statement, and send the results along */
 static void parseComponent(const char **atts) {
 	int i;
-	int myComponent = ID_UNDEFINED;
-	int myLevel = ID_UNDEFINED;
+	int myComponent = INT_ID_UNDEFINED;
+	int myLevel = INT_ID_UNDEFINED;
 
 	/* go through the fields and make sense of them */
         for (i = 0; atts[i]; i += 2) {
@@ -608,7 +608,7 @@ static void parseComponent(const char **atts) {
 			}
 		} else if (strcmp("name",atts[i]) == 0) {
 			myComponent = findFieldInCOMPONENTS(atts[i+1]);
-			if (myComponent == ID_UNDEFINED) {
+			if (myComponent == INT_ID_UNDEFINED) {
 				ConsoleMessage("Line %d: Component statement, but component name not valid :%s:",LINE,atts[i+1]);
 				return;
 			}
@@ -618,9 +618,9 @@ static void parseComponent(const char **atts) {
 		}
 	}
 
-	if (myComponent == ID_UNDEFINED) {
+	if (myComponent == INT_ID_UNDEFINED) {
 		ConsoleMessage("Line %d: Component statement, but component name not stated",LINE);
-	} else if (myLevel == ID_UNDEFINED) {
+	} else if (myLevel == INT_ID_UNDEFINED) {
 		ConsoleMessage("Line %d: Component statement, but component level not stated",LINE);
 	} else {
 		handleComponent(myComponent,myLevel);
@@ -630,7 +630,7 @@ static void parseComponent(const char **atts) {
 /* parse the <X3D profile='Immersive' version='3.0' xm... line */
 static void parseX3Dhead(const char **atts) {
 	int i;
-	int myProfile = -10000; /* something negative, not ID_UNDEFINED... */
+	int myProfile = -10000; /* something negative, not INT_ID_UNDEFINED... */
 	float myVersion = 0.0;
 
         for (i = 0; atts[i]; i += 2) {
@@ -646,7 +646,7 @@ static void parseX3Dhead(const char **atts) {
 	}
 
 	/* now, handle all the found variables */
-	if (myProfile == ID_UNDEFINED) {
+	if (myProfile == INT_ID_UNDEFINED) {
 		ConsoleMessage ("expected valid profile in X3D header");
 	} else {
 		if (myProfile >= 0) handleProfile (myProfile);
@@ -679,7 +679,7 @@ static void parseMeta(const char **atts) {
 /* we have a fieldValue, should be in a PROTO expansion */
 static void parseFieldValue(const char *name, const char **atts) {
 	int i;
-	int nameIndex = ID_UNDEFINED;
+	int nameIndex = INT_ID_UNDEFINED;
 
 	/* printf ("parseFieldValue, mode %s\n",parserModeStrings[parserMode]); */
         for (i = 0; atts[i]; i += 2) {
@@ -693,9 +693,9 @@ static void parseFieldValue(const char *name, const char **atts) {
 		if (in3_3_fieldValue) printf ("parseFieldValue - did not expect in3_3_fieldValue to be set\n");
 		in3_3_fieldValue = TRUE;
 
-		if (nameIndex == ID_UNDEFINED) {
+		if (nameIndex == INT_ID_UNDEFINED) {
 			printf ("did not find name field for this 3.3 fieldType test\n");
-			in3_3_fieldIndex = ID_UNDEFINED;
+			in3_3_fieldIndex = INT_ID_UNDEFINED;
 		} else {
 		/* printf ("parseFieldValue field %s, parent is a %s\n",atts[nameIndex],stringNodeType(parentStack[parentIndex]->_nodeType)); */
 
@@ -920,7 +920,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 	myNodeIndex = findFieldInNODES(name);
 
 	/* is this a "normal" node that can be found in x3d, x3dv and wrl files? */
-	if (myNodeIndex != ID_UNDEFINED) {
+	if (myNodeIndex != INT_ID_UNDEFINED) {
 		INCREMENT_PARENTINDEX 
 		parseNormalX3D(myNodeIndex,name, atts); 
 		return;
@@ -928,7 +928,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 
 	/* no, it is not. Lets see what else it could be... */
 	myNodeIndex = findFieldInX3DSPECIAL(name);
-	if (myNodeIndex != ID_UNDEFINED) {
+	if (myNodeIndex != INT_ID_UNDEFINED) {
 		switch (myNodeIndex) {
 			case X3DSP_ProtoDeclare: parseProtoDeclare(atts); break;
 			case X3DSP_ProtoBody: parseProtoBody(atts); break;
@@ -982,7 +982,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 
 
 	myNodeIndex = findFieldInNODES(name);
-	if (myNodeIndex != ID_UNDEFINED) {
+	if (myNodeIndex != INT_ID_UNDEFINED) {
 		switch (myNodeIndex) {
 			case NODE_Script: initScriptWithScript(); break;
 			default: linkNodeIn();
@@ -994,7 +994,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 
 	/* no, it is not. Lets see what else it could be... */
 	myNodeIndex = findFieldInX3DSPECIAL(name);
-	if (myNodeIndex != ID_UNDEFINED) {
+	if (myNodeIndex != INT_ID_UNDEFINED) {
 		switch (myNodeIndex) {
 			case X3DSP_ProtoInterface: endProtoInterfaceTag(); break;
 			case X3DSP_ProtoBody: endProtoBodyTag(name); break;
@@ -1049,15 +1049,15 @@ static void shutdownX3DParser () {
 	X3DParserRecurseLevel--;
 	
 	/* lets free up memory here for possible PROTO variables */
-	if (X3DParserRecurseLevel == ID_UNDEFINED) {
+	if (X3DParserRecurseLevel == INT_ID_UNDEFINED) {
 		/* if we are at the bottom of the parser call nesting, lets reset parentIndex */
 		parentIndex = 0;
 		freeProtoMemory ();
 	}
 
-	if (X3DParserRecurseLevel < ID_UNDEFINED) {
+	if (X3DParserRecurseLevel < INT_ID_UNDEFINED) {
 		ConsoleMessage ("XML_PARSER close underflow");
-		X3DParserRecurseLevel = ID_UNDEFINED;
+		X3DParserRecurseLevel = INT_ID_UNDEFINED;
 	}
 
 	/* CDATA text space, free it up */

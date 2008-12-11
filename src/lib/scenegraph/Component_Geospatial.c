@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.3 2008/12/10 14:31:53 couannette Exp $
+$Id: Component_Geospatial.c,v 1.4 2008/12/11 22:18:03 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -199,7 +199,7 @@ Geodetic to Geocentric:
 	/* compileGeosystem - encode the return value such that srf->p[x] is... \
                         0:      spatial reference frame (GEOSP_UTM, GEOSP_GC, GEOSP_GD); \
                         1:      spatial coordinates (defaults to GEOSP_WE) \
-                        2:      UTM zone number, 1..60. ID_UNDEFINED = not specified \
+                        2:      UTM zone number, 1..60. INT_ID_UNDEFINED = not specified \
                         3:      UTM:    if "S" - value is FALSE, not S, value is TRUE \
                                 GD:     if "latitude_first" TRUE, if "longitude_first", FALSE \
                                 GC:     if "northing_first" TRUE, if "easting_first", FALSE */ \
@@ -1044,15 +1044,15 @@ static void GeoOrient (struct SFVec3d *gdCoords, struct SFVec4d *orient) {
 /* compileGeosystem - encode the return value such that srf->p[x] is...
 			0:	spatial reference frame	(GEOSP_UTM, GEOSP_GC, GEOSP_GD);
 			1:	spatial coordinates (defaults to GEOSP_WE)
-			2:	UTM zone number, 1..60. ID_UNDEFINED = not specified
+			2:	UTM zone number, 1..60. INT_ID_UNDEFINED = not specified
 			3:	UTM:	if "S" - value is FALSE, not S, value is TRUE 
 				GD:	if "latitude_first" TRUE, if "longitude_first", FALSE
 				GC:	if "northing_first" TRUE, if "easting_first", FALSE */
 
 static void compile_geoSystem (int nodeType, struct Multi_String *args, struct Multi_Int32 *srf) {
 	int i;
-	indexT this_srf = ID_UNDEFINED;
-	indexT this_srf_ind = ID_UNDEFINED;
+	indexT this_srf = INT_ID_UNDEFINED;
+	indexT this_srf_ind = INT_ID_UNDEFINED;
 
 	/* malloc the area required for internal settings, if required */
 	if (srf->p==NULL) {
@@ -1063,7 +1063,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 	/* set these as defaults */
 	srf->p[0] = GEOSP_GD; 
 	srf->p[1] = GEOSP_WE;
-	srf->p[2] = ID_UNDEFINED;
+	srf->p[2] = INT_ID_UNDEFINED;
 	srf->p[3] = TRUE;
 
 	/* if nothing specified, we just use these defaults */
@@ -1087,7 +1087,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 	}
 
 	/* did we find a GC, GD, or UTM? */
-	if (this_srf == ID_UNDEFINED) {
+	if (this_srf == INT_ID_UNDEFINED) {
 		ConsoleMessage ("geoSystem in node %s,  must have GC, GD or UTM",stringNodeType(nodeType));
 		return;
 	}
@@ -1096,7 +1096,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 	/* go through and ensure that we have the correct parameters for this spatial reference frame */
 	if (this_srf == GEOSP_GC) {
 		/* possible parameter: GC:	if "northing_first" TRUE, if "easting_first", FALSE */
-		srf->p[1] = ID_UNDEFINED;
+		srf->p[1] = INT_ID_UNDEFINED;
 		for (i=0; i<args->n; i++) {
 			if (strcmp("northing_first",args->p[i]->strptr) == 0) { srf->p[3] = TRUE;
 			} else if (strcmp("easting_first",args->p[i]->strptr) == 0) { srf->p[3] = FALSE;
@@ -1118,7 +1118,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 				if (i!= this_srf_ind) {
 					indexT tc = findFieldInGEOSPATIAL(args->p[i]->strptr);
 					switch (tc) {
-						case ID_UNDEFINED:
+						case INT_ID_UNDEFINED:
 						case GEOSP_GC:
 						case GEOSP_GCC:
 						case GEOSP_GD:
@@ -1139,7 +1139,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 		/* encode the return value such that srf->p[x] is...
 			0:	spatial reference frame	(GEOSP_UTM, GEOSP_GC, GEOSP_GD);
 			1:	spatial coordinates (defaults to GEOSP_WE)
-			2:	UTM zone number, 1..60. ID_UNDEFINED = not specified
+			2:	UTM zone number, 1..60. INT_ID_UNDEFINED = not specified
 			3:	UTM:	if "S" - value is FALSE, not S, value is TRUE  */
 		/* first go through, and find the Spatial Reference Frame, GD, UTM, or GC */
 		for (i=0; i<args->n; i++) {
@@ -1154,7 +1154,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 				} else { 
 					indexT tc = findFieldInGEOSPATIAL(args->p[i]->strptr);
 					switch (tc) {
-						case ID_UNDEFINED:
+						case INT_ID_UNDEFINED:
 						case GEOSP_GC:
 						case GEOSP_GCC:
 						case GEOSP_GD:

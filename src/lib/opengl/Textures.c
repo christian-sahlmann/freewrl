@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.3 2008/12/02 18:17:18 couannette Exp $
+$Id: Textures.c,v 1.4 2008/12/11 22:18:03 crc_canada Exp $
 
 General Texture objects.
 
@@ -1308,14 +1308,14 @@ int findTextureFile (int cwo, int *istemp) {
 	/* on AQUA/OSX, let QuickTime do the conversion for us, but maybe we can help it out
 	   by keeping a tab on what kind of image this is  */
 	if (loadThisTexture->nodeType == NODE_ImageTexture) {
-		loadThisTexture->imageType = ID_UNDEFINED;
+		loadThisTexture->imageType = INT_ID_UNDEFINED;
 		if (strncmp(firstBytes,firstPNG,4) == 0) loadThisTexture->imageType = PNGTexture;
 		if (strncmp(firstBytes,firstJPG,4) == 0) loadThisTexture->imageType = JPGTexture;
 	}
 
 #else /* AQUA */
 	if (loadThisTexture->nodeType == NODE_ImageTexture) {
-		loadThisTexture->imageType = ID_UNDEFINED;
+		loadThisTexture->imageType = INT_ID_UNDEFINED;
 		if (strncmp(firstBytes,firstPNG,4) == 0) loadThisTexture->imageType = PNGTexture;
 		if (strncmp(firstBytes,firstJPG,4) == 0) loadThisTexture->imageType = JPGTexture;
 
@@ -1703,7 +1703,7 @@ void __reallyloadImageTexture() {
 #define USE_CG_DATA_PROVIDERS
 #ifdef USE_CG_DATA_PROVIDERS
 	/* can we directly import this a a jpeg or png?? */
-	if (loadThisTexture->imageType != ID_UNDEFINED) {
+	if (loadThisTexture->imageType != INT_ID_UNDEFINED) {
 		/* printf ("this is a JPEG texture, try direct loading\n"); */
 		provider = CGDataProviderCreateWithURL(url);
 		if (loadThisTexture->imageType == JPGTexture)  {

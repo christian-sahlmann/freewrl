@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: utils.c,v 1.4 2008/12/05 13:20:52 couannette Exp $
+$Id: utils.c,v 1.5 2008/12/11 22:18:03 crc_canada Exp $
 
 General utility functions.
 
@@ -41,7 +41,7 @@ const char* freex3d_get_browser_program()
  * This code get compiled only when debugging is enabled
  */
 
-#if defined(_DEBUG)
+#ifdef DEBUG_MALLOC
 
 #define FREETABLE(a,file,line) mcount=0; \
 	while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++; \
@@ -72,7 +72,7 @@ static int mcount;
 
 void freewrlFree(int line, char *file, void *a)
 {
-/*     printf ("%x xfree at %s:%d\n",a,file,line);  */
+    printf ("freewrlFree %x xfree at %s:%d\n",a,file,line); 
     FREETABLE(a,file,line);
     free(a);
 }
@@ -108,7 +108,7 @@ void *freewrlMalloc(int line, char *file, size_t sz)
 	sprintf (myline, "MALLOC PROBLEM - out of memory at %s:%d for %d",file,line,sz);
 	outOfMemory (myline);
     }
-    /* printf ("%x malloc %d at %s:%d\n",rv,sz,file,line); */
+    printf ("%x malloc %d at %s:%d\n",rv,sz,file,line); 
     RESERVETABLE(rv,file,line);
     return rv;
 }
@@ -118,7 +118,7 @@ void *freewrlRealloc (int line, char *file, void *ptr, size_t size)
     void *rv;
     char myline[400];
 
-    /* printf ("%x xfree (from realloc) at %s:%d\n",ptr,file,line); */
+    printf ("%x xfree (from realloc) at %s:%d\n",ptr,file,line);
     rv = realloc (ptr,size);
     if (rv==NULL) {
 	if (size != 0) {
@@ -140,16 +140,15 @@ void *freewrlStrdup (int line, char *file, char *str)
     void *rv;
     char myline[400];
 
-    /* printf ("%x xfree (from realloc) at %s:%d\n",ptr,file,line); */
+    printf("freewrlStrdup, at line %d file %s\n",line,file);
     rv = strdup (str);
     if (rv==NULL) {
 	sprintf (myline, "STRDUP PROBLEM - out of memory at %s:%d ",file,line);
 	outOfMemory (myline);
     }
 
-    /* printf ("%x malloc (from realloc) %d at %s:%d\n",rv,size,file,line); */
     RESERVETABLE(rv,file,line);
     return rv;
 }
 
-#endif /* defined(_DEBUG) & defined(DEBUG_MALLOC) */
+#endif /* defined(DEBUG_MALLOC) */

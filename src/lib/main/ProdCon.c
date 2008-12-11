@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.4 2008/12/10 14:31:53 couannette Exp $
+$Id: ProdCon.c,v 1.5 2008/12/11 22:18:03 crc_canada Exp $
 
 CProto ???
 
@@ -508,10 +508,10 @@ void EAI_killBindables (void) {
 	UNLOCK;
 
 	/* and, reset our stack pointers */
-	background_tos = ID_UNDEFINED;
-	fog_tos = ID_UNDEFINED;
-	navi_tos = ID_UNDEFINED;
-	viewpoint_tos = ID_UNDEFINED;
+	background_tos = INT_ID_UNDEFINED;
+	fog_tos = INT_ID_UNDEFINED;
+	navi_tos = INT_ID_UNDEFINED;
+	viewpoint_tos = INT_ID_UNDEFINED;
 }
 
 /* interface for creating VRML for EAI */

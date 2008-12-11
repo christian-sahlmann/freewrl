@@ -9,9 +9,11 @@
 #define __FREEX3D_PLUGIN_UTILS_H__
 
 
+/* JAS 
 #ifndef _DEBUG
 #define _DEBUG 0
 #endif
+*/
 
 #define SMALLSTRINGSIZE 64
 #define STRINGSIZE 128

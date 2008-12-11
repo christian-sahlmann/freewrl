@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: capabilitiesHandler.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: capabilitiesHandler.c,v 1.3 2008/12/11 22:18:03 crc_canada Exp $
 
 ???
 
@@ -55,12 +55,12 @@ static const int capabilities[] = {
 	COM_Networking,	10, 		/* unverified */
 	COM_ParticleSystems,	10, 	/* unverified */
 	COM_Sound,	10, 		/* unverified */
-	ID_UNDEFINED, 	ID_UNDEFINED,
+	INT_ID_UNDEFINED, 	INT_ID_UNDEFINED,
 };
 
 /* profiles... */
 
-/* ISO-IEC-FDISID_UNDEFINED9775:1.2 H3 Component support */
+/* ISO-IEC-FDISINT_ID_UNDEFINED9775:1.2 H3 Component support */
 static const int CADInterchangeProfile[] = {
 	COM_Core,		1,
 	COM_Networking,		1,
@@ -72,16 +72,16 @@ static const int CADInterchangeProfile[] = {
 	COM_Navigation,		2,
 	COM_Shaders,		1,
 	COM_CADGeometry,	2,
-	ID_UNDEFINED, 		ID_UNDEFINED};
+	INT_ID_UNDEFINED, 		INT_ID_UNDEFINED};
 
 
-/* ISO-IEC-FDISID_UNDEFINED9775:1.2 A3 Component support */
+/* ISO-IEC-FDISINT_ID_UNDEFINED9775:1.2 A3 Component support */
 static const int CoreProfile[] = {
 	COM_Core,		1,
-	ID_UNDEFINED, 		ID_UNDEFINED};
+	INT_ID_UNDEFINED, 		INT_ID_UNDEFINED};
 
 
-/* ISO-IEC-FDISID_UNDEFINED9775:1.2 F3 Component support */
+/* ISO-IEC-FDISINT_ID_UNDEFINED9775:1.2 F3 Component support */
 static const int FullProfile[] = {
 	COM_Core,			2,
 	COM_Time,			2,
@@ -117,10 +117,10 @@ static const int FullProfile[] = {
 	COM_PickingSensor,		3,
 	COM_Followers,			1,
 	COM_ParticleSystems,		3,
-	ID_UNDEFINED, 			ID_UNDEFINED};
+	INT_ID_UNDEFINED, 			INT_ID_UNDEFINED};
 
 
-/* ISO-IEC-FDISID_UNDEFINED9775:1.2 E3 Component support */
+/* ISO-IEC-FDISINT_ID_UNDEFINED9775:1.2 E3 Component support */
 static const int ImmersiveProfile[] = {
 	COM_Core,			2,
 	COM_Time,			1,
@@ -141,10 +141,10 @@ static const int ImmersiveProfile[] = {
 	COM_EnvironmentalEffects,	2,
 	COM_Scripting,			1,
 	COM_EventUtilities,		1,
-	ID_UNDEFINED, 			ID_UNDEFINED};
+	INT_ID_UNDEFINED, 			INT_ID_UNDEFINED};
 
 
-/* ISO-IEC-FDISID_UNDEFINED9775:1.2 C3 Component support */
+/* ISO-IEC-FDISINT_ID_UNDEFINED9775:1.2 C3 Component support */
 static const int InteractiveProfile[] = {
 	COM_Core,			1,
 	COM_Time,			1,
@@ -162,10 +162,10 @@ static const int InteractiveProfile[] = {
 	COM_EnvironmentalSensor,	1,
 	COM_EnvironmentalEffects,	1,
 	COM_EventUtilities,		1,
-	ID_UNDEFINED, 			ID_UNDEFINED};
+	INT_ID_UNDEFINED, 			INT_ID_UNDEFINED};
 
 
-/* ISO-IEC-FDISID_UNDEFINED9775:1.2 B3 Component support */
+/* ISO-IEC-FDISINT_ID_UNDEFINED9775:1.2 B3 Component support */
 static const int InterchangeProfile[] = {
 	COM_Core,			1,
 	COM_Time,			1,
@@ -179,10 +179,10 @@ static const int InterchangeProfile[] = {
 	COM_Interpolation,		2,
 	COM_Navigation,			1,
 	COM_EnvironmentalEffects,	1,
-	ID_UNDEFINED, 			ID_UNDEFINED};
+	INT_ID_UNDEFINED, 			INT_ID_UNDEFINED};
 
 
-/* ISO-IEC-FDISID_UNDEFINED9775:1.2 D3 Component support */
+/* ISO-IEC-FDISINT_ID_UNDEFINED9775:1.2 D3 Component support */
 static const int MPEG4Profile[] = {
 	COM_Core,			1,
 	COM_Time,			1,
@@ -199,7 +199,7 @@ static const int MPEG4Profile[] = {
 	COM_EnvironmentalSensor,	1,
 	COM_Navigation,			1,
 	COM_EnvironmentalEffects,	1,
-	ID_UNDEFINED, 			ID_UNDEFINED};
+	INT_ID_UNDEFINED, 			INT_ID_UNDEFINED};
 
 struct proftablestruct {
 	int profileName;
@@ -214,7 +214,7 @@ static struct proftablestruct profTable[] = {
 	{PRO_Full,			FullProfile},
 	{PRO_Immersive,			ImmersiveProfile},
 	{PRO_Core,			CoreProfile},
-	{ID_UNDEFINED, 			(const int*) ID_UNDEFINED}
+	{INT_ID_UNDEFINED, 			(const int*) INT_ID_UNDEFINED}
 };
 
 
@@ -243,10 +243,10 @@ void handleProfile (int myProfile) {
 	#endif
 
 	i=0;
-	while ((profTable[i].profileName != ID_UNDEFINED) && (profTable[i].profileName != myProfile)) i++;
+	while ((profTable[i].profileName != INT_ID_UNDEFINED) && (profTable[i].profileName != myProfile)) i++;
 
 	/* we really should have found this, unless we have a new profile that is not coded properly here */
-	if (profTable[i].profileName == ID_UNDEFINED) {
+	if (profTable[i].profileName == INT_ID_UNDEFINED) {
 		ConsoleMessage ("Something wrong in handleProfile for profile %s\n",
 			stringProfileType(myProfile));
 	} else {
@@ -255,7 +255,7 @@ void handleProfile (int myProfile) {
 		myTable = (int *)profTable[i].profileTable;
 		/* go through the selected table, and see if each component is within range */
 		comp = *myTable; myTable++; lev = *myTable; myTable++;
-		while (comp != ID_UNDEFINED) {
+		while (comp != INT_ID_UNDEFINED) {
 			handleComponent(comp,lev);
 			comp = *myTable; myTable++; lev = *myTable; myTable++;
 		}
@@ -271,7 +271,7 @@ void handleComponent (int myComponent, int myLevel) {
 	#endif
 
 	i=0;
-	while ((capabilities[i] != myComponent) && (capabilities[i] != ID_UNDEFINED)) {
+	while ((capabilities[i] != myComponent) && (capabilities[i] != INT_ID_UNDEFINED)) {
 		i+=2; 
 	}
 

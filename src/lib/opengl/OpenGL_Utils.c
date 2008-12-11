@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.4 2008/12/08 17:58:48 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.5 2008/12/11 22:18:03 crc_canada Exp $
 
 ???
 
@@ -52,7 +52,7 @@ void createdMemoryTable();
 void increaseMemoryTable();
 static struct X3D_Node ** memoryTable = NULL;
 static int nodeNumber = 0;
-static int tableIndexSize = ID_UNDEFINED;
+static int tableIndexSize = INT_ID_UNDEFINED;
 static int nextEntry = 0;
 static int i=0;
 static struct X3D_Node *forgottenNode;
@@ -475,11 +475,11 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 /*keep track of node created*/
 void registerX3DNode(struct X3D_Node * tmp){	
 	LOCK_MEMORYTABLE
-	/*printf("nextEntry=%d	",nextEntry); printf("tableIndexSize=%d \n",tableIndexSize);*/
+	/* printf("nextEntry=%d	",nextEntry); printf("tableIndexSize=%d \n",tableIndexSize); */
 	/*is table to small give us some leeway in threads */
 	if (nextEntry >= (tableIndexSize-10)){
 		/*is table exist*/	
-		if (tableIndexSize <= ID_UNDEFINED){
+		if (tableIndexSize <= INT_ID_UNDEFINED){
 			createdMemoryTable();		
 		} else {
 			increaseMemoryTable();
@@ -530,7 +530,7 @@ void increaseMemoryTable(){
 	for (count=oldhigh; count < tableIndexSize; count++) {
 		memoryTable[count] = NULL;
 	}
-	/*printf("increasing memory table=%d\n",sizeof(memoryTable));*/
+	/* printf("increasing memory table=%d\n",tableIndexSize); */
 }
 
 /* zero the Visibility flag in all nodes */
@@ -1285,7 +1285,7 @@ void kill_X3DNodes(void){
 	}
 	FREE_IF_NZ(memoryTable);
 	memoryTable=NULL;
-	tableIndexSize=ID_UNDEFINED;
+	tableIndexSize=INT_ID_UNDEFINED;
 	nextEntry=0;
 	UNLOCK_MEMORYTABLE
 }

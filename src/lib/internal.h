@@ -6,7 +6,7 @@
  *
  * Library internal declarations.
  *
- * $Id: internal.h,v 1.7 2008/12/05 13:20:52 couannette Exp $
+ * $Id: internal.h,v 1.8 2008/12/11 22:18:03 crc_canada Exp $
  *
  *******************************************************************/
 
@@ -32,7 +32,7 @@
  * Those macro get defined only when debugging is enabled
  */
 #if defined(_DEBUG)
-
+#include <stdlib.h>
 # define MALLOC(_sz) freewrlMalloc(__LINE__,__FILE__,_sz)
 # define REALLOC(_a,_b) freewrlRealloc(__LINE__,__FILE__,_a,_b) 
 # define FREE(_ptr) freewrlFree(__LINE__,__FILE__,_ptr)
@@ -71,7 +71,8 @@ void *freewrlStrdup(int line, char *file, char *str);
                              FREE(_ptr); \
                              _ptr = 0; } \
                          else { \
-                             ERROR_MSG("ERROR: trying to free null pointer at %s:%d\n", __FILE__, __LINE__); \
+                             /* JAS - this is not an error...  ERROR_MSG("ERROR: trying to free null pointer at %s:%d\n", __FILE__, __LINE__); */ \
+			ERROR_MSG("free, pointer is already null at %s:%d\n", __FILE__, __LINE__); \
                          }
 
 
