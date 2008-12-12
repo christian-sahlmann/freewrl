@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.5 2008/12/11 16:47:55 crc_canada Exp $
+  $Id: CParseParser.c,v 1.6 2008/12/12 20:10:26 crc_canada Exp $
 
   ???
 
@@ -376,6 +376,7 @@ static void parser_scopeIn_DEFUSE(struct VRMLParser* me)
    does nothing except to make sure that the PROTOs vector has been initialized. */ 
 static void parser_scopeIn_PROTO(struct VRMLParser* me)
 {
+printf ("calling parser_scopeIn_PROTO\n");
     if(!me->PROTOs) {
         me->PROTOs=newVector(struct ProtoDefinition*, DEFMEM_INIT_SIZE);
     }
@@ -397,6 +398,8 @@ static void parser_scopeOut_PROTO(struct VRMLParser* me)
 {
     /* Do not delete the ProtoDefinitions, as they are referenced in the scene
      * graph!  TODO:  How to delete them properly? */
+
+printf ("calling parser_scopeOut_PROTO\n");
 
     vector_popBackN(struct ProtoDefinition*, me->PROTOs, lexer_getProtoPopCnt(me->lexer));
     lexer_scopeOut_PROTO(me->lexer);
@@ -1973,6 +1976,20 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 #endif
 
                 X3D_GROUP(node)->FreeWRL__protoDef = thisProto;
+{
+
+printf ("PROTO definition assign, saving this as of %d\n",
+vector_size(me->lexer->userNodeTypesVec));
+}
+/*
+		X3D_GROUP(node)->FreeWRL__protoDefName
+*/
+{
+
+printf ("JAS - assigning proto to group field, thisProto %p, protoDefNumber %d, estimatedBodyLen %d\n",
+		thisProto, thisProto->protoDefNumber,thisProto->estimatedBodyLen);
+
+}
             }
         }
     }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.6 2008/12/10 14:31:53 couannette Exp $
+$Id: EAIEventsIn.c,v 1.7 2008/12/12 20:10:25 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -690,6 +690,7 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 	struct X3D_Node * myNode;
 	int ctr;
 	char *cptr;
+	char *myNT;
 
 	/*format int seq# COMMAND    string nodename*/
 
@@ -703,23 +704,32 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 	}
 		
 	/* so, this is a valid node, lets find out if it is DEFined or whatever... */
+	/* Get the Node type. If it is a PROTO, get the proto def name, if not, just get the X3D node name */
+	if ((myNode->_nodeType == NODE_Group) &&  (X3D_GROUP(myNode)->FreeWRL__protoDef != 0)) {
+		myNT = parser_getPROTONameFromNode(myNode);
+		if (myNT == NULL) {
+			myNT = "XML_PROTO"; /* add this if we need to parse XML proto getTypes */
+		}
+	} else {
+		myNT = stringNodeType(myNode->_nodeType);
+	}
 
         /* Try to get X3D node name */
 	cptr = X3DParser_getNameFromNode(myNode);
 	if (cptr != NULL) {
-		sprintf (buf,"RE\n%f\n%d\n%s %s",TickTime,repno,stringNodeType(myNode->_nodeType), cptr);
+		sprintf (buf,"RE\n%f\n%d\n%s %s",TickTime,repno,myNT, cptr);
 		return;
 	}
 
         /* Try to get VRML node name */
 	cptr= parser_getNameFromNode(myNode);
 	if (cptr != NULL) {
-		sprintf (buf,"RE\n%f\n%d\n%s %s",TickTime,repno,stringNodeType(myNode->_nodeType), cptr);
+		sprintf (buf,"RE\n%f\n%d\n%s %s",TickTime,repno,myNT, cptr);
 		return;
 	}
 
 	/* no, this node is just undefined */
-	sprintf (buf,"RE\n%f\n%d\n%s __UNDEFINED",TickTime,repno,stringNodeType(myNode->_nodeType));
+	sprintf (buf,"RE\n%f\n%d\n%s __UNDEFINED",TickTime,repno,myNT);
 }
 
 

@@ -1,15 +1,11 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: VrmlTypeList.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: VrmlTypeList.h,v 1.3 2008/12/12 20:10:26 crc_canada Exp $
 
 A header simply containing all VRML types; this is needed sometimes.
 
 */
-
-#ifndef __FREEX3D_VRML_TYPE_LIST_H__
-#define __FREEX3D_VRML_TYPE_LIST_H__
-
 
 SF_TYPE(SFBool, sfbool, Bool)
 MF_TYPE(MFBool, mfbool, Bool)
@@ -51,6 +47,3 @@ SF_TYPE(SFMatrix4f, sfmatrix4f, Matrix4f)
 MF_TYPE(MFMatrix4f, mfmatrix4f, Matrix4f)
 SF_TYPE(SFMatrix4d, sfmatrix4d, Matrix4d)
 MF_TYPE(MFMatrix4d, mfmatrix4d, Matrix4d)
-
-
-#endif /* __FREEX3D_VRML_TYPE_LIST_H__ */
