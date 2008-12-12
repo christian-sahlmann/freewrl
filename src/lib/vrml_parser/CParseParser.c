@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.6 2008/12/12 20:10:26 crc_canada Exp $
+  $Id: CParseParser.c,v 1.7 2008/12/12 21:13:49 crc_canada Exp $
 
   ???
 
@@ -376,7 +376,6 @@ static void parser_scopeIn_DEFUSE(struct VRMLParser* me)
    does nothing except to make sure that the PROTOs vector has been initialized. */ 
 static void parser_scopeIn_PROTO(struct VRMLParser* me)
 {
-printf ("calling parser_scopeIn_PROTO\n");
     if(!me->PROTOs) {
         me->PROTOs=newVector(struct ProtoDefinition*, DEFMEM_INIT_SIZE);
     }
@@ -398,8 +397,6 @@ static void parser_scopeOut_PROTO(struct VRMLParser* me)
 {
     /* Do not delete the ProtoDefinitions, as they are referenced in the scene
      * graph!  TODO:  How to delete them properly? */
-
-printf ("calling parser_scopeOut_PROTO\n");
 
     vector_popBackN(struct ProtoDefinition*, me->PROTOs, lexer_getProtoPopCnt(me->lexer));
     lexer_scopeOut_PROTO(me->lexer);
@@ -739,6 +736,14 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 
     /* Create a new blank ProtoDefinition structure to contain the data for this PROTO */
     obj=newProtoDefinition();
+
+    /* save the name, if we can get it - it will be the last name on the list, because we will have JUST parsed it. */
+    if (vector_size(me->lexer->userNodeTypesVec) != ID_UNDEFINED) {
+	obj->protoName = STRDUP(vector_get(const char*, me->lexer->userNodeTypesVec, vector_size(me->lexer->userNodeTypesVec)-1));
+    } else {
+	printf ("warning - have proto but no name, so just copying a default string in\n");
+	obj->protoName = STRDUP("noProtoNameDefined");
+    }
 
     /* If the PROTOs stack has not yet been created, create it */
     if(!me->PROTOs) {
@@ -1961,19 +1966,19 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
     /* Return the parsed node */
 
     if (thisProto != NULL) {
-#ifdef CPARSERVERBOSE
+	#ifdef CPARSERVERBOSE
         printf ("parser_node, have a proto somewhere here\n");
-#endif
+	#endif
 
         if (node != NULL) {
-#ifdef CPARSERVERBOSE
+	    #ifdef CPARSERVERBOSE
             printf ("parser_node, and the node is made...\n");
-#endif
+	    #endif
 
             if (node->_nodeType == NODE_Group) {
-#ifdef CPARSERVERBOSE
+		#ifdef CPARSERVERBOSE
                 printf ("and, it is a GROUP node...\n");
-#endif
+		#endif
 
                 X3D_GROUP(node)->FreeWRL__protoDef = thisProto;
 {
@@ -1981,9 +1986,6 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 printf ("PROTO definition assign, saving this as of %d\n",
 vector_size(me->lexer->userNodeTypesVec));
 }
-/*
-		X3D_GROUP(node)->FreeWRL__protoDefName
-*/
 {
 
 printf ("JAS - assigning proto to group field, thisProto %p, protoDefNumber %d, estimatedBodyLen %d\n",
@@ -1993,10 +1995,10 @@ printf ("JAS - assigning proto to group field, thisProto %p, protoDefNumber %d, 
             }
         }
     }
-#ifdef CPARSERVERBOSE
+    #ifdef CPARSERVERBOSE
     printf ("returning at end of parser_node, ret %u\n",node);
     if (node != NULL) printf ("and, node type is %s\n",stringNodeType(node->_nodeType));
-#endif
+    #endif
     *ret=node;
     return TRUE;
 }

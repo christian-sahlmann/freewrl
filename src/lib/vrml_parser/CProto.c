@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.3 2008/12/10 14:31:53 couannette Exp $
+$Id: CProto.c,v 1.4 2008/12/12 21:13:49 crc_canada Exp $
 
 CProto ???
 
@@ -279,6 +279,7 @@ struct ProtoDefinition* newProtoDefinition()
 
  ret->protoDefNumber = latest_protoDefNumber++;
  ret->estimatedBodyLen = 0;
+ ret->protoName = NULL;
 
  return ret;
 }
@@ -297,6 +298,7 @@ void deleteProtoDefinition(struct ProtoDefinition* me) {
 		FREE_IF_NZ(ele);
 	}
 	deleteVector(struct ProtoRoute*, me->deconstructedProtoBody);
+	FREE_IF_NZ(me->protoName);
 	FREE_IF_NZ (me);
 }
 
@@ -347,6 +349,7 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
 	
  	ret->estimatedBodyLen = me->estimatedBodyLen;
 	ret->protoDefNumber = latest_protoDefNumber++;
+	if (me->protoName) ret->protoName = STRDUP(me->protoName);
 
 	return ret;
 }
