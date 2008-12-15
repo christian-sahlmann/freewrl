@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: jsUtils.c,v 1.3 2008/12/15 17:19:56 istakenv Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -18,8 +18,6 @@ which is the sample application included with the javascript engine.
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
-#include "../world_script/jsUtils.h"
-#include "../world_script/CScripts.h"
 #include "../main/Snapshot.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
@@ -28,9 +26,11 @@ which is the sample application included with the javascript engine.
 #include "../x3d_parser/Bindable.h"
 /* #include "../input/EAIheaders.h" */
 
+#include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
+#include "fieldSet.h"
 
 
 /********************** Javascript to X3D Scenegraph ****************************/
