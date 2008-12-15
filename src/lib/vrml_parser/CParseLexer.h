@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: CParseLexer.h,v 1.3 2008/12/15 16:57:13 istakenv Exp $
 
 Lexer (input of terminal symbols) for CParse
 
@@ -17,6 +17,8 @@ fields are not scoped and therefore stored in a simple vector.
 #ifndef __FREEX3D_CPARSE_LEXER_H__
 #define __FREEX3D_CPARSE_LEXER_H__
 
+/* for Stack typedef */
+#include "../scenegraph/Vector.h"
 
 /* Undefined ID (for special "class", like builtIn and exposed) */
 #ifdef ID_UNDEFINED
