@@ -1,15 +1,15 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: main.c,v 1.8 2008/12/02 18:17:18 couannette Exp $
+$Id: main.c,v 1.9 2008/12/15 21:27:49 istakenv Exp $
 
 FreeX3D main program.
 
 */
 
 #include <config.h>
-#include <system.h>
-#include <internal.h>
+#include "system.h"
+#include "internal.h"
 
 #include <libFreeX3D.h>
 
