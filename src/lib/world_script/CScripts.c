@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: CScripts.c,v 1.3 2008/12/15 17:02:05 istakenv Exp $
 
 ???
 
@@ -18,9 +18,8 @@ $Id: CScripts.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
-#include "../world_script/jsUtils.h"
 #include "../vrml_parser/CFieldDecls.h"
-#include "../world_script/CScripts.h"
+#include "../vrml_parser/CParseLexer.h"
 #include "../main/Snapshot.h"
 #include "../scenegraph/Vector.h"
 #include "../scenegraph/Collision.h"
@@ -30,6 +29,7 @@ $Id: CScripts.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
 #include "../x3d_parser/Bindable.h"
 /* #include "../input/EAIheaders.h" */
 
+#include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
