@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_SFClasses.c,v 1.5 2008/12/15 17:19:56 istakenv Exp $
+$Id: jsVRML_SFClasses.c,v 1.6 2008/12/15 17:39:37 istakenv Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -10,6 +10,7 @@ which is the sample application included with the javascript engine.
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 

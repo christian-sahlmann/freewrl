@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.3 2008/12/15 17:19:56 istakenv Exp $
+$Id: jsVRMLClasses.c,v 1.4 2008/12/15 17:39:37 istakenv Exp $
 
 ???
 
@@ -9,6 +9,7 @@ $Id: jsVRMLClasses.c,v 1.3 2008/12/15 17:19:56 istakenv Exp $
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 
