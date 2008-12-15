@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.9 2008/12/08 17:58:48 crc_canada Exp $
+$Id: MainLoop.c,v 1.10 2008/12/15 17:41:49 istakenv Exp $
 
 CProto ???
 
@@ -9,6 +9,7 @@ CProto ???
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 
