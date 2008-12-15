@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.5 2008/12/12 21:13:49 crc_canada Exp $
+$Id: CParse.c,v 1.6 2008/12/15 17:47:00 istakenv Exp $
 
 ???
 
@@ -9,6 +9,7 @@ $Id: CParse.c,v 1.5 2008/12/12 21:13:49 crc_canada Exp $
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 

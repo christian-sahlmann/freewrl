@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.5 2008/12/15 17:06:10 istakenv Exp $
+$Id: fieldGet.c,v 1.6 2008/12/15 17:47:00 istakenv Exp $
 
 Javascript C language binding.
 
@@ -9,6 +9,7 @@ Javascript C language binding.
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 
