@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.4 2008/12/10 14:31:53 couannette Exp $
+$Id: fieldSet.c,v 1.5 2008/12/15 17:13:49 istakenv Exp $
 
 ???
 
@@ -17,20 +17,20 @@ $Id: fieldSet.c,v 1.4 2008/12/10 14:31:53 couannette Exp $
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
-#include "../world_script/jsUtils.h"
-#include "../world_script/CScripts.h"
 #include "../main/Snapshot.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
+#include "../input/EAIHelpers.h"
 #include "../x3d_parser/Bindable.h"
 
+#include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
-#include "world_script.h"
+#include "fieldGet.h"
 
 
 /*******************************************************************

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.4 2008/12/10 14:31:53 couannette Exp $
+$Id: jsVRMLBrowser.c,v 1.5 2008/12/15 17:13:49 istakenv Exp $
 
 Javascript C language binding.
 
@@ -36,7 +36,6 @@ Javascript C language binding.
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 #include "jsVRMLBrowser.h"
-#include "world_script.h"
 
 
 static JSClass Browser = {
