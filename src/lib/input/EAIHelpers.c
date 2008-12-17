@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.7 2008/12/17 18:38:12 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.8 2008/12/17 22:56:57 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -14,13 +14,13 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
 #include <libFreeX3D.h>
 
+#include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../world_script/jsUtils.h"
 /*
 #include "../world_script/jsNative.h"
 #include "../world_script/JScript.h"
 */
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
 
 #include "../x3d_parser/Bindable.h"
@@ -37,7 +37,6 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
-#include "../world_script/world_script.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"
@@ -389,7 +388,7 @@ void EAI_GetType (int cNode,  char *ctmp, char *dtmp,
 
         		for (i = 0; i !=  vector_size(myScript->fields); ++i) {
         		        struct ScriptFieldDecl* sfield = vector_get(struct ScriptFieldDecl*, myScript->fields, i);
-				/*
+				
 				printf ("   field %d,  name %s type %s (type %s accessType %d (%s), indexName %d, stringType %s)\n",
 						i,
 						sfield->name, 
@@ -400,11 +399,13 @@ void EAI_GetType (int cNode,  char *ctmp, char *dtmp,
 						fieldDecl_getIndexName(sfield->fieldDecl), 
 						fieldDecl_getStringName(globalParser->lexer,sfield->fieldDecl)
 				);
-				*/
+				
 				
 				if (strcmp(ctmp,sfield->name) == 0) {
-					printf ("found it at %d\n",i);
-					myFieldOffs = i;
+					/* call JSparamIndex to get a unique index for this name - this is used for ALL
+					   script access, whether from EAI or not */
+					printf ("found it at %d but in actual fact, JSparamIndex returns %d\n",i,JSparamIndex(sfield->name, sfield->type)); 
+					myFieldOffs = JSparamIndex(sfield->name, sfield->type);
 					/* switch from "PKW" to "KW" types */
 					*accessType = mapToKEYWORDindex(fieldDecl_getAccessType(sfield->fieldDecl));
 					ctype = findFieldInFIELDTYPES(sfield->type);

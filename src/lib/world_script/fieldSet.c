@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.6 2008/12/17 18:38:12 crc_canada Exp $
+$Id: fieldSet.c,v 1.7 2008/12/17 22:56:57 crc_canada Exp $
 
 ???
 
@@ -139,6 +139,7 @@ unsigned int setField_FromEAI_ToScript(uintptr_t tonode, int toname,
 	#ifdef SETFIELDVERBOSE
 	printf ("doing setField_FromEAI_ToScript, for script %u, nameIndex %u, type %s\n",tonode, toname, stringFieldtypeType(datatype));
 	#endif
+	printf ("doing setField_FromEAI_ToScript, for script %u, nameIndex %u, type %s\n",tonode, toname, stringFieldtypeType(datatype));
 
         switch (datatype) {
         case FIELDTYPE_SFBool:
@@ -317,6 +318,7 @@ unsigned int setField_FromEAI (char *ptr) {
 		/* we send along the script number, not the node pointer */
 		sp = (struct Shader_Script *) (X3D_SCRIPT(nodeptr)->__scriptObj);
 
+		mark_script (sp->num);
 		setField_FromEAI_ToScript(sp->num,offset,nodetype,myBuffer,len);
 	} else {
 		/* now, do the memory copy */
@@ -487,7 +489,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		}
 
 
-		default: {	printf("WARNING: unhandled from type %s\n", FIELDTYPES[fieldType]);
+		default: {	printf("WARNING: unhandled from type %s\n", stringFieldtypeType(fieldType));
 		}
 	}
 
@@ -728,7 +730,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	}
 
 	#ifdef SETFIELDVERBOSE
-	printf ("getJSMultiNumType, tn %d dest has  %s size %d\n",tn,FIELDTYPES[eletype], elesize); 
+	printf ("getJSMultiNumType, tn %d dest has  %s size %d\n",tn,stringFieldtypeType(eletype), elesize); 
 
 	printf("getJSMulitNumType, node type of myJSVal is :");
 	printJSNodeType (cx,myJSVal);
@@ -1231,7 +1233,11 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
    This is not the whole command, just a convert this string to a 
    bunch of floats, or equiv. */
 
+
 int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
+printf ("ScanValtoBuffer - have to remove!\n");
+#ifdef OLDCODE
+
 	float *fp;
 	int *ip;
 	void *tmpbuf;
@@ -1246,7 +1252,8 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	/* pass in string in buf; memory block is memptr, size in bytes, bufsz */
 
 	#ifdef SETFIELDVERBOSE
-	printf("ScanValtoBuffer - memptr %d, buffer %s bufsz %d\n",memptr, buf,bufsz);
+	printf("ScanValtoBuffer on data type %s,  memptr %d, buffer %s bufsz %d\n",
+			stringFieldtypeType(type),memptr, buf,bufsz);
 	#endif
 
 	if (bufsz < 10) {
@@ -1507,13 +1514,14 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	}
 		
 	  default: {
-		printf("WARNING: unhandled CLASS from type %s\n", FIELDTYPES[type]);
+		printf("WARNING: unhandled CLASS from type %s\n", stringFieldtypeType(type));
 		printf ("complain to the FreeWRL team.\n");
 		printf ("(string is :%s:)\n",buf);
 		return (0);
 	    }
 	}
 	return (len);
+#endif /* OLDCODE */
 }
 
 /* Map the given index into arr to an index into FIELDNAMES or -1, if the

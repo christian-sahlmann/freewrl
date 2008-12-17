@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.7 2008/12/17 18:38:12 crc_canada Exp $
+$Id: fieldGet.c,v 1.8 2008/12/17 22:56:57 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -909,6 +909,8 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 /* really do the individual set; used by script routing and EAI sending to a script */
 void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, unsigned dataLen ) {
 
+#define SETFIELDVERBOSE
+
 	char scriptline[100];
 	jsval retval;
 	SFVec3fNative *_privPtr;
@@ -923,6 +925,10 @@ void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 
 	/* set the time for this script */
 	SET_JS_TICKTIME()
+printf ("set_one_MultiElementType, tonode %u, tofield %u, datalen %d\n",tonode,tnfield,dataLen);
+printf ("names, %d %s, %d %s, %d %s\n",0,JSparamnames[0].name, 
+		1, JSparamnames[1].name,
+		2, JSparamnames[2].name);
 
 	/* get the variable name to hold the incoming value */
 	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[tnfield].name);
@@ -953,6 +959,7 @@ void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 	printf ("set_one_MultiElementType: running script %s\n",scriptline);
 	#endif
 
+#undef SETFIELDVERBOSE
 	RUN_FUNCTION (tnfield)
 }
 
