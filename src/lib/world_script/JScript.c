@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.5 2008/12/15 17:19:56 istakenv Exp $
+$Id: JScript.c,v 1.6 2008/12/17 18:38:12 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -194,7 +194,6 @@ void SaveScriptText(uintptr_t num, char *text) {
 }
 
 void JSInitializeScriptAndFields (uintptr_t num) {
-        struct ScriptParamList **nextInsert;
         struct ScriptParamList *thisEntry;
         struct ScriptParamList *nextEntry;
 	jsval rval;

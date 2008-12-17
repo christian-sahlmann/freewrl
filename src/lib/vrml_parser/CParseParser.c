@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.7 2008/12/12 21:13:49 crc_canada Exp $
+  $Id: CParseParser.c,v 1.8 2008/12/17 18:38:12 crc_canada Exp $
 
   ???
 
@@ -1159,7 +1159,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
           break; \
          /* Get a pointer to the Script structure for this script node */ \
          case NODE_Script: \
-          pre##Script=((struct X3D_Script*)pre##Node)->__scriptObj; \
+          pre##Script=X3D_SCRIPT(pre##Node)->__scriptObj; \
           ASSERT(pre##Script); \
           break; \
         } \
@@ -1179,7 +1179,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
         /* printf ("have a proto, field is %s have to resolve this to a real node.field \n",me->lexer->curID); */ \
         if (!resolveProtoNodeField(me, pre##Proto, &pre##Node)) return FALSE; \
         /* possible Script node? */ \
-        if (pre##Node->_nodeType == NODE_Script) { pre##Script=((struct X3D_Script*)pre##Node)->__scriptObj; \
+        if (pre##Node->_nodeType == NODE_Script) { pre##Script=X3D_SCRIPT(pre##Node)->__scriptObj; \
                   ASSERT(pre##Script); }\
         pre##Proto = NULL; /* forget about this being a PROTO because PROTO is expanded */ \
   } \
@@ -1981,17 +1981,6 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 		#endif
 
                 X3D_GROUP(node)->FreeWRL__protoDef = thisProto;
-{
-
-printf ("PROTO definition assign, saving this as of %d\n",
-vector_size(me->lexer->userNodeTypesVec));
-}
-{
-
-printf ("JAS - assigning proto to group field, thisProto %p, protoDefNumber %d, estimatedBodyLen %d\n",
-		thisProto, thisProto->protoDefNumber,thisProto->estimatedBodyLen);
-
-}
             }
         }
     }

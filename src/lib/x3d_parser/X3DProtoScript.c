@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.4 2008/12/11 22:18:03 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.5 2008/12/17 18:38:12 crc_canada Exp $
 
 ???
 
@@ -1219,7 +1219,17 @@ int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type, int
                 	if (strcmp(fieldName,tmp->strptr)==0) {
 				*offs = ScriptFieldNames[ctr].offs;
 				*type = ScriptFieldNames[ctr].type;
-				*accessType = ScriptFieldNames[ctr].kind;
+                		/* switch from "PKW" to "KW" types */
+                		switch (ScriptFieldNames[ctr].kind) {
+                		        case PKW_inputOnly: *accessType = KW_inputOnly; break;
+                		        case PKW_outputOnly: *accessType = KW_outputOnly; break;
+                		        case PKW_inputOutput: *accessType = KW_inputOutput; break;
+                		        case PKW_initializeOnly: *accessType = KW_initializeOnly; break;
+                		        default: {*accessType = INT_ID_UNDEFINED;}
+				}
+
+
+
 				#ifdef X3DPARSERVERBOSE
 				printf ("getFieldFromScript - returning offset %d type %d (kind %d)\n",*offs,*type,
 					ScriptFieldNames[ctr].kind);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: CScripts.h,v 1.3 2008/12/17 18:38:12 crc_canada Exp $
 
 Class to wrap a java script for CParser
 
@@ -34,7 +34,6 @@ struct ScriptFieldDecl
  /* Stringified */
  const char* name;
  const char* type;
- const char* ISname;
 
  /* For fields */
  union anyVrml value;

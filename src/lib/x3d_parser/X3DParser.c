@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.6 2008/12/11 22:18:03 crc_canada Exp $
+$Id: X3DParser.c,v 1.7 2008/12/17 18:38:12 crc_canada Exp $
 
 ???
 
@@ -267,14 +267,6 @@ static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *nam
  
 	if (node->_nodeType == NODE_Script) {
 		error = !(getFieldFromScript (name,X3D_SCRIPT(node)->_X3DScript,offs,type,&accessType));
-		/* switch from "PKW" to "KW" types */
-        	switch (accessType) {
-                	case PKW_inputOnly: accessType = KW_inputOnly; break;
-                	case PKW_outputOnly: accessType = KW_outputOnly; break;
-                	case PKW_inputOutput: accessType = KW_inputOutput; break;
-                	case PKW_initializeOnly: accessType = KW_initializeOnly; break;
-                	default: {accessType = INT_ID_UNDEFINED;}
-        	}
 	} else {
 
 		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.4 2008/12/12 21:13:49 crc_canada Exp $
+$Id: CProto.c,v 1.5 2008/12/17 18:38:12 crc_canada Exp $
 
 CProto ???
 
@@ -494,8 +494,8 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
   /* If this is a script node, create a new context for the script */
 	struct Shader_Script* old_script;
 	struct Shader_Script* new_script;
-	struct X3D_Script* ret2 = (struct X3D_Script*) ret;
-	struct X3D_Script* node2 = (struct X3D_Script*) node;
+	struct X3D_Script* ret2 = X3D_SCRIPT(ret);
+	struct X3D_Script* node2 = X3D_SCRIPT(node);
 	int i, j, k;
 
  	old_script = node2->__scriptObj; 

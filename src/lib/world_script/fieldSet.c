@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.5 2008/12/15 17:13:49 istakenv Exp $
+$Id: fieldSet.c,v 1.6 2008/12/17 18:38:12 crc_canada Exp $
 
 ???
 
@@ -128,13 +128,65 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value) {
 }
 
 
+/* and incoming EAI event has come in, and the destination is an inputOnly field of a script.
+   Make It So. This mimics the routing function "getField_ToJavascript" except that we do not
+   have a routing entry for the from address and size and type, so we have to do this by hand.
+*/
+
+unsigned int setField_FromEAI_ToScript(uintptr_t tonode, int toname,
+		int datatype, void *data, unsigned datalen) {
+
+	#ifdef SETFIELDVERBOSE
+	printf ("doing setField_FromEAI_ToScript, for script %u, nameIndex %u, type %s\n",tonode, toname, stringFieldtypeType(datatype));
+	#endif
+
+        switch (datatype) {
+        case FIELDTYPE_SFBool:
+        case FIELDTYPE_SFFloat:
+        case FIELDTYPE_SFTime:
+        case FIELDTYPE_SFInt32:
+        case FIELDTYPE_SFString:
+                set_one_ECMAtype (tonode, toname, datatype, data, datalen);
+                break;
+        case FIELDTYPE_SFColor:
+        case FIELDTYPE_SFNode:
+        case FIELDTYPE_SFVec2f:
+        case FIELDTYPE_SFVec3f:
+        case FIELDTYPE_SFVec3d:
+        case FIELDTYPE_SFRotation:
+		set_one_MultiElementType (tonode, toname, data, datalen);
+                break;
+        case FIELDTYPE_MFColor:
+        case FIELDTYPE_MFVec3f:
+        case FIELDTYPE_MFVec3d:
+        case FIELDTYPE_MFVec2f:
+        case FIELDTYPE_MFFloat:
+        case FIELDTYPE_MFTime:
+        case FIELDTYPE_MFInt32:
+        case FIELDTYPE_MFString:
+        case FIELDTYPE_MFNode:
+        case FIELDTYPE_MFRotation:
+        case FIELDTYPE_SFImage:
+		set_one_MFElementType (tonode, toname, datatype, data, datalen);
+                break;
+        default : {
+                printf("WARNING: setField_FromEAI_ToScript,  type %s not handled yet\n",
+			stringFieldtypeType(datatype));
+                }
+        }
+
+	return TRUE;
+}
+
+
+
 /* an incoming EAI/CLASS event has come in, convert the ASCII characters
  * to an internal representation, and act upon it */
 
 unsigned int setField_FromEAI (char *ptr) {
 	unsigned char nt;
 	int nodetype;
-	int tmp_a, tmp_b;
+	int nodeIndex, fieldIndex;
 	uintptr_t nodeptr;
 	uintptr_t offset;
 	unsigned int scripttype;
@@ -145,7 +197,6 @@ unsigned int setField_FromEAI (char *ptr) {
 	struct Multi_Color *tcol;
 
 	int len, elemCount;
-	int MultiElement;
 	int retint; 			/* used to get return value of sscanf */
 	char myBuffer[6000];
 
@@ -165,7 +216,7 @@ unsigned int setField_FromEAI (char *ptr) {
 	ptr++;
 
 	/* nodeptr, offset */
-	retint=sscanf (ptr, "%d %d %d",&tmp_a, &tmp_b, &scripttype);
+	retint=sscanf (ptr, "%d %d %d",&nodeIndex, &fieldIndex, &scripttype);
 	if (retint != 3) ConsoleMessage ("setField_FromEAI: error reading 3 numbers from the string :%s:\n",ptr);
 
 	while ((*ptr) > ' ') ptr++; 	/* node ptr */
@@ -175,23 +226,35 @@ unsigned int setField_FromEAI (char *ptr) {
 	while ((*ptr) > ' ') ptr++;	/* script type */
 
 	#ifdef SETFIELDVERBOSE
-		 printf ("EAI_SendEvent, type %d, nodeptr %x offset %x script type %d \n",
-				 nodetype,nodeptr,offset, scripttype);
 	{
+	
 		struct X3D_Node *np;
-		np = (struct X3D_Node*) nodeptr;
-		printf ("setField_FromEAI np %u\n",np);
-		printf ("setField_FromEAI np->_nodeType %d\n",np->_nodeType);
-		printf ("setField_FromEAI np->_nodeType %s\n",stringNodeType(np->_nodeType));
+		/* get the actual node pointer from this index */
+		np = getEAINodeFromTable(nodeIndex);
+
+		 printf ("EAI_SendEvent, type %s, nodeptr (index %d) %u offset %d script type %d ",
+				 stringFieldtypeType(nodetype),nodeIndex, np->_nodeType, fieldIndex, scripttype);
+		printf ("np->_nodeType %s\n",stringNodeType(np->_nodeType));
+
+		if (np->_nodeType == NODE_Script) {
+			printf ("setField_FromEAI - sending to a script node!\n");
+		}
+
+		if ((np->_nodeType == NODE_Group) && (X3D_GROUP(np)->FreeWRL__protoDef != 0)) {
+			printf ("setField_FromEAI, sending to a PROTO!\n");
+		}
 		}
 	#endif
 
 	/* We have either a event to a memory location, or to a script. */
 	/* the field scripttype tells us whether this is true or not.   */
 
-	memptr = (uintptr_t) getEAIMemoryPointer (tmp_a,tmp_b);
-	offset = getEAIActualOffset(tmp_a, tmp_b);
-	nodeptr = (uintptr_t) getEAINodeFromTable(tmp_a);
+	if (scripttype != NODE_Script) {
+		memptr = (uintptr_t) getEAIMemoryPointer (nodeIndex,fieldIndex);
+	} else { memptr = 0; }
+
+	offset = getEAIActualOffset(nodeIndex, fieldIndex);
+	nodeptr = (uintptr_t) getEAINodeFromTable(nodeIndex);
 
 	/* now, we are at start of data. */
 
@@ -247,83 +310,14 @@ unsigned int setField_FromEAI (char *ptr) {
 		return( -1 );
 	}
 
-	MultiElement=FALSE;
-	switch (nodetype) {
-		case FIELDTYPE_SFBool:
-		case FIELDTYPE_SFTime:
-		case FIELDTYPE_SFNode:
-		case FIELDTYPE_SFInt32:
-		case FIELDTYPE_SFFloat:
-			  MultiElement = FALSE;  /*Redundant, I hope the compiler will optimize */
-			  break;
+	/* if this is a script, lets do an inputOnly event, as one would with routing */
+	if (scripttype == NODE_Script) {
+		struct Shader_Script * sp;
 
-		case FIELDTYPE_SFVec2f:
-		case FIELDTYPE_SFVec3f:
-		case FIELDTYPE_SFColor:
-		case FIELDTYPE_SFColorRGBA:
-		case FIELDTYPE_SFRotation:
-			MultiElement=TRUE;
-			break;
-	        case FIELDTYPE_MFRotation:
-	        case FIELDTYPE_MFTime    :
-	        case FIELDTYPE_MFInt32   :
-	        case FIELDTYPE_MFNode    :
-	        case FIELDTYPE_MFVec2f   :
-	        case FIELDTYPE_MFVec3f   :
-	        case FIELDTYPE_MFColor   :
-	        case FIELDTYPE_MFColorRGBA   :
-	        case FIELDTYPE_MFFloat   : {
-		    MultiElement=TRUE;
-		   break;
-		}
-		case FIELDTYPE_MFString: {
-			/* myBuffer will have a full SV structure now, and len will*/
-			/* be -1.*/
-			break;
-		}
-		
-		case FIELDTYPE_SFImage:
-		case FIELDTYPE_SFString: {
-			break;
-		}
-		default: {
-                        printf ("unhandled Event :%c: - get code in here\n",nodetype);
-			return FALSE;
-		}
-	}
+		/* we send along the script number, not the node pointer */
+		sp = (struct Shader_Script *) (X3D_SCRIPT(nodeptr)->__scriptObj);
 
-	if (scripttype) {
-	    /* this is a Javascript route, so... */
-	    if (MultiElement) {
-		switch (nodetype)
-		{
-		  case FIELDTYPE_MFVec3f:
-		  case FIELDTYPE_MFRotation:
-		  case FIELDTYPE_MFColor:
-		  case FIELDTYPE_MFColorRGBA:
-		  case FIELDTYPE_MFFloat: {
-		      #ifdef SETFIELDVERBOSE
-			printf("EAI_SendEvent, elem %i, count %i, nodeptr %i, off %i, ptr \"%s\".\n",len, elemCount, (int)nodeptr,(int)offset,ptr);
-			#endif
-
-		      set_EAI_MFElementtype ((int)nodeptr, (int)offset, (unsigned char *)myBuffer, len);
-		      break;
-		  }
-		  case FIELDTYPE_SFVec2f   :
-		  case FIELDTYPE_SFVec3f   :
-		  case FIELDTYPE_SFColor   :
-		  case FIELDTYPE_SFColorRGBA   :
-		  case FIELDTYPE_SFRotation: {
-		      Set_one_MultiElementtype ((int)nodeptr, (int)offset,
-						myBuffer,len);
-		      break;
-		  }
-		}
-	    }else {
-		set_one_ECMAtype((int)nodeptr,(int)offset,
-				 nodetype, myBuffer,len);
-	    }
-	    mark_script((int)nodeptr);
+		setField_FromEAI_ToScript(sp->num,offset,nodetype,myBuffer,len);
 	} else {
 		/* now, do the memory copy */
 		/* if we have a positive len, then, do a straight copy */
@@ -373,6 +367,9 @@ printf ("and old string was :%s:\n",                        (unsigned char *)svp
 		MARK_EVENT (X3D_NODE(nodeptr),offset);
 	}
 	return TRUE;
+
+#undef SETFIELDVERBOSE
+
 }
 
 void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, uintptr_t cx) {
@@ -829,7 +826,8 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 					printf ("error\n");
 					*nl=0;
 				}
-				*nl = (uintptr_t * *)xxx;
+				/* *nl = (uintptr_t * *)xxx; */
+				*nl = (uintptr_t)xxx;
 				nl++;
 				break;
 			}
@@ -1068,7 +1066,7 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Node *parent, 
 	while (*strp == ' ') strp++; /* skip spaces */
 	cptr = strp;
 
-	while (sscanf (cptr,"%d",&newptr) == 1) {
+	while (sscanf (cptr,"%ld",&newptr) == 1) {
 		newlen++;
 		/* skip past this number */
 		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
@@ -1083,7 +1081,7 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Node *parent, 
 	tmpptr = (uintptr_t*)newmal;
 
 	/* scan through the string again, and get the node numbers. */
-	while (sscanf (cptr,"%d", (uintptr_t *)tmpptr) == 1) {
+	while (sscanf (cptr,"%ld", (uintptr_t *)tmpptr) == 1) {
 		/* printf ("just scanned in %d, which is a %s\n",*tmpptr, 
 			stringNodeType((X3D_NODE(*tmpptr))->_nodeType)); */
 
@@ -1477,7 +1475,6 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		#ifdef SETFIELDVERBOSE
 		printf ("ScanValtoBuffer: FIELDTYPE_SFString, string is %s, ptr %x %d\n",buf,memptr,memptr);
 		#endif
-		printf ("ScanValtoBuffer: FIELDTYPE_SFString, string is %s, ptr %x %d\n",buf,memptr,memptr);
 
 		/* strings in the format "25:2 2 1 0xff 0x80 0x80 0xff" where 25 is the length */
 		while (*buf == ' ') buf++;
@@ -1499,7 +1496,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			ConsoleMessage ("EAI_SFSTRING, have to truncate, too long\n");
 			buf[100] = '\0'; /* yes, this will cause problems */
 		}
-		strcpy ((unsigned char *)memptr, buf);
+		strcpy (memptr, buf);
 
 		/* return char to a space */
 		buf += thissize;

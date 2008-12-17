@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.3 2008/12/15 17:02:05 istakenv Exp $
+$Id: CScripts.c,v 1.4 2008/12/17 18:38:12 crc_canada Exp $
 
 ???
 
@@ -64,7 +64,6 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
  /* Stringify */
  ret->name=fieldDecl_getStringName(me, ret->fieldDecl);
  ret->type=FIELDTYPES[type];
- ret->ISname = NULL;
 
  /* Field's value not yet initialized! */
  ret->valueSet=(mod!=PKW_initializeOnly);
@@ -125,7 +124,6 @@ struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct Scrip
 
 	ret->name = fieldDecl_getStringName(lex, ret->fieldDecl);
 	ret->type = me->type;
-	ret->ISname = me->ISname;
 	
 	ret->valueSet=((ret->fieldDecl->mode)!=PKW_initializeOnly);
 	return ret;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIheaders.h,v 1.5 2008/12/10 18:46:54 crc_canada Exp $
+$Id: EAIheaders.h,v 1.6 2008/12/17 18:38:12 crc_canada Exp $
 
 EAI and java CLASS invocation
 
@@ -24,6 +24,11 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 unsigned int EAI_SendEvent (char *ptr);
 void EAI_RNewW(char *bufptr);
 void EAI_RW(char *bufptr);
+
+/* debugging */
+char *eaiPrintCommand (char command);
+
+
 
 
 #define MAXEAIHOSTNAME	255		/* length of hostname on command line */

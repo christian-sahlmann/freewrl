@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.7 2008/12/12 20:10:25 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.8 2008/12/17 18:38:12 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -107,8 +107,9 @@ void EAI_parse_commands () {
 
 		command = EAI_BUFFER_CUR;
 		if (eaiverbose) {
-			printf ("command %c strlen %d\n",command,strlen(&EAI_BUFFER_CUR));
+			printf ("EAI command %s (%c) strlen %d\n",eaiPrintCommand(command), command,strlen(&EAI_BUFFER_CUR));
 		}
+			printf ("EAI command %s (%c) strlen %d\n",eaiPrintCommand(command), command,strlen(&EAI_BUFFER_CUR));
 		bufPtr++;
 
 		/* return is something like: $hand->print("RE\n$reqid\n1\n$id\n");*/
@@ -118,10 +119,6 @@ void EAI_parse_commands () {
 
 		switch (command) {
 			case GETRENDPROP: {
-				if (eaiverbose) {
-					printf ("GETRENDPROP\n");
-				}
-
 				/* is MultiTexture initialized yet? */
 				if (maxTexelUnits < 0) init_multitexture_handling();
 
@@ -139,46 +136,28 @@ void EAI_parse_commands () {
 				}
 
 			case GETNAME: {
-				if (eaiverbose) {
-					printf ("GETNAME\n");
-				}
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserName);
 				break;
 				}
 			case GETVERSION: {
-				if (eaiverbose) {
-					printf ("GETVERSION\n");
-				}
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,libFreeX3D_get_version());
 				break;
 				}
 			case GETENCODING: {
-				if (eaiverbose) {
-					printf ("GETENCODING\n");
-				}
 				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,currentFileVersion);
 				break;
 				}
 			case GETCURSPEED: {
-				if (eaiverbose) {
-					printf ("GETCURRENTSPEED\n");
-				}
 				/* get the BrowserSpeed variable updated */
 				getCurrentSpeed();
 				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,BrowserSpeed);
 				break;
 				}
 			case GETFRAMERATE: {
-				if (eaiverbose) {
-					printf ("GETFRAMERATE\n");
-				}	
 				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,BrowserFPS);
 				break;
 				}
 			case GETURL: {
-				if (eaiverbose) {	
-					printf ("GETURL\n");
-				}	
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserFullPath);
 				break;
 				}
@@ -197,9 +176,6 @@ void EAI_parse_commands () {
 			}
 
 			case GETNODETYPE: {
-				if (eaiverbose) {	
-					printf ("GENODETYPE\n");
-				}	
 				retint = sscanf(&EAI_BUFFER_CUR,"%d",&cNode);
 				if (cNode != 0) {
 					boxptr = X3D_NODE(cNode);
@@ -222,15 +198,14 @@ void EAI_parse_commands () {
 
 				EAI_GetType (cNode, ctmp, dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
 
+				printf ("EAI_GetType, responding with RE\n%f\n%d\n%d %d %d %c %d %s\n",TickTime,count,ra,rb,rc,rd,
+						scripttype,stringKeywordType(xxx));
 				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d %s",TickTime,count,ra,rb,rc,rd,
-						scripttype,KEYWORDS[xxx]);
+						scripttype,stringKeywordType(xxx));
 				break;
 				}
 			case SENDEVENT:   {
 				/*format int seq# COMMAND NODETYPE pointer offset data*/
-				if (eaiverbose) {	
-					printf ("SENDEVENT, strlen %d\n",strlen(&EAI_BUFFER_CUR));
-				}
 				setField_FromEAI (&EAI_BUFFER_CUR);
 				if (eaiverbose) {	
 					printf ("after SENDEVENT, strlen %d\n",strlen(&EAI_BUFFER_CUR));
@@ -238,10 +213,6 @@ void EAI_parse_commands () {
 				break;
 				}
 			case MIDIINFO: {
-				if (eaiverbose) {	
-					printf ("MIDIINFO %s\n",&EAI_BUFFER_CUR);
-				}	
-
 				EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
 				/* if we do not have a string yet, we have to do this...*/
 				while (EOT == NULL) {
@@ -258,9 +229,6 @@ void EAI_parse_commands () {
 				break;
 				}
 			case MIDICONTROL: {
-				if (eaiverbose) {	
-					printf ("MIDICONTROL, %s\n",&EAI_BUFFER_CUR);
-				}	
 				/* sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count, ReWireMIDIControl(&EAI_BUFFER_CUR)); */
 				ReWireMIDIControl(&EAI_BUFFER_CUR);
 				break;
@@ -365,10 +333,6 @@ void EAI_parse_commands () {
 				struct X3D_Node * node;
 				int offset;
 
-				if (eaiverbose) {	
-					printf ("REGISTERLISTENER %s \n",&EAI_BUFFER_CUR);
-				}	
-
 				/*143024848 88 8 e 6*/
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&tmp_a,&tmp_b,ctmp,&tmp_c);
 				node = getEAINodeFromTable(tmp_a);
@@ -395,10 +359,6 @@ void EAI_parse_commands () {
 			case UNREGLISTENER: {
 				struct X3D_Node * node;
 				int offset;
-
-				if (eaiverbose) {	
-					printf ("UNREGISTERLISTENER %s \n",&EAI_BUFFER_CUR);
-				}	
 
 				/*143024848 88 8 e 6*/
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&tmp_a,&tmp_b,ctmp,&tmp_c);
@@ -429,19 +389,12 @@ void EAI_parse_commands () {
 				break;
 				}
 			case REPLACEWORLD:  {
-				if (eaiverbose) {	
-					printf ("REPLACEWORLD %s \n",&EAI_BUFFER_CUR);
-				}	
-
 				EAI_RW(&EAI_BUFFER_CUR);
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 
 			case GETPROTODECL:  {
-				if (eaiverbose) {	
-					printf ("SAI SV ret command .%s\n",&EAI_BUFFER_CUR);
-				}	
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,SAI_StrRetCommand ((char) command,&EAI_BUFFER_CUR));
 				break;
 				}
@@ -463,18 +416,12 @@ void EAI_parse_commands () {
 				}
 
 		  	case STOPFREEWRL: {
-				if (eaiverbose) {	
-					printf ("Shutting down Freewrl\n");
-				}	
 				if (!RUNNINGASPLUGIN) {
 					doQuit();
 				    break;
 				}
 			    }
 			  case VIEWPOINT: {
-				if (eaiverbose) {	
-					printf ("Viewpoint :%s:\n",&EAI_BUFFER_CUR);
-				}	
 				/* do the viewpoints. Note the spaces in the strings */
 				if (!strcmp(&EAI_BUFFER_CUR, " NEXT")) Next_ViewPoint();
 				if (!strcmp(&EAI_BUFFER_CUR, " FIRST")) First_ViewPoint();
@@ -486,10 +433,6 @@ void EAI_parse_commands () {
 			    }
 
 			case LOADURL: {
-				if (eaiverbose) {	
-					printf ("loadURL %s\n",&EAI_BUFFER_CUR);
-				}	
-
 				/* signal that we want to send the Anchor pass/fail to the EAI code */
 				waiting_for_anchor = TRUE;
 
@@ -883,8 +826,8 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	np = (int *)NODE_OFFSETS[boxptr->_nodeType];
 	while (*np != -1) {
 		if (strcmp (FIELDNAMES[*np],"_") != 0) {
-			sprintf (myline,"%s %c %s ",FIELDNAMES[np[0]], (char) mapFieldTypeToEAItype(np[2]), 
-				KEYWORDS[np[3]]);
+			sprintf (myline,"%s %c %s ",stringFieldType(np[0]), (char) mapFieldTypeToEAItype(np[2]), 
+				stringKeywordType(np[3]));
 			strcat (buf, myline);
 		}
 		np += 4;

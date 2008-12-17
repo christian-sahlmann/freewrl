@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.6 2008/12/15 17:47:00 istakenv Exp $
+$Id: fieldGet.c,v 1.7 2008/12/17 18:38:12 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -110,7 +110,7 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 	obj = (JSObject *)ScriptControl[tonode].glob;
 
 	/* set the time for this script */
-	SET_JS_TICKTIME
+	SET_JS_TICKTIME()
 
 	X3D_ECMA_TO_JS(cx, Data, datalen, dataType, &newval);
 
@@ -159,6 +159,475 @@ void setScriptECMAtype (uintptr_t num) {
 	}
 }
 
+
+int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen) {
+	JSContext *cx;
+	JSObject *obj;
+	int elementlen;
+	int x;
+	char scriptline[20000];
+	float *fp;
+	int *ip;
+
+	/* for PixelTextures we have: */
+	struct X3D_PixelTexture *mePix;
+	struct Multi_Int32 image;
+
+	/* for MFStrings we have: */
+	char *chptr;
+	struct Uni_String  **uniptr;
+
+	/* get context and global object for this script */
+	cx = (JSContext *) ScriptControl[tonode].cx;
+	obj = (JSObject *)ScriptControl[tonode].glob;
+
+	/* set the TickTime (possibly again) for this context */
+	SET_JS_TICKTIME(FALSE)
+
+	/* make up the name */
+	switch (dataType) {
+		case FIELDTYPE_MFRotation: {	
+			JSObject *newMFObject;
+			JSObject *newSFObject;
+			SFRotationNative 	*SFRPptr;
+
+			/* create a new MFRotation object... */
+			newMFObject = JS_ConstructObject(cx, &MFRotationClass, NULL ,JS_GetParent(cx, obj));
+			ADD_ROOT (cx, newMFObject)
+
+			/* define the "length" property for this object */ 
+			DEFINE_LENGTH(cx,newMFObject)
+
+			/* fill in private pointer area */
+			elementlen = sizeof (float);
+			for (x=0; x<datalen; x++) {
+				/* create a new SFRotation object */
+				newSFObject = JS_ConstructObject(cx,&SFRotationClass,NULL, newMFObject);
+				if ((SFRPptr = (SFRotationNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
+					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+					return FALSE;
+				}
+
+				/* fill the private pointer area */
+				fp = (float *)Data; SFRPptr->v.r[0] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.r[1] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.r[2] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.r[3] = *fp; Data += elementlen;
+
+				/* put this object into the MF class */
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
+					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+				}
+			}
+
+			/* set the length of this MF */
+			SET_LENGTH (cx,newMFObject,datalen)
+
+			/* set the global variable with this new MF object */
+			SET_EVENTIN_VALUE (cx,obj,toname,newMFObject)
+
+			/* run the function */
+			COMPILE_FUNCTION_IF_NEEDED(toname)
+			RUN_FUNCTION(toname)
+			break;
+		}
+
+		case FIELDTYPE_MFVec3f: {	
+			JSObject *newMFObject;
+			JSObject *newSFObject;
+			SFVec3fNative 	*SFRPptr;
+
+			/* create a new MFVec3f object... */
+			newMFObject = JS_ConstructObject(cx, &MFVec3fClass, NULL ,JS_GetParent(cx, obj));
+			ADD_ROOT (cx, newMFObject)
+
+			/* define the "length" property for this object */ 
+			DEFINE_LENGTH(cx,newMFObject)
+
+			/* fill in private pointer area */
+			elementlen = sizeof (float);
+			for (x=0; x<datalen; x++) {
+				/* create a new SFVec3f object */
+				newSFObject = JS_ConstructObject(cx,&SFVec3fClass,NULL, newMFObject);
+				if ((SFRPptr = (SFVec3fNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
+					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+					return FALSE;
+				}
+
+				/* fill the private pointer area */
+				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[2] = *fp; Data += elementlen;
+
+				/* put this object into the MF class */
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
+					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+				}
+			}
+
+			/* set the length of this MF */
+			SET_LENGTH (cx,newMFObject,datalen)
+
+			/* set the global variable with this new MF object */
+			SET_EVENTIN_VALUE (cx,obj,toname,newMFObject)
+
+			/* run the function */
+			COMPILE_FUNCTION_IF_NEEDED(toname)
+			RUN_FUNCTION(toname)
+			break;
+		}
+
+		case FIELDTYPE_MFColor: {	
+			JSObject *newMFObject;
+			JSObject *newSFObject;
+			SFColorNative 	*SFRPptr;
+
+			/* create a new MFColor object... */
+			newMFObject = JS_ConstructObject(cx, &MFColorClass, NULL ,JS_GetParent(cx, obj));
+			ADD_ROOT (cx, newMFObject)
+
+			/* define the "length" property for this object */ 
+			DEFINE_LENGTH(cx,newMFObject)
+
+			/* fill in private pointer area */
+			elementlen = sizeof (float);
+			for (x=0; x<datalen; x++) {
+				/* create a new SFColor object */
+				newSFObject = JS_ConstructObject(cx,&SFColorClass,NULL, newMFObject);
+				if ((SFRPptr = (SFColorNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
+					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+					return FALSE;
+				}
+
+				/* fill the private pointer area */
+				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[2] = *fp; Data += elementlen;
+
+				/* put this object into the MF class */
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
+					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+				}
+			}
+
+			/* set the length of this MF */
+			SET_LENGTH (cx,newMFObject,datalen)
+
+			/* set the global variable with this new MF object */
+			SET_EVENTIN_VALUE (cx,obj,toname,newMFObject)
+
+			/* run the function */
+			COMPILE_FUNCTION_IF_NEEDED(toname)
+			RUN_FUNCTION(toname)
+			break;
+		} 
+
+		case FIELDTYPE_MFVec2f: {	
+			JSObject *newMFObject;
+			JSObject *newSFObject;
+			SFVec2fNative 	*SFRPptr;
+
+			/* create a new MFVec2f object... */
+			newMFObject = JS_ConstructObject(cx, &MFVec2fClass, NULL ,JS_GetParent(cx, obj));
+			ADD_ROOT (cx, newMFObject)
+
+			/* define the "length" property for this object */ 
+			DEFINE_LENGTH(cx,newMFObject)
+
+			/* fill in private pointer area */
+			elementlen = sizeof (float);
+			for (x=0; x<datalen; x++) {
+				/* create a new SFVec2f object */
+				newSFObject = JS_ConstructObject(cx,&SFVec2fClass,NULL, newMFObject);
+				if ((SFRPptr = (SFVec2fNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
+					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+					return FALSE;
+				}
+
+				/* fill the private pointer area */
+				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
+
+				/* put this object into the MF class */
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
+					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+				}
+			}
+
+			/* set the length of this MF */
+			SET_LENGTH (cx,newMFObject,datalen)
+
+			/* set the global variable with this new MF object */
+			SET_EVENTIN_VALUE (cx,obj,toname,newMFObject)
+
+			/* run the function */
+			COMPILE_FUNCTION_IF_NEEDED(toname)
+			RUN_FUNCTION(toname)
+			break;
+		}
+
+
+		case FIELDTYPE_MFFloat: {	
+			JSObject *newMFObject;
+			jsval newjsval;
+			/* create a new MFFloat object... */
+			newMFObject = JS_ConstructObject(cx, &MFFloatClass, NULL ,JS_GetParent(cx, obj));
+			ADD_ROOT (cx, newMFObject)
+
+			/* define the "length" property for this object */ 
+			DEFINE_LENGTH(cx,newMFObject)
+
+			/* fill in private pointer area */
+			elementlen = sizeof (float);
+			for (x=0; x<datalen; x++) {
+				/* create a new SFFloat object */
+				
+				fp = (float *)Data; 
+				newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
+				Data += elementlen;
+
+				/* put this object into the MF class */
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
+					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+				}
+			}
+
+			/* set the length of this MF */
+			SET_LENGTH (cx,newMFObject,datalen)
+
+			/* set the global variable with this new MF object */
+			SET_EVENTIN_VALUE (cx,obj,toname,newMFObject)
+
+			/* run the function */
+			COMPILE_FUNCTION_IF_NEEDED(toname)
+			RUN_FUNCTION(toname)
+			break;
+		}
+		case FIELDTYPE_MFTime: {	
+			JSObject *newMFObject;
+			jsval newjsval;
+			/* create a new MFTime object... */
+			newMFObject = JS_ConstructObject(cx, &MFTimeClass, NULL ,JS_GetParent(cx, obj));
+			ADD_ROOT (cx, newMFObject)
+
+			/* define the "length" property for this object */ 
+			DEFINE_LENGTH(cx,newMFObject)
+
+			/* fill in private pointer area */
+			elementlen = sizeof (float);
+			for (x=0; x<datalen; x++) {
+				/* create a new SFTime object */
+				
+				fp = (float *)Data; 
+				newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
+				Data += elementlen;
+
+				/* put this object into the MF class */
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
+					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+				}
+			}
+
+			/* set the length of this MF */
+			SET_LENGTH (cx,newMFObject,datalen)
+
+			/* set the global variable with this new MF object */
+			SET_EVENTIN_VALUE (cx,obj,toname,newMFObject)
+
+			/* run the function */
+			COMPILE_FUNCTION_IF_NEEDED(toname)
+			RUN_FUNCTION(toname)
+			break;
+		}
+		case FIELDTYPE_MFInt32: {	
+			JSObject *newMFObject;
+			jsval newjsval;
+			/* create a new MFInt32 object... */
+			newMFObject = JS_ConstructObject(cx, &MFInt32Class, NULL ,JS_GetParent(cx, obj));
+			ADD_ROOT (cx, newMFObject)
+
+			/* define the "length" property for this object */ 
+			DEFINE_LENGTH(cx,newMFObject)
+
+			/* fill in private pointer area */
+			elementlen = sizeof (float);
+			for (x=0; x<datalen; x++) {
+				/* create a new SFInt32 object */
+				
+				ip = (int *)Data; 
+				newjsval = INT_TO_JSVAL(ip);
+				Data += elementlen;
+
+				/* put this object into the MF class */
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
+					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+				}
+			}
+
+			/* set the length of this MF */
+			SET_LENGTH (cx,newMFObject,datalen)
+
+			/* set the global variable with this new MF object */
+			SET_EVENTIN_VALUE (cx,obj,toname,newMFObject)
+
+			/* run the function */
+			COMPILE_FUNCTION_IF_NEEDED(toname)
+			RUN_FUNCTION(toname)
+			break;
+		}
+		case FIELDTYPE_MFString: {	
+			JSObject *newMFObject;
+			jsval newjsval;
+			/* create a new MFString object... */
+			newMFObject = JS_ConstructObject(cx, &MFStringClass, NULL ,JS_GetParent(cx, obj));
+			ADD_ROOT (cx, newMFObject)
+
+			/* Data points to a Uni_String */
+			uniptr = (struct Uni_String *) Data;
+
+			/* define the "length" property for this object */ 
+			DEFINE_LENGTH(cx,newMFObject)
+
+			/* fill in private pointer area */
+			for (x=0; x<datalen; x++) {
+				/* create a new SFString object */
+				
+				chptr = uniptr[x]->strptr;
+				newjsval = STRING_TO_JSVAL( JS_NewStringCopyZ(cx,chptr));
+
+				/* put this object into the MF class */
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
+					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+				}
+			}
+
+			/* set the length of this MF */
+			SET_LENGTH (cx,newMFObject,datalen)
+
+			/* set the global variable with this new MF object */
+			SET_EVENTIN_VALUE (cx,obj,toname,newMFObject)
+
+			/* run the function */
+			COMPILE_FUNCTION_IF_NEEDED(toname)
+			RUN_FUNCTION(toname)
+			break;
+		}
+		case FIELDTYPE_MFNode: {	
+			JSObject *newMFObject;
+			jsval newjsval;
+			/* create a new MFNode object... */
+			newMFObject = JS_ConstructObject(cx, &MFNodeClass, NULL ,JS_GetParent(cx, obj));
+			ADD_ROOT (cx, newMFObject)
+
+			/* define the "length" property for this object */ 
+			DEFINE_LENGTH(cx,newMFObject)
+
+			/* fill in private pointer area */
+			elementlen = sizeof (float);
+			for (x=0; x<datalen; x++) {
+				ip = (int *)Data; 
+				newjsval = INT_TO_JSVAL(ip);
+				Data += elementlen;
+
+				/* put this object into the MF class */
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
+					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+				}
+			}
+
+			/* set the length of this MF */
+			SET_LENGTH (cx,newMFObject,datalen)
+
+			/* set the global variable with this new MF object */
+			SET_EVENTIN_VALUE (cx,obj,toname,newMFObject)
+
+			/* run the function */
+			COMPILE_FUNCTION_IF_NEEDED(toname)
+			RUN_FUNCTION(toname)
+			break;
+		}
+
+		case FIELDTYPE_SFImage:	{
+			JSObject *newMFObject;
+			jsval newjsval;
+			/* create a new MFNode object... */
+			newMFObject = JS_ConstructObject(cx, &SFImageClass, NULL ,JS_GetParent(cx, obj));
+			ADD_ROOT (cx, newMFObject)
+
+			/* define the "length" property for this object */ 
+			DEFINE_LENGTH(cx,newMFObject)
+
+			/* fill in private pointer area */
+			mePix = (struct X3D_PixelTexture *) Data;
+			if (mePix->_nodeType == NODE_PixelTexture) {
+				image = mePix->image;
+				if (image.n > 2) {
+					datalen = image.n;
+					/* copy over the image */
+					for (x=0; x<datalen; x++) {
+						newjsval = INT_TO_JSVAL(image.p[x]);
+						/* put this object into the MF class */
+						if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+						}
+					}
+				} else {
+					datalen = 3;
+					for (x=0; x<datalen; x++) {
+						newjsval = INT_TO_JSVAL(0);
+						/* put this object into the MF class */
+						if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+						}
+					}
+				}
+
+			} else {
+				/* make up a "zero" Pixeltexture */
+					datalen = 3;
+					for (x=0; x<datalen; x++) {
+						newjsval = INT_TO_JSVAL(0);
+						/* put this object into the MF class */
+						if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
+							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
+						}
+					}
+			}
+
+			/* set the length of this MF */
+			SET_LENGTH (cx,newMFObject,datalen)
+
+			/* set the global variable with this new MF object */
+			SET_EVENTIN_VALUE (cx,obj,toname,newMFObject)
+
+			/* run the function */
+			COMPILE_FUNCTION_IF_NEEDED(toname)
+			RUN_FUNCTION(toname)
+
+			break;
+			} 
+
+		default: {
+				printf ("setMFElement, SHOULD NOT DISPLAY THIS\n");
+				strcat (scriptline,"(");
+			}
+	}
+	return TRUE;
+}
+
+
 /* setMFElementtype called by getField_ToJavascript for
          case FIELDTYPE_MFColor:
         case FIELDTYPE_MFVec3f:
@@ -172,33 +641,20 @@ void setScriptECMAtype (uintptr_t num) {
         case FIELDTYPE_SFImage:
 */
 
+
+
 int setMFElementtype (uintptr_t num) {
 	void * fn;
 	void * tn;
-	uintptr_t tptr, fptr;
+	uintptr_t fptr;
 	int len;
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
-	char scriptline[20000];
-	int x;
-	int elementlen;
 	char *pptr;
-	float *fp;
-	int *ip;
 	struct Multi_Node *mfp;
 
-	/* for MFStrings we have: */
-	char *chptr;
-	struct Uni_String  **ptr;
 
 	int indexPointer;
-
-	JSContext *cx;
-	JSObject *obj;
-
-	/* for PixelTextures we have: */
-	struct X3D_PixelTexture *mePix;
-	struct Multi_Int32 image;
 
 	#ifdef SETFIELDVERBOSE 
 		printf("------------BEGIN setMFElementtype ---------------\n");
@@ -236,469 +692,26 @@ int setMFElementtype (uintptr_t num) {
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		tn = to_ptr->routeToNode;
-		tptr = to_ptr->foffset;
 		indexPointer = (uintptr_t) tn; /* tn should be a small int here - it is script # */
 
 		#ifdef SETFIELDVERBOSE 
 			printf ("got a script event! index %d type %d\n",
 					num, CRoutes[num].direction_flag);
-			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,tn,tptr);
-			printf ("\tfrom %d from ptr %d\n\tto %d toptr %d\n",fn,fptr,tn,tptr);
+			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,tn,to_ptr->foffset);
+			printf ("\tfrom %d from ptr %d\n\tto %d toptr %d\n",fn,fptr,tn,to_ptr->foffset);
 			printf ("\tdata length %d\n",len);
-			printf ("and, sending it to %s as type %d\n",JSparamnames[tptr].name,
-					JSparamnames[tptr].type);
+			printf ("and, sending it to %s as type %d\n",JSparamnames[to_ptr->foffset].name,
+					JSparamnames[to_ptr->foffset].type);
 		#endif
 
-		/* get context and global object for this script */
-		cx = (JSContext *) ScriptControl[indexPointer].cx;
-		obj = (JSObject *)ScriptControl[indexPointer].glob;
-
-		/* set the TickTime (possibly again) for this context */
-		SET_JS_TICKTIME
-
-		/* make up the name */
-		switch (JSparamnames[tptr].type) {
-			case FIELDTYPE_MFRotation: {	
-				JSObject *newMFObject;
-				JSObject *newSFObject;
-				SFRotationNative 	*SFRPptr;
-
-				/* create a new MFRotation object... */
-				newMFObject = JS_ConstructObject(cx, &MFRotationClass, NULL ,JS_GetParent(cx, obj));
-				ADD_ROOT (cx, newMFObject)
-
-				/* define the "length" property for this object */ 
-				DEFINE_LENGTH(cx,newMFObject)
-
-				/* fill in private pointer area */
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-					/* create a new SFRotation object */
-					newSFObject = JS_ConstructObject(cx,&SFRotationClass,NULL, newMFObject);
-					if ((SFRPptr = (SFRotationNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
-						printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
-						return;
-					}
-
-					/* fill the private pointer area */
-					fp = (float *)pptr; SFRPptr->v.r[0] = *fp; pptr += elementlen;
-					fp = (float *)pptr; SFRPptr->v.r[1] = *fp; pptr += elementlen;
-					fp = (float *)pptr; SFRPptr->v.r[2] = *fp; pptr += elementlen;
-					fp = (float *)pptr; SFRPptr->v.r[3] = *fp; pptr += elementlen;
-
-					/* put this object into the MF class */
-					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-					}
-				}
-
-				/* set the length of this MF */
-				SET_LENGTH (cx,newMFObject,len)
-
-				/* set the global variable with this new MF object */
-				SET_EVENTIN_VALUE (cx,obj,tptr,newMFObject)
-	
-				/* run the function */
-				COMPILE_FUNCTION_IF_NEEDED(tptr)
-				RUN_FUNCTION(tptr)
-				break;
-			} 
-
-			case FIELDTYPE_MFVec3f: {	
-				JSObject *newMFObject;
-				JSObject *newSFObject;
-				SFVec3fNative 	*SFRPptr;
-
-				/* create a new MFVec3f object... */
-				newMFObject = JS_ConstructObject(cx, &MFVec3fClass, NULL ,JS_GetParent(cx, obj));
-				ADD_ROOT (cx, newMFObject)
-
-				/* define the "length" property for this object */ 
-				DEFINE_LENGTH(cx,newMFObject)
-
-				/* fill in private pointer area */
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-					/* create a new SFVec3f object */
-					newSFObject = JS_ConstructObject(cx,&SFVec3fClass,NULL, newMFObject);
-					if ((SFRPptr = (SFVec3fNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
-						printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
-						return;
-					}
-
-					/* fill the private pointer area */
-					fp = (float *)pptr; SFRPptr->v.c[0] = *fp; pptr += elementlen;
-					fp = (float *)pptr; SFRPptr->v.c[1] = *fp; pptr += elementlen;
-					fp = (float *)pptr; SFRPptr->v.c[2] = *fp; pptr += elementlen;
-
-					/* put this object into the MF class */
-					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-					}
-				}
-
-				/* set the length of this MF */
-				SET_LENGTH (cx,newMFObject,len)
-
-				/* set the global variable with this new MF object */
-				SET_EVENTIN_VALUE (cx,obj,tptr,newMFObject)
-	
-				/* run the function */
-				COMPILE_FUNCTION_IF_NEEDED(tptr)
-				RUN_FUNCTION(tptr)
-				break;
-			}
-
-			case FIELDTYPE_MFColor: {	
-				JSObject *newMFObject;
-				JSObject *newSFObject;
-				SFColorNative 	*SFRPptr;
-
-				/* create a new MFColor object... */
-				newMFObject = JS_ConstructObject(cx, &MFColorClass, NULL ,JS_GetParent(cx, obj));
-				ADD_ROOT (cx, newMFObject)
-
-				/* define the "length" property for this object */ 
-				DEFINE_LENGTH(cx,newMFObject)
-
-				/* fill in private pointer area */
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-					/* create a new SFColor object */
-					newSFObject = JS_ConstructObject(cx,&SFColorClass,NULL, newMFObject);
-					if ((SFRPptr = (SFColorNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
-						printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
-						return;
-					}
-
-					/* fill the private pointer area */
-					fp = (float *)pptr; SFRPptr->v.c[0] = *fp; pptr += elementlen;
-					fp = (float *)pptr; SFRPptr->v.c[1] = *fp; pptr += elementlen;
-					fp = (float *)pptr; SFRPptr->v.c[2] = *fp; pptr += elementlen;
-
-					/* put this object into the MF class */
-					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-					}
-				}
-
-				/* set the length of this MF */
-				SET_LENGTH (cx,newMFObject,len)
-
-				/* set the global variable with this new MF object */
-				SET_EVENTIN_VALUE (cx,obj,tptr,newMFObject)
-	
-				/* run the function */
-				COMPILE_FUNCTION_IF_NEEDED(tptr)
-				RUN_FUNCTION(tptr)
-				break;
-			} 
-
-			case FIELDTYPE_MFVec2f: {	
-				JSObject *newMFObject;
-				JSObject *newSFObject;
-				SFVec2fNative 	*SFRPptr;
-
-				/* create a new MFVec2f object... */
-				newMFObject = JS_ConstructObject(cx, &MFVec2fClass, NULL ,JS_GetParent(cx, obj));
-				ADD_ROOT (cx, newMFObject)
-
-				/* define the "length" property for this object */ 
-				DEFINE_LENGTH(cx,newMFObject)
-
-				/* fill in private pointer area */
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-					/* create a new SFVec2f object */
-					newSFObject = JS_ConstructObject(cx,&SFVec2fClass,NULL, newMFObject);
-					if ((SFRPptr = (SFVec2fNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
-						printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
-						return;
-					}
-
-					/* fill the private pointer area */
-					fp = (float *)pptr; SFRPptr->v.c[0] = *fp; pptr += elementlen;
-					fp = (float *)pptr; SFRPptr->v.c[1] = *fp; pptr += elementlen;
-
-					/* put this object into the MF class */
-					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-					}
-				}
-
-				/* set the length of this MF */
-				SET_LENGTH (cx,newMFObject,len)
-
-				/* set the global variable with this new MF object */
-				SET_EVENTIN_VALUE (cx,obj,tptr,newMFObject)
-	
-				/* run the function */
-				COMPILE_FUNCTION_IF_NEEDED(tptr)
-				RUN_FUNCTION(tptr)
-				break;
-			}
-
-
-			case FIELDTYPE_MFFloat: {	
-				JSObject *newMFObject;
-				jsval newjsval;
-				/* create a new MFFloat object... */
-				newMFObject = JS_ConstructObject(cx, &MFFloatClass, NULL ,JS_GetParent(cx, obj));
-				ADD_ROOT (cx, newMFObject)
-
-				/* define the "length" property for this object */ 
-				DEFINE_LENGTH(cx,newMFObject)
-
-				/* fill in private pointer area */
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-					/* create a new SFFloat object */
-					
-					fp = (float *)pptr; 
-					newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
-					pptr += elementlen;
-
-					/* put this object into the MF class */
-					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-					}
-				}
-
-				/* set the length of this MF */
-				SET_LENGTH (cx,newMFObject,len)
-
-				/* set the global variable with this new MF object */
-				SET_EVENTIN_VALUE (cx,obj,tptr,newMFObject)
-	
-				/* run the function */
-				COMPILE_FUNCTION_IF_NEEDED(tptr)
-				RUN_FUNCTION(tptr)
-				break;
-			}
-			case FIELDTYPE_MFTime: {	
-				JSObject *newMFObject;
-				jsval newjsval;
-				/* create a new MFTime object... */
-				newMFObject = JS_ConstructObject(cx, &MFTimeClass, NULL ,JS_GetParent(cx, obj));
-				ADD_ROOT (cx, newMFObject)
-
-				/* define the "length" property for this object */ 
-				DEFINE_LENGTH(cx,newMFObject)
-
-				/* fill in private pointer area */
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-					/* create a new SFTime object */
-					
-					fp = (float *)pptr; 
-					newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
-					pptr += elementlen;
-
-					/* put this object into the MF class */
-					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-					}
-				}
-
-				/* set the length of this MF */
-				SET_LENGTH (cx,newMFObject,len)
-
-				/* set the global variable with this new MF object */
-				SET_EVENTIN_VALUE (cx,obj,tptr,newMFObject)
-	
-				/* run the function */
-				COMPILE_FUNCTION_IF_NEEDED(tptr)
-				RUN_FUNCTION(tptr)
-				break;
-			}
-			case FIELDTYPE_MFInt32: {	
-				JSObject *newMFObject;
-				jsval newjsval;
-				/* create a new MFInt32 object... */
-				newMFObject = JS_ConstructObject(cx, &MFInt32Class, NULL ,JS_GetParent(cx, obj));
-				ADD_ROOT (cx, newMFObject)
-
-				/* define the "length" property for this object */ 
-				DEFINE_LENGTH(cx,newMFObject)
-
-				/* fill in private pointer area */
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-					/* create a new SFInt32 object */
-					
-					ip = (int *)pptr; 
-					newjsval = INT_TO_JSVAL(ip);
-					pptr += elementlen;
-
-					/* put this object into the MF class */
-					if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-					}
-				}
-
-				/* set the length of this MF */
-				SET_LENGTH (cx,newMFObject,len)
-
-				/* set the global variable with this new MF object */
-				SET_EVENTIN_VALUE (cx,obj,tptr,newMFObject)
-	
-				/* run the function */
-				COMPILE_FUNCTION_IF_NEEDED(tptr)
-				RUN_FUNCTION(tptr)
-				break;
-			}
-			case FIELDTYPE_MFString: {	
-				JSObject *newMFObject;
-				jsval newjsval;
-				/* create a new MFString object... */
-				newMFObject = JS_ConstructObject(cx, &MFStringClass, NULL ,JS_GetParent(cx, obj));
-				ADD_ROOT (cx, newMFObject)
-
-				/* define the "length" property for this object */ 
-				DEFINE_LENGTH(cx,newMFObject)
-
-				/* fill in private pointer area */
-				for (x=0; x<len; x++) {
-					/* create a new SFString object */
-					
-					chptr = ptr[x]->strptr;
-					newjsval = STRING_TO_JSVAL( JS_NewStringCopyZ(cx,chptr));
-
-					/* put this object into the MF class */
-					if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-					}
-				}
-
-				/* set the length of this MF */
-				SET_LENGTH (cx,newMFObject,len)
-
-				/* set the global variable with this new MF object */
-				SET_EVENTIN_VALUE (cx,obj,tptr,newMFObject)
-	
-				/* run the function */
-				COMPILE_FUNCTION_IF_NEEDED(tptr)
-				RUN_FUNCTION(tptr)
-				break;
-			}
-			case FIELDTYPE_MFNode: {	
-				JSObject *newMFObject;
-				jsval newjsval;
-				/* create a new MFNode object... */
-				newMFObject = JS_ConstructObject(cx, &MFNodeClass, NULL ,JS_GetParent(cx, obj));
-				ADD_ROOT (cx, newMFObject)
-
-				/* define the "length" property for this object */ 
-				DEFINE_LENGTH(cx,newMFObject)
-
-				/* fill in private pointer area */
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-					ip = (int *)pptr; 
-					newjsval = INT_TO_JSVAL(ip);
-					pptr += elementlen;
-
-					/* put this object into the MF class */
-					if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-					}
-				}
-
-				/* set the length of this MF */
-				SET_LENGTH (cx,newMFObject,len)
-
-				/* set the global variable with this new MF object */
-				SET_EVENTIN_VALUE (cx,obj,tptr,newMFObject)
-	
-				/* run the function */
-				COMPILE_FUNCTION_IF_NEEDED(tptr)
-				RUN_FUNCTION(tptr)
-				break;
-			}
-
-			case FIELDTYPE_SFImage:	{
-				JSObject *newMFObject;
-				jsval newjsval;
-				/* create a new MFNode object... */
-				newMFObject = JS_ConstructObject(cx, &SFImageClass, NULL ,JS_GetParent(cx, obj));
-				ADD_ROOT (cx, newMFObject)
-
-				/* define the "length" property for this object */ 
-				DEFINE_LENGTH(cx,newMFObject)
-
-				/* fill in private pointer area */
-				mePix = (struct X3D_PixelTexture *) fn;
-				if (mePix->_nodeType == NODE_PixelTexture) {
-					image = mePix->image;
-					if (image.n > 2) {
-						len = image.n;
-						/* copy over the image */
-						for (x=0; x<len; x++) {
-							newjsval = INT_TO_JSVAL(image.p[x]);
-							/* put this object into the MF class */
-							if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-							JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-								printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-							}
-						}
-					} else {
-						len = 3;
-						for (x=0; x<len; x++) {
-							newjsval = INT_TO_JSVAL(0);
-							/* put this object into the MF class */
-							if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-							JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-								printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-							}
-						}
-					}
-
-				} else {
-					/* make up a "zero" Pixeltexture */
-						len = 3;
-						for (x=0; x<len; x++) {
-							newjsval = INT_TO_JSVAL(0);
-							/* put this object into the MF class */
-							if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-							JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
-								printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
-							}
-						}
-				}
-
-				/* set the length of this MF */
-				SET_LENGTH (cx,newMFObject,len)
-
-				/* set the global variable with this new MF object */
-				SET_EVENTIN_VALUE (cx,obj,tptr,newMFObject)
-	
-				/* run the function */
-				COMPILE_FUNCTION_IF_NEEDED(tptr)
-				RUN_FUNCTION(tptr)
-
-				break;
-				} 
-
-			default: {
-					printf ("setMFElement, SHOULD NOT DISPLAY THIS\n");
-					strcat (scriptline,"(");
-				}
-		}
-
+		set_one_MFElementType(tn, to_ptr->foffset, JSparamnames[to_ptr->foffset].type, (void *)pptr,len);
 	}
+
+
 	#ifdef SETFIELDVERBOSE 
 		printf("------------END setMFElementtype ---------------\n");
 	#endif
-	return 0; /* return value never checked; #defines expect a return value */
+	return FALSE; /* return value never checked; #defines expect a return value */
 }
 
 
@@ -735,7 +748,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
     /* get context and global object for this script */
     cx = (JSContext *) ScriptControl[tn].cx;
     obj = (JSObject *)ScriptControl[tn].glob;
-    SET_JS_TICKTIME
+    SET_JS_TICKTIME()
 
     /* make up the name */
     sprintf (scriptline,"%s(",JSparamnames[tptr].name);
@@ -894,7 +907,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 /****************************************************************/
 
 /* really do the individual set; used by script routing and EAI sending to a script */
-void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, unsigned dataLen ) {
+void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, unsigned dataLen ) {
 
 	char scriptline[100];
 	jsval retval;
@@ -909,25 +922,25 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 	obj = (JSObject *)ScriptControl[tonode].glob;
 
 	/* set the time for this script */
-	SET_JS_TICKTIME
+	SET_JS_TICKTIME()
 
 	/* get the variable name to hold the incoming value */
 	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[tnfield].name);
 
 	#ifdef SETFIELDVERBOSE 
-	printf ("Set_one_MultiElementType: script %d line %s\n",tonode, scriptline);
+	printf ("set_one_MultiElementType: script %d line %s\n",tonode, scriptline);
 	#endif
 
 	if (!JS_GetProperty(cx,obj,scriptline,&retval))
-		printf ("JS_GetProperty failed in Set_one_MultiElementtype.\n");
+		printf ("JS_GetProperty failed in set_one_MultiElementType.\n");
 
 	if (!JSVAL_IS_OBJECT(retval))
-		printf ("Set_one_MultiElementtype - not an object\n");
+		printf ("set_one_MultiElementType - not an object\n");
 
 	_sfvec3fObj = JSVAL_TO_OBJECT(retval);
 
 	if ((_privPtr = (SFVec3fNative *)JS_GetPrivate(cx, _sfvec3fObj)) == NULL)
-		printf("JS_GetPrivate failed Set_one_MultiElementtype.\n");
+		printf("JS_GetPrivate failed set_one_MultiElementType.\n");
 
 	/* copy over the data from the VRML side into the script variable. */
 	memcpy ((void *) &_privPtr->v,Data, dataLen);
@@ -937,7 +950,7 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 
 	/* and run the function */
 	#ifdef SETFIELDVERBOSE
-	printf ("Set_one_MultiElementtype: running script %s\n",scriptline);
+	printf ("set_one_MultiElementType: running script %s\n",scriptline);
 	#endif
 
 	RUN_FUNCTION (tnfield)
@@ -989,7 +1002,7 @@ void setScriptMultiElementtype (uintptr_t num) {
 		cx = (JSContext *) ScriptControl[indexPointer].cx;
 		obj = (JSObject *)ScriptControl[indexPointer].glob;
 		fn += fptr;
-		Set_one_MultiElementtype (indexPointer, tptr, fn, len);
+		set_one_MultiElementType (indexPointer, tptr, fn, len);
 	}
 }
 
@@ -1155,7 +1168,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			MNptr = (struct Multi_Node *) memptr;
 
 			if (eaiverbose) { 
-			printf ("EAI_Convert_mem_to_ASCII: EAI_MFNode, there are %d nodes at %d\n",(*MNptr).n,(intptr_t) memptr);
+			printf ("EAI_Convert_mem_to_ASCII: EAI_MFNode, there are %d nodes at %ld\n",(*MNptr).n,(intptr_t) memptr);
 			}
 
 			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
@@ -1171,7 +1184,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		case FIELDTYPE_MFInt32: {
 			MCptr = (struct Multi_Color *) memptr;
 			if (eaiverbose) { 
-				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(intptr_t) memptr);
+				printf ("EAI_MFColor, there are %d nodes at %ld\n",(*MCptr).n,(intptr_t) memptr);
 			}
 
 			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
@@ -1202,7 +1215,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 			MCptr = (struct Multi_Color *) memptr;
 			if (eaiverbose) { 
-				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(intptr_t) memptr);
+				printf ("EAI_MFColor, there are %d nodes at %ld\n",(*MCptr).n,(intptr_t) memptr);
 			}
 
 			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);

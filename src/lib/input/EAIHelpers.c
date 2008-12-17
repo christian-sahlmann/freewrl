@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.6 2008/12/10 14:31:53 couannette Exp $
+$Id: EAIHelpers.c,v 1.7 2008/12/17 18:38:12 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -13,6 +13,12 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include <internal.h>
 
 #include <libFreeX3D.h>
+
+#include "../world_script/jsUtils.h"
+/*
+#include "../world_script/jsNative.h"
+#include "../world_script/JScript.h"
+*/
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
@@ -31,6 +37,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
+#include "../world_script/world_script.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"
@@ -92,7 +99,7 @@ struct EAINodeIndexStruct {
 	struct EAINodeParams 	params[MAXFIELDSPERNODE];
 	int    maxparamindex;
 };
-static struct  EAINodeIndexStruct EAINodeIndex[1000];
+static struct  EAINodeIndexStruct *EAINodeIndex = NULL;
 
 
 
@@ -139,7 +146,9 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 	int ctr;
 	int mynindex = 0;
 
-	printf ("registerEAINodeForAccess, remember to MALLOC this stuff... passed in %p\n", myn);
+#define MAX_EAI_SAVED_NODES 1000
+	if (EAINodeIndex == NULL) EAINodeIndex = MALLOC(sizeof (struct EAINodeIndexStruct) * MAX_EAI_SAVED_NODES);
+
 	for (ctr=1; ctr<lastNodeRequested; ctr++) {
 		if (EAINodeIndex[ctr].actualNodePtr == myn) {
 			if (eaiverbose) printf ("registerEAINodeForAccess - already got node\n");
@@ -151,6 +160,10 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 	/* did we find this node already? */
 	if (mynindex == 0) {
 		lastNodeRequested++;
+		if (lastNodeRequested == MAX_EAI_SAVED_NODES) {
+			ConsoleMessage ("EAI node table overflow - recompile with MAX_EAI_SAVED_NODES larger");
+			lastNodeRequested = 0;
+		}
 		mynindex = lastNodeRequested;
 		EAINodeIndex[mynindex].actualNodePtr = myn;
 		EAINodeIndex[mynindex].maxparamindex = -1;
@@ -344,6 +357,7 @@ void EAI_GetType (int cNode,  char *ctmp, char *dtmp,
 	int myFieldOffs;
 	int maxparamindex = 0;
 	char *invokedValPtr = NULL;  /* for PROTOs - invocation value */
+	int myScriptType = 0;
 
 	/* is this a valid C node? if so, lets just get the info... */
 	if ((cNode == 0) || (cNode > lastNodeRequested)) {
@@ -367,6 +381,46 @@ void EAI_GetType (int cNode,  char *ctmp, char *dtmp,
 
 	/* is this a PROTO, or just an invalid field?? */ 
 	if (myFieldOffs <= 0) {
+        	int i;
+		if (nodePtr->_nodeType == NODE_Script) {
+			printf ("EAI_GetType, node is a Script node...\n");
+			struct Shader_Script* myScript = X3D_SCRIPT(nodePtr)->__scriptObj;
+			myScriptType = NODE_Script;
+
+        		for (i = 0; i !=  vector_size(myScript->fields); ++i) {
+        		        struct ScriptFieldDecl* sfield = vector_get(struct ScriptFieldDecl*, myScript->fields, i);
+				/*
+				printf ("   field %d,  name %s type %s (type %s accessType %d (%s), indexName %d, stringType %s)\n",
+						i,
+						sfield->name, 
+						sfield->type, 
+						stringFieldtypeType(fieldDecl_getType(sfield->fieldDecl)),
+						fieldDecl_getAccessType(sfield->fieldDecl),
+						stringPROTOKeywordType(fieldDecl_getAccessType(sfield->fieldDecl)),
+						fieldDecl_getIndexName(sfield->fieldDecl), 
+						fieldDecl_getStringName(globalParser->lexer,sfield->fieldDecl)
+				);
+				*/
+				
+				if (strcmp(ctmp,sfield->name) == 0) {
+					printf ("found it at %d\n",i);
+					myFieldOffs = i;
+					/* switch from "PKW" to "KW" types */
+					*accessType = mapToKEYWORDindex(fieldDecl_getAccessType(sfield->fieldDecl));
+					ctype = findFieldInFIELDTYPES(sfield->type);
+					break;
+				}
+			}
+
+		} else if ((nodePtr->_nodeType == NODE_Group) && (X3D_GROUP(nodePtr)->FreeWRL__protoDef != 0)) {
+			myScriptType = NODE_Group;
+
+			printf ("EAI_GetType, node is a PROTO, and field not found in basic node\n");
+		} else {
+			printf ("EAI_GetType, not not found, just keep it at -1\n");
+		}
+
+#ifdef OLDCODE
 		if (eaiverbose) {
 			printf ("EAI_GetType, myFieldOffs %d, try findFieldInPROTOOFFSETS\n",myFieldOffs);
 		}	
@@ -382,12 +436,11 @@ void EAI_GetType (int cNode,  char *ctmp, char *dtmp,
 			myFieldOffs = myProtoIndex;
 			/* printf ("hmmm o fieldOffs %d, myProtoIndex %d\n",myFieldOffs, myProtoIndex); */
 		}
-	} else {
-		*cNodePtr = cNode; 	/* node pointer */
-		ctype = mapFieldTypeToEAItype(ctype); /* change to EAI type */
+#endif
 	}
 
-	/* return values. */
+	/* now, convert the internal type to a printible type for EAI communication */
+
 	/* save these indexes */
 	EAINodeIndex[cNode].maxparamindex++;
 	maxparamindex = EAINodeIndex[cNode].maxparamindex;
@@ -397,20 +450,42 @@ void EAI_GetType (int cNode,  char *ctmp, char *dtmp,
 		printf ("recompile with MAXFIELDSPERNODE increased in value\n");
 	}
 	EAINodeIndex[cNode].params[maxparamindex].fieldOffset = myFieldOffs;
-	EAINodeIndex[cNode].params[maxparamindex].datalen = returnRoutingElementLength(mapEAItypeToFieldType(ctype));
-	EAINodeIndex[cNode].params[maxparamindex].typeString = ctype;
-	EAINodeIndex[cNode].params[maxparamindex].scripttype = 0;
+	EAINodeIndex[cNode].params[maxparamindex].datalen = returnRoutingElementLength(ctype);
+	EAINodeIndex[cNode].params[maxparamindex].typeString = mapFieldTypeToEAItype(ctype);
+	EAINodeIndex[cNode].params[maxparamindex].scripttype = myScriptType;
 	EAINodeIndex[cNode].params[maxparamindex].invokedValue = invokedValPtr;
 
-	*fieldOffset = (uintptr_t) maxparamindex;
-	*dataLen = returnRoutingElementLength(mapEAItypeToFieldType(ctype));	/* data len */
-	*typeString = (uintptr_t) ctype;	
-	*scripttype =0;
+	*fieldOffset = (uintptr_t) maxparamindex; 	/* the entry into this field array for this node */
+	*dataLen = EAINodeIndex[cNode].params[maxparamindex].datalen;	/* data len */
+	*typeString = EAINodeIndex[cNode].params[maxparamindex].typeString; /* data type in EAI type */
+	*scripttype =EAINodeIndex[cNode].params[maxparamindex].scripttype;
+	*cNodePtr = cNode;	/* keep things with indexes */
 
-	if (eaiverbose) {
-		printf ("EAI_GetType, returning cNodePtr %u, coffset %d, ctype %x, ctmp %s\n",
-			*cNodePtr,*fieldOffset,ctype, stringKeywordType(*accessType));
-	}
+#ifdef xss
+void EAI_GetType (int cNode,  char *ctmp, char *dtmp, 
+		uintptr_t *cNodePtr, uintptr_t *fieldOffset,
+		uintptr_t *dataLen, uintptr_t *typeString,  unsigned int *scripttype, int *accessType) {
+
+EAI_GetType, responding with RE
+1229378120.245891
+5
+2 0 -10 q 0 inputOutput
+
+1229378122.615388
+33
+5 1 -1 typeString: ? scripttype:103  accessType: eventIn
+
+
+             EAI_GetType (cNode, ctmp, dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
+
+                                printf ("EAI_GetType, responding with RE\n%f\n%d\n%d %d %d %c %d %s\n",TickTime,count,ra,rb,rc,rd,
+                                                scripttype,stringKeywordType(xxx));
+
+
+
+#endif
+
+
 }
 
 
@@ -461,6 +536,8 @@ void handleEAIGetValue (char command, char *bufptr, char *buf, int repno) {
 	}
 
 	
+printf ("handleEAIGetValue, node %u, type %s\n",myNode, stringNodeType(myNode->_nodeType));
+
 	/* is the pointer a pointer to a PROTO?? If so, then the getType did not find
 	an actual field (an IS'd field??) in a proto expansion for us.  We have to 
 	go through, as the offset will be the index in the PROTO field for us to get
@@ -471,4 +548,52 @@ void handleEAIGetValue (char command, char *bufptr, char *buf, int repno) {
 	} else {
 		EAI_Convert_mem_to_ASCII (repno,"RE",mapEAItypeToFieldType(ctmp[0]),getEAIMemoryPointer(nodeIndex,fieldIndex), buf);
 	}
+}
+
+
+/* this is a debugging function */
+char *eaiPrintCommand (char command) {
+
+	switch (command) {
+
+		case GETNODE: return ("GETNODE");
+		case GETEAINODETYPE: return ("GETEAINODETYPE");
+		case SENDCHILD: return ("SENDCHILD");
+		case SENDEVENT: return ("SENDEVENT");
+		case GETVALUE: return ("GETVALUE");
+		case GETFIELDTYPE: return ("GETFIELDTYPE");
+		case REGLISTENER: return ("REGLISTENER");
+		case ADDROUTE: return ("ADDROUTE");
+		case REREADWRL: return ("REREADWRL");
+		case DELETEROUTE: return ("DELETEROUTE");
+		case GETNAME: return ("GETNAME");
+		case GETVERSION: return ("GETVERSION");
+		case GETCURSPEED: return ("GETCURSPEED");
+		case GETFRAMERATE: return ("GETFRAMERATE");
+		case GETURL: return ("GETURL");
+		case REPLACEWORLD: return ("REPLACEWORLD");
+		case LOADURL: return ("LOADURL");
+		case VIEWPOINT: return ("VIEWPOINT");
+		case CREATEVS: return ("CREATEVS");
+		case CREATEVU: return ("CREATEVU");
+		case STOPFREEWRL: return ("STOPFREEWRL");
+		case UNREGLISTENER: return ("UNREGLISTENER");
+		case GETRENDPROP: return ("GETRENDPROP");
+		case GETENCODING: return ("GETENCODING");
+		case CREATENODE: return ("CREATENODE");
+		case CREATEPROTO: return ("CREATEPROTO");
+		case UPDNAMEDNODE: return ("UPDNAMEDNODE");
+		case REMNAMEDNODE: return ("REMNAMEDNODE");
+		case GETPROTODECL: return ("GETPROTODECL");
+		case UPDPROTODECL: return ("UPDPROTODECL");
+		case REMPROTODECL: return ("REMPROTODECL");
+		case GETFIELDDEFS: return ("GETFIELDDEFS");
+		case GETNODEDEFNAME: return ("GETNODEDEFNAME");
+		case GETROUTES: return ("GETROUTES");
+		case GETNODETYPE: return ("GETNODETYPE");
+		case MIDIINFO: return ("MIDIINFO");
+		case MIDICONTROL: return ("MIDICONTROL");
+		default:{} ;
+	}
+	return "unknown command...";
 }

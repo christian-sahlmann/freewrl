@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.h,v 1.2 2008/12/15 17:13:49 istakenv Exp $
+$Id: fieldSet.h,v 1.3 2008/12/17 18:38:12 crc_canada Exp $
 
 ???
 
@@ -31,6 +31,9 @@ char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset);
 int findIndexInFIELDNAMES(int index, const char** arr, size_t arrCnt);
 int findFieldInARR(const char* field, const char** arr, size_t cnt);
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
+void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, unsigned dataLen );
+int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
+
 
 #define DEF_FINDFIELDFP(arr) int findFieldIn##arr(const char* field)
 DEF_FINDFIELDFP(FIELDNAMES);
