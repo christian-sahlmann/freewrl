@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.10 2008/12/15 17:41:49 istakenv Exp $
+$Id: MainLoop.c,v 1.11 2008/12/19 22:06:45 sdumoulin Exp $
 
 CProto ???
 
@@ -561,6 +561,7 @@ void EventLoop() {
 
                 /* EAI */
                 handle_EAI();
+		handle_MIDIEAI();
         }
 
         /* record the TickTime here, for rate setting. We don't do this earlier, as some

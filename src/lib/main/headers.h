@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.13 2008/12/19 16:05:59 crc_canada Exp $
+$Id: headers.h,v 1.14 2008/12/19 22:06:45 sdumoulin Exp $
 
 Global includes.
 
@@ -952,6 +952,7 @@ void EAI_replaceWorld(const char *inputstring);
 
 void render_hier(struct X3D_Node *p, int rwhat);
 void handle_EAI(void);
+void handle_MIDIEAI(void);
 void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 
