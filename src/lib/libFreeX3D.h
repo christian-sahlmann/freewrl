@@ -4,7 +4,7 @@
  *
  * public API - libFreeX3D.h
  *
- * $Id: libFreeX3D.h,v 1.12 2008/12/10 18:46:54 crc_canada Exp $
+ * $Id: libFreeX3D.h,v 1.13 2008/12/19 22:09:17 sdumoulin Exp $
  *
  *******************************************************************/
 
@@ -31,6 +31,7 @@ int checkNetworkFile(char *fn);
 void setFullPath(const char* file);
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
 void create_EAI();
+void create_MIDIEAI();
 void doQuit();
 void Anchor_ReplaceWorld(char *name);
 
