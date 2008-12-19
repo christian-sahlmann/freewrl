@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.7 2008/12/17 18:38:12 crc_canada Exp $
+$Id: X3DParser.c,v 1.8 2008/12/19 16:05:59 crc_canada Exp $
 
 ???
 
@@ -171,7 +171,7 @@ void setFieldValueDataActive(void) {
 			stringFieldType(in3_3_fieldIndex),stringNodeType(parentStack[parentIndex]->_nodeType)); */
 
 		setField_fromJavascript (parentStack[parentIndex], stringFieldType(in3_3_fieldIndex),
-			CDATA_Text);
+			CDATA_Text, TRUE);
 	}
 
 	/* free data */
@@ -499,7 +499,7 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 				thisNode->_defaultContainer = tmp;
 			}
 		} else {
-			setField_fromJavascript (thisNode, (char *)atts[i],(char *)atts[i+1]);
+			setField_fromJavascript (thisNode, (char *)atts[i],(char *)atts[i+1], TRUE);
 		}
 	}
 }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.8 2008/12/17 22:56:57 crc_canada Exp $
+$Id: fieldGet.c,v 1.9 2008/12/19 16:05:59 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -35,8 +35,6 @@ Javascript C language binding.
 
 
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
-int setMFElementtype (uintptr_t num);
-
 /********************************************************************
 
 getField_ToJavascript.
@@ -160,6 +158,7 @@ void setScriptECMAtype (uintptr_t num) {
 }
 
 
+/* use Javascript to send in one element of an MF. datalen is in number of elements in type. */
 int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen) {
 	JSContext *cx;
 	JSObject *obj;
@@ -686,8 +685,6 @@ int setMFElementtype (uintptr_t num) {
 		/* printf ("setMFElementtype, length is greater than 0 (%d), how can this be?\n",len); */
 	}
 
-		
-
 	/* go through all the nodes that this script sends to for this entry in the CRoutes table */
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
@@ -715,6 +712,7 @@ int setMFElementtype (uintptr_t num) {
 }
 
 
+#ifdef OLDCODE
 void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 
     int tn, tptr;
@@ -894,7 +892,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	printf("------------END set_EAI_MFElementtype ---------------\n");
     #endif
 }
-
+#endif /* OLDCODE */
 
 /****************************************************************/
 /* sets a SFVec3f and SFColor and SFVec3d 			*/
@@ -908,9 +906,6 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 
 /* really do the individual set; used by script routing and EAI sending to a script */
 void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, unsigned dataLen ) {
-
-#define SETFIELDVERBOSE
-
 	char scriptline[100];
 	jsval retval;
 	SFVec3fNative *_privPtr;
@@ -925,10 +920,6 @@ void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 
 	/* set the time for this script */
 	SET_JS_TICKTIME()
-printf ("set_one_MultiElementType, tonode %u, tofield %u, datalen %d\n",tonode,tnfield,dataLen);
-printf ("names, %d %s, %d %s, %d %s\n",0,JSparamnames[0].name, 
-		1, JSparamnames[1].name,
-		2, JSparamnames[2].name);
 
 	/* get the variable name to hold the incoming value */
 	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[tnfield].name);
@@ -959,7 +950,6 @@ printf ("names, %d %s, %d %s, %d %s\n",0,JSparamnames[0].name,
 	printf ("set_one_MultiElementType: running script %s\n",scriptline);
 	#endif
 
-#undef SETFIELDVERBOSE
 	RUN_FUNCTION (tnfield)
 }
 

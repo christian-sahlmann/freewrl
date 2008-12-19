@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.12 2008/12/11 22:18:03 crc_canada Exp $
+$Id: headers.h,v 1.13 2008/12/19 16:05:59 crc_canada Exp $
 
 Global includes.
 
@@ -352,7 +352,7 @@ void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
 extern int HaveSensitive;
 void zeroVisibilityFlag(void);
-void setField_fromJavascript (struct X3D_Node *ptr, char *field, char *value);
+void setField_fromJavascript (struct X3D_Node *ptr, char *field, char *value, int isXML);
 unsigned int setField_FromEAI (char *ptr);
 void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fieldType, unsigned len, int extraData, uintptr_t mycx);
 
@@ -795,7 +795,7 @@ void resetScriptTouchedFlag(int actualscript, int fptr);
 int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setScriptMultiElementtype(uintptr_t);
-void Parser_scanStringValueToMem(struct X3D_Node *ptr, int coffset, int ctype, char *value);
+void Parser_scanStringValueToMem(struct X3D_Node *ptr, int coffset, int ctype, char *value, int isXML);
 void Multimemcpy(void *tn, void *fn, int len);
 void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len, int dir);

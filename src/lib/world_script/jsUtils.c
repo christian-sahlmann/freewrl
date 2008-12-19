@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.4 2008/12/17 22:56:57 crc_canada Exp $
+$Id: jsUtils.c,v 1.5 2008/12/19 16:05:59 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -32,8 +32,6 @@ which is the sample application included with the javascript engine.
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
 
-
-#define JSVRMLCLASSESVERBOSE
 
 /********************** Javascript to X3D Scenegraph ****************************/
 

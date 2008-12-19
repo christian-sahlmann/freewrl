@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.8 2008/12/17 22:56:57 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.9 2008/12/19 16:05:59 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -382,13 +382,15 @@ void EAI_GetType (int cNode,  char *ctmp, char *dtmp,
 	if (myFieldOffs <= 0) {
         	int i;
 		if (nodePtr->_nodeType == NODE_Script) {
-			printf ("EAI_GetType, node is a Script node...\n");
+			if (eaiverbose)
+				printf ("EAI_GetType, node is a Script node...\n");
 			struct Shader_Script* myScript = X3D_SCRIPT(nodePtr)->__scriptObj;
 			myScriptType = NODE_Script;
 
         		for (i = 0; i !=  vector_size(myScript->fields); ++i) {
         		        struct ScriptFieldDecl* sfield = vector_get(struct ScriptFieldDecl*, myScript->fields, i);
 				
+				if (eaiverbose)
 				printf ("   field %d,  name %s type %s (type %s accessType %d (%s), indexName %d, stringType %s)\n",
 						i,
 						sfield->name, 
@@ -404,7 +406,9 @@ void EAI_GetType (int cNode,  char *ctmp, char *dtmp,
 				if (strcmp(ctmp,sfield->name) == 0) {
 					/* call JSparamIndex to get a unique index for this name - this is used for ALL
 					   script access, whether from EAI or not */
-					printf ("found it at %d but in actual fact, JSparamIndex returns %d\n",i,JSparamIndex(sfield->name, sfield->type)); 
+					if(eaiverbose)
+					printf ("found it at index, %d but returning JSparamIndex %d\n",i,JSparamIndex(sfield->name, sfield->type)); 
+
 					myFieldOffs = JSparamIndex(sfield->name, sfield->type);
 					/* switch from "PKW" to "KW" types */
 					*accessType = mapToKEYWORDindex(fieldDecl_getAccessType(sfield->fieldDecl));

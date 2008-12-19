@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.h,v 1.3 2008/12/17 18:38:12 crc_canada Exp $
+$Id: fieldSet.h,v 1.4 2008/12/19 16:05:59 crc_canada Exp $
 
 ???
 
@@ -19,12 +19,7 @@ $Id: fieldSet.h,v 1.3 2008/12/17 18:38:12 crc_canada Exp $
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to);
 void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Node *parent, int ar);
-void SetMemory (int type, void *destptr, void *srcptr, int len);
-void getEAI_ONE_MFStringtype (struct Multi_String *from, struct Multi_String *to, int len);
-void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to);
-int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz);
-uintptr_t Multi_Struct_memptr (int type, void *memptr);
-void setField_fromJavascript (struct X3D_Node *node, char *field, char *value);
+void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, int isXML);
 unsigned int setField_FromEAI (char *ptr);
 void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, uintptr_t cx);
 char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset);

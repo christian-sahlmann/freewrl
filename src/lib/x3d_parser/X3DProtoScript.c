@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.5 2008/12/17 18:38:12 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.6 2008/12/19 16:05:59 crc_canada Exp $
 
 ???
 
@@ -979,7 +979,7 @@ void parseScriptProtoField(const char **atts) {
 	if (parserMode == PARSING_SCRIPT) {
 		/* parse this string value into a anyVrml union representation */
 		if (myValueString != NULL)
-			Parser_scanStringValueToMem(X3D_NODE(&value), 0, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), myValueString);
+			Parser_scanStringValueToMem(X3D_NODE(&value), 0, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), myValueString, TRUE);
 		else
 			parseScriptFieldDefaultValue(findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), &value);
 		

@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.8 2008/12/17 18:38:12 crc_canada Exp $
+  $Id: CParseParser.c,v 1.9 2008/12/19 16:05:59 crc_canada Exp $
 
   ???
 
@@ -2530,9 +2530,9 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
   struct Vector* vec=NULL; \
   vrmlNodeT RCX; \
   \
-  /* printf ("start of a mfield parse for type %d curID :%s: me %u lexer %u\n",FIELDTYPE_MF##type, me->lexer->curID,me,me->lexer); \
-     printf ("      str :%s:\n",me->lexer->startOfStringPtr); */ \
-  /* if (me->lexer->curID != NULL) printf ("parser_MF, have %s\n",me->lexer->curID); else printf("parser_MF, NULL\n"); */ \
+   /* printf ("start of a mfield parse for type %d curID :%s: me %u lexer %u\n",FIELDTYPE_MF##type, me->lexer->curID,me,me->lexer); */ \
+     /* printf ("      str :%s:\n",me->lexer->startOfStringPtr);  */ \
+   /* if (me->lexer->curID != NULL) printf ("parser_MF, have %s\n",me->lexer->curID); else printf("parser_MF, NULL\n");  */ \
 \
  if (!(me->parsingX3DfromXML)) { \
           /* is this a USE statement? */ \
@@ -2644,6 +2644,7 @@ PARSER_MFFIELD(bool, Bool)
   for(i=0; i!=cnt; ++i) {\
    if(!parser_sffloatValue(me, ret->dest+i)) \
     return FALSE; \
+	/* printf ("parser_sf, %d of %d is %f\n",i,cnt,*(ret->dest+i)); */ \
   }\
   return TRUE; \
  }
@@ -2667,7 +2668,7 @@ PARSER_MFFIELD(bool, Bool)
     }
 BOOL parser_sffloatValue_(struct VRMLParser* me, vrmlFloatT* ret)
     {
-        return lexer_float(me->lexer, ret);
+	return lexer_float(me->lexer, ret);
     }
 BOOL parser_sfint32Value_(struct VRMLParser* me, vrmlInt32T* ret)
     {
@@ -2705,7 +2706,6 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret) {
         }
         return FALSE;
     }
-
     /* possibly, this is from the X3D Parser */
     if (!strcmp(me->lexer->startOfStringPtr,"true")) {
         *ret = TRUE;

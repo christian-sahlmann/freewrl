@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.4 2008/12/02 17:41:38 couannette Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.5 2008/12/19 16:05:59 crc_canada Exp $
 
 ???
 
@@ -42,7 +42,7 @@ int eaiverbose = FALSE;
 		/* printf ("old val p= %u, n = %d\n",myv->p, myv->n); */\
 		myv->p = myVal.mf##type2.p; \
 		myv->n = myVal.mf##type2.n; \
-		/* printf ("now, element count %d\n",myv->n); */ \
+		/* printf ("PST_MF_STRUCT_ELEMENT, now, element count %d\n",myv->n); */ \
 		break; }
 
 
@@ -187,10 +187,11 @@ int returnElementRowSize (int type) {
 }
 
 static struct VRMLParser *parser = NULL;
-void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, char *value) {
+void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, char *value, int isXML) {
 	char *nst;                      /* used for pointer maths */
 	union anyVrml myVal;
 	char *mfstringtmp = NULL;
+	int oldXMLflag;
 	
 	#ifdef SETFIELDVERBOSE
 	printf ("\nPST, for %s we have %s strlen %d\n",stringFieldtypeType(ctype), value, strlen(value));
@@ -201,6 +202,11 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 	      - that the destination node is not important (the NULL, offset 0) */
 
 	if (parser == NULL) parser=newParser(NULL, 0, TRUE);
+
+	/* there is a difference sometimes, in the XML format and VRML classic format. The XML
+	   parser will use xml format, scripts and EAI will use the classic format */
+	oldXMLflag = parser->parsingX3DfromXML;
+	parser->parsingX3DfromXML = isXML;
 
 	/* we NEED MFStrings to have quotes on; so if this is a MFString, ensure quotes are ok */
 	if (ctype == FIELDTYPE_MFString) {
@@ -319,4 +325,7 @@ MF_TYPE(MFNode, mfnode, Node)
 
 	/* did we have to do any mfstring quoting stuff? */
 	FREE_IF_NZ(mfstringtmp);
+
+	/* and, reset the XML flag */
+	parser->parsingX3DfromXML = oldXMLflag;
 }

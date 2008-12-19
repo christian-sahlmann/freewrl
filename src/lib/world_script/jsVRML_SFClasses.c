@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_SFClasses.c,v 1.6 2008/12/15 17:39:37 istakenv Exp $
+$Id: jsVRML_SFClasses.c,v 1.7 2008/12/19 16:05:59 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -1228,7 +1228,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			printf ("node is of type %s\n",stringNodeType(ptx->_nodeType));
 		}
 		#endif
-		setField_fromJavascript (X3D_NODE(ptr->handle), _id_c, _val_c);
+		setField_fromJavascript (X3D_NODE(ptr->handle), _id_c, _val_c, FALSE);
 	}
 
 	return JS_TRUE;
