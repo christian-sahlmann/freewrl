@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.3 2008/12/02 18:17:18 couannette Exp $
+$Id: EAIServ.c,v 1.4 2008/12/19 22:03:41 sdumoulin Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -57,14 +57,18 @@ Implement EAI server functionality for FreeWRL.
 
 
 int EAIport = 9877;				/* port we are connecting to*/
+int EAIMIDIInitialized = FALSE; 	/* is MIDI eai running? */
 int EAIinitialized = FALSE;		/* are we running?*/
 int EAIfailed = FALSE;			/* did we not succeed in opening interface?*/
+int EAIMIDIfailed = FALSE;		/* did we not succeed in opening the MIDI interface? */
 char EAIListenerData[EAIREADSIZE]; /* this is the location for getting Listenered data back again.*/
 char EAIListenerArea[40];
 
 /* socket stuff */
 int 	EAIsockfd = -1;			/* main TCP socket fd*/
 int	EAIlistenfd = -1;			/* listen to this one for an incoming connection*/
+int 	EAIMIDIsockfd = -1;		/* main TCP socket for MIDI EAI communication */
+int	EAIMIDIlistenfd = -1;		/* listen on this socket for an incoming connection for MIDI EAI */
 fd_set rfds2;
 struct timeval tv2;
 
@@ -84,6 +88,7 @@ int EAIbufcount;				/* pointer into buffer*/
 int EAIbufsize;				/* current size in bytes of input buffer*/
 
 int EAIwanted = FALSE;                       /* do we want EAI?*/
+int EAIMIDIwanted = FALSE; 			/* do we want midi EAI? */
 
 /* open the socket connection -  we open as a TCP server, and will find a free socket */
 /* EAI will have a socket increment of 0; Java Class invocations will have 1 +	      */
@@ -184,6 +189,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 		/* seems like we are up and running now, and waiting for a command */
 		/* and are we using this with EAI? */
 		if (socketincrement==0) EAIinitialized = TRUE;
+		else if (socketincrement == MIDIPORTOFFSET) EAIMIDIInitialized = TRUE;
 	}
 	/* printf ("EAISERVER: conEAIorCLASS returning TRUE\n");*/
 
@@ -231,6 +237,21 @@ void create_EAI()
 	}
 }
 
+void create_MIDIEAI() {
+        if (eaiverbose) {
+        printf ("EAISERVER:create_MIDIEAI called\n");
+        }
+
+        if (EAIMIDIwanted)  return;
+
+        EAIMIDIwanted = TRUE;
+
+        /* have we already started? */
+        if (!EAIMIDIInitialized) {
+                EAIMIDIfailed = !(conEAIorCLASS(MIDIPORTOFFSET,&EAIMIDIsockfd,&EAIMIDIlistenfd));
+        }
+}
+
 
 /* possibly we have an incoming EAI request from the client */
 void handle_EAI () {
@@ -259,6 +280,30 @@ void handle_EAI () {
 	if (EAIbufcount > 1)
 		EAI_parse_commands ();
 }
+
+void handle_MIDIEAI() {
+        if (!EAIMIDIwanted) return;
+        if (!EAIMIDIInitialized) {
+                EAIMIDIfailed = !(conEAIorCLASS(MIDIPORTOFFSET, &EAIMIDIsockfd, &EAIMIDIlistenfd));
+                return;
+        }
+
+        if (EAIMIDIlistenfd < 0) return;
+
+        EAIbufcount = 0;
+
+        EAIbuffer = read_EAI_socket(EAIbuffer, &EAIbufcount, &EAIbufsize, &EAIMIDIlistenfd);
+        printf ("read, EAIbufcount %d EAIbufsize %d\n",EAIbufcount, EAIbufsize);
+
+        /* make this into a C string */
+        EAIbuffer[EAIbufcount] = 0;
+                if (EAIbufcount) printf ("handle_EAI-- Data is :%s:\n",EAIbuffer);
+
+        /* any command read in? */
+        if (EAIbufcount > 1)
+                EAI_parse_commands ();
+}
+
 
 
 void EAI_send_string(char *str, int lfd){

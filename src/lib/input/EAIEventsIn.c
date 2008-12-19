@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.9 2008/12/17 22:56:57 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.10 2008/12/19 22:03:41 sdumoulin Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -517,7 +517,10 @@ void EAI_parse_commands () {
 		/* and, Anchors send a different reply (loadURLS) */
 		if ((command != SENDEVENT) && (command != MIDICONTROL)) {
 			if (command != LOADURL) strcat (buf,"\nRE_EOT");
-			EAI_send_string (buf,EAIlistenfd);
+			if (command != MIDIINFO)
+				EAI_send_string (buf,EAIlistenfd);
+			else
+				EAI_send_string(buf, EAIMIDIlistenfd);
 		}
 
 		/* printf ("end of command, remainder %d ",strlen(&EAI_BUFFER_CUR)); */

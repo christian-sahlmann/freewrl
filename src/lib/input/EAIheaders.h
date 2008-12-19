@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIheaders.h,v 1.6 2008/12/17 18:38:12 crc_canada Exp $
+$Id: EAIheaders.h,v 1.7 2008/12/19 22:02:49 sdumoulin Exp $
 
 EAI and java CLASS invocation
 
@@ -34,6 +34,7 @@ char *eaiPrintCommand (char command);
 #define MAXEAIHOSTNAME	255		/* length of hostname on command line */
 #define EAIREADSIZE	8192		/* maximum we are allowed to read in from socket */
 #define EAIBASESOCKET   9877		/* socket number to start at */
+#define MIDIPORTOFFSET 5		/* offset for midi EAI port to start at */
 
 
 /* these are commands accepted from the EAI client */
@@ -138,6 +139,9 @@ extern int EAIsockfd;
 extern int EAIport;
 extern int EAIwanted;
 extern int EAIbufsize;
+extern int EAIMIDIlistenfd;
+extern int EAIMIDIsockfd;
+extern int EAIMIDIwanted;
 extern char *EAIbuffer;
 extern int EAIbufcount;
 extern char EAIListenerData[EAIREADSIZE];
