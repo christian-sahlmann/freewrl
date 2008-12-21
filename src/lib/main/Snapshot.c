@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.1 2008/11/27 01:51:43 couannette Exp $
+$Id: Snapshot.c,v 1.2 2008/12/21 19:21:06 couannette Exp $
 
 CProto ???
 
@@ -40,10 +40,10 @@ int snapGoodCount=0;
 /* need to re-implement this for OSX generating QTVR */
 int snapsequence=FALSE;		/* --seq - snapshot sequence, not single click  */
 int maxSnapImages=100; 		/* --maximg command line parameter 		*/
-int snapGif = FALSE;		/* --gif save as an animated GIF, not mpg	*/
 char *snapseqB = NULL;		/* --seqb - snap sequence base filename		*/
 #endif
 
+int snapGif = FALSE;		/* --gif save as an animated GIF, not mpg	*/
 char *snapsnapB = NULL;		/* --snapb -single snapshot files		*/
 char *seqtmp = NULL;		/* --seqtmp - directory for temp files		*/
 int doSnapshot = FALSE;		/* are we doing a snapshot?			*/
@@ -53,6 +53,10 @@ int doSnapshot = FALSE;		/* are we doing a snapshot?			*/
 void saveSnapSequence();
 #endif
 
+void setSnapGif()
+{
+    snapGif = TRUE;
+}
 
 /* turn snapshotting on; if sequenced; possibly turn off an convert sequence */
 void setSnapshot() {

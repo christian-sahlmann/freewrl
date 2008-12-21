@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.10 2008/12/05 13:20:52 couannette Exp $
+# $Id: Makefile.sources,v 1.11 2008/12/21 19:21:06 couannette Exp $
 #
 # List all source files
 #
@@ -52,20 +52,24 @@ x3d_parser/X3DParser.h \
 x3d_parser/X3DProtoScript.c \
 x3d_parser/capabilitiesHandler.c \
  \
-world_script/jsVRML_MFClasses.c \
-world_script/jsVRMLClasses.c \
-world_script/jsVRMLBrowser.h \
-world_script/jsUtils.h \
-world_script/fieldSet.c \
-world_script/jsUtils.c \
-world_script/jsVRML_SFClasses.c \
-world_script/JScript.c \
-world_script/jsVRMLClasses.h \
-world_script/fieldGet.c \
-world_script/jsVRMLBrowser.c \
-world_script/jsNative.h \
 world_script/CScripts.h \
 world_script/CScripts.c \
+world_script/fieldGet.h \
+world_script/fieldGet.c \
+world_script/fieldSet.h \
+world_script/fieldSet.c \
+world_script/JScript.h \
+world_script/JScript.c \
+world_script/jsNative.h \
+world_script/jsUtils.h \
+world_script/jsUtils.c \
+world_script/jsVRMLBrowser.h \
+world_script/jsVRMLBrowser.c \
+world_script/jsVRMLClasses.h \
+world_script/jsVRMLClasses.c \
+world_script/jsVRML_MFClasses.c \
+world_script/jsVRML_SFClasses.c \
+world_script/world_script.h \
  \
 scenegraph/RenderFuncs.c \
 scenegraph/Component_EnvironSensor.c \
@@ -121,15 +125,16 @@ scenegraph/Component_PointingDevice.c \
 scenegraph/statics.c \
 scenegraph/GenPolyRep.c \
  \
-input/SensInterps.h \
-input/InputFunctions.c \
 input/EAI_C_CommonFunctions.c \
-input/EAIheaders.h \
-input/SensInterps.c \
-input/EAIHelpers.c \
-input/EAIEventsOut.c \
 input/EAIEventsIn.c \
+input/EAIEventsOut.c \
+input/EAIheaders.h \
+input/EAIHelpers.c \
+input/EAIHelpers.h \
 input/EAIServ.c \
+input/InputFunctions.c \
+input/SensInterps.c \
+input/SensInterps.h \
  \
 opengl/RenderTextures.c \
 opengl/Textures.h \

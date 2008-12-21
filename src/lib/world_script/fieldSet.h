@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.h,v 1.4 2008/12/19 16:05:59 crc_canada Exp $
+$Id: fieldSet.h,v 1.5 2008/12/21 19:21:06 couannette Exp $
 
 ???
 
@@ -10,25 +10,9 @@ $Id: fieldSet.h,v 1.4 2008/12/19 16:05:59 crc_canada Exp $
 #ifndef __FREEX3D_JS_FIELD_SET_H__
 #define __FREEX3D_JS_FIELD_SET_H__
 
-/* for JSContext */
-#include <jsapi.h>
 
 #define ROUTED_FIELD_EVENT_OUT 0
 #define ROUTED_FIELD_EVENT_IN  1
-
-void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
-void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to);
-void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Node *parent, int ar);
-void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, int isXML);
-unsigned int setField_FromEAI (char *ptr);
-void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, uintptr_t cx);
-char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset);
-int findIndexInFIELDNAMES(int index, const char** arr, size_t arrCnt);
-int findFieldInARR(const char* field, const char** arr, size_t cnt);
-void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
-void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, unsigned dataLen );
-int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
-
 
 #define DEF_FINDFIELDFP(arr) int findFieldIn##arr(const char* field)
 DEF_FINDFIELDFP(FIELDNAMES);

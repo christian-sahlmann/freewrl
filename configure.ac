@@ -11,7 +11,7 @@
 # Autoconf startup, we define the package's name, and version: 
 # but this is not the program's version, nor the library's version.
 # We also define the maintainer address.
-AC_INIT([freex3d], [2.0], [michelbriand@free.fr])
+AC_INIT([freex3d], [2.0], [freewrl@crc.ca])
 
 # Little cutomizatin: all autotools derived files go in a sub-directory.
 AC_CONFIG_AUX_DIR([config])
@@ -74,7 +74,7 @@ AC_CHECK_FUNCS([strchr strrchr])
 # Now we just use the host_* variables
 case "$host_os" in
      mingw*) os_type=win32 ;;
-     darwin) os_type=mac ;;
+     darwin*) os_type=mac ;;
      *) os_type=unix ;;
 esac
 
@@ -119,11 +119,18 @@ PKG_CHECK_MODULES(FREETYPE, freetype2 >= 9.3.0)
 
 AC_MSG_NOTICE([Determining Javascript engine to build against])
 found_JAVASCRIPT_ENGINE=no
-AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,mozilla-js,1.9)
-AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,xulrunner-js,1.8)
-AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,seamonkey-js)
-AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox-js)
-AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox2-js)
+case "$os_type" in
+     mac) 
+	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,spidermonkey,1.7.0)
+	;;
+     *)
+	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,mozilla-js,1.9)
+	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,xulrunner-js,1.8)
+	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,seamonkey-js)
+	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox-js)
+	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox2-js)
+	;;
+esac
 
 ## if no package yet, test for spidermonkey or other 'js' library
 if test x$found_JAVASCRIPT_ENGINE = xno; then
@@ -163,9 +170,8 @@ case "$os_type" in
           TARGET=w32
           AC_MSG_FAILURE([Windows not supported yet.])
           ;;
-     mac) # Target available: Aqua
+     mac) # Target available: Aqua (and possibly X11/Motif in the future)
           TARGET=aqua
-          AC_MSG_FAILURE([Mac not supported yet.])
           ;;
      *) # Target available: x11,motif
           test_x11=yes
@@ -179,7 +185,7 @@ esac
 
 # Aqua
 if test "$os_type" = mac ; then
-AC_MSG_WARN([...implement Aqua test here...])
+AC_MSG_WARN([...implement Aqua test here ???...])
 fi
 
 # X11
@@ -221,7 +227,17 @@ AM_CONDITIONAL([WINDOW_USE_MOTIF], [test "$TARGET" = motif])
 AC_MSG_RESULT([Target windowing system selected: $TARGET])
 
 # OpenGL
-AC_FIND_OPENGL
+case "$os_type" in
+     mac)
+	GL_CFLAGS="-I/Sytem/Library/Frameworks/OpenGL.framework/Headers"
+	GL_LIBS="-L/Sytem/Library/Frameworks/OpenGL.framework/Libraries -lGL -lGLU"
+	AC_SUBST(GL_CFLAGS)
+	AC_SUBST(GL_LIBS)
+	;;
+     *)
+	AC_FIND_OPENGL
+	;;
+esac
 
 # JPEG
 AC_CHECK_HEADERS([jpeglib.h])
@@ -256,8 +272,16 @@ fi
 AC_SUBST(MAYBE_PLUGIN)
 
 # FreeX3D helpers programs
-
-# FIXME: environment variable BROWSER takes precedent over --with-browser= ???
+case "$os_type" in
+     mac) # Mac defaults
+          BROWSER="open /Applications/Safari.app"
+	 SOUNDCONV=""
+	 UNZIP=""
+	 WGET=""
+	 IMAGECONVERT="" 
+	 ;;
+     *)   # UNIX defaults
+#FIXME: environment variable BROWSER takes precedent over --with-browser= ???
 AC_ARG_VAR([BROWSER], [Path to Internet browser.])
 AC_PATH_PROG([BROWSER], [firefox], [no])
 if test "$BROWSER" = "no"; then
@@ -292,6 +316,8 @@ if test "$IMAGECONVERT" = "no"; then
   AC_MSG_ERROR([unzip is required])
 fi
 AC_DEFINE_UNQUOTED(IMAGECONVERT, "$WGET", [Path to convert (image conversion program).])
+
+esac # case $os_type
 
 # =======
 # Targets

@@ -16,6 +16,7 @@ INSTALL \
 NEWS \
 vtempl.in \
 Makefile.globals \
+spidermonkey.pc \
 doc/AUTOCONF \
 doc/AUTOMAKE \
 doc/DEPENDENCY \

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Viewer.h,v 1.3 2008/12/21 19:21:06 couannette Exp $
 
 Viewer ???
 
@@ -229,8 +229,6 @@ void viewer_default(void);
 
 extern float eyedist;
 extern float screendist;
-
-void XEventStereo(void);
 
 void getCurrentSpeed();
 

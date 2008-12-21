@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.3 2008/12/02 15:23:56 couannette Exp $
+$Id: Viewer.c,v 1.4 2008/12/21 19:21:06 couannette Exp $
 
 CProto ???
 
@@ -96,7 +96,7 @@ void viewer_default() {
 
 #ifndef AQUA
 	if (shutterGlasses)
-		XEventStereo();
+	    setXEventStereo();
 #endif
 }
 

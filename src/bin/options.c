@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: options.c,v 1.4 2008/12/02 17:41:38 couannette Exp $
+  $Id: options.c,v 1.5 2008/12/21 19:21:06 couannette Exp $
 
   FreeX3D command line arguments.
 
@@ -19,12 +19,61 @@
 
 extern int wantEAI;
 
+void print_version()
+{
+    const char *libver, *progver;
+
+    libver = libFreeX3D_get_version();
+    progver = freex3d_get_version();
+    
+    printf("Program version: %s\nLibrary version: %s\n", progver, libver);
+    printf("\nFreeWRL VRML/X3D browser from CRC Canada (http://www.crc.ca)\n");
+    printf("   type \"man freewrl\" to view man pages\n\n");
+}
+
+void usage()
+{
+    printf( "usage: freex3d [options] <VRML or X3D file|URL>\n\n"
+	    "\t-h|--help        This help.\n"
+	    "\t-v|--version     Print version.\n"
+	    "\nWindow options:\n"
+	    "\t-c|--fullscreen  Set window fullscreen\n"
+	    "\t-g|--geometry    Set window geometry.\n"
+	    "\t-b|--big         Set window size to 800x600.\n"
+	    "\nGeneral options:\n"
+	    "\t-e|--eai         Enable EAI.\n"
+	    "\t-f|--fast        Set global texture size to -256 (fast).\n"
+	    "\t-W|--linewidth   Set line width.\n"
+	    "\t-Q|--nocollision Disable collision management.\n"
+	    "\nSnapshot options:\n"
+	    "\t-p|--gif         Set file format to GIF (default is PNG).\n"
+	    "\t-n|--snapfile    Set file name pattern.\n"
+	    "\t-o|--snaptmp     Set directory for snap files.\n"
+#if defined(DOSNAPSEQUENCE)
+	    "\nSnapshot sequence options:\n"
+	    "\t-l|--seq         Set snapshot sequence mode.\n"
+	    "\t-m|--seqfile     Set sequence file name pattern.\n"
+	    "\t-q|--maximg      Set maximum number of files in sequence.\n"
+#endif
+	    "\nMisc options:\n"
+	    "\t-V|--eaiverbose  Set EAI subsystem messages.\n"
+	    "\t-r|--screendist  Set screen distance.\n"
+	    "\t-y|--eyedist     Set eye distance.\n"
+	    "\t-u|--shutter     Set shutter glasses.\n"
+	    "\t-t|--stereo      Set stereo parameter.\n"
+	    "\t-K|--keypress    Set immediate key pressed when ready.\n"
+	    "\nInternal options:\n"
+	    "\t-i|--plugin      Called from plugin.\n"
+	    "\t-j|--fd          Pipe to command the program.\n"
+	    "\t-k|--instance    Instance of plugin.\n"
+	    ""
+	);
+}
 
 int parseCommandLine (int argc, char **argv)
 {
     int c;
-    int tmp;
-    int option_index = 0;
+    float ftmp;
     static const char my_optstring[] = "efghijkvlpqmnobsQWKX";
 
     while (1) {
@@ -38,25 +87,25 @@ int parseCommandLine (int argc, char **argv)
 	    {"fd", 1, 0, 'j'},
 	    {"instance", 1, 0, 'k'},
 	    {"version", 0, 0, 'v'},
-	    {"big",  0, 0, 'b'},		/* Alberto Dubuc */
-	    {"nocollision",0, 0, 'Q'},		/* Alberto Dubuc */
-	    {"keypress",1, 0, 'K'},		/* Robert Sim */
+	    {"big",  0, 0, 'b'},
+	    {"nocollision",0, 0, 'Q'},
+	    {"keypress",1, 0, 'K'},
 	    {"eaiverbose", 0, 0, 'V'},
 
 #ifdef DOSNAPSEQUENCE
 	    {"seq", 0, 0, 'l'},
 	    {"gif", 0, 0, 'p'},
-	    {"seqb",1, 0, 'm'},
+	    {"seqfile",1, 0, 'm'},
 	    {"maximg", 1, 0, 'q'},
 #endif
-	    {"snapb", 1, 0, 'n'},
-	    {"seqtmp", 1, 0, 'o'},
+	    {"snapfile", 1, 0, 'n'},
+	    {"snaptmp", 1, 0, 'o'},
 	    {"shutter", 0, 0, 'u'},
 	    {"eyedist", 1, 0, 'y'},
 	    {"fullscreen", 0, 0, 'c'},
-	    {"stereoparameter", 1, 0, 't'},
+	    {"stereo", 1, 0, 't'},
 	    {"screendist", 1, 0, 'r'},
-	    {"linewidth", 1, 0, 'W'},  /* Petr Mikulik */
+	    {"linewidth", 1, 0, 'W'},
 
 	    {"parent", 1, 0, 'x'},
 	    {"server", 1, 0, 'x'},
@@ -78,97 +127,129 @@ int parseCommandLine (int argc, char **argv)
 	    printf ("\n");
 	    break;
 
-	case 'x':
-	    printf ("option --%s not implemented yet, complain bitterly\n",
-		    long_options[option_index].name);
+	case 'h': /* --help */
+	    usage();
+	    exit(0);
 	    break;
 
-	case 'e':
-	    wantEAI=TRUE;
+	case 'v': /* --version */
+	    print_version();
+	    exit(0);
 	    break;
 
-	case 'f':
+	case 'x': /* non-implemented option */
+	    printf("option --%s not implemented yet, complain bitterly\n",
+		   long_options[option_index].name);
+	    break;
+
+	case 'e': /* --eai */
+	    wantEAI = TRUE;
+	    break;
+
+	case 'f': /* --fast */
 	    /* set negative so that the texture thread will pick this up */
 	    setTexSize(-256);
 	    break;
 
-	case 'g':
+	case 'g': /* --geometry */
 	    setGeometry(optarg);
 	    break;
 
-	case 'c':
-	    fullscreen = 1;
+	case 'c': /* --fullscreen */
 #if HAVE_XF86_VMODE
-	    printf("\nFullscreen mode is only available for XFree86 version 4.\n");
-	    printf("If you are running version 4, please add -DXF86V4 to your vrml.conf file\n");
-	    printf("in the FREEWRL_DEFINES section, and add -lXxf86vm to the FREEWRL_LIBS section.\n");
+	    fullscreen = 1;
+#else
+	    printf("\nFullscreen mode is only available when xf86vmode extension is\n"
+		  "supported by your X11 server: i.e. XFree86 version 4 or later,\n"
+		   "Xorg version 1.0 or later.\n"
+		   "Configure should autodetect it for you. If not please report"
+		   "this problem to\n\t " PACKAGE_BUGREPORT "\n");
 	    fullscreen = 0;
 #endif
 	    break;
 
-	case 'h':
-	    printf ("\nFreeWRL VRML/X3D browser from CRC Canada (http://www.crc.ca)\n");
-	    printf ("   type \"man freewrl\" to view man pages\n\n");
+	case 'i': /* --plugin */
+	    sscanf(optarg,"pipe:%d",&_fw_pipe);
+	    isBrowserPlugin = TRUE;
 	    break;
 
-	case 'i': sscanf (optarg,"pipe:%d",&_fw_pipe); isBrowserPlugin = TRUE; break;
-	case 'j': sscanf (optarg,"%d",&_fw_browser_plugin);  break;
-	case 'k': sscanf (optarg,"%u",&_fw_instance); break;
-	case 'v': printf ("FreeWRL version: %s\n", freex3d_get_version()); 
-	    exit(0);break;
+	case 'j': /* --fd */
+	    sscanf(optarg,"%d",&_fw_browser_plugin);
+	    break;
+
+	case 'k': /* --instance */
+	    sscanf(optarg,"%u",&_fw_instance);
+	    break;
+
+	case 'W': /* --linewidth */
 	    /* Petr Mikiluk - ILS line width */
-	case 'W': sscanf (optarg,"%g",&tmp); setLineWidth(tmp); break;
+	    sscanf(optarg,"%g", &ftmp);
+	    setLineWidth(ftmp);
+	    break;
 
-	case 'Q': be_collision = FALSE; break;
-
+	case 'Q': /* --nocollision */
+	    be_collision = FALSE;
+	    break;
 
 	    /* Snapshot stuff */
 #ifdef DOSNAPSEQUENCE
-	case 'l': setSnapSeq(); break;
-	case 'p': snapGif = TRUE; break;
-	case 'm':
+	case 'l': /* --seq */
+	    setSnapSeq();
+	    break;
+
+	case 'm': /* --seqfile */
 	    setSeqFile(optarg);
 	    break;
-	case 'q': sscanf (optarg,"%d",&maxSnapImages);
+
+	case 'q': /* --maximg */
+	    sscanf(optarg,"%d",&maxSnapImages);
 	    setMaxImages(maxSnapImages);
 	    break;
-
 #endif
+	case 'p': /* --gif */
+	    setSnapGif();
+	    break;
 
-	case 'n':
+	case 'n': /* --snapfile*/
 	    setSnapFile(optarg);
 	    break;
-	case 'o':
+
+	case 'o': /* --snaptmp */
 	    setSeqTemp(optarg);
 	    break;
 
-	case 'V':
+	case 'V': /* --eaiverbose */
 	    setEaiVerbose();
 	    break;
 
-	case 'b': /* Alberto Dubuc - bigger window */
-	    setGeometry ("800x600");
+	case 'b': /* --big */
+	    /* Alberto Dubuc - bigger window */
+	    setGeometry("800x600");
 	    break;
 
+	case 'r': /* --screendist */
 	    /* Shutter patches from Mufti @rus */
-	case 'r':
 	    setScreenDist(optarg);
 	    break;
-	case 't':
+
+	case 't': /* --stereo */
 	    setStereoParameter(optarg);
 	    break;
-	case 'u':
+
+	case 'u': /* --shutter */
 	    setShutter();
-	    XEventStereo();
+	    setXEventStereo();
 	    break;
-	case 'y':
+
+	case 'y': /* --eyedist */
 	    setEyeDist(optarg);
 	    break;
 
+	case 'K': /* --keypress */
 	    /* initial string of keypresses once main url is loaded */
-	case 'K':
 	    keypress_string = optarg;
 	    break;
+
 	default:
 	    /* printf ("?? getopt returned character code 0%o ??\n", c); */
 	    break;

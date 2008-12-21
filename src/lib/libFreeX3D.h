@@ -4,7 +4,7 @@
  *
  * public API - libFreeX3D.h
  *
- * $Id: libFreeX3D.h,v 1.13 2008/12/19 22:09:17 sdumoulin Exp $
+ * $Id: libFreeX3D.h,v 1.14 2008/12/21 19:21:06 couannette Exp $
  *
  *******************************************************************/
 
@@ -20,6 +20,8 @@ const char *libFreeX3D_get_version();
 /**
  * Initialization
  */
+void initFreewrl();
+void closeFreewrl();
 int initFreeX3D();
 void closeFreeX3D();
 
@@ -34,6 +36,18 @@ void create_EAI();
 void create_MIDIEAI();
 void doQuit();
 void Anchor_ReplaceWorld(char *name);
+void setTexSize(int requestedsize);
+void setGeometry(const char *gstring);
+void setSnapFile(const char* file);
+void setSeqTemp(const char* file);
+void setEaiVerbose();
+void setScreenDist(const char *optArg);
+void setStereoParameter(const char *optArg);
+void setShutter(void);
+void setXEventStereo();
+void setEyeDist(const char *optArg);
+void setLineWidth(float lwidth);
+void setSnapGif();
 
 /**
  * General variables

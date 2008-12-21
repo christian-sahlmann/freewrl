@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.3 2008/12/10 18:46:54 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.4 2008/12/21 19:21:06 couannette Exp $
 
 Scenegraph rendering.
 
@@ -649,6 +649,7 @@ render_hier(struct X3D_Node *p, int rwhat) {
 	}
 }
 
+/* shutter glasses, stereo view  from Mufti@rus */
 /* handle setting shutter from parameters */
 void setShutter (void) {
         shutterGlasses = 1;

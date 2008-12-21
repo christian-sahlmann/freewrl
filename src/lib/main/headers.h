@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.14 2008/12/19 22:06:45 sdumoulin Exp $
+$Id: headers.h,v 1.15 2008/12/21 19:21:06 couannette Exp $
 
 Global includes.
 
@@ -27,23 +27,6 @@ char *readInputString(char *fn);
 
 /* see if an inputOnly "set_" field has changed */
 #define IO_FLOAT -2335549.0
-
-/* void *freewrlMalloc(int line, char *file, size_t sz); */
-/* void *freewrlRealloc (int line, char *file, void *ptr, size_t size); */
-/* void *freewrlStrdup (int line, char *file, char *str); */
-/* #define MALLOC(sz) FWMALLOC (__LINE__,__FILE__,sz) */
-/* #define FWMALLOC(l,f,sz) freewrlMalloc(l,f,sz) */
-/* #define REALLOC(a,b) freewrlRealloc(__LINE__,__FILE__,a,b) */
-/* #define STRDUP(a) freewrlStrdup(__LINE__,__FILE__,a) */
-/* #ifdef DEBUG_MALLOC */
-/* 	/\* free a malloc'd pointer *\/ */
-/* 	void freewrlFree(int line, char *file, void *a); */
-/* 	#define FREE_IF_NZ(a) if(a) {freewrlFree(__LINE__,__FILE__,a); a = 0;} */
-/* #else  */
-/* 	#define FREE_IF_NZ(a) if(a) {free(a); a = 0;} */
-/* #endif */
-
-/* #define UNLINK(fdd) {/\* printf ("unlinking %s at %s:%d\n",fdd,__FILE__,__LINE__); *\/ unlink (fdd); } */
 
 /* children fields path optimizations */
 #define CHILDREN_COUNT int nc = node->children.n;
@@ -903,20 +886,14 @@ extern GLfloat Backtex[], Backnorms[];
 
 extern void new_tessellation(void);
 extern void initializePerlThread(void);
-extern void setGeometry (const char *optarg);
 extern void setWantEAI(int flag);
 extern void setPluginPipe(const char *optarg);
 extern void setPluginFD(const char *optarg);
 extern void setPluginInstance(const char *optarg);
 
-/* shutter glasses, stereo view  from Mufti@rus */
-extern void setShutter (void);
 #ifndef AQUA
 extern int shutterGlasses;
 #endif
-extern void setScreenDist (const char *optArg);
-extern void setStereoParameter (const char *optArg);
-extern void setEyeDist (const char *optArg);
 
 extern int isPerlinitialized(void);
 
@@ -984,22 +961,15 @@ extern void setButDown(int button, int value);
 extern void setCurXY(int x, int y);
 extern void do_keyPress (char ch, int ev);
 extern void setLastMouseEvent(int etype);
-extern void initFreewrl();
 extern void aqDisplayThread();
 #endif
 extern void setSnapSeq();
 extern void setEAIport(int pnum);
-extern void setTexSize(int num);
 extern void setKeyString(const char *str);
 extern void setNoCollision();
-extern void setSnapGif();
-extern void setLineWidth(float lwidth);
-extern void closeFreewrl();
 extern void setSeqFile(const char* file);
-extern void setSnapFile(const char* file);
 extern void setMaxImages(int max);
 extern void setBrowserFullPath(const char *str);
-extern void setSeqTemp(const char* file);
 extern void setInstance(uintptr_t instance);
 extern void setScreenDim(int w, int h);
 
@@ -1037,9 +1007,6 @@ extern double nearPlane, farPlane, screenRatio, calculatedNearPlane, calculatedF
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 
 extern int render_sensitive,render_vp,render_light,render_proximity,curlight,verbose,render_blend,render_geom,render_collision;
-
-extern void XEventStereo();
-
 
 /* Java CLASS invocation */
 int newJavaClass(int scriptInvocationNumber,char * nodestr,char *node);
@@ -1441,7 +1408,6 @@ void sendPluginFD(int fd);
 void aquaPrintVersion();
 void setPluginPath(char* path);
 #endif
-void setEaiVerbose();
 void replaceWorldNeeded(char* str);
 
 /* X3D C parser */

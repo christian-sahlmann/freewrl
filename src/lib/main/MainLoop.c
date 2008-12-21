@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.11 2008/12/19 22:06:45 sdumoulin Exp $
+$Id: MainLoop.c,v 1.12 2008/12/21 19:21:06 couannette Exp $
 
 CProto ???
 
@@ -207,7 +207,6 @@ void render_pre(void);
 void render(void);
 void setup_projection(int pick, int x, int y);
 void glPrintError(char *str);
-void XEventStereo(void);
 void EventLoop(void);
 struct X3D_Node*  getRayHit(void);
 void get_hyperhit(void);
@@ -1033,15 +1032,12 @@ void get_hyperhit() {
         ray_save_posn.c[0] = x3; ray_save_posn.c[1] = y3; ray_save_posn.c[2] = z3;
 }
 
-
-
-
-
 /* set stereo buffers, if required */
-void XEventStereo() {
-        bufferarray[0]=GL_BACK_LEFT;
-        bufferarray[1]=GL_BACK_RIGHT;
-        maxbuffers=2;
+void setXEventStereo()
+{
+    bufferarray[0]=GL_BACK_LEFT;
+    bufferarray[1]=GL_BACK_RIGHT;
+    maxbuffers=2;
 }
 
 /* if we had an opengl error... */
@@ -1373,15 +1369,6 @@ void setTexSize(int requestedsize) {
         global_texSize = requestedsize;
 }
 
-
-void setSnapGif() {
-#ifdef DOSNAPSEQUENCE
-/* need to re-implement this for OSX generating QTVR */
-
-        snapGif = 1;
-#endif
-}
-
 void setNoCollision() {
         be_collision = 0;
         setMenuButton_collision(be_collision);
@@ -1415,6 +1402,7 @@ void setMaxImages(int max) {
 #endif
 
 }
+
 void setSeqTemp(const char* file) {
         seqtmp = fw_strndup(file, 500);
         printf("seqtmp is %s\n", seqtmp);

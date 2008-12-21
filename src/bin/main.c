@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: main.c,v 1.9 2008/12/15 21:27:49 istakenv Exp $
+$Id: main.c,v 1.10 2008/12/21 19:21:06 couannette Exp $
 
 FreeX3D main program.
 
@@ -92,6 +92,8 @@ int main (int argc, char **argv)
 
     /* now wait around until something kills this thread. */
     pthread_join(DispThrd, NULL);
+
+    return 0;
 }
 
 /* SIGQUIT handler - plugin code sends a SIGQUIT... */
