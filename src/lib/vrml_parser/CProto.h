@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.h,v 1.3 2008/12/12 21:13:49 crc_canada Exp $
+$Id: CProto.h,v 1.4 2008/12/22 19:20:35 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -32,6 +32,7 @@ struct OffsetPointer
  unsigned ofs;
 };
 
+
 /* Constructor/destructor */
 struct OffsetPointer* newOffsetPointer(struct X3D_Node*, unsigned);
 #define offsetPointer_copy(me) \
@@ -58,12 +59,8 @@ struct ProtoElementPointer
 };
 
 /* Constructor/destructor */
-struct ProtoElementPointer* newProtoElementPointer(void);
-
 #define deleteProtoElementPointer(me) \
  {FREE_IF_NZ(me->stringToken); FREE_IF_NZ(me);}
-
-struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer *);
 
 #define ASSIGN_UNIQUE_ID(me) \
 	{me->fabricatedDef = nextFabricatedDef; nextFabricatedDef ++; }

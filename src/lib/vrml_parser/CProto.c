@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.5 2008/12/17 18:38:12 crc_canada Exp $
+$Id: CProto.c,v 1.6 2008/12/22 19:20:35 crc_canada Exp $
 
 CProto ???
 
@@ -95,7 +95,7 @@ static  indexT nextFabricatedDef=1;
 /* ************************************************************************** */
 
 /* Constructor/destructor */
-struct ProtoElementPointer* newProtoElementPointer(void) {
+static struct ProtoElementPointer* newProtoElementPointer(void) {
 	struct ProtoElementPointer *ret=MALLOC(sizeof(struct ProtoElementPointer));
 	ASSERT (ret);
 
@@ -109,7 +109,7 @@ struct ProtoElementPointer* newProtoElementPointer(void) {
 
 /* in CFuncs/CProto.h #define deleteProtoElementPointer(me)  */
 
-struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer * me) {
+static struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer * me) {
 	struct ProtoElementPointer *ret=MALLOC(sizeof(struct ProtoElementPointer));
 	ASSERT (ret);
 
@@ -121,7 +121,6 @@ struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer *
 	ret->fabricatedDef = me->fabricatedDef;	
 	return ret;
 }
-
 
 
 
@@ -144,6 +143,7 @@ struct OffsetPointer* newOffsetPointer(struct X3D_Node* node, unsigned ofs)
 
  return ret;
 }
+
 
 /* ************************************************************************** */
 /* ******************************* ProtoFieldDecl *************************** */
@@ -1159,13 +1159,14 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	while (i < protoElementCount) {
 		/* get the current element */
 		ele = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i);
+
 		ASSERT(ele);
 		#ifdef XXX
 		PROTO_CAT ( "# at A\n");
 		#endif
 
 		#ifdef CPROTOVERBOSE
-		printf ("\nPROTO - ele %d of %d;  is %u isNODE %d isKEYWORD %d ts %d st %s\n",i, protoElementCount, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); 
+		printf ("\nPROTO - ele %d of %d;  is %u isNODE %d isKEYWORD %d ts %d st %s fabProtoDef %d\n",i, protoElementCount, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken, ele->fabricatedDef); 
 		#endif
 
 		/* this is a NODE, eg, "SphereSensor". If we need this DEFined because it contains an IS, then make the DEF */
