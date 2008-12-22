@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.10 2008/12/19 22:03:41 sdumoulin Exp $
+$Id: EAIEventsIn.c,v 1.11 2008/12/22 16:04:47 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -16,6 +16,8 @@ Handle incoming EAI (and java class) events with panache.
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+#include "../world_script/CScripts.h"
 
 #include "../input/EAIheaders.h"
 #include "../world_script/fieldSet.h"
@@ -106,9 +108,9 @@ void EAI_parse_commands () {
 		/* step 3, get the command */
 
 		command = EAI_BUFFER_CUR;
-		if (eaiverbose) {
+		if (eaiverbose) 
 			printf ("EAI command %s (%c) strlen %d\n",eaiPrintCommand(command), command,strlen(&EAI_BUFFER_CUR));
-		}
+
 		bufPtr++;
 
 		/* return is something like: $hand->print("RE\n$reqid\n1\n$id\n");*/
@@ -329,11 +331,29 @@ void EAI_parse_commands () {
 			case REGLISTENER: {
 				struct X3D_Node * node;
 				int offset;
+				int directionFlag = 0;
 
 				/*143024848 88 8 e 6*/
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&tmp_a,&tmp_b,ctmp,&tmp_c);
 				node = getEAINodeFromTable(tmp_a);
-				offset = getEAIActualOffset(tmp_a,tmp_b);
+				/* is this a script node? if so, get the actual string name in the table for this one */
+				if (node->_nodeType == NODE_Script) {
+					struct Shader_Script * sp;
+
+					/* we send along the script number, not the node pointer */
+					sp = (struct Shader_Script *) (X3D_SCRIPT(node)->__scriptObj);
+					printf ("ah! so script %d  tmp_a, node %u is num %d\n",tmp_a,node,sp->num);
+
+
+					printf ("this is a script node in a REGLISTENER command! %d\n",tmp_b);
+					node = (uintptr_t) sp->num;
+					offset = tmp_b; /* this is the offset of the string name in JSparamindex from 
+							the EAI_GetType call */
+					directionFlag = TO_SCRIPT;
+
+				} else {
+					offset = getEAIActualOffset(tmp_a,tmp_b);
+				}
 
 				/* so, count = query id, tmp_a pointer, tmp_b, offset, ctmp[0] type, tmp_c, length*/
 				ctmp[1]=0;
@@ -348,7 +368,7 @@ void EAI_parse_commands () {
 
 				/* set up the route from this variable to the handle_Listener routine */
 				CRoutes_Register  (1,node, offset, 1, EAIListenerArea, (int) tmp_c,(void *) 
-					&handle_Listener, 0, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
+					&handle_Listener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
@@ -511,7 +531,6 @@ void EAI_parse_commands () {
 				}
 
 			}
-
 
 		/* send the response - events don't send a reply */
 		/* and, Anchors send a different reply (loadURLS) */

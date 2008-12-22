@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.6 2008/12/17 22:56:57 crc_canada Exp $
+$Id: CRoutes.c,v 1.7 2008/12/22 16:04:47 crc_canada Exp $
 
 ???
 
@@ -988,7 +988,7 @@ static void actually_do_CRoutes_Register(int num) {
 	/* go through the routing list, finding where to put it */
 	while (RTR.from > CRoutes[insert_here].routeFromNode) {
 		#ifdef CRVERBOSE 
-			printf ("comparing %u to %u\n",from, CRoutes[insert_here].routeFromNode);
+			printf ("comparing %u to %u\n",RTR.from, CRoutes[insert_here].routeFromNode);
 		#endif
 		insert_here++;
 	}
@@ -1143,8 +1143,8 @@ static void actually_do_CRoutes_Register(int num) {
 	#ifdef CRVERBOSE 
 		printf ("routing table now %d\n",CRoutes_Count);
 		for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
-			printf ("%u %u %u : ",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
-				CRoutes[shifter].interpptr);
+			printf ("%u %u %u direction %d, len %d extra %d : ",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
+				CRoutes[shifter].interpptr, CRoutes[shifter].direction_flag, CRoutes[shifter].len, CRoutes[shifter].extra);
 			for (insert_here = 0; insert_here < CRoutes[shifter].tonode_count; insert_here++) {
 				printf (" to: %u %u",CRoutes[shifter].tonodes[insert_here].routeToNode,
 							CRoutes[shifter].tonodes[insert_here].foffset);
@@ -1295,7 +1295,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
-
 
 	#ifdef CRVERBOSE
 	printf ("routing table looking, looking at %x and %x\n",(uintptr_t)(CRoutes[route].routeFromNode), actualscript); 
@@ -1462,7 +1461,6 @@ void propagate_events() {
 					/* to get routing to/from exposedFields, lets
 					 * mark this to/offset as an event */
 					MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
-
 					if (CRoutes[counter].direction_flag != 0) {
 						/* scripts are a bit complex, so break this out */
 						sendScriptEventIn(counter);
@@ -1641,17 +1639,7 @@ Interface to allow EAI/SAI to get routing information.
 int getRoutesCount(void) {
 	return CRoutes_Count;
 }
-/*
-struct CRStruct {
-	void *	routeFromNode;
-	uintptr_t fnptr;
-	unsigned int tonode_count;
-	CRnodeStruct *tonodes;
-	int	act;
-	int	len;
-	void	(*interpptr)(void *); 
-	int	direction_flag;f
-*/
+
 void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset, 
 		uintptr_t *toNode, int *toOffset) {
         CRnodeStruct *to_ptr = NULL;
