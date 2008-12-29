@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.4 2008/12/19 22:03:41 sdumoulin Exp $
+$Id: EAIServ.c,v 1.5 2008/12/29 21:42:00 crc_canada Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -21,6 +21,7 @@ Implement EAI server functionality for FreeWRL.
 #include "../input/EAIheaders.h"
 
 
+/************************************************************************/
 /*									*/
 /* Design notes:							*/
 /*	FreeWRL is a server, the Java (or whatever) program is a client	*/

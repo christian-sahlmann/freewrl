@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.8 2008/12/19 16:05:59 crc_canada Exp $
+$Id: fieldSet.c,v 1.9 2008/12/29 21:42:00 crc_canada Exp $
 
 ???
 
@@ -22,6 +22,7 @@ $Id: fieldSet.c,v 1.8 2008/12/19 16:05:59 crc_canada Exp $
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
+#include "../input/EAIheaders.h"
 #include "../input/EAIHelpers.h"
 #include "../x3d_parser/Bindable.h"
 
@@ -284,24 +285,27 @@ unsigned int setField_FromEAI (char *ptr) {
 	#ifdef SETFIELDVERBOSE
 	{
 		struct X3D_Node *np;
+		int nt;
 		/* get the actual node pointer from this index */
-		np = getEAINodeFromTable(nodeIndex);
+		np = getEAINodeFromTable(nodeIndex,fieldIndex);
+		nt = getEAINodeTypeFromTable(nodeIndex);
 
 		 printf ("EAI_SendEvent, type %s, nodeptr (index %d) %u offset %d script type %d ",
 				 stringFieldtypeType(datatype),nodeIndex, np->_nodeType, fieldIndex, scripttype);
 		printf ("np->_nodeType %s\n",stringNodeType(np->_nodeType));
 
-		if (np->_nodeType == NODE_Script) printf ("setField_FromEAI - sending to a script node!\n");
-
-		if ((np->_nodeType == NODE_Group) && (X3D_GROUP(np)->FreeWRL__protoDef != 0)) 
-			printf ("setField_FromEAI, sending to a PROTO!\n");
+		if (nt == EAI_NODETYPE_SCRIPT) printf ("setField_FromEAI - sending to a script node!\n");
+		else if (nt == EAI_NODETYPE_PROTO) printf ("setField_FromEAI - sending to a script node!\n");
+		else if(nt == EAI_NODETYPE_STANDARD) printf ("setField_FromEAI - sending to a standard node!\n");
+		else printf ("setField_FromEAI - unknown type!\n");
 		}
 	#endif
+
 
 	/* We have either a event to a memory location, or to a script. */
 	/* the field scripttype tells us whether this is true or not.   */
 
-	if (scripttype == NODE_Script) {
+	if (scripttype == EAI_NODETYPE_SCRIPT) {
 		/* a local temporary area for us */
 		memptr = (uintptr_t) &myAnyValue;
 	} else {
@@ -309,7 +313,7 @@ unsigned int setField_FromEAI (char *ptr) {
 	}
 
 	offset = getEAIActualOffset(nodeIndex, fieldIndex);
-	nodeptr = (uintptr_t) getEAINodeFromTable(nodeIndex);
+	nodeptr = (uintptr_t) getEAINodeFromTable(nodeIndex,fieldIndex);
 
 	/* now, we are at start of data. */
 	/* lets go to the first non-blank character in the string */
@@ -362,7 +366,7 @@ printf ("ONEVAL - verify memory pointers \n");
 	/* first, parse the value into the local variable */
 	Parser_scanStringValueToMem(memptr,0,datatype,ptr,FALSE);
 
-	if (scripttype == NODE_Script) {
+	if (scripttype == EAI_NODETYPE_SCRIPT) {
 		struct Shader_Script * sp;
 		int rowCount;
 

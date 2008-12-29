@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIheaders.h,v 1.7 2008/12/19 22:02:49 sdumoulin Exp $
+$Id: EAIheaders.h,v 1.8 2008/12/29 21:42:00 crc_canada Exp $
 
 EAI and java CLASS invocation
 
@@ -28,6 +28,10 @@ void EAI_RW(char *bufptr);
 /* debugging */
 char *eaiPrintCommand (char command);
 
+
+#define EAI_NODETYPE_STANDARD   93435
+#define EAI_NODETYPE_PROTO      43534
+#define EAI_NODETYPE_SCRIPT     234425
 
 
 
