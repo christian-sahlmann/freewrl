@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.7 2008/12/22 16:04:47 crc_canada Exp $
+$Id: CRoutes.c,v 1.8 2008/12/30 21:43:58 crc_canada Exp $
 
 ???
 
@@ -853,7 +853,7 @@ void CRoutes_RegisterSimple(
 		}
 	}
 
- /* printf ("CRoutes_RegisterSimple, from %u fromOfs %u, to %u toOfs %u, len %d dir %d\n",from, fromOfs, to, toOfs, len, dir); */
+ printf ("CRoutes_RegisterSimple, from %u fromOfs %u, to %u toOfs %u, len %d dir %d\n",from, fromOfs, to, toOfs, len, dir); 
 
 
  /* When routing to a script, to is not a node pointer! */
@@ -868,6 +868,35 @@ void CRoutes_RegisterSimple(
   interpolatorPointer, dir, extraData);
 }
  
+
+/********************************************************************
+
+Remove a route, but with fewer and more expressive parameters than
+CRoutes_Register.  Currently a wrapper around that other function.
+
+********************************************************************/
+
+void CRoutes_RemoveSimple(
+	struct X3D_Node* from, int fromOfs,
+	struct X3D_Node* to, int toOfs,
+	int len, int dir) {
+
+ 	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
+ 	char tonode_str[15];
+ 	void* interpolatorPointer;
+ 	int extraData = 0;
+
+ 	/* When routing to a script, to is not a node pointer! */
+ 	if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT)
+  		interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
+ 	else
+  		interpolatorPointer=NULL;
+
+ 	snprintf(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
+
+ 	CRoutes_Register(0, from, fromOfs, 1, tonode_str, len, 
+  		interpolatorPointer, dir, extraData);
+}
 
 /********************************************************************
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.12 2008/12/29 21:42:00 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.13 2008/12/30 21:43:58 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -554,35 +554,6 @@ void EAI_parse_commands () {
 	}
 }
 
-/* read in a C pointer, and field offset, and make sense of it */
-int getEAINodeAndOffset (char *bufptr, struct X3D_Node **Node, int *FieldInt, int fromto) {
-	int rv;
-	char *x;
-	char fieldTemp[2000];
-	struct X3D_Node *sn;
-	int fieldNode;
-
-	rv = TRUE;
-	sscanf(bufptr, "%d", &fieldNode); 
-	sn = getEAINodeFromTable(fieldNode,-1);
-	*Node = sn;
-
-	/* copy the from field */
-	x = fieldTemp;
-	while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
-	while (*bufptr > ' ') { *x = *bufptr; x++; bufptr++;}
-	*x = '\0';
-
-	*FieldInt = findRoutedFieldInFIELDNAMES(sn,fieldTemp,fromto);
-
-	if (*FieldInt < 0) {
-		printf ("EAIEventsIn: trouble finding field %s of %s\n",
-				fieldTemp, stringNodeType(sn->_nodeType));
-		rv = FALSE;
-	}	
-	return rv;
-}
-
 void handleGETROUTES (char *bufptr, char *buf, int repno) {
 	int numRoutes;
 	int count;
@@ -707,6 +678,10 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	int *np;
 	int fromOffset, fromVRMLtype, toOffset, toVRMLtype;
 	int adrem;
+	int fromfieldNode, fromretNode, fromretField, fromdataLen, fromfieldType, fromscripttype, fromxxx;
+	int tofieldNode, toretNode, toretField, todataLen, tofieldType, toscripttype, toxxx;
+	char *x;
+	int ftlen;
 
 	int rv;
 
@@ -716,86 +691,99 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	/* get ready for the reply */
 	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
 
-	/* printf ("handleRoute, string %s\n",bufptr); */
+	if (eaiverbose) printf ("handleRoute, string %s\n",bufptr);
 	
 	/* ------- worry about the route from section -------- */
 
 	/* read in the fromNode pointer */
 	while (*bufptr == ' ') bufptr++;
-	if (!getEAINodeAndOffset (bufptr, &fromNode, &fromFieldInt,0)) rv = FALSE;
 
-	/* skip past the first node & field, to get ready for the next one */
-	while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
-	while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
+	/* get the from Node */
+        sscanf(bufptr, "%d", &fromfieldNode);
 
-	/* printf ("handleRoute, to string %s\n",bufptr);
-	printf ("fromNode is of type %s\n",stringNodeType(fromNode->_nodeType)); */
+        /* copy the from field into the "fieldTemp" array */
+        x = fieldTemp; ftlen = 0;
+
+	/* skip to the beginning of the field name */
+        while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
+
+	/* copy the field over */
+        while ((*bufptr > ' ') && (ftlen <1000)) { *x = *bufptr;      x++; bufptr++; ftlen++;}
+        *x = '\0';
+
+	/* and, get the info for this one */
+	EAI_GetType (fromfieldNode, fieldTemp, "outputOnly", &fromretNode, &fromretField, &fromdataLen, &fromfieldType, &fromscripttype, &fromxxx);
+
+
+	/* skip past the first field, to get ready for the next one */
+	while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
 
 	/* ------- now, the route to section -------- */
+	/* get the to Node */
 
-	if (!getEAINodeAndOffset (bufptr, &toNode, &toFieldInt,1)) rv = FALSE;
-	/* printf ("toNode is of type %s\n",stringNodeType(toNode->_nodeType)); */
+        sscanf(bufptr, "%d", &tofieldNode);
 
-	/* ------- can these routes work in these nodes?  -------- */
-	if (rv == TRUE) {
-		/* get the from field info */
-		np = (int *)NODE_OFFSETS[fromNode->_nodeType];
+        /* copy the to field into the "fieldTemp" array */
+        x = fieldTemp; ftlen = 0;
 
-		/* go through and find the entry for this field, looks like:
-		const int OFFSETS_TimeSensor[] = {
-		        FIELDNAMES_time, offsetof (struct X3D_TimeSensor, time),  FIELDTYPE_SFTime, KW_outputOnly,
-		        FIELDNAMES___inittime, offsetof (struct X3D_TimeSensor, __inittime),  FIELDTYPE_SFTime, KW_initializeOnly,
-		        FIELDNAMES_fraction_changed, offsetof (struct X3D_TimeSensor, fraction_changed),  FIELDTYPE_SFFloat, KW_outputOnly,
-		        FIELDNAMES_loop, offsetof (struct X3D_TimeSensor, loop),  FIELDTYPE_SFBool, KW_inputOutput,
-		        FIELDNAMES_resumeTime, offsetof (struct X3D_TimeSensor, resumeTime),  FIELDTYPE_SFTime, KW_inputOutput,
-        		...
-        		-1, -1, -1, -1};
-		*/
+	/* skip to the beginning of the field name */
+        while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
 
-		/* go til we find the field, or a -1 */
-		while ((*np != -1) && (*np != fromFieldInt)) np += 4;
-		np++; fromOffset = *np; np++; fromVRMLtype = *np; np++;
+	/* copy the field over */
+        while ((*bufptr > ' ') && (ftlen <1000)) { *x = *bufptr;      x++; bufptr++; ftlen++;}
+        *x = '\0';
 
-		/* is this a valid type? */
-		if ((*np != KW_outputOnly) && (*np != KW_inputOutput)) {
-			printf ("expected an output type for field %s of %s\n",
-                                fieldTemp, stringNodeType(fromNode->_nodeType));
-              	  	rv = FALSE;
-		}
+	/* and, get the info for this one */
+	EAI_GetType (tofieldNode, fieldTemp, "inputOnly", &toretNode, &toretField, &todataLen, &tofieldType, &toscripttype, &toxxx);
 
-		/* get the to field info */
-		np = (int *)NODE_OFFSETS[toNode->_nodeType];
+	if (eaiverbose) printf ("so, we are routing from %d:%d to %d:%d, fieldtypes %d:%d, datalen %d:%d\n",
+		fromretNode,toretNode, fromretField,toretField,fromfieldType,tofieldType,fromdataLen,todataLen);
 
-		while ((*np != -1) && (*np != toFieldInt)) np += 4;
-		np++; toOffset = *np; np++; toVRMLtype = *np; np++;
-
-		/* is this a valid type? */
-		if ((*np != KW_inputOnly) && (*np != KW_inputOutput)) {
-			printf ("expected an input type for field %s of %s\n",
-                                fieldTemp, stringNodeType(toNode->_nodeType));
-              	  	rv = FALSE;
-		}
-
-		/* do the VRML types match? */
-		/* printf ("VRML types %d %d\n",fromVRMLtype, toVRMLtype); */
-		if (fromVRMLtype != toVRMLtype) {
-			printf ("Routing type mismatch\n");
-			rv = FALSE;
-		}
-	}
+	/* are both fieldtypes the same, and are both valid? */
+	rv= ((fromfieldType==tofieldType) &&(fromfieldType != -1));
 
 	/* ------- if we are ok, call the routing code  -------- */
-	/* still ok? */
-	if (rv == TRUE) {
+	if (rv) {
+		int scriptFlags = 0;
+		struct Shader_Script *sp;
+
 		if (command == ADDROUTE) adrem = 1;
 		else adrem = 0;
 
-		sprintf (fieldTemp,"%d:%d",toNode,toOffset);
-		CRoutes_Register(adrem, (void *)fromNode, fromOffset, 1,
-			fieldTemp, returnRoutingElementLength(fromVRMLtype),
-			returnInterpolatorPointer (stringNodeType(toNode->_nodeType)),
-			0,0);
+		/* get the C node and field offset for the nodes now */
+		fromNode = (struct X3D_Node*) getEAINodeFromTable(fromretNode,fromretField);
+		toNode = (struct X3D_Node*) getEAINodeFromTable(toretNode,toretField);
+		fromOffset = getEAIActualOffset(fromretNode,fromretField);
+		toOffset = getEAIActualOffset(toretNode,toretField);
 
+		/* are one of these a script? */
+		if (fromscripttype == EAI_NODETYPE_SCRIPT) {
+			/* this had BETTER be a script node! */
+			if (fromNode->_nodeType != NODE_Script) {
+				printf ("internal error, expected Script node type, got something else\n");
+				return;
+			}
+
+			/* scripts route via numbers, not memory pointers */
+			sp = (struct Shader_Script *) (X3D_SCRIPT(fromNode)->__scriptObj);
+			fromNode = (struct X3D_Node *) (sp->num);
+			scriptFlags += FROM_SCRIPT;
+		}
+		if (toscripttype == EAI_NODETYPE_SCRIPT) {
+			/* this had BETTER be a script node! */
+			if (toNode->_nodeType != NODE_Script) {
+				printf ("internal error, expected Script node type, got something else\n");
+				return;
+			}
+
+			/* scripts route via numbers, not memory pointers */
+			sp = (struct Shader_Script *) (X3D_SCRIPT(toNode)->__scriptObj);
+			toNode = (struct X3D_Node *) (sp->num);
+			scriptFlags += TO_SCRIPT;
+		}
+
+		if (command == ADDROUTE) CRoutes_RegisterSimple(fromNode,fromOffset,toNode,toOffset,fromdataLen,scriptFlags);
+		else CRoutes_RemoveSimple(fromNode,fromOffset,toNode,toOffset,fromdataLen,scriptFlags);
 
 		strcat (buf, "0");
 	} else {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.9 2008/12/29 21:42:00 crc_canada Exp $
+$Id: fieldSet.c,v 1.10 2008/12/30 21:43:58 crc_canada Exp $
 
 ???
 
@@ -328,7 +328,6 @@ unsigned int setField_FromEAI (char *ptr) {
 	if (strncmp("ONEVAL ",ptr, strlen("ONEVAL ")) == 0) {
 		ptr += strlen ("ONEVAL ");
 
-printf ("ONEVAL - verify memory pointers \n");
 		/* find out which element the user wants to set - that should be the next number */
 		while (*ptr==' ')ptr++;
 		retint=sscanf (ptr,"%d",&valIndex);
@@ -618,7 +617,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 
 	/* step try the field as is. */
 	retval = findFieldInARR(field, arr, cnt);
-	/* printf ("findRoutedField, field %s retval %d\n",field,retval); */ 
+	/* printf ("findRoutedField, field %s retval %d\n",field,retval); */
 	FIELDCHECK (field)
 
 	/* try ADDING the "set_" or "_changed" */
@@ -646,7 +645,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 		strcat (mychar,"_changed");
 		retval = findFieldInARR(mychar, arr, cnt);
 	}
-	/* printf ("findRoutedField, mychar %s retval %d\n",mychar,retval);*/
+	/* printf ("findRoutedField, mychar %s retval %d\n",mychar,retval); */
 	FIELDCHECK (mychar)
 
 

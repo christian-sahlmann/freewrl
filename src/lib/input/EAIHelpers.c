@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.10 2008/12/29 21:42:00 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.11 2008/12/30 21:43:58 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -501,10 +501,22 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	int maxparamindex = 0;
 	char *invokedValPtr = NULL;  /* for PROTOs - invocation value */
 	int myScriptType = EAI_NODETYPE_STANDARD;
+	int direction;
 
+	/* see if this is an input or output request from nodes =0, tonodes = 1 */
+	direction=0;
+	if (strncmp(accessMethod,"in",strlen("in")) == 0) direction=1;
+	else if (strncmp(accessMethod,"eventIn",strlen("eventIn"))==0) direction=1;
+
+	/*if (direction==0) {
+		printf ("EAI_GetType, this is a FROM route (%s)\n",accessMethod);
+	} else {
+		printf ("EAI_GetType, this is a TO route (%s)\n",accessMethod);
+	} */
+		
 
 	if (eaiverbose) {
-		printf ("call to EAI_GetType, cNode %d fieldString %s accessMethod %s\n",cNode,fieldString,accessMethod);
+		printf ("call to EAI_GetType, cNode %d fieldString :%s: accessMethod %s\n",cNode,fieldString,accessMethod);
 	}
 
 
@@ -530,17 +542,15 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 
 
 	/* try finding it, maybe with a "set_" or "changed" removed */
-	myField = findRoutedFieldInFIELDNAMES(nodePtr,fieldString,0);
-	if (myField == -1) 
-		myField = findRoutedFieldInFIELDNAMES(nodePtr,fieldString,1);
+	myField = findRoutedFieldInFIELDNAMES(nodePtr,fieldString,direction);
 
-	/* printf ("EAI_GetType, for field %s, myField is %d\n",fieldString,myField); */
+	if (eaiverbose) printf ("EAI_GetType, for field %s, myField is %d\n",fieldString,myField);
 
 
 	/* find offsets, etc */
        	findFieldInOFFSETS((int *)NODE_OFFSETS[nodePtr->_nodeType], myField, &myFieldOffs, &ctype, accessType);
 
-	/* printf ("EAI_GetType, after findFieldInOFFSETS, have myFieldOffs %d, ctype %d, accessType %d \n",myFieldOffs, ctype, *accessType); */
+	if (eaiverbose) printf ("EAI_GetType, after findFieldInOFFSETS, have myFieldOffs %d, ctype %d, accessType %d \n",myFieldOffs, ctype, *accessType); 
 
 	/* is this a PROTO, or just an invalid field?? */ 
 	if (myFieldOffs <= 0) {
@@ -686,8 +696,6 @@ void handleEAIGetValue (char command, char *bufptr, char *buf, int repno) {
 	int retint;
 
 	if (eaiverbose) printf ("GETVALUE %s \n",bufptr);
-	printf ("GETVALUE %s \n",bufptr);
-
 
 	/* format: ptr, offset, type, length (bytes)*/
 	retint=sscanf (bufptr, "%d %d %c %d", &nodeIndex,&fieldIndex,ctmp,&length);
@@ -700,7 +708,7 @@ void handleEAIGetValue (char command, char *bufptr, char *buf, int repno) {
 	}
 
 	
-printf ("handleEAIGetValue, node %u, type %s\n",myNode, stringNodeType(myNode->_nodeType));
+	/* printf ("handleEAIGetValue, node %u, type %s\n",myNode, stringNodeType(myNode->_nodeType)); */
 
 	/* is the pointer a pointer to a PROTO?? If so, then the getType did not find
 	an actual field (an IS'd field??) in a proto expansion for us.  We have to 
