@@ -4,7 +4,7 @@
  *
  * public API - libFreeX3D.h
  *
- * $Id: libFreeX3D.h,v 1.14 2008/12/21 19:21:06 couannette Exp $
+ * $Id: libFreeX3D.h,v 1.15 2008/12/31 13:08:15 couannette Exp $
  *
  *******************************************************************/
 
@@ -15,7 +15,6 @@
  * Version embedded
  */
 const char *libFreeX3D_get_version();
-
 
 /**
  * Initialization
@@ -37,7 +36,7 @@ void create_MIDIEAI();
 void doQuit();
 void Anchor_ReplaceWorld(char *name);
 void setTexSize(int requestedsize);
-void setGeometry(const char *gstring);
+void setGeometry_from_cmdline(const char *gstring);
 void setSnapFile(const char* file);
 void setSeqTemp(const char* file);
 void setEaiVerbose();

@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: fwBareWindow.c,v 1.3 2008/12/05 13:20:52 couannette Exp $
+  $Id: fwBareWindow.c,v 1.4 2008/12/31 13:08:15 couannette Exp $
 
   Create X11 window. Manage events.
 
@@ -18,10 +18,6 @@
 #include <X11/Intrinsic.h>
 #include <X11/cursorfont.h>
 
-
-extern long event_mask;
-extern int xPos;
-extern int yPos;
 
 char    *wintitle =  "FreeWRL VRML/X3D Browser";
 XTextProperty windowName;

@@ -48,6 +48,12 @@ AM_LDFLAGS += \
 				$(MOTIF_LIBS)
 endif
 
+# -Wall -Wno-format -no-cpp-precomp -fno-common -DJS_THREADSAFE -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN  -UDEBUG -DNDEBUG -UDEBUG_root -DJS_THREADSAFE -DEDITLINE
+MAC_CFLAGS=-Wno-format -no-cpp-precomp -fno-common -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN -DEDITLINE
+
+if WINDOW_USE_AQUA
+AM_CPPFLAGS += $(MAC_CFLAGS) -DAQUA
+endif
 
 _EV=$(top_srcdir)/versions/LIBFREEX3D
 _EV2=$(top_srcdir)/versions/LIBFREEX3D_LTVERSION
@@ -81,12 +87,12 @@ libFreeX3D_la_SOURCES += internal_version.c
 # WINDOW_USE_* are exclusive
 #
 if WINDOW_USE_X11
-libFreeX3D_la_SOURCES += display_x11.c ui/fwBareWindow.c
+libFreeX3D_la_SOURCES += display_x11.c ui/fwWindow.c ui/fwBareWindow.c
 AM_CPPFLAGS+=-DTARGET_X11
 endif
 
 if WINDOW_USE_MOTIF
-libFreeX3D_la_SOURCES += display_x11.c display_motif.c ui/fwMotifWindow.c
+libFreeX3D_la_SOURCES += display_x11.c display_motif.c ui/fwWindow.c ui/fwMotifWindow.c
 AM_CPPFLAGS+=-DTARGET_MOTIF
 endif
 

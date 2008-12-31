@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.c,v 1.5 2008/12/05 13:20:52 couannette Exp $
+$Id: display.c,v 1.6 2008/12/31 13:08:15 couannette Exp $
 
 FreeX3D support library.
 Display (X11/Motif or OSX/Aqua) initialization.
@@ -24,12 +24,20 @@ int fullscreen = FALSE;
 int view_height = 0; /* viewport */
 int view_width = 0;
 
+int screenWidth = 0; /* screen */
+int screenHeight = 0;
+
+double screenRatio = 1.5;
+
 char *window_title = NULL;
 
 int mouse_x;
 int mouse_y;
 
 int show_mouse;
+
+int xPos = 0;
+int yPos = 0;
 
 
 int display_initialize()
@@ -81,4 +89,22 @@ int initialize_viewport()
 {
     glViewport(0, 0, win_width, win_height);
     return TRUE;
+}
+
+void setGeometry_from_cmdline(const char *gstring)
+{
+    int c;
+    c = sscanf(gstring,"%dx%d+%d+%d", &win_width, &win_height, &xPos, &yPos);
+    /* tell OpenGL what the screen dims are */
+    setScreenDim(win_width,win_height);
+}
+
+/* set internal variables for screen sizes, and calculate frustum */
+void setScreenDim(int wi, int he)
+{
+    screenWidth = wi;
+    screenHeight = he;
+    
+    if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
+    else screenRatio =  screenWidth;
 }

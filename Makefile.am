@@ -1,4 +1,7 @@
 # Toplevel Makefile.am
+#
+# $Id: Makefile.am,v 1.5 2008/12/31 13:08:15 couannette Exp $
+#
 # Defines build subdirectories.
 # Defines all files distributed by this package.
 

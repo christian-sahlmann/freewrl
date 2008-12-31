@@ -6,7 +6,7 @@
  *
  * Library internal declarations.
  *
- * $Id: internal.h,v 1.9 2008/12/21 19:21:06 couannette Exp $
+ * $Id: internal.h,v 1.10 2008/12/31 13:08:15 couannette Exp $
  *
  *******************************************************************/
 
@@ -49,7 +49,6 @@ void *freewrlStrdup(int line, char *file, char *str);
 		           unlink (_fdd); \
 		      } while (0)
 
-# include <assert.h>
 # define ASSERT(_ptr) do { if (!(_ptr)) { \
                            ERROR_MSG("ERROR: assert failed: %s (%s:%d)\n", #_ptr, __FILE__, __LINE__); } \
                       } while (0)
@@ -61,7 +60,6 @@ void *freewrlStrdup(int line, char *file, char *str);
 # define FREE free
 # define STRDUP strdup
 # define UNLINK unlink
-# define assert(_whatever)
 # define ASSERT(_whatever)
 
 #endif /* defined(_DEBUG) && defined(DEBUG_MALLOC) */

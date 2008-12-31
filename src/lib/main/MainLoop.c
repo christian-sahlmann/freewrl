@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.12 2008/12/21 19:21:06 couannette Exp $
+$Id: MainLoop.c,v 1.13 2008/12/31 13:08:15 couannette Exp $
 
 CProto ???
 
@@ -10,6 +10,7 @@ CProto ???
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
+#include <system_js.h>
 #include <display.h>
 #include <internal.h>
 
@@ -33,15 +34,6 @@ CProto ???
 #include "../opengl/OpenGL_Utils.h"
 
 
-#ifndef AQUA
-# define SENSOR_CURSOR cursor= sensorc;
-# define ARROW_CURSOR  cursor = arrowc;
-#else
-# define SENSOR_CURSOR ccurse = SCURSE;
-# define ARROW_CURSOR  ccurse = ACURSE;
-#endif
-
-
 /* do we want OpenGL errors to be printed to the console?? */
 int displayOpenGLErrors = FALSE;
 
@@ -56,26 +48,6 @@ static char debs[300];
 /* void debug_print(char *s) {printf ("debug_print:%s\n",s);} */
 
 /* handle X11 requests, windowing calls, etc if on X11 */
-#ifndef AQUA
-/*      #include <X11/cursorfont.h> */
-
-/*      #ifdef XF86V4 */
-/*              #include <X11/extensions/xf86vmode.h> */
-/*      #endif */
-
-/*      #include <X11/keysym.h> */
-/*      #include <X11/Intrinsic.h> */
-
-        Cursor arrowc;
-        Cursor sensorc;
-        Cursor curcursor;
-        XEvent event;
-/*         extern void createGLContext(); */
-/*      #ifdef HAVE_MOTIF */
-/*      extern XtAppContext Xtcx; */
-/*      #endif */
-        void handle_Xevents(XEvent event);
-#endif
 
 pthread_t DispThrd = 0;
 char* threadmsg;
@@ -89,31 +61,6 @@ float gl_linewidth = 1.0;
 
 /* what kind of file was just parsed? */
 int currentFileVersion = 0;
-
-#ifdef AQUA
-        #include <OpenGL.h>
-        void eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height) ;
-        CGLContextObj myglobalContext;
-        AGLContext aqglobalContext;
-        #define SCURSE 1
-        #define ACURSE 0
-        int ccurse = ACURSE;
-        int ocurse = ACURSE;
-        GLboolean cErr;
-        static GDHandle gGDevice;
-
-        /* for handling Safari window changes at the top of the display event loop */
-        int PaneClipnpx;
-        int PaneClipnpy;
-        WindowPtr PaneClipfwWindow;
-        int PaneClipct;
-        int PaneClipcb;
-        int PaneClipcr;
-        int PaneClipcl;
-        int PaneClipwidth;
-        int PaneClipheight;
-        int PaneClipChanged = FALSE;
-#endif
 
 /* we want to run initialize() from the calling thread. NOTE: if initialize creates VRML/X3D nodes, it
    will call the ProdCon methods to do this, and these methods will check to see if nodes, yada, yada,
@@ -165,8 +112,6 @@ int num_SensorEvents = 0;
 GLint viewPort2[10];
 
 /* screen width and height. */
-int screenWidth=1;
-int screenHeight=1;
 int clipPlane = 0;
 
 struct X3D_Node* CursorOverSensitive=NULL;      /*  is Cursor over a Sensitive node?*/
@@ -175,7 +120,7 @@ int NavigationMode=FALSE;               /*  are we navigating or sensing?*/
 int ButDown[] = {FALSE,FALSE,FALSE,FALSE,FALSE};
 
 int currentX, currentY;                 /*  current mouse position.*/
-int lastMouseEvent = MapNotify;         /*  last event a mouse did; care about Button and Motion events only.*/
+int lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
 struct X3D_Node* lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 struct X3D_Node* lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
 int lastOverButtonPressed = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
@@ -248,7 +193,7 @@ void EventLoop() {
         struct timeval mytime;
         struct timezone tz; /* unused see man gettimeofday */
 
-        #ifdef AQUA
+#ifdef AQUA
         if (RUNNINGASPLUGIN) {
                 cErr = aglSetCurrentContext(aqglobalContext);
                 if (cErr == GL_FALSE) {
@@ -263,8 +208,7 @@ void EventLoop() {
                         PaneClipwidth, PaneClipheight);
                 PaneClipChanged = FALSE;
         }
-
-        #endif
+#endif
 
         /* printf ("start of MainLoop\n"); */
 
@@ -358,7 +302,9 @@ void EventLoop() {
                         /* dont do the null... */
                         if (*keypress_string) {
                                 /* printf ("handling key %c\n",*keypress_string); */
+#ifndef AQUA
                                 do_keyPress(*keypress_string,KeyPress);
+#endif
                                 keypress_string++;
                         } else {
                                 keypress_string=NULL;
@@ -1104,15 +1050,6 @@ void Next_ViewPoint() {
         }
 }
 
-/* set internal variables for screen sizes, and calculate frustum */
-void setScreenDim(int wi, int he) {
-        screenWidth = wi;
-        screenHeight = he;
-
-        if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
-        else screenRatio =  screenWidth;
-}
-
 /* OSX plugin is telling us the id to refer to */
 void setInstance (uintptr_t instance) {
         /* printf ("setInstance, setting to %u\n",instance); */
@@ -1732,7 +1669,7 @@ void sendPluginFD(int fd) {
         _fw_browser_plugin = fd;
 }
 void aquaPrintVersion() {
-        printf ("FreeWRL version: %s\n",FWVER); 
+        printf ("FreeWRL version: %s\n", libFreeX3D_get_version()); 
         exit(EXIT_SUCCESS);
 }
 void setPluginPath(char* path) {

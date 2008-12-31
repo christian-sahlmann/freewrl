@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.6 2008/12/12 20:10:26 crc_canada Exp $
+$Id: ProdCon.c,v 1.7 2008/12/31 13:08:15 couannette Exp $
 
 CProto ???
 
@@ -32,6 +32,9 @@ CProto ???
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 #include "../input/EAIheaders.h"
+
+#include "../plugin/pluginUtils.h"
+#include "../plugin/PluginSocket.h"
 
 
 #define VRML1ERRORMSG "FreeWRL does not parse VRML Version 1; please convert to VRML 2 or later"

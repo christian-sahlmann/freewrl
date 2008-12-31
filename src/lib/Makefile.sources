@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.11 2008/12/21 19:21:06 couannette Exp $
+# $Id: Makefile.sources,v 1.12 2008/12/31 13:08:15 couannette Exp $
 #
 # List all source files
 #
@@ -11,6 +11,7 @@ libFreeX3D_la_SOURCES = \
 			system_net.h \
 			system_threads.h \
 			system_fonts.h \
+			system_js.h \
 			display.h \
 			libFreeX3D.h \
 			main.c \
@@ -147,7 +148,6 @@ opengl/Material.c \
 ui/ui.h \
 ui/statusbar.c \
 ui/aquaInt.h \
-ui/fwWindow.c \
 ui/GLwDrawA.c \
 ui/GLwDrawA.h \
 ui/GLwDrawAP.h \

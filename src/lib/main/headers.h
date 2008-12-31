@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.16 2008/12/30 21:43:58 crc_canada Exp $
+$Id: headers.h,v 1.17 2008/12/31 13:08:15 couannette Exp $
 
 Global includes.
 
@@ -470,26 +470,10 @@ extern void* *occluderNodePointer;
 /* Capabilities of x3dv and x3d */
 #undef CAPABILITIESVERBOSE
 
-#ifdef AQUA
-#include <CGLTypes.h>
-#include <AGL/AGL.h>
-#include "aquaInt.h"
-extern CGLContextObj myglobalContext;
-extern AGLContext aqglobalContext;
-#endif
-
 /* number of tesselated coordinates allowed */
 #define TESS_MAX_COORDS  500
 
 #define offset_of(p_type,field) ((unsigned int)(&(((p_type)NULL)->field)-NULL))
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
 
 #define UNUSED(v) ((void) v)
 #define ISUSED(v) ((void) v)
@@ -934,10 +918,6 @@ void handle_EAI(void);
 void handle_MIDIEAI(void);
 void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
-
-extern int screenWidth, screenHeight;
-
-
 #define overMark        23425
 /* mimic X11 events in AQUA */
 #ifdef AQUA
@@ -973,7 +953,6 @@ extern void setSeqFile(const char* file);
 extern void setMaxImages(int max);
 extern void setBrowserFullPath(const char *str);
 extern void setInstance(uintptr_t instance);
-extern void setScreenDim(int w, int h);
 
 extern const char *getLibVersion();
 extern void doBrowserAction ();
@@ -1004,7 +983,7 @@ void BoundingBox(struct X3D_Node* node);
 
 void freewrlDie(const char *format);
 
-extern double nearPlane, farPlane, screenRatio, calculatedNearPlane, calculatedFarPlane;
+extern double nearPlane, farPlane, calculatedNearPlane, calculatedFarPlane;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 

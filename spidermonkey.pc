@@ -1,0 +1,8 @@
+prefix=/opt/local
+
+Name: JavaScript engine (spidermonkey)
+Description: The Mozilla JavaScript Engine Library (spidermonkey)
+Version: 1.7.0
+Requires: nspr >= 4.7
+Libs: -L${prefix}/lib -ljs
+Cflags: -I${prefix}/include/js -DXP_UNIX -DJS_THREADSAFE

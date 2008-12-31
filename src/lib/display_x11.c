@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display_x11.c,v 1.7 2008/12/05 13:20:52 couannette Exp $
+$Id: display_x11.c,v 1.8 2008/12/31 13:08:15 couannette Exp $
 
 FreeX3D support library.
 Display (X11) initialization.
@@ -23,6 +23,7 @@ Display (X11) initialization.
 /**
  * public variables
  */
+XEvent event;
 Display *Xdpy;
 int Xscreen;
 Window Xroot_window;
@@ -32,6 +33,15 @@ Window GLwin;
 XSetWindowAttributes attr;
 unsigned long mask = 0;
 Atom WM_DELETE_WINDOW;
+
+Cursor arrowc;
+Cursor sensorc;
+Cursor curcursor;
+
+long event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
+                    ButtonMotionMask | ButtonReleaseMask |
+                    ExposureMask | StructureNotifyMask |
+                    PointerMotionMask;
 
 /**
  * local variables

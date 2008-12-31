@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.5 2008/12/11 22:18:03 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.6 2008/12/31 13:08:15 couannette Exp $
 
 ???
 
@@ -29,20 +29,6 @@ $Id: OpenGL_Utils.c,v 1.5 2008/12/11 22:18:03 crc_canada Exp $
 
 #include "../x3d_parser/Bindable.h"
 
-/* #include "OpenGL_Utils.h" */
-
-
-#ifdef AQUA
-#include <OpenGL.h>
-extern CGLContextObj myglobalContext;
-extern AGLContext aqglobalContext;
-#else 
-Display *Xdpy;
-Window Xwin;
-Window GLwin;
-GLXContext GLcx;
-XVisualInfo *Xvi;
-#endif
 
 void kill_rendering(void);
 

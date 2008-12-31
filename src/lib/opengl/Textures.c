@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.4 2008/12/11 22:18:03 crc_canada Exp $
+$Id: Textures.c,v 1.5 2008/12/31 13:08:15 couannette Exp $
 
 General Texture objects.
 
@@ -147,8 +147,8 @@ void 	*global_tcin_lastParent;
 
 #ifdef AQUA /* for AQUA OS X sharing of OpenGL Contexts */
 
-# include "CGDirectDisplay.h"
-extern CGLContextObj myglobalContext;
+/* # include "CGDirectDisplay.h" */
+
 CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
                                       kCGLPFAFullScreen,
                                       kCGLPFADoubleBuffer,

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwWindow.c,v 1.3 2008/12/10 14:31:53 couannette Exp $
+$Id: fwWindow.c,v 1.4 2008/12/31 13:08:15 couannette Exp $
 
 ???
 
@@ -14,22 +14,22 @@ $Id: fwWindow.c,v 1.3 2008/12/10 14:31:53 couannette Exp $
 
 #include <libFreeX3D.h>
 
-#include "../vrml_parser/Structs.h"
-#include "../main/headers.h"
-#include "../vrml_parser/CParseGeneral.h"
-#include "../scenegraph/Vector.h"
-#include "../vrml_parser/CFieldDecls.h"
-#include "../world_script/CScripts.h"
-#include "../vrml_parser/CParseParser.h"
-#include "../vrml_parser/CParseLexer.h"
-#include "../vrml_parser/CParse.h"
+/* #include "../vrml_parser/Structs.h" */
+/* #include "../main/headers.h" */
+/* #include "../vrml_parser/CParseGeneral.h" */
+/* #include "../scenegraph/Vector.h" */
+/* #include "../vrml_parser/CFieldDecls.h" */
+/* #include "../world_script/CScripts.h" */
+/* #include "../vrml_parser/CParseParser.h" */
+/* #include "../vrml_parser/CParseLexer.h" */
+/* #include "../vrml_parser/CParse.h" */
 
 #include <float.h>
 
-#include "../x3d_parser/Bindable.h"
-#include "../scenegraph/Collision.h"
-#include "../scenegraph/quaternion.h"
-#include "../scenegraph/Viewer.h"
+/* #include "../x3d_parser/Bindable.h" */
+/* #include "../scenegraph/Collision.h" */
+/* #include "../scenegraph/quaternion.h" */
+/* #include "../scenegraph/Viewer.h" */
 
 #include <X11/cursorfont.h>
 
@@ -39,16 +39,8 @@ static int oldx = 0, oldy = 0;
 
 /* count XLib errors - do not continuously go on for decades... */
 static int XLIB_errors = 0;
-
-int xPos = 0; 
-int yPos = 0;
-static int screen;
+/* static int screen; */
 static int quadbuff_stereo_mode;
-extern Cursor arrowc, sensorc;
-long    event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
-                                ButtonMotionMask | ButtonReleaseMask |
-                                ExposureMask | StructureNotifyMask |
-                                PointerMotionMask;
 
 char *GL_VER = NULL;
 char *GL_VEN = NULL;
@@ -242,14 +234,6 @@ void openMainWindow (int argc, char **argv)
     if (RUNNINGASPLUGIN) {
 	sendXwinToPlugin();
     }
-}
-
-void setGeometry (const char *gstring)
-{
-    int c;
-    c = sscanf(gstring,"%dx%d+%d+%d", &win_width, &win_height, &xPos, &yPos);
-    /* tell OpenGL what the screen dims are */
-    setScreenDim(win_width,win_height);
 }
 
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len)

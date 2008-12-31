@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.11 2008/12/10 18:46:54 crc_canada Exp $
+$Id: display.h,v 1.12 2008/12/31 13:08:15 couannette Exp $
 
 FreeX3D support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -20,6 +20,11 @@ extern int fullscreen;
 extern int view_height; /* viewport */
 extern int view_width;
 
+extern int screenWidth;
+extern int screenHeight;
+
+extern double screenRatio;
+
 extern char *window_title;
 
 extern int mouse_x;
@@ -32,15 +37,44 @@ extern int show_mouse;
  */
 #if defined TARGET_AQUA
 
-# include <OpenGL.h>
-# include <glu.h>
-# include <CGLTypes.h>
+# include <OpenGL/OpenGL.h>
+# include <OpenGL/CGLTypes.h>
 # include <AGL/AGL.h>
+# include <OpenGL/glu.h>
 
 extern CGLContextObj myglobalContext;
 extern AGLContext aqglobalContext;
 
-# if WANT_MULTI_OPENGL_THREADS
+extern GLboolean cErr;
+
+extern GDHandle gGDevice;
+
+extern int ccurse;
+extern int ocurse;
+
+#define SCURSE 1
+#define ACURSE 0
+
+#define SENSOR_CURSOR ccurse = SCURSE
+#define ARROW_CURSOR  ccurse = ACURSE
+
+/* for handling Safari window changes at the top of the display event loop */
+extern int PaneClipnpx;
+extern int PaneClipnpy;
+extern WindowPtr PaneClipfwWindow;
+extern int PaneClipct;
+extern int PaneClipcb;
+extern int PaneClipcr;
+extern int PaneClipcl;
+extern int PaneClipwidth;
+extern int PaneClipheight;
+extern int PaneClipChanged;
+
+void eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height);
+
+int create_main_window_aqua(); /* mb */
+
+# if defined(WANT_MULTI_OPENGL_THREADS)
 /* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
    blows plugins out of the water, because of the XLib threaded call in FrontEnd
    not working that well... */
@@ -62,27 +96,38 @@ extern AGLContext aqglobalContext;
 # include <GL/glu.h>
 # include <GL/glx.h>
 
-GLXContext GLcx;
+extern GLXContext GLcx;
 
 # include <X11/Xlib.h>
 # include <X11/Xutil.h>
 # include <X11/keysym.h>
 
-Display *Xdpy;
-int Xscreen;
-Window Xroot_window;
-XVisualInfo *Xvi;
-Window Xwin;
-Window GLwin;
-XSetWindowAttributes attr;
-unsigned long mask;
-Atom WM_DELETE_WINDOW;
+extern XEvent event;
+extern Display *Xdpy;
+extern int Xscreen;
+extern Window Xroot_window;
+extern XVisualInfo *Xvi;
+extern Window Xwin;
+extern Window GLwin;
+extern XSetWindowAttributes attr;
+extern unsigned long mask;
+extern Atom WM_DELETE_WINDOW;
+
+extern Cursor arrowc;
+extern Cursor sensorc;
+
+# define SENSOR_CURSOR cursor = sensorc
+# define ARROW_CURSOR  cursor = arrowc
+
+extern Cursor curcursor;
+
+void handle_Xevents(XEvent event);
 
 # if HAVE_XF86_VMODE
 #  include <X11/extensions/xf86vmode.h>
-int vmode_nb_modes;
-XF86VidModeModeInfo **vmode_modes;
-int vmode_mode_selected;
+extern int vmode_nb_modes;
+extern XF86VidModeModeInfo **vmode_modes;
+extern int vmode_mode_selected;
 # endif /* HAVE_XF86_VMODE */
 
 # if defined(TARGET_MOTIF)
@@ -93,7 +138,7 @@ int vmode_mode_selected;
 # include <X11/Intrinsic.h>
 # include <Xm/Xm.h>
 
-XtAppContext Xtcx;
+extern XtAppContext Xtcx;
 
 int create_main_window_motif(); /* mb */
 
@@ -135,6 +180,9 @@ int create_main_window(); /* mb */
 int create_GL_context(); /* mb */
 int initialize_gl_context(); /* mb */
 int initialize_viewport(); /* mb */
+
+void resetGeometry();
+void setScreenDim(int wi, int he);
 
 
 #endif /* __LIBFREEX3D_DISPLAY_H__ */

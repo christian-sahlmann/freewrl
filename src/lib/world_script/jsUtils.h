@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: jsUtils.h,v 1.3 2008/12/31 13:08:15 couannette Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -18,8 +18,7 @@ pointers there updated.
 #define __FREEX3D_JS_UTILS_H__
 
 
-#include <jsapi.h> /* JS compiler */
-#include <jsdbgapi.h> /* JS debugger */
+#include <system_js.h>
 
 #ifndef FALSE
 #define FALSE 0

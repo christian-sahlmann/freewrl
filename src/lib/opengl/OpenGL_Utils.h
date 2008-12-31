@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: OpenGL_Utils.h,v 1.3 2008/12/31 13:08:15 couannette Exp $
 
 Screen snapshot.
 
@@ -27,14 +27,6 @@ BackEndLightsOff(void);
 void lightState (GLint light, int state);
 
 
-#ifndef AQUA
-extern Display *Xdpy;
-extern GLXContext GLcx;
-extern XVisualInfo *Xvi;
-extern Window Xwin;
-extern Window GLwin;
-extern void resetGeometry();
-#endif
 extern void glpOpenGLInitialize(void);
 
 

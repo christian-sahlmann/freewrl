@@ -117,6 +117,9 @@ PKG_CHECK_MODULES(FREETYPE, freetype2 >= 9.3.0)
 # firefox (2.0 or 1.5)
 # firefox (firefox-2.0 possible alternate packaging)
 
+# Hack to pick up pkgconfig definition files in our directory:
+export PKG_CONFIG_PATH=$PWD:$PKG_CONFIG_PATH
+
 AC_MSG_NOTICE([Determining Javascript engine to build against])
 found_JAVASCRIPT_ENGINE=no
 case "$os_type" in
@@ -228,9 +231,13 @@ AC_MSG_RESULT([Target windowing system selected: $TARGET])
 
 # OpenGL
 case "$os_type" in
-     mac)
-	GL_CFLAGS="-I/Sytem/Library/Frameworks/OpenGL.framework/Headers"
-	GL_LIBS="-L/Sytem/Library/Frameworks/OpenGL.framework/Libraries -lGL -lGLU"
+     mac) # OpenGL framework should be installed
+     	if ! test -d /System/Library/Frameworks/OpenGL.framework ; then
+	   AC_MSG_ERROR([OpenGL framework not found - Check your installation])
+	fi
+	# FIXME: Early support for OpenGL in OSX with autoconf... freex3d compiles but does not run...
+	GL_CFLAGS=""
+	GL_LIBS="-framework AppKit -framework Foundation -L/System/Library/Frameworks/OpenGL.framework/Libraries -lGL -lGLU"
 	AC_SUBST(GL_CFLAGS)
 	AC_SUBST(GL_LIBS)
 	;;
@@ -272,18 +279,45 @@ fi
 AC_SUBST(MAYBE_PLUGIN)
 
 # FreeX3D helpers programs
+
 case "$os_type" in
      mac) # Mac defaults
-          BROWSER="open /Applications/Safari.app"
-	 SOUNDCONV=""
-	 UNZIP=""
-	 WGET=""
-	 IMAGECONVERT="" 
-	 ;;
+          DEFAULT_BROWSER="/Applications/Safari.app/Contents/MacOS/Safari"
+	  IMAGECONVERT="" 
+	  ;;
      *)   # UNIX defaults
+     	  DEFAULT_BROWSER="firefox"
+	  ;;
+esac # case $os_type
+
 #FIXME: environment variable BROWSER takes precedent over --with-browser= ???
-AC_ARG_VAR([BROWSER], [Path to Internet browser.])
-AC_PATH_PROG([BROWSER], [firefox], [no])
+
+# FIXME: on Mac OSX I want to specify the absolute path of Safari, and the macro
+# AC_PATH_PROG can't handle that...
+
+browser_ok=false
+
+# Environment provided browser
+if test -n "$BROWSER" ; then
+   if test -x "$BROWSER" ; then
+      browser_ok=true
+   fi
+fi
+
+# Configuration default browser
+if test -n "$DEFAULT_BROWSER" ; then
+   if test -x "$DEFAULT_BROWSER" ; then
+      BROWSER="$DEFAULT_BROWSER"
+      browser_ok=true
+   fi
+fi
+
+if test "$browser_ok" != true ; then
+   AC_MSG_WARN([Default browser will be searched in PATH...])
+   AC_ARG_VAR([BROWSER], [Path to Internet browser.])
+   AC_PATH_PROG([BROWSER], [$BROWSER], [no])
+fi
+
 if test "$BROWSER" = "no"; then
   AC_MSG_ERROR([Internet browser is required])
 fi
@@ -306,18 +340,16 @@ AC_DEFINE_UNQUOTED(UNZIP, "$UNZIP", [Path to unzip ((de-)compression program).])
 AC_ARG_VAR([WGET], [Path to wget (http fetch program).])
 AC_PATH_PROG([WGET], [wget], [no])
 if test "$WGET" = "no"; then
-  AC_MSG_ERROR([unzip is required])
+  AC_MSG_ERROR([wget is required])
 fi
 AC_DEFINE_UNQUOTED(WGET, "$WGET", [Path to wget (http fetch program).])
 
 AC_ARG_VAR([IMAGECONVERT], [Path to convert (image conversion program).])
 AC_PATH_PROG([IMAGECONVERT], [convert], [no])
 if test "$IMAGECONVERT" = "no"; then
-  AC_MSG_ERROR([unzip is required])
+  AC_MSG_ERROR([convert is required])
 fi
-AC_DEFINE_UNQUOTED(IMAGECONVERT, "$WGET", [Path to convert (image conversion program).])
-
-esac # case $os_type
+AC_DEFINE_UNQUOTED(IMAGECONVERT, "$IMAGECONVERT", [Path to convert (image conversion program).])
 
 # =======
 # Targets
@@ -329,7 +361,7 @@ FREEX3D_MESSAGE_WRAPPER="freex3d_msg"
 case $os_type in
      # FIXME: name of plugin?
      win32) FREEX3D_PLUGIN="plugin_windows.dll" ;;
-     mac)   FREEX3D_PLUGIN="plugin_max.idontknow" ;;
+     mac)   FREEX3D_PLUGIN="npfreex3d.dynlib" ;;
      unix)  FREEX3D_PLUGIN="npfreex3d.so" ;;
 esac
 
@@ -344,7 +376,6 @@ AC_DEFINE_UNQUOTED(FREEX3D_MESSAGE_WRAPPER, "$FREEX3D_MESSAGE_WRAPPER", [The Fre
 
 AC_SUBST(FREEX3D_PLUGIN)
 AC_DEFINE_UNQUOTED(FREEX3D_PLUGIN, "$FREEX3D_PLUGIN", [The FreeX3D plugin shared object name.])
-
 
 # Final generation
 AC_CONFIG_FILES([Makefile
