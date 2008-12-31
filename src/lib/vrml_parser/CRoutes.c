@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.8 2008/12/30 21:43:58 crc_canada Exp $
+$Id: CRoutes.c,v 1.9 2008/12/31 17:19:30 crc_canada Exp $
 
 ???
 
@@ -392,7 +392,7 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 	fullname = JSparamnames[fptr].name;
 
 	#ifdef CRVERBOSE
-	printf ("getting property for fullname %s, cx %d, interpobj %d\n",fullname,cx,interpobj);
+	printf ("getting property for fullname %s, cx %d, interpobj %d script %d, fptr %d\n",fullname,cx,interpobj,actualscript, fptr);
 	#endif
 
 	if (!JS_GetProperty(cx, (JSObject *) interpobj ,fullname,&JSglobal_return_val)) {
@@ -439,7 +439,6 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 	}
 	return touched;
 }
-
 
 /****************************************************************/
 /* Add or Remove a series of children				*/
@@ -853,19 +852,18 @@ void CRoutes_RegisterSimple(
 		}
 	}
 
- printf ("CRoutes_RegisterSimple, from %u fromOfs %u, to %u toOfs %u, len %d dir %d\n",from, fromOfs, to, toOfs, len, dir); 
+ 	/* printf ("CRoutes_RegisterSimple, from %u fromOfs %u, to %u toOfs %u, len %d dir %d\n",from, fromOfs, to, toOfs, len, dir);  */
 
 
- /* When routing to a script, to is not a node pointer! */
- if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT)
-  interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
- else
-  interpolatorPointer=NULL;
+	/* When routing to a script, to is not a node pointer! */
+	if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT)
+		interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
+	else
+		interpolatorPointer=NULL;
 
- snprintf(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
+	snprintf(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
 
- CRoutes_Register(1, from, fromOfs, 1, tonode_str, len, 
-  interpolatorPointer, dir, extraData);
+	CRoutes_Register(1, from, fromOfs, 1, tonode_str, len, interpolatorPointer, dir, extraData);
 }
  
 
@@ -918,6 +916,7 @@ void CRoutes_Register(
 		int scrdir,
 		int extra) {
 	/* have to increase routing space?? */
+
 	if (rTr >= maxRTR) {
 		maxRTR += 50;
 		routesToRegister = (struct CR_RegStruct *)REALLOC(routesToRegister,sizeof (struct CR_RegStruct) * (maxRTR+1));

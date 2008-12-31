@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.13 2008/12/30 21:43:58 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.14 2008/12/31 17:19:30 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -336,6 +336,7 @@ void EAI_parse_commands () {
 				/*143024848 88 8 e 6*/
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&tmp_a,&tmp_b,ctmp,&tmp_c);
 				node = getEAINodeFromTable(tmp_a, tmp_b);
+				offset = getEAIActualOffset(tmp_a, tmp_b);
 				/* is this a script node? if so, get the actual string name in the table for this one */
 				if (node->_nodeType == NODE_Script) {
 					struct Shader_Script * sp;
@@ -344,17 +345,12 @@ void EAI_parse_commands () {
 					sp = (struct Shader_Script *) (X3D_SCRIPT(node)->__scriptObj);
 
 					/* some print statements here because this is a script node 
-					printf ("ah! so script %d  tmp_a, node %u is num %d\n",tmp_a,node,sp->num);
+					printf ("ah! so noderef  %d, node %u is script num %d\n",tmp_a,node,sp->num);
 					printf ("this is a script node in a REGLISTENER command! %d\n",tmp_b);
 					*/
 
 					node = (uintptr_t) sp->num;
-					offset = tmp_b; /* this is the offset of the string name in JSparamindex from 
-							the EAI_GetType call */
-					directionFlag = TO_SCRIPT;
-
-				} else {
-					offset = getEAIActualOffset(tmp_a,tmp_b);
+					directionFlag = FROM_SCRIPT;
 				}
 
 				/* so, count = query id, tmp_a pointer, tmp_b, offset, ctmp[0] type, tmp_c, length*/
@@ -378,11 +374,27 @@ void EAI_parse_commands () {
 			case UNREGLISTENER: {
 				struct X3D_Node * node;
 				int offset;
+				int directionFlag = 0;
 
 				/*143024848 88 8 e 6*/
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&tmp_a,&tmp_b,ctmp,&tmp_c);
 				node = getEAINodeFromTable(tmp_a,tmp_b);
 				offset = getEAIActualOffset(tmp_a,tmp_b);
+
+				if (node->_nodeType == NODE_Script) {
+					struct Shader_Script * sp;
+
+					/* we send along the script number, not the node pointer */
+					sp = (struct Shader_Script *) (X3D_SCRIPT(node)->__scriptObj);
+
+					/* some print statements here because this is a script node 
+					printf ("ah! so noderef  %d, node %u is script num %d\n",tmp_a,node,sp->num);
+					printf ("this is a script node in a REGLISTENER command! %d\n",tmp_b);
+					*/
+
+					node = (uintptr_t) sp->num;
+					directionFlag = FROM_SCRIPT;
+				}
 
 				/* so, count = query id, tmp_a pointer, tmp_b, offset, ctmp[0] type, tmp_c, length*/
 				ctmp[1]=0;
@@ -397,7 +409,7 @@ void EAI_parse_commands () {
 
 				/* set up the route from this variable to the handle_Listener routine */
 				CRoutes_Register  (0,node, offset, 1, EAIListenerArea, (int) tmp_c,(void *) 
-					&handle_Listener, 0, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
+					&handle_Listener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
@@ -782,6 +794,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 			scriptFlags += TO_SCRIPT;
 		}
 
+		/* is this an add or delete route? */
 		if (command == ADDROUTE) CRoutes_RegisterSimple(fromNode,fromOffset,toNode,toOffset,fromdataLen,scriptFlags);
 		else CRoutes_RemoveSimple(fromNode,fromOffset,toNode,toOffset,fromdataLen,scriptFlags);
 
