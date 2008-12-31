@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.8 2008/12/10 14:31:53 couannette Exp $
+$Id: system.h,v 1.9 2008/12/31 13:47:02 couannette Exp $
 
 FreeX3D support library.
 Internal header: system dependencies.
@@ -99,6 +99,10 @@ typedef unsigned char _Bool;
 
 #if HAVE_FCNTL_H
 # include <fcntl.h>
+#endif
+
+#if !defined(assert)
+# include <assert.h>
 #endif
 
 

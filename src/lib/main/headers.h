@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.17 2008/12/31 13:08:15 couannette Exp $
+$Id: headers.h,v 1.18 2008/12/31 13:47:02 couannette Exp $
 
 Global includes.
 
@@ -598,7 +598,6 @@ extern void * this_textureTransform;  /* do we have some kind of textureTransfor
 
 extern int isTextureLoaded(int texno);
 extern int isTextureAlpha(int n);
-extern int displayDepth;
 extern int display_status;
 
 #define RUNNINGONAMD64 (sizeof(void *) == 8)

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwWindow.c,v 1.4 2008/12/31 13:08:15 couannette Exp $
+$Id: fwWindow.c,v 1.5 2008/12/31 13:47:02 couannette Exp $
 
 ???
 
@@ -203,13 +203,13 @@ void openMainWindow (int argc, char **argv)
     OPEN_TOOLKIT_MAINWINDOW;
 
     bestMode = -1;
-    screen = DefaultScreen(Xdpy);
+    Xscreen = DefaultScreen(Xdpy);
     
     arrowc = XCreateFontCursor(Xdpy, XC_left_ptr);
     sensorc = XCreateFontCursor(Xdpy, XC_diamond_cross);
     
 #if HAVE_XF86_VMODE
-    XF86VidModeGetAllModeLines(Xdpy, screen, &vmode_nb_modes, &vmode_modes);
+    XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes);
     
     bestMode = 0;
     for (i=0; i < vmode_nb_modes; i++) {
@@ -285,7 +285,7 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
 	       attrib_mem[i+len]=attribs_pointer[i];
 
       	    /* get an appropriate visual */
-	    vi = glXChooseVisual(Xdpy, screen, attrib_mem);
+	    vi = glXChooseVisual(Xdpy, Xscreen, attrib_mem);
 	    if (vi) {
 	       if (attrib==0) {
 		  quadbuff_stereo_mode=1;
@@ -309,7 +309,7 @@ void resetGeometry()
     int oldMode, i;
 
     if (fullscreen) {
-	XF86VidModeGetAllModeLines(Xdpy, screen, &vmode_nb_modes, &vmode_modes);
+	XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes);
 	oldMode = 0;
 	
 	for (i=0; i < vmode_nb_modes; i++) {
@@ -319,8 +319,8 @@ void resetGeometry()
 	    }
 	}
 	
-	XF86VidModeSwitchToMode(Xdpy, screen, vmode_modes[oldMode]);
-	XF86VidModeSetViewPort(Xdpy, screen, 0, 0);
+	XF86VidModeSwitchToMode(Xdpy, Xscreen, vmode_modes[oldMode]);
+	XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
 	XFlush(Xdpy);
     }
 #endif /* HAVE_XF86_VMODE */

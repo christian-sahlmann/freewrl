@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.12 2008/12/31 13:08:15 couannette Exp $
+$Id: display.h,v 1.13 2008/12/31 13:47:02 couannette Exp $
 
 FreeX3D support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -31,6 +31,11 @@ extern int mouse_x;
 extern int mouse_y;
 
 extern int show_mouse;
+
+extern int xPos;
+extern int yPos;
+
+extern int displayDepth;
 
 /**
  * Specific platform : Mac
@@ -103,6 +108,7 @@ extern GLXContext GLcx;
 # include <X11/keysym.h>
 
 extern XEvent event;
+extern long event_mask;
 extern Display *Xdpy;
 extern int Xscreen;
 extern Window Xroot_window;

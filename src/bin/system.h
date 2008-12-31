@@ -6,7 +6,7 @@
  *
  * Program system dependencies.
  *
- * $Id: system.h,v 1.4 2008/12/15 17:35:47 istakenv Exp $
+ * $Id: system.h,v 1.5 2008/12/31 13:47:02 couannette Exp $
  *
  *******************************************************************/
 
@@ -79,5 +79,10 @@ typedef unsigned char _Bool;
 #if HAVE_SYS_MSG_H
 # include <sys/msg.h>
 #endif
+
+#if !defined(assert)
+# include <assert.h>
+#endif
+
 
 #endif /* __FREEX3D_SYSTEM_H__ */
