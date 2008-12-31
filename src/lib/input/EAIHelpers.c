@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.12 2008/12/31 17:19:30 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.13 2008/12/31 18:32:36 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -400,43 +400,43 @@ static void changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, cha
 	}
 
 	/* yes, it is a PROTO */
-	printf ("changeExpanded - looking for field %s in node...\n",*fp); 
+	/* printf ("changeExpanded - looking for field %s in node...\n",*fp);  */
 
 	myProtoDecl = X3D_GROUP(*np)->FreeWRL__protoDef;
 	pMax = vector_size(myProtoDecl->deconstructedProtoBody);
 
-	printf ("changeExpandedPROTOtoActualNode, protoDefNumber %d protoName %s\n",myProtoDecl->protoDefNumber, myProtoDecl->protoName); 
+	/* printf ("changeExpandedPROTOtoActualNode, protoDefNumber %d protoName %s\n",myProtoDecl->protoDefNumber, myProtoDecl->protoName); */
 
 	/* go through, and look for the fieldname */
-	for (i=0; i< pMax-2; i++) {
+	for (i=2; i< pMax; i++) {
 		ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, i);
 
 	
-		printf ("PROTO - ele %d of %d ", i, pMax-1); 
+		/* printf ("PROTO - ele %d of %d ", i, pMax-1); 
 
 		if (ele->isNODE != -1) printf ("isNODE - %s ",stringNodeType(ele->isNODE));
 		if (ele->isKEYWORD != -1) printf ("isKEYWORD - %s ",stringKeywordType(ele->isKEYWORD));
 		if (ele->terminalSymbol != -1) printf ("terminalSymbol '%c' ",ele->terminalSymbol);
 		if (ele->stringToken != NULL) printf ("stringToken :%s: ",ele->stringToken);
 		if (ele->fabricatedDef != -1) printf ("fabricatedDef %d",ele->fabricatedDef);
-		printf ("\n");
+		printf ("\n"); */
 
 		if (ele->stringToken != NULL) {
 			if (strcmp(*fp,ele->stringToken)==NULL) {
-				printf ("changeExpanded, found string token match at element %d (%s == %s) \n",i, *fp, ele->stringToken); 
+				/* printf ("changeExpanded, found string token match at element %d (%s == %s) \n",i, *fp, ele->stringToken);  */
 		
-				/* ok, so the next element must be an IS,right? */
-				ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, i+1);
-				printf ("changeExpanded, next keyword is %d (KW_IS %d)  - better not be -1\n",ele->isKEYWORD, KW_IS); 
+				/* ok, so the previous element must be an IS,right? */
+				ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, i-1);
+				/* printf ("changeExpanded, next keyword is %d (KW_IS %d)  - better not be -1\n",ele->isKEYWORD, KW_IS);  */
 
 				if (ele->isKEYWORD != KW_IS) {
 					ConsoleMessage ("changeExpandedPROTOtoActualNode, in PROTO, but keyword problem with kw %s",*fp);
 					return;
 				}
 
-				/* and, after the IS, we should have the IS name, right? */
-				ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, i+2);
-				printf ("and, the new IS keyword should be :%s:\n",ele->stringToken); 
+				/* and, before the IS, we should have the IS name, right? */
+				ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, i-2);
+				/* printf ("and, the new IS keyword should be :%s:\n",ele->stringToken);  */
 
 				if (ele->stringToken == NULL) {
 					ConsoleMessage ("changeExpandedPROTOtoActualNode, in PROTO, but IS problem with kw %s",*fp);
@@ -447,13 +447,13 @@ static void changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, cha
 				*fp = ele->stringToken;
 
 				/* ok, so we have the field,  lets go back and find the actual node that this field is part of */
-				j = i;
+				j = i-2;
 				while ((j>=0) && (ele->isNODE == -1)) {
 					j--;
 					ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, j);
 				}
 
-				printf ("back to element %d, isNODE %s\n",j, stringNodeType(ele->isNODE));
+				/* printf ("back to element %d, isNODE %s\n",j, stringNodeType(ele->isNODE)); */
 
 				/* we should have found a node, if not, we have an error */
 				if (ele->isNODE == -1) {
@@ -461,12 +461,12 @@ static void changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, cha
 					return;
 				}
 
-				printf ("so, we are looking for fabricatedDEf %d\n",ele->fabricatedDef);
+				/* printf ("so, we are looking for fabricatedDEf %d\n",ele->fabricatedDef); */
 				sprintf (thisID,"%s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
 
 				*np = parser_getNodeFromName(thisID);
 
-				printf ("and, found node %u\n",*np);
+				/* printf ("and, found node %u\n",*np); */
 				return;
 			}
 		}
