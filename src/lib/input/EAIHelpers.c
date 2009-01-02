@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.13 2008/12/31 18:32:36 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.14 2009/01/02 20:39:24 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -386,7 +386,7 @@ static void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uin
 
 
 /* in this proto expansion, just go and get the expanded node/field IF POSSIBLE */
-static void changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char **fp) {
+static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char **fp) {
 	struct ProtoDefinition *myProtoDecl;
 	struct ProtoFieldDecl *thisIndex;
 	int i,j;
@@ -396,7 +396,7 @@ static void changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, cha
 	
 	/* first, is this node a PROTO? We look at the actual table to determine if it is special or not */
 	if (getEAINodeTypeFromTable(cNode) != EAI_NODETYPE_PROTO) {
-		return;
+		return TRUE;
 	}
 
 	/* yes, it is a PROTO */
@@ -405,7 +405,7 @@ static void changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, cha
 	myProtoDecl = X3D_GROUP(*np)->FreeWRL__protoDef;
 	pMax = vector_size(myProtoDecl->deconstructedProtoBody);
 
-	/* printf ("changeExpandedPROTOtoActualNode, protoDefNumber %d protoName %s\n",myProtoDecl->protoDefNumber, myProtoDecl->protoName); */
+	if (eaiverbose) printf ("changeExpandedPROTOtoActualNode, protoDefNumber %d protoName %s\n",myProtoDecl->protoDefNumber, myProtoDecl->protoName); 
 
 	/* go through, and look for the fieldname */
 	for (i=2; i< pMax; i++) {
@@ -431,7 +431,7 @@ static void changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, cha
 
 				if (ele->isKEYWORD != KW_IS) {
 					ConsoleMessage ("changeExpandedPROTOtoActualNode, in PROTO, but keyword problem with kw %s",*fp);
-					return;
+					return FALSE;
 				}
 
 				/* and, before the IS, we should have the IS name, right? */
@@ -440,7 +440,7 @@ static void changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, cha
 
 				if (ele->stringToken == NULL) {
 					ConsoleMessage ("changeExpandedPROTOtoActualNode, in PROTO, but IS problem with kw %s",*fp);
-					return;
+					return FALSE;
 				}
 
 				/* we have (possibly) a new field name, so just link to the IS'd field */
@@ -458,7 +458,7 @@ static void changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, cha
 				/* we should have found a node, if not, we have an error */
 				if (ele->isNODE == -1) {
 					ConsoleMessage ("changeExpanedPROTOtoActualNode - node error");
-					return;
+					return FALSE;
 				}
 
 				/* printf ("so, we are looking for fabricatedDEf %d\n",ele->fabricatedDef); */
@@ -467,10 +467,11 @@ static void changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, cha
 				*np = parser_getNodeFromName(thisID);
 
 				/* printf ("and, found node %u\n",*np); */
-				return;
+				return TRUE;
 			}
 		}
 	}
+	return FALSE;
 }
 
 
@@ -503,6 +504,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	char *invokedValPtr = NULL;  /* for PROTOs - invocation value */
 	int myScriptType = EAI_NODETYPE_STANDARD;
 	int direction;
+	struct X3D_Node* protoBaseNode;
 
 	/* see if this is an input or output request from nodes =0, tonodes = 1 */
 	direction=0;
@@ -533,13 +535,37 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
 	}	
 
+	myFieldOffs = -999;
 
-	/* is this possibly an expanded PROTO? If so, change the nodePtr and fieldString around */
-	changeExpandedPROTOtoActualNode (cNode, &nodePtr, &fieldString);
-	if (eaiverbose) {
-		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %d\n",nodePtr);
-		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
-	}	
+	/* is this a field of the actual base type? */
+	/* did not find the field as an ISd field - is this a field of the actual X3D base node?? */
+	POSSIBLE_PROTO_EXPANSION(nodePtr,protoBaseNode);
+
+	if ((protoBaseNode != NULL) && (protoBaseNode != nodePtr)) {
+		if (eaiverbose) printf ("EAI_GetType, so, this IS a proto, and base node of proto is %s\n",stringNodeType(protoBaseNode->_nodeType));
+		/* this IS a PROTO, but the field was not found as an IS, so lets just go and work with the Base type */
+
+		/* try finding it, maybe with a "set_" or "changed" removed */
+		myField = findRoutedFieldInFIELDNAMES(protoBaseNode,fieldString,direction);
+
+		if (eaiverbose) printf ("EAI_GetType, for field %s, myField is %d\n",fieldString,myField);
+
+		/* find offsets, etc */
+	       	findFieldInOFFSETS((int *)NODE_OFFSETS[protoBaseNode->_nodeType], myField, &myFieldOffs, &ctype, accessType);
+		if (myFieldOffs > 0) {
+			printf ("did find %s in the base node of the proto, so just using that\n",fieldString);
+			nodePtr = protoBaseNode;
+		} else { 
+			/* we know this is a proto, so lets see if we can find an IS'd field here */
+			/* this possibly is an expanded PROTO?, change the nodePtr and fieldString around */
+			if (!changeExpandedPROTOtoActualNode (cNode, &nodePtr, &fieldString)) {
+				if (eaiverbose) printf ("did NOT find the field in changeExpandedPROTOtoActualNode\n");
+			}
+		}
+	} else {
+		if (eaiverbose) printf ("EAI_GetType - no, this is NOT a proto node\n");
+	}
+
 
 
 	/* try finding it, maybe with a "set_" or "changed" removed */
@@ -547,9 +573,15 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 
 	if (eaiverbose) printf ("EAI_GetType, for field %s, myField is %d\n",fieldString,myField);
 
-
 	/* find offsets, etc */
        	findFieldInOFFSETS((int *)NODE_OFFSETS[nodePtr->_nodeType], myField, &myFieldOffs, &ctype, accessType);
+
+	if (eaiverbose) {
+		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %d\n",nodePtr);
+		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
+	}	
+
+
 
 	if (eaiverbose) printf ("EAI_GetType, after findFieldInOFFSETS, have myFieldOffs %d, ctype %d, accessType %d \n",myFieldOffs, ctype, *accessType); 
 
@@ -602,22 +634,21 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 			struct ProtoElementPointer *ele;
 
 
-			myScriptType = EAI_NODETYPE_PROTO;
+			
 
-			printf ("EAI_GetType, node is a PROTO, and field not found in basic node - lets find all kinds of info for this one \n");
-
-printf ("EAI_GetType, protoDefNumber %d protoName %s\n",myProtoDecl->protoDefNumber, myProtoDecl->protoName);
-for (i=0; i< vector_size(myProtoDecl->deconstructedProtoBody); i++) {
-	ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, i);
-	printf ("PROTO - ele %d of %d ", i, vector_size(myProtoDecl->deconstructedProtoBody)-1); 
-
-	if (ele->isNODE != -1) printf ("isNODE - %s ",stringNodeType(ele->isNODE));
-	if (ele->isKEYWORD != -1) printf ("isKEYWORD - %s ",stringKeywordType(ele->isKEYWORD));
-	if (ele->terminalSymbol != -1) printf ("terminalSymbol '%c' ",ele->terminalSymbol);
-	if (ele->stringToken != NULL) printf ("stringToken :%s: ",ele->stringToken);
-	if (ele->fabricatedDef != -1) printf ("fabricatedDef %d",ele->fabricatedDef);
-	printf ("\n");
-}
+			if (thisIndex != NULL) {
+				char *tp;
+				if (eaiverbose)
+					printf ("nin-instanced proto field, mode %d type %d name %d fieldString :%s:\n",
+						thisIndex->mode, thisIndex->type, thisIndex->name, thisIndex->fieldString);
+				ctype = thisIndex->type;
+				tp = thisIndex->fieldString;
+				/* remove leading spaces */
+				while (isspace(*tp)) tp++;
+				invokedValPtr = STRDUP(tp);
+				
+				myScriptType = EAI_NODETYPE_PROTO;
+			}
 
 
 		} else {
@@ -662,7 +693,6 @@ for (i=0; i< vector_size(myProtoDecl->deconstructedProtoBody); i++) {
 	*scripttype =EAINodeIndex[cNode].params[maxparamindex].scripttype;
 	*cNodePtr = cNode;	/* keep things with indexes */
 }
-
 
 	
 char *EAI_GetTypeName (unsigned int uretval) {

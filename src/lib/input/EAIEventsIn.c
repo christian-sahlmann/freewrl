@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.14 2008/12/31 17:19:30 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.15 2009/01/02 20:39:23 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -17,6 +17,7 @@ Handle incoming EAI (and java class) events with panache.
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
+#include "../vrml_parser/CProto.h"
 #include "../world_script/CScripts.h"
 
 #include "../input/EAIheaders.h"
@@ -631,6 +632,14 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 	}	
 }
 
+#define IGNORE_IF_FABRICATED_INTERNAL_NAME \
+	if (cptr!=NULL) if (strncmp(FABRICATED_DEF_HEADER,cptr,strlen(FABRICATED_DEF_HEADER))==0) { \
+		/* printf ("ok, got FABRICATED_DEF_HEADER from %s, ignoring this one\n",cptr); */ \
+		cptr = NULL; \
+	}
+
+
+
 /* get the actual node type, whether Group, IndexedFaceSet, etc, and its DEF name, if applicapable */
 void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 	int retint;
@@ -664,6 +673,9 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 
         /* Try to get X3D node name */
 	cptr = X3DParser_getNameFromNode(myNode);
+	IGNORE_IF_FABRICATED_INTERNAL_NAME
+
+
 	if (cptr != NULL) {
 		sprintf (buf,"RE\n%f\n%d\n%s %s",TickTime,repno,myNT, cptr);
 		return;
@@ -671,6 +683,7 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 
         /* Try to get VRML node name */
 	cptr= parser_getNameFromNode(myNode);
+	IGNORE_IF_FABRICATED_INTERNAL_NAME
 	if (cptr != NULL) {
 		sprintf (buf,"RE\n%f\n%d\n%s %s",TickTime,repno,myNT, cptr);
 		return;
