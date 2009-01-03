@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.12 2008/12/31 13:08:15 couannette Exp $
+# $Id: Makefile.sources,v 1.13 2009/01/03 01:35:02 couannette Exp $
 #
 # List all source files
 #
@@ -20,7 +20,6 @@ libFreeX3D_la_SOURCES = \
 			plugin.c \
  \
 main/headers.h \
-main/vrmlconf.h \
 main/MainLoop.c \
 main/SoundEngineClient.c \
 main/ProdCon.c \
