@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display_x11.c,v 1.9 2008/12/31 13:47:02 couannette Exp $
+$Id: display_x11.c,v 1.10 2009/01/03 01:15:07 couannette Exp $
 
 FreeX3D support library.
 Display (X11) initialization.
@@ -24,7 +24,7 @@ Display (X11) initialization.
  * public variables
  */
 GLXContext GLcx;
-
+long event_mask;
 XEvent event;
 Display *Xdpy;
 int Xscreen;

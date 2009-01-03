@@ -124,15 +124,15 @@ AC_MSG_NOTICE([Determining Javascript engine to build against])
 found_JAVASCRIPT_ENGINE=no
 case "$os_type" in
      mac) 
-	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,spidermonkey,1.7.0)
-	;;
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,spidermonkey,1.7.0)
+        ;;
      *)
-	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,mozilla-js,1.9)
-	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,xulrunner-js,1.8)
-	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,seamonkey-js)
-	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox-js)
-	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox2-js)
-	;;
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,mozilla-js,1.9)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,xulrunner-js,1.8)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,seamonkey-js)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox-js)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox2-js)
+        ;;
 esac
 
 ## if no package yet, test for spidermonkey or other 'js' library
@@ -167,17 +167,19 @@ AC_ARG_WITH([target],
         [TARGET=$withval],
         [TARGET=auto])
 
-test_x11=no
 case "$os_type" in
      win32) # Target available: w32
           TARGET=w32
           AC_MSG_FAILURE([Windows not supported yet.])
           ;;
-     mac) # Target available: Aqua (and possibly X11/Motif in the future)
-          TARGET=aqua
+     mac) # Target available: aqua,x11 (and possibly Motif in the future)
+          case "$TARGET" in
+               auto) TARGET=aqua ;;
+               x11|aqua) : ;;
+               *) AC_MSG_FAILURE([Platform is $os_type, target available are: aqua,x11.]) ;;
+          esac
           ;;
      *) # Target available: x11,motif
-          test_x11=yes
           case "$TARGET" in
                auto) TARGET=x11 ;;
                x11|motif) : ;;
@@ -186,9 +188,17 @@ case "$os_type" in
           ;;
 esac
 
+test_x11=no
+test_aqua=no
+
+case "$TARGET" in
+     aqua) test_aqua=yes ;;
+     x11|motif) test_x11=yes ;;
+esac
+
 # Aqua
-if test "$os_type" = mac ; then
-AC_MSG_WARN([...implement Aqua test here ???...])
+if test "$test_aqua" = yes ; then
+AC_MSG_CHECKING([TODO: Checking for Aqua headers & libraries...])
 fi
 
 # X11
@@ -230,20 +240,20 @@ AM_CONDITIONAL([WINDOW_USE_MOTIF], [test "$TARGET" = motif])
 AC_MSG_RESULT([Target windowing system selected: $TARGET])
 
 # OpenGL
-case "$os_type" in
-     mac) # OpenGL framework should be installed
-     	if ! test -d /System/Library/Frameworks/OpenGL.framework ; then
-	   AC_MSG_ERROR([OpenGL framework not found - Check your installation])
-	fi
-	# FIXME: Early support for OpenGL in OSX with autoconf... freex3d compiles but does not run...
-	GL_CFLAGS=""
-	GL_LIBS="-framework AppKit -framework Foundation -L/System/Library/Frameworks/OpenGL.framework/Libraries -lGL -lGLU"
-	AC_SUBST(GL_CFLAGS)
-	AC_SUBST(GL_LIBS)
-	;;
+case "$TARGET" in
+     aqua) # OpenGL framework should be installed
+        if ! test -d /System/Library/Frameworks/OpenGL.framework ; then
+           AC_MSG_ERROR([OpenGL framework not found - Check your installation])
+        fi
+        # FIXME: Early support for OpenGL in OSX with autoconf... freex3d compiles but does not run...
+        GL_CFLAGS=""
+        GL_LIBS="-framework AppKit -framework Foundation -L/System/Library/Frameworks/OpenGL.framework/Libraries -lGL -lGLU"
+        AC_SUBST(GL_CFLAGS)
+        AC_SUBST(GL_LIBS)
+        ;;
      *)
-	AC_FIND_OPENGL
-	;;
+        AC_FIND_OPENGL
+        ;;
 esac
 
 # JPEG
@@ -254,27 +264,51 @@ AC_SUBST(JPEG_LIBS)
 # PNG
 PKG_CHECK_MODULES(PNG, libpng)
 
-# Mozilla plugin devel
+# ======================================
+# Internet browser plugin configuration
+# ======================================
+
 AC_MY_SWITCH(plugin,[enable building of browser plugin],on)
+
+AC_ARG_WITH([plugintarget],
+        [AS_HELP_STRING([--with-plugintarget],[Select target plugin architecture (safari,firefox-mac,linux,win)])],
+        [PLUGIN_TARGET=$withval],
+        [PLUGIN_TARGET=auto])
+
 if test x$sw_plugin = xno; then
   AC_MSG_NOTICE([Not building browser plug-in])
   MAYBE_PLUGIN=
 else
-  AC_MSG_NOTICE([Determining browser plug-in framework to build against])
-  found_MOZILLA_PLUGIN=no
-  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,iceape-plugin)
-  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,xulrunner-plugin)
-  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,seamonkey-plugin)
-  AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,firefox-plugin)
-  if test x$found_MOZILLA_PLUGIN = xno; then
-    AC_MSG_WARN([Unable to find an appropriate browser plugin framework, not building plugin])
-    MAYBE_PLUGIN=
-  else
-    # If Mozilla plugin is to be compiled we have to define MOZ_X11
-    MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS -DMOZ_X11"
-    AC_MSG_NOTICE([Using $found_MOZILLA_PLUGIN for Mozilla plugin library])
-    MAYBE_PLUGIN=plugin
-  fi
+
+  case "$PLUGIN_TARGET" in
+      safari) # Build plugin for Safari
+              AC_MSG_FAILURE([Build system does not currently support this plugin target.])
+              MAYBE_PLUGIN=
+              ;;
+
+      firefox-mac) # Build plugin for Firefox on the Mac
+              AC_MSG_FAILURE([Build system does not currently support this plugin target.])
+              MAYBE_PLUGIN=
+              ;;
+
+      *)      # Build plugin for Netscape compatible browser on Linux  
+              AC_MSG_NOTICE([Determining browser plug-in framework to build against])
+              found_MOZILLA_PLUGIN=no
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,iceape-plugin)
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,xulrunner-plugin)
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,seamonkey-plugin)
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,firefox-plugin)
+              if test x$found_MOZILLA_PLUGIN = xno; then
+                  AC_MSG_WARN([Unable to find an appropriate browser plugin framework, not building plugin])
+                  MAYBE_PLUGIN=
+              else
+                  # If Mozilla plugin is to be compiled we have to define MOZ_X11
+                  MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS -DMOZ_X11"
+                  AC_MSG_NOTICE([Using $found_MOZILLA_PLUGIN for Mozilla plugin library])
+                  MAYBE_PLUGIN=plugin
+              fi
+              ;;
+  esac
 fi
 AC_SUBST(MAYBE_PLUGIN)
 
@@ -283,11 +317,11 @@ AC_SUBST(MAYBE_PLUGIN)
 case "$os_type" in
      mac) # Mac defaults
           DEFAULT_BROWSER="/Applications/Safari.app/Contents/MacOS/Safari"
-	  IMAGECONVERT="" 
-	  ;;
+          IMAGECONVERT="" 
+          ;;
      *)   # UNIX defaults
-     	  DEFAULT_BROWSER="firefox"
-	  ;;
+          DEFAULT_BROWSER="firefox"
+          ;;
 esac # case $os_type
 
 #FIXME: environment variable BROWSER takes precedent over --with-browser= ???

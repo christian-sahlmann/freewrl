@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.13 2008/12/31 13:47:02 couannette Exp $
+$Id: display.h,v 1.14 2009/01/03 01:15:07 couannette Exp $
 
 FreeX3D support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -99,13 +99,14 @@ int create_main_window_aqua(); /* mb */
 
 # include <GL/gl.h>
 # include <GL/glu.h>
-# include <GL/glx.h>
-
-extern GLXContext GLcx;
 
 # include <X11/Xlib.h>
 # include <X11/Xutil.h>
 # include <X11/keysym.h>
+
+# include <GL/glx.h>
+
+extern GLXContext GLcx;
 
 extern XEvent event;
 extern long event_mask;

@@ -6,6 +6,8 @@
 include $(top_srcdir)/Makefile.globals
 
 # Just add variables tested and checked by troplevel configure
+
+# General libraries used with all platforms
 AM_CPPFLAGS += \
 				$(PTHREAD_CFLAGS) \
 				$(FREETYPE_CFLAGS) \
@@ -13,19 +15,6 @@ AM_CPPFLAGS += \
 				$(XML_CFLAGS) $(EXPAT_CFLAGS) \
 				$(GL_CFLAGS) \
 				$(PNG_CFLAGS)
-
-if WINDOW_USE_X11
-AM_CPPFLAGS += \
-				$(X_CFLAGS) \
-				$(XAW_CFLAGS)
-endif
-
-if WINDOW_USE_MOTIF
-AM_CPPFLAGS += \
-				$(X_CFLAGS) \
-				$(XAW_CFLAGS) \
-				$(MOTIF_CFLAGS)
-endif
 
 AM_LDFLAGS += \
 				$(FREETYPE_LIBS) \
@@ -35,24 +24,38 @@ AM_LDFLAGS += \
 				$(JPEG_LIBS) \
 				$(PNG_LIBS)
 
+
+# X11 flags specific to x11 target (default on Linux -- optional on Mac)
 if WINDOW_USE_X11
+AM_CPPFLAGS += \
+				$(X_CFLAGS) \
+				$(XAW_CFLAGS)
 AM_LDFLAGS += \
 				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
 				$(XAW_LIBS)
 endif
 
+# Motif flags specific to motif target (only on Linux at the moment)
 if WINDOW_USE_MOTIF
+AM_CPPFLAGS += \
+				$(X_CFLAGS) \
+				$(XAW_CFLAGS) \
+				$(MOTIF_CFLAGS)
 AM_LDFLAGS += \
 				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
 				$(XAW_LIBS) \
 				$(MOTIF_LIBS)
 endif
 
-# -Wall -Wno-format -no-cpp-precomp -fno-common -DJS_THREADSAFE -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN  -UDEBUG -DNDEBUG -UDEBUG_root -DJS_THREADSAFE -DEDITLINE
-MAC_CFLAGS=-Wno-format -no-cpp-precomp -fno-common -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN -DEDITLINE
-
+# Aqua flags specific to aqua target (only on Mac)
 if WINDOW_USE_AQUA
 AM_CPPFLAGS += $(MAC_CFLAGS) -DAQUA
+endif
+
+if OS_MAC
+# I found this in spidermonkey build files: -Wall -Wno-format -no-cpp-precomp -fno-common -DJS_THREADSAFE -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN  -UDEBUG -DNDEBUG -UDEBUG_root -DJS_THREADSAFE -DEDITLINE
+AM_CPPFLAGS += -Wno-format -no-cpp-precomp -fno-common 
+### -DSVR4 -D_BSD_SOURCE -DPOSIX_SOURCE -D_POSIX_C_SOURCE -DDARWIN
 endif
 
 _EV=$(top_srcdir)/versions/LIBFREEX3D

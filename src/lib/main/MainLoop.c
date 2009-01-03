@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.13 2008/12/31 13:08:15 couannette Exp $
+$Id: MainLoop.c,v 1.14 2009/01/03 01:15:07 couannette Exp $
 
 CProto ???
 
@@ -189,9 +189,7 @@ void EventLoop() {
 
         static int loop_count = 0;
         struct timeval waittime;
-
         struct timeval mytime;
-        struct timezone tz; /* unused see man gettimeofday */
 
 #ifdef AQUA
         if (RUNNINGASPLUGIN) {
@@ -216,7 +214,7 @@ void EventLoop() {
         doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
 
         /* Set the timestamp */
-        gettimeofday (&mytime,&tz);
+        gettimeofday(&mytime, NULL);
         TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
         
         /* any scripts to do?? */
@@ -278,7 +276,7 @@ void EventLoop() {
         trisThisLoop = 0;
 
         #ifdef PROFILE
-        gettimeofday (&mytime,&tz);
+        gettimeofday(&mytime, NULL);
         xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
         timeAA = (double)timeAA +  (double)xxf - TickTime;
         #endif
@@ -326,7 +324,7 @@ void EventLoop() {
 #endif
 
         #ifdef PROFILE
-        gettimeofday (&mytime,&tz);
+        gettimeofday(&mytime, NULL);
         oxf = xxf;
         xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
         timeA = (double)timeA +  (double)xxf - oxf;
@@ -336,7 +334,7 @@ void EventLoop() {
         handle_tick();
 
         #ifdef PROFILE
-        gettimeofday (&mytime,&tz);
+        gettimeofday(&mytime, NULL);
         oxf = xxf;
         xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
         timeB = (double)timeB +  (double)xxf - oxf;
@@ -346,7 +344,7 @@ void EventLoop() {
         if (onScreen) render_pre();
 
         #ifdef PROFILE
-        gettimeofday (&mytime,&tz);
+        gettimeofday(&mytime, NULL);
         oxf = xxf;
         xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
         timeC = (double)timeC +  (double)xxf - oxf;
@@ -357,7 +355,7 @@ void EventLoop() {
         if (doEvents) do_first (); else sched_yield();
 
         #ifdef PROFILE
-        gettimeofday (&mytime,&tz);
+        gettimeofday(&mytime, NULL);
         oxf = xxf;
         xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
         timeD = (double)timeD +  (double)xxf - oxf;
@@ -367,7 +365,7 @@ void EventLoop() {
         if (onScreen) render();
 
         #ifdef PROFILE
-        gettimeofday (&mytime,&tz);
+        gettimeofday(&mytime, NULL);
         oxf = xxf;
         xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
         timeE = (double)timeE +  (double)xxf - oxf;
@@ -515,7 +513,7 @@ void EventLoop() {
 
 
         #ifdef PROFILE
-        gettimeofday (&mytime,&tz);
+        gettimeofday(&mytime, NULL);
         oxf = xxf;
         xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
         timeF = (double)timeF +  (double)xxf - oxf;

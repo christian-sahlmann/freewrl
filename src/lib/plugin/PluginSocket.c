@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: PluginSocket.c,v 1.3 2008/12/02 18:17:18 couannette Exp $
+$Id: PluginSocket.c,v 1.4 2009/01/03 01:15:07 couannette Exp $
 
 Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
@@ -56,12 +56,11 @@ extern double TickTime;
 void pluginprint (const char *m, const char *p) {
 	double myt;
         struct timeval mytime;
-        struct timezone tz; /* unused see man gettimeofday */
 
 	if (getenv("FREEWRL_DO_PLUGIN_PRINT") != NULL) {
 
         	/* Set the timestamp */
-        	gettimeofday (&mytime,&tz);
+        	gettimeofday(&mytime, NULL);
 		myt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
         	printf ("%f: freewrl: ",myt);
 		printf(m,p);

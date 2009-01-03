@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.9 2008/12/31 13:47:02 couannette Exp $
+$Id: system.h,v 1.10 2009/01/03 01:15:07 couannette Exp $
 
 FreeX3D support library.
 Internal header: system dependencies.
@@ -14,14 +14,16 @@ Internal header: system dependencies.
 /**
  * Strict necessary common system header files:
  *
- * try to remove as much include as possible from here...
+ * Platform detection in configure will give us some defines
+ * that we'll use to include system headers.
  *
- * for modularity some headers are defined for special needs:
+ * For modularity, special headers are defined for special needs:
  *
+ * system_fonts.h       fonts related headers
+ * system_js.h          Javascript engine headers
  * system_net.h		network related headers
  * system_threads.h	threading related headers
- * system_fonts.h		fonts related headers
- * display.h		window system (Aqua/X11 + OpenGL) related headers
+ * display.h		window system (Aqua/X11/Motif + OpenGL) related headers
  */
 
 #if HAVE_STDINT_H
