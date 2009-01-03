@@ -43,6 +43,9 @@ m4_defun([_LT_AC_LANG_F77_CONFIG], [:])
 # Include all that's required to build a library
 AC_PROG_LIBTOOL
 
+# Hack to pick up pkgconfig definition files in our source directory:
+export PKG_CONFIG_PATH=$srcdir:$PKG_CONFIG_PATH
+
 # ===============================
 # Common headers the FreeX3D uses
 # ===============================
@@ -116,9 +119,6 @@ PKG_CHECK_MODULES(FREETYPE, freetype2 >= 9.3.0)
 # seamonkey (firefox-2.0 equivalent packaging)
 # firefox (2.0 or 1.5)
 # firefox (firefox-2.0 possible alternate packaging)
-
-# Hack to pick up pkgconfig definition files in our directory:
-export PKG_CONFIG_PATH=$PWD:$PKG_CONFIG_PATH
 
 AC_MSG_NOTICE([Determining Javascript engine to build against])
 found_JAVASCRIPT_ENGINE=no
