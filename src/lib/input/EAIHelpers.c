@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.14 2009/01/02 20:39:24 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.15 2009/01/08 18:17:49 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -412,68 +412,75 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 		ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, i);
 
 	
-		/* printf ("PROTO - ele %d of %d ", i, pMax-1); 
+		if (eaiverbose) {
+		printf ("PROTO - ele %d of %d ", i, pMax-1); 
 
 		if (ele->isNODE != -1) printf ("isNODE - %s ",stringNodeType(ele->isNODE));
 		if (ele->isKEYWORD != -1) printf ("isKEYWORD - %s ",stringKeywordType(ele->isKEYWORD));
 		if (ele->terminalSymbol != -1) printf ("terminalSymbol '%c' ",ele->terminalSymbol);
 		if (ele->stringToken != NULL) printf ("stringToken :%s: ",ele->stringToken);
 		if (ele->fabricatedDef != -1) printf ("fabricatedDef %d",ele->fabricatedDef);
-		printf ("\n"); */
+		printf ("\n"); 
+		}
 
 		if (ele->stringToken != NULL) {
 			if (strcmp(*fp,ele->stringToken)==NULL) {
-				/* printf ("changeExpanded, found string token match at element %d (%s == %s) \n",i, *fp, ele->stringToken);  */
+				if (eaiverbose)
+				printf ("changeExpanded, found string token match at element %d (%s == %s) \n",i, *fp, ele->stringToken); 
 		
 				/* ok, so the previous element must be an IS,right? */
 				ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, i-1);
-				/* printf ("changeExpanded, next keyword is %d (KW_IS %d)  - better not be -1\n",ele->isKEYWORD, KW_IS);  */
+				if (eaiverbose)
+				printf ("changeExpanded, next keyword is %d (KW_IS %d)  - better not be -1\n",ele->isKEYWORD, KW_IS); 
 
-				if (ele->isKEYWORD != KW_IS) {
-					ConsoleMessage ("changeExpandedPROTOtoActualNode, in PROTO, but keyword problem with kw %s",*fp);
-					return FALSE;
+				if (ele->isKEYWORD == KW_IS) {
+
+					/* and, before the IS, we should have the IS name, right? */
+					ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, i-2);
+					if (eaiverbose)
+					printf ("and, the new IS keyword should be :%s:\n",ele->stringToken); 
+	
+					if (ele->stringToken == NULL) {
+						ConsoleMessage ("changeExpandedPROTOtoActualNode, in PROTO, but IS problem with kw %s",*fp);
+						return FALSE;
+					}
+	
+					/* we have (possibly) a new field name, so just link to the IS'd field */
+					*fp = ele->stringToken;
+	
+					/* ok, so we have the field,  lets go back and find the actual node that this field is part of */
+					j = i-2;
+					while ((j>=0) && (ele->isNODE == -1)) {
+						j--;
+						ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, j);
+					}
+	
+					if (eaiverbose)
+					printf ("back to element %d, isNODE %s\n",j, stringNodeType(ele->isNODE));
+	
+					/* we should have found a node, if not, we have an error */
+					if (ele->isNODE == -1) {
+						ConsoleMessage ("changeExpanedPROTOtoActualNode - node error");
+						return FALSE;
+					}
+	
+					if (eaiverbose)
+					printf ("so, we are looking for fabricatedDEf %d\n",ele->fabricatedDef);
+					sprintf (thisID,"%s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
+	
+					*np = parser_getNodeFromName(thisID);
+	
+					printf ("and, found node %u\n",*np); 
+					return TRUE;
+				} else {
+					if (eaiverbose)
+					printf ("found string match, but prev token is NOT a KW_IS, keep going \n");
 				}
-
-				/* and, before the IS, we should have the IS name, right? */
-				ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, i-2);
-				/* printf ("and, the new IS keyword should be :%s:\n",ele->stringToken);  */
-
-				if (ele->stringToken == NULL) {
-					ConsoleMessage ("changeExpandedPROTOtoActualNode, in PROTO, but IS problem with kw %s",*fp);
-					return FALSE;
-				}
-
-				/* we have (possibly) a new field name, so just link to the IS'd field */
-				*fp = ele->stringToken;
-
-				/* ok, so we have the field,  lets go back and find the actual node that this field is part of */
-				j = i-2;
-				while ((j>=0) && (ele->isNODE == -1)) {
-					j--;
-					ele = vector_get(struct ProtoElementPointer*, myProtoDecl->deconstructedProtoBody, j);
-				}
-
-				/* printf ("back to element %d, isNODE %s\n",j, stringNodeType(ele->isNODE)); */
-
-				/* we should have found a node, if not, we have an error */
-				if (ele->isNODE == -1) {
-					ConsoleMessage ("changeExpanedPROTOtoActualNode - node error");
-					return FALSE;
-				}
-
-				/* printf ("so, we are looking for fabricatedDEf %d\n",ele->fabricatedDef); */
-				sprintf (thisID,"%s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
-
-				*np = parser_getNodeFromName(thisID);
-
-				/* printf ("and, found node %u\n",*np); */
-				return TRUE;
 			}
 		}
 	}
 	return FALSE;
 }
-
 
 
 /* get the type of a node; node must exist in table 
