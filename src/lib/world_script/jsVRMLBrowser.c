@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.5 2008/12/15 17:13:49 istakenv Exp $
+$Id: jsVRMLBrowser.c,v 1.6 2009/01/09 14:03:00 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -491,7 +491,6 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	char *tfptr; 
 	char *coptr;
 	char *bfp;
-	int flag;
 	int found;
 	int count;
 	int removeIt = FALSE;
@@ -668,23 +667,11 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 	if (removeIt) UNLINK (filename);
 
-	/* add (1), remove (2) or replace (0) for the add/remove/set flag. But,
-	   we only have addChildren or removeChildren, so flag can be 1 or 2 only */
-
-	if (strcmp(fieldStr,"removeChildren")==0) { flag = 2;} 
-	else if (strcmp(fieldStr,"addChildren") == 0) {flag = 1;}
-	else flag=0;
-	
 	/* get the field from the beginning of this node as an offset */
-	if ((strcmp (fieldStr,"addChildren") == 0) || 
-	(strcmp (fieldStr,"removeChildren") == 0)) {
-		myField = findFieldInFIELDNAMES("children");
-	} else {
-		/* try finding it, maybe with a "set_" or "changed" removed */
-		myField = findRoutedFieldInFIELDNAMES(myptr,fieldStr,0);
-		if (myField == -1) 
-			myField = findRoutedFieldInFIELDNAMES(myptr,fieldStr,1);
-	}
+	/* try finding it, maybe with a "set_" or "changed" removed */
+	myField = findRoutedFieldInFIELDNAMES(myptr,fieldStr,0);
+	if (myField == -1) 
+		myField = findRoutedFieldInFIELDNAMES(myptr,fieldStr,1);
 
 	/* is this a valid X3D field? */
 	if (myField == -1) {
@@ -712,8 +699,9 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 			/* so, we send in the new node encoded as a string, 
 			   the actual pointer in memory of the MFNode field,
 			   the node pointer containing this field, 
-			   and a flag, telling us whether this is an add or remove or what */
-			getMFNodetype (dtmp,(struct Multi_Node *)address, myptr, flag);
+			   we ALWAYS add this to the field, even if it is a "removeChildren"
+			   and we let the scene graph determine whether it is an add or remove */
+			getMFNodetype (dtmp,(struct Multi_Node *)address, myptr, 1);
 
 		}
 	}
@@ -1107,29 +1095,19 @@ static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *
 		#endif	
 
 		/* From field */
-		if ((strcmp (fromFieldString,"addChildren") == 0) || 
-		(strcmp (fromFieldString,"removeChildren") == 0)) {
-			myField = findFieldInFIELDNAMES("children");
-		} else {
-			/* try finding it, maybe with a "set_" or "changed" removed */
-			myField = findRoutedFieldInFIELDNAMES(fromNode,fromFieldString,0);
-			if (myField == -1) 
-				myField = findRoutedFieldInFIELDNAMES(fromNode,fromFieldString,1);
-		}
+		/* try finding it, maybe with a "set_" or "changed" removed */
+		myField = findRoutedFieldInFIELDNAMES(fromNode,fromFieldString,0);
+		if (myField == -1) 
+			myField = findRoutedFieldInFIELDNAMES(fromNode,fromFieldString,1);
 
 		/* find offsets, etc */
        		findFieldInOFFSETS(NODE_OFFSETS[fromNode->_nodeType], myField, &fromOfs, &fromtype, &xxx);
 
 		/* To field */
-		if ((strcmp (toFieldString,"addChildren") == 0) || 
-		(strcmp (toFieldString,"removeChildren") == 0)) {
-			myField = findFieldInFIELDNAMES("children");
-		} else {
-			/* try finding it, maybe with a "set_" or "changed" removed */
-			myField = findRoutedFieldInFIELDNAMES(toNode,toFieldString,0);
-			if (myField == -1) 
-				myField = findRoutedFieldInFIELDNAMES(toNode,toFieldString,1);
-		}
+		/* try finding it, maybe with a "set_" or "changed" removed */
+		myField = findRoutedFieldInFIELDNAMES(toNode,toFieldString,0);
+		if (myField == -1) 
+			myField = findRoutedFieldInFIELDNAMES(toNode,toFieldString,1);
 
 		/* find offsets, etc */
        		findFieldInOFFSETS(NODE_OFFSETS[toNode->_nodeType], myField, &toOfs, &totype, &xxx);
