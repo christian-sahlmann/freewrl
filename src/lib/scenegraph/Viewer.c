@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.5 2008/12/31 13:08:15 couannette Exp $
+$Id: Viewer.c,v 1.6 2009/01/09 15:39:12 crc_canada Exp $
 
 CProto ???
 
@@ -39,6 +39,7 @@ struct point_XYZ VPvelocity;
 
 double nearPlane=DEFAULT_NEARPLANE;                     /* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
 double farPlane=DEFAULT_FARPLANE;                       /* a good default value */
+double screenRatio=1.5;
 double fieldofview=45.0;
 double calculatedNearPlane = 0.0;
 double calculatedFarPlane = 0.0;
@@ -74,7 +75,7 @@ void viewer_default() {
 	(Viewer.AntiPos).z = 0;
 	vrmlrot_to_quaternion (&Viewer.Quat,1.0,0.0,0.0,0.0);
 	vrmlrot_to_quaternion (&q_i,1.0,0.0,0.0,0.0);
-	inverse(&(Viewer.AntiQuat),&q_i);
+	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
 	Viewer.headlight = TRUE;
 	/* tell the menu buttons of the state of this headlight */
@@ -120,7 +121,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 
 		vrmlrot_to_quaternion (&Viewer.Quat,1.0,0.0,0.0,0.0);
 		vrmlrot_to_quaternion (&q_i,1.0,0.0,0.0,0.0);
-		inverse(&(Viewer.AntiQuat),&q_i);
+		quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
 		viewer->headlight = TRUE;
 		/* tell the menu buttons of the state of this headlight */
@@ -228,8 +229,8 @@ void resolve_pos(void) {
 
 	if (viewer_type == EXAMINE) {
 		/* my $z = $this->{Quat}->invert->rotate([0,0,1]); */
-		inverse(&q_inv, &(Viewer.Quat));
-		rotation(&rot, &q_inv, &z_axis);
+		quaternion_inverse(&q_inv, &(Viewer.Quat));
+		quaternion_rotation(&rot, &q_inv, &z_axis);
 
 		if (Viewer.GeoSpatialNode != NULL) {
 			/* printf ("resolve_pos, a Geospatial Viewpoint\n"); */
@@ -275,7 +276,7 @@ void viewer_togl(double fieldofview) {
 		set_stereo_offset(Viewer.buffer, Viewer.eyehalf, Viewer.eyehalfangle, fieldofview);
 	}
 
-	togl(&(Viewer.Quat));
+	quaternion_togl(&(Viewer.Quat));
 	/* printf ("viewer togl first trans %lf %lf %lf\n", -(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
 	printf ("       togl secnd trans %lf %lf %lf\n",(Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
 	*/
@@ -283,7 +284,7 @@ void viewer_togl(double fieldofview) {
 
 	glTranslated(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
 	glTranslated((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
-	togl(&(Viewer.AntiQuat));
+	quaternion_togl(&(Viewer.AntiQuat));
 
         /* fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
        printf ("Viewer end _togl Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
@@ -337,7 +338,7 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 	if (mev == ButtonPress) {
 		if (button == 1) {
 			xy2qua(&(examine->SQuat), x, y);
-			set(&(examine->OQuat), &(Viewer.Quat));
+			quaternion_set(&(examine->OQuat), &(Viewer.Quat));
 		} else if (button == 3) {
 			examine->SY = y;
 			examine->ODist = Viewer.Dist;
@@ -347,32 +348,25 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 		movedPosition = TRUE;
 
 		if (button == 1) {
-			squat_norm = norm(&(examine->SQuat));
+			squat_norm = quaternion_norm(&(examine->SQuat));
 			/* we have missed the press */
 			if (APPROX(squat_norm, 0)) {
 				fprintf(stderr, "Viewer handle_examine: mouse event DRAG - missed press\n");
-				/* 			$this->{SQuat} = $this->xy2qua($mx,$my); */
 				xy2qua(&(examine->SQuat), x, y);
-				/* 			$this->{OQuat} = $this->{Quat}; */
-				set(&(examine->OQuat), &(Viewer.Quat));
+				quaternion_set(&(examine->OQuat), &(Viewer.Quat));
 			} else {
-				/* my $q = $this->xy2qua($mx,$my); */
 				xy2qua(&q, x, y);
-				/* my $arc = $q->multiply($this->{SQuat}->invert()); */
-				inverse(&q_i, &(examine->SQuat));
-				multiply(&arc, &q, &q_i);
-
-
-				/* $this->{Quat} = $arc->multiply($this->{OQuat}); */
-				multiply(&(Viewer.Quat), &arc, &(examine->OQuat));
+				quaternion_inverse(&q_i, &(examine->SQuat));
+				quaternion_multiply(&arc, &q, &q_i);
+				quaternion_multiply(&(Viewer.Quat), &arc, &(examine->OQuat));
 			}
 		} else if (button == 3) {
 			Viewer.Dist = examine->ODist * exp(examine->SY - y);
 
 		}
  	}
-	inverse(&q_i, &(Viewer.Quat));
-	rotation(&(Viewer.Pos), &q_i, &p);
+	quaternion_inverse(&q_i, &(Viewer.Quat));
+	quaternion_rotation(&(Viewer.Pos), &q_i, &p);
 
 	Viewer.Pos.x += (examine->Origin).x;
 	Viewer.Pos.y += (examine->Origin).y;
@@ -489,8 +483,8 @@ handle_tick_walk()
 
 	increment_pos(&p);
 
-	normalize(&nq);
-	multiply(&(Viewer.Quat), &nq, &q);
+	quaternion_normalize(&nq);
+	quaternion_multiply(&(Viewer.Quat), &nq, &q);
 }
 
 
@@ -704,10 +698,10 @@ handle_tick_fly()
 	nq.x = fly->AVelocity[0];
 	nq.y = fly->AVelocity[1];
 	nq.z = fly->AVelocity[2];
-	normalize(&nq);
+	quaternion_normalize(&nq);
 
-	set(&q_v, &(Viewer.Quat));
-	multiply(&(Viewer.Quat), &nq, &q_v);
+	quaternion_set(&q_v, &(Viewer.Quat));
+	quaternion_multiply(&(Viewer.Quat), &nq, &q_v);
 }
 
 void
@@ -779,7 +773,7 @@ xy2qua(Quaternion *ret, const double x, const double y)
 	ret->y = _y;
 	ret->z = _z;
 /* 	$qua->normalize_this(); */
-	normalize(ret);
+	quaternion_normalize(ret);
 /* 	return $qua; */
 }
 
@@ -814,8 +808,8 @@ void increment_pos(struct point_XYZ *vec) {
 	struct point_XYZ nv;
 	Quaternion q_i;
 
-	inverse(&q_i, &(Viewer.Quat));
-	rotation(&nv, &q_i, vec);
+	quaternion_inverse(&q_i, &(Viewer.Quat));
+	quaternion_rotation(&nv, &q_i, vec);
 
 	/* save velocity calculations for this mode; used for EAI calls only */
 	VPvelocity.x = nv.x; VPvelocity.y = nv.y; VPvelocity.z = nv.z;
@@ -863,7 +857,7 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 
 	vrmlrot_to_quaternion (&q_i,vp->orientation.r[0],
 		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
-	inverse(&(Viewer.AntiQuat),&q_i);
+	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
 	resolve_pos();
 }

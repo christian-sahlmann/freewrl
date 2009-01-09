@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: quaternion.h,v 1.3 2009/01/09 15:39:12 crc_canada Exp $
 
 Quaternion ???
 
@@ -58,46 +58,46 @@ quaternion_to_vrmlrot(const Quaternion *quat,
 					  double *a);
 
 void
-conjugate(Quaternion *quat);
+quaternion_conjugate(Quaternion *quat);
 
 void
-inverse(Quaternion *ret,
+quaternion_inverse(Quaternion *ret,
 		const Quaternion *quat);
 
 double
-norm(const Quaternion *quat);
+quaternion_norm(const Quaternion *quat);
 
 void
-normalize(Quaternion *quat);
+quaternion_normalize(Quaternion *quat);
 
 void
-add(Quaternion *ret,
+quaternion_add(Quaternion *ret,
 	const Quaternion *q1,
 	const Quaternion *q2);
 
 void
-multiply(Quaternion *ret,
+quaternion_multiply(Quaternion *ret,
 		 const Quaternion *q1,
 		 const Quaternion *q2);
 
 void
-scalar_multiply(Quaternion *quat,
+quaternion_scalar_multiply(Quaternion *quat,
 				const double s);
 
 void
-rotation(struct point_XYZ *ret,
+quaternion_rotation(struct point_XYZ *ret,
 		 const Quaternion *quat,
 		 const struct point_XYZ *v);
 
 void
-togl(Quaternion *quat);
+quaternion_togl(Quaternion *quat);
 
 void
-set(Quaternion *ret,
+quaternion_set(Quaternion *ret,
 	const Quaternion *quat);
 
 void
-slerp(Quaternion *ret,
+quaternion_slerp(Quaternion *ret,
 	  const Quaternion *q1,
 	  const Quaternion *q2,
 	  const double t);

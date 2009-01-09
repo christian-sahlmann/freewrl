@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.4 2008/12/11 22:18:03 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.5 2009/01/09 15:39:12 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1026,7 +1026,7 @@ static void GeoOrient (struct SFVec3d *gdCoords, struct SFVec4d *orient) {
 		((double)180.0 - gdCoords->c[0]), RADIANS_PER_DEGREE*((double)180.0 - gdCoords->c[0]), qx.x, qx.y, qx.z,qx.w);
 	#endif
 
-	add (&qr, &qx, &qz);
+	quaternion_add (&qr, &qx, &qz);
 
 	#ifdef VERBOSE
 	printf ("qr %lf %lf %lf %lf\n",qr.x, qr.y, qr.z,qr.w);
@@ -2452,7 +2452,7 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	vrmlrot_to_quaternion (&relQuat, node->orientation.r[0], node->orientation.r[1], node->orientation.r[2], node->orientation.r[3]);
 
 	/* add these together */
-        add (&combQuat, &relQuat, &localQuat);
+        quaternion_add (&combQuat, &relQuat, &localQuat);
 
 	/* get the rotation; 2 steps to convert doubles to floats;
            should be quaternion_to_vrmlrot(&combQuat, &node->__movedOrientation.r[0]... */
@@ -2611,7 +2611,7 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 
 	vrmlrot_to_quaternion (&q_i,node->__movedOrientation.r[0],
 		node->__movedOrientation.r[1],node->__movedOrientation.r[2],node->__movedOrientation.r[3]);
-	inverse(&(Viewer.AntiQuat),&q_i);
+	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
 	resolve_pos();
 

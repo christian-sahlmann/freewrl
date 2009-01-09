@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_SFClasses.c,v 1.7 2008/12/19 16:05:59 crc_canada Exp $
+$Id: jsVRML_SFClasses.c,v 1.8 2009/01/09 15:39:12 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -1561,7 +1561,7 @@ SFRotationSlerp(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 							  (_dest->v).r[2],
 							  (_dest->v).r[3]);
 
-		slerp(&_quat_ret, &_quat, &_quat_dest, t);
+		quaternion_slerp(&_quat_ret, &_quat, &_quat_dest, t);
 		quaternion_to_vrmlrot(&_quat_ret,
 							  (double *) &(_ret->v).r[0],
 							  (double *) &(_ret->v).r[1],

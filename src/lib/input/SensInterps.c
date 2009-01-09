@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.3 2008/12/02 14:26:00 couannette Exp $
+$Id: SensInterps.c,v 1.4 2009/01/09 15:39:12 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -1321,7 +1321,7 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
         	bv.y = -(modelMatrix[0] * modelMatrix[9] - modelMatrix[1] * modelMatrix[8]) * det;
         	bv.z = (modelMatrix[0] * modelMatrix[5] - modelMatrix[1] * modelMatrix[4]) * det;
 
-		normalize(&bv);
+		quaternion_normalize(&bv);
 		ang = acos(bv.y);
         	if (ang > (M_PI/2)) { ang = M_PI - ang; }
 
@@ -1355,19 +1355,19 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
             		radius = (dir1.x * dir1.x + dir1.y * dir1.y + dir1.z * dir1.z);
 		}
 
-        	normalize(&dir1);
+        	quaternion_normalize(&dir1);
         	dir2.w=0;
         	dir2.x=node->_origPoint.c[0];
 		dir2.y=0;
   		dir2.z=node->_origPoint.c[2];
 
-		normalize(&dir2);
+		quaternion_normalize(&dir2);
 
     		tempV.w = 0;
     		tempV.x = dir2.y * dir1.z - dir2.z * dir1.y;
     		tempV.y = dir2.z * dir1.x - dir2.x * dir1.z;
     		tempV.z = dir2.x * dir1.y - dir2.y * dir1.x;
-		normalize(&tempV);
+		quaternion_normalize(&tempV);
 
         	length = tempV.x * tempV.x + tempV.y * tempV.y + tempV.z * tempV.z;
         	if (APPROX(length,0.0)) { return; }
@@ -1547,7 +1547,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 					  (node->offset).r[1],
 					  (node->offset).r[2],
 					  (node->offset).r[3]);
-			multiply(&q_r, &q, &q2);
+			quaternion_multiply(&q_r, &q, &q2);
 
 			/* calculate VRML rotation; note we have pointers to doubles, but rotation is float */
 			quaternion_to_vrmlrot(&q_r,&s1,&s2,&s3,&s4);

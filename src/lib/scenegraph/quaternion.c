@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.c,v 1.3 2008/12/02 15:23:56 couannette Exp $
+$Id: quaternion.c,v 1.4 2009/01/09 15:39:12 crc_canada Exp $
 
 ???
 
@@ -187,7 +187,7 @@ vrmlrot_to_quaternion(Quaternion *quat, const double x, const double y, const do
 		quat->x = s * (x / scale);
 		quat->y = s * (y / scale);
 		quat->z = s * (z / scale);
-		normalize(quat);
+		quaternion_normalize(quat);
 	}
 }
 
@@ -228,7 +228,7 @@ quaternion_to_vrmlrot(const Quaternion *quat, double *x, double *y, double *z, d
 }
 
 void
-conjugate(Quaternion *quat)
+quaternion_conjugate(Quaternion *quat)
 {
 	quat->x *= -1;
 	quat->y *= -1;
@@ -236,21 +236,21 @@ conjugate(Quaternion *quat)
 }
 
 void
-inverse(Quaternion *ret, const Quaternion *quat)
+quaternion_inverse(Quaternion *ret, const Quaternion *quat)
 {
 /* 	double n = norm(quat); */
 
-	set(ret, quat);
-	conjugate(ret);
+	quaternion_set(ret, quat);
+	quaternion_conjugate(ret);
 
 	/* unit quaternion, so take conjugate */
-	normalize(ret);
+	quaternion_normalize(ret);
  	/* printf("Quaternion inverse: ret = {%f, %f, %f, %f}, quat = {%f, %f, %f, %f}\n",*/
  	/* 	   ret->w, ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z);*/
 }
 
 double
-norm(const Quaternion *quat)
+quaternion_norm(const Quaternion *quat)
 {
 	return(sqrt(
 				quat->w * quat->w +
@@ -261,9 +261,9 @@ norm(const Quaternion *quat)
 }
 
 void
-normalize(Quaternion *quat)
+quaternion_normalize(Quaternion *quat)
 {
-	double n = norm(quat);
+	double n = quaternion_norm(quat);
 	if (APPROX(n, 1)) {
 		return;
 	}
@@ -273,7 +273,7 @@ normalize(Quaternion *quat)
 	quat->z /= n;
 }
 
-void add(Quaternion *ret, const Quaternion *q1, const Quaternion *q2) {
+void quaternion_add(Quaternion *ret, const Quaternion *q1, const Quaternion *q2) {
 	double t1[3];
 	double t2[3];
 
@@ -307,7 +307,7 @@ void add(Quaternion *ret, const Quaternion *q1, const Quaternion *q2) {
 }
 
 void
-multiply(Quaternion *ret, const Quaternion *q1, const Quaternion *q2)
+quaternion_multiply(Quaternion *ret, const Quaternion *q1, const Quaternion *q2)
 {
 	ret->w = (q1->w * q2->w) - (q1->x * q2->x) - (q1->y * q2->y) - (q1->z * q2->z);
 	ret->x = (q1->w * q2->x) + (q1->x * q2->w) + (q1->y * q2->z) - (q1->z * q2->y);
@@ -317,7 +317,7 @@ multiply(Quaternion *ret, const Quaternion *q1, const Quaternion *q2)
 }
 
 void
-scalar_multiply(Quaternion *quat, double s)
+quaternion_scalar_multiply(Quaternion *quat, double s)
 {
 	quat->w *= s;
 	quat->x *= s;
@@ -331,7 +331,7 @@ scalar_multiply(Quaternion *quat, double s)
  * v' = q q_v q^-1, where q_v = [0, v]
  */
 void
-rotation(struct point_XYZ *ret, const Quaternion *quat, const struct point_XYZ *v)
+quaternion_rotation(struct point_XYZ *ret, const Quaternion *quat, const struct point_XYZ *v)
 {
 	Quaternion q_v, q_i, q_r1, q_r2;
 
@@ -339,23 +339,23 @@ rotation(struct point_XYZ *ret, const Quaternion *quat, const struct point_XYZ *
 	q_v.x = v->x;
 	q_v.y = v->y;
 	q_v.z = v->z;
-	inverse(&q_i, quat);
-	multiply(&q_r1, &q_v, &q_i);
-	multiply(&q_r2, quat, &q_r1);
+	quaternion_inverse(&q_i, quat);
+	quaternion_multiply(&q_r1, &q_v, &q_i);
+	quaternion_multiply(&q_r2, quat, &q_r1);
 
 	ret->x = q_r2.x;
 	ret->y = q_r2.y;
 	ret->z = q_r2.z;
- 	/* printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z);*/
+ 	printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z);
 }
 
 
 void
-togl(Quaternion *quat)
+quaternion_togl(Quaternion *quat)
 {
 	if (APPROX(fabs(quat->w), 1)) { return; }
 
-	if (quat->w > 1) { normalize(quat); }
+	if (quat->w > 1) { quaternion_normalize(quat); }
 
 	/* get the angle, but turn us around 180 degrees */
 	/* printf ("togl: setting rotation %f %f %f %f\n",quat->w,quat->x,quat->y,quat->z);*/
@@ -363,7 +363,7 @@ togl(Quaternion *quat)
 }
 
 void
-set(Quaternion *ret, const Quaternion *quat)
+quaternion_set(Quaternion *ret, const Quaternion *quat)
 {
 	ret->w = quat->w;
 	ret->x = quat->x;
@@ -380,7 +380,7 @@ set(Quaternion *ret, const Quaternion *quat)
  * where a is the arc angle, quaternions pq = cos(q) and 0 <= t <= 1
  */
 void
-slerp(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, const double t)
+quaternion_slerp(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, const double t)
 {
 	double omega, cosom, sinom, scale0, scale1, q2_array[4];
 
