@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.5 2008/12/19 16:05:59 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.6 2009/01/23 18:20:14 sdumoulin Exp $
 
 ???
 
@@ -221,7 +221,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 		while ((*value == ' ') && (*value != '\0')) value ++;
 
 		/* now, does the value string need quoting? */
-		if ((*value != '"') && (*value != '\'')) {
+		if ((*value != '"') && (*value != '\'') && (*value != "[")) {
 			int len;
 			/* printf ("have to quote this string\n"); */
 			len = strlen(value);
