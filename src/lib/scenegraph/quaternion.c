@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.c,v 1.4 2009/01/09 15:39:12 crc_canada Exp $
+$Id: quaternion.c,v 1.5 2009/01/29 18:30:06 crc_canada Exp $
 
 ???
 
@@ -346,7 +346,7 @@ quaternion_rotation(struct point_XYZ *ret, const Quaternion *quat, const struct 
 	ret->x = q_r2.x;
 	ret->y = q_r2.y;
 	ret->z = q_r2.z;
- 	printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z);
+ 	/* printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z); */
 }
 
 

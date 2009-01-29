@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.3 2008/12/02 15:14:16 couannette Exp $
+$Id: Component_Navigation.c,v 1.4 2009/01/29 18:30:06 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -422,6 +422,10 @@ void child_Collision (struct X3D_Collision *node) {
 		#endif
 		DIRECTIONAL_LIGHT_OFF
 	}
+}
+
+void changed_LOD (struct X3D_LOD *node) {
+	/* do nothing right now - JAS */
 }
 
 /* LOD changes between X3D and VRML - level and children fields are "equivalent" */

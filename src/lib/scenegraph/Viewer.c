@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.7 2009/01/29 17:09:18 crc_canada Exp $
+$Id: Viewer.c,v 1.8 2009/01/29 18:30:06 crc_canada Exp $
 
 CProto ???
 
@@ -38,7 +38,6 @@ struct point_XYZ VPvelocity;
 
 double nearPlane=DEFAULT_NEARPLANE;                     /* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
 double farPlane=DEFAULT_FARPLANE;                       /* a good default value */
-double screenRatio=1.5;
 double fieldofview=45.0;
 double calculatedNearPlane = 0.0;
 double calculatedFarPlane = 0.0;
@@ -114,7 +113,6 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 
 	/* if we are brand new, set up our defaults */
 	if (!viewer_initialized) {
-printf ("viewer_init called\n");
 		viewer_initialized = TRUE;
 
 		viewer->Pos.x = 0; viewer->Pos.y = 0; viewer->Pos.z = 10;
@@ -236,10 +234,10 @@ void resolve_pos(void) {
 		quaternion_inverse(&q_inv, &(Viewer.Quat));
 		quaternion_rotation(&rot, &q_inv, &z_axis);
 
+/*
 printf ("Viewer examine, not changing origin keeping it at %f %f %f\n",
 		examine->Origin.x, examine->Origin.y, examine->Origin.z);
 
-/*
 		(examine->Origin).x = (Viewer.Pos).x - Viewer.Dist * rot.x;
 		(examine->Origin).y = (Viewer.Pos).y - Viewer.Dist * rot.y;
 		(examine->Origin).z = (Viewer.Pos).z - Viewer.Dist * rot.z;
@@ -870,18 +868,19 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	zd = vp->position.c[2]-vp->centerOfRotation.c[2];
 	Viewer.Dist = sqrt (xd*xd+yd*yd+zd*zd);
 
-	printf ("viewpoint rotate distance %f\n",Viewer.Dist);
+	/* printf ("viewpoint rotate distance %f\n",Viewer.Dist); */
 
 	/* since this is not a bind to a GeoViewpoint node... */
 	Viewer.GeoSpatialNode = NULL;
 
 	/* set Viewer position and orientation */
 
-	printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
+	/* printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
 	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
 	vp->orientation.r[3]);
 	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); 
 	printf ("	center of rotation %f %f %f\n",vp->centerOfRotation.c[0], vp->centerOfRotation.c[1],vp->centerOfRotation.c[2]);
+	*/
 	
 	Viewer.Pos.x = vp->position.c[0];
 	Viewer.Pos.y = vp->position.c[1];
