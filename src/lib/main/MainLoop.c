@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.15 2009/01/29 17:09:18 crc_canada Exp $
+$Id: MainLoop.c,v 1.16 2009/01/29 21:14:40 crc_canada Exp $
 
 CProto ???
 
@@ -208,7 +208,7 @@ void EventLoop() {
         }
 #endif
 
-        /* printf ("start of MainLoop\n"); */
+        printf ("start of MainLoop\n"); 
 
         /* should we do events, or maybe a parser is parsing? */
         doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
@@ -653,7 +653,7 @@ void render_pre() {
         /* 2. Headlight, initialized here where we have the modelview matrix to Identity.
         FIXME: position of light sould actually be offset a little (towards the center)
         when in stereo mode. */
-        fwLoadIdentity();
+        GL_LOAD_IDENTITY();
 
         /*printf("calling get headlight in render_pre\n"); */
         if (get_headlight()) lightState(0,TRUE);
@@ -776,11 +776,11 @@ void render_collisions() {
         get_collisionoffset(&(v.x), &(v.y), &(v.z));
         increment_pos(&v);
 }
-#define GOODCODE
+#undef GOODCODE
 #ifdef GOODCODE
 void setup_viewpoint() {
-        fwMatrixMode(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
-        fwLoadIdentity();
+        GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
+        GL_LOAD_IDENTITY();
         viewer_togl(fieldofview);
         render_hier(rootNode, VF_Viewpoint);
         glPrintError("XEvents::setup_viewpoint");
@@ -843,18 +843,20 @@ for (ci=0; ci<8; ci++) {
 	double zz = 0.0;
 	struct point_XYZ rp1;
 	struct point_XYZ rp2;
+#ifdef donotrotate
 	/* first, add back in the currentPosition */
 	rp1.x = p[ci].x + rotatedCurPos.x;
 	rp1.y = p[ci].y + rotatedCurPos.y;
 	rp1.z = p[ci].z + rotatedCurPos.z;
 	
 	printf ("back to center: %d: %4.2f %4.2f %4.2f ",ci, rp1.x, rp1.y, rp1.z); 
+#endif
+
+	/* lets do an add here */
+	quaternion_rotation(&rp1, &Viewer.AntiQuat, &p[ci]);
+	printf (" rotated but before add: %d: %4.2f %4.2f %4.2f ",ci, rp1.x, rp1.y, rp1.z);
 
 #ifdef donotrotate
-	/* lets do an add here */
-	quaternion_rotation(&rp, &Viewer.AntiQuat, &p[ci]);
-
-	printf (" rotated but before add: %d: %4.2f %4.2f %4.2f ",ci, rp.x, rp.y, rp.z);
 	rp.x -= Viewer.currentPosInModel.x;
 	rp.y -= Viewer.currentPosInModel.y;
 	rp.z -= Viewer.currentPosInModel.z;
@@ -960,8 +962,8 @@ void setup_viewpoint() {
 	printf ("\nstart of setup_viewpoint\n");
 	#endif
 
-        fwMatrixMode(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
-        fwLoadIdentity();
+        GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
+        GL_LOAD_IDENTITY();
         viewer_togl(fieldofview);
 
 
@@ -1063,9 +1065,9 @@ void setup_projection(int pick, int x, int y) {
         }
         #endif
 
-        fwMatrixMode(GL_PROJECTION);
+        GL_MATRIX_MODE(GL_PROJECTION);
         glViewport(0,clipPlane,screenWidth,screenHeight);
-        fwLoadIdentity();
+        GL_LOAD_IDENTITY();
         if(pick) {
                 /* picking for mouse events */
                 glGetIntegerv(GL_VIEWPORT,viewPort2);
@@ -1078,7 +1080,7 @@ void setup_projection(int pick, int x, int y) {
         /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
         gluPerspective(fieldofview, screenRatio, nearPlane, farPlane); 
 
-        fwMatrixMode(GL_MODELVIEW);
+        GL_MATRIX_MODE(GL_MODELVIEW);
 
         glPrintError("XEvents::setup_projection");
 }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.6 2009/01/29 17:09:18 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.7 2009/01/29 21:14:40 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1649,11 +1649,11 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 	if(!render_vp) {
 		double my_rotation;
 
-		fwXformPush();
+		GL_PUSH_MATRIX();
 
 		/* TRANSLATION */
 
-		glTranslated(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
+		GL_TRANSLATE_D(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 		/*
 		printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
 		printf ("          (really to %lf %lf %lf)\n",node->__movedCoords.c[0]-geoViewPointCenter.c[0],
@@ -1662,7 +1662,7 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 		*/
 
 		my_rotation = node->__localOrient.c[3]/3.1415926536*180;
-		glRotated(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
+		GL_ROTATE_D(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
 
 		/* did either we or the Viewpoint move since last time? */
 		RECORD_DISTANCE
@@ -1674,7 +1674,7 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 	OCCLUSIONTEST
 
         if(!render_vp) {
-            fwXformPop();
+            GL_POP_MATRIX();
         } else {
         }
 }
@@ -2504,9 +2504,9 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 
 
 	/* perform GeoViewpoint translations */
-	glRotated(-node->__movedOrientation.r[3]/PI*180.0,node->__movedOrientation.r[0],node->__movedOrientation.r[1],
+	GL_ROTATE_D(-node->__movedOrientation.r[3]/PI*180.0,node->__movedOrientation.r[0],node->__movedOrientation.r[1],
 		node->__movedOrientation.r[2]); 
-	glTranslated(-node->__movedPosition.c[0],-node->__movedPosition.c[1],-node->__movedPosition.c[2]);
+	GL_TRANSLATE_D(-node->__movedPosition.c[0],-node->__movedPosition.c[1],-node->__movedPosition.c[2]);
 
 	/* now, lets work on the GeoViewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, viewPort);
@@ -2702,15 +2702,15 @@ void prep_GeoTransform (struct X3D_GeoTransform *node) {
 	OCCLUSIONTEST
 
 	if(!render_vp) {
-		fwXformPush();
+		GL_PUSH_MATRIX();
 
 
 		/* TRANSLATION */
 		if (node->__do_trans)
-			glTranslatef(node->translation.c[0],node->translation.c[1],node->translation.c[2]);
+			GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]);
 
                 /* GeoTransform TRANSLATION */
-                glTranslated(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
+                GL_TRANSLATE_D(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
                 /*
                 printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
                 printf ("          (really to %lf %lf %lf)\n",node->__movedCoords.c[0]-geoViewPointCenter.c[0],
@@ -2719,32 +2719,32 @@ void prep_GeoTransform (struct X3D_GeoTransform *node) {
                 */
                         
                 my_rotation = node->__localOrient.c[3]/3.1415926536*180;
-                glRotated(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
+                GL_ROTATE_D(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
                 
 		/* ROTATION */
 		if (node->__do_rotation) {
 			my_rotation = node->rotation.r[3]/3.1415926536*180;
-			glRotatef(my_rotation, node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]);
+			GL_ROTATE_F(my_rotation, node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]);
 		}
 
 		/* SCALEORIENTATION */
 		if (node->__do_scaleO) {
 			my_scaleO = node->scaleOrientation.r[3]/3.1415926536*180;
-			glRotatef(my_scaleO, node->scaleOrientation.r[0],
+			GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0],
 				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
 		}
 
 		/* SCALE */
 		if (node->__do_scale)
-			glScalef(node->scale.c[0],node->scale.c[1],node->scale.c[2]);
+			GL_SCALE_F(node->scale.c[0],node->scale.c[1],node->scale.c[2]);
 
 		/* REVERSE SCALE ORIENTATION */
 		if (node->__do_scaleO)
-			glRotatef(-my_scaleO, node->scaleOrientation.r[0],
+			GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0],
 				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
 
 		/* REVERSE CENTER */
-                glTranslated(-node->__movedCoords.c[0], -node->__movedCoords.c[1], -node->__movedCoords.c[2]);
+                GL_TRANSLATE_D(-node->__movedCoords.c[0], -node->__movedCoords.c[1], -node->__movedCoords.c[2]);
 
 		RECORD_DISTANCE
         }
@@ -2757,23 +2757,23 @@ void fin_GeoTransform (struct X3D_GeoTransform *node) {
 	OCCLUSIONTEST
 
         if(!render_vp) {
-            fwXformPop();
+            GL_POP_MATRIX();
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
-                glTranslated(((node->__movedCoords).c[0]),((node->__movedCoords).c[1]),((node->__movedCoords).c[2])
+                GL_TRANSLATE_D(((node->__movedCoords).c[0]),((node->__movedCoords).c[1]),((node->__movedCoords).c[2])
                 );
-                glRotatef(((node->scaleOrientation).r[3])/3.1415926536*180,((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                GL_ROTATE_F(((node->scaleOrientation).r[3])/3.1415926536*180,((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
                 );
-                glScalef(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
+                GL_SCALE_F(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
                 );
-                glRotatef(-(((node->scaleOrientation).r[3])/3.1415926536*180),((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                GL_ROTATE_F(-(((node->scaleOrientation).r[3])/3.1415926536*180),((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
                 );
-                glRotatef(-(((node->rotation).r[3]))/3.1415926536*180,((node->rotation).r[0]),((node->rotation).r[1]),((node->rotation).r[2])
+                GL_ROTATE_F(-(((node->rotation).r[3]))/3.1415926536*180,((node->rotation).r[0]),((node->rotation).r[1]),((node->rotation).r[2])
                 );
-                glTranslated(-(((node->__movedCoords).c[0])),-(((node->__movedCoords).c[1])),-(((node->__movedCoords).c[2]))
+                GL_TRANSLATE_D(-(((node->__movedCoords).c[0])),-(((node->__movedCoords).c[1])),-(((node->__movedCoords).c[2]))
                 );
-                glTranslatef(-(((node->translation).c[0])),-(((node->translation).c[1])),-(((node->translation).c[2]))
+                GL_TRANSLATE_F(-(((node->translation).c[0])),-(((node->translation).c[1])),-(((node->translation).c[2]))
                 );
             }
         }

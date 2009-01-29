@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.3 2009/01/29 17:09:18 crc_canada Exp $
+$Id: Bindable.c,v 1.4 2009/01/29 21:14:40 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -456,12 +456,12 @@ void render_Fog (struct X3D_Fog *node) {
 
 	fogptr = node->fogType->strptr;
 	foglen = node->fogType->len;
-	glPushMatrix();
+	GL_PUSH_MATRIX();
 	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 	/* Get origin */
 	gluUnProject(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
-	glTranslated(x,y,z);
+	GL_TRANSLATE_D(x,y,z);
 
 	gluUnProject(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
 	/* Get scale */
@@ -472,7 +472,7 @@ void render_Fog (struct X3D_Fog *node) {
 	gluProject(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
 	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
 	/* Undo the translation and scale effects */
-	glScaled(sx,sy,sz);
+	GL_SCALE_D(sx,sy,sz);
 
 
 	/* now do the foggy stuff */
@@ -493,7 +493,7 @@ void render_Fog (struct X3D_Fog *node) {
 	glEnable (GL_FOG);
 	fog_enabled = TRUE;
 
-	glPopMatrix();
+	GL_POP_MATRIX();
 }
 
 
@@ -529,12 +529,12 @@ void moveBackgroundCentre () {
 
 	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);  */
 	glShadeModel(GL_SMOOTH);
-	glPushMatrix();
+	GL_PUSH_MATRIX();
 	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 	/* Get origin */
 	gluUnProject(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
-	glTranslated(x,y,z);
+	GL_TRANSLATE_D(x,y,z);
 
 	LIGHTING_OFF
 
@@ -548,7 +548,7 @@ void moveBackgroundCentre () {
 	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
 
 	/* Undo the translation and scale effects */
-	glScaled(sx,sy,sz);
+	GL_SCALE_D(sx,sy,sz);
 }
 
 void recalculateBackgroundVectors(struct X3D_Background *node) {
@@ -841,7 +841,7 @@ void render_Background (struct X3D_Background *node) {
 
         	glDisableClientState (GL_TEXTURE_COORD_ARRAY);
 	}
-	glPopMatrix();
+	GL_POP_MATRIX();
 
 	/* is fog enabled? if so, disable it right now */
 	if (fog_enabled ==TRUE) glEnable (GL_FOG);
@@ -898,7 +898,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	}
 
 	/* pushes are done in moveBackgroundCentre */
-	glPopMatrix();
+	GL_POP_MATRIX();
 
 	/* is fog enabled? if so, disable it right now */
 	if (fog_enabled ==TRUE) glEnable (GL_FOG);

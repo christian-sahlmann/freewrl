@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Sound.c,v 1.3 2008/12/02 15:23:56 couannette Exp $
+$Id: Component_Sound.c,v 1.4 2009/01/29 21:14:40 crc_canada Exp $
 
 X3D Sound Component
 
@@ -54,7 +54,7 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 	midmax = (node->maxFront - node->maxBack) / 2.0;
 
 
-	glPushMatrix();
+	GL_PUSH_MATRIX();
 
 	/*
 	first, find whether or not we are within the maximum circle.
@@ -64,12 +64,12 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 	directions.
 	*/
 
-	glTranslatef (location.x + midmax*direction.x,
+	GL_TRANSLATE_F (location.x + midmax*direction.x,
 			location.y + midmax*direction.y,
 			location.z + midmax * direction.z);
 
 	/* make the ellipse a circle by scaling...
-	glScalef (direction.x*2.0 + 0.5, direction.y*2.0 + 0.5, direction.z*2.0 + 0.5);
+	GL_SCALE_F (direction.x*2.0 + 0.5, direction.y*2.0 + 0.5, direction.z*2.0 + 0.5);
 	- scaling needs work - we need direction information, and parameter work. */
 
 	if ((fabs(node->minFront - node->minBack) > 0.5) ||
@@ -210,7 +210,7 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 		}
 	}
 
-	glPopMatrix();
+	GL_POP_MATRIX();
 }
 
 void render_Sound (struct X3D_Sound *node) {
@@ -274,7 +274,7 @@ void render_Sound (struct X3D_Sound *node) {
 		midmax = (node->maxFront - node->maxBack) / 2.0;
 
 
-		glPushMatrix();
+		GL_PUSH_MATRIX();
 
 		/*
 		first, find whether or not we are within the maximum circle.
@@ -284,12 +284,12 @@ void render_Sound (struct X3D_Sound *node) {
 		directions.
 		*/
 
-		glTranslatef (location.x + midmax*direction.x,
+		GL_TRANSLATE_F (location.x + midmax*direction.x,
 				location.y + midmax*direction.y,
 				location.z + midmax * direction.z);
 
 		/* make the ellipse a circle by scaling...
-		glScalef (direction.x*2.0 + 0.5, direction.y*2.0 + 0.5, direction.z*2.0 + 0.5);
+		GL_SCALE_F (direction.x*2.0 + 0.5, direction.y*2.0 + 0.5, direction.z*2.0 + 0.5);
 		- scaling needs work - we need direction information, and parameter work. */
 
 		if ((fabs(node->minFront - node->minBack) > 0.5) ||
@@ -373,7 +373,7 @@ void render_Sound (struct X3D_Sound *node) {
 			}
 			Sound_toserver(mystring);
 		}
-		glPopMatrix();
+		GL_POP_MATRIX();
 	}
 }
 
