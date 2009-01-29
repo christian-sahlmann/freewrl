@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.6 2009/01/09 15:39:12 crc_canada Exp $
+$Id: Viewer.c,v 1.7 2009/01/29 17:09:18 crc_canada Exp $
 
 CProto ???
 
@@ -20,7 +20,6 @@ CProto ???
 #include "LinearAlgebra.h"
 #include "quaternion.h"
 #include "Viewer.h"
-
 
 static int viewer_type = NONE;
 int viewer_initialized = FALSE;
@@ -66,14 +65,12 @@ void viewer_default() {
 	fieldofview = 45.0;
 
 	VPvelocity.x = 0.0; VPvelocity.y = 0.0; VPvelocity.z = 0.0; 
-	(Viewer.Pos).x = 0;
-	(Viewer.Pos).y = 0;
-	(Viewer.Pos).z = 10;
+	Viewer.Pos.x = 0; Viewer.Pos.y = 0; Viewer.Pos.z = 10;
+	Viewer.currentPosInModel.x = 0; Viewer.currentPosInModel.y = 0; Viewer.currentPosInModel.z = 10;
+	Viewer.AntiPos.x = 0; Viewer.AntiPos.y = 0; Viewer.AntiPos.z = 0;
 
-	(Viewer.AntiPos).x = 0;
-	(Viewer.AntiPos).y = 0;
-	(Viewer.AntiPos).z = 0;
 	vrmlrot_to_quaternion (&Viewer.Quat,1.0,0.0,0.0,0.0);
+	vrmlrot_to_quaternion (&Viewer.bindTimeQuat,1.0,0.0,0.0,0.0);
 	vrmlrot_to_quaternion (&q_i,1.0,0.0,0.0,0.0);
 	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
@@ -100,6 +97,15 @@ void viewer_default() {
 #endif
 }
 
+/* return the position in model view of the viewer */
+void viewer_getPosInModel(struct point_XYZ *rp) {
+	if (!viewer_initialized) {
+		rp->x = 0.0; rp->y = 0.0; rp->z=0.0;
+	} else {
+		rp->x = Viewer.currentPosInModel.x; rp->y = Viewer.currentPosInModel.y; rp->z = Viewer.currentPosInModel.z;
+	}
+}
+
 void viewer_init (X3D_Viewer *viewer, int type) {
 	Quaternion q_i;
 
@@ -108,18 +114,16 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 
 	/* if we are brand new, set up our defaults */
 	if (!viewer_initialized) {
+printf ("viewer_init called\n");
 		viewer_initialized = TRUE;
 
-		(viewer->Pos).x = 0;
-		(viewer->Pos).y = 0;
-		(viewer->Pos).z = 10;
-
-		(viewer->AntiPos).x = 0;
-		(viewer->AntiPos).y = 0;
-		(viewer->AntiPos).z = 0;
+		viewer->Pos.x = 0; viewer->Pos.y = 0; viewer->Pos.z = 10;
+		viewer->currentPosInModel.x = 0; viewer->currentPosInModel.y = 0; viewer->currentPosInModel.z = 10;
+		viewer->AntiPos.x = 0; viewer->AntiPos.y = 0; viewer->AntiPos.z = 0;
 
 
 		vrmlrot_to_quaternion (&Viewer.Quat,1.0,0.0,0.0,0.0);
+		vrmlrot_to_quaternion (&Viewer.bindTimeQuat,1.0,0.0,0.0,0.0);
 		vrmlrot_to_quaternion (&q_i,1.0,0.0,0.0,0.0);
 		quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
@@ -232,67 +236,87 @@ void resolve_pos(void) {
 		quaternion_inverse(&q_inv, &(Viewer.Quat));
 		quaternion_rotation(&rot, &q_inv, &z_axis);
 
-		if (Viewer.GeoSpatialNode != NULL) {
-			/* printf ("resolve_pos, a Geospatial Viewpoint\n"); */
-			/* Geospatial Viewpoint - */
-			/* my $d = 0; for(0..2) {$d += $this->{Pos}[$_] * $z->[$_]} */
-			dist = VECPT(Viewer.Pos, rot);
-	
-			/*
-			 * Fix the rotation point to be 10m in front of the user (dist = 10.0)
-			 * or, try for the origin. Preferential treatment would be to choose
-			 * the shape within the center of the viewpoint. This information is
-			 * found in the matrix, and is used for collision calculations - we
-			 * need to better store it.
-			 */
-	
-			/* $d = abs($d); $this->{Dist} = $d; */
-			Viewer.Dist = fabs(dist);
-		}
+printf ("Viewer examine, not changing origin keeping it at %f %f %f\n",
+		examine->Origin.x, examine->Origin.y, examine->Origin.z);
 
-		/* $this->{Origin} = [ map {$this->{Pos}[$_] - $d * $z->[$_]} 0..2 ]; */
+/*
 		(examine->Origin).x = (Viewer.Pos).x - Viewer.Dist * rot.x;
 		(examine->Origin).y = (Viewer.Pos).y - Viewer.Dist * rot.y;
 		(examine->Origin).z = (Viewer.Pos).z - Viewer.Dist * rot.z;
+*/
 
-		/* printf ("examine origin = %f %f %f\n",examine.Origin.x,examine.Origin.y,examine.Origin.z); */
 	}
 }
 
 void viewer_togl(double fieldofview) {
 
-	/* GLdouble modelMatrix[16];
 
-        fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	printf ("Viewer_togl Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
-                modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
-                modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
-                modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
-                modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
-	*/
+	GLdouble modelMatrix[16];
+	GLdouble projMatrix[16]; 
+	GLdouble identityMatrix[16];
+	GLdouble inverseMatrix[16];
 
+	struct point_XYZ newAnti;
+	struct point_XYZ rp;
+	struct point_XYZ tmppt;
 
 	if (Viewer.buffer != GL_BACK) {
 		set_stereo_offset(Viewer.buffer, Viewer.eyehalf, Viewer.eyehalfangle, fieldofview);
 	}
 
-	quaternion_togl(&(Viewer.Quat));
-	/* printf ("viewer togl first trans %lf %lf %lf\n", -(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
-	printf ("       togl secnd trans %lf %lf %lf\n",(Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
-	*/
-
-
+	quaternion_togl(&Viewer.Quat);
 	glTranslated(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
 	glTranslated((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
-	quaternion_togl(&(Viewer.AntiQuat));
+	quaternion_togl(&Viewer.AntiQuat);
 
-        /* fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-       printf ("Viewer end _togl Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
+	/* "Matrix Quaternion FAQ: 8.050
+	Given the current ModelView matrix, how can I determine the object-space location of the camera?
+
+   	The "camera" or viewpoint is at (0., 0., 0.) in eye space. When you
+   	turn this into a vector [0 0 0 1] and multiply it by the inverse of
+   	the ModelView matrix, the resulting vector is the object-space
+   	location of the camera.
+
+   	OpenGL doesn't let you inquire (through a glGet* routine) the
+   	inverse of the ModelView matrix. You'll need to compute the inverse
+   	with your own code." */
+
+
+       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+/*
+       printf ("Viewer end _togl modelview Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
                 modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
                 modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
                 modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
                 modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
-	*/
+*/
+
+	matinverse(inverseMatrix,modelMatrix);
+/*
+       printf ("inverted modelview Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
+                inverseMatrix[0],  inverseMatrix[4],  inverseMatrix[ 8],  inverseMatrix[12],
+                inverseMatrix[1],  inverseMatrix[5],  inverseMatrix[ 9],  inverseMatrix[13],
+                inverseMatrix[2],  inverseMatrix[6],  inverseMatrix[10],  inverseMatrix[14],
+                inverseMatrix[3],  inverseMatrix[7],  inverseMatrix[11],  inverseMatrix[15]);
+*/
+
+
+	tmppt.x = inverseMatrix[12];
+	tmppt.y = inverseMatrix[13];
+	tmppt.z = inverseMatrix[14];
+
+
+	/* printf ("going to do rotation on %f %f %f\n",tmppt.x, tmppt.y, tmppt.z); */
+	quaternion_rotation(&rp, &Viewer.bindTimeQuat, &tmppt);
+	/* printf ("new inverseMatrix  after rotation %4.2f %4.2f %4.2f\n",rp.x, rp.y, rp.z); */
+	Viewer.currentPosInModel.x = Viewer.AntiPos.x + rp.x;
+	Viewer.currentPosInModel.y = Viewer.AntiPos.y + rp.y;
+	Viewer.currentPosInModel.z = Viewer.AntiPos.z + rp.z;
+/*
+	printf ("so, our place in object-land is %4.2f %4.2f %4.2f\n",
+		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
+*/
 
 }
 
@@ -333,7 +357,8 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 	X3D_Viewer_Examine *examine = Viewer.examine;
 	double squat_norm;
 
-	p.z=Viewer.Dist;
+	p.z=Viewer.Dist; 
+	/* rotPoint = point "Viewer.Dist" in front of us */
 
 	if (mev == ButtonPress) {
 		if (button == 1) {
@@ -343,6 +368,7 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 			examine->SY = y;
 			examine->ODist = Viewer.Dist;
 		}
+
 	} else if (mev == MotionNotify) {
 		/* ok, we HAVE done something here */
 		movedPosition = TRUE;
@@ -367,6 +393,11 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
  	}
 	quaternion_inverse(&q_i, &(Viewer.Quat));
 	quaternion_rotation(&(Viewer.Pos), &q_i, &p);
+
+	/*
+printf ("so now, before addition, vp %f %f %f, orig %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z,
+		examine->Origin.x, examine->Origin.y, examine->Origin.z);
+	*/
 
 	Viewer.Pos.x += (examine->Origin).x;
 	Viewer.Pos.y += (examine->Origin).y;
@@ -815,9 +846,15 @@ void increment_pos(struct point_XYZ *vec) {
 	VPvelocity.x = nv.x; VPvelocity.y = nv.y; VPvelocity.z = nv.z;
 
 	/* and, act on this change of location. */
-	(Viewer.Pos).x += nv.x;
-	(Viewer.Pos).y += nv.y;
-	(Viewer.Pos).z += nv.z;
+	Viewer.Pos.x += nv.x; Viewer.Pos.y += nv.y; Viewer.Pos.z += nv.z;
+
+/*
+printf ("increment_pos; oldpos %4.2f %4.2f %4.2f, anti %4.2f %4.2f %4.2f nv %4.2f %4.2f %4.2f \n",
+		Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, 
+		Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z, 
+		nv.x, nv.y, nv.z);
+*/
+		
 }
 
 
@@ -833,17 +870,18 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	zd = vp->position.c[2]-vp->centerOfRotation.c[2];
 	Viewer.Dist = sqrt (xd*xd+yd*yd+zd*zd);
 
-	/* printf ("viewpoint rotate distance %f\n",Viewer.Dist); */
+	printf ("viewpoint rotate distance %f\n",Viewer.Dist);
 
 	/* since this is not a bind to a GeoViewpoint node... */
 	Viewer.GeoSpatialNode = NULL;
 
 	/* set Viewer position and orientation */
 
-	/* printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
+	printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
 	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
 	vp->orientation.r[3]);
-	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); */
+	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); 
+	printf ("	center of rotation %f %f %f\n",vp->centerOfRotation.c[0], vp->centerOfRotation.c[1],vp->centerOfRotation.c[2]);
 	
 	Viewer.Pos.x = vp->position.c[0];
 	Viewer.Pos.y = vp->position.c[1];
@@ -851,8 +889,13 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	Viewer.AntiPos.x = vp->position.c[0];
 	Viewer.AntiPos.y = vp->position.c[1];
 	Viewer.AntiPos.z = vp->position.c[2];
+	Viewer.currentPosInModel.x = vp->position.c[0];
+	Viewer.currentPosInModel.y = vp->position.c[1];
+	Viewer.currentPosInModel.z = vp->position.c[2];
 
 	vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.r[0],
+		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
+	vrmlrot_to_quaternion (&Viewer.bindTimeQuat,vp->orientation.r[0],
 		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
 
 	vrmlrot_to_quaternion (&q_i,vp->orientation.r[0],

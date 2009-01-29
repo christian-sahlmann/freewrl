@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.6 2008/12/31 13:08:15 couannette Exp $
+$Id: OpenGL_Utils.c,v 1.7 2009/01/29 17:09:18 crc_canada Exp $
 
 ???
 
@@ -265,11 +265,12 @@ void fwLoadIdentity () {
 	
 void fwMatrixMode (int mode) {
 	if (myMat != mode) {
-		/*printf ("fwMatrixMode ");
+		/* printf ("fwMatrixMode ");
 		if (mode == GL_PROJECTION) printf ("GL_PROJECTION\n");
 		else if (mode == GL_MODELVIEW) printf ("GL_MODELVIEW\n");
 		else {printf ("unknown %d\n",mode);}
 		*/
+		
 
 		myMat = mode;
 		glMatrixMode(mode);
@@ -302,6 +303,13 @@ void compare (char *where, double *a, double *b) {
 #endif
 
 void fwGetDoublev (int ty, double *mat) {
+
+	/* we were trying to cache OpenGL gets, but, over time this code
+	   has not worked too well as some rotates, etc, did not invalidate
+	   our local flag. Just ignore the optimizations for now */
+	glGetDoublev(ty,mat);
+	return;
+
 #ifdef DEBUGCACHEMATRIX
 	double TMPmat[16];
 	/*printf (" sav %d tot %d\n",sav,tot); */
@@ -665,11 +673,37 @@ void zeroVisibilityFlag(void) {
 	}
 
 
-#define EXTENT_TO_BBOX(thistype) \
-	((struct X3D_##thistype *)node)->bboxSize.c[0] = ((struct X3D_##thistype *)node)->EXTENT_MAX_X; \
-	((struct X3D_##thistype *)node)->bboxSize.c[1] = ((struct X3D_##thistype *)node)->EXTENT_MAX_Y; \
-	((struct X3D_##thistype *)node)->bboxSize.c[2] = ((struct X3D_##thistype *)node)->EXTENT_MAX_Z;
+void EndOfLoopNodeUpdates(void) {
+	struct X3D_Node* node;
+	struct X3D_Anchor* anchorPtr;
+	void **pp;
+	int nParents;
+	int i,j;
+	uintptr_t *setBindPtr;
 
+	struct Multi_Node *addChildren;
+	struct Multi_Node *removeChildren;
+	struct Multi_Node *childrenPtr;
+
+	/* for determining nearPlane/farPlane */
+	int haveBoundGeoViewpoint = FALSE;
+	double maxDist = DBL_MAX; double minDist = 0.0;
+
+
+	/* assume that we do not have any sensitive nodes at all... */
+	HaveSensitive = FALSE;
+	have_transparency = FALSE;
+
+	LOCK_MEMORYTABLE
+
+	/* go through the node table, and zero any bits of interest */
+	for (i=0; i<nextEntry; i++){		
+		node = memoryTable[i];	
+		if (node != NULL) {
+			INITIALIZE_EXTENT;
+		}
+	}
+}
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
 	struct X3D_Anchor* anchorPtr;
@@ -715,21 +749,16 @@ void startOfLoopNodeUpdates(void) {
 
 
 	for (i=0; i<nextEntry; i++){		
-		node = memoryTable[i];		
+		node = memoryTable[i];	
 		if (node != NULL) {
 			switch (node->_nodeType) {
 				BEGIN_NODE(Shape)
 					/* printf ("startLoop, shape, minus dist %lf\n",-node->_dist); */
-
-					/* for nearPlane farPlane calcs */
-					if (-node->_dist >   minDist) minDist = -node->_dist;
-					if (-node->_dist < maxDist) maxDist = -node->_dist;
-
 					/* send along a "look at me" flag if we are visible, or we should look again */
 					if ((X3D_SHAPE(node)->__occludeCheckCount <=0) ||
 							(X3D_SHAPE(node)->__visible)) {
 						update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
-						/* printf ("shape occludecounter, pushing visiblechildren flags\n"); */
+						/* printf ("shape occludecounter, pushing visiblechildren flags\n");  */
 
 					}
 					if (OccResultsAvailable) X3D_SHAPE(node)->__occludeCheckCount--;
@@ -838,7 +867,6 @@ void startOfLoopNodeUpdates(void) {
 	
 				/* Anchor is Mouse Sensitive, AND has Children nodes */
 				BEGIN_NODE(Anchor)
-					EXTENT_TO_BBOX(Anchor)
 					propagateExtent(X3D_NODE(node));
 					ANCHOR_SENSITIVE(Anchor)
 					CHILDREN_NODE(Anchor)
@@ -854,21 +882,15 @@ void startOfLoopNodeUpdates(void) {
 
 				/* does this one possibly have add/removeChildren? */
 				BEGIN_NODE(Group) 
-					EXTENT_TO_BBOX(Group) 
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Group) 
 				END_NODE
 
 				BEGIN_NODE(Inline) 
-					EXTENT_TO_BBOX(Inline) 
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
 				BEGIN_NODE(Transform) 
-					EXTENT_TO_BBOX(Transform)
-			                X3D_TRANSFORM(node)->bboxCenter.c[0] = X3D_TRANSFORM(node)->translation.c[0];
-                			X3D_TRANSFORM(node)->bboxCenter.c[1] = X3D_TRANSFORM(node)->translation.c[1];
-                			X3D_TRANSFORM(node)->bboxCenter.c[2] = X3D_TRANSFORM(node)->translation.c[2];
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Transform) 
 				END_NODE
@@ -894,33 +916,22 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				BEGIN_NODE(Billboard) 
-					EXTENT_TO_BBOX(Billboard)
-
-/*printf ("Billboard, ext %lf, rot %lf, result ",X3D_BILLBOARD(node)->bboxSize.c[1], X3D_BILLBOARD(node)->_rotationAngle);
-        X3D_BILLBOARD(node)->bboxSize.c[1] *= ((double) 1.0 + X3D_BILLBOARD(node)->axisOfRotation.c[1]*sin(X3D_BILLBOARD(node)->_rotationAngle)); 
-printf ("%lf\n",X3D_BILLBOARD(node)->bboxSize.c[1]);
-*/
-					
-
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Billboard) 
                 			update_renderFlag(node,VF_Proximity);
 				END_NODE
 
 				BEGIN_NODE(Collision) 
-					EXTENT_TO_BBOX(Collision)
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Collision) 
 				END_NODE
 
 				BEGIN_NODE(Switch) 
-					EXTENT_TO_BBOX(Switch)
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_SWITCH_NODE(Switch) 
 				END_NODE
 
 				BEGIN_NODE(LOD) 
-					EXTENT_TO_BBOX(LOD) 
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_LOD_NODE 
                 			update_renderFlag(node,VF_Proximity);
@@ -960,10 +971,19 @@ printf ("%lf\n",X3D_BILLBOARD(node)->bboxSize.c[1]);
                 			if (X3D_GEOPROXIMITYSENSOR(node)->enabled) update_renderFlag(node,VF_Proximity);
 				END_NODE
 
-				/* GeoLOD needs its own flag sent up the chain */
+				/* GeoLOD needs its own flag sent up the chain, and it has to push extent up, too */
 				BEGIN_NODE (GeoLOD)
                 			update_renderFlag(node,VF_Proximity);
+					propagateExtent(X3D_NODE(node));
+					BOUNDINGBOX
 				END_NODE
+
+				BEGIN_NODE (GeoLocation)
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(GeoLocation) 
+				END_NODE
+
+
 			}
 		}
 
@@ -1021,57 +1041,8 @@ printf ("%lf\n",X3D_BILLBOARD(node)->bboxSize.c[1]);
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
 	if (viewpoint_stack[viewpoint_tos] != 0) {
 		update_renderFlag(X3D_NODE(viewpoint_stack[viewpoint_tos]), VF_Viewpoint);
-		if (X3D_NODE(viewpoint_stack[viewpoint_tos])->_nodeType == NODE_GeoViewpoint) {
-			haveBoundGeoViewpoint = TRUE;
-			/* printf ("GeoViewpoint dist %lf\n",node->_dist); */
-		}
 	}
-
-	/* do we have a GeoViewpoint as current Bound Viewpoint?? */
-	if (haveBoundGeoViewpoint) {
-		/* we have a centre of a shape (or shapes) figure out where the surfaces will be, plus
-		   fudge factor */
-		#define GEOSP_WE_A_LARGER      ((double)6378137 * 1.1)
-		/* printf ("found minDist %lf, maxDist %lf\n",minDist, maxDist); */
-		/* nearPlane = minDist - GEOSP_WE_A_LARGER; */
-		/* farPlane = geoHeightinZAxis + GEOSP_WE_A_LARGER; */
-
-		/* try doing this from the height of object: */
-
-		farPlane = minDist;
-		nearPlane = geoHeightinZAxis - GEOSP_WE_A_LARGER;
-		if (nearPlane < DEFAULT_NEARPLANE) nearPlane = DEFAULT_NEARPLANE;
-
-#undef TEST_READ_NEAR_FAR
-
-		#ifdef TEST_READ_NEAR_FAR
-	
-		{
-			FILE *tty;
-			char erere[1000];
-			int sl;
-	
-			printf ("calculated nearPlane %lf, farPlane %lf geoHeight %lf \n",nearPlane, farPlane, geoHeightinZAxis);
-			tty = fopen("planes", "r");
-	
-			sl=fread(erere, sizeof(char), 1000, tty);
-			erere[sl+1] = '\0';
-			fclose(tty);
-	
-			sscanf (erere, "%lf %lf", &nearPlane, &farPlane);
-		}
-		#endif
-
-	} else {
-		nearPlane = DEFAULT_NEARPLANE;
-		farPlane = DEFAULT_FARPLANE;
-	}
-	#ifdef VERBOSE
-	printf ("np %lf fp %lf\n",nearPlane,farPlane);
-	#endif
-
 }
-
 
 /*delete node created*/
 void kill_X3DNodes(void){

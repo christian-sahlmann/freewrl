@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.5 2009/01/09 15:39:12 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.6 2009/01/29 17:09:18 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -262,9 +262,6 @@ static int gcToGdInit = FALSE;
 
 /* static struct X3D_GeoOrigin *geoorigin = NULL; */
 
-/* for nearPlane farPlane calculations */
-double geoHeightinZAxis = 0.0;
-
 static void compile_geoSystem (int nodeType, struct Multi_String *args, struct Multi_Int32 *srf);
 static void moveCoords(struct Multi_Int32*, struct Multi_Vec3d *, struct Multi_Vec3d *, struct Multi_Vec3d *);
 static void Gd_Gc (struct Multi_Vec3d *, struct Multi_Vec3d *, double, double, int);
@@ -312,6 +309,7 @@ static double getEllipsoidRadius(int geosp) {
 
 /* move ourselves BACK to the from the GeoOrigin */
 static void retractOrigin(struct X3D_GeoOrigin *myGeoOrigin, struct SFVec3d *gcCoords) {
+printf ("retractOrigin, myGeoOrigin %u\n",myGeoOrigin);
 	if (myGeoOrigin != NULL) {
 		gcCoords->c[0] += myGeoOrigin->__movedCoords.c[0];
 		gcCoords->c[1] += myGeoOrigin->__movedCoords.c[1];
@@ -1054,6 +1052,8 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 	indexT this_srf = INT_ID_UNDEFINED;
 	indexT this_srf_ind = INT_ID_UNDEFINED;
 
+printf ("start of compile_geoSystem\n");
+
 	/* malloc the area required for internal settings, if required */
 	if (srf->p==NULL) {
 		srf->n=4;
@@ -1172,6 +1172,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 					
 		}		
 	}
+	printf ("printf done compileGeoSystem\n");
 
 }
 
@@ -1554,10 +1555,10 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	#ifdef VERBOSE
 	printf ("compile_GeoLocation, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCoords.c[0], node->geoCoords.c[1], node->geoCoords.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 	printf ("	rotation is %lf %lf %lf %lf\n",
-			node->__localOrient.r[0],
-			node->__localOrient.r[1],
-			node->__localOrient.r[2],
-			node->__localOrient.r[3]);
+			node->__localOrient.c[0],
+			node->__localOrient.c[1],
+			node->__localOrient.c[2],
+			node->__localOrient.c[3]);
 	#endif
 
 	/* did the geoCoords change?? */
@@ -1573,6 +1574,7 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	/* events */
 	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoLocation, metadata))
 
+	INITIALIZE_EXTENT;
 
 	#ifdef VERBOSE
 	printf ("compiled GeoLocation\n\n");
@@ -1624,26 +1626,10 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 		printf ("GeoLocation - done normalChildren\n");
 	#endif
 
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX
-		node->bboxCenter.c[0] = node->__movedCoords.c[0];
-		node->bboxCenter.c[1] = node->__movedCoords.c[1];
-		node->bboxCenter.c[2] = node->__movedCoords.c[2];
-
-		/* pass the bounding box calculations on up the chain */
-		propagateExtent(X3D_NODE(node));
-		BOUNDINGBOX
-
-	}
-
 	DIRECTIONAL_LIGHT_OFF
 }
 
 void changed_GeoLocation ( struct X3D_GeoLocation *node) { 
-	INITIALIZE_GEOSPATIAL(node)
-	COMPILE_IF_REQUIRED
-	INITIALIZE_EXTENT
-
 }
 
 /* do transforms, calculate the distance */
@@ -1697,6 +1683,9 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 /* GeoLOD								*/
 /************************************************************************/
 
+void changed_GeoLOD (struct X3D_GeoLOD *node) {
+}
+
 void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	int oldInRange;
 	double cx,cy,cz;
@@ -1716,10 +1705,12 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
 		&t_orig.x,&t_orig.y,&t_orig.z);
 
+/*
+printf ("proximityLOD, orig %4.2f %4.2f %4.2f\n",t_orig.x, t_orig.y, t_orig.z);
+*/
 	cx = t_orig.x - node->__movedCoords.c[0];
 	cy = t_orig.y - node->__movedCoords.c[1];
 	cz = t_orig.z - node->__movedCoords.c[2];
-
 
 	/* distance between "me" at (0,0,0) and the centre of the GeoLOD (cx,cy,cz)
 	   is sqrt (cx-0 + cy-0 + cz-0) so we can compare sqrt(cx+cy+cz) to  sqrt(node->range)
@@ -1762,6 +1753,12 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoLOD, level_changed));
 		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoLOD, children));
 		oldInRange = node->__inRange;
+
+		/* lets work out extent here */
+		INITIALIZE_EXTENT;
+		/* printf ("geolod range changed, initialized extent, czyzsq %4.2f rangesw %4.2f from %4.2f %4.2f %4.2f\n",
+cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
+		update_node(X3D_NODE(node));
 	}
 }
 
@@ -1893,7 +1890,6 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
 
-
 	#ifdef VERBOSE
 	 printf ("child_GeoLOD %u (level %d), renderFlags %x render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	node,
@@ -2015,6 +2011,7 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * node) {
 	printf ("compiling GeoOrigin\n");
 	#endif
 
+	printf ("compiling GeoOrigin\n");
 	/* INITIALIZE_GEOSPATIAL */
 	COMPILE_GEOSYSTEM(node)
 	MARK_NODE_COMPILED
@@ -2161,10 +2158,10 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 	#ifdef VERBOSE
 	printf ("compile_GeoProximitySensor, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCenter.c[0], node->geoCenter.c[1], node->geoCenter.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 	printf ("	rotation is %lf %lf %lf %lf\n",
-			node->__localOrient.r[0],
-			node->__localOrient.r[1],
-			node->__localOrient.r[2],
-			node->__localOrient.r[3]);
+			node->__localOrient.c[0],
+			node->__localOrient.c[1],
+			node->__localOrient.c[2],
+			node->__localOrient.c[3]);
 	#endif
 
 	MARK_NODE_COMPILED
@@ -2511,17 +2508,6 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 		node->__movedOrientation.r[2]); 
 	glTranslated(-node->__movedPosition.c[0],-node->__movedPosition.c[1],-node->__movedPosition.c[2]);
 
-#ifdef CALCULATE_HEIGHT_HERE
-	/* get the matrix, find out z distance for nearPlane/farPlane calculations */
-        fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-        fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-
-	/* printf ("modelMatrix %lf %lf %lf\n", modelMatrix[12], modelMatrix[13], modelMatrix[14]);
-	printf ("projMatrix %lf %lf %lf\n", projMatrix[12], projMatrix[13], projMatrix[14]); */
-	geoHeightinZAxis = -modelMatrix[14];
-#endif
-
-
 	/* now, lets work on the GeoViewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, viewPort);
 	if(viewPort[2] > viewPort[3]) {
@@ -2540,44 +2526,59 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 void viewer_calculate_speed() {
 	struct SFVec3d gcCoords;
 	struct SFVec3d gdCoords;
-
+	double d1, d2;
+		
 	/* the current position is the GC coordinate */
-	gcCoords.c[0]= Viewer.Pos.x;
-	gcCoords.c[1] = Viewer.Pos.y;
-	gcCoords.c[2] = Viewer.Pos.z;
-
+	gcCoords.c[0]= Viewer.currentPosInModel.x;
+	gcCoords.c[1] = Viewer.currentPosInModel.y;
+	gcCoords.c[2] = Viewer.currentPosInModel.z;
+		
         #ifdef VERBOSE
-        printf ("viewer_calculate_speed, position is %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
+        printf ("viewer_calculate_speed, currentPosInModel %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
         #endif
-
+		
 	if (Viewer.GeoSpatialNode != NULL) {
-        	retractOrigin(Viewer.GeoSpatialNode->geoOrigin, &gcCoords);
+		/* do we have a valid __geoSystem?? */
+		if (Viewer.GeoSpatialNode->__geoSystem.n>0) {
+			/* is the __geoSystem NOT gc coords? */
+			printf ("have a GeoSpatial viewpoint, currently %d\n",Viewer.GeoSpatialNode->__geoSystem.p[0]);
+			if (Viewer.GeoSpatialNode->__geoSystem.p[0] != GEOSP_GC) {
+		
+		        	retractOrigin(Viewer.GeoSpatialNode->geoOrigin, &gcCoords);
+		
+		        	#ifdef VERBOSE
+		        	printf ("viewer_calculate_speed, retracted %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
+		        	#endif
+		
+		        	/* convert from local (gc) to gd coordinates, using WGS84 ellipsoid */
+		        	gccToGdc (&gcCoords, &gdCoords);
+		
+				#ifdef VERBOSE
+				printf ("speed is calculated from geodetic height %lf %lf %lf\n",gdCoords.c[0], gdCoords.c[1], gdCoords.c[2]); 
+				#endif
+			
+				/* speed is dependent on elevation above WGS84 ellipsoid */
+				Viewer.speed  = sqrt(gdCoords.c[0]*gdCoords.c[0] + gdCoords.c[1]*gdCoords.c[1] + gdCoords.c[2]*gdCoords.c[2]);
+		
+				#ifdef VERBOSE
+				printf ("height above center %f WGS84 ellipsoid is %lf\n",Viewer.speed,GEOSP_WE_A); 
+				#endif
+		
+				Viewer.speed = fabs(Viewer.speed * Viewer.GeoSpatialNode->speedFactor);
+				if (Viewer.speed < Viewer.GeoSpatialNode->speedFactor) Viewer.speed = Viewer.GeoSpatialNode->speedFactor;
+				Viewer.speed = Viewer.speed;
+
+				/* set the navigation info - use the GeoVRML algorithms */
+				naviinfo.width = Viewer.speed*0.25;
+				naviinfo.height = Viewer.speed*1.6;
+				naviinfo.step = Viewer.speed*0.25;
+		
+				#ifdef VERBOSE
+				printf ("speed after WGS84 ellipsoid is %lf\n",assumedSpeed); 
+				#endif
+			}
+		}
 	}
-
-        #ifdef VERBOSE
-        printf ("viewer_calculate_speed, retracted %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
-        #endif
-
-        /* convert from local (gc) to gd coordinates, using WGS84 ellipsoid */
-        gccToGdc (&gcCoords, &gdCoords);
-
-	#ifdef VERBOSE
-	printf ("speed is calculated from geodetic height %lf %lf %lf\n",gdCoords.c[0], gdCoords.c[1], gdCoords.c[2]); 
-	#endif
-
-	/* speed is dependent on elevation above WGS84 ellipsoid */
-	#define speed_scale 1.0
-	Viewer.speed = fabs(gdCoords.c[2]/10.0 * Viewer.GeoSpatialNode->speedFactor);
-	geoHeightinZAxis = gdCoords.c[2];
-
-	#ifdef VERBOSE
-	printf ("speed is %lf\n",Viewer.speed); 
-	#endif
-
-	/* set the navigation info - use the GeoVRML algorithms */
-	naviinfo.width = Viewer.speed*0.25;
-	naviinfo.height = Viewer.speed*1.6;
-	naviinfo.step = Viewer.speed*0.25;
 }
 
 
@@ -2616,9 +2617,9 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	resolve_pos();
 
 	viewer_calculate_speed();
+#undef VERBOSE
 }
 
-#undef VERBOSE
 
 /************************************************************************/
 /* GeoTransform								*/
@@ -2781,9 +2782,7 @@ void fin_GeoTransform (struct X3D_GeoTransform *node) {
 void changed_GeoTransform (struct X3D_GeoTransform *node) { 
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
-
-
-	INITIALIZE_EXTENT
+	INITIALIZE_EXTENT;
 }
 
 void child_GeoTransform (struct X3D_GeoTransform *node) {

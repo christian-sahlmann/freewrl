@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_HAnim.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Component_HAnim.c,v 1.3 2009/01/29 17:09:18 crc_canada Exp $
 
 X3D H-Anim Component
 
@@ -356,9 +356,7 @@ void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
 }
 
 void changed_HAnimSite (struct X3D_HAnimSite *node) {
-               int i;
-                int nc = ((node->children).n);
-                struct X3D_Node *p;
-
-		INITIALIZE_EXTENT
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_HAnimSite, metadata))
+	INITIALIZE_EXTENT
 }
+

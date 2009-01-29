@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Component_Grouping.c,v 1.3 2009/01/29 17:09:18 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -21,8 +21,9 @@ X3D Grouping Component
 
 
 void changed_Transform (struct X3D_Transform *node) { 
-	INITIALIZE_EXTENT 
 	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Transform, metadata))
+	INITIALIZE_EXTENT;
+
 	/* printf ("changed Transform for node %u\n",node); */
 	node->__do_center = verify_translate ((GLfloat *)node->center.c);
 	node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
@@ -361,19 +362,19 @@ void child_Transform (struct X3D_Transform *node) {
 }
 
 void changed_StaticGroup (struct X3D_StaticGroup *node) { 
-	INITIALIZE_EXTENT 
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_StaticGroup, metadata))
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_StaticGroup, metadata));
+	INITIALIZE_EXTENT;
 }
 
 
 void changed_Group (struct X3D_Group *node) { 
-	INITIALIZE_EXTENT 
 	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Group, metadata))
+	INITIALIZE_EXTENT;
 }
 
 void changed_Switch (struct X3D_Switch *node) { 
-	INITIALIZE_EXTENT 
 	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Switch, metadata))
+	INITIALIZE_EXTENT;
 }
 
 

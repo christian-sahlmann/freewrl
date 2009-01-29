@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Polyrep.c,v 1.3 2009/01/29 17:09:18 crc_canada Exp $
 
 ???
 
@@ -743,19 +743,19 @@ void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
 
 void render_polyrep(void *node) {
 	struct X3D_Virt *v;
-	struct X3D_Node *genericNodePtr;
+	struct X3D_Node *renderedNodePtr;
+	struct X3D_Node *extentNodePtr;
 	struct X3D_IndexedFaceSet *IFSNodePtr;
 	struct X3D_PolyRep *r;
 
 	v = *(struct X3D_Virt **)node;
-	genericNodePtr = X3D_NODE(node);
-	r = (struct X3D_PolyRep *)genericNodePtr->_intern;
+	renderedNodePtr = X3D_NODE(node);
+	r = (struct X3D_PolyRep *)renderedNodePtr->_intern;
 
 	#ifdef TEXVERBOSE
-	printf ("\nrender_polyrep, _nodeType %s\n",stringNodeType(genericNodePtr->_nodeType)); 
+	printf ("\nrender_polyrep, _nodeType %s\n",stringNodeType(renderedNodePtr->_nodeType)); 
 	printf ("ntri %d\n",r->ntri);
 	#endif
-
 
 	if (r->ntri==0) {
 		/* no triangles */
@@ -772,9 +772,27 @@ void render_polyrep(void *node) {
 	global_tcin_count = r->ntri*3;
 	global_tcin_lastParent = node;
 
-        setExtent( genericNodePtr->EXTENT_MAX_X, genericNodePtr->EXTENT_MIN_X, genericNodePtr->EXTENT_MAX_Y,
-                genericNodePtr->EXTENT_MIN_Y, genericNodePtr->EXTENT_MAX_Z, genericNodePtr->EXTENT_MIN_Z,
-                genericNodePtr);
+	/* Now, GeoElevationGrids have as a child an ElevationGrid, which contains ALL of the
+	   renderable geometry, moved to OpenGL renderable coordinates. So, if this ElevationGrid
+	   has as its parent[0] a GeoElevationGrid, we tell setExtent that the node is the 
+	   GeoElevationGrid, so that it can move the extent to its holding grouping node */
+
+	extentNodePtr = renderedNodePtr;
+	if (renderedNodePtr->_nparents == 1) {
+		if (X3D_NODE(renderedNodePtr->_parents[0])->_nodeType == NODE_GeoElevationGrid) {
+			/* printf ("render_polyrep found a GeoElevationGrid\n"); */
+			extentNodePtr = X3D_NODE(renderedNodePtr->_parents[0]);
+		}
+				
+	}
+		
+
+
+	/* we take the geometry here, and push it up the stream. If the parent is a GeoElevationGrid,
+	   we bypass it */
+        setExtent( renderedNodePtr->EXTENT_MAX_X, renderedNodePtr->EXTENT_MIN_X, renderedNodePtr->EXTENT_MAX_Y,
+                renderedNodePtr->EXTENT_MIN_Y, renderedNodePtr->EXTENT_MAX_Z, renderedNodePtr->EXTENT_MIN_Z,
+                extentNodePtr);
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) {
@@ -827,7 +845,7 @@ void render_polyrep(void *node) {
 		tcod = r->GeneratedTexCoords;
 		cod = r->actualCoord;
 		cin = r->cindex;
-printf ("\n\nrender_polyrep:\n");
+		printf ("\n\nrender_polyrep:\n");
 		for (i=0; i<r->ntri*3; i++) {
 			printf ("i %d cindex %d vertex %f %f %f",i,cin[i],
 				cod[cin[i]*3+0],

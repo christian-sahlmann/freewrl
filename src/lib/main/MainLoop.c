@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.14 2009/01/03 01:15:07 couannette Exp $
+$Id: MainLoop.c,v 1.15 2009/01/29 17:09:18 crc_canada Exp $
 
 CProto ???
 
@@ -776,14 +776,281 @@ void render_collisions() {
         get_collisionoffset(&(v.x), &(v.y), &(v.z));
         increment_pos(&v);
 }
-
+#define GOODCODE
+#ifdef GOODCODE
 void setup_viewpoint() {
         fwMatrixMode(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         fwLoadIdentity();
         viewer_togl(fieldofview);
         render_hier(rootNode, VF_Viewpoint);
         glPrintError("XEvents::setup_viewpoint");
+
+nearPlane = DEFAULT_NEARPLANE; farPlane = 21000;
+
 }
+#else
+
+#define NEAR_FAR_PLANE_CALC_VERBOSE
+/*******************************TESTING******************************/
+
+
+/*feed a box (a corner, and the three vertice sides) and the stats of a cylinder, it returns the
+  displacement of the box that is needed for them not to intersect any more, with optionnal stepping displacement */
+static void bbox_disp(double y1, double y2, double ystep, double r,struct point_XYZ p0, struct point_XYZ i, struct point_XYZ j, struct point_XYZ k) {
+    struct point_XYZ p[8];
+    struct point_XYZ n[6];
+    struct point_XYZ mindispv = {0,0,0};
+    double mindisp = 1E99;
+    struct point_XYZ middle;
+
+	struct point_XYZ rotatedCurPos;
+    /*draw this up, you will understand: */
+    static const int faces[6][4] = {
+	{1,7,2,0},
+	{2,6,3,0},
+	{3,5,1,0},
+	{5,3,6,4},
+	{7,1,5,4},
+	{6,2,7,4}
+    };
+    int ci;
+	double np, fp;
+
+	/* start off with these two values */
+	np = DEFAULT_FARPLANE;
+	fp = DEFAULT_NEARPLANE*10.0;
+
+    for(ci = 0; ci < 8; ci++) p[ci] = p0;
+
+    /*compute points of box*/
+    VECADD(p[1],i);
+    VECADD(p[2],j);
+    VECADD(p[3],k);
+    VECADD(p[4],i); VECADD(p[4],j); VECADD(p[4],k); /*p[4]= i+j+k */
+    VECADD(p[5],k); VECADD(p[5],i); /*p[6]= k+i */
+    VECADD(p[6],j); VECADD(p[6],k); /*p[5]= j+k */
+    VECADD(p[7],i); VECADD(p[7],j); /*p[7]= i+j */
+
+               printf ("currentPosInModel: %4.2f %4.2f %4.2f\n",
+                Viewer.currentPosInModel.x,
+                Viewer.currentPosInModel.y,
+                Viewer.currentPosInModel.z);
+	quaternion_rotation(&rotatedCurPos, &Viewer.Quat, &Viewer.currentPosInModel);
+
+
+printf ("bbox disp: box:\n");
+for (ci=0; ci<8; ci++) {
+	double zz = 0.0;
+	struct point_XYZ rp1;
+	struct point_XYZ rp2;
+	/* first, add back in the currentPosition */
+	rp1.x = p[ci].x + rotatedCurPos.x;
+	rp1.y = p[ci].y + rotatedCurPos.y;
+	rp1.z = p[ci].z + rotatedCurPos.z;
+	
+	printf ("back to center: %d: %4.2f %4.2f %4.2f ",ci, rp1.x, rp1.y, rp1.z); 
+
+#ifdef donotrotate
+	/* lets do an add here */
+	quaternion_rotation(&rp, &Viewer.AntiQuat, &p[ci]);
+
+	printf (" rotated but before add: %d: %4.2f %4.2f %4.2f ",ci, rp.x, rp.y, rp.z);
+	rp.x -= Viewer.currentPosInModel.x;
+	rp.y -= Viewer.currentPosInModel.y;
+	rp.z -= Viewer.currentPosInModel.z;
+
+	printf (" rotated %d: %4.2f %4.2f %4.2f ",ci, rp.x, rp.y, rp.z);
+	/* any points behind us? */
+	zz = -rp.z;
+	if (zz < 0.0) printf ("BEHIND "); else printf ("FRONT ");
+	if (np > zz) np = zz;
+	if (fp < zz) fp = zz;
+#endif
+	printf("\n");
+}
+	/* nearPlane and farPlane must be positive */
+	if (np < DEFAULT_NEARPLANE) np = DEFAULT_NEARPLANE;
+	if (fp < DEFAULT_NEARPLANE) fp = DEFAULT_FARPLANE;
+
+printf ("calclated np %4.2f fp %4.2f\n",np,fp);
+    return mindispv;
+
+}
+void distance_to_boundingBox (double *nearest, double *farthest) {
+	       /*easy access, naviinfo.step unused for sphere collisions */
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
+
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
+	       struct point_XYZ iv = {0,0,0};
+	       struct point_XYZ jv = {0,0,0};
+	       struct point_XYZ kv = {0,0,0};
+	       struct point_XYZ ov = {0,0,0};
+
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+
+	       struct point_XYZ delta;
+	       struct point_XYZ tupv = {0,1,0};
+
+
+		/* this is the geometry box size - lets just fudge this for now */
+                /* kv.z = (node->size).c[2]); */
+                iv.x = X3D_GROUP(rootNode)->EXTENT_MAX_X  * 2.0;
+                jv.y = X3D_GROUP(rootNode)->EXTENT_MAX_Y  * 2.0;
+		kv.z = X3D_GROUP(rootNode)->EXTENT_MAX_Z  * 2.0;
+printf ("distance_to_boundingBox - making box 20 40 40\n");
+iv.x = 20.0; jv.y = 40.0; kv.z = 40.0;
+
+		/* center of box */
+                ov.x = -iv.z/2; ov.y = -jv.y/2; ov.z = -kv.z/2;
+
+		/* maybe should be: */
+                ov.x = -iv.x/2; ov.y = -jv.y/2; ov.z = -kv.z/2;
+
+
+	       /* get the transformed position of the Box, and the scale-corrected radius. */
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+printf ("modelMatrix, step 1 %4.2f %4.2f %4.2f\n",modelMatrix[10],modelMatrix[11],modelMatrix[12]);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+printf ("modelMatrix, step 2 %4.2f %4.2f %4.2f\n",modelMatrix[10],modelMatrix[11],modelMatrix[12]);
+	       matinverse(upvecmat,upvecmat);
+
+	       printf ("currentPosInModel: %4.2f %4.2f %4.2f\n",
+		Viewer.currentPosInModel.x,
+		Viewer.currentPosInModel.y,
+		Viewer.currentPosInModel.z);
+
+	       /* get transformed box edges and position */
+	       transform(&ov,&ov,modelMatrix);
+	       transform3x3(&iv,&iv,modelMatrix);
+	       transform3x3(&jv,&jv,modelMatrix);
+	       transform3x3(&kv,&kv,modelMatrix);
+/*
+printf ("box collide, ov %4.2f %4.2f %4.2f\n",ov.x,ov.y,ov.z);
+printf ("box collide, iv %4.2f %4.2f %4.2f\n",iv.x,iv.y,iv.z);
+printf ("box collide, jv %4.2f %4.2f %4.2f\n",jv.x,jv.y,jv.z);
+printf ("box collide, kv %4.2f %4.2f %4.2f\n",kv.x,kv.y,kv.z);
+*/
+
+	       bbox_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
+}
+
+
+/*******************************TESTING******************************/
+void setup_viewpoint() {
+	struct point_XYZ geomCenter = {0.0, 0.0, 0.0};
+	struct point_XYZ vpCenter = {0.0, 0.0, -10.0};
+	struct point_XYZ deltaCenter = {0.0, 0.0, 0.0};
+	int haveNothing = TRUE;
+	double rad = 0.0;
+	double dist = 0.0;
+	double dist1, dist2;
+	double distNear, distFar;
+	double tmp;
+	double cnp,cfp;
+	
+
+	#ifdef NEAR_FAR_PLANE_CALC_VERBOSE
+	printf ("\nstart of setup_viewpoint\n");
+	#endif
+
+        fwMatrixMode(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
+        fwLoadIdentity();
+        viewer_togl(fieldofview);
+
+
+printf ("callind gistance_to_boundingBox\n");
+if (rootNode != NULL) distance_to_boundingBox(&cnp,&cfp);
+printf ("called gistance_to_boundingBox\n");
+
+#ifdef tryprenocolasmethod
+
+	/* where is the center of the geometry? */
+	if (rootNode != NULL) {
+		#ifdef NEAR_FAR_PLANE_CALC_VERBOSE
+		printf ("rootNode bounding box center X: %4.2f %4.2f Y: %4.2f %4.2f Z: %4.2f %4.2f\n",
+                      X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_X,
+                       X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Y,
+                       X3D_GROUP(rootNode)->EXTENT_MAX_Z, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
+		#endif
+
+		geomCenter.x = (X3D_GROUP(rootNode)->EXTENT_MAX_X + X3D_GROUP(rootNode)->EXTENT_MIN_X) /2.0;
+		geomCenter.y = (X3D_GROUP(rootNode)->EXTENT_MAX_Y + X3D_GROUP(rootNode)->EXTENT_MIN_Y) /2.0;
+		geomCenter.z = (X3D_GROUP(rootNode)->EXTENT_MAX_Z + X3D_GROUP(rootNode)->EXTENT_MIN_Z) /2.0;
+		#ifdef NEAR_FAR_PLANE_CALC_VERBOSE
+		printf (" geomCenter %4.2f %4.2f %4.2f\n ",geomCenter.x, geomCenter.y, geomCenter.z);
+		#endif
+	}
+
+	/* where is the viewer in the scheme of things? */
+	viewer_getPosInModel(&vpCenter);
+	printf ("viewerCenter %f %f %f\n",vpCenter.x, vpCenter.y, vpCenter.z);
+
+
+	/* if we have geometry, we determine nearest/farthest point of the rootNode bounding
+	   box from a plane with cross product sticking out of our nose. If we are within the
+	   geometry (ie, at least one of the 8 points is "behind" us) we use the default near
+	   plane. */
+
+	if (rootNode != NULL) {
+		double kay;
+		double maxD = DBL_MIN; 
+		double minD=DBL_MAX;
+
+#define RADGREAT(xxx,yyy,zzz) \
+		printf ("doing dp (%f * %f) + (%f * %f) + (%f * %f) ", \
+			vpCenter.x, X3D_GROUP(rootNode)->EXTENT_##xxx, \
+                        + vpCenter.y , X3D_GROUP(rootNode)->EXTENT_##yyy, \
+                        + vpCenter.z , X3D_GROUP(rootNode)->EXTENT_##zzz); \
+		kay = ((double) 0.0) * (vpCenter.x + X3D_GROUP(rootNode)->EXTENT_##xxx) \
+			+ ((double) 0.0) * (vpCenter.y + X3D_GROUP(rootNode)->EXTENT_##yyy) \
+			+ ((double) 1.0) * (vpCenter.z + X3D_GROUP(rootNode)->EXTENT_##zzz) ;\
+		printf ("kay %lf\n",kay); \
+		if (kay<minD) minD=kay; if (kay>maxD) maxD=kay;
+
+
+
+		printf ("\n");
+		printf ("doing plane calcs, assuming viewer normal is 0,0,1\n");
+		printf ("remember, vpCenter is %f %f %f\n",vpCenter.x, vpCenter.y, vpCenter.z);
+		RADGREAT(MIN_X,MIN_Y,MIN_Z);
+		RADGREAT(MIN_X,MIN_Y,MAX_Z);
+		RADGREAT(MIN_X,MAX_Y,MIN_Z);
+		RADGREAT(MIN_X,MAX_Y,MAX_Z);
+
+		RADGREAT(MAX_X,MIN_Y,MIN_Z);
+		RADGREAT(MAX_X,MIN_Y,MAX_Z);
+		RADGREAT(MAX_X,MAX_Y,MIN_Z);
+		RADGREAT(MAX_X,MAX_Y,MAX_Z);
+		printf ("final minD %f maxD %f\n",minD, maxD);
+		minD *= 0.5; maxD*=1.5;
+
+		/* is any of the geometry behind us? nearPlane must be positive */
+		if (minD<DEFAULT_NEARPLANE) nearPlane=DEFAULT_NEARPLANE; else nearPlane = minD;
+		/* is all the geometry behind us? if so, default the farPlane */
+		if (maxD<DEFAULT_NEARPLANE) farPlane = DEFAULT_FARPLANE; else farPlane = maxD;
+		printf ("\n");
+	}
+
+#endif
+
+nearPlane = DEFAULT_NEARPLANE; farPlane = DEFAULT_FARPLANE;
+printf ("setup_viewpoint: actual planes %f %f\n",nearPlane,farPlane);
+
+
+        render_hier(rootNode, VF_Viewpoint);
+        glPrintError("XEvents::setup_viewpoint");
+ 
+}
+
+#endif
+
 
 
 

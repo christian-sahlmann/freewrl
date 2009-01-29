@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.3 2008/12/19 22:04:43 sdumoulin Exp $
+$Id: Component_Networking.c,v 1.4 2009/01/29 17:09:18 crc_canada Exp $
 
 X3D Networking Component
 
@@ -1226,10 +1226,6 @@ void child_Inline (struct X3D_Inline *node) {
 }
 
 void changed_Anchor (struct X3D_Anchor *node) {
-                int i;
-                int nc = ((node->children).n);
-                struct X3D_Node *p;
-                struct X3D_Virt *v;
-
-		INITIALIZE_EXTENT
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Anchor, metadata));
+	INITIALIZE_EXTENT;
 }

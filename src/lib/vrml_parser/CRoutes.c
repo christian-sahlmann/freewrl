@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.9 2008/12/31 17:19:30 crc_canada Exp $
+$Id: CRoutes.c,v 1.10 2009/01/29 17:09:18 crc_canada Exp $
 
 ???
 
@@ -467,11 +467,16 @@ void AddRemoveChildren (
 
 	int counter, c2;
 
-	/* printf ("AddRemove, field is %d in from parent offsetof (struct X3D_Group, children) is %d\n",(char *)tn - (char *)parent,
+	#ifdef CRVERBOSE
+	printf ("\n start of AddRemoveChildren; node is a %s\n",stringNodeType(parent->_nodeType));
+	printf ("AddRemove, field is %d in from parent offsetof (struct X3D_Group, children) is %d\n",(char *)tn - (char *)parent,
 			offsetof (struct X3D_Group, children));
+	printf ("	and, addChildren offset %d, and removeChildren offset %d\n",
+				offsetof (struct X3D_Group,addChildren),
+				offsetof (struct X3D_Group,removeChildren));
 
 	printf ("AddRemove Children parent %u tn %u, len %d ar %d\n",parent,tn,len,ar);
-	*/
+	#endif
 
 	/* if no elements, just return */
 	if (len <=0) return;
@@ -481,7 +486,9 @@ void AddRemoveChildren (
 	}
 
 	oldlen = tn->n;
-	/* printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar); */
+	#ifdef CRVERBOSE
+	printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar);
+	#endif
 
 	/* to do a "set_children", we remove the children, then do an add */
 	if (ar == 0) {
@@ -527,7 +534,10 @@ void AddRemoveChildren (
 
 		/* tell each node in the nodelist that it has a new parent */
 		for (counter = 0; counter < len; counter++) {
-			/* printf ("AddRemove, count %d of %d, node %u parent %u\n",counter, len,nodelist[counter],parent); */
+			#ifdef CRVERBOSE
+			printf ("AddRemove, count %d of %d, node %u parent %u\n",counter, len,nodelist[counter],parent);
+			#endif
+
 			ADD_PARENT((void *)nodelist[counter],(void *)parent);
 		}
 
@@ -548,8 +558,14 @@ void AddRemoveChildren (
 			done = FALSE;
 
 			for (counter = 0; counter < tn->n; counter ++) {
-				/* printf ("remove, comparing %d with %d\n",*remptr, *remchild);  */
+				#ifdef CRVERBOSE
+				printf ("remove, comparing %u with %u\n",*remptr, *remchild); 
+				#endif
 				if ((*remptr == *remchild) && (!done)) {
+					#ifdef VRVERBOSE
+					printf ("removing this child from this parent\n");
+					#endif
+
 					remove_parent(X3D_NODE(*remchild),parent);
 					*remptr = 0;  /* "0" can not be a valid memory address */
 					num_removed ++;
@@ -561,7 +577,9 @@ void AddRemoveChildren (
 			remchild ++;
 		}
 
-		/* printf ("end of finding, num_removed is %d\n",num_removed); */
+		#ifdef CRVERBOSE
+		printf ("end of finding, num_removed is %d\n",num_removed);
+		#endif
 
 		if (num_removed > 0) {
 			/* printf ("MALLOCing size of %d\n",(oldlen-num_removed)*sizeof(void *)); */
