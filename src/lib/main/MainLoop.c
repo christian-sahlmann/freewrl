@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.17 2009/01/30 15:24:32 crc_canada Exp $
+$Id: MainLoop.c,v 1.18 2009/01/30 15:25:20 crc_canada Exp $
 
 CProto ???
 
@@ -208,7 +208,7 @@ void EventLoop() {
         }
 #endif
 
-        printf ("start of MainLoop\n"); 
+        /* printf ("start of MainLoop\n");  */
 
         /* should we do events, or maybe a parser is parsing? */
         doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
