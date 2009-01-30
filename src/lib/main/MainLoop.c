@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.16 2009/01/29 21:14:40 crc_canada Exp $
+$Id: MainLoop.c,v 1.17 2009/01/30 15:24:32 crc_canada Exp $
 
 CProto ???
 
@@ -776,7 +776,7 @@ void render_collisions() {
         get_collisionoffset(&(v.x), &(v.y), &(v.z));
         increment_pos(&v);
 }
-#undef GOODCODE
+#define GOODCODE
 #ifdef GOODCODE
 void setup_viewpoint() {
         GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
