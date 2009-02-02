@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.9 2009/02/02 15:57:24 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.10 2009/02/02 20:54:17 crc_canada Exp $
 
 ???
 
@@ -801,37 +801,6 @@ void zeroVisibilityFlag(void) {
 	}
 
 
-void EndOfLoopNodeUpdates(void) {
-	struct X3D_Node* node;
-	struct X3D_Anchor* anchorPtr;
-	void **pp;
-	int nParents;
-	int i,j;
-	uintptr_t *setBindPtr;
-
-	struct Multi_Node *addChildren;
-	struct Multi_Node *removeChildren;
-	struct Multi_Node *childrenPtr;
-
-	/* for determining nearPlane/farPlane */
-	int haveBoundGeoViewpoint = FALSE;
-	double maxDist = DBL_MAX; double minDist = 0.0;
-
-
-	/* assume that we do not have any sensitive nodes at all... */
-	HaveSensitive = FALSE;
-	have_transparency = FALSE;
-
-	LOCK_MEMORYTABLE
-
-	/* go through the node table, and zero any bits of interest */
-	for (i=0; i<nextEntry; i++){		
-		node = memoryTable[i];	
-		if (node != NULL) {
-			INITIALIZE_EXTENT;
-		}
-	}
-}
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
 	struct X3D_Anchor* anchorPtr;
@@ -1103,7 +1072,6 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE (GeoLOD)
                 			update_renderFlag(node,VF_Proximity);
 					propagateExtent(X3D_NODE(node));
-					BOUNDINGBOX
 				END_NODE
 
 				BEGIN_NODE (GeoLocation)

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.5 2009/01/29 21:14:40 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.6 2009/02/02 20:54:17 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -204,8 +204,6 @@ void  XXchild_Billboard (struct X3D_Billboard *node) {
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
-	BOUNDINGBOX
-
 	DIRECTIONAL_LIGHT_OFF
 	GL_POP_MATRIX();
 }
@@ -330,7 +328,6 @@ void  child_Billboard (struct X3D_Billboard *node) {
 
 	if (render_geom && (!render_blend)) {
 		EXTENTTOBBOX
-		BOUNDINGBOX
 	}
 
 	#ifdef CHILDVERBOSE
@@ -415,8 +412,6 @@ void child_Collision (struct X3D_Collision *node) {
 		/* now, just render the non-directionalLight children */
 		normalChildren(node->children);
 
-		BOUNDINGBOX
-
 		#ifdef CHILDVERBOSE
 		printf("RENDER COLLISIONCHILD END %d\n",node);
 		#endif
@@ -431,7 +426,6 @@ void changed_LOD (struct X3D_LOD *node) {
 /* LOD changes between X3D and VRML - level and children fields are "equivalent" */
 void child_LOD (struct X3D_LOD *node) {
         render_node(node->_selected);
-	BOUNDINGBOX
 }
 
 

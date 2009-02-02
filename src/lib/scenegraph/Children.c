@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Children.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Children.c,v 1.3 2009/02/02 20:54:17 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -21,6 +21,7 @@ Render the children of nodes.
 
 
 /* sort children - use bubble sort with early exit flag */
+/* we use this for z buffer rendering; drawing scene in correct z-buffer order */
 void sortChildren (struct Multi_Node ch) {
 	int i,j;
 	int nc;
@@ -45,7 +46,7 @@ void sortChildren (struct Multi_Node ch) {
 			/* check to see if a child is NULL - if so, skip it */
 			if ((a != NULL) && (b != NULL)) {
 				if (a->_dist > b->_dist) {
-					/* printf ("have to switch %d %d\n",i,j); */
+					/* printf ("have to switch %d %d\n",i,j);  */
 					c = a;
 					ch.p[j-1] = b;
 					ch.p[j] = c;
@@ -58,13 +59,16 @@ void sortChildren (struct Multi_Node ch) {
 			break;
 		}
 	}
-	/*
+	
+
+	#ifdef VERBOSE
 	printf ("sortChild returning.\n");
 	for(i=0; i<nc; i++) {
 		b = ch.p[i];
 		printf ("child %d %d %f %s\n",i,b,b->_dist,stringNodeType(b->_nodeType));
 	}
-	*/
+	#endif
+	
 }
 
 /* this grouping node has a DirectionalLight for a child, render this first */

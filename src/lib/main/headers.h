@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.21 2009/02/02 15:57:24 crc_canada Exp $
+$Id: headers.h,v 1.22 2009/02/02 20:54:17 crc_canada Exp $
 
 Global includes.
 
@@ -136,9 +136,6 @@ extern char *BrowserFullPath;
 #ifdef AQUA
 	#define DO_MULTI_OPENGL_THREADS
 #endif
-
-/* display the BoundingBoxen */
-#undef  DISPLAYBOUNDINGBOX
 
 /* rendering constants used in SceneGraph, etc. */
 #define VF_Viewpoint 				0x0001
@@ -427,12 +424,12 @@ extern void* *occluderNodePointer;
 	} 
 
 #define EXTENTTOBBOX
-#define INITIALIZE_EXTENT        node->EXTENT_MAX_X = -10000.0; \
+#define INITIALIZE_EXTENT        { node->EXTENT_MAX_X = -10000.0; \
         node->EXTENT_MAX_Y = -10000.0; \
         node->EXTENT_MAX_Z = -10000.0; \
         node->EXTENT_MIN_X = 10000.0; \
         node->EXTENT_MIN_Y = 10000.0; \
-        node->EXTENT_MIN_Z = 10000.0;
+        node->EXTENT_MIN_Z = 10000.0; }
 
 /********************************
 	Verbosity
@@ -968,17 +965,10 @@ extern char *myPerlInstallDir;
 #define EXTENT_MIN_Z _extent[5]
 void setExtent (float maxx, float minx, float maxy, float miny, float maxz, float minz, struct X3D_Node *this_);
 
-#define RECORD_DISTANCE if (render_geom) recordDistance (X3D_NODE(node));
-void recordDistance(struct X3D_Node *nod);
+#define RECORD_DISTANCE if (render_geom) {record_ZBufferDistance (X3D_NODE(node)); }
+void record_ZBufferDistance(struct X3D_Node *nod);
 
 void propagateExtent (struct X3D_Node *this_);
-
-#ifdef DISPLAYBOUNDINGBOX
-void BoundingBox(struct X3D_Node* node);
-#define BOUNDINGBOX BoundingBox (X3D_NODE(node));
-#else
-#define BOUNDINGBOX
-#endif
 
 void freewrlDie(const char *format);
 

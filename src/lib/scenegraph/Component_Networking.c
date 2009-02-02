@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.4 2009/01/29 17:09:18 crc_canada Exp $
+$Id: Component_Networking.c,v 1.5 2009/02/02 20:54:17 crc_canada Exp $
 
 X3D Networking Component
 
@@ -1177,8 +1177,6 @@ void child_Anchor (struct X3D_Anchor *node) {
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
-
-	BOUNDINGBOX
 
 	#ifdef CHILDVERBOSE
 	printf("RENDER ANCHOR END %d\n",node);

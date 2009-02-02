@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.5 2009/01/29 21:14:40 crc_canada Exp $
+$Id: Frustum.c,v 1.6 2009/02/02 20:54:17 crc_canada Exp $
 
 ???
 
@@ -336,8 +336,27 @@ GLint OccResultsAvailable = FALSE;
 
 
 
+/* does this current node actually fit in the Switch rendering scheme? */
+static int is_Switchchild_inrange(struct X3D_Switch *node, struct X3D_Node *me) {
+        int wc = node->whichChoice;
+
+        /* is this VRML, or X3D?? */
+        if (node->__isX3D == 0) {
+                if(wc >= 0 && wc < ((node->choice).n)) {
+                        void *p = ((node->choice).p[wc]);
+                        return (X3D_NODE(p)==me);
+                }
+        } else {
+                if(wc >= 0 && wc < ((node->children).n)) {
+                        void *p = ((node->children).p[wc]);
+                        return (X3D_NODE(p)==me);
+                }
+        }
+	return FALSE;
+}
+
 /* does this current node actually fit in the GeoLOD rendering scheme? */
-int is_GeoLODchild_inrange (struct X3D_GeoLOD* gpnode, struct X3D_Node *me) {
+static int is_GeoLODchild_inrange (struct X3D_GeoLOD* gpnode, struct X3D_Node *me) {
 	/* is this node part of the active path for rendering? */
 	int x,y;
 	y = FALSE;
@@ -379,14 +398,24 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	struct X3D_Node *shapeParent;
 	struct X3D_Node *geomParent;
 	double tminp, tmaxp;
-
+	int touched;
 
 	#ifdef FRUSTUMVERBOSE
-	printf ("setExtent maxx %f minx %f maxy %f miny %f maxz %f minz %f nt %s\n",
-			maxx, minx, maxy, miny, maxz, minz, stringNodeType(me->_nodeType));
+	printf ("setExtent maxx %f minx %f maxy %f miny %f maxz %f minz %f me %u nt %s\n",
+			maxx, minx, maxy, miny, maxz, minz, me, stringNodeType(me->_nodeType));
 	#endif
+	/* record this for ME for sorting purposes for sorting children fields */
+	me->EXTENT_MAX_X = maxx; me->EXTENT_MIN_X = minx;
+	me->EXTENT_MAX_Y = maxx; me->EXTENT_MIN_Y = miny;
+	me->EXTENT_MAX_Z = maxx; me->EXTENT_MIN_Z = minz;
+
 	for (c=0; c<(me->_nparents); c++) {
 		shapeParent = X3D_NODE(me->_parents[c]);
+	
+		/* record this for ME for sorting purposes for sorting children fields */
+		shapeParent->EXTENT_MAX_X = maxx; shapeParent->EXTENT_MIN_X = minx;
+		shapeParent->EXTENT_MAX_Y = maxx; shapeParent->EXTENT_MIN_Y = miny;
+		shapeParent->EXTENT_MAX_Z = maxx; shapeParent->EXTENT_MIN_Z = minz;
 	
 		#ifdef FRUSTUMVERBOSE
 		if (shapeParent == NULL)
@@ -413,13 +442,8 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 				and subtract the "positive" z value to get the closest point, then take the negative distance,
 				and subtract the "negative" z value to get the far distance */
 	
+			PROP_EXTENT_CHECK;
 	
-			if (maxx > geomParent->EXTENT_MAX_X) geomParent->EXTENT_MAX_X = maxx;
-			if (minx < geomParent->EXTENT_MIN_X) geomParent->EXTENT_MIN_X = minx;
-			if (maxy > geomParent->EXTENT_MAX_Y) geomParent->EXTENT_MAX_Y = maxy;
-			if (miny < geomParent->EXTENT_MIN_Y) geomParent->EXTENT_MIN_Y = miny;
-			if (maxz > geomParent->EXTENT_MAX_Z) geomParent->EXTENT_MAX_Z = maxz;
-			if (minz < geomParent->EXTENT_MIN_Z) geomParent->EXTENT_MIN_Z = minz;
 			#ifdef FRUSTUMVERBOSE
 			printf ("setExtent - now parent %u has extent maxx %f minx %f maxy %f miny %f maxz %f minz %f\n",
 					geomParent,
@@ -519,16 +543,22 @@ void propagateExtent(struct X3D_Node *me) {
 		/* switch nodes - only propagate extent back up if the node is "active" */
 		switch (geomParent->_nodeType) {
 			case NODE_GeoLOD: 
-				if (is_GeoLODchild_inrange((struct X3D_GeoLOD*) geomParent, me)) {
+				if (is_GeoLODchild_inrange(X3D_GEOLOD(geomParent), me)) {
 			                PROP_EXTENT_CHECK;
         			}
 				break;
 			case NODE_LOD: {
-
+				/* works for both X3D and VRML syntax; compare with the "_selected" field */
+				if (me == X3D_LODNODE(geomParent)->_selected) {
+			                PROP_EXTENT_CHECK;
+        			}
 				break;
 				}
 			case NODE_Switch: {
 
+				if (is_Switchchild_inrange(X3D_SWITCH(geomParent), me)) {
+			                PROP_EXTENT_CHECK;
+        			}
 				break;
 				}
 			default: {
@@ -550,83 +580,7 @@ void propagateExtent(struct X3D_Node *me) {
 }
 
 
-#ifdef DISPLAYBOUNDINGBOX
-void BoundingBox(struct X3D_Node * me) {
-	int nt;
-
-	nt = me->_nodeType;
-	#ifdef FRUSTUMVERBOSE
-	printf ("bbox for  %u %s (%3.2f %3.2f)  (%3.2f %3.2f) (%3.2f %3.2f)\n",me, stringNodeType(nt),
-		me->EXTENT_MIN_X, me->EXTENT_MAX_X,
-		me->EXTENT_MIN_Y, me->EXTENT_MAX_Y,
-		me->EXTENT_MIN_Z, me->EXTENT_MAX_Z);
-	#endif
-
-	/* show a bounding box around each grouping node */
-	DISABLE_CULL_FACE
-	LIGHTING_OFF
-	if (nt == NODE_Transform) 
-		glColor3f(1.0, 0.0, 0.0);
-	else if (nt == NODE_Group)
-		glColor3f(0.0, 1.0, 0.0);
-	else if (nt == NODE_GeoLOD)
-		glColor3f(0.5, 0.5, 0.0);
-	else
-		glColor3f (0.0, 0.0, 1.0);
-
-	/* color if bounding box not set properly */
-/*
-	if (me->EXTENT_MAX_X <= -999.9) {
-		glColor3f (1.0, 1.0, 0.0);
-	} else {
-		glColor3f(1.0, 0.0, 0.0);
-	}
-*/
-	
-
-	/* top of box */
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(me->EXTENT_MIN_X, me->EXTENT_MAX_Y, me->EXTENT_MAX_Z);
-	glVertex3f(me->EXTENT_MAX_X, me->EXTENT_MAX_Y, me->EXTENT_MAX_Z);
-	glVertex3f(me->EXTENT_MAX_X, me->EXTENT_MAX_Y, me->EXTENT_MIN_Z);
-	glVertex3f(me->EXTENT_MIN_X, me->EXTENT_MAX_Y, me->EXTENT_MIN_Z);
-	glVertex3f(me->EXTENT_MIN_X, me->EXTENT_MAX_Y, me->EXTENT_MAX_Z);
-	glEnd();
-
-	/* bottom of box */
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(me->EXTENT_MIN_X, me->EXTENT_MIN_Y, me->EXTENT_MAX_Z);
-	glVertex3f(me->EXTENT_MAX_X, me->EXTENT_MIN_Y, me->EXTENT_MAX_Z);
-	glVertex3f(me->EXTENT_MAX_X, me->EXTENT_MIN_Y, me->EXTENT_MIN_Z);
-	glVertex3f(me->EXTENT_MIN_X, me->EXTENT_MIN_Y, me->EXTENT_MIN_Z);
-	glVertex3f(me->EXTENT_MIN_X, me->EXTENT_MIN_Y, me->EXTENT_MAX_Z);
-	glEnd();
-
-	/* vertical bars */
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(me->EXTENT_MAX_X, me->EXTENT_MAX_Y, me->EXTENT_MAX_Z);
-	glVertex3f(me->EXTENT_MAX_X, me->EXTENT_MIN_Y, me->EXTENT_MAX_Z);
-	glEnd();
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(me->EXTENT_MIN_X, me->EXTENT_MAX_Y, me->EXTENT_MAX_Z);
-	glVertex3f(me->EXTENT_MIN_X, me->EXTENT_MIN_Y, me->EXTENT_MAX_Z);
-	glEnd();
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(me->EXTENT_MAX_X, me->EXTENT_MAX_Y, me->EXTENT_MIN_Z);
-	glVertex3f(me->EXTENT_MAX_X, me->EXTENT_MIN_Y, me->EXTENT_MIN_Z);
-	glEnd();
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(me->EXTENT_MIN_X, me->EXTENT_MAX_Y, me->EXTENT_MIN_Z);
-	glVertex3f(me->EXTENT_MIN_X, me->EXTENT_MIN_Y, me->EXTENT_MIN_Z);
-	glEnd();
-	
-	LIGHTING_ON
-	ENABLE_CULL_FACE
-}
-
-#endif
-
-void recordDistance(struct X3D_Node *node) {
+void record_ZBufferDistance(struct X3D_Node *node) {
 	GLdouble modelMatrix[16];
 	int retval;
 	int xcount, pointok;
@@ -635,42 +589,31 @@ void recordDistance(struct X3D_Node *node) {
 	xcount=0;
 	pointok=0;
 
-/*
-printf ("recordDistance not used anymore\n");
-*/
-#ifdef OLDCODE
+
+	/* printf ("\nrecordDistance for node %u nodeType %s center %4.2f %4.2f %4.2f ",node, stringNodeType (node->_nodeType),
+	node->EXTENT_MAX_X - node->EXTENT_MIN_X,
+	node->EXTENT_MAX_Y - node->EXTENT_MIN_Y,
+	node->EXTENT_MAX_Z - node->EXTENT_MIN_Z
+	); 
+
+if (APPROX(node->EXTENT_MAX_X,-10000.0)) printf ("EXTENT NOT INIT");
+
+printf ("\n");
+printf ("recordDistance, max,min %f:%f, %f:%f, %f:%f\n",
+	node->EXTENT_MAX_X , node->EXTENT_MIN_X,
+	node->EXTENT_MAX_Y , node->EXTENT_MIN_Y,
+	node->EXTENT_MAX_Z , node->EXTENT_MIN_Z);
+
+	*/
+
 	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
-#define VERBOSE
-	if (node->_nodeType == NODE_Transform) {
-		X3D_TRANSFORM(node)->bboxCenter.c[0] = modelMatrix[12];
-		X3D_TRANSFORM(node)->bboxCenter.c[1] = modelMatrix[13];
-		X3D_TRANSFORM(node)->bboxCenter.c[2] = modelMatrix[14];
-		#ifdef VERBOSE
-		printf ("recordDistance for %s %4.2f %4.2f %4.2f ",
-			stringNodeType (node->_nodeType),
-			X3D_TRANSFORM(node)->bboxCenter.c[0], 
-			X3D_TRANSFORM(node)->bboxCenter.c[1],X3D_TRANSFORM(node)->bboxCenter.c[2]);
-		#endif
-	}
+	/* 
+	printf ("recordDistance, have modelMatrix %4.2f %4.2f %4.2f\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+	*/
 
 	node->_dist = modelMatrix[14];
-	#ifdef VERBOSE
-	printf ("dist %f nodeType %s",node->_dist, stringNodeType(node->_nodeType));
-        printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-       	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
-	#endif
 
-	#define FP_MULTIPLIER 2.0
-	if (node->_dist < 0.0) 
-		if (farPlane < (-node->_dist * FP_MULTIPLIER) ) 
-			farPlane = -node->_dist * FP_MULTIPLIER;
-
-	#ifdef VERBOSE
-	printf ("farPlane %lf\n",farPlane);
-	#endif
-#undef VERBOSE
-#endif OLDCODE
 }
 
 /***************************************************************************/
