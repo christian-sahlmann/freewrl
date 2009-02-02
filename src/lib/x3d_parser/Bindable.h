@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Bindable.h,v 1.3 2009/02/02 15:57:27 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 
@@ -30,6 +30,7 @@ extern int fog_tos;
 extern int navi_tos;
 
 extern uintptr_t viewpoint_stack[];
+extern uintptr_t background_stack[];
 extern uintptr_t navi_stack[];
 
 void

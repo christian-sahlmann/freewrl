@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.8 2009/01/29 21:14:40 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.9 2009/02/02 15:57:24 crc_canada Exp $
 
 ???
 
@@ -24,6 +24,8 @@ $Id: OpenGL_Utils.c,v 1.8 2009/01/29 21:14:40 crc_canada Exp $
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"
+#include "../scenegraph/quaternion.h"
+#include "../scenegraph/Viewer.h"
 
 #include <float.h>
 
@@ -77,6 +79,132 @@ void setglClearColor (float *val) {
 #endif
 	cc_changed = TRUE;
 }        
+
+
+/* perform all the viewpoint rotations for a point */
+static void moveAndRotateThisPoint(struct X3D_Node *vpnode, struct point_XYZ *mypt, double x, double y, double z) {
+	struct point_XYZ intPoint;
+	double xxx,yyy,zzz,aaa;
+	Quaternion myRot;
+
+	/* step 0: move this point relative to viewer */
+	mypt->x=x-Viewer.currentPosInModel.x;
+	mypt->y=y-Viewer.currentPosInModel.y;
+	mypt->z=z-Viewer.currentPosInModel.z;
+
+
+	/* step 1: perform the Component_Navigation rotation */
+	/*	quaternion_rotation(struct point_XYZ *ret, const Quaternion *quat, const struct point_XYZ *v) */
+	xxx= X3D_VIEWPOINT(vpnode)->orientation.r[0];
+	yyy= X3D_VIEWPOINT(vpnode)->orientation.r[1];
+	zzz= X3D_VIEWPOINT(vpnode)->orientation.r[2];
+	aaa= - (X3D_VIEWPOINT(vpnode)->orientation.r[3]);
+
+	vrmlrot_to_quaternion(&myRot,xxx,yyy,zzz,aaa);
+	quaternion_rotation(&intPoint, &myRot, mypt);
+	mypt->x = intPoint.x; mypt->y = intPoint.y; mypt->z = intPoint.z;
+
+	/* step 2: do the Viewer.togl rotations mimicing Viewer.c 
+        quaternion_togl(&Viewer.Quat);
+        GL_TRANSLATE_D(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
+        GL_TRANSLATE_D((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
+        quaternion_togl(&Viewer.AntiQuat);
+ 	*/
+
+	quaternion_rotation(&intPoint, &Viewer.Quat, mypt);
+	mypt->x = intPoint.x; mypt->y = intPoint.y; mypt->z = intPoint.z;
+	quaternion_rotation(&intPoint, &Viewer.AntiQuat, mypt);
+	mypt->x = intPoint.x; mypt->y = intPoint.y; mypt->z = intPoint.z;
+}
+
+static void calculateNearFarplanes(struct X3D_Node *vpnode) {
+	struct point_XYZ testPoint;
+	struct point_XYZ bboxPoints[8];
+	double cfp = DBL_MIN;
+	double cnp = DBL_MAX;
+
+	int ci;
+
+	#ifdef VERBOSE
+	printf ("have a bound viewpoint... lets calculate our near/far planes from it \n");
+	printf ("we are currently at %4.2f %4.2f %4.2f\n",Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
+	#endif
+
+
+	/* verify parameters here */
+	if ((vpnode->_nodeType != NODE_Viewpoint) && (vpnode->_nodeType != NODE_GeoViewpoint)) {
+		printf ("can not do this node type yet, for cpf\n",stringNodeType(vpnode->_nodeType));
+		nearPlane = DEFAULT_NEARPLANE;
+		farPlane = DEFAULT_FARPLANE;
+		backgroundPlane = DEFAULT_BACKGROUNDPLANE;
+		return;
+	}	
+
+	if (rootNode == NULL) {
+		return; /* nothing to display yet */
+	}
+
+	
+	#ifdef VERBOSE
+	printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",
+			X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_X,
+			X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Y,
+			X3D_GROUP(rootNode)->EXTENT_MAX_Z, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
+	#endif
+
+	#ifdef testingSimpleMove
+	/* lets see about moving a point around */
+	testPoint.x = 20.0; testPoint.y=0.0; testPoint.z = 0.0;
+	testPoint.x -= Viewer.currentPosInModel.x;
+	testPoint.y -= Viewer.currentPosInModel.y;
+	testPoint.z -= Viewer.currentPosInModel.z;
+	printf ("distance to point, in xyz terms: %4.2f %4.2f %4.2f\n",testPoint.x, testPoint.y, testPoint.z);
+	moveAndRotateThisPoint(vpnode, &testPoint, 20.0,  0.0, 0.0);
+	printf ("rotated point is %4.2f %4.2f %4.2f\n",testPoint.x, testPoint.y, testPoint.z);
+	#endif
+
+	/* make up 8 vertices for our bounding box, and place them within our view */
+	moveAndRotateThisPoint(vpnode, &bboxPoints[0], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
+	moveAndRotateThisPoint(vpnode, &bboxPoints[1], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
+	moveAndRotateThisPoint(vpnode, &bboxPoints[2], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
+	moveAndRotateThisPoint(vpnode, &bboxPoints[3], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
+	moveAndRotateThisPoint(vpnode, &bboxPoints[4], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
+	moveAndRotateThisPoint(vpnode, &bboxPoints[5], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
+	moveAndRotateThisPoint(vpnode, &bboxPoints[6], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
+	moveAndRotateThisPoint(vpnode, &bboxPoints[7], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
+
+	for (ci=0; ci<8; ci++) {
+		#ifdef VERBOSE
+		printf ("moved bbox node %d is %4.2f %4.2f %4.2f\n",ci,bboxPoints[ci].x, bboxPoints[ci].y, bboxPoints[ci].z);
+		#endif
+
+		if (-(bboxPoints[ci].z) > cfp) cfp = -(bboxPoints[ci].z);
+		if (-(bboxPoints[ci].z) < cnp) cnp = -(bboxPoints[ci].z);
+	}
+
+	/* lets bound check here, both must be positive, and farPlane more than DEFAULT_NEARPLANE */
+	if (cnp<DEFAULT_NEARPLANE) cnp = DEFAULT_NEARPLANE;
+	if (cfp<1.0) cfp = 1.0;	
+
+	#ifdef VERBOSE
+	printf ("cnp %lf cfp before leaving room for Background %lf\n",cnp,cfp);
+	#endif
+
+	/* lets use these values; leave room for a Background or TextureBackground node here */
+	nearPlane = cnp; 
+	/* backgroundPlane goes between the farthest geometry, and the farPlane */
+	if (background_stack[0]!= NULL) {
+		farPlane = cfp * 10.0;
+		backgroundPlane = cfp*5.0;
+	} else {
+		farPlane = cfp;
+		backgroundPlane = cfp; /* just set it to something */
+	}
+}
+
+
+
+
 
 void doglClearColor() {
 	glClearColor(cc_red, cc_green, cc_blue, cc_alpha);
@@ -1041,6 +1169,12 @@ void startOfLoopNodeUpdates(void) {
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
 	if (viewpoint_stack[viewpoint_tos] != 0) {
 		update_renderFlag(X3D_NODE(viewpoint_stack[viewpoint_tos]), VF_Viewpoint);
+		calculateNearFarplanes(X3D_NODE(viewpoint_stack[viewpoint_tos]));
+	} else {
+		/* keep these at the defaults, if no viewpoint is present. */
+		nearPlane = DEFAULT_NEARPLANE;
+		farPlane = DEFAULT_FARPLANE;
+		backgroundPlane = DEFAULT_BACKGROUNDPLANE;
 	}
 }
 

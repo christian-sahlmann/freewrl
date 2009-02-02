@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.20 2009/01/29 21:14:40 crc_canada Exp $
+$Id: headers.h,v 1.21 2009/02/02 15:57:24 crc_canada Exp $
 
 Global includes.
 
@@ -153,8 +153,8 @@ extern char *BrowserFullPath;
 
 /* for z depth buffer calculations */
 #define DEFAULT_NEARPLANE 0.1
-#define xxDEFAULT_FARPLANE 21000.0
-#define DEFAULT_FARPLANE 210.0
+#define DEFAULT_FARPLANE 21000.0
+#define DEFAULT_BACKGROUNDPLANE 18000.0 /* approx 80% of DEFAULT_FARPLANE */
 extern double geoHeightinZAxis;
 
 
@@ -982,7 +982,7 @@ void BoundingBox(struct X3D_Node* node);
 
 void freewrlDie(const char *format);
 
-extern double nearPlane, farPlane, screenRatio, calculatedNearPlane, calculatedFarPlane;
+extern double nearPlane, farPlane, screenRatio, backgroundPlane;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 
