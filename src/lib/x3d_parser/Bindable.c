@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.5 2009/02/02 15:57:27 crc_canada Exp $
+$Id: Bindable.c,v 1.6 2009/02/02 16:11:00 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -879,6 +879,10 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	if  NODE_NEEDS_COMPILING
 		/* recalculateBackgroundVectors will determine exact node type */
 		recalculateBackgroundVectors((struct X3D_Background *)node);	
+
+	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
+	   all geometry fits within the spheres */
+	GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
 
 	/* now, display the lists */
