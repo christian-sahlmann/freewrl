@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.4 2009/01/29 17:09:18 crc_canada Exp $
+$Id: Viewer.h,v 1.5 2009/02/03 17:12:04 crc_canada Exp $
 
 Viewer ???
 
@@ -71,6 +71,18 @@ Viewer ???
 #define QUAT_Z_OFFSET 53
 
 
+#define CALCULATE_EXAMINE_DISTANCE \
+	{ \
+        	float xd, yd,zd; \
+		double test; \
+	        /* calculate distance between the node position and defined centerOfRotation */ \
+	        xd = Viewer.currentPosInModel.x; \
+	        yd = Viewer.currentPosInModel.y; \
+	        zd = Viewer.currentPosInModel.z; \
+	        test = sqrt (xd*xd+yd*yd+zd*zd); \
+		/* printf ("htw; cur Dist %4.2f, calculated %4.2f\n", Viewer.Dist, test); */ \
+		Viewer.Dist = test; \
+	}
 /* extern struct point_XYZ ViewerPosition; */
 /* extern struct orient ViewerOrientation; */
 

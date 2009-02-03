@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.10 2009/02/02 15:57:24 crc_canada Exp $
+$Id: Viewer.c,v 1.11 2009/02/03 17:12:04 crc_canada Exp $
 
 CProto ???
 
@@ -28,9 +28,6 @@ static X3D_Viewer_Examine viewer_examine = { { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0
 static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
-
-static int movedPosition = FALSE;
-static int walkMotion = FALSE;
 
 static FILE *exfly_in_file;
 
@@ -135,6 +132,29 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		viewer->examine = &viewer_examine;
 		viewer->fly = &viewer_fly;
 	}
+
+#ifdef VERIFY
+	/* make sure Viewer.Dist is configured properly for Examine mode */
+	else if (viewer_type == EXAMINE) {
+
+        float xd, yd,zd;
+	double test;
+
+
+        /* calculate distance between the node position and defined centerOfRotation */
+        xd = Viewer.currentPosInModel.x;
+        yd = Viewer.currentPosInModel.y;
+        zd = Viewer.currentPosInModel.z;
+        test = sqrt (xd*xd+yd*yd+zd*zd);
+
+
+		printf ("have examine mode init, cur Dist %4.2f, calculated %4.2f\n",
+			Viewer.Dist,
+			test);
+		Viewer.Dist = test;
+	}
+#endif /* VERIFY */
+	
 	resolve_pos();
 }
 
@@ -235,15 +255,6 @@ void resolve_pos(void) {
 		quaternion_inverse(&q_inv, &(Viewer.Quat));
 		quaternion_rotation(&rot, &q_inv, &z_axis);
 
-/*
-printf ("Viewer examine, not changing origin keeping it at %f %f %f\n",
-		examine->Origin.x, examine->Origin.y, examine->Origin.z);
-
-		(examine->Origin).x = (Viewer.Pos).x - Viewer.Dist * rot.x;
-		(examine->Origin).y = (Viewer.Pos).y - Viewer.Dist * rot.y;
-		(examine->Origin).z = (Viewer.Pos).z - Viewer.Dist * rot.z;
-*/
-
 	}
 }
 
@@ -323,14 +334,10 @@ void viewer_togl(double fieldofview) {
 void handle_walk(const int mev, const unsigned int button, const float x, const float y) {
 	X3D_Viewer_Walk *walk = Viewer.walk;
 
-	walkMotion = FALSE;	/* assume no motion right now */
 	if (mev == ButtonPress ) {
 		walk->SY = y;
 		walk->SX = x;
 	} else if (mev == MotionNotify) {
-		/* ok, we HAVE done something here */
-		walkMotion = TRUE;
-
 		if (button == 1) {
 			walk->ZD = (y - walk->SY) * Viewer.speed;
 			walk->RD = (x - walk->SX) * 0.1;
@@ -360,6 +367,16 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 	/* rotPoint = point "Viewer.Dist" in front of us */
 
 	if (mev == ButtonPress) {
+		/* printf ("handle_examine, butpress, but %d, Pos %4.2f %4.2f %4.2f; xd,yd,zd %4.2f %4.2f %4.2f\n",
+		button,
+		Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z,
+		Viewer.walk->XD, Viewer.walk->YD, Viewer.walk->ZD);
+		printf ("current pos in model %4.2f %4.2f %4.2f\n",Viewer.currentPosInModel.x, 
+		Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
+		printf ("dist %4.2f\n",Viewer.Dist);
+		*/
+
+
 		if (button == 1) {
 			xy2qua(&(examine->SQuat), x, y);
 			quaternion_set(&(examine->OQuat), &(Viewer.Quat));
@@ -370,7 +387,6 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 
 	} else if (mev == MotionNotify) {
 		/* ok, we HAVE done something here */
-		movedPosition = TRUE;
 
 		if (button == 1) {
 			squat_norm = quaternion_norm(&(examine->SQuat));
@@ -393,8 +409,7 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 	quaternion_inverse(&q_i, &(Viewer.Quat));
 	quaternion_rotation(&(Viewer.Pos), &q_i, &p);
 
-	/*
-printf ("so now, before addition, vp %f %f %f, orig %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z,
+	/* printf ("so now, before addition, vp %f %f %f, orig %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z,
 		examine->Origin.x, examine->Origin.y, examine->Origin.z);
 	*/
 
@@ -496,9 +511,6 @@ handle_tick_walk()
 	struct point_XYZ p;
 
 	
-	if (!walkMotion) return;
-	movedPosition = TRUE;
-
 	p.x = 0.15 * walk->XD;
 	p.y = 0.15 * walk->YD;
 	p.z = 0.15 * walk->ZD;
@@ -515,6 +527,9 @@ handle_tick_walk()
 
 	quaternion_normalize(&nq);
 	quaternion_multiply(&(Viewer.Quat), &nq, &q);
+
+	/* make sure Viewer.Dist is configured properly for Examine mode */
+	CALCULATE_EXAMINE_DISTANCE
 }
 
 
@@ -716,9 +731,6 @@ handle_tick_fly()
 	/* have we done anything here? */
 	if (APPROX(changed,0.0)) return;
 
-	/* Yes, something has changed, as we are still here */
-	movedPosition = TRUE;
-
 	v.x = fly->Velocity[0] * time_diff;
 	v.y = fly->Velocity[1] * time_diff;
 	v.z = fly->Velocity[2] * time_diff;
@@ -732,6 +744,10 @@ handle_tick_fly()
 
 	quaternion_set(&q_v, &(Viewer.Quat));
 	quaternion_multiply(&(Viewer.Quat), &nq, &q_v);
+
+	/* make sure Viewer.Dist is configured properly for Examine mode */
+	CALCULATE_EXAMINE_DISTANCE
+
 }
 
 void
@@ -754,13 +770,6 @@ handle_tick()
 		break;
 	default:
 		break;
-	}
-
-	/* have we moved? */
-	if (movedPosition) {
-		if (Viewer.GeoSpatialNode) 
-			viewer_calculate_speed();
-		movedPosition = FALSE;
 	}
 }
 
@@ -869,10 +878,15 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	zd = vp->position.c[2]-vp->centerOfRotation.c[2];
 	Viewer.Dist = sqrt (xd*xd+yd*yd+zd*zd);
 
-	/* printf ("viewpoint rotate distance %f\n",Viewer.Dist); */
+	/* printf ("viewpoint binding distance %f\n",Viewer.Dist);  */
 
 	/* since this is not a bind to a GeoViewpoint node... */
 	Viewer.GeoSpatialNode = NULL;
+
+	/* set the examine mode rotation origin */
+	Viewer.examine->Origin.x = vp->centerOfRotation.c[0];
+	Viewer.examine->Origin.y = vp->centerOfRotation.c[1];
+	Viewer.examine->Origin.z = vp->centerOfRotation.c[2];
 
 	/* set Viewer position and orientation */
 
