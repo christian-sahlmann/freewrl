@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.10 2008/12/30 21:43:58 crc_canada Exp $
+$Id: fieldSet.c,v 1.11 2009/02/03 20:58:55 sdumoulin Exp $
 
 ???
 
@@ -363,7 +363,7 @@ unsigned int setField_FromEAI (char *ptr) {
 		nodeptr = actual memory pointer of X3D_Node* */
 
 	/* first, parse the value into the local variable */
-	Parser_scanStringValueToMem(memptr,0,datatype,ptr,FALSE);
+	Parser_scanStringValueToMem(nodeptr,offset,datatype,ptr,FALSE);
 
 	if (scripttype == EAI_NODETYPE_SCRIPT) {
 		struct Shader_Script * sp;
