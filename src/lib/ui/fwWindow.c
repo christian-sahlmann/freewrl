@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwWindow.c,v 1.6 2009/01/29 21:14:40 crc_canada Exp $
+$Id: fwWindow.c,v 1.7 2009/02/03 19:15:12 crc_canada Exp $
 
 ???
 
@@ -165,9 +165,9 @@ void createGLContext(void) {
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	glClearDepth (1.0);
 	glClearColor (0.0, 0.0, 1.0, 0.0);
-	GL_MATRIX_MODE (GL_PROJECTION);
+	FW_GL_MATRIX_MODE (GL_PROJECTION);
 	glFrustum (-1.0, 1.0, -1.0, 1.0, 1.0, 20);
-	GL_MATRIX_MODE (GL_MODELVIEW);
+	FW_GL_MATRIX_MODE (GL_MODELVIEW);
 
 	/* Mesa 6.4.1 on AMD64 will segfault. Check for this. */
 /* 	if (sizeof(void*) == 8) { */

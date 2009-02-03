@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.6 2009/02/02 16:11:00 crc_canada Exp $
+$Id: Bindable.c,v 1.7 2009/02/03 19:15:12 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -456,12 +456,12 @@ void render_Fog (struct X3D_Fog *node) {
 
 	fogptr = node->fogType->strptr;
 	foglen = node->fogType->len;
-	GL_PUSH_MATRIX();
+	FW_GL_PUSH_MATRIX();
 	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 	/* Get origin */
 	gluUnProject(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
-	GL_TRANSLATE_D(x,y,z);
+	FW_GL_TRANSLATE_D(x,y,z);
 
 	gluUnProject(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
 	/* Get scale */
@@ -472,7 +472,7 @@ void render_Fog (struct X3D_Fog *node) {
 	gluProject(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
 	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
 	/* Undo the translation and scale effects */
-	GL_SCALE_D(sx,sy,sz);
+	FW_GL_SCALE_D(sx,sy,sz);
 
 
 	/* now do the foggy stuff */
@@ -493,7 +493,7 @@ void render_Fog (struct X3D_Fog *node) {
 	glEnable (GL_FOG);
 	fog_enabled = TRUE;
 
-	GL_POP_MATRIX();
+	FW_GL_POP_MATRIX();
 }
 
 
@@ -529,12 +529,12 @@ void moveBackgroundCentre () {
 
 	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);  */
 	glShadeModel(GL_SMOOTH);
-	GL_PUSH_MATRIX();
+	FW_GL_PUSH_MATRIX();
 	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 	/* Get origin */
 	gluUnProject(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
-	GL_TRANSLATE_D(x,y,z);
+	FW_GL_TRANSLATE_D(x,y,z);
 
 	LIGHTING_OFF
 
@@ -548,7 +548,7 @@ void moveBackgroundCentre () {
 	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
 
 	/* Undo the translation and scale effects */
-	GL_SCALE_D(sx,sy,sz);
+	FW_GL_SCALE_D(sx,sy,sz);
 }
 
 void recalculateBackgroundVectors(struct X3D_Background *node) {
@@ -815,7 +815,7 @@ void render_Background (struct X3D_Background *node) {
 
 	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
 	   all geometry fits within the spheres */
-	GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
+	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
 	/* now, display the lists */
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
@@ -848,7 +848,7 @@ void render_Background (struct X3D_Background *node) {
 
         	glDisableClientState (GL_TEXTURE_COORD_ARRAY);
 	}
-	GL_POP_MATRIX();
+	FW_GL_POP_MATRIX();
 
 	/* is fog enabled? if so, disable it right now */
 	if (fog_enabled ==TRUE) glEnable (GL_FOG);
@@ -882,7 +882,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
 	   all geometry fits within the spheres */
-	GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
+	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
 
 	/* now, display the lists */
@@ -909,7 +909,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	}
 
 	/* pushes are done in moveBackgroundCentre */
-	GL_POP_MATRIX();
+	FW_GL_POP_MATRIX();
 
 	/* is fog enabled? if so, disable it right now */
 	if (fog_enabled ==TRUE) glEnable (GL_FOG);

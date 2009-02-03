@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.10 2009/02/02 20:54:17 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.11 2009/02/03 19:15:12 crc_canada Exp $
 
 ???
 
@@ -106,8 +106,8 @@ static void moveAndRotateThisPoint(struct X3D_Node *vpnode, struct point_XYZ *my
 
 	/* step 2: do the Viewer.togl rotations mimicing Viewer.c 
         quaternion_togl(&Viewer.Quat);
-        GL_TRANSLATE_D(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
-        GL_TRANSLATE_D((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
+        FW_GL_TRANSLATE_D(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
+        FW_GL_TRANSLATE_D((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
         quaternion_togl(&Viewer.AntiQuat);
  	*/
 
@@ -221,18 +221,18 @@ void start_textureTransform (void *textureNode, int ttnum) {
 	ttt = (struct X3D_TextureTransform *) textureNode;
 
 	/* stuff common to all textureTransforms - gets undone at end_textureTransform */
-	GL_MATRIX_MODE(GL_TEXTURE);
+	FW_GL_MATRIX_MODE(GL_TEXTURE);
        	/* done in RenderTextures now glEnable(GL_TEXTURE_2D); */
-	GL_LOAD_IDENTITY();
+	FW_GL_LOAD_IDENTITY();
 
 	/* is this a simple TextureTransform? */
 	if (ttt->_nodeType == NODE_TextureTransform) {
 		/*  Render transformations according to spec.*/
-        	GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
-        	GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
-        	GL_ROTATE_F((ttt->rotation) /3.1415926536*180,0,0,1);			/*  3*/
-        	GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
-        	GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
+        	FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
+        	FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
+        	FW_GL_ROTATE_F((ttt->rotation) /3.1415926536*180,0,0,1);			/*  3*/
+        	FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
+        	FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
 
 	/* is this a MultiTextureTransform? */
 	} else  if (ttt->_nodeType == NODE_MultiTextureTransform) {
@@ -242,11 +242,11 @@ void start_textureTransform (void *textureNode, int ttnum) {
 			/* is this a simple TextureTransform? */
 			if (ttt->_nodeType == NODE_TextureTransform) {
 				/*  Render transformations according to spec.*/
-        			GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
-        			GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
-        			GL_ROTATE_F((ttt->rotation) /3.1415926536*180,0,0,1);			/*  3*/
-        			GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
-        			GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
+        			FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
+        			FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
+        			FW_GL_ROTATE_F((ttt->rotation) /3.1415926536*180,0,0,1);			/*  3*/
+        			FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
+        			FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
 			} else {
 				printf ("MultiTextureTransform expected a textureTransform for texture %d, got %d\n",
 					ttnum, ttt->_nodeType);
@@ -258,14 +258,14 @@ void start_textureTransform (void *textureNode, int ttnum) {
 	} else {
 		printf ("expected a textureTransform node, got %d\n",ttt->_nodeType);
 	}
-	GL_MATRIX_MODE(GL_MODELVIEW);
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
 /* did we have a TextureTransform in the Appearance node? */
 void end_textureTransform (void *textureNode, int ttnum) {
-	GL_MATRIX_MODE(GL_TEXTURE);
-	GL_LOAD_IDENTITY();
-	GL_MATRIX_MODE(GL_MODELVIEW);
+	FW_GL_MATRIX_MODE(GL_TEXTURE);
+	FW_GL_LOAD_IDENTITY();
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
 /* keep track of lighting */
@@ -387,13 +387,13 @@ void invalidateCurMat() {
 }
 
 void fwLoadIdentity () {
-	GL_LOAD_IDENTITY();
+	FW_GL_LOAD_IDENTITY();
 	invalidateCurMat();
 }
 	
 void fwMatrixMode (int mode) {
 	if (myMat != mode) {
-		/* printf ("GL_MATRIX_MODE ");
+		/* printf ("FW_GL_MATRIX_MODE ");
 		if (mode == GL_PROJECTION) printf ("GL_PROJECTION\n");
 		else if (mode == GL_MODELVIEW) printf ("GL_MODELVIEW\n");
 		else {printf ("unknown %d\n",mode);}
@@ -401,7 +401,7 @@ void fwMatrixMode (int mode) {
 		
 
 		myMat = mode;
-		GL_MATRIX_MODE(mode);
+		FW_GL_MATRIX_MODE(mode);
 	}
 }
 
@@ -488,12 +488,12 @@ void fwGetDoublev (int ty, double *mat) {
 }
 
 inline void fwXformPush(void) {
-	GL_PUSH_MATRIX(); 
+	FW_GL_PUSH_MATRIX(); 
 	MODmatOk = FALSE;
 }
 
 inline void fwXformPop(void) {
-	GL_POP_MATRIX(); 
+	FW_GL_POP_MATRIX(); 
 	MODmatOk = FALSE;
 }
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.5 2009/02/02 20:54:17 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.6 2009/02/03 19:15:12 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -52,43 +52,43 @@ void prep_Transform (struct X3D_Transform *node) {
 	OCCLUSIONTEST
 
 	if(!render_vp) {
-		GL_PUSH_MATRIX();
+		FW_GL_PUSH_MATRIX();
 
 		/* TRANSLATION */
 		if (node->__do_trans)
-			GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]);
+			FW_GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]);
 
 		/* CENTER */
 		if (node->__do_center)
-			GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]);
+			FW_GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]);
 
 		/* ROTATION */
 		if (node->__do_rotation) {
 			my_rotation = node->rotation.r[3]/3.1415926536*180;
-			GL_ROTATE_F(my_rotation,
+			FW_GL_ROTATE_F(my_rotation,
 				node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]);
 		}
 
 		/* SCALEORIENTATION */
 		if (node->__do_scaleO) {
 			my_scaleO = node->scaleOrientation.r[3]/3.1415926536*180;
-			GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0],
+			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0],
 				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
 		}
 
 
 		/* SCALE */
 		if (node->__do_scale)
-			GL_SCALE_F(node->scale.c[0],node->scale.c[1],node->scale.c[2]);
+			FW_GL_SCALE_F(node->scale.c[0],node->scale.c[1],node->scale.c[2]);
 
 		/* REVERSE SCALE ORIENTATION */
 		if (node->__do_scaleO)
-			GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0],
+			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0],
 				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
 
 		/* REVERSE CENTER */
 		if (node->__do_center)
-			GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
+			FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
 
 		RECORD_DISTANCE
         }
@@ -99,23 +99,23 @@ void fin_Transform (struct X3D_Transform *node) {
 	OCCLUSIONTEST
 
         if(!render_vp) {
-            GL_POP_MATRIX();
+            FW_GL_POP_MATRIX();
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
-                GL_TRANSLATE_F(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
+                FW_GL_TRANSLATE_F(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
                 );
-                GL_ROTATE_F(((node->scaleOrientation).r[3])/3.1415926536*180,((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                FW_GL_ROTATE_F(((node->scaleOrientation).r[3])/3.1415926536*180,((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
                 );
-                GL_SCALE_F(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
+                FW_GL_SCALE_F(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
                 );
-                GL_ROTATE_F(-(((node->scaleOrientation).r[3])/3.1415926536*180),((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                FW_GL_ROTATE_F(-(((node->scaleOrientation).r[3])/3.1415926536*180),((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
                 );
-                GL_ROTATE_F(-(((node->rotation).r[3]))/3.1415926536*180,((node->rotation).r[0]),((node->rotation).r[1]),((node->rotation).r[2])
+                FW_GL_ROTATE_F(-(((node->rotation).r[3]))/3.1415926536*180,((node->rotation).r[0]),((node->rotation).r[1]),((node->rotation).r[2])
                 );
-                GL_TRANSLATE_F(-(((node->center).c[0])),-(((node->center).c[1])),-(((node->center).c[2]))
+                FW_GL_TRANSLATE_F(-(((node->center).c[0])),-(((node->center).c[1])),-(((node->center).c[2]))
                 );
-                GL_TRANSLATE_F(-(((node->translation).c[0])),-(((node->translation).c[1])),-(((node->translation).c[2]))
+                FW_GL_TRANSLATE_F(-(((node->translation).c[0])),-(((node->translation).c[1])),-(((node->translation).c[2]))
                 );
             }
         }

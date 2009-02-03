@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.6 2009/02/02 20:54:17 crc_canada Exp $
+$Id: Frustum.c,v 1.7 2009/02/03 19:15:12 crc_canada Exp $
 
 ???
 
@@ -103,14 +103,14 @@ GLint OccResultsAvailable = FALSE;
 	 \
 	                /* 1: REVERSE CENTER */ \
 	                if (node->__do_center) { \
-	                        /* GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]); */ \
+	                        /* FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]); */ \
 				add_translation(inxyz,-node->center.c[0],-node->center.c[1],-node->center.c[2],8); \
 			} \
 	 \
 	                /* 2: REVERSE SCALE ORIENTATION */ \
 	                if (node->__do_scaleO) { \
 				my_scaleO = node->scaleOrientation.r[3]/3.1415926536*180; \
-	                        /* GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0], node->scaleOrientation.r[1],node->scaleOrientation.r[2]); */ \
+	                        /* FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0], node->scaleOrientation.r[1],node->scaleOrientation.r[2]); */ \
 				vrmlrot_to_quaternion(&rq,node->scaleOrientation.r[0], node->scaleOrientation.r[1], node->scaleOrientation.r[2], -node->scaleOrientation.r[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 	 \
@@ -120,7 +120,7 @@ GLint OccResultsAvailable = FALSE;
 	 \
 	                /* 3: SCALE */ \
 	                if (node->__do_scale) { \
-	                        /* GL_SCALE_F(node->scale.c[0],node->scale.c[1],node->scale.c[2]); */ \
+	                        /* FW_GL_SCALE_F(node->scale.c[0],node->scale.c[1],node->scale.c[2]); */ \
 				multiply_in_scale(inxyz,node->scale.c[0],node->scale.c[1],node->scale.c[2],8); \
 			} \
 	 \
@@ -131,13 +131,13 @@ GLint OccResultsAvailable = FALSE;
 	 \
 				/* copy these points back out */ \
 				memcpy (inxyz,outxyz,8*sizeof(struct point_XYZ)); \
-	                        /* GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0], \
+	                        /* FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0], \
 	                                node->scaleOrientation.r[1],node->scaleOrientation.r[2]); */ \
 	                } \
 	 \
 	                /* 5: ROTATION */ \
 	                if (node->__do_rotation) { \
-	                        /* GL_ROTATE_F(my_rotation, node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]); */ \
+	                        /* FW_GL_ROTATE_F(my_rotation, node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]); */ \
 				vrmlrot_to_quaternion(&rq,node->rotation.r[0], node->rotation.r[1], node->rotation.r[2], node->rotation.r[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 	 \
@@ -147,13 +147,13 @@ GLint OccResultsAvailable = FALSE;
 	 \
 	                /* 6: CENTER */ \
 	                if (node->__do_center) { \
-	                        /* GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]); */ \
+	                        /* FW_GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]); */ \
 				add_translation(inxyz,node->center.c[0],node->center.c[1],node->center.c[2],8); \
 			} \
 \
 	                /* 7: TRANSLATION */ \
 	                if (node->__do_trans) { \
-	                        /* GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]); */ \
+	                        /* FW_GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]); */ \
 				add_translation(inxyz,node->translation.c[0],node->translation.c[1],node->translation.c[2],8); \
 			} \
 	 \
@@ -207,7 +207,7 @@ GLint OccResultsAvailable = FALSE;
 		memcpy (inxyz,outxyz,8*sizeof(struct point_XYZ)); \
 	 \
                 /* 7: TRANSLATION */ \
-                /* GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]); */ \
+                /* FW_GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]); */ \
 		/*printf ("doing translation %f %f %f\n", node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]); */ \
 		add_translation(inxyz,node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2],8); \
  \
@@ -254,14 +254,14 @@ GLint OccResultsAvailable = FALSE;
 	 \
 	                /* 1: REVERSE CENTER */ \
 	                if (node->__do_center) { \
-	                        /* GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]); */ \
+	                        /* FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]); */ \
 				add_translation(inxyz,-node->geoCenter.c[0],-node->geoCenter.c[1],-node->geoCenter.c[2],8); \
 			} \
 	 \
 	                /* 2: REVERSE SCALE ORIENTATION */ \
 	                if (node->__do_scaleO) { \
 				my_scaleO = node->scaleOrientation.r[3]/3.1415926536*180; \
-	                        /* GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0], node->scaleOrientation.r[1],node->scaleOrientation.r[2]); */ \
+	                        /* FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0], node->scaleOrientation.r[1],node->scaleOrientation.r[2]); */ \
 				vrmlrot_to_quaternion(&rq,node->scaleOrientation.r[0], node->scaleOrientation.r[1], node->scaleOrientation.r[2], -node->scaleOrientation.r[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 	 \
@@ -271,7 +271,7 @@ GLint OccResultsAvailable = FALSE;
 	 \
 	                /* 3: SCALE */ \
 	                if (node->__do_scale) { \
-	                        /* GL_SCALE_F(node->scale.c[0],node->scale.c[1],node->scale.c[2]); */ \
+	                        /* FW_GL_SCALE_F(node->scale.c[0],node->scale.c[1],node->scale.c[2]); */ \
 				multiply_in_scale(inxyz,node->scale.c[0],node->scale.c[1],node->scale.c[2],8); \
 			} \
 	 \
@@ -282,13 +282,13 @@ GLint OccResultsAvailable = FALSE;
 	 \
 				/* copy these points back out */ \
 				memcpy (inxyz,outxyz,8*sizeof(struct point_XYZ)); \
-	                        /* GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0], \
+	                        /* FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0], \
 	                                node->scaleOrientation.r[1],node->scaleOrientation.r[2]); */ \
 	                } \
 	 \
 	                /* 5: ROTATION */ \
 	                if (node->__do_rotation) { \
-	                        /* GL_ROTATE_F(my_rotation, node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]); */ \
+	                        /* FW_GL_ROTATE_F(my_rotation, node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]); */ \
 				vrmlrot_to_quaternion(&rq,node->rotation.r[0], node->rotation.r[1], node->rotation.r[2], node->rotation.r[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 	 \
@@ -298,11 +298,11 @@ GLint OccResultsAvailable = FALSE;
 	 \
 	                /* 6: CENTER */ \
 	                if (node->__do_center) { \
-	                        /* GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]); */ \
+	                        /* FW_GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]); */ \
 				add_translation(inxyz,node->geoCenter.c[0],node->geoCenter.c[1],node->geoCenter.c[2],8); \
 			} \
 \
-                	/*	GL_TRANSLATE_D(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]); */ \
+                	/*	FW_GL_TRANSLATE_D(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]); */ \
                 	/* my_rotation = node->__localOrient.c[3]/3.1415926536*180; */ \
                 	/* GL_ROTATE_D(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]); */ \
 			add_translation (inxyz,X3D_GEOTRANSFORM(node)->__movedCoords.c[0], X3D_GEOTRANSFORM(node)->__movedCoords.c[1], X3D_GEOTRANSFORM(node)->__movedCoords.c[2],8); \
@@ -316,7 +316,7 @@ GLint OccResultsAvailable = FALSE;
 	 \
 	                /* 7: TRANSLATION */ \
 	                if (node->__do_trans) { \
-	                        /* GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]); */ \
+	                        /* FW_GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]); */ \
 				add_translation(inxyz,node->translation.c[0],node->translation.c[1],node->translation.c[2],8); \
 			} \
 	 \

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.3 2009/01/29 21:14:40 crc_canada Exp $
+$Id: RenderTextures.c,v 1.4 2009/02/03 19:15:12 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -200,7 +200,7 @@ void textureDraw_end(void) {
 	}
 	/* DISABLE_TEXTURES */
 
-        GL_MATRIX_MODE(GL_MODELVIEW);
+        FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
 /***********************************************************************************/

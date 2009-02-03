@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.20 2009/02/02 20:54:17 crc_canada Exp $
+$Id: MainLoop.c,v 1.21 2009/02/03 19:15:12 crc_canada Exp $
 
 CProto ???
 
@@ -655,7 +655,7 @@ void render_pre() {
         /* 2. Headlight, initialized here where we have the modelview matrix to Identity.
         FIXME: position of light sould actually be offset a little (towards the center)
         when in stereo mode. */
-        GL_LOAD_IDENTITY();
+        FW_GL_LOAD_IDENTITY();
 
         /*printf("calling get headlight in render_pre\n"); */
         if (get_headlight()) lightState(0,TRUE);
@@ -779,8 +779,8 @@ void render_collisions() {
         increment_pos(&v);
 }
 void setup_viewpoint() {
-        GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
-        GL_LOAD_IDENTITY();
+        FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
+        FW_GL_LOAD_IDENTITY();
         viewer_togl(fieldofview);
         render_hier(rootNode, VF_Viewpoint);
         glPrintError("XEvents::setup_viewpoint");
@@ -797,9 +797,9 @@ void setup_projection(int pick, int x, int y) {
         }
         #endif
 
-        GL_MATRIX_MODE(GL_PROJECTION);
+        FW_GL_MATRIX_MODE(GL_PROJECTION);
         glViewport(0,clipPlane,screenWidth,screenHeight);
-        GL_LOAD_IDENTITY();
+        FW_GL_LOAD_IDENTITY();
         if(pick) {
                 /* picking for mouse events */
                 glGetIntegerv(GL_VIEWPORT,viewPort2);
@@ -812,7 +812,7 @@ void setup_projection(int pick, int x, int y) {
         /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
         gluPerspective(fieldofview, screenRatio, nearPlane, farPlane); 
 
-        GL_MATRIX_MODE(GL_MODELVIEW);
+        FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
         glPrintError("XEvents::setup_projection");
 }

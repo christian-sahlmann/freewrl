@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.6 2009/02/02 20:54:17 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.7 2009/02/03 19:15:12 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -46,9 +46,9 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	
 
 	/* perform Viewpoint translations */
-	GL_ROTATE_D(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
+	FW_GL_ROTATE_D(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
 		node->orientation.r[2]);
-	GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
+	FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 
 	/* now, lets work on the Viewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, viewPort);
@@ -117,7 +117,7 @@ void XXproximity_Billboard (struct X3D_Billboard *node) {
 	VECCP(vpos, ax, cp); /* cp is now 90deg to both vector and axis */
 	len = sqrt(VECSQ(cp));
 	if (APPROX(len, 0)) {
-		GL_ROTATE_F(-viewer_orient.a/3.1415926536*180, ax.x, ax.y, ax.z);
+		FW_GL_ROTATE_F(-viewer_orient.a/3.1415926536*180, ax.x, ax.y, ax.z);
 		return;
 	}
 	VECSCALE(cp, 1/len);
@@ -155,14 +155,14 @@ void XXprep_Billboard (struct X3D_Billboard *node) {
 
 	if(!render_proximity) {
 printf ("prepBillboard, doing push\n");
-		GL_PUSH_MATRIX();
+		FW_GL_PUSH_MATRIX();
 
 		/* might we have had a change to a previously ignored value? */
 	#ifdef BILLBOARDVERBOSE
 		printf ("prep_Billboard; angle %lf\n",node->_rotationAngle);
 	#endif
 
-		GL_ROTATE_F(node->_rotationAngle/3.1415926536*180, node->axisOfRotation.c[0],
+		FW_GL_ROTATE_F(node->_rotationAngle/3.1415926536*180, node->axisOfRotation.c[0],
 			node->axisOfRotation.c[1], node->axisOfRotation.c[2]);
 		RECORD_DISTANCE
         }
@@ -180,7 +180,7 @@ void XXfin_Billboard (struct X3D_Billboard *node) {
 	#endif
 
         if(!render_proximity) {
-            GL_POP_MATRIX();
+            FW_GL_POP_MATRIX();
         }
 }
  
@@ -205,7 +205,7 @@ void  XXchild_Billboard (struct X3D_Billboard *node) {
 	normalChildren(node->children);
 
 	DIRECTIONAL_LIGHT_OFF
-	GL_POP_MATRIX();
+	FW_GL_POP_MATRIX();
 }
 
 
@@ -250,7 +250,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 		&(viewer_orient.x), &(viewer_orient.y),
 		&(viewer_orient.z), &(viewer_orient.a));
 
-	GL_PUSH_MATRIX();
+	FW_GL_PUSH_MATRIX();
 
 	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
@@ -278,7 +278,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	VECCP(vpos, ax, cp); /* cp is now 90deg to both vector and axis */
 	len = sqrt(VECSQ(cp));
 	if (APPROX(len, 0)) {
-		GL_ROTATE_F(-viewer_orient.a/3.1415926536*180, ax.x, ax.y, ax.z);
+		FW_GL_ROTATE_F(-viewer_orient.a/3.1415926536*180, ax.x, ax.y, ax.z);
 		return;
 	}
 	VECSCALE(cp, 1/len);
@@ -293,13 +293,13 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	if (VECPT(cp, arcp) > 0) { sign = -1; } else { sign = 1; }
 	angle = atan2(len2, sign*len);
 
-	GL_ROTATE_F(angle/3.1415926536*180, ax.x, ax.y, ax.z);
+	FW_GL_ROTATE_F(angle/3.1415926536*180, ax.x, ax.y, ax.z);
 	invalidateCurMat();  /* force a glGetMatrix from the system */
 }
 
 void fin_Billboard (struct X3D_Billboard *node) {
 	UNUSED(node);
-	GL_POP_MATRIX();
+	FW_GL_POP_MATRIX();
 	invalidateCurMat();
 }
 

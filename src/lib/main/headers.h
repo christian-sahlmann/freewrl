@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.22 2009/02/02 20:54:17 crc_canada Exp $
+$Id: headers.h,v 1.23 2009/02/03 19:15:12 crc_canada Exp $
 
 Global includes.
 
@@ -1396,51 +1396,5 @@ extern void *setViewpointBindInRender;
 extern void *setFogBindInRender;
 extern void *setBackgroundBindInRender;
 extern void *setNavigationBindInRender;
-
-/* debugging OpenGL calls  - allows us to keep track of what is happening */
-#undef DEBUG_OPENGL_CALLS
-#ifdef DEBUG_OPENGL_CALLS
-	#define GL_TRANSLATE_F(xxx,yyy,zzz) \
-		{glTranslatef(xxx,yyy,zzz); \
-		printf ("glTranslatef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define GL_TRANSLATE_D(xxx,yyy,zzz) \
-		{glTranslated(xxx,yyy,zzz); \
-		printf ("glTranslated\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define GL_ROTATE_F(aaa,xxx,yyy,zzz) \
-		{glRotatef(aaa,xxx,yyy,zzz); \
-		printf ("glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define GL_ROTATE_D(aaa,xxx,yyy,zzz) \
-		{glRotated(aaa,xxx,yyy,zzz); \
-		printf ("glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define GL_SCALE_F(xxx,yyy,zzz) \
-		{glScalef(xxx,yyy,zzz); \
-		printf ("glScalef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define GL_SCALE_D(xxx,yyy,zzz) \
-		{glScaled(xxx,yyy,zzz); \
-		printf ("glScaled\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define GL_LOAD_IDENTITY(aaa) {glLoadIdentity();printf ("glLoadIdentity\t at%s:%d\n",__FILE__,__LINE__);}
-	#define GL_PUSH_MATRIX(aaa) {glPushMatrix();printf ("glPushMatrix\t at%s:%d\n",__FILE__,__LINE__);}
-	#define GL_POP_MATRIX(aaa) {glPopMatrix();printf ("glPopMatrix\t at%s:%d\n",__FILE__,__LINE__);}
-	#define GL_MATRIX_MODE(aaa) {glMatrixMode(aaa); \
-		printf ("glMatrixMode("); \
-		if (aaa==GL_TEXTURE) printf ("GL_TEXTURE"); \
-		else if (aaa==GL_MODELVIEW) printf ("GL_MODELVIEW"); \
-		else if (aaa==GL_PROJECTION) printf ("GL_PROJECTION"); \
-		else printf ("unknown mode"); printf (")\tat %s:%d\n",__FILE__,__LINE__); }
-
-
-#else
-	#define GL_TRANSLATE_F(xxx,yyy,zzz) glTranslatef(xxx,yyy,zzz)
-	#define GL_TRANSLATE_D(xxx,yyy,zzz) glTranslated(xxx,yyy,zzz)
-	#define GL_ROTATE_D(aaa,xxx,yyy,zzz) glRotated(aaa,xxx,yyy,zzz)
-	#define GL_ROTATE_F(aaa,xxx,yyy,zzz) glRotatef(aaa,xxx,yyy,zzz)
-	#define GL_SCALE_F(xxx,yyy,zzz) glScalef(xxx,yyy,zzz)
-	#define GL_SCALE_D(xxx,yyy,zzz) glScaled(xxx,yyy,zzz)
-	#define GL_LOAD_IDENTITY glLoadIdentity
-	#define GL_MATRIX_MODE(aaa) glMatrixMode(aaa)
-	#define GL_PUSH_MATRIX(aaa) glPushMatrix()
-	#define GL_POP_MATRIX(aaa) glPopMatrix()
-#endif
-
 
 #endif /* __FREEX3D_HEADERS_H__ */

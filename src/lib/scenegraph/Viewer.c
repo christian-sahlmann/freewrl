@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.11 2009/02/03 17:12:04 crc_canada Exp $
+$Id: Viewer.c,v 1.12 2009/02/03 19:15:12 crc_canada Exp $
 
 CProto ???
 
@@ -275,8 +275,8 @@ void viewer_togl(double fieldofview) {
 	}
 
 	quaternion_togl(&Viewer.Quat);
-	GL_TRANSLATE_D(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
-	GL_TRANSLATE_D((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
+	FW_GL_TRANSLATE_D(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
+	FW_GL_TRANSLATE_D((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
 	quaternion_togl(&Viewer.AntiQuat);
 
 	/* "Matrix Quaternion FAQ: 8.050
@@ -837,8 +837,8 @@ set_stereo_offset(unsigned int buffer, const double eyehalf, const double eyehal
               x = -eyehalf;
               angle = -eyehalfangle * stereoParameter;
       }
-      GL_TRANSLATE_D(x, 0.0, 0.0);
-      GL_ROTATE_D(angle, 0.0, 1.0, 0.0);
+      FW_GL_TRANSLATE_D(x, 0.0, 0.0);
+      FW_GL_ROTATE_D(angle, 0.0, 1.0, 0.0);
 }
 
 

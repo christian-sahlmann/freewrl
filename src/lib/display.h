@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.14 2009/01/03 01:15:07 couannette Exp $
+$Id: display.h,v 1.15 2009/02/03 19:15:12 crc_canada Exp $
 
 FreeX3D support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -192,4 +192,48 @@ void resetGeometry();
 void setScreenDim(int wi, int he);
 
 
+/* debugging OpenGL calls  - allows us to keep track of what is happening */
+#undef DEBUG_OPENGL_CALLS
+#ifdef DEBUG_OPENGL_CALLS
+	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) \
+		{glTranslatef(xxx,yyy,zzz); \
+		printf ("glTranslatef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) \
+		{glTranslated(xxx,yyy,zzz); \
+		printf ("glTranslated\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) \
+		{glRotatef(aaa,xxx,yyy,zzz); \
+		printf ("glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) \
+		{glRotated(aaa,xxx,yyy,zzz); \
+		printf ("glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_SCALE_F(xxx,yyy,zzz) \
+		{glScalef(xxx,yyy,zzz); \
+		printf ("glScalef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_SCALE_D(xxx,yyy,zzz) \
+		{glScaled(xxx,yyy,zzz); \
+		printf ("glScaled\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_LOAD_IDENTITY(aaa) {glLoadIdentity();printf ("glLoadIdentity\t at%s:%d\n",__FILE__,__LINE__);}
+	#define FW_GL_PUSH_MATRIX(aaa) {glPushMatrix();printf ("glPushMatrix\t at%s:%d\n",__FILE__,__LINE__);}
+	#define FW_GL_POP_MATRIX(aaa) {glPopMatrix();printf ("glPopMatrix\t at%s:%d\n",__FILE__,__LINE__);}
+	#define FW_GL_MATRIX_MODE(aaa) {glMatrixMode(aaa); \
+		printf ("glMatrixMode("); \
+		if (aaa==GL_TEXTURE) printf ("GL_TEXTURE"); \
+		else if (aaa==GL_MODELVIEW) printf ("GL_MODELVIEW"); \
+		else if (aaa==GL_PROJECTION) printf ("GL_PROJECTION"); \
+		else printf ("unknown mode"); printf (")\tat %s:%d\n",__FILE__,__LINE__); }
+
+
+#else
+	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) glTranslatef(xxx,yyy,zzz)
+	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) glTranslated(xxx,yyy,zzz)
+	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) glRotated(aaa,xxx,yyy,zzz)
+	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) glRotatef(aaa,xxx,yyy,zzz)
+	#define FW_GL_SCALE_F(xxx,yyy,zzz) glScalef(xxx,yyy,zzz)
+	#define FW_GL_SCALE_D(xxx,yyy,zzz) glScaled(xxx,yyy,zzz)
+	#define FW_GL_LOAD_IDENTITY glLoadIdentity
+	#define FW_GL_MATRIX_MODE(aaa) glMatrixMode(aaa)
+	#define FW_GL_PUSH_MATRIX(aaa) glPushMatrix()
+	#define FW_GL_POP_MATRIX(aaa) glPopMatrix()
+#endif
 #endif /* __LIBFREEX3D_DISPLAY_H__ */
