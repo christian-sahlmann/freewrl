@@ -96,12 +96,24 @@ AM_CONDITIONAL([DEBUG],[test "$sw_debug" != no])
 
 # Fonts configuration
 AC_ARG_WITH([fontsdir],
-            [AS_HELP_STRING([--with-fontsdir=@<:@dir@:>@],
-                           [Select <dir> as font path (default=$datadir/$PACKAGE/fonts)])],
+            [AS_HELP_STRING([--with-fontsdir=DIR],
+                           [font path @<:@DATADIR/$PACKAGE/fonts@:>@])],
             [fontsdir=$withval],
             [fontsdir=$datadir/$PACKAGE/fonts])
 
 AC_DEFINE_DIR([FONTS_DIR],[fontsdir],[Directory for fonts.])
+
+
+# Mozilla plugin install dir
+AC_ARG_WITH([plugindir],
+            AS_HELP_STRING([--with-plugindir=DIR],[browser plugin dest-path @<:@LIBDIR/mozilla/plugins@:>@]),
+            [if test x$withval = xno; then
+              plugindir="${libdir}/mozilla/plugins"
+            else
+              plugindir="$withval"
+            fi],[with_plugindir="${libdir}/mozilla/plugins"])
+
+AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory for browser plugin.])
 
 # ====================================================
 # FreeX3D specific configuration: library checking
@@ -340,8 +352,8 @@ fi
 
 # Configuration default browser
 if test -n "$DEFAULT_BROWSER" ; then
-   if test -x "$DEFAULT_BROWSER" ; then
-      BROWSER="$DEFAULT_BROWSER"
+   BROWSER=`which $DEFAULT_BROWSER`
+   if test -x "$BROWSER" ; then
       browser_ok=true
    fi
 fi
@@ -349,11 +361,11 @@ fi
 if test "$browser_ok" != true ; then
    AC_MSG_WARN([Default browser will be searched in PATH...])
    AC_ARG_VAR([BROWSER], [Path to Internet browser.])
-   AC_PATH_PROG([BROWSER], [$BROWSER], [no])
+   AC_PATH_PROG([BROWSER], [$BROWSER], [false])
 fi
 
-if test "$BROWSER" = "no"; then
-  AC_MSG_ERROR([Internet browser is required])
+if test "$BROWSER" = "false"; then
+  AC_MSG_WARN([Internet browser not found -- freewrl will not process anchors!])
 fi
 AC_DEFINE_UNQUOTED(BROWSER, "$BROWSER", [Path to Internet browser.])
 

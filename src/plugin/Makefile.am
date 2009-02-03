@@ -17,6 +17,7 @@ AM_LDFLAGS += \
 _EV=$(top_srcdir)/versions/PLUGIN
 export
 
+plugindir=$(PLUGIN_DIR)
 templ=$(top_srcdir)/versions/template/version.c.in
 component=freex3d_plugin
 PLUGIN_VERSION=`cat $$_EV`
@@ -33,7 +34,7 @@ LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
 
 AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
 
-lib_LTLIBRARIES = libFreeX3Dplugin.la
+plugin_LTLIBRARIES = libFreeX3Dplugin.la
 libFreeX3Dplugin_la_LDFLAGS = -module -avoid-version
 libFreeX3Dplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeX3D.la
 
