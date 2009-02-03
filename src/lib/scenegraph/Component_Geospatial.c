@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.9 2009/02/03 19:15:12 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.10 2009/02/03 21:37:55 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1052,7 +1052,9 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 	indexT this_srf = INT_ID_UNDEFINED;
 	indexT this_srf_ind = INT_ID_UNDEFINED;
 
-printf ("start of compile_geoSystem\n");
+	#ifdef VERBOSE
+	printf ("start of compile_geoSystem\n");
+	#endif
 
 	/* malloc the area required for internal settings, if required */
 	if (srf->p==NULL) {
@@ -1172,7 +1174,9 @@ printf ("start of compile_geoSystem\n");
 					
 		}		
 	}
+	#ifdef VERBOSE
 	printf ("printf done compileGeoSystem\n");
+	#endif
 
 }
 
@@ -1705,12 +1709,28 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
 		&t_orig.x,&t_orig.y,&t_orig.z);
 
-/*
-printf ("proximityLOD, orig %4.2f %4.2f %4.2f\n",t_orig.x, t_orig.y, t_orig.z);
-*/
+
+	#ifdef VERBOSE
+	printf ("proximityLOD, geometry is at %4.2f %4.2f %4.2f\n",t_orig.x, t_orig.y, t_orig.z);
+	#endif
+
 	cx = t_orig.x - node->__movedCoords.c[0];
 	cy = t_orig.y - node->__movedCoords.c[1];
 	cz = t_orig.z - node->__movedCoords.c[2];
+
+	#ifdef VERBOSE
+	printf ("proximityLOD, after subtracting movedCoords, we have  %4.2f %4.2f %4.2f\n",cx, cy, cz);
+	#endif
+
+	cx-=Viewer.currentPosInModel.x;
+	cy-=Viewer.currentPosInModel.y;
+	cz-=Viewer.currentPosInModel.z;
+
+	#ifdef VERBOSE
+	printf ("proximityLOD, after subtracting current position, we have %4.2f %4.2f %4.2f\n", cx,cy,cz);
+	printf ("long range calculation %4.2f\n",sqrt(cx*cx+cy*cy+cz*cz));
+	#endif
+
 
 	/* distance between "me" at (0,0,0) and the centre of the GeoLOD (cx,cy,cz)
 	   is sqrt (cx-0 + cy-0 + cz-0) so we can compare sqrt(cx+cy+cz) to  sqrt(node->range)
@@ -1738,7 +1758,10 @@ printf ("proximityLOD, orig %4.2f %4.2f %4.2f\n",t_orig.x, t_orig.y, t_orig.z);
 		if (node->children.p == NULL) node->children.p=MALLOC(sizeof(void *) * 4);
 
 		if (node->__inRange == FALSE) {
-			/* printf ("GeoLOD %u level %d, inRange set to FALSE, range %lf\n",node, node->__level, node->range);  */
+			#ifdef VERBOSE
+			printf ("GeoLOD %u level %d, inRange set to FALSE, range %lf\n",node, node->__level, node->range);
+			#endif
+
 			node->level_changed = 1;
 			node->children.p[0] = node->__child1Node; 
 			node->children.p[1] = node->__child2Node; 
@@ -1746,7 +1769,9 @@ printf ("proximityLOD, orig %4.2f %4.2f %4.2f\n",t_orig.x, t_orig.y, t_orig.z);
 			node->children.p[3] = node->__child4Node; 
 			node->children.n = 4;
 		} else {
-			/* printf ("GeoLOD %u level %d, inRange set to TRUE range %lf\n",node, node->__level, node->range); */
+			#ifdef VERBOSE
+			printf ("GeoLOD %u level %d, inRange set to TRUE range %lf\n",node, node->__level, node->range);
+			#endif
 			node->level_changed = 0;
 			node->children.p[0] = node->rootNode.p[0]; node->children.n = 1;
 		}
