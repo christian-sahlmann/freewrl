@@ -25,7 +25,12 @@ if [ $try_dash -eq 1 ] ; then
 	fi
 fi
 
-my_options="--with-fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera --disable-static --disable-fast-install --with-pic --enable-debug $*"
+# Distribution
+case "$1" in
+    debian) fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera; shift ;;
+    other) fontsdir=/usr/X11/lib/X11/fonts/TTF; shift ;;
+esac
+my_options="--with-fontsdir=$fontsdir --disable-static --disable-fast-install --with-pic --enable-debug $*"
 
 echo "We will use $shell as the configure shell... "
 if [ $try_dash -eq 1 ] ; then
@@ -40,6 +45,6 @@ read DUMMY
 
 autoreconf --force --install
 
-CONFIG_SHELL=$shell $shell ./configure "$my_options" 
+CONFIG_SHELL=$shell $shell ./configure $my_options
 
 

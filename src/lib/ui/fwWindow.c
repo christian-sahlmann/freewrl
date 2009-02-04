@@ -1,9 +1,9 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwWindow.c,v 1.7 2009/02/03 19:15:12 crc_canada Exp $
+$Id: fwWindow.c,v 1.8 2009/02/04 11:53:04 couannette Exp $
 
-???
+FreeWRL main window.
 
 */
 
@@ -14,22 +14,7 @@ $Id: fwWindow.c,v 1.7 2009/02/03 19:15:12 crc_canada Exp $
 
 #include <libFreeX3D.h>
 
-/* #include "../vrml_parser/Structs.h" */
-/* #include "../main/headers.h" */
-/* #include "../vrml_parser/CParseGeneral.h" */
-/* #include "../scenegraph/Vector.h" */
-/* #include "../vrml_parser/CFieldDecls.h" */
-/* #include "../world_script/CScripts.h" */
-/* #include "../vrml_parser/CParseParser.h" */
-/* #include "../vrml_parser/CParseLexer.h" */
-/* #include "../vrml_parser/CParse.h" */
-
 #include <float.h>
-
-/* #include "../x3d_parser/Bindable.h" */
-/* #include "../scenegraph/Collision.h" */
-/* #include "../scenegraph/quaternion.h" */
-/* #include "../scenegraph/Viewer.h" */
 
 #include <X11/cursorfont.h>
 

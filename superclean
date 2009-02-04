@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# $Id: superclean,v 1.1 2009/02/04 11:53:04 couannette Exp $
+#
+# Clean all autotools files
+# Clean all Makefiles
+# Clean all *~ files
+# Clean all generated files
+
+rm -rf aclocal.m4 configure config.status config.log config.h config.h.in libtool stamp-h1 autom4te.cache config m4/lt* m4/libtool.m4 
+
+find . -name Makefile.in -delete
+
+find . -name Makefile -delete
+
+find . -name "*~" -delete
+
+rm -f vtempl

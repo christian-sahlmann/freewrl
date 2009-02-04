@@ -22,7 +22,9 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 
 # automake startup
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects]) # this option tells automake to generate
+# object files in the same subdir as the source file - this prevent us to have
+# all object files in the subdir where Makefile resides...
 
 # We have a script (vtempl) that uses a system command (sed): we need
 # to be sure to call the good sed binary whatever the system is. So we 
