@@ -54,7 +54,7 @@ export PKG_CONFIG_PATH=$srcdir:$PKG_CONFIG_PATH
 
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([ctype.h dirent.h errno.h fcntl.h math.h signal.h sched.h stdbool.h stdio.h stdint.h stdlib.h string.h sys/ioctl.h sys/ipc.h sys/msg.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/wait.h time.h unistd.h])
+AC_CHECK_HEADERS([ctype.h dirent.h errno.h fcntl.h getopt.h math.h signal.h sched.h stdbool.h stdio.h stdint.h stdlib.h string.h sys/ioctl.h sys/ipc.h sys/msg.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/wait.h time.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIGNAL
@@ -67,7 +67,7 @@ AC_HEADER_STDBOOL
 AC_FUNC_FORK
 AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([strchr strrchr])
+AC_CHECK_FUNCS([strchr strrchr getopt getopt_long getopt_long_only])
 
 
 # ====================================================

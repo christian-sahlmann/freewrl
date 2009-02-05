@@ -1,5 +1,6 @@
 freex3d_SOURCES = \
 		main.c \
+		main.h \
 		internal.h \
 		system.h \
 		options.c \

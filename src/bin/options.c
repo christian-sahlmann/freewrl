@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: options.c,v 1.6 2008/12/31 13:08:15 couannette Exp $
+  $Id: options.c,v 1.7 2009/02/05 10:33:04 couannette Exp $
 
   FreeX3D command line arguments.
 
@@ -13,9 +13,12 @@
 
 #include <libFreeX3D.h>
 
+#include "main.h"
 #include "options.h"
 
-#include <getopt.h>
+#if HAVE_GETOPT_H
+# include <getopt.h>
+#endif
 
 extern int wantEAI;
 
@@ -74,52 +77,87 @@ int parseCommandLine (int argc, char **argv)
 {
     int c;
     float ftmp;
-    static const char my_optstring[] = "efghijkvlpqmnobsQWKX";
+    int option_index = 0;
+
+    static const char optstring[] = "efg:hijkvlpqmnobsQWKX";
+
+    static struct option long_options[] = {
+	{"eai", 0, 0, 'e'},
+	{"fast", 0, 0, 'f'},
+	{"geometry", required_argument, 0, 'g'},
+	{"help", 0, 0, 'h'},
+	{"plugin", 1, 0, 'i'},
+	{"fd", 1, 0, 'j'},
+	{"instance", 1, 0, 'k'},
+	{"version", 0, 0, 'v'},
+	{"big",  0, 0, 'b'},
+	{"nocollision",0, 0, 'Q'},
+	{"keypress",1, 0, 'K'},
+	{"eaiverbose", 0, 0, 'V'},
+	
+#ifdef DOSNAPSEQUENCE
+	{"seq", 0, 0, 'l'},
+	{"gif", 0, 0, 'p'},
+	{"seqfile",1, 0, 'm'},
+	{"maximg", 1, 0, 'q'},
+#endif
+	{"snapfile", 1, 0, 'n'},
+	{"snaptmp", 1, 0, 'o'},
+	{"shutter", 0, 0, 'u'},
+	{"eyedist", 1, 0, 'y'},
+	{"fullscreen", 0, 0, 'c'},
+	{"stereo", 1, 0, 't'},
+	{"screendist", 1, 0, 'r'},
+	{"linewidth", 1, 0, 'W'},
+	
+	{"parent", 1, 0, 'x'},
+	{"server", 1, 0, 'x'},
+	{"sig", 1, 0, 'x'},
+	{"ps", 1, 0, 'x'},
+	{0, 0, 0, 0}
+    };
+
+#if HAVE_GETOPT_LONG_ONLY
+    FW_DEBUG("Using getopt_long_only\n");
+#else
+# if HAVE_GETOPT_LONG
+    FW_DEBUG("Using getopt_long\n");
+# else
+    FW_DEBUG("Using getopt\n");
+# endif
+#endif
 
     while (1) {
-	int option_index = 0;
-	static struct option long_options[] = {
-	    {"eai", 0, 0, 'e'},
-	    {"fast", 0, 0, 'f'},
-	    {"geometry", 1, 0, 'g'},
-	    {"help", 0, 0, 'h'},
-	    {"plugin", 1, 0, 'i'},
-	    {"fd", 1, 0, 'j'},
-	    {"instance", 1, 0, 'k'},
-	    {"version", 0, 0, 'v'},
-	    {"big",  0, 0, 'b'},
-	    {"nocollision",0, 0, 'Q'},
-	    {"keypress",1, 0, 'K'},
-	    {"eaiverbose", 0, 0, 'V'},
 
-#ifdef DOSNAPSEQUENCE
-	    {"seq", 0, 0, 'l'},
-	    {"gif", 0, 0, 'p'},
-	    {"seqfile",1, 0, 'm'},
-	    {"maximg", 1, 0, 'q'},
+	/* Do we want getopt to print errors by itself ? */
+	opterr = 0;
+
+#if HAVE_GETOPT_LONG_ONLY
+	c = getopt_long_only(argc, argv, optstring, long_options, &option_index);
+#else
+# if HAVE_GETOPT_LONG
+	c = getopt_long(argc, argv, optstring, long_options, &option_index);
+# else
+	c = getopt(argc, argv, optstring);
+# endif
 #endif
-	    {"snapfile", 1, 0, 'n'},
-	    {"snaptmp", 1, 0, 'o'},
-	    {"shutter", 0, 0, 'u'},
-	    {"eyedist", 1, 0, 'y'},
-	    {"fullscreen", 0, 0, 'c'},
-	    {"stereo", 1, 0, 't'},
-	    {"screendist", 1, 0, 'r'},
-	    {"linewidth", 1, 0, 'W'},
-
-	    {"parent", 1, 0, 'x'},
-	    {"server", 1, 0, 'x'},
-	    {"sig", 1, 0, 'x'},
-	    {"ps", 1, 0, 'x'},
-	    {0, 0, 0, 0}
-	};
-
-	c = getopt_long (argc, argv, my_optstring, long_options, &option_index);
 
 	if (c == -1)
 	    break;
 
 	switch (c) {
+	case '?': /* getopt error: unknown option or missing argument */
+	    FW_ERROR("ERROR: unknown option or missing argument to option: %c\n", optopt);
+	    exit(1);
+	    break;
+#if 0
+/* Glibc bug currently prevents us from using this code to better trap errors.
+   ASA the bug is fixed we can uncomment our code. */
+	case ':': /* getopt error: missing argument */
+	    FW_ERROR("ERROR: missing arguement for option: %c\n", optopt);
+	    exit(1);
+	    break;
+#endif
 	case 0:
 	    printf ("FreeWRL option --%s", long_options[option_index].name);
 	    if (optarg)
@@ -152,7 +190,12 @@ int parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'g': /* --geometry */
-	    setGeometry_from_cmdline(optarg);
+	    if (!optarg) {
+		FW_ERROR("Argument missing for option -g/--geometry\n");
+		exit(1);
+	    } else {
+		setGeometry_from_cmdline(optarg);
+	    }
 	    break;
 
 	case 'c': /* --fullscreen */
@@ -251,14 +294,15 @@ int parseCommandLine (int argc, char **argv)
 	    break;
 
 	default:
-	    /* printf ("?? getopt returned character code 0%o ??\n", c); */
+	    FW_ERROR("ERROR: getopt returned character code 0%o, unknown error.\n", c);
+	    exit(1);
 	    break;
 	}
     }
 
     if (optind < argc) {
 	if (optind != (argc-1)) {
-	    printf ("freewrl:warning, expect only 1 file on command line; running file: %s\n",
+	    FW_WARN("freewrl:warning, expect only 1 file on command line; running file: %s\n",
 		    argv[optind]);
 	}
 
