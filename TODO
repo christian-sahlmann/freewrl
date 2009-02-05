@@ -1,3 +1,38 @@
+Priority list (as of 04/02/2009)
+
+- review all Geospatial nodes (JohnS)
+- implement FloatingOrigin in Geospatial code (Johns)
+- Points and Lines - send upstream bounds, as per faceset nodes (JohnS)
+- Review all uses of gluUnproject in code (Johns)
+- OSX - standalone front end - enable printing;
+- OSX - standalone front end - ensure pulldown menu items tied with actual rendering variables
+- OSX - stanaalone front end - "q" key does not store window parameters in OSX; can "q" be mapped to
+  call normal cocoa exit routine?
+- OSX - standalone front end - sometimes, especially with textured world, front/back buffers are not
+  updated; it is as if one of them gets forgotten about (verify which one with opengl profiler). Complex
+  worlds with lots of textures seem to trigger it.
+
+
+- EAI - Sarah (C bindings) and JohnS (Russ Kinters testing, and general Java code)
+- threading issues with XLib - harold and Michel.
+- merge into freex3d
+- OSX standalone front end updateContext()
+- View Frustum - see PalaceWalkthrough and Geospatial code. (in progress -JohnS)
+- XML parser - Script and Proto work, and general cleanup
+- DVD standalone - get Geospatial content on there, and running.
+- FillProperties - use brickshader style shader to implement them.
+- Shader variables not parsed nor sent to shaders.
+- OSX sound revisit.
+- GlassBunny.wrl - CubeMap textures (Michel) and Shader variables (Johns).
+
+
+Wishlist:
+
+- QTVR images from OSX 
+- deliver x11freewrl on OSX, in addition to cocoa version
+- create freex3d links on Linux and OSX
+
+
 Priority list (as of 20/11/2008):
 
 - EAI - Sarah and Russ Kinter
