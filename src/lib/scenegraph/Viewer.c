@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.13 2009/02/05 18:21:38 crc_canada Exp $
+$Id: Viewer.c,v 1.14 2009/02/05 21:14:47 crc_canada Exp $
 
 CProto ???
 
@@ -369,14 +369,19 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 	/* rotPoint = point "Viewer.Dist" in front of us */
 
 	if (mev == ButtonPress) {
-		/* printf ("handle_examine, butpress, but %d, Pos %4.2f %4.2f %4.2f; xd,yd,zd %4.2f %4.2f %4.2f\n",
+/*
+		printf ("handle_examine, butpress, but %d, Pos %4.2f %4.2f %4.2f; xd,yd,zd %4.2f %4.2f %4.2f\n",
 		button,
 		Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z,
 		Viewer.walk->XD, Viewer.walk->YD, Viewer.walk->ZD);
 		printf ("current pos in model %4.2f %4.2f %4.2f\n",Viewer.currentPosInModel.x, 
 		Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
 		printf ("dist %4.2f\n",Viewer.Dist);
-		*/
+printf ("posinmodel sqrt %f\n",sqrt (Viewer.currentPosInModel.x*Viewer.currentPosInModel.x+
+	Viewer.currentPosInModel.y*Viewer.currentPosInModel.y+
+	Viewer.currentPosInModel.z*Viewer.currentPosInModel.z));
+*/
+		
 
 
 		if (button == 1) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.11 2009/02/05 18:21:38 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.12 2009/02/05 21:14:47 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1775,8 +1775,11 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	
 	if (oldInRange != node->__inRange) {
 
-if (node->__inRange) printf ("TRUE:  "); else printf ("FALSE: ");
-printf ("range changed; level %d, comparing %lf:%lf:%lf and range %lf\n",node->__level, cx,cy,cz, node->range);
+		#ifdef VERBOSE
+		if (node->__inRange) printf ("TRUE:  "); else printf ("FALSE: ");
+		printf ("range changed; level %d, comparing %lf:%lf:%lf and range %lf node %u\n",node->__level, cx,cy,cz, node->range, node);
+		#endif
+
 		/* initialize the "children" field, if required */
 		if (node->children.p == NULL) node->children.p=MALLOC(sizeof(void *) * 4);
 
@@ -1904,7 +1907,6 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	INIT_MF_FROM_SF(node, center)
 	MOVE_TO_ORIGIN(node)
 	COPY_MF_TO_SF(node, __movedCoords)
-#define VERBOSE
 
 	#ifdef VERBOSE
 	printf ("compile_GeoLOD %u, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node, node->center.c[0], node->center.c[1], node->center.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
@@ -1930,8 +1932,6 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	printf ("compiled GeoLOD\n\n");
 	#endif
 }
-
-#undef VERBOSE
 
 
 void child_GeoLOD (struct X3D_GeoLOD *node) {
@@ -2546,7 +2546,6 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	/* code to perform binding is now in set_viewpoint. */
 
-	if(!node->isBound) return;
 	COMPILE_IF_REQUIRED
 
 

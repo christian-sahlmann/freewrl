@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.7 2009/02/03 19:15:12 crc_canada Exp $
+$Id: Bindable.c,v 1.8 2009/02/05 21:14:47 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -131,7 +131,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 	struct X3D_GeoViewpoint *gvp;
 	char * nameptr;
 
-	/* printf ("\nsend_bind_to, nodetype %s node %d value %d\n",stringNodeType(nodetype),node,value); */
+	/* printf ("\n%lf: send_bind_to, nodetype %s node %u value %d\n",TickTime,stringNodeType(node->_nodeType),node,value);  */
 
 	switch (node->_nodeType) {
 

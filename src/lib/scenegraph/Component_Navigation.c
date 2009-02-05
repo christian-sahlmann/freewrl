@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.7 2009/02/03 19:15:12 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.8 2009/02/05 21:14:47 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -39,8 +39,10 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	/* code to perform binding is now in set_viewpoint. */
 
-	if(!node->isBound) return;
-
+	/* we will never get here unless we are told that we are active by the scene graph; actually
+	   doing this test can screw us up, so DO NOT do this test!
+			if(!node->isBound) return;
+	*/
 	
 	/* printf ("Component_Nav, found VP is %d, (%s)\n",node,node->description->strptr); */
 	
