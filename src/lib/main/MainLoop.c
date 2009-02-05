@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.21 2009/02/03 19:15:12 crc_canada Exp $
+$Id: MainLoop.c,v 1.22 2009/02/05 18:21:38 crc_canada Exp $
 
 CProto ???
 
@@ -208,7 +208,7 @@ void EventLoop() {
         }
 #endif
 
-        /* printf ("start of MainLoop\n"); */
+        /* printf ("start of MainLoop\n");  */
 
         /* should we do events, or maybe a parser is parsing? */
         doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
@@ -250,7 +250,7 @@ void EventLoop() {
                 setMenuFps(BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
 
-		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane); */
+		printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane); 
 
                 #ifdef PROFILE
                 oxf = timeAA + timeA + timeB + timeC + timeD + timeE + timeF;
@@ -776,6 +776,9 @@ void render_collisions() {
 
         render_hier(rootNode, VF_Collision);
         get_collisionoffset(&(v.x), &(v.y), &(v.z));
+
+if (!APPROX(v.x,0.0) || !APPROX(v.y,0.0) || !APPROX(v.z,0.0)) {printf ("MainLoop, rendercollisions, offset %f %f %f\n",v.x,v.y,v.z);
+}
         increment_pos(&v);
 }
 void setup_viewpoint() {

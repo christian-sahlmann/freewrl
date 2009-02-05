@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.12 2009/02/03 19:15:12 crc_canada Exp $
+$Id: Viewer.c,v 1.13 2009/02/05 18:21:38 crc_canada Exp $
 
 CProto ???
 
@@ -323,10 +323,12 @@ void viewer_togl(double fieldofview) {
 	Viewer.currentPosInModel.x = Viewer.AntiPos.x + rp.x;
 	Viewer.currentPosInModel.y = Viewer.AntiPos.y + rp.y;
 	Viewer.currentPosInModel.z = Viewer.AntiPos.z + rp.z;
-/*
+
+	/*
 	printf ("so, our place in object-land is %4.2f %4.2f %4.2f\n",
 		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
-*/
+	*/
+
 
 }
 
@@ -408,10 +410,11 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
  	}
 	quaternion_inverse(&q_i, &(Viewer.Quat));
 	quaternion_rotation(&(Viewer.Pos), &q_i, &p);
-
-	/* printf ("so now, before addition, vp %f %f %f, orig %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z,
+	/*
+	printf ("so now, before addition, vp %f %f %f, orig %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z,
 		examine->Origin.x, examine->Origin.y, examine->Origin.z);
 	*/
+	
 
 	Viewer.Pos.x += (examine->Origin).x;
 	Viewer.Pos.y += (examine->Origin).y;
@@ -856,13 +859,12 @@ void increment_pos(struct point_XYZ *vec) {
 	/* and, act on this change of location. */
 	Viewer.Pos.x += nv.x; Viewer.Pos.y += nv.y; Viewer.Pos.z += nv.z;
 
-/*
-printf ("increment_pos; oldpos %4.2f %4.2f %4.2f, anti %4.2f %4.2f %4.2f nv %4.2f %4.2f %4.2f \n",
+
+	/* printf ("increment_pos; oldpos %4.2f %4.2f %4.2f, anti %4.2f %4.2f %4.2f nv %4.2f %4.2f %4.2f \n",
 		Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, 
 		Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z, 
 		nv.x, nv.y, nv.z);
-*/
-		
+	*/
 }
 
 
@@ -890,12 +892,14 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 
 	/* set Viewer position and orientation */
 
-	/* printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
+	/*
+	printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
 	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
 	vp->orientation.r[3]);
 	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); 
 	printf ("	center of rotation %f %f %f\n",vp->centerOfRotation.c[0], vp->centerOfRotation.c[1],vp->centerOfRotation.c[2]);
 	*/
+	
 	
 	Viewer.Pos.x = vp->position.c[0];
 	Viewer.Pos.y = vp->position.c[1];
@@ -906,6 +910,9 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	Viewer.currentPosInModel.x = vp->position.c[0];
 	Viewer.currentPosInModel.y = vp->position.c[1];
 	Viewer.currentPosInModel.z = vp->position.c[2];
+
+	/* printf ("bind_viewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z);
+	*/
 
 	vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.r[0],
 		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);

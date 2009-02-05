@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.10 2009/02/03 21:37:55 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.11 2009/02/05 18:21:38 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -309,7 +309,6 @@ static double getEllipsoidRadius(int geosp) {
 
 /* move ourselves BACK to the from the GeoOrigin */
 static void retractOrigin(struct X3D_GeoOrigin *myGeoOrigin, struct SFVec3d *gcCoords) {
-printf ("retractOrigin, myGeoOrigin %u\n",myGeoOrigin);
 	if (myGeoOrigin != NULL) {
 		gcCoords->c[0] += myGeoOrigin->__movedCoords.c[0];
 		gcCoords->c[1] += myGeoOrigin->__movedCoords.c[1];
@@ -1004,38 +1003,55 @@ static void gdToUtm(double latitude, double longitude, int *zone, double *eastin
 }
 
 /* calculate the rotation needed to apply to this position on the GC coordinate location */
-static void GeoOrient (struct SFVec3d *gdCoords, struct SFVec4d *orient) {
+static void GeoOrient (struct Multi_Int32 *geoSystem, struct SFVec3d *gdCoords, struct SFVec4d *orient) {
 	Quaternion qx;
 	Quaternion qz;
 	Quaternion qr;
 
-	/* initialie qx and qz */
+	/* is this a straight GC geoSystem? If so, we do not do any orientation */
+	if (geoSystem->n > 0) {
+		if (geoSystem->p[0] == GEOSP_GC) {
+			#ifdef VERBOSE
+			printf ("GeoOrient - simple GC, so no orient\n");
+			#endif
+			orient->c[0] = 0.0; 
+			orient->c[1] = 1.0; 
+			orient->c[2] = 0.0; 
+			orient->c[3] = 0.0; 
+			return;
+		}
+	}
+
+	#ifdef VERBOSE
+	printf ("GeoOrient - gdCoords->c[0,1] is %f %f\n",gdCoords->c[0],gdCoords->c[1]);
+	#endif
+
+	/* initialize qx and qz */
 	vrmlrot_to_quaternion (&qz,0.0, 0.0, 1.0, RADIANS_PER_DEGREE*((double)90.0 + gdCoords->c[1]));
 
 	#ifdef VERBOSE 
-	printf ("qz angle (deg) %lf angle (rad) %lf quat: %lf %lf %lf %lf\n",((double)90.0 + gdCoords->c[1]), 
+	printf ("GeoOrient qz angle (deg) %lf angle (rad) %lf quat: %lf %lf %lf %lf\n",((double)90.0 + gdCoords->c[1]), 
 		RADIANS_PER_DEGREE*((double)90.0 + gdCoords->c[1]),qz.x, qz.y, qz.z,qz.w);
 	#endif
 
 	vrmlrot_to_quaternion (&qx,1.0, 0.0, 0.0, RADIANS_PER_DEGREE*((double)180.0 - gdCoords->c[0]));
 
 	#ifdef VERBOSE 
-	printf ("qx angle (deg) %lf angle (rad) %lf quat: %lf %lf %lf %lf\n",
+	printf ("GeoOrient qx angle (deg) %lf angle (rad) %lf quat: %lf %lf %lf %lf\n",
 		((double)180.0 - gdCoords->c[0]), RADIANS_PER_DEGREE*((double)180.0 - gdCoords->c[0]), qx.x, qx.y, qx.z,qx.w);
 	#endif
 
 	quaternion_add (&qr, &qx, &qz);
 
 	#ifdef VERBOSE
-	printf ("qr %lf %lf %lf %lf\n",qr.x, qr.y, qr.z,qr.w);
+	printf ("GeoOrient qr %lf %lf %lf %lf\n",qr.x, qr.y, qr.z,qr.w);
 	#endif
 
         quaternion_to_vrmlrot(&qr, &orient->c[0], &orient->c[1], &orient->c[2], &orient->c[3]);
 
 	#ifdef VERBOSE
-	printf ("rotation %lf %lf %lf %lf\n",orient->c[0], orient->c[1], orient->c[2], orient->c[3]);
+	printf ("GeoOrient rotation %lf %lf %lf %lf\n",orient->c[0], orient->c[1], orient->c[2], orient->c[3]);
 	#endif
-
 }
 
 
@@ -1519,7 +1535,6 @@ void render_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
 
 /* deref real ElevationGrid pointer */
 void make_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
-printf ("make_GeoElevationGrid called\n");
 }
 
 /* deref real ElevationGrid pointer */
@@ -1554,7 +1569,7 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	COPY_MF_TO_SF(node, __movedCoords)
 
 	/* work out the local orientation */
-	GeoOrient(&gdCoords.p[0], &node->__localOrient);
+	GeoOrient(&node->__geoSystem, &gdCoords.p[0], &node->__localOrient);
 
 	#ifdef VERBOSE
 	printf ("compile_GeoLocation, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCoords.c[0], node->geoCoords.c[1], node->geoCoords.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
@@ -1656,7 +1671,6 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 		FW_GL_PUSH_MATRIX();
 
 		/* TRANSLATION */
-
 		FW_GL_TRANSLATE_D(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 		/*
 		printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
@@ -1667,6 +1681,11 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 
 		my_rotation = node->__localOrient.c[3]/3.1415926536*180;
 		FW_GL_ROTATE_D(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
+
+		/*
+		printf ("geoLocation trans %7.4f %7.4f %7.4f\n",node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
+		printf ("geoLocation rotat %7.4f %7.4f %7.4f %7.4f\n",my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
+		*/
 
 		/* did either we or the Viewpoint move since last time? */
 		RECORD_DISTANCE
@@ -1680,6 +1699,14 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
         if(!render_vp) {
             FW_GL_POP_MATRIX();
         } else {
+		double my_rotation;
+
+		if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
+		my_rotation = -(node->__localOrient.c[3]/3.1415926536*180);
+		FW_GL_ROTATE_D(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
+		FW_GL_TRANSLATE_D(-node->__movedCoords.c[0], -node->__movedCoords.c[1], -node->__movedCoords.c[2]);
+
+		}
         }
 }
 
@@ -1693,10 +1720,11 @@ void changed_GeoLOD (struct X3D_GeoLOD *node) {
 void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	int oldInRange;
 	double cx,cy,cz;
-	static const struct point_XYZ orig = {0,0,0};
+	struct point_XYZ orig = {0,0,0};
 	struct point_XYZ t_orig;
 	GLdouble modelMatrix[16];
 	GLdouble projMatrix[16];
+	float zz;
 
 	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
@@ -1704,33 +1732,25 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	/* transforms viewers coordinate space into sensors coordinate space.
 	 * this gives the orientation of the viewer relative to the sensor.
 	 */
+
+
 	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
-		&t_orig.x,&t_orig.y,&t_orig.z);
-
-
-	#ifdef VERBOSE
-	printf ("proximityLOD, geometry is at %4.2f %4.2f %4.2f\n",t_orig.x, t_orig.y, t_orig.z);
-	#endif
-
-	cx = t_orig.x - node->__movedCoords.c[0];
-	cy = t_orig.y - node->__movedCoords.c[1];
-	cz = t_orig.z - node->__movedCoords.c[2];
+	cx = modelMatrix[12];
+	cy = modelMatrix[13];
+	cz = modelMatrix[14];
 
 	#ifdef VERBOSE
 	printf ("proximityLOD, after subtracting movedCoords, we have  %4.2f %4.2f %4.2f\n",cx, cy, cz);
 	#endif
-
+/*
 	cx-=Viewer.currentPosInModel.x;
 	cy-=Viewer.currentPosInModel.y;
 	cz-=Viewer.currentPosInModel.z;
-
+*/
 	#ifdef VERBOSE
 	printf ("proximityLOD, after subtracting current position, we have %4.2f %4.2f %4.2f\n", cx,cy,cz);
 	printf ("long range calculation %4.2f\n",sqrt(cx*cx+cy*cy+cz*cz));
 	#endif
-
 
 	/* distance between "me" at (0,0,0) and the centre of the GeoLOD (cx,cy,cz)
 	   is sqrt (cx-0 + cy-0 + cz-0) so we can compare sqrt(cx+cy+cz) to  sqrt(node->range)
@@ -1754,6 +1774,9 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 
 	
 	if (oldInRange != node->__inRange) {
+
+if (node->__inRange) printf ("TRUE:  "); else printf ("FALSE: ");
+printf ("range changed; level %d, comparing %lf:%lf:%lf and range %lf\n",node->__level, cx,cy,cz, node->range);
 		/* initialize the "children" field, if required */
 		if (node->children.p == NULL) node->children.p=MALLOC(sizeof(void *) * 4);
 
@@ -1786,6 +1809,7 @@ cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
 		update_node(X3D_NODE(node));
 	}
 }
+
 
 #define LOAD_CHILD(childNode,childUrl) \
 		/* printf ("start of LOAD_CHILD, url has %d strings\n",node->childUrl.n); */ \
@@ -1880,9 +1904,7 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	INIT_MF_FROM_SF(node, center)
 	MOVE_TO_ORIGIN(node)
 	COPY_MF_TO_SF(node, __movedCoords)
-
-	/* work out the local orientation */
-	/* GeoOrient(&gdCoords.p[0], &node->__localOrient); */
+#define VERBOSE
 
 	#ifdef VERBOSE
 	printf ("compile_GeoLOD %u, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node, node->center.c[0], node->center.c[1], node->center.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
@@ -1908,6 +1930,8 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	printf ("compiled GeoLOD\n\n");
 	#endif
 }
+
+#undef VERBOSE
 
 
 void child_GeoLOD (struct X3D_GeoLOD *node) {
@@ -1936,7 +1960,6 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 		printf ("GeoLOD %u (level %d) farther away\n",node,geoLodLevel);
 	}
 	#endif
-
 
 	/* if we are out of range, use the rootNode or rootUrl field 	*/
 	/* else, use the child1Url through the child4Url fields 	*/
@@ -2003,7 +2026,6 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 		if (node->__child4Node != NULL) printf (" (%s) ",stringNodeType(X3D_NODE(node->__child4Node)->_nodeType));
 		printf ("\n");
 		#endif
-
 
 		if (node->__child1Node != NULL) render_node (node->__child1Node);
 		if (node->__child2Node != NULL) render_node (node->__child2Node);
@@ -2156,7 +2178,7 @@ void do_GeoPositionInterpolator (void *innode) {
 	#ifdef SEVERBOSE
 	printf ("Pos/Col, new value (%f %f %f)\n",
 		node->value_changed.c[0],node->value_changed.c[1],node->value_changed.c[2]);
-printf ("geovalue_changed %lf %lf %lf\n",node->geovalue_changed.c[0], node->geovalue_changed.c[1], node->geovalue_changed.c[2]);
+	printf ("geovalue_changed %lf %lf %lf\n",node->geovalue_changed.c[0], node->geovalue_changed.c[1], node->geovalue_changed.c[2]);
 	#endif
 }
 
@@ -2179,7 +2201,7 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 	COPY_MF_TO_SF(node, __movedCoords)
 
 	/* work out the local orientation */
-	GeoOrient(&gdCoords.p[0], &node->__localOrient);
+	GeoOrient(&node->__geoSystem, &gdCoords.p[0], &node->__localOrient);
 	#ifdef VERBOSE
 	printf ("compile_GeoProximitySensor, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCenter.c[0], node->geoCenter.c[1], node->geoCenter.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 	printf ("	rotation is %lf %lf %lf %lf\n",
@@ -2467,7 +2489,7 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 
 
 	/* work out the local orientation and copy doubles to floats */
-	GeoOrient(&gdCoords.p[0], &localOrient);
+	GeoOrient(&node->__geoSystem, &gdCoords.p[0], &localOrient);
 
 	/* Quaternize the local Geospatial quaternion, and the specified rotation from the GeoViewpoint orientation field */
 	vrmlrot_to_quaternion (&localQuat, localOrient.c[0], localOrient.c[1], localOrient.c[2], localOrient.c[3]);
@@ -2632,6 +2654,8 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	Viewer.AntiPos.y = node->__movedPosition.c[1];
 	Viewer.AntiPos.z = node->__movedPosition.c[2];
 
+printf ("bind_geoviewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z);
+
 	vrmlrot_to_quaternion (&Viewer.Quat,node->__movedOrientation.r[0],
 		node->__movedOrientation.r[1],node->__movedOrientation.r[2],node->__movedOrientation.r[3]);
 
@@ -2665,7 +2689,7 @@ void compile_GeoTransform (struct X3D_GeoTransform * node) {
 	COPY_MF_TO_SF(node, __movedCoords)
 
 	/* work out the local orientation */
-	GeoOrient(&gdCoords.p[0], &node->__localOrient);
+	GeoOrient(&node->__geoSystem, &gdCoords.p[0], &node->__localOrient);
 
 	MARK_SFVEC3D_INOUT_EVENT(node->geoCenter, node->__oldGeoCenter,offsetof (struct X3D_GeoTransform, geoCenter))
 	MARK_MFNODE_INOUT_EVENT(node->children, node->__oldChildren, offsetof (struct X3D_GeoTransform, children))

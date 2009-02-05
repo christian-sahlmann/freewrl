@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.6 2009/01/23 18:20:14 sdumoulin Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.7 2009/02/05 18:21:38 crc_canada Exp $
 
 ???
 
@@ -230,7 +230,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 			mfstringtmp[0] = '"';
 			mfstringtmp[len+1] = '"';
 			mfstringtmp[len+2] = '\0';
-			printf ("so, mfstring is :%s:\n",mfstringtmp);
+			/* printf ("so, mfstring is :%s:\n",mfstringtmp); */
 			
 			parser_fromString(parser,mfstringtmp);
 		} else {

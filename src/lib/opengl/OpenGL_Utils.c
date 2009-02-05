@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.12 2009/02/03 21:37:55 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.13 2009/02/05 18:21:38 crc_canada Exp $
 
 ???
 
@@ -117,11 +117,41 @@ static void moveAndRotateThisPoint(struct X3D_Node *vpnode, struct point_XYZ *my
 	mypt->x = intPoint.x; mypt->y = intPoint.y; mypt->z = intPoint.z;
 }
 
+#define GEOTESTEXTENT(dddd) if (dddd<closestPoint) {closestPoint=dddd;}
+
+
+/**************************************************************************************
+
+		Determine near far clip planes.
+
+We have 2 choices; normal geometry, or we have a Geospatial sphere.
+
+If we have normal geometry (normal Viewpoint, or GeoViewpoint with GC coordinates)
+then, we take our AABB (axis alligned bounding box), rotate the 8 Vertices, and
+find the min/max Z distance, and just use this. 
+
+This works very well for examine objects, or when we are within a virtual world.
+----
+
+If we are Geospatializing around the earth, so we have GeoSpatial and have UTM or GD
+coordinates, lets do some optimizations here.
+
+First optimization, we know our height above the origin, and we most certainly are not
+going to see things past the origin, so we assume far plane is height above the origin.
+
+Second, we know our AABB contains the Geospatial sphere, and it ALSO contains the highest
+mountain peak, so we just go and find the value representing the highest peak. Our
+near plane is thus farPlane - highestPeak. 
+
+**************************************************************************************/
+
 static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	struct point_XYZ testPoint;
 	struct point_XYZ bboxPoints[8];
 	double cfp = DBL_MIN;
 	double cnp = DBL_MAX;
+
+	int performGlobeClipping = FALSE;
 
 	int ci;
 
@@ -144,42 +174,80 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 		return; /* nothing to display yet */
 	}
 
+
+	/* do we assume that this is a globe? If we have a GeoViewpoint, and we have GD or UTM
+	   coordinates, lets assume so. */
 	
-	#ifdef VERBOSE
-	printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",
-			X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_X,
-			X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Y,
-			X3D_GROUP(rootNode)->EXTENT_MAX_Z, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
-	#endif
+	performGlobeClipping = TRUE;
 
-	#ifdef testingSimpleMove
-	/* lets see about moving a point around */
-	testPoint.x = 20.0; testPoint.y=0.0; testPoint.z = 0.0;
-	testPoint.x -= Viewer.currentPosInModel.x;
-	testPoint.y -= Viewer.currentPosInModel.y;
-	testPoint.z -= Viewer.currentPosInModel.z;
-	printf ("distance to point, in xyz terms: %4.2f %4.2f %4.2f\n",testPoint.x, testPoint.y, testPoint.z);
-	moveAndRotateThisPoint(vpnode, &testPoint, 20.0,  0.0, 0.0);
-	printf ("rotated point is %4.2f %4.2f %4.2f\n",testPoint.x, testPoint.y, testPoint.z);
-	#endif
+	/* for GeoViewpoint, assume we have the earth within our Axis Aligned Bounding Box */
+	if (performGlobeClipping) {
+		double closestPoint = DBL_MAX;
+		
+		/* printf ("have GeoViewpoint bound here\n"); */
+		cfp = 	sqrt (Viewer.currentPosInModel.x*Viewer.currentPosInModel.x +
+				Viewer.currentPosInModel.y*Viewer.currentPosInModel.y +
+				Viewer.currentPosInModel.z*Viewer.currentPosInModel.z);
+		/* printf ("our cfp height above origin (0,0,0)  is %lf\n", cfp);
+		printf ("extents (%f:%f), (%f:%f) (%f:%f)\n",
+			X3D_GROUP(rootNode)->EXTENT_MIN_X,
+			X3D_GROUP(rootNode)->EXTENT_MAX_X,
+			X3D_GROUP(rootNode)->EXTENT_MIN_Y,
+			X3D_GROUP(rootNode)->EXTENT_MAX_Y,
+			X3D_GROUP(rootNode)->EXTENT_MIN_Z,
+			X3D_GROUP(rootNode)->EXTENT_MAX_Z); */
 
-	/* make up 8 vertices for our bounding box, and place them within our view */
-	moveAndRotateThisPoint(vpnode, &bboxPoints[0], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
-	moveAndRotateThisPoint(vpnode, &bboxPoints[1], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
-	moveAndRotateThisPoint(vpnode, &bboxPoints[2], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
-	moveAndRotateThisPoint(vpnode, &bboxPoints[3], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
-	moveAndRotateThisPoint(vpnode, &bboxPoints[4], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
-	moveAndRotateThisPoint(vpnode, &bboxPoints[5], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
-	moveAndRotateThisPoint(vpnode, &bboxPoints[6], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
-	moveAndRotateThisPoint(vpnode, &bboxPoints[7], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
+		/* lets find the point closest to us on the AABB, and let that be our nearPlane */
+			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MIN_X));
+			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MAX_X));
+			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MIN_Y));
+			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MAX_Y));
+			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MIN_Z));
+			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MAX_Z));
 
-	for (ci=0; ci<8; ci++) {
+		/* printf ("closest point is thus %f\n",closestPoint); */
+
+		cnp = cfp-closestPoint;
+		/* printf ("test cnp is %f\n",cnp); */
+	} else {
+	
+		
 		#ifdef VERBOSE
-		printf ("moved bbox node %d is %4.2f %4.2f %4.2f\n",ci,bboxPoints[ci].x, bboxPoints[ci].y, bboxPoints[ci].z);
+		printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",
+				X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_X,
+				X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Y,
+				X3D_GROUP(rootNode)->EXTENT_MAX_Z, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
 		#endif
-
-		if (-(bboxPoints[ci].z) > cfp) cfp = -(bboxPoints[ci].z);
-		if (-(bboxPoints[ci].z) < cnp) cnp = -(bboxPoints[ci].z);
+	
+		#ifdef testingSimpleMove
+		/* lets see about moving a point around */
+		testPoint.x = 20.0; testPoint.y=0.0; testPoint.z = 0.0;
+		testPoint.x -= Viewer.currentPosInModel.x;
+		testPoint.y -= Viewer.currentPosInModel.y;
+		testPoint.z -= Viewer.currentPosInModel.z;
+		printf ("distance to point, in xyz terms: %4.2f %4.2f %4.2f\n",testPoint.x, testPoint.y, testPoint.z);
+		moveAndRotateThisPoint(vpnode, &testPoint, 20.0,  0.0, 0.0);
+		printf ("rotated point is %4.2f %4.2f %4.2f\n",testPoint.x, testPoint.y, testPoint.z);
+		#endif
+	
+		/* make up 8 vertices for our bounding box, and place them within our view */
+		moveAndRotateThisPoint(vpnode, &bboxPoints[0], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[1], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[2], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[3], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[4], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[5], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[6], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[7], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
+	
+		for (ci=0; ci<8; ci++) {
+			#ifdef VERBOSE
+			printf ("moved bbox node %d is %4.2f %4.2f %4.2f\n",ci,bboxPoints[ci].x, bboxPoints[ci].y, bboxPoints[ci].z);
+			#endif
+	
+			if (-(bboxPoints[ci].z) > cfp) cfp = -(bboxPoints[ci].z);
+			if (-(bboxPoints[ci].z) < cnp) cnp = -(bboxPoints[ci].z);
+		}
 	}
 
 	/* lets bound check here, both must be positive, and farPlane more than DEFAULT_NEARPLANE */
@@ -1350,6 +1418,19 @@ void kill_X3DNodes(void){
 	tableIndexSize=INT_ID_UNDEFINED;
 	nextEntry=0;
 	UNLOCK_MEMORYTABLE
+}
+
+static int level=0;
+void fwglpushmatrix(){
+	printf ("level %d ",level);
+	glPushMatrix();
+	level++;
+}
+
+ void fwglpopmatrix() {
+	level--;
+	printf ("level %d ",level);
+	glPopMatrix();
 }
 
 
