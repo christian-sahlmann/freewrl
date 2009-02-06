@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.12 2009/02/05 21:14:47 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.13 2009/02/06 18:30:02 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -2587,7 +2587,7 @@ void viewer_calculate_speed() {
 		/* do we have a valid __geoSystem?? */
 		if (Viewer.GeoSpatialNode->__geoSystem.n>0) {
 			/* is the __geoSystem NOT gc coords? */
-			printf ("have a GeoSpatial viewpoint, currently %d\n",Viewer.GeoSpatialNode->__geoSystem.p[0]);
+			/* printf ("have a GeoSpatial viewpoint, currently %d\n",Viewer.GeoSpatialNode->__geoSystem.p[0]); */
 			if (Viewer.GeoSpatialNode->__geoSystem.p[0] != GEOSP_GC) {
 		
 		        	retractOrigin(Viewer.GeoSpatialNode->geoOrigin, &gcCoords);
@@ -2653,7 +2653,7 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	Viewer.AntiPos.y = node->__movedPosition.c[1];
 	Viewer.AntiPos.z = node->__movedPosition.c[2];
 
-printf ("bind_geoviewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z);
+	/* printf ("bind_geoviewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z); */
 
 	vrmlrot_to_quaternion (&Viewer.Quat,node->__movedOrientation.r[0],
 		node->__movedOrientation.r[1],node->__movedOrientation.r[2],node->__movedOrientation.r[3]);
@@ -2665,7 +2665,6 @@ printf ("bind_geoviewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewe
 	resolve_pos();
 
 	viewer_calculate_speed();
-#undef VERBOSE
 }
 
 

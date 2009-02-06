@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.14 2009/02/05 21:14:47 crc_canada Exp $
+$Id: Viewer.c,v 1.15 2009/02/06 18:30:02 crc_canada Exp $
 
 CProto ???
 
@@ -324,12 +324,10 @@ void viewer_togl(double fieldofview) {
 	Viewer.currentPosInModel.y = Viewer.AntiPos.y + rp.y;
 	Viewer.currentPosInModel.z = Viewer.AntiPos.z + rp.z;
 
-	/*
-	printf ("so, our place in object-land is %4.2f %4.2f %4.2f\n",
-		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
-	*/
-
-
+	
+	/* printf ("so, our place in object-land is %4.2f %4.2f %4.2f\n",
+		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z); */
+	
 }
 
 
@@ -366,26 +364,13 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 	double squat_norm;
 
 	p.z=Viewer.Dist; 
+
 	/* rotPoint = point "Viewer.Dist" in front of us */
-
 	if (mev == ButtonPress) {
-/*
-		printf ("handle_examine, butpress, but %d, Pos %4.2f %4.2f %4.2f; xd,yd,zd %4.2f %4.2f %4.2f\n",
-		button,
-		Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z,
-		Viewer.walk->XD, Viewer.walk->YD, Viewer.walk->ZD);
-		printf ("current pos in model %4.2f %4.2f %4.2f\n",Viewer.currentPosInModel.x, 
-		Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
-		printf ("dist %4.2f\n",Viewer.Dist);
-printf ("posinmodel sqrt %f\n",sqrt (Viewer.currentPosInModel.x*Viewer.currentPosInModel.x+
-	Viewer.currentPosInModel.y*Viewer.currentPosInModel.y+
-	Viewer.currentPosInModel.z*Viewer.currentPosInModel.z));
-*/
-		
-
-
 		if (button == 1) {
 			xy2qua(&(examine->SQuat), x, y);
+
+			/* copy the current Viewer.Quat over to the OQuat*/
 			quaternion_set(&(examine->OQuat), &(Viewer.Quat));
 		} else if (button == 3) {
 			examine->SY = y;
@@ -413,17 +398,14 @@ printf ("posinmodel sqrt %f\n",sqrt (Viewer.currentPosInModel.x*Viewer.currentPo
 
 		}
  	}
+
 	quaternion_inverse(&q_i, &(Viewer.Quat));
 	quaternion_rotation(&(Viewer.Pos), &q_i, &p);
-	/*
-	printf ("so now, before addition, vp %f %f %f, orig %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z,
-		examine->Origin.x, examine->Origin.y, examine->Origin.z);
-	*/
-	
 
 	Viewer.Pos.x += (examine->Origin).x;
 	Viewer.Pos.y += (examine->Origin).y;
 	Viewer.Pos.z += (examine->Origin).z;
+
 }
 
 
