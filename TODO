@@ -1,5 +1,9 @@
 Priority list (as of 04/02/2009)
 
+- design & implement a modern log,warning & error reporting (all)
+  -> configurable at compilation time (enable/disable parts of debug information)
+  -> configurable at runtime (...)
+
 - review all Geospatial nodes (JohnS)
 - implement FloatingOrigin in Geospatial code (Johns)
 - Points and Lines - send upstream bounds, as per faceset nodes (JohnS)
