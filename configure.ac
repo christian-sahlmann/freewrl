@@ -110,12 +110,11 @@ AC_DEFINE_DIR([FONTS_DIR],[fontsdir],[Directory for fonts.])
 AC_ARG_WITH([plugindir],
             AS_HELP_STRING([--with-plugindir=DIR],[browser plugin dest-path @<:@LIBDIR/mozilla/plugins@:>@]),
             [if test x$withval = xno; then
-              plugindir="${libdir}/mozilla/plugins"
+              plugindir="$(libdir)/mozilla/plugins"
             else
               plugindir="$withval"
-            fi],[with_plugindir="${libdir}/mozilla/plugins"])
-
-AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory for browser plugin.])
+            fi],[plugindir="$(libdir)/mozilla/plugins"])
+AC_SUBST([plugindir])
 
 # ====================================================
 # FreeX3D specific configuration: library checking
