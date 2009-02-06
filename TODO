@@ -1,5 +1,18 @@
-Priority list (as of 04/02/2009)
+Priority list (as of 06/02/2009)
 
+06/02/09: Examine orientations incorrect.
+	take tests/1.wrl, add:
+	Viewpoint {description "1" position 0 0 10}
+	Viewpoint {description "2" orientation 0 1 0 3.14 position 0 0 -10}
+	Viewpoint {description "3" orientation 0 1 0 1.57 position 10 0 0}
+	Viewpoint {description "4" orientation 0 -1 0 1.57 position -10 0 0}
+	and note that vps 3 and 4 rotate incorrectly; and that farPlane calculated incorrectly for 2.
+
+06/02/09: New build on some Linux distros fails. Decide what to do about this - currently thinking
+	about supporting both, until the "new" style one can be built once other Linuxes catch up
+	with Debian.
+
+-------
 - design & implement a modern log,warning & error reporting (all)
   -> configurable at compilation time (enable/disable parts of debug information)
   -> configurable at runtime (...)
