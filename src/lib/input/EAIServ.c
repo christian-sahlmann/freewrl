@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.5 2008/12/29 21:42:00 crc_canada Exp $
+$Id: EAIServ.c,v 1.6 2009/02/06 20:28:24 crc_canada Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -9,7 +9,20 @@ Implement EAI server functionality for FreeWRL.
 
 #include <config.h>
 #include <system.h>
-#include <system_net.h>
+
+
+/*JAS  - get this compiling on osx 10.4 ppc */
+#ifdef TARGET_AQUA
+	#ifdef ARCH_PPC
+		#include <sys/socket.h>
+		#include <netinet/in.h>
+	#else
+		#include <system_net.h>
+	#endif
+#else
+	#include <system_net.h>
+#endif
+
 #include <display.h>
 #include <internal.h>
 
