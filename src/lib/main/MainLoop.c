@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.23 2009/02/05 21:14:47 crc_canada Exp $
+$Id: MainLoop.c,v 1.24 2009/02/09 20:04:58 crc_canada Exp $
 
 CProto ???
 
@@ -1166,6 +1166,7 @@ int getOffset() {
 }
 
 void setCurXY(int cx, int cy) {
+	/* printf ("setCurXY, have %d %d\n",currentX,currentY); */
         currentX = cx;
         currentY = cy;
 }
@@ -1402,7 +1403,7 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
         if (mev == ButtonPress) printf ("ButtonPress\n");
         else if (mev == ButtonRelease) printf ("ButtonRelease\n");
         else if (mev == MotionNotify) printf ("MotionNotify\n");
-        else printf ("event %d\n",mev); */
+        else printf ("event %d\n",mev);  */
 
         /* save this one... This allows Sensors to get mouse movements if required. */
         lastMouseEvent = mev;

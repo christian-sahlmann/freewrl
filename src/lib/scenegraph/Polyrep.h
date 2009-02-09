@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Polyrep.h,v 1.3 2009/02/09 20:04:58 crc_canada Exp $
 
 Polyrep ???
 
 */
 
 #include <config.h>
-#include <system.h>
+/* JAS #include <system.h> */
 #include <display.h>
 #include <internal.h>
 

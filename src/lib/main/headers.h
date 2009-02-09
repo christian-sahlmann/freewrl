@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.23 2009/02/03 19:15:12 crc_canada Exp $
+$Id: headers.h,v 1.24 2009/02/09 20:04:58 crc_canada Exp $
 
 Global includes.
 
@@ -931,16 +931,6 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y);
 /* extern int feWidth, feHeight; */
 /* #endif */
 
-/* SD AQUA FUNCTIONS */
-#ifdef AQUA
-extern int getOffset();
-extern void initGL();
-extern void setButDown(int button, int value);
-extern void setCurXY(int x, int y);
-extern void do_keyPress (char ch, int ev);
-extern void setLastMouseEvent(int etype);
-extern void aqDisplayThread();
-#endif
 extern void setSnapSeq();
 extern void setEAIport(int pnum);
 extern void setKeyString(const char *str);
@@ -1370,16 +1360,6 @@ void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr);
 
 struct Multi_Vec3f *getCoordinate (void *node, char *str);
 
-#ifdef AQUA
-bool notFinished();
-void disposeContext();
-void setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height);
-void createContext(CGrafPtr grafPtr);
-void setIsPlugin();
-void sendPluginFD(int fd);
-void aquaPrintVersion();
-void setPluginPath(char* path);
-#endif
 void replaceWorldNeeded(char* str);
 
 /* X3D C parser */

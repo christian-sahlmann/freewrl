@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.5 2009/02/03 17:12:04 crc_canada Exp $
+$Id: Viewer.h,v 1.6 2009/02/09 20:04:58 crc_canada Exp $
 
 Viewer ???
 
@@ -188,18 +188,6 @@ viewer_togl( double fieldofview);
 void handle(const int mev, const unsigned int button, const float x, const float y);
 
 void
-handle_walk( const int mev,
-			const unsigned int button,
-			const float x,
-			const float y);
-
-void
-handle_examine(const int mev,
-			   const unsigned int button,
-			   const float x,
-			   const float y);
-
-void
 handle_key(const char key);
 
 void
@@ -207,15 +195,6 @@ handle_keyrelease (const char key);
 
 void
 handle_tick();
-
-void
-handle_tick_walk();
-
-void
-handle_tick_exfly();
-
-void
-handle_tick_fly();
 
 void
 set_action(char *key);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.15 2009/02/06 18:30:02 crc_canada Exp $
+$Id: Viewer.c,v 1.16 2009/02/09 20:04:58 crc_canada Exp $
 
 CProto ???
 
@@ -45,10 +45,9 @@ void print_viewer(void);
 unsigned int get_buffer(void);
 int get_headlight(void);
 void toggle_headlight(void);
-void handle_tick_walk(void);
-void handle_tick_fly(void);
-void handle_tick_exfly(void);
-void handle_tick(void);
+static void handle_tick_walk(void);
+static void handle_tick_fly(void);
+static void handle_tick_exfly(void);
 
 /* used for EAI calls to get the current speed. Not used for general calcs */
 /* we DO NOT return as a float, as some gccs have trouble with this causing segfaults */
@@ -331,7 +330,7 @@ void viewer_togl(double fieldofview) {
 }
 
 
-void handle_walk(const int mev, const unsigned int button, const float x, const float y) {
+static void handle_walk(const int mev, const unsigned int button, const float x, const float y) {
 	X3D_Viewer_Walk *walk = Viewer.walk;
 
 	if (mev == ButtonPress ) {
@@ -357,12 +356,13 @@ void handle_walk(const int mev, const unsigned int button, const float x, const 
 }
 
 
-void handle_examine(const int mev, const unsigned int button, float x, float y) {
+static void handle_examine(const int mev, const unsigned int button, float x, float y) {
 	Quaternion q, q_i, arc;
 	struct point_XYZ p = { 0, 0, 0};
 	X3D_Viewer_Examine *examine = Viewer.examine;
 	double squat_norm;
 
+	/* printf ("handle examine, mev %d button %d, x, %f y %f\n",mev, button,x,y); */
 	p.z=Viewer.Dist; 
 
 	/* rotPoint = point "Viewer.Dist" in front of us */
@@ -384,7 +384,7 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 			squat_norm = quaternion_norm(&(examine->SQuat));
 			/* we have missed the press */
 			if (APPROX(squat_norm, 0)) {
-				fprintf(stderr, "Viewer handle_examine: mouse event DRAG - missed press\n");
+				/* fprintf(stderr, "Viewer handle_examine: mouse event DRAG - missed press\n"); */
 				xy2qua(&(examine->SQuat), x, y);
 				quaternion_set(&(examine->OQuat), &(Viewer.Quat));
 			} else {
@@ -412,8 +412,8 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 void handle(const int mev, const unsigned int button, const float x, const float y)
 {
 
-	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n",
-	   VIEWER_STRING(viewer_type), mev, button, x, y);  */
+	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
+	   VIEWER_STRING(viewer_type), mev, button, x, y); */
 
 	if (button == 2) {
 		return;
@@ -493,7 +493,7 @@ handle_keyrelease(const char key)
  * change if the viewer is left in a state of collision. (ncoder)
  */
 
-void
+static void
 handle_tick_walk()
 {
 	X3D_Viewer_Walk *walk = Viewer.walk;
@@ -542,7 +542,7 @@ handle_tick_walk()
 /* my $inc = 0; */
 /* my $inf = 0; */
 
-void
+static void
 handle_tick_exfly()
 {
 	size_t len = 0;
@@ -649,7 +649,7 @@ set_action(char *key)
 	}
 }
 
-void
+static void
 handle_tick_fly()
 {
 	X3D_Viewer_Fly *fly = Viewer.fly;
