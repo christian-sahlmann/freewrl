@@ -1,4 +1,20 @@
-Priority list (as of 06/02/2009)
+Priority list (as of 09/02/2009)
+
+09/02/2009: on OSX, the following tests have problems:
+
+	19 - pink robot?
+	20 - not sorted?
+	25,26 - Textures on backgrounds.
+	47.wrl (beachball) fwLoad, unknown -111
+	49.wrl - no output?
+	50 - FreeWRL: SoundEngine not installed on system
+	9.wrl - shapes disappear.
+	SFImage.wrl - box not changing texture
+	pp2.x3d - nothing shown.
+	stringSensor.x3dv - hangs?
+
+
+
 
 06/02/09: Examine orientations incorrect.
 	take tests/1.wrl, add:
