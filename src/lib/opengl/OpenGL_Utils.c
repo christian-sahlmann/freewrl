@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.14 2009/02/06 18:30:02 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.15 2009/02/10 14:48:14 crc_canada Exp $
 
 ???
 
@@ -258,7 +258,10 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	   we might miss part of the geometry that comes closest to us */
 	cnp = cnp/2.0;
 	if (cnp<DEFAULT_NEARPLANE) cnp = DEFAULT_NEARPLANE;
-	if (cfp<1.0) cfp = 1.0;	
+
+	/* we could (probably should) keep the farPlane at 1.0 and above, but because of an Examine mode 
+	   rotation problem, we will just keep it at 2100 for now. */
+	if (cfp<2100.0) cfp = 2100.0;	
 
 	#ifdef VERBOSE
 	printf ("cnp %lf cfp before leaving room for Background %lf\n",cnp,cfp);
