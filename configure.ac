@@ -108,13 +108,14 @@ AC_DEFINE_DIR([FONTS_DIR],[fontsdir],[Directory for fonts.])
 
 # Mozilla plugin install dir
 AC_ARG_WITH([plugindir],
-            AS_HELP_STRING([--with-plugindir=DIR],[browser plugin dest-path @<:@LIBDIR/mozilla/plugins@:>@]),
+            AS_HELP_STRING([--with-plugindir=DIR],[browser plugin install path @<:@/usr/lib/mozilla/plugins@:>@]),
             [if test x$withval = xno; then
-              plugindir="\$(libdir)/mozilla/plugins"
+              plugindir="/usr/lib/mozilla/plugins"
             else
               plugindir="$withval"
-            fi],[plugindir="\$(libdir)/mozilla/plugins"])
-AC_SUBST([plugindir])
+            fi],[plugindir="/usr/lib/mozilla/plugins"])
+
+AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugin.])
 
 # ====================================================
 # FreeX3D specific configuration: library checking
@@ -324,6 +325,11 @@ else
   esac
 fi
 AC_SUBST(MAYBE_PLUGIN)
+
+PLUGIN_CFLAGS=$MOZILLA_PLUGIN_CFLAGS
+PLUGIN_LIBS=
+AC_SUBST(PLUGIN_CFLAGS)
+AC_SUBST(PLUGIN_LIBS)
 
 # FreeX3D helpers programs
 

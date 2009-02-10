@@ -18,35 +18,19 @@
  * John Stewart, Alya Khan, Sarah Dumoulin - CRC Canada 2002 - 2006.
  *
  ******************************************************************************/
-/* #include <fcntl.h> */
-/* #include <sys/ioctl.h> */
-/* #include <sys/types.h> */
-/* #include <sys/socket.h> */
-/* #include <sys/time.h> */
-/* #include <signal.h> */
-/* #include <netinet/in.h> */
-/* #include <arpa/inet.h> */
-/* #include <netdb.h> */
 
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <config.h>
+#include <system.h>
 
-#include "system.h"
-#include "plugin_utils.h"
-
+#include <plugin_utils.h>
 #include <npapi.h>
 
-#define Boolean Bool
-
-/* #include <X11/Xlib.h> */
-/* #include <X11/Intrinsic.h> */
-/* #include <X11/StringDefs.h> */
+#include <X11/Xlib.h>
+#include <X11/Intrinsic.h>
+#include <X11/StringDefs.h>
 
 
 #define PLUGIN_NAME			"FreeX3D X3D/VRML"
-
-#define ERRORMSG "FILE DOES NOT EXIST"
 
 #define RECORD_FILE_NAME_IF_NULL \
 	if (FW_Plugin->fName == NULL) { \

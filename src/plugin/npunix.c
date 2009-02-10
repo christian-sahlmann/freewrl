@@ -34,11 +34,11 @@
  * messages to stderr whenever they are called.
  */
 
-#if DEBUG
-#include <stdio.h>
-#define PLUGINDEBUGSTR(msg)	fprintf(stderr, "%s\n", msg)
+#if defined(_DEBUG)
+# include <stdio.h>
+# define PLUGINDEBUGSTR(msg)	fprintf(stderr, "%s\n", msg)
 #else
-#define PLUGINDEBUGSTR(msg)
+# define PLUGINDEBUGSTR(msg)
 #endif
 
 

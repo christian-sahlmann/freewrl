@@ -6,13 +6,23 @@
 include $(top_srcdir)/Makefile.globals
 
 # Just add variables tested and checked by troplevel configure
+
+# General libraries used with all platforms
 AM_CPPFLAGS += \
-				$(MOZILLA_PLUGIN_CFLAGS)
-				$(X_CFLAGS)
+				$(PLUGIN_CFLAGS)
 
 AM_LDFLAGS += \
-				$(MOZILLA_PLUGIN_LIBS) \
-				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS)
+				$(PLUGIN_LIBS)
+
+
+# X11 flags specific to x11 target (default on Linux -- optional on Mac)
+if WINDOW_USE_AQUA
+ERR=Error: Build system does not currently support Mac Safari Target
+echo $(ERR)
+else
+AM_CPPFLAGS += \
+				$(X_CFLAGS) 
+endif
 
 _EV=$(top_srcdir)/versions/PLUGIN
 export
@@ -34,8 +44,9 @@ LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
 AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
 
 plugin_LTLIBRARIES = libFreeX3Dplugin.la
-libFreeX3Dplugin_la_LDFLAGS = -module -avoid-version
-libFreeX3Dplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeX3D.la
+plugindir=$(PLUGIN_DIR)
+libFreeX3Dplugin_la_LDFLAGS = -avoid-version $(AM_LDFLAGS)
+# libFreeX3Dplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeX3D.la
 
 include Makefile.sources
 
