@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.16 2009/02/10 19:10:56 sdumoulin Exp $
+$Id: OpenGL_Utils.c,v 1.17 2009/02/10 19:11:45 sdumoulin Exp $
 
 ???
 
@@ -1296,8 +1296,8 @@ void kill_X3DNodes(void){
 						glDeleteProgram((GLuint) cps->__shaderIDS.p[0]);
 						FREE_IF_NZ(cps->__shaderIDS.p);
 						cps->__shaderIDS.n=0;
-#endif
 					}
+#endif
 
 				} else {
 					ConsoleMessage ("error destroying shaderIDS on kill");
