@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.15 2009/02/10 14:48:14 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.16 2009/02/10 19:10:56 sdumoulin Exp $
 
 ???
 
@@ -1291,10 +1291,12 @@ void kill_X3DNodes(void){
 			if (*fieldOffsetsPtr == FIELDNAMES___shaderIDS) {
 				struct X3D_ComposedShader *cps = (struct X3D_ComposedShader *) structptr;
 				if ((cps->_nodeType == NODE_ComposedShader) || (cps->_nodeType == NODE_ProgramShader)) {
+#ifdef GL_VERSION_2_0
 					if (cps->__shaderIDS.p != NULL) {
 						glDeleteProgram((GLuint) cps->__shaderIDS.p[0]);
 						FREE_IF_NZ(cps->__shaderIDS.p);
 						cps->__shaderIDS.n=0;
+#endif
 					}
 
 				} else {
