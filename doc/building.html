@@ -1,0 +1,206 @@
+<HTML>
+<HEAD>
+ <TITLE>The FreeWRL FAQ : building from sources</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" >
+<TABLE>
+<TR VALIGN=TOP>
+<TD ALIGN=LEFT>
+</TD>
+<TD></TD>
+
+<TD ALIGN=LEFT>
+<H1><IMG SRC="welcome.jpg" ALIGN="MIDDLE"></H1>
+</TD>
+</TR>
+
+<TD ALIGN=LEFT VALIGN=TOP>
+<SMALL>
+<BR><A HREF=index.html>Home Page</A>
+<BR><A HREF=faq.html>FAQ</A>
+<BR><A HREF=download.html>Download</A>
+<BR><A HREF=http://sourceforge.net/project/?group_id=9120>Sourceforge</A>
+<BR><A HREF=screenshots.html>Screenshots</A>
+<BR><A HREF=freewrl.html>Users Guide</A>
+<BR><A HREF=midi.html>MIDI</A>
+
+</SMALL>
+</TD>
+<TD ALIGN=LEFT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </TD>
+<TD ALIGN=LEFT>
+
+<h1>The FreeWRL FAQ : building from sources</h1>
+
+<h2><a NAME="ChapterIntroduction"></a>Introduction</h2>
+
+<p>This is the <b>Build from Sources</b> documentation. It tries to answer most 
+questions about building FreeWRL from sources. If you encounter something
+that is not covered on this FAQ, please send an email to John Stewart
+at freewrl-09 -at- rogers.com.</p>
+
+<h3>Mailing list</h3>
+
+<p>There is a mailing list about FreeWRL. This is a closed list, so you
+<b>must</b> be on the  list to send mail to it. (this is an anti-spam
+measure).  The address is <a href="mailto:freewrl@crc.ca">freewrl@crc.ca</a>.
+To subscribe to this list, send an email to <a href="mailto:freewrl-join@crc.ca">
+freewrl-join@crc.ca</a>. The subject and contents of the message do not matter; 
+you should get a reply to the request in a few minutes.</p>
+
+<p>For more information on the mailing list interface, look at the 
+<a href="http://www.gnu.org/software/mailman/mailman-member/node10.html">
+GNU Mailman web page</a>.</p>
+
+<h3>How can I help?</h3>
+
+Tell us what you use FreeWRL for! It helps us in our internal funding
+and planning cycle to know how FreeWRL is used- for certain kinds of
+research, for industrial design, or for whatever.</p>
+
+<p>We are always looking for coding help, but realize that FreeWRL
+(and any project of this magnitude) is difficult for people to jump in
+to. Giving us a pat on the back helps; telling us what FreeWRL is used
+for helps; submitting bugs helps.</p>
+
+<h2><a NAME="ChapterLinux"></a>(Linux) Building FreeWRL from sources on Linux computers</h2>
+
+<h3>Linux requirements</h3>
+
+<p>Packages required:</p>
+<ul>
+<li>automake</li>
+<li>autoconf</li>
+<li>libtool</li>
+<li>X11 development environment</li>
+<li>OpenGL development environment</li>
+<li>Motif library (optional)</li>
+<li>JPEG library</li>
+<li>PNG library</li>
+<li>XML library</li>
+<li>Expat library</li>
+<li>Java compiler (optional)</li>
+</ul>
+
+<h3>Getting the sources</h3>
+
+<p>Download the source package from Sourceforge.</p>
+
+<p>Download the sources from CVS.</p>
+
+<h3>Configure the package</h3>
+
+<p>Launch configure with 
+<pre>
+./configure [options]
+</pre>
+
+<h3>Build the software</h3>
+
+<pre>
+make
+make install
+</pre>
+
+<h2><a NAME="ChapterOSX"></a>(OSX) Building FreeWRL from sources on Apple computers</h2>
+
+<h3>Building from source on OSX : X11 target</h3>
+
+Currently the automatic build system knows about X11 only. In the future
+it will handle also the Mac Carbon target.
+
+<h4>Requirements: OSX build environment</h4>
+
+You need to install the OSX development environment, the X11 package, 
+and optionnaly the latest X11 server for OSX : XQuartz.
+
+You need to install <a href="http://www.macports.org/">Mac Ports</a>
+and those required packages :
+
+<ul>
+<li>pkgconfig</li>
+<li>spidermonkey</li>
+<li>libxml2</li>
+<li>expat</li>
+</ul>
+
+<p><b>OSX build environment</b></p>
+
+Install XCode (minimum version 1.3).
+
+Install the X11 package from XCode.
+
+<p><b>(Optional) XQuartz</b></p>
+
+XQuartz offer an update X11 server for OSX. Apple ships the default
+branch of it with every release of OSX. But if you want an updated
+version you can grab it from XQartz website.
+
+<p><b>Mac Ports installation:</b></p>
+
+Install Mac Ports (http://www.macports.org/) and follow its intructions
+for profile update.
+
+Mac Ports update :
+
+<pre>
+$ sudo port selfupdate
+</pre>
+
+<p><b>Required packages installation:</b></p>
+
+Open a Terminal window and type :
+
+<pre>
+$ sudo port install pkgconfig
+$ sudo port install spidermonkey
+$ sudo port install libxml2
+$ sudo port install expat
+</pre>
+
+That'done :). You'll have a full functional GNU build env on OSX !
+
+<h4>Building FreeWRL/FreeX3D from sources</h4>
+
+For freex3d to configure, you'll issue in top src dir:  
+
+<pre>
+$ export PKG_CONFIG_PATH=$PWD:$PKG_CONFIG_PATH
+</pre>
+
+Configure :
+
+<pre>
+$ autoreconf
+$ ./configure --enable-debug --with-target=motif
+</pre>
+
+Build :
+
+<pre>
+$ make
+</pre>
+
+Test it :
+
+<pre>
+$ src/bin/freex3d
+</pre>
+
+<i>Note: I've added spidermonkey.pc in freex3d top src dir. To help pkg-config
+find the cflags & libs for this Javascript engine.</i>
+
+<P>
+<CENTER>
+<a href="http://sourceforge.net"><img
+src="http://sourceforge.net/sflogo.php?group_id=9120&amp;type=4"
+ALIGN="MIDDLE"
+width="125" height="37" border="0" alt="SourceForge.net Logo"></a>
+</CENTER>
+
+
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+
