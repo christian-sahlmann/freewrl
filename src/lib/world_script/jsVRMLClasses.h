@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.4 2008/12/17 18:38:12 crc_canada Exp $
+$Id: jsVRMLClasses.h,v 1.5 2009/02/11 15:12:55 istakenv Exp $
 
 Complex VRML nodes as Javascript classes.
 
 */
 
-#ifndef __FREEX3D_JS_VRML_CLASSES_H__
-#define __FREEX3D_JS_VRML_CLASSES_H__
+#ifndef __FREEWRL_JS_VRML_CLASSES_H__
+#define __FREEWRL_JS_VRML_CLASSES_H__
 
 
 #ifndef UNUSED

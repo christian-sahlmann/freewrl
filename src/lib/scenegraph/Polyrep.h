@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.h,v 1.3 2009/02/09 20:04:58 crc_canada Exp $
+$Id: Polyrep.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
 
 Polyrep ???
 
@@ -12,7 +12,7 @@ Polyrep ???
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

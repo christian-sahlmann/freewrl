@@ -1,15 +1,15 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.10 2009/01/03 01:15:07 couannette Exp $
+$Id: system.h,v 1.11 2009/02/11 15:12:54 istakenv Exp $
 
-FreeX3D support library.
+FreeWRL support library.
 Internal header: system dependencies.
 
 */
 
-#ifndef __LIBFREEX3D_SYSTEM_H__
-#define __LIBFREEX3D_SYSTEM_H__
+#ifndef __LIBFREEWRL_SYSTEM_H__
+#define __LIBFREEWRL_SYSTEM_H__
 
 /**
  * Strict necessary common system header files:
@@ -108,4 +108,4 @@ typedef unsigned char _Bool;
 #endif
 
 
-#endif /* __LIBFREEX3D_SYSTEM_H__ */
+#endif /* __LIBFREEWRL_SYSTEM_H__ */

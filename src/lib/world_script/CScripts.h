@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.3 2008/12/17 18:38:12 crc_canada Exp $
+$Id: CScripts.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
 
 Class to wrap a java script for CParser
 
 */
 
-#ifndef __FREEX3D_CSCRIPTS_H__
-#define __FREEX3D_CSCRIPTS_H__
+#ifndef __FREEWRL_CSCRIPTS_H__
+#define __FREEWRL_CSCRIPTS_H__
 
 
 /* ************************************************************************** */
@@ -130,4 +130,4 @@ struct CRscriptStruct {
 };
 
 
-#endif /* __FREEX3D_CSCRIPTS_H__ */
+#endif /* __FREEWRL_CSCRIPTS_H__ */

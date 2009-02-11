@@ -1,9 +1,9 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display_x11.c,v 1.10 2009/01/03 01:15:07 couannette Exp $
+$Id: display_x11.c,v 1.11 2009/02/11 15:12:54 istakenv Exp $
 
-FreeX3D support library.
+FreeWRL support library.
 Display (X11) initialization.
 
 */
@@ -13,7 +13,7 @@ Display (X11) initialization.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 
 /**
@@ -169,7 +169,7 @@ int create_main_window_x11()
     XQueryPointer(Xdpy, Xwin, &root_ret, &child_ret, &root_x_ret, &root_y_ret,
 		  &mouse_x, &mouse_y, &mask_ret);
 
-    window_title = "FreeX3D";
+    window_title = "FreeWRL";
     XStoreName(Xdpy, Xwin, window_title);
     XSetIconName(Xdpy, Xwin, window_title);
 		

@@ -125,7 +125,7 @@ void initiateDSP() {
 	if ( (dspFile = open("/dev/dsp",O_WRONLY|O_NONBLOCK))
 		 /* if ( (dspFile = open("/dev/dsp",O_NDELAY))*/
 		 == -1 ) {
-		printf ("FreeX3D::SoundEngine::open /dev/dsp problem (is something else using it?)\n");
+		printf ("FreeWRL::SoundEngine::open /dev/dsp problem (is something else using it?)\n");
 		dspFile=-1;
 		return;
 	}

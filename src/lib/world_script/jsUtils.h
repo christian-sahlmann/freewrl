@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.h,v 1.3 2008/12/31 13:08:15 couannette Exp $
+$Id: jsUtils.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -14,8 +14,8 @@ pointers there updated.
 
 */
 
-#ifndef __FREEX3D_JS_UTILS_H__
-#define __FREEX3D_JS_UTILS_H__
+#ifndef __FREEWRL_JS_UTILS_H__
+#define __FREEWRL_JS_UTILS_H__
 
 
 #include <system_js.h>
@@ -105,4 +105,4 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, j
 JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 
 
-#endif /* __FREEX3D_JS_UTILS_H__ */
+#endif /* __FREEWRL_JS_UTILS_H__ */

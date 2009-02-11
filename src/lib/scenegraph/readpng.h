@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: readpng.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: readpng.h,v 1.3 2009/02/11 15:12:55 istakenv Exp $
 
 Read PNG images.
 
 */
 
-#ifndef __FREEX3D_READ_PNG_H__
-#define __FREEX3D_READ_PNG_H__
+#ifndef __FREEWRL_READ_PNG_H__
+#define __FREEWRL_READ_PNG_H__
 
 /*---------------------------------------------------------------------------
 
@@ -76,4 +76,4 @@ uch *readpng_get_image(double display_exponent, int *pChannels,
 void readpng_cleanup(int free_image_data);
 
 
-#endif /* __FREEX3D_READ_PNG_H__ */
+#endif /* __FREEWRL_READ_PNG_H__ */

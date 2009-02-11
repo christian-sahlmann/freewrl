@@ -1,12 +1,12 @@
 /*
- * FreeX3D plugin
+ * FreeWRL plugin
  *
- * To communicate with FreeX3D, we define structures and protocol.
+ * To communicate with FreeWRL, we define structures and protocol.
  *
  */
 
-#ifndef __FREEX3D_PLUGIN_UTILS_H__
-#define __FREEX3D_PLUGIN_UTILS_H__
+#ifndef __FREEWRL_PLUGIN_UTILS_H__
+#define __FREEWRL_PLUGIN_UTILS_H__
 
 
 /* JAS 
@@ -44,4 +44,4 @@ typedef struct _urlRequest {
 void URLencod (char *dest, const char *src, int maxlen);
 
 
-#endif /* __FREEX3D_PLUGIN_UTILS_H__ */
+#endif /* __FREEWRL_PLUGIN_UTILS_H__ */

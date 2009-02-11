@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.16 2009/01/09 20:05:04 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.17 2009/02/11 15:12:54 istakenv Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -12,7 +12,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../world_script/jsUtils.h"

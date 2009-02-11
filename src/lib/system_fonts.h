@@ -1,15 +1,15 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_fonts.h,v 1.1 2008/12/02 18:19:25 couannette Exp $
+$Id: system_fonts.h,v 1.2 2009/02/11 15:12:54 istakenv Exp $
 
-FreeX3D support library.
+FreeWRL support library.
 Internal header: fonts dependencies.
 
 */
 
-#ifndef __LIBFREEX3D_SYSTEM_FONTS_H__
-#define __LIBFREEX3D_SYSTEM_FONTS_H__
+#ifndef __LIBFREEWRL_SYSTEM_FONTS_H__
+#define __LIBFREEWRL_SYSTEM_FONTS_H__
 
 
 // TODO: in configure check: FreeType or anything else (Aqua?)
@@ -19,4 +19,4 @@ Internal header: fonts dependencies.
 #include FT_GLYPH_H
 
 
-#endif /* __LIBFREEX3D_SYSTEM_FONTS_H__ */
+#endif /* __LIBFREEWRL_SYSTEM_FONTS_H__ */

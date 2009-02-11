@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.7 2009/02/03 19:15:12 crc_canada Exp $
+$Id: Frustum.c,v 1.8 2009/02/11 15:12:54 istakenv Exp $
 
 ???
 
@@ -12,7 +12,7 @@ $Id: Frustum.c,v 1.7 2009/02/03 19:15:12 crc_canada Exp $
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

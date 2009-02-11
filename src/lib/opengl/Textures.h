@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Textures.h,v 1.3 2009/02/11 15:12:54 istakenv Exp $
 
 Screen snapshot.
 
 */
 
-#ifndef __FREEX3D_TEXTURES_H__
-#define __FREEX3D_TEXTURES_H__
+#ifndef __FREEWRL_TEXTURES_H__
+#define __FREEWRL_TEXTURES_H__
 
 
 #define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
@@ -83,4 +83,4 @@ void bind_image(int type, struct Uni_String *parenturl, struct Multi_String url,
 				void  *param);
 
 
-#endif /* __FREEX3D_TEXTURES_H__ */
+#endif /* __FREEWRL_TEXTURES_H__ */

@@ -1,5 +1,5 @@
 dnl
-dnl $Header: /cvsroot/freewrl/freewrl/freex3d/m4/ac_find_motif.m4,v 1.3 2008/11/27 01:51:43 couannette Exp $
+dnl $Header: /cvsroot/freewrl/freewrl/freex3d/m4/ac_find_motif.m4,v 1.4 2009/02/11 15:12:54 istakenv Exp $
 dnl
 dnl AC_FIND_MOTIF : find OSF/Motif or LessTif, and provide variables
 dnl	to easily use them in a Makefile.
@@ -16,7 +16,7 @@ dnl The link_motif and include_motif variables should be fit to put on
 dnl your application's link line in your Makefile.
 dnl
 dnl Oleo CVS Id: motif.m4,v 1.9 1999/04/09 11:46:49 danny
-dnl LessTif CVS $Id: ac_find_motif.m4,v 1.3 2008/11/27 01:51:43 couannette Exp $
+dnl LessTif CVS $Id: ac_find_motif.m4,v 1.4 2009/02/11 15:12:54 istakenv Exp $
 dnl
 AC_DEFUN([AC_FIND_MOTIF],
 [

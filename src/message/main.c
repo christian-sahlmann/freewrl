@@ -5,7 +5,7 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
-/* put a string on the console. This is fork'd by FreeX3D for error messages,
+/* put a string on the console. This is fork'd by FreeWRL for error messages,
  * because when running within an HTML browser, error messages to the command
  * line get lost.
  */
@@ -16,9 +16,9 @@
 
 #include "system.h"
 
-#define MESG "something strange happened with\nthe FreeX3D console..."
-#define WINTITLE "FreeX3D X3D/VRML Console:"
-#define MINTITLE "FreeX3D Console:"
+#define MESG "something strange happened with\nthe FreeWRL console..."
+#define WINTITLE "FreeWRL X3D/VRML Console:"
+#define MINTITLE "FreeWRL Console:"
 #define MAXLINE 2000
 
 /* Define an application context */

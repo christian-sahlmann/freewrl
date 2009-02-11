@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.24 2009/02/09 20:04:58 crc_canada Exp $
+$Id: MainLoop.c,v 1.25 2009/02/11 15:12:54 istakenv Exp $
 
 CProto ???
 
@@ -14,7 +14,7 @@ CProto ???
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "headers.h"
@@ -176,7 +176,7 @@ char *fw_strndup (const char *str, int len) {
 
 /* a simple routine to allow the front end to get our version */
 const char *getLibVersion() {
-        return libFreeX3D_get_version();
+        return libFreeWRL_get_version();
 }
 
 /* Main eventloop for FreeWRL!!! */
@@ -1676,7 +1676,7 @@ void sendPluginFD(int fd) {
         _fw_browser_plugin = fd;
 }
 void aquaPrintVersion() {
-        printf ("FreeWRL version: %s\n", libFreeX3D_get_version()); 
+        printf ("FreeWRL version: %s\n", libFreeWRL_get_version()); 
         exit(EXIT_SUCCESS);
 }
 void setPluginPath(char* path) {

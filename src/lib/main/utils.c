@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: utils.c,v 1.5 2008/12/11 22:18:03 crc_canada Exp $
+$Id: utils.c,v 1.6 2009/02/11 15:12:54 istakenv Exp $
 
 General utility functions.
 
@@ -12,7 +12,7 @@ General utility functions.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "headers.h"
@@ -21,7 +21,7 @@ General utility functions.
 char *BrowserFullPath = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
 
-const char* freex3d_get_browser_program()
+const char* freewrl_get_browser_program()
 {
     char *tmp;
 

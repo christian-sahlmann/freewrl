@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statics.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: statics.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
 
 large constant strings; used for rendering.
 
@@ -12,7 +12,7 @@ large constant strings; used for rendering.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"

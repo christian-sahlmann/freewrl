@@ -1,6 +1,6 @@
 /*********************************************************************
  *
- * FreeX3D SoundServer engine
+ * FreeWRL SoundServer engine
  *
  *  Copyright (C) 2002 John Stewart, CRC Canada.
  *  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -9,8 +9,8 @@
  *
  *********************************************************************/
 
-#ifndef __FREEX3D_SND_SYSTEM_H__
-#define __FREEX3D_SND_SYSTEM_H__
+#ifndef __FREEWRL_SND_SYSTEM_H__
+#define __FREEWRL_SND_SYSTEM_H__
 
 
 #if STDC_HEADERS
@@ -75,4 +75,4 @@ typedef unsigned char _Bool;
 #include <linux/soundcard.h>
 
 
-#endif /* __FREEX3D_SND_SYSTEM_H__ */
+#endif /* __FREEWRL_SND_SYSTEM_H__ */

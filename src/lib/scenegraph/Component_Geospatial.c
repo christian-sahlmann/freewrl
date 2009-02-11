@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.13 2009/02/06 18:30:02 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.14 2009/02/11 15:12:54 istakenv Exp $
 
 X3D Geospatial Component
 
@@ -12,7 +12,7 @@ X3D Geospatial Component
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"

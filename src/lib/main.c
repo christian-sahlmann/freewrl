@@ -1,10 +1,10 @@
 /*******************************************************************
  *
- * FreeX3D support library
+ * FreeWRL support library
  *
  * main.c
  *
- * $Id: main.c,v 1.8 2008/12/02 17:41:38 couannette Exp $
+ * $Id: main.c,v 1.9 2009/02/11 15:12:54 istakenv Exp $
  *
  *******************************************************************/
 
@@ -13,7 +13,7 @@
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 
 /**
@@ -23,21 +23,21 @@
 /**
  * library initialization
  */
-void __attribute__ ((constructor)) libFreeX3D_init(void)
+void __attribute__ ((constructor)) libFreeWRL_init(void)
 {
 }
 
 /**
  * library exit routine
  */
-void __attribute__ ((destructor)) libFreeX3D_fini(void)
+void __attribute__ ((destructor)) libFreeWRL_fini(void)
 {
 }
 
 /**
  * Explicit initialization
  */
-int initFreeX3D()
+int initFreeWRL()
 {
     if (!display_initialize()) {
 	ERROR_MSG("error in initialization.\n");
@@ -49,6 +49,6 @@ int initFreeX3D()
 /**
  * Explicit exit routine
  */
-void closeFreeX3D()
+void closeFreeWRL()
 {
 }

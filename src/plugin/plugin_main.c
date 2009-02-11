@@ -4,12 +4,12 @@
  * Copyright (c) 1996 Netscape Communications. All rights reserved.
  *
  * Modified by John Stewart  - CRC Canada to provide for plugin capabilities
- * for FreeX3D - an open source VRML and X3D browser.
+ * for FreeWRL - an open source VRML and X3D browser.
  *
  * Operation:
  *
  * In the NPP_Initialize routine, a pipe is created and sent as the window
- * title to FreeX3D. FreeX3D (OpenGL/OpenGL.xs) looks at this "wintitle",
+ * title to FreeWRL. FreeWRL (OpenGL/OpenGL.xs) looks at this "wintitle",
  * and if it starts with "pipe:", then treats the number following as
  * a pipe id to send the window id back through. The pipe is then closed.
  *
@@ -30,11 +30,11 @@
 #include <X11/StringDefs.h>
 
 
-#define PLUGIN_NAME			"FreeX3D X3D/VRML"
+#define PLUGIN_NAME			"FreeWRL X3D/VRML"
 
 #define RECORD_FILE_NAME_IF_NULL \
 	if (FW_Plugin->fName == NULL) { \
-		/* Get the base file name for FreeX3D to run */ \
+		/* Get the base file name for FreeWRL to run */ \
 		FW_Plugin->fName = (char *) NPN_MemAlloc((strlen(stream->url) +1) *sizeof(char *)); \
 		strcpy(FW_Plugin->fName,stream->url); \
 		sprintf (debs,"Can record filename now, name is %s",FW_Plugin->fName); \
@@ -42,7 +42,7 @@
 	}
 
 /* used in init. Don't write to the socket until a request has been received */
-int gotRequestFromFreeX3D = FALSE;
+int gotRequestFromFreeWRL = FALSE;
 
 
 char *paramline[15]; /* parameter line */
@@ -64,8 +64,8 @@ typedef struct _FW_PluginInstance
 	Window 			fwwindow;
 	pid_t 			childPID;
 	char 			*fName;
-	int			freex3d_running;
-	int			interfacePipe[2];		/* pipe plugin FROM freex3d	*/
+	int			freewrl_running;
+	int			interfacePipe[2];		/* pipe plugin FROM freewrl	*/
 	char 			*cacheFileName;
 	int 			cacheFileNameLen;
 } FW_PluginInstance;
@@ -88,10 +88,10 @@ static int np_fileDescriptor;
 
 
 static void signalHandler (int);
-static int freex3dRecieve (int);
+static int freewrlRecieve (int);
 static int init_socket (int, Boolean);
 Sigfunc signal (int, Sigfunc func);
-void freex3dReceive(int fileDescriptor);
+void freewrlReceive(int fileDescriptor);
 
 /*******************************************************************************
  ******************************************************************************/
@@ -114,7 +114,7 @@ static void print_here (char * xx) {
 	if (!PluginVerbose) return;
 
 	if (tty == NULL) {
-		tty = fopen("/tmp/npfreex3d.log", "a");
+		tty = fopen("/tmp/npfreewrl.log", "a");
 		if (tty == NULL)
 			PluginVerbose = FALSE;
 		fprintf (tty, "\nplugin restarted\n");
@@ -163,7 +163,7 @@ void signalHandler(int signo) {
 	print_here(debs);
 
 	if (signo == SIGIO) {
-		freex3dReceive(np_fileDescriptor);
+		freewrlReceive(np_fileDescriptor);
 
 	} else {
 		/* Should handle all except the uncatchable ones. */
@@ -171,14 +171,14 @@ void signalHandler(int signo) {
 	}
 }
 
-void freex3dReceive(int fileDescriptor) {
+void freewrlReceive(int fileDescriptor) {
 	sigset_t newmask, oldmask;
 
 	urlRequest request;
 	size_t request_size = 0;
 	int rv = 0;
 
-	sprintf(debs, "Call to freex3dReceive fileDescriptor %d.", fileDescriptor); print_here (debs);
+	sprintf(debs, "Call to freewrlReceive fileDescriptor %d.", fileDescriptor); print_here (debs);
 
 	bzero(request.url, FILENAME_MAX);
 	request.instance = 0;
@@ -219,19 +219,19 @@ void freex3dReceive(int fileDescriptor) {
 		if (errno != EINTR && errno != EAGAIN) {
 			print_here("Call to read failed");
 		}
-		/* FreeX3D has died, or THIS IS US WRITING CREATING THAT SIG. */
-		print_here ("freex3dReceive, quick return; either this is us writing or freex3d croaked");
+		/* FreeWRL has died, or THIS IS US WRITING CREATING THAT SIG. */
+		print_here ("freewrlReceive, quick return; either this is us writing or freewrl croaked");
 		return;
 	} else {
 		sprintf (debs, "notifyCode = %d url = %s", request.notifyCode, request.url);
 		print_here(debs);
 
-		/* signal that we have now received a file request from FreeX3D */
-		gotRequestFromFreeX3D = TRUE;
+		/* signal that we have now received a file request from FreeWRL */
+		gotRequestFromFreeWRL = TRUE;
 
 		/* is this a getUrl, or a "open new window for url" */
 		if (request.notifyCode == 0) {
-			/* get Url and return it to FreeX3D */
+			/* get Url and return it to FreeWRL */
 
 			seqNo++;
 			/* printf ("request seq %d, url %s\n",seqNo, request.url); */
@@ -252,7 +252,7 @@ void freex3dReceive(int fileDescriptor) {
 			print_here(debs);
 			if (currentStream != NULL) {
 				NPN_DestroyStream(request.instance, currentStream, NPRES_USER_BREAK);
-				sprintf (debs, "FreeX3D can not find: %s",request.url);
+				sprintf (debs, "FreeWRL can not find: %s",request.url);
 				NPN_Status (request.instance, debs);
 				currentStream = NULL;
 			}
@@ -268,7 +268,7 @@ void freex3dReceive(int fileDescriptor) {
 			int32 myLength = strlen(myData) + 1;
 			err = NPN_NewStream(request.instance,
 					"text/html",
-					"_AnchorFailsinFreeX3D",
+					"_AnchorFailsinFreeWRL",
 					&stream);
 			print_here ("NewStream made");
 
@@ -280,7 +280,7 @@ void freex3dReceive(int fileDescriptor) {
 		}
 
 		/* now, put a status line on bottom of browser */
-		sprintf (debs, "FreeX3D loading: %s",request.url);
+		sprintf (debs, "FreeWRL loading: %s",request.url);
 		print_here(debs);
 		NPN_Status (request.instance, debs); 
 	}
@@ -291,7 +291,7 @@ void freex3dReceive(int fileDescriptor) {
 		return;
 	}
 
-	print_here("returning from freex3d_receive");
+	print_here("returning from freewrl_receive");
 	return;
 }
 
@@ -325,7 +325,7 @@ int init_socket(int fileDescriptor, Boolean nonblock) {
 	return(NPERR_NO_ERROR);
 }
 
-/* actually run FreeX3D and swallow it, if enough information has been found */
+/* actually run FreeWRL and swallow it, if enough information has been found */
 void Run (NPP instance) {
 
 	FW_PluginInstance* FW_Plugin;
@@ -355,31 +355,31 @@ void Run (NPP instance) {
 	print_here (debs);
 
 
-	/* start FreeX3D, if it is not running already. */
-	if (!FW_Plugin->freex3d_running) {
-		FW_Plugin->freex3d_running = TRUE;
+	/* start FreeWRL, if it is not running already. */
+	if (!FW_Plugin->freewrl_running) {
+		FW_Plugin->freewrl_running = TRUE;
 		sprintf (debs,"STARTING testrun program, disp and win %x %x\n",FW_Plugin->display, FW_Plugin->mozwindow);
 		print_here (debs);
 
 		FW_Plugin->childPID = fork ();
 		if (FW_Plugin->childPID == -1) {
-			sprintf (debs, "\tFreeX3D: Fork for plugin failed: ");
+			sprintf (debs, "\tFreeWRL: Fork for plugin failed: ");
 			print_here (debs);
 			FW_Plugin->childPID = 0;
 		} else if (FW_Plugin->childPID == 0) {
 			pid_t mine = getpid();
 			if (setpgid(mine,mine) < 0) {
-				sprintf (debs,"\tFreeX3D child group set failed");
+				sprintf (debs,"\tFreeWRL child group set failed");
 				print_here (debs);
 			} else {
-				/* Nice FreeX3D to a lower priority */
+				/* Nice FreeWRL to a lower priority */
 				paramline[0] = "nice";
-				paramline[1] = "freex3d";
+				paramline[1] = "freewrl";
 
 				/* We have the file name, so include it */
 				paramline[2] = FW_Plugin->fName;
 
-				/* Pass in the pipe number so FreeX3D can return the
+				/* Pass in the pipe number so FreeWRL can return the
 				window id */
 				paramline[3] = "--plugin";
 				paramline[4] = pipetome;
@@ -387,7 +387,7 @@ void Run (NPP instance) {
 				/* EAI connection */
 				paramline [5] = "--eai";
 
-				/* File descriptor and instance  - allows FreeX3D to
+				/* File descriptor and instance  - allows FreeWRL to
 				 request files from browser's cache */
 
 				paramline[6] = "--fd";
@@ -404,7 +404,7 @@ void Run (NPP instance) {
 				/* child file descriptor - to send requests back here */
 				sprintf (childFd, "%d", FW_Plugin->interfaceFile[SOCKET_2]);
 
-				/* Instance, so that FreeX3D knows its us... */
+				/* Instance, so that FreeWRL knows its us... */
 				sprintf (instanceStr, "%u",(uintptr_t) instance);
 
 				sprintf (debs,"exec param line is %s %s %s %s %s %s %s %s %s %s %s",
@@ -416,14 +416,14 @@ void Run (NPP instance) {
 			    	execvp(paramline[0], (char* const *) paramline);
 			}
 
-			print_here("\tFreeX3D Plugin: Couldn\'t run FreeX3D.\n");
+			print_here("\tFreeWRL Plugin: Couldn\'t run FreeWRL.\n");
 
 		} else {
 		    	/* return error */
 		}
 	}
 
-	print_here ("after FW_Plugin->freex3d_running call - waiting on pipe");
+	print_here ("after FW_Plugin->freewrl_running call - waiting on pipe");
 
 	read(FW_Plugin->interfacePipe[PIPE_PLUGINSIDE],&FW_Plugin->fwwindow,sizeof(Window));
 
@@ -486,7 +486,7 @@ NPP_GetMIMEDescription(void)
 	print_here ("NPP_GetMIMEDescription");
 	return mime_types;
 /*
-        return("x-world/x-vrml:wrl:FreeX3D VRML Browser;model/vrml:wrl:FreeX3D VRML Browser;model/x3d+vrml:x3dv:FreeX3D VRML Browser;model/x3d+xml:x3d:FreeX3D X3D Browser;model/x3d+vrml:x3dv:FreeX3D X3D Browser;model/x3d+binary:x3db:FreeX3D X3D Browser");
+        return("x-world/x-vrml:wrl:FreeWRL VRML Browser;model/vrml:wrl:FreeWRL VRML Browser;model/x3d+vrml:x3dv:FreeWRL VRML Browser;model/x3d+xml:x3d:FreeWRL X3D Browser;model/x3d+vrml:x3dv:FreeWRL X3D Browser;model/x3d+binary:x3db:FreeWRL X3D Browser");
 */
 }
 
@@ -498,7 +498,7 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value)
     if (variable == NPPVpluginNameString)
 		*((char **)value) = PLUGIN_NAME;
     else if (variable == NPPVpluginDescriptionString)
-		*((char **)value) = freex3d_plugin_get_version();
+		*((char **)value) = freewrl_plugin_get_version();
     else
 		err = NPERR_GENERIC_ERROR;
 
@@ -580,12 +580,12 @@ NPP_New(NPMIMEType pluginType,
 	FW_Plugin->fwwindow = 0;
 	FW_Plugin->childPID=0;
 	FW_Plugin->fName = NULL;
-	FW_Plugin->freex3d_running = FALSE;
+	FW_Plugin->freewrl_running = FALSE;
 	seqNo = 0;
 	FW_Plugin->cacheFileName = NULL;
 	FW_Plugin->cacheFileNameLen = 0;
 
-	gotRequestFromFreeX3D = FALSE;
+	gotRequestFromFreeWRL = FALSE;
 	pipe(FW_Plugin->interfacePipe);
 
 	sprintf (debs, "Pipe created, PIPE_FREEWRLSIDE %d PIPE_PLUGINSIDE %d",
@@ -594,7 +594,7 @@ NPP_New(NPMIMEType pluginType,
 	print_here (debs);
 
 
-	/* Assume plugin and FreeX3D child process run on the same machine, 
+	/* Assume plugin and FreeWRL child process run on the same machine, 
 	 then we can use UDP and have incredibly close to 100.00% reliability */
 	
 	if (socketpair(AF_LOCAL, SOCK_DGRAM, 0, FW_Plugin->interfaceFile) < 0) {
@@ -628,7 +628,7 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 	FW_PluginInstance* FW_Plugin;
 	int status;
 
-	print_here ("NPP_Destroy kill FreeX3D if it is running still");
+	print_here ("NPP_Destroy kill FreeWRL if it is running still");
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
 
@@ -664,8 +664,8 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 		NPN_MemFree(instance->pdata);
 		instance->pdata = NULL;
 	}
-	FW_Plugin->freex3d_running = FALSE;
-	gotRequestFromFreeX3D = FALSE;
+	FW_Plugin->freewrl_running = FALSE;
+	gotRequestFromFreeWRL = FALSE;
 
 	return NPERR_NO_ERROR;
 }
@@ -696,7 +696,7 @@ NPP_URLNotify (NPP instance, const char *url, NPReason reason, void* notifyData)
 		}
 
 		/* send a "done" message to status bar */
-		NPN_Status(instance,"FreeX3D: Done");
+		NPN_Status(instance,"FreeWRL: Done");
 		return;
 	} else if (reason == NPRES_USER_BREAK) {
 		print_here ("NPP_UrlNotify - NPRES_USER_BREAK");
@@ -709,18 +709,18 @@ NPP_URLNotify (NPP instance, const char *url, NPReason reason, void* notifyData)
 	sprintf (debs,"NPP_UrlNotify - writing %s (%u bytes) to socket %d",
 		returnBadURL, strlen (returnBadURL) ,FW_Plugin->interfaceFile[SOCKET_1]);
 	print_here(debs);
-	NPN_Status(instance,"FreeX3D: NPP_URLNotify failed");
+	NPN_Status(instance,"FreeWRL: NPP_URLNotify failed");
 
-	/* if we got a request from FreeX3D for the file, then return the name. If FreeX3D was "Run",
+	/* if we got a request from FreeWRL for the file, then return the name. If FreeWRL was "Run",
 	   from within NPP_NewStream, it will not be expecting this write, until it asks for a file -
 	   a case of "the cart before the horse" */
-	if (gotRequestFromFreeX3D) {
-		print_here ("NPP_UrlNotify, gotRequestFromFreeX3D - writing data\n");
+	if (gotRequestFromFreeWRL) {
+		print_here ("NPP_UrlNotify, gotRequestFromFreeWRL - writing data\n");
 		if (write(FW_Plugin->interfaceFile[SOCKET_1], returnBadURL, strlen (returnBadURL)) < 0) {
 			print_here ("Call to write failed");
 		}
 	} else {
-		print_here ("call to write (for returnBadURL) skipped, because gotRequestFromFreeX3D = FALSE");
+		print_here ("call to write (for returnBadURL) skipped, because gotRequestFromFreeWRL = FALSE");
 	}
 }
 
@@ -777,14 +777,14 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 	if (FW_Plugin->mozwindow != (Window) browser_window->window) {
 		FW_Plugin->mozwindow = (Window) browser_window->window;
 
-		/* run FreeX3D, if it is not already running. It might not be... */
-		if (!FW_Plugin->freex3d_running) {
-			print_here ("NPP_SetWindow, running FreeX3D here!");
+		/* run FreeWRL, if it is not already running. It might not be... */
+		if (!FW_Plugin->freewrl_running) {
+			print_here ("NPP_SetWindow, running FreeWRL here!");
 			Run(instance);
 		}
 	}
 
-	/* Handle the FreeX3D window */
+	/* Handle the FreeWRL window */
 	if (FW_Plugin->fwwindow) {
 		sprintf (debs,"xresize x %d y %d  wid %d hei %d",
 			FW_Plugin->x, FW_Plugin->y,
@@ -829,9 +829,9 @@ NPP_NewStream(NPP instance,
 
 	RECORD_FILE_NAME_IF_NULL
 
-	/* run FreeX3D, if it is not already running. It might not be... */
-	if (!FW_Plugin->freex3d_running) {
-		print_here ("NPP_NewStream, running FreeX3D here!");
+	/* run FreeWRL, if it is not already running. It might not be... */
+	if (!FW_Plugin->freewrl_running) {
+		print_here ("NPP_NewStream, running FreeWRL here!");
 			Run(instance);
 	}
 
@@ -911,7 +911,7 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 	
 		RECORD_FILE_NAME_IF_NULL
 
-		if (!FW_Plugin->freex3d_running) {
+		if (!FW_Plugin->freewrl_running) {
 			/* if we are not running yet, see if we have enough to start. */
 			Run (instance);
 
@@ -926,10 +926,10 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 			} else {
 
 				
-				/* if we got a request from FreeX3D for the file, then return the name. If FreeX3D was "Run",
+				/* if we got a request from FreeWRL for the file, then return the name. If FreeWRL was "Run",
 				   from within NPP_NewStream, it will not be expecting this write, until it asks for a file -
 				   a case of "the cart before the horse" */
-				if (gotRequestFromFreeX3D) {
+				if (gotRequestFromFreeWRL) {
 					bytes = (strlen(fname)+1)*sizeof(const char *);
 					if (bytes > (FW_Plugin->cacheFileNameLen -10)) {
 						if (FW_Plugin->cacheFileName != NULL) {
@@ -945,7 +945,7 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 					print_here(debs);
 	
 				} else {
-					print_here("NPP_StreamAsFile: skipping file write, as gotRequestFromFreeX3D = FALSE\n");
+					print_here("NPP_StreamAsFile: skipping file write, as gotRequestFromFreeWRL = FALSE\n");
 				}
 
 			}

@@ -1,15 +1,15 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.15 2009/02/03 19:15:12 crc_canada Exp $
+$Id: display.h,v 1.16 2009/02/11 15:12:54 istakenv Exp $
 
-FreeX3D support library.
+FreeWRL support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
 
 */
 
-#ifndef __LIBFREEX3D_DISPLAY_H__
-#define __LIBFREEX3D_DISPLAY_H__
+#ifndef __LIBFREEWRL_DISPLAY_H__
+#define __LIBFREEWRL_DISPLAY_H__
 
 /**
  * Main window parameters
@@ -236,4 +236,4 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_PUSH_MATRIX(aaa) glPushMatrix()
 	#define FW_GL_POP_MATRIX(aaa) glPopMatrix()
 #endif
-#endif /* __LIBFREEX3D_DISPLAY_H__ */
+#endif /* __LIBFREEWRL_DISPLAY_H__ */

@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.h,v 1.2 2008/12/02 15:14:16 couannette Exp $
+$Id: Component_Geospatial.h,v 1.3 2009/02/11 15:12:55 istakenv Exp $
 
 Proximity sensor macro.
 
 */
 
-#ifndef __FREEX3D_SCENEGRAPH_GEOSPATIAL_H__
-#define __FREEX3D_SCENEGRAPH_GEOSPATIAL_H__
+#ifndef __FREEWRL_SCENEGRAPH_GEOSPATIAL_H__
+#define __FREEWRL_SCENEGRAPH_GEOSPATIAL_H__
 
 
 /* ProximitySensor and GeoProximitySensor are same "code" at this stage of the game */
@@ -155,4 +155,4 @@ void proximity_##type (struct X3D_##type *node) { \
 } 
 
 
-#endif /* __FREEX3D_SCENEGRAPH_GEOSPATIAL_H__ */
+#endif /* __FREEWRL_SCENEGRAPH_GEOSPATIAL_H__ */

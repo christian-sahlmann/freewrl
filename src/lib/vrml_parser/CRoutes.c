@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.10 2009/01/29 17:09:18 crc_canada Exp $
+$Id: CRoutes.c,v 1.11 2009/02/11 15:12:55 istakenv Exp $
 
 ???
 
@@ -13,7 +13,7 @@ $Id: CRoutes.c,v 1.10 2009/01/29 17:09:18 crc_canada Exp $
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 
 #include "../vrml_parser/Structs.h"

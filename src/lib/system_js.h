@@ -1,15 +1,15 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_js.h,v 1.1 2008/12/31 13:08:15 couannette Exp $
+$Id: system_js.h,v 1.2 2009/02/11 15:12:54 istakenv Exp $
 
-FreeX3D support library.
+FreeWRL support library.
 Internal header: Javascript engine dependencies.
 
 */
 
-#ifndef __LIBFREEX3D_SYSTEM_JS_H__
-#define __LIBFREEX3D_SYSTEM_JS_H__
+#ifndef __LIBFREEWRL_SYSTEM_JS_H__
+#define __LIBFREEWRL_SYSTEM_JS_H__
 
 
 /* 
@@ -23,4 +23,4 @@ Internal header: Javascript engine dependencies.
 #include <jsdbgapi.h> /* JS debugger */
 
 
-#endif /* __LIBFREEX3D_SYSTEM_JS_H__ */
+#endif /* __LIBFREEWRL_SYSTEM_JS_H__ */

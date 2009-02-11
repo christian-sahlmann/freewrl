@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Collision.h,v 1.3 2009/02/11 15:12:54 istakenv Exp $
 
 Collision ???
 
 */
 
-#ifndef __FREEX3D_COLLISION_H__
-#define __FREEX3D_COLLISION_H__
+#ifndef __FREEWRL_COLLISION_H__
+#define __FREEWRL_COLLISION_H__
 
 
 /* Collision detection results structure*/
@@ -230,4 +230,4 @@ void printmatrix(GLdouble* mat);
 #endif
 
 
-#endif /* __FREEX3D_COLLISION_H__ */
+#endif /* __FREEWRL_COLLISION_H__ */

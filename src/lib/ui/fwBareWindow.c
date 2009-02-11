@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: fwBareWindow.c,v 1.4 2008/12/31 13:08:15 couannette Exp $
+  $Id: fwBareWindow.c,v 1.5 2009/02/11 15:12:55 istakenv Exp $
 
   Create X11 window. Manage events.
 
@@ -12,7 +12,7 @@
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include <X11/keysym.h>
 #include <X11/Intrinsic.h>

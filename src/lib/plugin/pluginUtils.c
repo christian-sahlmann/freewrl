@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: pluginUtils.c,v 1.3 2008/12/08 17:58:48 crc_canada Exp $
+$Id: pluginUtils.c,v 1.4 2009/02/11 15:12:54 istakenv Exp $
 
 ???
 
@@ -12,7 +12,7 @@ $Id: pluginUtils.c,v 1.3 2008/12/08 17:58:48 crc_canada Exp $
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
@@ -80,7 +80,7 @@ int freewrlSystem (const char *sysline) {
 	memset(paramline, 0, sizeof(paramline));
 		
 	waitForChild = TRUE;
-	haveXmessage = !strncmp(sysline, FREEX3D_MESSAGE_WRAPPER, strlen(FREEX3D_MESSAGE_WRAPPER));
+	haveXmessage = !strncmp(sysline, FREEWRL_MESSAGE_WRAPPER, strlen(FREEWRL_MESSAGE_WRAPPER));
 
 	internbuf = buf;
 
@@ -93,7 +93,7 @@ int freewrlSystem (const char *sysline) {
 
 	/* do we have a console message - (which is text with spaces) */
 	if (haveXmessage) {
-		paramline[0] = FREEX3D_MESSAGE_WRAPPER;
+		paramline[0] = FREEWRL_MESSAGE_WRAPPER;
 		paramline[1] = strchr(internbuf,' ');
 		count = 2;
 	} else {
@@ -299,7 +299,7 @@ void doBrowserAction () {
 			printf ("Anchor: -DBROWSER is :%s:\n",BROWSER); */
 
 		    /* char *browser = getenv("BROWSER"); */
-		    char *browser = freex3d_get_browser_program();
+		    char *browser = freewrl_get_browser_program();
 		    if (!browser) {
 			ConsoleMessage ("Error: no Internet browser found.");
 			return;

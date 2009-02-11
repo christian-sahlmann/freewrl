@@ -50,7 +50,7 @@ Priority list (as of 09/02/2009)
 
 - EAI - Sarah (C bindings) and JohnS (Russ Kinters testing, and general Java code)
 - threading issues with XLib - harold and Michel.
-- merge into freex3d
+- merge into freewrl
 - OSX standalone front end updateContext()
 - View Frustum - see PalaceWalkthrough and Geospatial code. (in progress -JohnS)
 - XML parser - Script and Proto work, and general cleanup
@@ -66,13 +66,13 @@ Wishlist:
 
 - QTVR images from OSX 
 - deliver x11freewrl on OSX, in addition to cocoa version
-- create freex3d links on Linux and OSX
+- create freewrl links on Linux and OSX
 - update the plugin to provide EAI/SAI access via browser's javascript
 
 Priority list (as of 20/11/2008):
 
 - EAI - Sarah and Russ Kinter
-- merge into freex3d
+- merge into freewrl
 - Apple - Gurob email
 - OSX standalone front end updateContext()
 - XML parser - Script and Proto work, and general cleanup

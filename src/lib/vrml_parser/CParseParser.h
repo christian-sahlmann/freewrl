@@ -1,14 +1,14 @@
 /* 
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseParser.h,v 1.3 2008/12/02 14:48:32 couannette Exp $
+$Id: CParseParser.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
 
 Parser (input of non-terminal symbols) for CParse
 
 */
 
-#ifndef __FREEX3D_CPARSE_PARSER_H__
-#define __FREEX3D_CPARSE_PARSER_H__
+#ifndef __FREEWRL_CPARSE_PARSER_H__
+#define __FREEWRL_CPARSE_PARSER_H__
 
 
 struct ProtoDefinition;
@@ -169,4 +169,4 @@ void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* re
 */
 
 
-#endif /* __FREEX3D_CPARSE_PARSER_H__ */
+#endif /* __FREEWRL_CPARSE_PARSER_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: readpng.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: readpng.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
 
 FreeWRL now only uses this on Linux machines.
 
@@ -16,7 +16,7 @@ FreeWRL now only uses this on Linux machines.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "readpng.h"    /* typedefs, common macros, public prototypes */
 

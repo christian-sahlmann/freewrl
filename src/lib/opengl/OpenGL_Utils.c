@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.17 2009/02/10 19:11:45 sdumoulin Exp $
+$Id: OpenGL_Utils.c,v 1.18 2009/02/11 15:12:54 istakenv Exp $
 
 ???
 
@@ -13,7 +13,7 @@ $Id: OpenGL_Utils.c,v 1.17 2009/02/10 19:11:45 sdumoulin Exp $
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

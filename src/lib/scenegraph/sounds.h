@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: sounds.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: sounds.h,v 1.3 2009/02/11 15:12:55 istakenv Exp $
 
 Sound engine client code
 
 */
 
-#ifndef __FREEX3D_SOUND_CLIENT_H__
-#define __FREEX3D_SOUND_CLIENT_H__
+#ifndef __FREEWRL_SOUND_CLIENT_H__
+#define __FREEWRL_SOUND_CLIENT_H__
 
 
 #define SNDMAXMSGSIZE 256
@@ -53,4 +53,4 @@ void
 SetAudioActive(int num, int stat);
 
 
-#endif /* __FREEX3D_SOUND_CLIENT_H__ */
+#endif /* __FREEWRL_SOUND_CLIENT_H__ */

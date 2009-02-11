@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SoundEngineClient.c,v 1.4 2009/02/06 20:28:24 crc_canada Exp $
+$Id: SoundEngineClient.c,v 1.5 2009/02/11 15:12:54 istakenv Exp $
 
 This is the SoundEngine client code for FreeWRL.
 
@@ -28,7 +28,7 @@ Some of this stuff came from files from "wavplay"  - see information below
 
 #include <errno.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 /* #include "../vrml_parser/Structs.h" */
 /* #include "headers.h" */
@@ -52,7 +52,7 @@ int my_ipc_key;
 FWSNDMSG msg;		/* message buffer */
 
 /* TODO: integrate this variable into configure */
-char sspath[] = "freex3d_snd" /*SOUNDSERVERBINARY*/; /* compile line flag */
+char sspath[] = "freewrl_snd" /*SOUNDSERVERBINARY*/; /* compile line flag */
 
 static int initialized = SOUND_NEEDS_STARTING; /* are we able to run? */
 

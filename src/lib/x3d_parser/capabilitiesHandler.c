@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: capabilitiesHandler.c,v 1.3 2008/12/11 22:18:03 crc_canada Exp $
+$Id: capabilitiesHandler.c,v 1.4 2009/02/11 15:12:55 istakenv Exp $
 
 ???
 
@@ -12,7 +12,7 @@ $Id: capabilitiesHandler.c,v 1.3 2008/12/11 22:18:03 crc_canada Exp $
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 
 #include "../vrml_parser/Structs.h"

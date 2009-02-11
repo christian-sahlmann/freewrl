@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Children.c,v 1.3 2009/02/02 20:54:17 crc_canada Exp $
+$Id: Children.c,v 1.4 2009/02/11 15:12:54 istakenv Exp $
 
 Render the children of nodes.
 
@@ -12,7 +12,7 @@ Render the children of nodes.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "quaternion.h"

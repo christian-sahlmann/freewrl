@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.h,v 1.5 2008/12/12 20:10:26 crc_canada Exp $
+$Id: CParse.h,v 1.6 2009/02/11 15:12:55 istakenv Exp $
 
 VRML-parsing routines in C.
 
 */
 
-#ifndef __FREEX3D_CPARSE_H__
-#define __FREEX3D_CPARSE_H__
+#ifndef __FREEWRL_CPARSE_H__
+#define __FREEWRL_CPARSE_H__
 
 
 /* for scanning and determining whether a character is part of a valid X3D name */
@@ -35,4 +35,4 @@ extern struct VRMLParser* globalParser;
 /* void fw_assert(char *,int); */
 
 
-#endif /* __FREEX3D_CPARSE_H__ */
+#endif /* __FREEWRL_CPARSE_H__ */

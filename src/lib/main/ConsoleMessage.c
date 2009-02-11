@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.4 2008/12/10 18:46:54 crc_canada Exp $
+$Id: ConsoleMessage.c,v 1.5 2009/02/11 15:12:54 istakenv Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -26,7 +26,7 @@ for loosing the reference. Also, most if it is found in
 #include <syslog.h> //TODO: configure check
 #include <stdarg.h> //TODO: configure check
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "headers.h"
@@ -215,7 +215,7 @@ int ConsoleMessage(const char *fmt, ...) {
 		}
 
 		/* and call freewrlSystem to speak to the user */
-                sprintf(systemBuffer, "%s \"%s\"", FREEX3D_MESSAGE_WRAPPER, FWbuffer);
+                sprintf(systemBuffer, "%s \"%s\"", FREEWRL_MESSAGE_WRAPPER, FWbuffer);
                 freewrlSystem(systemBuffer); 
 	}
 #else

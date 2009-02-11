@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.11 2009/02/03 20:58:55 sdumoulin Exp $
+$Id: fieldSet.c,v 1.12 2009/02/11 15:12:55 istakenv Exp $
 
 ???
 
@@ -12,7 +12,7 @@ $Id: fieldSet.c,v 1.11 2009/02/03 20:58:55 sdumoulin Exp $
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

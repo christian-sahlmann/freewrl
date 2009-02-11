@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.5 2008/12/31 13:08:15 couannette Exp $
+$Id: Textures.c,v 1.6 2009/02/11 15:12:54 istakenv Exp $
 
 General Texture objects.
 
@@ -13,7 +13,7 @@ General Texture objects.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

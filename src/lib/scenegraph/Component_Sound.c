@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Sound.c,v 1.5 2009/02/03 19:15:12 crc_canada Exp $
+$Id: Component_Sound.c,v 1.6 2009/02/11 15:12:55 istakenv Exp $
 
 X3D Sound Component
 
@@ -12,7 +12,7 @@ X3D Sound Component
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"

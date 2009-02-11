@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIheaders.h,v 1.8 2008/12/29 21:42:00 crc_canada Exp $
+$Id: EAIheaders.h,v 1.9 2009/02/11 15:12:54 istakenv Exp $
 
 EAI and java CLASS invocation
 
 */
 
-#ifndef __FREEX3D_EAI_H__
-#define __FREEX3D_EAI_H__
+#ifndef __FREEWRL_EAI_H__
+#define __FREEWRL_EAI_H__
 
 
 extern int eaiverbose;
@@ -157,4 +157,4 @@ extern char EAIListenerArea[40];
 #define MIDI_CONTROLLER_UNKNOWN 999
 
 
-#endif /* __FREEX3D_EAI_H__ */
+#endif /* __FREEWRL_EAI_H__ */

@@ -1,6 +1,6 @@
 /*********************************************************************
  *
- * FreeX3D SoundServer engine
+ * FreeWRL SoundServer engine
  *
  *  Copyright (C) 2002 John Stewart, CRC Canada.
  *  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -9,8 +9,8 @@
  *
  *********************************************************************/
 
-#ifndef __FREEX3D_SND_SOUND_H__
-#define __FREEX3D_SND_SOUND_H__
+#ifndef __FREEWRL_SND_SOUND_H__
+#define __FREEWRL_SND_SOUND_H__
 
 
 #define  UNKNOWNFILE 0
@@ -103,4 +103,4 @@ void adjustAmplitude(int source, int readSize);
 #define UNINITWAV	-20000
 
 
-#endif /* __FREEX3D_SND_SOUND_H__ */
+#endif /* __FREEWRL_SND_SOUND_H__ */

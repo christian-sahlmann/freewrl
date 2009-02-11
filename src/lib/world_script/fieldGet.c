@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.9 2008/12/19 16:05:59 crc_canada Exp $
+$Id: fieldGet.c,v 1.10 2009/02/11 15:12:55 istakenv Exp $
 
 Javascript C language binding.
 
@@ -13,7 +13,7 @@ Javascript C language binding.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

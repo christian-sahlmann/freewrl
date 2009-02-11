@@ -1,5 +1,5 @@
-# Main program: FreeX3D program
-# Uses libFreeX3D in ../lib
+# Main program: FreeWRL program
+# Uses libFreeWRL in ../lib
 #
 
 # Get global variables for Makefile defined by toplevel Makefile.globals
@@ -26,28 +26,28 @@ AM_LDFLAGS += \
 				$(PNG_LIBS)
 
 
-_EV=$(top_srcdir)/versions/FREEX3D
+_EV=$(top_srcdir)/versions/FREEWRL
 export
 
 templ=$(top_srcdir)/versions/template/version.c.in
-component=freex3d
-FREEX3D_VERSION=`cat $$_EV`
+component=freewrl
+FREEWRL_VERSION=`cat $$_EV`
 
 # Generate the version source file
 internal_version.c: $(_EV)
 	$(top_srcdir)/vtempl $(component) \
-	$(FREEX3D_VERSION) < $(templ) > $@
+	$(FREEWRL_VERSION) < $(templ) > $@
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c
 
-LIBFREEX3D_SRCDIR=$(top_srcdir)/src/lib
-LIBFREEX3D_BUILDDIR=$(top_builddir)/src/lib
+LIBFREEWRL_SRCDIR=$(top_srcdir)/src/lib
+LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
 
-AM_CPPFLAGS += -I$(LIBFREEX3D_SRCDIR)
+AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
 
-bin_PROGRAMS = freex3d
-freex3d_LDADD = $(LIBFREEX3D_BUILDDIR)/libFreeX3D.la
+bin_PROGRAMS = freewrl
+freewrl_LDADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la
 
 include Makefile.sources
 
-freex3d_SOURCES += internal_version.c
+freewrl_SOURCES += internal_version.c

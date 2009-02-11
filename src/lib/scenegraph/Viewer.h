@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.6 2009/02/09 20:04:58 crc_canada Exp $
+$Id: Viewer.h,v 1.7 2009/02/11 15:12:55 istakenv Exp $
 
 Viewer ???
 
 */
 
-#ifndef __FREEX3D_VIEWER_H__
-#define __FREEX3D_VIEWER_H__
+#ifndef __FREEWRL_VIEWER_H__
+#define __FREEWRL_VIEWER_H__
 
 
 #define NONE 0
@@ -227,4 +227,4 @@ void getCurrentSpeed();
 
 void viewer_getPosInModel(struct point_XYZ *rp);
 
-#endif /* __FREEX3D_VIEWER_H__ */
+#endif /* __FREEWRL_VIEWER_H__ */

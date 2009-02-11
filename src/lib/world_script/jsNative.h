@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsNative.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: jsNative.h,v 1.3 2009/02/11 15:12:55 istakenv Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -14,8 +14,8 @@ pointers there updated.
 
 */
 
-#ifndef __FREEX3D_JS_NATIVE_H__
-#define __FREEX3D_JS_NATIVE_H__
+#ifndef __FREEWRL_JS_NATIVE_H__
+#define __FREEWRL_JS_NATIVE_H__
 
 
 typedef struct _BrowserNative {
@@ -140,4 +140,4 @@ extern void
 SFColorNativeSet(void *p, struct Uni_String *sv);
 
 
-#endif /* __FREEX3D_JS_NATIVE_H__ */
+#endif /* __FREEWRL_JS_NATIVE_H__ */

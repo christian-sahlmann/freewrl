@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.4 2008/12/15 17:39:37 istakenv Exp $
+$Id: jsVRMLClasses.c,v 1.5 2009/02/11 15:12:55 istakenv Exp $
 
 ???
 
@@ -13,7 +13,7 @@ $Id: jsVRMLClasses.c,v 1.4 2008/12/15 17:39:37 istakenv Exp $
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 
 #include "../vrml_parser/Structs.h"

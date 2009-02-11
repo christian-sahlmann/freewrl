@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.h,v 1.4 2008/12/22 19:20:35 crc_canada Exp $
+$Id: CProto.h,v 1.5 2009/02/11 15:12:55 istakenv Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -14,8 +14,8 @@ pointers there updated.
 
 */
 
-#ifndef __FREEX3D_CPROTO_H__
-#define __FREEX3D_CPROTO_H__
+#ifndef __FREEWRL_CPROTO_H__
+#define __FREEWRL_CPROTO_H__
 
 
 struct PointerHash;
@@ -293,4 +293,4 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, struct X3D_Node **Node);
 
 
-#endif /* __FREEX3D_CPROTO_H__ */
+#endif /* __FREEWRL_CPROTO_H__ */

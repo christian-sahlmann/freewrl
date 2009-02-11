@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.h,v 1.3 2009/01/09 15:39:12 crc_canada Exp $
+$Id: quaternion.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
 
 Quaternion ???
 
 */
 
-#ifndef __FREEX3D_QUATERNION_H__
-#define __FREEX3D_QUATERNION_H__
+#ifndef __FREEWRL_QUATERNION_H__
+#define __FREEWRL_QUATERNION_H__
 
 
 #define DELTA 0.0001
@@ -103,4 +103,4 @@ quaternion_slerp(Quaternion *ret,
 	  const double t);
 
 
-#endif /* __FREEX3D_QUATERNION_H__ */
+#endif /* __FREEWRL_QUATERNION_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.7 2008/12/31 13:08:15 couannette Exp $
+$Id: ProdCon.c,v 1.8 2009/02/11 15:12:54 istakenv Exp $
 
 CProto ???
 
@@ -13,7 +13,7 @@ CProto ???
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "headers.h"

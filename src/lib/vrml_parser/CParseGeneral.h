@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseGeneral.h,v 1.3 2008/12/02 17:41:38 couannette Exp $
+$Id: CParseGeneral.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
 
 General header for VRML-parser (lexer/parser)
 
 */
 
-#ifndef __FREEX3D_CPARSE_GENERAL_H__
-#define __FREEX3D_CPARSE_GENERAL_H__
+#ifndef __FREEWRL_CPARSE_GENERAL_H__
+#define __FREEWRL_CPARSE_GENERAL_H__
 
 
 /* Typedefs for VRML-types. */
@@ -63,4 +63,4 @@ union anyVrml
 /* void fw_assert(char *,int); */
 
 
-#endif /* __FREEX3D_CPARSE_GENERAL_H__ */
+#endif /* __FREEWRL_CPARSE_GENERAL_H__ */

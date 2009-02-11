@@ -1,6 +1,6 @@
 /*********************************************************************
  *
- * FreeX3D SoundServer engine
+ * FreeWRL SoundServer engine
  *
  *  Copyright (C) 2002 John Stewart, CRC Canada.
  *  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -23,7 +23,7 @@
 #include "soundheader.h"
 
 
-int freex3dSystem (char *string);
+int freewrlSystem (char *string);
 
 key_t IPCKey;
 int msq_fromclnt;
@@ -226,7 +226,7 @@ SNDFILE *openSound (char *path,int soundNo) {
 }
 
 /*
- * Receive information from FreeX3D
+ * Receive information from FreeWRL
  */
 void toclnt(char *message_to_send) {
 	msg.mtype= 1;
@@ -303,10 +303,10 @@ void process_command () {
 		/* printf ("ST is %s\n cp is %s\n",st,cp);*/
 		strcat (cp,st);
 
-		/* strcat (cp, " 2>/tmp/FreeX3D_Errors");*/
+		/* strcat (cp, " 2>/tmp/FreeWRL_Errors");*/
 
 		/* printf ("going to system %s\n",cp); */
-		freex3dSystem (cp);
+		freewrlSystem (cp);
 
 		/*  make the new, converted file name, then later, open it*/
 		strcpy (cp,"/tmp/sound");
@@ -382,7 +382,7 @@ int main(int argc,char **argv) {
 	}
 
 	if ((argc == 2) && !strcmp(argv[1],"-v")) {
-		printf("FreeX3D sound server\nVersion: %s\n", freex3d_snd_get_version());
+		printf("FreeWRL sound server\nVersion: %s\n", freewrl_snd_get_version());
 		exit(0);
 	}
 
@@ -430,7 +430,7 @@ int main(int argc,char **argv) {
 			exit (0);
 		}
 
-		/* printf ("server, from FreeX3D=%x message='%s'\n",xx,msg.msg);*/
+		/* printf ("server, from FreeWRL=%x message='%s'\n",xx,msg.msg);*/
 		process_command ();
 	} while (strncmp ("QUIT",msg.msg,4));
 	for (count=0; count<current_max; count++) {
@@ -446,7 +446,7 @@ int main(int argc,char **argv) {
 /* get all system commands, and pass them through here. What we do
  * is take parameters and execl them, in specific formats, to stop
  * people (or, to try to stop) from typing malicious code. */
-int freex3dSystem (char *sysline) {
+int freewrlSystem (char *sysline) {
 
 #define MAXEXECPARAMS 10
 #define EXECBUFSIZE	2000
@@ -469,7 +469,7 @@ int freex3dSystem (char *sysline) {
 	if (strlen(sysline)>=EXECBUFSIZE) return FALSE;
 	strcpy (buf,sysline);
 
-	/* printf ("freex3dSystem, have %s here\n",internbuf);*/
+	/* printf ("freewrlSystem, have %s here\n",internbuf);*/
 	for (count=0; count<MAXEXECPARAMS; count++) paramline[count] = NULL;
 
 	/* split the command off of internbuf, for execing. */

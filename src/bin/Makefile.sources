@@ -1,4 +1,4 @@
-freex3d_SOURCES = \
+freewrl_SOURCES = \
 		main.c \
 		main.h \
 		internal.h \

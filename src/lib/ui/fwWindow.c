@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwWindow.c,v 1.8 2009/02/04 11:53:04 couannette Exp $
+$Id: fwWindow.c,v 1.9 2009/02/11 15:12:55 istakenv Exp $
 
 FreeWRL main window.
 
@@ -12,7 +12,7 @@ FreeWRL main window.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include <float.h>
 

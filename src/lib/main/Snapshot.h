@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.h,v 1.3 2008/12/21 19:21:06 couannette Exp $
+$Id: Snapshot.h,v 1.4 2009/02/11 15:12:54 istakenv Exp $
 
 Screen snapshot.
 
 */
 
-#ifndef __FREEX3D_SNAPSHOT_H__
-#define __FREEX3D_SNAPSHOT_H__
+#ifndef __FREEWRL_SNAPSHOT_H__
+#define __FREEWRL_SNAPSHOT_H__
 
 
 extern int snapCount;
@@ -24,4 +24,4 @@ void Snapshot();
 extern void abort();
 
 
-#endif /* __FREEX3D_SNAPSHOT_H__ */
+#endif /* __FREEWRL_SNAPSHOT_H__ */

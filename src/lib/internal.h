@@ -1,17 +1,17 @@
 /*******************************************************************
  *
- * FreeX3D support library
+ * FreeWRL support library
  *
  * internal header - internal.h
  *
  * Library internal declarations.
  *
- * $Id: internal.h,v 1.10 2008/12/31 13:08:15 couannette Exp $
+ * $Id: internal.h,v 1.11 2009/02/11 15:12:54 istakenv Exp $
  *
  *******************************************************************/
 
-#ifndef __LIBFREEX3D_DECL_H__
-#define __LIBFREEX3D_DECL_H__
+#ifndef __LIBFREEWRL_DECL_H__
+#define __LIBFREEWRL_DECL_H__
 
 
 /**
@@ -74,4 +74,4 @@ void *freewrlStrdup(int line, char *file, char *str);
                          }
 
 
-#endif /* __LIBFREEX3D_DECL_H__ */
+#endif /* __LIBFREEWRL_DECL_H__ */

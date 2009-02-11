@@ -1,9 +1,9 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: main.c,v 1.12 2009/02/05 10:33:04 couannette Exp $
+$Id: main.c,v 1.13 2009/02/11 15:12:54 istakenv Exp $
 
-FreeX3D main program.
+FreeWRL main program.
 
 */
 
@@ -11,7 +11,7 @@ FreeX3D main program.
 #include <system.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "main.h"
 #include "options.h"
@@ -40,8 +40,8 @@ int main (int argc, char **argv)
     const char *libver, *progver;
 
     /* first, get the FreeWRL shared lib, and verify the version. */
-    libver = libFreeX3D_get_version();
-    progver = freex3d_get_version();
+    libver = libFreeWRL_get_version();
+    progver = freewrl_get_version();
     if (strcmp(progver, libver)) {
 	ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
     }

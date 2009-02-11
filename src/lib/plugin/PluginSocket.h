@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: PluginSocket.h,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: PluginSocket.h,v 1.3 2009/02/11 15:12:54 istakenv Exp $
 
 FreeWRL plugin utilities header file.
 
 */
 
-#ifndef __FREEX3D_PLUGIN_SOCKET_H__
-#define __FREEX3D_PLUGIN_SOCKET_H__
+#ifndef __FREEWRL_PLUGIN_SOCKET_H__
+#define __FREEWRL_PLUGIN_SOCKET_H__
 
 
 #ifdef __cplusplus
@@ -31,4 +31,4 @@ int receiveUrl(int sockDesc, urlRequest *request);
 #endif
 
 
-#endif /* __FREEX3D_PLUGIN_SOCKET_H__ */
+#endif /* __FREEWRL_PLUGIN_SOCKET_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.8 2009/02/05 21:14:47 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.9 2009/02/11 15:12:55 istakenv Exp $
 
 X3D Navigation Component
 
@@ -12,7 +12,7 @@ X3D Navigation Component
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"

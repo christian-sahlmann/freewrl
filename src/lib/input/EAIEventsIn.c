@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.16 2009/01/09 14:03:00 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.17 2009/02/11 15:12:54 istakenv Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -12,7 +12,7 @@ Handle incoming EAI (and java class) events with panache.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
@@ -142,7 +142,7 @@ void EAI_parse_commands () {
 				break;
 				}
 			case GETVERSION: {
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,libFreeX3D_get_version());
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,libFreeWRL_get_version());
 				break;
 				}
 			case GETENCODING: {

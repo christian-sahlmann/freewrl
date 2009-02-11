@@ -5,7 +5,7 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
-/* put a string on the console. This is fork'd by FreeX3D for error messages,
+/* put a string on the console. This is fork'd by FreeWRL for error messages,
  * because when running within an HTML browser, error messages to the command
  * line get lost.
  */

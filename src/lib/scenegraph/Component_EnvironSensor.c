@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.3 2008/12/02 15:14:16 couannette Exp $
+$Id: Component_EnvironSensor.c,v 1.4 2009/02/11 15:12:54 istakenv Exp $
 
 X3D Environmental Sensors Component
 
@@ -12,7 +12,7 @@ X3D Environmental Sensors Component
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

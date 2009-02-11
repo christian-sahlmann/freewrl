@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.h,v 1.3 2008/12/15 16:57:13 istakenv Exp $
+$Id: CParseLexer.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
 
 Lexer (input of terminal symbols) for CParse
 
@@ -14,8 +14,8 @@ fields are not scoped and therefore stored in a simple vector.
 
 */
 
-#ifndef __FREEX3D_CPARSE_LEXER_H__
-#define __FREEX3D_CPARSE_LEXER_H__
+#ifndef __FREEWRL_CPARSE_LEXER_H__
+#define __FREEWRL_CPARSE_LEXER_H__
 
 /* for Stack typedef */
 #include "../scenegraph/Vector.h"
@@ -152,4 +152,4 @@ void skipToEndOfOpenCurly(struct VRMLLexer *me, int level);
 void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b);
 
 
-#endif /* __FREEX3D_CPARSE_LEXER_H__ */
+#endif /* __FREEWRL_CPARSE_LEXER_H__ */

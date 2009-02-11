@@ -1,14 +1,14 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.h,v 1.5 2008/12/21 19:21:06 couannette Exp $
+$Id: fieldSet.h,v 1.6 2009/02/11 15:12:55 istakenv Exp $
 
 ???
 
 */
 
-#ifndef __FREEX3D_JS_FIELD_SET_H__
-#define __FREEX3D_JS_FIELD_SET_H__
+#ifndef __FREEWRL_JS_FIELD_SET_H__
+#define __FREEWRL_JS_FIELD_SET_H__
 
 
 #define ROUTED_FIELD_EVENT_OUT 0
@@ -38,4 +38,4 @@ DEF_FINDROUTEDFIELDFP(EVENT_IN);
 DEF_FINDROUTEDFIELDFP(EVENT_OUT);
 
 
-#endif /* __FREEX3D_JS_FIELD_SET_H__ */
+#endif /* __FREEWRL_JS_FIELD_SET_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.2 2008/11/27 00:27:18 couannette Exp $
+$Id: Material.c,v 1.3 2009/02/11 15:12:54 istakenv Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -12,7 +12,7 @@ Only do material settings that "matter" and bounds check all values.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 /* #include "LinearAlgebra.h" */
 

@@ -1,10 +1,10 @@
 /*******************************************************************
  *
- * FreeX3D support library
+ * FreeWRL support library
  *
  * display_aqua.c
  *
- * $Id: display_aqua.c,v 1.2 2008/12/31 13:08:15 couannette Exp $
+ * $Id: display_aqua.c,v 1.3 2009/02/11 15:12:54 istakenv Exp $
  *
  *******************************************************************/
 

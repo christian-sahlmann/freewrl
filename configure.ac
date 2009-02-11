@@ -1,5 +1,5 @@
 #
-# FreeX3D new build system
+# FreeWRL new build system
 #
 # Michel Briand - 2008, with a lot of help from automake@gnu.org.
 #
@@ -11,7 +11,7 @@
 # Autoconf startup, we define the package's name, and version: 
 # but this is not the program's version, nor the library's version.
 # We also define the maintainer address.
-AC_INIT([freex3d], [2.0], [freewrl@crc.ca])
+AC_INIT([freewrl], [2.0], [freewrl@crc.ca])
 
 # Little cutomizatin: all autotools derived files go in a sub-directory.
 AC_CONFIG_AUX_DIR([config])
@@ -49,7 +49,7 @@ AC_PROG_LIBTOOL
 export PKG_CONFIG_PATH=$srcdir:$PKG_CONFIG_PATH
 
 # ===============================
-# Common headers the FreeX3D uses
+# Common headers the FreeWRL uses
 # ===============================
 
 AC_HEADER_STDC
@@ -71,7 +71,7 @@ AC_CHECK_FUNCS([strchr strrchr getopt getopt_long getopt_long_only])
 
 
 # ====================================================
-# FreeX3D specific configuration: target system
+# FreeWRL specific configuration: target system
 # ====================================================
 
 # For cross-compilation (to be implemented later)
@@ -90,7 +90,7 @@ AM_CONDITIONAL([OS_LINUX],[test "$host_os" = "linux"])
 AM_CONDITIONAL([OS_MAC],[test "$os_type" = "mac"])
 
 # ====================================================
-# FreeX3D specific configuration: debug build
+# FreeWRL specific configuration: debug build
 # ====================================================
 
 AC_MY_DEFINE_SWITCH([debug],[enable debugging (default=off)],off,_DEBUG)
@@ -118,7 +118,7 @@ AC_ARG_WITH([plugindir],
 AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugin.])
 
 # ====================================================
-# FreeX3D specific configuration: library checking
+# FreeWRL specific configuration: library checking
 # ====================================================
 # Threads
 ACX_PTHREAD
@@ -259,7 +259,7 @@ case "$TARGET" in
         if ! test -d /System/Library/Frameworks/OpenGL.framework ; then
            AC_MSG_ERROR([OpenGL framework not found - Check your installation])
         fi
-        # FIXME: Early support for OpenGL in OSX with autoconf... freex3d compiles but does not run...
+        # FIXME: Early support for OpenGL in OSX with autoconf... freewrl compiles but does not run...
         GL_CFLAGS=""
         GL_LIBS="-framework AppKit -framework Foundation -L/System/Library/Frameworks/OpenGL.framework/Libraries -lGL -lGLU"
         AC_SUBST(GL_CFLAGS)
@@ -331,7 +331,7 @@ PLUGIN_LIBS=
 AC_SUBST(PLUGIN_CFLAGS)
 AC_SUBST(PLUGIN_LIBS)
 
-# FreeX3D helpers programs
+# FreeWRL helpers programs
 
 case "$os_type" in
      mac) # Mac defaults
@@ -408,34 +408,34 @@ AC_DEFINE_UNQUOTED(IMAGECONVERT, "$IMAGECONVERT", [Path to convert (image conver
 # Targets
 # =======
 
-FREEX3D_PROGRAM="freex3d"
-FREEX3D_SOUND_MANAGER="freex3d_snd"
-FREEX3D_MESSAGE_WRAPPER="freex3d_msg"
+FREEWRL_PROGRAM="freewrl"
+FREEWRL_SOUND_MANAGER="freewrl_snd"
+FREEWRL_MESSAGE_WRAPPER="freewrl_msg"
 case $os_type in
      # FIXME: name of plugin?
-     win32) FREEX3D_PLUGIN="plugin_windows.dll" ;;
-     mac)   FREEX3D_PLUGIN="npfreex3d.dynlib" ;;
-     unix)  FREEX3D_PLUGIN="npfreex3d.so" ;;
+     win32) FREEWRL_PLUGIN="plugin_windows.dll" ;;
+     mac)   FREEWRL_PLUGIN="npfreewrl.dynlib" ;;
+     unix)  FREEWRL_PLUGIN="npfreewrl.so" ;;
 esac
 
-AC_SUBST(FREEX3D_PROGRAM)
-AC_DEFINE_UNQUOTED(FREEX3D_PROGRAM, "$FREEX3D_PROGRAM", [The FreeX3D program name.])
+AC_SUBST(FREEWRL_PROGRAM)
+AC_DEFINE_UNQUOTED(FREEWRL_PROGRAM, "$FREEWRL_PROGRAM", [The FreeWRL program name.])
 
-AC_SUBST(FREEX3D_SOUND_MANAGER)
-AC_DEFINE_UNQUOTED(FREEX3D_SOUND_MANAGER, "$FREEX3D_SOUND_MANAGER", [The FreeX3D sound wrapper program name.])
+AC_SUBST(FREEWRL_SOUND_MANAGER)
+AC_DEFINE_UNQUOTED(FREEWRL_SOUND_MANAGER, "$FREEWRL_SOUND_MANAGER", [The FreeWRL sound wrapper program name.])
 
-AC_SUBST(FREEX3D_MESSAGE_WRAPPER)
-AC_DEFINE_UNQUOTED(FREEX3D_MESSAGE_WRAPPER, "$FREEX3D_MESSAGE_WRAPPER", [The FreeX3D message wrapper program name.])
+AC_SUBST(FREEWRL_MESSAGE_WRAPPER)
+AC_DEFINE_UNQUOTED(FREEWRL_MESSAGE_WRAPPER, "$FREEWRL_MESSAGE_WRAPPER", [The FreeWRL message wrapper program name.])
 
-AC_SUBST(FREEX3D_PLUGIN)
-AC_DEFINE_UNQUOTED(FREEX3D_PLUGIN, "$FREEX3D_PLUGIN", [The FreeX3D plugin shared object name.])
+AC_SUBST(FREEWRL_PLUGIN)
+AC_DEFINE_UNQUOTED(FREEWRL_PLUGIN, "$FREEWRL_PLUGIN", [The FreeWRL plugin shared object name.])
 
 # Final generation
 AC_CONFIG_FILES([Makefile
 src/Makefile
 src/bin/Makefile
 src/lib/Makefile
-src/lib/libFreeX3D.pc
+src/lib/libFreeWRL.pc
 src/plugin/Makefile
 src/sound/Makefile
 src/message/Makefile])

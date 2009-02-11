@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.6 2009/01/09 14:03:00 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.7 2009/02/11 15:12:55 istakenv Exp $
 
 Javascript C language binding.
 
@@ -12,7 +12,7 @@ Javascript C language binding.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
@@ -225,7 +225,7 @@ VrmlBrowserGetVersion(JSContext *context, JSObject *obj, uintN argc, jsval *argv
 	UNUSED(argc);
 	UNUSED(argv);
 
-	_str = JS_NewStringCopyZ(context, libFreeX3D_get_version());
+	_str = JS_NewStringCopyZ(context, libFreeWRL_get_version());
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }

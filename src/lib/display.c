@@ -1,9 +1,9 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.c,v 1.7 2009/01/29 18:30:06 crc_canada Exp $
+$Id: display.c,v 1.8 2009/02/11 15:12:54 istakenv Exp $
 
-FreeX3D support library.
+FreeWRL support library.
 Display (X11/Motif or OSX/Aqua) initialization.
 
 */
@@ -13,7 +13,7 @@ Display (X11/Motif or OSX/Aqua) initialization.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 
 /* common function between display_x11, display_motif and display_aqua */

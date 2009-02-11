@@ -1,10 +1,10 @@
 /*******************************************************************
  *
- * FreeX3D support library
+ * FreeWRL support library
  *
  * threads.c
  *
- * $Id: threads.c,v 1.3 2008/11/27 00:27:17 couannette Exp $
+ * $Id: threads.c,v 1.4 2009/02/11 15:12:54 istakenv Exp $
  *
  *******************************************************************/
 

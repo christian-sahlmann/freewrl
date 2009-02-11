@@ -1,4 +1,4 @@
-# Library: main FreeX3D library
+# Library: main FreeWRL library
 # Will generates its own pkg-config definition file (soon).
 #
 
@@ -58,55 +58,55 @@ AM_CPPFLAGS += -Wno-format -no-cpp-precomp -fno-common
 ### -DSVR4 -D_BSD_SOURCE -DPOSIX_SOURCE -D_POSIX_C_SOURCE -DDARWIN
 endif
 
-_EV=$(top_srcdir)/versions/LIBFREEX3D
-_EV2=$(top_srcdir)/versions/LIBFREEX3D_LTVERSION
+_EV=$(top_srcdir)/versions/LIBFREEWRL
+_EV2=$(top_srcdir)/versions/LIBFREEWRL_LTVERSION
 export
 
 templ=$(top_srcdir)/versions/template/version.c.in
-component=libFreeX3D
-LIBFREEX3D_VERSION=`cat $$_EV`
-LIBFREEX3D_LTVERSION=`cat $$_EV2`
+component=libFreeWRL
+LIBFREEWRL_VERSION=`cat $$_EV`
+LIBFREEWRL_LTVERSION=`cat $$_EV2`
 
 # Generate the version source file
 internal_version.c: $(_EV)
 	$(top_srcdir)/vtempl $(component) \
-	$(LIBFREEX3D_VERSION) < $(templ) > $@
+	$(LIBFREEWRL_VERSION) < $(templ) > $@
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c
 
-# To be able to check for libFreeX3D with pkg-config
+# To be able to check for libFreeWRL with pkg-config
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libFreeX3D.pc
+pkgconfig_DATA = libFreeWRL.pc
 
-lib_LTLIBRARIES = libFreeX3D.la
-include_HEADERS = libFreeX3D.h
-libFreeX3D_la_LDFLAGS = -version-info $(LIBFREEX3D_LTVERSION)
+lib_LTLIBRARIES = libFreeWRL.la
+include_HEADERS = libFreeWRL.h
+libFreeWRL_la_LDFLAGS = -version-info $(LIBFREEWRL_LTVERSION)
 
 include Makefile.sources
 
-libFreeX3D_la_SOURCES += internal_version.c
+libFreeWRL_la_SOURCES += internal_version.c
 
 #
 # WINDOW_USE_* are exclusive
 #
 if WINDOW_USE_X11
-libFreeX3D_la_SOURCES += display_x11.c ui/fwWindow.c ui/fwBareWindow.c
+libFreeWRL_la_SOURCES += display_x11.c ui/fwWindow.c ui/fwBareWindow.c
 AM_CPPFLAGS+=-DTARGET_X11
 endif
 
 if WINDOW_USE_MOTIF
-libFreeX3D_la_SOURCES += display_x11.c display_motif.c ui/fwWindow.c ui/fwMotifWindow.c
+libFreeWRL_la_SOURCES += display_x11.c display_motif.c ui/fwWindow.c ui/fwMotifWindow.c
 AM_CPPFLAGS+=-DTARGET_MOTIF
 endif
 
 if WINDOW_USE_AQUA
-libFreeX3D_la_SOURCES += display_aqua.c
+libFreeWRL_la_SOURCES += display_aqua.c
 AM_CPPFLAGS+=-DTARGET_AQUA
 endif
 
 # # quickcompile:
 # # 	@-rm -f .quickcompile.log
-# # 	@for i in $(filter %.c, $(libFreeX3D_la_SOURCES)); do \
+# # 	@for i in $(filter %.c, $(libFreeWRL_la_SOURCES)); do \
 # # 		echo "compile: $$i"; \
 # # 		$(COMPILE) $(CFLAGS) -c $$i 2>&1 >> .quickcompile.log || { \
 # # 			echo "failed to compile: $$i"; \

@@ -1,15 +1,15 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_net.h,v 1.1 2008/12/02 18:17:18 couannette Exp $
+$Id: system_net.h,v 1.2 2009/02/11 15:12:54 istakenv Exp $
 
-FreeX3D support library.
+FreeWRL support library.
 Internal header: network dependencies.
 
 */
 
-#ifndef __LIBFREEX3D_SYSTEM_NET_H__
-#define __LIBFREEX3D_SYSTEM_NET_H__
+#ifndef __LIBFREEWRL_SYSTEM_NET_H__
+#define __LIBFREEWRL_SYSTEM_NET_H__
 
 
 #include <sys/ipc.h>
@@ -18,4 +18,4 @@ Internal header: network dependencies.
 #include <sys/socket.h>
 
 
-#endif /* __LIBFREEX3D_SYSTEM_NET_H__ */
+#endif /* __LIBFREEWRL_SYSTEM_NET_H__ */

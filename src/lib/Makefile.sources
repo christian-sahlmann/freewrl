@@ -1,11 +1,11 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.13 2009/01/03 01:35:02 couannette Exp $
+# $Id: Makefile.sources,v 1.14 2009/02/11 15:12:54 istakenv Exp $
 #
 # List all source files
 #
 
-libFreeX3D_la_SOURCES = \
+libFreeWRL_la_SOURCES = \
 			internal.h \
 			system.h \
 			system_net.h \
@@ -13,7 +13,7 @@ libFreeX3D_la_SOURCES = \
 			system_fonts.h \
 			system_js.h \
 			display.h \
-			libFreeX3D.h \
+			libFreeWRL.h \
 			main.c \
 			display.c \
 			threads.c \

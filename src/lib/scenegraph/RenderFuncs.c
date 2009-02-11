@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.4 2008/12/21 19:21:06 couannette Exp $
+$Id: RenderFuncs.c,v 1.5 2009/02/11 15:12:55 istakenv Exp $
 
 Scenegraph rendering.
 
@@ -13,7 +13,7 @@ Scenegraph rendering.
 #include <internal.h>
 
 #include <pthread.h> /* this is needed here, for some reason JAS */
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

@@ -28,7 +28,7 @@ _EV=$(top_srcdir)/versions/PLUGIN
 export
 
 templ=$(top_srcdir)/versions/template/version.c.in
-component=freex3d_plugin
+component=freewrl_plugin
 PLUGIN_VERSION=`cat $$_EV`
 
 # Generate the version source file
@@ -43,11 +43,11 @@ LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
 
 AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
 
-plugin_LTLIBRARIES = libFreeX3Dplugin.la
+plugin_LTLIBRARIES = libFreeWRLplugin.la
 plugindir=$(PLUGIN_DIR)
-libFreeX3Dplugin_la_LDFLAGS = -avoid-version $(AM_LDFLAGS)
-# libFreeX3Dplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeX3D.la
+libFreeWRLplugin_la_LDFLAGS = -avoid-version $(AM_LDFLAGS)
+# libFreeWRLplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la
 
 include Makefile.sources
 
-libFreeX3Dplugin_la_SOURCES += internal_version.c
+libFreeWRLplugin_la_SOURCES += internal_version.c

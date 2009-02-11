@@ -1,4 +1,4 @@
-libFreeX3Dplugin_la_SOURCES = \
+libFreeWRLplugin_la_SOURCES = \
 			plugin_main.c \
 			npunix.c \
 			system.h \
