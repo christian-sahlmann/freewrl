@@ -1,28 +1,28 @@
 /*******************************************************************
  *
- * FreeX3D support library
+ * FreeWRL support library
  *
- * public API - libFreeX3D.h
+ * public API - libFreeWRL.h
  *
- * $Id: libFreeX3D.h,v 1.15 2008/12/31 13:08:15 couannette Exp $
+ * $Id: libFreeWRL.h,v 1.1 2009/02/11 15:22:27 istakenv Exp $
  *
  *******************************************************************/
 
-#ifndef __LIBFREEX3D_MAIN_H__
-#define __LIBFREEX3D_MAIN_H__
+#ifndef __LIBFREEWRL_MAIN_H__
+#define __LIBFREEWRL_MAIN_H__
 
 /**
  * Version embedded
  */
-const char *libFreeX3D_get_version();
+const char *libFreeWRL_get_version();
 
 /**
  * Initialization
  */
 void initFreewrl();
 void closeFreewrl();
-int initFreeX3D();
-void closeFreeX3D();
+int initFreeWRL();
+void closeFreeWRL();
 
 /**
  * General functions
@@ -67,4 +67,4 @@ extern int be_collision;
 extern char *keypress_string;
 
 
-#endif /* __LIBFREEX3D_MAIN_H__ */
+#endif /* __LIBFREEWRL_MAIN_H__ */

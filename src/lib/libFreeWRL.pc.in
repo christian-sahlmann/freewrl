@@ -2,8 +2,8 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
-Name: libFreeX3D
-Description: FreeX3D support library.
+Name: libFreeWRL
+Description: FreeWRL support library.
 Version: @VERSION@
-Libs: -L${libdir} -lFreeX3D
+Libs: -L${libdir} -lFreeWRL
 Cflags: -I${includedir}
