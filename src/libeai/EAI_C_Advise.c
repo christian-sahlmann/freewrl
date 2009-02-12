@@ -1,7 +1,6 @@
 #include "config.h"
 #include "system.h"
 #include "EAI_C.h"
-
 #define LOCK_ADVISE_TABLE printf ("locking advise table\n");
 #define UNLOCK_ADVISE_TABLE printf ("unlocking advise table\n");
 
@@ -55,7 +54,7 @@ int X3DAdvise (X3DEventOut *node, void *fn) {
 	/* and, tell FreeWRL about this one */
 	_RegisterListener (node,AdviseIndex);
 	
-	return TRUE;
+	return AdviseIndex;
 }
 
 
@@ -67,7 +66,6 @@ void _handleFreeWRLcallback (char *line) {
 	/* something funny at the beginning of time? */
 	if (AdviseIndex < 0) return;
 
-	if (!isSwig) {
 	if (strstr(line,"EV_EOT") == NULL) {
 		printf ("handle_callback - no eot in string %s\n",line);
 	} else {
@@ -103,12 +101,16 @@ void _handleFreeWRLcallback (char *line) {
 			EAI_ListenerTable[count].type, line, 0);
 
 		}
-		EAI_ListenerTable[count].functionHandler(EAI_ListenerTable[count].dataArea);
-	}
-	} else {
-		while ((!isdigit(*line)) && (*line != '\0')) line++; 
-		sscanf (line, "%lf",&evTime);
-		while (!iscntrl(*line)) line++; while (iscntrl(*line)) line++;
-		write(_X3D_FreeWRL_Swig_FD, line, sizeof(line));
+		if (EAI_ListenerTable[count].functionHandler != 0) {
+			EAI_ListenerTable[count].functionHandler(EAI_ListenerTable[count].dataArea);
+		} else {
+			if (_X3D_FreeWRL_Swig_FD) {
+                		write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].FreeWRL_RegisterNumber, sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber));
+                		write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea));
+			} else {
+				printf("no socket connected for callbacks!");
+			}
+		}
 	}
 }
+

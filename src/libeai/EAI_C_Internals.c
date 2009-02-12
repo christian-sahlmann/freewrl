@@ -6,7 +6,6 @@
 int _X3D_FreeWRL_FD;
 int _X3D_FreeWRL_Swig_FD = 0;
 int _X3D_FreeWRL_listen_FD = 0;
-int isSwig = 0;
 int _X3D_queryno = 1;
 
 int receivedData= FALSE;
@@ -88,9 +87,6 @@ void freewrlSwigThread(void) {
 	len = sizeof(cliaddr);
 
 	_X3D_FreeWRL_Swig_FD = accept((_X3D_FreeWRL_listen_FD), (struct sockaddr*) &cliaddr, (socklen_t *) &len);
-
-	if (_X3D_FreeWRL_Swig_FD)
-		isSwig = 1;
 }
 
 /* read in the reply - if it is an RE; it is the reply to an event; if it is an

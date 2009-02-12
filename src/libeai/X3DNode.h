@@ -155,7 +155,6 @@ X3DNode *X3D_newMFVec2d();
 extern int _X3D_queryno;
 extern int _X3D_FreeWRL_FD;
 extern int _X3D_FreeWRL_Swig_FD;
-extern int isSwig;
 int _X3D_countWords(char *ptr);
 char *_X3D_make1StringCommand (char command, char *name);
 char *_X3D_make2StringCommand (char command, char *str1, char *str2);
