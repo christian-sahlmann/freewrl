@@ -74,6 +74,10 @@ internal_version.c: $(_EV)
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c
 
+newversion:
+	-rm -f internal_version.*
+	$(MAKE)
+
 # To be able to check for libFreeWRL with pkg-config
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libFreeWRL.pc
