@@ -31,6 +31,9 @@ templ=$(top_srcdir)/versions/template/version.c.in
 component=freewrl_plugin
 PLUGIN_VERSION=`cat $$_EV`
 
+BUILD_TIMESTAMP=`date +%F_%T`
+AM_CPPFLAGS += -DBUILD_TIMESTAMP=\"$(BUILD_TIMESTAMP)\"
+
 # Generate the version source file
 internal_version.c: $(_EV)
 	$(top_srcdir)/vtempl $(component) \

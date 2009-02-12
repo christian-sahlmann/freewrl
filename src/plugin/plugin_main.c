@@ -493,13 +493,23 @@ NPP_GetMIMEDescription(void)
 NPError
 NPP_GetValue(NPP instance, NPPVariable variable, void *value)
 {
+#define VERSION_DESCRIPTION_SIZE 1024
+	static char version_description[VERSION_DESCRIPTION_SIZE];
+
     NPError err = NPERR_NO_ERROR;
 	print_here ("NPP_GetValue");
     if (variable == NPPVpluginNameString)
 		*((char **)value) = PLUGIN_NAME;
-    else if (variable == NPPVpluginDescriptionString)
-		*((char **)value) = freewrl_plugin_get_version();
-    else
+    else if (variable == NPPVpluginDescriptionString) {
+		snprintf(version_description, VERSION_DESCRIPTION_SIZE,
+				 "<b>FreeWRL is a VRML/X3D plugin.</b><br>"
+				 "Visit us at <a href=\"http://freewrl.sourceforge.net/\">http://freewrl.sourceforge.net/</a>.<br>" \
+				"Plugin version: <b>%s</b>.<br>"
+				"Build timestamp: <b>%s</b>.<br>",
+				freewrl_plugin_get_version(),
+				BUILD_TIMESTAMP);
+		*((char **)value) = version_description;
+	} else
 		err = NPERR_GENERIC_ERROR;
 
     return err;
