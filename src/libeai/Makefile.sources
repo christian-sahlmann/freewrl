@@ -1,0 +1,10 @@
+libEAI_la_SOURCES = \
+			EAI_C_Advise.c \
+			EAI_C_Control.c \
+			EAI_C_Field.c \
+			EAI_C_Internals.c \
+			EAI_C_Node.c \
+			EAI_C_ReWire.c \
+			GeneratedCode.c \
+			EAI_C.h \
+			X3DNode.h

@@ -1,0 +1,9 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+Name: libEAI
+Description: FreeWRL EAI C support library.
+Version: @VERSION@
+Libs: -L${libdir} -lEAI
+Cflags: -I${includedir}

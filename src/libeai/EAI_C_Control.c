@@ -1,4 +1,5 @@
-
+#include "config.h"
+#include "system.h"
 #include "EAI_C.h"
 #include <stdio.h>
 #include <sys/errno.h>

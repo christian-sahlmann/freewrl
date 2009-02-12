@@ -1,3 +1,5 @@
+#include "config.h"
+#include "system.h"
 #include "EAI_C.h"
 
 void X3D_freeEventIn(X3DEventIn* ev) {

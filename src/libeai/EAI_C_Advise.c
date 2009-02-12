@@ -1,4 +1,7 @@
+#include "config.h"
+#include "system.h"
 #include "EAI_C.h"
+
 #define LOCK_ADVISE_TABLE printf ("locking advise table\n");
 #define UNLOCK_ADVISE_TABLE printf ("unlocking advise table\n");
 

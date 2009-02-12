@@ -1,7 +1,7 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 #include <display.h>
 #include <internal.h>
 
@@ -23,7 +23,6 @@
 #include <GL/glx.h>
 
 
-#include "system.h"
 #include "../lib/vrml_parser/Structs.h"
 #include "../lib/main/headers.h"
 #include "../lib/vrml_parser/CParseGeneral.h"

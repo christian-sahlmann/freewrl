@@ -1,4 +1,7 @@
+#include "config.h"
+#include "system.h"
 #include "EAI_C.h"
+
 void _handleReWireCallback (char *buf) {
 	int bus, channel, controllerOrVelocity, controlType, value;
 	

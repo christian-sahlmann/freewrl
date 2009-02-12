@@ -279,6 +279,19 @@ AC_SUBST(JPEG_LIBS)
 PKG_CHECK_MODULES(PNG, libpng)
 
 # ======================================
+# LibEAI configuration
+# ======================================
+
+AC_MY_SWITCH(libeai,[enable building of libEAI],off)
+if test x$sw_libeai = xno; then
+  MAYBE_LIBEAI=
+else
+  MAYBE_LIBEAI=libeai
+fi
+AC_SUBST(MAYBE_LIBEAI)
+
+
+# ======================================
 # Internet browser plugin configuration
 # ======================================
 
@@ -437,6 +450,8 @@ src/bin/Makefile
 src/lib/Makefile
 src/lib/libFreeWRL.pc
 src/plugin/Makefile
+src/libeai/Makefile
+src/libeai/libEAI.pc
 src/sound/Makefile
 src/message/Makefile])
 
