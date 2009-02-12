@@ -15,6 +15,7 @@ AM_CPPFLAGS += \
 				$(GL_CFLAGS)
 
 AM_LDFLAGS += \
+				$(PTHREAD_LIBS) \
 				$(FREETYPE_LIBS) \
 				$(JAVASCRIPT_ENGINE_LIBS) \
 				$(XML_LIBS) $(EXPAT_LIBS) \
