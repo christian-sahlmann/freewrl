@@ -1,0 +1,12 @@
+Source: freewrl
+Section: graphics
+Priority: optional
+Maintainer: Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>
+Build-Depends: debhelper (>= 4.0.0), perl, libxaw7-dev, lesstif2-dev, libexpat1-dev, libfreetype6-dev, libgl-dev, libglu-dev, libjpeg62-dev, libpng12-dev, libmozjs-dev, java-compiler
+Standards-Version: 3.6.2
+
+Package: freewrl
+Architecture: any
+Depends: libglu1, lesstif2, libfreetype6, libpng12-0, zlib1g , libjpeg62, libexpat1, libgl1, java-runtime
+Recommends: ttf-bitstream-vera, wget, sox, convert
+Description: FreeWRL X3D/VRML browser 

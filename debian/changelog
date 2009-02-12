@@ -1,0 +1,78 @@
+freewrl (1.22.0-1) unstable; urgency=low
+
+  * New upstream release. 
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Thu, 12 Feb 2009 01:44:36 +0100
+
+freewrl (1.21.2-3) unstable; urgency=low
+
+  * Dependencies fixed (libmozjs1d).
+  * Mozilla Plugin directory fixed.
+  * Fonts directory fixed. 
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Tue, 03 Feb 2009 16:32:50 +0100
+
+freewrl (1.21.2-2) unstable; urgency=low
+
+  * Linux: font directory fixed. 
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Fri, 21 Nov 2008 00:31:34 +0100
+
+freewrl (1.21.2-1) unstable; urgency=low
+
+  * New upstream release. 
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Wed, 19 Nov 2008 19:44:07 +0100
+
+freewrl (1.21.1-2) unstable; urgency=low
+
+  * Plugin install directory reworked.
+  * Menu integration.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Thu, 06 Nov 2008 12:36:30 +0100
+
+freewrl (1.21.1-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Mon, 03 Nov 2008 23:09:05 +0100
+
+freewrl (1.20.7-1.1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Mon, 03 Nov 2008 23:08:30 +0100
+
+freewrl (1.20.7-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Tue, 23 Sep 2008 16:42:14 +0200
+
+freewrl (1.20.5-1) unstable; urgency=low
+
+  * New upstream release.
+  * New recommend dependencies.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Thu, 14 Aug 2008 13:46:25 +0200
+
+freewrl (1.20.2-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Wed, 05 Mar 2008 11:01:23 +0100
+
+freewrl (1.19.9-1) unstable; urgency=low
+
+  * Adapt package from Ubuntu to Debian. Changed policy, build depends,
+  and Makefile.PL. Removed installation of fonts (depends on 
+  ttf-bitstream-vera instead).
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Sun, 28 Oct 2007 13:23:24 +0100
+
+freewrl (1.18.2-1) dapper; urgency=low
+
+  * Initial release 
+
+ -- sarah <sarah.dumoulin@crc.ca>  Tue, 11 Jul 2006 15:17:27 -0400
+
