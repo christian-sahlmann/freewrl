@@ -11,7 +11,7 @@
 # Autoconf startup, we define the package's name, and version: 
 # but this is not the program's version, nor the library's version.
 # We also define the maintainer address.
-AC_INIT([freewrl], [2.0], [freewrl@crc.ca])
+AC_INIT([freewrl], [1.22.0], [freewrl@crc.ca])
 
 # Little cutomizatin: all autotools derived files go in a sub-directory.
 AC_CONFIG_AUX_DIR([config])
@@ -212,7 +212,7 @@ esac
 
 # Aqua
 if test "$test_aqua" = yes ; then
-AC_MSG_CHECKING([TODO: Checking for Aqua headers & libraries...])
+AC_MSG_WARN([TODO: Checking for Aqua headers & libraries...])
 fi
 
 # X11

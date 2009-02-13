@@ -25,12 +25,22 @@ if [ $try_dash -eq 1 ] ; then
 	fi
 fi
 
-# Distribution
+# Font directory
+# default:
+fontsdir=/usr/X11/lib/X11/fonts/TTF
 case "$1" in
     debian) fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera; shift ;;
-    other) fontsdir=/usr/X11/lib/X11/fonts/TTF; shift ;;
 esac
-my_options="--with-fontsdir=$fontsdir --disable-static --disable-fast-install --with-pic --enable-debug $*"
+
+# Target
+case $(uname -s) in
+	Darwin) echo "Default target on Mac is x11 (Carbon is not yet supported by this build system)"
+			echo "Add this to the command line:"
+			echo "--with-target=x11"
+			echo;;
+esac
+
+my_options="--with-fontsdir=$fontsdir $*"
 
 echo "We will use $shell as the configure shell... "
 if [ $try_dash -eq 1 ] ; then
