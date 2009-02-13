@@ -356,38 +356,66 @@ case "$os_type" in
           ;;
 esac # case $os_type
 
+### The code below these commented lines seems to work. 
+### I'll remove the comments when everything will be fine.
+
 #FIXME: environment variable BROWSER takes precedent over --with-browser= ???
 
 # FIXME: on Mac OSX I want to specify the absolute path of Safari, and the macro
 # AC_PATH_PROG can't handle that...
 
-browser_ok=false
+dnl browser_ok=false
 
-# Environment provided browser
-if test -n "$BROWSER" ; then
-   if test -x "$BROWSER" ; then
-      browser_ok=true
+dnl # Environment provided browser
+dnl if test -n "$BROWSER" ; then
+dnl    if test -x "$BROWSER" ; then
+dnl       browser_ok=true
+dnl    fi
+dnl fi
+
+dnl # Configuration default browser
+dnl if test -n "$DEFAULT_BROWSER" ; then
+dnl    BROWSER=`which $DEFAULT_BROWSER`
+dnl    if test -x "$BROWSER" ; then
+dnl       browser_ok=true
+dnl    fi
+dnl fi
+
+dnl if test "$browser_ok" != true ; then
+dnl    AC_MSG_WARN([Default browser will be searched in PATH...])
+dnl    AC_ARG_VAR([BROWSER], [Path to Internet browser.])
+dnl    AC_PATH_PROG([BROWSER], [$BROWSER], [false])
+dnl fi
+
+dnl if test "$BROWSER" = "false"; then
+dnl   AC_MSG_WARN([Internet browser not found -- freewrl will not process anchors!])
+dnl fi
+dnl AC_DEFINE_UNQUOTED(BROWSER, "$BROWSER", [Path to Internet browser.])
+
+dnl AC_ARG_VAR([BROWSER], [Path to Internet browser.])
+
+### New test
+
+AC_ARG_WITH([browser],
+        [AS_HELP_STRING([--with-browser],[Select internet browser (default: firefox)])],
+        [WITH_BROWSER=$withval],
+        [WITH_BROWSER=$DEFAULT_BROWSER])
+
+# Test user supplied value first
+browser=$(which $WITH_BROWSER)
+AC_MSG_CHECKING([internet browser $WITH_BROWSER (default: $DEFAULT_BROWSER)])
+if test ! -z "$browser" && test -x "$browser" ; then
+   BROWSER=$browser
+   AC_MSG_RESULT([$BROWSER])
+else
+   # Test default value
+   AC_MSG_RESULT([not found.])
+   AC_PATH_PROG([BROWSER], [$DEFAULT_BROWSER], [no])
+   if test "$BROWSER" = "no"; then
+      AC_MSG_ERROR([internet browser is required])
    fi
 fi
-
-# Configuration default browser
-if test -n "$DEFAULT_BROWSER" ; then
-   BROWSER=`which $DEFAULT_BROWSER`
-   if test -x "$BROWSER" ; then
-      browser_ok=true
-   fi
-fi
-
-if test "$browser_ok" != true ; then
-   AC_MSG_WARN([Default browser will be searched in PATH...])
-   AC_ARG_VAR([BROWSER], [Path to Internet browser.])
-   AC_PATH_PROG([BROWSER], [$BROWSER], [false])
-fi
-
-if test "$BROWSER" = "false"; then
-  AC_MSG_WARN([Internet browser not found -- freewrl will not process anchors!])
-fi
-AC_DEFINE_UNQUOTED(BROWSER, "$BROWSER", [Path to Internet browser.])
+AC_DEFINE_UNQUOTED(BROWSER, "$BROWSER", [Path to internet browser])
 
 AC_ARG_VAR([SOUNDCONV], [Path to sox (sound conversion program).])
 AC_PATH_PROG([SOUNDCONV], [sox], [no])
