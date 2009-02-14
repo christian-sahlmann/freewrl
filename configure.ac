@@ -395,16 +395,23 @@ dnl AC_DEFINE_UNQUOTED(BROWSER, "$BROWSER", [Path to Internet browser.])
 dnl AC_ARG_VAR([BROWSER], [Path to Internet browser.])
 
 ### New test
+AC_MY_SWITCH(ignore_missing_programs,[ignore missing programs],off)
+if test x$sw_ignore_missing_programs = xyes; then
+   WHICH=echo
+else
+   WHICH=which
+fi
 
+## Browser check
 AC_ARG_WITH([browser],
         [AS_HELP_STRING([--with-browser],[Select internet browser (default: firefox)])],
         [WITH_BROWSER=$withval],
         [WITH_BROWSER=$DEFAULT_BROWSER])
 
 # Test user supplied value first
-browser=$(which $WITH_BROWSER)
+browser=$($WHICH $WITH_BROWSER)
 AC_MSG_CHECKING([internet browser $WITH_BROWSER (default: $DEFAULT_BROWSER)])
-if test ! -z "$browser" && test -x "$browser" ; then
+if test ! -z "$browser" ; then
    BROWSER=$browser
    AC_MSG_RESULT([$BROWSER])
 else
@@ -416,34 +423,135 @@ else
    fi
 fi
 AC_DEFINE_UNQUOTED(BROWSER, "$BROWSER", [Path to internet browser])
+## .
 
-AC_ARG_VAR([SOUNDCONV], [Path to sox (sound conversion program).])
-AC_PATH_PROG([SOUNDCONV], [sox], [no])
-if test "$SOUNDCONV" = "no"; then
-  AC_MSG_ERROR([sox is required])
-fi
-AC_DEFINE_UNQUOTED(SOUNDCONV, "$SOUNDCONV", [Path to sox (sound conversion program).])
+## Sound program check (sox)
+DEFAULT_SOUNDCONV=sox
+AC_ARG_WITH([soundconv],
+        [AS_HELP_STRING([--with-soundconv],
+	 [Select sound conversion program (default: $DEFAULT_SOUNDCONV)])],
+        [WITH_SOUNDCONV=$withval],
+        [WITH_SOUNDCONV=$DEFAULT_SOUNDCONV])
 
-AC_ARG_VAR([UNZIP], [Path to unzip ((de-)compression program).])
-AC_PATH_PROG([UNZIP], [unzip], [no])
-if test "$UNZIP" = "no"; then
-  AC_MSG_ERROR([unzip is required])
+# Test user supplied value first
+soundconv=$($WHICH $WITH_SOUNDCONV)
+AC_MSG_CHECKING([sound conversion program $WITH_SOUNDCONV (default: $DEFAULT_SOUNDCONV)])
+if test ! -z "$soundconv" ; then
+   SOUNDCONV=$soundconv
+   AC_MSG_RESULT([$SOUNDCONV])
+else
+   # Test default value
+   AC_MSG_RESULT([not found.])
+   AC_PATH_PROG([SOUNDCONV], [$DEFAULT_SOUNDCONV], [no])
+   if test "$SOUNDCONV" = "no"; then
+      AC_MSG_ERROR([sound conversion program is required])
+   fi
 fi
-AC_DEFINE_UNQUOTED(UNZIP, "$UNZIP", [Path to unzip ((de-)compression program).])
+AC_DEFINE_UNQUOTED(SOUNDCONV, "$SOUNDCONV", [Path to sound conversion program.])
+## .
 
-AC_ARG_VAR([WGET], [Path to wget (http fetch program).])
-AC_PATH_PROG([WGET], [wget], [no])
-if test "$WGET" = "no"; then
-  AC_MSG_ERROR([wget is required])
-fi
-AC_DEFINE_UNQUOTED(WGET, "$WGET", [Path to wget (http fetch program).])
+dnl AC_ARG_VAR([SOUNDCONV], [Path to sox (sound conversion program).])
+dnl AC_PATH_PROG([SOUNDCONV], [sox], [no])
+dnl if test "$SOUNDCONV" = "no"; then
+dnl   AC_MSG_ERROR([sox is required])
+dnl fi
+dnl AC_DEFINE_UNQUOTED(SOUNDCONV, "$SOUNDCONV", [Path to sox (sound conversion program).])
 
-AC_ARG_VAR([IMAGECONVERT], [Path to convert (image conversion program).])
-AC_PATH_PROG([IMAGECONVERT], [convert], [no])
-if test "$IMAGECONVERT" = "no"; then
-  AC_MSG_ERROR([convert is required])
+## Unzip check
+DEFAULT_UNZIP=unzip
+AC_ARG_WITH([unzip],
+        [AS_HELP_STRING([--with-unzip],
+	 [Select decompression program (default: $DEFAULT_UNZIP)])],
+        [WITH_UNZIP=$withval],
+        [WITH_UNZIP=$DEFAULT_UNZIP])
+
+# Test user supplied value first
+unzip=$($WHICH $WITH_UNZIP)
+AC_MSG_CHECKING([decompression program $WITH_UNZIP (default: $DEFAULT_UNZIP)])
+if test ! -z "$unzip" ; then
+   UNZIP=$unzip
+   AC_MSG_RESULT([$UNZIP])
+else
+   # Test default value
+   AC_MSG_RESULT([not found.])
+   AC_PATH_PROG([UNZIP], [$DEFAULT_UNZIP], [no])
+   if test "$UNZIP" = "no"; then
+      AC_MSG_ERROR([decompression program is required])
+   fi
 fi
-AC_DEFINE_UNQUOTED(IMAGECONVERT, "$IMAGECONVERT", [Path to convert (image conversion program).])
+AC_DEFINE_UNQUOTED(UNZIP, "$UNZIP", [Path to decompression program.])
+## .
+
+dnl AC_ARG_VAR([UNZIP], [Path to unzip ((de-)compression program).])
+dnl AC_PATH_PROG([UNZIP], [unzip], [no])
+dnl if test "$UNZIP" = "no"; then
+dnl   AC_MSG_ERROR([unzip is required])
+dnl fi
+dnl AC_DEFINE_UNQUOTED(UNZIP, "$UNZIP", [Path to unzip ((de-)compression program).])
+
+## Wget check
+DEFAULT_WGET=wget
+AC_ARG_WITH([wget],
+        [AS_HELP_STRING([--with-wget],
+	 [Select download helper program (default: $DEFAULT_WGET)])],
+        [WITH_WGET=$withval],
+        [WITH_WGET=$DEFAULT_WGET])
+
+# Test user supplied value first
+wget=$($WHICH $WITH_WGET)
+AC_MSG_CHECKING([download helper program $WITH_WGET (default: $DEFAULT_WGET)])
+if test ! -z "$wget" ; then
+   WGET=$wget
+   AC_MSG_RESULT([$WGET])
+else
+   # Test default value
+   AC_MSG_RESULT([not found.])
+   AC_PATH_PROG([WGET], [$DEFAULT_WGET], [no])
+   if test "$WGET" = "no"; then
+      AC_MSG_ERROR([download helper program is required])
+   fi
+fi
+AC_DEFINE_UNQUOTED(WGET, "$WGET", [Path to download helper program.])
+## .
+
+dnl AC_ARG_VAR([WGET], [Path to wget (http fetch program).])
+dnl AC_PATH_PROG([WGET], [wget], [no])
+dnl if test "$WGET" = "no"; then
+dnl   AC_MSG_ERROR([wget is required])
+dnl fi
+dnl AC_DEFINE_UNQUOTED(WGET, "$WGET", [Path to wget (http fetch program).])
+
+## Imageconvert check
+DEFAULT_IMAGECONVERT=convert
+AC_ARG_WITH([imageconvert],
+        [AS_HELP_STRING([--with-imageconvert],
+	 [Select image converter program (default: $DEFAULT_IMAGECONVERT)])],
+        [WITH_IMAGECONVERT=$withval],
+        [WITH_IMAGECONVERT=$DEFAULT_IMAGECONVERT])
+
+# Test user supplied value first
+imageconvert=$($WHICH $WITH_IMAGECONVERT)
+AC_MSG_CHECKING([image converter program $WITH_IMAGECONVERT (default: $DEFAULT_IMAGECONVERT)])
+if test ! -z "$imageconvert" ; then
+   IMAGECONVERT=$imageconvert
+   AC_MSG_RESULT([$IMAGECONVERT])
+else
+   # Test default value
+   AC_MSG_RESULT([not found.])
+   AC_PATH_PROG([IMAGECONVERT], [$DEFAULT_IMAGECONVERT], [no])
+   if test "$IMAGECONVERT" = "no"; then
+      AC_MSG_ERROR([image converter program is required])
+   fi
+fi
+AC_DEFINE_UNQUOTED(IMAGECONVERT, "$IMAGECONVERT", [Path to image converter program.])
+## .
+
+dnl AC_ARG_VAR([IMAGECONVERT], [Path to convert (image conversion program).])
+dnl AC_PATH_PROG([IMAGECONVERT], [convert], [no])
+dnl if test "$IMAGECONVERT" = "no"; then
+dnl   AC_MSG_ERROR([convert is required])
+dnl fi
+dnl AC_DEFINE_UNQUOTED(IMAGECONVERT, "$IMAGECONVERT", [Path to convert (image conversion program).])
 
 # =======
 # Targets

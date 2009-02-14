@@ -9,6 +9,8 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+build_support_parallelization=true
+
 plugin=libFreeWRLplugin.so
 jar=FreeWRL.jar
 
@@ -20,6 +22,11 @@ else
 	CFLAGS += -O2
 endif
 
+ifeq  ($(build_support_parallelization),true)
+	N=$(shell cat /proc/cpuinfo | grep processor | wc -l)
+	MAKE+="-j$(N)"
+endif
+
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
@@ -29,13 +36,20 @@ configure-stamp:
 		--disable-dependency-tracking \
 		--disable-debug \
 		--with-target=motif \
-		--with-mesa
+		--with-mesa \
+		--enable-ignore-missing-programs \
+		--with-browser=/usr/bin/firefox \
+		--with-soundconv=/usr/bin/sox \
+		--with-unzip=/usr/bin/unzip \
+		--with-wget=/usr/bin/wget \
+		--with-imageconvert=/usr/bin/convert
 	touch configure-stamp
 
 build: build-stamp
 
 build-stamp: configure-stamp 
 	dh_testdir
+	dh_prep
 	$(MAKE)
 	#docbook-to-man debian/freewrl.sgml > freewrl.1
 	touch build-stamp
@@ -53,7 +67,6 @@ clean: clean-source clean-debian
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
 	dh_installdirs
 	# Install through Make target
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/freewrl
