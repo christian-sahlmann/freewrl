@@ -1,6 +1,8 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"><!-- -*- mode: html; coding: iso-8859-15; -*- -->
 <HTML>
 <HEAD>
- <TITLE>The FreeWRL FAQ : building from sources</TITLE>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+  <TITLE>The FreeWRL FAQ : building from sources</TITLE>
 </HEAD>
 <BODY BGCOLOR="#FFFFFF" >
 <TABLE>
@@ -66,19 +68,53 @@ for helps; submitting bugs helps.</p>
 
 <h3>Linux requirements</h3>
 
-<p>Packages required:</p>
+<h3>Build process maintainer tools</h3>
+<b>These are NOT needed except you intend to modify the build process files (configure.ac, Makefile.am, ...).</b>
+
 <ul>
-<li>automake</li>
-<li>autoconf</li>
-<li>libtool</li>
-<li>X11 development environment</li>
-<li>OpenGL development environment</li>
-<li>Motif library (optional)</li>
-<li>JPEG library</li>
-<li>PNG library</li>
-<li>XML library</li>
-<li>Expat library</li>
-<li>Java compiler (optional)</li>
+<li>automake (version >= 1.10)</li>
+<li>autoconf (version >= 2.60)</li>
+<li>libtool (version >= 2.2)</li>
+</ul>
+
+<h3>Build dependencies</h3>
+<p>Packages required are from Debian (you can find similar packages in your distribution):</p>
+<ul>
+<li>X11 development files (package: x11-dev, libxxf86vm-dev, libxaw7-dev)</li>
+<li>OpenGL development files (package: libgl-dev)</li>
+<li>Motif library (optional, package: lesstif2-dev)</li>
+<li>JPEG library (package: libjpeg62-dev)</li>
+<li>PNG library (package: libpng12-dev)</li>
+<li>XML library (package: libxml2-dev)</li>
+<li>Expat library (package: libexpat1-dev)</li>
+<li>Java compiler (optional, package: java-compiler)</li>
+<li>Javascript Engine, SpiderMonkey for example (optional, package: libmozjs-dev)</li>
+<li>Browser plugin development files (optional, package: iceape-dev)</li>
+</ul>
+
+<b>TODO: implement the source repository, then the following paragraph will be operable.</b>
+<p>Debian trick to download and install all that (provided you installed our Debian repository in your sources):</p>
+<pre>
+sudo apt-get build-dep freewrl
+</pre>
+
+<h3>Runtime dependencies</h3>
+
+<ul>
+<li>X11 libraries (package: libxaw7)</li>
+<li>OpenGL libraries (package: libgl1, libglu1)</li>
+<li>Motif library (package: lesstif2)</li>
+<li>Freetype library (package: libfreetype6)</li>
+<li>PNG library (package: libpng12-0)</li>
+<li>JPEG library (package: libjpeg62)</li>
+<li>XML library (package: libxml2)</li>
+<li>Expat library (package: libexpat1)</li>
+<li>Javascript Engine library (package: libmozjs1d)</li>
+<li>Java runtime environment (package: java-runtime)</li>
+<li>Vera font (package: ttf-bitstream-vera)</li>
+<li>Internet download helper (package: wget)</li>
+<li>Sound converter (package: sox)</li>
+<li>Image converter (package: convert)</li>
 </ul>
 
 <h3>Getting the sources</h3>
@@ -89,7 +125,10 @@ for helps; submitting bugs helps.</p>
 
 <h3>Configure the package</h3>
 
-<p>Launch configure with 
+<p>If you have installed all the dependencies in the system (/usr) you should be able to configure the package without option.
+
+If you have installed any of them in special directory, you should provide this directoy to configure (see <tt>./configure --help</tt>).</p>
+
 <pre>
 ./configure [options]
 </pre>
@@ -98,8 +137,29 @@ for helps; submitting bugs helps.</p>
 
 <pre>
 make
-make install
 </pre>
+
+<p>Now decide where to install FreeWRL. Default is /usr/local.
+
+If you choose to install it in your $HOME, provide this destination directory to make with the argument <tt>DESTDIR=mydir</tt>, or with a combination of <tt>DESTDIR</tt> and <tt>prefix</tt></p>
+
+<p>Example 1 (normal install, in /usr/local):</p>
+<pre>
+make install [DESTDIR=...]
+</pre>
+
+<p>Example 2 (install in <tt>$HOME/freewrl</tt> without the annoying <tt>/usr</tt>):</p>
+<pre>
+make install DESTDIR=~/freewrl prefix=""
+</pre>
+
+<p>If you've choosen non-standard installation, don't forget to set <tt>PATH</tt> and <tt>LD_LIBRARY_PATH</tt> accordingly:<p>
+<pre>
+export PATH=~/freewrl/bin:$PATH
+export LD_LIBRARY_PATH=~/freewrl/lib:$LD_LIBRARY_PATH
+</pre>
+
+<p>You can put those two lines in a little environment file that you'd source before using FreeWRL.</p>
 
 <h2><a NAME="ChapterOSX"></a>(OSX) Building FreeWRL from sources on Apple computers</h2>
 
