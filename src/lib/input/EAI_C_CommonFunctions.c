@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.8 2009/02/11 15:12:54 istakenv Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.9 2009/02/16 19:57:41 sdumoulin Exp $
 
 ???
 
@@ -221,7 +221,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 		while ((*value == ' ') && (*value != '\0')) value ++;
 
 		/* now, does the value string need quoting? */
-		if ((*value != '"') && (*value != '\'') && (*value != "[")) {
+		if ((*value != '"') && (*value != '\'') && (*value != '[')) {
 			int len;
 			/* printf ("have to quote this string\n"); */
 			len = strlen(value);
@@ -236,14 +236,30 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 		} else {
 			parser_fromString(parser,value);
 		}
-	} else {
+        } else if (ctype == FIELDTYPE_SFNode) {
+                /* Need to change index to proper node ptr */
+                np = getEAINodeFromTable(atoi(value), -1);
+        } else {
+
 		parser_fromString(parser, value);
 	}
 
 	ASSERT(parser->lexer);
 	FREE_IF_NZ(parser->lexer->curID);
 
-	if (parseType(parser, ctype, &myVal)) {
+        if (ctype == FIELDTYPE_SFNode) {
+                nst = (char *) node;
+                nst += coffset;
+                struct X3D_Node* oldvalue;
+                memcpy (&oldvalue, nst, sizeof(struct X3D_Node*));
+                if (oldvalue) {
+                        remove_parent(oldvalue, node);
+                }
+                memcpy((void*)nst, (void*)&np, sizeof(struct X3D_Node*));
+                add_parent(np, node, "sarah's add", 0);
+
+        } else if (parseType(parser, ctype, &myVal)) {
+
 		/* printf ("parsed successfully\n");  */
 
 		nst = (char *) node; /* should be 64 bit compatible */
