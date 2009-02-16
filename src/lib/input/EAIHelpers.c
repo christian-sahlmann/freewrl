@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.17 2009/02/11 15:12:54 istakenv Exp $
+$Id: EAIHelpers.c,v 1.18 2009/02/16 19:48:50 sdumoulin Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -191,7 +191,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 
 	if (EAINodeIndex == NULL) EAINodeIndex = MALLOC(sizeof (struct EAINodeIndexStruct) * MAX_EAI_SAVED_NODES);
 
-	for (ctr=1; ctr<lastNodeRequested; ctr++) {
+	for (ctr=1; ctr<=lastNodeRequested; ctr++) {
 		if (EAINodeIndex[ctr].actualNodePtr == myn) {
 			if (eaiverbose) printf ("registerEAINodeForAccess - already got node\n");
 			mynindex = ctr;
