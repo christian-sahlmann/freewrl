@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.9 2009/02/16 19:57:41 sdumoulin Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.10 2009/02/16 20:00:32 sdumoulin Exp $
 
 ???
 
@@ -33,7 +33,7 @@ $Id: EAI_C_CommonFunctions.c,v 1.9 2009/02/16 19:57:41 sdumoulin Exp $
 # define MALLOC(a) malloc(a)
 #endif
 
-int eaiverbose = FALSE;
+int eaiverbose = TRUE;
 
 #define PST_MF_STRUCT_ELEMENT(type1,type2) \
 	case FIELDTYPE_MF##type1: { \
@@ -192,6 +192,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 	union anyVrml myVal;
 	char *mfstringtmp = NULL;
 	int oldXMLflag;
+	struct X3D_Node *np;
 	
 	#ifdef SETFIELDVERBOSE
 	printf ("\nPST, for %s we have %s strlen %d\n",stringFieldtypeType(ctype), value, strlen(value));
