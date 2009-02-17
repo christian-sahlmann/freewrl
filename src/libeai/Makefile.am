@@ -91,7 +91,7 @@ AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
 lib_LTLIBRARIES = libEAI.la
 include_HEADERS = EAI_C.h
 libEAI_la_LDFLAGS = -version-info $(LIBEAI_LTVERSION) $(AM_LDFLAGS)
-# libEAI_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la
+libEAI_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la
 
 include Makefile.sources
 
