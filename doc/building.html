@@ -103,7 +103,7 @@ sudo apt-get build-dep freewrl
 <ul>
 <li>X11 libraries (package: libxaw7)</li>
 <li>OpenGL libraries (package: libgl1, libglu1)</li>
-<li>Motif library (package: lesstif2)</li>
+<li>Motif library (optional) (package: lesstif2)</li>
 <li>Freetype library (package: libfreetype6)</li>
 <li>PNG library (package: libpng12-0)</li>
 <li>JPEG library (package: libjpeg62)</li>
@@ -113,7 +113,7 @@ sudo apt-get build-dep freewrl
 <li>Java runtime environment (package: java-runtime)</li>
 <li>Vera font (package: ttf-bitstream-vera)</li>
 <li>Internet download helper (package: wget)</li>
-<li>Sound converter (package: sox)</li>
+<li>Sound converter (optional) (package: sox)</li>
 <li>Image converter (package: convert)</li>
 </ul>
 
@@ -160,6 +160,40 @@ export LD_LIBRARY_PATH=~/freewrl/lib:$LD_LIBRARY_PATH
 </pre>
 
 <p>You can put those two lines in a little environment file that you'd source before using FreeWRL.</p>
+
+
+<h3>Building freewrl with Spidermonkey</h3>
+
+<p>Freewrl will no longer build against spidermonkey, since it has been surpassed by mozilla's newer javascript engine 
+libraries (xulrunner-1.8 and xulrunner-1.9).  But freewrl is still compatible with spidermonkey, and the following 
+modifications will allow you to build freewrl against spidermonkey-1.7 if it is already installed on your system.</p>
+
+<p>Edit spidermonkey.pc in the freewrl source directory, and change the prefix path (the first line of this file) to 
+match your system.</p>
+
+<p>Edit configure.ac, and find the following lines:</p>
+<pre>
+AC_MSG_NOTICE([Determining Javascript engine to build against])
+found_JAVASCRIPT_ENGINE=no
+case "$os_type" in
+     mac) 
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,spidermonkey,1.7.0)
+        ;;
+     *)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,mozilla-js,1.9)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,xulrunner-js,1.8)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,seamonkey-js)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox-js)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox2-js)
+        ;;
+esac
+</pre>
+<p>Insert the line "AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,spidermonkey,1.7.0)" just above the line for mozilla-js.</p>
+
+<p>Run "autoreconf --force --install" to rebuild the configure script.</p>
+
+<p>Run ./configure and make as per the instructions above.</p>
+
 
 <h2><a NAME="ChapterOSX"></a>(OSX) Building FreeWRL from sources on Apple computers</h2>
 
