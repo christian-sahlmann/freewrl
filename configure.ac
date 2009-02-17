@@ -126,6 +126,14 @@ ACX_PTHREAD
 # FreeType (font rendering)
 PKG_CHECK_MODULES(FREETYPE, freetype2 >= 9.3.0)
 
+
+
+
+
+
+
+
+
 # Javascript engine
 # check order:
 # xulrunner 1.9 (provides mozilla-js.pc, from the libmozjs-dev package in testing)
@@ -322,6 +330,7 @@ else
               AC_MSG_NOTICE([Determining browser plug-in framework to build against])
               found_MOZILLA_PLUGIN=no
               AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,iceape-plugin)
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,mozilla-plugin)
               AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,xulrunner-plugin)
               AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,seamonkey-plugin)
               AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,firefox-plugin)
@@ -417,37 +426,48 @@ if test ! -z "$browser" ; then
 else
    # Test default value
    AC_MSG_RESULT([not found.])
-   AC_PATH_PROG([BROWSER], [$DEFAULT_BROWSER], [no])
+   AC_PATH_PROG([BROWSER], [$DEFAULT_BROWSER], [false])
    if test "$BROWSER" = "no"; then
-      AC_MSG_ERROR([internet browser is required])
+      AC_MSG_WARN([Internet browser not found -- freewrl will not process anchors!])
+      BROWSER=false
    fi
 fi
 AC_DEFINE_UNQUOTED(BROWSER, "$BROWSER", [Path to internet browser])
 ## .
 
 ## Sound program check (sox)
-DEFAULT_SOUNDCONV=sox
-AC_ARG_WITH([soundconv],
+AC_MY_SWITCH(sound,[enable building of sound module],on)
+if test x$sw_sound = xno; then
+  AC_MSG_NOTICE([Not building sound module])
+  MAYBE_SOUND=
+else
+  MAYBE_SOUND=sound
+
+  DEFAULT_SOUNDCONV=sox
+  AC_ARG_WITH([soundconv],
         [AS_HELP_STRING([--with-soundconv],
-	 [Select sound conversion program (default: $DEFAULT_SOUNDCONV)])],
+            [Select sound conversion program (default: $DEFAULT_SOUNDCONV)])],
         [WITH_SOUNDCONV=$withval],
         [WITH_SOUNDCONV=$DEFAULT_SOUNDCONV])
 
-# Test user supplied value first
-soundconv=$($WHICH $WITH_SOUNDCONV)
-AC_MSG_CHECKING([sound conversion program $WITH_SOUNDCONV (default: $DEFAULT_SOUNDCONV)])
-if test ! -z "$soundconv" ; then
-   SOUNDCONV=$soundconv
-   AC_MSG_RESULT([$SOUNDCONV])
-else
-   # Test default value
-   AC_MSG_RESULT([not found.])
-   AC_PATH_PROG([SOUNDCONV], [$DEFAULT_SOUNDCONV], [no])
-   if test "$SOUNDCONV" = "no"; then
-      AC_MSG_ERROR([sound conversion program is required])
-   fi
+  # Test user supplied value first
+  soundconv=$($WHICH $WITH_SOUNDCONV)
+  AC_MSG_CHECKING([sound conversion program $WITH_SOUNDCONV (default: $DEFAULT_SOUNDCONV)])
+  if test ! -z "$soundconv" ; then
+    SOUNDCONV=$soundconv
+    AC_MSG_RESULT([$SOUNDCONV])
+  else
+    # Test default value
+    AC_MSG_RESULT([not found.])
+    AC_PATH_PROG([SOUNDCONV], [$DEFAULT_SOUNDCONV], [no])
+    if test "$SOUNDCONV" = "no"; then
+      AC_MSG_WARN([Unable to find sound conversion program -- sound module will not be built!])
+      MAYBE_SOUND=
+    fi
+  fi
+  AC_DEFINE_UNQUOTED(SOUNDCONV, "$SOUNDCONV", [Path to sound conversion program.])
 fi
-AC_DEFINE_UNQUOTED(SOUNDCONV, "$SOUNDCONV", [Path to sound conversion program.])
+AC_SUBST(MAYBE_SOUND)
 ## .
 
 dnl AC_ARG_VAR([SOUNDCONV], [Path to sox (sound conversion program).])

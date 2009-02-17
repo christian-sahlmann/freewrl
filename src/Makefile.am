@@ -1,6 +1,6 @@
 # src dir Makefile.am
 #
-# $Id: Makefile.am,v 1.5 2009/02/12 18:33:32 istakenv Exp $
+# $Id: Makefile.am,v 1.6 2009/02/17 16:08:19 istakenv Exp $
 #
 # Conditional build of sub-directories
 
@@ -11,5 +11,6 @@ SUBDIRS+=$(MAYBE_PLUGIN)
 SUBDIRS+=$(MAYBE_LIBEAI)
 
 if OS_LINUX
-SUBDIRS+=sound message
+SUBDIRS+=$(MAYBE_SOUND)
+SUBDIRS+=message
 endif
