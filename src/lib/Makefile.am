@@ -58,6 +58,10 @@ AM_CPPFLAGS += -Wno-format -no-cpp-precomp -fno-common
 ### -DSVR4 -D_BSD_SOURCE -DPOSIX_SOURCE -D_POSIX_C_SOURCE -DDARWIN
 endif
 
+## the freewrl code uses a lot of type-punned pointers; turning off strict-aliasing
+AM_CFLAGS += -fno-strict-aliasing
+
+
 _EV=$(top_srcdir)/versions/LIBFREEWRL
 _EV2=$(top_srcdir)/versions/LIBFREEWRL_LTVERSION
 export

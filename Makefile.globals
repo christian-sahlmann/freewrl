@@ -17,4 +17,5 @@ CC_WARNINGS=-Wall -Wundef -Wunused-macros
 
 # Define this globally
 AM_CPPFLAGS = $(CC_WARNINGS) $(DEBUG_FLAGS)
+AM_CFLAGS = $(DEBUG_FLAGS)
 AM_LDFLAGS = $(DEBUG_FLAGS)
