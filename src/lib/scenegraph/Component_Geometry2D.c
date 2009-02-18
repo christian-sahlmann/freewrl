@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.3 2009/02/11 15:12:54 istakenv Exp $
+$Id: Component_Geometry2D.c,v 1.4 2009/02/18 16:24:04 istakenv Exp $
 
 X3D Geometry2D  Component
 
@@ -18,7 +18,7 @@ X3D Geometry2D  Component
 #include "../main/headers.h"
 
 #include "Collision.h"
-
+#include "LinearAlgebra.h"
 
 #define SEGMENTS_PER_CIRCLE 36
 #define PIE 10

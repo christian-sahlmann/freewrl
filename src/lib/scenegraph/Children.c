@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Children.c,v 1.4 2009/02/11 15:12:54 istakenv Exp $
+$Id: Children.c,v 1.5 2009/02/18 16:24:04 istakenv Exp $
 
 Render the children of nodes.
 
@@ -18,6 +18,7 @@ Render the children of nodes.
 #include "quaternion.h"
 
 #include "Collision.h"
+#include "RenderFuncs.h"
 
 
 /* sort children - use bubble sort with early exit flag */

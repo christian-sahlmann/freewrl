@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.5 2009/02/11 15:12:55 istakenv Exp $
+$Id: RenderFuncs.c,v 1.6 2009/02/18 16:24:04 istakenv Exp $
 
 Scenegraph rendering.
 
@@ -25,6 +25,7 @@ Scenegraph rendering.
 #include "LinearAlgebra.h"
 #include "../input/SensInterps.h"
 
+#include "RenderFuncs.h"
 
 /* Rearrange to take advantage of headlight when off */
 int curlight = 0;

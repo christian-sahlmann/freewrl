@@ -19,7 +19,10 @@
  
 #include "../lib/scenegraph/Component_CubeMapTexturing.h" 
 #include "../lib/scenegraph/Polyrep.h" 
+#include "../lib/scenegraph/Component_Networking.h"
 #include "../lib/x3d_parser/Bindable.h" 
+#include "../lib/main/ProdCon.h"
+
 /* #include "Component_Geospatial.h" */ 
 /* #include "CProto.h" */ 
 

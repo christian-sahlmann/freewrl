@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Time.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: Component_Time.c,v 1.4 2009/02/18 16:24:04 istakenv Exp $
 
 X3D Time Component
 
@@ -16,7 +16,7 @@ X3D Time Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-
+#include "../input/SensInterps.h"
 
 /* void do_TimeSensorTick (struct X3D_TimeSensor *node) {*/
 void do_TimeSensorTick ( void *ptr) {

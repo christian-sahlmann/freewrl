@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.6 2009/02/11 15:12:55 istakenv Exp $
+$Id: Component_Networking.c,v 1.7 2009/02/18 16:24:04 istakenv Exp $
 
 X3D Networking Component
 
@@ -19,6 +19,7 @@ X3D Networking Component
 
 #include "../input/EAIheaders.h"
 
+#include "Component_Networking.h"
 
 /* keep track of the Midi nodes. */
 static uintptr_t *MidiNodes = NULL;

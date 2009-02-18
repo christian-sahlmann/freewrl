@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.25 2009/02/11 15:12:54 istakenv Exp $
+$Id: headers.h,v 1.26 2009/02/18 16:24:04 istakenv Exp $
 
 Global includes.
 
@@ -10,6 +10,9 @@ Global includes.
 #ifndef __FREEWRL_HEADERS_H__
 #define __FREEWRL_HEADERS_H__
 
+
+/* for lightState() */
+#include "../opengl/OpenGL_Utils.h"
 
 /**
  * in utils.c

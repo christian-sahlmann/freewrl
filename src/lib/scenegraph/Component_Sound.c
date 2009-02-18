@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Sound.c,v 1.6 2009/02/11 15:12:55 istakenv Exp $
+$Id: Component_Sound.c,v 1.7 2009/02/18 16:24:04 istakenv Exp $
 
 X3D Sound Component
 
@@ -18,7 +18,7 @@ X3D Sound Component
 #include "../main/headers.h"
 
 #include "LinearAlgebra.h"
-
+#include "sounds.h"
 
 void render_AudioControl (struct X3D_AudioControl *node) {
 	GLdouble mod[16];

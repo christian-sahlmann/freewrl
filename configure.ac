@@ -124,7 +124,7 @@ AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugi
 ACX_PTHREAD
 
 # FreeType (font rendering)
-PKG_CHECK_MODULES(FREETYPE, freetype2 >= 9.3.0)
+PKG_CHECK_MODULES(FREETYPE, freetype2)
 
 
 

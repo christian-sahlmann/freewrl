@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Lighting.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: Component_Lighting.c,v 1.4 2009/02/18 16:24:04 istakenv Exp $
 
 X3D Lighting Component
 
@@ -16,7 +16,8 @@ X3D Lighting Component
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
-
+#include "RenderFuncs.h"
+#include "../opengl/OpenGL_Utils.h"
 
 void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 	/* NOTE: This is called by the Group Children code

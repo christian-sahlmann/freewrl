@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.5 2009/02/11 15:12:55 istakenv Exp $
+$Id: Component_Text.c,v 1.6 2009/02/18 16:24:04 istakenv Exp $
 
 X3D Text Component
 
@@ -9,6 +9,7 @@ X3D Text Component
 
 #include <config.h>
 #include <system.h>
+#include <system_fonts.h>
 #include <display.h>
 #include <internal.h>
 
@@ -18,7 +19,7 @@ X3D Text Component
 #include "../main/headers.h"
 
 #include "Collision.h"
-
+#include "LinearAlgebra.h"
 
 #define XRES 96
 #define YRES 96
@@ -31,11 +32,12 @@ X3D Text Component
 
 #define OUT2GL(a) (x_size * (0.0 +a) / ((1.0*(font_face[myff]->height)) / PPI*XRES))
 
-#include <ft2build.h>
-/* #include <ftoutln.h> */
+/* now defined in system_fonts.h 
+include <ft2build.h>
+** include <ftoutln.h>
+include FT_FREETYPE_H
+include FT_GLYPH_H */
 
-#include FT_FREETYPE_H
-#include FT_GLYPH_H
 
 /* initialize the library with this variable */
 FT_Library library; /* handle to library */

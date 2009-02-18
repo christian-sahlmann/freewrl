@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MPEG_Utils.c,v 1.4 2009/02/11 15:12:55 istakenv Exp $
+$Id: MPEG_Utils.c,v 1.5 2009/02/18 16:24:04 istakenv Exp $
 
 ???
 
@@ -9,6 +9,7 @@ $Id: MPEG_Utils.c,v 1.4 2009/02/11 15:12:55 istakenv Exp $
 
 #include <config.h>
 #include <system.h>
+#include <system_net.h>
 #include <display.h>
 #include <internal.h>
 

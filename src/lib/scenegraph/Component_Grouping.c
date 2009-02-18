@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.7 2009/02/11 15:12:55 istakenv Exp $
+$Id: Component_Grouping.c,v 1.8 2009/02/18 16:24:04 istakenv Exp $
 
 X3D Grouping Component
 
@@ -19,6 +19,7 @@ X3D Grouping Component
 
 #include "../opengl/OpenGL_Utils.h"
 
+#include "LinearAlgebra.h"
 
 void changed_Transform (struct X3D_Transform *node) { 
 	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Transform, metadata))
