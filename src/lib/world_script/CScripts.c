@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.5 2009/02/11 15:12:55 istakenv Exp $
+$Id: CScripts.c,v 1.6 2009/02/18 13:37:50 istakenv Exp $
 
 ???
 
@@ -30,6 +30,7 @@ $Id: CScripts.c,v 1.5 2009/02/11 15:12:55 istakenv Exp $
 /* #include "../input/EAIheaders.h" */
 
 #include "CScripts.h"
+#include "JScript.h"
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"

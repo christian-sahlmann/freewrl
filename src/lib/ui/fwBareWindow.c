@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: fwBareWindow.c,v 1.5 2009/02/11 15:12:55 istakenv Exp $
+  $Id: fwBareWindow.c,v 1.6 2009/02/18 13:37:50 istakenv Exp $
 
   Create X11 window. Manage events.
 
@@ -18,6 +18,7 @@
 #include <X11/Intrinsic.h>
 #include <X11/cursorfont.h>
 
+#include "fwBareWindow.h"
 
 char    *wintitle =  "FreeWRL VRML/X3D Browser";
 XTextProperty windowName;
@@ -39,7 +40,7 @@ void getBareWindowedGLwin (Window *win)
     GLwin = Xwin;
 }
 
-void openBareMainWindow (argc, argv)
+void openBareMainWindow (int argc, char **argv)
 {
     /* get a connection */
     Xdpy = XOpenDisplay(0);

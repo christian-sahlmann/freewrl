@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.8 2009/02/11 15:12:54 istakenv Exp $
+$Id: ProdCon.c,v 1.9 2009/02/18 13:37:50 istakenv Exp $
 
 CProto ???
 
@@ -36,6 +36,7 @@ CProto ???
 #include "../plugin/pluginUtils.h"
 #include "../plugin/PluginSocket.h"
 
+#include "ProdCon.h"
 
 #define VRML1ERRORMSG "FreeWRL does not parse VRML Version 1; please convert to VRML 2 or later"
 
@@ -102,7 +103,6 @@ struct PSStruct {
 
 void _inputParseThread (void);
 unsigned int _pt_CreateVrml (char *tp, char *inputstring, uintptr_t *retarr);
-int isInputThreadInitialized(void);
 int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 			void *ptr, unsigned ofs, int *complete,
 			int zeroBind);

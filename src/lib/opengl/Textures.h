@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.3 2009/02/11 15:12:54 istakenv Exp $
+$Id: Textures.h,v 1.4 2009/02/18 13:37:50 istakenv Exp $
 
 Screen snapshot.
 
@@ -81,6 +81,9 @@ void bind_image(int type, struct Uni_String *parenturl, struct Multi_String url,
 				int repeatS,
 				int repeatT,
 				void  *param);
+
+/* other function protos */
+void init_multitexture_handling(void);
 
 
 #endif /* __FREEWRL_TEXTURES_H__ */

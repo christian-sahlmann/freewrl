@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.16 2009/02/11 15:12:54 istakenv Exp $
+$Id: display.h,v 1.17 2009/02/18 13:37:50 istakenv Exp $
 
 FreeWRL support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -105,6 +105,7 @@ int create_main_window_aqua(); /* mb */
 # include <X11/keysym.h>
 
 # include <GL/glx.h>
+# include <GL/glext.h>
 
 extern GLXContext GLcx;
 

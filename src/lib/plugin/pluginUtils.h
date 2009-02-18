@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: pluginUtils.h,v 1.3 2009/02/11 15:12:54 istakenv Exp $
+$Id: pluginUtils.h,v 1.4 2009/02/18 13:37:50 istakenv Exp $
 
 FreeWRL plugin utilities header file.
 
@@ -45,6 +45,9 @@ const char* XEventToString(int type);
 const char* XErrorToString(int error);
 
 void URLencod (char *dest, const char *src, int maxlen);
+
+/* used by fw/fwWindow.c */
+void sendXwinToPlugin(void);
 
 #ifdef __cplusplus
 }

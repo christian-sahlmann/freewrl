@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIheaders.h,v 1.9 2009/02/11 15:12:54 istakenv Exp $
+$Id: EAIheaders.h,v 1.10 2009/02/18 13:37:50 istakenv Exp $
 
 EAI and java CLASS invocation
 
@@ -24,6 +24,11 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 unsigned int EAI_SendEvent (char *ptr);
 void EAI_RNewW(char *bufptr);
 void EAI_RW(char *bufptr);
+
+/* more function prototypes to avoid implicit declarations */
+int returnRoutingElementLength(int);					/* from EAI_C_CommonFunctions.c */
+void createLoadURL(char *);						/* from EAIEventsIn.c */
+void EAI_parse_commands(void);						/* from EAIEventsIn.c */
 
 /* debugging */
 char *eaiPrintCommand (char command);

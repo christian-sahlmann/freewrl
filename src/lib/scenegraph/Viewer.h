@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.7 2009/02/11 15:12:55 istakenv Exp $
+$Id: Viewer.h,v 1.8 2009/02/18 13:37:50 istakenv Exp $
 
 Viewer ???
 
@@ -10,6 +10,7 @@ Viewer ???
 #ifndef __FREEWRL_VIEWER_H__
 #define __FREEWRL_VIEWER_H__
 
+#include "quaternion.h"
 
 #define NONE 0
 #define EXAMINE 1

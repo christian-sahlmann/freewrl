@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.17 2009/02/11 15:12:54 istakenv Exp $
+$Id: EAIEventsIn.c,v 1.18 2009/02/18 13:37:50 istakenv Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -18,10 +18,16 @@ Handle incoming EAI (and java class) events with panache.
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../vrml_parser/CProto.h"
+#include "../vrml_parser/CParse.h"
 #include "../world_script/CScripts.h"
 
 #include "../input/EAIheaders.h"
 #include "../world_script/fieldSet.h"
+#include "../scenegraph/Viewer.h"
+#include "../opengl/Textures.h"
+#include "../x3d_parser/X3DParser.h"
+
+#include "EAIHelpers.h"
 
 #include <ctype.h> /* FIXME: config armor */
 
@@ -37,6 +43,7 @@ void makeFIELDDEFret(uintptr_t,char *buf,int c);
 void handleRoute (char command, char *bufptr, char *buf, int repno);
 void handleGETNODE (char *bufptr, char *buf, int repno);
 void handleGETROUTES (char *bufptr, char *buf, int repno);
+void handleGETEAINODETYPE (char *bufptr, char *buf, int repno);
 
 
 /******************************************************************************

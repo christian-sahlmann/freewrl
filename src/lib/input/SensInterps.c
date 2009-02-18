@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.5 2009/02/11 15:12:54 istakenv Exp $
+$Id: SensInterps.c,v 1.6 2009/02/18 13:37:50 istakenv Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -23,6 +23,7 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "../scenegraph/LinearAlgebra.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
+#include "../scenegraph/sounds.h"
 
 #include "SensInterps.h"
 

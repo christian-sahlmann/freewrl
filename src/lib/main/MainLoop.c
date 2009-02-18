@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.25 2009/02/11 15:12:54 istakenv Exp $
+$Id: MainLoop.c,v 1.26 2009/02/18 13:37:50 istakenv Exp $
 
 CProto ???
 
@@ -20,6 +20,7 @@ CProto ???
 #include "headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../world_script/jsUtils.h"
+#include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 #include "Snapshot.h"
 #include "../scenegraph/LinearAlgebra.h"
@@ -33,6 +34,8 @@ CProto ???
 #include "../ui/ui.h"
 #include "../opengl/OpenGL_Utils.h"
 
+#include "MainLoop.h"
+#include "ProdCon.h"
 
 /* do we want OpenGL errors to be printed to the console?? */
 int displayOpenGLErrors = FALSE;

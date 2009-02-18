@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.7 2009/02/11 15:12:54 istakenv Exp $
+$Id: EAIServ.c,v 1.8 2009/02/18 13:37:50 istakenv Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -31,7 +31,7 @@ Implement EAI server functionality for FreeWRL.
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
 
-#include "../input/EAIheaders.h"
+#include "EAIheaders.h"
 
 
 /************************************************************************/

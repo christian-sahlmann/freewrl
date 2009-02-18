@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.h,v 1.2 2009/02/11 15:12:55 istakenv Exp $
+$Id: JScript.h,v 1.3 2009/02/18 13:37:50 istakenv Exp $
 
 ???
 
@@ -10,6 +10,7 @@ $Id: JScript.h,v 1.2 2009/02/11 15:12:55 istakenv Exp $
 #ifndef __FREEWRL_JS_JSCRIPT_H__
 #define __FREEWRL_JS_JSCRIPT_H__
 
+#include <system_js.h>
 
 void kill_javascript(void);
 void cleanupDie(uintptr_t num, const char *msg);

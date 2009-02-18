@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
+$Id: CParseLexer.h,v 1.5 2009/02/18 13:37:50 istakenv Exp $
 
 Lexer (input of terminal symbols) for CParse
 
@@ -150,6 +150,9 @@ BOOL lexer_operator(struct VRMLLexer*, char);
 void skipToEndOfOpenCurly(struct VRMLLexer *me, int level);
 
 void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b);
+
+/* other function protos */
+BOOL lexer_field(struct VRMLLexer* me,indexT* retBO, indexT* retBE, indexT* retUO, indexT* retUE);
 
 
 #endif /* __FREEWRL_CPARSE_LEXER_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.7 2009/02/11 15:12:55 istakenv Exp $
+$Id: X3DProtoScript.c,v 1.8 2009/02/18 13:37:50 istakenv Exp $
 
 ???
 
@@ -28,6 +28,7 @@ $Id: X3DProtoScript.c,v 1.7 2009/02/11 15:12:55 istakenv Exp $
 #include "../vrml_parser/CParse.h"
 
 #include "X3DParser.h"
+#include "X3DProtoScript.h"
 
 
 static int currentProtoDeclare  = INT_ID_UNDEFINED;

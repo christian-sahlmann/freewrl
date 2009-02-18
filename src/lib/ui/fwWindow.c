@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwWindow.c,v 1.9 2009/02/11 15:12:55 istakenv Exp $
+$Id: fwWindow.c,v 1.10 2009/02/18 13:37:50 istakenv Exp $
 
 FreeWRL main window.
 
@@ -17,6 +17,15 @@ FreeWRL main window.
 #include <float.h>
 
 #include <X11/cursorfont.h>
+
+#include "ui.h"
+#include "../plugin/pluginUtils.h"
+
+#if defined(TARGET_MOTIF)
+# include "fwMotifWindow.h"
+#else
+# include "fwBareWindow.h"
+#endif
 
 static int oldx = 0, oldy = 0;
 

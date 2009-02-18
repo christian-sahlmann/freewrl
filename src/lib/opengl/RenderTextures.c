@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.5 2009/02/11 15:12:54 istakenv Exp $
+$Id: RenderTextures.c,v 1.6 2009/02/18 13:37:50 istakenv Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -18,6 +18,7 @@ texture enabling - works for single texture, for multitexture.
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
+#include "OpenGL_Utils.h"
 #include "Textures.h"
 /* #include "readpng.h" */
 

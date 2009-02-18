@@ -43,5 +43,7 @@ typedef struct _urlRequest {
 
 void URLencod (char *dest, const char *src, int maxlen);
 
+/* for reporting version info -- this function is defined in "internal_version.c" */
+const char *freewrl_plugin_get_version(void);
 
 #endif /* __FREEWRL_PLUGIN_UTILS_H__ */

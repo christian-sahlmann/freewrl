@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.6 2009/02/11 15:12:55 istakenv Exp $
+$Id: jsUtils.c,v 1.7 2009/02/18 13:37:50 istakenv Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -22,6 +22,7 @@ which is the sample application included with the javascript engine.
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
+#include "../input/EAIHelpers.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 /* #include "../input/EAIheaders.h" */

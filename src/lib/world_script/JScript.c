@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.7 2009/02/11 15:12:55 istakenv Exp $
+$Id: JScript.c,v 1.8 2009/02/18 13:37:50 istakenv Exp $
 
 Javascript C language binding.
 
@@ -17,10 +17,12 @@ Javascript C language binding.
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../main/Snapshot.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
+#include "../input/EAIHelpers.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 

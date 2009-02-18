@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.11 2009/02/11 15:12:55 istakenv Exp $
+$Id: CRoutes.c,v 1.12 2009/02/18 13:37:50 istakenv Exp $
 
 ???
 
@@ -29,6 +29,7 @@ $Id: CRoutes.c,v 1.11 2009/02/11 15:12:55 istakenv Exp $
 #include "../world_script/jsNative.h"
 #include "../input/SensInterps.h"
 
+#include "CRoutes.h"
 
 /* defines for getting touched flags and exact Javascript pointers */
 

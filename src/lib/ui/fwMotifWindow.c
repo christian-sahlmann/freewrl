@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: fwMotifWindow.c,v 1.4 2009/02/11 15:12:55 istakenv Exp $
+  $Id: fwMotifWindow.c,v 1.5 2009/02/18 13:37:50 istakenv Exp $
 
   Create Motif window, widget, menu. Manage events.
 
@@ -12,10 +12,15 @@
 #include <display.h>
 #include <internal.h>
 
+#include <Xm/SelectioB.h>
+#include <Xm/MessageB.h>
+
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../main/MainLoop.h"
+#include "../main/ProdCon.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
@@ -31,6 +36,7 @@
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 
+#include "fwMotifWindow.h"
 
 #define ABOUT_FREEWRL "FreeWRL Version %s\n \
 %s %s.\n \n \

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
+$Id: jsUtils.h,v 1.5 2009/02/18 13:37:50 istakenv Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -59,11 +59,11 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, struct X3D_Node * ptr);
 
 #ifdef JAVASCRIPTVERBOSE
-#define ACTUALRUNSCRIPT(a,b,c) ActualrunScript(a,b,c,__FILE__,__LINE__)
-int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *fn, int line);
+# define ACTUALRUNSCRIPT(a,b,c) ActualrunScript(a,b,c,__FILE__,__LINE__)
+/* now in JScript.h -- int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *fn, int line); */
 #else
-#define ACTUALRUNSCRIPT(a,b,c) ActualrunScript(a,b,c)
-int ActualrunScript(uintptr_t num, char *script, jsval *rval);
+# define ACTUALRUNSCRIPT(a,b,c) ActualrunScript(a,b,c)
+/* now in JScript.h -- int ActualrunScript(uintptr_t num, char *script, jsval *rval); */
 #endif
 
 int
@@ -99,7 +99,7 @@ errorReporter(JSContext *cx,
 			  JSErrorReport *report);
 
 int JSGetProperty(uintptr_t num, char *script, struct Uni_String *rstr);
-void JSInit(uintptr_t num);
+/* moved to JScript.h -- void JSInit(uintptr_t num); */
 
 void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, jsval *ret);
 JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);

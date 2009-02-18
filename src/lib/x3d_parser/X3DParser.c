@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.9 2009/02/11 15:12:55 istakenv Exp $
+$Id: X3DParser.c,v 1.10 2009/02/18 13:37:50 istakenv Exp $
 
 ???
 
@@ -21,12 +21,15 @@ $Id: X3DParser.c,v 1.9 2009/02/11 15:12:55 istakenv Exp $
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
+#include "../world_script/JScript.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
+#include "../input/EAIheaders.h"
 
 #include "X3DParser.h"
+#include "X3DProtoScript.h"
 
 #if HAVE_EXPAT_H
 # include <expat.h>

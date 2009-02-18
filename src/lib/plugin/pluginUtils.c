@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: pluginUtils.c,v 1.4 2009/02/11 15:12:54 istakenv Exp $
+$Id: pluginUtils.c,v 1.5 2009/02/18 13:37:50 istakenv Exp $
 
 ???
 
@@ -16,20 +16,11 @@ $Id: pluginUtils.c,v 1.4 2009/02/11 15:12:54 istakenv Exp $
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-/* #include "../vrml_parser/CParseGeneral.h" */
-/* #include "../scenegraph/Vector.h" */
-/* #include "../vrml_parser/CFieldDecls.h" */
-/* #include "../world_script/CScripts.h" */
-/* #include "../vrml_parser/CParseParser.h" */
-/* #include "../vrml_parser/CParseLexer.h" */
-/* #include "../vrml_parser/CParse.h" */
+#include "../input/EAIheaders.h"
 
 /* #include <float.h> */
 
 #include "../x3d_parser/Bindable.h"
-/* #include "../scenegraph/Collision.h" */
-/* #include "../scenegraph/quaternion.h" */
-/* #include "../scenegraph/Viewer.h" */
 
 #include "pluginUtils.h"
 

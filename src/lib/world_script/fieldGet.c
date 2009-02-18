@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.10 2009/02/11 15:12:55 istakenv Exp $
+$Id: fieldGet.c,v 1.11 2009/02/18 13:37:50 istakenv Exp $
 
 Javascript C language binding.
 
@@ -23,6 +23,7 @@ Javascript C language binding.
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../input/EAIheaders.h"
+#include "../input/EAIHelpers.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 
