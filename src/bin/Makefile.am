@@ -14,19 +14,6 @@ AM_CPPFLAGS += \
 				$(MOTIF_CFLAGS) \
 				$(GL_CFLAGS)
 
-AM_LDFLAGS += \
-				$(PTHREAD_LIBS) \
-				$(FREETYPE_LIBS) \
-				$(JAVASCRIPT_ENGINE_LIBS) \
-				$(XML_LIBS) $(EXPAT_LIBS) \
-				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
-				$(XAW_LIBS) \
-				$(MOTIF_LIBS) \
-				$(GL_LIBS) \
-				$(JPEG_LIBS) \
-				$(PNG_LIBS)
-
-
 _EV=$(top_srcdir)/versions/FREEWRL
 export
 

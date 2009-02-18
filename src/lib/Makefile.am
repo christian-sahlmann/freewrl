@@ -16,7 +16,8 @@ AM_CPPFLAGS += \
 				$(GL_CFLAGS) \
 				$(PNG_CFLAGS)
 
-AM_LDFLAGS += \
+MYLIBADD = \
+				$(PTHREAD_LIBS) \
 				$(FREETYPE_LIBS) \
 				$(JAVASCRIPT_ENGINE_LIBS) \
 				$(XML_LIBS) $(EXPAT_LIBS) \
@@ -30,7 +31,7 @@ if WINDOW_USE_X11
 AM_CPPFLAGS += \
 				$(X_CFLAGS) \
 				$(XAW_CFLAGS)
-AM_LDFLAGS += \
+MYLIBADD += \
 				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
 				$(XAW_LIBS)
 endif
@@ -41,7 +42,7 @@ AM_CPPFLAGS += \
 				$(X_CFLAGS) \
 				$(XAW_CFLAGS) \
 				$(MOTIF_CFLAGS)
-AM_LDFLAGS += \
+MYLIBADD += \
 				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
 				$(XAW_LIBS) \
 				$(MOTIF_LIBS)
@@ -89,6 +90,7 @@ pkgconfig_DATA = libFreeWRL.pc
 lib_LTLIBRARIES = libFreeWRL.la
 include_HEADERS = libFreeWRL.h
 libFreeWRL_la_LDFLAGS = -version-info $(LIBFREEWRL_LTVERSION)
+libFreeWRL_la_LIBADD = $(MYLIBADD)
 
 include Makefile.sources
 
