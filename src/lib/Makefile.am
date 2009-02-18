@@ -98,12 +98,12 @@ libFreeWRL_la_SOURCES += internal_version.c
 # WINDOW_USE_* are exclusive
 #
 if WINDOW_USE_X11
-libFreeWRL_la_SOURCES += display_x11.c ui/fwWindow.c ui/fwBareWindow.c
+libFreeWRL_la_SOURCES += display_x11.c ui/fwWindow.c ui/fwWindow.h ui/fwBareWindow.c ui/fwBareWindow.h
 AM_CPPFLAGS+=-DTARGET_X11
 endif
 
 if WINDOW_USE_MOTIF
-libFreeWRL_la_SOURCES += display_x11.c display_motif.c ui/fwWindow.c ui/fwMotifWindow.c
+libFreeWRL_la_SOURCES += display_x11.c display_motif.c ui/fwWindow.c ui/fwWindow.h ui/fwMotifWindow.c ui/fwMotifWindow.h
 AM_CPPFLAGS+=-DTARGET_MOTIF
 endif
 

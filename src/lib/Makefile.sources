@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.14 2009/02/11 15:12:54 istakenv Exp $
+# $Id: Makefile.sources,v 1.15 2009/02/18 16:57:42 istakenv Exp $
 #
 # List all source files
 #
@@ -21,8 +21,10 @@ libFreeWRL_la_SOURCES = \
  \
 main/headers.h \
 main/MainLoop.c \
+main/MainLoop.h \
 main/SoundEngineClient.c \
 main/ProdCon.c \
+main/ProdCon.h \
 main/Snapshot.h \
 main/Snapshot.c \
 main/ConsoleMessage.c \
@@ -34,6 +36,7 @@ vrml_parser/CParse.c \
 vrml_parser/CParseLexer.c \
 vrml_parser/CProto.h \
 vrml_parser/CRoutes.c \
+vrml_parser/CRoutes.h \
 vrml_parser/CParseParser.h \
 vrml_parser/CFieldDecls.c \
 vrml_parser/CParseLexer.h \
@@ -50,6 +53,7 @@ x3d_parser/X3DParser.c \
 x3d_parser/Bindable.h \
 x3d_parser/X3DParser.h \
 x3d_parser/X3DProtoScript.c \
+x3d_parser/X3DProtoScript.h \
 x3d_parser/capabilitiesHandler.c \
  \
 world_script/CScripts.h \
@@ -72,6 +76,7 @@ world_script/jsVRML_SFClasses.c \
 world_script/world_script.h \
  \
 scenegraph/RenderFuncs.c \
+scenegraph/RenderFuncs.h \
 scenegraph/Component_EnvironSensor.c \
 scenegraph/quaternion.c \
 scenegraph/Viewer.c \
@@ -121,6 +126,7 @@ scenegraph/Component_Sound.c \
 scenegraph/Component_Geometry3D.c \
 scenegraph/Polyrep.h \
 scenegraph/Component_Networking.c \
+scenegraph/Component_Networking.h \
 scenegraph/Component_PointingDevice.c \
 scenegraph/statics.c \
 scenegraph/GenPolyRep.c \
