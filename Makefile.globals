@@ -11,11 +11,19 @@ else
 DEBUG_FLAGS=
 endif
 
-# GCC warnings: 
+# Compiler warnings: 
 # http://gcc.gnu.org/onlinedocs/gcc-4.3.2/gcc/Preprocessor-Options.html#Preprocessor-Options
-CC_WARNINGS=-Wall -Wundef -Wunused-macros 
+
+CC_WARNINGS=-Wall -Wundef -Wunused-macros
+
+# Compiler options
+# freewrl code uses a lot of type-punned pointers; turning off strict-aliasing
+CC_OPTS=-fno-strict-aliasing
+
+# Linker options
+# We want as few deps as possible
+LD_OPTS=-Wl,--as-needed
 
 # Define this globally
-AM_CPPFLAGS = $(CC_WARNINGS) $(DEBUG_FLAGS)
-AM_CFLAGS = $(DEBUG_FLAGS)
-AM_LDFLAGS = $(DEBUG_FLAGS)
+AM_CPPFLAGS = $(DEBUG_FLAGS) $(CC_WARNINGS) $(CC_OPTS)
+AM_LDFLAGS = $(DEBUG_FLAGS) $(LD_OPTS)

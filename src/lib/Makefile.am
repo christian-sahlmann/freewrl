@@ -5,7 +5,7 @@
 # Get global variables for Makefile defined by toplevel Makefile.globals
 include $(top_srcdir)/Makefile.globals
 
-# Just add variables tested and checked by troplevel configure
+# Just add variables tested and checked by toplevel configure
 
 # General libraries used with all platforms
 AM_CPPFLAGS += \
@@ -16,7 +16,7 @@ AM_CPPFLAGS += \
 				$(GL_CFLAGS) \
 				$(PNG_CFLAGS)
 
-MYLIBADD = \
+EXTERNAL_LIBS = \
 				$(PTHREAD_LIBS) \
 				$(FREETYPE_LIBS) \
 				$(JAVASCRIPT_ENGINE_LIBS) \
@@ -28,21 +28,23 @@ MYLIBADD = \
 
 # X11 flags specific to x11 target (default on Linux -- optional on Mac)
 if WINDOW_USE_X11
+
 AM_CPPFLAGS += \
 				$(X_CFLAGS) \
 				$(XAW_CFLAGS)
-MYLIBADD += \
+EXTERNAL_LIBS += \
 				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
 				$(XAW_LIBS)
 endif
 
 # Motif flags specific to motif target (only on Linux at the moment)
 if WINDOW_USE_MOTIF
+
 AM_CPPFLAGS += \
 				$(X_CFLAGS) \
 				$(XAW_CFLAGS) \
 				$(MOTIF_CFLAGS)
-MYLIBADD += \
+EXTERNAL_LIBS += \
 				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
 				$(XAW_LIBS) \
 				$(MOTIF_LIBS)
@@ -50,13 +52,17 @@ endif
 
 # Aqua flags specific to aqua target (only on Mac)
 if WINDOW_USE_AQUA
+
 AM_CPPFLAGS += $(MAC_CFLAGS) -DAQUA
+
 endif
 
 if OS_MAC
+
 # I found this in spidermonkey build files: -Wall -Wno-format -no-cpp-precomp -fno-common -DJS_THREADSAFE -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN  -UDEBUG -DNDEBUG -UDEBUG_root -DJS_THREADSAFE -DEDITLINE
+
 AM_CPPFLAGS += -Wno-format -no-cpp-precomp -fno-common 
-### -DSVR4 -D_BSD_SOURCE -DPOSIX_SOURCE -D_POSIX_C_SOURCE -DDARWIN
+
 endif
 
 ## the freewrl code uses a lot of type-punned pointers; turning off strict-aliasing
@@ -73,7 +79,7 @@ LIBFREEWRL_VERSION=`cat $$_EV`
 LIBFREEWRL_LTVERSION=`cat $$_EV2`
 
 # Generate the version source file
-internal_version.c: $(_EV)
+internal_version.c: $(_EV) $(_EV2)
 	$(top_srcdir)/vtempl $(component) \
 	$(LIBFREEWRL_VERSION) < $(templ) > $@
 # And add it to the list of files to clean
@@ -90,7 +96,7 @@ pkgconfig_DATA = libFreeWRL.pc
 lib_LTLIBRARIES = libFreeWRL.la
 include_HEADERS = libFreeWRL.h
 libFreeWRL_la_LDFLAGS = -version-info $(LIBFREEWRL_LTVERSION)
-libFreeWRL_la_LIBADD = $(MYLIBADD)
+libFreeWRL_la_LIBADD = $(EXTERNAL_LIBS)
 
 include Makefile.sources
 
@@ -113,13 +119,3 @@ if WINDOW_USE_AQUA
 libFreeWRL_la_SOURCES += display_aqua.c
 AM_CPPFLAGS+=-DTARGET_AQUA
 endif
-
-# # quickcompile:
-# # 	@-rm -f .quickcompile.log
-# # 	@for i in $(filter %.c, $(libFreeWRL_la_SOURCES)); do \
-# # 		echo "compile: $$i"; \
-# # 		$(COMPILE) $(CFLAGS) -c $$i 2>&1 >> .quickcompile.log || { \
-# # 			echo "failed to compile: $$i"; \
-# # 			exit 1; \
-# # 		}; \
-# # 	done
