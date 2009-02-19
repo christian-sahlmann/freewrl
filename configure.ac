@@ -123,6 +123,11 @@ AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugi
 # Threads
 ACX_PTHREAD
 
+# Fix for propoer use of --as-needed
+# http://udrepper.livejournal.com/19395.html
+PTHREAD_CFLAGS=$(echo $PTHREAD|sed -e 's/-pthread//')
+PTHREAD_LIBS+=-lpthread
+
 # FreeType (font rendering)
 PKG_CHECK_MODULES(FREETYPE, freetype2)
 

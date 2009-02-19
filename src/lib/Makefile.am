@@ -5,6 +5,13 @@
 # Get global variables for Makefile defined by toplevel Makefile.globals
 include $(top_srcdir)/Makefile.globals
 
+# Compiler options
+# freewrl code uses a lot of type-punned pointers; turning off strict-aliasing
+# (this enable -O2 compile to work)
+CC_OPTS=-fno-strict-aliasing
+
+AM_CFLAGS=$(CC_OPTS)
+
 # Just add variables tested and checked by toplevel configure
 
 # General libraries used with all platforms
@@ -64,10 +71,6 @@ if OS_MAC
 AM_CPPFLAGS += -Wno-format -no-cpp-precomp -fno-common 
 
 endif
-
-## the freewrl code uses a lot of type-punned pointers; turning off strict-aliasing
-AM_CFLAGS = -fno-strict-aliasing
-
 
 _EV=$(top_srcdir)/versions/LIBFREEWRL
 _EV2=$(top_srcdir)/versions/LIBFREEWRL_LTVERSION

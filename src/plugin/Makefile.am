@@ -41,15 +41,23 @@ internal_version.c: $(_EV)
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c
 
+newversion:
+	-rm -f internal_version.*
+	$(MAKE)
+
 LIBFREEWRL_SRCDIR=$(top_srcdir)/src/lib
 LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
 
 AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
 
+# libtool does not help much here, I'll end using gcc -shared
+# if we don't find a smart way to instruct libtool...
+
 plugin_LTLIBRARIES = libFreeWRLplugin.la
+libFreeWRLplugin_la_LIBTOOLFLAGS = --tag=disable-static
+# plugindir=$(abs_top_builddir) # hack
 plugindir=$(PLUGIN_DIR)
-libFreeWRLplugin_la_LDFLAGS = -avoid-version $(AM_LDFLAGS)
-# libFreeWRLplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la
+libFreeWRLplugin_la_LDFLAGS = -module -avoid-version $(AM_LDFLAGS)
 
 include Makefile.sources
 

@@ -32,7 +32,7 @@ configure-stamp:
 	dh_testdir
 	./configure --prefix=/usr \
 		--with-fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera \
-		--disable-static --disable-fast-install \
+		--disable-static \
 		--disable-dependency-tracking \
 		--disable-debug \
 		--with-target=motif \
@@ -70,6 +70,7 @@ install: build
 	dh_installdirs
 	# Install through Make target
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/freewrl
+	-rm -f $(PLUGIN_DIR)/*.la
 	# Plugin is installed in /usr/lib/mozilla/plugins (default on Debian)
 	# but if other directory exists (Ubuntu) we create symlink 
 	# for the plugin in other directories
