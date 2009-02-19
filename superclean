@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: superclean,v 1.1 2009/02/04 11:53:04 couannette Exp $
+# $Id: superclean,v 1.2 2009/02/19 11:42:58 couannette Exp $
 #
 # Clean all autotools files
 # Clean all Makefiles
@@ -16,3 +16,6 @@ find . -name Makefile -delete
 find . -name "*~" -delete
 
 rm -f vtempl
+
+rm -f build-stamp configure-stamp debian/files debian/freewrl.debhelper.log
+rm -rf debian/freewrl
