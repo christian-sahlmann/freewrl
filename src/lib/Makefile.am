@@ -6,11 +6,9 @@
 include $(top_srcdir)/Makefile.globals
 
 # Compiler options
-# freewrl code uses a lot of type-punned pointers; turning off strict-aliasing
+# freewrl library code uses a lot of type-punned pointers; turning off strict-aliasing
 # (this enable -O2 compile to work)
-CC_OPTS=-fno-strict-aliasing
-
-AM_CFLAGS=$(CC_OPTS)
+AM_CFLAGS += -fno-strict-aliasing
 
 # Just add variables tested and checked by toplevel configure
 
@@ -98,7 +96,7 @@ pkgconfig_DATA = libFreeWRL.pc
 
 lib_LTLIBRARIES = libFreeWRL.la
 include_HEADERS = libFreeWRL.h
-libFreeWRL_la_LDFLAGS = -version-info $(LIBFREEWRL_LTVERSION)
+libFreeWRL_la_LDFLAGS = -version-info $(LIBFREEWRL_LTVERSION) $(AM_LDFLAGS)
 libFreeWRL_la_LIBADD = $(EXTERNAL_LIBS)
 
 include Makefile.sources
