@@ -38,7 +38,8 @@ AM_CPPFLAGS += \
 				$(X_CFLAGS) \
 				$(XAW_CFLAGS)
 EXTERNAL_LIBS += \
-				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
+				$(X_PRE_LIBS) \
+				$(X_LIBS) $(X_EXTRA_LIBS) \
 				$(XAW_LIBS)
 endif
 
@@ -50,9 +51,10 @@ AM_CPPFLAGS += \
 				$(XAW_CFLAGS) \
 				$(MOTIF_CFLAGS)
 EXTERNAL_LIBS += \
-				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
-				$(XAW_LIBS) \
-				$(MOTIF_LIBS)
+				$(X_PRE_LIBS) \
+				$(MOTIF_LIBS) \
+				$(X_LIBS) $(X_EXTRA_LIBS) \
+				$(XAW_LIBS)
 endif
 
 # Aqua flags specific to aqua target (only on Mac)
