@@ -22,6 +22,8 @@ dnl 	BROWSER=/usr/bin/firefox
 dnl	AC_MY_HELPERAPP([browser],[BROWSER],[internet browser],[],[AC_MSG_ERROR([fail])]
 dnl
 AC_DEFUN([AC_MY_HELPERAPP], [
+    AC_REQUIRE([AC_PATH_PROG])
+    m4_pattern_allow([AC_PATH_PROG])
     AC_ARG_WITH([$1],
         [AS_HELP_STRING([--with-$1=PATH],[Path to $3 (default: $4)])],
         [if test "x$withval" = "xno"; then
