@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.4 2009/02/11 15:12:55 istakenv Exp $
+$Id: GenPolyRep.c,v 1.5 2009/02/24 20:57:50 crc_canada Exp $
 
 ???
 
@@ -1152,6 +1152,9 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	int tcoordsize;
 	int tcindexsize;
 
+	int beginCap = node->beginCap;			/* beginCap flag */
+	int endCap = node->endCap;			/* endCap flag */
+
 	int nspi = node->spine.n;			/* number of spine points	*/
 	int nsec = node->crossSection.n;		/* no. of points in the 2D curve
 							   but note that this is verified
@@ -1323,19 +1326,19 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	 * calc number of triangles per cap, if caps are enabled and possible
 	 */
 
-	if(node->beginCap||node->endCap) {
+	/* if we are both circular and tubular, we ignore any caps */
+	if (circular && tubular) {
+		beginCap = FALSE; 
+		endCap = FALSE;
+		#if VERBOSE
+		printf ("Extrusion, turning off caps \n");
+		#endif
+	}
+
+	if(beginCap||endCap) {
 		if(tubular?nsec<4:nsec<3) {
 			freewrlDie("Only two real vertices in crossSection. Caps not possible!");
 		}
-
-		#ifdef VERBOSE
-		if(circular && tubular) {
-			printf("Spine and crossSection-curve are closed - how strange! ;-)\n");
-			/* maybe we want to fly in this tunnel? Or it is semi
-			   transparent somehow? It is possible to create
-			   nice figures if you rotate the cap planes... */
-		}
-		#endif
 
 		if(tubular)	nctri=nsec-2;
 		else		nctri=nsec-1;
@@ -1376,7 +1379,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	 	}
 
 		/* so we have calculated nctri for one cap, but we might have two*/
-		nctri= ((node->beginCap)?nctri:0) + ((node->endCap)?nctri:0) ;
+		nctri= ((beginCap)?nctri:0) + ((endCap)?nctri:0) ;
 	}
 
 	/* if we have non-convex polygons, we might need a few triangles more	*/
@@ -2013,7 +2016,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 		/* printf ("beginCap, starting at triind %d\n",triind);*/
 
 		/* this is the simple case with convex polygons	*/
-		if(node->beginCap) {
+		if(beginCap) {
 			triind_start = triind;
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
@@ -2030,7 +2033,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 			this_face++;
 		} /* if beginCap */
 
-		if(node->endCap) {
+		if(endCap) {
 			triind_start = triind;
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
@@ -2051,7 +2054,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	 	/* for (tmp=0;tmp<tcindexsize; tmp++) printf ("index1D %d tcindex %d\n",tmp,tcindex[tmp]);*/
 
 	} else
-	    if(node->beginCap||node->endCap) {
+	    if(beginCap || endCap) {
 		/* polygons might be concave-> do tessellation			*/
 		/* XXX - no textures yet - Linux Tesselators give me enough headaches;
 		   lets wait until they are all ok before trying texture mapping */
@@ -2069,7 +2072,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 		else endpoint = nsec-ncolinear_at_end;
 
 
-		if (node->beginCap) {
+		if (beginCap) {
 			global_IFS_Coord_count = 0;
 			gluBeginPolygon(global_tessobj);
 
@@ -2101,7 +2104,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 			this_face++;
 		}
 
-		if (node->endCap) {
+		if (endCap) {
 			global_IFS_Coord_count = 0;
 			gluBeginPolygon(global_tessobj);
 
