@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.11 2009/02/18 13:37:50 istakenv Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.12 2009/02/24 15:25:53 crc_canada Exp $
 
 ???
 
@@ -33,7 +33,8 @@ $Id: EAI_C_CommonFunctions.c,v 1.11 2009/02/18 13:37:50 istakenv Exp $
 # define MALLOC(a) malloc(a)
 #endif
 
-int eaiverbose = TRUE;
+/* assume eaiverbose is false, unless told otherwise */
+int eaiverbose = FALSE;
 
 #define PST_MF_STRUCT_ELEMENT(type1,type2) \
 	case FIELDTYPE_MF##type1: { \

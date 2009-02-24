@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.26 2009/02/18 13:37:50 istakenv Exp $
+$Id: MainLoop.c,v 1.27 2009/02/24 15:25:53 crc_canada Exp $
 
 CProto ???
 
@@ -1700,7 +1700,7 @@ void setDisplayed (int state) {
 }
 
 void setEaiVerbose() {
-        eaiverbose = FALSE;
+        eaiverbose = TRUE;
 }
         
 /* called from the standalone OSX front end */
