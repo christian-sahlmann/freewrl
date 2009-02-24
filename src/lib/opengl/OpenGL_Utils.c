@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.19 2009/02/18 13:37:50 istakenv Exp $
+$Id: OpenGL_Utils.c,v 1.20 2009/02/24 19:55:02 crc_canada Exp $
 
 ???
 
@@ -456,6 +456,8 @@ static int sav = 0;
 static int tot = 0;
 
 void invalidateCurMat() {
+	return;
+
 	if (myMat == GL_PROJECTION) PROJmatOk=FALSE;
 	else if (myMat == GL_MODELVIEW) MODmatOk=FALSE;
 	else {printf ("fwLoad, unknown %d\n",myMat);}

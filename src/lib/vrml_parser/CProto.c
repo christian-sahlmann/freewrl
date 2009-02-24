@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.8 2009/02/18 13:37:50 istakenv Exp $
+$Id: CProto.c,v 1.9 2009/02/24 19:55:02 crc_canada Exp $
 
 CProto ???
 
@@ -390,7 +390,11 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
 
 static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)
 {
- return newASCIIString (str->strptr);
+	if (str)  return newASCIIString (str->strptr);
+
+	/* should this return a blank string, or null? leave null for now */
+		/* return newASCIIString(""); */
+	return NULL;
 }
 
 /* Deepcopies a mf* */
@@ -400,10 +404,13 @@ static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)
  { \
   int i; \
   struct Multi_##stype dest; \
+printf ("DEEPCOPY_MFVALUE, src %u, dest count %d\n",src,src.n); \
   dest.n=src.n; \
   dest.p=MALLOC(sizeof(src.p[0])*src.n); \
   for(i=0; i!=src.n; ++i) \
+{ printf ("copying MF %d of %d\n",i,src.n); \
    dest.p[i]=DEEPCOPY_sf##type(lex, src.p[i], new, hash); \
+} \
   return dest; \
  }
 DEEPCOPY_MFVALUE(lex, bool, Bool)
@@ -577,19 +584,24 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFi
  size_t i;
  ret->alreadySet=FALSE;
 
+	#ifdef CPARSERVERBOSE
+	printf ("\nstart of protoFieldDecl_copy\n");
+	#endif
+
  /* copy over the fieldString */
-  /* printf ("protoFieldDecl_copy: copying field string for field... %s\n",me->fieldString);  */
+	#ifdef CPARSERVERBOSE
+  printf ("protoFieldDecl_copy: copying field string for field... %s\n",me->fieldString); 
+	#endif
  if (me->fieldString != NULL) ret->fieldString = STRDUP(me->fieldString);
 
  ret->mode=me->mode;
  ret->type=me->type;
  ret->name=me->name;
- /* printf ("copied mode %s type %s and name %d\n",stringPROTOKeywordType(ret->mode)
+	#ifdef CPARSERVERBOSE
+ printf ("copied mode %s type %s and name %d\n",stringPROTOKeywordType(ret->mode)
 	, stringFieldtypeType(ret->type), ret->name);
-
-
-
- printf ("protoFieldDecl_copy, copied fieldString for proto field\n"); */
+ printf ("protoFieldDecl_copy, copied fieldString for proto field\n"); 
+	#endif
 
   /* Copy scriptfield dests */
   for (i=0; i!=vector_size(me->scriptDests); ++i) {
@@ -601,22 +613,40 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFi
   }
 
  /* Copy default value */
- switch(me->type)
- {
-  #define SF_TYPE(fttype, type, ttype) \
-   case FIELDTYPE_##fttype: \
-    ret->defaultVal.type=DEEPCOPY_##type(lex, me->defaultVal.type, NULL, NULL); \
-    break;
-  #define MF_TYPE(fttype, type, ttype) \
-   SF_TYPE(fttype, type, ttype)
-  #include "VrmlTypeList.h"
-  #undef SF_TYPE
-  #undef MF_TYPE
 
-  default:
-   parseError("Unsupported type in defaultValue!");
- }
 
+ /* nodes that are of type mode==PKW_initializeOnly || mode==PKW_inputOutput 
+	are copied, nodes that are just inputOnly or outputOnly are ignored */
+
+	#ifdef CPARSERVERBOSE
+	printf ("protoFieldDecl_copy, copying type %s\n",stringFieldtypeType(me->type));
+	#endif
+
+	if (me->type==PKW_initializeOnly || me->type==PKW_inputOutput) {
+ 		switch(me->type)
+ 		{
+ 		 #define SF_TYPE(fttype, type, ttype) \
+   			case FIELDTYPE_##fttype: \
+    			ret->defaultVal.type=DEEPCOPY_##type(lex, me->defaultVal.type, NULL, NULL); \
+    			break;
+  			#define MF_TYPE(fttype, type, ttype) \
+   				SF_TYPE(fttype, type, ttype)
+  			#include "VrmlTypeList.h"
+  			#undef SF_TYPE
+  			#undef MF_TYPE
+
+  		default:
+   		parseError("Unsupported type in defaultValue!");
+ 		}
+	} else {
+	#ifdef CPARSERVERBOSE
+	printf ("protoFieldDecl_copy, ignoring this field\n");
+	#endif
+	}
+
+	#ifdef CPARSERVERBOSE
+	printf ("finished protoFieldDecl_copy\n");
+	#endif
  return ret;
 }
 

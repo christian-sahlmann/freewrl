@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.13 2009/02/18 13:37:50 istakenv Exp $
+  $Id: CParseParser.c,v 1.14 2009/02/24 19:55:02 crc_canada Exp $
 
   ???
 
@@ -502,6 +502,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
     struct ScriptFieldDecl* sdecl=NULL;
     char *startOfField = NULL;
 
+
 #ifdef CPARSERVERBOSE
     printf ("start of parser_interfaceDeclaration\n");
 #endif
@@ -515,7 +516,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
        appropriate index in mode */
     if(!lexer_protoFieldMode(me->lexer, &mode)) {
 #ifdef CPARSERVERBOSE
-        printf ("parser_interfaceDeclaration, not lexer_protoFieldMode\n");
+        printf ("parser_interfaceDeclaration, not lexer_protoFieldMode, returning\n");
 #endif
 
         return FALSE;
@@ -533,6 +534,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
 #ifdef CPARSERVERBOSE
                     printf ("parser_interfaceDeclaration, switching on mode %s\n",PROTOKEYWORDS[mode]);
 #endif
+
 
     switch(mode)
     {
@@ -681,8 +683,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
     /* Add the new field declaration to the list of fields in the Proto or Script definition.
        For a PROTO, this means adding it to the iface vector of the ProtoDefinition. 
        For a Script, this means adding it to the fields vector of the ScriptDefinition. */ 
-    if(proto)
-    {
+    if(proto) {
         /* protoDefinition_addIfaceField is #defined as vector_pushBack(struct ProtoFieldDecl*, (me)->iface, field) */
         /* Add the protoFieldDecl structure to the iface vector of the protoDefinition structure */
 
@@ -694,14 +695,20 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
             strncpy(pdecl->fieldString,startOfField,sz);
             pdecl->fieldString[sz]='\0';
         }
-        /* printf ("pdecl->fieldString is :%s:\n",pdecl->fieldString); */
+        #ifdef CPARSERVERBOSE
+	printf ("pdecl->fieldString is :%s:\n",pdecl->fieldString);
+	#endif
+
         protoDefinition_addIfaceField(proto, pdecl);
-    } else
-    {
+    } else {
         /* Add the scriptFieldDecl structure to the fields vector of the Script structure */
         ASSERT(script);
         script_addField(script, sdecl);
     }
+
+	#ifdef CPARSERVERBOSE
+	printf ("end of parser_interfaceDeclaration\n");
+	#endif
 
     return TRUE;
 }
@@ -745,6 +752,10 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 	printf ("warning - have proto but no name, so just copying a default string in\n");
 	obj->protoName = STRDUP("noProtoNameDefined");
     }
+
+	#ifdef CPARSERVERBOSE
+	printf ("parser_protoStatement, working on proto :%s:\n",obj->protoName);
+	#endif
 
     /* If the PROTOs stack has not yet been created, create it */
     if(!me->PROTOs) {
@@ -852,6 +863,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
     /* Make sure that the next token is a '}'.  Skip over it. */
 #ifdef CPARSERVERBOSE
     printf ("calling lexer_closeCurly at A\n");
+printf ("parser_protoStatement, FINISHED proto :%s:\n",obj->protoName);
 #endif
 
     return TRUE;
