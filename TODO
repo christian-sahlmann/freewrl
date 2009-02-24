@@ -1,11 +1,11 @@
 Priority list (as of 09/02/2009)
 
-09/02/2009: on OSX, the following tests have problems:
+24/02/2009: on OSX, the following tests have problems:
 
 	19 - pink robot?
 	20 - not sorted?
 	25,26 - Textures on backgrounds.
-	47.wrl (beachball) fwLoad, unknown -111
+	47.wrl (beachball) fwLoad, unknown -111 (FIXED - JAS)
 	49.wrl - no output?
 	50 - FreeWRL: SoundEngine not installed on system
 	9.wrl - shapes disappear.
