@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.9 2009/02/18 13:37:50 istakenv Exp $
+$Id: ProdCon.c,v 1.10 2009/02/25 15:53:51 crc_canada Exp $
 
 CProto ???
 
@@ -242,6 +242,7 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
  */
 int checkNetworkFile(char *fn) 
 {
+printf ("checkNetworkFile, fn :%s:\n",fn);
     if ((strncmp(fn,"ftp://", strlen("ftp://"))) &&
 	(strncmp(fn,"FTP://", strlen("FTP://"))) &&
 	(strncmp(fn,"http://", strlen("http://"))) &&
@@ -321,7 +322,8 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 			    else sprintf (sysline,"%s %s %s %s",WGET,fname,outputDirector, tempname);
 
 			    /*printf ("\nFreeWRL will try to use wget to get %s in thread %d\n",fname,pthread_self());*/
-			    printf ("\nFreeWRL will try to use wget to get %s\n",fname);
+			    printf ("\nFreeWRL will try to use %s to get %s\n",WGET,fname);
+
 			    freewrlSystem (sysline);
 			    strcpy (fname,tempname);
 			    *removeIt = TRUE;
@@ -331,7 +333,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 		}
 	}
 
-	/* printf ("fileExists, opening %s\n",fname); */
+	/* printf ("fileExists, opening %s\n",fname);  */
 	fp= fopen (fname,"r");
 	ok = (fp != NULL);
 
@@ -348,7 +350,8 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 		  }  
 		}
 		fclose (fp);
-	}
+	} else {
+}
 	return (ok);
 }
 

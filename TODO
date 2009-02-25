@@ -1,4 +1,9 @@
-Priority list (as of 09/02/2009)
+Priority list (as of 25/02/2009)
+
+25/02/2009: OSX and possibly Linux:
+	freewrl http://www.web3d.org/x3d/content/examples/Basic/GeoSpatial/HelloEarth.x3d
+	on command line prepends current path; eg: 
+	problem reading file '/Users/john/http://www.web3d.org/x3d/content/exa...
 
 24/02/2009: on OSX, the following tests have problems:
 
@@ -12,8 +17,6 @@ Priority list (as of 09/02/2009)
 	SFImage.wrl - box not changing texture
 	pp2.x3d - nothing shown.
 	stringSensor.x3dv - hangs?
-
-
 
 
 06/02/09: Examine orientations incorrect.
