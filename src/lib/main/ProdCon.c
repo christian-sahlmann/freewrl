@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.10 2009/02/25 15:53:51 crc_canada Exp $
+$Id: ProdCon.c,v 1.11 2009/02/25 16:59:34 crc_canada Exp $
 
 CProto ???
 
@@ -242,7 +242,7 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
  */
 int checkNetworkFile(char *fn) 
 {
-printf ("checkNetworkFile, fn :%s:\n",fn);
+	/* printf ("checkNetworkFile, fn :%s:\n",fn); */
     if ((strncmp(fn,"ftp://", strlen("ftp://"))) &&
 	(strncmp(fn,"FTP://", strlen("FTP://"))) &&
 	(strncmp(fn,"http://", strlen("http://"))) &&
