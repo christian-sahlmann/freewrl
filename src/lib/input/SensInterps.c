@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.6 2009/02/18 13:37:50 istakenv Exp $
+$Id: SensInterps.c,v 1.7 2009/02/25 22:03:09 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -23,7 +23,6 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "../scenegraph/LinearAlgebra.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
-#include "../scenegraph/sounds.h"
 
 #include "SensInterps.h"
 
@@ -1149,6 +1148,19 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 
 	UNUSED(over);
 
+	#ifdef SENSVERBOSE
+	printf ("%lf: TS ",TickTime);
+	if (ev==ButtonPress) printf ("ButtonPress ");
+	else if (ev==ButtonRelease) printf ("ButtonRelease ");
+	else if (ev==KeyPress) printf ("KeyPress ");
+	else if (ev==KeyRelease) printf ("KeyRelease ");
+	else if (ev==MotionNotify) printf ("%lf MotionNotify ");
+	else printf ("ev %d ",ev);
+	
+	if (but1) printf ("but1 TRUE "); else printf ("but1 FALSE ");
+	if (over) printf ("over TRUE "); else printf ("over FALSE ");
+	printf ("\n");
+	#endif
 
 	/* if not enabled, do nothing */
 	if (!node) return;
@@ -1159,9 +1171,9 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	if (!node->enabled) return;
 
 	/* only do something when button pressed */
-	if (!but1) return;
+	/* if (!but1) return; */
 
-	if (ev==ButtonPress) {
+	if ((ev==ButtonPress) && but1) {
 		/* record the current position from the saved position */
 		memcpy ((void *) &node->_origPoint,
 			(void *) &ray_save_posn,sizeof(struct SFColor));
@@ -1170,7 +1182,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 		node->isActive=1;
 		MARK_EVENT (ptr, offsetof (struct X3D_PlaneSensor, isActive));
 
-	} else if ((ev==MotionNotify) && (node->isActive==1)) {
+	} else if ((ev==MotionNotify) && (node->isActive==1) && but1) {
 		/* hyperhit saved in render_hypersensitive phase */
 		mult = (node->_origPoint.c[2] - hyp_save_posn.c[2]) /
 			(hyp_save_norm.c[2]-hyp_save_posn.c[2]);
@@ -1233,7 +1245,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 			node->offset.c[1] = node->translation_changed.c[1];
 			node->offset.c[2] = node->translation_changed.c[2];
 
-			MARK_EVENT (ptr, offsetof (struct X3D_PlaneSensor, translation_changed));
+			MARK_EVENT (ptr, offsetof (struct X3D_PlaneSensor, offset));
 		}
 	}
 }
