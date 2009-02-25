@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Children.c,v 1.5 2009/02/18 16:24:04 istakenv Exp $
+$Id: Children.c,v 1.6 2009/02/25 20:56:10 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -37,6 +37,10 @@ void sortChildren (struct Multi_Node ch) {
 
 	nc = ch.n;
 
+	#ifdef VERBOSE
+	printf ("sc start, %d, node %u\n",nc,ch);
+	#endif
+
 	for(i=0; i<nc; i++) {
 		noswitch = TRUE;
 		for (j=(nc-1); j>i; j--) {
@@ -69,7 +73,6 @@ void sortChildren (struct Multi_Node ch) {
 		printf ("child %d %d %f %s\n",i,b,b->_dist,stringNodeType(b->_nodeType));
 	}
 	#endif
-	
 }
 
 /* this grouping node has a DirectionalLight for a child, render this first */

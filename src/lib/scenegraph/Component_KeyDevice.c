@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: Component_KeyDevice.c,v 1.4 2009/02/25 20:56:10 crc_canada Exp $
 
 X3D Key Device Component
 
@@ -166,6 +166,10 @@ void sendKeyToKeySensor(const char key, int upDown) {
 	if (keySink == NULL) return;
 
 	for (count=0; count < keySinkCurMax; count++) {
+		#ifdef VERBOSE
+		printf ("sendKeyToKeySensor, sending key %d to %d of %d\n",key,count,keySinkCurMax);
+		#endif
+
 		if (keySink[count]->_nodeType == NODE_KeySensor) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
 		if (keySink[count]->_nodeType == NODE_StringSensor) sendToSS(keySink[count], (int)key&0xFFFF, upDown);
 	}
@@ -319,9 +323,14 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	}
 
 
-	/* printf ("enteredText:%s:\n",MYN->enteredText->strptr); */
 	/* finalText */
 	if (key==RTN_KEY) {
+		#ifdef VERBOSE
+		printf ("found return!\n");
+		printf ("current enteredText :%s:\n",MYN->enteredText->strptr);
+		printf ("current finalText :%s:\n",MYN->finalText->strptr);
+		#endif
+
 		memcpy(MYN->finalText->strptr, MYN->enteredText->strptr, MAXSTRINGLEN);
 		MYN->finalText->len = MYN->enteredText->len;
 		MYN->enteredText->len=1;
@@ -331,6 +340,9 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 
 		MYN->isActive = FALSE;
 		MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, isActive));
-		/* printf ("finalText:%s:\n",MYN->finalText->strptr); */
+
+		#ifdef VERBOSE
+		printf ("finalText:%s:\n",MYN->finalText->strptr); 
+		#endif
 	}
 }

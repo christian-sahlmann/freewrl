@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.5 2009/02/11 15:12:54 istakenv Exp $
+$Id: ConsoleMessage.c,v 1.6 2009/02/25 20:56:10 crc_canada Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -199,7 +199,6 @@ int ConsoleMessage(const char *fmt, ...) {
 	/* print this to the console log */
 	syslog (LOG_ALERT, FWbuffer);
 
-
 	/* print this to the application console log if running standalone, or speak it if running as a plug in */
 	if (!RUNNINGASPLUGIN) {
 		if (strcmp(FWbuffer, "\n") && strcmp(FWbuffer, "\n\n")) {
@@ -216,7 +215,8 @@ int ConsoleMessage(const char *fmt, ...) {
 
 		/* and call freewrlSystem to speak to the user */
                 sprintf(systemBuffer, "%s \"%s\"", FREEWRL_MESSAGE_WRAPPER, FWbuffer);
-                freewrlSystem(systemBuffer); 
+                freewrlSystem(systemBuffer);
+		FWbuffer[0] = '\0';
 	}
 #else
 	/* are we running under Motif or Gtk? */

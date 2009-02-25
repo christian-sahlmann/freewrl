@@ -5330,7 +5330,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_StringSensor * tmp2;
 			tmp2 = (struct X3D_StringSensor *) tmp;
 			tmp2->v = &virt_StringSensor;
-			tmp2->_initialized = TRUE;
+			tmp2->_initialized = FALSE;
 			tmp2->__oldEnabled = TRUE;
 			tmp2->enteredText = newASCIIString("");
 			tmp2->isActive = TRUE;
