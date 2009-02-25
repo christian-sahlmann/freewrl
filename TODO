@@ -7,16 +7,16 @@ Priority list (as of 25/02/2009)
 
 24/02/2009: on OSX, the following tests have problems:
 
-	19 - pink robot? *(FIXED- do_shininess call JAS)
+	19 - pink robot? *			(FIXED- do_shininess call JAS)
 	20 - not sorted?
-	25,26 - Textures on backgrounds.
-	47.wrl (beachball) fwLoad, unknown -111 (FIXED - JAS)
+	25,26 - Textures on backgrounds. 	(FIXED - texture box vertices changed JAS)
+	47.wrl (beachball) fwLoad, unknown -111	(FIXED - was opengl optimization call - removed JAS)
 	49.wrl - no output?
 	50 - FreeWRL: SoundEngine not installed on system
 	9.wrl - shapes disappear.
 	SFImage.wrl - box not changing texture
 	pp2.x3d - nothing shown.
-	stringSensor.x3dv - hangs?
+	stringSensor.x3dv - hangs? 		(FIXED - initialized was set to TRUE at start JAS)
 
 
 06/02/09: Examine orientations incorrect.
