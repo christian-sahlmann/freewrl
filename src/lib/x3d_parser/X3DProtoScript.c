@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.8 2009/02/18 13:37:50 istakenv Exp $
+$Id: X3DProtoScript.c,v 1.9 2009/02/25 18:28:29 crc_canada Exp $
 
 ???
 
@@ -349,6 +349,7 @@ static char *getProtoValue(int ProtoInvoc, char *id) {
 	#endif
 
 	/* get the start/end value pairs, and copy them into the id field. */
+printf ("getProtoValue, curProtoInsStackInd %d, MAX %d\n",curProtoInsStackInd, PROTOINSTANCE_MAX_LEVELS);
 	if ((curProtoInsStackInd < 0) || (curProtoInsStackInd >= PROTOINSTANCE_MAX_LEVELS)) {
 		return "";
 	} else {
@@ -457,6 +458,7 @@ void parseProtoInstance (const char **atts) {
 	}
 
 	/* initialize this call level */
+printf ("getProtoValue, curProtoInsStackInd %d, MAX %d\n",curProtoInsStackInd, PROTOINSTANCE_MAX_LEVELS);
 	if ((curProtoInsStackInd < 0) || (curProtoInsStackInd >= PROTOINSTANCE_MAX_LEVELS)) {
 		ConsoleMessage ("too many levels of ProtoInstances, recompile with PROTOINSTANCE_MAX_LEVELS higher ");
 		curProtoInsStackInd = 0;

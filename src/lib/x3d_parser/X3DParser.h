@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.4 2009/02/18 13:37:50 istakenv Exp $
+$Id: X3DParser.h,v 1.5 2009/02/25 18:28:29 crc_canada Exp $
 
 X3D parser functions.
 
@@ -25,7 +25,7 @@ X3D parser functions.
 #define PARSING_CONNECT		8
 
 /* for our internal PROTO tables, and, for initializing the XML parser */
-#define PROTOINSTANCE_MAX_LEVELS 30
+#define PROTOINSTANCE_MAX_LEVELS 50
 #define PROTOINSTANCE_MAX_PARAMS 20
 
 #define DECREMENT_PARENTINDEX \
