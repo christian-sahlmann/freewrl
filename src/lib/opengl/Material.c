@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.3 2009/02/11 15:12:54 istakenv Exp $
+$Id: Material.c,v 1.4 2009/02/25 15:03:17 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -17,9 +17,6 @@ Only do material settings that "matter" and bounds check all values.
 /* #include "LinearAlgebra.h" */
 
 
-/* default - set in the OpenGL initialization */
-GLfloat default_shininess = 25.6;
-
 /* default material properties */
 GLfloat default_diffuse[]  = {0.8,0.8,0.8,1.0};
 GLfloat default_ambient[]  = {0.2,0.2,0.2,1.0};
@@ -28,16 +25,24 @@ GLfloat default_emission[] = {0.0,0.0,0.0,1.0};
 
 GLfloat last_emission[4];
 
+/* bounds check and do the shininess calculations */
 void do_shininess (GLenum face, float shininess) {
-	if ((shininess > 128.0) || (shininess < 0.0)) {
-		/* JAS printf ("Shininess %f outside of bounds\n",shininess/128.0); */
-		/* JAS return;   bounds check */
-		if (shininess>128.0){shininess = 128.0;}else{shininess=0.0;}
+	/* which should it be? From the spec:
+		"Lower shininess values produce soft glows, while higher values result in sharper, smaller highlights."
+	so, we either do 1.0-shininess * 128, or we do shininess * 128... */
+
+	/* shininess = (1.0 - shininess) * 128.0; */
+	shininess *= 128.0;
+
+	/* printf ("do_shininess, %f for face %d, GL_FRONT %d, BACK %d F&B %d\n",shininess, face, GL_FRONT,GL_BACK,GL_FRONT_AND_BACK);  */
+
+#define MAX_SHIN 128.0
+#define MIN_SHIN 0.01
+	if ((shininess > MAX_SHIN) || (shininess < MIN_SHIN)) {
+		if (shininess>MAX_SHIN){shininess = MAX_SHIN;}else{shininess=MIN_SHIN;}
 	}
 
-	if (fabs(default_shininess - shininess) > 1.0) {
-		glMaterialf(face, GL_SHININESS, (float)default_shininess);
-	}
+	glMaterialf (face, GL_SHININESS, (float)shininess);
 }
 
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {

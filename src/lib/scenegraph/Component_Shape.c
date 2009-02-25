@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: Component_Shape.c,v 1.4 2009/02/25 15:03:17 crc_canada Exp $
 
 X3D Shape Component
 
@@ -282,8 +282,7 @@ static GLubyte negSlope[] = {
 	for (i=0; i<3;i++){ ecol[i] = node->emissc.c[i]; }		\
 	do_glMaterialfv(whichFace, GL_EMISSION, ecol);		\
 		\
-	shin = 128.0* node->shinc;		\
-	do_shininess(whichFace,shin);
+	do_shininess(whichFace,node->shinc);
 
 
 
@@ -294,7 +293,6 @@ void render_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 	float dcol[4];
 	float ecol[4];
 	float scol[4];
-	float shin;
 	float amb;
 	float trans= 1.0;
 
@@ -319,7 +317,6 @@ void render_Material (struct X3D_Material *node) {
 	float dcol[4];
 	float ecol[4];
 	float scol[4];
-	float shin;
 	float amb;
 	float trans=1.0;
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.20 2009/02/24 19:55:02 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.21 2009/02/25 15:03:17 crc_canada Exp $
 
 ???
 
@@ -359,7 +359,8 @@ void glpOpenGLInitialize() {
 	/* put the headlight far behind us, so that lighting on close
 	   surfaces (eg, just above the surface of a box) is evenly lit */
         float pos[] = { 0.0, 0.0, 100.0, 1.0 };
-        float s[] = { 1.0, 1.0, 1.0, 1.0 };
+        float dif[] = { 1.0, 1.0, 1.0, 1.0 };
+        float shin[] = { 0.6, 0.6, 0.6, 1.0 };
         float As[] = { 0.0, 0.0, 0.0, 1.0 };
 
         #ifdef AQUA
@@ -417,8 +418,8 @@ void glpOpenGLInitialize() {
 
         glLightfv(GL_LIGHT0, GL_POSITION, pos);
         glLightfv(GL_LIGHT0, GL_AMBIENT, As);
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, s);
-        glLightfv(GL_LIGHT0, GL_SPECULAR, s);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, dif);
+        glLightfv(GL_LIGHT0, GL_SPECULAR, shin);
 
 	/* ensure state of GL_CULL_FACE */
 	CULL_FACE_INITIALIZE
@@ -430,7 +431,7 @@ void glpOpenGLInitialize() {
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
 
-	do_shininess(GL_FRONT_AND_BACK, (float) (0.2 * 128));
+	do_shininess(GL_FRONT_AND_BACK,0.2);
 }
 
 void BackEndClearBuffer() {
