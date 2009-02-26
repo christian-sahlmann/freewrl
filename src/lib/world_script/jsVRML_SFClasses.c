@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_SFClasses.c,v 1.9 2009/02/11 15:12:55 istakenv Exp $
+$Id: jsVRML_SFClasses.c,v 1.10 2009/02/26 19:42:50 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -1280,12 +1280,13 @@ SFRotationGetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 	return JS_TRUE;
 }
 
-/* implement later */
 JSBool
 SFRotationInverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	JSObject *_retObj, *_proto;
 	SFRotationNative *_rot, *_retNative;
+	Quaternion q1,qret;
+	double a,b,c,d;
 
 	UNUSED(argc);
 	UNUSED(argv);
@@ -1313,20 +1314,34 @@ SFRotationInverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 		return JS_FALSE;
 	}
 
-	/* calculation correct? */
-/* 	_retNative->v.r[0] = (_rot->v).r[0]; */
-/* 	_retNative->v.r[1] = (_rot->v).r[1]; */
-/* 	_retNative->v.r[2] = (_rot->v).r[2]; */
-/* 	_retNative->v.r[3] = -(_rot->v).r[3]; */
-	printf( "SFRotation's inverse function does nothing!\n");
+	/* convert both rotation to quaternion */
+	vrmlrot_to_quaternion(&q1, (double) _rot->v.r[0], 
+		(double) _rot->v.r[1], (double) _rot->v.r[2], (double) _rot->v.r[3]);
+
+	/* invert it */
+	quaternion_inverse(&qret,&q1);
+
+
+	/* and return the resultant, as a vrml rotation */
+	quaternion_to_vrmlrot(&qret, &a, &b, &c, &d);
+	/* double to floats, can not use pointers... */
+	_retNative->v.r[0] = a;
+	_retNative->v.r[1] = b;
+	_retNative->v.r[2] = c;
+	_retNative->v.r[3] = d;
+
+	/* and, we now have a new value */
+	_retNative->valueChanged = 1; 
 
 	return JS_TRUE;
 }
 
-/* implement later */
 JSBool
 SFRotationMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+	Quaternion q1,q2,qret;
+	double a,b,c,d;
+
 	JSObject *_multObj, *_proto, *_retObj;
 	SFRotationNative *_rot1, *_rot2, *_retNative;
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -1367,7 +1382,26 @@ SFRotationMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 		return JS_FALSE;
 	}
 
-	printf( "SFRotation's multiply function does nothing!\n");
+	/* convert both rotations into quaternions */
+	vrmlrot_to_quaternion(&q1, (double) _rot1->v.r[0], 
+		(double) _rot1->v.r[1], (double) _rot1->v.r[2], (double) _rot1->v.r[3]);
+	vrmlrot_to_quaternion(&q2, (double) _rot2->v.r[0], 
+		(double) _rot2->v.r[1], (double) _rot2->v.r[2], (double) _rot2->v.r[3]);
+
+	/* multiply them */
+	quaternion_multiply(&qret,&q1,&q2);
+
+
+	/* and return the resultant, as a vrml rotation */
+	quaternion_to_vrmlrot(&qret, &a, &b, &c, &d);
+	/* double to floats, can not use pointers... */
+	_retNative->v.r[0] = a;
+	_retNative->v.r[1] = b;
+	_retNative->v.r[2] = c;
+	_retNative->v.r[3] = d;
+
+	/* and, we now have a new value */
+	_retNative->valueChanged = 1; 
 
 	return JS_TRUE;
 }
@@ -1489,7 +1523,6 @@ SFRotationSetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 	return JS_TRUE;
 }
 
-/* implement later */
 JSBool
 SFRotationSlerp(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
