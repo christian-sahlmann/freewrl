@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.5 2009/02/11 15:12:55 istakenv Exp $
+$Id: jsVRMLClasses.c,v 1.6 2009/02/26 18:40:11 crc_canada Exp $
 
 ???
 
@@ -162,7 +162,14 @@ JSPropertySpec (SFNodeProperties)[] = {
 };
 
 JSFunctionSpec (SFNodeFunctions)[] = {
-	{"toString", SFNodeToString, 0},
+#ifdef NEWCLASSES
+	{"getNodeName", SFNodeGetNodeName, 0},
+	{"getNodeType", SFNodeGetNodeType, 0},
+	{"getFieldDefinitions",SFNodeGetFieldDefs, 0},
+	{"toVRMLString",SFNodeToVRMLString, 0},
+	{"toXMLString", SFNodeToXMLString, 0},
+#endif
+	{"toString", SFNodeToString, 0}, /* depreciated JAS */
 	{"assign", SFNodeAssign, 0},
 	{0}
 };
@@ -194,7 +201,7 @@ JSFunctionSpec (SFRotationFunctions)[] = {
 	{"getAxis", SFRotationGetAxis, 0},
 	{"inverse", SFRotationInverse, 0},
 	{"multiply", SFRotationMultiply, 0},
-	{"multVec", SFRotationMultVec, 0},
+	{"multiVec", SFRotationMultVec, 0},
 	{"setAxis", SFRotationSetAxis, 0},
 	{"slerp", SFRotationSlerp, 0},
 	{"toString", SFRotationToString, 0},
@@ -229,7 +236,6 @@ JSFunctionSpec (SFVec2fFunctions)[] = {
 	{"dot", SFVec2fDot, 0},
 	{"length", SFVec2fLength, 0},
 	{"multiply", SFVec2fMultiply, 0},
-	/* {"negate", SFVec2fNegate, 0}, */
 	{"normalize", SFVec2fNormalize, 0},
 	{"subtract", SFVec2fSubtract, 0},
 	{"toString", SFVec2fToString, 0},
@@ -237,6 +243,39 @@ JSFunctionSpec (SFVec2fFunctions)[] = {
 	{0}
 };
 
+#ifdef NEWCLASSES
+JSClass SFVec2dClass = {
+	"SFVec2d",
+	JSCLASS_HAS_PRIVATE,
+	JS_PropertyStub,
+	JS_PropertyStub,
+	SFVec2dGetProperty,
+	SFVec2dSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_MY_Finalize
+};
+
+JSPropertySpec (SFVec2dProperties)[] = {
+	{"x", 0, JSPROP_ENUMERATE},
+	{"y", 1, JSPROP_ENUMERATE},
+	{0}
+};
+
+JSFunctionSpec (SFVec2dFunctions)[] = {
+	{"add", SFVec2dAdd, 0},
+	{"divide", SFVec2dDivide, 0},
+	{"dot", SFVec2dDot, 0},
+	{"length", SFVec2dLength, 0},
+	{"multiply", SFVec2dMultiply, 0},
+	{"normalize", SFVec2dNormalize, 0},
+	{"subtract", SFVec2dSubtract, 0},
+	{"toString", SFVec2dToString, 0},
+	{"assign", SFVec2dAssign, 0},
+	{0}
+};
+#endif /* NEWCLASSES */
 
 
 JSClass SFVec3fClass = {
@@ -371,7 +410,106 @@ JSFunctionSpec (MFInt32Functions)[] = {
 	{0}
 };
 
+#ifdef NEWCLASSES
+JSClass MFBoolClass = {
+	"MFBool",
+	JSCLASS_HAS_PRIVATE,
+	MFBoolAddProperty,
+	JS_PropertyStub,
+	MFBoolGetProperty,
+	MFBoolSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_MY_Finalize
+};
 
+JSFunctionSpec (MFBoolFunctions)[] = {
+	{"toString", MFBoolToString, 0},
+	{"assign", MFBoolAssign, 0},
+	{0}
+};
+
+
+JSClass MFDoubleClass = {
+	"MFDouble",
+	JSCLASS_HAS_PRIVATE,
+	MFDoubleAddProperty,
+	JS_PropertyStub,
+	MFDoubleGetProperty,
+	MFDoubleSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_MY_Finalize
+};
+
+JSFunctionSpec (MFDoubleFunctions)[] = {
+	{"toString", MFDoubleToString, 0},
+	{"assign", MFDoubleAssign, 0},
+	{0}
+};
+
+
+
+JSClass MFImageClass = {
+	"MFImage",
+	JSCLASS_HAS_PRIVATE,
+	MFImageAddProperty,
+	JS_PropertyStub,
+	MFImageGetProperty,
+	MFImageSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_MY_Finalize
+};
+
+JSFunctionSpec (MFImageFunctions)[] = {
+	{"toString", MFImageToString, 0},
+	{"assign", MFImageAssign, 0},
+	{0}
+};
+
+
+JSClass MFVec2dClass = {
+	"MFVec2d",
+	JSCLASS_HAS_PRIVATE,
+	MFVec2dAddProperty,
+	JS_PropertyStub,
+	MFVec2dGetProperty,
+	MFVec2dSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_MY_Finalize
+};
+
+JSFunctionSpec (MFVec2dFunctions)[] = {
+	{"toString", MFVec2dToString, 0},
+	{"assign", MFVec2dAssign, 0},
+	{0}
+};
+
+JSClass MFVec3dClass = {
+	"MFVec3d",
+	JSCLASS_HAS_PRIVATE,
+	MFVec3dAddProperty,
+	JS_PropertyStub,
+	MFVec3dGetProperty,
+	MFVec3dSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_MY_Finalize
+};
+
+JSFunctionSpec (MFVec3dFunctions)[] = {
+	{"toString", MFVec3dToString, 0},
+	{"assign", MFVec3dAssign, 0},
+	{0}
+};
+#endif /* NEWCLASSES */
 
 JSClass MFNodeClass = {
 	"MFNode",
@@ -533,6 +671,70 @@ JSFunctionSpec (VrmlMatrixFunctions)[] = {
 };
 
 
+#ifdef NEWCLASSES
+
+JSObject *proto_X3DMatrix3;
+
+JSClass X3DMatrix3Class = {
+	"X3DMatrix3",
+	JSCLASS_HAS_PRIVATE,
+	X3DMatrix3AddProperty,
+	JS_PropertyStub,
+	X3DMatrix3GetProperty,
+	X3DMatrix3SetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_MY_Finalize
+};
+
+JSFunctionSpec (X3DMatrix3Functions)[] = {
+	{"getTransform", X3DMatrix3getTransform, 0},
+	{"setTransform", X3DMatrix3setTransform, 0},
+	{"inverse", X3DMatrix3inverse, 0},
+	{"transpose", X3DMatrix3transpose, 0},
+	{"multLeft", X3DMatrix3multLeft, 0},
+	{"multRight", X3DMatrix3multRight, 0},
+	{"multVecMatrix", X3DMatrix3multVecMatrix, 0},
+	{"multMatrixVec", X3DMatrix3multMatrixVec, 0},
+	{"toString", X3DMatrix3ToString, 0},
+	{"assign", X3DMatrix3Assign, 0},
+	{0}
+};
+
+
+JSObject *proto_X3DMatrix4;
+
+JSClass X3DMatrix4Class = {
+	"X3DMatrix4",
+	JSCLASS_HAS_PRIVATE,
+	X3DMatrix4AddProperty,
+	JS_PropertyStub,
+	X3DMatrix4GetProperty,
+	X3DMatrix4SetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_MY_Finalize
+};
+
+JSFunctionSpec (X3DMatrix4Functions)[] = {
+	{"toString", X3DMatrix4ToString, 0},
+	{"assign", X3DMatrix4Assign, 0},
+	{"getTransform", X3DMatrix4getTransform, 0},
+	{"setTransform", X3DMatrix4setTransform, 0},
+	{"inverse", X3DMatrix4inverse, 0},
+	{"transpose", X3DMatrix4transpose, 0},
+	{"multLeft", X3DMatrix4multLeft, 0},
+	{"multRight", X3DMatrix4multRight, 0},
+	{"multVecMatrix", X3DMatrix4multVecMatrix, 0},
+	{"multMatrixVec", X3DMatrix4multMatrixVec, 0},
+	{0}
+};
+
+#endif /* NEWCLASSES */
+
+
 struct JSLoadPropElement {
 	JSClass *class;
 	void *constr;
@@ -542,6 +744,17 @@ struct JSLoadPropElement {
 
 
 struct JSLoadPropElement (JSLoadProps) [] = {
+#ifdef NEWCLASSES
+        { &MFVec2dClass, MFVec2dConstr, &MFVec2dFunctions, "__MFVec2d_proto"},
+        { &MFVec3dClass, MFVec3dConstr, &MFVec3dFunctions, "__MFVec3d_proto"},
+        { &SFVec2dClass, SFVec2dConstr, &SFVec2dFunctions, "__SFVec2d_proto"},
+        { &MFBoolClass, MFBoolConstr, &MFBoolFunctions, "__MFBool_proto"},
+        { &MFDoubleClass, MFDoubleConstr, &MFDoubleFunctions, "__MFDouble_proto"},
+        { &MFImageClass, MFImageConstr, &MFImageFunctions, "__MFImage_proto"},
+        { &X3DMatrix3Class, X3DMatrix3Constr, &X3DMatrix3Functions, "__X3DMatrix3_proto"},
+        { &X4DMatrix4Class, X4DMatrix4Constr, &X4DMatrix4Functions, "__X4DMatrix4_proto"},
+#endif
+
         { &SFColorClass, SFColorConstr, &SFColorFunctions, "__SFColor_proto"},
         { &SFVec2fClass, SFVec2fConstr, &SFVec2fFunctions, "__SFVec2f_proto"},
         { &SFColorRGBAClass, SFColorRGBAConstr, &SFColorRGBAFunctions, "__SFColorRGBA_proto"},
@@ -554,6 +767,7 @@ struct JSLoadPropElement (JSLoadProps) [] = {
         { &MFInt32Class, MFInt32Constr, &MFInt32Functions, "__MFInt32_proto"},
         { &MFColorClass, MFColorConstr, &MFColorFunctions, "__MFColor_proto"},
         { &MFVec2fClass, MFVec2fConstr, &MFVec2fFunctions, "__MFVec2f_proto"},
+
         { &MFVec3fClass, MFVec3fConstr, &MFVec3fFunctions, "__MFVec3f_proto"},
         { &MFRotationClass, MFRotationConstr, &MFRotationFunctions, "__MFRotation_proto"},
         { &MFNodeClass, MFNodeConstr, &MFNodeFunctions, "__MFNode_proto"},
