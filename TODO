@@ -1,4 +1,13 @@
-Priority list (as of 25/02/2009)
+Priority list (as of 26/02/2009)
+
+26/02/2009:
+	(JAS) Work on verifying capabilities, src/lib/x3d_parser/capabilitiesHandler.c.
+
+	(JAS) Continue filling in ECMAScript capabilities; see "NEWCLASSES" ifdef in the code.
+		- latest non-released spec requested from Dick Puck, 26/02/09, as the on on-line
+		  is from 2005.	
+	(JAS) Continue working on the VrmlMatrix commands - verify every method.
+
 
 25/02/2009: OSX and possibly Linux:
 	freewrl http://www.web3d.org/x3d/content/examples/Basic/GeoSpatial/HelloEarth.x3d

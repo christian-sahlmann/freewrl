@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.6 2009/02/11 15:12:55 istakenv Exp $
+$Id: jsVRML_MFClasses.c,v 1.7 2009/02/26 22:29:14 crc_canada Exp $
 
 ???
 
@@ -765,11 +765,115 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 }
 
 
+/* Sets the VrmlMatrix to the passed values. Any of the rightmost parameters may be omitted. 
+   The method has 0 to 5 parameters. For example, specifying 0 parameters results in an 
+   identity matrix while specifying 1 parameter results in a translation and specifying 2 
+   parameters results in a translation and a rotation. Any unspecified parameter is set to 
+   its default as specified for the Transform node. */
+
 JSBool
 VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
-	printf ("VrmlMatrixsetTransform\n");
+	struct SFRotation rotl = {{0.0, 0.0, 1.0, 0.0}};
+	struct SFColor transl = {{0.0, 0.0, 10.0}};
+	struct SFColor scalel = {{1.0, 1.0, 1.0}};
+	struct SFRotation scaleO = {{0.0, 0.0, 1.0, 0.0}};
+	struct SFColor centerl = {{0.0, 0.0, 0.0}};
+
+    	JSObject *transObj = NULL;
+	JSObject *rotObj = NULL;
+	JSObject *scaleObj = NULL;
+	JSObject *scaleOObj = NULL;
+	JSObject *centerObj = NULL;
+
+	SFRotationNative *Rptr;
+	SFVec3fNative *Vptr;
+    	double matrix[16];
+
+	int error = FALSE;
+	int i;
+
+	/* set the identity for this matrix. We work on this matrix, then assign it to the variable */
+	for (i=0; i<16; i++) {
+		double d;
+		if ((i==0) || (i==5) || (i==10) || (i==15)) { d = 1.0;
+		} else { d = 0.0; }
+		matrix[i] = d;
+	}
+
+
+	/* first, is this a VrmlMatrix object? The chances of this failing are slim to none... */
+	if (!JS_InstanceOf(cx, obj, &VrmlMatrixClass, NULL)) {
+		error = TRUE;
+	} else {
+		if (argc == 1) {
+			error = !JS_ConvertArguments(cx, argc, argv, "o", &transObj); 
+		}
+		if (argc == 2) {
+			error = !JS_ConvertArguments(cx, argc, argv, "o o", &transObj,
+				&rotObj);
+		}
+		if (argc == 3) {
+			error = !JS_ConvertArguments(cx, argc, argv, "o o o",
+				&transObj,&rotObj,&scaleObj);
+		}
+		if (argc == 4) {
+			error = !JS_ConvertArguments(cx, argc, argv, "o o o o",
+				&transObj,&rotObj,&scaleObj,&scaleOObj);
+		}
+		if (argc == 5) {
+			error = !JS_ConvertArguments(cx, argc, argv, "o o o o o",
+				&transObj,&rotObj,&scaleObj,&scaleOObj,&centerObj);
+		}
+		if (argc > 5) { error = TRUE; }
+	}
+
+	if (error) {
+		ConsoleMessage ("setTransform: error in parameters");
+		return JS_FALSE;
+	}
+
+	/* verify that we have the correct objects here */
+	if (transObj != NULL) 
+		error = !JS_InstanceOf(cx, transObj, &SFVec3fClass, NULL);
+	if (!error && (rotObj != NULL)) 
+		error = !JS_InstanceOf(cx, rotObj, &SFRotationClass, NULL);
+	if (!error && (scaleObj != NULL)) 
+		error = !JS_InstanceOf(cx, scaleObj, &SFVec3fClass, NULL);
+	if (!error && (scaleOObj != NULL)) 
+		error = !JS_InstanceOf(cx, scaleOObj, &SFRotationClass, NULL);
+	if (!error && centerObj != NULL) 
+		error = !JS_InstanceOf(cx, centerObj, &SFVec3fClass, NULL);
+
+	if (error) {
+		ConsoleMessage ("setTransform: at least one parameter incorrect type");
+		return JS_FALSE;
+	}
+
+
+	/* apply Transform, if requested */
+	if (transObj) {
+		SFVec3fNative * Vptr;
+                Vptr = (SFVec3fNative *)JS_GetPrivate(cx, transObj);
+		error = (Vptr != NULL);
+	
+		if (!error) {
+                	matrix[12]=Vptr->v.c[0];
+                	matrix[13]=Vptr->v.c[1];
+                	matrix[14]=Vptr->v.c[2];
+		}
+	}
+
+	if (!error && (rotObj != NULL)) {
+		SFRotationNative * Rptr;
+                Rptr = (SFRotationNative *)JS_GetPrivate(cx, rotObj);
+		error = (Vptr != NULL);
+	
+		if (!error) {
+		}
+
+	}
+	
 	return JS_TRUE;
 }
 

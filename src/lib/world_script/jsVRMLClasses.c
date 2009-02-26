@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.6 2009/02/26 18:40:11 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.7 2009/02/26 22:29:14 crc_canada Exp $
 
 ???
 
@@ -640,7 +640,6 @@ JSFunctionSpec (MFVec3fFunctions)[] = {
 	{0}
 };
 
-/* VrmlMatrix - JAS */
 JSObject *proto_VrmlMatrix;
 
 JSClass VrmlMatrixClass = {
@@ -657,16 +656,16 @@ JSClass VrmlMatrixClass = {
 };
 
 JSFunctionSpec (VrmlMatrixFunctions)[] = {
-	{"toString", VrmlMatrixToString, 0},
-	{"assign", VrmlMatrixAssign, 0},
-	{"getTransform", VrmlMatrixgetTransform, 0},
 	{"setTransform", VrmlMatrixsetTransform, 0},
+	{"getTransform", VrmlMatrixgetTransform, 0},
 	{"inverse", VrmlMatrixinverse, 0},
 	{"transpose", VrmlMatrixtranspose, 0},
 	{"multLeft", VrmlMatrixmultLeft, 0},
 	{"multRight", VrmlMatrixmultRight, 0},
 	{"multVecMatrix", VrmlMatrixmultVecMatrix, 0},
 	{"multMatrixVec", VrmlMatrixmultMatrixVec, 0},
+	{"toString", VrmlMatrixToString, 0},
+	{"assign", VrmlMatrixAssign, 0},
 	{0}
 };
 
