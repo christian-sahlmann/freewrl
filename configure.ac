@@ -397,8 +397,7 @@ case "$os_type" in
           DEFAULT_SOUNDCONV=sox
           DEFAULT_UNZIP=unzip
           DEFAULT_WGET=wget
-          DEFAULT_IMAGECONVERT=
-          IMAGECONVERT=
+          DEFAULT_IMAGECONVERT=convert
           ;;
      w32) # Windows defaults -- none right now because this isn't ported to windows yet
           DEFAULT_BROWSER=
