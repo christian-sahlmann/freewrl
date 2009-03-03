@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.13 2009/03/03 16:02:26 sdumoulin Exp $
+$Id: fieldSet.c,v 1.14 2009/03/03 17:35:15 sdumoulin Exp $
 
 ???
 
@@ -244,6 +244,7 @@ unsigned int setField_FromEAI (char *ptr) {
 	int nodeIndex, fieldIndex;
 	uintptr_t nodeptr;
 	uintptr_t offset;
+	uintptr_t myoffset;
 	unsigned int scripttype;
 	char *eol;
 
@@ -314,6 +315,7 @@ unsigned int setField_FromEAI (char *ptr) {
 	}
 
 	offset = getEAIActualOffset(nodeIndex, fieldIndex);
+	myoffset = offset;
 	nodeptr = (uintptr_t) getEAINodeFromTable(nodeIndex,fieldIndex);
 	myptr = nodeptr;
 
@@ -357,6 +359,7 @@ unsigned int setField_FromEAI (char *ptr) {
 
 		/* For ONEVAL need to pass memptr, not nodeptr */
 		myptr = memptr;
+		myoffset = 0;
 	}
 
 	/* lets replace the end of the string with a NULL, for parsing purposes */
@@ -368,7 +371,7 @@ unsigned int setField_FromEAI (char *ptr) {
 		nodeptr = actual memory pointer of X3D_Node* */
 
 	/* first, parse the value into the local variable */
-	Parser_scanStringValueToMem(myptr,offset,datatype,ptr,FALSE);
+	Parser_scanStringValueToMem(myptr,myoffset,datatype,ptr,FALSE);
 
 	if (scripttype == EAI_NODETYPE_SCRIPT) {
 		struct Shader_Script * sp;
