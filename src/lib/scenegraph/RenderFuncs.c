@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.6 2009/02/18 16:24:04 istakenv Exp $
+$Id: RenderFuncs.c,v 1.7 2009/03/03 17:02:41 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -81,8 +81,6 @@ int	have_transparency=FALSE;/* did any Shape have transparent material? */
 void *	this_textureTransform;  /* do we have some kind of textureTransform? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */
 int	have_texture;		/* do we have a texture (And thus a push?) */
-int	global_lineProperties;	/* line properties -width, etc			*/
-int	global_fillProperties;	/* polygon fill properties - hatching, etc	*/
 int	cullFace;		/* is GL_CULL_FACE enabled or disabled?		*/
 
 int     shutterGlasses = 0; 	/* stereo shutter glasses */

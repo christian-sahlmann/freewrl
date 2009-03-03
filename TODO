@@ -1,4 +1,21 @@
-Priority list (as of 26/02/2009)
+Priority list (as of 28/02/2009)
+
+04/03/2009:
+	(JAS) Standalone OSX player - see if long filenames on standalone overflows buffer at main.m line 18.
+	cd'ing further into a directory allows freewrl to run ok.
+
+03/03/2009:
+	(JAS) X3DParser, corrects incorrectly scoped Metadata (see, approx line 866 in X3DParser.c).
+	FreeWRL parses this now, FreeX3D should throw an error.
+
+
+28/02/2009:
+	(JAS) ConsoleMessage - when copying rest of text in classic parser for error location,
+	make copied string length max 200 chars.
+
+	(JAS) Verify that x3d, x3dv, and wrl files set _isX3D and _isXML correctly.
+	Some of the Conformance tests now fail.
+
 
 26/02/2009:
 	(JAS) Work on verifying capabilities, src/lib/x3d_parser/capabilitiesHandler.c.

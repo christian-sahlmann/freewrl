@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.27 2009/02/24 15:25:53 crc_canada Exp $
+$Id: MainLoop.c,v 1.28 2009/03/03 17:02:41 crc_canada Exp $
 
 CProto ???
 
@@ -39,6 +39,9 @@ CProto ???
 
 /* do we want OpenGL errors to be printed to the console?? */
 int displayOpenGLErrors = FALSE;
+
+/* are we doing "strict" parsing, as per FreeX3D, or "loose" parsing, as per FreeWRL? */
+int global_strictParsing = FALSE;
 
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;

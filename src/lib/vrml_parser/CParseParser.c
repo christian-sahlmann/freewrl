@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.14 2009/02/24 19:55:02 crc_canada Exp $
+  $Id: CParseParser.c,v 1.15 2009/03/03 17:02:41 crc_canada Exp $
 
   ???
 
@@ -2724,7 +2724,7 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret) {
         }
         return FALSE;
     }
-    /* possibly, this is from the X3D Parser */
+    /* possibly, this is from the XML Parser */
     if (!strcmp(me->lexer->startOfStringPtr,"true")) {
         *ret = TRUE;
         return TRUE;
@@ -2733,6 +2733,20 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret) {
         *ret = FALSE;
         return TRUE;
     }
+
+    /* possibly this is from the XML parser, but there is a case problem */
+    if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr,"TRUE"))) {
+	ConsoleMessage ("found upper case TRUE in XML file - should be lower case");
+        *ret = TRUE;
+        return TRUE;
+    }
+    if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr,"FALSE"))) {
+	ConsoleMessage ("found upper case FALSE in XML file - should be lower case");
+        *ret = FALSE;
+        return TRUE;
+    }
+
+
         
     /* Noperooni - this was from X3D, but did not parse */
     *ret = FALSE;

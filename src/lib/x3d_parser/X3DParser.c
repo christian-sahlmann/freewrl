@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.10 2009/02/18 13:37:50 istakenv Exp $
+$Id: X3DParser.c,v 1.11 2009/03/03 17:02:41 crc_canada Exp $
 
 ???
 
@@ -50,7 +50,6 @@ int CDATA_Text_curlen = 0;
 /* for testing Johannes Behrs fieldValue hack for getting data in */
 static int in3_3_fieldValue = FALSE;
 static int in3_3_fieldIndex = INT_ID_UNDEFINED;
-
 
 /* this ifdef sequence is kept around, for a possible Microsoft Vista port */
 #ifdef XML_LARGE_SIZE
@@ -860,10 +859,33 @@ void linkNodeIn() {
 	findFieldInOFFSETS(NODE_OFFSETS[parentStack[parentIndex-1]->_nodeType], 
 		parentStack[parentIndex]->_defaultContainer, &coffset, &ctype, &ctmp);
 
-	if (coffset <= 0) {
-		printf ("X3DParser - trouble finding field %s in node %s\n",
+	/* FreeWRL verses FreeX3D - lets see if this is a Metadatafield not following guidelines */
+
+	if ((coffset <= 0) && (!global_strictParsing)) {
+		if ((parentStack[parentIndex]->_nodeType == NODE_MetadataFloat) ||
+		    (parentStack[parentIndex]->_nodeType == NODE_MetadataString) ||
+		    (parentStack[parentIndex]->_nodeType == NODE_MetadataDouble) ||
+		    (parentStack[parentIndex]->_nodeType == NODE_MetadataInteger)) {
+			findFieldInOFFSETS(NODE_OFFSETS[parentStack[parentIndex-1]->_nodeType], 
+				FIELDNAMES_metadata, &coffset, &ctype, &ctmp);
+
+			/*
+			printf ("X3DParser - COFFSET problem, metada node: %s parent %s coffset now %d...\n", 
+			stringNodeType(parentStack[parentIndex]->_nodeType),
+			stringNodeType(parentStack[parentIndex-1]->_nodeType),
+			coffset);
+			*/
+
+		}
+		if (coffset <= 0) {
+		    printf ("X3DParser - trouble finding field %s in node %s\n",
 			stringFieldType(parentStack[parentIndex]->_defaultContainer),
 			stringNodeType(parentStack[parentIndex-1]->_nodeType));
+		} else {
+			printf ("X3DParser - warning line %d, incorrect Metadata; \"%s\" defaultContainer changed to \"metadata\"\n",
+				LINE,
+				stringNodeType(parentStack[parentIndex]->_nodeType));
+		}
 	}
 
 	if ((ctype != FIELDTYPE_MFNode) && (ctype != FIELDTYPE_SFNode)) {
@@ -1072,6 +1094,7 @@ int X3DParse (struct X3D_Group* myParent, char *inputstring) {
         gettimeofday (&mytime,&tz);
        startt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 	#endif
+
 
 	INCREMENT_PARENTINDEX
 	parentStack[parentIndex] = X3D_NODE(myParent);
