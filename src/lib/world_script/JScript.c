@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.8 2009/02/18 13:37:50 istakenv Exp $
+$Id: JScript.c,v 1.9 2009/03/04 13:35:28 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -90,6 +90,8 @@ char *DefaultScriptMethods = "function initialize() {}; " \
 			" function setDescription(x) {Browser.setDescription(x)}; "\
 			" function createVrmlFromString(x) {Browser.createVrmlFromString(x)}; "\
 			" function createVrmlFromURL(x,y,z) {Browser.createVrmlFromURL(x,y,z)}; "\
+			" function createX3DFromString(x) {Browser.createX3DFromString(x)}; "\
+			" function createX3DFromURL(x,y,z) {Browser.createX3DFromURL(x,y,z)}; "\
 			" function addRoute(a,b,c,d) {Browser.addRoute(a,b,c,d)}; "\
 			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "\
 			" function getMidiDeviceList() {return Browser.getMidiDeviceList()}; "\

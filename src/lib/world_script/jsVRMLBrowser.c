@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.8 2009/02/18 13:37:50 istakenv Exp $
+$Id: jsVRMLBrowser.c,v 1.9 2009/03/04 13:35:28 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -65,6 +65,8 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 	{"setDescription", VrmlBrowserSetDescription, 0},
 	{"createVrmlFromString", VrmlBrowserCreateVrmlFromString, 0},
 	{"createVrmlFromURL", VrmlBrowserCreateVrmlFromURL, 0},
+	{"createX3DFromString", VrmlBrowserCreateVrmlFromString, 0},
+	{"createX3DFromURL", VrmlBrowserCreateVrmlFromURL, 0},
 	{"addRoute", VrmlBrowserAddRoute, 0},
 	{"deleteRoute", VrmlBrowserDeleteRoute, 0},
 	{"print", VrmlBrowserPrint, 0},

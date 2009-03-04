@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.11 2009/03/03 17:02:41 crc_canada Exp $
+$Id: X3DParser.c,v 1.12 2009/03/04 13:35:28 crc_canada Exp $
 
 ???
 
@@ -404,8 +404,13 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 
 	/* semantic check */
 	if ((parserMode != PARSING_NODES) && (parserMode != PARSING_PROTOBODY)) {
+printf ("hey, we have maybe a Node in a Script list... line %d: expected parserMode to be PARSING_NODES, got %s\n", LINE,
+                                        parserModeStrings[parserMode]);
+
+/*
 		ConsoleMessage("parseNormalX3D: line %d: expected parserMode to be PARSING_NODES, got %s", LINE,
 					parserModeStrings[parserMode]);
+*/
 	}
 
 	switch (myNodeType) {
@@ -997,6 +1002,22 @@ static void XMLCALL endElement(void *unused, const char *name) {
 		return;
 	}
 
+	/* is this an SFNode for a Script field? */
+	if ((parserMode == PARSING_SCRIPT) && (parentStack[parentIndex-1]->_nodeType == NODE_Script)) {
+		printf ("linkNodeIn, got parsing script, have to link node into script body\n");
+/*
+        printf ("linking in %s to %s, field %s (%d)\n",
+                stringNodeType(parentStack[parentIndex]->_nodeType),
+                stringNodeType(parentStack[parentIndex-1]->_nodeType),
+                stringFieldType(parentStack[parentIndex]->_defaultContainer),
+                parentStack[parentIndex]->_defaultContainer);
+
+	printf ("but skipping this\n");
+*/
+		DECREMENT_PARENTINDEX
+		return;
+	}
+		
 
 	myNodeIndex = findFieldInNODES(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
