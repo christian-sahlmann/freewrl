@@ -1,4 +1,8 @@
 Priority list (as of 28/02/2009)
+05/03/2009: 
+	(JAS) Texture loading; if a texture is "mid-processing" and the geometry moves off
+	screen, it is possible that texture loading will hang. (Geospatial tiling can show this
+	problem)
 
 05/03/2009:
 	(JAS) plugFest CreateX3dFromStringRandomSpheres.x3d - has Script with SFNode param:
