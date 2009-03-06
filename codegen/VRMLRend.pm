@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.1 2009/03/05 21:33:39 istakenv Exp $
+# $Id: VRMLRend.pm,v 1.2 2009/03/06 18:50:31 istakenv Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.2  2009/03/06 18:50:31  istakenv
+# fixed metadata variable names
+#
 # Revision 1.1  2009/03/05 21:33:39  istakenv
 # Added code-generator perl scripts to new freewrl tree.  Initial commit, still need to patch them to make them work.
 #
@@ -307,10 +310,10 @@
 	ShaderProgram		=>children,
 
 	MetadataSet		=>metadata,
-	MetadataInteger		=>value,
-	MetadataDouble		=>value,
-	MetadataFloat		=>value,
-	MetadataString		=>value,
+	MetadataInteger		=>metadata,
+	MetadataDouble		=>metadata,
+	MetadataFloat		=>metadata,
+	MetadataString		=>metadata,
 );
 
 #######################################################################
