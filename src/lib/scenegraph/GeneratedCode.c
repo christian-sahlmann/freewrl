@@ -5170,7 +5170,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->name = newASCIIString("");
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
-			tmp2->_defaultContainer = FIELDNAMES_value;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataFloat : {
@@ -5182,7 +5182,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->name = newASCIIString("");
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
-			tmp2->_defaultContainer = FIELDNAMES_value;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataInteger : {
@@ -5194,7 +5194,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->name = newASCIIString("");
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
-			tmp2->_defaultContainer = FIELDNAMES_value;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MetadataSet : {
@@ -5218,7 +5218,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->name = newASCIIString("");
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
-			tmp2->_defaultContainer = FIELDNAMES_value;
+			tmp2->_defaultContainer = FIELDNAMES_metadata;
 		break;
 		}
 		case NODE_MidiControl : {
