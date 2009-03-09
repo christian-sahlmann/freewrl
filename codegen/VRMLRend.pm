@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.2 2009/03/06 18:50:31 istakenv Exp $
+# $Id: VRMLRend.pm,v 1.3 2009/03/09 21:32:30 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.3  2009/03/09 21:32:30  crc_canada
+# initial handling of new PROTO parameter methodology
+#
 # Revision 1.2  2009/03/06 18:50:31  istakenv
 # fixed metadata variable names
 #
@@ -314,6 +317,50 @@
 	MetadataDouble		=>metadata,
 	MetadataFloat		=>metadata,
 	MetadataString		=>metadata,
+
+	
+	MetadataSFFloat		=>metadata,
+	MetadataMFFloat		=>metadata,
+	MetadataSFRotation	=>metadata,
+	MetadataMFRotation	=>metadata,
+	MetadataSFVec3f		=>metadata,
+	MetadataMFVec3f		=>metadata,
+	MetadataSFBool		=>metadata,
+	MetadataMFBool		=>metadata,
+	MetadataSFInt32		=>metadata,
+	MetadataMFInt32		=>metadata,
+	MetadataSFNode		=>metadata,
+	MetadataMFNode		=>metadata,
+	MetadataSFColor		=>metadata,
+	MetadataMFColor		=>metadata,
+	MetadataSFColorRGBA	=>metadata,
+	MetadataMFColorRGBA	=>metadata,
+	MetadataSFTime		=>metadata,
+	MetadataMFTime		=>metadata,
+	MetadataSFString	=>metadata,
+	MetadataMFString	=>metadata,
+	MetadataSFVec2f		=>metadata,
+	MetadataMFVec2f		=>metadata,
+	MetadataSFImage		=>metadata,
+	MetadataFreeWRLPTR	=>metadata,
+	MetadataSFVec3d		=>metadata,
+	MetadataMFVec3d		=>metadata,
+	MetadataSFDouble	=>metadata,
+	MetadataMFDouble	=>metadata,
+	MetadataSFMatrix3f	=>metadata,
+	MetadataMFMatrix3f	=>metadata,
+	MetadataSFMatrix3d	=>metadata,
+	MetadataMFMatrix3d	=>metadata,
+	MetadataSFMatrix4f	=>metadata,
+	MetadataMFMatrix4f	=>metadata,
+	MetadataSFMatrix4d	=>metadata,
+	MetadataMFMatrix4d	=>metadata,
+	MetadataSFVec2d		=>metadata,
+	MetadataMFVec2d		=>metadata,
+	MetadataSFVec4f		=>metadata,
+	MetadataMFVec4f		=>metadata,
+	MetadataSFVec4d		=>metadata,
+	MetadataMFVec4d		=>metadata,
 );
 
 #######################################################################

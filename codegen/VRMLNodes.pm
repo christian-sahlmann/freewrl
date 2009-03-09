@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.1 2009/03/05 21:33:39 istakenv Exp $
+# $Id: VRMLNodes.pm,v 1.2 2009/03/09 21:32:30 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2207,6 +2207,375 @@ package VRML::NodeType;
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DChildNode"),
 	
+	#used mainly for PROTO invocation parameters
+	MetadataSFFloat => new VRML::NodeType("MetadataSFFloat", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFFloat,0.0,inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFFloat => new VRML::NodeType("MetadataMFFloat", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFFloat,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFRotation => new VRML::NodeType("MetadataSFRotation", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFRotation,[0,0,1,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFRotation => new VRML::NodeType("MetadataMFRotation", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFRotation,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec3f => new VRML::NodeType("MetadataSFVec3f", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFVec3f,[0,0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec3f => new VRML::NodeType("MetadataMFVec3f", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFVec3f,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFBool => new VRML::NodeType("MetadataSFBool", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFBool,FALSE,inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFBool => new VRML::NodeType("MetadataMFBool", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFBool,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFInt32 => new VRML::NodeType("MetadataSFInt32", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFInt32,0,inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFInt32 => new VRML::NodeType("MetadataMFInt32", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFInt32,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFNode => new VRML::NodeType("MetadataSFNode", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFNode,0,inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFNode => new VRML::NodeType("MetadataMFNode", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFNode,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFColor => new VRML::NodeType("MetadataSFColor", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFColor,[0,0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFColor => new VRML::NodeType("MetadataMFColor", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFColor,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFColorRGBA => new VRML::NodeType("MetadataSFColorRGBA", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFColorRGBA,[0,0,0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFColorRGBA => new VRML::NodeType("MetadataMFColorRGBA", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFColorRGBA,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFTime => new VRML::NodeType("MetadataSFTime", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFTime,0 ,inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFTime => new VRML::NodeType("MetadataMFTime", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFTime,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFString => new VRML::NodeType("MetadataSFString", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFString,"",inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFString => new VRML::NodeType("MetadataMFString", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFString,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec2f => new VRML::NodeType("MetadataSFVec2f", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFVec2f,[0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec2f => new VRML::NodeType("MetadataMFVec2f", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFVec2f,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFImage => new VRML::NodeType("MetadataSFImage", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFImage,[0,0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec3d => new VRML::NodeType("MetadataSFVec3d", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFVec3d,[0,0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec3d => new VRML::NodeType("MetadataMFVec3d", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFVec3d,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFDouble => new VRML::NodeType("MetadataSFDouble", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFDouble,0,inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFDouble => new VRML::NodeType("MetadataMFDouble", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFDouble,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFMatrix3f => new VRML::NodeType("MetadataSFMatrix3f", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFMatrix3f,[0,0,0,0,0,0,0,0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFMatrix3f => new VRML::NodeType("MetadataMFMatrix3f", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFMatrix3f,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFMatrix3d => new VRML::NodeType("MetadataSFMatrix3d", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFMatrix3d,[0,0,0,0,0,0,0,0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFMatrix3d => new VRML::NodeType("MetadataMFMatrix3d", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFMatrix3d,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFMatrix4f => new VRML::NodeType("MetadataSFMatrix4f", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFMatrix4f => new VRML::NodeType("MetadataMFMatrix4f", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFMatrix4f,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFMatrix4d => new VRML::NodeType("MetadataSFMatrix4d", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFMatrix4d => new VRML::NodeType("MetadataMFMatrix4d", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFMatrix4d,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec2d => new VRML::NodeType("MetadataSFVec2d", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFVec2d,[0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec2d => new VRML::NodeType("MetadataMFVec2d", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFVec2d,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec4f => new VRML::NodeType("MetadataSFVec4f", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFVec4f,[0,0,0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec4f => new VRML::NodeType("MetadataMFVec4f", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFVec4f,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataSFVec4d => new VRML::NodeType("MetadataSFVec4d", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [SFVec4d,[0,0,0,0],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
+	#used mainly for PROTO invocation parameters
+	MetadataMFVec4d => new VRML::NodeType("MetadataMFVec4d", {
+                        metadata => [SFNode, NULL, inputOutput],
+                        name => [SFString,"",initializeOnly],
+                        reference => [SFString,"",initializeOnly],
+                        value => [MFVec4d,[],inputOutput],
+                        __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+
 
 	###################################################################################
 
