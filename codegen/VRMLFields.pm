@@ -1,5 +1,5 @@
 #
-# $Id: VRMLFields.pm,v 1.1 2009/03/05 21:33:39 istakenv Exp $
+# $Id: VRMLFields.pm,v 1.2 2009/03/10 21:00:34 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log: VRMLFields.pm,v $
+# Revision 1.2  2009/03/10 21:00:34  crc_canada
+# checking in some ongoing PROTO support work in the Classic parser.
+#
 # Revision 1.1  2009/03/05 21:33:39  istakenv
 # Added code-generator perl scripts to new freewrl tree.  Initial commit, still need to patch them to make them work.
 #
@@ -211,8 +214,16 @@ VRML::Error->import();
 
 sub cstruct {return "struct SFColorRGBA { float r[4]; };"}
 sub ctype {return "struct SFColorRGBA $_[1]"}
-sub cInitialize { print "SFCOLORRGBA INIT\n"; return 0;
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	if (!defined $val) {print "undefined in SFColorRGBA\n"} # inputOnlys, set it to any value
+	return 	"$field.r[0] = @{$val}[0];".
+		"$field.r[1] = @{$val}[1];".
+		"$field.r[2] = @{$val}[2];".
+		"$field.r[3] = @{$val}[3];";
 }
+
 
 
 package VRML::Field::MFColorRGBA;
@@ -732,9 +743,16 @@ package VRML::Field::MFTime;
 @ISA=VRML::Field::MFFloat;
 
 sub cInitialize {
-	print "MFTIME INIT\n";
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	#print "MFTIME field $field val @{$val} has $count INIT\n";
+	if (!defined $val) {$count=0} # inputOnlys, set it to any value
+	if ($count > 0) {
+		print "MFTIME HAVE TO MALLOC HERE\n";
+	} else {
+		return "$field.n=0; $field.p=0";
+	}
 }
-
 
 ###########################################################
 package VRML::Field::SFVec2d;
@@ -972,7 +990,8 @@ sub cInitialize {
 	if (!defined $val) {print "undefined in SFVec4f\n"} # inputOnlys, set it to any value
 	return 	"$field.c[0] = @{$val}[0];".
 		"$field.c[1] = @{$val}[1];".
-		"$field.c[2] = @{$val}[2];";
+		"$field.c[2] = @{$val}[2];".
+		"$field.c[3] = @{$val}[3];";
 }
 
 

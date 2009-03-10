@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.9 2009/02/24 19:55:02 crc_canada Exp $
+$Id: CProto.c,v 1.10 2009/03/10 21:00:34 crc_canada Exp $
 
 CProto ???
 
@@ -11,6 +11,7 @@ CProto ???
 #include <system.h>
 #include <display.h>
 #include <internal.h>
+#include <stdio.h>
 
 #include <libFreeWRL.h>
 
@@ -27,16 +28,16 @@ CProto ???
 #include "CProto.h"
 
 
-/* TODO:  Pointer updating could be made more efficient! */
-
 #undef CPROTOVERBOSE
 
 #define PROTO_CAT(newString,strlen2) \
 	{ memcpy(&newProtoText[newProtoTextIndex],newString,strlen2); newProtoTextIndex += strlen2; \
-		newProtoText[newProtoTextIndex] = '\0'; }
+		newProtoText[newProtoTextIndex] = '\0'; \
+printf ("PROTO_CAT: %s\n",newString); \
+		curstringlen += fprintf (pexfile,"%s\n",newString); }
 
-#define STARTPROTOGROUP "Group{FreeWRL__protoDef"
-#define PROTOGROUPNUMBER "%s %d children[ #PROTOGROUP\n"
+#define STARTPROTOGROUP "Group{FreeWRL__protoDef %d FreeWRL_PROTOInterfaceNodes ["
+#define PROTOGROUPNUMBER "] #PROTOPARAMS\n  children[ #PROTOGROUP\n"
 #define ENDPROTOGROUP "]}#END PROTOGROUP\n"
 #define VERIFY_OUTPUT_LEN(extra) \
 		/* printf ("verify, cur textInd %d, malloclen %d, extra %d\n",newProtoTextIndex, newProtoTextMallocLen, extra); */ \
@@ -62,9 +63,13 @@ CProto ???
 #define APPEND_ENDPROTOGROUP PROTO_CAT (ENDPROTOGROUP,strlen(ENDPROTOGROUP));
 #define SOMETHING_IN_ISVALUE (strlen(newTl) > 0) 
 #define APPEND_ISVALUE PROTO_CAT (newTl,strlen(newTl));
-#define APPEND_STARTPROTOGROUP \
-	sprintf (thisID, PROTOGROUPNUMBER, STARTPROTOGROUP, *thisProto); \
-	PROTO_CAT(thisID, strlen(thisID))
+#define APPEND_STARTPROTOGROUP_1 \
+	sprintf(thisID,STARTPROTOGROUP,*thisProto); \
+	PROTO_CAT(thisID,strlen(thisID));
+
+
+#define APPEND_STARTPROTOGROUP_2 \
+	PROTO_CAT(PROTOGROUPNUMBER, strlen(PROTOGROUPNUMBER))
 
 #define APPEND_IF_NOT_OUTPUTONLY \
 { int coffset, ctype, ckind, field; \
@@ -373,8 +378,11 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
 #define DEEPCOPY_sfvec2d(l,v, i, h) v
 #define DEEPCOPY_mfvec2d(l,v, i, h) v
 #define DEEPCOPY_sfvec3f(l,v, i, h) v
+#define DEEPCOPY_sfvec4f(l,v, i, h) v
 #define DEEPCOPY_sfvec3d(l,v, i, h) v
 #define DEEPCOPY_sfvec4d(l,v, i, h) v
+#define DEEPCOPY_sfvec4d(l,v, i, h) v
+#define DEEPCOPY_mfvec4f(l,v, i, h) v
 #define DEEPCOPY_mfvec4d(l,v, i, h) v
 #define DEEPCOPY_sfimage(l, v, i, h) v
 #define DEEPCOPY_sfdouble(l, v, i, h) v
@@ -386,7 +394,6 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
 #define DEEPCOPY_sfmatrix4d(l, v, i, h) v
 #define DEEPCOPY_mfmatrix3d(l, v, i, h) v
 #define DEEPCOPY_mfmatrix4d(l, v, i, h) v
-
 
 static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)
 {
@@ -1154,6 +1161,18 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	struct ProtoElementPointer* lastKeyword = NULL;
 	struct ProtoElementPointer* lastNode = NULL;
 
+	FILE *pexfile;
+	int curstringlen = 0;
+	char tempname[1000];
+
+	#define	OPEN_PROTO_EXPAND_FILE_WRITE { \
+		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp")); \
+printf ("proto temp name is :%s:\n",tempname); \
+		pexfile = fopen (tempname,"w"); \
+		if (pexfile==NULL) {ConsoleMessage ("error opening temp file!"); return "";}}
+
+	#define	CLOSE_PROTO_EXPAND_FILE fclose (pexfile);
+
 	#ifdef CPROTOVERBOSE
 	printf ("start of protoExpand\n");
 	#endif
@@ -1164,11 +1183,16 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	printf ("thisProto %u, me->curPROTO %u\n",(*thisProto),me->curPROTO);
 	#endif
 
+	OPEN_PROTO_EXPAND_FILE_WRITE
 
-	newProtoTextMallocLen = (*thisProto)->estimatedBodyLen * 2 + strlen(PROTOGROUPNUMBER) +strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP) + 10;
+	newProtoTextMallocLen = (*thisProto)->estimatedBodyLen * 2 + strlen(PROTOGROUPNUMBER) +
+		strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP) + 10;
 	newProtoText = MALLOC(newProtoTextMallocLen);
 
-	APPEND_STARTPROTOGROUP
+	APPEND_STARTPROTOGROUP_1
+
+	APPEND_STARTPROTOGROUP_2
+
 
 	/* printf ("copying proto fields here\n"); */
 	/* copy the proto fields, so that we have either the defined field, or the field at invocation */
@@ -1323,10 +1347,14 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	}
 
 	APPEND_ENDPROTOGROUP
+	CLOSE_PROTO_EXPAND_FILE
+printf ("so, we have writtne %d bytes to our proto expansion line\n",curstringlen);
+
 
 	#ifdef CPROTOVERBOSE
 	printf ("so, newProtoText %s\n",newProtoText);
 	#endif
+	printf ("so, newProtoText %s\n",newProtoText);
 
 	return newProtoText;
 }

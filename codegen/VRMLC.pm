@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.2 2009/03/05 22:11:49 istakenv Exp $
+# $Id: VRMLC.pm,v 1.3 2009/03/10 21:00:34 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.3  2009/03/10 21:00:34  crc_canada
+# checking in some ongoing PROTO support work in the Classic parser.
+#
 # Revision 1.2  2009/03/05 22:11:49  istakenv
 # Updated code generators to act upon the right files in the new source tree.  WARNING, does not produce identical results, use at own risk
 #
@@ -363,7 +366,7 @@ sub gen {
 		"/* \n".
 		"=INSERT_TEMPLATE_HERE= \n".
 		" \n".
-		"$Id: VRMLC.pm,v 1.2 2009/03/05 22:11:49 istakenv Exp $ \n".
+		"$Id: VRMLC.pm,v 1.3 2009/03/10 21:00:34 crc_canada Exp $ \n".
 		" \n".
 		"??? \n".
 		" \n".
@@ -1037,70 +1040,97 @@ sub gen {
 			if (($fk eq "field") ||($fk eq "inputOutput")) {
 				if ($ft eq "FreeWRLPTR") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) (void pointer, not dumped)\\n\");\n";
+
 				} elsif ($ft eq "SFInt32") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) \\t%d\\n\",tmp->$field);\n";
-				} elsif ($ft eq "SFFloat") {
+
+				} elsif (($ft eq "SFFloat") || ($ft eq "SFTime") || ($ft eq "SFDouble")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) \\t%4.3f\\n\",tmp->$field);\n";
-				} elsif ($ft eq "SFTime") {
-					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) \\t%4.3f\\n\",tmp->$field);\n";
+
 				} elsif ($ft eq "SFBool") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) \\t%d\\n\",tmp->$field);\n";
+
 				} elsif ($ft eq "SFString") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) \\t%s\\n\",tmp->$field->strptr);\n";
+
 				} elsif ($ft eq "SFNode") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\"); ";
                         		push @genFuncs2, "dump_scene(level+1,tmp->$field); \n";
+
 				} elsif (($ft eq "SFRotation") || ($ft eq "SFColorRGBA")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<4; i++) { printf (\"%4.3f  \",tmp->$field.r[i]); }\n";
 					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
-				} elsif ($ft eq "SFVec4d") {
+
+				} elsif (($ft eq "SFVec4f") || ($ft eq "SFVec4d")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<4; i++) { printf (\"%4.3f  \",tmp->$field.c[i]); }\n";
 					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
+
 				} elsif (($ft eq "SFColor") || ($ft eq "SFVec3f") || ($ft eq "SFVec3d")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<3; i++) { printf (\"%4.3f  \",tmp->$field.c[i]); }\n";
 					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
-				} elsif ($ft eq "SFVec2f") {
+
+				} elsif (($ft eq "SFVec2f") || ($ft eq "SFVec2d")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<2; i++) { printf (\"%4.3f  \",tmp->$field.c[i]); }\n";
 					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
+
 				} elsif ($ft eq "SFImage") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): (not dumped)\\t\");\n";
 					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
+
+				} elsif (($ft eq "SFMatrix3f") || ($ft eq "SFMatrix3d")) {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<9; i++) { printf (\"%4.3f  \",tmp->$field.c[i]); }\n";
+					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
+
+				} elsif (($ft eq "SFMatrix4f") || ($ft eq "SFMatrix4d")) {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<16; i++) { printf (\"%4.3f  \",tmp->$field.c[i]); }\n";
+					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
+
 				} elsif ($ft eq "MFString") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer printf (\"\t\t\t%d: \\t%s\\n\",i,tmp->$field.p[i]->strptr); }\n";
 				} elsif ($ft eq "MFNode") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { dump_scene(level+1,tmp->$field.p[i]); }\n";
+
 				} elsif (($ft eq "MFInt32") || ($ft eq "MFBool")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer printf (\"\t\t\t%d: \\t%d\\n\",i,tmp->$field.p[i]); }\n";
-				} elsif ($ft eq "MFFloat") {
+				} elsif (($ft eq "MFFloat") || ($ft eq "MFTime") || ($ft eq "MFDouble")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer printf (\"\t\t\t%d: \\t%4.3f\\n\",i,tmp->$field.p[i]); }\n";
 				} elsif (($ft eq "MFVec3f") || ($ft eq "MFColor") || ($ft eq "MFVec3d")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
 						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1],(tmp->$field.p[i]).c[2]); }\n";
-				} elsif ($ft eq "MFVec2f") {
+				} elsif (($ft eq "MFVec2f") || ($ft eq "MFVec2d")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
 						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1]); }\n";
+
 				} elsif (($ft eq "MFRotation") || ($ft eq "MFColorRGBA")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
 						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f, %4.3f]\\n\",i,(tmp->$field.p[i]).r[0], (tmp->$field.p[i]).r[1],(tmp->$field.p[i]).r[2],(tmp->$field.p[i]).r[3]); }\n";
 
 
-				} elsif ($ft eq "MFMatrix4f") {
+				} elsif (($ft eq "MFVec4f") || ($ft eq "MFVec4d")) {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
+						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f, %4.3f]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1],(tmp->$field.p[i]).c[2],(tmp->$field.p[i]).c[3]); }\n";
+
+
+				} elsif (($ft eq "MFMatrix4f") || ($ft eq "MFMatrix4d")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
 						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1],(tmp->$field.p[i]).c[2],(tmp->$field.p[i]).c[3],(tmp->$field.p[i]).c[4],(tmp->$field.p[i]).c[5],(tmp->$field.p[i]).c[6],(tmp->$field.p[i]).c[7],(tmp->$field.p[i]).c[8],(tmp->$field.p[i]).c[9],(tmp->$field.p[i]).c[10],(tmp->$field.p[i]).c[11],(tmp->$field.p[i]).c[12],(tmp->$field.p[i]).c[13],(tmp->$field.p[i]).c[14],(tmp->$field.p[i]).c[15]); }\n";
 
-				} elsif ($ft eq "MFMatrix3f") {
+				} elsif (($ft eq "MFMatrix3f") || ($ft eq "MFMatrix3d")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
 						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1],(tmp->$field.p[i]).c[2],(tmp->$field.p[i]).c[3],(tmp->$field.p[i]).c[4],(tmp->$field.p[i]).c[5],(tmp->$field.p[i]).c[6],(tmp->$field.p[i]).c[7],(tmp->$field.p[i]).c[8]); }\n";
@@ -1239,7 +1269,7 @@ sub gen {
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: VRMLC.pm,v 1.2 2009/03/05 22:11:49 istakenv Exp $
+$Id: VRMLC.pm,v 1.3 2009/03/10 21:00:34 crc_canada Exp $
 
 NodeFields.h  generated by VRMLC.pm. DO NOT MODIFY, MODIFY VRMLC.pm INSTEAD
 
@@ -1267,7 +1297,7 @@ END_NODE(NodeName)
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: VRMLC.pm,v 1.2 2009/03/05 22:11:49 istakenv Exp $
+$Id: VRMLC.pm,v 1.3 2009/03/10 21:00:34 crc_canada Exp $
 
 Structs.h generated by VRMLC.pm. DO NOT MODIFY, MODIFY VRMLC.pm INSTEAD
 

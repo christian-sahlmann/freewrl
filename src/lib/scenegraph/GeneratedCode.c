@@ -374,6 +374,7 @@
 	"__shaderIDS",
 	"addChildren",
 	"attenuation",
+	"FreeWRL_PROTOInterfaceNodes",
 	"url",
 	"coord",
 	"startTime",
@@ -673,6 +674,7 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"children",
 	"on",
 	"attenuation",
+	"FreeWRL_PROTOInterfaceNodes",
 	"leftUrl",
 	"frontTexture",
 	"url",
@@ -2121,11 +2123,12 @@ const int OFFSETS_Group[] = {
 	FIELDNAMES_children, offsetof (struct X3D_Group, children),  FIELDTYPE_MFNode, KW_inputOutput,
 	FIELDNAMES_FreeWRL__protoDef, offsetof (struct X3D_Group, FreeWRL__protoDef),  FIELDTYPE_SFInt32, KW_initializeOnly,
 	FIELDNAMES_addChildren, offsetof (struct X3D_Group, addChildren),  FIELDTYPE_MFNode, KW_inputOnly,
+	FIELDNAMES_FreeWRL_PROTOInterfaceNodes, offsetof (struct X3D_Group, FreeWRL_PROTOInterfaceNodes),  FIELDTYPE_MFNode, KW_inputOutput,
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_Group, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,
 	FIELDNAMES_metadata, offsetof (struct X3D_Group, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Group, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
-	FIELDNAMES_removeChildren, offsetof (struct X3D_Group, removeChildren),  FIELDTYPE_MFNode, KW_inputOnly,
 	FIELDNAMES_bboxSize, offsetof (struct X3D_Group, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,
+	FIELDNAMES_removeChildren, offsetof (struct X3D_Group, removeChildren),  FIELDTYPE_MFNode, KW_inputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_HAnimDisplacer[] = {
@@ -4833,6 +4836,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->depth.n=0; tmp2->depth.p=0;
 			tmp2->__oldmetadata = 0;
+			tmp2->_defaultContainer = FIELDNAMES_coord;
 		break;
 		}
 		case NODE_FontStyle : {
@@ -5142,11 +5146,12 @@ void *createNewX3DNode (int nt) {
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->FreeWRL__protoDef = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->FreeWRL_PROTOInterfaceNodes.n=0; tmp2->FreeWRL_PROTOInterfaceNodes.p=0;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
-			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -5616,6 +5621,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
 			tmp2->enabled = TRUE;
+			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
 		case NODE_Material : {
@@ -5852,7 +5858,7 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_MetadataMFTime *) tmp;
 			tmp2->v = &virt_MetadataMFTime;
 			tmp2->reference = newASCIIString("");
-			1;
+			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->name = newASCIIString("");
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
@@ -5960,7 +5966,7 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_MetadataSFColorRGBA *) tmp;
 			tmp2->v = &virt_MetadataSFColorRGBA;
 			tmp2->reference = newASCIIString("");
-			0;
+			tmp2->value.r[0] = 0;tmp2->value.r[1] = 0;tmp2->value.r[2] = 0;tmp2->value.r[3] = 0;;
 			tmp2->name = newASCIIString("");
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
@@ -6176,7 +6182,7 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_MetadataSFVec4f *) tmp;
 			tmp2->v = &virt_MetadataSFVec4f;
 			tmp2->reference = newASCIIString("");
-			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;;
+			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;;
 			tmp2->name = newASCIIString("");
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
@@ -7791,6 +7797,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_Group *) node;
 			spacer printf ("\tchildren (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
+			spacer printf ("\tFreeWRL_PROTOInterfaceNodes (MFNode):\n");
+			for (i=0; i<tmp->FreeWRL_PROTOInterfaceNodes.n; i++) { dump_scene(level+1,tmp->FreeWRL_PROTOInterfaceNodes.p[i]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8165,6 +8173,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataMFDouble : {
 			struct X3D_MetadataMFDouble *tmp;
 			tmp = (struct X3D_MetadataMFDouble *) node;
+			spacer printf ("\tvalue (MFDouble):\n");
+			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8187,6 +8197,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataMFMatrix3d : {
 			struct X3D_MetadataMFMatrix3d *tmp;
 			tmp = (struct X3D_MetadataMFMatrix3d *) node;
+			spacer printf ("\tvalue (MFMatrix3d):\n");
+			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8201,6 +8213,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataMFMatrix4d : {
 			struct X3D_MetadataMFMatrix4d *tmp;
 			tmp = (struct X3D_MetadataMFMatrix4d *) node;
+			spacer printf ("\tvalue (MFMatrix4d):\n");
+			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8],(tmp->value.p[i]).c[9],(tmp->value.p[i]).c[10],(tmp->value.p[i]).c[11],(tmp->value.p[i]).c[12],(tmp->value.p[i]).c[13],(tmp->value.p[i]).c[14],(tmp->value.p[i]).c[15]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8239,12 +8253,16 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataMFTime : {
 			struct X3D_MetadataMFTime *tmp;
 			tmp = (struct X3D_MetadataMFTime *) node;
+			spacer printf ("\tvalue (MFTime):\n");
+			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_MetadataMFVec2d : {
 			struct X3D_MetadataMFVec2d *tmp;
 			tmp = (struct X3D_MetadataMFVec2d *) node;
+			spacer printf ("\tvalue (MFVec2d):\n");
+			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8275,12 +8293,16 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataMFVec4d : {
 			struct X3D_MetadataMFVec4d *tmp;
 			tmp = (struct X3D_MetadataMFVec4d *) node;
+			spacer printf ("\tvalue (MFVec4d):\n");
+			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_MetadataMFVec4f : {
 			struct X3D_MetadataMFVec4f *tmp;
 			tmp = (struct X3D_MetadataMFVec4f *) node;
+			spacer printf ("\tvalue (MFVec4f):\n");
+			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8312,6 +8334,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFDouble : {
 			struct X3D_MetadataSFDouble *tmp;
 			tmp = (struct X3D_MetadataSFDouble *) node;
+			spacer printf ("\tvalue (SFDouble) \t%4.3f\n",tmp->value);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8340,24 +8363,36 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFMatrix3d : {
 			struct X3D_MetadataSFMatrix3d *tmp;
 			tmp = (struct X3D_MetadataSFMatrix3d *) node;
+			spacer printf ("\tvalue (SFMatrix3d): \t");
+			for (i=0; i<9; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
+			printf ("\n");
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_MetadataSFMatrix3f : {
 			struct X3D_MetadataSFMatrix3f *tmp;
 			tmp = (struct X3D_MetadataSFMatrix3f *) node;
+			spacer printf ("\tvalue (SFMatrix3f): \t");
+			for (i=0; i<9; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
+			printf ("\n");
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_MetadataSFMatrix4d : {
 			struct X3D_MetadataSFMatrix4d *tmp;
 			tmp = (struct X3D_MetadataSFMatrix4d *) node;
+			spacer printf ("\tvalue (SFMatrix4d): \t");
+			for (i=0; i<16; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
+			printf ("\n");
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_MetadataSFMatrix4f : {
 			struct X3D_MetadataSFMatrix4f *tmp;
 			tmp = (struct X3D_MetadataSFMatrix4f *) node;
+			spacer printf ("\tvalue (SFMatrix4f): \t");
+			for (i=0; i<16; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
+			printf ("\n");
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8394,6 +8429,9 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec2d : {
 			struct X3D_MetadataSFVec2d *tmp;
 			tmp = (struct X3D_MetadataSFVec2d *) node;
+			spacer printf ("\tvalue (SFVec2d): \t");
+			for (i=0; i<2; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
+			printf ("\n");
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8436,6 +8474,9 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec4f : {
 			struct X3D_MetadataSFVec4f *tmp;
 			tmp = (struct X3D_MetadataSFVec4f *) node;
+			spacer printf ("\tvalue (SFVec4f): \t");
+			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
+			printf ("\n");
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}

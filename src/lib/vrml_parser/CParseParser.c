@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.15 2009/03/03 17:02:41 crc_canada Exp $
+  $Id: CParseParser.c,v 1.16 2009/03/10 21:00:34 crc_canada Exp $
 
   ???
 
@@ -131,11 +131,16 @@ char fw_outline[2000];
 #define ROUTE_REAL_SIZE_sfint32 TRUE
 #define ROUTE_REAL_SIZE_sfnode  TRUE
 #define ROUTE_REAL_SIZE_sfrotation      TRUE
+#define ROUTE_REAL_SIZE_sfcolorrgba      TRUE
 #define ROUTE_REAL_SIZE_sfstring        TRUE
 #define ROUTE_REAL_SIZE_sftime  TRUE
+#define ROUTE_REAL_SIZE_sfdouble  TRUE
 #define ROUTE_REAL_SIZE_sfvec2f TRUE
+#define ROUTE_REAL_SIZE_sfvec2d TRUE
 #define ROUTE_REAL_SIZE_sfvec3f TRUE
 #define ROUTE_REAL_SIZE_sfvec3d TRUE
+#define ROUTE_REAL_SIZE_sfvec4f TRUE
+#define ROUTE_REAL_SIZE_sfvec4d TRUE
 #define ROUTE_REAL_SIZE_mfbool  FALSE
 #define ROUTE_REAL_SIZE_mfcolor FALSE
 #define ROUTE_REAL_SIZE_mfcolorrgba     FALSE
@@ -147,8 +152,11 @@ char fw_outline[2000];
 #define ROUTE_REAL_SIZE_mfstring        FALSE
 #define ROUTE_REAL_SIZE_mftime  FALSE
 #define ROUTE_REAL_SIZE_mfvec2f FALSE
+#define ROUTE_REAL_SIZE_mfvec2d FALSE
 #define ROUTE_REAL_SIZE_mfvec3f FALSE
 #define ROUTE_REAL_SIZE_mfvec3d FALSE
+#define ROUTE_REAL_SIZE_mfvec4f FALSE
+#define ROUTE_REAL_SIZE_mfvec4d FALSE
 #define ROUTE_REAL_SIZE_mfdouble        FALSE
 
 #define ROUTE_REAL_SIZE_sfmatrix3f TRUE
@@ -2297,9 +2305,21 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 #define INIT_CODE_mfmatrix3f(var)
 #define INIT_CODE_mfmatrix4f(var)
 
+#define INIT_CODE_mfmatrix3d(var)
+#define INIT_CODE_mfmatrix4d(var)
+#define INIT_CODE_mfvec2d(var)
+#define INIT_CODE_mfvec4d(var)
+#define INIT_CODE_mfvec4f(var)
+#define INIT_CODE_sfmatrix3d(var)
+#define INIT_CODE_sfmatrix3f(var)
+#define INIT_CODE_sfmatrix4d(var)
+#define INIT_CODE_sfmatrix4f(var)
+#define INIT_CODE_sfvec2d(var)
+#define INIT_CODE_sfvec4f(var)
+
+
 /* The field type indices */
 #define FTIND_sfnode    FIELDTYPE_SFNode
-#define FTIND_mfnode    FIELDTYPE_MFNode
 #define FTIND_sfbool    FIELDTYPE_SFBool
 #define FTIND_sfcolor   FIELDTYPE_SFColor
 #define FTIND_sfcolorrgba       FIELDTYPE_SFColorRGBA
@@ -2311,8 +2331,17 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 #define FTIND_sftime    FIELDTYPE_SFTime
 #define FTIND_sfdouble  FIELDTYPE_SFDouble
 #define FTIND_sfvec2f   FIELDTYPE_SFVec2f
+#define FTIND_sfvec2d   FIELDTYPE_SFVec2d
 #define FTIND_sfvec3f   FIELDTYPE_SFVec3f
 #define FTIND_sfvec3d   FIELDTYPE_SFVec3d
+#define FTIND_sfvec4f	FIELDTYPE_SFVec4f
+#define FTIND_sfvec4d	FIELDTYPE_SFVec4d
+#define FTIND_sfmatrix3f FIELDTYPE_SFMatrix3f
+#define FTIND_sfmatrix4f FIELDTYPE_SFMatrix4f
+#define FTIND_sfmatrix3d FIELDTYPE_SFMatrix3d
+#define FTIND_sfmatrix4d FIELDTYPE_SFMatrix4d
+
+#define FTIND_mfnode    FIELDTYPE_MFNode
 #define FTIND_mfbool    FIELDTYPE_MFBool
 #define FTIND_mfcolor   FIELDTYPE_MFColor
 #define FTIND_mfcolorrgba       FIELDTYPE_MFColorRGBA
@@ -2322,14 +2351,16 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 #define FTIND_mfstring  FIELDTYPE_MFString
 #define FTIND_mftime    FIELDTYPE_MFTime
 #define FTIND_mfvec2f   FIELDTYPE_MFVec2f
+#define FTIND_mfvec2d   FIELDTYPE_MFVec2d
 #define FTIND_mfvec3f   FIELDTYPE_MFVec3f
 #define FTIND_mfvec3d   FIELDTYPE_MFVec3d
+#define FTIND_mfvec4d   FIELDTYPE_MFVec4d
+#define FTIND_mfvec4f   FIELDTYPE_MFVec4f
 #define FTIND_mfdouble  FIELDTYPE_MFDouble
-#define FTIND_sfvec4d FIELDTYPE_SFVec4d
-#define FTIND_sfmatrix3f FIELDTYPE_SFMatrix3f
 #define FTIND_mfmatrix3f FIELDTYPE_MFMatrix3f
-#define FTIND_sfmatrix4f FIELDTYPE_SFMatrix4f
 #define FTIND_mfmatrix4f FIELDTYPE_MFMatrix4f
+#define FTIND_mfmatrix3d FIELDTYPE_MFMatrix3d
+#define FTIND_mfmatrix4d FIELDTYPE_MFMatrix4d
  
 /* Process a field (either exposed or ordinary) generally */
 /* For a normal "field value" (i.e. position 1 0 1) statement gets the actual value of the field from the file (next token(s) to be processed) and stores it in the node

@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.2 2009/03/09 21:32:30 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.3 2009/03/10 21:00:34 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -137,6 +137,7 @@ package VRML::NodeType;
 		metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 		FreeWRL__protoDef => [SFInt32, 0, initializeOnly], # tell renderer that this is a proto...
+		FreeWRL_PROTOInterfaceNodes =>[MFNode, [], inputOutput],
 	},"X3DGroupingNode"),
 
 	StaticGroup => new VRML::NodeType("StaticGroup", {
