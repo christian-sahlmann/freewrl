@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EventUtils.c,v 1.3 2009/02/11 15:12:54 istakenv Exp $
+$Id: Component_EventUtils.c,v 1.4 2009/03/13 20:07:17 crc_canada Exp $
 
 X3D Event Utilities Component
 
@@ -52,6 +52,7 @@ void do_BooleanSequencer (void *node){
 	int kin, kvin;
 	int *kVs;
 	int counter;
+	int oldValue;
 
 	if (!node) return;
 	px = (struct X3D_BooleanSequencer *) node;
@@ -59,7 +60,8 @@ void do_BooleanSequencer (void *node){
 	kvin = px->keyValue.n;
 	kVs = px->keyValue.p;
 
-	MARK_EVENT (node, offsetof (struct X3D_BooleanSequencer, value_changed));
+	oldValue = px->value_changed;
+
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
@@ -70,6 +72,7 @@ void do_BooleanSequencer (void *node){
 
 	#ifdef SEVERBOSE
 		printf ("BooleanSequencer, kin %d kvin %d, vc %f\n",kin,kvin,px->value_changed);
+		printf ("	and set_fraction is %f\n",px->set_fraction);
 	#endif
 
 	/* set_fraction less than or greater than keys */
@@ -80,26 +83,30 @@ void do_BooleanSequencer (void *node){
 	} else {
 		/* have to go through and find the key before */
 		counter=find_key(kin,(float)(px->set_fraction),px->key.p);
-		px->value_changed =
-			(px->set_fraction - px->key.p[counter-1]) /
-			(px->key.p[counter] - px->key.p[counter-1]) *
-			(kVs[counter] - kVs[counter-1]) +
-			kVs[counter-1];
+		/* printf ("counter %d\n",counter); */
+		px->value_changed = px->key.p[counter];
+	}
+
+	if (oldValue != px->value_changed) {
+		MARK_EVENT (node, offsetof (struct X3D_BooleanSequencer, value_changed));
 	}
 }
+
 	
 /******************************************************************************/
 /* see the spec for a description */
 void do_BooleanToggle (void *node){ 
 	struct X3D_BooleanToggle *px;
+	int oldBoolean;
 
 	if (!node) return;
 	px = (struct X3D_BooleanToggle *) node;
 
+	oldBoolean = px->toggle;
+
 	if (px->set_boolean == TRUE) px->toggle = FALSE; 
 	else px->toggle = TRUE; 
-
-	MARK_EVENT (node, offsetof (struct X3D_BooleanToggle, toggle));
+	if (oldBoolean != px->toggle) MARK_EVENT (node, offsetof (struct X3D_BooleanToggle, toggle));
 }
 
 /******************************************************************************/

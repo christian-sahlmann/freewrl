@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.16 2009/03/10 21:00:34 crc_canada Exp $
+  $Id: CParseParser.c,v 1.17 2009/03/13 20:07:18 crc_canada Exp $
 
   ???
 
@@ -1198,7 +1198,12 @@ BOOL parser_routeStatement(struct VRMLParser* me)
   if (pre##Proto) { \
         lexer_setCurID(me->lexer); \
         /* printf ("have a proto, field is %s have to resolve this to a real node.field \n",me->lexer->curID); */ \
-        if (!resolveProtoNodeField(me, pre##Proto, &pre##Node)) return FALSE; \
+        if (!resolveProtoNodeField(me, pre##Proto, me->lexer->curID, &pre##Node)) return FALSE; \
+	/* we KNOW that the field name is going to be "value" - see PROTO code, especially return from protoExpand() */ \
+	FREE_IF_NZ(me->lexer->curID); \
+	if (KW_##eventType == KW_outputOnly) me->lexer->curID = STRDUP("valueChanged"); \
+	else me->lexer->curID = STRDUP("setValue"); \
+	/* printf ("PROTO ROUTING TO FIELD %s in CPARSER\n",me->lexer->curID); */ \
         /* possible Script node? */ \
         if (pre##Node->_nodeType == NODE_Script) { pre##Script=X3D_SCRIPT(pre##Node)->__scriptObj; \
                   ASSERT(pre##Script); }\

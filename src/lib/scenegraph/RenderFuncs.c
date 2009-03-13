@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.7 2009/03/03 17:02:41 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.8 2009/03/13 20:07:18 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -773,43 +773,28 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 	#endif
 }
 
+
 /* for CRoutes, we need to have a function pointer to an interpolator to run, if we
 route TO an interpolator */
 void *returnInterpolatorPointer (const char *x) {
-	if (strcmp("OrientationInterpolator",x)==0) {
-		return (void *)do_Oint4;
-	} else if (strcmp("CoordinateInterpolator2D",x)==0) {
-		return (void *)do_OintCoord2D;
-	} else if (strcmp("PositionInterpolator2D",x)==0) {
-		return (void *)do_OintPos2D;
-	} else if (strcmp("ScalarInterpolator",x)==0) {
-		return (void *)do_OintScalar;
-	} else if (strcmp("ColorInterpolator",x)==0) {
-		return (void *)do_ColorInterpolator;
-	} else if (strcmp("PositionInterpolator",x)==0) {
-		return (void *)do_PositionInterpolator;
-	} else if (strcmp("CoordinateInterpolator",x)==0) {
-		return (void *)do_OintCoord;
-	} else if (strcmp("NormalInterpolator",x)==0) {
-		return (void *)do_OintCoord;
-	} else if (strcmp("GeoPositionInterpolator",x)==0) {
-		return (void *)do_GeoPositionInterpolator;
-	} else if (strcmp("BooleanFilter",x)==0) {
-		return (void *)do_BooleanFilter;
-	} else if (strcmp("BooleanSequencer",x)==0) {
-		return (void *)do_BooleanSequencer;
-	} else if (strcmp("BooleanToggle",x)==0) {
-		return (void *)do_BooleanToggle;
-	} else if (strcmp("BooleanTrigger",x)==0) {
-		return (void *)do_BooleanTrigger;
-	} else if (strcmp("IntegerTrigger",x)==0) {
-		return (void *)do_IntegerTrigger;
-	} else if (strcmp("IntegerSequencer",x)==0) {
-		return (void *)do_IntegerSequencer;
-	} else if (strcmp("TimeTrigger",x)==0) {
-		return (void *)do_TimeTrigger;
-	} else if (strcmp("MidiControl",x)==0) {
-		return (void *)do_MidiControl;
+	if (strcmp("OrientationInterpolator",x)==0) { return (void *)do_Oint4;
+	} else if (strcmp("CoordinateInterpolator2D",x)==0) { return (void *)do_OintCoord2D;
+	} else if (strcmp("PositionInterpolator2D",x)==0) { return (void *)do_OintPos2D;
+	} else if (strcmp("ScalarInterpolator",x)==0) { return (void *)do_OintScalar;
+	} else if (strcmp("ColorInterpolator",x)==0) { return (void *)do_ColorInterpolator;
+	} else if (strcmp("PositionInterpolator",x)==0) { return (void *)do_PositionInterpolator;
+	} else if (strcmp("CoordinateInterpolator",x)==0) { return (void *)do_OintCoord;
+	} else if (strcmp("NormalInterpolator",x)==0) { return (void *)do_OintCoord;
+	} else if (strcmp("GeoPositionInterpolator",x)==0) { return (void *)do_GeoPositionInterpolator;
+	} else if (strcmp("BooleanFilter",x)==0) { return (void *)do_BooleanFilter;
+	} else if (strcmp("BooleanSequencer",x)==0) { return (void *)do_BooleanSequencer;
+	} else if (strcmp("BooleanToggle",x)==0) { return (void *)do_BooleanToggle;
+	} else if (strcmp("BooleanTrigger",x)==0) { return (void *)do_BooleanTrigger;
+	} else if (strcmp("IntegerTrigger",x)==0) { return (void *)do_IntegerTrigger;
+	} else if (strcmp("IntegerSequencer",x)==0) { return (void *)do_IntegerSequencer;
+	} else if (strcmp("TimeTrigger",x)==0) { return (void *)do_TimeTrigger;
+	} else if (strcmp("MidiControl",x)==0) { return (void *)do_MidiControl;
+	
 	} else {
 		return 0;
 	}
@@ -905,3 +890,139 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 		ConsoleMessage ("%s - coord expected but got %s\n", stringNodeType(xc->_nodeType));
 	}
 }
+
+
+/* anything changed for this PROTO interface datatype? */
+#define CMD_I32(type) void changed_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
+	if (node->value != node->setValue) { \
+		node->value = node->setValue; \
+		node->valueChanged = node->setValue; \
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSF##type, valueChanged)); \
+	} \
+}
+
+#define CMD_FL(type) void changed_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
+	if (!APPROX(node->value,node->setValue)) { \
+		node->value = node->setValue; \
+		node->valueChanged = node->setValue; \
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSF##type, valueChanged)); \
+	} \
+}
+
+#define CMD_MFL(type,elelength,field) void changed_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
+	int count; \
+	for (count=0; count < elelength; count++) { \
+		if (!APPROX(node->value.field[count],node->setValue.field[count])) { \
+			memcpy (&node->value, &node->setValue, sizeof node->value.field[0]* elelength); \
+			memcpy (&node->valueChanged, &node->setValue, sizeof node->value.field[0] * elelength); \
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSF##type, valueChanged)); \
+			return; \
+		} \
+	} \
+}
+
+/* compare element counts, and pointer values */
+/* NOTE - VALUES CAN NOT BEE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
+#define CMD_MULTI(type) void changed_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+	if ((node->value.n != node->setValue.n) || (node->value.p != node->setValue.p)) { \
+		node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
+		node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
+	} \
+}
+
+/* compare element counts, then individual elements, if the counts are the same */
+/* NOTE - VALUES CAN NOT BEE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
+#define CMD_MSFI32(type) void changed_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+	int count; int changed = FALSE; \
+	if (node->value.n != node->setValue.n) changed = TRUE; else { \
+		for (count=0; count<node->setValue.n; count++) if (node->value.p[count] != node->setValue.p[count]) changed = TRUE; }\
+	\
+	if (changed) { \
+		node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
+		node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
+	} \
+}
+
+/* compare element counts, then individual elements, if the counts are the same */
+/* NOTE - VALUES CAN NOT BEE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
+#define CMD_MSFL(type) void changed_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+	int count; int changed = FALSE; \
+	if (node->value.n != node->setValue.n) changed = TRUE; else { \
+		for (count=0; count<node->setValue.n; count++) if (!APPROX(node->value.p[count], node->setValue.p[count])) changed = TRUE; }\
+	\
+	if (changed) { \
+		node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
+		node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
+	} \
+}
+
+
+CMD_FL(Float)
+CMD_FL(Time)
+CMD_FL(Double)
+CMD_I32(Bool)
+CMD_I32(Int32)
+CMD_I32(Node)
+
+CMD_MFL(Vec2f,2,c)
+CMD_MFL(Vec3f,3,c)
+CMD_MFL(Vec4f,4,c)
+CMD_MFL(Vec2d,2,c)
+CMD_MFL(Vec3d,3,c)
+CMD_MFL(Vec4d,4,c)
+CMD_MFL(Rotation,4,r)
+CMD_MFL(Color,3,c)
+CMD_MFL(ColorRGBA,4,r)
+CMD_MFL(Matrix3f,9,c)
+CMD_MFL(Matrix3d,9,c)
+CMD_MFL(Matrix4f,16,c)
+CMD_MFL(Matrix4d,16,c)
+
+CMD_MULTI(Rotation)
+CMD_MULTI(Vec2f)
+CMD_MULTI(Vec3f)
+CMD_MULTI(Vec4f)
+CMD_MULTI(Vec2d)
+CMD_MULTI(Vec3d)
+CMD_MULTI(Vec4d)
+CMD_MULTI(Color)
+CMD_MULTI(ColorRGBA)
+CMD_MULTI(Matrix3f)
+CMD_MULTI(Matrix4f)
+CMD_MULTI(Matrix3d)
+CMD_MULTI(Matrix4d)
+
+CMD_MSFI32(Bool)
+CMD_MSFI32(Int32)
+CMD_MSFI32(Node)
+CMD_MSFL(Time)
+CMD_MSFL(Float)
+CMD_MSFL(Double)
+CMD_MSFI32(String)
+
+void changed_MetadataSFImage (struct X3D_MetadataSFImage *node){ printf ("make changed_Metadata %s\n",stringNodeType(node->_nodeType));}
+/*
+struct Uni_String {
+        int len;
+        char * strptr;
+        int touched;
+};
+*/
+
+void changed_MetadataSFString (struct X3D_MetadataSFString *node){ 
+	int count; int changed = FALSE; 
+	if (node->value->len != node->setValue->len) changed = TRUE; else { 
+		for (count=0; count<node->setValue->len; count++) 
+			if (node->value->strptr[count] != node->setValue->strptr[count]) changed = TRUE; }
+	
+	if (changed) { 
+		node->value->len = node->setValue->len; node->value->strptr = node->setValue->strptr; 
+		node->valueChanged->len = node->setValue->len; node->valueChanged->strptr = node->setValue->strptr; 
+		node->value->touched = TRUE; node->valueChanged->touched = TRUE;
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSFString, valueChanged)); 
+	} 
+}
+

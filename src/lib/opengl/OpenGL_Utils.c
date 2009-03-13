@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.21 2009/02/25 15:03:17 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.22 2009/03/13 20:07:17 crc_canada Exp $
 
 ???
 
@@ -774,6 +774,8 @@ void zeroVisibilityFlag(void) {
 /* go through the linear list of nodes, and do "special things" for special nodes, like
    Sensitive nodes, Viewpoint nodes, ... */
 
+#define CMD(TTT,YYY) changed_Metadata##TTT((struct X3D_Metadata##TTT *) YYY)
+
 #define BEGIN_NODE(thistype) case NODE_##thistype:
 #define END_NODE break;
 
@@ -1157,7 +1159,47 @@ void startOfLoopNodeUpdates(void) {
 					CHILDREN_NODE(GeoLocation) 
 				END_NODE
 
-
+				BEGIN_NODE(MetadataSFBool) CMD(SFBool,node); END_NODE
+				BEGIN_NODE(MetadataSFFloat) CMD(SFFloat,node); END_NODE
+				BEGIN_NODE(MetadataMFFloat) CMD(MFFloat,node); END_NODE
+				BEGIN_NODE(MetadataSFRotation) CMD(SFRotation,node); END_NODE
+				BEGIN_NODE(MetadataMFRotation) CMD(MFRotation,node); END_NODE
+				BEGIN_NODE(MetadataSFVec3f) CMD(SFVec3f,node); END_NODE
+				BEGIN_NODE(MetadataMFVec3f) CMD(MFVec3f,node); END_NODE
+				BEGIN_NODE(MetadataMFBool) CMD(MFBool,node); END_NODE
+				BEGIN_NODE(MetadataSFInt32) CMD(SFInt32,node); END_NODE
+				BEGIN_NODE(MetadataMFInt32) CMD(MFInt32,node); END_NODE
+				BEGIN_NODE(MetadataSFNode) CMD(SFNode,node); END_NODE
+				BEGIN_NODE(MetadataMFNode) CMD(MFNode,node); END_NODE
+				BEGIN_NODE(MetadataSFColor) CMD(SFColor,node); END_NODE
+				BEGIN_NODE(MetadataMFColor) CMD(MFColor,node); END_NODE
+				BEGIN_NODE(MetadataSFColorRGBA) CMD(SFColorRGBA,node); END_NODE
+				BEGIN_NODE(MetadataMFColorRGBA) CMD(MFColorRGBA,node); END_NODE
+				BEGIN_NODE(MetadataSFTime) CMD(SFTime,node); END_NODE
+				BEGIN_NODE(MetadataMFTime) CMD(MFTime,node); END_NODE
+				BEGIN_NODE(MetadataSFString) CMD(SFString,node); END_NODE
+				BEGIN_NODE(MetadataMFString) CMD(MFString,node); END_NODE
+				BEGIN_NODE(MetadataSFVec2f) CMD(SFVec2f,node); END_NODE
+				BEGIN_NODE(MetadataMFVec2f) CMD(MFVec2f,node); END_NODE
+				BEGIN_NODE(MetadataSFImage) CMD(SFImage,node); END_NODE
+				BEGIN_NODE(MetadataSFVec3d) CMD(SFVec3d,node); END_NODE
+				BEGIN_NODE(MetadataMFVec3d) CMD(MFVec3d,node); END_NODE
+				BEGIN_NODE(MetadataSFDouble) CMD(SFDouble,node); END_NODE
+				BEGIN_NODE(MetadataMFDouble) CMD(MFDouble,node); END_NODE
+				BEGIN_NODE(MetadataSFMatrix3f) CMD(SFMatrix3f,node); END_NODE
+				BEGIN_NODE(MetadataMFMatrix3f) CMD(MFMatrix3f,node); END_NODE
+				BEGIN_NODE(MetadataSFMatrix3d) CMD(SFMatrix3d,node); END_NODE
+				BEGIN_NODE(MetadataMFMatrix3d) CMD(MFMatrix3d,node); END_NODE
+				BEGIN_NODE(MetadataSFMatrix4f) CMD(SFMatrix4f,node); END_NODE
+				BEGIN_NODE(MetadataMFMatrix4f) CMD(MFMatrix4f,node); END_NODE
+				BEGIN_NODE(MetadataSFMatrix4d) CMD(SFMatrix4d,node); END_NODE
+				BEGIN_NODE(MetadataMFMatrix4d) CMD(MFMatrix4d,node); END_NODE
+				BEGIN_NODE(MetadataSFVec2d) CMD(SFVec2d,node); END_NODE
+				BEGIN_NODE(MetadataMFVec2d) CMD(MFVec2d,node); END_NODE
+				BEGIN_NODE(MetadataSFVec4f) CMD(SFVec4f,node); END_NODE
+				BEGIN_NODE(MetadataMFVec4f) CMD(MFVec4f,node); END_NODE
+				BEGIN_NODE(MetadataSFVec4d) CMD(SFVec4d,node); END_NODE
+				BEGIN_NODE(MetadataMFVec4d) CMD(MFVec4d,node); END_NODE
 			}
 		}
 
@@ -1265,6 +1307,13 @@ void kill_X3DNodes(void){
 			/* printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); */
 
 			/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
+			
+			if (*fieldOffsetsPtr == FIELDNAMES_setValue) 
+				break; /* can be a duplicate SF/MFNode pointer */
+		
+			if (*fieldOffsetsPtr == FIELDNAMES_valueChanged) 
+				break; /* can be a duplicate SF/MFNode pointer */
+		
 
 			if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata) 
 				break; /* can be a duplicate SFNode pointer */

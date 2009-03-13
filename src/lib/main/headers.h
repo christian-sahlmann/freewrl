@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.27 2009/03/03 17:02:41 crc_canada Exp $
+$Id: headers.h,v 1.28 2009/03/13 20:07:17 crc_canada Exp $
 
 Global includes.
 
@@ -1223,6 +1223,52 @@ void render_ProgramShader (struct X3D_ProgramShader *);
 void compile_ComposedShader (struct X3D_ComposedShader *);
 void compile_PackagedShader (struct X3D_PackagedShader *);
 void compile_ProgramShader (struct X3D_ProgramShader *);
+
+
+/* PROTO sliding about */
+void changed_MetadataSFFloat (struct X3D_MetadataSFFloat *);
+void changed_MetadataMFFloat (struct X3D_MetadataMFFloat *);
+void changed_MetadataSFRotation (struct X3D_MetadataSFRotation *);
+void changed_MetadataMFRotation (struct X3D_MetadataMFRotation *);
+void changed_MetadataSFVec3f (struct X3D_MetadataSFVec3f *);
+void changed_MetadataMFVec3f (struct X3D_MetadataMFVec3f *);
+void changed_MetadataMFBool (struct X3D_MetadataMFBool *);
+void changed_MetadataSFBool (struct X3D_MetadataSFBool *);
+void changed_MetadataSFInt32 (struct X3D_MetadataSFInt32 *);
+void changed_MetadataMFInt32 (struct X3D_MetadataMFInt32 *);
+void changed_MetadataSFNode (struct X3D_MetadataSFNode *);
+void changed_MetadataMFNode (struct X3D_MetadataMFNode *);
+void changed_MetadataSFColor (struct X3D_MetadataSFColor *);
+void changed_MetadataMFColor (struct X3D_MetadataMFColor *);
+void changed_MetadataSFColorRGBA (struct X3D_MetadataSFColorRGBA *);
+void changed_MetadataMFColorRGBA (struct X3D_MetadataMFColorRGBA *);
+void changed_MetadataSFTime (struct X3D_MetadataSFTime *);
+void changed_MetadataMFTime (struct X3D_MetadataMFTime *);
+void changed_MetadataSFString (struct X3D_MetadataSFString *);
+void changed_MetadataMFString (struct X3D_MetadataMFString *);
+void changed_MetadataSFVec2f (struct X3D_MetadataSFVec2f *);
+void changed_MetadataMFVec2f (struct X3D_MetadataMFVec2f *);
+void changed_MetadataSFImage (struct X3D_MetadataSFImage *);
+void changed_MetadataSFVec3d (struct X3D_MetadataSFVec3d *);
+void changed_MetadataMFVec3d (struct X3D_MetadataMFVec3d *);
+void changed_MetadataSFDouble (struct X3D_MetadataSFDouble *);
+void changed_MetadataMFDouble (struct X3D_MetadataMFDouble *);
+void changed_MetadataSFMatrix3f (struct X3D_MetadataSFMatrix3f *);
+void changed_MetadataMFMatrix3f (struct X3D_MetadataMFMatrix3f *);
+void changed_MetadataSFMatrix3d (struct X3D_MetadataSFMatrix3d *);
+void changed_MetadataMFMatrix3d (struct X3D_MetadataMFMatrix3d *);
+void changed_MetadataSFMatrix4f (struct X3D_MetadataSFMatrix4f *);
+void changed_MetadataMFMatrix4f (struct X3D_MetadataMFMatrix4f *);
+void changed_MetadataSFMatrix4d (struct X3D_MetadataSFMatrix4d *);
+void changed_MetadataMFMatrix4d (struct X3D_MetadataMFMatrix4d *);
+void changed_MetadataSFVec2d (struct X3D_MetadataSFVec2d *);
+void changed_MetadataMFVec2d (struct X3D_MetadataMFVec2d *);
+void changed_MetadataSFVec4f (struct X3D_MetadataSFVec4f *);
+void changed_MetadataMFVec4f (struct X3D_MetadataMFVec4f *);
+void changed_MetadataSFVec4d (struct X3D_MetadataSFVec4d *);
+void changed_MetadataMFVec4d (struct X3D_MetadataMFVec4d *);
+
+
 #ifdef GL_VERSION_2_0
 	#define TURN_APPEARANCE_SHADER_OFF \
 		{extern GLuint globalCurrentShader; if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgram(0);}}

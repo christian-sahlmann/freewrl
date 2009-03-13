@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.10 2009/03/10 21:00:34 crc_canada Exp $
+$Id: CProto.c,v 1.11 2009/03/13 20:07:18 crc_canada Exp $
 
 CProto ???
 
@@ -30,46 +30,35 @@ CProto ???
 
 #undef CPROTOVERBOSE
 
-#define PROTO_CAT(newString,strlen2) \
-	{ memcpy(&newProtoText[newProtoTextIndex],newString,strlen2); newProtoTextIndex += strlen2; \
-		newProtoText[newProtoTextIndex] = '\0'; \
-printf ("PROTO_CAT: %s\n",newString); \
-		curstringlen += fprintf (pexfile,"%s\n",newString); }
+#define PROTO_CAT(newString) { \
+		curstringlen += fprintf (pexfile,"%s",newString); } \
 
 #define STARTPROTOGROUP "Group{FreeWRL__protoDef %d FreeWRL_PROTOInterfaceNodes ["
 #define PROTOGROUPNUMBER "] #PROTOPARAMS\n  children[ #PROTOGROUP\n"
-#define ENDPROTOGROUP "]}#END PROTOGROUP\n"
-#define VERIFY_OUTPUT_LEN(extra) \
-		/* printf ("verify, cur textInd %d, malloclen %d, extra %d\n",newProtoTextIndex, newProtoTextMallocLen, extra); */ \
-		if ((newProtoTextIndex + extra + 1024) > newProtoTextMallocLen) { \
-		while ((newProtoTextIndex + extra + 1024) > newProtoTextMallocLen) { \
-			newProtoTextMallocLen *=2 ; \
-		} \
-			/* printf ("verify, made REALLOC to %d\n",newProtoTextMallocLen); */ \
-			newProtoText = REALLOC(newProtoText, newProtoTextMallocLen); \
-		}
+#define ENDPROTOGROUP "}#END PROTOGROUP\n"
 
-#define APPEND_SPACE PROTO_CAT (" ",1);
-#define APPEND_THISID PROTO_CAT (thisID,strlen(thisID));
-#define APPEND_NODE PROTO_CAT (stringNodeType(ele->isNODE),strlen(stringNodeType(ele->isNODE)));
-#define APPEND_KEYWORD PROTO_CAT (stringKeywordType(ele->isKEYWORD),strlen(stringKeywordType(ele->isKEYWORD)));
-#define APPEND_STRINGTOKEN PROTO_CAT ( ele->stringToken,strlen(ele->stringToken));
+#define APPEND_SPACE PROTO_CAT (" ");
+#define APPEND_THISID PROTO_CAT (thisID);
+#define APPEND_NODE PROTO_CAT (stringNodeType(ele->isNODE));
+#define APPEND_KEYWORD PROTO_CAT (stringKeywordType(ele->isKEYWORD));
+#define APPEND_STRINGTOKEN PROTO_CAT ( ele->stringToken);
 #define APPEND_TERMINALSYMBOL \
 			{ char chars[3]; \
 			chars[0] = (char) ele->terminalSymbol;\
 			chars[1] = '\0';\
-			PROTO_CAT (chars,1);\
+			PROTO_CAT (chars);\
+			if (chars[0]=='}') PROTO_CAT("\n"); \
 			}
-#define APPEND_ENDPROTOGROUP PROTO_CAT (ENDPROTOGROUP,strlen(ENDPROTOGROUP));
+#define APPEND_ENDPROTOGROUP PROTO_CAT (ENDPROTOGROUP);
 #define SOMETHING_IN_ISVALUE (strlen(newTl) > 0) 
-#define APPEND_ISVALUE PROTO_CAT (newTl,strlen(newTl));
+#define APPEND_ISVALUE PROTO_CAT (newTl);
 #define APPEND_STARTPROTOGROUP_1 \
 	sprintf(thisID,STARTPROTOGROUP,*thisProto); \
-	PROTO_CAT(thisID,strlen(thisID));
+	PROTO_CAT(thisID);
 
 
 #define APPEND_STARTPROTOGROUP_2 \
-	PROTO_CAT(PROTOGROUPNUMBER, strlen(PROTOGROUPNUMBER))
+	PROTO_CAT(PROTOGROUPNUMBER)
 
 #define APPEND_IF_NOT_OUTPUTONLY \
 { int coffset, ctype, ckind, field; \
@@ -91,6 +80,8 @@ printf ("PROTO_CAT: %s\n",newString); \
 		} \
 		lastKeyword = NULL; \
 	} else {APPEND_STRINGTOKEN}
+
+static int dumpProtoFieldDeclarationNodes(struct VRMLLexer *me, struct ProtoDefinition *thisProto, FILE *pexfile);
 
 /* internal sequence number for protos */
 static  indexT latest_protoDefNumber =1;
@@ -804,7 +795,6 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 
 	struct ProtoFieldDecl* pdecl = NULL;
 	union anyVrml thisVal;
-
 	#ifdef CPROTOVERBOSE
 	printf ("start of getProtoInvocationFields, lexer %u nextIn :%s:\n",me->lexer, me->lexer->nextIn);
 	#endif
@@ -955,8 +945,53 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 	#ifdef CPROTOVERBOSE
 	printf ("end of getProtoInvocationFields\n");
 	#endif
-
 }
+
+
+#define DUMPONELINE \
+	for (i=0; i<max; i++) { \
+		/* writtenlen += fprintf (pexfile, "#inputOutput %d is :%s:",i,userArr[i]); */ \
+		pdecl = getProtoFieldDeclaration(me, thisProto,userArr[i]); \
+ \
+		/* writtenlen += fprintf (pexfile," mode %d type %s name %d fieldString %s\n", \
+			pdecl->mode, stringFieldtypeType(pdecl->type), pdecl->name, pdecl->fieldString); */ \
+		writtenlen += fprintf (pexfile, "\tDEF PROTO_%u_%s Metadata%s {\n",thisProto,userArr[i],stringFieldtypeType(pdecl->type)); \
+		writtenlen += fprintf (pexfile, "\t\tvalue %s\n",pdecl->fieldString); \
+		writtenlen += fprintf (pexfile, "\t}\n"); \
+	}
+
+/* what we do is to ensure that we have a "destination" we create a node containing the VALUE of each field of the 
+   PROTO expansion, and we put it in a "special place" within the PROTO Group expansion */
+
+static int dumpProtoFieldDeclarationNodes(struct VRMLLexer *me, struct ProtoDefinition *thisProto, FILE *pexfile) {
+	indexT retUO;
+	const char** userArr;
+	size_t userCnt;
+	struct ProtoFieldDecl* pdecl = NULL;
+	
+	int max;
+	int i;
+	int writtenlen = 0;
+
+	max = vector_size(me->user_initializeOnly);
+	userArr=&vector_get(const char*, me->user_initializeOnly, 0);
+	DUMPONELINE;
+	max = vector_size(me->user_inputOutput);
+	userArr=&vector_get(const char*, me->user_inputOutput, 0);
+	DUMPONELINE;
+	
+	max = vector_size(me->user_outputOnly);
+	userArr=&vector_get(const char*, me->user_outputOnly, 0);
+	DUMPONELINE;
+
+	max = vector_size(me->user_inputOnly);
+	userArr=&vector_get(const char*, me->user_inputOnly, 0);
+	DUMPONELINE;
+	
+	return writtenlen;
+#undef DUMPONELINE
+}
+
 
 /* find the proto field declare for a particular proto */
 struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID)
@@ -1146,12 +1181,75 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 	deleteLexer(lex);
 }
 
+/* possibly create some ROUTES to reflect changes for internal variables - this is the MetadataSF and MetadataMF special nodes routing */
+static int addProtoUpdateRoute (struct VRMLLexer *me, FILE *routefile, char *fieldName, char *protoNameInHeader, char *thisID, struct ProtoDefinition *thisProto, indexT i) {
+	struct ProtoFieldDecl *myPF;
+	struct ProtoElementPointer* tE;
+	char *defName = "";
+
+	int retcount = 0;
+
+	#ifdef CPROTOVERBOSE
+	printf ("addProtoUpdateRoute, fieldName :%s: protoNameInHeader :%s: thisID :%s:\n",fieldName, protoNameInHeader,thisID);
+	#endif
+
+	/* is this one a DEFed node, whereby we need to keep the DEF name as part of this? */
+	do {
+		tE = vector_get(struct ProtoElementPointer*, thisProto->deconstructedProtoBody, i);
+		ASSERT(tE);
+		i--;
+	} while ((i>2) && (tE->isNODE == ID_UNDEFINED));
+	#ifdef CPROTOVERBOSE
+	printf ("addProto, looking at element %d\n",i);
+	printf (" NODE:\t%s\n",stringNodeType(tE->isNODE));
+	#endif
+
+	if (i>2) {
+		tE = vector_get(struct ProtoElementPointer*, thisProto->deconstructedProtoBody, i-1);
+               if (tE->isKEYWORD == KW_DEF) {
+			#ifdef CPROTOVERBOSE
+                        printf (" KW:\t%s\n",stringKeywordType(tE->isKEYWORD));
+			#endif
+
+			/* lets look for the DEF name */
+			tE = vector_get(struct ProtoElementPointer*, thisProto->deconstructedProtoBody, i);
+               		if (tE->stringToken != NULL) {
+				#ifdef CPROTOVERBOSE
+                	        printf (" string\t:%s:",tE->stringToken);
+				#endif
+
+				defName = tE->stringToken;
+                	}
+                }
+	}
 
 
+	myPF = getProtoFieldDeclaration (me, thisProto, protoNameInHeader);
+	if (myPF == NULL) return;
+
+	/* is this an initializeOnly field, so no possible routing updates? */
+	if (myPF->mode == PKW_initializeOnly) return;
+
+	/* is this one accepting routes into the PROTO? */
+	if ((myPF->mode == PKW_inputOutput) || (myPF->mode == PKW_inputOnly)) {
+		retcount += fprintf (routefile,"ROUTE PROTO_%u_%s.valueChanged TO %s%s.%s #Meta route, inputOutput or inputOnly\n",
+			thisProto,protoNameInHeader,thisID,defName,fieldName);
+	}
+
+	/* is this one accepting routes from the PROTO to the outside world? */
+	if ((myPF->mode == PKW_inputOutput) || (myPF->mode == PKW_outputOnly)) {
+		retcount += fprintf (routefile, "ROUTE %s%s.%s TO PROTO_%u_%s.setValue #Meta route, inputOutput or outputOnly\n",
+			thisID,defName,fieldName, thisProto,protoNameInHeader);
+	}
+
+	return retcount;
+}
+
+/* make an expansion of the PROTO, and return it to the main caller */
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
 	char *newProtoText;
-	int newProtoTextMallocLen;
-	int newProtoTextIndex = 0;
+	char tempname[1000];
+	char tempRoutename[1000];
 	char thisID[1000];
 	indexT i;
 	indexT protoElementCount;
@@ -1160,21 +1258,34 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	
 	struct ProtoElementPointer* lastKeyword = NULL;
 	struct ProtoElementPointer* lastNode = NULL;
+	indexT lastDEFindex = ID_UNDEFINED;
 
 	FILE *pexfile;
+	FILE *routefile;
 	int curstringlen = 0;
-	char tempname[1000];
+
+	int routeSize = 0;
 
 	#define	OPEN_PROTO_EXPAND_FILE_WRITE { \
 		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp")); \
-printf ("proto temp name is :%s:\n",tempname); \
+		sprintf (tempRoutename, "%s",tempnam("/tmp","freewrl_tmp")); \
 		pexfile = fopen (tempname,"w"); \
-		if (pexfile==NULL) {ConsoleMessage ("error opening temp file!"); return "";}}
+		routefile = fopen (tempRoutename,"w"); \
+		if ((pexfile==NULL) ||(routefile==NULL)) {ConsoleMessage ("error opening temp file!"); return "";}}
 
-	#define	CLOSE_PROTO_EXPAND_FILE fclose (pexfile);
+	#define	OPEN_PROTO_EXPAND_FILE_READ { \
+		/* file name already in the "tempname" file */ \
+		pexfile = fopen (tempname,"r"); \
+		routefile = fopen (tempRoutename,"r"); \
+		if ((pexfile==NULL) ||(routefile==NULL)) {ConsoleMessage ("error opening temp file!"); return "";}}
+
+
+	#define	CLOSE_PROTO_EXPAND_FILE {fclose (pexfile); fclose (routefile);}
+
+	#define UNLINK_PROTO_EXPAND_FILE {unlink (tempname); unlink (tempRoutename);}
 
 	#ifdef CPROTOVERBOSE
-	printf ("start of protoExpand\n");
+	printf ("start of protoExpand me %u me->lexer %u\n",me, me->lexer);
 	#endif
 
 	*thisProto = protoDefinition_copy(me->lexer, vector_get(struct ProtoDefinition*, me->PROTOs, nodeTypeU));
@@ -1185,23 +1296,24 @@ printf ("proto temp name is :%s:\n",tempname); \
 
 	OPEN_PROTO_EXPAND_FILE_WRITE
 
-	newProtoTextMallocLen = (*thisProto)->estimatedBodyLen * 2 + strlen(PROTOGROUPNUMBER) +
-		strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP) + 10;
-	newProtoText = MALLOC(newProtoTextMallocLen);
-
 	APPEND_STARTPROTOGROUP_1
 
-	APPEND_STARTPROTOGROUP_2
-
-
-	/* printf ("copying proto fields here\n"); */
 	/* copy the proto fields, so that we have either the defined field, or the field at invocation */
 
 	#ifdef CPROTOVERBOSE
-	printf ("\n\ngetProtoInvocationFields being called\n");
+	printf ("getProtoInvocationFields being called\n");
 	#endif
-
 	getProtoInvocationFields(me,(*thisProto));
+
+	#ifdef CPROTOVERBOSE
+	printf ("dumpProtoFieldDeclarationNodes being called\n");
+	#endif
+	curstringlen += dumpProtoFieldDeclarationNodes(me->lexer, *thisProto, pexfile);
+
+	#ifdef CPROTOVERBOSE
+	printf ("APPEND_STARTGROUP_2 being called\n");
+	#endif
+	APPEND_STARTPROTOGROUP_2
 
 	/* go through each part of this deconstructedProtoBody, and see what needs doing... */
 	protoElementCount = vector_size((*thisProto)->deconstructedProtoBody);
@@ -1210,6 +1322,7 @@ printf ("proto temp name is :%s:\n",tempname); \
 		printf ("protoExpand - protoEpementCount %d\n",protoElementCount);
 	#endif
 	
+
 	i = 0;
 	while (i < protoElementCount) {
 		/* get the current element */
@@ -1221,7 +1334,27 @@ printf ("proto temp name is :%s:\n",tempname); \
 		#endif
 
 		#ifdef CPROTOVERBOSE
-		printf ("\nPROTO - ele %d of %d;  is %u isNODE %d isKEYWORD %d ts %d st %s fabProtoDef %d\n",i, protoElementCount, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken, ele->fabricatedDef); 
+		printf ("PROTO - ele %d of %d; ",i, protoElementCount);
+		if (ele->isNODE != -1) {
+			printf (" NODE:\t%s",stringNodeType(ele->isNODE));
+		}
+
+		if (ele->isKEYWORD != -1) {
+			printf (" KW:\t%s",stringKeywordType(ele->isKEYWORD));
+		}
+
+		if (ele->stringToken != NULL) {
+			printf (" string\t:%s:",ele->stringToken);
+		}
+
+		if (ele->terminalSymbol != -1) {
+			printf (" ts\t:%c",ele->terminalSymbol);
+		}
+
+		if (ele->fabricatedDef != -1) {
+			printf (" def\t%d",ele->fabricatedDef);
+		}
+		printf ("\n");
 		#endif
 
 		/* this is a NODE, eg, "SphereSensor". If we need this DEFined because it contains an IS, then make the DEF */
@@ -1233,15 +1366,14 @@ printf ("proto temp name is :%s:\n",tempname); \
 			if (ele->fabricatedDef != ID_UNDEFINED) {
 			#ifdef XXX
 			PROTO_CAT ( "# at B\n");
-			printf ("newProtoText :%s:\n",newProtoText);
 			#endif
-				sprintf (thisID,"DEF %s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
+				PROTO_CAT ("DEF ");
+				sprintf (thisID, "%s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
 				APPEND_THISID
 				APPEND_SPACE
 			}
 			#ifdef XXX
 			PROTO_CAT ( "# at C\n");
-			printf ("newProtoText :%s:\n",newProtoText);
 			#endif
 			APPEND_NODE
 			APPEND_SPACE
@@ -1258,7 +1390,6 @@ printf ("proto temp name is :%s:\n",tempname); \
 			if (ele->isKEYWORD != KW_IS) { 
 				#ifdef XXX
 				PROTO_CAT ( "# at D\n");
-				printf ("newProtoText :%s:\n",newProtoText);
 				#endif
 				APPEND_KEYWORD APPEND_SPACE 
 			}
@@ -1267,7 +1398,6 @@ printf ("proto temp name is :%s:\n",tempname); \
 		} else if (ele->terminalSymbol != ID_UNDEFINED) {
 			#ifdef XXX
 			PROTO_CAT ( "# at E\n");
-			printf ("newProtoText :%s:\n",newProtoText);
 			#endif
 
 			APPEND_TERMINALSYMBOL
@@ -1284,21 +1414,21 @@ printf ("proto temp name is :%s:\n",tempname); \
 					char *newTl = MALLOC(100);
 					newTl[0] = '\0';
 
-					/* printf ("next element is an IS \n"); */
+					/* printf ("next element is an IS \n"); 
+					printf ("and, thisID is :%s:\n",thisID); */
 					tempEle = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i+2);
 					/* printf ("ok, so IS of :%s: is :%s:\n",ele->stringToken, tempEle->stringToken); */
+					routeSize += addProtoUpdateRoute(me->lexer, routefile, ele->stringToken, tempEle->stringToken, thisID, *thisProto,i);
 
 					replaceProtoField(me->lexer, *thisProto, tempEle->stringToken,&newTl,&tl);
-					 /* printf ("IS replacement is len %d, str :%s:\n",strlen(newTl), newTl);  */
+					 /* printf ("IS replacement is len %d, str :%s:\n",strlen(newTl), newTl); */
 
 					/* is there actually a value for this field?? */
 					if SOMETHING_IN_ISVALUE {
 						#ifdef XXX
 						PROTO_CAT ( "# at F\n");
-						printf ("newProtoText :%s:\n",newProtoText);
 						#endif
 
-						VERIFY_OUTPUT_LEN(strlen(newTl))
 						APPEND_STRINGTOKEN
 						APPEND_SPACE
 						APPEND_ISVALUE
@@ -1306,7 +1436,6 @@ printf ("proto temp name is :%s:\n",tempname); \
 					} else if (lastNode->isNODE == NODE_Script) {
 						#ifdef XXX
 						PROTO_CAT ( "# at G\n");
-						printf ("newProtoText :%s:\n",newProtoText);
 						#endif
 
 						/* Script nodes NEED the fieldname, even if it is blank, so... */
@@ -1319,7 +1448,6 @@ printf ("proto temp name is :%s:\n",tempname); \
 				} else { 
 					#ifdef XXX
 					PROTO_CAT ( "# at H\n");
-					printf ("newProtoText :%s:\n",newProtoText);
 					#endif
 
 					APPEND_EDITED_STRINGTOKEN
@@ -1328,7 +1456,6 @@ printf ("proto temp name is :%s:\n",tempname); \
 			} else { 
 				#ifdef XXX
 				PROTO_CAT ( "# at I\n");
-				printf ("newProtoText :%s:\n",newProtoText);
 				#endif
 				APPEND_EDITED_STRINGTOKEN
 			}
@@ -1339,131 +1466,98 @@ printf ("proto temp name is :%s:\n",tempname); \
 			/* ConsoleMessage ("PROTO EXPANSION, vector element %d, can not expand\n",i); */
 		}
 
-		/* possible overflow condition */
-		VERIFY_OUTPUT_LEN(128)
-
 		/* go to the next token */
 		i++;
 	}
 
-	APPEND_ENDPROTOGROUP
+	/* finish things off, and close the file */
+	PROTO_CAT ("] #End of PROTO Expansion children field\n");
 	CLOSE_PROTO_EXPAND_FILE
-printf ("so, we have writtne %d bytes to our proto expansion line\n",curstringlen);
+
+	/* read in the expanded PROTO text, and return it. */
+	newProtoText = MALLOC(sizeof (char) * (curstringlen + routeSize + strlen(ENDPROTOGROUP) + 10));
+	newProtoText[0] = '\0';
+
+        OPEN_PROTO_EXPAND_FILE_READ;
+
+	{ int i;
+		i=fread(newProtoText,sizeof(char),curstringlen,pexfile);
+		/* printf ("just read in %d, should be %d\n",i,curstringlen); */
+		/* i should == curstringlen, btw */
+		if ((i>0) && (i<=curstringlen)) newProtoText[i] = '\0';
+	}
+	{ int i;
+		i=fread(&newProtoText[curstringlen],sizeof(char),routeSize,routefile);
+		/* printf ("just read in %d, should be %d\n",i,routeSize); */
+		/* i should == routeSize, btw */
+		if ((i>0) && (i<=routeSize)) newProtoText[i+curstringlen] = '\0';
+	}
+
+	strcat (newProtoText,ENDPROTOGROUP);
+
+	
+
+	CLOSE_PROTO_EXPAND_FILE;
+	UNLINK_PROTO_EXPAND_FILE;
 
 
 	#ifdef CPROTOVERBOSE
 	printf ("so, newProtoText %s\n",newProtoText);
 	#endif
-	printf ("so, newProtoText %s\n",newProtoText);
 
 	return newProtoText;
 }
 
 /* for resolving ROUTEs to/from PROTOS... */
 /* this is a PROTO; go through and find the node, and fill in the correct curID so that parsing can
-   continue. XXX - only works with one IS routed field; if a PROTO has more than one IS, then this will fail. */
-BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, struct X3D_Node **Node) {
+   continue.  */
+
+BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, char *fieldName, struct X3D_Node **Node) {
 	indexT i,j;
 	indexT ret;
 	struct ProtoElementPointer *ele;
-	char thisID[200];
+	char thisID[2000];
 
 	#ifdef CPROTOVERBOSE
 	printf ("resolveProtoNodeField, looking for field %s\n",me->lexer->curID);
 	#endif
 
-	for(i=0; i!=vector_size(Proto->deconstructedProtoBody); ++i) {
-		ele = vector_get(struct ProtoElementPointer*, Proto->deconstructedProtoBody, i);
-		ASSERT(ele);
+	/* make up the def name requested; this will be a unique name */
+	sprintf (thisID,"PROTO_%u_%s",(unsigned int)Proto,fieldName);
 
-		/* printf ("ele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",i, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
-
-		/* is this an KW_IS? */
-		if (ele->isKEYWORD == KW_IS) {
-			/* printf ("resolveProtoNodeField, found an IS\n"); */
-			if (i<(vector_size(Proto->deconstructedProtoBody)-1)) {
-				/* look for a match with this field */
-				j = i+1;
-				ele = vector_get(struct ProtoElementPointer*, Proto->deconstructedProtoBody, j);
-				/* printf ("resolveProtoNodeField next ele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",j, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
-				/* printf ("resolveProtoNodeField comparing %s to %s\n",me->lexer->curID, ele->stringToken); */
-				if (strcmp(me->lexer->curID,ele->stringToken) == NULL) {
-					/* printf ("resolveProtoNodeField ID MATCH!!\n"); */
-					/* go back 2 (the word before the IS) and get the real field name */
-					j = i-1;
-					ele = vector_get(struct ProtoElementPointer*, Proto->deconstructedProtoBody, j);
-					#ifdef CPROTOVERBOSE
-					printf ("resolveProtoNodeField REAL FIELD IS %s\n",ele->stringToken);
-					#endif
-
-					if (ele->stringToken != NULL) {
-						FREE_IF_NZ(me->lexer->curID);
-						me->lexer->curID = STRDUP(ele->stringToken);
-					}
-
-					#ifdef CPROTOVERBOSE
-					printf ("resolveProtoNodeField ok, now going back and finding the DEF name for the node for this field \n");
-					#endif
-
-					while (j>0) {
-						j--;
-						ele = vector_get(struct ProtoElementPointer*, Proto->deconstructedProtoBody, j);
-						if ((ele->fabricatedDef != ID_UNDEFINED) || (ele->isKEYWORD == KW_DEF)) {
-							if (ele->fabricatedDef != ID_UNDEFINED) {
-								/* printf ("FOUND A FABRICATED DEF HERE\n"); */
-								sprintf (thisID,"%s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
-							} else {
-								/* printf ("FOUND A KW_DEF HERE\n"); */
-								ele = vector_get(struct ProtoElementPointer*, Proto->deconstructedProtoBody, j+1);
-								/* printf ("name is %s\n",ele->stringToken); */
-								sprintf (thisID,"%s%d_",FABRICATED_DEF_HEADER,Proto->protoDefNumber);
-								strcat (thisID, ele->stringToken);
-							}
-
-							/* ok, now we have a DEF name, lets look it up. */
-							#ifdef CPROTOVERBOSE
-							printf ("resolveProtoNodeField looking up :%s:\n",thisID);
-							#endif
-
-							lexer_specialID_string(me->lexer, NULL, &ret, NULL, 
-								0, stack_top(struct Vector*, me->lexer->userNodeNames), thisID);
-							#ifdef CPROTOVERBOSE
-							printf ("resolveProtoNodeField after lookup, ret %d\n",ret);
-							#endif
-
-
-        						/* If we're USEing it, it has to already be defined. */
-        						ASSERT(ret!=ID_UNDEFINED);
-
-        						/* It also has to be in the DEFedNodes stack */
-        						ASSERT(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
-        							ret<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
-
-        						/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */
-        						*Node = vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ret);
-							#ifdef CPROTOVERBOSE
-							printf ("RETURNING; so, now the node of the DEF is %u, type %s\n",*Node, stringNodeType((*Node)->_nodeType));
-							#endif
-
-
-							return TRUE;
-
-
-						}
-					}
-				} else {
-					#ifdef CPROTOVERBOSE
-					printf ("resolveProtoNodeField, no match, maybe next one?\n");
-					#endif
-				}
-			}
-		}
-	}
-	/* no luck here */
+	
+	/* ok, now we have a DEF name, lets look it up. */
 	#ifdef CPROTOVERBOSE
-	printf  ("could not find encompassing DEF for PROTO field %s of node %s\n", me->lexer->curID,thisID);
+	printf ("resolveProtoNodeField looking up :%s:\n",thisID);
 	#endif
 
-	ConsoleMessage ("could not find encompassing DEF for PROTO field %s", me->lexer->curID);
-	return FALSE;
+	lexer_specialID_string(me->lexer, NULL, &ret, NULL, 
+		0, stack_top(struct Vector*, me->lexer->userNodeNames), thisID);
+	#ifdef CPROTOVERBOSE
+	printf ("resolveProtoNodeField after lookup, ret %d\n",ret);
+	#endif
+
+	if (ret != ID_UNDEFINED) {
+
+       		/* If we're USEing it, it has to already be defined. */
+        	ASSERT(ret!=ID_UNDEFINED);
+
+        	/* It also has to be in the DEFedNodes stack */
+        	ASSERT(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
+        		ret<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
+
+        	/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */
+        	*Node = vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ret);
+		#ifdef CPROTOVERBOSE
+		printf ("RETURNING; so, now the node of the DEF is %u, type %s\n",*Node, stringNodeType((*Node)->_nodeType));
+		#endif
+	} else {
+		/* no luck here */
+		#ifdef CPROTOVERBOSE
+		printf  ("could not find encompassing DEF for PROTO field %s of node %s\n", me->lexer->curID,thisID);
+		#endif
+		ConsoleMessage ("could not find encompassing DEF for PROTO field %s", me->lexer->curID);
+	}
+
+	return (ret != ID_UNDEFINED);
 }
