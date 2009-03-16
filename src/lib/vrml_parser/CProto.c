@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.11 2009/03/13 20:07:18 crc_canada Exp $
+$Id: CProto.c,v 1.12 2009/03/16 13:50:51 crc_canada Exp $
 
 CProto ???
 
@@ -948,24 +948,11 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 }
 
 
-#define DUMPONELINE \
-	for (i=0; i<max; i++) { \
-		/* writtenlen += fprintf (pexfile, "#inputOutput %d is :%s:",i,userArr[i]); */ \
-		pdecl = getProtoFieldDeclaration(me, thisProto,userArr[i]); \
- \
-		/* writtenlen += fprintf (pexfile," mode %d type %s name %d fieldString %s\n", \
-			pdecl->mode, stringFieldtypeType(pdecl->type), pdecl->name, pdecl->fieldString); */ \
-		writtenlen += fprintf (pexfile, "\tDEF PROTO_%u_%s Metadata%s {\n",thisProto,userArr[i],stringFieldtypeType(pdecl->type)); \
-		writtenlen += fprintf (pexfile, "\t\tvalue %s\n",pdecl->fieldString); \
-		writtenlen += fprintf (pexfile, "\t}\n"); \
-	}
-
 /* what we do is to ensure that we have a "destination" we create a node containing the VALUE of each field of the 
    PROTO expansion, and we put it in a "special place" within the PROTO Group expansion */
 
-static int dumpProtoFieldDeclarationNodes(struct VRMLLexer *me, struct ProtoDefinition *thisProto, FILE *pexfile) {
+static int dumpProtoFieldDeclarationNodes(struct VRMLLexer *lex, struct ProtoDefinition *thisProto, FILE *pexfile) {
 	indexT retUO;
-	const char** userArr;
 	size_t userCnt;
 	struct ProtoFieldDecl* pdecl = NULL;
 	
@@ -973,23 +960,26 @@ static int dumpProtoFieldDeclarationNodes(struct VRMLLexer *me, struct ProtoDefi
 	int i;
 	int writtenlen = 0;
 
-	max = vector_size(me->user_initializeOnly);
-	userArr=&vector_get(const char*, me->user_initializeOnly, 0);
-	DUMPONELINE;
-	max = vector_size(me->user_inputOutput);
-	userArr=&vector_get(const char*, me->user_inputOutput, 0);
-	DUMPONELINE;
-	
-	max = vector_size(me->user_outputOnly);
-	userArr=&vector_get(const char*, me->user_outputOnly, 0);
-	DUMPONELINE;
+	max = protoDefinition_getFieldCount(thisProto);
 
-	max = vector_size(me->user_inputOnly);
-	userArr=&vector_get(const char*, me->user_inputOnly, 0);
-	DUMPONELINE;
-	
+	/* printf ("fieldCount %d\n",protoDefinition_getFieldCount(thisProto)); */
+
+	for (i=0; i<max; i++) {
+		pdecl = protoDefinition_getFieldByNum(thisProto,i);
+
+		/* printf ("getIndexName %s ",protoFieldDecl_getStringName(lex,pdecl));
+		printf (" mode %d type %s name %d fieldString %s\n", 
+			pdecl->mode, stringFieldtypeType(pdecl->type), pdecl->name, pdecl->fieldString); 
+		*/
+
+		writtenlen += fprintf (pexfile, "\tDEF PROTO_%u_%s Metadata%s {\n",
+			thisProto,
+			protoFieldDecl_getStringName(lex,pdecl),
+			stringFieldtypeType(pdecl->type)); \
+		writtenlen += fprintf (pexfile, "\t\tvalue %s\n",pdecl->fieldString); \
+		writtenlen += fprintf (pexfile, "\t}\n"); \
+	}
 	return writtenlen;
-#undef DUMPONELINE
 }
 
 
@@ -1502,7 +1492,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 
 
 	#ifdef CPROTOVERBOSE
-	printf ("so, newProtoText %s\n",newProtoText);
+	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif
 
 	return newProtoText;
