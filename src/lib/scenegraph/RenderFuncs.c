@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.8 2009/03/13 20:07:18 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.9 2009/03/17 16:54:20 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -894,23 +894,34 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 
 /* anything changed for this PROTO interface datatype? */
 #define CMD_I32(type) void changed_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
+	if (node->_initialized) { \
 	if (node->value != node->setValue) { \
 		node->value = node->setValue; \
 		node->valueChanged = node->setValue; \
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSF##type, valueChanged)); \
 	} \
+	} else { \
+		/* initialize fields */ \
+		node->_initialized = TRUE; node->valueChanged = node->value; node->setValue = node->value; \
+	} \
 }
 
 #define CMD_FL(type) void changed_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
+	if (node->_initialized) { \
 	if (!APPROX(node->value,node->setValue)) { \
 		node->value = node->setValue; \
 		node->valueChanged = node->setValue; \
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSF##type, valueChanged)); \
 	} \
+	} else { \
+		/* initialize fields */ \
+		node->_initialized = TRUE; node->valueChanged = node->value; node->setValue = node->value; \
+	} \
 }
 
 #define CMD_MFL(type,elelength,field) void changed_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
 	int count; \
+	if (node->_initialized) { \
 	for (count=0; count < elelength; count++) { \
 		if (!APPROX(node->value.field[count],node->setValue.field[count])) { \
 			memcpy (&node->value, &node->setValue, sizeof node->value.field[0]* elelength); \
@@ -919,36 +930,58 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 			return; \
 		} \
 	} \
+	} else { \
+		/* initialize fields */ \
+		node->_initialized = TRUE; \
+		memcpy (&node->setValue, &node->value, sizeof node->value.field[0]* elelength); \
+		memcpy (&node->valueChanged, &node->value, sizeof node->value.field[0] * elelength); \
+	} \
 }
 
 /* compare element counts, and pointer values */
-/* NOTE - VALUES CAN NOT BEE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
+/* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
 #define CMD_MULTI(type) void changed_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+	if (node->_initialized) { \
 	if ((node->value.n != node->setValue.n) || (node->value.p != node->setValue.p)) { \
 		node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
 		node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
 	} \
-}
-
-/* compare element counts, then individual elements, if the counts are the same */
-/* NOTE - VALUES CAN NOT BEE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
-#define CMD_MSFI32(type) void changed_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
-	int count; int changed = FALSE; \
-	if (node->value.n != node->setValue.n) changed = TRUE; else { \
-		for (count=0; count<node->setValue.n; count++) if (node->value.p[count] != node->setValue.p[count]) changed = TRUE; }\
-	\
-	if (changed) { \
-		node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
-		node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
-		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
+	} else { \
+		/* initialize fields */ \
+		node->_initialized = TRUE; \
+		node->setValue.n = node->value.n; node->setValue.p = node->value.p; \
+		node->valueChanged.n = node->value.n; node->valueChanged.p = node->value.p; \
 	} \
 }
 
 /* compare element counts, then individual elements, if the counts are the same */
-/* NOTE - VALUES CAN NOT BEE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
+/* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
+#define CMD_MSFI32(type) void changed_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+	if (node->_initialized) { \
+		int count; int changed = FALSE; \
+		if (node->value.n != node->setValue.n) changed = TRUE; else { \
+			for (count=0; count<node->setValue.n; count++) if (node->value.p[count] != node->setValue.p[count]) changed = TRUE; } \
+	\
+		if (changed) { \
+			node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
+			node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMFString, valueChanged));  \
+		} \
+	} else { \
+		node->_initialized = TRUE; \
+		/* the "value" will hold everything we need */ \
+		/* initialize it, but do not bother doing any routing on it */ \
+		node->setValue.n = node->value.n; node->setValue.p = node->value.p; \
+		node->valueChanged.n = node->value.n; node->valueChanged.p = node->value.p; \
+	} \
+}
+
+/* compare element counts, then individual elements, if the counts are the same */
+/* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
 #define CMD_MSFL(type) void changed_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
 	int count; int changed = FALSE; \
+	if (node->_initialized) { \
 	if (node->value.n != node->setValue.n) changed = TRUE; else { \
 		for (count=0; count<node->setValue.n; count++) if (!APPROX(node->value.p[count], node->setValue.p[count])) changed = TRUE; }\
 	\
@@ -956,6 +989,13 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 		node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
 		node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
+	} \
+	} else { \
+		node->_initialized = TRUE; \
+		/* the "value" will hold everything we need */ \
+		/* initialize it, but do not bother doing any routing on it */ \
+		node->setValue.n = node->value.n; node->setValue.p = node->value.p; \
+		node->valueChanged.n = node->value.n; node->valueChanged.p = node->value.p; \
 	} \
 }
 

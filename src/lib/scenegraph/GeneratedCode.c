@@ -4,7 +4,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.3 2009/03/10 21:00:34 crc_canada Exp n 
+: VRMLC.pm,v 1.4 2009/03/13 20:07:16 crc_canada Exp n 
 ??? 
  
 */ 
@@ -2556,246 +2556,287 @@ const int OFFSETS_MetadataInteger[] = {
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFBool[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFBool, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFBool, value),  FIELDTYPE_MFBool, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFBool, setValue),  FIELDTYPE_MFBool, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFBool, valueChanged),  FIELDTYPE_MFBool, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFColor[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFColor, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFColor, value),  FIELDTYPE_MFColor, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFColor, setValue),  FIELDTYPE_MFColor, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFColor, valueChanged),  FIELDTYPE_MFColor, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFColorRGBA[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFColorRGBA, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFColorRGBA, value),  FIELDTYPE_MFColorRGBA, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFColorRGBA, setValue),  FIELDTYPE_MFColorRGBA, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFColorRGBA, valueChanged),  FIELDTYPE_MFColorRGBA, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFDouble[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFDouble, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFDouble, value),  FIELDTYPE_MFDouble, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFDouble, setValue),  FIELDTYPE_MFDouble, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFDouble, valueChanged),  FIELDTYPE_MFDouble, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFFloat[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFFloat, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFFloat, value),  FIELDTYPE_MFFloat, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFFloat, setValue),  FIELDTYPE_MFFloat, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFFloat, valueChanged),  FIELDTYPE_MFFloat, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFInt32[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFInt32, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFInt32, value),  FIELDTYPE_MFInt32, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFInt32, setValue),  FIELDTYPE_MFInt32, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFInt32, valueChanged),  FIELDTYPE_MFInt32, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFMatrix3d[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFMatrix3d, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFMatrix3d, value),  FIELDTYPE_MFMatrix3d, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFMatrix3d, setValue),  FIELDTYPE_MFMatrix3d, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFMatrix3d, valueChanged),  FIELDTYPE_MFMatrix3d, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFMatrix3f[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFMatrix3f, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFMatrix3f, value),  FIELDTYPE_MFMatrix3f, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFMatrix3f, setValue),  FIELDTYPE_MFMatrix3f, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFMatrix3f, valueChanged),  FIELDTYPE_MFMatrix3f, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFMatrix4d[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFMatrix4d, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFMatrix4d, value),  FIELDTYPE_MFMatrix4d, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFMatrix4d, setValue),  FIELDTYPE_MFMatrix4d, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFMatrix4d, valueChanged),  FIELDTYPE_MFMatrix4d, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFMatrix4f[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFMatrix4f, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFMatrix4f, value),  FIELDTYPE_MFMatrix4f, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFMatrix4f, setValue),  FIELDTYPE_MFMatrix4f, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFMatrix4f, valueChanged),  FIELDTYPE_MFMatrix4f, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFNode[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFNode, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFNode, value),  FIELDTYPE_MFNode, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFNode, setValue),  FIELDTYPE_MFNode, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFNode, valueChanged),  FIELDTYPE_MFNode, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFRotation[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFRotation, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFRotation, value),  FIELDTYPE_MFRotation, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFRotation, setValue),  FIELDTYPE_MFRotation, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFRotation, valueChanged),  FIELDTYPE_MFRotation, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFString[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFString, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFString, value),  FIELDTYPE_MFString, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFString, setValue),  FIELDTYPE_MFString, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFString, valueChanged),  FIELDTYPE_MFString, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFTime[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFTime, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFTime, value),  FIELDTYPE_MFTime, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFTime, setValue),  FIELDTYPE_MFTime, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFTime, valueChanged),  FIELDTYPE_MFTime, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFVec2d[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFVec2d, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFVec2d, value),  FIELDTYPE_MFVec2d, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFVec2d, setValue),  FIELDTYPE_MFVec2d, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFVec2d, valueChanged),  FIELDTYPE_MFVec2d, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFVec2f[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFVec2f, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFVec2f, value),  FIELDTYPE_MFVec2f, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFVec2f, setValue),  FIELDTYPE_MFVec2f, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFVec2f, valueChanged),  FIELDTYPE_MFVec2f, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFVec3d[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFVec3d, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFVec3d, value),  FIELDTYPE_MFVec3d, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFVec3d, setValue),  FIELDTYPE_MFVec3d, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFVec3d, valueChanged),  FIELDTYPE_MFVec3d, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFVec3f[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFVec3f, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFVec3f, value),  FIELDTYPE_MFVec3f, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFVec3f, setValue),  FIELDTYPE_MFVec3f, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFVec3f, valueChanged),  FIELDTYPE_MFVec3f, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFVec4d[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFVec4d, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFVec4d, value),  FIELDTYPE_MFVec4d, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFVec4d, setValue),  FIELDTYPE_MFVec4d, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFVec4d, valueChanged),  FIELDTYPE_MFVec4d, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataMFVec4f[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataMFVec4f, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataMFVec4f, value),  FIELDTYPE_MFVec4f, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataMFVec4f, setValue),  FIELDTYPE_MFVec4f, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataMFVec4f, valueChanged),  FIELDTYPE_MFVec4f, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFBool[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFBool, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFBool, value),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFBool, setValue),  FIELDTYPE_SFBool, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFBool, valueChanged),  FIELDTYPE_SFBool, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFColor[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFColor, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFColor, value),  FIELDTYPE_SFColor, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFColor, setValue),  FIELDTYPE_SFColor, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFColor, valueChanged),  FIELDTYPE_SFColor, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFColorRGBA[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFColorRGBA, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFColorRGBA, value),  FIELDTYPE_SFColorRGBA, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFColorRGBA, setValue),  FIELDTYPE_SFColorRGBA, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFColorRGBA, valueChanged),  FIELDTYPE_SFColorRGBA, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFDouble[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFDouble, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFDouble, value),  FIELDTYPE_SFDouble, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFDouble, setValue),  FIELDTYPE_SFDouble, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFDouble, valueChanged),  FIELDTYPE_SFDouble, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFFloat[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFFloat, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFFloat, value),  FIELDTYPE_SFFloat, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFFloat, setValue),  FIELDTYPE_SFFloat, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFFloat, valueChanged),  FIELDTYPE_SFFloat, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFImage[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFImage, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFImage, value),  FIELDTYPE_SFImage, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFImage, setValue),  FIELDTYPE_SFImage, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFImage, valueChanged),  FIELDTYPE_SFImage, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFInt32[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFInt32, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFInt32, value),  FIELDTYPE_SFInt32, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFInt32, setValue),  FIELDTYPE_SFInt32, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFInt32, valueChanged),  FIELDTYPE_SFInt32, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFMatrix3d[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFMatrix3d, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFMatrix3d, value),  FIELDTYPE_SFMatrix3d, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFMatrix3d, setValue),  FIELDTYPE_SFMatrix3d, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFMatrix3d, valueChanged),  FIELDTYPE_SFMatrix3d, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFMatrix3f[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFMatrix3f, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFMatrix3f, value),  FIELDTYPE_SFMatrix3f, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFMatrix3f, setValue),  FIELDTYPE_SFMatrix3f, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFMatrix3f, valueChanged),  FIELDTYPE_SFMatrix3f, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFMatrix4d[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFMatrix4d, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFMatrix4d, value),  FIELDTYPE_SFMatrix4d, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFMatrix4d, setValue),  FIELDTYPE_SFMatrix4d, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFMatrix4d, valueChanged),  FIELDTYPE_SFMatrix4d, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFMatrix4f[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFMatrix4f, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFMatrix4f, value),  FIELDTYPE_SFMatrix4f, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFMatrix4f, setValue),  FIELDTYPE_SFMatrix4f, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFMatrix4f, valueChanged),  FIELDTYPE_SFMatrix4f, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFNode[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFNode, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFNode, value),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFNode, setValue),  FIELDTYPE_SFNode, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFNode, valueChanged),  FIELDTYPE_SFNode, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFRotation[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFRotation, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFRotation, value),  FIELDTYPE_SFRotation, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFRotation, setValue),  FIELDTYPE_SFRotation, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFRotation, valueChanged),  FIELDTYPE_SFRotation, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFString[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFString, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFString, value),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFString, setValue),  FIELDTYPE_SFString, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFString, valueChanged),  FIELDTYPE_SFString, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFTime[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFTime, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFTime, value),  FIELDTYPE_SFTime, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFTime, setValue),  FIELDTYPE_SFTime, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFTime, valueChanged),  FIELDTYPE_SFTime, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFVec2d[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFVec2d, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFVec2d, value),  FIELDTYPE_SFVec2d, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFVec2d, setValue),  FIELDTYPE_SFVec2d, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFVec2d, valueChanged),  FIELDTYPE_SFVec2d, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFVec2f[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFVec2f, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFVec2f, value),  FIELDTYPE_SFVec2f, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFVec2f, setValue),  FIELDTYPE_SFVec2f, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFVec2f, valueChanged),  FIELDTYPE_SFVec2f, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFVec3d[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFVec3d, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFVec3d, value),  FIELDTYPE_SFVec3d, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFVec3d, setValue),  FIELDTYPE_SFVec3d, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFVec3d, valueChanged),  FIELDTYPE_SFVec3d, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFVec3f[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFVec3f, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFVec3f, value),  FIELDTYPE_SFVec3f, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFVec3f, setValue),  FIELDTYPE_SFVec3f, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFVec3f, valueChanged),  FIELDTYPE_SFVec3f, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFVec4d[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFVec4d, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFVec4d, value),  FIELDTYPE_SFVec4d, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFVec4d, setValue),  FIELDTYPE_SFVec4d, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFVec4d, valueChanged),  FIELDTYPE_SFVec4d, KW_outputOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataSFVec4f[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_MetadataSFVec4f, _initialized),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_value, offsetof (struct X3D_MetadataSFVec4f, value),  FIELDTYPE_SFVec4f, KW_inputOutput,
 	FIELDNAMES_setValue, offsetof (struct X3D_MetadataSFVec4f, setValue),  FIELDTYPE_SFVec4f, KW_inputOnly,
 	FIELDNAMES_valueChanged, offsetof (struct X3D_MetadataSFVec4f, valueChanged),  FIELDTYPE_SFVec4f, KW_outputOnly,
@@ -5623,6 +5664,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFBool * tmp2;
 			tmp2 = (struct X3D_MetadataMFBool *) tmp;
 			tmp2->v = &virt_MetadataMFBool;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5633,6 +5675,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFColor * tmp2;
 			tmp2 = (struct X3D_MetadataMFColor *) tmp;
 			tmp2->v = &virt_MetadataMFColor;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5643,6 +5686,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFColorRGBA * tmp2;
 			tmp2 = (struct X3D_MetadataMFColorRGBA *) tmp;
 			tmp2->v = &virt_MetadataMFColorRGBA;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5653,6 +5697,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFDouble * tmp2;
 			tmp2 = (struct X3D_MetadataMFDouble *) tmp;
 			tmp2->v = &virt_MetadataMFDouble;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5663,6 +5708,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFFloat * tmp2;
 			tmp2 = (struct X3D_MetadataMFFloat *) tmp;
 			tmp2->v = &virt_MetadataMFFloat;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5673,6 +5719,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFInt32 * tmp2;
 			tmp2 = (struct X3D_MetadataMFInt32 *) tmp;
 			tmp2->v = &virt_MetadataMFInt32;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5683,6 +5730,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFMatrix3d * tmp2;
 			tmp2 = (struct X3D_MetadataMFMatrix3d *) tmp;
 			tmp2->v = &virt_MetadataMFMatrix3d;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5693,6 +5741,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFMatrix3f * tmp2;
 			tmp2 = (struct X3D_MetadataMFMatrix3f *) tmp;
 			tmp2->v = &virt_MetadataMFMatrix3f;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5703,6 +5752,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFMatrix4d * tmp2;
 			tmp2 = (struct X3D_MetadataMFMatrix4d *) tmp;
 			tmp2->v = &virt_MetadataMFMatrix4d;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5713,6 +5763,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFMatrix4f * tmp2;
 			tmp2 = (struct X3D_MetadataMFMatrix4f *) tmp;
 			tmp2->v = &virt_MetadataMFMatrix4f;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5723,6 +5774,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFNode * tmp2;
 			tmp2 = (struct X3D_MetadataMFNode *) tmp;
 			tmp2->v = &virt_MetadataMFNode;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5733,6 +5785,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFRotation * tmp2;
 			tmp2 = (struct X3D_MetadataMFRotation *) tmp;
 			tmp2->v = &virt_MetadataMFRotation;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5743,6 +5796,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFString * tmp2;
 			tmp2 = (struct X3D_MetadataMFString *) tmp;
 			tmp2->v = &virt_MetadataMFString;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5753,6 +5807,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFTime * tmp2;
 			tmp2 = (struct X3D_MetadataMFTime *) tmp;
 			tmp2->v = &virt_MetadataMFTime;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5763,6 +5818,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFVec2d * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec2d *) tmp;
 			tmp2->v = &virt_MetadataMFVec2d;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5773,6 +5829,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFVec2f * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec2f *) tmp;
 			tmp2->v = &virt_MetadataMFVec2f;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5783,6 +5840,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFVec3d * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec3d *) tmp;
 			tmp2->v = &virt_MetadataMFVec3d;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5793,6 +5851,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFVec3f * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec3f *) tmp;
 			tmp2->v = &virt_MetadataMFVec3f;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5803,6 +5862,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFVec4d * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec4d *) tmp;
 			tmp2->v = &virt_MetadataMFVec4d;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5813,6 +5873,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataMFVec4f * tmp2;
 			tmp2 = (struct X3D_MetadataMFVec4f *) tmp;
 			tmp2->v = &virt_MetadataMFVec4f;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=0; tmp2->value.p=0;
 			tmp2->setValue.n=0; tmp2->setValue.p=0;
 			tmp2->valueChanged.n=0; tmp2->valueChanged.p=0;
@@ -5823,6 +5884,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFBool * tmp2;
 			tmp2 = (struct X3D_MetadataSFBool *) tmp;
 			tmp2->v = &virt_MetadataSFBool;
+			tmp2->_initialized = FALSE;
 			tmp2->value = FALSE;
 			tmp2->setValue = FALSE;
 			tmp2->valueChanged = FALSE;
@@ -5833,6 +5895,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFColor * tmp2;
 			tmp2 = (struct X3D_MetadataSFColor *) tmp;
 			tmp2->v = &virt_MetadataSFColor;
+			tmp2->_initialized = FALSE;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;;
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;;
@@ -5843,6 +5906,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFColorRGBA * tmp2;
 			tmp2 = (struct X3D_MetadataSFColorRGBA *) tmp;
 			tmp2->v = &virt_MetadataSFColorRGBA;
+			tmp2->_initialized = FALSE;
 			tmp2->value.r[0] = 0;tmp2->value.r[1] = 0;tmp2->value.r[2] = 0;tmp2->value.r[3] = 0;;
 			tmp2->setValue.r[0] = 0;tmp2->setValue.r[1] = 0;tmp2->setValue.r[2] = 0;tmp2->setValue.r[3] = 0;;
 			tmp2->valueChanged.r[0] = 0;tmp2->valueChanged.r[1] = 0;tmp2->valueChanged.r[2] = 0;tmp2->valueChanged.r[3] = 0;;
@@ -5853,6 +5917,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFDouble * tmp2;
 			tmp2 = (struct X3D_MetadataSFDouble *) tmp;
 			tmp2->v = &virt_MetadataSFDouble;
+			tmp2->_initialized = FALSE;
 			tmp2->value = 0;
 			tmp2->setValue = 0;
 			tmp2->valueChanged = 0;
@@ -5863,6 +5928,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFFloat * tmp2;
 			tmp2 = (struct X3D_MetadataSFFloat *) tmp;
 			tmp2->v = &virt_MetadataSFFloat;
+			tmp2->_initialized = FALSE;
 			tmp2->value = 0;
 			tmp2->setValue = 0;
 			tmp2->valueChanged = 0;
@@ -5873,6 +5939,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFImage * tmp2;
 			tmp2 = (struct X3D_MetadataSFImage *) tmp;
 			tmp2->v = &virt_MetadataSFImage;
+			tmp2->_initialized = FALSE;
 			tmp2->value.n=3; tmp2->value.p=MALLOC (sizeof(int)*3); tmp2->value.p[0] = 0; tmp2->value.p[1] = 0; tmp2->value.p[2] = 0;;
 			tmp2->setValue.n=3; tmp2->setValue.p=MALLOC (sizeof(int)*3); tmp2->setValue.p[0] = 0; tmp2->setValue.p[1] = 0; tmp2->setValue.p[2] = 0;;
 			tmp2->valueChanged.n=3; tmp2->valueChanged.p=MALLOC (sizeof(int)*3); tmp2->valueChanged.p[0] = 0; tmp2->valueChanged.p[1] = 0; tmp2->valueChanged.p[2] = 0;;
@@ -5883,6 +5950,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFInt32 * tmp2;
 			tmp2 = (struct X3D_MetadataSFInt32 *) tmp;
 			tmp2->v = &virt_MetadataSFInt32;
+			tmp2->_initialized = FALSE;
 			tmp2->value = 0;
 			tmp2->setValue = 0;
 			tmp2->valueChanged = 0;
@@ -5893,6 +5961,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFMatrix3d * tmp2;
 			tmp2 = (struct X3D_MetadataSFMatrix3d *) tmp;
 			tmp2->v = &virt_MetadataSFMatrix3d;
+			tmp2->_initialized = FALSE;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;;
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;tmp2->setValue.c[4] = 0;tmp2->setValue.c[5] = 0;tmp2->setValue.c[6] = 0;tmp2->setValue.c[7] = 0;tmp2->setValue.c[8] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;tmp2->valueChanged.c[4] = 0;tmp2->valueChanged.c[5] = 0;tmp2->valueChanged.c[6] = 0;tmp2->valueChanged.c[7] = 0;tmp2->valueChanged.c[8] = 0;;
@@ -5903,6 +5972,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFMatrix3f * tmp2;
 			tmp2 = (struct X3D_MetadataSFMatrix3f *) tmp;
 			tmp2->v = &virt_MetadataSFMatrix3f;
+			tmp2->_initialized = FALSE;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;;
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;tmp2->setValue.c[4] = 0;tmp2->setValue.c[5] = 0;tmp2->setValue.c[6] = 0;tmp2->setValue.c[7] = 0;tmp2->setValue.c[8] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;tmp2->valueChanged.c[4] = 0;tmp2->valueChanged.c[5] = 0;tmp2->valueChanged.c[6] = 0;tmp2->valueChanged.c[7] = 0;tmp2->valueChanged.c[8] = 0;;
@@ -5913,6 +5983,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFMatrix4d * tmp2;
 			tmp2 = (struct X3D_MetadataSFMatrix4d *) tmp;
 			tmp2->v = &virt_MetadataSFMatrix4d;
+			tmp2->_initialized = FALSE;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;tmp2->value.c[9] = 0;tmp2->value.c[10] = 0;tmp2->value.c[11] = 0;tmp2->value.c[12] = 0;tmp2->value.c[13] = 0;tmp2->value.c[14] = 0;tmp2->value.c[15] = 0;;
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;tmp2->setValue.c[4] = 0;tmp2->setValue.c[5] = 0;tmp2->setValue.c[6] = 0;tmp2->setValue.c[7] = 0;tmp2->setValue.c[8] = 0;tmp2->setValue.c[9] = 0;tmp2->setValue.c[10] = 0;tmp2->setValue.c[11] = 0;tmp2->setValue.c[12] = 0;tmp2->setValue.c[13] = 0;tmp2->setValue.c[14] = 0;tmp2->setValue.c[15] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;tmp2->valueChanged.c[4] = 0;tmp2->valueChanged.c[5] = 0;tmp2->valueChanged.c[6] = 0;tmp2->valueChanged.c[7] = 0;tmp2->valueChanged.c[8] = 0;tmp2->valueChanged.c[9] = 0;tmp2->valueChanged.c[10] = 0;tmp2->valueChanged.c[11] = 0;tmp2->valueChanged.c[12] = 0;tmp2->valueChanged.c[13] = 0;tmp2->valueChanged.c[14] = 0;tmp2->valueChanged.c[15] = 0;;
@@ -5923,6 +5994,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFMatrix4f * tmp2;
 			tmp2 = (struct X3D_MetadataSFMatrix4f *) tmp;
 			tmp2->v = &virt_MetadataSFMatrix4f;
+			tmp2->_initialized = FALSE;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 0;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;tmp2->value.c[9] = 0;tmp2->value.c[10] = 0;tmp2->value.c[11] = 0;tmp2->value.c[12] = 0;tmp2->value.c[13] = 0;tmp2->value.c[14] = 0;tmp2->value.c[15] = 0;;
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;tmp2->setValue.c[4] = 0;tmp2->setValue.c[5] = 0;tmp2->setValue.c[6] = 0;tmp2->setValue.c[7] = 0;tmp2->setValue.c[8] = 0;tmp2->setValue.c[9] = 0;tmp2->setValue.c[10] = 0;tmp2->setValue.c[11] = 0;tmp2->setValue.c[12] = 0;tmp2->setValue.c[13] = 0;tmp2->setValue.c[14] = 0;tmp2->setValue.c[15] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;tmp2->valueChanged.c[4] = 0;tmp2->valueChanged.c[5] = 0;tmp2->valueChanged.c[6] = 0;tmp2->valueChanged.c[7] = 0;tmp2->valueChanged.c[8] = 0;tmp2->valueChanged.c[9] = 0;tmp2->valueChanged.c[10] = 0;tmp2->valueChanged.c[11] = 0;tmp2->valueChanged.c[12] = 0;tmp2->valueChanged.c[13] = 0;tmp2->valueChanged.c[14] = 0;tmp2->valueChanged.c[15] = 0;;
@@ -5933,6 +6005,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFNode * tmp2;
 			tmp2 = (struct X3D_MetadataSFNode *) tmp;
 			tmp2->v = &virt_MetadataSFNode;
+			tmp2->_initialized = FALSE;
 			tmp2->value = 0;
 			tmp2->setValue = 0;
 			tmp2->valueChanged = 0;
@@ -5943,6 +6016,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFRotation * tmp2;
 			tmp2 = (struct X3D_MetadataSFRotation *) tmp;
 			tmp2->v = &virt_MetadataSFRotation;
+			tmp2->_initialized = FALSE;
 			tmp2->value.r[0] = 0;tmp2->value.r[1] = 0;tmp2->value.r[2] = 0;tmp2->value.r[3] = 0;;
 			tmp2->setValue.r[0] = 0;tmp2->setValue.r[1] = 0;tmp2->setValue.r[2] = 0;tmp2->setValue.r[3] = 0;;
 			tmp2->valueChanged.r[0] = 0;tmp2->valueChanged.r[1] = 0;tmp2->valueChanged.r[2] = 0;tmp2->valueChanged.r[3] = 0;;
@@ -5953,6 +6027,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFString * tmp2;
 			tmp2 = (struct X3D_MetadataSFString *) tmp;
 			tmp2->v = &virt_MetadataSFString;
+			tmp2->_initialized = FALSE;
 			tmp2->value = newASCIIString("");
 			tmp2->setValue = newASCIIString("");
 			tmp2->valueChanged = newASCIIString("");
@@ -5963,6 +6038,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFTime * tmp2;
 			tmp2 = (struct X3D_MetadataSFTime *) tmp;
 			tmp2->v = &virt_MetadataSFTime;
+			tmp2->_initialized = FALSE;
 			tmp2->value = 0;
 			tmp2->setValue = 0;
 			tmp2->valueChanged = 0;
@@ -5973,6 +6049,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFVec2d * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec2d *) tmp;
 			tmp2->v = &virt_MetadataSFVec2d;
+			tmp2->_initialized = FALSE;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;;
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;;
@@ -5983,6 +6060,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFVec2f * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec2f *) tmp;
 			tmp2->v = &virt_MetadataSFVec2f;
+			tmp2->_initialized = FALSE;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;;
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;;
@@ -5993,6 +6071,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFVec3d * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec3d *) tmp;
 			tmp2->v = &virt_MetadataSFVec3d;
+			tmp2->_initialized = FALSE;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;;
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;;
@@ -6003,6 +6082,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFVec3f * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec3f *) tmp;
 			tmp2->v = &virt_MetadataSFVec3f;
+			tmp2->_initialized = FALSE;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;;
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;;
@@ -6013,6 +6093,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFVec4d * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec4d *) tmp;
 			tmp2->v = &virt_MetadataSFVec4d;
+			tmp2->_initialized = FALSE;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;;
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;;
@@ -6023,6 +6104,7 @@ void *createNewX3DNode (int nt) {
 			struct X3D_MetadataSFVec4f * tmp2;
 			tmp2 = (struct X3D_MetadataSFVec4f *) tmp;
 			tmp2->v = &virt_MetadataSFVec4f;
+			tmp2->_initialized = FALSE;
 			tmp2->value.c[0] = 0;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;;
 			tmp2->setValue.c[0] = 0;tmp2->setValue.c[1] = 0;tmp2->setValue.c[2] = 0;tmp2->setValue.c[3] = 0;;
 			tmp2->valueChanged.c[0] = 0;tmp2->valueChanged.c[1] = 0;tmp2->valueChanged.c[2] = 0;tmp2->valueChanged.c[3] = 0;;
@@ -7989,131 +8071,153 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataMFBool : {
 			struct X3D_MetadataMFBool *tmp;
 			tmp = (struct X3D_MetadataMFBool *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFBool):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%d\n",i,tmp->value.p[i]); }
 		break;}
 		case NODE_MetadataMFColor : {
 			struct X3D_MetadataMFColor *tmp;
 			tmp = (struct X3D_MetadataMFColor *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFColor):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2]); }
 		break;}
 		case NODE_MetadataMFColorRGBA : {
 			struct X3D_MetadataMFColorRGBA *tmp;
 			tmp = (struct X3D_MetadataMFColorRGBA *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFColorRGBA):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).r[0], (tmp->value.p[i]).r[1],(tmp->value.p[i]).r[2],(tmp->value.p[i]).r[3]); }
 		break;}
 		case NODE_MetadataMFDouble : {
 			struct X3D_MetadataMFDouble *tmp;
 			tmp = (struct X3D_MetadataMFDouble *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFDouble):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 		break;}
 		case NODE_MetadataMFFloat : {
 			struct X3D_MetadataMFFloat *tmp;
 			tmp = (struct X3D_MetadataMFFloat *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFFloat):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 		break;}
 		case NODE_MetadataMFInt32 : {
 			struct X3D_MetadataMFInt32 *tmp;
 			tmp = (struct X3D_MetadataMFInt32 *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFInt32):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%d\n",i,tmp->value.p[i]); }
 		break;}
 		case NODE_MetadataMFMatrix3d : {
 			struct X3D_MetadataMFMatrix3d *tmp;
 			tmp = (struct X3D_MetadataMFMatrix3d *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFMatrix3d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8]); }
 		break;}
 		case NODE_MetadataMFMatrix3f : {
 			struct X3D_MetadataMFMatrix3f *tmp;
 			tmp = (struct X3D_MetadataMFMatrix3f *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFMatrix3f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8]); }
 		break;}
 		case NODE_MetadataMFMatrix4d : {
 			struct X3D_MetadataMFMatrix4d *tmp;
 			tmp = (struct X3D_MetadataMFMatrix4d *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFMatrix4d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8],(tmp->value.p[i]).c[9],(tmp->value.p[i]).c[10],(tmp->value.p[i]).c[11],(tmp->value.p[i]).c[12],(tmp->value.p[i]).c[13],(tmp->value.p[i]).c[14],(tmp->value.p[i]).c[15]); }
 		break;}
 		case NODE_MetadataMFMatrix4f : {
 			struct X3D_MetadataMFMatrix4f *tmp;
 			tmp = (struct X3D_MetadataMFMatrix4f *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFMatrix4f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8],(tmp->value.p[i]).c[9],(tmp->value.p[i]).c[10],(tmp->value.p[i]).c[11],(tmp->value.p[i]).c[12],(tmp->value.p[i]).c[13],(tmp->value.p[i]).c[14],(tmp->value.p[i]).c[15]); }
 		break;}
 		case NODE_MetadataMFNode : {
 			struct X3D_MetadataMFNode *tmp;
 			tmp = (struct X3D_MetadataMFNode *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFNode):\n");
 			for (i=0; i<tmp->value.n; i++) { dump_scene(level+1,tmp->value.p[i]); }
 		break;}
 		case NODE_MetadataMFRotation : {
 			struct X3D_MetadataMFRotation *tmp;
 			tmp = (struct X3D_MetadataMFRotation *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFRotation):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).r[0], (tmp->value.p[i]).r[1],(tmp->value.p[i]).r[2],(tmp->value.p[i]).r[3]); }
 		break;}
 		case NODE_MetadataMFString : {
 			struct X3D_MetadataMFString *tmp;
 			tmp = (struct X3D_MetadataMFString *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFString): \n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->value.p[i]->strptr); }
 		break;}
 		case NODE_MetadataMFTime : {
 			struct X3D_MetadataMFTime *tmp;
 			tmp = (struct X3D_MetadataMFTime *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFTime):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 		break;}
 		case NODE_MetadataMFVec2d : {
 			struct X3D_MetadataMFVec2d *tmp;
 			tmp = (struct X3D_MetadataMFVec2d *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFVec2d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1]); }
 		break;}
 		case NODE_MetadataMFVec2f : {
 			struct X3D_MetadataMFVec2f *tmp;
 			tmp = (struct X3D_MetadataMFVec2f *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFVec2f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1]); }
 		break;}
 		case NODE_MetadataMFVec3d : {
 			struct X3D_MetadataMFVec3d *tmp;
 			tmp = (struct X3D_MetadataMFVec3d *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFVec3d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2]); }
 		break;}
 		case NODE_MetadataMFVec3f : {
 			struct X3D_MetadataMFVec3f *tmp;
 			tmp = (struct X3D_MetadataMFVec3f *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFVec3f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2]); }
 		break;}
 		case NODE_MetadataMFVec4d : {
 			struct X3D_MetadataMFVec4d *tmp;
 			tmp = (struct X3D_MetadataMFVec4d *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFVec4d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 		break;}
 		case NODE_MetadataMFVec4f : {
 			struct X3D_MetadataMFVec4f *tmp;
 			tmp = (struct X3D_MetadataMFVec4f *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (MFVec4f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 		break;}
 		case NODE_MetadataSFBool : {
 			struct X3D_MetadataSFBool *tmp;
 			tmp = (struct X3D_MetadataSFBool *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFBool) \t%d\n",tmp->value);
 		break;}
 		case NODE_MetadataSFColor : {
 			struct X3D_MetadataSFColor *tmp;
 			tmp = (struct X3D_MetadataSFColor *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFColor): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
 			printf ("\n");
@@ -8121,6 +8225,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFColorRGBA : {
 			struct X3D_MetadataSFColorRGBA *tmp;
 			tmp = (struct X3D_MetadataSFColorRGBA *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFColorRGBA): \t");
 			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->value.r[i]); }
 			printf ("\n");
@@ -8128,27 +8233,32 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFDouble : {
 			struct X3D_MetadataSFDouble *tmp;
 			tmp = (struct X3D_MetadataSFDouble *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFDouble) \t%4.3f\n",tmp->value);
 		break;}
 		case NODE_MetadataSFFloat : {
 			struct X3D_MetadataSFFloat *tmp;
 			tmp = (struct X3D_MetadataSFFloat *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFFloat) \t%4.3f\n",tmp->value);
 		break;}
 		case NODE_MetadataSFImage : {
 			struct X3D_MetadataSFImage *tmp;
 			tmp = (struct X3D_MetadataSFImage *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFImage): (not dumped)\t");
 			printf ("\n");
 		break;}
 		case NODE_MetadataSFInt32 : {
 			struct X3D_MetadataSFInt32 *tmp;
 			tmp = (struct X3D_MetadataSFInt32 *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFInt32) \t%d\n",tmp->value);
 		break;}
 		case NODE_MetadataSFMatrix3d : {
 			struct X3D_MetadataSFMatrix3d *tmp;
 			tmp = (struct X3D_MetadataSFMatrix3d *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFMatrix3d): \t");
 			for (i=0; i<9; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
 			printf ("\n");
@@ -8156,6 +8266,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFMatrix3f : {
 			struct X3D_MetadataSFMatrix3f *tmp;
 			tmp = (struct X3D_MetadataSFMatrix3f *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFMatrix3f): \t");
 			for (i=0; i<9; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
 			printf ("\n");
@@ -8163,6 +8274,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFMatrix4d : {
 			struct X3D_MetadataSFMatrix4d *tmp;
 			tmp = (struct X3D_MetadataSFMatrix4d *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFMatrix4d): \t");
 			for (i=0; i<16; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
 			printf ("\n");
@@ -8170,6 +8282,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFMatrix4f : {
 			struct X3D_MetadataSFMatrix4f *tmp;
 			tmp = (struct X3D_MetadataSFMatrix4f *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFMatrix4f): \t");
 			for (i=0; i<16; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
 			printf ("\n");
@@ -8177,11 +8290,13 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFNode : {
 			struct X3D_MetadataSFNode *tmp;
 			tmp = (struct X3D_MetadataSFNode *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFNode):\n"); dump_scene(level+1,tmp->value); 
 		break;}
 		case NODE_MetadataSFRotation : {
 			struct X3D_MetadataSFRotation *tmp;
 			tmp = (struct X3D_MetadataSFRotation *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFRotation): \t");
 			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->value.r[i]); }
 			printf ("\n");
@@ -8189,16 +8304,19 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFString : {
 			struct X3D_MetadataSFString *tmp;
 			tmp = (struct X3D_MetadataSFString *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFString) \t%s\n",tmp->value->strptr);
 		break;}
 		case NODE_MetadataSFTime : {
 			struct X3D_MetadataSFTime *tmp;
 			tmp = (struct X3D_MetadataSFTime *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFTime) \t%4.3f\n",tmp->value);
 		break;}
 		case NODE_MetadataSFVec2d : {
 			struct X3D_MetadataSFVec2d *tmp;
 			tmp = (struct X3D_MetadataSFVec2d *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFVec2d): \t");
 			for (i=0; i<2; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
 			printf ("\n");
@@ -8206,6 +8324,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec2f : {
 			struct X3D_MetadataSFVec2f *tmp;
 			tmp = (struct X3D_MetadataSFVec2f *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFVec2f): \t");
 			for (i=0; i<2; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
 			printf ("\n");
@@ -8213,6 +8332,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec3d : {
 			struct X3D_MetadataSFVec3d *tmp;
 			tmp = (struct X3D_MetadataSFVec3d *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFVec3d): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
 			printf ("\n");
@@ -8220,6 +8340,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec3f : {
 			struct X3D_MetadataSFVec3f *tmp;
 			tmp = (struct X3D_MetadataSFVec3f *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFVec3f): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
 			printf ("\n");
@@ -8227,6 +8348,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec4d : {
 			struct X3D_MetadataSFVec4d *tmp;
 			tmp = (struct X3D_MetadataSFVec4d *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFVec4d): \t");
 			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
 			printf ("\n");
@@ -8234,6 +8356,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec4f : {
 			struct X3D_MetadataSFVec4f *tmp;
 			tmp = (struct X3D_MetadataSFVec4f *) node;
+			spacer printf ("\t_initialized (SFBool) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFVec4f): \t");
 			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->value.c[i]); }
 			printf ("\n");

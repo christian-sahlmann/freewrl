@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.18 2009/02/16 19:48:50 sdumoulin Exp $
+$Id: EAIHelpers.c,v 1.19 2009/03/17 16:54:20 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -386,13 +386,13 @@ static void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uin
 
 
 /* in this proto expansion, just go and get the expanded node/field IF POSSIBLE */
-static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char **fp) {
+static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char **fp, int direction) {
 	struct ProtoDefinition *myProtoDecl;
 	struct ProtoFieldDecl *thisIndex;
 	int i,j;
 	struct ProtoElementPointer *ele;
 	int pMax;
-	char thisID[200];
+	char thisID[2000];
 	
 	/* first, is this node a PROTO? We look at the actual table to determine if it is special or not */
 	if (getEAINodeTypeFromTable(cNode) != EAI_NODETYPE_PROTO) {
@@ -400,9 +400,35 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	}
 
 	/* yes, it is a PROTO */
-	/* printf ("changeExpanded - looking for field %s in node...\n",*fp);  */
+	printf ("changeExpanded - looking for field %s in node...\n",*fp); 
 
 	myProtoDecl = X3D_GROUP(*np)->FreeWRL__protoDef;
+printf ("and, the proto name is %s\n",myProtoDecl->protoName);
+
+	/* make up the name of the Metadata field associated with this one */
+	if (strlen(*fp)>1000) return FALSE;
+
+	sprintf (thisID,"PROTO_%u_%s",myProtoDecl,*fp);
+	printf ("looking for name :%s:\n",thisID);
+
+	*np = parser_getNodeFromName(thisID);
+	if ((*np) == 0) return FALSE;
+
+	printf ("np is %u\n",*np);
+	printf ("and, found node %u type %s\n",*np, stringNodeType((*np)->_nodeType));
+
+	/* change the fieldName, depending on the direction */
+        /* see if this is an input or output request from nodes =0, tonodes = 1 */
+	if (direction == 0) *fp = "valueChanged"; else *fp = "setValue";
+
+	return TRUE;
+
+
+
+#ifdef OLDCODE
+This code goes through the PROTO body, and finds an actual ISd node. As of 2009, we actually have MetadataSF* or 
+MetadataMF* nodes that hold proto interface data.
+
 	pMax = vector_size(myProtoDecl->deconstructedProtoBody);
 
 	if (eaiverbose) printf ("changeExpandedPROTOtoActualNode, protoDefNumber %d protoName %s\n",myProtoDecl->protoDefNumber, myProtoDecl->protoName); 
@@ -470,7 +496,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	
 					*np = parser_getNodeFromName(thisID);
 	
-					printf ("and, found node %u\n",*np); 
+					printf ("and, found node %u type %s\n",*np, stringNodeType((*np)->_nodeType)); 
 					return TRUE;
 				} else {
 					if (eaiverbose)
@@ -479,7 +505,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 			}
 		}
 	}
-	return FALSE;
+#endif
 }
 
 
@@ -566,7 +592,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 		} else { 
 			/* we know this is a proto, so lets see if we can find an IS'd field here */
 			/* this possibly is an expanded PROTO?, change the nodePtr and fieldString around */
-			if (!changeExpandedPROTOtoActualNode (cNode, &nodePtr, &fieldString)) {
+			if (!changeExpandedPROTOtoActualNode (cNode, &nodePtr, &fieldString,direction)) {
 				if (eaiverbose) printf ("did NOT find the field in changeExpandedPROTOtoActualNode\n");
 			}
 		}
@@ -574,7 +600,14 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 		if (eaiverbose) printf ("EAI_GetType - no, this is NOT a proto node\n");
 	}
 
+	if (nodePtr == NULL) {
+		ConsoleMessage ("error looking up field :%s: in this node\n", fieldString);
 
+		return;			
+	}
+
+printf ("node here is %u\n",nodePtr);
+printf ("ok, going to try and find field :%s: in a node of type :%s:\n",fieldString,stringNodeType(nodePtr->_nodeType));
 
 	/* try finding it, maybe with a "set_" or "changed" removed */
 	myField = findRoutedFieldInFIELDNAMES(nodePtr,fieldString,direction);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.12 2009/03/16 13:50:51 crc_canada Exp $
+$Id: CProto.c,v 1.13 2009/03/17 16:54:20 crc_canada Exp $
 
 CProto ???
 
@@ -31,7 +31,7 @@ CProto ???
 #undef CPROTOVERBOSE
 
 #define PROTO_CAT(newString) { \
-		curstringlen += fprintf (pexfile,"%s",newString); } \
+		curstringlen += fprintf (pexfile,"%s\t\t# Expansion of PROTO %s\n",newString, (*thisProto)->protoName); } 
 
 #define STARTPROTOGROUP "Group{FreeWRL__protoDef %d FreeWRL_PROTOInterfaceNodes ["
 #define PROTOGROUPNUMBER "] #PROTOPARAMS\n  children[ #PROTOGROUP\n"
@@ -47,8 +47,11 @@ CProto ???
 			chars[0] = (char) ele->terminalSymbol;\
 			chars[1] = '\0';\
 			PROTO_CAT (chars);\
-			if (chars[0]=='}') PROTO_CAT("\n"); \
-			}
+			/* if (chars[0]=='}') { \
+				PROTO_CAT(" #PROTO EXPANSION of ") PROTO_CAT((*thisProto)->protoName); \
+				PROTO_CAT("\n"); } */ \
+			} 
+
 #define APPEND_ENDPROTOGROUP PROTO_CAT (ENDPROTOGROUP);
 #define SOMETHING_IN_ISVALUE (strlen(newTl) > 0) 
 #define APPEND_ISVALUE PROTO_CAT (newTl);
@@ -402,13 +405,13 @@ static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)
  { \
   int i; \
   struct Multi_##stype dest; \
-printf ("DEEPCOPY_MFVALUE, src %u, dest count %d\n",src,src.n); \
+	/* printf ("DEEPCOPY_MFVALUE, src %u, dest count %d\n",src,src.n); */ \
   dest.n=src.n; \
   dest.p=MALLOC(sizeof(src.p[0])*src.n); \
-  for(i=0; i!=src.n; ++i) \
+  /* for(i=0; i!=src.n; ++i) \
 { printf ("copying MF %d of %d\n",i,src.n); \
    dest.p[i]=DEEPCOPY_sf##type(lex, src.p[i], new, hash); \
-} \
+} */ \
   return dest; \
  }
 DEEPCOPY_MFVALUE(lex, bool, Bool)
@@ -1040,7 +1043,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 	struct ProtoElementPointer* tE;
 	struct ProtoElementPointer* tD;
 	int toPush;
-	indexT i;
+	int index; 	/* needs to go negative, so can not do indexT */
 	indexT ct = 0;
 
 	/* remove spaces at start of string, to help to see if string is empty */
@@ -1068,23 +1071,28 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 			/* ok, if this is an IS, go back to the controlling NODE, and ENSURE that
 			   it has a DEF to enable it to accept external ROUTE requests */
 			if (ele->isKEYWORD == KW_IS) {
-				i = vector_size(me->deconstructedProtoBody) -1; /* remember, 0->(x-1), not 1->x */
-				/* printf ("tokenizeProtoBody, found an IS, lets go back... we currently have %d\n",i); */
-				if (i>0) {
+				/* printf ("tokenizeProtoBody, found IS at element %d\n",index); */
+
+				index  = (int) vector_size(me->deconstructedProtoBody) -1; /* remember, 0->(x-1), not 1->x */
+				/* printf ("rewinding, starting at %d\n",index); */
+				/* printf ("tokenizeProtoBody, found an IS, lets go back... we currently have %d\n",index); */
+				if (index>0) {
 					do {
-                				tE = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i);
+                				tE = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, (indexT)index);
                 				ASSERT(tE);
-						i--;
-					} while ((i>0) && (tE->isNODE == ID_UNDEFINED));
+						index--;
+					} while ((index>=0) && (tE->isNODE == ID_UNDEFINED));
 
 					/* ok, we should be at the NODE for this IS */
+
+					/* printf ("after rewinding, we are at node %d type %d\n",index,tE->isNODE); */
 
 					if (tE->isNODE != ID_UNDEFINED) {
 						/* printf ("node for IS is an %s\n",stringNodeType(tE->isNODE)); */
 						tD = NULL;
-						i--; 		/* back up to where the DEF should be */
-						if (i>=0) {
-							tD = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i);
+						index--; 		/* back up to where the DEF should be */
+						if (index>=0) {
+							tD = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, (indexT)index);
 							/* printf ("backed up, have NO %d KW %d te %d str %s\n",
 								tD->isNODE, tD->isKEYWORD, tD->terminalSymbol, tD->stringToken); */
 
@@ -1097,6 +1105,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 
 						/* if we DID NOT find a DEF back in the stack, tell this NODE to put a DEF in */
 						if (tD == NULL) {
+							/* printf ("did not find DEF, assign unique ID to this node\n"); */
 							ASSIGN_UNIQUE_ID(tE)
 						}
 					}
@@ -1172,12 +1181,12 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 }
 
 /* possibly create some ROUTES to reflect changes for internal variables - this is the MetadataSF and MetadataMF special nodes routing */
-static int addProtoUpdateRoute (struct VRMLLexer *me, FILE *routefile, char *fieldName, char *protoNameInHeader, char *thisID, struct ProtoDefinition *thisProto, indexT i) {
+static int addProtoUpdateRoute (struct VRMLLexer *me, FILE *routefile, char *fieldName, char *protoNameInHeader, char *thisID, struct ProtoDefinition *thisProto, indexT indx) {
 	struct ProtoFieldDecl *myPF;
 	struct ProtoElementPointer* tE;
 	char *defName = "";
-
 	int retcount = 0;
+	int index = (int) indx; /* cast to Integer */
 
 	#ifdef CPROTOVERBOSE
 	printf ("addProtoUpdateRoute, fieldName :%s: protoNameInHeader :%s: thisID :%s:\n",fieldName, protoNameInHeader,thisID);
@@ -1185,24 +1194,27 @@ static int addProtoUpdateRoute (struct VRMLLexer *me, FILE *routefile, char *fie
 
 	/* is this one a DEFed node, whereby we need to keep the DEF name as part of this? */
 	do {
-		tE = vector_get(struct ProtoElementPointer*, thisProto->deconstructedProtoBody, i);
+		tE = vector_get(struct ProtoElementPointer*, thisProto->deconstructedProtoBody, (indexT)index);
 		ASSERT(tE);
-		i--;
-	} while ((i>2) && (tE->isNODE == ID_UNDEFINED));
+		index--;
+	} while ((index >= 0) && (tE->isNODE == ID_UNDEFINED));
 	#ifdef CPROTOVERBOSE
-	printf ("addProto, looking at element %d\n",i);
+	printf ("addProto, looking at element %d\n",index);
 	printf (" NODE:\t%s\n",stringNodeType(tE->isNODE));
 	#endif
 
-	if (i>2) {
-		tE = vector_get(struct ProtoElementPointer*, thisProto->deconstructedProtoBody, i-1);
+	/* printf ("addProtoUpdateRoute at element %d...\n",index); */
+	if (index>0) {
+		tE = vector_get(struct ProtoElementPointer*, thisProto->deconstructedProtoBody, (indexT) (index-1));
+		/* printf(" got TE, isKeyword %d\n",tE->isKEYWORD); */
+
                if (tE->isKEYWORD == KW_DEF) {
 			#ifdef CPROTOVERBOSE
                         printf (" KW:\t%s\n",stringKeywordType(tE->isKEYWORD));
 			#endif
 
 			/* lets look for the DEF name */
-			tE = vector_get(struct ProtoElementPointer*, thisProto->deconstructedProtoBody, i);
+			tE = vector_get(struct ProtoElementPointer*, thisProto->deconstructedProtoBody, (indexT) index);
                		if (tE->stringToken != NULL) {
 				#ifdef CPROTOVERBOSE
                 	        printf (" string\t:%s:",tE->stringToken);
@@ -1234,6 +1246,7 @@ static int addProtoUpdateRoute (struct VRMLLexer *me, FILE *routefile, char *fie
 
 	return retcount;
 }
+
 
 /* make an expansion of the PROTO, and return it to the main caller */
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
@@ -1411,7 +1424,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 					routeSize += addProtoUpdateRoute(me->lexer, routefile, ele->stringToken, tempEle->stringToken, thisID, *thisProto,i);
 
 					replaceProtoField(me->lexer, *thisProto, tempEle->stringToken,&newTl,&tl);
-					 /* printf ("IS replacement is len %d, str :%s:\n",strlen(newTl), newTl); */
+					/* printf ("IS replacement is len %d, str :%s:\n",strlen(newTl), newTl);  */
 
 					/* is there actually a value for this field?? */
 					if SOMETHING_IN_ISVALUE {
@@ -1494,6 +1507,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	#ifdef CPROTOVERBOSE
 	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif
+	printf ("so, newProtoText \n%s\n",newProtoText);
 
 	return newProtoText;
 }
