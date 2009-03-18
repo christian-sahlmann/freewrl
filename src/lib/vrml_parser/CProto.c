@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.13 2009/03/17 16:54:20 crc_canada Exp $
+$Id: CProto.c,v 1.14 2009/03/18 13:05:53 crc_canada Exp $
 
 CProto ???
 
@@ -31,7 +31,7 @@ CProto ???
 #undef CPROTOVERBOSE
 
 #define PROTO_CAT(newString) { \
-		curstringlen += fprintf (pexfile,"%s\t\t# Expansion of PROTO %s\n",newString, (*thisProto)->protoName); } 
+		curstringlen += fprintf (pexfile,"%s",newString); } 
 
 #define STARTPROTOGROUP "Group{FreeWRL__protoDef %d FreeWRL_PROTOInterfaceNodes ["
 #define PROTOGROUPNUMBER "] #PROTOPARAMS\n  children[ #PROTOGROUP\n"
@@ -47,9 +47,9 @@ CProto ???
 			chars[0] = (char) ele->terminalSymbol;\
 			chars[1] = '\0';\
 			PROTO_CAT (chars);\
-			/* if (chars[0]=='}') { \
+			if (chars[0]=='}') { \
 				PROTO_CAT(" #PROTO EXPANSION of ") PROTO_CAT((*thisProto)->protoName); \
-				PROTO_CAT("\n"); } */ \
+				PROTO_CAT("\n"); }  \
 			} 
 
 #define APPEND_ENDPROTOGROUP PROTO_CAT (ENDPROTOGROUP);
