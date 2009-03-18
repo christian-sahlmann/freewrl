@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.28 2009/03/13 20:07:17 crc_canada Exp $
+$Id: headers.h,v 1.29 2009/03/18 20:59:16 crc_canada Exp $
 
 Global includes.
 
@@ -47,7 +47,8 @@ char *readInputString(char *fn);
                         return; \
                 } \
 
-
+/* which GL_LIGHT is the headlight? */
+#define HEADLIGHT_LIGHT 7
 
 
 #undef DEBUG_JAVASCRIPT_PROPERTY

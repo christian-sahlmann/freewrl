@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.28 2009/03/03 17:02:41 crc_canada Exp $
+$Id: MainLoop.c,v 1.29 2009/03/18 20:59:16 crc_canada Exp $
 
 CProto ???
 
@@ -664,7 +664,7 @@ void render_pre() {
         FW_GL_LOAD_IDENTITY();
 
         /*printf("calling get headlight in render_pre\n"); */
-        if (get_headlight()) lightState(0,TRUE);
+        if (get_headlight()) lightState(HEADLIGHT_LIGHT,TRUE);
 
 
         /* 3. Viewpoint */
@@ -702,7 +702,7 @@ void render() {
 
                 /*  turn light #0 off only if it is not a headlight.*/
                 if (!get_headlight()) {
-                        lightState(0,FALSE);
+                        lightState(HEADLIGHT_LIGHT,FALSE);
                 }
 
                 /*  Correct Viewpoint, only needed when in stereo mode.*/

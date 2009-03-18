@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.9 2009/03/17 16:54:20 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.10 2009/03/18 20:59:16 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -31,13 +31,13 @@ Scenegraph rendering.
 int curlight = 0;
 int nlightcodes = 7;
 int lightcode[7] = {
+	GL_LIGHT0,
 	GL_LIGHT1,
 	GL_LIGHT2,
 	GL_LIGHT3,
 	GL_LIGHT4,
 	GL_LIGHT5,
 	GL_LIGHT6,
-	GL_LIGHT7,
 };
 int nextlight() {
 	if(curlight == nlightcodes) { return -1; }

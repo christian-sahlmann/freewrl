@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.22 2009/03/13 20:07:17 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.23 2009/03/18 20:59:16 crc_canada Exp $
 
 ???
 
@@ -414,12 +414,13 @@ void glpOpenGLInitialize() {
 		lights[i] = 9999;
 		lightState(i,FALSE);
 	}
-	lightState(0, TRUE);
+	/* headlight is GL_LIGHT7 */
+	lightState(HEADLIGHT_LIGHT, TRUE);
 
-        glLightfv(GL_LIGHT0, GL_POSITION, pos);
-        glLightfv(GL_LIGHT0, GL_AMBIENT, As);
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, dif);
-        glLightfv(GL_LIGHT0, GL_SPECULAR, shin);
+        glLightfv(GL_LIGHT0+HEADLIGHT_LIGHT, GL_POSITION, pos);
+        glLightfv(GL_LIGHT0+HEADLIGHT_LIGHT, GL_AMBIENT, As);
+        glLightfv(GL_LIGHT0+HEADLIGHT_LIGHT, GL_DIFFUSE, dif);
+        glLightfv(GL_LIGHT0+HEADLIGHT_LIGHT, GL_SPECULAR, shin);
 
 	/* ensure state of GL_CULL_FACE */
 	CULL_FACE_INITIALIZE
@@ -441,7 +442,7 @@ void BackEndClearBuffer() {
 /* turn off all non-headlight lights; will turn them on if required. */
 void BackEndLightsOff() {
 	int i;
-	for (i=1; i<8; i++) {
+	for (i=0; i<7; i++) {
 		lightState(i, FALSE);
 	}
 }
