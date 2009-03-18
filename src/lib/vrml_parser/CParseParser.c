@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.17 2009/03/13 20:07:18 crc_canada Exp $
+  $Id: CParseParser.c,v 1.18 2009/03/18 20:07:32 crc_canada Exp $
 
   ???
 
@@ -31,9 +31,8 @@
 
 #define PARSE_ERROR(msg) \
  { \
-  parseError(msg); \
+  CPARSE_ERROR_CURID(msg); \
   PARSER_FINALLY; \
-  return FALSE; \
  }
 #define PARSER_FINALLY
 
@@ -182,12 +181,7 @@ char fw_outline[2000];
   {
 #define EVENT_END_NODE(myn,fieldString) \
   default: \
-        /* PARSE_ERROR("Unsupported event for node!") */ \
-        strcpy (fw_outline,"ERROR: Unsupported event ("); \
-        strcat (fw_outline,fieldString); \
-        strcat (fw_outline,")"); \
-        ConsoleMessage(fw_outline);  \
-        fprintf (stderr,"%s\n",fw_outline); \
+	CPARSE_ERROR_FIELDSTRING("ERROR: Unsupported event ",fieldString); \
         PARSER_FINALLY;  \
         return FALSE;  \
   } \
@@ -625,7 +619,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
             startOfField = me->lexer->nextIn;
             if (!parseType(me, type, &defaultVal)) {
                 /* Invalid default value parsed.  Delete the proto or script declaration. */
-                parseError("Expected default value for field!");
+                CPARSE_ERROR_CURID("Expected default value for field!");
                 if(pdecl) deleteProtoFieldDecl(pdecl);
                 if(sdecl) deleteScriptFieldDecl(sdecl);
                 return FALSE;
@@ -1142,11 +1136,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
   /* Look for the current token in the userNodeNames vector (DEFed names) */ \
   if(!lexer_nodeName(me->lexer, &pre##NodeIndex)) { \
        /* The current token is not a valid DEFed name.  Error. */ \
-        strcpy (fw_outline,"ERROR:ROUTE: Expected a valid DEF name; found \""); \
-        if (me->lexer->curID != NULL) strcat (fw_outline, me->lexer->curID); else strcat (fw_outline, "(EOF)"); \
-        strcat (fw_outline,"\" "); \
-        ConsoleMessage(fw_outline);  \
-        fprintf (stderr,"%s\n",fw_outline); \
+        CPARSE_ERROR_CURID("ERROR:ROUTE: Expected a valid DEF name; found \""); \
         PARSER_FINALLY;  \
         return FALSE; \
   } \
@@ -1160,9 +1150,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
   /* We were'nt able to get the X3D_Node structure for the DEFed node.  Error. */ \
   if (pre##Node == NULL) { \
         /* we had a bracket underflow, from what I can see. JAS */ \
-        strcpy (fw_outline,"ERROR:ROUTE: no DEF name found - check scoping and \"}\"s"); \
-        ConsoleMessage(fw_outline);  \
-        fprintf (stderr,"%s\n",fw_outline); \
+        CPARSE_ERROR_CURID("ERROR:ROUTE: no DEF name found - check scoping and \"}\"s"); \
         PARSER_FINALLY;  \
         return FALSE; \
  } \
@@ -1217,7 +1205,6 @@ BOOL parser_routeStatement(struct VRMLParser* me)
    if(!lexer_##eventType(me->lexer, pre##Node, \
     &pre##FieldO, &pre##FieldE, NULL, NULL))  {\
         /* event not found in any built in array.  Error. */ \
-        printf ("error curID :%s:, here :%s:\n", me->lexer->curID, me->lexer->nextIn); /* OLDCODE XXX */ \
         CPARSE_ERROR_CURID("ERROR:Expected built-in event " #eventType " after .") \
         PARSER_FINALLY;  \
         return FALSE;  \
@@ -1279,8 +1266,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
             if (fromFieldO != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EVENT_OUT[fromFieldO]); strcat (fw_outline, " "); }
 
             /* PARSE_ERROR("Expected TO in ROUTE-statement!") */
-            ConsoleMessage(fw_outline); 
-            fprintf (stderr,"%s\n",fw_outline);
+            CPARSE_ERROR_CURID(fw_outline); 
             PARSER_FINALLY; 
 	    return FALSE; 
         }
@@ -1572,8 +1558,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
             if (toFieldO != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EVENT_IN[toFieldO]); strcat (fw_outline, " "); }
 
             /* PARSE_ERROR(fw_outline) */
-            ConsoleMessage(fw_outline); 
-            fprintf (stderr,"%s\n",fw_outline);
+            CPARSE_ERROR_CURID(fw_outline); 
             PARSER_FINALLY; 
 	    return FALSE; 
         }
@@ -1663,11 +1648,7 @@ static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
     if(!parser_node(me, &node,ind)) {
         /* PARSE_ERROR("Expected node in DEF statement!\n") */
         /* try to make a better error message. */
-        strcpy (fw_outline,"ERROR:Expected an X3D node in a DEF statement, got \"");
-        if (me->lexer->curID != NULL) strcat (fw_outline, me->lexer->curID); else strcat (fw_outline, "(EOF)");
-        strcat (fw_outline,"\" ");
-        ConsoleMessage(fw_outline); 
-        fprintf (stderr,"%s\n",fw_outline);
+        CPARSE_ERROR_CURID("ERROR:Expected an X3D node in a DEF statement, got \"");
         PARSER_FINALLY; 
 	return NULL; 
     }
@@ -1690,14 +1671,7 @@ static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
     if(!lexer_nodeName(me->lexer, &ind)) {
         /* PARSE_ERROR("Expected valid DEF name after USE!\n") */
         /* try to make a better error message. */
-        strcpy (fw_outline,"ERROR:Expected valid DEF name after USE keyword");
-        if (me->lexer->curID != NULL) {
-            strcat (fw_outline, ", found \"");
-            strcat (fw_outline, me->lexer->curID); 
-            strcat (fw_outline,"\" ");
-        }
-        ConsoleMessage(fw_outline); 
-        fprintf (stderr,"%s\n",fw_outline);
+        CPARSE_ERROR_CURID("ERROR:Expected valid DEF name after USE keyword");
     }
 #ifdef CPARSERVERBOSE
     printf("parser_KW_USE: parsing USE\n");
@@ -1983,7 +1957,6 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 #endif
         
     if(!lexer_closeCurly(me->lexer)) {
-        printf ("(error, curId %s, nextIn %s\n",me->lexer->curID, me->lexer->nextIn);
         CPARSE_ERROR_CURID("ERROR: Expected a closing brace after fields of a node;")
             PARSER_FINALLY;
         return FALSE; 
@@ -2519,7 +2492,7 @@ static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
     break;
     }
     default: {
-        ConsoleMessage ("VRML Parser; stuffDEFUSE, unhandled type");
+        ConsoleMessage("VRML Parser; stuffDEFUSE, unhandled type");
     }
     }
 }
@@ -2573,7 +2546,7 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
         memcpy (((struct Multi_Node *)out)->p, in, rsz * elelen); 
         break;
     default: {
-        ConsoleMessage ("VRML Parser; stuffSFintoMF, unhandled type");
+        ConsoleMessage("VRML Parser; stuffSFintoMF, unhandled type");
     }   
     }
 }
@@ -2772,12 +2745,12 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret) {
 
     /* possibly this is from the XML parser, but there is a case problem */
     if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr,"TRUE"))) {
-	ConsoleMessage ("found upper case TRUE in XML file - should be lower case");
+	CPARSE_ERROR_CURID("found upper case TRUE in XML file - should be lower case");
         *ret = TRUE;
         return TRUE;
     }
     if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr,"FALSE"))) {
-	ConsoleMessage ("found upper case FALSE in XML file - should be lower case");
+	CPARSE_ERROR_CURID ("found upper case FALSE in XML file - should be lower case");
         *ret = FALSE;
         return TRUE;
     }
@@ -2851,7 +2824,7 @@ BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret) {
     } else {
         /* expect something like a number (memory pointer) to be here */
         if (sscanf(me->lexer->startOfStringPtr, "%u",  &tmp) != 1) {
-            ConsoleMessage ("error finding SFNode id on line :%s:",me->lexer->startOfStringPtr);
+            CPARSE_ERROR_FIELDSTRING ("error finding SFNode id on line :%s:",me->lexer->startOfStringPtr);
             *ret=NULL;
             return FALSE;
         }
@@ -2875,7 +2848,52 @@ BOOL parser_sftimeValue(struct VRMLParser* me, vrmlTimeT* ret)
 
 
 BOOL parser_fieldTypeNotParsedYet(struct VRMLParser* me, vrmlTimeT* ret) {
-    ConsoleMessage ("received a request to parse a type not supported yet");
+    CPARSE_ERROR_CURID ("received a request to parse a type not supported yet");
     return FALSE;
 }
+
+
+/* prettyprint this error */
+	#define OUTLINELEN 	800
+	#define FROMSRC		140
+void cParseErrorCurID(struct VRMLParser *me, char *str) {
+	char fw_outline[OUTLINELEN];
+
+	if (strlen(str) > FROMSRC) str[FROMSRC] = '\0';
+	strcpy(fw_outline,str);
+	if (me->lexer->curID != ((void *)0)) strcat (fw_outline, me->lexer->curID); 
+	if (me->lexer->nextIn != NULL) {
+		strcat (fw_outline," at: \"");
+		strncat(fw_outline,me->lexer->nextIn,FROMSRC);
+		if (strlen(me->lexer->nextIn) > FROMSRC)
+			strcat (fw_outline,"...");
+		strcat (fw_outline,"\"");
+	}
+
+	ConsoleMessage(fw_outline); 
+}
+
+void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) {
+
+	char fw_outline[OUTLINELEN];
+	int str2len = strlen(str2);
+printf ("cParseErrorFieldString\n");
+
+	if (strlen(str) > FROMSRC) str[FROMSRC] = '\0';
+	strcpy(fw_outline,str);
+	strcat (fw_outline," (");
+	strncat (fw_outline,str2,str2len);
+	strcat (fw_outline, ") ");
+	if (me->lexer->curID != ((void *)0)) strcat (fw_outline, me->lexer->curID); 
+	if (me->lexer->nextIn != NULL) {
+		strcat (fw_outline," at: \"");
+		strncat(fw_outline,me->lexer->nextIn,FROMSRC);
+		if (strlen(me->lexer->nextIn) > FROMSRC)
+			strcat (fw_outline,"...");
+		strcat (fw_outline,"\"");
+	}
+
+	ConsoleMessage(fw_outline); 
+}
+
 

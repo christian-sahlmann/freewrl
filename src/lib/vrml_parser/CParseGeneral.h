@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseGeneral.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
+$Id: CParseGeneral.h,v 1.5 2009/03/18 20:07:31 crc_canada Exp $
 
 General header for VRML-parser (lexer/parser)
 
@@ -47,16 +47,7 @@ union anyVrml
 };
 
 #define parseError(msg) \
- (ConsoleMessage("Parse error:  " msg "\n"), fprintf(stderr, msg "\n")) \
-
-#define CPARSE_ERROR_CURID(str) \
-		strcpy (fw_outline,str); \
-		strcat (fw_outline,"expected colon in COMPONENT statement, found \""); \
-		if (me->lexer->curID != ((void *)0)) strcat (fw_outline, me->lexer->curID); \
-		else strcat (fw_outline, "(EOF)"); \
-		strcat (fw_outline,"\" "); \
-		ConsoleMessage(fw_outline); \
-		fprintf (stderr,"%s\n",fw_outline);
+ (ConsoleMessage("Parse error:  " msg "\n")) \
 
 /* tie assert in here to give better failure methodology */
 /* #define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);} */

@@ -1,7 +1,7 @@
 /* 
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseParser.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
+$Id: CParseParser.h,v 1.5 2009/03/18 20:07:32 crc_canada Exp $
 
 Parser (input of non-terminal symbols) for CParse
 
@@ -167,6 +167,14 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 /*
 void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode);
 */
+
+
+void cParseErrorCurID(struct VRMLParser *me, char *str);
+void cParseErrorFieldString(struct VRMLParser *me, char *str1, const char *str2);
+
+#define CPARSE_ERROR_CURID(str) cParseErrorCurID(me, str);
+#define CPARSE_ERROR_FIELDSTRING(str1,str2) cParseErrorFieldString(me, str1, str2);
+
 
 
 #endif /* __FREEWRL_CPARSE_PARSER_H__ */
