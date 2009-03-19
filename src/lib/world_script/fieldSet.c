@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.14 2009/03/03 17:35:15 sdumoulin Exp $
+$Id: fieldSet.c,v 1.15 2009/03/19 18:19:04 sdumoulin Exp $
 
 ???
 
@@ -647,7 +647,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 	if (fromTo != 0) {
 		strcpy (mychar,"set_");
 		strncat (mychar, field,100);
-		retval=findFieldInARR(mychar+strlen("set_"), arr, cnt);
+		retval=findFieldInARR(mychar, arr, cnt);
 	} else {
 		strncpy (mychar, field, 100);
 		strcat (mychar,"_changed");
