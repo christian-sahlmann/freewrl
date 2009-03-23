@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.7 2009/02/26 22:29:14 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.8 2009/03/23 17:42:43 crc_canada Exp $
 
 ???
 
@@ -201,7 +201,7 @@ JSFunctionSpec (SFRotationFunctions)[] = {
 	{"getAxis", SFRotationGetAxis, 0},
 	{"inverse", SFRotationInverse, 0},
 	{"multiply", SFRotationMultiply, 0},
-	{"multiVec", SFRotationMultVec, 0},
+	{"multVec", SFRotationMultVec, 0},
 	{"setAxis", SFRotationSetAxis, 0},
 	{"slerp", SFRotationSlerp, 0},
 	{"toString", SFRotationToString, 0},
