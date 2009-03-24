@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.5 2009/03/17 16:54:20 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.6 2009/03/24 16:20:37 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -1545,7 +1545,13 @@ package VRML::NodeType;
 
 	GeoLOD => new VRML::NodeType("GeoLOD", {
 			metadata => [SFNode, NULL, inputOutput],
-			children => [MFNode,[],outputOnly],
+
+			# the following screws up routing in the old VRML parser, because children can
+			# be an "EXPOSED_FIELD" AND an "EVENT_OUT", so by changing this to an "inputOutput"
+			# we can have only one field, the EXPOSED_FIELD_children
+			#children => [MFNode,[],outputOnly],
+
+			children => [MFNode, [], inputOutput],
 			level_changed =>[SFInt32,0,outputOnly],
 
 			center => [SFVec3d,[0,0,0],initializeOnly],

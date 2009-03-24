@@ -492,7 +492,6 @@ const indexT FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);
 	"panInt32Val",
 	"isValid",
 	"position_changed",
-	"children",
 	"deltaFloatVal",
 	"finalText",
 	"isBound",
@@ -1939,7 +1938,7 @@ const int OFFSETS_GeoLOD[] = {
 	FIELDNAMES___movedCoords, offsetof (struct X3D_GeoLOD, __movedCoords),  FIELDTYPE_SFVec3d, KW_inputOutput,
 	FIELDNAMES_geoSystem, offsetof (struct X3D_GeoLOD, geoSystem),  FIELDTYPE_MFString, KW_initializeOnly,
 	FIELDNAMES_range, offsetof (struct X3D_GeoLOD, range),  FIELDTYPE_SFFloat, KW_initializeOnly,
-	FIELDNAMES_children, offsetof (struct X3D_GeoLOD, children),  FIELDTYPE_MFNode, KW_outputOnly,
+	FIELDNAMES_children, offsetof (struct X3D_GeoLOD, children),  FIELDTYPE_MFNode, KW_inputOutput,
 	FIELDNAMES___geoSystem, offsetof (struct X3D_GeoLOD, __geoSystem),  FIELDTYPE_MFInt32, KW_initializeOnly,
 	FIELDNAMES_rootUrl, offsetof (struct X3D_GeoLOD, rootUrl),  FIELDTYPE_MFString, KW_initializeOnly,
 	FIELDNAMES_level_changed, offsetof (struct X3D_GeoLOD, level_changed),  FIELDTYPE_SFInt32, KW_outputOnly,
@@ -7538,6 +7537,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\t__movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->__movedCoords.c[i]); }
 			printf ("\n");
+			spacer printf ("\tchildren (MFNode):\n");
+			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
 			spacer printf ("\t__rooturlloadstatus (SFInt32) \t%d\n",tmp->__rooturlloadstatus);
 			spacer printf ("\t__level (SFInt32) \t%d\n",tmp->__level);
 			spacer printf ("\t__t1 (SFVec3d): \t");

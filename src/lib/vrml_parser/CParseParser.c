@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.18 2009/03/18 20:07:32 crc_canada Exp $
+  $Id: CParseParser.c,v 1.19 2009/03/24 16:20:38 crc_canada Exp $
 
   ???
 
@@ -174,19 +174,23 @@ char fw_outline[2000];
    (ROUTE_REAL_SIZE_##type ? sizeof_member(struct X3D_##node, var) : 0); \
   destPre##Ofs=offsetof(struct X3D_##node, var); \
   break;
+
 #define EVENT_BEGIN_NODE(fieldInd, ptr, node) \
  case NODE_##node: \
  { \
   switch(fieldInd) \
   {
+
 #define EVENT_END_NODE(myn,fieldString) \
   default: \
+printf ("EVENT_END_NODE no %s at %s:%d\n",fieldString,__FILE__,__LINE__); \
 	CPARSE_ERROR_FIELDSTRING("ERROR: Unsupported event ",fieldString); \
         PARSER_FINALLY;  \
         return FALSE;  \
   } \
   break; \
  }
+
 #define EVENT_NODE_DEFAULT \
  default: \
   PARSE_ERROR("Parser - PROCESS_EVENT: Unsupported node!")
@@ -1273,8 +1277,8 @@ BOOL parser_routeStatement(struct VRMLParser* me)
 /* Parse the second part of a routing statement: DEFEDNODE.event by locating the node DEFEDNODE in either the builtin or user-defined name arrays 
    and locating the event in the builtin or user-defined event name arrays */
 	ROUTE_PARSE_NODEFIELD(to, inputOnly);
-        /* printf ("ROUTE_PARSE_NODEFIELD, found toFieldE %d toFieldO %d\n",toFieldE, toFieldO);
-           printf ("toNode %u toProto %u toScript %u toNodeIndex %d\n",toNode, toScript, toProto, toNodeIndex); */
+         /* printf ("ROUTE_PARSE_NODEFIELD, found toFieldE %d toFieldO %d\n",toFieldE, toFieldO);
+           printf ("toNode %u toProto %u toScript %u toNodeIndex %d\n",toNode, toScript, toProto, toNodeIndex);  */
 
         /* Now, do the really hard macro work... */
         /* ************************************* */
@@ -1297,7 +1301,6 @@ BOOL parser_routeStatement(struct VRMLParser* me)
            thousands of. Code efficiency changes more than welcome, from anyone. ;-) */
 
         tempFE=ID_UNDEFINED; tempFO=ID_UNDEFINED; tempTE=ID_UNDEFINED; tempTO=ID_UNDEFINED;
-
 
 #ifdef CPARSERVERBOSE
         printf ("fromScriptField %d fromFieldE %d fromFieldO %d\n",fromScriptField,fromFieldE,fromFieldO);
@@ -1514,8 +1517,8 @@ BOOL parser_routeStatement(struct VRMLParser* me)
         if(fromScriptField) fromLen=returnRoutingElementLength(fromScriptField->fieldDecl->type);
         if(toScriptField) toLen=returnRoutingElementLength(toScriptField->fieldDecl->type);
 
-/* printf ("fromScriptField %d, toScriptField %d\n",fromScriptField, toScriptField);
-   printf ("fromlen %d tolen %d\n",fromLen, toLen); */
+   /* printf ("fromScriptField %d, toScriptField %d\n",fromScriptField, toScriptField);
+   printf ("fromlen %d tolen %d\n",fromLen, toLen);  */
 
         /* to "simple" MF nodes, we have to call a procedure to determine exactly what kind of "length" this
            node has - it is not as simple as using a "sizeof(int)" command, but, something that is interpreted at
@@ -1683,6 +1686,10 @@ static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
     /* It also has to be in the DEFedNodes stack */
     ASSERT(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
            ind<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
+
+    #ifdef CPARSERVERBOSE
+    printf ("parser_KW_USE, returning vector %u\n", vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind));
+    #endif
 
     /* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */
     return vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
@@ -2877,7 +2884,6 @@ void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) 
 
 	char fw_outline[OUTLINELEN];
 	int str2len = strlen(str2);
-printf ("cParseErrorFieldString\n");
 
 	if (strlen(str) > FROMSRC) str[FROMSRC] = '\0';
 	strcpy(fw_outline,str);

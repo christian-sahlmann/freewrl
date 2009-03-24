@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.15 2009/03/23 17:41:54 crc_canada Exp $
+$Id: CProto.c,v 1.16 2009/03/24 16:20:38 crc_canada Exp $
 
 CProto ???
 
@@ -1126,7 +1126,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 			sprintf (ele->stringToken, "\"%s\"",tmpstring->strptr);
 		} else {
 			/* printf ("probably a number, scan along until it is done. :%s:\n",lex->nextIn); */
-			if ((*lex->nextIn == '-') || (*lex->nextIn >= '0') && (*lex->nextIn <= '9')) {
+			if ((*lex->nextIn == '-') || ((*lex->nextIn >= '0') && (*lex->nextIn <= '9'))) {
 				uintptr_t ip; uintptr_t fp; char *cur;
 				int ignore;
 
@@ -1179,6 +1179,55 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 		if (toPush) vector_pushBack(struct ProtoElementPointer*, me->deconstructedProtoBody, ele);
 	}
 	deleteLexer(lex);
+
+
+
+	/* check the deconstructedProtoBody */
+	/* if the user types in "DEF Material Material {}" the first "Material" is NOT a node, but a stringToken... */
+
+	{
+        char thisID[1000];
+        indexT i;
+        indexT protoElementCount;
+        struct ProtoElementPointer* ele;
+        struct ProtoElementPointer* tempEle;
+
+        /* go through each part of this deconstructedProtoBody, and see what needs doing... */
+        protoElementCount = vector_size(me->deconstructedProtoBody);
+        i = 0;
+        while (i < protoElementCount) {
+                /* get the current element */
+                ele = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i);
+
+		/* is this a DEF, USE or IS? */
+		/* sanity check following node */
+		switch (ele->isKEYWORD) {
+			case KW_DEF:
+			case KW_USE:
+			case KW_IS: 
+				
+			if (i<(protoElementCount-1)) {
+
+               			tempEle = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i+1);
+				if (tempEle->stringToken == NULL) {
+					/* did this one get read in as a NODE? */
+					if (tempEle->isNODE != ID_UNDEFINED) {
+						/* yes, make this one a stringToken... */
+						tempEle->stringToken = STRDUP(stringNodeType(tempEle->isNODE));
+						/* ... and make sure it is NOT a node! */
+						tempEle->isNODE = ID_UNDEFINED;
+					}
+				}
+			/* printf ("protoCheck, at %d, keyword %s, stringToken %s\n",i,stringKeywordType(ele->isKEYWORD), tempEle->stringToken); */
+			}
+
+			break;
+			default: {};
+		}
+
+		i++;
+	}
+	}
 }
 
 /* possibly create some ROUTES to reflect changes for internal variables - this is the MetadataSF and MetadataMF special nodes routing */
@@ -1287,7 +1336,6 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	#define	CLOSE_PROTO_EXPAND_FILE {fclose (pexfile); fclose (routefile);}
 
 	#define UNLINK_PROTO_EXPAND_FILE {unlink (tempname); unlink (tempRoutename);}
-#define CPROTOVERBOSE
 
 	#ifdef CPROTOVERBOSE
 	printf ("start of protoExpand me %u me->lexer %u\n",me, me->lexer);
@@ -1480,6 +1528,8 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	CLOSE_PROTO_EXPAND_FILE
 
 	/* read in the expanded PROTO text, and return it. */
+printf ("mallocing newProtoText, size %d\n",curstringlen + routeSize + strlen(ENDPROTOGROUP) + 10);
+
 	newProtoText = MALLOC(sizeof (char) * (curstringlen + routeSize + strlen(ENDPROTOGROUP) + 10));
 	newProtoText[0] = '\0';
 
@@ -1509,7 +1559,6 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	#ifdef CPROTOVERBOSE
 	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif
-#undef CPROTOVERBOSE
 
 	return newProtoText;
 }
