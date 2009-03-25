@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.19 2009/03/24 16:20:38 crc_canada Exp $
+  $Id: CParseParser.c,v 1.20 2009/03/25 14:16:03 crc_canada Exp $
 
   ???
 
@@ -131,7 +131,7 @@ char fw_outline[2000];
 #define ROUTE_REAL_SIZE_sfnode  TRUE
 #define ROUTE_REAL_SIZE_sfrotation      TRUE
 #define ROUTE_REAL_SIZE_sfcolorrgba      TRUE
-#define ROUTE_REAL_SIZE_sfstring        TRUE
+#define ROUTE_REAL_SIZE_sfstring       FALSE 
 #define ROUTE_REAL_SIZE_sftime  TRUE
 #define ROUTE_REAL_SIZE_sfdouble  TRUE
 #define ROUTE_REAL_SIZE_sfvec2f TRUE
@@ -1543,7 +1543,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
                 fromLen = returnRoutingElementLength(b);
             }
         }
-/* printf ("before test, fromlen %d tolen %d\n",fromLen, toLen); */
+	/* printf ("before test, fromlen %d tolen %d\n",fromLen, toLen);  */
 
 
         /* FIXME:  Not a really safe check for types in ROUTE! */

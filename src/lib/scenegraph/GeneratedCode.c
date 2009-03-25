@@ -569,6 +569,7 @@ const indexT EVENT_OUT_COUNT = ARR_SIZE(EVENT_OUT);
 	"set_fraction",
 	"set_normalIndex",
 	"set_boolean",
+	"coordIndex",
 	"set_orientation",
 };
 const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
@@ -658,7 +659,6 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"back",
 	"hatchStyle",
 	"cutOffAngle",
-	"knot",
 	"pressTime",
 	"emissiveColor",
 	"geoCenter",
@@ -672,7 +672,6 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"topUrl",
 	"mode",
 	"linewidthScaleFactor",
-	"geoSystem",
 	"string",
 	"children",
 	"on",
@@ -710,7 +709,6 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"summary",
 	"backDiffuseColor",
 	"buttonPress",
-	"info",
 	"shaders",
 	"visibilityRange",
 	"leftTexture",
@@ -720,7 +718,6 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"momentsOfInertia",
 	"ambientIntensity",
 	"frontUrl",
-	"coordIndex",
 	"skinCoordIndex",
 	"material",
 	"priority",
@@ -780,7 +777,6 @@ const indexT EXPOSED_FIELD_COUNT = ARR_SIZE(EXPOSED_FIELD);
 	"load",
 	"horizontal",
 	"yScale",
-	"name",
 	"fanCount",
 	"title",
 	"child4Url",
@@ -796,13 +792,9 @@ const indexT EXPOSED_FIELD_COUNT = ARR_SIZE(EXPOSED_FIELD);
 	"height",
 	"startAngle",
 	"colorIndex",
-	"order",
 	"textureProperties",
 	"child2Url",
-	"value",
-	"type",
 	"crossSection",
-	"position",
 	"xSpacing",
 	"numComponents",
 	"creaseAngle",
@@ -815,19 +807,15 @@ const indexT EXPOSED_FIELD_COUNT = ARR_SIZE(EXPOSED_FIELD);
 	"rootUrl",
 	"endAngle",
 	"ccw",
-	"description",
-	"top",
 	"outerRadius",
 	"family",
 	"leftToRight",
 	"range",
-	"size",
 	"repeatS",
 	"bboxSize",
 	"info",
 	"language",
 	"style",
-	"bottom",
 	"lineSegments",
 	"justify",
 	"side",
@@ -841,22 +829,17 @@ const indexT EXPOSED_FIELD_COUNT = ARR_SIZE(EXPOSED_FIELD);
 	"colorPerVertex",
 	"zSpacing",
 	"directOutput",
-	"scale",
 	"innerRadius",
 	"proxy",
 	"closureType",
 	"convex",
-	"orientation",
-	"center",
 	"child1Url",
 	"endCap",
 	"zDimension",
 	"reference",
 	"spine",
-	"radius",
 	"bottomRadius",
 	"mustEvaluate",
-	"point",
 	"normalPerVertex",
 };
 const indexT FIELD_COUNT = ARR_SIZE(FIELD);
@@ -1469,7 +1452,7 @@ const int OFFSETS_Arc2D[] = {
 	FIELDNAMES_endAngle, offsetof (struct X3D_Arc2D, endAngle),  FIELDTYPE_SFFloat, KW_initializeOnly,
 	FIELDNAMES___numPoints, offsetof (struct X3D_Arc2D, __numPoints),  FIELDTYPE_SFInt32, KW_initializeOnly,
 	FIELDNAMES_startAngle, offsetof (struct X3D_Arc2D, startAngle),  FIELDTYPE_SFFloat, KW_initializeOnly,
-	FIELDNAMES_radius, offsetof (struct X3D_Arc2D, radius),  FIELDTYPE_SFFloat, KW_initializeOnly,
+	FIELDNAMES_radius, offsetof (struct X3D_Arc2D, radius),  FIELDTYPE_SFFloat, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_Arc2D, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Arc2D, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___points, offsetof (struct X3D_Arc2D, __points),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,
@@ -1479,7 +1462,7 @@ const int OFFSETS_ArcClose2D[] = {
 	FIELDNAMES_endAngle, offsetof (struct X3D_ArcClose2D, endAngle),  FIELDTYPE_SFFloat, KW_initializeOnly,
 	FIELDNAMES_solid, offsetof (struct X3D_ArcClose2D, solid),  FIELDTYPE_SFBool, KW_initializeOnly,
 	FIELDNAMES___numPoints, offsetof (struct X3D_ArcClose2D, __numPoints),  FIELDTYPE_SFInt32, KW_initializeOnly,
-	FIELDNAMES_radius, offsetof (struct X3D_ArcClose2D, radius),  FIELDTYPE_SFFloat, KW_initializeOnly,
+	FIELDNAMES_radius, offsetof (struct X3D_ArcClose2D, radius),  FIELDTYPE_SFFloat, KW_inputOutput,
 	FIELDNAMES___points, offsetof (struct X3D_ArcClose2D, __points),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,
 	FIELDNAMES_startAngle, offsetof (struct X3D_ArcClose2D, startAngle),  FIELDTYPE_SFFloat, KW_initializeOnly,
 	FIELDNAMES_metadata, offsetof (struct X3D_ArcClose2D, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
@@ -1613,12 +1596,12 @@ const int OFFSETS_Box[] = {
 	FIELDNAMES_metadata, offsetof (struct X3D_Box, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Box, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___points, offsetof (struct X3D_Box, __points),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,
-	FIELDNAMES_size, offsetof (struct X3D_Box, size),  FIELDTYPE_SFVec3f, KW_initializeOnly,
+	FIELDNAMES_size, offsetof (struct X3D_Box, size),  FIELDTYPE_SFVec3f, KW_inputOutput,
 	-1, -1, -1, -1};
 
 const int OFFSETS_Circle2D[] = {
 	FIELDNAMES___numPoints, offsetof (struct X3D_Circle2D, __numPoints),  FIELDTYPE_SFInt32, KW_initializeOnly,
-	FIELDNAMES_radius, offsetof (struct X3D_Circle2D, radius),  FIELDTYPE_SFFloat, KW_initializeOnly,
+	FIELDNAMES_radius, offsetof (struct X3D_Circle2D, radius),  FIELDTYPE_SFFloat, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_Circle2D, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Circle2D, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___points, offsetof (struct X3D_Circle2D, __points),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,
@@ -1687,7 +1670,7 @@ const int OFFSETS_Cone[] = {
 	FIELDNAMES___sidepoints, offsetof (struct X3D_Cone, __sidepoints),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,
 	FIELDNAMES_bottomRadius, offsetof (struct X3D_Cone, bottomRadius),  FIELDTYPE_SFFloat, KW_initializeOnly,
 	FIELDNAMES_height, offsetof (struct X3D_Cone, height),  FIELDTYPE_SFFloat, KW_initializeOnly,
-	FIELDNAMES_bottom, offsetof (struct X3D_Cone, bottom),  FIELDTYPE_SFBool, KW_initializeOnly,
+	FIELDNAMES_bottom, offsetof (struct X3D_Cone, bottom),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES___botpoints, offsetof (struct X3D_Cone, __botpoints),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,
 	FIELDNAMES_side, offsetof (struct X3D_Cone, side),  FIELDTYPE_SFBool, KW_initializeOnly,
 	FIELDNAMES___normals, offsetof (struct X3D_Cone, __normals),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,
@@ -1735,12 +1718,12 @@ const int OFFSETS_CoordinateInterpolator2D[] = {
 
 const int OFFSETS_Cylinder[] = {
 	FIELDNAMES_solid, offsetof (struct X3D_Cylinder, solid),  FIELDTYPE_SFBool, KW_initializeOnly,
-	FIELDNAMES_radius, offsetof (struct X3D_Cylinder, radius),  FIELDTYPE_SFFloat, KW_initializeOnly,
-	FIELDNAMES_bottom, offsetof (struct X3D_Cylinder, bottom),  FIELDTYPE_SFBool, KW_initializeOnly,
+	FIELDNAMES_radius, offsetof (struct X3D_Cylinder, radius),  FIELDTYPE_SFFloat, KW_inputOutput,
+	FIELDNAMES_bottom, offsetof (struct X3D_Cylinder, bottom),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_height, offsetof (struct X3D_Cylinder, height),  FIELDTYPE_SFFloat, KW_initializeOnly,
 	FIELDNAMES___points, offsetof (struct X3D_Cylinder, __points),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,
 	FIELDNAMES_side, offsetof (struct X3D_Cylinder, side),  FIELDTYPE_SFBool, KW_initializeOnly,
-	FIELDNAMES_top, offsetof (struct X3D_Cylinder, top),  FIELDTYPE_SFBool, KW_initializeOnly,
+	FIELDNAMES_top, offsetof (struct X3D_Cylinder, top),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES___normals, offsetof (struct X3D_Cylinder, __normals),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,
 	FIELDNAMES_metadata, offsetof (struct X3D_Cylinder, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Cylinder, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
@@ -1763,7 +1746,7 @@ const int OFFSETS_CylinderSensor[] = {
 	FIELDNAMES_trackPoint_changed, offsetof (struct X3D_CylinderSensor, trackPoint_changed),  FIELDTYPE_SFVec3f, KW_outputOnly,
 	FIELDNAMES_isActive, offsetof (struct X3D_CylinderSensor, isActive),  FIELDTYPE_SFBool, KW_outputOnly,
 	FIELDNAMES__dlchange, offsetof (struct X3D_CylinderSensor, _dlchange),  FIELDTYPE_SFInt32, KW_initializeOnly,
-	FIELDNAMES_description, offsetof (struct X3D_CylinderSensor, description),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_description, offsetof (struct X3D_CylinderSensor, description),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_CylinderSensor, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES__radius, offsetof (struct X3D_CylinderSensor, _radius),  FIELDTYPE_SFFloat, KW_initializeOnly,
 	-1, -1, -1, -1};
@@ -1828,7 +1811,7 @@ const int OFFSETS_Extrusion[] = {
 	FIELDNAMES_solid, offsetof (struct X3D_Extrusion, solid),  FIELDTYPE_SFBool, KW_initializeOnly,
 	FIELDNAMES_set_scale, offsetof (struct X3D_Extrusion, set_scale),  FIELDTYPE_MFVec2f, KW_inputOnly,
 	FIELDNAMES_crossSection, offsetof (struct X3D_Extrusion, crossSection),  FIELDTYPE_MFVec2f, KW_initializeOnly,
-	FIELDNAMES_orientation, offsetof (struct X3D_Extrusion, orientation),  FIELDTYPE_MFRotation, KW_initializeOnly,
+	FIELDNAMES_orientation, offsetof (struct X3D_Extrusion, orientation),  FIELDTYPE_MFRotation, KW_inputOutput,
 	FIELDNAMES_endCap, offsetof (struct X3D_Extrusion, endCap),  FIELDTYPE_SFBool, KW_initializeOnly,
 	FIELDNAMES_set_crossSection, offsetof (struct X3D_Extrusion, set_crossSection),  FIELDTYPE_MFVec2f, KW_inputOnly,
 	FIELDNAMES_set_spine, offsetof (struct X3D_Extrusion, set_spine),  FIELDTYPE_MFVec3f, KW_inputOnly,
@@ -1837,7 +1820,7 @@ const int OFFSETS_Extrusion[] = {
 	FIELDNAMES_metadata, offsetof (struct X3D_Extrusion, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES_beginCap, offsetof (struct X3D_Extrusion, beginCap),  FIELDTYPE_SFBool, KW_initializeOnly,
 	FIELDNAMES_ccw, offsetof (struct X3D_Extrusion, ccw),  FIELDTYPE_SFBool, KW_initializeOnly,
-	FIELDNAMES_scale, offsetof (struct X3D_Extrusion, scale),  FIELDTYPE_MFVec2f, KW_initializeOnly,
+	FIELDNAMES_scale, offsetof (struct X3D_Extrusion, scale),  FIELDTYPE_MFVec2f, KW_inputOutput,
 	FIELDNAMES_set_orientation, offsetof (struct X3D_Extrusion, set_orientation),  FIELDTYPE_MFRotation, KW_inputOnly,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Extrusion, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
@@ -1854,7 +1837,7 @@ const int OFFSETS_FillProperties[] = {
 const int OFFSETS_FloatVertexAttribute[] = {
 	FIELDNAMES_numComponents, offsetof (struct X3D_FloatVertexAttribute, numComponents),  FIELDTYPE_SFInt32, KW_initializeOnly,
 	FIELDNAMES_value, offsetof (struct X3D_FloatVertexAttribute, value),  FIELDTYPE_MFFloat, KW_inputOutput,
-	FIELDNAMES_name, offsetof (struct X3D_FloatVertexAttribute, name),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_name, offsetof (struct X3D_FloatVertexAttribute, name),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_FloatVertexAttribute, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_FloatVertexAttribute, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
@@ -1882,7 +1865,7 @@ const int OFFSETS_FontStyle[] = {
 	FIELDNAMES_leftToRight, offsetof (struct X3D_FontStyle, leftToRight),  FIELDTYPE_SFBool, KW_initializeOnly,
 	FIELDNAMES_topToBottom, offsetof (struct X3D_FontStyle, topToBottom),  FIELDTYPE_SFBool, KW_initializeOnly,
 	FIELDNAMES_style, offsetof (struct X3D_FontStyle, style),  FIELDTYPE_SFString, KW_initializeOnly,
-	FIELDNAMES_size, offsetof (struct X3D_FontStyle, size),  FIELDTYPE_SFFloat, KW_initializeOnly,
+	FIELDNAMES_size, offsetof (struct X3D_FontStyle, size),  FIELDTYPE_SFFloat, KW_inputOutput,
 	FIELDNAMES_justify, offsetof (struct X3D_FontStyle, justify),  FIELDTYPE_MFString, KW_initializeOnly,
 	FIELDNAMES_metadata, offsetof (struct X3D_FontStyle, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES_spacing, offsetof (struct X3D_FontStyle, spacing),  FIELDTYPE_SFFloat, KW_initializeOnly,
@@ -1895,12 +1878,12 @@ const int OFFSETS_GeneratedCubeMapTexture[] = {
 	FIELDNAMES_metadata, offsetof (struct X3D_GeneratedCubeMapTexture, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES_update, offsetof (struct X3D_GeneratedCubeMapTexture, update),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_GeneratedCubeMapTexture, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
-	FIELDNAMES_size, offsetof (struct X3D_GeneratedCubeMapTexture, size),  FIELDTYPE_SFInt32, KW_initializeOnly,
+	FIELDNAMES_size, offsetof (struct X3D_GeneratedCubeMapTexture, size),  FIELDTYPE_SFInt32, KW_inputOutput,
 	FIELDNAMES_textureProperties, offsetof (struct X3D_GeneratedCubeMapTexture, textureProperties),  FIELDTYPE_SFNode, KW_initializeOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_GeoCoordinate[] = {
-	FIELDNAMES_point, offsetof (struct X3D_GeoCoordinate, point),  FIELDTYPE_MFVec3d, KW_initializeOnly,
+	FIELDNAMES_point, offsetof (struct X3D_GeoCoordinate, point),  FIELDTYPE_MFVec3d, KW_inputOutput,
 	FIELDNAMES___movedCoords, offsetof (struct X3D_GeoCoordinate, __movedCoords),  FIELDTYPE_MFVec3f, KW_inputOutput,
 	FIELDNAMES_geoSystem, offsetof (struct X3D_GeoCoordinate, geoSystem),  FIELDTYPE_MFString, KW_initializeOnly,
 	FIELDNAMES_metadata, offsetof (struct X3D_GeoCoordinate, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
@@ -1942,7 +1925,7 @@ const int OFFSETS_GeoLOD[] = {
 	FIELDNAMES___geoSystem, offsetof (struct X3D_GeoLOD, __geoSystem),  FIELDTYPE_MFInt32, KW_initializeOnly,
 	FIELDNAMES_rootUrl, offsetof (struct X3D_GeoLOD, rootUrl),  FIELDTYPE_MFString, KW_initializeOnly,
 	FIELDNAMES_level_changed, offsetof (struct X3D_GeoLOD, level_changed),  FIELDTYPE_SFInt32, KW_outputOnly,
-	FIELDNAMES_center, offsetof (struct X3D_GeoLOD, center),  FIELDTYPE_SFVec3d, KW_initializeOnly,
+	FIELDNAMES_center, offsetof (struct X3D_GeoLOD, center),  FIELDTYPE_SFVec3d, KW_inputOutput,
 	FIELDNAMES_child1Url, offsetof (struct X3D_GeoLOD, child1Url),  FIELDTYPE_MFString, KW_initializeOnly,
 	FIELDNAMES___rooturlloadstatus, offsetof (struct X3D_GeoLOD, __rooturlloadstatus),  FIELDTYPE_SFInt32, KW_inputOutput,
 	FIELDNAMES_child3Url, offsetof (struct X3D_GeoLOD, child3Url),  FIELDTYPE_MFString, KW_initializeOnly,
@@ -1993,7 +1976,7 @@ const int OFFSETS_GeoMetadata[] = {
 
 const int OFFSETS_GeoOrigin[] = {
 	FIELDNAMES___movedCoords, offsetof (struct X3D_GeoOrigin, __movedCoords),  FIELDTYPE_SFVec3d, KW_inputOutput,
-	FIELDNAMES_geoSystem, offsetof (struct X3D_GeoOrigin, geoSystem),  FIELDTYPE_MFString, KW_inputOutput,
+	FIELDNAMES_geoSystem, offsetof (struct X3D_GeoOrigin, geoSystem),  FIELDTYPE_MFString, KW_initializeOnly,
 	FIELDNAMES___geoSystem, offsetof (struct X3D_GeoOrigin, __geoSystem),  FIELDTYPE_MFInt32, KW_initializeOnly,
 	FIELDNAMES___oldgeoCoords, offsetof (struct X3D_GeoOrigin, __oldgeoCoords),  FIELDTYPE_SFVec3d, KW_inputOutput,
 	FIELDNAMES___oldMFString, offsetof (struct X3D_GeoOrigin, __oldMFString),  FIELDTYPE_MFString, KW_inputOutput,
@@ -2060,7 +2043,7 @@ const int OFFSETS_GeoTouchSensor[] = {
 	FIELDNAMES_hitGeoCoord_changed, offsetof (struct X3D_GeoTouchSensor, hitGeoCoord_changed),  FIELDTYPE_SFVec3d, KW_outputOnly,
 	FIELDNAMES_isActive, offsetof (struct X3D_GeoTouchSensor, isActive),  FIELDTYPE_SFBool, KW_outputOnly,
 	FIELDNAMES__oldhitPoint, offsetof (struct X3D_GeoTouchSensor, _oldhitPoint),  FIELDTYPE_SFVec3f, KW_outputOnly,
-	FIELDNAMES_description, offsetof (struct X3D_GeoTouchSensor, description),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_description, offsetof (struct X3D_GeoTouchSensor, description),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_hitNormal_changed, offsetof (struct X3D_GeoTouchSensor, hitNormal_changed),  FIELDTYPE_SFVec3f, KW_outputOnly,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_GeoTouchSensor, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES_touchTime, offsetof (struct X3D_GeoTouchSensor, touchTime),  FIELDTYPE_SFTime, KW_outputOnly,
@@ -2097,8 +2080,8 @@ const int OFFSETS_GeoViewpoint[] = {
 	FIELDNAMES_set_position, offsetof (struct X3D_GeoViewpoint, set_position),  FIELDTYPE_SFVec3d, KW_inputOnly,
 	FIELDNAMES_headlight, offsetof (struct X3D_GeoViewpoint, headlight),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_geoSystem, offsetof (struct X3D_GeoViewpoint, geoSystem),  FIELDTYPE_MFString, KW_initializeOnly,
-	FIELDNAMES_orientation, offsetof (struct X3D_GeoViewpoint, orientation),  FIELDTYPE_SFRotation, KW_initializeOnly,
-	FIELDNAMES_position, offsetof (struct X3D_GeoViewpoint, position),  FIELDTYPE_SFVec3d, KW_initializeOnly,
+	FIELDNAMES_orientation, offsetof (struct X3D_GeoViewpoint, orientation),  FIELDTYPE_SFRotation, KW_inputOutput,
+	FIELDNAMES_position, offsetof (struct X3D_GeoViewpoint, position),  FIELDTYPE_SFVec3d, KW_inputOutput,
 	FIELDNAMES___BGNumber, offsetof (struct X3D_GeoViewpoint, __BGNumber),  FIELDTYPE_SFInt32, KW_initializeOnly,
 	FIELDNAMES___geoSystem, offsetof (struct X3D_GeoViewpoint, __geoSystem),  FIELDTYPE_MFInt32, KW_initializeOnly,
 	FIELDNAMES_isBound, offsetof (struct X3D_GeoViewpoint, isBound),  FIELDTYPE_SFBool, KW_outputOnly,
@@ -2136,7 +2119,7 @@ const int OFFSETS_Group[] = {
 
 const int OFFSETS_HAnimDisplacer[] = {
 	FIELDNAMES_displacements, offsetof (struct X3D_HAnimDisplacer, displacements),  FIELDTYPE_MFVec3f, KW_inputOutput,
-	FIELDNAMES_coordIndex, offsetof (struct X3D_HAnimDisplacer, coordIndex),  FIELDTYPE_MFInt32, KW_inputOutput,
+	FIELDNAMES_coordIndex, offsetof (struct X3D_HAnimDisplacer, coordIndex),  FIELDTYPE_MFInt32, KW_inputOnly,
 	FIELDNAMES_name, offsetof (struct X3D_HAnimDisplacer, name),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_weight, offsetof (struct X3D_HAnimDisplacer, weight),  FIELDTYPE_SFFloat, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_HAnimDisplacer, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
@@ -2153,7 +2136,7 @@ const int OFFSETS_HAnimHumanoid[] = {
 	FIELDNAMES_translation, offsetof (struct X3D_HAnimHumanoid, translation),  FIELDTYPE_SFVec3f, KW_inputOutput,
 	FIELDNAMES_skinCoord, offsetof (struct X3D_HAnimHumanoid, skinCoord),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES_bboxSize, offsetof (struct X3D_HAnimHumanoid, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,
-	FIELDNAMES_info, offsetof (struct X3D_HAnimHumanoid, info),  FIELDTYPE_MFString, KW_inputOutput,
+	FIELDNAMES_info, offsetof (struct X3D_HAnimHumanoid, info),  FIELDTYPE_MFString, KW_initializeOnly,
 	FIELDNAMES_rotation, offsetof (struct X3D_HAnimHumanoid, rotation),  FIELDTYPE_SFRotation, KW_inputOutput,
 	FIELDNAMES_skin, offsetof (struct X3D_HAnimHumanoid, skin),  FIELDTYPE_MFNode, KW_inputOutput,
 	FIELDNAMES_sites, offsetof (struct X3D_HAnimHumanoid, sites),  FIELDTYPE_MFNode, KW_inputOutput,
@@ -2451,7 +2434,7 @@ const int OFFSETS_LOD[] = {
 	FIELDNAMES_range, offsetof (struct X3D_LOD, range),  FIELDTYPE_MFFloat, KW_initializeOnly,
 	FIELDNAMES_children, offsetof (struct X3D_LOD, children),  FIELDTYPE_MFNode, KW_inputOutput,
 	FIELDNAMES_addChildren, offsetof (struct X3D_LOD, addChildren),  FIELDTYPE_MFNode, KW_inputOnly,
-	FIELDNAMES_center, offsetof (struct X3D_LOD, center),  FIELDTYPE_SFVec3f, KW_initializeOnly,
+	FIELDNAMES_center, offsetof (struct X3D_LOD, center),  FIELDTYPE_SFVec3f, KW_inputOutput,
 	FIELDNAMES_level, offsetof (struct X3D_LOD, level),  FIELDTYPE_MFNode, KW_inputOutput,
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_LOD, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,
 	FIELDNAMES_metadata, offsetof (struct X3D_LOD, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
@@ -2518,38 +2501,38 @@ const int OFFSETS_Material[] = {
 
 const int OFFSETS_Matrix3VertexAttribute[] = {
 	FIELDNAMES_value, offsetof (struct X3D_Matrix3VertexAttribute, value),  FIELDTYPE_MFMatrix3f, KW_inputOutput,
-	FIELDNAMES_name, offsetof (struct X3D_Matrix3VertexAttribute, name),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_name, offsetof (struct X3D_Matrix3VertexAttribute, name),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_Matrix3VertexAttribute, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Matrix3VertexAttribute, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
 
 const int OFFSETS_Matrix4VertexAttribute[] = {
 	FIELDNAMES_value, offsetof (struct X3D_Matrix4VertexAttribute, value),  FIELDTYPE_MFMatrix4f, KW_inputOutput,
-	FIELDNAMES_name, offsetof (struct X3D_Matrix4VertexAttribute, name),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_name, offsetof (struct X3D_Matrix4VertexAttribute, name),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_Matrix4VertexAttribute, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Matrix4VertexAttribute, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataDouble[] = {
 	FIELDNAMES_reference, offsetof (struct X3D_MetadataDouble, reference),  FIELDTYPE_SFString, KW_initializeOnly,
-	FIELDNAMES_value, offsetof (struct X3D_MetadataDouble, value),  FIELDTYPE_MFDouble, KW_initializeOnly,
-	FIELDNAMES_name, offsetof (struct X3D_MetadataDouble, name),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_value, offsetof (struct X3D_MetadataDouble, value),  FIELDTYPE_MFDouble, KW_inputOutput,
+	FIELDNAMES_name, offsetof (struct X3D_MetadataDouble, name),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_MetadataDouble, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_MetadataDouble, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataFloat[] = {
 	FIELDNAMES_reference, offsetof (struct X3D_MetadataFloat, reference),  FIELDTYPE_SFString, KW_initializeOnly,
-	FIELDNAMES_value, offsetof (struct X3D_MetadataFloat, value),  FIELDTYPE_MFFloat, KW_initializeOnly,
-	FIELDNAMES_name, offsetof (struct X3D_MetadataFloat, name),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_value, offsetof (struct X3D_MetadataFloat, value),  FIELDTYPE_MFFloat, KW_inputOutput,
+	FIELDNAMES_name, offsetof (struct X3D_MetadataFloat, name),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_MetadataFloat, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_MetadataFloat, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataInteger[] = {
 	FIELDNAMES_reference, offsetof (struct X3D_MetadataInteger, reference),  FIELDTYPE_SFString, KW_initializeOnly,
-	FIELDNAMES_value, offsetof (struct X3D_MetadataInteger, value),  FIELDTYPE_MFInt32, KW_initializeOnly,
-	FIELDNAMES_name, offsetof (struct X3D_MetadataInteger, name),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_value, offsetof (struct X3D_MetadataInteger, value),  FIELDTYPE_MFInt32, KW_inputOutput,
+	FIELDNAMES_name, offsetof (struct X3D_MetadataInteger, name),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_MetadataInteger, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_MetadataInteger, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
@@ -2843,16 +2826,16 @@ const int OFFSETS_MetadataSFVec4f[] = {
 
 const int OFFSETS_MetadataSet[] = {
 	FIELDNAMES_reference, offsetof (struct X3D_MetadataSet, reference),  FIELDTYPE_SFString, KW_initializeOnly,
-	FIELDNAMES_value, offsetof (struct X3D_MetadataSet, value),  FIELDTYPE_MFNode, KW_initializeOnly,
-	FIELDNAMES_name, offsetof (struct X3D_MetadataSet, name),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_value, offsetof (struct X3D_MetadataSet, value),  FIELDTYPE_MFNode, KW_inputOutput,
+	FIELDNAMES_name, offsetof (struct X3D_MetadataSet, name),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_MetadataSet, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_MetadataSet, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
 
 const int OFFSETS_MetadataString[] = {
 	FIELDNAMES_reference, offsetof (struct X3D_MetadataString, reference),  FIELDTYPE_SFString, KW_initializeOnly,
-	FIELDNAMES_value, offsetof (struct X3D_MetadataString, value),  FIELDTYPE_MFString, KW_initializeOnly,
-	FIELDNAMES_name, offsetof (struct X3D_MetadataString, name),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_value, offsetof (struct X3D_MetadataString, value),  FIELDTYPE_MFString, KW_inputOutput,
+	FIELDNAMES_name, offsetof (struct X3D_MetadataString, name),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_MetadataString, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_MetadataString, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
@@ -2974,7 +2957,7 @@ const int OFFSETS_NormalInterpolator[] = {
 const int OFFSETS_NurbsCurve[] = {
 	FIELDNAMES_knot, offsetof (struct X3D_NurbsCurve, knot),  FIELDTYPE_MFFloat, KW_initializeOnly,
 	FIELDNAMES_tessellation, offsetof (struct X3D_NurbsCurve, tessellation),  FIELDTYPE_SFInt32, KW_inputOutput,
-	FIELDNAMES_order, offsetof (struct X3D_NurbsCurve, order),  FIELDTYPE_SFInt32, KW_initializeOnly,
+	FIELDNAMES_order, offsetof (struct X3D_NurbsCurve, order),  FIELDTYPE_SFInt32, KW_inputOutput,
 	FIELDNAMES_weight, offsetof (struct X3D_NurbsCurve, weight),  FIELDTYPE_MFFloat, KW_inputOutput,
 	FIELDNAMES_controlPoint, offsetof (struct X3D_NurbsCurve, controlPoint),  FIELDTYPE_MFVec3f, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_NurbsCurve, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
@@ -2984,7 +2967,7 @@ const int OFFSETS_NurbsCurve[] = {
 const int OFFSETS_NurbsCurve2D[] = {
 	FIELDNAMES_knot, offsetof (struct X3D_NurbsCurve2D, knot),  FIELDTYPE_MFFloat, KW_initializeOnly,
 	FIELDNAMES_tessellation, offsetof (struct X3D_NurbsCurve2D, tessellation),  FIELDTYPE_SFInt32, KW_inputOutput,
-	FIELDNAMES_order, offsetof (struct X3D_NurbsCurve2D, order),  FIELDTYPE_SFInt32, KW_initializeOnly,
+	FIELDNAMES_order, offsetof (struct X3D_NurbsCurve2D, order),  FIELDTYPE_SFInt32, KW_inputOutput,
 	FIELDNAMES_weight, offsetof (struct X3D_NurbsCurve2D, weight),  FIELDTYPE_MFFloat, KW_inputOutput,
 	FIELDNAMES_controlPoint, offsetof (struct X3D_NurbsCurve2D, controlPoint),  FIELDTYPE_MFVec2f, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_NurbsCurve2D, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
@@ -3004,7 +2987,7 @@ const int OFFSETS_NurbsGroup[] = {
 
 const int OFFSETS_NurbsPositionInterpolator[] = {
 	FIELDNAMES_set_fraction, offsetof (struct X3D_NurbsPositionInterpolator, set_fraction),  FIELDTYPE_SFFloat, KW_inputOnly,
-	FIELDNAMES_knot, offsetof (struct X3D_NurbsPositionInterpolator, knot),  FIELDTYPE_MFFloat, KW_inputOutput,
+	FIELDNAMES_knot, offsetof (struct X3D_NurbsPositionInterpolator, knot),  FIELDTYPE_MFFloat, KW_initializeOnly,
 	FIELDNAMES_value_changed, offsetof (struct X3D_NurbsPositionInterpolator, value_changed),  FIELDTYPE_SFVec3f, KW_outputOnly,
 	FIELDNAMES_keyValue, offsetof (struct X3D_NurbsPositionInterpolator, keyValue),  FIELDTYPE_MFVec3f, KW_inputOutput,
 	FIELDNAMES_keyWeight, offsetof (struct X3D_NurbsPositionInterpolator, keyWeight),  FIELDTYPE_MFFloat, KW_inputOutput,
@@ -3021,7 +3004,7 @@ const int OFFSETS_NurbsSurface[] = {
 	FIELDNAMES_ccw, offsetof (struct X3D_NurbsSurface, ccw),  FIELDTYPE_SFBool, KW_initializeOnly,
 	FIELDNAMES_knot, offsetof (struct X3D_NurbsSurface, knot),  FIELDTYPE_MFFloat, KW_initializeOnly,
 	FIELDNAMES_uTessellation, offsetof (struct X3D_NurbsSurface, uTessellation),  FIELDTYPE_SFInt32, KW_inputOutput,
-	FIELDNAMES_order, offsetof (struct X3D_NurbsSurface, order),  FIELDTYPE_SFInt32, KW_initializeOnly,
+	FIELDNAMES_order, offsetof (struct X3D_NurbsSurface, order),  FIELDTYPE_SFInt32, KW_inputOutput,
 	FIELDNAMES_weight, offsetof (struct X3D_NurbsSurface, weight),  FIELDTYPE_MFFloat, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_NurbsSurface, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_NurbsSurface, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
@@ -3080,7 +3063,7 @@ const int OFFSETS_PlaneSensor[] = {
 	FIELDNAMES_isOver, offsetof (struct X3D_PlaneSensor, isOver),  FIELDTYPE_SFBool, KW_outputOnly,
 	FIELDNAMES_trackPoint_changed, offsetof (struct X3D_PlaneSensor, trackPoint_changed),  FIELDTYPE_SFVec3f, KW_outputOnly,
 	FIELDNAMES_isActive, offsetof (struct X3D_PlaneSensor, isActive),  FIELDTYPE_SFBool, KW_outputOnly,
-	FIELDNAMES_description, offsetof (struct X3D_PlaneSensor, description),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_description, offsetof (struct X3D_PlaneSensor, description),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_PlaneSensor, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES_translation_changed, offsetof (struct X3D_PlaneSensor, translation_changed),  FIELDTYPE_SFVec3f, KW_outputOnly,
 	-1, -1, -1, -1};
@@ -3170,7 +3153,7 @@ const int OFFSETS_Rectangle2D[] = {
 	FIELDNAMES_metadata, offsetof (struct X3D_Rectangle2D, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Rectangle2D, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___points, offsetof (struct X3D_Rectangle2D, __points),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,
-	FIELDNAMES_size, offsetof (struct X3D_Rectangle2D, size),  FIELDTYPE_SFVec2f, KW_initializeOnly,
+	FIELDNAMES_size, offsetof (struct X3D_Rectangle2D, size),  FIELDTYPE_SFVec2f, KW_inputOutput,
 	-1, -1, -1, -1};
 
 const int OFFSETS_ScalarInterpolator[] = {
@@ -3197,7 +3180,7 @@ const int OFFSETS_ShaderPart[] = {
 	FIELDNAMES___parenturl, offsetof (struct X3D_ShaderPart, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,
 	FIELDNAMES_url, offsetof (struct X3D_ShaderPart, url),  FIELDTYPE_MFString, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_ShaderPart, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
-	FIELDNAMES_type, offsetof (struct X3D_ShaderPart, type),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_type, offsetof (struct X3D_ShaderPart, type),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_ShaderPart, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
 
@@ -3205,7 +3188,7 @@ const int OFFSETS_ShaderProgram[] = {
 	FIELDNAMES___parenturl, offsetof (struct X3D_ShaderProgram, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,
 	FIELDNAMES_url, offsetof (struct X3D_ShaderProgram, url),  FIELDTYPE_MFString, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_ShaderProgram, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
-	FIELDNAMES_type, offsetof (struct X3D_ShaderProgram, type),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_type, offsetof (struct X3D_ShaderProgram, type),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_ShaderProgram, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
 
@@ -3238,7 +3221,7 @@ const int OFFSETS_Sound[] = {
 
 const int OFFSETS_Sphere[] = {
 	FIELDNAMES_solid, offsetof (struct X3D_Sphere, solid),  FIELDTYPE_SFBool, KW_initializeOnly,
-	FIELDNAMES_radius, offsetof (struct X3D_Sphere, radius),  FIELDTYPE_SFFloat, KW_initializeOnly,
+	FIELDNAMES_radius, offsetof (struct X3D_Sphere, radius),  FIELDTYPE_SFFloat, KW_inputOutput,
 	FIELDNAMES_metadata, offsetof (struct X3D_Sphere, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Sphere, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___points, offsetof (struct X3D_Sphere, __points),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,
@@ -3251,7 +3234,7 @@ const int OFFSETS_SphereSensor[] = {
 	FIELDNAMES_isOver, offsetof (struct X3D_SphereSensor, isOver),  FIELDTYPE_SFBool, KW_outputOnly,
 	FIELDNAMES_isActive, offsetof (struct X3D_SphereSensor, isActive),  FIELDTYPE_SFBool, KW_outputOnly,
 	FIELDNAMES__oldrotation, offsetof (struct X3D_SphereSensor, _oldrotation),  FIELDTYPE_SFRotation, KW_outputOnly,
-	FIELDNAMES_description, offsetof (struct X3D_SphereSensor, description),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_description, offsetof (struct X3D_SphereSensor, description),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_autoOffset, offsetof (struct X3D_SphereSensor, autoOffset),  FIELDTYPE_SFBool, KW_inputOutput,
 	FIELDNAMES_rotation_changed, offsetof (struct X3D_SphereSensor, rotation_changed),  FIELDTYPE_SFRotation, KW_outputOnly,
 	FIELDNAMES_metadata, offsetof (struct X3D_SphereSensor, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
@@ -3405,7 +3388,7 @@ const int OFFSETS_TouchSensor[] = {
 	FIELDNAMES_hitPoint_changed, offsetof (struct X3D_TouchSensor, hitPoint_changed),  FIELDTYPE_SFVec3f, KW_outputOnly,
 	FIELDNAMES_isActive, offsetof (struct X3D_TouchSensor, isActive),  FIELDTYPE_SFBool, KW_outputOnly,
 	FIELDNAMES__oldhitPoint, offsetof (struct X3D_TouchSensor, _oldhitPoint),  FIELDTYPE_SFVec3f, KW_outputOnly,
-	FIELDNAMES_description, offsetof (struct X3D_TouchSensor, description),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_description, offsetof (struct X3D_TouchSensor, description),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_hitTexCoord_changed, offsetof (struct X3D_TouchSensor, hitTexCoord_changed),  FIELDTYPE_SFVec2f, KW_outputOnly,
 	FIELDNAMES__oldhitNormal, offsetof (struct X3D_TouchSensor, _oldhitNormal),  FIELDTYPE_SFVec3f, KW_outputOnly,
 	FIELDNAMES_hitNormal_changed, offsetof (struct X3D_TouchSensor, hitNormal_changed),  FIELDTYPE_SFVec3f, KW_outputOnly,
@@ -3567,7 +3550,7 @@ const int OFFSETS_Viewpoint[] = {
 	FIELDNAMES_position, offsetof (struct X3D_Viewpoint, position),  FIELDTYPE_SFVec3f, KW_inputOutput,
 	FIELDNAMES___BGNumber, offsetof (struct X3D_Viewpoint, __BGNumber),  FIELDTYPE_SFInt32, KW_initializeOnly,
 	FIELDNAMES_jump, offsetof (struct X3D_Viewpoint, jump),  FIELDTYPE_SFBool, KW_inputOutput,
-	FIELDNAMES_description, offsetof (struct X3D_Viewpoint, description),  FIELDTYPE_SFString, KW_initializeOnly,
+	FIELDNAMES_description, offsetof (struct X3D_Viewpoint, description),  FIELDTYPE_SFString, KW_inputOutput,
 	FIELDNAMES_bindTime, offsetof (struct X3D_Viewpoint, bindTime),  FIELDTYPE_SFTime, KW_outputOnly,
 	FIELDNAMES_isBound, offsetof (struct X3D_Viewpoint, isBound),  FIELDTYPE_SFBool, KW_outputOnly,
 	FIELDNAMES_centerOfRotation, offsetof (struct X3D_Viewpoint, centerOfRotation),  FIELDTYPE_SFVec3f, KW_inputOutput,
@@ -7169,12 +7152,14 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_Arc2D : {
 			struct X3D_Arc2D *tmp;
 			tmp = (struct X3D_Arc2D *) node;
+			spacer printf ("\tradius (SFFloat) \t%4.3f\n",tmp->radius);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_ArcClose2D : {
 			struct X3D_ArcClose2D *tmp;
 			tmp = (struct X3D_ArcClose2D *) node;
+			spacer printf ("\tradius (SFFloat) \t%4.3f\n",tmp->radius);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -7291,10 +7276,14 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_Box *) node;
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
+			spacer printf ("\tsize (SFVec3f): \t");
+			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->size.c[i]); }
+			printf ("\n");
 		break;}
 		case NODE_Circle2D : {
 			struct X3D_Circle2D *tmp;
 			tmp = (struct X3D_Circle2D *) node;
+			spacer printf ("\tradius (SFFloat) \t%4.3f\n",tmp->radius);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -7358,6 +7347,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_Cone : {
 			struct X3D_Cone *tmp;
 			tmp = (struct X3D_Cone *) node;
+			spacer printf ("\tbottom (SFBool) \t%d\n",tmp->bottom);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -7407,6 +7397,9 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_Cylinder : {
 			struct X3D_Cylinder *tmp;
 			tmp = (struct X3D_Cylinder *) node;
+			spacer printf ("\tradius (SFFloat) \t%4.3f\n",tmp->radius);
+			spacer printf ("\tbottom (SFBool) \t%d\n",tmp->bottom);
+			spacer printf ("\ttop (SFBool) \t%d\n",tmp->top);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -7421,6 +7414,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tenabled (SFBool) \t%d\n",tmp->enabled);
 			spacer printf ("\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 			spacer printf ("\tmaxAngle (SFFloat) \t%4.3f\n",tmp->maxAngle);
+			spacer printf ("\tdescription (SFString) \t%s\n",tmp->description->strptr);
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_DirectionalLight : {
@@ -7459,7 +7453,11 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_Extrusion : {
 			struct X3D_Extrusion *tmp;
 			tmp = (struct X3D_Extrusion *) node;
+			spacer printf ("\torientation (MFRotation):\n");
+			for (i=0; i<tmp->orientation.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->orientation.p[i]).r[0], (tmp->orientation.p[i]).r[1],(tmp->orientation.p[i]).r[2],(tmp->orientation.p[i]).r[3]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
+			spacer printf ("\tscale (MFVec2f):\n");
+			for (i=0; i<tmp->scale.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f]\n",i,(tmp->scale.p[i]).c[0], (tmp->scale.p[i]).c[1]); }
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_FillProperties : {
@@ -7479,6 +7477,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_FloatVertexAttribute *) node;
 			spacer printf ("\tvalue (MFFloat):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->value.p[i]); }
+			spacer printf ("\tname (SFString) \t%s\n",tmp->name->strptr);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -7504,6 +7503,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_FontStyle : {
 			struct X3D_FontStyle *tmp;
 			tmp = (struct X3D_FontStyle *) node;
+			spacer printf ("\tsize (SFFloat) \t%4.3f\n",tmp->size);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -7513,10 +7513,13 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\tupdate (SFString) \t%s\n",tmp->update->strptr);
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
+			spacer printf ("\tsize (SFInt32) \t%d\n",tmp->size);
 		break;}
 		case NODE_GeoCoordinate : {
 			struct X3D_GeoCoordinate *tmp;
 			tmp = (struct X3D_GeoCoordinate *) node;
+			spacer printf ("\tpoint (MFVec3d):\n");
+			for (i=0; i<tmp->point.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1],(tmp->point.p[i]).c[2]); }
 			spacer printf ("\t__movedCoords (MFVec3f):\n");
 			for (i=0; i<tmp->__movedCoords.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->__movedCoords.p[i]).c[0], (tmp->__movedCoords.p[i]).c[1],(tmp->__movedCoords.p[i]).c[2]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
@@ -7539,6 +7542,9 @@ void dump_scene (int level, struct X3D_Node* node) {
 			printf ("\n");
 			spacer printf ("\tchildren (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
+			spacer printf ("\tcenter (SFVec3d): \t");
+			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->center.c[i]); }
+			printf ("\n");
 			spacer printf ("\t__rooturlloadstatus (SFInt32) \t%d\n",tmp->__rooturlloadstatus);
 			spacer printf ("\t__level (SFInt32) \t%d\n",tmp->__level);
 			spacer printf ("\t__t1 (SFVec3d): \t");
@@ -7594,8 +7600,6 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\t__movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->__movedCoords.c[i]); }
 			printf ("\n");
-			spacer printf ("\tgeoSystem (MFString): \n");
-			for (i=0; i<tmp->geoSystem.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->geoSystem.p[i]->strptr); }
 			spacer printf ("\t__oldgeoCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->__oldgeoCoords.c[i]); }
 			printf ("\n");
@@ -7658,6 +7662,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\tenabled (SFBool) \t%d\n",tmp->enabled);
 			spacer printf ("\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer printf ("\tdescription (SFString) \t%s\n",tmp->description->strptr);
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_GeoTransform : {
@@ -7698,6 +7703,12 @@ void dump_scene (int level, struct X3D_Node* node) {
 			struct X3D_GeoViewpoint *tmp;
 			tmp = (struct X3D_GeoViewpoint *) node;
 			spacer printf ("\theadlight (SFBool) \t%d\n",tmp->headlight);
+			spacer printf ("\torientation (SFRotation): \t");
+			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->orientation.r[i]); }
+			printf ("\n");
+			spacer printf ("\tposition (SFVec3d): \t");
+			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->position.c[i]); }
+			printf ("\n");
 			spacer printf ("\t__oldMFString (MFString): \n");
 			for (i=0; i<tmp->__oldMFString.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->__oldMFString.p[i]->strptr); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
@@ -7730,8 +7741,6 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_HAnimDisplacer *) node;
 			spacer printf ("\tdisplacements (MFVec3f):\n");
 			for (i=0; i<tmp->displacements.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->displacements.p[i]).c[0], (tmp->displacements.p[i]).c[1],(tmp->displacements.p[i]).c[2]); }
-			spacer printf ("\tcoordIndex (MFInt32):\n");
-			for (i=0; i<tmp->coordIndex.n; i++) { spacer printf ("			%d: \t%d\n",i,tmp->coordIndex.p[i]); }
 			spacer printf ("\tname (SFString) \t%s\n",tmp->name->strptr);
 			spacer printf ("\tweight (SFFloat) \t%4.3f\n",tmp->weight);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
@@ -7756,8 +7765,6 @@ void dump_scene (int level, struct X3D_Node* node) {
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->translation.c[i]); }
 			printf ("\n");
 			spacer printf ("\tskinCoord (SFNode):\n"); dump_scene(level+1,tmp->skinCoord); 
-			spacer printf ("\tinfo (MFString): \n");
-			for (i=0; i<tmp->info.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->info.p[i]->strptr); }
 			spacer printf ("\trotation (SFRotation): \t");
 			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->rotation.r[i]); }
 			printf ("\n");
@@ -7970,6 +7977,9 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_LOD *) node;
 			spacer printf ("\tchildren (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
+			spacer printf ("\tcenter (SFVec3f): \t");
+			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->center.c[i]); }
+			printf ("\n");
 			spacer printf ("\tlevel (MFNode):\n");
 			for (i=0; i<tmp->level.n; i++) { dump_scene(level+1,tmp->level.p[i]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
@@ -8040,6 +8050,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_Matrix3VertexAttribute *) node;
 			spacer printf ("\tvalue (MFMatrix3f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8]); }
+			spacer printf ("\tname (SFString) \t%s\n",tmp->name->strptr);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8048,24 +8059,34 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_Matrix4VertexAttribute *) node;
 			spacer printf ("\tvalue (MFMatrix4f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8],(tmp->value.p[i]).c[9],(tmp->value.p[i]).c[10],(tmp->value.p[i]).c[11],(tmp->value.p[i]).c[12],(tmp->value.p[i]).c[13],(tmp->value.p[i]).c[14],(tmp->value.p[i]).c[15]); }
+			spacer printf ("\tname (SFString) \t%s\n",tmp->name->strptr);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_MetadataDouble : {
 			struct X3D_MetadataDouble *tmp;
 			tmp = (struct X3D_MetadataDouble *) node;
+			spacer printf ("\tvalue (MFDouble):\n");
+			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->value.p[i]); }
+			spacer printf ("\tname (SFString) \t%s\n",tmp->name->strptr);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_MetadataFloat : {
 			struct X3D_MetadataFloat *tmp;
 			tmp = (struct X3D_MetadataFloat *) node;
+			spacer printf ("\tvalue (MFFloat):\n");
+			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->value.p[i]); }
+			spacer printf ("\tname (SFString) \t%s\n",tmp->name->strptr);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_MetadataInteger : {
 			struct X3D_MetadataInteger *tmp;
 			tmp = (struct X3D_MetadataInteger *) node;
+			spacer printf ("\tvalue (MFInt32):\n");
+			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%d\n",i,tmp->value.p[i]); }
+			spacer printf ("\tname (SFString) \t%s\n",tmp->name->strptr);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8365,12 +8386,18 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_MetadataSet : {
 			struct X3D_MetadataSet *tmp;
 			tmp = (struct X3D_MetadataSet *) node;
+			spacer printf ("\tvalue (MFNode):\n");
+			for (i=0; i<tmp->value.n; i++) { dump_scene(level+1,tmp->value.p[i]); }
+			spacer printf ("\tname (SFString) \t%s\n",tmp->name->strptr);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_MetadataString : {
 			struct X3D_MetadataString *tmp;
 			tmp = (struct X3D_MetadataString *) node;
+			spacer printf ("\tvalue (MFString): \n");
+			for (i=0; i<tmp->value.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->value.p[i]->strptr); }
+			spacer printf ("\tname (SFString) \t%s\n",tmp->name->strptr);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8483,6 +8510,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			struct X3D_NurbsCurve *tmp;
 			tmp = (struct X3D_NurbsCurve *) node;
 			spacer printf ("\ttessellation (SFInt32) \t%d\n",tmp->tessellation);
+			spacer printf ("\torder (SFInt32) \t%d\n",tmp->order);
 			spacer printf ("\tweight (MFFloat):\n");
 			for (i=0; i<tmp->weight.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->weight.p[i]); }
 			spacer printf ("\tcontrolPoint (MFVec3f):\n");
@@ -8494,6 +8522,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			struct X3D_NurbsCurve2D *tmp;
 			tmp = (struct X3D_NurbsCurve2D *) node;
 			spacer printf ("\ttessellation (SFInt32) \t%d\n",tmp->tessellation);
+			spacer printf ("\torder (SFInt32) \t%d\n",tmp->order);
 			spacer printf ("\tweight (MFFloat):\n");
 			for (i=0; i<tmp->weight.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->weight.p[i]); }
 			spacer printf ("\tcontrolPoint (MFVec2f):\n");
@@ -8513,8 +8542,6 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_NurbsPositionInterpolator : {
 			struct X3D_NurbsPositionInterpolator *tmp;
 			tmp = (struct X3D_NurbsPositionInterpolator *) node;
-			spacer printf ("\tknot (MFFloat):\n");
-			for (i=0; i<tmp->knot.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->knot.p[i]); }
 			spacer printf ("\tkeyValue (MFVec3f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
 			spacer printf ("\tkeyWeight (MFFloat):\n");
@@ -8532,6 +8559,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			for (i=0; i<tmp->controlPoint.n; i++) { spacer printf ("			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->controlPoint.p[i]).c[0], (tmp->controlPoint.p[i]).c[1],(tmp->controlPoint.p[i]).c[2]); }
 			spacer printf ("\ttexCoord (SFNode):\n"); dump_scene(level+1,tmp->texCoord); 
 			spacer printf ("\tuTessellation (SFInt32) \t%d\n",tmp->uTessellation);
+			spacer printf ("\torder (SFInt32) \t%d\n",tmp->order);
 			spacer printf ("\tweight (MFFloat):\n");
 			for (i=0; i<tmp->weight.n; i++) { spacer printf ("			%d: \t%4.3f\n",i,tmp->weight.p[i]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
@@ -8591,6 +8619,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			printf ("\n");
 			spacer printf ("\tenabled (SFBool) \t%d\n",tmp->enabled);
 			spacer printf ("\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer printf ("\tdescription (SFString) \t%s\n",tmp->description->strptr);
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_PointLight : {
@@ -8691,6 +8720,9 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_Rectangle2D *) node;
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
+			spacer printf ("\tsize (SFVec2f): \t");
+			for (i=0; i<2; i++) { printf ("%4.3f  ",tmp->size.c[i]); }
+			printf ("\n");
 		break;}
 		case NODE_ScalarInterpolator : {
 			struct X3D_ScalarInterpolator *tmp;
@@ -8716,6 +8748,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\turl (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
+			spacer printf ("\ttype (SFString) \t%s\n",tmp->type->strptr);
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_ShaderProgram : {
@@ -8724,6 +8757,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\turl (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
+			spacer printf ("\ttype (SFString) \t%s\n",tmp->type->strptr);
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_Shape : {
@@ -8756,6 +8790,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_Sphere : {
 			struct X3D_Sphere *tmp;
 			tmp = (struct X3D_Sphere *) node;
+			spacer printf ("\tradius (SFFloat) \t%4.3f\n",tmp->radius);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
@@ -8763,6 +8798,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			struct X3D_SphereSensor *tmp;
 			tmp = (struct X3D_SphereSensor *) node;
 			spacer printf ("\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer printf ("\tdescription (SFString) \t%s\n",tmp->description->strptr);
 			spacer printf ("\tautoOffset (SFBool) \t%d\n",tmp->autoOffset);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
@@ -8916,6 +8952,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			struct X3D_TouchSensor *tmp;
 			tmp = (struct X3D_TouchSensor *) node;
 			spacer printf ("\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer printf ("\tdescription (SFString) \t%s\n",tmp->description->strptr);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 			spacer printf ("\tenabled (SFBool) \t%d\n",tmp->enabled);
@@ -9028,6 +9065,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->position.c[i]); }
 			printf ("\n");
 			spacer printf ("\tjump (SFBool) \t%d\n",tmp->jump);
+			spacer printf ("\tdescription (SFString) \t%s\n",tmp->description->strptr);
 			spacer printf ("\tcenterOfRotation (SFVec3f): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->centerOfRotation.c[i]); }
 			printf ("\n");

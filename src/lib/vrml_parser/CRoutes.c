@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.12 2009/02/18 13:37:50 istakenv Exp $
+$Id: CRoutes.c,v 1.13 2009/03/25 14:16:03 crc_canada Exp $
 
 ???
 
@@ -1760,6 +1760,7 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 		 -18 is a Multi_Vec2f
 		 -19 is a Multi_Vec3f
 		 -20 is a Multi_Vec3d
+		 -22 is a SFString
 	*/
 
 	/* Multi_XXX nodes always consist of a count then a pointer - see
@@ -1791,6 +1792,30 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 		case -18: {structlen = sizeof (struct SFVec2f); break;}
 		case -19: {structlen = sizeof (struct SFColor); break;} /* This is actually SFVec3f - but no struct of this type */
 		case -20: {structlen = sizeof (struct SFVec3d); break;} 
+		case -22: { 
+			/* SFStrings are "special" */
+			/* remember:
+				struct Uni_String {
+				        int len;
+				        char * strptr;
+				        int touched;
+			};
+			*/
+			struct Uni_String *fStr; 
+			struct Uni_String *tStr;
+
+			/* get the CONTENTS of the fn and tn pointers */
+			memcpy (&fStr,fn,sizeof (void *));
+			memcpy (&tStr,tn,sizeof (void *));
+
+
+			printf ("copying over a SFString in Multi from %u to %u\n",fStr, tStr);
+			printf ("string was :%s:\n",tStr->strptr);
+			verify_Uni_String(tStr, fStr->strptr); 
+			printf ("string is :%s:\n",tStr->strptr);
+			return; /* we have done the needed stuff here */
+			break;
+		}
 		default: {
 			 /* this is MOST LIKELY for an EAI handle_Listener call - if not, it is a ROUTING problem... */
 			/* printf("WARNING: Multimemcpy, don't handle type %d yet\n", multitype);  */

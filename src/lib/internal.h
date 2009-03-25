@@ -6,7 +6,7 @@
  *
  * Library internal declarations.
  *
- * $Id: internal.h,v 1.11 2009/02/11 15:12:54 istakenv Exp $
+ * $Id: internal.h,v 1.12 2009/03/25 14:16:03 crc_canada Exp $
  *
  *******************************************************************/
 
@@ -38,7 +38,7 @@
 # define REALLOC(_a,_b) freewrlRealloc(__LINE__,__FILE__,_a,_b) 
 # define FREE(_ptr) freewrlFree(__LINE__,__FILE__,_ptr)
 # define STRDUP(_a) freewrlStrdup(__LINE__,__FILE__,_a)
-
+#include <stdlib.h>
 void *freewrlMalloc(int line, char *file, size_t sz);
 void *freewrlRealloc(int line, char *file, void *ptr, size_t size);
 void freewrlFree(int line, char *file, void *a);

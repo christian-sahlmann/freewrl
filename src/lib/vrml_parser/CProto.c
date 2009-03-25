@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.16 2009/03/24 16:20:38 crc_canada Exp $
+$Id: CProto.c,v 1.17 2009/03/25 14:16:03 crc_canada Exp $
 
 CProto ???
 
@@ -1560,6 +1560,7 @@ printf ("mallocing newProtoText, size %d\n",curstringlen + routeSize + strlen(EN
 	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif
 
+	printf ("so, newProtoText \n%s\n",newProtoText);
 	return newProtoText;
 }
 

@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.6 2009/03/24 16:20:37 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.7 2009/03/25 14:16:03 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -7,6 +7,13 @@
 # for conditions of use and redistribution.
 
 package VRML::NodeType;
+
+
+# see note top of file - the VRML Parser REQUIRES for routing that 
+# each field name exists in only one table- eg, "inputOutput", "initializeOnly",
+# etc. So, in order to do this, we make sure that each field name follows this, even
+# though we may, for instance, change "value" to an "inputOutput" when the spec
+# says it is an "initializeOnly". This has little if any effect on parsing.
 
 ########################################################################
 
@@ -558,7 +565,7 @@ package VRML::NodeType;
 	###################################################################################
 
 	Box => new VRML::NodeType("Box", { 	
-		size => [SFVec3f, [2, 2, 2], initializeOnly],
+		size => [SFVec3f, [2, 2, 2], inputOutput], # see note top of file
 		solid => [SFBool, TRUE, initializeOnly],
                 metadata => [SFNode, NULL, inputOutput],
                 __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
@@ -569,7 +576,7 @@ package VRML::NodeType;
 		 bottomRadius => [SFFloat, 1.0, initializeOnly],
 		 height => [SFFloat, 2.0, initializeOnly],
 		 side => [SFBool, TRUE, initializeOnly],
-		 bottom => [SFBool, TRUE, initializeOnly],
+		 bottom => [SFBool, TRUE, inputOutput], # see note top of file
 		solid => [SFBool, TRUE, initializeOnly],
                 metadata => [SFNode, NULL, inputOutput],
                 __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
@@ -579,11 +586,11 @@ package VRML::NodeType;
 	},"X3DGeometryNode"),
 
 	Cylinder => new VRML::NodeType ("Cylinder", {
-		 bottom => [SFBool, TRUE, initializeOnly],
+		 bottom => [SFBool, TRUE, inputOutput], # see note top of file
 		 height => [SFFloat, 2.0, initializeOnly],
-		 radius => [SFFloat, 1.0, initializeOnly],
+		 radius => [SFFloat, 1.0, inputOutput], # see note top of file
 		 side => [SFBool, TRUE, initializeOnly],
-		 top => [SFBool, TRUE, initializeOnly],
+		 top => [SFBool, TRUE, inputOutput], # see note top of file
 		solid => [SFBool, TRUE, initializeOnly],
                 metadata => [SFNode, NULL, inputOutput],
                 __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
@@ -637,9 +644,9 @@ package VRML::NodeType;
 		crossSection => [MFVec2f, [[1, 1],[1, -1],[-1, -1],
 						   [-1, 1],[1, 1]], initializeOnly],
 		endCap => [SFBool, TRUE, initializeOnly],
-		orientation => [MFRotation, [[0, 0, 1, 0]],initializeOnly],
+		orientation => [MFRotation, [[0, 0, 1, 0]],inputOutput], # see note top of file
 
-		scale => [MFVec2f, [[1, 1]], initializeOnly],
+		scale => [MFVec2f, [[1, 1]], inputOutput], # see note top of file
 		solid => [SFBool, TRUE, initializeOnly],
 		spine => [MFVec3f, [[0, 0, 0],[0, 1, 0]], initializeOnly],
                 metadata => [SFNode, NULL, inputOutput],
@@ -681,7 +688,7 @@ package VRML::NodeType;
 	},"X3DGeometryNode"),
 
 	Sphere => new VRML::NodeType("Sphere", { 	
-		radius => [SFFloat, 1.0, initializeOnly],
+		radius => [SFFloat, 1.0, inputOutput], # see note top of file
 		solid => [SFBool, TRUE, initializeOnly],
                 metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
@@ -697,7 +704,7 @@ package VRML::NodeType;
 
 	Arc2D => new VRML::NodeType("Arc2D", {
 		endAngle => [SFFloat, 1.5707, initializeOnly],
-		radius => [SFFloat, 1.0, initializeOnly],
+		radius => [SFFloat, 1.0, inputOutput], # see note top of file
 		startAngle => [SFFloat, 0.0, initializeOnly],
                 metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
@@ -708,7 +715,7 @@ package VRML::NodeType;
 	ArcClose2D => new VRML::NodeType("ArcClose2D", {
 			closureType => [SFString,"PIE",initializeOnly],
 					    	endAngle => [SFFloat, 1.5707, initializeOnly],
-					    	radius => [SFFloat, 1.0, initializeOnly],
+					    	radius => [SFFloat, 1.0, inputOutput], # see note top of file
 			solid => [SFBool, FALSE, initializeOnly],
 					    	startAngle => [SFFloat, 0.0, initializeOnly],
                 metadata => [SFNode, NULL, inputOutput],
@@ -719,7 +726,7 @@ package VRML::NodeType;
 
 
 	Circle2D => new VRML::NodeType("Circle2D", {
-					    	radius => [SFFloat, 1.0, initializeOnly],
+					    	radius => [SFFloat, 1.0, inputOutput], # see note top of file
                 metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 			__points  =>[FreeWRLPTR,0,initializeOnly],
@@ -751,8 +758,8 @@ package VRML::NodeType;
  					   },"X3DGeometryNode"),
 
 	Rectangle2D => new VRML::NodeType("Rectangle2D", {
-					    	size => [SFVec2f, [2.0, 2.0], initializeOnly],
-			solid => [SFBool, FALSE, initializeOnly],
+		size => [SFVec2f, [2.0, 2.0], inputOutput], # see note top of file
+		solid => [SFBool, FALSE, initializeOnly],
                 metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 			__points  =>[FreeWRLPTR,0,initializeOnly],
@@ -791,7 +798,7 @@ package VRML::NodeType;
 			justify => [MFString, ["BEGIN"], initializeOnly],
 			language => [SFString, "", initializeOnly],
 			leftToRight => [SFBool, TRUE, initializeOnly],
-			size => [SFFloat, 1.0, initializeOnly],
+			size => [SFFloat, 1.0, inputOutput], # see note top of file
 			spacing => [SFFloat, 1.0, initializeOnly],
 			style => [SFString, "PLAIN", initializeOnly],
 			topToBottom => [SFBool, TRUE, initializeOnly],
@@ -1056,7 +1063,7 @@ package VRML::NodeType;
 	GeneratedCubeMapTexture => new VRML::NodeType("GeneratedCubeMapTexture", {
 		metadata => [SFNode, NULL, inputOutput],
 		update => [SFString,"NONE",inputOutput],
-		size => [SFInt32,128,initializeOnly],
+		size => [SFInt32,128,inputOutput], # see note top of file
 		textureProperties => [SFNode, NULL, initializeOnly],
                 metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
@@ -1174,7 +1181,7 @@ package VRML::NodeType;
 			_oldhitTexCoord => [SFVec2f, [0, 0], outputOnly], 	# send event only if changed
 			isActive => [SFBool, FALSE, outputOnly],
 			isOver => [SFBool, FALSE, outputOnly],
-			description => [SFString, "", initializeOnly],
+			description => [SFString, "", inputOutput], # see note top of file
 			touchTime => [SFTime, -1, outputOnly],
                 metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
@@ -1189,7 +1196,7 @@ package VRML::NodeType;
 			offset => [SFVec3f, [0, 0, 0], inputOutput],
 			isActive => [SFBool, FALSE, outputOnly],
 			isOver => [SFBool, FALSE, outputOnly],
-			description => [SFString, "", initializeOnly],
+			description => [SFString, "", inputOutput], # see note top of file
 			trackPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
 			translation_changed => [SFVec3f, [0, 0, 0], outputOnly],
                 metadata => [SFNode, NULL, inputOutput],
@@ -1211,7 +1218,7 @@ package VRML::NodeType;
 			_oldtrackPoint => [SFVec3f, [0, 0, 0], outputOnly],
 			_oldrotation => [SFRotation, [0, 0, 1, 0], outputOnly],
 			isOver => [SFBool, FALSE, outputOnly],
-			description => [SFString, "", initializeOnly],
+			description => [SFString, "", inputOutput], # see note top of file
 			# where we are at a press...
                 metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
@@ -1229,7 +1236,7 @@ package VRML::NodeType;
 			offset => [SFFloat, 0, inputOutput],
 			isActive => [SFBool, FALSE, outputOnly],
 			isOver => [SFBool, FALSE, outputOnly],
-			description => [SFString, "", initializeOnly],
+			description => [SFString, "", inputOutput], # see note top of file
 			rotation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
 			trackPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
                 metadata => [SFNode, NULL, inputOutput],
@@ -1336,7 +1343,7 @@ package VRML::NodeType;
 			 removeChildren => [MFNode, undef, inputOnly],
 			level => [MFNode, [], inputOutput], 		# for VRML spec
 			children => [MFNode, [], inputOutput],		# for X3D spec
-			center => [SFVec3f, [0, 0, 0],  initializeOnly],
+			center => [SFVec3f, [0, 0, 0],  inputOutput ], # see note top of file
 			range => [MFFloat, [], initializeOnly],
 			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
 			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
@@ -1382,7 +1389,7 @@ package VRML::NodeType;
 			jump => [SFBool, TRUE, inputOutput],
 			orientation => [SFRotation, [0, 0, 1, 0], inputOutput],
 			position => [SFVec3f,[0, 0, 10], inputOutput],
-			description => [SFString, "", initializeOnly],
+			description => [SFString, "", inputOutput], # see note top of file
 			bindTime => [SFTime, -1, outputOnly],
 			isBound => [SFBool, FALSE, outputOnly],
 			centerOfRotation =>[SFVec3f, [0,0,0], inputOutput],
@@ -1508,7 +1515,7 @@ package VRML::NodeType;
 
 	GeoCoordinate => new VRML::NodeType("GeoCoordinate", {
 			metadata => [SFNode, NULL, inputOutput],
-			point => [MFVec3d,[],initializeOnly],
+			point => [MFVec3d,[],inputOutput], # see note top of file
 			geoOrigin => [SFNode, NULL, initializeOnly],
 			geoSystem => [MFString,["GD","WE"],initializeOnly],
 			__geoSystem => [MFInt32,[],initializeOnly],
@@ -1554,7 +1561,7 @@ package VRML::NodeType;
 			children => [MFNode, [], inputOutput],
 			level_changed =>[SFInt32,0,outputOnly],
 
-			center => [SFVec3d,[0,0,0],initializeOnly],
+			center => [SFVec3d,[0,0,0],inputOutput], # see note top of file
 			child1Url =>[MFString,[],initializeOnly],
 			child2Url =>[MFString,[],initializeOnly],
 			child3Url =>[MFString,[],initializeOnly],
@@ -1645,7 +1652,7 @@ package VRML::NodeType;
 					   },"X3DEnvironmentalSensorNode"),
 
 	GeoTouchSensor=> new VRML::NodeType("GeoTouchSensor", {
-			description => [SFString, "", initializeOnly],
+			description => [SFString, "", inputOutput], # see note top of file
 			enabled => [SFBool, FALSE,inputOutput],
 			metadata => [SFNode, NULL, inputOutput],
 			hitNormal_changed => [SFVec3f, [0, 0, 0], outputOnly],
@@ -1712,8 +1719,8 @@ package VRML::NodeType;
 
 			geoOrigin => [SFNode, NULL, initializeOnly],
 			geoSystem => [MFString,["GD","WE"],initializeOnly],
-			orientation => [SFRotation, [0, 0, 1, 0], initializeOnly],
-			position => [SFVec3d,[0, 0, 100000], initializeOnly],
+			orientation => [SFRotation, [0, 0, 1, 0], inputOutput], # see note top of file
+			position => [SFVec3d,[0, 0, 100000], inputOutput],
 			speedFactor => [SFFloat,1.0,initializeOnly],
 			__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
 
@@ -1734,7 +1741,7 @@ package VRML::NodeType;
 
 	GeoOrigin => new VRML::NodeType("GeoOrigin", {
 			geoCoords => [SFVec3d, [0, 0, 0], inputOutput],
-			geoSystem => [MFString,["GD","WE"],inputOutput],
+			geoSystem => [MFString,["GD","WE"],initializeOnly],
 			metadata => [SFNode, NULL, inputOutput],
 			rotateYUp => [SFBool, TRUE,initializeOnly],
 
@@ -1776,7 +1783,7 @@ package VRML::NodeType;
 	###################################################################################
 
 	HAnimDisplacer => new VRML::NodeType("HAnimDisplacer", {
-			coordIndex => [MFInt32, [], inputOutput],
+			coordIndex => [MFInt32, [], inputOnly], # see note top of file
 			displacements => [MFVec3f, [], inputOutput],
 			name => [SFString, "", inputOutput],
 			weight => [SFFloat, 0.0, inputOutput],
@@ -1786,7 +1793,7 @@ package VRML::NodeType;
 
 	HAnimHumanoid => new VRML::NodeType("HAnimHumanoid", {
 			center => [SFVec3f, [0, 0, 0], inputOutput],
-			info => [MFString, [],inputOutput],
+			info => [MFString, [],initializeOnly], # see note top of file
 			joints => [MFNode,[],inputOutput],
 			name => [SFString, "", inputOutput],
 			rotation => [SFRotation,[0,0,1,0], inputOutput],
@@ -1912,7 +1919,7 @@ package VRML::NodeType;
 			weight => [MFFloat,[],inputOutput],
 			tessellation => [SFInt32,0,inputOutput],
 			knot => [MFFloat,[],initializeOnly],
-			order => [SFInt32,3,initializeOnly],
+			order => [SFInt32,3,inputOutput], # see note top of file
 			metadata => [SFNode, NULL, inputOutput],
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DParametricGeometryNode"
@@ -1925,7 +1932,7 @@ package VRML::NodeType;
 			weight => [MFFloat,[],inputOutput],
 			tessellation => [SFInt32,0,inputOutput],
 			knot => [MFFloat,[],initializeOnly],
-			order => [SFInt32,3,initializeOnly],
+			order => [SFInt32,3,inputOutput], # see note top of file
 			metadata => [SFNode, NULL, inputOutput],
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DParametricGeometryNode"
@@ -1953,7 +1960,7 @@ package VRML::NodeType;
 			dimension => [SFInt32,0,inputOutput],
 			keyValue => [MFVec3f,[],inputOutput],
 			keyWeight => [MFFloat,[],inputOutput],
-			knot => [MFFloat,[],inputOutput],
+			knot => [MFFloat,[],initializeOnly],# see note top of file
 			order => [SFInt32,0,inputOutput],
 			value_changed => [SFVec3f,[0,0,0],outputOnly],
 			metadata => [SFNode, NULL, inputOutput],
@@ -1972,7 +1979,7 @@ package VRML::NodeType;
 			ccw => [SFBool, FALSE,initializeOnly],
 
 			knot => [MFFloat,[],initializeOnly],
-			order => [SFInt32,3,initializeOnly],
+			order => [SFInt32,3,inputOutput], # see note top of file
 			metadata => [SFNode, NULL, inputOutput],
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DParametricGeometryNode"
@@ -2110,7 +2117,7 @@ package VRML::NodeType;
 
 	FloatVertexAttribute => new VRML::NodeType("FloatVertexAttribute", {
 			value => [MFFloat,[],inputOutput],
-			name => [SFString,"",initializeOnly],
+			name => [SFString,"",inputOutput], # see note top of file
 			numComponents => [SFInt32, 4, initializeOnly], # 1...4 valid values
 			metadata => [SFNode, NULL, inputOutput],
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
@@ -2118,7 +2125,7 @@ package VRML::NodeType;
 
 	Matrix3VertexAttribute => new VRML::NodeType("Matrix3VertexAttribute", {
 			value => [MFMatrix3f,[],inputOutput],
-			name => [SFString,"",initializeOnly],
+			name => [SFString,"",inputOutput], # see note top of file
 			metadata => [SFNode, NULL, inputOutput],
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DVertexAttributeNode"),
@@ -2126,7 +2133,7 @@ package VRML::NodeType;
 	Matrix4VertexAttribute => new VRML::NodeType("Matrix4VertexAttribute", {
 			metadata => [SFNode, NULL, inputOutput],
 			value => [MFMatrix4f,[],inputOutput],
-			name => [SFString,"",initializeOnly],
+			name => [SFString,"",inputOutput], # see note top of file
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DVertexAttributeNode"),
 
@@ -2154,7 +2161,7 @@ package VRML::NodeType;
 	ShaderPart => new VRML::NodeType("ShaderPart", {
 			metadata => [SFNode, NULL, inputOutput],
 			url => [MFString, [], inputOutput],
-			type => [SFString,"VERTEX",initializeOnly],
+			type => [SFString,"VERTEX",inputOutput], # see note top of file
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 			__parenturl =>[SFString,"",initializeOnly],
 	}, "X3DUrlObject"),
@@ -2162,7 +2169,7 @@ package VRML::NodeType;
 	ShaderProgram => new VRML::NodeType("ShaderProgram", {
 			metadata => [SFNode, NULL, inputOutput],
 			url => [MFString, [], inputOutput],
-			type => [SFString,"",initializeOnly],
+			type => [SFString,"",inputOutput], # see note top of file
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 			__parenturl =>[SFString,"",initializeOnly],
 	}, "X3DUrlObject"),
@@ -2177,41 +2184,41 @@ package VRML::NodeType;
 
 	MetadataInteger => new VRML::NodeType("MetadataInteger", {
 			metadata => [SFNode, NULL, inputOutput],
-			name => [SFString,"",initializeOnly],
+			name => [SFString,"",inputOutput], # see note top of file
 			reference => [SFString,"",initializeOnly],
-			value => [MFInt32,[],initializeOnly],
+			value => [MFInt32,[],inputOutput],  # see note top of file
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DChildNode"),
 	
 	MetadataDouble => new VRML::NodeType("MetadataDouble", {
 			metadata => [SFNode, NULL, inputOutput],
-			name => [SFString,"",initializeOnly],
+			name => [SFString,"",inputOutput],# see note top of file:
 			reference => [SFString,"",initializeOnly],
-			value => [MFDouble,[],initializeOnly],
+			value => [MFDouble,[],inputOutput], # see note top of file
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DChildNode"),
 	
 	MetadataFloat => new VRML::NodeType("MetadataFloat", {
 			metadata => [SFNode, NULL, inputOutput],
-			name => [SFString,"",initializeOnly],
+			name => [SFString,"",inputOutput], # see note top of file
 			reference => [SFString,"",initializeOnly],
-			value => [MFFloat,[],initializeOnly],
+			value => [MFFloat,[],inputOutput], # see note top of file
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DChildNode"),
 	
 	MetadataString => new VRML::NodeType("MetadataString", {
 			metadata => [SFNode, NULL, inputOutput],
-			name => [SFString,"",initializeOnly],
+			name => [SFString,"",inputOutput],
 			reference => [SFString,"",initializeOnly],
-			value => [MFString,[],initializeOnly],
+			value => [MFString,[],inputOutput], # see note top of file
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DChildNode"),
 	
 	MetadataSet => new VRML::NodeType("MetadataSet", {
 			metadata => [SFNode, NULL, inputOutput],
-			name => [SFString,"",initializeOnly],
+			name => [SFString,"",inputOutput], # see note top of file
 			reference => [SFString,"",initializeOnly],
-			value => [MFNode,[],initializeOnly],
+			value => [MFNode,[],inputOutput], # see note top of file
 			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DChildNode"),
 

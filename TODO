@@ -1,4 +1,11 @@
 Priority list (as of 28/02/2009)
+22/03/2009:
+	(JAS) the VRMLNodes table, last field in a Field Definition, gives problems and needs updating.
+	1) all fields must be same type for VRML parser to consistently allow routes; eg "children" MUST be
+	   "inputOutput" even if some nodes define "children" as "inputOnly".
+	2) have to encode specification level in fields; eg "switch" has fields differing on X3D and VRML.
+	   Maybe also can encode component level in fields.
+ 
 05/03/2009: 
 	(JAS) Texture loading; if a texture is "mid-processing" and the geometry moves off
 	screen, it is possible that texture loading will hang. (Geospatial tiling can show this

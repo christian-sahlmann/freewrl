@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.10 2009/03/18 20:59:16 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.11 2009/03/25 14:16:03 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -1054,6 +1054,8 @@ struct Uni_String {
 
 void changed_MetadataSFString (struct X3D_MetadataSFString *node){ 
 	int count; int changed = FALSE; 
+
+	if (node->_initialized) {
 	if (node->value->len != node->setValue->len) changed = TRUE; else { 
 		for (count=0; count<node->setValue->len; count++) 
 			if (node->value->strptr[count] != node->setValue->strptr[count]) changed = TRUE; }
@@ -1064,5 +1066,15 @@ void changed_MetadataSFString (struct X3D_MetadataSFString *node){
 		node->value->touched = TRUE; node->valueChanged->touched = TRUE;
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSFString, valueChanged)); 
 	} 
+	} else {
+		/* initialize this one */
+		node->valueChanged->len = node->value->len;
+		node->valueChanged->touched = node->value->touched;
+		node->valueChanged->strptr = node->value->strptr;
+		node->setValue->len = node->value->len;
+		node->setValue->touched = node->value->touched;
+		node->setValue->strptr = node->value->strptr;
+		node->_initialized = TRUE;
+	}
 }
 

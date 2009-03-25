@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.12 2009/02/24 15:25:53 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.13 2009/03/25 14:16:03 crc_canada Exp $
 
 ???
 
@@ -70,6 +70,9 @@ struct Uni_String *newASCIIString(char *str) {
 	strncpy(retval->strptr,str,len+1);
 	retval->len = len+1;
 	retval->touched = 1; /* make it 1, to signal that this is a NEW string. */
+
+	/* printf ("newASCIIString, returning UniString %u, strptr %u for string :%s:\n",retval, retval->strptr,str); */
+
 	return retval;
 }
 
@@ -130,7 +133,6 @@ int returnRoutingElementLength(int type) {
 		case FIELDTYPE_SFTime:	
 				return sizeof(double); break;
 		case FIELDTYPE_SFBool:
-		case FIELDTYPE_SFString:
 		case FIELDTYPE_SFInt32:	return sizeof(int); break;
 		case FIELDTYPE_SFFloat:	return sizeof (float); break;
 		case FIELDTYPE_SFVec2f:	return sizeof (struct SFVec2f); break;
@@ -155,6 +157,7 @@ int returnRoutingElementLength(int type) {
 		case FIELDTYPE_SFDouble: return sizeof (double); break;
 		case FIELDTYPE_MFDouble: return -21; break;
 		case FIELDTYPE_SFVec4d: return sizeof (struct SFVec4d); break;
+		case FIELDTYPE_SFString: return -22; break;
 
                 default:       return type;
 	}
