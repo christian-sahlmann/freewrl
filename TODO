@@ -1,4 +1,8 @@
 Priority list (as of 28/02/2009)
+25/03/2009: 
+	(JAS) Classic VRML parser uses new PROTO routing scheme (see code for details) move this over to XML
+	parser.
+
 22/03/2009:
 	(JAS) the VRMLNodes table, last field in a Field Definition, gives problems and needs updating.
 	1) all fields must be same type for VRML parser to consistently allow routes; eg "children" MUST be
