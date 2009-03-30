@@ -1,4 +1,7 @@
 Priority list (as of 28/02/2009)
+30/03/2009:
+	(JAS) Verify that IndexedFaceSet textureCoordinateIndexes are used properly - ashby.wrl image problems.
+
 25/03/2009: 
 	(JAS) Classic VRML parser uses new PROTO routing scheme (see code for details) move this over to XML
 	parser.
