@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.17 2009/02/11 15:12:55 istakenv Exp $
+$Id: Viewer.c,v 1.18 2009/04/01 19:20:42 crc_canada Exp $
 
 CProto ???
 
@@ -24,7 +24,7 @@ CProto ???
 static int viewer_type = NONE;
 int viewer_initialized = FALSE;
 static X3D_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
-static X3D_Viewer_Examine viewer_examine = { { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
+static X3D_Viewer_Examine viewer_examine = { { 0, 0, 0 }, {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
 static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
@@ -46,6 +46,7 @@ unsigned int get_buffer(void);
 int get_headlight(void);
 void toggle_headlight(void);
 static void handle_tick_walk(void);
+static void handle_tick_examine(void);
 static void handle_tick_fly(void);
 static void handle_tick_exfly(void);
 
@@ -240,23 +241,45 @@ int use_keys() {
 	return FALSE;
 }
 
-void resolve_pos(void) {
+
+void resolve_pos() {
 	/* my($this) = @_; */
 	struct point_XYZ rot, z_axis = { 0, 0, 1 };
 	Quaternion q_inv;
-
 	double dist = 0;
-
 	X3D_Viewer_Examine *examine = Viewer.examine;
+
 
 	if (viewer_type == EXAMINE) {
 		/* my $z = $this->{Quat}->invert->rotate([0,0,1]); */
 		quaternion_inverse(&q_inv, &(Viewer.Quat));
 		quaternion_rotation(&rot, &q_inv, &z_axis);
 
+		/* my $d = 0; for(0..2) {$d += $this->{Pos}[$_] * $z->[$_]} */
+		dist = VECPT(Viewer.Pos, rot);
+#ifdef LEAVE_DIST_AS_CALCULATED
+printf ("calculated dist as %lf\n",dist);
+dist = 10.0;
+
+		/*
+		 * Fix the rotation point to be 10m in front of the user (dist = 10.0)
+		 * or, try for the origin. Preferential treatment would be to choose
+		 * the shape within the center of the viewpoint. This information is
+		 * found in the matrix, and is used for collision calculations - we
+		 * need to better store it.
+		 */
+
+		/* $d = abs($d); $this->{Dist} = $d; */
+		Viewer.Dist = fabs(dist);
+#endif
+
+
+		/* $this->{Origin} = [ map {$this->{Pos}[$_] - $d * $z->[$_]} 0..2 ]; */
+		(examine->Origin).x = (Viewer.Pos).x - Viewer.Dist * rot.x;
+		(examine->Origin).y = (Viewer.Pos).y - Viewer.Dist * rot.y;
+		(examine->Origin).z = (Viewer.Pos).z - Viewer.Dist * rot.z;
 	}
 }
-
 void viewer_togl(double fieldofview) {
 
 
@@ -355,42 +378,53 @@ static void handle_walk(const int mev, const unsigned int button, const float x,
 	}
 }
 
+static double
+  norm(const Quaternion *quat)
+  {
+        return(sqrt(
+                                quat->w * quat->w +
+                                quat->x * quat->x +
+                                quat->y * quat->y +
+                                quat->z * quat->z
+                                ));
+  }
 
-static void handle_examine(const int mev, const unsigned int button, float x, float y) {
+
+void handle_examine(const int mev, const unsigned int button, float x, float y) {
 	Quaternion q, q_i, arc;
 	struct point_XYZ p = { 0, 0, 0};
 	X3D_Viewer_Examine *examine = Viewer.examine;
 	double squat_norm;
 
-	/* printf ("handle examine, mev %d button %d, x, %f y %f\n",mev, button,x,y); */
-	p.z=Viewer.Dist; 
+	p.z=Viewer.Dist;
 
-	/* rotPoint = point "Viewer.Dist" in front of us */
 	if (mev == ButtonPress) {
 		if (button == 1) {
 			xy2qua(&(examine->SQuat), x, y);
-
-			/* copy the current Viewer.Quat over to the OQuat*/
 			quaternion_set(&(examine->OQuat), &(Viewer.Quat));
 		} else if (button == 3) {
 			examine->SY = y;
 			examine->ODist = Viewer.Dist;
 		}
-
 	} else if (mev == MotionNotify) {
-		/* ok, we HAVE done something here */
-
 		if (button == 1) {
-			squat_norm = quaternion_norm(&(examine->SQuat));
+			squat_norm = norm(&(examine->SQuat));
 			/* we have missed the press */
 			if (APPROX(squat_norm, 0)) {
-				/* fprintf(stderr, "Viewer handle_examine: mouse event DRAG - missed press\n"); */
+				fprintf(stderr, "Viewer handle_examine: mouse event DRAG - missed press\n");
+				/* 			$this->{SQuat} = $this->xy2qua($mx,$my); */
 				xy2qua(&(examine->SQuat), x, y);
+				/* 			$this->{OQuat} = $this->{Quat}; */
 				quaternion_set(&(examine->OQuat), &(Viewer.Quat));
 			} else {
+				/* my $q = $this->xy2qua($mx,$my); */
 				xy2qua(&q, x, y);
+				/* my $arc = $q->multiply($this->{SQuat}->invert()); */
 				quaternion_inverse(&q_i, &(examine->SQuat));
 				quaternion_multiply(&arc, &q, &q_i);
+
+
+				/* $this->{Quat} = $arc->multiply($this->{OQuat}); */
 				quaternion_multiply(&(Viewer.Quat), &arc, &(examine->OQuat));
 			}
 		} else if (button == 3) {
@@ -405,8 +439,8 @@ static void handle_examine(const int mev, const unsigned int button, float x, fl
 	Viewer.Pos.x += (examine->Origin).x;
 	Viewer.Pos.y += (examine->Origin).y;
 	Viewer.Pos.z += (examine->Origin).z;
-
 }
+/************************************************************************************/
 
 
 void handle(const int mev, const unsigned int button, const float x, const float y)
@@ -748,6 +782,9 @@ handle_tick()
 	case NONE:
 		break;
 	case EXAMINE:
+#ifdef OLDCODE
+		handle_tick_examine();
+#endif
 		break;
 	case WALK:
 		handle_tick_walk();
@@ -777,33 +814,24 @@ handle_tick()
 void
 xy2qua(Quaternion *ret, const double x, const double y)
 {
-/* 	my($this, $x, $y) = @_; */
-/* 	$x -= 0.5; $y -= 0.5; $x *= 2; $y *= 2; */
-/* 	$y = -$y; */
 	double _x = x - 0.5, _y = y - 0.5, _z, dist;
 	_x *= 2;
 	_y *= -2;
 
-/* 	my $dist = sqrt($x**2 + $y**2); */
 	dist = sqrt((_x * _x) + (_y * _y));
 
-/* 	if($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0} */
 	if (dist > 1.0) {
 		_x /= dist;
 		_y /= dist;
 		dist = 1.0;
 	}
-/* 	my $z = 1-$dist; */
 	_z = 1 - dist;
 
-/* 	my $qua = VRML::Quaternion->new(0,$x,$y,$z); */
 	ret->w = 0;
 	ret->x = _x;
 	ret->y = _y;
 	ret->z = _z;
-/* 	$qua->normalize_this(); */
 	quaternion_normalize(ret);
-/* 	return $qua; */
 }
 
 float stereoParameter = 0.4;

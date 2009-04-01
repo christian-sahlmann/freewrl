@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.8 2009/02/18 13:37:50 istakenv Exp $
+$Id: Viewer.h,v 1.9 2009/04/01 19:20:42 crc_canada Exp $
 
 Viewer ???
 
@@ -99,12 +99,23 @@ typedef struct viewer_walk {
 
 
 typedef struct viewer_examine {
+        struct point_XYZ Origin;
+	struct point_XYZ bindPoint;
+        Quaternion OQuat;
+        Quaternion SQuat;
+        double ODist;
+        double SY;
+} X3D_Viewer_Examine;
+
+#ifdef OLDCODE
+typedef struct viewer_examine {
 	struct point_XYZ Origin;
 	Quaternion OQuat;
 	Quaternion SQuat;
 	double ODist;
 	double SY;
 } X3D_Viewer_Examine;
+#endif
 
 typedef struct key {
 	char key;
