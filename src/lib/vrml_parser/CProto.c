@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.17 2009/03/25 14:16:03 crc_canada Exp $
+$Id: CProto.c,v 1.18 2009/04/02 18:48:28 crc_canada Exp $
 
 CProto ???
 
@@ -1528,7 +1528,6 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	CLOSE_PROTO_EXPAND_FILE
 
 	/* read in the expanded PROTO text, and return it. */
-printf ("mallocing newProtoText, size %d\n",curstringlen + routeSize + strlen(ENDPROTOGROUP) + 10);
 
 	newProtoText = MALLOC(sizeof (char) * (curstringlen + routeSize + strlen(ENDPROTOGROUP) + 10));
 	newProtoText[0] = '\0';
@@ -1560,7 +1559,6 @@ printf ("mallocing newProtoText, size %d\n",curstringlen + routeSize + strlen(EN
 	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif
 
-	printf ("so, newProtoText \n%s\n",newProtoText);
 	return newProtoText;
 }
 

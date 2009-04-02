@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.29 2009/03/18 20:59:16 crc_canada Exp $
+$Id: headers.h,v 1.30 2009/04/02 18:48:28 crc_canada Exp $
 
 Global includes.
 
@@ -159,6 +159,30 @@ extern char *BrowserFullPath;
 extern double geoHeightinZAxis;
 
 
+/* Routing - complex types */
+#define ROUTING_SFNODE          -23
+#define ROUTING_MFNODE          -10
+#define ROUTING_SFIMAGE         -12
+#define ROUTING_MFSTRING        -13
+#define ROUTING_MFFLOAT        -14
+#define ROUTING_MFROTATION      -15
+#define ROUTING_MFINT32         -16
+#define ROUTING_MFCOLOR         -17
+#define ROUTING_MFVEC2F         -18
+#define ROUTING_MFVEC3F         -19
+#define ROUTING_MFVEC3D         -20
+#define ROUTING_MFDOUBLE        -21
+#define ROUTING_SFSTRING        -22
+#define ROUTING_MFMATRIX4F	-30
+#define ROUTING_MFMATRIX4D	-31
+#define ROUTING_MFVEC2D		-32
+#define ROUTING_MFVEC4F		-33
+#define ROUTING_MFVEC4D		-34
+#define ROUTING_MFMATRIX3F	-35
+#define ROUTING_MFMATRIX3D	-36
+
+
+
 /* compile simple nodes (eg, Cone, LineSet) into an internal format. Check out
    CompileC in VRMLRend.pm, and look for compile_* functions in code. General
    meshes are rendered using the PolyRep scheme, which also compiles into OpenGL 
@@ -166,6 +190,8 @@ extern double geoHeightinZAxis;
 
 int isShapeCompilerParsing(void);
 void compile_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
+
+#define NODE_CHANGE_INIT_VAL 153	/* node->_change is set to this when created */
 #define COMPILE_POLY_IF_REQUIRED(a,b,c,d) \
                 if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->irep_change) { \
                         compileNode ((void *)compile_polyrep, node, a,b,c,d); \
@@ -767,7 +793,6 @@ int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setScriptMultiElementtype(uintptr_t);
 void Parser_scanStringValueToMem(struct X3D_Node *ptr, int coffset, int ctype, char *value, int isXML);
-void Multimemcpy(void *tn, void *fn, int len);
 void CRoutes_RemoveSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len, int dir);
 void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
@@ -1268,6 +1293,48 @@ void changed_MetadataSFVec4f (struct X3D_MetadataSFVec4f *);
 void changed_MetadataMFVec4f (struct X3D_MetadataMFVec4f *);
 void changed_MetadataSFVec4d (struct X3D_MetadataSFVec4d *);
 void changed_MetadataMFVec4d (struct X3D_MetadataMFVec4d *);
+
+void compile_MetadataSFFloat (struct X3D_MetadataSFFloat *);
+void compile_MetadataMFFloat (struct X3D_MetadataMFFloat *);
+void compile_MetadataSFRotation (struct X3D_MetadataSFRotation *);
+void compile_MetadataMFRotation (struct X3D_MetadataMFRotation *);
+void compile_MetadataSFVec3f (struct X3D_MetadataSFVec3f *);
+void compile_MetadataMFVec3f (struct X3D_MetadataMFVec3f *);
+void compile_MetadataMFBool (struct X3D_MetadataMFBool *);
+void compile_MetadataSFBool (struct X3D_MetadataSFBool *);
+void compile_MetadataSFInt32 (struct X3D_MetadataSFInt32 *);
+void compile_MetadataMFInt32 (struct X3D_MetadataMFInt32 *);
+void compile_MetadataSFNode (struct X3D_MetadataSFNode *);
+void compile_MetadataMFNode (struct X3D_MetadataMFNode *);
+void compile_MetadataSFColor (struct X3D_MetadataSFColor *);
+void compile_MetadataMFColor (struct X3D_MetadataMFColor *);
+void compile_MetadataSFColorRGBA (struct X3D_MetadataSFColorRGBA *);
+void compile_MetadataMFColorRGBA (struct X3D_MetadataMFColorRGBA *);
+void compile_MetadataSFTime (struct X3D_MetadataSFTime *);
+void compile_MetadataMFTime (struct X3D_MetadataMFTime *);
+void compile_MetadataSFString (struct X3D_MetadataSFString *);
+void compile_MetadataMFString (struct X3D_MetadataMFString *);
+void compile_MetadataSFVec2f (struct X3D_MetadataSFVec2f *);
+void compile_MetadataMFVec2f (struct X3D_MetadataMFVec2f *);
+void compile_MetadataSFImage (struct X3D_MetadataSFImage *);
+void compile_MetadataSFVec3d (struct X3D_MetadataSFVec3d *);
+void compile_MetadataMFVec3d (struct X3D_MetadataMFVec3d *);
+void compile_MetadataSFDouble (struct X3D_MetadataSFDouble *);
+void compile_MetadataMFDouble (struct X3D_MetadataMFDouble *);
+void compile_MetadataSFMatrix3f (struct X3D_MetadataSFMatrix3f *);
+void compile_MetadataMFMatrix3f (struct X3D_MetadataMFMatrix3f *);
+void compile_MetadataSFMatrix3d (struct X3D_MetadataSFMatrix3d *);
+void compile_MetadataMFMatrix3d (struct X3D_MetadataMFMatrix3d *);
+void compile_MetadataSFMatrix4f (struct X3D_MetadataSFMatrix4f *);
+void compile_MetadataMFMatrix4f (struct X3D_MetadataMFMatrix4f *);
+void compile_MetadataSFMatrix4d (struct X3D_MetadataSFMatrix4d *);
+void compile_MetadataMFMatrix4d (struct X3D_MetadataMFMatrix4d *);
+void compile_MetadataSFVec2d (struct X3D_MetadataSFVec2d *);
+void compile_MetadataMFVec2d (struct X3D_MetadataMFVec2d *);
+void compile_MetadataSFVec4f (struct X3D_MetadataSFVec4f *);
+void compile_MetadataMFVec4f (struct X3D_MetadataMFVec4f *);
+void compile_MetadataSFVec4d (struct X3D_MetadataSFVec4d *);
+void compile_MetadataMFVec4d (struct X3D_MetadataMFVec4d *);
 
 
 #ifdef GL_VERSION_2_0

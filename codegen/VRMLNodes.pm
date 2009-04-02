@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.7 2009/03/25 14:16:03 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.8 2009/04/02 18:48:28 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2225,7 +2225,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFFloat => new VRML::NodeType("MetadataSFFloat", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFFloat,0.0,inputOutput], 
 			valueChanged=>[SFFloat,0.0,outputOnly], 
 			setValue =>[SFFloat,0.0,inputOnly], 
@@ -2233,7 +2232,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFFloat => new VRML::NodeType("MetadataMFFloat", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFFloat,[],inputOutput], 
 			valueChanged=>[MFFloat,[],outputOnly], 
 			setValue =>[MFFloat,[],inputOnly], 
@@ -2241,7 +2239,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFRotation => new VRML::NodeType("MetadataSFRotation", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFRotation,[0,0,0,0],inputOutput], 
 			valueChanged=>[SFRotation,[0,0,0,0],outputOnly], 
 			setValue =>[SFRotation,[0,0,0,0],inputOnly], 
@@ -2249,7 +2246,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFRotation => new VRML::NodeType("MetadataMFRotation", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFRotation,[],inputOutput], 
 			valueChanged=>[MFRotation,[],outputOnly], 
 			setValue =>[MFRotation,[],inputOnly], 
@@ -2257,7 +2253,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFVec3f => new VRML::NodeType("MetadataSFVec3f", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFVec3f,[0,0,0],inputOutput], 
 			valueChanged=>[SFVec3f,[0,0,0],outputOnly], 
 			setValue =>[SFVec3f,[0,0,0],inputOnly], 
@@ -2265,7 +2260,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFVec3f => new VRML::NodeType("MetadataMFVec3f", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFVec3f,[],inputOutput], 
 			valueChanged=>[MFVec3f,[],outputOnly], 
 			setValue =>[MFVec3f,[],inputOnly], 
@@ -2273,7 +2267,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFBool => new VRML::NodeType("MetadataSFBool", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFBool,FALSE,inputOutput], 
 			valueChanged=>[SFBool,FALSE,outputOnly], 
 			setValue =>[SFBool,FALSE,inputOnly], 
@@ -2281,7 +2274,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFBool => new VRML::NodeType("MetadataMFBool", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFBool,[],inputOutput], 
 			valueChanged=>[MFBool,[],outputOnly], 
 			setValue =>[MFBool,[],inputOnly], 
@@ -2289,7 +2281,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFInt32 => new VRML::NodeType("MetadataSFInt32", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFInt32,0,inputOutput], 
 			valueChanged=>[SFInt32,0,outputOnly], 
 			setValue =>[SFInt32,0,inputOnly], 
@@ -2297,7 +2288,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFInt32 => new VRML::NodeType("MetadataMFInt32", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFInt32,[],inputOutput], 
 			valueChanged=>[MFInt32,[],outputOnly], 
 			setValue =>[MFInt32,[],inputOnly], 
@@ -2305,7 +2295,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFNode => new VRML::NodeType("MetadataSFNode", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFNode,0,inputOutput], 
 			valueChanged=>[SFNode,0,outputOnly], 
 			setValue =>[SFNode,0,inputOnly], 
@@ -2313,7 +2302,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFNode => new VRML::NodeType("MetadataMFNode", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFNode,[],inputOutput], 
 			valueChanged=>[MFNode,[],outputOnly], 
 			setValue =>[MFNode,[],inputOnly], 
@@ -2321,7 +2309,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFColor => new VRML::NodeType("MetadataSFColor", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFColor,[0,0,0],inputOutput], 
 			valueChanged=>[SFColor,[0,0,0],outputOnly], 
 			setValue =>[SFColor,[0,0,0],inputOnly], 
@@ -2329,7 +2316,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFColor => new VRML::NodeType("MetadataMFColor", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFColor,[],inputOutput], 
 			valueChanged=>[MFColor,[],outputOnly], 
 			setValue =>[MFColor,[],inputOnly], 
@@ -2337,7 +2323,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFColorRGBA => new VRML::NodeType("MetadataSFColorRGBA", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFColorRGBA,[0,0,0,0],inputOutput], 
 			valueChanged=>[SFColorRGBA,[0,0,0,0],outputOnly], 
 			setValue =>[SFColorRGBA,[0,0,0,0],inputOnly], 
@@ -2345,7 +2330,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFColorRGBA => new VRML::NodeType("MetadataMFColorRGBA", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFColorRGBA,[],inputOutput], 
 			valueChanged=>[MFColorRGBA,[],outputOnly], 
 			setValue =>[MFColorRGBA,[],inputOnly], 
@@ -2353,7 +2337,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFTime => new VRML::NodeType("MetadataSFTime", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFTime,0,inputOutput], 
 			valueChanged=>[SFTime,0,outputOnly], 
 			setValue =>[SFTime,0,inputOnly], 
@@ -2361,7 +2344,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFTime => new VRML::NodeType("MetadataMFTime", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFTime,[],inputOutput], 
 			valueChanged=>[MFTime,[],outputOnly], 
 			setValue =>[MFTime,[],inputOnly], 
@@ -2369,7 +2351,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFString => new VRML::NodeType("MetadataSFString", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFString,"",inputOutput], 
 			valueChanged=>[SFString,"",outputOnly], 
 			setValue =>[SFString,"",inputOnly], 
@@ -2377,7 +2358,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFString => new VRML::NodeType("MetadataMFString", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFString,[],inputOutput], 
 			valueChanged=>[MFString,[],outputOnly], 
 			setValue =>[MFString,[],inputOnly], 
@@ -2385,7 +2365,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFVec2f => new VRML::NodeType("MetadataSFVec2f", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFVec2f,[0,0],inputOutput], 
 			valueChanged=>[SFVec2f,[0,0],outputOnly], 
 			setValue =>[SFVec2f,[0,0],inputOnly], 
@@ -2393,7 +2372,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFVec2f => new VRML::NodeType("MetadataMFVec2f", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFVec2f,[],inputOutput], 
 			valueChanged=>[MFVec2f,[],outputOnly], 
 			setValue =>[MFVec2f,[],inputOnly], 
@@ -2401,7 +2379,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFImage => new VRML::NodeType("MetadataSFImage", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFImage,[0,0,0],inputOutput], 
 			valueChanged=>[SFImage,[0,0,0],outputOnly], 
 			setValue =>[SFImage,[0,0,0],inputOnly], 
@@ -2409,7 +2386,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFVec3d => new VRML::NodeType("MetadataSFVec3d", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFVec3d,[0,0,0],inputOutput], 
 			valueChanged=>[SFVec3d,[0,0,0],outputOnly], 
 			setValue =>[SFVec3d,[0,0,0],inputOnly], 
@@ -2417,7 +2393,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFVec3d => new VRML::NodeType("MetadataMFVec3d", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFVec3d,[],inputOutput], 
 			valueChanged=>[MFVec3d,[],outputOnly], 
 			setValue =>[MFVec3d,[],inputOnly], 
@@ -2425,7 +2400,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFDouble => new VRML::NodeType("MetadataSFDouble", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFDouble,0,inputOutput], 
 			valueChanged=>[SFDouble,0,outputOnly], 
 			setValue =>[SFDouble,0,inputOnly], 
@@ -2433,7 +2407,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFDouble => new VRML::NodeType("MetadataMFDouble", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFDouble,[],inputOutput], 
 			valueChanged=>[MFDouble,[],outputOnly], 
 			setValue =>[MFDouble,[],inputOnly], 
@@ -2441,7 +2414,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFMatrix3f => new VRML::NodeType("MetadataSFMatrix3f", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFMatrix3f,[0,0,0,0,0,0,0,0,0],inputOutput], 
 			valueChanged=>[SFMatrix3f,[0,0,0,0,0,0,0,0,0],outputOnly], 
 			setValue =>[SFMatrix3f,[0,0,0,0,0,0,0,0,0],inputOnly], 
@@ -2449,7 +2421,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFMatrix3f => new VRML::NodeType("MetadataMFMatrix3f", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFMatrix3f,[],inputOutput], 
 			valueChanged=>[MFMatrix3f,[],outputOnly], 
 			setValue =>[MFMatrix3f,[],inputOnly], 
@@ -2457,7 +2428,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFMatrix3d => new VRML::NodeType("MetadataSFMatrix3d", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFMatrix3d,[0,0,0,0,0,0,0,0,0],inputOutput], 
 			valueChanged=>[SFMatrix3d,[0,0,0,0,0,0,0,0,0],outputOnly], 
 			setValue =>[SFMatrix3d,[0,0,0,0,0,0,0,0,0],inputOnly], 
@@ -2465,7 +2435,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFMatrix3d => new VRML::NodeType("MetadataMFMatrix3d", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFMatrix3d,[],inputOutput], 
 			valueChanged=>[MFMatrix3d,[],outputOnly], 
 			setValue =>[MFMatrix3d,[],inputOnly], 
@@ -2473,7 +2442,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFMatrix4f => new VRML::NodeType("MetadataSFMatrix4f", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOutput], 
 			valueChanged=>[SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],outputOnly], 
 			setValue =>[SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOnly], 
@@ -2481,7 +2449,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFMatrix4f => new VRML::NodeType("MetadataMFMatrix4f", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFMatrix4f,[],inputOutput], 
 			valueChanged=>[MFMatrix4f,[],outputOnly], 
 			setValue =>[MFMatrix4f,[],inputOnly], 
@@ -2489,7 +2456,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFMatrix4d => new VRML::NodeType("MetadataSFMatrix4d", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOutput], 
 			valueChanged=>[SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],outputOnly], 
 			setValue =>[SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOnly], 
@@ -2497,7 +2463,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFMatrix4d => new VRML::NodeType("MetadataMFMatrix4d", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFMatrix4d,[],inputOutput], 
 			valueChanged=>[MFMatrix4d,[],outputOnly], 
 			setValue =>[MFMatrix4d,[],inputOnly], 
@@ -2505,7 +2470,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFVec2d => new VRML::NodeType("MetadataSFVec2d", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFVec2d,[0,0],inputOutput], 
 			valueChanged=>[SFVec2d,[0,0],outputOnly], 
 			setValue =>[SFVec2d,[0,0],inputOnly], 
@@ -2513,7 +2477,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFVec2d => new VRML::NodeType("MetadataMFVec2d", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFVec2d,[],inputOutput], 
 			valueChanged=>[MFVec2d,[],outputOnly], 
 			setValue =>[MFVec2d,[],inputOnly], 
@@ -2521,7 +2484,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFVec4f => new VRML::NodeType("MetadataSFVec4f", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFVec4f,[0,0,0,0],inputOutput], 
 			valueChanged=>[SFVec4f,[0,0,0,0],outputOnly], 
 			setValue =>[SFVec4f,[0,0,0,0],inputOnly], 
@@ -2529,7 +2491,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFVec4f => new VRML::NodeType("MetadataMFVec4f", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFVec4f,[],inputOutput], 
 			valueChanged=>[MFVec4f,[],outputOnly], 
 			setValue =>[MFVec4f,[],inputOnly], 
@@ -2537,7 +2498,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataSFVec4d => new VRML::NodeType("MetadataSFVec4d", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [SFVec4d,[0,0,0,0],inputOutput], 
 			valueChanged=>[SFVec4d,[0,0,0,0],outputOnly], 
 			setValue =>[SFVec4d,[0,0,0,0],inputOnly], 
@@ -2545,7 +2505,6 @@ package VRML::NodeType;
 
 	#used mainly for PROTO invocation parameters 
 	MetadataMFVec4d => new VRML::NodeType("MetadataMFVec4d", { 
-			_initialized =>[SFBool, FALSE, inputOutput],
 			value => [MFVec4d,[],inputOutput], 
 			valueChanged=>[MFVec4d,[],outputOnly], 
 			setValue =>[MFVec4d,[],inputOnly], 

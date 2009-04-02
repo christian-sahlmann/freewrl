@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.23 2009/03/18 20:59:16 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.24 2009/04/02 18:48:28 crc_canada Exp $
 
 ???
 
@@ -775,7 +775,9 @@ void zeroVisibilityFlag(void) {
 /* go through the linear list of nodes, and do "special things" for special nodes, like
    Sensitive nodes, Viewpoint nodes, ... */
 
-#define CMD(TTT,YYY) changed_Metadata##TTT((struct X3D_Metadata##TTT *) YYY)
+#define CMD(TTT,YYY) \
+	/* printf ("nt %s change %d ichange %d\n",stringNodeType(X3D_NODE(YYY)->_nodeType),X3D_NODE(YYY)->_change, X3D_NODE(YYY)->_ichange); */ \
+	if (NODE_NEEDS_COMPILING) compile_Metadata##TTT((struct X3D_Metadata##TTT *) YYY)
 
 #define BEGIN_NODE(thistype) case NODE_##thistype:
 #define END_NODE break;

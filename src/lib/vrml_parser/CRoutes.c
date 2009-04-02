@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.13 2009/03/25 14:16:03 crc_canada Exp $
+$Id: CRoutes.c,v 1.14 2009/04/02 18:48:28 crc_canada Exp $
 
 ???
 
@@ -30,6 +30,8 @@ $Id: CRoutes.c,v 1.13 2009/03/25 14:16:03 crc_canada Exp $
 #include "../input/SensInterps.h"
 
 #include "CRoutes.h"
+
+static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, int multitype);
 
 /* defines for getting touched flags and exact Javascript pointers */
 
@@ -1497,14 +1499,13 @@ void propagate_events() {
 					/* first thing, set this to FALSE */
 					CRoutes[counter].isActive = FALSE;
 						#ifdef CRVERBOSE
-						printf("event %u %u sent something", CRoutes[counter].routeFromNode, CRoutes[counter].fnptr);
+						printf("event %u %u len %d sent something", CRoutes[counter].routeFromNode, CRoutes[counter].fnptr,CRoutes[counter].len);
 						if (CRoutes[counter].fnptr < 20) printf (" (script param: %s)",JSparamnames[CRoutes[counter].fnptr].name);
 						else {
 							printf (" (nodeType %s)",stringNodeType(X3D_NODE(CRoutes[counter].routeFromNode)->_nodeType));
 						}
 						printf ("\n");
 						#endif
-
 					/* to get routing to/from exposedFields, lets
 					 * mark this to/offset as an event */
 					MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
@@ -1527,7 +1528,10 @@ void propagate_events() {
 							printf ("in croutes, mmc len is %d\n",CRoutes[counter].len);
 							#endif
 
-							Multimemcpy ((void *)((uintptr_t)to_ptr->routeToNode + to_ptr->foffset),
+							Multimemcpy (
+									X3D_NODE(to_ptr->routeToNode),
+									X3D_NODE(CRoutes[counter].routeFromNode),
+									(void *)((uintptr_t)to_ptr->routeToNode + to_ptr->foffset),
 								 (void *)((uintptr_t)CRoutes[counter].routeFromNode + CRoutes[counter].fnptr),
 								 CRoutes[counter].len);
 						}
@@ -1736,7 +1740,7 @@ void kill_routing (void) {
 
 
 /* internal variable to copy a C structure's Multi* field */
-void Multimemcpy (void *tn, void *fn, int multitype) {
+static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, int multitype) {
 	unsigned int structlen;
 	unsigned int fromcount, tocount;
 	void *fromptr, *toptr;
@@ -1744,24 +1748,15 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 	struct Multi_Vec3f *mv3ffn, *mv3ftn;
 
 	#ifdef CRVERBOSE 
-		printf ("Multimemcpy, copying structures %d %d type %d\n",tn,fn,multitype); 
+		printf ("Multimemcpy, copying structures from %u (%s) to %u (%s)  %d %d type %d\n",
+			fromNode, stringNodeType(fromNode->_nodeType),
+			toNode, stringNodeType(toNode->_nodeType),
+			
+			tn,fn,multitype); 
 	#endif
 
 	/* copy a complex (eg, a MF* node) node from one to the other
-	   the following types are currently found in VRMLNodes.pm -
-
-		 -1  is a Multi_Color 
-		 -10 is a Multi_Node
-		 -12 is a SFImage
-		 -13 is a Multi_String
-		 -14 is a Multi_Float
-		 -15 is a Multi_Rotation
-		 -16 is a Multi_Int32
-		 -18 is a Multi_Vec2f
-		 -19 is a Multi_Vec3f
-		 -20 is a Multi_Vec3d
-		 -22 is a SFString
-	*/
+	   grep for the ROUTING_SF and ROUTING_MF defines to see them all. */
 
 	/* Multi_XXX nodes always consist of a count then a pointer - see
 	   Structs.h */
@@ -1782,17 +1777,27 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 
 	/* get the structure length */
 	switch (multitype) {
-		case -1: {structlen = sizeof (struct SFColor); break; }
-		case -10: {structlen = sizeof (unsigned int); break; }
-		case -12: {structlen = sizeof (unsigned int); break; } 
-		case -13: {structlen = sizeof (unsigned int); break; }
-		case -14: {structlen = sizeof (float); break; }
-		case -15: {structlen = sizeof (struct SFRotation); break;}
-		case -16: {structlen = sizeof (int); break;}
-		case -18: {structlen = sizeof (struct SFVec2f); break;}
-		case -19: {structlen = sizeof (struct SFColor); break;} /* This is actually SFVec3f - but no struct of this type */
-		case -20: {structlen = sizeof (struct SFVec3d); break;} 
-		case -22: { 
+		case ROUTING_SFNODE: structlen = sizeof (unsigned int); break;
+		case ROUTING_MFNODE: structlen = sizeof (unsigned int); break;
+		case ROUTING_SFIMAGE: structlen = sizeof (unsigned int); break;
+		case ROUTING_MFSTRING: structlen = sizeof (unsigned int); break;
+		case ROUTING_MFFLOAT: structlen = sizeof (float); break;
+		case ROUTING_MFROTATION: structlen = sizeof (struct SFRotation); break;
+		case ROUTING_MFINT32: structlen = sizeof (int); break;
+		case ROUTING_MFCOLOR: structlen = sizeof (struct SFColor); break;
+		case ROUTING_MFVEC2F: structlen = sizeof (struct SFVec2f); break;
+		case ROUTING_MFVEC3F: structlen = sizeof (struct SFColor); break; /* This is actually SFVec3f - but no struct of this type */
+		case ROUTING_MFVEC3D: structlen = sizeof (struct SFVec3d); break;
+		case ROUTING_MFDOUBLE: structlen = sizeof (double); break;
+		case ROUTING_MFMATRIX4F: structlen = sizeof (struct SFMatrix4f); break;
+		case ROUTING_MFMATRIX4D: structlen = sizeof (struct SFMatrix4d); break;
+		case ROUTING_MFVEC2D: structlen = sizeof (struct SFVec2d); break;
+		case ROUTING_MFVEC4F: structlen = sizeof (struct SFVec4f); break;
+		case ROUTING_MFVEC4D: structlen = sizeof (struct SFVec4d); break;
+		case ROUTING_MFMATRIX3F: structlen = sizeof (struct SFMatrix3f); break;
+		case ROUTING_MFMATRIX3D: structlen = sizeof (struct SFMatrix3d); break;
+
+		case ROUTING_SFSTRING: { 
 			/* SFStrings are "special" */
 			/* remember:
 				struct Uni_String {
@@ -1826,6 +1831,27 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 
 
 	/* free the old data, if there is old data... */
+	/* is this an MFNode or SFNode? */
+	if (mv3ftn->n > 0) {
+		if ((multitype==ROUTING_MFNODE) || (multitype==ROUTING_SFNODE)) {
+			int count;
+			struct X3D_Node **arrptr = (struct X3D_Node **)mv3ftn->p;
+
+			#ifdef CRVERBOSE
+			printf ("ROUTING - HAVE TO REMOVE PARENTS\n");
+			for (count = 0; count < mv3ftn->n; count++) {
+				printf ("node in place %d is %u ",count,arrptr[count]);
+				printf ("%s ",stringNodeType(arrptr[count]->_nodeType));
+				printf ("\n");
+/*
+				we did not remove this, because in the case of where you have a route to a PROTO MFNode field, it did not 
+				seem to work that well, because the PROTO fields send events every which way when they fire 
+				remove_parent(arrptr[count],fromNode);
+*/
+			}
+			#endif
+		}
+	}
 	FREE_IF_NZ (mv3ftn->p);
 
 	/* MALLOC the toptr */
@@ -1841,6 +1867,30 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 
 	/* and do the copy of the data */
 	memcpy (toptr,fromptr,structlen * fromcount);
+
+	/* is this an MFNode or SFNode? */
+	if (multitype==ROUTING_SFNODE) {
+		ADD_PARENT(X3D_NODE(fn),toNode);
+	}
+	if (multitype==ROUTING_MFNODE) {
+			int count;
+			struct X3D_Node **arrptr = (struct X3D_Node **)mv3ffn->p;
+
+			#ifdef CRVERBOSE
+			printf ("fromcount %d tocount %d\n",fromcount, tocount);
+			printf ("ROUTING - have to add parents... \n");
+			#endif
+
+			for (count = 0; count < mv3ffn->n; count++) {
+				#ifdef CRVERBOSE
+				printf ("node in place %d is %u ",count,arrptr[count]);
+				printf ("%s ",stringNodeType(arrptr[count]->_nodeType));
+				printf ("\n");
+				#endif
+
+				ADD_PARENT(arrptr[count],toNode);
+			}
+	}
 }
 
 /* this script value has been looked at, set the touched flag in it to FALSE. */

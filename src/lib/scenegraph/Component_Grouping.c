@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.8 2009/02/18 16:24:04 istakenv Exp $
+$Id: Component_Grouping.c,v 1.9 2009/04/02 18:48:28 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -236,14 +236,17 @@ void child_Group (struct X3D_Group *node) {
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 
-	/* {
+	 /* {
 		int x;
 		struct X3D_Node *xx;
 
-		printf ("child_Group, this %d isProto %p\n",node,node->FreeWRL__protoDef);
+		printf ("child_Group, this %u rf %x isProto %p\n",node,node->_renderFlags, node->FreeWRL__protoDef);
+        printf ("	..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+
 		for (x=0; x<nc; x++) {
 			xx = X3D_NODE(node->children.p[x]);
-			printf ("	ch %d type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+			printf ("	ch %u type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
 		}
 	} */
 
@@ -279,14 +282,16 @@ void child_Transform (struct X3D_Transform *node) {
 	/* any children at all? */
 	if (nc==0) return;
 
-	/* {
+	 /* {
 		int x;
 		struct X3D_Node *xx;
 
-		printf ("child_Transform, this %d \n",node);
+		printf ("child_Transform, this %u rf %x \n",node,node->_renderFlags);
+        printf ("      ..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 		for (x=0; x<nc; x++) {
 			xx = X3D_NODE(node->children.p[x]);
-			printf ("	ch %d type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+			printf ("	ch %u type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
 		}
 	} */
 

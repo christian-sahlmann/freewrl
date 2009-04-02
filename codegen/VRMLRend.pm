@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.4 2009/03/10 21:00:34 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.5 2009/04/02 18:48:28 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.5  2009/04/02 18:48:28  crc_canada
+# PROTO Routing for MFNodes.
+#
 # Revision 1.4  2009/03/10 21:00:34  crc_canada
 # checking in some ongoing PROTO support work in the Classic parser.
 #
@@ -574,6 +577,47 @@
 	ComposedShader
 	ProgramShader
 	PackagedShader
+	MetadataMFFloat
+	MetadataMFRotation
+	MetadataMFVec3f
+	MetadataMFBool
+	MetadataMFInt32
+	MetadataMFNode
+	MetadataMFColor
+	MetadataMFColorRGBA
+	MetadataMFTime
+	MetadataMFString
+	MetadataMFVec2f
+	MetadataMFVec3d
+	MetadataMFDouble
+	MetadataMFMatrix3f
+	MetadataMFMatrix3d
+	MetadataMFMatrix4f
+	MetadataMFMatrix4d
+	MetadataMFVec2d
+	MetadataMFVec4f
+	MetadataMFVec4d
+	MetadataSFFloat
+	MetadataSFRotation
+	MetadataSFVec3f
+	MetadataSFBool
+	MetadataSFInt32
+	MetadataSFNode
+	MetadataSFColor
+	MetadataSFColorRGBA
+	MetadataSFTime
+	MetadataSFString
+	MetadataSFVec2f
+	MetadataSFImage
+	MetadataSFVec3d
+	MetadataSFDouble
+	MetadataSFMatrix3f
+	MetadataSFMatrix3d
+	MetadataSFMatrix4f
+	MetadataSFMatrix4d
+	MetadataSFVec2d
+	MetadataSFVec4f
+	MetadataSFVec4d
 /;
 
 
