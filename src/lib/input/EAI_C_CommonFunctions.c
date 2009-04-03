@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.14 2009/04/02 18:48:28 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.15 2009/04/03 18:21:57 crc_canada Exp $
 
 ???
 
@@ -107,11 +107,18 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 /* get how many bytes in the type */
 int returnElementLength(int type) {
 	  switch (type) {
+		case FIELDTYPE_SFVec2d:
+		case FIELDTYPE_MFVec2d:
 		case FIELDTYPE_MFVec3d:
 		case FIELDTYPE_SFVec3d:
 		case FIELDTYPE_MFDouble:
 		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFVec4d:
+		case FIELDTYPE_MFVec4d:
+		case FIELDTYPE_SFMatrix3d:
+		case FIELDTYPE_MFMatrix3d:
+		case FIELDTYPE_SFMatrix4d:
+		case FIELDTYPE_MFMatrix4d:
 		case FIELDTYPE_SFTime :
     		case FIELDTYPE_MFTime : return sizeof(double); break;
     		case FIELDTYPE_MFInt32: return sizeof(int)   ; break;
@@ -141,8 +148,18 @@ int returnRoutingElementLength(int type) {
 		case FIELDTYPE_SFColorRGBA:
 		case FIELDTYPE_SFRotation:return sizeof (struct SFRotation); break;
 		case FIELDTYPE_SFNode:	return ROUTING_SFNODE; break;
-		case FIELDTYPE_MFNode:	return ROUTING_MFNODE; break;
+		case FIELDTYPE_SFMatrix3f: return sizeof (struct SFMatrix3f); break;
+		case FIELDTYPE_SFMatrix3d: return sizeof (struct SFMatrix3d); break;
+		case FIELDTYPE_SFVec4f: return sizeof (struct SFVec4f) ; break;
+		case FIELDTYPE_SFMatrix4f: return sizeof (struct SFMatrix4f); break;
+		case FIELDTYPE_SFVec2d: return sizeof (struct SFVec2d); break;
+		case FIELDTYPE_SFDouble: return sizeof (double); break;
+		case FIELDTYPE_SFVec4d: return sizeof (struct SFVec4d); break;
+
+		case FIELDTYPE_SFString: return ROUTING_SFSTRING; break;
 		case FIELDTYPE_SFImage:	return ROUTING_SFIMAGE; break;
+
+		case FIELDTYPE_MFNode:	return ROUTING_MFNODE; break;
 		case FIELDTYPE_MFString: 	return ROUTING_MFSTRING; break;
 		case FIELDTYPE_MFFloat:	return ROUTING_MFFLOAT; break;
 		case FIELDTYPE_MFColorRGBA:
@@ -153,16 +170,8 @@ int returnRoutingElementLength(int type) {
 		case FIELDTYPE_MFVec2f:	return ROUTING_MFVEC2F; break;
 		case FIELDTYPE_MFVec3f:	return ROUTING_MFVEC3F; break;
 		case FIELDTYPE_MFVec3d: return ROUTING_MFVEC3D; break;
-		case FIELDTYPE_SFDouble: return sizeof (double); break;
 		case FIELDTYPE_MFDouble: return ROUTING_MFDOUBLE; break;
-		case FIELDTYPE_SFVec4d: return sizeof (struct SFVec4d); break;
-		case FIELDTYPE_SFString: return ROUTING_SFSTRING; break;
 		case FIELDTYPE_MFTime: return ROUTING_MFDOUBLE; break;
-		case FIELDTYPE_SFMatrix3f: return sizeof (struct SFMatrix3f); break;
-		case FIELDTYPE_SFMatrix3d: return sizeof (struct SFMatrix3d); break;
-		case FIELDTYPE_SFVec4f: return sizeof (struct SFVec4f) ; break;
-		case FIELDTYPE_SFMatrix4f: return sizeof (struct SFMatrix4f); break;
-		case FIELDTYPE_SFVec2d: return sizeof (struct SFVec2d); break;
 		case FIELDTYPE_MFMatrix4f: return ROUTING_MFMATRIX4F; break;
 		case FIELDTYPE_MFMatrix4d: return ROUTING_MFMATRIX4D; break;
 		case FIELDTYPE_MFVec2d: return ROUTING_MFVEC2D; break;
@@ -186,20 +195,36 @@ int returnElementRowSize (int type) {
 	switch (type) {
 		case FIELDTYPE_SFVec2f:
 		case FIELDTYPE_MFVec2f:
+		case FIELDTYPE_SFVec2d:
+		case FIELDTYPE_MFVec2d:
 			return 2;
 		case FIELDTYPE_SFColor:
 		case FIELDTYPE_MFColor:
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFVec3d:
 		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_MFVec3d:
 		case FIELDTYPE_SFImage: /* initialization - we can have a "0,0,0" for no texture */
 			return 3;
 		case FIELDTYPE_SFRotation:
 		case FIELDTYPE_MFRotation:
 		case FIELDTYPE_SFVec4d:
+		case FIELDTYPE_SFVec4f:
+		case FIELDTYPE_MFVec4d:
+		case FIELDTYPE_MFVec4f:
 		case FIELDTYPE_SFColorRGBA:
 		case FIELDTYPE_MFColorRGBA:
 			return 4;
+		case FIELDTYPE_MFMatrix3f:
+		case FIELDTYPE_SFMatrix3f:
+		case FIELDTYPE_MFMatrix3d:
+		case FIELDTYPE_SFMatrix3d:
+			return 9;
+		case FIELDTYPE_MFMatrix4f:
+		case FIELDTYPE_SFMatrix4f:
+		case FIELDTYPE_MFMatrix4d:
+		case FIELDTYPE_SFMatrix4d:
+			return 16;
 	}
 	return 1;
 

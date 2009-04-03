@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.9 2009/03/04 13:35:28 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.10 2009/04/03 18:21:58 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -683,7 +683,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	}
 
 	/* find offsets, etc */
-       	findFieldInOFFSETS(NODE_OFFSETS[myptr->_nodeType], myField, &offset, &fromtype, &xxx);
+       	findFieldInOFFSETS(myptr->_nodeType, myField, &offset, &fromtype, &xxx);
 	if (offset == -1) {
 		printf ("createVrmlFromURL - field %s is not a valid field of a node of type %s\n",fieldStr,stringNodeType(myptr->_nodeType));
 		return JS_FALSE;
@@ -1104,7 +1104,7 @@ static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *
 			myField = findRoutedFieldInFIELDNAMES(fromNode,fromFieldString,1);
 
 		/* find offsets, etc */
-       		findFieldInOFFSETS(NODE_OFFSETS[fromNode->_nodeType], myField, &fromOfs, &fromtype, &xxx);
+       		findFieldInOFFSETS(fromNode->_nodeType, myField, &fromOfs, &fromtype, &xxx);
 
 		/* To field */
 		/* try finding it, maybe with a "set_" or "changed" removed */
@@ -1113,7 +1113,7 @@ static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *
 			myField = findRoutedFieldInFIELDNAMES(toNode,toFieldString,1);
 
 		/* find offsets, etc */
-       		findFieldInOFFSETS(NODE_OFFSETS[toNode->_nodeType], myField, &toOfs, &totype, &xxx);
+       		findFieldInOFFSETS(toNode->_nodeType, myField, &toOfs, &totype, &xxx);
 
 		/* do we have a mismatch here? */
 		if (fromtype != totype) {

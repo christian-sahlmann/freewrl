@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.h,v 1.7 2009/02/18 13:37:50 istakenv Exp $
+$Id: fieldSet.h,v 1.8 2009/04/03 18:21:58 crc_canada Exp $
 
 ???
 
@@ -32,7 +32,7 @@ DEF_FINDFIELDFP(GEOSPATIAL);
 
 int findRoutedFieldInARR (struct X3D_Node *, const char *, int, const char**, size_t, BOOL);
 int findFieldInARR(const char*, const char**, size_t);
-void findFieldInOFFSETS(const int *, const int, int *, int *, int *);
+void findFieldInOFFSETS(int, const int, int *, int *, int *);
 void getJSMultiNumType(JSContext *, struct Multi_Vec3f *, int);
 void getMFStringtype(JSContext *, jsval *, struct Multi_String *);
 int findIndexInFIELDNAMES(int, const char**, size_t);

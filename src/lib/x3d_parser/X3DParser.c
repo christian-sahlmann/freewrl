@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.12 2009/03/04 13:35:28 crc_canada Exp $
+$Id: X3DParser.c,v 1.13 2009/04/03 18:21:58 crc_canada Exp $
 
 ???
 
@@ -273,7 +273,7 @@ static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *nam
 
 		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 		fieldInt = findRoutedFieldInFIELDNAMES (node, name, routeTo);
-		if (fieldInt >=0) findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], 
+		if (fieldInt >=0) findFieldInOFFSETS(node->_nodeType, 
 				fieldInt, offs, type, &accessType);
 	}
 	if (*offs <0) {
@@ -861,7 +861,7 @@ void linkNodeIn() {
 	#endif
 
 	/* Link it in; the parent containerField should exist, and should be an SF or MFNode  */
-	findFieldInOFFSETS(NODE_OFFSETS[parentStack[parentIndex-1]->_nodeType], 
+	findFieldInOFFSETS(parentStack[parentIndex-1]->_nodeType, 
 		parentStack[parentIndex]->_defaultContainer, &coffset, &ctype, &ctmp);
 
 	/* FreeWRL verses FreeX3D - lets see if this is a Metadatafield not following guidelines */
@@ -871,7 +871,7 @@ void linkNodeIn() {
 		    (parentStack[parentIndex]->_nodeType == NODE_MetadataString) ||
 		    (parentStack[parentIndex]->_nodeType == NODE_MetadataDouble) ||
 		    (parentStack[parentIndex]->_nodeType == NODE_MetadataInteger)) {
-			findFieldInOFFSETS(NODE_OFFSETS[parentStack[parentIndex-1]->_nodeType], 
+			findFieldInOFFSETS(parentStack[parentIndex-1]->_nodeType, 
 				FIELDNAMES_metadata, &coffset, &ctype, &ctmp);
 
 			/*

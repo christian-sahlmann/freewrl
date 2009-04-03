@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.20 2009/03/25 14:16:03 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.21 2009/04/03 18:21:57 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -541,7 +541,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	if (eaiverbose) printf ("EAI_GetType, for field %s, myField is %d\n",fieldString,myField);
 
 	/* find offsets, etc */
-       	findFieldInOFFSETS((int *)NODE_OFFSETS[nodePtr->_nodeType], myField, &myFieldOffs, &ctype, accessType);
+       	findFieldInOFFSETS(nodePtr->_nodeType, myField, &myFieldOffs, &ctype, accessType);
 
 	if (eaiverbose) {
 		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %d\n",nodePtr);

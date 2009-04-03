@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.12 2009/04/02 18:48:28 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.13 2009/04/03 18:21:58 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -953,7 +953,7 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 /* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
 #define CMD_MULTI(type) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
 	if META_IS_INITIALIZED { \
-	if ((node->value.n != node->setValue.n) || (node->value.p != node->setValue.p)) { \
+		if (memcmp((const void *)&node->value, (const void *)&node->setValue, sizeof(struct Multi_##type)) != 0) { \
 		node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
 		node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
@@ -966,29 +966,45 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 	MARK_NODE_COMPILED \
 }
 
-/* compare element counts, then individual elements, if the counts are the same */
-/* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
 #define CMD_MSFI32(type) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
-	/* printf ("MFI32, nt %s change %d ichange %d\n",stringNodeType(node->_nodeType),node->_change, node->_ichange); */ \
-	if META_IS_INITIALIZED { \
-		int count; int changed = FALSE; \
-		if (node->value.n != node->setValue.n) changed = TRUE; else { \
-			for (count=0; count<node->setValue.n; count++) if (node->value.p[count] != node->setValue.p[count]) changed = TRUE; } \
-	\
-		if (changed) { \
-			node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
-			node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
-			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged));  \
-		} \
-	} else { \
-		/* the "value" will hold everything we need */ \
-		/* initialize it, but do not bother doing any routing on it */ \
-		/* printf ("MFI32, initializing, using the value field, has %d elements\n",node->value.n); */ \
-		node->setValue.n = node->value.n; node->setValue.p = node->value.p; \
-		node->valueChanged.n = node->value.n; node->valueChanged.p = node->value.p; \
-	} \
-	MARK_NODE_COMPILED \
-}
+        /* printf ("MFNODE:, node %x\n",node); \
+        printf ("MFNODE:, nt %s change %d ichange %d\n",stringNodeType(node->_nodeType),node->_change, node->_ichange); */ \
+        if META_IS_INITIALIZED { \
+                int count; int changed = FALSE; \
+                /* printf ("MFNODE:, so this is initialized\n"); \
+{ int count; char *cptr = (char *)&(node->setValue); for (count = 0; count < 8; count ++) { printf ("%u: %x\n",count, *cptr); cptr ++; } \
+} */ \
+		if (memcmp((const void *)&node->value, (const void *)&node->setValue, sizeof(struct Multi_##type)) != 0) { \
+                        if (node->value.n != node->setValue.n) changed = TRUE; \
+                        else { \
+                          for (count=0; count<node->setValue.n; count++) { \
+                                printf ("MSFI32, comparing ele %d %x %x\n",count, node->value.p[count], node->setValue.p[count]); \
+                                if (node->value.p[count] != node->setValue.p[count]) changed = TRUE; } \
+                        } \
+                } \
+ \
+                if (changed) { \
+                        /* printf ("MSFI32, change hit\n"); */ \
+                        node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
+                        node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
+                        MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
+                } \
+        } else { \
+                /* the "value" will hold everything we need */ \
+                /* initialize it, but do not bother doing any routing on it */ \
+                /* printf ("MFNODE:, initializing, using the value field, has %d elements and ptr %x\n",node->value.n,node->value.p); */ \
+                node->setValue.n = node->value.n; node->setValue.p = node->value.p; \
+                node->valueChanged.n = node->value.n; node->valueChanged.p = node->value.p; \
+        } \
+        MARK_NODE_COMPILED \
+        /* printf ("MSFI32: DONE; value %d, ptr %x, node->value.n,node->value.p\n"); */ \
+} 
+
+
+
+
+
+
 
 /* compare element counts, then individual elements, if the counts are the same */
 /* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
@@ -996,6 +1012,7 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 	int count; int changed = FALSE; \
 	if META_IS_INITIALIZED { \
 	if (node->value.n != node->setValue.n) changed = TRUE; else { \
+		/* yes, these two array must have the same index counts... */ \
 		for (count=0; count<node->setValue.n; count++) if (!APPROX(node->value.p[count], node->setValue.p[count])) changed = TRUE; }\
 	\
 	if (changed) { \
@@ -1055,6 +1072,7 @@ CMD_MSFL(Time)
 CMD_MSFL(Float)
 CMD_MSFL(Double)
 CMD_MSFI32(String)
+
 
 void compile_MetadataSFImage (struct X3D_MetadataSFImage *node){ printf ("make compile_Metadata %s\n",stringNodeType(node->_nodeType));}
 /*

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.14 2009/04/02 18:48:28 crc_canada Exp $
+$Id: CRoutes.c,v 1.15 2009/04/03 18:21:58 crc_canada Exp $
 
 ???
 
@@ -471,7 +471,7 @@ void AddRemoveChildren (
 	int counter, c2;
 
 	#ifdef CRVERBOSE
-	printf ("\n start of AddRemoveChildren; node is a %s\n",stringNodeType(parent->_nodeType));
+	printf ("\n start of AddRemoveChildren; node is a %s at %u %x\n",stringNodeType(parent->_nodeType),parent,parent);
 	printf ("AddRemove, field is %d in from parent offsetof (struct X3D_Group, children) is %d\n",(char *)tn - (char *)parent,
 			offsetof (struct X3D_Group, children));
 	printf ("	and, addChildren offset %d, and removeChildren offset %d\n",
@@ -506,7 +506,7 @@ void AddRemoveChildren (
 		for (counter=0; counter < oldlen; counter ++) remove_parent(tn->p[counter],parent);
 
 		/* now, totally free the old children array */
-		if (oldlen > 0) FREE_IF_NZ(tn->p);
+		if (oldlen > 0) {FREE_IF_NZ(tn->p);}
 
 		/* now, make this into an addChildren */
 		oldlen = 0;
@@ -1747,6 +1747,7 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 
 	struct Multi_Vec3f *mv3ffn, *mv3ftn;
 
+
 	#ifdef CRVERBOSE 
 		printf ("Multimemcpy, copying structures from %u (%s) to %u (%s)  %d %d type %d\n",
 			fromNode, stringNodeType(fromNode->_nodeType),
@@ -1814,10 +1815,10 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 			memcpy (&tStr,tn,sizeof (void *));
 
 
-			printf ("copying over a SFString in Multi from %u to %u\n",fStr, tStr);
-			printf ("string was :%s:\n",tStr->strptr);
+			/* printf ("copying over a SFString in Multi from %u to %u\n",fStr, tStr);
+			printf ("string was :%s:\n",tStr->strptr); */
 			verify_Uni_String(tStr, fStr->strptr); 
-			printf ("string is :%s:\n",tStr->strptr);
+			/* printf ("string is :%s:\n",tStr->strptr); */
 			return; /* we have done the needed stuff here */
 			break;
 		}
@@ -1834,10 +1835,11 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 	/* is this an MFNode or SFNode? */
 	if (mv3ftn->n > 0) {
 		if ((multitype==ROUTING_MFNODE) || (multitype==ROUTING_SFNODE)) {
+			#ifdef CRVERBOSE
 			int count;
 			struct X3D_Node **arrptr = (struct X3D_Node **)mv3ftn->p;
 
-			#ifdef CRVERBOSE
+#ifdef thisIsNotaGoodIdea
 			printf ("ROUTING - HAVE TO REMOVE PARENTS\n");
 			for (count = 0; count < mv3ftn->n; count++) {
 				printf ("node in place %d is %u ",count,arrptr[count]);
@@ -1849,7 +1851,9 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 				remove_parent(arrptr[count],fromNode);
 */
 			}
+#endif
 			#endif
+
 		}
 	}
 	FREE_IF_NZ (mv3ftn->p);

@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.20 2009/03/25 14:16:03 crc_canada Exp $
+  $Id: CParseParser.c,v 1.21 2009/04/03 18:21:58 crc_canada Exp $
 
   ???
 
@@ -1530,7 +1530,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
             if (toNode != NULL) {
                 if (toFieldE != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(toNode,EXPOSED_FIELD[toFieldE],1);
                 if (toFieldO != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(toNode,EVENT_IN[toFieldO],1);
-                findFieldInOFFSETS( NODE_OFFSETS[toNode->_nodeType], tmp,  &toOfs, &b, &c);      
+                findFieldInOFFSETS(toNode->_nodeType, tmp,  &toOfs, &b, &c);      
                 toLen = returnRoutingElementLength(b);
             }
         }
@@ -1539,7 +1539,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
             if (fromNode != NULL) {
                 if (fromFieldE != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(fromNode,EXPOSED_FIELD[fromFieldE],1);
                 if (fromFieldO != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(fromNode,EVENT_OUT[fromFieldO],1);
-                findFieldInOFFSETS( NODE_OFFSETS[fromNode->_nodeType], tmp,  &fromOfs, &b, &c);  
+                findFieldInOFFSETS(fromNode->_nodeType, tmp,  &fromOfs, &b, &c);  
                 fromLen = returnRoutingElementLength(b);
             }
         }

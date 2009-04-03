@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.16 2009/03/26 21:06:18 sdumoulin Exp $
+$Id: fieldSet.c,v 1.17 2009/04/03 18:21:58 crc_canada Exp $
 
 ???
 
@@ -144,7 +144,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 	printf ("getting nodeOffsets for type %s field %s value %s\n",stringNodeType(node->_nodeType),field,value); 
 	#endif
 
-	findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], foffset, &coffset, &ctype, &ctmp);
+	findFieldInOFFSETS(node->_nodeType, foffset, &coffset, &ctype, &ctmp);
 
 	#ifdef SETFIELDVERBOSE
 	printf ("so, offset is %d, type %d value %s\n",coffset, ctype, value);
@@ -615,7 +615,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 	  if (user) return retval; \
 	  int fieldNamesIndex = findIndexInFIELDNAMES(retval, arr, cnt); \
 	  if (fieldNamesIndex >= 0) { \
-	    findFieldInOFFSETS (NODE_OFFSETS[node->_nodeType], fieldNamesIndex,\
+	    findFieldInOFFSETS (node->_nodeType, fieldNamesIndex,\
 	      &a, &b, &c); \
 	    /* did this return any of the ints as != -1? */ \
 	    /* printf ("     findRoutedField for field %s, nodetype %s is %d\n",  fld,stringNodeType(node->_nodeType),a); */ \
@@ -672,12 +672,13 @@ DEF_FINDROUTEDFIELD(EVENT_OUT)
 
 
 /* go through the OFFSETS for this node, looking for field, and return offset, type, and kind */
-void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind) {
+void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype, int *ckind) {
 	int *x;
 
-	x = (int *) nodeOffsetPtr;
+	x = (int *) NODE_OFFSETS[nodeType];
 
 	#ifdef SETFIELDVERBOSE
+	printf ("findFieldInOFFSETS, nodeType %s\n",stringNodeType(nodeType));
 	printf ("findFieldInOffsets, comparing %d to %d\n",*x, field); 
 	#endif
 
@@ -701,7 +702,6 @@ void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset,
 		*coffset = -1; *ctype = -1, *ckind = -1;
 		return;
 	}
-
 }
 
 

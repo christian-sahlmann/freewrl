@@ -4114,7 +4114,6 @@ void *createNewX3DNode (int nt) {
 	node->_renderFlags = 0; /*sensitive, etc */
 	node->_hit = 0;
 	node->_change = NODE_CHANGE_INIT_VAL; 
-	node->_dlist = 0;
 	node->_parents = 0;
 	node->_nparents = 0;
 	node->_nparalloc = 0;

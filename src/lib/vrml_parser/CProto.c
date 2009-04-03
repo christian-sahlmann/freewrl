@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.18 2009/04/02 18:48:28 crc_canada Exp $
+$Id: CProto.c,v 1.19 2009/04/03 18:21:58 crc_canada Exp $
 
 CProto ???
 
@@ -66,7 +66,7 @@ CProto ???
 #define APPEND_IF_NOT_OUTPUTONLY \
 { int coffset, ctype, ckind, field; \
 	printf ("checking to see if node %s has an outputOnly field %s\n",stringNodeType(lastNode->isNODE), ele->stringToken); \
-	findFieldInOFFSETS(NODE_OFFSETS[lastNode->isNODE], findFieldInFIELDNAMES(ele->stringToken), &coffset, &ctype, &ckind); \
+	findFieldInOFFSETS(lastNode->isNODE, findFieldInFIELDNAMES(ele->stringToken), &coffset, &ctype, &ckind); \
 	printf ("found coffset %d ctype %d ckind %d\n",coffset, ctype, ckind); \
 	if (ckind != KW_outputOnly) { printf ("APPENDING\n"); APPEND_STRINGTOKEN } else printf ("NOT APPENDING\n"); \
 }
