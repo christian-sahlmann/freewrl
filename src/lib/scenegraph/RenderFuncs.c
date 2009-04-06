@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.13 2009/04/03 18:21:58 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.14 2009/04/06 17:20:25 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -951,53 +951,81 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 
 /* compare element counts, and pointer values */
 /* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
-#define CMD_MULTI(type) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+#define CMD_MULTI(type,elelength,field,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+	int count; int changed = FALSE; \
 	if META_IS_INITIALIZED { \
-		if (memcmp((const void *)&node->value, (const void *)&node->setValue, sizeof(struct Multi_##type)) != 0) { \
-		node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
-		node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
+	if (node->value.n != node->setValue.n) changed = TRUE; else { \
+		/* yes, these two array must have the same index counts... */ \
+		for (count=0; count<node->setValue.n; count++) { \
+			int count2; for (count2=0; count2<elelength; count2++) { if (!APPROX(node->value.p[count].field[count2], node->setValue.p[count].field[count2])) changed = TRUE; break; }\
+		if (changed) break; } \
+	} \
+	\
+	if (changed) { \
+                        /* printf ("MSFL, change hit, freeing pointers %x and %x\n", node->value.p, node->valueChanged.p); */ \
+			FREE_IF_NZ (node->value.p); \
+			FREE_IF_NZ(node->valueChanged.p); \
+			node->value.p = MALLOC(dataSize * node->setValue.n * elelength); \
+			node->valueChanged.p = MALLOC(dataSize * node->setValue.n * elelength); \
+			memcpy(node->value.p, node->setValue.p, dataSize * node->setValue.n * elelength); \
+			memcpy(node->valueChanged.p, node->setValue.p, dataSize * node->setValue.n * elelength); \
+                        node->value.n = node->setValue.n; \
+                        node->valueChanged.n = node->setValue.n; \
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
 	} \
 	} else { \
-		/* initialize fields */ \
-		node->setValue.n = node->value.n; node->setValue.p = node->value.p; \
-		node->valueChanged.n = node->value.n; node->valueChanged.p = node->value.p; \
+		/* the "value" will hold everything we need */ \
+		/* initialize it, but do not bother doing any routing on it */ \
+		if ((node->setValue.n != 0) || (node->setValue.p != NULL) || (node->valueChanged.n != 0) || (node->valueChanged.p != NULL)) { printf ("PROTO header - initialization set and changed, but not zero??\n");  \
+                node->setValue.n = 0; FREE_IF_NZ(node->setValue.p);  \
+                node->valueChanged.n = 0; FREE_IF_NZ(node->valueChanged.p); } \
 	} \
 	MARK_NODE_COMPILED \
 }
 
-#define CMD_MSFI32(type) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
-        /* printf ("MFNODE:, node %x\n",node); \
-        printf ("MFNODE:, nt %s change %d ichange %d\n",stringNodeType(node->_nodeType),node->_change, node->_ichange); */ \
+#define CMD_MSFI32(type,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+        /* printf ("MSFI32:, node %x\n",node); \
+        printf ("MSFI32:, nt %s change %d ichange %d\n",stringNodeType(node->_nodeType),node->_change, node->_ichange); */ \
         if META_IS_INITIALIZED { \
                 int count; int changed = FALSE; \
-                /* printf ("MFNODE:, so this is initialized\n"); \
-{ int count; char *cptr = (char *)&(node->setValue); for (count = 0; count < 8; count ++) { printf ("%u: %x\n",count, *cptr); cptr ++; } \
-} */ \
-		if (memcmp((const void *)&node->value, (const void *)&node->setValue, sizeof(struct Multi_##type)) != 0) { \
-                        if (node->value.n != node->setValue.n) changed = TRUE; \
-                        else { \
-                          for (count=0; count<node->setValue.n; count++) { \
-                                printf ("MSFI32, comparing ele %d %x %x\n",count, node->value.p[count], node->setValue.p[count]); \
-                                if (node->value.p[count] != node->setValue.p[count]) changed = TRUE; } \
-                        } \
+                /* printf ("MSFI32:, so this is initialized; value %d setValue count%d\n",node->value.n,node->setValue.n); */ \
+/* { int count; char *cptr = (char *)&(node->setValue); for (count = 0; count < 8; count ++) { printf ("%u: %x ",count, *cptr); cptr ++; } \
+ printf ("\n"); \
+cptr = (char *)&(node->value); for (count = 0; count < 8; count ++) { printf ("%u: %x ",count, *cptr); cptr ++; } \
+ printf ("\n"); \
+} */\
+                if (node->value.n != node->setValue.n) changed = TRUE; \
+                else { \
+		    /* same count, but something caused this to be called; go through each element */ \
+                    for (count=0; count<node->setValue.n; count++) { \
+                          /* printf ("MSFI32, comparing ele %d %x %x\n",count, node->value.p[count], node->setValue.p[count]); */ \
+                          if (node->value.p[count] != node->setValue.p[count]) {changed = TRUE; break; } \
+                    } \
                 } \
  \
                 if (changed) { \
-                        /* printf ("MSFI32, change hit\n"); */ \
-                        node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
-                        node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
+                        /* printf ("MSFI32, change hit, freeing pointers %x and %x\n", node->value.p, node->valueChanged.p); */ \
+			FREE_IF_NZ (node->value.p); \
+			FREE_IF_NZ(node->valueChanged.p); \
+			node->value.p = MALLOC(dataSize * node->setValue.n); \
+			node->valueChanged.p = MALLOC(dataSize * node->setValue.n); \
+			memcpy(node->value.p, node->setValue.p, dataSize * node->setValue.n); \
+			memcpy(node->valueChanged.p, node->setValue.p, dataSize * node->setValue.n); \
+                        node->value.n = node->setValue.n; \
+                        node->valueChanged.n = node->setValue.n; \
                         MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
                 } \
         } else { \
                 /* the "value" will hold everything we need */ \
                 /* initialize it, but do not bother doing any routing on it */ \
-                /* printf ("MFNODE:, initializing, using the value field, has %d elements and ptr %x\n",node->value.n,node->value.p); */ \
-                node->setValue.n = node->value.n; node->setValue.p = node->value.p; \
-                node->valueChanged.n = node->value.n; node->valueChanged.p = node->value.p; \
+		/* printf ("MSFI32: initializing\n"); */ \
+		if ((node->setValue.n != 0) || (node->setValue.p != NULL) || (node->valueChanged.n != 0) || (node->valueChanged.p != NULL)) { printf ("PROTO header - initialization set and changed, but not zero??\n");  \
+                node->setValue.n = 0; FREE_IF_NZ(node->setValue.p);  \
+                node->valueChanged.n = 0; FREE_IF_NZ(node->valueChanged.p); } \
+		/* printf ("MSFI32 - leaving the setValue and ValueChanged pointers to %x %x\n",node->setValue.p, node->valueChanged.p);*/ \
         } \
         MARK_NODE_COMPILED \
-        /* printf ("MSFI32: DONE; value %d, ptr %x, node->value.n,node->value.p\n"); */ \
+        /* printf ("MSFI32: DONE; value %d, value_changed.n %d\n", node->value.n,node->valueChanged.n);  */ \
 } 
 
 
@@ -1008,23 +1036,31 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 
 /* compare element counts, then individual elements, if the counts are the same */
 /* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
-#define CMD_MSFL(type) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+#define CMD_MSFL(type,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
 	int count; int changed = FALSE; \
 	if META_IS_INITIALIZED { \
 	if (node->value.n != node->setValue.n) changed = TRUE; else { \
 		/* yes, these two array must have the same index counts... */ \
-		for (count=0; count<node->setValue.n; count++) if (!APPROX(node->value.p[count], node->setValue.p[count])) changed = TRUE; }\
+		for (count=0; count<node->setValue.n; count++) if (!APPROX(node->value.p[count], node->setValue.p[count])) { changed = TRUE; break; }}\
 	\
 	if (changed) { \
-		node->value.n = node->setValue.n; node->value.p = node->setValue.p; \
-		node->valueChanged.n = node->setValue.n; node->valueChanged.p = node->setValue.p; \
+                        /* printf ("MSFL, change hit, freeing pointers %x and %x\n", node->value.p, node->valueChanged.p); */ \
+			FREE_IF_NZ (node->value.p); \
+			FREE_IF_NZ(node->valueChanged.p); \
+			node->value.p = MALLOC( dataSize * node->setValue.n); \
+			node->valueChanged.p = MALLOC(dataSize * node->setValue.n); \
+			memcpy(node->value.p, node->setValue.p, dataSize * node->setValue.n); \
+			memcpy(node->valueChanged.p, node->setValue.p, dataSize * node->setValue.n); \
+                        node->value.n = node->setValue.n; \
+                        node->valueChanged.n = node->setValue.n; \
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
 	} \
 	} else { \
 		/* the "value" will hold everything we need */ \
 		/* initialize it, but do not bother doing any routing on it */ \
-		node->setValue.n = node->value.n; node->setValue.p = node->value.p; \
-		node->valueChanged.n = node->value.n; node->valueChanged.p = node->value.p; \
+		if ((node->setValue.n != 0) || (node->setValue.p != NULL) || (node->valueChanged.n != 0) || (node->valueChanged.p != NULL)) { printf ("PROTO header - initialization set and changed, but not zero??\n");  \
+                node->setValue.n = 0; FREE_IF_NZ(node->setValue.p);  \
+                node->valueChanged.n = 0; FREE_IF_NZ(node->valueChanged.p); } \
 	} \
 	MARK_NODE_COMPILED \
 }
@@ -1051,27 +1087,27 @@ CMD_MFL(Matrix3d,9,c)
 CMD_MFL(Matrix4f,16,c)
 CMD_MFL(Matrix4d,16,c)
 
-CMD_MULTI(Rotation)
-CMD_MULTI(Vec2f)
-CMD_MULTI(Vec3f)
-CMD_MULTI(Vec4f)
-CMD_MULTI(Vec2d)
-CMD_MULTI(Vec3d)
-CMD_MULTI(Vec4d)
-CMD_MULTI(Color)
-CMD_MULTI(ColorRGBA)
-CMD_MULTI(Matrix3f)
-CMD_MULTI(Matrix4f)
-CMD_MULTI(Matrix3d)
-CMD_MULTI(Matrix4d)
+CMD_MULTI(Rotation,4,r,sizeof (float))
+CMD_MULTI(Vec2f,2,c,sizeof (float))
+CMD_MULTI(Vec3f,3,c,sizeof (float))
+CMD_MULTI(Vec4f,4,c,sizeof (float))
+CMD_MULTI(Vec2d,2,c,sizeof (double))
+CMD_MULTI(Vec3d,3,c,sizeof (double))
+CMD_MULTI(Vec4d,4,c,sizeof (double))
+CMD_MULTI(Color,3,c,sizeof (float))
+CMD_MULTI(ColorRGBA,4,r,sizeof (float))
+CMD_MULTI(Matrix3f,9,c,sizeof (float))
+CMD_MULTI(Matrix4f,16,c,sizeof (float))
+CMD_MULTI(Matrix3d,9,c,sizeof (double))
+CMD_MULTI(Matrix4d,16,c,sizeof (double))
 
-CMD_MSFI32(Bool)
-CMD_MSFI32(Int32)
-CMD_MSFI32(Node)
-CMD_MSFL(Time)
-CMD_MSFL(Float)
-CMD_MSFL(Double)
-CMD_MSFI32(String)
+CMD_MSFI32(Bool, sizeof(int))
+CMD_MSFI32(Int32,sizeof (int))
+CMD_MSFI32(Node,sizeof (void *))
+CMD_MSFL(Time,sizeof (double))
+CMD_MSFL(Float,sizeof (float))
+CMD_MSFL(Double,sizeof (double))
+CMD_MSFI32(String,sizeof (void *))
 
 
 void compile_MetadataSFImage (struct X3D_MetadataSFImage *node){ printf ("make compile_Metadata %s\n",stringNodeType(node->_nodeType));}
@@ -1085,8 +1121,6 @@ struct Uni_String {
 
 void compile_MetadataSFString (struct X3D_MetadataSFString *node){ 
 	int count; int changed = FALSE; 
-printf ("MDS\n");
-
 
 	if META_IS_INITIALIZED { 
 	if (node->value->len != node->setValue->len) changed = TRUE; else { 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.11 2009/02/25 16:59:34 crc_canada Exp $
+$Id: ProdCon.c,v 1.12 2009/04/06 17:20:25 crc_canada Exp $
 
 CProto ???
 
@@ -978,10 +978,10 @@ void __pt_doStringUrl () {
       	/* now that we have the VRML/X3D file, load it into the scene. */
 	if (psp.ptr != NULL) {
 		/* add the new nodes to wherever the caller wanted */
-		AddRemoveChildren(psp.ptr, psp.ptr+psp.ofs, (uintptr_t*)nRn->children.p,nRn->children.n,1);
+		AddRemoveChildren(psp.ptr, psp.ptr+psp.ofs, (uintptr_t*)nRn->children.p,nRn->children.n,1,__FILE__,__LINE__);
 
 		/* and, remove them from this nRn node, so that they are not multi-parented */
-		AddRemoveChildren(X3D_NODE(nRn), (struct Multi_Node *)((char *)nRn + offsetof (struct X3D_Group, children)), (uintptr_t *)nRn->children.p,nRn->children.n,2);
+		AddRemoveChildren(X3D_NODE(nRn), (struct Multi_Node *)((char *)nRn + offsetof (struct X3D_Group, children)), (uintptr_t *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);
 	}
 
 

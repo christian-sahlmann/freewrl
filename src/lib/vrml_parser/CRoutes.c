@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.15 2009/04/03 18:21:58 crc_canada Exp $
+$Id: CRoutes.c,v 1.16 2009/04/06 17:20:25 crc_canada Exp $
 
 ???
 
@@ -459,7 +459,9 @@ void AddRemoveChildren (
 		struct Multi_Node *tn,
 		uintptr_t *nodelist,
 		int len,
-		int ar) {
+		int ar,
+		char *file,
+		int line) {
 	int oldlen;
 	void *newmal;
 	int num_removed;
@@ -471,14 +473,21 @@ void AddRemoveChildren (
 	int counter, c2;
 
 	#ifdef CRVERBOSE
-	printf ("\n start of AddRemoveChildren; node is a %s at %u %x\n",stringNodeType(parent->_nodeType),parent,parent);
+	
+	printf ("\n start of AddRemoveChildren; parent is a %s at %u %x\n",stringNodeType(parent->_nodeType),parent,parent);
 	printf ("AddRemove, field is %d in from parent offsetof (struct X3D_Group, children) is %d\n",(char *)tn - (char *)parent,
 			offsetof (struct X3D_Group, children));
 	printf ("	and, addChildren offset %d, and removeChildren offset %d\n",
 				offsetof (struct X3D_Group,addChildren),
 				offsetof (struct X3D_Group,removeChildren));
+	printf ("	and, setValue in MetadataMFNode %d, value %d value_changed %d\n",
+				offsetof (struct X3D_MetadataMFNode,setValue),
+				offsetof (struct X3D_MetadataMFNode,value),
+				offsetof (struct X3D_MetadataMFNode,valueChanged));
+
 
 	printf ("AddRemove Children parent %u tn %u, len %d ar %d\n",parent,tn,len,ar);
+	printf ("called at %s:%d\n",file,line);
 	#endif
 
 	/* if no elements, just return */
@@ -611,91 +620,6 @@ void AddRemoveChildren (
 	}
 	update_node(parent);
 }
-
-/****************************************************************/
-/* a CLASS is returning a Multi-number type; copy this from 	*/
-/* the CLASS to the data structure within the freewrl C side	*/
-/* of things.							*/
-/*								*/
-/* note - this cheats in that the code assumes that it is 	*/
-/* a series of Multi_Vec3f's while in reality the structure	*/
-/* of the multi structures is the same - so we "fudge" things	*/
-/* to make this multi-purpose.					*/
-/* eletype switches depending on:				*/
-/* what the sub clen does in VRMLFields.pm;			*/
-/*  "String" {return -13;} 					*/
-/*  "Float" {return -14;}        				*/
-/*  "Rotation" {return -15;}     				*/
-/*  "Int32" {return -16;}        				*/
-/*  "Color" {return -1;}        				*/
-/*  "Vec2f" {return -18;}        				*/
-/*  "Vec3f" {return -19;}         				*/
-/*  "Vec3d" {return -20;}         				*/
-/*  "Node" {return -10;}         				*/
-/****************************************************************/
-
-void getCLASSMultNumType (char *buf, int bufSize,
-			  struct Multi_Vec3f *tn,
-			  struct X3D_Node *parent,
-			  int eletype, int addChild) {
-	int len;
-	int elesize;
-
-
-
-
-	/* get size of each element, used for MALLOCing memory */
-	switch (eletype) {
-	  case -13: elesize = sizeof (char); break;	/* string   */
-	  case -14:
-	  case FIELDTYPE_MFFloat:
-	    elesize = sizeof (float); break;	        /* Float    */
-	  case -15: elesize = sizeof(float)*4; break;	/* Rotation */
-	  case -16: elesize = sizeof(int); break;	/* Integer  */
-
-	  case -1:
-	  case -17:
-	  case -19:
-	    elesize = sizeof(float)*3;
-	    break;	/* SFColor, SFVec3f */
-	  case -18: elesize = sizeof(float)*2; break;	/* SFVec2f */
-	  case -20: elesize = sizeof(double)*3; break;	/* SFVec3d */
-	  case -10: elesize = sizeof(int); break;
-	  default: {printf ("getCLASSMulNumType - unknown type %d\n",eletype); return;}
-	}
-
-	len = bufSize / elesize;  /* convert Bytes into whatever */
-
-	#ifdef CRVERBOSE
-		printf("getCLASSMultNumType: bufSize:%d, eletype:%d, allocated: %d, elesize: %d.\n",
-	       bufSize,eletype, tn->n, elesize);
-	#endif
-
-	/* now, we either replace the whole data, or we add or remove it if
-	 * this is a Node type. (eg, add/remove child) */
-
-	if (eletype != -10) {
-		/* do we have to REALLOC memory? */
-		if (len != tn->n) {
-			/* yep... */
-		        /* printf ("old pointer %d\n",tn->p); */
-			tn->n = 0;	/* gets around possible mem problem */
-			FREE_IF_NZ (tn->p);
-			tn->p =(struct SFColor *)MALLOC ((unsigned)(elesize*len));
-		}
-
-		/* copy memory over */
-		memcpy (tn->p, buf, bufSize);
-
-		/* and, tell the scene graph how many elements there are in here */
-		tn->n = len;
-	} else {
-		/* this is a Node type, so we need to add/remove children */
-		AddRemoveChildren (parent, (struct Multi_Node*)tn, (uintptr_t*)buf, len, addChild);
-	}
-}
-
-
 
 /* These events must be run first during the event loop, as they start an event cascade.
    Regsister them with add_first, then call them during the event loop with do_first.    */
@@ -1746,7 +1670,6 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 	void *fromptr, *toptr;
 
 	struct Multi_Vec3f *mv3ffn, *mv3ftn;
-
 
 	#ifdef CRVERBOSE 
 		printf ("Multimemcpy, copying structures from %u (%s) to %u (%s)  %d %d type %d\n",

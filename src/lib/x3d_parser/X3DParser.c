@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.13 2009/04/03 18:21:58 crc_canada Exp $
+$Id: X3DParser.c,v 1.14 2009/04/06 17:20:25 crc_canada Exp $
 
 ???
 
@@ -911,7 +911,7 @@ void linkNodeIn() {
 			parentStack[parentIndex-1], /* parent */
 			(struct Multi_Node *) memptr,			/* where the children field is */
 			((uintptr_t *) &(parentStack[parentIndex])),	/* this child, 1 node */
-                1, 1);
+                1, 1,__FILE__,__LINE__);
 
 	}
 }

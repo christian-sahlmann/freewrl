@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statusbar.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: statusbar.c,v 1.4 2009/04/06 17:20:25 crc_canada Exp $
 
 ???
 
@@ -152,8 +152,8 @@ static void statusbar_init() {
 
 	/* set the Uni_String to zero length */
 	myline->len = 0;
-	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), (uintptr_t*)&proxNode, 1, 1);
-	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), (uintptr_t*)&transNode, 1, 1);
+	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), (uintptr_t*)&proxNode, 1, 1,__FILE__,__LINE__);
+	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), (uintptr_t*)&transNode, 1, 1,__FILE__,__LINE__);
 
 	CRoutes_RegisterSimple((void *)proxNode, offsetof (struct X3D_ProximitySensor, orientation_changed), 
 		(void *)transNode, offsetof (struct X3D_Transform, rotation), sizeof (struct SFRotation), 0);

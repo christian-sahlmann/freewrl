@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.17 2009/04/03 18:21:58 crc_canada Exp $
+$Id: fieldSet.c,v 1.18 2009/04/06 17:20:25 crc_canada Exp $
 
 ???
 
@@ -1129,8 +1129,9 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Node *parent, 
 	}
 
 	/* now, perform the add/remove */
-	AddRemoveChildren (parent, tn, newmal, newlen, ar);
+	AddRemoveChildren (parent, tn, newmal, newlen, ar,__FILE__,__LINE__);
 }
+#undef SETFIELDVERBOSE
 
 
 /* Map the given index into arr to an index into FIELDNAMES or -1, if the

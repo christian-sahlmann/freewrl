@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.30 2009/04/02 18:48:28 crc_canada Exp $
+$Id: headers.h,v 1.31 2009/04/06 17:20:25 crc_canada Exp $
 
 Global includes.
 
@@ -761,7 +761,10 @@ void CRoutes_js_new (uintptr_t num,int scriptType);
 extern int max_script_found;
 extern int max_script_found_and_initialized;
 void getMFNodetype (char *strp, struct Multi_Node *ch, struct X3D_Node *par, int ar);
+/*
 void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar);
+*/
+void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar, char * where, int lin);
 
 void update_node(struct X3D_Node *ptr);
 void update_renderFlag(struct X3D_Node *ptr, int flag);
@@ -1001,22 +1004,10 @@ extern double nearPlane, farPlane, screenRatio, backgroundPlane;
 
 extern int render_sensitive,render_vp,render_light,render_proximity,curlight,verbose,render_blend,render_geom,render_collision;
 
-/* Java CLASS invocation */
-int newJavaClass(int scriptInvocationNumber,char * nodestr,char *node);
-int initJavaClass(int scriptno);
-
 int SAI_IntRetCommand (char cmnd, const char *fn);
 char * SAI_StrRetCommand (char cmnd, const char *fn);
 char *EAI_GetTypeName (unsigned int uretval);
 char* EAI_GetValue(unsigned int nodenum, const char *fieldname, const char *nodename);
-void setCLASStype (uintptr_t num);
-void sendCLASSEvent(uintptr_t fn, int scriptno, char *fieldName, int type, int len);
-void processClassEvents(int scriptno, int startEntry, int endEntry);
-char *processThisClassEvent (void *fn, int startEntry, int endEntry, char *buf);
-void getCLASSMultNumType (char *buf, int bufSize,
-	struct Multi_Vec3f *tn,
-	struct X3D_Node *parent,
-	int eletype, int addChild);
 
 void fwGetDoublev (int ty, double *mat);
 void fwMatrixMode (int mode);

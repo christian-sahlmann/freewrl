@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.24 2009/04/02 18:48:28 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.25 2009/04/06 17:20:25 crc_canada Exp $
 
 ???
 
@@ -1242,11 +1242,11 @@ void startOfLoopNodeUpdates(void) {
 		/* this node possibly has to do add/remove children? */
 		if (childrenPtr != NULL) {
 			if (addChildren != NULL) {
-				AddRemoveChildren(node,childrenPtr,(uintptr_t *) addChildren->p,addChildren->n,1);
+				AddRemoveChildren(node,childrenPtr,(uintptr_t *) addChildren->p,addChildren->n,1,__FILE__,__LINE__);
 				addChildren->n=0;
 			}
 			if (removeChildren != NULL) {
-				AddRemoveChildren(node,childrenPtr,(uintptr_t *) removeChildren->p,removeChildren->n,2);
+				AddRemoveChildren(node,childrenPtr,(uintptr_t *) removeChildren->p,removeChildren->n,2,__FILE__,__LINE__);
 				removeChildren->n=0;
 			}
 			childrenPtr = NULL;
