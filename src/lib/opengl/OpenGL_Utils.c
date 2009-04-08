@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.25 2009/04/06 17:20:25 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.26 2009/04/08 19:40:55 crc_canada Exp $
 
 ???
 
@@ -84,39 +84,19 @@ void setglClearColor (float *val) {
 
 
 /* perform all the viewpoint rotations for a point */
-static void moveAndRotateThisPoint(struct X3D_Node *vpnode, struct point_XYZ *mypt, double x, double y, double z) {
-	struct point_XYZ intPoint;
-	double xxx,yyy,zzz,aaa;
-	Quaternion myRot;
+static void moveAndRotateThisPoint(struct X3D_Node *vpnode, struct point_XYZ *mypt, double x, double y, double z, double *MM) {
+		float outF[3];
+		float inF[3];
+		inF[0] = x; inF[1] = y; inF[2] = z;
 
-	/* step 0: move this point relative to viewer */
-	mypt->x=x-Viewer.currentPosInModel.x;
-	mypt->y=y-Viewer.currentPosInModel.y;
-	mypt->z=z-Viewer.currentPosInModel.z;
+		/* transform this vertex via the modelview matrix */
+		transformf (outF,inF,MM);
 
-
-	/* step 1: perform the Component_Navigation rotation */
-	/*	quaternion_rotation(struct point_XYZ *ret, const Quaternion *quat, const struct point_XYZ *v) */
-	xxx= X3D_VIEWPOINT(vpnode)->orientation.r[0];
-	yyy= X3D_VIEWPOINT(vpnode)->orientation.r[1];
-	zzz= X3D_VIEWPOINT(vpnode)->orientation.r[2];
-	aaa= - (X3D_VIEWPOINT(vpnode)->orientation.r[3]);
-
-	vrmlrot_to_quaternion(&myRot,xxx,yyy,zzz,aaa);
-	quaternion_rotation(&intPoint, &myRot, mypt);
-	mypt->x = intPoint.x; mypt->y = intPoint.y; mypt->z = intPoint.z;
-
-	/* step 2: do the Viewer.togl rotations mimicing Viewer.c 
-        quaternion_togl(&Viewer.Quat);
-        FW_GL_TRANSLATE_D(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
-        FW_GL_TRANSLATE_D((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
-        quaternion_togl(&Viewer.AntiQuat);
- 	*/
-
-	quaternion_rotation(&intPoint, &Viewer.Quat, mypt);
-	mypt->x = intPoint.x; mypt->y = intPoint.y; mypt->z = intPoint.z;
-	quaternion_rotation(&intPoint, &Viewer.AntiQuat, mypt);
-	mypt->x = intPoint.x; mypt->y = intPoint.y; mypt->z = intPoint.z;
+		#ifdef VERBOSE
+		printf ("transformed %4.2f %4.2f %4.2f, to %4.2f %4.2f %4.2f\n",inF[0], inF[1], inF[2],
+			outF[0], outF[1], outF[2]);
+		#endif
+		mypt->x = outF[0]; mypt->y=outF[1],mypt->z = outF[2];
 }
 
 #define GEOTESTEXTENT(dddd) if (dddd<closestPoint) {closestPoint=dddd;}
@@ -147,13 +127,20 @@ near plane is thus farPlane - highestPeak.
 
 **************************************************************************************/
 
+#define testingSimpleMove
+#ifdef testingSimpleMove
+static char count = 0;
+#endif
+
 static void calculateNearFarplanes(struct X3D_Node *vpnode) {
-	struct point_XYZ testPoint;
 	struct point_XYZ bboxPoints[8];
 	double cfp = DBL_MIN;
 	double cnp = DBL_MAX;
+	GLdouble MM[16];
 
+#ifdef OLDCODE
 	int performGlobeClipping = FALSE;
+#endif
 
 	int ci;
 
@@ -165,7 +152,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 
 	/* verify parameters here */
 	if ((vpnode->_nodeType != NODE_Viewpoint) && (vpnode->_nodeType != NODE_GeoViewpoint)) {
-		printf ("can not do this node type yet, for cpf\n",stringNodeType(vpnode->_nodeType));
+		printf ("can not do this node type yet %s, for cpf\n",stringNodeType(vpnode->_nodeType));
 		nearPlane = DEFAULT_NEARPLANE;
 		farPlane = DEFAULT_FARPLANE;
 		backgroundPlane = DEFAULT_BACKGROUNDPLANE;
@@ -176,7 +163,9 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 		return; /* nothing to display yet */
 	}
 
+	glGetDoublev(GL_MODELVIEW_MATRIX, MM);
 
+#ifdef OLDCODE
 	/* do we assume that this is a globe? If we have a GeoViewpoint, and we have GD or UTM
 	   coordinates, lets assume so. */
 	if (vpnode->_nodeType == NODE_GeoViewpoint) {
@@ -186,6 +175,9 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 			}
 		}
 	}
+
+printf ("NOT doing globeClipping\n"); performGlobeClipping = FALSE;
+
 
 	/* for GeoViewpoint, assume we have the earth within our Axis Aligned Bounding Box */
 	if (performGlobeClipping) {
@@ -217,6 +209,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 		cnp = cfp-closestPoint;
 		/* printf ("test cnp is %f\n",cnp); */
 	} else {
+#endif
 		#ifdef VERBOSE
 		printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",
 				X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_X,
@@ -224,26 +217,15 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 				X3D_GROUP(rootNode)->EXTENT_MAX_Z, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
 		#endif
 	
-		#ifdef testingSimpleMove
-		/* lets see about moving a point around */
-		testPoint.x = 20.0; testPoint.y=0.0; testPoint.z = 0.0;
-		testPoint.x -= Viewer.currentPosInModel.x;
-		testPoint.y -= Viewer.currentPosInModel.y;
-		testPoint.z -= Viewer.currentPosInModel.z;
-		printf ("distance to point, in xyz terms: %4.2f %4.2f %4.2f\n",testPoint.x, testPoint.y, testPoint.z);
-		moveAndRotateThisPoint(vpnode, &testPoint, 20.0,  0.0, 0.0);
-		printf ("rotated point is %4.2f %4.2f %4.2f\n",testPoint.x, testPoint.y, testPoint.z);
-		#endif
-	
 		/* make up 8 vertices for our bounding box, and place them within our view */
-		moveAndRotateThisPoint(vpnode, &bboxPoints[0], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[1], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[2], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[3], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[4], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[5], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[6], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[7], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[0], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[1], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[2], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[3], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[4], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[5], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[6], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(vpnode, &bboxPoints[7], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
 	
 		for (ci=0; ci<8; ci++) {
 			#ifdef VERBOSE
@@ -253,7 +235,9 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 			if (-(bboxPoints[ci].z) > cfp) cfp = -(bboxPoints[ci].z);
 			if (-(bboxPoints[ci].z) < cnp) cnp = -(bboxPoints[ci].z);
 		}
+#ifdef OLDCODE
 	}
+#endif
 
 	/* lets bound check here, both must be positive, and farPlane more than DEFAULT_NEARPLANE */
 	/* because we may be navigating towards the shapes, we give the nearPlane a bit of room, otherwise
@@ -263,7 +247,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 
 	/* we could (probably should) keep the farPlane at 1.0 and above, but because of an Examine mode 
 	   rotation problem, we will just keep it at 2100 for now. */
-	if (cfp<2100.0) cfp = 2100.0;	
+	if (cfp<1.0) cfp = 1.0;	
 
 	#ifdef VERBOSE
 	printf ("cnp %lf cfp before leaving room for Background %lf\n",cnp,cfp);

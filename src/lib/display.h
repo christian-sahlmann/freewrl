@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.17 2009/02/18 13:37:50 istakenv Exp $
+$Id: display.h,v 1.18 2009/04/08 19:40:55 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -196,6 +196,9 @@ void setScreenDim(int wi, int he);
 /* debugging OpenGL calls  - allows us to keep track of what is happening */
 #undef DEBUG_OPENGL_CALLS
 #ifdef DEBUG_OPENGL_CALLS
+	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) \
+		{glDrawArrays(xxx,yyy,zzz); \
+		printf ("glDrawArrays tat %s:%d\n",__FILE__,__LINE__);}
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) \
 		{glTranslatef(xxx,yyy,zzz); \
 		printf ("glTranslatef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
@@ -226,6 +229,7 @@ void setScreenDim(int wi, int he);
 
 
 #else
+	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) glDrawArrays(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) glTranslatef(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) glTranslated(xxx,yyy,zzz)
 	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) glRotated(aaa,xxx,yyy,zzz)

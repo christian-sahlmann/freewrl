@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: Component_Rendering.c,v 1.4 2009/04/08 19:40:55 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -397,7 +397,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 	glDisableClientState (GL_NORMAL_ARRAY);
 
 	glVertexPointer (3,GL_FLOAT,0,points);
-	glDrawArrays(GL_POINTS,0,npoints);
+	FW_GL_DRAWARRAYS(GL_POINTS,0,npoints);
 
 	/* put things back to normal */
 	glEnableClientState(GL_NORMAL_ARRAY);

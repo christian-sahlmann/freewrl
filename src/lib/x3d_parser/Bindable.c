@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.9 2009/02/11 15:12:55 istakenv Exp $
+$Id: Bindable.c,v 1.10 2009/04/08 19:40:55 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -823,7 +823,7 @@ void render_Background (struct X3D_Background *node) {
 	glEnableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 
-	glDrawArrays (GL_QUADS, 0, node->__quadcount);
+	FW_GL_DRAWARRAYS (GL_QUADS, 0, node->__quadcount);
 
 	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -891,7 +891,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	glEnableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 
-	glDrawArrays (GL_QUADS, 0, node->__quadcount);
+	FW_GL_DRAWARRAYS (GL_QUADS, 0, node->__quadcount);
 
 	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);

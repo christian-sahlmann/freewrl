@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.4 2009/02/18 16:24:04 istakenv Exp $
+$Id: Component_Geometry2D.c,v 1.5 2009/04/08 19:40:55 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -58,7 +58,7 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
-        	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
+        	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
 		glEnableClientState (GL_NORMAL_ARRAY);
 		trisThisLoop += node->__numPoints;
 	}
@@ -109,7 +109,7 @@ void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
-        	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
+        	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
 		glEnableClientState (GL_NORMAL_ARRAY);
 		trisThisLoop += node->__numPoints;
 	}
@@ -144,7 +144,7 @@ void render_Circle2D (struct X3D_Circle2D *node) {
 
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
-        	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
+        	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
 		glEnableClientState (GL_NORMAL_ARRAY);
 		trisThisLoop += node->__numPoints;
 	}
@@ -161,7 +161,7 @@ void render_Polyline2D (struct X3D_Polyline2D *node){
 
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->lineSegments.p);
-        	glDrawArrays (GL_LINE_STRIP, 0, node->lineSegments.n);
+        	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->lineSegments.n);
 		glEnableClientState (GL_NORMAL_ARRAY);
 		trisThisLoop += node->lineSegments.n;
 	}
@@ -178,7 +178,7 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->point.p);
-        	glDrawArrays (GL_POINTS, 0, node->point.n);
+        	FW_GL_DRAWARRAYS (GL_POINTS, 0, node->point.n);
 		glEnableClientState (GL_NORMAL_ARRAY);
 		trisThisLoop += node->point.n;
 	}
@@ -275,8 +275,8 @@ void render_Disk2D (struct X3D_Disk2D *node){
 		glNormal3f (0.0, 0.0, 1.0);
 
 		/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-		if (node->__simpleDisk) glDrawArrays (GL_TRIANGLE_FAN, 0, node->__numPoints);
-		else 			glDrawArrays (GL_QUAD_STRIP, 0, node->__numPoints);
+		if (node->__simpleDisk) {FW_GL_DRAWARRAYS (GL_TRIANGLE_FAN, 0, node->__numPoints);}
+		else 			{FW_GL_DRAWARRAYS (GL_QUAD_STRIP, 0, node->__numPoints); }
 
 		textureDraw_end();
 		glEnableClientState (GL_NORMAL_ARRAY);
@@ -344,7 +344,7 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glNormal3f (0.0, 0.0, 1.0);
 
-		glDrawArrays (GL_TRIANGLES, 0, node->vertices.n);
+		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->vertices.n);
 
 		textureDraw_end();
 		glEnableClientState (GL_NORMAL_ARRAY);
@@ -401,7 +401,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	glNormal3f (0.0, 0.0, 1.0);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	glDrawArrays (GL_QUADS, 0, 4);
+	FW_GL_DRAWARRAYS (GL_QUADS, 0, 4);
 	textureDraw_end();
 	glEnableClientState (GL_NORMAL_ARRAY);
 	trisThisLoop += 2;

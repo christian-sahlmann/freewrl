@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.4 2009/02/11 15:12:54 istakenv Exp $
+$Id: Component_EnvironSensor.c,v 1.5 2009/04/08 19:40:55 crc_canada Exp $
 
 X3D Environmental Sensors Component
 
@@ -123,7 +123,7 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	glNormalPointer (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	glDrawArrays (GL_QUADS, 0, 24);
+	FW_GL_DRAWARRAYS (GL_QUADS, 0, 24);
 }
 
 

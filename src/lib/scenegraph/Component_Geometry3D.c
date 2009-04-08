@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.3 2009/02/11 15:12:54 istakenv Exp $
+$Id: Component_Geometry3D.c,v 1.4 2009/04/08 19:40:55 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -87,7 +87,7 @@ void render_Box (struct X3D_Box *node) {
 	glNormalPointer (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	glDrawArrays (GL_QUADS, 0, 24);
+	FW_GL_DRAWARRAYS (GL_QUADS, 0, 24);
 	textureDraw_end();
 	trisThisLoop += 24;
 }
@@ -165,7 +165,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		textureDraw_start(NULL,cylsidetex);
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-		glDrawArrays (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
+		FW_GL_DRAWARRAYS (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
 		trisThisLoop += (CYLDIV+1)*2*2; /* 2 triangles per quad strip */
 	}
 	if(node->bottom) {
@@ -232,7 +232,7 @@ void compile_Cone (struct X3D_Cone *node) {
 	/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
 	memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
 
-	/*  side triangles. Make 3 seperate points per triangle... makes glDrawArrays with normals*/
+	/*  side triangles. Make 3 seperate points per triangle... makes FW_GL_DRAWARRAYS with normals*/
 	/*  easier to handle.*/
 	/*  rearrange bottom points into this array; top, bottom, left.*/
 	spt = (struct SFColor *)node->__sidepoints;
@@ -308,7 +308,7 @@ void render_Cone (struct X3D_Cone *node) {
 		textureDraw_start(NULL,trisidtex);
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-		glDrawArrays (GL_TRIANGLES, 0, 60);
+		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 60);
 		trisThisLoop += 60;
 	}
 	textureDraw_end();
@@ -413,7 +413,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 	/* for (count = 0; count < SPHDIV; count ++) { */
 	for (count = 0; count < SPHDIV/2; count ++) { 
-		glDrawArrays (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
+		FW_GL_DRAWARRAYS (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
 		trisThisLoop += (SPHDIV+1) * 4;
 	}
 	textureDraw_end();
