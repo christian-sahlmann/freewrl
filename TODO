@@ -37,9 +37,6 @@ Priority list (as of 28/02/2009)
 
 
 28/02/2009:
-	(JAS) ConsoleMessage - when copying rest of text in classic parser for error location,
-	make copied string length max 200 chars.
-
 	(JAS) Verify that x3d, x3dv, and wrl files set _isX3D and _isXML correctly.
 	Some of the Conformance tests now fail.
 
@@ -60,25 +57,10 @@ Priority list (as of 28/02/2009)
 
 24/02/2009: on OSX, the following tests have problems:
 
-	19 - pink robot? *			(FIXED- do_shininess call JAS)
 	20 - not sorted?
-	25,26 - Textures on backgrounds. 	(FIXED - texture box vertices changed JAS)
-	47.wrl (beachball) fwLoad, unknown -111	(FIXED - was opengl optimization call - removed JAS)
-	49.wrl - no output?
-	50 - FreeWRL: SoundEngine not installed on system
-	9.wrl - shapes disappear.
 	SFImage.wrl - box not changing texture
 	pp2.x3d - nothing shown.
-	stringSensor.x3dv - hangs? 		(FIXED - initialized was set to TRUE at start JAS)
 
-
-06/02/09: Examine orientations incorrect.
-	take tests/1.wrl, add:
-	Viewpoint {description "1" position 0 0 10}
-	Viewpoint {description "2" orientation 0 1 0 3.14 position 0 0 -10}
-	Viewpoint {description "3" orientation 0 1 0 1.57 position 10 0 0}
-	Viewpoint {description "4" orientation 0 -1 0 1.57 position -10 0 0}
-	and note that vps 3 and 4 rotate incorrectly; and that farPlane calculated incorrectly for 2.
 
 06/02/09: New build on some Linux distros fails. Decide what to do about this - currently thinking
 	about supporting both makefile.pl and autotools, until the autotools one can be built once other Linuxes 
@@ -94,7 +76,6 @@ Priority list (as of 28/02/2009)
 - review all Geospatial nodes (JohnS)
 - implement FloatingOrigin in Geospatial code (Johns)
 - Points and Lines - send upstream bounds, as per faceset nodes (JohnS)
-- Review all uses of gluUnproject in code (Johns)
 - OSX - standalone front end - enable printing;
 - OSX - standalone front end - ensure pulldown menu items tied with actual rendering variables
 - OSX - stanaalone front end - "q" key does not store window parameters in OSX; can "q" be mapped to
@@ -108,10 +89,8 @@ Priority list (as of 28/02/2009)
 - threading issues with XLib - harold and Michel.
 - merge into freewrl
 - OSX standalone front end updateContext()
-- View Frustum - see PalaceWalkthrough and Geospatial code. (in progress -JohnS)
 - XML parser - Script and Proto work, and general cleanup
 - DVD standalone - get Geospatial content on there, and running.
-- FillProperties - use brickshader style shader to implement them.
 - Shader variables not parsed nor sent to shaders.
 - OSX sound revisit.
 - GlassBunny.wrl - CubeMap textures (Michel) and Shader variables (Johns).
@@ -132,7 +111,6 @@ Priority list (as of 20/11/2008):
 - Apple - Gurob email
 - OSX standalone front end updateContext()
 - XML parser - Script and Proto work, and general cleanup
-- FillProperties
 - Shader variables
 - Component verification
 

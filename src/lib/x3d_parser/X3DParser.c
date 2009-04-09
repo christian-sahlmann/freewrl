@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.14 2009/04/06 17:20:25 crc_canada Exp $
+$Id: X3DParser.c,v 1.15 2009/04/09 14:21:05 crc_canada Exp $
 
 ???
 
@@ -514,7 +514,11 @@ printf ("hey, we have maybe a Node in a Script list... line %d: expected parserM
 
 static void XMLCALL startCDATA (void *userData) {
 	if (CDATA_Text_curlen != 0) {
+/*
 		ConsoleMessage ("X3DParser - hmmm, expected CDATA_Text_curlen to be 0, is not");
+		printf ("CDATA_TEXT_CURLEN is %d\n",CDATA_Text_curlen);
+printf ("CADAT_Text:%s:\n",CDATA_Text);
+*/
 		CDATA_Text_curlen = 0;
 	}
 

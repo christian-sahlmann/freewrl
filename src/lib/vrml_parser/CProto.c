@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.19 2009/04/03 18:21:58 crc_canada Exp $
+$Id: CProto.c,v 1.20 2009/04/09 14:21:05 crc_canada Exp $
 
 CProto ???
 
@@ -1277,10 +1277,10 @@ static int addProtoUpdateRoute (struct VRMLLexer *me, FILE *routefile, char *fie
 
 
 	myPF = getProtoFieldDeclaration (me, thisProto, protoNameInHeader);
-	if (myPF == NULL) return;
+	if (myPF == NULL) return 0;
 
 	/* is this an initializeOnly field, so no possible routing updates? */
-	if (myPF->mode == PKW_initializeOnly) return;
+	if (myPF->mode == PKW_initializeOnly) return 0;
 
 	/* is this one accepting routes into the PROTO? */
 	if ((myPF->mode == PKW_inputOutput) || (myPF->mode == PKW_inputOnly)) {
