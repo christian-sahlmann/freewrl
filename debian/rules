@@ -30,6 +30,10 @@ endif
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
+	if ! test -f ./configure ; then \
+		echo "Creating configure..."; \
+		autoreconf --force --install; \
+	fi
 	./configure --prefix=/usr \
 		--with-fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera \
 		--disable-static \
