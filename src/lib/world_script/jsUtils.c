@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.7 2009/02/18 13:37:50 istakenv Exp $
+$Id: jsUtils.c,v 1.8 2009/04/14 17:15:55 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -275,6 +275,7 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, j
 	double dl;
 	int il;
 
+
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("calling X3D_ECMA_TO_JS on type %s\n",FIELDTYPES[dataType]);
 	#endif
@@ -300,13 +301,20 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, j
 
 		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
-			memcpy((void *) &ms,Data, datalen);
+
+			/* datalen will be ROUTING_SFSTRING here; or at least should be! We
+			   copy over the data, which is a UniString pointer, and use the pointer
+			   value here */
+			memcpy((void *) &ms,Data, sizeof(void *));
 			*newval = STRING_TO_JSVAL(JS_NewStringCopyZ(cx,ms->strptr));
 			break;
 		}
 		default: {	printf("WARNING: SHOULD NOT BE HERE in X3D_ECMA_TO_JS! %d\n",dataType); }
 	}
 }
+
+#undef JSVRMLCLASSESVERBOSE
+
 
 /* take an ECMA value in the X3D Scenegraph, and return a jsval with it in */
 /* this is not so fast; we call a script to make a default type, then we fill it in */
