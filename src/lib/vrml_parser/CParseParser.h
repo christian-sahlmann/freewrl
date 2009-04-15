@@ -1,7 +1,7 @@
 /* 
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseParser.h,v 1.5 2009/03/18 20:07:32 crc_canada Exp $
+$Id: CParseParser.h,v 1.6 2009/04/15 18:37:07 crc_canada Exp $
 
 Parser (input of non-terminal symbols) for CParse
 
@@ -141,11 +141,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser*,
 BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_node(struct VRMLParser*, vrmlNodeT*, indexT);
 BOOL parser_field(struct VRMLParser*, struct X3D_Node*);
-BOOL parser_fieldEvent(struct VRMLParser*, struct X3D_Node*);
-BOOL parser_fieldEventAfterISPart(struct VRMLParser*, struct X3D_Node*,
- BOOL isIn, BOOL isOut, indexT, indexT);
-BOOL parser_protoField(struct VRMLParser*, struct ProtoDefinition*, struct ProtoDefinition*);
-BOOL parser_protoEvent(struct VRMLParser*, struct ProtoDefinition*, struct ProtoDefinition*);
+/* JAS BOOL parser_protoEvent(struct VRMLParser*, struct ProtoDefinition*, struct ProtoDefinition*); */
 
 /* Initializes node-specific fields */
 void parser_specificInitNode(struct X3D_Node*, struct VRMLParser*);
@@ -155,7 +151,9 @@ void parser_registerRoute(struct VRMLParser*,
  struct X3D_Node*, unsigned, struct X3D_Node*, unsigned, size_t, int);
 
 /* Parses a field value of a certain type (literally or IS) */
-BOOL parser_fieldValue(struct VRMLParser*, struct OffsetPointer*, indexT, indexT, BOOL, struct ProtoDefinition*, struct ProtoFieldDecl*);
+BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int offs,
+                       indexT type, indexT origFieldE, BOOL protoExpansion, struct ProtoDefinition* pdef, struct ProtoFieldDecl* origField);
+
 
 /* Main parsing routine, parses the start symbol (vrmlScene) */
 BOOL parser_vrmlScene(struct VRMLParser*);
@@ -164,10 +162,6 @@ BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal);
 
 
 void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, int *outSize);
-/*
-void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode);
-*/
-
 
 void cParseErrorCurID(struct VRMLParser *me, char *str);
 void cParseErrorFieldString(struct VRMLParser *me, char *str1, const char *str2);

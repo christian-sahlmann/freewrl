@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.h,v 1.5 2009/02/18 13:37:50 istakenv Exp $
+$Id: CParseLexer.h,v 1.6 2009/04/15 18:37:07 crc_canada Exp $
 
 Lexer (input of terminal symbols) for CParse
 
@@ -33,6 +33,9 @@ struct VRMLLexer
  const char* startOfStringPtr; /* beginning address of string, for FREE calls */
  char* curID;	/* Currently input but not lexed id. */
  BOOL isEof;	/* Error because of EOF? */
+
+ int lexerInputLevel; /* which level are we at? used for putting PROTO expansions into the input stream, etc */
+
  Stack* userNodeNames;
  struct Vector* userNodeTypesVec;
  Stack* userNodeTypesStack;
@@ -57,7 +60,7 @@ void lexer_destroyIdStack(Stack*);
 /* Set input */
 #define lexer_fromString(me, str) \
  { /* printf ("lexer_fromString, new string :%s:\n",str); */ \
-	 (me)->isEof=(strlen(str)<=1); FREE_IF_NZ((me)->startOfStringPtr); (me)->startOfStringPtr=str; (me)->nextIn=str;}
+	 if (str!= NULL) (me)->isEof=(str[0]=='\0'); else (me)->isEof=TRUE; FREE_IF_NZ((me)->startOfStringPtr); (me)->startOfStringPtr=str; (me)->nextIn=str;}
 
 /* Is EOF? */
 #define lexer_eof(me) \

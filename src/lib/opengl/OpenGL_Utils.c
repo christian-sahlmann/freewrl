@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.27 2009/04/09 18:43:21 istakenv Exp $
+$Id: OpenGL_Utils.c,v 1.28 2009/04/15 18:37:07 crc_canada Exp $
 
 ???
 
@@ -727,6 +727,9 @@ void zeroVisibilityFlag(void) {
 
 	ocnum=-1;
 
+	
+	/* do not bother doing this if the inputThread is active. */
+	if (isinputThreadParsing()) return;
  	LOCK_MEMORYTABLE
 
 	/* do we have GL_ARB_occlusion_query, or are we still parsing Textures? */
@@ -889,6 +892,10 @@ void startOfLoopNodeUpdates(void) {
 	/* assume that we do not have any sensitive nodes at all... */
 	HaveSensitive = FALSE;
 	have_transparency = FALSE;
+
+
+	/* do not bother doing this if the inputparsing thread is active */
+	if (isinputThreadParsing()) return;
 
 	LOCK_MEMORYTABLE
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.11 2009/03/24 16:20:38 crc_canada Exp $
+$Id: CParseLexer.c,v 1.12 2009/04/15 18:37:07 crc_canada Exp $
 
 ???
 
@@ -63,14 +63,23 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 
 /* Constructor and destructor */
 
+ int lexerInputLevel; /* which level are we at? used for putting PROTO expansions into the input stream, etc */
+
+
 struct VRMLLexer* newLexer()
 {
+ int i;
+
  struct VRMLLexer* ret=MALLOC(sizeof(struct VRMLLexer));
 
  ret->nextIn=NULL;
+/*
+ for (i=0; i<LEXER_INPUT_STACK_MAX; i++) ret->startOfStringPtr[i] = NULL;
+*/
  ret->startOfStringPtr = NULL;
  ret->curID=NULL;
  ret->isEof=TRUE;
+ ret->lexerInputLevel = -1;
  
  /* Init id tables */
  ret->userNodeNames=newStack(struct Vector*);

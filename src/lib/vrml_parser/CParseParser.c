@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.22 2009/04/06 17:20:25 crc_canada Exp $
+  $Id: CParseParser.c,v 1.23 2009/04/15 18:37:07 crc_canada Exp $
 
   ???
 
@@ -203,30 +203,67 @@ BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal) 
 }
 
 
-void insertProtoExpansionIntoStream(struct VRMLParser *me,char *newProtoText) {
+double expandTime = 0.0;
+double insertTime = 0.0;
+
+static void insertProtoExpansionIntoStream(struct VRMLParser *me,char *newProtoText, int newProtoTextLen) {
     char *insertedPROTOcode;
+    char *tp; int lenRemainder;
+
+/* TIMING */
+        double startt, endt;
+        struct timeval mytime;
+        struct timezone tz; /* unused see man gettimeofday */
+
+        gettimeofday (&mytime,&tz);
+        startt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+/* TIMING */
 
 #ifdef CPARSERVERBOSE
     printf ("****** start of insertProtoExpansionIntoStream\n"); 
 #endif
 
-    insertedPROTOcode = MALLOC (sizeof (char) * (strlen (me->lexer->nextIn)+strlen (newProtoText)+1));
-    strcpy (insertedPROTOcode,newProtoText);
+	tp = me->lexer->nextIn; lenRemainder = 0;
+	while (*tp) {tp++; lenRemainder++;} 
+	/* printf ("buffer remainder is %d\n",lenRemainder); */
+
+    insertedPROTOcode = MALLOC (sizeof (char) * (lenRemainder+newProtoTextLen+1));
+
+
+/* TIMING */
+        gettimeofday (&mytime,&tz);
+        endt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+	expandTime += (endt-startt);
+	startt = endt;
+/* TIMING */
+
+
+
+    /* strcpy (insertedPROTOcode,newProtoText); */
+	memcpy ((void *)insertedPROTOcode, (void *)newProtoText,newProtoTextLen);
+	insertedPROTOcode[newProtoTextLen] = '\0';
 
 #ifdef CPARSERVERBOSE
     printf ("****** insertProtoExpansionIntoStream insertedPROTOcode:%s:\n",insertedPROTOcode); 
     printf ("****** insertProtoExpansionIntoStream me->lexer->nextIn:%s:\n",me->lexer->nextIn);
 #endif
 
-
-    strcat (insertedPROTOcode,me->lexer->nextIn);
+	memcpy (&insertedPROTOcode[newProtoTextLen],me->lexer->nextIn,lenRemainder);
+	insertedPROTOcode[lenRemainder+newProtoTextLen] = '\0';
 
 #ifdef CPARSERVERBOSE
     printf ("****** insertProtoExpansionIntoStream npt+remainder:%s:\n",insertedPROTOcode); 
 #endif
 
-
     parser_fromString(me,insertedPROTOcode);
+
+/* TIMING */
+        gettimeofday (&mytime,&tz);
+        endt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+	insertTime += (endt-startt);
+/* TIMING */
+
+
 
 #ifdef CPARSERVERBOSE
     printf ("****** end of insertProtoExpansionIntoStream\n"); 
@@ -1609,8 +1646,6 @@ void parser_registerRoute(struct VRMLParser* me,
     ASSERT(me);
     if(me->curPROTO)
     {
-        /* OLDCODE protoDefinition_addRoute(me->curPROTO,
-           newProtoRoute(fromNode, fromOfs, toNode, toOfs, len, dir)); */
     } else
         CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, len, dir);
 }
@@ -1821,13 +1856,16 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
         ASSERT(nodeTypeU<vector_size(me->PROTOs));
                 
         if (me->curPROTO == NULL) {
+	    int newProtoTextLen = 0;
+
             /* printf ("curPROTO = NULL: before protoExpand, current stream :%s:\n",me->lexer->nextIn); */
                 
             /* find and expand the PROTO definition */
-            newProtoText = protoExpand(me, nodeTypeU,&thisProto);
+            newProtoText = protoExpand(me, nodeTypeU,&thisProto,&newProtoTextLen);
                 
             /* printf ("curPROTO = NULL: past protoExpand\n"); */
-            insertProtoExpansionIntoStream(me,newProtoText);
+            insertProtoExpansionIntoStream(me,newProtoText,newProtoTextLen);
+
                 
             /* printf ("curPROTO = NULL: past insertProtoExpansionIntoStream\n"); */
             /* and, now, lets get the id for the lexer */
@@ -1998,146 +2036,6 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
     return TRUE;
 }
 
-/* Parses a inputOnly/outputOnly IS statement in a proto instantiation */
-BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct ProtoDefinition* op) {
-    indexT evE, evO;
-    indexT local_evE, local_evO;
-    BOOL isIn = FALSE, isOut = FALSE;
-    BOOL local_isIn = FALSE, local_isOut = FALSE;
-    struct ProtoFieldDecl* first_field;
-    struct ProtoFieldDecl* second_field;
-
-    /* Locate the user defined event in user_inputOnly or Out */
-    if(lexer_inputOnly(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
-        isIn = TRUE;
-        isOut = (evE != ID_UNDEFINED);
-    } else if (lexer_outputOnly(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
-        isOut = TRUE;
-    }   
-
-#ifdef CPARSERVERBOSE
-    printf ("parser_protoEvent, isIn %d isOut %d\n",isIn, isOut);
-#endif
-
-    /* Check that we found the event somewhere ... */
-    if (!isIn && !isOut) {
-        return FALSE;
-    }
-    /* Check that the next token in the lexer is "IS" */
-    if (!lexer_keyword(me->lexer, KW_IS))
-        return FALSE;
-
-
-    /* Locate the second user defined event in user_inputOnly or Out */
-    if(lexer_inputOnly(me->lexer, NULL, NULL, NULL, &local_evO, &local_evE)) {
-        local_isIn = TRUE;
-        local_isOut = (local_evE != ID_UNDEFINED);
-    } else if (lexer_outputOnly(me->lexer, NULL, NULL, NULL, &local_evO, &local_evE)) {
-        local_isOut = TRUE;
-    }   
-
-    /* Check that we found the event somewhere ... */
-    if (!local_isIn && !local_isOut)
-        return FALSE;
-
-    /* Check that we found the field somewhere ... */
-    if (!isIn && !isOut)
-        return FALSE;
-
-    /* Get the field declaration for the first user defined event from the proto being expanded */
-    if (evE != ID_UNDEFINED) 
-        first_field = protoDefinition_getField(p, evE, PKW_inputOutput);
-    else 
-        first_field = protoDefinition_getField(p, evO, isIn ? PKW_inputOnly : PKW_outputOnly);
-
-    ASSERT(first_field);
-
-    /* Get the field declaration for the second user defined event from the current proto being parsed */
-    if (evE != ID_UNDEFINED) 
-        second_field = protoDefinition_getField(me->curPROTO, local_evE, PKW_inputOutput);
-    else 
-        second_field = protoDefinition_getField(me->curPROTO, local_evO, isIn ? PKW_inputOnly : PKW_outputOnly);
-
-    ASSERT(second_field);
-
-    return TRUE;
-
-}
-
-/* Parses a field assignment of a PROTOtyped node */
-/* Fetches the protoFieldDecl for the named field from the iface list of this ProtoDefinition. */
-/* Then fetches the value for this field from the lexer and assigns it to every node/field combination
-   registered as a destination for this proto field (i.e. every entry in that field's dests vector). */
-BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p, struct ProtoDefinition* op)
-{
-    indexT fieldO, fieldE;
-    struct ProtoFieldDecl* field=NULL;
-
-#ifdef CPARSERVERBOSE
-    printf("parser_protoField: look for field in user_initializeOnly and user_inputOutput\n");
-#endif
-    /* Checks for the field name in user_initializeOnly and user_inputOutput */
-    if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE)) {
-        /* Not in user_initializeOnly or user_exposedfield?  Then this must be an event in or event out ... */
-#ifdef CPARSERVERBOSE
-        printf ("going to call parser_protoEvent from parser_protoField\n");
-#endif
-
-        return parser_protoEvent(me, p, op);
-    }
-
-#ifdef CPARSERVERBOSE
-    printf ("parser_protoField, have fieldO %d fieldE %d\n");
-#endif
-
-    /* If this field was found in user_initializeOnly */
-    if(fieldO!=ID_UNDEFINED)
-    {
-        /* Get the protoFieldDecl for this field from the iface list for this PROTO */
-        field=protoDefinition_getField(p, fieldO, PKW_initializeOnly);
-
-        /* This field is not defined for this PROTO.  Error. */
-        if(!field)
-            PARSE_ERROR("Field is not part of PROTO's interface!")
-
-                ASSERT(field->mode==PKW_initializeOnly);
-    } else
-    {
-        /* If this field wasn't found in user_initializeOnly, it must be found in user_inputOutput */
-        ASSERT(fieldE!=ID_UNDEFINED);
-
-        /* Get the protoFieldDecl for this field from the iface list for this PROTO */
-        field=protoDefinition_getField(p, fieldE, PKW_inputOutput);
-
-        /* This inputOutput is not defined for this PROTO.  Error. */
-        if(!field)
-            PARSE_ERROR("Field is not part of PROTO's interface!")
-                ASSERT(field->mode==PKW_inputOutput);
-    }
-
-    /* We must have retrieved the field */
-    ASSERT(field);
-
-    /* Parse the value */
-    {
-        union anyVrml val;
-        /* Get the value for this field and store it in the union anyVrml as the correct type.
-           (In essence, the anyVrml union acts as a fake node here.  The function fills in the value 
-           as if passed a node pointer with an offset of 0 - placing the value into the anyVrml union. */
-
-        if(!parser_fieldValue(me, newOffsetPointer(&val, 0), field->type, ID_UNDEFINED, TRUE, p, field))
-            PARSE_ERROR("Expected value of field after fieldId!")
-
-                /* Go throught the dests vector for this field, and set the value of each dest to this value.  
-                   (Note that the first element of the dests vector is actually assigned the value of "val".  While
-                   subsequent elements of the dests vector have a DEEPCOPY of the "val" assigned (if appropriate). */
-                protoFieldDecl_setValue(me->lexer, field, &val);
-    }
-
-    return TRUE;
-}
-
-
 /* add_parent for Multi_Node */
 void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 {
@@ -2152,12 +2050,14 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 /* Gets the actual value of a field and stores it in a node, or, for an IS statement, adds this node and field as a destination to the appropriate protoFieldDecl */
 /* Passed pointer to the parser, an offsetPointer structure pointing to the current node and an offset to the field being parsed, type of the event value (i.e. MFString) index in FIELDTYPES, */
 /* index of the field in the FIELDNAMES (or equivalent) array */
-BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
+/* Parses a field value of a certain type (literally or IS) */
+
+BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int offs,
                        indexT type, indexT origFieldE, BOOL protoExpansion, struct ProtoDefinition* pdef, struct ProtoFieldDecl* origField)
 {
 #undef PARSER_FINALLY
-#define PARSER_FINALLY \
-  deleteOffsetPointer(ret);
+#define PARSER_FINALLY
+
 #ifdef CPARSERVERBOSE
     printf ("start of parser_fieldValue\n");
     printf ("me->curPROTO = %u\n",me->curPROTO);
@@ -2168,6 +2068,9 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
         printf ("parser_fieldValue, not an IS\n");
 #endif
         /* Get a pointer to the actual field */
+#define offsetPointer_deref(t, me) \
+ ((t)(((char*)(node))+offs))
+
         void* directRet=offsetPointer_deref(void*, ret);
 
         /* we could print out a type, as shown below for the first element of a Multi_Color:
@@ -2243,9 +2146,8 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
            node and the offset for the "rotation" field in that node.  
 
            If we've done all this, then we've parsed the field statement completely, and we return. */ 
-        return parser_fieldEvent(me, node);
+	return FALSE;
 
-/* JAS printf ("successfully past parser_fieldEvent call\n"); */
     /* Ignore all events */
 #define EVENT_IN(n, f, t, v)
 #define EVENT_OUT(n, f, t, v)
@@ -2353,7 +2255,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 #define PROCESS_FIELD(exposed, node, field, fieldType, var, fe) \
   case exposed##FIELD_##field: \
    if(!parser_fieldValue(me, \
-    newOffsetPointer(X3D_NODE(node2), offsetof(struct X3D_##node, var)), \
+    X3D_NODE(node2), offsetof(struct X3D_##node, var), \
     FTIND_##fieldType, fe, FALSE, NULL, NULL)) {\
     printf ("error in parser_fieldValue by call 2\n"); \
         PARSE_ERROR("Expected " #fieldType " Value for a fieldtype!") }\
@@ -2444,20 +2346,6 @@ if(fieldO!=ID_UNDEFINED)
 /* If field was found, return TRUE; would have happened! */
 PARSE_ERROR("Unsupported field for node!")
     }
-
-/* Parses a built-in field with IS in PROTO */
-BOOL parser_fieldEvent(struct VRMLParser* me, struct X3D_Node* ptr)
-    {
-        BOOL isIn=FALSE, isOut=FALSE;
-        indexT evO, evE;
-
-        /* We should be in a PROTO */
-        if(!me->curPROTO)
-            return FALSE;
-        return TRUE;
-    }
-
-
 
 /* ************************************************************************** */
 /* MF* field values */

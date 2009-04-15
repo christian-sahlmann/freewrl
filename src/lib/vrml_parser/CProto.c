@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.20 2009/04/09 14:21:05 crc_canada Exp $
+$Id: CProto.c,v 1.21 2009/04/15 18:37:07 crc_canada Exp $
 
 CProto ???
 
@@ -30,8 +30,10 @@ CProto ???
 
 #undef CPROTOVERBOSE
 
-#define PROTO_CAT(newString) { \
-		curstringlen += fprintf (pexfile,"%s",newString); } 
+#define PROTO_CAT(newString) { char *pt = newString; int len=0; int wlen = 0;\
+		while ((*pt)) {len++; pt++;}; \
+		wlen = fwrite (newString,len,1,pexfile); \
+		curstringlen += len; } 
 
 #define STARTPROTOGROUP "Group{FreeWRL__protoDef %d FreeWRL_PROTOInterfaceNodes ["
 #define PROTOGROUPNUMBER "] #PROTOPARAMS\n  children[ #PROTOGROUP\n"
@@ -120,28 +122,6 @@ static struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPo
 	ret->terminalSymbol = me->terminalSymbol;	
 	ret->fabricatedDef = me->fabricatedDef;	
 	return ret;
-}
-
-
-
-
-/* ************************************************************************** */
-/* ******************************** OffsetPointer *************************** */
-/* ************************************************************************** */
-
-/* Constructor/destructor */
-/* ********************** */
-
-struct OffsetPointer* newOffsetPointer(struct X3D_Node* node, unsigned ofs)
-{
- struct OffsetPointer* ret=MALLOC(sizeof(struct OffsetPointer));
- /* printf("creating offsetpointer %p\n", ret); */
- ASSERT(ret);
-
- ret->node=node;
- ret->ofs=ofs;
-
- return ret;
 }
 
 
@@ -274,12 +254,18 @@ struct ProtoDefinition* newProtoDefinition()
  ASSERT(ret->iface);
 
  /* proto bodies are tokenized to help IS and routing to/from PROTOS */
+/*
  ret->deconstructedProtoBody=newVector(struct ProtoElementPointer*, 128);
  ASSERT(ret->deconstructedProtoBody);
+*/
+ ret->deconstructedProtoBody = NULL;
+
+
 
  ret->protoDefNumber = latest_protoDefNumber++;
  ret->estimatedBodyLen = 0;
  ret->protoName = NULL;
+ ret->isCopy = FALSE;
 
  return ret;
 }
@@ -297,7 +283,7 @@ void deleteProtoDefinition(struct ProtoDefinition* me) {
 		FREE_IF_NZ(ele->stringToken);
 		FREE_IF_NZ(ele);
 	}
-	deleteVector(struct ProtoRoute*, me->deconstructedProtoBody);
+	if (!me->isCopy) deleteVector(struct ProtoRoute*, me->deconstructedProtoBody);
 	FREE_IF_NZ(me->protoName);
 	FREE_IF_NZ (me);
 }
@@ -340,12 +326,9 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
 		vector_pushBack(struct ProtoFieldDecl*, ret->iface,
 	protoFieldDecl_copy(lex, vector_get(struct ProtoFieldDecl*, me->iface, i)));
 
-	/* copy the deconsctructed PROTO body */
-	ret->deconstructedProtoBody = newVector (struct ProtoElementPointer* , vector_size(me->deconstructedProtoBody));
-	ASSERT (ret->deconstructedProtoBody);
-	for(i=0; i!=vector_size(me->deconstructedProtoBody); ++i) {
-		vector_pushBack(struct ProtoElementPointer *, ret->deconstructedProtoBody, copyProtoElementPointer(vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i)));
-	}
+	/* reference the deconsctructed PROTO body */
+	ret->deconstructedProtoBody = me->deconstructedProtoBody;
+	ret->isCopy == TRUE;
 	
  	ret->estimatedBodyLen = me->estimatedBodyLen;
 	ret->protoDefNumber = latest_protoDefNumber++;
@@ -540,7 +523,6 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
         	}
 	}
 
-/* a bunch of "OLDCODE" was here */
   }
 
  if(myHash)
@@ -559,12 +541,10 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
 void protoFieldDecl_setValue(struct VRMLLexer* lex, struct ProtoFieldDecl* me, union anyVrml* val)
 {
  size_t i;
- struct OffsetPointer* myptr;
-
-
 
  ASSERT(!me->alreadySet);
  me->alreadySet=TRUE;
+printf ("protoFieldDecl_setValue getting called...\n");
 
 if (!vector_empty(me->scriptDests)) {
 
@@ -577,6 +557,8 @@ if (!vector_empty(me->scriptDests)) {
  }
 }
 }
+
+
 
 /* Copies a fieldDeclaration */
 struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFieldDecl* me)
@@ -1056,6 +1038,11 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 	lex = newLexer();
 	lexer_fromString(lex,pb);
 
+	/* make up deconstructedProtoBody here */
+ 	me->deconstructedProtoBody=newVector(struct ProtoElementPointer*, 128);
+	ASSERT(me->deconstructedProtoBody);
+
+
 	while (lex->isEof == FALSE) {
 		ele = newProtoElementPointer();
 		toPush = TRUE; /* only put this new element on Vector if it is successful */
@@ -1242,6 +1229,10 @@ static int addProtoUpdateRoute (struct VRMLLexer *me, FILE *routefile, char *fie
 	printf ("addProtoUpdateRoute, fieldName :%s: protoNameInHeader :%s: thisID :%s:\n",fieldName, protoNameInHeader,thisID);
 	#endif
 
+	/* bounds check - if the deconstructedProtoBody == null, just return */
+	if (thisProto->deconstructedProtoBody == NULL) return 0;
+
+
 	/* is this one a DEFed node, whereby we need to keep the DEF name as part of this? */
 	do {
 		tE = vector_get(struct ProtoElementPointer*, thisProto->deconstructedProtoBody, (indexT)index);
@@ -1299,7 +1290,7 @@ static int addProtoUpdateRoute (struct VRMLLexer *me, FILE *routefile, char *fie
 
 
 /* make an expansion of the PROTO, and return it to the main caller */
-char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
+char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto, int *protoSize) {
 	char *newProtoText;
 	char tempname[1000];
 	char tempRoutename[1000];
@@ -1341,6 +1332,9 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	printf ("start of protoExpand me %u me->lexer %u\n",me, me->lexer);
 	#endif
 
+	/* protoSize is zero, unless we are successful */
+	*protoSize = 0;
+
 	*thisProto = protoDefinition_copy(me->lexer, vector_get(struct ProtoDefinition*, me->PROTOs, nodeTypeU));
 	#ifdef CPROTOVERBOSE
 	printf ("expanding proto, "); 
@@ -1369,6 +1363,8 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	APPEND_STARTPROTOGROUP_2
 
 	/* go through each part of this deconstructedProtoBody, and see what needs doing... */
+	if ((*thisProto)->deconstructedProtoBody == NULL) return ""; /* nothing to do! */
+
 	protoElementCount = vector_size((*thisProto)->deconstructedProtoBody);
 
 	#ifdef CPROTOVERBOSE
@@ -1558,6 +1554,14 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	#ifdef CPROTOVERBOSE
 	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif
+
+	*protoSize = curstringlen + routeSize + strlen(ENDPROTOGROUP);
+	newProtoText[*protoSize] = '\0';
+
+	/* delete the body of the proto, as we do not need it here */
+/*
+	deleteDeconstructedProtoBody(*thisProto);
+*/
 
 	return newProtoText;
 }

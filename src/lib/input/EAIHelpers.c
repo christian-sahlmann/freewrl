@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.21 2009/04/03 18:21:57 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.22 2009/04/15 18:37:06 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -69,10 +69,6 @@ const char* protoFieldDecl_getStringName(lexer, fdecl)
 Default value:
 union anyVrml protoFieldDecl_getDefaultValue(fdecl)
 this union contains fields for every specific type, see CParseGeneral.h for exact structure.
-
-Desination pointers:
-size_t protoFieldDecl_getDestinationCount(fdecl)
-struct OffsetPointer* protoFieldDecl_getDestination(fdecl, index)
 
 This struct contains both a node and an ofs field.
 
@@ -276,9 +272,6 @@ Default value:
 union anyVrml protoFieldDecl_getDefaultValue(fdecl)
 this union contains fields for every specific type, see CParseGeneral.h for exact structure.
 
-Desination pointers:
-size_t protoFieldDecl_getDestinationCount(fdecl)
-struct OffsetPointer* protoFieldDecl_getDestination(fdecl, index)
 */
 
 /*********************************************************************************

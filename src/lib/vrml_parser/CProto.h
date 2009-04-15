@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.h,v 1.6 2009/03/13 20:07:18 crc_canada Exp $
+$Id: CProto.h,v 1.7 2009/04/15 18:37:07 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -20,29 +20,6 @@ pointers there updated.
 
 struct PointerHash;
 struct VRMLParser;
-
-/* ************************************************************************** */
-/* ******************************** OffsetPointer *************************** */
-/* ************************************************************************** */
-
-/* A pointer which is made up of the offset/node pair */
-struct OffsetPointer
-{
- struct X3D_Node* node;
- unsigned ofs;
-};
-
-
-/* Constructor/destructor */
-struct OffsetPointer* newOffsetPointer(struct X3D_Node*, unsigned);
-#define offsetPointer_copy(me) \
- newOffsetPointer((me)->node, (me)->ofs)
-#define deleteOffsetPointer(me) \
- FREE_IF_NZ(me)
-
-/* Dereference to simple pointer */
-#define offsetPointer_deref(t, me) \
- ((t)(((char*)((me)->node))+(me)->ofs))
 
 /* ************************************************************************** */
 /* ************************** ProtoElementPointer *************************** */
@@ -108,26 +85,9 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer*, struct ProtoFieldD
  lexer_stringUser_fieldName(lex, protoFieldDecl_getIndexName(me), \
   protoFieldDecl_getAccessType(me))
  
-#ifdef OLDDEST
-#define protoFieldDecl_getDestinationCount(me) \
- vector_size((me)->dests)
-#define protoFieldDecl_getDestination(me, i) \
- vector_get(struct OffsetPointer*, (me)->dests, i)
-#endif
-
 
 #define protoFieldDecl_getDefaultValue(me) \
  ((me)->defaultVal)
-
-
-/* Add a destination this field's value must be assigned to */
-#ifdef OLDDEST
-
-#define protoFieldDecl_addDestinationOptr(me, optr) \
- vector_pushBack(struct OffsetPointer*, me->dests, optr)
-#define protoFieldDecl_addDestination(me, n, o) \
- protoFieldDecl_addDestinationOptr(me, newOffsetPointer(n, o))
-#endif
 
 
 /* Sets this field's value (copy to destinations) */
@@ -197,6 +157,7 @@ struct ProtoDefinition
  struct Vector* deconstructedProtoBody; /* PROTO body tokenized */
  int estimatedBodyLen; /* an estimate of the expanded proto body size, to give us an output string len */
  char *protoName;      /* proto name as a string - used in EAI calls */
+ int isCopy;		/* is this the original or a copy? the original keeps the deconstructedProtoBody */
 };
 
 /* Constructor and destructor */
@@ -285,11 +246,10 @@ struct NestedProtoField
    struct ProtoFieldDecl* localField;
 };
 
-void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode);
 void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto);
 struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID);
 void tokenizeProtoBody(struct ProtoDefinition *, char *);
-char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto);
+char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto, int *protoSize);
 BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, char * thisField, struct X3D_Node **Node);
 
 
