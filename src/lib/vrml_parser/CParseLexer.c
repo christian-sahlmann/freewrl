@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.13 2009/04/16 19:29:18 crc_canada Exp $
+$Id: CParseLexer.c,v 1.14 2009/04/16 21:31:28 crc_canada Exp $
 
 ???
 
@@ -1258,7 +1258,8 @@ void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *po
         strcat (externProtoPointer," ");
         strcat (externProtoPointer,proto);
 
-	concatAndGiveToLexer(me, externProtoPointer, me->nextIn);
+	/* push it on to the lexer input string stack */
+	lexer_fromString(me,externProtoPointer);
 }
 
 /* the curID is EXTERNPROTO. Replace the EXTERNPROTO with the actual PROTO string read in from
