@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.24 2009/04/16 19:29:18 crc_canada Exp $
+  $Id: CParseParser.c,v 1.25 2009/04/16 21:10:41 crc_canada Exp $
 
   ???
 
@@ -200,75 +200,6 @@ printf ("EVENT_END_NODE no %s at %s:%d\n",fieldString,__FILE__,__LINE__); \
 BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal) {
     ASSERT(PARSE_TYPE[type]);
     return PARSE_TYPE[type](me, (void*)defaultVal);
-}
-
-
-double expandTime = 0.0;
-double insertTime = 0.0;
-
-static void insertProtoExpansionIntoStream(struct VRMLParser *me,char *newProtoText, int newProtoTextLen) {
-    char *insertedPROTOcode;
-    char *tp; int lenRemainder;
-
-/* TIMING */
-        double startt, endt;
-        struct timeval mytime;
-        struct timezone tz; /* unused see man gettimeofday */
-
-        gettimeofday (&mytime,&tz);
-        startt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-/* TIMING */
-
-#ifdef CPARSERVERBOSE
-    printf ("****** start of insertProtoExpansionIntoStream\n"); 
-#endif
-
-	tp = me->lexer->nextIn; lenRemainder = 0;
-	while (*tp) {tp++; lenRemainder++;} 
-	/* printf ("buffer remainder is %d\n",lenRemainder); */
-
-    insertedPROTOcode = MALLOC (sizeof (char) * (lenRemainder+newProtoTextLen+1));
-
-
-/* TIMING */
-        gettimeofday (&mytime,&tz);
-        endt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-	expandTime += (endt-startt);
-	startt = endt;
-/* TIMING */
-
-
-
-    /* strcpy (insertedPROTOcode,newProtoText); */
-	memcpy ((void *)insertedPROTOcode, (void *)newProtoText,newProtoTextLen);
-	insertedPROTOcode[newProtoTextLen] = '\0';
-
-#ifdef CPARSERVERBOSE
-    printf ("****** insertProtoExpansionIntoStream insertedPROTOcode:%s:\n",insertedPROTOcode); 
-    printf ("****** insertProtoExpansionIntoStream me->lexer->nextIn:%s:\n",me->lexer->nextIn);
-#endif
-
-	memcpy (&insertedPROTOcode[newProtoTextLen],me->lexer->nextIn,lenRemainder);
-	insertedPROTOcode[lenRemainder+newProtoTextLen] = '\0';
-
-#ifdef CPARSERVERBOSE
-    printf ("****** insertProtoExpansionIntoStream npt+remainder:%s:\n",insertedPROTOcode); 
-#endif
-
-    parser_fromString(me,insertedPROTOcode);
-
-/* TIMING */
-        gettimeofday (&mytime,&tz);
-        endt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-	insertTime += (endt-startt);
-/* TIMING */
-
-
-
-#ifdef CPARSERVERBOSE
-    printf ("****** end of insertProtoExpansionIntoStream\n"); 
-#endif
-
 }
 
 
@@ -1865,10 +1796,6 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
                 
             /* printf ("curPROTO = NULL: past protoExpand\n"); */
 	    parser_fromString(me,newProtoText);
-#ifdef OLDCODE
-            insertProtoExpansionIntoStream(me,newProtoText,newProtoTextLen);
-#endif
-
                 
             /* printf ("curPROTO = NULL: past insertProtoExpansionIntoStream\n"); */
             /* and, now, lets get the id for the lexer */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.9 2009/04/16 19:29:18 crc_canada Exp $
+$Id: CParse.c,v 1.10 2009/04/16 21:10:41 crc_canada Exp $
 
 ???
 
@@ -31,9 +31,6 @@ struct VRMLParser* globalParser = NULL;
 int inWhichParser = 0;
 
 #undef TIMING
-extern double expandTime ;
-extern double insertTime ;
-
 
 BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 	struct VRMLParser* parser;
@@ -73,9 +70,6 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 	gettimeofday (&mytime,&tz);
 	endt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 	printf ("time taken %lf\n",endt-startt);
-	printf ("expandTiem %lf\n",expandTime);
-	printf ("insertTiem %lf\n",insertTime);
-
 	#endif
 
  	return TRUE;

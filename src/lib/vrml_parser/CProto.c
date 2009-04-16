@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.22 2009/04/16 19:29:18 crc_canada Exp $
+$Id: CProto.c,v 1.23 2009/04/16 21:10:41 crc_canada Exp $
 
 CProto ???
 
@@ -968,14 +968,19 @@ static int dumpProtoFieldDeclarationNodes(struct VRMLLexer *lex, struct ProtoDef
 		printf (" mode %d type %s name %d fieldString %s\n", 
 			pdecl->mode, stringFieldtypeType(pdecl->type), pdecl->name, pdecl->fieldString); 
 		*/
+		
 
+		/* fields that are PKW_initializeOnly CAN NOT have routing, so we do not need to take
+		   up valuable memory creating a pocket for the routing values */
+		if (pdecl->mode != PKW_initializeOnly) {
 		writtenlen += fprintf (pexfile, "\tDEF PROTO_%u_%s Metadata%s {\n",
 			thisProto,
 			protoFieldDecl_getStringName(lex,pdecl),
-			stringFieldtypeType(pdecl->type)); \
-		if (pdecl->fieldString != NULL) \
-			writtenlen += fprintf (pexfile, "\t\tvalue %s\n",pdecl->fieldString); \
-		writtenlen += fprintf (pexfile, "\t}\n"); \
+			stringFieldtypeType(pdecl->type)); 
+		if (pdecl->fieldString != NULL) 
+			writtenlen += fprintf (pexfile, "\t\tvalue %s\n",pdecl->fieldString); 
+		writtenlen += fprintf (pexfile, "\t}\n"); 
+		}
 	}
 	return writtenlen;
 }
@@ -1569,11 +1574,6 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 
 	*protoSize = curstringlen + routeSize + strlen(ENDPROTOGROUP);
 	newProtoText[*protoSize] = '\0';
-
-	/* delete the body of the proto, as we do not need it here */
-/*
-	deleteDeconstructedProtoBody(*thisProto);
-*/
 
 	return newProtoText;
 }
