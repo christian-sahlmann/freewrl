@@ -1,11 +1,13 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MPEG_Utils.c,v 1.5 2009/02/18 16:24:04 istakenv Exp $
+$Id: MPEG_Utils.c,v 1.6 2009/04/16 20:27:14 crc_canada Exp $
 
 ???
 
 */
+
+#ifndef ARCH_PPC /* JAS - compile problem on OSX ppc */
 
 #include <config.h>
 #include <system.h>
@@ -7492,3 +7494,11 @@ void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,void **ptr) {
 	/* tell the calling program what the frame count is */
 	*fc = *frameCount;
 }
+#else
+void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,void **ptr) {
+ConsoleMessage ("problem with mpeg files on OSX PPC Arch");
+  *x=0; *y=0; *depth=0; 
+  *fc = 0;
+}
+#endif
+
