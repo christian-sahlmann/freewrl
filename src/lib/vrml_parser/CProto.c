@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.21 2009/04/15 18:37:07 crc_canada Exp $
+$Id: CProto.c,v 1.22 2009/04/16 19:29:18 crc_canada Exp $
 
 CProto ???
 
@@ -806,9 +806,11 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 				/* get a link to the beginning of this field */
 				FREE_IF_NZ(me->lexer->curID);
 				copyPointer = me->lexer->nextIn;
-				initCP = me->lexer->startOfStringPtr;
+				initCP = me->lexer->startOfStringPtr[me->lexer->lexerInputLevel];
+#ifdef PROTO_IN_PROTO_OLDCODE
 				inputCopy = STRDUP(me->lexer->nextIn);
 				/* printf ("inputCopy is %s\n",inputCopy); */
+#endif
 
 				#ifdef CPROTOVERBOSE
 				printf ("getProtoInvocationField, going to parse type of %d mode (%s), curID %s, starting at :%s:\n",pdecl->type, stringPROTOKeywordType(pdecl->mode),
@@ -861,9 +863,11 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 					}
 	
 					/* was this possibly a proto expansion? */
-					/* printf ("getProtoInvocationField, initCP %u startOfStringPtr %u\n",initCP, me->lexer->startOfStringPtr); */
 
-					if (initCP != me->lexer->startOfStringPtr) {
+					if (initCP != me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]) {
+					printf ("getProtoInvocationField, initCP %u startOfStringPtr %u\n",initCP, me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]); 
+#ifdef PROTO_IN_PROTO_OLDCODE
+
 						char *a1;
 						char *a2;
 						/* we had a proto expansion of a field here... */
@@ -871,7 +875,7 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 						/* printf ("we are probably missing %s off of front\n", inputCopy);
 						printf ("currently, lexer is %u\n",me->lexer); */
 
-						a1 = strstr(me->lexer->startOfStringPtr,ENDPROTOGROUP);
+						a1 = strstr(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],ENDPROTOGROUP);
 						if (a1 != NULL) {
 							/* printf ("a1 before adding len %s\n",a1); */
 							a1 = a1+strlen(ENDPROTOGROUP);
@@ -894,17 +898,25 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 						/* printf ("so, inputCopy is :%s:\n",inputCopy); */
 
 
-						copyPointer = me->lexer->startOfStringPtr;
+						copyPointer = me->lexer->startOfStringPtr[me->lexer->lexerInputLevel];
 					} else {
 						inputCopy[0] = '\0';
+#else
+printf ("PROTO HEADER - possible proto expansion in header?? \n");
+#endif
 					}
 
 					/* copy over the new value */
 					initCP = (char *) (me->lexer->nextIn);
 					tmp = *initCP; *initCP = '\0';
 					FREE_IF_NZ(pdecl->fieldString); 
+#ifdef PROTO_IN_PROTO_OLDCODE
 					pdecl->fieldString = MALLOC (3 + strlen(inputCopy) + strlen(copyPointer));
 					strcpy(pdecl->fieldString,inputCopy);
+#else
+					pdecl->fieldString = MALLOC (3 + strlen(copyPointer));
+					pdecl->fieldString[0] = '\0';
+#endif
 					strcat (pdecl->fieldString, " ");
 					strcat (pdecl->fieldString,copyPointer);
 					*initCP = tmp;
@@ -923,7 +935,7 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 		printf ("after pt, curID %s\n",me->lexer->curID);
 		#endif
 
-		lexer_skip (me);
+		lexer_skip (me->lexer);
 		FREE_IF_NZ (inputCopy);
 	}
 

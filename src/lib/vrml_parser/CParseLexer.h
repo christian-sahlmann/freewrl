@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.h,v 1.6 2009/04/15 18:37:07 crc_canada Exp $
+$Id: CParseLexer.h,v 1.7 2009/04/16 19:29:18 crc_canada Exp $
 
 Lexer (input of terminal symbols) for CParse
 
@@ -26,15 +26,18 @@ fields are not scoped and therefore stored in a simple vector.
 #endif
 #define ID_UNDEFINED	((indexT)-1)
 
+#define LEXER_INPUT_STACK_MAX 16
+
 /* This is our lexer-object. */
 struct VRMLLexer
 {
  const char* nextIn;	/* Next input character. */
- const char* startOfStringPtr; /* beginning address of string, for FREE calls */
+ const char* startOfStringPtr[LEXER_INPUT_STACK_MAX]; /* beginning address of string, for FREE calls */
  char* curID;	/* Currently input but not lexed id. */
  BOOL isEof;	/* Error because of EOF? */
 
  int lexerInputLevel; /* which level are we at? used for putting PROTO expansions into the input stream, etc */
+ char *oldNextIn[LEXER_INPUT_STACK_MAX];     /* old nextIn pointer, before the push */
 
  Stack* userNodeNames;
  struct Vector* userNodeTypesVec;
@@ -58,9 +61,8 @@ void lexer_destroyIdStack(Stack*);
  (vector_size(me->userNodeTypesVec)-stack_top(size_t, me->userNodeTypesStack))
 
 /* Set input */
-#define lexer_fromString(me, str) \
- { /* printf ("lexer_fromString, new string :%s:\n",str); */ \
-	 if (str!= NULL) (me)->isEof=(str[0]=='\0'); else (me)->isEof=TRUE; FREE_IF_NZ((me)->startOfStringPtr); (me)->startOfStringPtr=str; (me)->nextIn=str;}
+void lexer_fromString (struct VRMLLexer *, char *);
+void lexer_forceStringCleanup (struct VRMLLexer *me);
 
 /* Is EOF? */
 #define lexer_eof(me) \

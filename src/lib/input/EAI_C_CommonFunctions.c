@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.15 2009/04/03 18:21:57 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.16 2009/04/16 19:29:18 crc_canada Exp $
 
 ???
 
@@ -277,16 +277,17 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 			mfstringtmp[len+2] = '\0';
 			/* printf ("so, mfstring is :%s:\n",mfstringtmp); */
 			
-			parser_fromString(parser,mfstringtmp);
 		} else {
-			parser_fromString(parser,value);
+			mfstringtmp = STRDUP(value);
 		}
+		parser_fromString(parser,mfstringtmp);
         } else if (ctype == FIELDTYPE_SFNode) {
                 /* Need to change index to proper node ptr */
                 np = getEAINodeFromTable(atoi(value), -1);
         } else {
 
-		parser_fromString(parser, value);
+		mfstringtmp = STRDUP(value);
+		parser_fromString(parser,mfstringtmp);
 	}
 
 	ASSERT(parser->lexer);
@@ -380,12 +381,8 @@ MF_TYPE(MFNode, mfnode, Node)
 		ConsoleMessage ("parser problem on parsing fieldType %s, string :%s:", stringFieldtypeType(ctype),value);
 	}
 
-	/* we tell our little lexer here that it has no input; otherwise next time through, the 
-	   parser_fromString call will cause malloc problems */
-	parser->lexer->startOfStringPtr = NULL;
-
-	/* did we have to do any mfstring quoting stuff? */
-	FREE_IF_NZ(mfstringtmp);
+	/* tell the parser that we have done with the input - it will FREE the data */
+	lexer_forceStringCleanup(parser->lexer);
 
 	/* and, reset the XML flag */
 	parser->parsingX3DfromXML = oldXMLflag;

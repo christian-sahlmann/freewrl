@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.23 2009/04/15 18:37:07 crc_canada Exp $
+  $Id: CParseParser.c,v 1.24 2009/04/16 19:29:18 crc_canada Exp $
 
   ???
 
@@ -835,8 +835,8 @@ BOOL parser_protoStatement(struct VRMLParser* me)
             if(!lexer_openCurly(me->lexer))
                 PARSE_ERROR("Expected { to start PROTO body!")
 
-                    /* record the start of this proto body - keep the text around */
-                    startOfBody = me->lexer->nextIn;
+     /* record the start of this proto body - keep the text around */
+    startOfBody = me->lexer->nextIn;
     initCP = me->lexer->startOfStringPtr;
 
     /* Create a new vector of nodes and push it onto the DEFedNodes stack */
@@ -894,7 +894,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 #endif
 
         tokenizeProtoBody(me->curPROTO, protoBody);
-        FREE_IF_NZ(protoBody);
+        /* FREE_IF_NZ(protoBody); */
 
         /* We are done parsing this proto.  Set the curPROTO to the last proto we were parsing. */
         me->curPROTO=oldCurPROTO;
@@ -1864,7 +1864,10 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
             newProtoText = protoExpand(me, nodeTypeU,&thisProto,&newProtoTextLen);
                 
             /* printf ("curPROTO = NULL: past protoExpand\n"); */
+	    parser_fromString(me,newProtoText);
+#ifdef OLDCODE
             insertProtoExpansionIntoStream(me,newProtoText,newProtoTextLen);
+#endif
 
                 
             /* printf ("curPROTO = NULL: past insertProtoExpansionIntoStream\n"); */
@@ -1892,7 +1895,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
                                     /* printf ("after skipToEndOfOpenCurly, we have :%s:\n",me->lexer->nextIn); */
                                 }
                     }
-        FREE_IF_NZ(newProtoText);
+        /* JAS - now done by stacked lexer FREE_IF_NZ(newProtoText); */
     }
         
     /* Built-in node */

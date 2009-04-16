@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.12 2009/04/15 18:37:07 crc_canada Exp $
+$Id: CParseLexer.c,v 1.13 2009/04/16 19:29:18 crc_canada Exp $
 
 ???
 
@@ -41,10 +41,12 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 #define INITIAL_STRINGLEN	256
 
 /* Input data */
+static int setLexerNextIn(struct VRMLLexer *);
+
 #define LEXER_GETINPUT(c) \
  { \
   ASSERT(!me->curID); \
-  if(!*me->nextIn) c=EOF; \
+  if(!*me->nextIn) c=setLexerNextIn(me); \
   else c=(int)*(me->nextIn++); \
  }
 #define LEXER_UNGETINPUT(c) \
@@ -63,9 +65,6 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 
 /* Constructor and destructor */
 
- int lexerInputLevel; /* which level are we at? used for putting PROTO expansions into the input stream, etc */
-
-
 struct VRMLLexer* newLexer()
 {
  int i;
@@ -73,10 +72,10 @@ struct VRMLLexer* newLexer()
  struct VRMLLexer* ret=MALLOC(sizeof(struct VRMLLexer));
 
  ret->nextIn=NULL;
-/*
+
  for (i=0; i<LEXER_INPUT_STACK_MAX; i++) ret->startOfStringPtr[i] = NULL;
-*/
- ret->startOfStringPtr = NULL;
+
+ 
  ret->curID=NULL;
  ret->isEof=TRUE;
  ret->lexerInputLevel = -1;
@@ -101,9 +100,74 @@ struct VRMLLexer* newLexer()
 
 void deleteLexer(struct VRMLLexer* me)
 {
- FREE_IF_NZ (me->curID);
- FREE_IF_NZ (me);
- FREE_IF_NZ (externProtoPointer);
+	#ifdef CPARSERVERBOSE
+	printf ("deleteLexer called; deleting lexer %x %u\n",me,me);
+	#endif
+	 FREE_IF_NZ (me->curID);
+ 	FREE_IF_NZ (me);
+ 	FREE_IF_NZ (externProtoPointer);
+}
+
+
+/* end of file on this "stack level" for lexer input */
+static int setLexerNextIn(struct VRMLLexer *me) {
+	int retval = EOF;
+
+	#ifdef CPARSERVERBOSE
+	printf ("set lexerNextIn called \n"); 
+	#endif
+
+	if (me->lexerInputLevel > 0) {
+		#ifdef CPARSERVERBOSE
+		printf ("setlexerNextIn, decrementing; deleting %x, setting nextIn to %x\n", me->startOfStringPtr[me->lexerInputLevel], me->oldNextIn[me->lexerInputLevel]); 
+		#endif
+
+		FREE_IF_NZ (me->startOfStringPtr[me->lexerInputLevel]);
+		me->nextIn = me->oldNextIn[me->lexerInputLevel];
+		me->lexerInputLevel--;
+		/* printf ("setlexerNextIn, level now is %d, and nextIn is :%s:\n",me->lexerInputLevel,me->nextIn); */
+		retval = (int)*(me->nextIn++);
+	}
+	#ifdef CPARSERVERBOSE
+	printf ("setLexerNextIn returning :%d:\n",retval);
+	#endif
+
+	return retval;
+}
+
+
+/* set the lexer to parse from the string. Pushes the current string onto a lexer stack */
+void lexer_fromString (struct VRMLLexer *me, char *str) {
+         if (str!= NULL) me->isEof=(str[0]=='\0'); 
+	else (me)->isEof=TRUE; 
+
+	me->lexerInputLevel ++;
+	me->startOfStringPtr[me->lexerInputLevel]=str; 
+	me->oldNextIn[me->lexerInputLevel] = me->nextIn; /* save the old "nextIn" for popping back */
+	me->nextIn=str;
+
+	#ifdef CPARSERVERBOSE
+	printf ("lexer_fromString, me %x %u\n",me,me);
+	printf ("lexer_fromString, working on level %d\n",me->lexerInputLevel);
+	printf ("lexer_fromString, passedin char pointer is %x %u\n",str,str);
+	printf ("lexer_fromString, saving nextin as %x\n",me->oldNextIn[me->lexerInputLevel]);
+	printf ("lexer_fromString, input is :%s:\n",str);
+	#endif
+}
+
+
+void lexer_forceStringCleanup (struct VRMLLexer *me) {
+	int i;
+	for (i=0; i<me->lexerInputLevel; i++) {
+		FREE_IF_NZ(me->startOfStringPtr[i]);
+		me->startOfStringPtr[i] = NULL;
+	}
+	#ifdef CPARSERVERBOSE
+	printf ("lexer_forceStringCleanup, level was %d\n",me->lexerInputLevel);
+	#endif
+
+	me->lexerInputLevel = -1;
+	me->nextIn = NULL;
 }
 
 static void lexer_scopeOut_(Stack*);
@@ -300,6 +364,7 @@ indexT lexer_string2id(const char* str, const struct Vector* v)
 /* Checks for an ID (the next lexer token) in the builtin array of IDs passed in builtin and/or in the array of user defined
    IDs passed in user.  Returns the index to the ID in retB (if found in the built in list) or retU (if found in the 
    user defined list) if it is found.  */
+
 BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
  const char** builtIn, const indexT builtInCount, struct Vector* user)
 {
@@ -330,7 +395,9 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  indexT i;
  BOOL found=FALSE;
 
- /* printf ("lexer_specialID_string, builtInCount %d, builtIn %u\n",builtInCount, builtIn); */
+ #ifdef CPARSERVERBOSE
+ printf ("lexer_specialID_string, builtInCount %d, builtIn %u\n",builtInCount, builtIn); 
+ #endif
 
  /* Have to be looking in either the builtin and/or the user defined lists */
  if(!retB && !retU)
@@ -395,6 +462,7 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  return found;
 }
 
+
 /* Lexes and defines an ID */
 /* Adds the ID to the passed vector of IDs (unless it is already present) */
 /* Note that we only check for duplicate IDs if multi is TRUE */
@@ -405,7 +473,9 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec, BOOL 
 		return FALSE;
 	ASSERT(me->curID);
 
-	/* printf ("lexer_defineID, VRMLLexer %u Vector %u\n",me,vec); */
+	#ifdef CPARSERVERBOSE
+	printf ("lexer_defineID, VRMLLexer %u Vector %u\n",me,vec); 
+	#endif
 
 	/* User list should be created */
 	ASSERT(vec);
@@ -414,7 +484,11 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec, BOOL 
 	if(multi) {
 		size_t i;
 		for(i=0; i!=vector_size(vec); ++i) {
-		/* printf ("lexer_defineID, comparing %s to %s\n",me->curID, vector_get(const char*, vec, i)); */
+
+		#ifdef CPARSERVERBOSE
+		printf ("lexer_defineID, comparing %s to %s\n",me->curID, vector_get(const char*, vec, i));
+		#endif
+
 		if(!strcmp(me->curID, vector_get(const char*, vec, i))) {
 			FREE_IF_NZ (me->curID);
 			*ret=i;
@@ -437,6 +511,7 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec, BOOL 
 
 	return TRUE;
 }
+
 
 /* A eventIn/eventOut terminal symbol */
 /* Looks for the current token in builtin and/or user defined name arrays depending on the requested return values and the eventtype (in or out)
@@ -541,8 +616,9 @@ BOOL lexer_event(struct VRMLLexer* me,
 	printf("lexer_event: found in user_inputOutput\n");
 #endif
 
- if(found)
+ if(found) {
      FREE_IF_NZ(me->curID);
+	}
 
  return found;
 }
@@ -638,6 +714,7 @@ const char* lexer_stringUser_fieldName(struct VRMLLexer* me, indexT name, indexT
    return lexer_stringUser_outputOnly(me, name);
  }
  ASSERT(FALSE);
+ return ""; /* gets rid of compile time warnings */
 }
 
 /* Skip whitespace and comments. */
@@ -646,7 +723,6 @@ void lexer_skip(struct VRMLLexer* me)
  int c;
 
  if(me->curID) return;
-
  while(TRUE)
  {
   LEXER_GETINPUT(c)
@@ -1032,8 +1108,7 @@ BOOL lexer_operator(struct VRMLLexer* me, char op)
 if (me->curID) {
 	ConsoleMessage ("lexer_operator, curID is NOT NULL - it is \"%s\" - but I am looking for a \'%c\'\n",me->curID,op);
 	FREE_IF_NZ(me->curID);
-	/* printf ("STREAM is :%s:\n",me->startOfStringPtr);
-	printf ("NEXTIN is :%s:\n",me->nextIn); */
+	/* printf ("NEXTIN is :%s:\n",me->nextIn); */
  }
 
  lexer_skip(me);
