@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.9 2009/04/01 19:20:42 crc_canada Exp $
+$Id: Viewer.h,v 1.10 2009/04/20 20:16:44 crc_canada Exp $
 
 Viewer ???
 
@@ -81,7 +81,7 @@ Viewer ???
 	        yd = Viewer.currentPosInModel.y; \
 	        zd = Viewer.currentPosInModel.z; \
 	        test = sqrt (xd*xd+yd*yd+zd*zd); \
-		/* printf ("htw; cur Dist %4.2f, calculated %4.2f\n", Viewer.Dist, test); */ \
+		/* printf ("htw; cur Dist %4.2f, calculated %4.2f\n", Viewer.Dist, test);  */ \
 		Viewer.Dist = test; \
 	}
 /* extern struct point_XYZ ViewerPosition; */
@@ -106,16 +106,6 @@ typedef struct viewer_examine {
         double ODist;
         double SY;
 } X3D_Viewer_Examine;
-
-#ifdef OLDCODE
-typedef struct viewer_examine {
-	struct point_XYZ Origin;
-	Quaternion OQuat;
-	Quaternion SQuat;
-	double ODist;
-	double SY;
-} X3D_Viewer_Examine;
-#endif
 
 typedef struct key {
 	char key;
@@ -150,6 +140,15 @@ typedef struct viewer {
 	X3D_Viewer_Walk *walk;
 	X3D_Viewer_Examine *examine;
 	X3D_Viewer_Fly *fly;
+
+	int SLERPing;
+	double startSLERPtime;
+
+	struct point_XYZ startSLERPPos;
+	struct point_XYZ startSLERPAntiPos;
+	Quaternion startSLERPQuat;
+	Quaternion startSLERPAntiQuat;
+	Quaternion startSLERPbindTimeQuat;
 
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
 } X3D_Viewer;
@@ -236,7 +235,5 @@ extern float eyedist;
 extern float screendist;
 
 void getCurrentSpeed();
-
-void viewer_getPosInModel(struct point_XYZ *rp);
 
 #endif /* __FREEWRL_VIEWER_H__ */

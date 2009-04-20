@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.18 2009/04/01 19:20:42 crc_canada Exp $
+$Id: Viewer.c,v 1.19 2009/04/20 20:16:44 crc_canada Exp $
 
 CProto ???
 
@@ -80,7 +80,7 @@ void viewer_default() {
 	Viewer.examine = &viewer_examine;
 	Viewer.fly = &viewer_fly;
 
-	set_viewer_type(1);
+	set_viewer_type(EXAMINE);
 
 	set_eyehalf( eyedist/2.0,
 		atan2(eyedist/2.0,screendist)*360.0/(2.0*3.1415926));
@@ -92,15 +92,6 @@ void viewer_default() {
 	if (shutterGlasses)
 	    setXEventStereo();
 #endif
-}
-
-/* return the position in model view of the viewer */
-void viewer_getPosInModel(struct point_XYZ *rp) {
-	if (!viewer_initialized) {
-		rp->x = 0.0; rp->y = 0.0; rp->z=0.0;
-	} else {
-		rp->x = Viewer.currentPosInModel.x; rp->y = Viewer.currentPosInModel.y; rp->z = Viewer.currentPosInModel.z;
-	}
 }
 
 void viewer_init (X3D_Viewer *viewer, int type) {
@@ -131,30 +122,12 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		viewer->walk = &viewer_walk;
 		viewer->examine = &viewer_examine;
 		viewer->fly = &viewer_fly;
+
+		/* SLERP code for moving between viewpoints */
+		viewer->SLERPing = FALSE;
+		viewer->startSLERPtime = (double)0.0;
 	}
 
-#ifdef VERIFY
-	/* make sure Viewer.Dist is configured properly for Examine mode */
-	else if (viewer_type == EXAMINE) {
-
-        float xd, yd,zd;
-	double test;
-
-
-        /* calculate distance between the node position and defined centerOfRotation */
-        xd = Viewer.currentPosInModel.x;
-        yd = Viewer.currentPosInModel.y;
-        zd = Viewer.currentPosInModel.z;
-        test = sqrt (xd*xd+yd*yd+zd*zd);
-
-
-		printf ("have examine mode init, cur Dist %4.2f, calculated %4.2f\n",
-			Viewer.Dist,
-			test);
-		Viewer.Dist = test;
-	}
-#endif /* VERIFY */
-	
 	resolve_pos();
 }
 
@@ -257,22 +230,6 @@ void resolve_pos() {
 
 		/* my $d = 0; for(0..2) {$d += $this->{Pos}[$_] * $z->[$_]} */
 		dist = VECPT(Viewer.Pos, rot);
-#ifdef LEAVE_DIST_AS_CALCULATED
-printf ("calculated dist as %lf\n",dist);
-dist = 10.0;
-
-		/*
-		 * Fix the rotation point to be 10m in front of the user (dist = 10.0)
-		 * or, try for the origin. Preferential treatment would be to choose
-		 * the shape within the center of the viewpoint. This information is
-		 * found in the matrix, and is used for collision calculations - we
-		 * need to better store it.
-		 */
-
-		/* $d = abs($d); $this->{Dist} = $d; */
-		Viewer.Dist = fabs(dist);
-#endif
-
 
 		/* $this->{Origin} = [ map {$this->{Pos}[$_] - $d * $z->[$_]} 0..2 ]; */
 		(examine->Origin).x = (Viewer.Pos).x - Viewer.Dist * rot.x;
@@ -281,7 +238,6 @@ dist = 10.0;
 	}
 }
 void viewer_togl(double fieldofview) {
-
 
 	GLdouble modelMatrix[16];
 	GLdouble projMatrix[16]; 
@@ -296,10 +252,91 @@ void viewer_togl(double fieldofview) {
 		set_stereo_offset(Viewer.buffer, Viewer.eyehalf, Viewer.eyehalfangle, fieldofview);
 	}
 
-	quaternion_togl(&Viewer.Quat);
-	FW_GL_TRANSLATE_D(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
-	FW_GL_TRANSLATE_D((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
-	quaternion_togl(&Viewer.AntiQuat);
+
+	if (Viewer.SLERPing) {
+		double tickFrac;
+		Quaternion angleFromZero;
+		Quaternion slerpedDiff;
+		Quaternion newQuat;
+		Quaternion Zero = {1,0,0,0};
+		Quaternion tmp;
+		Quaternion tmp2;
+		Quaternion origLookatQuat;
+		Quaternion currentLookatQuat;
+
+		printf ("slerping in togl, type %s\n",VIEWER_STRING(viewer_type));
+		tickFrac = TickTime - Viewer.startSLERPtime;
+		tickFrac = tickFrac/4.0;
+		printf ("tick frac %lf\n",tickFrac);
+
+/* so, if the old quat*2 and antiquat and the at bind time added together should give us our rotation vector
+into the old world. Lets see: */
+	
+
+		quaternion_add(&tmp,&Viewer.startSLERPAntiQuat, &Viewer.startSLERPQuat);
+		
+		quaternion_add(&origLookatQuat,&tmp, &Viewer.startSLERPbindTimeQuat);
+/*
+		quaternion_add(&origLookatQuat,&tmp, &Viewer.startSLERPAntiQuat);
+*/
+
+#ifdef VERBOSE
+		{ double x,y,z,a;
+		quaternion_to_vrmlrot (&origLookatQuat,&x,&y,&z,&a);
+		printf ("checking: previous angle: %f %f %f %f\n",x,y,z,a);
+		
+		quaternion_to_vrmlrot (&Viewer.startSLERPQuat,&x,&y,&z,&a);
+printf ("made up from %f %f %f %f and ",x,y,z,a);
+		quaternion_to_vrmlrot (&Viewer.startSLERPAntiQuat,&x,&y,&z,&a);
+printf ("%f %f %f %f \n",x,y,z,a);
+		}
+#endif
+
+		quaternion_add(&tmp,&Viewer.AntiQuat, &Viewer.Quat);
+		quaternion_add(&currentLookatQuat,&tmp, &Viewer.bindTimeQuat);
+/*
+		quaternion_add(&currentLookatQuat,&tmp, &Viewer.AntiQuat);
+*/
+#ifdef VERBOSE
+		{ double x,y,z,a;
+		quaternion_to_vrmlrot (&currentLookatQuat,&x,&y,&z,&a);
+		printf ("checking: now angle: %f %f %f %f\n",x,y,z,a);
+		
+		quaternion_to_vrmlrot (&Viewer.Quat,&x,&y,&z,&a);
+printf ("made up from %f %f %f %f and ",x,y,z,a);
+		quaternion_to_vrmlrot (&Viewer.AntiQuat,&x,&y,&z,&a);
+printf ("%f %f %f %f \n",x,y,z,a);
+		}
+#endif
+
+		quaternion_slerp (&slerpedDiff,&origLookatQuat,&currentLookatQuat,tickFrac);
+		{ double x,y,z,a;
+		quaternion_to_vrmlrot (&slerpedDiff,&x,&y,&z,&a);
+		printf ("slerping: now angle: %f %f %f %f frac %f\n",x,y,z,a,tickFrac);
+		}
+
+
+		/* ok, we know where in the world we were pointing, lets slerp to this... */
+		quaternion_togl(&slerpedDiff);
+
+
+/*
+printf ("quatstart %lf %lf %lf %lf\n",Viewer.startSLERPQuat.x, Viewer.startSLERPQuat.y, Viewer.startSLERPQuat.z, Viewer.startSLERPQuat.w);
+printf ("curquat   %lf %lf %lf %lf\n",Viewer.Quat.x, Viewer.Quat.y, Viewer.Quat.z, Viewer.Quat.w);
+printf ("finquat   %lf %lf %lf %lf\n",qq.x, qq.y, qq.z, qq.w);
+*/
+		FW_GL_TRANSLATE_D(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
+		FW_GL_TRANSLATE_D((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
+		quaternion_togl(&Viewer.AntiQuat);
+
+
+		if (tickFrac >= 1.0) Viewer.SLERPing = FALSE;
+	} else {
+		quaternion_togl(&Viewer.Quat);
+		FW_GL_TRANSLATE_D(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
+		FW_GL_TRANSLATE_D((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
+		quaternion_togl(&Viewer.AntiQuat);
+	}
 
 	/* "Matrix Quaternion FAQ: 8.050
 	Given the current ModelView matrix, how can I determine the object-space location of the camera?
@@ -317,6 +354,7 @@ void viewer_togl(double fieldofview) {
        glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 /*
+printf ("togl, before inverse, %lf %lf %lf\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
        printf ("Viewer end _togl modelview Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
                 modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
                 modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
@@ -326,6 +364,7 @@ void viewer_togl(double fieldofview) {
 
 	matinverse(inverseMatrix,modelMatrix);
 /*
+printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13],inverseMatrix[14]);
        printf ("inverted modelview Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
                 inverseMatrix[0],  inverseMatrix[4],  inverseMatrix[ 8],  inverseMatrix[12],
                 inverseMatrix[1],  inverseMatrix[5],  inverseMatrix[ 9],  inverseMatrix[13],
@@ -346,9 +385,10 @@ void viewer_togl(double fieldofview) {
 	Viewer.currentPosInModel.y = Viewer.AntiPos.y + rp.y;
 	Viewer.currentPosInModel.z = Viewer.AntiPos.z + rp.z;
 
-	
-	/* printf ("so, our place in object-land is %4.2f %4.2f %4.2f\n",
-		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z); */
+/*	
+	printf ("so, our place in object-land is %4.2f %4.2f %4.2f\n",
+		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
+*/
 	
 }
 
@@ -777,14 +817,10 @@ handle_tick_fly()
 void
 handle_tick()
 {
-
 	switch(viewer_type) {
 	case NONE:
 		break;
 	case EXAMINE:
-#ifdef OLDCODE
-		handle_tick_examine();
-#endif
 		break;
 	case WALK:
 		handle_tick_walk();
@@ -887,7 +923,20 @@ void increment_pos(struct point_XYZ *vec) {
 void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	Quaternion q_i;
 	float xd, yd,zd;
+
+	/* SLERPing */
+#define INITIATE_SLERP \
+	Viewer.SLERPing = FALSE; \
+	Viewer.startSLERPtime = TickTime; \
+	memcpy (&Viewer.startSLERPPos, &Viewer.Pos, sizeof (struct point_XYZ)); \
+	memcpy (&Viewer.startSLERPAntiPos, &Viewer.AntiPos, sizeof (struct point_XYZ)); \
+	memcpy (&Viewer.startSLERPQuat, &Viewer.Quat, sizeof (Quaternion)); \
+	memcpy (&Viewer.startSLERPAntiQuat, &Viewer.AntiQuat, sizeof (Quaternion));  \
+	memcpy (&Viewer.startSLERPbindTimeQuat, &Viewer.bindTimeQuat, sizeof (Quaternion)); 
 	
+
+	/* record position BEFORE calculating new Viewpoint position */
+	INITIATE_SLERP
 
 	/* calculate distance between the node position and defined centerOfRotation */
 	xd = vp->position.c[0]-vp->centerOfRotation.c[0];
