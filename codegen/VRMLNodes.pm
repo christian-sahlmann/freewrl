@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.8 2009/04/02 18:48:28 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.9 2009/04/21 19:19:24 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -185,11 +185,12 @@ package VRML::NodeType;
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
 		# fields for reducing redundant calls
-		__do_center => [SFInt32, 0, initializeOnly],
-		__do_trans => [SFInt32, 0, initializeOnly],
-		__do_rotation => [SFInt32, 0, initializeOnly],
-		__do_scaleO => [SFInt32, 0, initializeOnly],
-		__do_scale => [SFInt32, 0, initializeOnly],
+		__do_center => [SFInt32, FALSE, initializeOnly],
+		__do_trans => [SFInt32, FALSE, initializeOnly],
+		__do_rotation => [SFInt32, FALSE, initializeOnly],
+		__do_scaleO => [SFInt32, FALSE, initializeOnly],
+		__do_scale => [SFInt32, FALSE, initializeOnly],
+		__do_anything => [SFInt32, FALSE, initializeOnly],
 	},"X3DGroupingNode"),
 	
 

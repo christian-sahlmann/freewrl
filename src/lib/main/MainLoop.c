@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.29 2009/03/18 20:59:16 crc_canada Exp $
+$Id: MainLoop.c,v 1.30 2009/04/21 19:19:24 crc_canada Exp $
 
 CProto ???
 
@@ -141,6 +141,7 @@ double BrowserStartTime;        /* start of calculating FPS     */
 double BrowserFPS = 0.0;        /* calculated FPS               */
 double BrowserSpeed = 0.0;      /* calculated movement speed    */
 
+#undef PROFILE
 #ifdef PROFILE
 static double timeAA, timeA, timeB, timeC, timeD, timeE, timeF, xxf, oxf;
 #endif

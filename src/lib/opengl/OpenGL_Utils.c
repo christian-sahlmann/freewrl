@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.28 2009/04/15 18:37:07 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.29 2009/04/21 19:19:24 crc_canada Exp $
 
 ???
 
@@ -139,10 +139,6 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	double cnp = DBL_MAX;
 	GLdouble MM[16];
 
-#ifdef OLDCODE
-	int performGlobeClipping = FALSE;
-#endif
-
 	int ci;
 
 	#ifdef VERBOSE
@@ -164,53 +160,8 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 		return; /* nothing to display yet */
 	}
 
-	glGetDoublev(GL_MODELVIEW_MATRIX, MM);
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, MM);
 
-#ifdef OLDCODE
-	/* do we assume that this is a globe? If we have a GeoViewpoint, and we have GD or UTM
-	   coordinates, lets assume so. */
-	if (vpnode->_nodeType == NODE_GeoViewpoint) {
-       		if ((X3D_GEOVIEWPOINT(vpnode)->__geoSystem.n) > 0) {
-                	if (X3D_GEOVIEWPOINT(vpnode)->__geoSystem.p[0] != GEOSP_GC) {
-				performGlobeClipping = TRUE;
-			}
-		}
-	}
-
-printf ("NOT doing globeClipping\n"); performGlobeClipping = FALSE;
-
-
-	/* for GeoViewpoint, assume we have the earth within our Axis Aligned Bounding Box */
-	if (performGlobeClipping) {
-		double closestPoint = DBL_MAX;
-		
-		/* printf ("have GeoViewpoint bound here\n"); */
-		cfp = 	sqrt (Viewer.currentPosInModel.x*Viewer.currentPosInModel.x +
-				Viewer.currentPosInModel.y*Viewer.currentPosInModel.y +
-				Viewer.currentPosInModel.z*Viewer.currentPosInModel.z);
-		/* printf ("our cfp height above origin (0,0,0)  is %lf\n", cfp);
-		printf ("extents (%f:%f), (%f:%f) (%f:%f)\n",
-			X3D_GROUP(rootNode)->EXTENT_MIN_X,
-			X3D_GROUP(rootNode)->EXTENT_MAX_X,
-			X3D_GROUP(rootNode)->EXTENT_MIN_Y,
-			X3D_GROUP(rootNode)->EXTENT_MAX_Y,
-			X3D_GROUP(rootNode)->EXTENT_MIN_Z,
-			X3D_GROUP(rootNode)->EXTENT_MAX_Z); */
-
-		/* lets find the point closest to us on the AABB, and let that be our nearPlane */
-			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MIN_X));
-			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MAX_X));
-			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MIN_Y));
-			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MAX_Y));
-			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MIN_Z));
-			GEOTESTEXTENT(fabs(X3D_GROUP(rootNode)->EXTENT_MAX_Z));
-
-		/* printf ("closest point is thus %f\n",closestPoint); */
-
-		cnp = cfp-closestPoint;
-		/* printf ("test cnp is %f\n",cnp); */
-	} else {
-#endif
 		#ifdef VERBOSE
 		printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",
 				X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_X,
@@ -236,9 +187,6 @@ printf ("NOT doing globeClipping\n"); performGlobeClipping = FALSE;
 			if (-(bboxPoints[ci].z) > cfp) cfp = -(bboxPoints[ci].z);
 			if (-(bboxPoints[ci].z) < cnp) cnp = -(bboxPoints[ci].z);
 		}
-#ifdef OLDCODE
-	}
-#endif
 
 	/* lets bound check here, both must be positive, and farPlane more than DEFAULT_NEARPLANE */
 	/* because we may be navigating towards the shapes, we give the nearPlane a bit of room, otherwise
@@ -512,7 +460,7 @@ void fwGetDoublev (int ty, double *mat) {
 
 	if (ty == GL_MODELVIEW_MATRIX) {
 		if (!MODmatOk) {
-			glGetDoublev (ty, MODmat);
+			FW_GL_GETDOUBLEV (ty, MODmat);
 			MODmatOk = TRUE;
 
 #ifdef DEBUGCACHEMATRIX
@@ -531,7 +479,7 @@ void fwGetDoublev (int ty, double *mat) {
 
 	} else if (ty == GL_PROJECTION_MATRIX) {
 		if (!PROJmatOk) {
-			glGetDoublev (ty, PROJmat);
+			FW_GL_GETDOUBLEV (ty, PROJmat);
 			PROJmatOk = TRUE;
 #ifdef DEBUGCACHEMATRIX
 		} else sav ++;
@@ -1472,18 +1420,3 @@ void kill_X3DNodes(void){
 	nextEntry=0;
 	UNLOCK_MEMORYTABLE
 }
-
-static int level=0;
-void fwglpushmatrix(){
-	printf ("level %d ",level);
-	glPushMatrix();
-	level++;
-}
-
- void fwglpopmatrix() {
-	level--;
-	printf ("level %d ",level);
-	glPopMatrix();
-}
-
-

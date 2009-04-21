@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.9 2009/04/02 18:48:28 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.10 2009/04/21 19:19:24 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -31,6 +31,13 @@ void changed_Transform (struct X3D_Transform *node) {
 	node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
 	node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
 	node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
+
+	node->__do_anything = (node->__do_center ||
+			node->__do_trans ||
+			node->__do_scale ||
+			node->__do_rotation ||
+			node->__do_scaleO);
+
 }
 
 /* prep_Group - we need this so that distance (and, thus, distance sorting) works for Groups */
@@ -53,8 +60,16 @@ void prep_Transform (struct X3D_Transform *node) {
 	OCCLUSIONTEST
 
 	if(!render_vp) {
-		FW_GL_PUSH_MATRIX();
+		/* do we actually have any thing to rotate/translate/scale?? */
+		if (node->__do_anything) {
 
+/* do we want to do a glPushMatrix and glPopMatrix call? It is best to do so although the code
+to NOT do it is here for performance testing reasons, to see if many pushes/pops is fast/slow */
+
+#define DO_PUSH
+#ifdef DO_PUSH
+		FW_GL_PUSH_MATRIX();
+#endif
 		/* TRANSLATION */
 		if (node->__do_trans)
 			FW_GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]);
@@ -90,6 +105,7 @@ void prep_Transform (struct X3D_Transform *node) {
 		/* REVERSE CENTER */
 		if (node->__do_center)
 			FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
+		} 
 
 		RECORD_DISTANCE
         }
@@ -97,10 +113,56 @@ void prep_Transform (struct X3D_Transform *node) {
 
 
 void fin_Transform (struct X3D_Transform *node) {
+		GLfloat my_rotation;
+		GLfloat my_scaleO=0;
 	OCCLUSIONTEST
 
         if(!render_vp) {
-            FW_GL_POP_MATRIX();
+            if (node->__do_anything) {
+#ifdef DO_PUSH
+		FW_GL_POP_MATRIX();
+#else
+		/* 7 REVERSE CENTER */
+		if (node->__do_center) {
+			FW_GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]);
+		} 
+
+		/* 6 REVERSE SCALE ORIENTATION */
+		if (node->__do_scaleO) {
+			my_scaleO = -(node->scaleOrientation.r[3]/3.1415926536*180);
+			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0],
+				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+		}
+
+		/* 5 SCALE */
+		if (node->__do_scale)
+			FW_GL_SCALE_F(1.0/node->scale.c[0],1.0/node->scale.c[1],1.0/node->scale.c[2]);
+
+		/* 4 SCALEORIENTATION */
+		if (node->__do_scaleO) {
+			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0],
+				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+		}
+
+		/* 3 ROTATION */
+		if (node->__do_rotation) {
+			my_rotation = -(node->rotation.r[3]/3.1415926536*180);
+			FW_GL_ROTATE_F(my_rotation,
+				node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]);
+		}
+
+		/* 2 CENTER */
+		if (node->__do_center)
+			FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
+
+		/* 1 TRANSLATION */
+		if (node->__do_trans)
+			FW_GL_TRANSLATE_F(-node->translation.c[0],-node->translation.c[1],-node->translation.c[2]);
+
+
+#endif
+
+	    }
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {

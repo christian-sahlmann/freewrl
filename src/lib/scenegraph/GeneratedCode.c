@@ -4,7 +4,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.4 2009/03/13 20:07:16 crc_canada Exp n 
+: VRMLC.pm,v 1.6 2009/04/03 18:21:57 crc_canada Exp n 
 ??? 
  
 */ 
@@ -155,6 +155,7 @@
 	"controlKey",
 	"leftUrl",
 	"__bottomTexture",
+	"__do_anything",
 	"frontTexture",
 	"centerOfRotation_changed",
 	"diskAngle",
@@ -3364,17 +3365,18 @@ const int OFFSETS_Transform[] = {
 	FIELDNAMES_addChildren, offsetof (struct X3D_Transform, addChildren),  FIELDTYPE_MFNode, KW_inputOnly,
 	FIELDNAMES_center, offsetof (struct X3D_Transform, center),  FIELDTYPE_SFVec3f, KW_inputOutput,
 	FIELDNAMES_scaleOrientation, offsetof (struct X3D_Transform, scaleOrientation),  FIELDTYPE_SFRotation, KW_inputOutput,
+	FIELDNAMES___do_anything, offsetof (struct X3D_Transform, __do_anything),  FIELDTYPE_SFInt32, KW_initializeOnly,
 	FIELDNAMES_translation, offsetof (struct X3D_Transform, translation),  FIELDTYPE_SFVec3f, KW_inputOutput,
+	FIELDNAMES_metadata, offsetof (struct X3D_Transform, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES___do_trans, offsetof (struct X3D_Transform, __do_trans),  FIELDTYPE_SFInt32, KW_initializeOnly,
 	FIELDNAMES___do_center, offsetof (struct X3D_Transform, __do_center),  FIELDTYPE_SFInt32, KW_initializeOnly,
-	FIELDNAMES_metadata, offsetof (struct X3D_Transform, metadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES_removeChildren, offsetof (struct X3D_Transform, removeChildren),  FIELDTYPE_MFNode, KW_inputOnly,
 	FIELDNAMES_bboxSize, offsetof (struct X3D_Transform, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,
 	FIELDNAMES_rotation, offsetof (struct X3D_Transform, rotation),  FIELDTYPE_SFRotation, KW_inputOutput,
 	FIELDNAMES___do_rotation, offsetof (struct X3D_Transform, __do_rotation),  FIELDTYPE_SFInt32, KW_initializeOnly,
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_Transform, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,
-	FIELDNAMES___do_scale, offsetof (struct X3D_Transform, __do_scale),  FIELDTYPE_SFInt32, KW_initializeOnly,
 	FIELDNAMES_scale, offsetof (struct X3D_Transform, scale),  FIELDTYPE_SFVec3f, KW_inputOutput,
+	FIELDNAMES___do_scale, offsetof (struct X3D_Transform, __do_scale),  FIELDTYPE_SFInt32, KW_initializeOnly,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Transform, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	-1, -1, -1, -1};
 
@@ -6801,21 +6803,22 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_Transform *) tmp;
 			tmp2->v = &virt_Transform;
 			tmp2->children.n=0; tmp2->children.p=0;
-			tmp2->__do_scaleO = 0;
+			tmp2->__do_scaleO = FALSE;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->center.c[0] = 0;tmp2->center.c[1] = 0;tmp2->center.c[2] = 0;;
 			tmp2->scaleOrientation.r[0] = 0;tmp2->scaleOrientation.r[1] = 0;tmp2->scaleOrientation.r[2] = 1;tmp2->scaleOrientation.r[3] = 0;;
+			tmp2->__do_anything = FALSE;
 			tmp2->translation.c[0] = 0;tmp2->translation.c[1] = 0;tmp2->translation.c[2] = 0;;
-			tmp2->__do_trans = 0;
-			tmp2->__do_center = 0;
 			tmp2->metadata = NULL;
+			tmp2->__do_trans = FALSE;
+			tmp2->__do_center = FALSE;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
 			tmp2->rotation.r[0] = 0;tmp2->rotation.r[1] = 0;tmp2->rotation.r[2] = 1;tmp2->rotation.r[3] = 0;;
-			tmp2->__do_rotation = 0;
+			tmp2->__do_rotation = FALSE;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
-			tmp2->__do_scale = 0;
 			tmp2->scale.c[0] = 1;tmp2->scale.c[1] = 1;tmp2->scale.c[2] = 1;;
+			tmp2->__do_scale = FALSE;
 			tmp2->__oldmetadata = 0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;

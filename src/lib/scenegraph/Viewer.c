@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.19 2009/04/20 20:16:44 crc_canada Exp $
+$Id: Viewer.c,v 1.20 2009/04/21 19:19:24 crc_canada Exp $
 
 CProto ???
 
@@ -351,7 +351,7 @@ printf ("finquat   %lf %lf %lf %lf\n",qq.x, qq.y, qq.z, qq.w);
    	with your own code." */
 
 
-       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 /*
 printf ("togl, before inverse, %lf %lf %lf\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
