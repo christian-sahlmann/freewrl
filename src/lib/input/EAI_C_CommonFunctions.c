@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.16 2009/04/16 19:29:18 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.17 2009/04/23 20:18:51 sdumoulin Exp $
 
 ???
 
@@ -27,10 +27,8 @@ $Id: EAI_C_CommonFunctions.c,v 1.16 2009/04/16 19:29:18 crc_canada Exp $
 
 /* TODO: clean-up Rewire */
 #ifdef REWIRE
-# include "Eai_C.h"
+# include "../../libeai/EAI_C.h"
 # define ADD_PARENT(a,b)
-/* FIXME: is there a problem with MALLOC when building with REWIRE ? */
-# define MALLOC(a) malloc(a)
 #endif
 
 /* assume eaiverbose is false, unless told otherwise */
@@ -150,7 +148,10 @@ int returnRoutingElementLength(int type) {
 		case FIELDTYPE_SFNode:	return ROUTING_SFNODE; break;
 		case FIELDTYPE_SFMatrix3f: return sizeof (struct SFMatrix3f); break;
 		case FIELDTYPE_SFMatrix3d: return sizeof (struct SFMatrix3d); break;
+/* FIXME FIND DEF FOR SFVEC4F */
+#ifndef REWIRE
 		case FIELDTYPE_SFVec4f: return sizeof (struct SFVec4f) ; break;
+#endif
 		case FIELDTYPE_SFMatrix4f: return sizeof (struct SFMatrix4f); break;
 		case FIELDTYPE_SFVec2d: return sizeof (struct SFVec2d); break;
 		case FIELDTYPE_SFDouble: return sizeof (double); break;
