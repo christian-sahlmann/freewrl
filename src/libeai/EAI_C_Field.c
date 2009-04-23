@@ -1,5 +1,7 @@
+#ifndef REWIRE
 #include "config.h"
 #include "system.h"
+#endif
 #include "EAI_C.h"
 
 void X3D_freeEventIn(X3DEventIn* ev) {

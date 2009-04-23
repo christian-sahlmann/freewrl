@@ -1,5 +1,7 @@
+#ifndef REWIRE
 #include "config.h"
 #include "system.h"
+#endif
 #include "EAI_C.h"
 
 #define WAIT_FOR_RETVAL ((command!=SENDEVENT) && (command!=MIDICONTROL))

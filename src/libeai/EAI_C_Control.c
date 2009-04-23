@@ -1,5 +1,7 @@
+#ifndef REWIRE
 #include "config.h"
 #include "system.h"
+#endif
 #include "EAI_C.h"
 #include <stdio.h>
 #include <sys/errno.h>
@@ -15,6 +17,7 @@ void X3D_initialize(char *hostname) {
 	int iret2;
 	int loopCount;
 	int constat;
+	int isMidi = 0;
 
 	loopCount = 0;
 	while ((_X3D_FreeWRL_FD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -27,6 +30,10 @@ void X3D_initialize(char *hostname) {
 	}
 
 	usleep (10000);	/* let remote end settle down to this interruption */
+	if (!strcmp(hostname, "MIDI")) {
+		isMidi = 1;
+		hostname = "localhost";
+	}
 
 	if (strlen(hostname) == 0) hostname = "localhost";
 
@@ -40,7 +47,11 @@ void X3D_initialize(char *hostname) {
 	bcopy((char *)server->h_addr, 
 		 (char *)&serv_addr.sin_addr.s_addr,
 		 server->h_length);
-	serv_addr.sin_port = htons(EAIBASESOCKET);
+	if (isMidi) {
+		serv_addr.sin_port = htons(EAIBASESOCKET + MIDIPORTOFFSET);
+	} else {
+		serv_addr.sin_port = htons(EAIBASESOCKET);
+	}
 
 	loopCount = 0;
 	while ((constat = connect(_X3D_FreeWRL_FD,(struct sockaddr *) &serv_addr,sizeof(serv_addr))) < 0) {

@@ -1,7 +1,7 @@
 /* 
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseParser.h,v 1.6 2009/04/15 18:37:07 crc_canada Exp $
+$Id: CParseParser.h,v 1.7 2009/04/23 20:11:34 sdumoulin Exp $
 
 Parser (input of non-terminal symbols) for CParse
 
@@ -10,6 +10,11 @@ Parser (input of non-terminal symbols) for CParse
 #ifndef __FREEWRL_CPARSE_PARSER_H__
 #define __FREEWRL_CPARSE_PARSER_H__
 
+
+#ifdef REWIRE
+#define BOOL int
+#include "../../libeai/EAI_C.h"
+#endif
 
 struct ProtoDefinition;
 struct ProtoFieldDecl;

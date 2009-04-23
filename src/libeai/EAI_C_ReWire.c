@@ -1,5 +1,7 @@
+#ifndef REWIRE
 #include "config.h"
 #include "system.h"
+#endif
 #include "EAI_C.h"
 
 void _handleReWireCallback (char *buf) {
@@ -18,12 +20,14 @@ void _handleReWireCallback (char *buf) {
 }
 
 void sendMIDITableToFreeWRL(char *buf) {
+	printf("in sendMIDITableToFreeWRL\n");
 	char *ptr;
         ptr = _X3D_make1StringCommand(MIDIINFO,buf);
         ptr = _X3D_make1StringCommand(MIDIINFO,buf);
 }
 
 void sendMIDIControlToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value) {
+	printf("in sendMIDIControlToFreeWRL\n");
 	char *ptr;
 	char line[200];
 	sprintf (line, "%ld %d %d %d %d",relativeSamplePos, bus, channel, controller, value);
