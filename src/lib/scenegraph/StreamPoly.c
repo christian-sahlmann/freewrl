@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: StreamPoly.c,v 1.4 2009/04/23 20:28:04 crc_canada Exp $
 
 ???
 
@@ -93,6 +93,8 @@ static void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA, 
 	}
 }
 
+
+
 void stream_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
 
 	struct X3D_IndexedFaceSet *p;
@@ -101,7 +103,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	int hasc;
 	GLfloat thisTrans;
 
-	struct SFColor *points=0; int npoints;
+	struct SFColor *points=0; int npoints=0;
 	struct SFColor *colors=0; int ncolors=0;
 	struct SFColor *normals=0; int nnormals=0;
 	int isRGBA = FALSE;
@@ -125,6 +127,17 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	p = (struct X3D_IndexedFaceSet *)node;
 	r = (struct X3D_PolyRep *)p->_intern;
 
+	#ifdef STREAM_POLY_VERBOSE
+	printf ("start spv for %u extents %lf %lf, %lf %lf, %lf %lf\n",node,
+		p->EXTENT_MIN_X,
+		p->EXTENT_MAX_X,
+		p->EXTENT_MIN_Y,
+		p->EXTENT_MAX_Y,
+		p->EXTENT_MIN_Z,
+		p->EXTENT_MAX_Z
+	);
+	#endif
+
 	/* printf ("stream_polyrep, at start, we have %d triangles texCoord %u\n",r->ntri,texCoord);  */
 
 	/* does this one have any triangles here? (eg, an IFS without coordIndex) */
@@ -133,21 +146,27 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 		return;
 	}
 
-
 	/* sanity check parameters, and get numbers */
 	if(coord) {
 		xc = (struct X3D_Coordinate *) coord;
 		if (xc->_nodeType != NODE_Coordinate) {
 			printf ("stream_polyrep, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
-			r->ntri=0; return;
+			r->ntri=0; 
+			return;
+			
 		} else { points = xc->point.p; npoints = xc->point.n; }
 	}
+
+	#ifdef STREAM_POLY_VERBOSE
+	printf ("so, points is %u, npoints is %d ntri %d\n",points, npoints,r->ntri);
+	#endif
 
 	if (color) {
 		cc = (struct X3D_Color *) color;
 		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
 			printf ("stream_polyrep, expected %d got %d\n", NODE_Color, cc->_nodeType);
-			r->ntri=0; return;
+			r->ntri=0; 
+			return;
 		} else { 
 			colors = cc->color.p; 
 			ncolors = cc->color.n; 
@@ -159,7 +178,8 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 		nc = (struct X3D_Normal *) normal;
 		if (nc->_nodeType != NODE_Normal) {
 			printf ("stream_polyrep, normal expected %d, got %d\n",NODE_Normal, nc->_nodeType);
-			r->ntri=0; return;
+			r->ntri=0; 
+			return;
 		} else { normals = nc->vector.p; nnormals = nc->vector.n; }
 	}
 
@@ -169,7 +189,8 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 			(tc->_nodeType != NODE_MultiTextureCoordinate) &&
 			(tc->_nodeType != NODE_TextureCoordinateGenerator )) {
 			printf ("stream_polyrep, TexCoord expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
-			r->ntri=0; return;
+			r->ntri=0; 
+			return;
 		}
 	}
 
@@ -204,6 +225,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	newtcindex = (int*)MALLOC (sizeof (int)*r->ntri*3);
 
 	newpoints = (struct SFColor*)MALLOC (sizeof (struct SFColor)*r->ntri*3);
+	
 
 	if ((nnormals) || (r->normal)) {
 		newnorms = (struct SFColor*)MALLOC (sizeof (struct SFColor)*r->ntri*3);
@@ -235,12 +257,22 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	  int ind = r->cindex[i];
 	  for (j=0; j<3; j++) {
 	      if(points) {
-		    if (r->minVals[j] > points[ind].c[j]) r->minVals[j] = points[ind].c[j];
-		    if (r->maxVals[j] < points[ind].c[j]) r->maxVals[j] = points[ind].c[j];
+		    if (ind >= npoints) { 
+			/* bounds checking... */
+			r->minVals[j]=0.0;
+			r->maxVals[j]=0.0;
+			printf ("spv, warning, index %d >= npoints %d\n",ind,npoints);
+		    } else {
+		    	if (r->minVals[j] > points[ind].c[j]) r->minVals[j] = points[ind].c[j];
+		    	if (r->maxVals[j] < points[ind].c[j]) r->maxVals[j] = points[ind].c[j];
+		    }
 	      } else if(r->actualCoord) {
 		    if (r->minVals[j] >  r->actualCoord[3*ind+j]) r->minVals[j] =  r->actualCoord[3*ind+j];
 		    if (r->maxVals[j] <  r->actualCoord[3*ind+j]) r->maxVals[j] =  r->actualCoord[3*ind+j];
-	      }
+	      } else {
+		r->minVals[j]=0.0;
+		r->maxVals[j]=0.0;
+	     }
 	  }
 	}
 
@@ -283,6 +315,19 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 
 	/* now, lets go through the old, non-linear polyrep structure, and
 	   put it in a stream format */
+
+	#ifdef STREAM_POLY_VERBOSE
+	printf ("before streaming for %u, extents %f %f, %f %f, %f %f\n",
+		p,
+		p->EXTENT_MAX_X,
+		p->EXTENT_MIN_X,
+		p->EXTENT_MAX_Y,
+		p->EXTENT_MIN_Y,
+		p->EXTENT_MAX_Z,
+		p->EXTENT_MIN_Z);
+	#endif
+
+
 
 	for(i=0; i<r->ntri*3; i++) {
 		int nori = i;
@@ -366,24 +411,34 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 			}
 		}
 
-
 		/* Coordinate points	*/
 		if(points) {
-			memcpy (&newpoints[i], &points[ind].c[0],sizeof (struct SFColor));
-			/* XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];*/
-			#ifdef STREAM_POLY_VERBOSE
-				printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",i,
-					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
+			if (ind>=npoints) {
+				/* bounds checking */
+				newpoints[i].c[0] = 0.0;
+				newpoints[i].c[1] = 0.0;
+				newpoints[i].c[2] = 0.0;
+				printf ("spv, warning, index %d >= npoints %d\n",ind,npoints);
+			} else {
+				memcpy (&newpoints[i], &points[ind].c[0],sizeof (struct SFColor));
+				#ifdef STREAM_POLY_VERBOSE
+				printf("Render (points) #%d = [%.5f, %.5f, %.5f] from [%.5f, %.5f, %.5f]\n",i,
+					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2],
+					points[ind].c[0], points[ind].c[1],points[ind].c[2]);
 			#endif
+			}
 		} else if(r->actualCoord) {
 			memcpy (&newpoints[i].c[0], &r->actualCoord[3*ind], sizeof(struct SFColor));
-			/* XYZ[0]=r->actualCoord[3*ind+0]; XYZ[1]=r->actualCoord[3*ind+1]; XYZ[2]=r->actualCoord[3*ind+2];*/
 			#ifdef STREAM_POLY_VERBOSE
 				printf("Render (r->actualCoord) #%d = [%.5f, %.5f, %.5f]\n",i,
 					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
 			#endif
+		} else {
+			#ifdef STREAM_POLY_VERBOSE
+			printf ("spv, no points and no coords, setting to 0,0,0\n");
+			#endif
+			newpoints[i].c[0] = 0.0; newpoints[i].c[1]=0.0;newpoints[i].c[2]=0.0;
 		}
-
 
 		/* Textures	*/
 		if (MUST_GENERATE_TEXTURES) {
@@ -395,6 +450,11 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 		}
 
 		/* calculate maxextents */
+		/*
+		printf ("sp %u, looking at pts %f %f %f for %d\n",p,newpoints[i].c[0],
+			newpoints[i].c[1], newpoints[i].c[2],i); 
+		*/
+
 		if (newpoints[i].c[0] > p->EXTENT_MAX_X) p->EXTENT_MAX_X = newpoints[i].c[0];
 		if (newpoints[i].c[0] < p->EXTENT_MIN_X) p->EXTENT_MIN_X = newpoints[i].c[0];
 		if (newpoints[i].c[1] > p->EXTENT_MAX_Y) p->EXTENT_MAX_Y = newpoints[i].c[1];
@@ -439,6 +499,18 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	/* record the transparency, in case we need to re-do this field */
 	r->transparency = thisTrans;
 	r->isRGBAcolorNode = isRGBA;
+
+	#ifdef STREAM_POLY_VERBOSE
+	printf ("end spv for %u, extents %f %f, %f %f, %f %f\n",
+		p,
+		p->EXTENT_MAX_X,
+		p->EXTENT_MIN_X,
+		p->EXTENT_MAX_Y,
+		p->EXTENT_MIN_Y,
+		p->EXTENT_MAX_Z,
+		p->EXTENT_MIN_Z);
+	#endif
+
 }
 
 
