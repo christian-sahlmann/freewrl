@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.13 2009/04/24 18:47:40 crc_canada Exp $
+$Id: ProdCon.c,v 1.14 2009/04/24 20:19:59 crc_canada Exp $
 
 CProto ???
 
@@ -88,7 +88,7 @@ int inputFileVersion[3] = {0,0,0};
 			} \
 			break; \
 	case IS_TYPE_VRML: \
-			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(input)); \
+			cParse (nRn,offsetof (struct X3D_Group, children), input); \
 			haveParsedCParsed = TRUE; \
 			break; \
 	case IS_TYPE_VRML1: \
@@ -105,23 +105,6 @@ int inputFileVersion[3] = {0,0,0};
 			break; \
 	} \
 	}
-
-
-
-#define XPARSE_STRING(input) \
-		/* look to see if this is X3D */ \
-		if (ifIsXML_X3D(input)) { \
-			if (!X3DParse (nRn, input)) { \
-				ConsoleMessage ("Parse Unsuccessful"); \
-			} \
-		} else if (ifIsVRML1(psp.inp)) { \
-			ConsoleMessage (VRML1ERRORMSG); \
-		} else { \
-			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(input)); \
-			haveParsedCParsed = TRUE; \
-		} \
-
-
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condition = PTHREAD_COND_INITIALIZER;
@@ -983,6 +966,7 @@ void __pt_doStringUrl () {
 		/* get the data from wherever we were originally told to find it */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		PARSE_STRING(buffer);
+		FREE_IF_NZ(buffer);
 		FREE_IF_NZ(ctmp);
 	} else if (psp.type==FROMCREATENODE) {
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);

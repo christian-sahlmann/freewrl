@@ -2442,7 +2442,7 @@ const int OFFSETS_LOD[] = {
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_LOD, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,
 	FIELDNAMES_bboxSize, offsetof (struct X3D_LOD, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,
 	FIELDNAMES_removeChildren, offsetof (struct X3D_LOD, removeChildren),  FIELDTYPE_MFNode, KW_inputOnly,
-	FIELDNAMES___isX3D, offsetof (struct X3D_LOD, __isX3D),  FIELDTYPE_SFInt32, KW_initializeOnly,
+	FIELDNAMES___isX3D, offsetof (struct X3D_LOD, __isX3D),  FIELDTYPE_SFBool, KW_initializeOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_LineProperties[] = {
@@ -3252,7 +3252,7 @@ const int OFFSETS_Switch[] = {
 	FIELDNAMES_choice, offsetof (struct X3D_Switch, choice),  FIELDTYPE_MFNode, KW_inputOutput,
 	FIELDNAMES_bboxSize, offsetof (struct X3D_Switch, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,
 	FIELDNAMES_removeChildren, offsetof (struct X3D_Switch, removeChildren),  FIELDTYPE_MFNode, KW_inputOnly,
-	FIELDNAMES___isX3D, offsetof (struct X3D_Switch, __isX3D),  FIELDTYPE_SFInt32, KW_initializeOnly,
+	FIELDNAMES___isX3D, offsetof (struct X3D_Switch, __isX3D),  FIELDTYPE_SFBool, KW_initializeOnly,
 	-1, -1, -1, -1};
 
 const int OFFSETS_Text[] = {
@@ -5465,7 +5465,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->__oldmetadata = 0;
 			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
-			tmp2->__isX3D = 0;
+			tmp2->__isX3D = (inputFileVersion[0]==3);
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -6651,7 +6651,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->choice.n=0; tmp2->choice.p=0;
 			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
-			tmp2->__isX3D = 0;
+			tmp2->__isX3D = (inputFileVersion[0]==3);
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}

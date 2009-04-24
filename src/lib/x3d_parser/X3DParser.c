@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.16 2009/04/24 18:47:40 crc_canada Exp $
+$Id: X3DParser.c,v 1.17 2009/04/24 20:20:00 crc_canada Exp $
 
 ???
 
@@ -625,15 +625,14 @@ static void parseComponent(const char **atts) {
 static void parseX3Dhead(const char **atts) {
 	int i;
 	int myProfile = -10000; /* something negative, not INT_ID_UNDEFINED... */
-	float myVersion = 0.0;
+	int versionIndex = INT_ID_UNDEFINED;
 
         for (i = 0; atts[i]; i += 2) {
 		/* printf("parseX3Dhead: field:%s=%s\n", atts[i], atts[i + 1]); */
 		if (strcmp("profile",atts[i]) == 0) {
 			myProfile = findFieldInPROFILES(atts[i+1]);
 		} else if (strcmp("version",atts[i]) == 0) {
-			if (sscanf (atts[i+1],"%f",&myVersion) != 1)
-				ConsoleMessage ("expected version number, got :%s:",atts[i+1]);
+			versionIndex = i+1;
 		} else {
 			/* printf ("just skipping this data\n"); */
 		}
@@ -646,8 +645,8 @@ static void parseX3Dhead(const char **atts) {
 		if (myProfile >= 0) handleProfile (myProfile);
 	}
 
-	if (!APPROX(myVersion, 0.0)) {
-		handleVersion (myVersion);
+	if (versionIndex != INT_ID_UNDEFINED) {
+		handleVersion (atts[versionIndex]);
 	}
 }
 

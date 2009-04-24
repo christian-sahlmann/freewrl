@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: utils.c,v 1.6 2009/02/11 15:12:54 istakenv Exp $
+$Id: utils.c,v 1.7 2009/04/24 20:19:59 crc_canada Exp $
 
 General utility functions.
 
@@ -81,7 +81,7 @@ void scanMallocTableOnQuit()
 {
     for (mcount=0; mcount<MAXMALLOCSTOKEEP;mcount++) {
 	if (mcheck[mcount]!=NULL) {
-	    printf ("unfreed memory created at %s:%d \n",mplace[mcount],mlineno[mcount]);
+	    printf ("unfreed memory %x created at %s:%d \n",mcheck[mcount], mplace[mcount],mlineno[mcount]);
 	}
     }
 }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.32 2009/04/24 18:47:40 crc_canada Exp $
+$Id: headers.h,v 1.33 2009/04/24 20:19:59 crc_canada Exp $
 
 Global includes.
 
@@ -1467,7 +1467,7 @@ void handleProfile(int myp);
 void handleComponent(int com, int lev);
 void handleExport (char *node, char *as);
 void handleImport (char *nodeName,char *nodeImport, char *as);
-void handleVersion (float lev);
+void handleVersion (const char *versionString);
 
 
 /* free memory */

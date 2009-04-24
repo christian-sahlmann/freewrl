@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.9 2009/04/21 19:19:24 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.10 2009/04/24 20:19:59 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -167,7 +167,7 @@ package VRML::NodeType;
 		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
 		metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-		__isX3D => [SFInt32, 0, initializeOnly], # 0 = VRML,  1 = X3D
+		__isX3D => [SFBool, "(inputFileVersion[0]==3)" , initializeOnly], # TRUE for X3D V3.x files
 	},"X3DGroupingNode"),
 
 	Transform => new VRML::NodeType ("Transform", {
@@ -1350,7 +1350,7 @@ package VRML::NodeType;
 			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
                 metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-			__isX3D => [SFInt32, 0, initializeOnly], # 0 = VRML,  1 = X3D
+		__isX3D => [SFBool, "(inputFileVersion[0]==3)" , initializeOnly], # TRUE for X3D V3.x files
 			_selected =>[FreeWRLPTR,0,initializeOnly],
 					   },"X3DGroupingNode"),
 

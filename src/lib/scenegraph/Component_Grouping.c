@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.11 2009/04/24 18:47:40 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.12 2009/04/24 20:19:59 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -431,7 +431,6 @@ void changed_Group (struct X3D_Group *node) {
 }
 
 void changed_Switch (struct X3D_Switch *node) { 
-	node->__isX3D = (inputFileVersion[0]==3);
 	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Switch, metadata))
 	INITIALIZE_EXTENT;
 }
