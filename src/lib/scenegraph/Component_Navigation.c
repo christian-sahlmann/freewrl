@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.10 2009/04/08 19:40:55 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.11 2009/04/24 18:47:40 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -263,7 +263,7 @@ void child_Collision (struct X3D_Collision *node) {
 }
 
 void changed_LOD (struct X3D_LOD *node) {
-	/* do nothing right now - JAS */
+	node->__isX3D = (inputFileVersion[0] == 3);
 }
 
 /* LOD changes between X3D and VRML - level and children fields are "equivalent" */
@@ -285,11 +285,11 @@ void proximity_LOD (struct X3D_LOD *node) {
 
 	/* no range, display the first node, if it exists */
         if(!nran) {
-		if (node->__isX3D == 0)  {
-			if (nnod > 0) node->_selected = (node->level).p[0];
+		if (node->__isX3D)  {
+			if (nnod > 0) node->_selected = (node->children).p[0];
 			else node->_selected = NULL;
 		} else {
-			if (xnod > 0) node->_selected = (node->children).p[0];
+			if (xnod > 0) node->_selected = (node->level).p[0];
 			else node->_selected = NULL;
 		}
                 return;
@@ -313,21 +313,21 @@ void proximity_LOD (struct X3D_LOD *node) {
         }
 
 	/* is this VRML or X3D? */
-	if (node->__isX3D== 0) {
-		if (nnod > 0) {
-			/* VRML "range" field */
-               		if(i >= nnod) i = nnod-1;
-               		node->_selected = (node->level).p[i];
-			/* printf ("selecting vrml nod\n"); */
-		} else { node->_selected = NULL; }
-		
-	} else {
+	if (node->__isX3D) {
 		if (xnod > 0) {
 			/* X3D "children" field */
         	       	if(i >= xnod) i = xnod-1;
         		       	node->_selected = (node->children).p[i];
 				/* printf ("selecting X3D nod %d \n",i); */
 		} else node->_selected = NULL;
+		
+	} else {
+		if (nnod > 0) {
+			/* VRML "range" field */
+               		if(i >= nnod) i = nnod-1;
+               		node->_selected = (node->level).p[i];
+			/* printf ("selecting vrml nod\n"); */
+		} else { node->_selected = NULL; }
 	}
 }
 

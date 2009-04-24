@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.25 2009/04/16 21:10:41 crc_canada Exp $
+  $Id: CParseParser.c,v 1.26 2009/04/24 18:47:40 crc_canada Exp $
 
   ???
 
@@ -768,7 +768,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 
      /* record the start of this proto body - keep the text around */
     startOfBody = me->lexer->nextIn;
-    initCP = me->lexer->startOfStringPtr;
+    initCP = me->lexer->startOfStringPtr[me->lexer->lexerInputLevel];
 
     /* Create a new vector of nodes and push it onto the DEFedNodes stack */
     /* This is the list of nodes defined for this scope */
@@ -795,12 +795,12 @@ BOOL parser_protoStatement(struct VRMLParser* me)
         endOfBody = me->lexer->nextIn;
         
         /* has a proto expansion come through here yet? */
-        if (me->lexer->startOfStringPtr != initCP) { 
+        if (me->lexer->startOfStringPtr[me->lexer->lexerInputLevel] != initCP) { 
 #ifdef CPARSERVERBOSE
-            printf ("parsing proto, body changed!\n");
 #endif
+            printf ("parsing proto, body changed!\n");
 
-            startOfBody = me->lexer->startOfStringPtr; }
+            startOfBody = me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]; }
 
         bodyLen = endOfBody - startOfBody;
 #ifdef CPARSERVERBOSE
@@ -2383,7 +2383,7 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
   vrmlNodeT RCX; \
   \
    /* printf ("start of a mfield parse for type %d curID :%s: me %u lexer %u\n",FIELDTYPE_MF##type, me->lexer->curID,me,me->lexer); */ \
-     /* printf ("      str :%s:\n",me->lexer->startOfStringPtr);  */ \
+     /* printf ("      str :%s:\n",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);  */ \
    /* if (me->lexer->curID != NULL) printf ("parser_MF, have %s\n",me->lexer->curID); else printf("parser_MF, NULL\n");  */ \
 \
  if (!(me->parsingX3DfromXML)) { \
@@ -2530,8 +2530,8 @@ BOOL parser_sfint32Value_(struct VRMLParser* me, vrmlInt32T* ret)
 
 
 static BOOL set_X3Dstring(struct VRMLLexer* me, vrmlStringT* ret) {
-    /* printf ("lexer_X3DString, setting string to be :%s:\n",me->startOfStringPtr); */
-    *ret=newASCIIString(me->startOfStringPtr);
+    /* printf ("lexer_X3DString, setting string to be :%s:\n",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]); */
+    *ret=newASCIIString(me->startOfStringPtr[me->lexerInputLevel]);
     return TRUE;
 }
 
@@ -2559,22 +2559,22 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret) {
         return FALSE;
     }
     /* possibly, this is from the XML Parser */
-    if (!strcmp(me->lexer->startOfStringPtr,"true")) {
+    if (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"true")) {
         *ret = TRUE;
         return TRUE;
     }
-    if (!strcmp(me->lexer->startOfStringPtr,"false")) {
+    if (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"false")) {
         *ret = FALSE;
         return TRUE;
     }
 
     /* possibly this is from the XML parser, but there is a case problem */
-    if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr,"TRUE"))) {
+    if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"TRUE"))) {
 	CPARSE_ERROR_CURID("found upper case TRUE in XML file - should be lower case");
         *ret = TRUE;
         return TRUE;
     }
-    if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr,"FALSE"))) {
+    if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"FALSE"))) {
 	CPARSE_ERROR_CURID ("found upper case FALSE in XML file - should be lower case");
         *ret = FALSE;
         return TRUE;
@@ -2648,8 +2648,8 @@ BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret) {
         return parser_nodeStatement(me, ret);
     } else {
         /* expect something like a number (memory pointer) to be here */
-        if (sscanf(me->lexer->startOfStringPtr, "%u",  &tmp) != 1) {
-            CPARSE_ERROR_FIELDSTRING ("error finding SFNode id on line :%s:",me->lexer->startOfStringPtr);
+        if (sscanf(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel], "%u",  &tmp) != 1) {
+            CPARSE_ERROR_FIELDSTRING ("error finding SFNode id on line :%s:",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);
             *ret=NULL;
             return FALSE;
         }

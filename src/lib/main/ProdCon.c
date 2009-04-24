@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.12 2009/04/06 17:20:25 crc_canada Exp $
+$Id: ProdCon.c,v 1.13 2009/04/24 18:47:40 crc_canada Exp $
 
 CProto ???
 
@@ -72,6 +72,56 @@ int _P_LOCK_VAR;
 
 #define WAIT_WHILE_NO_DATA pthread_mutex_lock(&mutex); \
      while (_P_LOCK_VAR==0) { pthread_cond_wait(&condition, &mutex);}
+
+int inputFileType = IS_TYPE_UNKNOWN;
+int inputFileVersion[3] = {0,0,0};
+
+
+#define PARSE_STRING(input) \
+	{ \
+	inputFileType = determineFileType(input); \
+/* printf ("PARSE STRING, ft %d, fv %d.%d.%d\n",inputFileType,inputFileVersion[0],inputFileVersion[1],inputFileVersion[2]); */ \
+	switch (inputFileType) { \
+	case IS_TYPE_XML_X3D: \
+			if (!X3DParse (nRn, input)) { \
+				ConsoleMessage ("Parse Unsuccessful"); \
+			} \
+			break; \
+	case IS_TYPE_VRML: \
+			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(input)); \
+			haveParsedCParsed = TRUE; \
+			break; \
+	case IS_TYPE_VRML1: \
+			ConsoleMessage (VRML1ERRORMSG); \
+			break; \
+	case IS_TYPE_COLLADA: \
+			ConsoleMessage ("Collada not supported yet"); \
+			break; \
+	case IS_TYPE_SKETCHUP: \
+			ConsoleMessage ("Google Sketchup format not supported yet"); \
+			break; \
+	case IS_TYPE_KML: \
+			ConsoleMessage ("KML-KMZ  format not supported yet"); \
+			break; \
+	} \
+	}
+
+
+
+#define XPARSE_STRING(input) \
+		/* look to see if this is X3D */ \
+		if (ifIsXML_X3D(input)) { \
+			if (!X3DParse (nRn, input)) { \
+				ConsoleMessage ("Parse Unsuccessful"); \
+			} \
+		} else if (ifIsVRML1(psp.inp)) { \
+			ConsoleMessage (VRML1ERRORMSG); \
+		} else { \
+			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(input)); \
+			haveParsedCParsed = TRUE; \
+		} \
+
+
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condition = PTHREAD_COND_INITIALIZER;
@@ -444,29 +494,84 @@ char *getInputURL() {
 /*									*/
 /************************************************************************/
 
-/* do we have an X3D header here? */
-int ifIsX3D(char *buffer) {
+static int determineFileType(char *buffer) {
 	char *rv;
+	int count;
+	int foundStart = FALSE;
 
-	rv = strstr(buffer,"<?xml version");
-	return rv != NULL;
+	for (count = 0; count < 3; count ++) inputFileVersion[count] = 0;
+
+	/* is this an XML file? */
+	if (strncmp(buffer,"<?xml version",12) == 0){
+		rv = buffer;	
+
+		/* skip past the header; we will look for lines like: 
+			<?xml version="1.0" encoding="UTF-8"?>
+			<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN"   "http://www.web3d.org/specifications/x3d-3.0.dtd">
+			<X3D
+		*/
+		rv++;
+		while (!foundStart) {
+			while ((*rv != '<') && (*rv != '\0')) rv++;
+			if (*rv == '<') {
+				rv++;
+				if (*rv != '!') foundStart = TRUE;
+			} else if (*rv == '\0') foundStart = TRUE;	
+		}
+		/* printf ("after foundStart, we have:%s:\n",rv); */
+		if (strncmp(rv,"X3D",3) == 0) {
+			/* the full version number will be found by the parser */
+			inputFileVersion[0] = 3;
+			return IS_TYPE_XML_X3D;
+		}
+		if (strncmp(rv,"COLLADA",7) == 0) {
+			return IS_TYPE_COLLADA;
+		}
+		if (strncmp(rv,"kml",3) == 0) {
+			return IS_TYPE_KML;
+		}
+
+	} else {
+		if (strncmp(buffer,"#VRML V2.0 utf8",15) == 0) {
+			inputFileVersion[0] = 2;
+			return IS_TYPE_VRML;
+		}
+
+		if (strncmp (buffer, "#X3D",4) == 0) {
+			inputFileVersion[0] = 3;
+			/* ok, have X3D here, what version? */
+
+			if (strncmp (buffer,"#X3D V3.0 utf8",14) == 0) {
+				return IS_TYPE_VRML;
+			}
+			if (strncmp (buffer,"#X3D V3.1 utf8",14) == 0) {
+				inputFileVersion[1] = 1;
+				return IS_TYPE_VRML;
+			}
+			if (strncmp (buffer,"#X3D V3.2 utf8",14) == 0) {
+				inputFileVersion[1] = 2;
+				return IS_TYPE_VRML;
+			}
+			if (strncmp (buffer,"#X3D V3.3 utf8",14) == 0) {
+				inputFileVersion[1] = 3;
+				return IS_TYPE_VRML;
+			}
+			if (strncmp (buffer,"#X3D V3.4 utf8",14) == 0) {
+				inputFileVersion[1] = 4;
+				return IS_TYPE_VRML;
+			}
+			/* if we fall off the end, we just assume X3D 3.0 */
+		}
+		
+		/* VRML V1? */
+		if (strncmp(buffer,"#VRML V1.0 asc",10) == 0) {
+			return IS_TYPE_VRML1;
+		}
+	}
+
+	return IS_TYPE_UNKNOWN;
+
 }
-
-
-/************************************************************************/
-/*									*/
-/* is this a VRML 1.0 file? GEANT4, for instance, can produce these	*/
-/*									*/
-/************************************************************************/
-
-/* do we have an X3D header here? */
-int ifIsVRML1(char *buffer) {
-	char *rv;
-
-	rv = strstr(buffer,"#VRML V1.0 asc");
-	return rv != NULL;
-}
-
 
 /************************************************************************/
 /*									*/
@@ -862,20 +967,10 @@ void __pt_doStringUrl () {
 	}
 
 	if (psp.type==FROMSTRING) {
+
 		/* check and convert to VRML... */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-		/* look to see if this is X3D */
-		if (ifIsX3D(psp.inp)) {
-			if (!X3DParse (nRn, psp.inp)) {
-				ConsoleMessage ("Parse Unsuccessful");
-
-			}
-		} else if (ifIsVRML1(psp.inp)) {
-			ConsoleMessage (VRML1ERRORMSG);
-		} else {
-			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(psp.inp));
-			haveParsedCParsed = TRUE;
-		}
+		PARSE_STRING(psp.inp);
 
 	} else if (psp.type==FROMURL) {
 
@@ -887,54 +982,18 @@ void __pt_doStringUrl () {
 
 		/* get the data from wherever we were originally told to find it */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-		if (ifIsX3D(buffer)) {
-			if (!X3DParse (nRn, buffer)) {
-				ConsoleMessage ("Parse Unsuccessful");
-			}
-			FREE_IF_NZ (buffer); 
-		} else if (ifIsVRML1(buffer)) {
-			ConsoleMessage (VRML1ERRORMSG);
-		} else {
-			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(buffer));
-			haveParsedCParsed = TRUE;
-		}
+		PARSE_STRING(buffer);
 		FREE_IF_NZ(ctmp);
-
-
 	} else if (psp.type==FROMCREATENODE) {
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-
-		/* look to see if this is X3D */
-		if (ifIsX3D(psp.inp)) {
-			if (!X3DParse (nRn, psp.inp)) {
-				ConsoleMessage ("Parse Unsuccessful");
-
-			}
-		} else if (ifIsVRML1(psp.inp)) {
-			ConsoleMessage (VRML1ERRORMSG);
-		} else {
-			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(psp.inp));
-			haveParsedCParsed = TRUE;
-		}
-	
+		PARSE_STRING(psp.inp);
 	} else {
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		/* this will be a proto expansion, because otherwise the EAI code
 		   would have gotten this before here */
 		/* lets try this - same as FROMSTRING above... */
 		/* look to see if this is X3D */
-		if (ifIsX3D(psp.inp)) {
-			if (!X3DParse (nRn, psp.inp)) {
-				ConsoleMessage ("Parse Unsuccessful");
-
-			}
-		} else if (ifIsVRML1(psp.inp)) {
-			ConsoleMessage (VRML1ERRORMSG);
-		} else {
-			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(psp.inp));
-			haveParsedCParsed = TRUE;
-		}
-	
+		PARSE_STRING(psp.inp);
 	}
 	
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.10 2009/04/21 19:19:24 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.11 2009/04/24 18:47:40 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -189,14 +189,14 @@ void child_Switch (struct X3D_Switch *node) {
 	int wc = node->whichChoice;
 
 	/* is this VRML, or X3D?? */
-	if (node->__isX3D == 0) {
-		if(wc >= 0 && wc < ((node->choice).n)) {
-			void *p = ((node->choice).p[wc]);
+	if (node->__isX3D) {
+		if(wc >= 0 && wc < ((node->children).n)) {
+			void *p = ((node->children).p[wc]);
 			render_node(p);
 		}
 	} else {
-		if(wc >= 0 && wc < ((node->children).n)) {
-			void *p = ((node->children).p[wc]);
+		if(wc >= 0 && wc < ((node->choice).n)) {
+			void *p = ((node->choice).p[wc]);
 			render_node(p);
 		}
 	}
@@ -431,6 +431,7 @@ void changed_Group (struct X3D_Group *node) {
 }
 
 void changed_Switch (struct X3D_Switch *node) { 
+	node->__isX3D = (inputFileVersion[0]==3);
 	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Switch, metadata))
 	INITIALIZE_EXTENT;
 }

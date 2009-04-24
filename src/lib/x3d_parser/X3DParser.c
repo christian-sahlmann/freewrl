@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.15 2009/04/09 14:21:05 crc_canada Exp $
+$Id: X3DParser.c,v 1.16 2009/04/24 18:47:40 crc_canada Exp $
 
 ???
 
@@ -435,15 +435,6 @@ printf ("hey, we have maybe a Node in a Script list... line %d: expected parserM
 
 		X3D_SCRIPT(thisNode)->_X3DScript = (int) nextScriptHandle();
 		JSInit(X3D_SCRIPT(thisNode)->_X3DScript);
-	}
-
-	/* X3D changes the Switch node "level" to "children"  - lets do the same */
-	if (myNodeType == NODE_Switch) {
-		#ifdef X3DPARSERVERBOSE
-		printf ("switch node found, setting the __X3D flag\n");
-		#endif
-
-		X3D_SWITCH(thisNode)->__isX3D = 1;
 	}
 
 	/* go through the fields, and link them in. SFNode and MFNodes will be handled 

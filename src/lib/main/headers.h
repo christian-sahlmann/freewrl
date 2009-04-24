@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.31 2009/04/06 17:20:25 crc_canada Exp $
+$Id: headers.h,v 1.32 2009/04/24 18:47:40 crc_canada Exp $
 
 Global includes.
 
@@ -1493,5 +1493,17 @@ extern void *setViewpointBindInRender;
 extern void *setFogBindInRender;
 extern void *setBackgroundBindInRender;
 extern void *setNavigationBindInRender;
+
+/* VRML/X3D version */
+#define IS_TYPE_XML_X3D	100
+#define IS_TYPE_VRML 	101
+#define IS_TYPE_VRML1	102
+#define IS_TYPE_SKETCHUP	103
+#define IS_TYPE_KML		104
+#define IS_TYPE_COLLADA		105
+#define IS_TYPE_UNKNOWN	200
+
+extern int inputFileType;
+extern int inputFileVersion[];
 
 #endif /* __FREEWRL_HEADERS_H__ */
