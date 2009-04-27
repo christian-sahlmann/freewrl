@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statusbar.c,v 1.4 2009/04/06 17:20:25 crc_canada Exp $
+$Id: statusbar.c,v 1.5 2009/04/27 17:07:33 crc_canada Exp $
 
 ???
 
@@ -33,12 +33,12 @@ $Id: statusbar.c,v 1.4 2009/04/06 17:20:25 crc_canada Exp $
 
 
 /* DO NOT CHANGE THESE DEFINES WITHOUT CHECKING THE USE OF THE CODE, BELOW */
-#define PROX "ProximitySensor { enabled FALSE size 1000 1000 1000 }"
+#define PROX "#VRML V2.0 utf8\rProximitySensor { enabled FALSE size 1000 1000 1000 }"
 
 /* put the text (second translation) back behind where the clip plane will be (the z axis) and down near the bottom of the screen a bit */
 /* look at the gluPerspective(fieldofview, screenRatio, nearPlane, farPlane); line in MainLoop.c */
 
-#define TEXT "Transform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
+#define TEXT "#VRML V2.0 utf8\rTransform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
 
 
 
@@ -99,6 +99,7 @@ static void statusbar_init() {
 	   then there are REALLY bad things happening somewhere else */
 
 	/* remove this ProximitySensor node from the temporary variable, and reset the temp. variable */
+
 	proxNode = myn->children.p[0];
 
 	/* turn it off for now, until a non-zero length string comes in */

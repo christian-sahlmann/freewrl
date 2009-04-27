@@ -1,4 +1,9 @@
-Priority list (as of 28/02/2009)
+Priority list
+27/04/2009:
+	(JAS) KML and Collada for Geospatial.
+	(JAS) file "rotation_toy.wrl" does not work correctly (Javascript, rotations, etc)
+
+
 30/03/2009:
 	(JAS) Verify that IndexedFaceSet textureCoordinateIndexes are used properly - ashby.wrl image problems.
 
@@ -37,7 +42,7 @@ Priority list (as of 28/02/2009)
 
 
 28/02/2009:
-	(JAS) Verify that x3d, x3dv, and wrl files set _isX3D and _isXML correctly.
+	(JAS) Verify that x3d, x3dv, and wrl files set _isX3D and _isXML correctly. (DONE)
 	Some of the Conformance tests now fail.
 
 
@@ -59,7 +64,7 @@ Priority list (as of 28/02/2009)
 
 	20 - not sorted?
 	SFImage.wrl - box not changing texture
-	pp2.x3d - nothing shown.
+	pp2.x3d - nothing shown. (DONE - was a problem routing SFStrings)
 
 
 06/02/09: New build on some Linux distros fails. Decide what to do about this - currently thinking
