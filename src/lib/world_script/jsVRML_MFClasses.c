@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.7 2009/02/26 22:29:14 crc_canada Exp $
+$Id: jsVRML_MFClasses.c,v 1.8 2009/04/28 14:32:49 crc_canada Exp $
 
 ???
 
@@ -120,7 +120,7 @@ MFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			return JS_FALSE;
 		}
 
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %u in MFColorConstr.\n", i);
 			return JS_FALSE;
 		}
@@ -183,7 +183,7 @@ MFFloatConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			return JS_FALSE;
 		}
 
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %u in MFFloatConstr.\n", i);
 			return JS_FALSE;
 		}
@@ -207,6 +207,7 @@ JSBool
 MFFloatSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFFloat);
 }
+
 
 JSBool
 MFInt32ToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
@@ -262,7 +263,7 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		printf ("value at %d is %d\n",i,_i);
 		#endif
 
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %u in MFInt32Constr.\n", i);
 			return JS_FALSE;
 		}
@@ -348,7 +349,7 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 				return JS_FALSE;
 			}
 	
-			if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+			if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed for arg %d in MFNodeConstr.\n", i);
 				return JS_FALSE;
 			}
@@ -441,7 +442,7 @@ MFTimeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 			return JS_FALSE;
 		}
 
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %u in MFTimeConstr.\n", i);
 			return JS_FALSE;
 		}
@@ -509,7 +510,7 @@ MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			return JS_FALSE;
 		}
 
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %d in MFVec2fConstr.\n", i);
 			return JS_FALSE;
 		}
@@ -574,7 +575,7 @@ MFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			return JS_FALSE;
 		}
 
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %d in MFVec3fConstr.\n", i);
 			return JS_FALSE;
 		}
@@ -961,7 +962,7 @@ VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 				return JS_FALSE;
 			}
 
-			if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+			if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed for arg %u in VrmlMatrixConstr.\n", i);
 				return JS_FALSE;
 			}
@@ -977,7 +978,7 @@ VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 				return JS_FALSE;
 			}
 
-			if (!JS_DefineElement(cx, obj, (jsint) i, DOUBLE_TO_JSVAL(dp), JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+			if (!JS_DefineElement(cx, obj, (jsint) i, DOUBLE_TO_JSVAL(dp), JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed for arg %u in VrmlMatrixConstr.\n", i);
 				return JS_FALSE;
 			}
@@ -1009,7 +1010,7 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 		if (_index >= _length) {
 			*vp = DOUBLE_TO_JSVAL(0.0);
-			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed in VrmlMatrixGetProperty.\n");
 				return JS_FALSE;
 			}
@@ -1089,7 +1090,7 @@ MFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			return JS_FALSE;
 		}
 
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %d in MFRotationConstr.\n", i);
 			return JS_FALSE;
 		}
@@ -1174,7 +1175,7 @@ MFStringGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		if (_index >= _length) {
 			_str = JS_NewStringCopyZ(cx, "");
 			*vp = STRING_TO_JSVAL(_str);
-			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed in MFStringGetProperty.\n");
 				return JS_FALSE;
 			}
@@ -1188,7 +1189,7 @@ MFStringGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 				/* printf ("MFStringGetProperty, element %d is JSVAL_VOID, making up string for it\n",_index); */
 				_str = JS_NewStringCopyZ(cx, "NULL");
 				*vp = STRING_TO_JSVAL(_str);
-				if (!JS_DefineElement(cx, obj, (jsint) _index, *vp, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+				if (!JS_DefineElement(cx, obj, (jsint) _index, *vp, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 					printf( "JS_DefineElement failed in MFStringGetProperty.\n");
 					return JS_FALSE;
 				}
@@ -1293,7 +1294,7 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 		#endif
 
 	
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB1, JSPROP_ENUMERATE)) {
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %d in MFStringConstr.\n", i);
 			return JS_FALSE;
 		}
@@ -1309,10 +1310,34 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 
 JSBool
 MFStringAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf("MFStringAssign: obj = %u, %u args %d... ", VERBOSE_OBJ obj, argc);
 	#endif
 	SET_MF_ECMA_HAS_CHANGED
 
 	return _standardMFAssign (cx, obj, argc, argv, rval, &MFStringClass,FIELDTYPE_SFString);
+}
+
+/* testing.. */
+JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) { 
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("MFStringDeleteProperty\n"); 
+	#endif
+}
+JSBool MFStringEnumerateProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) { 
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("MFStringEnumerateProperty\n"); 
+	#endif
+}
+
+JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) { 
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("MFStringResolveProperty\n"); 
+	#endif
+}
+JSBool MFStringConvertProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) { 
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("MFStringConvertProperty\n"); 
+	#endif
 }

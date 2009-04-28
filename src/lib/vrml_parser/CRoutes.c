@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.16 2009/04/06 17:20:25 crc_canada Exp $
+$Id: CRoutes.c,v 1.17 2009/04/28 14:32:49 crc_canada Exp $
 
 ???
 
@@ -129,10 +129,10 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 #define GET_ECMA_MF_TOUCHED(thistype) \
 	case FIELDTYPE_MF##thistype: {\
 		jsval mainElement; \
-		/* printf ("GET_ECMA_MF_TOUCHED called on %d\n",JSglobal_return_val);*/ \
+		/* printf ("GET_ECMA_MF_TOUCHED called on %d\n",JSglobal_return_val);  */ \
 		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"MF_ECMA_HAS_changed\" in get_valueChanged_flag\n"); \
-		} else /* printf ("GET_ECMA_MF_TOUCHED MF_ECMA_has_changed is %d for %d %d\n",JSVAL_TO_INT(mainElement),cx,JSglobal_return_val); */ \
+		} /* else printf ("GET_ECMA_MF_TOUCHED MF_ECMA_has_changed is %d for %d %d\n",JSVAL_TO_INT(mainElement),cx,JSglobal_return_val); */  \
 		touched = JSVAL_TO_INT(mainElement);\
 		break; \
 	}
@@ -140,7 +140,7 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 #define RESET_ECMA_MF_TOUCHED(thistype) \
 	case FIELDTYPE_##thistype: {\
 		jsval myv = INT_TO_JSVAL(0); \
-		/* printf ("RESET_ECMA_MF_TOUCHED called on %d ",JSglobal_return_val);*/ \
+		/* printf ("RESET_ECMA_MF_TOUCHED called on %d ",JSglobal_return_val); */ \
         	if (!JS_SetProperty((JSContext *) ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &myv)) { \
         		printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in RESET_ECMA_MF_TOUCHED.\n"); \
         	}\
@@ -394,6 +394,10 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 	cx = (JSContext *) ScriptControl[actualscript].cx;
 	fullname = JSparamnames[fptr].name;
 
+                jsval mainElement; 
+                int len; 
+                int i; 
+
 	#ifdef CRVERBOSE
 	printf ("getting property for fullname %s, cx %d, interpobj %d script %d, fptr %d\n",fullname,cx,interpobj,actualscript, fptr);
 	#endif
@@ -440,6 +444,39 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 			}
 		}
 	}
+
+#ifdef CHECKER
+	if (JSparamnames[fptr].type == FIELDTYPE_MFString) {
+		unsigned CRCCheck = 0;
+                cx = (JSContext *)ScriptControl[actualscript].cx; 
+                if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { 
+                        printf ("JS_GetProperty failed for length_flag\n"); 
+                } 
+                len = JSVAL_TO_INT(mainElement); 
+printf ("len is %d\n",len);
+                /* go through each element of the main array. */ 
+                for (i = 0; i < len; i++) { 
+                        if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { 
+                                printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); 
+                                break; 
+                        } 
+		CRCCheck += (unsigned) mainElement;
+
+/*
+                if (JSVAL_IS_OBJECT(mainElement)) printf ("sc, element %d is an OBJECT\n",i);
+                if (JSVAL_IS_STRING(mainElement)) printf ("sc, element %d is an STRING\n",i);
+                if (JSVAL_IS_NUMBER(mainElement)) printf ("sc, element %d is an NUMBER\n",i);
+                if (JSVAL_IS_DOUBLE(mainElement)) printf ("sc, element %d is an DOUBLE\n",i);
+                if (JSVAL_IS_INT(mainElement)) printf ("sc, element %d is an INT\n",i);
+*/
+
+                } 
+		printf ("CRCcheck %u\n",CRCCheck);
+	}
+#endif
+
+
+
 	return touched;
 }
 
@@ -1235,8 +1272,6 @@ void mark_script (uintptr_t num) {
 gatherScriptEventOuts - at least one script has been triggered; get the
 eventOuts for this script
 
-FIXME XXXXX =  can we do this without the string conversions?
-
 ********************************************************************/
 
 void gatherScriptEventOuts(uintptr_t actualscript) {
@@ -1246,7 +1281,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	unsigned len;
  	void * tn;
 	void * fn;
-
 	/* temp for sscanf retvals */
 
 	int fromalready=FALSE;	 /* we have already got the from value string */

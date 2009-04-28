@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.33 2009/04/24 20:19:59 crc_canada Exp $
+$Id: headers.h,v 1.34 2009/04/28 14:32:49 crc_canada Exp $
 
 Global includes.
 
@@ -51,16 +51,22 @@ char *readInputString(char *fn);
 #define HEADLIGHT_LIGHT 7
 
 
-#undef DEBUG_JAVASCRIPT_PROPERTY
+#define DEBUG_JAVASCRIPT_PROPERTY
 #ifdef DEBUG_JAVASCRIPT_PROPERTY
-#define JS_GET_PROPERTY_STUB js_GetPropertyDebug
+/* #define JS_GET_PROPERTY_STUB js_GetPropertyDebug */
+#define JS_GET_PROPERTY_STUB JS_PropertyStub
+
 #define JS_SET_PROPERTY_STUB1 js_SetPropertyDebug1
-#define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2 
+
+/* #define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2  */
+#define JS_SET_PROPERTY_STUB2 JS_PropertyStub
+
 #define JS_SET_PROPERTY_STUB3 js_SetPropertyDebug3 
 #define JS_SET_PROPERTY_STUB4 js_SetPropertyDebug4 
 #define JS_SET_PROPERTY_STUB5 js_SetPropertyDebug5 
 #define JS_SET_PROPERTY_STUB6 js_SetPropertyDebug6 
 #define JS_SET_PROPERTY_STUB7 js_SetPropertyDebug7 
+#define JS_SET_PROPERTY_STUB8 js_SetPropertyDebug8 
 #else
 #define JS_GET_PROPERTY_STUB JS_PropertyStub
 #define JS_SET_PROPERTY_STUB1 JS_PropertyStub
@@ -70,7 +76,9 @@ char *readInputString(char *fn);
 #define JS_SET_PROPERTY_STUB5 JS_PropertyStub
 #define JS_SET_PROPERTY_STUB6 JS_PropertyStub
 #define JS_SET_PROPERTY_STUB7 JS_PropertyStub
+#define JS_SET_PROPERTY_STUB8 JS_PropertyStub
 #endif
+#define JS_SET_PROPERTY_CHECK js_SetPropertyCheck
 
 #define INT_ID_UNDEFINED -1
 

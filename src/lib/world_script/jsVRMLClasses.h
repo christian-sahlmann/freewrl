@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.5 2009/02/11 15:12:55 istakenv Exp $
+$Id: jsVRMLClasses.h,v 1.6 2009/04/28 14:32:49 crc_canada Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -59,7 +59,6 @@ of garbage collection */
 			/* printf ("setting property for MF_ECMA_has_changed %d %d\n",cx,obj); */ \
                         if (!JS_SetProperty(cx, obj, "MF_ECMA_has_changed", &myv)) { \
                                 printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in doMFSetProperty.\n"); \
-		printf ("myThread is %u\n",pthread_self()); \
                                 return JS_FALSE; \
                         }}
 
@@ -741,6 +740,12 @@ MFStringAddProperty(JSContext *cx,
 					jsval id,
 					jsval *vp);
 
+JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) ;
+JSBool MFStringEnumerateProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) ;
+JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) ;
+JSBool MFStringConvertProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) ;
+       
+
 
 JSBool
 MFTimeToString(JSContext *cx,
@@ -962,6 +967,7 @@ extern JSFunctionSpec (MFVec3fFunctions)[];
 extern JSClass VrmlMatrixClass;
 extern JSFunctionSpec (VrmlMatrixFunctions)[];
 
+JSBool js_SetPropertyCheck (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 #ifdef DEBUG_JAVASCRIPT_PROPERTY
 JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsval id, jsval *vp);

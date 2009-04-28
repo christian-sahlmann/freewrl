@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.8 2009/04/14 17:15:55 crc_canada Exp $
+$Id: jsUtils.c,v 1.9 2009/04/28 14:32:49 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -1051,6 +1051,124 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 
 }
 
+
+/********************************************************************************************/
+/* new addition April 2009. It was noted that the following code would not send an event to
+   FreeWRL:
+#VRML V2.0 utf8
+      DEF DisplayScript Script {
+        eventOut MFString display_string
+
+        url [ "javascript:
+          function eventsProcessed () {
+		display_string[7] = ' ';
+          }
+        "]
+      }
+
+
+Shape {geometry DEF Display Text {}}
+    ROUTE DisplayScript.display_string TO Display.set_string
+
+(it would if the assignment was display_string = new MFString(...) )
+
+But, this property check gets called on the equals. Lets figure out how to indicate that the
+holding object needs to route to FreeWRL... */
+
+
+#define SET_TOUCHED_TYPE_MF_A(thisMFtype,thisSFtype) \
+	else if (JS_InstanceOf (cx, obj, &thisMFtype##Class, NULL)) {\
+		jsval mainElement;\
+		thisSFtype##Native *ptr; \
+\
+		if (!JS_GetElement(cx, obj, num, &mainElement)) { \
+			printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",num); \
+			return JS_FALSE; \
+		} \
+\
+		if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) {\
+			printf( "JS_GetPrivate failed in assignCheck.\n"); \
+			return JS_FALSE; \
+		} else { \
+			/* printf ("got private for MFVec3f, doing it...\n"); */ \
+			ptr->valueChanged++; \
+		} \
+		return JS_TRUE; \
+        }
+
+
+
+JSBool js_SetPropertyCheck (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+	char *_id_c = "(no value in string)";
+	int num;
+
+	/* get the id field... */
+	if (JSVAL_IS_STRING(id)) { 
+		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+        	printf ("hmmm...js_SetPropertyCheck called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+	} else if (JSVAL_IS_INT(id)) {
+		num = JSVAL_TO_INT(id);
+        	/* printf ("\n...js_SetPropertyCheck called on number %d object %u, jsval %u\n",num, obj, *vp); */
+	} else {
+        	printf ("hmmm...js_SetPropertyCheck called on unknown type of object %u, jsval %u\n", obj, *vp);
+	}
+
+	/* lets worry about the MFs containing ECMAs here - MFFloat MFInt32 MFTime MFString MFBool */
+
+	if (JS_InstanceOf (cx, obj, &MFStringClass, NULL)) {
+		SET_MF_ECMA_HAS_CHANGED;
+		return JS_TRUE;
+	}
+	else if (JS_InstanceOf (cx, obj, &MFFloatClass, NULL)) {
+		SET_MF_ECMA_HAS_CHANGED;
+		return JS_TRUE;
+	}
+	else if (JS_InstanceOf (cx, obj, &MFInt32Class, NULL)) {
+		SET_MF_ECMA_HAS_CHANGED;
+		return JS_TRUE;
+	}
+#ifdef NEWCLASSES
+	else if (JS_InstanceOf (cx, obj, &MFBoolClass, NULL)) {
+		SET_MF_ECMA_HAS_CHANGED;
+		return JS_TRUE;
+	}
+#endif
+
+        SET_TOUCHED_TYPE_MF_A(MFRotation,SFRotation)
+        SET_TOUCHED_TYPE_MF_A(MFNode,SFNode)
+        SET_TOUCHED_TYPE_MF_A(MFVec2f,SFVec2f)
+        SET_TOUCHED_TYPE_MF_A(MFVec3f,SFVec3f)
+        /* SET_TOUCHED_TYPE_MF_A(MFImage,SFImage)  */
+        SET_TOUCHED_TYPE_MF_A(MFColor,SFColor)
+        /* SET_TOUCHED_TYPE_MF_A(MFColorRGBA,SFColorRGBA) */
+
+
+#define JSVRMLCLASSESVERBOSE
+        #ifdef JSVRMLCLASSESVERBOSE
+        if (JS_InstanceOf(cx, obj, &SFVec3fClass, NULL)) { printf ("this is a SFVec3fClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &SFColorClass, NULL)) { printf ("this is a SFColorClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &SFColorRGBAClass, NULL)) { printf ("this is a SFColorRGBAClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &SFImageClass, NULL)) { printf ("this is a SFImageClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &SFRotationClass, NULL)) { printf ("this is a SFRotationClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &SFVec2fClass, NULL)) { printf ("this is a SFVec2fClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &SFVec3fClass, NULL)) { printf ("this is a SFVec3fClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &MFColorClass, NULL)) { printf ("this is a MFColorClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &MFFloatClass, NULL)) { printf ("this is a MFFloatClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &MFInt32Class, NULL)) { printf ("this is a MFInt32Class...\n"); }
+        else if (JS_InstanceOf(cx, obj, &MFNodeClass, NULL)) { printf ("this is a MFNodeClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &MFRotationClass, NULL)) { printf ("this is a MFRotationClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &MFStringClass, NULL)) { printf ("this is a MFStringClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &MFTimeClass, NULL)) { printf ("this is a MFTimeClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &MFRotationClass, NULL)) { printf ("this is a MFRotationClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &MFVec2fClass, NULL)) { printf ("this is a MFVec2fClass...\n"); }
+        else if (JS_InstanceOf(cx, obj, &VrmlMatrixClass, NULL)) { printf ("this is a VrmlMatrixClass...\n"); }
+        else printf ("this class is unknown???\n");
+        #endif
+
+	printf ("we do not care about this type in js_SetPropertyCheck\n");
+
+}
+
 /****************************************************************************/
 #ifdef DEBUG_JAVASCRIPT_PROPERTY
 
@@ -1107,12 +1225,12 @@ JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsval id, jsval 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("\n...js_SetPropertyDebug2 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("...js_SetPropertyDebug2 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("\n...js_SetPropertyDebug2 called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("...js_SetPropertyDebug2 called on number %d object %u, jsval %u\n",num, obj, *vp);
 	} else {
-        	printf ("\n...js_SetPropertyDebug2 called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("...js_SetPropertyDebug2 called on unknown type of object %u, jsval %u\n", obj, *vp);
 	}
 }
 JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
@@ -1158,6 +1276,21 @@ JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsval id, jsval 
         	printf ("\n...js_SetPropertyDebug5 called on number %d object %u, jsval %u\n",num, obj, *vp);
 	} else {
         	printf ("\n...js_SetPropertyDebug5 called on unknown type of object %u, jsval %u\n", obj, *vp);
+	}
+}
+JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	char *_id_c = "(no value in string)";
+	int num;
+
+	/* get the id field... */
+	if (JSVAL_IS_STRING(id)) { 
+		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+        	printf ("\n...js_SetPropertyDebug6 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+	} else if (JSVAL_IS_INT(id)) {
+		num = JSVAL_TO_INT(id);
+        	printf ("\n...js_SetPropertyDebug6 called on number %d object %u, jsval %u\n",num, obj, *vp);
+	} else {
+        	printf ("\n...js_SetPropertyDebug6 called on unknown type of object %u, jsval %u\n", obj, *vp);
 	}
 }
 JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.8 2009/03/23 17:42:43 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.9 2009/04/28 14:32:49 crc_canada Exp $
 
 ???
 
@@ -558,12 +558,12 @@ JSClass MFStringClass = {
 	"MFString",
 	JSCLASS_HAS_PRIVATE,
 	MFStringAddProperty,
-	JS_PropertyStub,
+	MFStringDeleteProperty, /* JS_PropertyStub, */
 	MFStringGetProperty,
 	MFStringSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
+	MFStringEnumerateProperty, /* JS_EnumerateStub, */
+	MFStringResolveProperty, /* JS_ResolveStub, */
+	MFStringConvertProperty, /* JS_ConvertStub, */
 	JS_MY_Finalize
 };
 
@@ -972,7 +972,7 @@ _standardMFGetProperty(JSContext *cx,
 			#endif
 
 			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp,
-				JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5,
+				JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB8,
 				JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed in %d.\n",type);
 				return JS_FALSE;
@@ -1332,7 +1332,7 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 		#endif
 
 		if (!JS_DefineElement(cx, obj, JSVAL_TO_INT(id), *vp,
-			JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5,
+			JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK,
 			JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed in doMFSetProperty.\n");
 			return JS_FALSE;
