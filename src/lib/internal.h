@@ -6,7 +6,7 @@
  *
  * Library internal declarations.
  *
- * $Id: internal.h,v 1.12 2009/03/25 14:16:03 crc_canada Exp $
+ * $Id: internal.h,v 1.13 2009/04/28 13:14:13 couannette Exp $
  *
  *******************************************************************/
 
@@ -17,6 +17,11 @@
 /**
  * Internal stuff needed by multiple C files in the library
  */
+
+#if !defined(HAVE_STRNDUP)
+char *fw_strndup(const char *str, int len);
+#define strndup fw_strndup
+#endif
 
 /* Useful to suppress things from non-debug builds */
 #ifdef _DEBUG

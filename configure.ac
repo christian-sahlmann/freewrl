@@ -67,7 +67,7 @@ AC_HEADER_STDBOOL
 AC_FUNC_FORK
 AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([strchr strrchr getopt getopt_long getopt_long_only])
+AC_CHECK_FUNCS([strchr strrchr strdup strndup getopt getopt_long getopt_long_only])
 
 
 # ====================================================
@@ -126,7 +126,7 @@ ACX_PTHREAD
 # Fix for propoer use of --as-needed
 # http://udrepper.livejournal.com/19395.html
 PTHREAD_CFLAGS=$(echo $PTHREAD|sed -e 's/-pthread//')
-PTHREAD_LIBS+=-lpthread
+PTHREAD_LIBS="$PTHREAD_LIBS -lpthread"
 
 # FreeType (font rendering)
 PKG_CHECK_MODULES(FREETYPE, freetype2)

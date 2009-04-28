@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: options.c,v 1.8 2009/02/11 15:12:54 istakenv Exp $
+  $Id: options.c,v 1.9 2009/04/28 13:14:12 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -37,40 +37,46 @@ void print_version()
 void usage()
 {
     printf( "usage: freewrl [options] <VRML or X3D file|URL>\n\n"
-	    "\t-h|--help        This help.\n"
-	    "\t-v|--version     Print version.\n"
+	    "  -h|--help               This help.\n"
+	    "  -v|--version            Print version.\n"
 	    "\nWindow options:\n"
-	    "\t-c|--fullscreen  Set window fullscreen\n"
-	    "\t-g|--geometry    Set window geometry.\n"
-	    "\t-b|--big         Set window size to 800x600.\n"
+	    "  -c|--fullscreen         Set window fullscreen\n"
+	    "  -g|--geometry <WxH>     Set window geometry (W width, H height).\n"
+	    "  -b|--big                Set window size to 800x600.\n"
 	    "\nGeneral options:\n"
-	    "\t-e|--eai         Enable EAI.\n"
-	    "\t-f|--fast        Set global texture size to -256 (fast).\n"
-	    "\t-W|--linewidth   Set line width.\n"
-	    "\t-Q|--nocollision Disable collision management.\n"
+	    "  -e|--eai                Enable EAI.\n"
+	    "  -f|--fast               Set global texture size to -256 (fast).\n"
+	    "  -W|--linewidth <float>  Set line width.\n"
+	    "  -Q|--nocollision        Disable collision management.\n"
 	    "\nSnapshot options:\n"
-	    "\t-p|--gif         Set file format to GIF (default is PNG).\n"
-	    "\t-n|--snapfile    Set file name pattern.\n"
-	    "\t-o|--snaptmp     Set directory for snap files.\n"
+	    "  -p|--gif                Set file format to GIF (default is PNG).\n"
+	    "  -n|--snapfile <string>  Set output file name pattern with <string>,\n"
+	    "                          (use %%n for iteration number).\n"
+	    "  -o|--snaptmp <string>   Set output directory for snap files.\n"
 #if defined(DOSNAPSEQUENCE)
 	    "\nSnapshot sequence options:\n"
-	    "\t-l|--seq         Set snapshot sequence mode.\n"
-	    "\t-m|--seqfile     Set sequence file name pattern.\n"
-	    "\t-q|--maximg      Set maximum number of files in sequence.\n"
+	    "  -l|--seq                Set snapshot sequence mode.\n"
+	    "  -m|--seqfile <string>   Set sequence file name pattern.\n"
+	    "  -q|--maximg <number>    Set maximum number of files in sequence.\n"
 #endif
 	    "\nMisc options:\n"
-	    "\t-V|--eaiverbose  Set EAI subsystem messages.\n"
-	    "\t-r|--screendist  Set screen distance.\n"
-	    "\t-y|--eyedist     Set eye distance.\n"
-	    "\t-u|--shutter     Set shutter glasses.\n"
-	    "\t-t|--stereo      Set stereo parameter.\n"
-	    "\t-K|--keypress    Set immediate key pressed when ready.\n"
+	    "  -V|--eaiverbose         Set EAI subsystem messages.\n"
+	    "  -r|--screendist <float> Set screen distance.\n"
+	    "  -y|--eyedist <float>    Set eye distance.\n"
+	    "  -u|--shutter            Set shutter glasses.\n"
+	    "  -t|--stereo <float>     Set stereo parameter (angle factor).\n"
+	    "  -K|--keypress <string>  Set immediate key pressed when ready.\n"
 	    "\nInternal options:\n"
-	    "\t-i|--plugin      Called from plugin.\n"
-	    "\t-j|--fd          Pipe to command the program.\n"
-	    "\t-k|--instance    Instance of plugin.\n"
+	    "  -i|--plugin <string>    Called from plugin.\n"
+	    "  -j|--fd <number>        Pipe to command the program.\n"
+	    "  -k|--instance <number>  Instance of plugin.\n"
 	    ""
 	);
+}
+
+const char * validate_string_arg(const char *optarg)
+{
+    
 }
 
 int parseCommandLine (int argc, char **argv)
@@ -78,127 +84,122 @@ int parseCommandLine (int argc, char **argv)
     int c;
     float ftmp;
     int option_index = 0;
+    int real_option_index;
+    const char *real_option_name;
 
-    static const char optstring[] = "efg:hijkvlpqmnobsQWKX";
+#if defined(DOSNAPSEQUENCE)
+    static const char optstring[] = "efg:hij:k:vVlpq:m:n:o:bsQW:K:Xcr:y:ut";
+#else
+    static const char optstring[] = "efg:hij:k:vVpn:o:bsQW:K:Xcr:y:ut";
+#endif
 
     static struct option long_options[] = {
-	{"eai", 0, 0, 'e'},
-	{"fast", 0, 0, 'f'},
+
+/* { const char *name, int has_arg, int *flag, int val }, */
+
+	{"help", no_argument, 0, 'h'},
+	{"version", no_argument, 0, 'v'},
+
+	{"fullscreen", no_argument, 0, 'c'},
 	{"geometry", required_argument, 0, 'g'},
-	{"help", 0, 0, 'h'},
-	{"plugin", 1, 0, 'i'},
-	{"fd", 1, 0, 'j'},
-	{"instance", 1, 0, 'k'},
-	{"version", 0, 0, 'v'},
-	{"big",  0, 0, 'b'},
-	{"nocollision",0, 0, 'Q'},
-	{"keypress",1, 0, 'K'},
-	{"eaiverbose", 0, 0, 'V'},
-	
-#ifdef DOSNAPSEQUENCE
-	{"seq", 0, 0, 'l'},
-	{"gif", 0, 0, 'p'},
-	{"seqfile",1, 0, 'm'},
-	{"maximg", 1, 0, 'q'},
+	{"big", no_argument, 0, 'b'},
+
+	{"eai", no_argument, 0, 'e'},
+	{"fast", no_argument, 0, 'f'},
+	{"linewidth", required_argument, 0, 'W'},
+	{"nocollision", no_argument, 0, 'Q'},
+
+	{"gif", no_argument, 0, 'p'},
+	{"snapfile", required_argument, 0, 'n'},
+	{"snaptmp", required_argument, 0, 'o'},
+
+#if defined(DOSNAPSEQUENCE)
+	{"seq", no_argument, 0, 'l'},
+	{"seqfile", required_argument, 0, 'm'},
+	{"maximg", required_argument, 0, 'q'},
 #endif
-	{"snapfile", 1, 0, 'n'},
-	{"snaptmp", 1, 0, 'o'},
-	{"shutter", 0, 0, 'u'},
-	{"eyedist", 1, 0, 'y'},
-	{"fullscreen", 0, 0, 'c'},
-	{"stereo", 1, 0, 't'},
-	{"screendist", 1, 0, 'r'},
-	{"linewidth", 1, 0, 'W'},
-	
-	{"parent", 1, 0, 'x'},
-	{"server", 1, 0, 'x'},
-	{"sig", 1, 0, 'x'},
-	{"ps", 1, 0, 'x'},
+
+	{"eaiverbose", no_argument, 0, 'V'},
+	{"screendist", required_argument, 0, 'r'},
+	{"eyedist", required_argument, 0, 'y'},
+	{"shutter", no_argument, 0, 'u'},
+	{"stereo", no_argument, 0, 't'},
+	{"keypress", required_argument, 0, 'K'},
+
+	{"plugin", no_argument, 0, 'i'},
+	{"fd", required_argument, 0, 'j'},
+	{"instance", required_argument, 0, 'k'},
+
 	{0, 0, 0, 0}
     };
 
-#if HAVE_GETOPT_LONG_ONLY
-    FW_DEBUG("Using getopt_long_only\n");
-#else
-# if HAVE_GETOPT_LONG
-    FW_DEBUG("Using getopt_long\n");
-# else
-    FW_DEBUG("Using getopt\n");
-# endif
-#endif
+    int find_opt_for_optopt(char c) {
+	int i = 0;
+	struct option *p;
+	p = &(long_options[i]);
+	while (p->name) {
+	    if (!p->flag) {
+		if (p->val == c) {
+		    return i;
+		}
+	    }
+	    p = &(long_options[++i]);
+	}
+	return -1;
+    }
 
     while (1) {
 
 	/* Do we want getopt to print errors by itself ? */
 	opterr = 0;
 
-#if HAVE_GETOPT_LONG_ONLY
-	c = getopt_long_only(argc, argv, optstring, long_options, &option_index);
-#else
 # if HAVE_GETOPT_LONG
 	c = getopt_long(argc, argv, optstring, long_options, &option_index);
 # else
 	c = getopt(argc, argv, optstring);
 # endif
-#endif
 
 	if (c == -1)
 	    break;
 
+	if ((c == '?')) {
+	    real_option_index = find_opt_for_optopt(optopt);
+	} else {
+	    real_option_index = find_opt_for_optopt(c);
+	}
+	if (real_option_index < 0) {
+	    real_option_name = argv[optind-1];
+	} else {
+	    real_option_name = long_options[real_option_index].name;
+	}
+/* 	FW_DEBUG("option_index=%d optopt=%c option=%s\n", real_option_index, c, */
+/* 		 real_option_name); */
+
 	switch (c) {
+
+	    /* Error handling */
+
 	case '?': /* getopt error: unknown option or missing argument */
-	    FW_ERROR("ERROR: unknown option or missing argument to option: %c\n", optopt);
+	    FW_ERROR("ERROR: unknown option or missing argument to option: %c (%s)\n", 
+		     c, real_option_name);
 	    exit(1);
-	    break;
-#if 0
-/* Glibc bug currently prevents us from using this code to better trap errors.
-   ASA the bug is fixed we can uncomment our code. */
-	case ':': /* getopt error: missing argument */
-	    FW_ERROR("ERROR: missing arguement for option: %c\n", optopt);
-	    exit(1);
-	    break;
-#endif
-	case 0:
-	    printf ("FreeWRL option --%s", long_options[option_index].name);
-	    if (optarg)
-		printf (" with arg %s", optarg);
-	    printf ("\n");
 	    break;
 
-	case 'h': /* --help */
+	    /* Options handling */
+
+	case 'h': /* --help, no argument */
 	    usage();
 	    exit(0);
 	    break;
 
-	case 'v': /* --version */
+	case 'v': /* --version, no argument */
 	    print_version();
 	    exit(0);
 	    break;
 
-	case 'x': /* non-implemented option */
-	    printf("option --%s not implemented yet, complain bitterly\n",
-		   long_options[option_index].name);
-	    break;
+/* Window options */
 
-	case 'e': /* --eai */
-	    wantEAI = TRUE;
-	    break;
-
-	case 'f': /* --fast */
-	    /* set negative so that the texture thread will pick this up */
-	    setTexSize(-256);
-	    break;
-
-	case 'g': /* --geometry */
-	    if (!optarg) {
-		FW_ERROR("Argument missing for option -g/--geometry\n");
-		exit(1);
-	    } else {
-		setGeometry_from_cmdline(optarg);
-	    }
-	    break;
-
-	case 'c': /* --fullscreen */
+	case 'c': /* --fullscreen, no argument */
 #if defined(HAVE_XF86_VMODE)
 	    fullscreen = 1;
 #else
@@ -211,87 +212,113 @@ int parseCommandLine (int argc, char **argv)
 #endif
 	    break;
 
-	case 'i': /* --plugin */
-	    sscanf(optarg,"pipe:%d",&_fw_pipe);
-	    isBrowserPlugin = TRUE;
+	case 'g': /* --geometry, required argument: string "WxH" */
+	    if (!optarg) {
+		FW_ERROR("Argument missing for option -g/--geometry\n");
+		exit(1);
+	    } else {
+		setGeometry_from_cmdline(optarg);
+	    }
 	    break;
 
-	case 'j': /* --fd */
-	    sscanf(optarg,"%d",&_fw_browser_plugin);
+	case 'b': /* --big, no argument */
+	    setGeometry_from_cmdline("800x600");
 	    break;
 
-	case 'k': /* --instance */
-	    sscanf(optarg,"%u",&_fw_instance);
+/* General options */
+
+	case 'e': /* --eai, no argument */
+	    wantEAI = TRUE;
 	    break;
 
-	case 'W': /* --linewidth */
-	    /* Petr Mikiluk - ILS line width */
+	case 'f': /* --fast, no argument */
+	    /* set negative so that the texture thread will pick this up */
+	    setTexSize(-256);
+	    break;
+
+	case 'W': /* --linewidth, required argument: float */
 	    sscanf(optarg,"%g", &ftmp);
 	    setLineWidth(ftmp);
 	    break;
 
-	case 'Q': /* --nocollision */
+	case 'Q': /* --nocollision, no argument */
 	    be_collision = FALSE;
 	    break;
 
-	    /* Snapshot stuff */
-#ifdef DOSNAPSEQUENCE
-	case 'l': /* --seq */
+/* Snapshot options */
+
+	case 'p': /* --gif, no argument */
+	    setSnapGif();
+	    break;
+
+	case 'n': /* --snapfile, required argument: string */
+	    setSnapFile(optarg);
+	    break;
+
+	case 'o': /* --snaptmp, required argument: string */
+	    setSnapTmp(optarg);
+	    break;
+
+/* Snapshot sequence options */
+
+#if defined(DOSNAPSEQUENCE)
+	case 'l': /* --seq, no argument */
 	    setSnapSeq();
 	    break;
 
-	case 'm': /* --seqfile */
+	case 'm': /* --seqfile, required argument: string */
 	    setSeqFile(optarg);
 	    break;
 
-	case 'q': /* --maximg */
+	case 'q': /* --maximg, required argument: number */
 	    sscanf(optarg,"%d",&maxSnapImages);
 	    setMaxImages(maxSnapImages);
 	    break;
 #endif
-	case 'p': /* --gif */
-	    setSnapGif();
-	    break;
 
-	case 'n': /* --snapfile*/
-	    setSnapFile(optarg);
-	    break;
+/* Misc options */
 
-	case 'o': /* --snaptmp */
-	    setSeqTemp(optarg);
-	    break;
-
-	case 'V': /* --eaiverbose */
+	case 'V': /* --eaiverbose, no argument */
 	    setEaiVerbose();
 	    break;
 
-	case 'b': /* --big */
-	    /* Alberto Dubuc - bigger window */
-	    setGeometry_from_cmdline("800x600");
-	    break;
-
-	case 'r': /* --screendist */
-	    /* Shutter patches from Mufti @rus */
+	case 'r': /* --screendist, required argument: float */
 	    setScreenDist(optarg);
 	    break;
 
-	case 't': /* --stereo */
-	    setStereoParameter(optarg);
+	case 'y': /* --eyedist, required argument: float */
+	    setEyeDist(optarg);
 	    break;
 
-	case 'u': /* --shutter */
+	case 'u': /* --shutter, no argument */
 	    setShutter();
 	    setXEventStereo();
 	    break;
 
-	case 'y': /* --eyedist */
-	    setEyeDist(optarg);
+	case 't': /* --stereo, required argument: float */
+	    setStereoParameter(optarg);
 	    break;
 
-	case 'K': /* --keypress */
+	case 'K': /* --keypress, required argument: string */
 	    /* initial string of keypresses once main url is loaded */
-	    keypress_string = optarg;
+	    keypress_string = optarg; /* ! strdup ! */
 	    break;
+
+/* Internal options */
+
+	case 'i': /* --plugin, required argument: string */
+	    sscanf(optarg,"pipe:%d",&_fw_pipe);
+	    isBrowserPlugin = TRUE;
+	    break;
+
+	case 'j': /* --fd, required argument: number */
+	    sscanf(optarg,"%d",&_fw_browser_plugin);
+	    break;
+
+	case 'k': /* --instance, required argument: number */
+	    sscanf(optarg,"%u",&_fw_instance);
+	    break;
+
 
 	default:
 	    FW_ERROR("ERROR: getopt returned character code 0%o, unknown error.\n", c);
@@ -302,7 +329,7 @@ int parseCommandLine (int argc, char **argv)
 
     if (optind < argc) {
 	if (optind != (argc-1)) {
-	    FW_WARN("freewrl:warning, expect only 1 file on command line; running file: %s\n",
+	    FW_WARN("WARNING: expect only 1 file on command line; running file: %s\n",
 		    argv[optind]);
 	}
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.3 2009/02/11 15:12:54 istakenv Exp $
+$Id: Snapshot.c,v 1.4 2009/04/28 13:14:13 couannette Exp $
 
 CProto ???
 
@@ -36,7 +36,7 @@ CProto ???
 int snapRawCount=0;
 int snapGoodCount=0;
 
-#ifdef DOSNAPSEQUENCE
+#if defined(DOSNAPSEQUENCE)
 /* need to re-implement this for OSX generating QTVR */
 int snapsequence=FALSE;		/* --seq - snapshot sequence, not single click  */
 int maxSnapImages=100; 		/* --maximg command line parameter 		*/
@@ -45,11 +45,12 @@ char *snapseqB = NULL;		/* --seqb - snap sequence base filename		*/
 
 int snapGif = FALSE;		/* --gif save as an animated GIF, not mpg	*/
 char *snapsnapB = NULL;		/* --snapb -single snapshot files		*/
+const char default_seqtmp[] = "freewrl_tmp"; /* default value for seqtmp        */
 char *seqtmp = NULL;		/* --seqtmp - directory for temp files		*/
 int doSnapshot = FALSE;		/* are we doing a snapshot?			*/
+
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
-
 void saveSnapSequence();
 #endif
 

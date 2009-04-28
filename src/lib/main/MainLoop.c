@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.30 2009/04/21 19:19:24 crc_canada Exp $
+$Id: MainLoop.c,v 1.31 2009/04/28 13:14:13 couannette Exp $
 
 CProto ???
 
@@ -166,20 +166,6 @@ void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
 bool pluginRunning;
 int isBrowserPlugin = FALSE;
 
-/******************************************************************************/
-/* Jens Rieks sent in some changes - some of which uses strndup, which does not
-   always exist... */
-char *fw_strndup (const char *str, int len) {
-        char *retval;
-        int ml;
-        ml = strlen(str);
-        if (ml > len) ml = len;
-        retval = (char *) MALLOC (sizeof (char) * (ml+1));
-        strncpy (retval,str,ml);
-        /* ensure termination */
-        retval[ml] = '\0';
-        return retval;
-}
 
 /* a simple routine to allow the front end to get our version */
 const char *getLibVersion() {
@@ -1325,38 +1311,44 @@ void setNoCollision() {
         setMenuButton_collision(be_collision);
 }
 
-void setKeyString(const char* kstring) {
-        keypress_string = fw_strndup(kstring, 500);
+void setKeyString(const char* kstring)
+{
+    keypress_string = strdup(kstring);
 }
 
-void setSeqFile(const char* file) {
-#ifdef DOSNAPSEQUENCE
-/* need to re-implement this for OSX generating QTVR */
-
-        snapseqB = fw_strndup(file, 500);
-        printf("snapseqB is %s\n", snapseqB);
+void setSeqFile(const char* file)
+{
+#if defined(DOSNAPSEQUENCE)
+    /* need to re-implement this for OSX generating QTVR */
+    snapseqB = strdup(file);
+    printf("snapseqB is %s\n", snapseqB);
+#else
+    WARN_MSG("Call to setSeqFile when Snapshot Sequence not compiled in.\n");
 #endif
 }
 
-void setSnapFile(const char* file) {
-        snapsnapB = fw_strndup(file, 500);
-        printf("snapsnapB is %s\n", snapsnapB);
+void setSnapFile(const char* file)
+{
+    snapsnapB = strdup(file);
+    TRACE_MSG("snapsnapB set to %s\n", snapsnapB);
 }
 
-void setMaxImages(int max) {
-#ifdef DOSNAPSEQUENCE
-/* need to re-implement this for OSX generating QTVR */
-
-        if (max <=0)
-                max = 100;
-        maxSnapImages = max;
+void setMaxImages(int max)
+{
+#if defined(DOSNAPSEQUENCE)
+    /* need to re-implement this for OSX generating QTVR */
+    if (max <=0)
+	max = 100;
+    maxSnapImages = max;
+#else
+    WARN_MSG("Call to setMaxImages when Snapshot Sequence not compiled in.\n");
 #endif
-
 }
 
-void setSeqTemp(const char* file) {
-        seqtmp = fw_strndup(file, 500);
-        printf("seqtmp is %s\n", seqtmp);
+void setSnapTmp(const char* file)
+{
+    seqtmp = strdup(file);
+    TRACE_MSG("seqtmp set to %s\n", seqtmp);
 }
 
 /* if we had an exit(EXIT_FAILURE) anywhere in this C code - it means
@@ -1708,9 +1700,10 @@ void setEaiVerbose() {
 }
         
 /* called from the standalone OSX front end */
-void replaceWorldNeeded(char* str) {
-        strncpy(&replace_name, (const char*) str, FILENAME_MAX);
-        replaceWorld= TRUE; 
+void replaceWorldNeeded(char* str)
+{
+    strncpy(replace_name, str, FILENAME_MAX);
+    replaceWorld = TRUE; 
 }
 
 

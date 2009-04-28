@@ -4,7 +4,7 @@
  *
  * public API - libFreeWRL.h
  *
- * $Id: libFreeWRL.h,v 1.1 2009/02/11 15:22:27 istakenv Exp $
+ * $Id: libFreeWRL.h,v 1.2 2009/04/28 13:14:13 couannette Exp $
  *
  *******************************************************************/
 
@@ -38,7 +38,7 @@ void Anchor_ReplaceWorld(char *name);
 void setTexSize(int requestedsize);
 void setGeometry_from_cmdline(const char *gstring);
 void setSnapFile(const char* file);
-void setSeqTemp(const char* file);
+void setSnapTmp(const char* file);
 void setEaiVerbose();
 void setScreenDist(const char *optArg);
 void setStereoParameter(const char *optArg);
