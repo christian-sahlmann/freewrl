@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: options.c,v 1.9 2009/04/28 13:14:12 couannette Exp $
+  $Id: options.c,v 1.10 2009/04/28 16:44:00 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -88,9 +88,9 @@ int parseCommandLine (int argc, char **argv)
     const char *real_option_name;
 
 #if defined(DOSNAPSEQUENCE)
-    static const char optstring[] = "efg:hij:k:vVlpq:m:n:o:bsQW:K:Xcr:y:ut";
+    static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:ut";
 #else
-    static const char optstring[] = "efg:hij:k:vVpn:o:bsQW:K:Xcr:y:ut";
+    static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:ut";
 #endif
 
     static struct option long_options[] = {
@@ -126,7 +126,7 @@ int parseCommandLine (int argc, char **argv)
 	{"stereo", no_argument, 0, 't'},
 	{"keypress", required_argument, 0, 'K'},
 
-	{"plugin", no_argument, 0, 'i'},
+	{"plugin", required_argument, 0, 'i'},
 	{"fd", required_argument, 0, 'j'},
 	{"instance", required_argument, 0, 'k'},
 
@@ -306,7 +306,7 @@ int parseCommandLine (int argc, char **argv)
 
 /* Internal options */
 
-	case 'i': /* --plugin, required argument: string */
+	case 'i': /* --plugin, required argument: number */
 	    sscanf(optarg,"pipe:%d",&_fw_pipe);
 	    isBrowserPlugin = TRUE;
 	    break;
