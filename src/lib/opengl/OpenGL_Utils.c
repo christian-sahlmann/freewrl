@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.29 2009/04/21 19:19:24 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.30 2009/04/29 14:25:13 istakenv Exp $
 
 ???
 
@@ -17,6 +17,7 @@ $Id: OpenGL_Utils.c,v 1.29 2009/04/21 19:19:24 crc_canada Exp $
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../main/ProdCon.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
