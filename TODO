@@ -1,5 +1,7 @@
 Priority list
-29/04/2009: Document libeai C calls, and ensure that web pages show how to use this feature.
+29/04/2009: 
+	(JAS) Document libeai C calls, and ensure that web pages show how to use this feature.
+	(JAS) environment variable "FREEWRL_STRICT_PARSING" - add an export for it for OSX freex3d; change linux front end to see if it is invoked as freewrl.
 
 27/04/2009:
 	(JAS) KML and Collada for Geospatial.
@@ -17,8 +19,6 @@ Priority list
 	(JAS) the VRMLNodes table, last field in a Field Definition, gives problems and needs updating.
 	1) all fields must be same type for VRML parser to consistently allow routes; eg "children" MUST be
 	   "inputOutput" even if some nodes define "children" as "inputOnly".
-	2) have to encode specification level in fields; eg "switch" has fields differing on X3D and VRML.
-	   Maybe also can encode component level in fields. (April 28 2009, field added to VRMLNodes.pm, needs verified)
  
 05/03/2009: 
 	(JAS) Texture loading; if a texture is "mid-processing" and the geometry moves off
@@ -43,11 +43,6 @@ Priority list
 	FreeWRL parses this now, FreeX3D should throw an error.
 
 
-28/02/2009:
-	(JAS) Verify that x3d, x3dv, and wrl files set _isX3D and _isXML correctly. (DONE)
-	Some of the Conformance tests now fail.
-
-
 26/02/2009:
 	(JAS) Work on verifying capabilities, src/lib/x3d_parser/capabilitiesHandler.c.
 
@@ -66,8 +61,6 @@ Priority list
 
 	20 - not sorted?
 	SFImage.wrl - box not changing texture
-	pp2.x3d - nothing shown. (DONE - was a problem routing SFStrings)
-
 
 06/02/09: New build on some Linux distros fails. Decide what to do about this - currently thinking
 	about supporting both makefile.pl and autotools, until the autotools one can be built once other Linuxes 
