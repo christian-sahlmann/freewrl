@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.34 2009/04/28 14:32:49 crc_canada Exp $
+$Id: headers.h,v 1.35 2009/04/29 20:20:25 crc_canada Exp $
 
 Global includes.
 
@@ -30,6 +30,17 @@ char *readInputString(char *fn);
 
 /* see if an inputOnly "set_" field has changed */
 #define IO_FLOAT -2335549.0
+
+/* specification versions, for close adherence to requested spec levels */
+#define SPEC_VRML 0x01
+#define SPEC_X3D30 0x02
+#define SPEC_X3D31 0x04
+#define SPEC_X3D32 0x08
+#define SPEC_X3D33 0x10
+#define SPEC_X3D34 0x20
+
+
+
 
 /* children fields path optimizations */
 #define CHILDREN_COUNT int nc = node->children.n;

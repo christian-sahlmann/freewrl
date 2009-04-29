@@ -1,7 +1,9 @@
 Priority list
+29/04/2009: Document libeai C calls, and ensure that web pages show how to use this feature.
+
 27/04/2009:
 	(JAS) KML and Collada for Geospatial.
-	(JAS) file "rotation_toy.wrl" does not work correctly (Javascript, rotations, etc)
+	(JAS) rotation_toy.wrl" collision with elements in HUD; moves shape slowly away. How can we stop collisions in HUD elements?
 
 
 30/03/2009:
@@ -16,7 +18,7 @@ Priority list
 	1) all fields must be same type for VRML parser to consistently allow routes; eg "children" MUST be
 	   "inputOutput" even if some nodes define "children" as "inputOnly".
 	2) have to encode specification level in fields; eg "switch" has fields differing on X3D and VRML.
-	   Maybe also can encode component level in fields.
+	   Maybe also can encode component level in fields. (April 28 2009, field added to VRMLNodes.pm, needs verified)
  
 05/03/2009: 
 	(JAS) Texture loading; if a texture is "mid-processing" and the geometry moves off

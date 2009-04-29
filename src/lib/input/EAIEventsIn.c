@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.20 2009/04/06 17:20:25 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.21 2009/04/29 20:20:25 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -855,7 +855,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 			myc ++; 
 		}
 
-		np +=4;
+		np +=5;
 
 	}
 
@@ -872,7 +872,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 				stringKeywordType(np[3]));
 			strcat (buf, myline);
 		}
-		np += 4;
+		np += 5;
 	}
 }
 

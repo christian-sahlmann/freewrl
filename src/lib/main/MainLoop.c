@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.31 2009/04/28 13:14:13 couannette Exp $
+$Id: MainLoop.c,v 1.32 2009/04/29 20:20:25 crc_canada Exp $
 
 CProto ???
 
@@ -1185,6 +1185,10 @@ void initFreewrl() {
         quitThread = FALSE;
 
         /* printf ("initFreewrl called\n"); */
+
+	/* do we want to really look at the details?? */
+	global_strictParsing = (getenv("FREEWRL_STRICT_PARSING") != NULL);
+if (global_strictParsing) printf ("STRICT PARSING SET\n");
 
         #ifdef AQUA
         if (pluginRunning) {

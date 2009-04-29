@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.9 2009/04/28 14:32:49 crc_canada Exp $
+$Id: jsUtils.c,v 1.10 2009/04/29 20:20:25 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -779,7 +779,7 @@ uintptr_t *getFOP (uintptr_t *handle, const char *str) {
 				return fieldOffsetsPtr;
 			}
 
-			fieldOffsetsPtr += 4;
+			fieldOffsetsPtr += 5;
 		}
 
 		/* failed to find field?? */
@@ -1037,7 +1037,7 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
         			        return JS_FALSE;
         			}
 			}
-			fieldOffsetsPtr += 4;
+			fieldOffsetsPtr += 5;
 		}
 
 		/* set a flag indicating that we have been here already */

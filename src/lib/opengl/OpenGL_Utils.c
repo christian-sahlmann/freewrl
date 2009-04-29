@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.30 2009/04/29 14:25:13 istakenv Exp $
+$Id: OpenGL_Utils.c,v 1.31 2009/04/29 20:20:25 crc_canada Exp $
 
 ???
 
@@ -1410,7 +1410,7 @@ void kill_X3DNodes(void){
 					
 				default:; /* do nothing - field not malloc'd */
 			}
-			fieldOffsetsPtr+=4;	
+			fieldOffsetsPtr+=5;	
 		}
 		FREE_IF_NZ(memoryTable[i]);
 		memoryTable[i]=NULL;

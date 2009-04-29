@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.15 2009/04/27 17:07:33 crc_canada Exp $
+$Id: ProdCon.c,v 1.16 2009/04/29 20:20:25 crc_canada Exp $
 
 CProto ???
 
@@ -104,11 +104,11 @@ int inputFileVersion[3] = {0,0,0};
 			ConsoleMessage ("KML-KMZ  format not supported yet"); \
 			break; \
 	default: { \
-			printf ("assuming we are parsing a VRML snippet\n"); \
+			if (global_strictParsing) { ConsoleMessage ("unknown text as input"); } else { \
 			inputFileType = IS_TYPE_VRML; \
 			inputFileVersion[0] = 2; /* try VRML V2 */ \
 			cParse (nRn,offsetof (struct X3D_Group, children), input); \
-			haveParsedCParsed = TRUE; \
+			haveParsedCParsed = TRUE; }\
 		} \
 	} \
 	}

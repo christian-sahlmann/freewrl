@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.14 2009/04/06 17:20:25 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.15 2009/04/29 20:20:25 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -863,7 +863,7 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 			}
 
 		}
-		offsetptr+=4;
+		offsetptr+=5;
 	}
 }
 

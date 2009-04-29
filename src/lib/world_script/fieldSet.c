@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.18 2009/04/06 17:20:25 crc_canada Exp $
+$Id: fieldSet.c,v 1.19 2009/04/29 20:20:25 crc_canada Exp $
 
 ???
 
@@ -546,7 +546,7 @@ char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset) {
 	np = (int *) NODE_OFFSETS[node->_nodeType];  /* it is a const int* type */
 	np++;  /* go to the offset field */
 
-	while ((*np != -1) && (*np != offset)) np +=4;
+	while ((*np != -1) && (*np != offset)) np +=5;
 	
 	if (*np == -1) return "fieldNotFound";
 	
@@ -674,6 +674,8 @@ DEF_FINDROUTEDFIELD(EVENT_OUT)
 /* go through the OFFSETS for this node, looking for field, and return offset, type, and kind */
 void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype, int *ckind) {
 	int *x;
+	int X3DLevel;
+	int mask = 0;
 
 	x = (int *) NODE_OFFSETS[nodeType];
 
@@ -683,14 +685,41 @@ void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype,
 	#endif
 
 	while ((*x != field) && (*x != -1)) {
-		x += 4;
+		x += 5;
 	}
 	if (*x == field) {
-		x++; *coffset = *x; x++; *ctype = *x; x++; *ckind = *x; 
+		x++; *coffset = *x; x++; *ctype = *x; x++; *ckind = *x; x++; X3DLevel = *x;
 
 		#ifdef SETFIELDVERBOSE
-		printf ("found field, coffset %d ctype %d ckind %d\n",*coffset, *ctype, *ckind); 
+		printf ("found field, coffset %d ctype %d ckind %d X3DLevel %x\n",*coffset, *ctype, *ckind, X3DLevel); 
 		#endif
+
+		/* do we care if, maybe, this field is not correct for requested version of FreeWRL? */
+		if (global_strictParsing) {
+			if (inputFileVersion[0] == 2) { /* VRML 2.0 */
+				if ((X3DLevel & SPEC_VRML) == SPEC_VRML) {
+					return; /* field ok */
+				}
+			} else if (inputFileVersion[0] == 3) { /* X3D V3.x */
+				switch (inputFileVersion[1]) {
+					case 0: mask = SPEC_X3D30; break;
+					case 1: mask = SPEC_X3D31; break;
+					case 2: mask = SPEC_X3D32; break;
+					case 3: mask = SPEC_X3D33; break;
+					case 4: mask = SPEC_X3D34; break;
+					default: {printf ("unknown X3D level %d\n",inputFileVersion[1]);
+							mask = SPEC_X3D33;
+					}
+				}
+				if ((X3DLevel & mask) == mask) {
+					return; /* field ok */
+				}
+			} else {
+				printf ("unknown input file version %d for strictParsing! help!\n",inputFileVersion[0]);
+			}
+			ConsoleMessage ("strictParsing, Node %s field %s is not valid for X3D version %d.%d",
+				stringNodeType(nodeType),stringFieldType(field),inputFileVersion[0],inputFileVersion[1]);
+		}
 
 		return;
 	}
