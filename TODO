@@ -1,4 +1,8 @@
 Priority list
+30/04/2009:
+	(JAS) Russ Kinters ProximitySensor test revisit.
+	(JAS) Verify examine distance in GeoViewpoint.
+
 29/04/2009: 
 	(JAS) Document libeai C calls, and ensure that web pages show how to use this feature.
 	(JAS) environment variable "FREEWRL_STRICT_PARSING" - add an export for it for OSX freex3d; change linux front end to see if it is invoked as freewrl.
