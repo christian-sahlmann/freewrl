@@ -1,6 +1,14 @@
 Priority list
+01/05/2009:
+	(JAS) OSX Sound node - in middle of updating code. Complete, and migrate to XCode.
+	(JAS) it is possible to loose objects at farClipPlane when "backing up" 
+	(JAS) local file "/Users/john/Desktop/Interesting X3D files/ProximitySensorTests/test1" 
+		shows some random visual errors; far clip plane, and LOD of torches not correct, and 
+		OSX sound issues.
+
 30/04/2009:
 	(JAS) Russ Kinters ProximitySensor test revisit.
+		 http://www.sevenemeraldtablets.net/FreeBeamToBox.wrl (DONE)
 	(JAS) Verify examine distance in GeoViewpoint.
 
 29/04/2009: 
@@ -10,6 +18,7 @@ Priority list
 27/04/2009:
 	(JAS) KML and Collada for Geospatial.
 	(JAS) rotation_toy.wrl" collision with elements in HUD; moves shape slowly away. How can we stop collisions in HUD elements?
+	(answer - we cant, do not bother trying, at least for now DONE)
 
 
 30/03/2009:

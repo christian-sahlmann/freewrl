@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.10 2009/04/20 20:16:44 crc_canada Exp $
+$Id: Viewer.h,v 1.11 2009/05/04 19:32:29 crc_canada Exp $
 
 Viewer ???
 
@@ -81,7 +81,7 @@ Viewer ???
 	        yd = Viewer.currentPosInModel.y; \
 	        zd = Viewer.currentPosInModel.z; \
 	        test = sqrt (xd*xd+yd*yd+zd*zd); \
-		/* printf ("htw; cur Dist %4.2f, calculated %4.2f\n", Viewer.Dist, test);  */ \
+		/* printf ("htw; cur Dist %4.2f, calculated %4.2f at %lf\n", Viewer.Dist, test,TickTime);  */ \
 		Viewer.Dist = test; \
 	}
 /* extern struct point_XYZ ViewerPosition; */

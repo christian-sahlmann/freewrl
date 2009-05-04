@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SoundEngineClient.c,v 1.6 2009/02/18 13:37:50 istakenv Exp $
+$Id: SoundEngineClient.c,v 1.7 2009/05/04 19:32:29 crc_canada Exp $
 
 This is the SoundEngine client code for FreeWRL.
 
@@ -11,6 +11,8 @@ Some of this stuff came from files from "wavplay"  - see information below
 
 #include <config.h>
 #include <system.h>
+
+#define SOUNDVERBOSE
 
 /*JAS  - get this compiling on osx 10.4 ppc */
 #ifdef TARGET_AQUA
@@ -39,7 +41,11 @@ int my_ipc_key;
 FWSNDMSG msg;		/* message buffer */
 
 /* TODO: integrate this variable into configure */
-char sspath[] = "freewrl_snd" /*SOUNDSERVERBINARY*/; /* compile line flag */
+#ifdef __APPLE__
+char sspath[] = "/usr/local/bin/FreeWRL_SoundServer" /*SOUNDSERVERBINARY*/; /* compile line flag */
+#else
+char sspath[] = "freewrl_snd"; /*SOUNDSERVERBINARY*/; /* compile line flag */
+#endif
 
 static int initialized = SOUND_NEEDS_STARTING; /* are we able to run? */
 
@@ -63,7 +69,10 @@ void Sound_toserver (char *message) {
 	if (initialized != SOUND_STARTED)  return;
 
 	strcpy (msg.msg,message);
-	/* printf ("Client:Sending to server %s\n",msg.msg); */
+	#ifdef SOUNDVERBOSE
+	printf ("Client:Sending to server %s\n",msg.msg); 
+	#endif
+
 #ifndef __APPLE__
         while(xx = msgsnd(msq_toserver, &msg,strlen(msg.msg)+1,IPC_NOWAIT));
 #else
@@ -137,10 +146,15 @@ void SoundEngineInit () {
 		}
 	}
 #endif
-	/* printf ("Client - msq_toserver=%x, msq_fromserver=%x.\n", msq_toserver,msq_fromserver); */
+	#ifdef XSOUNDVERBOSE
+	printf ("SoundClient - msq_toserver=%x, msq_fromserver=%x.\n", msq_toserver,msq_fromserver);
+	#endif
 
 	sprintf(buf,"INIT %d",my_ipc_key);
-/* printf("buf='%s' sspath='%s'.\n",buf,sspath); */
+	#ifdef SOUNDVERBOSE
+	printf("buf='%s' sspath='%s'.\n",buf,sspath);
+	#endif
+
 
 	if ( (S_Server_PID = fork()) == (pid_t)0L ) {
 		/* is this path ok? */
@@ -172,7 +186,10 @@ void SoundEngineInit () {
 	}
 
 
-	/* printf ("Client: - server pid %d\n",S_Server_PID); */
+	#ifdef SOUNDVERBOSE
+	printf ("Client: - server pid %d\n",S_Server_PID);
+	#endif
+
 
 	/* if FreeWRL actually gets to the exit stage... :-) */
 	atexit(SoundEngineDestroy);
@@ -222,7 +239,10 @@ void waitformessage () {
 			usleep(1000);
 		} while (!xx);
 
-		/* printf ("message received was %s\n", msg.msg);  */
+		#ifdef SOUNDVERBOSE
+		printf ("message received was %s type %d\n", msg.msg,msg.mtype);
+		#endif
+
 		if (xx>0) {
 			 /* We have a message from the server */
 			if ( msg.mtype == 1 ) {
@@ -284,14 +304,18 @@ float SoundSourceInit (int num, int loop, double pitch, double start_time, doubl
 
 
 	SReg[num] = TRUE;
-	/* printf ("start of SoundSourceInit)\n");
+
+	#ifdef SOUNDVERBOSE
+	printf ("start of SoundSourceInit)\n");
 		printf ("num %d\n",num);
 		printf ("loop %d\n",loop);
 		printf ("pitch %f\n",pitch);
 		printf ("start_time %f\n",start_time);
 		printf ("stop_time %f\n",stop_time);
 		printf ("SoundSourceInit - url is %s\n",url);
-	*/
+	#endif
+
+	
 	if (url == NULL) {
 		printf ("SoundSourceInit - no file to source \n");
 		return 0.0;
@@ -302,12 +326,24 @@ float SoundSourceInit (int num, int loop, double pitch, double start_time, doubl
 		return 0.0;
 	}
 
-	sprintf (mystring,"REGS:%s %2d %2d %4.3f %4.3f %4.3f",url,num,loop,pitch,start_time,
-			stop_time);
+	#ifdef __APPLE__
+	/* possible problems with spaces in file name, so quote file name */
+	sprintf (mystring,"REGS:\"%s\" %2d %2d %4.3f %4.3f %4.3f",url,num,loop,pitch,start_time, stop_time);
+	#else
+	sprintf (mystring,"REGS:%s %2d %2d %4.3f %4.3f %4.3f",url,num,loop,pitch,start_time, stop_time);
+	#endif
 	Sound_toserver(mystring);
-	/* printf ("SoundSourceInit, waiting for response\n"); */
+
+	#ifdef SOUNDVERBOSE
+	printf ("SoundSourceInit, waiting for response\n");
+	#endif
+
 	waitformessage();
-	/* printf ("SoundSourceInit, got message %s\n",msg.msg); */
+
+	#ifdef SOUNDVERBOSE
+	printf ("SoundSourceInit, got message %s\n",msg.msg);
+	#endif
+
 	if (sscanf (msg.msg,"REGS %d %f",&returnednum,&duration) != 2) {
 		/* something funny happened here */
 		return 1.0;
@@ -320,7 +356,10 @@ float SoundSourceInit (int num, int loop, double pitch, double start_time, doubl
 void SetAudioActive (int num, int stat) {
 	char mystring[512];
 
-	/* printf ("SoundSource - got SetAudioActive for %d state %d\n",num,stat); */
+	#ifdef SOUNDVERBOSE
+	printf ("SoundSource - got SetAudioActive for %d state %d\n",num,stat);
+	#endif
+
 	sprintf (mystring,"ACTV %2d %2d",num,stat);
 	Sound_toserver(mystring);
 }

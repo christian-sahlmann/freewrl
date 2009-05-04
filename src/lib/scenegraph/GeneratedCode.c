@@ -4,7 +4,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.6 2009/04/03 18:21:57 crc_canada Exp n 
+: VRMLC.pm,v 1.8 2009/04/29 20:31:37 crc_canada Exp n 
 ??? 
  
 */ 
@@ -416,6 +416,7 @@
 	"hitTexCoord_changed",
 	"alpha",
 	"enteredText",
+	"_origNormalizedPoint",
 	"forceTransitions",
 	"repeatS",
 	"_origPoint",
@@ -3226,20 +3227,21 @@ const int OFFSETS_Sphere[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_SphereSensor[] = {
-	FIELDNAMES___oldEnabled, offsetof (struct X3D_SphereSensor, __oldEnabled),  FIELDTYPE_SFBool, KW_inputOutput,0,
-	FIELDNAMES_trackPoint_changed, offsetof (struct X3D_SphereSensor, trackPoint_changed),  FIELDTYPE_SFVec3f, KW_outputOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES__oldtrackPoint, offsetof (struct X3D_SphereSensor, _oldtrackPoint),  FIELDTYPE_SFVec3f, KW_outputOnly,0,
-	FIELDNAMES_isOver, offsetof (struct X3D_SphereSensor, isOver),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES_isActive, offsetof (struct X3D_SphereSensor, isActive),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES__oldrotation, offsetof (struct X3D_SphereSensor, _oldrotation),  FIELDTYPE_SFRotation, KW_outputOnly,0,
-	FIELDNAMES_description, offsetof (struct X3D_SphereSensor, description),  FIELDTYPE_SFString, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_autoOffset, offsetof (struct X3D_SphereSensor, autoOffset),  FIELDTYPE_SFBool, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_rotation_changed, offsetof (struct X3D_SphereSensor, rotation_changed),  FIELDTYPE_SFRotation, KW_outputOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES__origNormalizedPoint, offsetof (struct X3D_SphereSensor, _origNormalizedPoint),  FIELDTYPE_SFVec3f, KW_initializeOnly,0,
 	FIELDNAMES_metadata, offsetof (struct X3D_SphereSensor, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES__origPoint, offsetof (struct X3D_SphereSensor, _origPoint),  FIELDTYPE_SFVec3f, KW_initializeOnly,0,
-	FIELDNAMES___oldmetadata, offsetof (struct X3D_SphereSensor, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES_offset, offsetof (struct X3D_SphereSensor, offset),  FIELDTYPE_SFRotation, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_enabled, offsetof (struct X3D_SphereSensor, enabled),  FIELDTYPE_SFBool, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___oldEnabled, offsetof (struct X3D_SphereSensor, __oldEnabled),  FIELDTYPE_SFBool, KW_inputOutput,0,
+	FIELDNAMES_isOver, offsetof (struct X3D_SphereSensor, isOver),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_trackPoint_changed, offsetof (struct X3D_SphereSensor, trackPoint_changed),  FIELDTYPE_SFVec3f, KW_outputOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_isActive, offsetof (struct X3D_SphereSensor, isActive),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_description, offsetof (struct X3D_SphereSensor, description),  FIELDTYPE_SFString, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___oldmetadata, offsetof (struct X3D_SphereSensor, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES__radius, offsetof (struct X3D_SphereSensor, _radius),  FIELDTYPE_SFFloat, KW_initializeOnly,0,
 	-1, -1, -1, -1, -1};
 
@@ -6639,20 +6641,21 @@ void *createNewX3DNode (int nt) {
 			struct X3D_SphereSensor * tmp2;
 			tmp2 = (struct X3D_SphereSensor *) tmp;
 			tmp2->v = &virt_SphereSensor;
-			tmp2->__oldEnabled = TRUE;
-			tmp2->trackPoint_changed.c[0] = 0;tmp2->trackPoint_changed.c[1] = 0;tmp2->trackPoint_changed.c[2] = 0;;
 			tmp2->_oldtrackPoint.c[0] = 0;tmp2->_oldtrackPoint.c[1] = 0;tmp2->_oldtrackPoint.c[2] = 0;;
-			tmp2->isOver = FALSE;
-			tmp2->isActive = FALSE;
 			tmp2->_oldrotation.r[0] = 0;tmp2->_oldrotation.r[1] = 0;tmp2->_oldrotation.r[2] = 1;tmp2->_oldrotation.r[3] = 0;;
-			tmp2->description = newASCIIString("");
 			tmp2->autoOffset = TRUE;
 			tmp2->rotation_changed.r[0] = 0;tmp2->rotation_changed.r[1] = 0;tmp2->rotation_changed.r[2] = 1;tmp2->rotation_changed.r[3] = 0;;
+			tmp2->_origNormalizedPoint.c[0] = 0;tmp2->_origNormalizedPoint.c[1] = 0;tmp2->_origNormalizedPoint.c[2] = 0;;
 			tmp2->metadata = NULL;
 			tmp2->_origPoint.c[0] = 0;tmp2->_origPoint.c[1] = 0;tmp2->_origPoint.c[2] = 0;;
-			tmp2->__oldmetadata = 0;
 			tmp2->offset.r[0] = 0;tmp2->offset.r[1] = 1;tmp2->offset.r[2] = 0;tmp2->offset.r[3] = 0;;
 			tmp2->enabled = TRUE;
+			tmp2->__oldEnabled = TRUE;
+			tmp2->isOver = FALSE;
+			tmp2->trackPoint_changed.c[0] = 0;tmp2->trackPoint_changed.c[1] = 0;tmp2->trackPoint_changed.c[2] = 0;;
+			tmp2->isActive = FALSE;
+			tmp2->description = newASCIIString("");
+			tmp2->__oldmetadata = 0;
 			tmp2->_radius = 0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
@@ -8779,15 +8782,15 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_SphereSensor : {
 			struct X3D_SphereSensor *tmp;
 			tmp = (struct X3D_SphereSensor *) node;
-			spacer printf ("\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
-			spacer printf ("\tdescription (SFString) \t%s\n",tmp->description->strptr);
 			spacer printf ("\tautoOffset (SFBool) \t%d\n",tmp->autoOffset);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
-			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 			spacer printf ("\toffset (SFRotation): \t");
 			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->offset.r[i]); }
 			printf ("\n");
 			spacer printf ("\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer printf ("\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer printf ("\tdescription (SFString) \t%s\n",tmp->description->strptr);
+			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_SpotLight : {
 			struct X3D_SpotLight *tmp;
