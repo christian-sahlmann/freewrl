@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.9 2009/05/04 19:32:29 crc_canada Exp $
+$Id: SensInterps.c,v 1.10 2009/05/06 20:35:46 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -714,10 +714,10 @@ void do_Oint4 (void *node) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed.r[0] = 0.0;
-		px->value_changed.r[1] = 0.0;
-		px->value_changed.r[2] = 0.0;
-		px->value_changed.r[3] = 0.0;
+		px->value_changed.c[0] = 0.0;
+		px->value_changed.c[1] = 0.0;
+		px->value_changed.c[2] = 0.0;
+		px->value_changed.c[3] = 0.0;
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
@@ -736,45 +736,45 @@ void do_Oint4 (void *node) {
 				(px->key.p[counter] - px->key.p[counter-1]);
 
 		/* are either the starting or ending angles zero? */
-		stzero = APPROX(kVs[counter-1].r[3],0.0);
-		endzero = APPROX(kVs[counter].r[3],0.0);
+		stzero = APPROX(kVs[counter-1].c[3],0.0);
+		endzero = APPROX(kVs[counter].c[3],0.0);
 
 		#ifdef SEVERBOSE
 			printf ("counter %d interval %f\n",counter,interval);
 			printf ("angles %f %f %f %f, %f %f %f %f\n",
-				kVs[counter-1].r[0],
-				kVs[counter-1].r[1],
-				kVs[counter-1].r[2],
-				kVs[counter-1].r[3],
-				kVs[counter].r[0],
-				kVs[counter].r[1],
-				kVs[counter].r[2],
-				kVs[counter].r[3]);
+				kVs[counter-1].c[0],
+				kVs[counter-1].c[1],
+				kVs[counter-1].c[2],
+				kVs[counter-1].c[3],
+				kVs[counter].c[0],
+				kVs[counter].c[1],
+				kVs[counter].c[2],
+				kVs[counter].c[3]);
 		#endif
 
 		/* are there any -1s in there? */
 		testangle = 0.0;
 		for (tmp=0; tmp<3; tmp++) {
-			testangle+= kVs[counter].r[tmp]*kVs[counter-1].r[tmp];
+			testangle+= kVs[counter].c[tmp]*kVs[counter-1].c[tmp];
 		}
 
 		/* do the angles */
 		if (testangle >= 0.0) {
 			for (tmp=0; tmp<3; tmp++) {
-				px->value_changed.r[tmp] = kVs[counter-1].r[tmp]  +
-					interval * (kVs[counter].r[tmp] -
-						kVs[counter-1].r[tmp]);
+				px->value_changed.c[tmp] = kVs[counter-1].c[tmp]  +
+					interval * (kVs[counter].c[tmp] -
+						kVs[counter-1].c[tmp]);
 			}
-			 newangle = kVs[counter].r[3];
+			 newangle = kVs[counter].c[3];
 		} else {
 			for (tmp=0; tmp<3; tmp++) {
-				px->value_changed.r[tmp] = kVs[counter-1].r[tmp]  +
-					interval * (-kVs[counter].r[tmp] -
-						kVs[counter-1].r[tmp]);
+				px->value_changed.c[tmp] = kVs[counter-1].c[tmp]  +
+					interval * (-kVs[counter].c[tmp] -
+						kVs[counter-1].c[tmp]);
 			}
-			newangle = -kVs[counter].r[3];
+			newangle = -kVs[counter].c[3];
 		}
-		oldangle = kVs[counter-1].r[3];
+		oldangle = kVs[counter-1].c[3];
 		testangle = newangle-oldangle;
 		/* printf ("newangle %f oldangle %f testangle %f\n",*/
 		/* 		newangle,oldangle, testangle);*/
@@ -802,19 +802,19 @@ void do_Oint4 (void *node) {
 			if (stzero) {
 				/* starting angle zero, use the next axis */
 				for (tmp = 0; tmp <= 2; tmp++) {
-					px->value_changed.r[tmp] =
-						kVs[counter].r[tmp];
+					px->value_changed.c[tmp] =
+						kVs[counter].c[tmp];
 				}
 			} else {
 				/* ending angle zero, use the first axis */
 				for (tmp = 0; tmp <= 2; tmp++) {
-					px->value_changed.r[tmp] =
-						kVs[counter-1].r[tmp];
+					px->value_changed.c[tmp] =
+						kVs[counter-1].c[tmp];
 				}
 			}
-			/* printf ("axis now %f %f %f\n",px->value_changed.r[0],*/
-			/* 		px->value_changed.r[1],*/
-			/* 		px->value_changed.r[2]);*/
+			/* printf ("axis now %f %f %f\n",px->value_changed.c[0],*/
+			/* 		px->value_changed.c[1],*/
+			/* 		px->value_changed.c[2]);*/
 		}
 
 
@@ -828,10 +828,10 @@ void do_Oint4 (void *node) {
 			}
 		}
 
-		px->value_changed.r[3]=newangle;
+		px->value_changed.c[3]=newangle;
 		#ifdef SEVERBOSE
-		printf ("Oint, new angle %f %f %f %f\n",px->value_changed.r[0],
-			px->value_changed.r[1],px->value_changed.r[2], px->value_changed.r[3]);
+		printf ("Oint, new angle %f %f %f %f\n",px->value_changed.c[0],
+			px->value_changed.c[1],px->value_changed.c[2], px->value_changed.c[3]);
 		#endif
 	}
 }
@@ -1400,15 +1400,15 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
             		}
         	}
 
-		node->_oldrotation.r[0] = 0;
-		node->_oldrotation.r[1] = 1;
-		node->_oldrotation.r[2] = 0;
-		node->_oldrotation.r[3] = rot;
+		node->_oldrotation.c[0] = 0;
+		node->_oldrotation.c[1] = 1;
+		node->_oldrotation.c[2] = 0;
+		node->_oldrotation.c[3] = rot;
 
-		if ((APPROX(node->_oldrotation.r[0],node->rotation_changed.r[0])!= TRUE) ||
-			(APPROX(node->_oldrotation.r[1],node->rotation_changed.r[1])!= TRUE) ||
-			(APPROX(node->_oldrotation.r[2],node->rotation_changed.r[2])!= TRUE) ||
-			(APPROX(node->_oldrotation.r[3],node->rotation_changed.r[3])!= TRUE)) {
+		if ((APPROX(node->_oldrotation.c[0],node->rotation_changed.c[0])!= TRUE) ||
+			(APPROX(node->_oldrotation.c[1],node->rotation_changed.c[1])!= TRUE) ||
+			(APPROX(node->_oldrotation.c[2],node->rotation_changed.c[2])!= TRUE) ||
+			(APPROX(node->_oldrotation.c[3],node->rotation_changed.c[3])!= TRUE)) {
 
 			memcpy ((void *) &node->rotation_changed, (void *) &node->_oldrotation, sizeof(struct SFRotation));
 			MARK_EVENT(ptr, offsetof (struct X3D_CylinderSensor, rotation_changed));
@@ -1422,7 +1422,7 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 		/* save auto offset of rotation */
 		if (node->autoOffset) {
 			memcpy ((void *) &node->offset,
-				(void *) &node->rotation_changed.r[3],
+				(void *) &node->rotation_changed.c[3],
 				sizeof (float));
 
 		MARK_EVENT (ptr, offsetof (struct X3D_CylinderSensor, rotation_changed));
@@ -1551,10 +1551,10 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 			dotProd, newA.x,newA.y,newA.z,acos(dotProd));
 		*/
 
-		node->rotation_changed.r[0] = newA.x;
-		node->rotation_changed.r[1] = newA.y;
-		node->rotation_changed.r[2] = newA.z;
-		node->rotation_changed.r[3] = acos(dotProd);
+		node->rotation_changed.c[0] = newA.x;
+		node->rotation_changed.c[1] = newA.y;
+		node->rotation_changed.c[2] = newA.z;
+		node->rotation_changed.c[3] = acos(dotProd);
 		MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, rotation_changed));
 
 		node->trackPoint_changed.c[0] = NORM_CUR_X;

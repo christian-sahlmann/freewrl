@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.4 2009/04/23 20:28:04 crc_canada Exp $
+$Id: StreamPoly.c,v 1.5 2009/05/06 20:35:46 crc_canada Exp $
 
 ???
 
@@ -81,15 +81,15 @@ static void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA, 
 			param[i] = 0.5;
 		}
 	}
-	dest->r[0] = param[0];
-	dest->r[1] = param[1];
-	dest->r[2] = param[2];
+	dest->c[0] = param[0];
+	dest->c[1] = param[1];
+	dest->c[2] = param[2];
 
 	/* does this color have an alpha channel? */
 	if (isRGBA) {
-		dest->r[3] = param[3];
+		dest->c[3] = param[3];
 	} else {
-		dest->r[3] = thisTransparency;
+		dest->c[3] = thisTransparency;
 	}
 }
 
@@ -395,7 +395,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 					printf ("\n");
 				#endif
 				if (isRGBA)
-					do_glColor4fv(&newcolors[i],oldColorsRGBA[coli].r,isRGBA,thisTrans);
+					do_glColor4fv(&newcolors[i],oldColorsRGBA[coli].c,isRGBA,thisTrans);
 				else
 					do_glColor4fv(&newcolors[i],colors[coli].c,isRGBA,thisTrans);
 			} else if(r->color) {

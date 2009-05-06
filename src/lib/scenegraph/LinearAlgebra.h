@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.h,v 1.4 2009/05/06 17:41:08 crc_canada Exp $
+$Id: LinearAlgebra.h,v 1.5 2009/05/06 20:35:46 crc_canada Exp $
 
 Linear algebra.
 
@@ -64,12 +64,12 @@ Linear algebra.
 /* the axis vector has to be normalized					*/
 #define MATRIX_FROM_ROTATION(ro,m) { \
 	struct { double x,y,z,w ; } __q; \
-        double sinHalfTheta = sin(0.5*(ro.r[3]));\
+        double sinHalfTheta = sin(0.5*(ro.c[3]));\
         double xs, ys, zs, wx, wy, wz, xx, xy, xz, yy, yz, zz;\
-        __q.x = (ro.r[0])*sinHalfTheta;\
-        __q.y = (ro.r[1])*sinHalfTheta;\
-        __q.z = (ro.r[2])*sinHalfTheta;\
-        __q.w = cos(0.5*(ro.r[3]));\
+        __q.x = (ro.c[0])*sinHalfTheta;\
+        __q.y = (ro.c[1])*sinHalfTheta;\
+        __q.z = (ro.c[2])*sinHalfTheta;\
+        __q.w = cos(0.5*(ro.c[3]));\
         xs = 2*__q.x;  ys = 2*__q.y;  zs = 2*__q.z;\
         wx = __q.w*xs; wy = __q.w*ys; wz = __q.w*zs;\
         xx = __q.x*xs; xy = __q.x*ys; xz = __q.x*zs;\
@@ -122,7 +122,7 @@ Linear algebra.
 
 */
 /* next define abbreviates VECROTATE with use of the SFRotation struct	*/
-#define VECRROTATE(ro,c) VECROTATE((ro).r[0],(ro).r[1],(ro).r[2],(ro).r[3],c)
+#define VECRROTATE(ro,c) VECROTATE((ro).c[0],(ro).c[1],(ro).c[2],(ro).c[3],c)
 
 
 #define calc_vector_length(pt) veclength(pt)

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.14 2009/02/11 15:12:54 istakenv Exp $
+$Id: Component_Geospatial.c,v 1.15 2009/05/06 20:35:46 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -2493,15 +2493,15 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 
 	/* Quaternize the local Geospatial quaternion, and the specified rotation from the GeoViewpoint orientation field */
 	vrmlrot_to_quaternion (&localQuat, localOrient.c[0], localOrient.c[1], localOrient.c[2], localOrient.c[3]);
-	vrmlrot_to_quaternion (&relQuat, node->orientation.r[0], node->orientation.r[1], node->orientation.r[2], node->orientation.r[3]);
+	vrmlrot_to_quaternion (&relQuat, node->orientation.c[0], node->orientation.c[1], node->orientation.c[2], node->orientation.c[3]);
 
 	/* add these together */
         quaternion_add (&combQuat, &relQuat, &localQuat);
 
 	/* get the rotation; 2 steps to convert doubles to floats;
-           should be quaternion_to_vrmlrot(&combQuat, &node->__movedOrientation.r[0]... */
+           should be quaternion_to_vrmlrot(&combQuat, &node->__movedOrientation.c[0]... */
         quaternion_to_vrmlrot(&combQuat, &orient.c[0], &orient.c[1], &orient.c[2], &orient.c[3]);
-	for (i=0; i<4; i++) node->__movedOrientation.r[i] = (float) orient.c[i];
+	for (i=0; i<4; i++) node->__movedOrientation.c[i] = (float) orient.c[i];
 
         #ifdef VERBOSE
 	printf ("compile_GeoViewpoint, final position %lf %lf %lf\n",node->__movedPosition.c[0],
@@ -2509,10 +2509,10 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 
 	printf ("compile_GeoViewpoint, getLocalOrientation %lf %lf %lf %lf\n",localOrient.c[0],
 		localOrient.c[1], localOrient.c[2], localOrient.c[3]);
-	printf ("compile_GeoViewpoint, initial orientation: %lf %lf %lf %lf\n",node->orientation.r[0],
-		node->orientation.r[1], node->orientation.r[2], node->orientation.r[3]);
-	printf ("compile_GeoViewpoint, final rotation %lf %lf %lf %lf\n",node->__movedOrientation.r[0], 
-		node->__movedOrientation.r[1], node->__movedOrientation.r[2], node->__movedOrientation.r[3]);
+	printf ("compile_GeoViewpoint, initial orientation: %lf %lf %lf %lf\n",node->orientation.c[0],
+		node->orientation.c[1], node->orientation.c[2], node->orientation.c[3]);
+	printf ("compile_GeoViewpoint, final rotation %lf %lf %lf %lf\n",node->__movedOrientation.c[0], 
+		node->__movedOrientation.c[1], node->__movedOrientation.c[2], node->__movedOrientation.c[3]);
 	printf ("compile_GeoViewpoint, elevation from the WGS84 ellipsoid is %lf\n",gdCoords.p[0].c[2]);
         #endif
 
@@ -2550,8 +2550,8 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 
 
 	/* perform GeoViewpoint translations */
-	FW_GL_ROTATE_D(-node->__movedOrientation.r[3]/PI*180.0,node->__movedOrientation.r[0],node->__movedOrientation.r[1],
-		node->__movedOrientation.r[2]); 
+	FW_GL_ROTATE_D(-node->__movedOrientation.c[3]/PI*180.0,node->__movedOrientation.c[0],node->__movedOrientation.c[1],
+		node->__movedOrientation.c[2]); 
 	FW_GL_TRANSLATE_D(-node->__movedPosition.c[0],-node->__movedPosition.c[1],-node->__movedPosition.c[2]);
 
 	/* now, lets work on the GeoViewpoint fieldOfView */
@@ -2639,8 +2639,8 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 
 	#ifdef VERBOSE
 	printf ("bind_viewpoint, setting Viewer to %lf %lf %lf orient %f %f %f %f\n",node->__movedPosition.c[0],node->__movedPosition.c[1],
-	node->__movedPosition.c[2],node->orientation.r[0],node->orientation.r[1],node->orientation.r[2],
-	node->orientation.r[3]);
+	node->__movedPosition.c[2],node->orientation.c[0],node->orientation.c[1],node->orientation.c[2],
+	node->orientation.c[3]);
 	printf ("	node %u fieldOfView %f\n",node,node->fieldOfView);
 	#endif
 	
@@ -2655,11 +2655,11 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 
 	/* printf ("bind_geoviewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z); */
 
-	vrmlrot_to_quaternion (&Viewer.Quat,node->__movedOrientation.r[0],
-		node->__movedOrientation.r[1],node->__movedOrientation.r[2],node->__movedOrientation.r[3]);
+	vrmlrot_to_quaternion (&Viewer.Quat,node->__movedOrientation.c[0],
+		node->__movedOrientation.c[1],node->__movedOrientation.c[2],node->__movedOrientation.c[3]);
 
-	vrmlrot_to_quaternion (&q_i,node->__movedOrientation.r[0],
-		node->__movedOrientation.r[1],node->__movedOrientation.r[2],node->__movedOrientation.r[3]);
+	vrmlrot_to_quaternion (&q_i,node->__movedOrientation.c[0],
+		node->__movedOrientation.c[1],node->__movedOrientation.c[2],node->__movedOrientation.c[3]);
 	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
 	resolve_pos();
@@ -2701,10 +2701,10 @@ void compile_GeoTransform (struct X3D_GeoTransform * node) {
 	node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
 	if (node->__do_scale) MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoTransform, scale));
 
-	node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
+	node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.c);
 	if (node->__do_rotation) MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoTransform, rotation));
 
-	node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
+	node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.c);
 	if (node->__do_scaleO) MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoTransform, scaleOrientation));
 
 
@@ -2712,10 +2712,10 @@ void compile_GeoTransform (struct X3D_GeoTransform * node) {
 	#ifdef VERBOSE
 	printf ("compile_GeoTransform, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCoords.c[0], node->geoCoords.c[1], node->geoCoords.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 	printf ("	rotation is %lf %lf %lf %lf\n",
-			node->__localOrient.r[0],
-			node->__localOrient.r[1],
-			node->__localOrient.r[2],
-			node->__localOrient.r[3]);
+			node->__localOrient.c[0],
+			node->__localOrient.c[1],
+			node->__localOrient.c[2],
+			node->__localOrient.c[3]);
 	#endif
 
 	MARK_NODE_COMPILED
@@ -2770,15 +2770,15 @@ void prep_GeoTransform (struct X3D_GeoTransform *node) {
                 
 		/* ROTATION */
 		if (node->__do_rotation) {
-			my_rotation = node->rotation.r[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_rotation, node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]);
+			my_rotation = node->rotation.c[3]/3.1415926536*180;
+			FW_GL_ROTATE_F(my_rotation, node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
 		}
 
 		/* SCALEORIENTATION */
 		if (node->__do_scaleO) {
-			my_scaleO = node->scaleOrientation.r[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0],
-				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+			my_scaleO = node->scaleOrientation.c[3]/3.1415926536*180;
+			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
+				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 		}
 
 		/* SCALE */
@@ -2787,8 +2787,8 @@ void prep_GeoTransform (struct X3D_GeoTransform *node) {
 
 		/* REVERSE SCALE ORIENTATION */
 		if (node->__do_scaleO)
-			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0],
-				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.c[0],
+				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 
 		/* REVERSE CENTER */
                 FW_GL_TRANSLATE_D(-node->__movedCoords.c[0], -node->__movedCoords.c[1], -node->__movedCoords.c[2]);
@@ -2810,13 +2810,13 @@ void fin_GeoTransform (struct X3D_GeoTransform *node) {
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
                 FW_GL_TRANSLATE_D(((node->__movedCoords).c[0]),((node->__movedCoords).c[1]),((node->__movedCoords).c[2])
                 );
-                FW_GL_ROTATE_F(((node->scaleOrientation).r[3])/3.1415926536*180,((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                FW_GL_ROTATE_F(((node->scaleOrientation).c[3])/3.1415926536*180,((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
                 );
                 FW_GL_SCALE_F(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
                 );
-                FW_GL_ROTATE_F(-(((node->scaleOrientation).r[3])/3.1415926536*180),((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                FW_GL_ROTATE_F(-(((node->scaleOrientation).c[3])/3.1415926536*180),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
                 );
-                FW_GL_ROTATE_F(-(((node->rotation).r[3]))/3.1415926536*180,((node->rotation).r[0]),((node->rotation).r[1]),((node->rotation).r[2])
+                FW_GL_ROTATE_F(-(((node->rotation).c[3]))/3.1415926536*180,((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
                 );
                 FW_GL_TRANSLATE_D(-(((node->__movedCoords).c[0])),-(((node->__movedCoords).c[1])),-(((node->__movedCoords).c[2]))
                 );

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.12 2009/04/24 20:19:59 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.13 2009/05/06 20:35:46 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -48,8 +48,8 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	
 
 	/* perform Viewpoint translations */
-	FW_GL_ROTATE_D(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
-		node->orientation.r[2]);
+	FW_GL_ROTATE_D(-node->orientation.c[3]/PI*180.0,node->orientation.c[0],node->orientation.c[1],
+		node->orientation.c[2]);
 	FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 
 	/* now, lets work on the Viewpoint fieldOfView */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.11 2009/05/06 17:41:08 crc_canada Exp $
+$Id: jsUtils.c,v 1.12 2009/05/06 20:35:46 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -233,7 +233,7 @@ void JS_SF_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, jsv
 			break;
                 case FIELDTYPE_SFRotation:
 			VRptr = (SFRotationNative *)VPtr;
-			memcpy (Data,(void *)((VRptr->v).r), datalen);
+			memcpy (Data,(void *)((VRptr->v).c), datalen);
 			break;
                 case FIELDTYPE_SFNode:
 			VNptr = (SFNodeNative *)VPtr;
@@ -393,7 +393,7 @@ void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned datalen, in
 			break;
                 case FIELDTYPE_SFRotation:
 			VRptr = (SFRotationNative *)VPtr;
-			memcpy ((void *)((VRptr->v).r), Data, datalen);
+			memcpy ((void *)((VRptr->v).c), Data, datalen);
         		VRptr->valueChanged = 1;
 			break;
                 case FIELDTYPE_SFNode:
@@ -593,7 +593,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 
 			MCptr = (struct Multi_Rotation*) Data;
 			for (i=0; i<MCptr->n; i++) {
-				sprintf (newline,"new SFRotation(%f, %f, %f, %f)", MCptr->p[i].r[0], MCptr->p[i].r[1], MCptr->p[i].r[2], MCptr->p[i].r[3]);	
+				sprintf (newline,"new SFRotation(%f, %f, %f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1], MCptr->p[i].c[2], MCptr->p[i].c[3]);	
 				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;

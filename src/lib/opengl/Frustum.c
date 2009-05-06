@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.8 2009/02/11 15:12:54 istakenv Exp $
+$Id: Frustum.c,v 1.9 2009/05/06 20:35:46 crc_canada Exp $
 
 ???
 
@@ -109,9 +109,9 @@ GLint OccResultsAvailable = FALSE;
 	 \
 	                /* 2: REVERSE SCALE ORIENTATION */ \
 	                if (node->__do_scaleO) { \
-				my_scaleO = node->scaleOrientation.r[3]/3.1415926536*180; \
-	                        /* FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0], node->scaleOrientation.r[1],node->scaleOrientation.r[2]); */ \
-				vrmlrot_to_quaternion(&rq,node->scaleOrientation.r[0], node->scaleOrientation.r[1], node->scaleOrientation.r[2], -node->scaleOrientation.r[3]); \
+				my_scaleO = node->scaleOrientation.c[3]/3.1415926536*180; \
+	                        /* FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.c[0], node->scaleOrientation.c[1],node->scaleOrientation.c[2]); */ \
+				vrmlrot_to_quaternion(&rq,node->scaleOrientation.c[0], node->scaleOrientation.c[1], node->scaleOrientation.c[2], -node->scaleOrientation.c[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 	 \
 				/* copy these points back out */ \
@@ -126,19 +126,19 @@ GLint OccResultsAvailable = FALSE;
 	 \
 	                /* 4: SCALEORIENTATION */ \
 	                if (node->__do_scaleO) { \
-				vrmlrot_to_quaternion(&rq,node->scaleOrientation.r[0], node->scaleOrientation.r[1], node->scaleOrientation.r[2], -node->scaleOrientation.r[3]); \
+				vrmlrot_to_quaternion(&rq,node->scaleOrientation.c[0], node->scaleOrientation.c[1], node->scaleOrientation.c[2], -node->scaleOrientation.c[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 	 \
 				/* copy these points back out */ \
 				memcpy (inxyz,outxyz,8*sizeof(struct point_XYZ)); \
-	                        /* FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0], \
-	                                node->scaleOrientation.r[1],node->scaleOrientation.r[2]); */ \
+	                        /* FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0], \
+	                                node->scaleOrientation.c[1],node->scaleOrientation.c[2]); */ \
 	                } \
 	 \
 	                /* 5: ROTATION */ \
 	                if (node->__do_rotation) { \
-	                        /* FW_GL_ROTATE_F(my_rotation, node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]); */ \
-				vrmlrot_to_quaternion(&rq,node->rotation.r[0], node->rotation.r[1], node->rotation.r[2], node->rotation.r[3]); \
+	                        /* FW_GL_ROTATE_F(my_rotation, node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]); */ \
+				vrmlrot_to_quaternion(&rq,node->rotation.c[0], node->rotation.c[1], node->rotation.c[2], node->rotation.c[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 	 \
 				/* copy these points back out */ \
@@ -260,9 +260,9 @@ GLint OccResultsAvailable = FALSE;
 	 \
 	                /* 2: REVERSE SCALE ORIENTATION */ \
 	                if (node->__do_scaleO) { \
-				my_scaleO = node->scaleOrientation.r[3]/3.1415926536*180; \
-	                        /* FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0], node->scaleOrientation.r[1],node->scaleOrientation.r[2]); */ \
-				vrmlrot_to_quaternion(&rq,node->scaleOrientation.r[0], node->scaleOrientation.r[1], node->scaleOrientation.r[2], -node->scaleOrientation.r[3]); \
+				my_scaleO = node->scaleOrientation.c[3]/3.1415926536*180; \
+	                        /* FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.c[0], node->scaleOrientation.c[1],node->scaleOrientation.c[2]); */ \
+				vrmlrot_to_quaternion(&rq,node->scaleOrientation.c[0], node->scaleOrientation.c[1], node->scaleOrientation.c[2], -node->scaleOrientation.c[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 	 \
 				/* copy these points back out */ \
@@ -277,19 +277,19 @@ GLint OccResultsAvailable = FALSE;
 	 \
 	                /* 4: SCALEORIENTATION */ \
 	                if (node->__do_scaleO) { \
-				vrmlrot_to_quaternion(&rq,node->scaleOrientation.r[0], node->scaleOrientation.r[1], node->scaleOrientation.r[2], -node->scaleOrientation.r[3]); \
+				vrmlrot_to_quaternion(&rq,node->scaleOrientation.c[0], node->scaleOrientation.c[1], node->scaleOrientation.c[2], -node->scaleOrientation.c[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 	 \
 				/* copy these points back out */ \
 				memcpy (inxyz,outxyz,8*sizeof(struct point_XYZ)); \
-	                        /* FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0], \
-	                                node->scaleOrientation.r[1],node->scaleOrientation.r[2]); */ \
+	                        /* FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0], \
+	                                node->scaleOrientation.c[1],node->scaleOrientation.c[2]); */ \
 	                } \
 	 \
 	                /* 5: ROTATION */ \
 	                if (node->__do_rotation) { \
-	                        /* FW_GL_ROTATE_F(my_rotation, node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]); */ \
-				vrmlrot_to_quaternion(&rq,node->rotation.r[0], node->rotation.r[1], node->rotation.r[2], node->rotation.r[3]); \
+	                        /* FW_GL_ROTATE_F(my_rotation, node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]); */ \
+				vrmlrot_to_quaternion(&rq,node->rotation.c[0], node->rotation.c[1], node->rotation.c[2], node->rotation.c[3]); \
 				quaternion_multi_rotation(outxyz,&rq,inxyz,8); \
 	 \
 				/* copy these points back out */ \

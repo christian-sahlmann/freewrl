@@ -1,5 +1,5 @@
 #
-# $Id: VRMLFields.pm,v 1.2 2009/03/10 21:00:34 crc_canada Exp $
+# $Id: VRMLFields.pm,v 1.3 2009/05/06 20:35:46 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log: VRMLFields.pm,v $
+# Revision 1.3  2009/05/06 20:35:46  crc_canada
+# Modify SFColorRGBA and SFRotation to have array named c, not r for ease of code generation
+#
 # Revision 1.2  2009/03/10 21:00:34  crc_canada
 # checking in some ongoing PROTO support work in the Classic parser.
 #
@@ -212,16 +215,16 @@ package VRML::Field::SFColorRGBA;
 VRML::Error->import();
 
 
-sub cstruct {return "struct SFColorRGBA { float r[4]; };"}
+sub cstruct {return "struct SFColorRGBA { float c[4]; };"}
 sub ctype {return "struct SFColorRGBA $_[1]"}
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFColorRGBA\n"} # inputOnlys, set it to any value
-	return 	"$field.r[0] = @{$val}[0];".
-		"$field.r[1] = @{$val}[1];".
-		"$field.r[2] = @{$val}[2];".
-		"$field.r[3] = @{$val}[3];";
+	return 	"$field.c[0] = @{$val}[0];".
+		"$field.c[1] = @{$val}[1];".
+		"$field.c[2] = @{$val}[2];".
+		"$field.c[3] = @{$val}[3];";
 }
 
 
@@ -245,7 +248,7 @@ sub cInitialize {
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 4; $whichVal++) {
-				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].r[$whichVal] = ".@{$arline}[$whichVal]."; ";
+				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = ".@{$arline}[$whichVal]."; ";
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";
@@ -643,16 +646,16 @@ package VRML::Field::SFRotation;
 VRML::Error->import();
 
 
-sub cstruct {return "struct SFRotation { float r[4]; };"}
+sub cstruct {return "struct SFRotation { float c[4]; };"}
 
 sub ctype {return "struct SFRotation $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFRotation\n"} # inputOnlys, set it to any value
-	return 	"$field.r[0] = @{$val}[0];".
-		"$field.r[1] = @{$val}[1];".
-		"$field.r[2] = @{$val}[2];".
-		"$field.r[3] = @{$val}[3];";
+	return 	"$field.c[0] = @{$val}[0];".
+		"$field.c[1] = @{$val}[1];".
+		"$field.c[2] = @{$val}[2];".
+		"$field.c[3] = @{$val}[3];";
 }
 
 
@@ -675,7 +678,7 @@ sub cInitialize {
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 4; $whichVal++) {
-				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].r[$whichVal] = ".@{$arline}[$whichVal]."; ";
+				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = ".@{$arline}[$whichVal]."; ";
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";

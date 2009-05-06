@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_HAnim.c,v 1.6 2009/02/11 15:12:55 istakenv Exp $
+$Id: Component_HAnim.c,v 1.7 2009/05/06 20:35:46 crc_canada Exp $
 
 X3D H-Anim Component
 
@@ -63,16 +63,16 @@ return;
 
 		/* ROTATION */
 		if (node->__do_rotation) {
-			my_rotation = node->rotation.r[3]/3.1415926536*180;
+			my_rotation = node->rotation.c[3]/3.1415926536*180;
 			FW_GL_ROTATE_F(my_rotation,
-				node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]);
+				node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
 		}
 
 		/* SCALEORIENTATION */
 		if (node->__do_scaleO) {
-			my_scaleO = node->scaleOrientation.r[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0],
-				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+			my_scaleO = node->scaleOrientation.c[3]/3.1415926536*180;
+			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
+				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 		}
 
 
@@ -82,8 +82,8 @@ return;
 
 		/* REVERSE SCALE ORIENTATION */
 		if (node->__do_scaleO)
-			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0],
-				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.c[0],
+				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 
 		/* REVERSE CENTER */
 		if (node->__do_center)
@@ -136,16 +136,16 @@ return;
 
 		/* ROTATION */
 		if (node->__do_rotation) {
-			my_rotation = node->rotation.r[3]/3.1415926536*180;
+			my_rotation = node->rotation.c[3]/3.1415926536*180;
 			FW_GL_ROTATE_F(my_rotation,
-				node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]);
+				node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
 		}
 
 		/* SCALEORIENTATION */
 		if (node->__do_scaleO) {
-			my_scaleO = node->scaleOrientation.r[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0],
-				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+			my_scaleO = node->scaleOrientation.c[3]/3.1415926536*180;
+			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
+				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 		}
 
 
@@ -155,8 +155,8 @@ return;
 
 		/* REVERSE SCALE ORIENTATION */
 		if (node->__do_scaleO)
-			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0],
-				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.c[0],
+				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 
 		/* REVERSE CENTER */
 		if (node->__do_center)
@@ -315,13 +315,13 @@ void fin_HAnimSite (struct X3D_HAnimSite * node) {
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
                 FW_GL_TRANSLATE_F(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
                 );
-                FW_GL_ROTATE_F(((node->scaleOrientation).r[3])/3.1415926536*180,((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                FW_GL_ROTATE_F(((node->scaleOrientation).c[3])/3.1415926536*180,((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
                 );
                 FW_GL_SCALE_F(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
                 );
-                FW_GL_ROTATE_F(-(((node->scaleOrientation).r[3])/3.1415926536*180),((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                FW_GL_ROTATE_F(-(((node->scaleOrientation).c[3])/3.1415926536*180),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
                 );
-                FW_GL_ROTATE_F(-(((node->rotation).r[3]))/3.1415926536*180,((node->rotation).r[0]),((node->rotation).r[1]),((node->rotation).r[2])
+                FW_GL_ROTATE_F(-(((node->rotation).c[3]))/3.1415926536*180,((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
                 );
                 FW_GL_TRANSLATE_F(-(((node->center).c[0])),-(((node->center).c[1])),-(((node->center).c[2]))
                 );
@@ -339,13 +339,13 @@ void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
                 FW_GL_TRANSLATE_F(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
                 );
-                FW_GL_ROTATE_F(((node->scaleOrientation).r[3])/3.1415926536*180,((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                FW_GL_ROTATE_F(((node->scaleOrientation).c[3])/3.1415926536*180,((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
                 );
                 FW_GL_SCALE_F(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
                 );
-                FW_GL_ROTATE_F(-(((node->scaleOrientation).r[3])/3.1415926536*180),((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                FW_GL_ROTATE_F(-(((node->scaleOrientation).c[3])/3.1415926536*180),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
                 );
-                FW_GL_ROTATE_F(-(((node->rotation).r[3]))/3.1415926536*180,((node->rotation).r[0]),((node->rotation).r[1]),((node->rotation).r[2])
+                FW_GL_ROTATE_F(-(((node->rotation).c[3]))/3.1415926536*180,((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
                 );
                 FW_GL_TRANSLATE_F(-(((node->center).c[0])),-(((node->center).c[1])),-(((node->center).c[2]))
                 );

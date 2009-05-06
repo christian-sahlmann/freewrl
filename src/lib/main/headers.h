@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.36 2009/05/06 17:41:08 crc_canada Exp $
+$Id: headers.h,v 1.37 2009/05/06 20:35:46 crc_canada Exp $
 
 Global includes.
 
@@ -346,16 +346,16 @@ if (!APPROX (node->setField.c[0],node->regField.c[0]) || \
 }
 
 #define USE_SET_SFROTATION_IF_CHANGED(setField,regField) \
-if (!APPROX (node->setField.r[0],node->regField.r[0]) || \
-        !APPROX(node->setField.r[1],node->regField.r[1]) || \
-        !APPROX(node->setField.r[2],node->regField.r[2]) || \
-        !APPROX(node->setField.r[3],node->regField.r[3]) ) { \
+if (!APPROX (node->setField.c[0],node->regField.c[0]) || \
+        !APPROX(node->setField.c[1],node->regField.c[1]) || \
+        !APPROX(node->setField.c[2],node->regField.c[2]) || \
+        !APPROX(node->setField.c[3],node->regField.c[3]) ) { \
         /* now, is the setField at our default value??  if not, we just use the regField */ \
-        if (APPROX(node->setField.r[0], IO_FLOAT) && APPROX(node->setField.r[1],IO_FLOAT) && APPROX(node->setField.r[2],IO_FLOAT) && APPROX(node->setField.r[3],IO_FLOAT)) { \
+        if (APPROX(node->setField.c[0], IO_FLOAT) && APPROX(node->setField.c[1],IO_FLOAT) && APPROX(node->setField.c[2],IO_FLOAT) && APPROX(node->setField.c[3],IO_FLOAT)) { \
 		/* printf ("just use SFRotation regField\n"); */ \
         } else { \
 		/* printf ("use the setField SFRotation as the real poistion field\n");  */ \
-        	memcpy (node->regField.r, node->setField.r, sizeof (struct SFRotation)); \
+        	memcpy (node->regField.c, node->setField.c, sizeof (struct SFRotation)); \
 	} \
 }
 
@@ -525,7 +525,7 @@ extern void* *occluderNodePointer;
 #define NORMAL_VECTOR_LENGTH_TOLERANCE 0.00001
 /* (test if the vector part of a rotation is normalized) */
 #define IS_ROTATION_VEC_NOT_NORMAL(rot)        ( \
-       fabs(1-sqrt(rot.r[0]*rot.r[0]+rot.r[1]*rot.r[1]+rot.r[2]*rot.r[2])) \
+       fabs(1-sqrt(rot.c[0]*rot.c[0]+rot.c[1]*rot.c[1]+rot.c[2]*rot.c[2])) \
                >NORMAL_VECTOR_LENGTH_TOLERANCE \
 )
 

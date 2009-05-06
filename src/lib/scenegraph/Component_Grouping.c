@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.12 2009/04/24 20:19:59 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.13 2009/05/06 20:35:46 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -29,8 +29,8 @@ void changed_Transform (struct X3D_Transform *node) {
 	node->__do_center = verify_translate ((GLfloat *)node->center.c);
 	node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
 	node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
-	node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
-	node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
+	node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.c);
+	node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.c);
 
 	node->__do_anything = (node->__do_center ||
 			node->__do_trans ||
@@ -80,16 +80,16 @@ to NOT do it is here for performance testing reasons, to see if many pushes/pops
 
 		/* ROTATION */
 		if (node->__do_rotation) {
-			my_rotation = node->rotation.r[3]/3.1415926536*180;
+			my_rotation = node->rotation.c[3]/3.1415926536*180;
 			FW_GL_ROTATE_F(my_rotation,
-				node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]);
+				node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
 		}
 
 		/* SCALEORIENTATION */
 		if (node->__do_scaleO) {
-			my_scaleO = node->scaleOrientation.r[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0],
-				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+			my_scaleO = node->scaleOrientation.c[3]/3.1415926536*180;
+			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
+				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 		}
 
 
@@ -99,8 +99,8 @@ to NOT do it is here for performance testing reasons, to see if many pushes/pops
 
 		/* REVERSE SCALE ORIENTATION */
 		if (node->__do_scaleO)
-			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.r[0],
-				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.c[0],
+				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 
 		/* REVERSE CENTER */
 		if (node->__do_center)
@@ -129,9 +129,9 @@ void fin_Transform (struct X3D_Transform *node) {
 
 		/* 6 REVERSE SCALE ORIENTATION */
 		if (node->__do_scaleO) {
-			my_scaleO = -(node->scaleOrientation.r[3]/3.1415926536*180);
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0],
-				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+			my_scaleO = -(node->scaleOrientation.c[3]/3.1415926536*180);
+			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
+				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 		}
 
 		/* 5 SCALE */
@@ -140,15 +140,15 @@ void fin_Transform (struct X3D_Transform *node) {
 
 		/* 4 SCALEORIENTATION */
 		if (node->__do_scaleO) {
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.r[0],
-				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
+				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 		}
 
 		/* 3 ROTATION */
 		if (node->__do_rotation) {
-			my_rotation = -(node->rotation.r[3]/3.1415926536*180);
+			my_rotation = -(node->rotation.c[3]/3.1415926536*180);
 			FW_GL_ROTATE_F(my_rotation,
-				node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]);
+				node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
 		}
 
 		/* 2 CENTER */
@@ -168,13 +168,13 @@ void fin_Transform (struct X3D_Transform *node) {
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
                 FW_GL_TRANSLATE_F(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
                 );
-                FW_GL_ROTATE_F(((node->scaleOrientation).r[3])/3.1415926536*180,((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                FW_GL_ROTATE_F(((node->scaleOrientation).c[3])/3.1415926536*180,((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
                 );
                 FW_GL_SCALE_F(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
                 );
-                FW_GL_ROTATE_F(-(((node->scaleOrientation).r[3])/3.1415926536*180),((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                FW_GL_ROTATE_F(-(((node->scaleOrientation).c[3])/3.1415926536*180),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
                 );
-                FW_GL_ROTATE_F(-(((node->rotation).r[3]))/3.1415926536*180,((node->rotation).r[0]),((node->rotation).r[1]),((node->rotation).r[2])
+                FW_GL_ROTATE_F(-(((node->rotation).c[3]))/3.1415926536*180,((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
                 );
                 FW_GL_TRANSLATE_F(-(((node->center).c[0])),-(((node->center).c[1])),-(((node->center).c[2]))
                 );

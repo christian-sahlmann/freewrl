@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.11 2009/02/18 13:37:50 istakenv Exp $
+$Id: fieldGet.c,v 1.12 2009/05/06 20:35:46 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -209,10 +209,10 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)Data; SFRPptr->v.r[0] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.r[1] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.r[2] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.r[3] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[2] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[3] = *fp; Data += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),

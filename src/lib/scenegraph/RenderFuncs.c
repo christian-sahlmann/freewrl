@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.15 2009/04/29 20:20:25 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.16 2009/05/06 20:35:46 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -930,34 +930,36 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 	MARK_NODE_COMPILED \
 }
 
-#define CMD_MFL(type,elelength,field) void compile_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
+#define CMD_MFL(type,elelength) void compile_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
 	int count; \
 	if META_IS_INITIALIZED { \
 	for (count=0; count < elelength; count++) { \
-		if (!APPROX(node->value.field[count],node->setValue.field[count])) { \
-			memcpy (&node->value, &node->setValue, sizeof node->value.field[0]* elelength); \
-			memcpy (&node->valueChanged, &node->setValue, sizeof node->value.field[0] * elelength); \
+		if (!APPROX(node->value.c[count],node->setValue.c[count])) { \
+			memcpy (&node->value, &node->setValue, sizeof node->value.c[0]* elelength); \
+			memcpy (&node->valueChanged, &node->setValue, sizeof node->value.c[0] * elelength); \
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSF##type, valueChanged)); \
 			return; \
 		} \
 	} \
 	} else { \
 		/* initialize fields */ \
-		memcpy (&node->setValue, &node->value, sizeof node->value.field[0]* elelength); \
-		memcpy (&node->valueChanged, &node->value, sizeof node->value.field[0] * elelength); \
+		memcpy (&node->setValue, &node->value, sizeof node->value.c[0]* elelength); \
+		memcpy (&node->valueChanged, &node->value, sizeof node->value.c[0] * elelength); \
 	} \
 	MARK_NODE_COMPILED \
 }
 
+
+
 /* compare element counts, and pointer values */
 /* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
-#define CMD_MULTI(type,elelength,field,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+#define CMD_MULTI(type,elelength,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
 	int count; int changed = FALSE; \
 	if META_IS_INITIALIZED { \
 	if (node->value.n != node->setValue.n) changed = TRUE; else { \
 		/* yes, these two array must have the same index counts... */ \
 		for (count=0; count<node->setValue.n; count++) { \
-			int count2; for (count2=0; count2<elelength; count2++) { if (!APPROX(node->value.p[count].field[count2], node->setValue.p[count].field[count2])) changed = TRUE; break; }\
+			int count2; for (count2=0; count2<elelength; count2++) { if (!APPROX(node->value.p[count].c[count2], node->setValue.p[count].c[count2])) changed = TRUE; break; }\
 		if (changed) break; } \
 	} \
 	\
@@ -1073,33 +1075,33 @@ CMD_I32(Bool)
 CMD_I32(Int32)
 CMD_I32(Node)
 
-CMD_MFL(Vec2f,2,c)
-CMD_MFL(Vec3f,3,c)
-CMD_MFL(Vec4f,4,c)
-CMD_MFL(Vec2d,2,c)
-CMD_MFL(Vec3d,3,c)
-CMD_MFL(Vec4d,4,c)
-CMD_MFL(Rotation,4,r)
-CMD_MFL(Color,3,c)
-CMD_MFL(ColorRGBA,4,r)
-CMD_MFL(Matrix3f,9,c)
-CMD_MFL(Matrix3d,9,c)
-CMD_MFL(Matrix4f,16,c)
-CMD_MFL(Matrix4d,16,c)
+CMD_MFL(Vec2f,2)
+CMD_MFL(Vec3f,3)
+CMD_MFL(Vec4f,4)
+CMD_MFL(Vec2d,2)
+CMD_MFL(Vec3d,3)
+CMD_MFL(Vec4d,4)
+CMD_MFL(Rotation,4)
+CMD_MFL(Color,3)
+CMD_MFL(ColorRGBA,4)
+CMD_MFL(Matrix3f,9)
+CMD_MFL(Matrix3d,9)
+CMD_MFL(Matrix4f,16)
+CMD_MFL(Matrix4d,16)
 
-CMD_MULTI(Rotation,4,r,sizeof (float))
-CMD_MULTI(Vec2f,2,c,sizeof (float))
-CMD_MULTI(Vec3f,3,c,sizeof (float))
-CMD_MULTI(Vec4f,4,c,sizeof (float))
-CMD_MULTI(Vec2d,2,c,sizeof (double))
-CMD_MULTI(Vec3d,3,c,sizeof (double))
-CMD_MULTI(Vec4d,4,c,sizeof (double))
-CMD_MULTI(Color,3,c,sizeof (float))
-CMD_MULTI(ColorRGBA,4,r,sizeof (float))
-CMD_MULTI(Matrix3f,9,c,sizeof (float))
-CMD_MULTI(Matrix4f,16,c,sizeof (float))
-CMD_MULTI(Matrix3d,9,c,sizeof (double))
-CMD_MULTI(Matrix4d,16,c,sizeof (double))
+CMD_MULTI(Rotation,4,sizeof (float))
+CMD_MULTI(Vec2f,2,sizeof (float))
+CMD_MULTI(Vec3f,3,sizeof (float))
+CMD_MULTI(Vec4f,4,sizeof (float))
+CMD_MULTI(Vec2d,2,sizeof (double))
+CMD_MULTI(Vec3d,3,sizeof (double))
+CMD_MULTI(Vec4d,4,sizeof (double))
+CMD_MULTI(Color,3,sizeof (float))
+CMD_MULTI(ColorRGBA,4,sizeof (float))
+CMD_MULTI(Matrix3f,9,sizeof (float))
+CMD_MULTI(Matrix4f,16,sizeof (float))
+CMD_MULTI(Matrix3d,9,sizeof (double))
+CMD_MULTI(Matrix4d,16,sizeof (double))
 
 CMD_MSFI32(Bool, sizeof(int))
 CMD_MSFI32(Int32,sizeof (int))

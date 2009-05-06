@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.20 2009/04/21 19:19:24 crc_canada Exp $
+$Id: Viewer.c,v 1.21 2009/05/06 20:35:46 crc_canada Exp $
 
 CProto ???
 
@@ -958,8 +958,8 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 
 	/*
 	printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
-	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
-	vp->orientation.r[3]);
+	vp->position.c[2],vp->orientation.c[0],vp->orientation.c[1],vp->orientation.c[2],
+	vp->orientation.c[3]);
 	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); 
 	printf ("	center of rotation %f %f %f\n",vp->centerOfRotation.c[0], vp->centerOfRotation.c[1],vp->centerOfRotation.c[2]);
 	*/
@@ -978,13 +978,13 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	/* printf ("bind_viewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z);
 	*/
 
-	vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.r[0],
-		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
-	vrmlrot_to_quaternion (&Viewer.bindTimeQuat,vp->orientation.r[0],
-		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
+	vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.c[0],
+		vp->orientation.c[1],vp->orientation.c[2],vp->orientation.c[3]);
+	vrmlrot_to_quaternion (&Viewer.bindTimeQuat,vp->orientation.c[0],
+		vp->orientation.c[1],vp->orientation.c[2],vp->orientation.c[3]);
 
-	vrmlrot_to_quaternion (&q_i,vp->orientation.r[0],
-		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
+	vrmlrot_to_quaternion (&q_i,vp->orientation.c[0],
+		vp->orientation.c[1],vp->orientation.c[2],vp->orientation.c[3]);
 	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
 	resolve_pos();

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.h,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: Component_Geospatial.h,v 1.4 2009/05/06 20:35:46 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -109,16 +109,16 @@ void proximity_##type (struct X3D_##type *node) { \
  \
 	if(APPROX(dr1r2.z,1.0)) { \
 		/* rotation */ \
-		((node->__t2).r[0]) = 0; \
-		((node->__t2).r[1]) = 0; \
-		((node->__t2).r[2]) = 1; \
-		((node->__t2).r[3]) = atan2(-dr2r3.x,dr2r3.y); \
+		((node->__t2).c[0]) = 0; \
+		((node->__t2).c[1]) = 0; \
+		((node->__t2).c[2]) = 1; \
+		((node->__t2).c[3]) = atan2(-dr2r3.x,dr2r3.y); \
 	} else if(APPROX(dr2r3.y,1.0)) { \
 		/* rotation */ \
-		((node->__t2).r[0]) = 0; \
-		((node->__t2).r[1]) = 1; \
-		((node->__t2).r[2]) = 0; \
-		((node->__t2).r[3]) = atan2(dr1r2.x,dr1r2.z); \
+		((node->__t2).c[0]) = 0; \
+		((node->__t2).c[1]) = 1; \
+		((node->__t2).c[2]) = 0; \
+		((node->__t2).c[3]) = atan2(dr1r2.x,dr1r2.z); \
 	} else { \
 		/* Get the normal vectors of the possible rotation planes */ \
 		nor1 = dr1r2; \
@@ -138,12 +138,12 @@ void proximity_##type (struct X3D_##type *node) { \
 		len = sqrt(VECSQ(nor2)); VECSCALE(nor2,1/len); \
 		VECCP(nor1,nor2,ins); \
  \
-		((node->__t2).r[3]) = -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2)); \
+		((node->__t2).c[3]) = -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2)); \
  \
 		/* rotation  - should normalize sometime... */ \
-		((node->__t2).r[0]) = ins.x; \
-		((node->__t2).r[1]) = ins.y; \
-		((node->__t2).r[2]) = ins.z; \
+		((node->__t2).c[0]) = ins.x; \
+		((node->__t2).c[1]) = ins.y; \
+		((node->__t2).c[2]) = ins.z; \
 	} \
 	/* \
 	printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n", \

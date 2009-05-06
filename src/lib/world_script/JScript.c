@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.9 2009/03/04 13:35:28 crc_canada Exp $
+$Id: JScript.c,v 1.10 2009/05/06 20:35:46 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -707,10 +707,10 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 						FloatPtr = value.sfcolor.c; elements = 1;
 						break;
 					case FIELDTYPE_SFColorRGBA:
-						FloatPtr = value.sfcolorrgba.r; elements = 1;
+						FloatPtr = value.sfcolorrgba.c; elements = 1;
 						break;
 					case FIELDTYPE_SFRotation:
-						FloatPtr = value.sfrotation.r; elements = 1;
+						FloatPtr = value.sfrotation.c; elements = 1;
 						break;
 					case FIELDTYPE_SFVec3f: 
 						FloatPtr = value.sfvec3f.c; elements =1;

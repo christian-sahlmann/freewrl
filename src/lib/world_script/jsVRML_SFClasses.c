@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_SFClasses.c,v 1.12 2009/05/06 17:41:08 crc_canada Exp $
+$Id: jsVRML_SFClasses.c,v 1.13 2009/05/06 20:35:46 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -463,7 +463,7 @@ SFColorRGBAToString(JSContext *cx, JSObject *obj,
 
 	memset(_buff, 0, STRING);
 	sprintf(_buff, "%.9g %.9g %.9g %.9g",
-			(ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2],(ptr->v).r[3]);
+			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2],(ptr->v).c[3]);
 	_str = JS_NewStringCopyZ(cx, _buff);
     *rval = STRING_TO_JSVAL(_str);
 
@@ -534,16 +534,16 @@ SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 	}
 
 	if (argc == 0) {
-		(ptr->v).r[0] = 0.0;
-		(ptr->v).r[1] = 0.0;
-		(ptr->v).r[2] = 0.0;
-		(ptr->v).r[3] = 0.0;
+		(ptr->v).c[0] = 0.0;
+		(ptr->v).c[1] = 0.0;
+		(ptr->v).c[2] = 0.0;
+		(ptr->v).c[3] = 0.0;
 	} else if (JS_ConvertArguments(cx, argc, argv, "d d d d",
 					&(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
-		(ptr->v).r[0] = pars[0];
-		(ptr->v).r[1] = pars[1];
-		(ptr->v).r[2] = pars[2];
-		(ptr->v).r[3] = pars[3];
+		(ptr->v).c[0] = pars[0];
+		(ptr->v).c[1] = pars[1];
+		(ptr->v).c[2] = pars[2];
+		(ptr->v).c[3] = pars[3];
 	} else {
 		printf( "Invalid arguments for SFColorRGBAConstr.\n");
 		return JS_FALSE;
@@ -555,7 +555,7 @@ SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFColorRGBAConstr: obj = %u, %u args, %f %f %fi %f\n",
 			   VERBOSE_OBJ obj, argc,
-			   (ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2],(ptr->v).r[3]);
+			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2],(ptr->v).c[3]);
 	#endif
 	*rval = OBJECT_TO_JSVAL(obj);
 
@@ -575,7 +575,7 @@ SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			d = (ptr->v).r[0];
+			d = (ptr->v).c[0];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				printf(
 						"JS_NewDouble failed for %f in SFColorRGBAGetProperty.\n",
@@ -585,7 +585,7 @@ SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			*vp = DOUBLE_TO_JSVAL(dp);
 			break;
 		case 1:
-			d = (ptr->v).r[1];
+			d = (ptr->v).c[1];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				printf(
 						"JS_NewDouble failed for %f in SFColorRGBAGetProperty.\n",
@@ -595,7 +595,7 @@ SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			*vp = DOUBLE_TO_JSVAL(dp);
 			break;
 		case 2:
-			d = (ptr->v).r[2];
+			d = (ptr->v).c[2];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				printf(
 						"JS_NewDouble failed for %f in SFColorRGBAGetProperty.\n",
@@ -605,7 +605,7 @@ SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			*vp = DOUBLE_TO_JSVAL(dp);
 			break;
 		case 3:
-			d = (ptr->v).r[3];
+			d = (ptr->v).c[3];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				printf(
 						"JS_NewDouble failed for %f in SFColorRGBAGetProperty.\n",
@@ -643,16 +643,16 @@ SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			(ptr->v).r[0] = *JSVAL_TO_DOUBLE(_val);
+			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(_val);
 			break;
 		case 1:
-			(ptr->v).r[1] = *JSVAL_TO_DOUBLE(_val);
+			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(_val);
 			break;
 		case 2:
-			(ptr->v).r[2] = *JSVAL_TO_DOUBLE(_val);
+			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(_val);
 			break;
 		case 3:
-			(ptr->v).r[3] = *JSVAL_TO_DOUBLE(_val);
+			(ptr->v).c[3] = *JSVAL_TO_DOUBLE(_val);
 			break;
 
 		}
@@ -1265,9 +1265,9 @@ SFRotationGetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 		return JS_FALSE;
 	}
 
-	(_retNative->v).c[0] = (_rot->v).r[0];
-	(_retNative->v).c[1] = (_rot->v).r[1];
-	(_retNative->v).c[2] = (_rot->v).r[2];
+	(_retNative->v).c[0] = (_rot->v).c[0];
+	(_retNative->v).c[1] = (_rot->v).c[1];
+	(_retNative->v).c[2] = (_rot->v).c[2];
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFRotationGetAxis: obj = %u, result = [%.9g, %.9g, %.9g]\n",
@@ -1315,8 +1315,8 @@ SFRotationInverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 	}
 
 	/* convert both rotation to quaternion */
-	vrmlrot_to_quaternion(&q1, (double) _rot->v.r[0], 
-		(double) _rot->v.r[1], (double) _rot->v.r[2], (double) _rot->v.r[3]);
+	vrmlrot_to_quaternion(&q1, (double) _rot->v.c[0], 
+		(double) _rot->v.c[1], (double) _rot->v.c[2], (double) _rot->v.c[3]);
 
 	/* invert it */
 	quaternion_inverse(&qret,&q1);
@@ -1325,10 +1325,10 @@ SFRotationInverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 	/* and return the resultant, as a vrml rotation */
 	quaternion_to_vrmlrot(&qret, &a, &b, &c, &d);
 	/* double to floats, can not use pointers... */
-	_retNative->v.r[0] = a;
-	_retNative->v.r[1] = b;
-	_retNative->v.r[2] = c;
-	_retNative->v.r[3] = d;
+	_retNative->v.c[0] = a;
+	_retNative->v.c[1] = b;
+	_retNative->v.c[2] = c;
+	_retNative->v.c[3] = d;
 
 	/* and, we now have a new value */
 	_retNative->valueChanged = 1; 
@@ -1383,10 +1383,10 @@ SFRotationMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 	}
 
 	/* convert both rotations into quaternions */
-	vrmlrot_to_quaternion(&q1, (double) _rot1->v.r[0], 
-		(double) _rot1->v.r[1], (double) _rot1->v.r[2], (double) _rot1->v.r[3]);
-	vrmlrot_to_quaternion(&q2, (double) _rot2->v.r[0], 
-		(double) _rot2->v.r[1], (double) _rot2->v.r[2], (double) _rot2->v.r[3]);
+	vrmlrot_to_quaternion(&q1, (double) _rot1->v.c[0], 
+		(double) _rot1->v.c[1], (double) _rot1->v.c[2], (double) _rot1->v.c[3]);
+	vrmlrot_to_quaternion(&q2, (double) _rot2->v.c[0], 
+		(double) _rot2->v.c[1], (double) _rot2->v.c[2], (double) _rot2->v.c[3]);
 
 	/* multiply them */
 	quaternion_multiply(&qret,&q1,&q2);
@@ -1395,10 +1395,10 @@ SFRotationMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 	/* and return the resultant, as a vrml rotation */
 	quaternion_to_vrmlrot(&qret, &a, &b, &c, &d);
 	/* double to floats, can not use pointers... */
-	_retNative->v.r[0] = a;
-	_retNative->v.r[1] = b;
-	_retNative->v.r[2] = c;
-	_retNative->v.r[3] = d;
+	_retNative->v.c[0] = a;
+	_retNative->v.c[1] = b;
+	_retNative->v.c[2] = c;
+	_retNative->v.c[3] = d;
 
 	/* and, we now have a new value */
 	_retNative->valueChanged = 1; 
@@ -1442,10 +1442,10 @@ SFRotationMultVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 		printf( "JS_GetPrivate failed for obj in SFRotationMultVec.\n");
 		return JS_FALSE;
 	}
-	r.x = _rot->v.r[0];
-	r.y = _rot->v.r[1];
-	r.z = _rot->v.r[2];
-	angle = _rot->v.r[3];
+	r.x = _rot->v.c[0];
+	r.y = _rot->v.c[1];
+	r.z = _rot->v.c[2];
+	angle = _rot->v.c[3];
 
 	if ((_vec = (SFVec3fNative *)JS_GetPrivate(cx, _multObj)) == NULL) {
 		printf( "JS_GetPrivate failed for_multObjin SFRotationMultVec.\n");
@@ -1505,19 +1505,19 @@ SFRotationSetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 		return JS_FALSE;
 	}
 
-	(_rot->v).r[0] = (_vec->v).c[0];
-	(_rot->v).r[1] = (_vec->v).c[1];
-	(_rot->v).r[2] = (_vec->v).c[2];
+	(_rot->v).c[0] = (_vec->v).c[0];
+	(_rot->v).c[1] = (_vec->v).c[1];
+	(_rot->v).c[2] = (_vec->v).c[2];
 
 	*rval = OBJECT_TO_JSVAL(obj);
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFRotationSetAxis: obj = %u, result = [%.9g, %.9g, %.9g, %.9g]\n",
 			   VERBOSE_OBJ obj,
-			   (_rot->v).r[0],
-			   (_rot->v).r[1],
-			   (_rot->v).r[2],
-			   (_rot->v).r[3]);
+			   (_rot->v).c[0],
+			   (_rot->v).c[1],
+			   (_rot->v).c[2],
+			   (_rot->v).c[3]);
 	#endif
 
 	return JS_TRUE;
@@ -1583,23 +1583,23 @@ SFRotationSlerp(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 		}
 
 		vrmlrot_to_quaternion(&_quat,
-							  (_rot->v).r[0],
-							  (_rot->v).r[1],
-							  (_rot->v).r[2],
-							  (_rot->v).r[3]);
+							  (_rot->v).c[0],
+							  (_rot->v).c[1],
+							  (_rot->v).c[2],
+							  (_rot->v).c[3]);
 
 		vrmlrot_to_quaternion(&_quat_dest,
-							  (_dest->v).r[0],
-							  (_dest->v).r[1],
-							  (_dest->v).r[2],
-							  (_dest->v).r[3]);
+							  (_dest->v).c[0],
+							  (_dest->v).c[1],
+							  (_dest->v).c[2],
+							  (_dest->v).c[3]);
 
 		quaternion_slerp(&_quat_ret, &_quat, &_quat_dest, t);
 		quaternion_to_vrmlrot(&_quat_ret,
-							  (double *) &(_ret->v).r[0],
-							  (double *) &(_ret->v).r[1],
-							  (double *) &(_ret->v).r[2],
-							  (double *) &(_ret->v).r[3]);
+							  (double *) &(_ret->v).c[0],
+							  (double *) &(_ret->v).c[1],
+							  (double *) &(_ret->v).c[2],
+							  (double *) &(_ret->v).c[3]);
 	}
 
 	return JS_TRUE;
@@ -1626,7 +1626,7 @@ SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 	}
 	memset(buff, 0, STRING);
 	sprintf(buff, "%.9g %.9g %.9g %.9g",
-			ptr->v.r[0], ptr->v.r[1], ptr->v.r[2], ptr->v.r[3]);
+			ptr->v.c[0], ptr->v.c[1], ptr->v.c[2], ptr->v.c[3]);
 	_str = JS_NewStringCopyZ(cx, buff);
 
     *rval = STRING_TO_JSVAL(_str);
@@ -1719,7 +1719,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	}
 
 	if (argc == 0) {
-		(ptr->v).r[0] = 0.0; (ptr->v).r[1] = 0.0; (ptr->v).r[2] = 1.0; (ptr->v).r[3] = 0.0;
+		(ptr->v).c[0] = 0.0; (ptr->v).c[1] = 0.0; (ptr->v).c[2] = 1.0; (ptr->v).c[3] = 0.0;
 
 	} else if (argc == 2) {
 		/* two possibilities - SFVec3f/numeric, or SFVec3f/SFVec3f */
@@ -1760,10 +1760,10 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 
 
 		if (!v3fv3f) {
-			(ptr->v).r[0] = _vec->v.c[0];
-			(ptr->v).r[1] = _vec->v.c[1];
-			(ptr->v).r[2] = _vec->v.c[2];
-			(ptr->v).r[3] = doub;
+			(ptr->v).c[0] = _vec->v.c[0];
+			(ptr->v).c[1] = _vec->v.c[1];
+			(ptr->v).c[2] = _vec->v.c[2];
+			(ptr->v).c[3] = doub;
 		} else {
 			v1.x = _vec->v.c[0];
 			v1.y = _vec->v.c[1];
@@ -1775,18 +1775,18 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			v1len = veclength(v1);
 			v2len = veclength(v2);
 			v12dp = vecdot(&v1, &v2);
-			(ptr->v).r[0] = v1.y * v2.z - v2.y * v1.z;
-			(ptr->v).r[1] = v1.z * v2.x - v2.z * v1.x;
-			(ptr->v).r[2] = v1.x * v2.y - v2.x * v1.y;
+			(ptr->v).c[0] = v1.y * v2.z - v2.y * v1.z;
+			(ptr->v).c[1] = v1.z * v2.x - v2.z * v1.x;
+			(ptr->v).c[2] = v1.x * v2.y - v2.x * v1.y;
 			v12dp /= v1len * v2len;
-			(ptr->v).r[3] = atan2(sqrt(1 - v12dp * v12dp), v12dp);
+			(ptr->v).c[3] = atan2(sqrt(1 - v12dp * v12dp), v12dp);
 		}
 	} else if (argc == 4 && JS_ConvertArguments(cx, argc, argv, "d d d d",
 			&(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
-		(ptr->v).r[0] = pars[0];
-		(ptr->v).r[1] = pars[1];
-		(ptr->v).r[2] = pars[2];
-		(ptr->v).r[3] = pars[3];
+		(ptr->v).c[0] = pars[0];
+		(ptr->v).c[1] = pars[1];
+		(ptr->v).c[2] = pars[2];
+		(ptr->v).c[3] = pars[3];
 	} else {
 		printf( "Invalid arguments for SFRotationConstr.\n");
 		return JS_FALSE;
@@ -1795,7 +1795,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFRotationConstr: obj = %u, %u args, %f %f %f %f\n",
 			   VERBOSE_OBJ obj, argc,
-			   (ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2], (ptr->v).r[3]);
+			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2], (ptr->v).c[3]);
 	#endif
 	
 	ptr->valueChanged = 1;
@@ -1822,7 +1822,7 @@ SFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			d = (ptr->v).r[0];
+			d = (ptr->v).c[0];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				printf(
 						"JS_NewDouble failed for %f in SFRotationGetProperty.\n",
@@ -1832,7 +1832,7 @@ SFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			*vp = DOUBLE_TO_JSVAL(dp);
 			break;
 		case 1:
-			d = (ptr->v).r[1];
+			d = (ptr->v).c[1];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				printf(
 						"JS_NewDouble failed for %f in SFRotationGetProperty.\n",
@@ -1842,7 +1842,7 @@ SFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			*vp = DOUBLE_TO_JSVAL(dp);
 			break;
 		case 2:
-			d = (ptr->v).r[2];
+			d = (ptr->v).c[2];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				printf(
 						"JS_NewDouble failed for %f in SFRotationGetProperty.\n",
@@ -1852,7 +1852,7 @@ SFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			*vp = DOUBLE_TO_JSVAL(dp);
 			break;
 		case 3:
-			d = (ptr->v).r[3];
+			d = (ptr->v).c[3];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				printf(
 						"JS_NewDouble failed for %f in SFRotationGetProperty.\n",
@@ -1894,16 +1894,16 @@ SFRotationSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			(ptr->v).r[0] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 1:
-			(ptr->v).r[1] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 2:
-			(ptr->v).r[2] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 3:
-			(ptr->v).r[3] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[3] = *JSVAL_TO_DOUBLE(myv);
 			break;
 		}
 	}

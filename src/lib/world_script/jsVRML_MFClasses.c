@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.9 2009/05/06 17:41:08 crc_canada Exp $
+$Id: jsVRML_MFClasses.c,v 1.10 2009/05/06 20:35:46 crc_canada Exp $
 
 ???
 
@@ -765,7 +765,7 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 		quaternion_to_vrmlrot(&quat, &qu[0],&qu[1],&qu[2],&qu[3]);
 
 		/* now copy the values over */
-		for (i=0; i<4; i++) (Rptr->v).r[i] = qu[i];
+		for (i=0; i<4; i++) (Rptr->v).c[i] = qu[i];
 		Rptr->valueChanged = 1;
 	}
 
@@ -901,13 +901,13 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 	
 		if (!error) {
 			Quaternion quat;
-			vrmlrot_to_quaternion(&quat, Rptr->v.r[0], Rptr->v.r[1], Rptr->v.r[2], Rptr->v.r[3]);
-			/* printf ("from rotation %f %f %f %f\n",Rptr->v.r[0], Rptr->v.r[1], Rptr->v.r[2], Rptr->v.r[3]);
+			vrmlrot_to_quaternion(&quat, Rptr->v.c[0], Rptr->v.c[1], Rptr->v.c[2], Rptr->v.c[3]);
+			/* printf ("from rotation %f %f %f %f\n",Rptr->v.c[0], Rptr->v.c[1], Rptr->v.c[2], Rptr->v.c[3]);
 			printf ("quaternion is %f %f %f %f\n",quat.x,quat.y,quat.x, quat.w); */
 			quaternion_to_matrix (&matrix, &quat);
 
 #ifdef TESTING
-                        glRotatef(Rptr->v.r[3]/3.1415926536*180, Rptr->v.r[0], Rptr->v.r[1], Rptr->v.r[2]);
+                        glRotatef(Rptr->v.c[3]/3.1415926536*180, Rptr->v.c[0], Rptr->v.c[1], Rptr->v.c[2]);
 #endif
 		}
 	}

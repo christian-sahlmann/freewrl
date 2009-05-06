@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.26 2009/04/24 18:47:40 crc_canada Exp $
+  $Id: CParseParser.c,v 1.27 2009/05/06 20:35:46 crc_canada Exp $
 
   ???
 
@@ -2488,27 +2488,27 @@ PARSER_MFFIELD(bool, Bool)
 /* SF* field values */
 
 /* Parses a fixed-size vector-field of floats (SFColor, SFRotation, SFVecXf) */
-#define PARSER_FIXED_VEC(name, type, cnt, dest) \
+#define PARSER_FIXED_VEC(name, type, cnt) \
  BOOL parser_sf##name##Value(struct VRMLParser* me, vrml##type##T* ret) \
  { \
   int i; \
   ASSERT(me->lexer); \
   for(i=0; i!=cnt; ++i) {\
-   if(!parser_sffloatValue(me, ret->dest+i)) \
+   if(!parser_sffloatValue(me, ret->c+i)) \
     return FALSE; \
-	/* printf ("parser_sf, %d of %d is %f\n",i,cnt,*(ret->dest+i)); */ \
+	/* printf ("parser_sf, %d of %d is %f\n",i,cnt,*(ret->c+i)); */ \
   }\
   return TRUE; \
  }
 
 /* Parses a fixed-size vector-field of floats (SFColor, SFRotation, SFVecXf) */
-#define PARSER_FIXED_DOUBLE_VEC(name, type, cnt, dest) \
+#define PARSER_FIXED_DOUBLE_VEC(name, type, cnt) \
  BOOL parser_sf##name##Value(struct VRMLParser* me, vrml##type##T* ret) \
  { \
   int i; \
   ASSERT(me->lexer); \
   for(i=0; i!=cnt; ++i) {\
-   if(!parser_sfdoubleValue_(me, ret->dest+i)) \
+   if(!parser_sfdoubleValue_(me, ret->c+i)) \
     return FALSE; \
   }\
   return TRUE; \
@@ -2587,18 +2587,18 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret) {
     return FALSE;
 }
 
-PARSER_FIXED_VEC(color, Color, 3, c)
-    PARSER_FIXED_VEC(colorrgba, ColorRGBA, 4, r)
-    PARSER_FIXED_VEC(matrix3f, Matrix3f, 9, c)
-    PARSER_FIXED_VEC(matrix4f, Matrix4f, 16, c)
-    PARSER_FIXED_VEC(vec2f, Vec2f, 2, c)
-    PARSER_FIXED_VEC(vec4f, Vec4f, 4, c)
-    PARSER_FIXED_VEC(rotation, Rotation, 4, r)
-    PARSER_FIXED_DOUBLE_VEC(vec2d, Vec2d, 2, c)
-    PARSER_FIXED_DOUBLE_VEC(vec3d, Vec3d, 3, c)
-    PARSER_FIXED_DOUBLE_VEC(vec4d, Vec4d, 4, c)
-    PARSER_FIXED_DOUBLE_VEC(matrix3d, Matrix3d, 9, c)
-    PARSER_FIXED_DOUBLE_VEC(matrix4d, Matrix4d, 16, c)
+    PARSER_FIXED_VEC(color, Color, 3)
+    PARSER_FIXED_VEC(colorrgba, ColorRGBA, 4)
+    PARSER_FIXED_VEC(matrix3f, Matrix3f, 9)
+    PARSER_FIXED_VEC(matrix4f, Matrix4f, 16)
+    PARSER_FIXED_VEC(vec2f, Vec2f, 2)
+    PARSER_FIXED_VEC(vec4f, Vec4f, 4)
+    PARSER_FIXED_VEC(rotation, Rotation, 4)
+    PARSER_FIXED_DOUBLE_VEC(vec2d, Vec2d, 2)
+    PARSER_FIXED_DOUBLE_VEC(vec3d, Vec3d, 3)
+    PARSER_FIXED_DOUBLE_VEC(vec4d, Vec4d, 4)
+    PARSER_FIXED_DOUBLE_VEC(matrix3d, Matrix3d, 9)
+    PARSER_FIXED_DOUBLE_VEC(matrix4d, Matrix4d, 16)
 
 /* JAS this code assumes that the ret points to a SFInt_32 type, and just
    fills in the values. */
