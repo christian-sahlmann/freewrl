@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.35 2009/04/29 20:20:25 crc_canada Exp $
+$Id: headers.h,v 1.36 2009/05/06 17:41:08 crc_canada Exp $
 
 Global includes.
 
@@ -9,7 +9,6 @@ Global includes.
 
 #ifndef __FREEWRL_HEADERS_H__
 #define __FREEWRL_HEADERS_H__
-
 
 /* for lightState() */
 #include "../opengl/OpenGL_Utils.h"
@@ -62,15 +61,14 @@ char *readInputString(char *fn);
 #define HEADLIGHT_LIGHT 7
 
 
-#define DEBUG_JAVASCRIPT_PROPERTY
-#ifdef DEBUG_JAVASCRIPT_PROPERTY
-/* #define JS_GET_PROPERTY_STUB js_GetPropertyDebug */
 #define JS_GET_PROPERTY_STUB JS_PropertyStub
+/* #define JS_GET_PROPERTY_STUB js_GetPropertyDebug */
 
 #define JS_SET_PROPERTY_STUB1 js_SetPropertyDebug1
+#define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2 
 
-/* #define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2  */
-#define JS_SET_PROPERTY_STUB2 JS_PropertyStub
+/* #define JS_SET_PROPERTY_STUB2 JS_PropertyStub */
+#define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug9
 
 #define JS_SET_PROPERTY_STUB3 js_SetPropertyDebug3 
 #define JS_SET_PROPERTY_STUB4 js_SetPropertyDebug4 
@@ -78,17 +76,6 @@ char *readInputString(char *fn);
 #define JS_SET_PROPERTY_STUB6 js_SetPropertyDebug6 
 #define JS_SET_PROPERTY_STUB7 js_SetPropertyDebug7 
 #define JS_SET_PROPERTY_STUB8 js_SetPropertyDebug8 
-#else
-#define JS_GET_PROPERTY_STUB JS_PropertyStub
-#define JS_SET_PROPERTY_STUB1 JS_PropertyStub
-#define JS_SET_PROPERTY_STUB2 JS_PropertyStub
-#define JS_SET_PROPERTY_STUB3 JS_PropertyStub
-#define JS_SET_PROPERTY_STUB4 JS_PropertyStub
-#define JS_SET_PROPERTY_STUB5 JS_PropertyStub
-#define JS_SET_PROPERTY_STUB6 JS_PropertyStub
-#define JS_SET_PROPERTY_STUB7 JS_PropertyStub
-#define JS_SET_PROPERTY_STUB8 JS_PropertyStub
-#endif
 #define JS_SET_PROPERTY_CHECK js_SetPropertyCheck
 
 #define INT_ID_UNDEFINED -1

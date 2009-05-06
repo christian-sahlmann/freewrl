@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.c,v 1.9 2009/04/01 19:20:42 crc_canada Exp $
+$Id: quaternion.c,v 1.10 2009/05/06 17:41:08 crc_canada Exp $
 
 ???
 
@@ -120,38 +120,43 @@ matrix_to_quaternion (Quaternion *quat, double *mat) {
 	quat->w = W;
 }
 
+/* http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm */
+/* note that the above web site uses "mathematicians" not "opengl" method of matrix id */
 void
-quaternion_to_matrix (float *mat, Quaternion *q) {
+quaternion_to_matrix (double *mat, Quaternion *q) {
 	double sqw, sqx, sqy, sqz, tmp1, tmp2;
+	double invs;
 	int i;
 
-	/* first, zero matrix */
-	for (i=0; i<16;i++) mat[i]=0.0;
-
+	/* assumes matrix is identity, or identity + transform */
 	/* assumes matrix in OpenGL format */
 	sqw = q->w*q->w;
 	sqx = q->x*q->x;
 	sqy = q->y*q->y;
 	sqz = q->z*q->z;
+	
+	/* inverse square length - if the quat is not normalized; but lets do
+	   this anyway */
+	invs = 1.0 / (sqx + sqy + sqz + sqw);
 
 	/* scale */
-	MAT00 =  sqx - sqy - sqz + sqw; /*  since sqw + sqx + sqy + sqz =1*/
-	MAT11 = -sqx + sqy - sqz + sqw;
-	MAT22 = -sqx - sqy + sqz + sqw;
+	MATHEMATICS_MAT00 =  (sqx - sqy - sqz + sqw)*invs; /*  since sqw + sqx + sqy + sqz =1*/
+	MATHEMATICS_MAT11 = (-sqx + sqy - sqz + sqw)*invs;
+	MATHEMATICS_MAT22 = (-sqx - sqy + sqz + sqw)*invs;
 
 	tmp1 = q->x*q->y;
 	tmp2 = q->z*q->w;
-	MAT10 = 2.0 * (tmp1 + tmp2); /* m[1][0]*/
-	MAT01 = 2.0 * (tmp1 - tmp2); /* m[0][1]*/
+	MATHEMATICS_MAT10 = 2.0 * (tmp1 + tmp2) * invs; /* m[1][0]*/
+	MATHEMATICS_MAT01 = 2.0 * (tmp1 - tmp2) * invs; /* m[0][1]*/
 
 	tmp1 = q->x*q->z;
 	tmp2 = q->y*q->w;
-	MAT20 = 2.0 * (tmp1 - tmp2); /* m[2][0]*/
-	MAT02 = 2.0 * (tmp1 + tmp2); /* m[0][2]*/
+	MATHEMATICS_MAT20 = 2.0 * (tmp1 - tmp2) * invs; /* m[2][0]*/
+	MATHEMATICS_MAT02 = 2.0 * (tmp1 + tmp2) * invs; /* m[0][2]*/
 	tmp1 = q->y*q->z;
 	tmp2 = q->x*q->w;
-	MAT21 = 2.0 * (tmp1 + tmp2); /* m[2][1]*/
-	MAT12 = 2.0 * (tmp1 - tmp2); /* m[1][2]*/
+	MATHEMATICS_MAT21 = 2.0 * (tmp1 + tmp2) * invs; /* m[2][1]*/
+	MATHEMATICS_MAT12 = 2.0 * (tmp1 - tmp2) * invs; /* m[1][2]*/
 }
 
 /*
@@ -420,3 +425,4 @@ quaternion_slerp(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, co
 	ret->z = scale0 * q1->z + scale1 * q2_array[2];
 	ret->w = scale0 * q1->w + scale1 * q2_array[3];
 }
+

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.8 2009/04/28 14:32:49 crc_canada Exp $
+$Id: jsVRML_MFClasses.c,v 1.9 2009/05/06 17:41:08 crc_canada Exp $
 
 ???
 
@@ -591,6 +591,26 @@ MFVec3fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 /* VrmlMatrix */
 
+static void _setmatrix (JSContext *cx, JSObject *obj, double *matrix) {
+jsdouble *dp;
+	int i;
+	for (i=0; i<16; i++) {
+		jsval val;
+
+		if ((dp = JS_NewDouble(cx, matrix[i])) == NULL) {
+			printf ("problem creating id matrix\n");
+			return JS_FALSE;
+		}
+
+		val = DOUBLE_TO_JSVAL(dp);
+
+		if (!JS_SetElement(cx, obj, (jsint) i, &val)) {
+			printf( "JS_DefineElement failed for arg %u in VrmlMatrixSetTransform.\n", i);
+			return JS_FALSE;
+		}
+	}
+}
+
 /* get the matrix values into a double array */
 static void _getmatrix (JSContext *cx, JSObject *obj, double *fl) {
 	int32 _length;
@@ -659,7 +679,9 @@ JSBool
 VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	int i;
-    	JSObject *transObj, *rotObj, *scaleObj;
+    	JSObject *transObj = NULL;
+	JSObject *rotObj = NULL;
+	JSObject *scaleObj = NULL;
 	SFRotationNative *Rptr;
 	SFVec3fNative *Vptr;
 
@@ -687,8 +709,7 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 		}
 	}
 	if (argc == 2) {
-		if (!JS_ConvertArguments(cx, argc, argv, "o o", &transObj,
-					&rotObj)) {
+		if (!JS_ConvertArguments(cx, argc, argv, "o o", &transObj, &rotObj)) {
 			printf ("getTransform, invalid parameters\n");
 			return JS_FALSE;
 		}
@@ -702,7 +723,7 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 	}
 
 	/* translation */
-	if ((argc>=1) && (!JSVAL_IS_NULL(argv[0]))) {
+	if (transObj!=NULL) {
 		if (!JS_InstanceOf(cx, transObj, &SFVec3fClass, NULL)) {
 			printf ("VrmlMatrix:this is not a translation!\n");
 			return JS_FALSE;
@@ -714,10 +735,11 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 		(Vptr->v).c[0] = matrix[12];
 		(Vptr->v).c[1] = matrix[13];
 		(Vptr->v).c[2] = matrix[14];
+		Vptr->valueChanged++;
 	}
 
 	/* rotation */
-	if ((argc>=2) && (!JSVAL_IS_NULL(argv[1]))) {
+	if (rotObj!=NULL) {
 		if (!JS_InstanceOf(cx, rotObj, &SFRotationClass, NULL)) {
 			printf ("VrmlMatrix:this is not a rotation!\n");
 			return JS_FALSE;
@@ -744,10 +766,11 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 
 		/* now copy the values over */
 		for (i=0; i<4; i++) (Rptr->v).r[i] = qu[i];
+		Rptr->valueChanged = 1;
 	}
 
 	/* scale */
-	if ((argc>=3) && (!JSVAL_IS_NULL(argv[2]))) {
+	if (scaleObj != NULL) {
 		if (!JS_InstanceOf(cx, scaleObj, &SFVec3fClass, NULL)) {
 			printf ("VrmlMatrix:this is not a scale!\n");
 			return JS_FALSE;
@@ -759,6 +782,7 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 		(Vptr->v).c[0] = l0;
 		(Vptr->v).c[1] = l1;
 		(Vptr->v).c[2] = l2;
+		Vptr->valueChanged = 1;
 	}
 
 	*rval = JSVAL_VOID;
@@ -790,18 +814,21 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 	SFRotationNative *Rptr;
 	SFVec3fNative *Vptr;
     	double matrix[16];
+	jsdouble *dp;
 
 	int error = FALSE;
 	int i;
+#undef TESTING
+#ifdef TESTING
+	GLdouble xxmat[16];
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+#endif
+
 
 	/* set the identity for this matrix. We work on this matrix, then assign it to the variable */
-	for (i=0; i<16; i++) {
-		double d;
-		if ((i==0) || (i==5) || (i==10) || (i==15)) { d = 1.0;
-		} else { d = 0.0; }
-		matrix[i] = d;
-	}
-
+	loadIdentityMatrix(matrix);
 
 	/* first, is this a VrmlMatrix object? The chances of this failing are slim to none... */
 	if (!JS_InstanceOf(cx, obj, &VrmlMatrixClass, NULL)) {
@@ -851,29 +878,76 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 		return JS_FALSE;
 	}
 
-
 	/* apply Transform, if requested */
 	if (transObj) {
 		SFVec3fNative * Vptr;
-                Vptr = (SFVec3fNative *)JS_GetPrivate(cx, transObj);
-		error = (Vptr != NULL);
+		Vptr = (SFVec3fNative *)JS_GetPrivate(cx, transObj);
+		error = (Vptr == NULL);
 	
 		if (!error) {
                 	matrix[12]=Vptr->v.c[0];
                 	matrix[13]=Vptr->v.c[1];
                 	matrix[14]=Vptr->v.c[2];
+#ifdef TESTING
+			glTranslatef(Vptr->v.c[0], Vptr->v.c[1], Vptr->v.c[2]);
+#endif
 		}
 	}
 
 	if (!error && (rotObj != NULL)) {
 		SFRotationNative * Rptr;
                 Rptr = (SFRotationNative *)JS_GetPrivate(cx, rotObj);
-		error = (Vptr != NULL);
+		error = (Vptr == NULL);
 	
 		if (!error) {
+			Quaternion quat;
+			vrmlrot_to_quaternion(&quat, Rptr->v.r[0], Rptr->v.r[1], Rptr->v.r[2], Rptr->v.r[3]);
+			/* printf ("from rotation %f %f %f %f\n",Rptr->v.r[0], Rptr->v.r[1], Rptr->v.r[2], Rptr->v.r[3]);
+			printf ("quaternion is %f %f %f %f\n",quat.x,quat.y,quat.x, quat.w); */
+			quaternion_to_matrix (&matrix, &quat);
+
+#ifdef TESTING
+                        glRotatef(Rptr->v.r[3]/3.1415926536*180, Rptr->v.r[0], Rptr->v.r[1], Rptr->v.r[2]);
+#endif
 		}
+	}
+
+	if (!error && (scaleObj != NULL)) {
+		SFVec3fNative * Vptr;
+                Vptr = (SFVec3fNative *)JS_GetPrivate(cx, scaleObj);
+		error = (Vptr == NULL);
+
+		if (!error) {
+			struct point_XYZ myScale;
+			myScale.x = Vptr->v.c[0];
+			myScale.y = Vptr->v.c[1];
+			myScale.z = Vptr->v.c[2];
+
+			scale_to_matrix(&matrix, &myScale);
+		}
+#ifdef TESTING
+		glScalef(Vptr->v.c[0], Vptr->v.c[1], Vptr->v.c[2]);
+#endif
 
 	}
+
+	/* place the new values into the vrmlMatrix array */
+	_setmatrix (cx, obj, matrix);
+
+#ifdef TESTING
+       printf ("calculated Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
+                matrix[0],  matrix[4],  matrix[ 8],  matrix[12],
+                matrix[1],  matrix[5],  matrix[ 9],  matrix[13],
+                matrix[2],  matrix[6],  matrix[10],  matrix[14],
+                matrix[3],  matrix[7],  matrix[11],  matrix[15]);
+	glGetDoublev(GL_MODELVIEW,xxmat);
+       printf ("modelview Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
+                xxmat[0],  xxmat[4],  xxmat[ 8],  xxmat[12],
+                xxmat[1],  xxmat[5],  xxmat[ 9],  xxmat[13],
+                xxmat[2],  xxmat[6],  xxmat[10],  xxmat[14],
+                xxmat[3],  xxmat[7],  xxmat[11],  xxmat[15]);
+	glPopMatrix();
+#endif
 	
 	return JS_TRUE;
 }
@@ -882,8 +956,22 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 JSBool
 VrmlMatrixinverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
-	printf ("VrmlMatrixinverse\n");
+	double src[16];
+	double dest[16];
+	JSObject *retObj;
+	UNUSED (argv);
+
+	if (argc != 0) {
+		printf ("VrmlMatrix, expect 0 parameters\n");
+		return JS_FALSE;
+	}
+	_getmatrix (cx, obj,src);
+	matinverse (dest,src);
+
+        retObj = JS_ConstructObject(cx,&VrmlMatrixClass,NULL, NULL);
+
+        _setmatrix(cx,retObj,dest);
+        *rval = OBJECT_TO_JSVAL(retObj);
 	return JS_TRUE;
 }
 
@@ -891,26 +979,112 @@ VrmlMatrixinverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 JSBool
 VrmlMatrixtranspose(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
-	printf ("VrmlMatrixtranspose\n");
+	double src[16];
+	double dest[16];
+	JSObject *retObj;
+	UNUSED (argv);
+
+	if (argc != 0) {
+		printf ("VrmlMatrix, expect 0 parameters\n");
+		return JS_FALSE;
+	}
+	_getmatrix (cx, obj,src);
+	mattranspose (dest,src);
+
+        retObj = JS_ConstructObject(cx,&VrmlMatrixClass,NULL, NULL);
+
+        _setmatrix(cx,retObj,dest);
+        *rval = OBJECT_TO_JSVAL(retObj);
 	return JS_TRUE;
 }
+
 
 
 JSBool
 VrmlMatrixmultLeft(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
-	printf ("VrmlMatrixmultLeft\n");
+        JSObject *transObj = NULL;
+	JSObject *retObj = NULL;
+
+        double matrix1[16];
+        double matrix2[16];
+        jsdouble *dp;
+
+        int error = FALSE;
+        int i;
+
+	if (argc == 1) {
+		error = !JS_ConvertArguments(cx, argc, argv, "o", &transObj);
+	} else error = TRUE;
+
+	if (!error) if (!JS_InstanceOf(cx, transObj, &VrmlMatrixClass, NULL)) { error = TRUE;}	
+
+	if (error) {
+		ConsoleMessage ("VrmlMatrixMultLeft, error in params");
+		return JS_FALSE;
+	}
+
+	/* fill in the 2 matricies, multiply them, then return it */
+	_getmatrix(cx,obj,matrix1);
+	_getmatrix(cx,transObj,matrix2);
+	matmultiply(matrix1,matrix1,matrix2);
+
+	retObj = JS_ConstructObject(cx,&VrmlMatrixClass,NULL, NULL);
+
+	/*
+       printf ("multLeft calculated Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
+                matrix1[0],  matrix1[4],  matrix1[ 8],  matrix1[12],
+                matrix1[1],  matrix1[5],  matrix1[ 9],  matrix1[13],
+                matrix1[2],  matrix1[6],  matrix1[10],  matrix1[14],
+                matrix1[3],  matrix1[7],  matrix1[11],  matrix1[15]);
+	*/
+	_setmatrix(cx,retObj,matrix1);
+	*rval = OBJECT_TO_JSVAL(retObj);
+
 	return JS_TRUE;
 }
-
 
 JSBool
 VrmlMatrixmultRight(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
-	printf ("VrmlMatrixmultRight\n");
+        JSObject *transObj = NULL;
+	JSObject *retObj = NULL;
+
+        double matrix1[16];
+        double matrix2[16];
+        jsdouble *dp;
+
+        int error = FALSE;
+        int i;
+
+	if (argc == 1) {
+		error = !JS_ConvertArguments(cx, argc, argv, "o", &transObj);
+	} else error = TRUE;
+
+	if (!error) if (!JS_InstanceOf(cx, transObj, &VrmlMatrixClass, NULL)) { error = TRUE;}	
+
+	if (error) {
+		ConsoleMessage ("VrmlMatrixMultRight, error in params");
+		return JS_FALSE;
+	}
+
+	/* fill in the 2 matricies, multiply them, then return it */
+	_getmatrix(cx,obj,matrix1);
+	_getmatrix(cx,transObj,matrix2);
+	matmultiply(matrix1,matrix2,matrix1);
+
+	retObj = JS_ConstructObject(cx,&VrmlMatrixClass,NULL, NULL);
+
+	/*
+       printf ("multRight calculated Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
+                matrix1[0],  matrix1[4],  matrix1[ 8],  matrix1[12],
+                matrix1[1],  matrix1[5],  matrix1[ 9],  matrix1[13],
+                matrix1[2],  matrix1[6],  matrix1[10],  matrix1[14],
+                matrix1[3],  matrix1[7],  matrix1[11],  matrix1[15]);
+	*/
+	_setmatrix(cx,retObj,matrix1);
+	*rval = OBJECT_TO_JSVAL(retObj);
+
 	return JS_TRUE;
 }
 
@@ -918,8 +1092,54 @@ VrmlMatrixmultRight(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 JSBool
 VrmlMatrixmultVecMatrix(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
-	printf ("VrmlMatrixmultVecMatrix\n");
+        JSObject *transObj = NULL;
+	JSObject *retObj = NULL;
+	SFVec3fNative *Vptr;
+
+        double matrix1[16];
+        jsdouble *dp;
+        int error = FALSE;
+        int i;
+	struct point_XYZ inp, outp;
+
+	if (argc == 1) {
+		error = !JS_ConvertArguments(cx, argc, argv, "o", &transObj);
+	} else error = TRUE;
+
+	if (!error) if (!JS_InstanceOf(cx, transObj, &SFVec3fClass, NULL)) { error = TRUE;}	
+
+	if ((Vptr = (SFVec3fNative *)JS_GetPrivate(cx, transObj)) == NULL) {
+		error = TRUE;
+	}
+
+	if (error) {
+		ConsoleMessage ("VrmlMatrixMultVec, error in params");
+		return JS_FALSE;
+	}
+
+	inp.x = Vptr->v.c[0];
+	inp.y = Vptr->v.c[1];
+	inp.z = Vptr->v.c[2];
+
+	/* fill in the 2 matricies, multiply them, then return it */
+	_getmatrix(cx,obj,matrix1);
+
+	/* is this the one we have to transpose? */
+	/* mattranspose (matrix1, matrix1); */
+	
+	matrotate2v(matrix1, inp, outp);
+
+	retObj = JS_ConstructObject(cx,&SFVec3fClass,NULL, NULL);
+	if ((Vptr = (SFVec3fNative *)JS_GetPrivate(cx, retObj)) == NULL) {
+		printf ("error in new VrmlMatrix\n");
+		return JS_FALSE;
+	}
+
+	Vptr->v.c[0] = outp.x;
+	Vptr->v.c[1] = outp.y;
+	Vptr->v.c[2] = outp.z;
+	*rval = OBJECT_TO_JSVAL(retObj);
+
 	return JS_TRUE;
 }
 
@@ -927,8 +1147,54 @@ VrmlMatrixmultVecMatrix(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, j
 JSBool
 VrmlMatrixmultMatrixVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
-	printf ("VrmlMatrixmultMatrixVec\n");
+        JSObject *transObj = NULL;
+	JSObject *retObj = NULL;
+	SFVec3fNative *Vptr;
+
+        double matrix1[16];
+        jsdouble *dp;
+        int error = FALSE;
+        int i;
+	struct point_XYZ inp, outp;
+
+	if (argc == 1) {
+		error = !JS_ConvertArguments(cx, argc, argv, "o", &transObj);
+	} else error = TRUE;
+
+	if (!error) if (!JS_InstanceOf(cx, transObj, &SFVec3fClass, NULL)) { error = TRUE;}	
+
+	if ((Vptr = (SFVec3fNative *)JS_GetPrivate(cx, transObj)) == NULL) {
+		error = TRUE;
+	}
+
+	if (error) {
+		ConsoleMessage ("VrmlMatrixMultVec, error in params");
+		return JS_FALSE;
+	}
+
+	inp.x = Vptr->v.c[0];
+	inp.y = Vptr->v.c[1];
+	inp.z = Vptr->v.c[2];
+
+	/* fill in the 2 matricies, multiply them, then return it */
+	_getmatrix(cx,obj,matrix1);
+
+	/* is this the one we have to transpose? */
+	mattranspose (matrix1, matrix1);
+	
+	matrotate2v(matrix1, inp, outp);
+
+	retObj = JS_ConstructObject(cx,&SFVec3fClass,NULL, NULL);
+	if ((Vptr = (SFVec3fNative *)JS_GetPrivate(cx, retObj)) == NULL) {
+		printf ("error in new VrmlMatrix\n");
+		return JS_FALSE;
+	}
+
+	Vptr->v.c[0] = outp.x;
+	Vptr->v.c[1] = outp.y;
+	Vptr->v.c[2] = outp.z;
+	*rval = OBJECT_TO_JSVAL(retObj);
+
 	return JS_TRUE;
 }
 
@@ -969,20 +1235,9 @@ VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		}
 	} else {
 		/* make the identity matrix */
-		for (i=0; i<16; i++) {
-			if ((i==0) || (i==5) || (i==10) || (i==15)) { d = 1.0;
-			} else { d = 0.0; }
-
-			if ((dp = JS_NewDouble(cx, d)) == NULL) {
-				printf ("problem creating id matrix\n");
-				return JS_FALSE;
-			}
-
-			if (!JS_DefineElement(cx, obj, (jsint) i, DOUBLE_TO_JSVAL(dp), JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
-				printf( "JS_DefineElement failed for arg %u in VrmlMatrixConstr.\n", i);
-				return JS_FALSE;
-			}
-		}
+		double matrix[16];
+		loadIdentityMatrix(matrix);
+		_setmatrix (cx, obj, matrix);
 	}
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
@@ -1004,6 +1259,24 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
         return JS_FALSE;
 	}
 	_length = JSVAL_TO_INT(_length_val);
+
+/*
+                if (JSVAL_IS_STRING(id)==TRUE) {
+                printf("        is a common string :%s:\n",
+                        JS_GetStringBytes(JS_ValueToString(cx, id)));
+                }
+                if (JSVAL_IS_OBJECT(id)==TRUE) {
+                        printf ("       parameter is an object\n");
+                }
+                if (JSVAL_IS_PRIMITIVE(id)==TRUE) {
+                        printf ("       parameter is a primitive\n");
+                }
+                if (JSVAL_IS_NULL(id)) { printf ("      - its a NULL\n");}
+                if (JSVAL_IS_INT(id)) { printf ("       - its a INT %d\n",JSVAL_TO_INT(id));}
+*/
+
+
+
 
 	if (JSVAL_IS_INT(id)) {
 		_index = JSVAL_TO_INT(id);
@@ -1027,6 +1300,7 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 				return JS_FALSE;
 			}
 		}
+	} else if (JSVAL_IS_OBJECT(id)) {
 	}
 
 	return JS_TRUE;

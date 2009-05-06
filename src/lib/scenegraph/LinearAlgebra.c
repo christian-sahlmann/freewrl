@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: LinearAlgebra.c,v 1.4 2009/05/06 17:41:08 crc_canada Exp $
 
 ???
 
@@ -257,6 +257,26 @@ void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, stru
 }
 
 
+GLdouble* mattranspose(GLdouble* res, GLdouble* m)
+{
+	double Deta;
+	GLdouble mcpy[16];
+	int i, j;
+
+
+	if(res == m) {
+		memcpy(mcpy,m,sizeof(GLdouble)*16);
+		m = mcpy;
+	}
+
+	for (i = 0; i < 4; i++) {
+		for (j = i + 1; j < 4; j++) {
+			res[i*4+j] = m[j*4+i];
+		}
+	}
+}
+
+
 GLdouble* matinverse(GLdouble* res, GLdouble* m)
 {
     double Deta;
@@ -437,3 +457,49 @@ GLdouble* veccross(GLdouble* r, GLdouble* v1, GLdouble* v2)
 
 
 #endif
+
+
+/*
+ * apply a scale to the matrix given. Assumes matrix is valid... 
+ *
+ */
+	
+void scale_to_matrix (double *mat, struct point_XYZ *scale) {
+/* copy the definitions from quaternion.h... */
+#define MAT00 mat[0]
+#define MAT01 mat[1]
+#define MAT02 mat[2]
+#define MAT03 mat[3]
+#define MAT10 mat[4]
+#define MAT11 mat[5]
+#define MAT12 mat[6]
+#define MAT13 mat[7]
+#define MAT20 mat[8]
+#define MAT21 mat[9]
+#define MAT22 mat[10]
+#define MAT23 mat[11]
+#define MAT30 mat[12]
+#define MAT31 mat[13]
+#define MAT32 mat[14]
+#define MAT33 mat[15]
+
+	MAT00 *=scale->x;
+	MAT01 *=scale->x;
+	MAT02 *=scale->x;
+	MAT10 *=scale->y;
+	MAT11 *=scale->y;
+	MAT12 *=scale->y;
+	MAT20 *=scale->z;
+	MAT21 *=scale->z;
+	MAT22 *=scale->z;
+}
+
+void loadIdentityMatrix (double *mat) {
+	int i;
+        for (i=0; i<16; i++) {
+                double d;
+                if ((i==0) || (i==5) || (i==10) || (i==15)) { d = 1.0;
+                } else { d = 0.0; }
+                mat[i] = d;
+        }
+}

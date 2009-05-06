@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
+$Id: quaternion.h,v 1.5 2009/05/06 17:41:08 crc_canada Exp $
 
 Quaternion ???
 
@@ -31,6 +31,24 @@ Quaternion ???
 #define MAT32 mat[14]
 #define MAT33 mat[15]
 
+/* definitions for "standard" matrix representation to map to OpenGL */
+#define MATHEMATICS_MAT00 mat[0]
+#define MATHEMATICS_MAT01 mat[4]
+#define MATHEMATICS_MAT02 mat[8]
+#define MATHEMATICS_MAT03 mat[12]
+#define MATHEMATICS_MAT10 mat[1]
+#define MATHEMATICS_MAT11 mat[5]
+#define MATHEMATICS_MAT12 mat[9]
+#define MATHEMATICS_MAT13 mat[13]
+#define MATHEMATICS_MAT20 mat[2]
+#define MATHEMATICS_MAT21 mat[6]
+#define MATHEMATICS_MAT22 mat[10]
+#define MATHEMATICS_MAT23 mat[14]
+#define MATHEMATICS_MAT30 mat[3]
+#define MATHEMATICS_MAT31 mat[7]
+#define MATHEMATICS_MAT32 mat[11]
+#define MATHEMATICS_MAT33 mat[15]
+
 typedef struct quaternion {
 	double w;
 	double x;
@@ -40,8 +58,9 @@ typedef struct quaternion {
 void
 matrix_to_quaternion (Quaternion *quat, double *mat) ;
 void
-quaternion_to_matrix (float *mat, Quaternion *quat) ;
+quaternion_to_matrix (double *mat, Quaternion *quat) ;
 
+void scale_to_matrix (double *mat, struct point_XYZ *scale);
 
 void
 vrmlrot_to_quaternion(Quaternion *quat,
@@ -102,5 +121,6 @@ quaternion_slerp(Quaternion *ret,
 	  const Quaternion *q2,
 	  const double t);
 
+void loadIdentityMatrix (double *);
 
 #endif /* __FREEWRL_QUATERNION_H__ */

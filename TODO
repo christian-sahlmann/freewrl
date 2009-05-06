@@ -8,7 +8,16 @@ Priority list
 
 30/04/2009:
 	(JAS) Russ Kinters ProximitySensor test revisit.
-		 http://www.sevenemeraldtablets.net/FreeBeamToBox.wrl (DONE)
+		 http://www.sevenemeraldtablets.net/FreeBeamToBox.wrl works if you change the script to 
+			field SFVec3f newPos 0 0 0
+			field SFRotation newRot 0 1 0 0
+			...
+			//vm.getTransform(BeamtoVP.position,BeamtoVP.orientation);
+			vm.getTransform(newPos,newRot);
+			BeamtoVP.position = newPos;
+			BeamtoVP.orientation = newRot;
+		How do we get the SetProperty to fire for the BeamtoVP nodes?
+
 	(JAS) Verify examine distance in GeoViewpoint.
 
 29/04/2009: 
@@ -62,7 +71,6 @@ Priority list
 	(JAS) Continue filling in ECMAScript capabilities; see "NEWCLASSES" ifdef in the code.
 		- latest non-released spec requested from Dick Puck, 26/02/09, as the on on-line
 		  is from 2005.	
-	(JAS) Continue working on the VrmlMatrix commands - verify every method.
 
 
 25/02/2009: OSX and possibly Linux:

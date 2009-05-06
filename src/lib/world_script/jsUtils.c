@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.10 2009/04/29 20:20:25 crc_canada Exp $
+$Id: jsUtils.c,v 1.11 2009/05/06 17:41:08 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -275,7 +275,6 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, j
 	double dl;
 	int il;
 
-
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("calling X3D_ECMA_TO_JS on type %s\n",FIELDTYPES[dataType]);
 	#endif
@@ -312,9 +311,6 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, j
 		default: {	printf("WARNING: SHOULD NOT BE HERE in X3D_ECMA_TO_JS! %d\n",dataType); }
 	}
 }
-
-#undef JSVRMLCLASSESVERBOSE
-
 
 /* take an ECMA value in the X3D Scenegraph, and return a jsval with it in */
 /* this is not so fast; we call a script to make a default type, then we fill it in */
@@ -1048,7 +1044,6 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 	#endif
 
 	return TRUE;
-
 }
 
 
@@ -1101,17 +1096,23 @@ holding object needs to route to FreeWRL... */
 JSBool js_SetPropertyCheck (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c = "(no value in string)";
 	int num;
+	jsdouble dnum;
 
+#ifdef VERBOSE
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("hmmm...js_SetPropertyCheck called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	/* printf ("hmmm...js_SetPropertyCheck called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp); */
+	} else if (JSVAL_IS_DOUBLE(id)) {
+		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+        	printf ("\n...js_SetPropertyCheck called on double %s object %u, jsval %u\n",_id_c, obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	/* printf ("\n...js_SetPropertyCheck called on number %d object %u, jsval %u\n",num, obj, *vp); */
+        	printf ("\n...js_SetPropertyCheck called on number %d object %u, jsval %u\n",num, obj, *vp); 
 	} else {
         	printf ("hmmm...js_SetPropertyCheck called on unknown type of object %u, jsval %u\n", obj, *vp);
 	}
+#endif
 
 	/* lets worry about the MFs containing ECMAs here - MFFloat MFInt32 MFTime MFString MFBool */
 
@@ -1143,7 +1144,6 @@ JSBool js_SetPropertyCheck (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
         /* SET_TOUCHED_TYPE_MF_A(MFColorRGBA,SFColorRGBA) */
 
 
-#define JSVRMLCLASSESVERBOSE
         #ifdef JSVRMLCLASSESVERBOSE
         if (JS_InstanceOf(cx, obj, &SFVec3fClass, NULL)) { printf ("this is a SFVec3fClass...\n"); }
         else if (JS_InstanceOf(cx, obj, &SFColorClass, NULL)) { printf ("this is a SFColorClass...\n"); }
@@ -1163,14 +1163,14 @@ JSBool js_SetPropertyCheck (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
         else if (JS_InstanceOf(cx, obj, &MFVec2fClass, NULL)) { printf ("this is a MFVec2fClass...\n"); }
         else if (JS_InstanceOf(cx, obj, &VrmlMatrixClass, NULL)) { printf ("this is a VrmlMatrixClass...\n"); }
         else printf ("this class is unknown???\n");
-        #endif
-
 	printf ("we do not care about this type in js_SetPropertyCheck\n");
+        #endif
+	
+	return JS_TRUE;
 
 }
 
 /****************************************************************************/
-#ifdef DEBUG_JAVASCRIPT_PROPERTY
 
 JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c = "(no value in string)";
@@ -1338,5 +1338,4 @@ JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval 
         	printf ("\n...js_SetPropertyDebug9 called on unknown type of object %u, jsval %u\n", obj, *vp);
 	}
 }
-#endif
 

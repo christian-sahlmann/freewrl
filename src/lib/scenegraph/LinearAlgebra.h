@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.h,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: LinearAlgebra.h,v 1.4 2009/05/06 17:41:08 crc_canada Exp $
 
 Linear algebra.
 
@@ -169,6 +169,7 @@ struct point_XYZ* vecdiff(struct point_XYZ* r, struct point_XYZ* v, struct point
 void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, struct point_XYZ n);
 
 GLdouble* matinverse(GLdouble* res, GLdouble* m);
+GLdouble* mattranspose(GLdouble* res, GLdouble* m);
 
 struct point_XYZ* polynormal(struct point_XYZ* r, struct point_XYZ* p1, struct point_XYZ* p2, struct point_XYZ* p3);
 /*simple wrapper for now. optimize later */
@@ -183,5 +184,7 @@ GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz);
 
 GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n);
 
+void scale_to_matrix (double *mat, struct point_XYZ *scale);
+void loadIdentityMatrix (double *mat);
 
 #endif /* __FREEWRL_LINEAR_ALGEBRA_H__ */
