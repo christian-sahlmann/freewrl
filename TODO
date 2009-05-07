@@ -1,4 +1,11 @@
 Priority list
+08/05/2009:
+	(JAS) children fields are sorted, but we use a the node children field. This can give us grief for when we
+	use EAI/SAI to get/set individual children elements. Shadow the sorting, and also move sorting to the end of
+	the scene graph to better get the scenegraph static during the rendering phase. Currently, the following nodes
+	have sorted children: GeoLocation, GeoTransform, Group, Transform, HAnim nodes, Billboard, Collision,
+	Anchor and Inline. Is this enough, or too much? 
+
 01/05/2009:
 	(JAS) OSX Sound node - in middle of updating code. Complete, and migrate to XCode.
 	(JAS) it is possible to loose objects at farClipPlane when "backing up" 
