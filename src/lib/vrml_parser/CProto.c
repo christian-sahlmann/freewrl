@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.23 2009/04/16 21:10:41 crc_canada Exp $
+$Id: CProto.c,v 1.24 2009/05/07 17:01:24 crc_canada Exp $
 
 CProto ???
 
@@ -386,12 +386,11 @@ static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)
  static struct Multi_##stype DEEPCOPY_mf##type(struct VRMLLexer* lex, struct Multi_##stype src, \
   struct ProtoDefinition* new, struct PointerHash* hash) \
  { \
-  int i; \
   struct Multi_##stype dest; \
 	/* printf ("DEEPCOPY_MFVALUE, src %u, dest count %d\n",src,src.n); */ \
   dest.n=src.n; \
   dest.p=MALLOC(sizeof(src.p[0])*src.n); \
-  /* for(i=0; i!=src.n; ++i) \
+  /* int i; for(i=0; i!=src.n; ++i) \
 { printf ("copying MF %d of %d\n",i,src.n); \
    dest.p[i]=DEEPCOPY_sf##type(lex, src.p[i], new, hash); \
 } */ \

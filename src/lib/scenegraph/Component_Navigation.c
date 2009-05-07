@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.13 2009/05/06 20:35:46 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.14 2009/05/07 17:01:24 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -14,7 +14,7 @@ X3D Navigation Component
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
 #include "../x3d_parser/Bindable.h"
@@ -75,7 +75,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	struct point_XYZ vpos, ax, cp, cp2, arcp;
 	static const struct point_XYZ orig = {0.0, 0.0, 0.0};
 	static const struct point_XYZ zvec = {0.0, 0.0, 1.0};
-	struct orient viewer_orient;
+	struct orient_XYZA viewer_orient;
 	GLdouble mod[16];
 	GLdouble proj[16];
 	int align;

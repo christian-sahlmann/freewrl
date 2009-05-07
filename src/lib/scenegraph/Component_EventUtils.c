@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EventUtils.c,v 1.4 2009/03/13 20:07:17 crc_canada Exp $
+$Id: Component_EventUtils.c,v 1.5 2009/05/07 17:01:24 crc_canada Exp $
 
 X3D Event Utilities Component
 
@@ -14,7 +14,7 @@ X3D Event Utilities Component
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
 

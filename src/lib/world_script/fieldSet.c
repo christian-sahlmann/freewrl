@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.19 2009/04/29 20:20:25 crc_canada Exp $
+$Id: fieldSet.c,v 1.20 2009/05/07 17:01:26 crc_canada Exp $
 
 ???
 
@@ -254,10 +254,7 @@ unsigned int setField_FromEAI (char *ptr) {
 
 	int valIndex;
 	struct Multi_Color *tcol;
-
-	int len, elemCount;
 	int retint; 			/* used to get return value of sscanf */
-	char myBuffer[6000];
 
 	union anyVrml myAnyValue;
 

@@ -4,7 +4,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.8 2009/04/29 20:31:37 crc_canada Exp n 
+: VRMLC.pm,v 1.9 2009/05/06 20:35:46 crc_canada Exp n 
 ??? 
  
 */ 
@@ -16,7 +16,7 @@
  
 #include <libFreeWRL.h> 
  
-#include "../vrml_parser/Structs.h" /* point_XYZ */ 
+#include "../vrml_parser/Structs.h" 
 #include "../main/headers.h" 
 #include "../main/ProdCon.h" 
 #include "Component_Networking.h" 

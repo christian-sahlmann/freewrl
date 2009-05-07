@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.9 2009/04/28 14:32:49 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.10 2009/05/07 17:01:26 crc_canada Exp $
 
 ???
 
@@ -842,7 +842,7 @@ JSBool _simplecopyElements (JSContext *cx,
 		*/
 
 		if (!JS_SetElement(cx, toObj, (jsint) i, &val)) {
-			printf( "failed in set %s index %d.\n", type, i);
+			printf( "failed in set %d index %d.\n", type, i);
 			return JS_FALSE;
 		}
 	}
@@ -904,7 +904,7 @@ JSBool _standardMFAssign(JSContext *cx,
 	if (type == FIELDTYPE_SFImage) {
         	if ((ptr = (SFImageNative *)JS_GetPrivate(cx, obj)) == NULL) {
         	        printf( "JS_GetPrivate failed in standard MF assign.\n");
-        	        return;
+        	        return JS_FALSE;
         	}
 		ptr->valueChanged = 1;
 	}
@@ -1090,9 +1090,9 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 
 		if (len == 1) {
 			if (isString) {
-				sprintf(_buff, "[ \"%.*s\" ]", tmp_valStr_len, _tmp_valStr);
+				sprintf(_buff, "[ \"%.*s\" ]", (int) tmp_valStr_len, _tmp_valStr);
 			} else {
-				sprintf(_buff, "[ %.*s ]", tmp_valStr_len, _tmp_valStr);
+				sprintf(_buff, "[ %.*s ]", (int) tmp_valStr_len, _tmp_valStr);
 			}
 			break;
 		}
@@ -1105,25 +1105,25 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 		if (i == 0 && len > 1) {
 			if (isString) {
 				sprintf(_buff, "[ \"%.*s\"",
-						tmp_valStr_len, _tmp_valStr);
+						(int) tmp_valStr_len, _tmp_valStr);
 			} else {
-				sprintf(_buff, "[ %.*s", tmp_valStr_len, _tmp_valStr);
+				sprintf(_buff, "[ %.*s", (int) tmp_valStr_len, _tmp_valStr);
 			}
 		} else if (i == (len - 1)) {
 			if (isString) {
 				sprintf(_buff, "%.*s, \"%.*s\" ]",
-					tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
+					(int) tmp_buff_len, _tmp_buff, (int) tmp_valStr_len, _tmp_valStr);
 			} else {
 				sprintf(_buff, "%.*s, %.*s ]",
-					tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
+					(int) tmp_buff_len, _tmp_buff, (int) tmp_valStr_len, _tmp_valStr);
 			}
 		} else {
 			if (isString) {
 				sprintf(_buff, "%.*s, \"%.*s\"",
-					tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
+					(int) tmp_buff_len, _tmp_buff, (int) tmp_valStr_len, _tmp_valStr);
 			} else {
 				sprintf(_buff, "%.*s, %.*s",
-					tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
+					(int) tmp_buff_len, _tmp_buff, (int) tmp_valStr_len, _tmp_valStr);
 			}
 		}
 
@@ -1621,7 +1621,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 
 		memset(_new_vp_c, 0, len);
 		/* JAS sprintf(_new_vp_c, "\"%.*s\"", len, _vp_c);*/
-		sprintf(_new_vp_c, "%.*s", len, _vp_c);
+		sprintf(_new_vp_c, "%.*s", (int) len, _vp_c);
 		_newVpStr = JS_NewStringCopyZ(context, _new_vp_c);
 		*vp = STRING_TO_JSVAL(_newVpStr);
 

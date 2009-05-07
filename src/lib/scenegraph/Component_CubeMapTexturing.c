@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.3 2009/02/11 15:12:54 istakenv Exp $
+$Id: Component_CubeMapTexturing.c,v 1.4 2009/05/07 17:01:24 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -14,7 +14,7 @@ X3D Cubemap Texturing Component
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.12 2009/05/06 20:35:46 crc_canada Exp $
+$Id: jsUtils.c,v 1.13 2009/05/07 17:01:26 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -574,7 +574,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 
 			MCptr = (struct Multi_Vec2f *) Data;
 			for (i=0; i<MCptr->n; i++) {
-				sprintf (newline,"new SFVec2f(%f, %f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1]);	
+				sprintf (newline,"new SFVec2f(%f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1]);	
 				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
@@ -614,7 +614,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			MCptr = (struct Multi_Node *) Data;
 
 			for (i=0; i<MCptr->n; i++) {
-				sprintf (newline,"new SFNode(%u)", MCptr->p[i]);	
+				sprintf (newline,"new SFNode(%u)", (unsigned int) MCptr->p[i]);	
 				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
@@ -629,7 +629,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 
 
 		case FIELDTYPE_MFString: {
-			struct Multi_Node* MCptr;
+			struct Multi_String* MCptr;
 			char newline[100];
 			jsval xf;
 
@@ -642,7 +642,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 
 				if (((struct Uni_String *)MCptr->p[i])->strptr != NULL)
 					sprintf (newline,"new String('%s')", ((struct Uni_String *)MCptr->p[i])->strptr);	
-				else sprintf (newline,"new String('(NULL)')", ((struct Uni_String *)MCptr->p[i])->strptr);	
+				else sprintf (newline,"new String('(NULL)')");	
 
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("X3D_MF_TO_JS, we have a new script to evaluate: \"%s\"\n",newline);
@@ -661,7 +661,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 		} break;
 
 		case FIELDTYPE_SFImage: {
-			struct Multi_Node* MCptr;
+			struct Multi_Int32* MCptr;
 			char newline[10000];
 			jsval xf;
 
@@ -861,7 +861,7 @@ JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 		case FIELDTYPE_MFRotation:
 		case FIELDTYPE_SFImage:
 			X3D_MF_TO_JS(context, obj, ((void *)( ((unsigned char *) node) + *(fieldOffsetsPtr+1))), *(fieldOffsetsPtr+2), vp, 
-				FIELDNAMES[*(fieldOffsetsPtr+0)]);
+				(char *)FIELDNAMES[*(fieldOffsetsPtr+0)]);
 			break;
 		default: printf ("unhandled type in getSFNodeField\n");
 		return JS_FALSE;
@@ -1016,7 +1016,7 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 			
 			/* skip any fieldNames starting with an underscore, as these are "internal" ones */
 			if (FIELDNAMES[*fieldOffsetsPtr][0] != '_') {
-				name = FIELDNAMES[*fieldOffsetsPtr];
+				name = (char *)FIELDNAMES[*fieldOffsetsPtr];
 				rval = INT_TO_JSVAL((int)fieldOffsetsPtr);
 
 				/* is this an initializeOnly property? */
@@ -1094,11 +1094,10 @@ holding object needs to route to FreeWRL... */
 
 
 JSBool js_SetPropertyCheck (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	char *_id_c = "(no value in string)";
-	int num;
-	jsdouble dnum;
+	int num=0;
 
 #ifdef VERBOSE
+	char *_id_c = "(no value in string)";
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
@@ -1179,13 +1178,14 @@ JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *
 
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("\n...js_GetPropertyDebug called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("\n...js_GetPropertyDebug called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("\n...js_GetPropertyDebug called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("\n...js_GetPropertyDebug called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
 	} else {
-        	printf ("\n...js_GetPropertyDebug called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("\n...js_GetPropertyDebug called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	return JS_TRUE;
 }
 
 JSBool js_SetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
@@ -1195,13 +1195,14 @@ JSBool js_SetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("\n...js_SetPropertyDebug called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("\n...js_SetPropertyDebug called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
 	} else {
-        	printf ("\n...js_SetPropertyDebug called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("\n...js_SetPropertyDebug called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c = "(no value in string)";
@@ -1210,13 +1211,14 @@ JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsval id, jsval 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("\n...js_SetPropertyDebug1 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug1 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("\n...js_SetPropertyDebug1 called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug1 called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
 	} else {
-        	printf ("\n...js_SetPropertyDebug1 called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("\n...js_SetPropertyDebug1 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c = "(no value in string)";
@@ -1225,13 +1227,14 @@ JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsval id, jsval 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("...js_SetPropertyDebug2 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("...js_SetPropertyDebug2 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("...js_SetPropertyDebug2 called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("...js_SetPropertyDebug2 called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
 	} else {
-        	printf ("...js_SetPropertyDebug2 called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("...js_SetPropertyDebug2 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c = "(no value in string)";
@@ -1240,13 +1243,14 @@ JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsval id, jsval 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("\n...js_SetPropertyDebug3 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug3 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("\n...js_SetPropertyDebug3 called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug3 called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
 	} else {
-        	printf ("\n...js_SetPropertyDebug3 called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("\n...js_SetPropertyDebug3 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c = "(no value in string)";
@@ -1255,13 +1259,14 @@ JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsval id, jsval 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("\n...js_SetPropertyDebug4 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug4 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("\n...js_SetPropertyDebug4 called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug4 called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
 	} else {
-        	printf ("\n...js_SetPropertyDebug4 called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("\n...js_SetPropertyDebug4 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c = "(no value in string)";
@@ -1270,13 +1275,14 @@ JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsval id, jsval 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("\n...js_SetPropertyDebug5 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug5 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("\n...js_SetPropertyDebug5 called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug5 called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
 	} else {
-        	printf ("\n...js_SetPropertyDebug5 called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("\n...js_SetPropertyDebug5 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c = "(no value in string)";
@@ -1285,13 +1291,14 @@ JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsval id, jsval 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("\n...js_SetPropertyDebug6 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug6 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("\n...js_SetPropertyDebug6 called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug6 called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
 	} else {
-        	printf ("\n...js_SetPropertyDebug6 called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("\n...js_SetPropertyDebug6 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c = "(no value in string)";
@@ -1300,13 +1307,14 @@ JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsval id, jsval 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("\n...js_SetPropertyDebug7 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug7 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("\n...js_SetPropertyDebug7 called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug7 called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
 	} else {
-        	printf ("\n...js_SetPropertyDebug7 called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("\n...js_SetPropertyDebug7 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c = "(no value in string)";
@@ -1315,13 +1323,14 @@ JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("\n...js_SetPropertyDebug8 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug8 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("\n...js_SetPropertyDebug8 called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug8 called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
 	} else {
-        	printf ("\n...js_SetPropertyDebug8 called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("\n...js_SetPropertyDebug8 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c = "(no value in string)";
@@ -1330,12 +1339,13 @@ JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
-        	printf ("\n...js_SetPropertyDebug9 called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug9 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
-        	printf ("\n...js_SetPropertyDebug9 called on number %d object %u, jsval %u\n",num, obj, *vp);
+        	printf ("\n...js_SetPropertyDebug9 called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
 	} else {
-        	printf ("\n...js_SetPropertyDebug9 called on unknown type of object %u, jsval %u\n", obj, *vp);
+        	printf ("\n...js_SetPropertyDebug9 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	return JS_TRUE;
 }
 

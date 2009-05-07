@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_SFClasses.c,v 1.13 2009/05/06 20:35:46 crc_canada Exp $
+$Id: jsVRML_SFClasses.c,v 1.14 2009/05/07 17:01:26 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -1208,7 +1208,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			memmove(ptr->X3DString, _val_c, val_len);
 			break;
 		case 1:
-			ra = sscanf (_val_c,"%u",&tmp);
+			ra = sscanf (_val_c,"%u",(unsigned int*) &tmp);
 			if (ra != 1) {ConsoleMessage ("SFNodeSetProperty, case 1 error\n");}
 
 			ptr->handle = (uintptr_t *) tmp;
@@ -1442,18 +1442,14 @@ SFRotationMultVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 		printf( "JS_GetPrivate failed for obj in SFRotationMultVec.\n");
 		return JS_FALSE;
 	}
-	r.x = _rot->v.c[0];
-	r.y = _rot->v.c[1];
-	r.z = _rot->v.c[2];
+	COPY_SFVEC3F_TO_POINT_XYZ(r,_rot->v.c);
 	angle = _rot->v.c[3];
 
 	if ((_vec = (SFVec3fNative *)JS_GetPrivate(cx, _multObj)) == NULL) {
 		printf( "JS_GetPrivate failed for_multObjin SFRotationMultVec.\n");
 		return JS_FALSE;
 	}
-	v.x = _vec->v.c[0];
-	v.y = _vec->v.c[1];
-	v.z = _vec->v.c[2];
+	COPY_SFVEC3F_TO_POINT_XYZ(v,_vec->v.c);
 	if ((_retNative = (SFVec3fNative *)JS_GetPrivate(cx, _retObj)) == NULL) {
 		printf( "JS_GetPrivate failed for _retObj in SFRotationMultVec.\n");
 		return JS_FALSE;
@@ -1688,7 +1684,7 @@ SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 JSBool
 SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	SFVec3fNative *_vec;
+	SFVec3fNative *_vec = NULL;
 	SFVec3fNative *_vec2;
 	SFRotationNative *ptr;
 	JSObject *_ob1, *_ob2;
@@ -1924,7 +1920,9 @@ JSBool SFVec2fGeneric( JSContext *cx, JSObject *obj,
 		   uintN argc, jsval *argv, jsval *rval, int op) {
 
 	JSObject *_paramObj, *_proto, *_retObj;
-	SFVec2fNative *_vec1, *_vec2, *_retNative;
+	SFVec2fNative *_vec1 = NULL;
+	SFVec2fNative *_vec2 = NULL;
+	SFVec2fNative *_retNative = NULL;
 	jsdouble d=0.0;
 	jsdouble d0=0.0;
 	jsdouble d1=0.0;

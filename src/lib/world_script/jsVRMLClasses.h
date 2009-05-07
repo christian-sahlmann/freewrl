@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.7 2009/05/06 17:41:08 crc_canada Exp $
+$Id: jsVRMLClasses.h,v 1.8 2009/05/07 17:01:26 crc_canada Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -20,7 +20,7 @@ Complex VRML nodes as Javascript classes.
 
 /* quick fix to get around some compiler warnings on 64 bit systems */
 #define VERBOSE_OBJX (unsigned long)
-#define VERBOSE_OBJ 
+#define VERBOSE_OBJ (unsigned int)
 
 /* tie a node into the root. Currently not required, as we do a better job
 of garbage collection */
@@ -41,22 +41,22 @@ of garbage collection */
 	/* printf ("defining length to %d for %d %d\n",thislength,cx,obj);*/ \
 	if (!JS_DefineProperty(cx, thisobject, "length", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) { \
 		printf( "JS_DefineProperty failed for \"length\" at %s:%d.\n",__FILE__,__LINE__); \
-		printf ("myThread is %u\n",pthread_self()); \
+		/* printf ("myThread is %u\n",pthread_self()); */ \
 		return JS_FALSE;\
 	}}
 
 #define DEFINE_MF_ECMA_HAS_CHANGED \
 	{jsval zimbo = INT_TO_JSVAL(0); \
-	printf ("defining property for MF_ECMA_HAS_CHANGED... %d %d ",cx,obj);  \
+	/* printf ("defining property for MF_ECMA_HAS_CHANGED... %d %d ",cx,obj);  */ \
 	if (!JS_DefineProperty(cx, obj, "MF_ECMA_has_changed", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) { \
 		printf( "JS_DefineProperty failed for \"MF_ECMA_has_changed\" at %s:%d.\n",__FILE__,__LINE__); \
-		printf ("myThread is %u\n",pthread_self()); \
+		/* printf ("myThread is %u\n",pthread_self()); */ \
 		return JS_FALSE; \
 	}}
 
 #define SET_MF_ECMA_HAS_CHANGED { jsval myv; \
                         myv = INT_TO_JSVAL(1); \
-			 printf ("setting property for MF_ECMA_has_changed %d %d\n",cx,obj);  \
+			 /* printf ("setting property for MF_ECMA_has_changed %d %d\n",cx,obj); */ \
                         if (!JS_SetProperty(cx, obj, "MF_ECMA_has_changed", &myv)) { \
                                 printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in doMFSetProperty.\n"); \
                                 return JS_FALSE; \
@@ -81,7 +81,7 @@ of garbage collection */
 	{jsval zimbo; \
 	if (!JS_ExecuteScript(cx, obj, (JSScript *) JSparamnames[tnfield].eventInFunction, &zimbo)) { \
 		printf ("failed to set parameter for eventIn %s in FreeWRL code %s:%d\n",JSparamnames[tnfield].name,__FILE__,__LINE__); \
-		printf ("myThread is %u\n",pthread_self()); \
+		/* printf ("myThread is %u\n",pthread_self());*/ \
 	}} 
 
 
@@ -90,7 +90,7 @@ of garbage collection */
                 lenval = INT_TO_JSVAL(length); \
                 if (!JS_SetProperty(cx, newMFObject, "length", &lenval)) { \
                         printf( "JS_SetProperty failed for \"length\" at %s:%d\n",__FILE__,__LINE__); \
-		printf ("myThread is %u\n",pthread_self()); \
+		/* printf ("myThread is %u\n",pthread_self()); */ \
                         return JS_FALSE; \
                 }} 
 
@@ -99,7 +99,7 @@ of garbage collection */
 		sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[nameIndex].name); \
         	if (!JS_DefineProperty(cx,obj, scriptline, OBJECT_TO_JSVAL(newObj), JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
         	        printf( "JS_DefineProperty failed for \"ECMA in\" at %s:%d.\n",__FILE__,__LINE__);  \
-		printf ("myThread is %u\n",pthread_self()); \
+		/* printf ("myThread is %u\n",pthread_self()); */ \
         	        return JS_FALSE; \
         }	}
 	

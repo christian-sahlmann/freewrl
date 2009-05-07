@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.10 2009/05/06 20:35:46 crc_canada Exp $
+$Id: SensInterps.c,v 1.11 2009/05/07 17:01:24 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -16,7 +16,7 @@ Interps are the "EventsProcessed" fields of interpolators.
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
 
 #include "../x3d_parser/Bindable.h"

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.37 2009/05/06 20:35:46 crc_canada Exp $
+$Id: headers.h,v 1.38 2009/05/07 17:01:24 crc_canada Exp $
 
 Global includes.
 
@@ -66,10 +66,6 @@ char *readInputString(char *fn);
 
 #define JS_SET_PROPERTY_STUB1 js_SetPropertyDebug1
 #define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2 
-
-/* #define JS_SET_PROPERTY_STUB2 JS_PropertyStub */
-#define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug9
-
 #define JS_SET_PROPERTY_STUB3 js_SetPropertyDebug3 
 #define JS_SET_PROPERTY_STUB4 js_SetPropertyDebug4 
 #define JS_SET_PROPERTY_STUB5 js_SetPropertyDebug5 

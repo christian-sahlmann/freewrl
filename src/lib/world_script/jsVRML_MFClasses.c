@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.10 2009/05/06 20:35:46 crc_canada Exp $
+$Id: jsVRML_MFClasses.c,v 1.11 2009/05/07 17:01:26 crc_canada Exp $
 
 ???
 
@@ -24,6 +24,7 @@ $Id: jsVRML_MFClasses.c,v 1.10 2009/05/06 20:35:46 crc_canada Exp $
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
+#include "../scenegraph/LinearAlgebra.h"
 /* #include "../input/EAIheaders.h" */
 
 #include "CScripts.h"
@@ -599,14 +600,14 @@ jsdouble *dp;
 
 		if ((dp = JS_NewDouble(cx, matrix[i])) == NULL) {
 			printf ("problem creating id matrix\n");
-			return JS_FALSE;
+			return;
 		}
 
 		val = DOUBLE_TO_JSVAL(dp);
 
 		if (!JS_SetElement(cx, obj, (jsint) i, &val)) {
 			printf( "JS_DefineElement failed for arg %u in VrmlMatrixSetTransform.\n", i);
-			return JS_FALSE;
+			return;
 		}
 	}
 }
@@ -799,25 +800,16 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 JSBool
 VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	struct SFRotation rotl = {{0.0, 0.0, 1.0, 0.0}};
-	struct SFColor transl = {{0.0, 0.0, 10.0}};
-	struct SFColor scalel = {{1.0, 1.0, 1.0}};
-	struct SFRotation scaleO = {{0.0, 0.0, 1.0, 0.0}};
-	struct SFColor centerl = {{0.0, 0.0, 0.0}};
-
     	JSObject *transObj = NULL;
 	JSObject *rotObj = NULL;
 	JSObject *scaleObj = NULL;
 	JSObject *scaleOObj = NULL;
 	JSObject *centerObj = NULL;
 
-	SFRotationNative *Rptr;
-	SFVec3fNative *Vptr;
     	double matrix[16];
-	jsdouble *dp;
 
 	int error = FALSE;
-	int i;
+
 #undef TESTING
 #ifdef TESTING
 	GLdouble xxmat[16];
@@ -897,14 +889,14 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 	if (!error && (rotObj != NULL)) {
 		SFRotationNative * Rptr;
                 Rptr = (SFRotationNative *)JS_GetPrivate(cx, rotObj);
-		error = (Vptr == NULL);
+		error = (Rptr == NULL);
 	
 		if (!error) {
 			Quaternion quat;
 			vrmlrot_to_quaternion(&quat, Rptr->v.c[0], Rptr->v.c[1], Rptr->v.c[2], Rptr->v.c[3]);
 			/* printf ("from rotation %f %f %f %f\n",Rptr->v.c[0], Rptr->v.c[1], Rptr->v.c[2], Rptr->v.c[3]);
 			printf ("quaternion is %f %f %f %f\n",quat.x,quat.y,quat.x, quat.w); */
-			quaternion_to_matrix (&matrix, &quat);
+			quaternion_to_matrix (matrix, &quat);
 
 #ifdef TESTING
                         glRotatef(Rptr->v.c[3]/3.1415926536*180, Rptr->v.c[0], Rptr->v.c[1], Rptr->v.c[2]);
@@ -919,11 +911,9 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 
 		if (!error) {
 			struct point_XYZ myScale;
-			myScale.x = Vptr->v.c[0];
-			myScale.y = Vptr->v.c[1];
-			myScale.z = Vptr->v.c[2];
 
-			scale_to_matrix(&matrix, &myScale);
+			COPY_SFVEC3F_TO_POINT_XYZ (myScale,Vptr->v.c);
+			scale_to_matrix(matrix, &myScale);
 		}
 #ifdef TESTING
 		glScalef(Vptr->v.c[0], Vptr->v.c[1], Vptr->v.c[2]);
@@ -1008,10 +998,7 @@ VrmlMatrixmultLeft(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 
         double matrix1[16];
         double matrix2[16];
-        jsdouble *dp;
-
         int error = FALSE;
-        int i;
 
 	if (argc == 1) {
 		error = !JS_ConvertArguments(cx, argc, argv, "o", &transObj);
@@ -1052,10 +1039,7 @@ VrmlMatrixmultRight(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
         double matrix1[16];
         double matrix2[16];
-        jsdouble *dp;
-
         int error = FALSE;
-        int i;
 
 	if (argc == 1) {
 		error = !JS_ConvertArguments(cx, argc, argv, "o", &transObj);
@@ -1097,9 +1081,7 @@ VrmlMatrixmultVecMatrix(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, j
 	SFVec3fNative *Vptr;
 
         double matrix1[16];
-        jsdouble *dp;
         int error = FALSE;
-        int i;
 	struct point_XYZ inp, outp;
 
 	if (argc == 1) {
@@ -1117,9 +1099,7 @@ VrmlMatrixmultVecMatrix(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, j
 		return JS_FALSE;
 	}
 
-	inp.x = Vptr->v.c[0];
-	inp.y = Vptr->v.c[1];
-	inp.z = Vptr->v.c[2];
+	COPY_SFVEC3F_TO_POINT_XYZ(inp,Vptr->v.c);
 
 	/* fill in the 2 matricies, multiply them, then return it */
 	_getmatrix(cx,obj,matrix1);
@@ -1135,9 +1115,7 @@ VrmlMatrixmultVecMatrix(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, j
 		return JS_FALSE;
 	}
 
-	Vptr->v.c[0] = outp.x;
-	Vptr->v.c[1] = outp.y;
-	Vptr->v.c[2] = outp.z;
+	COPY_POINT_XYZ_TO_SFVEC3F(Vptr->v.c,outp);
 	*rval = OBJECT_TO_JSVAL(retObj);
 
 	return JS_TRUE;
@@ -1152,9 +1130,7 @@ VrmlMatrixmultMatrixVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, j
 	SFVec3fNative *Vptr;
 
         double matrix1[16];
-        jsdouble *dp;
         int error = FALSE;
-        int i;
 	struct point_XYZ inp, outp;
 
 	if (argc == 1) {
@@ -1172,9 +1148,7 @@ VrmlMatrixmultMatrixVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, j
 		return JS_FALSE;
 	}
 
-	inp.x = Vptr->v.c[0];
-	inp.y = Vptr->v.c[1];
-	inp.z = Vptr->v.c[2];
+	COPY_SFVEC3F_TO_POINT_XYZ(inp,Vptr->v.c);
 
 	/* fill in the 2 matricies, multiply them, then return it */
 	_getmatrix(cx,obj,matrix1);
@@ -1190,9 +1164,7 @@ VrmlMatrixmultMatrixVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, j
 		return JS_FALSE;
 	}
 
-	Vptr->v.c[0] = outp.x;
-	Vptr->v.c[1] = outp.y;
-	Vptr->v.c[2] = outp.z;
+	COPY_POINT_XYZ_TO_SFVEC3F(Vptr->v.c,outp);
 	*rval = OBJECT_TO_JSVAL(retObj);
 
 	return JS_TRUE;
@@ -1209,7 +1181,6 @@ VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 {
 	jsdouble _d;
 	unsigned int i;
-	jsdouble d, *dp;
 
 	ADD_ROOT(cx,obj)
 
@@ -1294,8 +1265,7 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 				return JS_FALSE;
 			}
 			if (*vp == JSVAL_VOID) {
-				printf(
-						"VrmlMatrixGetProperty: obj = %u, jsval = %d does not exist!\n",
+				printf( "VrmlMatrixGetProperty: obj = %u, jsval = %d does not exist!\n",
 					   VERBOSE_OBJ obj, (int) _index);
 				return JS_FALSE;
 			}
@@ -1598,20 +1568,24 @@ JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("MFStringDeleteProperty\n"); 
 	#endif
+	return JS_TRUE;
 }
 JSBool MFStringEnumerateProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) { 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("MFStringEnumerateProperty\n"); 
 	#endif
+	return JS_TRUE;
 }
 
 JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) { 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("MFStringResolveProperty\n"); 
 	#endif
+	return JS_TRUE;
 }
 JSBool MFStringConvertProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) { 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("MFStringConvertProperty\n"); 
 	#endif
+	return JS_TRUE;
 }

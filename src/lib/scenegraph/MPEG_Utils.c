@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MPEG_Utils.c,v 1.6 2009/04/16 20:27:14 crc_canada Exp $
+$Id: MPEG_Utils.c,v 1.7 2009/05/07 17:01:24 crc_canada Exp $
 
 ???
 
@@ -17,7 +17,7 @@ $Id: MPEG_Utils.c,v 1.6 2009/04/16 20:27:14 crc_canada Exp $
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
 /*

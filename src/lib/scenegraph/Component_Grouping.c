@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.13 2009/05/06 20:35:46 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.14 2009/05/07 17:01:24 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -14,7 +14,7 @@ X3D Grouping Component
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
 #include "../opengl/OpenGL_Utils.h"

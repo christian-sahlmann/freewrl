@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.4 2009/04/08 19:40:55 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.5 2009/05/07 17:01:24 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -14,7 +14,7 @@ X3D Rendering Component
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
 

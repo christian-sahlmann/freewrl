@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_HAnim.c,v 1.7 2009/05/06 20:35:46 crc_canada Exp $
+$Id: Component_HAnim.c,v 1.8 2009/05/07 17:01:24 crc_canada Exp $
 
 X3D H-Anim Component
 
@@ -14,7 +14,7 @@ X3D H-Anim Component
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
 /* #include "OpenFW_GL_Utils.h" */

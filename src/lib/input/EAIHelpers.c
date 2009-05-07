@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.22 2009/04/15 18:37:06 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.23 2009/05/07 17:01:24 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -14,7 +14,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h" 
 #include "../world_script/jsUtils.h"
 /*
 #include "../world_script/jsNative.h"
@@ -116,7 +116,7 @@ static struct  EAINodeIndexStruct *EAINodeIndex = NULL;
 
 
 /* get an actual memory pointer to field, assumes both node has passed ok check */
-uintptr_t *getEAIMemoryPointer (int node, int field) {
+char *getEAIMemoryPointer (int node, int field) {
 	char *memptr;
 
 	/* we CAN NOT do this with a script */
@@ -132,7 +132,7 @@ uintptr_t *getEAIMemoryPointer (int node, int field) {
 		node,field,getEAINodeFromTable(node,field), EAINodeIndex[node].params[field].fieldOffset, memptr);
 	*/
 
-	return (uintptr_t *)memptr;
+	return memptr;
 }
 
 /* get the parameters during proto invocation. Might not ever have been ISd */
@@ -255,136 +255,11 @@ int mapToKEYWORDindex (indexT pkwIndex) {
 	if (pkwIndex == PKW_initializeOnly) return KW_initializeOnly;
 	return 0;
 }
-/***************
-Access fields:
-size_t protoDefiniton_getFieldCount(protoDef)
-struct ProtoFieldDecl* protoDefinition_getFieldByNum(protoDef, index)
-
-Properties of struct ProtoFieldDecl:
-indexT protoFieldDecl_getType(fdecl)
-indexT protoFieldDEcl_getAccessType(fdecl)
-
-Get name:
-indexT protoFieldDecl_getIndexName(fdecl)
-const char* protoFieldDecl_getStringName(lexer, fdecl)
-
-Default value:
-union anyVrml protoFieldDecl_getDefaultValue(fdecl)
-this union contains fields for every specific type, see CParseGeneral.h for exact structure.
-
-*/
-
-/*********************************************************************************
-
-findFieldInPROTOOFFSETS General purpose PROTO field lookup function.
-
-parameters:
-
-	strct X3D_Node *myNode	a node pointer to an X3D_Node. This should be to an X3D_Group with the
-				FreeWRL__protoDef field pointing to a valid data structure.
-
-	char *myField		a string pointer to a field name to look up.
-
-	uintptr_t *myNodeP	pointer to the X3D_Node* in memory of the last ISd field in this PROTO.
-				returns 0 if not found.
-
-	int *myOfs		offset to the field in the last ISd field memory structure. returns
-				0 if not found.
-
-	int *myType		returns a value, eg "EAI_SFFLOAT", or 0 if this field is not found.
-
-	int *accessType 	returns one of KW_exposedField, KW_eventIn, KW_eventOut, KW_field, or 0 
-				if field not found.
-
-	char **invokedValue	a MALLOCd string containing the invocation value of this field
-
-*********************************************************************************/
-static void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uintptr_t *myNodeP,
-					int *myOfs, int *myType, int *accessType, char **invokedValue) {
-
-	struct X3D_Group *group;
-	struct ProtoDefinition *myProtoDecl;
-	struct ProtoFieldDecl *thisIndex;
-
-
-	/* set these values, so that we KNOW if we have found the correct field */
-	*myType = 0;
-	*myOfs = 0;
-	*myNodeP = 0;
-
-	#ifdef FF_PROTO_PRINT
-	printf ("setField_method1, trouble finding field %s in node %s\n",myField,stringNodeType(myNode->_nodeType));
-	printf ("is this maybe a PROTO?? if so, it will be a Group node with FreeWRL__protoDef set to the pointer\n");
-	#endif
-
-	if (myNode->_nodeType == NODE_Group) {
-		group = (struct X3D_Group *)myNode;
-		#ifdef FF_PROTO_PRINT
-		printf ("it IS a group...\n"); 
-		#endif
-
-		if (group->FreeWRL__protoDef) {
-			int tl = 1000;
-
-			#ifdef FF_PROTO_PRINT
-			printf ("and, this is a PROTO...have to go through PROTO defs to get to it\n");
-			#endif
-
-			myProtoDecl = (struct ProtoDefinition *) group->FreeWRL__protoDef;
-			thisIndex = getProtoFieldDeclaration( globalParser->lexer, myProtoDecl, myField);
-
-			/*
-			printf ("	field name is %s\n",protoFieldDecl_getStringName(globalParser->lexer, thisIndex));
-			printf ("	type is %d which is %s\n",protoFieldDecl_getType(thisIndex),
-				stringFieldtypeType(protoFieldDecl_getType(thisIndex)));
-			printf ("	Accesstype is %d as string %s\n",protoFieldDecl_getAccessType(thisIndex),
-				stringPROTOKeywordType(protoFieldDecl_getAccessType(thisIndex)));
-			printf ("	indexnameString %s\n",protoFieldDecl_getStringName(globalParser->lexer, thisIndex));
-			*/
-
-			char *newTl = MALLOC(1000);
-     			newTl[0] = '\0';
-
-                        /* printf ("next element is an IS \n"); */
-                        /* tempEle = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i+2); */
-                        /* printf ("ok, so IS of :%s: is :%s:\n",ele->stringToken, tempEle->stringToken); */
-
-                        replaceProtoField(globalParser->lexer, myProtoDecl, myField,&newTl,&tl);
-		
-			/* possibly, if this is an MF* field, we will have brackets on the ends. Remove them */
-			if (convertToSFType(protoFieldDecl_getType(thisIndex)) != protoFieldDecl_getType(thisIndex)) {
-				char *charptr; 
-				/* printf ("have to remove brackets from :%s:\n",newTl); */
-				charptr = strchr(newTl,'['); if (charptr != NULL) *charptr = ' ';
-				charptr = strrchr(newTl,']'); if (charptr != NULL) *charptr = ' ';
-				/* printf ("now :%s:\n",newTl); */
-			}
-
-			/* slide things to right */
-			if (strlen(newTl) >0) {
-				while ((newTl[0] <=' ') && (newTl[0] != '\0')) {
-					/* printf ("sliding to right\n"); */
-					memmove (newTl, &newTl[1],strlen(newTl));
-				}
-
-			}
-			printf ("TESTING - got replace as %s\n",newTl); 
-
-			*invokedValue = newTl;
-			*myType = mapFieldTypeToEAItype(protoFieldDecl_getType(thisIndex));
-			*accessType = mapToKEYWORDindex(protoFieldDecl_getAccessType(thisIndex));
-		}
-	}
-}
-
 
 /* in this proto expansion, just go and get the expanded node/field IF POSSIBLE */
 static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char **fp, int direction) {
 	struct ProtoDefinition *myProtoDecl;
 	struct ProtoFieldDecl *thisIndex;
-	int i,j;
-	struct ProtoElementPointer *ele;
-	int pMax;
 	char thisID[2000];
 	
 	/* first, is this node a PROTO? We look at the actual table to determine if it is special or not */
@@ -656,7 +531,6 @@ unsigned int EAI_GetViewpoint(const char *str) {
 
 /* we have a GETVALUE command coming in */
 void handleEAIGetValue (char command, char *bufptr, char *buf, int repno) {
-	int getValueFromPROTOField = FALSE;
 	struct X3D_Node *myNode;
 	int nodeIndex, fieldIndex, length;
 	char ctmp[4000];

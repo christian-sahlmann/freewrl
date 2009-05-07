@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.21 2009/04/29 20:20:25 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.22 2009/05/07 17:01:24 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -14,7 +14,7 @@ Handle incoming EAI (and java class) events with panache.
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../vrml_parser/CProto.h"
