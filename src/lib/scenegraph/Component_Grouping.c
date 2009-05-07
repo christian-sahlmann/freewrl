@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.15 2009/05/07 18:43:34 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.16 2009/05/07 20:03:20 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -215,9 +215,6 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 		MARK_NODE_COMPILED;
 	}
 
-	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
-	if ((nc > 1)  && !render_blend) sortChildren(node->children);
-
 	/* do we have a DirectionalLight for a child? */
 	DIRLIGHTCHILDREN(node->children);
 
@@ -274,9 +271,6 @@ void Old child_StaticGroup (struct X3D_StaticGroup *node) {
 			return;
 		}
 
-	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
-	if ((nc > 1)  && !render_blend) sortChildren(node->children);
-
 	/* do we have a DirectionalLight for a child? */
 	DIRLIGHTCHILDREN(node->children);
 
@@ -313,10 +307,6 @@ void child_Group (struct X3D_Group *node) {
 
 
 		
-
-	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
-	if ((!node->FreeWRL__protoDef) && (nc > 1)  && !render_blend) sortChildren(node->children);
-
 	/* do we have a DirectionalLight for a child? */
 	DIRLIGHTCHILDREN(node->children);
 
@@ -393,10 +383,6 @@ void child_Transform (struct X3D_Transform *node) {
 		}
 	}
 #endif
-
-	/* do we have to sort this node? */
-	if ((nc > 1 && !render_blend)) sortChildren(node->children);
-
 	/* do we have a DirectionalLight for a child? */
 	DIRLIGHTCHILDREN(node->children);
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.9 2009/05/07 18:43:34 crc_canada Exp $
+$Id: Component_Networking.c,v 1.10 2009/05/07 20:03:20 crc_canada Exp $
 
 X3D Networking Component
 
@@ -1164,7 +1164,7 @@ void child_Anchor (struct X3D_Anchor *node) {
 	#endif
 
 	/* do we have to sort this node? */
-	if ((nc > 1 && !render_blend)) sortChildren(node->children);
+	/* if ((nc > 1 && !render_blend)) sortChildren(node->children); */
 
 	/* do we have a DirectionalLight for a child? */
 	DIRLIGHTCHILDREN(node->children);
@@ -1202,7 +1202,7 @@ void child_Inline (struct X3D_Inline *node) {
 	if (nc==0) return; 
 
 	/* do we have to sort this node? */
-	if ((nc > 1 && !render_blend)) sortChildren(node->__children);
+	/* if ((nc > 1 && !render_blend)) sortChildren(node->__children); */
 
 	/* do we have a DirectionalLight for a child? */
 	DIRLIGHTCHILDREN(node->__children);

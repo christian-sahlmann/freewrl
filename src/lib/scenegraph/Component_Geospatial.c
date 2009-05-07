@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.17 2009/05/07 18:43:34 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.18 2009/05/07 20:03:20 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1624,9 +1624,6 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
-	/* do we have to sort this node? */
-	if ((nc > 1 && !render_blend)) sortChildren(node->children);
-
 	/* do we have a DirectionalLight for a child? */
 	DIRLIGHTCHILDREN(node->children);
 
@@ -2886,9 +2883,6 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 		}
 	}
 #endif
-
-	/* do we have to sort this node? */
-	if ((nc > 1 && !render_blend)) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
 	DIRLIGHTCHILDREN(node->children);

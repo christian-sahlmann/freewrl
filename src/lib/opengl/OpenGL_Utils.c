@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.32 2009/05/07 18:43:34 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.33 2009/05/07 20:03:20 crc_canada Exp $
 
 ???
 
@@ -678,6 +678,64 @@ void increaseMemoryTable(){
 	/* printf("increasing memory table=%d\n",tableIndexSize); */
 }
 
+
+/* sort children - use bubble sort with early exit flag */
+/* we use this for z buffer rendering; drawing scene in correct z-buffer order */
+static void sortChildren (struct Multi_Node ch) {
+	int i,j;
+	int nc;
+	int noswitch;
+	struct X3D_Node *a, *b, *c;
+
+	/* simple, inefficient bubble sort */
+	/* this is a fast sort when nodes are already sorted;
+	   may wish to go and "QuickSort" or so on, when nodes
+	   move around a lot. (Bubblesort is bad when nodes
+	   have to be totally reversed) */
+
+	nc = ch.n;
+	if (nc < 2) return;
+
+	#ifdef VERBOSE
+	printf ("sc start, %d, node %u\n",nc,ch);
+	#endif
+
+	for(i=0; i<nc; i++) {
+		noswitch = TRUE;
+		for (j=(nc-1); j>i; j--) {
+			/* printf ("comparing %d %d\n",i,j); */
+			a = X3D_NODE(ch.p[j-1]);
+			b = X3D_NODE(ch.p[j]);
+
+			/* check to see if a child is NULL - if so, skip it */
+			if ((a != NULL) && (b != NULL)) {
+				if (a->_dist > b->_dist) {
+					/* printf ("have to switch %d %d\n",i,j);  */
+					c = a;
+					ch.p[j-1] = b;
+					ch.p[j] = c;
+					noswitch = FALSE;
+				}
+			}	
+		}
+		/* did we have a clean run? */
+		if (noswitch) {
+			break;
+		}
+	}
+	
+
+	#ifdef VERBOSE
+	printf ("sortChild returning.\n");
+	for(i=0; i<nc; i++) {
+		b = ch.p[i];
+		printf ("child %d %d %f %s\n",i,b,b->_dist,stringNodeType(b->_nodeType));
+	}
+	#endif
+
+#undef VERBOSE
+}
+
 /* zero the Visibility flag in all nodes */
 void zeroVisibilityFlag(void) {
 	struct X3D_Node* node;
@@ -743,6 +801,9 @@ void zeroVisibilityFlag(void) {
 			nParents = ((struct X3D_Anchor *)node)->children.n; pp = ((struct X3D_Anchor *)node)->children.p; 
 #endif
 
+#ifdef VIEWPOINT
+#undef VIEWPOINT /* defined for the EAI,SAI, does not concern us uere */
+#endif
 #define VIEWPOINT(thistype) \
 			setBindPtr = (uintptr_t *) ((uintptr_t)(node) + offsetof (struct X3D_##thistype, set_bind));
 
@@ -883,7 +944,6 @@ void startOfLoopNodeUpdates(void) {
 		if (node != NULL) {
 			switch (node->_nodeType) {
 				BEGIN_NODE(Shape)
-					/* printf ("startLoop, shape, minus dist %lf\n",-node->_dist); */
 					/* send along a "look at me" flag if we are visible, or we should look again */
 					if ((X3D_SHAPE(node)->__occludeCheckCount <=0) ||
 							(X3D_SHAPE(node)->__visible)) {
@@ -997,6 +1057,7 @@ void startOfLoopNodeUpdates(void) {
 	
 				/* Anchor is Mouse Sensitive, AND has Children nodes */
 				BEGIN_NODE(Anchor)
+					sortChildren(X3D_ANCHOR(node)->children);
 					propagateExtent(X3D_NODE(node));
 					ANCHOR_SENSITIVE(Anchor)
 					CHILDREN_NODE(Anchor)
@@ -1007,16 +1068,22 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(GeoViewpoint) VIEWPOINT(GeoViewpoint) END_NODE
 	
 				BEGIN_NODE(StaticGroup)
+					/* we should probably not do this, but... */
+					sortChildren(X3D_STATICGROUP(node)->children);
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
+
 				/* does this one possibly have add/removeChildren? */
 				BEGIN_NODE(Group) 
+					/* do NOT sort if this is a PROTO */
+					if (!X3D_GROUP(node)->FreeWRL__protoDef) sortChildren(X3D_GROUP(node)->children);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Group) 
 				END_NODE
 
 				BEGIN_NODE(Inline) 
+					sortChildren (X3D_INLINE(node)->__children);
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
@@ -1046,12 +1113,14 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				BEGIN_NODE(Billboard) 
+					sortChildren (X3D_BILLBOARD(node)->children);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Billboard) 
                 			update_renderFlag(node,VF_Proximity);
 				END_NODE
 
 				BEGIN_NODE(Collision) 
+					sortChildren (X3D_COLLISION(node)->children);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Collision) 
 				END_NODE
@@ -1107,7 +1176,14 @@ void startOfLoopNodeUpdates(void) {
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
+				BEGIN_NODE (GeoTransform)
+					sortChildren(X3D_GEOLOCATION(node)->children);
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(GeoTransform) 
+				END_NODE
+
 				BEGIN_NODE (GeoLocation)
+					sortChildren(X3D_GEOLOCATION(node)->children);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(GeoLocation) 
 				END_NODE

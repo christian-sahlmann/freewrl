@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.38 2009/05/07 17:01:24 crc_canada Exp $
+$Id: headers.h,v 1.39 2009/05/07 20:03:20 crc_canada Exp $
 
 Global includes.
 
@@ -1443,7 +1443,6 @@ void kill_X3DDefs(void);
 extern int currentFileVersion;
 
 int countCommas (char *instr);
-void sortChildren (struct Multi_Node ch);
 void dirlightChildren(struct Multi_Node ch);
 void normalChildren(struct Multi_Node ch);
 void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent);

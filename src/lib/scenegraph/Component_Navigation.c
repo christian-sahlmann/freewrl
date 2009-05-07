@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.14 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.15 2009/05/07 20:03:20 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -161,7 +161,7 @@ void  child_Billboard (struct X3D_Billboard *node) {
 	#endif
 
 	/* do we have to sort this node? */
-	if ((nc > 1 && !render_blend)) sortChildren(node->children);
+/* 	if ((nc > 1 && !render_blend)) sortChildren(node->children); */
 
 	/* do we have a DirectionalLight for a child? */
 	DIRLIGHTCHILDREN(node->children);
@@ -247,7 +247,7 @@ void child_Collision (struct X3D_Collision *node) {
 		printf("RENDER COLLISIONCHILD START %d (%d)\n",node, nc);
 		#endif
 		/* do we have to sort this node? */
-		if ((nc > 1 && !render_blend)) sortChildren(node->children);
+/* 		if ((nc > 1 && !render_blend)) sortChildren(node->children); */
 
 		/* do we have a DirectionalLight for a child? */
 		DIRLIGHTCHILDREN(node->children);
