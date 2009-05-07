@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.7 2009/04/08 19:40:55 crc_canada Exp $
+$Id: Textures.c,v 1.8 2009/05/07 18:43:34 crc_canada Exp $
 
 General Texture objects.
 
@@ -841,9 +841,7 @@ void store_tex_info(
    by this thread? */
 
 void do_possible_textureSequence(struct textureTableIndexStruct* me) {
-	int st;
 	GLuint *texnums;
-	int imageDatasize;
 	int framecount;
 	GLubyte *imageptr;
 	int c;
@@ -1233,10 +1231,11 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 int findTextureFile (int cwo, int *istemp) {
 	char *filename;
 	char *mypath;
-	char *thisurl;
 	int count;
 	char firstBytes[4];
+#ifndef AQUA
 	char *sysline;
+#endif
 
         struct Uni_String *thisParent;
         struct Multi_String thisUrl;
@@ -1245,8 +1244,10 @@ int findTextureFile (int cwo, int *istemp) {
 	/* pattern matching, for finding internally handled types */
 	char firstPNG[] = {0x89,0x50,0x4e,0x47};
 	char firstJPG[] = {0xff,0xd8,0xff,0xe0};
+#ifndef AQUA
 	char firstMPGa[] = {0x00, 0x00, 0x01, 0xba};
 	char firstMPGb[] = {0x00, 0x00, 0x01, 0xb3};
+#endif
 
 
 	*istemp=loadThisTexture->removeWhenFinished;	/* don't remove this file unless told to do so */
@@ -1657,7 +1658,7 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
 		}
 		CGContextDrawImage(context, rect,inImage);
 	} else {
-		CGRect rect = {{0,0},{pixelsWide, pixelsHigh}};
+		/* CGRect rect = {{0,0},{pixelsWide, pixelsHigh}}; */
 		/* this is a mask. */
 
 		printf ("bits per component of %d not handled\n",bitsPerComponent);
@@ -1679,16 +1680,17 @@ void __reallyloadImageTexture() {
 	size_t 		image_width;
 	size_t 		image_height;
 
-	Handle 		dataRef;
-	OSType 		dataRefType;
-	GraphicsImportComponent gi;
 
 	CGContextRef 	cgctx;
+#ifdef TRY_QUICKTIME
 	OSErr 		err;
+	GraphicsImportComponent gi;
+	Handle 		dataRef;
+	OSType 		dataRefType;
+#endif
 
 	unsigned char *	data;
 	int		hasAlpha = FALSE;
-	int		count;
 
 	CGDataProviderRef provider;
 	CGImageSourceRef 	sourceRef;
@@ -2013,7 +2015,6 @@ void __reallyloadMovieTexture () {
 
         int x,y,depth,frameCount;
         void *ptr;
-        int firstTex;
 
         ptr=NULL;
 

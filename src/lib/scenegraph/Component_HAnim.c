@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_HAnim.c,v 1.8 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_HAnim.c,v 1.9 2009/05/07 18:43:34 crc_canada Exp $
 
 X3D H-Anim Component
 
@@ -246,9 +246,9 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 
 void child_HAnimJoint(struct X3D_HAnimJoint *node) {
-	CHILDREN_COUNT
 return;
 #ifdef HANIMHANIM
+	CHILDREN_COUNT
 	/* any children at all? */
 	if (nc==0) return;
 
@@ -265,9 +265,9 @@ return;
 }
 
 void child_HAnimSegment(struct X3D_HAnimSegment *node) {
-	CHILDREN_COUNT
 return;
 #ifdef HANIMHANIM
+	CHILDREN_COUNT
 
 
 note to implementer: have to POSSIBLE_PROTO_EXPANSION(node->coord, tmpN)
@@ -288,10 +288,10 @@ note to implementer: have to POSSIBLE_PROTO_EXPANSION(node->coord, tmpN)
 
 
 void child_HAnimSite(struct X3D_HAnimSite *node) {
-	CHILDREN_COUNT
-	DIRECTIONAL_LIGHT_SAVE
 return;
 #ifdef HANIMHANIM
+	CHILDREN_COUNT
+	DIRECTIONAL_LIGHT_SAVE
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? */

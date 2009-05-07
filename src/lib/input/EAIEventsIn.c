@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.22 2009/05/07 17:01:24 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.23 2009/05/07 18:43:34 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -77,12 +77,11 @@ void EAI_parse_commands () {
 	int bufPtr = 0;		/* where we are in the EAI input buffer */
 	
 	uintptr_t ra,rb,rc,rd;	/* temps*/
-	int tmp_a, tmp_b, tmp_c, tmp_d;
+	int tmp_a, tmp_b, tmp_c;
 
 	unsigned int scripttype;
 	char *EOT;		/* ptr to End of Text marker*/
 	int retint;		/* used for getting retval for sscanf */
-	int flag;
 
 	struct X3D_Node *boxptr;
         int ctype;
@@ -615,7 +614,6 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 	int retint;
 	char ctmp[200];
 	int mystrlen;
-	int count;
 
 	/*format int seq# COMMAND    string nodename*/
 
@@ -651,7 +649,6 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 	int retint;
 	int nodeHandle;
 	struct X3D_Node * myNode;
-	int ctr;
 	char *cptr;
 	char *myNT;
 
@@ -705,9 +702,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	struct X3D_Node *fromNode;
 	struct X3D_Node *toNode;
 	char fieldTemp[2000];
-	int fromFieldInt, toFieldInt;
-	int *np;
-	int fromOffset, fromVRMLtype, toOffset, toVRMLtype;
+	int fromOffset, toOffset;
 	int adrem;
 	int fromfieldNode, fromretNode, fromretField, fromdataLen, fromfieldType, fromscripttype, fromxxx;
 	int tofieldNode, toretNode, toretField, todataLen, tofieldType, toscripttype, toxxx;

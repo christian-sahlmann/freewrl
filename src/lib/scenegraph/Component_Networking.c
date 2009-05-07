@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.8 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_Networking.c,v 1.9 2009/05/07 18:43:34 crc_canada Exp $
 
 X3D Networking Component
 
@@ -135,7 +135,6 @@ the ReWire system */
 int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *internChan,  
 	int *controller, int *cmin, int *cmax, int *ctptr) {
 	int ctr;
-	char *tmp;
 	int match;
 	int dev = node->_deviceNameIndex;
 	int cont = node->_controllerIndex;
@@ -223,7 +222,6 @@ int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *internChan,
 /* returns TRUE if register goes ok, FALSE if already registered */
 int ReWireDeviceRegister (int dev, int cont, int bus, int channel, int controller, int cmin, int cmax, int ctptr) {
 	int ctr;
-	char *tmp;
 	
 	/* is this a duplicate name and type? types have to be same,
 	   name lengths have to be the same, and the strings have to be the same.
@@ -314,7 +312,6 @@ void kill_ReWireNameTable(void) {
 the new node */
 int ReWireNameIndex (char *name) {
 	int ctr;
-	char *tmp;
 	
 	/* printf ("ReWireNameIndex, looking for %s\n",name); */
 	/* is this a duplicate name and type? types have to be same,
@@ -391,7 +388,6 @@ void prep_MidiControl (struct X3D_MidiControl *node) {
 	int tmpdeviceMaxVal;
 	int tmpintControllerType;
 	int controllerPresent;
-	int first_Time;
 
 	/* is there anything to do? */
 	#ifdef MIDIVERBOSE
@@ -608,9 +604,7 @@ printf (" _deviceNameIndex %d _controllerIndex %d\n",node->_deviceNameIndex, nod
 }
 
 void ReWireRegisterMIDI (char *str) {
-	char *pt;
 	int curBus;
-	int curDevice;
 	int curChannel;
 	int curMin;
 	int curMax;
@@ -1008,7 +1002,6 @@ void ReWireMIDIControl (char *line) {
 /************ END OF MIDI CONTROL **************************/
 
 void render_LoadSensor (struct X3D_LoadSensor *node) {
-	int total;
 	int count;
 	int nowLoading;
 	int nowFinished;

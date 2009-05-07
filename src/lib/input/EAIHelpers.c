@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.23 2009/05/07 17:01:24 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.24 2009/05/07 18:43:34 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -259,7 +259,6 @@ int mapToKEYWORDindex (indexT pkwIndex) {
 /* in this proto expansion, just go and get the expanded node/field IF POSSIBLE */
 static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char **fp, int direction) {
 	struct ProtoDefinition *myProtoDecl;
-	struct ProtoFieldDecl *thisIndex;
 	char thisID[2000];
 	
 	/* first, is this node a PROTO? We look at the actual table to determine if it is special or not */
@@ -323,7 +322,6 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	char *fieldString = inputFieldString;
 	int myField;
 	int ctype;
-	int myProtoIndex;
 	int myFieldOffs;
 	int maxparamindex = 0;
 	char *invokedValPtr = NULL;  /* for PROTOs - invocation value */

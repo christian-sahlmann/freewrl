@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.24 2009/05/07 17:01:24 crc_canada Exp $
+$Id: CProto.c,v 1.25 2009/05/07 18:43:34 crc_canada Exp $
 
 CProto ???
 
@@ -328,7 +328,7 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
 
 	/* reference the deconsctructed PROTO body */
 	ret->deconstructedProtoBody = me->deconstructedProtoBody;
-	ret->isCopy == TRUE;
+	ret->isCopy = TRUE;
 	
  	ret->estimatedBodyLen = me->estimatedBodyLen;
 	ret->protoDefNumber = latest_protoDefNumber++;
@@ -948,8 +948,6 @@ printf ("PROTO HEADER - possible proto expansion in header?? \n");
    PROTO expansion, and we put it in a "special place" within the PROTO Group expansion */
 
 static int dumpProtoFieldDeclarationNodes(struct VRMLLexer *lex, struct ProtoDefinition *thisProto, FILE *pexfile) {
-	indexT retUO;
-	size_t userCnt;
 	struct ProtoFieldDecl* pdecl = NULL;
 	
 	int max;
@@ -1189,7 +1187,6 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 	/* if the user types in "DEF Material Material {}" the first "Material" is NOT a node, but a stringToken... */
 
 	{
-        char thisID[1000];
         indexT i;
         indexT protoElementCount;
         struct ProtoElementPointer* ele;
@@ -1318,7 +1315,6 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	
 	struct ProtoElementPointer* lastKeyword = NULL;
 	struct ProtoElementPointer* lastNode = NULL;
-	indexT lastDEFindex = ID_UNDEFINED;
 
 	FILE *pexfile;
 	FILE *routefile;
@@ -1582,9 +1578,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
    continue.  */
 
 BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, char *fieldName, struct X3D_Node **Node) {
-	indexT i,j;
 	indexT ret;
-	struct ProtoElementPointer *ele;
 	char thisID[2000];
 
 	#ifdef CPROTOVERBOSE

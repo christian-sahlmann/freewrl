@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.31 2009/04/29 20:20:25 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.32 2009/05/07 18:43:34 crc_canada Exp $
 
 ???
 
@@ -218,6 +218,16 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 void doglClearColor() {
 	glClearColor(cc_red, cc_green, cc_blue, cc_alpha);
 	cc_changed = FALSE;
+}
+
+
+/* if we had an opengl error... */
+void glPrintError(char *str) {
+        if (displayOpenGLErrors) {
+                int err;
+                while((err = glGetError()) != GL_NO_ERROR)
+                        printf("OpenGL Error: \"%s\" in %s\n", gluErrorString((unsigned)err),str);
+        }
 }
 
 
@@ -834,7 +844,6 @@ void startOfLoopNodeUpdates(void) {
 	struct Multi_Node *childrenPtr;
 
 	/* for determining nearPlane/farPlane */
-	int haveBoundGeoViewpoint = FALSE;
 	double maxDist = DBL_MAX; double minDist = 0.0;
 
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.18 2009/05/07 17:01:26 crc_canada Exp $
+$Id: CRoutes.c,v 1.19 2009/05/07 18:43:34 crc_canada Exp $
 
 ???
 
@@ -394,9 +394,6 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 	cx = (JSContext *) ScriptControl[actualscript].cx;
 	fullname = JSparamnames[fptr].name;
 
-                jsval mainElement; 
-                int len; 
-
 	#ifdef CRVERBOSE
 	printf ("getting property for fullname %s, cx %d, interpobj %d script %d, fptr %d\n",fullname,cx,interpobj,actualscript, fptr);
 	#endif
@@ -447,6 +444,9 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 #ifdef CHECKER
 	if (JSparamnames[fptr].type == FIELDTYPE_MFString) {
 		int len; int i;
+                jsval mainElement; 
+                int len; 
+
 		unsigned CRCCheck = 0;
                 cx = (JSContext *)ScriptControl[actualscript].cx; 
                 if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { 

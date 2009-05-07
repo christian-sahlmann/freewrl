@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.c,v 1.11 2009/05/07 17:01:24 crc_canada Exp $
+$Id: quaternion.c,v 1.12 2009/05/07 18:43:34 crc_canada Exp $
 
 ???
 
@@ -126,7 +126,6 @@ void
 quaternion_to_matrix (double *mat, Quaternion *q) {
 	double sqw, sqx, sqy, sqz, tmp1, tmp2;
 	double invs;
-	int i;
 
 	/* assumes matrix is identity, or identity + transform */
 	/* assumes matrix in OpenGL format */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.22 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Viewer.c,v 1.23 2009/05/07 18:43:34 crc_canada Exp $
 
 CProto ???
 
@@ -46,7 +46,6 @@ unsigned int get_buffer(void);
 int get_headlight(void);
 void toggle_headlight(void);
 static void handle_tick_walk(void);
-static void handle_tick_examine(void);
 static void handle_tick_fly(void);
 static void handle_tick_exfly(void);
 
@@ -240,11 +239,8 @@ void resolve_pos() {
 void viewer_togl(double fieldofview) {
 
 	GLdouble modelMatrix[16];
-	GLdouble projMatrix[16]; 
-	GLdouble identityMatrix[16];
 	GLdouble inverseMatrix[16];
 
-	struct point_XYZ newAnti;
 	struct point_XYZ rp;
 	struct point_XYZ tmppt;
 
@@ -255,12 +251,8 @@ void viewer_togl(double fieldofview) {
 
 	if (Viewer.SLERPing) {
 		double tickFrac;
-		Quaternion angleFromZero;
 		Quaternion slerpedDiff;
-		Quaternion newQuat;
-		Quaternion Zero = {1,0,0,0};
 		Quaternion tmp;
-		Quaternion tmp2;
 		Quaternion origLookatQuat;
 		Quaternion currentLookatQuat;
 

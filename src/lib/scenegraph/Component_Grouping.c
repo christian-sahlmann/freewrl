@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.14 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.15 2009/05/07 18:43:34 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -113,8 +113,6 @@ to NOT do it is here for performance testing reasons, to see if many pushes/pops
 
 
 void fin_Transform (struct X3D_Transform *node) {
-		GLfloat my_rotation;
-		GLfloat my_scaleO=0;
 	OCCLUSIONTEST
 
         if(!render_vp) {
@@ -129,6 +127,7 @@ void fin_Transform (struct X3D_Transform *node) {
 
 		/* 6 REVERSE SCALE ORIENTATION */
 		if (node->__do_scaleO) {
+			GLfloat my_scaleO=0;
 			my_scaleO = -(node->scaleOrientation.c[3]/3.1415926536*180);
 			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
 				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
@@ -146,6 +145,7 @@ void fin_Transform (struct X3D_Transform *node) {
 
 		/* 3 ROTATION */
 		if (node->__do_rotation) {
+			GLfloat my_rotation;
 			my_rotation = -(node->rotation.c[3]/3.1415926536*180);
 			FW_GL_ROTATE_F(my_rotation,
 				node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
@@ -206,7 +206,6 @@ void child_Switch (struct X3D_Switch *node) {
 void child_StaticGroup (struct X3D_StaticGroup *node) {
 	CHILDREN_COUNT
 	DIRECTIONAL_LIGHT_SAVE
-	int createlist = FALSE;
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 

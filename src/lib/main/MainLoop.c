@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.33 2009/05/04 19:32:29 crc_canada Exp $
+$Id: MainLoop.c,v 1.34 2009/05/07 18:43:34 crc_canada Exp $
 
 CProto ???
 
@@ -50,7 +50,10 @@ static int onScreen = TRUE;
 /* do we do event propagation, proximity calcs?? */
 static int doEvents = FALSE;
 
+#ifdef VERBOSE
 static char debs[300];
+#endif
+
 /* void debug_print(char *s) {printf ("debug_print:%s\n",s);} */
 
 /* handle X11 requests, windowing calls, etc if on X11 */
@@ -158,7 +161,6 @@ void render_collisions(void);
 void render_pre(void);
 void render(void);
 void setup_projection(int pick, int x, int y);
-void glPrintError(char *str);
 void EventLoop(void);
 struct X3D_Node*  getRayHit(void);
 void get_hyperhit(void);
@@ -174,8 +176,6 @@ const char *getLibVersion() {
 
 /* Main eventloop for FreeWRL!!! */
 void EventLoop() {
-        int counter;
-
         #ifndef AQUA
         Cursor cursor;
         #endif
@@ -983,15 +983,6 @@ void setXEventStereo()
     bufferarray[0]=GL_BACK_LEFT;
     bufferarray[1]=GL_BACK_RIGHT;
     maxbuffers=2;
-}
-
-/* if we had an opengl error... */
-void glPrintError(char *str) {
-        if (displayOpenGLErrors) {
-                int err;
-                while((err = glGetError()) != GL_NO_ERROR)
-                        printf("OpenGL Error: \"%s\" in %s\n", gluErrorString((unsigned)err),str);
-        }
 }
 
 /* go to the first viewpoint */

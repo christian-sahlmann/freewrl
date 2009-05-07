@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.5 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.6 2009/05/07 18:43:34 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -66,7 +66,6 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	struct SFColorRGBA *oldcolor;
 	int npoints;
 	int maxCoordFound;		/* for bounds checking				*/
-	int maxColorFound;		/* for bounds checking				*/
 	struct X3D_Color *cc;
 	int nSegments;			/* how many individual lines in this shape 	*/
 	int curSeg;			/* for colours, !cpv, this is the color index 	*/
@@ -327,7 +326,6 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 
 
 void render_PointSet (struct X3D_PointSet *node) {
-	int i;
 	struct SFColor *points=0; int npoints=0;
 	struct SFColor *colors=0; int ncolors=0;
 	struct X3D_Color *cc;
@@ -538,7 +536,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	   coordinates 0, 1, and 2 */
 	FREE_IF_NZ (node->__vertArr);
 	node->__vertArr = MALLOC (sizeof(GLuint)*(ncoord));
-	pt = (GLint *)node->__vertArr;
+	pt = (GLuint *)node->__vertArr;
 	for (vtc = 0; vtc < ncoord; vtc++) {
 		*pt=vtc; pt++; /* ie, index n contains the number n */
 	}
@@ -551,7 +549,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	FREE_IF_NZ (node->__vertIndx);
 	node->__vertIndx = MALLOC (sizeof(uintptr_t)*(nvertexc));
 	c = 0;
-	pt = (GLint *)node->__vertArr;
+	pt = (GLuint *)node->__vertArr;
 	vpt = (uintptr_t *) node->__vertIndx;
 	for (vtc=0; vtc<nvertexc; vtc++) {
 		*vpt =  (uintptr_t) pt;

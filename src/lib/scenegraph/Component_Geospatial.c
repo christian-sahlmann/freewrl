@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.16 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.17 2009/05/07 18:43:34 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1720,11 +1720,7 @@ void changed_GeoLOD (struct X3D_GeoLOD *node) {
 void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	int oldInRange;
 	double cx,cy,cz;
-	struct point_XYZ orig = {0,0,0};
-	struct point_XYZ t_orig;
 	GLdouble modelMatrix[16];
-	GLdouble projMatrix[16];
-	float zz;
 
 	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
@@ -2572,7 +2568,6 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 void viewer_calculate_speed() {
 	struct SFVec3d gcCoords;
 	struct SFVec3d gdCoords;
-	double d1, d2;
 		
 	/* the current position is the GC coordinate */
 	gcCoords.c[0]= Viewer.currentPosInModel.x;

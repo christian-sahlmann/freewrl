@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.5 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.6 2009/05/07 18:43:34 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -455,8 +455,6 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 	       struct X3D_PolyRep pr;
 	       prflags flags = 0;
 	       int change = 0;
-
-	        struct X3D_Coordinate *xc;
 
 		/* JAS - first pass, intern is probably zero */
 		if (((struct X3D_PolyRep *)node->_intern) == 0) return;

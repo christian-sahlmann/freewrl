@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.17 2009/04/24 20:20:00 crc_canada Exp $
+$Id: X3DParser.c,v 1.18 2009/05/07 18:43:34 crc_canada Exp $
 
 ???
 
@@ -774,8 +774,6 @@ if so, we will be here for the USE fields.
 
 */
 static void saveProtoInstanceFields (const char *name, const char **atts) {
-	int i;
-
 	#ifdef X3DPARSERVERBOSE
 		printf ("saveProtoInstanceFields, have node :%s:\n",name);
 	#endif

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.10 2009/05/06 20:35:46 crc_canada Exp $
+$Id: JScript.c,v 1.11 2009/05/07 18:43:34 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -586,7 +586,6 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 	int *IntPtr;
 	double *DoublePtr;
 	struct Uni_String **SVPtr;
-	int *iptr; 
 
 	uintptr_t defaultVoid[] = {0,0};
 	float defaultFloat[] = {0.0,0.0,0.0,0.0};

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.9 2009/05/06 20:35:46 crc_canada Exp $
+$Id: Frustum.c,v 1.10 2009/05/07 18:43:34 crc_canada Exp $
 
 ???
 
@@ -60,7 +60,9 @@ void ** occluderNodePointer = NULL;
 static int maxOccludersFound = 0;
 GLuint OccQuerySize=0;
 static int QueryCount = 0;
-static GLint queryCounterBits;
+	#ifdef OCCLUSIONVERBOSE
+		static GLint queryCounterBits;
+	#endif
 static int OccInitialized = FALSE;
 int OccFailed = FALSE;
 GLint OccResultsAvailable = FALSE;
@@ -85,9 +87,7 @@ GLint OccResultsAvailable = FALSE;
 		if (!APPROX(me->EXTENT_MAX_X,-10000.0)) { \
 			struct X3D_##myNodeType *node; \
 			node = (struct X3D_##myNodeType *)me; \
-			float my_rotation; \
 			float my_scaleO; \
-			float myscale; \
 			Quaternion rq; \
 			struct point_XYZ inxyz[8]; struct point_XYZ outxyz[8]; \
 	 \
@@ -182,9 +182,6 @@ GLint OccResultsAvailable = FALSE;
 		if (!APPROX(me->EXTENT_MAX_X,-10000.0)) { \
 		struct X3D_GeoLocation *node; \
 		node = (struct X3D_GeoLocation *)me; \
-		float my_rotation; \
-		float my_scaleO; \
-		float myscale; \
 		Quaternion rq; \
 		struct point_XYZ inxyz[8]; struct point_XYZ outxyz[8]; \
 	 \
@@ -235,10 +232,8 @@ GLint OccResultsAvailable = FALSE;
  \
 		if (!APPROX(me->EXTENT_MAX_X,-10000.0)) { \
 			struct X3D_GeoTransform *node; \
-			node = (struct X3D_GeoTransform *)me; \
-			float my_rotation; \
 			float my_scaleO; \
-			float myscale; \
+			node = (struct X3D_GeoTransform *)me; \
 			Quaternion rq; \
 			struct point_XYZ inxyz[8]; struct point_XYZ outxyz[8]; \
 	 \
@@ -397,7 +392,6 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	int c,d;
 	struct X3D_Node *shapeParent;
 	struct X3D_Node *geomParent;
-	double tminp, tmaxp;
 	int touched;
 
 	#ifdef FRUSTUMVERBOSE
@@ -719,7 +713,6 @@ void OcclusionStartofEventLoop() {
 void OcclusionCulling ()  {
 #ifdef OCCLUSION
 	int i;
-	int maxcount;
 	struct X3D_Shape *shapePtr;
 	struct X3D_VisibilitySensor *visSenPtr;
 	int checkCount;
