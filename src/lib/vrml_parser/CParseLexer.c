@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.14 2009/04/16 21:31:28 crc_canada Exp $
+$Id: CParseLexer.c,v 1.15 2009/05/11 19:32:26 crc_canada Exp $
 
 ???
 
@@ -394,6 +394,7 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
 {
  indexT i;
  BOOL found=FALSE;
+ int ind;
 
  #ifdef CPARSERVERBOSE
  printf ("lexer_specialID_string, builtInCount %d, builtIn %u\n",builtInCount, builtIn); 
@@ -440,17 +441,36 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  if(!user)
   return found;
 
+/*
+ for(i=0; i!=vector_size(user); ++i) { 
+	printf ("special_ID_string, user %d is %s\n",
+		i, vector_get(char*, user, i));
+}
+*/
+
+
  /* Already defined user id? */
  /* Look for the ID in the passed user array.  If it is found, return the index to the ID in retU */
- for(i=0; i!=vector_size(user); ++i) {
-	/* printf ("lexer_specialID_string, part II, comparing :%s: and :%s: lengths %d and %d\n", 
+ /* JAS - COUNT DOWN from last entered to first; this makes duplicates use the latest entry. */
+ /* use an index to see when we go from 0 to -1; indexT can not do this, as it is unsigned */
+ /* was : for(i=0; i!=vector_size(user); ++i) { */
+
+
+for (ind= (int)vector_size(user)-1; ind>=0; ind--) {
+
+	/* convert an int into an indexT */
+	i = (indexT) ind;
+
+	/* printf ("lexer sp, ele %d\n",i);
+	printf ("lexer_specialID_string, part II, comparing :%s: and :%s: lengths %d and %d\n", 
 	str, vector_get(char*, user, i), 
-	strlen(str), strlen(vector_get(char*, user, i))); */
+	strlen(str), strlen(vector_get(char*, user, i)));  */
 
   if(!strcmp(str, vector_get(char*, user, i))) {
    #ifdef CPARSERVERBOSE
    printf("found ID %s matches %s, return retU %d\n", str, vector_get(char*, user, i), i);
    #endif
+
    if(retU) {
     *retU=i;
     found=TRUE;
@@ -458,7 +478,7 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
    break;
   }
  }
- 
+
  return found;
 }
 
