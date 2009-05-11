@@ -4,7 +4,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.10 2009/05/07 17:01:24 crc_canada Exp n 
+: VRMLC.pm,v 1.11 2009/05/07 20:03:20 crc_canada Exp n 
 ??? 
  
 */ 
@@ -419,8 +419,8 @@
 	"_origNormalizedPoint",
 	"forceTransitions",
 	"repeatS",
-	"_origPoint",
 	"__do_trans",
+	"_origPoint",
 	"backDiffuseColor",
 	"bboxSize",
 	"language",
@@ -1292,7 +1292,7 @@ struct X3D_Virt virt_CoordinateInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NU
 struct X3D_Virt virt_CoordinateInterpolator2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_Cylinder = { NULL,(void *)render_Cylinder,NULL,NULL,(void *)rendray_Cylinder,NULL,NULL,NULL,(void *)collide_Cylinder,(void *)compile_Cylinder};
 struct X3D_Virt virt_CylinderSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_DirectionalLight = { NULL,(void *)render_DirectionalLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_DirectionalLight = { (void *)prep_DirectionalLight,(void *)render_DirectionalLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_Disk2D = { NULL,(void *)render_Disk2D,NULL,NULL,NULL,NULL,NULL,NULL,(void *)collide_Disk2D,(void *)compile_Disk2D};
 struct X3D_Virt virt_ElevationGrid = { NULL,(void *)render_ElevationGrid,NULL,NULL,(void *)rendray_ElevationGrid,(void *)make_ElevationGrid,NULL,NULL,(void *)collide_ElevationGrid,NULL};
 struct X3D_Virt virt_Extrusion = { NULL,(void *)render_Extrusion,NULL,NULL,(void *)rendray_Extrusion,(void *)make_Extrusion,NULL,NULL,(void *)collide_Extrusion,NULL};
@@ -1403,7 +1403,7 @@ struct X3D_Virt virt_OrientationInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,N
 struct X3D_Virt virt_PackagedShader = { NULL,(void *)render_PackagedShader,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_PackagedShader};
 struct X3D_Virt virt_PixelTexture = { NULL,(void *)render_PixelTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_PlaneSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_PointLight = { (void *)prep_PointLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_PointLight = { (void *)prep_PointLight,(void *)render_PointLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_PointSet = { NULL,(void *)render_PointSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_Polyline2D = { NULL,(void *)render_Polyline2D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_Polypoint2D = { NULL,(void *)render_Polypoint2D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -1420,7 +1420,7 @@ struct X3D_Virt virt_Shape = { NULL,NULL,(void *)child_Shape,NULL,NULL,NULL,NULL
 struct X3D_Virt virt_Sound = { NULL,(void *)render_Sound,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_Sphere = { NULL,(void *)render_Sphere,NULL,NULL,(void *)rendray_Sphere,NULL,NULL,NULL,(void *)collide_Sphere,(void *)compile_Sphere};
 struct X3D_Virt virt_SphereSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_SpotLight = { (void *)prep_SpotLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_SpotLight = { (void *)prep_SpotLight,(void *)render_SpotLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_StaticGroup = { NULL,NULL,(void *)child_StaticGroup,NULL,NULL,NULL,(void *)changed_StaticGroup,NULL,NULL,NULL};
 struct X3D_Virt virt_StringSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_Switch = { NULL,NULL,(void *)child_Switch,NULL,NULL,NULL,(void *)changed_Switch,NULL,NULL,NULL};
@@ -1776,6 +1776,7 @@ const int OFFSETS_DirectionalLight[] = {
 	FIELDNAMES_direction, offsetof (struct X3D_DirectionalLight, direction),  FIELDTYPE_SFVec3f, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_on, offsetof (struct X3D_DirectionalLight, on),  FIELDTYPE_SFBool, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_color, offsetof (struct X3D_DirectionalLight, color),  FIELDTYPE_SFColor, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_global, offsetof (struct X3D_DirectionalLight, global),  FIELDTYPE_SFBool, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_intensity, offsetof (struct X3D_DirectionalLight, intensity),  FIELDTYPE_SFFloat, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_metadata, offsetof (struct X3D_DirectionalLight, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_DirectionalLight, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
@@ -3067,14 +3068,15 @@ const int OFFSETS_PlaneSensor[] = {
 
 const int OFFSETS_PointLight[] = {
 	FIELDNAMES_location, offsetof (struct X3D_PointLight, location),  FIELDTYPE_SFVec3f, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_global, offsetof (struct X3D_PointLight, global),  FIELDTYPE_SFBool, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_radius, offsetof (struct X3D_PointLight, radius),  FIELDTYPE_SFFloat, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_ambientIntensity, offsetof (struct X3D_PointLight, ambientIntensity),  FIELDTYPE_SFFloat, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES_on, offsetof (struct X3D_PointLight, on),  FIELDTYPE_SFBool, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_direction, offsetof (struct X3D_PointLight, direction),  FIELDTYPE_SFVec3f, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_on, offsetof (struct X3D_PointLight, on),  FIELDTYPE_SFBool, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_attenuation, offsetof (struct X3D_PointLight, attenuation),  FIELDTYPE_SFVec3f, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_color, offsetof (struct X3D_PointLight, color),  FIELDTYPE_SFColor, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES_metadata, offsetof (struct X3D_PointLight, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_intensity, offsetof (struct X3D_PointLight, intensity),  FIELDTYPE_SFFloat, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_metadata, offsetof (struct X3D_PointLight, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_PointLight, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
@@ -4633,6 +4635,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->direction.c[0] = 0;tmp2->direction.c[1] = 0;tmp2->direction.c[2] = -1;;
 			tmp2->on = TRUE;
 			tmp2->color.c[0] = 1;tmp2->color.c[1] = 1;tmp2->color.c[2] = 1;;
+			tmp2->global = FALSE;
 			tmp2->intensity = 1;
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
@@ -6417,14 +6420,15 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_PointLight *) tmp;
 			tmp2->v = &virt_PointLight;
 			tmp2->location.c[0] = 0;tmp2->location.c[1] = 0;tmp2->location.c[2] = 0;;
+			tmp2->global = TRUE;
 			tmp2->radius = 100;
 			tmp2->ambientIntensity = 0;
-			tmp2->on = TRUE;
 			tmp2->direction.c[0] = 0;tmp2->direction.c[1] = 0;tmp2->direction.c[2] = -1;;
+			tmp2->on = TRUE;
 			tmp2->attenuation.c[0] = 1;tmp2->attenuation.c[1] = 0;tmp2->attenuation.c[2] = 0;;
 			tmp2->color.c[0] = 1;tmp2->color.c[1] = 1;tmp2->color.c[2] = 1;;
-			tmp2->metadata = NULL;
 			tmp2->intensity = 1;
+			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
@@ -7430,6 +7434,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tcolor (SFColor): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->color.c[i]); }
 			printf ("\n");
+			spacer printf ("\tglobal (SFBool) \t%d\n",tmp->global);
 			spacer printf ("\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
@@ -8611,20 +8616,21 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tlocation (SFVec3f): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->location.c[i]); }
 			printf ("\n");
+			spacer printf ("\tglobal (SFBool) \t%d\n",tmp->global);
 			spacer printf ("\tradius (SFFloat) \t%4.3f\n",tmp->radius);
 			spacer printf ("\tambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
-			spacer printf ("\ton (SFBool) \t%d\n",tmp->on);
 			spacer printf ("\tdirection (SFVec3f): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->direction.c[i]); }
 			printf ("\n");
+			spacer printf ("\ton (SFBool) \t%d\n",tmp->on);
 			spacer printf ("\tattenuation (SFVec3f): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->attenuation.c[i]); }
 			printf ("\n");
 			spacer printf ("\tcolor (SFColor): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->color.c[i]); }
 			printf ("\n");
-			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
+			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_PointSet : {

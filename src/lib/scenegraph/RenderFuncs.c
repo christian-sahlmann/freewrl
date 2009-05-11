@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.16 2009/05/06 20:35:46 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.17 2009/05/11 21:11:59 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -305,11 +305,11 @@ void render_node(struct X3D_Node *node) {
                 } 
         }
 
-	/* are we working through PointLights or SpotLights, but none exist from here on down? */
-        if (render_light == VF_otherLight) { 
-                if ((node->_renderFlags & VF_otherLight) != VF_otherLight) { 
+	/* are we working through global PointLights, DirectionalLights or SpotLights, but none exist from here on down? */
+        if (render_light == VF_globalLight) { 
+                if ((node->_renderFlags & VF_globalLight) != VF_globalLight) { 
 			#ifdef RENDERVERBOSE
-                        printf ("doing otherLight, but this  node is not for us - just returning\n"); 
+                        printf ("doing globalLight, but this  node is not for us - just returning\n"); 
 			renderLevel--;
 			#endif
                         return; 
@@ -572,7 +572,7 @@ render_hier(struct X3D_Node *p, int rwhat) {
 
 	render_vp = rwhat & VF_Viewpoint;
 	render_geom =  rwhat & VF_Geom;
-	render_light = rwhat & VF_otherLight;
+	render_light = rwhat & VF_globalLight;
 	render_sensitive = rwhat & VF_Sensitive;
 	render_blend = rwhat & VF_Blend;
 	render_proximity = rwhat & VF_Proximity;

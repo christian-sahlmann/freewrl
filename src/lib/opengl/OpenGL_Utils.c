@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.33 2009/05/07 20:03:20 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.34 2009/05/11 21:11:58 crc_canada Exp $
 
 ???
 
@@ -852,12 +852,12 @@ void zeroVisibilityFlag(void) {
 				((struct X3D_##thistype *)node)->set_##thisfield.p = NULL; \
 			} 
 
-/* just tell the parent (a grouping node) that there is a directionallight as a child */
-#define DIRECTIONALLIGHT_PARENT_FLAG \
+/* just tell the parent (a grouping node) that there is a locally scoped light as a child */
+#define LOCAL_LIGHT_PARENT_FLAG \
 { int i; \
 	for (i = 0; i < node->_nparents; i++) { \
 		struct X3D_Node *n = X3D_NODE(node->_parents[i]); \
-		if( n != 0 ) n->_renderFlags = n->_renderFlags | VF_DirectionalLight; \
+		if( n != 0 ) n->_renderFlags = n->_renderFlags | VF_localLight; \
 	} \
 }
 
@@ -925,8 +925,8 @@ void startOfLoopNodeUpdates(void) {
 			/* turn OFF these flags */
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);
-			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_DirectionalLight);
-			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_otherLight);
+			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_localLight);
+			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_globalLight);
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Blend);
 		}
 	}
@@ -959,13 +959,22 @@ void startOfLoopNodeUpdates(void) {
 				   SpotLights are transformed */
 
 				BEGIN_NODE(DirectionalLight)
-					DIRECTIONALLIGHT_PARENT_FLAG
+					if (X3D_DIRECTIONALLIGHT(node)->global) 
+						update_renderFlag(node,VF_globalLight);
+					else
+						LOCAL_LIGHT_PARENT_FLAG
 				END_NODE
 				BEGIN_NODE(SpotLight)
-					update_renderFlag(node,VF_otherLight);
+					if (X3D_SPOTLIGHT(node)->global) 
+						update_renderFlag(node,VF_globalLight);
+					else
+						LOCAL_LIGHT_PARENT_FLAG
 				END_NODE
 				BEGIN_NODE(PointLight)
-					update_renderFlag(node,VF_otherLight);
+					if (X3D_POINTLIGHT(node)->global) 
+						update_renderFlag(node,VF_globalLight);
+					else
+						LOCAL_LIGHT_PARENT_FLAG
 				END_NODE
 
 

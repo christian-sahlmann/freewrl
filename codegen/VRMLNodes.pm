@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.12 2009/05/04 19:32:29 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.13 2009/05/11 21:11:58 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -935,6 +935,7 @@ package VRML::NodeType;
 			direction => [SFVec3f, [0, 0, -1], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			intensity => [SFFloat, 1.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			on => [SFBool, TRUE, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			global => [SFBool, FALSE, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 					   },"X3DLightNode"),
@@ -947,6 +948,7 @@ package VRML::NodeType;
 			location => [SFVec3f, [0, 0, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			on => [SFBool, TRUE, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			radius => [SFFloat, 100.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			global => [SFBool, TRUE, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			##not in the spec
 			direction => [SFVec3f, [0, 0, -1.0], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],

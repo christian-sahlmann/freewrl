@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.18 2009/05/07 20:03:20 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.19 2009/05/11 21:11:58 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1607,7 +1607,7 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 
 	OCCLUSIONTEST
 
-	DIRECTIONAL_LIGHT_SAVE
+	LOCAL_LIGHT_SAVE
 
 	/* {
 		int x;
@@ -1624,8 +1624,8 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->children);
+	/* do we have a local for a child? */
+	LOCAL_LIGHT_CHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 
@@ -1642,7 +1642,7 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 		printf ("GeoLocation - done normalChildren\n");
 	#endif
 
-	DIRECTIONAL_LIGHT_OFF
+	LOCAL_LIGHT_OFF
 }
 
 void changed_GeoLocation ( struct X3D_GeoLocation *node) { 
@@ -2829,7 +2829,7 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
 	OCCLUSIONTEST
-	DIRECTIONAL_LIGHT_SAVE
+	LOCAL_LIGHT_SAVE
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* any children at all? */
@@ -2884,8 +2884,8 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 	}
 #endif
 
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->children);
+	/* do we have a local light for a child? */
+	LOCAL_LIGHT_CHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 
@@ -2902,5 +2902,5 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 		printf ("transform - done normalChildren\n");
 	#endif
 
-	DIRECTIONAL_LIGHT_OFF
+	LOCAL_LIGHT_OFF
 }

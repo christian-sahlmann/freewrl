@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.16 2009/05/07 20:03:20 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.17 2009/05/11 21:11:59 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -205,7 +205,7 @@ void child_Switch (struct X3D_Switch *node) {
 
 void child_StaticGroup (struct X3D_StaticGroup *node) {
 	CHILDREN_COUNT
-	DIRECTIONAL_LIGHT_SAVE
+	LOCAL_LIGHT_SAVE
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
@@ -215,13 +215,13 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 		MARK_NODE_COMPILED;
 	}
 
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->children);
+	/* do we have a local light for a child? */
+	LOCAL_LIGHT_CHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
-	DIRECTIONAL_LIGHT_OFF
+	LOCAL_LIGHT_OFF
 }
 
 #ifdef NONWORKINGCODE
@@ -232,7 +232,7 @@ So, we just render as a normal group.
 
 void Old child_StaticGroup (struct X3D_StaticGroup *node) {
 	CHILDREN_COUNT
-	DIRECTIONAL_LIGHT_SAVE
+	LOCAL_LIGHT_SAVE
 	int createlist = FALSE;
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
@@ -272,13 +272,13 @@ void Old child_StaticGroup (struct X3D_StaticGroup *node) {
 		}
 
 	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->children);
+	LOCAL_LIGHT_CHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
 	if (createlist) glEndList();
-	DIRECTIONAL_LIGHT_OFF
+	LOCAL_LIGHT_OFF
 }
 
 #endif
@@ -286,7 +286,7 @@ void Old child_StaticGroup (struct X3D_StaticGroup *node) {
 
 void child_Group (struct X3D_Group *node) {
 	CHILDREN_COUNT
-	DIRECTIONAL_LIGHT_SAVE
+	LOCAL_LIGHT_SAVE
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
@@ -308,7 +308,7 @@ void child_Group (struct X3D_Group *node) {
 
 		
 	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->children);
+	LOCAL_LIGHT_CHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	if (node->FreeWRL__protoDef && render_geom) {
@@ -319,7 +319,7 @@ void child_Group (struct X3D_Group *node) {
 		normalChildren(node->children);
 	}
 
-	DIRECTIONAL_LIGHT_OFF
+	LOCAL_LIGHT_OFF
 }
 
 
@@ -327,7 +327,7 @@ void child_Transform (struct X3D_Transform *node) {
 	CHILDREN_COUNT
 	OCCLUSIONTEST
 
-	DIRECTIONAL_LIGHT_SAVE
+	LOCAL_LIGHT_SAVE
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* any children at all? */
@@ -383,8 +383,8 @@ void child_Transform (struct X3D_Transform *node) {
 		}
 	}
 #endif
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->children);
+	/* do we have a local light for a child? */
+	LOCAL_LIGHT_CHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 
@@ -401,7 +401,7 @@ void child_Transform (struct X3D_Transform *node) {
 		printf ("transform - done normalChildren\n");
 	#endif
 
-	DIRECTIONAL_LIGHT_OFF
+	LOCAL_LIGHT_OFF
 }
 
 void changed_StaticGroup (struct X3D_StaticGroup *node) { 

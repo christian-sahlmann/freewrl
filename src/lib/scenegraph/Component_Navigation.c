@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.15 2009/05/07 20:03:20 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.16 2009/05/11 21:11:59 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -150,7 +150,7 @@ void fin_Billboard (struct X3D_Billboard *node) {
 void  child_Billboard (struct X3D_Billboard *node) {
 	int nc = (node->children).n;
 
-	DIRECTIONAL_LIGHT_SAVE
+	LOCAL_LIGHT_SAVE
 
 
 	/* any children at all? */
@@ -163,8 +163,8 @@ void  child_Billboard (struct X3D_Billboard *node) {
 	/* do we have to sort this node? */
 /* 	if ((nc > 1 && !render_blend)) sortChildren(node->children); */
 
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->children);
+	/* do we have a local light for a child? */
+	LOCAL_LIGHT_CHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -177,7 +177,7 @@ void  child_Billboard (struct X3D_Billboard *node) {
 	printf("RENDER BILLBOARD END %d\n",node);
 	#endif
 
-	DIRECTIONAL_LIGHT_OFF
+	LOCAL_LIGHT_OFF
 }
 
 
@@ -241,7 +241,7 @@ void child_Collision (struct X3D_Collision *node) {
 		}
 
 	} else { /*standard group behaviour*/
-		DIRECTIONAL_LIGHT_SAVE
+		LOCAL_LIGHT_SAVE
 
 		#ifdef CHILDVERBOSE
 		printf("RENDER COLLISIONCHILD START %d (%d)\n",node, nc);
@@ -249,8 +249,8 @@ void child_Collision (struct X3D_Collision *node) {
 		/* do we have to sort this node? */
 /* 		if ((nc > 1 && !render_blend)) sortChildren(node->children); */
 
-		/* do we have a DirectionalLight for a child? */
-		DIRLIGHTCHILDREN(node->children);
+		/* do we have a local light for a child? */
+		LOCAL_LIGHT_CHILDREN(node->children);
 
 		/* now, just render the non-directionalLight children */
 		normalChildren(node->children);
@@ -258,7 +258,7 @@ void child_Collision (struct X3D_Collision *node) {
 		#ifdef CHILDVERBOSE
 		printf("RENDER COLLISIONCHILD END %d\n",node);
 		#endif
-		DIRECTIONAL_LIGHT_OFF
+		LOCAL_LIGHT_OFF
 	}
 }
 

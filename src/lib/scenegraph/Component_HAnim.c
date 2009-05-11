@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_HAnim.c,v 1.10 2009/05/07 20:03:20 crc_canada Exp $
+$Id: Component_HAnim.c,v 1.11 2009/05/11 21:11:59 crc_canada Exp $
 
 X3D H-Anim Component
 
@@ -182,7 +182,7 @@ return;
 
 void child_HAnimHumanoid(struct X3D_HAnimHumanoid *node) {
 	int nc;
-	DIRECTIONAL_LIGHT_SAVE
+	LOCAL_LIGHT_SAVE
 
 	/* any segments at all? */
 /*
@@ -217,8 +217,8 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	/* Lets do sites third */
 	/* do we have to sort this node? */
 /* 	if ((node->sites.n > 1)  && !render_blend) sortChildren(node->sites); */
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->sites);
+	/* do we have a local light for a child? */
+	LOCAL_LIGHT_CHILDREN(node->sites);
 	/* now, just render the non-directionalLight sites */
 	normalChildren(node->sites);
 
@@ -231,8 +231,8 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	/* Lets do skin fifth */
 	/* do we have to sort this node? */
 /* 	if ((node->skin.n > 1)  && !render_blend) sortChildren(node->skin); */
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->skin);
+	/* do we have a local light for a child? */
+	LOCAL_LIGHT_CHILDREN(node->skin);
 	/* now, just render the non-directionalLight skin */
 	normalChildren(node->skin);
 
@@ -241,7 +241,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	normalChildren(node->segments);
 
 	/* did we have that directionalLight? */
-	DIRECTIONAL_LIGHT_OFF
+	LOCAL_LIGHT_OFF
 }
 
 
@@ -291,19 +291,19 @@ void child_HAnimSite(struct X3D_HAnimSite *node) {
 return;
 #ifdef HANIMHANIM
 	CHILDREN_COUNT
-	DIRECTIONAL_LIGHT_SAVE
+	LOCAL_LIGHT_SAVE
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? */
 /* 	if ((nc > 1)  && !render_blend) sortChildren(node->children); */
 
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->children);
+	/* do we have a local light for a child? */
+	LOCAL_LIGHT_CHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
-	DIRECTIONAL_LIGHT_OFF
+	LOCAL_LIGHT_OFF
 #endif
 }
 

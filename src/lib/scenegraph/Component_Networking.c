@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.10 2009/05/07 20:03:20 crc_canada Exp $
+$Id: Component_Networking.c,v 1.11 2009/05/11 21:11:59 crc_canada Exp $
 
 X3D Networking Component
 
@@ -1149,7 +1149,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 
 void child_Anchor (struct X3D_Anchor *node) {
 	int nc = (node->children).n;
-	DIRECTIONAL_LIGHT_SAVE
+	LOCAL_LIGHT_SAVE
 
 	/* printf ("child_Anchor node %u, vis %d\n",node,node->_renderFlags & VF_hasVisibleChildren); */
 
@@ -1166,8 +1166,8 @@ void child_Anchor (struct X3D_Anchor *node) {
 	/* do we have to sort this node? */
 	/* if ((nc > 1 && !render_blend)) sortChildren(node->children); */
 
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->children);
+	/* do we have a local light for a child? */
+	LOCAL_LIGHT_CHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -1176,13 +1176,13 @@ void child_Anchor (struct X3D_Anchor *node) {
 	printf("RENDER ANCHOR END %d\n",node);
 	#endif
 
-	DIRECTIONAL_LIGHT_OFF
+	LOCAL_LIGHT_OFF
 }
 
 
 void child_Inline (struct X3D_Inline *node) {
 	int nc = (node->__children).n;
-	DIRECTIONAL_LIGHT_SAVE
+	LOCAL_LIGHT_SAVE
 
 	#ifdef CHILDVERBOSE
 	printf("RENDER INLINE START %d (%d)\n",node, nc);
@@ -1204,8 +1204,8 @@ void child_Inline (struct X3D_Inline *node) {
 	/* do we have to sort this node? */
 	/* if ((nc > 1 && !render_blend)) sortChildren(node->__children); */
 
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->__children);
+	/* do we have a local light for a child? */
+	LOCAL_LIGHT_CHILDREN(node->__children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->__children);
@@ -1214,7 +1214,7 @@ void child_Inline (struct X3D_Inline *node) {
 	printf("RENDER INLINE END %d\n",node);
 	#endif
 
-	DIRECTIONAL_LIGHT_OFF
+	LOCAL_LIGHT_OFF
 }
 
 void changed_Anchor (struct X3D_Anchor *node) {

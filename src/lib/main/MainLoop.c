@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.34 2009/05/07 18:43:34 crc_canada Exp $
+$Id: MainLoop.c,v 1.35 2009/05/11 21:11:58 crc_canada Exp $
 
 CProto ???
 
@@ -698,8 +698,8 @@ void render() {
                 /*  Other lights*/
                 glPrintError("XEvents::render, before render_hier");
 
-                render_hier(rootNode, VF_otherLight);
-                glPrintError("XEvents::render, render_hier(VF_VF_otherLight)");
+                render_hier(rootNode, VF_globalLight);
+                glPrintError("XEvents::render, render_hier(VF_globalLight)");
 
                 /*  4. Nodes (not the blended ones)*/
                 render_hier(rootNode, VF_Geom);

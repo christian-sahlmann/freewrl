@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.39 2009/05/07 20:03:20 crc_canada Exp $
+$Id: headers.h,v 1.40 2009/05/11 21:11:58 crc_canada Exp $
 
 Global includes.
 
@@ -146,13 +146,13 @@ extern char *BrowserFullPath;
 /* rendering constants used in SceneGraph, etc. */
 #define VF_Viewpoint 				0x0001
 #define VF_Geom 				0x0002
-#define VF_DirectionalLight			0x0004 
+#define VF_localLight				0x0004 
 #define VF_Sensitive 				0x0008
 #define VF_Blend 				0x0010
 #define VF_Proximity 				0x0020
 #define VF_Collision 				0x0040
 #define VF_hasVisibleChildren 			0x0100
-#define VF_otherLight				0x0800 
+#define VF_globalLight				0x0800 
 
 /* for z depth buffer calculations */
 #define DEFAULT_NEARPLANE 0.1
@@ -577,14 +577,14 @@ void fwnorprint (float *norm);
 unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
 		                       unsigned long *pRowbytes);
 
-/* Used to determine in Group, etc, if a child is a DirectionalLight; do comparison with this */
-void DirectionalLight_Rend(void *nod_);
-#define DIRLIGHTCHILDREN(a) \
-	if ((node->_renderFlags & VF_DirectionalLight)==VF_DirectionalLight)dirlightChildren(a);
+/* Used to determine in Group, etc, if a child is a local light; do comparison with this */
+void LocalLight_Rend(void *nod_);
+#define LOCAL_LIGHT_CHILDREN(a) \
+	if ((node->_renderFlags & VF_localLight)==VF_localLight)localLightChildren(a);
 
-#define DIRECTIONAL_LIGHT_OFF if ((node->_renderFlags & VF_DirectionalLight)==VF_DirectionalLight) { \
+#define LOCAL_LIGHT_OFF if ((node->_renderFlags & VF_localLight)==VF_localLight) { \
 		lightState(savedlight+1,FALSE); curlight = savedlight; }
-#define DIRECTIONAL_LIGHT_SAVE int savedlight = curlight;
+#define LOCAL_LIGHT_SAVE int savedlight = curlight;
 
 void normalize_ifs_face (float *point_normal,
                          struct point_XYZ *facenormals,
@@ -1188,7 +1188,10 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *this_);
 
 /* Component Lighting Nodes */
 void render_DirectionalLight (struct X3D_DirectionalLight *this_);
+void render_SpotLight (struct X3D_SpotLight *this_);
+void render_PointLight (struct X3D_PointLight *this_);
 void prep_SpotLight (struct X3D_SpotLight *this_);
+void prep_DirectionalLight (struct X3D_DirectionalLight *this_);
 void prep_PointLight (struct X3D_PointLight *this_);
 
 /* Geospatial nodes */

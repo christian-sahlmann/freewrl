@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Children.c,v 1.8 2009/05/07 20:03:20 crc_canada Exp $
+$Id: Children.c,v 1.9 2009/05/11 21:11:58 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -21,15 +21,17 @@ Render the children of nodes.
 #include "RenderFuncs.h"
 
 
-/* this grouping node has a DirectionalLight for a child, render this first */
-void dirlightChildren(struct Multi_Node ch) {
+/* this grouping node has a local light for a child, render this first */
+void localLightChildren(struct Multi_Node ch) {
 	int i;
 
 	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT); */
 	for(i=0; i<ch.n; i++) {
 		struct X3D_Node *p = X3D_NODE(ch.p[i]);
 		if (p != NULL) {
-			if (p->_nodeType == NODE_DirectionalLight) 
+			if ((p->_nodeType == NODE_DirectionalLight) ||
+				(p->_nodeType == NODE_PointLight) ||
+				(p->_nodeType == NODE_SpotLight))
 				render_node(p);
 		}
 	}
