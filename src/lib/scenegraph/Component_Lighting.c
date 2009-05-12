@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Lighting.c,v 1.6 2009/05/11 21:11:59 crc_canada Exp $
+$Id: Component_Lighting.c,v 1.7 2009/05/12 18:21:59 crc_canada Exp $
 
 X3D Lighting Component
 
@@ -19,19 +19,25 @@ X3D Lighting Component
 #include "RenderFuncs.h"
 #include "../opengl/OpenGL_Utils.h"
 
-/* pointLights are done before the rendering of geometry */
-void prep_DirectionalLight (struct X3D_DirectionalLight *node) {
+#define RETURN_IF_LIGHT_STATE_NOT_US \
+		if (render_light== VF_globalLight) { \
+			if (!node->global) return;\
+			/* printf ("and this is a global light\n"); */\
+		} else if (node->global) return; \
+		/* else printf ("and this is a local light\n"); */
 
+
+
+/* global lights  are done before the rendering of geometry */
+void prep_DirectionalLight (struct X3D_DirectionalLight *node) {
 	if (!render_light) return;
-	/* this will be a global light here... */
 	render_DirectionalLight(node);
 }
 
 void render_DirectionalLight (struct X3D_DirectionalLight *node) {
-	/* NOTE: This is called by the Group Children code
-	 * at the correct point (in the beginning of the rendering
-	 * of the children. We just turn the light on right now.
-	 */
+
+	/* if we are doing global lighting, is this one for us? */
+	RETURN_IF_LIGHT_STATE_NOT_US
 
 	if(node->on) {
 		int light = nextlight();
@@ -72,47 +78,51 @@ void prep_PointLight (struct X3D_PointLight *node) {
 }
 
 void render_PointLight (struct X3D_PointLight *node) {
-                if(node->on) {
-                        int light = nextlight();
-                        if(light >= 0) {
-                                float vec[4];
-				lightState(light-GL_LIGHT0,TRUE);
-                                vec[0] = ((node->direction).c[0]);
-                                vec[1] = ((node->direction).c[1]);
-                                vec[2] = ((node->direction).c[2]);
-                                vec[3] = 1;
-                                glLightfv(light, GL_SPOT_DIRECTION, vec);
-                                vec[0] = ((node->location).c[0]);
-                                vec[1] = ((node->location).c[1]);
-                                vec[2] = ((node->location).c[2]);
-                                vec[3] = 1;
-                                glLightfv(light, GL_POSITION, vec);
 
-                                glLightf(light, GL_CONSTANT_ATTENUATION,
-                                        ((node->attenuation).c[0]));
-                                glLightf(light, GL_LINEAR_ATTENUATION,
-                                        ((node->attenuation).c[1]));
-                                glLightf(light, GL_QUADRATIC_ATTENUATION,
-                                        ((node->attenuation).c[2]));
+	/* if we are doing global lighting, is this one for us? */
+	RETURN_IF_LIGHT_STATE_NOT_US
+
+	if(node->on) {
+		int light = nextlight();
+		if(light >= 0) {
+			float vec[4];
+			lightState(light-GL_LIGHT0,TRUE);
+			vec[0] = ((node->direction).c[0]);
+			vec[1] = ((node->direction).c[1]);
+			vec[2] = ((node->direction).c[2]);
+			vec[3] = 1;
+			glLightfv(light, GL_SPOT_DIRECTION, vec);
+			vec[0] = ((node->location).c[0]);
+			vec[1] = ((node->location).c[1]);
+			vec[2] = ((node->location).c[2]);
+			vec[3] = 1;
+			glLightfv(light, GL_POSITION, vec);
+
+			glLightf(light, GL_CONSTANT_ATTENUATION,
+				((node->attenuation).c[0]));
+			glLightf(light, GL_LINEAR_ATTENUATION,
+				((node->attenuation).c[1]));
+			glLightf(light, GL_QUADRATIC_ATTENUATION,
+				((node->attenuation).c[2]));
 
 
-                                vec[0] = ((node->color).c[0]) * (node->intensity);
-                                vec[1] = ((node->color).c[1]) * (node->intensity);
-                                vec[2] = ((node->color).c[2]) * (node->intensity);
-                                vec[3] = 1;
-                                glLightfv(light, GL_DIFFUSE, vec);
-                                glLightfv(light, GL_SPECULAR, vec);
+			vec[0] = ((node->color).c[0]) * (node->intensity);
+			vec[1] = ((node->color).c[1]) * (node->intensity);
+			vec[2] = ((node->color).c[2]) * (node->intensity);
+			vec[3] = 1;
+			glLightfv(light, GL_DIFFUSE, vec);
+			glLightfv(light, GL_SPECULAR, vec);
 
-                                /* Aubrey Jaffer */
-                                vec[0] = ((node->color).c[0]) * (node->ambientIntensity);
-                                vec[1] = ((node->color).c[1]) * (node->ambientIntensity);
-                                vec[2] = ((node->color).c[2]) * (node->ambientIntensity);
-                                glLightfv(light, GL_AMBIENT, vec);
+			/* Aubrey Jaffer */
+			vec[0] = ((node->color).c[0]) * (node->ambientIntensity);
+			vec[1] = ((node->color).c[1]) * (node->ambientIntensity);
+			vec[2] = ((node->color).c[2]) * (node->ambientIntensity);
+			glLightfv(light, GL_AMBIENT, vec);
 
-                                /* XXX */
-                                glLightf(light, GL_SPOT_CUTOFF, 180);
-                        }
-                }
+			/* XXX */
+			glLightf(light, GL_SPOT_CUTOFF, 180);
+		}
+	}
 }
 
 
@@ -125,54 +135,58 @@ void prep_SpotLight (struct X3D_SpotLight *node) {
 
 void render_SpotLight(struct X3D_SpotLight *node) {
 	float ft;
-                if(node->on) {
-                        int light = nextlight();
-                        if(light >= 0) {
-                                float vec[4];
-                                lightState(light-GL_LIGHT0,TRUE);
-               
-                                vec[0] = ((node->direction).c[0]);
-                                vec[1] = ((node->direction).c[1]);
-                                vec[2] = ((node->direction).c[2]);
-                                vec[3] = 1;
-                                glLightfv(light, GL_SPOT_DIRECTION, vec);
-                                vec[0] = ((node->location).c[0]);
-                                vec[1] = ((node->location).c[1]);
-                                vec[2] = ((node->location).c[2]);
-                                vec[3] = 1;
-                                glLightfv(light, GL_POSITION, vec);
-        
-                                glLightf(light, GL_CONSTANT_ATTENUATION,
-                                        ((node->attenuation).c[0]));
-                                glLightf(light, GL_LINEAR_ATTENUATION,
-                                        ((node->attenuation).c[1]));
-                                glLightf(light, GL_QUADRATIC_ATTENUATION,
-                                        ((node->attenuation).c[2]));
-        
-        
-                                vec[0] = ((node->color).c[0]) * (node->intensity);
-                                vec[1] = ((node->color).c[1]) * (node->intensity);
-                                vec[2] = ((node->color).c[2]) * (node->intensity);
-                                vec[3] = 1; 
-                                glLightfv(light, GL_DIFFUSE, vec);
-                                glLightfv(light, GL_SPECULAR, vec);
 
-                                /* Aubrey Jaffer */
-                                vec[0] = ((node->color).c[0]) * (node->ambientIntensity);
-                                vec[1] = ((node->color).c[1]) * (node->ambientIntensity);
-                                vec[2] = ((node->color).c[2]) * (node->ambientIntensity);
+	/* if we are doing global lighting, is this one for us? */
+	RETURN_IF_LIGHT_STATE_NOT_US
 
-                                glLightfv(light, GL_AMBIENT, vec);
+	if(node->on) {
+		int light = nextlight();
+		if(light >= 0) {
+			float vec[4];
+			lightState(light-GL_LIGHT0,TRUE);
+	       
+			vec[0] = ((node->direction).c[0]);
+			vec[1] = ((node->direction).c[1]);
+			vec[2] = ((node->direction).c[2]);
+			vec[3] = 1;
+			glLightfv(light, GL_SPOT_DIRECTION, vec);
+			vec[0] = ((node->location).c[0]);
+			vec[1] = ((node->location).c[1]);
+			vec[2] = ((node->location).c[2]);
+			vec[3] = 1;
+			glLightfv(light, GL_POSITION, vec);
+	
+			glLightf(light, GL_CONSTANT_ATTENUATION,
+					((node->attenuation).c[0]));
+			glLightf(light, GL_LINEAR_ATTENUATION,
+					((node->attenuation).c[1]));
+			glLightf(light, GL_QUADRATIC_ATTENUATION,
+					((node->attenuation).c[2]));
+	
+	
+			vec[0] = ((node->color).c[0]) * (node->intensity);
+			vec[1] = ((node->color).c[1]) * (node->intensity);
+			vec[2] = ((node->color).c[2]) * (node->intensity);
+			vec[3] = 1; 
+			glLightfv(light, GL_DIFFUSE, vec);
+			glLightfv(light, GL_SPECULAR, vec);
 
-				ft = 0.5/(node->beamWidth +0.1);
-				if (ft>128.0) ft=128.0;
-				if (ft<0.0) ft=0.0;
-                                glLightf(light, GL_SPOT_EXPONENT,ft);
+			/* Aubrey Jaffer */
+			vec[0] = ((node->color).c[0]) * (node->ambientIntensity);
+			vec[1] = ((node->color).c[1]) * (node->ambientIntensity);
+			vec[2] = ((node->color).c[2]) * (node->ambientIntensity);
 
-				ft = node->cutOffAngle /3.1415926536*180;
-				if (ft>90.0) ft=90.0;
-				if (ft<0.0) ft=0.0;
-                                glLightf(light, GL_SPOT_CUTOFF, ft);
-                        }
-                }
-        }
+			glLightfv(light, GL_AMBIENT, vec);
+
+			ft = 0.5/(node->beamWidth +0.1);
+			if (ft>128.0) ft=128.0;
+			if (ft<0.0) ft=0.0;
+			glLightf(light, GL_SPOT_EXPONENT,ft);
+
+			ft = node->cutOffAngle /3.1415926536*180;
+			if (ft>90.0) ft=90.0;
+			if (ft<0.0) ft=0.0;
+			glLightf(light, GL_SPOT_CUTOFF, ft);
+		}
+	}
+}

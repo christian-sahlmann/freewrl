@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Children.c,v 1.9 2009/05/11 21:11:58 crc_canada Exp $
+$Id: Children.c,v 1.10 2009/05/12 18:21:59 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -21,11 +21,11 @@ Render the children of nodes.
 #include "RenderFuncs.h"
 
 
+#define VF_localLight				0x0004
+
 /* this grouping node has a local light for a child, render this first */
 void localLightChildren(struct Multi_Node ch) {
 	int i;
-
-	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT); */
 	for(i=0; i<ch.n; i++) {
 		struct X3D_Node *p = X3D_NODE(ch.p[i]);
 		if (p != NULL) {
@@ -43,13 +43,16 @@ void normalChildren(struct Multi_Node ch) {
 
 	for(i=0; i<ch.n; i++) {
 		struct X3D_Node *p = X3D_NODE(ch.p[i]);
-
 		if (p != NULL) {
-			if (p->_nodeType != NODE_DirectionalLight) {
-			/*printf ("normalchildren, (%d of %d) child %d\n",i,ch.n,p);   */
-			/*			if ((p->PIV) > 0) */
-				render_node(p);
-			}
+			/* as long as this is not a local light... if it is, it will be handled by
+			   the localLightChildren function, above */
+			if (p->_nodeType == NODE_DirectionalLight) {
+				if (X3D_DIRECTIONALLIGHT(p)->global == TRUE) render_node(p);
+			} else if (p->_nodeType == NODE_SpotLight) {
+				if (X3D_SPOTLIGHT(p)->global == TRUE) render_node(p);
+			} else if (p->_nodeType == NODE_PointLight) {
+				if (X3D_POINTLIGHT(p)->global == TRUE) render_node(p);
+			} else render_node(p);
 		}
 	}
 }

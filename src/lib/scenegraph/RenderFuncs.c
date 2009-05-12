@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.17 2009/05/11 21:11:59 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.18 2009/05/12 18:21:59 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -28,7 +28,7 @@ Scenegraph rendering.
 #include "RenderFuncs.h"
 
 /* Rearrange to take advantage of headlight when off */
-int curlight = 0;
+static int curlight = 0;
 int nlightcodes = 7;
 int lightcode[7] = {
 	GL_LIGHT0,
@@ -43,6 +43,9 @@ int nextlight() {
 	if(curlight == nlightcodes) { return -1; }
 	return lightcode[curlight++];
 }
+
+
+
 
 /* material node usage depends on texture depth; if rgb (depth1) we blend color field
    and diffusecolor with texture, else, we dont bother with material colors */

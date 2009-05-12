@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.40 2009/05/11 21:11:58 crc_canada Exp $
+$Id: headers.h,v 1.41 2009/05/12 18:21:59 crc_canada Exp $
 
 Global includes.
 
@@ -54,6 +54,10 @@ char *readInputString(char *fn);
                 } \
         if (render_proximity == VF_Proximity) \
                 if ((node->_renderFlags & VF_Proximity) != VF_Proximity)  { \
+                        return; \
+                } \
+        if (render_light == VF_globalLight) \
+                if ((node->_renderFlags & VF_globalLight) != VF_globalLight)  { \
                         return; \
                 } \
 
@@ -579,12 +583,14 @@ unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
 
 /* Used to determine in Group, etc, if a child is a local light; do comparison with this */
 void LocalLight_Rend(void *nod_);
+void saveLightState(int *);
+void restoreLightState(int *);
+#define LOCAL_LIGHT_SAVE int savedlight[8];
 #define LOCAL_LIGHT_CHILDREN(a) \
-	if ((node->_renderFlags & VF_localLight)==VF_localLight)localLightChildren(a);
+	if ((node->_renderFlags & VF_localLight)==VF_localLight){saveLightState(savedlight); localLightChildren(a);}
 
 #define LOCAL_LIGHT_OFF if ((node->_renderFlags & VF_localLight)==VF_localLight) { \
-		lightState(savedlight+1,FALSE); curlight = savedlight; }
-#define LOCAL_LIGHT_SAVE int savedlight = curlight;
+		restoreLightState(savedlight); }
 
 void normalize_ifs_face (float *point_normal,
                          struct point_XYZ *facenormals,
@@ -1004,7 +1010,7 @@ extern double nearPlane, farPlane, screenRatio, backgroundPlane;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 
-extern int render_sensitive,render_vp,render_light,render_proximity,curlight,verbose,render_blend,render_geom,render_collision;
+extern int render_sensitive,render_vp,render_light,render_proximity,verbose,render_blend,render_geom,render_collision;
 
 int SAI_IntRetCommand (char cmnd, const char *fn);
 char * SAI_StrRetCommand (char cmnd, const char *fn);

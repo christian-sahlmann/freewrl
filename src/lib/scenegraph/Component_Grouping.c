@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.17 2009/05/11 21:11:59 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.18 2009/05/12 18:21:59 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -289,7 +289,6 @@ void child_Group (struct X3D_Group *node) {
 	LOCAL_LIGHT_SAVE
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
-
 
 	 /* {
 		int x;
