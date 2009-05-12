@@ -4,7 +4,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.11 2009/05/07 20:03:20 crc_canada Exp n 
+: VRMLC.pm,v 1.12 2009/05/11 21:11:58 crc_canada Exp n 
 ??? 
  
 */ 
@@ -55,6 +55,7 @@
 	"__segCount",
 	"stiffness",
 	"toggle",
+	"minificationFilter",
 	"attrib",
 	"title",
 	"child4Url",
@@ -158,6 +159,7 @@
 	"controlKey",
 	"leftUrl",
 	"__bottomTexture",
+	"textureCompression",
 	"__do_anything",
 	"frontTexture",
 	"centerOfRotation_changed",
@@ -166,6 +168,7 @@
 	"isOver",
 	"__do_rotation",
 	"shininess",
+	"texturePriority",
 	"description",
 	"set_fraction",
 	"transitionComplete",
@@ -182,6 +185,7 @@
 	"__occludeCheckCount",
 	"backUrl",
 	"size",
+	"boundaryModeT",
 	"maxExtent",
 	"orientation_changed",
 	"summary",
@@ -216,8 +220,10 @@
 	"_rotationAngle",
 	"__t2",
 	"parameter",
+	"borderWidth",
 	"set_boolean",
 	"backTransparency",
+	"generateMipMaps",
 	"tessellation",
 	"fieldOfView",
 	"scale",
@@ -225,6 +231,7 @@
 	"proxy",
 	"translation_changed",
 	"__numPoints",
+	"borderColor",
 	"set_height",
 	"child1Url",
 	"endCap",
@@ -345,6 +352,7 @@
 	"__solid",
 	"xSpacing",
 	"__do_scaleO",
+	"magnificationFilter",
 	"__transparency",
 	"controller",
 	"numComponents",
@@ -357,6 +365,7 @@
 	"inputFalse",
 	"bottomUrl",
 	"hitPoint_changed",
+	"boundaryModeS",
 	"hatchStyle",
 	"__params",
 	"set_normalIndex",
@@ -397,6 +406,7 @@
 	"valueChanged",
 	"deviceName",
 	"_controllerIndex",
+	"boundaryModeR",
 	"__oldChildren",
 	"intValue",
 	"level",
@@ -489,6 +499,7 @@
 	"set_coordIndex",
 	"__points",
 	"elapsedTime",
+	"anisotropicDegree",
 	"__vertices",
 	"parts",
 	"__simpleDisk",
@@ -610,6 +621,7 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"name",
 	"texCoord",
 	"stiffness",
+	"minificationFilter",
 	"hatched",
 	"attrib",
 	"avatarSize",
@@ -666,6 +678,7 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"type",
 	"backShininess",
 	"position",
+	"magnificationFilter",
 	"controller",
 	"fogCoord",
 	"scaleOrientation",
@@ -676,6 +689,7 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"displacers",
 	"minVal",
 	"back",
+	"boundaryModeS",
 	"hatchStyle",
 	"cutOffAngle",
 	"pressTime",
@@ -697,6 +711,7 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"attenuation",
 	"FreeWRL_PROTOInterfaceNodes",
 	"leftUrl",
+	"textureCompression",
 	"frontTexture",
 	"url",
 	"coord",
@@ -704,8 +719,10 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"diskAngle",
 	"minFront",
 	"shininess",
+	"texturePriority",
 	"description",
 	"deviceName",
+	"boundaryModeR",
 	"intValue",
 	"level",
 	"vertexCount",
@@ -723,6 +740,7 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"velocity",
 	"resumeTime",
 	"size",
+	"boundaryModeT",
 	"maxExtent",
 	"alpha",
 	"summary",
@@ -760,6 +778,7 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"jump",
 	"depth",
 	"parameter",
+	"borderWidth",
 	"timeOut",
 	"backTransparency",
 	"tessellation",
@@ -769,6 +788,7 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"useIntValue",
 	"fontStyle",
 	"orientation",
+	"borderColor",
 	"appearance",
 	"autoOffset",
 	"center",
@@ -784,6 +804,7 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"controlPoint",
 	"tessellationScale",
 	"diffuseColor",
+	"anisotropicDegree",
 	"point",
 	"parts",
 };
@@ -849,6 +870,7 @@ const indexT EXPOSED_FIELD_COUNT = ARR_SIZE(EXPOSED_FIELD);
 	"colorPerVertex",
 	"zSpacing",
 	"directOutput",
+	"generateMipMaps",
 	"innerRadius",
 	"proxy",
 	"closureType",
@@ -1247,6 +1269,7 @@ const indexT FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"TextureBackground",
 	"TextureCoordinate",
 	"TextureCoordinateGenerator",
+	"TextureProperties",
 	"TextureTransform",
 	"TimeSensor",
 	"TimeTrigger",
@@ -1428,6 +1451,7 @@ struct X3D_Virt virt_Text = { NULL,(void *)render_Text,NULL,NULL,(void *)rendray
 struct X3D_Virt virt_TextureBackground = { NULL,(void *)render_TextureBackground,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_TextureCoordinate = { NULL,(void *)render_TextureCoordinate,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_TextureCoordinateGenerator = { NULL,(void *)render_TextureCoordinateGenerator,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_TextureProperties = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_TextureTransform = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_TimeSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_TimeTrigger = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -3352,6 +3376,22 @@ const int OFFSETS_TextureCoordinateGenerator[] = {
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_TextureCoordinateGenerator, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
+const int OFFSETS_TextureProperties[] = {
+	FIELDNAMES_borderColor, offsetof (struct X3D_TextureProperties, borderColor),  FIELDTYPE_SFColorRGBA, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_boundaryModeS, offsetof (struct X3D_TextureProperties, boundaryModeS),  FIELDTYPE_SFString, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_magnificationFilter, offsetof (struct X3D_TextureProperties, magnificationFilter),  FIELDTYPE_SFString, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_texturePriority, offsetof (struct X3D_TextureProperties, texturePriority),  FIELDTYPE_SFInt32, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_boundaryModeT, offsetof (struct X3D_TextureProperties, boundaryModeT),  FIELDTYPE_SFString, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_boundaryModeR, offsetof (struct X3D_TextureProperties, boundaryModeR),  FIELDTYPE_SFString, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_anisotropicDegree, offsetof (struct X3D_TextureProperties, anisotropicDegree),  FIELDTYPE_SFFloat, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_borderWidth, offsetof (struct X3D_TextureProperties, borderWidth),  FIELDTYPE_SFInt32, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_minificationFilter, offsetof (struct X3D_TextureProperties, minificationFilter),  FIELDTYPE_SFString, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_textureCompression, offsetof (struct X3D_TextureProperties, textureCompression),  FIELDTYPE_SFString, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_generateMipMaps, offsetof (struct X3D_TextureProperties, generateMipMaps),  FIELDTYPE_SFBool, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_metadata, offsetof (struct X3D_TextureProperties, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___oldmetadata, offsetof (struct X3D_TextureProperties, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
+	-1, -1, -1, -1, -1};
+
 const int OFFSETS_TextureTransform[] = {
 	FIELDNAMES_rotation, offsetof (struct X3D_TextureTransform, rotation),  FIELDTYPE_SFFloat, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_scale, offsetof (struct X3D_TextureTransform, scale),  FIELDTYPE_SFVec2f, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3760,6 +3800,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_TextureBackground,
 	OFFSETS_TextureCoordinate,
 	OFFSETS_TextureCoordinateGenerator,
+	OFFSETS_TextureProperties,
 	OFFSETS_TextureTransform,
 	OFFSETS_TimeSensor,
 	OFFSETS_TimeTrigger,
@@ -4145,6 +4186,7 @@ void *createNewX3DNode (int nt) {
 		case NODE_TextureBackground : {tmp = MALLOC (sizeof (struct X3D_TextureBackground)); break;}
 		case NODE_TextureCoordinate : {tmp = MALLOC (sizeof (struct X3D_TextureCoordinate)); break;}
 		case NODE_TextureCoordinateGenerator : {tmp = MALLOC (sizeof (struct X3D_TextureCoordinateGenerator)); break;}
+		case NODE_TextureProperties : {tmp = MALLOC (sizeof (struct X3D_TextureProperties)); break;}
 		case NODE_TextureTransform : {tmp = MALLOC (sizeof (struct X3D_TextureTransform)); break;}
 		case NODE_TimeSensor : {tmp = MALLOC (sizeof (struct X3D_TimeSensor)); break;}
 		case NODE_TimeTrigger : {tmp = MALLOC (sizeof (struct X3D_TimeTrigger)); break;}
@@ -6808,6 +6850,26 @@ void *createNewX3DNode (int nt) {
 			tmp2->_defaultContainer = FIELDNAMES_texCoord;
 		break;
 		}
+		case NODE_TextureProperties : {
+			struct X3D_TextureProperties * tmp2;
+			tmp2 = (struct X3D_TextureProperties *) tmp;
+			tmp2->v = &virt_TextureProperties;
+			tmp2->borderColor.c[0] = 0;tmp2->borderColor.c[1] = 0;tmp2->borderColor.c[2] = 0;tmp2->borderColor.c[3] = 0;;
+			tmp2->boundaryModeS = newASCIIString("REPEAT");
+			tmp2->magnificationFilter = newASCIIString("FASTEST");
+			tmp2->texturePriority = 0;
+			tmp2->boundaryModeT = newASCIIString("REPEAT");
+			tmp2->boundaryModeR = newASCIIString("REPEAT");
+			tmp2->anisotropicDegree = 1;
+			tmp2->borderWidth = 0;
+			tmp2->minificationFilter = newASCIIString("FASTEST");
+			tmp2->textureCompression = newASCIIString("FASTEST");
+			tmp2->generateMipMaps = FALSE;
+			tmp2->metadata = NULL;
+			tmp2->__oldmetadata = 0;
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
 		case NODE_TextureTransform : {
 			struct X3D_TextureTransform * tmp2;
 			tmp2 = (struct X3D_TextureTransform *) tmp;
@@ -8904,6 +8966,24 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
+		case NODE_TextureProperties : {
+			struct X3D_TextureProperties *tmp;
+			tmp = (struct X3D_TextureProperties *) node;
+			spacer printf ("\tborderColor (SFColorRGBA): \t");
+			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->borderColor.c[i]); }
+			printf ("\n");
+			spacer printf ("\tboundaryModeS (SFString) \t%s\n",tmp->boundaryModeS->strptr);
+			spacer printf ("\tmagnificationFilter (SFString) \t%s\n",tmp->magnificationFilter->strptr);
+			spacer printf ("\ttexturePriority (SFInt32) \t%d\n",tmp->texturePriority);
+			spacer printf ("\tboundaryModeT (SFString) \t%s\n",tmp->boundaryModeT->strptr);
+			spacer printf ("\tboundaryModeR (SFString) \t%s\n",tmp->boundaryModeR->strptr);
+			spacer printf ("\tanisotropicDegree (SFFloat) \t%4.3f\n",tmp->anisotropicDegree);
+			spacer printf ("\tborderWidth (SFInt32) \t%d\n",tmp->borderWidth);
+			spacer printf ("\tminificationFilter (SFString) \t%s\n",tmp->minificationFilter->strptr);
+			spacer printf ("\ttextureCompression (SFString) \t%s\n",tmp->textureCompression->strptr);
+			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
+			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
+		break;}
 		case NODE_TextureTransform : {
 			struct X3D_TextureTransform *tmp;
 			tmp = (struct X3D_TextureTransform *) node;
@@ -9265,6 +9345,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_TextureBackground: return X3DBackgroundNode; break;
 	case NODE_TextureCoordinate: return X3DTextureCoordinateNode; break;
 	case NODE_TextureCoordinateGenerator: return X3DTextureCoordinateNode; break;
+	case NODE_TextureProperties: return X3DSFNode; break;
 	case NODE_TextureTransform: return X3DTextureTransformNode; break;
 	case NODE_TimeSensor: return X3DSensorNode; break;
 	case NODE_TimeTrigger: return X3DTriggerNode; break;

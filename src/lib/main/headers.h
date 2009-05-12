@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.41 2009/05/12 18:21:59 crc_canada Exp $
+$Id: headers.h,v 1.42 2009/05/12 19:53:15 crc_canada Exp $
 
 Global includes.
 
@@ -761,6 +761,7 @@ void *returnInterpolatorPointer (const char *x);
 #define X3DProgrammableShaderObject		50
 #define X3DUrlObject				51
 #define X3DEnvironmentTextureNode 52
+#define X3DSFNode				53 /* this is an "X3DNode" in the spec, but it conflicts with an internal def. */
 
 
 
