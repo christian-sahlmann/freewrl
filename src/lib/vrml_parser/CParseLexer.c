@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.17 2009/05/13 13:53:56 crc_canada Exp $
+$Id: CParseLexer.c,v 1.18 2009/05/13 14:29:48 crc_canada Exp $
 
 ???
 
@@ -1139,7 +1139,7 @@ BOOL lexer_operator(struct VRMLLexer* me, char op)
  int c;
 
 if (me->curID) {
-	ConsoleMessage ("lexer_operator, curID is NOT NULL - it is \"%s\" - but I am looking for a \'%c\'\n",me->curID,op);
+	ConsoleMessage ("lexer_operator: did not expect to find a text string  - it is \"%s\" - as I am looking for a \'%c\'\n",me->curID,op);
 	FREE_IF_NZ(me->curID);
 	/* printf ("NEXTIN is :%s:\n",me->nextIn); */
  }
