@@ -1,7 +1,7 @@
 /* 
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseParser.h,v 1.8 2009/05/13 13:53:56 crc_canada Exp $
+$Id: CParseParser.h,v 1.9 2009/05/13 20:30:49 crc_canada Exp $
 
 Parser (input of non-terminal symbols) for CParse
 
@@ -143,8 +143,6 @@ BOOL parser_metaStatement(struct VRMLParser*);
 BOOL parser_profileStatement(struct VRMLParser*);
 
 BOOL parser_protoStatement(struct VRMLParser*);
-BOOL parser_interfaceDeclaration(struct VRMLParser*,
- struct ProtoDefinition*, struct Shader_Script*);
 BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_node(struct VRMLParser*, vrmlNodeT*, indexT);
 BOOL parser_field(struct VRMLParser*, struct X3D_Node*);

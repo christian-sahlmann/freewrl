@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.14 2009/05/12 19:53:14 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.15 2009/05/13 20:30:49 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2174,6 +2174,7 @@ package VRML::NodeType;
 			isValid => [SFBool, TRUE,outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			language => [SFString, "", initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__shaderIDS => [MFNode, [], initializeOnly, 0], 
+			 __shaderObj => [FreeWRLPTR, 0, initializeOnly, 0],
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 	},"X3DShaderNode"),
@@ -2208,6 +2209,7 @@ package VRML::NodeType;
 			isValid => [SFBool, TRUE,outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			language => [SFString,"",initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
+			 __shaderObj => [FreeWRLPTR, 0, initializeOnly, 0],
 	}, "X3DProgrammableShaderObject"),
 
 	ProgramShader => new VRML::NodeType("ProgramShader", {
@@ -2233,6 +2235,7 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			url => [MFString, [], inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			type => [SFString,"",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
+			 __shaderObj => [FreeWRLPTR, 0, initializeOnly, 0],
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 			__parenturl =>[SFString,"",initializeOnly, 0],
 	}, "X3DUrlObject"),

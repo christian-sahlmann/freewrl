@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.11 2009/05/07 18:43:34 crc_canada Exp $
+$Id: JScript.c,v 1.12 2009/05/13 20:30:49 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -185,9 +185,9 @@ void JSInit(uintptr_t num) {
 
 /* Save the text, so that when the script is initialized in the EventLoop thread, it will be there */
 void SaveScriptText(uintptr_t num, char *text) {
-	/* printf ("JSSaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
+	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
 	if (num >= JSMaxScript)  {
-		ConsoleMessage ("JSSaveScriptText: warning, script %d initialization out of order",num);
+		ConsoleMessage ("SaveScriptText: warning, script %d initialization out of order",num);
 		return;
 	}
 	FREE_IF_NZ(ScriptControl[num].scriptText);
@@ -525,6 +525,34 @@ void SFVec3dNativeAssign(void *top, void *fromp) {
 	(to->v) = (from->v);
 }
 
+void *SFVec4fNativeNew() {
+	SFVec4fNative *ptr;
+	ptr = (SFVec4fNative *)MALLOC(sizeof(*ptr));
+	ptr->valueChanged = 0;
+	return ptr;
+}
+
+void SFVec4fNativeAssign(void *top, void *fromp) {
+	SFVec4fNative *to = (SFVec4fNative *)top;
+	SFVec4fNative *from = (SFVec4fNative *)fromp;
+	to->valueChanged++;
+	(to->v) = (from->v);
+}
+
+void *SFVec4dNativeNew() {
+	SFVec4dNative *ptr;
+	ptr = (SFVec4dNative *)MALLOC(sizeof(*ptr));
+	ptr->valueChanged = 0;
+	return ptr;
+}
+
+void SFVec4dNativeAssign(void *top, void *fromp) {
+	SFVec4dNative *to = (SFVec4dNative *)top;
+	SFVec4dNative *from = (SFVec4dNative *)fromp;
+	to->valueChanged++;
+	(to->v) = (from->v);
+}
+
 
 /* A new version of InitScriptField which takes "nicer" arguments; currently a
  * simple and restricted wrapper, but it could replace it soon? */
@@ -735,6 +763,13 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 					case FIELDTYPE_MFFloat: 
 						FloatPtr = value.mffloat.p; elements = value.mffloat.n;
 						break;
+					case FIELDTYPE_SFVec4f:
+						FloatPtr = value.sfvec4f.c; elements = 1;
+						break;
+					case FIELDTYPE_SFVec4d:
+						DoublePtr = value.sfvec4d.c; elements = 1;
+						break;
+
 					default: {
 						printf ("unhandled type, in InitScriptField %d\n",type);
 						return;
@@ -763,6 +798,7 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 					case FIELDTYPE_SFColorRGBA:
 					case FIELDTYPE_SFRotation:
 					case FIELDTYPE_SFVec3f: 
+					case FIELDTYPE_SFVec4f: 
 					case FIELDTYPE_MFFloat: 
 						FloatPtr = defaultFloat;
 						break;
@@ -786,9 +822,11 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 						break;
 
 					/* Double types */
+					case FIELDTYPE_SFVec2d:
 					case FIELDTYPE_SFVec3d:
 					case FIELDTYPE_MFTime:
 					case FIELDTYPE_SFTime:
+					case FIELDTYPE_SFVec4d:
 						DoublePtr = defaultDouble;
 						break;
 						

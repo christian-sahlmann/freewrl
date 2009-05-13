@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.10 2009/05/07 17:01:26 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.11 2009/05/13 20:30:49 crc_canada Exp $
 
 ???
 
@@ -276,6 +276,67 @@ JSFunctionSpec (SFVec2dFunctions)[] = {
 	{0}
 };
 #endif /* NEWCLASSES */
+
+
+
+JSClass SFVec4fClass = {
+	"SFVec4f",
+	JSCLASS_HAS_PRIVATE,
+	JS_PropertyStub,
+	JS_PropertyStub,
+	SFVec4fGetProperty,
+	SFVec4fSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_MY_Finalize
+};
+
+JSPropertySpec (SFVec4fProperties)[] = {
+	{"x", 0, JSPROP_ENUMERATE},
+	{"y", 1, JSPROP_ENUMERATE},
+	{"z", 2, JSPROP_ENUMERATE},
+	{"w", 3, JSPROP_ENUMERATE},
+	{0}
+};
+
+JSFunctionSpec (SFVec4fFunctions)[] = {
+	/* do not know what functions to use here */
+	{"toString", SFVec4dToString, 0},
+	{"assign", SFVec4dAssign, 0},
+	{0}
+};
+
+
+JSClass SFVec4dClass = {
+	"SFVec4d",
+	JSCLASS_HAS_PRIVATE,
+	JS_PropertyStub,
+	JS_PropertyStub,
+	SFVec4dGetProperty,
+	SFVec4dSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_MY_Finalize
+};
+
+JSPropertySpec (SFVec4dProperties)[] = {
+	{"x", 0, JSPROP_ENUMERATE},
+	{"y", 1, JSPROP_ENUMERATE},
+	{"z", 2, JSPROP_ENUMERATE},
+	{"w", 3, JSPROP_ENUMERATE},
+	{0}
+};
+
+JSFunctionSpec (SFVec4dFunctions)[] = {
+	/* do not know what functions to use here */
+	{"toString", SFVec4dToString, 0},
+	{"assign", SFVec4dAssign, 0},
+	{0}
+};
+
+
 
 
 JSClass SFVec3fClass = {
@@ -768,6 +829,10 @@ struct JSLoadPropElement (JSLoadProps) [] = {
         { &MFVec2fClass, MFVec2fConstr, &MFVec2fFunctions, "__MFVec2f_proto"},
 
         { &MFVec3fClass, MFVec3fConstr, &MFVec3fFunctions, "__MFVec3f_proto"},
+
+        { &SFVec4fClass, SFVec4fConstr, &SFVec4fFunctions, "__SFVec4f_proto"},
+        { &SFVec4dClass, SFVec4dConstr, &SFVec4dFunctions, "__SFVec4d_proto"},
+
         { &MFRotationClass, MFRotationConstr, &MFRotationFunctions, "__MFRotation_proto"},
         { &MFNodeClass, MFNodeConstr, &MFNodeFunctions, "__MFNode_proto"},
         { &SFImageClass, SFImageConstr, &SFImageFunctions, "__SFImage_proto"},

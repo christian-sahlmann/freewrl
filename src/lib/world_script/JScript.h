@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.h,v 1.3 2009/02/18 13:37:50 istakenv Exp $
+$Id: JScript.h,v 1.4 2009/05/13 20:30:49 crc_canada Exp $
 
 ???
 
@@ -43,6 +43,10 @@ void * SFVec3fNativeNew(void);
 void SFVec3fNativeAssign(void *top, void *fromp);
 void * SFVec3dNativeNew(void);
 void SFVec3dNativeAssign(void *top, void *fromp);
+void * SFVec4fNativeNew(void);
+void SFVec4fNativeAssign(void *top, void *fromp);
+void * SFVec4dNativeNew(void);
+void SFVec4dNativeAssign(void *top, void *fromp);
 void SaveScriptField (int num, indexT kind, indexT type, char* field, union anyVrml value);
 void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVrml value);
 int JSaddGlobalECMANativeProperty(uintptr_t num, char *name);

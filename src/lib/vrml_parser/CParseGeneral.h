@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseGeneral.h,v 1.6 2009/04/23 20:10:13 sdumoulin Exp $
+$Id: CParseGeneral.h,v 1.7 2009/05/13 20:30:49 crc_canada Exp $
 
 General header for VRML-parser (lexer/parser)
 
@@ -27,10 +27,10 @@ typedef double	vrmlTimeT;
 typedef double	vrmlDoubleT;
 typedef struct SFVec2f	vrmlVec2fT;
 typedef struct SFVec2d	vrmlVec2dT;
+typedef struct SFVec3d  vrmlVec3dT;
 typedef struct SFVec4f	vrmlVec4fT;
 typedef struct SFVec4d	vrmlVec4dT;
 typedef struct SFColor	vrmlVec3fT;
-typedef struct SFVec3d  vrmlVec3dT;
 typedef struct SFMatrix3f	vrmlMatrix3fT;
 typedef struct SFMatrix3d vrmlMatrix3dT;
 typedef struct SFMatrix4f	vrmlMatrix4fT;

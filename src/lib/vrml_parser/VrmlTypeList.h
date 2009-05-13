@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: VrmlTypeList.h,v 1.3 2008/12/12 20:10:26 crc_canada Exp $
+$Id: VrmlTypeList.h,v 1.4 2009/05/13 20:30:49 crc_canada Exp $
 
 A header simply containing all VRML types; this is needed sometimes.
 
@@ -36,6 +36,7 @@ SF_TYPE(SFVec3f, sfvec3f, Vec3f)
 MF_TYPE(MFVec3f, mfvec3f, Vec3f)
 SF_TYPE(SFVec3d, sfvec3d, Vec3d)
 MF_TYPE(MFVec3d, mfvec3d, Vec3d)
+SF_TYPE(SFVec4f, sfvec4f, Vec4f)
 
 SF_TYPE(SFMatrix3f, sfmatrix3f, Matrix3f)
 MF_TYPE(MFMatrix3f, mfmatrix3f, Matrix3f)

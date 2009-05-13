@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.8 2009/05/07 17:01:26 crc_canada Exp $
+$Id: jsVRMLClasses.h,v 1.9 2009/05/13 20:30:49 crc_canada Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -495,6 +495,16 @@ JSBool SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
 JSBool SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
 
 
+JSBool SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+JSBool SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+JSBool SFVec4fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec4fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec4fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+JSBool SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+JSBool SFVec4dToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec4dAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec4dConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 JSBool
 MFColorToString(JSContext *cx,
@@ -945,6 +955,15 @@ extern JSFunctionSpec (SFVec3fFunctions)[];
 extern JSClass SFVec3dClass;
 extern JSPropertySpec (SFVec3dProperties)[];
 extern JSFunctionSpec (SFVec3dFunctions)[];
+
+
+extern JSClass SFVec4fClass;
+extern JSPropertySpec (SFVec4fProperties)[];
+extern JSFunctionSpec (SFVec4fFunctions)[];
+extern JSClass SFVec4dClass;
+extern JSPropertySpec (SFVec4dProperties)[];
+extern JSFunctionSpec (SFVec4dFunctions)[];
+
 extern JSClass MFColorClass;
 extern JSFunctionSpec (MFColorFunctions)[];
 extern JSClass MFFloatClass;

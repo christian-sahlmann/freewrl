@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsNative.h,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: jsNative.h,v 1.4 2009/05/13 20:30:49 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -65,6 +65,15 @@ typedef struct _SFColorRGBANative {
 	struct SFColorRGBA v;
 } SFColorRGBANative;
 
+typedef struct _SFVec4fNative {
+	int valueChanged;
+	struct SFVec4f v;
+} SFVec4fNative;
+
+typedef struct _SFVec4dNative {
+	int valueChanged;
+	struct SFVec4d v;
+} SFVec4dNative;
 
 /*
  * Adds additional (touchable) property to instance of a native

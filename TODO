@@ -1,4 +1,13 @@
 Priority list
+13/05/2009: 
+	(JAS) Shaders worked on. 
+		- Classic parser: fields parsed, but need sending/receiving.
+		- Classic parser: need to add routing code.
+		- X3D parser: need to add field support to shader parsing.
+	(JAS) Javascript.
+		- added sfvec4f and sfvec4d input/output; only basic methods defined. There is nothing in the
+		  X3D scripting pages about 4f and 4d types.
+
 08/05/2009:
 	(JAS) children fields are sorted, but we use a the node children field. This can give us grief for when we
 	use EAI/SAI to get/set individual children elements. Shadow the sorting, and also move sorting to the end of
@@ -119,9 +128,7 @@ Priority list
 - OSX standalone front end updateContext()
 - XML parser - Script and Proto work, and general cleanup
 - DVD standalone - get Geospatial content on there, and running.
-- Shader variables not parsed nor sent to shaders.
 - OSX sound revisit.
-- GlassBunny.wrl - CubeMap textures (Michel) and Shader variables (Johns).
 - resolve QA issues in the code - implicit function declarations, etc. (Ian,Michel?)
 - debug browser plugin
 
@@ -139,6 +146,5 @@ Priority list (as of 20/11/2008):
 - Apple - Gurob email
 - OSX standalone front end updateContext()
 - XML parser - Script and Proto work, and general cleanup
-- Shader variables
 - Component verification
 

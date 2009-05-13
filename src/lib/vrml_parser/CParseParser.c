@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.29 2009/05/13 14:29:48 crc_canada Exp $
+  $Id: CParseParser.c,v 1.30 2009/05/13 20:30:49 crc_canada Exp $
 
   ???
 
@@ -471,7 +471,7 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
    Creates a protoFieldDecl or scriptFieldDecl structure to hold field data.
    Parses and stores the default value of fields and inputOutputs.
    Adds the protoFieldDecl or scriptFieldDecl to the list of fields in the ProtoDefinition or Script structure. */ 
-BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* proto, struct Shader_Script* script) {
+static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* proto, struct Shader_Script* script) {
     indexT mode;
     indexT type;
     indexT name;
@@ -502,7 +502,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
     }
 
     /* Script can not take inputOutputs */
-    if(script && mode==PKW_inputOutput)
+    if(script->ShaderScriptNode->_nodeType==NODE_Script && mode==PKW_inputOutput)
         PARSE_ERROR("Scripts must not have inputOutputs!")
   
             /* lexer_fieldType is #defined as lexer_specialID(me, r, NULL, FIELDTYPES, FIELDTYPES_COUNT, NULL) */
@@ -1837,6 +1837,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
         printf("parser_node: parsing builtin node\n");
 #endif
         struct Shader_Script* script=NULL;
+        struct Shader_Script* shader=NULL;
                  
         /* Get malloced struct of appropriate X3D_Node type with default values filled in */
         node=X3D_NODE(createNewX3DNode(nodeTypeB));
@@ -1856,9 +1857,14 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
         /* From what I can tell, this only does something for Script nodes.  It sets node->__scriptObj to new_Shader_Script() */
         parser_specificInitNode(node, me);
                 
-        /* Set curScript for Script-nodes */
-        if(node->_nodeType==NODE_Script)
-            script=X3D_SCRIPT(node)->__scriptObj;
+        /* Set flag for Shaders/Scripts - these ones can have any number of fields */
+	switch (node->_nodeType) {
+		case NODE_Script: script=X3D_SCRIPT(node)->__scriptObj; break;
+		case NODE_ShaderProgram: shader=X3D_SHADERPROGRAM(node)->__shaderObj; break;
+		case NODE_PackagedShader: shader=X3D_PACKAGEDSHADER(node)->__shaderObj; break;
+		case NODE_ComposedShader: shader=X3D_COMPOSEDSHADER(node)->__shaderObj; break;
+		default: {}
+	}
         
         /* As long as the lexer is returning field statements, ROUTE statements, or PROTO statements continue parsing node */
         while(TRUE)
@@ -1905,11 +1911,17 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
                 continue;
             }
 #ifdef CPARSERVERBOSE
-            printf("parser_node: try parsing SCRIPT field\n");
+            printf("parser_node: try parsing Script or Shader field\n");
 #endif
             if(script && parser_interfaceDeclaration(me, NULL, script)) {
 #ifdef CPARSERVERBOSE
                 printf("parser_node: SCRIPT field parsed\n");
+#endif
+                continue;
+            }
+            if(shader && parser_interfaceDeclaration(me, NULL, shader)) {
+#ifdef CPARSERVERBOSE
+                printf("parser_node: Shader field parsed\n");
 #endif
                 continue;
             }
@@ -2046,12 +2058,14 @@ void parser_specificInitNode(struct X3D_Node* n, struct VRMLParser* me)
    { \
     struct X3D_##type* node=(struct X3D_##type*)n; \
     code \
+	break; \
    }
 
         /* Scripts get a script object associated to them */
-        NODE_SPECIFIC_INIT(Script,
-                           node->__scriptObj=new_Shader_Script(node);
-            )
+        NODE_SPECIFIC_INIT(Script, node->__scriptObj=new_Shader_Script(node);)
+        NODE_SPECIFIC_INIT(ShaderProgram, node->__shaderObj=new_Shader_Script(node);)
+        NODE_SPECIFIC_INIT(PackagedShader, node->__shaderObj=new_Shader_Script(node);)
+        NODE_SPECIFIC_INIT(ComposedShader, node->__shaderObj=new_Shader_Script(node);)
 
             }
 }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.19 2009/05/07 18:43:34 crc_canada Exp $
+$Id: CRoutes.c,v 1.20 2009/05/13 20:30:49 crc_canada Exp $
 
 ???
 
@@ -411,7 +411,11 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 			GETJSPTR_TYPE_A(SFRotation)
 			GETJSPTR_TYPE_A(SFNode)
 			GETJSPTR_TYPE_A(SFVec2f)
+			/* GETJSPTR_TYPE_A(SFVec2d) */
 			GETJSPTR_TYPE_A(SFVec3f)
+			GETJSPTR_TYPE_A(SFVec3d)
+			GETJSPTR_TYPE_A(SFVec4f)
+			GETJSPTR_TYPE_A(SFVec4d)
 			GETJSPTR_TYPE_A(SFImage)
 			GETJSPTR_TYPE_A(SFColor)
 			GETJSPTR_TYPE_A(SFColorRGBA)
@@ -420,6 +424,8 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 			GETJSPTR_TYPE_MF_A(MFNode,SFNode)
 			GETJSPTR_TYPE_MF_A(MFVec2f,SFVec2f)
 			GETJSPTR_TYPE_MF_A(MFVec3f,SFVec3f)
+			GETJSPTR_TYPE_MF_A(MFVec4f,SFVec4f)
+			GETJSPTR_TYPE_MF_A(MFVec4d,SFVec4d)
 			/* GETJSPTR_TYPE_MF_A(MFImage,SFImage)  */
 			GETJSPTR_TYPE_MF_A(MFColor,SFColor)
 			GETJSPTR_TYPE_MF_A(MFColorRGBA,SFColorRGBA)
@@ -1866,6 +1872,10 @@ void resetScriptTouchedFlag(int actualscript, int fptr) {
 		RESET_TOUCHED_TYPE_A(SFNode)
 		RESET_TOUCHED_TYPE_A(SFVec2f)
 		RESET_TOUCHED_TYPE_A(SFVec3f)
+		RESET_TOUCHED_TYPE_A(SFVec4f)
+		/* RESET_TOUCHED_TYPE_A(SFVec2d) */
+		RESET_TOUCHED_TYPE_A(SFVec3d)
+		RESET_TOUCHED_TYPE_A(SFVec4d)
 		RESET_TOUCHED_TYPE_A(SFImage)
 		RESET_TOUCHED_TYPE_A(SFColor)
 		RESET_TOUCHED_TYPE_A(SFColorRGBA)
@@ -1873,6 +1883,8 @@ void resetScriptTouchedFlag(int actualscript, int fptr) {
 		RESET_TOUCHED_TYPE_MF_A(MFNode,SFNode)
 		RESET_TOUCHED_TYPE_MF_A(MFVec2f,SFVec2f)
 		RESET_TOUCHED_TYPE_MF_A(MFVec3f,SFVec3f)
+		RESET_TOUCHED_TYPE_MF_A(MFVec4f,SFVec4f)
+		RESET_TOUCHED_TYPE_MF_A(MFVec4d,SFVec4d)
 		/* RESET_TOUCHED_TYPE_MF_A(MFImage,SFImage) */
 		RESET_TOUCHED_TYPE_MF_A(MFColor,SFColor)
 		RESET_TOUCHED_TYPE_MF_A(MFColorRGBA,SFColorRGBA)

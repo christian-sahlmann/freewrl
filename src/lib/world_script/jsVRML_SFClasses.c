@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_SFClasses.c,v 1.14 2009/05/07 17:01:26 crc_canada Exp $
+$Id: jsVRML_SFClasses.c,v 1.15 2009/05/13 20:30:49 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -3304,6 +3304,499 @@ SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			break;
 		case 2:
 			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(myv);
+			break;
+		}
+	}
+	return JS_TRUE;
+}
+
+
+JSBool
+SFVec4fToString(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval)
+{
+    SFVec4fNative *ptr;
+    JSString *_str;
+	char buff[STRING];
+
+	UNUSED(argc);
+	UNUSED(argv);
+	if ((ptr = (SFVec4fNative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFVec4fToString.\n");
+		return JS_FALSE;
+	}
+
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.9g %.9g %.9g %.9g",
+			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2],ptr->v.c[3]);
+	_str = JS_NewStringCopyZ(cx, buff);
+    *rval = STRING_TO_JSVAL(_str);
+
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("SFVec4fToString, string is :%s:\n",buff);
+	#endif
+
+    return JS_TRUE;
+}
+
+JSBool
+SFVec4fAssign(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval)
+{
+    JSObject *_from_obj;
+    SFVec4fNative *fptr, *ptr;
+    char *_id_str;
+
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("start of SFVec4fAssign\n");
+	#endif
+
+	if ((ptr = (SFVec4fNative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed for obj in SFVec4fAssign.\n");
+        return JS_FALSE;
+	}
+    if (!JS_InstanceOf(cx, obj, &SFVec4fClass, argv)) {
+		printf( "JS_InstanceOf failed for obj in SFVec4fAssign.\n");
+        return JS_FALSE;
+	}
+	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+		printf( "JS_ConvertArguments failed in SFVec4fAssign.\n");
+		return JS_FALSE;
+	}
+    if (!JS_InstanceOf(cx, _from_obj, &SFVec4fClass, argv)) {
+		printf( "JS_InstanceOf failed for _from_obj in SFVec4fAssign.\n");
+        return JS_FALSE;
+    }
+	if ((fptr = (SFVec4fNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
+		printf( "JS_GetPrivate failed for _from_obj in SFVec4fAssign.\n");
+        return JS_FALSE;
+	}
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFVec4fAssign: obj = %u, id = \"%s\", from = %u\n",
+			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ  _from_obj);
+	#endif
+
+    SFVec4fNativeAssign(ptr, fptr);
+    *rval = OBJECT_TO_JSVAL(obj);
+
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("end of SFVec4fAssign\n");
+	#endif
+
+    return JS_TRUE;
+}
+
+JSBool
+SFVec4fConstr(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval)
+{
+	SFVec4fNative *ptr;
+	jsdouble pars[3];
+	
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("start of SFVec4fConstr\n");
+	#endif
+
+	ADD_ROOT(cx,obj)
+
+	if ((ptr = (SFVec4fNative *) SFVec4fNativeNew()) == NULL) {
+		printf( "SFVec4fNativeNew failed in SFVec4fConstr.\n");
+		return JS_FALSE;
+	}
+
+	if (!JS_DefineProperties(cx, obj, SFVec4fProperties)) {
+		printf( "JS_DefineProperties failed in SFVec4fConstr.\n");
+		return JS_FALSE;
+	}
+	if (!JS_SetPrivate(cx, obj, ptr)) {
+		printf( "JS_SetPrivate failed in SFVec4fConstr.\n");
+		return JS_FALSE;
+	}
+
+	if (argc == 0) {
+		(ptr->v).c[0] = 0.0;
+		(ptr->v).c[1] = 0.0;
+		(ptr->v).c[2] = 0.0;
+		(ptr->v).c[3] = 0.0;
+	} else {
+		if (!JS_ConvertArguments(cx, argc, argv, "d d d d",
+				 &(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
+			printf( "JS_ConvertArguments failed in SFVec4fConstr.\n");
+			return JS_FALSE;
+		}
+		(ptr->v).c[0] = pars[0];
+		(ptr->v).c[1] = pars[1];
+		(ptr->v).c[2] = pars[2];
+		(ptr->v).c[3] = pars[3];
+	}
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFVec4fConstr: obj = %u, %u args, %f %f %f %f\n",
+			   VERBOSE_OBJ obj, argc,
+			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2], ptr->v.c[3]);
+	#endif
+	
+	ptr->valueChanged = 1;
+
+	*rval = OBJECT_TO_JSVAL(obj);
+	return JS_TRUE;
+}
+
+JSBool
+SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+{
+	SFVec4fNative *ptr;
+	jsdouble d, *dp;
+
+	#ifdef JSVRMLCLASSESVERBOSE
+
+	JSString *_idStr;
+	char *_id_c;
+
+	_idStr = JS_ValueToString(cx, id);
+	_id_c = JS_GetStringBytes(_idStr);
+	_idStr = JS_ValueToString(cx, *vp);
+	_id_c = JS_GetStringBytes(_idStr);
+
+	#endif
+
+	if ((ptr = (SFVec4fNative *)JS_GetPrivate(cx,obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFVec4fGetProperty.\n");
+		return JS_FALSE;
+	}
+
+	if (JSVAL_IS_INT(id)) {
+		switch (JSVAL_TO_INT(id)) {
+		case 0:
+			d = (ptr->v).c[0];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFVec4fGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		case 1:
+			d = (ptr->v).c[1];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFVec4fGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		case 2:
+			d = (ptr->v).c[2];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFVec4fGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		case 3:
+			d = (ptr->v).c[3];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFVec4fGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		}
+	} else {
+		#ifdef JSVRMLCLASSESVERBOSE
+			printf ("SFVec4fGetProperty, id is NOT an int...\n");
+		#endif
+	}
+
+	return JS_TRUE;
+}
+
+JSBool
+SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+{
+	SFVec4fNative *ptr;
+	jsval myv;
+
+	if ((ptr = (SFVec4fNative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFVec4fSetProperty.\n");
+		return JS_FALSE;
+	}
+	ptr->valueChanged++;
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFVec4fSetProperty: obj = %u, id = %d, valueChanged = %d\n",
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
+	#endif
+
+	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
+		printf( "JS_ConvertValue failed in SFVec4fSetProperty.\n");
+		return JS_FALSE;
+	}
+
+	if (JSVAL_IS_INT(id)) {
+		switch (JSVAL_TO_INT(id)) {
+		case 0:
+			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(myv);
+			break;
+		case 1:
+			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(myv);
+			break;
+		case 2:
+			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(myv);
+			break;
+		case 3:
+			(ptr->v).c[3] = *JSVAL_TO_DOUBLE(myv);
+			break;
+		}
+	}
+	return JS_TRUE;
+}
+
+
+
+JSBool
+SFVec4dToString(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval)
+{
+    SFVec4dNative *ptr;
+    JSString *_str;
+	char buff[STRING];
+
+	UNUSED(argc);
+	UNUSED(argv);
+	if ((ptr = (SFVec4dNative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFVec4dToString.\n");
+		return JS_FALSE;
+	}
+
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.9g %.9g %.9g %.9g",
+			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2],ptr->v.c[3]);
+	_str = JS_NewStringCopyZ(cx, buff);
+    *rval = STRING_TO_JSVAL(_str);
+
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("SFVec4dToString, string is :%s:\n",buff);
+	#endif
+
+    return JS_TRUE;
+}
+
+JSBool
+SFVec4dAssign(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval)
+{
+    JSObject *_from_obj;
+    SFVec4dNative *fptr, *ptr;
+    char *_id_str;
+
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("start of SFVec4dAssign\n");
+	#endif
+
+	if ((ptr = (SFVec4dNative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed for obj in SFVec4dAssign.\n");
+        return JS_FALSE;
+	}
+    if (!JS_InstanceOf(cx, obj, &SFVec4dClass, argv)) {
+		printf( "JS_InstanceOf failed for obj in SFVec4dAssign.\n");
+        return JS_FALSE;
+	}
+	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+		printf( "JS_ConvertArguments failed in SFVec4dAssign.\n");
+		return JS_FALSE;
+	}
+    if (!JS_InstanceOf(cx, _from_obj, &SFVec4dClass, argv)) {
+		printf( "JS_InstanceOf failed for _from_obj in SFVec4dAssign.\n");
+        return JS_FALSE;
+    }
+	if ((fptr = (SFVec4dNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
+		printf( "JS_GetPrivate failed for _from_obj in SFVec4dAssign.\n");
+        return JS_FALSE;
+	}
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFVec4dAssign: obj = %u, id = \"%s\", from = %u\n",
+			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ  _from_obj);
+	#endif
+
+    SFVec4dNativeAssign(ptr, fptr);
+    *rval = OBJECT_TO_JSVAL(obj);
+
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("end of SFVec4dAssign\n");
+	#endif
+
+    return JS_TRUE;
+}
+
+JSBool
+SFVec4dConstr(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval)
+{
+	SFVec4dNative *ptr;
+	jsdouble pars[3];
+	
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("start of SFVec4dConstr\n");
+	#endif
+
+	ADD_ROOT(cx,obj)
+
+	if ((ptr = (SFVec4dNative *) SFVec4dNativeNew()) == NULL) {
+		printf( "SFVec4dNativeNew failed in SFVec4dConstr.\n");
+		return JS_FALSE;
+	}
+
+	if (!JS_DefineProperties(cx, obj, SFVec4dProperties)) {
+		printf( "JS_DefineProperties failed in SFVec4dConstr.\n");
+		return JS_FALSE;
+	}
+	if (!JS_SetPrivate(cx, obj, ptr)) {
+		printf( "JS_SetPrivate failed in SFVec4dConstr.\n");
+		return JS_FALSE;
+	}
+
+	if (argc == 0) {
+		(ptr->v).c[0] = 0.0;
+		(ptr->v).c[1] = 0.0;
+		(ptr->v).c[2] = 0.0;
+		(ptr->v).c[3] = 0.0;
+	} else {
+		if (!JS_ConvertArguments(cx, argc, argv, "d d d d",
+				 &(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
+			printf( "JS_ConvertArguments failed in SFVec4dConstr.\n");
+			return JS_FALSE;
+		}
+		(ptr->v).c[0] = pars[0];
+		(ptr->v).c[1] = pars[1];
+		(ptr->v).c[2] = pars[2];
+		(ptr->v).c[3] = pars[3];
+	}
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFVec4dConstr: obj = %u, %u args, %f %f %f %f\n",
+			   VERBOSE_OBJ obj, argc,
+			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2], ptr->v.c[3]);
+	#endif
+	
+	ptr->valueChanged = 1;
+
+	*rval = OBJECT_TO_JSVAL(obj);
+	return JS_TRUE;
+}
+
+JSBool
+SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+{
+	SFVec4dNative *ptr;
+	jsdouble d, *dp;
+
+	#ifdef JSVRMLCLASSESVERBOSE
+
+	JSString *_idStr;
+	char *_id_c;
+
+	_idStr = JS_ValueToString(cx, id);
+	_id_c = JS_GetStringBytes(_idStr);
+	_idStr = JS_ValueToString(cx, *vp);
+	_id_c = JS_GetStringBytes(_idStr);
+
+	#endif
+
+	if ((ptr = (SFVec4dNative *)JS_GetPrivate(cx,obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFVec4dGetProperty.\n");
+		return JS_FALSE;
+	}
+
+	if (JSVAL_IS_INT(id)) {
+		switch (JSVAL_TO_INT(id)) {
+		case 0:
+			d = (ptr->v).c[0];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFVec4dGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		case 1:
+			d = (ptr->v).c[1];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFVec4dGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		case 2:
+			d = (ptr->v).c[2];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFVec4dGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		case 3:
+			d = (ptr->v).c[3];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFVec4dGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		}
+	} else {
+		#ifdef JSVRMLCLASSESVERBOSE
+			printf ("SFVec4dGetProperty, id is NOT an int...\n");
+		#endif
+	}
+
+	return JS_TRUE;
+}
+
+JSBool
+SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+{
+	SFVec4dNative *ptr;
+	jsval myv;
+
+	if ((ptr = (SFVec4dNative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFVec4dSetProperty.\n");
+		return JS_FALSE;
+	}
+	ptr->valueChanged++;
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFVec4dSetProperty: obj = %u, id = %d, valueChanged = %d\n",
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
+	#endif
+
+	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
+		printf( "JS_ConvertValue failed in SFVec4dSetProperty.\n");
+		return JS_FALSE;
+	}
+
+	if (JSVAL_IS_INT(id)) {
+		switch (JSVAL_TO_INT(id)) {
+		case 0:
+			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(myv);
+			break;
+		case 1:
+			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(myv);
+			break;
+		case 2:
+			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(myv);
+			break;
+		case 3:
+			(ptr->v).c[3] = *JSVAL_TO_DOUBLE(myv);
 			break;
 		}
 	}

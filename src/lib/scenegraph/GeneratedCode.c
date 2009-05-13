@@ -82,6 +82,7 @@
 	"__movedValue",
 	"speedFactor",
 	"version",
+	"__shaderObj",
 	"image",
 	"vertices",
 	"autoButtonPress",
@@ -1702,6 +1703,7 @@ const int OFFSETS_ComposedCubeMapTexture[] = {
 const int OFFSETS_ComposedShader[] = {
 	FIELDNAMES_language, offsetof (struct X3D_ComposedShader, language),  FIELDTYPE_SFString, KW_initializeOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_isValid, offsetof (struct X3D_ComposedShader, isValid),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___shaderObj, offsetof (struct X3D_ComposedShader, __shaderObj),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,0,
 	FIELDNAMES_activate, offsetof (struct X3D_ComposedShader, activate),  FIELDTYPE_SFBool, KW_inputOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___shaderIDS, offsetof (struct X3D_ComposedShader, __shaderIDS),  FIELDTYPE_MFNode, KW_initializeOnly,0,
 	FIELDNAMES_isSelected, offsetof (struct X3D_ComposedShader, isSelected),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3056,6 +3058,7 @@ const int OFFSETS_PackagedShader[] = {
 	FIELDNAMES_language, offsetof (struct X3D_PackagedShader, language),  FIELDTYPE_SFString, KW_initializeOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_url, offsetof (struct X3D_PackagedShader, url),  FIELDTYPE_MFString, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_isValid, offsetof (struct X3D_PackagedShader, isValid),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___shaderObj, offsetof (struct X3D_PackagedShader, __shaderObj),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,0,
 	FIELDNAMES_metadata, offsetof (struct X3D_PackagedShader, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_PackagedShader, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES_activate, offsetof (struct X3D_PackagedShader, activate),  FIELDTYPE_SFBool, KW_inputOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3212,6 +3215,7 @@ const int OFFSETS_ShaderPart[] = {
 const int OFFSETS_ShaderProgram[] = {
 	FIELDNAMES___parenturl, offsetof (struct X3D_ShaderProgram, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,0,
 	FIELDNAMES_url, offsetof (struct X3D_ShaderProgram, url),  FIELDTYPE_MFString, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___shaderObj, offsetof (struct X3D_ShaderProgram, __shaderObj),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,0,
 	FIELDNAMES_metadata, offsetof (struct X3D_ShaderProgram, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_type, offsetof (struct X3D_ShaderProgram, type),  FIELDTYPE_SFString, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_ShaderProgram, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
@@ -4540,6 +4544,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->v = &virt_ComposedShader;
 			tmp2->language = newASCIIString("");
 			tmp2->isValid = TRUE;
+			tmp2->__shaderObj = 0;
 			tmp2->activate = 0;
 			tmp2->__shaderIDS.n=0; tmp2->__shaderIDS.p=0;
 			tmp2->isSelected = TRUE;
@@ -6414,6 +6419,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->language = newASCIIString("");
 			tmp2->url.n=0; tmp2->url.p=0;
 			tmp2->isValid = TRUE;
+			tmp2->__shaderObj = 0;
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
 			tmp2->activate = 0;
@@ -6630,6 +6636,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->v = &virt_ShaderProgram;
 			tmp2->__parenturl = newASCIIString(getInputURL());
 			tmp2->url.n=0; tmp2->url.p=0;
+			tmp2->__shaderObj = 0;
 			tmp2->metadata = NULL;
 			tmp2->type = newASCIIString("");
 			tmp2->__oldmetadata = 0;
