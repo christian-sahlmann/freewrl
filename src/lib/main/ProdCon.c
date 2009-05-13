@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.16 2009/04/29 20:20:25 crc_canada Exp $
+$Id: ProdCon.c,v 1.17 2009/05/13 13:53:55 crc_canada Exp $
 
 CProto ???
 
@@ -973,7 +973,7 @@ void __pt_doStringUrl () {
 		/* get the data from wherever we were originally told to find it */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		PARSE_STRING(buffer);
-		FREE_IF_NZ(buffer);
+		FREE_IF_NZ(buffer); 
 		FREE_IF_NZ(ctmp);
 	} else if (psp.type==FROMCREATENODE) {
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);

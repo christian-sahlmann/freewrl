@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.18 2009/05/07 18:43:34 crc_canada Exp $
+$Id: X3DParser.c,v 1.19 2009/05/13 13:53:56 crc_canada Exp $
 
 ???
 
@@ -642,6 +642,7 @@ static void parseX3Dhead(const char **atts) {
 	if (myProfile == INT_ID_UNDEFINED) {
 		ConsoleMessage ("expected valid profile in X3D header");
 	} else {
+printf ("X3DParsehead, myProfile %d\n",myProfile);
 		if (myProfile >= 0) handleProfile (myProfile);
 	}
 

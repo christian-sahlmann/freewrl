@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.16 2009/05/11 19:52:01 crc_canada Exp $
+$Id: CParseLexer.c,v 1.17 2009/05/13 13:53:56 crc_canada Exp $
 
 ???
 
@@ -158,7 +158,7 @@ void lexer_fromString (struct VRMLLexer *me, char *str) {
 
 void lexer_forceStringCleanup (struct VRMLLexer *me) {
 	int i;
-	for (i=0; i<me->lexerInputLevel; i++) {
+	for (i=1; i<me->lexerInputLevel; i++) {
 		FREE_IF_NZ(me->startOfStringPtr[i]);
 		me->startOfStringPtr[i] = NULL;
 	}
