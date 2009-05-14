@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.7 2009/05/13 20:30:49 crc_canada Exp $
+$Id: CScripts.c,v 1.8 2009/05/14 14:44:08 crc_canada Exp $
 
 ???
 
@@ -40,6 +40,7 @@ $Id: CScripts.c,v 1.7 2009/05/13 20:30:49 crc_canada Exp $
 
 /* JavaScript-"protocols" */
 const char* JS_PROTOCOLS[]={
+ "shader",
  "javascript",
  "ecmascript",
  "vrmlscript"};
@@ -280,11 +281,11 @@ BOOL script_initCode(struct Shader_Script* me, const char* code)
    contains the script; if not, it goes and tries to see if the SFString 
    contains a file that (hopefully) contains the script */
 
-BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
+static char *buffer = NULL;
+static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 {
  size_t i;
  char *filename = NULL;
- char *buffer = NULL;
  char *mypath = NULL;
  int rv;
  int removeIt = FALSE;
@@ -305,8 +306,10 @@ BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
   }
 
   /* Is this a simple "javascript:" "ecmascript:" or "vrmlscript:" uri? JAS*/
-  if(!*v && *u==':')
-   return script_initCode(me, u+1);
+  if(!*v && *u==':') {
+   	if (me != NULL) return script_initCode(me, u+1); /* a script */
+	else return TRUE; /* a shader, program text will be in the "buffer" */
+   }
  }
 
  /* Not a valid script in this SFString. Lets see if this
@@ -331,23 +334,48 @@ BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  rv = FALSE;
  if (fileExists(filename,NULL,TRUE,&removeIt)) {
 	buffer = readInputString(filename);
+	rv= (buffer != NULL);
  	if (removeIt) UNLINK (filename);
-	rv = script_initCode(me,buffer);
+	if (me!=NULL) rv = script_initCode(me,buffer);
  }
 
  FREE_IF_NZ (filename);
- FREE_IF_NZ (buffer);
  FREE_IF_NZ (mypath);
 
  return rv;
 }
 
-BOOL script_initCodeFromMFUri(struct Shader_Script* me, const struct Multi_String* s)
-{
- size_t i;
- for(i=0; i!=s->n; ++i)
-  if(script_initCodeFromUri(me, s->p[i]->strptr))
-   return TRUE;
 
- return FALSE;
+/* initialize a script from a url. Expects valid input */
+BOOL script_initCodeFromMFUri(struct Shader_Script* me, const struct Multi_String* s) {
+	size_t i;
+
+	for(i=0; i!=s->n; ++i) {
+		FREE_IF_NZ(buffer);
+		if(script_initCodeFromUri(me, s->p[i]->strptr)) {
+			FREE_IF_NZ(buffer);
+   			return TRUE;
+		}
+	}
+
+	/* failure... */
+	FREE_IF_NZ(buffer);
+ 	return FALSE;
+}
+
+/* initialize a shader from a url. returns pointer to pointer to text, if found, null otherwise */
+/* pointer is freed (if not NULL) in the Shaders code */
+char **shader_initCodeFromMFUri(const struct Multi_String* s) {
+	size_t i;
+
+	for(i=0; i!=s->n; ++i) {
+		FREE_IF_NZ(buffer);
+		if(script_initCodeFromUri(NULL, s->p[i]->strptr)) {
+   			return &buffer;
+		}
+	}
+
+	/* failure... */
+	FREE_IF_NZ(buffer);
+ 	return NULL;
 }

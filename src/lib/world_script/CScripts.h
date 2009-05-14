@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.5 2009/02/18 13:37:50 istakenv Exp $
+$Id: CScripts.h,v 1.6 2009/05/14 14:44:08 crc_canada Exp $
 
 Class to wrap a java script for CParser
 
@@ -96,8 +96,8 @@ void deleteScript();
 
 /* Initializes the script with its code */
 BOOL script_initCode(struct Shader_Script*, const char*);
-BOOL script_initCodeFromUri(struct Shader_Script*, const char*);
 BOOL script_initCodeFromMFUri(struct Shader_Script*, const struct Multi_String*);
+char **shader_initCodeFromMFUri(const struct Multi_String* s);
 
 /* Add a new field */
 void script_addField(struct Shader_Script*, struct ScriptFieldDecl*);

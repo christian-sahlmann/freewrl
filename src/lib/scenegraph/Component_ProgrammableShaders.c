@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.4 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.5 2009/05/14 14:44:08 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -16,6 +16,9 @@ X3D Programmable Shaders Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../vrml_parser/CParseGeneral.h"
+
+#include "../world_script/CScripts.h"
 
 
 /* which shader is running?? */
@@ -127,7 +130,7 @@ static void shaderErrorLog(GLuint myShader) {
 			} \
 		} \
 	}
- 
+
 #define COMPILE_SHADER_PARTS(myNodeType, myField) \
 		for (i=0; i<node->myField.n; i++) { \
 			struct X3D_##myNodeType *prog; \
@@ -140,26 +143,25 @@ static void shaderErrorLog(GLuint myShader) {
 					/* compile this program */ \
  \
 					if (!((strcmp (prog->type->strptr,"VERTEX")) && (strcmp(prog->type->strptr,"FRAGMENT")))) { \
-						char *myText = NULL; \
-						char filename[1000]; \
+						char *myText = NULL; /* pointer to text to send in */ \
+						char **cptr; /* returned caracter pointer pointer */ \
 						 \
- \
-						if (getValidFileFromUrl (filename, prog->__parenturl->strptr, &prog->url, NULL, &removeIt) ) { \
-							myText = readInputString(filename); \
-							if (removeIt) UNLINK(filename); \
-						} else { \
+						  cptr = shader_initCodeFromMFUri(&prog->url); \
+						  if ((*cptr) == NULL) { \
 							ConsoleMessage ("error reading url for :%s:",stringNodeType(NODE_##myNodeType)); \
 							myText = ""; \
-						} \
+						  } else myText = *cptr; \
+						FREE_IF_NZ(*cptr); \
+\
 						/* assign this text to VERTEX or FRAGMENT buffers */ \
 						if (!strcmp(prog->type->strptr,"VERTEX")) { \
-							vertShaderSource[i] = myText; \
+							vertShaderSource[i] = STRDUP(myText); \
 							haveVertShaderText = TRUE; \
 						} else { \
-							fragShaderSource[i] = myText; \
+							fragShaderSource[i] = STRDUP(myText); \
 							haveFragShaderText = TRUE; \
 						} \
-						/* printf ("Shader text %s\n",myText); */ \
+						/* printf ("Shader text for type %s is  %s\n",prog->type->strptr,myText); */ \
 					} else { \
 						ConsoleMessage ("%s, invalid Type, got \"%s\"",stringNodeType(NODE_##myNodeType), prog->type->strptr); \
 						node->isValid = FALSE; \
