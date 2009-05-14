@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.8 2009/05/14 14:44:08 crc_canada Exp $
+$Id: CScripts.c,v 1.9 2009/05/14 15:03:57 crc_canada Exp $
 
 ???
 
@@ -307,8 +307,12 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 
   /* Is this a simple "javascript:" "ecmascript:" or "vrmlscript:" uri? JAS*/
   if(!*v && *u==':') {
-   	if (me != NULL) return script_initCode(me, u+1); /* a script */
-	else return TRUE; /* a shader, program text will be in the "buffer" */
+   	if (me != NULL) {
+		return script_initCode(me, u+1); /* a script */
+	} else {
+		buffer = STRDUP(u+1);
+		return TRUE; /* a shader, program text will be in the "buffer" */
+	}
    }
  }
 
