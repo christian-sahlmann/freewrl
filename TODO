@@ -1,4 +1,7 @@
 Priority list
+14/05/2009: 
+	(JAS) Shader text, if local, should start with uri "data:text/plain," 
+
 13/05/2009: 
 	(JAS) Shaders worked on. 
 		- Classic parser: fields parsed, but need sending/receiving.
