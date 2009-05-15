@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.35 2009/05/12 18:21:59 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.36 2009/05/15 19:42:22 crc_canada Exp $
 
 ???
 
@@ -1352,6 +1352,7 @@ void kill_X3DNodes(void){
 	/*go thru all node until table is empty*/
 	for (i=0; i<nextEntry; i++){		
 		structptr = memoryTable[i];		
+
 		#ifdef VERBOSE
 		printf("Node pointer	= %u entry %d of %d ",structptr,i,nextEntry);
 		printf (" number of parents %d ", structptr->_nparents);

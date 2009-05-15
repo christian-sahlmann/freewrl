@@ -4,7 +4,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.12 2009/05/11 21:11:58 crc_canada Exp n 
+: VRMLC.pm,v 1.13 2009/05/13 20:30:49 crc_canada Exp n 
 ??? 
  
 */ 
@@ -459,9 +459,9 @@
 	"child3Url",
 	"spatialize",
 	"pauseTime",
+	"__do_center",
 	"metadata",
 	"geoOrigin",
-	"__do_center",
 	"geoCoords",
 	"normalIndex",
 	"beamWidth",
@@ -503,6 +503,7 @@
 	"anisotropicDegree",
 	"__vertices",
 	"parts",
+	"__initialized",
 	"__simpleDisk",
 	"normalPerVertex",
 };
@@ -1709,6 +1710,7 @@ const int OFFSETS_ComposedShader[] = {
 	FIELDNAMES_isSelected, offsetof (struct X3D_ComposedShader, isSelected),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_parts, offsetof (struct X3D_ComposedShader, parts),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_metadata, offsetof (struct X3D_ComposedShader, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___initialized, offsetof (struct X3D_ComposedShader, __initialized),  FIELDTYPE_SFBool, KW_initializeOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_ComposedShader, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
@@ -3147,14 +3149,15 @@ const int OFFSETS_PositionInterpolator2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ProgramShader[] = {
-	FIELDNAMES_isSelected, offsetof (struct X3D_ProgramShader, isSelected),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_language, offsetof (struct X3D_ProgramShader, language),  FIELDTYPE_SFString, KW_initializeOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES_programs, offsetof (struct X3D_ProgramShader, programs),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_isValid, offsetof (struct X3D_ProgramShader, isValid),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES_metadata, offsetof (struct X3D_ProgramShader, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES___oldmetadata, offsetof (struct X3D_ProgramShader, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES_activate, offsetof (struct X3D_ProgramShader, activate),  FIELDTYPE_SFBool, KW_inputOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___shaderIDS, offsetof (struct X3D_ProgramShader, __shaderIDS),  FIELDTYPE_MFNode, KW_initializeOnly,0,
+	FIELDNAMES_isSelected, offsetof (struct X3D_ProgramShader, isSelected),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_programs, offsetof (struct X3D_ProgramShader, programs),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_metadata, offsetof (struct X3D_ProgramShader, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___initialized, offsetof (struct X3D_ProgramShader, __initialized),  FIELDTYPE_SFBool, KW_initializeOnly,(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___oldmetadata, offsetof (struct X3D_ProgramShader, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ProximitySensor[] = {
@@ -4550,6 +4553,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->isSelected = TRUE;
 			tmp2->parts.n=0; tmp2->parts.p=0;
 			tmp2->metadata = NULL;
+			tmp2->__initialized = FALSE;
 			tmp2->__oldmetadata = 0;
 			tmp2->_defaultContainer = FIELDNAMES_material;
 		break;
@@ -6544,14 +6548,15 @@ void *createNewX3DNode (int nt) {
 			struct X3D_ProgramShader * tmp2;
 			tmp2 = (struct X3D_ProgramShader *) tmp;
 			tmp2->v = &virt_ProgramShader;
-			tmp2->isSelected = TRUE;
 			tmp2->language = newASCIIString("");
-			tmp2->programs.n=0; tmp2->programs.p=0;
 			tmp2->isValid = TRUE;
-			tmp2->metadata = NULL;
-			tmp2->__oldmetadata = 0;
 			tmp2->activate = 0;
 			tmp2->__shaderIDS.n=0; tmp2->__shaderIDS.p=0;
+			tmp2->isSelected = TRUE;
+			tmp2->programs.n=0; tmp2->programs.p=0;
+			tmp2->metadata = NULL;
+			tmp2->__initialized = FALSE;
+			tmp2->__oldmetadata = 0;
 			tmp2->_defaultContainer = FIELDNAMES_material;
 		break;
 		}

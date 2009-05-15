@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.9 2009/05/14 15:03:57 crc_canada Exp $
+$Id: CScripts.c,v 1.10 2009/05/15 19:42:22 crc_canada Exp $
 
 ???
 
@@ -60,7 +60,8 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
 
  ASSERT(mod!=PKW_inputOutput);
 
- ret->fieldDecl=newFieldDecl(mod, type, name);
+	/* shaderID will get set when shader is activiated */
+ ret->fieldDecl=newFieldDecl(mod, type, name, -1, FALSE);
  ASSERT(ret->fieldDecl);
 
  /* Stringify */

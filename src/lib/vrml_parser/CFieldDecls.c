@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CFieldDecls.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
+$Id: CFieldDecls.c,v 1.4 2009/05/15 19:42:22 crc_canada Exp $
 
 ???
 
@@ -28,12 +28,14 @@ $Id: CFieldDecls.c,v 1.3 2009/02/11 15:12:55 istakenv Exp $
 /* Constructor and destructor */
 /* ************************** */
 
-struct FieldDecl* newFieldDecl(indexT mode, indexT type, indexT name)
+struct FieldDecl* newFieldDecl(indexT mode, indexT type, indexT name, int shv, int shvuni)
 {
  struct FieldDecl* ret=MALLOC(sizeof(struct FieldDecl));
  ret->mode=mode;
  ret->type=type;
  ret->name=name;
+ ret->shaderVariableID=shv;
+ ret->shaderVariableIsUniform=shvuni;
 
  return ret;
 }
