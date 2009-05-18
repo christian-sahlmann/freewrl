@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.6 2009/05/15 19:42:22 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.7 2009/05/18 15:28:11 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -49,10 +49,18 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 	#define COMPILE_STATUS GL_COMPILE_STATUS
 	#define GET_UNIFORM(aaa,bbb) glGetUniformLocation(aaa,bbb)
 	#define GET_ATTRIB(aaa,bbb) glGetAttribLocation(aaa,bbb)
+	#define GLUNIFORM1F glUniform1f
+	#define GLUNIFORM2F glUniform2f
+	#define GLUNIFORM3F glUniform3f
+	#define GLUNIFORM4F glUniform4f
 	#define GLUNIFORM1FV glUniform1fv
 	#define GLUNIFORM2FV glUniform2fv
 	#define GLUNIFORM3FV glUniform3fv
 	#define GLUNIFORM4FV glUniform4fv
+	#define GLATTRIB1F glVertexAttrib1f
+	#define GLATTRIB2F glVertexAttrib2f
+	#define GLATTRIB3F glVertexAttrib3f
+	#define GLATTRIB4F glVertexAttrib4f
 	#define GLATTRIB1FV glVertexAttrib1fv
 	#define GLATTRIB2FV glVertexAttrib2fv
 	#define GLATTRIB3FV glVertexAttrib3fv
@@ -74,14 +82,22 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 	#define COMPILE_STATUS GL_OBJECT_COMPILE_STATUS_ARB
 	#define GET_UNIFORM(aaa,bbb) glGetUniformLocationARB(aaa,bbb)
 	#define GET_ATTRIB(aaa,bbb) glGetAttribLocationARB(aaa,bbb)
-	#define GLUNIFORM1FV glUniform1fARB
-	#define GLUNIFORM2FV glUniform2fARB
-	#define GLUNIFORM3FV glUniform3fARB
-	#define GLUNIFORM4FV glUniform4fARB
-	#define GLATTRIB1FV glVertexAttrib1fARB
-	#define GLATTRIB2FV glVertexAttrib2fARB
-	#define GLATTRIB3FV glVertexAttrib3fARB
-	#define GLATTRIB4FV glVertexAttrib4fARB
+	#define GLUNIFORM1F glUniform1fARB
+	#define GLUNIFORM2F glUniform2fARB
+	#define GLUNIFORM3F glUniform3fARB
+	#define GLUNIFORM4F glUniform4fARB
+	#define GLUNIFORM1FV glUniform1fvARB
+	#define GLUNIFORM2FV glUniform2fvARB
+	#define GLUNIFORM3FV glUniform3fvARB
+	#define GLUNIFORM4FV glUniform4fvARB
+	#define GLATTRIB1F glVertexAttrib1fARB
+	#define GLATTRIB2F glVertexAttrib2fARB
+	#define GLATTRIB3F glVertexAttrib3fARB
+	#define GLATTRIB4F glVertexAttrib4fARB
+	#define GLATTRIB1FV glVertexAttrib1fvARB
+	#define GLATTRIB2FV glVertexAttrib2fvARB
+	#define GLATTRIB3FV glVertexAttrib3fvARB
+	#define GLATTRIB4FV glVertexAttrib4fvARB
 #endif
 #endif
 
@@ -253,73 +269,95 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 
 	switch (fieldDecl_getType(myField->fieldDecl)) {
 
-		case FIELDTYPE_SFVec3f:
-			if (isUniform)
-				GLUNIFORM3FV(shaderVariable, 1, myField->value.sfvec3f.c);
-			else
-				GLATTRIB3FV(shaderVariable, myField->value.sfvec3f.c);
-		break;
+#define SF_FLOATS_TO_SHADER(ttt,ty1,ty2) \
+		case FIELDTYPE_SF##ty1: \
+			if (isUniform) \
+				GLUNIFORM##ttt##FV(shaderVariable, 1, myField->value.sf##ty2.c); \
+			else \
+				GLATTRIB##ttt##FV(shaderVariable, myField->value.sf##ty2.c); \
+		break; 
 
-		case FIELDTYPE_SFFloat:
-		case FIELDTYPE_MFFloat:
-		case FIELDTYPE_SFRotation:
-		case FIELDTYPE_MFRotation:
-		case FIELDTYPE_MFVec3f:
-		case FIELDTYPE_SFBool:
-		case FIELDTYPE_MFBool:
-		case FIELDTYPE_SFInt32:
-		case FIELDTYPE_MFInt32:
+#define SF_FLOAT_TO_SHADER(ty1,ty2) \
+		case FIELDTYPE_SF##ty1: \
+			if (isUniform) \
+				GLUNIFORM1F(shaderVariable, myField->value.sf##ty2); \
+			else \
+				GLATTRIB1F(shaderVariable, myField->value.sf##ty2); \
+		break; 
+
+		SF_FLOATS_TO_SHADER(3,Vec3f,vec3f)
+		SF_FLOATS_TO_SHADER(3,Color,color)
+		SF_FLOATS_TO_SHADER(4,ColorRGBA,colorrgba)
+		SF_FLOATS_TO_SHADER(2,Vec2f,vec2f)
+		SF_FLOATS_TO_SHADER(4,Rotation,rotation)
+		SF_FLOATS_TO_SHADER(4,Vec4f,vec4f)
+
+		SF_FLOAT_TO_SHADER(Float,float)
+
+		//SF_FLOAT_TO_SHADER(9,Matrix3f, matrix3f)
+		//SF_FLOAT_TO_SHADER(16,Matrix4f, matrix4f)
+
 		case FIELDTYPE_SFNode:
-		case FIELDTYPE_MFNode:
-		case FIELDTYPE_SFColor:
-		case FIELDTYPE_MFColor:
-		case FIELDTYPE_SFColorRGBA:
-		case FIELDTYPE_MFColorRGBA:
-		case FIELDTYPE_SFTime:
-		case FIELDTYPE_MFTime:
-		case FIELDTYPE_SFString:
-		case FIELDTYPE_MFString:
-		case FIELDTYPE_SFVec2f:
-		case FIELDTYPE_MFVec2f:
+		case FIELDTYPE_SFInt32:
+		case FIELDTYPE_SFBool:
+		case FIELDTYPE_SFVec2d:
+		case FIELDTYPE_SFVec4d:
 		case FIELDTYPE_SFImage:
+		case FIELDTYPE_SFTime:
 		case FIELDTYPE_FreeWRLPTR:
 		case FIELDTYPE_SFVec3d:
-		case FIELDTYPE_MFVec3d:
 		case FIELDTYPE_SFDouble:
-		case FIELDTYPE_MFDouble:
-		case FIELDTYPE_SFMatrix3f:
-		case FIELDTYPE_MFMatrix3f:
+		case FIELDTYPE_SFString:
 		case FIELDTYPE_SFMatrix3d:
-		case FIELDTYPE_MFMatrix3d:
-		case FIELDTYPE_SFMatrix4f:
-		case FIELDTYPE_MFMatrix4f:
 		case FIELDTYPE_SFMatrix4d:
+
+		case FIELDTYPE_MFFloat:
+		case FIELDTYPE_MFRotation:
+		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_MFBool:
+		case FIELDTYPE_MFInt32:
+		case FIELDTYPE_MFNode:
+		case FIELDTYPE_MFColor:
+		case FIELDTYPE_MFColorRGBA:
+		case FIELDTYPE_MFTime:
+		case FIELDTYPE_MFString:
+		case FIELDTYPE_MFVec2f:
+		case FIELDTYPE_MFDouble:
+		case FIELDTYPE_MFVec3d:
+		case FIELDTYPE_MFMatrix3f:
+		case FIELDTYPE_MFMatrix3d:
+		case FIELDTYPE_MFMatrix4f:
 		case FIELDTYPE_MFMatrix4d:
-		case FIELDTYPE_SFVec2d:
 		case FIELDTYPE_MFVec2d:
-		case FIELDTYPE_SFVec4f:
 		case FIELDTYPE_MFVec4f:
-		case FIELDTYPE_SFVec4d:
 		case FIELDTYPE_MFVec4d:
 		default : printf ("can not send a shader variable of %s yet\n",stringFieldtypeType(fieldDecl_getType(myField->fieldDecl)));
 	}
 }
 
-/* this is specific for a ShaderProgram */
-static void send_ProgramShaderPart (GLuint myShader, struct X3D_ShaderProgram *node) {
+/* send fields to a shader; expect either a ShaderProgram, or a ComposedShader */
+static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 	size_t i;
 
 	struct Shader_Script* me = NULL;
-	me = (struct Shader_Script *) node->__shaderObj;
+	if (node->_nodeType==NODE_ShaderProgram) me = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->__shaderObj;
+	else if (node->_nodeType == NODE_ComposedShader) me = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->__shaderObj;
+	else {
+		printf ("send_fieldToShader, expected a ShaderProgram or ComposedShader, got %s\n",
+			stringNodeType(node->_nodeType));
+		return;
+	}
 
 	#ifdef SHADERVERBOSE
-	printf ("send_ProgramShaderPart, type %s\n",node->type->strptr);
 	printf ("Shader_Script has node of %u ",me->ShaderScriptNode);
 	printf ("of type %s ",stringNodeType(me->ShaderScriptNode->_nodeType));
 	printf ("and has %d as a vector size ",vector_size(me->fields));
 	if (me->loaded) printf ("locked and loaded "); else printf ("needs loading, I guess ");
-	printf ("script handle %d\n",me->num);
+	printf ("\n");
 	#endif
+
+	/* is there any fields? */
+	if (me == NULL) return;
 
 	/* this script should NOT be loaded... */
 	if (me->loaded) ConsoleMessage ("ShaderProgram is flagged as being loaded, hmmm");
@@ -356,7 +394,7 @@ static void send_ProgramShaderPart (GLuint myShader, struct X3D_ShaderProgram *n
 
 		if ((myf->mode==PKW_initializeOnly) || (myf->mode==PKW_inputOutput)) {
 			#ifdef SHADERVERBOSE
-			printf ("initializing Shader %d variable %s, type %s\n",myShader, curField->name,stringFieldtypeType(myf->type)); */
+			printf ("initializing Shader %d variable %s, type %s\n",myShader, curField->name,stringFieldtypeType(myf->type));
 			#endif
 
 			sendValueToShader(curField);
@@ -367,6 +405,33 @@ static void send_ProgramShaderPart (GLuint myShader, struct X3D_ShaderProgram *n
 	/* done the loading of this shader part */
 	me->loaded = TRUE;
 }
+
+
+/* on load of shader, send along any initial field values in the X3D file to the Shader */
+/* we can have shaders like:
+
+ComposedShader { 
+	field SFFloat blubber 0.5
+	field SFVec3f decis 0.96 0.44 0.22 
+	language "GLSL" parts [ 
+		ShaderPart { type "VERTEX" url "toon.vs" } 
+		ShaderPart { type "FRAGMENT" url "toon.fs" } 
+	] }
+
+ProgramShader { 
+	language  "GLSL" programs   [ 
+		ShaderProgram { 
+			field SFFloat blubber 0.5
+			type "VERTEX" url "toon.vs" } 
+		ShaderProgram { 
+			field SFVec3f decis 0.96 0.44 0.22 
+			type "FRAGMENT" url "toon.fs" } 
+	] }
+
+Note the differing location of the fields...
+
+*/
+
 
 static void sendInitialFieldsToShader(struct X3D_Node * node) {
 	struct Shader_Script* me = NULL;
@@ -392,17 +457,23 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 					printf ("sendInitial, have part %d\n",part);
 					#endif
 
-					send_ProgramShaderPart(myShader, part);
+					send_fieldToShader(myShader, X3D_NODE(part));
 				}
 			}
 			X3D_PROGRAMSHADER(node)->__initialized = TRUE;
-
 			break;
 		}
 
 
-		case NODE_ComposedShader: me = (struct Shader_Script *) (X3D_COMPOSEDSHADER(node)->__shaderObj); 
-			printf ("have to somehow fixup composed shader\n"); break;
+		case NODE_ComposedShader: {
+			/* anything to do here? */ 
+			if ((X3D_COMPOSEDSHADER(node)->__shaderIDS.n) >=1) {
+				myShader = X3D_COMPOSEDSHADER(node)->__shaderIDS.p[0];
+				send_fieldToShader(X3D_NODE(myShader), X3D_NODE(node));
+			}
+			X3D_COMPOSEDSHADER(node)->__initialized = TRUE;
+			break;
+		}
 	}
 }
 
