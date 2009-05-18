@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.30 2009/05/13 20:30:49 crc_canada Exp $
+  $Id: CParseParser.c,v 1.31 2009/05/18 19:05:45 crc_canada Exp $
 
   ???
 
@@ -1072,7 +1072,6 @@ BOOL parser_routeStatement(struct VRMLParser* me)
     indexT fromNodeIndex;
     struct X3D_Node* fromNode;
     struct ProtoDefinition* fromProto=NULL;
-    struct Shader_Script* fromScript=NULL;
     indexT fromFieldO;
     indexT fromFieldE;
     indexT fromUFieldO;
@@ -1084,7 +1083,6 @@ BOOL parser_routeStatement(struct VRMLParser* me)
     indexT toNodeIndex;
     struct X3D_Node* toNode;
     struct ProtoDefinition* toProto=NULL;
-    struct Shader_Script* toScript=NULL;
     indexT toFieldO;
     indexT toFieldE;
     indexT toUFieldO;
@@ -1093,8 +1091,6 @@ BOOL parser_routeStatement(struct VRMLParser* me)
     int toLen = 0;
     struct ScriptFieldDecl* toScriptField=NULL;
     int temp, tempFE, tempFO, tempTE, tempTO;
-
-    int routingDir;
 
     fromFieldE = ID_UNDEFINED; fromFieldO = ID_UNDEFINED; toFieldE = ID_UNDEFINED; toFieldO = ID_UNDEFINED;
 
@@ -1132,7 +1128,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
         return FALSE; \
  } \
  \
-  /* PROTO/Script? */ \
+  /* PROTO? */ \
   /* We got the node structure for the DEFed node. If this is a Group or a Script node do some more processing */ \
         switch(pre##Node->_nodeType) \
         { \
@@ -1140,18 +1136,9 @@ BOOL parser_routeStatement(struct VRMLParser* me)
           /* Get a pointer to the protoDefinition for this group node */ \
           pre##Proto=X3D_GROUP(pre##Node)->FreeWRL__protoDef; \
           /* printf ("routing found protoGroup of %u\n",pre##Proto); */ \
-          /* SJD: If we don't get a proto definition here, then it was just a plain old DEFed Group node ... */ \
-          /* ASSERT(pre##Proto); */ \
-          break; \
-         /* Get a pointer to the Script structure for this script node */ \
-         case NODE_Script: \
-          pre##Script=X3D_SCRIPT(pre##Node)->__scriptObj; \
-          ASSERT(pre##Script); \
           break; \
         } \
   \
-  /* Can't be both a PROTO and a Script node */ \
-  ASSERT(!(pre##Proto && pre##Script)); \
   \
   /* The next character has to be a '.' - skip over it */ \
   if(!lexer_point(me->lexer)) {\
@@ -1169,14 +1156,11 @@ BOOL parser_routeStatement(struct VRMLParser* me)
 	if (KW_##eventType == KW_outputOnly) me->lexer->curID = STRDUP("valueChanged"); \
 	else me->lexer->curID = STRDUP("setValue"); \
 	/* printf ("PROTO ROUTING TO FIELD %s in CPARSER\n",me->lexer->curID); */ \
-        /* possible Script node? */ \
-        if (pre##Node->_nodeType == NODE_Script) { pre##Script=X3D_SCRIPT(pre##Node)->__scriptObj; \
-                  ASSERT(pre##Script); }\
         pre##Proto = NULL; /* forget about this being a PROTO because PROTO is expanded */ \
   } \
   \
   /* Field, user/built-in depending on whether node is a Script instance */ \
-  if(!pre##Script) { \
+  if(!(pre##Node->_nodeType == NODE_Script)) { \
    /* This is a builtin DEFed node.  */ \
    /* Look for the next token (field of the DEFed node) in the builtin EVENT_IN/EVENT_OUT or EXPOSED_FIELD arrays */ \
    if(!lexer_##eventType(me->lexer, pre##Node, \
@@ -1188,8 +1172,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
     } \
   } else \
   { \
-   ASSERT(pre##Script); \
-   /* This is a user defined node type */ \
+   /* SCRIPT - This is a user defined node type */ \
    /* Look for the next token (field of the DEFed node) in the user_inputOnly/user_outputOnly, user_inputOutput arrays */ \
    if(lexer_##eventType(me->lexer, pre##Node, \
     NULL, NULL, &pre##UFieldO, &pre##UFieldE)) \
@@ -1197,28 +1180,25 @@ BOOL parser_routeStatement(struct VRMLParser* me)
     if(pre##UFieldO!=ID_UNDEFINED) \
     { \
      /* We found the event in user_inputOnly or Out */ \
-      ASSERT(pre##Script); \
       /* If this is a Script get the scriptFieldDecl for this event */ \
-      pre##ScriptField=script_getField(pre##Script, pre##UFieldO, \
+      pre##ScriptField=script_getField(X3D_SCRIPT(pre##Node)->__scriptObj, pre##UFieldO, \
        PKW_##eventType); \
     } else \
     { \
      /* We found the event in user_inputOutput */ \
-      ASSERT(pre##Script); \
       /* If this is a Script get the scriptFieldDecl for this event */ \
-      pre##ScriptField=script_getField(pre##Script, pre##UFieldE, \
+      pre##ScriptField=script_getField(X3D_SCRIPT(pre##Node)->__scriptObj, pre##UFieldE, \
        PKW_inputOutput); \
     } \
-    if(pre##Script && !pre##ScriptField) \
+    if(pre##Node->_nodeType==NODE_Script && !pre##ScriptField) \
      PARSE_ERROR("Event-field invalid for this PROTO/Script!") \
    } else \
     PARSE_ERROR("Expected event" #eventType "!") \
   } \
   /* Process script routing */ \
-  if(pre##Script) \
+  if(pre##Node->_nodeType == NODE_Script) \
   { \
    ASSERT(pre##ScriptField); \
-   pre##Node=(struct X3D_Node*)pre##Script->num; \
    pre##Ofs=scriptFieldDecl_getRoutingOffset(pre##ScriptField); \
   } 
 
@@ -1543,29 +1523,26 @@ BOOL parser_routeStatement(struct VRMLParser* me)
         /* **************************** */
 
         /* Calculate dir parameter */
+printf ("before routing, we have fromNode %u toNode %u\n",fromNode, toNode);
+#define fromScript (fromNode->_nodeType==NODE_Script)
+#define toScript (toNode->_nodeType==NODE_Script)
+
         if(fromScript && toScript) {
-            routingDir=SCRIPT_TO_SCRIPT;
         }
         else if(fromScript)
         {
             ASSERT(!toScript);
-            routingDir=FROM_SCRIPT;
-            fromNode = fromScript->num;
             fromOfs = scriptFieldDecl_getRoutingOffset(fromScriptField);
         } else if(toScript)
         {
             ASSERT(!fromScript);
-            routingDir=TO_SCRIPT;
-            toNode = toScript->num;
             toOfs = scriptFieldDecl_getRoutingOffset(toScriptField);
         } else
         {
             ASSERT(!fromScript && !toScript);
-            routingDir=0;
         }
-
         /* Built-in to built-in */
-        parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toLen, routingDir);
+        parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toLen);
   
         return TRUE;
 }
@@ -1577,13 +1554,13 @@ BOOL parser_routeStatement(struct VRMLParser* me)
 void parser_registerRoute(struct VRMLParser* me,
                           struct X3D_Node* fromNode, unsigned fromOfs,
                           struct X3D_Node* toNode, unsigned toOfs,
-                          size_t len, int dir)
+                          size_t len)
 {
     ASSERT(me);
     if(me->curPROTO)
     {
     } else
-        CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, len, dir);
+        CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, len);
 }
 
 /* parse a DEF statement. Return a pointer to a vrmlNodeT */

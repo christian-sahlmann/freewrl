@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.h,v 1.7 2009/04/15 18:37:07 crc_canada Exp $
+$Id: CProto.h,v 1.8 2009/05/18 19:05:45 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -93,11 +93,13 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer*, struct ProtoFieldD
 /* Sets this field's value (copy to destinations) */
 void protoFieldDecl_setValue(struct VRMLLexer*, struct ProtoFieldDecl*, union anyVrml*);
 
+#ifdef OLDCODE
 /* Build a ROUTE from/to this field */
 void protoFieldDecl_routeTo(struct ProtoFieldDecl*,
  struct X3D_Node*, unsigned, int dir, struct VRMLParser*);
 void protoFieldDecl_routeFrom(struct ProtoFieldDecl*,
  struct X3D_Node*, unsigned, int dir, struct VRMLParser*);
+#endif
 
 /* Finish this field - if value is not yet set, use default. */
 #define protoFieldDecl_finish(lex, me) \

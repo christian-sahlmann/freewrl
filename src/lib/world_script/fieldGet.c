@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.12 2009/05/06 20:35:46 crc_canada Exp $
+$Id: fieldGet.c,v 1.13 2009/05/18 19:05:45 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -151,10 +151,14 @@ void setScriptECMAtype (uintptr_t num) {
 	len = CRoutes[num].len;
 
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
+                struct Shader_Script *myObj;
+
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
+                myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
+		printf ("setScriptECMAtype, myScriptNumber is %d\n",myObj->num);
 		tn = (uintptr_t) to_ptr->routeToNode;
 		tptr = to_ptr->foffset;
-		set_one_ECMAtype (tn, tptr, JSparamnames[tptr].type, (void *)fn,len);
+		set_one_ECMAtype (myObj->num, tptr, JSparamnames[tptr].type, (void *)fn,len);
 	}
 }
 
@@ -645,7 +649,6 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 
 int setMFElementtype (uintptr_t num) {
 	void * fn;
-	void * tn;
 	uintptr_t fptr;
 	int len;
 	unsigned int to_counter;
@@ -653,8 +656,6 @@ int setMFElementtype (uintptr_t num) {
 	char *pptr;
 	struct Multi_Node *mfp;
 
-
-	int indexPointer;
 
 	#ifdef SETFIELDVERBOSE 
 		printf("------------BEGIN setMFElementtype ---------------\n");
@@ -688,9 +689,10 @@ int setMFElementtype (uintptr_t num) {
 
 	/* go through all the nodes that this script sends to for this entry in the CRoutes table */
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
+                struct Shader_Script *myObj;
+
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-		tn = to_ptr->routeToNode;
-		indexPointer = (uintptr_t) tn; /* tn should be a small int here - it is script # */
+                myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
 
 		#ifdef SETFIELDVERBOSE 
 			printf ("got a script event! index %d type %d\n",
@@ -702,7 +704,7 @@ int setMFElementtype (uintptr_t num) {
 					JSparamnames[to_ptr->foffset].type);
 		#endif
 
-		set_one_MFElementType(tn, to_ptr->foffset, JSparamnames[to_ptr->foffset].type, (void *)pptr,len);
+		set_one_MFElementType(myObj->num, to_ptr->foffset, JSparamnames[to_ptr->foffset].type, (void *)pptr,len);
 	}
 
 
@@ -964,12 +966,9 @@ void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 
 void setScriptMultiElementtype (uintptr_t num) {
 	void * fn;
-	void * tn;
 	uintptr_t tptr, fptr;
 	unsigned int len;
 	unsigned int to_counter;
-
-	uintptr_t indexPointer;
 
 	CRnodeStruct *to_ptr = NULL;
 
@@ -981,26 +980,27 @@ void setScriptMultiElementtype (uintptr_t num) {
 	len = CRoutes[num].len;
 
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
-		to_ptr = &(CRoutes[num].tonodes[to_counter]);
+                struct Shader_Script *myObj;
+
+                to_ptr = &(CRoutes[num].tonodes[to_counter]);
+                myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
 
 		/* the to_node should be a script number; it will be a small integer */
-		tn = to_ptr->routeToNode;
-		indexPointer = (uintptr_t) tn;
 		tptr = to_ptr->foffset;
 
 		#ifdef SETFIELDVERBOSE 
 			printf ("got a script event! index %d type %d\n",
 					num, CRoutes[num].direction_flag);
-			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,indexPointer,tptr);
+			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,myObj->num,tptr);
 			printf ("\tdata length %d\n",len);
-			printf ("setScriptMultiElementtype here indexPointer %d tptr %d len %d\n",indexPointer, tptr,len);
+			printf ("setScriptMultiElementtype here script number  %d tptr %d len %d\n",myObj->num, tptr,len);
 		#endif
 
 		/* get context and global object for this script */
-		cx = (JSContext *) ScriptControl[indexPointer].cx;
-		obj = (JSObject *)ScriptControl[indexPointer].glob;
+		cx = (JSContext *) ScriptControl[myObj->num].cx;
+		obj = (JSObject *)ScriptControl[myObj->num].glob;
 		fn += fptr;
-		set_one_MultiElementType (indexPointer, tptr, fn, len);
+		set_one_MultiElementType (myObj->num, tptr, fn, len);
 	}
 }
 

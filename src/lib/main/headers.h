@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.42 2009/05/12 19:53:15 crc_canada Exp $
+$Id: headers.h,v 1.43 2009/05/18 19:05:44 crc_canada Exp $
 
 Global includes.
 
@@ -806,9 +806,9 @@ void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setScriptMultiElementtype(uintptr_t);
 void Parser_scanStringValueToMem(struct X3D_Node *ptr, int coffset, int ctype, char *value, int isXML);
 void CRoutes_RemoveSimple(struct X3D_Node* from, int fromOfs,
- struct X3D_Node* to, int toOfs, int len, int dir);
+ struct X3D_Node* to, int toOfs, int len);
 void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
- struct X3D_Node* to, int toOfs, int len, int dir);
+ struct X3D_Node* to, int toOfs, int len);
 void CRoutes_Register(int adrem,        struct X3D_Node *from,
                                  int fromoffset,
                                  unsigned int to_count,

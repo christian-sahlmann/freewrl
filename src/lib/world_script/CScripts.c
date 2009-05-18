@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.10 2009/05/15 19:42:22 crc_canada Exp $
+$Id: CScripts.c,v 1.11 2009/05/18 19:05:45 crc_canada Exp $
 
 ???
 
@@ -191,10 +191,6 @@ struct X3D_Script * protoScript_copy (struct X3D_Script *me) {
 	ret->mustEvaluate = me->mustEvaluate;
 	ret->url = me->url;
 	ret->__scriptObj = me->__scriptObj;
-
-	/* script handle gets updated in registerScriptInPROTO */
-	/* ((struct Script *) (ret->__scriptObj))->num = nextScriptHandle(); */
-
 	return ret;
 	
 }
@@ -218,6 +214,7 @@ struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
  		#ifdef CPARSERVERBOSE
 			printf("newScript: created new script with num %d\n", ret->num);
 		#endif
+			printf("newScript: created new script nodePtr %u with num %d\n", node, ret->num);
 
 		JSInit(ret->num);
 	} else {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.25 2009/05/07 18:43:34 crc_canada Exp $
+$Id: CProto.c,v 1.26 2009/05/18 19:05:45 crc_canada Exp $
 
 CProto ???
 
@@ -156,6 +156,7 @@ void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
 /* Other members */
 /* ************* */
 
+#ifdef OLDCODE
 /* Routing to/from */
 void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
  struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
@@ -169,14 +170,9 @@ void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
 	struct ScriptFieldInstanceInfo* sfield = vector_get(struct ScriptFieldInstanceInfo*, me->scriptDests, i);
 	struct Shader_Script* toscript = sfield->script;
 	struct ScriptFieldDecl* tosfield = sfield->decl;
-	if (dir == FROM_SCRIPT) {
-		dir = SCRIPT_TO_SCRIPT;
-	} else if (dir == 0) {
-		dir = TO_SCRIPT;
-	}
   	/* printf("protoFieldDecl_routeTo: registering route from %p %u to script dest %p %u %d\n", node, ofs, toscript->num, scriptFieldDecl_getRoutingOffset(tosfield), dir); */
 	/* parser_registerRoute, cast the toscript->num so as to get around compiler warnings, it IS NOT a pointer, though */
-	parser_registerRoute(p, node, ofs, (struct X3D_Node *) toscript->num, scriptFieldDecl_getRoutingOffset(tosfield), len, dir);
+	parser_registerRoute(p, node, ofs, (struct X3D_Node *) toscript->num, scriptFieldDecl_getRoutingOffset(tosfield), len);
  }
 }
 
@@ -193,16 +189,13 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
 	struct ScriptFieldInstanceInfo* sfield = vector_get(struct ScriptFieldInstanceInfo*, me->scriptDests, i);
 	struct Shader_Script* fromscript = sfield->script;
 	struct ScriptFieldDecl* fromsfield = sfield->decl;
-	if (dir == TO_SCRIPT) {
-		dir = SCRIPT_TO_SCRIPT;
-	} else if (dir == 0) {
-		dir = FROM_SCRIPT;
-	}
 	/* parser_registerRoute, cast the fromscript->num to get around compiler warnings, but it is NOT a pointer, though */
-	parser_registerRoute(p, (struct X3D_Node *) fromscript->num, scriptFieldDecl_getRoutingOffset(fromsfield), node, ofs, len, dir);
+	parser_registerRoute(p, (struct X3D_Node *) fromscript->num, scriptFieldDecl_getRoutingOffset(fromsfield), node, ofs, len);
   	/* printf("protoFieldDecl_routeFrom: registering route from script dest %p %u to %p %u %d\n", fromscript->num, scriptFieldDecl_getRoutingOffset(fromsfield), node, ofs,  dir); */
  }
 }
+#endif
+
 
 /* setValue is at the end, because we need deep-copying there */
 /* copy is at the end, too, because defaultVal needs to be deep-copied. */

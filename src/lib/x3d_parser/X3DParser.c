@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.19 2009/05/13 13:53:56 crc_canada Exp $
+$Id: X3DParser.c,v 1.20 2009/05/18 19:05:45 crc_canada Exp $
 
 ???
 
@@ -315,8 +315,6 @@ static void parseRoutes (const char **atts) {
 
 	int fromType;
 	int toType;
-	int scriptDiri = 0;
-
 	#ifdef X3DPARSERVERBOSE
 	printf ("\nstart ofrouting\n");	
 	#endif
@@ -355,10 +353,6 @@ static void parseRoutes (const char **atts) {
 			stringNodeType(toNode->_nodeType));
 	#endif
 
-	/* get the direction correct */
-	if (fromNode->_nodeType == NODE_Script) scriptDiri += FROM_SCRIPT;
-	if (toNode->_nodeType == NODE_Script) scriptDiri += TO_SCRIPT;
-	
 	/* second pass - get the fields of the nodes */
 	for (i = 0; atts[i]; i += 2) {
 		if (strcmp("fromField",atts[i])==0) {
@@ -370,11 +364,6 @@ static void parseRoutes (const char **atts) {
 
 	/* get out of here if an error is found */
 	if (error) return;
-
-
-	/* is there a script here? if so, now change the script NODE pointer to a Script index */
-	if (fromNode->_nodeType == NODE_Script) fromNode = ((struct X3D_Node*) ((struct X3D_Script*)fromNode)->_X3DScript);
-	if (toNode->_nodeType == NODE_Script) toNode = ((struct X3D_Node*) ((struct X3D_Script*)toNode)->_X3DScript);
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("now routing from a %s to a %s \n",stringFieldtypeType(fromType), stringFieldtypeType(toType));
@@ -392,7 +381,7 @@ static void parseRoutes (const char **atts) {
 
 
 	/* can we register the route? */
-	CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, returnRoutingElementLength(fromType),scriptDiri);
+	CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, returnRoutingElementLength(fromType));
 }
 
 /* parse normal X3D nodes/fields */

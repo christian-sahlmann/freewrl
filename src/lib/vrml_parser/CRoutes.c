@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.20 2009/05/13 20:30:49 crc_canada Exp $
+$Id: CRoutes.c,v 1.21 2009/05/18 19:05:45 crc_canada Exp $
 
 ???
 
@@ -816,13 +816,20 @@ CRoutes_Register.  Currently a wrapper around that other function.
 void CRoutes_RegisterSimple(
 	struct X3D_Node* from, int fromOfs,
 	struct X3D_Node* to, int toOfs,
-	int len, int dir) {
+	int len)  {
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
  	char tonode_str[15];
  	void* interpolatorPointer;
  	int extraData = 0;
+	int dir = 0;
+	
+	/* get direction flags here */
+	if (from->_nodeType == NODE_Script) dir  = dir | FROM_SCRIPT;
+	if (to->_nodeType == NODE_Script) dir  = dir | TO_SCRIPT;
 
+
+printf ("CRoutes_RegisterSimple, dir %d, from %u:%d to %u:%d\n",dir, from, fromOfs, to, toOfs);
 	/* check to ensure that we are not doing with a StaticGroup here */
 	if (dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT) {
 		/* printf ("we are NOT sending to a script, checking for StaticGroup\n"); */
@@ -865,23 +872,19 @@ CRoutes_Register.  Currently a wrapper around that other function.
 void CRoutes_RemoveSimple(
 	struct X3D_Node* from, int fromOfs,
 	struct X3D_Node* to, int toOfs,
-	int len, int dir) {
+	int len) {
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
  	char tonode_str[15];
  	void* interpolatorPointer;
  	int extraData = 0;
 
- 	/* When routing to a script, to is not a node pointer! */
- 	if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT)
-  		interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
- 	else
-  		interpolatorPointer=NULL;
+  	interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
 
  	snprintf(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
 
  	CRoutes_Register(0, from, fromOfs, 1, tonode_str, len, 
-  		interpolatorPointer, dir, extraData);
+  		interpolatorPointer, 0, extraData);
 }
 
 /********************************************************************
@@ -1280,7 +1283,7 @@ eventOuts for this script
 
 ********************************************************************/
 
-void gatherScriptEventOuts(uintptr_t actualscript) {
+static void gatherScriptEventOuts(void) {
 	int route;
 	unsigned int fptr;
 	unsigned int tptr;
@@ -1299,22 +1302,30 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	/* do we have any routes yet? - we can gather events before any routes are made */
 	if (!CRoutes_Initiated) return;
 
-	/* this script initialized yet? We make sure that on initialization that the Parse Thread
-	   does the initialization, once it is finished parsing. */
-	if (ScriptControl[actualscript]._initialized!=TRUE) {
-		/* printf ("waiting for initializing script %d at %s:%d\n",actualscript, __FILE__,__LINE__); */
-		return;
-	}
-
-	/* routing table is ordered, so we can walk up to this script */
+	/* go from beginning to end in the routing table */
 	route=1;
+	while (route < (CRoutes_Count-1)) {
 
-	#ifdef CRVERBOSE
-	printf ("routing table looking, looking at %x and %x\n",(uintptr_t)(CRoutes[route].routeFromNode), actualscript); 
-	#endif
+	if (X3D_NODE(CRoutes[route].routeFromNode)->_nodeType == NODE_Script) {
+		struct X3D_Script *mys = X3D_SCRIPT(CRoutes[route].routeFromNode);
+		struct Shader_Script *sp = (struct Shader_Script *) mys->__scriptObj;
+		int actualscript = sp->num;
 
-	while ((uintptr_t)(CRoutes[route].routeFromNode) < actualscript) route++;
-	while ((uintptr_t)(CRoutes[route].routeFromNode) == actualscript) {
+		/* printf ("gatherEvents, found a script at element %d, it is script number %d\n",
+			route, actualscript); */
+		/* this script initialized yet? We make sure that on initialization that the Parse Thread
+		   does the initialization, once it is finished parsing. */
+		if (ScriptControl[actualscript]._initialized!=TRUE) {
+			/* printf ("waiting for initializing script %d at %s:%d\n",actualscript, __FILE__,__LINE__); */
+			return;
+		}
+
+		if (actualscript > max_script_found_and_initialized) {
+			printf ("gatherScriptEventOut, waiting for script %d to become initialized\n");
+			return;
+		}
+
+		
 		/* is this the same from node/field as before? */
 		if ((CRoutes[route].routeFromNode == CRoutes[route-1].routeFromNode) &&
 			(CRoutes[route].fnptr == CRoutes[route-1].fnptr) &&
@@ -1368,6 +1379,8 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 
 		/* REMOVE_ROOT(ScriptControl[actualscript].cx,global_return_val); */
 	}
+	route ++;
+	}
 
 	#ifdef CRVERBOSE 
 		printf ("%f finished  gatherScriptEventOuts loop\n",TickTime);
@@ -1376,6 +1389,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 
 
 
+/* we have a Script/Shader at routing table element %d, send events to it */
 void sendScriptEventIn(uintptr_t num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
@@ -1392,13 +1406,19 @@ void sendScriptEventIn(uintptr_t num) {
 
 	if (CRoutes[num].direction_flag == TO_SCRIPT) {
 		for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
+			struct Shader_Script *myObj;
 			to_ptr = &(CRoutes[num].tonodes[to_counter]);
+			/* printf ("to_ptr->routeNode type = %s\n",stringNodeType(X3D_NODE(to_ptr->routeToNode)->_nodeType)); */
 
+			myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
+			#ifdef CRVERBOSE
+			printf ("myScriptNumber is %d\n",myObj->num);
+			#endif
 
 
 			/* this script initialized yet? We make sure that on initialization that the Parse Thread
 			   does the initialization, once it is finished parsing. */
-			if (ScriptControl[(uintptr_t)to_ptr->routeToNode]._initialized!=TRUE) {
+			if (ScriptControl[myObj->num]._initialized!=TRUE) {
 				/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
 				return;
 			}
@@ -1406,7 +1426,7 @@ void sendScriptEventIn(uintptr_t num) {
 			/* get the value from the VRML structure, in order to propagate it to a script */
 
 			/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
-			mark_script((uintptr_t)to_ptr->routeToNode);
+			mark_script(myObj->num);
 			getField_ToJavascript(num,to_ptr->foffset);
 
 		}
@@ -1529,15 +1549,7 @@ void propagate_events() {
 		}
 
 		/* run gatherScriptEventOuts for each active script */
-		for (counter =0; counter <= max_script_found_and_initialized; counter++) {
-			/* 
-				printf ("msf %d c %d\n",max_script_found, counter);
-				printf ("script type %d\n",ScriptControl[counter].thisScriptType);
-			*/
-
-			gatherScriptEventOuts (counter);
-
-		}
+		gatherScriptEventOuts();
 
 	} while (havinterp==TRUE);
 
