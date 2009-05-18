@@ -1,4 +1,10 @@
 Priority list
+18/05/2009:
+	(JAS) Script/shader routing - no longer use dubious (from Perl days) methodology of having to/from nodes
+	as script indexes, now leave them as NODE_Script types.
+		- Have to ensure that XML coding of scripts follows this;
+		- Shader routing can use same methodology.
+
 14/05/2009: 
 	(JAS) Shader text, if local, should start with uri "data:text/plain," 
 
