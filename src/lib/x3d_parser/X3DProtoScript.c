@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.11 2009/05/06 20:35:46 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.12 2009/05/18 20:02:48 crc_canada Exp $
 
 ???
 
@@ -893,12 +893,16 @@ void parseScriptProtoField(const char **atts) {
 
 	/* configure internal variables, and check sanity for top of stack This should be a Script node */
 	if (parserMode == PARSING_SCRIPT) {
+                struct Shader_Script *myObj;
+
+
 		if (parentStack[parentIndex]->_nodeType != NODE_Script) {
 			ConsoleMessage ("X3DParser, line %d, expected the parent to be a Script node",LINE);
 			printf ("X3DParser, parentIndex is %d\n",parentIndex);
 			return;
 		}
-		myScriptNumber = ((struct X3D_Script *)parentStack[parentIndex])->_X3DScript;
+                myObj = X3D_SCRIPT(parentStack[parentIndex])->__scriptObj;
+		myScriptNumber = myObj->num;
 	} else {
 		myScriptNumber = currentProtoDeclare;
 
@@ -1010,8 +1014,11 @@ void initScriptWithScript() {
 	int fromFile = FALSE;
 	int removeIt = FALSE;
 
+	struct Shader_Script *myObj;
+
 	/* semantic checking... */
-	me = (struct X3D_Script *)parentStack[parentIndex];
+	me = X3D_SCRIPT(parentStack[parentIndex]);
+	myObj = (struct Shader_Script *) me->__scriptObj;
 
 	if (me->_nodeType != NODE_Script) {
 		ConsoleMessage ("initScriptWithScript - Expected to find a NODE_Script, got a %s\n",
@@ -1023,7 +1030,7 @@ void initScriptWithScript() {
 	printf ("endElement: CDATA_Text is %s\n",CDATA_Text);
 	#endif
 
-	myScriptNumber = me->_X3DScript;
+	myScriptNumber = myObj->num;
 
 	/* did the script text come from a CDATA node?? */
 	if (CDATA_Text != NULL) if (CDATA_Text[0] != '\0') myText = CDATA_Text;

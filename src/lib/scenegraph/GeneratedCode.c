@@ -136,7 +136,6 @@
 	"__childloadstatus",
 	"__rightTexture",
 	"__compiledmode",
-	"_X3DScript",
 	"pressTime",
 	"bboxCenter",
 	"emissiveColor",
@@ -3198,12 +3197,11 @@ const int OFFSETS_ScalarInterpolator[] = {
 
 const int OFFSETS_Script[] = {
 	FIELDNAMES___parenturl, offsetof (struct X3D_Script, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,0,
-	FIELDNAMES_mustEvaluate, offsetof (struct X3D_Script, mustEvaluate),  FIELDTYPE_SFBool, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES_directOutput, offsetof (struct X3D_Script, directOutput),  FIELDTYPE_SFBool, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES__X3DScript, offsetof (struct X3D_Script, _X3DScript),  FIELDTYPE_SFInt32, KW_initializeOnly,0,
 	FIELDNAMES___scriptObj, offsetof (struct X3D_Script, __scriptObj),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,0,
 	FIELDNAMES_url, offsetof (struct X3D_Script, url),  FIELDTYPE_MFString, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_mustEvaluate, offsetof (struct X3D_Script, mustEvaluate),  FIELDTYPE_SFBool, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_metadata, offsetof (struct X3D_Script, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_directOutput, offsetof (struct X3D_Script, directOutput),  FIELDTYPE_SFBool, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Script, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
@@ -6613,12 +6611,11 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_Script *) tmp;
 			tmp2->v = &virt_Script;
 			tmp2->__parenturl = newASCIIString(getInputURL());
-			tmp2->mustEvaluate = FALSE;
-			tmp2->directOutput = FALSE;
-			tmp2->_X3DScript = -1;
 			tmp2->__scriptObj = 0;
 			tmp2->url.n=0; tmp2->url.p=0;
+			tmp2->mustEvaluate = FALSE;
 			tmp2->metadata = NULL;
+			tmp2->directOutput = FALSE;
 			tmp2->__oldmetadata = 0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;

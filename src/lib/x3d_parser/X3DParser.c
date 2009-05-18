@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.20 2009/05/18 19:05:45 crc_canada Exp $
+$Id: X3DParser.c,v 1.21 2009/05/18 20:02:48 crc_canada Exp $
 
 ???
 
@@ -268,7 +268,9 @@ static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *nam
 	int accessType;
  
 	if (node->_nodeType == NODE_Script) {
-		error = !(getFieldFromScript (name,X3D_SCRIPT(node)->_X3DScript,offs,type,&accessType));
+		struct Shader_Script *myObj;
+		myObj = X3D_SCRIPT(node)->__scriptObj;
+		error = !(getFieldFromScript (name,myObj,offs,type,&accessType));
 	} else {
 
 		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
@@ -418,12 +420,15 @@ printf ("hey, we have maybe a Node in a Script list... line %d: expected parserM
 	#endif
 
 	if (myNodeType == NODE_Script) {
+		struct Shader_Script *myObj;
+
 		#ifdef X3DPARSERVERBOSE
 		printf ("working through script parentIndex %d\n",parentIndex);
 		#endif
 
-		X3D_SCRIPT(thisNode)->_X3DScript = (int) nextScriptHandle();
-		JSInit(X3D_SCRIPT(thisNode)->_X3DScript);
+		myObj = X3D_SCRIPT(thisNode)->__scriptObj;
+		myObj->num = (int) nextScriptHandle();
+		JSInit(myObj->num);
 	}
 
 	/* go through the fields, and link them in. SFNode and MFNodes will be handled 

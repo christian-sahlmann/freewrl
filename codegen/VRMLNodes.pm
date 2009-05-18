@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.16 2009/05/15 19:42:22 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.17 2009/05/18 20:02:48 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2078,7 +2078,6 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 			 __scriptObj => [FreeWRLPTR, 0, initializeOnly, 0],
-			 _X3DScript => [SFInt32, -1, initializeOnly, 0],
 			__parenturl =>[SFString,"",initializeOnly, 0],
 					   },"X3DScriptNode"
 					  ),
