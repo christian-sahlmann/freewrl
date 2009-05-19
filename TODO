@@ -1,4 +1,11 @@
 Priority list
+
+18/05/2009:
+	(JAS) From Mufti;
+		- freewrl file:///tmp/PureVrmlExport.wrl fails;
+		- Freewrl do not compile without some "XF86/XF86VidModeModeInfo" things 
+  		  (again). Please add a matching test case in your machine park...
+
 18/05/2009:
 	(JAS) Script/shader routing - no longer use dubious (from Perl days) methodology of having to/from nodes
 	as script indexes, now leave them as NODE_Script types.
