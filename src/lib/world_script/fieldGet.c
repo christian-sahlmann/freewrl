@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.15 2009/05/19 13:27:23 crc_canada Exp $
+$Id: fieldGet.c,v 1.16 2009/05/19 14:26:27 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -999,7 +999,14 @@ void setScriptMultiElementtype (uintptr_t num) {
 		/* get context and global object for this script */
 		cx = (JSContext *) ScriptControl[myObj->num].cx;
 		obj = (JSObject *)ScriptControl[myObj->num].glob;
+
+		/* thanks to Doug Sanden for this one */
+		#ifdef WIN32
+		fnptr = (void *)( (uintptr_t)(fn) + fptr ); /*force byte arithmetic */
+		#else
 		fn += fptr;
+		#endif
+
 		set_one_MultiElementType (myObj->num, tptr, fn, len);
 	}
 }
