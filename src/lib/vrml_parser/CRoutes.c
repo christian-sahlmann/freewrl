@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.21 2009/05/18 19:05:45 crc_canada Exp $
+$Id: CRoutes.c,v 1.22 2009/05/19 13:09:36 crc_canada Exp $
 
 ???
 
@@ -829,7 +829,6 @@ void CRoutes_RegisterSimple(
 	if (to->_nodeType == NODE_Script) dir  = dir | TO_SCRIPT;
 
 
-printf ("CRoutes_RegisterSimple, dir %d, from %u:%d to %u:%d\n",dir, from, fromOfs, to, toOfs);
 	/* check to ensure that we are not doing with a StaticGroup here */
 	if (dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT) {
 		/* printf ("we are NOT sending to a script, checking for StaticGroup\n"); */
