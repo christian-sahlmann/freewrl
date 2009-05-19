@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.12 2009/05/13 20:30:49 crc_canada Exp $
+$Id: JScript.c,v 1.13 2009/05/19 14:24:13 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -185,6 +185,7 @@ void JSInit(uintptr_t num) {
 
 /* Save the text, so that when the script is initialized in the EventLoop thread, it will be there */
 void SaveScriptText(uintptr_t num, char *text) {
+
 	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
 	if (num >= JSMaxScript)  {
 		ConsoleMessage ("SaveScriptText: warning, script %d initialization out of order",num);
@@ -194,7 +195,8 @@ void SaveScriptText(uintptr_t num, char *text) {
 	ScriptControl[num].scriptText = STRDUP(text);
 
 	if (((int)num) > max_script_found) max_script_found = num;
-	/* printf ("SaveScriptText, max_script_found now %d\n",max_script_found); */
+	/* printf ("SaveScriptText, for script %d scriptText %s\n",text);
+	printf ("SaveScriptText, max_script_found now %d\n",max_script_found); */
 }
 
 void JSInitializeScriptAndFields (uintptr_t num) {

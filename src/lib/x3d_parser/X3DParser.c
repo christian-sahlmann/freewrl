@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.21 2009/05/18 20:02:48 crc_canada Exp $
+$Id: X3DParser.c,v 1.22 2009/05/19 14:24:13 crc_canada Exp $
 
 ???
 
@@ -422,12 +422,15 @@ printf ("hey, we have maybe a Node in a Script list... line %d: expected parserM
 	if (myNodeType == NODE_Script) {
 		struct Shader_Script *myObj;
 
+		/* create the Shader_Script for this one */
+		X3D_SCRIPT(thisNode)->__scriptObj=new_Shader_Script(thisNode);
+
+
 		#ifdef X3DPARSERVERBOSE
 		printf ("working through script parentIndex %d\n",parentIndex);
 		#endif
 
 		myObj = X3D_SCRIPT(thisNode)->__scriptObj;
-		myObj->num = (int) nextScriptHandle();
 		JSInit(myObj->num);
 	}
 

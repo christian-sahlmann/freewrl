@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.12 2009/05/18 20:02:48 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.13 2009/05/19 14:24:13 crc_canada Exp $
 
 ???
 
@@ -1109,7 +1109,7 @@ void initScriptWithScript() {
 		return;
 	}
 
-	SaveScriptText (myScriptNumber, startingIndex);
+	/* JAS SaveScriptText (myScriptNumber, startingIndex); */
 
 	CDATA_Text_curlen=0;
 	parserMode = PARSING_NODES;
