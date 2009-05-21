@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.7 2009/05/12 19:53:14 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.8 2009/05/21 20:30:08 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.8  2009/05/21 20:30:08  crc_canada
+# XML parser - scripts and shaders now using common routing and maintenance routines.
+#
 # Revision 1.7  2009/05/12 19:53:14  crc_canada
 # Confirm current support levels, and verify that Components and Profiles are checked properly.
 #
@@ -323,8 +326,8 @@
 	Matrix3VertexAttribute	=>children,
 	Matrix4VertexAttribute	=>children,
 	PackagedShader		=>material,
-	ProgramShader		=>material,
-	ShaderPart		=>children,
+	ProgramShader		=>programs,
+	ShaderPart		=>parts,
 	ShaderProgram		=>children,
 
 	MetadataSet		=>metadata,

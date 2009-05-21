@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.13 2009/05/19 14:24:13 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.14 2009/05/21 20:30:09 crc_canada Exp $
 
 ???
 
@@ -65,7 +65,7 @@ struct PROTOInstanceEntry {
 	int container;
 	int paircount;
 };
-struct PROTOInstanceEntry ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
+static struct PROTOInstanceEntry ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
 
 /* PROTO table */
 struct PROTOnameStruct {
@@ -75,7 +75,7 @@ struct PROTOnameStruct {
 	int charLen;
 	int fileOpen;
 };
-struct PROTOnameStruct *PROTONames = NULL;
+static struct PROTOnameStruct *PROTONames = NULL;
 
 
 /* Script table - script parameter names, values, etc. */
@@ -89,9 +89,9 @@ struct ScriptFieldStruct {
 	int offs;
 };
 
-struct ScriptFieldStruct *ScriptFieldNames = NULL;
-int ScriptFieldTableSize = INT_ID_UNDEFINED;
-int MAXScriptFieldParams = 0;
+static struct ScriptFieldStruct *ScriptFieldNames = NULL;
+static int ScriptFieldTableSize = INT_ID_UNDEFINED;
+static int MAXScriptFieldParams = 0;
 
 
 
@@ -654,7 +654,7 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 	#define FIND_THE_END_OF_IS(mystr) \
 		/* printf ("FIND_THE_END_OF_IS, input str :%s:\n",mystr); */ \
 		endIS = strstr(mystr,strNOTIS); \
-		/* printf ("	FIND_THE_END_OF_IS: endIS string is :%s:\n",endIS); */ \ 
+		/* printf ("	FIND_THE_END_OF_IS: endIS string is :%s:\n",endIS); */ \
 		if (endIS == NULL) { \
 			ConsoleMessage ("did not find an </IS> for ProtoInstance %s\n",PROTONames[currentProtoInstance].name); \
 			FREE_IF_NZ(protoInString); FREE_IF_NZ(protoInString); \
@@ -877,7 +877,7 @@ void parseScriptFieldDefaultValue(int type, union anyVrml *value) {
 
 
 /* parse a script or proto field. Note that they are in essence the same, just used differently */
-void parseScriptProtoField(const char **atts) {
+void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	int i;
 	uintptr_t myScriptNumber;
 	int myparams[MPFIELDS];
@@ -886,6 +886,8 @@ void parseScriptProtoField(const char **atts) {
 	char *myValueString = NULL;
 	union anyVrml value;
 	int myAccessType;
+	struct X3D_Script* myScr = NULL;
+	struct Shader_Script *myObj = NULL;
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("start of parseScriptProtoField\n");
@@ -893,15 +895,14 @@ void parseScriptProtoField(const char **atts) {
 
 	/* configure internal variables, and check sanity for top of stack This should be a Script node */
 	if (parserMode == PARSING_SCRIPT) {
-                struct Shader_Script *myObj;
-
 
 		if (parentStack[parentIndex]->_nodeType != NODE_Script) {
 			ConsoleMessage ("X3DParser, line %d, expected the parent to be a Script node",LINE);
 			printf ("X3DParser, parentIndex is %d\n",parentIndex);
 			return;
 		}
-                myObj = X3D_SCRIPT(parentStack[parentIndex])->__scriptObj;
+		myScr = X3D_SCRIPT(parentStack[parentIndex]);
+		myObj = (struct Shader_Script *) myScr->__scriptObj;
 		myScriptNumber = myObj->num;
 	} else {
 		myScriptNumber = currentProtoDeclare;
@@ -947,7 +948,13 @@ void parseScriptProtoField(const char **atts) {
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("ok, fields copied over\n");
-	printf ("myparams:\n	%d\n	%d\n	%d	%d\n",myparams[MP_NAME],myparams[MP_ACCESSTYPE],myparams[MP_TYPE], myparams[MP_VALUE]);
+	printf ("myparams:name ind: %d accessType %d type: %d value %d\n",myparams[MP_NAME],myparams[MP_ACCESSTYPE],myparams[MP_TYPE], myparams[MP_VALUE]);
+	printf ("and the values are: ");
+	if (myparams[MP_NAME] != ID_UNDEFINED) printf ("name:%s ", atts[myparams[MP_NAME]]);
+	if (myparams[MP_ACCESSTYPE] != ID_UNDEFINED) printf ("access:%s ", atts[myparams[MP_ACCESSTYPE]]);
+	if (myparams[MP_TYPE] != ID_UNDEFINED) printf ("type:%s ", atts[myparams[MP_TYPE]]);
+	if (myparams[MP_VALUE] != ID_UNDEFINED) printf ("value:%s ", atts[myparams[MP_VALUE]]);
+	printf ("\n");
 	#endif
 
 	/* ok now, we have a couple of checks to make here. Do we have all the parameters required? */
@@ -981,11 +988,59 @@ void parseScriptProtoField(const char **atts) {
 		default: {}
 	}
 	
-	registerX3DScriptField(myScriptNumber,
-		findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),
-		myAccessType,
-		myFieldNumber,atts[myparams[MP_NAME]],myValueString);
+	/* printf ("field parsing, so we have script %d, accessType %d fieldnumber %d, need to get field value\n",
+		myScriptNumber, myAccessType, myFieldNumber); */
 
+	if (myScr != NULL) {
+		struct ScriptFieldDecl* sdecl = NULL;
+		indexT name = ID_UNDEFINED;
+		union anyVrml defaultVal;
+
+		/* get the name index */
+        	lexer_fromString(myLexer,STRDUP(atts[myparams[MP_NAME]]));
+
+		/* put it on the right Vector in myLexer */
+    		switch(myAccessType) {
+			#define LEX_DEFINE_FIELDID(suff) \
+			   case PKW_##suff: \
+			    if(!lexer_define_##suff(myLexer, &name)) \
+			     ConsoleMessage ("Expected fieldNameId after field type!"); \
+			    break;
+
+	        LEX_DEFINE_FIELDID(initializeOnly)
+	        LEX_DEFINE_FIELDID(inputOnly)
+	        LEX_DEFINE_FIELDID(outputOnly)
+	        LEX_DEFINE_FIELDID(inputOutput)
+                default:
+			printf ("define fieldID, unknown access type, %d\n",myAccessType);
+    		}
+
+		/* printf ("field parsing, name index is %d\n",name); */
+
+		/* create a new scriptFieldDecl */
+		sdecl = newScriptFieldDecl(myLexer,(indexT) myAccessType, 
+			findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),  name);
+
+
+		/* for now, set the default value */
+		scriptFieldDecl_setFieldValue(sdecl, defaultVal);
+		
+		/* fill in the string name and type */
+		sdecl->ASCIIname=STRDUP(atts[myparams[MP_NAME]]);
+		sdecl->ASCIItype=STRDUP(atts[myparams[MP_TYPE]]);
+
+		/* add this field to the script */
+		script_addField(myObj,sdecl);
+
+	} else {
+
+		registerX3DProtoField(myScriptNumber,
+			findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),
+			myAccessType,
+			myFieldNumber,atts[myparams[MP_NAME]],myValueString);
+	}
+
+#ifdef OLDCODE
 	/* and initialize it if a Script */
 	if (parserMode == PARSING_SCRIPT) {
 		/* parse this string value into a anyVrml union representation */
@@ -997,7 +1052,10 @@ void parseScriptProtoField(const char **atts) {
 		/* send in the script field for initialization */
 		SaveScriptField (myScriptNumber, myAccessType, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),atts[myparams[MP_NAME]],value);
 	}
+#endif
 }
+
+#undef X3DPARSERVERBOSE
 
 /* we get script text from a number of sources; from the URL field, from CDATA, from a file
    pointed to by the URL field, etc... handle the data in one place */
@@ -1035,83 +1093,24 @@ void initScriptWithScript() {
 	/* did the script text come from a CDATA node?? */
 	if (CDATA_Text != NULL) if (CDATA_Text[0] != '\0') myText = CDATA_Text;
 
-	/* do we still have nothing? Look in the url node for a file or a script. */
-	if (myText == NULL) {
-	        /* lets make up the path and save it, and make it the global path */
-	        /* copy the parent path over */
-	        mypath = STRDUP(me->__parenturl->strptr);
-	        removeFilenameFromPath (mypath);
 
-		/* try the first url, up to the last, until we find a valid one */
-		count = 0;
-		while (count < me->url.n) {
-			thisurl = me->url.p[count]->strptr;
+	/* is this CDATA text? */
+	if (myText != NULL) {
+		struct Multi_String strHolder;
 
-			/* leading whitespace removal */
-			while ((*thisurl <= ' ') && (*thisurl != '\0')) thisurl++;
-
-			/* is thisurl a vrml/ecma/javascript string?? */
-			if ((strstr(thisurl,"ecmascript:")!= 0) ||
-				(strstr(thisurl,"vrmlscript:")!=0) ||
-				(strstr(thisurl,"javascript:")!=0)) {
-				myText = thisurl;
-				break;
-			} else {
-				/* check to make sure we don't overflow */
-				if ((strlen(thisurl)+strlen(mypath)) > 900) { 
-					ConsoleMessage ("url is waaaay too long for me.");
-					return;
-				}
-
-				/* we work in absolute filenames... */
-				makeAbsoluteFileName(filename,mypath,thisurl);
-
-				if (fileExists(filename,NULL,TRUE,&removeIt)) {
-					myText = readInputString(filename);
-					fromFile = TRUE;
-					if (removeIt) UNLINK(filename);
-					break;
-				}
-			}
-			count ++;
-		}
-/* error condition, if count >= me->url.n */
-	}
-
-	/* still have a problem here? */
-	if (myText == NULL) {
-		ConsoleMessage ("could not find Script text in url or CDATA");
-		CDATA_Text_curlen=0;
-		return;
-	}
-
-	/* peel off the ecmascript etc unless it was read in from a file */
-	if (!fromFile) {
-		startingIndex = strstr(myText,"ecmascript:");
-		if (startingIndex != NULL) { startingIndex += strlen ("ecmascript:");
-		} else if (startingIndex == NULL) {
-			startingIndex = strstr(myText,"vrmlscript:");
-			if (startingIndex != NULL) startingIndex += strlen ("vrmlscript:");
-		} else if (startingIndex == NULL) {
-			startingIndex = strstr(myText,"javascript:");
-			if (startingIndex != NULL) startingIndex += strlen ("javacript:");
-		} else {
-			/* text is from a file in the URL field */
-			startingIndex = myText;
-		}
+		strHolder.p = MALLOC (sizeof(struct Uni_String)*1);
+		strHolder.p[0] = newASCIIString(myText);
+		strHolder.n=1; 
+		script_initCodeFromMFUri(me, &strHolder);
+		FREE_IF_NZ(strHolder.p[0]->strptr);
+		FREE_IF_NZ(strHolder.p);
 	} else {
-		startingIndex = myText; /* from a file, no ecmascript: required */
+		script_initCodeFromMFUri(me, &X3D_SCRIPT(me)->url);
 	}
 
-	if (startingIndex == NULL) {
-		ConsoleMessage ("X3DParser, line %d have Script node, but no valid script",LINE);
-		CDATA_Text_curlen=0;
-		return;
-	}
+	/* finish up here; if we used the CDATA area, set its length to zero */
+	if (myText != NULL) CDATA_Text_curlen=0;
 
-	/* JAS SaveScriptText (myScriptNumber, startingIndex); */
-
-	CDATA_Text_curlen=0;
 	parserMode = PARSING_NODES;
 	#ifdef X3DPARSERVERBOSE
 	printf ("endElement: got END of script - script should be registered\n");
@@ -1182,11 +1181,11 @@ int getFieldValueFromProtoInterface (char *fieldName, int protono, char **value)
 }
 
 /* record each field of each script - the type, kind, name, and associated script */
-void registerX3DScriptField(int myScriptNumber,int type,int kind, int myFieldOffs, char *name, char *value) {
+void registerX3DProtoField(int myScriptNumber,int type,int kind, int myFieldOffs, char *name, char *value) {
 
 	/* semantic check */
 	if ((parserMode != PARSING_SCRIPT) && (parserMode != PARSING_PROTOINTERFACE)) {
-		ConsoleMessage ("registerX3DScriptField: wrong mode - got %d\n",parserMode);
+		ConsoleMessage ("registerX3DProtoField: wrong mode - got %d\n",parserMode);
 	}
 
 	ScriptFieldTableSize ++;
@@ -1216,45 +1215,64 @@ void registerX3DScriptField(int myScriptNumber,int type,int kind, int myFieldOff
 
 
 /* look through the script fields for this field, and return the values. */
-int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type, int *accessType) {
+int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struct Shader_Script *me, int *offs, int *type, int *accessType) {
 	int ctr;
 	struct Uni_String *tmp;
 	int len;
+	struct ScriptFieldDecl* myField = NULL;
+	const char** userArr;
+	size_t userCnt;
+	indexT retUO = ID_UNDEFINED;
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("getFieldFromScript, looking for %s\n",fieldName);
 	#endif
-	
-	len = strlen(fieldName) +1; /* len in Uni_String has the '\0' on it */
-	
-        for (ctr=0; ctr<=ScriptFieldTableSize; ctr++) {
-		if (scriptno == ScriptFieldNames[ctr].scriptNumber) {
-                	tmp = ScriptFieldNames[ctr].fieldName;
-                	if (strcmp(fieldName,tmp->strptr)==0) {
-				*offs = ScriptFieldNames[ctr].offs;
-				*type = ScriptFieldNames[ctr].type;
-                		/* switch from "PKW" to "KW" types */
-                		switch (ScriptFieldNames[ctr].kind) {
-                		        case PKW_inputOnly: *accessType = KW_inputOnly; break;
-                		        case PKW_outputOnly: *accessType = KW_outputOnly; break;
-                		        case PKW_inputOutput: *accessType = KW_inputOutput; break;
-                		        case PKW_initializeOnly: *accessType = KW_initializeOnly; break;
-                		        default: {*accessType = INT_ID_UNDEFINED;}
-				}
+
+	/* go through the user arrays in this lexer, and see if we have a match */
 
 
+	#ifdef CPROTOVERBOSE
+	printf ("getProtoFieldDeclaration, for field :%s:\n",thisID);
+	#endif
 
-				#ifdef X3DPARSERVERBOSE
-				printf ("getFieldFromScript - returning offset %d type %d (kind %d)\n",*offs,*type,
-					ScriptFieldNames[ctr].kind);
-				#endif
-                	        return TRUE;
-			}
-                }
-        }
-        
+
+#define LOOK_FOR_FIELD_IN(whicharr) \
+	if (myField == NULL) { \
+	userArr=&vector_get(const char*, myLexer->user_##whicharr, 0); \
+	userCnt=vector_size(myLexer->user_##whicharr);\
+	retUO=findFieldInARR(fieldName, userArr, userCnt);\
+	if (retUO != ID_UNDEFINED) { \
+		myField=script_getField(me,retUO,PKW_##whicharr); \
+	}}
+
+	LOOK_FOR_FIELD_IN(initializeOnly);
+	LOOK_FOR_FIELD_IN(inputOnly);
+	LOOK_FOR_FIELD_IN(outputOnly);
+	LOOK_FOR_FIELD_IN(inputOutput);
+
+
+	if (myField != NULL) {
+		int myFieldNumber;
+
+		/* is this a script? if so, lets do the conversion from our internal lexer name index to
+		   the scripting name index. */
+		if (me->ShaderScriptNode->_nodeType == NODE_Script) {
+			/* wow - have to get the Javascript text string index from this one */
+			myFieldNumber = JSparamIndex(fieldName,stringFieldtypeType(myField->fieldDecl->type)); 
+			*offs=myFieldNumber;
+
+
+		} else {
+			*offs = myField->fieldDecl->name;
+		}
+		*type = myField->fieldDecl->type;
+		/* go from PKW_xxx to KW_xxx  .... sigh ... */
+		*accessType = mapToKEYWORDindex(myField->fieldDecl->mode);
+		return TRUE;
+	}
+
 	#ifdef X3DPARSERVERBOSE
-	printf ("getFieldFromScript, did not find field %s in script %d\n",fieldName,scriptno);
+	printf ("getFieldFromScript, did not find field %s in script\n",fieldName);
 	#endif
 	
 	/* did not find it */

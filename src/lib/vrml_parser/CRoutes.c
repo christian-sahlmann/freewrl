@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.22 2009/05/19 13:09:36 crc_canada Exp $
+$Id: CRoutes.c,v 1.23 2009/05/21 20:30:08 crc_canada Exp $
 
 ???
 
@@ -1320,7 +1320,7 @@ static void gatherScriptEventOuts(void) {
 		}
 
 		if (actualscript > max_script_found_and_initialized) {
-			printf ("gatherScriptEventOut, waiting for script %d to become initialized\n");
+			/* printf ("gatherScriptEventOut, waiting for script %d to become initialized\n"); */
 			return;
 		}
 
@@ -1407,7 +1407,7 @@ void sendScriptEventIn(uintptr_t num) {
 		for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 			struct Shader_Script *myObj;
 			to_ptr = &(CRoutes[num].tonodes[to_counter]);
-			/* printf ("to_ptr->routeNode type = %s\n",stringNodeType(X3D_NODE(to_ptr->routeToNode)->_nodeType)); */
+			/*printf ("to_ptr->routeNode type = %s\n",stringNodeType(X3D_NODE(to_ptr->routeToNode)->_nodeType)); */
 
 			myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
 			#ifdef CRVERBOSE
@@ -1427,7 +1427,6 @@ void sendScriptEventIn(uintptr_t num) {
 			/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
 			mark_script(myObj->num);
 			getField_ToJavascript(num,to_ptr->foffset);
-
 		}
 	} else {
 		#ifdef CRVERBOSE 

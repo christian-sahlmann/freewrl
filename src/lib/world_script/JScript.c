@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.13 2009/05/19 14:24:13 crc_canada Exp $
+$Id: JScript.c,v 1.14 2009/05/21 20:30:09 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -575,7 +575,6 @@ void SaveScriptField (int num, indexT kind, indexT type, char* field, union anyV
 		ConsoleMessage ("JSSaveScriptText: warning, script %d initialization out of order",num);
 		return;
 	}
-	/* printf ("SaveScriptField, num %d, kind %s type %s field %s value %d\n", num,PROTOKEYWORDS[kind],FIELDTYPES[type],field,value); */
 
 	/* generate a new ScriptParamList entry */
 	/* note that this is a linked list, and we put things on at the end. The END MUST

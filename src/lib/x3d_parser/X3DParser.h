@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.5 2009/02/25 18:28:29 crc_canada Exp $
+$Id: X3DParser.h,v 1.6 2009/05/21 20:30:09 crc_canada Exp $
 
 X3D parser functions.
 
@@ -57,14 +57,13 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 void parseProtoDeclare (const char **atts);
 void parseProtoInterface (const char **atts);
 void parseProtoBody (const char **atts);
-void registerX3DScriptField(int myScriptNumber,int type,int kind, int myFieldOffs, char *name, char *value);
 void parseProtoInstance (const char **atts);
 void parseProtoInstanceFields(const char *name, const char **atts);
 void dumpProtoBody (const char *name, const char **atts);
 void dumpCDATAtoProtoBody (char *str);
 void endDumpProtoBody (const char *name);
-void parseScriptProtoField(const char **atts);
-int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type, int *accessType);
+void parseScriptProtoField(struct VRMLLexer *, const char **atts);
+int getFieldFromScript (struct VRMLLexer* myLexer, char *fieldName, struct Shader_Script *, int *offs, int *type, int *accessType);
 void expandProtoInstance(struct X3D_Group * myGroup);
 void freeProtoMemory (void);
 void kill_X3DProtoScripts(void);

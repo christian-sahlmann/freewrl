@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.12 2009/05/19 14:24:13 crc_canada Exp $
+$Id: CScripts.c,v 1.13 2009/05/21 20:30:09 crc_canada Exp $
 
 ???
 
@@ -61,12 +61,12 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
  ASSERT(mod!=PKW_inputOutput);
 
 	/* shaderID will get set when shader is activiated */
- ret->fieldDecl=newFieldDecl(mod, type, name, -1, FALSE);
+ 	ret->fieldDecl=newFieldDecl(mod, type, name, -1, FALSE);
  ASSERT(ret->fieldDecl);
 
  /* Stringify */
- ret->name=fieldDecl_getStringName(me, ret->fieldDecl);
- ret->type=FIELDTYPES[type];
+ ret->ASCIIname=fieldDecl_getStringName(me, ret->fieldDecl);
+ ret->ASCIItype=FIELDTYPES[type];
 
  /* Field's value not yet initialized! */
  ret->valueSet=(mod!=PKW_initializeOnly);
@@ -125,8 +125,8 @@ struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct Scrip
 	ret->fieldDecl = fieldDecl_copy(me->fieldDecl);
 	ASSERT(ret->fieldDecl);	
 
-	ret->name = fieldDecl_getStringName(lex, ret->fieldDecl);
-	ret->type = me->type;
+	ret->ASCIIname = fieldDecl_getStringName(lex, ret->fieldDecl);
+	ret->ASCIItype = me->ASCIItype;
 	
 	ret->valueSet=((ret->fieldDecl->mode)!=PKW_initializeOnly);
 	return ret;
@@ -156,17 +156,17 @@ void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
 /* Get "offset" data for routing */
 int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 {
- return JSparamIndex((char *)me->name, (char *)me->type);
+ return JSparamIndex((char *)me->ASCIIname, (char *)me->ASCIItype);
 }
 
 /* Initialize JSField */
-void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num) {
+static void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num) {
 	#ifdef CPARSERVERBOSE
 	printf ("scriptFieldDecl_jsFieldInit mode %d\n",me->fieldDecl->mode);
 	#endif
 
 	ASSERT(me->valueSet);
- 	SaveScriptField(num, me->fieldDecl->mode, me->fieldDecl->type, me->name, me->value);
+ 	SaveScriptField(num, me->fieldDecl->mode, me->fieldDecl->type, me->ASCIIname, me->value);
 }
 
 /* ************************************************************************** */
@@ -220,7 +220,7 @@ struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
 		ret->num = -1;
 	}
 
-	/* printf ("new_Shader_Script - num %d\n",ret->num); */
+	/* printf ("new_Shader_Script - num %d, Shader_Script is %u\n",ret->num,ret); */
 
 	return ret;
 }
@@ -238,6 +238,21 @@ void deleteScript(struct Shader_Script* me)
 
 /* Other members */
 /* ************* */
+
+/* look for the field, via the ASCII name. Slower than script_getField, though... */
+struct ScriptFieldDecl* script_getField_viaASCIIname (struct Shader_Script* me, const char *name)
+{
+ size_t i;
+ for(i=0; i!=vector_size(me->fields); ++i)
+ {
+  struct ScriptFieldDecl* curField=
+   vector_get(struct ScriptFieldDecl*, me->fields, i);
+  if(strcmp(name,curField->ASCIIname) == NULL)
+   return curField;
+ }
+
+ return NULL;
+}
 
 struct ScriptFieldDecl* script_getField(struct Shader_Script* me, indexT n, indexT mod)
 {

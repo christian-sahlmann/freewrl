@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.22 2009/05/19 14:24:13 crc_canada Exp $
+$Id: X3DParser.c,v 1.23 2009/05/21 20:30:09 crc_canada Exp $
 
 ???
 
@@ -21,12 +21,12 @@ $Id: X3DParser.c,v 1.22 2009/05/19 14:24:13 crc_canada Exp $
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
-#include "../world_script/JScript.h"
+#include "../input/EAIheaders.h"
+#include "../input/EAIHelpers.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
-#include "../input/EAIheaders.h"
 
 #include "X3DParser.h"
 #include "X3DProtoScript.h"
@@ -42,6 +42,10 @@ $Id: X3DParser.c,v 1.22 2009/05/19 14:24:13 crc_canada Exp $
 #endif /* XMLCALL */
 
 static int inCDATA = FALSE;
+
+static struct VRMLLexer *myLexer = NULL;
+static Stack* DEFedNodes;
+
 
 char *CDATA_Text = NULL;
 static int CDATA_TextMallocSize = 0;
@@ -78,16 +82,6 @@ static const char *parserModeStrings[] = {
 		"unused high"};
 		
 int parserMode = PARSING_NODES;
-
-/* DEF/USE table  for X3D parser */
-struct DEFnameStruct {
-        struct X3D_Node *node;
-        struct Uni_String *name;
-};
-
-struct DEFnameStruct *DEFnames = 0;
-int DEFtableSize = INT_ID_UNDEFINED;
-int MAXDEFNames = 0;
 
 /* XML parser variables */
 static int X3DParserRecurseLevel = INT_ID_UNDEFINED;
@@ -172,7 +166,7 @@ void setFieldValueDataActive(void) {
 		/* printf ("setFieldValueDataActive field %s, parent is a %s\n",
 			stringFieldType(in3_3_fieldIndex),stringNodeType(parentStack[parentIndex]->_nodeType)); */
 
-		setField_fromJavascript (parentStack[parentIndex], stringFieldType(in3_3_fieldIndex),
+		setField_fromJavascript (parentStack[parentIndex], (char *) stringFieldType(in3_3_fieldIndex),
 			CDATA_Text, TRUE);
 	}
 
@@ -187,24 +181,11 @@ void setFieldValueDataActive(void) {
 /* for EAI/SAI - if we have a Node, look up the name in the DEF names */
 char *X3DParser_getNameFromNode(struct X3D_Node* myNode) {
 	int ctr;
-        for (ctr = 0; ctr <= DEFtableSize; ctr++) {
-		if (myNode == DEFnames[ctr].node) {
-			return DEFnames[ctr].name;
-		}
-        }
 	return NULL;
 }
 
 /* for EAI/SAI - if we have a DEF name, look up the node pointer */
 struct X3D_Node *X3DParser_getNodeFromName(const char *name) {
-	int ctr;
-	struct Uni_String* tmp;
-	for (ctr = 0; ctr <= DEFtableSize; ctr++) {
-		tmp = DEFnames[ctr].name;
-		if (strcmp(name, tmp->strptr) == 0) {
-			return DEFnames[ctr].node;
-		}
-	}
 	return NULL;
 }
 
@@ -214,70 +195,74 @@ struct X3D_Node *X3DParser_getNodeFromName(const char *name) {
 
 /* "forget" the DEFs. Keep the table around, though, as the entries will simply be used again. */
 void kill_X3DDefs(void) {
-	DEFtableSize = INT_ID_UNDEFINED;
+printf ("kill_X3DDefs - nothing here\n");
 }
 
 /* return a node assoicated with this name. If the name exists, return the previous node. If not, return
 the new node */
 struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force) {
-	unsigned len;
-	int ctr;
-	struct Uni_String *tmp;
+	indexT ind = ID_UNDEFINED;
 
-	
-	/* printf ("start of DEFNameIndex, name %s, type %s\n",name,stringNodeType(node->_nodeType)); */
+	/* printf ("DEFNameIndex, looking for :%s:, force %d\n",name,force); */
 
+	/* lexer_defineNodeName is #defined as lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE) */
+	/* Checks if this node already exists in the userNodeNames vector.  If it doesn't, adds it. */
 
-	len = strlen(name) + 1; /* length includes null termination, in newASCIIString() */
+	lexer_fromString(myLexer,STRDUP(name));
 
-	/* is this a duplicate name and type? types have to be same,
-	   name lengths have to be the same, and the strings have to be the same.
-	*/
-	for (ctr=0; ctr<=DEFtableSize; ctr++) {
-		tmp = DEFnames[ctr].name;
-		if (strcmp(name,tmp->strptr)==0) {
-			/* do we really want to change this one if it is already found? */
-			if (force) {
-				/* printf ("DEFNameIndex, rewriting node :%s: at index %d\n",tmp->strptr,ctr); */
-				DEFnames[ctr].node = node;
-			}
-			return DEFnames[ctr].node;
-		}
+	if(!lexer_defineNodeName(myLexer, &ind))
+		printf ("Expected nodeNameId after DEF!\n");
+
+	/* printf ("DEF returns id of %d for %s\n",ind,name); */
+
+	ASSERT(ind<=vector_size(stack_top(struct Vector*, DEFedNodes)));
+
+	if(ind==vector_size(stack_top(struct Vector*, DEFedNodes))) {
+		vector_pushBack(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes), node);
 	}
+	ASSERT(ind<vector_size(stack_top(struct Vector*, DEFedNodes)));
 
-	/* nope, not duplicate */
+	/* if we did not find this node, just return */
+	if (ind == ID_UNDEFINED) {node = NULL; return; }
 
-	DEFtableSize ++;
+	node=vector_get(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes),ind);
+	/* printf ("DEFNameIndex for %s, returning %u, nt %s\n",name, node,stringNodeType(node->_nodeType)); */
 
-	/* ok, we got a name and a type */
-	if (DEFtableSize >= MAXDEFNames) {
-		/* oooh! not enough room at the table */
-		MAXDEFNames += 100; /* arbitrary number */
-		DEFnames = (struct DEFnameStruct*)REALLOC (DEFnames, sizeof(*DEFnames) * MAXDEFNames);
-	}
-
-	DEFnames[DEFtableSize].name = newASCIIString((char *)name);
-	DEFnames[DEFtableSize].node = node;
 	return node;
 }
 
 
-static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *name, int routeTo) {
+static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, char *name, int routeTo) {
 	int error = FALSE;
 	int fieldInt;
 	int accessType;
+	struct Shader_Script *myObj;
  
-	if (node->_nodeType == NODE_Script) {
-		struct Shader_Script *myObj;
-		myObj = X3D_SCRIPT(node)->__scriptObj;
-		error = !(getFieldFromScript (name,myObj,offs,type,&accessType));
-	} else {
+	switch (node->_nodeType) {
 
+	case NODE_Script: {
+		myObj = X3D_SCRIPT(node)->__scriptObj;
+		error = !(getFieldFromScript (myLexer, name,myObj,offs,type,&accessType));
+		break; }
+	case NODE_ComposedShader: {
+		myObj = X3D_COMPOSEDSHADER(node)->__shaderObj;
+		error = !(getFieldFromScript (myLexer, name,myObj,offs,type,&accessType));
+		break; }
+	case NODE_ShaderProgram: {
+		myObj = X3D_SHADERPROGRAM(node)->__shaderObj;
+		error = !(getFieldFromScript (myLexer, name,myObj,offs,type,&accessType));
+		break; }
+	case NODE_PackagedShader: {
+		myObj = X3D_PACKAGEDSHADER(node)->__shaderObj;
+		error = !(getFieldFromScript (myLexer, name,myObj,offs,type,&accessType));
+		break; }
+	default:
 		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 		fieldInt = findRoutedFieldInFIELDNAMES (node, name, routeTo);
 		if (fieldInt >=0) findFieldInOFFSETS(node->_nodeType, 
 				fieldInt, offs, type, &accessType);
 	}
+
 	if (*offs <0) {
 		ConsoleMessage ("ROUTE: line %d Field %s not found in node type %s",LINE,
 			name,stringNodeType(node->_nodeType));
@@ -358,9 +343,9 @@ static void parseRoutes (const char **atts) {
 	/* second pass - get the fields of the nodes */
 	for (i = 0; atts[i]; i += 2) {
 		if (strcmp("fromField",atts[i])==0) {
-			error = getRouteField(fromNode, &fromOffset, &fromType, (char *)atts[i+1],0);
+			error = getRouteField(myLexer, fromNode, &fromOffset, &fromType, (char *)atts[i+1],0);
 		} else if (strcmp("toField",atts[i]) ==0) {
-			error = getRouteField(toNode, &toOffset, &toType, (char *)atts[i+1],1);
+			error = getRouteField(myLexer, toNode, &toOffset, &toType, (char *)atts[i+1],1);
 		}
 	}	
 
@@ -406,6 +391,9 @@ printf ("hey, we have maybe a Node in a Script list... line %d: expected parserM
 
 	switch (myNodeType) {
         	case NODE_Script: parserMode = PARSING_SCRIPT; break;
+        	case NODE_ComposedShader: parserMode = PARSING_SCRIPT; break;
+        	case NODE_ShaderProgram: parserMode = PARSING_SCRIPT; break;
+        	case NODE_PackagedShader: parserMode = PARSING_SCRIPT; break;
         	default: {}
         }
 
@@ -432,6 +420,12 @@ printf ("hey, we have maybe a Node in a Script list... line %d: expected parserM
 
 		myObj = X3D_SCRIPT(thisNode)->__scriptObj;
 		JSInit(myObj->num);
+	} else if (myNodeType == NODE_ComposedShader) {
+		X3D_COMPOSEDSHADER(thisNode)->__shaderObj=new_Shader_Script(thisNode);
+	} else if (myNodeType == NODE_ShaderProgram) {
+		X3D_SHADERPROGRAM(thisNode)->__shaderObj=new_Shader_Script(thisNode);
+	} else if (myNodeType == NODE_PackagedShader) {
+		X3D_PACKAGEDSHADER(thisNode)->__shaderObj=new_Shader_Script(thisNode);
 	}
 
 	/* go through the fields, and link them in. SFNode and MFNodes will be handled 
@@ -953,7 +947,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 			case X3DSP_Header: parseHeader(atts); break;
 			case X3DSP_X3D: parseX3Dhead(atts); break;
 			case X3DSP_fieldValue:  parseFieldValue(name,atts); break;
-			case X3DSP_field: parseScriptProtoField (atts); break;
+			case X3DSP_field: parseScriptProtoField (myLexer, atts); break;
 			case X3DSP_IS: parseIS(); break;
 			case X3DSP_component: parseComponent(atts); break;
 			case X3DSP_export: parseExport(atts); break;
@@ -1105,6 +1099,15 @@ int X3DParse (struct X3D_Group* myParent, char *inputstring) {
         gettimeofday (&mytime,&tz);
        startt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 	#endif
+
+	/* Use classic parser Lexer for storing DEF name info */
+	myLexer = newLexer();
+	DEFedNodes = newStack(struct Vector*);
+	ASSERT(DEFedNodes);
+	#define DEFMEM_INIT_SIZE 16
+	stack_push(struct Vector*, DEFedNodes,
+               newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
+	ASSERT(!stack_empty(DEFedNodes));
 
 
 	INCREMENT_PARENTINDEX

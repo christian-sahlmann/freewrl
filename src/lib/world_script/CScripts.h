@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.6 2009/05/14 14:44:08 crc_canada Exp $
+$Id: CScripts.h,v 1.7 2009/05/21 20:30:09 crc_canada Exp $
 
 Class to wrap a java script for CParser
 
@@ -32,8 +32,8 @@ struct ScriptFieldDecl
  struct FieldDecl* fieldDecl;
 
  /* Stringified */
- const char* name;
- const char* type;
+ const char* ASCIIname;
+ const char* ASCIItype;
 
  /* For fields */
  union anyVrml value;
@@ -62,9 +62,6 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl*);
 
 /* Set field value */
 void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl*, union anyVrml);
-
-/* Do JS-init for given script handle */
-void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl*, uintptr_t);
 
 /* Forwards to inherited methods */
 #define scriptFieldDecl_isField(me, nam, mod) \
@@ -104,6 +101,7 @@ void script_addField(struct Shader_Script*, struct ScriptFieldDecl*);
 
 /* Get a field by name */
 struct ScriptFieldDecl* script_getField(struct Shader_Script*, indexT ind, indexT mod);
+struct ScriptFieldDecl* script_getField_viaASCIIname (struct Shader_Script* me, const char *name);
 
 
 void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVrml value);

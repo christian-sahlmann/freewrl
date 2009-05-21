@@ -6555,7 +6555,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->__initialized = FALSE;
 			tmp2->__oldmetadata = 0;
-			tmp2->_defaultContainer = FIELDNAMES_material;
+			tmp2->_defaultContainer = FIELDNAMES_programs;
 		break;
 		}
 		case NODE_ProximitySensor : {
@@ -6629,7 +6629,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->type = newASCIIString("VERTEX");
 			tmp2->__oldmetadata = 0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_parts;
 		break;
 		}
 		case NODE_ShaderProgram : {

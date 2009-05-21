@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.7 2009/05/18 15:28:11 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.8 2009/05/21 20:30:08 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -378,9 +378,9 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 		/* ask the shader for its handle for this variable */
 
 		/* try Uniform variables first */
-		myVar = GET_UNIFORM(myShader,curField->name);
+		myVar = GET_UNIFORM(myShader,curField->ASCIIname);
 		if (myVar == INT_ID_UNDEFINED) {
-			myVar = GET_ATTRIB(myShader,curField->name);
+			myVar = GET_ATTRIB(myShader,curField->ASCIIname);
 			fieldDecl_setshaderVariableUniform(myf,FALSE);
 		} else {
 			fieldDecl_setshaderVariableUniform(myf,TRUE);
