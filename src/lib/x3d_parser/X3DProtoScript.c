@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.14 2009/05/21 20:30:09 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.15 2009/05/22 16:18:40 crc_canada Exp $
 
 ???
 
@@ -841,7 +841,7 @@ void parseProtoInterface (const char **atts) {
 	parserMode = PARSING_PROTOINTERFACE;
 }
 
-
+#ifdef OLDCODE
 /* for initializing the script fields, make up a default value, in case the user has not specified one */
 void parseScriptFieldDefaultValue(int type, union anyVrml *value) {
 	switch (type) {
@@ -874,20 +874,20 @@ void parseScriptFieldDefaultValue(int type, union anyVrml *value) {
 		default: ConsoleMessage ("X3DProtoScript - can't parse default field value for script init");
 	}
 }
+#endif
 
 
 /* parse a script or proto field. Note that they are in essence the same, just used differently */
 void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	int i;
-	uintptr_t myScriptNumber;
+	uintptr_t myScriptNumber = 0;
 	int myparams[MPFIELDS];
 	int which;
 	int myFieldNumber;
 	char *myValueString = NULL;
-	union anyVrml value;
 	int myAccessType;
-	struct X3D_Script* myScr = NULL;
 	struct Shader_Script *myObj = NULL;
+	int inShaderScript = FALSE;
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("start of parseScriptProtoField\n");
@@ -895,15 +895,43 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 
 	/* configure internal variables, and check sanity for top of stack This should be a Script node */
 	if (parserMode == PARSING_SCRIPT) {
+		#ifdef X3DPARSERVERBOSE
+		printf ("verifying: parseScriptProtoField, expecting a scriptish, got a %s\n",
+			stringNodeType(parentStack[parentIndex]->_nodeType));
+		#endif
 
-		if (parentStack[parentIndex]->_nodeType != NODE_Script) {
-			ConsoleMessage ("X3DParser, line %d, expected the parent to be a Script node",LINE);
-			printf ("X3DParser, parentIndex is %d\n",parentIndex);
-			return;
+		switch (parentStack[parentIndex]->_nodeType) {
+			case NODE_Script: {
+				struct X3D_Script* myScr = NULL;
+				myScr = X3D_SCRIPT(parentStack[parentIndex]);
+				myObj = (struct Shader_Script *) myScr->__scriptObj;
+				myScriptNumber = myObj->num;
+				break; }
+			case NODE_ComposedShader: {
+				struct X3D_ComposedShader* myScr = NULL;
+				myScr = X3D_COMPOSEDSHADER(parentStack[parentIndex]);
+				myObj = (struct Shader_Script *) myScr->__shaderObj;
+				break; }
+			case NODE_ShaderProgram: {
+				struct X3D_ShaderProgram* myScr = NULL;
+				myScr = X3D_SHADERPROGRAM(parentStack[parentIndex]);
+				myObj = (struct Shader_Script *) myScr->__shaderObj;
+				break; }
+			case NODE_PackagedShader: {
+				struct X3D_PackagedShader* myScr = NULL;
+				myScr = X3D_PACKAGEDSHADER(parentStack[parentIndex]);
+				myObj = (struct Shader_Script *) myScr->__shaderObj;
+				break; }
+
+			default: {
+
+				ConsoleMessage("got an error on parseScriptProtoField, do not know how to handle a %s",
+					stringNodeType(parentStack[parentIndex]->_nodeType));
+				return;
+			}
 		}
-		myScr = X3D_SCRIPT(parentStack[parentIndex]);
-		myObj = (struct Shader_Script *) myScr->__scriptObj;
-		myScriptNumber = myObj->num;
+		inShaderScript = TRUE;
+
 	} else {
 		myScriptNumber = currentProtoDeclare;
 
@@ -991,7 +1019,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	/* printf ("field parsing, so we have script %d, accessType %d fieldnumber %d, need to get field value\n",
 		myScriptNumber, myAccessType, myFieldNumber); */
 
-	if (myScr != NULL) {
+	if (inShaderScript) {
 		struct ScriptFieldDecl* sdecl = NULL;
 		indexT name = ID_UNDEFINED;
 		union anyVrml defaultVal;
@@ -1012,18 +1040,37 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	        LEX_DEFINE_FIELDID(outputOnly)
 	        LEX_DEFINE_FIELDID(inputOutput)
                 default:
-			printf ("define fieldID, unknown access type, %d\n",myAccessType);
+			ConsoleMessage ("define fieldID, unknown access type, %d\n",myAccessType);
+			return;
     		}
 
-		/* printf ("field parsing, name index is %d\n",name); */
+		/* so, inputOnlys and outputOnlys DO NOT have initialValues, 
+		   inputOutput and initializeOnly DO */
+		if ((myAccessType == PKW_initializeOnly) || (myAccessType == PKW_inputOutput)) {
+			if (myValueString == NULL) {
+				ConsoleMessage ("Field, an initializeOnly or inputOut needs an initialValue");
+				return;
+			}
+		} else {
+			if (myValueString != NULL) {
+				ConsoleMessage ("Field, an inputOnly or outputOnly can not have an initialValue");
+				return;
+			}
+		}
+				
 
 		/* create a new scriptFieldDecl */
 		sdecl = newScriptFieldDecl(myLexer,(indexT) myAccessType, 
 			findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),  name);
 
 
-		/* for now, set the default value */
+		/* for now, set the value  -either the default, or not... */
+		if (myValueString != NULL) {
+			Parser_scanStringValueToMem(X3D_NODE(&defaultVal), 0, sdecl->fieldDecl->type, myValueString, TRUE);
+			/* parseScriptFieldDefaultValue(sdecl->fieldDecl->type, &defaultVal); */
+		}
 		scriptFieldDecl_setFieldValue(sdecl, defaultVal);
+
 		
 		/* fill in the string name and type */
 		sdecl->ASCIIname=STRDUP(atts[myparams[MP_NAME]]);

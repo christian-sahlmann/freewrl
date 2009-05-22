@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.44 2009/05/19 13:27:23 crc_canada Exp $
+$Id: headers.h,v 1.45 2009/05/22 16:18:40 crc_canada Exp $
 
 Global includes.
 
@@ -1110,7 +1110,6 @@ void render_FillProperties (struct X3D_FillProperties *this_);
 void render_LineProperties (struct X3D_LineProperties *this_);
 void render_Material (struct X3D_Material *this_);
 void render_TwoSidedMaterial (struct X3D_TwoSidedMaterial *this_);
-void render_Shape (struct X3D_Shape *this_);
 void child_Shape (struct X3D_Shape *this_);
 void child_Appearance (struct X3D_Appearance *this_);
 

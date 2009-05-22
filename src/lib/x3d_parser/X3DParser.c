@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.23 2009/05/21 20:30:09 crc_canada Exp $
+$Id: X3DParser.c,v 1.24 2009/05/22 16:18:40 crc_canada Exp $
 
 ???
 
@@ -380,7 +380,8 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 
 	/* semantic check */
 	if ((parserMode != PARSING_NODES) && (parserMode != PARSING_PROTOBODY)) {
-printf ("hey, we have maybe a Node in a Script list... line %d: expected parserMode to be PARSING_NODES, got %s\n", LINE,
+printf ("hey, we have maybe a Node (%s) in a Script list... line %d: expected parserMode to be PARSING_NODES, got %s\n", 
+			stringNodeType(myNodeType),LINE,
                                         parserModeStrings[parserMode]);
 
 /*
@@ -390,10 +391,15 @@ printf ("hey, we have maybe a Node in a Script list... line %d: expected parserM
 	}
 
 	switch (myNodeType) {
-        	case NODE_Script: parserMode = PARSING_SCRIPT; break;
-        	case NODE_ComposedShader: parserMode = PARSING_SCRIPT; break;
-        	case NODE_ShaderProgram: parserMode = PARSING_SCRIPT; break;
-        	case NODE_PackagedShader: parserMode = PARSING_SCRIPT; break;
+		case NODE_Script:
+		case NODE_ComposedShader:
+		case NODE_ShaderProgram:
+        	case NODE_PackagedShader: 
+			parserMode = PARSING_SCRIPT; 
+			#ifdef X3DPARSERVERBOSE
+			printf ("parseNormalX3D, setting to PARSE_SCRIPT for name %s\n",name);
+			#endif
+		break;
         	default: {}
         }
 
@@ -519,14 +525,6 @@ static void XMLCALL endCDATA (void *userData) {
 
 	if (parserMode == PARSING_PROTOBODY) {
 		dumpCDATAtoProtoBody (CDATA_Text);
-	} else {
-#ifdef sanityCheck
-		/* check sanity for top of stack This should be a Script node */
-		if (parentStack[parentIndex]->_nodeType != NODE_Script) {
-			ConsoleMessage ("endCDATA, line %d, expected the parent to be a Script node",LINE);
-			return;
-		}
-#endif
 	}
 	
 	#ifdef X3DPARSERVERBOSE
@@ -896,6 +894,9 @@ void linkNodeIn() {
 			(struct Multi_Node *) memptr,			/* where the children field is */
 			((uintptr_t *) &(parentStack[parentIndex])),	/* this child, 1 node */
                 1, 1,__FILE__,__LINE__);
+		/*
+ADD_PARENT(X3D_NODE(parentStack[parentIndex]), X3D_NODE(parentStack[parentIndex-1]));
+*/
 
 	}
 }
@@ -973,7 +974,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	if (parserMode == PARSING_PROTOBODY) {
 		/* are we finished with this ProtoBody? */
 		if (strcmp("ProtoBody",name)==0) {
-			parserMode == PARSING_NODES;
+			parserMode = PARSING_NODES;
 		} else {
 			addToProtoCode(name);
 			return;
@@ -987,19 +988,29 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	}
 
 	/* is this an SFNode for a Script field? */
-	if ((parserMode == PARSING_SCRIPT) && (parentStack[parentIndex-1]->_nodeType == NODE_Script)) {
-		printf ("linkNodeIn, got parsing script, have to link node into script body\n");
-/*
-        printf ("linking in %s to %s, field %s (%d)\n",
-                stringNodeType(parentStack[parentIndex]->_nodeType),
-                stringNodeType(parentStack[parentIndex-1]->_nodeType),
-                stringFieldType(parentStack[parentIndex]->_defaultContainer),
-                parentStack[parentIndex]->_defaultContainer);
+	if (parserMode == PARSING_SCRIPT) {
+		switch (parentStack[parentIndex-1]->_nodeType) {
+			case NODE_Script:
 
-	printf ("but skipping this\n");
-*/
-		DECREMENT_PARENTINDEX
-		return;
+/* I wonder if there is a better way of handling this case */
+#define X3DPARSERVERBOSE
+			#ifdef X3DPARSERVERBOSE
+			printf ("linkNodeIn, got parsing script, have to link node into script body\n");
+        	printf ("linking in %s to %s, field %s (%d)\n",
+                	stringNodeType(parentStack[parentIndex]->_nodeType),
+                	stringNodeType(parentStack[parentIndex-1]->_nodeType),
+                	stringFieldType(parentStack[parentIndex]->_defaultContainer),
+                	parentStack[parentIndex]->_defaultContainer);
+		printf ("but skipping this\n");
+			#endif
+#undef X3DPARSERVERBOSE
+
+			DECREMENT_PARENTINDEX
+			return;
+			break;
+
+			default: {};
+		}
 	}
 		
 
@@ -1009,6 +1020,8 @@ static void XMLCALL endElement(void *unused, const char *name) {
 			case NODE_Script: initScriptWithScript(); break;
 			default: linkNodeIn();
 		}
+
+		parserMode = PARSING_NODES;
 
 		DECREMENT_PARENTINDEX
 		return;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Children.c,v 1.10 2009/05/12 18:21:59 crc_canada Exp $
+$Id: Children.c,v 1.11 2009/05/22 16:18:40 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -44,6 +44,7 @@ void normalChildren(struct Multi_Node ch) {
 	for(i=0; i<ch.n; i++) {
 		struct X3D_Node *p = X3D_NODE(ch.p[i]);
 		if (p != NULL) {
+			/* printf ("child %d of %d is a %s\n",i,ch.n,stringNodeType(p->_nodeType)); */
 			/* as long as this is not a local light... if it is, it will be handled by
 			   the localLightChildren function, above */
 			if (p->_nodeType == NODE_DirectionalLight) {

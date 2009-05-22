@@ -4553,7 +4553,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->__initialized = FALSE;
 			tmp2->__oldmetadata = 0;
-			tmp2->_defaultContainer = FIELDNAMES_material;
+			tmp2->_defaultContainer = FIELDNAMES_shaders;
 		break;
 		}
 		case NODE_Cone : {
@@ -6642,7 +6642,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->type = newASCIIString("");
 			tmp2->__oldmetadata = 0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_material;
 		break;
 		}
 		case NODE_Shape : {

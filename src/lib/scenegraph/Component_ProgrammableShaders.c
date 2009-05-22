@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.8 2009/05/21 20:30:08 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.9 2009/05/22 16:18:40 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -260,7 +260,7 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 	int isUniform = fieldDecl_isshaderVariableUniform(myField->fieldDecl);
 
 	#ifdef SHADERVERBOSE
-	printf ("sendValueToShader...");
+	printf ("sendValueToShader... ft %s\n",stringFieldtypeType(fieldDecl_getType(myField->fieldDecl)));
 	printf ("shaderVariableID is %d\n",shaderVariable);
 	#endif
 
