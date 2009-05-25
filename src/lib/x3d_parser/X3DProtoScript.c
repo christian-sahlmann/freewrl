@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.15 2009/05/22 16:18:40 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.16 2009/05/25 16:54:20 crc_canada Exp $
 
 ???
 
@@ -92,7 +92,6 @@ struct ScriptFieldStruct {
 static struct ScriptFieldStruct *ScriptFieldNames = NULL;
 static int ScriptFieldTableSize = INT_ID_UNDEFINED;
 static int MAXScriptFieldParams = 0;
-
 
 
 /****************************** PROTOS ***************************************************/
@@ -392,7 +391,7 @@ void parseProtoInstance (const char **atts) {
 	int defNameIndex = INT_ID_UNDEFINED;
 	int protoTableIndex = 0;
 
-	parserMode = PARSING_PROTOINSTANCE;
+	setParserMode(PARSING_PROTOINSTANCE);
 	curProtoInsStackInd++;
 
 	#ifdef X3DPARSERVERBOSE
@@ -638,6 +637,7 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 	char *endIS = NULL;
 	int pf;
 
+
 	#define OPEN_AND_READ_PROTO \
 		PROTONames[currentProtoInstance].fileDescriptor = fopen (PROTONames[currentProtoInstance].fileName,"r"); \
 		rs = fread(protoInString, 1, PROTONames[currentProtoInstance].charLen, PROTONames[currentProtoInstance].fileDescriptor); \
@@ -796,7 +796,7 @@ void parseProtoBody (const char **atts) {
 	printf ("start of parseProtoBody\n");
 	#endif
 
-	parserMode = PARSING_PROTOBODY;
+	setParserMode(PARSING_PROTOBODY);
 }
 
 void parseProtoDeclare (const char **atts) {
@@ -807,7 +807,7 @@ void parseProtoDeclare (const char **atts) {
 	currentProtoDeclare++;
 	curProDecStackInd++;
 
-	parserMode = PARSING_PROTODECLARE;
+	setParserMode(PARSING_PROTODECLARE);
 	
 	for (count = 0; atts[count]; count += 2) {
 		#ifdef X3DPARSERVERBOSE
@@ -835,47 +835,11 @@ void parseProtoDeclare (const char **atts) {
 
 /* simple sanity check, and change mode */
 void parseProtoInterface (const char **atts) {
-	if (parserMode != PARSING_PROTODECLARE) {
+	if (getParserMode() != PARSING_PROTODECLARE) {
 		ConsoleMessage ("got a <ProtoInterface>, but not within a <ProtoDeclare>\n");
 	}
-	parserMode = PARSING_PROTOINTERFACE;
+	setParserMode(PARSING_PROTOINTERFACE);
 }
-
-#ifdef OLDCODE
-/* for initializing the script fields, make up a default value, in case the user has not specified one */
-void parseScriptFieldDefaultValue(int type, union anyVrml *value) {
-	switch (type) {
-		case FIELDTYPE_SFFloat: value->sffloat = 0.0; break;
-		case FIELDTYPE_MFFloat: value->mffloat.n=0; break;
-		case FIELDTYPE_SFRotation: value->sfrotation.c[0] =0.0; value->sfrotation.c[1]=0.0; value->sfrotation.c[2] = 0.0; value->sfrotation.c[3] = 1.0; break;
-		case FIELDTYPE_MFRotation: value->mfrotation.n=0; break;
-		case FIELDTYPE_SFVec3f: value->sfvec3f.c[0] =0.0; value->sfvec3f.c[1]=0.0; value->sfvec3f.c[2] = 0.0; break;
-		case FIELDTYPE_MFVec3f: value->mfvec3f.n=0; break;
-		case FIELDTYPE_SFVec3d: value->sfvec3d.c[0] =(double) 0.0; value->sfvec3d.c[1]=(double) 0.0; value->sfvec3d.c[2] = (double) 0.0; break;
-		case FIELDTYPE_MFVec3d: value->mfvec3d.n=0; break;
-		case FIELDTYPE_SFBool: value->sfbool=FALSE; break;
-		case FIELDTYPE_MFBool: value->mfbool.n=0; break;
-		case FIELDTYPE_SFInt32: value->sfint32 = 0; break;
-		case FIELDTYPE_MFInt32: value->mfint32.n = 0; break;
-		case FIELDTYPE_SFNode: value->sfnode = NULL; break;
-		case FIELDTYPE_MFNode: value->mfnode.n = 0; break;
-		case FIELDTYPE_SFColor: value->sfcolor.c[0] =0.0; value->sfcolor.c[1]=0.0; value->sfcolor.c[2] = 0.0; break;
-		case FIELDTYPE_MFColor: value->mfcolor.n=0; break;
-		case FIELDTYPE_SFColorRGBA: value->sfcolorrgba.c[0] =0.0; value->sfcolorrgba.c[1]=0.0; value->sfcolorrgba.c[2] = 0.0; value->sfcolorrgba.c[3] = 1.0; break;
-		case FIELDTYPE_MFColorRGBA: value->mfcolorrgba.n = 0; break;
-		case FIELDTYPE_SFTime: value->sftime = 0.0; break;
-		case FIELDTYPE_MFTime: value->mftime.n=0; break;
-		case FIELDTYPE_SFString: value->sfstring=newASCIIString(""); break;
-
-		case FIELDTYPE_MFString: value->mfstring.n=0; break;
-		case FIELDTYPE_SFVec2f: value->sfvec2f.c[0] =0.0; value->sfvec2f.c[1]=0.0; break;
-		case FIELDTYPE_MFVec2f: value->mfvec2f.n=0; break;
-		case FIELDTYPE_SFImage: value->sfimage.n=0;
-		default: ConsoleMessage ("X3DProtoScript - can't parse default field value for script init");
-	}
-}
-#endif
-
 
 /* parse a script or proto field. Note that they are in essence the same, just used differently */
 void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
@@ -894,7 +858,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	#endif
 
 	/* configure internal variables, and check sanity for top of stack This should be a Script node */
-	if (parserMode == PARSING_SCRIPT) {
+	if (getParserMode() == PARSING_SCRIPT) {
 		#ifdef X3DPARSERVERBOSE
 		printf ("verifying: parseScriptProtoField, expecting a scriptish, got a %s\n",
 			stringNodeType(parentStack[parentIndex]->_nodeType));
@@ -954,8 +918,9 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 		printf ("parseScriptProtoField, field %d, looking at %s=\"%s\"\n",i,atts[i],atts[i+1]);
 		#endif
 
-		/* skip any "appinfo" field here */
-		if (strcmp(atts[i],"appinfo") != 0) {
+		/* skip any "appinfo" or "documentation" fields here */
+		if ((strcmp("appinfo", atts[i]) != 0)  ||
+			(strcmp("documentation",atts[i]) != 0)) {
 			if (strcmp(atts[i],"name") == 0) { which = MP_NAME;
 			} else if (strcmp(atts[i],"accessType") == 0) { which = MP_ACCESSTYPE;
 			} else if (strcmp(atts[i],"type") == 0) { which = MP_TYPE;
@@ -1067,7 +1032,6 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 		/* for now, set the value  -either the default, or not... */
 		if (myValueString != NULL) {
 			Parser_scanStringValueToMem(X3D_NODE(&defaultVal), 0, sdecl->fieldDecl->type, myValueString, TRUE);
-			/* parseScriptFieldDefaultValue(sdecl->fieldDecl->type, &defaultVal); */
 		}
 		scriptFieldDecl_setFieldValue(sdecl, defaultVal);
 
@@ -1089,7 +1053,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 
 #ifdef OLDCODE
 	/* and initialize it if a Script */
-	if (parserMode == PARSING_SCRIPT) {
+	if (getParserMode() == PARSING_SCRIPT) {
 		/* parse this string value into a anyVrml union representation */
 		if (myValueString != NULL)
 			Parser_scanStringValueToMem(X3D_NODE(&value), 0, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), myValueString, TRUE);
@@ -1102,7 +1066,6 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 #endif
 }
 
-#undef X3DPARSERVERBOSE
 
 /* we get script text from a number of sources; from the URL field, from CDATA, from a file
    pointed to by the URL field, etc... handle the data in one place */
@@ -1158,11 +1121,10 @@ void initScriptWithScript() {
 	/* finish up here; if we used the CDATA area, set its length to zero */
 	if (myText != NULL) CDATA_Text_curlen=0;
 
-	parserMode = PARSING_NODES;
+	setParserMode(PARSING_NODES);
 	#ifdef X3DPARSERVERBOSE
 	printf ("endElement: got END of script - script should be registered\n");
 	#endif
-
 }
 
 void addToProtoCode(const char *name) {
@@ -1182,7 +1144,7 @@ void endProtoDeclare(void) {
 
 		/* now, a ProtoDeclare should be within normal nodes; make the expected mode PARSING_NODES, assuming
 		   we don't have nested ProtoDeclares  */
-		if (curProDecStackInd == 0) parserMode = PARSING_NODES;
+		if (curProDecStackInd == 0) setParserMode(PARSING_NODES);
 
 		if (curProDecStackInd < 0) {
 			ConsoleMessage ("X3D_Parser found too many end ProtoDeclares at line %d\n",LINE);
@@ -1231,8 +1193,8 @@ int getFieldValueFromProtoInterface (char *fieldName, int protono, char **value)
 void registerX3DProtoField(int myScriptNumber,int type,int kind, int myFieldOffs, char *name, char *value) {
 
 	/* semantic check */
-	if ((parserMode != PARSING_SCRIPT) && (parserMode != PARSING_PROTOINTERFACE)) {
-		ConsoleMessage ("registerX3DProtoField: wrong mode - got %d\n",parserMode);
+	if ((getParserMode() != PARSING_SCRIPT) && (getParserMode() != PARSING_PROTOINTERFACE)) {
+		ConsoleMessage ("registerX3DProtoField: wrong mode - got %d\n",getParserMode());
 	}
 
 	ScriptFieldTableSize ++;
@@ -1254,7 +1216,7 @@ void registerX3DProtoField(int myScriptNumber,int type,int kind, int myFieldOffs
 	ScriptFieldNames[ScriptFieldTableSize].fieldName = newASCIIString(name);
 	if (value == NULL) ScriptFieldNames[ScriptFieldTableSize].value = NULL;
 	else ScriptFieldNames[ScriptFieldTableSize].value = newASCIIString(value);
-	ScriptFieldNames[ScriptFieldTableSize].fromScriptNotPROTO = parserMode == PARSING_SCRIPT;
+	ScriptFieldNames[ScriptFieldTableSize].fromScriptNotPROTO = getParserMode() == PARSING_SCRIPT;
 	ScriptFieldNames[ScriptFieldTableSize].type = type;
 	ScriptFieldNames[ScriptFieldTableSize].kind = kind;
 	ScriptFieldNames[ScriptFieldTableSize].offs = myFieldOffs;

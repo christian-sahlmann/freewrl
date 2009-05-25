@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.24 2009/05/22 16:18:40 crc_canada Exp $
+$Id: X3DParser.c,v 1.25 2009/05/25 16:54:20 crc_canada Exp $
 
 ???
 
@@ -81,12 +81,21 @@ static const char *parserModeStrings[] = {
 		"PARSING_CONNECT",
 		"unused high"};
 		
-int parserMode = PARSING_NODES;
+int currentParserMode = PARSING_NODES;
 
 /* XML parser variables */
 static int X3DParserRecurseLevel = INT_ID_UNDEFINED;
 static XML_Parser x3dparser[PROTOINSTANCE_MAX_LEVELS];
 static XML_Parser currentX3DParser = NULL;
+
+void debugsetParserMode(int newmode, char *fle, int line) {
+	currentParserMode = newmode; 
+	#ifdef X3DPARSERVERBOSE
+	printf ("setParserMode to mode %s at %s:%d\n",parserModeStrings[newmode],fle,line);
+	#endif
+}
+int getParserMode(void) { return currentParserMode; }
+
 
 /* get the line number of the current parser for error purposes */
 int freewrl_XML_GetCurrentLineNumber(void) {
@@ -379,15 +388,11 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 	struct X3D_Node *fromDEFtable;
 
 	/* semantic check */
-	if ((parserMode != PARSING_NODES) && (parserMode != PARSING_PROTOBODY)) {
+	if ((getParserMode() != PARSING_NODES) && (getParserMode() != PARSING_PROTOBODY)) {
 printf ("hey, we have maybe a Node (%s) in a Script list... line %d: expected parserMode to be PARSING_NODES, got %s\n", 
 			stringNodeType(myNodeType),LINE,
-                                        parserModeStrings[parserMode]);
+                                        parserModeStrings[getParserMode()]);
 
-/*
-		ConsoleMessage("parseNormalX3D: line %d: expected parserMode to be PARSING_NODES, got %s", LINE,
-					parserModeStrings[parserMode]);
-*/
 	}
 
 	switch (myNodeType) {
@@ -395,7 +400,7 @@ printf ("hey, we have maybe a Node (%s) in a Script list... line %d: expected pa
 		case NODE_ComposedShader:
 		case NODE_ShaderProgram:
         	case NODE_PackagedShader: 
-			parserMode = PARSING_SCRIPT; 
+			setParserMode(PARSING_SCRIPT); 
 			#ifdef X3DPARSERVERBOSE
 			printf ("parseNormalX3D, setting to PARSE_SCRIPT for name %s\n",name);
 			#endif
@@ -439,7 +444,7 @@ printf ("hey, we have maybe a Node (%s) in a Script list... line %d: expected pa
 	 and the "containerField" value */
 	for (i = 0; atts[i]; i += 2) {
 		#ifdef X3DPARSERVERBOSE
-		if (parserMode == PARSING_SCRIPT) {
+		if (getParserMode() == PARSING_SCRIPT) {
 			printf ("parsing script decl; have %s %s\n",atts[i], atts[i+1]);
 		}
 		#endif
@@ -511,7 +516,7 @@ printf ("CADAT_Text:%s:\n",CDATA_Text);
 	}
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("startCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[parserMode]);
+	printf ("startCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getParserMode()]);
 	#endif
 	inCDATA = TRUE;
 }
@@ -519,11 +524,11 @@ printf ("CADAT_Text:%s:\n",CDATA_Text);
 static void XMLCALL endCDATA (void *userData) {
 	#ifdef X3DPARSERVERBOSE
 	printf ("endCDATA, cur index %d\n",CDATA_Text_curlen);
-	printf ("endCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[parserMode]);
+	printf ("endCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getParserMode()]);
 	#endif
 	inCDATA = FALSE;
 
-	if (parserMode == PARSING_PROTOBODY) {
+	if (getParserMode() == PARSING_PROTOBODY) {
 		dumpCDATAtoProtoBody (CDATA_Text);
 	}
 	
@@ -664,13 +669,13 @@ static void parseFieldValue(const char *name, const char **atts) {
 	int i;
 	int nameIndex = INT_ID_UNDEFINED;
 
-	/* printf ("parseFieldValue, mode %s\n",parserModeStrings[parserMode]); */
+	/* printf ("parseFieldValue, mode %s\n",parserModeStrings[getParserMode()]); */
         for (i = 0; atts[i]; i += 2) {
 		/* printf("parseFieldValue field:%s=%s\n", atts[i], atts[i + 1]); */
 		if (strcmp(atts[i],"name") == 0) nameIndex= i+1;
 	}
 
-	if (parserMode == PARSING_PROTOINSTANCE) {
+	if (getParserMode() == PARSING_PROTOINSTANCE) {
 		parseProtoInstanceFields(name,atts);
 	} else {
 		if (in3_3_fieldValue) printf ("parseFieldValue - did not expect in3_3_fieldValue to be set\n");
@@ -688,37 +693,38 @@ static void parseFieldValue(const char *name, const char **atts) {
 }
 
 static void parseIS() {
-	if (parserMode != PARSING_PROTOBODY) {
+	if (getParserMode() != PARSING_PROTOBODY) {
 		ConsoleMessage ("endProtoInterfaceTag: got a <IS> but not a ProtoBody at line %d",LINE);
 	}
 }
 
 static void endProtoInterfaceTag() {
-	if (parserMode != PARSING_PROTOINTERFACE) {
+	if (getParserMode() != PARSING_PROTOINTERFACE) {
 		ConsoleMessage ("endProtoInterfaceTag: got a </ProtoInterface> but not parsing one at line %d",LINE);
 	}
 	/* now, a ProtoInterface should be within a ProtoDeclare, so, make the expected mode PARSING_PROTODECLARE */
-	parserMode = PARSING_PROTODECLARE;
+	setParserMode(PARSING_PROTODECLARE);
 }
 
 static void endProtoBodyTag(char *name) {
 	/* ending <ProtoBody> */
-	if (parserMode != PARSING_PROTOBODY) {
+	/* printf ("endProtoBody, mode is %s\n",parserModeStrings[getParserMode()]); */
+	if (getParserMode() != PARSING_PROTOBODY) {
 		ConsoleMessage ("endProtoBodyTag: got a </ProtoBody> but not parsing one at line %d",LINE);
 	}
 
 	endDumpProtoBody(name);
 
 	/* now, a ProtoBody should be within a ProtoDeclare, so, make the expected mode PARSING_PROTODECLARE */
-	parserMode = PARSING_PROTODECLARE;
+	setParserMode(PARSING_PROTODECLARE);
 }
 
 static void endProtoDeclareTag() {
 	/* ending <ProtoDeclare> */
 
-	if (parserMode != PARSING_PROTODECLARE) {
+	if (getParserMode() != PARSING_PROTODECLARE) {
 		ConsoleMessage ("endProtoDeclareTag: got a </ProtoDeclare> but not parsing one at line %d",LINE);
-		parserMode = PARSING_PROTODECLARE;
+		setParserMode(PARSING_PROTODECLARE);
 	}
 
 	endProtoDeclare();
@@ -732,12 +738,12 @@ static void endProtoInstanceTag() {
 	printf ("endProtoInstanceTag, goot ProtoInstance got to find it, and expand it.\n");
 	#endif
 
-	if (parserMode != PARSING_PROTOINSTANCE) {
+	if (getParserMode() != PARSING_PROTOINSTANCE) {
 		ConsoleMessage ("endProtoInstanceTag: got a </ProtoInstance> but not parsing one at line %d",LINE);
 	}
 
 	/* we should just be assuming that we are parsing regular nodes for the scene graph now */
-	parserMode = PARSING_NODES;
+	setParserMode(PARSING_NODES);
 
 	protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Transform);
 		#ifdef X3DPARSERVERBOSE
@@ -797,14 +803,14 @@ static void endProtoInstanceField(const char *name) {
 
 static void endFieldTag() {
 	/* is this possibly a field name, that we do not expect? */
-	if (parserMode == PARSING_NODES) {
+	if (getParserMode() == PARSING_NODES) {
 		ConsoleMessage ("X3DParser: line %d Got a <field> but not parsing Scripts nor PROTOS",LINE);
 		printf ("Got a <field> but not parsing Scripts nor PROTOS\n");
 	}
 }
 
 static void endFieldValueTag() {
-	if (parserMode != PARSING_PROTOINSTANCE) {
+	if (getParserMode() != PARSING_PROTOINSTANCE) {
 		ConsoleMessage ("X3DParser: line %d Got a <fieldValue> but not in a <ProtoInstance>",LINE);
 		printf ("Got a <fieldValue> but not in a <ProtoInstance>\n");
 	}
@@ -834,7 +840,7 @@ void linkNodeIn() {
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 	printf ("linkNodeIn: parserMode %s parentIndex %d, ",
-			parserModeStrings[parserMode],parentIndex);
+			parserModeStrings[getParserMode()],parentIndex);
 	printf ("linking in %s to %s, field %s (%d)\n",
 		stringNodeType(parentStack[parentIndex]->_nodeType),
 		stringNodeType(parentStack[parentIndex-1]->_nodeType),
@@ -905,7 +911,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 	int myNodeIndex;
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[parserMode]);
+	printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]);
 	{int i;
         for (i = 0; atts[i]; i += 2) {
 		printf("	field:%s=%s\n", atts[i], atts[i + 1]);
@@ -913,13 +919,13 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 	#endif
 
 	/* are we storing a PROTO body?? */
-	if (parserMode == PARSING_PROTOBODY) {
+	if (getParserMode() == PARSING_PROTOBODY) {
 		dumpProtoBody(name,atts);
 		return;
 	}
 
 	/* maybe we are doing a Proto Instance?? */
-	if (parserMode == PARSING_PROTOINSTANCE) {
+	if (getParserMode() == PARSING_PROTOINSTANCE) {
 		saveProtoInstanceFields(name,atts);
 		return;
 	}
@@ -967,14 +973,14 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	int myNodeIndex;
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[parserMode]);
+	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]);
 	#endif
 
 	/* are we storing a PROTO body?? */
-	if (parserMode == PARSING_PROTOBODY) {
+	if (getParserMode() == PARSING_PROTOBODY) {
 		/* are we finished with this ProtoBody? */
 		if (strcmp("ProtoBody",name)==0) {
-			parserMode = PARSING_NODES;
+			/* do nothing... setParserMode(PARSING_PROTODECLARE); */
 		} else {
 			addToProtoCode(name);
 			return;
@@ -982,18 +988,17 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	}
 
 	/* are we parsing a PROTO Instance still? */
-	if (parserMode == PARSING_PROTOINSTANCE) {
+	if (getParserMode() == PARSING_PROTOINSTANCE) {
 		endProtoInstanceField(name);
 		return;
 	}
 
 	/* is this an SFNode for a Script field? */
-	if (parserMode == PARSING_SCRIPT) {
+	if (getParserMode() == PARSING_SCRIPT) {
 		switch (parentStack[parentIndex-1]->_nodeType) {
 			case NODE_Script:
 
 /* I wonder if there is a better way of handling this case */
-#define X3DPARSERVERBOSE
 			#ifdef X3DPARSERVERBOSE
 			printf ("linkNodeIn, got parsing script, have to link node into script body\n");
         	printf ("linking in %s to %s, field %s (%d)\n",
@@ -1003,7 +1008,6 @@ static void XMLCALL endElement(void *unused, const char *name) {
                 	parentStack[parentIndex]->_defaultContainer);
 		printf ("but skipping this\n");
 			#endif
-#undef X3DPARSERVERBOSE
 
 			DECREMENT_PARENTINDEX
 			return;
@@ -1021,7 +1025,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 			default: linkNodeIn();
 		}
 
-		parserMode = PARSING_NODES;
+		setParserMode(PARSING_NODES);
 
 		DECREMENT_PARENTINDEX
 		return;
