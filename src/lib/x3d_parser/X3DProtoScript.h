@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.h,v 1.1 2009/02/18 13:37:50 istakenv Exp $
+$Id: X3DProtoScript.h,v 1.2 2009/05/26 19:56:32 crc_canada Exp $
 
 UI declarations.
 
@@ -17,7 +17,7 @@ extern "C" {
 void endProtoDeclare(void);
 void addToProtoCode(const char *name);
 void initScriptWithScript(void);
-int getFieldValueFromProtoInterface(char *, int, char **);
+static int getFieldValueFromProtoInterface(struct VRMLLexer*, char *, int, char **);
 
 #ifdef __cplusplus
 }

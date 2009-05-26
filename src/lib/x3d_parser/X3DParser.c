@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.25 2009/05/25 16:54:20 crc_canada Exp $
+$Id: X3DParser.c,v 1.26 2009/05/26 19:56:32 crc_canada Exp $
 
 ???
 
@@ -669,9 +669,15 @@ static void parseFieldValue(const char *name, const char **atts) {
 	int i;
 	int nameIndex = INT_ID_UNDEFINED;
 
-	/* printf ("parseFieldValue, mode %s\n",parserModeStrings[getParserMode()]); */
+	#ifdef X3DPARSERVERBOSE
+	printf ("parseFieldValue, mode %s\n",parserModeStrings[getParserMode()]);  
+	#endif
+
         for (i = 0; atts[i]; i += 2) {
-		/* printf("parseFieldValue field:%s=%s\n", atts[i], atts[i + 1]); */
+		#ifdef X3DPARSERVERBOSE
+		printf("parseFieldValue field:%s=%s\n", atts[i], atts[i + 1]);
+		#endif
+
 		if (strcmp(atts[i],"name") == 0) nameIndex= i+1;
 	}
 
@@ -745,14 +751,14 @@ static void endProtoInstanceTag() {
 	/* we should just be assuming that we are parsing regular nodes for the scene graph now */
 	setParserMode(PARSING_NODES);
 
-	protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Transform);
+	protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		#ifdef X3DPARSERVERBOSE
 		if (protoExpGroup != NULL) {
 			printf ("\nOK, linking in this proto. I'm %d, ps-1 is %d, and p %d\n",protoExpGroup,parentStack[parentIndex-1], parentStack[parentIndex]);
 		}
 		#endif
 
-	expandProtoInstance(protoExpGroup);
+	expandProtoInstance(myLexer, protoExpGroup);
 }
 
 
@@ -836,7 +842,6 @@ void linkNodeIn() {
 		ConsoleMessage ("linkNodeIn: NULL found in stack");
 		return;
 	}
-
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 	printf ("linkNodeIn: parserMode %s parentIndex %d, ",
@@ -1118,7 +1123,7 @@ int X3DParse (struct X3D_Group* myParent, char *inputstring) {
 	#endif
 
 	/* Use classic parser Lexer for storing DEF name info */
-	myLexer = newLexer();
+	if (myLexer == NULL) myLexer = newLexer();
 	DEFedNodes = newStack(struct Vector*);
 	ASSERT(DEFedNodes);
 	#define DEFMEM_INIT_SIZE 16

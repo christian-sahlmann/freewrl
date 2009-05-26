@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.13 2009/05/21 20:30:09 crc_canada Exp $
+$Id: CScripts.c,v 1.14 2009/05/26 19:56:32 crc_canada Exp $
 
 ???
 
@@ -67,6 +67,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
  /* Stringify */
  ret->ASCIIname=fieldDecl_getStringName(me, ret->fieldDecl);
  ret->ASCIItype=FIELDTYPES[type];
+ ret->ASCIIvalue=NULL; /* used only for XML PROTO ProtoInterface fields */
 
  /* Field's value not yet initialized! */
  ret->valueSet=(mod!=PKW_initializeOnly);
@@ -127,6 +128,7 @@ struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct Scrip
 
 	ret->ASCIIname = fieldDecl_getStringName(lex, ret->fieldDecl);
 	ret->ASCIItype = me->ASCIItype;
+	ret->ASCIIvalue = me->ASCIIvalue;
 	
 	ret->valueSet=((ret->fieldDecl->mode)!=PKW_initializeOnly);
 	return ret;
@@ -145,13 +147,15 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
 {
  ASSERT(me->fieldDecl->mode==PKW_initializeOnly); 
- /* ASSERT(!me->valueSet); */
-
-
  me->value=v;
-
  me->valueSet=TRUE;
 }
+
+void scriptFieldDecl_setFieldASCIIValue(struct ScriptFieldDecl *me, const char *val)
+{
+ me->ASCIIvalue=val;
+}
+
 
 /* Get "offset" data for routing */
 int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
@@ -207,17 +211,19 @@ struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
 	ret->loaded=FALSE;
 	ret->fields=newVector(struct ScriptFieldDecl*, 4);
 	ret->ShaderScriptNode = node; 	/* pointer back to the node that this is associated with */
+	ret->num = -1;
 
-	/* printf ("new_Shader_Script, node %s\n",stringNodeType(node->_nodeType)); */
-	if (node->_nodeType == NODE_Script) {
-	 	ret->num=nextScriptHandle();
- 		#ifdef CPARSERVERBOSE
-			printf("newScript: created new script nodePtr %u with num %d\n", node, ret->num);
-		#endif
+	/* X3D XML protos do not have a node defined when parsed, Shaders and Scripts do */
+	if (node!=NULL) {
+		/* printf ("new_Shader_Script, node %s\n",stringNodeType(node->_nodeType)); */
+		if (node->_nodeType == NODE_Script) {
+		 	ret->num=nextScriptHandle();
+ 			#ifdef CPARSERVERBOSE
+				printf("newScript: created new script nodePtr %u with num %d\n", node, ret->num);
+			#endif
 
-		JSInit(ret->num);
-	} else {
-		ret->num = -1;
+			JSInit(ret->num);
+		}
 	}
 
 	/* printf ("new_Shader_Script - num %d, Shader_Script is %u\n",ret->num,ret); */
@@ -276,7 +282,9 @@ void script_addField(struct Shader_Script* me, struct ScriptFieldDecl* field)
 
  vector_pushBack(struct ScriptFieldDecl*, me->fields, field);
  /* only do this for scripts */
- if (me->ShaderScriptNode->_nodeType==NODE_Script) scriptFieldDecl_jsFieldInit(field, me->num);
+ if (me->ShaderScriptNode != NULL) {
+   if (me->ShaderScriptNode->_nodeType==NODE_Script) scriptFieldDecl_jsFieldInit(field, me->num);
+ }
 }
 
 /* save the script code, as found in the VRML/X3D URL for this script */

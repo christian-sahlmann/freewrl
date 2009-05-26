@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.27 2009/05/25 16:54:20 crc_canada Exp $
+$Id: CProto.c,v 1.28 2009/05/26 19:56:32 crc_canada Exp $
 
 CProto ???
 
@@ -1563,7 +1563,6 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	*protoSize = curstringlen + routeSize + strlen(ENDPROTOGROUP);
 	newProtoText[*protoSize] = '\0';
 
-	printf ("so, newProtoText \n%s\n",newProtoText);
 	return newProtoText;
 }
 

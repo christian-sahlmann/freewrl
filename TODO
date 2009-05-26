@@ -1,4 +1,9 @@
 Priority list
+26/05/2009: 
+	(JAS) XML PROTO routing scheme 
+		- verify routes to/from PROTOS;
+		- verify that EAI can get info from PROTOS.
+
 20/05/2009: 
 	(JAS) still some old proto stuff in classic parser; look at parser_interfaceDeclaration and purge.
 
@@ -11,7 +16,7 @@ Priority list
 18/05/2009:
 	(JAS) Script/shader routing - no longer use dubious (from Perl days) methodology of having to/from nodes
 	as script indexes, now leave them as NODE_Script types.
-		- Have to ensure that XML coding of scripts follows this;
+		- Have to ensure that XML coding of scripts follows this (DONE);
 		- Shader routing can use same methodology.
 
 14/05/2009: 
@@ -66,10 +71,6 @@ Priority list
 
 30/03/2009:
 	(JAS) Verify that IndexedFaceSet textureCoordinateIndexes are used properly - ashby.wrl image problems.
-
-25/03/2009: 
-	(JAS) Classic VRML parser uses new PROTO routing scheme (see code for details) move this over to XML
-	parser.
 
 22/03/2009:
 	(JAS) the VRMLNodes table, last field in a Field Definition, gives problems and needs updating.
