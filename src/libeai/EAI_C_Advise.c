@@ -56,7 +56,7 @@ int X3DAdvise (X3DEventOut *node, void *fn) {
 	/* and, tell FreeWRL about this one */
 	_RegisterListener (node,AdviseIndex);
 	
-	return EAI_ListenerTable[AdviseIndex].FreeWRL_RegisterNumber;
+	return AdviseIndex;
 }
 
 
