@@ -1,4 +1,8 @@
 Priority list
+27/05/2009:
+	(JAS) Geospatial viewpoint examine mode distance - need to revisit calculations. Note that
+	going examineMode->nextVP->walkMode->examineMode recalculates distance ok...
+
 26/05/2009: 
 	(JAS) XML PROTO routing scheme 
 		- verify routes to/from PROTOS;
