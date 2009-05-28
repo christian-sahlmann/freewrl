@@ -1,6 +1,5 @@
 #include <sys/types.h>
 #include <stdint.h>
-#include "../lib/input/EAIheaders.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>
@@ -184,3 +183,50 @@ char mapFieldTypeToEAItype (int st);
 int mapEAItypeToFieldType (char st);
 void sendMIDITableToFreeWRL(char *buf);
 void sendMIDIControlToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value);
+X3DNode* X3D_getValue(X3DEventOut *src);
+void X3D_freeEventIn(X3DEventIn* ev);
+void X3D_freeEventOut(X3DEventOut* ev);
+void X3D_freeNode(X3DNode* node);
+X3DNode* X3D_newSFVec3f(float a, float b, float c);
+void X3D_getSFVec3f(X3DNode* node, float* value);
+X3DNode* X3D_newColor(float a, float b, float c);
+void X3D_getSFColor(X3DNode* node, float* value);
+X3DNode* X3D_newSFVec2f(float a, float b);
+void X3D_getSFVec2f(X3DNode* node, float* value);
+X3DNode* X3D_newSFRotation(float a, float b, float c, float d);
+void X3D_getSFRotation(X3DNode* node, float* value);
+X3DNode* X3D_newSFColorRGBA(float a, float b, float c, float d);
+void X3D_getSF(X3DNode* node, float* value);
+X3DNode* X3D_newSFBool(int a);
+void X3D_getSFBool(X3DNode* node, int* value);
+X3DNode* X3D_newSFFloat(float a);
+void X3D_getSFFloat(X3DNode* node, float* value);
+void X3D_getSFTime(X3DNode* node, double* value);
+X3DNode* X3D_newSFTime(double a);
+X3DNode* X3D_newSFInt32(int a);
+void X3D_getSFInt32(X3DNode* node, int* value);
+X3DNode* X3D_newSFString(char* a);
+char* X3D_getSFString(X3DNode* node);
+X3DNode* X3D_newMFInt32(int num, int* array);
+void X3D_getMFInt32(X3DNode*, int** array, int* num);
+X3DNode* X3D_newMFFloat(int num, float* array);
+void X3D_getMFFloat(X3DNode*, float** array, int* num);
+X3DNode* X3D_newMFVec3f(int num, float(* array)[3]);
+void X3D_getMFVec3f(X3DNode*, float*** array, int* num);
+X3DNode* X3D_newMFColor(int num, float(* array)[3]);
+void X3D_getMFColor(X3DNode*, float*** array, int* num);
+X3DNode* X3D_newMFVec2f(int num, float(* array)[2]);
+void X3D_getMFVec2f(X3DNode*, float*** array, int* num);
+X3DNode* X3D_newMFRotation(int num, float(* array)[4]);
+void X3D_getMFRotation(X3DNode*, float*** array, int* num);
+X3DNode* X3D_newMFColorRGBA(int num, float(* array)[4]);
+void X3D_getMFColorRGBA(X3DNode*, float*** array, int* num);
+X3DNode* X3D_newMFBool(int num, int* array);
+void X3D_getMFBool(X3DNode*, float** array, int* num);
+X3DNode* X3D_newMFVec3d(int num, float(* array)[3]);
+void X3D_getMFVec3d(X3DNode*, float*** array, int* num);
+X3DNode* X3D_newMFString(int num, char array[][STRLEN]);
+void X3D_getMFString(X3DNode* node, char*** array, int* num);
+X3DNode* X3D_newSFNode();
+X3DNode* X3D_newSFImage();
+X3DNode* X3D_newMFNode();
