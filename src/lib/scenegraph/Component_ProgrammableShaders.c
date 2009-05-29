@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.9 2009/05/22 16:18:40 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.10 2009/05/29 20:57:47 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -277,6 +277,15 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 				GLATTRIB##ttt##FV(shaderVariable, myField->value.sf##ty2.c); \
 		break; 
 
+#define SF_DOUBLES_TO_SHADER(ttt,ty1,ty2) \
+		case FIELDTYPE_SF##ty1: {float val[4]; int i; \
+			for (i=0; i<ttt; i++) { val[i] = (float) (myField->value.sf##ty2.c[i]); } \
+			if (isUniform) \
+				GLUNIFORM##ttt##FV(shaderVariable, 1, val); \
+			else \
+				GLATTRIB##ttt##FV(shaderVariable, val); \
+		break; }
+
 #define SF_FLOAT_TO_SHADER(ty1,ty2) \
 		case FIELDTYPE_SF##ty1: \
 			if (isUniform) \
@@ -285,14 +294,28 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 				GLATTRIB1F(shaderVariable, myField->value.sf##ty2); \
 		break; 
 
+#define SF_DOUBLE_TO_SHADER(ty1,ty2) \
+		case FIELDTYPE_SF##ty1: {float val = myField->value.sf##ty2; \
+			if (isUniform) \
+				GLUNIFORM1F(shaderVariable, val); \
+			else \
+				GLATTRIB1F(shaderVariable, val); \
+		break; }
+
+		SF_FLOAT_TO_SHADER(Float,float)
+		SF_DOUBLE_TO_SHADER(Double,float)
+		SF_DOUBLE_TO_SHADER(Time,float)
+
+		SF_FLOATS_TO_SHADER(2,Vec2f,vec2f)
 		SF_FLOATS_TO_SHADER(3,Vec3f,vec3f)
 		SF_FLOATS_TO_SHADER(3,Color,color)
 		SF_FLOATS_TO_SHADER(4,ColorRGBA,colorrgba)
-		SF_FLOATS_TO_SHADER(2,Vec2f,vec2f)
 		SF_FLOATS_TO_SHADER(4,Rotation,rotation)
 		SF_FLOATS_TO_SHADER(4,Vec4f,vec4f)
+		SF_DOUBLES_TO_SHADER(2,Vec2d, vec2d)
+		SF_DOUBLES_TO_SHADER(3,Vec3d, vec3d)
+		SF_DOUBLES_TO_SHADER(4,Vec4d, vec4d)
 
-		SF_FLOAT_TO_SHADER(Float,float)
 
 		//SF_FLOAT_TO_SHADER(9,Matrix3f, matrix3f)
 		//SF_FLOAT_TO_SHADER(16,Matrix4f, matrix4f)
@@ -300,13 +323,8 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 		case FIELDTYPE_SFNode:
 		case FIELDTYPE_SFInt32:
 		case FIELDTYPE_SFBool:
-		case FIELDTYPE_SFVec2d:
-		case FIELDTYPE_SFVec4d:
 		case FIELDTYPE_SFImage:
-		case FIELDTYPE_SFTime:
 		case FIELDTYPE_FreeWRLPTR:
-		case FIELDTYPE_SFVec3d:
-		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFString:
 		case FIELDTYPE_SFMatrix3d:
 		case FIELDTYPE_SFMatrix4d:
