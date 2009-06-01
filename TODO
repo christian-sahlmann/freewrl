@@ -2,6 +2,8 @@ Priority list
 27/05/2009:
 	(JAS) Geospatial viewpoint examine mode distance - need to revisit calculations. Note that
 	going examineMode->nextVP->walkMode->examineMode recalculates distance ok...
+	is the examine->Origin set correctly? Do we need to set it? What is the origin supposed to be?
+	Code has been changed (June 2 2009) that does "ok" but we need more work to sort this out.
 
 26/05/2009: 
 	(JAS) XML PROTO routing scheme 
@@ -35,13 +37,6 @@ Priority list
 		- added sfvec4f and sfvec4d input/output; only basic methods defined. There is nothing in the
 		  X3D scripting pages about 4f and 4d types.
 
-08/05/2009:
-	(JAS) children fields are sorted, but we use a the node children field. This can give us grief for when we
-	use EAI/SAI to get/set individual children elements. Shadow the sorting, and also move sorting to the end of
-	the scene graph to better get the scenegraph static during the rendering phase. Currently, the following nodes
-	have sorted children: GeoLocation, GeoTransform, Group, Transform, HAnim nodes, Billboard, Collision,
-	Anchor and Inline. Is this enough, or too much? 
-
 01/05/2009:
 	(JAS) OSX Sound node - in middle of updating code. Complete, and migrate to XCode.
 	(JAS) it is possible to loose objects at farClipPlane when "backing up" 
@@ -60,8 +55,6 @@ Priority list
 			BeamtoVP.position = newPos;
 			BeamtoVP.orientation = newRot;
 		How do we get the SetProperty to fire for the BeamtoVP nodes?
-
-	(JAS) Verify examine distance in GeoViewpoint.
 
 29/04/2009: 
 	(JAS) Document libeai C calls, and ensure that web pages show how to use this feature.
@@ -133,7 +126,6 @@ Priority list
   -> configurable at compilation time (enable/disable parts of debug information)
   -> configurable at runtime (...)
 
-- review all Geospatial nodes (JohnS)
 - implement FloatingOrigin in Geospatial code (Johns)
 - Points and Lines - send upstream bounds, as per faceset nodes (JohnS)
 - OSX - standalone front end - enable printing;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.19 2009/05/11 21:11:58 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.20 2009/06/01 15:21:56 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -2620,6 +2620,14 @@ void viewer_calculate_speed() {
 }
 
 
+static calculateExamineModeDistance(void) {
+extern int doExamineModeDistanceCalculations;
+/*
+	printf ("bind_geoviewpoint - calculateExamineModeDistance\n");
+*/
+doExamineModeDistanceCalculations = TRUE;
+
+}
 
 void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	Quaternion q_i;
@@ -2657,6 +2665,9 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	resolve_pos();
 
 	viewer_calculate_speed();
+
+	calculateExamineModeDistance();
+
 }
 
 

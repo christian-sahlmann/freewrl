@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.23 2009/05/07 18:43:34 crc_canada Exp $
+$Id: Viewer.c,v 1.24 2009/06/01 15:21:56 crc_canada Exp $
 
 CProto ???
 
@@ -20,6 +20,10 @@ CProto ???
 #include "LinearAlgebra.h"
 #include "quaternion.h"
 #include "Viewer.h"
+
+
+int doExamineModeDistanceCalculations = FALSE;
+static int examineCounter = 5;
 
 static int viewer_type = NONE;
 int viewer_initialized = FALSE;
@@ -231,9 +235,15 @@ void resolve_pos() {
 		dist = VECPT(Viewer.Pos, rot);
 
 		/* $this->{Origin} = [ map {$this->{Pos}[$_] - $d * $z->[$_]} 0..2 ]; */
+/*
+printf ("RP, before orig calc %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin.y,examine->Origin.z);
+*/
 		(examine->Origin).x = (Viewer.Pos).x - Viewer.Dist * rot.x;
 		(examine->Origin).y = (Viewer.Pos).y - Viewer.Dist * rot.y;
 		(examine->Origin).z = (Viewer.Pos).z - Viewer.Dist * rot.z;
+/*
+printf ("RP, aft orig calc %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin.y,examine->Origin.z);
+*/
 	}
 }
 void viewer_togl(double fieldofview) {
@@ -432,8 +442,24 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 
 	if (mev == ButtonPress) {
 		if (button == 1) {
+/*
+			printf ("\n");
+			printf ("bp, before SQ %4.3f %4.3f %4.3f %4.3f\n",examine->SQuat.x, examine->SQuat.y, examine->SQuat.z, examine->SQuat.w);
+			printf ("bp, before OQ %4.3f %4.3f %4.3f %4.3f\n",examine->OQuat.x, examine->OQuat.y, examine->OQuat.z, examine->OQuat.w);
+			printf ("bp, before Q %4.3f %4.3f %4.3f %4.3f\n",Viewer.Quat.x, Viewer.Quat.y, Viewer.Quat.z, Viewer.Quat.w);
+			printf ("bp, before, pos %4.3f %4.3f %4.3f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z);
+			printf ("bp, before, aps %4.3f %4.3f %4.3f\n",Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z);
+*/
 			xy2qua(&(examine->SQuat), x, y);
 			quaternion_set(&(examine->OQuat), &(Viewer.Quat));
+/*
+			printf ("bp, after SQ %4.3f %4.3f %4.3f %4.3f\n",examine->SQuat.x, examine->SQuat.y, examine->SQuat.z, examine->SQuat.w);
+			printf ("bp, after OQ %4.3f %4.3f %4.3f %4.3f\n",examine->OQuat.x, examine->OQuat.y, examine->OQuat.z, examine->OQuat.w);
+			printf ("bp, after Q %4.3f %4.3f %4.3f %4.3f\n",Viewer.Quat.x, Viewer.Quat.y, Viewer.Quat.z, Viewer.Quat.w);
+			printf ("bp, after, pos %4.3f %4.3f %4.3f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z);
+			printf ("bp, after, aps %4.3f %4.3f %4.3f\n",Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z);
+*/
+
 		} else if (button == 3) {
 			examine->SY = y;
 			examine->ODist = Viewer.Dist;
@@ -467,10 +493,16 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 
 	quaternion_inverse(&q_i, &(Viewer.Quat));
 	quaternion_rotation(&(Viewer.Pos), &q_i, &p);
+/*
+	printf ("bp, after quat rotation, pos %4.3f %4.3f %4.3f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z);
+*/
 
 	Viewer.Pos.x += (examine->Origin).x;
 	Viewer.Pos.y += (examine->Origin).y;
 	Viewer.Pos.z += (examine->Origin).z;
+/*
+printf ("examine->origin %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin.y, examine->Origin.z);
+*/
 }
 /************************************************************************************/
 
@@ -826,6 +858,20 @@ handle_tick()
 	default:
 		break;
 	}
+
+	if (doExamineModeDistanceCalculations) {
+/*
+		printf ("handle_tick - doing calculations\n");
+*/
+		CALCULATE_EXAMINE_DISTANCE
+		resolve_pos();
+		examineCounter --;
+
+		if (examineCounter < 0) {
+		doExamineModeDistanceCalculations = FALSE;
+		examineCounter = 5;
+		}
+	}
 }
 
 
@@ -945,6 +991,7 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	Viewer.examine->Origin.x = vp->centerOfRotation.c[0];
 	Viewer.examine->Origin.y = vp->centerOfRotation.c[1];
 	Viewer.examine->Origin.z = vp->centerOfRotation.c[2];
+printf ("BVP, origin %4.3f %4.3f %4.3f\n",Viewer.examine->Origin.x, Viewer.examine->Origin.y, Viewer.examine->Origin.z);
 
 	/* set Viewer position and orientation */
 
