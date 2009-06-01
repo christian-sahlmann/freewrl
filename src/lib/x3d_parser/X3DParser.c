@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.27 2009/05/27 13:25:07 crc_canada Exp $
+$Id: X3DParser.c,v 1.28 2009/06/01 19:37:43 istakenv Exp $
 
 ???
 
@@ -20,6 +20,7 @@ $Id: X3DParser.c,v 1.27 2009/05/27 13:25:07 crc_canada Exp $
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
+#include "../world_script/JScript.h"
 #include "../world_script/fieldSet.h"
 #include "../input/EAIheaders.h"
 #include "../input/EAIHelpers.h"

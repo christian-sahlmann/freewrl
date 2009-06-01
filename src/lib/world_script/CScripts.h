@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.8 2009/05/26 19:56:32 crc_canada Exp $
+$Id: CScripts.h,v 1.9 2009/06/01 19:37:43 istakenv Exp $
 
 Class to wrap a java script for CParser
 
@@ -132,6 +132,7 @@ struct CRscriptStruct {
 /* function protos */
 
 struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldInstanceInfo*);
+void scriptFieldDecl_setFieldASCIIValue(struct ScriptFieldDecl *me, const char *val);
 
 
 #endif /* __FREEWRL_CSCRIPTS_H__ */

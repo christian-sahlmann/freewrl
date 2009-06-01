@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.45 2009/05/22 16:18:40 crc_canada Exp $
+$Id: headers.h,v 1.46 2009/06/01 19:37:43 istakenv Exp $
 
 Global includes.
 
@@ -12,6 +12,9 @@ Global includes.
 
 /* for lightState() */
 #include "../opengl/OpenGL_Utils.h"
+
+/* for localLightChildren */
+#include "../scenegraph/Children.h"
 
 /**
  * in utils.c
