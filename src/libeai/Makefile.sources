@@ -7,7 +7,7 @@ libEAI_la_SOURCES = \
 			EAI_C_ReWire.c \
 			GeneratedCode.c
 
-include_HEADERS = \
+libEAIinclude_HEADERS = \
 			EAI_C.h \
 			GeneratedHeaders.h \
 			X3DNode.h
