@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.11 2009/06/02 21:30:56 istakenv Exp $
+$Id: Component_ProgrammableShaders.c,v 1.12 2009/06/02 21:44:24 istakenv Exp $
 
 X3D Programmable Shaders Component
 
@@ -213,7 +213,7 @@ static void shaderErrorLog(GLuint myShader) {
 			} \
 		} 
 
-#ifdef GL_VERSION_2_0
+#ifdef OPENGL_VERSION_2_0
 	#define LINK_IF_VALID \
 		if (node->isValid) { \
 			/* link the shader programs together */ \
