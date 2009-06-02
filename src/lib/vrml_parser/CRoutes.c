@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.23 2009/05/21 20:30:08 crc_canada Exp $
+$Id: CRoutes.c,v 1.24 2009/06/02 16:43:42 crc_canada Exp $
 
 ???
 
@@ -395,7 +395,9 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 	fullname = JSparamnames[fptr].name;
 
 	#ifdef CRVERBOSE
-	printf ("getting property for fullname %s, cx %d, interpobj %d script %d, fptr %d\n",fullname,cx,interpobj,actualscript, fptr);
+	printf ("\ngetting property for fullname %s, cx %d, interpobj %d script %d, fptr %d (%s:%s)\n",
+		fullname,cx,interpobj,actualscript, fptr,
+		JSparamnames[fptr].name, FIELDTYPES[JSparamnames[fptr].type]);
 	#endif
 
 	if (!JS_GetProperty(cx, (JSObject *) interpobj ,fullname,&JSglobal_return_val)) {
@@ -846,7 +848,28 @@ void CRoutes_RegisterSimple(
 		}
 	}
 
- 	/* printf ("CRoutes_RegisterSimple, from %u fromOfs %u, to %u toOfs %u, len %d dir %d\n",from, fromOfs, to, toOfs, len, dir);  */
+	#ifdef CRVERBOSE
+ 	printf ("CRoutes_RegisterSimple, from (%s) %u fromOfs %u, to (%s) %u toOfs %u, len %d dir %d\n",
+			stringNodeType(from->_nodeType),
+			from, fromOfs, 
+			stringNodeType(to->_nodeType),
+			to, toOfs, len, dir); 
+	if (from->_nodeType == NODE_Script) {
+		struct Shader_Script *sp = (struct Shader_Script *) X3D_SCRIPT(from)->__scriptObj;
+                int actualscript = sp->num;
+		printf ("	... from is script %d field %s\n",
+			actualscript,
+			JSparamnames[fromOfs].name);
+	}
+	if (to->_nodeType == NODE_Script) {
+		struct Shader_Script *sp = (struct Shader_Script *) X3D_SCRIPT(to)->__scriptObj;
+                int actualscript = sp->num;
+		printf ("	... to is script %d field %s\n",
+			actualscript,
+			JSparamnames[toOfs].name);
+	}
+
+	#endif
 
 
 	/* When routing to a script, to is not a node pointer! */
@@ -1304,14 +1327,18 @@ static void gatherScriptEventOuts(void) {
 	/* go from beginning to end in the routing table */
 	route=1;
 	while (route < (CRoutes_Count-1)) {
+		#ifdef CRVERBOSE
+		printf ("gather, routing %d is %s\n",route,
+			stringNodeType(X3D_NODE(CRoutes[route].routeFromNode)->_nodeType));
+		#endif
 
 	if (X3D_NODE(CRoutes[route].routeFromNode)->_nodeType == NODE_Script) {
 		struct X3D_Script *mys = X3D_SCRIPT(CRoutes[route].routeFromNode);
 		struct Shader_Script *sp = (struct Shader_Script *) mys->__scriptObj;
 		int actualscript = sp->num;
 
-		/* printf ("gatherEvents, found a script at element %d, it is script number %d\n",
-			route, actualscript); */
+		/* printf ("gatherEvents, found a script at element %d, it is script number %d and node %u\n",
+			route, actualscript,mys);  */
 		/* this script initialized yet? We make sure that on initialization that the Parse Thread
 		   does the initialization, once it is finished parsing. */
 		if (ScriptControl[actualscript]._initialized!=TRUE) {
@@ -1374,7 +1401,6 @@ static void gatherScriptEventOuts(void) {
 
 		/* unset the touched flag */
 		resetScriptTouchedFlag (actualscript, fptr);
-		route++;
 
 		/* REMOVE_ROOT(ScriptControl[actualscript].cx,global_return_val); */
 	}

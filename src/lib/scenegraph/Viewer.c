@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.24 2009/06/01 15:21:56 crc_canada Exp $
+$Id: Viewer.c,v 1.25 2009/06/02 16:43:42 crc_canada Exp $
 
 CProto ???
 
@@ -991,7 +991,7 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	Viewer.examine->Origin.x = vp->centerOfRotation.c[0];
 	Viewer.examine->Origin.y = vp->centerOfRotation.c[1];
 	Viewer.examine->Origin.z = vp->centerOfRotation.c[2];
-printf ("BVP, origin %4.3f %4.3f %4.3f\n",Viewer.examine->Origin.x, Viewer.examine->Origin.y, Viewer.examine->Origin.z);
+	/* printf ("BVP, origin %4.3f %4.3f %4.3f\n",Viewer.examine->Origin.x, Viewer.examine->Origin.y, Viewer.examine->Origin.z); */
 
 	/* set Viewer position and orientation */
 
