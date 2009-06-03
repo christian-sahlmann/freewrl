@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.12 2009/06/02 21:44:24 istakenv Exp $
+$Id: Component_ProgrammableShaders.c,v 1.13 2009/06/03 02:11:26 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -213,15 +213,16 @@ static void shaderErrorLog(GLuint myShader) {
 			} \
 		} 
 
-#ifdef OPENGL_VERSION_2_0
+#ifdef GL_VERSION_2_0
 	#define LINK_IF_VALID \
 		if (node->isValid) { \
+			GLint success; \
 			/* link the shader programs together */ \
 			LINK_SHADER(myProgram); \
 			glGetProgramiv(myProgram, GL_LINK_STATUS, &success); \
 			if (!success) { \
 				GLchar infoLog[MAX_INFO_LOG_SIZE]; \
-				glGetProgramInfoLog(myFragmentShader, MAX_INFO_LOG_SIZE, NULL, infoLog); \
+				glGetProgramInfoLog(myProgram, MAX_INFO_LOG_SIZE, NULL, infoLog); \
 				printf ("problem with Shader Program link: %s\n",infoLog); \
 				node->isValid = FALSE; \
 			} \
@@ -230,14 +231,14 @@ static void shaderErrorLog(GLuint myShader) {
 			glGetProgramiv(myProgram, GL_VALIDATE_STATUS, &success); \
 			if (!success) { \
 				GLchar infoLog[MAX_INFO_LOG_SIZE]; \
-				glGetProgramInfoLog(myFragmentShader, MAX_INFO_LOG_SIZE, NULL, infoLog); \
+				glGetProgramInfoLog(myProgram, MAX_INFO_LOG_SIZE, NULL, infoLog); \
 				printf ("problem with Shader Program Validate: %s\n",infoLog); \
 				node->isValid = FALSE; \
 			} \
 			if (node->__shaderIDS.n == 0) { \
 				node->__shaderIDS.n = 1; \
 				node->__shaderIDS.p = MALLOC(sizeof (GLuint)); \
-				node->__shaderIDS.p[0] = (void *)myProgram; \
+				node->__shaderIDS.p[0] = (int)myProgram; \
 			} \
 		}
 #else
@@ -248,7 +249,7 @@ static void shaderErrorLog(GLuint myShader) {
 			if (node->__shaderIDS.n == 0) { \
 				node->__shaderIDS.n = 1; \
 				node->__shaderIDS.p = MALLOC(sizeof (GLuint)); \
-				node->__shaderIDS.p[0] = (void *)myProgram; \
+				node->__shaderIDS.p[0] = (int)myProgram; \
 			} \
 		}
 #endif
@@ -452,7 +453,6 @@ Note the differing location of the fields...
 
 
 static void sendInitialFieldsToShader(struct X3D_Node * node) {
-	struct Shader_Script* me = NULL;
 	int i;
 	GLuint myShader;
 
@@ -487,7 +487,7 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 			/* anything to do here? */ 
 			if ((X3D_COMPOSEDSHADER(node)->__shaderIDS.n) >=1) {
 				myShader = X3D_COMPOSEDSHADER(node)->__shaderIDS.p[0];
-				send_fieldToShader(X3D_NODE(myShader), X3D_NODE(node));
+				send_fieldToShader(myShader, X3D_NODE(node));
 			}
 			X3D_COMPOSEDSHADER(node)->__initialized = TRUE;
 			break;
