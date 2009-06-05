@@ -1,4 +1,10 @@
 Priority list
+
+05/06/2009:
+	(JAS) Continue going through current X3D spec to ensure that all fields of all nodes are parsed correctly.
+	Continue at chapter 11, Rendering component. - verify type casting in make_indexedfaceset to ensure proper
+	field reference of all cast types.
+
 27/05/2009:
 	(JAS) Geospatial viewpoint examine mode distance - need to revisit calculations. Note that
 	going examineMode->nextVP->walkMode->examineMode recalculates distance ok...

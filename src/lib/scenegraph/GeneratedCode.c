@@ -250,6 +250,7 @@
 	"skinCoordWeight",
 	"__oldKeyValuePtr",
 	"value_changed",
+	"plane",
 	"keyValue",
 	"radius",
 	"bottomRadius",
@@ -800,6 +801,7 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"floatValue",
 	"skinCoordWeight",
 	"offset",
+	"plane",
 	"keyValue",
 	"radius",
 	"controlPoint",
@@ -1120,6 +1122,7 @@ const indexT FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"BooleanTrigger",
 	"Box",
 	"Circle2D",
+	"ClipPlane",
 	"Collision",
 	"Color",
 	"ColorInterpolator",
@@ -1302,6 +1305,7 @@ struct X3D_Virt virt_BooleanToggle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,N
 struct X3D_Virt virt_BooleanTrigger = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_Box = { NULL,(void *)render_Box,NULL,NULL,(void *)rendray_Box,NULL,NULL,NULL,(void *)collide_Box,(void *)compile_Box};
 struct X3D_Virt virt_Circle2D = { NULL,(void *)render_Circle2D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Circle2D};
+struct X3D_Virt virt_ClipPlane = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_Collision = { NULL,NULL,(void *)child_Collision,NULL,NULL,NULL,(void *)changed_Collision,NULL,NULL,NULL};
 struct X3D_Virt virt_Color = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_ColorInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -1651,6 +1655,13 @@ const int OFFSETS_Circle2D[] = {
 	FIELDNAMES_metadata, offsetof (struct X3D_Circle2D, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Circle2D, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES___points, offsetof (struct X3D_Circle2D, __points),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,0,
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_ClipPlane[] = {
+	FIELDNAMES_plane, offsetof (struct X3D_ClipPlane, plane),  FIELDTYPE_SFVec4f, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_metadata, offsetof (struct X3D_ClipPlane, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___oldmetadata, offsetof (struct X3D_ClipPlane, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
+	FIELDNAMES_enabled, offsetof (struct X3D_ClipPlane, enabled),  FIELDTYPE_SFBool, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Collision[] = {
@@ -3294,8 +3305,8 @@ const int OFFSETS_SpotLight[] = {
 
 const int OFFSETS_StaticGroup[] = {
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_StaticGroup, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES_children, offsetof (struct X3D_StaticGroup, children),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_metadata, offsetof (struct X3D_StaticGroup, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_children, offsetof (struct X3D_StaticGroup, children),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___solid, offsetof (struct X3D_StaticGroup, __solid),  FIELDTYPE_SFInt32, KW_initializeOnly,0,
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_StaticGroup, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES___transparency, offsetof (struct X3D_StaticGroup, __transparency),  FIELDTYPE_SFInt32, KW_initializeOnly,0,
@@ -3318,8 +3329,8 @@ const int OFFSETS_Switch[] = {
 	FIELDNAMES_children, offsetof (struct X3D_Switch, children),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_addChildren, offsetof (struct X3D_Switch, addChildren),  FIELDTYPE_MFNode, KW_inputOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_Switch, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES_whichChoice, offsetof (struct X3D_Switch, whichChoice),  FIELDTYPE_SFInt32, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_metadata, offsetof (struct X3D_Switch, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_whichChoice, offsetof (struct X3D_Switch, whichChoice),  FIELDTYPE_SFInt32, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Switch, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES_choice, offsetof (struct X3D_Switch, choice),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_VRML),
 	FIELDNAMES_bboxSize, offsetof (struct X3D_Switch, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3422,6 +3433,7 @@ const int OFFSETS_TimeSensor[] = {
 	FIELDNAMES___oldEnabled, offsetof (struct X3D_TimeSensor, __oldEnabled),  FIELDTYPE_SFBool, KW_inputOutput,0,
 	FIELDNAMES_isActive, offsetof (struct X3D_TimeSensor, isActive),  FIELDTYPE_SFBool, KW_outputOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_cycleTime, offsetof (struct X3D_TimeSensor, cycleTime),  FIELDTYPE_SFTime, KW_outputOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_elapsedTime, offsetof (struct X3D_TimeSensor, elapsedTime),  FIELDTYPE_SFTime, KW_outputOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_stopTime, offsetof (struct X3D_TimeSensor, stopTime),  FIELDTYPE_SFTime, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_TimeSensor, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
@@ -3655,6 +3667,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_BooleanTrigger,
 	OFFSETS_Box,
 	OFFSETS_Circle2D,
+	OFFSETS_ClipPlane,
 	OFFSETS_Collision,
 	OFFSETS_Color,
 	OFFSETS_ColorInterpolator,
@@ -4041,6 +4054,7 @@ void *createNewX3DNode (int nt) {
 		case NODE_BooleanTrigger : {tmp = MALLOC (sizeof (struct X3D_BooleanTrigger)); break;}
 		case NODE_Box : {tmp = MALLOC (sizeof (struct X3D_Box)); break;}
 		case NODE_Circle2D : {tmp = MALLOC (sizeof (struct X3D_Circle2D)); break;}
+		case NODE_ClipPlane : {tmp = MALLOC (sizeof (struct X3D_ClipPlane)); break;}
 		case NODE_Collision : {tmp = MALLOC (sizeof (struct X3D_Collision)); break;}
 		case NODE_Color : {tmp = MALLOC (sizeof (struct X3D_Color)); break;}
 		case NODE_ColorInterpolator : {tmp = MALLOC (sizeof (struct X3D_ColorInterpolator)); break;}
@@ -4470,6 +4484,17 @@ void *createNewX3DNode (int nt) {
 			tmp2->__oldmetadata = 0;
 			tmp2->__points = 0;
 			tmp2->_defaultContainer = FIELDNAMES_geometry;
+		break;
+		}
+		case NODE_ClipPlane : {
+			struct X3D_ClipPlane * tmp2;
+			tmp2 = (struct X3D_ClipPlane *) tmp;
+			tmp2->v = &virt_ClipPlane;
+			tmp2->plane.c[0] = 0;tmp2->plane.c[1] = 1;tmp2->plane.c[2] = 0;tmp2->plane.c[3] = 0;;
+			tmp2->metadata = NULL;
+			tmp2->__oldmetadata = 0;
+			tmp2->enabled = TRUE;
+			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
 		case NODE_Collision : {
@@ -6740,8 +6765,8 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_StaticGroup *) tmp;
 			tmp2->v = &virt_StaticGroup;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
-			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
+			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->__solid = -1;
 			tmp2->__oldmetadata = 0;
 			tmp2->__transparency = -1;
@@ -6772,8 +6797,8 @@ void *createNewX3DNode (int nt) {
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
-			tmp2->whichChoice = -1;
 			tmp2->metadata = NULL;
+			tmp2->whichChoice = -1;
 			tmp2->__oldmetadata = 0;
 			tmp2->choice.n=0; tmp2->choice.p=0;
 			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
@@ -6911,6 +6936,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->__oldEnabled = TRUE;
 			tmp2->isActive = FALSE;
 			tmp2->cycleTime = -1;
+			tmp2->elapsedTime = 0;
 			tmp2->stopTime = 0;
 			tmp2->__oldmetadata = 0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
@@ -7364,6 +7390,16 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tradius (SFFloat) \t%4.3f\n",tmp->radius);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
+		break;}
+		case NODE_ClipPlane : {
+			struct X3D_ClipPlane *tmp;
+			tmp = (struct X3D_ClipPlane *) node;
+			spacer printf ("\tplane (SFVec4f): \t");
+			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->plane.c[i]); }
+			printf ("\n");
+			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
+			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
+			spacer printf ("\tenabled (SFBool) \t%d\n",tmp->enabled);
 		break;}
 		case NODE_Collision : {
 			struct X3D_Collision *tmp;
@@ -8898,9 +8934,9 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_StaticGroup : {
 			struct X3D_StaticGroup *tmp;
 			tmp = (struct X3D_StaticGroup *) node;
+			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\tchildren (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
-			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_StringSensor : {
@@ -8917,8 +8953,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_Switch *) node;
 			spacer printf ("\tchildren (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
-			spacer printf ("\twhichChoice (SFInt32) \t%d\n",tmp->whichChoice);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
+			spacer printf ("\twhichChoice (SFInt32) \t%d\n",tmp->whichChoice);
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 			spacer printf ("\tchoice (MFNode):\n");
 			for (i=0; i<tmp->choice.n; i++) { dump_scene(level+1,tmp->choice.p[i]); }
@@ -9204,6 +9240,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_BooleanTrigger: return X3DTriggerNode; break;
 	case NODE_Box: return X3DGeometryNode; break;
 	case NODE_Circle2D: return X3DGeometryNode; break;
+	case NODE_ClipPlane: return X3DChildNode; break;
 	case NODE_Collision: return X3DEnvironmentalSensorNode; break;
 	case NODE_Color: return X3DColorNode; break;
 	case NODE_ColorInterpolator: return X3DInterpolatorNode; break;
