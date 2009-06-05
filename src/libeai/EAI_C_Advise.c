@@ -107,7 +107,9 @@ void _handleFreeWRLcallback (char *line) {
 			EAI_ListenerTable[count].functionHandler(EAI_ListenerTable[count].dataArea);
 		} else {
 			if (_X3D_FreeWRL_Swig_FD) {
-                		write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].FreeWRL_RegisterNumber, sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber));
+				char buf[64];
+				sprintf(buf, "%d ", EAI_ListenerTable[count].FreeWRL_RegisterNumber);
+                		write(_X3D_FreeWRL_Swig_FD, buf, strlen(buf));
                 		write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea));
 			} else {
 				printf("no socket connected for callbacks!");
