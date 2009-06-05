@@ -108,7 +108,7 @@ void _handleFreeWRLcallback (char *line) {
 		} else {
 			if (_X3D_FreeWRL_Swig_FD) {
 				char buf[64];
-				sprintf(buf, "%d ", EAI_ListenerTable[count].FreeWRL_RegisterNumber);
+				sprintf(buf, "%d ", AdviseIndex);
                 		write(_X3D_FreeWRL_Swig_FD, buf, strlen(buf));
                 		write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea));
 			} else {
