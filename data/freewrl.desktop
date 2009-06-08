@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=FreeWRL
+Comment=View X3D and VRML files
+Exec=/usr/bin/freewrl
+Icon=freewrl.png
+Terminal=false
+Type=Application
+Categories=Graphics;3DGraphics;Viewer;
