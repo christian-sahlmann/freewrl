@@ -1,3 +1,12 @@
+freewrl (1.22.3-1) unstable; urgency=low
+
+  * New main version, JAS tagged source tree with FREEWRL_1_22_3.
+  * pak knows how to pick up a cvs tagged version.
+  * libEAI enabled for the first time in this Debian packaging.
+  * Added icon and desktop file.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Sun, 07 Jun 2009 12:51:21 +0200
+
 freewrl (1.22.0-2) unstable; urgency=low
 
   * Upstream fixes.

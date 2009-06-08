@@ -1,6 +1,6 @@
 # Toplevel Makefile.am
 #
-# $Id: Makefile.am,v 1.6 2009/02/11 15:12:54 istakenv Exp $
+# $Id: Makefile.am,v 1.7 2009/06/08 11:46:08 couannette Exp $
 #
 # Defines build subdirectories.
 # Defines all files distributed by this package.
@@ -20,6 +20,8 @@ NEWS \
 vtempl.in \
 Makefile.globals \
 spidermonkey.pc \
+data/freewrl.desktop \
+data/freewrl.png \
 doc/AUTOCONF \
 doc/AUTOMAKE \
 doc/DEPENDENCY \
@@ -33,6 +35,15 @@ versions/MESSAGEMGR \
 versions/PLUGIN \
 versions/SOUNDMGR \
 versions/template/version.c.in
+
+pixmapdir = $(datadir)/pixmaps
+pixmap_DATA = data/freewrl.png
+
+dist_man_MANS = doc/freewrl.1
+
+install-data-local: data/freewrl.desktop data/freewrl.png
+	mkdir -p $(DESTDIR)$(datadir)/applications
+	install data/freewrl.desktop $(DESTDIR)$(datadir)/applications
 
 dist-minimal: clean distclean
 	if test -f freewrl-$(PACKAGE_VERSION).tar.gz; then \

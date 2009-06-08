@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: check_sources.sh,v 1.1 2008/12/20 13:53:52 couannette Exp $
+# $Id: check_sources.sh,v 1.2 2009/06/08 11:46:08 couannette Exp $
 #
 # Helper for automake new comers.
 # All sources files that are mandatory
@@ -31,6 +31,8 @@ display_motif.c
 display_aqua.c
 ui/fwBareWindow.c
 ui/fwMotifWindow.c"
+	;;
+	"src/libeai") cdi=""
 	;;
     "src/bin") cdi=""
 	;;
@@ -64,6 +66,9 @@ find . -type f -name "*.[hc]" -printf "%P \n" | \
 
 # Output the diff
 diff -EbB -e $s1 $s2
+
+# Search for required files not added to CVS
+# TODO !
 
 # Explanations
 echo
