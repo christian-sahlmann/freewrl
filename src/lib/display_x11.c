@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display_x11.c,v 1.11 2009/02/11 15:12:54 istakenv Exp $
+$Id: display_x11.c,v 1.12 2009/06/09 15:27:58 istakenv Exp $
 
 FreeWRL support library.
 Display (X11) initialization.
@@ -48,14 +48,11 @@ long event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
 /**
  * local variables
  */
-#if HAVE_XF86_VMODE
 
+#ifdef HAVE_XF86_VMODE
 int vmode_nb_modes;
 XF86VidModeModeInfo **vmode_modes = NULL;
 int vmode_mode_selected = -1;
-
-#endif
-
 
 /**
  * quick sort comparison function to sort X modes
@@ -68,7 +65,6 @@ static int mode_cmp(const void *pa,const void *pb)
     return b->vdisplay - a->vdisplay;
 }
 
-#if HAVE_XF86_VMODE
 void switch_to_mode(int i)
 {
     if ((!vmode_modes) || (i<0)) {
@@ -106,7 +102,7 @@ int open_display()
     Xroot_window = RootWindow(Xdpy,Xscreen);
 
     if (fullscreen) {
-#if HAVE_XF86_VMODE
+#ifdef HAVE_XF86_VMODE
 	if (vmode_modes == NULL) {
 	    if (XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes) == 0) {
 		ERROR_MSG("can`t get mode lines through XF86VidModeGetAllModeLines.\n");
@@ -156,7 +152,9 @@ int create_main_window_x11()
 	XMoveWindow(Xdpy, Xwin, 0, 0);
 	XRaiseWindow(Xdpy, Xwin);
 	XFlush(Xdpy);
+#ifdef HAVE_XF86_VMODE
 	XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
+#endif
 	XGrabPointer(Xdpy, Xwin, TRUE, 0, GrabModeAsync, GrabModeAsync, Xwin, None, CurrentTime);
 	XGrabKeyboard(Xdpy, Xwin, TRUE, GrabModeAsync, GrabModeAsync, CurrentTime);
     } else {

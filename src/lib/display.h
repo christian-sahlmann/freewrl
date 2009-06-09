@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.19 2009/04/21 19:19:24 crc_canada Exp $
+$Id: display.h,v 1.20 2009/06/09 15:27:58 istakenv Exp $
 
 FreeWRL support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -131,7 +131,7 @@ extern Cursor curcursor;
 
 void handle_Xevents(XEvent event);
 
-# if HAVE_XF86_VMODE
+# ifdef HAVE_XF86_VMODE
 #  include <X11/extensions/xf86vmode.h>
 extern int vmode_nb_modes;
 extern XF86VidModeModeInfo **vmode_modes;

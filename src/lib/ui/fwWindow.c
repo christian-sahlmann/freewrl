@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwWindow.c,v 1.10 2009/02/18 13:37:50 istakenv Exp $
+$Id: fwWindow.c,v 1.11 2009/06/09 15:27:58 istakenv Exp $
 
 FreeWRL main window.
 
@@ -202,7 +202,7 @@ void openMainWindow (int argc, char **argv)
     arrowc = XCreateFontCursor(Xdpy, XC_left_ptr);
     sensorc = XCreateFontCursor(Xdpy, XC_diamond_cross);
     
-#if HAVE_XF86_VMODE
+#ifdef HAVE_XF86_VMODE
     XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes);
     
     bestMode = 0;
@@ -299,7 +299,7 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
 
 void resetGeometry()
 {
-#if HAVE_XF86_VMODE
+#ifdef HAVE_XF86_VMODE
     int oldMode, i;
 
     if (fullscreen) {

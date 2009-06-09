@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display_motif.c,v 1.7 2009/02/11 15:12:54 istakenv Exp $
+$Id: display_motif.c,v 1.8 2009/06/09 15:27:58 istakenv Exp $
 
 FreeWRL support library.
 Display (Motif specific) initialization.
@@ -52,7 +52,9 @@ int create_main_window_motif()
 	XMoveWindow(Xdpy, Xwin, 0, 0);
 	XRaiseWindow(Xdpy, Xwin);
 	XFlush(Xdpy);
+#ifdef HAVE_XF86_VMODE
 	XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
+#endif
 	XGrabPointer(Xdpy, Xwin, TRUE, 0, GrabModeAsync, GrabModeAsync, Xwin, None, CurrentTime);
 	XGrabKeyboard(Xdpy, Xwin, TRUE, GrabModeAsync, GrabModeAsync, CurrentTime);
     } else {
