@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+# $Id: autogen.sh,v 1.9 2009/06/10 09:38:56 couannette Exp $
+#
 
 # Font directory
 # default:
