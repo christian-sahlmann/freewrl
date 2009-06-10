@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: autogen.sh,v 1.9 2009/06/10 09:38:56 couannette Exp $
+# $Id: autogen.sh,v 1.10 2009/06/10 09:39:51 couannette Exp $
 #
 
 # Font directory
@@ -16,7 +16,7 @@ if [ -f /etc/debian_version ] ; then
     fi
 else
     echo "Default fonts dir: $fontsdir"
-esac
+fi
 
 # Target
 target=motif
