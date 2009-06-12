@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.6 2009/06/12 20:13:00 crc_canada Exp $
+$Id: Polyrep.c,v 1.7 2009/06/12 20:46:46 crc_canada Exp $
 
 ???
 
@@ -747,7 +747,6 @@ void render_polyrep(void *node) {
 	struct X3D_Virt *v;
 	struct X3D_Node *renderedNodePtr;
 	struct X3D_Node *extentNodePtr;
-	struct X3D_IndexedFaceSet *IFSNodePtr;
 	struct X3D_PolyRep *r;
 
 	v = *(struct X3D_Virt **)node;
@@ -821,8 +820,7 @@ void render_polyrep(void *node) {
 	if (r->GeneratedTexCoords) {
 			textureDraw_start(NULL,r->GeneratedTexCoords);
 	} else {
-		IFSNodePtr = (struct X3D_IndexedFaceSet *)node;
-		textureDraw_start(IFSNodePtr, NULL);
+		textureDraw_start(X3D_NODE(node), NULL);
 	}
 
 	/*  colours?*/
@@ -873,7 +871,6 @@ void render_polyrep(void *node) {
 	if (r->GeneratedTexCoords) {
 			textureDraw_end();
 	} else {
-		IFSNodePtr = (struct X3D_IndexedFaceSet *)node;
 		textureDraw_end();
 	}
 

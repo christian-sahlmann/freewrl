@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.47 2009/06/12 20:13:00 crc_canada Exp $
+$Id: headers.h,v 1.48 2009/06/12 20:46:46 crc_canada Exp $
 
 Global includes.
 
@@ -632,7 +632,7 @@ extern int     *global_tcin;
 extern int     global_tcin_count; 
 extern void 	*global_tcin_lastParent;
 
-extern void textureDraw_start(struct X3D_IndexedFaceSet *texC, GLfloat *tex);
+extern void textureDraw_start(struct X3D_Node *texC, GLfloat *tex);
 extern void textureDraw_end(void);
 
 extern void * this_textureTransform;  /* do we have some kind of textureTransform? */
