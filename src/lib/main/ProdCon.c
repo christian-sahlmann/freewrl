@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.17 2009/05/13 13:53:55 crc_canada Exp $
+$Id: ProdCon.c,v 1.18 2009/06/12 07:26:43 couannette Exp $
 
 CProto ???
 
@@ -310,6 +310,60 @@ int checkNetworkFile(char *fn)
 #define outputDirector "-O"
 #endif
 
+#ifdef HAVE_MKTEMP
+#define freewrl_mktemp mktemp
+#else
+char* freewrl_mktemp()
+{
+    const char tmppat[] = "/tmp/freewrl_%u_%d";
+    pid_t p = getpid();
+    int r;
+    char *tmp = malloc( strlen(tmppat) + 11 ); // 1st number 5-2 char + 2nd number 10-2 char
+
+    srand (time (0));
+    r = rand();
+    sprintf(tmp, "/tmp/freewrl_%u_%d", (unsigned int)p, r);
+    return tmp;
+}
+#endif
+
+int do_file_exists(const char *filename)
+{
+    if (access(filename, R_OK) == 0) {
+	return TRUE;
+    }
+    return FALSE;
+}
+
+/* return the temp file where we got the contents of the URL requested */
+const char* do_get_file_url(const char *filename)
+{
+    char *temp, *wgetcmd;
+
+// move this to another place (where we check wget options)
+#define WGET_OPTIONS "--no-check-certificate"
+
+    // create temp filename
+    temp = freewrl_mktemp();
+    if (!temp) return NULL;
+
+    // create wget command line
+    wgetcmd = malloc( strlen(WGET) +
+	                    strlen(WGET_OPTIONS) + 
+	                    strlen(filename) +
+                            strlen(temp) + 6);
+    sprintf(wgetcmd, "%s %s %s -O %s",
+	    WGET, WGET_OPTIONS, filename, temp);
+
+    // call wget
+    if (freewrlSystem(wgetcmd) < 0) {
+	ERROR_MSG("Error in wget (%s)\n", wgetcmd);
+    }
+    free(wgetcmd);
+
+    return temp;
+}
+
 int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 	FILE *fp;
 	int ok;
@@ -340,6 +394,8 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 			/* check for timeout; if not found, return false */
 			if (!retName) return (FALSE);
 			/* printf ("requesting URL - retname is %s\n",retName); */
+
+			// FIXME: need to free fname before overwritting it ?
 			strcpy (fname,retName);
 		} else {
 			/*  Is this an Anchor? if so, lets just assume we can*/
@@ -365,6 +421,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 			    printf ("\nFreeWRL will try to use %s to get %s\n",WGET,fname);
 
 			    freewrlSystem (sysline);
+			    // FIXME: need to free fname before overwritting it ?
 			    strcpy (fname,tempname);
 			    *removeIt = TRUE;
 			} else {
@@ -391,7 +448,8 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 		}
 		fclose (fp);
 	} else {
-}
+	    ERROR_MSG("Error reading temp file: %s (got from URL)\n", fname);
+	}
 	return (ok);
 }
 
