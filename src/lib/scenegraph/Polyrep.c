@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.5 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Polyrep.c,v 1.6 2009/06/12 20:13:00 crc_canada Exp $
 
 ???
 
@@ -53,7 +53,7 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 
 /* How many faces are in this IndexedFaceSet?			*/
 
-int count_IFS_faces(int cin, struct X3D_IndexedFaceSet *this_IFS) {
+int count_IFS_faces(int cin, struct Multi_Int32 *coordIndex) {
 	/* lets see how many faces we have */
 	int pointctr=0;
 	int max_points_per_face = 0;
@@ -61,10 +61,13 @@ int count_IFS_faces(int cin, struct X3D_IndexedFaceSet *this_IFS) {
 	int i;
 	int faces = 0;
 
+	if (coordIndex == NULL) return 0;
+	if (coordIndex->n == 0) return 0;
+
 	for(i=0; i<cin; i++) {
 
-		if(((this_IFS->coordIndex.p[i]) == -1) || (i==cin-1)) {
-			if((this_IFS->coordIndex.p[i]) != -1) {
+		if((coordIndex->p[i] == -1) || (i==cin-1)) {
+			if(coordIndex->p[i] != -1) {
 				pointctr++;
 			}
 
@@ -105,7 +108,7 @@ int IFS_face_normals (
 	int npoints,
 	int cin,
 	struct SFColor *points,
-	struct X3D_IndexedFaceSet *this_IFS,
+	struct Multi_Int32 *coordIndex,
 	int ccw) {
 
 	int tmp_a = 0, this_face_finished;
@@ -144,27 +147,27 @@ int IFS_face_normals (
 			faceok[i] = FALSE;
 		} else {
 			/* does this face have at least 3 vertexes? */
-			if ((this_IFS->coordIndex.p[tmp_a] == -1) ||
-			    (this_IFS->coordIndex.p[tmp_a+1] == -1) ||
-			    (this_IFS->coordIndex.p[tmp_a+2] == -1)) {
+			if ((coordIndex->p[tmp_a] == -1) ||
+			    (coordIndex->p[tmp_a+1] == -1) ||
+			    (coordIndex->p[tmp_a+2] == -1)) {
 				printf ("IndexedFaceNormals: have a face with two or less vertexes\n");
 				faceok[i] = FALSE;
 
-				if (this_IFS->coordIndex.p[tmp_a] != -1) tmp_a++;
+				if (coordIndex->p[tmp_a] != -1) tmp_a++;
 			} else {
 				/* check to see that the coordIndex does not point to a
 				   point that is outside the range of our point array */
 				checkpoint = tmp_a;
 				while (checkpoint < cin) {
-					if (this_IFS->coordIndex.p[checkpoint] == -1) {
+					if (coordIndex->p[checkpoint] == -1) {
 						checkpoint = cin; /*  stop the scan*/
 					} else {
-						/* printf ("verifying %d for face %d\n",this_IFS->coordIndex.p[checkpoint],i); */
-						if ((this_IFS->coordIndex.p[checkpoint] < 0) ||
-						    (this_IFS->coordIndex.p[checkpoint] >= npoints)) {
+						/* printf ("verifying %d for face %d\n",coordIndex->p[checkpoint],i); */
+						if ((coordIndex->p[checkpoint] < 0) ||
+						    (coordIndex->p[checkpoint] >= npoints)) {
 							printf ("Indexed Geometry face %d has a point out of range,",i);
 							printf (" point is %d, should be between 0 and %d\n",
-								this_IFS->coordIndex.p[checkpoint],npoints-1);
+								coordIndex->p[checkpoint],npoints-1);
 							faceok[i] = FALSE;
 						}
 						checkpoint++;
@@ -191,9 +194,9 @@ int IFS_face_normals (
 
 			do {
 				/* first three coords give us the normal */
-				c1 = &(points[this_IFS->coordIndex.p[pt_1]]);
-				c2 = &(points[this_IFS->coordIndex.p[pt_2]]);
-				c3 = &(points[this_IFS->coordIndex.p[pt_3]]);
+				c1 = &(points[coordIndex->p[pt_1]]);
+				c2 = &(points[coordIndex->p[pt_2]]);
+				c3 = &(points[coordIndex->p[pt_3]]);
 
 				a[0] = c2->c[0] - c1->c[0];
 				a[1] = c2->c[1] - c1->c[1];
@@ -243,7 +246,7 @@ int IFS_face_normals (
 				/* skip forward to the next couple of points - if possible */
 				/* printf ("looking at %d, cin is %d\n",tmp_a, cin); */
 				tmp_a ++;
-				if ((tmp_a >= cin-2) || ((this_IFS->coordIndex.p[tmp_a+2]) == -1)) {
+				if ((tmp_a >= cin-2) || (coordIndex->p[tmp_a+2] == -1)) {
 					this_face_finished = TRUE;  tmp_a +=2;
 				}
 			} while (!this_face_finished);
@@ -277,8 +280,8 @@ int IFS_face_normals (
 			} 
 
 			if (tmp_a > 0) {
-				while (((this_IFS->coordIndex.p[tmp_a-1]) != -1) && (tmp_a < cin-2)) {
-					/* printf ("skipping past %d for face %d\n",this_IFS->coordIndex.p[tmp_a-1],i);*/
+				while (((coordIndex->p[tmp_a-1]) != -1) && (tmp_a < cin-2)) {
+					/* printf ("skipping past %d for face %d\n",coordIndex->p[tmp_a-1],i);*/
 					tmp_a++;
 				}
 			}
@@ -303,7 +306,7 @@ int IFS_face_normals (
 	for (i=0; i<npoints; i++) { pointfaces[i*POINT_FACES]=0; }
 	facectr=0;
 	for(i=0; i<cin; i++) {
-		tmp_a=this_IFS->coordIndex.p[i];
+		tmp_a=coordIndex->p[i];
 		/* printf ("pointfaces, coord %d coordIndex %d face %d\n",i,tmp_a,facectr); */
 		if (tmp_a == -1) {
 			facectr++;
@@ -332,7 +335,6 @@ int IFS_face_normals (
 	*/
 
 	return retval;
-	
 }
 
 
@@ -400,7 +402,7 @@ void IFS_check_normal (
 	struct point_XYZ *facenormals,
 	int this_face,
 	struct SFColor *points, int base,
-	struct X3D_IndexedFaceSet *this_IFS, int ccw) {
+	struct Multi_Int32 *coordIndex, int ccw) {
 
 	struct SFColor *c1,*c2,*c3;
 	float a[3]; float b[3];
@@ -413,13 +415,13 @@ void IFS_check_normal (
 
 
 	/* first three coords give us the normal */
-	c1 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[0]]]);
+	c1 = &(points[coordIndex->p[base+global_IFS_Coords[0]]]);
 	if (ccw) {
-		c2 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[1]]]);
-		c3 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[2]]]);
+		c2 = &(points[coordIndex->p[base+global_IFS_Coords[1]]]);
+		c3 = &(points[coordIndex->p[base+global_IFS_Coords[2]]]);
 	} else {
-		c3 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[1]]]);
-		c2 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[2]]]);
+		c3 = &(points[coordIndex->p[base+global_IFS_Coords[1]]]);
+		c2 = &(points[coordIndex->p[base+global_IFS_Coords[2]]]);
 	}
 
 	a[0] = c2->c[0] - c1->c[0];
@@ -1087,6 +1089,8 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 	/* if there were errors, then rep->ntri should be 0 */
 	if (r->ntri != 0)
 		stream_polyrep(node, coord, color, normal, texCoord);
+
+
 
 	/* and, tell the rendering process that this shape is now compiled */
 	r->irep_change = p->_change;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
+$Id: Polyrep.h,v 1.5 2009/06/12 20:13:00 crc_canada Exp $
 
 Polyrep ???
 
@@ -26,9 +26,7 @@ extern struct point_XYZ t_r3;
 
 
 
-int
-count_IFS_faces(int cin,
-				struct X3D_IndexedFaceSet *this_IFS);
+int count_IFS_faces(int cin, struct Multi_Int32 *coordIndex);
 
 int 
 IFS_face_normals(struct point_XYZ *facenormals,
@@ -38,7 +36,7 @@ IFS_face_normals(struct point_XYZ *facenormals,
 				 int npoints,
 				 int cin,
 				 struct SFColor *points,
-				 struct X3D_IndexedFaceSet *this_IFS,
+				 struct Multi_Int32 *coordIndex,
 				 int ccw);
 
 void
@@ -46,7 +44,7 @@ IFS_check_normal(struct point_XYZ *facenormals,
 				 int this_face,
 				 struct SFColor *points,
 				 int base,
-				 struct X3D_IndexedFaceSet *this_IFS,
+				 struct Multi_Int32 *coordIndex,
 				 int ccw);
 
 void

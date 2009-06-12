@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.6 2009/05/07 18:43:34 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.7 2009/06/12 20:13:00 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -30,6 +30,7 @@ void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *node) {
                 COMPILE_POLY_IF_REQUIRED(node->coord, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
+
 }
 
 void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *node) {

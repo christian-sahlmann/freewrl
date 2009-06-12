@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.6 2009/05/07 17:01:24 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.7 2009/06/12 20:13:00 crc_canada Exp $
 
 ???
 
@@ -43,9 +43,7 @@ $Id: GenPolyRep.c,v 1.6 2009/05/07 17:01:24 crc_canada Exp $
 
 
 extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct X3D_PolyRep *this_Elev,struct point_XYZ *facenormals,int *pointfaces,int ccw);
-extern int count_IFS_faces(int cin, struct X3D_IndexedFaceSet *this_IFS);
 extern void verify_global_IFS_Coords(int max);
-extern void IFS_check_normal(struct point_XYZ *facenormals,int this_face,struct SFColor *points,int base,struct X3D_IndexedFaceSet *this_IFS,int ccw);
 extern void Extru_check_normal(struct point_XYZ *facenormals,int this_face,int dire,struct X3D_PolyRep *rep_,int ccw);
 
 
@@ -54,7 +52,7 @@ extern void Extru_check_normal(struct point_XYZ *facenormals,int this_face,int d
 
 /* calculate how many triangles are required for IndexedTriangleFanSet and 
 	IndexedTriangleStripSets */
-int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
+static int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
 	int IndexSize;
 	int xx, yy,zz;
 	IndexSize = 0;
@@ -75,7 +73,7 @@ int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
 			IndexSize += (zz-2) *4;
 			/* bounds checking... */
 			if (zz < 3) {
-				printf ("IndexedTriangle[Fan|Strip]Set, index %d is less than 3\n");
+				printf ("IndexedTriangle[Fan|Strip]Set, index %d is less than 3\n",zz);
 				return 0;
 			}
 			zz = 0;
@@ -125,7 +123,7 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_, float **points
 	int nquads = ntri/2;
 	int *cindexptr;
 
-	float *tcoord;
+	float *tcoord = NULL;
 	
 	/* check validity of input fields */
 	if(nh != nx * nz) {
@@ -162,7 +160,7 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_, float **points
 	rep->actualCoord = (float *)newpoints;
 
 	/* make up coord index */
-	if (this_->coordIndex.n > 0) FREE_IF_NZ(this_->coordIndex.p);
+	if (this_->coordIndex.n > 0) {FREE_IF_NZ(this_->coordIndex.p);}
 	this_->coordIndex.p = MALLOC (sizeof(int) * nquads * 5);
 	cindexptr = this_->coordIndex.p;
 
@@ -242,7 +240,305 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_, float **points
 	return TRUE;
 }
 
-int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
+
+static void checkIndexedTriangleStripSetFields (struct X3D_IndexedTriangleStripSet *node) {
+	int IndexSize = 0;
+	int xx,yy,zz; /* temporary variables */
+	int fanVertex;
+	int *newIndex;
+	int windingOrder; /*TriangleStripSet ordering */
+
+	/* printf ("start of ITSS\n"); */
+	IndexSize = returnIndexedFanStripIndexSize(node->index);
+	if (IndexSize == 0) {
+		/* printf ("IndexSize for ITFS %d\n",IndexSize); */
+		node->index.n = 0;
+	}
+
+	newIndex = MALLOC (sizeof(int) * IndexSize);
+
+	/* now calculate the indexes */
+	xx=0;
+	yy=0; zz = 0;
+	while (xx < (node->index.n-1)) {
+		fanVertex = xx;
+		/* scan forward to find end of fan */
+		while ((xx<node->index.n) && (node->index.p[xx] > -1)) xx++;
+		/* printf ("strip runs between %d and %d\n", fanVertex,xx);  */
+
+		/* bounds checking... */
+		if (xx >= IndexSize) {
+			printf ("ITFS - index size error... IndexSize < index value \n");
+			xx = IndexSize;
+		}
+
+
+		windingOrder=0;
+		for (zz=fanVertex; zz<(xx-2); zz++) {
+			if (windingOrder==0) {
+				newIndex[yy] = node->index.p[zz]; yy++;
+				newIndex[yy] = node->index.p[zz+1]; yy++; 
+				newIndex[yy] = node->index.p[zz+2]; yy++;
+				windingOrder ++;
+			} else {
+				newIndex[yy] = node->index.p[zz]; yy++;
+				newIndex[yy] = node->index.p[zz+2]; yy++; 
+				newIndex[yy] = node->index.p[zz+1]; yy++;
+				windingOrder =0;
+			}
+			newIndex[yy] = -1; yy++;
+		}
+		
+		/* is this the end of the fan? */
+		if (xx < (node->index.n-1)) {
+			xx++; /* skip past the -1 */
+			fanVertex = xx;
+			/* printf ("end of fan, but not end of structure - fanVertex %d, xx %d yy %d\n",fanVertex,xx,yy); */
+		}
+		zz += 2;
+	}
+			
+	/* xx=0; while (xx < IndexSize) { printf ("index %d val %d\n",xx,newIndex[xx]); xx++; }  */
+
+	/* now, make the new index active */
+	/* FREE_IF_NZ (node->coordIndex.p); should free if MALLOC'd already */
+	node->_coordIndex.p = newIndex;
+	node->_coordIndex.n = IndexSize;
+}
+
+static void checkIndexedTriangleFanSetFields (struct X3D_IndexedTriangleFanSet *node) {
+	int IndexSize = 0;
+	int xx,yy,zz; /* temporary variables */
+	int fanVertex;
+	int *newIndex;
+
+	/* printf ("start of ITFS\n"); */
+	IndexSize = returnIndexedFanStripIndexSize(node->index);
+	if (IndexSize == 0) {
+		/* printf ("IndexSize for ITFS %d\n",IndexSize); */
+		node->index.n = 0;
+	}
+
+	newIndex = MALLOC (sizeof(int) * IndexSize);
+	/* now calculate the indexes */
+
+	xx=0;
+	yy=0;
+	while (xx < (node->index.n-1)) {
+		fanVertex = xx;
+		/* scan forward to find end of fan */
+		while ((xx<node->index.n) && (node->index.p[xx] > -1)) xx++;
+		/* printf ("fan runs between %d and %d\n", fanVertex,xx);  */
+
+		/* bounds checking... */
+		if (xx >= IndexSize) {
+			printf ("ITFS - index size error... IndexSize < index value \n");
+			xx = IndexSize;
+		}
+
+		for (zz=fanVertex+1; zz<(xx-1); zz++) {
+			/* printf ("newIndexSize %d, fv %d, zz %d\n",IndexSize, fanVertex, zz); */
+			newIndex[yy] = node->index.p[fanVertex]; yy++;
+			newIndex[yy] = node->index.p[zz]; yy++; 
+			newIndex[yy] = node->index.p[zz+1]; yy++;
+			newIndex[yy] = -1; yy++;
+		}
+				
+		/* is this the end of the fan? */
+		if (xx < (node->index.n-1)) {
+			xx++; /* skip past the -1 */
+			fanVertex = xx;
+			/* printf ("end of fan, but not end of structure - fanVertex %d, xx %d yy %d\n",fanVertex,xx,yy); */
+		}
+	}
+					
+	/* xx=0; while (xx < IndexSize) { printf ("index %d val %d\n",xx,newIndex[xx]); xx++; } */
+
+	/* now, make the new index active */
+	/* FREE_IF_NZ (node->coordIndex.p); should free if MALLOC'd already */
+	node->_coordIndex.p = newIndex;
+	node->_coordIndex.n = IndexSize;
+}
+
+
+static void checkIndexedTriangleSetFields (struct X3D_IndexedTriangleSet *node) {
+	int IndexSize = 0;
+	int xx,yy,zz; /* temporary variables */
+	int *newIndex;
+
+	IndexSize = ((node->index.n) * 4) / 3;
+	if (IndexSize <= 0) {
+		/* nothing to do here */
+		node->index.n = 0;	
+	}
+
+	newIndex = MALLOC (sizeof(int) * IndexSize);
+	zz = 0; yy=0;
+	/* printf ("index: "); */
+	for (xx = 0; xx < node->index.n; xx++) {
+		newIndex[zz] = node->index.p[xx];
+		/* printf (" %d ",newIndex[zz]);  */
+		zz++;
+		yy++;
+		if (yy == 3) {
+			/* end of one triangle, put a -1 in there */
+			newIndex[zz] = -1;
+			/* printf (" -1 "); */
+			zz++;
+			yy = 0;
+		}
+	/* printf ("\n"); */
+	}
+
+	/* now, make the new index active */
+	/* FREE_IF_NZ (node->coordIndex.p); should free if MALLOC'd already */
+	node->_coordIndex.p = newIndex;
+	node->_coordIndex.n = IndexSize;
+}
+
+static void checkTriangleFanSetFields (struct X3D_TriangleFanSet *node) {
+	int IndexSize = 0;
+	int xx,yy,zz; /* temporary variables */
+	int fanVertex;
+
+	/* printf ("TFS, fanCount %d\n",(node->fanCount).n);  */
+	if ((node->fanCount).n < 1) {
+		ConsoleMessage("TriangleFanSet, need at least one fanCount element");
+		node->fanCount.n = 0;
+	}
+
+	/* calculate the size of the Index array */
+	for (xx=0; xx<(node->fanCount).n; xx++) {
+		/* printf ("fanCount %d is %d  \n",xx,(node->fanCount).p[xx]); */
+		IndexSize += ((node->fanCount).p[xx]-2) * 4;
+		/* bounds checking... */
+		if ((node->fanCount).p[xx] < 3) {
+			printf ("TriangleFanSet, fanCount index %d is less than 3\n", (node->fanCount).p[xx]);
+		}
+	}
+
+	/* printf ("IndexSize is %d\n",IndexSize); */
+	node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
+	node->_coordIndex.n = IndexSize;
+	IndexSize = 0; /* for assigning the indexes */
+
+	/* now calculate the indexes */
+	yy=0; zz=0;
+	for (xx=0; xx<(node->fanCount).n; xx++) {
+		/* printf ("fanCount %d is %d  \n",xx,(node->fanCount).p[xx]); */
+		fanVertex = zz;
+		zz ++;
+		for (yy=0; yy< ((node->fanCount).p[xx]-2); yy++) {
+			/* printf ("fc %d tris %d %d %d -1\n",
+				xx, fanVertex, zz, zz+1); */
+			node->_coordIndex.p[IndexSize++] = fanVertex;
+			node->_coordIndex.p[IndexSize++] = zz;
+			node->_coordIndex.p[IndexSize++] = zz+1;
+			node->_coordIndex.p[IndexSize++] = -1;
+			zz++;
+		}
+		zz++;
+	}
+}
+
+static void checkTriangleStripSetFields (struct X3D_TriangleStripSet *node) {
+	int IndexSize = 0;
+	int xx,yy,zz; /* temporary variables */
+	int windingOrder; /*TriangleStripSet ordering */
+
+	 /* printf ("TSS, stripCount %d\n",(node->stripCount).n);  */
+	if ((node->stripCount).n < 1) {
+		ConsoleMessage ("TriangleStripSet, need at least one stripCount element");
+		node->stripCount.n=0;
+	}
+
+	/* calculate the size of the Index array */
+	for (xx=0; xx<(node->stripCount).n; xx++) {
+		 /* printf ("stripCount %d is %d  \n",xx,(node->stripCount).p[xx]); */
+		IndexSize += ((node->stripCount).p[xx]-2) * 4;
+		/* bounds checking... */
+		if ((node->stripCount).p[xx] < 3) {
+			printf ("TriangleStripSet, index %d is less than 3\n",
+				(node->stripCount).p[xx]);
+		}
+	}
+
+	/* printf ("IndexSize is %d\n",IndexSize); */
+	node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
+	node->_coordIndex.n = IndexSize;
+	IndexSize = 0; /* for assigning the indexes */
+			
+	/* now calculate the indexes */
+	yy=0; zz=0;
+	for (xx=0; xx<(node->stripCount).n; xx++) {
+		windingOrder=0;
+		/* printf ("stripCount %d is %d  \n",xx,(node->stripCount).p[xx]);  */
+		for (yy=0; yy< ((node->stripCount).p[xx]-2); yy++) {
+			if (windingOrder==0) {
+				/* printf ("fcwo0 %d tris %d %d %d -1\n", xx, zz, zz+1, zz+2); */
+				node->_coordIndex.p[IndexSize++] = zz;
+				node->_coordIndex.p[IndexSize++] = zz+1;
+				node->_coordIndex.p[IndexSize++] = zz+2;
+				windingOrder++;
+			} else {
+				/* printf ("fcwo1 %d tris %d %d %d -1\n", xx, zz+1, zz, zz+2); */
+				node->_coordIndex.p[IndexSize++] = zz+1;
+				node->_coordIndex.p[IndexSize++] = zz;
+				node->_coordIndex.p[IndexSize++] = zz+2;
+				windingOrder=0;
+			}
+			node->_coordIndex.p[IndexSize++] = -1;
+			zz++;
+		}
+		zz += 2;
+	}
+}
+
+
+
+static void checkTriangleSetFields (struct X3D_TriangleSet *node) {
+	struct SFColor *points;
+	int npoints = 0;
+	int IndexSize = 0;
+	int xx,yy,zz; /* temporary variables */
+
+        if(node->coord) {
+		struct Multi_Vec3f *dtmp;
+		dtmp = getCoordinate (node->coord, "TriangleSet");
+		npoints = dtmp->n;
+		points = dtmp->p;
+        }
+
+	/* verify whether we have an incorrect number of coords or not */
+	if (((npoints/3)*3) != npoints) {
+		printf ("Warning, in TriangleSet, Coordinates not a multiple of 3\n");
+		npoints = ((npoints/3)*3);
+	}
+
+	/* printf ("npoints %d\n",npoints); */
+
+
+	/* calculate index size; every "face" ends in -1 */
+	IndexSize = (npoints * 4) / 3;
+	/* printf ("IndexSize is %d\n",IndexSize); */
+	node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
+	node->_coordIndex.n = IndexSize;
+
+	IndexSize = 0; /* for assigning the indexes */
+			
+	/* now calculate the indexes */
+	yy=0; zz=0;
+	for (xx=0; xx<npoints; xx+=3) {
+		/* printf ("index %d tris %d %d %d -1\n", xx/3, xx, xx+1, xx+2);  */
+		node->_coordIndex.p[IndexSize++] = xx;
+		node->_coordIndex.p[IndexSize++] = xx+1;
+		node->_coordIndex.p[IndexSize++] = xx+2;
+		node->_coordIndex.p[IndexSize++] = -1;
+	}
+}
+
+
+static int checkX3DComposedGeomFields (struct X3D_Node *pn) {
 	struct SFColor *points;
 	int npoints = 0;
 	int retval = TRUE;
@@ -254,34 +550,18 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 
 
 	/* printf ("checkX3DComposedGeomFields for node (%d) %s\n",
-			this_->_nodeType, X3DCOMPOSED_STRING(this_->_nodeType)); 
+			pn->_nodeType, X3DCOMPOSED_STRING(pn->_nodeType)); 
 	*/
 	
-
-	/* creaseAngle - set if normalPerVertex TRUE */
-	if (this_->normalPerVertex) {
-		switch (this_->_nodeType) {
-			/* IFS has creaseAngle; TriangleSet specs no smoothing */
-			case NODE_TriangleSet:
-				break;
-
-			/* set the creaseAngle to set smoothing for the rest */
-			default:
-				/* printf ("ITS - setting creaseAngle to 3.141*2\n"); */
-				this_->creaseAngle = PI*2;
-		}
-	}
-
-	/* colorPerVertex always TRUE for these Geom types */
-	this_->colorPerVertex = TRUE;
 
 	/* verify fields for each Node type, according to the spec. Fields that SHOULD
 	   not appear in a node are identified in Parser.pm using the hashes in VRMLNodes.pm
 	   so we do not have to worry about them here. */
-	switch (this_->_nodeType) {
-		case NODE_IndexedTriangleFanSet   :
+	switch (pn->_nodeType) {
+		case NODE_IndexedTriangleFanSet: {
+			struct X3D_IndexedTriangleFanSet *node = X3D_INDEXEDTRIANGLEFANSET(pn);
 			/* printf ("start of ITFS\n"); */
-			IndexSize = returnIndexedFanStripIndexSize(this_->index);
+			IndexSize = returnIndexedFanStripIndexSize(node->index);
 			if (IndexSize == 0) {
 				/* printf ("IndexSize for ITFS %d\n",IndexSize); */
 				break;
@@ -292,10 +572,10 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 
 			xx=0;
 			yy=0;
-			while (xx < (this_->index.n-1)) {
+			while (xx < (node->index.n-1)) {
 				fanVertex = xx;
 				/* scan forward to find end of fan */
-				while ((xx<this_->index.n) && (this_->index.p[xx] > -1)) xx++;
+				while ((xx<node->index.n) && (node->index.p[xx] > -1)) xx++;
 				/* printf ("fan runs between %d and %d\n", fanVertex,xx);  */
 
 				/* bounds checking... */
@@ -306,14 +586,14 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 
 				for (zz=fanVertex+1; zz<(xx-1); zz++) {
 					/* printf ("newIndexSize %d, fv %d, zz %d\n",IndexSize, fanVertex, zz); */
-					newIndex[yy] = this_->index.p[fanVertex]; yy++;
-					newIndex[yy] = this_->index.p[zz]; yy++; 
-					newIndex[yy] = this_->index.p[zz+1]; yy++;
+					newIndex[yy] = node->index.p[fanVertex]; yy++;
+					newIndex[yy] = node->index.p[zz]; yy++; 
+					newIndex[yy] = node->index.p[zz+1]; yy++;
 					newIndex[yy] = -1; yy++;
 				}
 				
 				/* is this the end of the fan? */
-				if (xx < (this_->index.n-1)) {
+				if (xx < (node->index.n-1)) {
 					xx++; /* skip past the -1 */
 					fanVertex = xx;
 					/* printf ("end of fan, but not end of structure - fanVertex %d, xx %d yy %d\n",fanVertex,xx,yy); */
@@ -323,14 +603,15 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			/* xx=0; while (xx < IndexSize) { printf ("index %d val %d\n",xx,newIndex[xx]); xx++; } */
 
 			/* now, make the new index active */
-			/* FREE_IF_NZ (this_->coordIndex.p); should free if MALLOC'd already */
-			this_->coordIndex.p = newIndex;
-			this_->coordIndex.n = IndexSize;
+			/* FREE_IF_NZ (node->coordIndex.p); should free if MALLOC'd already */
+			node->_coordIndex.p = newIndex;
+			node->_coordIndex.n = IndexSize;
                 	break;
-
-		case NODE_IndexedTriangleStripSet:
+		}
+		case NODE_IndexedTriangleStripSet: {
+			struct X3D_IndexedTriangleStripSet *node = X3D_INDEXEDTRIANGLESTRIPSET(pn);
 			/* printf ("start of ITSS\n"); */
-			IndexSize = returnIndexedFanStripIndexSize(this_->index);
+			IndexSize = returnIndexedFanStripIndexSize(node->index);
 			if (IndexSize == 0) {
 				/* printf ("IndexSize for ITFS %d\n",IndexSize); */
 				break;
@@ -341,10 +622,10 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			/* now calculate the indexes */
 			xx=0;
 			yy=0; zz = 0;
-			while (xx < (this_->index.n-1)) {
+			while (xx < (node->index.n-1)) {
 				fanVertex = xx;
 				/* scan forward to find end of fan */
-				while ((xx<this_->index.n) && (this_->index.p[xx] > -1)) xx++;
+				while ((xx<node->index.n) && (node->index.p[xx] > -1)) xx++;
 				/* printf ("strip runs between %d and %d\n", fanVertex,xx);  */
 
 				/* bounds checking... */
@@ -357,21 +638,21 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 				windingOrder=0;
 				for (zz=fanVertex; zz<(xx-2); zz++) {
 					if (windingOrder==0) {
-						newIndex[yy] = this_->index.p[zz]; yy++;
-						newIndex[yy] = this_->index.p[zz+1]; yy++; 
-						newIndex[yy] = this_->index.p[zz+2]; yy++;
+						newIndex[yy] = node->index.p[zz]; yy++;
+						newIndex[yy] = node->index.p[zz+1]; yy++; 
+						newIndex[yy] = node->index.p[zz+2]; yy++;
 						windingOrder ++;
 					} else {
-						newIndex[yy] = this_->index.p[zz]; yy++;
-						newIndex[yy] = this_->index.p[zz+2]; yy++; 
-						newIndex[yy] = this_->index.p[zz+1]; yy++;
+						newIndex[yy] = node->index.p[zz]; yy++;
+						newIndex[yy] = node->index.p[zz+2]; yy++; 
+						newIndex[yy] = node->index.p[zz+1]; yy++;
 						windingOrder =0;
 					}
 					newIndex[yy] = -1; yy++;
 				}
 				
 				/* is this the end of the fan? */
-				if (xx < (this_->index.n-1)) {
+				if (xx < (node->index.n-1)) {
 					xx++; /* skip past the -1 */
 					fanVertex = xx;
 					/* printf ("end of fan, but not end of structure - fanVertex %d, xx %d yy %d\n",fanVertex,xx,yy); */
@@ -382,13 +663,14 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			/* xx=0; while (xx < IndexSize) { printf ("index %d val %d\n",xx,newIndex[xx]); xx++; }  */
 
 			/* now, make the new index active */
-			/* FREE_IF_NZ (this_->coordIndex.p); should free if MALLOC'd already */
-			this_->coordIndex.p = newIndex;
-			this_->coordIndex.n = IndexSize;
+			/* FREE_IF_NZ (node->coordIndex.p); should free if MALLOC'd already */
+			node->_coordIndex.p = newIndex;
+			node->_coordIndex.n = IndexSize;
                 	break;
-
-		case NODE_IndexedTriangleSet :
-			IndexSize = ((this_->index.n) * 4) / 3;
+		}
+		case NODE_IndexedTriangleSet : {
+			struct X3D_IndexedTriangleSet *node = X3D_INDEXEDTRIANGLESET(pn);
+			IndexSize = ((node->index.n) * 4) / 3;
 			if (IndexSize <= 0) {
 				break;
 			}
@@ -396,8 +678,8 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			newIndex = MALLOC (sizeof(int) * IndexSize);
 			zz = 0; yy=0;
 			/* printf ("index: "); */
-			for (xx = 0; xx < this_->index.n; xx++) {
-				newIndex[zz] = this_->index.p[xx];
+			for (xx = 0; xx < node->index.n; xx++) {
+				newIndex[zz] = node->index.p[xx];
 				/* printf (" %d ",newIndex[zz]);  */
 				zz++;
 				yy++;
@@ -412,16 +694,16 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			}
 
 			/* now, make the new index active */
-			/* FREE_IF_NZ (this_->coordIndex.p); should free if MALLOC'd already */
-			this_->coordIndex.p = newIndex;
-			this_->coordIndex.n = IndexSize;
+			/* FREE_IF_NZ (node->coordIndex.p); should free if MALLOC'd already */
+			node->_coordIndex.p = newIndex;
+			node->_coordIndex.n = IndexSize;
                 	break;
-
-		case NODE_TriangleSet :
-
-		        if(this_->coord) {
+		}
+		case NODE_TriangleSet : {
+			struct X3D_TriangleSet *node = X3D_TRIANGLESET(pn);
+		        if(node->coord) {
 				struct Multi_Vec3f *dtmp;
-				dtmp = getCoordinate (this_->coord, "TriangleSet");
+				dtmp = getCoordinate (node->coord, "TriangleSet");
 				npoints = dtmp->n;
 				points = dtmp->p;
 		        }
@@ -438,8 +720,8 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			/* calculate index size; every "face" ends in -1 */
 			IndexSize = (npoints * 4) / 3;
 			/* printf ("IndexSize is %d\n",IndexSize); */
-			this_->coordIndex.p = MALLOC (sizeof(int) * IndexSize);
-			this_->coordIndex.n = IndexSize;
+			node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
+			node->_coordIndex.n = IndexSize;
 
 			IndexSize = 0; /* for assigning the indexes */
 			
@@ -447,100 +729,104 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			yy=0; zz=0;
 			for (xx=0; xx<npoints; xx+=3) {
 				/* printf ("index %d tris %d %d %d -1\n", xx/3, xx, xx+1, xx+2);  */
-				this_->coordIndex.p[IndexSize++] = xx;
-				this_->coordIndex.p[IndexSize++] = xx+1;
-				this_->coordIndex.p[IndexSize++] = xx+2;
-				this_->coordIndex.p[IndexSize++] = -1;
+				node->_coordIndex.p[IndexSize++] = xx;
+				node->_coordIndex.p[IndexSize++] = xx+1;
+				node->_coordIndex.p[IndexSize++] = xx+2;
+				node->_coordIndex.p[IndexSize++] = -1;
 			}
                 	break;
-
-		case NODE_TriangleStripSet :
-			 /* printf ("TSS, stripCount %d\n",(this_->stripCount).n);  */
-			if ((this_->stripCount).n < 1) {
+		}
+		case NODE_TriangleStripSet : {
+			struct X3D_TriangleStripSet *node = X3D_TRIANGLESTRIPSET(pn);
+			 /* printf ("TSS, stripCount %d\n",(node->stripCount).n);  */
+			if ((node->stripCount).n < 1) {
 				freewrlDie ("TriangleStripSet, need at least one stripCount element");
 			}
 
 			/* calculate the size of the Index array */
-			for (xx=0; xx<(this_->stripCount).n; xx++) {
-				 /* printf ("stripCount %d is %d  \n",xx,(this_->stripCount).p[xx]); */
-				IndexSize += ((this_->stripCount).p[xx]-2) * 4;
+			for (xx=0; xx<(node->stripCount).n; xx++) {
+				 /* printf ("stripCount %d is %d  \n",xx,(node->stripCount).p[xx]); */
+				IndexSize += ((node->stripCount).p[xx]-2) * 4;
 				/* bounds checking... */
-				if ((this_->stripCount).p[xx] < 3) {
-					printf ("TriangleStripSet, index %d is less than 3\n");
+				if ((node->stripCount).p[xx] < 3) {
+					printf ("TriangleStripSet, index %d is less than 3\n",
+						(node->stripCount).p[xx]);
 				}
 			}
 
 			/* printf ("IndexSize is %d\n",IndexSize); */
-			this_->coordIndex.p = MALLOC (sizeof(int) * IndexSize);
-			this_->coordIndex.n = IndexSize;
+			node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
+			node->_coordIndex.n = IndexSize;
 			IndexSize = 0; /* for assigning the indexes */
 			
 			/* now calculate the indexes */
 			yy=0; zz=0;
-			for (xx=0; xx<(this_->stripCount).n; xx++) {
+			for (xx=0; xx<(node->stripCount).n; xx++) {
 				windingOrder=0;
-				/* printf ("stripCount %d is %d  \n",xx,(this_->stripCount).p[xx]);  */
-				for (yy=0; yy< ((this_->stripCount).p[xx]-2); yy++) {
+				/* printf ("stripCount %d is %d  \n",xx,(node->stripCount).p[xx]);  */
+				for (yy=0; yy< ((node->stripCount).p[xx]-2); yy++) {
 					if (windingOrder==0) {
 						/* printf ("fcwo0 %d tris %d %d %d -1\n", xx, zz, zz+1, zz+2); */
-						this_->coordIndex.p[IndexSize++] = zz;
-						this_->coordIndex.p[IndexSize++] = zz+1;
-						this_->coordIndex.p[IndexSize++] = zz+2;
+						node->_coordIndex.p[IndexSize++] = zz;
+						node->_coordIndex.p[IndexSize++] = zz+1;
+						node->_coordIndex.p[IndexSize++] = zz+2;
 						windingOrder++;
 					} else {
 						/* printf ("fcwo1 %d tris %d %d %d -1\n", xx, zz+1, zz, zz+2); */
-						this_->coordIndex.p[IndexSize++] = zz+1;
-						this_->coordIndex.p[IndexSize++] = zz;
-						this_->coordIndex.p[IndexSize++] = zz+2;
+						node->_coordIndex.p[IndexSize++] = zz+1;
+						node->_coordIndex.p[IndexSize++] = zz;
+						node->_coordIndex.p[IndexSize++] = zz+2;
 						windingOrder=0;
 					}
-					this_->coordIndex.p[IndexSize++] = -1;
+					node->_coordIndex.p[IndexSize++] = -1;
 					zz++;
 				}
 				zz += 2;
 			}
 					
                 	break;
-
-		case NODE_TriangleFanSet :
-			/* printf ("TFS, fanCount %d\n",(this_->fanCount).n);  */
-			if ((this_->fanCount).n < 1) {
+		}
+		case NODE_TriangleFanSet : {
+			struct X3D_TriangleFanSet *node = X3D_TRIANGLEFANSET(pn);
+			/* printf ("TFS, fanCount %d\n",(node->fanCount).n);  */
+			if ((node->fanCount).n < 1) {
 				freewrlDie ("TriangleFanSet, need at least one fanCount element");
 			}
 
 			/* calculate the size of the Index array */
-			for (xx=0; xx<(this_->fanCount).n; xx++) {
-				/* printf ("fanCount %d is %d  \n",xx,(this_->fanCount).p[xx]); */
-				IndexSize += ((this_->fanCount).p[xx]-2) * 4;
+			for (xx=0; xx<(node->fanCount).n; xx++) {
+				/* printf ("fanCount %d is %d  \n",xx,(node->fanCount).p[xx]); */
+				IndexSize += ((node->fanCount).p[xx]-2) * 4;
 				/* bounds checking... */
-				if ((this_->fanCount).p[xx] < 3) {
-					printf ("TriangleFanSet, fanCount index %d is less than 3\n", (this_->fanCount).p[xx]);
+				if ((node->fanCount).p[xx] < 3) {
+					printf ("TriangleFanSet, fanCount index %d is less than 3\n", (node->fanCount).p[xx]);
 				}
 			}
 
 			/* printf ("IndexSize is %d\n",IndexSize); */
-			this_->coordIndex.p = MALLOC (sizeof(int) * IndexSize);
-			this_->coordIndex.n = IndexSize;
+			node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
+			node->_coordIndex.n = IndexSize;
 			IndexSize = 0; /* for assigning the indexes */
 
 			/* now calculate the indexes */
 			yy=0; zz=0;
-			for (xx=0; xx<(this_->fanCount).n; xx++) {
-				/* printf ("fanCount %d is %d  \n",xx,(this_->fanCount).p[xx]); */
+			for (xx=0; xx<(node->fanCount).n; xx++) {
+				/* printf ("fanCount %d is %d  \n",xx,(node->fanCount).p[xx]); */
 				fanVertex = zz;
 				zz ++;
-				for (yy=0; yy< ((this_->fanCount).p[xx]-2); yy++) {
+				for (yy=0; yy< ((node->fanCount).p[xx]-2); yy++) {
 					/* printf ("fc %d tris %d %d %d -1\n",
 						xx, fanVertex, zz, zz+1); */
-					this_->coordIndex.p[IndexSize++] = fanVertex;
-					this_->coordIndex.p[IndexSize++] = zz;
-					this_->coordIndex.p[IndexSize++] = zz+1;
-					this_->coordIndex.p[IndexSize++] = -1;
+					node->_coordIndex.p[IndexSize++] = fanVertex;
+					node->_coordIndex.p[IndexSize++] = zz;
+					node->_coordIndex.p[IndexSize++] = zz+1;
+					node->_coordIndex.p[IndexSize++] = -1;
 					zz++;
 				}
 				zz++;
 			}
                 	break;
+		}
         	default:
 			printf ("invalid node passed to CheckX3DComposedGeometryFields!\n");
 			return FALSE;
@@ -551,16 +837,15 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 	return retval;
 }
 
-
-void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
+void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int cin;
-	int cpv;
+	int cpv = TRUE;
 	int npv;
 	int tcin;
 	int colin;
 	int norin;
-	float creaseAngle;
-	int ccw;
+	float creaseAngle = PI*2;
+	int ccw = TRUE;
 
 	int ntri = 0;
 	int nvert = 0;
@@ -573,80 +858,180 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 	struct SFColor *c1;
 	struct SFColor *points;
-	struct X3D_PolyRep *rep_ = (struct X3D_PolyRep *)this_->_intern;
+	struct X3D_PolyRep *rep_ = (struct X3D_PolyRep *)node->_intern;
 	struct SFColor *normals;
+
+	struct Multi_Int32 *orig_coordIndex = NULL;
+	struct Multi_Int32 *orig_texCoordIndex = NULL;
+	struct Multi_Int32 *orig_normalIndex = NULL;
+	struct Multi_Int32 *orig_colorIndex = NULL;
 
 	int *cindex;		/* Coordinate Index	*/
 	int *colindex;		/* Color Index		*/
 	int *tcindex=0;		/* Tex Coord Index	*/
 	int *norindex;		/* Normals Index	*/
 
+	int normalArraySize = INT_ID_UNDEFINED;	/* bounds checking on normals generated */
+
 	int faces=0;
+	int convex=TRUE;
 	struct point_XYZ *facenormals; /*  normals for each face*/
-	int	*faceok;	/*  is this face ok? (ie, not degenerate triangles, etc)*/
-	int	*pointfaces;
+	int	*faceok = NULL;	/*  is this face ok? (ie, not degenerate triangles, etc)*/
+	int	*pointfaces = NULL;
 
 	GLdouble tess_v[3];             /*param.to gluTessVertex()*/
-	int *tess_vs;              /* pointer to space needed */
+	int *tess_vs = NULL;              /* pointer to space needed */
 
 
 	int i;				/* general purpose counters */
 	int this_face, this_coord, this_normal, this_normalindex;
 
-	struct X3D_Color *cc;
-	struct X3D_Normal *nc;
-	struct X3D_TextureCoordinate *tc;
+	struct X3D_Color *cc = NULL;
+	struct X3D_Normal *nc = NULL;
+	struct X3D_TextureCoordinate *tc = NULL;
+	struct X3D_Coordinate *co = NULL;
 
-	#ifdef VERBOSE
-	printf ("start of make_indexedfaceset for node %u, cin %d\n",this_, this_->coordIndex.n);
-	#endif
-
-	if (this_->_nodeType == NODE_IndexedFaceSet) {
-		if (!checkX3DIndexedFaceSetFields(this_)) {
+	if (node->_nodeType == NODE_IndexedFaceSet) {
+		if (!checkX3DIndexedFaceSetFields(node)) {
 	        	rep_->ntri = 0;
 	        	return;
 		}
 		
 
-	} else if (this_->_nodeType == NODE_ElevationGrid) {
+	} else if (node->_nodeType == NODE_ElevationGrid) {
 		/* this might be an ElevationGrid based on a GeoElevationGrid */
-		if ((this_->_nparents>=1) && (X3D_NODE(this_->_parents[0])->_nodeType == NODE_GeoElevationGrid)) {
-			if (!checkX3DGeoElevationGridFields(X3D_ELEVATIONGRID(this_),
+		if ((node->_nparents>=1) && (X3D_NODE(node->_parents[0])->_nodeType == NODE_GeoElevationGrid)) {
+			if (!checkX3DGeoElevationGridFields(X3D_ELEVATIONGRID(node),
 				(float **)&points, &npoints)) {
 		        	rep_->ntri = 0;
 		        	return;
 			}
 		} else {
-			if (!checkX3DElevationGridFields(X3D_ELEVATIONGRID(this_),
+			if (!checkX3DElevationGridFields(X3D_ELEVATIONGRID(node),
 				(float **)&points, &npoints)) {
 		        	rep_->ntri = 0;
 		        	return;
 			}
 		}
-
-	/* if this is a X3DComposedGeom - check fields */
-	} else {
-		if (!checkX3DComposedGeomFields(this_)) {
-	        	rep_->ntri = 0;
-	        	return;
-		}
+	}
+	
+	switch (node->_nodeType) {
+		case NODE_IndexedFaceSet:
+			convex = node->convex;
+			cpv = node->colorPerVertex;
+			npv = node->normalPerVertex;
+			ccw = node->ccw;
+			orig_texCoordIndex = &node->texCoordIndex;
+			orig_colorIndex = &node->colorIndex;
+			orig_normalIndex = &node->normalIndex;
+			creaseAngle = node->creaseAngle;
+			orig_coordIndex = &node->coordIndex;
+			cc = (struct X3D_Color *) node->color;
+			nc = (struct X3D_Normal *) node->normal;
+			tc = (struct X3D_TextureCoordinate *) node->texCoord;
+			co = (struct X3D_Coordinate *) node->coord;
+			break;
+		case NODE_ElevationGrid:
+			convex = X3D_ELEVATIONGRID(node)->convex;
+			orig_coordIndex= &X3D_ELEVATIONGRID(node)->coordIndex;
+			cpv = X3D_ELEVATIONGRID(node)->colorPerVertex;
+			npv = X3D_ELEVATIONGRID(node)->normalPerVertex;
+			orig_texCoordIndex = &X3D_ELEVATIONGRID(node)->texCoordIndex;
+			orig_colorIndex = &X3D_ELEVATIONGRID(node)->colorIndex;
+			orig_normalIndex = &X3D_ELEVATIONGRID(node)->normalIndex;
+			creaseAngle = X3D_ELEVATIONGRID(node)->creaseAngle;
+			cc = (struct X3D_Color *) X3D_ELEVATIONGRID(node)->color;
+			nc = (struct X3D_Normal *) X3D_ELEVATIONGRID(node)->normal;
+			tc = (struct X3D_TextureCoordinate *) X3D_ELEVATIONGRID(node)->texCoord;
+			co = (struct X3D_Coordinate *) X3D_ELEVATIONGRID(node)->coord;
+			break;
+		case NODE_IndexedTriangleFanSet:
+			checkIndexedTriangleFanSetFields(X3D_INDEXEDTRIANGLEFANSET(node));
+			orig_coordIndex= &X3D_INDEXEDTRIANGLEFANSET(node)->_coordIndex;
+			cpv = X3D_INDEXEDTRIANGLEFANSET(node)->colorPerVertex;
+			npv = X3D_INDEXEDTRIANGLEFANSET(node)->normalPerVertex;
+			ccw = X3D_INDEXEDTRIANGLEFANSET(node)->ccw;
+			cc = (struct X3D_Color *) X3D_INDEXEDTRIANGLEFANSET(node)->color;
+			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLEFANSET(node)->normal;
+			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLEFANSET(node)->texCoord;
+			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLEFANSET(node)->coord;
+			break;
+		case NODE_IndexedTriangleSet:
+			checkIndexedTriangleSetFields(X3D_INDEXEDTRIANGLESET(node));
+			orig_coordIndex= &X3D_INDEXEDTRIANGLESET(node)->_coordIndex;
+			cpv = X3D_INDEXEDTRIANGLESET(node)->colorPerVertex;
+			npv = X3D_INDEXEDTRIANGLESET(node)->normalPerVertex;
+			ccw = X3D_INDEXEDTRIANGLESET(node)->ccw;
+			cc = (struct X3D_Color *) X3D_INDEXEDTRIANGLESET(node)->color;
+			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLESET(node)->normal;
+			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESET(node)->texCoord;
+			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLESET(node)->coord;
+			break;
+		case NODE_IndexedTriangleStripSet:
+			checkIndexedTriangleStripSetFields(X3D_INDEXEDTRIANGLESTRIPSET(node));
+			orig_coordIndex= &X3D_INDEXEDTRIANGLESTRIPSET(node)->_coordIndex;
+			cpv = X3D_INDEXEDTRIANGLESTRIPSET(node)->colorPerVertex;
+			npv = X3D_INDEXEDTRIANGLESTRIPSET(node)->normalPerVertex;
+			ccw = X3D_INDEXEDTRIANGLESTRIPSET(node)->ccw;
+			cc = (struct X3D_Color *) X3D_INDEXEDTRIANGLESTRIPSET(node)->color;
+			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLESTRIPSET(node)->normal;
+			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESTRIPSET(node)->texCoord;
+			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLESTRIPSET(node)->coord;
+			break;
+		case NODE_TriangleFanSet:
+			checkTriangleFanSetFields(X3D_TRIANGLEFANSET(node));
+			orig_coordIndex= &X3D_TRIANGLEFANSET(node)->_coordIndex;
+			cpv = X3D_TRIANGLEFANSET(node)->colorPerVertex;
+			npv = X3D_TRIANGLEFANSET(node)->normalPerVertex;
+			ccw = X3D_TRIANGLEFANSET(node)->ccw;
+			cc = (struct X3D_Color *) X3D_TRIANGLEFANSET(node)->color;
+			nc = (struct X3D_Normal *) X3D_TRIANGLEFANSET(node)->normal;
+			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLEFANSET(node)->texCoord;
+			co = (struct X3D_Coordinate *) X3D_TRIANGLEFANSET(node)->coord;
+			break;
+		case NODE_TriangleSet:
+			checkTriangleSetFields(X3D_TRIANGLESET(node));
+			orig_coordIndex= &X3D_TRIANGLESET(node)->_coordIndex;
+			cpv = X3D_TRIANGLESET(node)->colorPerVertex;
+			npv = X3D_TRIANGLESET(node)->normalPerVertex;
+			ccw = X3D_TRIANGLESET(node)->ccw;
+			cc = (struct X3D_Color *) X3D_TRIANGLESET(node)->color;
+			nc = (struct X3D_Normal *) X3D_TRIANGLESET(node)->normal;
+			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLESET(node)->texCoord;
+			co = (struct X3D_Coordinate *) X3D_TRIANGLESET(node)->coord;
+			break;
+		case NODE_TriangleStripSet:
+			checkTriangleStripSetFields(X3D_TRIANGLESTRIPSET(node));
+			orig_coordIndex= &X3D_TRIANGLESTRIPSET(node)->_coordIndex;
+			cpv = X3D_TRIANGLESTRIPSET(node)->colorPerVertex;
+			npv = X3D_TRIANGLESTRIPSET(node)->normalPerVertex;
+			ccw = X3D_TRIANGLESTRIPSET(node)->ccw;
+			cc = (struct X3D_Color *) X3D_TRIANGLESTRIPSET(node)->color;
+			nc = (struct X3D_Normal *) X3D_TRIANGLESTRIPSET(node)->normal;
+			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLESTRIPSET(node)->texCoord;
+			co = (struct X3D_Coordinate *) X3D_TRIANGLESTRIPSET(node)->coord;
+			break;
+		default:
+			ConsoleMessage ("unknown type for make_genericfaceset, %d\n",node->_nodeType);
+			rep_->ntri=0;
+			return;
 	}
 
+	if (orig_coordIndex != NULL) cin= orig_coordIndex->n; else cin = 0;
+	if (orig_texCoordIndex != NULL) tcin= orig_texCoordIndex->n; else tcin = 0;
+	if (orig_colorIndex != NULL) colin= orig_colorIndex->n; else colin = 0;
+	if (orig_normalIndex != NULL) norin= orig_normalIndex->n; else norin = 0;
+
+
+	#ifdef VERBOSE
+	printf ("cin %d tcin %d colin %d norin %d\n",cin,tcin,colin,norin);
+	printf ("start of make_indexedfaceset for node %u, cin %d\n",node, orig_coordIndex->n);
+	#endif
+
 	/* lets get the structure parameters, after munging by checkX3DComposedGeomFields... */
-	cin= ((this_->coordIndex).n);
-	cpv = ((this_->colorPerVertex));
-	npv = ((this_->normalPerVertex));
-	tcin = ((this_->texCoordIndex).n);
-	colin = ((this_->colorIndex).n);
-	norin = ((this_->normalIndex).n);
-	creaseAngle = (this_->creaseAngle);
-	ccw = ((this_->ccw));
 	#ifdef VERBOSE
 	printf ("NOW, the IFS has a cin of %d ca %f\n",cin,creaseAngle);
 	#endif
-
-	/* record ccw flag */
-	rep_->ccw = ccw;
 
 	/* check to see if there are params to make at least one triangle */
 	if (cin<2) {
@@ -657,14 +1042,18 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	        return;
 	}
 
+	/* record ccw flag */
+	rep_->ccw = ccw;
+
+
 	/* if the last coordIndex == -1, ignore it */
-	if(((this_->coordIndex).p[cin-1]) == -1) { cin--; }
+	if((orig_coordIndex->p[cin-1]) == -1) { cin--; }
 
 
 	/* texture coords IndexedFaceSet coords colors and normals */
-	if(this_->coord) {
+	if(co != NULL) {
 		struct Multi_Vec3f *dtmp;
-		dtmp = getCoordinate (this_->coord, "make FacedSet");
+		dtmp = getCoordinate (co, "make FacedSet");
 		npoints = dtmp->n;
 		points = dtmp->p;
 	}
@@ -672,8 +1061,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 	/* just check this parameter here for correctness and, whether to generate other nodes. We
 	   will check it better in stream_polyrep. */
-	if (this_->color) {
-		cc = (struct X3D_Color *) this_->color;
+	if (cc != NULL) {
 		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
 			printf ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
 		} else {
@@ -681,8 +1069,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 		}
 	}
 	
-	if(this_->normal) {
-		nc = (struct X3D_Normal *) this_->normal;
+	if(nc != NULL) {
 		if (nc->_nodeType != NODE_Normal) {
 			printf ("make_IFS, normal expected %d, got %d\n",NODE_Normal, nc->_nodeType);
 		} else {
@@ -694,8 +1081,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 	/* just check this parameter here for correctness and, whether to generate other nodes. We
 	   will check it better in stream_polyrep. */
-	if (this_->texCoord) {
-		tc = (struct X3D_TextureCoordinate *) this_->texCoord;
+	if (tc != NULL) {
 		rep_->tcoordtype=tc->_nodeType;
 		texCoordNodeType = tc->_nodeType;
 	} else {
@@ -707,7 +1093,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	}
 
 	/* count the faces in this polyrep and allocate memory. */
-	faces = count_IFS_faces (cin,this_);
+	faces = count_IFS_faces (cin,orig_coordIndex);
 	#ifdef VERBOSE
 	printf ("faces %d, cin %d npoints %d\n",faces,cin,npoints);
 	#endif
@@ -729,7 +1115,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 	/* generate the face-normals table, so for each face, we know the normal
 	   and for each point, we know the faces that it is in */
-	if (!IFS_face_normals (facenormals,faceok,pointfaces,faces,npoints,cin,points,this_,ccw)) {
+	if (!IFS_face_normals (facenormals,faceok,pointfaces,faces,npoints,cin,points,orig_coordIndex,ccw)) {
 		rep_->ntri=0;
 		FREE_IF_NZ (facenormals);
 		FREE_IF_NZ (faceok);
@@ -740,7 +1126,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 	/* wander through to see how much memory needs allocating for triangles */
 	for(i=0; i<cin; i++) {
-		if(((this_->coordIndex).p[i]) == -1) {
+		if((orig_coordIndex->p[i]) == -1) {
 			ntri += nvert-2;
 			nvert = 0;
 		} else {
@@ -755,7 +1141,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	#endif
 
 	/* Tesselation MAY use more triangles; lets estimate how many more */
-	if(!(this_->convex)) { ntri =ntri*2; }
+	if(!convex) { ntri =ntri*2; }
 
 	/* fudge factor - leave space for 1 more triangle just in case we have errors on input */
 	ntri++;
@@ -769,8 +1155,9 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	bzero (norindex,sizeof(*(rep_->colindex))*3*(ntri));
 
 	/* if we calculate normals, we use a normal per point, NOT per triangle */
-	if (!nnormals) {  		/* 3 vertexes per triangle, and 3 points per tri */
-		rep_->normal = (float*)MALLOC(sizeof(*(rep_->normal))*3*3*ntri);
+	if (!nnormals) {  		/* 3 vertexes per triangle, and 3 floats per tri */
+		normalArraySize = 3*3*ntri;
+		rep_->normal = (float*)MALLOC(sizeof(*(rep_->normal))*normalArraySize * 2 /* JAS */ );
 	} else { 			/* dont do much, but get past check below */
 		rep_->normal = (float*)MALLOC(1);
 	}
@@ -788,7 +1175,8 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 	for (this_face=0; this_face<faces; this_face++) {
 		int relative_coord;		/* temp, used if not tesselating	*/
-		int initind, lastind;  		/* coord indexes 			*/
+		int initind = 0;
+		int lastind = 0;  		/* coord indexes 			*/
 
 		global_IFS_Coord_count = 0;
 		relative_coord = 0;
@@ -801,15 +1189,15 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 			/* skip past the seperator, except if we are t the end */
 
 			/*  skip to either end or the next -1*/
-			while ((this_coord < cin) && (((this_->coordIndex).p[this_coord]) != -1)) this_coord++;
+			while ((this_coord < cin) && ((orig_coordIndex->p[this_coord]) != -1)) this_coord++;
 
 			/*  skip past the -1*/
-			if ((this_coord < (cin-1)) && (((this_->coordIndex).p[this_coord]) == -1)) this_coord++;
+			if ((this_coord < (cin-1)) && ((orig_coordIndex->p[this_coord]) == -1)) this_coord++;
 		} else {
 
 			#ifdef VERBOSE
 			printf ("working on face %d coord %d total coords %d coordIndex %d\n",
-				this_face,this_coord,cin,((this_->coordIndex).p[ this_coord]));
+				this_face,this_coord,cin,(orig_coordIndex->p[ this_coord]));
 			#endif
 
 			/* create the global_IFS_coords array, at least this time 	*/
@@ -821,17 +1209,17 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 			/*  *perVertex modes are set.					*/
 
 			/* If we have concave, tesselate! */
-			if (!((this_->convex))) {
+			if (!convex) {
 				gluBeginPolygon(global_tessobj);
 			} else {
 				initind = relative_coord++;
 				lastind = relative_coord++;
 			}
 
-			i = ((this_->coordIndex).p[ relative_coord + this_coord]);
+			i = (orig_coordIndex->p[ relative_coord + this_coord]);
 
 			while (i != -1) {
-				if (!((this_->convex))) {
+				if (!convex) {
 					/*  printf ("\nwhile, i is %d this_coord %d rel coord %d\n",i,this_coord,relative_coord);*/
 					c1 = &(points[i]);
 					tess_v[0] = c1->c[0];
@@ -851,11 +1239,11 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 				if (relative_coord + this_coord == cin) {
 					i = -1;
 				} else {
-					i = ((this_->coordIndex).p[ relative_coord + this_coord]);
+					i = (orig_coordIndex->p[ relative_coord + this_coord]);
 				}
 			}
 
-			if (!((this_->convex))) {
+			if (!convex) {
 				gluEndPolygon(global_tessobj);
 
 				/* Tesselated faces may have a different normal than calculated previously */
@@ -863,14 +1251,14 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 				verify_global_IFS_Coords(cin);
 
-				IFS_check_normal (facenormals,this_face,points, this_coord, this_,ccw);
+				IFS_check_normal (facenormals,this_face,points, this_coord, orig_coordIndex, ccw);
 			}
 
 
 			/* now store this information for the whole of the polyrep */
 			for (i=0; i<global_IFS_Coord_count; i++) {
 				/* Triangle Coordinate */
-				cindex [vert_ind] = ((this_->coordIndex).p[this_coord+global_IFS_Coords[i]]);
+				cindex [vert_ind] = (orig_coordIndex->p[this_coord+global_IFS_Coords[i]]);
 
 				/* printf ("vertex  %d  gic %d cindex %d\n",vert_ind,global_IFS_Coords[i],cindex[vert_ind]);*/
 
@@ -879,16 +1267,16 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 					if (norin) {
 						/* we have a NormalIndex */
 						if (npv) {
-							norindex[vert_ind] = ((this_->normalIndex).p[this_coord+global_IFS_Coords[i]]);
+							norindex[vert_ind] = orig_normalIndex->p[this_coord+global_IFS_Coords[i]];
 							/*  printf ("norm1, index %d\n",norindex[vert_ind]);*/
 						} else {
-							norindex[vert_ind] = ((this_->normalIndex).p[this_face]);
+							norindex[vert_ind] = orig_normalIndex->p[this_face];
 							/*  printf ("norm2, index %d\n",norindex[vert_ind]);*/
 						}
 					} else {
 						/* no normalIndex  - use the coordIndex */
 						if (npv) {
-							norindex[vert_ind] = ((this_->coordIndex).p[this_coord+global_IFS_Coords[i]]);
+							norindex[vert_ind] = (orig_coordIndex->p[this_coord+global_IFS_Coords[i]]);
 							/* printf ("norm3, index %d\n",norindex[vert_ind]);*/
 						} else {
 							norindex[vert_ind] = this_face;
@@ -899,6 +1287,12 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 				} else {
 					if (fabs(creaseAngle) > 0.00001) {
 						/* normalize each vertex */
+						if (normalArraySize != INT_ID_UNDEFINED) {
+							if (calc_normind*3 > normalArraySize) {
+								printf ("HMMM _ NORMAL OVERFLOW\n");
+							}
+						}
+
 						normalize_ifs_face (&rep_->normal[calc_normind*3],
 							facenormals, pointfaces, cindex[vert_ind],
 							this_face, creaseAngle);
@@ -923,18 +1317,18 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 						if (cpv) tmpI = this_coord+global_IFS_Coords[i];
 						else tmpI = this_face;
 						
-						if (tmpI >= this_->colorIndex.n) {
-							printf ("faceSet, colorIndex problem, %d >= %d\n", tmpI, this_->colorIndex.n);
+						if (tmpI >= orig_colorIndex->n) {
+							printf ("faceSet, colorIndex problem, %d >= %d\n", tmpI,orig_colorIndex->n);
 							colindex[vert_ind] = 0;
 						} else {
-							colindex[vert_ind] = this_->colorIndex.p[tmpI];
+							colindex[vert_ind] = orig_colorIndex->p[tmpI];
 						}
 						/* printf ("col2, index %d\n",colindex[vert_ind]); */
 						
 					} else {
 						/* no colorIndex  - use the coordIndex */
 						if (cpv) {
-							colindex[vert_ind] = ((this_->coordIndex).p[this_coord+global_IFS_Coords[i]]);
+							colindex[vert_ind] = (orig_coordIndex->p[this_coord+global_IFS_Coords[i]]);
 							  /* printf ("col3, index %d\n",colindex[vert_ind]); */
 						} else {
 							colindex[vert_ind] = this_face;
@@ -947,15 +1341,15 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 				/* Texture Coordinates */
 				if (tcin) {
 					/* bounds checking if we run out of texCoords, just fill in with 0 */
-					if ((this_coord+global_IFS_Coords[i]) < this_->texCoordIndex.n) {
-						tcindex[vert_ind] = ((this_->texCoordIndex).p[this_coord+global_IFS_Coords[i]]);
+					if ((this_coord+global_IFS_Coords[i]) < tcin) {
+						tcindex[vert_ind] = orig_texCoordIndex->p[this_coord+global_IFS_Coords[i]];
 					} else {
 						tcindex[vert_ind] = 0;
 					}
 					/* printf ("ntexCoords,tcin,  index %d\n",tcindex[vert_ind]); */
 				} else {
 					/* no texCoordIndex, use the Coord Index */
-					tcindex[vert_ind] = ((this_->coordIndex).p[this_coord+global_IFS_Coords[i]]);
+					tcindex[vert_ind] = (orig_coordIndex->p[this_coord+global_IFS_Coords[i]]);
 					/* printf ("ntexcoords, notcin, vertex %d point %d\n",vert_ind,tcindex[vert_ind]); */
 				}
 
@@ -968,7 +1362,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 			/* skip past the seperator, except if we are t the end */
 			if (this_coord < cin)
-				if (((this_->coordIndex).p[this_coord]) == -1) {this_coord++;}
+				if ((orig_coordIndex->p[this_coord]) == -1) {this_coord++;}
 		}
 	}
 
@@ -983,6 +1377,9 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	FREE_IF_NZ (faceok);
 	FREE_IF_NZ (pointfaces);
 }
+
+#undef VERBOSE
+
 /********************************************************************************************/
 /* get a valid alpha angle from that that is passed in */
 /* asin of 1.0000 seems to fail sometimes, so */
@@ -1015,7 +1412,7 @@ void compute_spy_spz(struct point_XYZ *spy, struct point_XYZ *spz, struct SFColo
 	double alpha,gamma;	/* angles for the rotation	*/
 	int spi;
 	float spylen;
-	struct point_XYZ spp1;
+	struct point_XYZ spp1 = {0.0, 0.0, 0.0};
 
 
 	/* need to find the rotation from SCP[spi].y to (0 1 0)*/

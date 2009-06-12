@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.6 2009/05/07 17:01:24 crc_canada Exp $
+$Id: StreamPoly.c,v 1.7 2009/06/12 20:13:00 crc_canada Exp $
 
 ???
 
@@ -24,7 +24,7 @@ $Id: StreamPoly.c,v 1.6 2009/05/07 17:01:24 crc_canada Exp $
 #define NO_TEXCOORD_NODE (r->tcoordtype==0)
 #define MUST_GENERATE_TEXTURES (NO_TCOORD_GEN_IN_SHAPE && NO_TEXCOORD_NODE)
 
-void defaultTextureMap(struct X3D_IndexedFaceSet *p, struct X3D_PolyRep *r, struct SFColor *points, int npoints);
+static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep *r, struct SFColor *points, int npoints);
 
 /********************************************************************
 *
@@ -95,9 +95,9 @@ static void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA, 
 
 
 
-void stream_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
+void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *texCoord) {
 
-	struct X3D_IndexedFaceSet *p;
+	struct X3D_Node *node;
 	struct X3D_PolyRep *r;
 	int i, j;
 	int hasc;
@@ -124,17 +124,17 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	float *newtc;
 
 	/* get internal structures */
-	p = (struct X3D_IndexedFaceSet *)node;
-	r = (struct X3D_PolyRep *)p->_intern;
+	node = X3D_NODE(innode);
+	r = (struct X3D_PolyRep *)node->_intern;
 
 	#ifdef STREAM_POLY_VERBOSE
 	printf ("start spv for %u extents %lf %lf, %lf %lf, %lf %lf\n",node,
-		p->EXTENT_MIN_X,
-		p->EXTENT_MAX_X,
-		p->EXTENT_MIN_Y,
-		p->EXTENT_MAX_Y,
-		p->EXTENT_MIN_Z,
-		p->EXTENT_MAX_Z
+		node->EXTENT_MIN_X,
+		node->EXTENT_MAX_X,
+		node->EXTENT_MIN_Y,
+		node->EXTENT_MAX_Y,
+		node->EXTENT_MIN_Z,
+		node->EXTENT_MAX_Z
 	);
 	#endif
 
@@ -277,7 +277,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	}
 
 	/* do we need to generate default texture mapping? */
-	if (MUST_GENERATE_TEXTURES) defaultTextureMap(p, r, points, npoints);
+	if (MUST_GENERATE_TEXTURES) defaultTextureMap(node, r, points, npoints);
 
 	/* figure out transparency for this node. Go through scene graph, and looksie for it. */
 	thisTrans = 0.0;
@@ -318,13 +318,13 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 
 	#ifdef STREAM_POLY_VERBOSE
 	printf ("before streaming for %u, extents %f %f, %f %f, %f %f\n",
-		p,
-		p->EXTENT_MAX_X,
-		p->EXTENT_MIN_X,
-		p->EXTENT_MAX_Y,
-		p->EXTENT_MIN_Y,
-		p->EXTENT_MAX_Z,
-		p->EXTENT_MIN_Z);
+		node,
+		node->EXTENT_MAX_X,
+		node->EXTENT_MIN_X,
+		node->EXTENT_MAX_Y,
+		node->EXTENT_MIN_Y,
+		node->EXTENT_MAX_Z,
+		node->EXTENT_MIN_Z);
 	#endif
 
 
@@ -455,12 +455,12 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 			newpoints[i].c[1], newpoints[i].c[2],i); 
 		*/
 
-		if (newpoints[i].c[0] > p->EXTENT_MAX_X) p->EXTENT_MAX_X = newpoints[i].c[0];
-		if (newpoints[i].c[0] < p->EXTENT_MIN_X) p->EXTENT_MIN_X = newpoints[i].c[0];
-		if (newpoints[i].c[1] > p->EXTENT_MAX_Y) p->EXTENT_MAX_Y = newpoints[i].c[1];
-		if (newpoints[i].c[1] < p->EXTENT_MIN_Y) p->EXTENT_MIN_Y = newpoints[i].c[1];
-		if (newpoints[i].c[2] > p->EXTENT_MAX_Z) p->EXTENT_MAX_Z = newpoints[i].c[2];
-		if (newpoints[i].c[2] < p->EXTENT_MIN_Z) p->EXTENT_MIN_Z = newpoints[i].c[2];
+		if (newpoints[i].c[0] > node->EXTENT_MAX_X) node->EXTENT_MAX_X = newpoints[i].c[0];
+		if (newpoints[i].c[0] < node->EXTENT_MIN_X) node->EXTENT_MIN_X = newpoints[i].c[0];
+		if (newpoints[i].c[1] > node->EXTENT_MAX_Y) node->EXTENT_MAX_Y = newpoints[i].c[1];
+		if (newpoints[i].c[1] < node->EXTENT_MIN_Y) node->EXTENT_MIN_Y = newpoints[i].c[1];
+		if (newpoints[i].c[2] > node->EXTENT_MAX_Z) node->EXTENT_MAX_Z = newpoints[i].c[2];
+		if (newpoints[i].c[2] < node->EXTENT_MIN_Z) node->EXTENT_MIN_Z = newpoints[i].c[2];
 	}
 
 	/* free the old, and make the new current. Just in case threading on a multiprocessor
@@ -502,20 +502,20 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 
 	#ifdef STREAM_POLY_VERBOSE
 	printf ("end spv for %u, extents %f %f, %f %f, %f %f\n",
-		p,
-		p->EXTENT_MAX_X,
-		p->EXTENT_MIN_X,
-		p->EXTENT_MAX_Y,
-		p->EXTENT_MIN_Y,
-		p->EXTENT_MAX_Z,
-		p->EXTENT_MIN_Z);
+		node,
+		node->EXTENT_MAX_X,
+		node->EXTENT_MIN_X,
+		node->EXTENT_MAX_Y,
+		node->EXTENT_MIN_Y,
+		node->EXTENT_MAX_Z,
+		node->EXTENT_MIN_Z);
 	#endif
 
 }
 
 
 
-void defaultTextureMap(struct X3D_IndexedFaceSet *p, struct X3D_PolyRep * r, struct SFColor *points, int npoints) {
+static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r, struct SFColor *points, int npoints) {
 
 	/* variables used only in this routine */
 	GLfloat Tsize = 0.0;

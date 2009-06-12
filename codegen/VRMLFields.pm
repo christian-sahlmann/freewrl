@@ -1,5 +1,5 @@
 #
-# $Id: VRMLFields.pm,v 1.3 2009/05/06 20:35:46 crc_canada Exp $
+# $Id: VRMLFields.pm,v 1.4 2009/06/12 20:13:00 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log: VRMLFields.pm,v $
+# Revision 1.4  2009/06/12 20:13:00  crc_canada
+# Verifying Triangle nodes.
+#
 # Revision 1.3  2009/05/06 20:35:46  crc_canada
 # Modify SFColorRGBA and SFRotation to have array named c, not r for ease of code generation
 #
@@ -383,7 +386,12 @@ sub cInitialize {
 	#print "MFINT32 field $field val @{$val} has $count INIT\n";
 	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	if ($count > 0) {
-		print "MFINT32 HAVE TO MALLOC HERE\n";
+                #print "MALLOC MFINT32 field $field val @{$val} has $count INIT\n";
+                $retstr = $restsr . "$field.p = MALLOC (sizeof(int)*$count);\n";
+                for ($tmp=0; $tmp<$count; $tmp++) {
+                        $retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[tmp];\n";
+                }
+                $retstr = $retstr . "\t\t\t$field.n=$count;";
 	} else {
 		return "$field.n=0; $field.p=0";
 	}

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.36 2009/05/15 19:42:22 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.37 2009/06/12 20:13:00 crc_canada Exp $
 
 ???
 
@@ -1008,47 +1008,15 @@ void startOfLoopNodeUpdates(void) {
 					EVIN_AND_FIELD_SAME(colorIndex,IndexedLineSet)
 					EVIN_AND_FIELD_SAME(coordIndex,IndexedLineSet)
 				END_NODE
+
 				BEGIN_NODE(IndexedTriangleFanSet)
-					EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleFanSet)
-					EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleFanSet)
-					EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleFanSet)
-					EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleFanSet)
-					EVIN_AND_FIELD_SAME(height,IndexedTriangleFanSet)
+					EVIN_AND_FIELD_SAME(index,IndexedTriangleFanSet)
 				END_NODE
 				BEGIN_NODE(IndexedTriangleSet)
-					EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleSet)
-					EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleSet)
-					EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleSet)
-					EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleSet)
-					EVIN_AND_FIELD_SAME(height,IndexedTriangleSet)
+					EVIN_AND_FIELD_SAME(index,IndexedTriangleSet)
 				END_NODE
 				BEGIN_NODE(IndexedTriangleStripSet)
-					EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleStripSet)
-					EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleStripSet)
-					EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleStripSet)
-					EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleStripSet)
-					EVIN_AND_FIELD_SAME(height,IndexedTriangleStripSet)
-				END_NODE
-				BEGIN_NODE(TriangleFanSet)
-					EVIN_AND_FIELD_SAME(colorIndex,TriangleFanSet)
-					EVIN_AND_FIELD_SAME(coordIndex,TriangleFanSet)
-					EVIN_AND_FIELD_SAME(normalIndex,TriangleFanSet)
-					EVIN_AND_FIELD_SAME(texCoordIndex,TriangleFanSet)
-					EVIN_AND_FIELD_SAME(height,TriangleFanSet)
-				END_NODE
-				BEGIN_NODE(TriangleStripSet)
-					EVIN_AND_FIELD_SAME(colorIndex,TriangleStripSet)
-					EVIN_AND_FIELD_SAME(coordIndex,TriangleStripSet)
-					EVIN_AND_FIELD_SAME(normalIndex,TriangleStripSet)
-					EVIN_AND_FIELD_SAME(texCoordIndex,TriangleStripSet)
-					EVIN_AND_FIELD_SAME(height,TriangleStripSet)
-				END_NODE
-				BEGIN_NODE(TriangleSet)
-					EVIN_AND_FIELD_SAME(colorIndex,TriangleSet) 
-					EVIN_AND_FIELD_SAME(coordIndex,TriangleSet) 
-					EVIN_AND_FIELD_SAME(normalIndex,TriangleSet) 
-					EVIN_AND_FIELD_SAME(texCoordIndex,TriangleSet) 
-					EVIN_AND_FIELD_SAME(height,TriangleSet) 
+					EVIN_AND_FIELD_SAME(index,IndexedTriangleStripSet)
 				END_NODE
 				BEGIN_NODE(GeoElevationGrid)
 					EVIN_AND_FIELD_SAME(height,GeoElevationGrid)

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.6 2009/05/07 18:43:34 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.7 2009/06/12 20:13:00 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -438,7 +438,7 @@ void render_Extrusion (struct X3D_Extrusion *node) {
 }
 
 
-void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
+void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/

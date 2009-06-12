@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.46 2009/06/01 19:37:43 istakenv Exp $
+$Id: headers.h,v 1.47 2009/06/12 20:13:00 crc_canada Exp $
 
 Global includes.
 
@@ -1034,7 +1034,7 @@ void doBrowserAction (void);
 void add_parent(struct X3D_Node *node_, struct X3D_Node *parent_,char *file, int line);
 void remove_parent(struct X3D_Node *child, struct X3D_Node *parent);
 void EAI_readNewWorld(char *inputstring);
-void make_indexedfaceset(struct X3D_IndexedFaceSet *this_);
+void make_genericfaceset(struct X3D_IndexedFaceSet *this_);
 
 void render_LoadSensor(struct X3D_LoadSensor *this);
 
@@ -1128,20 +1128,20 @@ void compile_Cylinder (struct X3D_Cylinder *this);
 void collide_Cylinder (struct X3D_Cylinder *this);
 void render_ElevationGrid (struct X3D_ElevationGrid *this);
 #define rendray_ElevationGrid  render_ray_polyrep
-#define collide_ElevationGrid collide_IndexedFaceSet
+#define collide_ElevationGrid collide_genericfaceset
 void render_Extrusion (struct X3D_Extrusion *this);
 void collide_Extrusion (struct X3D_Extrusion *this);
 #define rendray_Extrusion render_ray_polyrep
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
-void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
+void collide_genericfaceset (struct X3D_IndexedFaceSet *this);
 #define rendray_IndexedFaceSet render_ray_polyrep 
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
 void render_Sphere (struct X3D_Sphere *this);
 void compile_Sphere (struct X3D_Sphere *this);
 void collide_Sphere (struct X3D_Sphere *this);
 void make_Extrusion (struct X3D_Extrusion *this);
-#define make_IndexedFaceSet make_indexedfaceset
-#define make_ElevationGrid make_indexedfaceset
+#define make_IndexedFaceSet make_genericfaceset
+#define make_ElevationGrid make_genericfaceset
 #define rendray_ElevationGrid render_ray_polyrep
 void rendray_Box (struct X3D_Box *this_);
 void rendray_Sphere (struct X3D_Sphere *this_);
@@ -1183,18 +1183,19 @@ void render_TriangleSet (struct X3D_TriangleSet *this_);
 void render_LineSet (struct X3D_LineSet *this_); 
 void render_IndexedLineSet (struct X3D_IndexedLineSet *this_); 
 void render_PointSet (struct X3D_PointSet *this_); 
-#define collide_IndexedTriangleFanSet  collide_IndexedFaceSet
-#define collide_IndexedTriangleSet  collide_IndexedFaceSet
-#define collide_IndexedTriangleStripSet  collide_IndexedFaceSet
-#define collide_TriangleFanSet  collide_IndexedFaceSet
-#define collide_TriangleSet  collide_IndexedFaceSet
-#define collide_TriangleStripSet  collide_IndexedFaceSet
-#define make_IndexedTriangleFanSet  make_indexedfaceset
-#define make_IndexedTriangleSet  make_indexedfaceset
-#define make_IndexedTriangleStripSet  make_indexedfaceset
-#define make_TriangleFanSet  make_indexedfaceset
-#define make_TriangleSet  make_indexedfaceset
-#define make_TriangleStripSet  make_indexedfaceset
+#define collide_IndexedFaceSet collide_genericfaceset
+#define collide_IndexedTriangleFanSet  collide_genericfaceset
+#define collide_IndexedTriangleSet  collide_genericfaceset
+#define collide_IndexedTriangleStripSet  collide_genericfaceset
+#define collide_TriangleFanSet  collide_genericfaceset
+#define collide_TriangleSet  collide_genericfaceset
+#define collide_TriangleStripSet  collide_genericfaceset
+#define make_IndexedTriangleFanSet  make_genericfaceset
+#define make_IndexedTriangleSet  make_genericfaceset
+#define make_IndexedTriangleStripSet  make_genericfaceset
+#define make_TriangleFanSet  make_genericfaceset
+#define make_TriangleSet  make_genericfaceset
+#define make_TriangleStripSet  make_genericfaceset
 void compile_LineSet (struct X3D_LineSet *this_); 
 void compile_IndexedLineSet (struct X3D_IndexedLineSet *this_); 
 

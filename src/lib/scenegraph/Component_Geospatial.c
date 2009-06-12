@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.20 2009/06/01 15:21:56 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.21 2009/06/12 20:13:00 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1540,7 +1540,7 @@ void make_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
 /* deref real ElevationGrid pointer */
 void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
 	struct X3D_ElevationGrid *node = innode->__realElevationGrid;
-	if (node != NULL) collide_IndexedFaceSet ((struct X3D_IndexedFaceSet *)node);
+	if (node != NULL) collide_genericfaceset ((struct X3D_IndexedFaceSet *)node);
 }
 
 /* deref real ElevationGrid pointer */
