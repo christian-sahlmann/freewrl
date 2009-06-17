@@ -1,5 +1,46 @@
 Priority list
 
+(going through specs, finding what component conformance level FreeWRL is currently at; lower priority) 06/16/2009:
+	TimeSensor pause - verify code.
+	have a look at filling in the VRML1 nodes:
+		VRML1_AsciiText
+		VRML1_Cone
+		VRML1_Cube
+		VRML1_Cylinder
+		VRML1_IndexedFaceSet
+		VRML1_IndexedLineSet
+		VRML1_PointSet
+		VRML1_Sphere
+		VRML1_Coordinate3
+		VRML1_FontStyle
+		VRML1_Info
+		VRML1_Material
+		VRML1_MaterialBinding
+		VRML1_Normal
+		VRML1_NormalBinding
+		VRML1_Texture2
+		VRML1_Texture2Transform
+		VRML1_TextureCoordinate2
+		VRML1_ShapeHints
+		VRML1_MatrixTransform
+		VRML1_Rotation
+		VRML1_Scale
+		VRML1_Transform
+		VRML1_Translation
+		VRML1_Separator
+		VRML1_Switch
+		VRML1_WWWAnchor
+		VRML1_LOD
+		VRML1_OrthographicCamera
+		VRML1_PerspectiveCamera
+		VRML1_DirectionalLight
+		VRML1_PointLight
+		VRML1_SpotLight
+		VRML1_WWWInline
+	to see what we can easily render.
+	Spec is at: http://www.web3d.org/x3d/specifications/vrml/VRML1.0
+
+
 05/06/2009:
 	(JAS) Continue going through current X3D spec to ensure that all fields of all nodes are parsed correctly.
 	Continue at chapter 11, Rendering component. - check ElevationGrid and GeoElevationGrid, then continue on.

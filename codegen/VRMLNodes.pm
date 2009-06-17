@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.20 2009/06/12 20:13:00 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.21 2009/06/17 15:05:24 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2491,6 +2491,212 @@ package VRML::NodeType;
 			valueChanged=>[MFVec4d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFVec4d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 	}, "X3DChildNode"),
+
+
+	###################################################################################
+	
+	# VRML 1
+
+	###################################################################################
+
+
+	VRML1_AsciiText => new VRML::NodeType("VRML1_AsciiText", {
+		string =>[MFString,[],inputOutput, "SPEC_VRML1"], 
+		spacing => [SFFloat,1.0,inputOutput,"SPEC_VRML1"],
+		justification => [SFString,"LEFT",inputOutput,"SPEC_VRML1"],
+		width => [MFFloat,[0],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Cone => new VRML::NodeType("VRML1_Cone", {
+		parts =>[SFString,"ALL",inputOutput,"SPEC_VRML1"],
+		bottomRadius => [SFFloat,1.0,inputOutput,"SPEC_VRML1"],
+		height => [SFFloat,2.0,inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+
+	VRML1_Cube => new VRML::NodeType("VRML1_Cube", {
+		width => [SFFloat,2.0,inputOutput,"SPEC_VRML1"],
+		height => [SFFloat,2.0,inputOutput,"SPEC_VRML1"],
+		depth => [SFFloat,2.0,inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Cylinder => new VRML::NodeType("VRML1_Cylinder", {
+		parts =>[SFString,"ALL",inputOutput,"SPEC_VRML1"],
+		radius => [SFFloat,1.0,inputOutput,"SPEC_VRML1"],
+		height => [SFFloat,2.0,inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_IndexedFaceSet => new VRML::NodeType("VRML1_IndexedFaceSet", {
+		coordIndex => [MFInt32, [0],inputOutput,"SPEC_VRML1"],
+		materialIndex => [MFInt32,[-1],inputOutput,"SPEC_VRML1"],
+		normalIndex => [MFInt32,[-1],inputOutput,"SPEC_VRML1"],
+		textureCoordIndex =>[MFInt32,[-1],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_IndexedLineSet => new VRML::NodeType("VRML1_IndexedLineSet", {
+		coordIndex => [MFInt32, [0],inputOutput,"SPEC_VRML1"],
+		materialIndex => [MFInt32,[-1],inputOutput,"SPEC_VRML1"],
+		normalIndex => [MFInt32,[-1],inputOutput,"SPEC_VRML1"],
+		textureCoordIndex =>[MFInt32,[-1],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_PointSet => new VRML::NodeType("VRML1_PointSet", {
+		startIndex => [SFInt32, 0,inputOutput,"SPEC_VRML1"],
+		numPoints => [MFInt32,-1,inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+
+	VRML1_Sphere => new VRML::NodeType("VRML1_Sphere", {
+		radius => [SFFloat,1.0,inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Coordinate3 => new VRML::NodeType("VRML1_Coordinate3", {
+		point => [MFVec3f,[[0,0,0]],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_FontStyle => new VRML::NodeType("VRML1_FontStyle", {
+		size => [SFFloat,10,inputOutput,"SPEC_VRML1"],
+		family => [SFString,"SERIF",inputOutput,"SPEC_VRML1"],
+		style => [SFString,"NONE",inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Info => new VRML::NodeType("VRML1_Info", {
+		string => [SFString,"",inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Material => new VRML::NodeType("VRML1_Material", {
+		ambientColor => [MFColor,[[0.2, 0.2, 0.2]],inputOutput,"SPEC_VRML1"],
+		diffuseColor => [MFColor,[[0.8, 0.8, 0.8]],inputOutput,"SPEC_VRML1"],
+		specularColor => [MFColor,[[0, 0, 0]],inputOutput,"SPEC_VRML1"],
+		emissiveColor => [MFColor,[[0, 0, 0]],inputOutput,"SPEC_VRML1"],
+		shininess => [MFFloat,0.2,inputOutput,"SPEC_VRML1"],
+		transparency =>[MFFloat,[0],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_MaterialBinding => new VRML::NodeType("VRML1_MaterialBinding", {
+		value => [SFString,"OVERALL",inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Normal => new VRML::NodeType("VRML1_Normal", {
+		vector => [MFVec3f,[],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_NormalBinding => new VRML::NodeType("VRML1_NormalBinding", {
+		value => [SFString,"DEFAULT",inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Texture2 => new VRML::NodeType("VRML1_Texture2", {
+		filename => [SFString,"",inputOutput,"SPEC_VRML1"],
+		image => [SFImage,[0,0,0],inputOutput,"SPEC_VRML1"],
+		wrapS => [SFString,"REPEAT",inputOutput,"SPEC_VRML1"],
+		wrapT => [SFString,"REPEAT",inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Texture2Transform => new VRML::NodeType("VRML1_Texture2Transform", {
+		translation => [SFVec2f,[0,0],inputOutput,"SPEC_VRML1"],
+		rotation => [SFFloat,0,inputOutput,"SPEC_VRML1"],
+		scaleFactor=>[SFVec2f,[1,1],inputOutput,"SPEC_VRML1"],
+		center=> [SFVec2f,[0,0],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_TextureCoordinate2 => new VRML::NodeType("VRML1_TextureCoordinate2", {
+		point => [MFVec2f,[[0,0]],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_ShapeHints => new VRML::NodeType("VRML1_ShapeHints", {
+		vertexOrdering => [SFString,"CLOCKWISE",inputOutput,"SPEC_VRML1"],
+		shapeType => [SFString,"SOLID",inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_MatrixTransform => new VRML::NodeType("VRML1_MatrixTransform", {
+		value => [SFMatrix4f,[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],inputOutput, "SPEC_VRML1"], 
+	}, "X3DChildNode"),
+
+	VRML1_Rotation => new VRML::NodeType("VRML1_Rotation", {
+		rotation => [SFRotation,[0,0,1,0],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Scale => new VRML::NodeType("VRML1_Scale", {
+		scaleFactor => [SFVec3f,[1,1,1],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Transform => new VRML::NodeType("VRML1_Transform", {
+		translation =>[SFVec3f,[0,0,0],inputOutput,"SPEC_VRML1"],
+		rotation =>[SFRotation,[0,0,1,0],inputOutput,"SPEC_VRML1"],
+		scaleFactor => [SFVec3f,[1,1,1],inputOutput,"SPEC_VRML1"],
+		scaleOrientation =>[SFRotation,[0,0,1,0],inputOutput,"SPEC_VRML1"],
+		center =>[SFVec3f,[0,0,0],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Translation => new VRML::NodeType("VRML1_Translation", {
+		translation =>[SFVec3f,[0,0,0],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Separator => new VRML::NodeType("VRML1_Separator", {
+		renderCulling => [SFString,"AUTO",inputOutput,"SPEC_VRML1"],
+		VRML1children => [MFNode, [], inputOutput, "SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_Switch => new VRML::NodeType("VRML1_Switch", {
+		whichChild=>[SFInt32,-1,inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_WWWAnchor => new VRML::NodeType("VRML1_WWWAnchor", {
+		name=>[SFString,"",inputOutput,"SPEC_VRML1"],
+		description=>[SFString,"",inputOutput,"SPEC_VRML1"],
+		map=>[SFString,"",inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_LOD => new VRML::NodeType("VRML1_LOD", {
+		range=>[MFFloat,[],inputOutput,"SPEC_VRML1"],
+		center=>[SFVec3f,[0,0,0],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_OrthographicCamera => new VRML::NodeType("VRML1_OrthographicCamera", {
+		position=>[SFVec3f,[0,0,1],inputOutput,"SPEC_VRML1"],
+		orientation=>[SFRotation,[0,0,1,0],inputOutput,"SPEC_VRML1"],
+		focalDistance=>[SFFloat,5,inputOutput,"SPEC_VRML1"],
+		height=>[SFFloat,2,inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_PerspectiveCamera => new VRML::NodeType("VRML1_PerspectiveCamera", {
+		position=>[SFVec3f,[0,0,1],inputOutput,"SPEC_VRML1"],
+		orientation=>[SFRotation,[0,0,1,0],inputOutput,"SPEC_VRML1"],
+		focalDistance=>[SFFloat,5,inputOutput,"SPEC_VRML1"],
+		heightAngle=>[SFFloat,0.785398,inputOutput,"SPEC_VRML1"],
+		
+	}, "X3DChildNode"),
+
+	VRML1_DirectionalLight => new VRML::NodeType("VRML1_DirectionalLight", {
+		on=>[SFBool,TRUE,inputOutput,"SPEC_VRML1"],
+		intensity=>[SFFloat,1,inputOutput,"SPEC_VRML1"],
+		color=>[SFColor,[1,1,1],inputOutput,"SPEC_VRML1"],
+		direction=>[SFVec3f,[0,0,-1],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_PointLight => new VRML::NodeType("VRML1_PointLight", {
+		on=>[SFBool,TRUE,inputOutput,"SPEC_VRML1"],
+		intensity=>[SFFloat,1,inputOutput,"SPEC_VRML1"],
+		color=>[SFColor,[1,1,1],inputOutput,"SPEC_VRML1"],
+		location=>[SFVec3f,[0,0,1],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_SpotLight => new VRML::NodeType("VRML1_SpotLight", {
+		on=>[SFBool,TRUE,inputOutput,"SPEC_VRML1"],
+		intensity=>[SFFloat,1,inputOutput,"SPEC_VRML1"],
+		color=>[SFColor,[1,1,1],inputOutput,"SPEC_VRML1"],
+		location=>[SFVec3f,[0,0,1],inputOutput,"SPEC_VRML1"],
+		direction=>[SFVec3f,[0,0,-1],inputOutput,"SPEC_VRML1"],
+		dropOffRate=>[SFFloat,0,inputOutput,"SPEC_VRML1"],
+		curOffAngle=>[SFFloat,0.785398,inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
+	VRML1_WWWInline => new VRML::NodeType("VRML1_WWWInline", {
+		name=>[SFString,"",inputOutput,"SPEC_VRML1"],
+		bboxSize=>[SFVec3f,[0,0,0],inputOutput,"SPEC_VRML1"],
+		bboxCenter=>[SFVec3f,[0,0,0],inputOutput,"SPEC_VRML1"],
+	}, "X3DChildNode"),
+
 
 
 	###################################################################################

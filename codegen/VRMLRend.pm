@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.10 2009/06/05 20:29:32 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.11 2009/06/17 15:05:24 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.11  2009/06/17 15:05:24  crc_canada
+# VRML1 nodes added to build process.
+#
 # Revision 1.10  2009/06/05 20:29:32  crc_canada
 # verifying fields of nodes against spec.
 #
@@ -386,6 +389,43 @@
 	MetadataMFVec4f		=>metadata,
 	MetadataSFVec4d		=>metadata,
 	MetadataMFVec4d		=>metadata,
+
+
+	VRML1_AsciiText		=>children,
+	VRML1_Cone		=>children,
+	VRML1_Coordinate3	=>children,
+	VRML1_Cube		=>children,
+	VRML1_Cylinder		=>children,
+	VRML1_DirectionalLight	=>children,
+	VRML1_FontStyle		=>children,
+	VRML1_IndexedFaceSet	=>children,
+	VRML1_IndexedLineSet	=>children,
+	VRML1_Info		=>children,
+	VRML1_LOD		=>children,
+	VRML1_Material		=>children,
+	VRML1_MaterialBinding	=>children,
+	VRML1_MatrixTransform	=>children,
+	VRML1_Normal		=>children,
+	VRML1_NormalBinding	=>children,
+	VRML1_OrthographicCamera=>children,
+	VRML1_PerspectiveCamera	=>children,
+	VRML1_PointLight	=>children,
+	VRML1_PointSet		=>children,
+	VRML1_Rotation		=>children,
+	VRML1_Scale		=>children,
+	VRML1_Separator		=>children,
+	VRML1_ShapeHints	=>children,
+	VRML1_Sphere		=>children,
+	VRML1_SpotLight		=>children,
+	VRML1_Switch		=>children,
+	VRML1_Texture2		=>children,
+	VRML1_Texture2Transform	=>children,
+	VRML1_TextureCoordinate2=>children,
+	VRML1_Transform		=>children,
+	VRML1_Translation	=>children,
+	VRML1_WWWAnchor		=>children,
+	VRML1_WWWInline		=>children,
+
 );
 
 #######################################################################
@@ -825,6 +865,48 @@
 	TriangleSet
 	TriangleFanSet
 	TriangleStripSet
+/;
+
+#######################################################################
+#######################################################################
+#######################################################################
+#
+# VRML1_ Keywords
+%VRML1_C = map {($_=>1)} qw/
+	VRML1_AsciiText
+	VRML1_Cone
+	VRML1_Cube
+	VRML1_Cylinder
+	VRML1_IndexedFaceSet
+	VRML1_IndexedLineSet
+	VRML1_PointSet
+	VRML1_Sphere
+	VRML1_Coordinate3
+	VRML1_FontStyle
+	VRML1_Info
+	VRML1_Material
+	VRML1_MaterialBinding
+	VRML1_Normal
+	VRML1_NormalBinding
+	VRML1_Texture2
+	VRML1_Texture2Transform
+	VRML1_TextureCoordinate2
+	VRML1_ShapeHints
+	VRML1_MatrixTransform
+	VRML1_Rotation
+	VRML1_Scale
+	VRML1_Transform
+	VRML1_Translation
+	VRML1_Separator
+	VRML1_Switch
+	VRML1_WWWAnchor
+	VRML1_LOD
+	VRML1_OrthographicCamera
+	VRML1_PerspectiveCamera
+	VRML1_DirectionalLight
+	VRML1_PointLight
+	VRML1_SpotLight
+	VRML1_WWWInline
 /;
 
 #######################################################################
