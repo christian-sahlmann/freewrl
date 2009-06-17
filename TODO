@@ -4,17 +4,17 @@ Priority list
 	TimeSensor pause - verify code.
 	have a look at filling in the VRML1 nodes:
 		VRML1_AsciiText
-		VRML1_Cone
-		VRML1_Cube
-		VRML1_Cylinder
+		VRML1_Cone 			(DONE)
+		VRML1_Cube 			(DONE)
+		VRML1_Cylinder 			(DONE)
 		VRML1_IndexedFaceSet
 		VRML1_IndexedLineSet
 		VRML1_PointSet
-		VRML1_Sphere
+		VRML1_Sphere 			(DONE)
 		VRML1_Coordinate3
 		VRML1_FontStyle
 		VRML1_Info
-		VRML1_Material
+		VRML1_Material			(DONE) (only uses first material)
 		VRML1_MaterialBinding
 		VRML1_Normal
 		VRML1_NormalBinding
@@ -23,11 +23,11 @@ Priority list
 		VRML1_TextureCoordinate2
 		VRML1_ShapeHints
 		VRML1_MatrixTransform
-		VRML1_Rotation
+		VRML1_Rotation			(DONE)
 		VRML1_Scale
-		VRML1_Transform
-		VRML1_Translation
-		VRML1_Separator
+		VRML1_Transform			(DONE)
+		VRML1_Translation		(DONE)
+		VRML1_Separator 		(DONE)
 		VRML1_Switch
 		VRML1_WWWAnchor
 		VRML1_LOD

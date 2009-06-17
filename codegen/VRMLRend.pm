@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.11 2009/06/17 15:05:24 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.12 2009/06/17 18:50:42 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.12  2009/06/17 18:50:42  crc_canada
+# More VRML1 code entered.
+#
 # Revision 1.11  2009/06/17 15:05:24  crc_canada
 # VRML1 nodes added to build process.
 #
@@ -498,6 +501,20 @@
 	PointLight
 	HAnimHumanoid
 	HAnimJoint
+
+	VRML1_AsciiText
+	VRML1_Cone
+	VRML1_Cube
+	VRML1_Cylinder
+	VRML1_IndexedFaceSet
+	VRML1_IndexedLineSet
+	VRML1_PointSet
+	VRML1_Sphere
+	VRML1_Scale
+	VRML1_Translation
+	VRML1_Transform
+	VRML1_Material
+	VRML1_Rotation
 /;
 
 #######################################################################
@@ -548,6 +565,7 @@
 	GeoLocation
 	GeoViewpoint
 	GeoTransform
+	VRML1_Separator
 /;
 
 #######################################################################
@@ -567,6 +585,7 @@
 	HAnimSite
 	HAnimJoint
 	GeoTransform
+	VRML1_Separator
 /;
 
 
@@ -600,6 +619,7 @@
 	Appearance
 	Shape
 	VisibilitySensor
+	VRML1_Separator
 /;
 
 

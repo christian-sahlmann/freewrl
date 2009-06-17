@@ -4,7 +4,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.14 2009/06/12 20:13:00 crc_canada Exp n 
+: VRMLC.pm,v 1.15 2009/06/17 15:05:24 crc_canada Exp n 
 ??? 
  
 */ 
@@ -1595,18 +1595,18 @@ struct X3D_Virt virt_TriangleSet = { NULL,(void *)render_TriangleSet,NULL,NULL,(
 struct X3D_Virt virt_TriangleSet2D = { NULL,(void *)render_TriangleSet2D,NULL,NULL,NULL,NULL,NULL,NULL,(void *)collide_TriangleSet2D,(void *)compile_TriangleSet2D};
 struct X3D_Virt virt_TriangleStripSet = { NULL,(void *)render_TriangleStripSet,NULL,NULL,(void *)rendray_TriangleStripSet,(void *)make_TriangleStripSet,NULL,NULL,(void *)collide_TriangleStripSet,NULL};
 struct X3D_Virt virt_TwoSidedMaterial = { NULL,(void *)render_TwoSidedMaterial,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_AsciiText = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Cone = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_AsciiText = { NULL,(void *)render_VRML1_AsciiText,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Cone = { NULL,(void *)render_VRML1_Cone,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Coordinate3 = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Cube = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Cylinder = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Cube = { NULL,(void *)render_VRML1_Cube,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Cylinder = { NULL,(void *)render_VRML1_Cylinder,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_DirectionalLight = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_FontStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_IndexedFaceSet = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_IndexedLineSet = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_IndexedFaceSet = { NULL,(void *)render_VRML1_IndexedFaceSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_IndexedLineSet = { NULL,(void *)render_VRML1_IndexedLineSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Info = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_LOD = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Material = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Material = { NULL,(void *)render_VRML1_Material,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_MaterialBinding = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_MatrixTransform = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Normal = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -1614,19 +1614,19 @@ struct X3D_Virt virt_VRML1_NormalBinding = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,
 struct X3D_Virt virt_VRML1_OrthographicCamera = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_PerspectiveCamera = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_PointLight = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_PointSet = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Rotation = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Scale = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Separator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_PointSet = { NULL,(void *)render_VRML1_PointSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Rotation = { NULL,(void *)render_VRML1_Rotation,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Scale = { NULL,(void *)render_VRML1_Scale,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Separator = { (void *)prep_VRML1_Separator,NULL,(void *)child_VRML1_Separator,(void *)fin_VRML1_Separator,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_ShapeHints = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Sphere = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Sphere = { NULL,(void *)render_VRML1_Sphere,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_SpotLight = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Switch = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Texture2 = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Texture2Transform = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_TextureCoordinate2 = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Transform = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Translation = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Transform = { NULL,(void *)render_VRML1_Transform,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Translation = { NULL,(void *)render_VRML1_Translation,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_WWWAnchor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_WWWInline = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_Viewpoint = { (void *)prep_Viewpoint,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
