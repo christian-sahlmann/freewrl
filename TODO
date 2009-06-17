@@ -24,7 +24,7 @@ Priority list
 		VRML1_ShapeHints
 		VRML1_MatrixTransform
 		VRML1_Rotation			(DONE)
-		VRML1_Scale
+		VRML1_Scale			(DONE)
 		VRML1_Transform			(DONE)
 		VRML1_Translation		(DONE)
 		VRML1_Separator 		(DONE)
@@ -33,9 +33,9 @@ Priority list
 		VRML1_LOD
 		VRML1_OrthographicCamera
 		VRML1_PerspectiveCamera
-		VRML1_DirectionalLight
-		VRML1_PointLight
-		VRML1_SpotLight
+		VRML1_DirectionalLight		(DONE)
+		VRML1_PointLight		(DONE)
+		VRML1_SpotLight			(DONE)
 		VRML1_WWWInline
 	to see what we can easily render.
 	Spec is at: http://www.web3d.org/x3d/specifications/vrml/VRML1.0

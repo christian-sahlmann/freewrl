@@ -361,7 +361,6 @@
 	"__loadstatus",
 	"collideTime",
 	"_radius",
-	"curOffAngle",
 	"crossSection",
 	"position",
 	"__solid",
@@ -786,7 +785,6 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"visibilityLimit",
 	"value",
 	"stopTime",
-	"curOffAngle",
 	"position",
 	"magnificationFilter",
 	"controller",
@@ -1600,7 +1598,7 @@ struct X3D_Virt virt_VRML1_Cone = { NULL,(void *)render_VRML1_Cone,NULL,NULL,NUL
 struct X3D_Virt virt_VRML1_Coordinate3 = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Cube = { NULL,(void *)render_VRML1_Cube,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Cylinder = { NULL,(void *)render_VRML1_Cylinder,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_DirectionalLight = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_DirectionalLight = { NULL,(void *)render_VRML1_DirectionalLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_FontStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_IndexedFaceSet = { NULL,(void *)render_VRML1_IndexedFaceSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_IndexedLineSet = { NULL,(void *)render_VRML1_IndexedLineSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -1613,14 +1611,14 @@ struct X3D_Virt virt_VRML1_Normal = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NU
 struct X3D_Virt virt_VRML1_NormalBinding = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_OrthographicCamera = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_PerspectiveCamera = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_PointLight = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_PointLight = { NULL,(void *)render_VRML1_PointLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_PointSet = { NULL,(void *)render_VRML1_PointSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Rotation = { NULL,(void *)render_VRML1_Rotation,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Scale = { NULL,(void *)render_VRML1_Scale,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Separator = { (void *)prep_VRML1_Separator,NULL,(void *)child_VRML1_Separator,(void *)fin_VRML1_Separator,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_ShapeHints = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Sphere = { NULL,(void *)render_VRML1_Sphere,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_SpotLight = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_SpotLight = { NULL,(void *)render_VRML1_SpotLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Switch = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Texture2 = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Texture2Transform = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -3810,8 +3808,8 @@ const int OFFSETS_VRML1_SpotLight[] = {
 	FIELDNAMES_on, offsetof (struct X3D_VRML1_SpotLight, on),  FIELDTYPE_SFBool, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_direction, offsetof (struct X3D_VRML1_SpotLight, direction),  FIELDTYPE_SFVec3f, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_color, offsetof (struct X3D_VRML1_SpotLight, color),  FIELDTYPE_SFColor, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES_cutOffAngle, offsetof (struct X3D_VRML1_SpotLight, cutOffAngle),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_location, offsetof (struct X3D_VRML1_SpotLight, location),  FIELDTYPE_SFVec3f, KW_inputOutput,SPEC_VRML1,
-	FIELDNAMES_curOffAngle, offsetof (struct X3D_VRML1_SpotLight, curOffAngle),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_dropOffRate, offsetof (struct X3D_VRML1_SpotLight, dropOffRate),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_intensity, offsetof (struct X3D_VRML1_SpotLight, intensity),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
 	-1, -1, -1, -1, -1};
@@ -7656,8 +7654,8 @@ void *createNewX3DNode (int nt) {
 			tmp2->on = TRUE;
 			tmp2->direction.c[0] = 0;tmp2->direction.c[1] = 0;tmp2->direction.c[2] = -1;;
 			tmp2->color.c[0] = 1;tmp2->color.c[1] = 1;tmp2->color.c[2] = 1;;
+			tmp2->cutOffAngle = 0.785398;
 			tmp2->location.c[0] = 0;tmp2->location.c[1] = 0;tmp2->location.c[2] = 1;;
-			tmp2->curOffAngle = 0.785398;
 			tmp2->dropOffRate = 0;
 			tmp2->intensity = 1;
 			tmp2->_defaultContainer = FIELDNAMES_children;
@@ -9988,10 +9986,10 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tcolor (SFColor): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->color.c[i]); }
 			printf ("\n");
+			spacer printf ("\tcutOffAngle (SFFloat) \t%4.3f\n",tmp->cutOffAngle);
 			spacer printf ("\tlocation (SFVec3f): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->location.c[i]); }
 			printf ("\n");
-			spacer printf ("\tcurOffAngle (SFFloat) \t%4.3f\n",tmp->curOffAngle);
 			spacer printf ("\tdropOffRate (SFFloat) \t%4.3f\n",tmp->dropOffRate);
 			spacer printf ("\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
 		break;}

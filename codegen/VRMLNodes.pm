@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.21 2009/06/17 15:05:24 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.22 2009/06/17 21:11:00 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2688,7 +2688,7 @@ package VRML::NodeType;
 		location=>[SFVec3f,[0,0,1],inputOutput,"SPEC_VRML1"],
 		direction=>[SFVec3f,[0,0,-1],inputOutput,"SPEC_VRML1"],
 		dropOffRate=>[SFFloat,0,inputOutput,"SPEC_VRML1"],
-		curOffAngle=>[SFFloat,0.785398,inputOutput,"SPEC_VRML1"],
+		cutOffAngle=>[SFFloat,0.785398,inputOutput,"SPEC_VRML1"],
 	}, "X3DChildNode"),
 
 	VRML1_WWWInline => new VRML::NodeType("VRML1_WWWInline", {

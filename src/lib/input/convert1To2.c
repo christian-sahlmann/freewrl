@@ -22,12 +22,11 @@
 
 static int estimatedBodyLen = -1;
 static struct Vector *deconstructedProtoBody = NULL;
-static int nextFabricatedDef = 2000;
 
 static indexT protoElementCount = ID_UNDEFINED;
 static char tempname[1000];
 static FILE *fp;
-static written = 0;
+static int written = 0;
 
 #define DEF_FINDFIELD(arr) \
  int findFieldIn##arr(const char* field) \
@@ -44,15 +43,22 @@ static struct ProtoElementPointer* newProtoElementPointer(void) {
         ret->isNODE = ID_UNDEFINED;
         ret->isKEYWORD = ID_UNDEFINED;
         ret->terminalSymbol = ID_UNDEFINED;
-        ret->fabricatedDef = ID_UNDEFINED;
+        ret->fabricatedDef = ID_UNDEFINED; /* this is unused here */
         return ret;
 }
 
 #define START_CHILDREN 300
 #define END_CHILDREN 400
 
+static char *quotedWords[] = { "SIDES", "BOTTOM ", "ALL", "TOP", "LEFT", "CENTER", "RIGHT", "SERIF",
+	"SANS", "TYPEWRITER", "NONE", "BOLD", "ITALIC", "DEFAULT", "OVERALL", "PER_PART", "PER_PART_INDEXED",
+	"PER_FACE", "PER_FACE_INDEXED", "PER_VERTEX", "PER_VERTEX_INDEXED", "ON", "OFF", "AUTO", "UNKNOWN_SHAPE_TYPE",
+	"CLOCKWISE", "COUNTERCLOCKWISE", "SOLID", "UNKNOWN_ORDERING", "UNKNOWN_FACE_TYPE", "CONVEX", "REPEAT", "CLAMP",
+	"NONE", "POINT"}; 
+#define QUOTED_WORDS_COUNT 35
+
 /* go through the remainder of the fields, and, if we have a "{ "}" pair, change it to a "{children[...]}" pair */
-void possiblyChangetoChildren (int startIndex) {
+static void possiblyChangetoChildren (int startIndex) {
 	indexT yy;
 	indexT bracketCount;
        	struct ProtoElementPointer* tempEle;
@@ -73,7 +79,6 @@ void possiblyChangetoChildren (int startIndex) {
 		tempEle = vector_get(struct ProtoElementPointer*, deconstructedProtoBody, yy);
 		if (tempEle->terminalSymbol == '{') bracketCount ++;
 		if (tempEle->terminalSymbol == '}') bracketCount --;
-printf ("at %d, tempEle %d bc %d\n",yy,tempEle->terminalSymbol,bracketCount);
 		yy++;
 		/* did we go beyond the last element? */
 		if (yy>protoElementCount) {
@@ -94,10 +99,7 @@ void tokenizeVRML1_(char *pb) {
 	vrmlFloatT tmpfloat;
 	vrmlStringT tmpstring;
 	struct ProtoElementPointer* ele;
-	struct ProtoElementPointer* tE;
-	struct ProtoElementPointer* tD;
 	int toPush;
-	int index; 	/* needs to go negative, so can not do indexT */
 	indexT ct = 0;
 
 	/* remove spaces at start of string, to help to see if string is empty */
@@ -123,8 +125,24 @@ void tokenizeVRML1_(char *pb) {
 			strcpy (tmpname,"VRML1_");
 			strcat (tmpname,lex->curID);
 			if ((ele->isKEYWORD = findFieldInVRML1_(tmpname)) == ID_UNDEFINED)  {
+				int i;
+					
+				/* is this one of the VRML1 keywords that must be quoted? */
+				ele->stringToken = NULL;
+				for (i=0; i<QUOTED_WORDS_COUNT; i++) {
+					if (!strcmp(lex->curID,quotedWords[i])) {
+						printf ("found qouted word :%s:\n",lex->curID);
+						ele->stringToken = MALLOC(strlen(quotedWords[i]) + 4);
+						strcpy(ele->stringToken,"\"");
+						strcat(ele->stringToken,lex->curID);
+						strcat(ele->stringToken,"\"");
+					}
+				}
+
+				if (ele->stringToken == NULL) {
 					ele->stringToken = lex->curID;
 					lex->curID = NULL;
+				}
 			} 
 			FREE_IF_NZ(lex->curID);
 		} else if (lexer_point(lex)) { ele->terminalSymbol = (indexT) '.';
@@ -140,12 +158,12 @@ void tokenizeVRML1_(char *pb) {
 			sprintf (ele->stringToken, "\"%s\"",tmpstring->strptr);
 		} else {
 			/* printf ("probably a number, scan along until it is done. :%s:\n",lex->nextIn); */
-			if ((*lex->nextIn == '-') || ((*lex->nextIn >= '0') && (*lex->nextIn <= '9'))) {
+			if ((*lex->nextIn == '.') ||(*lex->nextIn == '-') || ((*lex->nextIn >= '0') && (*lex->nextIn <= '9'))) {
 				uintptr_t ip; uintptr_t fp; char *cur;
 				int ignore;
 
 				/* see which of float, int32 gobbles up more of the string */
-				cur = lex->nextIn;
+				cur = (char *) lex->nextIn;
 
 				ignore = lexer_float(lex,&tmpfloat);
 				fp = (uintptr_t) lex->nextIn;
@@ -235,12 +253,10 @@ void tokenizeVRML1_(char *pb) {
 			} else if (ele->terminalSymbol == END_CHILDREN) {
                         	written += fprintf (fp," ]}	#child terminalSymbol\n");
 			} else {
-                        	written += fprintf (fp," %c 		#terminalSymbol\n",ele->terminalSymbol);
+                        	written += fprintf (fp," %c 		#terminalSymbol\n",(char) ele->terminalSymbol);
 			}
 		}
 
-                if (ele->fabricatedDef != -1) 
-                        written += fprintf ("fp, %d 		#def\n",ele->fabricatedDef);
 		i++;
 	}
 }
@@ -260,7 +276,8 @@ char *convert1To2 (char *inp) {
 		retval = MALLOC(written+10);
 		fread(retval,written,1,fp);
 		retval[written] = '\0';
-printf ("and have read back in :%s:\n",retval);
+
+/*printf ("and have read back in :%s:\n",retval); */
 		
 		fclose (fp);
 		return retval;
