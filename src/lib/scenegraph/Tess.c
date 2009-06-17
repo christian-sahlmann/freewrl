@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.5 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Tess.c,v 1.6 2009/06/17 13:22:54 crc_canada Exp $
 
 ???
 
@@ -23,6 +23,11 @@ $Id: Tess.c,v 1.5 2009/05/07 17:01:24 crc_canada Exp $
 typedef GLvoid (*_GLUfuncptr)(GLvoid);
 #endif
 
+
+/* from Doug Sanden - highaspirations - at - hotmail.com */
+#ifndef CALLBACK
+#define CALLBACK /* this is a null on POSIX, but wgl defines it */
+#endif
 
 
 /*********************************************************************
@@ -51,7 +56,7 @@ int global_IFS_Coord_count=0;
 /* and now all the callback functions, which will be called
 	by OpenGL automatically, if the Polygon is specified	*/
 
-void FW_tess_begin(GLenum e) {
+void CALLBACK FW_tess_begin(GLenum e) {
                /*printf(" FW_tess_begin   e = %s\n", (e == GL_TRIANGLES ? "GL_TRIANGLES" : "UNKNOWN")); */
 		/* we only should get GL_TRIANGLES as type, because
 		we defined  the edge_flag callback		*/
@@ -60,18 +65,18 @@ void FW_tess_begin(GLenum e) {
 		freewrlDie("Something went wrong while tessellating!");
 }
 
-void FW_tess_end(void) {
+void CALLBACK FW_tess_end(void) {
 	/*printf("FW_tess_end: Tesselation done.\n"); */
 	/* nothing to do	*/
 }
 
-void FW_tess_edgeflag(GLenum flag) {
+void CALLBACK FW_tess_edgeflag(GLenum flag) {
 	/*printf("FW_tess_edgeflag: An edge was done (flag = %d).\n", flag); */
 	/* nothing to do, this function has to be registered
 	so that only GL_TRIANGLES are used	*/
 }
 
-void FW_IFS_tess_vertex(void *p) {
+void CALLBACK FW_IFS_tess_vertex(void *p) {
 	int *dp=(int*)p;
 
 	if (global_IFS_Coord_count == TESS_MAX_COORDS) {
@@ -88,7 +93,7 @@ void FW_IFS_tess_vertex(void *p) {
 
 }
 
-void FW_tess_error(GLenum e) {
+void CALLBACK FW_tess_error(GLenum e) {
 	/* Prints out tesselation errors. Older versions of at least MESA would
 	 give errors, so for now at least, lets just ignore them.
 	 printf("FW_tess_error %d: >%s<\n",e,gluErrorString(e)); */
@@ -96,7 +101,7 @@ void FW_tess_error(GLenum e) {
 
 
 
-void FW_tess_combine_data (GLdouble c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
+void CALLBACK FW_tess_combine_data (GLdouble c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
 	GLdouble *nv = (GLdouble *) MALLOC(sizeof(GLdouble)*3);
 	/* printf("FW_tess_combine data\n"); 
 	 printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
@@ -139,7 +144,7 @@ void verify_global_IFS_Coords(int max) {
 	}
 }
 
-void FW_tess_combine (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
+void CALLBACK FW_tess_combine (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
 	GLdouble *nv = (GLdouble *) MALLOC(sizeof(GLdouble)*3);
 	/*printf("FW_tess_combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
 		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); */
