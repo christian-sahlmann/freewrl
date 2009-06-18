@@ -1595,20 +1595,20 @@ struct X3D_Virt virt_TriangleStripSet = { NULL,(void *)render_TriangleStripSet,N
 struct X3D_Virt virt_TwoSidedMaterial = { NULL,(void *)render_TwoSidedMaterial,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_AsciiText = { NULL,(void *)render_VRML1_AsciiText,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Cone = { NULL,(void *)render_VRML1_Cone,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Coordinate3 = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Coordinate3 = { NULL,(void *)render_VRML1_Coordinate3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Cube = { NULL,(void *)render_VRML1_Cube,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Cylinder = { NULL,(void *)render_VRML1_Cylinder,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_DirectionalLight = { NULL,(void *)render_VRML1_DirectionalLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_FontStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_FontStyle = { NULL,(void *)render_VRML1_FontStyle,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_IndexedFaceSet = { NULL,(void *)render_VRML1_IndexedFaceSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_IndexedLineSet = { NULL,(void *)render_VRML1_IndexedLineSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Info = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_LOD = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Material = { NULL,(void *)render_VRML1_Material,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_MaterialBinding = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_MatrixTransform = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Normal = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_NormalBinding = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_MaterialBinding = { NULL,(void *)render_VRML1_MaterialBinding,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_MatrixTransform = { NULL,(void *)render_VRML1_MatrixTransform,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Normal = { NULL,(void *)render_VRML1_Normal,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_NormalBinding = { NULL,(void *)render_VRML1_NormalBinding,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_OrthographicCamera = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_PerspectiveCamera = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_PointLight = { NULL,(void *)render_VRML1_PointLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -1616,13 +1616,13 @@ struct X3D_Virt virt_VRML1_PointSet = { NULL,(void *)render_VRML1_PointSet,NULL,
 struct X3D_Virt virt_VRML1_Rotation = { NULL,(void *)render_VRML1_Rotation,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Scale = { NULL,(void *)render_VRML1_Scale,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Separator = { (void *)prep_VRML1_Separator,NULL,(void *)child_VRML1_Separator,(void *)fin_VRML1_Separator,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_ShapeHints = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_ShapeHints = { NULL,(void *)render_VRML1_ShapeHints,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Sphere = { NULL,(void *)render_VRML1_Sphere,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_SpotLight = { NULL,(void *)render_VRML1_SpotLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Switch = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Texture2 = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_Texture2Transform = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_VRML1_TextureCoordinate2 = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Texture2 = { NULL,(void *)render_VRML1_Texture2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_Texture2Transform = { NULL,(void *)render_VRML1_Texture2Transform,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VRML1_TextureCoordinate2 = { NULL,(void *)render_VRML1_TextureCoordinate2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Transform = { NULL,(void *)render_VRML1_Transform,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_Translation = { NULL,(void *)render_VRML1_Translation,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_VRML1_WWWAnchor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -3779,7 +3779,7 @@ const int OFFSETS_VRML1_PointLight[] = {
 
 const int OFFSETS_VRML1_PointSet[] = {
 	FIELDNAMES_startIndex, offsetof (struct X3D_VRML1_PointSet, startIndex),  FIELDTYPE_SFInt32, KW_inputOutput,SPEC_VRML1,
-	FIELDNAMES_numPoints, offsetof (struct X3D_VRML1_PointSet, numPoints),  FIELDTYPE_MFInt32, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES_numPoints, offsetof (struct X3D_VRML1_PointSet, numPoints),  FIELDTYPE_SFInt32, KW_inputOutput,SPEC_VRML1,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_Rotation[] = {
@@ -7601,7 +7601,7 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_VRML1_PointSet *) tmp;
 			tmp2->v = &virt_VRML1_PointSet;
 			tmp2->startIndex = 0;
-			tmp2->numPoints.n=0; tmp2->numPoints.p=0;
+			tmp2->numPoints = -1;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -9941,8 +9941,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			struct X3D_VRML1_PointSet *tmp;
 			tmp = (struct X3D_VRML1_PointSet *) node;
 			spacer printf ("\tstartIndex (SFInt32) \t%d\n",tmp->startIndex);
-			spacer printf ("\tnumPoints (MFInt32):\n");
-			for (i=0; i<tmp->numPoints.n; i++) { spacer printf ("			%d: \t%d\n",i,tmp->numPoints.p[i]); }
+			spacer printf ("\tnumPoints (SFInt32) \t%d\n",tmp->numPoints);
 		break;}
 		case NODE_VRML1_Rotation : {
 			struct X3D_VRML1_Rotation *tmp;

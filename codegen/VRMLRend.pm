@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.13 2009/06/17 21:11:00 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.14 2009/06/18 20:27:02 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.14  2009/06/18 20:27:02  crc_canada
+# VRML1 code.
+#
 # Revision 1.13  2009/06/17 21:11:00  crc_canada
 # more VRML1 code.
 #
@@ -521,6 +524,16 @@
 	VRML1_DirectionalLight
 	VRML1_SpotLight
 	VRML1_PointLight
+	VRML1_Coordinate3
+	VRML1_FontStyle
+	VRML1_MaterialBinding
+	VRML1_Normal
+	VRML1_NormalBinding
+	VRML1_Texture2
+	VRML1_Texture2Transform
+	VRML1_TextureCoordinate2
+	VRML1_ShapeHints
+	VRML1_MatrixTransform
 /;
 
 #######################################################################

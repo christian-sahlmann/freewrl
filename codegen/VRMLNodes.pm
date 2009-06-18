@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.22 2009/06/17 21:11:00 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.23 2009/06/18 20:27:02 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2542,7 +2542,7 @@ package VRML::NodeType;
 
 	VRML1_PointSet => new VRML::NodeType("VRML1_PointSet", {
 		startIndex => [SFInt32, 0,inputOutput,"SPEC_VRML1"],
-		numPoints => [MFInt32,-1,inputOutput,"SPEC_VRML1"],
+		numPoints => [SFInt32,-1,inputOutput,"SPEC_VRML1"],
 	}, "X3DChildNode"),
 
 

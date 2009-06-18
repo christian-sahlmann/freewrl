@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.1 2009/06/17 21:12:07 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.2 2009/06/18 20:27:02 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -19,12 +19,18 @@ X3D VRML1 Component
 
 #include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../scenegraph/Vector.h"
+
 
 #include "LinearAlgebra.h"
 
 #define VRML1CHILDREN_COUNT int nc = node->VRML1children.n;
 
 #define DIVS 18
+
+#ifndef ID_UNDEFINED
+#define ID_UNDEFINED	((indexT)-1)
+#endif
 
 #ifdef M_PI
 #define PI M_PI
@@ -45,8 +51,152 @@ X3D VRML1 Component
 
 #define TC(a,b) glTexCoord2f(a,b)
 
+struct currentSLDPointer {
+	struct X3D_VRML1_Material *matNode;
+	struct X3D_VRML1_Coordinate3  *c3Node;
+	struct X3D_VRML1_FontStyle  *fsNode;
+	struct X3D_VRML1_MaterialBinding  *mbNode;
+	struct X3D_VRML1_Normal  *nNode;
+	struct X3D_VRML1_Texture2  *t2Node;
+	struct X3D_VRML1_Texture2Transform  *t2tNode;
+	struct X3D_VRML1_TextureCoordinate2  *tc2Node;
+	struct X3D_VRML1_ShapeHints  *shNode;
+};
+
+static struct Vector *separatorVector = NULL;
+static indexT separatorLevel = ID_UNDEFINED;
+static struct currentSLDPointer *cSLD = NULL;
+
+static struct currentSLDPointer *new_cSLD(void) {
+	struct currentSLDPointer *retval = MALLOC (sizeof (struct currentSLDPointer));
+	retval->matNode = NULL;
+	return retval;
+}
+
+#define MAX_STACK_LEVELS 32
+#define GET_cSLD \
+	/* bounds check this vector array - if it is off, it is a user input problem */ \
+	if (separatorLevel <0) separatorLevel=0; \
+	if (separatorLevel >=MAX_STACK_LEVELS) separatorLevel=MAX_STACK_LEVELS; \
+	cSLD = vector_get(struct currentSLDPointer*, separatorVector, separatorLevel);
+
+#define CLEAN_cSLD \
+	{ \
+	cSLD->matNode = NULL; \
+	cSLD->c3Node = NULL; \
+	cSLD->t2Node = NULL; \
+        cSLD->fsNode = NULL; \
+        cSLD->mbNode = NULL; \
+        cSLD->nNode = NULL; \
+        cSLD->mbNode = NULL; \
+        cSLD->t2tNode = NULL; \
+        cSLD->tc2Node = NULL; \
+        cSLD->shNode = NULL; \
+	}
+
+/* if the user wants to change materials for IndexedLineSets, IndexedFaceSets or PointSets */
+/* this is just like render_VRML1_Material, except that it allows different indexes */
+static void renderSpecificMaterial (int ind) {
+	int i;
+	float dcol[4];
+	float ecol[4];
+	float scol[4];
+	float trans=1.0;
+	struct X3D_VRML1_Material *node;
+
+	if (cSLD == NULL) return;
+	if (cSLD->matNode == NULL) return;
+	node = cSLD->matNode;
+
+	#define whichFace GL_FRONT_AND_BACK
+
+	/* set the transparency here for the material */
+	if(node->transparency.n>ind)
+	trans = 1.0 - node->transparency.p[ind];
+
+	if (trans<0.0) trans = 0.0;
+	if (trans>=0.999999) trans = 0.9999999;
+	global_transparency = trans;
+
+	dcol[3] = trans;
+	scol[3] = trans;
+	ecol[3] = trans;
+
+	if (node->diffuseColor.n>ind)  {
+		for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.p[ind].c[i]; }		
+	} else {
+		for (i=0; i<3;i++){ dcol[i] = 0.8; }		
+	}
+	do_glMaterialfv(whichFace, GL_DIFFUSE, dcol);
+
+	if (node->ambientColor.n>ind)  {
+		for (i=0; i<3;i++){ dcol[i] *= node->ambientColor.p[ind].c[i]; }		
+	} else {
+		for (i=0; i<3;i++){ dcol[i] *= 0.2; }		
+	}
+	do_glMaterialfv(whichFace, GL_AMBIENT, dcol);
+
+	if (node->specularColor.n>ind)  {
+		for (i=0; i<3;i++){ scol[i] = node->specularColor.p[ind].c[i]; }		
+	} else {
+		for (i=0; i<3;i++){ scol[i] = 0.0; }		
+	}
+	do_glMaterialfv(whichFace, GL_SPECULAR, scol);
+		\
+	if (node->emissiveColor.n>ind)  {
+		for (i=0; i<3;i++){ ecol[i] = node->emissiveColor.p[ind].c[i]; }		
+	} else {
+		for (i=0; i<3;i++){ ecol[i] = 0.0; }		
+	}
+
+	do_glMaterialfv(whichFace, GL_EMISSION, ecol);
+	
+	if (node->shininess.n>ind)
+	do_shininess(whichFace,node->shininess.p[ind]);
+}
+
+/* do transforms, calculate the distance */
+void prep_VRML1_Separator (struct X3D_VRML1_Separator *node) {
+	/* printf ("prepSep %u\n",node); */
+
+	/* lets push on to the stack... */
+	separatorLevel++;
+	/* do we need to create a new vector stack? */
+	if (separatorVector == NULL) {
+		indexT i;
+		/* printf ("creating new vector list\n"); */
+		separatorVector = newVector (struct currentSLDPointer*, MAX_STACK_LEVELS);
+		ASSERT(separatorVector);
+		for (i=0; i<MAX_STACK_LEVELS; i++) {
+			cSLD = new_cSLD();
+			vector_pushBack(struct currentSLDPointer*, separatorVector, cSLD);
+		} 
+	}
+	/* printf ("prep - getting level %d\n",separatorLevel); */
+	GET_cSLD;
+	CLEAN_cSLD;
+	FW_GL_PUSH_MATRIX();
+}
+
+
+void fin_VRML1_Separator (struct X3D_VRML1_Separator *node) {
+	/* printf ("finSep %u\n",node); */
+	FW_GL_POP_MATRIX();
+	separatorLevel--;
+	if (separatorLevel == ID_UNDEFINED) {
+		/* printf ("CLEAN UP SEP STACK\n"); */
+	} else {
+		/* printf ("getting seplevel %d\n",separatorLevel); */
+		GET_cSLD;
+	}
+
+	/* any simple uses for material, re-do material node */
+	if (cSLD->matNode != NULL) {
+		render_VRML1_Material(cSLD->matNode);
+	}
+} 
+
 void child_VRML1_Separator (struct X3D_VRML1_Separator *node) { 
-/*	VRML1CHILDREN_COUNT */
 	LOCAL_LIGHT_SAVE
 
 	/* printf ("vhild_sep %u, vp %d geom %d light %d sens %d blend %d prox %d col %d\n",node,
@@ -64,23 +214,7 @@ void child_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 	normalChildren(node->VRML1children);
 
 	LOCAL_LIGHT_OFF
-
-
 }
-
-/* do transforms, calculate the distance */
-void prep_VRML1_Separator (struct X3D_VRML1_Separator *node) {
-	/* printf ("prepSep %u\n",node); */
-	FW_GL_PUSH_MATRIX();
-	/* FW_GL_LOAD_IDENTITY(); */
-	
-}
-
-
-void fin_VRML1_Separator (struct X3D_VRML1_Separator *node) {
-	/* printf ("finSep %u\n",node); */
-	FW_GL_POP_MATRIX();
-} 
 
 
 void render_VRML1_Cone (struct X3D_VRML1_Cone *node) {
@@ -375,6 +509,10 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 
 	#define whichFace GL_FRONT_AND_BACK
 
+	/* save this node pointer */
+	if (cSLD!=NULL) cSLD->matNode = node;
+
+
 	/* set the transparency here for the material */
 	if(node->transparency.n>0)
 	trans = 1.0 - node->transparency.p[0];
@@ -549,11 +687,199 @@ void render_VRML1_SpotLight (struct X3D_VRML1_SpotLight *node) {
 			glLightf(light, GL_SPOT_CUTOFF, ft);
 		}
 	}
-
-
 }
 
+void render_VRML1_Coordinate3 (struct X3D_VRML1_Coordinate3  *node) {
+	/* save this node pointer */
+	if (cSLD!=NULL) cSLD->c3Node = node;
+}
+
+void render_VRML1_FontStyle (struct X3D_VRML1_FontStyle  *node) {
+	/* save this node pointer */
+	if (cSLD!=NULL) cSLD->fsNode = node;
+}
+
+void render_VRML1_MaterialBinding (struct X3D_VRML1_MaterialBinding  *node) {
+	/* save this node pointer */
+	if (cSLD!=NULL) cSLD->mbNode = node;
+}
+
+void render_VRML1_Normal (struct X3D_VRML1_Normal  *node) {
+	/* save this node pointer */
+	if (cSLD!=NULL) cSLD->nNode = node;
+}
+
+void render_VRML1_NormalBinding (struct X3D_VRML1_NormalBinding  *node) {
+	/* save this node pointer */
+	if (cSLD!=NULL) cSLD->mbNode = node;
+}
+
+void render_VRML1_Texture2 (struct X3D_VRML1_Texture2  *node) {
+	/* save this node pointer */
+	if (cSLD!=NULL) cSLD->t2Node = node;
+}
+
+void render_VRML1_Texture2Transform (struct X3D_VRML1_Texture2Transform  *node) {
+	/* save this node pointer */
+	if (cSLD!=NULL) cSLD->t2tNode = node;
+}
+
+void render_VRML1_TextureCoordinate2 (struct X3D_VRML1_TextureCoordinate2  *node) {
+	/* save this node pointer */
+	if (cSLD!=NULL) cSLD->tc2Node = node;
+}
+
+void render_VRML1_ShapeHints (struct X3D_VRML1_ShapeHints  *node) {
+	/* save this node pointer */
+	if (cSLD!=NULL) cSLD->shNode = node;
+}
+
+void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
+        int i;
+        struct SFColor *points; int npoints=0;
+	int renderMatOver = FALSE;
+/*glLineWidth(node->linewidthScaleFactor);
+                        glPointSize(node->linewidthScaleFactor);
+*/
+	glPointSize (2);
+
+        if(cSLD->c3Node) {
+		points =  cSLD->c3Node->point.p;
+		npoints = cSLD->c3Node->point.n;
+	}
+		
+	if (cSLD->mbNode != NULL) {
+		if ((strcmp(cSLD->mbNode->value->strptr,"OVERALL")!=NULL) &&
+		(strcmp(cSLD->mbNode->value->strptr,"DEFAULT")!=NULL)) {
+			renderMatOver = TRUE;
+		}
+	}
+
+	/* do we have enough points? */
+	if (npoints < (this->startIndex - this->numPoints)) { 
+		printf ("PointSet Error, npoints %d, startIndex %d, numPoints %d, not enough...\n",
+				npoints, this->startIndex, this->numPoints);
+		this->numPoints = -1;
+	}
+
+        glBegin(GL_POINTS);
+        for(i=this->startIndex; i<this->numPoints; i++) {
+		if (renderMatOver) renderSpecificMaterial (i);
+                glVertex3f(
+                        points[i].c[0],
+                        points[i].c[1],
+                        points[i].c[2]
+                );
+        }
+        glEnd();
+}
+
+#define DO_OVERALL 0
+#define DO_FACE 1
+#define DO_VERTEX 2
+#define DO_FACE_INDEXED 3
+#define DO_VERTEX_INDEXED 4
+#define DO_PART 5
+#define DO_PART_INDEXED 6
+
 void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *this) {}
-void render_VRML1_IndexedLineSet (struct X3D_VRML1_IndexedLineSet *this) {}
-void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {}
+
+void render_VRML1_IndexedLineSet (struct X3D_VRML1_IndexedLineSet *node) {
+        int cin = node->coordIndex.n;
+	int ind;
+	int i;
+        struct SFColor *points; int npoints=0;
+	int renderMatOver = DO_OVERALL;
+	int doMat = 0;
+
+	glLineWidth(2);
+
+        if(cSLD->c3Node) {
+		points =  cSLD->c3Node->point.p;
+		npoints = cSLD->c3Node->point.n;
+	}
+		
+	if (cSLD->mbNode != NULL) {
+		if ((strcmp(cSLD->mbNode->value->strptr,"OVERALL")!=NULL) &&
+		(strcmp(cSLD->mbNode->value->strptr,"DEFAULT")!=NULL)) {
+			renderMatOver = DO_OVERALL;
+		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_PART_INDEXED")) {
+			renderMatOver = DO_PART_INDEXED;
+		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_PART")){
+			renderMatOver = DO_PART;
+		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_FACE_INDEXED")) {
+			renderMatOver = DO_FACE_INDEXED;
+		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_FACE")){
+			renderMatOver = DO_FACE;
+		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_VERTEX_INDEXED")) {
+			renderMatOver = DO_VERTEX_INDEXED;
+		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_VERTEX")){
+			renderMatOver = DO_VERTEX;
+		}
+	}
+	
+	glBegin(GL_LINE_STRIP);
+	for(i=0; i<cin; i++) {
+		if (i<node->coordIndex.n) ind = node->coordIndex.p[i];
+		else {
+			printf ("IndexedLineSet, index> avail coords\n");
+			node->coordIndex.n = 0;
+			glEnd();
+			return;
+		}
+		if(ind==-1) {
+			glEnd();
+#ifdef xx
+			plno++;
+			if(ncolors && !cpv) {
+				c = plno;
+				if((!colin && plno < ncolors) ||
+				   (colin && plno < colin)) {
+					if(colin) {
+						c = ((this_->colorIndex).p[c]);
+					}
+					glColor3f(colors[c].c[0],
+						  colors[c].c[1],
+						  colors[c].c[2]);
+				}
+			}
+#endif
+			glBegin(GL_LINE_STRIP);
+		} else {
+#ifdef xx
+			if(ncolors && cpv) {
+				c = i;
+				if(colin) {
+					c = ((this_->colorIndex).p[c]);
+				}
+				glColor3f(colors[c].c[0],
+					  colors[c].c[1],
+					  colors[c].c[2]);
+			}
+			/* printf("Line: vertex %f %f %f\n",
+				points[ind].c[0],
+				points[ind].c[1],
+				points[ind].c[2]
+			);
+			*/
+#endif
+			glVertex3f(
+				points[ind].c[0],
+				points[ind].c[1],
+				points[ind].c[2]
+			);
+		}
+	}
+	glEnd();
+}
+
+
+
 void render_VRML1_AsciiText (struct X3D_VRML1_AsciiText *this) {}
+void render_VRML1_MatrixTransform (struct X3D_VRML1_MatrixTransform  *node) {}
+void render_VRML1_Switch (struct X3D_VRML1_Switch  *node) {}
+void render_VRML1_WWWAnchor (struct X3D_VRML1_WWWAnchor  *node) {}
+void render_VRML1_LOD (struct X3D_VRML1_LOD  *node) {}
+void render_VRML1_OrthographicCamera (struct X3D_VRML1_OrthographicCamera  *node) {}
+void render_VRML1_PerspectiveCamera (struct X3D_VRML1_PerspectiveCamera  *node) {}
+void render_VRML1_WWWInline (struct X3D_VRML1_WWWInline  *node) {}

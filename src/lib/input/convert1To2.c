@@ -145,7 +145,9 @@ void tokenizeVRML1_(char *pb) {
 				}
 			} 
 			FREE_IF_NZ(lex->curID);
-		} else if (lexer_point(lex)) { ele->terminalSymbol = (indexT) '.';
+		/* period not reserved in VRML1, and numbers can start with a period....
+			} else if (lexer_point(lex)) { ele->terminalSymbol = (indexT) '.'; */
+
 		} else if (lexer_openCurly(lex)) { ele->terminalSymbol = (indexT) '{';
 		} else if (lexer_closeCurly(lex)) { ele->terminalSymbol = (indexT) '}';
 		} else if (lexer_openSquare(lex)) { ele->terminalSymbol = (indexT) '[';
@@ -265,6 +267,19 @@ void tokenizeVRML1_(char *pb) {
 
 char *convert1To2 (char *inp) {
 	char *retval = NULL;
+	char *tptr;
+	
+
+	/* sanitize input */
+	tptr = inp;
+	while (*tptr != '\0') {
+		if ((*tptr < 0) || (*tptr > (char) 0x7d)) {
+			printf ("found a char of %x\n",*tptr);
+			*tptr = ' ';
+		}
+	tptr ++;
+	}
+	retval = NULL;
 
 	sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
 	fp= fopen (tempname,"w");
@@ -277,7 +292,7 @@ char *convert1To2 (char *inp) {
 		fread(retval,written,1,fp);
 		retval[written] = '\0';
 
-/*printf ("and have read back in :%s:\n",retval); */
+printf ("and have read back in :%s:\n",retval); 
 		
 		fclose (fp);
 		return retval;

@@ -8,14 +8,14 @@ Priority list
 		VRML1_Cube 			(DONE)
 		VRML1_Cylinder 			(DONE)
 		VRML1_IndexedFaceSet
-		VRML1_IndexedLineSet
-		VRML1_PointSet
+		VRML1_IndexedLineSet		(started)
+		VRML1_PointSet			(DONE)
 		VRML1_Sphere 			(DONE)
-		VRML1_Coordinate3
+		VRML1_Coordinate3		(DONE)
 		VRML1_FontStyle
-		VRML1_Info
-		VRML1_Material			(DONE) (only uses first material)
-		VRML1_MaterialBinding
+		VRML1_Info			(DONE)
+		VRML1_Material			(DONE)
+		VRML1_MaterialBinding		(DONE)
 		VRML1_Normal
 		VRML1_NormalBinding
 		VRML1_Texture2
