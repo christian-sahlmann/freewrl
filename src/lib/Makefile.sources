@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.17 2009/06/08 11:46:08 couannette Exp $
+# $Id: Makefile.sources,v 1.18 2009/06/19 20:12:38 couannette Exp $
 #
 # List all source files
 #
@@ -132,6 +132,7 @@ scenegraph/Component_Networking.h \
 scenegraph/Component_PointingDevice.c \
 scenegraph/statics.c \
 scenegraph/GenPolyRep.c \
+scenegraph/Component_VRML1.c \
  \
 input/EAI_C_CommonFunctions.c \
 input/EAIEventsIn.c \
@@ -143,6 +144,7 @@ input/EAIServ.c \
 input/InputFunctions.c \
 input/SensInterps.c \
 input/SensInterps.h \
+input/convert1To2.c \
  \
 opengl/RenderTextures.c \
 opengl/Textures.h \
