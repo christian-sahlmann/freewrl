@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.11 2009/05/07 17:01:24 crc_canada Exp $
+$Id: SensInterps.c,v 1.12 2009/06/19 17:31:04 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -691,12 +691,11 @@ void do_Oint4 (void *node) {
 	int kin, kvin;
 	struct SFRotation *kVs;
 	int counter;
-	int tmp;
-	float testangle;	/* temporary variable 	*/
-	float oldangle;		/* keyValue where we are moving from */
-	float newangle;		/* keyValue where we are moving to */
 	float interval;		/* where we are between 2 values */
 	int stzero, endzero;	/* starting and/or ending angles zero? */
+
+	Quaternion st, fin, final;
+	double x,y,z,a;
 
 	if (!node) return;
 	px = (struct X3D_OrientationInterpolator *) node;
@@ -735,10 +734,10 @@ void do_Oint4 (void *node) {
 		interval = (px->set_fraction - px->key.p[counter-1]) /
 				(px->key.p[counter] - px->key.p[counter-1]);
 
+		
 		/* are either the starting or ending angles zero? */
 		stzero = APPROX(kVs[counter-1].c[3],0.0);
 		endzero = APPROX(kVs[counter].c[3],0.0);
-
 		#ifdef SEVERBOSE
 			printf ("counter %d interval %f\n",counter,interval);
 			printf ("angles %f %f %f %f, %f %f %f %f\n",
@@ -751,84 +750,18 @@ void do_Oint4 (void *node) {
 				kVs[counter].c[2],
 				kVs[counter].c[3]);
 		#endif
+		vrmlrot_to_quaternion (&st, kVs[counter-1].c[0],
+                                kVs[counter-1].c[1], kVs[counter-1].c[2], kVs[counter-1].c[3]);
+		vrmlrot_to_quaternion (&fin,kVs[counter].c[0],
+                                kVs[counter].c[1], kVs[counter].c[2], kVs[counter].c[3]);
 
-		/* are there any -1s in there? */
-		testangle = 0.0;
-		for (tmp=0; tmp<3; tmp++) {
-			testangle+= kVs[counter].c[tmp]*kVs[counter-1].c[tmp];
-		}
+		quaternion_slerp(&final, &st, &fin, (double)interval);
+		quaternion_to_vrmlrot(&final,&x, &y, &z, &a);
+		px->value_changed.c[0] = (float) x;
+		px->value_changed.c[1] = (float) y;
+		px->value_changed.c[2] = (float) z;
+		px->value_changed.c[3] = (float) a;
 
-		/* do the angles */
-		if (testangle >= 0.0) {
-			for (tmp=0; tmp<3; tmp++) {
-				px->value_changed.c[tmp] = kVs[counter-1].c[tmp]  +
-					interval * (kVs[counter].c[tmp] -
-						kVs[counter-1].c[tmp]);
-			}
-			 newangle = kVs[counter].c[3];
-		} else {
-			for (tmp=0; tmp<3; tmp++) {
-				px->value_changed.c[tmp] = kVs[counter-1].c[tmp]  +
-					interval * (-kVs[counter].c[tmp] -
-						kVs[counter-1].c[tmp]);
-			}
-			newangle = -kVs[counter].c[3];
-		}
-		oldangle = kVs[counter-1].c[3];
-		testangle = newangle-oldangle;
-		/* printf ("newangle %f oldangle %f testangle %f\n",*/
-		/* 		newangle,oldangle, testangle);*/
-
-		/* make it so we smoothly transition */
-		if (fabs(testangle) > PI) {
-			if (fabs(testangle) > (PI*2)) {
-				if (testangle>0.0) { oldangle += PI*4;
-				} else { newangle += PI*4; }
-			} else {
-				if (testangle>0.0) { oldangle += PI*2;
-				} else { newangle += PI*2; }
-			}
-			/* printf ("NOW newangle %f oldangle %f testangle %f\n",*/
-				/* 	newangle,oldangle, testangle);*/
-
-		}
-
-		/* ok, now, some people write rotations like 0 0 1 0, 1 0 0 0.3
-		 * meaning that the first is "zero". We should not interpret
-		 * the axes between these, only the angles */
-
-		if (stzero || endzero) {
-			/* printf ("have zero angle somewhere...\n");*/
-			if (stzero) {
-				/* starting angle zero, use the next axis */
-				for (tmp = 0; tmp <= 2; tmp++) {
-					px->value_changed.c[tmp] =
-						kVs[counter].c[tmp];
-				}
-			} else {
-				/* ending angle zero, use the first axis */
-				for (tmp = 0; tmp <= 2; tmp++) {
-					px->value_changed.c[tmp] =
-						kVs[counter-1].c[tmp];
-				}
-			}
-			/* printf ("axis now %f %f %f\n",px->value_changed.c[0],*/
-			/* 		px->value_changed.c[1],*/
-			/* 		px->value_changed.c[2]);*/
-		}
-
-
-		/* now that we have angles straight (hah!) bounds check result */
-		newangle = oldangle + interval*(newangle-oldangle);
-		if (newangle> PI*2) {
-			newangle -= PI*2;
-		} else {
-			if (newangle<PI*2) {
-				newangle += PI*2;
-			}
-		}
-
-		px->value_changed.c[3]=newangle;
 		#ifdef SEVERBOSE
 		printf ("Oint, new angle %f %f %f %f\n",px->value_changed.c[0],
 			px->value_changed.c[1],px->value_changed.c[2], px->value_changed.c[3]);
@@ -846,7 +779,6 @@ void do_CollisionTick( void *ptr) {
                 MARK_EVENT (ptr, offsetof(struct X3D_Collision, collideTime));
         }
 }
-
 
 
 /* Audio AudioClip sensor code */
