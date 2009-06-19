@@ -34,6 +34,7 @@ static int written = 0;
   return findFieldInARR(field, arr, arr##_COUNT); \
  }
 DEF_FINDFIELD(VRML1_)
+DEF_FINDFIELD(VRML1Modifier)
 
 static struct ProtoElementPointer* newProtoElementPointer(void) {
         struct ProtoElementPointer *ret=MALLOC(sizeof(struct ProtoElementPointer));
@@ -47,15 +48,9 @@ static struct ProtoElementPointer* newProtoElementPointer(void) {
         return ret;
 }
 
+/* special marker for redefine the terminal symbol from "{" to "{children["... */
 #define START_CHILDREN 300
 #define END_CHILDREN 400
-
-static char *quotedWords[] = { "SIDES", "BOTTOM ", "ALL", "TOP", "LEFT", "CENTER", "RIGHT", "SERIF",
-	"SANS", "TYPEWRITER", "NONE", "BOLD", "ITALIC", "DEFAULT", "OVERALL", "PER_PART", "PER_PART_INDEXED",
-	"PER_FACE", "PER_FACE_INDEXED", "PER_VERTEX", "PER_VERTEX_INDEXED", "ON", "OFF", "AUTO", "UNKNOWN_SHAPE_TYPE",
-	"CLOCKWISE", "COUNTERCLOCKWISE", "SOLID", "UNKNOWN_ORDERING", "UNKNOWN_FACE_TYPE", "CONVEX", "REPEAT", "CLAMP",
-	"NONE", "POINT"}; 
-#define QUOTED_WORDS_COUNT 35
 
 /* go through the remainder of the fields, and, if we have a "{ "}" pair, change it to a "{children[...]}" pair */
 static void possiblyChangetoChildren (int startIndex) {
@@ -124,22 +119,17 @@ void tokenizeVRML1_(char *pb) {
 			char tmpname[1000];
 			strcpy (tmpname,"VRML1_");
 			strcat (tmpname,lex->curID);
-			if ((ele->isKEYWORD = findFieldInVRML1_(tmpname)) == ID_UNDEFINED)  {
-				int i;
+			if ((ele->isKEYWORD = (indexT) findFieldInVRML1_(tmpname)) == ID_UNDEFINED)  {
+				indexT i;
 					
 				/* is this one of the VRML1 keywords that must be quoted? */
-				ele->stringToken = NULL;
-				for (i=0; i<QUOTED_WORDS_COUNT; i++) {
-					if (!strcmp(lex->curID,quotedWords[i])) {
-						printf ("found qouted word :%s:\n",lex->curID);
-						ele->stringToken = MALLOC(strlen(quotedWords[i]) + 4);
-						strcpy(ele->stringToken,"\"");
-						strcat(ele->stringToken,lex->curID);
-						strcat(ele->stringToken,"\"");
-					}
-				}
-
-				if (ele->stringToken == NULL) {
+				i = findFieldInVRML1Modifier(lex->curID);
+				if (i != ID_UNDEFINED) {
+					ele->stringToken = MALLOC(strlen(lex->curID) + 4);
+					strcpy(ele->stringToken,"\"");
+					strcat(ele->stringToken,lex->curID);
+					strcat(ele->stringToken,"\"");
+				} else {
 					ele->stringToken = lex->curID;
 					lex->curID = NULL;
 				}

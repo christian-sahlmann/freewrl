@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.14 2009/06/18 20:27:02 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.15 2009/06/19 16:21:44 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.15  2009/06/19 16:21:44  crc_canada
+# VRML1 work.
+#
 # Revision 1.14  2009/06/18 20:27:02  crc_canada
 # VRML1 code.
 #
@@ -1044,6 +1047,44 @@
 	Interactive
 	Interchange
 	MPEG-4
+/;
+
+%VRML1ModifierC = map {($_=>1)} qw/
+	SIDES 
+	BOTTOM  
+	ALL 
+	TOP 
+	LEFT 
+	CENTER 
+	RIGHT 
+	SERIF
+	SANS 
+	TYPEWRITER 
+	NONE 
+	BOLD 
+	ITALIC 
+	DEFAULT 
+	OVERALL 
+	PER_PART 
+	PER_PART_INDEXED
+	PER_FACE 
+	PER_FACE_INDEXED 
+	PER_VERTEX 
+	PER_VERTEX_INDEXED 
+	ON 
+	OFF 
+	AUTO 
+	UNKNOWN_SHAPE_TYPE
+	CLOCKWISE 
+	COUNTERCLOCKWISE 
+	SOLID 
+	UNKNOWN_ORDERING 
+	UNKNOWN_FACE_TYPE 
+	CONVEX 
+	REPEAT 
+	CLAMP
+	NONE 
+	POINT
 /;
 
 #######################################################################

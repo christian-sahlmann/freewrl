@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.2 2009/06/18 20:27:02 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.3 2009/06/19 16:21:44 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -51,11 +51,14 @@ X3D VRML1 Component
 
 #define TC(a,b) glTexCoord2f(a,b)
 
+extern int findFieldInVRML1Modifier(const char*);	/* defined in convert1to2.c */
+
 struct currentSLDPointer {
 	struct X3D_VRML1_Material *matNode;
 	struct X3D_VRML1_Coordinate3  *c3Node;
 	struct X3D_VRML1_FontStyle  *fsNode;
 	struct X3D_VRML1_MaterialBinding  *mbNode;
+	struct X3D_VRML1_NormalBinding  *nbNode;
 	struct X3D_VRML1_Normal  *nNode;
 	struct X3D_VRML1_Texture2  *t2Node;
 	struct X3D_VRML1_Texture2Transform  *t2tNode;
@@ -73,6 +76,7 @@ static struct currentSLDPointer *new_cSLD(void) {
 	return retval;
 }
 
+
 #define MAX_STACK_LEVELS 32
 #define GET_cSLD \
 	/* bounds check this vector array - if it is off, it is a user input problem */ \
@@ -86,7 +90,7 @@ static struct currentSLDPointer *new_cSLD(void) {
 	cSLD->c3Node = NULL; \
 	cSLD->t2Node = NULL; \
         cSLD->fsNode = NULL; \
-        cSLD->mbNode = NULL; \
+        cSLD->nbNode = NULL; \
         cSLD->nNode = NULL; \
         cSLD->mbNode = NULL; \
         cSLD->t2tNode = NULL; \
@@ -700,6 +704,11 @@ void render_VRML1_FontStyle (struct X3D_VRML1_FontStyle  *node) {
 }
 
 void render_VRML1_MaterialBinding (struct X3D_VRML1_MaterialBinding  *node) {
+	if (!node->_initialized) {
+		node->_Value = findFieldInVRML1Modifier(node->value->strptr);
+		node->_initialized = TRUE;
+	}
+
 	/* save this node pointer */
 	if (cSLD!=NULL) cSLD->mbNode = node;
 }
@@ -710,8 +719,12 @@ void render_VRML1_Normal (struct X3D_VRML1_Normal  *node) {
 }
 
 void render_VRML1_NormalBinding (struct X3D_VRML1_NormalBinding  *node) {
+	if (!node->_initialized) {
+		node->_Value = findFieldInVRML1Modifier(node->value->strptr);
+		node->_initialized = TRUE;
+	}
 	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->mbNode = node;
+	if (cSLD!=NULL) cSLD->nbNode = node;
 }
 
 void render_VRML1_Texture2 (struct X3D_VRML1_Texture2  *node) {
@@ -749,10 +762,7 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
 	}
 		
 	if (cSLD->mbNode != NULL) {
-		if ((strcmp(cSLD->mbNode->value->strptr,"OVERALL")!=NULL) &&
-		(strcmp(cSLD->mbNode->value->strptr,"DEFAULT")!=NULL)) {
-			renderMatOver = TRUE;
-		}
+		renderMatOver = !((cSLD->mbNode->_Value==VRML1MOD_OVERALL) || (cSLD->mbNode->_Value==VRML1MOD_DEFAULT));
 	}
 
 	/* do we have enough points? */
@@ -774,22 +784,187 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
         glEnd();
 }
 
-#define DO_OVERALL 0
-#define DO_FACE 1
-#define DO_VERTEX 2
-#define DO_FACE_INDEXED 3
-#define DO_VERTEX_INDEXED 4
-#define DO_PART 5
-#define DO_PART_INDEXED 6
+void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *this) {
 
-void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *this) {}
+#ifdef OLDCODE
+void render_polyrep(void *node, 
+	int npoints, struct SFColor *points,
+	int ncolors, struct SFColor *colors,
+	int nnormals, struct SFColor *normals)
+{
+	struct VRML_Virt *v;
+	struct VRML_Box *p;
+	struct VRML_PolyRep *r;
+	int i;
+	int pt;
+	int pti;
+	int hasc;
+	v = *(struct VRML_Virt **)node;
+	p = node;
+	r = p->_intern;
+/*	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
+		p->_change, r->_change, r->ntri);
+ */
+	hasc = (ncolors || r->color);
+	if(hasc) {
+		glEnable(GL_COLOR_MATERIAL);
+	}
+	glBegin(GL_TRIANGLES);
+	for(i=0; i<r->ntri*3; i++) {
+		int nori = i;
+		int coli = i;
+		int ind = r->cindex[i];
+		GLfloat color[4];
+		if(r->norindex) {nori = r->norindex[i];}
+		else nori = ind;
+		if(r->colindex) {coli = r->colindex[i];}
+		else coli = ind;
+		if(nnormals) {
+			if(nori >= nnormals) {
+				warn("Too large normal index -- help??");
+			}
+			glNormal3fv(normals[nori].c);
+		} else if(r->normal) {
+			glNormal3fv(r->normal+3*nori);
+		}
+		if(hasc) {
+			if(ncolors) {
+				/* ColorMaterial -> these set Material too */
+				glColor3fv(colors[coli].c);
+			} else if(r->color) {
+				glColor3fv(r->color+3*coli);
+			}
+		}
+		if(points) {
+			glVertex3fv(points[ind].c);
+		} else if(r->coord) {
+			glVertex3fv(r->coord+3*ind);
+		}
+	}
+	glEnd();
+	if(hasc) {
+		glDisable(GL_COLOR_MATERIAL);
+	}
+}
+
+
+void IndexedFaceSet_GenPolyRep(void *nod_){ /* GENERATED FROM HASH GenPolyRepC, MEMBER IndexedFaceSet */
+			struct VRML_IndexedFaceSet *this_ = (struct VRML_IndexedFaceSet *)nod_;
+			{
+	int i;
+	int cin = ((this_->coordIndex).n);
+	int cpv = ((this_->colorPerVertex));
+	/* int npv = xf(normalPerVertex); */
+	int ntri = 0;
+	int nvert = 0;
+	struct SFColor *c1,*c2,*c3;
+	float a[3]; float b[3];
+	struct SFColor *points; int npoints;
+	struct SFColor *normals; int nnormals=0;
+	struct VRML_PolyRep *rep_ = this_->_intern;
+	int *cindex;
+	if(this_->coord) {
+		  if(!(*(struct VRML_Virt **)(this_->coord))-> get3) {
+		  	die("NULL METHOD IndexedFaceSet coord  get3");
+		  }
+		   points =  ((*(struct VRML_Virt **)(this_->coord))-> get3(this_->coord,
+		     &npoints)) ;}
+ 	  else { (die("NULL FIELD IndexedFaceSet coord "));};
+	if(this_->normal) {
+		  if(!(*(struct VRML_Virt **)(this_->normal))-> get3) {
+		  	die("NULL METHOD IndexedFaceSet normal  get3");
+		  }
+		   normals =  ((*(struct VRML_Virt **)(this_->normal))-> get3(this_->normal,
+		     &nnormals)) ;
+		};
+	
+	for(i=0; i<cin; i++) {
+		if(((this_->coordIndex).p[i]) == -1) {
+			if(nvert < 3) {
+				die("Too few vertices in indexedfaceset poly");
+			}
+			ntri += nvert-2;
+			nvert = 0;
+		} else {
+			nvert ++;
+		}
+	}
+	if(nvert>2) {ntri += nvert-2;}
+	cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
+	rep_->ntri = ntri;
+	if(!nnormals) {
+		/* We have to generate -- do flat only for now */
+		rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri);
+		rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
+	} else {
+		rep_->normal = NULL;
+		rep_->norindex = NULL;
+	}
+	/* color = NULL; coord = NULL; normal = NULL;
+		colindex = NULL; norindex = NULL;
+	*/
+	if(!((this_->convex))) {
+		die("AAAAARGHHH!!!  Non-convex polygons! Help!");
+		/* XXX Fixme using gluNewTess, gluTessVertex et al */
+	} else {
+		int initind=-1;
+		int lastind=-1;
+		int triind = 0;
+		for(i=0; i<cin; i++) {
+			if(((this_->coordIndex).p[i]) == -1) {
+				initind=-1;
+				lastind=-1;
+			} else {
+				if(initind == -1) {
+					initind = ((this_->coordIndex).p[i]);
+				} else if(lastind == -1) {
+					lastind = ((this_->coordIndex).p[i]);
+				} else {
+					
+					cindex[triind*3+0] = initind;
+					cindex[triind*3+1] = lastind;
+					cindex[triind*3+2] = ((this_->coordIndex).p[i]);
+					if(rep_->normal) {
+						c1 = &(points[initind]);
+						c2 = &(points[lastind]); 
+						c3 = &(points[((this_->coordIndex).p[i])]);
+						a[0] = c2->c[0] - c1->c[0];
+						a[1] = c2->c[1] - c1->c[1];
+						a[2] = c2->c[2] - c1->c[2];
+						b[0] = c3->c[0] - c1->c[0];
+						b[1] = c3->c[1] - c1->c[1];
+						b[2] = c3->c[2] - c1->c[2];
+						rep_->normal[triind*3+0] =
+							a[1]*b[2] - b[1]*a[2];
+						rep_->normal[triind*3+1] =
+							-(a[0]*b[2] - b[0]*a[2]);
+						rep_->normal[triind*3+2] =
+							a[0]*b[1] - b[0]*a[1];
+						rep_->norindex[triind*3+0] = triind;
+						rep_->norindex[triind*3+1] = triind;
+						rep_->norindex[triind*3+2] = triind;
+					}
+					lastind = ((this_->coordIndex).p[i]);
+					triind++;
+				}
+			}
+		}
+	}
+}
+
+#endif
+
+
+}
 
 void render_VRML1_IndexedLineSet (struct X3D_VRML1_IndexedLineSet *node) {
         int cin = node->coordIndex.n;
 	int ind;
 	int i;
+	int colorI = 0;
+
         struct SFColor *points; int npoints=0;
-	int renderMatOver = DO_OVERALL;
+	int renderMatOver = VRML1MOD_OVERALL;
 	int doMat = 0;
 
 	glLineWidth(2);
@@ -800,22 +975,7 @@ void render_VRML1_IndexedLineSet (struct X3D_VRML1_IndexedLineSet *node) {
 	}
 		
 	if (cSLD->mbNode != NULL) {
-		if ((strcmp(cSLD->mbNode->value->strptr,"OVERALL")!=NULL) &&
-		(strcmp(cSLD->mbNode->value->strptr,"DEFAULT")!=NULL)) {
-			renderMatOver = DO_OVERALL;
-		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_PART_INDEXED")) {
-			renderMatOver = DO_PART_INDEXED;
-		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_PART")){
-			renderMatOver = DO_PART;
-		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_FACE_INDEXED")) {
-			renderMatOver = DO_FACE_INDEXED;
-		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_FACE")){
-			renderMatOver = DO_FACE;
-		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_VERTEX_INDEXED")) {
-			renderMatOver = DO_VERTEX_INDEXED;
-		} else if (!strcmp(cSLD->mbNode->value->strptr,"PER_VERTEX")){
-			renderMatOver = DO_VERTEX;
-		}
+		renderMatOver = cSLD->mbNode->_Value;
 	}
 	
 	glBegin(GL_LINE_STRIP);

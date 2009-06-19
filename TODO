@@ -16,8 +16,8 @@ Priority list
 		VRML1_Info			(DONE)
 		VRML1_Material			(DONE)
 		VRML1_MaterialBinding		(DONE)
-		VRML1_Normal
-		VRML1_NormalBinding
+		VRML1_Normal			(DONE)
+		VRML1_NormalBinding		(DONE)
 		VRML1_Texture2
 		VRML1_Texture2Transform
 		VRML1_TextureCoordinate2

@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.23 2009/06/18 20:27:02 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.24 2009/06/19 16:21:44 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2575,6 +2575,8 @@ package VRML::NodeType;
 
 	VRML1_MaterialBinding => new VRML::NodeType("VRML1_MaterialBinding", {
 		value => [SFString,"OVERALL",inputOutput,"SPEC_VRML1"],
+		_initialized => [SFInt32,FALSE,inputOutput,"SPEC_VRML1"],
+		_Value =>[SFInt32,-1,inputOutput,"SPEC_VRML1"],
 	}, "X3DChildNode"),
 
 	VRML1_Normal => new VRML::NodeType("VRML1_Normal", {
@@ -2583,6 +2585,8 @@ package VRML::NodeType;
 
 	VRML1_NormalBinding => new VRML::NodeType("VRML1_NormalBinding", {
 		value => [SFString,"DEFAULT",inputOutput,"SPEC_VRML1"],
+		_initialized => [SFInt32,FALSE,inputOutput,"SPEC_VRML1"],
+		_Value =>[SFInt32,-1,inputOutput,"SPEC_VRML1"],
 	}, "X3DChildNode"),
 
 	VRML1_Texture2 => new VRML::NodeType("VRML1_Texture2", {

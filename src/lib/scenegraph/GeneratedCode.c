@@ -37,6 +37,7 @@
        const char *FIELDNAMES[] = {
 	"wrapS",
 	"topTexture",
+	"_Value",
 	"position_changed",
 	"integerKey",
 	"activate",
@@ -1059,6 +1060,46 @@ const indexT PROTOKEYWORDS_COUNT = ARR_SIZE(PROTOKEYWORDS);
 	"Header",
 };
 const indexT X3DSPECIAL_COUNT = ARR_SIZE(X3DSPECIAL);
+
+
+/* Table of VRML1Modifier keywords */
+       const char *VRML1Modifier[] = {
+	"REPEAT",
+	"ITALIC",
+	"PER_PART_INDEXED",
+	"PER_VERTEX_INDEXED",
+	"AUTO",
+	"TYPEWRITER",
+	"OVERALL",
+	"UNKNOWN_SHAPE_TYPE",
+	"SERIF",
+	"COUNTERCLOCKWISE",
+	"CLOCKWISE",
+	"POINT",
+	"PER_PART",
+	"SOLID",
+	"ALL",
+	"TOP",
+	"RIGHT",
+	"SIDES",
+	"BOLD",
+	"BOTTOM",
+	"LEFT",
+	"CONVEX",
+	"UNKNOWN_FACE_TYPE",
+	"SANS",
+	"UNKNOWN_ORDERING",
+	"PER_FACE",
+	"PER_VERTEX",
+	"NONE",
+	"PER_FACE_INDEXED",
+	"DEFAULT",
+	"ON",
+	"CLAMP",
+	"CENTER",
+	"OFF",
+};
+const indexT VRML1Modifier_COUNT = ARR_SIZE(VRML1Modifier);
 
 
 /* Table of GEOSPATIAL keywords */
@@ -3741,7 +3782,9 @@ const int OFFSETS_VRML1_Material[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_MaterialBinding[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_VRML1_MaterialBinding, _initialized),  FIELDTYPE_SFInt32, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_value, offsetof (struct X3D_VRML1_MaterialBinding, value),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES__Value, offsetof (struct X3D_VRML1_MaterialBinding, _Value),  FIELDTYPE_SFInt32, KW_inputOutput,SPEC_VRML1,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_MatrixTransform[] = {
@@ -3753,7 +3796,9 @@ const int OFFSETS_VRML1_Normal[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_NormalBinding[] = {
+	FIELDNAMES__initialized, offsetof (struct X3D_VRML1_NormalBinding, _initialized),  FIELDTYPE_SFInt32, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_value, offsetof (struct X3D_VRML1_NormalBinding, value),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES__Value, offsetof (struct X3D_VRML1_NormalBinding, _Value),  FIELDTYPE_SFInt32, KW_inputOutput,SPEC_VRML1,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_OrthographicCamera[] = {
@@ -4147,6 +4192,12 @@ const char *stringPROTOKeywordType (int st) {
 const char *stringX3DSPECIALType (int st) {
 	if ((st < 0) || (st >= X3DSPECIAL_COUNT)) return "KEYWORD OUT OF RANGE"; 
 	return X3DSPECIAL[st];
+}
+
+/* Return a pointer to a string representation of the VRML1Modifier keyword type */
+const char *stringVRML1ModifierType (int st) {
+	if ((st < 0) || (st >= VRML1Modifier_COUNT)) return "KEYWORD OUT OF RANGE"; 
+	return VRML1Modifier[st];
 }
 
 /* Return a pointer to a string representation of the GEOSPATIAL keyword type */
@@ -7535,7 +7586,9 @@ void *createNewX3DNode (int nt) {
 			struct X3D_VRML1_MaterialBinding * tmp2;
 			tmp2 = (struct X3D_VRML1_MaterialBinding *) tmp;
 			tmp2->v = &virt_VRML1_MaterialBinding;
+			tmp2->_initialized = FALSE;
 			tmp2->value = newASCIIString("OVERALL");
+			tmp2->_Value = -1;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7559,7 +7612,9 @@ void *createNewX3DNode (int nt) {
 			struct X3D_VRML1_NormalBinding * tmp2;
 			tmp2 = (struct X3D_VRML1_NormalBinding *) tmp;
 			tmp2->v = &virt_VRML1_NormalBinding;
+			tmp2->_initialized = FALSE;
 			tmp2->value = newASCIIString("DEFAULT");
+			tmp2->_Value = -1;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -9881,7 +9936,9 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_VRML1_MaterialBinding : {
 			struct X3D_VRML1_MaterialBinding *tmp;
 			tmp = (struct X3D_VRML1_MaterialBinding *) node;
+			spacer printf ("\t_initialized (SFInt32) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFString) \t%s\n",tmp->value->strptr);
+			spacer printf ("\t_Value (SFInt32) \t%d\n",tmp->_Value);
 		break;}
 		case NODE_VRML1_MatrixTransform : {
 			struct X3D_VRML1_MatrixTransform *tmp;
@@ -9899,7 +9956,9 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_VRML1_NormalBinding : {
 			struct X3D_VRML1_NormalBinding *tmp;
 			tmp = (struct X3D_VRML1_NormalBinding *) node;
+			spacer printf ("\t_initialized (SFInt32) \t%d\n",tmp->_initialized);
 			spacer printf ("\tvalue (SFString) \t%s\n",tmp->value->strptr);
+			spacer printf ("\t_Value (SFInt32) \t%d\n",tmp->_Value);
 		break;}
 		case NODE_VRML1_OrthographicCamera : {
 			struct X3D_VRML1_OrthographicCamera *tmp;
