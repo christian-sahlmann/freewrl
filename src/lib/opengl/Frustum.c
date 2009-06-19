@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.10 2009/05/07 18:43:34 crc_canada Exp $
+$Id: Frustum.c,v 1.11 2009/06/19 17:49:38 crc_canada Exp $
 
 ???
 
@@ -753,16 +753,18 @@ void OcclusionCulling ()  {
 
 		/* get the check count field for this node - see if we did a check of this */
 		shapePtr = X3D_SHAPE(occluderNodePointer[i]);
-		if (shapePtr->_nodeType == NODE_Shape) {
-			visSenPtr = NULL;
-			checkCount = shapePtr->__occludeCheckCount;
-		} else if (shapePtr->_nodeType == NODE_VisibilitySensor) {
-			visSenPtr = X3D_VISIBILITYSENSOR(occluderNodePointer[i]);
-			shapePtr = NULL;
-			checkCount = visSenPtr->__occludeCheckCount;
-		} else {
-			printf ("OcclusionCulling on node type %s not allowed\n",stringNodeType(shapePtr->_nodeType));
-			return;
+		if (shapePtr != NULL) {
+			if (shapePtr->_nodeType == NODE_Shape) {
+				visSenPtr = NULL;
+				checkCount = shapePtr->__occludeCheckCount;
+			} else if (shapePtr->_nodeType == NODE_VisibilitySensor) {
+				visSenPtr = X3D_VISIBILITYSENSOR(occluderNodePointer[i]);
+				shapePtr = NULL;
+				checkCount = visSenPtr->__occludeCheckCount;
+			} else {
+				printf ("OcclusionCulling on node type %s not allowed\n",stringNodeType(shapePtr->_nodeType));
+				return;
+			}
 		}
 
 		#ifdef OCCLUSIONVERBOSE
