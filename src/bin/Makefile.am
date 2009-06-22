@@ -14,6 +14,10 @@ AM_CPPFLAGS += \
 				$(MOTIF_CFLAGS) \
 				$(GL_CFLAGS)
 
+# Mac OSX gcc does not support by default nested functions...
+AM_CFLAGS ?= $(AM_CFLAGS)
+AM_CFLAGS += -fnested-functions
+
 _EV=$(top_srcdir)/versions/FREEWRL
 export
 

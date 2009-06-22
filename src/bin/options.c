@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: options.c,v 1.10 2009/04/28 16:44:00 couannette Exp $
+  $Id: options.c,v 1.11 2009/06/22 15:23:40 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -76,7 +76,7 @@ void usage()
 
 const char * validate_string_arg(const char *optarg)
 {
-    
+    return NULL; /* TODO: implement validate_* functions */
 }
 
 int parseCommandLine (int argc, char **argv)
@@ -316,7 +316,7 @@ int parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'k': /* --instance, required argument: number */
-	    sscanf(optarg,"%u",&_fw_instance);
+	    sscanf(optarg,"%u",(unsigned int *)&_fw_instance);
 	    break;
 
 
