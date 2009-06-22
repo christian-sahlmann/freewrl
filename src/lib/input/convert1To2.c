@@ -282,7 +282,7 @@ char *convert1To2 (char *inp) {
 		fread(retval,written,1,fp);
 		retval[written] = '\0';
 
-printf ("and have read back in :%s:\n",retval); 
+/* printf ("and have read back in :%s:\n",retval);  */
 		
 		fclose (fp);
 		return retval;

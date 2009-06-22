@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.38 2009/06/17 18:50:42 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.39 2009/06/22 19:40:41 crc_canada Exp $
 
 ???
 
@@ -1341,7 +1341,9 @@ void kill_X3DNodes(void){
 		/*go thru all field*/				
 		while (*fieldOffsetsPtr != -1) {
 			fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-			/* printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); */
+			#ifdef VERBOSE
+			printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
+			#endif
 
 			/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
 			

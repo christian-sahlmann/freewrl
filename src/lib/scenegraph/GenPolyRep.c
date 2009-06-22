@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.7 2009/06/12 20:13:00 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.8 2009/06/22 19:40:41 crc_canada Exp $
 
 ???
 
@@ -31,6 +31,7 @@ $Id: GenPolyRep.c,v 1.7 2009/06/12 20:13:00 crc_canada Exp $
  *
  *******************************************/
 
+#ifdef OLDCODE
 #define X3DCOMPOSED_STRING(f) ( \
         f == NODE_IndexedFaceSet          ? "IndexedFaceSet" : ( \
         f == NODE_ElevationGrid           ? "ElevationGrid" : ( \
@@ -39,7 +40,9 @@ $Id: GenPolyRep.c,v 1.7 2009/06/12 20:13:00 crc_canada Exp $
         f == NODE_IndexedTriangleStripSet ? "IndexedTriangleStripSet" : ( \
         f == NODE_TriangleFanSet          ? "TriangleFanSet" : ( \
         f == NODE_TriangleStripSet        ? "TriangleStripSet" : ( \
+        f == NODE_VRML1_IndexedFaceSet        ? "VRML1_IndexedFaceSet" : ( \
         f == NODE_TriangleSet             ? "TriangleSet" : "unknown X3DComposedGeometry Node"))))))))
+#endif
 
 
 extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct X3D_PolyRep *this_Elev,struct point_XYZ *facenormals,int *pointfaces,int ccw);
@@ -85,7 +88,6 @@ static int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
 	/* printf ("ITFS, IndexSize %d\n",IndexSize); */
 	return IndexSize;
 }
-
 
 /* check validity of fields */
 int checkX3DIndexedFaceSetFields (struct X3D_IndexedFaceSet *this_) {
@@ -537,7 +539,7 @@ static void checkTriangleSetFields (struct X3D_TriangleSet *node) {
 	}
 }
 
-
+#ifdef OLDCODE
 static int checkX3DComposedGeomFields (struct X3D_Node *pn) {
 	struct SFColor *points;
 	int npoints = 0;
@@ -836,6 +838,8 @@ static int checkX3DComposedGeomFields (struct X3D_Node *pn) {
 	/* printf ("check returning TRUE for X3DGeom fields\n"); */
 	return retval;
 }
+#endif
+
 
 void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int cin;
@@ -1011,6 +1015,17 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLESTRIPSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_TRIANGLESTRIPSET(node)->coord;
 			break;
+		case NODE_VRML1_IndexedFaceSet:
+			orig_coordIndex= &VRML1_INDEXEDFACESET(node)->coordIndex;
+			cpv = VRML1_INDEXEDFACESET(node)->_cpv;
+			npv = VRML1_INDEXEDFACESET(node)->_npv;
+			ccw = VRML1_INDEXEDFACESET(node)->_ccw;
+			cc = (struct X3D_Color *) VRML1_INDEXEDFACESET(node)->_color;
+			nc = (struct X3D_Normal *) VRML1_INDEXEDFACESET(node)->_normal;
+			tc = (struct X3D_TextureCoordinate *) VRML1_INDEXEDFACESET(node)->_texCoord;
+			co = (struct X3D_Coordinate *) VRML1_INDEXEDFACESET(node)->_coord;
+			creaseAngle = VRML1_INDEXEDFACESET(node)->_creaseAngle;
+			break;
 		default:
 			ConsoleMessage ("unknown type for make_genericfaceset, %d\n",node->_nodeType);
 			rep_->ntri=0;
@@ -1021,7 +1036,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	if (orig_texCoordIndex != NULL) tcin= orig_texCoordIndex->n; else tcin = 0;
 	if (orig_colorIndex != NULL) colin= orig_colorIndex->n; else colin = 0;
 	if (orig_normalIndex != NULL) norin= orig_normalIndex->n; else norin = 0;
-
 
 	#ifdef VERBOSE
 	printf ("cin %d tcin %d colin %d norin %d\n",cin,tcin,colin,norin);
@@ -1044,7 +1058,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 	/* record ccw flag */
 	rep_->ccw = ccw;
-
 
 	/* if the last coordIndex == -1, ignore it */
 	if((orig_coordIndex->p[cin-1]) == -1) { cin--; }
@@ -1260,7 +1273,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 				/* Triangle Coordinate */
 				cindex [vert_ind] = (orig_coordIndex->p[this_coord+global_IFS_Coords[i]]);
 
-				/* printf ("vertex  %d  gic %d cindex %d\n",vert_ind,global_IFS_Coords[i],cindex[vert_ind]);*/
+				/* printf ("vertex  %d  gic %d cindex %d\n",vert_ind,global_IFS_Coords[i],cindex[vert_ind]); */
 
 				/* Vertex Normal */
 				if(nnormals) {
@@ -1303,9 +1316,9 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 						rep_->normal[vert_ind*3+1]=facenormals[this_face].y;
 						rep_->normal[vert_ind*3+2]=facenormals[this_face].z;
 						rep_->norindex[vert_ind] = vert_ind;
-						/* printf ("using calculated normals %f %f %f for face %d, vert_ind %d\n",*/
-							/* rep_->normal[vert_ind*3+0],rep_->normal[vert_ind*3+1],*/
-							/* rep_->normal[vert_ind*3+2],this_face,rep_->norindex[vert_ind]);*/
+						 printf ("using calculated normals %f %f %f for face %d, vert_ind %d\n",
+							rep_->normal[vert_ind*3+0],rep_->normal[vert_ind*3+1],
+							rep_->normal[vert_ind*3+2],this_face,rep_->norindex[vert_ind]);
 					}
 				}
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.3 2009/06/19 16:21:44 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.4 2009/06/22 19:40:41 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -72,7 +72,6 @@ static struct currentSLDPointer *cSLD = NULL;
 
 static struct currentSLDPointer *new_cSLD(void) {
 	struct currentSLDPointer *retval = MALLOC (sizeof (struct currentSLDPointer));
-	retval->matNode = NULL;
 	return retval;
 }
 
@@ -174,6 +173,7 @@ void prep_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 		for (i=0; i<MAX_STACK_LEVELS; i++) {
 			cSLD = new_cSLD();
 			vector_pushBack(struct currentSLDPointer*, separatorVector, cSLD);
+
 		} 
 	}
 	/* printf ("prep - getting level %d\n",separatorLevel); */
@@ -743,6 +743,12 @@ void render_VRML1_TextureCoordinate2 (struct X3D_VRML1_TextureCoordinate2  *node
 }
 
 void render_VRML1_ShapeHints (struct X3D_VRML1_ShapeHints  *node) {
+	if (!node->_initialized) {
+		node->_vertValue = findFieldInVRML1Modifier(node->vertexOrdering->strptr);
+		node->_typeValue = findFieldInVRML1Modifier(node->shapeType->strptr);
+		node->_faceValue = findFieldInVRML1Modifier(node->faceType->strptr);
+		node->_initialized = TRUE;
+	}
 	/* save this node pointer */
 	if (cSLD!=NULL) cSLD->shNode = node;
 }
@@ -751,9 +757,6 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
         int i;
         struct SFColor *points; int npoints=0;
 	int renderMatOver = FALSE;
-/*glLineWidth(node->linewidthScaleFactor);
-                        glPointSize(node->linewidthScaleFactor);
-*/
 	glPointSize (2);
 
         if(cSLD->c3Node) {
@@ -784,177 +787,100 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
         glEnd();
 }
 
-void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *this) {
+void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *node) {
 
-#ifdef OLDCODE
-void render_polyrep(void *node, 
-	int npoints, struct SFColor *points,
-	int ncolors, struct SFColor *colors,
-	int nnormals, struct SFColor *normals)
-{
-	struct VRML_Virt *v;
-	struct VRML_Box *p;
-	struct VRML_PolyRep *r;
-	int i;
-	int pt;
-	int pti;
-	int hasc;
-	v = *(struct VRML_Virt **)node;
-	p = node;
-	r = p->_intern;
-/*	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
-		p->_change, r->_change, r->ntri);
- */
-	hasc = (ncolors || r->color);
-	if(hasc) {
-		glEnable(GL_COLOR_MATERIAL);
-	}
-	glBegin(GL_TRIANGLES);
-	for(i=0; i<r->ntri*3; i++) {
-		int nori = i;
-		int coli = i;
-		int ind = r->cindex[i];
-		GLfloat color[4];
-		if(r->norindex) {nori = r->norindex[i];}
-		else nori = ind;
-		if(r->colindex) {coli = r->colindex[i];}
-		else coli = ind;
-		if(nnormals) {
-			if(nori >= nnormals) {
-				warn("Too large normal index -- help??");
-			}
-			glNormal3fv(normals[nori].c);
-		} else if(r->normal) {
-			glNormal3fv(r->normal+3*nori);
-		}
-		if(hasc) {
-			if(ncolors) {
-				/* ColorMaterial -> these set Material too */
-				glColor3fv(colors[coli].c);
-			} else if(r->color) {
-				glColor3fv(r->color+3*coli);
-			}
-		}
-		if(points) {
-			glVertex3fv(points[ind].c);
-		} else if(r->coord) {
-			glVertex3fv(r->coord+3*ind);
-		}
-	}
-	glEnd();
-	if(hasc) {
-		glDisable(GL_COLOR_MATERIAL);
-	}
-}
+	/* if we need to remake this IndexedFaceSet */
+	/* this is like the COMPILE_POLY_IF_REQUIRED(a,b,c,d) macro, with additional steps */
 
+	if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->irep_change) { 
+		/* yes, we do have to remake this node */
+		
+		/* we need to fill in the hidden SFFloats, SFBools here */
+		if (cSLD->shNode != NULL) {
 
-void IndexedFaceSet_GenPolyRep(void *nod_){ /* GENERATED FROM HASH GenPolyRepC, MEMBER IndexedFaceSet */
-			struct VRML_IndexedFaceSet *this_ = (struct VRML_IndexedFaceSet *)nod_;
-			{
-	int i;
-	int cin = ((this_->coordIndex).n);
-	int cpv = ((this_->colorPerVertex));
-	/* int npv = xf(normalPerVertex); */
-	int ntri = 0;
-	int nvert = 0;
-	struct SFColor *c1,*c2,*c3;
-	float a[3]; float b[3];
-	struct SFColor *points; int npoints;
-	struct SFColor *normals; int nnormals=0;
-	struct VRML_PolyRep *rep_ = this_->_intern;
-	int *cindex;
-	if(this_->coord) {
-		  if(!(*(struct VRML_Virt **)(this_->coord))-> get3) {
-		  	die("NULL METHOD IndexedFaceSet coord  get3");
-		  }
-		   points =  ((*(struct VRML_Virt **)(this_->coord))-> get3(this_->coord,
-		     &npoints)) ;}
- 	  else { (die("NULL FIELD IndexedFaceSet coord "));};
-	if(this_->normal) {
-		  if(!(*(struct VRML_Virt **)(this_->normal))-> get3) {
-		  	die("NULL METHOD IndexedFaceSet normal  get3");
-		  }
-		   normals =  ((*(struct VRML_Virt **)(this_->normal))-> get3(this_->normal,
-		     &nnormals)) ;
-		};
-	
-	for(i=0; i<cin; i++) {
-		if(((this_->coordIndex).p[i]) == -1) {
-			if(nvert < 3) {
-				die("Too few vertices in indexedfaceset poly");
-			}
-			ntri += nvert-2;
-			nvert = 0;
+			node->_ccw =  cSLD->shNode->_vertValue!=VRML1MOD_CLOCKWISE;
+			node->_convex = cSLD->shNode->_faceValue == VRML1MOD_CONVEX;
+			node->_solid = cSLD->shNode->_typeValue==VRML1MOD_SOLID;
+			node->_creaseAngle = cSLD->shNode->creaseAngle;
 		} else {
-			nvert ++;
+			node->_ccw = FALSE;
+			node->_convex = TRUE;
+			node->_solid = FALSE;
+			node->_creaseAngle = 0.5;
 		}
-	}
-	if(nvert>2) {ntri += nvert-2;}
-	cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
-	rep_->ntri = ntri;
-	if(!nnormals) {
-		/* We have to generate -- do flat only for now */
-		rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri);
-		rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
-	} else {
-		rep_->normal = NULL;
-		rep_->norindex = NULL;
-	}
-	/* color = NULL; coord = NULL; normal = NULL;
-		colindex = NULL; norindex = NULL;
-	*/
-	if(!((this_->convex))) {
-		die("AAAAARGHHH!!!  Non-convex polygons! Help!");
-		/* XXX Fixme using gluNewTess, gluTessVertex et al */
-	} else {
-		int initind=-1;
-		int lastind=-1;
-		int triind = 0;
-		for(i=0; i<cin; i++) {
-			if(((this_->coordIndex).p[i]) == -1) {
-				initind=-1;
-				lastind=-1;
-			} else {
-				if(initind == -1) {
-					initind = ((this_->coordIndex).p[i]);
-				} else if(lastind == -1) {
-					lastind = ((this_->coordIndex).p[i]);
-				} else {
-					
-					cindex[triind*3+0] = initind;
-					cindex[triind*3+1] = lastind;
-					cindex[triind*3+2] = ((this_->coordIndex).p[i]);
-					if(rep_->normal) {
-						c1 = &(points[initind]);
-						c2 = &(points[lastind]); 
-						c3 = &(points[((this_->coordIndex).p[i])]);
-						a[0] = c2->c[0] - c1->c[0];
-						a[1] = c2->c[1] - c1->c[1];
-						a[2] = c2->c[2] - c1->c[2];
-						b[0] = c3->c[0] - c1->c[0];
-						b[1] = c3->c[1] - c1->c[1];
-						b[2] = c3->c[2] - c1->c[2];
-						rep_->normal[triind*3+0] =
-							a[1]*b[2] - b[1]*a[2];
-						rep_->normal[triind*3+1] =
-							-(a[0]*b[2] - b[0]*a[2]);
-						rep_->normal[triind*3+2] =
-							a[0]*b[1] - b[0]*a[1];
-						rep_->norindex[triind*3+0] = triind;
-						rep_->norindex[triind*3+1] = triind;
-						rep_->norindex[triind*3+2] = triind;
-					}
-					lastind = ((this_->coordIndex).p[i]);
-					triind++;
-				}
+
+		if (cSLD->mbNode!=NULL) node->_cpv = cSLD->mbNode->_Value==VRML1MOD_PER_VERTEX;
+		else node->_cpv = FALSE;
+
+		if (cSLD->nbNode!=NULL) node->_npv = cSLD->nbNode->_Value==VRML1MOD_PER_VERTEX;
+		else node->_npv = FALSE;
+
+		if (cSLD->matNode!= NULL) {
+			/* if we have more than 1 diffuseColor, we should treat them as a color node */
+			if (cSLD->matNode->diffuseColor.n > 1) {
+			struct X3D_Color *nc;
+			if (node->_color==NULL) { 
+				node->_color = createNewX3DNode(NODE_Color);
+				ADD_PARENT(node->_color,node);
 			}
-		}
-	}
-}
+			nc = node->_color;
+			FREE_IF_NZ(nc->color.p);
+			nc->color.p = MALLOC(sizeof (struct SFColor) * cSLD->matNode->diffuseColor.n);
+			memcpy(nc->color.p, cSLD->matNode->diffuseColor.p, sizeof (struct SFColor) * cSLD->matNode->diffuseColor.n);
+			nc->color.n = cSLD->matNode->diffuseColor.n;
+/*printf ("created and copied %d colours\n",nc->color.n);
+			{
+			int i;
+			for (i=0; i<nc->color.n; i++) {
+			printf ("%d: %f %f %f\n",i,nc->color.p[i].c[0], nc->color.p[i].c[1],nc->color.p[i].c[2]);
+			}
+			}
+*/
+			}
+		} else node->_color=NULL;
+		
+		if (cSLD->c3Node!= NULL) {
+			struct X3D_Coordinate *nc;
+			if (node->_coord==NULL) {
+				node->_coord = createNewX3DNode(NODE_Coordinate);
+				ADD_PARENT(node->_coord,node);
+			}
+			nc = node->_coord;
+			FREE_IF_NZ(nc->point.p);
+			nc->point.p = MALLOC(sizeof (struct SFColor) * cSLD->c3Node->point.n);
+			memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFColor) * cSLD->c3Node->point.n);
 
-#endif
+			nc->point.n = cSLD->c3Node->point.n;
+/*
+printf ("created and copied %d coordinates\n",nc->point.n);
+			{
+			int i;
+			for (i=0; i<cSLD->c3Node->point.n; i++) {
+			printf ("%d: %f %f %f\n",i,nc->point.p[i].c[0], nc->point.p[i].c[1],nc->point.p[i].c[2]);
+			}}
+*/
+		} else node->_coord=NULL;
+		
+		if (cSLD->nNode!= NULL) {
+			if (node->_normal==NULL) node->_normal = createNewX3DNode(NODE_Normal);
+			node->_normal=cSLD->nNode;
+printf ("normal node prob\n");
+		} else node->_normal=NULL;
+		
+		if (cSLD->tc2Node!= NULL) {
+			if (node->_texCoord==NULL) node->_texCoord = createNewX3DNode(NODE_TextureCoordinate);
+			node->_texCoord=cSLD->tc2Node;
+printf ("texture coord node prob\n");
+		} else node->_texCoord=NULL;
 
+		compileNode ((void *)compile_polyrep, node, 
+			node->_coord, node->_color, node->_normal, node->_texCoord);
+	} 
+	/* something went wrong... */
+	if (!node->_intern) return;
 
+	CULL_FACE(node->_solid)
+	render_polyrep(node);
 }
 
 void render_VRML1_IndexedLineSet (struct X3D_VRML1_IndexedLineSet *node) {

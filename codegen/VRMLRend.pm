@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.15 2009/06/19 16:21:44 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.16 2009/06/22 19:40:41 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.16  2009/06/22 19:40:41  crc_canada
+# more VRML1 work.
+#
 # Revision 1.15  2009/06/19 16:21:44  crc_canada
 # VRML1 work.
 #
@@ -562,6 +565,7 @@
 	TriangleSet
 	Text
 	GeoElevationGrid
+	VRML1_IndexedFaceSet
 /;
 
 #######################################################################
@@ -818,6 +822,7 @@
 	Extrusion
 	Text
 	GeoElevationGrid
+	VRML1_IndexedFaceSet
 /;
 
 #######################################################################
@@ -907,6 +912,7 @@
 	TriangleSet
 	TriangleFanSet
 	TriangleStripSet
+	VRML1_IndexedFaceSet
 /;
 
 #######################################################################

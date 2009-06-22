@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.7 2009/06/12 20:13:00 crc_canada Exp $
+$Id: StreamPoly.c,v 1.8 2009/06/22 19:40:41 crc_canada Exp $
 
 ???
 
@@ -18,7 +18,6 @@ $Id: StreamPoly.c,v 1.7 2009/06/12 20:13:00 crc_canada Exp $
 #include "../main/headers.h"
 
 #include "Polyrep.h"
-
 
 #define NO_TCOORD_GEN_IN_SHAPE (r->GeneratedTexCoords == 0)
 #define NO_TEXCOORD_NODE (r->tcoordtype==0)

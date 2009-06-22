@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.52 2009/06/18 20:27:02 crc_canada Exp $
+$Id: headers.h,v 1.53 2009/06/22 19:40:41 crc_canada Exp $
 
 Global includes.
 
@@ -1056,6 +1056,9 @@ void render_VRML1_Sphere (struct X3D_VRML1_Sphere *this);
 void render_VRML1_AsciiText (struct X3D_VRML1_AsciiText *this);
 void render_VRML1_Cylinder (struct X3D_VRML1_Cylinder *this);
 void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *this);
+#define rendray_VRML1_IndexedFaceSet render_ray_polyrep
+#define make_VRML1_IndexedFaceSet make_genericfaceset
+#define collide_VRML1_IndexedFaceSet collide_genericfaceset
 void render_VRML1_IndexedLineSet (struct X3D_VRML1_IndexedLineSet *this);
 void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this);
 void render_VRML1_Scale (struct X3D_VRML1_Scale *this);

@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.24 2009/06/19 16:21:44 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.25 2009/06/22 19:40:41 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2531,6 +2531,17 @@ package VRML::NodeType;
 		materialIndex => [MFInt32,[-1],inputOutput,"SPEC_VRML1"],
 		normalIndex => [MFInt32,[-1],inputOutput,"SPEC_VRML1"],
 		textureCoordIndex =>[MFInt32,[-1],inputOutput,"SPEC_VRML1"],
+		_color => [SFNode, NULL, inputOutput, 0],
+		_coord => [SFNode, NULL, inputOutput, 0],
+		_normal => [SFNode, NULL, inputOutput, 0],
+		_texCoord => [SFNode, NULL, inputOutput, 0],
+		_ccw => [SFBool, TRUE, initializeOnly, 0],
+		_convex => [SFBool, TRUE, initializeOnly, 0],
+		_creaseAngle => [SFFloat, 0, initializeOnly, 0],
+		_npv => [SFBool, TRUE, initializeOnly, 0],
+		_cpv => [SFBool, TRUE, initializeOnly, 0],
+		_solid => [SFBool, TRUE, initializeOnly, 0],
+
 	}, "X3DChildNode"),
 
 	VRML1_IndexedLineSet => new VRML::NodeType("VRML1_IndexedLineSet", {
@@ -2575,8 +2586,8 @@ package VRML::NodeType;
 
 	VRML1_MaterialBinding => new VRML::NodeType("VRML1_MaterialBinding", {
 		value => [SFString,"OVERALL",inputOutput,"SPEC_VRML1"],
-		_initialized => [SFInt32,FALSE,inputOutput,"SPEC_VRML1"],
-		_Value =>[SFInt32,-1,inputOutput,"SPEC_VRML1"],
+		_initialized => [SFInt32,FALSE,inputOutput, 0],
+		_Value =>[SFInt32,-1,inputOutput, 0],
 	}, "X3DChildNode"),
 
 	VRML1_Normal => new VRML::NodeType("VRML1_Normal", {
@@ -2585,8 +2596,8 @@ package VRML::NodeType;
 
 	VRML1_NormalBinding => new VRML::NodeType("VRML1_NormalBinding", {
 		value => [SFString,"DEFAULT",inputOutput,"SPEC_VRML1"],
-		_initialized => [SFInt32,FALSE,inputOutput,"SPEC_VRML1"],
-		_Value =>[SFInt32,-1,inputOutput,"SPEC_VRML1"],
+		_initialized => [SFInt32,FALSE,inputOutput, 0],
+		_Value =>[SFInt32,-1,inputOutput,0],
 	}, "X3DChildNode"),
 
 	VRML1_Texture2 => new VRML::NodeType("VRML1_Texture2", {
@@ -2610,6 +2621,14 @@ package VRML::NodeType;
 	VRML1_ShapeHints => new VRML::NodeType("VRML1_ShapeHints", {
 		vertexOrdering => [SFString,"CLOCKWISE",inputOutput,"SPEC_VRML1"],
 		shapeType => [SFString,"SOLID",inputOutput,"SPEC_VRML1"],
+		faceType => [SFString,"CONVEX",inputOutput,"SPEC_VRML1"],
+		creaseAngle => [SFDouble, 0.5, initializeOnly, "SPEC_VRML1"],
+
+		_initialized => [SFInt32,FALSE,inputOutput, 0],
+		_vertValue =>[SFInt32,0,inputOutput,0],
+		_typeValue =>[SFInt32,0,inputOutput,0],
+		_faceValue =>[SFInt32,0,inputOutput,0],
+		
 	}, "X3DChildNode"),
 
 	VRML1_MatrixTransform => new VRML::NodeType("VRML1_MatrixTransform", {
