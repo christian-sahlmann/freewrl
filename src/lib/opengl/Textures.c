@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.8 2009/05/07 18:43:34 crc_canada Exp $
+$Id: Textures.c,v 1.9 2009/06/23 19:57:01 crc_canada Exp $
 
 General Texture objects.
 
@@ -31,8 +31,6 @@ General Texture objects.
 # endif
 #endif
 
-
-/* #define TEXVERBOSE 1 */
 
 #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
                 do_possible_textureSequence(myTableIndex); \
@@ -104,7 +102,7 @@ struct textureTableStruct* readTextureTable = NULL;
 
 static int nextFreeTexture = 0;
 char *workingOnFileName = NULL;
-void new_bind_image(struct X3D_Node *node, void *param);
+static void new_bind_image(struct X3D_Node *node, void *param);
 struct textureTableIndexStruct *getTableIndex(int i);
 struct textureTableIndexStruct* loadThisTexture;
 
@@ -175,9 +173,9 @@ void store_tex_info(
 		unsigned char *ptr,
 		int hasAlpha);
 
-void __reallyloadPixelTexure(void);
-void __reallyloadImageTexture(void);
-void __reallyloadMovieTexture(void);
+static void __reallyloadPixelTexure(void);
+static void __reallyloadImageTexture(void);
+static void __reallyloadMovieTexture(void);
 void do_possible_textureSequence(struct textureTableIndexStruct*);
 struct Uni_String *newASCIIString(char *str);
 
@@ -395,6 +393,7 @@ void registerTexture(struct X3D_Node *tmp) {
 	struct X3D_ImageTexture *it;
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
+	struct X3D_VRML1_Texture2 *v1t;
 
 	struct textureTableStruct * listRunner;
 	struct textureTableStruct * newStruct;
@@ -407,7 +406,7 @@ void registerTexture(struct X3D_Node *tmp) {
 	/* printf ("registerTexture, found a %s\n",stringNodeType(it->_nodeType)); */
 
 	if ((it->_nodeType == NODE_ImageTexture) || (it->_nodeType == NODE_PixelTexture) ||
-		(it->_nodeType == NODE_MovieTexture)) {
+		(it->_nodeType == NODE_MovieTexture) || (it->_nodeType == NODE_VRML1_Texture2)) {
 
 		if ((nextFreeTexture & 0x1f) == 0) {
 			newStruct = (struct textureTableStruct*) MALLOC (sizeof (struct textureTableStruct));
@@ -453,6 +452,9 @@ void registerTexture(struct X3D_Node *tmp) {
 		} else if (it->_nodeType == NODE_MovieTexture) {
 			mt = (struct X3D_MovieTexture *) tmp;
 			mt->__textureTableIndex = nextFreeTexture;
+		} else if (it->_nodeType == NODE_VRML1_Texture2) {
+			v1t = (struct X3D_VRM1_Texture2 *) tmp;
+			v1t->__textureTableIndex = nextFreeTexture;
 		}
 
 		currentBlock->entry[whichEntry].nodeType = it->_nodeType;
@@ -796,6 +798,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 			case NODE_PixelTexture:
 			case NODE_ImageTexture : 
 			case NODE_MovieTexture:
+			case NODE_VRML1_Texture2:
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
 				loadTextureNode (X3D_NODE(nt), (void *)paramPtr);
 				break;
@@ -856,6 +859,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
 	struct X3D_ImageTexture *it;
+	struct X3D_VRML1_Texture2* v1t;
 	GLint Src, Trc;
 	unsigned char *mytexdata;
 
@@ -884,6 +888,10 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 		} else if (me->nodeType == NODE_MovieTexture) {
 			mt = (struct X3D_MovieTexture *) me->scenegraphNode;
 			Src = mt->repeatS; Trc = mt->repeatT;
+		} else if (me->nodeType == NODE_VRML1_Texture2) {
+			v1t = (struct X3D_VRML1_Texture2 *) me->scenegraphNode;
+			Src = strcmp("REPEAT",v1t->wrapS) == NULL;
+			Trc = strcmp("REPEAT",v1t->wrapT) == NULL;
 		}
 		/* save texture params */
 		me->Src = Src ? GL_REPEAT : GL_CLAMP;
@@ -1063,25 +1071,13 @@ char *texst (int num) {
 }
 #endif
 
-#define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
-			if (thisTextureType==NODE_ImageTexture){ \
-				it = (struct X3D_ImageTexture*) node; \
-				thisTexture = it->__textureTableIndex; \
-			} else if (thisTextureType==NODE_PixelTexture){ \
-				pt = (struct X3D_PixelTexture*) node; \
-				thisTexture = pt->__textureTableIndex; \
-			} else if (thisTextureType==NODE_MovieTexture){ \
-				mt = (struct X3D_MovieTexture*) node; \
-				thisTexture = mt->__textureTableIndex; \
-			} else { ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); return;}
-
-
 void new_bind_image(struct X3D_Node *node, void *param) {
 	int thisTexture;
 	int thisTextureType;
 	struct X3D_ImageTexture *it;
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
+	struct X3D_VRML1_Texture2 *v1t;
 	struct textureTableIndexStruct *myTableIndex;
 	float dcol[] = {0.8, 0.8, 0.8, 1.0};
 
@@ -1237,7 +1233,7 @@ int findTextureFile (int cwo, int *istemp) {
 	char *sysline;
 #endif
 
-        struct Uni_String *thisParent;
+        struct Uni_String *thisParent = NULL;
         struct Multi_String thisUrl;
 	int removeIt = FALSE;
 
@@ -1253,6 +1249,7 @@ int findTextureFile (int cwo, int *istemp) {
 	*istemp=loadThisTexture->removeWhenFinished;	/* don't remove this file unless told to do so */
 	filename = NULL;
 
+
 #ifdef TEXVERBOSE 
 	printf ("textureThread:start of findTextureFile for cwo %d type %d \n",
 		cwo,loadThisTexture->nodeType);
@@ -1266,9 +1263,12 @@ int findTextureFile (int cwo, int *istemp) {
 		if (loadThisTexture->nodeType == NODE_ImageTexture) {
 			thisParent = ((struct X3D_ImageTexture *)loadThisTexture->scenegraphNode)->__parenturl;
 			thisUrl = ((struct X3D_ImageTexture *)loadThisTexture->scenegraphNode)->url;
-		} else {
+		} else if (loadThisTexture->nodeType == NODE_MovieTexture) {
 			thisParent = ((struct X3D_MovieTexture *)loadThisTexture->scenegraphNode)->__parenturl;
 			thisUrl = ((struct X3D_MovieTexture *)loadThisTexture->scenegraphNode)->url;
+		} else if (loadThisTexture->nodeType == NODE_VRML1_Texture2) {
+			thisParent = ((struct X3D_VRML1_Texture2 *)loadThisTexture->scenegraphNode)->__parenturl;
+			thisUrl = ((struct X3D_VRML1_Texture2 *)loadThisTexture->scenegraphNode)->filename;
 		}
 		mypath = STRDUP(thisParent->strptr);
 
@@ -1308,14 +1308,14 @@ int findTextureFile (int cwo, int *istemp) {
 #ifdef AQUA
 	/* on AQUA/OSX, let QuickTime do the conversion for us, but maybe we can help it out
 	   by keeping a tab on what kind of image this is  */
-	if (loadThisTexture->nodeType == NODE_ImageTexture) {
+	if ((loadThisTexture->nodeType == NODE_ImageTexture) || (loadThisTexture->nodeType == NODE_VRML1_Texture2)){
 		loadThisTexture->imageType = INT_ID_UNDEFINED;
 		if (strncmp(firstBytes,firstPNG,4) == 0) loadThisTexture->imageType = PNGTexture;
 		if (strncmp(firstBytes,firstJPG,4) == 0) loadThisTexture->imageType = JPGTexture;
 	}
 
 #else /* AQUA */
-	if (loadThisTexture->nodeType == NODE_ImageTexture) {
+	if ((loadThisTexture->nodeType == NODE_ImageTexture) || (loadThisTexture->nodeType == NODE_VRML1_Texture2)){
 		loadThisTexture->imageType = INT_ID_UNDEFINED;
 		if (strncmp(firstBytes,firstPNG,4) == 0) loadThisTexture->imageType = PNGTexture;
 		if (strncmp(firstBytes,firstJPG,4) == 0) loadThisTexture->imageType = JPGTexture;
@@ -1452,6 +1452,8 @@ void _textureThread(void)
 		__reallyloadImageTexture();
 	    } else if (loadThisTexture->nodeType==NODE_MovieTexture) {
 		__reallyloadMovieTexture();
+	    } else if (loadThisTexture->nodeType==NODE_VRML1_Texture2) {
+		__reallyloadImageTexture();
 	    } else {
 		__reallyloadPixelTexure();
 	    }
@@ -1511,7 +1513,7 @@ void _textureThread(void)
 /********************************************************************************/
 
 /* load a PixelTexture that is stored as a MFInt32 */
-void __reallyloadPixelTexure() {
+static void __reallyloadPixelTexure() {
 	/* PixelTexture variables */
 	long hei,wid,depth;
 	unsigned char *texture;
@@ -1673,7 +1675,7 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
 
 
 
-void __reallyloadImageTexture() {
+static void __reallyloadImageTexture() {
 	CGImageRef 	image;
 	CFStringRef	path;
 	CFURLRef 	url;
@@ -1696,7 +1698,7 @@ void __reallyloadImageTexture() {
 	CGImageSourceRef 	sourceRef;
 
 
-	/* printf ("loading %s\n",loadThisTexture->filename); */
+	/* printf ("loading %s imageType %d\n",loadThisTexture->filename, loadThisTexture->imageType);  */
 
 	path = CFStringCreateWithCString(NULL, loadThisTexture->filename, kCFStringEncodingUTF8);
 	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
@@ -1777,6 +1779,7 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 	printf ("GetWidth %d\n",CGBitmapContextGetWidth(cgctx));
 	#endif
 	
+#undef TEXVERBOSE
 
 	data = (unsigned char *)CGBitmapContextGetData(cgctx);
 
@@ -1791,8 +1794,6 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 		printf ("\n");
 	}
 	#endif
-
-#undef TEXVERBOSE
 
 	/* is there possibly an error here, like a file that is not a texture? */
 	if (CGImageGetBitsPerPixel(image) == 0) {
@@ -1863,7 +1864,7 @@ my_error_exit (j_common_ptr cinfo)
 
 /*********************************************************************************************/
 
-void __reallyloadImageTexture() {
+static void __reallyloadImageTexture() {
 	FILE *infile;
 	char *filename;
 	GLuint texture_num;
@@ -2011,7 +2012,7 @@ void __reallyloadImageTexture() {
 #endif
 
 
-void __reallyloadMovieTexture () {
+static void __reallyloadMovieTexture () {
 
         int x,y,depth,frameCount;
         void *ptr;

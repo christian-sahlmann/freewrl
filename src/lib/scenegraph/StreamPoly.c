@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.8 2009/06/22 19:40:41 crc_canada Exp $
+$Id: StreamPoly.c,v 1.9 2009/06/23 19:57:02 crc_canada Exp $
 
 ???
 
@@ -529,35 +529,34 @@ static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r, struct
 	minVals[1]=r->minVals[1]; 
 	minVals[2]=r->minVals[2]; 
 
-		#ifdef STREAM_POLY_VERBOSE
-		printf ("have to gen default textures\n");
-		#endif
+	#ifdef STREAM_POLY_VERBOSE
+	printf ("have to gen default textures\n");
+	#endif
 
-		if ((p->_nodeType == NODE_IndexedFaceSet) ||(p->_nodeType == NODE_ElevationGrid)) {
+	if ((p->_nodeType == NODE_IndexedFaceSet) ||(p->_nodeType == NODE_ElevationGrid) || (p->_nodeType == NODE_VRML1_IndexedFaceSet)) {
 
-			/* find the S,T mapping. */
-			Xsize = r->maxVals[0]-minVals[0];
-			Ysize = r->maxVals[1]-minVals[1];
-			Zsize = r->maxVals[2]-minVals[2];
+		/* find the S,T mapping. */
+		Xsize = r->maxVals[0]-minVals[0];
+		Ysize = r->maxVals[1]-minVals[1];
+		Zsize = r->maxVals[2]-minVals[2];
 
-			/* printf ("defaultTextureMap, %f %f %f\n",Xsize,Ysize,Zsize); */
+		/* printf ("defaultTextureMap, %f %f %f\n",Xsize,Ysize,Zsize); */
 
-	
-			if ((Xsize >= Ysize) && (Xsize >= Zsize)) {
-				/* X size largest */
-				Ssize = Xsize; Sindex = 0;
-				if (Ysize >= Zsize) { Tsize = Ysize; Tindex = 1;
-				} else { Tsize = Zsize; Tindex = 2; }
-			} else if ((Ysize >= Xsize) && (Ysize >= Zsize)) {
-				/* Y size largest */
-				Ssize = Ysize; Sindex = 1;
-				if (Xsize >= Zsize) { Tsize = Xsize; Tindex = 0;
-				} else { Tsize = Zsize; Tindex = 2; }
-			} else {
-				/* Z is the largest */
-				Ssize = Zsize; Sindex = 2;
-				if (Xsize >= Ysize) { Tsize = Xsize; Tindex = 0;
-				} else { Tsize = Ysize; Tindex = 1; }
-			}
+		if ((Xsize >= Ysize) && (Xsize >= Zsize)) {
+			/* X size largest */
+			Ssize = Xsize; Sindex = 0;
+			if (Ysize >= Zsize) { Tsize = Ysize; Tindex = 1;
+			} else { Tsize = Zsize; Tindex = 2; }
+		} else if ((Ysize >= Xsize) && (Ysize >= Zsize)) {
+			/* Y size largest */
+			Ssize = Ysize; Sindex = 1;
+			if (Xsize >= Zsize) { Tsize = Xsize; Tindex = 0;
+			} else { Tsize = Zsize; Tindex = 2; }
+		} else {
+			/* Z is the largest */
+			Ssize = Zsize; Sindex = 2;
+			if (Xsize >= Ysize) { Tsize = Xsize; Tindex = 0;
+			} else { Tsize = Ysize; Tindex = 1; }
 		}
+	}
 }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.6 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_Shape.c,v 1.7 2009/06/23 19:57:02 crc_canada Exp $
 
 X3D Shape Component
 
@@ -426,7 +426,6 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* a texture and a transparency flag... */
 	texture_count = 0; /* will be >=1 if textures found */
-	have_texture = FALSE;
 
 	/* assume that lighting is enabled. Absence of Material or Appearance
 	   node will turn lighting off; in this case, at the end of Shape, we
@@ -541,7 +540,6 @@ void child_Appearance (struct X3D_Appearance *node) {
 
 	if(node->texture) {
 		/* we have to do a glPush, then restore, later */
-		have_texture=TRUE;
 		/* glPushAttrib(GL_ENABLE_BIT); */
 
 		/* is there a TextureTransform? if no texture, fugutaboutit */

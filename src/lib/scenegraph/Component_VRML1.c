@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.4 2009/06/22 19:40:41 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.5 2009/06/23 19:57:02 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -203,11 +203,11 @@ void fin_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 void child_VRML1_Separator (struct X3D_VRML1_Separator *node) { 
 	LOCAL_LIGHT_SAVE
 
-	/* printf ("vhild_sep %u, vp %d geom %d light %d sens %d blend %d prox %d col %d\n",node,
-	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);   */
+	/* ensure that textures start off at the first texture unit */
+	texture_count = 0;
 
-	/* we do not do collisions */
-	if (render_collision) return;
+	/* printf ("vhild_sep %u, vp %d geom %d light %d sens %d blend %d prox %d col %d\n",node,
+	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
 
 /*	RETURN_FROM_CHILD_IF_NOT_FOR_ME */
 
@@ -222,246 +222,77 @@ void child_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 
 
 void render_VRML1_Cone (struct X3D_VRML1_Cone *node) {
+	if (node->_ILS==NULL) {
+		struct X3D_Cone *sp = createNewX3DNode(NODE_Cone);
+		node->_ILS = sp;
 
-	int div = DIVS;
-	float df = div;
-	float h = (node->height)/2;
-	float r = (node->bottomRadius); 
-	int i;
-	int doSide = FALSE;
-	int doBottom = FALSE;
-	
-	DECL_TRIG1
-		
-	if (!strcmp(node->parts->strptr,"BOTTOM")) {
-		doBottom = TRUE;
-	}
-	if (!strcmp(node->parts->strptr,"SIDES")) {
-		doSide = TRUE;
-	}
-	if (!strcmp(node->parts->strptr,"ALL")) {
-		doSide = TRUE;
-		doBottom = TRUE;
-	}
-	
+		sp->side = FALSE;
+		sp->bottom = FALSE;
+		if (!strcmp(node->parts->strptr,"BOTTOM")) {
+			sp->bottom = TRUE;
+		}
+		if (!strcmp(node->parts->strptr,"SIDES")) {
+			sp->side = TRUE;
+		}
+		if (!strcmp(node->parts->strptr,"ALL")) {
+			sp->side = TRUE;
+			sp->bottom = TRUE;
+		}
 
-	if(h <= 0 && r <= 0) {return;}
-	INIT_TRIG1(div)
-	if(doBottom) {
-		glBegin(GL_POLYGON);
-		glNormal3f(0,-1,0);
-		START_TRIG1
-		for(i=div-1; i>=0; i--) {
-			TC(0.5+0.5*-SIN1,0.5+0.5*COS1);
-			glVertex3f(r*-SIN1,-h,r*COS1);
-			UP_TRIG1
-		}
-		glEnd();
+		sp->bottomRadius = node->bottomRadius;
+		sp->height = node->height;
 	}
-	if(doSide) {
-		double ml = sqrt(h*h + r * r);
-		double mlh = h / ml;
-		double mlr = r / ml;
-		glBegin(GL_TRIANGLES);
-		START_TRIG1
-		for(i=0; i<div; i++) {
-			float lsin = SIN1;
-			float lcos = COS1;
-			UP_TRIG1;
-			glNormal3f(mlh*lsin,mlr,-mlh*lcos);
-			TC((i+0.5)/df,0);
-			glVertex3f(0,h,0);
-			glNormal3f(mlh*SIN1,mlr,-mlh*COS1);
-			TC((i+1)/df,1);
-			glVertex3f(r*SIN1,-h,-r*COS1);
-			glNormal3f(mlh*lsin,mlr,-mlh*lcos);
-			TC(i/df,1);
-			glVertex3f(r*lsin,-h,-r*lcos);
-		}
-		glEnd();
-	}
+	render_node(node->_ILS);
+
 }
 
 void render_VRML1_Cube (struct X3D_VRML1_Cube *node) {
-	 float x = (node->width)/2;
-	 float y = (node->height)/2;
-	 float z = (node->depth)/2;
-	 
-	glPushAttrib(GL_LIGHTING);
-	glShadeModel(GL_FLAT);
-		glBegin(GL_QUADS);
-		glNormal3f(0,0,1);
-		TC(1,1);
-		glVertex3f(x,y,z);
-		TC(0,1);
-		glVertex3f(-x,y,z);
-		TC(0,0);
-		glVertex3f(-x,-y,z);
-		TC(1,0);
-		glVertex3f(x,-y,z);
-
-		glNormal3f(0,0,-1);
-		TC(1,0);
-		glVertex3f(x,-y,-z);
-		TC(0,0);
-		glVertex3f(-x,-y,-z);
-		TC(0,1);
-		glVertex3f(-x,y,-z);
-		TC(1,1);
-		glVertex3f(x,y,-z);
-
-		glNormal3f(0,1,0);
-		TC(1,1);
-		glVertex3f(x,y,z);
-		TC(1,0);
-		glVertex3f(x,y,-z);
-		TC(0,0);
-		glVertex3f(-x,y,-z);
-		TC(0,1);
-		glVertex3f(-x,y,z);
-
-		glNormal3f(0,-1,0);
-		TC(0,1);
-		glVertex3f(-x,-y,z);
-		TC(0,0);
-		glVertex3f(-x,-y,-z);
-		TC(1,0);
-		glVertex3f(x,-y,-z);
-		TC(1,1);
-		glVertex3f(x,-y,z);
-
-		glNormal3f(1,0,0);
-		TC(1,1);
-		glVertex3f(x,y,z);
-		TC(0,1);
-		glVertex3f(x,-y,z);
-		TC(0,0);
-		glVertex3f(x,-y,-z);
-		TC(1,0);
-		glVertex3f(x,y,-z);
-
-		glNormal3f(-1,0,0);
-		TC(1,0);
-		glVertex3f(-x,y,-z);
-		TC(0,0);
-		glVertex3f(-x,-y,-z);
-		TC(0,1);
-		glVertex3f(-x,-y,z);
-		TC(1,1);
-		glVertex3f(-x,y,z);
-		glEnd();
-	glPopAttrib();
+	if (node->_ILS==NULL) {
+		struct X3D_Box *sp = createNewX3DNode(NODE_Box);
+		node->_ILS = sp;
+		sp->size.c[0] = node->width;
+		sp->size.c[1] = node->height;
+		sp->size.c[2] = node->depth;
+	}
+	render_node(node->_ILS);
 }
 
 void render_VRML1_Sphere (struct X3D_VRML1_Sphere *node){
-	int vdiv = DIVS;
-	int hdiv = DIVS;
-	float vf = DIVS;
-	float hf = DIVS;
-	int v; int h;
-	float va1,va2,van,ha1,ha2,han;
-	DECL_TRIG1
-	DECL_TRIG2 
-	INIT_TRIG1(vdiv) 
-	INIT_TRIG2(hdiv)
-		
-	glPushMatrix();
-	glScalef(node->radius, node->radius, node->radius);
-	START_TRIG1
-	glBegin(GL_QUAD_STRIP);
-	for(v=0; v<vdiv; v++) {
-		va1 = v * 3.15 / vdiv;
-		va2 = (v+1) * 3.15 / vdiv;
-		van = (v+0.5) * 3.15 / vdiv;
-		for(h=0; h<=hdiv; h++) {
-			ha1 = h * 6.29 / hdiv;
-			ha2 = (h+1) * 6.29 / hdiv;
-			han = (h+0.5) * 6.29 / hdiv;
-
-			glNormal3f(sin(va1) * cos(ha1), sin(va1) * sin(ha1), cos(va1));
-			TC(v/vf,h/hf);
-			glVertex3f(sin(va1) * cos(ha1), sin(va1) * sin(ha1), cos(va1));
-
-			glNormal3f(sin(va2) * cos(ha1), sin(va2) * sin(ha1), cos(va2));
-			TC((v+1)/vf,h/hf);
-			glVertex3f(sin(va2) * cos(ha1), sin(va2) * sin(ha1), cos(va2));
-		}
+	if (node->_ILS==NULL) {
+		struct X3D_Sphere *sp = createNewX3DNode(NODE_Sphere);
+		node->_ILS = sp;
+		sp->radius = node->radius;
 	}
-	glEnd();
-	glPopMatrix();
+	render_node(node->_ILS);
 }
 
 void render_VRML1_Cylinder (struct X3D_VRML1_Cylinder *node) {
-	int div = DIVS;
-	float df = div;
-	float h = (node->height)/2;
-	float r = (node->radius);
-	DECL_TRIG1
-	int i;
-	int doTop = FALSE;
-	int doBottom = FALSE;
-	int doSide = FALSE;
-		
-	if (!strcmp(node->parts->strptr,"BOTTOM")) {
-		doBottom = TRUE;
-	}
-	if (!strcmp(node->parts->strptr,"TOP")) {
-		doTop = TRUE;
-	}
-	if (!strcmp(node->parts->strptr,"SIDES")) {
-		doSide = TRUE;
-	}
-	if (!strcmp(node->parts->strptr,"ALL")) {
-		doSide = TRUE;
-		doBottom = TRUE;
-		doTop = TRUE;
-	}
-	
+	if (node->_ILS==NULL) {
+		struct X3D_Cylinder *sp = createNewX3DNode(NODE_Cylinder);
+		node->_ILS = sp;
 
-	INIT_TRIG1(div)
-	if(doBottom) {
-		glBegin(GL_POLYGON);
-		glNormal3f(0,1,0);
-		START_TRIG1
-		for(i=0; i<div; i++) {
-			TC(0.5+0.5*SIN1,0.5+0.5*SIN1);
-			glVertex3f(r*SIN1,h,r*COS1);
-			UP_TRIG1
+		sp->side = FALSE;
+		sp->bottom = FALSE;
+		sp->top = FALSE;
+		if (!strcmp(node->parts->strptr,"BOTTOM")) {
+			sp->bottom = TRUE;
 		}
-		glEnd();
-	} 
-	if(doTop) {
-		glBegin(GL_POLYGON);
-		glNormal3f(0,-1,0);
-		START_TRIG1
-		for(i=div-1; i>=0; i--) {
-			TC(0.5+0.5*-SIN1,0.5+0.5*COS1);
-			glVertex3f(-r*SIN1,-h,r*COS1);
-			UP_TRIG1
+		if (!strcmp(node->parts->strptr,"TOP")) {
+			sp->top = TRUE;
 		}
-		glEnd();
+		if (!strcmp(node->parts->strptr,"SIDES")) {
+			sp->side = TRUE;
+		}
+		if (!strcmp(node->parts->strptr,"ALL")) {
+			sp->side = TRUE;
+			sp->bottom = TRUE;
+			sp->top = TRUE;
+		}
+		sp->radius = node->radius;
+		sp->height = node->height;
 	}
-	if(doSide) {
-		glBegin(GL_QUADS);
-		START_TRIG1
-		for(i=0; i<div; i++) {
-			float lsin = SIN1;
-			float lcos = COS1;
-			UP_TRIG1;
-			glNormal3f(lsin,0,lcos);
-			TC(i/df,0);
-			glVertex3f(r*lsin,-h,r*lcos);
-			glNormal3f(SIN1,0,COS1);
-			TC((i+1)/df,0);
-			glVertex3f(r*SIN1,-h,r*COS1);
-			TC((i+1)/df,1);
-			glVertex3f(r*SIN1,h,r*COS1);
-			glNormal3f(lsin,0,lcos);
-			TC(i/df,1);
-			glVertex3f(r*lsin,h,r*lcos);
-		}
-		glEnd();
-	}
+	render_node(node->_ILS);
+	
 }
 
 void render_VRML1_Scale (struct X3D_VRML1_Scale *node) {
@@ -730,6 +561,9 @@ void render_VRML1_NormalBinding (struct X3D_VRML1_NormalBinding  *node) {
 void render_VRML1_Texture2 (struct X3D_VRML1_Texture2  *node) {
 	/* save this node pointer */
 	if (cSLD!=NULL) cSLD->t2Node = node;
+	/* printf ("tex2, parent %s, me %s\n",node->__parenturl->strptr, node->filename.p[0]->strptr); */
+        loadTextureNode(X3D_NODE(node),NULL);
+        texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 }
 
 void render_VRML1_Texture2Transform (struct X3D_VRML1_Texture2Transform  *node) {
@@ -755,7 +589,7 @@ void render_VRML1_ShapeHints (struct X3D_VRML1_ShapeHints  *node) {
 
 void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
         int i;
-        struct SFColor *points; int npoints=0;
+        struct SFColor *points=NULL; int npoints=0;
 	int renderMatOver = FALSE;
 	glPointSize (2);
 
@@ -787,92 +621,112 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
         glEnd();
 }
 
-void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *node) {
 
-	/* if we need to remake this IndexedFaceSet */
-	/* this is like the COMPILE_POLY_IF_REQUIRED(a,b,c,d) macro, with additional steps */
 
-	if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->irep_change) { 
-		/* yes, we do have to remake this node */
+/********* IndexedFaceSet ******************************************************************/
+/* Copy the data from sibling nodes into hidden fields of this VRML1 IndexedFaceSet, so that
+   the FreeWRL PolyRep routines work properly */
+
+static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *node) {
+	/* yes, we do have to remake this node */
 		
-		/* we need to fill in the hidden SFFloats, SFBools here */
-		if (cSLD->shNode != NULL) {
-
-			node->_ccw =  cSLD->shNode->_vertValue!=VRML1MOD_CLOCKWISE;
-			node->_convex = cSLD->shNode->_faceValue == VRML1MOD_CONVEX;
-			node->_solid = cSLD->shNode->_typeValue==VRML1MOD_SOLID;
-			node->_creaseAngle = cSLD->shNode->creaseAngle;
-		} else {
-			node->_ccw = FALSE;
-			node->_convex = TRUE;
+	/* we need to fill in the hidden SFFloats, SFBools here */
+	if (cSLD->shNode != NULL) {
+		node->_solid = cSLD->shNode->_typeValue==VRML1MOD_SOLID;
+		node->_ccw =  cSLD->shNode->_vertValue==VRML1MOD_COUNTERCLOCKWISE;
+		/* are we not sure? if not sure, make shape not SOLID so both sides of tris are drawn */
+		if (cSLD->shNode->_vertValue==VRML1MOD_UNKNOWN_ORDERING) {
 			node->_solid = FALSE;
-			node->_creaseAngle = 0.5;
 		}
+		
+		node->_convex = cSLD->shNode->_faceValue == VRML1MOD_CONVEX;
+		node->_creaseAngle = cSLD->shNode->creaseAngle;
+	} else {
+		node->_ccw = FALSE;
+		node->_convex = TRUE;
+		node->_solid = FALSE;
+		node->_creaseAngle = 0.5;
+	}
 
-		if (cSLD->mbNode!=NULL) node->_cpv = cSLD->mbNode->_Value==VRML1MOD_PER_VERTEX;
-		else node->_cpv = FALSE;
 
-		if (cSLD->nbNode!=NULL) node->_npv = cSLD->nbNode->_Value==VRML1MOD_PER_VERTEX;
-		else node->_npv = FALSE;
+	if (cSLD->mbNode!=NULL) node->_cpv = cSLD->mbNode->_Value==VRML1MOD_PER_VERTEX;
+	else node->_cpv = FALSE;
 
-		if (cSLD->matNode!= NULL) {
-			/* if we have more than 1 diffuseColor, we should treat them as a color node */
-			if (cSLD->matNode->diffuseColor.n > 1) {
+	if (cSLD->nbNode!=NULL) node->_npv = cSLD->nbNode->_Value==VRML1MOD_PER_VERTEX;
+	else node->_npv = FALSE;
+
+	/* do we have a scoped Material node, with more than 1 diffuseColor? */
+	if (cSLD->matNode!= NULL) {
+		/* if we have more than 1 diffuseColor, we should treat them as a color node */
+		if (cSLD->matNode->diffuseColor.n > 1) {
 			struct X3D_Color *nc;
 			if (node->_color==NULL) { 
 				node->_color = createNewX3DNode(NODE_Color);
-				ADD_PARENT(node->_color,node);
+				ADD_PARENT(node->_color,X3D_NODE(node));
 			}
 			nc = node->_color;
 			FREE_IF_NZ(nc->color.p);
 			nc->color.p = MALLOC(sizeof (struct SFColor) * cSLD->matNode->diffuseColor.n);
 			memcpy(nc->color.p, cSLD->matNode->diffuseColor.p, sizeof (struct SFColor) * cSLD->matNode->diffuseColor.n);
 			nc->color.n = cSLD->matNode->diffuseColor.n;
-/*printf ("created and copied %d colours\n",nc->color.n);
-			{
-			int i;
-			for (i=0; i<nc->color.n; i++) {
-			printf ("%d: %f %f %f\n",i,nc->color.p[i].c[0], nc->color.p[i].c[1],nc->color.p[i].c[2]);
-			}
-			}
-*/
-			}
-		} else node->_color=NULL;
+		}
+	} else node->_color=NULL;
 		
-		if (cSLD->c3Node!= NULL) {
-			struct X3D_Coordinate *nc;
-			if (node->_coord==NULL) {
-				node->_coord = createNewX3DNode(NODE_Coordinate);
-				ADD_PARENT(node->_coord,node);
-			}
-			nc = node->_coord;
-			FREE_IF_NZ(nc->point.p);
-			nc->point.p = MALLOC(sizeof (struct SFColor) * cSLD->c3Node->point.n);
-			memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFColor) * cSLD->c3Node->point.n);
+	/* do we have a scoped Coordinate3 node? */
+	if (cSLD->c3Node!= NULL) {
+		struct X3D_Coordinate *nc;
+		if (node->_coord==NULL) {
+			node->_coord = createNewX3DNode(NODE_Coordinate);
+			ADD_PARENT(node->_coord,X3D_NODE(node));
+		}
+		nc = node->_coord;
+		FREE_IF_NZ(nc->point.p);
+		nc->point.p = MALLOC(sizeof (struct SFColor) * cSLD->c3Node->point.n);
+		memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFColor) * cSLD->c3Node->point.n);
 
-			nc->point.n = cSLD->c3Node->point.n;
-/*
-printf ("created and copied %d coordinates\n",nc->point.n);
-			{
-			int i;
-			for (i=0; i<cSLD->c3Node->point.n; i++) {
-			printf ("%d: %f %f %f\n",i,nc->point.p[i].c[0], nc->point.p[i].c[1],nc->point.p[i].c[2]);
-			}}
-*/
-		} else node->_coord=NULL;
+		nc->point.n = cSLD->c3Node->point.n;
+	} else node->_coord=NULL;
 		
-		if (cSLD->nNode!= NULL) {
-			if (node->_normal==NULL) node->_normal = createNewX3DNode(NODE_Normal);
-			node->_normal=cSLD->nNode;
-printf ("normal node prob\n");
-		} else node->_normal=NULL;
-		
-		if (cSLD->tc2Node!= NULL) {
-			if (node->_texCoord==NULL) node->_texCoord = createNewX3DNode(NODE_TextureCoordinate);
-			node->_texCoord=cSLD->tc2Node;
-printf ("texture coord node prob\n");
-		} else node->_texCoord=NULL;
+	/* do we have a Normal node? */
+	if (cSLD->nNode!= NULL) {
+		struct X3D_Normal *nc;
+		if (node->_normal==NULL) {
+			node->_normal = createNewX3DNode(NODE_Normal);
+			ADD_PARENT(node->_normal,X3D_NODE(node));
+		}
+		nc = node->_normal;
+		FREE_IF_NZ(nc->vector.p);
+		nc->vector.p = MALLOC(sizeof (struct SFColor) * cSLD->nNode->vector.n);
+		memcpy(nc->vector.p, cSLD->nNode->vector.p, sizeof (struct SFColor) * cSLD->nNode->vector.n);
 
+		nc->vector.n = cSLD->nNode->vector.n;
+	} else node->_normal=NULL;
+		
+	/* do we have a TextureCoordinate2 node? */
+	if (cSLD->tc2Node!= NULL) {
+		struct X3D_TextureCoordinate *nc;
+		if (node->_texCoord==NULL) {
+			node->_texCoord = createNewX3DNode(NODE_Normal);
+			ADD_PARENT(node->_texCoord,X3D_NODE(node));
+		}
+		nc = node->_texCoord;
+		FREE_IF_NZ(nc->point.p);
+		nc->point.p = MALLOC(sizeof (struct SFVec2f) * cSLD->tc2Node->point.n);
+		memcpy(nc->point.p, cSLD->tc2Node->point.p, sizeof (struct SFVec2f) * cSLD->tc2Node->point.n);
+
+		nc->point.n = cSLD->tc2Node->point.n;
+	} else node->_texCoord=NULL;
+}
+
+
+void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *node) {
+
+	/* if we need to remake this IndexedFaceSet */
+	/* this is like the COMPILE_POLY_IF_REQUIRED(a,b,c,d) macro, with additional steps */
+
+	if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->irep_change) { 
+		
+		copyPointersToVRML1IndexedFaceSet(node);
 		compileNode ((void *)compile_polyrep, node, 
 			node->_coord, node->_color, node->_normal, node->_texCoord);
 	} 
@@ -883,80 +737,80 @@ printf ("texture coord node prob\n");
 	render_polyrep(node);
 }
 
+
+/********* IndexedLineSet ******************************************************************/
+
+/* X3D uses emissiveColor for its line, so we will take the emissiveColor from the Material node
+and use it here. This might be wrong for VRML1... */
+
+static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *node) {
+	/* yes, we do have to remake this node */
+
+	struct X3D_IndexedLineSet *ILS = createNewX3DNode(NODE_IndexedLineSet);
+
+	node->_ILS = ILS; 
+
+	if (cSLD->mbNode!=NULL) ILS->colorPerVertex = cSLD->mbNode->_Value==VRML1MOD_PER_VERTEX;
+	else ILS->colorPerVertex = FALSE;
+
+	/* do we have a scoped Material node, with more than 1 emissiveColor? */
+	if (cSLD->matNode!= NULL) {
+		/* if we have more than 1 emissiveColor, we should treat them as a color node */
+		if (cSLD->matNode->emissiveColor.n > 1) {
+			struct X3D_Color *nc;
+			if (ILS->color==NULL) { 
+				ILS->color = createNewX3DNode(NODE_Color);
+				ADD_PARENT(ILS->color,X3D_NODE(node));
+			}
+			nc = ILS->color;
+			FREE_IF_NZ(nc->color.p);
+			nc->color.p = MALLOC(sizeof (struct SFColor) * cSLD->matNode->emissiveColor.n);
+			memcpy(nc->color.p, cSLD->matNode->emissiveColor.p, sizeof (struct SFColor) * cSLD->matNode->emissiveColor.n);
+			nc->color.n = cSLD->matNode->emissiveColor.n;
+		}
+	}
+		
+	/* do we have a scoped Coordinate3 node? */
+	if (cSLD->c3Node!= NULL) {
+		struct X3D_Coordinate *nc;
+		if (ILS->coord==NULL) {
+			ILS->coord = createNewX3DNode(NODE_Coordinate);
+			ADD_PARENT(ILS->coord,X3D_NODE(node));
+		}
+		nc = ILS->coord;
+		FREE_IF_NZ(nc->point.p);
+		nc->point.p = MALLOC(sizeof (struct SFColor) * cSLD->c3Node->point.n);
+		memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFColor) * cSLD->c3Node->point.n);
+
+		nc->point.n = cSLD->c3Node->point.n;
+	}
+
+	/* lets copy over the coordIndex and colorIndex fields */
+	if (node->coordIndex.n>0) {
+		ILS->coordIndex.p = MALLOC(node->coordIndex.n*sizeof(int));
+		memcpy (ILS->coordIndex.p,node->coordIndex.p,node->coordIndex.n*sizeof(int));
+		ILS->coordIndex.n = node->coordIndex.n;
+	}
+	if (node->materialIndex.n>0) {
+		ILS->colorIndex.p = MALLOC(node->materialIndex.n*sizeof(int));
+		memcpy (ILS->colorIndex.p,node->materialIndex.p,node->materialIndex.n*sizeof(int));
+		ILS->colorIndex.n = node->materialIndex.n;
+	}
+}
+
+
 void render_VRML1_IndexedLineSet (struct X3D_VRML1_IndexedLineSet *node) {
         int cin = node->coordIndex.n;
 	int ind;
 	int i;
-	int colorI = 0;
 
-        struct SFColor *points; int npoints=0;
-	int renderMatOver = VRML1MOD_OVERALL;
-	int doMat = 0;
+	if (node->_ILS == NULL) {
+		copyPointersToVRML1IndexedLineSet(node);
+		compile_IndexedLineSet((struct X3D_IndexedLineSet *)(node->_ILS));
 
-	glLineWidth(2);
-
-        if(cSLD->c3Node) {
-		points =  cSLD->c3Node->point.p;
-		npoints = cSLD->c3Node->point.n;
 	}
-		
-	if (cSLD->mbNode != NULL) {
-		renderMatOver = cSLD->mbNode->_Value;
-	}
-	
-	glBegin(GL_LINE_STRIP);
-	for(i=0; i<cin; i++) {
-		if (i<node->coordIndex.n) ind = node->coordIndex.p[i];
-		else {
-			printf ("IndexedLineSet, index> avail coords\n");
-			node->coordIndex.n = 0;
-			glEnd();
-			return;
-		}
-		if(ind==-1) {
-			glEnd();
-#ifdef xx
-			plno++;
-			if(ncolors && !cpv) {
-				c = plno;
-				if((!colin && plno < ncolors) ||
-				   (colin && plno < colin)) {
-					if(colin) {
-						c = ((this_->colorIndex).p[c]);
-					}
-					glColor3f(colors[c].c[0],
-						  colors[c].c[1],
-						  colors[c].c[2]);
-				}
-			}
-#endif
-			glBegin(GL_LINE_STRIP);
-		} else {
-#ifdef xx
-			if(ncolors && cpv) {
-				c = i;
-				if(colin) {
-					c = ((this_->colorIndex).p[c]);
-				}
-				glColor3f(colors[c].c[0],
-					  colors[c].c[1],
-					  colors[c].c[2]);
-			}
-			/* printf("Line: vertex %f %f %f\n",
-				points[ind].c[0],
-				points[ind].c[1],
-				points[ind].c[2]
-			);
-			*/
-#endif
-			glVertex3f(
-				points[ind].c[0],
-				points[ind].c[1],
-				points[ind].c[2]
-			);
-		}
-	}
-	glEnd();
+	LIGHTING_ON /* use emissiveColors, so turn lighting on */
+	render_IndexedLineSet((struct X3D_IndexedLineSet *)(node->_ILS));
 }
 
 

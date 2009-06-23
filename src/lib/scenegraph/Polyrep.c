@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.7 2009/06/12 20:46:46 crc_canada Exp $
+$Id: Polyrep.c,v 1.8 2009/06/23 19:57:02 crc_canada Exp $
 
 ???
 
@@ -835,7 +835,6 @@ void render_polyrep(void *node) {
 
 	trisThisLoop += r->ntri;
 
-
 	#ifdef TEXVERBOSE
 	{
 		int i;
@@ -861,7 +860,6 @@ void render_polyrep(void *node) {
 		}
 	}
 	#endif
-
 
 	/*  put things back to the way they were;*/
 	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);

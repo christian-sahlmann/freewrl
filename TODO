@@ -7,8 +7,8 @@ Priority list
 		VRML1_Cone 			(DONE)
 		VRML1_Cube 			(DONE)
 		VRML1_Cylinder 			(DONE)
-		VRML1_IndexedFaceSet
-		VRML1_IndexedLineSet		(started)
+		VRML1_IndexedFaceSet		(DONE)
+		VRML1_IndexedLineSet		(DONE)
 		VRML1_PointSet			(DONE)
 		VRML1_Sphere 			(DONE)
 		VRML1_Coordinate3		(DONE)
@@ -18,10 +18,10 @@ Priority list
 		VRML1_MaterialBinding		(DONE)
 		VRML1_Normal			(DONE)
 		VRML1_NormalBinding		(DONE)
-		VRML1_Texture2
+		VRML1_Texture2			(DONE)
 		VRML1_Texture2Transform
-		VRML1_TextureCoordinate2
-		VRML1_ShapeHints
+		VRML1_TextureCoordinate2	(DONE)
+		VRML1_ShapeHints		(DONE)
 		VRML1_MatrixTransform
 		VRML1_Rotation			(DONE)
 		VRML1_Scale			(DONE)

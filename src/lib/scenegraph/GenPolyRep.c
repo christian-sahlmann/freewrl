@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.8 2009/06/22 19:40:41 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.9 2009/06/23 19:57:02 crc_canada Exp $
 
 ???
 
@@ -31,27 +31,9 @@ $Id: GenPolyRep.c,v 1.8 2009/06/22 19:40:41 crc_canada Exp $
  *
  *******************************************/
 
-#ifdef OLDCODE
-#define X3DCOMPOSED_STRING(f) ( \
-        f == NODE_IndexedFaceSet          ? "IndexedFaceSet" : ( \
-        f == NODE_ElevationGrid           ? "ElevationGrid" : ( \
-        f == NODE_IndexedTriangleFanSet   ? "IndexedTriangleFanSet" : ( \
-        f == NODE_IndexedTriangleSet      ? "IndexedTriangleSet" : ( \
-        f == NODE_IndexedTriangleStripSet ? "IndexedTriangleStripSet" : ( \
-        f == NODE_TriangleFanSet          ? "TriangleFanSet" : ( \
-        f == NODE_TriangleStripSet        ? "TriangleStripSet" : ( \
-        f == NODE_VRML1_IndexedFaceSet        ? "VRML1_IndexedFaceSet" : ( \
-        f == NODE_TriangleSet             ? "TriangleSet" : "unknown X3DComposedGeometry Node"))))))))
-#endif
-
-
 extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct X3D_PolyRep *this_Elev,struct point_XYZ *facenormals,int *pointfaces,int ccw);
 extern void verify_global_IFS_Coords(int max);
 extern void Extru_check_normal(struct point_XYZ *facenormals,int this_face,int dire,struct X3D_PolyRep *rep_,int ccw);
-
-
-
-
 
 /* calculate how many triangles are required for IndexedTriangleFanSet and 
 	IndexedTriangleStripSets */
@@ -539,306 +521,6 @@ static void checkTriangleSetFields (struct X3D_TriangleSet *node) {
 	}
 }
 
-#ifdef OLDCODE
-static int checkX3DComposedGeomFields (struct X3D_Node *pn) {
-	struct SFColor *points;
-	int npoints = 0;
-	int retval = TRUE;
-	int IndexSize = 0;
-	int xx,yy,zz; /* temporary variables */
-	int fanVertex;
-	int *newIndex;
-	int windingOrder; /*TriangleStripSet ordering */
-
-
-	/* printf ("checkX3DComposedGeomFields for node (%d) %s\n",
-			pn->_nodeType, X3DCOMPOSED_STRING(pn->_nodeType)); 
-	*/
-	
-
-	/* verify fields for each Node type, according to the spec. Fields that SHOULD
-	   not appear in a node are identified in Parser.pm using the hashes in VRMLNodes.pm
-	   so we do not have to worry about them here. */
-	switch (pn->_nodeType) {
-		case NODE_IndexedTriangleFanSet: {
-			struct X3D_IndexedTriangleFanSet *node = X3D_INDEXEDTRIANGLEFANSET(pn);
-			/* printf ("start of ITFS\n"); */
-			IndexSize = returnIndexedFanStripIndexSize(node->index);
-			if (IndexSize == 0) {
-				/* printf ("IndexSize for ITFS %d\n",IndexSize); */
-				break;
-			}
-
-			newIndex = MALLOC (sizeof(int) * IndexSize);
-			/* now calculate the indexes */
-
-			xx=0;
-			yy=0;
-			while (xx < (node->index.n-1)) {
-				fanVertex = xx;
-				/* scan forward to find end of fan */
-				while ((xx<node->index.n) && (node->index.p[xx] > -1)) xx++;
-				/* printf ("fan runs between %d and %d\n", fanVertex,xx);  */
-
-				/* bounds checking... */
-				if (xx >= IndexSize) {
-					printf ("ITFS - index size error... IndexSize < index value \n");
-					xx = IndexSize;
-				}
-
-				for (zz=fanVertex+1; zz<(xx-1); zz++) {
-					/* printf ("newIndexSize %d, fv %d, zz %d\n",IndexSize, fanVertex, zz); */
-					newIndex[yy] = node->index.p[fanVertex]; yy++;
-					newIndex[yy] = node->index.p[zz]; yy++; 
-					newIndex[yy] = node->index.p[zz+1]; yy++;
-					newIndex[yy] = -1; yy++;
-				}
-				
-				/* is this the end of the fan? */
-				if (xx < (node->index.n-1)) {
-					xx++; /* skip past the -1 */
-					fanVertex = xx;
-					/* printf ("end of fan, but not end of structure - fanVertex %d, xx %d yy %d\n",fanVertex,xx,yy); */
-				}
-			}
-					
-			/* xx=0; while (xx < IndexSize) { printf ("index %d val %d\n",xx,newIndex[xx]); xx++; } */
-
-			/* now, make the new index active */
-			/* FREE_IF_NZ (node->coordIndex.p); should free if MALLOC'd already */
-			node->_coordIndex.p = newIndex;
-			node->_coordIndex.n = IndexSize;
-                	break;
-		}
-		case NODE_IndexedTriangleStripSet: {
-			struct X3D_IndexedTriangleStripSet *node = X3D_INDEXEDTRIANGLESTRIPSET(pn);
-			/* printf ("start of ITSS\n"); */
-			IndexSize = returnIndexedFanStripIndexSize(node->index);
-			if (IndexSize == 0) {
-				/* printf ("IndexSize for ITFS %d\n",IndexSize); */
-				break;
-			}
-
-			newIndex = MALLOC (sizeof(int) * IndexSize);
-
-			/* now calculate the indexes */
-			xx=0;
-			yy=0; zz = 0;
-			while (xx < (node->index.n-1)) {
-				fanVertex = xx;
-				/* scan forward to find end of fan */
-				while ((xx<node->index.n) && (node->index.p[xx] > -1)) xx++;
-				/* printf ("strip runs between %d and %d\n", fanVertex,xx);  */
-
-				/* bounds checking... */
-				if (xx >= IndexSize) {
-					printf ("ITFS - index size error... IndexSize < index value \n");
-					xx = IndexSize;
-				}
-
-
-				windingOrder=0;
-				for (zz=fanVertex; zz<(xx-2); zz++) {
-					if (windingOrder==0) {
-						newIndex[yy] = node->index.p[zz]; yy++;
-						newIndex[yy] = node->index.p[zz+1]; yy++; 
-						newIndex[yy] = node->index.p[zz+2]; yy++;
-						windingOrder ++;
-					} else {
-						newIndex[yy] = node->index.p[zz]; yy++;
-						newIndex[yy] = node->index.p[zz+2]; yy++; 
-						newIndex[yy] = node->index.p[zz+1]; yy++;
-						windingOrder =0;
-					}
-					newIndex[yy] = -1; yy++;
-				}
-				
-				/* is this the end of the fan? */
-				if (xx < (node->index.n-1)) {
-					xx++; /* skip past the -1 */
-					fanVertex = xx;
-					/* printf ("end of fan, but not end of structure - fanVertex %d, xx %d yy %d\n",fanVertex,xx,yy); */
-				}
-				zz += 2;
-			}
-					
-			/* xx=0; while (xx < IndexSize) { printf ("index %d val %d\n",xx,newIndex[xx]); xx++; }  */
-
-			/* now, make the new index active */
-			/* FREE_IF_NZ (node->coordIndex.p); should free if MALLOC'd already */
-			node->_coordIndex.p = newIndex;
-			node->_coordIndex.n = IndexSize;
-                	break;
-		}
-		case NODE_IndexedTriangleSet : {
-			struct X3D_IndexedTriangleSet *node = X3D_INDEXEDTRIANGLESET(pn);
-			IndexSize = ((node->index.n) * 4) / 3;
-			if (IndexSize <= 0) {
-				break;
-			}
-
-			newIndex = MALLOC (sizeof(int) * IndexSize);
-			zz = 0; yy=0;
-			/* printf ("index: "); */
-			for (xx = 0; xx < node->index.n; xx++) {
-				newIndex[zz] = node->index.p[xx];
-				/* printf (" %d ",newIndex[zz]);  */
-				zz++;
-				yy++;
-				if (yy == 3) {
-					/* end of one triangle, put a -1 in there */
-					newIndex[zz] = -1;
-					/* printf (" -1 "); */
-					zz++;
-					yy = 0;
-				}
-			/* printf ("\n"); */
-			}
-
-			/* now, make the new index active */
-			/* FREE_IF_NZ (node->coordIndex.p); should free if MALLOC'd already */
-			node->_coordIndex.p = newIndex;
-			node->_coordIndex.n = IndexSize;
-                	break;
-		}
-		case NODE_TriangleSet : {
-			struct X3D_TriangleSet *node = X3D_TRIANGLESET(pn);
-		        if(node->coord) {
-				struct Multi_Vec3f *dtmp;
-				dtmp = getCoordinate (node->coord, "TriangleSet");
-				npoints = dtmp->n;
-				points = dtmp->p;
-		        }
-
-			/* verify whether we have an incorrect number of coords or not */
-			if (((npoints/3)*3) != npoints) {
-				printf ("Warning, in TriangleSet, Coordinates not a multiple of 3\n");
-				npoints = ((npoints/3)*3);
-			}
-
-			/* printf ("npoints %d\n",npoints); */
-
-
-			/* calculate index size; every "face" ends in -1 */
-			IndexSize = (npoints * 4) / 3;
-			/* printf ("IndexSize is %d\n",IndexSize); */
-			node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
-			node->_coordIndex.n = IndexSize;
-
-			IndexSize = 0; /* for assigning the indexes */
-			
-			/* now calculate the indexes */
-			yy=0; zz=0;
-			for (xx=0; xx<npoints; xx+=3) {
-				/* printf ("index %d tris %d %d %d -1\n", xx/3, xx, xx+1, xx+2);  */
-				node->_coordIndex.p[IndexSize++] = xx;
-				node->_coordIndex.p[IndexSize++] = xx+1;
-				node->_coordIndex.p[IndexSize++] = xx+2;
-				node->_coordIndex.p[IndexSize++] = -1;
-			}
-                	break;
-		}
-		case NODE_TriangleStripSet : {
-			struct X3D_TriangleStripSet *node = X3D_TRIANGLESTRIPSET(pn);
-			 /* printf ("TSS, stripCount %d\n",(node->stripCount).n);  */
-			if ((node->stripCount).n < 1) {
-				freewrlDie ("TriangleStripSet, need at least one stripCount element");
-			}
-
-			/* calculate the size of the Index array */
-			for (xx=0; xx<(node->stripCount).n; xx++) {
-				 /* printf ("stripCount %d is %d  \n",xx,(node->stripCount).p[xx]); */
-				IndexSize += ((node->stripCount).p[xx]-2) * 4;
-				/* bounds checking... */
-				if ((node->stripCount).p[xx] < 3) {
-					printf ("TriangleStripSet, index %d is less than 3\n",
-						(node->stripCount).p[xx]);
-				}
-			}
-
-			/* printf ("IndexSize is %d\n",IndexSize); */
-			node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
-			node->_coordIndex.n = IndexSize;
-			IndexSize = 0; /* for assigning the indexes */
-			
-			/* now calculate the indexes */
-			yy=0; zz=0;
-			for (xx=0; xx<(node->stripCount).n; xx++) {
-				windingOrder=0;
-				/* printf ("stripCount %d is %d  \n",xx,(node->stripCount).p[xx]);  */
-				for (yy=0; yy< ((node->stripCount).p[xx]-2); yy++) {
-					if (windingOrder==0) {
-						/* printf ("fcwo0 %d tris %d %d %d -1\n", xx, zz, zz+1, zz+2); */
-						node->_coordIndex.p[IndexSize++] = zz;
-						node->_coordIndex.p[IndexSize++] = zz+1;
-						node->_coordIndex.p[IndexSize++] = zz+2;
-						windingOrder++;
-					} else {
-						/* printf ("fcwo1 %d tris %d %d %d -1\n", xx, zz+1, zz, zz+2); */
-						node->_coordIndex.p[IndexSize++] = zz+1;
-						node->_coordIndex.p[IndexSize++] = zz;
-						node->_coordIndex.p[IndexSize++] = zz+2;
-						windingOrder=0;
-					}
-					node->_coordIndex.p[IndexSize++] = -1;
-					zz++;
-				}
-				zz += 2;
-			}
-					
-                	break;
-		}
-		case NODE_TriangleFanSet : {
-			struct X3D_TriangleFanSet *node = X3D_TRIANGLEFANSET(pn);
-			/* printf ("TFS, fanCount %d\n",(node->fanCount).n);  */
-			if ((node->fanCount).n < 1) {
-				freewrlDie ("TriangleFanSet, need at least one fanCount element");
-			}
-
-			/* calculate the size of the Index array */
-			for (xx=0; xx<(node->fanCount).n; xx++) {
-				/* printf ("fanCount %d is %d  \n",xx,(node->fanCount).p[xx]); */
-				IndexSize += ((node->fanCount).p[xx]-2) * 4;
-				/* bounds checking... */
-				if ((node->fanCount).p[xx] < 3) {
-					printf ("TriangleFanSet, fanCount index %d is less than 3\n", (node->fanCount).p[xx]);
-				}
-			}
-
-			/* printf ("IndexSize is %d\n",IndexSize); */
-			node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
-			node->_coordIndex.n = IndexSize;
-			IndexSize = 0; /* for assigning the indexes */
-
-			/* now calculate the indexes */
-			yy=0; zz=0;
-			for (xx=0; xx<(node->fanCount).n; xx++) {
-				/* printf ("fanCount %d is %d  \n",xx,(node->fanCount).p[xx]); */
-				fanVertex = zz;
-				zz ++;
-				for (yy=0; yy< ((node->fanCount).p[xx]-2); yy++) {
-					/* printf ("fc %d tris %d %d %d -1\n",
-						xx, fanVertex, zz, zz+1); */
-					node->_coordIndex.p[IndexSize++] = fanVertex;
-					node->_coordIndex.p[IndexSize++] = zz;
-					node->_coordIndex.p[IndexSize++] = zz+1;
-					node->_coordIndex.p[IndexSize++] = -1;
-					zz++;
-				}
-				zz++;
-			}
-                	break;
-		}
-        	default:
-			printf ("invalid node passed to CheckX3DComposedGeometryFields!\n");
-			return FALSE;
-                	break;
-        }
-
-	/* printf ("check returning TRUE for X3DGeom fields\n"); */
-	return retval;
-}
-#endif
 
 
 void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
@@ -1316,9 +998,10 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 						rep_->normal[vert_ind*3+1]=facenormals[this_face].y;
 						rep_->normal[vert_ind*3+2]=facenormals[this_face].z;
 						rep_->norindex[vert_ind] = vert_ind;
-						 printf ("using calculated normals %f %f %f for face %d, vert_ind %d\n",
+						 /* printf ("using calculated normals %f %f %f for face %d, vert_ind %d\n",
 							rep_->normal[vert_ind*3+0],rep_->normal[vert_ind*3+1],
 							rep_->normal[vert_ind*3+2],this_face,rep_->norindex[vert_ind]);
+						*/
 					}
 				}
 

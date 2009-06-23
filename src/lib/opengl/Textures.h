@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.4 2009/02/18 13:37:50 istakenv Exp $
+$Id: Textures.h,v 1.5 2009/06/23 19:57:02 crc_canada Exp $
 
 Screen snapshot.
 
@@ -21,6 +21,9 @@ Screen snapshot.
                         } else if (thisTextureType==NODE_MovieTexture){ \
                                 mt = (struct X3D_MovieTexture*) node; \
                                 thisTexture = mt->__textureTableIndex; \
+                        } else if (thisTextureType==NODE_VRML1_Texture2){ \
+                                v1t = (struct X3D_VRML1_Texture2*) node; \
+                                thisTexture = v1t->__textureTableIndex; \
                         } else { ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); return;}
 
 /* for texIsloaded structure */

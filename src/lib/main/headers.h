@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.53 2009/06/22 19:40:41 crc_canada Exp $
+$Id: headers.h,v 1.54 2009/06/23 19:57:01 crc_canada Exp $
 
 Global includes.
 
@@ -539,7 +539,6 @@ extern void* *occluderNodePointer;
 /* from VRMLC.pm */
 extern int displayOpenGLErrors;
 extern int sound_from_audioclip;
-extern int have_texture;
 extern int global_lineProperties;
 extern int global_fillProperties;
 extern float gl_linewidth;

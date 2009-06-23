@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.7 2009/06/12 20:13:00 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.8 2009/06/23 19:57:02 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -461,7 +461,6 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 
 		/* JAS - no triangles in this text structure */
 		if ((((struct X3D_PolyRep *)node->_intern)->ntri) == 0) return;
-
 
 	       /*save changed state.*/
 	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->irep_change;

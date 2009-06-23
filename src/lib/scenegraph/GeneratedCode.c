@@ -4,7 +4,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.16 2009/06/19 16:21:44 crc_canada Exp n 
+: VRMLC.pm,v 1.17 2009/06/22 19:40:41 crc_canada Exp n 
 ??? 
  
 */ 
@@ -495,6 +495,7 @@
 	"metadata",
 	"geoOrigin",
 	"geoCoords",
+	"_ILS",
 	"normalIndex",
 	"beamWidth",
 	"location",
@@ -3727,12 +3728,14 @@ const int OFFSETS_VRML1_AsciiText[] = {
 	FIELDNAMES_justification, offsetof (struct X3D_VRML1_AsciiText, justification),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_string, offsetof (struct X3D_VRML1_AsciiText, string),  FIELDTYPE_MFString, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_spacing, offsetof (struct X3D_VRML1_AsciiText, spacing),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES__ILS, offsetof (struct X3D_VRML1_AsciiText, _ILS),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_Cone[] = {
 	FIELDNAMES_parts, offsetof (struct X3D_VRML1_Cone, parts),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_bottomRadius, offsetof (struct X3D_VRML1_Cone, bottomRadius),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_height, offsetof (struct X3D_VRML1_Cone, height),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES__ILS, offsetof (struct X3D_VRML1_Cone, _ILS),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_Coordinate3[] = {
@@ -3743,12 +3746,14 @@ const int OFFSETS_VRML1_Cube[] = {
 	FIELDNAMES_width, offsetof (struct X3D_VRML1_Cube, width),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_height, offsetof (struct X3D_VRML1_Cube, height),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_depth, offsetof (struct X3D_VRML1_Cube, depth),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES__ILS, offsetof (struct X3D_VRML1_Cube, _ILS),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_Cylinder[] = {
 	FIELDNAMES_radius, offsetof (struct X3D_VRML1_Cylinder, radius),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_parts, offsetof (struct X3D_VRML1_Cylinder, parts),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_height, offsetof (struct X3D_VRML1_Cylinder, height),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES__ILS, offsetof (struct X3D_VRML1_Cylinder, _ILS),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_DirectionalLight[] = {
@@ -3786,6 +3791,7 @@ const int OFFSETS_VRML1_IndexedLineSet[] = {
 	FIELDNAMES_coordIndex, offsetof (struct X3D_VRML1_IndexedLineSet, coordIndex),  FIELDTYPE_MFInt32, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_materialIndex, offsetof (struct X3D_VRML1_IndexedLineSet, materialIndex),  FIELDTYPE_MFInt32, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_textureCoordIndex, offsetof (struct X3D_VRML1_IndexedLineSet, textureCoordIndex),  FIELDTYPE_MFInt32, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES__ILS, offsetof (struct X3D_VRML1_IndexedLineSet, _ILS),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_Info[] = {
@@ -3878,6 +3884,7 @@ const int OFFSETS_VRML1_ShapeHints[] = {
 
 const int OFFSETS_VRML1_Sphere[] = {
 	FIELDNAMES_radius, offsetof (struct X3D_VRML1_Sphere, radius),  FIELDTYPE_SFFloat, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES__ILS, offsetof (struct X3D_VRML1_Sphere, _ILS),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_SpotLight[] = {
@@ -3897,7 +3904,9 @@ const int OFFSETS_VRML1_Switch[] = {
 const int OFFSETS_VRML1_Texture2[] = {
 	FIELDNAMES_wrapS, offsetof (struct X3D_VRML1_Texture2, wrapS),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_wrapT, offsetof (struct X3D_VRML1_Texture2, wrapT),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
-	FIELDNAMES_filename, offsetof (struct X3D_VRML1_Texture2, filename),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES___parenturl, offsetof (struct X3D_VRML1_Texture2, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,0,
+	FIELDNAMES_filename, offsetof (struct X3D_VRML1_Texture2, filename),  FIELDTYPE_MFString, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES___textureTableIndex, offsetof (struct X3D_VRML1_Texture2, __textureTableIndex),  FIELDTYPE_SFInt32, KW_initializeOnly,0,
 	FIELDNAMES_image, offsetof (struct X3D_VRML1_Texture2, image),  FIELDTYPE_SFImage, KW_inputOutput,SPEC_VRML1,
 	-1, -1, -1, -1, -1};
 
@@ -7456,6 +7465,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->justification = newASCIIString("LEFT");
 			tmp2->string.n=0; tmp2->string.p=0;
 			tmp2->spacing = 1;
+			tmp2->_ILS = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7466,6 +7476,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->parts = newASCIIString("ALL");
 			tmp2->bottomRadius = 1;
 			tmp2->height = 2;
+			tmp2->_ILS = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7489,6 +7500,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->width = 2;
 			tmp2->height = 2;
 			tmp2->depth = 2;
+			tmp2->_ILS = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7499,6 +7511,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->radius = 1;
 			tmp2->parts = newASCIIString("ALL");
 			tmp2->height = 2;
+			tmp2->_ILS = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7568,6 +7581,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->textureCoordIndex.p = MALLOC (sizeof(int)*1);
 			tmp2->textureCoordIndex.p[0] = -1;
 			tmp2->textureCoordIndex.n=1;;
+			tmp2->_ILS = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7746,6 +7760,7 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_VRML1_Sphere *) tmp;
 			tmp2->v = &virt_VRML1_Sphere;
 			tmp2->radius = 1;
+			tmp2->_ILS = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7777,7 +7792,9 @@ void *createNewX3DNode (int nt) {
 			tmp2->v = &virt_VRML1_Texture2;
 			tmp2->wrapS = newASCIIString("REPEAT");
 			tmp2->wrapT = newASCIIString("REPEAT");
-			tmp2->filename = newASCIIString("");
+			tmp2->__parenturl = newASCIIString(getInputURL());
+			tmp2->filename.n=0; tmp2->filename.p=0;
+			tmp2->__textureTableIndex = 0;
 			tmp2->image.n=3; tmp2->image.p=MALLOC (sizeof(int)*3); tmp2->image.p[0] = 0; tmp2->image.p[1] = 0; tmp2->image.p[2] = 0;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
@@ -9879,6 +9896,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tstring (MFString): \n");
 			for (i=0; i<tmp->string.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->string.p[i]->strptr); }
 			spacer printf ("\tspacing (SFFloat) \t%4.3f\n",tmp->spacing);
+			spacer printf ("\t_ILS (SFNode):\n"); dump_scene(level+1,tmp->_ILS); 
 		break;}
 		case NODE_VRML1_Cone : {
 			struct X3D_VRML1_Cone *tmp;
@@ -9886,6 +9904,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tparts (SFString) \t%s\n",tmp->parts->strptr);
 			spacer printf ("\tbottomRadius (SFFloat) \t%4.3f\n",tmp->bottomRadius);
 			spacer printf ("\theight (SFFloat) \t%4.3f\n",tmp->height);
+			spacer printf ("\t_ILS (SFNode):\n"); dump_scene(level+1,tmp->_ILS); 
 		break;}
 		case NODE_VRML1_Coordinate3 : {
 			struct X3D_VRML1_Coordinate3 *tmp;
@@ -9899,6 +9918,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\twidth (SFFloat) \t%4.3f\n",tmp->width);
 			spacer printf ("\theight (SFFloat) \t%4.3f\n",tmp->height);
 			spacer printf ("\tdepth (SFFloat) \t%4.3f\n",tmp->depth);
+			spacer printf ("\t_ILS (SFNode):\n"); dump_scene(level+1,tmp->_ILS); 
 		break;}
 		case NODE_VRML1_Cylinder : {
 			struct X3D_VRML1_Cylinder *tmp;
@@ -9906,6 +9926,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tradius (SFFloat) \t%4.3f\n",tmp->radius);
 			spacer printf ("\tparts (SFString) \t%s\n",tmp->parts->strptr);
 			spacer printf ("\theight (SFFloat) \t%4.3f\n",tmp->height);
+			spacer printf ("\t_ILS (SFNode):\n"); dump_scene(level+1,tmp->_ILS); 
 		break;}
 		case NODE_VRML1_DirectionalLight : {
 			struct X3D_VRML1_DirectionalLight *tmp;
@@ -9953,6 +9974,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			for (i=0; i<tmp->materialIndex.n; i++) { spacer printf ("			%d: \t%d\n",i,tmp->materialIndex.p[i]); }
 			spacer printf ("\ttextureCoordIndex (MFInt32):\n");
 			for (i=0; i<tmp->textureCoordIndex.n; i++) { spacer printf ("			%d: \t%d\n",i,tmp->textureCoordIndex.p[i]); }
+			spacer printf ("\t_ILS (SFNode):\n"); dump_scene(level+1,tmp->_ILS); 
 		break;}
 		case NODE_VRML1_Info : {
 			struct X3D_VRML1_Info *tmp;
@@ -10089,6 +10111,7 @@ void dump_scene (int level, struct X3D_Node* node) {
 			struct X3D_VRML1_Sphere *tmp;
 			tmp = (struct X3D_VRML1_Sphere *) node;
 			spacer printf ("\tradius (SFFloat) \t%4.3f\n",tmp->radius);
+			spacer printf ("\t_ILS (SFNode):\n"); dump_scene(level+1,tmp->_ILS); 
 		break;}
 		case NODE_VRML1_SpotLight : {
 			struct X3D_VRML1_SpotLight *tmp;
@@ -10117,7 +10140,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_VRML1_Texture2 *) node;
 			spacer printf ("\twrapS (SFString) \t%s\n",tmp->wrapS->strptr);
 			spacer printf ("\twrapT (SFString) \t%s\n",tmp->wrapT->strptr);
-			spacer printf ("\tfilename (SFString) \t%s\n",tmp->filename->strptr);
+			spacer printf ("\tfilename (MFString): \n");
+			for (i=0; i<tmp->filename.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->filename.p[i]->strptr); }
 			spacer printf ("\timage (SFImage): (not dumped)\t");
 			printf ("\n");
 		break;}

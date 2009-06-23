@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.7 2009/06/12 20:46:46 crc_canada Exp $
+$Id: RenderTextures.c,v 1.8 2009/06/23 19:57:01 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -37,7 +37,7 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode);
 static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode);
 
 /* TextureGenerator node? if so, do it */
-void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
+static void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
 	switch (this->__compiledmode) {
 	case GL_OBJECT_LINEAR:
 	case GL_EYE_LINEAR:
@@ -57,7 +57,7 @@ void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
 /* which texture unit are we going to use? is this texture not OFF?? Should we set the
    background coloUr??? Larry the Cucumber, help! */
 
-int setActiveTexture (int c, GLfloat thisTransparency) {
+static int setActiveTexture (int c, GLfloat thisTransparency) {
         struct multiTexParams *paramPtr;
 	float allones[] = {1.0, 1.0, 1.0, 1.0};
 
@@ -149,7 +149,6 @@ void textureDraw_start(struct X3D_Node *texC, GLfloat *genTex) {
 	printf ("textureDraw_start, texture_count %d texture[0] %d\n",texture_count,bound_textures[0]);
 	#endif
 
-
 	/* is this generated textures, like an extrusion or IFS without a texCoord param? */
 	if (texC == NULL) {
 		passedInGenTex(genTex);
@@ -189,6 +188,7 @@ void textureDraw_start(struct X3D_Node *texC, GLfloat *genTex) {
 		}
 	}
 }
+#undef TEXVERBOSE
 
 /* lets disable textures here */
 void textureDraw_end(void) {
@@ -225,8 +225,8 @@ static void passedInGenTex(GLfloat *genTex) {
 
 	#ifdef TEXVERBOSE
 	printf ("textureDraw_start, using passed in genTex\n");
-	#endif
-
+	#endif 
+ 
 	for (c=0; c<texture_count; c++) {
 		/* are we ok with this texture yet? */
 		if (bound_textures[c]!=0) {
