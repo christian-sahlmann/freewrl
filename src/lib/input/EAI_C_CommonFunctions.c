@@ -1,18 +1,20 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.17 2009/04/23 20:18:51 sdumoulin Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.18 2009/06/24 18:13:28 sdumoulin Exp $
 
 ???
 
 */
 
+#ifndef REWIRE
 #include <config.h>
 #include <system.h>
+#include <libFreeWRL.h>
+#endif
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
