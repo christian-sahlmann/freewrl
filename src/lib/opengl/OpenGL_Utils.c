@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.39 2009/06/22 19:40:41 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.40 2009/06/24 13:03:53 crc_canada Exp $
 
 ???
 
@@ -232,12 +232,8 @@ void glPrintError(char *str) {
 
 
 /* did we have a TextureTransform in the Appearance node? */
-void start_textureTransform (void *textureNode, int ttnum) {
-	struct X3D_TextureTransform  *ttt;
-	struct X3D_MultiTextureTransform *mtt;
+void start_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 	
-	/* first, is this a textureTransform, or a MultiTextureTransform? */
-	ttt = (struct X3D_TextureTransform *) textureNode;
 
 	/* stuff common to all textureTransforms - gets undone at end_textureTransform */
 	FW_GL_MATRIX_MODE(GL_TEXTURE);
@@ -245,7 +241,8 @@ void start_textureTransform (void *textureNode, int ttnum) {
 	FW_GL_LOAD_IDENTITY();
 
 	/* is this a simple TextureTransform? */
-	if (ttt->_nodeType == NODE_TextureTransform) {
+	if (textureNode->_nodeType == NODE_TextureTransform) {
+		struct X3D_TextureTransform  *ttt = (struct X3D_TextureTransform *) textureNode;
 		/*  Render transformations according to spec.*/
         	FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
         	FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
@@ -254,10 +251,10 @@ void start_textureTransform (void *textureNode, int ttnum) {
         	FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
 
 	/* is this a MultiTextureTransform? */
-	} else  if (ttt->_nodeType == NODE_MultiTextureTransform) {
-		mtt = (struct X3D_MultiTextureTransform *) textureNode;
+	} else  if (textureNode->_nodeType == NODE_MultiTextureTransform) {
+		struct X3D_MultiTextureTransform *mtt = (struct X3D_MultiTextureTransform *) textureNode;
 		if (ttnum < mtt->textureTransform.n) {
-			ttt = (struct X3D_TextureTransform *) mtt->textureTransform.p[ttnum];
+			struct X3D_TextureTransform *ttt = (struct X3D_TextureTransform *) mtt->textureTransform.p[ttnum];
 			/* is this a simple TextureTransform? */
 			if (ttt->_nodeType == NODE_TextureTransform) {
 				/*  Render transformations according to spec.*/
@@ -274,14 +271,22 @@ void start_textureTransform (void *textureNode, int ttnum) {
 			printf ("not enough textures in MultiTextureTransform....\n");
 		}
 
+	} else if (textureNode->_nodeType == NODE_VRML1_Texture2Transform) {
+		struct X3D_VRML1_Texture2Transform  *ttt = (struct X3D_VRML1_Texture2Transform *) textureNode;
+		/*  Render transformations according to spec.*/
+        	FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
+        	FW_GL_SCALE_F(((ttt->scaleFactor).c[0]),((ttt->scaleFactor).c[1]),1);			/*  4*/
+        	FW_GL_ROTATE_F((ttt->rotation) /3.1415926536*180,0,0,1);			/*  3*/
+        	FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
+        	FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
 	} else {
-		printf ("expected a textureTransform node, got %d\n",ttt->_nodeType);
+		printf ("expected a textureTransform node, got %d\n",textureNode->_nodeType);
 	}
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
 /* did we have a TextureTransform in the Appearance node? */
-void end_textureTransform (void *textureNode, int ttnum) {
+void end_textureTransform (void) {
 	FW_GL_MATRIX_MODE(GL_TEXTURE);
 	FW_GL_LOAD_IDENTITY();
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.7 2009/06/23 19:57:02 crc_canada Exp $
+$Id: Component_Shape.c,v 1.8 2009/06/24 13:03:53 crc_canada Exp $
 
 X3D Shape Component
 
@@ -24,6 +24,10 @@ float global_transparency = 1.0;
 
 /* this is for the FillProperties node */
 static GLuint fillpropCurrentShader = 0;
+
+/* pointer for a TextureTransform type of node */
+struct X3D_Node *  this_textureTransform;  /* do we have some kind of textureTransform? */
+
  
 #define SET_SHADER_SELECTED_FALSE(x3dNode) \
 	switch (X3D_NODE(x3dNode)->_nodeType) { \
@@ -415,7 +419,7 @@ void child_Shape (struct X3D_Shape *node) {
 	}
 
 	/* reset textureTransform pointer */
-	this_textureTransform = 0;
+	this_textureTransform = NULL;
 	linePropertySet=FALSE;
 	global_transparency = 0.0;
 
@@ -544,7 +548,6 @@ void child_Appearance (struct X3D_Appearance *node) {
 
 		/* is there a TextureTransform? if no texture, fugutaboutit */
 		POSSIBLE_PROTO_EXPANSION(node->textureTransform,this_textureTransform)
-		/* this_textureTransform = node->textureTransform; */
 
 		/* now, render the texture */
 		POSSIBLE_PROTO_EXPANSION(node->texture,tmpN)

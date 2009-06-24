@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.5 2009/05/07 18:43:34 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.6 2009/06/24 13:03:53 crc_canada Exp $
 
 Screen snapshot.
 
@@ -11,8 +11,8 @@ Screen snapshot.
 #define __FREEWRL_OPENGL_UTILS_H__
 
 
-void start_textureTransform (void *textureNode, int ttnum);
-void end_textureTransform (void *textureNode, int ttnum);
+void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
+void end_textureTransform (void);
 
 void
 glpOpenGLInitialize(void);

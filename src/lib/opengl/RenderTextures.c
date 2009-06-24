@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.8 2009/06/23 19:57:01 crc_canada Exp $
+$Id: RenderTextures.c,v 1.9 2009/06/24 13:03:53 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -204,7 +204,7 @@ void textureDraw_end(void) {
 			currentTextureUnit = c;
 		}
 
-	        if (this_textureTransform) end_textureTransform(this_textureTransform,c);
+	        if (this_textureTransform) end_textureTransform();
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
                 /*glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
                 glTexGeni(GL_T, GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);*/

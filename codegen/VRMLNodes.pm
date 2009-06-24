@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.26 2009/06/23 19:57:01 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.27 2009/06/24 13:03:53 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2613,6 +2613,9 @@ package VRML::NodeType;
 		wrapT => [SFString,"REPEAT",inputOutput,"SPEC_VRML1"],
 		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 		__parenturl =>[SFString,"",initializeOnly, 0],
+		_initialized => [SFInt32,FALSE,inputOutput, 0],
+		_wrapS =>[SFInt32,-1,inputOutput,0],
+		_wrapT =>[SFInt32,-1,inputOutput,0],
 	}, "X3DChildNode"),
 
 	VRML1_Texture2Transform => new VRML::NodeType("VRML1_Texture2Transform", {

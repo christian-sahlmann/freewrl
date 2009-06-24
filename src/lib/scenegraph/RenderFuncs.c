@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.19 2009/06/23 19:57:02 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.20 2009/06/24 13:03:53 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -81,7 +81,6 @@ int bound_texture_alphas[MAX_MULTITEXTURE];
 int texture_count;
 
 int	have_transparency=FALSE;/* did any Shape have transparent material? */
-void *	this_textureTransform;  /* do we have some kind of textureTransform? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */
 int	cullFace;		/* is GL_CULL_FACE enabled or disabled?		*/
 

@@ -19,7 +19,7 @@ Priority list
 		VRML1_Normal			(DONE)
 		VRML1_NormalBinding		(DONE)
 		VRML1_Texture2			(DONE)
-		VRML1_Texture2Transform
+		VRML1_Texture2Transform		(DONE)
 		VRML1_TextureCoordinate2	(DONE)
 		VRML1_ShapeHints		(DONE)
 		VRML1_MatrixTransform

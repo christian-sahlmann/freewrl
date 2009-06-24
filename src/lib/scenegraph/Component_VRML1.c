@@ -1,11 +1,41 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.5 2009/06/23 19:57:02 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.6 2009/06/24 13:03:53 crc_canada Exp $
 
 X3D VRML1 Component
 
 */
+
+
+/* Here we render VRML1 nodes.
+
+The VRML1 input string has been converted into X3D Classic encoding, and we have finished parsing.
+
+Here we render the nodes. (well, most of them anyway!) We try and use as much of the X3D coding as
+possible, so that future performance improvements will help these nodes, too.
+
+Notes: 
+
+- you can NOT route to these nodes. That is fine, the VRML1 spec does not support routing...
+
+- you CAN interchange VRML1 nodes with VRML2; but if you write VRML1 nodes in a VRML2 program, you
+  have to preface them with "VRML1_"...
+
+- There were some "funnies" - Separator is, I think, ok - but I was not quite sure what HINTS flowed
+  around Separators; this code might be in error.
+
+- IndexedFaceSet - takes DiffuseColor if required as a Color node.
+
+- Lines, takes emissiveColor from the Material node, if you specify an index for line segments.
+
+- Separators do NOT do node sorting, scene graph pruning, whatever. It looks to me like these
+  facilities might confuse rendering.
+
+Have fun! John A. Stewart, June 2009
+
+*/
+
 
 #include <config.h>
 #include <system.h>
@@ -31,25 +61,6 @@ X3D VRML1 Component
 #ifndef ID_UNDEFINED
 #define ID_UNDEFINED	((indexT)-1)
 #endif
-
-#ifdef M_PI
-#define PI M_PI
-#else
-#define PI 3.141592653589793
-#endif
-
-/* Faster trig macros (thanks for Robin Williams) */
-
-#define DECL_TRIG1 float t_aa, t_ab, t_sa, t_ca;
-#define INIT_TRIG1(div) t_aa = sin(PI/(div)); t_aa *= 2*t_aa; t_ab = sin(2*PI/(div));
-#define START_TRIG1 t_sa = 0; t_ca = 1;
-#define UP_TRIG1 {float t_sa1 = t_sa; t_sa -= t_sa*t_aa - t_ca * t_ab; t_ca -= t_ca * t_aa + t_sa1 * t_ab;}
-#define SIN1 t_sa
-#define COS1 t_ca
-#define DECL_TRIG2 float t2_aa, t2_ab;
-#define INIT_TRIG2(div) t2_aa = sin(PI/(div)); t2_aa *= 2*t2_aa; t2_ab = sin(2*PI/(div));
-
-#define TC(a,b) glTexCoord2f(a,b)
 
 extern int findFieldInVRML1Modifier(const char*);	/* defined in convert1to2.c */
 
@@ -198,6 +209,11 @@ void fin_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 	if (cSLD->matNode != NULL) {
 		render_VRML1_Material(cSLD->matNode);
 	}
+
+	/* did we have a textureTransform? */
+	if (cSLD->t2tNode!=NULL) end_textureTransform();
+
+	if (cSLD->t2tNode) glDisable(GL_TEXTURE_2D);
 } 
 
 void child_VRML1_Separator (struct X3D_VRML1_Separator *node) { 
@@ -559,6 +575,11 @@ void render_VRML1_NormalBinding (struct X3D_VRML1_NormalBinding  *node) {
 }
 
 void render_VRML1_Texture2 (struct X3D_VRML1_Texture2  *node) {
+	if (!node->_initialized) {
+		node->_wrapS = findFieldInVRML1Modifier(node->wrapS->strptr);
+		node->_wrapT = findFieldInVRML1Modifier(node->wrapT->strptr);
+		node->_initialized = TRUE;
+	}
 	/* save this node pointer */
 	if (cSLD!=NULL) cSLD->t2Node = node;
 	/* printf ("tex2, parent %s, me %s\n",node->__parenturl->strptr, node->filename.p[0]->strptr); */
@@ -569,6 +590,8 @@ void render_VRML1_Texture2 (struct X3D_VRML1_Texture2  *node) {
 void render_VRML1_Texture2Transform (struct X3D_VRML1_Texture2Transform  *node) {
 	/* save this node pointer */
 	if (cSLD!=NULL) cSLD->t2tNode = node;
+	/* call this, level is zero */
+	start_textureTransform (X3D_NODE(node),0);
 }
 
 void render_VRML1_TextureCoordinate2 (struct X3D_VRML1_TextureCoordinate2  *node) {
@@ -800,10 +823,7 @@ static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *n
 
 
 void render_VRML1_IndexedLineSet (struct X3D_VRML1_IndexedLineSet *node) {
-        int cin = node->coordIndex.n;
-	int ind;
-	int i;
-
+	/* call an X3D IndexedLineSet here */
 	if (node->_ILS == NULL) {
 		copyPointersToVRML1IndexedLineSet(node);
 		compile_IndexedLineSet((struct X3D_IndexedLineSet *)(node->_ILS));

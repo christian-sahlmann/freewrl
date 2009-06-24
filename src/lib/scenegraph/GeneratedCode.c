@@ -179,6 +179,7 @@
 	"description",
 	"set_fraction",
 	"transitionComplete",
+	"_wrapT",
 	"top",
 	"dropOffRate",
 	"outerRadius",
@@ -285,6 +286,7 @@
 	"_oldrotation",
 	"loop",
 	"key",
+	"_wrapS",
 	"_typeValue",
 	"ulimit",
 	"actionKeyPress",
@@ -3903,11 +3905,14 @@ const int OFFSETS_VRML1_Switch[] = {
 
 const int OFFSETS_VRML1_Texture2[] = {
 	FIELDNAMES_wrapS, offsetof (struct X3D_VRML1_Texture2, wrapS),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
-	FIELDNAMES_wrapT, offsetof (struct X3D_VRML1_Texture2, wrapT),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES___parenturl, offsetof (struct X3D_VRML1_Texture2, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,0,
-	FIELDNAMES_filename, offsetof (struct X3D_VRML1_Texture2, filename),  FIELDTYPE_MFString, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES___textureTableIndex, offsetof (struct X3D_VRML1_Texture2, __textureTableIndex),  FIELDTYPE_SFInt32, KW_initializeOnly,0,
 	FIELDNAMES_image, offsetof (struct X3D_VRML1_Texture2, image),  FIELDTYPE_SFImage, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES_wrapT, offsetof (struct X3D_VRML1_Texture2, wrapT),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES__initialized, offsetof (struct X3D_VRML1_Texture2, _initialized),  FIELDTYPE_SFInt32, KW_inputOutput,0,
+	FIELDNAMES__wrapS, offsetof (struct X3D_VRML1_Texture2, _wrapS),  FIELDTYPE_SFInt32, KW_inputOutput,0,
+	FIELDNAMES__wrapT, offsetof (struct X3D_VRML1_Texture2, _wrapT),  FIELDTYPE_SFInt32, KW_inputOutput,0,
+	FIELDNAMES_filename, offsetof (struct X3D_VRML1_Texture2, filename),  FIELDTYPE_MFString, KW_inputOutput,SPEC_VRML1,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_Texture2Transform[] = {
@@ -7791,11 +7796,14 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_VRML1_Texture2 *) tmp;
 			tmp2->v = &virt_VRML1_Texture2;
 			tmp2->wrapS = newASCIIString("REPEAT");
-			tmp2->wrapT = newASCIIString("REPEAT");
 			tmp2->__parenturl = newASCIIString(getInputURL());
-			tmp2->filename.n=0; tmp2->filename.p=0;
 			tmp2->__textureTableIndex = 0;
 			tmp2->image.n=3; tmp2->image.p=MALLOC (sizeof(int)*3); tmp2->image.p[0] = 0; tmp2->image.p[1] = 0; tmp2->image.p[2] = 0;;
+			tmp2->wrapT = newASCIIString("REPEAT");
+			tmp2->_initialized = FALSE;
+			tmp2->_wrapS = -1;
+			tmp2->_wrapT = -1;
+			tmp2->filename.n=0; tmp2->filename.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -10139,11 +10147,14 @@ void dump_scene (int level, struct X3D_Node* node) {
 			struct X3D_VRML1_Texture2 *tmp;
 			tmp = (struct X3D_VRML1_Texture2 *) node;
 			spacer printf ("\twrapS (SFString) \t%s\n",tmp->wrapS->strptr);
-			spacer printf ("\twrapT (SFString) \t%s\n",tmp->wrapT->strptr);
-			spacer printf ("\tfilename (MFString): \n");
-			for (i=0; i<tmp->filename.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->filename.p[i]->strptr); }
 			spacer printf ("\timage (SFImage): (not dumped)\t");
 			printf ("\n");
+			spacer printf ("\twrapT (SFString) \t%s\n",tmp->wrapT->strptr);
+			spacer printf ("\t_initialized (SFInt32) \t%d\n",tmp->_initialized);
+			spacer printf ("\t_wrapS (SFInt32) \t%d\n",tmp->_wrapS);
+			spacer printf ("\t_wrapT (SFInt32) \t%d\n",tmp->_wrapT);
+			spacer printf ("\tfilename (MFString): \n");
+			for (i=0; i<tmp->filename.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->filename.p[i]->strptr); }
 		break;}
 		case NODE_VRML1_Texture2Transform : {
 			struct X3D_VRML1_Texture2Transform *tmp;

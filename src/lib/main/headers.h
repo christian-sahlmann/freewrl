@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.54 2009/06/23 19:57:01 crc_canada Exp $
+$Id: headers.h,v 1.55 2009/06/24 13:03:53 crc_canada Exp $
 
 Global includes.
 
@@ -635,7 +635,7 @@ extern void 	*global_tcin_lastParent;
 extern void textureDraw_start(struct X3D_Node *texC, GLfloat *tex);
 extern void textureDraw_end(void);
 
-extern void * this_textureTransform;  /* do we have some kind of textureTransform? */
+extern struct X3D_Node *this_textureTransform;  /* do we have some kind of textureTransform? */
 
 extern int isTextureLoaded(int texno);
 extern int isTextureAlpha(int n);

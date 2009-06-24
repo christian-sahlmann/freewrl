@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.9 2009/06/23 19:57:01 crc_canada Exp $
+$Id: Textures.c,v 1.10 2009/06/24 13:03:53 crc_canada Exp $
 
 General Texture objects.
 
@@ -890,8 +890,8 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 			Src = mt->repeatS; Trc = mt->repeatT;
 		} else if (me->nodeType == NODE_VRML1_Texture2) {
 			v1t = (struct X3D_VRML1_Texture2 *) me->scenegraphNode;
-			Src = strcmp("REPEAT",v1t->wrapS) == NULL;
-			Trc = strcmp("REPEAT",v1t->wrapT) == NULL;
+			Src = v1t->_wrapS==VRML1MOD_REPEAT;
+			Trc = v1t->_wrapT==VRML1MOD_REPEAT;
 		}
 		/* save texture params */
 		me->Src = Src ? GL_REPEAT : GL_CLAMP;
