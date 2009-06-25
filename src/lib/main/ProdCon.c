@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.19 2009/06/17 15:05:24 crc_canada Exp $
+$Id: ProdCon.c,v 1.20 2009/06/25 22:09:54 couannette Exp $
 
 CProto ???
 
@@ -329,16 +329,77 @@ char* freewrl_mktemp()
 }
 #endif
 
-int do_file_exists(const char *filename)
+#if HAVE_LIBCURL
+# include <curl/curl.h>
+
+static CURL *curl_h = NULL;
+
+int with_libcurl = FALSE;
+
+void init_curl()
 {
-    if (access(filename, R_OK) == 0) {
-	return TRUE;
+    CURLcode c;
+
+    if ( (c=curl_global_init(CURL_GLOBAL_ALL)) != 0 ) {
+	ERROR_MSG("Curl init failed: %d\n", (int)c);
+	exit(1);
     }
-    return FALSE;
+
+    ASSERT(curl_h == NULL);
+
+    curl_h = curl_easy_init( );
+
+    if (!curl_h) {
+	ERROR_MSG("Curl easy_init failed\n");
+	exit(1);
+    }
 }
 
+const char* do_get_url_curl(const char *url)
+{
+    CURLcode success;
+    char *temp;
+    FILE *file;
+
+    temp = freewrl_mktemp();
+    if (!temp) {
+	ERROR_MSG("Cannot create temp file (mktemp)\n");
+	return NULL;	
+    }
+
+    file = fopen(temp, "w");
+    if (!file) {
+	free(temp);
+	ERROR_MSG("Cannot create temp file (fopen)\n");
+	return NULL;	
+    }
+
+    if (!curl_h) {
+	init_curl();
+    }
+
+    curl_easy_setopt(curl_h, CURLOPT_URL, url);
+
+    curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, file);
+
+    success = curl_easy_perform(curl_h); 
+
+    if (success == 0) {
+	printf("Waaou !\n");
+	fclose(file);
+	return temp;
+    } else {
+	free(temp);
+	fclose(file);
+	ERROR_MSG("Download failed for url %s (%d)\n", url, (int) success);
+	return NULL;
+    }
+}
+
+#endif
+
 /* return the temp file where we got the contents of the URL requested */
-const char* do_get_file_url(const char *filename)
+const char* do_get_url(const char *filename)
 {
     char *temp, *wgetcmd;
 
@@ -364,6 +425,14 @@ const char* do_get_file_url(const char *filename)
     free(wgetcmd);
 
     return temp;
+}
+
+int do_file_exists(const char *filename)
+{
+    if (access(filename, R_OK) == 0) {
+	return TRUE;
+    }
+    return FALSE;
 }
 
 int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
@@ -406,7 +475,21 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 				/* printf ("Assuming Anchor mode, returning TRUE\n");*/
 				return (TRUE);
 			}
-	
+
+#if HAVE_LIBCURL
+
+			if (with_libcurl) {
+
+			    char *tmp;
+			    tmp = do_get_url_curl(fname);
+			    if (tmp) {
+				strcpy(fname, tmp);
+				free(tmp);
+			    }
+
+			} else {
+
+#endif
 			sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
 	
 			/* string length checking */
@@ -429,6 +512,11 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 			} else {
 			    printf ("Internal FreeWRL problem - strings too long for wget\n");
 			}
+
+#if HAVE_LIBCURL
+			}
+#endif
+
 		}
 	}
 

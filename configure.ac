@@ -131,12 +131,13 @@ PTHREAD_LIBS="$PTHREAD_LIBS -lpthread"
 # FreeType (font rendering)
 PKG_CHECK_MODULES(FREETYPE, freetype2)
 
-
-
-
-
-
-
+# libcurl [optional]
+AC_MY_SWITCH(libcurl,[enable libcurl (could be used instead of wget)],off)
+if test x$sw_libcurl = xno; then
+   :
+else
+   PKG_CHECK_MODULES(LIBCURL, libcurl, AC_DEFINE(HAVE_LIBCURL, 1, [Define if you have the libcurl library.]))
+fi
 
 
 # Javascript engine

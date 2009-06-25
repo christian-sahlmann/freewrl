@@ -19,7 +19,8 @@ AM_CPPFLAGS += \
 				$(JAVASCRIPT_ENGINE_CFLAGS) \
 				$(XML_CFLAGS) $(EXPAT_CFLAGS) \
 				$(GL_CFLAGS) \
-				$(PNG_CFLAGS)
+				$(PNG_CFLAGS) \
+				$(LIBCURL_CFLAGS)
 
 EXTERNAL_LIBS = \
 				$(PTHREAD_LIBS) \
@@ -28,7 +29,8 @@ EXTERNAL_LIBS = \
 				$(XML_LIBS) $(EXPAT_LIBS) \
 				$(GL_LIBS) \
 				$(JPEG_LIBS) \
-				$(PNG_LIBS)
+				$(PNG_LIBS) \
+				$(LIBCURL_LIBS)
 
 
 # X11 flags specific to x11 target (default on Linux -- optional on Mac)

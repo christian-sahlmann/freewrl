@@ -4,7 +4,7 @@
  *
  * public API - libFreeWRL.h
  *
- * $Id: libFreeWRL.h,v 1.2 2009/04/28 13:14:13 couannette Exp $
+ * $Id: libFreeWRL.h,v 1.3 2009/06/25 22:09:54 couannette Exp $
  *
  *******************************************************************/
 
@@ -65,6 +65,10 @@ extern int isBrowserPlugin;
 extern uintptr_t _fw_instance;
 extern int be_collision;
 extern char *keypress_string;
+
+#if HAVE_LIBCURL
+extern int with_libcurl;
+#endif
 
 
 #endif /* __LIBFREEWRL_MAIN_H__ */

@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: options.c,v 1.11 2009/06/22 15:23:40 couannette Exp $
+  $Id: options.c,v 1.12 2009/06/25 22:09:54 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -70,6 +70,9 @@ void usage()
 	    "  -i|--plugin <string>    Called from plugin.\n"
 	    "  -j|--fd <number>        Pipe to command the program.\n"
 	    "  -k|--instance <number>  Instance of plugin.\n"
+#if HAVE_LIBCURL
+	    "  -C|--curl               Use libcurl instead of wget.\n"
+#endif
 	    ""
 	);
 }
@@ -88,9 +91,9 @@ int parseCommandLine (int argc, char **argv)
     const char *real_option_name;
 
 #if defined(DOSNAPSEQUENCE)
-    static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:ut";
+    static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utC";
 #else
-    static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:ut";
+    static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:utC";
 #endif
 
     static struct option long_options[] = {
@@ -129,6 +132,8 @@ int parseCommandLine (int argc, char **argv)
 	{"plugin", required_argument, 0, 'i'},
 	{"fd", required_argument, 0, 'j'},
 	{"instance", required_argument, 0, 'k'},
+
+	{"curl", no_argument, 0, 'C'},
 
 	{0, 0, 0, 0}
     };
@@ -319,6 +324,9 @@ int parseCommandLine (int argc, char **argv)
 	    sscanf(optarg,"%u",(unsigned int *)&_fw_instance);
 	    break;
 
+	case 'C': /* --curl, no argument */
+	    with_libcurl = TRUE;
+	    break;
 
 	default:
 	    FW_ERROR("ERROR: getopt returned character code 0%o, unknown error.\n", c);
