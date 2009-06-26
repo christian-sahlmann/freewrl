@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.40 2009/06/24 13:03:53 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.41 2009/06/26 14:54:15 crc_canada Exp $
 
 ???
 
@@ -1027,10 +1027,6 @@ void startOfLoopNodeUpdates(void) {
 					EVIN_AND_FIELD_SAME(height,GeoElevationGrid)
 				END_NODE
 				BEGIN_NODE(ElevationGrid)
-					EVIN_AND_FIELD_SAME(colorIndex,ElevationGrid)
-					EVIN_AND_FIELD_SAME(coordIndex,ElevationGrid)
-					EVIN_AND_FIELD_SAME(normalIndex,ElevationGrid)
-					EVIN_AND_FIELD_SAME(texCoordIndex,ElevationGrid)
 					EVIN_AND_FIELD_SAME(height,ElevationGrid)
 				END_NODE
 				BEGIN_NODE(Extrusion)
@@ -1044,7 +1040,6 @@ void startOfLoopNodeUpdates(void) {
 					EVIN_AND_FIELD_SAME(coordIndex,IndexedFaceSet)
 					EVIN_AND_FIELD_SAME(normalIndex,IndexedFaceSet)
 					EVIN_AND_FIELD_SAME(texCoordIndex,IndexedFaceSet)
-					EVIN_AND_FIELD_SAME(height,IndexedFaceSet)
 				END_NODE
 /* GeoViewpoint works differently than other nodes - see compile_GeoViewpoint for manipulation of these fields
 				BEGIN_NODE(GeoViewpoint)
@@ -1400,18 +1395,6 @@ void kill_X3DNodes(void){
 				} else {
 					ConsoleMessage ("error destroying shaderIDS on kill");
 				}
-			}
-
-			/* GeoElevationGrids pass a lot of info down to an attached ElevationGrid */
-			if (structptr->_nodeType == NODE_GeoElevationGrid) {
-				if (*fieldOffsetsPtr == FIELDNAMES_color) break;
-				if (*fieldOffsetsPtr == FIELDNAMES_normal) break;
-				if (*fieldOffsetsPtr == FIELDNAMES_texCoord) break;
-				if (*fieldOffsetsPtr == FIELDNAMES_ccw) break;
-				if (*fieldOffsetsPtr == FIELDNAMES_colorPerVertex) break;
-				if (*fieldOffsetsPtr == FIELDNAMES_creaseAngle) break;
-				if (*fieldOffsetsPtr == FIELDNAMES_normalPerVertex) break;
-				if (*fieldOffsetsPtr == FIELDNAMES_solid) break;
 			}
 
 			/* GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes */

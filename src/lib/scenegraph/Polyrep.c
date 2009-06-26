@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.8 2009/06/23 19:57:02 crc_canada Exp $
+$Id: Polyrep.c,v 1.9 2009/06/26 14:54:15 crc_canada Exp $
 
 ???
 
@@ -746,7 +746,6 @@ void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
 void render_polyrep(void *node) {
 	struct X3D_Virt *v;
 	struct X3D_Node *renderedNodePtr;
-	struct X3D_Node *extentNodePtr;
 	struct X3D_PolyRep *r;
 
 	v = *(struct X3D_Virt **)node;
@@ -773,27 +772,10 @@ void render_polyrep(void *node) {
 	global_tcin_count = r->ntri*3;
 	global_tcin_lastParent = node;
 
-	/* Now, GeoElevationGrids have as a child an ElevationGrid, which contains ALL of the
-	   renderable geometry, moved to OpenGL renderable coordinates. So, if this ElevationGrid
-	   has as its parent[0] a GeoElevationGrid, we tell setExtent that the node is the 
-	   GeoElevationGrid, so that it can move the extent to its holding grouping node */
-
-	extentNodePtr = renderedNodePtr;
-	if (renderedNodePtr->_nparents == 1) {
-		if (X3D_NODE(renderedNodePtr->_parents[0])->_nodeType == NODE_GeoElevationGrid) {
-			/* printf ("render_polyrep found a GeoElevationGrid\n"); */
-			extentNodePtr = X3D_NODE(renderedNodePtr->_parents[0]);
-		}
-				
-	}
-		
-
-
-	/* we take the geometry here, and push it up the stream. If the parent is a GeoElevationGrid,
-	   we bypass it */
+	/* we take the geometry here, and push it up the stream. /*
         setExtent( renderedNodePtr->EXTENT_MAX_X, renderedNodePtr->EXTENT_MIN_X, renderedNodePtr->EXTENT_MAX_Y,
                 renderedNodePtr->EXTENT_MIN_Y, renderedNodePtr->EXTENT_MAX_Z, renderedNodePtr->EXTENT_MIN_Z,
-                extentNodePtr);
+                renderedNodePtr);
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.55 2009/06/24 13:03:53 crc_canada Exp $
+$Id: headers.h,v 1.56 2009/06/26 14:54:15 crc_canada Exp $
 
 Global includes.
 
@@ -221,19 +221,6 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		} \
 		if (node->_ichange == 0) return; \
 	}
-
-/* same as COMPILE_IF_REQUIRED, but passes in node name */
-#define COMPILE_IF_REQUIRED2(node) { struct X3D_Virt *v; \
-	if (node->_ichange != node->_change) { \
-	/* printf ("COMP %d %d\n",node->_ichange, node->_change); */ \
-		v = *(struct X3D_Virt **)node; \
-		if (v->compile) { \
-			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
-		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s\n",stringNodeType(node->_nodeType));} \
-		} \
-		if (node->_ichange == 0) return; \
-	}
-
 
 /* convert a PROTO node (which will be a Group node) into a node. eg, for Materials  - this is a possible child
 node for ANY node that takes something other than a Group */
@@ -1251,11 +1238,11 @@ void prep_DirectionalLight (struct X3D_DirectionalLight *this_);
 void prep_PointLight (struct X3D_PointLight *this_);
 
 /* Geospatial nodes */
-int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **points, int *npoints);
+int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **points, int *npoints);
 void render_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
-void rendray_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
-void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
-void make_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
+#define rendray_GeoElevationGrid  render_ray_polyrep
+#define collide_GeoElevationGrid collide_genericfaceset
+#define make_GeoElevationGrid make_genericfaceset
 void prep_GeoLocation (struct X3D_GeoLocation *this_);
 void prep_GeoViewpoint (struct X3D_GeoViewpoint *this_);
 void fin_GeoLocation (struct X3D_GeoLocation *this_);

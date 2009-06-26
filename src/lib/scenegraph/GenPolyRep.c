@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.9 2009/06/23 19:57:02 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.10 2009/06/26 14:54:15 crc_canada Exp $
 
 ???
 
@@ -144,14 +144,14 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_, float **points
 	rep->actualCoord = (float *)newpoints;
 
 	/* make up coord index */
-	if (this_->coordIndex.n > 0) {FREE_IF_NZ(this_->coordIndex.p);}
-	this_->coordIndex.p = MALLOC (sizeof(int) * nquads * 5);
-	cindexptr = this_->coordIndex.p;
+	if (this_->_coordIndex.n > 0) {FREE_IF_NZ(this_->_coordIndex.p);}
+	this_->_coordIndex.p = MALLOC (sizeof(int) * nquads * 5);
+	cindexptr = this_->_coordIndex.p;
 
-	this_->coordIndex.n = nquads * 5;
+	this_->_coordIndex.n = nquads * 5;
 	/* return the newpoints array to the caller */
 	*points = newpoints;
-	*npoints = this_->coordIndex.n;
+	*npoints = this_->_coordIndex.n;
 
 	for (j = 0; j < (nz -1); j++) {
 		for (i=0; i < (nx-1) ; i++) {
@@ -585,19 +585,16 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 		
 
 	} else if (node->_nodeType == NODE_ElevationGrid) {
-		/* this might be an ElevationGrid based on a GeoElevationGrid */
-		if ((node->_nparents>=1) && (X3D_NODE(node->_parents[0])->_nodeType == NODE_GeoElevationGrid)) {
-			if (!checkX3DGeoElevationGridFields(X3D_ELEVATIONGRID(node),
-				(float **)&points, &npoints)) {
-		        	rep_->ntri = 0;
-		        	return;
-			}
-		} else {
-			if (!checkX3DElevationGridFields(X3D_ELEVATIONGRID(node),
-				(float **)&points, &npoints)) {
-		        	rep_->ntri = 0;
-		        	return;
-			}
+		if (!checkX3DElevationGridFields(X3D_ELEVATIONGRID(node),
+			(float **)&points, &npoints)) {
+		       	rep_->ntri = 0;
+		       	return;
+		}
+	} else if (node->_nodeType == NODE_GeoElevationGrid) {
+		if (!checkX3DGeoElevationGridFields(X3D_GEOELEVATIONGRID(node),
+			(float **)&points, &npoints)) {
+		       	rep_->ntri = 0;
+		       	return;
 		}
 	}
 	
@@ -618,18 +615,22 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			co = (struct X3D_Coordinate *) node->coord;
 			break;
 		case NODE_ElevationGrid:
-			convex = X3D_ELEVATIONGRID(node)->convex;
-			orig_coordIndex= &X3D_ELEVATIONGRID(node)->coordIndex;
+			orig_coordIndex= &X3D_ELEVATIONGRID(node)->_coordIndex;
 			cpv = X3D_ELEVATIONGRID(node)->colorPerVertex;
 			npv = X3D_ELEVATIONGRID(node)->normalPerVertex;
-			orig_texCoordIndex = &X3D_ELEVATIONGRID(node)->texCoordIndex;
-			orig_colorIndex = &X3D_ELEVATIONGRID(node)->colorIndex;
-			orig_normalIndex = &X3D_ELEVATIONGRID(node)->normalIndex;
 			creaseAngle = X3D_ELEVATIONGRID(node)->creaseAngle;
 			cc = (struct X3D_Color *) X3D_ELEVATIONGRID(node)->color;
 			nc = (struct X3D_Normal *) X3D_ELEVATIONGRID(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_ELEVATIONGRID(node)->texCoord;
-			co = (struct X3D_Coordinate *) X3D_ELEVATIONGRID(node)->coord;
+			break;
+		case NODE_GeoElevationGrid:
+			orig_coordIndex= &X3D_GEOELEVATIONGRID(node)->_coordIndex;
+			cpv = X3D_GEOELEVATIONGRID(node)->colorPerVertex;
+			npv = X3D_GEOELEVATIONGRID(node)->normalPerVertex;
+			creaseAngle = X3D_GEOELEVATIONGRID(node)->creaseAngle;
+			cc = (struct X3D_Color *) X3D_GEOELEVATIONGRID(node)->color;
+			nc = (struct X3D_Normal *) X3D_GEOELEVATIONGRID(node)->normal;
+			tc = (struct X3D_TextureCoordinate *) X3D_GEOELEVATIONGRID(node)->texCoord;
 			break;
 		case NODE_IndexedTriangleFanSet:
 			checkIndexedTriangleFanSetFields(X3D_INDEXEDTRIANGLEFANSET(node));

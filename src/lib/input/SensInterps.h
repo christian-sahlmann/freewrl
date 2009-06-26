@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.h,v 1.3 2009/02/11 15:12:54 istakenv Exp $
+$Id: SensInterps.h,v 1.4 2009/06/26 14:54:15 crc_canada Exp $
 
 SensInterps ???
 
@@ -33,6 +33,7 @@ do_OintScalar(void *node);
 
 void
 do_OintCoord(void *node);
+void do_OintNormal(void *node);
 
 void do_OintCoord2D(void *node);
 void do_OintPos2D(void *node);

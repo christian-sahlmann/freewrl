@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.20 2009/06/24 13:03:53 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.21 2009/06/26 14:54:15 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -786,7 +786,7 @@ void *returnInterpolatorPointer (const char *x) {
 	} else if (strcmp("ColorInterpolator",x)==0) { return (void *)do_ColorInterpolator;
 	} else if (strcmp("PositionInterpolator",x)==0) { return (void *)do_PositionInterpolator;
 	} else if (strcmp("CoordinateInterpolator",x)==0) { return (void *)do_OintCoord;
-	} else if (strcmp("NormalInterpolator",x)==0) { return (void *)do_OintCoord;
+	} else if (strcmp("NormalInterpolator",x)==0) { return (void *)do_OintNormal;
 	} else if (strcmp("GeoPositionInterpolator",x)==0) { return (void *)do_GeoPositionInterpolator;
 	} else if (strcmp("BooleanFilter",x)==0) { return (void *)do_BooleanFilter;
 	} else if (strcmp("BooleanSequencer",x)==0) { return (void *)do_BooleanSequencer;
@@ -880,7 +880,7 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 	POSSIBLE_PROTO_EXPANSION (innode,node)
 
 	xc = X3D_COORD(node);
-	/* printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType)); */
+	printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType));
 
 	if (xc->_nodeType == NODE_Coordinate) {
 		return &(xc->point);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Lighting.c,v 1.7 2009/05/12 18:21:59 crc_canada Exp $
+$Id: Component_Lighting.c,v 1.8 2009/06/26 14:54:15 crc_canada Exp $
 
 X3D Lighting Component
 
@@ -87,10 +87,8 @@ void render_PointLight (struct X3D_PointLight *node) {
 		if(light >= 0) {
 			float vec[4];
 			lightState(light-GL_LIGHT0,TRUE);
-			vec[0] = ((node->direction).c[0]);
-			vec[1] = ((node->direction).c[1]);
-			vec[2] = ((node->direction).c[2]);
-			vec[3] = 1;
+			vec[0] = 0.0; vec[1] = 0.0; vec[2] = -1.0; vec[3] = 1;
+
 			glLightfv(light, GL_SPOT_DIRECTION, vec);
 			vec[0] = ((node->location).c[0]);
 			vec[1] = ((node->location).c[1]);

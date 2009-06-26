@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.16 2009/06/22 19:40:41 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.17 2009/06/26 14:54:15 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.17  2009/06/26 14:54:15  crc_canada
+# GeoElevationGrid - no longer has ElevationGrid sub child, and triangle winding
+#
 # Revision 1.16  2009/06/22 19:40:41  crc_canada
 # more VRML1 work.
 #
@@ -404,6 +407,13 @@
 	MetadataMFVec4f		=>metadata,
 	MetadataSFVec4d		=>metadata,
 	MetadataMFVec4d		=>metadata,
+
+	EaseInEaseOut 	=>children,
+	SplinePositionInterpolator 	=>children,
+	SplinePositionInterpolator2D 	=>children,
+	SplineScalarInterpolator 	=>children,
+	SquadOrientationInterpolator 	=>children,
+
 
 
 	VRML1_AsciiText		=>children,

@@ -2,42 +2,25 @@ Priority list
 
 (going through specs, finding what component conformance level FreeWRL is currently at; lower priority) 06/16/2009:
 	TimeSensor pause - verify code.
-	have a look at filling in the VRML1 nodes:
+	ImageTexture - textureProperties field.
+	MovieTexture - textureProperties field.
+	TextureProperties Node.
+	EaseInEaseOut Node.
+	SplinePositionInterpolator Node
+	SplinePositionInterpolator2D Node
+	SplineScalarInterpolator Node
+	SquadOrientationInterpolator Node
+
+	Think about:
 		VRML1_AsciiText
-		VRML1_Cone 			(DONE)
-		VRML1_Cube 			(DONE)
-		VRML1_Cylinder 			(DONE)
-		VRML1_IndexedFaceSet		(DONE)
-		VRML1_IndexedLineSet		(DONE)
-		VRML1_PointSet			(DONE)
-		VRML1_Sphere 			(DONE)
-		VRML1_Coordinate3		(DONE)
 		VRML1_FontStyle
-		VRML1_Info			(DONE)
-		VRML1_Material			(DONE)
-		VRML1_MaterialBinding		(DONE)
-		VRML1_Normal			(DONE)
-		VRML1_NormalBinding		(DONE)
-		VRML1_Texture2			(DONE)
-		VRML1_Texture2Transform		(DONE)
-		VRML1_TextureCoordinate2	(DONE)
-		VRML1_ShapeHints		(DONE)
 		VRML1_MatrixTransform
-		VRML1_Rotation			(DONE)
-		VRML1_Scale			(DONE)
-		VRML1_Transform			(DONE)
-		VRML1_Translation		(DONE)
-		VRML1_Separator 		(DONE)
 		VRML1_Switch
 		VRML1_WWWAnchor
 		VRML1_LOD
 		VRML1_OrthographicCamera
 		VRML1_PerspectiveCamera
-		VRML1_DirectionalLight		(DONE)
-		VRML1_PointLight		(DONE)
-		VRML1_SpotLight			(DONE)
 		VRML1_WWWInline
-	to see what we can easily render.
 	Spec is at: http://www.web3d.org/x3d/specifications/vrml/VRML1.0
 
 

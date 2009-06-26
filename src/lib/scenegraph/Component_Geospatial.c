@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.21 2009/06/12 20:13:00 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.22 2009/06/26 14:54:15 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -270,41 +270,6 @@ static void gccToGdc (struct SFVec3d *, struct SFVec3d *);
 /* for converting from GC to GD */
 static double A, F, C, A2, C2, Eps2, Eps21, Eps25, C254, C2DA, CEE,
                  CE2, CEEps2, TwoCEE, tem, ARat1, ARat2, BRat1, BRat2, B1,B2,B3,B4,B5;
-
-
-/* return the radius for the geosystem */
-#ifdef OLDCODE
-static double getEllipsoidRadius(int geosp) {
-	switch (geosp) {
-		case GEOSP_AA: return GEOSP_AA_A;
-		case GEOSP_AM: return GEOSP_AM_A;
-		case GEOSP_AN: return GEOSP_AN_A;
-		case GEOSP_BN: return GEOSP_BN_A;
-		case GEOSP_BR: return GEOSP_BR_A;
-		case GEOSP_CC: return GEOSP_CC_A;
-		case GEOSP_CD: return GEOSP_CD_A;
-		case GEOSP_EA: return GEOSP_EA_A;
-		case GEOSP_EB: return GEOSP_EB_A;
-		case GEOSP_EC: return GEOSP_EC_A;
-		case GEOSP_ED: return GEOSP_ED_A;
-		case GEOSP_EE: return GEOSP_EE_A;
-		case GEOSP_EF: return GEOSP_EF_A;
-		case GEOSP_FA: return GEOSP_FA_A;
-		case GEOSP_HE: return GEOSP_HE_A;
-		case GEOSP_HO: return GEOSP_HO_A;
-		case GEOSP_ID: return GEOSP_ID_A;
-		case GEOSP_IN: return GEOSP_IN_A;
-		case GEOSP_KA: return GEOSP_KA_A;
-		case GEOSP_RF: return GEOSP_RF_A;
-		case GEOSP_SA: return GEOSP_SA_A;
-		case GEOSP_WD: return GEOSP_WD_A;
-		case GEOSP_WE: return GEOSP_WE_A;
-
-	}
-	printf ("getEllipsoidRadius, not valid geosp, returning default\n");
-	return GEOSP_WE_A; /* default value, as good as any, I guess */
-}
-#endif
 
 
 /* move ourselves BACK to the from the GeoOrigin */
@@ -696,7 +661,6 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 	}
 }
 
-
 /* calculate a translation that moves a Geo node to local space */
 static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoords, struct Multi_Vec3d *outCoords,
 		struct Multi_Vec3d *gdCoords) {
@@ -742,9 +706,8 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 		myOrigin = geoOrigin; /* local one */
 	}
 	/* printf ("GeoMove, using myOrigin %u, passed in geoOrigin %u with vals %lf %lf %lf\n",myOrigin, myOrigin,
-		myOrigin->geoCoords.c[0], myOrigin->geoCoords.c[1], myOrigin->geoCoords.c[2] ); */
+		myOrigin->geoCoords.c[0], myOrigin->geoCoords.c[1], myOrigin->geoCoords.c[2] ); */ 
 		
-
 	moveCoords(geoSystem, inCoords, outCoords, gdCoords);
 
 	for (i=0; i<outCoords->n; i++) {
@@ -1241,7 +1204,7 @@ void compile_GeoCoordinate (struct X3D_GeoCoordinate * node) {
 /************************************************************************/
 
 /* check validity of ElevationGrid fields */
-int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **points, int *npoints) {
+int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **points, int *npoints) {
 	MF_SF_TEMPS
 	int i,j;
 	int nx;
@@ -1252,7 +1215,6 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 	int ntri;
 	int nh;
 	struct X3D_PolyRep *rep;
-	struct X3D_GeoElevationGrid *parent; /* this ElevationGrid is the child of a GeoElevationGrid */
 	float *newpoints;
 	int nquads;
 	int *cindexptr;
@@ -1260,30 +1222,19 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 	double myHeightAboveEllip = 0.0;
 	int mySRF = 0;
 	
-	/* ok, a GeoElevationGrid has an ElevationGrid for a child; the ElevationGrid does all the
-	   rendering, colliding, etc, etc, as it has coords in local coord system. The GeoElevationGrid
-	   contains the user source. */
+	nx = node->xDimension;
+	xSp = node->xSpacing;
+	nz = node->zDimension;
+	zSp = node->zSpacing;
+	height = node->height.p;
+	nh = node->height.n;
 
-	if (node->_nparents<1) {
-		printf ("checkX3DGeoElevationGrids - no parent?? \n");
-		return FALSE;
-	}
-
-	parent = node->_parents[0]; /* this ElevationGrid is the child of a GeoElevationGrid */
-
-	/* get these from the GeoElevationGrid */
-	nx = parent->xDimension;
-	xSp = parent->xSpacing;
-	nz = parent->zDimension;
-	zSp = parent->zSpacing;
-	height = parent->height.p;
-	nh = parent->height.n;
-
+	COMPILE_GEOSYSTEM(node)
 	/* various values for converting to GD/UTM, etc */
-	if (parent->__geoSystem.n != 0)  {
-		mySRF = parent->__geoSystem.p[0];
+	if (node->__geoSystem.n != 0)  {
+		mySRF = node->__geoSystem.p[0];
 		/* NOTE - DO NOT DO THIS CALCULATION - it is added in later 
-		myHeightAboveEllip = getEllipsoidRadius(parent->__geoSystem.p[1]);
+		myHeightAboveEllip = getEllipsoidRadius(node->__geoSystem.p[1]);
 		*/
 	}
 
@@ -1328,29 +1279,39 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 	rep->actualCoord = (float *)newpoints;
 
 	/* make up coord index */
-	if (node->coordIndex.n > 0) FREE_IF_NZ(node->coordIndex.p);
-	node->coordIndex.p = MALLOC (sizeof(int) * nquads * 5);
-	cindexptr = node->coordIndex.p;
+	if (node->_coordIndex.n > 0) FREE_IF_NZ(node->_coordIndex.p);
+	node->_coordIndex.p = MALLOC (sizeof(int) * nquads * 5);
+	cindexptr = node->_coordIndex.p;
 
-	node->coordIndex.n = nquads * 5;
+	node->_coordIndex.n = nquads * 5;
 	/* return the newpoints array to the caller */
 	*points = newpoints;
-	*npoints = node->coordIndex.n;
+	*npoints = node->_coordIndex.n;
 
 	#ifdef VERBOSE
 	printf ("coordindex:\n");
 	#endif
 
+	/* ElevationGrids go 1 - 2 - 3 - 4 we go 1 - 4 - 3 - 2 */
 	for (j = 0; j < (nz -1); j++) {
 		for (i=0; i < (nx-1) ; i++) {
 			#ifdef VERBOSE
 			printf ("	%d %d %d %d %d\n", j*nx+i, j*nx+i+nx, j*nx+i+nx+1, j*nx+i+1, -1);
 			#endif
+
+#ifdef WINDING_ELEVATIONGRID
 			*cindexptr = j*nx+i; cindexptr++; 	/* 1 */
 			*cindexptr = j*nx+i+nx; cindexptr++; 	/* 2 */
 			*cindexptr = j*nx+i+nx+1; cindexptr++;  /* 3 */
 			*cindexptr = j*nx+i+1; cindexptr++; 	/* 4 */
 			*cindexptr = -1; cindexptr++;
+#else
+			*cindexptr = j*nx+i; cindexptr++; 	/* 1 */
+			*cindexptr = j*nx+i+1; cindexptr++; 	/* 4 */
+			*cindexptr = j*nx+i+nx+1; cindexptr++;  /* 3 */
+			*cindexptr = j*nx+i+nx; cindexptr++; 	/* 2 */
+			*cindexptr = -1; cindexptr++;
+#endif
 
 		}
 	}
@@ -1361,54 +1322,54 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 		for (j = 0; j < (nz -1); j++) {
 			for (i=0; i < (nx-1) ; i++) {
 				/* first triangle, 3 vertexes */
+#ifdef WINDING_ELEVATIONGRID
 				/* first tri */
-				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+/* 1 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
 				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
 			
-				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+/* 2 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
 				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
 	
-				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+/* 3 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
 				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
 	
 				/* second tri */
-				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+/* 1 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
 				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
 	
-				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+/* 3 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
 				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
 	
-				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+/* 4 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
 				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+#else
+				/* first tri */
+/* 1 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+			
+/* 4 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+
+/* 3 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+	
+				/* second tri */
+/* 1 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+
+/* 3 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+	
+/* 2 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+			
+#endif
 			}
 		}
 	}
 			
 	/* Render_Polyrep will use this number of triangles */
 	rep->ntri = ntri;
-
-	/* pass these common fields from the parent GeoElevationGrid to the child
-	   ElevationGrid. We must ensure that we do not free the copied SFNode
-	   pointers when this node is destroyed */
-
-	if (node->color != parent->color) 
-		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoElevationGrid, color)); 
-	node->color = parent->color;
-
-	if (node->normal != parent->normal)
-		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoElevationGrid, normal)); 
-	node->normal = parent->normal;
-
-	if (node->texCoord != parent->texCoord)
-		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoElevationGrid, texCoord)); 
-	node->texCoord = parent->texCoord;
-
-
-	node->ccw = !parent->ccw; /* NOTE THE FLIP HERE */
-	node->colorPerVertex = parent->colorPerVertex;
-	node->creaseAngle = (float) parent->creaseAngle;
-	node->normalPerVertex = parent->normalPerVertex;
-	node->solid = parent->solid;
 
 	/* initialize arrays used for passing values into/out of the MOVE_TO_ORIGIN(node) values */
 	mIN.n = nx * nz; 
@@ -1424,7 +1385,7 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 			#ifdef VERBOSE
 		 	printf ("		%lf %lf %lf # (hei ind %d) point [%d, %d]\n",
 				xSp * i,
-				height[i+(j*nx)] * ((double)parent->yScale),
+				height[i+(j*nx)] * ((double)node->yScale),
 				zSp * j,
 				i+(j*nx), i,j);
 			#endif
@@ -1436,28 +1397,27 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 				/* GD - give it to em in Latitude/Longitude/Elevation order */
 				/* UTM- or give it to em in Northing/Easting/Elevation order */
 				/* latitude - range of -90 to +90 */
-				mIN.p[i+(j*nx)].c[0] = zSp * j + parent->geoGridOrigin.c[0]; 
+				mIN.p[i+(j*nx)].c[0] = zSp * j + node->geoGridOrigin.c[0]; 
 	
 				/* longitude - range -180 to +180, or 0 to 360 */
-				mIN.p[i+(j*nx)].c[1] =xSp * i + parent->geoGridOrigin.c[1];
+				mIN.p[i+(j*nx)].c[1] =xSp * i + node->geoGridOrigin.c[1];
 	
 				/* elevation, above geoid */
-				mIN.p[i+(j*nx)].c[2] = (height[i+(j*nx)] *(parent->yScale)) + parent->geoGridOrigin.c[2]
+				mIN.p[i+(j*nx)].c[2] = (height[i+(j*nx)] *(node->yScale)) + node->geoGridOrigin.c[2]
 					+ myHeightAboveEllip; 
 			} else {
 				/* nothing quite specified here - what do we really do??? */
-				mIN.p[i+(j*nx)].c[0] = zSp * j + parent->geoGridOrigin.c[0]; 
+				mIN.p[i+(j*nx)].c[0] = zSp * j + node->geoGridOrigin.c[0]; 
 	
-				mIN.p[i+(j*nx)].c[1] =xSp * i + parent->geoGridOrigin.c[1];
+				mIN.p[i+(j*nx)].c[1] =xSp * i + node->geoGridOrigin.c[1];
 	
-				mIN.p[i+(j*nx)].c[2] = (height[i+(j*nx)] *(parent->yScale)) + parent->geoGridOrigin.c[2]
+				mIN.p[i+(j*nx)].c[2] = (height[i+(j*nx)] *(node->yScale)) + node->geoGridOrigin.c[2]
 					+ myHeightAboveEllip; 
 
 			}
-			/* printf ("height made up of %lf, geoGridOrigin %lf, myHeightAboveEllip %lf\n",(height[i+(j*nx)] *(parent->yScale)),parent->geoGridOrigin.c[2], myHeightAboveEllip); */
+			/* printf ("height made up of %lf, geoGridOrigin %lf, myHeightAboveEllip %lf\n",(height[i+(j*nx)] *(node->yScale)),node->geoGridOrigin.c[2], myHeightAboveEllip); */
 		}
 	}
-
 	#ifdef VERBOSE
 	printf ("points before moving origin:\n");
 	for (j=0; j<nz; j++) {
@@ -1470,7 +1430,7 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 	#endif
 
 	/* convert this point to a local coordinate */
-        MOVE_TO_ORIGIN(parent)
+        MOVE_TO_ORIGIN(node)
 
 	/* copy the resulting array back to the ElevationGrid */
 
@@ -1493,9 +1453,9 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 		}
 	}
 	FREE_MF_SF_TEMPS
-
 	return TRUE;
 }
+
 
 /* a GeoElevationGrid creates a "real" elevationGrid node as a child for rendering. */
 void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
@@ -1503,6 +1463,7 @@ void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 	#ifdef VERBOSE
 	printf ("compiling GeoElevationGrid\n");
 	#endif
+	printf ("compiling GeoElevationGrid\n");
 
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_GEOSYSTEM(node)
@@ -1514,41 +1475,12 @@ void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 }
 
 
-void render_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
-	struct X3D_ElevationGrid *node = innode->__realElevationGrid;
-
-	INITIALIZE_GEOSPATIAL(innode)
-	COMPILE_IF_REQUIRED2(innode) /* same as COMPILE_IF_REQUIRED, but with innode */
-
-	if (node == NULL) {	
-		/* create an ElevationGrid so that we can render this. Actual vertex
-		   data will be created via the checkX3DGeoElevationGrid function */
-		node = createNewX3DNode(NODE_ElevationGrid);
-		innode->__realElevationGrid =  node;
-		ADD_PARENT(X3D_NODE(innode->__realElevationGrid), X3D_NODE(innode));
-	} 
-	COMPILE_POLY_IF_REQUIRED (NULL, node->color, node->normal, node->texCoord)
+void render_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
+	INITIALIZE_GEOSPATIAL(node)
+	COMPILE_POLY_IF_REQUIRED (NULL, node->color, node->normal, node->texCoord) 
 	CULL_FACE(node->solid)
 	render_polyrep(node);
 }
-
-
-/* deref real ElevationGrid pointer */
-void make_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
-}
-
-/* deref real ElevationGrid pointer */
-void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
-	struct X3D_ElevationGrid *node = innode->__realElevationGrid;
-	if (node != NULL) collide_genericfaceset ((struct X3D_IndexedFaceSet *)node);
-}
-
-/* deref real ElevationGrid pointer */
-void rendray_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
-	struct X3D_ElevationGrid *node = innode->__realElevationGrid;
-	if (node != NULL) rendray_IndexedFaceSet ((struct X3D_IndexedFaceSet *)node);
-}
-
 
 /************************************************************************/
 /* GeoLocation								*/
