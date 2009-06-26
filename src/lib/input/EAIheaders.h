@@ -1,11 +1,18 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIheaders.h,v 1.10 2009/02/18 13:37:50 istakenv Exp $
+$Id: EAIheaders.h,v 1.11 2009/06/26 16:44:34 crc_canada Exp $
 
 EAI and java CLASS invocation
 
 */
+
+/**********************************************************************************************/
+/*                                                                                            */
+/* This file is part of the FreeWRL/FreeX3D Distribution, from http://freewrl.sourceforge.net */
+/*                                                                                            */
+/**********************************************************************************************/
+
 
 #ifndef __FREEWRL_EAI_H__
 #define __FREEWRL_EAI_H__

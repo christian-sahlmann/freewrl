@@ -1,3 +1,10 @@
+/**********************************************************************************************/
+/*                                                                                            */
+/* This file is part of the FreeWRL/FreeX3D Distribution, from http://freewrl.sourceforge.net */
+/*                                                                                            */
+/**********************************************************************************************/
+
+
 #include <sys/types.h>
 #include <stdint.h>
 #include <unistd.h>

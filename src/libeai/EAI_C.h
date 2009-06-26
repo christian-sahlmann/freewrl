@@ -1,3 +1,10 @@
+/**********************************************************************************************/
+/*                                                                                            */
+/* This file is part of the FreeWRL/FreeX3D Distribution, from http://freewrl.sourceforge.net */
+/*                                                                                            */
+/**********************************************************************************************/
+
+
 #ifndef __EAI_C_HEADERS__
 #define __EAI_C_HEADERS__
 #include <sys/types.h>
