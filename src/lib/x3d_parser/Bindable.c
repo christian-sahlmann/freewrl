@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.10 2009/04/08 19:40:55 crc_canada Exp $
+$Id: Bindable.c,v 1.11 2009/06/26 19:43:11 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -72,6 +72,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	}
         Viewer.speed = (double) node->speed;
 
+printf ("set_naviinfo - width %lf height %lf step %lf speed %lf\n");
 
 	/* keep track of valid Navigation types. */
 	svptr = node->type.p;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.8 2009/06/23 19:57:02 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.9 2009/06/26 19:43:10 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -522,7 +522,7 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 		/* printf ("collide_IFS, colinfo %lf %lf %lf, count %d Maximum2 %lf\n",CollisionInfo.Offset.x,
 			CollisionInfo.Offset.y, CollisionInfo.Offset.z,CollisionInfo.Count, CollisionInfo.Maximum2);  */
 
-		#ifdef COLLISIONVERBOSE
+		#ifdef RENDERVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
 /*		   printmatrix(modelMatrix);*/
 		   fprintf(stderr,"COLLISION_IFS: (%f %f %f) (%f %f %f)\n",
@@ -575,6 +575,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 
 	       /* easy tests. clip as if sphere was a box */
 	       /*clip with cylinder */
+
 	       if(dist2 - (radius + awidth) * (radius +awidth) > 0) {
 		   return;
 	       }
@@ -597,6 +598,9 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       n_orig.y = 0.0;
 	       n_orig.z = t_orig.z;
 	       VECSCALE(n_orig,1.0/p_orig.x); /*equivalent to vecnormal(n_orig);, but faster */
+		#ifdef RENDERVERBOSE
+printf ("sphere, p_orig %lf %lf %lf, n_orig %lf %lf %lf\n",p_orig.x, p_orig.y, p_orig.z, n_orig.x, n_orig.y, n_orig.z);
+		#endif
 
 	       /* 5 cases : sphere is over, over side, side, under and side, under (relative to y axis) */
 	       /* these 5 cases correspond to the 5 vornoi regions of the cylinder */
@@ -684,7 +688,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       transform3x3(&delta,&delta,upvecmat);
 	       accumulate_disp(&CollisionInfo,delta);
 
-		#ifdef COLLISIONVERBOSE
+		#ifdef RENDERVERBOSE
 	       if((delta.x != 0. || delta.y != 0. || delta.z != 0.))
 	           printf("COLLISION_SPH: (%f %f %f) (%f %f %f) (px=%f nx=%f nz=%f)\n",
 			  t_orig.x, t_orig.y, t_orig.z,
@@ -750,7 +754,7 @@ void collide_Box (struct X3D_Box *node) {
 
 	       accumulate_disp(&CollisionInfo,delta);
 
-		#ifdef COLLISIONVERBOSE
+		#ifdef RENDERVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
 	           printf("COLLISION_BOX: (%f %f %f) (%f %f %f)\n",
 			  ov.x, ov.y, ov.z,
@@ -817,7 +821,7 @@ void collide_Cone (struct X3D_Cone *node) {
 
 	       accumulate_disp(&CollisionInfo,delta);
 
-		#ifdef COLLISIONVERBOSE
+		#ifdef RENDERVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
 	           printf("COLLISION_CON: (%f %f %f) (%f %f %f)\n",
 			  iv.x, iv.y, iv.z,
@@ -886,7 +890,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 
 	       accumulate_disp(&CollisionInfo,delta);
 
-		#ifdef COLLISIONVERBOSE
+		#ifdef RENDERVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
 	           printf("COLLISION_CYL: (%f %f %f) (%f %f %f)\n",
 			  iv.x, iv.y, iv.z,
@@ -963,7 +967,7 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 
 	       accumulate_disp(&CollisionInfo,delta);
 
-		#ifdef COLLISIONVERBOSE
+		#ifdef RENDERVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
 /*		   printmatrix(modelMatrix);*/
 		   fprintf(stderr,"COLLISION_EXT: (%f %f %f) (%f %f %f)\n",

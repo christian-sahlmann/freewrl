@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.22 2009/06/26 14:54:15 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.23 2009/06/26 19:43:11 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -785,15 +785,14 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
 
 	if (!gcToGdInit) initializeGcToGdParams();
 
-        /* CHECK FOR SPECIAL CASES*/
-            if (!(GCC_X == 0.0)) ; /* null statement */
-            else {
-                if (GCC_Y > 0.0) 
+
+        /* bounds checking */
+                if (GCC_Y > 0.0) {
                     GDC_LAT = PI/2;
-                else {
-                    if (GCC_Y < 0.0)
+               } else {
+                    if (GCC_Y < 0.0) {
                         GDC_LON = -PI/2;
-                    else {
+                    } else {
                         if (GCC_Z > 0) {
                             GDC_LAT = PI/2;
                             GDC_LON = 0.0;
@@ -804,20 +803,18 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
                                 GDC_LAT = -PI/2;
                                 GDC_LON   =  0.0;
                                 GDC_ELE   =  GCC_Z;
-                            
                                 return;
                             } else {
-                            	GDC_LAT = 0.0;
-                            	GDC_LON = 0.0;
-                            	GDC_ELE = 0.0;
-                            	return;
+                                GDC_LAT = 0.0;
+                                GDC_LON = 0.0;
+                                GDC_ELE = 0.0;
+                                return;
                         }
                     }
                 }
             }
-        }
 
-	/* printf ("gccToGdc, past special cases\n"); */
+	/* printf ("gccToGdc, past special cases\n");  */
 
         /* END OF SPECIAL CASES */
 
@@ -828,7 +825,7 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
         testu=w2 + ARat2 * z2;
         testb=w2 + BRat2 * z2;
 
-	/* printf ("w2 %lf w %lf z2 %lf testu %lf testb %lf\n",w2,w,z2,testu,testb); */
+	printf ("w2 %lf w %lf z2 %lf testu %lf testb %lf\n",w2,w,z2,testu,testb); 
 
         if ((testb > BRat1) && (testu < ARat1)) 
         {    
@@ -2511,7 +2508,7 @@ void viewer_calculate_speed() {
 		/* do we have a valid __geoSystem?? */
 		if (Viewer.GeoSpatialNode->__geoSystem.n>0) {
 			/* is the __geoSystem NOT gc coords? */
-			/* printf ("have a GeoSpatial viewpoint, currently %d\n",Viewer.GeoSpatialNode->__geoSystem.p[0]); */
+			/* printf ("have a GeoSpatial viewpoint, currently %d\n",Viewer.GeoSpatialNode->__geoSystem.p[0]);  */
 			if (Viewer.GeoSpatialNode->__geoSystem.p[0] != GEOSP_GC) {
 		
 		        	retractOrigin(Viewer.GeoSpatialNode->geoOrigin, &gcCoords);
@@ -2529,28 +2526,21 @@ void viewer_calculate_speed() {
 			
 				/* speed is dependent on elevation above WGS84 ellipsoid */
 				Viewer.speed  = sqrt(gdCoords.c[0]*gdCoords.c[0] + gdCoords.c[1]*gdCoords.c[1] + gdCoords.c[2]*gdCoords.c[2]);
-		
 				#ifdef VERBOSE
 				printf ("height above center %f WGS84 ellipsoid is %lf\n",Viewer.speed,GEOSP_WE_A); 
 				#endif
 		
 				Viewer.speed = fabs(Viewer.speed * Viewer.GeoSpatialNode->speedFactor);
 				if (Viewer.speed < Viewer.GeoSpatialNode->speedFactor) Viewer.speed = Viewer.GeoSpatialNode->speedFactor;
-				Viewer.speed = Viewer.speed;
-
 				/* set the navigation info - use the GeoVRML algorithms */
+
 				naviinfo.width = Viewer.speed*0.25;
 				naviinfo.height = Viewer.speed*1.6;
 				naviinfo.step = Viewer.speed*0.25;
-		
-				#ifdef VERBOSE
-				printf ("speed after WGS84 ellipsoid is %lf\n",assumedSpeed); 
-				#endif
 			}
 		}
 	}
 }
-
 
 static calculateExamineModeDistance(void) {
 extern int doExamineModeDistanceCalculations;
@@ -2570,12 +2560,12 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	/* set Viewer position and orientation */
 
 	#ifdef VERBOSE
-	printf ("bind_viewpoint, setting Viewer to %lf %lf %lf orient %f %f %f %f\n",node->__movedPosition.c[0],node->__movedPosition.c[1],
+	printf ("bind_geoviewpoint, setting Viewer to %lf %lf %lf orient %f %f %f %f\n",node->__movedPosition.c[0],node->__movedPosition.c[1],
 	node->__movedPosition.c[2],node->orientation.c[0],node->orientation.c[1],node->orientation.c[2],
 	node->orientation.c[3]);
 	printf ("	node %u fieldOfView %f\n",node,node->fieldOfView);
 	#endif
-	
+
 	Viewer.GeoSpatialNode = node;
 
 	Viewer.Pos.x = node->__movedPosition.c[0];
