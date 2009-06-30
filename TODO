@@ -1,5 +1,11 @@
 Priority list
 
+06/30/2009:
+	(JAS) Wondering about collision and small scales; Bob Kilmek's second example should not have collisions.
+
+	(JAS) LineSets and PointSets must call setExtent to get near/far clipplanes correctly calculated. 
+	eg, tests/48.wrl - rotate it, and some lines will disappear.
+
 (going through specs, finding what component conformance level FreeWRL is currently at; lower priority) 06/16/2009:
 	TimeSensor pause - verify code.
 	ImageTexture - textureProperties field.

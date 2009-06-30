@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.h,v 1.4 2009/02/11 15:12:55 istakenv Exp $
+$Id: Bindable.h,v 1.5 2009/06/30 19:10:18 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 
@@ -38,6 +38,8 @@ reset_upvector(void);
 
 void
 set_naviinfo(struct X3D_NavigationInfo *node);
+
+void set_naviWidthHeightStep(double, double, double);
 
 void
 send_bind_to(struct X3D_Node *node, int value);

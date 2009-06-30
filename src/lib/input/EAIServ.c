@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.9 2009/05/07 17:01:24 crc_canada Exp $
+$Id: EAIServ.c,v 1.10 2009/06/30 19:10:17 crc_canada Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -307,11 +307,11 @@ void handle_MIDIEAI() {
         EAIbufcount = 0;
 
         EAIbuffer = read_EAI_socket(EAIbuffer, &EAIbufcount, &EAIbufsize, &EAIMIDIlistenfd);
-        printf ("read, EAIbufcount %d EAIbufsize %d\n",EAIbufcount, EAIbufsize);
+        /* printf ("read, MIDI EAIbufcount %d EAIbufsize %d\n",EAIbufcount, EAIbufsize); */
 
         /* make this into a C string */
         EAIbuffer[EAIbufcount] = 0;
-                if (EAIbufcount) printf ("handle_EAI-- Data is :%s:\n",EAIbuffer);
+        if (eaiverbose) printf ("handle_EAI-- Data is :%s:\n",EAIbuffer);
 
         /* any command read in? */
         if (EAIbufcount > 1)
@@ -334,7 +334,7 @@ void EAI_send_string(char *str, int lfd){
 	n = write (lfd, str, (unsigned int) strlen(str));
 	if (n<strlen(str)) {
 		if (eaiverbose) {
-		printf ("write, expected to write %d, actually wrote %d\n",n,strlen(str));
+		printf ("write, expected to write %d, actually wrote %d\n",n,(int)strlen(str));
 		}
 	}
 	/* printf ("EAI_send_string, wrote %d\n",n); */
@@ -407,7 +407,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 			if (((*bfsz) - (*bfct)) <= EAIREADSIZE) {
 				if (eaiverbose) 
-				printf ("read_EAI_socket: HAVE TO REALLOC INPUT MEMORY:bf %x bfsz %d bfct %d\n",bf,*bfsz, *bfct);  
+				printf ("read_EAI_socket: HAVE TO REALLOC INPUT MEMORY:bf %u bfsz %d bfct %d\n",(unsigned)bf,*bfsz, *bfct);  
 				(*bfsz) += EAIREADSIZE;
 				/* printf ("read_EAI_socket: bfsz now %d\n",*bfsz); */
 				bf = (char *)REALLOC (bf, (unsigned int) (*bfsz));

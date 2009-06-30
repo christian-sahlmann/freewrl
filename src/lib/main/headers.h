@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.56 2009/06/26 14:54:15 crc_canada Exp $
+$Id: headers.h,v 1.57 2009/06/30 19:10:18 crc_canada Exp $
 
 Global includes.
 
@@ -1416,7 +1416,6 @@ struct ReWireNamenameStruct {
 
 extern struct ReWireNamenameStruct *ReWireNamenames;
 extern int ReWireNametableSize;
-extern int MAXReWireNameNames;
 extern struct ReWireDeviceStruct *ReWireDevices;
 extern int ReWireDevicetableSize;
 extern int MAXReWireDevices;

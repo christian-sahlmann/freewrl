@@ -20,8 +20,8 @@ void _handleReWireCallback (char *buf) {
 }
 
 void sendMIDITableToFreeWRL(char *buf) {
-	printf("in sendMIDITableToFreeWRL\n");
 	char *ptr;
+	/* printf("in sendMIDITableToFreeWRL\n"); */
         ptr = _X3D_make1StringCommand(MIDIINFO,buf);
         ptr = _X3D_make1StringCommand(MIDIINFO,buf);
 }

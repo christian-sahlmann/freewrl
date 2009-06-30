@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.11 2009/06/26 19:43:11 crc_canada Exp $
+$Id: Bindable.c,v 1.12 2009/06/30 19:10:18 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -57,6 +57,17 @@ void reset_upvector() {
     ViewerUpvector.z = 0;
 }
 
+/* common entry routine for setting avatar size */
+void set_naviWidthHeightStep(double wid, double hei, double step) {
+
+	naviinfo.width = wid;
+	naviinfo.height = hei;
+	naviinfo.step = step;
+
+	/* printf ("set_naviWdithHeightStep - width %lf height %lf step %lf speed %lf\n",wid,hei,step,Viewer.speed); */
+
+}
+
 /* called when binding NavigationInfo nodes */
 void set_naviinfo(struct X3D_NavigationInfo *node) {
 	struct Uni_String **svptr;
@@ -66,13 +77,11 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	if (node->avatarSize.n<2) {
 		printf ("set_naviinfo, avatarSize smaller than expected\n");
 	} else {
-        	naviinfo.width = node->avatarSize.p[0];
-        	naviinfo.height = node->avatarSize.p[1];
-        	naviinfo.step = (node->avatarSize.p[2] * node->speed) * 2;
+		set_naviWidthHeightStep ((double)(node->avatarSize.p[0]),
+			(double)(node->avatarSize.p[1]),
+			(double)((node->avatarSize.p[2] * node->speed) * 2));
 	}
         Viewer.speed = (double) node->speed;
-
-printf ("set_naviinfo - width %lf height %lf step %lf speed %lf\n");
 
 	/* keep track of valid Navigation types. */
 	svptr = node->type.p;

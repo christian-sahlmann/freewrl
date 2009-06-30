@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.11 2009/05/11 21:11:59 crc_canada Exp $
+$Id: Component_Networking.c,v 1.12 2009/06/30 19:10:18 crc_canada Exp $
 
 X3D Networking Component
 
@@ -29,7 +29,7 @@ static int num_MidiNodes = 0;
 
 struct ReWireNamenameStruct *ReWireNamenames = 0;
 int ReWireNametableSize = -1;
-int MAXReWireNameNames = 0;
+static int MAXReWireNameNames = 0;
 
 struct ReWireDeviceStruct *ReWireDevices = 0;
 int ReWireDevicetableSize = -1;
@@ -38,7 +38,7 @@ int MAXReWireDevices = 0;
 /************ START OF MIDI CONTROL **************************/
 
 /* go through the node, and create a new int value, and a new float value, from an int value */
-void determineMIDIValFromFloat (struct X3D_MidiControl *node, int *value, float *fV) {
+static void determineMIDIValFromFloat (struct X3D_MidiControl *node, int *value, float *fV) {
 	int minV, maxV, possibleValueSpread;
 	float tv;
 
@@ -63,7 +63,7 @@ void determineMIDIValFromFloat (struct X3D_MidiControl *node, int *value, float 
 }
 
 /* go through the node, and create a new int value, and a new float value, from an int value */
-void determineMIDIValFromInt (struct X3D_MidiControl *node, int *value, float *fV) {
+static void determineMIDIValFromInt (struct X3D_MidiControl *node, int *value, float *fV) {
 	int minV, maxV, possibleValueSpread;
 
 	minV = 0;  maxV = 100000;
@@ -88,7 +88,7 @@ void determineMIDIValFromInt (struct X3D_MidiControl *node, int *value, float *f
 
 
 /* send this node out to the ReWire network */
-sendNodeToReWire(struct X3D_MidiControl *node) {
+static void sendNodeToReWire(struct X3D_MidiControl *node) {
 	char buf[200];
 
 	#ifdef MIDIVERBOSE
@@ -132,7 +132,7 @@ sendNodeToReWire(struct X3D_MidiControl *node) {
 /* return parameters associated with this name. returns TRUE if this device has been added by
 the ReWire system */
 
-int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *internChan,  
+static int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *internChan,  
 	int *controller, int *cmin, int *cmax, int *ctptr) {
 	int ctr;
 	int match;
@@ -220,7 +220,7 @@ int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *internChan,
 }
 
 /* returns TRUE if register goes ok, FALSE if already registered */
-int ReWireDeviceRegister (int dev, int cont, int bus, int channel, int controller, int cmin, int cmax, int ctptr) {
+static int ReWireDeviceRegister (int dev, int cont, int bus, int channel, int controller, int cmin, int cmax, int ctptr) {
 	int ctr;
 	
 	/* is this a duplicate name and type? types have to be same,
@@ -289,7 +289,7 @@ void registerReWireNode(struct X3D_Node *node) {
 	/* does this event exist? */
 	for (count=0; count <num_MidiNodes; count ++) {
 		if (*myptr == (uintptr_t) node) {
-			printf ("registerReWireNode, already have %d\n",node); 
+			printf ("registerReWireNode, already this node\n"); 
 			return;
 		}	
 		myptr++;
@@ -303,14 +303,14 @@ void registerReWireNode(struct X3D_Node *node) {
 }
 
 /* "forget" the ReWireNames. Keep the table around, though, as the entries will simply be used again. */
-void kill_ReWireNameTable(void) {
+static void kill_ReWireNameTable(void) {
 	ReWireNametableSize = -1;
 	ReWireDevicetableSize = -1;
 }
 
 /* return a node assoicated with this name. If the name exists, return the previous node. If not, return
 the new node */
-int ReWireNameIndex (char *name) {
+static int ReWireNameIndex (char *name) {
 	int ctr;
 	
 	/* printf ("ReWireNameIndex, looking for %s\n",name); */
@@ -341,7 +341,8 @@ int ReWireNameIndex (char *name) {
 	return ReWireNametableSize;
 }
 
-void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
+#ifdef OLDCODE
+static void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
 #define MAXOUTLINE 3000
 	char outline[MAXOUTLINE];
 	printf ("sendCompiledNodeToReWire %d\n",node);
@@ -354,9 +355,11 @@ void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
 	printf (outline); printf ("\n");
 	EAI_send_string(outline,EAIMIDIlistenfd);
 }
+#endif
+
 
 /* make sure the EAI port is turned on... */
-int requestToStartEAIdone = FALSE;
+static int requestToStartEAIdone = FALSE;
 static void midiStartEAI() {
 #if !defined(REWIRE_SERVER)
     ConsoleMessage("MIDI disabled at compile time.\n");
@@ -367,7 +370,6 @@ static void midiStartEAI() {
 
 		printf ("MidiControl - turning EAI on\n");
 		sprintf (myline,"%s %u &",REWIRE_SERVER,getpid());
-printf ("midiStartEAI, line %s\n",myline);
 		create_MIDIEAI();
 		if (system (myline)==127) {
 			strcpy (myline,"could not start ");
@@ -381,13 +383,13 @@ printf ("midiStartEAI, line %s\n",myline);
 
 void prep_MidiControl (struct X3D_MidiControl *node) {
 	/* get the name/device pairing */
-	int tmp_bus;
-	int tmp_controller;
-	int tmp_internchan;
-	int tmpdeviceMinVal;
-	int tmpdeviceMaxVal;
-	int tmpintControllerType;
-	int controllerPresent;
+	int tmp_bus = INT_ID_UNDEFINED;
+	int tmp_controller = INT_ID_UNDEFINED;
+	int tmp_internchan = INT_ID_UNDEFINED;
+	int tmpdeviceMinVal = INT_ID_UNDEFINED;
+	int tmpdeviceMaxVal = INT_ID_UNDEFINED;
+	int tmpintControllerType = INT_ID_UNDEFINED;
+	int controllerPresent = FALSE;
 
 	/* is there anything to do? */
 	#ifdef MIDIVERBOSE
@@ -613,8 +615,8 @@ void ReWireRegisterMIDI (char *str) {
 
 	char *EOT;
 
-	int encodedDeviceName;
-	int encodedControllerName;
+	int encodedDeviceName = INT_ID_UNDEFINED;
+	int encodedControllerName = INT_ID_UNDEFINED;
 
 
 
@@ -827,7 +829,7 @@ void ReWireMIDIControl (char *line) {
 	int bus, channel, controller, value;
 	int rv;
 	int ctr;
-	struct X3D_MidiControl *node;
+	struct X3D_MidiControl *node = NULL;
 	float fV;
 	int sendEvent;
 	int noteOn;
@@ -1073,7 +1075,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 
 		case NODE_Inline:
 			inode = (struct X3D_Inline *) tnode; /* change type to Inline */
-			printf ("LoadSensor, Inline %d, type %d loadstatus %d at %d\n",inode,inode->_nodeType,inode->__loadstatus, &inode->__loadstatus);
+			/* printf ("LoadSensor, Inline %d, type %d loadstatus %d at %d\n",inode,inode->_nodeType,inode->__loadstatus, &inode->__loadstatus); */
 			break;
 
 		case NODE_Script:

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.21 2009/06/26 14:54:15 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.22 2009/06/30 19:10:18 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -880,7 +880,7 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 	POSSIBLE_PROTO_EXPANSION (innode,node)
 
 	xc = X3D_COORD(node);
-	printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType));
+	/* printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType)); */
 
 	if (xc->_nodeType == NODE_Coordinate) {
 		return &(xc->point);
