@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.8 2009/06/23 19:57:02 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.9 2009/07/02 15:45:37 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -19,6 +19,27 @@ X3D Rendering Component
 
 
 extern GLfloat last_emission[];
+
+/* find a bounding box that fits the coord structure. save it in the common-node area for extents.*/
+static void findExtentInCoord (struct X3D_Node *node, int count, struct SFColor* coord) {
+	int i;
+
+	INITIALIZE_EXTENT
+
+	if (!coord) return;
+
+	for (i=0; i<count; i++) {
+		if (coord->c[0] > node->EXTENT_MAX_X) node->EXTENT_MAX_X = coord->c[0];
+		if (coord->c[0] < node->EXTENT_MIN_X) node->EXTENT_MIN_X = coord->c[0];
+		if (coord->c[1] > node->EXTENT_MAX_Y) node->EXTENT_MAX_Y = coord->c[1];
+		if (coord->c[1] < node->EXTENT_MIN_Y) node->EXTENT_MIN_Y = coord->c[1];
+		if (coord->c[2] > node->EXTENT_MAX_Z) node->EXTENT_MAX_Z = coord->c[2];
+		if (coord->c[2] < node->EXTENT_MIN_Z) node->EXTENT_MIN_Z = coord->c[2];
+		coord++;
+	}
+	/* printf ("extents %f %f, %f %f, %f %f\n",node->EXTENT_MIN_X, node->EXTENT_MAX_X,
+	  node->EXTENT_MIN_Y, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z, node->EXTENT_MAX_Z); */
+}
 
 void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *node) {
                 COMPILE_POLY_IF_REQUIRED(node->coord, node->color, node->normal, node->texCoord)
@@ -101,6 +122,9 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		dtmp = getCoordinate (node->coord, "IndexedLineSet");
 		npoints = dtmp->n;
 		points = dtmp->p;
+
+		/* find the extents */
+		findExtentInCoord(X3D_NODE(node), npoints, points);
 	} else {
 		return; /* no coordinates - nothing to do */
 	}
@@ -294,6 +318,11 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	
 	COMPILE_IF_REQUIRED
 
+        setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, node->EXTENT_MAX_Y,
+                node->EXTENT_MIN_Y, node->EXTENT_MAX_Z, node->EXTENT_MIN_Z,
+                X3D_NODE(node));
+
+
 	/* do we have to re-verify IndexedLineSet? */
 	if (node->__segCount > 0) {
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -325,6 +354,19 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	}
 }
 
+void compile_PointSet (struct X3D_PointSet *node) {
+	/* do nothing, except get the extents here */
+	MARK_NODE_COMPILED
+
+	if (node->coord) {
+		struct Multi_Vec3f *dtmp;
+		dtmp = getCoordinate (node->coord, "IndexedLineSet");
+
+		/* find the extents */
+		findExtentInCoord(X3D_NODE(node), dtmp->n, dtmp->p);
+	}
+}
+
 
 void render_PointSet (struct X3D_PointSet *node) {
 	struct SFColor *points=0; int npoints=0;
@@ -334,6 +376,13 @@ void render_PointSet (struct X3D_PointSet *node) {
 	/* believe it or not - material emissiveColor can affect us... */
 	GLfloat defColor[] = {1.0, 1.0, 1.0};
 	GLfloat *thisColor;
+
+        COMPILE_IF_REQUIRED
+
+        setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, node->EXTENT_MAX_Y,
+                node->EXTENT_MIN_Y, node->EXTENT_MAX_Z, node->EXTENT_MIN_Z,
+                X3D_NODE(node));
+
 
 	/* is there an emissiveColor here??? */
 	if (lightingOn) {
@@ -349,6 +398,9 @@ void render_PointSet (struct X3D_PointSet *node) {
 		dtmp = getCoordinate (node->coord, "IndexedLineSet");
 		npoints = dtmp->n;
 		points = dtmp->p;
+
+		/* find the extents */
+		findExtentInCoord(X3D_NODE(node), npoints, points);
 	} else {
 		return; /* no coordinates - nothing to do */
 	}
@@ -392,6 +444,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 		glColor3fv (thisColor);
 	}
 
+
 	/* draw the shape */
 	glDisableClientState (GL_NORMAL_ARRAY);
 
@@ -430,6 +483,10 @@ void render_LineSet (struct X3D_LineSet *node) {
 
 	COMPILE_IF_REQUIRED
 	
+        setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, node->EXTENT_MAX_Y,
+                node->EXTENT_MIN_Y, node->EXTENT_MAX_Z, node->EXTENT_MIN_Z,
+                X3D_NODE(node));
+
 	/* now, actually draw array */
 	if (node->__segCount > 0) {
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -448,6 +505,7 @@ void render_LineSet (struct X3D_LineSet *node) {
 			glColor3fv (thisColor);
 		}
 		points = getCoordinate(node->coord, "LineSet");
+
 		glVertexPointer (3,GL_FLOAT,0,points->p);
 
 		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
@@ -504,6 +562,9 @@ void compile_LineSet (struct X3D_LineSet *node) {
 		dtmp = getCoordinate (node->coord, "IndexedLineSet");
 		ncoord = dtmp->n;
 		coord = dtmp->p;
+
+		/* find the extents */
+		findExtentInCoord(X3D_NODE(node), ncoord, coord);
 	} else {
 		return; /* no coordinates - nothing to do */
 	}

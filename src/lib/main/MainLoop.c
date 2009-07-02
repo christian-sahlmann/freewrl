@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.35 2009/05/11 21:11:58 crc_canada Exp $
+$Id: MainLoop.c,v 1.36 2009/07/02 15:45:37 crc_canada Exp $
 
 CProto ???
 
@@ -243,7 +243,7 @@ void EventLoop() {
                 setMenuFps(BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
 
-		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane);  */
+		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane); */
 
                 #ifdef PROFILE
                 oxf = timeAA + timeA + timeB + timeC + timeD + timeE + timeF;

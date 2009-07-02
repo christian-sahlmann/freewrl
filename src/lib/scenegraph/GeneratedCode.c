@@ -12,7 +12,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.17 2009/06/22 19:40:41 crc_canada Exp n 
+: VRMLC.pm,v 1.18 2009/06/26 16:44:34 crc_canada Exp n 
 ??? 
  
 */ 
@@ -1645,7 +1645,7 @@ struct X3D_Virt virt_PackagedShader = { NULL,(void *)render_PackagedShader,NULL,
 struct X3D_Virt virt_PixelTexture = { NULL,(void *)render_PixelTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_PlaneSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_PointLight = { (void *)prep_PointLight,(void *)render_PointLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-struct X3D_Virt virt_PointSet = { NULL,(void *)render_PointSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_PointSet = { NULL,(void *)render_PointSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_PointSet};
 struct X3D_Virt virt_Polyline2D = { NULL,(void *)render_Polyline2D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_Polypoint2D = { NULL,(void *)render_Polypoint2D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_PositionInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};

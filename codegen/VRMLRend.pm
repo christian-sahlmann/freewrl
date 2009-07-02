@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.17 2009/06/26 14:54:15 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.18 2009/07/02 15:45:36 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.18  2009/07/02 15:45:36  crc_canada
+# setExtent for PointSet, LineSet and IndexedLineSet
+#
 # Revision 1.17  2009/06/26 14:54:15  crc_canada
 # GeoElevationGrid - no longer has ElevationGrid sub child, and triangle winding
 #
@@ -668,6 +671,7 @@
 %CompileC = map {($_=>1)} qw/
 	IndexedLineSet
 	LineSet
+	PointSet
 	Arc2D
 	ArcClose2D
 	Circle2D
