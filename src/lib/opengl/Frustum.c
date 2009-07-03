@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.12 2009/07/02 14:16:39 crc_canada Exp $
+$Id: Frustum.c,v 1.13 2009/07/03 20:15:11 crc_canada Exp $
 
 ???
 
@@ -759,7 +759,7 @@ void OcclusionCulling ()  {
 				visSenPtr = NULL;
 				checkCount = shapePtr->__occludeCheckCount;
 			} else if (shapePtr->_nodeType == NODE_VisibilitySensor) {
-				visSenPtr = X3D_VISIBILITYSENSOR(occluderNodePointer[i]);
+				visSenPtr = X3D_VISIBILITYSENSOR(shapePtr);
 				shapePtr = NULL;
 				checkCount = visSenPtr->__occludeCheckCount;
 			} else {
@@ -769,7 +769,8 @@ void OcclusionCulling ()  {
 		}
 
 		#ifdef OCCLUSIONVERBOSE
-		printf ("OcclusionCulling, for a %s (index %d) checkCount %d\n",stringNodeType(shapePtr->_nodeType),i,checkCount);
+		if (shapePtr) printf ("OcclusionCulling, for a %s (index %d) checkCount %d\n",stringNodeType(shapePtr->_nodeType),i,checkCount);
+		else printf ("OcclusionCulling, for a %s (index %d) checkCount %d\n",stringNodeType(visSenPtr->_nodeType),i,checkCount);
 		#endif
 
 		/* an Occlusion test will have been run on this one */
@@ -777,10 +778,11 @@ void OcclusionCulling ()  {
 		glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
 		glPrintError ("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
 
+		#define SLEEP_FOR_QUERY_RESULTS
 		#ifdef SLEEP_FOR_QUERY_RESULTS
 		/* for now, lets loop to see when we get results */
 		while (OccResultsAvailable == GL_FALSE) {
-			printf ("waiting and looping for results\n");
+			/* printf ("waiting and looping for results\n"); */
 			usleep(100);
 			glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
 			glPrintError ("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
@@ -825,9 +827,9 @@ void OcclusionCulling ()  {
 						visSenPtr->__visible =FALSE;
 						visSenPtr->__Samples = 0;
 					}
-				 /* } else {
+				  } else {
 					printf ("shape, already have checkCount == OCCCHECKNEXTLOOP, not changing visibility params\n");
-				*/
+				
 				
 				}
 			}

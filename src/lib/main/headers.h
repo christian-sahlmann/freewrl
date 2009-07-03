@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.58 2009/07/02 15:45:37 crc_canada Exp $
+$Id: headers.h,v 1.59 2009/07/03 20:15:11 crc_canada Exp $
 
 Global includes.
 
@@ -433,6 +433,7 @@ extern void* *occluderNodePointer;
 #define BEGINOCCLUSIONQUERY \
 	if (render_geom) { \
 		if (potentialOccluderCount < OccQuerySize) { \
+/* printf ("beginOcclusionQuery, potoc %d occQ %d\n",potentialOccluderCount, OccQuerySize, node->__occludeCheckCount); */ \
 			if (node->__occludeCheckCount < 0) { \
 				/* printf ("beginOcclusionQuery, query %u, node %s\n",potentialOccluderCount, stringNodeType(node->_nodeType)); */ \
 				glBeginQuery(GL_SAMPLES_PASSED, OccQueries[potentialOccluderCount]); \
@@ -612,7 +613,6 @@ extern int global_IFS_Coord_count;
 
 /* texture stuff - see code. Need array because of MultiTextures */
 extern GLuint bound_textures[MAX_MULTITEXTURE];
-extern int bound_texture_alphas[MAX_MULTITEXTURE];
 extern GLint maxTexelUnits;
 extern int texture_count; 
 extern int     *global_tcin;

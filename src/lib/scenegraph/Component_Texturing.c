@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.4 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.5 2009/07/03 20:15:12 crc_canada Exp $
 
 X3D Texturing Component
 
@@ -144,6 +144,7 @@ void render_PixelTexture (struct X3D_PixelTexture *node) {
 }
 
 void render_ImageTexture (struct X3D_ImageTexture *node) {
+	/* printf ("render_ImageTexture, global Transparency %f\n",global_transparency); */
 	loadTextureNode(X3D_NODE(node),NULL);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 }

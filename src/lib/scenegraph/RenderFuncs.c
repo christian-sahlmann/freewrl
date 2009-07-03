@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.22 2009/06/30 19:10:18 crc_canada Exp $
+$Id: RenderFuncs.c,v 1.23 2009/07/03 20:15:12 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -77,7 +77,6 @@ int be_collision = 0;	/* do collision detection? */
 
 /* texture stuff - see code. Need array because of MultiTextures */
 GLuint bound_textures[MAX_MULTITEXTURE];
-int bound_texture_alphas[MAX_MULTITEXTURE];
 int texture_count;
 
 int	have_transparency=FALSE;/* did any Shape have transparent material? */

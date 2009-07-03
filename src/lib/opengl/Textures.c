@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.10 2009/06/24 13:03:53 crc_canada Exp $
+$Id: Textures.c,v 1.11 2009/07/03 20:15:12 crc_canada Exp $
 
 General Texture objects.
 
@@ -1084,7 +1084,6 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	GET_THIS_TEXTURE;
 
 	bound_textures[texture_count] = 0;
-	bound_texture_alphas[texture_count] = FALSE;
 
 	/* what is the status of this texture? */
 #ifdef TEXVERBOSE
@@ -1137,7 +1136,6 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 			bound_textures[texture_count] = 
 				((struct X3D_MovieTexture *)myTableIndex->scenegraphNode)->__ctex;
 		}
-		bound_texture_alphas[texture_count] = myTableIndex->hasAlpha;
 
 		/* save the texture params for when we go through the MultiTexture stack. Non
 		   MultiTextures should have this texture_count as 0 */

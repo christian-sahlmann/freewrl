@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.41 2009/06/26 14:54:15 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.42 2009/07/03 20:15:12 crc_canada Exp $
 
 ???
 
@@ -40,8 +40,8 @@ void kill_rendering(void);
 
 /* Node Tracking */
 void kill_X3DNodes(void);
-void createdMemoryTable();
-void increaseMemoryTable();
+static void createdMemoryTable();
+static void increaseMemoryTable();
 static struct X3D_Node ** memoryTable = NULL;
 static int nodeNumber = 0;
 static int tableIndexSize = INT_ID_UNDEFINED;
@@ -56,16 +56,17 @@ static int lights[8];
 int displayDepth = 24;
 
 
-float cc_red = 0.0f, cc_green = 0.0f, cc_blue = 0.0f, cc_alpha = 1.0f;
+static float cc_red = 0.0f, cc_green = 0.0f, cc_blue = 0.0f, cc_alpha = 1.0f;
 int cc_changed = FALSE;
 
-pthread_mutex_t  memtablelock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t  memtablelock = PTHREAD_MUTEX_INITIALIZER;
 /*
 #define LOCK_MEMORYTABLE
 #define UNLOCK_MEMORYTABLE
 */
 #define LOCK_MEMORYTABLE 		pthread_mutex_lock(&memtablelock);
 #define UNLOCK_MEMORYTABLE		pthread_mutex_unlock(&memtablelock);
+
 
 /******************************************************************/
 /* textureTransforms of all kinds */
@@ -960,7 +961,6 @@ void startOfLoopNodeUpdates(void) {
 	childrenPtr = NULL;
 	anchorPtr = NULL;
 
-
 	for (i=0; i<nextEntry; i++){		
 		node = memoryTable[i];	
 		if (node != NULL) {
@@ -973,7 +973,7 @@ void startOfLoopNodeUpdates(void) {
 						/* printf ("shape occludecounter, pushing visiblechildren flags\n");  */
 
 					}
-					if (OccResultsAvailable) X3D_SHAPE(node)->__occludeCheckCount--;
+					X3D_SHAPE(node)->__occludeCheckCount--;
 					/* printf ("shape occludecounter %d\n",X3D_SHAPE(node)->__occludeCheckCount); */
 				END_NODE
 
@@ -1153,9 +1153,7 @@ void startOfLoopNodeUpdates(void) {
 						/* printf ("vis occludecounter, pushing visiblechildren flags\n"); */
 
 					}
-					if (OccResultsAvailable) X3D_VISIBILITYSENSOR(node)->__occludeCheckCount--;
-					/* printf ("vis occludecounter %d\n",X3D_VISIBILITYSENSOR(node)->__occludeCheckCount); */
-
+					X3D_VISIBILITYSENSOR(node)->__occludeCheckCount--;
 					/* VisibilitySensors have a transparent bounding box we have to render */
                 			update_renderFlag(node,VF_Blend);
 				END_NODE

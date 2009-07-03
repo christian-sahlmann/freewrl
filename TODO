@@ -3,7 +3,7 @@ Priority list
 06/30/2009:
 	(JAS) Wondering about collision and small scales; Bob Kilmek's second example should not have collisions.
 
-	(JAS) LineSets and PointSets must call setExtent to get near/far clipplanes correctly calculated. 
+	(JAS) (DONE) LineSets and PointSets must call setExtent to get near/far clipplanes correctly calculated. 
 	eg, tests/48.wrl - rotate it, and some lines will disappear.
 
 (going through specs, finding what component conformance level FreeWRL is currently at; lower priority) 06/16/2009:
@@ -61,7 +61,7 @@ Priority list
 		- Shader routing can use same methodology.
 
 14/05/2009: 
-	(JAS) Shader text, if local, should start with uri "data:text/plain," 
+	(JAS) (DONE) Shader text, if local, should start with uri "data:text/plain," 
 
 13/05/2009: 
 	(JAS) Shaders worked on. 

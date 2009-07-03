@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.36 2009/07/02 15:45:37 crc_canada Exp $
+$Id: MainLoop.c,v 1.37 2009/07/03 20:15:11 crc_canada Exp $
 
 CProto ???
 
@@ -707,7 +707,6 @@ void render() {
 
                 /*  5. Blended Nodes*/
                 if (have_transparency) {
-
                         /*  turn off writing to the depth buffer*/
                         glDepthMask(FALSE);
 
@@ -718,7 +717,6 @@ void render() {
                         glDepthMask(TRUE);
                         glPrintError("XEvents::render, render_hier(VF_Geom)");
                 }
-
         }
         #ifndef AQUA
                 glXSwapBuffers(Xdpy,GLwin);
