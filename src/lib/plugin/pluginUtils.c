@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: pluginUtils.c,v 1.5 2009/02/18 13:37:50 istakenv Exp $
+$Id: pluginUtils.c,v 1.6 2009/07/06 20:13:28 crc_canada Exp $
 
 ???
 
@@ -17,6 +17,7 @@ $Id: pluginUtils.c,v 1.5 2009/02/18 13:37:50 istakenv Exp $
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../input/EAIheaders.h"
+#include "../input/InputFunctions.h"
 
 /* #include <float.h> */
 
@@ -185,7 +186,6 @@ void doBrowserAction () {
 	char *mypath;
 	char *thisurl;
 	int flen;
-	int removeIt = FALSE;
 
 #define LINELEN 2000
 	char sysline[LINELEN];
@@ -257,7 +257,7 @@ void doBrowserAction () {
 		if (!checkIfX3DVRMLFile(filename)) { break; }
 
 		/* ok, it might be a file we load into our world. */
-		if (fileExists(filename,NULL,FALSE,&removeIt)) { break; }
+		if (fileExists(filename,NULL,FALSE)) { break; }
 		count ++;
 	}
 
@@ -364,7 +364,6 @@ void Anchor_ReplaceWorld (char *name)
 	int tmp;
 	void *tt;
 	char filename[1000];
-	int removeIt = FALSE;
 
 	/* sanity check - are we actually going to do something with a name? */
 	if (name != NULL)
@@ -375,7 +374,7 @@ void Anchor_ReplaceWorld (char *name)
 			   network. BUT - plugin code might pass us a networked file name for loading,
 			   (eg, check out current OSX plugin; hopefully still valid) */
 
-	                if (fileExists(filename,NULL,TRUE,&removeIt)) {
+	                if (fileExists(filename,NULL,TRUE)) {
 				/* kill off the old world, but keep EAI open, if it is... */
 				kill_oldWorld(FALSE,TRUE,TRUE,__FILE__,__LINE__);
 
@@ -386,7 +385,6 @@ void Anchor_ReplaceWorld (char *name)
 				tt = BrowserFullPath;
 				BrowserFullPath = STRDUP(filename);
 				FREE_IF_NZ(tt);
-				if (removeIt) UNLINK (filename);
 				EAI_Anchor_Response (TRUE);
 				return;
 			} else {

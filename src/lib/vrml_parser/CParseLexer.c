@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.18 2009/05/13 14:29:48 crc_canada Exp $
+$Id: CParseLexer.c,v 1.19 2009/07/06 20:13:28 crc_canada Exp $
 
 ???
 
@@ -1357,7 +1357,6 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         }
 
         for (i=0; i< url.n; i++) {
-		int removeIt = FALSE;
                 /* printf ("trying url %s\n",(url.p[i])->strptr); */
                 pound = strchr((url.p[i])->strptr,'#');
                 if (pound != NULL) {
@@ -1366,11 +1365,10 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
                 }
 
 
-                if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString, &removeIt)) {
+                if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
 
 
                         buffer = readInputString(testname);
-			if (removeIt) UNLINK (testname);
                         FREE_IF_NZ(testname);
                         embedEXTERNPROTO(me,myName,buffer,pound);
 

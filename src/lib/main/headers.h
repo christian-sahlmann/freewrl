@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.59 2009/07/03 20:15:11 crc_canada Exp $
+$Id: headers.h,v 1.60 2009/07/06 20:13:28 crc_canada Exp $
 
 Global includes.
 
@@ -21,14 +21,6 @@ Global includes.
  */
 extern char *BrowserName;
 const char* freewrl_get_browser_program();
-
-/**
- * in InputFunctions.c
- */
-int dirExists(const char *dir);
-char* makeFontDirectory();
-char *readInputString(char *fn);
-
 
 /* see if an inputOnly "set_" field has changed */
 #define IO_FLOAT -2335549.0
@@ -935,12 +927,12 @@ extern void xs_init(void);
 extern int navi_tos;
 extern void initializeTextureThread(void);
 extern int isTextureinitialized(void);
-extern int fileExists(char *fname, char *firstBytes, int GetIt, int *isTemp);
+extern int fileExists(char *fname, char *firstBytes, int GetIt);
 extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
-int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes, int* removeIt);
+int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes);
 void removeFilenameFromPath (char *path);
 
 int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, int retarrsize);

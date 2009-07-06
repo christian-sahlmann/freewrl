@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.11 2009/07/03 20:15:12 crc_canada Exp $
+$Id: Textures.c,v 1.12 2009/07/06 20:13:28 crc_canada Exp $
 
 General Texture objects.
 
@@ -19,7 +19,9 @@ General Texture objects.
 #include "../main/headers.h"
 
 #include "../scenegraph/readpng.h"
+#include "../input/InputFunctions.h"
 #include "Textures.h"
+
 
 #ifdef AQUA
 # include <Carbon/Carbon.h>
@@ -1273,7 +1275,7 @@ int findTextureFile (int cwo, int *istemp) {
 		/* Dangerous, better alloc this string in function getValidFileFromUrl ... */
 		filename = (char *)MALLOC(4096);
 
-		if (getValidFileFromUrl (filename,mypath, &thisUrl, firstBytes, &removeIt)) {
+		if (getValidFileFromUrl (filename,mypath, &thisUrl, firstBytes)) {
 #ifdef TEXVERBOSE 
 		    printf ("textureThread: we were successful at locating %s\n",filename); 
 #endif
@@ -1487,7 +1489,7 @@ void _textureThread(void)
 
 	    /* is this a temporary file? */
 	    if (remove) { 
-		UNLINK (loadThisTexture->filename); 
+		unlinkShadowFile (loadThisTexture->filename); 
 		FREE_IF_NZ(loadThisTexture->filename); 
 	    } 
 	} else {
@@ -1696,9 +1698,9 @@ static void __reallyloadImageTexture() {
 	CGImageSourceRef 	sourceRef;
 
 
-	/* printf ("loading %s imageType %d\n",loadThisTexture->filename, loadThisTexture->imageType);  */
+	/* printf ("loading %s imageType %d\n",getShadowFileNamePtr(loadThisTexture->filename), loadThisTexture->imageType);  */
 
-	path = CFStringCreateWithCString(NULL, loadThisTexture->filename, kCFStringEncodingUTF8);
+	path = CFStringCreateWithCString(NULL, getShadowFileNamePtr(loadThisTexture->filename), kCFStringEncodingUTF8);
 	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
 
 	/* ok, we can define USE_CG_DATA_PROVIDERS or TRY_QUICKTIME...*/
@@ -1889,7 +1891,7 @@ static void __reallyloadImageTexture() {
 
 
 	filename = loadThisTexture->filename;
-	infile = fopen(filename,"r");
+	infile = openLocalFile(filename,"r");
 
 
 	/* printf ("reallyLoad on linux, texture type %d\n",loadThisTexture->imageType); */

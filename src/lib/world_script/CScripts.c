@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.16 2009/06/12 07:26:43 couannette Exp $
+$Id: CScripts.c,v 1.17 2009/07/06 20:13:28 crc_canada Exp $
 
 ???
 
@@ -310,7 +310,6 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  char *filename = NULL;
  char *mypath = NULL;
  int rv;
- int removeIt = FALSE;
 
  /* strip off whitespace at the beginning JAS */
  while ((*uri<= ' ') && (*uri>0)) uri++;
@@ -363,10 +362,9 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 
  /* and see if it exists. If it does, try running script_initCode() on it */
  rv = FALSE;
- if (fileExists(filename,NULL,TRUE,&removeIt)) {
+ if (fileExists(filename,NULL,TRUE)) {
 	buffer = readInputString(filename);
 	rv= (buffer != NULL);
- 	if (removeIt) UNLINK (filename);
 	if (me!=NULL) rv = script_initCode(me,buffer);
  }
 

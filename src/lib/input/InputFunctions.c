@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: InputFunctions.c,v 1.3 2009/02/11 15:12:54 istakenv Exp $
+$Id: InputFunctions.c,v 1.4 2009/07/06 20:13:28 crc_canada Exp $
 
 CProto ???
 
@@ -16,6 +16,9 @@ CProto ???
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../scenegraph/Vector.h"
+
+#include "InputFunctions.h"
 
 
 #define READSIZE 2048
@@ -107,34 +110,22 @@ char * readInputString(char *fn) {
         int bufsize;
         FILE *infile;
         int justread;
-        char mynewname[1000];
-        char tempname[1000];
+        char unzippedFileName[1000];
         char sysline[1000];
         char firstbytes[20];
         int isTemp = FALSE;
-        int removeIt = FALSE;
 
         bufcount = 0;
         bufsize = 5 * READSIZE; /*  initial size*/
         buffer =(char *)MALLOC(bufsize * sizeof (char));
 
-        /*printf ("start of readInputString, \n\tfile: %s\n",
+        /* printf ("start of readInputString, \n\tfile: %s\n",
                         fn);
-        printf ("\tBrowserFullPath: %s\n\n",BrowserFullPath); */
-
-        /* verify (possibly, once again) the file name. This
-         * should have been done already, with the exception of
-         * EXTERNPROTOS; these "sneak" past the normal file reading
-         * channels. This does not matter; if this is a HTTP request,
-         * and is not an EXTERNPROTO, it will already be a local file
-         * */
-
-        /* printf ("before mas, in Input, fn %s\n",fn); */
-        strcpy (mynewname, fn);
+        printf ("\tBrowserFullPath: %s\n\n",BrowserFullPath);  */
 
         /* check to see if this file exists */
-        if (!fileExists(mynewname,firstbytes,TRUE,&removeIt)) {
-                ConsoleMessage("problem reading file '%s' ('%s')",fn,mynewname);
+        if (!fileExists(fn,firstbytes,TRUE)) {
+                ConsoleMessage("problem reading file '%s'",fn);
                 strcpy (buffer,"\n");
                 return buffer;
         }
@@ -147,26 +138,26 @@ char * readInputString(char *fn) {
 
                 /* printf ("this is a gzipped file!\n"); */
                 isTemp = TRUE;
-                sprintf (tempname, "%s.gz",tempnam("/tmp","freewrl_tmp"));
+                sprintf (unzippedFileName, "%s.gz",tempnam("/tmp","freewrl_tmp"));
 
                 /* first, move this to a .gz file */
-                localCopy(tempname, mynewname);
+                localCopy(unzippedFileName, fn);
 
                 /* now, unzip it */
                 /* remove the .gz from the file name - ".gz" is 3 characters */
-                len = strlen(tempname); tempname[len-3] = '\0';
-                sprintf (sysline,"%s %s",UNZIP,tempname);
+                len = strlen(unzippedFileName); unzippedFileName[len-3] = '\0';
+                sprintf (sysline,"%s %s",UNZIP,unzippedFileName);
 
                 freewrlSystem (sysline);
-                infile = fopen(tempname,"r");
+                infile = fopen(unzippedFileName,"r");
         } else {
 
                 /* ok, now, really read this one. */
-                infile = fopen(mynewname,"r");
+                infile = openLocalFile(fn,"r");
         }
 
         if ((buffer == 0) || (infile == NULL)){
-                ConsoleMessage("problem reading file '%s' (stdio:'%s')",fn,mynewname);
+                ConsoleMessage("problem reading file '%s'",fn);
                 strcpy (buffer,"\n");
                 return buffer;
         }
@@ -192,9 +183,93 @@ char * readInputString(char *fn) {
         /* printf ("finished read, buffcount %d\n string %s",bufcount,buffer); */
         fclose (infile);
 
-        if (isTemp) UNLINK(tempname);
-        if (removeIt) UNLINK (mynewname);
-
+        if (isTemp) UNLINK(unzippedFileName);
         return (buffer);
 }
 
+
+/********************************************************************************/
+/*										*/
+/* Shadow files - files that are on the web have a local file cache here	*/
+/*										*/
+/********************************************************************************/
+
+struct shadowEntry {
+	char *x3dName;
+	char *localName;
+};
+
+
+static struct Vector *shadowFiles = NULL;
+
+static struct shadowEntry *newShadowElement (char *x3dname, char *localname) {
+	struct shadowEntry *ret = MALLOC(sizeof (struct shadowEntry));
+	ASSERT (ret);
+
+	ret->x3dName = MALLOC (sizeof (char) * strlen (x3dname) + 1); 
+	ret->localName = MALLOC (sizeof (char) * strlen (localname) + 1); 
+	strcpy(ret->x3dName, x3dname);
+	strcpy(ret->localName, localname);
+	return ret;
+
+}
+
+
+/* get a FILE to the file name; if the file happens to have a shadow file, open the shadow file. */
+FILE *openLocalFile (char *fn, char* access) {
+	indexT ind;
+
+	/* do we have to search the shadow file vector? */
+	if (!shadowFiles) return fopen(fn,access);
+
+	ind = vector_size (shadowFiles);
+	/* printf ("openLocalFile, and we have %d entries...\n",ind); */
+	for (ind=vector_size(shadowFiles)-1; ind >= 0; ind--) {
+		struct shadowEntry *ele = vector_get(struct shadowEntry *,shadowFiles, ind);
+		/* printf ("for element %d, we have :%s: and :%s:\n",ind,ele->x3dName, ele->localName); */
+		if (!strcmp(fn,ele->x3dName)) {
+			/* printf ("found it!\n"); */
+			return fopen(ele->localName,access);
+		}
+	}
+	/* hmmm - did we fail to find a match? */
+	/* printf ("openLocalFile, no match for :%s:\n",fn); */
+	return NULL;
+}
+
+
+/* clean up the cache files. We can do this on cleanup on exit */
+void unlinkShadowFile(char *fn) {
+	indexT ind;
+
+	printf ("unlinkShadowFile :%s:\n",fn);
+}
+
+
+
+/* this is a network file; create a new element; keep the "x3d name" and a local cache name */
+void addShadowFile(char *x3dname, char *myshadowname) {
+	struct shadowEntry *ele;
+
+	ele = newShadowElement(x3dname,myshadowname);
+	if (!shadowFiles) shadowFiles = newVector (struct shadowEntry *, 32);
+
+	vector_pushBack(struct shadowEntry*, shadowFiles, ele);
+}
+
+char *getShadowFileNamePtr (char *fn) {
+	indexT ind;
+
+	/* do we have to search the shadow file vector? */
+	if (!shadowFiles) return fn;
+
+	ind = vector_size (shadowFiles);
+	for (ind=vector_size(shadowFiles)-1; ind >= 0; ind--) {
+		struct shadowEntry *ele = vector_get(struct shadowEntry *,shadowFiles, ind);
+		if (!strcmp(fn,ele->x3dName)) {
+			return ele->localName;
+		}
+	}
+	/* hmmm - did we fail to find a match? */
+	return fn;
+}

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.11 2009/04/28 14:32:49 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.12 2009/07/06 20:13:28 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -496,7 +496,6 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	char *bfp;
 	int found;
 	int count;
-	int removeIt = FALSE;
 	int offset;
 	int fromtype;
 	int xxx;
@@ -645,7 +644,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
         	        /* we work in absolute filenames... */
                 	makeAbsoluteFileName(filename,bfp,tfilename);
 
-                	if (fileExists(filename,NULL,TRUE, &removeIt)) {
+                	if (fileExists(filename,NULL,TRUE)) {
 			/* printf ("file exists, break\n"); */
 			found = TRUE;
         	        } 
@@ -667,8 +666,6 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	globalParser = NULL;
 	ra = EAI_CreateVrml("URL",filename,nodarr,200);
 	globalParser = savedParser;
-
-	if (removeIt) UNLINK (filename);
 
 	/* get the field from the beginning of this node as an offset */
 	/* try finding it, maybe with a "set_" or "changed" removed */

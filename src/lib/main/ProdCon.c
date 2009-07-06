@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.20 2009/06/25 22:09:54 couannette Exp $
+$Id: ProdCon.c,v 1.21 2009/07/06 20:13:28 crc_canada Exp $
 
 CProto ???
 
@@ -200,6 +200,7 @@ int isinputThreadParsing() {return(inputThreadParsing);}
 /* is the initial URL loaded? Robert Sim */
 int isURLLoaded() {return(URLLoaded&&!inputThreadParsing);}
 
+
 #define SLASHDOTDOTSLASH "/../"
 void removeFilenameFromPath (char *path) {
 	char *slashindex;
@@ -243,8 +244,7 @@ void removeFilenameFromPath (char *path) {
 
 
 /* given a URL, find the first valid file, and return it */
-/* WARNING - MAKE SURE THE FIRST PARAMETER IS LARGE, LIKE 1000 BYTES */
-int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes, int *removeIt) {
+int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes) {
 	char *thisurl;
 	int count;
 
@@ -268,7 +268,7 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
 		makeAbsoluteFileName(filename,path,thisurl);
 		/* printf ("getValidFile, thread %u filename %s\n",pthread_self(),filename); */
 
-		if (fileExists(filename,firstBytes,TRUE,removeIt)) {
+		if (fileExists(filename,firstBytes,TRUE)) {
 			return TRUE;
 		}
 		count ++;
@@ -435,19 +435,18 @@ int do_file_exists(const char *filename)
     return FALSE;
 }
 
-int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
+int fileExists(char *fname, char *firstBytes, int GetIt) {
 	FILE *fp;
 	int ok;
 
 	char tempname[1000];
 	char sysline[1000];
 
+	int hasLocalShadowFile = FALSE;
+
 	#ifdef VERBOSE
 	printf ("fileExists: checking for filename here %s\n",fname);
 	#endif
-
-	/* assume that this file stays around, unless we know that it is a temp file */
-	*removeIt = FALSE;
 
 	if (checkNetworkFile(fname)) {
 		/* if we are running as a plugin, ask the HTML browser for ALL files, as it'll know proxies, etc. */
@@ -466,8 +465,8 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 			if (!retName) return (FALSE);
 			/* printf ("requesting URL - retname is %s\n",retName); */
 
-			// FIXME: need to free fname before overwritting it ?
-			strcpy (fname,retName);
+			strcpy (tempname,retName);
+			hasLocalShadowFile = TRUE;
 		} else {
 			/*  Is this an Anchor? if so, lets just assume we can*/
 			/*  get it*/
@@ -483,8 +482,9 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 			    char *tmp;
 			    tmp = do_get_url_curl(fname);
 			    if (tmp) {
-				strcpy(fname, tmp);
+				strcpy(tempname, tmp);
 				free(tmp);
+				hasLocalShadowFile = TRUE;
 			    }
 
 			} else {
@@ -506,9 +506,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 			    printf ("\nFreeWRL will try to use %s to get %s\n",WGET,fname);
 
 			    freewrlSystem (sysline);
-			    // FIXME: need to free fname before overwritting it ?
-			    strcpy (fname,tempname);
-			    *removeIt = TRUE;
+		   	    hasLocalShadowFile = TRUE;
 			} else {
 			    printf ("Internal FreeWRL problem - strings too long for wget\n");
 			}
@@ -520,8 +518,11 @@ int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 		}
 	}
 
-	/* printf ("fileExists, opening %s\n",fname);  */
-	fp= fopen (fname,"r");
+	if (hasLocalShadowFile) {
+		addShadowFile(fname,tempname);
+	} 
+	fp= openLocalFile (fname,"r");
+
 	ok = (fp != NULL);
 
 	/* try reading the first 4 bytes into the firstBytes array */
@@ -1061,14 +1062,13 @@ void __pt_doInline() {
 	inurl = &(inl->url);
 	filename = (char *)MALLOC(1000);
 	filename[0] = '\0';
-	int removeIt = FALSE;
 
 	/* lets make up the path and save it, and make it the global path */
 	psp.path = STRDUP(inl->__parenturl->strptr);
 
 	/* printf ("doInline, checking for file from path %s\n",psp.path); */
 
-	if (getValidFileFromUrl (filename, psp.path, inurl,NULL,&removeIt)) {
+	if (getValidFileFromUrl (filename, psp.path, inurl,NULL)) {
 		/* were we successful at locating one of these? if so, make it into a FROMURL */
 		/* printf ("doInline, we were successful at locating %s\n",filename);  */
 		psp.type=FROMURL;

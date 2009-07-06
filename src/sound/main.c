@@ -21,6 +21,7 @@
 
 #include "system.h"
 #include "soundheader.h"
+#include "../input/InputFunctions.h"
 
 
 int freewrlSystem (char *string);
@@ -436,7 +437,7 @@ int main(int argc,char **argv) {
 	for (count=0; count<current_max; count++) {
 		sprintf (fileRemove,"/tmp/sound%d.wav",count);
 		/* printf ("unlinking %d\n",count);*/
-		unlink(fileRemove);
+		unlinkShadowFile(fileRemove);
 	}
 
 	/* printf ("Server exiting normally\n");*/
