@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: InputFunctions.c,v 1.4 2009/07/06 20:13:28 crc_canada Exp $
+$Id: InputFunctions.c,v 1.5 2009/07/07 15:12:02 crc_canada Exp $
 
 CProto ???
 
@@ -11,6 +11,7 @@ CProto ???
 #include <system.h>
 #include <display.h>
 #include <internal.h>
+#include <pthread.h>
 
 #include <libFreeWRL.h>
 
@@ -202,6 +203,11 @@ struct shadowEntry {
 
 static struct Vector *shadowFiles = NULL;
 
+static pthread_mutex_t  shadowFileLock = PTHREAD_MUTEX_INITIALIZER;
+#define LOCK_SHADOW_ACCESS                pthread_mutex_lock(&shadowFileLock);
+#define UNLOCK_SHADOW_ACCESS              pthread_mutex_unlock(&shadowFileLock);
+
+
 static struct shadowEntry *newShadowElement (char *x3dname, char *localname) {
 	struct shadowEntry *ret = MALLOC(sizeof (struct shadowEntry));
 	ASSERT (ret);
@@ -222,18 +228,23 @@ FILE *openLocalFile (char *fn, char* access) {
 	/* do we have to search the shadow file vector? */
 	if (!shadowFiles) return fopen(fn,access);
 
+	LOCK_SHADOW_ACCESS
 	ind = vector_size (shadowFiles);
 	/* printf ("openLocalFile, and we have %d entries...\n",ind); */
-	for (ind=vector_size(shadowFiles)-1; ind >= 0; ind--) {
+
+	/* count down from latest to first - stop at zero */
+	for (ind=vector_size(shadowFiles)-1; ((int)ind) >= 0; ind--) {
 		struct shadowEntry *ele = vector_get(struct shadowEntry *,shadowFiles, ind);
 		/* printf ("for element %d, we have :%s: and :%s:\n",ind,ele->x3dName, ele->localName); */
 		if (!strcmp(fn,ele->x3dName)) {
 			/* printf ("found it!\n"); */
+			UNLOCK_SHADOW_ACCESS
 			return fopen(ele->localName,access);
 		}
 	}
 	/* hmmm - did we fail to find a match? */
 	/* printf ("openLocalFile, no match for :%s:\n",fn); */
+	UNLOCK_SHADOW_ACCESS
 	return NULL;
 }
 
@@ -242,7 +253,7 @@ FILE *openLocalFile (char *fn, char* access) {
 void unlinkShadowFile(char *fn) {
 	indexT ind;
 
-	printf ("unlinkShadowFile :%s:\n",fn);
+	/* printf ("unlinkShadowFile :%s:\n",fn); */
 }
 
 
@@ -251,10 +262,12 @@ void unlinkShadowFile(char *fn) {
 void addShadowFile(char *x3dname, char *myshadowname) {
 	struct shadowEntry *ele;
 
+	LOCK_SHADOW_ACCESS
 	ele = newShadowElement(x3dname,myshadowname);
 	if (!shadowFiles) shadowFiles = newVector (struct shadowEntry *, 32);
 
 	vector_pushBack(struct shadowEntry*, shadowFiles, ele);
+	UNLOCK_SHADOW_ACCESS
 }
 
 char *getShadowFileNamePtr (char *fn) {
@@ -263,13 +276,42 @@ char *getShadowFileNamePtr (char *fn) {
 	/* do we have to search the shadow file vector? */
 	if (!shadowFiles) return fn;
 
-	ind = vector_size (shadowFiles);
-	for (ind=vector_size(shadowFiles)-1; ind >= 0; ind--) {
+	LOCK_SHADOW_ACCESS
+
+	/* count down from latest to first - stop at zero */
+	for (ind=vector_size(shadowFiles)-1; ((int)ind) >= 0; ind--) {
 		struct shadowEntry *ele = vector_get(struct shadowEntry *,shadowFiles, ind);
 		if (!strcmp(fn,ele->x3dName)) {
+			UNLOCK_SHADOW_ACCESS
 			return ele->localName;
 		}
 	}
 	/* hmmm - did we fail to find a match? */
+	UNLOCK_SHADOW_ACCESS
 	return fn;
 }
+
+void kill_shadowFileTable (void) {
+	indexT ind;
+
+	if (!shadowFiles) return;
+
+	LOCK_SHADOW_ACCESS
+
+	/* count down from latest to first - stop at zero */
+	for (ind=vector_size(shadowFiles)-1; ((int)ind) >= 0; ind--) {
+		struct shadowEntry *ele = vector_get(struct shadowEntry *,shadowFiles, ind);
+		/* printf ("killShadowFile, have %s and %s at %d\n",ele->x3dName,ele->localName,ind); */
+		if (ele->localName) {
+			/* printf ("unlinking %s\n",ele->localName); */
+			UNLINK(ele->localName);
+		}
+		FREE_IF_NZ(ele->localName);
+		FREE_IF_NZ(ele->x3dName);
+		FREE_IF_NZ(ele);
+	}
+	FREE_IF_NZ(shadowFiles);
+
+	UNLOCK_SHADOW_ACCESS
+}
+

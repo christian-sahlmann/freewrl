@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: InputFunctions.h,v 1.1 2009/07/06 20:13:28 crc_canada Exp $
+$Id: InputFunctions.h,v 1.2 2009/07/07 15:12:02 crc_canada Exp $
 
 Global includes.
 
@@ -20,6 +20,7 @@ FILE *openLocalFile (char *fn, char* access);
 void unlinkShadowFile(char *fn);
 void addShadowFile(char *x3dname, char *myshadowname);
 char *getShadowFileNamePtr (char *fn);
+void kill_shadowFileTable (void);
 
 
 #endif /* __FREEWRL_INPUTFUNCTIONS_H__ */

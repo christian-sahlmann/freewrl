@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.42 2009/07/03 20:15:12 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.43 2009/07/07 15:12:02 crc_canada Exp $
 
 ???
 
@@ -595,6 +595,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL, char *f
 	/* free memory */
 	kill_X3DNodes();
 
+	/* kill the shadowFileTable, if it exists */
+	kill_shadowFileTable();
 
 	#ifndef AQUA
 		sprintf (mystring, "QUIT");

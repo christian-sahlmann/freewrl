@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.37 2009/07/03 20:15:11 crc_canada Exp $
+$Id: MainLoop.c,v 1.38 2009/07/07 15:12:02 crc_canada Exp $
 
 CProto ???
 
@@ -1253,6 +1253,7 @@ void closeFreewrl() {
         kill_status();
         kill_openGLTextures();
         kill_javascript();
+	kill_shadowFileTable();
 
         #endif
         /* kill any remaining children */
