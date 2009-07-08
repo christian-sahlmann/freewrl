@@ -1,23 +1,3 @@
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
 /* function protos */
 
 #include "EAI_C.h"
@@ -25,7 +5,8 @@
 /* get a node pointer */
 X3DNode *X3D_getNode (char *name) {
 	char *ptr;
-	int adr;
+	uintptr_t adr;
+	int oldPerl;
 	X3DNode *retval;
 
 	retval = malloc (sizeof(X3DNode));
@@ -34,15 +15,15 @@ X3DNode *X3D_getNode (char *name) {
 
 	retval->X3D_SFNode.adr = 0;
 
-	/* get the node address. save the address. */
+	/* get the node address. ignore the old perl pointer, save the address. */
 	ptr = _X3D_make1StringCommand(GETNODE,name);
-
-	if (sscanf (ptr,"%d", &adr) != 1) {
+	
+	if (sscanf (ptr,"%d %lu",&oldPerl, &adr) != 2) {
 		printf ("error getting %s\n",name);
 	} else {
 		#ifdef VERBOSE
 		printf ("X3D_getNode, ptr %s\n",ptr);
-		printf ("adr %d\n",adr);
+		printf ("oldPerl %d adr %p\n",oldPerl, (void*) adr);
 		#endif
 
 		if (adr == 0) {
@@ -51,7 +32,7 @@ X3DNode *X3D_getNode (char *name) {
 		}
 
 		
-		retval->X3D_SFNode.adr = adr;
+		retval->X3D_SFNode.adr = (uintptr_t *)adr;
 	}
 	REMOVE_EOT
 	return retval;
@@ -61,11 +42,11 @@ X3DNode *X3D_getNode (char *name) {
 
 X3DEventIn *_X3D_getEvent(X3DNode *node, char *name, int into) {
 	char *ptr;
-	int origPtr;
+	uintptr_t origPtr;
 	int offset;
 	int nds;
 	X3DEventIn *retval;
-	int adr;
+	uintptr_t *adr;
 
         retval = malloc (sizeof (struct _intX3DEventIn));
 	retval->offset = 0;
@@ -86,8 +67,17 @@ X3DEventIn *_X3D_getEvent(X3DNode *node, char *name, int into) {
 		if (node->X3D_MFNode.n != 1) {
 			printf ("warning - will only get event for first node = have %d nodes\n",node->X3D_MFNode.n);
 		}
-		/* get the first address in the list */
+#ifdef WIN32
 		adr = node->X3D_MFNode.p[0].adr; 
+		/* win32 I don't understand the code below, but I get -842159451 for the adr which bombs the eai server,
+		  so instead I try and do as for SFNode, above, by taking the adr from the first SFNode in the MFnode. 
+		  then the server doesnt bomb*/
+#else
+		/* get the pointer to the memory for stored SFNode addresses... */
+		adr = ((uintptr_t *)node->X3D_MFNode.p);
+		/* get the first entry in this list */
+		adr = (uintptr_t *) *adr;
+#endif
 	}
 
 	/* printf ("getting eventin for address %d, field %s\n",adr, name); */
@@ -106,14 +96,14 @@ X3DEventIn *_X3D_getEvent(X3DNode *node, char *name, int into) {
 	*/
 
 	/* eg: ptr is 161412616 116 0 q 0 eventIn */
-	if (sscanf(ptr,"%d %d %d", &origPtr, &offset, &nds) != 3) {
+	if (sscanf(ptr,"%ld %d %d", &origPtr, &offset, &nds) != 3) {
 		printf ("error in getEventIn\n");
 		free(retval);
 		return 0;
 	}
 
 	/* do the pointers match? they should.. */
-	if (origPtr !=  adr) {
+	if (origPtr !=  (uintptr_t )adr) {
 		printf ("error in getEventIn, origptr and node ptr do not match\n");
 		free(retval);
 		return 0;
@@ -183,14 +173,14 @@ X3DEventOut *X3D_getEventOut(X3DNode *node, char *name) {
 void X3D_addRoute (X3DEventOut *from, X3DEventIn *to) {
 	char myline[200];
 	char *ptr;
-	sprintf (myline,"%d %s %d %s",from->nodeptr,from->field,to->nodeptr,to->field);
+	sprintf (myline,"%ld %s %ld %s",from->nodeptr,from->field,to->nodeptr,to->field);
 	ptr = _X3D_make1StringCommand(ADDROUTE,myline);
 }
 
 void X3D_deleteRoute (X3DEventOut *from, X3DEventIn *to) {
 	char myline[200];
 	char *ptr;
-	sprintf (myline,"%d %s %d %s",from->nodeptr,from->field,to->nodeptr,to->field);
+	sprintf (myline,"%ld %s %ld %s",from->nodeptr,from->field,to->nodeptr,to->field);
 	ptr = _X3D_make1StringCommand(DELETEROUTE,myline);
 }
 
@@ -199,7 +189,7 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 	char tstring[1024];
 	int num;
 	int retvals;
-	int adr;
+	uintptr_t adr;
 	char* ptr;
 	float a, b, c, d;
 	double db;
@@ -207,7 +197,7 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 	char ttok[4126];
 	int val;
 	float fval;
-	int mytmp;
+	uintptr_t mytmp;
 	char* temp;
 	int len;
 
@@ -215,7 +205,7 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 	value = malloc (sizeof(X3DNode));
 	bzero(value, sizeof(X3DNode));
 	value->type = src->datatype;
-	sprintf(myline, "%d %d %c %d", src->nodeptr, src->offset, mapFieldTypeToEAItype(src->datatype), src->datasize);
+	sprintf(myline, "%ld %d %c %d", src->nodeptr, src->offset, mapFieldTypeToEAItype(src->datatype), src->datasize);
 	ptr = _X3D_make1StringCommand(GETVALUE, myline);
 
 	switch (src->datatype) {
@@ -319,12 +309,15 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 		case FIELDTYPE_MFString:
 
 			bzero(ttok, sizeof(ttok));
-			/* changes from Doug Sanden */
+#ifdef WIN32
 			temp = strtok(ptr, "\r\n"); /* we will parse manually within "a line" "because we " dont trust blanks */
+#else
+			temp = strtok(ptr, " \r\n");
+#endif
 					
 			j = 0;
 			while (strncmp(temp, "RE_EOT", 6) && (temp != NULL)) {
-			/* changes from Doug Sanden */
+#ifdef WIN32
 				/*pre process to get the "" strings*/
 				int start, istart;
 				int stop;
@@ -338,14 +331,12 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 					for(i=istart;i<strlen(temp);i++)
 					{
 						if( temp[i] == '"' )
-						{
 							if( i > 0 )
 							{
 								if( temp[i-1] != '\\' ) start = i+1;  /* the special \" case - ignor as literal */
-							} else {
-								start = i+1;
 							}
-						}
+							else
+								start = i+1;
 						if( start ) break;
 					}
 					/* find the stopping " */
@@ -370,30 +361,47 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 					}
 				}while(start && stop);
 			 	temp = strtok(NULL, "\r\n");	
+#else
+				sscanf(temp, "\"%s\"", tstring);
+				len = strlen(tstring);
+				len--;
+				tstring[len] = '\0';
+				strcat(ttok, tstring);
+				strcat(ttok, " ");
+			 	temp = strtok(NULL, " \r\n");	
+				j++;
+#endif
 			}
 
 			value->X3D_MFString.n = j;
 			value->X3D_MFString.p = malloc(j*sizeof(X3DNode));
 
-			/* changes from Doug Sanden */
+#ifdef WIN32
 			temp = strtok(ttok, "\r");
+#else
+			temp = strtok(ttok, " ");
+#endif
 			if (temp != NULL) {
 				value->X3D_MFString.p[0].len = strlen(temp);
 				value->X3D_MFString.p[0].strptr = malloc(sizeof(char)*(STRLEN));
 				strncpy(value->X3D_MFString.p[0].strptr, temp, STRLEN);
-			/* changes from Doug Sanden */
+#ifdef WIN32
 				value->X3D_MFString.p[0].type = FIELDTYPE_SFString;
+#endif
 			}
 
 			for (i = 1; i < j; i++) {
-			/* changes from Doug Sanden */
+#ifdef WIN32
 				temp = strtok(NULL, "\r");
+#else
+				temp = strtok(NULL, " ");
+#endif
 				value->X3D_MFString.p[i].len = strlen(temp);
 				value->X3D_MFString.p[i].strptr = malloc(STRLEN);
 				strncpy(value->X3D_MFString.p[i].strptr, temp, STRLEN);
-
-				/* changes from Doug Sanden */
+#ifdef WIN32
 				value->X3D_MFString.p[i].type = FIELDTYPE_SFString;
+#endif
 			}
 			break;
 
@@ -559,9 +567,9 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
                 case FIELDTYPE_SFNode:
 
 
-                        sscanf(ptr, "%d", &adr);
+                        sscanf(ptr, "%lu", &adr);
 
-                        value->X3D_SFNode.adr= adr;
+                        value->X3D_SFNode.adr= (uintptr_t *) adr;
 
                 break;
 
@@ -578,8 +586,12 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
                 		SKIP_CONTROLCHARS
 
                 		/* read in the memory pointer */
-                		sscanf (ptr,"%d",&mytmp); /* changed for 1.18.15 JAS */
+                		sscanf (ptr,"%lu",&mytmp); /* changed for 1.18.15 JAS */
+#ifdef WIN32
+				value->X3D_MFNode.p[i].adr = (uintptr_t*)mytmp; /* compiler warning, so cast from an int to a pointer */
+#else
 				value->X3D_MFNode.p[i].adr = mytmp;
+#endif
 	
         		        /* skip past this number now */
                 		SKIP_IF_GT_SPACE
@@ -601,7 +613,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 	char myline[2048];
 	int count;
 	int i;
-	/* unused int ptr; */
+	uintptr_t *ptr;
 	char tstring[2048];
 	
 	/* sanity check */
@@ -619,7 +631,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFColor:
-			sprintf (myline, "%c %d %d %d %f %f %f\n",
+			sprintf (myline, "%c %ld %d %d %f %f %f\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFVec3f.c[0],
@@ -629,7 +641,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_SFVec2f:
-			sprintf (myline, "%c %d %d %d %f %f\n",
+			sprintf (myline, "%c %ld %d %d %f %f\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFVec2f.c[0],
@@ -639,7 +651,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 
 		case FIELDTYPE_SFRotation:
 		case FIELDTYPE_SFColorRGBA:
-			sprintf (myline, "%c %d %d %d %f %f %f %f\n",
+			sprintf (myline, "%c %ld %d %d %f %f %f %f\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFRotation.r[0],
@@ -651,18 +663,18 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 
 		case FIELDTYPE_SFBool:
 			if (node->X3D_SFBool.value) {
-				sprintf (myline, "%c %d %d %d TRUE\n",
+				sprintf (myline, "%c %ld %d %d TRUE\n",
 					mapFieldTypeToEAItype(dest->datatype),
 					dest->nodeptr, dest->offset, dest->scripttype);
 			} else { 
-				sprintf (myline, "%c %d %d %d FALSE\n",
+				sprintf (myline, "%c %ld %d %d FALSE\n",
 					mapFieldTypeToEAItype(dest->datatype),
 					dest->nodeptr, dest->offset, dest->scripttype);
 			}
 			_X3D_sendEvent (SENDEVENT,myline);
 			break;
 		case FIELDTYPE_SFInt32:
-			sprintf (myline, "%c %d %d %d %d\n",
+			sprintf (myline, "%c %ld %d %d %d\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFBool.value);
@@ -670,7 +682,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_SFFloat:
-			sprintf (myline, "%c %d %d %d %f\n",
+			sprintf (myline, "%c %ld %d %d %f\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFFloat.value);
@@ -678,7 +690,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_SFTime:
-			sprintf (myline, "%c %d %d %d %lf\n",
+			sprintf (myline, "%c %ld %d %d %lf\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFTime.value);
@@ -686,7 +698,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_SFString:
-			sprintf (myline, "%c %d %d %d %d:%s\n",
+			sprintf (myline, "%c %ld %d %d %d:%s\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFString.len, node->X3D_SFString.strptr);
@@ -694,7 +706,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_MFInt32:
-			sprintf(myline, "%c %d %d %d [",
+			sprintf(myline, "%c %ld %d %d [",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
@@ -710,7 +722,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 			
 		case FIELDTYPE_MFBool:
-			sprintf(myline, "%c %d %d %d [",
+			sprintf(myline, "%c %ld %d %d [",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
@@ -729,7 +741,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 			
 		case FIELDTYPE_MFFloat:
-			sprintf(myline, "%c %d %d %d [",
+			sprintf(myline, "%c %ld %d %d [",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
@@ -745,7 +757,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_MFVec3f:
-			sprintf(myline, "%c %d %d %d [",
+			sprintf(myline, "%c %ld %d %d [",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
@@ -760,7 +772,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_MFVec3d:
-			sprintf(myline, "%c %d %d %d [",
+			sprintf(myline, "%c %ld %d %d [",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
@@ -775,7 +787,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_MFColor:
-			sprintf(myline, "%c %d %d %d [",
+			sprintf(myline, "%c %ld %d %d [",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
@@ -790,7 +802,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_MFVec2f:
-			sprintf(myline, "%c %d %d %d [",
+			sprintf(myline, "%c %ld %d %d [",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
@@ -805,7 +817,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_MFRotation:
-			sprintf(myline, "%c %d %d %d [",
+			sprintf(myline, "%c %ld %d %d [",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
@@ -820,7 +832,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_MFColorRGBA:
-			sprintf(myline, "%c %d %d %d [",
+			sprintf(myline, "%c %ld %d %d [",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
@@ -835,7 +847,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_MFString:
-			sprintf(myline, "%c %d %d %d [ ",
+			sprintf(myline, "%c %ld %d %d [ ",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
@@ -861,7 +873,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 			#endif
 
 			for (count = 0; count < node->X3D_MFNode.n; count ++) {
-				sprintf (myline,"%d %d %s %d\n",
+				sprintf (myline,"%ld %d %s %ld\n",
 					dest->nodeptr,
 					dest->offset,
 					dest->field,
@@ -873,7 +885,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_SFNode:
-			sprintf (myline, "%c %d %d %d %d\n",
+			sprintf (myline, "%c %ld %d %d %d\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFNode.adr);
@@ -962,7 +974,7 @@ X3DNode *X3D_createVrmlFromString(char *str) {
 	char *ptr;
 	int retvals;
 	int count;
-	int mytmp;
+	uintptr_t mytmp;
 	
         retval = malloc (sizeof(X3DNode));
 	retval->X3D_MFNode.type = FIELDTYPE_MFNode;
@@ -978,19 +990,28 @@ X3DNode *X3D_createVrmlFromString(char *str) {
 	printf ("return pointer is %s\n",ptr);
 	#endif
 
-	/* now, how many numbers did it return? */
+	/* now, how many numbers did it return? ignore the (obsolete) perl pointers */
 	retvals = _X3D_countWords(ptr);
-	retval->X3D_MFNode.p = malloc (retvals * sizeof (X3DNode));
-	retval->X3D_MFNode.n = retvals;
+	retval->X3D_MFNode.p = malloc (retvals/2 * sizeof (X3DNode));
+	retval->X3D_MFNode.n = retvals/2;
 
-	for (count = 0; count < retvals; count++) {
+	for (count = 0; count < (retvals/2); count++) {
+		/* skip to perlpointer */
+		SKIP_CONTROLCHARS
+
+		/* skip over perlpointer */
+		SKIP_IF_GT_SPACE
+
 		/* skip to the memory pointer */
 		SKIP_CONTROLCHARS
 
 		/* read in the memory pointer */
-		sscanf (ptr,"%d",&mytmp); /* changed for 1.18.15 JAS */
-
+		sscanf (ptr,"%lu",&mytmp); /* changed for 1.18.15 JAS */
+#ifdef WIN32
+		retval->X3D_MFNode.p[count].adr = (uintptr_t*)mytmp;
+#else
 		retval->X3D_MFNode.p[count].adr = mytmp;
+#endif
 
 		/* skip past this number now */
 		SKIP_IF_GT_SPACE

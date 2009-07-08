@@ -1,43 +1,22 @@
 /*
-  $Id: RenderFuncs.c,v 1.130 2012/08/09 17:14:30 crc_canada Exp $
+=INSERT_TEMPLATE_HERE=
 
-  FreeWRL support library.
-  Scenegraph rendering.
+$Id: RenderFuncs.c,v 1.19.2.1 2009/07/08 21:55:04 couannette Exp $
+
+Scenegraph rendering.
 
 */
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
-
 
 #include <config.h>
 #include <system.h>
 #include <display.h>
 #include <internal.h>
 
+#include <pthread.h> /* this is needed here, for some reason JAS */
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-#include "../opengl/Textures.h"
-#include "../scenegraph/Component_ProgrammableShaders.h"
 
 #include "Polyrep.h"
 #include "Collision.h"
@@ -45,762 +24,189 @@
 #include "Viewer.h"
 #include "LinearAlgebra.h"
 #include "../input/SensInterps.h"
-#include "system_threads.h"
-#include "threads.h"
 
-#include "../opengl/OpenGL_Utils.h"
-#include "../scenegraph/Component_Shape.h"
 #include "RenderFuncs.h"
 
-typedef float shaderVec4[4];
-
-
-typedef struct pRenderFuncs{
-#ifdef RENDERVERBOSE
-	int renderLevel;// = 0;
-#endif
-	/* which arrays are enabled, and defaults for each array */
-	int shaderNormalArray;// = TRUE;
-	int shaderVertexArray;// = TRUE;
-	int shaderColourArray;// = FALSE;
-	int shaderTextureArray;// = FALSE;
-
-	float light_linAtten[8];
-	float light_constAtten[8];
-	float light_quadAtten[8];
-	float light_spotCut[8];
-	float light_spotExp[8];
-	shaderVec4 light_amb[8];
-	shaderVec4 light_dif[8];
-	shaderVec4 light_pos[8];
-	shaderVec4 light_spec[8];
-	shaderVec4 light_spotDir[8];
-
-	/* Rearrange to take advantage of headlight when off */
-	int nextFreeLight;// = 0;
-
-	/* lights status. Light 7 is the headlight */
-	GLint lightOnOff[8];
-
-	/* should we send light changes along? */
-	bool lightStatusDirty;// = FALSE;
-	bool lightParamsDirty;// = FALSE;
-	int cur_hits;//=0;
-	void *empty_group;//=0;
-	//struct point_XYZ ht1, ht2; not used
-	struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
-	struct currayhit rayph;
-	struct X3D_Group *rootNode;//=NULL;	/* scene graph root node */
-	struct X3D_Anchor *AnchorsAnchor;// = NULL;
-	struct currayhit rayHit,rayHitHyper;
-	struct trenderstate renderstate;
-}* ppRenderFuncs;
-void *RenderFuncs_constructor(){
-	void *v = malloc(sizeof(struct pRenderFuncs));
-	memset(v,0,sizeof(struct pRenderFuncs));
-	return v;
-}
-void RenderFuncs_init(struct tRenderFuncs *t){
-	//public
-	#ifdef OLDCODE
-OLDCODE	t->OSX_replace_world_from_console = NULL;
-	#endif //OLDCODE
-
-	t->BrowserAction = FALSE;
-	//	t->hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
-	///* used to save rayhit and hyperhit for later use by C functions */
-	//t->hyp_save_posn;
-	//t->hyp_save_norm;t->ray_save_posn;
-	t->hypersensitive = 0;
-	t->hyperhit = 0;
-	t->have_transparency=FALSE;/* did any Shape have transparent material? */
-	/* material node usage depends on texture depth; if rgb (depth1) we blend color field
-	   and diffusecolor with texture, else, we dont bother with material colors */
-	t->last_texture_type = NOTEXTURE;
-
-	//private
-	t->prv = RenderFuncs_constructor();
-	{
-		ppRenderFuncs p = (ppRenderFuncs)t->prv;
-#ifdef RENDERVERBOSE
-		p->renderLevel = 0;
-#endif
-		/* which arrays are enabled, and defaults for each array */
-		p->shaderNormalArray = TRUE;
-		p->shaderVertexArray = TRUE;
-		p->shaderColourArray = FALSE;
-		p->shaderTextureArray = FALSE;
-
-
-		/* Rearrange to take advantage of headlight when off */
-		p->nextFreeLight = 0;
-
-
-		/* should we send light changes along? */
-		p->lightStatusDirty = FALSE;
-		p->lightParamsDirty = FALSE;
-		p->cur_hits=0;
-		p->empty_group=0;
-		p->rootNode=NULL;	/* scene graph root node */
-		p->AnchorsAnchor = NULL;
-		t->rayHit = (void *)&p->rayHit;
-		t->rayHitHyper = (void *)&p->rayHitHyper;
-	}
-}
-//	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-
-
-
-
-/* we assume max 8 lights. The max light is the Headlight, so we go through 0-6 for Lights */
+/* Rearrange to take advantage of headlight when off */
+static int curlight = 0;
+int nlightcodes = 7;
+int lightcode[7] = {
+	GL_LIGHT0,
+	GL_LIGHT1,
+	GL_LIGHT2,
+	GL_LIGHT3,
+	GL_LIGHT4,
+	GL_LIGHT5,
+	GL_LIGHT6,
+};
 int nextlight() {
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	int rv = p->nextFreeLight;
-	if(p->nextFreeLight == 7) { return -1; }
-	p->nextFreeLight ++;
-	return rv;
-}
-
-
-/* keep track of lighting */
-void lightState(GLint light, int status) {
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-    //printf ("start lightState, light %d, status %d\n",light,status);
-    
-    PRINT_GL_ERROR_IF_ANY("start lightState");
-    
-    
-	if (light<0) return; /* nextlight will return -1 if too many lights */
-	if (p->lightOnOff[light] != status) {
-		if (status) {
-			/* printf ("light %d on\n",light); */
-            
-#ifndef GL_ES_VERSION_2_0
-			FW_GL_ENABLE(GL_LIGHT0+light);
-#endif /* GL_ES_VERSION_2_0 */
-            
-			p->lightStatusDirty = TRUE;
-		} else {
-			/* printf ("light %d off\n",light);  */
-            
-#ifndef GL_ES_VERSION_2_0
-			FW_GL_DISABLE(GL_LIGHT0+light);
-#endif /* GL_ES_VERSION_2_0 */
-            
-			p->lightStatusDirty = TRUE;
-		}
-		p->lightOnOff[light]=status;
-	}
-    PRINT_GL_ERROR_IF_ANY("end lightState");
-}
-
-/* for local lights, we keep track of what is on and off */
-void saveLightState(int *ls) {
-	int i;
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	for (i=0; i<7; i++) ls[i] = p->lightOnOff[i];
-} 
-
-void restoreLightState(int *ls) {
-	int i;
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	for (i=0; i<7; i++) {
-		if (ls[i] != p->lightOnOff[i]) {
-			lightState(i,ls[i]);
-		}
-	}
-}
-
-void fwglLightfv (int light, int pname, GLfloat *params) {
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	/*printf ("fwglLightfv light: %d ",light);
-	switch (pname) {
-		case GL_AMBIENT: printf ("GL_AMBIENT"); break;
-		case GL_DIFFUSE: printf ("GL_DIFFUSE"); break;
-		case GL_POSITION: printf ("GL_POSITION"); break;
-		case GL_SPECULAR: printf ("GL_SPECULAR"); break;
-		case GL_SPOT_DIRECTION: printf ("GL_SPOT_DIRECTION"); break;
-	}
-	printf (" %f %f %f %f\n",params[0], params[1],params[2],params[3]);
-     */
-	#ifndef GL_ES_VERSION_2_0
-		glLightfv(GL_LIGHT0+light,pname,params);
-	#endif
-
-	switch (pname) {
-		case GL_AMBIENT:
-			memcpy ((void *)p->light_amb[light],(void *)params,sizeof(shaderVec4));
-			break;
-		case GL_DIFFUSE:
-			memcpy ((void *)p->light_dif[light],(void *)params,sizeof(shaderVec4));
-			break;
-		case GL_POSITION:
-			memcpy ((void *)p->light_pos[light],(void *)params,sizeof(shaderVec4));
-			break;
-		case GL_SPECULAR:
-			memcpy ((void *)p->light_spec[light],(void *)params,sizeof(shaderVec4));
-			break;
-		case GL_SPOT_DIRECTION:
-			memcpy ((void *)p->light_spotDir[light],(void *)params,sizeof(shaderVec4));
-			break;
-		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
-	}
-	p->lightParamsDirty=TRUE;
-}
-
-void fwglLightf (int light, int pname, GLfloat param) {
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	/*
-	printf ("glLightf light: %d ",light);
-	switch (pname) {
-		case GL_CONSTANT_ATTENUATION: printf ("GL_CONSTANT_ATTENUATION"); break;
-		case GL_LINEAR_ATTENUATION: printf ("GL_LINEAR_ATTENUATION"); break;
-		case GL_QUADRATIC_ATTENUATION: printf ("GL_QUADRATIC_ATTENUATION"); break;
-		case GL_SPOT_CUTOFF: printf ("GL_SPOT_CUTOFF"); break;
-		case GL_SPOT_EXPONENT: printf ("GL_SPOT_EXPONENT"); break;
-	}
-	printf (" %f\n",param);
-	*/
-
-	#ifndef GL_ES_VERSION_2_0
-		glLightf(GL_LIGHT0+light,pname,param);
-	#endif
-
-	switch (pname) {
-		case GL_CONSTANT_ATTENUATION:
-			p->light_constAtten[light] = param;
-			break;
-		case GL_LINEAR_ATTENUATION:
-			p->light_linAtten[light] = param;
-			break;
-		case GL_QUADRATIC_ATTENUATION:
-			p->light_quadAtten[light] = param;
-			break;
-		case GL_SPOT_CUTOFF:
-			p->light_spotCut[light] = param;
-			break;
-		case GL_SPOT_EXPONENT:
-			p->light_spotExp[light] = param;
-			break;
-		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
-	}
-	p->lightParamsDirty = TRUE;
-}
-
-/* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call */
-void sendLightInfo (s_shader_capabilities_t *me) {
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-		/* for debugging: */
-
-			/* int i;
-			printf ("sendMAt - sending in lightState ");
-			for (i=0; i<8; i++) printf ("%d:%d ",i,p->lightOnOff[i]); printf ("\n");
-			*/
-		
-
-	/* if one of these are equal to -1, we had an error in the shaders... */
-	GLUNIFORM1IV(me->lightState,8,p->lightOnOff);
-    
-	GLUNIFORM1FV (me->lightConstAtten, 8, p->light_constAtten);
-	GLUNIFORM1FV (me->lightLinAtten, 8, p->light_linAtten);
-	GLUNIFORM1FV(me->lightQuadAtten, 8, p->light_quadAtten);
-	GLUNIFORM1FV(me->lightSpotCut, 8, p->light_spotCut);
-	GLUNIFORM1FV(me->lightSpotExp, 8, p->light_spotExp);
-   
-	GLUNIFORM4FV(me->lightAmbient,8,(float *)p->light_amb);
-    
-	GLUNIFORM4FV(me->lightDiffuse,8,(float *)p->light_dif);
-	GLUNIFORM4FV(me->lightPosition,8,(float *)p->light_pos);
-	GLUNIFORM4FV(me->lightSpecular,8,(float *)p->light_spec);
-	GLUNIFORM4FV(me->lightSpotDir, 8, (float *)p->light_spotDir);
-     
-}
-
-/* finished rendering thisshape. */
-void turnGlobalShaderOff(void) {
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-
-    /* get rid of the shader */
-    getAppearanceProperties()->currentShaderProperties = NULL;
-    USE_SHADER(0);
-
-	/* set array booleans back to defaults */
-	p->shaderNormalArray = TRUE;
-	p->shaderVertexArray = TRUE;
-	p->shaderColourArray = FALSE;
-	p->shaderTextureArray = FALSE;
+	if(curlight == nlightcodes) { return -1; }
+	return lightcode[curlight++];
 }
 
 
 
-/* choose and turn on a shader for this geometry */
-
-void enableGlobalShader(s_shader_capabilities_t *myShader) {
-    //ConsoleMessage ("enableGlobalShader, have myShader %d",myShader->myShaderProgram);
-    if (myShader == NULL) {
-        TURN_GLOBAL_SHADER_OFF; 
-        return;
-    };
-    
-    
-    getAppearanceProperties()->currentShaderProperties = myShader;
-	USE_SHADER(myShader->myShaderProgram);
-}
-
-
-/* send in vertices, normals, etc, etc... to either a shader or via older opengl methods */
-void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer, char *file, int line){
-
-    s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
-
-#ifdef RENDERVERBOSE
-printf ("sendAttribToGPU, getAppearanceProperties()->currentShaderProperties %p\n",getAppearanceProperties()->currentShaderProperties);
-printf ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSize,dataType,stride);
-	if (me != NULL) {
-		switch (myType) {
-			case FW_NORMAL_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Normals %d at %s:%d\n",me->Normals,file,line);
-				break;
-			case FW_VERTEX_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Vertexs %d at %s:%d\n",me->Vertices,file,line);
-				break;
-			case FW_COLOR_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Colours %d at %s:%d\n",me->Colours,file,line);
-				break;
-			case FW_TEXCOORD_POINTER_TYPE:
-				printf ("glVertexAttribPointer  TexCoords %d at %s:%d\n",me->TexCoords,file,line);
-				break;
-
-			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
-		}
-	}
-#endif
-
-	if (getAppearanceProperties()->currentShaderProperties != NULL) {
-		switch (myType) {
-			case FW_NORMAL_POINTER_TYPE:
-			if (me->Normals != -1) {
-				glEnableVertexAttribArray(me->Normals);
-				glVertexAttribPointer(me->Normals, 3, dataType, normalized, stride, pointer);
-			}
-				break;
-			case FW_VERTEX_POINTER_TYPE:
-			if (me->Vertices != -1) {
-				glEnableVertexAttribArray(me->Vertices);
-				glVertexAttribPointer(me->Vertices, dataSize, dataType, normalized, stride, pointer);
-			}
-				break;
-			case FW_COLOR_POINTER_TYPE:
-			if (me->Colours != -1) {
-				glEnableVertexAttribArray(me->Colours);
-				glVertexAttribPointer(me->Colours, dataSize, dataType, normalized, stride, pointer);
-			}
-				break;
-			case FW_TEXCOORD_POINTER_TYPE:
-			if (me->TexCoords != -1) {
-				glEnableVertexAttribArray(me->TexCoords);
-				glVertexAttribPointer(me->TexCoords, dataSize, dataType, normalized, stride, pointer);
-			}
-				break;
-
-			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
-		}
-
-	/* not shaders; older style of rendering */
-	} else {
-		#ifndef GL_ES_VERSION_2_0
-		switch (myType) {
-			case FW_VERTEX_POINTER_TYPE:
-				glVertexPointer(dataSize, dataType, stride, pointer); 
-				break;
-			case FW_NORMAL_POINTER_TYPE:
-				glNormalPointer(dataType,stride,pointer);
-				break;
-			case FW_COLOR_POINTER_TYPE:
-				glColorPointer(dataSize, dataType, stride, pointer); 
-				break;
-			case FW_TEXCOORD_POINTER_TYPE:
-				glTexCoordPointer(dataSize, dataType, stride, pointer);
-				break;
-			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
-		}
-		#else
-		printf ("not shaders for pointers\n");
-		#endif
-
-
-	}
-}
-
-void sendClientStateToGPU(int enable, int cap) {
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	if (getAppearanceProperties()->currentShaderProperties != NULL) {
-		switch (cap) {
-			case GL_NORMAL_ARRAY:
-				p->shaderNormalArray = enable;
-				break;
-			case GL_VERTEX_ARRAY:
-				p->shaderVertexArray = enable;
-				break;
-			case GL_COLOR_ARRAY:
-				p->shaderColourArray = enable;
-				break;
-			case GL_TEXTURE_COORD_ARRAY:
-				p->shaderTextureArray = enable;
-				break;
-
-			default : {printf ("sendClientStateToGPU, unknown type in shader\n");}
-		}
-#ifdef RENDERVERBOSE
-printf ("sendClientStateToGPU: getAppearanceProperties()->currentShaderProperties %p \n",getAppearanceProperties()->currentShaderProperties);
-if (p->shaderNormalArray) printf ("enabling Normal\n"); else printf ("disabling Normal\n");
-if (p->shaderVertexArray) printf ("enabling Vertex\n"); else printf ("disabling Vertex\n");
-if (p->shaderColourArray) printf ("enabling Colour\n"); else printf ("disabling Colour\n");
-if (p->shaderTextureArray) printf ("enabling Texture\n"); else printf ("disabling Texture\n");
-#endif
-
-	} else {
-		#ifndef GL_ES_VERSION_2_0
-			if (enable) glEnableClientState(cap);
-			else glDisableClientState(cap);
-		#else
-			//printf ("sendClientStateToGPU - currentShaderProperties not set\n");
-		#endif
-	}
-}
-
-void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
-
-	
-/*
-	if (target == GL_ARRAY_BUFFER_BINDING) printf ("glBindBuffer, GL_ARRAY_BUFFER_BINDING %d at %s:%d\n",buffer,file,line);
-	else if (target == GL_ARRAY_BUFFER) printf ("glBindBuffer, GL_ARRAY_BUFFER %d at %s:%d\n",buffer,file,line);
-	else if (target == GL_ELEMENT_ARRAY_BUFFER) printf ("glBindBuffer, GL_ELEMENT_ARRAY_BUFFER %d at %s:%d\n",buffer,file,line);
-	else printf ("glBindBuffer, %d %d at %s:%d\n",target,buffer,file,line);
-	
-*/
-
-	glBindBuffer(target,buffer);
-}
-
-
-static bool setupShader() {
-    ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-    s_shader_capabilities_t *mysp = getAppearanceProperties()->currentShaderProperties;
-    
-	if (mysp != NULL) {
-        
-
-		/* if we had a shader compile problem, do not draw */
-		if (!(mysp->compiledOK)) {
-#ifdef RENDERVERBOSE
-			printf ("shader compile error\n");
-#endif
-			return false;
-		}
-        
-#ifdef RENDERVERBOSE
-        printf ("we have Normals %d Vertices %d Colours %d TexCoords %d \n",
-                mysp->Normals,
-                mysp->Vertices,
-                mysp->Colours,
-                mysp->TexCoords);
-		if (p->shaderNormalArray) printf ("p->shaderNormalArray TRUE\n"); else printf ("p->shaderNormalArray FALSE\n");        
-        if (p->shaderVertexArray) printf ("shaderVertexArray TRUE\n"); else printf ("shaderVertexArray FALSE\n");
-        if (p->shaderColourArray) printf ("shaderColourArray TRUE\n"); else printf ("shaderColourArray FALSE\n");
-		if (p->shaderTextureArray) printf ("shaderTextureArray TRUE\n"); else printf ("shaderTextureArray FALSE\n");               
-#endif
-        
-        /* send along lighting, material, other visible properties */
-        sendMaterialsToShader(mysp);
-        sendMatriciesToShader(mysp);
-        
-		if (mysp->Normals != -1) {
-			if (p->shaderNormalArray) glEnableVertexAttribArray(mysp->Normals);
-			else glDisableVertexAttribArray(mysp->Normals);
-		}
-        
-		if (mysp->Vertices != -1) {
-			if (p->shaderVertexArray) glEnableVertexAttribArray(mysp->Vertices);
-			else glDisableVertexAttribArray(mysp->Vertices);
-		}
-        
-		if (mysp->Colours != -1) {
-			if (p->shaderColourArray) glEnableVertexAttribArray(mysp->Colours);
-			else glDisableVertexAttribArray(mysp->Colours);
-		}
-        
-		if (mysp->TexCoords != -1) {
-			if (p->shaderTextureArray) glEnableVertexAttribArray(mysp->TexCoords);
-			else glDisableVertexAttribArray(mysp->TexCoords);
-		}
-        
-	}
-    return true;
-    
-}
-
-
-void sendArraysToGPU (int mode, int first, int count) {
-#ifdef RENDERVERBOSE
-	printf ("sendArraysToGPU start\n"); 
-#endif
-    
-
-	// when glDrawArrays bombs it's usually some function left an array
-	// enabled that's not supposed to be - try disabling something
-//glDisableClientState(GL_VERTEX_ARRAY);
-//glDisableClientState(GL_NORMAL_ARRAY);
-//glDisableClientState(GL_INDEX_ARRAY);
-//glDisableClientState(GL_COLOR_ARRAY);
-//glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-//glDisableClientState(GL_FOG_COORDINATE_ARRAY);
-//glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-//glDisableClientState(GL_EDGE_FLAG_ARRAY);
-    
-    if (setupShader())	glDrawArrays(mode,first,count);
-    #ifdef RENDERVERBOSE
-	printf ("sendArraysToGPU end\n"); 
-    #endif
-}
-
-
-
-void sendElementsToGPU (int mode, int count, int type, int *indices) {
-    #ifdef RENDERVERBOSE
-	printf ("sendElementsToGPU start\n"); 
-    #endif
-    
-    if (setupShader())
-        glDrawElements(mode,count,type,indices);
-
-	#ifdef RENDERVERBOSE
-	printf ("sendElementsToGPU finish\n"); 
-	#endif
-}
-
-
-void initializeLightTables() {
-	int i;
-        float pos[] = { 0.0f, 0.0f, 1.0f, 0.0f };
-        float dif[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        float shin[] = { 0.6f, 0.6f, 0.6f, 1.0f };
-        float As[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-
-      PRINT_GL_ERROR_IF_ANY("start of initializeightTables");
-
-	for(i=0; i<8; i++) {
-                p->lightOnOff[i] = 9999;
-                lightState(i,FALSE);
-            
-        	FW_GL_LIGHTFV(i, GL_POSITION, pos);
-        	FW_GL_LIGHTFV(i, GL_AMBIENT, As);
-        	FW_GL_LIGHTFV(i, GL_DIFFUSE, dif);
-        	FW_GL_LIGHTFV(i, GL_SPECULAR, shin);
-          	FW_GL_LIGHTF(i, GL_CONSTANT_ATTENUATION,1.0f);
-        	FW_GL_LIGHTF(i, GL_LINEAR_ATTENUATION,0.0f);
-        	FW_GL_LIGHTF(i, GL_QUADRATIC_ATTENUATION,0.0f);
-        	FW_GL_LIGHTF(i, GL_SPOT_CUTOFF,180.0f);
-        	FW_GL_LIGHTF(i, GL_SPOT_EXPONENT,0.0f);
-            
-            PRINT_GL_ERROR_IF_ANY("initizlizeLight2");
-        }
-        lightState(HEADLIGHT_LIGHT, TRUE);
-
-	#ifndef GL_ES_VERSION_2_0
-        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
-        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
-        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-        FW_GL_LIGHTMODELFV(GL_LIGHT_MODEL_AMBIENT,As);
-	#else
-	//printf ("skipping light setups\n");
-	#endif
-
-    LIGHTING_INITIALIZE
-	
-
-    PRINT_GL_ERROR_IF_ANY("end initializeLightTables");
-}
-
-
-
-//int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
-//int render_geom;
-//int render_light;
-//int render_sensitive;
-//int render_blend;
-//int render_proximity;
-//int render_collision;
-//int render_other;
-//#ifdef DJTRACK_PICKSENSORS
-//int render_picksensors;
-//int render_pickables;
-//int	render_allAsPickables;
-//#endif
-//struct trenderstate _renderstate;
-ttrenderstate renderstate()
-{
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	return &p->renderstate;
-}
 
 /* material node usage depends on texture depth; if rgb (depth1) we blend color field
    and diffusecolor with texture, else, we dont bother with material colors */
-//int last_texture_type = NOTEXTURE;
 
-///* texture stuff - see code. Need array because of MultiTextures */
-//GLuint boundTextureStack[MAX_MULTITEXTURE];
-//int textureStackTop;
+int last_texture_type = NOTEXTURE;
 
-//int	have_transparency=FALSE;/* did any Shape have transparent material? */
-//int	lightingOn;		/* do we need to restore lighting in Shape? */
+/* Sounds can come from AudioClip nodes, or from MovieTexture nodes. Different
+   structures on these */
+int sound_from_audioclip = 0;
 
-//int cur_hits=0;
+/* and, we allow a maximum of so many pixels per texture */
+/* if this is zero, first time a texture call is made, this is set to the OpenGL implementations max */
+GLint global_texSize = 0;
+int textures_take_priority = TRUE;
+#ifdef DO_MULTI_OPENGL_THREADS
+int useShapeThreadIfPossible = TRUE;
+#endif
+
+/* for printing warnings about Sound node problems - only print once per invocation */
+int soundWarned = FALSE;
+
+int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
+int render_geom;
+int render_light;
+int render_sensitive;
+int render_blend;
+int render_proximity;
+int render_collision;
+
+int be_collision = 0;	/* do collision detection? */
+
+/* texture stuff - see code. Need array because of MultiTextures */
+GLuint bound_textures[MAX_MULTITEXTURE];
+int bound_texture_alphas[MAX_MULTITEXTURE];
+int texture_count;
+
+int	have_transparency=FALSE;/* did any Shape have transparent material? */
+void *	this_textureTransform;  /* do we have some kind of textureTransform? */
+int	lightingOn;		/* do we need to restore lighting in Shape? */
+int	cullFace;		/* is GL_CULL_FACE enabled or disabled?		*/
+
+int     shutterGlasses = 0; 	/* stereo shutter glasses */
 
 
-///* dimentions of viewer, and "up" vector (for collision detection) */
-//struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
+GLint smooth_normals = TRUE; /* do normal generation? */
+
+int cur_hits=0;
+
+/* Collision detection results */
+struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
+
+/* dimentions of viewer, and "up" vector (for collision detection) */
+struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
 
 /* for alignment of collision cylinder, and gravity (later). */
-//struct point_XYZ ViewerUpvector = {0,0,0};
+struct point_XYZ ViewerUpvector = {0,0,0};
 
-//X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
+X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
 
-//true statics:
-GLint viewport[4] = {-1,-1,2,2};  //doesn't change, used in glu unprojects
+
 /* These two points define a ray in window coordinates */
+
 struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0};
+struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
+void *hypersensitive = 0; int hyperhit = 0;
+struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
 
-
-//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
-//void *hypersensitive = 0; 
-//int hyperhit = 0;
-//struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
-
+GLint viewport[4] = {-1,-1,2,2};
 
 /* These three points define 1. hitpoint 2., 3. two different tangents
  * of the surface at hitpoint (to get transformation correctly */
 
 /* All in window coordinates */
-//struct point_XYZ hp;
-//static struct point_XYZ ht1, ht2;
-//double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
+
+struct point_XYZ hp, ht1, ht2;
+double hpdist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
+
 /* used to save rayhit and hyperhit for later use by C functions */
-//struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
+struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
 /* Any action for the Browser to do? */
-//int BrowserAction = FALSE;
-//struct X3D_Anchor *_AnchorsAnchor = NULL;
-struct X3D_Anchor *AnchorsAnchor()
-{
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	return p->AnchorsAnchor;
-}
-void setAnchorsAnchor(struct X3D_Anchor* anchor)
-{
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	p->AnchorsAnchor = anchor;
-}
+int BrowserAction = FALSE;
+struct X3D_Anchor *AnchorsAnchor;
 
 
-//static struct currayhit rayph;
-//struct currayhit rayHit,rayHitHyper;
+struct currayhit rayHit,rayph,rayHitHyper;
 /* used to test new hits */
 
+/* this is used to return the duration of an audioclip to the perl
+side of things. works, but need to figure out all
+references, etc. to bypass this fudge JAS */
+float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0} ;
 
+/* is the sound engine started yet? */
+int SoundEngineStarted = FALSE;
 
-//struct X3D_Group *_rootNode=NULL;	/* scene graph root node */
-struct X3D_Group *rootNode()
-{
-	// ConsoleMessage ("rootNode called");
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
-if (p==NULL) {
-	ConsoleMessage ("rootNode, p null");
-	return NULL;
-}
+/* stored FreeWRL version, pointers to initialize data */
+#ifdef DO_MULTI_OPENGL_THREADS
+pthread_t shapeThread = -1;
+#endif
 
-
-	return p->rootNode;
-}
-void setRootNode(struct X3D_Group *rn)
-{
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	p->rootNode = rn;
-}
-//void *empty_group=0;
+void *rootNode=NULL;	/* scene graph root node */
+void *empty_group=0;
 
 /*******************************************************************************/
 
 /* Sub, rather than big macro... */
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
-	    float tx,float ty, char *descr)  {
-	GLDOUBLE modelMatrix[16];
-	GLDOUBLE projMatrix[16];
-	ppRenderFuncs p;
-	ttglobal tg = gglobal();
-	p = (ppRenderFuncs)tg->RenderFuncs.prv;
+float tx,float ty, char *descr)  {
+	GLdouble modelMatrix[16];
+	GLdouble projMatrix[16];
 
 	/* Real rat-testing */
-#ifdef RENDERVERBOSE
-	printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\n\tR: (%f %f %f) (%f %f %f)\n",
-	       descr, rat,cx,cy,cz,nx,ny,nz,
-	       t_r1.x, t_r1.y, t_r1.z,
-	       t_r2.x, t_r2.y, t_r2.z
+	#ifdef RENDERVERBOSE
+		printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\n\tR: (%f %f %f) (%f %f %f)\n",
+		descr, rat,cx,cy,cz,nx,ny,nz,
+		t_r1.x, t_r1.y, t_r1.z,
+		t_r2.x, t_r2.y, t_r2.z
 		);
-#endif
+	#endif
 
-	if(rat<0 || (rat>tg->RenderFuncs.hitPointDist && tg->RenderFuncs.hitPointDist >= 0)) {
+	if(rat<0 || (rat>hpdist && hpdist >= 0)) {
 		return;
 	}
-	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-	FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &tg->RenderFuncs.hp.x, &tg->RenderFuncs.hp.y, &tg->RenderFuncs.hp.z);
-	tg->RenderFuncs.hitPointDist = rat;
-	p->rayHit=p->rayph;
-	p->rayHitHyper=p->rayph;
-#ifdef RENDERVERBOSE 
-	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hitPointDist %f\n",hp.x,hp.y,hp.z, rat, tg->RenderFuncs.hitPointDist);
-#endif
+	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	gluProject(cx,cy,cz, modelMatrix, projMatrix, viewport, &hp.x, &hp.y, &hp.z);
+	hpdist = rat;
+	rayHit=rayph;
+	rayHitHyper=rayph;
+	#ifdef RENDERVERBOSE 
+		printf ("Rayhit, hp.x y z: - %f %f %f rat %f hpdist %f\n",hp.x,hp.y,hp.z, rat, hpdist);
+	#endif
 }
 
 
 /* Call this when modelview and projection modified */
 void upd_ray() {
-	struct point_XYZ t_r1,t_r2,t_r3;
-	GLDOUBLE modelMatrix[16];
-	GLDOUBLE projMatrix[16];
-	ttglobal tg = gglobal();
-	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-/*
-
-{int i; printf ("\n"); 
-printf ("upd_ray, pm %p\n",projMatrix);
-for (i=0; i<16; i++) printf ("%4.3lf ",modelMatrix[i]); printf ("\n"); 
-for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n"); 
-} 
+	GLdouble modelMatrix[16];
+	GLdouble projMatrix[16];
+	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	gluUnProject(r1.x,r1.y,r1.z,modelMatrix,projMatrix,viewport,
+		&t_r1.x,&t_r1.y,&t_r1.z);
+	gluUnProject(r2.x,r2.y,r2.z,modelMatrix,projMatrix,viewport,
+		&t_r2.x,&t_r2.y,&t_r2.z);
+	gluUnProject(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
+		&t_r3.x,&t_r3.y,&t_r3.z);
+/*	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",
+		r1.x,r1.y,r1.z,r2.x,r2.y,r2.z,
+		t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
 */
-
-
-	FW_GLU_UNPROJECT(r1.x,r1.y,r1.z,modelMatrix,projMatrix,viewport,
-		     &t_r1.x,&t_r1.y,&t_r1.z);
-	FW_GLU_UNPROJECT(r2.x,r2.y,r2.z,modelMatrix,projMatrix,viewport,
-		     &t_r2.x,&t_r2.y,&t_r2.z);
-	FW_GLU_UNPROJECT(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
-		     &t_r3.x,&t_r3.y,&t_r3.z);
-
-	VECCOPY(tg->RenderFuncs.t_r1,t_r1);
-	VECCOPY(tg->RenderFuncs.t_r2,t_r2);
-	VECCOPY(tg->RenderFuncs.t_r3,t_r3);
-
-/*
-	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",
-	r1.x,r1.y,r1.z,r2.x,r2.y,r2.z,
-	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
-*/
-
 }
 
 
@@ -809,16 +215,13 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 
 void update_node(struct X3D_Node *node) {
 	int i;
-	
-#ifdef VERBOSE
+
+	#ifdef VERBOSE
 	printf ("update_node for %d %s nparents %d renderflags %x\n",node, stringNodeType(node->_nodeType),node->_nparents, node->_renderFlags); 
 	if (node->_nparents == 0) {
 		if (node == rootNode) printf ("...no parents, this IS the rootNode\n"); 
 		else printf ("...no parents, this IS NOT the rootNode\n");
 	}
-
-
-
 	for (i = 0; i < node->_nparents; i++) {
 		struct X3D_Node *n = X3D_NODE(node->_parents[i]);
 		if( n != 0 ) {
@@ -827,22 +230,16 @@ void update_node(struct X3D_Node *node) {
 			printf ("	parent %d is NULL\n",i);
 		}
 	}
-#endif
+	#endif
 
 	node->_change ++;
-
-	/* parentVector here yet?? */
-	if (node->_parentVector == NULL) {
-		return;
-	}
-
-	for (i = 0; i < vectorSize(node->_parentVector); i++) {
-		struct X3D_Node *n = vector_get(struct X3D_Node *, node->_parentVector,i);
+	for (i = 0; i < node->_nparents; i++) {
+		struct X3D_Node *n = X3D_NODE(node->_parents[i]);
 		if(n == node) {
-			fprintf(stderr, "Error: self-referential node structure! (node:'%s')\n", stringNodeType(node->_nodeType));
-			vector_set(struct X3D_Node*, node->_parentVector, i,NULL);
+		    fprintf(stderr, "Error: self-referential node structure! (node:'%s')\n", stringNodeType(node->_nodeType));
+		    node->_parents[i] = empty_group;
 		} else if( n != 0 ) {
-			update_node(n);
+		    update_node(n);
 		}
 	}
 }
@@ -854,216 +251,221 @@ void update_node(struct X3D_Node *node) {
  * depending on what we are doing right now.
  */
 
-//#ifdef RENDERVERBOSE
-//static int renderLevel = 0;
-//#endif
+#ifdef RENDERVERBOSE
+static int renderLevel = 0;
+#endif
 
-#define PRINT_NODE(_node, _v)  do {					\
-		if (gglobal()->internalc.global_print_opengl_errors && (gglobal()->display._global_gl_err != GL_NO_ERROR)) { \
-			printf("Render_node_v %p (%s) PREP: %p REND: %p CH: %p FIN: %p RAY: %p HYP: %p\n",_v, \
-			       stringNodeType(_node->_nodeType),	\
-			       _v->prep,				\
-			       _v->rend,				\
-			       _v->children,			\
-			       _v->fin,				\
-			       _v->rendray,			\
-			       gglobal()->RenderFuncs.hypersensitive);			\
-			printf("Render_state geom %d light %d sens %d\n", \
-			       renderstate()->render_geom,				\
-			       renderstate()->render_light,				\
-			       renderstate()->render_sensitive);			\
-			printf("pchange %d pichange %d \n", _node->_change, _node->_ichange); \
-		}							\
-	} while (0)
-
-//static int renderLevel = 0;
-//#define RENDERVERBOSE
 void render_node(struct X3D_Node *node) {
-	struct X3D_Virt *virt;
-
+	struct X3D_Virt *v;
 	int srg = 0;
 	int sch = 0;
 	struct currayhit srh;
-	ppRenderFuncs p;
-	ttglobal tg = gglobal();
-	p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	GLint glerror = GL_NONE;
+	char* stage = "";
 
 	X3D_NODE_CHECK(node);
 
-#ifdef RENDERVERBOSE
-	renderLevel ++;
-#endif
+	#ifdef RENDERVERBOSE
+		renderLevel ++;
+	#endif
 
 	if(!node) {
-#ifdef RENDERVERBOSE
-		DEBUG_RENDER("%d no node, quick return\n", renderLevel);
-		renderLevel--;
-#endif
+		#ifdef RENDERVERBOSE
+		printf ("%d no node, quick return\n",renderLevel); renderLevel--;
+		#endif
 		return;
 	}
 
-	virt = virtTable[node->_nodeType];
+	v = *(struct X3D_Virt **)node;
+	#ifdef RENDERVERBOSE 
+	    printf("%d =========================================NODE RENDERED===================================================\n",renderLevel);
+	printf ("%d node %u (%s) , v %u renderFlags %x ",renderLevel, node,stringNodeType(node->_nodeType),v,node->_renderFlags);
+	    printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v, v->prep, v->rend, v->children, v->fin,
+		   v->rendray, hypersensitive);
+            printf ("%d state: vp %d geom %d light %d sens %d blend %d prox %d col %d ", renderLevel, 
+         	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+	    printf ("change %d ichange %d changed %d\n",node->_change, node->_ichange,v->changed);
+	#endif
 
-#ifdef RENDERVERBOSE 
-	//printf("%d =========================================NODE RENDERED===================================================\n",renderLevel);
-	{
-		int i;
-		for(i=0;i<renderLevel;i++) printf(" ");
-	}
-	printf("%d node %u (%s) , v %u renderFlags %x ",renderLevel, node,stringNodeType(node->_nodeType),virt,node->_renderFlags);
 
-	if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf (" VF_Viewpoint");
-	if ((node->_renderFlags & VF_Geom )== VF_Geom) printf (" VF_Geom");
-	if ((node->_renderFlags & VF_localLight )== VF_localLight) printf (" VF_localLight");
-	if ((node->_renderFlags & VF_Sensitive) == VF_Sensitive) printf (" VF_Sensitive");
-	if ((node->_renderFlags & VF_Blend) == VF_Blend) printf (" VF_Blend");
-	if ((node->_renderFlags & VF_Proximity) == VF_Proximity) printf (" VF_Proximity");
-	if ((node->_renderFlags & VF_Collision) == VF_Collision) printf (" VF_Collision");
-	if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf (" VF_globalLight");
-	if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf (" VF_hasVisibleChildren");
-	if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf (" VF_shouldSortChildren");
-	if ((node->_renderFlags & VF_Other) == VF_Other) printf (" VF_Other");
-	/*
-	if ((node->_renderFlags & VF_inPickableGroup == VF_inPickableGroup) printf (" VF_inPickableGroup");
-	if ((node->_renderFlags & VF_PickingSensor == VF_PickingSensor) printf (" VF_PickingSensor");
-	*/
-	printf ("\n");
+	/* call the "changed_" function */
+	if(NODE_NEEDS_COMPILING  && (v->changed != NULL)) {
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 1 pch %d pich %d vch %d\n",node->_change,node->_ichange,v->changed);
+	    #endif
+	    v->changed(node);
+	    MARK_NODE_COMPILED
 
-	//printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",virt->prep, virt->rend, virt->children, virt->fin,
-	//       virt->rendray, hypersensitive);
-	//printf("%d state: vp %d geom %d light %d sens %d blend %d prox %d col %d ", renderLevel, 
- //        	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
-	//printf("change %d ichange %d \n",node->_change, node->_ichange);
-#endif
+	    if (displayOpenGLErrors) 
+	  	  if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "change";
+	  }
 
         /* if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here */ 
-        if (renderstate()->render_vp == VF_Viewpoint) { 
+        if (render_vp == VF_Viewpoint) { 
                 if ((node->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { 
-#ifdef RENDERVERBOSE
+			#ifdef RENDERVERBOSE
                         printf ("doing Viewpoint, but this  node is not for us - just returning\n"); 
 			renderLevel--;
-#endif
+			#endif
                         return; 
                 } 
         }
 
 	/* are we working through global PointLights, DirectionalLights or SpotLights, but none exist from here on down? */
-        if (renderstate()->render_light == VF_globalLight) { 
+        if (render_light == VF_globalLight) { 
                 if ((node->_renderFlags & VF_globalLight) != VF_globalLight) { 
-#ifdef RENDERVERBOSE
+			#ifdef RENDERVERBOSE
                         printf ("doing globalLight, but this  node is not for us - just returning\n"); 
 			renderLevel--;
-#endif
+			#endif
                         return; 
                 }
         }
 
-	if(virt->prep) {
-		DEBUG_RENDER("rs 2\n");
-		virt->prep(node);
-		if(renderstate()->render_sensitive && !tg->RenderFuncs.hypersensitive) {
-			upd_ray();
-		}
-		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,virt);
+
+	if(v->prep) {
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 2\n");
+	    #endif
+
+	    v->prep(node);
+	    if(render_sensitive && !hypersensitive) {
+		upd_ray();
+	      }
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "prep";
+	  }
+
+	if(render_proximity && v->proximity) {
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 2a\n");
+	    #endif
+	    v->proximity(node);
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_proximity";
 	}
-	if(renderstate()->render_proximity && virt->proximity) {
-		DEBUG_RENDER("rs 2a\n");
-		virt->proximity(node);
-		PRINT_GL_ERROR_IF_ANY("render_proximity"); PRINT_NODE(node,virt);
-	}
+
+	if(render_collision && v->collision) {
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 2b\n");
+	    #endif
+
+	    v->collision(node);
+	    #ifdef RENDERVERBOSE 
+	    #endif
 	
-	if(renderstate()->render_collision && virt->collision) {
-		DEBUG_RENDER("rs 2b\n");
-		virt->collision(node);
-		PRINT_GL_ERROR_IF_ANY("render_collision"); PRINT_NODE(node,virt);
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_collision";
 	}
 
-	if(renderstate()->render_geom && !renderstate()->render_sensitive && virt->rend) {
-		DEBUG_RENDER("rs 3\n");
-		virt->rend(node);
-		PRINT_GL_ERROR_IF_ANY("render_geom"); PRINT_NODE(node,virt);
-	}
 
-	if(renderstate()->render_other && virt->other )
-	{
-#if DJTRACK_PICKSENSORS
-		DEBUG_RENDER("rs 4a\n");
-		virt->other(node); //other() is responsible for push_renderingState(VF_inPickableGroup);
-		PRINT_GL_ERROR_IF_ANY("render_other"); PRINT_NODE(node,virt);
-#endif
-	} //other
 
-	if(renderstate()->render_sensitive && (node->_renderFlags & VF_Sensitive)) {
-		DEBUG_RENDER("rs 5\n");
-		srg = renderstate()->render_geom;
-		renderstate()->render_geom = 1;
-		DEBUG_RENDER("CH1 %d: %d\n",node, p->cur_hits, node->_hit);
-		sch = p->cur_hits;
-		p->cur_hits = 0;
-		/* HP */
-		srh = p->rayph;
-		p->rayph.hitNode = node;
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->rayph.modelMatrix);
-		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, p->rayph.projMatrix);
-		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,virt);
-	}
+	if(render_geom && !render_sensitive && v->rend) {
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 3\n");
+	    #endif
 
-	if(renderstate()->render_geom && renderstate()->render_sensitive && !tg->RenderFuncs.hypersensitive && virt->rendray) {
-		DEBUG_RENDER("rs 6\n");
-		virt->rendray(node);
-		PRINT_GL_ERROR_IF_ANY("rs 6"); PRINT_NODE(node,virt);
-	}
+	    v->rend(node);
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_geom";
+	  }
+	 
+	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 5\n");
+	    #endif
 
-    if((renderstate()->render_sensitive) && (tg->RenderFuncs.hypersensitive == node)) {
-		DEBUG_RENDER("rs 7\n");
-		p->hyper_r1 = tg->RenderFuncs.t_r1;
-		p->hyper_r2 = tg->RenderFuncs.t_r2;
-		tg->RenderFuncs.hyperhit = 1;
-    }
+	    srg = render_geom;
+	    render_geom = 1;
+	    #ifdef RENDERVERBOSE 
+		printf("CH1 %d: %d\n",node, cur_hits, node->_hit);
+	    #endif
 
-	/* start recursive section */
-    if(virt->children) { 
-		DEBUG_RENDER("rs 8 - has valid child node pointer\n");
-		virt->children(node);
-		PRINT_GL_ERROR_IF_ANY("children"); PRINT_NODE(node,virt);
-    }
-	/* end recursive section */
+	    sch = cur_hits;
+	    cur_hits = 0;
+	    /* HP */
+	      srh = rayph;
+	    rayph.node = node;
+	    fwGetDoublev(GL_MODELVIEW_MATRIX, rayph.modelMatrix);
+	    fwGetDoublev(GL_PROJECTION_MATRIX, rayph.projMatrix);
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_sensitive";
 
-	if(renderstate()->render_other && virt->other)
-	{
-#if DJTRACK_PICKSENSORS
-		//pop_renderingState(VF_inPickableGroup);
-#endif
-	}
+	  }
+	if(render_geom && render_sensitive && !hypersensitive && v->rendray) {
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 6\n");
+	    #endif
 
-	if(renderstate()->render_sensitive && (node->_renderFlags & VF_Sensitive)) {
-		DEBUG_RENDER("rs 9\n");
-		renderstate()->render_geom = srg;
-		p->cur_hits = sch;
-		DEBUG_RENDER("CH3: %d %d\n",p->cur_hits, node->_hit);
-		/* HP */
-		p->rayph = srh;
-	}
+	    v->rendray(node);
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "rs 6";
+	  }
 
-	if(virt->fin) {
-		DEBUG_RENDER("rs A\n");
-		virt->fin(node);
-		if(renderstate()->render_sensitive && virt == &virt_Transform) {
-			upd_ray();
-		}
-		PRINT_GL_ERROR_IF_ANY("fin"); PRINT_NODE(node,virt);
-	}
 
-#ifdef RENDERVERBOSE 
-	{
-		int i;
-		for(i=0;i<renderLevel;i++)printf(" ");
-	}
-	printf("%d (end render_node)\n",renderLevel);
-	renderLevel--;
-#endif
+        if((render_sensitive) && (hypersensitive == node)) {
+            #ifdef RENDERVERBOSE 
+		printf ("rs 7\n");
+	    #endif
+
+            hyper_r1 = t_r1;
+            hyper_r2 = t_r2;
+            hyperhit = 1;
+        }
+        if(v->children) { 
+	#ifdef RENDERVERBOSE 
+		printf ("rs 8 - has valid child node pointer\n");
+	    #endif
+
+            v->children(node);
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "children";
+        }
+
+	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 9\n");
+	    #endif
+
+	    render_geom = srg;
+	    cur_hits = sch;
+	    #ifdef RENDERVERBOSE 
+		printf("CH3: %d %d\n",cur_hits, node->_hit);
+	    #endif
+
+	    /* HP */
+	      rayph = srh;
+	  }
+	if(v->fin) {
+	    #ifdef RENDERVERBOSE 
+		printf ("rs A\n");
+	    #endif
+
+	    v->fin(node);
+
+	    if(render_sensitive && v == &virt_Transform)
+	      {
+		upd_ray();
+	      }
+	    if (displayOpenGLErrors) if(glerror != GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "fin";
+	  }
+	#ifdef RENDERVERBOSE 
+		printf("%d (end render_node)\n",renderLevel);
+		renderLevel--;
+	#endif
+
+	if (displayOpenGLErrors) if(glerror != GL_NONE)
+	  {
+	    printf("============== GLERROR : %s in stage %s =============\n",gluErrorString(glerror),stage);
+	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
+		   stringNodeType(node->_nodeType),
+		   v->prep,
+		   v->rend,
+		   v->children,
+		   v->fin,
+		   v->rendray,
+		   hypersensitive);
+	    printf("Render_state geom %d light %d sens %d\n",
+		   render_geom,
+		   render_light,
+		   render_sensitive);
+	    printf ("pchange %d pichange %d vchanged %d\n",node->_change, node->_ichange,v->changed);
+	    printf("==============\n");
+	  }
 }
-//#undef RENDERVERBOSE
 
 /*
  * The following code handles keeping track of the parents of a given
@@ -1074,23 +476,43 @@ void render_node(struct X3D_Node *node) {
  */
 
 void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int line) {
+	int oldparcount;
+	int count;
 
 	if(!node) return;
 
-#ifdef CHILDVERBOSE
-	printf ("add_parent; adding node %u ,to parent %u at %s:%d\n",node,  parent,file,line);
-	printf ("add_parent; adding node %x ,to parent %x (hex) at %s:%d\n",node,  parent,file,line);
-	printf ("add_parent; adding node %p ,to parent %p (ptr) at %s:%d\n",node,  parent,file,line);
-
-
+	#ifdef CHILDVERBOSE
 	printf ("add_parent; adding node %u (%s) to parent %u (%s) at %s:%d\n",node, stringNodeType(node->_nodeType), 
-		parent, stringNodeType(parent->_nodeType),file,line);
-#endif
+			parent, stringNodeType(parent->_nodeType),file,line);
+	#endif
 
+	/* does this already exist? it is OK to have this added more than once */
+	#ifdef checkforduplicateparentsinaddparent
+	for (count=0; count<node->_nparents; count++) {
+		if (node->_parents[count] == parent) {
+			#ifdef CHILDVERBOSE
+			printf ("add_parent; parent already exists in this node\n");
+			#endif
+			return;
+		}
+	}
+	#endif
+ 
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 
-	/* add it to the parents list */
-	vector_pushBack (struct X3D_Node*,node->_parentVector, parent);
+	oldparcount = node->_nparents;
+	if((oldparcount+1) > node->_nparalloc) {
+		node->_nparents = 0; /* for possible threading issues */
+		node->_nparalloc += 10;
+		if (node->_parents == NULL)  {
+			node->_parents = (void **)MALLOC(sizeof(node->_parents[0])* node->_nparalloc) ;
+		} else {
+		node->_parents = (void **)REALLOC(node->_parents, sizeof(node->_parents[0])*
+							node->_nparalloc) ;
+		}
+	}
+	node->_parents[oldparcount] = parent;
+	node->_nparents = oldparcount+1;
 
 	/* tie in sensitive nodes */
 	setSensitive (parent, node);
@@ -1103,132 +525,268 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 	if(!child) return;
 	if(!parent) return;
 	
-#ifdef CHILDVERBOSE
+	#ifdef CHILDVERBOSE
 	printf ("remove_parent, parent %u (%s) , child %u (%s)\n",parent, stringNodeType(parent->_nodeType),
 		child, stringNodeType(child->_nodeType));
-#endif
+	#endif
 
+	/* find the index of this parent in this child. */
 	pi = -1;
-	for (i=0; i<vectorSize(child->_parentVector); i++) {
-		struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,i);
-		if (n==parent) pi = i;
+
+	for(i=0; i<child->_nparents; i++) {
+		/* printf ("comparing %u and %u\n",child->_parents[i], parent); */
+		if(child->_parents[i] == parent) {
+			pi = i;
+			break;
+		}
 	}
 
-	if (pi >=0) {
-		struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,vectorSize(child->_parentVector)-1);
+	if (pi < 0) return; /* child does not have this parent - removed already?? anyway... */
 
-		/* get the last entry, and overwrite the entry found */
-		vector_set(struct X3D_Node*, child->_parentVector, pi,n);
+	/* The order of parents does not matter. Instead of moving the whole
+	 * block of data after the current position, we simply swap the one to
+	 * delete at the end and do a vector pop_back (decrease nparents, which
+	 * has already happened).
+	 */
 
-		/* take that last entry off the vector */
-		vector_popBack(struct X3D_Node*, child->_parentVector);
+	#ifdef CHILDVERBOSE
+	printf ("remove_parent, pi %d, index at end %d\n",pi, child->_nparents-1);
+	#endif
+
+	child->_parents[pi]=child->_parents[child->_nparents-1];
+	child->_nparents--;
+
+	#ifdef CHILDVERBOSE
+	if (child->_nparents == -1) {
+		printf ("remove_parent, THIS NODE HAS NO PARENTS...\n");
 	}
+	#endif
 }
 
 void
-render_hier(struct X3D_Group *g, int rwhat) {
-	/// not needed now - see below struct point_XYZ upvec = {0,1,0};
-	/// not needed now - see below GLDOUBLE modelMatrix[16];
-
-#ifdef render_pre_profile
+render_hier(struct X3D_Node *p, int rwhat) {
+	struct point_XYZ upvec = {0,1,0};
+	GLdouble modelMatrix[16];
+	#define XXXrender_pre_profile
+	#ifdef render_pre_profile
 	/*  profile */
 	double xx,yy,zz,aa,bb,cc,dd,ee,ff;
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
-#endif
-	ppRenderFuncs p;
-	ttglobal tg = gglobal();
-	ttrenderstate rs;
-	p = (ppRenderFuncs)tg->RenderFuncs.prv;
-	rs = renderstate();
-
-	rs->render_vp = rwhat & VF_Viewpoint;
-	rs->render_geom =  rwhat & VF_Geom;
-	rs->render_light = rwhat & VF_globalLight;
-	rs->render_sensitive = rwhat & VF_Sensitive;
-	rs->render_blend = rwhat & VF_Blend;
-	rs->render_proximity = rwhat & VF_Proximity;
-	rs->render_collision = rwhat & VF_Collision;
-	rs->render_other = rwhat & VF_Other;
-#ifdef DJTRACK_PICKSENSORS
-	rs->render_picksensors = rwhat & VF_PickingSensor;
-	rs->render_pickables = rwhat & VF_inPickableGroup;
-#endif
-	p->nextFreeLight = 0;
-	tg->RenderFuncs.hitPointDist = -1;
+	#endif
 
 
-#ifdef render_pre_profile
-	if (rs->render_geom) {
+	render_vp = rwhat & VF_Viewpoint;
+	render_geom =  rwhat & VF_Geom;
+	render_light = rwhat & VF_globalLight;
+	render_sensitive = rwhat & VF_Sensitive;
+	render_blend = rwhat & VF_Blend;
+	render_proximity = rwhat & VF_Proximity;
+	render_collision = rwhat & VF_Collision;
+	curlight = 0;
+	hpdist = -1;
+
+
+	#ifdef render_pre_profile
+	if (render_geom) {
 		gettimeofday (&mytime,&tz);
 		aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	}
-#endif
+	#endif
 
 	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	   render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
+	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
 
-	if (!g) {
+	if (!p) {
 		/* we have no geometry yet, sleep for a tiny bit */
+#ifdef WIN32
+		Sleep(1);
+#else
 		usleep(1000);
+#endif
 		return;
 	}
 
-#ifdef RENDERVERBOSE
-	printf("Render_hier node=%d what=%d\n", g, rwhat);
-#endif
+	#ifdef RENDERVERBOSE
+  		printf("Render_hier node=%d what=%d\n", p, rwhat);
+	#endif
 
-#ifdef render_pre_profile
-	if (rs->render_geom) {
+	#ifdef render_pre_profile
+	if (render_geom) {
 		gettimeofday (&mytime,&tz);
 		bb = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	}
-#endif
+	#endif
 
-	if (rs->render_sensitive) {
+	if (render_sensitive) {
 		upd_ray();
 	}
 
-#ifdef render_pre_profile
-	if (rs->render_geom) {
+	#ifdef render_pre_profile
+	if (render_geom) {
 		gettimeofday (&mytime,&tz);
 		cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	}
-#endif
+	#endif
 
-	render_node(X3D_NODE(g));
+	render_node(p);
 
-#ifdef render_pre_profile
-	if (rs->render_geom) {
+	#ifdef render_pre_profile
+	if (render_geom) {
 		gettimeofday (&mytime,&tz);
 		dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 		printf ("render_geom status %f ray %f geom %f\n",bb-aa, cc-bb, dd-cc);
 	}
-#endif
+	#endif
+
+
+	/*get viewpoint result, only for upvector*/
+	if (render_vp &&
+		ViewerUpvector.x == 0 &&
+		ViewerUpvector.y == 0 &&
+		ViewerUpvector.z == 0) {
+
+		/* store up vector for gravity and collision detection */
+		/* naviinfo.reset_upvec is set to 1 after a viewpoint change */
+		fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+		matinverse(modelMatrix,modelMatrix);
+		transform3x3(&ViewerUpvector,&upvec,modelMatrix);
+
+		#ifdef RENDERVERBOSE 
+		printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
+		#endif
+
+	}
 }
 
+/* shutter glasses, stereo view  from Mufti@rus */
+/* handle setting shutter from parameters */
+void setShutter (void) {
+        shutterGlasses = 1;
+}
 
 /******************************************************************************
  *
  * shape compiler "thread"
  *
  ******************************************************************************/
+#ifdef DO_MULTI_OPENGL_THREADS
+
+/* threading variables for loading shapes in threads */
+static pthread_mutex_t shapeMutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t shapeCond   = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t shapeGenMutex = PTHREAD_MUTEX_INITIALIZER;
+#define SLOCK           pthread_mutex_lock(&shapeMutex);
+#define SUNLOCK         pthread_mutex_unlock(&shapeMutex);
+#define S_LOCK_SIGNAL   pthread_cond_signal(&shapeCond);
+#define S_LOCK_WAIT     pthread_cond_wait(&shapeCond,&shapeMutex);
+/* lock the reallocs of data structures */
+#define REGENLOCK       pthread_mutex_lock(&shapeGenMutex);
+#define REGENUNLOCK     pthread_mutex_unlock(&shapeGenMutex);
+
+/* are we currently active? */
+int shapeCompiling = FALSE;
+
+int CompileThreadInitialized = FALSE;
+static void (*shapemethodptr)(void *, void *, void *, void *, void *); 	/* method used to compile this node 	*/
+static void *shapenodeptr;		/* node pointer of node data		*/
+static void *shapecoord;		/* Polrep shape coord node		*/
+static void *shapecolor;		/* Polyrep shape color node		*/
+static void *shapenormal;		/* Polyrep shape normal node		*/
+static void *shapetexCoord;		/* Polyrep shape tex coord node		*/
+
+void _shapeCompileThread () {
+	/* we wait forever for the data signal to be sent */
+	for (;;) {
+		SLOCK
+		CompileThreadInitialized = TRUE;
+		S_LOCK_WAIT
+		shapeCompiling = TRUE;
+		/* printf ("shapethread compiling\n"); */
+
+		/* so, lets do the compile */
+		shapemethodptr(shapenodeptr, shapecoord, shapecolor, shapenormal, shapetexCoord);
+
+		shapeCompiling = FALSE;
+		SUNLOCK
+	}
+}
+
+
+void initializeShapeCompileThread() {
+	int iret;
+
+	if (shapeThread == NULL) {
+        	iret = pthread_create(&shapeThread, NULL, (void *(*)(void *))&_shapeCompileThread, NULL);
+	}
+}
+
+#endif
+
+int isShapeCompilerParsing() {
+	#ifdef DO_MULTI_OPENGL_THREADS
+	return shapeCompiling;
+	#else
+	return FALSE;
+	#endif
+}
 
 void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *Icoord, void *Icolor, void *Inormal, void *ItexCoord) {
 	void *coord; void *color; void *normal; void *texCoord;
+	/* check to see if textures are being parsed right now */
+
+	/* give textures priority over node compiling */
+	if (textures_take_priority) {
+		if (isTextureParsing()==TRUE) {
+			/* printf ("compileNode, textures parsing, returning\n"); */
+			return;
+		}
+	}
 
 	/* are any of these SFNodes PROTOS? If so, get the underlying real node, as PROTOS are handled like Groups. */
-	POSSIBLE_PROTO_EXPANSION(void *, Icoord,coord)
-		POSSIBLE_PROTO_EXPANSION(void *, Icolor,color)
-		POSSIBLE_PROTO_EXPANSION(void *, Inormal,normal)
-		POSSIBLE_PROTO_EXPANSION(void *, ItexCoord,texCoord)
+	POSSIBLE_PROTO_EXPANSION(Icoord,coord)
+	POSSIBLE_PROTO_EXPANSION(Icolor,color)
+	POSSIBLE_PROTO_EXPANSION(Inormal,normal)
+	POSSIBLE_PROTO_EXPANSION(ItexCoord,texCoord)
 
+	#ifdef DO_MULTI_OPENGL_THREADS
+
+	/* do we want to use a seperate thread for compiling shapes, or THIS thread? */
+	if (useShapeThreadIfPossible) {
+		if (!shapeCompiling) {
+			if (!CompileThreadInitialized) return; /* still starting up */
+	
+	
+			/* lock for exclusive thread access */
+	        	SLOCK
+	
+			/* copy our params over */
+			shapemethodptr = nodefn;
+			shapenodeptr = node;
+			shapecoord = coord;
+			shapecolor = color;
+			shapenormal = normal;
+			shapetexCoord = texCoord;
+			/* signal to the shape compiler thread that there is data here */
+			S_LOCK_SIGNAL
+	        	SUNLOCK
+			
+		}
+		sched_yield();
+	} else {
+		/* ok, we do not want to use the shape compile thread, just do it */
+		nodefn(node, coord, color, normal, texCoord);
+	}
+
+	#else
+	/* ok, we cant do a shape compile thread, just do it */
 	nodefn(node, coord, color, normal, texCoord);
+	#endif
 }
 
 
 /* for CRoutes, we need to have a function pointer to an interpolator to run, if we
-   route TO an interpolator */
+route TO an interpolator */
 void *returnInterpolatorPointer (const char *x) {
 	if (strcmp("OrientationInterpolator",x)==0) { return (void *)do_Oint4;
 	} else if (strcmp("CoordinateInterpolator2D",x)==0) { return (void *)do_OintCoord2D;
@@ -1237,7 +795,7 @@ void *returnInterpolatorPointer (const char *x) {
 	} else if (strcmp("ColorInterpolator",x)==0) { return (void *)do_ColorInterpolator;
 	} else if (strcmp("PositionInterpolator",x)==0) { return (void *)do_PositionInterpolator;
 	} else if (strcmp("CoordinateInterpolator",x)==0) { return (void *)do_OintCoord;
-	} else if (strcmp("NormalInterpolator",x)==0) { return (void *)do_OintNormal;
+	} else if (strcmp("NormalInterpolator",x)==0) { return (void *)do_OintCoord;
 	} else if (strcmp("GeoPositionInterpolator",x)==0) { return (void *)do_GeoPositionInterpolator;
 	} else if (strcmp("BooleanFilter",x)==0) { return (void *)do_BooleanFilter;
 	} else if (strcmp("BooleanSequencer",x)==0) { return (void *)do_BooleanSequencer;
@@ -1246,6 +804,7 @@ void *returnInterpolatorPointer (const char *x) {
 	} else if (strcmp("IntegerTrigger",x)==0) { return (void *)do_IntegerTrigger;
 	} else if (strcmp("IntegerSequencer",x)==0) { return (void *)do_IntegerSequencer;
 	} else if (strcmp("TimeTrigger",x)==0) { return (void *)do_TimeTrigger;
+	} else if (strcmp("MidiControl",x)==0) { return (void *)do_MidiControl;
 	
 	} else {
 		return 0;
@@ -1275,16 +834,16 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 	}
 
 	/* find all the fields of this node */
-	offsetptr = (int *) NODE_OFFSETS[node->_nodeType];
+	offsetptr = (int *)NODE_OFFSETS[node->_nodeType];
 
 	/* FIELDNAMES_bboxCenter, offsetof (struct X3D_Group, bboxCenter),  FIELDTYPE_SFVec3f, KW_field, */
 	while (*offsetptr >= 0) {
 
 		/* 
-		   printf ("	field %s",FIELDNAMES[offsetptr[0]]); 
-		   printf ("	offset %d",offsetptr[1]);
-		   printf ("	type %s",FIELDTYPES[offsetptr[2]]);
-		   printf ("	kind %s\n",KEYWORDS[offsetptr[3]]);
+		printf ("	field %s",FIELDNAMES[offsetptr[0]]); 
+		printf ("	offset %d",offsetptr[1]);
+		printf ("	type %s",FIELDTYPES[offsetptr[2]]);
+		printf ("	kind %s\n",KEYWORDS[offsetptr[3]]);
 		*/
 
 		/* worry about SFNodes and MFNodes */
@@ -1322,26 +881,279 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 #define X3D_GEOCOORD(node) ((struct X3D_GeoCoordinate*)node)
 
 /* get a coordinate array - (SFVec3f) from either a NODE_Coordinate or NODE_GeoCoordinate */
-struct Multi_Vec3f *getCoordinate (struct X3D_Node *innode, char *str) {
+struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 	struct X3D_Coordinate * xc;
 	struct X3D_GeoCoordinate *gxc;
 	struct X3D_Node *node;
 
-	POSSIBLE_PROTO_EXPANSION (struct X3D_Node *, innode,node)
+	POSSIBLE_PROTO_EXPANSION (innode,node)
 
-		xc = X3D_COORD(node);
+	xc = X3D_COORD(node);
 	/* printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType)); */
 
 	if (xc->_nodeType == NODE_Coordinate) {
 		return &(xc->point);
 	} else if (xc->_nodeType == NODE_GeoCoordinate) {
-		COMPILE_IF_REQUIRED_RETURN_NULL_ON_ERROR;
+		COMPILE_IF_REQUIRED
 		gxc = X3D_GEOCOORD(node);
 		return &(gxc->__movedCoords);
 	} else {
 		ConsoleMessage ("%s - coord expected but got %s\n", stringNodeType(xc->_nodeType));
 	}
-	return NULL;
 }
 
+
+/************************************************************************************************/
+/*												*/
+/*	MetadataMF and MetadataSF nodes								*/
+/*												*/
+/************************************************************************************************/
+
+#define META_IS_INITIALIZED (node->_ichange != 0)
+
+/* anything changed for this PROTO interface datatype? */
+#define CMD_I32(type) void compile_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
+	if META_IS_INITIALIZED { \
+	if (node->value != node->setValue) { \
+		node->value = node->setValue; \
+		node->valueChanged = node->setValue; \
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSF##type, valueChanged)); \
+	} \
+	} else { \
+		/* initialize fields */ \
+		node->valueChanged = node->value; node->setValue = node->value; \
+	} \
+	MARK_NODE_COMPILED \
+}
+
+#define CMD_FL(type) void compile_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
+	if META_IS_INITIALIZED { \
+	if (!APPROX(node->value,node->setValue)) { \
+		node->value = node->setValue; \
+		node->valueChanged = node->setValue; \
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSF##type, valueChanged)); \
+	} \
+	} else { \
+		/* initialize fields */ \
+		node->valueChanged = node->value; node->setValue = node->value; \
+	} \
+	MARK_NODE_COMPILED \
+}
+
+#define CMD_MFL(type,elelength) void compile_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
+	int count; \
+	if META_IS_INITIALIZED { \
+	for (count=0; count < elelength; count++) { \
+		if (!APPROX(node->value.c[count],node->setValue.c[count])) { \
+			memcpy (&node->value, &node->setValue, sizeof node->value.c[0]* elelength); \
+			memcpy (&node->valueChanged, &node->setValue, sizeof node->value.c[0] * elelength); \
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSF##type, valueChanged)); \
+			return; \
+		} \
+	} \
+	} else { \
+		/* initialize fields */ \
+		memcpy (&node->setValue, &node->value, sizeof node->value.c[0]* elelength); \
+		memcpy (&node->valueChanged, &node->value, sizeof node->value.c[0] * elelength); \
+	} \
+	MARK_NODE_COMPILED \
+}
+
+
+
+/* compare element counts, and pointer values */
+/* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
+#define CMD_MULTI(type,elelength,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+	int count; int changed = FALSE; \
+	if META_IS_INITIALIZED { \
+	if (node->value.n != node->setValue.n) changed = TRUE; else { \
+		/* yes, these two array must have the same index counts... */ \
+		for (count=0; count<node->setValue.n; count++) { \
+			int count2; for (count2=0; count2<elelength; count2++) { if (!APPROX(node->value.p[count].c[count2], node->setValue.p[count].c[count2])) changed = TRUE; break; }\
+		if (changed) break; } \
+	} \
+	\
+	if (changed) { \
+                        /* printf ("MSFL, change hit, freeing pointers %x and %x\n", node->value.p, node->valueChanged.p); */ \
+			FREE_IF_NZ (node->value.p); \
+			FREE_IF_NZ(node->valueChanged.p); \
+			node->value.p = MALLOC(dataSize * node->setValue.n * elelength); \
+			node->valueChanged.p = MALLOC(dataSize * node->setValue.n * elelength); \
+			memcpy(node->value.p, node->setValue.p, dataSize * node->setValue.n * elelength); \
+			memcpy(node->valueChanged.p, node->setValue.p, dataSize * node->setValue.n * elelength); \
+                        node->value.n = node->setValue.n; \
+                        node->valueChanged.n = node->setValue.n; \
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
+	} \
+	} else { \
+		/* the "value" will hold everything we need */ \
+		/* initialize it, but do not bother doing any routing on it */ \
+		if ((node->setValue.n != 0) || (node->setValue.p != NULL) || (node->valueChanged.n != 0) || (node->valueChanged.p != NULL)) { printf ("PROTO header - initialization set and changed, but not zero??\n");  \
+                node->setValue.n = 0; FREE_IF_NZ(node->setValue.p);  \
+                node->valueChanged.n = 0; FREE_IF_NZ(node->valueChanged.p); } \
+	} \
+	MARK_NODE_COMPILED \
+}
+
+#define CMD_MSFI32(type,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+        /* printf ("MSFI32:, node %x\n",node); \
+        printf ("MSFI32:, nt %s change %d ichange %d\n",stringNodeType(node->_nodeType),node->_change, node->_ichange); */ \
+        if META_IS_INITIALIZED { \
+                int count; int changed = FALSE; \
+                /* printf ("MSFI32:, so this is initialized; value %d setValue count%d\n",node->value.n,node->setValue.n); */ \
+/* { int count; char *cptr = (char *)&(node->setValue); for (count = 0; count < 8; count ++) { printf ("%u: %x ",count, *cptr); cptr ++; } \
+ printf ("\n"); \
+cptr = (char *)&(node->value); for (count = 0; count < 8; count ++) { printf ("%u: %x ",count, *cptr); cptr ++; } \
+ printf ("\n"); \
+} */\
+                if (node->value.n != node->setValue.n) changed = TRUE; \
+                else { \
+		    /* same count, but something caused this to be called; go through each element */ \
+                    for (count=0; count<node->setValue.n; count++) { \
+                          /* printf ("MSFI32, comparing ele %d %x %x\n",count, node->value.p[count], node->setValue.p[count]); */ \
+                          if (node->value.p[count] != node->setValue.p[count]) {changed = TRUE; break; } \
+                    } \
+                } \
+ \
+                if (changed) { \
+                        /* printf ("MSFI32, change hit, freeing pointers %x and %x\n", node->value.p, node->valueChanged.p); */ \
+			FREE_IF_NZ (node->value.p); \
+			FREE_IF_NZ(node->valueChanged.p); \
+			node->value.p = MALLOC(dataSize * node->setValue.n); \
+			node->valueChanged.p = MALLOC(dataSize * node->setValue.n); \
+			memcpy(node->value.p, node->setValue.p, dataSize * node->setValue.n); \
+			memcpy(node->valueChanged.p, node->setValue.p, dataSize * node->setValue.n); \
+                        node->value.n = node->setValue.n; \
+                        node->valueChanged.n = node->setValue.n; \
+                        MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
+                } \
+        } else { \
+                /* the "value" will hold everything we need */ \
+                /* initialize it, but do not bother doing any routing on it */ \
+		/* printf ("MSFI32: initializing\n"); */ \
+		if ((node->setValue.n != 0) || (node->setValue.p != NULL) || (node->valueChanged.n != 0) || (node->valueChanged.p != NULL)) { printf ("PROTO header - initialization set and changed, but not zero??\n");  \
+                node->setValue.n = 0; FREE_IF_NZ(node->setValue.p);  \
+                node->valueChanged.n = 0; FREE_IF_NZ(node->valueChanged.p); } \
+		/* printf ("MSFI32 - leaving the setValue and ValueChanged pointers to %x %x\n",node->setValue.p, node->valueChanged.p);*/ \
+        } \
+        MARK_NODE_COMPILED \
+        /* printf ("MSFI32: DONE; value %d, value_changed.n %d\n", node->value.n,node->valueChanged.n);  */ \
+} 
+
+
+
+
+
+
+
+/* compare element counts, then individual elements, if the counts are the same */
+/* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
+#define CMD_MSFL(type,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+	int count; int changed = FALSE; \
+	if META_IS_INITIALIZED { \
+	if (node->value.n != node->setValue.n) changed = TRUE; else { \
+		/* yes, these two array must have the same index counts... */ \
+		for (count=0; count<node->setValue.n; count++) if (!APPROX(node->value.p[count], node->setValue.p[count])) { changed = TRUE; break; }}\
+	\
+	if (changed) { \
+                        /* printf ("MSFL, change hit, freeing pointers %x and %x\n", node->value.p, node->valueChanged.p); */ \
+			FREE_IF_NZ (node->value.p); \
+			FREE_IF_NZ(node->valueChanged.p); \
+			node->value.p = MALLOC( dataSize * node->setValue.n); \
+			node->valueChanged.p = MALLOC(dataSize * node->setValue.n); \
+			memcpy(node->value.p, node->setValue.p, dataSize * node->setValue.n); \
+			memcpy(node->valueChanged.p, node->setValue.p, dataSize * node->setValue.n); \
+                        node->value.n = node->setValue.n; \
+                        node->valueChanged.n = node->setValue.n; \
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
+	} \
+	} else { \
+		/* the "value" will hold everything we need */ \
+		/* initialize it, but do not bother doing any routing on it */ \
+		if ((node->setValue.n != 0) || (node->setValue.p != NULL) || (node->valueChanged.n != 0) || (node->valueChanged.p != NULL)) { printf ("PROTO header - initialization set and changed, but not zero??\n");  \
+                node->setValue.n = 0; FREE_IF_NZ(node->setValue.p);  \
+                node->valueChanged.n = 0; FREE_IF_NZ(node->valueChanged.p); } \
+	} \
+	MARK_NODE_COMPILED \
+}
+
+
+CMD_FL(Float)
+CMD_FL(Time)
+CMD_FL(Double)
+CMD_I32(Bool)
+CMD_I32(Int32)
+CMD_I32(Node)
+
+CMD_MFL(Vec2f,2)
+CMD_MFL(Vec3f,3)
+CMD_MFL(Vec4f,4)
+CMD_MFL(Vec2d,2)
+CMD_MFL(Vec3d,3)
+CMD_MFL(Vec4d,4)
+CMD_MFL(Rotation,4)
+CMD_MFL(Color,3)
+CMD_MFL(ColorRGBA,4)
+CMD_MFL(Matrix3f,9)
+CMD_MFL(Matrix3d,9)
+CMD_MFL(Matrix4f,16)
+CMD_MFL(Matrix4d,16)
+
+CMD_MULTI(Rotation,4,sizeof (float))
+CMD_MULTI(Vec2f,2,sizeof (float))
+CMD_MULTI(Vec3f,3,sizeof (float))
+CMD_MULTI(Vec4f,4,sizeof (float))
+CMD_MULTI(Vec2d,2,sizeof (double))
+CMD_MULTI(Vec3d,3,sizeof (double))
+CMD_MULTI(Vec4d,4,sizeof (double))
+CMD_MULTI(Color,3,sizeof (float))
+CMD_MULTI(ColorRGBA,4,sizeof (float))
+CMD_MULTI(Matrix3f,9,sizeof (float))
+CMD_MULTI(Matrix4f,16,sizeof (float))
+CMD_MULTI(Matrix3d,9,sizeof (double))
+CMD_MULTI(Matrix4d,16,sizeof (double))
+
+CMD_MSFI32(Bool, sizeof(int))
+CMD_MSFI32(Int32,sizeof (int))
+CMD_MSFI32(Node,sizeof (void *))
+CMD_MSFL(Time,sizeof (double))
+CMD_MSFL(Float,sizeof (float))
+CMD_MSFL(Double,sizeof (double))
+CMD_MSFI32(String,sizeof (void *))
+
+
+void compile_MetadataSFImage (struct X3D_MetadataSFImage *node){ printf ("make compile_Metadata %s\n",stringNodeType(node->_nodeType));}
+/*
+struct Uni_String {
+        int len;
+        char * strptr;
+        int touched;
+};
+*/
+
+void compile_MetadataSFString (struct X3D_MetadataSFString *node){ 
+	int count; int changed = FALSE; 
+
+	if META_IS_INITIALIZED { 
+	if (node->value->len != node->setValue->len) changed = TRUE; else { 
+		for (count=0; count<node->setValue->len; count++) 
+			if (node->value->strptr[count] != node->setValue->strptr[count]) changed = TRUE; }
+	
+	if (changed) { 
+		node->value->len = node->setValue->len; node->value->strptr = node->setValue->strptr; 
+		node->valueChanged->len = node->setValue->len; node->valueChanged->strptr = node->setValue->strptr; 
+		node->value->touched = TRUE; node->valueChanged->touched = TRUE;
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSFString, valueChanged)); 
+	} 
+	} else {
+		/* initialize this one */
+		node->valueChanged->len = node->value->len;
+		node->valueChanged->touched = node->value->touched;
+		node->valueChanged->strptr = node->value->strptr;
+		node->setValue->len = node->value->len;
+		node->setValue->touched = node->value->touched;
+		node->setValue->strptr = node->value->strptr;
+	}
+	MARK_NODE_COMPILED
+}
 

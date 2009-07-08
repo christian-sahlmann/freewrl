@@ -1,25 +1,3 @@
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
-
-
 #include <sys/types.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -38,7 +16,7 @@ typedef struct { int type; int value; } _intX3D_SFBool;
 typedef struct { int type; float value; } _intX3D_SFFloat;
 typedef struct { int type; double value; } _intX3D_SFTime;
 typedef struct { int type; int value; } _intX3D_SFInt32;
-typedef struct { int type; int adr; } _intX3D_SFNode;
+typedef struct { int type; uintptr_t *adr; } _intX3D_SFNode;
 typedef struct { int type; float r[4]; } _intX3D_SFRotation;
 typedef struct { int type; float c[2]; } _intX3D_SFVec2f;
 typedef struct { int type; double c[2]; } _intX3D_SFVec2d;
@@ -109,7 +87,7 @@ typedef union _X3DNode {
 
 
 struct _intX3DEventIn {
-	int		nodeptr;
+	uintptr_t	nodeptr;
 	int 		offset;
 	int		datatype;
 	int 		datasize;
@@ -198,7 +176,7 @@ extern int isSwig;
 int _X3D_countWords(char *ptr);
 char *_X3D_make1StringCommand (char command, char *name);
 char *_X3D_make2StringCommand (char command, char *str1, char *str2);
-char *_X3D_Browser_SendEventType(int adr,char *name, char *evtype);
+char *_X3D_Browser_SendEventType(uintptr_t *adr,char *name, char *evtype);
 char *_X3D_makeShortCommand (char command);
 void _X3D_sendEvent (char command, char *string);
 void _handleFreeWRLcallback(char *command);
@@ -211,6 +189,8 @@ int X3DAdvise (X3DEventOut *node, void *fn);
 void _handleReWireCallback(char *buf);
 char mapFieldTypeToEAItype (int st);
 int mapEAItypeToFieldType (char st);
+void sendMIDITableToFreeWRL(char *buf);
+void sendMIDIControlToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value);
 X3DNode* X3D_getValue(X3DEventOut *src);
 void X3D_freeEventIn(X3DEventIn* ev);
 void X3D_freeEventOut(X3DEventOut* ev);

@@ -1,37 +1,27 @@
 /*
-  $Id: main.h,v 1.11 2011/06/10 19:10:05 couannette Exp $
+=INSERT_TEMPLATE_HERE=
 
-  FreeWRL/X3D main program.
-  Internal header: helper macros.
+$Id: main.h,v 1.2.2.1 2009/07/08 21:55:04 couannette Exp $
+
+FreeWRL/X3D main program.
+Internal header: helper macros.
 
 */
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
 
 #ifndef __FREEWRL_MAIN_H__
 #define __FREEWRL_MAIN_H__
 
+/* LOG, WARNING, ERROR macros */
 
-extern freewrl_params_t *fv_params;
-extern char *start_url;
+#if defined(FW_DEBUG)
+# define DEBUG_(_expr) _expr
+#else
+# define DEBUG_(...)
+#endif
+
+#define TRACE_MSG(_formargs...) DEBUG_(fprintf(stdout, ##_formargs))
+#define WARN_MSG(_formargs...)  DEBUG_(fprintf(stdout, ##_formargs))
+#define ERROR_MSG(_formargs...) DEBUG_(fprintf(stderr, ##_formargs))
 
 
 #endif /* __FREEWRL_MAIN_H__ */

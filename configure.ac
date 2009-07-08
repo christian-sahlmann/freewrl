@@ -11,9 +11,9 @@
 # Autoconf startup, we define the package's name, and version: 
 # but this is not the program's version, nor the library's version.
 # We also define the maintainer address.
-AC_INIT([freewrl], [1.22.13], [freewrl-help@lists.sourceforge.net])
+AC_INIT([freewrl], [1.22.3], [freewrl@crc.ca])
 
-# Little customization: all autotools derived files go in a sub-directory.
+# Little cutomizatin: all autotools derived files go in a sub-directory.
 AC_CONFIG_AUX_DIR([config])
 # If you have custom m4 files, declare this macro (and its twins in Makefile.am)
 AC_CONFIG_MACRO_DIR([m4])
@@ -26,9 +26,6 @@ AC_CANONICAL_HOST
 AM_INIT_AUTOMAKE([subdir-objects]) # this option tells automake to generate
 # object files in the same subdir as the source file - this prevent us to have
 # all object files in the subdir where Makefile resides...
-
-# "shaved feature" of automake 1.11... output only compiled file, not gcc command line
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # We have a script (vtempl) that uses a system command (sed): we need
 # to be sure to call the good sed binary whatever the system is. So we 
@@ -58,7 +55,7 @@ export PKG_CONFIG_PATH=$srcdir:$PKG_CONFIG_PATH
 
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([ctype.h dirent.h errno.h fcntl.h getopt.h math.h signal.h sched.h stdarg.h stdbool.h stdio.h stdint.h stdlib.h string.h sys/ioctl.h sys/ipc.h sys/msg.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/wait.h time.h unistd.h limits.h])
+AC_CHECK_HEADERS([ctype.h dirent.h errno.h fcntl.h getopt.h math.h signal.h sched.h stdbool.h stdio.h stdint.h stdlib.h string.h sys/ioctl.h sys/ipc.h sys/msg.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/wait.h time.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIGNAL
@@ -71,7 +68,7 @@ AC_HEADER_STDBOOL
 AC_FUNC_FORK
 AC_PROG_GCC_TRADITIONAL
 dnl AC_FUNC_MALLOC
-AC_CHECK_FUNCS([strchr strrchr strdup strndup strerror getopt getopt_long getopt_long_only malloc calloc realloc usleep gettimeofday])
+AC_CHECK_FUNCS([strchr strrchr strdup strndup getopt getopt_long getopt_long_only malloc calloc realloc])
 
 
 # ====================================================
@@ -84,7 +81,7 @@ AC_CHECK_FUNCS([strchr strrchr strdup strndup strerror getopt getopt_long getopt
 case "$host_os" in
      *mingw32*|*cygwin*) os_type=win32 ;;
      darwin*) os_type=mac ;;
-     *) os_type=linux ;;
+     *) os_type=unix ;;
 esac
 
 echo "Platform: $host_os, $os_type"
@@ -92,24 +89,15 @@ echo "Platform: $host_os, $os_type"
 # OS conditionals
 AM_CONDITIONAL([OS_WIN32],[test "$os_type" = "win32"])
 AM_CONDITIONAL([OS_UNIX],[test "$os_type" != "win32"])
-AM_CONDITIONAL([OS_LINUX],[test "$os_type" = "linux"])
+AM_CONDITIONAL([OS_LINUX],[test "$host_os" = "linux"])
 AM_CONDITIONAL([OS_MAC],[test "$os_type" = "mac"])
 
 # ====================================================
 # FreeWRL specific configuration: debug build
 # ====================================================
 
-# A lot of DEBUG, _DEBUG, DEBUG_ defines are out there. So I prefer to create
-# a new one for FreeWRL:
-
 AC_MY_DEFINE_SWITCH([debug],[enable debugging (default=off)],off,FW_DEBUG)
-AM_CONDITIONAL([FW_DEBUG],[test "$sw_debug" != no])
-
-# debug feature: colorized threads
-AC_MY_DEFINE_SWITCH([thread_colorized],[enable colorized thread console output (default=off)],off,FREEWRL_THREAD_COLORIZED)
-
-# debug feature: plugin debug messages
-AC_MY_DEFINE_SWITCH([debug_plugin],[enable debugging (default=off)],off,FW_DEBUG_PLUGIN)
+AM_CONDITIONAL([DEBUG],[test "$sw_debug" != no])
 
 # Fonts configuration
 AC_ARG_WITH([fontsdir],
@@ -119,6 +107,18 @@ AC_ARG_WITH([fontsdir],
             [fontsdir=$datadir/$PACKAGE/fonts])
 
 AC_DEFINE_DIR([FONTS_DIR],[fontsdir],[Directory for fonts.])
+
+
+# Mozilla plugin install dir
+AC_ARG_WITH([plugindir],
+            AS_HELP_STRING([--with-plugindir=DIR],[browser plugin install path @<:@/usr/lib/mozilla/plugins@:>@]),
+            [if test x$withval = xno; then
+              plugindir="/usr/lib/mozilla/plugins"
+            else
+              plugindir="$withval"
+            fi],[plugindir="/usr/lib/mozilla/plugins"])
+
+AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugin.])
 
 # ====================================================
 # FreeWRL specific configuration: library checking
@@ -131,7 +131,7 @@ AC_ARG_WITH(zlib,AS_HELP_STRING([--with-zlib=<dir>],[Use zlib from here]),[
                 ZLIB_LIBS="-L$withval/lib $ZLIB_LIBS"])
 
   # save global cflags/libs
-  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
   # set cflags/libs for this case
   CPPFLAGS="$CPPFLAGS $ZLIB_CFLAGS"
   LDFLAGS="$LDFLAGS $ZLIB_LIBS"
@@ -142,7 +142,7 @@ AC_CHECK_LIB(z, deflate, [],
    [AC_MSG_ERROR([Can't find zlib library. Please install zlib.])])
 
   # restore global cflags/libs
-  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS
+  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS
 
 AC_SUBST(ZLIB_CFLAGS)
 AC_SUBST(ZLIB_LIBS)
@@ -155,27 +155,11 @@ ACX_PTHREAD
 
 # Fix for proper use of --as-needed
 # http://udrepper.livejournal.com/19395.html
-PTHREAD_CFLAGS=$(echo $PTHREAD_CFLAGS|sed -e 's/-pthreads\{0,1\}//')
+PTHREAD_CFLAGS=$(echo $PTHREAD_CFLAGS|sed -e 's/-pthread//')
 PTHREAD_LIBS="$PTHREAD_LIBS -lpthread"
 
 # FreeType (font rendering)
 PKG_CHECK_MODULES(FREETYPE, freetype2)
-
-# Fontconfig [optional]
-AC_MY_SWITCH(fontconfig,[enable fontconfig support],on)
-if test x$sw_fontconfig = xyes; then
-    PKG_CHECK_MODULES(FONTCONFIG, fontconfig, AC_DEFINE(HAVE_FONTCONFIG, 1, [Define if you have fontconfig installed.]), [sw_fontconfig=no] )
-fi
-
-
-# libcurl [optional]
-AC_MY_SWITCH(libcurl,[enable libcurl (could be used instead of wget)],off)
-if test x$sw_libcurl = xno; then
-   :
-else
-   PKG_CHECK_MODULES(LIBCURL, libcurl, AC_DEFINE(HAVE_LIBCURL, 1, [Define if you have the libcurl library.]))
-fi
-
 
 # Javascript engine
 # check order:
@@ -189,16 +173,14 @@ AC_MSG_NOTICE([Determining Javascript engine to build against])
 found_JAVASCRIPT_ENGINE=no
 case "$os_type" in
      mac) 
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[spidermonkey],[>=],[1.7.0])
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,spidermonkey,1.7.0)
         ;;
      *)
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs187])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs185])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozilla-js],[>=],[1.9])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[xulrunner-js],[>=],[1.8])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[seamonkey-js])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[firefox-js])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[firefox2-js])
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,mozilla-js,1.9)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,xulrunner-js,1.8)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,seamonkey-js)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox-js)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox2-js)
         ;;
 esac
 
@@ -210,10 +192,10 @@ fi
 ## Provide a fix for include path for systems with erroneous mozilla-js.pc
 if test x$found_JAVASCRIPT_ENGINE = xmozilla-js; then
   LIBMOZJS_INCDIR=`$PKG_CONFIG --variable=includedir mozilla-js 2>/dev/null`
-  if (echo $JAVASCRIPT_ENGINE_CFLAGS | egrep '(un)?stable') > /dev/null 2>&1; then
+  if (echo $JAVASCRIPT_ENGINE_CFLAGS | grep '/stable') > /dev/null 2>&1; then
     if test -f $LIBMOZJS_INCDIR/unstable/jsapi.h; then
       AC_MSG_NOTICE([Discovered jsapi.h exists in unstable includedir])
-      JAVASCRIPT_ENGINE_CFLAGS="${JAVASCRIPT_ENGINE_CFLAGS/unstable/stable} -DMOZILLA_JS_UNSTABLE_INCLUDES"
+      JAVASCRIPT_ENGINE_CFLAGS="$JAVASCRIPT_ENGINE_CFLAGS -DMOZILLA_JS_UNSTABLE_INCLUDES"
       AC_SUBST(JAVASCRIPT_ENGINE_CFLAGS)
     fi
   fi
@@ -227,52 +209,37 @@ PKG_CHECK_MODULES(XML, libxml-2.0)
 # Expat
 EXPAT_LIBS=-lexpat
 AC_ARG_WITH(expat,AS_HELP_STRING([--with-expat=<dir>],[Use expat from here]),[
-		if test "x$withval" != xno ; then
-	                with_expat=yes
-	                EXPAT_CFLAGS="-I$withval/include"
-	                EXPAT_LIBS="-L$withval/lib $EXPAT_LIBS"
-		else
-			AC_MSG_NOTICE([expat support disabled, checking for libxml2 headers instead])
-			with_expat=no
-		fi],[with_expat=check])
+                expat=$withval
+                EXPAT_CFLAGS="-I$withval/include"
+                EXPAT_LIBS="-L$withval/lib $EXPAT_LIBS"])
 
-# save global cflags/libs
-oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS;oLIBS=$LIBS
-
-if test "x$with_expat" != xno ; then
+  # save global cflags/libs
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
   # set cflags/libs for this case
   CPPFLAGS="$CPPFLAGS $EXPAT_CFLAGS"
   LDFLAGS="$LDFLAGS $EXPAT_LIBS"
 
-  AC_CHECK_HEADERS(expat.h, [AC_DEFINE(HAVE_EXPAT_H)],
+AC_CHECK_HEADERS(expat.h, [AC_DEFINE(HAVE_EXPAT_H)],
      [AC_MSG_ERROR([Can't find expat.h. Please install expat.])])
-  AC_CHECK_LIB(expat, XML_ParserCreate, [],
-     [AC_MSG_ERROR([Can't find expat library. Please install expat.])])
-else
-  # not using expat so set these to be empty
-  EXPAT_LIBS=
-  EXPAT_CFLAGS=
-  # set cflags/libs for this case
-  CFLAGS="$CFLAGS $XML_CFLAGS"
-  CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
-  LDFLAGS="$LDFLAGS $XML_LIBS"
-  # find libxml/parser.h and set define accordingly
-  AC_CHECK_HEADERS(libxml/parser.h,[AC_DEFINE(HAVE_LIBXML_PARSER_H)],[AC_MSG_ERROR([Could not find headers for libxml2])])
-fi
+AC_CHECK_LIB(expat, XML_ParserCreate, [],
+   [AC_MSG_ERROR([Can't find expat library. Please install expat.])])
 
-# restore global cflags/libs
-CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS;LIBS=$oLIBS
+  # restore global cflags/libs
+  CPPFLAGS=$oCPPFLAGS
+  LDFLAGS=$oLDFLAGS
 
 AC_SUBST(EXPAT_CFLAGS)
 AC_SUBST(EXPAT_LIBS)
 
+# workaround LIBS appended with -lexpat, how to prevent this ???
+LIBS=
 
 # ===================================
 # Platform specific: windowing system
 # ===================================
 
 AC_ARG_WITH([target],
-        [AS_HELP_STRING([--with-target],[Select target windowing system (x11,motif,aqua,win32)])],
+        [AS_HELP_STRING([--with-target],[Select target windowing system (x11,motif,aqua,w32)])],
         [TARGET=$withval],
         [TARGET=auto])
 
@@ -320,10 +287,7 @@ AC_PATH_X
 # X11 extra libraries
 AC_PATH_XTRA
 # Check all X11 stuff with pkg-config
-case "$os_type" in
-     mac) PKG_CHECK_MODULES(XAW, xproto x11 xt xmu) ;;
-     *)   PKG_CHECK_MODULES(XAW, xproto x11 xt xmu xaw7) ;;
-esac
+PKG_CHECK_MODULES(XAW, xproto x11 xt xmu xaw7)
 
 # Check for XFree86/Xorg VMODE extension
 AC_CHECK_HEADERS(X11/extensions/xf86vmode.h,
@@ -334,16 +298,13 @@ AC_CHECK_HEADERS(X11/extensions/xf86vmode.h,
                 ],,
                 $X_LIBS -lXext -lX11 $X_EXTRA_LIBS)
         ],
-        AC_MSG_WARN([[XFree86 VMODE extension not found, this package will be built without it]]),
+        AC_MSG_WARN([[XFree86 VMODE extension not found, Wine will be built without it]]),
         [#include <X11/Xlib.h>])
 fi
 
 if test "$TARGET" = motif ; then
 # X11 Motif
 AC_FIND_MOTIF
-if test x$with_motif = xno ; then
-	AC_MSG_ERROR([Target motif specified but motif was not found])
-fi
 fi
 
 # ================================
@@ -383,101 +344,73 @@ case "$TARGET" in
 esac
 
 # Glew
-AC_ARG_WITH([glew],AS_HELP_STRING([--with-glew=<dir>],[Use glew from here]),[],[with_glew=check])
+AC_ARG_WITH(glew,AS_HELP_STRING([--with-glew=<dir>],[Use glew from here]),[
+                glew=$withval
+                GLEW_CFLAGS="-I$withval/include"
+                GLEW_LIBS="-L$withval/lib -lGLEW"])
 
-case "$with_glew" in
-     no) # Do not use GLEW
-	AC_MSG_NOTICE([glew disabled.])
-	;;
-     *)  # Search for GLEW
-	if test "x$with_glew" = xcheck; then
-		# do nothing, glew must be found in the regular path
-		GLEW_CFLAGS=""
-		GLEW_LIBS="-lGLEW"
-	else
-	if test "x$with_glew" = xyes; then
-		# do nothing, glew must be found in the regular path
-		GLEW_CFLAGS=""
-		GLEW_LIBS="-lGLEW"
-	else
-		# assign the path specified via --with-glew
-                GLEW_CFLAGS="-I$with_glew/include"
-                GLEW_LIBS="-L$with_glew/lib -lGLEW"
-	fi; fi
+  # save global cflags/libs
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
+  # set cflags/libs for this case
+  CPPFLAGS="$CPPFLAGS $GLEW_CFLAGS $GL_CFLAGS"
+  LDFLAGS="$LDFLAGS $GLEW_LIBS $GL_LIBS"
 
-	# save global cflags/libs
-	oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS;oLIBS=$LIBS
-	# set cflags/libs for this case
-	CPPFLAGS="$CPPFLAGS $GLEW_CFLAGS $GL_CFLAGS"
-	LDFLAGS="$LDFLAGS $GLEW_LIBS $GL_LIBS"
-	AC_CHECK_HEADERS([GL/glew.h], [
-		AC_DEFINE([HAVE_GLEW_H], [], [We have the glew library.])
-		AC_CHECK_LIB([GLEW], [glewInit], [],
-     	  		[AC_MSG_ERROR([glew headers found but glew library not found. Please correct this.])])
-		],[AC_MSG_RESULT([glew not found. FreeWRL will not use it.])])
+AC_CHECK_HEADERS([GL/glew.h], [AC_DEFINE([HAVE_GLEW_H], [], [We have the glew library.])],
+     [AC_MSG_ERROR([Can't find glew.h. Please install glew.])])
+AC_CHECK_LIB(GLEW, glewInit, [],
+   [AC_MSG_ERROR([Can't find glew library. Please install glew.])])
 
-	# restore global cflags/libs
-	CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS;LIBS=$oLIBS
-	AC_SUBST(GLEW_CFLAGS)
-	AC_SUBST(GLEW_LIBS)
-	;;
-esac
+  # restore global cflags/libs
+  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS
+
+AC_SUBST(GLEW_CFLAGS)
+AC_SUBST(GLEW_LIBS)
 
 # JPEG
-AC_ARG_WITH(jpeg,AS_HELP_STRING([--with-jpeg=<dir>],[Use jpeg from here]),[],[with_jpeg=check])
-case "$with_jpeg" in
-    no)
-	AC_MSG_ERROR([libjpeg is a required dependency])
-	;;
-    yes|check)
-	JPEG_CFLAGS=""
-	JPEG_LIBS="-ljpeg"
-	;;
-    *)
-	JPEG_CFLAGS="-I$with_jpeg/include"
-	JPEG_LIBS="-L$with_jpeg/lib -ljpeg"
-	;;
-esac
-# save global cflags/libs
-oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS;oLIBS=$LIBS
-# set cflags/libs for this case
-CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
-LDFLAGS="$LDFLAGS $JPEG_LIBS"
+AC_ARG_WITH(jpeg,AS_HELP_STRING([--with-jpeg=<dir>],[Use jpeg from here]),[
+                jpeg=$withval
+                JPEG_CFLAGS="-I$withval/include"
+                JPEG_LIBS="-L$withval/lib -ljpeg"])
 
-AC_CHECK_HEADERS([jpeglib.h], [AC_DEFINE(HAVE_JPEGLIB_H)],[
+  # save global cflags/libs
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
+  # set cflags/libs for this case
+  CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
+  LDFLAGS="$LDFLAGS $JPEG_LIBS"
+
+AC_CHECK_HEADERS(jpeglib.h, [AC_DEFINE(HAVE_JPEGLIB_H)],
      # workaround failed test under mingw
-     AC_TRY_CPP([
-#include <stdio.h>
+     AC_TRY_CPP(
+[#include <stdio.h>
 #undef PACKAGE
 #undef VERSION
-#include <jpeglib.h>],[jpeg_ok=yes],[jpeg_ok=no])
-     AC_MSG_RESULT([$jpeg_ok])
-     if test x$jpeg_ok = xno; then
-	AC_MSG_ERROR([libjpeg headers are required])
-     fi])
-AC_CHECK_LIB([jpeg],[jpeg_start_decompress],[],[
+#include <jpeglib.h>],
+	jpeg_ok=yes,
+	jpeg_ok=no)
+      AC_MSG_RESULT($jpeg_ok)
+     )
+AC_CHECK_LIB([jpeg],[jpeg_start_decompress],[],
      # workaround failed test under mingw
-     AC_TRY_LINK([
-#include <stdio.h>
+     AC_TRY_LINK(
+[#include <stdio.h>
 #include "jpeglib.h"], 
 		 [jpeg_read_raw_data(NULL, NULL, 0)], 
 		 [AC_MSG_RESULT(found)],
 		 [AC_MSG_RESULT(not found)
 		  AC_MSG_ERROR(Couldn't find jpeg stuff in ${withval})])
-     ])
-# restore global cflags/libs
-CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS;LIBS=$oLIBS
+     )
+
+  # restore global cflags/libs
+  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS
+
 AC_SUBST(JPEG_CFLAGS)
 AC_SUBST(JPEG_LIBS)
 
 # PNG
 PKG_CHECK_MODULES(PNG, libpng)
 
-# Imlib2
-PKG_CHECK_MODULES(IMLIB2, imlib2)
-
 # ======================================
-# LibFreeWRLEAI configuration
+# LibEAI configuration
 # ======================================
 
 AC_MY_SWITCH(libeai,[enable building of libEAI],off)
@@ -512,14 +445,6 @@ AC_ARG_WITH([plugintarget],
         [PLUGIN_TARGET=$withval],
         [PLUGIN_TARGET=auto])
 
-# Mozilla plugin install dir
-AC_ARG_WITH([plugindir],
-            AS_HELP_STRING([--with-plugindir=DIR],[browser plugin install path @<:@/usr/lib/mozilla/plugins@:>@]),
-            [plugindir=$withval],			       # user supplied value
-            [plugindir=$libdir/mozilla/plugins])	       # default value
-
-AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugin.])
-
 if test x$sw_plugin = xno; then
   AC_MSG_NOTICE([Not building browser plug-in])
   MAYBE_PLUGIN=
@@ -536,57 +461,25 @@ else
               MAYBE_PLUGIN=
               ;;
 
-      *)      # Build plugin for Netscape compatible browser on Linux
+      *)      # Build plugin for Netscape compatible browser on Linux  
               AC_MSG_NOTICE([Determining browser plug-in framework to build against])
               found_MOZILLA_PLUGIN=no
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[iceape-plugin])
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[xulrunner-plugin])
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[seamonkey-plugin])
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[firefox-plugin])
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[mozilla-plugin])
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[npapi-sdk])
-
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,iceape-plugin)
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,xulrunner-plugin)
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,seamonkey-plugin)
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,firefox-plugin)
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,mozilla-plugin)
               if test x$found_MOZILLA_PLUGIN = xno; then
                   AC_MSG_WARN([Unable to find an appropriate browser plugin framework, not building plugin])
                   MAYBE_PLUGIN=
               else
-                  # Check if using a legacy NPAPI or a new one
-                  AC_MSG_CHECKING([for whether NP_GetMIMEDescription is declared const])
-                  oCFLAGS=$CFLAGS
-                  AC_LANG_PUSH(C)
-                  CFLAGS=$CFLAGS" "$MOZILLA_PLUGIN_CFLAGS
-                  AC_TRY_COMPILE([
-                    #include <npfunctions.h>
-                    const char* NP_GetMIMEDescription ()
-                    {return (char*) "yap!";}
-                  ],[],[
-                    AC_MSG_RESULT(yes)
-                  ],[
-                    AC_MSG_RESULT(no)
-                    MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS -DLEGACY_NPAPI"
-                  ])
-                  AC_LANG_POP()
-                  CFLAGS=$oCFLAGS
-
                   # If Mozilla plugin is to be compiled we have to define MOZ_X11
                   MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS -DMOZ_X11"
                   AC_MSG_NOTICE([Using $found_MOZILLA_PLUGIN for Mozilla plugin library])
-
-                  # XEmbed indicators use PRBool type from nspr, check for support here
-                  PKG_CHECK_MODULES([NSPR],[nspr],[
-                    AC_DEFINE([HAVE_NSPR], [1], [Define if you have nspr installed.])
-                    MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS $NSPR_CFLAGS"
-                  ],[])
-		  
                   MAYBE_PLUGIN=plugin
-                  AC_MSG_NOTICE([Installing plugin to $plugindir])
-
-		  # Check for JRIEnv type to see if OJI can be defined
-		  AC_CHECK_TYPE(JRIEnv,[AC_DEFINE(OJI,1,[Use Original Java Interface within plugin])],,$MOZILLA_PLUGIN_CFLAGS)
               fi
               ;;
   esac
-
 fi
 AC_SUBST(MAYBE_PLUGIN)
 
@@ -594,52 +487,6 @@ PLUGIN_CFLAGS=$MOZILLA_PLUGIN_CFLAGS
 PLUGIN_LIBS=
 AC_SUBST(PLUGIN_CFLAGS)
 AC_SUBST(PLUGIN_LIBS)
-
-#
-# Check if 'int32' type is defined (would be included in plugin's includes)
-
-  # save global cflags/libs
-  oCPPFLAGS=$CPPFLAGS;oLDFLAGS=$LDFLAGS;oCFLAGS=$CFLAGS
-  CFLAGS="$CFLAGS $PLUGIN_CFLAGS"
-AC_CHECK_TYPES([int32, uint32, int16, uint16], [], [], [[#include <npapi.h>]])
-  # restore global cflags/libs
-  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS
-
-
-# ======================================
-# Status bar configuration
-# ======================================
-AC_ARG_WITH([statusbar],
-        [AS_HELP_STRING([--with-statusbar=STATUSBAR],[Select status bar flavour -- 'hud' or 'standard'])],
-        [statusbar="$withval"],
-        [statusbar="standard"])
-
-case "$statusbar" in
-     standard|hud) AC_MSG_NOTICE([Status bar flavor: $statusbar]) ;; # valid input
-     *) AC_MSG_ERROR([Invalid input for status bar flavor: $statusbar]) ;;
-esac
-AM_CONDITIONAL([STATUSBAR_STD], [test "$statusbar" = standard])
-AM_CONDITIONAL([STATUSBAR_HUD], [test "$statusbar" = hud])
-
-# ======================================
-# OSC enable
-# ======================================
-
-AC_MY_SWITCH(osc,[enable building of OSC plugin support],off)
-if test x$sw_osc = xyes; then
-    PKG_CHECK_MODULES(LIBLO, liblo, 
-        AC_DEFINE([WANT_OSC],[1],
-                  [Define if liblo exists and OSC support wanted]),
-                  AC_MSG_ERROR([Skipping OSC. No liblo installed.]))
-fi
-
-# ======================================
-# Experimental 2D overlay
-# ======================================
-AC_MY_SWITCH(twodee,[enable building of 2D overlay support],off)
-if test x$sw_twodee = xyes; then
-	AC_DEFINE(WANT_2D_OVER,1,[Install 2D overlay])
-fi
 
 # ======================================
 # FreeWRL helpers programs
@@ -657,8 +504,6 @@ case "$os_type" in
           DEFAULT_UNZIP=unzip
           DEFAULT_WGET=wget
           DEFAULT_IMAGECONVERT=convert
-          DEFAULT_JAVAC=javac
-          DEFAULT_JAR=jar
           ;;
      win32) # Windows defaults
           DEFAULT_BROWSER=
@@ -667,8 +512,6 @@ case "$os_type" in
           DEFAULT_UNZIP=unzip.exe
           DEFAULT_WGET=wget.exe
           DEFAULT_IMAGECONVERT=convert.exe
-          DEFAULT_JAVAC=javac.exe
-          DEFAULT_JAR=jar.exe
           ;;
      *)   # UNIX defaults
           DEFAULT_BROWSER=firefox
@@ -676,45 +519,19 @@ case "$os_type" in
           DEFAULT_UNZIP=unzip
           DEFAULT_WGET=wget
           DEFAULT_IMAGECONVERT=convert
-          DEFAULT_JAVAC=javac
-          DEFAULT_JAR=jar
           ;;
 esac # case $os_type
-
-# ======================================
-# Java configuration
-# ======================================
-
-AC_MY_DEFINE_SWITCH([java],[enable Java support (default=off)],off,JAVA_SUPPORT)
-if test x$sw_java = xno; then
-  AC_MSG_NOTICE([Not building java classes])
-  MAYBE_JAVA=
-else
-  # Java classes install dir configuration
-  AC_ARG_WITH([javadir],
-              [AS_HELP_STRING([--with-javadir=DIR],
-              [java path @<:@DATADIR/$PACKAGE/lib@:>@])],
-              [javadir=$withval],
-              [javadir=$datadir/$PACKAGE/lib])
-  AC_DEFINE_DIR([JAVA_DIR],[javadir],[Directory for java classes.])
-  # java compiler check (javac)
-  AC_MY_HELPERAPP([javac],[JAVAC],[java compiler],[$DEFAULT_JAVAC],[AC_MSG_ERROR([fail])])
-  # java archiver check (jar)
-  AC_MY_HELPERAPP([jar],[JAR],[java archiver],[$DEFAULT_JAR],[AC_MSG_ERROR([fail])])
-  MAYBE_JAVA=java
-fi
-AC_SUBST([MAYBE_JAVA])
 
 # Quick hack to merge Doug's patch... we'll have to clean up
 # this with proper autotools macros for Windows...
 
 ## Browser check
 AC_MY_HELPERAPP([browser],[BROWSER],[internet browser],[$DEFAULT_BROWSER],[
-        AC_MSG_WARN([Internet browser $DEFAULT_BROWSER not found! FreeWRL will not process anchors unless the BROWSER environment variable is set!])
+        AC_MSG_WARN([No internet browser -- FreeWRL will not process anchors!])
         ])
 
 ## Soundconv program check (sox)
-if test x$MAYBE_SOUND = xsound; then
+if test x$MAYBE_PLUGIN = xsound; then
     AC_MY_HELPERAPP([soundconv],[SOUNDCONV],[sound converter],[$DEFAULT_SOUNDCONV],[
         MAYBE_SOUND=
         AC_MSG_WARN([No soundconv helper -- Not building sound module])
@@ -747,9 +564,9 @@ FREEWRL_SOUND_MANAGER="freewrl_snd"
 FREEWRL_MESSAGE_WRAPPER="freewrl_msg"
 case $os_type in
      # FIXME: name of plugin?
-     win32) FREEWRL_PLUGIN="libFreeWRLplugin.dll" ;;
-     mac)   FREEWRL_PLUGIN="libFreeWRLplugin.dynlib" ;;
-     *)     FREEWRL_PLUGIN="libFreeWRLplugin.so" ;;
+     win32) FREEWRL_PLUGIN="plugin_windows.dll" ;;
+     mac)   FREEWRL_PLUGIN="npfreewrl.dynlib" ;;
+     unix)  FREEWRL_PLUGIN="npfreewrl.so" ;;
 esac
 
 AC_SUBST(FREEWRL_PROGRAM)
@@ -772,9 +589,8 @@ src/lib/Makefile
 src/lib/libFreeWRL.pc
 src/plugin/Makefile
 src/libeai/Makefile
-src/libeai/libFreeWRLEAI.pc
+src/libeai/libEAI.pc
 src/sound/Makefile
-src/java/Makefile
 src/message/Makefile])
 
 AC_OUTPUT

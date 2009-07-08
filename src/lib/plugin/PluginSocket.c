@@ -1,33 +1,11 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: PluginSocket.c,v 1.17 2011/06/03 20:39:00 dug9 Exp $
+$Id: PluginSocket.c,v 1.5.2.1 2009/07/08 21:55:04 couannette Exp $
 
 Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
 */
-
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
-
 
 #include <config.h>
 #include <system.h>
@@ -40,7 +18,20 @@ Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+/* #include "../vrml_parser/CParseGeneral.h" */
+/* #include "../scenegraph/Vector.h" */
+/* #include "../vrml_parser/CFieldDecls.h" */
+/* #include "../world_script/CScripts.h" */
+/* #include "../vrml_parser/CParseParser.h" */
+/* #include "../vrml_parser/CParseLexer.h" */
+/* #include "../vrml_parser/CParse.h" */
+
+/* #include <float.h> */
+
 #include "../x3d_parser/Bindable.h"
+/* #include "../scenegraph/Collision.h" */
+/* #include "../scenegraph/quaternion.h" */
+/* #include "../scenegraph/Viewer.h" */
 
 #include "pluginUtils.h"
 #include "PluginSocket.h"
@@ -50,72 +41,38 @@ Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 #define FSIGOK
 #endif
 
-//pthread_mutex_t mylocker = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mylocker = PTHREAD_MUTEX_INITIALIZER;
 
-#define LOCK_PLUGIN_COMMUNICATION pthread_mutex_lock(&p->mylocker);
-#define UNLOCK_PLUGIN_COMMUNICATION pthread_mutex_unlock(&p->mylocker);
+#define LOCK_PLUGIN_COMMUNICATION pthread_mutex_lock(&mylocker);
+#define UNLOCK_PLUGIN_COMMUNICATION pthread_mutex_unlock(&mylocker);
 
-//fd_set rfds;
-//struct timeval tv;
-//char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
+fd_set rfds;
+struct timeval tv;
 
-typedef struct pPluginSocket{
-	pthread_mutex_t mylocker;// = PTHREAD_MUTEX_INITIALIZER;
-	fd_set rfds;
-	struct timeval tv;
-	char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
-
-}* ppPluginSocket;
-void *PluginSocket_constructor(){
-	void *v = malloc(sizeof(struct pPluginSocket));
-	memset(v,0,sizeof(struct pPluginSocket));
-	return v;
-}
-void PluginSocket_init(struct tPluginSocket *t){
-	//public
-	//private
-	t->prv = PluginSocket_constructor();
-	{
-		ppPluginSocket p = (ppPluginSocket)t->prv;
-		pthread_mutex_init(&(p->mylocker), NULL);
-		//p->rfds;
-		//p->tv;
-		//p->return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
-	}
-}
+char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
+extern double TickTime;
 
 
-//extern double TickTime;
-double TickTime();
-
-/* Doug Sandens windows function; lets make it static here for non-windows */
-#if defined(_MSC_VER)
-#else
-#ifdef PLUGINSOCKETVERBOSE
-//static struct timeval mytime;
-
-static double Time1970sec(void) {
-		struct timeval mytime;
-        gettimeofday(&mytime, NULL);
-        return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-}
-#endif
-#endif
-
-#ifdef PLUGINSOCKETVERBOSE
 /* prints to a log file if we are running as a plugin */
-static void pluginprint (const char *m, const char *p)
-{
+void pluginprint (const char *m, const char *p) {
 	double myt;
-	if (gglobal()->internalc.global_plugin_print) {
+/* #ifndef WIN32 */
+        struct timeval mytime;
+/* #endif */
+	if (getenv("FREEWRL_DO_PLUGIN_PRINT") != NULL) {
+
         	/* Set the timestamp */
-		myt = Time1970sec();
+/* #ifdef WIN32 */
+/* 		myt = Time1970sec(); */
+/* #else */
+        	gettimeofday(&mytime, NULL);
+		myt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+/* #endif */
         	printf ("%f: freewrl: ",myt);
 		printf(m,p);
 	}
 
 }
-#endif
 
 /* loop about waiting for the Browser to send us some stuff. */
 int waitForData(int sock) {
@@ -123,7 +80,6 @@ int waitForData(int sock) {
 	int retval;
 	int count;
 	int totalcount;
-	ppPluginSocket p = (ppPluginSocket)gglobal()->PluginSocket.prv;
 
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("waitForData, socket %d\n",sock);
@@ -140,13 +96,13 @@ int waitForData(int sock) {
 		#endif
 		*/
 
-		p->tv.tv_sec = 0;
-		p->tv.tv_usec = 100;
-		FD_ZERO(&p->rfds);
-		FD_SET(sock, &p->rfds);
+		tv.tv_sec = 0;
+		tv.tv_usec = 100;
+		FD_ZERO(&rfds);
+		FD_SET(sock, &rfds);
 
 		/* wait for the socket. We HAVE to select on "sock+1" - RTFM */
-		retval = select(sock+1, &p->rfds, NULL, NULL, &p->tv);
+		retval = select(sock+1, &rfds, NULL, NULL, &tv);
 
 
 		if (retval) {
@@ -166,7 +122,6 @@ int waitForData(int sock) {
 			}
 		}
 	} while (!retval);
-	return 0 ;
 }
 
 void  requestPluginPrint(int to_plugin, const char *msg) {
@@ -196,7 +151,6 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	int linelen;
 	char buf[2004];
 	char encodedUrl[2000];
-	ppPluginSocket p = (ppPluginSocket)gglobal()->PluginSocket.prv;
 
 	LOCK_PLUGIN_COMMUNICATION
 
@@ -215,7 +169,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 
 	len = FILENAME_MAX * sizeof(char);
 	memset(request.url, 0, len);
-	memset(p->return_url, 0, len);
+	memset(return_url, 0, len);
 
 	ulen = strlen(encodedUrl) + 1;
 	memmove(request.url, encodedUrl, ulen);
@@ -257,7 +211,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 		return NULL;
 	}
 
-	if (read(to_plugin, (char *) p->return_url, len) < 0) {
+	if (read(to_plugin, (char *) return_url, len) < 0) {
 		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint("read failed in requestUrlfromPlugin","");
 		pluginprint("Testing: error from read -- returned url is %s.\n", return_url);
@@ -273,10 +227,10 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 
 	/* is this a string from URLNotify? (see plugin code for this "special" string) */
 	#define returnErrorString "this file is not to be found on the internet"
-	if (strncmp(p->return_url,returnErrorString,strlen(returnErrorString)) == 0) return NULL;
+	if (strncmp(return_url,returnErrorString,strlen(returnErrorString)) == 0) return NULL;
 
 	/* now, did this request return a text file with a html page indicating 404- not found? */
-	infile = fopen (p->return_url,"r");
+	infile = fopen (return_url,"r");
 	if (infile == NULL) {
 		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint ("requestUrlFromPlugin, file %s could not be opened",return_url);
@@ -287,7 +241,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	}
 
 	linecount = 0;
-	linelen = (int) fread (buf,1,2000,infile);
+	linelen = fread (buf,1,2000,infile);
 	/* pluginprint ("verify read, read in %d characters\n",linelen);*/
 	while ((linelen > 0) && (linecount < 5)){
 	/* 	pluginprint ("verify read, read in %d characters\n",linelen);*/
@@ -304,7 +258,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 			return NULL;
 		}
 		linecount ++;
-		linelen = (int) fread (buf,1,2000,infile);
+		linelen = fread (buf,1,2000,infile);
 	}
 	fclose (infile);
 
@@ -312,7 +266,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	UNLOCK_PLUGIN_COMMUNICATION
 
 	/* we must be returning something here */
-	return p->return_url;
+	return return_url;
 }
 
 
@@ -325,7 +279,6 @@ void requestNewWindowfromPlugin(int sockDesc,
 {
 	size_t len = 0, ulen = 0, bytes = 0;
 	urlRequest request;
-	ppPluginSocket p = (ppPluginSocket)gglobal()->PluginSocket.prv;
 
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestNewWindow fromPlugin, getting %s\n",url);
@@ -336,7 +289,7 @@ void requestNewWindowfromPlugin(int sockDesc,
 
 	len = FILENAME_MAX * sizeof(char);
 	memset(request.url, 0, len);
-	memset(p->return_url, 0, len);
+	memset(return_url, 0, len);
 
 	ulen = strlen(url) + 1;
 	memmove(request.url, url, ulen);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.40 2012/06/18 17:41:43 crc_canada Exp $
+$Id: SensInterps.c,v 1.12.2.1 2009/07/08 21:55:04 couannette Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -9,55 +9,21 @@ Interps are the "EventsProcessed" fields of interpolators.
 
 */
 
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
-
-
 #include <config.h>
 #include <system.h>
 #include <display.h>
 #include <internal.h>
 
 #include <libFreeWRL.h>
-#include <list.h>
 
-#include "../vrml_parser/Structs.h"
-#include "../input/InputFunctions.h"
-#include "../opengl/Textures.h"            /* for finding a texture url in a multi url */
-#include "../opengl/LoadTextures.h"        /* for finding a texture url in a multi url */
-
-
-#include <resources.h>
-
+#include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
-#include "../opengl/OpenGL_Utils.h"
-#include "../scenegraph/RenderFuncs.h"
 
 #include "../x3d_parser/Bindable.h"
 #include "../scenegraph/LinearAlgebra.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/sounds.h"
-#include "../vrml_parser/CRoutes.h"
-#include "../opengl/OpenGL_Utils.h"
 
 #include "SensInterps.h"
 
@@ -66,38 +32,7 @@ Interps are the "EventsProcessed" fields of interpolators.
 #define BADAUDIOSOURCE -9999
 
 /* when we get a new sound source, what is the number for this? */
-//int SoundSourceNumber = 0;
-typedef struct pSensInterps{
-	int SoundSourceNumber;
-/* this is used to return the duration of an audioclip to the perl
-   side of things. works, but need to figure out all
-   references, etc. to bypass this fudge JAS */
-	float AC_LastDuration[50];
-}* ppSensInterps;
-void *SensInterps_constructor(){
-	void *v = malloc(sizeof(struct pSensInterps));
-	memset(v,0,sizeof(struct pSensInterps));
-	return v;
-}
-void SensInterps_init(struct tSensInterps *t)
-{
-	//public
-	//private
-	t->prv = SensInterps_constructor();
-	{
-		ppSensInterps p = (ppSensInterps)t->prv;
-		p->SoundSourceNumber = 0;
-		/* this is used to return the duration of an audioclip to the perl
-		   side of things. works, but need to figure out all
-		   references, etc. to bypass this fudge JAS */
-		{
-			int i;
-			for(i=0;i<50;i++)
-				p->AC_LastDuration[i]  = -1.0f;
-		}
-	}
-}
-
+int SoundSourceNumber = 0;
 
 /* function prototypes */
 void locateAudioSource (struct X3D_AudioClip *node);
@@ -108,11 +43,7 @@ double return_Duration (int indx) {
 
 	if (indx < 0)  retval = 1.0;
 	else if (indx > 50) retval = 1.0;
-	else 
-	{
-		ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
-		retval = p->AC_LastDuration[indx];
-	}
+	else retval = AC_LastDuration[indx];
 	return retval;
 }
 
@@ -145,10 +76,10 @@ void do_active_inactive (
 	if (*act == 1) {   /* active - should we stop? */
 		#ifdef SEVERBOSE
 		printf ("is active tick %f startt %f stopt %f\n",
-				TickTime(), *startt, *stopt);
+				TickTime, *startt, *stopt);
 		#endif
 
-		if (TickTime() > *stopt) {
+		if (TickTime > *stopt) {
 			if (*startt >= *stopt) {
 				/* cases 1 and 2 */
 				if (!(loop)) {
@@ -158,18 +89,18 @@ void do_active_inactive (
 					
 					/* if (speed != 0) */
 					if (! APPROX(speed, 0)) {
-					    if (TickTime() >= (*startt +
+					    if (TickTime >= (*startt +
 							fabs(myDuration/speed))) {
 						#ifdef SEVERBOSE
 						printf ("stopping case x\n");
-						printf ("TickTime() %f\n",TickTime());
+						printf ("TickTime %f\n",TickTime);
 						printf ("startt %f\n",*startt);
 						printf ("myDuration %f\n",myDuration);
 						printf ("speed %f\n",speed);
 						#endif
 
 						*act = 0;
-						*stopt = TickTime();
+						*stopt = TickTime;
 					    }
 					}
 				}
@@ -179,19 +110,19 @@ void do_active_inactive (
 				#endif
 
 				*act = 0;
-				*stopt = TickTime();
+				*stopt = TickTime;
 			}
 		}
 	}
 
 	/* immediately process start events; as per spec.  */
 	if (*act == 0) {   /* active - should we start? */
-		/* printf ("is not active TickTime %f startt %f\n",TickTime(),*startt); */
+		/* printf ("is not active TickTime %f startt %f\n",TickTime,*startt); */
 
-		if (TickTime() >= *startt) {
+		if (TickTime >= *startt) {
 			/* We just might need to start running */
 
-			if (TickTime() >= *stopt) {
+			if (TickTime >= *stopt) {
 				/* lets look at the initial conditions; have not had a stoptime
 				event (yet) */
 
@@ -200,7 +131,7 @@ void do_active_inactive (
 						/* VRML standards, table 4.2 case 2 */
 						/* printf ("CASE 2\n"); */
 						/* Umut Sezen's code: */
-						if (!(*startt > 0)) *startt = TickTime();
+						if (!(*startt > 0)) *startt = TickTime;
 						*act = 1;
 					}
 				} else if (*startt >= *stopt) {
@@ -209,7 +140,7 @@ void do_active_inactive (
 						 /* printf ("case 1 here\n"); */
 						/* we should be running VRML standards, table 4.2 case 1 */
 						/* Umut Sezen's code: */
-						if (!(*startt > 0)) *startt = TickTime();
+						if (!(*startt > 0)) *startt = TickTime;
 						*act = 1;
 					}
 				}
@@ -218,7 +149,7 @@ void do_active_inactive (
 				/* we should be running -
 				VRML standards, table 4.2 cases 1 and 2 and 3 */
 				/* Umut Sezen's code: */
-				if (!(*startt > 0)) *startt = TickTime();
+				if (!(*startt > 0)) *startt = TickTime;
 				*act = 1;
 			}
 		}
@@ -257,7 +188,7 @@ void do_OintScalar (void *node) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed = (float) 0.0;
+		px->value_changed = 0.0;
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
@@ -283,11 +214,11 @@ void do_OintScalar (void *node) {
 }
 
 
-void do_OintNormal(void *node) {
-	struct X3D_NormalInterpolator *px;
+void do_OintCoord(void *node) {
+	struct X3D_CoordinateInterpolator *px;
 	int kin, kvin/* , counter */;
-	struct SFVec3f *kVs;
-	struct SFVec3f *valchanged;
+	struct SFColor *kVs;
+	struct SFColor *valchanged;
 
 	int thisone, prevone;	/* which keyValues we are interpolating between */
 	int tmp;
@@ -298,14 +229,14 @@ void do_OintNormal(void *node) {
 	int myKey;
 
 	if (!node) return;
-	px = (struct X3D_NormalInterpolator *) node;
+	px = (struct X3D_CoordinateInterpolator *) node;
 
 
 	#ifdef SEVERBOSE
 		printf ("debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);
 	#endif
 
-	MARK_EVENT (node, offsetof (struct X3D_NormalInterpolator, value_changed));
+	MARK_EVENT (node, offsetof (struct X3D_CoordinateInterpolator, value_changed));
 
 	kin = px->key.n;
 	kvin = px->keyValue.n;
@@ -322,7 +253,7 @@ void do_OintNormal(void *node) {
 			FREE_IF_NZ (px->value_changed.p);
 		}
 		px->value_changed.n = kpkv;
-		px->value_changed.p = MALLOC (struct SFVec3f*, sizeof (struct SFVec3f) * kpkv);
+		px->value_changed.p =(struct SFColor*) MALLOC (sizeof (struct SFColor) * kpkv);
 	}
 
 	/* shortcut valchanged; have to put it here because might be reMALLOC'd */
@@ -336,9 +267,9 @@ void do_OintNormal(void *node) {
 		#endif
 
 		for (indx = 0; indx < kpkv; indx++) {
-			valchanged[indx].c[0] = (float) 0.0;
-			valchanged[indx].c[1] = (float) 0.0;
-			valchanged[indx].c[2] = (float) 0.0;
+			valchanged[indx].c[0] = 0.0;
+			valchanged[indx].c[1] = 0.0;
+			valchanged[indx].c[2] = 0.0;
 		}
 		return;
 	}
@@ -347,7 +278,7 @@ void do_OintNormal(void *node) {
 
 	#ifdef SEVERBOSE
 		printf ("debugging, kpkv %d, px->value_changed.n %d\n", kpkv, px->value_changed.n);
-		printf ("NormalInterpolator, kpkv %d\n",kpkv);
+		printf ("CoordinateInterpolator, kpkv %d\n",kpkv);
 	#endif
 	
 
@@ -360,6 +291,9 @@ void do_OintNormal(void *node) {
 		for (indx = 0; indx < kpkv; indx++) {
 			memcpy ((void *)&valchanged[indx],
 				(void *)&kVs[indx], sizeof (struct SFColor));
+			/* JAS valchanged[indx].c[0] = kVs[indx].c[0]; */
+			/* JAS valchanged[indx].c[1] = kVs[indx].c[1]; */
+			/* JAS valchanged[indx].c[2] = kVs[indx].c[2]; */
 		}
 		#ifdef SEVERBOSE
 		printf ("COINT out1 copied\n");
@@ -423,166 +357,22 @@ void do_OintNormal(void *node) {
 	}
 
 	/* if this is a NormalInterpolator... */
-	for (indx = 0; indx < kpkv; indx++) {
-		normalval.x = valchanged[indx].c[0];
-		normalval.y = valchanged[indx].c[1];
-		normalval.z = valchanged[indx].c[2];
-		normalize_vector(&normalval);
-		valchanged[indx].c[0] = (float) normalval.x;
-		valchanged[indx].c[1] = (float) normalval.y;
-		valchanged[indx].c[2] = (float) normalval.z;
-	}
+        if (px->_type==1) {
+		for (indx = 0; indx < kpkv; indx++) {
+			normalval.x = valchanged[indx].c[0];
+			normalval.y = valchanged[indx].c[1];
+			normalval.z = valchanged[indx].c[2];
+			normalize_vector(&normalval);
+			valchanged[indx].c[0] = normalval.x;
+			valchanged[indx].c[1] = normalval.y;
+			valchanged[indx].c[2] = normalval.z;
+		}
+        }
 	#ifdef SEVERBOSE
 	printf ("Done CoordinateInterpolator\n");
 	#endif
+
 }
-
-void do_OintCoord(void *node) {
-	struct X3D_CoordinateInterpolator *px;
-	int kin, kvin/* , counter */;
-	struct SFVec3f *kVs;
-	struct SFVec3f *valchanged;
-
-	int thisone, prevone;	/* which keyValues we are interpolating between */
-	int tmp;
-	float interval;		/* where we are between 2 values */
-	int kpkv; /* keys per key value */
-	int indx;
-	int myKey;
-
-	if (!node) return;
-	px = (struct X3D_CoordinateInterpolator *) node;
-
-
-	#ifdef SEVERBOSE
-		printf ("debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);
-	#endif
-
-	MARK_EVENT (node, offsetof (struct X3D_CoordinateInterpolator, value_changed));
-
-	kin = px->key.n;
-	kvin = px->keyValue.n;
-	kVs = px->keyValue.p;
-	kpkv = kvin/kin;
-
-	/* do we need to (re)allocate the value changed array? */
-	if (kpkv != px->value_changed.n) {
-		#ifdef SEVERBOSE
-		    printf ("refactor valuechanged array. n %d sizeof p %d\n",
-			kpkv,sizeof (struct SFVec3f) * kpkv);
-		#endif
-		if (px->value_changed.n != 0) {
-			FREE_IF_NZ (px->value_changed.p);
-		}
-		px->value_changed.n = kpkv;
-		px->value_changed.p = MALLOC (struct SFVec3f*, sizeof (struct SFVec3f) * kpkv);
-	}
-
-	/* shortcut valchanged; have to put it here because might be reMALLOC'd */
-	valchanged = px->value_changed.p;
-
-
-	/* make sure we have the keys and keyValues */
-	if ((kvin == 0) || (kin == 0)) {
-		#ifdef SEVERBOSE
-		printf ("no keys or keyValues yet\n");
-		#endif
-
-		for (indx = 0; indx < kpkv; indx++) {
-			valchanged[indx].c[0] = (float) 0.0;
-			valchanged[indx].c[1] = (float) 0.0;
-			valchanged[indx].c[2] = (float) 0.0;
-		}
-		return;
-	}
-	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
-
-
-	#ifdef SEVERBOSE
-		printf ("debugging, kpkv %d, px->value_changed.n %d\n", kpkv, px->value_changed.n);
-		printf ("CoordinateInterpolator, kpkv %d\n",kpkv);
-	#endif
-	
-
-	/* set_fraction less than or greater than keys */
-	if (px->set_fraction <= px->key.p[0]) {
-		#ifdef SEVERBOSE
-		printf ("COINT out1\n");
-		#endif
-
-		for (indx = 0; indx < kpkv; indx++) {
-			memcpy ((void *)&valchanged[indx],
-				(void *)&kVs[indx], sizeof (struct SFVec3f));
-			/* JAS valchanged[indx].c[0] = kVs[indx].c[0]; */
-			/* JAS valchanged[indx].c[1] = kVs[indx].c[1]; */
-			/* JAS valchanged[indx].c[2] = kVs[indx].c[2]; */
-		}
-		#ifdef SEVERBOSE
-		printf ("COINT out1 copied\n");
-		#endif
-	} else if (px->set_fraction >= px->key.p[kin-1]) {
-		#ifdef SEVERBOSE
-		printf ("COINT out2\n");
-		#endif
-
-		for (indx = 0; indx < kpkv; indx++) {
-			memcpy ((void *)&valchanged[indx],
-				(void *)&kVs[kvin-kpkv+indx],
-				sizeof (struct SFVec3f));
-		}
-		#ifdef SEVERBOSE
-		printf ("COINT out2 finished\n");
-		#endif
-	} else {
-		#ifdef SEVERBOSE
-		printf ("COINT out3\n");
-		#endif
-
-		/* have to go through and find the key before */
-		#ifdef SEVERBOSE
-		printf ("indx=0, kin %d frac %f\n",kin,px->set_fraction);
-		#endif
-
-		myKey=find_key(kin,(float)(px->set_fraction),px->key.p);
-		#ifdef SEVERBOSE
-		printf ("working on key %d\n",myKey);
-		#endif
-
-		/* find the fraction between the 2 values */
-		interval = (px->set_fraction - px->key.p[myKey-1]) /
-				(px->key.p[myKey] - px->key.p[myKey-1]);
-
-		for (indx = 0; indx < kpkv; indx++) {
-			thisone = myKey * kpkv + indx;
-			prevone = (myKey-1) * kpkv + indx;
-
-			#ifdef SEVERBOSE
-			if (thisone >= kvin) {
-				printf ("CoordinateInterpolator error: thisone %d prevone %d indx %d kpkv %d kin %d kvin %d\n",thisone,prevone,
-				indx,kpkv,kin,kvin);
-			}
-			#endif
-
-			for (tmp=0; tmp<3; tmp++) {
-				valchanged[indx].c[tmp] = kVs[prevone].c[tmp]  +
-						interval * (kVs[thisone].c[tmp] -
-							kVs[prevone].c[tmp]);
-			}
-			#ifdef SEVERBOSE
-			printf ("	1 %d interval %f prev %f this %f final %f\n",1,interval,kVs[prevone].c[1],kVs[thisone].c[1],valchanged[indx].c[1]);
-			#endif
-		}
-		#ifdef SEVERBOSE
-		printf ("COINT out3 finished\n");
-		#endif
-
-	}
-
-	#ifdef SEVERBOSE
-	printf ("Done CoordinateInterpolator\n");
-	#endif
-}
-
 void do_OintCoord2D(void *node) {
 	struct X3D_CoordinateInterpolator2D *px;
 	int kin, kvin/* , counter */;
@@ -621,7 +411,7 @@ void do_OintCoord2D(void *node) {
 			FREE_IF_NZ (px->value_changed.p);
 		}
 		px->value_changed.n = kpkv;
-		px->value_changed.p = MALLOC (struct SFVec2f*, sizeof (struct SFVec2f) * kpkv);
+		px->value_changed.p =(struct SFVec2f*) MALLOC (sizeof (struct SFVec2f) * kpkv);
 	}
 
 	/* shortcut valchanged; have to put it here because might be reMALLOC'd */
@@ -635,8 +425,8 @@ void do_OintCoord2D(void *node) {
 		#endif
 
 		for (indx = 0; indx < kpkv; indx++) {
-			valchanged[indx].c[0] = (float) 0.0;
-			valchanged[indx].c[1] = (float) 0.0;
+			valchanged[indx].c[0] = 0.0;
+			valchanged[indx].c[1] = 0.0;
 		}
 		return;
 	}
@@ -750,8 +540,8 @@ void do_OintPos2D(void *node) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed.c[0] = (float) 0.0;
-		px->value_changed.c[1] = (float) 0.0;
+		px->value_changed.c[0] = 0.0;
+		px->value_changed.c[1] = 0.0;
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
@@ -811,9 +601,9 @@ void do_ColorInterpolator (void *node) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed.c[0] = (float) 0.0;
-		px->value_changed.c[1] = (float) 0.0;
-		px->value_changed.c[2] = (float) 0.0;
+		px->value_changed.c[0] = 0.0;
+		px->value_changed.c[1] = 0.0;
+		px->value_changed.c[2] = 0.0;
 		return;
 	}
 
@@ -844,7 +634,7 @@ void do_ColorInterpolator (void *node) {
 void do_PositionInterpolator (void *node) {
 	struct X3D_PositionInterpolator *px;
 	int kin, kvin, counter, tmp;
-	struct SFVec3f *kVs; 
+	struct SFColor *kVs; 
 
 	if (!node) return;
 	px = (struct X3D_PositionInterpolator *) node;
@@ -856,15 +646,15 @@ void do_PositionInterpolator (void *node) {
 	MARK_EVENT (node, offsetof (struct X3D_PositionInterpolator, value_changed)); 
 
 	#ifdef SEVERBOSE
-		printf("do_PositionInt: Position/Vec3f interp, node %u kin %d kvin %d set_fraction %f\n",
+		printf("do_PositionInt: Position/Color interp, node %u kin %d kvin %d set_fraction %f\n",
 			   node, kin, kvin, px->set_fraction);
 	#endif
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed.c[0] = (float) 0.0;
-		px->value_changed.c[1] = (float) 0.0;
-		px->value_changed.c[2] = (float) 0.0;
+		px->value_changed.c[0] = 0.0;
+		px->value_changed.c[1] = 0.0;
+		px->value_changed.c[2] = 0.0;
 		return;
 	}
 
@@ -872,9 +662,9 @@ void do_PositionInterpolator (void *node) {
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= ((px->key).p[0])) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3f));
+		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFColor));
 	} else if (px->set_fraction >= px->key.p[kin-1]) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3f));
+		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFColor));
 	} else {
 		/* have to go through and find the key before */
 		counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
@@ -923,10 +713,10 @@ void do_Oint4 (void *node) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed.c[0] = (float) 0.0;
-		px->value_changed.c[1] = (float) 0.0;
-		px->value_changed.c[2] = (float) 0.0;
-		px->value_changed.c[3] = (float) 0.0;
+		px->value_changed.c[0] = 0.0;
+		px->value_changed.c[1] = 0.0;
+		px->value_changed.c[2] = 0.0;
+		px->value_changed.c[3] = 0.0;
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
@@ -984,8 +774,8 @@ void do_Oint4 (void *node) {
 void do_CollisionTick( void *ptr) {
 	struct X3D_Collision *cx = (struct X3D_Collision *)ptr;
         if (cx->__hit == 3) {
-                /* printf ("COLLISION at %f\n",TickTime()); */
-                cx->collideTime = TickTime();
+                /* printf ("COLLISION at %f\n",TickTime); */
+                cx->collideTime = TickTime;
                 MARK_EVENT (ptr, offsetof(struct X3D_Collision, collideTime));
         }
 }
@@ -994,7 +784,6 @@ void do_CollisionTick( void *ptr) {
 /* Audio AudioClip sensor code */
 /* void do_AudioTick(struct X3D_AudioClip *node) {*/
 void do_AudioTick(void *ptr) {
-#ifdef MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
 	struct X3D_AudioClip *node = (struct X3D_AudioClip *)ptr;
 	int 	oldstatus;
 	double pitch; /* gcc and params - make all doubles to do_active_inactive */
@@ -1002,7 +791,7 @@ void do_AudioTick(void *ptr) {
 	/* can we possibly have started yet? */
 	if (!node) return;
 
-	if(TickTime() < node->startTime) {
+	if(TickTime < node->startTime) {
 		return;
 	}
 
@@ -1040,7 +829,6 @@ void do_AudioTick(void *ptr) {
 		}
         	SetAudioActive (node->__sourceNumber,node->isActive);
 	}
-#endif
 }
 
 
@@ -1065,7 +853,7 @@ void do_ProximitySensorTick( void *ptr) {
 			#endif
 
 			node->isActive = TRUE;
-			node->enterTime = TickTime();
+			node->enterTime = TickTime;
 			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, isActive));
 			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, enterTime));
 		}
@@ -1096,7 +884,7 @@ void do_ProximitySensorTick( void *ptr) {
 			#endif
 
 			node->isActive = FALSE;
-			node->exitTime = TickTime();
+			node->exitTime = TickTime;
 			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, isActive));
 
 			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, exitTime));
@@ -1108,7 +896,6 @@ void do_ProximitySensorTick( void *ptr) {
 /* Audio MovieTexture code */
 /* void do_MovieTextureTick(struct X3D_MovieTexture *node) {*/
 void do_MovieTextureTick( void *ptr) {
-#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	struct X3D_MovieTexture *node = (struct X3D_MovieTexture *)ptr;
 	int 	oldstatus;
 	float 	frac;		/* which texture to display */
@@ -1121,7 +908,7 @@ void do_MovieTextureTick( void *ptr) {
 
 	/* can we possibly have started yet? */
 	if (!node) return;
-	if(TickTime() < node->startTime) {
+	if(TickTime < node->startTime) {
 		return;
 	}
 
@@ -1150,7 +937,7 @@ void do_MovieTextureTick( void *ptr) {
 			lowest = highest-1;
 		}
 		/* calculate what fraction we should be */
- 		myTime = (TickTime() - node->startTime) * speed/duration;
+ 		myTime = (TickTime - node->startTime) * speed/duration;
 		tmpTrunc = (int) myTime;
 		frac = myTime - (float)tmpTrunc;
 
@@ -1183,7 +970,6 @@ void do_MovieTextureTick( void *ptr) {
 			update_node(X3D_NODE(node));
 		}
 	}
-#endif /*HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 }
 
 
@@ -1192,13 +978,14 @@ void do_MovieTextureTick( void *ptr) {
 	Sensitive nodes
 
 *****************************************************************************/
+/* void do_TouchSensor (struct X3D_TouchSensor *node, int ev, int over) {*/
 void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 
 	struct X3D_TouchSensor *node = (struct X3D_TouchSensor *)ptr;
 	struct point_XYZ normalval;	/* different structures for normalization calls */
-	ttglobal tg;
+
 	#ifdef SENSVERBOSE
-	printf ("%lf: TS ",TickTime());
+	printf ("%lf: TS ",TickTime);
 	if (ev==ButtonPress) printf ("ButtonPress ");
 	else if (ev==ButtonRelease) printf ("ButtonRelease ");
 	else if (ev==KeyPress) printf ("KeyPress ");
@@ -1219,7 +1006,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_TouchSensor, enabled));
 	}
 	if (!node->enabled) return;
-	tg = gglobal();
+
 	/* isOver state */
 	if ((ev == overMark) && (over != node->isOver)) {
 		#ifdef SENSVERBOSE
@@ -1230,6 +1017,8 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 	}
 
 	/* active */
+	/* if (over) { */
+
 		/* button presses */
 		if (ev == ButtonPress) {
 			node->isActive=TRUE;
@@ -1238,7 +1027,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 			printf ("touchSens %u, butPress\n",node);
 			#endif
 
-			node->touchTime = TickTime();
+			node->touchTime = TickTime;
 			MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, touchTime));
 
 		} else if (ev == ButtonRelease) {
@@ -1251,7 +1040,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 
 		/* hitPoint and hitNormal */
 		/* save the current hitPoint for determining if this changes between runs */
-		memcpy ((void *) &node->_oldhitPoint, (void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
+		memcpy ((void *) &node->_oldhitPoint, (void *) &ray_save_posn,sizeof(struct SFColor));
 
 		/* did the hitPoint change between runs? */
 		if ((APPROX(node->_oldhitPoint.c[0],node->hitPoint_changed.c[0])!= TRUE) ||
@@ -1263,13 +1052,13 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		}
 
 		/* have to normalize normal; change it from SFColor to struct point_XYZ. */
-		normalval.x = tg->RenderFuncs.hyp_save_norm.c[0];
-		normalval.y = tg->RenderFuncs.hyp_save_norm.c[1];
-		normalval.z = tg->RenderFuncs.hyp_save_norm.c[2];
+		normalval.x = hyp_save_norm.c[0];
+		normalval.y = hyp_save_norm.c[1];
+		normalval.z = hyp_save_norm.c[2];
 		normalize_vector(&normalval);
-		node->_oldhitNormal.c[0] = (float) normalval.x;
-		node->_oldhitNormal.c[1] = (float) normalval.y;
-		node->_oldhitNormal.c[2] = (float) normalval.z;
+		node->_oldhitNormal.c[0] = normalval.x;
+		node->_oldhitNormal.c[1] = normalval.y;
+		node->_oldhitNormal.c[2] = normalval.z;
 
 		/* did the hitNormal change between runs? */
 		if ((APPROX(node->_oldhitNormal.c[0],node->hitNormal_changed.c[0])!= TRUE) ||
@@ -1279,19 +1068,20 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 			memcpy ((void *) &node->hitNormal_changed, (void *) &node->_oldhitNormal, sizeof(struct SFColor));
 			MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitNormal_changed));
 		}
+	/* } */
 }
 
 /* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/
 void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
-	struct X3D_PlaneSensor *node;
+	struct X3D_PlaneSensor *node = (struct X3D_PlaneSensor *)ptr;
 	float mult, nx, ny;
 	struct SFColor tr;
 	int tmp;
-	ttglobal tg;
+
 	UNUSED(over);
-	node = (struct X3D_PlaneSensor *)ptr;
+
 	#ifdef SENSVERBOSE
-	printf ("%lf: TS ",TickTime());
+	printf ("%lf: TS ",TickTime);
 	if (ev==ButtonPress) printf ("ButtonPress ");
 	else if (ev==ButtonRelease) printf ("ButtonRelease ");
 	else if (ev==KeyPress) printf ("KeyPress ");
@@ -1306,13 +1096,11 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 
 	/* if not enabled, do nothing */
 	if (!node) return;
-
 	if (node->__oldEnabled != node->enabled) {
 		node->__oldEnabled = node->enabled;
 		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_PlaneSensor, enabled));
 	}
 	if (!node->enabled) return;
-	tg = gglobal();
 
 	/* only do something when button pressed */
 	/* if (!but1) return; */
@@ -1320,7 +1108,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	if ((ev==ButtonPress) && but1) {
 		/* record the current position from the saved position */
 		memcpy ((void *) &node->_origPoint,
-			(void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
+			(void *) &ray_save_posn,sizeof(struct SFColor));
 
 		/* set isActive true */
 		node->isActive=TRUE;
@@ -1328,10 +1116,10 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 
 	} else if ((ev==MotionNotify) && (node->isActive) && but1) {
 		/* hyperhit saved in render_hypersensitive phase */
-		mult = (node->_origPoint.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]) /
-			(tg->RenderFuncs.hyp_save_norm.c[2]-tg->RenderFuncs.hyp_save_posn.c[2]);
-		nx = tg->RenderFuncs.hyp_save_posn.c[0] + mult * (tg->RenderFuncs.hyp_save_norm.c[0] - tg->RenderFuncs.hyp_save_posn.c[0]);
-		ny = tg->RenderFuncs.hyp_save_posn.c[1] + mult * (tg->RenderFuncs.hyp_save_norm.c[1] - tg->RenderFuncs.hyp_save_posn.c[1]);
+		mult = (node->_origPoint.c[2] - hyp_save_posn.c[2]) /
+			(hyp_save_norm.c[2]-hyp_save_posn.c[2]);
+		nx = hyp_save_posn.c[0] + mult * (hyp_save_norm.c[0] - hyp_save_posn.c[0]);
+		ny = hyp_save_posn.c[1] + mult * (hyp_save_norm.c[1] - hyp_save_posn.c[1]);
 
 		#ifdef SEVERBOSE
 		printf ("now, mult %f nx %f ny %f op %f %f %f\n",mult,nx,ny,
@@ -1404,29 +1192,21 @@ void do_Anchor ( void *ptr, int ev, int but1, int over) {
 	UNUSED(but1);
 
 	if (!node) return;
-	/* try button release, so that we dont get worlds flashing past if 
-	   the user keeps the finger down. :-) if (ev==ButtonPress) { */
-	if (ev==ButtonRelease) {
-		ttglobal tg = gglobal();
+	if (ev==ButtonPress) {
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
-		setAnchorsAnchor( node );
-		#ifdef OLDCODE
-		OLDCODE FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
-		#endif // OLDCODE
-
-		tg->RenderFuncs.BrowserAction = TRUE;
+		AnchorsAnchor = node;
+		BrowserAction = TRUE;
 	}
 }
 
 
 void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_CylinderSensor *node = (struct X3D_CylinderSensor *)ptr;
-	double rot, radius, ang, length;
+	float rot, radius, ang, length;
 	double det, pos, neg, temp;
 	Quaternion bv, dir1, dir2, tempV;
-	GLDOUBLE modelMatrix[16];
-	ttglobal tg;
+	GLdouble modelMatrix[16];
 
 	UNUSED(over);
 	
@@ -1440,23 +1220,23 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 
 	/* only do something if the button is pressed */
 	if (!but1) return;
-	tg = gglobal();
+
 
 	if (ev==ButtonPress) {
 		/* record the current position from the saved position */
     		memcpy ((void *) &node->_origPoint,
-			(void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
+			(void *) &ray_save_posn,sizeof(struct SFColor));
 
 		/* set isActive true */
 		node->isActive=TRUE;
 		MARK_EVENT (ptr, offsetof (struct X3D_CylinderSensor, isActive));
 
     		/* record the current Radius */
-		node->_radius = tg->RenderFuncs.ray_save_posn.c[0] * tg->RenderFuncs.ray_save_posn.c[0] +
-				tg->RenderFuncs.ray_save_posn.c[1] * tg->RenderFuncs.ray_save_posn.c[1] +
-				tg->RenderFuncs.ray_save_posn.c[2] * tg->RenderFuncs.ray_save_posn.c[2];
+		node->_radius = ray_save_posn.c[0] * ray_save_posn.c[0] +
+				ray_save_posn.c[1] * ray_save_posn.c[1] +
+				ray_save_posn.c[2] * ray_save_posn.c[2];
 
-        	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+        	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
      		/*
      		printf ("Cur Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
                		modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
@@ -1499,7 +1279,7 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 
 	} else if ((ev==MotionNotify) && (node->isActive)) {
 
-		memcpy ((void *) &node->_oldtrackPoint, (void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
+		memcpy ((void *) &node->_oldtrackPoint, (void *) &ray_save_posn,sizeof(struct SFColor));
 		if ((APPROX(node->_oldtrackPoint.c[0],node->trackPoint_changed.c[0])!= TRUE) ||
 			(APPROX(node->_oldtrackPoint.c[1],node->trackPoint_changed.c[1])!= TRUE) ||
 			(APPROX(node->_oldtrackPoint.c[2],node->trackPoint_changed.c[2])!= TRUE)) {
@@ -1510,9 +1290,9 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 
 
 		dir1.w=0;
-  		dir1.x= tg->RenderFuncs.ray_save_posn.c[0];
+  		dir1.x=ray_save_posn.c[0];
   		dir1.y=0;
-  		dir1.z= tg->RenderFuncs.ray_save_posn.c[2];
+  		dir1.z=ray_save_posn.c[2];
 
         	if (node->_dlchange) {
             		radius = 1.0;
@@ -1554,10 +1334,10 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
             		}
         	}
 
-		node->_oldrotation.c[0] = (float) 0;
-		node->_oldrotation.c[1] = (float) 1;
-		node->_oldrotation.c[2] = (float) 0;
-		node->_oldrotation.c[3] = (float) rot;
+		node->_oldrotation.c[0] = 0;
+		node->_oldrotation.c[1] = 1;
+		node->_oldrotation.c[2] = 0;
+		node->_oldrotation.c[3] = rot;
 
 		if ((APPROX(node->_oldrotation.c[0],node->rotation_changed.c[0])!= TRUE) ||
 			(APPROX(node->_oldrotation.c[1],node->rotation_changed.c[1])!= TRUE) ||
@@ -1592,9 +1372,9 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 #define NORM_ORIG_X node->_origNormalizedPoint.c[0]
 #define NORM_ORIG_Y node->_origNormalizedPoint.c[1]
 #define NORM_ORIG_Z node->_origNormalizedPoint.c[2]
-#define CUR_X  tg->RenderFuncs.ray_save_posn.c[0]
-#define CUR_Y  tg->RenderFuncs.ray_save_posn.c[1]
-#define CUR_Z  tg->RenderFuncs.ray_save_posn.c[2]
+#define CUR_X  ray_save_posn.c[0]
+#define CUR_Y  ray_save_posn.c[1]
+#define CUR_Z  ray_save_posn.c[2]
 #define NORM_CUR_X normalizedCurrentPoint.c[0]
 #define NORM_CUR_Y normalizedCurrentPoint.c[1]
 #define NORM_CUR_Z normalizedCurrentPoint.c[2]
@@ -1620,22 +1400,19 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 	Quaternion q, q2, q_r;
 	double s1,s2,s3,s4;
 */
-	ttglobal tg;
 	UNUSED(over);
 
 	/* if not enabled, do nothing */
-	if (!node) 
-		return;
+	if (!node) return;
 	if (node->__oldEnabled != node->enabled) {
 		node->__oldEnabled = node->enabled;
 		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_SphereSensor, enabled));
 	}
-	if (!node->enabled) 
-		return;
+	if (!node->enabled) return;
 
 	/* only do something if button1 is pressed */
 	if (!but1) return;
-	tg = gglobal();
+
 	if (ev==ButtonPress) {
 		/* record the current position from the saved position */
 		ORIG_X = CUR_X;
@@ -1643,7 +1420,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 		ORIG_Z = CUR_Z;
 
 		/* record the current Radius */
-		RADIUS = (float) sqrt(CUR_X * CUR_X + CUR_Y * CUR_Y + CUR_Z * CUR_Z);
+		RADIUS = sqrt(CUR_X * CUR_X + CUR_Y * CUR_Y + CUR_Z * CUR_Z);
 
 		if (APPROX(RADIUS,0.0)) {
 			printf ("warning, RADIUS %lf == 0, can not compute\n",RADIUS);
@@ -1654,11 +1431,6 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 		NORM_ORIG_X = CUR_X / RADIUS;
 		NORM_ORIG_Y = CUR_Y / RADIUS;
 		NORM_ORIG_Z = CUR_Z / RADIUS;
-
-		/* norm(offset) ideally this would be done once during parsing 
-		  of crazy SFRotation ie '1 1 -5 .6' in 10.wrl/10.x3d 
-		  I might be getting rounding errors from repeated normalization */
-		vrmlrot_normalize(node->offset.c); 
 
 		/* set isActive true */
 		node->isActive=TRUE;
@@ -1677,7 +1449,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 	} else if ((ev==MotionNotify) && (node->isActive)) {
 		
 		double dotProd;
-		double newRad;
+		float newRad;
 		struct SFColor normalizedCurrentPoint;
 		struct point_XYZ newA;
 
@@ -1689,7 +1461,6 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 			printf ("warning, newRad %lf == 0, can not compute\n",newRad);
 			return;
 		}
-		RADIUS = (float) newRad;
 
 		/* save the current norm here */
 		NORM_CUR_X = CUR_X / RADIUS;
@@ -1703,58 +1474,21 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 		normalize_vector(&newA);
 
 		/* clamp the angle to |a| < 1.0 */
-		/* remember A dot B = |A|*|B|*cos(theta_between) or theta_between = acos(A dot B/|A|*|B| ) */
 		dotProd = NORM_ORIG_X * NORM_CUR_X + NORM_ORIG_Y * NORM_CUR_Y + NORM_ORIG_Z * NORM_CUR_Z;
-		if (dotProd > 1.0) 
-			dotProd = 1.0;
-		if (dotProd < -1.0) 
-			dotProd = -1.0;
-		dotProd = acos(dotProd);
+		if (dotProd > 1.0) dotProd = 1.0;
+		if (dotProd < -1.0) dotProd = -1.0;
+
 
 		/* have axis-angle now */
 		/*
 		printf ("newRotation  a %lf - rot -- %lf %lf %lf %lf\n",
-			dotProd, newA.x,newA.y,newA.z,dotProd);
+			dotProd, newA.x,newA.y,newA.z,acos(dotProd));
 		*/
-		if(node->autoOffset)
-		{
-/*
-			if(0)
-			{
-				//Aug 1, 2010 experimental code - stale date: Sept 1
-				struct SFRotation temp, temp2;
-				temp.c[0] = newA.x;
-				temp.c[1] = newA.y;
-				temp.c[2] = newA.z;
-				temp.c[3] = dotProd;
-				vrmlrot_multiply(temp2.c, node->offset.c, temp.c);
-				newA.x = temp2.c[0];
-				newA.y = temp2.c[1];
-				newA.z = temp2.c[2];
-				dotProd = temp2.c[3];
-			}
-			if(1)
-			{
-*/
-				/* copied from the javascript SFRotationMultiply */
-				Quaternion q1, q2, qret;
-				/* convert both rotations into quaternions */
-				vrmlrot_to_quaternion(&q1, (double) newA.x, 
-					(double) newA.y, (double) newA.z, (double) dotProd);
-				vrmlrot_to_quaternion(&q2, (double) node->offset.c[0], 
-					(double) node->offset.c[1], (double) node->offset.c[2], (double) node->offset.c[3]);
-				/* multiply them */
-				quaternion_multiply(&qret,&q1,&q2);
-				/* and return the resultant, as a vrml rotation */
-				quaternion_to_vrmlrot(&qret, &newA.x, &newA.y, &newA.z, &dotProd);
-			/*}*/
-		}
 
-
-		node->rotation_changed.c[0] = (float) newA.x;
-		node->rotation_changed.c[1] = (float) newA.y;
-		node->rotation_changed.c[2] = (float) newA.z;
-		node->rotation_changed.c[3] = (float) dotProd; //acos(dotProd); done above
+		node->rotation_changed.c[0] = newA.x;
+		node->rotation_changed.c[1] = newA.y;
+		node->rotation_changed.c[2] = newA.z;
+		node->rotation_changed.c[3] = acos(dotProd);
 		MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, rotation_changed));
 
 		node->trackPoint_changed.c[0] = NORM_CUR_X;
@@ -1765,28 +1499,30 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 }
 
 void locateAudioSource (struct X3D_AudioClip *node) {
-	resource_item_t *res;
-	resource_item_t *parentPath;
-	ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
-	node->__sourceNumber = p->SoundSourceNumber;
-	p->SoundSourceNumber++;
+	char *filename;
+	char *mypath;
+	int removeIt = FALSE;
 
-	parentPath = (resource_item_t *)(node->_parentResource);
+	node->__sourceNumber = SoundSourceNumber;
+	SoundSourceNumber++;
 
-	res = resource_create_multi(&node->url);
+	filename = (char*)MALLOC(1000);
+	filename[0] = '\0';
 
-	resource_get_valid_url_from_multi(parentPath, res);
+	/* lets make up the path and save it, and make it the global path */
+	/* copy the parent path over */
+	mypath = STRDUP(node->__parenturl->strptr);
 
-	send_resource_to_parser(res);
-	resource_wait(res);
-	
-	if (res->status == ress_loaded) {
-		/* TODO: check into the audio file ??? check what textures do in resource_get_valid_texture_from_multi */
-		return;
+	if (getValidFileFromUrl (filename,mypath, &(node->url), NULL, &removeIt)) {
+		/* save local file in the structure, so that it can
+		   be initialized later */
+		node->__localFileName = STRDUP(filename);
+	} else {
+		/* well, no file found */
+		printf ("Audio: could not find audio file :%s:\n",filename);
+		FREE_IF_NZ (filename);
+		node->__sourceNumber = BADAUDIOSOURCE;
 	}
-
-	resource_destroy(res);	
-	
-	node->__sourceNumber = BADAUDIOSOURCE;
-
+	FREE_IF_NZ (mypath);
+	FREE_IF_NZ (filename);
 }

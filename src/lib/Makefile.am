@@ -17,30 +17,23 @@ AM_CPPFLAGS += \
 				$(ZLIB_CFLAGS) \
 				$(PTHREAD_CFLAGS) \
 				$(FREETYPE_CFLAGS) \
-				$(FONTCONFIG_CFLAGS) \
+				$(JAVASCRIPT_ENGINE_CFLAGS) \
 				$(EXPAT_CFLAGS) \
 				$(XML_CFLAGS) \
 				$(GL_CFLAGS) \
 				$(JPEG_CFLAGS) \
-				$(PNG_CFLAGS) \
-				$(LIBCURL_CFLAGS) \
-				$(IMLIB2_CFLAGS) \
-				$(JAVASCRIPT_ENGINE_CFLAGS)
+				$(PNG_CFLAGS)
 
 EXTERNAL_LIBS = \
 				$(ZLIB_LIBS) \
 				$(PTHREAD_LIBS) \
 				$(FREETYPE_LIBS) \
-				$(FONTCONFIG_LIBS) \
 				$(JAVASCRIPT_ENGINE_LIBS) \
 				$(EXPAT_LIBS) \
 				$(XML_LIBS) \
 				$(GL_LIBS) \
 				$(JPEG_LIBS) \
-				$(PNG_LIBS) \
-				$(LIBCURL_LIBS) \
-				$(IMLIB2_LIBS) \
-				$(LIBLO_LIBS)
+				$(PNG_LIBS)
 
 
 # X11 flags specific to x11 target (default on Linux -- optional on Mac)
@@ -52,8 +45,7 @@ AM_CPPFLAGS += \
 EXTERNAL_LIBS += \
 				$(X_PRE_LIBS) \
 				$(X_LIBS) $(X_EXTRA_LIBS) \
-				$(XAW_LIBS) \
-				$(GLEW_LIBS)
+				$(XAW_LIBS)
 endif
 
 # Motif flags specific to motif target (only on Linux at the moment)
@@ -67,8 +59,14 @@ EXTERNAL_LIBS += \
 				$(X_PRE_LIBS) \
 				$(MOTIF_LIBS) \
 				$(X_LIBS) $(X_EXTRA_LIBS) \
-				$(XAW_LIBS) \
-				$(GLEW_LIBS)
+				$(XAW_LIBS)
+endif
+
+# Aqua flags specific to aqua target (only on Mac)
+if WINDOW_USE_AQUA
+
+AM_CPPFLAGS += $(MAC_CFLAGS) -DAQUA
+
 endif
 
 if OS_MAC
@@ -122,36 +120,21 @@ libFreeWRL_la_SOURCES += internal_version.c
 # WINDOW_USE_* are exclusive
 #
 if WINDOW_USE_X11
-libFreeWRL_la_SOURCES += ui/fwCommonX11.c ui/fwBareWindow.c ui/fwBareWindow.h
+libFreeWRL_la_SOURCES += display_x11.c ui/fwWindow.c ui/fwBareWindow.c ui/fwBareWindow.h
 AM_CPPFLAGS+=-DTARGET_X11
 endif
 
 if WINDOW_USE_MOTIF
-libFreeWRL_la_SOURCES += ui/fwCommonX11.c ui/fwMotifWindow.c
+libFreeWRL_la_SOURCES += display_x11.c display_motif.c ui/fwWindow.c ui/fwMotifWindow.c ui/fwMotifWindow.h
 AM_CPPFLAGS+=-DTARGET_MOTIF
 endif
 
 if WINDOW_USE_AQUA
-libFreeWRL_la_SOURCES += ui/fwWindowAqua.c
-AM_CPPFLAGS+=-DTARGET_AQUA -DAQUA
+libFreeWRL_la_SOURCES += display_aqua.c
+AM_CPPFLAGS+=-DTARGET_AQUA
 endif
 
 if WINDOW_USE_WIN32
-libFreeWRL_la_SOURCES += ui/fwWindow32.c
+libFreeWRL_la_SOURCES += display_win32.c ui/fwWindow32.c
 AM_CPPFLAGS+=-DTARGET_WIN32
 endif
-
-if STATUSBAR_STD
-libFreeWRL_la_SOURCES += ui/statusbar.c
-AM_CPPFLAGS+=-DSTATUSBAR_STD
-endif
-
-if STATUSBAR_HUD
-libFreeWRL_la_SOURCES += ui/statusbarHud.c
-AM_CPPFLAGS+=-DSTATUSBAR_HUD
-endif
-
-
-# We'll try to maintain a dependency for generated code (first try here)
-scenegraph/GeneratedCode.c vrml_parser/NodeFields.h vrml_parser/Structs.h: $(top_srcdir)/codegen/VRMLC.pm
-	cd $(top_srcdir)/codegen && perl VRMLC.pm

@@ -1,98 +1,42 @@
 /*
-  $Id: pluginUtils.c,v 1.58 2012/06/18 17:41:43 crc_canada Exp $
+=INSERT_TEMPLATE_HERE=
 
-  FreeWRL support library.
-  Plugin interaction.
+$Id: pluginUtils.c,v 1.5.2.1 2009/07/08 21:55:04 couannette Exp $
+
+???
 
 */
-
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
 
 #include <config.h>
 #include <system.h>
 #include <display.h>
 #include <internal.h>
-#include "../threads.h"
 
 #include <libFreeWRL.h>
-#include <list.h>
-#include <io_files.h>
-#include <resources.h>
-#include <signal.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-#include "../input/EAIHeaders.h"	/* for implicit declarations */
+#include "../input/EAIheaders.h"
+
+/* #include <float.h> */
 
 #include "../x3d_parser/Bindable.h"
-#include "../opengl/OpenGL_Utils.h"
-#include "../scenegraph/RenderFuncs.h"
-#include "../main/ProdCon.h"
+
 #include "pluginUtils.h"
-#include "PluginSocket.h"
-
-
-static int checkIfX3DVRMLFile(char *fn);
 
 
 /* get all system commands, and pass them through here. What we do
  * is take parameters and execl them, in specific formats, to stop
  * people (or, to try to stop) from typing malicious code. */
 
-/* keep a list of children; if one hangs, fwl_doQuit will hang, also. */
-#ifndef _MSC_VER
+/* keep a list of children; if one hangs, doQuit will hang, also. */
 #define MAXPROCESSLIST 128
 pid_t childProcess[MAXPROCESSLIST];
 int lastchildProcess = 0;
 int childProcessListInit = FALSE;
-#else
-#include <process.h>
-#endif
-
-typedef struct ppluginUtils{
-	/* we keep polling here, if we are loading a url...*/
-	int waitingForURLtoLoad;// = FALSE;
-	resource_item_t *plugin_res;// = NULL; 	/* If this res is valid, then we can replace root_res with it */
-}* pppluginUtils;
-void *pluginUtils_constructor(){
-	void *v = malloc(sizeof(struct ppluginUtils));
-	memset(v,0,sizeof(struct ppluginUtils));
-	return v;
-}
-void pluginUtils_init(struct tpluginUtils *t){
-	//public
-	//private
-	t->prv = pluginUtils_constructor();
-	{
-		pppluginUtils p = (pppluginUtils)t->prv;
-		/* we keep polling here, if we are loading a url...*/
-		p->waitingForURLtoLoad = FALSE;
-		p->plugin_res = NULL; 	/* If this res is valid, then we can replace root_res with it */
-	}
-}
-
-
 
 void killErrantChildren(void) {
-#ifndef _MSC_VER
+#ifndef WIN32
 	int count;
 	
 	for (count = 0; count < MAXPROCESSLIST; count++) {
@@ -105,269 +49,296 @@ void killErrantChildren(void) {
 #endif
 }
 
+/* FIXME: what are the possible return codes for this function ??? */
+int freewrlSystem (const char *sysline) {
+#ifdef WIN32
+	return 0;
+#else
+#define MAXEXECPARAMS 10
+#define EXECBUFSIZE	2000
+	char *paramline[MAXEXECPARAMS];
+	char buf[EXECBUFSIZE];
+	char *internbuf;
+	int count;
+	/* pid_t childProcess[lastchildProcess]; */
+	int pidStatus;
+	int waitForChild;
+	int haveXmessage;
+
+
+	/* make all entries in the child process list = 0 */
+	if (childProcessListInit == FALSE) {
+		memset(childProcess, 0, MAXPROCESSLIST);
+		childProcessListInit = TRUE;
+	}
+	
+	/* initialize the paramline... */
+	memset(paramline, 0, sizeof(paramline));
+		
+	waitForChild = TRUE;
+	haveXmessage = !strncmp(sysline, FREEWRL_MESSAGE_WRAPPER, strlen(FREEWRL_MESSAGE_WRAPPER));
+
+	internbuf = buf;
+
+	/* bounds check */
+	if (strlen(sysline)>=EXECBUFSIZE) return FALSE;
+	strcpy (buf,sysline);
+
+	/* printf ("freewrlSystem, have %s here\n",internbuf); */
+	count = 0;
+
+	/* do we have a console message - (which is text with spaces) */
+	if (haveXmessage) {
+		paramline[0] = FREEWRL_MESSAGE_WRAPPER;
+		paramline[1] = strchr(internbuf,' ');
+		count = 2;
+	} else {
+		/* split the command off of internbuf, for execing. */
+		while (internbuf != NULL) {
+			/* printf ("freewrlSystem: looping, count is %d\n",count);  */
+			paramline[count] = internbuf;
+			internbuf = strchr(internbuf,' ');
+			if (internbuf != NULL) {
+				/* printf ("freewrlSystem: more strings here! :%s:\n",internbuf); */
+				*internbuf = '\0';
+				/* printf ("param %d is :%s:\n",count,paramline[count]); */
+				internbuf++;
+				count ++;
+				if (count >= MAXEXECPARAMS) return -1; /*  never...*/
+			}
+		}
+	}
+	
+	/* printf ("freewrlSystem: finished while loop, count %d\n",count); 
+	
+	 { int xx;
+		for (xx=0; xx<MAXEXECPARAMS;xx++) {
+			printf ("item %d is :%s:\n",xx,paramline[xx]);
+	}} */
+	
+	if (haveXmessage) {
+		waitForChild = FALSE;
+	} else {
+		/* is the last string "&"? if so, we don't need to wait around */
+		if (strncmp(paramline[count],"&",strlen(paramline[count])) == 0) {
+			waitForChild=FALSE;
+			paramline[count] = '\0'; /*  remove the ampersand.*/
+		}
+	}
+
+	if (count > 0) {
+		switch (childProcess[lastchildProcess]=fork()) {
+			case -1:
+				perror ("fork");
+				exit(1);
+				break;
+
+			case 0: 
+			{
+				int Xrv;
+				
+				/* child process */
+				/* printf ("freewrlSystem: child execing, pid %d %d\n",childProcess[lastchildProcess], getpid());  */
+				Xrv = execl((const char *)paramline[0],
+							(const char *)paramline[0],paramline[1], paramline[2],
+							paramline[3],paramline[4],paramline[5],
+							paramline[6],paramline[7]);
+				printf ("FreeWRL: Fatal problem execing %s\n",paramline[0]);
+				perror("FreeWRL: "); 
+				exit (Xrv);
+			}
+				break;
+
+			default: 
+			{
+				/* parent process */
+				/* printf ("freewrlSystem: parent waiting for child %d\n",childProcess[lastchildProcess]); */
+				
+				lastchildProcess++;
+				if (lastchildProcess == MAXPROCESSLIST) lastchildProcess=0;
+				
+				/* do we have to wait around? */
+				if (!waitForChild) {
+					/* printf ("freewrlSystem - do not have to wait around\n"); */
+					return TRUE;
+				}
+				waitpid (childProcess[lastchildProcess],&pidStatus,0);
+				/* printf ("freewrlSystem: parent - child finished - pidStatus %d \n",
+				   pidStatus);  */
+				
+				/* printf ("freewrlSystem: WIFEXITED is %d\n",WIFEXITED(pidStatus)); */
+				
+				/* if (WIFEXITED(pidStatus) == TRUE) printf ("returned ok\n"); else printf ("problem with return\n"); */
+			}
+		}
+		return (WIFEXITED(pidStatus) == TRUE);
+	} else {
+		printf ("System call failed :%s:\n",sysline);
+	}
+	return -1; /* should we return FALSE or -1 ??? */
+#endif
+}
+
 /* implement Anchor/Browser actions */
 
-static void goToViewpoint(char *vp) {
-	struct X3D_Node *localNode;
-	/* unused int tableIndex; */
+void doBrowserAction () {
+	int count;
+
+	int localNode;
+	int tableIndex;
+
+	char *filename;
+	char *mypath;
+	char *thisurl;
 	int flen;
-	struct tProdCon *t = &gglobal()->ProdCon;
+	int removeIt = FALSE;
 
-	/* see if we can get a node that matches this DEF name */
-	localNode = EAI_GetViewpoint(vp);
-	
-	/*  did we find a match with known Viewpoints?*/
-	if (localNode != NULL) {
-		for (flen=0; flen<vectorSize(t->viewpointNodes);flen++) {
-			if (localNode == vector_get(struct X3D_Node *,t->viewpointNodes,flen)) {
-				/* unbind current, and bind this one */
-				send_bind_to(vector_get(struct X3D_Node *,t->viewpointNodes,t->currboundvpno),0);
-				t->currboundvpno=flen;
-				send_bind_to(vector_get(struct X3D_Node *,t->viewpointNodes,t->currboundvpno),1);
-				return;
-			}
-		}
-	}
-	/* printf ("goToViewpoint - failed to match local Viewpoint\n"); */
-}
-
-static void startNewHTMLWindow(char *url) {
-	const char *browser;
-#define LINELEN 4000
-#define ERRLINELEN 4200
+#define LINELEN 2000
 	char sysline[LINELEN];
-	int sysReturnCode;
-	char syslineFailed[ERRLINELEN];
 	int testlen;
 
-	browser = NULL;
 
-#ifdef AQUA
-	if (RUNNINGASPLUGIN) {
-		/* printf ("Anchor, running as a plugin - load non-vrml file\n"); */
-		requestNewWindowfromPlugin(_fw_browser_plugin, _fw_instance, url);
-	} else {
-#endif
-	browser = freewrl_get_browser_program();
-	if (!browser) {
-		ConsoleMessage ("Error: no Internet browser found.");
+	struct Multi_String Anchor_url;
+	/* struct Multi_String { int n; SV * *p; };*/
+
+	Anchor_url = AnchorsAnchor->url;
+
+	/* if (!RUNNINGASPLUGIN)
+		printf ("FreeWRL::Anchor: going to \"%s\"\n",
+			AnchorsAnchor->description->strptr);
+	*/
+
+	filename = (char *)MALLOC(1000);
+
+	/* copy the parent path over */
+	mypath = STRDUP(AnchorsAnchor->__parenturl->strptr);
+
+	/* and strip off the file name, leaving any path */
+	removeFilenameFromPath (mypath);
+
+	/* printf ("Anchor, url so far is %s\n",mypath); */
+
+	/* try the first url, up to the last */
+	count = 0;
+	while (count < Anchor_url.n) {
+		thisurl = Anchor_url.p[count]->strptr;
+
+		/*  is this a local Viewpoint?*/
+		if (thisurl[0] == '#') {
+			localNode = EAI_GetViewpoint(&thisurl[1]);
+			tableIndex = -1;
+
+			for (flen=0; flen<totviewpointnodes;flen++) {
+				if (localNode == viewpointnodes[flen]) {
+					 tableIndex = flen;
+					 break;
+				}
+			}
+			/*  did we find a match with known Viewpoints?*/
+			if (tableIndex>=0) {
+				/* unbind current, and bind this one */
+				send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
+				currboundvpno=tableIndex;
+				send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
+			} else {
+				printf ("failed to match local Viewpoint\n");
+			}
+
+			/*  lets get outa here - jobs done.*/
+			FREE_IF_NZ (filename);
+			return;
+		}
+
+		/* check to make sure we don't overflow */
+		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
+
+
+		/* put the path and the file name together */
+		makeAbsoluteFileName(filename,mypath,thisurl);
+		/* printf ("so, Anchor, filename %s, mypath %s, thisurl %s\n",filename, mypath, thisurl); */
+
+		/* if this is a html page, just assume it's ok. If
+		 * it is a VRML/X3D file, check to make sure it exists */
+
+		if (!checkIfX3DVRMLFile(filename)) { break; }
+
+		/* ok, it might be a file we load into our world. */
+		if (fileExists(filename,NULL,FALSE,&removeIt)) { break; }
+		count ++;
+	}
+
+	/*  did we locate that file?*/
+	if (count == Anchor_url.n) {
+		if (count > 0) {
+			printf ("Could not locate url (last choice was %s)\n",filename);
+		}
+		FREE_IF_NZ (filename);
+
+		/* if EAI was waiting for a loadURL, tell it it failed */
+		EAI_Anchor_Response (FALSE);
 		return;
 	}
-		
-	/* bounds check here */
-	testlen = 0;
-	if (browser) testlen = (int) strlen(browser);
+	/* printf ("we were successful at locating :%s:\n",filename); */
 
-	testlen += (int) strlen(url) + 10; 
-	if (testlen > LINELEN) {
-		ConsoleMessage ("Anchor: combination of browser name and file name too long.");
+	/* which browser are we running under? if we are running as a*/
+	/* plugin, we'll have some of this information already.*/
+
+	if (checkIfX3DVRMLFile(filename)) {
+		Anchor_ReplaceWorld (filename);
 	} else {
-			
-		if (browser) strcpy (sysline, browser);
-		else strcpy (sysline, browser);
-		strcat (sysline, " ");
-		strcat (sysline, url);
-		strcat (sysline, " &");
-		freewrlSystem (sysline);
-	}
-		
+		#ifdef AQUA
+		if (RUNNINGASPLUGIN) {
+		 	/* printf ("Anchor, running as a plugin - load non-vrml file\n"); */
+		 	requestNewWindowfromPlugin(_fw_browser_plugin, _fw_instance, filename);
+		} else {
+		#endif
+			/* printf ("IS NOT a vrml/x3d file\n");
+			printf ("Anchor: -DBROWSER is :%s:\n",BROWSER); */
 
-	if (browser) sprintf(sysline, "%s %s &", browser, url);
-	else sprintf(sysline, "open %s &",  url);
-	sysReturnCode = system (sysline);
-	if (sysReturnCode < 0) {
-		sprintf(syslineFailed ,"ERR %s %d system call failed, returned %d. Was: %s\n",__FILE__,__LINE__,sysReturnCode,sysline);
-		ConsoleMessage (syslineFailed);
-	}
-#ifdef AQUA
-	}
-#endif
-}
+		    /* char *browser = getenv("BROWSER"); */
+		    char *browser = freewrl_get_browser_program();
+		    if (!browser) {
+			ConsoleMessage ("Error: no Internet browser found.");
+			return;
+		    }
 
-
-
-///* we keep polling here, if we are loading a url...*/
-//static int waitingForURLtoLoad = FALSE;
-//static resource_item_t *plugin_res = NULL; 	/* If this res is valid, then we can replace root_res with it */
-
-#if !defined(FRONTEND_GETS_FILES)
-static int urlLoadingStatus() {
-	pppluginUtils p = (pppluginUtils)gglobal()->pluginUtils.prv;
-
-	/* printf ("urlLoadingStatus %s\n",resourceStatusToString(plugin_res->status)); */
-	/* printf ("and we have %d children in root.\n",X3D_GROUP(rootNode)->children.n); */
-
-	switch (p->plugin_res->status) {
-		case ress_downloaded:
-		case ress_parsed:
-			EAI_Anchor_Response(TRUE);
-			p->waitingForURLtoLoad = FALSE;
-			break;
-		case ress_failed:
-			ConsoleMessage ("Failed to load URL\n");
-			EAI_Anchor_Response(FALSE);
-			p->waitingForURLtoLoad = FALSE;
-			break;
-		default: {}
-	}
-
-	return p->waitingForURLtoLoad;
-}
-#endif //FRONTEND_GETS_FILES
-
-
-
-/* returns FALSE if we are DONE the action, whether or not it was successful; 
-   TRUE if we want to hit this next time through the event loop */
-
-int doBrowserAction()
-{
-	struct Multi_String Anchor_url;
-	char *description;
-	resource_item_t * parentPath;
-	s_list_t *head_of_list;
-	pppluginUtils p;
-	ttglobal tg = gglobal();
-	p = (pppluginUtils)tg->pluginUtils.prv;
-	
-#if !defined(FRONTEND_GETS_FILES)
-	/* are we in the process of polling for a new X3D URL to load? */
-	if (p->waitingForURLtoLoad) return urlLoadingStatus();
-#endif //FRONTEND_GETS_FILES
-
-	if (AnchorsAnchor() != NULL) {
-
-		Anchor_url = AnchorsAnchor()->url;
-		description = AnchorsAnchor()->description->strptr;
-
-		TRACE_MSG("doBrowserAction: description: %s\n", description);
-
-		/* are we going to load up a new VRML/X3D world, or are we going to just go and load up a new web page ? */
-		if (Anchor_url.n < 0) {
-			/* printf ("have Anchor, empty URL\n"); */
-			setAnchorsAnchor( NULL );
-			return FALSE; /* done the action, the url is just not good */
-		} 
-
-		/* first test case - url is ONLY a viewpoint change */
-		if (Anchor_url.p[0]->strptr[0] == '#') {
-			setAnchorsAnchor( NULL );
-			goToViewpoint (&(Anchor_url.p[0]->strptr[1]));
-			return TRUE;
-		}
-
-		/* We have a url, lets go and get the first one of them */
-                parentPath = (resource_item_t *)AnchorsAnchor()->_parentResource;
-
-		p->plugin_res = resource_create_multi(&AnchorsAnchor()->url);
-
-#ifdef TEXVERBOSE
-		PRINTF("url: ");
-		Multi_String_print(&AnchorsAnchor()->url);
-		PRINTF("parent resource: \n");
-		resource_dump(parentPath);
-		PRINTF("file resource: \n");
-		resource_dump(p->plugin_res);
-#endif
-
-		/* hold on to the top of the list so we can delete it later */
-		head_of_list = p->plugin_res->m_request;
-
-		/* go through the urls until we have a success, or total failure */
-		do {
-			/* Setup parent */
-			resource_identify(parentPath, p->plugin_res);
-
-			/* Setup media type */
-			p->plugin_res->media_type = resm_image; /* quick hack */
-
-			if (resource_fetch(p->plugin_res)) {
-				/* printf ("really loading anchor from %s\n", plugin_res->actual_file); */
-
-				/* we have the file; res->actual_file is the file on the local system; 
-				   plugin_res->parsed_request is the file that might be remote */
-
-				if (checkIfX3DVRMLFile(p->plugin_res->actual_file)) {
-					resource_item_t *resToLoad;
-
-					/* out with the old... */
-					kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
-
-					/* tell the new world which viewpoint to go to */
-					fwl_gotoViewpoint (p->plugin_res->afterPoundCharacters);
-					resToLoad = resource_create_single(p->plugin_res->actual_file);
-
-					/* in with the new... */
-					send_resource_to_parser(resToLoad);
-					p->waitingForURLtoLoad = TRUE;
-					return TRUE; /* keep the browser ticking along here */
-				} else {
-#ifdef _MSC_VER				
-						//we don't want to launch a new IE browser or IE tab, 
-						//just load a new scene in freewrl
-						//analogous to what happens when we have file://...AnchorA.x3d 
-						//the following is the only way I know to do that right now, same as 
-						//below several lines:
-						kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
-
-						/* we want to clean out the old world AND load a new one in */
-						p->plugin_res = resource_create_single (p->plugin_res->parsed_request);
-
-						send_resource_to_parser(p->plugin_res);
-
-						p->waitingForURLtoLoad = TRUE;
-						return TRUE; /* keep the browser ticking along here */
-#else
-						p->plugin_res->complete = TRUE;
-						startNewHTMLWindow(p->plugin_res->parsed_request);
-#endif
-				}
+			/* bounds check here */
+			if (browser) testlen = strlen(browser);
+			else testlen = strlen(browser);
+			testlen += strlen(filename) + 10; 
+			if (testlen > LINELEN) {
+				ConsoleMessage ("Anchor: combination of browser name and file name too long.");
 			} else {
-				/* we had a problem with that URL, set this so we can try the next */
-				p->plugin_res->type=rest_multi;
+
+				if (browser) strcpy (sysline, browser);
+				else strcpy (sysline, browser);
+				strcat (sysline, " ");
+				strcat (sysline, filename);
+				strcat (sysline, " &");
+				freewrlSystem (sysline);
 			}
-		} while ((p->plugin_res->status != ress_downloaded) && (p->plugin_res->m_request != NULL));
 
-		/* destroy the m_request, if it exists */
-		if (head_of_list != NULL) {
-			ml_delete_all(head_of_list);
+			/* bounds check here */
+			if (browser) testlen = strlen(browser) + strlen(filename) + 20;
+			else testlen = strlen (browser) + strlen(filename) + 20;
+
+
+			if (testlen > LINELEN) {
+				ConsoleMessage ("Anchor: combination of browser name and file name too long.");
+			} else {
+				if (browser) sprintf(sysline, "open -a %s %s &", browser, filename);
+				else sprintf(sysline, "open -a %s %s &",  browser, filename);
+				system (sysline);
+			}
+		#ifdef AQUA
 		}
+		#endif
 
-		/* were we successful?? */
-		if (p->plugin_res->status != ress_loaded) {
-			ERROR_MSG("Could not load new world: %s\n", p->plugin_res->actual_file);
-			return FALSE;
-		}
-
-/*********************************************************/
-
-
-	} else {
-		/* printf ("\nwe have a single replacement here\n"); */
-#ifdef OLDCODE
-OLDCODE		if (tg->RenderFuncs.OSX_replace_world_from_console == NULL) {
-OLDCODE			/* this is just a simple "clean out the old world" */
-OLDCODE			#ifndef AQUA
-OLDCODE			//kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
-OLDCODE			#endif
-OLDCODE			return FALSE;
-OLDCODE		} else {
-OLDCODE			
-OLDCODE			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
-OLDCODE
-OLDCODE			/* we want to clean out the old world AND load a new one in */
-OLDCODE			p->plugin_res = resource_create_single (tg->RenderFuncs.OSX_replace_world_from_console);
-OLDCODE
-OLDCODE			send_resource_to_parser_async(p->plugin_res);
-OLDCODE
-OLDCODE			p->waitingForURLtoLoad = TRUE;
-OLDCODE			return TRUE; /* keep the browser ticking along here */
-OLDCODE		}
-#endif //OLDCODE
 	}
-
-	return FALSE; /* we are done the action */
+	FREE_IF_NZ (filename);
 }
+
+
 
 /*
  * Check to see if the file name is a geometry file.
@@ -377,7 +348,7 @@ OLDCODE		}
  * Plugin/netscape/source/npfreewrl.c
  */
 
-static int checkIfX3DVRMLFile(char *fn) {
+int checkIfX3DVRMLFile(char *fn) {
 	if ((strstr(fn,".wrl") > 0) ||
 		(strstr(fn,".WRL") > 0) ||
 		(strstr(fn,".x3d") > 0) ||
@@ -391,26 +362,46 @@ static int checkIfX3DVRMLFile(char *fn) {
 	return FALSE;
 }
 
-
 /* we are an Anchor, and we are not running in a browser, and we are
  * trying to do an external VRML or X3D world.
  */
-/* void Anchor_ReplaceWorld (char *name) */
-bool Anchor_ReplaceWorld(const char *name)
+void Anchor_ReplaceWorld (char *name)
 {
-	resource_item_t *AR_res;
+	int tmp;
+	void *tt;
+	char filename[1000];
+	int removeIt = FALSE;
 
-	AR_res = resource_create_single(name);
-	AR_res->new_root = TRUE;
-	send_resource_to_parser(AR_res);
-	resource_wait(AR_res);
+	/* sanity check - are we actually going to do something with a name? */
+	if (name != NULL)
+		if (strlen (name) > 1) {
+			strcpy (filename,name);
 
-	if (AR_res->status != ress_loaded) {
-		/* FIXME: destroy this new node tree */
-		return FALSE;
-	}
-	return TRUE;
+			/* there is a good chance that this name has already been vetted from the
+			   network. BUT - plugin code might pass us a networked file name for loading,
+			   (eg, check out current OSX plugin; hopefully still valid) */
+
+	                if (fileExists(filename,NULL,TRUE,&removeIt)) {
+				/* kill off the old world, but keep EAI open, if it is... */
+				kill_oldWorld(FALSE,TRUE,TRUE,__FILE__,__LINE__);
+
+				inputParse(FROMURL, filename,TRUE,FALSE, 
+					rootNode, offsetof (struct X3D_Group, children),&tmp,
+					TRUE);
+			
+				tt = BrowserFullPath;
+				BrowserFullPath = STRDUP(filename);
+				FREE_IF_NZ(tt);
+				if (removeIt) UNLINK (filename);
+				EAI_Anchor_Response (TRUE);
+				return;
+			} else {
+				ConsoleMessage ("file %s does not exist",name);
+			}
+		} 
+	EAI_Anchor_Response (FALSE);
 }
+
 
 /* send in a 0 to 15, return a char representation */
 char tohex (int mychar) {
@@ -441,7 +432,7 @@ int URLmustEncode(int ch) {
 
 
 /***************/
-/* static FILE * tty = NULL; */
+static FILE * tty = NULL;
 
 /* prints to a log file if we are running as a plugin */
 void URLprint (const char *m, const char *p) {
@@ -454,7 +445,7 @@ void URLprint (const char *m, const char *p) {
 		fprintf (tty, "\nplugin restarted\n");
 	}
 
-	fprintf (tty,"%f URLprint: ",TickTime());
+	fprintf (tty,"%f URLprint: ",TickTime);
 	fprintf(tty, m,p);
 	fflush(tty);
 #endif
@@ -480,7 +471,7 @@ void URLencod (char *dest, const char *src, int maxlen) {
 #endif
 
 	destctr = 0; /* ensure we dont go over dest length */
-	mylen = (int) strlen(src);
+	mylen = strlen(src);
 	if (mylen == 0) {
 		dest[0]= '\0';
 		return;
@@ -516,24 +507,20 @@ void URLencod (char *dest, const char *src, int maxlen) {
 }
 
 /* this is for Unix only */
-#if !defined(AQUA) && !defined(_MSC_VER) && !defined(_ANDROID) && !defined(GLES2)
-
-void sendXwinToPlugin()
-{
-	int writeSizeThrowAway ;
-
-	/* send the window id back to the plugin parent */
-	DEBUG_MSG("Executing sendXwinToPlugin...\n");
-
-#if KEEP_X11_INLIB
+#if !defined(AQUA) && !defined(WIN32)
+void sendXwinToPlugin() {
 	XWindowAttributes mywin;
 
+	/* send the window id back to the plugin parent */
+
+	#ifdef URLPRINTDEBUG
         XGetWindowAttributes(Xdpy,Xwin, &mywin);
-        DEBUG_MSG("sendXwinToPlugin: sendXwin starting, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
+        printf ("sendXwin starting, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
 
-	DEBUG_MSG("sendXwinToPlugin: sending Xwin ID back to plugin - %lu bytes\n",sizeof (Xwin));
+	URLprint ("sending Xwin ID back to plugin - %d bytes\n",sizeof (Xwin));
+	#endif
 
-	writeSizeThrowAway = write (_fw_pipe,&Xwin,sizeof(Xwin));
+	write (_fw_pipe,&Xwin,sizeof(Xwin));
 	close (_fw_pipe);
 
 	/* wait for the plugin to change the map_state */
@@ -553,7 +540,6 @@ void sendXwinToPlugin()
         printf ("sendXwin at end,  mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
         printf ("x %d y %d wid %d height %d\n",mywin.x,mywin.y,mywin.width,mywin.height);
 	#endif
-#endif /* KEEP_X11_INLIB */
 
 }
 #endif

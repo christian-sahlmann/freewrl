@@ -1,85 +1,43 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.44 2012/07/21 18:51:03 dug9 Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.17.2.1 2009/07/08 21:55:04 couannette Exp $
 
 ???
 
 */
 
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
-
-
-// JAS - OLDCODE #ifndef REWIRE
 #include <config.h>
 #include <system.h>
-#include <libFreeWRL.h>
-// JAS - OLDCODE #endif
 #include <display.h>
 #include <internal.h>
 
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
-#include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
-#include "EAIHeaders.h"
+#include "EAIheaders.h"
 #include "EAIHelpers.h"
 
 /* TODO: clean-up Rewire */
-// JAS - OLDCODE #ifdef REWIRE
-// JAS - OLDCODE # include "../../libeai/EAI_C.h"
-// JAS - OLDCODE # define ADD_PARENT(a,b)
-// JAS - OLDCODE #endif
+#ifdef REWIRE
+# include "../../libeai/EAI_C.h"
+# define ADD_PARENT(a,b)
+#endif
 
 /* assume eaiverbose is false, unless told otherwise */
-//int eaiverbose = FALSE;
-typedef struct pEAI_C_CommonFunctions{
-	struct VRMLParser *parser; // = NULL;
-}* ppEAI_C_CommonFunctions;
-void *EAI_C_CommonFunctions_constructor()
-{
-	void * v = malloc(sizeof(struct pEAI_C_CommonFunctions));
-	memset(v,0,sizeof(struct pEAI_C_CommonFunctions));
-	return v;
-}
-
-void EAI_C_CommonFunctions_init(struct tEAI_C_CommonFunctions* t){
-	//public
-	t->eaiverbose = FALSE;
-	//private
-	t->prv = EAI_C_CommonFunctions_constructor();
-	//just a pointer - null init ok
-}
+int eaiverbose = FALSE;
 
 #define PST_MF_STRUCT_ELEMENT(type1,type2) \
 	case FIELDTYPE_MF##type1: { \
 		struct Multi_##type1 *myv; \
-		myv = (struct Multi_##type1 *) nst; \
+		myv = (struct Multi_type1 *) nst; \
 		/* printf ("old val p= %u, n = %d\n",myv->p, myv->n); */\
 		myv->p = myVal.mf##type2.p; \
 		myv->n = myVal.mf##type2.n; \
@@ -89,7 +47,7 @@ void EAI_C_CommonFunctions_init(struct tEAI_C_CommonFunctions* t){
 
 #define PST_SF_SIMPLE_ELEMENT(type1,type2,size3) \
 	case FIELDTYPE_SF##type1: { \
-		memcpy(nst, &myVal.sf##type2, size3); \
+		memcpy((void*)nst, &myVal.sf##type2, size3); \
 		break; }
 
 
@@ -97,22 +55,21 @@ void EAI_C_CommonFunctions_init(struct tEAI_C_CommonFunctions* t){
 struct Uni_String *newASCIIString(char *str) {
 	struct Uni_String *retval;
 	int len;
-	int eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 
 	if (eaiverbose) {
 	printf ("newASCIIString for :%s:\n",str);
 	}
 
 	/* the returning Uni_String is here. Make blank struct */
-	retval = MALLOC (struct Uni_String *, sizeof (struct Uni_String));
-	len = (int) strlen(str);
+	retval = MALLOC (sizeof (struct Uni_String));
+	len = strlen(str);
 
-	retval->strptr  = MALLOC (char *, sizeof(char) * len+1);
+	retval->strptr  = MALLOC (sizeof(char) * len+1);
 	strncpy(retval->strptr,str,len+1);
 	retval->len = len+1;
 	retval->touched = 1; /* make it 1, to signal that this is a NEW string. */
 
-	/* printf ("newASCIIString, returning UniString %x, strptr %u for string :%s:\n",retval, retval->strptr,str); */
+	/* printf ("newASCIIString, returning UniString %u, strptr %u for string :%s:\n",retval, retval->strptr,str); */
 
 	return retval;
 }
@@ -122,8 +79,7 @@ touch the touched flag */
 void verify_Uni_String(struct  Uni_String *unis, char *str) {
 	char *ns;
 	char *os;
-	size_t len;
-	// JASint eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
+	int len;
 
 	/* bounds checking */
 	if (unis == NULL) {
@@ -135,7 +91,7 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 	if (strcmp(str,unis->strptr)!= 0) {
 		os = unis->strptr;
 		len = strlen(str);
-		ns = MALLOC (char *,len+1);
+		ns = MALLOC (len+1);
 		strncpy(ns,str,len+1);
 		unis->strptr = ns;
 		FREE_IF_NZ (os);
@@ -147,7 +103,7 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 
 
 /* get how many bytes in the type */
-int  returnElementLength(int type) {
+int returnElementLength(int type) {
 	  switch (type) {
 		case FIELDTYPE_SFVec2d:
 		case FIELDTYPE_MFVec2d:
@@ -162,16 +118,14 @@ int  returnElementLength(int type) {
 		case FIELDTYPE_SFMatrix4d:
 		case FIELDTYPE_MFMatrix4d:
 		case FIELDTYPE_SFTime :
-    		case FIELDTYPE_MFTime : return (int) sizeof(double); break;
-    		case FIELDTYPE_MFInt32: return (int) sizeof(int)   ; break;
+    		case FIELDTYPE_MFTime : return sizeof(double); break;
+    		case FIELDTYPE_MFInt32: return sizeof(int)   ; break;
 		case FIELDTYPE_FreeWRLPTR:
-		case FIELDTYPE_MFString:
-		case FIELDTYPE_SFString:
     		case FIELDTYPE_SFNode :
-    		case FIELDTYPE_MFNode : return (int) sizeof(void *); break;
+    		case FIELDTYPE_MFNode : return sizeof(void *); break;
 	  	default     : {}
 	}
-	return (int) sizeof(float) ; /* turn into byte count */
+	return sizeof(float) ; /* turn into byte count */
 }
 
 /* for passing into CRoutes/CRoutes_Register */
@@ -181,57 +135,57 @@ int  returnElementLength(int type) {
 
 int returnRoutingElementLength(int type) {
 	  switch (type) {
-		case FIELDTYPE_SFTime:	return (int) sizeof(double); break;
+		case FIELDTYPE_SFTime:	return sizeof(double); break;
 		case FIELDTYPE_SFBool:
-		case FIELDTYPE_SFInt32:	return (int) sizeof(int); break;
-		case FIELDTYPE_SFFloat:	return (int) sizeof (float); break;
-		case FIELDTYPE_SFVec2f:	return (int) sizeof (struct SFVec2f); break;
+		case FIELDTYPE_SFInt32:	return sizeof(int); break;
+		case FIELDTYPE_SFFloat:	return sizeof (float); break;
+		case FIELDTYPE_SFVec2f:	return sizeof (struct SFVec2f); break;
 		case FIELDTYPE_SFVec3f:
-		case FIELDTYPE_SFColor: 	return (int) sizeof (struct SFColor); break;
-		case FIELDTYPE_SFVec3d: return (int) sizeof (struct SFVec3d); break;
+		case FIELDTYPE_SFColor: 	return sizeof (struct SFColor); break;
+		case FIELDTYPE_SFVec3d: return sizeof (struct SFVec3d); break;
 		case FIELDTYPE_SFColorRGBA:
-		case FIELDTYPE_SFRotation:return (int) sizeof (struct SFRotation); break;
-		case FIELDTYPE_SFNode:	return (int) ROUTING_SFNODE; break;
-		case FIELDTYPE_SFMatrix3f: return (int) sizeof (struct SFMatrix3f); break;
-		case FIELDTYPE_SFMatrix3d: return (int) sizeof (struct SFMatrix3d); break;
+		case FIELDTYPE_SFRotation:return sizeof (struct SFRotation); break;
+		case FIELDTYPE_SFNode:	return ROUTING_SFNODE; break;
+		case FIELDTYPE_SFMatrix3f: return sizeof (struct SFMatrix3f); break;
+		case FIELDTYPE_SFMatrix3d: return sizeof (struct SFMatrix3d); break;
 /* FIXME FIND DEF FOR SFVEC4F */
-// JAS - OLDCODE #ifndef REWIRE
-		case FIELDTYPE_SFVec4f: return (int) sizeof (struct SFVec4f) ; break;
-// JAS - OLDCODE #endif
-		case FIELDTYPE_SFMatrix4f: return (int) sizeof (struct SFMatrix4f); break;
-		case FIELDTYPE_SFVec2d: return (int) sizeof (struct SFVec2d); break;
-		case FIELDTYPE_SFDouble: return (int) sizeof (double); break;
-		case FIELDTYPE_SFVec4d: return (int) sizeof (struct SFVec4d); break;
+#ifndef REWIRE
+		case FIELDTYPE_SFVec4f: return sizeof (struct SFVec4f) ; break;
+#endif
+		case FIELDTYPE_SFMatrix4f: return sizeof (struct SFMatrix4f); break;
+		case FIELDTYPE_SFVec2d: return sizeof (struct SFVec2d); break;
+		case FIELDTYPE_SFDouble: return sizeof (double); break;
+		case FIELDTYPE_SFVec4d: return sizeof (struct SFVec4d); break;
 
-		case FIELDTYPE_SFString: return (int) ROUTING_SFSTRING; break;
-		case FIELDTYPE_SFImage:	return (int) ROUTING_SFIMAGE; break;
+		case FIELDTYPE_SFString: return ROUTING_SFSTRING; break;
+		case FIELDTYPE_SFImage:	return ROUTING_SFIMAGE; break;
 
-		case FIELDTYPE_MFNode:	return (int) ROUTING_MFNODE; break;
-		case FIELDTYPE_MFString: 	return (int) ROUTING_MFSTRING; break;
-		case FIELDTYPE_MFFloat:	return (int) ROUTING_MFFLOAT; break;
+		case FIELDTYPE_MFNode:	return ROUTING_MFNODE; break;
+		case FIELDTYPE_MFString: 	return ROUTING_MFSTRING; break;
+		case FIELDTYPE_MFFloat:	return ROUTING_MFFLOAT; break;
 		case FIELDTYPE_MFColorRGBA:
-		case FIELDTYPE_MFRotation: return (int) ROUTING_MFROTATION; break;
+		case FIELDTYPE_MFRotation: return ROUTING_MFROTATION; break;
 		case FIELDTYPE_MFBool:
-		case FIELDTYPE_MFInt32:	return (int) ROUTING_MFINT32; break;
-		case FIELDTYPE_MFColor:	return (int) ROUTING_MFCOLOR; break;
-		case FIELDTYPE_MFVec2f:	return (int) ROUTING_MFVEC2F; break;
-		case FIELDTYPE_MFVec3f:	return (int) ROUTING_MFVEC3F; break;
-		case FIELDTYPE_MFVec3d: return (int) ROUTING_MFVEC3D; break;
-		case FIELDTYPE_MFDouble: return (int) ROUTING_MFDOUBLE; break;
-		case FIELDTYPE_MFTime: return (int) ROUTING_MFDOUBLE; break;
-		case FIELDTYPE_MFMatrix4f: return (int) ROUTING_MFMATRIX4F; break;
-		case FIELDTYPE_MFMatrix4d: return (int) ROUTING_MFMATRIX4D; break;
-		case FIELDTYPE_MFVec2d: return (int) ROUTING_MFVEC2D; break;
-		case FIELDTYPE_MFVec4f: return (int) ROUTING_MFVEC4F; break;
-		case FIELDTYPE_MFVec4d: return (int) ROUTING_MFVEC4D; break;
-		case FIELDTYPE_MFMatrix3f: return (int) ROUTING_MFMATRIX3F; break;
-		case FIELDTYPE_MFMatrix3d: return (int) ROUTING_MFMATRIX3D; break;
+		case FIELDTYPE_MFInt32:	return ROUTING_MFINT32; break;
+		case FIELDTYPE_MFColor:	return ROUTING_MFCOLOR; break;
+		case FIELDTYPE_MFVec2f:	return ROUTING_MFVEC2F; break;
+		case FIELDTYPE_MFVec3f:	return ROUTING_MFVEC3F; break;
+		case FIELDTYPE_MFVec3d: return ROUTING_MFVEC3D; break;
+		case FIELDTYPE_MFDouble: return ROUTING_MFDOUBLE; break;
+		case FIELDTYPE_MFTime: return ROUTING_MFDOUBLE; break;
+		case FIELDTYPE_MFMatrix4f: return ROUTING_MFMATRIX4F; break;
+		case FIELDTYPE_MFMatrix4d: return ROUTING_MFMATRIX4D; break;
+		case FIELDTYPE_MFVec2d: return ROUTING_MFVEC2D; break;
+		case FIELDTYPE_MFVec4f: return ROUTING_MFVEC4F; break;
+		case FIELDTYPE_MFVec4d: return ROUTING_MFVEC4D; break;
+		case FIELDTYPE_MFMatrix3f: return ROUTING_MFMATRIX3F; break;
+		case FIELDTYPE_MFMatrix3d: return ROUTING_MFMATRIX3D; break;
 
                 default:{
 			printf ("warning - returnRoutingElementLength not a handled type, %d\n",type);
 		}
 	}
-	return (int) sizeof(int);
+	return sizeof(int);
 } 
 
 
@@ -277,56 +231,23 @@ int returnElementRowSize (int type) {
 
 }
 
-//static struct VRMLParser *parser = NULL;
-
-/* from the XML parser, for instance, we can call this on close to delete memory and memory tables */
-void Parser_deleteParserForScanStringValueToMem(void) {
-	ppEAI_C_CommonFunctions p = (ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv;
-	if (p==NULL) return;
-	if (p->parser != NULL) {
-		lexer_destroyData(p->parser->lexer);
-		deleteParser(p->parser);
-		p->parser = NULL;
-	}
-}
-
-
-void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT ctype, char *value, int isXML) {
-	void *nst;                      /* used for pointer maths */
+static struct VRMLParser *parser = NULL;
+void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, char *value, int isXML) {
+	char *nst;                      /* used for pointer maths */
 	union anyVrml myVal;
 	char *mfstringtmp = NULL;
 	int oldXMLflag;
 	struct X3D_Node *np;
-	struct VRMLParser *parser = ((ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv)->parser;
+	
 	#ifdef SETFIELDVERBOSE
-	printf ("\nPST, for %s we have %s strlen %lu\n",stringFieldtypeType(ctype), value, strlen(value));
+	printf ("\nPST, for %s we have %s strlen %d\n",stringFieldtypeType(ctype), value, strlen(value));
 	#endif
 
 	/* if this is the first time through, create a new parser, and tell it:
 	      - that we are using X3D formatted field strings, NOT "VRML" ones;
 	      - that the destination node is not important (the NULL, offset 0) */
 
-	if (parser == NULL) {
-		parser=newParser(NULL, 0, TRUE);
-		//ConsoleMessage ("Parser_ScanStringValueToMem, new parser created");
-		// save it
-		((ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv)->parser = parser;
-	}
-
-	lexer_forceStringCleanup(parser->lexer);
-
-	/* October 20, 2009; XML parsing should not go through here; XML encoded X3D should not have a "value=" field, but
-	   have the SFNode or MFNode as part of the syntax, eg <field ...> <Box/> </field> */
-
-	if (isXML) {
-		/* printf ("we have XML parsing for type %s, string :%s:\n",stringFieldtypeType(ctype),value); */
-		if ((ctype==FIELDTYPE_SFNode) || (ctype==FIELDTYPE_MFNode)) {
-			/* printf ("returning\n"); */
-			lexer_forceStringCleanup(parser->lexer);
-			return;
-		}
-
-	}
+	if (parser == NULL) parser=newParser(NULL, 0, TRUE);
 
 	/* there is a difference sometimes, in the XML format and VRML classic format. The XML
 	   parser will use xml format, scripts and EAI will use the classic format */
@@ -347,78 +268,49 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 
 		/* now, does the value string need quoting? */
 		if ((*value != '"') && (*value != '\'') && (*value != '[')) {
-			size_t len;
-			 /* printf ("have to quote this string\n"); */
+			int len;
+			/* printf ("have to quote this string\n"); */
 			len = strlen(value);
-			mfstringtmp = MALLOC (char *, sizeof (char *) * len + 10);
+			mfstringtmp = MALLOC (sizeof (char *) * len + 10);
 			memcpy (&mfstringtmp[1],value,len);
 			mfstringtmp[0] = '"';
 			mfstringtmp[len+1] = '"';
 			mfstringtmp[len+2] = '\0';
-			/* printf ("so, mfstring is :%s:\n",mfstringtmp); */ 
+			/* printf ("so, mfstring is :%s:\n",mfstringtmp); */
 			
 		} else {
 			mfstringtmp = STRDUP(value);
 		}
 		parser_fromString(parser,mfstringtmp);
-		/* FREE_IF_NZ(mfstringtmp); */
-	} else if (ctype == FIELDTYPE_SFNode) {
-		/* Need to change index to proper node ptr */
-		np = getEAINodeFromTable(atoi(value), -1);
-	} else if (ctype == FIELDTYPE_SFString) {
-		if(isXML){
-			/* double quotes " are unique to x3d values and must be \" to pass javascript compiling */
-			int ii, nq = 0;
-			char *mv, *pv, *v = value;
-			while (*v && *v != '\0')
-			{	
-				if(*v == '"') nq++;
-				v++;
-			}
-			mfstringtmp = (char *)malloc(strlen(value)+nq+1);
-			v = value;
-			pv = NULL;
-			mv = mfstringtmp;
-			ii = 0;
-			while(*v && *v != '\0')
-			{
-				if(*v == '"'){
-					if(!(pv && *pv == '\\')){
-						*mv = '\\';
-						mv++;
-					}
-				}
-				*mv = *v;
-				mv++;
-				pv = v;
-				v++;
-			}
-			*mv = '\0';
-		}else{
-			mfstringtmp = STRDUP(value);
-		}
-		parser_fromString(parser,mfstringtmp);
-	} else {
+        } else if (ctype == FIELDTYPE_SFNode) {
+                /* Need to change index to proper node ptr */
+                np = getEAINodeFromTable(atoi(value), -1);
+        } else {
+
 		mfstringtmp = STRDUP(value);
 		parser_fromString(parser,mfstringtmp);
-		/* FREE_IF_NZ(mfstringtmp); */
 	}
 
 	ASSERT(parser->lexer);
 	FREE_IF_NZ(parser->lexer->curID);
 
-	if (ctype == FIELDTYPE_SFNode) {
-		struct X3D_Node* oldvalue;
-		nst = offsetPointer_deref(void *,node,coffset);
-		memcpy (&oldvalue, nst, sizeof(struct X3D_Node*));
-		if (oldvalue) {
-			remove_parent(oldvalue, node);
-		}
-		memcpy(nst, (void*)&np, sizeof(struct X3D_Node*));
-		add_parent(np, node, "sarah's add", 0);
-	} else if (parseType(parser, ctype, &myVal)) {
+        if (ctype == FIELDTYPE_SFNode) {
+                struct X3D_Node* oldvalue;
+                nst = (char *) node;
+                nst += coffset;
+                memcpy (&oldvalue, nst, sizeof(struct X3D_Node*));
+                if (oldvalue) {
+                        remove_parent(oldvalue, node);
+                }
+                memcpy((void*)nst, (void*)&np, sizeof(struct X3D_Node*));
+                add_parent(np, node, "sarah's add", 0);
+
+        } else if (parseType(parser, ctype, &myVal)) {
+
 		/* printf ("parsed successfully\n");  */
-		nst = offsetPointer_deref(void *,node,coffset);
+
+		nst = (char *) node; /* should be 64 bit compatible */
+		nst += coffset; 
 
 
 /*
@@ -467,21 +359,15 @@ MF_TYPE(MFNode, mfnode, Node)
 
 			case FIELDTYPE_SFString: {
 					struct Uni_String *mptr;
-					memcpy(nst, &myVal.sfstring, sizeof(struct Uni_String*));
-					//mptr = * (struct Uni_String **)nst;
-					//if (!mptr) {
-					//	ERROR_MSG("Parser_scanStringValueToMem: is nst (Uni_String) supposed to hold a NULL value ?");
-					//} else {
-					//	FREE_IF_NZ(mptr->strptr);
-					//	mptr->strptr = myVal.sfstring->strptr;
-					//	mptr->len = myVal.sfstring->len;
-					//	mptr->touched = myVal.sfstring->touched;
-					//}
+					mptr = * (struct Uni_String **)nst;
+					FREE_IF_NZ(mptr->strptr);
+					mptr->strptr = myVal.sfstring->strptr;
+					mptr->len = myVal.sfstring->len;
+					mptr->touched = myVal.sfstring->touched;
 				break; }
 
 			default: {
 				printf ("unhandled type, in EAIParse  %s\n",stringFieldtypeType(ctype));
-				lexer_forceStringCleanup(parser->lexer);
 				return;
 			}
 		}

@@ -1,33 +1,11 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.55 2012/05/31 19:06:42 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.25.2.1 2009/07/08 21:55:04 couannette Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
 */
-
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
-
 
 #include <config.h>
 #include <system.h>
@@ -49,7 +27,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 
-#include "EAIHeaders.h"
+#include "EAIheaders.h"
 #include "SensInterps.h"
 
 #include "../vrml_parser/Structs.h"
@@ -59,7 +37,6 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
-#include "../world_script/fieldGet.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"
@@ -97,33 +74,6 @@ This struct contains both a node and an ofs field.
 
 ************************************************************************/
 
-/* responses get sent to the connecting program. The outBuffer is the place where
-   these commands are placed */
-
-//char *outBuffer = NULL;
-//int outBufferLen = 0;
-//static struct Vector *EAINodeIndex = NULL;
-typedef struct pEAIHelpers{
-	struct Vector *EAINodeIndex;
-} * ppEAIHelpers;
-void *EAIHelpers_constructor()
-{
-	void *v = malloc(sizeof(struct pEAIHelpers));
-	memset(v,0,sizeof(struct pEAIHelpers));
-	return v;
-}
-void EAIHelpers_init(struct tEAIHelpers* t){
-	//public
-	t->outBuffer = NULL;
-	t->outBufferLen = 0;
-	//private
-	t->prv = EAIHelpers_constructor();
-	{
-		ppEAIHelpers p = (ppEAIHelpers)t->prv;
-		p->EAINodeIndex = NULL;
-	}
-}
-
 
 
 
@@ -134,6 +84,9 @@ void EAIHelpers_init(struct tEAIHelpers* t){
 /************************************************************************************************/
 /* keep a list of node requests, so that we can keep info on each node */
 #define MAXFIELDSPERNODE 20
+#define MAX_EAI_SAVED_NODES 1000
+
+static int lastNodeRequested = 0;
 
 /* store enough stuff in here so that each field can be read/written, no matter whether it is a 
    PROTO, SCRIPT, or regular node. */
@@ -154,9 +107,10 @@ struct EAINodeIndexStruct {
 	int 			nodeType; /* EAI_NODETYPE_STANDARD =regular node, 
 					     EAI_NODETYPE_PROTO = PROTO, 
 					     EAI_NODETYPE_SCRIPT = script */
-	//struct EAINodeParams 	params[MAXFIELDSPERNODE];
-	struct Vector*		nodeParams;
+	struct EAINodeParams 	params[MAXFIELDSPERNODE];
+	int    maxparamindex;
 };
+static struct  EAINodeIndexStruct *EAINodeIndex = NULL;
 
 
 
@@ -164,34 +118,18 @@ struct EAINodeIndexStruct {
 /* get an actual memory pointer to field, assumes both node has passed ok check */
 char *getEAIMemoryPointer (int node, int field) {
 	char *memptr;
-	struct EAINodeIndexStruct *me;
-	struct EAINodeParams *myParam;
-	ppEAIHelpers p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
-	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,node);
-	if (me == NULL) {
-		printf ("bad node in getEAIMemoryPointer\n");
-		return NULL;
-	}
 
 	/* we CAN NOT do this with a script */
-	if (me->nodeType == EAI_NODETYPE_SCRIPT) {
+	if (EAINodeIndex[node].nodeType == EAI_NODETYPE_SCRIPT) {
 		ConsoleMessage ("EAI error - getting EAIMemoryPointer on a Script node");
 		return NULL;
 	}
 
-	myParam = vector_get(struct EAINodeParams *, me->nodeParams, field);
-
-	if (myParam == NULL) {
-		printf ("bad field in getEAIMemoryPointer\n");
-		return NULL;
-	}
-
-
 	/* use the memory address associated with this field, because this may have changed for proto invocations */
-	memptr = (char *)myParam->thisFieldNodePointer;
-	memptr += myParam->fieldOffset;
+	memptr = (char *)EAINodeIndex[node].params[field].thisFieldNodePointer;
+	memptr += EAINodeIndex[node].params[field].fieldOffset;
 	/* printf ("getEAIMemoryPointer, nf %d:%d, node %u offset %d total %u\n",
-		node,field,getEAINodeFromTable(node,field), myParam->fieldOffset, memptr);
+		node,field,getEAINodeFromTable(node,field), EAINodeIndex[node].params[field].fieldOffset, memptr);
 	*/
 
 	return memptr;
@@ -200,78 +138,31 @@ char *getEAIMemoryPointer (int node, int field) {
 /* get the parameters during proto invocation. Might not ever have been ISd */
 static char * getEAIInvokedValue(int node, int field) {
 	/* make sure we are a PROTO */
-	struct EAINodeIndexStruct *me;
-	struct EAINodeParams *myParam;
-	ppEAIHelpers p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
-
-	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,node);
-	if (me == NULL) {
-		printf ("bad node in getEAIInvokedValue\n");
-		return NULL;
-	}
-
-	myParam = vector_get(struct EAINodeParams *, me->nodeParams, field);
-
-	if (myParam == NULL) {
-		printf ("bad field in getEAIInvokedValue\n");
-		return NULL;
-	}
-
-	if (me->nodeType != EAI_NODETYPE_PROTO) {
+	if (EAINodeIndex[node].nodeType != EAI_NODETYPE_PROTO) {
 		ConsoleMessage ("getting EAIInvokedValue on a node that is NOT a PROTO");
 		return NULL;
 	}
 	
-	return myParam->invokedPROTOValue;
+	return EAINodeIndex[node].params[field].invokedPROTOValue;
 }
 
 
 /* return the actual field offset as defined; change fieldHandle into an actual value */
 int getEAIActualOffset(int node, int field) {
-	struct EAINodeIndexStruct *me;
-	struct EAINodeParams *myParam;
-	ppEAIHelpers p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
-
-	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,node);
-	if (me == NULL) {
-		printf ("bad node in getEAIActualOffset\n");
-		return 0;
-	}
-
-	myParam = vector_get(struct EAINodeParams *, me->nodeParams, field);
-
-	if (myParam == NULL) {
-		printf ("bad field in getEAIActualOffset\n");
-		return 0;
-	}
-
-	return myParam->fieldOffset;
+	return EAINodeIndex[node].params[field].fieldOffset;
 }
 
 /* returns node type - see above for definitions */
 int getEAINodeTypeFromTable(int node) {
-	struct EAINodeIndexStruct *me;
-	ppEAIHelpers p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
-
-	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,node);
-	if (me == NULL) {
-		printf ("bad node in getEAINodeFromTable\n");
-		return 0;
-	}
-	return me->nodeType;
+	return EAINodeIndex[node].nodeType;
 }
 
 /* return a registered node. If index==0, return NULL */
 struct X3D_Node *getEAINodeFromTable(int index, int field) {
-	struct EAINodeIndexStruct *me;
-	struct EAINodeParams *myParam;
-	ppEAIHelpers p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
-
-	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,index);
-
-	if (me==NULL) {
+	if (index==0) return NULL;
+	if (index>lastNodeRequested) {
 		printf ("internal EAI error - requesting %d, highest node %d\n",
-			index,vectorSize(p->EAINodeIndex) /* lastNodeRequested */);
+			index,lastNodeRequested);
 		return NULL;
 	}
 
@@ -279,49 +170,25 @@ struct X3D_Node *getEAINodeFromTable(int index, int field) {
 	   is tied to the exact field? Only in PROTO expansions will they be different,
 	   when possibly an IS'd field is within a sub-node of the PROTO */
 
-	if (field <0) return me->actualNodePtr;
+	if (field <0) return EAINodeIndex[index].actualNodePtr;
 
 	/* go and return the node associated directly with this field */
 	/* printf ("getEAINodeFromTable, asking for field %d of node %d\n",field,index); */
-	myParam = vector_get(struct EAINodeParams *, me->nodeParams, field);
-
-	if (myParam == NULL) {
-		printf ("bad field in getEAINodeFromTable\n");
-		return NULL;
-	}
-
-	return myParam->thisFieldNodePointer;
+	return EAINodeIndex[index].params[field].thisFieldNodePointer;
 }
 
 /* return an index to a node table. return value 0 means ERROR!!! */
 int registerEAINodeForAccess(struct X3D_Node* myn) {
 	int ctr;
 	int mynindex = 0;
-	int eaiverbose;
-	ppEAIHelpers p;
-	ttglobal tg = gglobal();
-	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-	p = (ppEAIHelpers)tg->EAIHelpers.prv;
 
-	if (eaiverbose) printf ("registerEAINodeForAccess - myn %lu\n",(unsigned long int) myn);
+	if (eaiverbose) printf ("registerEAINodeForAccess - myn %u\n",myn);
 	if (myn == NULL) return -1;
 
-	if (p->EAINodeIndex == NULL) {
-		struct EAINodeIndexStruct *newp = MALLOC (struct EAINodeIndexStruct *, sizeof (struct EAINodeIndexStruct));
+	if (EAINodeIndex == NULL) EAINodeIndex = MALLOC(sizeof (struct EAINodeIndexStruct) * MAX_EAI_SAVED_NODES);
 
-		if (eaiverbose) printf ("creating EAINodeIndexVector\n"); 
-		p->EAINodeIndex = newVector(struct EAINodeIndexStruct*, 512);
-		/* push a dummy one here, as we do not want to return an index of zero */
-		vector_pushBack(struct EAINodeIndexStruct *, p->EAINodeIndex, newp);
-		
-	}
-
-	/* ok, index zero of the EAINodeIndex is invalid, so we look at 1 to (size) -1 */
-	for (ctr=1; ctr<=vectorSize(p->EAINodeIndex)-1; ctr++) {
-		struct EAINodeIndexStruct *me;
-
-		me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex, ctr);
-		if (me->actualNodePtr == myn) {
+	for (ctr=1; ctr<=lastNodeRequested; ctr++) {
+		if (EAINodeIndex[ctr].actualNodePtr == myn) {
 			if (eaiverbose) printf ("registerEAINodeForAccess - already got node\n");
 			mynindex = ctr;
 			break;
@@ -330,24 +197,23 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 
 	/* did we find this node already? */
 	if (mynindex == 0) {
-		struct EAINodeIndexStruct *newp = MALLOC (struct EAINodeIndexStruct *, sizeof (struct EAINodeIndexStruct));
+		lastNodeRequested++;
+		if (lastNodeRequested == MAX_EAI_SAVED_NODES) {
+			ConsoleMessage ("EAI node table overflow - recompile with MAX_EAI_SAVED_NODES larger");
+			lastNodeRequested = 0;
+		}
+		mynindex = lastNodeRequested;
+		EAINodeIndex[mynindex].actualNodePtr = myn;
+		EAINodeIndex[mynindex].maxparamindex = -1;
 
-		newp->actualNodePtr = myn;
-		newp->nodeParams = NULL;
 		/* save the node type; either this is a EAI_NODETYPE_SCRIPT, EAI_NODETYPE_PROTO, or EAI_NODETYPE_STANDARD */
-		if (myn->_nodeType == NODE_Script) newp->nodeType = EAI_NODETYPE_SCRIPT;
-		else if ((myn->_nodeType == NODE_Group) & (X3D_GROUP(myn)->FreeWRL__protoDef != INT_ID_UNDEFINED)) 
-			newp->nodeType = EAI_NODETYPE_PROTO;
-		else newp->nodeType = EAI_NODETYPE_STANDARD;
-
-		
-		vector_pushBack(struct EAINodeIndexStruct *, p->EAINodeIndex, newp);
-
-		mynindex = vectorSize(p->EAINodeIndex) -1;
-
-		if (eaiverbose) printf ("registerEAINodeForAccess returning index %d nt %s, internal type %d\n",mynindex,
-				stringNodeType(myn->_nodeType),newp->nodeType);
+		if (myn->_nodeType == NODE_Script) EAINodeIndex[mynindex].nodeType = EAI_NODETYPE_SCRIPT;
+		else if ((myn->_nodeType == NODE_Group) & (X3D_GROUP(myn)->FreeWRL__protoDef != 0)) EAINodeIndex[mynindex].nodeType = EAI_NODETYPE_PROTO;
+		else EAINodeIndex[mynindex].nodeType = EAI_NODETYPE_STANDARD;
 	}
+
+	if (eaiverbose) printf ("registerEAINodeForAccess returning index %d nt %s, internal type %d\n",mynindex,
+				stringNodeType(myn->_nodeType),EAINodeIndex[mynindex].nodeType);
 	return mynindex;
 }
 
@@ -356,7 +222,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 
 /* this is like EAI_GetNode, but is just for the rootNode of the scene graph */
 int EAI_GetRootNode(void) {
-	return registerEAINodeForAccess(X3D_NODE(rootNode));
+	return registerEAINodeForAccess(rootNode);
 }
 
 
@@ -364,14 +230,13 @@ int EAI_GetRootNode(void) {
 int EAI_GetNode(const char *str) {
 
 	struct X3D_Node * myNode;
-	int eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
+
 	if (eaiverbose) {
 		printf ("EAI_GetNode - getting %s\n",str);
 	}	
 	
 	/* Try to get X3D node name */
 	myNode = X3DParser_getNodeFromName(str);
-
 	if (myNode == NULL) {
 		/* Try to get VRML node name */
 		myNode = parser_getNodeFromName(str);
@@ -395,8 +260,7 @@ int mapToKEYWORDindex (indexT pkwIndex) {
 static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char **fp, int direction) {
 	struct ProtoDefinition *myProtoDecl;
 	char thisID[2000];
-	int eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
-
+	
 	/* first, is this node a PROTO? We look at the actual table to determine if it is special or not */
 	if (getEAINodeTypeFromTable(cNode) != EAI_NODETYPE_PROTO) {
 		return TRUE;
@@ -407,7 +271,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 		printf ("changeExpanded - looking for field %s in node...\n",*fp); 
 	}
 
-	myProtoDecl = getVRMLprotoDefinition(X3D_GROUP(*np));
+	myProtoDecl = X3D_GROUP(*np)->FreeWRL__protoDef;
 	if (eaiverbose) {
 		printf ("and, the proto name is %s\n",myProtoDecl->protoName);
 	}
@@ -415,7 +279,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	/* make up the name of the Metadata field associated with this one */
 	if (strlen(*fp)>1000) return FALSE;
 
-	sprintf (thisID,"PROTO_%p_%s",myProtoDecl,*fp);
+	sprintf (thisID,"PROTO_%u_%s",myProtoDecl,*fp);
 
 	if (eaiverbose) printf ("looking for name :%s:\n",thisID);
 
@@ -423,8 +287,8 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	if ((*np) == 0) return FALSE;
 
 	if (eaiverbose) {
-		printf ("np is %lu\n",(unsigned long int) *np);
-		printf ("and, found node %lu type %s\n",(unsigned long int) *np, stringNodeType((*np)->_nodeType));
+		printf ("np is %u\n",*np);
+		printf ("and, found node %u type %s\n",*np, stringNodeType((*np)->_nodeType));
 	}
 
 	/* change the fieldName, depending on the direction */
@@ -450,29 +314,22 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	scripttype = 0 - meaning, not to/from a javascript. (see CRoutes.c for values and more info)
 */
 
-void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
-                int *cNodePtr, int *fieldOffset,
-                int *dataLen, int *typeString,  int *scripttype, int *accessType) {
+void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod, 
+		uintptr_t *cNodePtr, uintptr_t *fieldOffset,
+		uintptr_t *dataLen, uintptr_t *typeString,  unsigned int *scripttype, int *accessType) {
 
-	struct EAINodeIndexStruct *me;
-	struct EAINodeParams *newp; 
 	struct X3D_Node* nodePtr = getEAINodeFromTable(cNode,-1);
 	char *fieldString = inputFieldString;
 	int myField;
 	int ctype;
 	int myFieldOffs;
+	int maxparamindex = 0;
 	char *invokedValPtr = NULL;  /* for PROTOs - invocation value */
 	int myScriptType = EAI_NODETYPE_STANDARD;
 	int direction;
 	struct X3D_Node* protoBaseNode;
 	int isProtoExpansion = FALSE;
-	int eaiverbose;
-	ppEAIHelpers p;
-	ttglobal tg = gglobal();
-	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-	p = (ppEAIHelpers)tg->EAIHelpers.prv;
 
-	eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 
 	/* see if this is an input or output request from nodes =0, tonodes = 1 */
 	direction=0;
@@ -491,14 +348,14 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	}
 
 	/* is this a valid C node? if so, lets just get the info... */
-	if ((cNode == 0) || (cNode > vectorSize(p->EAINodeIndex) /* lastNodeRequested */)) {
+	if ((cNode == 0) || (cNode > lastNodeRequested)) {
 		printf ("THIS IS AN ERROR! CNode is zero!!!\n");
 		*cNodePtr = 0; *fieldOffset = 0; *dataLen = 0; *typeString = 0; *scripttype=0; *accessType=KW_eventIn;
 		return;
 	}
 
 	if (eaiverbose) {
-		printf ("start of EAI_GetType, this is a valid C node %lu\n",(unsigned long int) nodePtr);
+		printf ("start of EAI_GetType, this is a valid C node %d\n",nodePtr);
 		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
 	}	
 
@@ -517,7 +374,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 
 	/* is this a proto expansion? */
 	if (X3D_NODE(nodePtr)->_nodeType == NODE_Group) {
-		if (X3D_GROUP(nodePtr)->FreeWRL__protoDef != INT_ID_UNDEFINED) {
+		if (X3D_GROUP(nodePtr)->FreeWRL__protoDef != 0) {
 			isProtoExpansion = TRUE;
 		}
 	}
@@ -540,7 +397,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	}
 
 	if (eaiverbose) {
-		printf ("node here is %lu\n",(unsigned long int) nodePtr);
+		printf ("node here is %u\n",nodePtr);
 		printf ("ok, going to try and find field :%s: in a node of type :%s:\n",fieldString,stringNodeType(nodePtr->_nodeType));
 	}
 
@@ -553,12 +410,13 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
        	findFieldInOFFSETS(nodePtr->_nodeType, myField, &myFieldOffs, &ctype, accessType);
 
 	if (eaiverbose) {
-		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %lu\n",(unsigned long int)nodePtr);
+		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %d\n",nodePtr);
 		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
 	}	
 
 
-	if (eaiverbose) printf ("EAI_GetType, after findFieldInOFFSETS, have myFieldOffs %u, ctype %d, accessType %d \n",myFieldOffs, ctype, *accessType);
+
+	if (eaiverbose) printf ("EAI_GetType, after findFieldInOFFSETS, have myFieldOffs %d, ctype %d, accessType %d \n",myFieldOffs, ctype, *accessType); 
 
 	/* is this a Script, or just an invalid field?? */ 
 	if (myFieldOffs <= 0) {
@@ -567,21 +425,19 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 		/* is this a Script node? */
 		if (nodePtr->_nodeType == NODE_Script) {
 			struct Shader_Script* myScript;
-			struct CRjsnameStruct *JSparamnames = getJSparamnames();
-			struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 			if (eaiverbose)
 				printf ("EAI_GetType, node is a Script node...\n");
 			myScript = X3D_SCRIPT(nodePtr)->__scriptObj;
 			myScriptType = EAI_NODETYPE_SCRIPT;
 
-        		for (i = 0; i !=  vectorSize(myScript->fields); ++i) {
+        		for (i = 0; i !=  vector_size(myScript->fields); ++i) {
         		        struct ScriptFieldDecl* sfield = vector_get(struct ScriptFieldDecl*, myScript->fields, i);
 				
 				if (eaiverbose)
 				printf ("   field %d,  name %s type %s (type %s accessType %d (%s), indexName %d, stringType %s)\n",
 						i,
-						fieldDecl_getShaderScriptName(sfield->fieldDecl),
-						stringFieldtypeType(fieldDecl_getType(sfield->fieldDecl)),
+						sfield->ASCIIname, 
+						sfield->ASCIItype, 
 						stringFieldtypeType(fieldDecl_getType(sfield->fieldDecl)),
 						fieldDecl_getAccessType(sfield->fieldDecl),
 						stringPROTOKeywordType(fieldDecl_getAccessType(sfield->fieldDecl)),
@@ -590,17 +446,16 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 				);
 				
 				
-				if (strcmp(fieldString,fieldDecl_getShaderScriptName(sfield->fieldDecl)) == 0) {
+				if (strcmp(fieldString,sfield->ASCIIname) == 0) {
 					/* call JSparamIndex to get a unique index for this name - this is used for ALL
 					   script access, whether from EAI or not */
 					if(eaiverbose)
-					printf ("found it at index, %d but returning JSparamIndex %d\n",i,
-						fieldDecl_getShaderScriptIndex(sfield->fieldDecl));
+					printf ("found it at index, %d but returning JSparamIndex %d\n",i,JSparamIndex(sfield->ASCIIname, sfield->ASCIItype)); 
 
-					myFieldOffs = fieldDecl_getShaderScriptIndex(sfield->fieldDecl);
+					myFieldOffs = JSparamIndex(sfield->ASCIIname, sfield->ASCIItype);
 					/* switch from "PKW" to "KW" types */
 					*accessType = mapToKEYWORDindex(fieldDecl_getAccessType(sfield->fieldDecl));
-					ctype = fieldDecl_getType(sfield->fieldDecl);
+					ctype = findFieldInFIELDTYPES(sfield->ASCIItype);
 					break;
 				}
 			}
@@ -615,43 +470,37 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	}
 
 	/* save these indexes */
-
-	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex, cNode);
-	if (me->nodeParams == NULL) {
-		struct EAINodeParams *np = MALLOC (struct EAINodeParams *, sizeof (struct EAINodeParams));
-		if (eaiverbose) printf ("creating new field vector for this node\n");
-		me->nodeParams = newVector(struct EAINodeParams*, 4);
-		/* push a dummy one here, as we do not want to return an index of zero */
-		vector_pushBack(struct EAINodeParams *, me->nodeParams, np);
+	EAINodeIndex[cNode].maxparamindex++;
+	maxparamindex = EAINodeIndex[cNode].maxparamindex;
+	if (maxparamindex >= MAXFIELDSPERNODE) {
+		maxparamindex = MAXFIELDSPERNODE-1;
+		EAINodeIndex[cNode].maxparamindex = maxparamindex;
+		printf ("recompile with MAXFIELDSPERNODE increased in value\n");
 	}
-
-	newp = MALLOC (struct EAINodeParams *, sizeof (struct EAINodeParams));
-	newp->fieldOffset = myFieldOffs;
-	newp->datalen = ctype;
-	newp->typeString = mapFieldTypeToEAItype(ctype);
-	newp->scripttype = myScriptType;
-	newp->invokedPROTOValue = invokedValPtr;
+	EAINodeIndex[cNode].params[maxparamindex].fieldOffset = myFieldOffs;
+	EAINodeIndex[cNode].params[maxparamindex].datalen = returnRoutingElementLength(ctype);
+	EAINodeIndex[cNode].params[maxparamindex].typeString = mapFieldTypeToEAItype(ctype);
+	EAINodeIndex[cNode].params[maxparamindex].scripttype = myScriptType;
+	EAINodeIndex[cNode].params[maxparamindex].invokedPROTOValue = invokedValPtr;
 
 	/* has the node type changed, maybe because of a PROTO expansion? */
-	if (me->actualNodePtr != nodePtr) {
+	if (EAINodeIndex[cNode].actualNodePtr != nodePtr) {
 		/* printf ("iEAI_GetType, node pointer changed, using new node pointer\n"); */
-		newp->thisFieldNodePointer= nodePtr;
+		EAINodeIndex[cNode].params[maxparamindex].thisFieldNodePointer= nodePtr;
 	} else {
 		/* printf ("EAI_GetType, node is same as parent node\n"); */
-		newp->thisFieldNodePointer= me->actualNodePtr;
+		EAINodeIndex[cNode].params[maxparamindex].thisFieldNodePointer= EAINodeIndex[cNode].actualNodePtr;
 	}
 
-	vector_pushBack(struct EAINodeParams *, me->nodeParams, newp);
-
 	/* 
-	printf ("end of GetType, orig nodeptr %u, now %u\n",me->actualNodePtr, nodePtr);
-	printf ("end of GetType, now, EAI node type %d\n",me->nodeType);
+	printf ("end of GetType, orig nodeptr %u, now %u\n",EAINodeIndex[cNode].actualNodePtr, nodePtr);
+	printf ("end of GetType, now, EAI node type %d\n",EAINodeIndex[cNode].nodeType);
 	*/
 
-	*fieldOffset = vectorSize(me->nodeParams)-1; 	/* the entry into this field array for this node */
-	*dataLen = (int) newp->datalen;	/* data len */
-	*typeString = newp->typeString; /* data type in EAI type */
-	*scripttype =newp->scripttype;
+	*fieldOffset = (uintptr_t) maxparamindex; 	/* the entry into this field array for this node */
+	*dataLen = EAINodeIndex[cNode].params[maxparamindex].datalen;	/* data len */
+	*typeString = EAINodeIndex[cNode].params[maxparamindex].typeString; /* data type in EAI type */
+	*scripttype =EAINodeIndex[cNode].params[maxparamindex].scripttype;
 	*cNodePtr = cNode;	/* keep things with indexes */
 }
 
@@ -672,43 +521,19 @@ char * SAI_StrRetCommand (char cmnd, const char *fn) {
 	return "iunknownreturn";
 }
 
-/* returns an viewpoint node  or NULL if not found */
-struct X3D_Node *EAI_GetViewpoint(const char *str) {
-       struct X3D_Node * myNode;
-
-        /* Try to get X3D node name */
-
-	#ifdef IPHONE
-	myNode = NULL; 
-	printf ("X3DParser_getNodeFromName not here yet\n");
-	#else
-	myNode = X3DParser_getNodeFromName(str);
-	#endif
-        if (myNode == NULL) {
-                /* Try to get VRML node name */
-                myNode = parser_getNodeFromName(str);
-        }
-
-	return myNode;
+unsigned int EAI_GetViewpoint(const char *str) {
+	printf ("HELP::EAI_GetViewpoint %s\n",str);
+	return 0;
 }
 
 
 
 /* we have a GETVALUE command coming in */
-void handleEAIGetValue (char command, char *bufptr, int repno) {
+void handleEAIGetValue (char command, char *bufptr, char *buf, int repno) {
 	struct X3D_Node *myNode;
 	int nodeIndex, fieldIndex, length;
 	char ctmp[4000];
 	int retint;
-	struct EAINodeIndexStruct *me;
-	struct EAINodeParams *myParam;
-	int eaiverbose;
-	ppEAIHelpers p;
-	ttglobal tg = gglobal();
-	eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
-	p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
-
-	eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 
 	if (eaiverbose) printf ("GETVALUE %s \n",bufptr);
 
@@ -721,12 +546,7 @@ void handleEAIGetValue (char command, char *bufptr, int repno) {
 		printf ("handleEAIGetValue - node does not exist!\n");
 		return;
 	}
-	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex, nodeIndex);
 
-	if (me==NULL) {
-		printf ("handleEAIGetValue - node does not exist in vector!\n");
-		return;
-	}
 	
 	/* printf ("handleEAIGetValue, node %u, type %s\n",myNode, stringNodeType(myNode->_nodeType)); */
 
@@ -735,18 +555,10 @@ void handleEAIGetValue (char command, char *bufptr, int repno) {
 	go through, as the offset will be the index in the PROTO field for us to get
 	the value for */
 
-
-	myParam = vector_get(struct EAINodeParams *, me->nodeParams, fieldIndex);
-
-	if (myParam == NULL) {
-		printf ("bad field in handleEAIGetValue\n");
-		return;
-	}
-
-	if (myParam->invokedPROTOValue != NULL) {
-		sprintf (tg->EAIHelpers.outBuffer,"RE\n%f\n%d\n%s",TickTime(),repno,getEAIInvokedValue(nodeIndex,fieldIndex));	
+	if (EAINodeIndex[nodeIndex].params[fieldIndex].invokedPROTOValue != NULL) {
+		sprintf (buf,"RE\n%f\n%d\n%s",TickTime,repno,getEAIInvokedValue(nodeIndex,fieldIndex));	
 	} else {
-		EAI_Convert_mem_to_ASCII (repno,"RE",mapEAItypeToFieldType(ctmp[0]),getEAIMemoryPointer(nodeIndex,fieldIndex), tg->EAIHelpers.outBuffer);
+		EAI_Convert_mem_to_ASCII (repno,"RE",mapEAItypeToFieldType(ctmp[0]),getEAIMemoryPointer(nodeIndex,fieldIndex), buf);
 	}
 }
 
@@ -791,134 +603,9 @@ char *eaiPrintCommand (char command) {
 		case GETNODEDEFNAME: return ("GETNODEDEFNAME");
 		case GETROUTES: return ("GETROUTES");
 		case GETNODETYPE: return ("GETNODETYPE");
+		case MIDIINFO: return ("MIDIINFO");
+		case MIDICONTROL: return ("MIDICONTROL");
 		default:{} ;
 	}
 	return "unknown command...";
 }
-
-
-/* append str to the outbuffer, REALLOC if necessary */
-void outBufferCat (char *str) {
-	int a,b;
-	struct tEAIHelpers* t = &gglobal()->EAIHelpers;
-	a = (int) strlen (t->outBuffer);
-	b = (int) strlen (str);
-
-	/* should we increase the size here? */
-	if ((a+b+2) >= t->outBufferLen) {
-		t->outBufferLen = a+b+200; /* give it more space, and a bit more, so maybe
-					   REALLOC does not need to be called all the time */
-		t->outBuffer = REALLOC(t->outBuffer, t->outBufferLen);
-	}
-	strcat (t->outBuffer, str);
-}
-
-
-#ifdef SWAMPTEA
-
-/* SWAMPTEA specific: get a switch node "whichChoice" pointer */
-int* getSwitchNodeFromTable(int cNode) {
-	ppEAIHelpers p;
-	ttglobal tg = gglobal();
-	struct EAINodeIndexStruct *me;
-
-	p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
-	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,cNode);
-	return offsetPointer_deref (int *, me->actualNodePtr, offsetof (struct X3D_Switch, whichChoice));
-}
-
-/* SWAMPTEA specific: move a little cone up/down depending on a fraction */
-void confidenceConeSet(int coneNode, int shown,int found) {
-	ppEAIHelpers p;
-	ttglobal tg = gglobal();
-
-	struct X3D_Transform *trans;
-	struct EAINodeIndexStruct *me;
-	struct SFVec3f *translation;
-
-#define CONE_MOVE_HEIGHT 14.0
-
-	p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
-	// bounds check
-	if (coneNode <=0) return;
-
-    me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,coneNode);
-	trans = X3D_TRANSFORM(me->actualNodePtr);
-
-	if (trans->_nodeType != NODE_Transform) {
-		ConsoleMessage ("confidence - not a Transform");
-		return;
-	}
-	
-	if (found==0) {
-		ConsoleMessage ("confidence - nothing found, nothing to do");
-		return;
-	}
-
-	// find the translation field of this Transform
-	translation = offsetPointer_deref (struct SFVec3f*, trans, offsetof (struct X3D_Transform, translation));	
-	// move it in the "Y" axis
-	translation->c[1] = (float)shown/(float)found*CONE_MOVE_HEIGHT - (CONE_MOVE_HEIGHT/2);
-
-	// tell the system to recalculate it all
-	trans->_change ++;
-}
-
-
-/* SWAMPTEA specific: add/delete this texture to our multitexture */ 
-void textureToMultiTexture(int texNode, int MultiTexture, int add) {
-	ppEAIHelpers p;
-	ttglobal tg = gglobal();
-
-	char line[200];
-	struct X3D_Node *MultiTexNode;
-	struct X3D_Node *myTex;
-	int addFlag;
-	struct EAINodeIndexStruct *me;
-
-	p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
-
-	if (add) addFlag=1; else addFlag=2;
-	
-
-
-	sprintf (line,"textureToMultiTexture, texnode %d multitexture %d add %d",texNode,MultiTexture,add);
-	ConsoleMessage(line);
-	
-	// bounds checking
-	if ((texNode <=0) || (MultiTexture<=0)) {
-		sprintf (line,"textureToMultiTexture, can not do: texnode %d multitexture %d add %d",texNode,MultiTexture,add);
-		ConsoleMessage (line);
-		return;
-	}
-
-        me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,MultiTexture);
-	MultiTexNode = me->actualNodePtr;
-        me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,texNode);
-	myTex = me->actualNodePtr;
-
-	sprintf (line,"textureToMultitexture, adding a :%s: to a :%s:",stringNodeType(myTex->_nodeType),
-		stringNodeType(MultiTexNode->_nodeType));
-	ConsoleMessage(line);
-
-	if ((myTex->_nodeType!=NODE_PixelTexture) && (MultiTexNode->_nodeType != NODE_MultiTexture)) {
-		ConsoleMessage ("textureToMultitexture, wrong type(s)");
-		return;
-	}
-
-	/* is it there already? */
-	if (add) {
-		int count;
-		struct Multi_Node *texture = offsetPointer_deref(struct Multi_Node *, MultiTexNode, offsetof (struct X3D_MultiTexture, texture));
-		for (count=0; count<texture->n; count++) {
-			if (texture->p[count] == myTex) return;
-		}
-
-	}
-
-	AddRemoveChildren (X3D_NODE(MultiTexNode),
-			offsetPointer_deref(void *, MultiTexNode, offsetof (struct X3D_MultiTexture, texture)),
-			(struct X3D_Node * *)&myTex,1,addFlag,__FILE__,__LINE__);
-}
-
-#endif //SWAMPTEA

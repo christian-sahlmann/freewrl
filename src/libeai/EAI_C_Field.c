@@ -1,27 +1,7 @@
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
-// JAS - OLDCODE #ifndef REWIRE
+#ifndef REWIRE
 #include "config.h"
 #include "system.h"
-// JAS - OLDCODE #endif
+#endif
 #include "EAI_C.h"
 
 void X3D_freeEventIn(X3DEventIn* ev) {
@@ -588,8 +568,11 @@ X3DNode *X3D_newMFString(int num, char array[][STRLEN]){
 	retval->X3D_MFString.p = malloc (sizeof (X3DNode) * num);
 
 	for (i = 0; i < num; i++) {
-		/* Doug Sanden changes */
+#ifdef WIN32
 		retval->X3D_MFString.p[i].type = FIELDTYPE_SFString; /*based on pattern above ie vec3f this should be SF */
+#else
+		retval->X3D_MFString.p[i].type = FIELDTYPE_MFString;
+#endif
 		retval->X3D_MFString.p[i].len = strlen(array[i]);
 		retval->X3D_MFString.p[i].strptr = malloc(sizeof(char)*STRLEN);
 		strncpy(retval->X3D_MFString.p[i].strptr, array[i], STRLEN);
@@ -622,8 +605,10 @@ X3DNode *X3D_newMFNode(){printf ("New node not implemented yet for this type\n")
 /* Nodes not used in FreeWRL */
 X3DNode *X3D_newMFVec2d(int num){printf ("New node not implemented yet for this type\n");return NULL;}
 X3DNode *X3D_newMFTime(int num){printf ("New node not implemented yet for this type\n");return NULL;}
+#ifdef WIN32
 X3DNode *X3D_newSFVec2d (double a, double b){printf ("New node not implemented yet for this type\n");return NULL;}
 X3DNode *X3D_newSFVec3d (double a, double b,double c){printf ("New node not implemented yet for this type\n");return NULL;}
 char *fieldTypeName(char type){printf ("New node not implemented yet for this type\n");return NULL;}
+#endif
 
 

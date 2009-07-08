@@ -1,56 +1,32 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.50 2012/04/14 22:46:32 dug9 Exp $
+$Id: fieldGet.c,v 1.17.2.1 2009/07/08 21:55:05 couannette Exp $
 
 Javascript C language binding.
 
 */
 
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
-
-
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
-#include <system_js.h>
 #include <display.h>
 #include <internal.h>
 
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
-#include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../main/Snapshot.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
-#include "../input/EAIHeaders.h"
-#include "../input/EAIHelpers.h"	/* resolving implicit declarations */
+#include "../input/EAIheaders.h"
+#include "../input/EAIHelpers.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 
-#include "JScript.h"
 #include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"
@@ -58,7 +34,8 @@ Javascript C language binding.
 #include "fieldSet.h"
 #include "fieldGet.h"
 
-#ifdef HAVE_JAVASCRIPT
+
+void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
 /********************************************************************
 
 getField_ToJavascript.
@@ -66,13 +43,11 @@ getField_ToJavascript.
 this sends events to scripts that have eventIns defined.
 
 ********************************************************************/
-
 void getField_ToJavascript (int num, int fromoffset) {
 	int ignored;
-	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	#ifdef SETFIELDVERBOSE 
-		printf ("getField_ToJavascript, from offset %d type %d num=%d\n",
+		printf ("CRoutes, sending ScriptEventIn from offset %d type %d num=%ld\n",
 			fromoffset,JSparamnames[fromoffset].type,num);
 	#endif
 
@@ -83,7 +58,6 @@ void getField_ToJavascript (int num, int fromoffset) {
 	case FIELDTYPE_SFBool:
 	case FIELDTYPE_SFFloat:
 	case FIELDTYPE_SFTime:
-	case FIELDTYPE_SFDouble:
 	case FIELDTYPE_SFInt32:
 	case FIELDTYPE_SFString:
 		setScriptECMAtype(num);
@@ -119,13 +93,12 @@ void getField_ToJavascript (int num, int fromoffset) {
 
 /******************************************************************************/
 
-void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen) {
+void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen) {
+
 	char scriptline[100];
 	jsval newval;
 	JSContext *cx;
 	JSObject *obj;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
-	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	#ifdef SETFIELDVERBOSE
 	printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
@@ -133,12 +106,9 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	#endif
 
 	/* get context and global object for this script */
-	cx =  ScriptControl[tonode].cx;
-	obj = ScriptControl[tonode].glob;
+	cx = (JSContext *) ScriptControl[tonode].cx;
+	obj = (JSObject *)ScriptControl[tonode].glob;
 
-#if defined(JS_THREADSAFE)
-	JS_BeginRequest(cx);
-#endif
 	/* set the time for this script */
 	SET_JS_TICKTIME()
 
@@ -153,9 +123,6 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 
         if (!JS_DefineProperty(cx,obj, scriptline, newval, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_PERMANENT)) {  
                 printf( "JS_DefineProperty failed for \"ECMA in\" at %s:%d.\n",__FILE__,__LINE__); 
-#if defined(JS_THREADSAFE)
-		JS_EndRequest(cx);
-#endif
                 return; 
         }
 
@@ -164,31 +131,24 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 
 	/* and run the function */
 	RUN_FUNCTION (toname)
-
-#if defined(JS_THREADSAFE)
-	JS_EndRequest(cx);
-#endif
 }
 
 /*  setScriptECMAtype called by getField_ToJavascript for 
         case FIELDTYPE_SFBool:
         case FIELDTYPE_SFFloat:
         case FIELDTYPE_SFTime:
-        case FIELDTYPE_SFDouble:
         case FIELDTYPE_SFInt32:
         case FIELDTYPE_SFString:
 */
 
-void setScriptECMAtype (int num) {
-	void *fn;
+void setScriptECMAtype (uintptr_t num) {
+	uintptr_t fn, tn;
 	int tptr;
 	int len;
-	int to_counter;
+	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
-	struct CRStruct *CRoutes = getCRoutes();
-	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
-	fn = offsetPointer_deref(void *, CRoutes[num].routeFromNode, CRoutes[num].fnptr);
+	fn = (uintptr_t)(CRoutes[num].routeFromNode) + (uintptr_t)(CRoutes[num].fnptr);
 	len = CRoutes[num].len;
 
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
@@ -197,21 +157,22 @@ void setScriptECMAtype (int num) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
                 myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
 		/* printf ("setScriptECMAtype, myScriptNumber is %d\n",myObj->num); */
+		tn = (uintptr_t) to_ptr->routeToNode;
 		tptr = to_ptr->foffset;
-		set_one_ECMAtype (myObj->num, tptr, JSparamnames[tptr].type, fn,len);
+		set_one_ECMAtype (myObj->num, tptr, JSparamnames[tptr].type, (void *)fn,len);
 	}
 }
 
 
 /* use Javascript to send in one element of an MF. datalen is in number of elements in type. */
-int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int datalen) {
+int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen) {
 	JSContext *cx;
 	JSObject *obj;
 	int elementlen;
 	int x;
 	char scriptline[20000];
-	//float *fp, *fp_in=(float *)Data;
-	//int *ip;
+	float *fp;
+	int *ip;
 
 	/* for PixelTextures we have: */
 	struct X3D_PixelTexture *mePix;
@@ -220,18 +181,13 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 	/* for MFStrings we have: */
 	char *chptr;
 	struct Uni_String  **uniptr;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
-	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	/* get context and global object for this script */
-	cx =  ScriptControl[tonode].cx;
-	obj = ScriptControl[tonode].glob;
+	cx = (JSContext *) ScriptControl[tonode].cx;
+	obj = (JSObject *)ScriptControl[tonode].glob;
 
-#if defined(JS_THREADSAFE)
-	JS_BeginRequest(cx);
-#endif
 	/* set the TickTime (possibly again) for this context */
-	SET_JS_TICKTIME_RV(FALSE)
+	SET_JS_TICKTIME(FALSE)
 
 	/* make up the name */
 	switch (dataType) {
@@ -239,33 +195,29 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			JSObject *newMFObject;
 			JSObject *newSFObject;
 			SFRotationNative 	*SFRPptr;
-			float *fp, *fp_in=(float *)Data;
 
 			/* create a new MFRotation object... */
 			newMFObject = JS_ConstructObject(cx, &MFRotationClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = (int) sizeof (float);
+			elementlen = sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFRotation object */
 				newSFObject = JS_ConstructObject(cx,&SFRotationClass,NULL, newMFObject);
 				if ((SFRPptr = (SFRotationNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
 					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
-#if defined(JS_THREADSAFE)
-					JS_EndRequest(cx);
-#endif
 					return FALSE;
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
-				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
-				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
-				fp = (float *)fp_in; SFRPptr->v.c[3] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[2] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[3] = *fp; Data += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -290,32 +242,28 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			JSObject *newMFObject;
 			JSObject *newSFObject;
 			SFVec3fNative 	*SFRPptr;
-			float *fp, *fp_in=(float *)Data;
 
 			/* create a new MFVec3f object... */
 			newMFObject = JS_ConstructObject(cx, &MFVec3fClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = (int) sizeof (float);
+			elementlen = sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFVec3f object */
 				newSFObject = JS_ConstructObject(cx,&SFVec3fClass,NULL, newMFObject);
 				if ((SFRPptr = (SFVec3fNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
 					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
-#if defined(JS_THREADSAFE)
-					JS_EndRequest(cx);
-#endif
 					return FALSE;
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
-				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
-				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[2] = *fp; Data += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -340,32 +288,28 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			JSObject *newMFObject;
 			JSObject *newSFObject;
 			SFColorNative 	*SFRPptr;
-			float *fp, *fp_in=(float *)Data;
 
 			/* create a new MFColor object... */
 			newMFObject = JS_ConstructObject(cx, &MFColorClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = (int) sizeof (float);
+			elementlen = sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFColor object */
 				newSFObject = JS_ConstructObject(cx,&SFColorClass,NULL, newMFObject);
 				if ((SFRPptr = (SFColorNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
 					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
-#if defined(JS_THREADSAFE)
-					JS_EndRequest(cx);
-#endif
 					return FALSE;
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
-				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
-				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[2] = *fp; Data += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -390,31 +334,27 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			JSObject *newMFObject;
 			JSObject *newSFObject;
 			SFVec2fNative 	*SFRPptr;
-			float *fp, *fp_in=(float *)Data;
 
 			/* create a new MFVec2f object... */
 			newMFObject = JS_ConstructObject(cx, &MFVec2fClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = (int) sizeof (float);
+			elementlen = sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFVec2f object */
 				newSFObject = JS_ConstructObject(cx,&SFVec2fClass,NULL, newMFObject);
 				if ((SFRPptr = (SFVec2fNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
 					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
-#if defined(JS_THREADSAFE)
-					JS_EndRequest(cx);
-#endif
 					return FALSE;
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
-				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -439,25 +379,24 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_MFFloat: {	
 			JSObject *newMFObject;
 			jsval newjsval;
-			float *fp, *fp_in=(float *)Data;
 			/* create a new MFFloat object... */
 			newMFObject = JS_ConstructObject(cx, &MFFloatClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = (int) sizeof (float);
+			elementlen = sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFFloat object */
 				
-				fp = (float *)fp_in; 
-				JS_NewNumberValue(cx,(double)*fp,&newjsval);
-				fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)Data; 
+				newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
+				Data += elementlen;
 
 				/* put this object into the MF class */
-				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
 					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 				}
@@ -477,26 +416,24 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_MFTime: {	
 			JSObject *newMFObject;
 			jsval newjsval;
-			double *dp, *dp_in=(double *)Data;
-
 			/* create a new MFTime object... */
 			newMFObject = JS_ConstructObject(cx, &MFTimeClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = (int) sizeof (double);
+			elementlen = sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFTime object */
 				
-				dp = (double *)dp_in; 
-				JS_NewNumberValue(cx,(double)*dp,&newjsval);
-				dp_in = offsetPointer_deref(double *,dp_in,elementlen);
+				fp = (float *)Data; 
+				newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
+				Data += elementlen;
 
 				/* put this object into the MF class */
-				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
 					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 				}
@@ -516,23 +453,21 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_MFInt32: {	
 			JSObject *newMFObject;
 			jsval newjsval;
-			int *ip, *ip_in=(int *)Data;
-
 			/* create a new MFInt32 object... */
 			newMFObject = JS_ConstructObject(cx, &MFInt32Class, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = (int) sizeof (float);
+			elementlen = sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFInt32 object */
 				
-				ip = (int *)ip_in; 
-				newjsval = INT_TO_JSVAL(ip); /* NOTE--this is assigning the pointer itself as an int, not its content */
-				ip_in = offsetPointer_deref(int *,ip_in,elementlen);
+				ip = (int *)Data; 
+				newjsval = INT_TO_JSVAL(ip);
+				Data += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
@@ -555,17 +490,15 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_MFString: {	
 			JSObject *newMFObject;
 			jsval newjsval;
-			struct Uni_String * *ip_in=(struct Uni_String **)Data;
-
 			/* create a new MFString object... */
 			newMFObject = JS_ConstructObject(cx, &MFStringClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* Data points to a Uni_String */
-			uniptr = (struct Uni_String **) ip_in;
+			uniptr = (struct Uni_String *) Data;
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
 			for (x=0; x<datalen; x++) {
@@ -595,20 +528,19 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_MFNode: {	
 			JSObject *newMFObject;
 			jsval newjsval;
-			double *ip, *ip_in=(double *)Data;
 			/* create a new MFNode object... */
 			newMFObject = JS_ConstructObject(cx, &MFNodeClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = (int) sizeof (void *);
+			elementlen = sizeof (float);
 			for (x=0; x<datalen; x++) {
-				ip = ip_in; 
-				newjsval = INT_TO_JSVAL(ip); /* NOTE--assigning pointer itself as int, not its content */
-				ip_in = offsetPointer_deref(double *,ip_in,elementlen);
+				ip = (int *)Data; 
+				newjsval = INT_TO_JSVAL(ip);
+				Data += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
@@ -632,17 +564,15 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_SFImage:	{
 			JSObject *newMFObject;
 			jsval newjsval;
-			double *ip, *ip_in=(double *)Data;
-
 			/* create a new MFNode object... */
 			newMFObject = JS_ConstructObject(cx, &SFImageClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject,datalen)
+			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			mePix = (struct X3D_PixelTexture *) ip_in;
+			mePix = (struct X3D_PixelTexture *) Data;
 			if (mePix->_nodeType == NODE_PixelTexture) {
 				image = mePix->image;
 				if (image.n > 2) {
@@ -699,9 +629,6 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				strcat (scriptline,"(");
 			}
 	}
-#if defined(JS_THREADSAFE)
-	JS_EndRequest(cx);
-#endif
 	return TRUE;
 }
 
@@ -721,16 +648,14 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 
 
 
-int setMFElementtype (int num) {
+int setMFElementtype (uintptr_t num) {
 	void * fn;
-	int fptr;
+	uintptr_t fptr;
 	int len;
-	int to_counter;
+	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 	char *pptr;
 	struct Multi_Node *mfp;
-	struct CRStruct *CRoutes = getCRoutes();
-	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 
 	#ifdef SETFIELDVERBOSE 
@@ -743,7 +668,7 @@ int setMFElementtype (int num) {
 	
 	/* we can do arithmetic on character pointers; so we have to cast void *
 	   to char * here */
-	pptr = offsetPointer_deref (char *, fn, fptr);
+	pptr = (char *)fn + fptr;
 
 	len = CRoutes[num].len;
 
@@ -793,6 +718,188 @@ int setMFElementtype (int num) {
 }
 
 
+#ifdef OLDCODE
+void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
+
+    int tn, tptr;
+    char scriptline[2000];
+    char sline[100];
+    jsval retval;
+    int x;
+    int elementlen;
+    float *fp;
+    int *ip;
+    double *dp;
+
+    JSContext *cx;
+    JSObject *obj;
+
+    #ifdef SETFIELDVERBOSE 
+	printf("------------BEGIN set_EAI_MFElementtype ---------------\n");
+    #endif
+
+
+    tn   = num;
+    tptr = offset;
+
+    #ifdef SETFIELDVERBOSE 
+	printf ("got a script event! index %d\n",num);
+	printf ("\tto %#x toptr %#x\n",tn,tptr);
+	printf ("\tdata length %d\n",len);
+	printf ("and, sending it to %s\n",JSparamnames[tptr].name);
+    #endif
+
+    /* get context and global object for this script */
+    cx = (JSContext *) ScriptControl[tn].cx;
+    obj = (JSObject *)ScriptControl[tn].glob;
+    SET_JS_TICKTIME()
+
+    /* make up the name */
+    sprintf (scriptline,"%s(",JSparamnames[tptr].name);
+    switch (JSparamnames[tptr].type) {
+      case FIELDTYPE_MFVec3f: {
+	  strcat (scriptline, "new MFVec3f(");
+	  elementlen = sizeof (float) * 3;
+	  for (x=0; x<(len/elementlen); x++) {
+	      fp = (float *)pptr;
+	      sprintf (sline,"%f %f %f",*fp,
+		       *(fp+elementlen),
+		       *(fp+(elementlen*2)));
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
+      case FIELDTYPE_MFColor: {
+	  strcat (scriptline, "new MFColor(");
+	  elementlen = sizeof (float) * 3;
+	  for (x=0; x<(len/elementlen); x++) {
+	      fp = (float *)pptr;
+	      sprintf (sline,"%f %f %f",*fp,
+		       *(fp+elementlen),
+		       *(fp+(elementlen*2)));
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
+      case FIELDTYPE_MFFloat: {
+	  strcat (scriptline, "new MFFloat(");
+	  elementlen = sizeof (float);
+	  for (x=0; x<(len/elementlen); x++) {
+	      fp = (float *)pptr;
+	      sprintf (sline,"%f",*fp);
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+
+	  break;
+      }
+      case FIELDTYPE_MFTime:  {
+	  strcat (scriptline, "new MFTime(");
+	  elementlen = sizeof (double);
+	  for (x=0; x<(len/elementlen); x++) {
+	      dp = (double *)pptr;
+	      sprintf (sline,"%lf",*dp);
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
+      case FIELDTYPE_MFInt32: {
+	  strcat (scriptline, "new MFInt32(");
+	  elementlen = sizeof (int);
+	  for (x=0; x<(len/elementlen); x++) {
+	      ip = (int *)pptr;
+	      sprintf (sline,"%d",*ip);
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
+      case FIELDTYPE_MFString:{
+	  strcat (scriptline, "new MFString(");
+	  elementlen = sizeof (float);
+	  printf ("ScriptAssign, MFString probably broken\n");
+	  for (x=0; x<(len/elementlen); x++) {
+	      fp = (float *)pptr;
+	      sprintf (sline,"%f",*fp);
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
+      case FIELDTYPE_MFNode:  {
+	  strcat (scriptline, "new MFNode(");
+	  elementlen = sizeof (int);
+	  for (x=0; x<(len/elementlen); x++) {
+	      ip = (int *)pptr;
+	      sprintf (sline,"%u",*ip);
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
+      case FIELDTYPE_MFRotation: {	strcat (scriptline, "new MFRotation(");
+      elementlen = sizeof (float)*4;
+      for (x=0; x<(len/elementlen); x++) {
+	  fp = (float *)pptr;
+	  sprintf (sline,"%f %f %f %f",*fp,
+		   *(fp+elementlen),
+		   *(fp+(elementlen*2)),
+		   *(fp+(elementlen*3)));
+	  sprintf (sline,"%f",*fp);
+	  if (x < ((len/elementlen)-1)) {
+	      strcat(sline,",");
+	  }
+	  pptr += elementlen;
+	  strcat (scriptline,sline);
+      }
+      break;
+      }
+      default: {
+	  printf ("setMFElement, SHOULD NOT DISPLAY THIS\n");
+	  strcat (scriptline,"(");
+      }
+    }
+
+    /* convert these values to a jsval type */
+    strcat (scriptline,"))");
+
+    #ifdef SETFIELDVERBOSE 
+	printf("ScriptLine: %s\n",scriptline);
+    #endif
+
+    if (!ACTUALRUNSCRIPT(tn,scriptline,&retval))
+      printf ("AR failed in setxx\n");
+
+    #ifdef SETFIELDVERBOSE 
+	printf("------------END set_EAI_MFElementtype ---------------\n");
+    #endif
+}
+#endif /* OLDCODE */
+
 /****************************************************************/
 /* sets a SFVec3f and SFColor and SFVec3d 			*/
 /* and SFRotation and SFVec2fin a script 			*/
@@ -803,20 +910,26 @@ int setMFElementtype (int num) {
 /* sets a SFVec3f and SFColor in a script 			*/
 /****************************************************************/
 
-/* get a pointer to the internal data for this object, or return NULL on error */
-void **getInternalDataPointerForJavascriptObject(JSContext *cx, JSObject *obj, int tnfield) {
+/* really do the individual set; used by script routing and EAI sending to a script */
+void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, unsigned dataLen ) {
 	char scriptline[100];
-	void *_privPtr;
-	JSObject *sfObj;
 	jsval retval;
-	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+	SFVec3fNative *_privPtr;
 
-	/* NOTE -- this is only called once, and the caller has already defined a JS_BeginRequest() */
+	JSContext *cx;
+	JSObject *obj, *_sfvec3fObj;
+
+	/* get context and global object for this script */
+	cx = (JSContext *) ScriptControl[tonode].cx;
+	obj = (JSObject *)ScriptControl[tonode].glob;
+
+	/* set the time for this script */
+	SET_JS_TICKTIME()
 
 	/* get the variable name to hold the incoming value */
 	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[tnfield].name);
 	#ifdef SETFIELDVERBOSE 
-	printf ("getInternalDataPointerForJavascriptObject: line %s\n",scriptline);
+	printf ("set_one_MultiElementType: script %d line %s\n",tonode, scriptline);
 	#endif
 
 	if (!JS_GetProperty(cx,obj,scriptline,&retval))
@@ -825,95 +938,13 @@ void **getInternalDataPointerForJavascriptObject(JSContext *cx, JSObject *obj, i
 	if (!JSVAL_IS_OBJECT(retval))
 		printf ("set_one_MultiElementType - not an object\n");
 
-	sfObj = JSVAL_TO_OBJECT(retval);
+	_sfvec3fObj = JSVAL_TO_OBJECT(retval);
 
-	if ((_privPtr = JS_GetPrivate(cx, sfObj)) == NULL)
+	if ((_privPtr = (SFVec3fNative *)JS_GetPrivate(cx, _sfvec3fObj)) == NULL)
 		printf("JS_GetPrivate failed set_one_MultiElementType.\n");
 
-	if (_privPtr == NULL) return NULL;
-
-	/* what kind of class of object is this? */
-
-	/* we look at EVERY kind of native class found in "jsNative.h" even
-	   if it may not be ever used here */
-
-        if (JS_InstanceOf(cx, sfObj, &SFVec3fClass, NULL)) { 
-		SFVec3fNative *me = (SFVec3fNative *)_privPtr;
-		return (void **) &me->v;
-		
-        } else if (JS_InstanceOf(cx, sfObj, &SFVec3dClass, NULL)) { 
-		SFVec3dNative *me = (SFVec3dNative *)_privPtr;
-		return (void **) &me->v;
-		
-        } else if (JS_InstanceOf(cx, sfObj, &SFRotationClass, NULL)) { 
-		SFRotationNative *me = (SFRotationNative *)_privPtr;
-		return (void **) &me->v;
-		
-        } else if (JS_InstanceOf(cx, sfObj, &SFVec2fClass, NULL)) { 
-		SFVec2fNative *me = (SFVec2fNative *)_privPtr;
-		return (void **) &me->v;
-		
-        } else if (JS_InstanceOf(cx, sfObj, &SFColorClass, NULL)) { 
-		SFColorNative *me = (SFColorNative *)_privPtr;
-		return (void **) &me->v;
-		
-        } else if (JS_InstanceOf(cx, sfObj, &SFColorRGBAClass, NULL)) { 
-		SFColorRGBANative *me = (SFColorRGBANative *)_privPtr;
-		return (void **) &me->v;
-		
-        } else if (JS_InstanceOf(cx, sfObj, &SFVec4fClass, NULL)) { 
-		SFVec4fNative *me = (SFVec4fNative *)_privPtr;
-		return (void **) &me->v;
-		
-        } else if (JS_InstanceOf(cx, sfObj, &SFVec4dClass, NULL)) { 
-		SFVec4dNative *me = (SFVec4dNative *)_privPtr;
-		return (void **) &me->v;
-		
-        } else if (JS_InstanceOf(cx, sfObj, &SFNodeClass, NULL)) { 
-		SFNodeNative *me = (SFNodeNative *)_privPtr;
-		return (void **) &me->handle;;
-		//JAS return (void **) &me->v;
-		
-        } else if (JS_InstanceOf(cx, sfObj, &SFImageClass, NULL)) { 
-		SFImageNative *me = (SFImageNative *)_privPtr;
-		//JAS return (void **) &me->v;
-		
-        }
-
-	ConsoleMessage ("getInternalDataPointerForJavascriptObject malfunction");
-
-	return NULL;
-}
-
-
-
-/* really do the individual set; used by script routing and EAI sending to a script */
-void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen ) {
-	char scriptline[100];
-	JSContext *cx;
-	JSObject *obj;
-	void **pp;
-	struct CRscriptStruct *ScriptControl = getScriptControl();
-	struct CRjsnameStruct *JSparamnames = getJSparamnames();
-
-	/* get context and global object for this script */
-	cx =  ScriptControl[tonode].cx;
-	obj = ScriptControl[tonode].glob;
-
-#if defined(JS_THREADSAFE)
-	JS_BeginRequest(cx);
-#endif
-	/* set the time for this script */
-	SET_JS_TICKTIME()
-
 	/* copy over the data from the VRML side into the script variable. */
-	pp = getInternalDataPointerForJavascriptObject(cx,obj,tnfield);
-
-	if (pp != NULL) {
-		memcpy (pp,Data, dataLen);
-		/* printf ("set_one_MultiElementType, dataLen %d, sizeof(double) %d\n",dataLen, sizeof(double));
-		printf ("and, sending the data to pointer %p\n",pp); */
-	}
+	memcpy ((void *) &_privPtr->v,Data, dataLen);
 
 	/* is the function compiled yet? */
 	COMPILE_FUNCTION_IF_NEEDED(tnfield)
@@ -924,12 +955,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 	#endif
 
 	RUN_FUNCTION (tnfield)
-
-#if defined(JS_THREADSAFE)
-	JS_EndRequest(cx);
-#endif
 }
-
 
 /* setScriptMultiElementtype called by getField_ToJavascript for 
         case FIELDTYPE_SFColor:
@@ -939,30 +965,21 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
         case FIELDTYPE_SFRotation:
 */
 
-void setScriptMultiElementtype (int num)
-{
-	int tptr, fptr;
-	int len;
-	int to_counter;
-	void *fn;
+void setScriptMultiElementtype (uintptr_t num) {
+	void * fn;
+	uintptr_t tptr, fptr;
+	unsigned int len;
+	unsigned int to_counter;
+
+	CRnodeStruct *to_ptr = NULL;
+
 
 	JSContext *cx;
 	JSObject *obj;
 
-	CRnodeStruct *to_ptr = NULL;
-	struct CRStruct *CRoutes = getCRoutes();
-	struct CRscriptStruct *ScriptControl = getScriptControl();
-
-
 	fn = (void *)CRoutes[num].routeFromNode;
 	fptr = CRoutes[num].fnptr;
-	if (CRoutes[num].len == ROUTING_SFNODE) len = returnElementLength(FIELDTYPE_SFNode);
-	else if (CRoutes[num].len < 0) {
-		ConsoleMessage ("setScriptMultiElementtype - len of %d unhandled\n",CRoutes[num].len);
-		return;
-	} else {
-		len = CRoutes[num].len;
-	}
+	len = CRoutes[num].len;
 
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
                 struct Shader_Script *myObj;
@@ -982,151 +999,131 @@ void setScriptMultiElementtype (int num)
 		#endif
 
 		/* get context and global object for this script */
-		cx =  ScriptControl[myObj->num].cx;
-		obj = ScriptControl[myObj->num].glob;
+		cx = (JSContext *) ScriptControl[myObj->num].cx;
+		obj = (JSObject *)ScriptControl[myObj->num].glob;
 
-		fn = offsetPointer_deref(void*,fn,fptr); /*fn += fptr;*/
+		/* thanks to Doug Sanden for this one */
+/* 		#ifdef WIN32 */
+/* 		fnptr = (void *)( (uintptr_t)(fn) + fptr ); /\*force byte arithmetic *\/ */
+/* 		#else */
+		fn += fptr;
+/* 		#endif */
 
 		set_one_MultiElementType (myObj->num, tptr, fn, len);
 	}
 }
 
-
-#endif /* HAVE_JAVASCRIPT */
-
 /* convert a number in memory to a printable type. Used to send back EVents, or replies to
-   the SAI/EAI client program. */
+   the Java client program. */
 
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf) {
 
-	char utilBuf[EAIREADSIZE];
-	int errcount;
-	memset(utilBuf,'\0',sizeof(utilBuf));
-
-	errcount = UtilEAI_Convert_mem_to_ASCII (type,memptr, utilBuf);
-	if (0 == errcount) {
-		sprintf (buf,"%s\n%f\n%d\n%s",reptype,TickTime(),id, utilBuf);
-	} else {
-		sprintf (buf,"%s\n%f\n%d\n%s",reptype,TickTime(),id, "indeterminate....");
-	}
-}
-
-/* Utility routine to convert a value in memory to a printable type. */
-
-int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Returns errcount */
-
 	double dval;
 	float fl[4];
-	double dl[4];
+	float dl[4];
 	float *fp;
 	int *ip;
 	int ival;
-	struct X3D_Node *uval;
+	unsigned int uval;
 	int row;			/* MF* counter */
 	struct Multi_String *MSptr;	/* MFString pointer */
 	struct Multi_Node *MNptr;	/* MFNode pointer */
 	struct Multi_Color *MCptr;	/* MFColor pointer */
 	char *ptr;			/* used for building up return string */
 	struct Uni_String *svptr;
-	char *retSFString;
+	unsigned char *retSFString;
 
 	int numPerRow;			/* 1, 2, 3 or 4 floats per row of this MF? */
-	int i, errcount;
+	int i;
 
 	/* used because of endian problems... */
 	int *intptr;
-	int eaiverbose;
-	eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 	intptr = (int *) memptr;
 
-/* printf("%s,%d UtilEAI_Convert_mem_to_ASCII (type=%d , memptr=%p intptr=%p ....)\n",__FILE__,__LINE__,type,memptr,intptr); */
-
-	errcount=0;
 	switch (type) {
 		case FIELDTYPE_SFBool: 	{
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFBOOL - value %d; TRUE %d false %d\n",*intptr,TRUE,FALSE);
+			printf ("EAI_SFBOOL - value %d; TRUE %d false %d\n",*intptr,TRUE,FALSE);
 			}
 
-			if (*intptr == 1) sprintf (buf,"TRUE");
-			else sprintf (buf,"FALSE");
+			if (*intptr == 1) sprintf (buf,"%s\n%f\n%d\nTRUE",reptype,TickTime,id);
+			else sprintf (buf,"%s\n%f\n%d\nFALSE",reptype,TickTime,id);
 			break;
 		}
 
-		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime:	{
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFTIME\n");
+			printf ("EAI_SFTIME\n");
 			}
 			memcpy(&dval,memptr,sizeof(double));
-			sprintf (buf, "%lf",dval);
+			sprintf (buf, "%s\n%f\n%d\n%lf",reptype,TickTime,id,dval);
 			break;
 		}
 
 		case FIELDTYPE_SFInt32:	{
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFINT32\n");
+			printf ("EAI_SFINT32\n");
 			}
 			memcpy(&ival,memptr,sizeof(int));
-			sprintf (buf, "%d",ival);
+			sprintf (buf, "%s\n%f\n%d\n%d",reptype,TickTime,id,ival);
 			break;
 		}
 
 		case FIELDTYPE_SFNode:	{
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFNODE\n");
+			printf ("EAI_SFNODE\n");
 			}
-			memcpy((void *)&uval,(void *)memptr,sizeof(void *));
-			sprintf (buf, "%u",registerEAINodeForAccess(X3D_NODE(uval)));
+			memcpy(&uval,memptr,sizeof(unsigned int));
+			sprintf (buf, "%s\n%f\n%d\n%u",reptype,TickTime,id,registerEAINodeForAccess(X3D_NODE(uval)));
 			break;
 		}
 
 		case FIELDTYPE_SFFloat:	{
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFFLOAT\n");
+			printf ("EAI_SFFLOAT\n");
 			}
 
 			memcpy(fl,memptr,sizeof(float));
-			sprintf (buf, "%f",fl[0]);
+			sprintf (buf, "%s\n%f\n%d\n%f",reptype,TickTime,id,fl[0]);
 			break;
 		}
 
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFColor:	{
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFCOLOR or EAI_SFVEC3F\n");
+			printf ("EAI_SFCOLOR or EAI_SFVEC3F\n");
 			}
 			memcpy(fl,memptr,sizeof(float)*3);
-			sprintf (buf, "%f %f %f",fl[0],fl[1],fl[2]);
+			sprintf (buf, "%s\n%f\n%d\n%f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2]);
 			break;
 		}
 
 		case FIELDTYPE_SFVec3d:	{
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFVEC3D\n");
+			printf ("EAI_SFVEC3D\n");
 			}
 			memcpy(dl,memptr,sizeof(double)*3);
-			sprintf (buf, "%lf %lf %lf",dl[0],dl[1],dl[2]);
+			sprintf (buf, "%s\n%f\n%d\n%lf %lf %lf",reptype,TickTime,id,dl[0],dl[1],dl[2]);
 			break;
 		}
 
 		case FIELDTYPE_SFVec2f:	{
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFVEC2F\n");
+			printf ("EAI_SFVEC2F\n");
 			}
 			memcpy(fl,memptr,sizeof(float)*2);
-			sprintf (buf, "%f %f",fl[0],fl[1]);
+			sprintf (buf, "%s\n%f\n%d\n%f %f",reptype,TickTime,id,fl[0],fl[1]);
 			break;
 		}
 
 		case FIELDTYPE_SFColorRGBA:
 		case FIELDTYPE_SFRotation:	{
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFROTATION\n");
+			printf ("EAI_SFROTATION\n");
 			}
 
 			memcpy(fl,memptr,sizeof(float)*4);
-			sprintf (buf, "%f %f %f %f",fl[0],fl[1],fl[2],fl[3]);
+			sprintf (buf, "%s\n%f\n%d\n%f %f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2],fl[3]);
 			break;
 		}
 
@@ -1135,7 +1132,7 @@ int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Return
 			uintptr_t *xx;
 
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFSTRING\n");
+			printf ("EAI_SFSTRING\n");
 			}
 
 			/* get the pointer to the string, do this in a couple of steps... */
@@ -1143,30 +1140,31 @@ int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Return
 			xx= (uintptr_t *) memptr;
 			svptr = (struct Uni_String *) *xx;
 
-			retSFString = (char *)svptr->strptr; 
-			sprintf (buf, "\"%s\"",retSFString);
+			retSFString = (unsigned char *)svptr->strptr; 
+			sprintf (buf, "%s\n%f\n%d\n\"%s\"",reptype,TickTime,id,retSFString);
 			break;
 		}
 
 		case FIELDTYPE_MFString:	{
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_MFSTRING\n");
+			printf ("EAI_MFSTRING\n");
 			}
 
 			/* make the Multi_String pointer */
 			MSptr = (struct Multi_String *) memptr;
 
-			/* printf ("UtilEAI_Convert_mem_to_ASCII: EAI_MFString, there are %d strings\n",(*MSptr).n);*/
+			/* printf ("EAI_MFString, there are %d strings\n",(*MSptr).n);*/
+			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
 			ptr = buf + strlen(buf);
 
 			for (row=0; row<(*MSptr).n; row++) {
-        	        	/* printf ("UtilEAI_Convert_mem_to_ASCII: String %d is %s\n",row,(*MSptr).p[row]->strptr); */
+        	        	/* printf ("String %d is %s\n",row,(*MSptr).p[row]->strptr);*/
 				if (strlen ((*MSptr).p[row]->strptr) == 0) {
 					sprintf (ptr, "\"\" "); /* encode junk for Java side.*/
 				} else {
 					sprintf (ptr, "\"%s\" ",(*MSptr).p[row]->strptr);
 				}
-				/* printf ("UtilEAI_Convert_mem_to_ASCII: buf now is %s\n",buf); */
+				/* printf ("buf now is %s\n",buf);*/
 				ptr = buf + strlen (buf);
 			}
 
@@ -1177,9 +1175,10 @@ int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Return
 			MNptr = (struct Multi_Node *) memptr;
 
 			if (eaiverbose) { 
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_MFNode, there are %d nodes at %p\n",(*MNptr).n,memptr);
+			printf ("EAI_Convert_mem_to_ASCII: EAI_MFNode, there are %d nodes at %ld\n",(*MNptr).n,(intptr_t) memptr);
 			}
 
+			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
 			ptr = buf + strlen(buf);
 
 			for (row=0; row<(*MNptr).n; row++) {
@@ -1192,17 +1191,17 @@ int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Return
 		case FIELDTYPE_MFInt32: {
 			MCptr = (struct Multi_Color *) memptr;
 			if (eaiverbose) { 
-				printf ("UtilEAI_Convert_mem_to_ASCII: EAI_MFColor, there are %d nodes at %p\n",(*MCptr).n,memptr);
+				printf ("EAI_MFColor, there are %d nodes at %ld\n",(*MCptr).n,(intptr_t) memptr);
 			}
 
-			sprintf (buf, "%d \n",(*MCptr).n);
+			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
 			ptr = buf + strlen(buf);
 
 			ip = (int *) (*MCptr).p;
 			for (row=0; row<(*MCptr).n; row++) {
 				sprintf (ptr, "%d \n",*ip); 
 				ip++;
-				/* printf ("UtilEAI_Convert_mem_to_ASCII: line %d is ",row,ptr);  */
+				/* printf ("line %d is %s\n",row,ptr);  */
 				ptr = buf + strlen (buf);
 			}
 
@@ -1223,10 +1222,10 @@ int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Return
 
 			MCptr = (struct Multi_Color *) memptr;
 			if (eaiverbose) { 
-				printf ("UtilEAI_Convert_mem_to_ASCII: EAI_MFColor, there are %d nodes at %p\n",(*MCptr).n,memptr);
+				printf ("EAI_MFColor, there are %d nodes at %ld\n",(*MCptr).n,(intptr_t) memptr);
 			}
 
-			sprintf (buf, "%d \n",(*MCptr).n);
+			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
 			ptr = buf + strlen(buf);
 
 
@@ -1245,20 +1244,18 @@ int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Return
 					case 4:
 						sprintf (ptr, "%f %f %f %f \n",fl[0],fl[1],fl[2],fl[3]); break;
 				}
-				/* printf ("UtilEAI_Convert_mem_to_ASCII: line %d is ",row,ptr); */
+				/* printf ("line %d is %s\n",row,ptr); */
 				ptr = buf + strlen (buf);
 			}
 
 			break;
 		}
 		default: {
-			errcount++;
-			printf ("UtilEAI_Convert_mem_to_ASCII: EAI, type %d (%s) not handled yet\n",type,stringFieldtypeType (type));
+			printf ("EAI, type %s not handled yet\n",stringFieldtypeType (type));
 		}
 
 
 /*XXX	case EAI_MFTIME:	{handleptr = &handleEAI_MFTIME_Listener;break;}*/
 	}
-	return errcount ;
 }
 

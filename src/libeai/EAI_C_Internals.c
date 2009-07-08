@@ -1,39 +1,10 @@
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
-// JAS - OLDCODE #ifndef REWIRE
+#ifndef REWIRE
 #include "config.h"
 #include "system.h"
-// JAS - OLDCODE #endif
+#endif
 #include "EAI_C.h"
 
-#ifdef OLDCODE
-OLDCODE #define WAIT_FOR_RETVAL ((command!=SENDEVENT) && (command!=MIDICONTROL))
-#else
-#define WAIT_FOR_RETVAL (command!=SENDEVENT)
-#endif
-
-static pthread_mutex_t eailock = PTHREAD_MUTEX_INITIALIZER;
-#define EAILOCK pthread_mutex_lock(&eailock);
-#define EAIUNLOCK pthread_mutex_unlock(&eailock);
-
+#define WAIT_FOR_RETVAL ((command!=SENDEVENT) && (command!=MIDICONTROL))
 int _X3D_FreeWRL_FD;
 int _X3D_FreeWRL_Swig_FD = 0;
 int _X3D_FreeWRL_listen_FD = 0;
@@ -92,7 +63,7 @@ void *freewrlSwigThread(void* nada) {
 void freewrlSwigThread(void) {
 #endif
 	const int on=1;
-	/* unused int flags; */
+	int flags;
 	int len;
 
 	struct sockaddr_in servaddr, cliaddr;
@@ -103,16 +74,13 @@ void freewrlSwigThread(void) {
     iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (iResult != 0) {
         X3D_error("WSAStartup failed to load winsock2 ws2_32.dll\n");
-        /* return NULL; */
-        return ;
+        return NULL;
     }
 #endif
 
 	if ((_X3D_FreeWRL_listen_FD= socket(AF_INET, SOCK_STREAM, 0)) < 0) {
               X3D_error("ERROR opening swig socket");
-              /* return NULL; */
-              return ;
-		
+              return NULL;
         }
 	
 	setsockopt(_X3D_FreeWRL_listen_FD, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on));
@@ -128,8 +96,7 @@ void freewrlSwigThread(void) {
 
 	if (listen(_X3D_FreeWRL_listen_FD, 1024) < 0) {
 		X3D_error("ERROR in listen");
-		/* return NULL; */
-		return ;
+		return NULL;
 	}
 
 	len = sizeof(cliaddr);
@@ -139,8 +106,7 @@ void freewrlSwigThread(void) {
 #else
 	_X3D_FreeWRL_Swig_FD = accept((_X3D_FreeWRL_listen_FD), (struct sockaddr*) &cliaddr, (socklen_t *) &len);
 #endif
-	/* return NULL; */
-	return ;
+	return NULL;
 }
 
 /* read in the reply - if it is an RE; it is the reply to an event; if it is an
@@ -182,10 +148,8 @@ void freewrlReadThread(void)  {
 				receivedData = TRUE;
 			} else if (strncmp ("EV",readbuffer,2) == 0) {
 					_handleFreeWRLcallback(readbuffer);
-#ifdef OLDCODE
-OLDCODE			} else if (strncmp ("RW",readbuffer,2) == 0) {
-OLDCODE				_handleReWireCallback(readbuffer);
-#endif // OLDCODE
+			} else if (strncmp ("RW",readbuffer,2) == 0) {
+				_handleReWireCallback(readbuffer);
 			} else if (strncmp ("QUIT",readbuffer,4) == 0) {
 				exit(0);
 			} else {
@@ -219,7 +183,6 @@ static char *sendToFreeWRL(char *callerbuffer, int size, int waitForResponse) {
 	retval = send(_X3D_FreeWRL_FD, callerbuffer, size, 0);
 	if (retval == SOCKET_ERROR ) 
 #else	
-	ptr = NULL;
 	retval = write(_X3D_FreeWRL_FD, callerbuffer, size);
 	if (retval < 0) 
 #endif
@@ -282,7 +245,12 @@ RE_EOT
 
 		if (_X3D_queryno != readquery) {
 			printf ("server: warning, _X3D_queryno %d != received %d\n",_X3D_queryno,readquery);
-			usleep(5000);
+			sched_yield();
+#ifdef WIN32
+            Sleep(5);
+#else
+			sleep(5);
+#endif
 			sched_yield();
 		}
 
@@ -300,35 +268,29 @@ RE_EOT
 
 void _X3D_sendEvent (char command, char *string) {
         char *myptr;
-	EAILOCK
 	verifySendBufferSize (strlen(string));
         sprintf (sendBuffer, "%d %c %s\n",_X3D_queryno,command,string);
         myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
-	EAIUNLOCK
 }
 
 char *_X3D_makeShortCommand (char command) {
 	char *myptr;
 
-	EAILOCK
 	verifySendBufferSize (100);
 	sprintf (sendBuffer, "%d %c\n",_X3D_queryno,command);
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
-	EAIUNLOCK
 	#ifdef VERBOSE
 	printf ("makeShortCommand, buffer now %s\n",myptr);
 	#endif
 	return myptr;
 }
 
-char *_X3D_make1VoidCommand (char command, int adr) {
+char *_X3D_make1VoidCommand (char command, uintptr_t *adr) {
 	char *myptr;
 
-	EAILOCK
 	verifySendBufferSize (100);
-	sprintf (sendBuffer, "%d %c %d\n",_X3D_queryno,command,adr);
+	sprintf (sendBuffer, "%d %c %p\n",_X3D_queryno,command,adr);
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
-	EAIUNLOCK
 	#ifdef VERBOSE
 	printf ("make1VoidCommand, buffer now %s\n",myptr);
 	#endif
@@ -338,11 +300,9 @@ char *_X3D_make1VoidCommand (char command, int adr) {
 char *_X3D_make1StringCommand (char command, char *name) {
 	char *myptr;
 	
-	EAILOCK
 	verifySendBufferSize (strlen(name));
 	sprintf (sendBuffer, "%d %c %s\n",_X3D_queryno,command,name);
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
-	EAIUNLOCK
 	#ifdef VERBOSE
 	printf ("make1StringCommand, buffer now %s\n",myptr);
 	#endif
@@ -353,11 +313,9 @@ char *_X3D_make2StringCommand (char command, char *str1, char *str2) {
 	char *myptr;
 	char sendBuffer[2048];
 	
-	EAILOCK
 	verifySendBufferSize ( strlen(str1) + strlen(str2));
 	sprintf (sendBuffer, "%d %c %s%s\n",_X3D_queryno,command,str1,str2);
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
-	EAIUNLOCK
 
 	#ifdef VERBOSE
 	printf ("make2StringCommand, buffer now %s\n",myptr);
@@ -366,15 +324,13 @@ char *_X3D_make2StringCommand (char command, char *str1, char *str2) {
 }
 
 
-char *_X3D_Browser_SendEventType(int adr,char *name, char *evtype) {
+char *_X3D_Browser_SendEventType(uintptr_t *adr,char *name, char *evtype) {
 	char *myptr;
 
-	EAILOCK
 	verifySendBufferSize (100);
-	sprintf (sendBuffer, "%d %c %d %s %s\n",_X3D_queryno, GETFIELDTYPE, adr, name, evtype);
+	sprintf (sendBuffer, "%u %c 0 %d %s %s\n",_X3D_queryno, GETFIELDTYPE, (unsigned int) adr, name, evtype);
 
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),TRUE);
-	EAIUNLOCK
 	#ifdef VERBOSE
 	printf ("_X3D_Browser_SendEventType, buffer now %s\n",myptr);
 	#endif
@@ -396,8 +352,7 @@ char * _RegisterListener (X3DEventOut *node, int adin) {
  EAIoutSender.send ("" + queryno + "G " + nodeptr + " " + offset + " " + datatype +
                 " " + datasize + "\n");
 */
-	EAILOCK
-	sprintf (sendBuffer, "%u %c %d %d %c %d\n",
+	sprintf (sendBuffer, "%u %c %ld %d %c %d\n",
 		_X3D_queryno, 
 		REGLISTENER, 
 		node->nodeptr,
@@ -406,7 +361,6 @@ char * _RegisterListener (X3DEventOut *node, int adin) {
 		node->datasize);
 
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),TRUE);
-	EAIUNLOCK
 	#ifdef VERBOSE
 	printf ("_X3D_Browser_SendEventType, buffer now %s\n",myptr);
 	#endif
