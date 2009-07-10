@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.12 2009/07/06 20:13:28 crc_canada Exp $
+$Id: Textures.c,v 1.13 2009/07/10 19:36:10 crc_canada Exp $
 
 General Texture objects.
 
@@ -79,12 +79,6 @@ struct textureTableIndexStruct {
 	GLuint	*OpenGLTexture;
 	int	frames;
 	char    *filename;
-	int 	removeWhenFinished; /* it is a temp file created by wget or something... */
-
-
-        GLint repeatS;
-        GLint repeatT;
-
         int x;
         int y;
         unsigned char *texdata;
@@ -165,7 +159,7 @@ GLXContext textureContext = NULL;
 #endif
 
 /* function Prototypes */
-int findTextureFile (int cwo, int *remove);
+static int findTextureFile (int cwo);
 void _textureThread(void);
 void store_tex_info(
 		struct textureTableIndexStruct *me,
@@ -423,7 +417,6 @@ void registerTexture(struct X3D_Node *tmp) {
 				newStruct->entry[count].scenegraphNode = NULL;
 				newStruct->entry[count].filename = NULL;
 				newStruct->entry[count].nodeType = 0;
-				newStruct->entry[count].removeWhenFinished = FALSE;
 			}
 			
 			newStruct->next = NULL;
@@ -856,12 +849,25 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	GLenum format;
 	int count;
 
-
+	/* default texture properties; can be changed by a TextureProperties node */
+	float anisotropicDegree=0.0;
+	struct SFColorRGBA borderColor={0.0,0.0,0.0,0.0};
+	int borderWidth=0;
+	int boundaryModeS = GL_REPEAT;
+	int boundaryModeT = GL_REPEAT;
+	int boundaryModeR = GL_REPEAT;
+	int magnificationFilter = GL_FASTEST;
+	int minificationFilter = GL_FASTEST;
+	int textureCompression = GL_FASTEST;
+	int texturePriority = 0;
+	int generateMipMaps = TRUE;
+	
 	/* for getting repeatS and repeatT info. */
-	struct X3D_PixelTexture *pt;
-	struct X3D_MovieTexture *mt;
-	struct X3D_ImageTexture *it;
-	struct X3D_VRML1_Texture2* v1t;
+	struct X3D_PixelTexture *pt = NULL;
+	struct X3D_MovieTexture *mt = NULL;
+	struct X3D_ImageTexture *it = NULL;
+	struct X3D_VRML1_Texture2* v1t = NULL;
+	struct X3D_TextureProperties *tpNode = NULL;
 	GLint Src, Trc;
 	unsigned char *mytexdata;
 
@@ -884,12 +890,15 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 		if (me->nodeType == NODE_ImageTexture) {
 			it = (struct X3D_ImageTexture *) me->scenegraphNode;
 			Src = it->repeatS; Trc = it->repeatT;
+			tpNode = it->textureProperties;
 		} else if (me->nodeType == NODE_PixelTexture) {
 			pt = (struct X3D_PixelTexture *) me->scenegraphNode;
 			Src = pt->repeatS; Trc = pt->repeatT;
+			tpNode = pt->textureProperties;
 		} else if (me->nodeType == NODE_MovieTexture) {
 			mt = (struct X3D_MovieTexture *) me->scenegraphNode;
 			Src = mt->repeatS; Trc = mt->repeatT;
+			tpNode = mt->textureProperties;
 		} else if (me->nodeType == NODE_VRML1_Texture2) {
 			v1t = (struct X3D_VRML1_Texture2 *) me->scenegraphNode;
 			Src = v1t->_wrapS==VRML1MOD_REPEAT;
@@ -898,6 +907,30 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 		/* save texture params */
 		me->Src = Src ? GL_REPEAT : GL_CLAMP;
 		me->Trc = Trc ? GL_REPEAT : GL_CLAMP;
+
+		if (tpNode) {
+			printf ("Texture, have textureProperties\n");
+/*
+  SFFloat     [in,out] anisotropicDegree   1.0       [1,∞)
+  SFColorRGBA [in,out] borderColor         0 0 0 0   [0,1]
+  SFInt32     [in,out] borderWidth         0         [0,1]
+  SFString    [in,out] boundaryModeS       "REPEAT"  [see Table 18.7]
+  SFString    [in,out] boundaryModeT       "REPEAT"  [see Table 18.7]
+  SFString    [in,out] boundaryModeR       "REPEAT"  [see Table 18.7]
+  SFString    [in,out] magnificationFilter "FASTEST" [see Table 18.8]
+  SFString    [in,out] minificationFilter  "FASTEST" [see Table 18.9]
+  SFString    [in,out] textureCompression  "FASTEST" [see Table 18.10]
+  SFFloat     [in,out] texturePriority     0         [0,1]
+  SFBool      []       generateMipMaps     FALSE
+if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMipMaps\n");
+*/
+			if (tpNode->_nodeType == NODE_TextureProperties) {
+				generateMipMaps = tpNode->generateMipMaps;
+			} else {
+				ConsoleMessage ("a texture node has a textureProperties of type %s - ignoring",
+					stringNodeType(tpNode->_nodeType));
+			}
+		}
 	}
 
 	/* a pointer to the tex data. We increment the pointer for movie texures */
@@ -1224,7 +1257,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
    this is almost identical to the one for Inlines, but running
    in different threads */
 
-int findTextureFile (int cwo, int *istemp) {
+static int findTextureFile (int cwo) {
 	char *filename;
 	char *mypath;
 	int count;
@@ -1235,7 +1268,6 @@ int findTextureFile (int cwo, int *istemp) {
 
         struct Uni_String *thisParent = NULL;
         struct Multi_String thisUrl;
-	int removeIt = FALSE;
 
 	/* pattern matching, for finding internally handled types */
 	char firstPNG[] = {0x89,0x50,0x4e,0x47};
@@ -1245,8 +1277,6 @@ int findTextureFile (int cwo, int *istemp) {
 	char firstMPGb[] = {0x00, 0x00, 0x01, 0xb3};
 #endif
 
-
-	*istemp=loadThisTexture->removeWhenFinished;	/* don't remove this file unless told to do so */
 	filename = NULL;
 
 
@@ -1359,7 +1389,6 @@ int findTextureFile (int cwo, int *istemp) {
 #endif
 
 	FREE_IF_NZ(loadThisTexture->filename);
-	loadThisTexture->removeWhenFinished = removeIt;
 	if (filename != NULL) {
 	    loadThisTexture->filename = STRDUP(filename);
 	    /* printf ("textureThread, so we have CACHE filename as %s\n",
@@ -1378,8 +1407,6 @@ int findTextureFile (int cwo, int *istemp) {
 
 void _textureThread(void)
 {
-    int remove;
-
     /* printf ("textureThread is %u\n",pthread_self()); */
 
 #ifdef AQUA
@@ -1443,7 +1470,7 @@ void _textureThread(void)
 	printf ("textureThread, currentlyworking on %d\n",currentlyWorkingOn);
 #endif
 
-	if (findTextureFile(currentlyWorkingOn, &remove)) {
+	if (findTextureFile(currentlyWorkingOn)) {
 #ifdef TEXVERBOSE
 	    printf ("textureThread, findTextureFile ok for %d\n",currentlyWorkingOn);
 #endif
@@ -1486,12 +1513,6 @@ void _textureThread(void)
 
 	    loadThisTexture->status = TEX_NEEDSBINDING;
 #endif /* DO_MULTI_OPENGL_THREADS */
-
-	    /* is this a temporary file? */
-	    if (remove) { 
-		unlinkShadowFile (loadThisTexture->filename); 
-		FREE_IF_NZ(loadThisTexture->filename); 
-	    } 
 	} else {
 	    printf ("can not find file - error!!\n");
 	}
