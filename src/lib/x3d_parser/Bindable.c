@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.12 2009/06/30 19:10:18 crc_canada Exp $
+$Id: Bindable.c,v 1.13 2009/07/13 18:49:50 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -74,6 +74,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	int i;
 	char *typeptr;
 
+        Viewer.speed = (double) node->speed;
 	if (node->avatarSize.n<2) {
 		printf ("set_naviinfo, avatarSize smaller than expected\n");
 	} else {
@@ -81,7 +82,6 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 			(double)(node->avatarSize.p[1]),
 			(double)((node->avatarSize.p[2] * node->speed) * 2));
 	}
-        Viewer.speed = (double) node->speed;
 
 	/* keep track of valid Navigation types. */
 	svptr = node->type.p;

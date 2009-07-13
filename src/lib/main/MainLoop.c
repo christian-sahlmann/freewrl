@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.38 2009/07/07 15:12:02 crc_canada Exp $
+$Id: MainLoop.c,v 1.39 2009/07/13 18:49:50 crc_canada Exp $
 
 CProto ???
 
@@ -104,8 +104,8 @@ int keypress_wait_for_settle = 100;     /* JAS - change keypress to wait, then d
 extern int viewer_initialized;
 
 void Next_ViewPoint(void);              /*  switch to next viewpoint -*/
-void setup_viewpoint();
-void get_collisionoffset(double *x, double *y, double *z);
+static void setup_viewpoint();
+static void get_collisionoffset(double *x, double *y, double *z);
 
 /* Sensor table. When clicked, we get back from getRayHit the fromnode,
         have to look up type and data in order to properly handle it */
@@ -155,17 +155,17 @@ int trisThisLoop;
 int HaveSensitive = FALSE;
 
 /* Function protos */
-void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
+static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
 void do_keyPress(char kp, int type);
-void render_collisions(void);
-void render_pre(void);
-void render(void);
-void setup_projection(int pick, int x, int y);
+static void render_collisions(void);
+static void render_pre(void);
+static void render(void);
+static void setup_projection(int pick, int x, int y);
 void EventLoop(void);
-struct X3D_Node*  getRayHit(void);
-void get_hyperhit(void);
-void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
-bool pluginRunning;
+static struct X3D_Node*  getRayHit(void);
+static void get_hyperhit(void);
+static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
+static bool pluginRunning;
 int isBrowserPlugin = FALSE;
 
 
@@ -640,7 +640,7 @@ void handle_Xevents(XEvent event) {
 #endif
 
 /* get setup for rendering. */
-void render_pre() {
+static void render_pre() {
         /* 1. Set up projection */
         setup_projection(FALSE,0,0);
 
@@ -671,7 +671,7 @@ void render_pre() {
 }
 
 /* Render the scene */
-void render() {
+static void render() {
         int count;
 
         /*  profile*/
@@ -736,7 +736,7 @@ void render() {
 
 
 
-void
+static void
 get_collisionoffset(double *x, double *y, double *z)
 {
         struct point_XYZ res = CollisionInfo.Offset;
@@ -757,7 +757,7 @@ get_collisionoffset(double *x, double *y, double *z)
         }
 }
 
-void render_collisions() {
+static void render_collisions() {
         struct point_XYZ v;
         CollisionInfo.Offset.x = 0;
         CollisionInfo.Offset.y = 0;
@@ -776,17 +776,33 @@ void render_collisions() {
 }
 
 
-void setup_viewpoint() {
+static void setup_viewpoint() {
+	
+	/* GLdouble projMatrix[16]; */
+
         FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         FW_GL_LOAD_IDENTITY();
+
         viewer_togl(fieldofview);
         render_hier(rootNode, VF_Viewpoint);
         glPrintError("XEvents::setup_viewpoint");
+
+	/*
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	printf ("\n");
+	printf ("setup_viewpoint, proj  %lf %lf %lf\n",projMatrix[12],projMatrix[13],projMatrix[14]);
+	fwGetDoublev(GL_MODELVIEW_MATRIX, projMatrix);
+	printf ("setup_viewpoint, model %lf %lf %lf\n",projMatrix[12],projMatrix[13],projMatrix[14]);
+	printf ("setup_viewpoint, currentPos %lf %lf %lf\n",        Viewer.currentPosInModel.x, 
+	        Viewer.currentPosInModel.y ,
+	        Viewer.currentPosInModel.z);
+	*/
+
 }
 
 
 
-void setup_projection(int pick, int x, int y) {
+static void setup_projection(int pick, int x, int y) {
         #ifdef AQUA
         if (RUNNINGASPLUGIN) {
                 aglSetCurrentContext(aqglobalContext);
@@ -924,7 +940,7 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
 
 /* we have a sensor event changed, look up event and do it */
 /* note, (Geo)ProximitySensor events are handled during tick, as they are time-sensitive only */
-void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int status) {
+static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int status) {
         int count;
 
         /* if we are not calling a valid node, dont do anything! */
@@ -954,7 +970,7 @@ void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int status) {
 
 /* If we have a sensitive node, that is clicked and moved, get the posn
    for use later                                                                */
-void get_hyperhit() {
+static void get_hyperhit() {
         double x1,y1,z1,x2,y2,z2,x3,y3,z3;
         GLdouble projMatrix[16];
 
@@ -1058,7 +1074,7 @@ void setFullPath(const char* file)
 
 
 /* handle all the displaying and event loop stuff. */
-void displayThread()
+static void displayThread()
 {
     /* printf ("displayThread, I am %u \n",pthread_self()); */
     

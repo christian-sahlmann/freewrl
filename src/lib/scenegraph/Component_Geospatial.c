@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.23 2009/06/26 19:43:11 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.24 2009/07/13 18:49:50 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -125,7 +125,8 @@ Geodetic to Geocentric:
 #define LONGITUDE_OUT	outc->p[i].c[longitude]
 #define LATITUDE_IN	inc->p[i].c[latitude]
 #define LONGITUDE_IN	inc->p[i].c[longitude]
-#define GC_X_OUT 	outc->p[i].c[0]
+
+#define GC_X_OUT 	outc->p[i].c[0] 
 #define GC_Y_OUT 	outc->p[i].c[1]
 #define GC_Z_OUT 	outc->p[i].c[2]
 
@@ -184,7 +185,6 @@ Geodetic to Geocentric:
 	case typ: Utm_Gd (inCoords, gdCoords, typ##_A, typ##_F, geoSystem->p[3], geoSystem->p[2], TRUE); \
 		  Gd_Gc(gdCoords,outCoords,typ##_A, typ##_F, geoSystem->p[3]); break;
 
-/* single SFVec3d pointers */
 #define GCC_X gcc->c[0]
 #define GCC_Y gcc->c[1]
 #define GCC_Z gcc->c[2]
@@ -258,14 +258,12 @@ Geodetic to Geocentric:
 int geoLodLevel = 0;
 
 static int gcToGdInit = FALSE;
-/*static struct SFVec3d geoViewPointCenter = {(double)0.0, (double)0.0, (double)0.0}; */
-
-/* static struct X3D_GeoOrigin *geoorigin = NULL; */
 
 static void compile_geoSystem (int nodeType, struct Multi_String *args, struct Multi_Int32 *srf);
 static void moveCoords(struct Multi_Int32*, struct Multi_Vec3d *, struct Multi_Vec3d *, struct Multi_Vec3d *);
 static void Gd_Gc (struct Multi_Vec3d *, struct Multi_Vec3d *, double, double, int);
 static void gccToGdc (struct SFVec3d *, struct SFVec3d *); 
+static void calculateViewingSpeed(void);
 
 /* for converting from GC to GD */
 static double A, F, C, A2, C2, Eps2, Eps21, Eps25, C254, C2DA, CEE,
@@ -642,7 +640,6 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 			INIT_MF_FROM_SF(node,geoCoords)
 			moveCoords(&node->__geoSystem, MF_FIELD_IN_OUT);
 			COPY_MF_TO_SF(node, __movedCoords)
-	
 			#ifdef VERBOSE
 			printf ("initializeGeospatial, __movedCoords %lf %lf %lf, ryup %d, geoSystem %d %d %d %d\n",
 				node->__movedCoords.c[0],
@@ -655,6 +652,7 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 				node->__geoSystem.p[3]);
 			printf ("initializeGeospatial, done\n\n");
 			#endif
+
 			FREE_MF_SF_TEMPS
 			MARK_NODE_COMPILED
 		}
@@ -785,47 +783,12 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
 
 	if (!gcToGdInit) initializeGcToGdParams();
 
-
-        /* bounds checking */
-                if (GCC_Y > 0.0) {
-                    GDC_LAT = PI/2;
-               } else {
-                    if (GCC_Y < 0.0) {
-                        GDC_LON = -PI/2;
-                    } else {
-                        if (GCC_Z > 0) {
-                            GDC_LAT = PI/2;
-                            GDC_LON = 0.0;
-                            GDC_ELE = GCC_Z;
-                            return;
-                        } else {
-                            if (GCC_Z < 0.0) {
-                                GDC_LAT = -PI/2;
-                                GDC_LON   =  0.0;
-                                GDC_ELE   =  GCC_Z;
-                                return;
-                            } else {
-                                GDC_LAT = 0.0;
-                                GDC_LON = 0.0;
-                                GDC_ELE = 0.0;
-                                return;
-                        }
-                    }
-                }
-            }
-
-	/* printf ("gccToGdc, past special cases\n");  */
-
-        /* END OF SPECIAL CASES */
-
         w2=GCC_X * GCC_X + GCC_Y * GCC_Y;
         w=sqrt(w2);
         z2=GCC_Z * GCC_Z;
 
         testu=w2 + ARat2 * z2;
         testb=w2 + BRat2 * z2;
-
-	printf ("w2 %lf w %lf z2 %lf testu %lf testb %lf\n",w2,w,z2,testu,testb); 
 
         if ((testb > BRat1) && (testu < ARat1)) 
         {    
@@ -904,6 +867,8 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
 
         GDC_LAT *= DEGREES_PER_RADIAN;
         GDC_LON *= DEGREES_PER_RADIAN;
+#undef VERBOSE
+
 }
 
 /* convert a GDC BACK to a UTM coordinate */
@@ -1598,12 +1563,8 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 
 		/* TRANSLATION */
 		FW_GL_TRANSLATE_D(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
-		/*
+
 		printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
-		printf ("          (really to %lf %lf %lf)\n",node->__movedCoords.c[0]-geoViewPointCenter.c[0],
-			node->__movedCoords.c[1]-geoViewPointCenter.c[1],
-			node->__movedCoords.c[2]-geoViewPointCenter.c[2]);
-		*/
 
 		my_rotation = node->__localOrient.c[3]/3.1415926536*180;
 		FW_GL_ROTATE_D(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
@@ -1664,11 +1625,7 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	#ifdef VERBOSE
 	printf ("proximityLOD, after subtracting movedCoords, we have  %4.2f %4.2f %4.2f\n",cx, cy, cz);
 	#endif
-/*
-	cx-=Viewer.currentPosInModel.x;
-	cy-=Viewer.currentPosInModel.y;
-	cz-=Viewer.currentPosInModel.z;
-*/
+
 	#ifdef VERBOSE
 	printf ("proximityLOD, after subtracting current position, we have %4.2f %4.2f %4.2f\n", cx,cy,cz);
 	printf ("long range calculation %4.2f\n",sqrt(cx*cx+cy*cy+cz*cz));
@@ -2454,6 +2411,67 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	#endif
 }
 
+static void getPosInModel (void) {
+	struct point_XYZ rp;
+	struct point_XYZ tmppt;
+
+	GLdouble modelMatrix[16];
+	GLdouble inverseMatrix[16];
+
+	/* "Matrix Quaternion FAQ: 8.050
+	Given the current ModelView matrix, how can I determine the object-space location of the camera?
+
+   	The "camera" or viewpoint is at (0., 0., 0.) in eye space. When you
+   	turn this into a vector [0 0 0 1] and multiply it by the inverse of
+   	the ModelView matrix, the resulting vector is the object-space
+   	location of the camera.
+
+   	OpenGL doesn't let you inquire (through a glGet* routine) the
+   	inverse of the ModelView matrix. You'll need to compute the inverse
+   	with your own code." */
+
+
+       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+
+/* printf ("togl, before inverse, %lf %lf %lf\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+       printf ("Viewer end _togl modelview Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
+                modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
+                modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
+                modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
+                modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
+*/
+
+
+	matinverse(inverseMatrix,modelMatrix);
+
+/*
+printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13],inverseMatrix[14]);
+       printf ("inverted modelview Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
+                inverseMatrix[0],  inverseMatrix[4],  inverseMatrix[ 8],  inverseMatrix[12],
+                inverseMatrix[1],  inverseMatrix[5],  inverseMatrix[ 9],  inverseMatrix[13],
+                inverseMatrix[2],  inverseMatrix[6],  inverseMatrix[10],  inverseMatrix[14],
+                inverseMatrix[3],  inverseMatrix[7],  inverseMatrix[11],  inverseMatrix[15]);
+*/
+
+
+	tmppt.x = inverseMatrix[12];
+	tmppt.y = inverseMatrix[13];
+	tmppt.z = inverseMatrix[14];
+
+
+	/* printf ("going to do rotation on %f %f %f\n",tmppt.x, tmppt.y, tmppt.z); */
+	quaternion_rotation(&rp, &Viewer.bindTimeQuat, &tmppt);
+	/* printf ("new inverseMatrix  after rotation %4.2f %4.2f %4.2f\n",rp.x, rp.y, rp.z); */
+	Viewer.currentPosInModel.x = rp.x;
+	Viewer.currentPosInModel.y = rp.y;
+	Viewer.currentPosInModel.z = rp.z;
+
+	
+/*	printf ("getPosInModel, so, our place in object-land is %4.2f %4.2f %4.2f\n",
+		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
+*/
+}
+
 void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	double a1;
 
@@ -2470,11 +2488,19 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 
 	COMPILE_IF_REQUIRED
 
+	#ifdef VERBOSE
+	printf ("prep_GeoViewpoint called\n");
+	#endif
 
 	/* perform GeoViewpoint translations */
 	FW_GL_ROTATE_D(-node->__movedOrientation.c[3]/PI*180.0,node->__movedOrientation.c[0],node->__movedOrientation.c[1],
 		node->__movedOrientation.c[2]); 
+
 	FW_GL_TRANSLATE_D(-node->__movedPosition.c[0],-node->__movedPosition.c[1],-node->__movedPosition.c[2]);
+
+	/* we have  a new currentPosInModel now... */
+	/* printf ("currentPosInModel was %lf %lf %lf\n", Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z); */
+	getPosInModel();
 
 	/* now, lets work on the GeoViewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, viewPort);
@@ -2486,12 +2512,16 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
 		fieldofview = a1/3.1415926536*180;
 	}
-	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
+
+	calculateViewingSpeed();
+	#ifdef VERBOSE
+	printf ("prep_GeoViewpoint, fieldOfView %f \n",node->fieldOfView); 
+	#endif
 }
 
 /* GeoViewpoint speeds and avatar sizes are depenent on elevation above WGS_84. These are calculated here */
 /* this is called from the Viewer functions */
-void viewer_calculate_speed() {
+static void calculateViewingSpeed() {
 	struct SFVec3d gcCoords;
 	struct SFVec3d gdCoords;
 		
@@ -2501,20 +2531,46 @@ void viewer_calculate_speed() {
 	gcCoords.c[2] = Viewer.currentPosInModel.z;
 		
         #ifdef VERBOSE
-        printf ("viewer_calculate_speed, currentPosInModel %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
+        printf ("calculateViewingSpeed, currentPosInModel %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
         #endif
 		
 	if (Viewer.GeoSpatialNode != NULL) {
 		/* do we have a valid __geoSystem?? */
+        INITIALIZE_GEOSPATIAL(Viewer.GeoSpatialNode)
+
+
+#define COMPILE_IF_REQUIRED { struct X3D_Virt *v; \
+        if (node->_ichange != node->_change) { \
+                /* printf ("COMP %d %d\n",node->_ichange, node->_change); */ \
+                v = *(struct X3D_Virt **)node; \
+                if (v->compile) { \
+                        compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
+                } else {printf ("huh - have COMPIFREQD, but v->compile null for %s\n",stringNodeType(node->_nodeType));} \
+                } \
+                if (node->_ichange == 0) return; \
+        }
+
+/*
+        COMPILE_IF_REQUIRED
+
+*/
+
+
+
+
 		if (Viewer.GeoSpatialNode->__geoSystem.n>0) {
 			/* is the __geoSystem NOT gc coords? */
 			/* printf ("have a GeoSpatial viewpoint, currently %d\n",Viewer.GeoSpatialNode->__geoSystem.p[0]);  */
 			if (Viewer.GeoSpatialNode->__geoSystem.p[0] != GEOSP_GC) {
 		
+/*
 		        	retractOrigin(Viewer.GeoSpatialNode->geoOrigin, &gcCoords);
+*/
 		
 		        	#ifdef VERBOSE
-		        	printf ("viewer_calculate_speed, retracted %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
+				printf ("\n");
+				printf ("for GeoViewpoint :%s:\n",Viewer.GeoSpatialNode->description->strptr);
+		        	printf ("calculateViewingSpeed,  currentPosInModel: %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
 		        	#endif
 		
 		        	/* convert from local (gc) to gd coordinates, using WGS84 ellipsoid */
@@ -2525,18 +2581,23 @@ void viewer_calculate_speed() {
 				#endif
 			
 				/* speed is dependent on elevation above WGS84 ellipsoid */
-				Viewer.speed  = sqrt(gdCoords.c[0]*gdCoords.c[0] + gdCoords.c[1]*gdCoords.c[1] + gdCoords.c[2]*gdCoords.c[2]);
+				Viewer.speed  = fabs(sqrt(gcCoords.c[0]*gcCoords.c[0] + gcCoords.c[1]*gcCoords.c[1] + gcCoords.c[2]*gcCoords.c[2])
+					-GEOSP_WE_A);
+				if (Viewer.speed < 1.0) Viewer.speed=1.0;
 				#ifdef VERBOSE
 				printf ("height above center %f WGS84 ellipsoid is %lf\n",Viewer.speed,GEOSP_WE_A); 
 				#endif
 		
+/*
 				Viewer.speed = fabs(Viewer.speed * Viewer.GeoSpatialNode->speedFactor);
 				if (Viewer.speed < Viewer.GeoSpatialNode->speedFactor) Viewer.speed = Viewer.GeoSpatialNode->speedFactor;
-				/* set the navigation info - use the GeoVRML algorithms */
+*/
 
-				naviinfo.width = Viewer.speed*0.25;
-				naviinfo.height = Viewer.speed*1.6;
-				naviinfo.step = Viewer.speed*0.25;
+				/* set the navigation info - use the GeoVRML algorithms */
+				set_naviWidthHeightStep(
+					Viewer.speed*0.25,
+					Viewer.speed*1.6,
+					Viewer.speed*0.25);
 			}
 		}
 	}
@@ -2586,7 +2647,7 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 
 	resolve_pos();
 
-	viewer_calculate_speed();
+	calculateViewingSpeed();
 
 	calculateExamineModeDistance();
 
@@ -2683,12 +2744,9 @@ void prep_GeoTransform (struct X3D_GeoTransform *node) {
 
                 /* GeoTransform TRANSLATION */
                 FW_GL_TRANSLATE_D(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
-                /*
+                
                 printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
-                printf ("          (really to %lf %lf %lf)\n",node->__movedCoords.c[0]-geoViewPointCenter.c[0],
-                        node->__movedCoords.c[1]-geoViewPointCenter.c[1],
-                        node->__movedCoords.c[2]-geoViewPointCenter.c[2]);
-                */
+                
                         
                 my_rotation = node->__localOrient.c[3]/3.1415926536*180;
                 FW_GL_ROTATE_D(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);

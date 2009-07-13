@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.25 2009/06/02 16:43:42 crc_canada Exp $
+$Id: Viewer.c,v 1.26 2009/07/13 18:49:50 crc_canada Exp $
 
 CProto ???
 
@@ -52,6 +52,7 @@ void toggle_headlight(void);
 static void handle_tick_walk(void);
 static void handle_tick_fly(void);
 static void handle_tick_exfly(void);
+static void getCurrentPosInModel(void);
 
 /* used for EAI calls to get the current speed. Not used for general calcs */
 /* we DO NOT return as a float, as some gccs have trouble with this causing segfaults */
@@ -247,17 +248,9 @@ printf ("RP, aft orig calc %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Orig
 	}
 }
 void viewer_togl(double fieldofview) {
-
-	GLdouble modelMatrix[16];
-	GLdouble inverseMatrix[16];
-
-	struct point_XYZ rp;
-	struct point_XYZ tmppt;
-
 	if (Viewer.buffer != GL_BACK) {
 		set_stereo_offset(Viewer.buffer, Viewer.eyehalf, Viewer.eyehalfangle, fieldofview);
 	}
-
 
 	if (Viewer.SLERPing) {
 		double tickFrac;
@@ -340,6 +333,17 @@ printf ("finquat   %lf %lf %lf %lf\n",qq.x, qq.y, qq.z, qq.w);
 		quaternion_togl(&Viewer.AntiQuat);
 	}
 
+	getCurrentPosInModel();
+
+}
+
+static void getCurrentPosInModel (void) {
+	struct point_XYZ rp;
+	struct point_XYZ tmppt;
+
+	GLdouble modelMatrix[16];
+	GLdouble inverseMatrix[16];
+
 	/* "Matrix Quaternion FAQ: 8.050
 	Given the current ModelView matrix, how can I determine the object-space location of the camera?
 
@@ -355,8 +359,7 @@ printf ("finquat   %lf %lf %lf %lf\n",qq.x, qq.y, qq.z, qq.w);
 
        FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-/*
-printf ("togl, before inverse, %lf %lf %lf\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+/* printf ("togl, before inverse, %lf %lf %lf\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
        printf ("Viewer end _togl modelview Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
                 modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
                 modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
@@ -364,7 +367,9 @@ printf ("togl, before inverse, %lf %lf %lf\n",modelMatrix[12],modelMatrix[13],mo
                 modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
 */
 
+
 	matinverse(inverseMatrix,modelMatrix);
+
 /*
 printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13],inverseMatrix[14]);
        printf ("inverted modelview Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
@@ -387,11 +392,9 @@ printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13]
 	Viewer.currentPosInModel.y = Viewer.AntiPos.y + rp.y;
 	Viewer.currentPosInModel.z = Viewer.AntiPos.z + rp.z;
 
-/*	
-	printf ("so, our place in object-land is %4.2f %4.2f %4.2f\n",
-		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
-*/
 	
+	/* printf ("getCurrentPosInModel, so, our place in object-land is %4.2f %4.2f %4.2f\n",
+		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z); */
 }
 
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.c,v 1.8 2009/02/11 15:12:54 istakenv Exp $
+$Id: display.c,v 1.9 2009/07/13 18:49:50 crc_canada Exp $
 
 FreeWRL support library.
 Display (X11/Motif or OSX/Aqua) initialization.
@@ -106,12 +106,21 @@ void setGeometry_from_cmdline(const char *gstring)
     /* tell OpenGL what the screen dims are */
     setScreenDim(win_width,win_height);
 }
+FILE *theFile = NULL;
 
 /* set internal variables for screen sizes, and calculate frustum */
 void setScreenDim(int wi, int he)
 {
     screenWidth = wi;
     screenHeight = he;
+
+
+	if (theFile == NULL) {
+		theFile = fopen("/tmp/freewrl_log", "w");
+		if (theFile == NULL) abort();
+	}
+fprintf (theFile, "setScreenDim, %d:%d\n",wi,he);
+	fflush(theFile);
     
     if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
     else screenRatio =  screenWidth;
