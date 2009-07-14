@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.26 2009/07/13 18:49:50 crc_canada Exp $
+$Id: Viewer.c,v 1.27 2009/07/14 15:36:02 uid31638 Exp $
 
 CProto ???
 
@@ -52,7 +52,6 @@ void toggle_headlight(void);
 static void handle_tick_walk(void);
 static void handle_tick_fly(void);
 static void handle_tick_exfly(void);
-static void getCurrentPosInModel(void);
 
 /* used for EAI calls to get the current speed. Not used for general calcs */
 /* we DO NOT return as a float, as some gccs have trouble with this causing segfaults */
@@ -333,11 +332,19 @@ printf ("finquat   %lf %lf %lf %lf\n",qq.x, qq.y, qq.z, qq.w);
 		quaternion_togl(&Viewer.AntiQuat);
 	}
 
-	getCurrentPosInModel();
+	getCurrentPosInModel(TRUE);
 
 }
 
-static void getCurrentPosInModel (void) {
+/* go through the modelMatrix and see where we are. Notes:
+	- this should ideally be done in prep_Viewpoint, but if there is NO viewpoint... at least
+	  here, it gets called. (that is why the antipos is added in here)
+
+	- for X3D Viewpoints, this one adds in the AntiPos; for GeoViewpoints, we do a get after
+	  doing Geo transform and rotation that are integral with the GeoViewpoint node.
+*/
+
+void getCurrentPosInModel (int addInAntiPos) {
 	struct point_XYZ rp;
 	struct point_XYZ tmppt;
 
@@ -388,9 +395,16 @@ printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13]
 	/* printf ("going to do rotation on %f %f %f\n",tmppt.x, tmppt.y, tmppt.z); */
 	quaternion_rotation(&rp, &Viewer.bindTimeQuat, &tmppt);
 	/* printf ("new inverseMatrix  after rotation %4.2f %4.2f %4.2f\n",rp.x, rp.y, rp.z); */
-	Viewer.currentPosInModel.x = Viewer.AntiPos.x + rp.x;
-	Viewer.currentPosInModel.y = Viewer.AntiPos.y + rp.y;
-	Viewer.currentPosInModel.z = Viewer.AntiPos.z + rp.z;
+
+	if (addInAntiPos) {
+		Viewer.currentPosInModel.x = Viewer.AntiPos.x + rp.x;
+		Viewer.currentPosInModel.y = Viewer.AntiPos.y + rp.y;
+		Viewer.currentPosInModel.z = Viewer.AntiPos.z + rp.z;
+	} else {
+		Viewer.currentPosInModel.x = rp.x;
+		Viewer.currentPosInModel.y = rp.y;
+		Viewer.currentPosInModel.z = rp.z;
+	}
 
 	
 	/* printf ("getCurrentPosInModel, so, our place in object-land is %4.2f %4.2f %4.2f\n",

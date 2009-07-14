@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.24 2009/07/13 18:49:50 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.25 2009/07/14 15:36:01 uid31638 Exp $
 
 X3D Geospatial Component
 
@@ -1241,7 +1241,7 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 	rep->actualCoord = (float *)newpoints;
 
 	/* make up coord index */
-	if (node->_coordIndex.n > 0) FREE_IF_NZ(node->_coordIndex.p);
+	if (node->_coordIndex.n > 0) {FREE_IF_NZ(node->_coordIndex.p);}
 	node->_coordIndex.p = MALLOC (sizeof(int) * nquads * 5);
 	cindexptr = node->_coordIndex.p;
 
@@ -1540,6 +1540,8 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 }
 
 void changed_GeoLocation ( struct X3D_GeoLocation *node) { 
+	INITIALIZE_GEOSPATIAL(node)
+	COMPILE_IF_REQUIRED
 }
 
 /* do transforms, calculate the distance */
@@ -1602,96 +1604,10 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 /************************************************************************/
 
 void changed_GeoLOD (struct X3D_GeoLOD *node) {
+	INITIALIZE_GEOSPATIAL(node)
+	COMPILE_IF_REQUIRED
+	INITIALIZE_EXTENT;
 }
-
-void proximity_GeoLOD (struct X3D_GeoLOD *node) {
-	int oldInRange;
-	double cx,cy,cz;
-	GLdouble modelMatrix[16];
-
-	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
-	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
-
-	/* transforms viewers coordinate space into sensors coordinate space.
-	 * this gives the orientation of the viewer relative to the sensor.
-	 */
-
-
-	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	cx = modelMatrix[12];
-	cy = modelMatrix[13];
-	cz = modelMatrix[14];
-
-	#ifdef VERBOSE
-	printf ("proximityLOD, after subtracting movedCoords, we have  %4.2f %4.2f %4.2f\n",cx, cy, cz);
-	#endif
-
-	#ifdef VERBOSE
-	printf ("proximityLOD, after subtracting current position, we have %4.2f %4.2f %4.2f\n", cx,cy,cz);
-	printf ("long range calculation %4.2f\n",sqrt(cx*cx+cy*cy+cz*cz));
-	#endif
-
-	/* distance between "me" at (0,0,0) and the centre of the GeoLOD (cx,cy,cz)
-	   is sqrt (cx-0 + cy-0 + cz-0) so we can compare sqrt(cx+cy+cz) to  sqrt(node->range)
-	   but this can be simplified by comparing the squares */
-
-	#ifdef VERBOSE
-	printf ("GeoLOD %u, comparing range %lf to (%lf %lf %lf)\n",node, node->range,
-		fabs(cx), fabs(cy), fabs(cz));
-
-	printf ("as squares, cx*cx+cy*cy+cz*cz = %lf, range %lf range*range %lf\n",
-	cx*cx+cy*cy+cz*cz,node->range, node->range*node->range);
-	#endif
-
-	/* try to see if we are closer than the range */
-	oldInRange = node->__inRange;
-	if((cx*cx+cy*cy+cz*cz) > (node->range*node->range)) {
-		node->__inRange = FALSE;
-	} else {
-		node->__inRange = TRUE;
-	}
-
-	
-	if (oldInRange != node->__inRange) {
-
-		#ifdef VERBOSE
-		if (node->__inRange) printf ("TRUE:  "); else printf ("FALSE: ");
-		printf ("range changed; level %d, comparing %lf:%lf:%lf and range %lf node %u\n",node->__level, cx,cy,cz, node->range, node);
-		#endif
-
-		/* initialize the "children" field, if required */
-		if (node->children.p == NULL) node->children.p=MALLOC(sizeof(void *) * 4);
-
-		if (node->__inRange == FALSE) {
-			#ifdef VERBOSE
-			printf ("GeoLOD %u level %d, inRange set to FALSE, range %lf\n",node, node->__level, node->range);
-			#endif
-
-			node->level_changed = 1;
-			node->children.p[0] = node->__child1Node; 
-			node->children.p[1] = node->__child2Node; 
-			node->children.p[2] = node->__child3Node; 
-			node->children.p[3] = node->__child4Node; 
-			node->children.n = 4;
-		} else {
-			#ifdef VERBOSE
-			printf ("GeoLOD %u level %d, inRange set to TRUE range %lf\n",node, node->__level, node->range);
-			#endif
-			node->level_changed = 0;
-			node->children.p[0] = node->rootNode.p[0]; node->children.n = 1;
-		}
-		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoLOD, level_changed));
-		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoLOD, children));
-		oldInRange = node->__inRange;
-
-		/* lets work out extent here */
-		INITIALIZE_EXTENT;
-		/* printf ("geolod range changed, initialized extent, czyzsq %4.2f rangesw %4.2f from %4.2f %4.2f %4.2f\n",
-cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
-		update_node(X3D_NODE(node));
-	}
-}
-
 
 #define LOAD_CHILD(childNode,childUrl) \
 		/* printf ("start of LOAD_CHILD, url has %d strings\n",node->childUrl.n); */ \
@@ -1713,7 +1629,7 @@ cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
 		}  \
 
 
-void GeoLODchildren (struct X3D_GeoLOD *node) {
+static void GeoLODchildren (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
 	int i;
 
@@ -1731,7 +1647,7 @@ void GeoLODchildren (struct X3D_GeoLOD *node) {
 	}
 }
 
-void GeoUnLODchildren (struct X3D_GeoLOD *node) {
+static void GeoUnLODchildren (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
 
         if (!(load) && ((node->__childloadstatus) != 0)) {
@@ -1744,7 +1660,7 @@ void GeoUnLODchildren (struct X3D_GeoLOD *node) {
 }
 
 
-void GeoLODrootUrl (struct X3D_GeoLOD *node) {
+static void GeoLODrootUrl (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
 	int i;
 
@@ -1760,7 +1676,7 @@ void GeoLODrootUrl (struct X3D_GeoLOD *node) {
 }
 
 
-void GeoUnLODrootUrl (struct X3D_GeoLOD *node) {
+static void GeoUnLODrootUrl (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
 
         if (!(load) && ((node->__rooturlloadstatus) != 0)) {
@@ -2411,67 +2327,6 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	#endif
 }
 
-static void getPosInModel (void) {
-	struct point_XYZ rp;
-	struct point_XYZ tmppt;
-
-	GLdouble modelMatrix[16];
-	GLdouble inverseMatrix[16];
-
-	/* "Matrix Quaternion FAQ: 8.050
-	Given the current ModelView matrix, how can I determine the object-space location of the camera?
-
-   	The "camera" or viewpoint is at (0., 0., 0.) in eye space. When you
-   	turn this into a vector [0 0 0 1] and multiply it by the inverse of
-   	the ModelView matrix, the resulting vector is the object-space
-   	location of the camera.
-
-   	OpenGL doesn't let you inquire (through a glGet* routine) the
-   	inverse of the ModelView matrix. You'll need to compute the inverse
-   	with your own code." */
-
-
-       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-
-/* printf ("togl, before inverse, %lf %lf %lf\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
-       printf ("Viewer end _togl modelview Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
-                modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
-                modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
-                modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
-                modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
-*/
-
-
-	matinverse(inverseMatrix,modelMatrix);
-
-/*
-printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13],inverseMatrix[14]);
-       printf ("inverted modelview Matrix: \n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n\t%5.2f %5.2f %5.2f %5.2f\n",
-                inverseMatrix[0],  inverseMatrix[4],  inverseMatrix[ 8],  inverseMatrix[12],
-                inverseMatrix[1],  inverseMatrix[5],  inverseMatrix[ 9],  inverseMatrix[13],
-                inverseMatrix[2],  inverseMatrix[6],  inverseMatrix[10],  inverseMatrix[14],
-                inverseMatrix[3],  inverseMatrix[7],  inverseMatrix[11],  inverseMatrix[15]);
-*/
-
-
-	tmppt.x = inverseMatrix[12];
-	tmppt.y = inverseMatrix[13];
-	tmppt.z = inverseMatrix[14];
-
-
-	/* printf ("going to do rotation on %f %f %f\n",tmppt.x, tmppt.y, tmppt.z); */
-	quaternion_rotation(&rp, &Viewer.bindTimeQuat, &tmppt);
-	/* printf ("new inverseMatrix  after rotation %4.2f %4.2f %4.2f\n",rp.x, rp.y, rp.z); */
-	Viewer.currentPosInModel.x = rp.x;
-	Viewer.currentPosInModel.y = rp.y;
-	Viewer.currentPosInModel.z = rp.z;
-
-	
-/*	printf ("getPosInModel, so, our place in object-land is %4.2f %4.2f %4.2f\n",
-		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
-*/
-}
-
 void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	double a1;
 
@@ -2500,7 +2355,10 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 
 	/* we have  a new currentPosInModel now... */
 	/* printf ("currentPosInModel was %lf %lf %lf\n", Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z); */
-	getPosInModel();
+
+	/* the AntiPos has been applied in the trans and rots above, so we do not need to do it here */
+	getCurrentPosInModel(FALSE); 
+
 
 	/* now, lets work on the GeoViewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, viewPort);
@@ -2603,7 +2461,7 @@ static void calculateViewingSpeed() {
 	}
 }
 
-static calculateExamineModeDistance(void) {
+static void calculateExamineModeDistance(void) {
 extern int doExamineModeDistanceCalculations;
 /*
 	printf ("bind_geoviewpoint - calculateExamineModeDistance\n");

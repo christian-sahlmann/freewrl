@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.13 2009/07/13 18:49:50 crc_canada Exp $
+$Id: Viewer.h,v 1.14 2009/07/14 15:36:02 uid31638 Exp $
 
 Viewer ???
 
@@ -233,5 +233,6 @@ extern float eyedist;
 extern float screendist;
 
 void getCurrentSpeed(void);
+void getCurrentPosInModel (int addInAntiPos);
 
 #endif /* __FREEWRL_VIEWER_H__ */

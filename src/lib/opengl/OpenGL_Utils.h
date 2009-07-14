@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.6 2009/06/24 13:03:53 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.7 2009/07/14 15:36:01 uid31638 Exp $
 
 Screen snapshot.
 
@@ -30,5 +30,5 @@ void lightState (GLint light, int state);
 extern void glpOpenGLInitialize(void);
 
 extern void glPrintError(char *);
-
+void drawBBOX(struct X3D_Node *node);
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

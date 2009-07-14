@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.39 2009/07/13 18:49:50 crc_canada Exp $
+$Id: MainLoop.c,v 1.40 2009/07/14 15:36:01 uid31638 Exp $
 
 CProto ???
 
@@ -718,6 +718,10 @@ static void render() {
                         glPrintError("XEvents::render, render_hier(VF_Geom)");
                 }
         }
+
+	/* enable this if we want to see the overall bounding box */
+	/* drawBBOX(rootNode); */
+
         #ifndef AQUA
                 glXSwapBuffers(Xdpy,GLwin);
         #else

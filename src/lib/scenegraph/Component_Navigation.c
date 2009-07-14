@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.17 2009/07/13 18:49:50 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.18 2009/07/14 15:36:01 uid31638 Exp $
 
 X3D Navigation Component
 
@@ -31,8 +31,8 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 
 	if (!render_vp) return;
 
-        printf ("prep_Viewpoint: vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-        render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+        /* printf ("prep_Viewpoint: vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+        render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
 
 
 	/*  printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);

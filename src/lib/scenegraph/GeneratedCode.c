@@ -1545,12 +1545,12 @@ struct X3D_Virt virt_FontStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
 struct X3D_Virt virt_GeneratedCubeMapTexture = { NULL,(void *)render_GeneratedCubeMapTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 struct X3D_Virt virt_GeoCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoCoordinate};
 struct X3D_Virt virt_GeoElevationGrid = { NULL,(void *)render_GeoElevationGrid,NULL,NULL,(void *)rendray_GeoElevationGrid,(void *)make_GeoElevationGrid,NULL,NULL,(void *)collide_GeoElevationGrid,(void *)compile_GeoElevationGrid};
-struct X3D_Virt virt_GeoLOD = { NULL,NULL,(void *)child_GeoLOD,NULL,NULL,NULL,(void *)changed_GeoLOD,(void *)proximity_GeoLOD,NULL,(void *)compile_GeoLOD};
+struct X3D_Virt virt_GeoLOD = { NULL,NULL,(void *)child_GeoLOD,NULL,NULL,NULL,(void *)changed_GeoLOD,NULL,NULL,(void *)compile_GeoLOD};
 struct X3D_Virt virt_GeoLocation = { (void *)prep_GeoLocation,NULL,(void *)child_GeoLocation,(void *)fin_GeoLocation,NULL,NULL,(void *)changed_GeoLocation,NULL,NULL,(void *)compile_GeoLocation};
 struct X3D_Virt virt_GeoMetadata = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoMetadata};
 struct X3D_Virt virt_GeoOrigin = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoOrigin};
 struct X3D_Virt virt_GeoPositionInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoPositionInterpolator};
-struct X3D_Virt virt_GeoProximitySensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)proximity_GeoProximitySensor,NULL,(void *)compile_GeoProximitySensor};
+struct X3D_Virt virt_GeoProximitySensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoProximitySensor};
 struct X3D_Virt virt_GeoTouchSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoTouchSensor};
 struct X3D_Virt virt_GeoTransform = { (void *)prep_GeoTransform,NULL,(void *)child_GeoTransform,(void *)fin_GeoTransform,NULL,NULL,(void *)changed_GeoTransform,NULL,NULL,(void *)compile_GeoTransform};
 struct X3D_Virt virt_GeoViewpoint = { (void *)prep_GeoViewpoint,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoViewpoint};
@@ -2239,12 +2239,11 @@ const int OFFSETS_GeoLOD[] = {
 	FIELDNAMES_child3Url, offsetof (struct X3D_GeoLOD, child3Url),  FIELDTYPE_MFString, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___level, offsetof (struct X3D_GeoLOD, __level),  FIELDTYPE_SFInt32, KW_inputOutput,0,
 	FIELDNAMES_rootNode, offsetof (struct X3D_GeoLOD, rootNode),  FIELDTYPE_MFNode, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES___t1, offsetof (struct X3D_GeoLOD, __t1),  FIELDTYPE_SFVec3d, KW_inputOutput,0,
 	FIELDNAMES_geoOrigin, offsetof (struct X3D_GeoLOD, geoOrigin),  FIELDTYPE_SFNode, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_metadata, offsetof (struct X3D_GeoLOD, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_bboxSize, offsetof (struct X3D_GeoLOD, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___child3Node, offsetof (struct X3D_GeoLOD, __child3Node),  FIELDTYPE_SFNode, KW_inputOutput,0,
-	FIELDNAMES___inRange, offsetof (struct X3D_GeoLOD, __inRange),  FIELDTYPE_SFInt32, KW_inputOutput,0,
+	FIELDNAMES___inRange, offsetof (struct X3D_GeoLOD, __inRange),  FIELDTYPE_SFBool, KW_inputOutput,0,
 	FIELDNAMES_child2Url, offsetof (struct X3D_GeoLOD, child2Url),  FIELDTYPE_MFString, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___rootUrl, offsetof (struct X3D_GeoLOD, __rootUrl),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES___child1Node, offsetof (struct X3D_GeoLOD, __child1Node),  FIELDTYPE_SFNode, KW_inputOutput,0,
@@ -5459,12 +5458,11 @@ void *createNewX3DNode (int nt) {
 			tmp2->child3Url.n=0; tmp2->child3Url.p=0;
 			tmp2->__level = -1;
 			tmp2->rootNode.n=0; tmp2->rootNode.p=0;
-			tmp2->__t1.c[0] = 10000000;tmp2->__t1.c[1] = 0;tmp2->__t1.c[2] = 0;;
 			tmp2->geoOrigin = NULL;
 			tmp2->metadata = NULL;
 			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
 			tmp2->__child3Node = NULL;
-			tmp2->__inRange = 0;
+			tmp2->__inRange = FALSE;
 			tmp2->child2Url.n=0; tmp2->child2Url.p=0;
 			tmp2->__rootUrl = NULL;
 			tmp2->__child1Node = NULL;
@@ -8522,12 +8520,9 @@ void dump_scene (int level, struct X3D_Node* node) {
 			printf ("\n");
 			spacer printf ("\t__rooturlloadstatus (SFInt32) \t%d\n",tmp->__rooturlloadstatus);
 			spacer printf ("\t__level (SFInt32) \t%d\n",tmp->__level);
-			spacer printf ("\t__t1 (SFVec3d): \t");
-			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->__t1.c[i]); }
-			printf ("\n");
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__child3Node (SFNode):\n"); dump_scene(level+1,tmp->__child3Node); 
-			spacer printf ("\t__inRange (SFInt32) \t%d\n",tmp->__inRange);
+			spacer printf ("\t__inRange (SFBool) \t%d\n",tmp->__inRange);
 			spacer printf ("\t__rootUrl (SFNode):\n"); dump_scene(level+1,tmp->__rootUrl); 
 			spacer printf ("\t__child1Node (SFNode):\n"); dump_scene(level+1,tmp->__child1Node); 
 			spacer printf ("\t__childloadstatus (SFInt32) \t%d\n",tmp->__childloadstatus);

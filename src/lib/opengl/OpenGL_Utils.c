@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.43 2009/07/07 15:12:02 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.44 2009/07/14 15:36:01 uid31638 Exp $
 
 ???
 
@@ -135,6 +135,145 @@ near plane is thus farPlane - highestPeak.
 static char count = 0;
 #endif
 
+
+static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
+	int oldInRange;
+	double cx,cy,cz;
+	GLdouble modelMatrix[16];
+
+	/* find the length of the line between the moved center and our current viewer position */
+	cx = Viewer.currentPosInModel.x - node->__movedCoords.c[0];
+	cy = Viewer.currentPosInModel.y - node->__movedCoords.c[1];
+	cz = Viewer.currentPosInModel.z - node->__movedCoords.c[2];
+
+	/* printf ("geoLOD, distance between me and center is %lf\n", sqrt (cx*cx + cy*cy + cz*cz)); */
+
+	/* try to see if we are closer than the range */
+	oldInRange = node->__inRange;
+	if((cx*cx+cy*cy+cz*cz) > (node->range*X3D_GEOLOD(node)->range)) {
+		node->__inRange = FALSE;
+	} else {
+		node->__inRange = TRUE;
+	}
+
+	
+	if (oldInRange != node->__inRange) {
+
+		#ifdef VERBOSE
+		if (node->__inRange) printf ("TRUE:  "); else printf ("FALSE: ");
+		printf ("range changed; level %d, comparing %lf:%lf:%lf and range %lf node %u\n",
+			node->__level, cx,cy,cz, node->range, node);
+		#endif
+
+		/* initialize the "children" field, if required */
+		if (node->children.p == NULL) node->children.p=MALLOC(sizeof(void *) * 4);
+
+		if (node->__inRange == FALSE) {
+			#ifdef VERBOSE
+			printf ("GeoLOD %u level %d, inRange set to FALSE, range %lf\n",node, node->__level, node->range);
+			#endif
+
+			node->level_changed = 1;
+			node->children.p[0] = node->__child1Node; 
+			node->children.p[1] = node->__child2Node; 
+			node->children.p[2] = node->__child3Node; 
+			node->children.p[3] = node->__child4Node; 
+			node->children.n = 4;
+		} else {
+			#ifdef VERBOSE
+			printf ("GeoLOD %u level %d, inRange set to TRUE range %lf\n",node, node->__level, node->range);
+			#endif
+			node->level_changed = 0;
+			node->children.p[0] = node->rootNode.p[0]; node->children.n = 1;
+		}
+		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoLOD, level_changed));
+		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoLOD, children));
+		oldInRange = X3D_GEOLOD(node)->__inRange;
+
+		/* lets work out extent here */
+		INITIALIZE_EXTENT;
+		/* printf ("geolod range changed, initialized extent, czyzsq %4.2f rangesw %4.2f from %4.2f %4.2f %4.2f\n",
+cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
+		update_node(X3D_NODE(node));
+	}
+}
+
+
+
+
+
+/* draw a simple bounding box around an object */
+void drawBBOX(struct X3D_Node *node) {
+	glDisable(GL_LIGHTING);
+	glColor3f(1.0,0.6,0.6);
+
+	/* left group */
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	glEnd();
+	
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	glEnd();
+	
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	glEnd();
+	
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	glEnd();
+	
+	/* right group */
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	glEnd();
+	
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	glEnd();
+	
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	glEnd();
+	
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	glEnd();
+	
+	/* joiners */
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	glEnd();
+	
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	glEnd();
+	
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	glEnd();
+	
+	glBegin (GL_LINES);
+	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	glEnd();
+
+	glEnable (GL_LIGHTING);
+}
+
+
 static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	struct point_XYZ bboxPoints[8];
 	double cfp = DBL_MIN;
@@ -170,7 +309,6 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 				X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Y,
 				X3D_GROUP(rootNode)->EXTENT_MAX_Z, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
 		#endif
-	
 		/* make up 8 vertices for our bounding box, and place them within our view */
 		moveAndRotateThisPoint(vpnode, &bboxPoints[0], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
 		moveAndRotateThisPoint(vpnode, &bboxPoints[1], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
@@ -1172,7 +1310,10 @@ void startOfLoopNodeUpdates(void) {
 
 				/* GeoLOD needs its own flag sent up the chain, and it has to push extent up, too */
 				BEGIN_NODE (GeoLOD)
-                			update_renderFlag(node,VF_Proximity);
+					if (!(NODE_NEEDS_COMPILING)) {
+						handle_GeoLODRange(X3D_GEOLOD(node));
+					}
+                			/* update_renderFlag(node,VF_Proximity); */
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 

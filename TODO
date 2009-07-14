@@ -39,6 +39,7 @@ Priority list
 	going examineMode->nextVP->walkMode->examineMode recalculates distance ok...
 	is the examine->Origin set correctly? Do we need to set it? What is the origin supposed to be?
 	Code has been changed (June 2 2009) that does "ok" but we need more work to sort this out.
+	(July 14 2009, more work on Geospatial; this is an ongoing subject, I guess...)
 
 26/05/2009: 
 	(JAS) XML PROTO routing scheme 

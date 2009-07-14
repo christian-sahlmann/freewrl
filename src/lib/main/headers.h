@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.60 2009/07/06 20:13:28 crc_canada Exp $
+$Id: headers.h,v 1.61 2009/07/14 15:36:01 uid31638 Exp $
 
 Global includes.
 
@@ -1242,7 +1242,6 @@ void fin_GeoLocation (struct X3D_GeoLocation *this_);
 void changed_GeoLocation (struct X3D_GeoLocation *this_);
 void child_GeoLOD (struct X3D_GeoLOD *this_);
 void changed_GeoLOD (struct X3D_GeoLOD *this_);
-void proximity_GeoLOD (struct X3D_GeoLOD *this_);
 void child_GeoLocation (struct X3D_GeoLocation *this_);
 void compile_GeoCoordinate (struct X3D_GeoCoordinate * this);
 void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * this);
@@ -1255,7 +1254,6 @@ void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * this);
 void compile_GeoViewpoint (struct X3D_GeoViewpoint * this);
 void compile_GeoProximitySensor (struct X3D_GeoProximitySensor *this);
 void compile_GeoTransform (struct X3D_GeoTransform * node);
-void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *this);
 void prep_GeoTransform (struct X3D_GeoTransform *);
 void child_GeoTransform (struct X3D_GeoTransform *);
 void fin_GeoTransform (struct X3D_GeoTransform *);
