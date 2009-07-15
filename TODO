@@ -65,10 +65,6 @@ Priority list
 	(JAS) (DONE) Shader text, if local, should start with uri "data:text/plain," 
 
 13/05/2009: 
-	(JAS) Shaders worked on. 
-		- Classic parser: fields parsed, but need sending/receiving.
-		- Classic parser: need to add routing code.
-		- X3D parser: need to add field support to shader parsing.
 	(JAS) Javascript.
 		- added sfvec4f and sfvec4d input/output; only basic methods defined. There is nothing in the
 		  X3D scripting pages about 4f and 4d types.

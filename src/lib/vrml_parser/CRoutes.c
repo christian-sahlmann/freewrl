@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.24 2009/06/02 16:43:42 crc_canada Exp $
+$Id: CRoutes.c,v 1.25 2009/07/15 15:26:59 crc_canada Exp $
 
 ???
 
@@ -1396,6 +1396,11 @@ static void gatherScriptEventOuts(void) {
 
 				/* tell this node now needs to redraw */
 				markScriptResults(tn, tptr, route, to_ptr->routeToNode);
+
+				#ifdef CRVERBOSE 
+					printf ("%s script %d has successfully updated  %u\n",JSparamnames[fptr].name,actualscript,tn);
+				#endif
+
 			}
 		}
 
@@ -1830,31 +1835,6 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 	}
 
 
-	/* free the old data, if there is old data... */
-	/* is this an MFNode or SFNode? */
-	if (mv3ftn->n > 0) {
-		if ((multitype==ROUTING_MFNODE) || (multitype==ROUTING_SFNODE)) {
-			#ifdef CRVERBOSE
-			int count;
-			struct X3D_Node **arrptr = (struct X3D_Node **)mv3ftn->p;
-
-#ifdef thisIsNotaGoodIdea
-			printf ("ROUTING - HAVE TO REMOVE PARENTS\n");
-			for (count = 0; count < mv3ftn->n; count++) {
-				printf ("node in place %d is %u ",count,arrptr[count]);
-				printf ("%s ",stringNodeType(arrptr[count]->_nodeType));
-				printf ("\n");
-/*
-				we did not remove this, because in the case of where you have a route to a PROTO MFNode field, it did not 
-				seem to work that well, because the PROTO fields send events every which way when they fire 
-				remove_parent(arrptr[count],fromNode);
-*/
-			}
-#endif
-			#endif
-
-		}
-	}
 	FREE_IF_NZ (mv3ftn->p);
 
 	/* MALLOC the toptr */
@@ -1873,6 +1853,7 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 
 	/* is this an MFNode or SFNode? */
 	if (multitype==ROUTING_SFNODE) {
+printf ("got a ROUTING_SFNODE, adding %u to %u\n",fn,toNode);
 		ADD_PARENT(X3D_NODE(fn),toNode);
 	}
 	if (multitype==ROUTING_MFNODE) {

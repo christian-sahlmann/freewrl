@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.13 2009/05/07 17:01:26 crc_canada Exp $
+$Id: jsUtils.c,v 1.14 2009/07/15 15:26:59 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -1172,6 +1172,7 @@ JSBool js_SetPropertyCheck (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 /****************************************************************************/
 
 JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 	/* get the id field... */
@@ -1185,10 +1186,12 @@ JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *
 	} else {
         	printf ("\n...js_GetPropertyDebug called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	#endif
 	return JS_TRUE;
 }
 
 JSBool js_SetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
@@ -1202,9 +1205,11 @@ JSBool js_SetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *
 	} else {
         	printf ("\n...js_SetPropertyDebug called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	#endif
 	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
@@ -1218,9 +1223,11 @@ JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsval id, jsval 
 	} else {
         	printf ("\n...js_SetPropertyDebug1 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	#endif
 	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
@@ -1234,9 +1241,11 @@ JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsval id, jsval 
 	} else {
         	printf ("...js_SetPropertyDebug2 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	#endif
 	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
@@ -1250,9 +1259,11 @@ JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsval id, jsval 
 	} else {
         	printf ("\n...js_SetPropertyDebug3 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	#endif
 	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
@@ -1266,9 +1277,11 @@ JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsval id, jsval 
 	} else {
         	printf ("\n...js_SetPropertyDebug4 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	#endif
 	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
@@ -1282,9 +1295,11 @@ JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsval id, jsval 
 	} else {
         	printf ("\n...js_SetPropertyDebug5 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	#endif
 	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
@@ -1298,9 +1313,11 @@ JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsval id, jsval 
 	} else {
         	printf ("\n...js_SetPropertyDebug6 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	#endif
 	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
@@ -1314,9 +1331,11 @@ JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsval id, jsval 
 	} else {
         	printf ("\n...js_SetPropertyDebug7 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	#endif
 	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
@@ -1330,9 +1349,11 @@ JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval 
 	} else {
         	printf ("\n...js_SetPropertyDebug8 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	#endif
 	return JS_TRUE;
 }
 JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
@@ -1346,6 +1367,7 @@ JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval 
 	} else {
         	printf ("\n...js_SetPropertyDebug9 called on unknown type of object %u, jsval %lu\n", (unsigned int) obj, *vp);
 	}
+	#endif
 	return JS_TRUE;
 }
 

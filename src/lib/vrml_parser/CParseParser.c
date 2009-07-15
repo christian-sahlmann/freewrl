@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.32 2009/05/19 13:09:36 crc_canada Exp $
+  $Id: CParseParser.c,v 1.33 2009/07/15 15:26:59 crc_canada Exp $
 
   ???
 
@@ -133,7 +133,7 @@ char fw_outline[2000];
 #define ROUTE_REAL_SIZE_sffloat TRUE
 #define ROUTE_REAL_SIZE_sfimage FALSE
 #define ROUTE_REAL_SIZE_sfint32 TRUE
-#define ROUTE_REAL_SIZE_sfnode  TRUE
+#define ROUTE_REAL_SIZE_sfnode  FALSE
 #define ROUTE_REAL_SIZE_sfrotation      TRUE
 #define ROUTE_REAL_SIZE_sfcolorrgba      TRUE
 #define ROUTE_REAL_SIZE_sfstring       FALSE 
@@ -1467,7 +1467,6 @@ BOOL parser_routeStatement(struct VRMLParser* me)
 #undef FIELD
 #undef END_NODE
 
-
         /* set the toLen and fromLen from the PROTO/Script info, if appropriate */
         if(fromScriptField) fromLen=returnRoutingElementLength(fromScriptField->fieldDecl->type);
         if(toScriptField) toLen=returnRoutingElementLength(toScriptField->fieldDecl->type);
@@ -1498,8 +1497,6 @@ BOOL parser_routeStatement(struct VRMLParser* me)
                 fromLen = returnRoutingElementLength(b);
             }
         }
-	/* printf ("before test, fromlen %d tolen %d\n",fromLen, toLen);  */
-
 
         /* FIXME:  Not a really safe check for types in ROUTE! */
         /* JAS - made message better. Should compare types, not lengths. */

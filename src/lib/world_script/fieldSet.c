@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.20 2009/05/07 17:01:26 crc_canada Exp $
+$Id: fieldSet.c,v 1.21 2009/07/15 15:26:59 crc_canada Exp $
 
 ???
 
@@ -196,7 +196,6 @@ static unsigned int setField_FromEAI_ToScript(uintptr_t tonode, int toname,
                 set_one_ECMAtype (tonode, toname, datatype, data, datalen);
                 break;
         case FIELDTYPE_SFColor:
-        case FIELDTYPE_SFNode:
         case FIELDTYPE_SFVec2f:
         case FIELDTYPE_SFVec3f:
         case FIELDTYPE_SFVec3d:
@@ -209,6 +208,19 @@ static unsigned int setField_FromEAI_ToScript(uintptr_t tonode, int toname,
 		#endif
 		set_one_MultiElementType (tonode, toname, data, datalen);
                 break;
+        case FIELDTYPE_SFNode:
+		#ifdef SETFIELDVERBOSE
+		printf ("SFNode copy, tonode %u...\n",tonode);
+		#endif
+
+		printf ("SFNode copy, tonode %u...\n",tonode);
+		datalen = returnElementLength(FIELDTYPE_SFNode);
+		set_one_MultiElementType (tonode, toname, data, datalen);
+		printf ("SFNode done copy, tonode %u...\n",tonode);
+                break;
+
+
+
         case FIELDTYPE_MFColor:
         case FIELDTYPE_MFVec3f:
         case FIELDTYPE_MFVec3d:
@@ -423,6 +435,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	/* not all files know what a JSContext is, so we just pass it around as a uintptr_t type */
 	scriptContext = (JSContext *) cx;
 
+
 	#ifdef SETFIELDVERBOSE
 	strval = JS_ValueToString(scriptContext, JSglobal_return_val);
        	strp = JS_GetStringBytes(strval);
@@ -442,14 +455,13 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 	switch (fieldType) {
                         GETJSVAL_TYPE_A(SFRotation,v)
-                        GETJSVAL_TYPE_A(SFNode,handle)
+                        /* GETJSVAL_TYPE_A(SFNode,handle) */
                         GETJSVAL_TYPE_A(SFVec2f,v)
                         GETJSVAL_TYPE_A(SFVec3f,v)
                         GETJSVAL_TYPE_A(SFColor,v)
                         GETJSVAL_TYPE_A(SFColorRGBA,v)
 
                         GETJSVAL_TYPE_MF_A(MFRotation,SFRotation)
-                        /* GETJSVAL_TYPE_MF_A(MFNode,SFNode) */
                         GETJSVAL_TYPE_MF_A(MFVec2f,SFVec2f)
                         GETJSVAL_TYPE_MF_A(MFVec3f,SFVec3f)
                         GETJSVAL_TYPE_MF_A(MFColor,SFColor)
@@ -518,6 +530,14 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		case FIELDTYPE_MFString: {
 			getMFStringtype (scriptContext, (jsval *)JSglobal_return_val,(struct Multi_String *)memptr);
 			break;
+		}
+
+		case FIELDTYPE_SFNode: {
+
+				/* printf ("doing TYPEA memcpy to %u, from %u, len %d\n",(void *)memptr, (void *) &(((SFNodeNative *)JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode));*/
+			memcpy ((void *)memptr, (void *) &(((SFNodeNative *)JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode)); 
+
+				break;
 		}
 
 
@@ -1157,7 +1177,6 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Node *parent, 
 	/* now, perform the add/remove */
 	AddRemoveChildren (parent, tn, newmal, newlen, ar,__FILE__,__LINE__);
 }
-#undef SETFIELDVERBOSE
 
 
 /* Map the given index into arr to an index into FIELDNAMES or -1, if the

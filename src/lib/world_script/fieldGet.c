@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.17 2009/05/21 20:30:09 crc_canada Exp $
+$Id: fieldGet.c,v 1.18 2009/07/15 15:26:59 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -33,7 +33,6 @@ Javascript C language binding.
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
 #include "fieldGet.h"
-
 
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
 /********************************************************************
@@ -980,7 +979,13 @@ void setScriptMultiElementtype (uintptr_t num) {
 
 	fn = (void *)CRoutes[num].routeFromNode;
 	fptr = CRoutes[num].fnptr;
-	len = CRoutes[num].len;
+	if (CRoutes[num].len == ROUTING_SFNODE) len = returnElementLength(FIELDTYPE_SFNode);
+	else if (CRoutes[num].len < 0) {
+		ConsoleMessage ("setScriptMultiElementtype - len of %d unhandled\n",CRoutes[num].len);
+		return;
+	} else {
+		len = CRoutes[num].len;
+	}
 
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
                 struct Shader_Script *myObj;
