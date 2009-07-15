@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.c,v 1.9 2009/07/13 18:49:50 crc_canada Exp $
+$Id: display.c,v 1.10 2009/07/15 16:49:51 crc_canada Exp $
 
 FreeWRL support library.
 Display (X11/Motif or OSX/Aqua) initialization.
@@ -114,14 +114,6 @@ void setScreenDim(int wi, int he)
     screenWidth = wi;
     screenHeight = he;
 
-
-	if (theFile == NULL) {
-		theFile = fopen("/tmp/freewrl_log", "w");
-		if (theFile == NULL) abort();
-	}
-fprintf (theFile, "setScreenDim, %d:%d\n",wi,he);
-	fflush(theFile);
-    
     if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
     else screenRatio =  screenWidth;
 }
