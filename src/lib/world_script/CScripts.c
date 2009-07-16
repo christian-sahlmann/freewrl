@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.17 2009/07/06 20:13:28 crc_canada Exp $
+$Id: CScripts.c,v 1.18 2009/07/16 15:38:54 istakenv Exp $
 
 ???
 
@@ -26,6 +26,7 @@ $Id: CScripts.c,v 1.17 2009/07/06 20:13:28 crc_canada Exp $
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
+#include "../input/InputFunctions.h"
 #include "../x3d_parser/Bindable.h"
 /* #include "../input/EAIheaders.h" */
 

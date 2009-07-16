@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.8 2009/06/02 18:19:27 crc_canada Exp $
+$Id: Component_Text.c,v 1.9 2009/07/16 15:42:48 istakenv Exp $
 
 X3D Text Component
 
@@ -16,6 +16,7 @@ X3D Text Component
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../input/InputFunctions.h"
 #include "../main/headers.h"
 
 #include "Collision.h"

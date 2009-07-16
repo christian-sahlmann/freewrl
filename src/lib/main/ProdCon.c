@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.22 2009/07/16 15:08:57 istakenv Exp $
+$Id: ProdCon.c,v 1.23 2009/07/16 15:38:54 istakenv Exp $
 
 CProto ???
 
@@ -32,6 +32,7 @@ CProto ???
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 #include "../input/EAIheaders.h"
+#include "../input/InputFunctions.h"
 
 #include "../plugin/pluginUtils.h"
 #include "../plugin/PluginSocket.h"
