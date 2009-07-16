@@ -1,4 +1,10 @@
 Priority list
+07/15/2009: 
+	(JAS) tests/8.wrl - on IanS computer, comes up with: 
+		SFNativeNew - created 0 nodes, expected 1 only
+		JS_GetPrivate failed in SFNodeFinalize.
+	but other SFNode javascript tests pass.
+
 
 06/30/2009:
 	(JAS) Wondering about collision and small scales; Bob Kilmek's second example should not have collisions.
