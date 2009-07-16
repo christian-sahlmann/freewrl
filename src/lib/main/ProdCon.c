@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.21 2009/07/06 20:13:28 crc_canada Exp $
+$Id: ProdCon.c,v 1.22 2009/07/16 15:08:57 istakenv Exp $
 
 CProto ???
 
@@ -329,7 +329,7 @@ char* freewrl_mktemp()
 }
 #endif
 
-#if HAVE_LIBCURL
+#ifdef HAVE_LIBCURL
 # include <curl/curl.h>
 
 static CURL *curl_h = NULL;
@@ -475,7 +475,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 				return (TRUE);
 			}
 
-#if HAVE_LIBCURL
+#ifdef HAVE_LIBCURL
 
 			if (with_libcurl) {
 
@@ -511,7 +511,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 			    printf ("Internal FreeWRL problem - strings too long for wget\n");
 			}
 
-#if HAVE_LIBCURL
+#ifdef HAVE_LIBCURL
 			}
 #endif
 
