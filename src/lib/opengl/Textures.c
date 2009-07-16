@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.13 2009/07/10 19:36:10 crc_canada Exp $
+$Id: Textures.c,v 1.14 2009/07/16 15:25:11 istakenv Exp $
 
 General Texture objects.
 
@@ -1376,7 +1376,6 @@ static int findTextureFile (int cwo) {
 			FREE_IF_NZ(filename);
 			filename = (char *)MALLOC(4096);
 			sprintf (filename,"/tmp/freewrl%d.png",getpid());
-			*istemp=TRUE;
 		    }
 		    FREE_IF_NZ (sysline);
 		}
