@@ -305,7 +305,7 @@ AC_SUBST(JPEG_LIBS)
 PKG_CHECK_MODULES(PNG, libpng)
 
 # ======================================
-# LibEAI configuration
+# LibFreeWRLEAI configuration
 # ======================================
 
 AC_MY_SWITCH(libeai,[enable building of libEAI],off)
@@ -479,7 +479,7 @@ src/lib/Makefile
 src/lib/libFreeWRL.pc
 src/plugin/Makefile
 src/libeai/Makefile
-src/libeai/libEAI.pc
+src/libeai/libFreeWRLEAI.pc
 src/sound/Makefile
 src/message/Makefile])
 

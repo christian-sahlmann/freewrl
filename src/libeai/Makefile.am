@@ -59,14 +59,14 @@ AM_CPPFLAGS += -Wno-format -no-cpp-precomp -fno-common
 endif
 
 
-_EV=$(top_srcdir)/versions/LIBEAI
-_EV2=$(top_srcdir)/versions/LIBEAI_LTVERSION
+_EV=$(top_srcdir)/versions/LIBFREEWRLEAI
+_EV2=$(top_srcdir)/versions/LIBFREEWRLEAI_LTVERSION
 export
 
 templ=$(top_srcdir)/versions/template/version.c.in
-component=libEAI
-LIBEAI_VERSION=`cat $$_EV`
-LIBEAI_LTVERSION=`cat $$_EV2`
+component=libFreeWRLEAI
+LIBFREEWRLEAI_VERSION=`cat $$_EV`
+LIBFREEWRLEAI_LTVERSION=`cat $$_EV2`
 
 BUILD_TIMESTAMP=`date +%F_%T`
 AM_CPPFLAGS += -DBUILD_TIMESTAMP=\"$(BUILD_TIMESTAMP)\"
@@ -74,26 +74,26 @@ AM_CPPFLAGS += -DBUILD_TIMESTAMP=\"$(BUILD_TIMESTAMP)\"
 # Generate the version source file
 internal_version.c: $(_EV)
 	$(top_srcdir)/vtempl $(component) \
-	$(LIBEAI_VERSION) < $(templ) > $@
+	$(LIBFREEWRLEAI_VERSION) < $(templ) > $@
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c
 
 LIBFREEWRL_SRCDIR=$(top_srcdir)/src/lib
 LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
 
-# To be able to check for libEAI with pkg-config
+# To be able to check for libFreeWRLEAI with pkg-config
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libEAI.pc
+pkgconfig_DATA = libFreeWRLEAI.pc
 
 
 AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR) -I$(LIBFREEWRL_SRCDIR)/input
 
-lib_LTLIBRARIES = libEAI.la
-libEAI_la_LDFLAGS = -version-info $(LIBEAI_LTVERSION) $(AM_LDFLAGS)
-libEAI_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la
-libEAIincludedir = $(includedir)/EAI
+lib_LTLIBRARIES = libFreeWRLEAI.la
+libFreeWRLEAI_la_LDFLAGS = -version-info $(LIBFREEWRLEAI_LTVERSION) $(AM_LDFLAGS)
+libFreeWRLEAI_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la
+libFreeWRLEAIincludedir = $(includedir)/FreeWRLEAI
 
 include Makefile.sources
 
-libEAIinclude_HEADERS += $(LIBFREEWRL_SRCDIR)/input/EAIheaders.h
-libEAI_la_SOURCES += internal_version.c
+libFreeWRLEAIinclude_HEADERS += $(LIBFREEWRL_SRCDIR)/input/EAIheaders.h
+libFreeWRLEAI_la_SOURCES += internal_version.c
