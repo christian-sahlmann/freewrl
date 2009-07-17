@@ -4,6 +4,7 @@ Priority list
 		SFNativeNew - created 0 nodes, expected 1 only
 		JS_GetPrivate failed in SFNodeFinalize.
 	but other SFNode javascript tests pass.
+	- note seems to be threading bug; if "isBusy=busy" fails fairly regularly; if "isBusy = val; " runs regularly.
 
 
 06/30/2009:
