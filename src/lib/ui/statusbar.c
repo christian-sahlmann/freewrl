@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statusbar.c,v 1.7 2009/07/17 15:07:04 crc_canada Exp $
+$Id: statusbar.c,v 1.8 2009/07/17 15:09:00 crc_canada Exp $
 
 ???
 
@@ -110,9 +110,6 @@ static void statusbar_init() {
 	   then there are REALLY bad things happening somewhere else */
 
 	/* remove this ProximitySensor node from the temporary variable, and reset the temp. variable */
-
-printf ("myn %u, type %s\n",myn, stringNodeType (myn->_nodeType));
-printf ("myn has %d children\n",myn->children.n);
 
 	proxNode = myn->children.p[0];
 
