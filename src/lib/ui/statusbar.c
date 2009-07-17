@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statusbar.c,v 1.6 2009/05/18 19:05:45 crc_canada Exp $
+$Id: statusbar.c,v 1.7 2009/07/17 15:07:04 crc_canada Exp $
 
 ???
 
@@ -70,6 +70,9 @@ void update_status(char* msg) {
 		statusbar_init();
 	}
 
+	/* did we initialize correctly? */
+	if (proxNode == NULL) return;
+
 	/* bounds check here - if the string is this long, it deserves to be ignored! */
 	if (strlen(msg) > (STATUS_LEN-10)) return;
 
@@ -95,10 +98,21 @@ static void statusbar_init() {
 	myn = createNewX3DNode(NODE_Group);
 	inputParse(FROMSTRING, PROX, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE);
 
+	/* is there some error parsing? */
+	if (myn->children.n==0) {
+		sb_initialized = TRUE; 	/* dont bother again */
+		proxNode = NULL; 	/* ENSURE that the update knows that this failed */
+		return;			/* and get out of here */
+	}
+
+
 	/* get the ProximitySensor node from this parse. Note, errors are not checked. If this gives an errror,
 	   then there are REALLY bad things happening somewhere else */
 
 	/* remove this ProximitySensor node from the temporary variable, and reset the temp. variable */
+
+printf ("myn %u, type %s\n",myn, stringNodeType (myn->_nodeType));
+printf ("myn has %d children\n",myn->children.n);
 
 	proxNode = myn->children.p[0];
 
