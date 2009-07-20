@@ -1,7 +1,7 @@
 /* 
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseParser.h,v 1.10 2009/05/18 19:05:45 crc_canada Exp $
+$Id: CParseParser.h,v 1.11 2009/07/20 18:07:07 crc_canada Exp $
 
 Parser (input of non-terminal symbols) for CParse
 
@@ -153,7 +153,7 @@ void parser_specificInitNode(struct X3D_Node*, struct VRMLParser*);
 
 /* Registers a ROUTE, in current PROTO or scene */
 void parser_registerRoute(struct VRMLParser*,
- struct X3D_Node*, unsigned, struct X3D_Node*, unsigned, size_t);
+ struct X3D_Node*, int, struct X3D_Node*, int, size_t);
 
 /* Parses a field value of a certain type (literally or IS) */
 BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int offs,

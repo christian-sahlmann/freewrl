@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.34 2009/07/20 16:18:59 istakenv Exp $
+  $Id: CParseParser.c,v 1.35 2009/07/20 18:07:07 crc_canada Exp $
 
   ???
 
@@ -1195,7 +1195,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
     if(pre##Node->_nodeType==NODE_Script && !pre##ScriptField) \
      PARSE_ERROR("Event-field invalid for this PROTO/Script!") \
    } else \
-    PARSE_ERROR("Expected event" #eventType "!") \
+    PARSE_ERROR("Expected an event of type :" #eventType ": ") \
   } \
   /* Process script routing */ \
   if(pre##Node->_nodeType == NODE_Script) \
@@ -1546,19 +1546,21 @@ BOOL parser_routeStatement(struct VRMLParser* me)
 }
 
 
+
 /* Register a ROUTE here */
 /* If we are in a PROTO add a new ProtoRoute structure to the vector ProtoDefinition->routes */
 /* Otherwise, add the ROUTE to the routing table CRoutes */
 void parser_registerRoute(struct VRMLParser* me,
-                          struct X3D_Node* fromNode, unsigned fromOfs,
-                          struct X3D_Node* toNode, unsigned toOfs,
+                          struct X3D_Node* fromNode, int fromOfs,
+                          struct X3D_Node* toNode, int toOfs,
                           size_t len)
 {
     ASSERT(me);
-    if(me->curPROTO)
-    {
-    } else
-        CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, len);
+	if ((fromOfs == INT_ID_UNDEFINED) || (toOfs == INT_ID_UNDEFINED)) {
+		ConsoleMessage ("problem registering route - either fromField or toField invalid");
+	} else {
+        	CRoutes_RegisterSimple(fromNode, (unsigned) fromOfs, toNode, (unsigned) toOfs, len);
+	}
 }
 
 /* parse a DEF statement. Return a pointer to a vrmlNodeT */
@@ -2680,7 +2682,11 @@ void cParseErrorCurID(struct VRMLParser *me, char *str) {
 
 	if (strlen(str) > FROMSRC) str[FROMSRC] = '\0';
 	strcpy(fw_outline,str);
-	if (me->lexer->curID != ((void *)0)) strcat (fw_outline, me->lexer->curID); 
+	if (me->lexer->curID != ((void *)0)) {
+		strcat (fw_outline, "; current token :");
+		strcat (fw_outline, me->lexer->curID); 
+		strcat (fw_outline, ": ");
+	}
 	if (me->lexer->nextIn != NULL) {
 		strcat (fw_outline," at: \"");
 		strncat(fw_outline,me->lexer->nextIn,FROMSRC);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.19 2009/07/20 16:19:00 istakenv Exp $
+$Id: CScripts.c,v 1.20 2009/07/20 18:07:07 crc_canada Exp $
 
 ???
 
@@ -159,9 +159,13 @@ void scriptFieldDecl_setFieldASCIIValue(struct ScriptFieldDecl *me, const char *
 }
 
 
-/* Get "offset" data for routing */
+/* Get "offset" data for routing. Return an error if we are passed an invalid pointer. */
 int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 {
+ if (me == NULL) {
+	ConsoleMessage ("call to scriptFieldDecl_getRoutingOffset made with NULL input");
+	return INT_ID_UNDEFINED;
+ }
  return JSparamIndex((char *)me->ASCIIname, (char *)me->ASCIItype);
 }
 
