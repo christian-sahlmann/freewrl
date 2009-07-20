@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.18 2009/07/16 15:38:54 istakenv Exp $
+$Id: CScripts.c,v 1.19 2009/07/20 16:19:00 istakenv Exp $
 
 ???
 
@@ -38,7 +38,6 @@ $Id: CScripts.c,v 1.18 2009/07/16 15:38:54 istakenv Exp $
 
 #include <limits.h>
 
-#undef CPARSERVERBOSE
 
 /* JavaScript-"protocols" */
 const char* JS_PROTOCOLS[]={
@@ -77,7 +76,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
  /* value is set later on */
 
  #ifdef CPARSERVERBOSE
- printf ("newScriptFieldDecl, returning name %s, type %s, mode %s\n",ret->name, ret->type,PROTOKEYWORDS[ret->fieldDecl->mode]); 
+ printf ("newScriptFieldDecl, returning name %s, type %s, mode %s\n",ret->ASCIIname, ret->ASCIItype,PROTOKEYWORDS[ret->fieldDecl->mode]); 
  #endif
 
  return ret;
