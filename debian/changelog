@@ -1,3 +1,13 @@
+freewrl (1.22.4-1) unstable; urgency=low
+
+  * New upstream release.
+  * Lintian fixes: debian-rules-ignores-make-clean-error,
+    package-uses-deprecated-debhelper-compat-version,
+    debhelper-script-needs-versioned-build-depends,
+    virtual-package-depends-without-real-package-depends.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Tue, 21 Jul 2009 13:01:12 +0200
+
 freewrl (1.22.3-1) unstable; urgency=low
 
   * New main version, JAS tagged source tree with FREEWRL_1_22_3.

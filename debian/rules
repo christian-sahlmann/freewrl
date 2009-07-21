@@ -60,7 +60,7 @@ build-stamp: configure-stamp
 	touch build-stamp
 
 clean-source:
-	-$(MAKE) distclean
+	[ ! -f Makefile ] || $(MAKE) distclean
 
 clean-debian:
 	dh_testdir

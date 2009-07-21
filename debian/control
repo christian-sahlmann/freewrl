@@ -2,8 +2,8 @@ Source: freewrl
 Section: graphics
 Priority: optional
 Maintainer: Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>
-Build-Depends: debhelper (>= 4.0.0), autoconf, automake, libtool, perl, libxxf86vm-dev, libgl-dev, libglu-dev, libxaw7-dev, lesstif2-dev, libfreetype6-dev, libpng12-dev, libjpeg62-dev, libxml2-dev, libexpat1-dev, libmozjs-dev, java-compiler, iceape-dev
-Standards-Version: 3.6.2
+Build-Depends: debhelper (>= 7), autoconf, automake, libtool, perl, libxxf86vm-dev, libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libxaw7-dev, lesstif2-dev, libfreetype6-dev, libpng12-dev, libjpeg62-dev, libxml2-dev, libexpat1-dev, libmozjs-dev, gcj | java-compiler, iceape-dev
+Standards-Version: 3.8.0
 
 Package: freewrl
 Architecture: any
