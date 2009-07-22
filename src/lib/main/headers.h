@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.62 2009/07/20 16:18:59 istakenv Exp $
+$Id: headers.h,v 1.63 2009/07/22 14:36:20 crc_canada Exp $
 
 Global includes.
 
@@ -38,7 +38,7 @@ const char* freewrl_get_browser_program();
 
 
 /* children fields path optimizations */
-#define CHILDREN_COUNT int nc = node->children.n;
+#define CHILDREN_COUNT int nc = node->_sortedChildren.n;
 #define RETURN_FROM_CHILD_IF_NOT_FOR_ME \
         /* any children at all? */ \
         if (nc==0) return;      \

@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.29 2009/07/14 15:36:01 uid31638 Exp $
+# $Id: VRMLNodes.pm,v 1.30 2009/07/22 14:36:19 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -167,6 +167,7 @@ package VRML::NodeType;
 
 		__parenturl =>[SFString,"",initializeOnly, 0],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
+		_sortedChildren => [MFNode, [], inputOutput, 0],
 	},"X3DGroupingNode"),
 
 
@@ -181,6 +182,7 @@ package VRML::NodeType;
                 __children => [MFNode, [], inputOutput, 0],
 		__loadstatus =>[SFInt32,0,initializeOnly, 0],
 		__parenturl =>[SFString,"",initializeOnly, 0],
+		_sortedChildren => [MFNode, [], inputOutput, 0],
 	},"X3DNetworkSensorNode"),
 
 	LoadSensor => new VRML::NodeType("LoadSensor", {
@@ -218,6 +220,7 @@ package VRML::NodeType;
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		FreeWRL__protoDef => [SFInt32, 0, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # tell renderer that this is a proto...
 		FreeWRL_PROTOInterfaceNodes =>[MFNode, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_sortedChildren => [MFNode, [], inputOutput, 0],
 	},"X3DGroupingNode"),
 
 	StaticGroup => new VRML::NodeType("StaticGroup", {
@@ -229,6 +232,7 @@ package VRML::NodeType;
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		__transparency => [SFInt32, -1, initializeOnly, 0], # display list for transparencies
 		__solid => [SFInt32, -1, initializeOnly, 0],	 # display list for solid geoms.
+		_sortedChildren => [MFNode, [], inputOutput, 0],
 	},"X3DGroupingNode"),
 
 	Switch => new VRML::NodeType("Switch", {
@@ -266,6 +270,7 @@ package VRML::NodeType;
 		__do_scaleO => [SFInt32, FALSE, initializeOnly, 0],
 		__do_scale => [SFInt32, FALSE, initializeOnly, 0],
 		__do_anything => [SFInt32, FALSE, initializeOnly, 0],
+		_sortedChildren => [MFNode, [], inputOutput, 0],
 	},"X3DGroupingNode"),
 	
 
@@ -1400,6 +1405,7 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 			_rotationAngle =>[SFDouble, 0, initializeOnly, 0],
+		_sortedChildren => [MFNode, [], inputOutput, 0],
 					   },"X3DGroupingNode"),
 
 	Collision => new VRML::NodeType("Collision", {
@@ -1414,6 +1420,7 @@ package VRML::NodeType;
 			collideTime => [SFTime, -1, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
+		_sortedChildren => [MFNode, [], inputOutput, 0],
 			# return info for collisions
 			# bit 0 : collision or not
 			# bit 1: changed from previous of not
@@ -1739,6 +1746,7 @@ package VRML::NodeType;
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 			__oldGeoCenter => [SFVec3d, [0, 0, 0], inputOutput, 0],
 			__oldChildren => [MFNode, [], inputOutput, 0],
+		_sortedChildren => [MFNode, [], inputOutput, 0],
 					},"X3DGroupingNode"),
 
 	GeoViewpoint => new VRML::NodeType("GeoViewpoint", {
@@ -1810,6 +1818,7 @@ package VRML::NodeType;
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 			__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput, 0],
 			__oldChildren => [MFNode, [], inputOutput, 0],
+		_sortedChildren => [MFNode, [], inputOutput, 0],
 					},"X3DGroupingNode"),
 
 
@@ -2688,6 +2697,7 @@ package VRML::NodeType;
 	VRML1_Separator => new VRML::NodeType("VRML1_Separator", {
 		renderCulling => [SFString,"AUTO",inputOutput,"SPEC_VRML1"],
 		VRML1children => [MFNode, [], inputOutput, "SPEC_VRML1"],
+		_sortedChildren => [MFNode, [], inputOutput, 0],
 	}, "X3DChildNode"),
 
 	VRML1_Switch => new VRML::NodeType("VRML1_Switch", {

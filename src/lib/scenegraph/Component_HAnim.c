@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_HAnim.c,v 1.11 2009/05/11 21:11:59 crc_canada Exp $
+$Id: Component_HAnim.c,v 1.12 2009/07/22 14:36:20 crc_canada Exp $
 
 X3D H-Anim Component
 
@@ -201,22 +201,18 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME 
 
 	/* Lets do segments first */
-	/* do we have to sort this node? */
-/* 	if ((node->segments.n > 1)  && !render_blend) sortChildren(node->segments); */
 	/* now, just render the non-directionalLight segments */
 	normalChildren(node->segments);
 
 
 	/* Lets do joints second */
 	/* do we have to sort this node? */
-/* 	if ((node->joints.n > 1)  && !render_blend) sortChildren(node->joints); */
 	/* now, just render the non-directionalLight joints */
 	normalChildren(node->joints);
 
 
 	/* Lets do sites third */
 	/* do we have to sort this node? */
-/* 	if ((node->sites.n > 1)  && !render_blend) sortChildren(node->sites); */
 	/* do we have a local light for a child? */
 	LOCAL_LIGHT_CHILDREN(node->sites);
 	/* now, just render the non-directionalLight sites */
@@ -224,13 +220,11 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 	/* Lets do skeleton fourth */
 	/* do we have to sort this node? */
-/* 	if ((node->skeleton.n > 1)  && !render_blend) sortChildren(node->skeleton); */
 	/* now, just render the non-directionalLight skeleton */
 	normalChildren(node->skeleton);
 
 	/* Lets do skin fifth */
 	/* do we have to sort this node? */
-/* 	if ((node->skin.n > 1)  && !render_blend) sortChildren(node->skin); */
 	/* do we have a local light for a child? */
 	LOCAL_LIGHT_CHILDREN(node->skin);
 	/* now, just render the non-directionalLight skin */
@@ -256,7 +250,6 @@ return;
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? */
-/* 	if ((nc > 1)  && !render_blend) sortChildren(node->children); */
 
 	/* just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -279,7 +272,6 @@ note to implementer: have to POSSIBLE_PROTO_EXPANSION(node->coord, tmpN)
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
-/* 	if ((nc > 1)  && !render_blend) sortChildren(node->children); */
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -295,7 +287,6 @@ return;
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? */
-/* 	if ((nc > 1)  && !render_blend) sortChildren(node->children); */
 
 	/* do we have a local light for a child? */
 	LOCAL_LIGHT_CHILDREN(node->children);

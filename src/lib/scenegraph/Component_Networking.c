@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.12 2009/06/30 19:10:18 crc_canada Exp $
+$Id: Component_Networking.c,v 1.13 2009/07/22 14:36:20 crc_canada Exp $
 
 X3D Networking Component
 
@@ -1165,9 +1165,6 @@ void child_Anchor (struct X3D_Anchor *node) {
 	printf("RENDER ANCHOR START %d (%d)\n",node, nc);
 	#endif
 
-	/* do we have to sort this node? */
-	/* if ((nc > 1 && !render_blend)) sortChildren(node->children); */
-
 	/* do we have a local light for a child? */
 	LOCAL_LIGHT_CHILDREN(node->children);
 
@@ -1184,6 +1181,7 @@ void child_Anchor (struct X3D_Anchor *node) {
 
 void child_Inline (struct X3D_Inline *node) {
 	int nc = (node->__children).n;
+
 	LOCAL_LIGHT_SAVE
 
 	#ifdef CHILDVERBOSE
@@ -1196,15 +1194,12 @@ void child_Inline (struct X3D_Inline *node) {
 
 	#ifdef CHILDVERBOSE
 		{int i;
-			for (i=0; i<nc; i++) { printf ("ch %d %s ",i,stringNodeType(X3D_NODE(node->__children.p[i])->_nodeType));} 
+			for (i=0; i<nc; i++) { printf ("ch %d %s ",i,stringNodeType(X3D_NODE(node->children.p[i])->_nodeType));} 
 		printf ("\n");}
 	#endif
 
 	/* any children at all? */
 	if (nc==0) return; 
-
-	/* do we have to sort this node? */
-	/* if ((nc > 1 && !render_blend)) sortChildren(node->__children); */
 
 	/* do we have a local light for a child? */
 	LOCAL_LIGHT_CHILDREN(node->__children);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.19 2009/05/22 16:18:40 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.20 2009/07/22 14:36:20 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -216,80 +216,20 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	}
 
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->children);
+	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
 
 	/* now, just render the non-directionalLight children */
-	normalChildren(node->children);
+	normalChildren(node->_sortedChildren);
 
 	LOCAL_LIGHT_OFF
 }
-
-#ifdef NONWORKINGCODE
-
-it is hard to sort lights, transparency, etc for a static group when using display lists.
-
-So, we just render as a normal group.
-
-void Old child_StaticGroup (struct X3D_StaticGroup *node) {
-	CHILDREN_COUNT
-	LOCAL_LIGHT_SAVE
-	int createlist = FALSE;
-
-	RETURN_FROM_CHILD_IF_NOT_FOR_ME
-
-	if (render_geom) {
-		if (render_blend==VF_Blend) {
-			if (node->__transparency < 0) {
-				/* printf ("creating transparency display list %d\n",node->__transparency); */
-				node->__transparency  = glGenLists(1);
-				createlist = TRUE;
-				glNewList(node->__transparency,GL_COMPILE_AND_EXECUTE);
-			} else {
-				/* printf ("calling transparency list\n"); */
-				glCallList (node->__transparency);
-				return;
-			}
-
-		} else {
-			if  (node->__solid <0 ) {
-				/* printf ("creating solid display list\n"); */
-				node->__solid  = glGenLists(1);
-				createlist = TRUE;
-				glNewList(node->__solid,GL_COMPILE_AND_EXECUTE);
-			} else {
-				/* printf ("calling solid list\n"); */
-				glCallList (node->__solid);
-				return;
-			}
-		}
-	}
-
-
-	if (render_blend == VF_Blend)
-		if ((node->_renderFlags & VF_Blend) != VF_Blend) {
-			if (createlist) glEndList();
-			return;
-		}
-
-	/* do we have a DirectionalLight for a child? */
-	LOCAL_LIGHT_CHILDREN(node->children);
-
-	/* now, just render the non-directionalLight children */
-	normalChildren(node->children);
-
-	if (createlist) glEndList();
-	LOCAL_LIGHT_OFF
-}
-
-#endif
-
 
 void child_Group (struct X3D_Group *node) {
 	CHILDREN_COUNT
 	LOCAL_LIGHT_SAVE
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
-	 /* {
+	 /*{
 		int x;
 		struct X3D_Node *xx;
 
@@ -298,15 +238,15 @@ void child_Group (struct X3D_Group *node) {
          render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 
 		for (x=0; x<nc; x++) {
-			xx = X3D_NODE(node->children.p[x]);
-			printf ("	ch %u type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+			xx = X3D_NODE(node->_sortedChildren.p[x]);
+			printf ("	ch %u type %s dist %f\n",node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
 		}
-	} */
+	}*/
 
 
 		
 	/* do we have a DirectionalLight for a child? */
-	LOCAL_LIGHT_CHILDREN(node->children);
+	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
 
 	/* now, just render the non-directionalLight children */
 	if (node->FreeWRL__protoDef && render_geom) {
@@ -314,7 +254,7 @@ void child_Group (struct X3D_Group *node) {
 		normalChildren(node->children);
 		(node->children).n = nc;
 	} else {
-		normalChildren(node->children);
+		normalChildren(node->_sortedChildren);
 	}
 
 	LOCAL_LIGHT_OFF
@@ -339,8 +279,8 @@ void child_Transform (struct X3D_Transform *node) {
         printf ("      ..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
          render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 		for (x=0; x<nc; x++) {
-			xx = X3D_NODE(node->children.p[x]);
-			printf ("	ch %u type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+			xx = X3D_NODE(node->_sortedChildren.p[x]);
+			printf ("	ch %u type %s dist %f\n",node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
 		}
 	} */
 
@@ -382,7 +322,7 @@ void child_Transform (struct X3D_Transform *node) {
 	}
 #endif
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->children);
+	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
 
 	/* now, just render the non-directionalLight children */
 
@@ -393,7 +333,7 @@ void child_Transform (struct X3D_Transform *node) {
 		printf ("transform - doing normalChildren\n");
 	#endif
 
-	normalChildren(node->children);
+	normalChildren(node->_sortedChildren);
 
 	#ifdef CHILDVERBOSE
 		printf ("transform - done normalChildren\n");

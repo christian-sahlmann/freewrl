@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.45 2009/07/16 15:38:54 istakenv Exp $
+$Id: OpenGL_Utils.c,v 1.46 2009/07/22 14:36:20 crc_canada Exp $
 
 ???
 
@@ -844,7 +844,7 @@ void increaseMemoryTable(){
 
 /* sort children - use bubble sort with early exit flag */
 /* we use this for z buffer rendering; drawing scene in correct z-buffer order */
-static void sortChildren (struct Multi_Node ch) {
+static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh) {
 	int i,j;
 	int nc;
 	int noswitch;
@@ -856,27 +856,37 @@ static void sortChildren (struct Multi_Node ch) {
 	   move around a lot. (Bubblesort is bad when nodes
 	   have to be totally reversed) */
 
-	nc = ch.n;
-	if (nc < 2) return;
+	/* has this changed size? */
+	if (ch->n != sortedCh->n) {
+		FREE_IF_NZ(sortedCh->p);
+		sortedCh->p = MALLOC (sizeof (void *) * ch->n);
+	}
+
+	/* copy the nodes over; we will sort the sorted list */
+	nc = ch->n;
+	memcpy (sortedCh->p,ch->p,sizeof (void *) * nc);
+	sortedCh->n = nc;
 
 	#ifdef VERBOSE
 	printf ("sc start, %d, node %u\n",nc,ch);
 	#endif
 
+	if (nc < 2) return;
+
 	for(i=0; i<nc; i++) {
 		noswitch = TRUE;
 		for (j=(nc-1); j>i; j--) {
 			/* printf ("comparing %d %d\n",i,j); */
-			a = X3D_NODE(ch.p[j-1]);
-			b = X3D_NODE(ch.p[j]);
+			a = X3D_NODE(sortedCh->p[j-1]);
+			b = X3D_NODE(sortedCh->p[j]);
 
 			/* check to see if a child is NULL - if so, skip it */
 			if ((a != NULL) && (b != NULL)) {
 				if (a->_dist > b->_dist) {
 					/* printf ("have to switch %d %d\n",i,j);  */
 					c = a;
-					ch.p[j-1] = b;
-					ch.p[j] = c;
+					sortedCh->p[j-1] = b;
+					sortedCh->p[j] = c;
 					noswitch = FALSE;
 				}
 			}	
@@ -887,16 +897,16 @@ static void sortChildren (struct Multi_Node ch) {
 		}
 	}
 	
-
 	#ifdef VERBOSE
 	printf ("sortChild returning.\n");
 	for(i=0; i<nc; i++) {
-		b = ch.p[i];
-		printf ("child %d %d %f %s\n",i,b,b->_dist,stringNodeType(b->_nodeType));
+		b = sortedCh->p[i];
+		printf ("child %d %u %f %s",i,b,b->_dist,stringNodeType(b->_nodeType));
+		b = ch->p[i];
+		printf (" unsorted %u\n",b);
+
 	}
 	#endif
-
-#undef VERBOSE
 }
 
 /* zero the Visibility flag in all nodes */
@@ -1095,6 +1105,10 @@ void startOfLoopNodeUpdates(void) {
 		}
 	}
 
+	/* sort the rootNode, if it is Not NULL */
+	if (rootNode != NULL) {
+		sortChildren (&X3D_GROUP(rootNode)->children, &X3D_GROUP(rootNode)->_sortedChildren);
+	}
 
 	/* go through the list of nodes, and "work" on any that need work */
 	nParents = 0;
@@ -1198,7 +1212,7 @@ void startOfLoopNodeUpdates(void) {
 	
 				/* Anchor is Mouse Sensitive, AND has Children nodes */
 				BEGIN_NODE(Anchor)
-					sortChildren(X3D_ANCHOR(node)->children);
+					sortChildren(&X3D_ANCHOR(node)->children,&X3D_ANCHOR(node)->_sortedChildren);
 					propagateExtent(X3D_NODE(node));
 					ANCHOR_SENSITIVE(Anchor)
 					CHILDREN_NODE(Anchor)
@@ -1210,25 +1224,26 @@ void startOfLoopNodeUpdates(void) {
 	
 				BEGIN_NODE(StaticGroup)
 					/* we should probably not do this, but... */
-					sortChildren(X3D_STATICGROUP(node)->children);
+					sortChildren(&X3D_STATICGROUP(node)->children,&X3D_STATICGROUP(node)->_sortedChildren);
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
 
 				/* does this one possibly have add/removeChildren? */
 				BEGIN_NODE(Group) 
-					/* do NOT sort if this is a PROTO */
-					if (!X3D_GROUP(node)->FreeWRL__protoDef) sortChildren(X3D_GROUP(node)->children);
+					sortChildren(&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren);
+
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Group) 
 				END_NODE
 
 				BEGIN_NODE(Inline) 
-					sortChildren (X3D_INLINE(node)->__children);
+					sortChildren (&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren);
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
 				BEGIN_NODE(Transform) 
+					sortChildren(&X3D_TRANSFORM(node)->children,&X3D_TRANSFORM(node)->_sortedChildren);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Transform) 
 				END_NODE
@@ -1254,14 +1269,14 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				BEGIN_NODE(Billboard) 
-					sortChildren (X3D_BILLBOARD(node)->children);
+					sortChildren (&X3D_BILLBOARD(node)->children,&X3D_BILLBOARD(node)->_sortedChildren);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Billboard) 
                 			update_renderFlag(node,VF_Proximity);
 				END_NODE
 
 				BEGIN_NODE(Collision) 
-					sortChildren (X3D_COLLISION(node)->children);
+					sortChildren (&X3D_COLLISION(node)->children,&X3D_COLLISION(node)->_sortedChildren);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Collision) 
 				END_NODE
@@ -1319,13 +1334,13 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				BEGIN_NODE (GeoTransform)
-					sortChildren(X3D_GEOLOCATION(node)->children);
+					sortChildren(&X3D_GEOTRANSFORM(node)->children,&X3D_GEOTRANSFORM(node)->_sortedChildren);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(GeoTransform) 
 				END_NODE
 
 				BEGIN_NODE (GeoLocation)
-					sortChildren(X3D_GEOLOCATION(node)->children);
+					sortChildren(&X3D_GEOLOCATION(node)->children,&X3D_GEOLOCATION(node)->_sortedChildren);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(GeoLocation) 
 				END_NODE
@@ -1375,6 +1390,7 @@ void startOfLoopNodeUpdates(void) {
 				/* VRML1 Separator node; we do a bare bones implementation; always assume there are 
 					lights, geometry, and viewpoints here. */
 				BEGIN_NODE(VRML1_Separator) 
+					sortChildren(&VRML1_SEPARATOR(node)->VRML1children,&VRML1_SEPARATOR(node)->_sortedChildren);
 					propagateExtent(X3D_NODE(node));
 					update_renderFlag(X3D_NODE(node),VF_localLight|VF_Viewpoint|VF_Geom|VF_hasVisibleChildren);
 				END_NODE
@@ -1488,7 +1504,6 @@ void kill_X3DNodes(void){
 			#endif
 
 			/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
-			
 			if (*fieldOffsetsPtr == FIELDNAMES_setValue) 
 				break; /* can be a duplicate SF/MFNode pointer */
 		

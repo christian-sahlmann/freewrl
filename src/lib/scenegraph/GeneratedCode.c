@@ -50,59 +50,30 @@
 /* Table of built-in fieldIds */
        const char *FIELDNAMES[] = {
 	"wrapS",
-	"topTexture",
 	"_Value",
-	"position_changed",
 	"integerKey",
 	"activate",
-	"_initialized",
-	"__hit",
 	"rootNode",
 	"whichChoice",
 	"load",
 	"textureCoordIndex",
-	"vector",
-	"maxBack",
 	"isLoaded",
 	"rotation",
-	"modifiedFraction_changed",
-	"_bus",
 	"scaleFactor",
-	"controllerType",
-	"geoCoord_changed",
-	"set_index",
-	"__segCount",
-	"stiffness",
 	"toggle",
-	"minificationFilter",
-	"attrib",
 	"title",
-	"child4Url",
 	"geoGridOrigin",
 	"volumeFloatVal",
 	"__child4Node",
-	"rightUrl",
-	"time",
-	"fraction_changed",
 	"stripCount",
-	"segments",
 	"groundColor",
-	"texture",
 	"previous",
 	"direction",
-	"programs",
 	"maxPosition",
-	"speed",
-	"fillProperties",
 	"removeChildren",
-	"controllerPresent",
 	"skin",
-	"maxAngle",
-	"__movedValue",
 	"speedFactor",
-	"version",
 	"__shaderObj",
-	"image",
 	"vertices",
 	"filename",
 	"autoButtonPress",
@@ -113,87 +84,38 @@
 	"inputTrue",
 	"__localFileName",
 	"backAmbientIntensity",
-	"__botpoints",
-	"levelChanged",
-	"set_crossSection",
 	"exitTime",
-	"colorIndex",
 	"joints",
 	"_oldhitNormal",
-	"order",
-	"duration_changed",
 	"deletionAllowed",
-	"geometry",
 	"translation",
-	"textureProperties",
 	"__inRange",
-	"_channel",
-	"watchList",
 	"child2Url",
 	"limitOrientation",
 	"skeleton",
-	"lineProperties",
-	"_controller",
 	"_oldhitPoint",
-	"data",
-	"centerOfRotation",
-	"minBack",
 	"type",
-	"__vertIndx",
-	"backShininess",
-	"__movedCoords",
 	"creaseAngle",
 	"triggerTime",
-	"__isX3D",
-	"closed",
-	"__vertArr",
-	"global",
-	"trackPoint_changed",
-	"vTessellation",
 	"displacers",
 	"isActive",
-	"minVal",
-	"back",
 	"__childloadstatus",
-	"__rightTexture",
-	"__compiledmode",
-	"pressTime",
 	"bboxCenter",
-	"emissiveColor",
-	"geoCenter",
 	"xDimension",
 	"centerOfMass",
-	"filled",
 	"set_orientation",
-	"groundAngle",
 	"set_position",
 	"solid",
 	"mode",
 	"__textureTableIndex",
-	"isValid",
-	"string",
-	"children",
-	"isBound",
-	"triggerValue",
 	"map",
-	"__compiledpoint",
 	"on",
-	"controlKey",
 	"leftUrl",
-	"__bottomTexture",
-	"textureCompression",
 	"__do_anything",
-	"frontTexture",
-	"centerOfRotation_changed",
-	"diskAngle",
-	"__Samples",
 	"isOver",
-	"__do_rotation",
 	"shininess",
 	"texturePriority",
 	"description",
-	"set_fraction",
-	"transitionComplete",
 	"_wrapT",
 	"top",
 	"dropOffRate",
@@ -206,188 +128,98 @@
 	"__lastParent",
 	"front",
 	"leftToRight",
-	"__inittime",
 	"__occludeCheckCount",
-	"backUrl",
-	"size",
 	"boundaryModeT",
-	"maxExtent",
-	"orientation_changed",
 	"summary",
-	"buttonPress",
-	"__child3Node",
 	"info",
-	"materialIndex",
-	"style",
 	"_dlchange",
-	"hatchColor",
-	"bottom",
 	"backSpecularColor",
 	"ambientIntensity",
-	"justify",
-	"side",
-	"frontUrl",
 	"headlight",
 	"highResolution",
 	"cycleInterval",
-	"dimension",
 	"mass",
 	"pitch",
 	"rotateYUp",
 	"bottomTexture",
 	"__oldJump",
-	"_solid",
-	"separateBackColor",
 	"sites",
-	"__rootUrl",
-	"maxVal",
-	"depth",
-	"bindTime",
 	"_rotationAngle",
 	"__t2",
 	"parameter",
 	"borderWidth",
-	"set_boolean",
 	"backTransparency",
 	"generateMipMaps",
 	"tessellation",
-	"fieldOfView",
 	"scale",
-	"__oldHeadlight",
 	"proxy",
 	"_coord",
 	"translation_changed",
 	"renderCulling",
 	"__numPoints",
-	"borderColor",
-	"set_height",
 	"ambientColor",
-	"child1Url",
-	"set_colorIndex",
-	"endCap",
 	"maxFront",
 	"rightTexture",
-	"reference",
 	"set_spine",
-	"uTessellation",
 	"__t1",
 	"__textureright",
 	"rotation_changed",
-	"__normals",
-	"_oldhitTexCoord",
-	"set_triggerTime",
 	"skinCoordWeight",
-	"__oldKeyValuePtr",
-	"value_changed",
 	"plane",
-	"keyValue",
 	"radius",
-	"bottomRadius",
-	"mustEvaluate",
 	"controlPoint",
-	"tessellationScale",
-	"diffuseColor",
-	"startIndex",
 	"point",
-	"_vertValue",
 	"__oldurl",
-	"__oldmetadata",
-	"inputNegate",
-	"keyWeight",
 	"__ctex",
 	"normal",
 	"__leftTexture",
 	"_oldrotation",
 	"loop",
-	"key",
 	"_wrapS",
-	"_typeValue",
-	"ulimit",
 	"actionKeyPress",
-	"__quadcount",
-	"__texture0_",
-	"skinCoord",
 	"horizontal",
 	"enabled",
-	"yScale",
-	"__oldEnabled",
-	"__movedOrientation",
-	"name",
-	"texCoord",
-	"_ccw",
 	"fanCount",
-	"lineBounds",
 	"triggerTrue",
-	"hatched",
 	"__child2Node",
 	"shapeType",
 	"avatarSize",
 	"collide",
 	"specularColor",
-	"easeInEaseOut",
 	"transitionTime",
-	"_creaseAngle",
 	"_oldintValue",
-	"level_changed",
 	"color",
 	"deviceMinVal",
 	"axisOfRotation",
-	"__texCoords",
-	"geovalue_changed",
-	"_texCoord",
 	"backEmissiveColor",
 	"repeatT",
 	"_npv",
-	"texCoordIndex",
 	"__visible",
-	"__vertexCount",
-	"transparency",
-	"beginCap",
-	"textureTransform",
-	"set_bind",
-	"progress",
 	"__movedPosition",
-	"__sourceNumber",
 	"topToBottom",
 	"viewpoints",
 	"FreeWRL__protoDef",
-	"height",
 	"__texture1_",
 	"length",
-	"_deviceNameIndex",
 	"index",
 	"__oldFieldOfView",
-	"right",
-	"panFloatVal",
 	"intensity",
 	"navType",
 	"update",
-	"__localOrient",
 	"__parenturl",
 	"heightAngle",
 	"__loading",
 	"next",
 	"volumeInt32Val",
-	"startAngle",
 	"__level",
 	"isPaused",
-	"weight",
-	"minAngle",
-	"visibilityLimit",
-	"_vel",
 	"value",
-	"_sentVel",
 	"__child1Node",
 	"_color",
 	"__scriptObj",
 	"keyRelease",
 	"__backTexture",
 	"stopTime",
-	"deltaInt32Val",
-	"__oldSize",
-	"__loadstatus",
-	"collideTime",
-	"_radius",
 	"_faceValue",
 	"crossSection",
 	"position",
@@ -395,173 +227,342 @@
 	"xSpacing",
 	"__do_scaleO",
 	"faceType",
-	"magnificationFilter",
 	"__transparency",
 	"controller",
-	"numComponents",
-	"fogCoord",
 	"_butPr",
 	"scaleOrientation",
-	"__oldGeoCenter",
-	"choice",
 	"__ctflag",
 	"inputFalse",
 	"bottomUrl",
 	"hitPoint_changed",
 	"boundaryModeS",
-	"hatchStyle",
-	"__params",
+	"_sortedChildren",
 	"set_normalIndex",
-	"cutOffAngle",
 	"knot",
 	"justification",
 	"fogType",
 	"skyColor",
 	"spacing",
 	"_oldtranslation",
-	"minPosition",
 	"displacements",
 	"panInt32Val",
 	"topUrl",
-	"linewidthScaleFactor",
 	"__colours",
 	"__BGNumber",
 	"geoSystem",
-	"deltaFloatVal",
-	"__geoSystem",
-	"finalText",
-	"rootUrl",
 	"__shaderIDS",
 	"addChildren",
 	"attenuation",
-	"FreeWRL_PROTOInterfaceNodes",
-	"coord",
-	"url",
-	"startTime",
-	"__topTexture",
-	"__frontTexture",
-	"minFront",
 	"__oldLen",
 	"endAngle",
 	"__oldKeyPtr",
 	"hitGeoCoord_changed",
 	"focalDistance",
-	"ccw",
 	"cycleTime",
-	"valueChanged",
 	"deviceName",
-	"_controllerIndex",
 	"boundaryModeR",
 	"__oldChildren",
 	"intValue",
-	"level",
-	"vertexCount",
-	"transitionType",
 	"applied",
 	"backTexture",
-	"__rendersub",
 	"function",
-	"llimit",
 	"setValue",
-	"keyPress",
-	"range",
 	"channel",
 	"velocity",
-	"resumeTime",
 	"hitTexCoord_changed",
 	"alpha",
-	"vertexOrdering",
 	"enteredText",
 	"_origNormalizedPoint",
-	"forceTransitions",
 	"repeatS",
 	"_origPoint",
 	"__do_trans",
 	"backDiffuseColor",
 	"bboxSize",
-	"language",
-	"shaders",
-	"VRML1children",
-	"_cpv",
-	"shiftKey",
 	"visibilityRange",
-	"leftTexture",
-	"lineSegments",
-	"momentsOfInertia",
 	"textBounds",
-	"coordIndex",
 	"skinCoordIndex",
-	"material",
 	"_coordIndex",
 	"priority",
-	"_selected",
 	"linetype",
 	"_oldtrackPoint",
-	"set_scale",
-	"loadTime",
-	"_convex",
-	"actionKeyRelease",
-	"deviceMaxVal",
-	"pressLength",
-	"isSelected",
-	"__oldMFString",
-	"child3Url",
 	"spatialize",
-	"pauseTime",
 	"normalizeVelocity",
 	"metadata",
 	"geoOrigin",
 	"__do_center",
 	"geoCoords",
-	"_ILS",
-	"normalIndex",
-	"beamWidth",
 	"location",
 	"colorPerVertex",
 	"origin",
-	"zSpacing",
 	"jump",
 	"directOutput",
 	"__oldgeoCoords",
 	"timeOut",
-	"__oldSFString",
 	"hitNormal_changed",
 	"skyAngle",
 	"useIntValue",
 	"closureType",
-	"innerRadius",
-	"fontStyle",
 	"__finishedloading",
-	"convex",
 	"enterTime",
-	"set_texCoordIndex",
-	"orientation",
-	"whichChild",
-	"appearance",
-	"autoOffset",
 	"center",
 	"__rooturlloadstatus",
-	"wrapT",
-	"zDimension",
 	"altKey",
 	"spine",
-	"maxDelta",
 	"floatValue",
 	"offset",
-	"_intControllerType",
 	"__StartLoadTime",
-	"_normal",
-	"set_coordIndex",
 	"__points",
-	"elapsedTime",
-	"numPoints",
 	"anisotropicDegree",
-	"__vertices",
 	"parts",
 	"keyVelocity",
-	"__initialized",
 	"__simpleDisk",
 	"normalPerVertex",
+	"topTexture",
+	"position_changed",
+	"_initialized",
+	"__hit",
+	"maxBack",
+	"vector",
+	"modifiedFraction_changed",
+	"_bus",
+	"geoCoord_changed",
+	"controllerType",
+	"set_index",
+	"stiffness",
+	"__segCount",
+	"minificationFilter",
+	"attrib",
+	"child4Url",
+	"rightUrl",
+	"time",
+	"fraction_changed",
+	"segments",
+	"texture",
+	"speed",
+	"programs",
+	"fillProperties",
+	"maxAngle",
+	"controllerPresent",
+	"__movedValue",
+	"version",
+	"image",
+	"__botpoints",
+	"set_crossSection",
+	"levelChanged",
+	"colorIndex",
+	"duration_changed",
+	"order",
+	"geometry",
+	"textureProperties",
+	"watchList",
+	"_channel",
+	"lineProperties",
+	"_controller",
+	"data",
+	"centerOfRotation",
+	"minBack",
+	"__vertIndx",
+	"backShininess",
+	"__movedCoords",
+	"__isX3D",
+	"__vertArr",
+	"closed",
+	"trackPoint_changed",
+	"global",
+	"vTessellation",
+	"back",
+	"minVal",
+	"__rightTexture",
+	"__compiledmode",
+	"pressTime",
+	"geoCenter",
+	"emissiveColor",
+	"filled",
+	"groundAngle",
+	"isValid",
+	"children",
+	"string",
+	"isBound",
+	"triggerValue",
+	"__compiledpoint",
+	"__bottomTexture",
+	"controlKey",
+	"textureCompression",
+	"frontTexture",
+	"centerOfRotation_changed",
+	"diskAngle",
+	"__Samples",
+	"__do_rotation",
+	"set_fraction",
+	"transitionComplete",
+	"__inittime",
+	"backUrl",
+	"size",
+	"maxExtent",
+	"orientation_changed",
+	"__child3Node",
+	"buttonPress",
+	"materialIndex",
+	"style",
+	"bottom",
+	"hatchColor",
+	"justify",
+	"side",
+	"frontUrl",
+	"dimension",
+	"_solid",
+	"separateBackColor",
+	"__rootUrl",
+	"maxVal",
+	"bindTime",
+	"depth",
+	"set_boolean",
+	"fieldOfView",
+	"__oldHeadlight",
+	"set_height",
+	"borderColor",
+	"child1Url",
+	"endCap",
+	"set_colorIndex",
+	"reference",
+	"uTessellation",
+	"__normals",
+	"set_triggerTime",
+	"_oldhitTexCoord",
+	"value_changed",
+	"__oldKeyValuePtr",
+	"keyValue",
+	"bottomRadius",
+	"mustEvaluate",
+	"diffuseColor",
+	"tessellationScale",
+	"startIndex",
+	"_vertValue",
+	"__oldmetadata",
+	"inputNegate",
+	"keyWeight",
+	"key",
+	"_typeValue",
+	"ulimit",
+	"__quadcount",
+	"skinCoord",
+	"__texture0_",
+	"yScale",
+	"__movedOrientation",
+	"__oldEnabled",
+	"name",
+	"texCoord",
+	"_ccw",
+	"lineBounds",
+	"hatched",
+	"easeInEaseOut",
+	"_creaseAngle",
+	"level_changed",
+	"__texCoords",
+	"geovalue_changed",
+	"_texCoord",
+	"texCoordIndex",
+	"beginCap",
+	"transparency",
+	"__vertexCount",
+	"set_bind",
+	"textureTransform",
+	"__sourceNumber",
+	"progress",
+	"height",
+	"right",
+	"_deviceNameIndex",
+	"panFloatVal",
+	"__localOrient",
+	"startAngle",
+	"minAngle",
+	"weight",
+	"visibilityLimit",
+	"_vel",
+	"_sentVel",
+	"__oldSize",
+	"deltaInt32Val",
+	"_radius",
+	"collideTime",
+	"__loadstatus",
+	"magnificationFilter",
+	"numComponents",
+	"fogCoord",
+	"__oldGeoCenter",
+	"choice",
+	"hatchStyle",
+	"__params",
+	"cutOffAngle",
+	"minPosition",
+	"linewidthScaleFactor",
+	"__geoSystem",
+	"deltaFloatVal",
+	"rootUrl",
+	"finalText",
+	"FreeWRL_PROTOInterfaceNodes",
+	"url",
+	"coord",
+	"startTime",
+	"__frontTexture",
+	"__topTexture",
+	"minFront",
+	"ccw",
+	"valueChanged",
+	"_controllerIndex",
+	"level",
+	"vertexCount",
+	"transitionType",
+	"__rendersub",
+	"llimit",
+	"range",
+	"keyPress",
+	"resumeTime",
+	"forceTransitions",
+	"vertexOrdering",
+	"shaders",
+	"language",
+	"shiftKey",
+	"_cpv",
+	"VRML1children",
+	"leftTexture",
+	"momentsOfInertia",
+	"lineSegments",
+	"coordIndex",
+	"material",
+	"_selected",
+	"set_scale",
+	"loadTime",
+	"_convex",
+	"actionKeyRelease",
+	"__oldMFString",
+	"isSelected",
+	"pressLength",
+	"deviceMaxVal",
+	"child3Url",
+	"pauseTime",
+	"_ILS",
+	"normalIndex",
+	"beamWidth",
+	"zSpacing",
+	"__oldSFString",
+	"innerRadius",
+	"fontStyle",
+	"convex",
+	"orientation",
+	"set_texCoordIndex",
+	"whichChild",
+	"autoOffset",
+	"appearance",
+	"wrapT",
+	"zDimension",
+	"maxDelta",
+	"_intControllerType",
+	"set_coordIndex",
+	"_normal",
+	"elapsedTime",
+	"numPoints",
+	"__vertices",
+	"__initialized",
 };
 const indexT FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);
 
@@ -1728,6 +1729,7 @@ const int OFFSETS_Anchor[] = {
 	FIELDNAMES_children, offsetof (struct X3D_Anchor, children),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_description, offsetof (struct X3D_Anchor, description),  FIELDTYPE_SFString, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_addChildren, offsetof (struct X3D_Anchor, addChildren),  FIELDTYPE_MFNode, KW_inputOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES__sortedChildren, offsetof (struct X3D_Anchor, _sortedChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
 	FIELDNAMES_parameter, offsetof (struct X3D_Anchor, parameter),  FIELDTYPE_MFString, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_Anchor, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_url, offsetof (struct X3D_Anchor, url),  FIELDTYPE_MFString, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -1850,6 +1852,7 @@ const int OFFSETS_Billboard[] = {
 	FIELDNAMES_children, offsetof (struct X3D_Billboard, children),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES__rotationAngle, offsetof (struct X3D_Billboard, _rotationAngle),  FIELDTYPE_SFDouble, KW_initializeOnly,0,
 	FIELDNAMES_addChildren, offsetof (struct X3D_Billboard, addChildren),  FIELDTYPE_MFNode, KW_inputOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES__sortedChildren, offsetof (struct X3D_Billboard, _sortedChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
 	FIELDNAMES_axisOfRotation, offsetof (struct X3D_Billboard, axisOfRotation),  FIELDTYPE_SFVec3f, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_Billboard, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_metadata, offsetof (struct X3D_Billboard, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -1918,6 +1921,7 @@ const int OFFSETS_ClipPlane[] = {
 const int OFFSETS_Collision[] = {
 	FIELDNAMES_children, offsetof (struct X3D_Collision, children),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_addChildren, offsetof (struct X3D_Collision, addChildren),  FIELDTYPE_MFNode, KW_inputOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES__sortedChildren, offsetof (struct X3D_Collision, _sortedChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
 	FIELDNAMES___hit, offsetof (struct X3D_Collision, __hit),  FIELDTYPE_SFInt32, KW_inputOutput,0,
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_Collision, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_metadata, offsetof (struct X3D_Collision, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -2261,15 +2265,16 @@ const int OFFSETS_GeoLocation[] = {
 	FIELDNAMES_children, offsetof (struct X3D_GeoLocation, children),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___geoSystem, offsetof (struct X3D_GeoLocation, __geoSystem),  FIELDTYPE_MFInt32, KW_initializeOnly,0,
 	FIELDNAMES_addChildren, offsetof (struct X3D_GeoLocation, addChildren),  FIELDTYPE_MFNode, KW_inputOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES___oldChildren, offsetof (struct X3D_GeoLocation, __oldChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
-	FIELDNAMES___oldgeoCoords, offsetof (struct X3D_GeoLocation, __oldgeoCoords),  FIELDTYPE_SFVec3d, KW_inputOutput,0,
-	FIELDNAMES_bboxCenter, offsetof (struct X3D_GeoLocation, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES_geoOrigin, offsetof (struct X3D_GeoLocation, geoOrigin),  FIELDTYPE_SFNode, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_metadata, offsetof (struct X3D_GeoLocation, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_geoOrigin, offsetof (struct X3D_GeoLocation, geoOrigin),  FIELDTYPE_SFNode, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_geoCoords, offsetof (struct X3D_GeoLocation, geoCoords),  FIELDTYPE_SFVec3d, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES___oldmetadata, offsetof (struct X3D_GeoLocation, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES_bboxSize, offsetof (struct X3D_GeoLocation, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_removeChildren, offsetof (struct X3D_GeoLocation, removeChildren),  FIELDTYPE_MFNode, KW_inputOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES__sortedChildren, offsetof (struct X3D_GeoLocation, _sortedChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
+	FIELDNAMES___oldgeoCoords, offsetof (struct X3D_GeoLocation, __oldgeoCoords),  FIELDTYPE_SFVec3d, KW_inputOutput,0,
+	FIELDNAMES___oldChildren, offsetof (struct X3D_GeoLocation, __oldChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
+	FIELDNAMES_bboxCenter, offsetof (struct X3D_GeoLocation, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___oldmetadata, offsetof (struct X3D_GeoLocation, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES___localOrient, offsetof (struct X3D_GeoLocation, __localOrient),  FIELDTYPE_SFVec4d, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
@@ -2374,6 +2379,7 @@ const int OFFSETS_GeoTransform[] = {
 	FIELDNAMES_bboxSize, offsetof (struct X3D_GeoTransform, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D33),
 	FIELDNAMES_rotation, offsetof (struct X3D_GeoTransform, rotation),  FIELDTYPE_SFRotation, KW_inputOutput,(SPEC_X3D33),
 	FIELDNAMES___do_rotation, offsetof (struct X3D_GeoTransform, __do_rotation),  FIELDTYPE_SFInt32, KW_initializeOnly,0,
+	FIELDNAMES__sortedChildren, offsetof (struct X3D_GeoTransform, _sortedChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
 	FIELDNAMES___oldChildren, offsetof (struct X3D_GeoTransform, __oldChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_GeoTransform, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D33),
 	FIELDNAMES_geoCenter, offsetof (struct X3D_GeoTransform, geoCenter),  FIELDTYPE_SFVec3d, KW_inputOutput,(SPEC_X3D33),
@@ -2416,6 +2422,7 @@ const int OFFSETS_Group[] = {
 	FIELDNAMES_children, offsetof (struct X3D_Group, children),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_FreeWRL__protoDef, offsetof (struct X3D_Group, FreeWRL__protoDef),  FIELDTYPE_SFInt32, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_addChildren, offsetof (struct X3D_Group, addChildren),  FIELDTYPE_MFNode, KW_inputOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES__sortedChildren, offsetof (struct X3D_Group, _sortedChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
 	FIELDNAMES_FreeWRL_PROTOInterfaceNodes, offsetof (struct X3D_Group, FreeWRL_PROTOInterfaceNodes),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_Group, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_metadata, offsetof (struct X3D_Group, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -2641,14 +2648,15 @@ const int OFFSETS_IndexedTriangleStripSet[] = {
 
 const int OFFSETS_Inline[] = {
 	FIELDNAMES___parenturl, offsetof (struct X3D_Inline, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,0,
+	FIELDNAMES__sortedChildren, offsetof (struct X3D_Inline, _sortedChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_Inline, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_url, offsetof (struct X3D_Inline, url),  FIELDTYPE_MFString, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___children, offsetof (struct X3D_Inline, __children),  FIELDTYPE_MFNode, KW_inputOutput,0,
 	FIELDNAMES_metadata, offsetof (struct X3D_Inline, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_load, offsetof (struct X3D_Inline, load),  FIELDTYPE_SFBool, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Inline, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
-	FIELDNAMES_bboxSize, offsetof (struct X3D_Inline, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___loadstatus, offsetof (struct X3D_Inline, __loadstatus),  FIELDTYPE_SFInt32, KW_initializeOnly,0,
+	FIELDNAMES_bboxSize, offsetof (struct X3D_Inline, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_IntegerSequencer[] = {
@@ -3536,12 +3544,13 @@ const int OFFSETS_SquadOrientationInterpolator[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_StaticGroup[] = {
-	FIELDNAMES_bboxCenter, offsetof (struct X3D_StaticGroup, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	FIELDNAMES_metadata, offsetof (struct X3D_StaticGroup, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_children, offsetof (struct X3D_StaticGroup, children),  FIELDTYPE_MFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___solid, offsetof (struct X3D_StaticGroup, __solid),  FIELDTYPE_SFInt32, KW_initializeOnly,0,
-	FIELDNAMES___oldmetadata, offsetof (struct X3D_StaticGroup, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES___transparency, offsetof (struct X3D_StaticGroup, __transparency),  FIELDTYPE_SFInt32, KW_initializeOnly,0,
+	FIELDNAMES__sortedChildren, offsetof (struct X3D_StaticGroup, _sortedChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
+	FIELDNAMES_bboxCenter, offsetof (struct X3D_StaticGroup, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES_metadata, offsetof (struct X3D_StaticGroup, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___oldmetadata, offsetof (struct X3D_StaticGroup, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
 	FIELDNAMES_bboxSize, offsetof (struct X3D_StaticGroup, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
@@ -3709,6 +3718,7 @@ const int OFFSETS_Transform[] = {
 	FIELDNAMES_bboxSize, offsetof (struct X3D_Transform, bboxSize),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_rotation, offsetof (struct X3D_Transform, rotation),  FIELDTYPE_SFRotation, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___do_rotation, offsetof (struct X3D_Transform, __do_rotation),  FIELDTYPE_SFInt32, KW_initializeOnly,0,
+	FIELDNAMES__sortedChildren, offsetof (struct X3D_Transform, _sortedChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_Transform, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_scale, offsetof (struct X3D_Transform, scale),  FIELDTYPE_SFVec3f, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___do_scale, offsetof (struct X3D_Transform, __do_scale),  FIELDTYPE_SFInt32, KW_initializeOnly,0,
@@ -3937,6 +3947,7 @@ const int OFFSETS_VRML1_Scale[] = {
 const int OFFSETS_VRML1_Separator[] = {
 	FIELDNAMES_renderCulling, offsetof (struct X3D_VRML1_Separator, renderCulling),  FIELDTYPE_SFString, KW_inputOutput,SPEC_VRML1,
 	FIELDNAMES_VRML1children, offsetof (struct X3D_VRML1_Separator, VRML1children),  FIELDTYPE_MFNode, KW_inputOutput,SPEC_VRML1,
+	FIELDNAMES__sortedChildren, offsetof (struct X3D_VRML1_Separator, _sortedChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VRML1_ShapeHints[] = {
@@ -4740,6 +4751,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->description = newASCIIString("");
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->parameter.n=0; tmp2->parameter.p=0;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
 			tmp2->url.n=0; tmp2->url.p=0;
@@ -4895,6 +4907,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->_rotationAngle = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->axisOfRotation.c[0] = 0;tmp2->axisOfRotation.c[1] = 1;tmp2->axisOfRotation.c[2] = 0;;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
 			tmp2->metadata = NULL;
@@ -4995,6 +5008,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->v = &virt_Collision;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->__hit = 0;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
 			tmp2->metadata = NULL;
@@ -5484,15 +5498,16 @@ void *createNewX3DNode (int nt) {
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->__geoSystem.n=0; tmp2->__geoSystem.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->__oldChildren.n=0; tmp2->__oldChildren.p=0;
-			tmp2->__oldgeoCoords.c[0] = 0;tmp2->__oldgeoCoords.c[1] = 0;tmp2->__oldgeoCoords.c[2] = 0;;
-			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
-			tmp2->geoOrigin = NULL;
 			tmp2->metadata = NULL;
+			tmp2->geoOrigin = NULL;
 			tmp2->geoCoords.c[0] = 0;tmp2->geoCoords.c[1] = 0;tmp2->geoCoords.c[2] = 0;;
-			tmp2->__oldmetadata = 0;
 			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
+			tmp2->__oldgeoCoords.c[0] = 0;tmp2->__oldgeoCoords.c[1] = 0;tmp2->__oldgeoCoords.c[2] = 0;;
+			tmp2->__oldChildren.n=0; tmp2->__oldChildren.p=0;
+			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
+			tmp2->__oldmetadata = 0;
 			tmp2->__localOrient.c[0] = 0;tmp2->__localOrient.c[1] = 0;tmp2->__localOrient.c[2] = 1;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
@@ -5621,6 +5636,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
 			tmp2->__do_rotation = 0;
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->__oldChildren.n=0; tmp2->__oldChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
 			tmp2->geoCenter.c[0] = 0;tmp2->geoCenter.c[1] = 0;tmp2->geoCenter.c[2] = 0;;
@@ -5671,6 +5687,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->FreeWRL__protoDef = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->FreeWRL_PROTOInterfaceNodes.n=0; tmp2->FreeWRL_PROTOInterfaceNodes.p=0;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
 			tmp2->metadata = NULL;
@@ -5962,14 +5979,15 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_Inline *) tmp;
 			tmp2->v = &virt_Inline;
 			tmp2->__parenturl = newASCIIString(getInputURL());
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
 			tmp2->url.n=0; tmp2->url.p=0;
 			tmp2->__children.n=0; tmp2->__children.p=0;
 			tmp2->metadata = NULL;
 			tmp2->load = TRUE;
 			tmp2->__oldmetadata = 0;
-			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
 			tmp2->__loadstatus = 0;
+			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7257,12 +7275,13 @@ void *createNewX3DNode (int nt) {
 			struct X3D_StaticGroup * tmp2;
 			tmp2 = (struct X3D_StaticGroup *) tmp;
 			tmp2->v = &virt_StaticGroup;
-			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
-			tmp2->metadata = NULL;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->__solid = -1;
-			tmp2->__oldmetadata = 0;
 			tmp2->__transparency = -1;
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
+			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
+			tmp2->metadata = NULL;
+			tmp2->__oldmetadata = 0;
 			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
@@ -7485,6 +7504,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->bboxSize.c[0] = -1;tmp2->bboxSize.c[1] = -1;tmp2->bboxSize.c[2] = -1;;
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
 			tmp2->__do_rotation = FALSE;
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
 			tmp2->scale.c[0] = 1;tmp2->scale.c[1] = 1;tmp2->scale.c[2] = 1;;
 			tmp2->__do_scale = FALSE;
@@ -7872,6 +7892,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->v = &virt_VRML1_Separator;
 			tmp2->renderCulling = newASCIIString("AUTO");
 			tmp2->VRML1children.n=0; tmp2->VRML1children.p=0;
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8081,6 +8102,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tchildren (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
 			spacer printf ("\tdescription (SFString) \t%s\n",tmp->description->strptr);
+			spacer printf ("\t_sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(level+1,tmp->_sortedChildren.p[i]); }
 			spacer printf ("\tparameter (MFString): \n");
 			for (i=0; i<tmp->parameter.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->parameter.p[i]->strptr); }
 			spacer printf ("\turl (MFString): \n");
@@ -8190,6 +8213,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_Billboard *) node;
 			spacer printf ("\tchildren (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
+			spacer printf ("\t_sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(level+1,tmp->_sortedChildren.p[i]); }
 			spacer printf ("\taxisOfRotation (SFVec3f): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->axisOfRotation.c[i]); }
 			printf ("\n");
@@ -8255,6 +8280,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_Collision *) node;
 			spacer printf ("\tchildren (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
+			spacer printf ("\t_sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(level+1,tmp->_sortedChildren.p[i]); }
 			spacer printf ("\t__hit (SFInt32) \t%d\n",tmp->__hit);
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
@@ -8538,15 +8565,17 @@ void dump_scene (int level, struct X3D_Node* node) {
 			printf ("\n");
 			spacer printf ("\tchildren (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
-			spacer printf ("\t__oldChildren (MFNode):\n");
-			for (i=0; i<tmp->__oldChildren.n; i++) { dump_scene(level+1,tmp->__oldChildren.p[i]); }
-			spacer printf ("\t__oldgeoCoords (SFVec3d): \t");
-			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->__oldgeoCoords.c[i]); }
-			printf ("\n");
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\tgeoCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->geoCoords.c[i]); }
 			printf ("\n");
+			spacer printf ("\t_sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(level+1,tmp->_sortedChildren.p[i]); }
+			spacer printf ("\t__oldgeoCoords (SFVec3d): \t");
+			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->__oldgeoCoords.c[i]); }
+			printf ("\n");
+			spacer printf ("\t__oldChildren (MFNode):\n");
+			for (i=0; i<tmp->__oldChildren.n; i++) { dump_scene(level+1,tmp->__oldChildren.p[i]); }
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 			spacer printf ("\t__localOrient (SFVec4d): \t");
 			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->__localOrient.c[i]); }
@@ -8656,6 +8685,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\trotation (SFRotation): \t");
 			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->rotation.c[i]); }
 			printf ("\n");
+			spacer printf ("\t_sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(level+1,tmp->_sortedChildren.p[i]); }
 			spacer printf ("\t__oldChildren (MFNode):\n");
 			for (i=0; i<tmp->__oldChildren.n; i++) { dump_scene(level+1,tmp->__oldChildren.p[i]); }
 			spacer printf ("\tgeoCenter (SFVec3d): \t");
@@ -8701,6 +8732,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 			tmp = (struct X3D_Group *) node;
 			spacer printf ("\tchildren (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
+			spacer printf ("\t_sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(level+1,tmp->_sortedChildren.p[i]); }
 			spacer printf ("\tFreeWRL_PROTOInterfaceNodes (MFNode):\n");
 			for (i=0; i<tmp->FreeWRL_PROTOInterfaceNodes.n; i++) { dump_scene(level+1,tmp->FreeWRL_PROTOInterfaceNodes.p[i]); }
 			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
@@ -8922,6 +8955,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_Inline : {
 			struct X3D_Inline *tmp;
 			tmp = (struct X3D_Inline *) node;
+			spacer printf ("\t_sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(level+1,tmp->_sortedChildren.p[i]); }
 			spacer printf ("\turl (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer printf ("			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 			spacer printf ("\t__children (MFNode):\n");
@@ -9834,9 +9869,11 @@ void dump_scene (int level, struct X3D_Node* node) {
 		case NODE_StaticGroup : {
 			struct X3D_StaticGroup *tmp;
 			tmp = (struct X3D_StaticGroup *) node;
-			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\tchildren (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(level+1,tmp->children.p[i]); }
+			spacer printf ("\t_sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(level+1,tmp->_sortedChildren.p[i]); }
+			spacer printf ("\tmetadata (SFNode):\n"); dump_scene(level+1,tmp->metadata); 
 			spacer printf ("\t__oldmetadata (SFNode):\n"); dump_scene(level+1,tmp->__oldmetadata); 
 		break;}
 		case NODE_StringSensor : {
@@ -9993,6 +10030,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\trotation (SFRotation): \t");
 			for (i=0; i<4; i++) { printf ("%4.3f  ",tmp->rotation.c[i]); }
 			printf ("\n");
+			spacer printf ("\t_sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(level+1,tmp->_sortedChildren.p[i]); }
 			spacer printf ("\tscale (SFVec3f): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->scale.c[i]); }
 			printf ("\n");
@@ -10284,6 +10323,8 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\trenderCulling (SFString) \t%s\n",tmp->renderCulling->strptr);
 			spacer printf ("\tVRML1children (MFNode):\n");
 			for (i=0; i<tmp->VRML1children.n; i++) { dump_scene(level+1,tmp->VRML1children.p[i]); }
+			spacer printf ("\t_sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(level+1,tmp->_sortedChildren.p[i]); }
 		break;}
 		case NODE_VRML1_ShapeHints : {
 			struct X3D_VRML1_ShapeHints *tmp;

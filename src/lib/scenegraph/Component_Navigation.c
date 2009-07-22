@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.18 2009/07/14 15:36:01 uid31638 Exp $
+$Id: Component_Navigation.c,v 1.19 2009/07/22 14:36:20 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -152,8 +152,7 @@ void fin_Billboard (struct X3D_Billboard *node) {
 
 
 void  child_Billboard (struct X3D_Billboard *node) {
-	int nc = (node->children).n;
-
+	CHILDREN_COUNT
 	LOCAL_LIGHT_SAVE
 
 
@@ -163,9 +162,6 @@ void  child_Billboard (struct X3D_Billboard *node) {
 	#ifdef CHILDVERBOSE
 	printf("RENDER BILLBOARD START %d (%d)\n",node, nc);
 	#endif
-
-	/* do we have to sort this node? */
-/* 	if ((nc > 1 && !render_blend)) sortChildren(node->children); */
 
 	/* do we have a local light for a child? */
 	LOCAL_LIGHT_CHILDREN(node->children);
@@ -186,8 +182,8 @@ void  child_Billboard (struct X3D_Billboard *node) {
 
 
 void changed_Billboard (struct X3D_Billboard *node) {
+		CHILDREN_COUNT
                 int i;
-                int nc = ((node->children).n);
 
 		INITIALIZE_EXTENT
 }
@@ -207,7 +203,7 @@ void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 
 
 void child_Collision (struct X3D_Collision *node) {
-	int nc = (node->children).n;
+	CHILDREN_COUNT
 	int i;
 	void *tmpN;
 
@@ -250,8 +246,6 @@ void child_Collision (struct X3D_Collision *node) {
 		#ifdef CHILDVERBOSE
 		printf("RENDER COLLISIONCHILD START %d (%d)\n",node, nc);
 		#endif
-		/* do we have to sort this node? */
-/* 		if ((nc > 1 && !render_blend)) sortChildren(node->children); */
 
 		/* do we have a local light for a child? */
 		LOCAL_LIGHT_CHILDREN(node->children);
@@ -284,6 +278,7 @@ void proximity_LOD (struct X3D_LOD *node) {
         int nran = (node->range).n;
         int nnod = (node->level).n;
         int xnod = (node->children).n;
+
         int i;
 
 	/* no range, display the first node, if it exists */

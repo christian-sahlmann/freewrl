@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.25 2009/07/15 15:26:59 crc_canada Exp $
+$Id: CRoutes.c,v 1.26 2009/07/22 14:36:20 crc_canada Exp $
 
 ???
 
@@ -514,6 +514,7 @@ void AddRemoveChildren (
 	uintptr_t *remptr;
 	uintptr_t *tmpptr;
 	int done;
+	struct Multi_Node *sortedChildrenPtr;
 
 	int counter, c2;
 
@@ -663,6 +664,7 @@ void AddRemoveChildren (
 			tn->n = oldlen - num_removed;
 		}
 	}
+
 	update_node(parent);
 }
 

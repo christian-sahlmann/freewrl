@@ -27,7 +27,7 @@ void sendMIDITableToFreeWRL(char *buf) {
 }
 
 void sendMIDIControlToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value) {
-	printf("in sendMIDIControlToFreeWRL\n");
+	/* printf("in sendMIDIControlToFreeWRL\n"); */
 	char *ptr;
 	char line[200];
 	sprintf (line, "%ld %d %d %d %d",relativeSamplePos, bus, channel, controller, value);
