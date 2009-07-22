@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.13 2009/07/03 20:15:11 crc_canada Exp $
+$Id: Frustum.c,v 1.14 2009/07/22 19:30:03 crc_canada Exp $
 
 ???
 
@@ -17,9 +17,18 @@ $Id: Frustum.c,v 1.13 2009/07/03 20:15:11 crc_canada Exp $
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../scenegraph/quaternion.h"
+#include "../scenegraph/Viewer.h"
+#include "Frustum.h"
 
 
 #include "Textures.h"
+
+
+static void quaternion_multi_rotation(struct point_XYZ *ret, const Quaternion *quat, const struct point_XYZ * v, int count);
+static void add_translation (struct point_XYZ *arr,  float x, float y, float z, int count);
+static void multiply_in_scale(struct point_XYZ *arr, float x, float y, float z, int count);
+
+
 
 /*********************************************************************
  * OLD - NOW USE Occlusion tests
@@ -409,8 +418,8 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	
 		/* record this for ME for sorting purposes for sorting children fields */
 		shapeParent->EXTENT_MAX_X = maxx; shapeParent->EXTENT_MIN_X = minx;
-		shapeParent->EXTENT_MAX_Y = maxx; shapeParent->EXTENT_MIN_Y = miny;
-		shapeParent->EXTENT_MAX_Z = maxx; shapeParent->EXTENT_MIN_Z = minz;
+		shapeParent->EXTENT_MAX_Y = maxy; shapeParent->EXTENT_MIN_Y = miny;
+		shapeParent->EXTENT_MAX_Z = maxz; shapeParent->EXTENT_MIN_Z = minz;
 	
 		#ifdef FRUSTUMVERBOSE
 		if (shapeParent == NULL)
@@ -432,7 +441,6 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 			#endif
 	
 	
-			/* printf ("geomParent dist is %lf\n",geomParent->_dist); */
 			/* note, maxz is positive, minz is negative, distance should be negative, so we take a negative distance,
 				and subtract the "positive" z value to get the closest point, then take the negative distance,
 				and subtract the "negative" z value to get the far distance */
@@ -454,7 +462,7 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	}
 }
 
-void quaternion_multi_rotation(struct point_XYZ *ret, const Quaternion *quat, const struct point_XYZ * v, int count){
+static void quaternion_multi_rotation(struct point_XYZ *ret, const Quaternion *quat, const struct point_XYZ * v, int count){
 	int i;
 	for (i=0; i<count; i++) {
 		quaternion_rotation(ret, quat, v);
@@ -468,7 +476,7 @@ void quaternion_multi_rotation(struct point_XYZ *ret, const Quaternion *quat, co
 			inxyz[num].y= (double) (me->EXTENT_##YY); \
 			inxyz[num].z= (double) (me->EXTENT_##ZZ);
 
-void add_translation (struct point_XYZ *arr,  float x, float y, float z, int count) {
+static void add_translation (struct point_XYZ *arr,  float x, float y, float z, int count) {
 	int i;
 	for (i=0; i<count; i++) {
 		arr->x += (double)x;
@@ -478,7 +486,7 @@ void add_translation (struct point_XYZ *arr,  float x, float y, float z, int cou
 	}
 }
 
-void multiply_in_scale(struct point_XYZ *arr, float x, float y, float z, int count) {
+static void multiply_in_scale(struct point_XYZ *arr, float x, float y, float z, int count) {
 	int i;
 	for (i=0; i<count; i++) {
 		arr->x *= (double)x;
@@ -575,39 +583,101 @@ void propagateExtent(struct X3D_Node *me) {
 }
 
 
+/* perform all the viewpoint rotations for a point */
+/* send in a pointer for the result, the current bounding box point to rotate, and the current ModelView matrix */
+
+void moveAndRotateThisPoint(struct point_XYZ *mypt, double x, double y, double z, double *MM) {
+		float outF[3];
+		float inF[3];
+		inF[0] = x; inF[1] = y; inF[2] = z;
+
+		/* transform this vertex via the modelview matrix */
+		transformf (outF,inF,MM);
+
+		#ifdef VERBOSE
+		printf ("transformed %4.2f %4.2f %4.2f, to %4.2f %4.2f %4.2f\n",inF[0], inF[1], inF[2],
+			outF[0], outF[1], outF[2]);
+		#endif
+		mypt->x = outF[0]; mypt->y=outF[1],mypt->z = outF[2];
+}
+
+
+/**************************************************************************************/
+
+/* get the center of the bounding box, rotate it, and find out how far it is Z distance from us.
+   
+   NOTE: we sort on the center of the BB; the comments have code for finding radius; yada, yada,
+   but lets just keep it at the center for now. 
+
+*/
+
+
 void record_ZBufferDistance(struct X3D_Node *node) {
 	GLdouble modelMatrix[16];
-	int retval;
-	int xcount, pointok;
+/*
+	double rad;
+	double vl;
+*/
+	double ex;
+	double ey;
+	double ez;
+	struct point_XYZ movedPt;
 
-	retval = 0;
-	xcount=0;
-	pointok=0;
-
-
-	/* printf ("\nrecordDistance for node %u nodeType %s center %4.2f %4.2f %4.2f ",node, stringNodeType (node->_nodeType),
+	#ifdef FRUSTUMVERBOSE
+	printf ("\nrecordDistance for node %u nodeType %s size %4.2f %4.2f %4.2f ",node, stringNodeType (node->_nodeType),
 	node->EXTENT_MAX_X - node->EXTENT_MIN_X,
 	node->EXTENT_MAX_Y - node->EXTENT_MIN_Y,
 	node->EXTENT_MAX_Z - node->EXTENT_MIN_Z
 	); 
 
-if (APPROX(node->EXTENT_MAX_X,-10000.0)) printf ("EXTENT NOT INIT");
+	if (APPROX(node->EXTENT_MAX_X,-10000.0)) printf ("EXTENT NOT INIT");
 
-printf ("\n");
-printf ("recordDistance, max,min %f:%f, %f:%f, %f:%f\n",
-	node->EXTENT_MAX_X , node->EXTENT_MIN_X,
-	node->EXTENT_MAX_Y , node->EXTENT_MIN_Y,
-	node->EXTENT_MAX_Z , node->EXTENT_MIN_Z);
+	printf ("\n");
+	printf ("recordDistance, max,min %f:%f, %f:%f, %f:%f\n",
+		node->EXTENT_MAX_X , node->EXTENT_MIN_X,
+		node->EXTENT_MAX_Y , node->EXTENT_MIN_Y,
+		node->EXTENT_MAX_Z , node->EXTENT_MIN_Z);
+	#endif
 
+	/* get radius of bounding box around its origin */
+	/*
+	ex = (node->EXTENT_MAX_X - node->EXTENT_MIN_X) / 2.0;
+	ey = (node->EXTENT_MAX_Y - node->EXTENT_MIN_Y) / 2.0;
+	ez = (node->EXTENT_MAX_Z - node->EXTENT_MIN_Z) / 2.0;
+	printf ("	ex %lf ey %lf ez %lf\n",ex,ey,ez);
+	rad = sqrt (ex*ex + ey*ey + ez*ez);
 	*/
 
+	/* get the center of the bounding box */
+	ex = node->EXTENT_MAX_X + node->EXTENT_MIN_X;
+	ey = node->EXTENT_MAX_Y + node->EXTENT_MIN_Y;
+	ez = node->EXTENT_MAX_Z + node->EXTENT_MIN_Z;
+
+	
+	/* get the current pos in modelMatrix land */
 	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
-	/* 
-	printf ("recordDistance, have modelMatrix %4.2f %4.2f %4.2f\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+	/* rotate the center of this point */
+	moveAndRotateThisPoint (&movedPt, ex,ey,ez,modelMatrix);
+	
+
+
+	/*
+	printf ("model is centered at %lf %lf %lf\n",ex,ey,ez);
+	printf ("I am at %lf %lf %lf\n",Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
+	printf ("moved point is %lf %lf %lf\n",movedPt.x, movedPt.y, movedPt.z);
+
+	vl = sqrt (ex*ex + ey*ey + ez*ez);
 	*/
 
-	node->_dist = modelMatrix[14];
+	
+	#ifdef FRUSTUMVERBOSE
+	printf ("recordDistance, radius %lf, have modelMatrix %4.2f %4.2f %4.2f\n",rad,
+			modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+	printf ("recordDistance, rad %lf, vl %lf, dist %lf\n",rad,vl, vl-rad);
+	#endif
+
+	node->_dist = movedPt.z;
 
 }
 

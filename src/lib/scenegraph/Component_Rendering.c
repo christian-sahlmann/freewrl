@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.9 2009/07/02 15:45:37 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.10 2009/07/22 19:30:03 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -16,6 +16,7 @@ X3D Rendering Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Frustum.h"
 
 
 extern GLfloat last_emission[];

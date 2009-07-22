@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.9 2009/06/26 19:43:10 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.10 2009/07/22 19:30:03 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -16,6 +16,7 @@ X3D Geometry 3D Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Frustum.h"
 
 #include "Collision.h"
 #include "Polyrep.h"

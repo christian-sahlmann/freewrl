@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.10 2009/07/02 14:16:39 crc_canada Exp $
+$Id: Polyrep.c,v 1.11 2009/07/22 19:30:03 crc_canada Exp $
 
 ???
 
@@ -16,6 +16,7 @@ $Id: Polyrep.c,v 1.10 2009/07/02 14:16:39 crc_canada Exp $
 
 #include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
+#include "../opengl/Frustum.h"
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"

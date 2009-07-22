@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.8 2009/06/24 13:03:53 crc_canada Exp $
+$Id: Component_Shape.c,v 1.9 2009/07/22 19:30:03 crc_canada Exp $
 
 X3D Shape Component
 
@@ -16,6 +16,7 @@ X3D Shape Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Frustum.h"
 
 
 static int     linePropertySet;  /* line properties -width, etc                  */

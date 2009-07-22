@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.46 2009/07/22 14:36:20 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.47 2009/07/22 19:30:03 crc_canada Exp $
 
 ???
 
@@ -31,6 +31,7 @@ $Id: OpenGL_Utils.c,v 1.46 2009/07/22 14:36:20 crc_canada Exp $
 #include "../scenegraph/LinearAlgebra.h"
 #include "../input/InputFunctions.h"
 #include "../input/EAIheaders.h"
+#include "Frustum.h"
 
 #include <float.h>
 
@@ -85,25 +86,6 @@ void setglClearColor (float *val) {
 #endif
 	cc_changed = TRUE;
 }        
-
-
-/* perform all the viewpoint rotations for a point */
-static void moveAndRotateThisPoint(struct X3D_Node *vpnode, struct point_XYZ *mypt, double x, double y, double z, double *MM) {
-		float outF[3];
-		float inF[3];
-		inF[0] = x; inF[1] = y; inF[2] = z;
-
-		/* transform this vertex via the modelview matrix */
-		transformf (outF,inF,MM);
-
-		#ifdef VERBOSE
-		printf ("transformed %4.2f %4.2f %4.2f, to %4.2f %4.2f %4.2f\n",inF[0], inF[1], inF[2],
-			outF[0], outF[1], outF[2]);
-		#endif
-		mypt->x = outF[0]; mypt->y=outF[1],mypt->z = outF[2];
-}
-
-#define GEOTESTEXTENT(dddd) if (dddd<closestPoint) {closestPoint=dddd;}
 
 
 /**************************************************************************************
@@ -311,14 +293,14 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 				X3D_GROUP(rootNode)->EXTENT_MAX_Z, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
 		#endif
 		/* make up 8 vertices for our bounding box, and place them within our view */
-		moveAndRotateThisPoint(vpnode, &bboxPoints[0], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[1], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[2], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[3], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[4], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[5], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[6], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(vpnode, &bboxPoints[7], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[0], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[1], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[2], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[3], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[4], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[5], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[6], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[7], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
 	
 		for (ci=0; ci<8; ci++) {
 			#ifdef VERBOSE
@@ -868,7 +850,7 @@ static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh) {
 	sortedCh->n = nc;
 
 	#ifdef VERBOSE
-	printf ("sc start, %d, node %u\n",nc,ch);
+	printf ("sc start, %d, chptr %u\n",nc,ch);
 	#endif
 
 	if (nc < 2) return;

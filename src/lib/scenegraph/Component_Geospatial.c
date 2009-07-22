@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.25 2009/07/14 15:36:01 uid31638 Exp $
+$Id: Component_Geospatial.c,v 1.26 2009/07/22 19:30:03 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -22,6 +22,7 @@ X3D Geospatial Component
 #include "Collision.h"
 #include "quaternion.h"
 #include "Viewer.h"
+#include "../opengl/Frustum.h"
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"

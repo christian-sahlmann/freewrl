@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.6 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_Geometry2D.c,v 1.7 2009/07/22 19:30:03 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -19,6 +19,7 @@ X3D Geometry2D  Component
 
 #include "Collision.h"
 #include "LinearAlgebra.h"
+#include "../opengl/Frustum.h"
 
 #define SEGMENTS_PER_CIRCLE 36
 #define PIE 10
