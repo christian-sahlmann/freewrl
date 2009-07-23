@@ -5,6 +5,11 @@
 #include "EAI_C.h"
 
 #define WAIT_FOR_RETVAL ((command!=SENDEVENT) && (command!=MIDICONTROL))
+
+static pthread_mutex_t eailock = PTHREAD_MUTEX_INITIALIZER;
+#define EAILOCK pthread_mutex_lock(&eailock);
+#define EAIUNLOCK pthread_mutex_unlock(&eailock);
+
 int _X3D_FreeWRL_FD;
 int _X3D_FreeWRL_Swig_FD = 0;
 int _X3D_FreeWRL_listen_FD = 0;
@@ -230,17 +235,21 @@ RE_EOT
 
 void _X3D_sendEvent (char command, char *string) {
         char *myptr;
+	EAILOCK
 	verifySendBufferSize (strlen(string));
         sprintf (sendBuffer, "%d %c %s\n",_X3D_queryno,command,string);
         myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
+	EAIUNLOCK
 }
 
 char *_X3D_makeShortCommand (char command) {
 	char *myptr;
 
+	EAILOCK
 	verifySendBufferSize (100);
 	sprintf (sendBuffer, "%d %c\n",_X3D_queryno,command);
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
+	EAIUNLOCK
 	#ifdef VERBOSE
 	printf ("makeShortCommand, buffer now %s\n",myptr);
 	#endif
@@ -250,9 +259,11 @@ char *_X3D_makeShortCommand (char command) {
 char *_X3D_make1VoidCommand (char command, uintptr_t *adr) {
 	char *myptr;
 
+	EAILOCK
 	verifySendBufferSize (100);
 	sprintf (sendBuffer, "%d %c %p\n",_X3D_queryno,command,adr);
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
+	EAIUNLOCK
 	#ifdef VERBOSE
 	printf ("make1VoidCommand, buffer now %s\n",myptr);
 	#endif
@@ -262,9 +273,11 @@ char *_X3D_make1VoidCommand (char command, uintptr_t *adr) {
 char *_X3D_make1StringCommand (char command, char *name) {
 	char *myptr;
 	
+	EAILOCK
 	verifySendBufferSize (strlen(name));
 	sprintf (sendBuffer, "%d %c %s\n",_X3D_queryno,command,name);
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
+	EAIUNLOCK
 	#ifdef VERBOSE
 	printf ("make1StringCommand, buffer now %s\n",myptr);
 	#endif
@@ -275,9 +288,11 @@ char *_X3D_make2StringCommand (char command, char *str1, char *str2) {
 	char *myptr;
 	char sendBuffer[2048];
 	
+	EAILOCK
 	verifySendBufferSize ( strlen(str1) + strlen(str2));
 	sprintf (sendBuffer, "%d %c %s%s\n",_X3D_queryno,command,str1,str2);
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
+	EAIUNLOCK
 
 	#ifdef VERBOSE
 	printf ("make2StringCommand, buffer now %s\n",myptr);
@@ -289,10 +304,12 @@ char *_X3D_make2StringCommand (char command, char *str1, char *str2) {
 char *_X3D_Browser_SendEventType(uintptr_t *adr,char *name, char *evtype) {
 	char *myptr;
 
+	EAILOCK
 	verifySendBufferSize (100);
 	sprintf (sendBuffer, "%u %c 0 %d %s %s\n",_X3D_queryno, GETFIELDTYPE, (unsigned int) adr, name, evtype);
 
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),TRUE);
+	EAIUNLOCK
 	#ifdef VERBOSE
 	printf ("_X3D_Browser_SendEventType, buffer now %s\n",myptr);
 	#endif
@@ -314,6 +331,7 @@ char * _RegisterListener (X3DEventOut *node, int adin) {
  EAIoutSender.send ("" + queryno + "G " + nodeptr + " " + offset + " " + datatype +
                 " " + datasize + "\n");
 */
+	EAILOCK
 	sprintf (sendBuffer, "%u %c %ld %d %c %d\n",
 		_X3D_queryno, 
 		REGLISTENER, 
@@ -323,6 +341,7 @@ char * _RegisterListener (X3DEventOut *node, int adin) {
 		node->datasize);
 
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),TRUE);
+	EAIUNLOCK
 	#ifdef VERBOSE
 	printf ("_X3D_Browser_SendEventType, buffer now %s\n",myptr);
 	#endif
