@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: InputFunctions.c,v 1.5 2009/07/07 15:12:02 crc_canada Exp $
+$Id: InputFunctions.c,v 1.6 2009/07/23 15:47:06 crc_canada Exp $
 
 CProto ???
 
@@ -23,6 +23,17 @@ CProto ???
 
 
 #define READSIZE 2048
+
+
+char * stripLocalFileName (char * origName) {
+        if ((strncmp(origName,"file://", strlen("file://"))== 0) || 
+        (strncmp(origName,"FILE://", strlen("FILE://"))== 0)) {
+		origName += strlen ("FILE://");
+		return origName;
+	}
+	return origName;
+}
+
 
 int dirExists(const char *dir)
 {
@@ -76,6 +87,15 @@ static void localCopy(char *outFile, char *inFile) {
  FILE *in, *out;
   char ch;
 
+  /* strip any URNs off of the front of these file names */
+  inFile = stripLocalFileName(inFile);
+  outFile = stripLocalFileName(outFile);
+
+  /* 
+	ConsoleMessage ("localCopy: inFile :%s:",inFile);
+	ConsoleMessage ("localCopy: outFile :%s:",outFile);
+  */
+
   if((in=fopen(inFile, "rb")) == NULL) {
     ConsoleMessage ("FreeWRL copy: Cannot open input file.");
   }
@@ -120,9 +140,12 @@ char * readInputString(char *fn) {
         bufsize = 5 * READSIZE; /*  initial size*/
         buffer =(char *)MALLOC(bufsize * sizeof (char));
 
-        /* printf ("start of readInputString, \n\tfile: %s\n",
-                        fn);
-        printf ("\tBrowserFullPath: %s\n\n",BrowserFullPath);  */
+	/* debugging */
+        /*
+	ConsoleMessage ("localCopy start of readInputString, \n\tfile: %s", fn);
+        ConsoleMessage ("\tBrowserFullPath: %s",BrowserFullPath);
+	*/
+
 
         /* check to see if this file exists */
         if (!fileExists(fn,firstbytes,TRUE)) {
@@ -148,6 +171,8 @@ char * readInputString(char *fn) {
                 /* remove the .gz from the file name - ".gz" is 3 characters */
                 len = strlen(unzippedFileName); unzippedFileName[len-3] = '\0';
                 sprintf (sysline,"%s %s",UNZIP,unzippedFileName);
+
+		/* ConsoleMessage ("freewrlSystem being called on :%s:",sysline); */
 
                 freewrlSystem (sysline);
                 infile = fopen(unzippedFileName,"r");
