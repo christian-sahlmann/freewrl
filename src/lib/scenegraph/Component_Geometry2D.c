@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.7 2009/07/22 19:30:03 crc_canada Exp $
+$Id: Component_Geometry2D.c,v 1.8 2009/07/24 18:09:19 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -26,8 +26,36 @@ X3D Geometry2D  Component
 #define CHORD 20
 #define NONE 30
 
-void *createLines (float start, float end, float radius, int closed, int *size);
+static void *createLines (float start, float end, float radius, int closed, int *size,float *_extent);
 
+#define COMPILE_AND_GET_BOUNDS(myType,myField) \
+void compile_##myType (struct X3D_##myType *node){ \
+	float myminx = FLT_MAX; \
+	float mymaxx = FLT_MIN; \
+	float myminy = FLT_MAX; \
+	float mymaxy = FLT_MIN; \
+	int count; \
+ \
+	if (node->myField.n<=0) { \
+		node->EXTENT_MIN_X = (double) 0; \
+		node->EXTENT_MAX_X = (double) 0; \
+		node->EXTENT_MIN_Y = (double) 0; \
+		node->EXTENT_MAX_Y = (double) 0; \
+	} else { \
+		for (count = 0; count < node->myField.n; count++) { \
+			if (node->myField.p[count].c[0] > mymaxx) mymaxx = node->myField.p[count].c[0]; \
+			if (node->myField.p[count].c[0] < myminx) myminx = node->myField.p[count].c[0]; \
+			if (node->myField.p[count].c[1] > mymaxy) mymaxy = node->myField.p[count].c[1]; \
+			if (node->myField.p[count].c[1] < myminy) myminy = node->myField.p[count].c[1]; \
+		} \
+		node->EXTENT_MAX_X = (double) mymaxx; \
+		node->EXTENT_MIN_X = (double) myminx; \
+		node->EXTENT_MAX_Y = (double) mymaxy; \
+		node->EXTENT_MIN_Y = (double) myminy; \
+	} \
+ \
+	MARK_NODE_COMPILED \
+}
 /***********************************************************************************/
 
 void compile_Arc2D (struct X3D_Arc2D *node) {
@@ -38,7 +66,7 @@ void compile_Arc2D (struct X3D_Arc2D *node) {
 	MARK_NODE_COMPILED
 	
 	tmpint = 0;
-	tmpptr_a = createLines (node->startAngle, node->endAngle, node->radius, NONE, &tmpint);
+	tmpptr_a = createLines (node->startAngle, node->endAngle, node->radius, NONE, &tmpint, node->_extent);
 
 	/* perform the switch - worry about threading here without locking */
 	node->__numPoints = 0;		/* tell us that it has zero points */
@@ -53,6 +81,10 @@ void compile_Arc2D (struct X3D_Arc2D *node) {
 void render_Arc2D (struct X3D_Arc2D *node) {
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
+		/* for BoundingBox calculations */
+		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+
 	        LIGHTING_OFF
 	        DISABLE_CULL_FACE
 		glColor3f (1.0, 1.0, 1.0);
@@ -83,10 +115,10 @@ void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
 
 	if (strcmp(ct,"PIE") == 0) {
 		tmpptr_a = createLines (node->startAngle,
-			node->endAngle, node->radius, PIE, &tmpint);
+			node->endAngle, node->radius, PIE, &tmpint,node->_extent);
 	} else if (strcmp(ct,"CHORD") == 0) {
 		tmpptr_a = createLines (node->startAngle,
-			node->endAngle, node->radius, CHORD, &tmpint);
+			node->endAngle, node->radius, CHORD, &tmpint,node->_extent);
 	} else {
 		printf ("ArcClose2D, closureType %s invalid\n",node->closureType->strptr);
 	}
@@ -104,6 +136,10 @@ void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
 void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
+		/* for BoundingBox calculations */
+		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+
         	LIGHTING_OFF
         	DISABLE_CULL_FACE
 		glColor3f (1.0, 1.0, 1.0);
@@ -125,7 +161,7 @@ void compile_Circle2D (struct X3D_Circle2D *node) {
        /*  have to regen the shape*/
 	MARK_NODE_COMPILED
 		
-	tmpptr_a = createLines (0.0, 0.0, node->radius, NONE, &tmpint);
+	tmpptr_a = createLines (0.0, 0.0, node->radius, NONE, &tmpint,node->_extent);
 
 	/* perform the switch - worry about threading here without locking */
 	node->__numPoints = 0;		/* tell us that it has zero points */
@@ -139,6 +175,10 @@ void compile_Circle2D (struct X3D_Circle2D *node) {
 void render_Circle2D (struct X3D_Circle2D *node) {
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
+		/* for BoundingBox calculations */
+		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+
 	        LIGHTING_OFF
 	        DISABLE_CULL_FACE
 		glColor3f (1.0, 1.0, 1.0);
@@ -154,8 +194,15 @@ void render_Circle2D (struct X3D_Circle2D *node) {
 /***********************************************************************************/
 
 
+COMPILE_AND_GET_BOUNDS(Polyline2D,lineSegments)
+
 void render_Polyline2D (struct X3D_Polyline2D *node){
+	COMPILE_IF_REQUIRED
 	if (node->lineSegments.n>0) {
+		/* for BoundingBox calculations */
+		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+
 	        LIGHTING_OFF
 	        DISABLE_CULL_FACE
 		glColor3f (1.0, 1.0, 1.0);
@@ -170,9 +217,15 @@ void render_Polyline2D (struct X3D_Polyline2D *node){
 
 /***********************************************************************************/
 
+COMPILE_AND_GET_BOUNDS(Polypoint2D,point)
 
 void render_Polypoint2D (struct X3D_Polypoint2D *node){
+	COMPILE_IF_REQUIRED
 	if (node->point.n>0) {
+		/* for BoundingBox calculations */
+		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+
 	        LIGHTING_OFF
 	        DISABLE_CULL_FACE
 		glColor3f (1.0, 1.0, 1.0);
@@ -263,11 +316,21 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 	node->__numPoints = tmpint;
 	FREE_IF_NZ (ofp);
 	FREE_IF_NZ (otp);
+
+	/* we can set the extents here... */
+	node->EXTENT_MAX_X = (double)node->outerRadius;
+	node->EXTENT_MIN_X = (double)-node->outerRadius;
+	node->EXTENT_MAX_Y = (double)node->outerRadius;
+	node->EXTENT_MIN_Y = (double)-node->outerRadius;
 }
 
 void render_Disk2D (struct X3D_Disk2D *node){
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
+		/* for BoundingBox calculations */
+		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+
 		CULL_FACE(node->solid)
 
 		textureDraw_start(NULL,(GLfloat *)node->__texCoords);
@@ -313,14 +376,21 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	node->__texCoords = fp = MALLOC (sizeof (GLfloat) * tmpint * 2);
 
 	/* find min/max values for X and Y axes */
-	minY = minX = 99999999.0;
-	maxY = maxX = -9999999.0;
+	minY = minX = FLT_MAX;
+	maxY = maxX = FLT_MIN;
 	for (i=0; i<tmpint; i++) {
 		if (node->vertices.p[i].c[0] < minX) minX = node->vertices.p[i].c[0];
 		if (node->vertices.p[i].c[1] < minY) minY = node->vertices.p[i].c[1];
 		if (node->vertices.p[i].c[0] > maxX) maxX = node->vertices.p[i].c[0];
 		if (node->vertices.p[i].c[1] > maxY) maxY = node->vertices.p[i].c[1];
 	}
+
+	/* save these numbers for extents */
+	node->EXTENT_MAX_X = (double) maxX;
+	node->EXTENT_MIN_X = (double) minX;
+	node->EXTENT_MAX_Y = (double) maxY;
+	node->EXTENT_MIN_Y = (double) minY;
+
 	/* printf ("minX %f maxX %f minY %f maxY %f\n",minX, maxX, minY, maxY); */
 	Ssize = maxX - minX;
 	Tsize = maxY - minY;
@@ -338,6 +408,10 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	COMPILE_IF_REQUIRED
 	if (node->vertices.n>0) {	
+		/* for BoundingBox calculations */
+		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+
 		CULL_FACE(node->solid)
 
 		textureDraw_start(NULL,(GLfloat *)node->__texCoords);
@@ -412,7 +486,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 
 /***********************************************************************************/
 
-void *createLines (float start, float end, float radius, int closed, int *size) {
+static void *createLines (float start, float end, float radius, int closed, int *size, float *_extent) {
 	int i;
 	int isCircle;
 	int numPoints;
@@ -420,6 +494,11 @@ void *createLines (float start, float end, float radius, int closed, int *size) 
 	GLfloat *points;
 	GLfloat *fp;
 	int arcpoints;
+
+        float myminx = FLT_MAX;
+        float mymaxx = FLT_MIN;
+        float myminy = FLT_MAX;
+        float mymaxy = FLT_MIN;
 
 	*size = 0;
 
@@ -482,7 +561,32 @@ void *createLines (float start, float end, float radius, int closed, int *size) 
 	}
 
 		
+	/* find extents */
 	*size = numPoints;
+	if (numPoints==0) {
+                EXTENT_MAX_X = (double) 0;
+                EXTENT_MIN_X = (double) 0;
+                EXTENT_MAX_Y = (double) 0;
+                EXTENT_MIN_Y = (double) 0;
+        } else { 
+		/* find min/max for setExtent for these points */
+		fp = points;
+		for (i=0; i<numPoints; i++) {
+			/* do X first */
+                        if (*fp > mymaxx) mymaxx = *fp;
+                        if (*fp < myminx) myminx = *fp;
+			fp++;
+			/* do Y second */
+                        if (*fp > mymaxy) mymaxy = *fp;
+                        if (*fp < myminy) myminy = *fp;
+			fp++;
+		}
+		EXTENT_MIN_X = (double) myminx;
+		EXTENT_MAX_X = (double) mymaxx;
+		EXTENT_MIN_Y = (double) myminy;
+		EXTENT_MAX_Y = (double) mymaxy;
+	}
+
 	return (void *)points;
 }
 

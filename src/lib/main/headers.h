@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.64 2009/07/22 19:30:03 crc_canada Exp $
+$Id: headers.h,v 1.65 2009/07/24 18:09:19 crc_canada Exp $
 
 Global includes.
 
@@ -1178,7 +1178,9 @@ void compile_Circle2D (struct X3D_Circle2D *this_);
 void render_Disk2D (struct X3D_Disk2D *this_);
 void compile_Disk2D (struct X3D_Disk2D *this_);
 void render_Polyline2D (struct X3D_Polyline2D *this_);
+void compile_Polyline2D (struct X3D_Polyline2D *this_);
 void render_Polypoint2D (struct X3D_Polypoint2D *this_);
+void compile_Polypoint2D (struct X3D_Polypoint2D *this_);
 void render_Rectangle2D (struct X3D_Rectangle2D *this_);
 void compile_Rectangle2D (struct X3D_Rectangle2D *this_);
 void render_TriangleSet2D (struct X3D_TriangleSet2D *this_);

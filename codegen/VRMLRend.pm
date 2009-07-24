@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.19 2009/07/14 15:36:01 uid31638 Exp $
+# $Id: VRMLRend.pm,v 1.20 2009/07/24 18:09:19 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.20  2009/07/24 18:09:19  crc_canada
+# Geometry2D extent calculations now performed for all 2D shapes.
+#
 # Revision 1.19  2009/07/14 15:36:01  uid31638
 # More Geospatial code changes; GeoLOD in particular has been worked on.
 #
@@ -681,6 +684,8 @@
 	Disk2D
 	TriangleSet2D
 	Rectangle2D
+	Polyline2D
+	Polypoint2D
 	Box
 	Cone
 	Cylinder
