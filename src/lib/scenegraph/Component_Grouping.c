@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.21 2009/07/22 19:30:03 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.22 2009/07/24 19:46:20 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -19,6 +19,7 @@ X3D Grouping Component
 
 #include "../opengl/OpenGL_Utils.h"
 #include "../opengl/Frustum.h"
+#include "../opengl/Material.h"
 
 #include "LinearAlgebra.h"
 

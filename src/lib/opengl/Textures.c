@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.14 2009/07/16 15:25:11 istakenv Exp $
+$Id: Textures.c,v 1.15 2009/07/24 19:46:19 crc_canada Exp $
 
 General Texture objects.
 
@@ -21,6 +21,7 @@ General Texture objects.
 #include "../scenegraph/readpng.h"
 #include "../input/InputFunctions.h"
 #include "Textures.h"
+#include "../opengl/Material.h"
 
 
 #ifdef AQUA

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.4 2009/02/25 15:03:17 crc_canada Exp $
+$Id: Material.c,v 1.5 2009/07/24 19:46:19 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -11,6 +11,7 @@ Only do material settings that "matter" and bounds check all values.
 #include <system.h>
 #include <display.h>
 #include <internal.h>
+#include "Material.h"
 
 #include <libFreeWRL.h>
 

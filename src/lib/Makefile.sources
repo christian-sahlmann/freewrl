@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.20 2009/07/22 19:30:02 crc_canada Exp $
+# $Id: Makefile.sources,v 1.21 2009/07/24 19:46:18 crc_canada Exp $
 #
 # List all source files
 #
@@ -150,10 +150,11 @@ input/convert1To2.c \
 opengl/RenderTextures.c \
 opengl/Textures.h \
 opengl/Textures.c \
-opengl/Frustum.c \
 opengl/Frustum.h \
-opengl/OpenGL_Utils.c \
+opengl/Frustum.c \
 opengl/OpenGL_Utils.h \
+opengl/OpenGL_Utils.c \
+opengl/Material.h \
 opengl/Material.c \
  \
 ui/ui.h \

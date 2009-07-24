@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.10 2009/07/22 19:30:03 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.11 2009/07/24 19:46:20 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -17,9 +17,7 @@ X3D Rendering Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
-
-
-extern GLfloat last_emission[];
+#include "../opengl/Material.h"
 
 /* find a bounding box that fits the coord structure. save it in the common-node area for extents.*/
 static void findExtentInCoord (struct X3D_Node *node, int count, struct SFColor* coord) {
@@ -300,19 +298,13 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 }
 
 void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
-	GLfloat *thisColor;
-	GLfloat defColor[] = {1.0, 1.0, 1.0};
+	DEFAULT_COLOUR_POINTER
 	GLvoid **indices;
 	GLsizei *count;
 	int i;
 
 	/* is there an emissiveColor here??? */
-	if (lightingOn) {
-		/* printf ("ILS - have lightingOn!\n");   */
-		thisColor = last_emission;
-	} else {
-		thisColor = defColor;
-	}
+	GET_COLOUR_POINTER
 
 	LIGHTING_OFF
 	DISABLE_CULL_FACE
@@ -334,7 +326,7 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 			glEnableClientState(GL_COLOR_ARRAY);
 			glColorPointer (4,GL_FLOAT,0,node->__colours);
 		} else {
-			glColor3fv (thisColor);
+			DO_COLOUR_POINTER
 		}
 
 		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
@@ -375,8 +367,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 	struct X3D_Color *cc;
 
 	/* believe it or not - material emissiveColor can affect us... */
-	GLfloat defColor[] = {1.0, 1.0, 1.0};
-	GLfloat *thisColor;
+	DEFAULT_COLOUR_POINTER
 
         COMPILE_IF_REQUIRED
 
@@ -386,12 +377,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 
 
 	/* is there an emissiveColor here??? */
-	if (lightingOn) {
-		/* printf ("ILS - have lightingOn!\n"); */
-		thisColor = last_emission;
-	} else {
-		thisColor = defColor;
-	}
+	GET_COLOUR_POINTER
 
 
 	if (node->coord) {
@@ -442,7 +428,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 			glColorPointer (4,GL_FLOAT,0,colors);
 		}
 	} else {
-		glColor3fv (thisColor);
+		DO_COLOUR_POINTER
 	}
 
 
@@ -463,8 +449,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 
 void render_LineSet (struct X3D_LineSet *node) {
 	/* believe it or not - material emissiveColor can affect us... */
-	GLfloat defColor[] = {1.0, 1.0, 1.0};
-	GLfloat *thisColor;
+	DEFAULT_COLOUR_POINTER
 	struct X3D_Color *cc;
 	GLvoid **indices;
 	GLsizei *count;
@@ -472,12 +457,7 @@ void render_LineSet (struct X3D_LineSet *node) {
 	struct Multi_Vec3f* points;
 
 	/* is there an emissiveColor here??? */
-	if (lightingOn) {
-		/* printf ("ILS - have lightingOn!\n"); */
-		thisColor = last_emission;
-	} else {
-		thisColor = defColor;
-	}
+	GET_COLOUR_POINTER
 
 	LIGHTING_OFF
 	DISABLE_CULL_FACE
@@ -503,7 +483,7 @@ void render_LineSet (struct X3D_LineSet *node) {
 				glColorPointer (4,GL_FLOAT,0,cc->color.p);
 			}
 		} else {
-			glColor3fv (thisColor);
+			DO_COLOUR_POINTER
 		}
 		points = getCoordinate(node->coord, "LineSet");
 
