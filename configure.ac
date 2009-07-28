@@ -171,10 +171,10 @@ fi
 ## Provide a fix for include path for systems with erroneous mozilla-js.pc
 if test x$found_JAVASCRIPT_ENGINE = xmozilla-js; then
   LIBMOZJS_INCDIR=`$PKG_CONFIG --variable=includedir mozilla-js 2>/dev/null`
-  if (echo $JAVASCRIPT_ENGINE_CFLAGS | grep '/stable') > /dev/null 2>&1; then
+  if (echo $JAVASCRIPT_ENGINE_CFLAGS | egrep '(un)?stable') > /dev/null 2>&1; then
     if test -f $LIBMOZJS_INCDIR/unstable/jsapi.h; then
       AC_MSG_NOTICE([Discovered jsapi.h exists in unstable includedir])
-      JAVASCRIPT_ENGINE_CFLAGS="$JAVASCRIPT_ENGINE_CFLAGS -DMOZILLA_JS_UNSTABLE_INCLUDES"
+      JAVASCRIPT_ENGINE_CFLAGS="${JAVASCRIPT_ENGINE_CFLAGS/unstable/stable} -DMOZILLA_JS_UNSTABLE_INCLUDES"
       AC_SUBST(JAVASCRIPT_ENGINE_CFLAGS)
     fi
   fi
