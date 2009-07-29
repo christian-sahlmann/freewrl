@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.14 2009/07/15 15:26:59 crc_canada Exp $
+$Id: jsUtils.c,v 1.15 2009/07/29 18:15:52 istakenv Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -973,7 +973,9 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 	jsval rval = INT_TO_JSVAL(0);
 	uintN attrs = JSPROP_PERMANENT 
 		| JSPROP_ENUMERATE 
+#ifdef JSPROP_EXPORTED
 		| JSPROP_EXPORTED 
+#endif
 	/*	| JSPROP_INDEX */
 		;
 	char *name;
