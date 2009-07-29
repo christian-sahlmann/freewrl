@@ -27,7 +27,11 @@
 
 #include <stdio.h>
 #include "npapi.h"
+#if (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 #include "npupp.h" 
+#else
+#include "npfunctions.h"
+#endif
 
 /*
  * Define PLUGIN_TRACE to have the wrapper functions print
@@ -77,112 +81,180 @@ NPN_Version(int* plugin_major, int* plugin_minor,
 NPError
 NPN_GetValue(NPP instance, NPNVariable variable, void *r_value)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_GetValueProc(gNetscapeFuncs.getvalue,
 					instance, variable, r_value);
+#else
+	return (*gNetscapeFuncs.getvalue)(instance, variable, r_value);
+#endif
 }
 
 NPError
 NPN_GetURL(NPP instance, const char* url, const char* window)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_GetURLProc(gNetscapeFuncs.geturl, instance, url, window);
+#else
+	return (*gNetscapeFuncs.geturl)(instance, url, window);
+#endif
 }
 
 NPError
 NPN_PostURL(NPP instance, const char* url, const char* window,
 	     uint32 len, const char* buf, NPBool file)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_PostURLProc(gNetscapeFuncs.posturl, instance,
 					url, window, len, buf, file);
+#else
+	return (*gNetscapeFuncs.posturl)(instance, url, window, len, buf, file);
+#endif
 }
 
 NPError
 NPN_RequestRead(NPStream* stream, NPByteRange* rangeList)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_RequestReadProc(gNetscapeFuncs.requestread,
 					stream, rangeList);
+#else
+	return (*gNetscapeFuncs.requestread)(stream, rangeList);
+#endif
 }
 
 NPError
 NPN_NewStream(NPP instance, NPMIMEType type, const char *window,
 	      NPStream** stream_ptr)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_NewStreamProc(gNetscapeFuncs.newstream, instance,
 					type, window, stream_ptr);
+#else
+	return (*gNetscapeFuncs.newstream)(instance, type, window, stream_ptr);
+#endif
 }
 
 int32
 NPN_Write(NPP instance, NPStream* stream, int32 len, void* buffer)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_WriteProc(gNetscapeFuncs.write, instance,
 					stream, len, buffer);
+#else
+	return (*gNetscapeFuncs.write)(instance, stream, len, buffer);
+#endif
 }
 
 NPError
 NPN_DestroyStream(NPP instance, NPStream* stream, NPError reason)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_DestroyStreamProc(gNetscapeFuncs.destroystream,
 						instance, stream, reason);
+#else
+	return (*gNetscapeFuncs.destroystream)(instance, stream, reason);
+#endif
 }
 
 void
 NPN_Status(NPP instance, const char* message)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	CallNPN_StatusProc(gNetscapeFuncs.status, instance, message);
+#else
+	(*gNetscapeFuncs.status)(instance, message);
+#endif
 }
 
 const char*
 NPN_UserAgent(NPP instance)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_UserAgentProc(gNetscapeFuncs.uagent, instance);
+#else
+	return (*gNetscapeFuncs.uagent)(instance);
+#endif
 }
 
 void*
 NPN_MemAlloc(uint32 size)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_MemAllocProc(gNetscapeFuncs.memalloc, size);
+#else
+	return (*gNetscapeFuncs.memalloc)(size);
+#endif
 }
 
 void NPN_MemFree(void* ptr)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	CallNPN_MemFreeProc(gNetscapeFuncs.memfree, ptr);
+#else
+	(*gNetscapeFuncs.memfree)(ptr);
+#endif
 }
 
 uint32 NPN_MemFlush(uint32 size)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_MemFlushProc(gNetscapeFuncs.memflush, size);
+#else
+	return (*gNetscapeFuncs.memflush)(size);
+#endif
 }
 
 void NPN_ReloadPlugins(NPBool reloadPages)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	CallNPN_ReloadPluginsProc(gNetscapeFuncs.reloadplugins, reloadPages);
+#else
+	(*gNetscapeFuncs.reloadplugins)(reloadPages);
+#endif
 }
 
 NPError
 NPN_PostURLNotify(NPP instance, const char* url, const char* window,
 	     uint32 len, const char* buf, NPBool file, void* notifyData)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_PostURLNotifyProc(gNetscapeFuncs.posturlnotify, instance,
 					url, window, len, buf, file, notifyData);
+#else
+	return (*gNetscapeFuncs.posturlnotify)(instance, url, window, len, buf, file, notifyData);
+#endif
 }
 
 NPError
 NPN_GetURLNotify(NPP instance, const char* url, const char* window, void* notifyData)
 {
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_GetURLNotifyProc(gNetscapeFuncs.geturlnotify, instance,
 					url, window, notifyData);
+#else
+	return (*gNetscapeFuncs.geturlnotify)(instance, url, window, notifyData);
+#endif
 }
 
 
 #ifdef MY_JAVA
 JRIEnv* NPN_GetJavaEnv()
 {
+# if (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_GetJavaEnvProc(gNetscapeFuncs.getJavaEnv);
+# else
+	return (*gNetscapeFuncs.getJavaEnv);
+# endif
 }
 
 jref NPN_GetJavaPeer(NPP instance)
 {
+# if (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 	return CallNPN_GetJavaPeerProc(gNetscapeFuncs.getJavaPeer,
 				       instance);
+# else
+	return (*gNetscapeFuncs.getJavaPeer)(instance);
+# endif
 }
 #endif
 
@@ -417,6 +489,7 @@ NP_Initialize(NPNetscapeFuncs* nsTable, NPPluginFuncs* pluginFuncs)
 		 */
 		pluginFuncs->version    = (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR;
 		pluginFuncs->size       = sizeof(NPPluginFuncs);
+#if  (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
 		pluginFuncs->newp       = NewNPP_NewProc(Private_New);
 		pluginFuncs->destroy    = NewNPP_DestroyProc(Private_Destroy);
 		pluginFuncs->setwindow  = NewNPP_SetWindowProc(Private_SetWindow);
@@ -427,6 +500,18 @@ NP_Initialize(NPNetscapeFuncs* nsTable, NPPluginFuncs* pluginFuncs)
 		pluginFuncs->write      = NewNPP_WriteProc(Private_Write);
 		pluginFuncs->print      = NewNPP_PrintProc(Private_Print);
 		pluginFuncs->urlnotify  = NewNPP_URLNotifyProc(Private_URLNotify);
+#else
+                pluginFuncs->newp       = (NPP_NewProcPtr)(Private_New);
+                pluginFuncs->destroy    = (NPP_DestroyProcPtr)(Private_Destroy);
+                pluginFuncs->setwindow  = (NPP_SetWindowProcPtr)(Private_SetWindow);
+                pluginFuncs->newstream  = (NPP_NewStreamProcPtr)(Private_NewStream);
+                pluginFuncs->destroystream = (NPP_DestroyStreamProcPtr)(Private_DestroyStream);
+                pluginFuncs->asfile     = (NPP_StreamAsFileProcPtr)(Private_StreamAsFile);
+                pluginFuncs->writeready = (NPP_WriteReadyProcPtr)(Private_WriteReady);
+                pluginFuncs->write      = (NPP_WriteProcPtr)(Private_Write);
+                pluginFuncs->print      = (NPP_PrintProcPtr)(Private_Print);
+                pluginFuncs->urlnotify  = (NPP_URLNotifyProcPtr)(Private_URLNotify);
+#endif
 		pluginFuncs->event      = NULL;
 		pluginFuncs->javaClass	= Private_GetJavaClass();
 
