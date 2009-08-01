@@ -78,6 +78,10 @@ internal_version.c: $(_EV)
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c
 
+newversion:
+	-rm -f internal_version.*
+	$(MAKE)
+
 LIBFREEWRL_SRCDIR=$(top_srcdir)/src/lib
 LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
 
