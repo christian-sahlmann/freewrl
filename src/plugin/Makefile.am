@@ -55,8 +55,8 @@ AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
 
 plugin_LTLIBRARIES = libFreeWRLplugin.la
 libFreeWRLplugin_la_LIBTOOLFLAGS = --tag=disable-static
-# plugindir=$(abs_top_builddir) # hack
-plugindir=$(PLUGIN_DIR)
+
+plugindir=$(libdir)/mozilla/plugins
 libFreeWRLplugin_la_LDFLAGS = -module -avoid-version $(AM_LDFLAGS)
 
 include Makefile.sources
