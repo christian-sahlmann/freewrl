@@ -1,7 +1,9 @@
 #!/bin/sh
 #
-# $Id: autogen.sh,v 1.11 2009/06/22 15:23:40 couannette Exp $
+# $Id: autogen.sh,v 1.12 2009/08/01 09:45:39 couannette Exp $
 #
+
+platform=$(uname -s)
 
 # Font directory
 # default:
@@ -20,7 +22,8 @@ fi
 
 # Target
 target=motif
-case $(uname -s) in
+
+case $platform in
     Darwin) 
 	echo "Mac system: default target is x11"
 	echo "(Carbon is not yet supported by this build system)"
@@ -35,6 +38,10 @@ case $(uname -s) in
 	    add_path=/opt/local
 	fi
 	;;
+    win32|CYGWIN*|cygwin*)
+	echo "Windows platform detected : $platform"
+	target=win32
+	;;
 esac
 
 if [ ! -z "$add_path" ] ; then
@@ -48,5 +55,7 @@ echo
 echo "configure options: $my_options"
 echo
 
-autoreconf --force --install && \
+[ ! -e configure ] && autoreconf --force --install
+
 ./configure $my_options
+

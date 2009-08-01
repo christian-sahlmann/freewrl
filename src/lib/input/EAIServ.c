@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.11 2009/07/23 16:56:32 sdumoulin Exp $
+$Id: EAIServ.c,v 1.12 2009/08/01 09:45:39 couannette Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -9,19 +9,9 @@ Implement EAI server functionality for FreeWRL.
 
 #include <config.h>
 #include <system.h>
+#include <system_net.h>
 
-
-/*JAS  - get this compiling on osx 10.4 ppc */
-#ifdef TARGET_AQUA
-	#ifdef ARCH_PPC
-		#include <sys/socket.h>
-		#include <netinet/in.h>
-	#else
-		#include <system_net.h>
-	#endif
-#else
-	#include <system_net.h>
-#endif
+/*JAS  - get this compiling on osx 10.4 ppc ==> system_net.h */
 
 #include <display.h>
 #include <internal.h>
@@ -110,6 +100,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	int len;
 	const int on=1;
 	int flags;
+	int err;
 
         struct sockaddr_in      servaddr;
 
@@ -117,14 +108,43 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 
 	if ((*EAIsockfd) < 0) {
 		/* step 1  - create socket*/
+#ifdef WIN32
+		static int wsaStarted;
+		if(wsaStarted == 0)
+			{
+				WSADATA wsaData;
+
+				/* Initialize Winsock - load correct dll */
+				err = WSAStartup(MAKEWORD(2,2), &wsaData);
+				if (err != 0) {
+					printf("WSAStartup failed: %d\n", err);
+					return FALSE;
+				}
+				wsaStarted = 1;
+			}
+#endif
 	        if (((*EAIsockfd) = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 			printf ("EAIServer: socket error\n");
+#ifdef WIN32
+			err = WSAGetLastError();
+			printf("WSAGetLastError =%d\n",err);
+			if(err == WSANOTINITIALISED) printf(" WSA Not Initialized - not a successful WSAStartup\n");
+
+#endif
 			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		}
 
-		setsockopt ((*EAIsockfd), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+		setsockopt ((*EAIsockfd), SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on));
 
+#ifdef WIN32
+		/* int ioctlsocket(SOCKET s,long cmd, u_long* argp);  http://msdn.microsoft.com/en-us/library/ms738573(VS.85).aspx */
+		{
+		unsigned long iMode = 1; /* nonzero is blocking */
+		ioctlsocket((*EAIsockfd), FIONBIO, &iMode);
+		}
+
+#else
 		if ((flags=fcntl((*EAIsockfd),F_GETFL,0)) < 0) {
 			printf ("EAIServer: trouble gettingsocket flags\n");
 			loopFlags &= ~NO_EAI_CLASS;
@@ -138,7 +158,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 				return FALSE;
 			}
 		}
-
+#endif
 		if (eaiverbose) { 
 		printf ("conEAIorCLASS - socket made\n");
 		}
@@ -173,7 +193,11 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	if (((*EAIsockfd) >=0) && ((*EAIlistenfd)<0)) {
 		/* step 4 - accept*/
 		len = sizeof(cliaddr);
+#ifdef WIN32
+	        if ( ((*EAIlistenfd) = accept((*EAIsockfd), (struct sockaddr *) &cliaddr, (int *)&len)) < 0) {
+#else
 	        if ( ((*EAIlistenfd) = accept((*EAIsockfd), (struct sockaddr *) &cliaddr, (socklen_t *)&len)) < 0) {
+#endif
 			if (eaiverbose) {
 			if (!(loopFlags&NO_CLIENT_CONNECTED)) {
 				printf ("EAISERVER: no client yet\n");
@@ -337,7 +361,11 @@ void EAI_send_string(char *str, int lfd){
 	}
 
 	/* printf ("EAI_send_string, sending :%s:\n",str); */
+#ifdef WIN32
+	n = send(lfd, str, (unsigned int) strlen(str),0);
+#else
 	n = write (lfd, str, (unsigned int) strlen(str));
+#endif	
 	if (n<strlen(str)) {
 		if (eaiverbose) {
 		printf ("write, expected to write %d, actually wrote %d\n",n,(int)strlen(str));
@@ -384,7 +412,11 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 
 		if (retval) {
+#ifdef WIN32
+			retval = recv((*EAIlistenfd), &bf[(*bfct)],EAIREADSIZE,0);
+#else
 			retval = read ((*EAIlistenfd), &bf[(*bfct)],EAIREADSIZE);
+#endif
 			if (retval <= 0) {
 				if (eaiverbose) {
 					printf ("read_EAI_socket, client is gone!\n");
@@ -392,7 +424,13 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 				/*perror("READ_EAISOCKET");*/
 				/* client disappeared*/
+#ifdef WIN32
+				closesocket((*EAIlistenfd));
+				WSACleanup();
+#else
+
 				close ((*EAIlistenfd));
+#endif
 				(*EAIlistenfd) = -1;
 
 				/* And, lets just exit FreeWRL*/

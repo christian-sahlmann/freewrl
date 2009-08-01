@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.8 2009/05/26 19:56:32 crc_canada Exp $
+$Id: X3DParser.h,v 1.9 2009/08/01 09:45:40 couannette Exp $
 
 X3D parser functions.
 
@@ -14,7 +14,7 @@ X3D parser functions.
 /* header file for the X3D parser, only items common between the X3DParser files should be here. */
 
 /* FIXME: This should be avoided -- including "expat.h" */
-
+/*#define X3DPARSERVERBOSE 1*/
 #define PARSING_NODES 1
 #define PARSING_SCRIPT 2
 #define PARSING_PROTODECLARE  3

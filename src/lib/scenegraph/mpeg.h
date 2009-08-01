@@ -732,7 +732,9 @@ extern int *cb_values;
 
 
 /* Code for unbound values in decoding tables */
+#ifndef WIN32
 #define ERROR (-1)
+#endif
 #define DCT_ERROR 63
 
 #define MACRO_BLOCK_STUFFING 34

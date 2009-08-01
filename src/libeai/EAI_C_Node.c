@@ -67,10 +67,17 @@ X3DEventIn *_X3D_getEvent(X3DNode *node, char *name, int into) {
 		if (node->X3D_MFNode.n != 1) {
 			printf ("warning - will only get event for first node = have %d nodes\n",node->X3D_MFNode.n);
 		}
+#ifdef WIN32
+		adr = node->X3D_MFNode.p[0].adr; 
+		/* win32 I don't understand the code below, but I get -842159451 for the adr which bombs the eai server,
+		  so instead I try and do as for SFNode, above, by taking the adr from the first SFNode in the MFnode. 
+		  then the server doesnt bomb*/
+#else
 		/* get the pointer to the memory for stored SFNode addresses... */
 		adr = ((uintptr_t *)node->X3D_MFNode.p);
 		/* get the first entry in this list */
 		adr = (uintptr_t *) *adr;
+#endif
 	}
 
 	/* printf ("getting eventin for address %d, field %s\n",adr, name); */
@@ -302,35 +309,99 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 		case FIELDTYPE_MFString:
 
 			bzero(ttok, sizeof(ttok));
+#ifdef WIN32
+			temp = strtok(ptr, "\r\n"); /* we will parse manually within "a line" "because we " dont trust blanks */
+#else
 			temp = strtok(ptr, " \r\n");
+#endif
 					
 			j = 0;
 			while (strncmp(temp, "RE_EOT", 6) && (temp != NULL)) {
+#ifdef WIN32
+				/*pre process to get the "" strings*/
+				int start, istart;
+				int stop;
+				int i;
+				istart = 0;
+				do
+				{
+					start = 0;
+					stop = 0;
+					/* find the starting " */
+					for(i=istart;i<strlen(temp);i++)
+					{
+						if( temp[i] == '"' )
+							if( i > 0 )
+							{
+								if( temp[i-1] != '\\' ) start = i+1;  /* the special \" case - ignor as literal */
+							}
+							else
+								start = i+1;
+						if( start ) break;
+					}
+					/* find the stopping " */
+					if(start)
+					{
+						for(i=start;i<strlen(temp);i++)
+						{
+							if( temp[i] == '"' )
+								if( temp[i-1] != '\\' ) stop = i-1;
+							if( stop ) break;
+						}
+					}
+					if( start && stop )
+					{
+						len = stop-start+1;
+						strncpy(tstring,&temp[start],len);
+						tstring[len] = '\0';
+						strcat(ttok, tstring);
+						strcat(ttok, "\r"); /*good delimeter needed for loop below - vrml doesn't allow \r within ""? or other like ~ */
+						j++;
+						istart = stop + 2;
+					}
+				}while(start && stop);
+			 	temp = strtok(NULL, "\r\n");	
+#else
 				sscanf(temp, "\"%s\"", tstring);
 				len = strlen(tstring);
 				len--;
 				tstring[len] = '\0';
 				strcat(ttok, tstring);
 				strcat(ttok, " ");
-			 	temp = strtok(NULL, " \r\n");					
+			 	temp = strtok(NULL, " \r\n");	
 				j++;
+#endif
 			}
 
 			value->X3D_MFString.n = j;
 			value->X3D_MFString.p = malloc(j*sizeof(X3DNode));
 
+#ifdef WIN32
+			temp = strtok(ttok, "\r");
+#else
 			temp = strtok(ttok, " ");
+#endif
 			if (temp != NULL) {
 				value->X3D_MFString.p[0].len = strlen(temp);
 				value->X3D_MFString.p[0].strptr = malloc(sizeof(char)*(STRLEN));
 				strncpy(value->X3D_MFString.p[0].strptr, temp, STRLEN);
+#ifdef WIN32
+				value->X3D_MFString.p[0].type = FIELDTYPE_SFString;
+#endif
 			}
 
 			for (i = 1; i < j; i++) {
+#ifdef WIN32
+				temp = strtok(NULL, "\r");
+#else
 				temp = strtok(NULL, " ");
+#endif
 				value->X3D_MFString.p[i].len = strlen(temp);
 				value->X3D_MFString.p[i].strptr = malloc(STRLEN);
 				strncpy(value->X3D_MFString.p[i].strptr, temp, STRLEN);
+#ifdef WIN32
+				value->X3D_MFString.p[i].type = FIELDTYPE_SFString;
+#endif
 			}
 			break;
 
@@ -516,7 +587,11 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 
                 		/* read in the memory pointer */
                 		sscanf (ptr,"%lu",&mytmp); /* changed for 1.18.15 JAS */
+#ifdef WIN32
+				value->X3D_MFNode.p[i].adr = (uintptr_t*)mytmp; /* compiler warning, so cast from an int to a pointer */
+#else
 				value->X3D_MFNode.p[i].adr = mytmp;
+#endif
 	
         		        /* skip past this number now */
                 		SKIP_IF_GT_SPACE
@@ -824,6 +899,14 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 
 /*****************************************************************************/
 
+#ifdef WIN32
+void X3D_lastViewpoint(){}
+void X3D_firstViewpoint(){}
+void X3D_previousViewpoint(){}
+void X3D_nextViewpoint(){}
+
+
+#endif
 char *descrip = NULL;
 
 void X3D_setDescription(char *newDesc) {
@@ -924,7 +1007,11 @@ X3DNode *X3D_createVrmlFromString(char *str) {
 
 		/* read in the memory pointer */
 		sscanf (ptr,"%lu",&mytmp); /* changed for 1.18.15 JAS */
+#ifdef WIN32
+		retval->X3D_MFNode.p[count].adr = (uintptr_t*)mytmp;
+#else
 		retval->X3D_MFNode.p[count].adr = mytmp;
+#endif
 
 		/* skip past this number now */
 		SKIP_IF_GT_SPACE

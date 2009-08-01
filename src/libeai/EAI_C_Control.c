@@ -4,7 +4,9 @@
 #endif
 #include "EAI_C.h"
 #include <stdio.h>
+#ifndef WIN32
 #include <sys/errno.h>
+#endif
 
 pthread_t readThread;
 pthread_t swigThread;
@@ -69,6 +71,9 @@ void X3D_initialize(char *hostname) {
 
 	/* start up thread to allow connections from SWIG (or similar) */
 	/* iret2 = pthread_create(&swigThread, NULL, freewrlSwigThread, NULL); */
+#ifdef WIN32
+	iret2 = pthread_create(&swigThread, NULL, freewrlSwigThread, NULL); 
+#endif
 }
 
 
@@ -76,4 +81,9 @@ void X3D_initialize(char *hostname) {
 /* tell FreeWRL to shut down; don't worry about the return value */
 void X3D_shutdown() {
 	_X3D_makeShortCommand(STOPFREEWRL);
+#ifdef WIN32
+	/* cleanup I suspect it never gets here */
+    closesocket(_X3D_FreeWRL_FD);
+    WSACleanup();
+#endif
 }

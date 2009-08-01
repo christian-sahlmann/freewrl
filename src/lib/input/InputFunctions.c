@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: InputFunctions.c,v 1.6 2009/07/23 15:47:06 crc_canada Exp $
+$Id: InputFunctions.c,v 1.7 2009/08/01 09:45:39 couannette Exp $
 
 CProto ???
 
@@ -15,7 +15,7 @@ CProto ???
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h"
+#include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
 #include "../scenegraph/Vector.h"
 
@@ -37,55 +37,55 @@ char * stripLocalFileName (char * origName) {
 
 int dirExists(const char *dir)
 {
-    static struct stat ss;
-    
-    if (stat(dir, &ss) == 0) {
-        if (access(dir,X_OK) == 0) {
-            return TRUE;
-        } else {
-            printf("Internal error: cannot access directory: %s\n", dir);
-        }
-    } else {
-        printf("Internal error: directory does not exist: %s\n", dir);
-    }
-    return FALSE;
+	static struct stat ss;
+
+	if (stat(dir, &ss) == 0) {
+		if (access(dir,X_OK) == 0) {
+			return TRUE;
+		} else {
+			printf("Internal error: cannot access directory: %s\n", dir);
+		}
+	} else {
+		printf("Internal error: directory does not exist: %s\n", dir);
+	}
+	return FALSE;
 }
 
 char* makeFontDirectory()
 {
-    char *tmp;
-    
-    /* If environment variable is defined
-       then it prevails */
-    tmp = getenv("FREEWRL_FONTS_DIR");
-    
-    /* Get dir from configuration */
-    if (!tmp) {
-	tmp = FONTS_DIR;
-    }
-    
-    /* Check if dir exists */
-    if (dirExists(tmp)) {
-        /* do not return directory the string
-           as it may be static, but make a copy */
-        return strdup(tmp);
-    }
+	char *tmp;
 
-    /* No directory found */
-    return NULL;
+	/* If environment variable is defined
+	then it prevails */
+	tmp = getenv("FREEWRL_FONTS_DIR");
+
+	/* Get dir from configuration */
+	if (!tmp) {
+		tmp = FONTS_DIR;
+	}
+
+	/* Check if dir exists */
+	if (dirExists(tmp)) {
+		/* do not return directory the string
+		as it may be static, but make a copy */
+		return strdup(tmp);
+	}
+
+	/* No directory found */
+	return NULL;
 }
 
 /*
- Simulate a command line "cp".
- We do this, rather than systeming cp, 
- because sometimes we have filenames with spaces, etc, etc 
- and handling this with a system call is a pain.
+Simulate a command line "cp".
+We do this, rather than systeming cp, 
+because sometimes we have filenames with spaces, etc, etc 
+and handling this with a system call is a pain.
 
- TODO: rework that in smarter way...
+TODO: rework that in smarter way...
 */
 static void localCopy(char *outFile, char *inFile) {
- FILE *in, *out;
-  char ch;
+	FILE *in, *out;
+	char ch;
 
   /* strip any URNs off of the front of these file names */
   inFile = stripLocalFileName(inFile);
@@ -121,7 +121,7 @@ static void localCopy(char *outFile, char *inFile) {
   fclose(in);
   fclose(out);
 
-  return;
+	return;
 }
 
 /* read a file, put it into memory. */

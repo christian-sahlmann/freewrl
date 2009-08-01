@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.9 2009/07/16 15:42:48 istakenv Exp $
+$Id: Component_Text.c,v 1.10 2009/08/01 09:45:39 couannette Exp $
 
 X3D Text Component
 
@@ -139,6 +139,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
     v2[1]=FW_rep_->actualCoord[FW_pointctr*3+1];
     v2[2]=FW_rep_->actualCoord[FW_pointctr*3+2];
 
+	/* printf("glu s.b. rev 1.2 or newer, is: %s\n",gluGetString(GLU_VERSION)); */
     gluTessVertex(global_tessobj,v2,&FW_RIA[FW_RIA_indx]);
 
     if (TextVerbose) {
@@ -164,7 +165,7 @@ int FW_moveto (FT_Vector* to, void* user)
 
     /* Have we started a new line */
     if (contour_started) {
-        gluNextContour(global_tessobj,GLU_UNKNOWN);
+       gluNextContour(global_tessobj,GLU_UNKNOWN);
     }
 
     /* well if not, tell us that we have started one */
@@ -387,18 +388,18 @@ FT_Error  FW_Load_Char(unsigned int idx)
 
 void FW_draw_outline (FT_OutlineGlyph oglyph)
 {
-    int thisptr;
-    int retval;
+    int thisptr = 0;
+    int retval = 0;
 
     /* JAS gluTessBeginPolygon(global_tessobj,NULL); */
     gluBeginPolygon(global_tessobj);
     FW_Vertex = 0;
 
     /* thisptr may possibly be null; I dont think it is use in freetype */
-    retval = FT_Outline_Decompose (&oglyph->outline, &FW_outline_interface, &thisptr);
+    retval = FT_Outline_Decompose( &oglyph->outline, &FW_outline_interface, &thisptr);
 
     if (contour_started) {
-        /* glEnd(); */
+         glEnd(); 
     }
 
     /* gluTessEndPolygon(global_tessobj); */
@@ -639,24 +640,26 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
              * the rep structure */
 
             for (x=0; x<global_IFS_Coord_count; x++) {
-                /* printf ("copying %d\n",global_IFS_Coords[x]); */
+                 /*printf ("copying %d\n",global_IFS_Coords[x]); */
 
                 /* did the tesselator give us back garbage? */
 
                 if ((global_IFS_Coords[x] >= cindexmaxsize) ||
                     (indx_count >= cindexmaxsize) ||
                     (global_IFS_Coords[x] < 0)) {
-                    /* if (TextVerbose)  */
-                    /* printf ("Tesselated index %d out of range; skipping indx_count, %d cindexmaxsize %d global_IFS_Coord_count %d\n", */
-                    /* global_IFS_Coords[x],indx_count,cindexmaxsize,global_IFS_Coord_count); */
+                     if (TextVerbose)  
+                     printf ("Tesselated index %d out of range; skipping indx_count, %d cindexmaxsize %d global_IFS_Coord_count %d\n", 
+                     global_IFS_Coords[x],indx_count,cindexmaxsize,global_IFS_Coord_count); 
                     /* just use last point - this sometimes happens when */
                     /* we have intersecting lines. Lets hope first point is */
                     /* not invalid... JAS */
                     FW_rep_->cindex[indx_count] = FW_rep_->cindex[indx_count-1];
                     if (indx_count < (cindexmaxsize-1)) indx_count ++;
                 } else {
-                    /* printf("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],indx_count); */
-                    /* printf("filling up cindex; index %d now points to %d\n",indx_count,global_IFS_Coords[x]); */
+					/*
+                    printf("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],indx_count); 
+                    printf("filling up cindex; index %d now points to %d\n",indx_count,global_IFS_Coords[x]); 
+					*/
                     FW_rep_->cindex[indx_count++] = global_IFS_Coords[x];
                 }
             }

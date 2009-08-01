@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.h,v 1.4 2009/02/11 15:12:54 istakenv Exp $
+$Id: Snapshot.h,v 1.5 2009/08/01 09:45:39 couannette Exp $
 
 Screen snapshot.
 
@@ -21,7 +21,11 @@ extern int snapsequence;	/* --seq - snapshot sequence, not single click	*/
 extern int doSnapshot;		/* are we doing a snapshot?			*/
 void setSnapshot();		/* set a snapshot going				*/
 void Snapshot();
+#ifdef WIN32   
+/* win32 has abort() in stdlib.h - is that what we want? */
+#else
 extern void abort();
+#endif
 
 
 #endif /* __FREEWRL_SNAPSHOT_H__ */

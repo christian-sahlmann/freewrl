@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.25 2009/05/21 20:30:08 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.26 2009/08/01 09:45:39 couannette Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -424,9 +424,10 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 
 		/* is this a Script node? */
 		if (nodePtr->_nodeType == NODE_Script) {
+			struct Shader_Script* myScript;
 			if (eaiverbose)
 				printf ("EAI_GetType, node is a Script node...\n");
-			struct Shader_Script* myScript = X3D_SCRIPT(nodePtr)->__scriptObj;
+			myScript = X3D_SCRIPT(nodePtr)->__scriptObj;
 			myScriptType = EAI_NODETYPE_SCRIPT;
 
         		for (i = 0; i !=  vector_size(myScript->fields); ++i) {

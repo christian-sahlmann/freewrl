@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.20 2009/07/22 19:30:03 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.21 2009/08/01 09:45:39 couannette Exp $
 
 X3D Navigation Component
 
@@ -142,13 +142,17 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	angle = atan2(len2, sign*len);
 
 	FW_GL_ROTATE_F(angle/3.1415926536*180, ax.x, ax.y, ax.z);
-	invalidateCurMat();  /* force a glGetMatrix from the system */
+#ifndef WIN32
+	invalidateCurMat();  /* force a glGetMatrix from the system */ /*win32 - I get fwLoad unkown, -111 spewing out */
+#endif
 }
 
 void fin_Billboard (struct X3D_Billboard *node) {
 	UNUSED(node);
 	FW_GL_POP_MATRIX();
+#ifndef WIN32
 	invalidateCurMat();
+#endif
 }
 
 

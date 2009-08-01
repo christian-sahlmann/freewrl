@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.28 2009/06/01 19:37:43 istakenv Exp $
+$Id: X3DParser.c,v 1.29 2009/08/01 09:45:40 couannette Exp $
 
 ???
 
@@ -35,7 +35,7 @@ $Id: X3DParser.c,v 1.28 2009/06/01 19:37:43 istakenv Exp $
 #if HAVE_EXPAT_H
 # include <expat.h>
 #endif
-
+/*#define X3DPARSERVERBOSE 1*/
 
 /* If XMLCALL isn't defined, use empty one */
 #ifndef XMLCALL
@@ -100,8 +100,16 @@ int getParserMode(void) { return currentParserMode; }
 
 /* get the line number of the current parser for error purposes */
 int freewrl_XML_GetCurrentLineNumber(void) {
-	if (currentX3DParser != NULL) 
-		return XML_GetCurrentLineNumber(currentX3DParser);
+#ifdef WIN32
+	if (X3DParserRecurseLevel > INT_ID_UNDEFINED)
+	{
+		currentX3DParser = x3dparser[X3DParserRecurseLevel]; /*dont trust current*/
+		return XML_GetCurrentLineNumber(currentX3DParser); 
+	}
+#else
+	if (currentX3DParser != NULL)
+		return XML_GetCurrentLineNumber(currentX3DParser); 
+#endif
 	return INT_ID_UNDEFINED;
 }
 
@@ -293,7 +301,9 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node *node, int 
 			error = TRUE;
 		}
 	}
-
+/* #ifdef WIN32 */
+/* 	} */
+/* #endif */
 	return error;
 }
 
@@ -1109,6 +1119,10 @@ static void shutdownX3DParser () {
 	/* CDATA text space, free it up */
         FREE_IF_NZ(CDATA_Text);
         CDATA_TextMallocSize = 0; 
+#ifdef WIN32
+	if (X3DParserRecurseLevel > INT_ID_UNDEFINED)
+		currentX3DParser = x3dparser[X3DParserRecurseLevel];
+#endif
 }
 
 int X3DParse (struct X3D_Group* myParent, char *inputstring) {

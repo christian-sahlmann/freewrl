@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.14 2009/07/06 20:13:28 crc_canada Exp $
+$Id: SensInterps.c,v 1.15 2009/08/01 09:45:39 couannette Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -1273,12 +1273,14 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 		node->_oldtrackPoint.c[0] = nx;
 		node->_oldtrackPoint.c[1] = ny;
 		node->_oldtrackPoint.c[2] = node->_origPoint.c[2];
+		/*printf(">%f %f %f\n",nx,ny,node->_oldtrackPoint.c[2]); */
 		if ((APPROX(node->_oldtrackPoint.c[0],node->trackPoint_changed.c[0])!= TRUE) ||
 			(APPROX(node->_oldtrackPoint.c[1],node->trackPoint_changed.c[1])!= TRUE) ||
 			(APPROX(node->_oldtrackPoint.c[2],node->trackPoint_changed.c[2])!= TRUE)) {
-
+			
 			memcpy ((void *) &node->trackPoint_changed, (void *) &node->_oldtrackPoint, sizeof(struct SFColor));
 			MARK_EVENT(ptr, offsetof (struct X3D_PlaneSensor, trackPoint_changed));
+
 		}
 
 		/* clamp translation to max/min position */

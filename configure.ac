@@ -19,6 +19,7 @@ AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 
 # For system detection
+AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 
 # automake startup
@@ -66,8 +67,8 @@ AC_HEADER_STDBOOL
 # Checks for library functions.
 AC_FUNC_FORK
 AC_PROG_GCC_TRADITIONAL
-AC_FUNC_MALLOC
-AC_CHECK_FUNCS([strchr strrchr strdup strndup getopt getopt_long getopt_long_only])
+dnl AC_FUNC_MALLOC
+AC_CHECK_FUNCS([strchr strrchr strdup strndup getopt getopt_long getopt_long_only malloc calloc realloc])
 
 
 # ====================================================
@@ -78,10 +79,12 @@ AC_CHECK_FUNCS([strchr strrchr strdup strndup getopt getopt_long getopt_long_onl
 # we'll use AC_CANONICAL_SYSTEM and target_* variables
 # Now we just use the host_* variables
 case "$host_os" in
-     mingw*) os_type=win32 ;;
+     *mingw32*|*cygwin*) os_type=win32 ;;
      darwin*) os_type=mac ;;
      *) os_type=unix ;;
 esac
+
+echo "Platform: $host_os, $os_type"
 
 # OS conditionals
 AM_CONDITIONAL([OS_WIN32],[test "$os_type" = "win32"])
@@ -93,7 +96,7 @@ AM_CONDITIONAL([OS_MAC],[test "$os_type" = "mac"])
 # FreeWRL specific configuration: debug build
 # ====================================================
 
-AC_MY_DEFINE_SWITCH([debug],[enable debugging (default=off)],off,_DEBUG)
+AC_MY_DEFINE_SWITCH([debug],[enable debugging (default=off)],off,FW_DEBUG)
 AM_CONDITIONAL([DEBUG],[test "$sw_debug" != no])
 
 # Fonts configuration
@@ -120,12 +123,39 @@ AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugi
 # ====================================================
 # FreeWRL specific configuration: library checking
 # ====================================================
+# zlib
+ZLIB_LIBS=-lz
+AC_ARG_WITH(zlib,AS_HELP_STRING([--with-zlib=<dir>],[Use zlib from here]),[
+                zlib=$withval
+                ZLIB_CFLAGS="-I$withval/include"
+                ZLIB_LIBS="-L$withval/lib $ZLIB_LIBS"])
+
+  # save global cflags/libs
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
+  # set cflags/libs for this case
+  CPPFLAGS="$CPPFLAGS $ZLIB_CFLAGS"
+  LDFLAGS="$LDFLAGS $ZLIB_LIBS"
+
+AC_CHECK_HEADERS(zlib.h, [AC_DEFINE(HAVE_ZLIB_H)],
+     [AC_MSG_ERROR([Can't find zlib.h. Please install zlib.])])
+AC_CHECK_LIB(z, deflate, [],
+   [AC_MSG_ERROR([Can't find zlib library. Please install zlib.])])
+
+  # restore global cflags/libs
+  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS
+
+AC_SUBST(ZLIB_CFLAGS)
+AC_SUBST(ZLIB_LIBS)
+
+# workaround LIBS appended with -lz, how to prevent this ???
+LIBS=
+
 # Threads
 ACX_PTHREAD
 
-# Fix for propoer use of --as-needed
+# Fix for proper use of --as-needed
 # http://udrepper.livejournal.com/19395.html
-PTHREAD_CFLAGS=$(echo $PTHREAD|sed -e 's/-pthread//')
+PTHREAD_CFLAGS=$(echo $PTHREAD_CFLAGS|sed -e 's/-pthread//')
 PTHREAD_LIBS="$PTHREAD_LIBS -lpthread"
 
 # FreeType (font rendering)
@@ -186,17 +216,32 @@ AC_MSG_NOTICE([Using $found_JAVASCRIPT_ENGINE for Javascript engine library])
 PKG_CHECK_MODULES(XML, libxml-2.0)
 
 # Expat
-EXPAT_LIB=
+EXPAT_LIBS=-lexpat
 AC_ARG_WITH(expat,AS_HELP_STRING([--with-expat=<dir>],[Use expat from here]),[
                 expat=$withval
-                CPPFLAGS="$CPPFLAGS -I$withval/include"
-                LDFLAGS="$LDFLAGS -L$withval/lib"])
+                EXPAT_CFLAGS="-I$withval/include"
+                EXPAT_LIBS="-L$withval/lib $EXPAT_LIBS"])
+
+  # save global cflags/libs
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
+  # set cflags/libs for this case
+  CPPFLAGS="$CPPFLAGS $EXPAT_CFLAGS"
+  LDFLAGS="$LDFLAGS $EXPAT_LIBS"
 
 AC_CHECK_HEADERS(expat.h, [AC_DEFINE(HAVE_EXPAT_H)],
      [AC_MSG_ERROR([Can't find expat.h. Please install expat.])])
-AC_CHECK_LIB(expat, XML_ParserCreate, [EXPAT_LIBS="-lexpat"],
+AC_CHECK_LIB(expat, XML_ParserCreate, [],
    [AC_MSG_ERROR([Can't find expat library. Please install expat.])])
+
+  # restore global cflags/libs
+  CPPFLAGS=$oCPPFLAGS
+  LDFLAGS=$oLDFLAGS
+
+AC_SUBST(EXPAT_CFLAGS)
 AC_SUBST(EXPAT_LIBS)
+
+# workaround LIBS appended with -lexpat, how to prevent this ???
+LIBS=
 
 # ===================================
 # Platform specific: windowing system
@@ -208,9 +253,12 @@ AC_ARG_WITH([target],
         [TARGET=auto])
 
 case "$os_type" in
-     win32) # Target available: w32
-          TARGET=w32
-          AC_MSG_FAILURE([Windows not supported yet.])
+     win32) # Target available: win32
+          case "$TARGET" in
+               auto) TARGET=win32 ;;
+               x11|win32) : ;;
+               *) AC_MSG_FAILURE([Platform is $os_type, target available are: win32,x11.]) ;;
+          esac
           ;;
      mac) # Target available: aqua,x11 (and possibly Motif in the future)
           case "$TARGET" in
@@ -276,6 +324,7 @@ fi
 AM_CONDITIONAL([WINDOW_USE_AQUA], [test "$TARGET" = aqua])
 AM_CONDITIONAL([WINDOW_USE_X11], [test "$TARGET" = x11])
 AM_CONDITIONAL([WINDOW_USE_MOTIF], [test "$TARGET" = motif])
+AM_CONDITIONAL([WINDOW_USE_WIN32], [test "$TARGET" = win32])
 
 AC_MSG_RESULT([Target windowing system selected: $TARGET])
 
@@ -291,14 +340,79 @@ case "$TARGET" in
         AC_SUBST(GL_CFLAGS)
         AC_SUBST(GL_LIBS)
         ;;
+     win32) # Currently we have it in default search path (w32api)
+        # set by env vars
+	#GL_CFLAGS=""
+	#GL_LIBS=""
+        AC_SUBST(GL_CFLAGS)
+        AC_SUBST(GL_LIBS)
+	;;
      *)
         AC_FIND_OPENGL
         ;;
 esac
 
+# Glew
+AC_ARG_WITH(glew,AS_HELP_STRING([--with-glew=<dir>],[Use glew from here]),[
+                glew=$withval
+                GLEW_CFLAGS="-I$withval/include"
+                GLEW_LIBS="-L$withval/lib -lGLEW"])
+
+  # save global cflags/libs
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
+  # set cflags/libs for this case
+  CPPFLAGS="$CPPFLAGS $GLEW_CFLAGS $GL_CFLAGS"
+  LDFLAGS="$LDFLAGS $GLEW_LIBS $GL_LIBS"
+
+AC_CHECK_HEADERS([GL/glew.h], [AC_DEFINE([HAVE_GLEW_H], [], [We have the glew library.])],
+     [AC_MSG_ERROR([Can't find glew.h. Please install glew.])])
+AC_CHECK_LIB(GLEW, glewInit, [],
+   [AC_MSG_ERROR([Can't find glew library. Please install glew.])])
+
+  # restore global cflags/libs
+  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS
+
+AC_SUBST(GLEW_CFLAGS)
+AC_SUBST(GLEW_LIBS)
+
 # JPEG
-AC_CHECK_HEADERS([jpeglib.h])
-AC_CHECK_LIB([jpeg],[jpeg_start_decompress],[JPEG_LIBS=-ljpeg])
+AC_ARG_WITH(jpeg,AS_HELP_STRING([--with-jpeg=<dir>],[Use jpeg from here]),[
+                jpeg=$withval
+                JPEG_CFLAGS="-I$withval/include"
+                JPEG_LIBS="-L$withval/lib -ljpeg"])
+
+  # save global cflags/libs
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
+  # set cflags/libs for this case
+  CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
+  LDFLAGS="$LDFLAGS $JPEG_LIBS"
+
+AC_CHECK_HEADERS(jpeglib.h, [AC_DEFINE(HAVE_JPEGLIB_H)],
+     # workaround failed test under mingw
+     AC_TRY_CPP(
+[#include <stdio.h>
+#undef PACKAGE
+#undef VERSION
+#include <jpeglib.h>],
+	jpeg_ok=yes,
+	jpeg_ok=no)
+      AC_MSG_RESULT($jpeg_ok)
+     )
+AC_CHECK_LIB([jpeg],[jpeg_start_decompress],[],
+     # workaround failed test under mingw
+     AC_TRY_LINK(
+[#include <stdio.h>
+#include "jpeglib.h"], 
+		 [jpeg_read_raw_data(NULL, NULL, 0)], 
+		 [AC_MSG_RESULT(found)],
+		 [AC_MSG_RESULT(not found)
+		  AC_MSG_ERROR(Couldn't find jpeg stuff in ${withval})])
+     )
+
+  # restore global cflags/libs
+  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS
+
+AC_SUBST(JPEG_CFLAGS)
 AC_SUBST(JPEG_LIBS)
 
 # PNG
@@ -400,12 +514,13 @@ case "$os_type" in
           DEFAULT_WGET=wget
           DEFAULT_IMAGECONVERT=convert
           ;;
-     w32) # Windows defaults -- none right now because this isn't ported to windows yet
+     win32) # Windows defaults
           DEFAULT_BROWSER=
-          DEFAULT_SOUNDCONV=
-          DEFAULT_UNZIP=
-          DEFAULT_WGET=
-          DEFAULT_IMAGECONVERT=
+	  BROWSER='C:\Program Files\Mozilla Firefox\firefox.exe'
+          DEFAULT_SOUNDCONV=sox.exe
+          DEFAULT_UNZIP=unzip.exe
+          DEFAULT_WGET=wget.exe
+          DEFAULT_IMAGECONVERT=convert.exe
           ;;
      *)   # UNIX defaults
           DEFAULT_BROWSER=firefox
@@ -415,6 +530,9 @@ case "$os_type" in
           DEFAULT_IMAGECONVERT=convert
           ;;
 esac # case $os_type
+
+# Quick hack to merge Doug's patch... we'll have to clean up
+# this with proper autotools macros for Windows...
 
 ## Browser check
 AC_MY_HELPERAPP([browser],[BROWSER],[internet browser],[$DEFAULT_BROWSER],[
@@ -444,6 +562,7 @@ AC_MY_HELPERAPP([wget],[WGET],[http fetcher],[$DEFAULT_WGET],[
 AC_MY_HELPERAPP([imageconvert],[IMAGECONVERT],[image converter],[$DEFAULT_IMAGECONVERT],[
         AC_MSG_ERROR([No image converter, please specify one using --with-imageconvert=PATH])
         ])
+
 
 # =======
 # Targets

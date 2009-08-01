@@ -14,19 +14,24 @@ AM_CFLAGS += -fno-strict-aliasing
 
 # General libraries used with all platforms
 AM_CPPFLAGS += \
+				$(ZLIB_CFLAGS) \
 				$(PTHREAD_CFLAGS) \
 				$(FREETYPE_CFLAGS) \
 				$(JAVASCRIPT_ENGINE_CFLAGS) \
-				$(XML_CFLAGS) $(EXPAT_CFLAGS) \
+				$(EXPAT_CFLAGS) \
+				$(XML_CFLAGS) \
 				$(GL_CFLAGS) \
+				$(JPEG_CFLAGS) \
 				$(PNG_CFLAGS) \
 				$(LIBCURL_CFLAGS)
 
 EXTERNAL_LIBS = \
+				$(ZLIB_LIBS) \
 				$(PTHREAD_LIBS) \
 				$(FREETYPE_LIBS) \
 				$(JAVASCRIPT_ENGINE_LIBS) \
-				$(XML_LIBS) $(EXPAT_LIBS) \
+				$(EXPAT_LIBS) \
+				$(XML_LIBS) \
 				$(GL_LIBS) \
 				$(JPEG_LIBS) \
 				$(PNG_LIBS) \
@@ -101,6 +106,12 @@ pkgconfig_DATA = libFreeWRL.pc
 lib_LTLIBRARIES = libFreeWRL.la
 include_HEADERS = libFreeWRL.h
 libFreeWRL_la_LDFLAGS = -version-info $(LIBFREEWRL_LTVERSION) $(AM_LDFLAGS)
+
+# To enable libtool to build DLL on Windows
+if OS_WIN32
+libFreeWRL_la_LDFLAGS += -no-undefined
+endif
+
 libFreeWRL_la_LIBADD = $(EXTERNAL_LIBS)
 
 include Makefile.sources
@@ -123,4 +134,9 @@ endif
 if WINDOW_USE_AQUA
 libFreeWRL_la_SOURCES += display_aqua.c
 AM_CPPFLAGS+=-DTARGET_AQUA
+endif
+
+if WINDOW_USE_WIN32
+libFreeWRL_la_SOURCES += display_win32.c ui/fwWindow32.c
+AM_CPPFLAGS+=-DTARGET_WIN32
 endif

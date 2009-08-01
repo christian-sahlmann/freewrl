@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.10 2009/07/24 19:46:20 crc_canada Exp $
+$Id: Component_Shape.c,v 1.11 2009/08/01 09:45:39 couannette Exp $
 
 X3D Shape Component
 
@@ -21,6 +21,7 @@ X3D Shape Component
 
 
 static int     linePropertySet;  /* line properties -width, etc                  */
+
 
 float global_transparency = 1.0;
 
@@ -408,6 +409,9 @@ void render_Material (struct X3D_Material *node) {
 
 void child_Shape (struct X3D_Shape *node) {
 	void *tmpN;
+#ifdef WIN32
+	extern GLuint globalCurrentShader;  
+#endif
 
 	if(!(node->geometry)) { return; }
 
@@ -487,15 +491,23 @@ void child_Shape (struct X3D_Shape *node) {
 	}
 
 	/* any shader turned on? if so, turn it off */
-	extern GLuint globalCurrentShader;
+#ifndef WIN32
+	extern GLuint globalCurrentShader;  /* win32 C doesn't like a declaration in the middle of a C function - put at top of function */
+#endif
 	TURN_APPEARANCE_SHADER_OFF
 }
 
 
 void child_Appearance (struct X3D_Appearance *node) {
-	last_texture_type = NOTEXTURE;
+#ifdef WIN32
 	void *tmpN;
 	struct X3D_Node *localShaderNode = NULL;
+	last_texture_type = NOTEXTURE;  /* WIN32 C likes executable statements to follow declarations in a function */
+#else
+	last_texture_type = NOTEXTURE;  
+	void *tmpN;
+	struct X3D_Node *localShaderNode = NULL;
+#endif
 
 	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
 	 printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",

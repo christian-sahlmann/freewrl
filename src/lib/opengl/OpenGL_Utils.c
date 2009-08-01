@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.48 2009/07/24 19:46:19 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.49 2009/08/01 09:45:39 couannette Exp $
 
 ???
 
@@ -467,7 +467,6 @@ void glpOpenGLInitialize() {
         #endif
 
 	/* Configure OpenGL for our uses. */
-
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
 	glClearColor(cc_red, cc_green, cc_blue, cc_alpha);
@@ -550,7 +549,9 @@ void invalidateCurMat() {
 
 	if (myMat == GL_PROJECTION) PROJmatOk=FALSE;
 	else if (myMat == GL_MODELVIEW) MODmatOk=FALSE;
-	else {printf ("fwLoad, unknown %d\n",myMat);}
+	else {
+		printf ("fwLoad, unknown %d\n",myMat);
+	}
 }
 
 void fwLoadIdentity () {
@@ -654,6 +655,20 @@ void fwGetDoublev (int ty, double *mat) {
 	}
 }
 
+#ifdef WIN32
+/* FIXME: why use a C++ compiler ??? */
+/* inline is cpp, ms has __inline for C */
+__inline void fwXformPush(void) {
+	FW_GL_PUSH_MATRIX(); 
+	MODmatOk = FALSE;
+}
+
+__inline void fwXformPop(void) {
+	FW_GL_POP_MATRIX(); 
+	MODmatOk = FALSE;
+}
+
+#else
 inline void fwXformPush(void) {
 	FW_GL_PUSH_MATRIX(); 
 	MODmatOk = FALSE;
@@ -663,7 +678,7 @@ inline void fwXformPop(void) {
 	FW_GL_POP_MATRIX(); 
 	MODmatOk = FALSE;
 }
-
+#endif
 /* for Sarah's front end - should be removed sometime... */
 void kill_rendering() {kill_X3DNodes();}
 
@@ -1604,6 +1619,7 @@ void kill_X3DNodes(void){
 					break;
 				case FIELDTYPE_MFString: 
 					MString=(struct Multi_String *)fieldPtr;
+					{
 					struct Uni_String* ustr;
 					for (j=0; j<MString->n; j++) {
 						ustr=MString->p[j];
@@ -1613,6 +1629,7 @@ void kill_X3DNodes(void){
 					}
 					MString->n=0;
 					FREE_IF_NZ(MString->p);
+					}
 					break;
 				case FIELDTYPE_MFVec2f:
 					MVec2f=(struct Multi_Vec2f *)fieldPtr;

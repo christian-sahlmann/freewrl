@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: options.c,v 1.13 2009/07/16 15:25:11 istakenv Exp $
+  $Id: options.c,v 1.14 2009/08/01 09:45:39 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -185,7 +185,7 @@ int parseCommandLine (int argc, char **argv)
 	    /* Error handling */
 
 	case '?': /* getopt error: unknown option or missing argument */
-	    FW_ERROR("ERROR: unknown option or missing argument to option: %c (%s)\n", 
+	    ERROR_MSG("ERROR: unknown option or missing argument to option: %c (%s)\n", 
 		     c, real_option_name);
 	    exit(1);
 	    break;
@@ -219,7 +219,7 @@ int parseCommandLine (int argc, char **argv)
 
 	case 'g': /* --geometry, required argument: string "WxH" */
 	    if (!optarg) {
-		FW_ERROR("Argument missing for option -g/--geometry\n");
+		ERROR_MSG("Argument missing for option -g/--geometry\n");
 		exit(1);
 	    } else {
 		setGeometry_from_cmdline(optarg);
@@ -331,7 +331,7 @@ int parseCommandLine (int argc, char **argv)
 #endif
 
 	default:
-	    FW_ERROR("ERROR: getopt returned character code 0%o, unknown error.\n", c);
+	    ERROR_MSG("ERROR: getopt returned character code 0%o, unknown error.\n", c);
 	    exit(1);
 	    break;
 	}
@@ -339,7 +339,7 @@ int parseCommandLine (int argc, char **argv)
 
     if (optind < argc) {
 	if (optind != (argc-1)) {
-	    FW_WARN("WARNING: expect only 1 file on command line; running file: %s\n",
+	    WARN_MSG("WARNING: expect only 1 file on command line; running file: %s\n",
 		    argv[optind]);
 	}
 

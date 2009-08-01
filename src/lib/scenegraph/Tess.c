@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.6 2009/06/17 13:22:54 crc_canada Exp $
+$Id: Tess.c,v 1.7 2009/08/01 09:45:39 couannette Exp $
 
 ???
 
@@ -22,7 +22,14 @@ $Id: Tess.c,v 1.6 2009/06/17 13:22:54 crc_canada Exp $
 #ifdef AQUA
 typedef GLvoid (*_GLUfuncptr)(GLvoid);
 #endif
+/* #ifdef WIN32 */
+/* typedef  void (__stdcall *_GLUfuncptr)(); */
+/* #endif */
 
+/* WIN32 p.411 openGL programmers guide - windows needs CALLBACK, unix not */
+#ifndef CALLBACK 
+#define CALLBACK
+#endif
 
 /* from Doug Sanden - highaspirations - at - hotmail.com */
 #ifndef CALLBACK
@@ -172,7 +179,6 @@ void new_tessellation(void) {
 	gluTessCallback(global_tessobj,GLU_END,(_GLUfuncptr)FW_tess_end);
 	gluTessCallback(global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)FW_tess_combine_data);
 	gluTessCallback(global_tessobj, GLU_TESS_COMBINE,(_GLUfuncptr)FW_tess_combine);
-
 
 	    /* Unused right now.
 	    gluTessCallback(triang, GLU_TESS_BEGIN, FW_GLU_TESS_BEGIN);

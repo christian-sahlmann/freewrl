@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.27 2009/07/24 19:46:20 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.28 2009/08/01 09:45:39 couannette Exp $
 
 X3D Geospatial Component
 
@@ -877,29 +877,39 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
 static void gdToUtm(double latitude, double longitude, int *zone, double *easting, double *northing) {
 #define DEG2RAD (PI/180.00)
 #define GEOSP_WE_INV 0.00669438
+	double lat_radian;
+	double long_radian;
+	double myScale;
+	int longOrigin;
+	double longOriginradian;
+	double eccentprime;
+	double NNN;
+	double TTT;
+	double CCC;
+	double AAA;
+	double MMM;
 
 	/* calculate the zone number if it is less than zero. If greater than zero, leave alone! */
 	if (*zone < 0) 
 		*zone = ((longitude + 180.0)/6.0) + 1;
 
-	double lat_radian = latitude * DEG2RAD;
-	double long_radian = longitude * DEG2RAD;
-	double myScale = 0.9996;
-	int longOrigin = (*zone - 1)*6 - 180 + 3;
-	double longOriginradian = longOrigin * DEG2RAD;
-	double eccentprime = GEOSP_WE_INV/(1-GEOSP_WE_INV);
-
+	lat_radian = latitude * DEG2RAD;
+	long_radian = longitude * DEG2RAD;
+	myScale = 0.9996;
+	longOrigin = (*zone - 1)*6 - 180 + 3;
+	longOriginradian = longOrigin * DEG2RAD;
+	eccentprime = GEOSP_WE_INV/(1-GEOSP_WE_INV);
 
 	/* 
 	printf ("lat_radian %lf long_radian %lf myScale %lf longOrigin %d longOriginradian %lf eccentprime %lf\n",
 	   lat_radian, long_radian, myScale, longOrigin, longOriginradian, eccentprime);
 	*/
 
-	double NNN = GEOSP_WE_A / sqrt(1-GEOSP_WE_INV * sin(lat_radian)*sin(lat_radian));
-	double TTT = tan(lat_radian) * tan(lat_radian);
-	double CCC = eccentprime * cos(lat_radian)*cos(lat_radian);
-	double AAA = cos(lat_radian) * (long_radian - longOriginradian);
-	double MMM = GEOSP_WE_A
+	NNN = GEOSP_WE_A / sqrt(1-GEOSP_WE_INV * sin(lat_radian)*sin(lat_radian));
+	TTT = tan(lat_radian) * tan(lat_radian);
+	CCC = eccentprime * cos(lat_radian)*cos(lat_radian);
+	AAA = cos(lat_radian) * (long_radian - longOriginradian);
+	MMM = GEOSP_WE_A
             * ( ( 1 - GEOSP_WE_INV/4 - 3 * GEOSP_WE_INV * GEOSP_WE_INV/64
                   - 5 * GEOSP_WE_INV * GEOSP_WE_INV * GEOSP_WE_INV/256
                 ) * lat_radian
@@ -1497,6 +1507,14 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 }
 
 void child_GeoLocation (struct X3D_GeoLocation *node) {
+/* #ifdef WIN32 */
+/* 	CHILDREN_COUNT */
+/* 	DIRECTIONAL_LIGHT_SAVE    /\* WIN32 - declarations before executing code? *\/ */
+/* 	INITIALIZE_GEOSPATIAL(node) */
+/* 	COMPILE_IF_REQUIRED */
+
+/* 	OCCLUSIONTEST */
+/* #else */
 	CHILDREN_COUNT
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED

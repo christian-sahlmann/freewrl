@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.15 2009/07/24 19:46:19 crc_canada Exp $
+$Id: Textures.c,v 1.16 2009/08/01 09:45:39 couannette Exp $
 
 General Texture objects.
 
@@ -29,11 +29,15 @@ General Texture objects.
 # include <QuickTime/QuickTime.h>
 #else
 # if HAVE_JPEGLIB_H
+#undef HAVE_STDLIB_H
+#undef FAR
+#undef HAVE_BOOLEAN
 #  include <jpeglib.h>
 #  include <setjmp.h>
 # endif
 #endif
 
+#define TEXVERBOSE 1
 
 #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
                 do_possible_textureSequence(myTableIndex); \
@@ -107,7 +111,8 @@ static struct Multi_Int32 invalidFilePixelDataNode;
 static int	invalidFilePixelData[] = {1,1,3,0x707070};
 
 /* threading variables for loading textures in threads */
-pthread_t loadThread = 0;
+DEF_THREAD(loadThread);
+
 static pthread_mutex_t texmutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t texcond   = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t genmutex = PTHREAD_MUTEX_INITIALIZER;
@@ -140,7 +145,7 @@ int	*global_tcin;
 int	global_tcin_count;
 void 	*global_tcin_lastParent;
 
-#ifdef AQUA /* for AQUA OS X sharing of OpenGL Contexts */
+#if defined(AQUA) /* for AQUA OS X sharing of OpenGL Contexts */
 
 /* # include "CGDirectDisplay.h" */
 
@@ -152,6 +157,8 @@ CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
 CGLPixelFormatObj pixelFormat = NULL;
 long numPixelFormats = 0;
 CGLContextObj aqtextureContext = NULL;
+
+#elif defined(WIN32)
 
 #else
 
@@ -182,10 +189,11 @@ void readpng_cleanup(int free_image_data);
 
 /************************************************************************/
 /* start up the texture thread */
-void initializeTextureThread() {
-	if (loadThread == 0) {
-		pthread_create (&loadThread, NULL, (void*(*)(void *))&_textureThread, NULL);
-	}
+void initializeTextureThread()
+{
+    if (TEST_NULL_THREAD(loadThread)) {
+	pthread_create (&loadThread, NULL, (void*(*)(void *))&_textureThread, NULL);
+    }
 }
 
 /* does a texture have alpha?  - pass in a __tableIndex from a MovieTexture, ImageTexture or PixelTexture. */
@@ -223,8 +231,10 @@ int isTextureLoaded(int texno) {
 int isTextureParsing() {
 	/* return currentlyWorkingOn>=0; */
 #ifdef TEXVERBOSE 
+    if (textureInProcess > 0) {
 	printf("call to isTextureParsing %d, returning %d\n",
 	       textureInProcess,textureInProcess > 0);
+    }
 #endif
 	return textureInProcess >0;
 }
@@ -1311,6 +1321,9 @@ static int findTextureFile (int cwo) {
 		    printf ("textureThread: we were successful at locating %s\n",filename); 
 #endif
 		} else {
+/* #ifdef WIN32 */
+/* 			count = 1; */
+/* #endif */
 			if (count > 0) {
 #ifndef ARCH_PPC
 			    ConsoleMessage ("Could not locate URL for texture %d (last choice was %s)\n",cwo,filename);
@@ -1361,14 +1374,19 @@ static int findTextureFile (int cwo) {
 		    printf ("textureThread: trying to convert on %s\n", filename);
 #endif
 		    if (!filename) {
-			printf("textureThread: error: trying to load null file\n");
-			return FALSE;
+				printf("textureThread: error: trying to load null file\n");
+				return FALSE;
 		    }
-		    sysline = (char *)MALLOC(sizeof(char)*(strlen(filename)+100));
-		    sprintf(sysline,"%s %s /tmp/freewrl%d.png",
-			    IMAGECONVERT, filename, getpid());
+/* #ifdef WIN32 */
+/* 			if( IMAGECONVERT == NULL ) */
+/* 			{ */
+/* 				return FALSE; */
+/* 			} */
+/* #endif */
+			sysline = (char *)MALLOC(sizeof(char)*(strlen(filename)+100));
+			sprintf(sysline,"%s %s /tmp/freewrl%d.png", IMAGECONVERT, filename, getpid());
 #ifdef TEXVERBOSE 
-		    printf ("textureThread: running convert on %s\n",sysline);
+			printf ("textureThread: running convert on %s\n",sysline);
 #endif
 
 		    if (freewrlSystem (sysline) != TRUE) {

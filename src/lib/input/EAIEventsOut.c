@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsOut.c,v 1.4 2009/05/07 17:01:24 crc_canada Exp $
+$Id: EAIEventsOut.c,v 1.5 2009/08/01 09:45:39 couannette Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -76,6 +76,7 @@ void handle_Listener () {
 	/* zero the memory for the next time - MultiMemcpy needs this to be zero, otherwise
 	   it might think that the "oldlen" will be non-zero */
 	bzero(&EAIListenerData, sizeof(EAIListenerData));
+
 
 	/* append the EV_EOT marker to the end of the string */
 	strcat (buf,"\nEV_EOT");

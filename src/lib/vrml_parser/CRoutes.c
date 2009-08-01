@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.26 2009/07/22 14:36:20 crc_canada Exp $
+$Id: CRoutes.c,v 1.27 2009/08/01 09:45:39 couannette Exp $
 
 ???
 
@@ -575,20 +575,32 @@ void AddRemoveChildren (
 		/* first, set children to 0, in case render thread comes through here */
 		tn->n = 0;
 
+#ifdef WIN32
+		newmal = MALLOC ((oldlen+len)*sizeof(DWORD_PTR));
+
+		/* copy the old stuff over */
+		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(DWORD_PTR));
+#else
 		newmal = MALLOC ((oldlen+len)*sizeof(void *));
 
 		/* copy the old stuff over */
 		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
-
+#endif
 		/* set up the C structures for this new MFNode addition */
 		FREE_IF_NZ (tn->p);
 		tn->p = newmal;
 
 		/* copy the new stuff over - note, newmal changes 
 		what it points to */
+#ifdef WIN32
+		/* win32 complains void* unknown size. Is DWORD_PTR what you meant? ms-help://MS.MSSDK.1033/MS.WinSDK.1033/winprog/winprog/windows_data_types.htm */
 
+		newmal = (void *) ((DWORD_PTR)newmal + sizeof(DWORD_PTR) * oldlen);
+		memcpy(newmal,nodelist,sizeof(DWORD_PTR) * len);
+#else
 		newmal = (void *) (newmal + sizeof (void *) * oldlen);
 		memcpy(newmal,nodelist,sizeof(void *) * len);
+#endif
 
 		/* tell each node in the nodelist that it has a new parent */
 		for (counter = 0; counter < len; counter++) {
@@ -1224,6 +1236,10 @@ in the routing table that this node/offset triggered an event.
 void mark_event (struct X3D_Node *from, unsigned int totalptr) {
 	int findit;
 
+#ifdef WIN32
+	if(from == 0) return;
+	/*if(totalptr == 0) return; */
+#endif
 	X3D_NODE_CHECK(from);
 
 	/* maybe this MARK_EVENT is coming in during initial node startup, before routing is registered? */
@@ -1431,6 +1447,7 @@ void sendScriptEventIn(uintptr_t num) {
 		CRoutes[num].direction_flag);
 	#endif
 
+
 	/* script value: 1: this is a from script route
 			 2: this is a to script route
 			 (3 = SCRIPT_TO_SCRIPT - this gets changed in to a FROM and a TO;
@@ -1625,7 +1642,9 @@ void process_eventsProcessed() {
 		if (!JS_ExecuteScript((JSContext *) ScriptControl[counter].cx,
                                 (JSObject *) ScriptControl[counter].glob,
 				(JSScript *) ScriptControl[counter].eventsProcessed, &retval)) {
-			printf ("can not run eventsProcessed() for script %d thread %u\n",counter,(unsigned int)pthread_self());
+		    printf ("can not run eventsProcessed() for script %d thread %u\n",
+			    counter, ID_THREAD(pthread_self()));
+
 		}
 
 	}

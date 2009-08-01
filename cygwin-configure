@@ -1,0 +1,46 @@
+#!/bin/sh
+
+deps="/home/charlotte/dev/deps"
+
+w32="/MinGW"
+
+z="$deps/zlib"
+moz="$deps/mozilla"
+js="$moz/js/src"
+pt="$deps/pthread-win32/Pre-built.2"
+ex="$deps/expat"
+jpg="$deps/jpeg"
+png="$deps/png"
+ft="$deps/freetype"
+xml="$deps/libxml2"
+
+#export PATH="$w32/bin:$PATH"
+
+#	CPPFLAGS="-I$w32/include" CFLAGS="-I$w32/include" LDFLAGS="-L$w32/lib" \
+
+#	ZLIB_CFLAGS="-I$z/include" \
+#	ZLIB_LIBS="-L$z/lib -lz" \
+
+./configure \
+	CC='gcc -mno-cygwin' \
+	--build=i686-pc-cygwin \
+	--host=i686-pc-mingw32 \
+	JAVASCRIPT_ENGINE_CFLAGS="-I$moz/dist/include/nspr -I$js -DXP_WIN -DJS_THREADSAFE" \
+	JAVASCRIPT_ENGINE_LIBS="-L$moz/dist/lib -lnspr4 -L$js/MinGW5.1_OPT.OBJ -ljs" \
+	PTHREAD_CFLAGS="-I$pt/include" \
+	PTHREAD_LIBS="-L$pt/lib -lpthreadGC2" \
+	EXPAT_CFLAGS="-I$ex/Source/lib" \
+	EXPAT_LIBS="-L$ex/Bin -lexpat" \
+	JPEG_CFLAGS="-I$jpg/include" \
+	JPEG_LIBS="-L$jpg/lib -ljpeg" \
+	PNG_CFLAGS="-I$png/include" \
+	PNG_LIBS="-L$png/lib -lpng" \
+	FREETYPE_CFLAGS="-I$ft/include -I$ft/include/freetype2" \
+	FREETYPE_LIBS="-L$ft/objs -lfreetype" \
+	XML_CFLAGS="-I$xml/include/libxml" \
+	XML_LIBS="-L$xml/lib -lxml2" \
+	GL_CFLAGS="-I/usr/include/opengl" \
+	GL_LIBS="-lgdi32 -lglew32 -lglu32 -lopengl32" \
+	--enable-debug
+
+

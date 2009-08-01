@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: pluginUtils.c,v 1.6 2009/07/06 20:13:28 crc_canada Exp $
+$Id: pluginUtils.c,v 1.7 2009/08/01 09:45:39 couannette Exp $
 
 ???
 
@@ -37,19 +37,24 @@ int lastchildProcess = 0;
 int childProcessListInit = FALSE;
 
 void killErrantChildren(void) {
+#ifndef WIN32
 	int count;
 	
 	for (count = 0; count < MAXPROCESSLIST; count++) {
 		if (childProcess[count] != 0) {
 			/* printf ("trying to kill %d\n",childProcess[count]); */
+			/* http://www.opengroup.org/onlinepubs/000095399/functions/kill.html */
 			kill (childProcess[count],SIGINT);
 		}
 	}
+#endif
 }
 
 /* FIXME: what are the possible return codes for this function ??? */
 int freewrlSystem (const char *sysline) {
-
+#ifdef WIN32
+	return 0;
+#else
 #define MAXEXECPARAMS 10
 #define EXECBUFSIZE	2000
 	char *paramline[MAXEXECPARAMS];
@@ -172,6 +177,7 @@ int freewrlSystem (const char *sysline) {
 		printf ("System call failed :%s:\n",sysline);
 	}
 	return -1; /* should we return FALSE or -1 ??? */
+#endif
 }
 
 /* implement Anchor/Browser actions */
@@ -499,7 +505,7 @@ void URLencod (char *dest, const char *src, int maxlen) {
 }
 
 /* this is for Unix only */
-#ifndef AQUA 
+#if !defined(AQUA) && !defined(WIN32)
 void sendXwinToPlugin() {
 	XWindowAttributes mywin;
 

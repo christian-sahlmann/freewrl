@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: pluginUtils.h,v 1.4 2009/02/18 13:37:50 istakenv Exp $
+$Id: pluginUtils.h,v 1.5 2009/08/01 09:45:39 couannette Exp $
 
 FreeWRL plugin utilities header file.
 
@@ -27,8 +27,10 @@ extern "C" {
 #define PLUGIN_RETRY 2
 #define SLEEP_TIME 5
 
+#ifndef WIN32
 #define NO_ERROR 0
 #define SOCKET_ERROR -1000
+#endif
 #define SIGNAL_ERROR -1001
 
 #define UNUSED(v) ((void) v)

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.12 2009/05/13 13:53:56 crc_canada Exp $
+$Id: CParse.c,v 1.13 2009/08/01 09:45:39 couannette Exp $
 
 ???
 
@@ -134,7 +134,11 @@ void fw_assert (char *file, int line) {
 	ConsoleMessage ("FreeWRL Internal Error at line %d in %s",line,file);
 	
 	for (looper=1; looper<60; looper++) {
+#ifdef WIN32
+		Sleep(1000);
+#else
 		sleep(1);
+#endif
 		sched_yield();
 	}
 	printf ("FreeWRL exiting...\n");

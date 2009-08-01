@@ -1,0 +1,21 @@
+/*************************************************************\
+* generic.dlg: Dialogs for Generic                            *
+*                                                             *
+*                                                             *
+\*************************************************************/
+
+1 DLGINCLUDE "display_win32.h"
+
+AboutDlg DIALOG FIXED 6, 21, 198, 99
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "About Generic"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    DEFPUSHBUTTON   "&OK", IDOK, 72, 74, 40, 14
+    LTEXT           "Generic Application", 104, 45, 14,
+                    128, 8
+    LTEXT           "Written as a sample", 105, 45, 35, 59, 8
+    LTEXT           "Microsoft Corporation", 106, 45, 45, 98, 8
+    LTEXT           "Copyright (c) 2005", 107, 45,
+                    54, 138, 8
+END

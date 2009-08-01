@@ -6,7 +6,7 @@
  *
  * Library internal declarations.
  *
- * $Id: internal.h,v 1.13 2009/04/28 13:14:13 couannette Exp $
+ * $Id: internal.h,v 1.14 2009/08/01 09:45:39 couannette Exp $
  *
  *******************************************************************/
 
@@ -24,7 +24,7 @@ char *fw_strndup(const char *str, int len);
 #endif
 
 /* Useful to suppress things from non-debug builds */
-#ifdef _DEBUG
+#if defined(FW_DEBUG)
 #  define DEBUG_(_expr) _expr
 #else
 #  define DEBUG_(_expr)
@@ -37,7 +37,7 @@ char *fw_strndup(const char *str, int len);
 /**
  * Those macro get defined only when debugging is enabled
  */
-#if defined(_DEBUG) && defined(DEBUG_MALLOC)
+#if defined(FW_DEBUG) && defined(DEBUG_MALLOC)
 
 # define MALLOC(_sz) freewrlMalloc(__LINE__,__FILE__,_sz)
 # define REALLOC(_a,_b) freewrlRealloc(__LINE__,__FILE__,_a,_b) 
@@ -58,16 +58,19 @@ void *freewrlStrdup(int line, char *file, char *str);
                            ERROR_MSG("ERROR: assert failed: %s (%s:%d)\n", #_ptr, __FILE__, __LINE__); } \
                       } while (0)
 
-#else /* defined(_DEBUG) && defined(DEBUG_MALLOC) */
+#else /* defined(FW_DEBUG) && defined(DEBUG_MALLOC) */
 
 # define MALLOC malloc
 # define REALLOC realloc
 # define FREE free
+
 # define STRDUP strdup
 # define UNLINK unlink
+# define TEMPNAM tempnam
+
 # define ASSERT(_whatever)
 
-#endif /* defined(_DEBUG) && defined(DEBUG_MALLOC) */
+#endif /* defined(FW_DEBUG) && defined(DEBUG_MALLOC) */
 
 /* This get always defined, but ERROR_MSG is no-op without _DEBUG */
 

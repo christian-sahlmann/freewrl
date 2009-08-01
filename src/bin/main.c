@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: main.c,v 1.13 2009/02/11 15:12:54 istakenv Exp $
+$Id: main.c,v 1.14 2009/08/01 09:45:39 couannette Exp $
 
 FreeWRL main program.
 
@@ -27,8 +27,11 @@ int wantEAI = FALSE;
  */
 void catch_SIGQUIT();
 void catch_SIGSEGV();
-void catch_SIGHUP();
+
+#if !defined(WIN32)
 void catch_SIGALRM(int);
+void catch_SIGHUP();
+#endif
 
 /**
  * Main
@@ -52,12 +55,16 @@ int main (int argc, char **argv)
     fullscreen = 0;
 /*     wantEAI = 0; */
 
-    /* install the signal handler for SIGQUIT */
-    signal(SIGQUIT, (void(*)(int)) catch_SIGQUIT);
+    /* install the signal handlers */
+
     signal(SIGTERM, (void(*)(int)) catch_SIGQUIT);
     signal(SIGSEGV, (void(*)(int)) catch_SIGSEGV);
+
+#if !defined(WIN32)
+    signal(SIGQUIT, (void(*)(int)) catch_SIGQUIT);
     signal(SIGALRM, (void(*)(int)) catch_SIGALRM);
     signal(SIGHUP,  (void(*)(int)) catch_SIGHUP);
+#endif
 
     /* parse command line arguments */
     /* JAS - for last parameter of long_options entries, choose
@@ -66,9 +73,12 @@ int main (int argc, char **argv)
 	/* create the initial scene, from the file passed in
 	   and place it as a child of the rootNode. */
 
+	/* FIXME: try to NEVER use immediate size; compute length with argument's lengths */
 	initialFilename = (char *) malloc(1000 * sizeof (char));
 	pwd = (char *) malloc(1000 * sizeof (char));
+
 	getcwd(pwd,1000);
+
 	/* if this is a network file, leave the name as is. If it is
 	   a local file, prepend the path to it */
 
@@ -83,6 +93,9 @@ int main (int argc, char **argv)
 	BrowserFullPath = NULL;
     }
 
+    /* doug- redirect stdout to a file - works, useful for sending bug reports */
+    /* freopen("freopen.out", "w", stdout ); */
+
     /* start threads, parse initial scene, etc */
     initFreewrl();
 
@@ -91,9 +104,8 @@ int main (int argc, char **argv)
 	create_EAI();
     }
 
-    /* now wait around until something kills this thread. */
-    pthread_join(DispThrd, NULL);
-
+    /* give control to the library */
+    startFreeWRL();
     return 0;
 }
 
@@ -106,12 +118,6 @@ void catch_SIGQUIT()
     doQuit();
 }
 
-void catch_SIGHUP()
-{
-    /* ConsoleMessage ("FreeWRL got a SIGHUP signal - reloading"); */
-    Anchor_ReplaceWorld(BrowserFullPath);
-}
-
 void catch_SIGSEGV()
 {
     if (!CaughtSEGV) {
@@ -119,6 +125,14 @@ void catch_SIGSEGV()
 	CaughtSEGV = TRUE;
     }
     exit(1);
+}
+
+#if !defined(WIN32)
+
+void catch_SIGHUP()
+{
+    /* ConsoleMessage ("FreeWRL got a SIGHUP signal - reloading"); */
+    Anchor_ReplaceWorld(BrowserFullPath);
 }
 
 void catch_SIGALRM(int sig)
@@ -132,3 +146,6 @@ void catch_SIGALRM(int sig)
     alarm(0);
     signal(SIGALRM, catch_SIGALRM);
 }
+
+#endif
+

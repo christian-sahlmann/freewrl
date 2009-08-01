@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.20 2009/07/16 15:38:54 istakenv Exp $
+$Id: CParseLexer.c,v 1.21 2009/08/01 09:45:39 couannette Exp $
 
 ???
 
@@ -565,6 +565,8 @@ BOOL lexer_event(struct VRMLLexer* me,
  struct Vector* uarr;
  const char** arr;
  size_t arrCnt;
+ const char** userArr;
+ size_t userCnt;
 
  if(routedToFrom==ROUTED_FIELD_EVENT_IN)
  {
@@ -593,8 +595,8 @@ BOOL lexer_event(struct VRMLLexer* me,
 #endif
 
  /* Get a pointer to the data in the vector of user defined event names */
- const char** userArr=&vector_get(const char*, uarr, 0);
- size_t userCnt=vector_size(uarr);
+ userArr=&vector_get(const char*, uarr, 0);
+ userCnt=vector_size(uarr);
 
  /* Strip off set_ or _changed from current token.  Then look through the EVENT_IN/EVENT_OUT array for the eventname (current token).  
     If it is found, return the index of the eventname. Also looks through fields of the routedNode to check if fieldname is valid for that node 
@@ -666,6 +668,9 @@ BOOL lexer_event(struct VRMLLexer* me,
 BOOL lexer_field(struct VRMLLexer* me,
  indexT* retBO, indexT* retBE, indexT* retUO, indexT* retUE)
 {
+ const char** userArr;
+ size_t userCnt;
+
  BOOL found=FALSE;
 
   /* Get next token */
@@ -674,8 +679,8 @@ BOOL lexer_field(struct VRMLLexer* me,
  ASSERT(me->curID);
 
   /* Get a pointer to the entries in the user_initializeOnly vector */
- const char** userArr=&vector_get(const char*, me->user_initializeOnly, 0);
- size_t userCnt=vector_size(me->user_initializeOnly);
+ userArr=&vector_get(const char*, me->user_initializeOnly, 0);
+ userCnt=vector_size(me->user_initializeOnly);
 
 #ifdef CPARSERVERBOSE
  printf("lexer_field: looking for %s\n", me->curID);
@@ -809,8 +814,14 @@ void lexer_skip(struct VRMLLexer* me)
    } \
   } \
  }
+/* win 32 complains not enough parameters for _general but what should go for int? && true / && 1*/
+#ifdef WIN32
+#define NUMBER_PROCESS_SIGN_INT \
+ NUMBER_PROCESS_SIGN_GENERAL(&& TRUE)
+#else
 #define NUMBER_PROCESS_SIGN_INT \
  NUMBER_PROCESS_SIGN_GENERAL()
+#endif
 #define NUMBER_PROCESS_SIGN_FLOAT \
  NUMBER_PROCESS_SIGN_GENERAL(&& c!='.')
 

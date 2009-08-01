@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display_motif.c,v 1.8 2009/06/09 15:27:58 istakenv Exp $
+$Id: display_motif.c,v 1.9 2009/08/01 09:45:39 couannette Exp $
 
 FreeWRL support library.
 Display (Motif specific) initialization.
@@ -12,8 +12,6 @@ Display (Motif specific) initialization.
 #include <system.h>
 #include <display.h>
 #include <internal.h>
-
-#include <libFreeWRL.h>
 
 
 /* display part specific to X11/Motif */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.18 2009/07/15 15:26:59 crc_canada Exp $
+$Id: fieldGet.c,v 1.19 2009/08/01 09:45:40 couannette Exp $
 
 Javascript C language binding.
 
@@ -46,8 +46,8 @@ void getField_ToJavascript (int num, int fromoffset) {
 	int ignored;
 
 	#ifdef SETFIELDVERBOSE 
-		printf ("CRoutes, sending ScriptEventIn to from offset %d type %d\n",
-			fromoffset,JSparamnames[fromoffset].type);  
+		printf ("CRoutes, sending ScriptEventIn from offset %d type %d num=%ld\n",
+			fromoffset,JSparamnames[fromoffset].type,num);
 	#endif
 
 	/* set the parameter */
@@ -918,7 +918,6 @@ void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 	JSContext *cx;
 	JSObject *obj, *_sfvec3fObj;
 
-
 	/* get context and global object for this script */
 	cx = (JSContext *) ScriptControl[tonode].cx;
 	obj = (JSObject *)ScriptControl[tonode].glob;
@@ -928,7 +927,6 @@ void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 
 	/* get the variable name to hold the incoming value */
 	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[tnfield].name);
-
 	#ifdef SETFIELDVERBOSE 
 	printf ("set_one_MultiElementType: script %d line %s\n",tonode, scriptline);
 	#endif
@@ -974,6 +972,7 @@ void setScriptMultiElementtype (uintptr_t num) {
 
 	CRnodeStruct *to_ptr = NULL;
 
+
 	JSContext *cx;
 	JSObject *obj;
 
@@ -1009,11 +1008,11 @@ void setScriptMultiElementtype (uintptr_t num) {
 		obj = (JSObject *)ScriptControl[myObj->num].glob;
 
 		/* thanks to Doug Sanden for this one */
-		#ifdef WIN32
-		fnptr = (void *)( (uintptr_t)(fn) + fptr ); /*force byte arithmetic */
-		#else
+/* 		#ifdef WIN32 */
+/* 		fnptr = (void *)( (uintptr_t)(fn) + fptr ); /\*force byte arithmetic *\/ */
+/* 		#else */
 		fn += fptr;
-		#endif
+/* 		#endif */
 
 		set_one_MultiElementType (myObj->num, tptr, fn, len);
 	}

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statusbar.c,v 1.8 2009/07/17 15:09:00 crc_canada Exp $
+$Id: statusbar.c,v 1.9 2009/08/01 09:45:39 couannette Exp $
 
 ???
 
@@ -38,7 +38,7 @@ $Id: statusbar.c,v 1.8 2009/07/17 15:09:00 crc_canada Exp $
 /* put the text (second translation) back behind where the clip plane will be (the z axis) and down near the bottom of the screen a bit */
 /* look at the gluPerspective(fieldofview, screenRatio, nearPlane, farPlane); line in MainLoop.c */
 
-#define TEXT "#VRML V2.0 utf8\rTransform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
+#define STATUS_TEXT "#VRML V2.0 utf8\rTransform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
 
 
 
@@ -117,7 +117,8 @@ static void statusbar_init() {
 	proxNode->enabled = FALSE;
 	myn->children.n = 0;
 
-	inputParse(FROMSTRING, TEXT, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE);
+	inputParse(FROMSTRING, STATUS_TEXT, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE);
+
 	transNode = myn->children.p[0];
 
 	/* because the routes will not act immediately, we need to place this manually first time */

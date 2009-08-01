@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.11 2009/05/13 20:30:49 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.12 2009/08/01 09:45:40 couannette Exp $
 
 ???
 
@@ -1649,7 +1649,7 @@ void setInECMATable(JSContext *context, char *toFind) {
 	}
 	ECMAValues[maxECMAVal-1].JS_address = (jsval) toFind;
 	ECMAValues[maxECMAVal-1].valueChanged = TRUE;
-	ECMAValues[maxECMAVal-1].name = strdup(toFind);
+	ECMAValues[maxECMAVal-1].name = STRDUP(toFind);
 	ECMAValues[maxECMAVal-1].context = context;
 }
 
@@ -1733,7 +1733,11 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	JSObject *_o;
 	JSString *_str;
 	const uintN _argc = 2;
+#ifdef WIN32
+	jsval newVal, initVal, _argv[2]; /* win32 complains cant allocate array of size 0 */
+#else
 	jsval newVal, initVal, _argv[_argc];
+#endif
 	char *_id_c;
 
 	if (JSVAL_IS_STRING(id)) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.12 2009/07/24 19:46:19 crc_canada Exp $
+$Id: RenderTextures.c,v 1.13 2009/08/01 09:45:39 couannette Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -20,11 +20,9 @@ texture enabling - works for single texture, for multitexture.
 
 #include "OpenGL_Utils.h"
 #include "Textures.h"
-#include "../opengl/Material.h"
-/* #include "readpng.h" */
+#include "Material.h"
 
 #undef TEXVERBOSE
-
 
 /* variables for keeping track of status */
 static int currentTextureUnit = 99;
@@ -58,14 +56,33 @@ static void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
 /* which texture unit are we going to use? is this texture not OFF?? Should we set the
    background coloUr??? Larry the Cucumber, help! */
 
-static int setActiveTexture (int c, GLfloat thisTransparency) {
+static int setActiveTexture (int c, GLfloat thisTransparency) 
+{
         struct multiTexParams *paramPtr;
 	float allones[] = {1.0, 1.0, 1.0, 1.0};
 
-	if (c != currentTextureUnit) {
+	/* FIXME: this has to be handled beforehand... 
+	   this test reduce performances... 
+
+	   We better make those tests at OpenGL initialization
+	   and set up a handfull of internal variable to define
+	   the code path we are able to implement given the platform
+	   we are currently running ...
+
+	*/
+	if (GLEW_ARB_multitexture) { // test the availability at runtime of multi textures
+	    
+	    if (c != currentTextureUnit) {
 		glActiveTexture(GL_TEXTURE0+c);
 		glClientActiveTexture(GL_TEXTURE0+c); /* for TextureCoordinates */
 		currentTextureUnit = c;
+	    }
+
+	} else {
+
+	    // this should be already set
+	    currentTextureUnit = 0;
+
 	}
 
 	/* ENABLE_TEXTURES */
@@ -190,16 +207,19 @@ void textureDraw_start(struct X3D_Node *texC, GLfloat *genTex) {
 		}
 	}
 }
-#undef TEXVERBOSE
 
 /* lets disable textures here */
 void textureDraw_end(void) {
 	int c;
 
-	#ifdef TEXVERBOSE
+#ifdef TEXVERBOSE
 	printf ("start of textureDraw_end\n");
-	#endif
-	for (c=0; c<texture_count; c++) {
+#endif
+
+	if (GLEW_ARB_multitexture) { // test the availability at runtime of multi textures
+
+	    for (c=0; c<texture_count; c++) {
+
 		if (c != currentTextureUnit) {
 			glActiveTexture(GL_TEXTURE0+c);
 			glClientActiveTexture(GL_TEXTURE0+c); /* for TextureCoordinates */
@@ -213,7 +233,18 @@ void textureDraw_end(void) {
 		glDisable(GL_TEXTURE_GEN_S);
 		glDisable (GL_TEXTURE_GEN_T);
 		glDisable(GL_TEXTURE_2D);
+	    }
+
+	} else {
+
+	        if (this_textureTransform) end_textureTransform();
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisable(GL_TEXTURE_GEN_S);
+		glDisable (GL_TEXTURE_GEN_T);
+		glDisable(GL_TEXTURE_2D);
+
 	}
+
 	/* DISABLE_TEXTURES */
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW);

@@ -1,9 +1,9 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.42 2009/07/23 15:47:06 crc_canada Exp $
+$Id: MainLoop.c,v 1.43 2009/08/01 09:45:39 couannette Exp $
 
-CProto ???
+Main loop
 
 */
 
@@ -57,8 +57,12 @@ static char debs[300];
 /* void debug_print(char *s) {printf ("debug_print:%s\n",s);} */
 
 /* handle X11 requests, windowing calls, etc if on X11 */
+/* #ifdef WIN32 */
+/* pthread_t DispThrd = {0,0}; /\* win32 struct init requires curly braces - should this be a pointer? ie pthread_t * DispThrd *\/ */
+/* #else */
+DEF_THREAD(DispThrd);
 
-pthread_t DispThrd = 0;
+/* #endif */
 char* threadmsg;
 char* PluginFullPath;
 
@@ -75,20 +79,20 @@ int currentFileVersion = 0;
    will call the ProdCon methods to do this, and these methods will check to see if nodes, yada, yada,
    yada, until we run out of stack. So, we check to see if we are initializing; if so, don't worry about
    checking for new scripts */
+        /* any scripts to initialize here? we do it here, because we may just have created new scripts during 
+           X3D/VRML parsing. Routing in the Display thread may have noted new scripts, but will ignore them until  
+           we have told it that the scripts are initialized. */ 
+/*                 printf ("have scripts to initialize in EventLoop old %d new %d\n",max_script_found, max_script_found_and_initialized);  \*/
 #define INITIALIZE_ANY_SCRIPTS \
-        /* any scripts to initialize here? we do it here, because we may just have created new scripts during \
-           X3D/VRML parsing. Routing in the Display thread may have noted new scripts, but will ignore them until  \
-           we have told it that the scripts are initialized. */ \
         if (max_script_found != max_script_found_and_initialized) { \
-                /* printf ("have scripts to initialize in EventLoop old %d new %d\n",max_script_found, max_script_found_and_initialized); */ \
                 int i; jsval retval; \
                 for (i=max_script_found_and_initialized+1; i <= max_script_found; i++) { \
-                        /* printf ("initializing script %d in thread %u\n",i,pthread_self()); */  \
+                        /* printf ("initializing script %d in thread %u\n",i,pthread_self());  */ \
                         JSCreateScriptContext(i); \
                         JSInitializeScriptAndFields(i); \
                         ACTUALRUNSCRIPT(i, "initialize()" ,&retval); \
                         ScriptControl[i]._initialized=TRUE; \
-                        /* printf ("initialized script %d\n",i); */ \
+                        /* printf ("initialized script %d\n",i);*/  \
                 } \
                 max_script_found_and_initialized = max_script_found; \
         }
@@ -169,16 +173,28 @@ static bool pluginRunning;
 int isBrowserPlugin = FALSE;
 
 
-/* a simple routine to allow the front end to get our version */
+/* stop the display thread. Used (when this comment was made) by the OSX Safari plugin; keeps
+most things around, just stops display thread, when the user exits a world. */
+void STOP_DISPLAY_THREAD()
+{
+    if (TEST_NULL_THREAD(DispThrd)) {
+	quitThread = TRUE;
+	pthread_join(DispThrd,NULL);
+	ZERO_THREAD(DispThrd);
+    }
+}
+
+
 const char *getLibVersion() {
         return libFreeWRL_get_version();
 }
 
 /* Main eventloop for FreeWRL!!! */
 void EventLoop() {
-        #ifndef AQUA
+
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
         Cursor cursor;
-        #endif
+#endif
 
         static int loop_count = 0;
         struct timeval waittime;
@@ -228,8 +244,7 @@ void EventLoop() {
                 timeAA = timeA = timeB = timeC = timeD = timeE = timeF =0.0;
                 #endif
         } else {
-                /*  rate limit ourselves to about 65fps.*/
-                /* waittime.tv_usec = (TickTime - lastTime - 0.0120)*1000000.0;*/
+	    /*  rate limit ourselves to about 65fps.*/
                 waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0;
                 if (waittime.tv_usec < 0.0) {
                         waittime.tv_usec = -waittime.tv_usec;
@@ -295,7 +310,8 @@ void EventLoop() {
                         /* dont do the null... */
                         if (*keypress_string) {
                                 /* printf ("handling key %c\n",*keypress_string); */
-#ifndef AQUA
+#if !defined( AQUA ) && !defined( WIN32 )  /*win32 - don't know whats it is suppsoed to do yet */
+
                                 do_keyPress(*keypress_string,KeyPress);
 #endif
                                 keypress_string++;
@@ -306,7 +322,7 @@ void EventLoop() {
         }
 
         /* if we are not letting Motif handle things, check here for keys, etc */
-#ifndef AQUA
+#if !defined( AQUA ) && !defined( WIN32 )
 #ifndef HAVE_MOTIF
         while (XPending(Xdpy)) {
             XNextEvent(Xdpy, &event);
@@ -316,6 +332,9 @@ void EventLoop() {
         printf ("GTK event loop should be here\n");
 #endif
 #endif
+#endif
+#ifdef WIN32
+		doEventsWin32A(); /* do-events - gives windows message handler a time slice and it calls handle_aqua and do_keypress from fwWindow32.c */
 #endif
 
         #ifdef PROFILE
@@ -336,7 +355,7 @@ void EventLoop() {
         #endif
 
         /* setup Projection and activate ProximitySensors */
-        if (onScreen) render_pre();
+        if (onScreen) render_pre(); 
 
         #ifdef PROFILE
         gettimeofday(&mytime, NULL);
@@ -357,7 +376,8 @@ void EventLoop() {
         #endif
 
         /* actual rendering */
-        if (onScreen) render();
+        if (onScreen)
+			render();
 
         #ifdef PROFILE
         gettimeofday(&mytime, NULL);
@@ -367,6 +387,7 @@ void EventLoop() {
         #endif
 
         /* handle_mouse events if clicked on a sensitive node */
+		/*printf("nav mode =%d sensitive= %d\n",NavigationMode, HaveSensitive); */
         if (!NavigationMode && HaveSensitive) {
                 setup_projection(TRUE,currentX,currentY);
                 setup_viewpoint();
@@ -460,12 +481,15 @@ void EventLoop() {
                 }
 
                 /* do we have to change cursor? */
-#ifndef AQUA
+#if !defined( AQUA ) && !defined( WIN32 )
+
 
                 if (cursor != curcursor) {
                         curcursor = cursor;
                         XDefineCursor (Xdpy, GLwin, cursor);
                 }
+#elif defined( WIN32 )
+				/*win32 - dont know what goes here */
 #else
                 if (ccurse != ocurse) {
                         ocurse = ccurse;
@@ -516,7 +540,7 @@ void EventLoop() {
 
 }
 
-#ifndef AQUA
+#if !defined( AQUA ) && !defined( WIN32 )
 void handle_Xevents(XEvent event) {
 
         XEvent nextevent;
@@ -681,12 +705,12 @@ static void render() {
 
         for (count = 0; count < maxbuffers; count++) {
                 set_buffer((unsigned)bufferarray[count]);               /*  in Viewer.c*/
-                glDrawBuffer((unsigned)bufferarray[count]);
+				glDrawBuffer((unsigned)bufferarray[count]);
 
                 /*  turn lights off, and clear buffer bits*/
                 BackEndClearBuffer();
                 BackEndLightsOff();
-
+				
                 /*  turn light #0 off only if it is not a headlight.*/
                 if (!get_headlight()) {
                         lightState(HEADLIGHT_LIGHT,FALSE);
@@ -720,21 +744,30 @@ static void render() {
 
         }
 
-	/* enable this if we want to see the overall bounding box */
-	/* drawBBOX(rootNode); */
+	/* FIXME: michel */
 
-        #ifndef AQUA
-                glXSwapBuffers(Xdpy,GLwin);
-        #else
-                if (RUNNINGASPLUGIN) {
-                        aglSetCurrentContext(aqglobalContext);
-                        aglSwapBuffers(aqglobalContext);
-                } else {
-                        CGLError err = CGLFlushDrawable(myglobalContext);
-                        if (err != kCGLNoError) printf ("CGLFlushDrawable error %d\n",err);
-                        updateContext();
-                }
-        #endif
+#if defined( AQUA )
+	if (RUNNINGASPLUGIN) {
+	    aglSetCurrentContext(aqglobalContext);
+	    aglSwapBuffers(aqglobalContext);
+	} else {
+	    CGLError err = CGLFlushDrawable(myglobalContext);
+	    if (err != kCGLNoError) printf ("CGLFlushDrawable error %d\n",err);
+	    updateContext();
+	}
+
+#else
+
+#if defined( WIN32 )
+
+	SwapBuffers(wglGetCurrentDC());
+
+#else
+
+	glXSwapBuffers(Xdpy,GLwin);
+
+#endif
+#endif
 
         glPrintError("XEvents::render");
 }
@@ -839,7 +872,7 @@ static void setup_projection(int pick, int x, int y) {
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
 void do_keyPress(const char kp, int type) {
         /* does this X3D file have a KeyDevice node? if so, send it to it */
-        
+        /*printf("%c%d\n",kp,type);*/
         if (KeySensorNodePresent()) {
                 sendKeyToKeySensor(kp,type);
         } else {
@@ -1101,7 +1134,7 @@ static void displayThread()
     /* make the window, get the OpenGL context */
     openMainWindow(0, NULL);
     createGLContext();
-    glpOpenGLInitialize();
+    glpOpenGLInitialize(); 
     new_tessellation();
 #endif
     
@@ -1119,7 +1152,7 @@ static void displayThread()
         /* FreeWRL SceneGraph */
         EventLoop();
         
-#ifndef AQUA
+#if !defined( AQUA ) && !defined( WIN32 )
 #ifdef HAVE_MOTIF
         /* X11 Windowing calls */
         
@@ -1188,6 +1221,11 @@ void setLastMouseEvent(int etype) {
         lastMouseEvent = etype;
 }
 
+void startFreeWRL()
+{
+    /* now wait around until something kills this thread. */
+    pthread_join(DispThrd, NULL);
+}
 
 /* load up the world, and run with it! */
 void initFreewrl() {
@@ -1210,27 +1248,28 @@ if (global_strictParsing) printf ("STRICT PARSING SET\n");
         }
         #endif
 
-        /* printf ("initFreewrl, hows the DispThrd? %u\n",DispThrd); */
+	if (TEST_NULL_THREAD(DispThrd)) {
 
-        if (DispThrd == 0) {
-                pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
+	    pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
 
-                #ifndef AQUA
-                while (ISDISPLAYINITIALIZED == FALSE) { usleep(50);
-        /* printf ("initFreewrl, waiting for display to become initialized...\n"); */
-}
-                #endif
+#if !defined( AQUA ) && !defined( WIN32 )
 
+	    TRACE_MSG("initFreewrl, waiting for display to become initialized...\n");
+
+	    while (ISDISPLAYINITIALIZED == FALSE) {
+		usleep(50);
+	    }
+#endif
 
                 /* shape compiler thread - if we can do this */
-                #ifdef DO_MULTI_OPENGL_THREADS
+#ifdef DO_MULTI_OPENGL_THREADS
                 initializeShapeCompileThread();
-                #endif
+#endif
                 initializeInputParseThread();
-
                 while (!isInputThreadInitialized()) {
                         usleep(50);
                 }
+
                 initializeTextureThread();
                 while (!isTextureinitialized()) {
                         usleep(50);
@@ -1254,7 +1293,6 @@ if (global_strictParsing) printf ("STRICT PARSING SET\n");
                         inputParse(FROMURL, BrowserFullPath, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
         /* printf ("initFreewrl call finished\n"); */
 }
-
 
 void setSnapSeq() {
 #ifdef DOSNAPSEQUENCE
@@ -1310,7 +1348,9 @@ void setLineWidth(float lwidth) {
 }
 
 void setUseShapeThreadIfPossible(int x) {
-        useShapeThreadIfPossible = x;
+#ifdef DO_MULTI_OPENGL_THREADS
+	useShapeThreadIfPossible = X;
+#endif
 }
 
 void setTextures_take_priority (int x) {
@@ -1375,16 +1415,14 @@ void setSnapTmp(const char* file)
 void outOfMemory(const char *msg) {
         ConsoleMessage ("FreeWRL has encountered a memory allocation problem\n"\
                         "and is exiting.\nPlease email this file to freewrl-09@rogers.com\n -- %s--",msg);
-        sleep(10);
+        usleep(10 * 1000);
         exit(EXIT_FAILURE);
 }
-
-
 
 /* quit key pressed, or Plugin sends SIGQUIT */
 void doQuit()
 {
-    STOP_DISPLAY_THREAD;
+    STOP_DISPLAY_THREAD();
 
     kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
 
@@ -1409,7 +1447,7 @@ void freewrlDie (const char *format) {
         doQuit();
 }
 
-#ifdef AQUA
+#if defined(AQUA) || defined(WIN32)
 
 /* MIMIC what happens in handle_Xevents, but without the X events */
 void handle_aqua(const int mev, const unsigned int button, int x, int y) {
@@ -1454,6 +1492,8 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
                 }
         }
 }
+#endif
+#ifdef AQUA
 void setIsPlugin() {
 
         RUNNINGASPLUGIN = TRUE;

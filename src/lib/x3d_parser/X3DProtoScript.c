@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.18 2009/06/01 19:37:43 istakenv Exp $
+$Id: X3DProtoScript.c,v 1.19 2009/08/01 09:45:40 couannette Exp $
 
 ???
 
@@ -36,6 +36,8 @@ static int currentProtoDeclare  = INT_ID_UNDEFINED;
 static int MAXProtos = 0;
 static int curProDecStackInd = 0;
 static int currentProtoInstance = INT_ID_UNDEFINED;
+
+#define X3DPARSERVERBOSE 1
 
 /* for parsing fields in PROTO expansions */
 /* FIELD_END is an ascii string that will pass the XML parser, but should not be found in a field value */
@@ -121,7 +123,8 @@ void freeProtoMemory () {
 	MAXProtos = 0;
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("freeProtoMemory,ScriptFieldNames is %d ScriptFieldTableSize %d, MAXScriptFieldParams %d\n",ScriptFieldNames, ScriptFieldTableSize, MAXScriptFieldParams);
+/* error: `ScriptFieldNames' undeclared (first use in this function) */
+/* 	printf ("freeProtoMemory,ScriptFieldNames is %d ScriptFieldTableSize %d, MAXScriptFieldParams %d\n",ScriptFieldNames, ScriptFieldTableSize, MAXScriptFieldParams); */
 	#endif
 
 }
@@ -143,7 +146,7 @@ static void registerProto(const char *name) {
 	}
 
 	PROTONames[currentProtoDeclare].name = STRDUP((char *)name);
-	PROTONames[currentProtoDeclare].fileName = tempnam("/tmp","freewrl_proto");
+	PROTONames[currentProtoDeclare].fileName = TEMPNAM("/tmp","freewrl_proto");
 	PROTONames[currentProtoDeclare].fileDescriptor = fopen(PROTONames[currentProtoDeclare].fileName,"w");
 	PROTONames[currentProtoDeclare].charLen =  0;
 	PROTONames[currentProtoDeclare].fileOpen = TRUE;
@@ -224,12 +227,36 @@ void parseProtoInstanceFields(const char *name, const char **atts) {
 
 		  if this IS the case, we will be down here where the atts parameter will be the "USE=CameraRelay" pair
 		*/
+#ifdef WIN32
+		/* MUFTI points out http://www.web3d.org/x3d/specifications/ISO-IEC-FDIS-19776-1.2-X3DEncodings-XML/Part01/Examples/ShuttlesAndPendulums.x3d
+		   and it bombs in here parsing the ProtoInstance fields with name=Shape and atts=<bad pointer>
+         <fieldValue name='children'>
+           <Shape>
+             <Cylinder height='5'/>
+             <Appearance>
+               <Material diffuseColor='0.8 0.1 0'/>
+              </Appearance>
+            </Shape>
+          </fieldValue>
+		  this could be refactored into something like the Script USE= scenario. When I do that, the scene parsing 
+		  does not complete all nodes normally - I get a blank screen.
+		  My guess: in general this should recurse - we should be back parsing nodes to build the value attribute.
+		  June15: John sent the follwoing line
+int i;printf ("X3D_ node name :%s:\n",name);for (i = 0; atts[i]; i += 2) {printf("field:%s=%s\n", atts[i], atts[i + 1]);}
+		  PROBLEM > atts char** is never NULL. But atts[0] is.
+		*/
+#endif 
 		
 		/* printf ("ProtoInstance, looking for fieldValue, found string:%s: current name=%s value=%s, index %d\n",name,
 			ProtoInstanceTable[curProtoInsStackInd].name[INDEX], ProtoInstanceTable[curProtoInsStackInd].value[INDEX],INDEX); */
-
+		{
+		}
 		/* allow ONLY USEs here, at least for now? */
+/* #ifdef WIN32 */
+/* 		if(atts[0] != NULL ){ */
+/* #else */
 		if (atts != NULL) {
+/* #endif */
 			if (strcmp("USE",atts[0]) == 0) {
 				struct X3D_Node *rv;
 				char *val = MALLOC(20);
@@ -459,6 +486,7 @@ void parseProtoInstance (const char **atts) {
 		/* go through the PROTO table, and find the match, if it exists */
 		for (protoTableIndex = 0; protoTableIndex <= currentProtoDeclare; protoTableIndex ++) {
 			if (strcmp(atts[nameIndex],PROTONames[protoTableIndex].name) == 0) {
+				printf("successfully matched protoDeclare to protoInstance\n");
 				currentProtoInstance = protoTableIndex;
 				return;
 			}
@@ -483,10 +511,10 @@ printf ("getProtoValue, curProtoInsStackInd %d, MAX %d\n",curProtoInsStackInd, P
 
 /*******************************************************************************************/
 
-#define FIND_THE_CONNECT(mystr)  \
-	connect = strstr(mystr,strCONNECT);  \
 	/* printf ("	FIND_THE_CONNECT: connect string is:%s:\n",connect); */ \
 	/* ok, we have a valid <IS> and </IS> lets process what is between them. */  \
+#define FIND_THE_CONNECT(mystr)  \
+	connect = strstr(mystr,strCONNECT);  \
 	if (connect != NULL) {  \
 	 mystr = connect + strlen (strCONNECT); }
 
@@ -534,6 +562,9 @@ static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, 
 	#endif
 
 	/* find a <connect>, and go through all <connect> strings until we have finished with this IS */
+	/* win32 comment: could this kind of parsing be done more reliably with xml parser rather than strstr? 
+	   usually that's what the xml doms and parsers are for.
+	*/
 	FIND_THE_CONNECT(isString)
 	while (connect != NULL) {
 		char *foundNameEquals = NULL;
@@ -564,12 +595,11 @@ static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, 
 		foundNameEquals = strstr(protoInString,tmp);
 		
 		if (foundNameEquals != NULL) {
-			printf ("found this, probably script field\n");
+			printf ("found this at offset %d probably script field\n",(int)foundNameEquals - (int)protoInString);
 		} else {
 			#ifdef X3DPARSERVERBOSE	
 			printf ("did not find it, lets go back and find node to attach to\n"); 
 			#endif
-
 
 			/* we probably have something like this: 
 			<ImageTexture>
@@ -770,6 +800,8 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	}
 
 	/* step 1. read in the PROTO text. */
+/* #ifndef WIN32  */
+	/* I don't see why malloc twice - looks like leak */
 	psSize = PROTONames[currentProtoInstance].charLen * 10;
 
 	if (psSize < 0) {
@@ -948,6 +980,7 @@ void parseProtoDeclare (const char **atts) {
 	} else {
 		ConsoleMessage ("\"ProtoDeclare\" found, but field \"name\" not found!\n");
 	}
+#undef X3DPARSERVERBOSE
 }
 
 /* simple sanity check, and change mode */

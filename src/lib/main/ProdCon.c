@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.23 2009/07/16 15:38:54 istakenv Exp $
+$Id: ProdCon.c,v 1.24 2009/08/01 09:45:39 couannette Exp $
 
 CProto ???
 
@@ -165,7 +165,7 @@ int totviewpointnodes = 0;
 int currboundvpno=0;
 
 /* keep track of the producer thread made */
-pthread_t PCthread = NULL;
+DEF_THREAD(PCthread);
 
 /* is the inputParse thread created? */
 int inputParseInitialized=FALSE;
@@ -182,13 +182,14 @@ struct PSStruct psp;
 static int haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
 				   as destroyCParserData can segfault otherwise */
 
-void initializeInputParseThread(void) {
-	int iret;
+void initializeInputParseThread()
+{
+    int iret;
 
-	if (PCthread == NULL) {
-		/* create consumer thread and set the "read only" flag indicating this */
-		iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);
-	}
+    if (TEST_NULL_THREAD(PCthread)) {
+	/* create consumer thread and set the "read only" flag indicating this */
+	iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);
+    }
 }
 
 /* is a parser running? this is a function, because if we need to mutex lock, we
@@ -208,11 +209,14 @@ void removeFilenameFromPath (char *path) {
 	char *slashDotDotSlash;
 
 	/* and strip off the file name from the current path, leaving any path */
-	slashindex = (char *) rindex(path, ((int) '/'));
+	slashindex = (char *) strrchr(path, ((int) '/'));
+
 	if (slashindex != NULL) {
 		slashindex ++; /* leave the slash there */
 		*slashindex = 0;
-	} else {path[0] = 0;}
+	} else {
+	    path[0] = 0;
+	}
 	/* printf ("removeFielnameFromPath, parenturl is %s\n",path); */
 
 	/* are there any "/../" bits in the path? if so, lets clean them up */
@@ -224,7 +228,8 @@ void removeFilenameFromPath (char *path) {
 		*slashDotDotSlash = '\0';
 		/* printf ("have slashdotdot, path now :%s:\n",path); */
 
-		slashindex = (char *)rindex(path, ((int) '/'));
+		slashindex = (char *)strrchr(path, ((int) '/'));
+
 		if (slashindex != NULL) {
 			
 			slashindex ++;
@@ -1059,6 +1064,7 @@ void __pt_doInline() {
 	char *filename;
 	struct Multi_String *inurl;
 	struct X3D_Inline *inl;
+	int removeIt = FALSE;
 	inl = (struct X3D_Inline *)psp.ptr;
 	inurl = &(inl->url);
 	filename = (char *)MALLOC(1000);

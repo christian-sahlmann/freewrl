@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MPEG_Utils.c,v 1.7 2009/05/07 17:01:24 crc_canada Exp $
+$Id: MPEG_Utils.c,v 1.8 2009/08/01 09:45:39 couannette Exp $
 
 ???
 
@@ -11,7 +11,9 @@ $Id: MPEG_Utils.c,v 1.7 2009/05/07 17:01:24 crc_canada Exp $
 
 #include <config.h>
 #include <system.h>
+#ifndef WIN32
 #include <system_net.h>
+#endif
 #include <display.h>
 #include <internal.h>
 
@@ -1211,8 +1213,9 @@ Color32DitherImage(
 /* Array that remaps color numbers to actual pixel values used by X server. */
 
 unsigned char pixel[256];
-
+#ifndef WIN32
 extern char *strrchr();
+#endif
 #define PPM_BITS 8
 
 
@@ -1244,7 +1247,12 @@ ExecuteTexture(
   char *tmpptr;
 
   /* v_size = height, h_size = width (vertical, horizontal) */
+#ifdef WIN32
+  GLubyte *Image;
+  Image = MALLOC(vid_stream->v_size * vid_stream->h_size * 3);
+#else
   GLubyte Image[vid_stream->v_size][vid_stream->h_size][3];
+#endif
 
   /* if the hsize is a power of 2. */
   hsize = vid_stream->mb_width * 16;
@@ -1256,9 +1264,16 @@ ExecuteTexture(
     		r = *p & 0xff;
     		g = (*p >> PPM_BITS) & 0xff;
     		b = (*p >> (2*PPM_BITS)) & 0xff;
+#ifdef WIN32
+			/* p.839 strustrup C++  [j][j][k] or [(i*dim2 +j)*dim3 +k] */
+    		Image [((vid_stream->v_size-i-1)*vid_stream->h_size + j)*3 + 0]=r;
+    		Image [((vid_stream->v_size-i-1)*vid_stream->h_size + j)*3 + 1]=g;
+    		Image [((vid_stream->v_size-i-1)*vid_stream->h_size + j)*3 + 2]=b;
+#else
     		Image [vid_stream->v_size-i-1][j][0]=r;
     		Image [vid_stream->v_size-i-1][j][1]=g;
     		Image [vid_stream->v_size-i-1][j][2]=b;
+#endif
 		p++;
 	}
   }
@@ -1273,6 +1288,9 @@ ExecuteTexture(
 
         memcpy (tmpptr, Image, blockSize);
 	(*frameCount)++;
+#ifdef WIN32
+	FREE_IF_NZ(Image);
+#endif
 
 }
 /* Bit masks used by bit i/o operations. */
@@ -2215,9 +2233,13 @@ static unsigned char cropTbl[NUM_CROP_ENTRIES];
 double
 ReadSysClock()
 {
+/* #ifdef WIN32 */
+/*   return Time1970sec(); */
+/* #else */
   struct timeval tv;
   (void) gettimeofday(&tv, (struct timezone *)NULL);
   return (tv.tv_sec + tv.tv_usec / 1000000.0);
+/* #endif */
 }
 
 
@@ -3484,7 +3506,8 @@ ParseMacroBlock(
  *
  *--------------------------------------------------------------
  */
-#if defined(_DEBUG)
+
+#if defined(FW_MPEG_DEBUG)
 /* If people really want to see such things, check 'em */
 /* #define myassert(x,expression)\ */
 /*   if (!(expression)) {\ */

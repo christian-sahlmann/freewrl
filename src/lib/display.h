@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.21 2009/07/13 18:49:50 crc_canada Exp $
+$Id: display.h,v 1.22 2009/08/01 09:45:39 couannette Exp $
 
 FreeWRL support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -97,15 +97,13 @@ int create_main_window_aqua(); /* mb */
  * X11 common: weither we use Motif or not
  */
 
-# include <GL/gl.h>
-# include <GL/glu.h>
+# include <GL/glew.h> /* will include GL/gl.h, GL/glu.h and GL/glext.h */
 
 # include <X11/Xlib.h>
 # include <X11/Xutil.h>
 # include <X11/keysym.h>
 
 # include <GL/glx.h>
-# include <GL/glext.h>
 
 extern GLXContext GLcx;
 
@@ -176,6 +174,18 @@ int create_main_window_x11(); /* mb */
 
 #endif /* defined(TARGET_X11) || defined(TARGET_MOTIF) */
 
+#ifdef TARGET_WIN32
+
+#include <display_win32.h>
+
+/* i dont know why cursors are showing up in the pan-platform section of mainloop.c */
+#define SENSOR_CURSOR {}
+#define ARROW_CURSOR {}
+
+int create_main_window_win32();
+
+#endif /* TARGET_WIN32 */
+
 /**
  * General : all systems
  */
@@ -191,7 +201,6 @@ int initialize_viewport(); /* mb */
 
 void resetGeometry();
 void setScreenDim(int wi, int he);
-
 
 /* debugging OpenGL calls  - allows us to keep track of what is happening */
 #undef DEBUG_OPENGL_CALLS
@@ -230,7 +239,6 @@ void setScreenDim(int wi, int he);
 		{ fwGetDoublev(aaa,bbb); \
 		printf ("fwGetDoublev at %s:%d\n",__FILE__,__LINE__);}
 
-
 #else
 	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) glDrawArrays(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) glTranslatef(xxx,yyy,zzz)
@@ -245,4 +253,5 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_POP_MATRIX(aaa) glPopMatrix()
 	#define FW_GL_GETDOUBLEV(aaa,bbb) fwGetDoublev(aaa,bbb); 
 #endif
+
 #endif /* __LIBFREEWRL_DISPLAY_H__ */

@@ -31,3 +31,8 @@ CC_WARNINGS=-Wall -Wundef -Wunused-macros
 AM_CPPFLAGS = $(DEBUG_FLAGS) $(CC_WARNINGS)
 AM_CFLAGS = $(CC_WARNINGS)
 AM_LDFLAGS = $(DEBUG_FLAGS) $(LD_OPTS)
+
+# Architecture dependent variables
+if OS_WIN32
+AM_CFLAGS += -mno-cygwin -D_WIN32 -DWIN32
+endif

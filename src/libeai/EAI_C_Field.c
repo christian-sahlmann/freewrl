@@ -568,7 +568,11 @@ X3DNode *X3D_newMFString(int num, char array[][STRLEN]){
 	retval->X3D_MFString.p = malloc (sizeof (X3DNode) * num);
 
 	for (i = 0; i < num; i++) {
+#ifdef WIN32
+		retval->X3D_MFString.p[i].type = FIELDTYPE_SFString; /*based on pattern above ie vec3f this should be SF */
+#else
 		retval->X3D_MFString.p[i].type = FIELDTYPE_MFString;
+#endif
 		retval->X3D_MFString.p[i].len = strlen(array[i]);
 		retval->X3D_MFString.p[i].strptr = malloc(sizeof(char)*STRLEN);
 		strncpy(retval->X3D_MFString.p[i].strptr, array[i], STRLEN);
@@ -598,7 +602,13 @@ void X3D_getMFString(X3DNode* node, char*** array, int* num) {
 X3DNode *X3D_newSFNode(){printf ("New node not implemented yet for this type\n");return NULL;}
 X3DNode *X3D_newSFImage(){printf ("New node not implemented yet for this type\n");return NULL;}
 X3DNode *X3D_newMFNode(){printf ("New node not implemented yet for this type\n");return NULL;}
-
 /* Nodes not used in FreeWRL */
-X3DNode *X3D_newMFVec2d(){printf ("New node not implemented yet for this type\n");return NULL;}
-X3DNode *X3D_newMFTime(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3DNode *X3D_newMFVec2d(int num){printf ("New node not implemented yet for this type\n");return NULL;}
+X3DNode *X3D_newMFTime(int num){printf ("New node not implemented yet for this type\n");return NULL;}
+#ifdef WIN32
+X3DNode *X3D_newSFVec2d (double a, double b){printf ("New node not implemented yet for this type\n");return NULL;}
+X3DNode *X3D_newSFVec3d (double a, double b,double c){printf ("New node not implemented yet for this type\n");return NULL;}
+char *fieldTypeName(char type){printf ("New node not implemented yet for this type\n");return NULL;}
+#endif
+
+

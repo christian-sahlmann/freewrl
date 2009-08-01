@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.c,v 1.10 2009/07/15 16:49:51 crc_canada Exp $
+$Id: display.c,v 1.11 2009/08/01 09:45:39 couannette Exp $
 
 FreeWRL support library.
 Display (X11/Motif or OSX/Aqua) initialization.
@@ -12,8 +12,6 @@ Display (X11/Motif or OSX/Aqua) initialization.
 #include <system.h>
 #include <display.h>
 #include <internal.h>
-
-#include <libFreeWRL.h>
 
 
 /* common function between display_x11, display_motif and display_aqua */
@@ -91,6 +89,11 @@ int create_main_window()
 #if (defined TARGET_AQUA)
     return create_main_window_aqua();
 #endif
+
+#if (defined TARGET_WIN32)
+    return create_main_window_win32();
+#endif
+
 }
 
 int initialize_viewport()

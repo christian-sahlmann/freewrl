@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.11 2009/02/11 15:12:54 istakenv Exp $
+$Id: system.h,v 1.12 2009/08/01 09:45:39 couannette Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -74,7 +74,7 @@ typedef unsigned char _Bool;
 # include <unistd.h>
 #endif
 
-#if HAVE_SYS_WAIT_H
+#if defined(HAVE_SYS_WAIT_H)
 # include <sys/wait.h>
 #endif
 #ifndef WEXITSTATUS
@@ -105,6 +105,20 @@ typedef unsigned char _Bool;
 
 #if !defined(assert)
 # include <assert.h>
+#endif
+
+/**
+ * Misc
+ */
+#if defined(WIN32)
+
+/* FIXME: those calls to bzero & bcopy shall be remove from libeai ;)... */
+
+/*  http://www.opengroup.org/onlinepubs/000095399/functions/bzero.html */
+/*  http://www.opengroup.org/onlinepubs/000095399/functions/bcopy.html */
+#define bzero(b,len) (memset((b), '\0', (len)), (void) 0) 
+#define bcopy(b1,b2,len) (memmove((b2), (b1), (len)), (void) 0)
+
 #endif
 
 

@@ -62,20 +62,33 @@ int _X3D_countWords(char *ptr) {
 	}
 	return ct;
 }
-
+#ifdef WIN32
+void *freewrlSwigThread(void* nada) {
+#else
 void freewrlSwigThread(void) {
+#endif
 	const int on=1;
 	int flags;
 	int len;
 
 	struct sockaddr_in servaddr, cliaddr;
+#ifdef WIN32
+    int iResult;
+    WSADATA wsaData;
+
+    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (iResult != 0) {
+        X3D_error("WSAStartup failed to load winsock2 ws2_32.dll\n");
+        return NULL;
+    }
+#endif
 
 	if ((_X3D_FreeWRL_listen_FD= socket(AF_INET, SOCK_STREAM, 0)) < 0) {
               X3D_error("ERROR opening swig socket");
-              return;
+              return NULL;
         }
 	
-	setsockopt(_X3D_FreeWRL_listen_FD, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+	setsockopt(_X3D_FreeWRL_listen_FD, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on));
 
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sin_family = AF_INET;
@@ -88,18 +101,27 @@ void freewrlSwigThread(void) {
 
 	if (listen(_X3D_FreeWRL_listen_FD, 1024) < 0) {
 		X3D_error("ERROR in listen");
-		return;
+		return NULL;
 	}
 
 	len = sizeof(cliaddr);
 
+#ifdef WIN32
+	_X3D_FreeWRL_Swig_FD = accept((_X3D_FreeWRL_listen_FD), (struct sockaddr*) &cliaddr, &len);
+#else
 	_X3D_FreeWRL_Swig_FD = accept((_X3D_FreeWRL_listen_FD), (struct sockaddr*) &cliaddr, (socklen_t *) &len);
+#endif
+	return NULL;
 }
 
 /* read in the reply - if it is an RE; it is the reply to an event; if it is an
    EV it is an async event */
 
+#ifdef WIN32
+void* freewrlReadThread(void *nada)  {
+#else
 void freewrlReadThread(void)  {
+#endif
 	int retval;
 	while (1==1) {
 
@@ -110,11 +132,17 @@ void freewrlReadThread(void)  {
                 FD_SET(_X3D_FreeWRL_FD, &rfds);
 
                 /* wait for the socket. We HAVE to select on "sock+1" - RTFM */
+				/* WIN32 ignors the first select parameter, just there for berkley compatibility */
                 retval = select(_X3D_FreeWRL_FD+1, &rfds, NULL, NULL, &tv);
 
                 if (retval) {
+#ifdef WIN32
+				retval = recv(_X3D_FreeWRL_FD, readbuffer, 2048, 0);
+				if (retval  == SOCKET_ERROR) {
+#else
 			retval = read(_X3D_FreeWRL_FD,readbuffer,2048);
 				if (retval  <= 0) {
+#endif
 					printf("ERROR reading fromsocket\n");
 					exit(1);
 				}
@@ -155,8 +183,14 @@ static char *sendToFreeWRL(char *callerbuffer, int size, int waitForResponse) {
 	printf ("sendToFreeWRL - sending :%s:\n",callerbuffer);
 	#endif
 
+#ifdef WIN32
+	ptr = NULL;
+	retval = send(_X3D_FreeWRL_FD, callerbuffer, size, 0);
+	if (retval == SOCKET_ERROR ) 
+#else	
 	retval = write(_X3D_FreeWRL_FD, callerbuffer, size);
 	if (retval < 0) 
+#endif
 		 X3D_error("ERROR writing to socket");
 
 	if (waitForResponse) {
@@ -217,7 +251,11 @@ RE_EOT
 		if (_X3D_queryno != readquery) {
 			printf ("server: warning, _X3D_queryno %d != received %d\n",_X3D_queryno,readquery);
 			sched_yield();
+#ifdef WIN32
+            Sleep(5);
+#else
 			sleep(5);
+#endif
 			sched_yield();
 		}
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.18 2009/06/24 18:13:28 sdumoulin Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.19 2009/08/01 09:45:39 couannette Exp $
 
 ???
 
@@ -297,9 +297,9 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 	FREE_IF_NZ(parser->lexer->curID);
 
         if (ctype == FIELDTYPE_SFNode) {
+                struct X3D_Node* oldvalue;
                 nst = (char *) node;
                 nst += coffset;
-                struct X3D_Node* oldvalue;
                 memcpy (&oldvalue, nst, sizeof(struct X3D_Node*));
                 if (oldvalue) {
                         remove_parent(oldvalue, node);

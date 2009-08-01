@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: PluginSocket.c,v 1.5 2009/02/11 15:12:54 istakenv Exp $
+$Id: PluginSocket.c,v 1.6 2009/08/01 09:45:39 couannette Exp $
 
 Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
@@ -10,6 +10,7 @@ Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
+#include <system_net.h>
 #include <display.h>
 #include <internal.h>
 
@@ -55,13 +56,18 @@ extern double TickTime;
 /* prints to a log file if we are running as a plugin */
 void pluginprint (const char *m, const char *p) {
 	double myt;
+/* #ifndef WIN32 */
         struct timeval mytime;
-
+/* #endif */
 	if (getenv("FREEWRL_DO_PLUGIN_PRINT") != NULL) {
 
         	/* Set the timestamp */
+/* #ifdef WIN32 */
+/* 		myt = Time1970sec(); */
+/* #else */
         	gettimeofday(&mytime, NULL);
 		myt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+/* #endif */
         	printf ("%f: freewrl: ",myt);
 		printf(m,p);
 	}

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.27 2009/07/14 15:36:02 uid31638 Exp $
+$Id: Viewer.c,v 1.28 2009/08/01 09:45:39 couannette Exp $
 
 CProto ???
 
@@ -156,7 +156,7 @@ set_buffer(const unsigned int buffer)
 	Viewer.buffer = buffer;
 }
 
-int get_headlight() {
+int get_headlight() { 
 	return(Viewer.headlight);
 }
 
