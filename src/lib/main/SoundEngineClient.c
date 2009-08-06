@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SoundEngineClient.c,v 1.8 2009/08/01 09:45:39 couannette Exp $
+$Id: SoundEngineClient.c,v 1.9 2009/08/06 21:24:03 couannette Exp $
 
 This is the SoundEngine client code for FreeWRL.
 
@@ -9,34 +9,19 @@ Some of this stuff came from files from "wavplay"  - see information below
 
 */
 
-
-
 #include <config.h>
 #include <system.h>
-
-#define SOUNDVERBOSE
-
-/*JAS  - get this compiling on osx 10.4 ppc */
-#ifdef TARGET_AQUA
-	#ifdef ARCH_PPC
-		#include <sys/socket.h>
-		#include <netinet/in.h>
-	#else
-		#include <system_net.h>
-	#endif
-#elif WIN32
-#else
-	#include <system_net.h>
-#endif
-
+#include <system_net.h>
 #include <internal.h>
 #include <errno.h>
-
 #include <libFreeWRL.h>
 
 #include "../scenegraph/sounds.h"
 
-#ifdef WIN32
+#define SOUNDVERBOSE
+
+#if defined(WIN32)
+
 void
 Sound_toserver(char *message)
 {}
@@ -79,12 +64,15 @@ int my_ipc_key;
 
 FWSNDMSG msg;		/* message buffer */
 
-/* TODO: integrate this variable into configure */
+/* TODO: integrate this variable into configure:
+   define there a SOUNDSERVERBINARY ...
+ */
 #ifdef __APPLE__
-char sspath[] = "/usr/local/bin/FreeWRL_SoundServer" /*SOUNDSERVERBINARY*/; /* compile line flag */
+const char SSPATH[] = "/usr/local/bin/FreeWRL_SoundServer";
 #else
-char sspath[] = "freewrl_snd"; /*SOUNDSERVERBINARY*/; /* compile line flag */
+const char SSPATH[] = "freewrl_snd";
 #endif
+char *sspath = NULL;
 
 static int initialized = SOUND_NEEDS_STARTING; /* are we able to run? */
 
@@ -113,7 +101,7 @@ void Sound_toserver (char *message) {
 	#endif
 
 #ifndef __APPLE__
-        while(xx = msgsnd(msq_toserver, &msg,strlen(msg.msg)+1,IPC_NOWAIT));
+        while((xx = msgsnd(msq_toserver, &msg,strlen(msg.msg)+1,IPC_NOWAIT)));
 #else
 	xx = write(server_pipe_fd, &msg, sizeof(msg));
 	if (xx > 0)
@@ -129,9 +117,6 @@ void Sound_toserver (char *message) {
         }
 }
 
-
-
-
 void SoundEngineInit () {
 	int x;
 	char buf[200];
@@ -140,6 +125,14 @@ void SoundEngineInit () {
 
 	/* have we done this before (can happen if more than 1 sound source) */
 	if (initialized != SOUND_NEEDS_STARTING) return;
+
+#if defined(SOUNDSERVERBINARY)
+	sspath = (char *) malloc( strlen(SOUNDSERVERBINARY) + 1 );
+	sprintf(sspath, "%s", SOUNDSERVERBINARY);
+#else
+	sspath = (char *) malloc( strlen(SSPATH) + 1 );
+	strcpy(sspath, SSPATH);
+#endif
 
 	/* is the sound engine installed on this system? */
 	if (stat(sspath,&enginestat)) {
@@ -200,8 +193,7 @@ void SoundEngineInit () {
 		execl((const char *)sspath,(const char *)buf,"",NULL);
 
 		/* if we got here, we have an error... */
-		printf("FreeWRL:SoundServer:%s: exec of %s\n",
-			strerror,sspath);
+		printf("FreeWRL:SoundServer:%s: exec of %s\n",strerror(errno),sspath);
 #ifndef __APPLE__
 		msgctl(msq_toserver,IPC_RMID,NULL);
 		msgctl(msq_fromserver,IPC_RMID,NULL);
@@ -279,7 +271,7 @@ void waitformessage () {
 		} while (!xx);
 
 		#ifdef SOUNDVERBOSE
-		printf ("message received was %s type %d\n", msg.msg,msg.mtype);
+		printf ("message received was %s type %ld\n", msg.msg,msg.mtype);
 		#endif
 
 		if (xx>0) {
@@ -402,4 +394,10 @@ void SetAudioActive (int num, int stat) {
 	sprintf (mystring,"ACTV %2d %2d",num,stat);
 	Sound_toserver(mystring);
 }
+
+void SoundServer_finish()
+{
+    FREE_IF_NZ(sspath);
+}
+
 #endif  /*ifdef win32 */

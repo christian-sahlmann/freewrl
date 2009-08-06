@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.19 2009/08/01 09:45:40 couannette Exp $
+$Id: fieldGet.c,v 1.20 2009/08/06 21:24:03 couannette Exp $
 
 Javascript C language binding.
 
@@ -170,7 +170,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 	int elementlen;
 	int x;
 	char scriptline[20000];
-	float *fp;
+	float *fp, *fp_in=(float *)Data;
 	int *ip;
 
 	/* for PixelTextures we have: */
@@ -213,10 +213,10 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.c[2] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.c[3] = *fp; Data += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[3] = *fp; fp_in += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -260,9 +260,9 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.c[2] = *fp; Data += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -306,9 +306,9 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.c[2] = *fp; Data += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -352,8 +352,8 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -390,9 +390,9 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			for (x=0; x<datalen; x++) {
 				/* create a new SFFloat object */
 				
-				fp = (float *)Data; 
+				fp = (float *)fp_in; 
 				newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
-				Data += elementlen;
+				fp_in += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
@@ -427,9 +427,9 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			for (x=0; x<datalen; x++) {
 				/* create a new SFTime object */
 				
-				fp = (float *)Data; 
+				fp = (float *)fp_in; 
 				newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
-				Data += elementlen;
+				fp_in += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
@@ -464,9 +464,9 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			for (x=0; x<datalen; x++) {
 				/* create a new SFInt32 object */
 				
-				ip = (int *)Data; 
+				ip = (int *)fp_in; 
 				newjsval = INT_TO_JSVAL(ip);
-				Data += elementlen;
+				fp_in += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
@@ -494,7 +494,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			ADD_ROOT (cx, newMFObject)
 
 			/* Data points to a Uni_String */
-			uniptr = (struct Uni_String *) Data;
+			uniptr = (struct Uni_String **) fp_in;
 
 			/* define the "length" property for this object */ 
 			DEFINE_LENGTH(cx,newMFObject)
@@ -537,9 +537,9 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			/* fill in private pointer area */
 			elementlen = sizeof (float);
 			for (x=0; x<datalen; x++) {
-				ip = (int *)Data; 
+				ip = (int *)fp_in; 
 				newjsval = INT_TO_JSVAL(ip);
-				Data += elementlen;
+				fp_in += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
@@ -571,7 +571,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			mePix = (struct X3D_PixelTexture *) Data;
+			mePix = (struct X3D_PixelTexture *) fp_in;
 			if (mePix->_nodeType == NODE_PixelTexture) {
 				image = mePix->image;
 				if (image.n > 2) {
@@ -964,14 +964,13 @@ void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, 
         case FIELDTYPE_SFRotation:
 */
 
-void setScriptMultiElementtype (uintptr_t num) {
-	void * fn;
+void setScriptMultiElementtype (uintptr_t num)
+{
 	uintptr_t tptr, fptr;
 	unsigned int len;
 	unsigned int to_counter;
 
-	CRnodeStruct *to_ptr = NULL;
-
+	CRnodeStruct *fn, *to_ptr = NULL;
 
 	JSContext *cx;
 	JSObject *obj;
@@ -1007,14 +1006,9 @@ void setScriptMultiElementtype (uintptr_t num) {
 		cx = (JSContext *) ScriptControl[myObj->num].cx;
 		obj = (JSObject *)ScriptControl[myObj->num].glob;
 
-		/* thanks to Doug Sanden for this one */
-/* 		#ifdef WIN32 */
-/* 		fnptr = (void *)( (uintptr_t)(fn) + fptr ); /\*force byte arithmetic *\/ */
-/* 		#else */
 		fn += fptr;
-/* 		#endif */
 
-		set_one_MultiElementType (myObj->num, tptr, fn, len);
+		set_one_MultiElementType (myObj->num, tptr, (void*)fn, len);
 	}
 }
 
@@ -1180,7 +1174,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			MNptr = (struct Multi_Node *) memptr;
 
 			if (eaiverbose) { 
-			printf ("EAI_Convert_mem_to_ASCII: EAI_MFNode, there are %d nodes at %ld\n",(*MNptr).n,(intptr_t) memptr);
+			printf ("EAI_Convert_mem_to_ASCII: EAI_MFNode, there are %d nodes at %p\n",(*MNptr).n,memptr);
 			}
 
 			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
@@ -1196,7 +1190,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		case FIELDTYPE_MFInt32: {
 			MCptr = (struct Multi_Color *) memptr;
 			if (eaiverbose) { 
-				printf ("EAI_MFColor, there are %d nodes at %ld\n",(*MCptr).n,(intptr_t) memptr);
+				printf ("EAI_MFColor, there are %d nodes at %p\n",(*MCptr).n,memptr);
 			}
 
 			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
@@ -1227,7 +1221,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 			MCptr = (struct Multi_Color *) memptr;
 			if (eaiverbose) { 
-				printf ("EAI_MFColor, there are %d nodes at %ld\n",(*MCptr).n,(intptr_t) memptr);
+				printf ("EAI_MFColor, there are %d nodes at %p\n",(*MCptr).n,memptr);
 			}
 
 			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);

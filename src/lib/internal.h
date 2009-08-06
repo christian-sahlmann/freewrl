@@ -6,7 +6,7 @@
  *
  * Library internal declarations.
  *
- * $Id: internal.h,v 1.14 2009/08/01 09:45:39 couannette Exp $
+ * $Id: internal.h,v 1.15 2009/08/06 21:24:03 couannette Exp $
  *
  *******************************************************************/
 
@@ -30,9 +30,10 @@ char *fw_strndup(const char *str, int len);
 #  define DEBUG_(_expr)
 #endif
 
-#define TRACE_MSG(_formargs...) DEBUG_(fprintf(stdout, ##_formargs))
-#define WARN_MSG(_formargs...)  DEBUG_(fprintf(stdout, ##_formargs))
-#define ERROR_MSG(_formargs...) DEBUG_(fprintf(stderr, ##_formargs))
+/* To conform C99 ISO C : */
+#define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))
 
 /**
  * Those macro get defined only when debugging is enabled

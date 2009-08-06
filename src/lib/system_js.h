@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_js.h,v 1.3 2009/02/23 22:01:33 istakenv Exp $
+$Id: system_js.h,v 1.4 2009/08/06 21:24:03 couannette Exp $
 
 FreeWRL support library.
 Internal header: Javascript engine dependencies.
@@ -18,6 +18,8 @@ Internal header: Javascript engine dependencies.
 -Wall -Wno-format -no-cpp-precomp -fno-common -DJS_THREADSAFE -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN  -UDEBUG -DNDEBUG -UDEBUG_root -DJS_THREADSAFE -DEDITLINE
 
 */
+
+#define JS_HAS_FILE_OBJECT 1 /* workaround warning=>error */
 
 #ifdef MOZILLA_JS_UNSTABLE_INCLUDES
 # include "../unstable/jsapi.h" /* JS compiler */

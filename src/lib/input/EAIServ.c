@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.13 2009/08/06 20:10:11 crc_canada Exp $
+$Id: EAIServ.c,v 1.14 2009/08/06 21:24:03 couannette Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -22,7 +22,6 @@ Implement EAI server functionality for FreeWRL.
 #include "../main/headers.h"
 
 #include "EAIheaders.h"
-
 
 /************************************************************************/
 /*									*/
@@ -60,7 +59,6 @@ Implement EAI server functionality for FreeWRL.
 /************************************************************************/
 
 static pthread_mutex_t eaibufferlock = PTHREAD_MUTEX_INITIALIZER;
-
 
 int EAIport = 9877;				/* port we are connecting to*/
 int EAIMIDIInitialized = FALSE; 	/* is MIDI eai running? */
@@ -110,7 +108,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 
 	if ((EAIfailed) &&(socketincrement==0)) return FALSE;
 
-	if ((*EAIsockfd) < 0) {
+    if ((*EAIsockfd) < 0) {
 		/* step 1  - create socket*/
 #ifdef WIN32
 		static int wsaStarted;
@@ -169,7 +167,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 
 
 		/* step 2 - bind to socket*/
-	        bzero(&servaddr, sizeof(servaddr));
+	        memset(&servaddr, 0, sizeof(servaddr));
 	        servaddr.sin_family      = AF_INET;
 	        servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	        servaddr.sin_port        = htons(EAIport+socketincrement);
@@ -223,12 +221,12 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 		/* allocate memory for input buffer */
 		EAIbufcount = 0;
 		EAIbufsize = 2 * EAIREADSIZE; /* initial size*/
-		EBUFFLOCK
+		EBUFFLOCK;
 		EAIbuffer = (char *)MALLOC(EAIbufsize * sizeof (char));
-		EBUFFUNLOCK
+		EBUFFUNLOCK;
 
 		/* zero out the EAIListenerData here, and after every use */
-		bzero(&EAIListenerData, sizeof(EAIListenerData));
+		memset(&EAIListenerData, 0, sizeof(EAIListenerData));
 
 		/* seems like we are up and running now, and waiting for a command */
 		/* and are we using this with EAI? */
@@ -311,7 +309,7 @@ void handle_EAI () {
 
 	EAIbufcount = 0;
 
-	EBUFFLOCK
+	EBUFFLOCK;
 	EAIbuffer = read_EAI_socket(EAIbuffer,&EAIbufcount, &EAIbufsize, &EAIlistenfd);
 	/* printf ("read, EAIbufcount %d EAIbufsize %d\n",EAIbufcount, EAIbufsize); */
 
@@ -324,7 +322,8 @@ void handle_EAI () {
 	/* any command read in? */
 	if (EAIbufcount > 1)
 		EAI_parse_commands ();
-	EBUFFUNLOCK
+
+	EBUFFUNLOCK;
 }
 
 void handle_MIDIEAI() {
@@ -338,7 +337,8 @@ void handle_MIDIEAI() {
 
         EAIbufcount = 0;
 
-	EBUFFLOCK
+	EBUFFLOCK;
+
         EAIbuffer = read_EAI_socket(EAIbuffer, &EAIbufcount, &EAIbufsize, &EAIMIDIlistenfd);
         /* printf ("read, MIDI EAIbufcount %d EAIbufsize %d\n",EAIbufcount, EAIbufsize); */
 
@@ -349,7 +349,8 @@ void handle_MIDIEAI() {
         /* any command read in? */
         if (EAIbufcount > 1)
                 EAI_parse_commands ();
-	EBUFFUNLOCK
+
+	EBUFFUNLOCK;
 }
 
 

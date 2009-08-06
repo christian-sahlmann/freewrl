@@ -17,8 +17,11 @@ endif
 
 CC_WARNINGS=-Wall -Wundef -Wunused-macros
 
-# Compiler options
-# (none required at the moment)
+# Compiler options / general flags
+
+# Needed by ipc.h => error: #warning "Files using this header must be compiled with _SVID_SOURCE or _XOPEN_SOURCE"
+# If we use _XOPEN_SOURCE then we must define also _BSD_SOURCE to have Motif compile...
+CC_GENERAL=-D_XOPEN_SOURCE=500 -D_BSD_SOURCE
 
 # Linker options
 
@@ -28,8 +31,8 @@ CC_WARNINGS=-Wall -Wundef -Wunused-macros
 #LD_OPTS=-Wl,--as-needed
 
 # Define this globally
-AM_CPPFLAGS = $(DEBUG_FLAGS) $(CC_WARNINGS)
-AM_CFLAGS = $(CC_WARNINGS)
+AM_CPPFLAGS = $(CC_WARNINGS) $(CC_GENERAL)
+AM_CFLAGS = $(DEBUG_FLAGS)
 AM_LDFLAGS = $(DEBUG_FLAGS) $(LD_OPTS)
 
 # Architecture dependent variables

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIheaders.h,v 1.13 2009/08/06 20:10:11 crc_canada Exp $
+$Id: EAIheaders.h,v 1.14 2009/08/06 21:24:03 couannette Exp $
 
 EAI and java CLASS invocation
 
@@ -18,8 +18,10 @@ EAI and java CLASS invocation
 #define __FREEWRL_EAI_H__
 
 #include <pthread.h>
-#define EBUFFLOCK pthread_mutex_lock(&eaibufferlock);
-#define EBUFFUNLOCK pthread_mutex_unlock(&eaibufferlock);
+
+#define EBUFFLOCK pthread_mutex_lock(&eaibufferlock)
+#define EBUFFUNLOCK pthread_mutex_unlock(&eaibufferlock)
+
 extern int eaiverbose;
 
 void shutdown_EAI(void);
