@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.44 2009/08/06 01:14:58 crc_canada Exp $
+$Id: MainLoop.c,v 1.45 2009/08/06 20:10:11 crc_canada Exp $
 
 Main loop
 
@@ -30,9 +30,17 @@ Main loop
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 #include "../input/EAIheaders.h"
+#include "../scenegraph/RenderFuncs.h"
+#include "../opengl/Frustum.h"
+#include "../input/InputFunctions.h"
 
 #include "../ui/ui.h"
 #include "../opengl/OpenGL_Utils.h"
+
+
+#ifdef AQUA
+#include "../ui/aquaInt.h"
+#endif
 
 #include "MainLoop.h"
 #include "ProdCon.h"
@@ -1107,7 +1115,7 @@ void setFullPath(const char* file)
     }
 
     /* remove a FILE:// or file:// off of the front */
-    file = stripLocalFileName (file);
+    file = stripLocalFileName ((char *)file);
     FREE_IF_NZ (BrowserFullPath);
     BrowserFullPath = STRDUP((char *) file);
     /* ConsoleMessage ("setBrowserFullPath is %s (%d)",BrowserFullPath,strlen(BrowserFullPath));  */
@@ -1357,11 +1365,11 @@ void setTextures_take_priority (int x) {
         textures_take_priority = x;
 }
 
-/* set the global_texSize. Expect a number that is 0 - use max, or negative. eg,
+/* set the opengl_has_textureSize. Expect a number that is 0 - use max, or negative. eg,
    -512 hopefully sets to size 512x512; this will be bounds checked in the texture
    thread */
 void setTexSize(int requestedsize) {
-        global_texSize = requestedsize;
+        opengl_has_textureSize = requestedsize;
 }
 
 void setNoCollision() {
@@ -1561,7 +1569,7 @@ void createContext(CGrafPtr grafPtr) {
         }
 
         mkc = aglSetCurrentContext(aqglobalContext);
-        if ((mkc == NULL) || (aglGetError() != AGL_NO_ERROR)) {
+        if ((mkc == 0) || (aglGetError() != AGL_NO_ERROR)) {
                 printf("FreeWRL: aglSetCurrentContext failed!\n");
         }
 
@@ -1788,7 +1796,7 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
                                 }
                                 /* if there is no description, put the node type on the screen */
                                 if (ns == NULL) {ns = "(over sensitive)";}
-                                else if (ns[0] == '\0') ns = stringNodeType(SensorEvents[tmp].datanode->_nodeType);
+                                else if (ns[0] == '\0') ns = (char *)stringNodeType(SensorEvents[tmp].datanode->_nodeType);
         
                                 /* send this string to the screen */
                                 update_status(ns);

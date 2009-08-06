@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.24 2009/08/01 09:45:39 couannette Exp $
+$Id: RenderFuncs.c,v 1.25 2009/08/06 20:10:11 crc_canada Exp $
 
 Scenegraph rendering.
 
@@ -56,9 +56,6 @@ int last_texture_type = NOTEXTURE;
    structures on these */
 int sound_from_audioclip = 0;
 
-/* and, we allow a maximum of so many pixels per texture */
-/* if this is zero, first time a texture call is made, this is set to the OpenGL implementations max */
-GLint global_texSize = 0;
 int textures_take_priority = TRUE;
 #ifdef DO_MULTI_OPENGL_THREADS
 int useShapeThreadIfPossible = TRUE;
@@ -151,7 +148,7 @@ int SoundEngineStarted = FALSE;
 
 /* stored FreeWRL version, pointers to initialize data */
 #ifdef DO_MULTI_OPENGL_THREADS
-pthread_t shapeThread = -1;
+pthread_t shapeThread = NULL;
 #endif
 
 void *rootNode=NULL;	/* scene graph root node */
@@ -448,19 +445,19 @@ void render_node(struct X3D_Node *node) {
 	if (displayOpenGLErrors) if(glerror != GL_NONE)
 	  {
 	    printf("============== GLERROR : %s in stage %s =============\n",gluErrorString(glerror),stage);
-	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
+	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",(int) v,
 		   stringNodeType(node->_nodeType),
-		   v->prep,
-		   v->rend,
-		   v->children,
-		   v->fin,
-		   v->rendray,
-		   hypersensitive);
+		   (int) v->prep,
+		   (int) v->rend,
+		   (int) v->children,
+		   (int) v->fin,
+		   (int) v->rendray,
+		   (int) hypersensitive);
 	    printf("Render_state geom %d light %d sens %d\n",
 		   render_geom,
 		   render_light,
 		   render_sensitive);
-	    printf ("pchange %d pichange %d vchanged %d\n",node->_change, node->_ichange,v->changed);
+	    printf ("pchange %d pichange %d vchanged %d\n",node->_change, node->_ichange,(int) v->changed);
 	    printf("==============\n");
 	  }
 }
@@ -475,7 +472,6 @@ void render_node(struct X3D_Node *node) {
 
 void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int line) {
 	int oldparcount;
-	int count;
 
 	if(!node) return;
 
@@ -484,18 +480,6 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 			parent, stringNodeType(parent->_nodeType),file,line);
 	#endif
 
-	/* does this already exist? it is OK to have this added more than once */
-	#ifdef checkforduplicateparentsinaddparent
-	for (count=0; count<node->_nparents; count++) {
-		if (node->_parents[count] == parent) {
-			#ifdef CHILDVERBOSE
-			printf ("add_parent; parent already exists in this node\n");
-			#endif
-			return;
-		}
-	}
-	#endif
- 
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 
 	oldparcount = node->_nparents;
@@ -673,14 +657,11 @@ void setShutter (void) {
 /* threading variables for loading shapes in threads */
 static pthread_mutex_t shapeMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t shapeCond   = PTHREAD_COND_INITIALIZER;
-static pthread_mutex_t shapeGenMutex = PTHREAD_MUTEX_INITIALIZER;
 #define SLOCK           pthread_mutex_lock(&shapeMutex);
 #define SUNLOCK         pthread_mutex_unlock(&shapeMutex);
 #define S_LOCK_SIGNAL   pthread_cond_signal(&shapeCond);
 #define S_LOCK_WAIT     pthread_cond_wait(&shapeCond,&shapeMutex);
 /* lock the reallocs of data structures */
-#define REGENLOCK       pthread_mutex_lock(&shapeGenMutex);
-#define REGENUNLOCK     pthread_mutex_unlock(&shapeGenMutex);
 
 /* are we currently active? */
 int shapeCompiling = FALSE;
@@ -892,12 +873,13 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 	if (xc->_nodeType == NODE_Coordinate) {
 		return &(xc->point);
 	} else if (xc->_nodeType == NODE_GeoCoordinate) {
-		COMPILE_IF_REQUIRED
+		COMPILE_IF_REQUIRED_RETURN_NULL_ON_ERROR;
 		gxc = X3D_GEOCOORD(node);
 		return &(gxc->__movedCoords);
 	} else {
 		ConsoleMessage ("%s - coord expected but got %s\n", stringNodeType(xc->_nodeType));
 	}
+	return NULL;
 }
 
 

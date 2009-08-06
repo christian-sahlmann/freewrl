@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.16 2009/08/01 09:45:39 couannette Exp $
+$Id: Textures.c,v 1.17 2009/08/06 20:10:11 crc_canada Exp $
 
 General Texture objects.
 
@@ -22,6 +22,7 @@ General Texture objects.
 #include "../input/InputFunctions.h"
 #include "Textures.h"
 #include "../opengl/Material.h"
+#include "../opengl/Opengl_Utils.h"
 
 
 #ifdef AQUA
@@ -43,31 +44,6 @@ General Texture objects.
                 do_possible_textureSequence(myTableIndex); \
                 return;	\
 		}
-/* lets check the max texture size */
-static int checktexsize;
-
-/* note - we reduce the max texture size on computers with the (incredibly inept) Intel GMA 9xx chipsets - like the Intel
-   Mac minis, and macbooks up to November 2007 */
-#define CHECK_MAX_TEXTURE_SIZE \
-	if (global_texSize<=0) { \
-		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &checktexsize); \
-		if (getenv("FREEWRL_256x256_TEXTURES")!= NULL) checktexsize = 256; \
-		if (getenv("FREEWRL_512x512_TEXTURES")!= NULL) checktexsize = 512; \
-		global_texSize = -global_texSize; \
-		if (global_texSize == 0) global_texSize = checktexsize; \
-		if (global_texSize > checktexsize) global_texSize = checktexsize; \
-		if (strncmp(glGetString(GL_RENDERER),"NVIDIA GeForce2",strlen("NVIDIA GeForce2")) == 0) { \
-		/* 	printf ("possibly reducing texture size because of NVIDIA GeForce2 chip\n"); */ \
-			if (global_texSize > 1024) global_texSize = 1024; \
-		}  \
-		if (strncmp(glGetString(GL_RENDERER),"Intel GMA 9",strlen("Intel GMA 9")) == 0) { \
-		/* 	printf ("possibly reducing texture size because of Intel GMA chip\n"); */ \
-			if (global_texSize > 1024) global_texSize = 1024; \
-		}  \
-		if (displayOpenGLErrors) printf ("CHECK_MAX_TEXTURE_SIZE, ren %s ver %s ven %s ts %d\n",glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_VENDOR),global_texSize); \
-		setMenuButton_texSize (global_texSize); \
-	} 
-
 
 /* we keep track of which textures have been loaded, and which have not */
 extern void *texParams[];
@@ -135,10 +111,6 @@ int TextureParsing = FALSE;
 int currentlyWorkingOn = -1;
 
 int textureInProcess = -1;
-
-/* how many texel units; if -1, we have not tried to find out yet */
-GLint maxTexelUnits = -1;
-
 
 /* for texture remapping in TextureCoordinate nodes */
 int	*global_tcin;
@@ -239,41 +211,6 @@ int isTextureParsing() {
 	return textureInProcess >0;
 }
 
-/* can our OpenGL implementation handle multitexturing?? */
-void init_multitexture_handling() {
-	char *glExtensions;
-
-	/* first, lets check to see if we have a max texture size yet */
-	CHECK_MAX_TEXTURE_SIZE;
-
-	glExtensions = (char *)glGetString(GL_EXTENSIONS);
-
-	if ((strstr (glExtensions, "GL_ARB_texture_env_combine")!=0) &&
-		(strstr (glExtensions,"GL_ARB_multitexture")!=0)) {
-
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS,&maxTexelUnits);
-
-		if (maxTexelUnits > MAX_MULTITEXTURE) {
-			printf ("init_multitexture_handling - reducing number of multitexs from %d to %d\n",
-				maxTexelUnits,MAX_MULTITEXTURE);
-			maxTexelUnits = MAX_MULTITEXTURE;
-		}
-#ifdef TEXVERBOSE
-		printf ("can do multitexture we have %d units\n",maxTexelUnits);
-#endif
-
-
-		/* we assume that GL_TEXTURE*_ARB are sequential. Lets to a little check */
-		if ((GL_TEXTURE0 +1) != GL_TEXTURE1) {
-			printf ("Warning, code expects GL_TEXTURE0 to be 1 less than GL_TEXTURE1\n");
-		} 
-
-	} else {
-		printf ("can not do multitexture\n");
-		maxTexelUnits = 0;
-	}
-}
-
 /* this node has changed - if there was a texture, destroy it */
 void releaseTexture(struct X3D_Node *node) {
 
@@ -291,7 +228,7 @@ void releaseTexture(struct X3D_Node *node) {
 #ifdef TEXVERBOSE
 	printf ("releaseTexture, calling getTableIndex\n");
 	ti = getTableIndex(tableIndex);
-	printf ("releaseTexture, ti %u, ti->status %d\n",ti,ti->status);
+	printf ("releaseTexture, ti %u, ti->status %d\n",(int) ti,ti->status);
 	ti->status = TEX_NOTLOADED;
 
 	if (ti->OpenGLTexture != NULL) {
@@ -323,7 +260,7 @@ void kill_openGLTextures() {
 			if  (listRunner->entry[count].OpenGLTexture != NULL) {
 #ifdef TEXVERBOSE
 				printf ("deleting %d %d\n",listRunner->entry[count].frames, 
-					listRunner->entry[count].OpenGLTexture);
+					(int) listRunner->entry[count].OpenGLTexture);
 #endif
 
 				glDeleteTextures(listRunner->entry[count].frames, 
@@ -384,10 +321,10 @@ struct textureTableIndexStruct *getTableIndex(int indx) {
 	for (count=0; count<whichBlock; count++) currentBlock = currentBlock->next;
 
 #ifdef TEXVERBOSE
-	printf ("getTableIndex, going to return %d\n", &(currentBlock->entry[whichEntry]));
+	printf ("getTableIndex, going to return %d\n", (int) (&(currentBlock->entry[whichEntry])));
 	printf ("textureTableIndexStruct, sgn0 is %d, sgn1 is %d\n",
-		currentBlock->entry[0].scenegraphNode,
-		currentBlock->entry[1].scenegraphNode);
+		(int) currentBlock->entry[0].scenegraphNode,
+		(int) currentBlock->entry[1].scenegraphNode);
 #endif
 	return &(currentBlock->entry[whichEntry]);
 }
@@ -459,7 +396,7 @@ void registerTexture(struct X3D_Node *tmp) {
 			mt = (struct X3D_MovieTexture *) tmp;
 			mt->__textureTableIndex = nextFreeTexture;
 		} else if (it->_nodeType == NODE_VRML1_Texture2) {
-			v1t = (struct X3D_VRM1_Texture2 *) tmp;
+			v1t = (struct X3D_VRML1_Texture2 *) tmp;
 			v1t->__textureTableIndex = nextFreeTexture;
 		}
 
@@ -468,8 +405,8 @@ void registerTexture(struct X3D_Node *tmp) {
 		currentBlock->entry[whichEntry].scenegraphNode = X3D_NODE(tmp);
 #ifdef TEXVERBOSE
 		printf ("registerNode, sgn0 is %d, sgn1 is %d\n",
-			currentBlock->entry[0].scenegraphNode,
-			currentBlock->entry[1].scenegraphNode);
+			(int) currentBlock->entry[0].scenegraphNode,
+			(int) currentBlock->entry[1].scenegraphNode);
 #endif
 		/* now, lets increment for the next texture... */
 		nextFreeTexture += 1;
@@ -478,9 +415,13 @@ void registerTexture(struct X3D_Node *tmp) {
 
 /* do TextureBackground textures, if possible */
 void loadBackgroundTextures (struct X3D_Background *node) {
-	struct X3D_ImageTexture *thistex = 0;
+	struct X3D_ImageTexture *thistex;
 	struct Multi_String thisurl;
 	int count;
+
+	/* initialization */
+	thisurl.n = 0; thisurl.p = NULL;
+	thistex = NULL;
 
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */
@@ -626,7 +567,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 #ifdef TEXVERBOSE
 	 printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->_nodeType,
 			node->texture.n,
-			node->texture.p[0], node->texture.p[1]);
+			(int) node->texture.p[0], (int) node->texture.p[1]);
 	printf ("	change %d ichange %d\n",node->_change, node->_ichange);
 #endif
 	
@@ -635,19 +576,14 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 	    /*  have to regen the shape*/
 	    MARK_NODE_COMPILED;
 
-		/* have we initiated multitexture support yet? */
-		if (maxTexelUnits < 0)  {
-			init_multitexture_handling();
-		}
-
 		/* alloc fields, if required - only do this once, even if node changes */
 		if (node->__params == 0) {
 			/* printf ("loadMulti, MALLOCing for params\n"); */
-			node->__params = MALLOC (sizeof (struct multiTexParams) * maxTexelUnits);
+			node->__params = MALLOC (sizeof (struct multiTexParams) * opengl_has_numTextureUnits);
 			paramPtr = (struct multiTexParams*) node->__params;
 
 			/* set defaults for these fields */
-			for (count = 0; count < maxTexelUnits; count++) {
+			for (count = 0; count < opengl_has_numTextureUnits; count++) {
 				paramPtr->texture_env_mode  = GL_MODULATE; 
 				paramPtr->combine_rgb = GL_MODULATE;
 				paramPtr->source0_rgb = GL_TEXTURE;
@@ -671,7 +607,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 		/* how many textures can we use? no sense scanning those we cant use */
 		max = node->mode.n; 
-		if (max > maxTexelUnits) max = maxTexelUnits;
+		if (max > opengl_has_numTextureUnits) max = opengl_has_numTextureUnits;
 
 		/* go through the params, and change string name into a GLint */
 		paramPtr = (struct multiTexParams*) node->__params;
@@ -787,7 +723,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 	/* how many textures can we use? */
 	max = node->texture.n; 
-	if (max > maxTexelUnits) max = maxTexelUnits;
+	if (max > opengl_has_numTextureUnits) max = opengl_has_numTextureUnits;
 
 	/* go through and get all of the textures */
 	paramPtr = (struct multiTexParams *) node->__params;
@@ -850,10 +786,6 @@ void store_tex_info(
    by this thread? */
 
 void do_possible_textureSequence(struct textureTableIndexStruct* me) {
-	GLuint *texnums;
-	int framecount;
-	GLubyte *imageptr;
-	int c;
 	int rx,ry,sx,sy;
 	int x,y;
 	GLint iformat;
@@ -862,7 +794,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 
 	/* default texture properties; can be changed by a TextureProperties node */
 	float anisotropicDegree=0.0;
-	struct SFColorRGBA borderColor={0.0,0.0,0.0,0.0};
+	struct SFColorRGBA borderColor;
 	int borderWidth=0;
 	int boundaryModeS = GL_REPEAT;
 	int boundaryModeT = GL_REPEAT;
@@ -882,9 +814,9 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	GLint Src, Trc;
 	unsigned char *mytexdata;
 
-
-	/* see if we need to get the max texture size at runtime */
-	CHECK_MAX_TEXTURE_SIZE
+	/* initialization */
+	Src = 0; Trc = 0;
+	tpNode = NULL;
 
 	/* do we need to convert this to an OpenGL texture stream?*/
 
@@ -893,8 +825,8 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 		me->OpenGLTexture = MALLOC (sizeof (GLuint) * me->frames);
 		glGenTextures(me->frames, me->OpenGLTexture);
 #ifdef TEXVERBOSE
-		printf ("just glGend %d textures  for block %x is %x\n",
-			me->frames, me, me->OpenGLTexture);
+		printf ("just glGend %d textures  for block %d is %d\n",
+			(int) me->frames, (int) me, (int) me->OpenGLTexture);
 #endif
 
 		/* get the repeatS and repeatT info from the scenegraph node */
@@ -999,10 +931,10 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 
 			if (displayOpenGLErrors) printf ("initial texture scale to %d %d\n",rx,ry);
 
-			if(rx != x || ry != y || rx > global_texSize || ry > global_texSize) {
+			if(rx != x || ry != y || rx > opengl_has_textureSize || ry > opengl_has_textureSize) {
 				/* do we have texture limits??? */
-				if (rx > global_texSize) rx = global_texSize;
-				if (ry > global_texSize) ry = global_texSize;
+				if (rx > opengl_has_textureSize) rx = opengl_has_textureSize;
+				if (ry > opengl_has_textureSize) ry = opengl_has_textureSize;
 			}
 
 			if (displayOpenGLErrors)
@@ -1041,7 +973,7 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 			glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
 
-			if(mytexdata != dest) FREE_IF_NZ(dest);
+			if(mytexdata != dest) {FREE_IF_NZ(dest);}
 		}
 
 #else /* DO_PROXY_IMAGE */
@@ -1054,10 +986,10 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
                         ry = 1; sy = y;
                         while(sy) {sy /= 2; ry *= 2;}
                         if(ry/2 == y) {ry /= 2;}
-                        if(rx != x || ry != y || rx > global_texSize || ry > global_texSize) {
+                        if(rx != x || ry != y || rx > opengl_has_textureSize || ry > opengl_has_textureSize) {
                                 /* do we have texture limits??? */
-                                if (rx > global_texSize) rx = global_texSize;
-                                if (ry > global_texSize) ry = global_texSize;
+                                if (rx > opengl_has_textureSize) rx = opengl_has_textureSize;
+                                if (ry > opengl_has_textureSize) ry = opengl_has_textureSize;
 
                                 /* We have to scale */
                                 dest = (unsigned char *)MALLOC((unsigned) (me->depth) * rx * ry);
@@ -1139,13 +1071,13 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	myTableIndex = getTableIndex(thisTexture);
 
 #ifdef TEXVERBOSE
-	printf ("myTableIndex %x\n",myTableIndex);
-	printf ("	scenegraphNode %d (%s)\n",myTableIndex->scenegraphNode,
+	printf ("myTableIndex %x\n",(unsigned int) myTableIndex);
+	printf ("	scenegraphNode %d (%s)\n",(int) myTableIndex->scenegraphNode,
 				stringNodeType(X3D_NODE(myTableIndex->scenegraphNode)->_nodeType));
 	printf ("	status %d\n",myTableIndex->status);
 	printf ("	status %d\n",myTableIndex->status);
 	printf ("	frames %d\n",myTableIndex->frames);
-	printf ("	OpenGLTexture %d\n",myTableIndex->OpenGLTexture);
+	printf ("	OpenGLTexture %d\n",*(myTableIndex->OpenGLTexture));
 
 	printf ("texture status %s\n",texst(myTableIndex->status));
 #endif
@@ -1154,8 +1086,8 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	if (myTableIndex->status == TEX_LOADED) {
 
 #ifdef TEXVERBOSE 
-		printf ("now binding to pre-bound mti%d tex%d\n",
-			myTableIndex,myTableIndex->OpenGLTexture[0]);
+		printf ("now binding to pre-bound tex%d\n",
+			*(myTableIndex->OpenGLTexture));
 #endif
 		/* set the texture depth - required for Material diffuseColor selection */
 		if (myTableIndex->hasAlpha) last_texture_type =  TEXTURE_ALPHA;
@@ -1271,7 +1203,6 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 static int findTextureFile (int cwo) {
 	char *filename;
 	char *mypath;
-	int count;
 	char firstBytes[4];
 #ifndef AQUA
 	char *sysline;
@@ -1321,18 +1252,11 @@ static int findTextureFile (int cwo) {
 		    printf ("textureThread: we were successful at locating %s\n",filename); 
 #endif
 		} else {
-/* #ifdef WIN32 */
-/* 			count = 1; */
-/* #endif */
-			if (count > 0) {
-#ifndef ARCH_PPC
-			    ConsoleMessage ("Could not locate URL for texture %d (last choice was %s)\n",cwo,filename);
-#endif
-			}
+			ConsoleMessage ("Could not locate URL for texture %d (last choice was %s)\n",cwo,filename);
 			/* So, we could not find the correct file. Make this into a blank PixelTexture, so that
 			   at least this looks ok on the screen */
 #ifdef TEXVERBOSE
-			printf("textureThread: could not locate file from url: %s\n", thisUrl);
+			printf("textureThread: could not locate file from url: %s\n", filename);
 #endif
 			FREE_IF_NZ(filename);
 			loadThisTexture->nodeType = NODE_PixelTexture;
@@ -1346,7 +1270,7 @@ static int findTextureFile (int cwo) {
 	if (loadThisTexture->nodeType == NODE_PixelTexture) {
 		FREE_IF_NZ(filename);
 		filename = (char *)MALLOC(4096);
-		sprintf (filename,"PixelTexture_%d",loadThisTexture);
+		sprintf (filename,"PixelTexture_%d",(int)loadThisTexture);
 	}
 
 #ifdef AQUA
@@ -1474,8 +1398,8 @@ void _textureThread(void)
 #ifdef TEXVERBOSE
 	printf ("textureThread - working on %d ",currentlyWorkingOn);
 	printf ("which is node %d, nodeType %d status %s, opengltex %d, and frames %d\n",
-		loadThisTexture->scenegraphNode, loadThisTexture->nodeType, 
-		texst(loadThisTexture->status), loadThisTexture->OpenGLTexture, 
+		(int) loadThisTexture->scenegraphNode, loadThisTexture->nodeType, 
+		texst(loadThisTexture->status), (int) loadThisTexture->OpenGLTexture, 
 		loadThisTexture->frames);
 #endif
 
@@ -1504,20 +1428,20 @@ void _textureThread(void)
 	    }
 	    
 #ifdef TEXVERBOSE
-	    printf ("textureThread, after reallyLoad for  %d\n",currentlyWorkingOn);
+	    printf ("textureThread, after reallyLoad for  %d\n",(int) currentlyWorkingOn);
 #endif
 
 #ifdef DO_MULTI_OPENGL_THREADS
 	    if (!RUNNINGASPLUGIN) {
 # ifdef TEXVERBOSE 
-		printf ("tex %d needs binding, name %s\n",loadThisTexture->OpenGLTexture,
+		printf ("tex %d needs binding, name %s\n",(int) loadThisTexture->OpenGLTexture,
 			loadThisTexture->filename);
 # endif /* TEXVERBOSE */
 
 		do_possible_textureSequence(loadThisTexture);
 		
 #ifdef TEXVERBOSE 
-		printf ("tex %d now loaded\n",loadThisTexture->OpenGLTexture);
+		printf ("tex %d now loaded\n",(int) loadThisTexture->OpenGLTexture);
 #endif
 	    } else {
 		loadThisTexture->status = TEX_NEEDSBINDING;
@@ -1554,7 +1478,7 @@ void _textureThread(void)
 /* load a PixelTexture that is stored as a MFInt32 */
 static void __reallyloadPixelTexure() {
 	/* PixelTexture variables */
-	long hei,wid,depth;
+	int hei,wid,depth;
 	unsigned char *texture;
 	int count;
 	int ok;
@@ -1702,7 +1626,7 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
 		/* CGRect rect = {{0,0},{pixelsWide, pixelsHigh}}; */
 		/* this is a mask. */
 
-		printf ("bits per component of %d not handled\n",bitsPerComponent);
+		printf ("bits per component of %d not handled\n",(int)bitsPerComponent);
 		return NULL;
 	}
 
@@ -1731,16 +1655,19 @@ static void __reallyloadImageTexture() {
 #endif
 
 	unsigned char *	data;
-	int		hasAlpha = FALSE;
+	int		hasAlpha;
 
 	CGDataProviderRef provider;
 	CGImageSourceRef 	sourceRef;
 
+	/* initialization */
+	image = NULL;
+	hasAlpha = FALSE;
 
 	/* printf ("loading %s imageType %d\n",getShadowFileNamePtr(loadThisTexture->filename), loadThisTexture->imageType);  */
 
 	path = CFStringCreateWithCString(NULL, getShadowFileNamePtr(loadThisTexture->filename), kCFStringEncodingUTF8);
-	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
+	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, 0);
 
 	/* ok, we can define USE_CG_DATA_PROVIDERS or TRY_QUICKTIME...*/
 #define USE_CG_DATA_PROVIDERS
@@ -1795,13 +1722,13 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 	#ifdef TEXVERBOSE
 	if (hasAlpha) printf ("Image has Alpha channel\n"); else printf ("image - no alpha channel \n");
 
-	printf ("raw image, AlphaInfo %x\n",CGImageGetAlphaInfo(image));
-	printf ("raw image, BitmapInfo %x\n",CGImageGetBitmapInfo(image));
-	printf ("raw image, BitsPerComponent %d\n",CGImageGetBitsPerComponent(image));
-	printf ("raw image, BitsPerPixel %d\n",CGImageGetBitsPerPixel(image));
-	printf ("raw image, BytesPerRow %d\n",CGImageGetBytesPerRow(image));
-	printf ("raw image, ImageHeight %d\n",CGImageGetHeight(image));
-	printf ("raw image, ImageWidth %d\n",CGImageGetWidth(image));
+	printf ("raw image, AlphaInfo %x\n",(int) CGImageGetAlphaInfo(image));
+	printf ("raw image, BitmapInfo %x\n",(int) CGImageGetBitmapInfo(image));
+	printf ("raw image, BitsPerComponent %d\n",(int) CGImageGetBitsPerComponent(image));
+	printf ("raw image, BitsPerPixel %d\n",(int) CGImageGetBitsPerPixel(image));
+	printf ("raw image, BytesPerRow %d\n",(int) CGImageGetBytesPerRow(image));
+	printf ("raw image, ImageHeight %d\n",(int) CGImageGetHeight(image));
+	printf ("raw image, ImageWidth %d\n",(int) CGImageGetWidth(image));
 	#endif
 	
 	/* now, lets "draw" this so that we get the exact bit values */
@@ -1809,13 +1736,13 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 
 	 
 	#ifdef TEXVERBOSE
-	printf ("GetAlphaInfo %x\n",CGBitmapContextGetAlphaInfo(cgctx));
-	printf ("GetBitmapInfo %x\n",CGBitmapContextGetBitmapInfo(cgctx));
-	printf ("GetBitsPerComponent %d\n",CGBitmapContextGetBitsPerComponent(cgctx));
-	printf ("GetBitsPerPixel %d\n",CGBitmapContextGetBitsPerPixel(cgctx));
-	printf ("GetBytesPerRow %d\n",CGBitmapContextGetBytesPerRow(cgctx));
-	printf ("GetHeight %d\n",CGBitmapContextGetHeight(cgctx));
-	printf ("GetWidth %d\n",CGBitmapContextGetWidth(cgctx));
+	printf ("GetAlphaInfo %x\n",(int) CGBitmapContextGetAlphaInfo(cgctx));
+	printf ("GetBitmapInfo %x\n",(int) CGBitmapContextGetBitmapInfo(cgctx));
+	printf ("GetBitsPerComponent %d\n",(int) CGBitmapContextGetBitsPerComponent(cgctx));
+	printf ("GetBitsPerPixel %d\n",(int) CGBitmapContextGetBitsPerPixel(cgctx));
+	printf ("GetBytesPerRow %d\n",(int) CGBitmapContextGetBytesPerRow(cgctx));
+	printf ("GetHeight %d\n",(int) CGBitmapContextGetHeight(cgctx));
+	printf ("GetWidth %d\n",(int) CGBitmapContextGetWidth(cgctx));
 	#endif
 	
 #undef TEXVERBOSE

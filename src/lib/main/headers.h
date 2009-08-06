@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.67 2009/08/01 09:45:39 couannette Exp $
+$Id: headers.h,v 1.68 2009/08/06 20:10:11 crc_canada Exp $
 
 Global includes.
 
@@ -195,13 +195,22 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 #define COMPILE_IF_REQUIRED { struct X3D_Virt *v; \
 	if (node->_ichange != node->_change) { \
-		/* printf ("COMP %d %d\n",node->_ichange, node->_change); */ \
 		v = *(struct X3D_Virt **)node; \
 		if (v->compile) { \
 			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
 		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s\n",stringNodeType(node->_nodeType));} \
 		} \
 		if (node->_ichange == 0) return; \
+	}
+
+#define COMPILE_IF_REQUIRED_RETURN_NULL_ON_ERROR { struct X3D_Virt *v; \
+	if (node->_ichange != node->_change) { \
+		v = *(struct X3D_Virt **)node; \
+		if (v->compile) { \
+			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
+		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s\n",stringNodeType(node->_nodeType));} \
+		} \
+		if (node->_ichange == 0) return NULL; \
 	}
 
 /* convert a PROTO node (which will be a Group node) into a node. eg, for Materials  - this is a possible child
@@ -606,7 +615,6 @@ extern int global_IFS_Coord_count;
 
 /* texture stuff - see code. Need array because of MultiTextures */
 extern GLuint bound_textures[MAX_MULTITEXTURE];
-extern GLint maxTexelUnits;
 extern int texture_count; 
 extern int     *global_tcin;
 extern int     global_tcin_count; 
@@ -630,10 +638,6 @@ extern int display_status;
 
 extern int last_texture_type;
 extern float global_transparency;
-
-/* what is the max texture size as set by FreeWRL? */
-extern GLint global_texSize;
-
 
 /* are we doing strict parsing, or letting warnings go? */
 extern int global_strictParsing;

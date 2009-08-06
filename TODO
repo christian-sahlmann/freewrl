@@ -1,6 +1,10 @@
 Priority list
 
 08/02/2009:
+	(DONE?) initialization OpenGL functionality checking; eg, checkShaders, multitexturing, etc, put all checks at OpenGL initialization.
+
+
+08/02/2009:
 	(JAS) shader differences between OSX and Linux; eg:
 	http://freewrl.sf.net/tomasMikulaExample.x3dv
 

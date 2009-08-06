@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.49 2009/08/01 09:45:39 couannette Exp $
+$Id: OpenGL_Utils.c,v 1.50 2009/08/06 20:10:11 crc_canada Exp $
 
 ???
 
@@ -46,10 +46,8 @@ void kill_X3DNodes(void);
 static void createdMemoryTable();
 static void increaseMemoryTable();
 static struct X3D_Node ** memoryTable = NULL;
-static int nodeNumber = 0;
 static int tableIndexSize = INT_ID_UNDEFINED;
 static int nextEntry = 0;
-static int i=0;
 static struct X3D_Node *forgottenNode;
 
 /* lights status. Light 0 is the headlight */
@@ -58,9 +56,17 @@ static int lights[8];
 /* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 int displayDepth = 24;
 
+int opengl_has_shaders = FALSE;
+int opengl_has_multitexture = FALSE;
+int opengl_has_occlusionQuery = FALSE;
+int opengl_has_numTextureUnits = 0;
+GLint opengl_has_textureSize = 0;
 
 static float cc_red = 0.0f, cc_green = 0.0f, cc_blue = 0.0f, cc_alpha = 1.0f;
 int cc_changed = FALSE;
+
+/* for checking of runtime capabilities */
+static char *glExtensions;
 
 static pthread_mutex_t  memtablelock = PTHREAD_MUTEX_INITIALIZER;
 /*
@@ -114,16 +120,9 @@ near plane is thus farPlane - highestPeak.
 
 **************************************************************************************/
 
-#define testingSimpleMove
-#ifdef testingSimpleMove
-static char count = 0;
-#endif
-
-
 static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 	int oldInRange;
 	double cx,cy,cz;
-	GLdouble modelMatrix[16];
 
 	/* find the length of the line between the moved center and our current viewer position */
 	cx = Viewer.currentPosInModel.x - node->__movedCoords.c[0];
@@ -329,7 +328,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	/* lets use these values; leave room for a Background or TextureBackground node here */
 	nearPlane = cnp; 
 	/* backgroundPlane goes between the farthest geometry, and the farPlane */
-	if (background_stack[0]!= NULL) {
+	if (background_stack[0]!= 0) {
 		farPlane = cfp * 10.0;
 		backgroundPlane = cfp*5.0;
 	} else {
@@ -450,6 +449,7 @@ void glpOpenGLInitialize() {
         float dif[] = { 1.0, 1.0, 1.0, 1.0 };
         float shin[] = { 0.6, 0.6, 0.6, 1.0 };
         float As[] = { 0.0, 0.0, 0.0, 1.0 };
+	int checktexsize;
 
         #ifdef AQUA
 	/* aqglobalContext is found at the initGL routine in MainLoop.c. Here
@@ -520,6 +520,87 @@ void glpOpenGLInitialize() {
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
 
 	do_shininess(GL_FRONT_AND_BACK,0.2);
+
+	/* get extensions for runtime */
+	printf ("OpenGL - getting extensions\n");
+	
+        glExtensions = (char *)glGetString(GL_EXTENSIONS);
+
+	/* Shaders */
+        opengl_has_shaders = ((strstr (glExtensions, "GL_ARB_fragment_shader")!=0)  &&
+                (strstr (glExtensions,"GL_ARB_vertex_shader")!=0));
+
+	/* Multitexturing */
+        opengl_has_multitexture = (strstr (glExtensions, "GL_ARB_multitexture")!=0);
+
+	/* Occlusion Queries */
+	opengl_has_occlusionQuery = (strstr (glExtensions, "GL_ARB_occlusion_query") !=0);
+
+	
+	/* first, lets check to see if we have a max texture size yet */
+
+	/* note - we reduce the max texture size on computers with the (incredibly inept) Intel GMA 9xx chipsets - like the Intel
+	   Mac minis, and macbooks up to November 2007 */
+	if (opengl_has_textureSize<=0) { 
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &checktexsize); 
+		if (getenv("FREEWRL_256x256_TEXTURES")!= NULL) checktexsize = 256; 
+		if (getenv("FREEWRL_512x512_TEXTURES")!= NULL) checktexsize = 512; 
+		opengl_has_textureSize = -opengl_has_textureSize; 
+		if (opengl_has_textureSize == 0) opengl_has_textureSize = checktexsize; 
+		if (opengl_has_textureSize > checktexsize) opengl_has_textureSize = checktexsize; 
+		if (strncmp((const char *)glGetString(GL_RENDERER),"NVIDIA GeForce2",strlen("NVIDIA GeForce2")) == 0) { 
+		/* 	printf ("possibly reducing texture size because of NVIDIA GeForce2 chip\n"); */ 
+			if (opengl_has_textureSize > 1024) opengl_has_textureSize = 1024; 
+		}  
+		if (strncmp((const char *)glGetString(GL_RENDERER),"Intel GMA 9",strlen("Intel GMA 9")) == 0) { 
+		/* 	printf ("possibly reducing texture size because of Intel GMA chip\n"); */
+			if (opengl_has_textureSize > 1024) opengl_has_textureSize = 1024;
+		}
+		if (displayOpenGLErrors) printf ("CHECK_MAX_TEXTURE_SIZE, ren %s ver %s ven %s ts %d\n",glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_VENDOR),opengl_has_textureSize);
+		setMenuButton_texSize (opengl_has_textureSize);
+	} 
+
+
+	/* how many Texture units? */
+	if ((strstr (glExtensions, "GL_ARB_texture_env_combine")!=0) &&
+		(strstr (glExtensions,"GL_ARB_multitexture")!=0)) {
+
+		glGetIntegerv(GL_MAX_TEXTURE_UNITS,&opengl_has_numTextureUnits);
+
+		if (opengl_has_numTextureUnits > MAX_MULTITEXTURE) {
+			printf ("init_multitexture_handling - reducing number of multitexs from %d to %d\n",
+				opengl_has_numTextureUnits,MAX_MULTITEXTURE);
+			opengl_has_numTextureUnits = MAX_MULTITEXTURE;
+		}
+		printf ("can do multitexture we have %d units\n",opengl_has_numTextureUnits);
+
+
+		/* we assume that GL_TEXTURE*_ARB are sequential. Lets to a little check */
+		if ((GL_TEXTURE0 +1) != GL_TEXTURE1) {
+			printf ("Warning, code expects GL_TEXTURE0 to be 1 less than GL_TEXTURE1\n");
+		} 
+	}
+
+
+#define VERBOSE
+	#ifdef VERBOSE
+	{
+		char *p = glExtensions;
+		while (*p != '\0') {
+			if (*p == ' ') *p = '\n';
+			p++;
+		}
+	}
+	printf ("extensions %s\n",glExtensions);
+	printf ("Shader support:       "); if (opengl_has_shaders) printf ("TRUE\n"); else printf ("FALSE\n");
+	printf ("Multitexture support: "); if (opengl_has_multitexture) printf ("TRUE\n"); else printf ("FALSE\n");
+	printf ("Occlusion support:    "); if (opengl_has_occlusionQuery) printf ("TRUE\n"); else printf ("FALSE\n");
+	printf ("max texture size      %d\n",opengl_has_textureSize);
+	printf ("texture units         %d\n",opengl_has_numTextureUnits);
+	#endif	
+
+#undef VERBOSE
+
 }
 
 void BackEndClearBuffer() {
@@ -541,8 +622,10 @@ static int MODmatOk = FALSE;
 static int PROJmatOk = FALSE;
 static double MODmat[16];
 static double PROJmat[16];
+#ifdef DEBUGCACHEMATRIX
 static int sav = 0;
 static int tot = 0;
+#endif
 
 void invalidateCurMat() {
 	return;
@@ -756,7 +839,7 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 	int tc;
 
 	if (node == NULL) {
-		printf ("checkNode, node is NULL at %s %d\n",node,fn,line);
+		printf ("checkNode, node is NULL at %s %d\n",fn,line);
 		return FALSE;
 	}
 
@@ -771,7 +854,7 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 	}
 
 
-	printf ("checkNode: did not find %d in memory table at i%s %d\n",node,fn,line);
+	printf ("checkNode: did not find %d in memory table at i%s %d\n",(int) node,fn,line);
 
 	UNLOCK_MEMORYTABLE
 	return FALSE;
@@ -1076,9 +1159,11 @@ void startOfLoopNodeUpdates(void) {
 	struct Multi_Node *removeChildren;
 	struct Multi_Node *childrenPtr;
 
-	/* for determining nearPlane/farPlane */
-	double maxDist = DBL_MAX; double minDist = 0.0;
-
+	/* initialization */
+	addChildren = NULL;
+	removeChildren = NULL;
+	childrenPtr = NULL;
+	pp = NULL;
 
 	/* assume that we do not have any sensitive nodes at all... */
 	HaveSensitive = FALSE;
@@ -1638,7 +1723,7 @@ void kill_X3DNodes(void){
 					break;
 				case FIELDTYPE_FreeWRLPTR:
 					VPtr = (uintptr_t *) fieldPtr;
-					FREE_IF_NZ(*VPtr);
+					FREE_IF_NZ(VPtr);
 					break;
 				case FIELDTYPE_SFString:
 					VPtr = (uintptr_t *) fieldPtr;

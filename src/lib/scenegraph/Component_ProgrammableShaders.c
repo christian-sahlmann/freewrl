@@ -1,10 +1,64 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.15 2009/06/22 15:11:00 istakenv Exp $
+$Id: Component_ProgrammableShaders.c,v 1.16 2009/08/06 20:10:11 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
+*/
+
+/* Mapping X3D types to shaders
+
+                SF_FLOATS_TO_SHADER(4,Vec4f,vec4f)
+                SF_DOUBLES_TO_SHADER(4,Vec4d, vec4d)
+
+
+
+
+X3D type			GLSL type		Initialize	Route In	Route Out
+-------------------------------------------------------------------------------------------------
+FIELDTYPE_SFFloat		GL_FLOAT		YES	
+FIELDTYPE_MFFloat	
+FIELDTYPE_SFRotation		GL_FLOAT_VEC4		YES	
+FIELDTYPE_MFRotation	
+FIELDTYPE_SFVec3f		GL_FLOAT_VEC3		YES
+FIELDTYPE_MFVec3f	
+FIELDTYPE_SFBool	
+FIELDTYPE_MFBool	
+FIELDTYPE_SFInt32	
+FIELDTYPE_MFInt32	
+FIELDTYPE_SFNode	
+FIELDTYPE_MFNode	
+FIELDTYPE_SFColor		GL_FLOAT_VEC3		YES
+FIELDTYPE_MFColor	
+FIELDTYPE_SFColorRGBA		GL_FLOAT_VEC4		YES
+FIELDTYPE_MFColorRGBA	
+FIELDTYPE_SFTime		GL_FLOAT		YES(float)
+FIELDTYPE_MFTime	
+FIELDTYPE_SFString	
+FIELDTYPE_MFString	
+FIELDTYPE_SFVec2f		GL_FLOAT_VEC2		YES
+FIELDTYPE_MFVec2f	
+FIELDTYPE_SFImage	
+FIELDTYPE_FreeWRLPTR	
+FIELDTYPE_SFVec3d		GL_FLOAT_VEC3		YES(float)
+FIELDTYPE_MFVec3d	
+FIELDTYPE_SFDouble		GL_FLOAT		YES(float)
+FIELDTYPE_MFDouble	
+FIELDTYPE_SFMatrix3f	
+FIELDTYPE_MFMatrix3f	
+FIELDTYPE_SFMatrix3d	
+FIELDTYPE_MFMatrix3d	
+FIELDTYPE_SFMatrix4f	
+FIELDTYPE_MFMatrix4f	
+FIELDTYPE_SFMatrix4d	
+FIELDTYPE_MFMatrix4d	
+FIELDTYPE_SFVec2d		GL_FLOAT_2		YES(float)
+FIELDTYPE_MFVec2d	
+FIELDTYPE_SFVec4f		GL_FLOAT_VEC4		YES
+FIELDTYPE_MFVec4f	
+FIELDTYPE_SFVec4d		GL_FLOAT_VEC4		YES(float)
+FIELDTYPE_MFVec4d	
 */
 
 #include <config.h>
@@ -21,6 +75,7 @@ X3D Programmable Shaders Component
 
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CFieldDecls.h"
+#include "../opengl/Opengl_Utils.h"
 
 
 /* which shader is running?? */
@@ -117,8 +172,7 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 		}
 
 #define CHECK_SHADERS \
-	if (!shadersChecked) checkShaders(); \
-	if (!haveShaders) { \
+	if (!opengl_has_shaders) { \
 		if (node->isValid) ConsoleMessage ("have an X3D program with shaders, but no shader support on this computer"); \
 		node->isValid = FALSE; \
 		return; \
@@ -254,6 +308,115 @@ static void shaderErrorLog(GLuint myShader) {
 		}
 #endif
 
+/* do type checking of shader and field variables when initializing interface */
+static int shader_checkType(struct FieldDecl * myField,
+		GLuint myShader, int isUniform, GLint myVar) {
+	int retval;
+
+	/* check the type, if we are OpenGL 2.0 or above */
+
+	#ifdef GL_VERSION_2_0
+	GLsizei len;
+	GLint size;
+	GLenum type;
+	GLchar ch[100];		
+
+	retval = FALSE;
+	
+	if (isUniform)	glGetActiveUniform (myShader,myVar,90,&len,&size,&type,ch);
+	else glGetActiveAttrib (myShader,myVar,90,&len,&size,&type,ch);
+
+
+	/* verify that the X3D fieldType matches the Shader type */
+	switch (myField->type) {
+		case FIELDTYPE_SFFloat: 	retval = type == GL_FLOAT; break;
+		case FIELDTYPE_MFFloat: 	break;
+		case FIELDTYPE_SFRotation: 	retval = type == GL_FLOAT_VEC4; break;
+		case FIELDTYPE_MFRotation: 	break;
+		case FIELDTYPE_SFVec3f: 	retval = type == GL_FLOAT_VEC3; break;
+		case FIELDTYPE_MFVec3f: 	break;
+		case FIELDTYPE_SFBool: 		break;
+		case FIELDTYPE_MFBool: 		break;
+		case FIELDTYPE_SFInt32: 	break;
+		case FIELDTYPE_MFInt32: 	break;
+		case FIELDTYPE_SFNode: 		break;
+		case FIELDTYPE_MFNode: 		break;
+		case FIELDTYPE_SFColor: 	retval = type == GL_FLOAT_VEC3; break;
+		case FIELDTYPE_MFColor: 	break;
+		case FIELDTYPE_SFColorRGBA: 	retval = type == GL_FLOAT_VEC4; break;
+		case FIELDTYPE_MFColorRGBA: 	break;
+		case FIELDTYPE_SFTime: 		retval = type == GL_FLOAT; break;
+		case FIELDTYPE_MFTime: 		break;
+		case FIELDTYPE_SFString: 	break;
+		case FIELDTYPE_MFString: 	break;
+		case FIELDTYPE_SFVec2f: 	retval = type ==  GL_FLOAT_VEC2; break;
+		case FIELDTYPE_MFVec2f: 	break;
+		case FIELDTYPE_SFImage: 	break;
+		case FIELDTYPE_FreeWRLPTR: 	break;
+		case FIELDTYPE_SFVec3d: 	retval = type == GL_FLOAT_VEC3; break;
+		case FIELDTYPE_MFVec3d: 	break;
+		case FIELDTYPE_SFDouble: 	retval = type ==  GL_FLOAT; break;
+		case FIELDTYPE_MFDouble:	break;
+		case FIELDTYPE_SFMatrix3f:	break;
+		case FIELDTYPE_MFMatrix3f:	break;
+		case FIELDTYPE_SFMatrix3d:	break;
+		case FIELDTYPE_MFMatrix3d:	break;
+		case FIELDTYPE_SFMatrix4f:	break;
+		case FIELDTYPE_MFMatrix4f:	break;
+		case FIELDTYPE_SFMatrix4d:	break;
+		case FIELDTYPE_MFMatrix4d: 	break;
+		case FIELDTYPE_SFVec2d: 	retval = type == GL_FLOAT_VEC2; break;
+		case FIELDTYPE_MFVec2d: 	break;
+		case FIELDTYPE_SFVec4f: 	retval = type == GL_FLOAT_VEC4; break;
+		case FIELDTYPE_MFVec4f: 	break;
+		case FIELDTYPE_SFVec4d: 	retval = type == GL_FLOAT_VEC4; break;
+		case FIELDTYPE_MFVec4d: 	break;
+	}
+
+	/* did we have an error? */
+
+	if (!retval) {
+		ConsoleMessage ("Shader type check fail X3D type not compatible for variable :%s:",ch);
+#ifdef VERBOSE
+	printf ("shaderCheck mode %d (%s) type %d (%s) name %d\n",myField->mode, 
+			stringPROTOKeywordType(myField->mode), myField->type, stringFieldtypeType(myField->type),myField->name);
+
+	printf ("len %d size %d type %d ch %s\n",len,size,type,ch);
+	switch (type) {
+
+	case GL_FLOAT: printf ("GL_FLOAT\n"); break;
+	case GL_FLOAT_VEC2: printf ("GL_FLOAT_VEC2\n"); break;
+	case GL_FLOAT_VEC3: printf ("GL_FLOAT_VEC3\n"); break;
+	case GL_FLOAT_VEC4: printf ("GL_FLOAT_VEC4\n"); break;
+	case GL_INT: printf ("GL_INT\n"); break;
+	case GL_INT_VEC2: printf ("GL_INT_VEC2\n"); break;
+	case GL_INT_VEC3: printf ("GL_INT_VEC3\n"); break;
+	case GL_INT_VEC4: printf ("GL_INT_VEC4\n"); break;
+	case GL_BOOL: printf ("GL_BOOL\n"); break;
+	case GL_BOOL_VEC2: printf ("GL_BOOL_VEC2\n"); break;
+	case GL_BOOL_VEC3: printf ("GL_BOOL_VEC3\n"); break;
+	case GL_BOOL_VEC4: printf ("GL_BOOL_VEC4\n"); break;
+	case GL_FLOAT_MAT2: printf ("GL_FLOAT_MAT2\n"); break;
+	case GL_FLOAT_MAT3: printf ("GL_FLOAT_MAT3\n"); break;
+	case GL_FLOAT_MAT4: printf ("GL_FLOAT_MAT4\n"); break;
+	case GL_FLOAT_MAT2x3: printf ("GL_FLOAT_MAT2x3\n"); break;
+	case GL_FLOAT_MAT2x4: printf ("GL_FLOAT_MAT2x4\n"); break;
+	case GL_FLOAT_MAT3x2: printf ("GL_FLOAT_MAT3x2\n"); break;
+	case GL_FLOAT_MAT3x4: printf ("GL_FLOAT_MAT3x4\n"); break;
+	case GL_FLOAT_MAT4x2: printf ("GL_FLOAT_MAT4x2\n"); break;
+	case GL_FLOAT_MAT4x3: printf ("GL_FLOAT_MAT4x3\n"); break;
+	case GL_SAMPLER_1D: printf ("GL_SAMPLER_1D\n"); break;
+	case GL_SAMPLER_2D: printf ("GL_SAMPLER_2D\n"); break;
+	case GL_SAMPLER_3D: printf ("GL_SAMPLER_3D\n"); break;
+	case GL_SAMPLER_CUBE: printf ("GL_SAMPLER_CUBE\n"); break;
+	case GL_SAMPLER_1D_SHADOW: printf ("GL_SAMPLER_1D_SHADOW\n"); break;
+	case GL_SAMPLER_2D_SHADOW: printf ("GL_SAMPLER_2D_SHADOW\n"); break;
+	}
+#endif
+	}
+#endif 
+	return retval;
+}
 
 /* fieldDecl_getshaderVariableID(myf), fieldDecl_getValue(myf)); */
 static void sendValueToShader(struct ScriptFieldDecl* myField) {
@@ -383,7 +546,11 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 
 
 	for(i=0; i!=vector_size(me->fields); ++i) {
-		GLint myVar = -1;
+		int isUniform; 
+		GLint myVar;
+		myVar = -1;
+		isUniform = TRUE;
+		
 
 		struct ScriptFieldDecl* curField=vector_get(struct ScriptFieldDecl*, me->fields, i);
 		struct FieldDecl * myf = curField->fieldDecl;
@@ -400,15 +567,19 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 		myVar = GET_UNIFORM(myShader,curField->ASCIIname);
 		if (myVar == INT_ID_UNDEFINED) {
 			myVar = GET_ATTRIB(myShader,curField->ASCIIname);
-			fieldDecl_setshaderVariableUniform(myf,FALSE);
-		} else {
-			fieldDecl_setshaderVariableUniform(myf,TRUE);
+			isUniform = FALSE;
 		}
+		fieldDecl_setshaderVariableUniform(myf,isUniform);
 
 		#ifdef SHADERVERBOSE
 		printf ("trying to get ID for :%s:\n",curField->name);
 		#endif
 
+		/* do the types of the field variable, and the shader variable match? */
+		shader_checkType(myf,myShader,isUniform,myVar);
+
+			
+		/* save the variable object for this variable */
 		fieldDecl_setshaderVariableID(myf,myVar);
 
 		if ((myf->mode==PKW_initializeOnly) || (myf->mode==PKW_inputOutput)) {
@@ -494,24 +665,6 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 		}
 	}
 }
-
-
-/* do we support shaders on runtime? */
-static int shadersChecked = FALSE;
-static int haveShaders = FALSE;
-
-/* can we handle shaders at runtime? We may have had a binary distro move onto an older machine */
-static void checkShaders (void) {
-	char *glExtensions;
-
-        glExtensions = (char *)glGetString(GL_EXTENSIONS);
-        if ((strstr (glExtensions, "GL_ARB_fragment_shader")!=0)  &&
-                (strstr (glExtensions,"GL_ARB_vertex_shader")!=0)) {
-			haveShaders = TRUE;
-	}
-	shadersChecked = TRUE;
-}
-
 
 /*********************************************************************/
 
