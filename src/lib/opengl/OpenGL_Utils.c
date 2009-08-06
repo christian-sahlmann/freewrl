@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.50 2009/08/06 20:10:11 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.51 2009/08/06 22:26:09 crc_canada Exp $
 
 ???
 
@@ -1723,6 +1723,7 @@ void kill_X3DNodes(void){
 					break;
 				case FIELDTYPE_FreeWRLPTR:
 					VPtr = (uintptr_t *) fieldPtr;
+					VPtr = (uintptr_t *) (*VPtr);
 					FREE_IF_NZ(VPtr);
 					break;
 				case FIELDTYPE_SFString:

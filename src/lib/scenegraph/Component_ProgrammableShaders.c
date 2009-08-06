@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.17 2009/08/06 20:27:06 istakenv Exp $
+$Id: Component_ProgrammableShaders.c,v 1.18 2009/08/06 22:26:09 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -322,6 +322,7 @@ static int shader_checkType(struct FieldDecl * myField,
 	GLchar ch[100];		
 
 	retval = FALSE;
+	ch[0] = '\0';
 	
 	if (isUniform)	glGetActiveUniform (myShader,myVar,90,&len,&size,&type,ch);
 	else glGetActiveAttrib (myShader,myVar,90,&len,&size,&type,ch);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.21 2009/08/01 09:45:39 couannette Exp $
+$Id: CParseLexer.c,v 1.22 2009/08/06 22:26:09 crc_canada Exp $
 
 ???
 
@@ -741,19 +741,25 @@ BOOL lexer_field(struct VRMLLexer* me,
 /* Conversion of user field name to char* */
 const char* lexer_stringUser_fieldName(struct VRMLLexer* me, indexT name, indexT mode)
 {
+	#define OOB_RETURN_VAL "__UNDEFINED__"
+
  switch(mode)
  {
   case PKW_initializeOnly:
+   if (name>vector_size(me->user_initializeOnly)) return OOB_RETURN_VAL;
    return lexer_stringUser_initializeOnly(me, name);
   case PKW_inputOutput:
+   if (name>vector_size(me->user_inputOutput)) return OOB_RETURN_VAL;
    return lexer_stringUser_inputOutput(me, name);
   case PKW_inputOnly:
+   if (name>vector_size(me->user_inputOnly)) return OOB_RETURN_VAL;
    return lexer_stringUser_inputOnly(me, name);
   case PKW_outputOnly:
+   if (name>vector_size(me->user_outputOnly)) return OOB_RETURN_VAL;
    return lexer_stringUser_outputOnly(me, name);
  }
  ASSERT(FALSE);
- return ""; /* gets rid of compile time warnings */
+ return OOB_RETURN_VAL; /* gets rid of compile time warnings */
 }
 
 /* Skip whitespace and comments. */
