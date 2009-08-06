@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.25 2009/08/06 20:10:11 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.26 2009/08/06 21:03:10 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -17,6 +17,11 @@ Handle incoming EAI (and java class) events with panache.
 #include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
+/*
+#include "../vrml_parser/CParseParser.h"
+*/
+#include "../vrml_parser/CParseLexer.h"
+
 #include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
 #include "../world_script/CScripts.h"
@@ -90,7 +95,7 @@ void EAI_parse_commands () {
 
 	while (EAI_BUFFER_CUR> 0) {
 		if (eaiverbose) {
-			printf ("EAI_parse_commands:start of while loop, strlen %d str :%s:\n",strlen((&EAI_BUFFER_CUR)),(&EAI_BUFFER_CUR));
+			printf ("EAI_parse_commands:start of while loop, strlen %d str :%s:\n",(int)strlen((&EAI_BUFFER_CUR)),(&EAI_BUFFER_CUR));
 		}
 
 		/* step 1, get the command sequence number */
@@ -117,7 +122,7 @@ void EAI_parse_commands () {
 
 		command = EAI_BUFFER_CUR;
 		if (eaiverbose) 
-			printf ("EAI command %s (%c) strlen %d\n",eaiPrintCommand(command), command,strlen(&EAI_BUFFER_CUR));
+			printf ("EAI command %s (%c) strlen %d\n",eaiPrintCommand(command), command,(int)strlen(&EAI_BUFFER_CUR));
 
 		bufPtr++;
 
@@ -182,7 +187,7 @@ void EAI_parse_commands () {
 			}
 
 			case GETNODETYPE: {
-				retint = sscanf(&EAI_BUFFER_CUR,"%d",&cNode);
+				retint = sscanf(&EAI_BUFFER_CUR,"%d",(int *)(&cNode));
 				if (cNode != 0) {
 					boxptr = X3D_NODE(cNode);
 					sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,getSAI_X3DNodeType (
@@ -197,14 +202,14 @@ void EAI_parse_commands () {
 			case GETFIELDTYPE:  {
 				/*format int seq# COMMAND  int node#   string fieldname   string direction*/
 
-				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %s",&perlNode, &cNode, ctmp,dtmp);
+				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %s",(int *)&perlNode, (int *)&cNode, ctmp,dtmp);
 				if (eaiverbose) {	
-					printf ("GETFIELDTYPE cptr %d %s %s\n",cNode, ctmp, dtmp);
+					printf ("GETFIELDTYPE cptr %d %s %s\n",(int)cNode, ctmp, dtmp);
 				}	
 
 				EAI_GetType (cNode, ctmp, dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
 
-				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d %s",TickTime,count,ra,rb,rc,rd,
+				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d %s",TickTime,count,(int)ra,(int)rb,(int)rc,(int)rd,
 						scripttype,stringKeywordType(xxx));
 				break;
 				}
@@ -212,7 +217,7 @@ void EAI_parse_commands () {
 				/*format int seq# COMMAND NODETYPE pointer offset data*/
 				setField_FromEAI (&EAI_BUFFER_CUR);
 				if (eaiverbose) {	
-					printf ("after SENDEVENT, strlen %d\n",strlen(&EAI_BUFFER_CUR));
+					printf ("after SENDEVENT, strlen %d\n",(int)strlen(&EAI_BUFFER_CUR));
 				}
 				break;
 				}
@@ -306,18 +311,18 @@ void EAI_parse_commands () {
 
 			case SENDCHILD :  {
 				struct X3D_Node *node;
-				uintptr_t *address;
+				char *address;
 
 				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
 
-				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %d",&ra,&rb,ctmp,&rc);
+				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %d",(int *)&ra,(int *)&rb,ctmp,(int *)&rc);
 
 				node = getEAINodeFromTable(ra,rb);
 				address = getEAIMemoryPointer (ra,rb);
-				sprintf (dtmp,"%u",getEAINodeFromTable(rc,-1));
+				sprintf (dtmp,"%u",(unsigned int) getEAINodeFromTable(rc,-1));
 
 				if (eaiverbose) {	
-					printf ("SENDCHILD Parent: %d ParentField: %d %s Child: %s\n",ra, rb, ctmp, dtmp);
+					printf ("SENDCHILD Parent: %u ParentField: %u %s Child: %s\n",(unsigned int) ra, (unsigned int)rb, ctmp, dtmp);
 				}	
 
 				/* we actually let the end of eventloop code determine whether this is an add or
@@ -353,7 +358,7 @@ void EAI_parse_commands () {
 					printf ("this is a script node in a REGLISTENER command! %d\n",tmp_b);
 					*/
 
-					node = (uintptr_t) sp->num;
+					node = (struct X3D_Node *)sp->num;
 					directionFlag = FROM_SCRIPT;
 				}
 
@@ -396,7 +401,7 @@ void EAI_parse_commands () {
 					printf ("this is a script node in a REGLISTENER command! %d\n",tmp_b);
 					*/
 
-					node = (uintptr_t) sp->num;
+					node = (struct X3D_Node *) sp->num;
 					directionFlag = FROM_SCRIPT;
 				}
 
@@ -507,7 +512,7 @@ void EAI_parse_commands () {
 					ctype = findFieldInNODES(ctmp);
 					if (ctype > -1) {
 						/* yes, use C only to create this node */
-						sprintf (ctmp, "0 %d ",createNewX3DNode(ctype));
+						sprintf (ctmp, "0 %d ",(int) createNewX3DNode(ctype));
 						strcat (buf,ctmp);
 						/* set ra to 0 so that the sprintf below is not used */
 						ra = 0;
@@ -521,7 +526,7 @@ void EAI_parse_commands () {
 
 
 				for (rb = 0; rb < ra; rb++) {
-					sprintf (ctmp,"%d ", nodarr[rb]);
+					sprintf (ctmp,"%ld ", nodarr[rb]);
 					strcat (buf,ctmp);
 				}
 				break;
@@ -529,7 +534,7 @@ void EAI_parse_commands () {
 
 			case GETFIELDDEFS: {
 				/* get a list of fields of this node */
-				sscanf (&EAI_BUFFER_CUR,"%d",&ra);
+				sscanf (&EAI_BUFFER_CUR,"%u",(unsigned int *) &ra);
 				makeFIELDDEFret(ra,buf,count);
 				break;
 				}
@@ -596,9 +601,9 @@ void handleGETROUTES (char *bufptr, char *buf, int repno) {
 	for (count = 1; count < (numRoutes-1); count++) {
 		getSpecificRoute (count,&fromNode, &fromOffset, &toNode, &toOffset);
 
-		sprintf (ctmp, "%d %d %s %d %d %s ",0,fromNode,
+		sprintf (ctmp, "%d %u %s %d %u %s ",0,(unsigned int) fromNode,
 			findFIELDNAMESfromNodeOffset(X3D_NODE(fromNode),fromOffset),
-			0,toNode,
+			0,(unsigned int) toNode,
 			findFIELDNAMESfromNodeOffset(X3D_NODE(toNode),toOffset)
 			);
 		strcat (buf,ctmp);
@@ -669,7 +674,7 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 			myNT = "XML_PROTO"; /* add this if we need to parse XML proto getTypes */
 		}
 	} else {
-		myNT = stringNodeType(myNode->_nodeType);
+		myNT = (char *) stringNodeType(myNode->_nodeType);
 	}
 
         /* Try to get X3D node name */
@@ -702,8 +707,12 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	char fieldTemp[2000];
 	int fromOffset, toOffset;
 	int adrem;
-	int fromfieldNode, fromretNode, fromretField, fromdataLen, fromfieldType, fromscripttype, fromxxx;
-	int tofieldNode, toretNode, toretField, todataLen, tofieldType, toscripttype, toxxx;
+	uintptr_t fromfieldType, fromfieldNode, fromretNode, fromretField, fromdataLen;
+	unsigned int fromscripttype;
+	int fromxxx;
+	uintptr_t tofieldNode, toretNode, toretField, todataLen, tofieldType;
+	unsigned int toscripttype;
+	int toxxx;
 	char *x;
 	int ftlen;
 
@@ -723,7 +732,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	while (*bufptr == ' ') bufptr++;
 
 	/* get the from Node */
-        sscanf(bufptr, "%d", &fromfieldNode);
+        sscanf(bufptr, "%u", (unsigned int *)&fromfieldNode);
 
         /* copy the from field into the "fieldTemp" array */
         x = fieldTemp; ftlen = 0;
@@ -745,7 +754,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	/* ------- now, the route to section -------- */
 	/* get the to Node */
 
-        sscanf(bufptr, "%d", &tofieldNode);
+        sscanf(bufptr, "%u", (unsigned int *)&tofieldNode);
 
         /* copy the to field into the "fieldTemp" array */
         x = fieldTemp; ftlen = 0;
@@ -758,19 +767,23 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
         *x = '\0';
 
 	/* and, get the info for this one */
+
+void EAI_GetType(int cNode, char *ctmp, char *dtmp,
+                 uintptr_t *cNodePtr, uintptr_t *fieldOffset,
+                 uintptr_t *dataLen, uintptr_t *typeString, unsigned int *scripttype, int *accessType);
+
+
 	EAI_GetType (tofieldNode, fieldTemp, "inputOnly", &toretNode, &toretField, &todataLen, &tofieldType, &toscripttype, &toxxx);
 
-	if (eaiverbose) printf ("so, we are routing from %d:%d to %d:%d, fieldtypes %d:%d, datalen %d:%d\n",
-		fromretNode,toretNode, fromretField,toretField,fromfieldType,tofieldType,fromdataLen,todataLen);
+	if (eaiverbose) printf ("so, we are routing from %u:%u to %u:%u, fieldtypes %u:%u, datalen %u:%u\n",
+		(unsigned int)fromretNode, (unsigned int)toretNode, (unsigned int)fromretField,
+		(unsigned int)toretField, (unsigned int)fromfieldType,(unsigned int)tofieldType, (unsigned)fromdataLen,(unsigned)todataLen);
 
 	/* are both fieldtypes the same, and are both valid? */
 	rv= ((fromfieldType==tofieldType) &&(fromfieldType != -1));
 
 	/* ------- if we are ok, call the routing code  -------- */
 	if (rv) {
-		int scriptFlags = 0;
-		struct Shader_Script *sp;
-
 		if (command == ADDROUTE) adrem = 1;
 		else adrem = 0;
 
@@ -858,10 +871,10 @@ void EAI_RW(char *str) {
 	while ((*str != ' ') && (strlen(str) > 0)) str++;
 	while (isspace(*str)) str++;
 	while (strlen(str) > 0) {
-		i = sscanf (str, "%u",&newNode);
+		i = sscanf (str, "%u",(unsigned int *)&newNode);
 
 		if (i>0) {
-			AddRemoveChildren (rootNode,rootNode + offsetof (struct X3D_Group, children),&newNode,1,1,__FILE__,__LINE__);
+			AddRemoveChildren (rootNode,rootNode + offsetof (struct X3D_Group, children),(uintptr_t *)&newNode,1,1,__FILE__,__LINE__);
 		}
 		while (isdigit(*str)) str++;
 		while (isspace(*str)) str++;
