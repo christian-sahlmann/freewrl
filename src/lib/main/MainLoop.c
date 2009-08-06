@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.43 2009/08/01 09:45:39 couannette Exp $
+$Id: MainLoop.c,v 1.44 2009/08/06 01:14:58 crc_canada Exp $
 
 Main loop
 
@@ -175,7 +175,7 @@ int isBrowserPlugin = FALSE;
 
 /* stop the display thread. Used (when this comment was made) by the OSX Safari plugin; keeps
 most things around, just stops display thread, when the user exits a world. */
-void STOP_DISPLAY_THREAD()
+static void stopDisplayThread()
 {
     if (TEST_NULL_THREAD(DispThrd)) {
 	quitThread = TRUE;
@@ -1349,7 +1349,7 @@ void setLineWidth(float lwidth) {
 
 void setUseShapeThreadIfPossible(int x) {
 #ifdef DO_MULTI_OPENGL_THREADS
-	useShapeThreadIfPossible = X;
+	useShapeThreadIfPossible = x;
 #endif
 }
 
@@ -1422,7 +1422,7 @@ void outOfMemory(const char *msg) {
 /* quit key pressed, or Plugin sends SIGQUIT */
 void doQuit()
 {
-    STOP_DISPLAY_THREAD();
+    stopDisplayThread();
 
     kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
 
@@ -1683,7 +1683,7 @@ void Safari_disposeContext() {
         /* printf ("Safari_disposeContext called\n"); */
 
 
-        STOP_DISPLAY_THREAD
+        stopDisplayThread();
 
         cErr = aglSetCurrentContext(nil);
         if (cErr == GL_FALSE) {
@@ -1709,7 +1709,7 @@ void disposeContext() {
         //sprintf(debs, "context is currently %p\n", aqglobalContext);
         //debug_print(debs);
 
-        STOP_DISPLAY_THREAD 
+        stopDisplayThread();
 
         kill_X3DDefs();
         closeFreewrl();
