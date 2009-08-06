@@ -1,4 +1,19 @@
 Priority list
+
+08/02/2009:
+	(JAS) shader differences between OSX and Linux; eg:
+	http://freewrl.sf.net/tomasMikulaExample.x3dv
+
+08/02/2009:
+	(JAS) Anups car test - calculate bounding boxes from actual used
+	coordinates, not all coordinates. (if user has one Coordinate node,
+	and uses indexed for individual shapes, boundingboxes will be all
+	same)
+
+	(JAS) MIDI/C EAI input appears to loose events once in a while. Verify
+	by making townSquare.wrl have wallDelay be set just before clock 
+	tower ding.
+
 07/15/2009: 
 	(JAS) tests/8.wrl - on IanS computer, comes up with: 
 		SFNativeNew - created 0 nodes, expected 1 only
