@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.13 2009/08/01 09:45:39 couannette Exp $
+$Id: RenderTextures.c,v 1.14 2009/08/06 02:07:44 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -70,6 +70,12 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 	   we are currently running ...
 
 	*/
+
+#ifdef AQUA
+/* Aqua - we always seem to have multitexture support */
+#define GLEW_ARB_multitexture 1==1
+#endif
+
 	if (GLEW_ARB_multitexture) { // test the availability at runtime of multi textures
 	    
 	    if (c != currentTextureUnit) {
