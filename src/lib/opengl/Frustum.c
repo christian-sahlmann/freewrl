@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.15 2009/08/06 20:10:11 crc_canada Exp $
+$Id: Frustum.c,v 1.16 2009/08/06 20:27:06 istakenv Exp $
 
 ???
 
@@ -19,7 +19,7 @@ $Id: Frustum.c,v 1.15 2009/08/06 20:10:11 crc_canada Exp $
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "Frustum.h"
-#include "../opengl/Opengl_Utils.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/LinearAlgebra.h"
 
 

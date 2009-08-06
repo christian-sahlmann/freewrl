@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.16 2009/08/06 20:10:11 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.17 2009/08/06 20:27:06 istakenv Exp $
 
 X3D Programmable Shaders Component
 
@@ -75,7 +75,7 @@ FIELDTYPE_MFVec4d
 
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CFieldDecls.h"
-#include "../opengl/Opengl_Utils.h"
+#include "../opengl/OpenGL_Utils.h"
 
 
 /* which shader is running?? */
