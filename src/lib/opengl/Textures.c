@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.18 2009/08/06 20:27:06 istakenv Exp $
+$Id: Textures.c,v 1.19 2009/08/07 16:16:15 crc_canada Exp $
 
 General Texture objects.
 
@@ -38,7 +38,6 @@ General Texture objects.
 # endif
 #endif
 
-#define TEXVERBOSE 1
 
 #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
                 do_possible_textureSequence(myTableIndex); \
@@ -129,6 +128,8 @@ CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
 CGLPixelFormatObj pixelFormat = NULL;
 long numPixelFormats = 0;
 CGLContextObj aqtextureContext = NULL;
+static int useQuicktime = FALSE;
+
 
 #elif defined(WIN32)
 
@@ -1637,7 +1638,6 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
 }
 
 
-
 static void __reallyloadImageTexture() {
 	CGImageRef 	image;
 	CFStringRef	path;
@@ -1647,12 +1647,13 @@ static void __reallyloadImageTexture() {
 
 
 	CGContextRef 	cgctx;
-#ifdef TRY_QUICKTIME
+
+	/* Quicktime params */
 	OSErr 		err;
 	GraphicsImportComponent gi;
 	Handle 		dataRef;
 	OSType 		dataRefType;
-#endif
+	/* end of Quicktime params */
 
 	unsigned char *	data;
 	int		hasAlpha;
@@ -1670,8 +1671,6 @@ static void __reallyloadImageTexture() {
 	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, 0);
 
 	/* ok, we can define USE_CG_DATA_PROVIDERS or TRY_QUICKTIME...*/
-#define USE_CG_DATA_PROVIDERS
-#ifdef USE_CG_DATA_PROVIDERS
 	/* can we directly import this a a jpeg or png?? */
 	if (loadThisTexture->imageType != INT_ID_UNDEFINED) {
 		/* printf ("this is a JPEG texture, try direct loading\n"); */
@@ -1684,33 +1683,30 @@ static void __reallyloadImageTexture() {
 		CGDataProviderRelease(provider);
 
 	} else {
-#endif
 
-#ifdef TRY_QUICKTIME
-   /* I dont know whether to use quicktime or not... Probably not... as the other ways using core 
-graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs
-*/
+   		/* I dont know whether to use quicktime or not... Probably not... as the other ways using core 
+			graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs
+		*/
+		if (useQuicktime) {
 
-		/* lets let quicktime decide on what to do with this image */
-		err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
+			/* lets let quicktime decide on what to do with this image */
+			err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
 
-		if (dataRef != NULL) {
-			err = GetGraphicsImporterForDataRef (dataRef, dataRefType, &gi);
-			err = GraphicsImportCreateCGImage (gi, &image, 0);
-			DisposeHandle (dataRef);
-			CloseComponent(gi);
+			if (dataRef != NULL) {
+				err = GetGraphicsImporterForDataRef (dataRef, dataRefType, &gi);
+				err = GraphicsImportCreateCGImage (gi, &image, 0);
+				DisposeHandle (dataRef);
+				CloseComponent(gi);
+			}
+		} else {
+			sourceRef = CGImageSourceCreateWithURL(url,NULL);
+
+			if (sourceRef != NULL) {
+				image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
+				CFRelease (sourceRef);
+			}
 		}
-#else
-		sourceRef = CGImageSourceCreateWithURL(url,NULL);
-
-		if (sourceRef != NULL) {
-			image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
-			CFRelease (sourceRef);
-		}
-#endif
-#ifdef USE_CG_DATA_PROVIDERS
 	}
-#endif
 
 	CFRelease(url);
 	CFRelease(path);
