@@ -1,8 +1,16 @@
 Priority list
 
+08/07/2009:
+	(JAS) FreeWRL__protoDef - is this a pointer, or an int? verify, might break on 64 bit systems if incorrect.
+	(JAS) EAI node pointers sent/received- are these 64 bit friendly?
+	(JAS) Michel suggests library (fill in when network back) that is platform-independent. Is it kept up to date?
+		eg, can we use camera raw files?
+	(JAS) look at using OpenAL
+
+
 08/02/2009:
 	(DONE?) initialization OpenGL functionality checking; eg, checkShaders, multitexturing, etc, put all checks at OpenGL initialization.
-
+	(JAS) Michel suggests using GLEW on all platforms; shows how to do this on OSX.
 
 08/02/2009:
 	(JAS) shader differences between OSX and Linux; eg:
