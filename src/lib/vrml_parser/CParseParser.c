@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.36 2009/08/01 09:45:39 couannette Exp $
+  $Id: CParseParser.c,v 1.37 2009/08/07 16:14:13 crc_canada Exp $
 
   ???
 
@@ -2041,10 +2041,10 @@ void parser_specificInitNode(struct X3D_Node* n, struct VRMLParser* me)
    }
 
         /* Scripts get a script object associated to them */
-        NODE_SPECIFIC_INIT(Script, node->__scriptObj=new_Shader_Script(node);)
-        NODE_SPECIFIC_INIT(ShaderProgram, node->__shaderObj=new_Shader_Script(node);)
-        NODE_SPECIFIC_INIT(PackagedShader, node->__shaderObj=new_Shader_Script(node);)
-        NODE_SPECIFIC_INIT(ComposedShader, node->__shaderObj=new_Shader_Script(node);)
+        NODE_SPECIFIC_INIT(Script, node->__scriptObj=new_Shader_Script(X3D_NODE(node));)
+        NODE_SPECIFIC_INIT(ShaderProgram, node->__shaderObj=new_Shader_Script(X3D_NODE(node));)
+        NODE_SPECIFIC_INIT(PackagedShader, node->__shaderObj=new_Shader_Script(X3D_NODE(node));)
+        NODE_SPECIFIC_INIT(ComposedShader, node->__shaderObj=new_Shader_Script(X3D_NODE(node));)
 
             }
 }
@@ -2273,6 +2273,7 @@ if(fieldO!=ID_UNDEFINED)
 
 /* If field was found, return TRUE; would have happened! */
 PARSE_ERROR("Unsupported field for node!")
+	return FALSE;
     }
 
 /* ************************************************************************** */
@@ -2326,7 +2327,7 @@ static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
 static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
     int rsz,elelen;
 
-    /* printf ("stuffSFintoMF, got vrmlT vector successfully - it is a type of %s\n",FIELDTYPES[type]); */
+    /* printf ("stuffSFintoMF, got vrmlT vector successfully - it is a type of %s\n",FIELDTYPES[type]);  */
 
     rsz = returnElementRowSize(type);
     elelen = returnElementLength(type);
@@ -2344,7 +2345,7 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
         /* treat these all the same, as the data type is same size */
         ((struct Multi_Node *)out)->n=1;
         ((struct Multi_Node *)out)->p=MALLOC(sizeof(float));
-        ((struct Multi_Node *)out)->p[0] = *in;
+        ((struct Multi_Node *)out)->p[0] = (void *)*in;
         break;
 
     case FIELDTYPE_MFVec3f: 
@@ -2377,8 +2378,10 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
 /* Parse a MF* field */
 #define PARSER_MFFIELD(name, type) \
  BOOL parser_mf##name##Value(struct VRMLParser* me, struct Multi_##type* ret) { \
-  struct Vector* vec=NULL; \
-  vrmlNodeT RCX; \
+  struct Vector* vec; \
+  vrmlNodeT *RCX; \
+  RCX = NULL; \
+  vec = NULL; \
   \
    /* printf ("start of a mfield parse for type %d curID :%s: me %u lexer %u\n",FIELDTYPE_MF##type, me->lexer->curID,me,me->lexer); */ \
      /* printf ("      str :%s:\n",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);  */ \
@@ -2392,7 +2395,7 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
                 RCX=parse_KW_USE(me); \
                 if (RCX == NULL) return FALSE; \
                 /* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
-                stuffDEFUSE(ret, RCX, FIELDTYPE_MF##type); \
+                stuffDEFUSE(ret, (vrmlNodeT)RCX, FIELDTYPE_MF##type); \
                 return TRUE; \
          } \
          \
@@ -2403,7 +2406,7 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
                 if (RCX == NULL) return FALSE; \
                 \
                 /* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
-                stuffDEFUSE(ret, RCX, FIELDTYPE_MF##type); \
+                stuffDEFUSE(ret, (vrmlNodeT)RCX, FIELDTYPE_MF##type); \
                 return TRUE; \
         } \
  }\
@@ -2412,13 +2415,13 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
 /* possibly a SFNodeish type value?? */ \
 if (me->lexer->curID != NULL) { \
         /* printf ("parser_MF, curID was not null (it is %s) me %u lexer %u... lets just parse node\n",me->lexer->curID,me,me->lexer); */ \
-        if (!parser_node(me, &RCX, ID_UNDEFINED)) { \
+        if (!parser_node(me, (vrmlNodeT*)&RCX, ID_UNDEFINED)) { \
         /* if(!parser_sf##name##Value(me, RCX)) ... */ \
                 return FALSE; \
         } \
         if (RCX == NULL) return FALSE; \
         /* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
-        stuffDEFUSE(ret, RCX, FIELDTYPE_MF##type); \
+        stuffDEFUSE(ret, (vrmlNodeT)RCX, FIELDTYPE_MF##type); \
         return TRUE; \
  } \
 /* Just a single value? */ \
@@ -2426,7 +2429,7 @@ if (me->lexer->curID != NULL) { \
 if((!lexer_openSquare(me->lexer)) && (!(me->parsingX3DfromXML))) { \
         vrml##type##T RCXRet; \
         /* printf ("parser_MF, not an opensquare, lets just parse node\n"); */ \
-        /* if (!parser_node(me, RCXRet, ID_UNDEFINED)) ... */ \
+        /* if (!parser_node(me, (vrmlNodeT*)RCXRet, ID_UNDEFINED)) ... */ \
         if(!parser_sf##name##Value(me, &RCXRet)) { \
                 return FALSE; \
         } \
@@ -2434,7 +2437,7 @@ if((!lexer_openSquare(me->lexer)) && (!(me->parsingX3DfromXML))) { \
         /* RCX is the return value, if this value IN THE VRML FILE IS ZERO, then this valid parse will fail... */ \
         /* so it is commented out if (RCX == NULL) return FALSE; */ \
         /* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
-        stuffSFintoMF(ret, &RCXRet, FIELDTYPE_MF##type); \
+        stuffSFintoMF(ret, (uintptr_t *) (&RCXRet), FIELDTYPE_MF##type); \
         return TRUE; \
 } \
 \
@@ -2512,7 +2515,7 @@ PARSER_MFFIELD(bool, Bool)
   return TRUE; \
  }
 
-    BOOL parser_sfdoubleValue_(struct VRMLParser* me, vrmlFloatT* ret)
+    BOOL parser_sfdoubleValue_(struct VRMLParser* me, vrmlDoubleT* ret)
     {
         return lexer_double(me->lexer, ret);
     }
@@ -2529,7 +2532,7 @@ BOOL parser_sfint32Value_(struct VRMLParser* me, vrmlInt32T* ret)
 
 static BOOL set_X3Dstring(struct VRMLLexer* me, vrmlStringT* ret) {
     /* printf ("lexer_X3DString, setting string to be :%s:\n",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]); */
-    *ret=newASCIIString(me->startOfStringPtr[me->lexerInputLevel]);
+    *ret=newASCIIString((char *)me->startOfStringPtr[me->lexerInputLevel]);
     return TRUE;
 }
 
@@ -2651,7 +2654,7 @@ BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret) {
             *ret=NULL;
             return FALSE;
         }
-        *ret = (vrmlNodeT*)tmp;
+        *ret = (vrmlNodeT)tmp;
     }
     return TRUE;
 }
