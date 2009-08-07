@@ -1,0 +1,162 @@
+
+Python interface to freewrl browser via C libeai.
+
+GETTING STARTED
+You need:
+1. src/libeai directory from freewrl.sourceforge.net
+2. the swig kit which includes these files
+    vrmlExternal.i
+    EAI_swigMe.h
+    EAI_C_swigExtras.c
+    (some sample test .py scripts and test .wrl/.x3d scenes)
+3. the SWIG utility program
+4. C compiler
+5. python interpreter and IDLE editor www.python.org (tested with 2.5 as of June15,2009)
+
+
+WWW.SWIG.org - allows many scripting languages to talk to your C code.
+Rather than develop a python EAI (external authoring interface) client from scratch,
+Dave Joubert suggested trying swig first on the C libeai library.
+
+RUNNING SWIG
+Using swig for python - docs general
+http://www.swig.org/Doc1.3/Python.html   
+
+swig -python vrmlExternal.i
+
+should generate the following 2 files automatically:
+vrmlExternal_wrap.c
+vrmlExternal.py
+
+You compile vrmlExternal_wrap.c and link it and EAI_swigExtras.c into your 
+libeai .so/.dll dynamic link library and rename the DLL
+_vrmlExternal.pyd
+
+RUNNING YOUR PYTHON SCRIPTS
+To run a script with it, you include the vrmlExternal.py and _vrmlExternal.pyd 
+in your module path (a technical term meaning current directory or see python docs)
+and put any dlls the libeai.c is dependent on with the .pyd.
+You need to distribute any dependency .dlls with the _vrmlExternal.pyd dll otherwise 
+you get error DLL can not import - DLL not found or something like that.
+
+If you've done it before, delete the vrmlExternal.pyc which is a
+ compiled version of vrmlExternal.py that's generated automatically by the
+ python interpreter - but only if it doesn't already exist. If/when you make changes
+ and re-swig, then delete the .pyc so the interpreter will freshen it.
+In your python script you
+import vrmlExternal
+from vrmlExternal import *
+I usually load my script in the IDLE editor, and run it from there.
+To get method hints, you can go to the IDLE run console, go 
+>> import vmrlExternal
+>> vrmlExternal.
+and when you put the . you should get a drop down list of methods and attributes
+which look like:
+X3DNode  - for all node and field types, except Events, see X3DNode.type 
+X3DNode.X3D_MFString.len  -how you access specific field types
+X3D_swigNewMF(,)  - various fuctions, the swig being helper functions to access opaque objects
+
+Example Python test scripts (and which .wrl to run in browser)
+EAIAddRemove.py (root.wrl)     - adds and removes geometry from the scene
+testMFString.py (root.wrl)     - creates an MF field of strings
+AddRoute.py     (root.wrl)     - adds and removes routes 
+ExternalTest.py (extTest4.wrl) - converted from Dave Joubert's TCL test script - a compendium of tests
+
+DEBUGGING THE SWIG-EXTRAS C
+C Test programs - for testing the X3D_swig functions directly from C - useful for debugging the swig kit
+Ctest_libeai_AddRoute.c   (root.wrl)     - add/remove route
+Ctest_libeai_big.c        (clock.wrl)    - Port style callback test - binary advise string (obsolete? int*cbnum,void*data )
+Ctest_libeai_CRC.c        (root.wrl)     - createVrmlFromString test
+Ctest_libeai_dug.c        (root.wrl)     - basic tests for EAI_swigExtras.c functions (no Advise)
+Ctest_libeai_PortAdvise.c (clock.wrl)    - Port style callback test  - ASCII advise string (current, cbnum + evTime as string, no *data)
+Ctest_libeai_ext4.c       (extTest4.wrl) - converted from Dave Joubert's TCL test script - a compendium of tests
+
+Good luck!
+-Doug
+
+Developer's rambling notes:
+
+I prepared the vrmlExternal.i - the swig interface file - the lazy way:
+just including C header file(s), with a bit of swig specific commands
+except I found the X3DNode.h a little too noisy for swigging directly, 
+with what looked like private methods or C host-specific global variables, 
+so I copied out what I needed into EAI_swigMe.h.
+I put my swig-specific function definitions into EAI_C_swigExtras.c. 
+(When directly using C and libeai.c you don't need either of those - they are for swigged 
+scripting languages. But you could use them if you wanted).
+
+Issues when swigging for python (versus a pure python implementation of libeai):
+1. opaque blobs - float* / float[4] / double[2] etc appear as opaque blob pointers in python with no type or size, not as python lists
+	This is a swig thing. Swig is great at basic type scalars - which map reasonably well between languages - but not vectors
+2. typecasting - python can't cast like in C. Everthing comes out by default as X3DNode. You can downcast with X3DNode.X3D_SFRotation
+	but there's no way to upcast so hold a pointer
+3. callbacks - swig sees a generic pointer and doesn't do anything special. 
+
+General solution to above issues:
+1. blobs 
+  a. generic float* item getters and setters in the .i interface file (or .h header) (NOT IMPLEMENTED - see swig.org docs for hints)
+  b. only set via scalar parameterized constructors, never get. (the DEFAULT) AND?OR
+  c. develop item getters/setters to drill down in a field-type-aware way (IMPLEMENTED - see EAI_C_swigExtras.c)
+	Lets say you want to change the y on the 2nd SFVec3f in an MFVec3f.
+		sfv3f = X3D_getItem(mfnode,1) #will return an X3DNode with the .type set to FIELDTYPE_SFVec3f == 4 
+		sff = X3D_getItem(sfv3f,1) #will return an X3DNode with the .type set to FIELDTYPE_SFFloat == 0
+		y = sff.X3D_SFFloat.value #ok now swigged scalar value comes out OK
+	Similarly going the other way - except you create the Field type you want first. 
+	A few field constructors take scalar parameters, but in general the strategy is to use Setters to set scalars one by one
+		mfv3f = X3D_newMF(2,ftypes["SFVec3f"])
+		sfv3f0 = X3D_newSFVec3f(x,y,z)
+		sfv3f1 = X3D_newSFVec3f(x1,y1,z1)
+		X3D_setItem(mfv3f,sfv3f0,0)
+		X3D_setItem(mfv3f,sfv3f1,1)
+		...
+   As of June13,09 I have implemented c. X3D_swig... functions.
+2. typecasting 
+	- use same method as C: know what type to expect (or switch on .type) and
+		use the X3DNode.X3D_SFFloat.value
+	- hold a pointer to both X3DNode and downcaste, if need be
+	
+3. callbacks - for Advise - 
+   a) don't register: Dave Joubert and Sarah Dumoulin have a Port/socket approach to bypass registering callbacks from scripting for Advise. OR
+   b) register - but you must add in helper C functions not to be wrapped by swig, and language specific (don't build in for all languages)
+	http://docs.python.org/extending/extending.html#calling-python-functions-from-c     callbacks
+  As of July16,09 I have a 2 step port-style callback. (still in 1.22_rc2)
+	1) callback gives adviseIndex to script, then 
+	2)script fetches X3DNode-wrapped data 
+
+
+  As of June13,09 I am testing the a) the Port/socket method of callbacks
+  I also tried a pure python callback but had a thread/locking/re-entrant issue and the code was no smaller - the .i ballooned - so I reverted to port-style callback
+  
+
+As of June 15, 2009
+- I'm still working in rev 1.22 rc2 (they're at 1.23) I made modifications to the libeai.c as follows:
+  - WIN32-MSVC specific
+  - X3D_getValue > MFString > parsing 
+  - generally the .type of the SFs within an MF were not being set, or not correctly. Should be FIELDTYPE_SFString.
+- port-style advise works in C (Ctest_libeai_PortAdvise.c)
+- getValue for MFStrings fixed in EAI_C_Node.c 
+x not done yet: ExternalTest.py - haven't finished getting all Dave's tests to run (up to about test 2 now)
+x stuck in rev 1.22 rc2 - couldn't find Sarah's recent cvs/.tar
+
+
+As of June 13, 2009
+- I have 6 functions for building MFs and getting MF and SF float and double array values
+   -see EAI_swigMe.h and EAI_swigExtras.c
+- port-style advise - doesn't work yet - I'm still using 1.22_rc2 which is out of date.
+
+As of June 2, 2009:
+- I developed 4 functions for building MFs - and also getItem/setItem - in C for inclusion in libeai.c or swig-style inclusion
+- they swig well, relying only on scalars and X3DNode* opaque pointers 
+x memory problem - bomb on freeNode
+
+
+As of May 30, 2009:
+- I converted Dave Joubert's TCL test script to python, and it runs to about test 1
+- I converted EAIAddRemove.java and AddRoute.java tests to .py
+- AddRoute.py doesn't work - I get an error on the server side
+- I have not designed an Advise.py test yet - dave is making changes
+
+
+-Doug
+
+
