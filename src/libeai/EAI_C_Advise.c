@@ -132,7 +132,8 @@ void _handleFreeWRLcallback (char *line) {
 			EAI_ListenerTable[count].functionHandler(EAI_ListenerTable[count].dataArea);
 		} else {
 			if (_X3D_FreeWRL_Swig_FD) {
-#ifdef WIN32
+#ifndef OLDCODE
+				/* Doug Sanden's code */
                                 char bigbuf[128];
                                 char buf[32];
 

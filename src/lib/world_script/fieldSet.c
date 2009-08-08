@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.21 2009/07/15 15:26:59 crc_canada Exp $
+$Id: fieldSet.c,v 1.22 2009/08/08 23:07:46 crc_canada Exp $
 
 ???
 
@@ -630,14 +630,14 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 #define FIELDCHECK(fld) \
 	if (retval >= 0) { \
 	  if (user) return retval; \
-	  int fieldNamesIndex = findIndexInFIELDNAMES(retval, arr, cnt); \
+	  {int fieldNamesIndex = findIndexInFIELDNAMES(retval, arr, cnt); \
 	  if (fieldNamesIndex >= 0) { \
 	    findFieldInOFFSETS (node->_nodeType, fieldNamesIndex,\
 	      &a, &b, &c); \
 	    /* did this return any of the ints as != -1? */ \
 	    /* printf ("     findRoutedField for field %s, nodetype %s is %d\n",  fld,stringNodeType(node->_nodeType),a); */ \
 	    if (a >= 0) return retval;  /* found it! */ \
-	  } \
+	  }} \
 	} 
 
 

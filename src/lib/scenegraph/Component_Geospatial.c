@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.28 2009/08/01 09:45:39 couannette Exp $
+$Id: Component_Geospatial.c,v 1.29 2009/08/08 23:07:46 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1507,21 +1507,13 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 }
 
 void child_GeoLocation (struct X3D_GeoLocation *node) {
-/* #ifdef WIN32 */
-/* 	CHILDREN_COUNT */
-/* 	DIRECTIONAL_LIGHT_SAVE    /\* WIN32 - declarations before executing code? *\/ */
-/* 	INITIALIZE_GEOSPATIAL(node) */
-/* 	COMPILE_IF_REQUIRED */
-
-/* 	OCCLUSIONTEST */
-/* #else */
 	CHILDREN_COUNT
+	LOCAL_LIGHT_SAVE
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
 
 	OCCLUSIONTEST
 
-	LOCAL_LIGHT_SAVE
 
 	/* {
 		int x;
@@ -2695,10 +2687,10 @@ void changed_GeoTransform (struct X3D_GeoTransform *node) {
 
 void child_GeoTransform (struct X3D_GeoTransform *node) {
 	CHILDREN_COUNT
+	LOCAL_LIGHT_SAVE
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
 	OCCLUSIONTEST
-	LOCAL_LIGHT_SAVE
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* any children at all? */

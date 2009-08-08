@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.19 2009/08/01 09:45:40 couannette Exp $
+$Id: X3DProtoScript.c,v 1.20 2009/08/08 23:07:46 crc_canada Exp $
 
 ???
 
@@ -161,8 +161,12 @@ static void registerProto(const char *name) {
 
 void parseProtoInstanceFields(const char *name, const char **atts) {
 	int count;
-	int picatindex = 0;
-	int picatmalloc = 0;
+	int picatindex;
+	int picatmalloc;
+
+	/* initialization */
+	picatindex = 0;
+	picatmalloc = 0;
 
 	#define INDEX ProtoInstanceTable[curProtoInsStackInd].paircount	
 	#define ZERO_NAME_VALUE_PAIR \
@@ -296,7 +300,10 @@ int i;printf ("X3D_ node name :%s:\n",name);for (i = 0; atts[i]; i += 2) {printf
 
 void dumpProtoBody (const char *name, const char **atts) {
 	int count;
-	int inRoute = FALSE;
+	int inRoute;
+
+	/* initialization */
+	inRoute = FALSE;
 
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
@@ -424,11 +431,18 @@ static char *getProtoValue(struct VRMLLexer *myLexer, int ProtoInvoc, char *id) 
 /* handle a <ProtoInstance> tag */
 void parseProtoInstance (const char **atts) {
 	int count;
-	int nameIndex = INT_ID_UNDEFINED;
-	int containerIndex = INT_ID_UNDEFINED;
-	int containerField = INT_ID_UNDEFINED;
-	int defNameIndex = INT_ID_UNDEFINED;
-	int protoTableIndex = 0;
+	int nameIndex;
+	int containerIndex;
+	int containerField;
+	int defNameIndex;
+	int protoTableIndex;
+
+	/* initialization */
+	nameIndex = INT_ID_UNDEFINED;
+	containerIndex = INT_ID_UNDEFINED;
+	containerField = INT_ID_UNDEFINED;
+	defNameIndex = INT_ID_UNDEFINED;
+	protoTableIndex = 0;
 
 	setParserMode(PARSING_PROTOINSTANCE);
 	curProtoInsStackInd++;
@@ -544,15 +558,21 @@ printf ("getProtoValue, curProtoInsStackInd %d, MAX %d\n",curProtoInsStackInd, P
 /* isString - the IS string that we have to substitute for */
 
 static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, char *isString) {
-	char *connect = NULL;
-	char *ns = NULL;
-	char *ps = NULL;
+	char *connect;
+	char *ns;
+	char *ps;
 	char nodeFieldID[200];
 	char protoFieldID[200];
 	char tmp[200];
 	char *newProtoInString;
-	char *doobie = NULL;
+	char *doobie;
 	char ctmp;
+
+	/* initialization */
+	connect = NULL;
+	ns = NULL;
+	ps = NULL;
+	doobie = NULL;
 
 	#ifdef X3DPARSERVERBOSE
 		printf ("\nstart of doISsubs\n");
@@ -702,7 +722,7 @@ static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, 
 		/* printf ("	FIND_THE_IS: IS string is :%s:\n",IS); */ 
 
 	#define ZERO_IS_TEXT_IN_ORIG \ 
-		{ char *is = IS; \
+		{ char *is; is = IS; \
 		while ((is != endIS) && (*is != '\0')) { *is = ' '; is++; }}
 
 	#define CHANGE_UNIQUE_TO_SPECIFIC \
@@ -756,17 +776,24 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	char *protoInString;
 	int psSize;
 	int rs;
-	char *IS = NULL;
-	char *endIS = NULL;
+	char *IS;
+	char *endIS;
 	int pf;
-	char *curProtoPtr=  NULL;
-	struct Shader_Script *myObj = NULL;
+	char *curProtoPtr;
+	struct Shader_Script *myObj;
 	indexT ind;
-	char *tmpf = tempnam("/tmp","freewrl_proto");
+	char *tmpf;
 	FILE *fileDescriptor;
-	int fdl = 0;
+	int fdl;
 	char uniqueIDstring[20];
 
+	/* initialization */
+	IS = NULL;
+	endIS = NULL;
+	curProtoPtr=  NULL;
+	myObj = NULL;
+	tmpf = tempnam("/tmp","freewrl_proto");
+	fdl = 0;
 
 
 
@@ -950,7 +977,10 @@ void parseProtoBody (const char **atts) {
 
 void parseProtoDeclare (const char **atts) {
 	int count;
-	int nameIndex = INT_ID_UNDEFINED;
+	int nameIndex;
+
+	/* initialization */
+	nameIndex = INT_ID_UNDEFINED;
 
 	/* increment the currentProtoDeclare field. Check to see how many PROTOS we (bounds check) */
 	currentProtoDeclare++;
@@ -994,16 +1024,23 @@ void parseProtoInterface (const char **atts) {
 /* parse a script or proto field. Note that they are in essence the same, just used differently */
 void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	int i;
-	uintptr_t myScriptNumber = 0;
+	uintptr_t myScriptNumber;
 	int myparams[MPFIELDS];
 	int which;
 	int myFieldNumber;
-	char *myValueString = NULL;
+	char *myValueString;
 	int myAccessType;
-	struct Shader_Script *myObj = NULL;
-	struct ScriptFieldDecl* sdecl = NULL;
-	indexT name = ID_UNDEFINED;
+	struct Shader_Script *myObj;
+	struct ScriptFieldDecl* sdecl;
+	indexT name;
 	union anyVrml defaultVal;
+
+	/* initialization */
+	myScriptNumber = 0;
+	myValueString = NULL;
+	myObj = NULL;
+	sdecl = NULL;
+	name = ID_UNDEFINED;
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("start of parseScriptProtoField\n");
@@ -1210,17 +1247,12 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 
 void initScriptWithScript() {
 	uintptr_t myScriptNumber;
-	char *startingIndex;
 	struct X3D_Script * me;
-	char *myText = NULL;
-	char *mypath;
-	char *thisurl;
-	int count;
-	char filename[1000];
-	int fromFile = FALSE;
-	int removeIt = FALSE;
-
+	char *myText;
 	struct Shader_Script *myObj;
+
+	/* initialization */
+	myText = NULL;
 
 	/* semantic checking... */
 	me = X3D_SCRIPT(parentStack[parentIndex]);
@@ -1249,11 +1281,11 @@ void initScriptWithScript() {
 		strHolder.p = MALLOC (sizeof(struct Uni_String)*1);
 		strHolder.p[0] = newASCIIString(myText);
 		strHolder.n=1; 
-		script_initCodeFromMFUri(me, &strHolder);
+		script_initCodeFromMFUri(myObj, &strHolder);
 		FREE_IF_NZ(strHolder.p[0]->strptr);
 		FREE_IF_NZ(strHolder.p);
 	} else {
-		script_initCodeFromMFUri(me, &X3D_SCRIPT(me)->url);
+		script_initCodeFromMFUri(myObj, &X3D_SCRIPT(me)->url);
 	}
 
 	/* finish up here; if we used the CDATA area, set its length to zero */
@@ -1293,14 +1325,17 @@ void endProtoDeclare(void) {
 /* we are doing a ProtoInstance, and we do not have a fieldValue in the Instance for a parameter. See if it is
    available in the ProtoInterface. */
 static int getFieldValueFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono, char **value) {
-	int ctr;
-	struct Uni_String *tmp;
-	int len;
-	struct ScriptFieldDecl* myField = NULL;
+	struct ScriptFieldDecl* myField;
 	const char** userArr;
 	size_t userCnt;
-	indexT retUO = ID_UNDEFINED;
-	struct Shader_Script* myObj = NULL;
+	indexT retUO;
+	struct Shader_Script* myObj;
+
+	/* initialization */
+	myField = NULL;
+	retUO = ID_UNDEFINED;
+	myObj = NULL;
+
 
 
 	#ifdef X3DPARSERVERBOSE
@@ -1339,13 +1374,14 @@ static int getFieldValueFromProtoInterface (struct VRMLLexer *myLexer, char *fie
 
 /* look through the script fields for this field, and return the values. */
 int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struct Shader_Script *me, int *offs, int *type, int *accessType) {
-	int ctr;
-	struct Uni_String *tmp;
-	int len;
-	struct ScriptFieldDecl* myField = NULL;
+	struct ScriptFieldDecl* myField;
 	const char** userArr;
 	size_t userCnt;
-	indexT retUO = ID_UNDEFINED;
+	indexT retUO;
+
+	/* initialize */
+	myField = NULL;
+	retUO = ID_UNDEFINED;
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("getFieldFromScript, looking for %s\n",fieldName);

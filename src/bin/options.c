@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: options.c,v 1.14 2009/08/01 09:45:39 couannette Exp $
+  $Id: options.c,v 1.15 2009/08/08 23:07:45 crc_canada Exp $
 
   FreeWRL command line arguments.
 
@@ -139,9 +139,13 @@ int parseCommandLine (int argc, char **argv)
     };
 
     int find_opt_for_optopt(char c) {
-	int i = 0;
+	int i;
 	struct option *p;
+
+	/* initialization */
+	i = 0;
 	p = &(long_options[i]);
+
 	while (p->name) {
 	    if (!p->flag) {
 		if (p->val == c) {

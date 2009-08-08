@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.11 2009/08/01 09:45:39 couannette Exp $
+$Id: Component_Shape.c,v 1.12 2009/08/08 23:07:46 crc_canada Exp $
 
 X3D Shape Component
 
@@ -18,6 +18,7 @@ X3D Shape Component
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
+#include "Component_ProgrammableShaders.h"
 
 
 static int     linePropertySet;  /* line properties -width, etc                  */
@@ -409,9 +410,6 @@ void render_Material (struct X3D_Material *node) {
 
 void child_Shape (struct X3D_Shape *node) {
 	void *tmpN;
-#ifdef WIN32
-	extern GLuint globalCurrentShader;  
-#endif
 
 	if(!(node->geometry)) { return; }
 
@@ -491,23 +489,18 @@ void child_Shape (struct X3D_Shape *node) {
 	}
 
 	/* any shader turned on? if so, turn it off */
-#ifndef WIN32
-	extern GLuint globalCurrentShader;  /* win32 C doesn't like a declaration in the middle of a C function - put at top of function */
-#endif
 	TURN_APPEARANCE_SHADER_OFF
 }
 
 
 void child_Appearance (struct X3D_Appearance *node) {
-#ifdef WIN32
 	void *tmpN;
-	struct X3D_Node *localShaderNode = NULL;
-	last_texture_type = NOTEXTURE;  /* WIN32 C likes executable statements to follow declarations in a function */
-#else
-	last_texture_type = NOTEXTURE;  
-	void *tmpN;
-	struct X3D_Node *localShaderNode = NULL;
-#endif
+	struct X3D_Node *localShaderNode;
+	last_texture_type;  
+
+	/* initialization */
+	last_texture_type = NOTEXTURE;
+	localShaderNode = NULL;
 
 	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
 	 printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",

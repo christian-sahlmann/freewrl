@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.68 2009/08/06 20:10:11 crc_canada Exp $
+$Id: headers.h,v 1.69 2009/08/08 23:07:45 crc_canada Exp $
 
 Global includes.
 
@@ -1356,13 +1356,13 @@ void compile_MetadataMFVec4d (struct X3D_MetadataMFVec4d *);
 
 #ifdef GL_VERSION_2_0
 	#define TURN_APPEARANCE_SHADER_OFF \
-		{extern GLuint globalCurrentShader; if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgram(0);}}
+		{if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgram(0);}}
 	#define TURN_FILLPROPERTIES_SHADER_OFF \
 		{if (fillpropCurrentShader!=0) { glUseProgram(0);}}
 #else
 	#ifdef GL_VERSION_1_5
 		#define TURN_APPEARANCE_SHADER_OFF \
-			{extern GLuint globalCurrentShader; if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgramObjectARB(0);}}
+			{if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgramObjectARB(0);}}
 		#define TURN_FILLPROPERTIES_SHADER_OFF \
 			{if (fillpropCurrentShader!=0) { fillpropCurrentShader = 0; glUseProgramObjectARB(0);}}
 	#else
