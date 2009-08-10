@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.21 2009/08/10 18:11:00 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.22 2009/08/10 18:41:56 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -326,11 +326,11 @@ static int shader_checkType(struct FieldDecl * myField,
 	/* verify that the X3D fieldType matches the Shader type */
 	switch (myField->type) {
 		case FIELDTYPE_SFFloat: 	retval = type == GL_FLOAT; break;
-		case FIELDTYPE_MFFloat: 	break;
+		case FIELDTYPE_MFFloat: 	retval = type == GL_FLOAT; break;
 		case FIELDTYPE_SFRotation: 	retval = type == GL_FLOAT_VEC4; break;
-		case FIELDTYPE_MFRotation: 	break;
+		case FIELDTYPE_MFRotation: 	retval = type == GL_FLOAT_VEC4; break;
 		case FIELDTYPE_SFVec3f: 	retval = type == GL_FLOAT_VEC3; break;
-		case FIELDTYPE_MFVec3f: 	break;
+		case FIELDTYPE_MFVec3f: 	retval = type == GL_FLOAT_VEC3; break;
 		case FIELDTYPE_SFBool: 		break;
 		case FIELDTYPE_MFBool: 		break;
 		case FIELDTYPE_SFInt32: 	break;
@@ -338,15 +338,15 @@ static int shader_checkType(struct FieldDecl * myField,
 		case FIELDTYPE_SFNode: 		break;
 		case FIELDTYPE_MFNode: 		break;
 		case FIELDTYPE_SFColor: 	retval = type == GL_FLOAT_VEC3; break;
-		case FIELDTYPE_MFColor: 	break;
+		case FIELDTYPE_MFColor: 	retval = type == GL_FLOAT_VEC3; break;
 		case FIELDTYPE_SFColorRGBA: 	retval = type == GL_FLOAT_VEC4; break;
-		case FIELDTYPE_MFColorRGBA: 	break;
+		case FIELDTYPE_MFColorRGBA: 	retval = type == GL_FLOAT_VEC4; break;
 		case FIELDTYPE_SFTime: 		retval = type == GL_FLOAT; break;
 		case FIELDTYPE_MFTime: 		break;
 		case FIELDTYPE_SFString: 	break;
 		case FIELDTYPE_MFString: 	break;
 		case FIELDTYPE_SFVec2f: 	retval = type ==  GL_FLOAT_VEC2; break;
-		case FIELDTYPE_MFVec2f: 	break;
+		case FIELDTYPE_MFVec2f: 	retval = type ==  GL_FLOAT_VEC2; break;
 		case FIELDTYPE_SFImage: 	break;
 		case FIELDTYPE_FreeWRLPTR: 	break;
 		case FIELDTYPE_SFVec3d: 	retval = type == GL_FLOAT_VEC3; break;
@@ -373,6 +373,8 @@ static int shader_checkType(struct FieldDecl * myField,
 
 	if (!retval) {
 		ConsoleMessage ("Shader type check fail X3D type not compatible for variable :%s:",ch);
+#define VERBOSE
+
 #ifdef VERBOSE
 	printf ("shaderCheck mode %d (%s) type %d (%s) name %d\n",myField->mode, 
 			stringPROTOKeywordType(myField->mode), myField->type, stringFieldtypeType(myField->type),myField->name);
@@ -413,6 +415,8 @@ static int shader_checkType(struct FieldDecl * myField,
 #endif 
 	return retval;
 }
+
+#undef VERBOSE
 
 /* fieldDecl_getshaderVariableID(myf), fieldDecl_getValue(myf)); */
 static void sendValueToShader(struct ScriptFieldDecl* myField) {
