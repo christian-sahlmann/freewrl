@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.20 2009/08/08 23:07:46 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.21 2009/08/10 18:11:00 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -9,20 +9,14 @@ X3D Programmable Shaders Component
 
 /* Mapping X3D types to shaders
 
-                SF_FLOATS_TO_SHADER(4,Vec4f,vec4f)
-                SF_DOUBLES_TO_SHADER(4,Vec4d, vec4d)
-
-
-
-
 X3D type			GLSL type		Initialize	Route In	Route Out
 -------------------------------------------------------------------------------------------------
 FIELDTYPE_SFFloat		GL_FLOAT		YES	
-FIELDTYPE_MFFloat	
+FIELDTYPE_MFFloat					Uniform only
 FIELDTYPE_SFRotation		GL_FLOAT_VEC4		YES	
-FIELDTYPE_MFRotation	
+FIELDTYPE_MFRotation					Uniform only
 FIELDTYPE_SFVec3f		GL_FLOAT_VEC3		YES
-FIELDTYPE_MFVec3f	
+FIELDTYPE_MFVec3f					Uniform only
 FIELDTYPE_SFBool	
 FIELDTYPE_MFBool	
 FIELDTYPE_SFInt32	
@@ -30,15 +24,15 @@ FIELDTYPE_MFInt32
 FIELDTYPE_SFNode	
 FIELDTYPE_MFNode	
 FIELDTYPE_SFColor		GL_FLOAT_VEC3		YES
-FIELDTYPE_MFColor	
+FIELDTYPE_MFColor					Uniform only
 FIELDTYPE_SFColorRGBA		GL_FLOAT_VEC4		YES
-FIELDTYPE_MFColorRGBA	
+FIELDTYPE_MFColorRGBA					Uniform only
 FIELDTYPE_SFTime		GL_FLOAT		YES(float)
 FIELDTYPE_MFTime	
 FIELDTYPE_SFString	
 FIELDTYPE_MFString	
 FIELDTYPE_SFVec2f		GL_FLOAT_VEC2		YES
-FIELDTYPE_MFVec2f	
+FIELDTYPE_MFVec2f					Uniform only
 FIELDTYPE_SFImage	
 FIELDTYPE_FreeWRLPTR	
 FIELDTYPE_SFVec3d		GL_FLOAT_VEC3		YES(float)
@@ -56,7 +50,7 @@ FIELDTYPE_MFMatrix4d
 FIELDTYPE_SFVec2d		GL_FLOAT_2		YES(float)
 FIELDTYPE_MFVec2d	
 FIELDTYPE_SFVec4f		GL_FLOAT_VEC4		YES
-FIELDTYPE_MFVec4f	
+FIELDTYPE_MFVec4f				
 FIELDTYPE_SFVec4d		GL_FLOAT_VEC4		YES(float)
 FIELDTYPE_MFVec4d	
 */
@@ -468,6 +462,15 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 				GLATTRIB1F(shaderVariable, val); \
 		break; }
 
+#define MF_FLOATS_TO_SHADER(ttt,ty1,ty2) \
+		case FIELDTYPE_MF##ty1: \
+			if (isUniform) \
+				GLUNIFORM##ttt##FV(shaderVariable, myField->value.mf##ty2.n, (float *)myField->value.mf##ty2.p); \
+			else \
+				ConsoleMessage ("problem sending MF to Shader Attribute"); \
+		break; 
+
+
 		SF_FLOAT_TO_SHADER(Float,float)
 		SF_DOUBLE_TO_SHADER(Double,float)
 		SF_DOUBLE_TO_SHADER(Time,float)
@@ -482,6 +485,14 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 		SF_DOUBLES_TO_SHADER(3,Vec3d, vec3d)
 		SF_DOUBLES_TO_SHADER(4,Vec4d, vec4d)
 
+		MF_FLOATS_TO_SHADER(1,Float,float)
+		MF_FLOATS_TO_SHADER(2,Vec2f,vec2f)
+		MF_FLOATS_TO_SHADER(3,Color,color)
+		MF_FLOATS_TO_SHADER(3,Vec3f,vec3f)
+		MF_FLOATS_TO_SHADER(4,ColorRGBA,colorrgba)
+		MF_FLOATS_TO_SHADER(4,Rotation,rotation)
+
+		//MF_FLOATS_TO_SHADER(4,Vec4f,vec4f)
 
 		//SF_FLOAT_TO_SHADER(9,Matrix3f, matrix3f)
 		//SF_FLOAT_TO_SHADER(16,Matrix4f, matrix4f)
@@ -495,17 +506,12 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 		case FIELDTYPE_SFMatrix3d:
 		case FIELDTYPE_SFMatrix4d:
 
-		case FIELDTYPE_MFFloat:
-		case FIELDTYPE_MFRotation:
-		case FIELDTYPE_MFVec3f:
+
 		case FIELDTYPE_MFBool:
 		case FIELDTYPE_MFInt32:
 		case FIELDTYPE_MFNode:
-		case FIELDTYPE_MFColor:
-		case FIELDTYPE_MFColorRGBA:
 		case FIELDTYPE_MFTime:
 		case FIELDTYPE_MFString:
-		case FIELDTYPE_MFVec2f:
 		case FIELDTYPE_MFDouble:
 		case FIELDTYPE_MFVec3d:
 		case FIELDTYPE_MFMatrix3f:
@@ -513,7 +519,6 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 		case FIELDTYPE_MFMatrix4f:
 		case FIELDTYPE_MFMatrix4d:
 		case FIELDTYPE_MFVec2d:
-		case FIELDTYPE_MFVec4f:
 		case FIELDTYPE_MFVec4d:
 		default : printf ("can not send a shader variable of %s yet\n",stringFieldtypeType(fieldDecl_getType(myField->fieldDecl)));
 	}
@@ -550,9 +555,6 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 	for(i=0; i!=vector_size(me->fields); ++i) {
 		int isUniform; 
 		GLint myVar;
-		myVar;
-		isUniform;
-		
 		struct ScriptFieldDecl* curField;
 		struct FieldDecl * myf;
 

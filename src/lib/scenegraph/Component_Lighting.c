@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Lighting.c,v 1.8 2009/06/26 14:54:15 crc_canada Exp $
+$Id: Component_Lighting.c,v 1.9 2009/08/10 18:10:59 crc_canada Exp $
 
 X3D Lighting Component
 
@@ -48,7 +48,7 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 			vec[0] = -((node->direction).c[0]);
 			vec[1] = -((node->direction).c[1]);
 			vec[2] = -((node->direction).c[2]);
-			vec[3] = 0;
+			vec[3] = 0.0; /* 0.0 = DirectionalLight */
 			glLightfv(light, GL_POSITION, vec);
 			vec[0] = ((node->color).c[0]) * (node->intensity);
 			vec[1] = ((node->color).c[1]) * (node->intensity);
