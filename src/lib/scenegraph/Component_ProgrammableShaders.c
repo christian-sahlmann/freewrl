@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.22 2009/08/10 18:41:56 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.23 2009/08/11 14:40:50 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -9,32 +9,38 @@ X3D Programmable Shaders Component
 
 /* Mapping X3D types to shaders
 
+Notes:
+	If the shader variable is not defined AND used in the shader, you will get an error on initialization
+	via X3D. Even if it is defined as a Uniform variable, if it does not exist in the shader, it will not 
+	be able to be initialized, and thus the shader interface will return an error.
+
+
 X3D type			GLSL type		Initialize	Route In	Route Out
 -------------------------------------------------------------------------------------------------
 FIELDTYPE_SFFloat		GL_FLOAT		YES	
-FIELDTYPE_MFFloat					Uniform only
+FIELDTYPE_MFFloat		GL_FLOAT		Uniform only
 FIELDTYPE_SFRotation		GL_FLOAT_VEC4		YES	
-FIELDTYPE_MFRotation					Uniform only
+FIELDTYPE_MFRotation		GL_FLOAT_VEC4		Uniform only
 FIELDTYPE_SFVec3f		GL_FLOAT_VEC3		YES
-FIELDTYPE_MFVec3f					Uniform only
+FIELDTYPE_MFVec3f		GL_FLOAT_VEC3		Uniform only
 FIELDTYPE_SFBool	
 FIELDTYPE_MFBool	
 FIELDTYPE_SFInt32	
 FIELDTYPE_MFInt32	
-FIELDTYPE_SFNode	
-FIELDTYPE_MFNode	
+FIELDTYPE_SFNode		GL_INT	
+FIELDTYPE_MFNode		--
 FIELDTYPE_SFColor		GL_FLOAT_VEC3		YES
-FIELDTYPE_MFColor					Uniform only
+FIELDTYPE_MFColor		GL_FLOAT_VEC3		Uniform only
 FIELDTYPE_SFColorRGBA		GL_FLOAT_VEC4		YES
-FIELDTYPE_MFColorRGBA					Uniform only
+FIELDTYPE_MFColorRGBA		GL_FLOAT_VEC4		Uniform only
 FIELDTYPE_SFTime		GL_FLOAT		YES(float)
 FIELDTYPE_MFTime	
-FIELDTYPE_SFString	
-FIELDTYPE_MFString	
+FIELDTYPE_SFString		--
+FIELDTYPE_MFString		--
 FIELDTYPE_SFVec2f		GL_FLOAT_VEC2		YES
-FIELDTYPE_MFVec2f					Uniform only
+FIELDTYPE_MFVec2f		GL_FLOAT_VEC2		Uniform only
 FIELDTYPE_SFImage	
-FIELDTYPE_FreeWRLPTR	
+FIELDTYPE_FreeWRLPTR		--
 FIELDTYPE_SFVec3d		GL_FLOAT_VEC3		YES(float)
 FIELDTYPE_MFVec3d	
 FIELDTYPE_SFDouble		GL_FLOAT		YES(float)
@@ -319,6 +325,8 @@ static int shader_checkType(struct FieldDecl * myField,
 	retval = FALSE;
 	ch[0] = '\0';
 	
+printf ("checking variable  isUniform %d\n",isUniform);
+
 	if (isUniform)	glGetActiveUniform (myShader,myVar,90,&len,&size,&type,ch);
 	else glGetActiveAttrib (myShader,myVar,90,&len,&size,&type,ch);
 
@@ -582,6 +590,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 			myVar = GET_ATTRIB(myShader,curField->ASCIIname);
 			isUniform = FALSE;
 		}
+
 		fieldDecl_setshaderVariableUniform(myf,isUniform);
 
 		#ifdef SHADERVERBOSE
