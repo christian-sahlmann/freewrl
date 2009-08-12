@@ -1,7 +1,7 @@
 /* 
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseParser.h,v 1.13 2009/08/12 20:36:05 crc_canada Exp $
+$Id: CParseParser.h,v 1.14 2009/08/12 22:15:04 crc_canada Exp $
 
 Parser (input of non-terminal symbols) for CParse
 
@@ -98,35 +98,12 @@ void parser_scopeOut(struct VRMLParser*);
 #define lexer_sfstringValue(me, ret) \
  lexer_string(me, ret)
 
-
-/* Parses nodes, fields and other statements. */
-BOOL parser_routeStatement(struct VRMLParser*);
-BOOL parser_componentStatement(struct VRMLParser*);
-BOOL parser_exportStatement(struct VRMLParser*);
-BOOL parser_importStatement(struct VRMLParser*);
-BOOL parser_metaStatement(struct VRMLParser*);
-BOOL parser_profileStatement(struct VRMLParser*);
-
-BOOL parser_protoStatement(struct VRMLParser*);
-BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
-BOOL parser_node(struct VRMLParser*, vrmlNodeT*, indexT);
-BOOL parser_field(struct VRMLParser*, struct X3D_Node*);
-/* JAS BOOL parser_protoEvent(struct VRMLParser*, struct ProtoDefinition*, struct ProtoDefinition*); */
-
 /* Initializes node-specific fields */
 void parser_specificInitNode(struct X3D_Node*, struct VRMLParser*);
 
 /* Registers a ROUTE, in current PROTO or scene */
 void parser_registerRoute(struct VRMLParser*,
  struct X3D_Node*, int, struct X3D_Node*, int, size_t);
-
-/* Parses a field value of a certain type (literally or IS) */
-BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int offs,
-                       indexT type, indexT origFieldE, BOOL protoExpansion, struct ProtoDefinition* pdef, struct ProtoFieldDecl* origField);
-
-
-/* Main parsing routine, parses the start symbol (vrmlScene) */
-BOOL parser_vrmlScene(struct VRMLParser*);
 
 BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal);
 
@@ -139,6 +116,8 @@ void cParseErrorFieldString(struct VRMLParser *me, char *str1, const char *str2)
 #define CPARSE_ERROR_CURID(str) cParseErrorCurID(me, str);
 #define CPARSE_ERROR_FIELDSTRING(str1,str2) cParseErrorFieldString(me, str1, str2);
 
+/* Main parsing routine, parses the start symbol (vrmlScene) */
+BOOL parser_vrmlScene(struct VRMLParser*);
 
 
 #endif /* __FREEWRL_CPARSE_PARSER_H__ */

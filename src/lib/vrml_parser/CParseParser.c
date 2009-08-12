@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.41 2009/08/12 21:58:43 crc_canada Exp $
+  $Id: CParseParser.c,v 1.42 2009/08/12 22:15:04 crc_canada Exp $
 
   ???
 
@@ -92,6 +92,21 @@ int parsedSuccessfully(void) {return foundInputErrors == 0;}
    SFVec4d
    MFVec4d
 */
+
+/* Parses nodes, fields and other statements. */
+static BOOL parser_routeStatement(struct VRMLParser*);
+static BOOL parser_componentStatement(struct VRMLParser*);
+static BOOL parser_exportStatement(struct VRMLParser*);
+static BOOL parser_importStatement(struct VRMLParser*);
+static BOOL parser_metaStatement(struct VRMLParser*);
+static BOOL parser_profileStatement(struct VRMLParser*);
+
+static BOOL parser_protoStatement(struct VRMLParser*);
+static BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
+static BOOL parser_node(struct VRMLParser*, vrmlNodeT*, indexT);
+static BOOL parser_field(struct VRMLParser*, struct X3D_Node*);
+
+
 
 static BOOL parser_sffloatValue_ (struct VRMLParser *, void *);
 static BOOL parser_sfint32Value_ (struct VRMLParser *, void *);
@@ -745,7 +760,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
    Parses the body of the PROTO.  Nodes are added to the scene graph for this PROTO.  Routes are parsed and a new ProtoRoute structure
    is created for each one and added to the routes vector of the ProtoDefinition.  PROTOs are recursively parsed!
 */ 
-BOOL parser_protoStatement(struct VRMLParser* me)
+static BOOL parser_protoStatement(struct VRMLParser* me)
 {
     indexT name;
     struct ProtoDefinition* obj;
@@ -892,7 +907,7 @@ printf ("parser_protoStatement, FINISHED proto :%s:\n",obj->protoName);
     return TRUE;
 }
 
-BOOL parser_componentStatement(struct VRMLParser* me) {
+static BOOL parser_componentStatement(struct VRMLParser* me) {
     int myComponent = ID_UNDEFINED;
     int myLevel = ID_UNDEFINED;
 #define COMPSTRINGSIZE 20
@@ -939,7 +954,7 @@ BOOL parser_componentStatement(struct VRMLParser* me) {
 }
 
 
-BOOL parser_exportStatement(struct VRMLParser* me) {
+static BOOL parser_exportStatement(struct VRMLParser* me) {
     char *nodeToExport = NULL;
     char *alias = NULL; 
 
@@ -980,7 +995,7 @@ BOOL parser_exportStatement(struct VRMLParser* me) {
     return TRUE;
 }
 
-BOOL parser_importStatement(struct VRMLParser* me) {
+static BOOL parser_importStatement(struct VRMLParser* me) {
     char *inlineNodeName = NULL;
     char *alias = NULL; 
     char *nodeToImport = NULL;
@@ -1036,7 +1051,7 @@ BOOL parser_importStatement(struct VRMLParser* me) {
     FREE_IF_NZ (alias);
     return TRUE;
 }
-BOOL parser_metaStatement(struct VRMLParser* me) {
+static BOOL parser_metaStatement(struct VRMLParser* me) {
     vrmlStringT val1, val2;
 
     ASSERT(me->lexer);
@@ -1070,7 +1085,7 @@ BOOL parser_metaStatement(struct VRMLParser* me) {
     return TRUE;
 }
 
-BOOL parser_profileStatement(struct VRMLParser* me) {
+static BOOL parser_profileStatement(struct VRMLParser* me) {
     int myProfile = ID_UNDEFINED;
 
     ASSERT(me->lexer);
@@ -1111,7 +1126,7 @@ BOOL parser_profileStatement(struct VRMLParser* me) {
    exist, and that they are compatible) and then adds the route to either the CRoutes table of routes, or adds a new ProtoRoute structure to the vector 
    ProtoDefinition->routes if we are parsing a PROTO */
 
-BOOL parser_routeStatement(struct VRMLParser* me)
+static BOOL parser_routeStatement(struct VRMLParser* me)
 {
     indexT fromNodeIndex;
     struct X3D_Node* fromNode;
@@ -1697,7 +1712,7 @@ static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
    Otherwise, this is just a regular node statement. We parse the node into a X3D_Node structure of the appropriate type, and return a pointer to 
    this structure in ret. 
 */ 
-BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
+static BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
 {
     ASSERT(me->lexer);
 
@@ -1732,7 +1747,7 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
    Return a pointer to the X3D_Node structure that is the scenegraph for this PROTO.
 */
 
-BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
+static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
     indexT nodeTypeB, nodeTypeU;
     struct X3D_Node* node=NULL;
     struct ProtoDefinition *thisProto = NULL;
@@ -2020,7 +2035,7 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 /* index of the field in the FIELDNAMES (or equivalent) array */
 /* Parses a field value of a certain type (literally or IS) */
 
-BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int offs,
+static BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int offs,
                        indexT type, indexT origFieldE, BOOL protoExpansion, struct ProtoDefinition* pdef, struct ProtoFieldDecl* origField)
 {
 #undef PARSER_FINALLY
@@ -2095,7 +2110,7 @@ void parser_specificInitNode(struct X3D_Node* n, struct VRMLParser* me)
 /* Built-in fields */
 
 /* Parses a built-in field and sets it in node */
-BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
+static BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 {
     indexT fieldO;
     indexT fieldE;
@@ -2565,13 +2580,13 @@ if((!lexer_openSquare(me->lexer)) && (!(me->parsingX3DfromXML))) { \
     {
         return lexer_double(me->lexer, ret);
     }
-BOOL parser_sffloatValue_(struct VRMLParser* me, void* ret)
+static BOOL parser_sffloatValue_(struct VRMLParser* me, void* ret)
     {   
 	vrmlFloatT *rf;
 	rf = (vrmlFloatT*)ret;
 	return lexer_float(me->lexer, rf);
     }
-BOOL parser_sfint32Value_(struct VRMLParser* me, void* ret)
+static BOOL parser_sfint32Value_(struct VRMLParser* me, void* ret)
     {
 	vrmlInt32T* rf;
 	rf = (vrmlInt32T*)ret;
@@ -2600,7 +2615,7 @@ static BOOL parser_sfstringValue_(struct VRMLParser* me, void* ret) {
     return TRUE;
 }
 
-BOOL parser_sfboolValue(struct VRMLParser* me, void* ret) {
+static BOOL parser_sfboolValue(struct VRMLParser* me, void* ret) {
     vrmlBoolT *rv;
 
     rv = (vrmlBoolT*)ret;
