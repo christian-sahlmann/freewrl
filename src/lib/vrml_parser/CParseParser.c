@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.40 2009/08/12 20:36:05 crc_canada Exp $
+  $Id: CParseParser.c,v 1.41 2009/08/12 21:58:43 crc_canada Exp $
 
   ???
 
@@ -104,7 +104,6 @@ static BOOL parser_sfcolorrgbaValue (struct VRMLParser *, void *);
 static BOOL parser_sfmatrix3fValue (struct VRMLParser *, void *);
 static BOOL parser_sfmatrix4fValue (struct VRMLParser *, void *);
 static BOOL parser_sfvec2fValue (struct VRMLParser *, void *);
-static BOOL parser_sfvec3fValue (struct VRMLParser *, void *);
 static BOOL parser_sfvec4fValue (struct VRMLParser *, void *);
 static BOOL parser_sfvec2dValue (struct VRMLParser *, void *);
 static BOOL parser_sfvec3dValue (struct VRMLParser *, void *);
@@ -458,7 +457,7 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
             if(parser_nodeStatement(me, &node))
             {
                 /* Add the node just parsed to the ROOT node for this scene */
-                AddRemoveChildren(me->ptr, me->ptr+me->ofs, &node, 1, 1,__FILE__,__LINE__);
+                AddRemoveChildren(me->ptr, me->ptr+me->ofs, (uintptr_t*)&node, 1, 1,__FILE__,__LINE__);
 #ifdef CPARSERVERBOSE
                 printf("parser_vrmlScene: node parsed\n");
 #endif
@@ -637,7 +636,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
             defaultVal = pField->defaultVal;
 
         } else {
-            startOfField = me->lexer->nextIn;
+            startOfField = (char *)me->lexer->nextIn;
             if (!parseType(me, type, &defaultVal)) {
                 /* Invalid default value parsed.  Delete the proto or script declaration. */
                 CPARSE_ERROR_CURID("Expected default value for field!");
@@ -817,8 +816,8 @@ BOOL parser_protoStatement(struct VRMLParser* me)
                 PARSE_ERROR("Expected { to start PROTO body!")
 
      /* record the start of this proto body - keep the text around */
-    startOfBody = me->lexer->nextIn;
-    initCP = me->lexer->startOfStringPtr[me->lexer->lexerInputLevel];
+    startOfBody = (char *) me->lexer->nextIn;
+    initCP = (char *) me->lexer->startOfStringPtr[me->lexer->lexerInputLevel];
 
     /* Create a new vector of nodes and push it onto the DEFedNodes stack */
     /* This is the list of nodes defined for this scope */
@@ -842,7 +841,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 
         /* end of the proto body */
         /* printf ("parsing proto , obj %u me->curPROTO %u ocp %u\n",obj, me->curPROTO,oldCurPROTO); */
-        endOfBody = me->lexer->nextIn;
+        endOfBody = (char *) me->lexer->nextIn;
         
         /* has a proto expansion come through here yet? */
         if (me->lexer->startOfStringPtr[me->lexer->lexerInputLevel] != initCP) { 
@@ -850,7 +849,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 #endif
             printf ("parsing proto, body changed!\n");
 
-            startOfBody = me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]; }
+            startOfBody = (char *) me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]; }
 
         bodyLen = endOfBody - startOfBody;
 #ifdef CPARSERVERBOSE
@@ -977,7 +976,7 @@ BOOL parser_exportStatement(struct VRMLParser* me) {
 
     /* free things up, only as required */
     FREE_IF_NZ(nodeToExport);
-    if (alias != NULL) FREE_IF_NZ(me->lexer->curID);
+    if (alias != NULL) {FREE_IF_NZ(me->lexer->curID);}
     return TRUE;
 }
 
@@ -1418,7 +1417,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
         /* Process from outputOnly */
         /* Get the offset to the outputOnly in the fromNode and store it in fromOfs */
         /* Get the size of the outputOnly type and store it in fromLen */
-        if(!fromScriptField)
+        if(!fromScriptField) {
             /* If the from field is an exposed field */
             if(fromFieldE!=ID_UNDEFINED) {
                 /* Get the offset and size of this field in the fromNode */
@@ -1457,6 +1456,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
                     EVENT_NODE_DEFAULT;
                         }
             }
+	}
 
 
 #undef END_NODE 
@@ -1465,7 +1465,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
         /* Process to inputOnly */
         /* Get the offset to the inputOnly in the toNode and store it in toOfs */
         /* Get the size of the outputOnly type and store it in fromLen */
-        if(!toScriptField)
+        if(!toScriptField) {
             /* If this is an exposed field */
             if(toFieldE!=ID_UNDEFINED) {
                 /* get the offset and size of this field in the toNode */
@@ -1505,6 +1505,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
                     EVENT_NODE_DEFAULT;
                         }
             }
+	}
 
         /* Clean up. */
 #undef FIELD
@@ -1651,7 +1652,7 @@ static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
 #endif
 
     /* Return a pointer to the node in the variable ret */
-    return vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
+    return (vrmlNodeT*) vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
 }
 
 
@@ -1683,7 +1684,7 @@ static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
     #endif
 
     /* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */
-    return vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
+    return (vrmlNodeT*) vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
 }
 
 
