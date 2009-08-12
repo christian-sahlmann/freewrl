@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.19 2009/07/22 14:36:19 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.20 2009/08/12 17:22:54 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.20  2009/08/12 17:22:54  crc_canada
+# Moving defines out of headers.h and into perl-generated code.
+#
 # Revision 1.19  2009/07/22 14:36:19  crc_canada
 # make shadow copy of children fields in nodes that need to sort nodes; this keeps the node list in original order entry.
 #
@@ -327,12 +330,86 @@ sub gen_struct {
 
 sub get_rendfunc {
 	my($n) = @_;
-	#JAS print "RENDF $n ";
 	# XXX
 	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Changed Proximity Collision Compile/;
 	my $comma = "";
+	my $v = "\n";
+
+	# create function prototypes
+	for (@f) {
+
+		# does this function exist?
+		if (exists ${$_."C"}{$n}) {
+			# it exists in the specified hash; now is the function in CFuncs, 
+			# or generated here? (different names)
+			if ($_ eq "Rend") {
+				$v .= $comma."void render_".${n}."(struct X3D_".${n}." *);\n";
+			} elsif ($_ eq "Prep") {
+				$v .= $comma."void prep_".${n}."(struct X3D_".${n}." *);\n";
+			} elsif ($_ eq "Fin") {
+				$v .= $comma."void fin_".${n}."(struct X3D_".${n}." *);\n";
+			} elsif ($_ eq "Child") {
+				$v .= $comma."void child_".${n}."(struct X3D_".${n}." *);\n";
+			} elsif ($_ eq "Changed") {
+				$v .= $comma."void changed_".${n}."(struct X3D_".${n}." *);\n";
+			} elsif ($_ eq "Proximity") {
+				$v .= $comma."void proximity_".${n}."(struct X3D_".${n}." *);\n";
+			} elsif ($_ eq "Collision") {
+				# some collide_XXX nodes are common
+				if (("ElevationGrid" ne ${n}) &&
+				("ElevationGrid" ne ${n}) &&
+				("IndexedFaceSet" ne ${n}) &&
+				("IndexedTriangleFanSet" ne ${n}) &&
+				("IndexedTriangleSet" ne ${n}) &&
+				("IndexedTriangleStripSet" ne ${n}) &&
+				("TriangleFanSet" ne ${n}) &&
+				("TriangleSet" ne ${n}) &&
+				("TriangleStripSet" ne ${n}) &&
+				("VRML1_IndexedFaceSet" ne ${n}) &&
+				("GeoElevationGrid" ne ${n})) {
+					$v .= $comma."void collide_".${n}."(struct X3D_".${n}." *);\n";
+				}
+			} elsif ($_ eq "GenPolyRep") {
+				# some make_XXX nodes are common
+				if (("ElevationGrid" ne ${n}) &&
+				("ElevationGrid" ne ${n}) &&
+				("IndexedFaceSet" ne ${n}) &&
+				("IndexedTriangleFanSet" ne ${n}) &&
+				("IndexedTriangleSet" ne ${n}) &&
+				("IndexedTriangleStripSet" ne ${n}) &&
+				("TriangleFanSet" ne ${n}) &&
+				("TriangleSet" ne ${n}) &&
+				("TriangleStripSet" ne ${n}) &&
+				("VRML1_IndexedFaceSet" ne ${n}) &&
+				("GeoElevationGrid" ne ${n})) {
+					$v .= $comma."void make_".${n}."(struct X3D_".${n}." *);\n";
+				}
+			} elsif ($_ eq "RendRay") {
+				# some rendray_XXX nodes are common
+				if (("ElevationGrid" ne ${n}) &&
+				("ElevationGrid" ne ${n}) &&
+				("Extrusion" ne ${n}) &&
+				("Text" ne ${n}) &&
+				("IndexedFaceSet" ne ${n}) &&
+				("IndexedTriangleFanSet" ne ${n}) &&
+				("IndexedTriangleSet" ne ${n}) &&
+				("IndexedTriangleStripSet" ne ${n}) &&
+				("TriangleFanSet" ne ${n}) &&
+				("TriangleSet" ne ${n}) &&
+				("TriangleStripSet" ne ${n}) &&
+				("VRML1_IndexedFaceSet" ne ${n}) &&
+				("GeoElevationGrid" ne ${n})) {
+					$v .= $comma."void rendray_".${n}."(struct X3D_".${n}." *);\n";
+				}
+			} elsif ($_ eq "Compile") {
+				$v .= $comma."void compile_".${n}."(struct X3D_".${n}." *);\n";
+			}	
+		}
+	}
+
+	# now go and do the actual filling out of the virtual tables
 	my $f = "extern struct X3D_Virt virt_${n};\n";
-	my $v = "struct X3D_Virt virt_${n} = { ";
+	$v .= "struct X3D_Virt virt_${n} = { ";
 
 	for (@f) {
 		# does this function exist?
@@ -412,7 +489,7 @@ sub gen {
 		"/* \n".
 		"=INSERT_TEMPLATE_HERE= \n".
 		" \n".
-		"$Id: VRMLC.pm,v 1.19 2009/07/22 14:36:19 crc_canada Exp $ \n".
+		"$Id: VRMLC.pm,v 1.20 2009/08/12 17:22:54 crc_canada Exp $ \n".
 		" \n".
 		"??? \n".
 		" \n".
@@ -446,7 +523,11 @@ sub gen {
 		"#include \"Component_CubeMapTexturing.h\" \n".
 		"/* #include \"Component_Geospatial.h\" */ \n".
 		"#include \"Polyrep.h\" \n".
-		"/* #include \"CProto.h\" */ \n";
+		"/* #include \"CProto.h\" */ \n".
+		"void addNodeToKeySensorList(struct X3D_Node* node);\n".
+		"void collide_genericfaceset (struct X3D_IndexedFaceSet *node );\n".
+		"void make_genericfaceset(struct X3D_IndexedFaceSet *this_);\n".
+		"void render_ray_polyrep(void *node);\n";
 
 
 	# for libeai/GeneratedCode.c - create a header.
@@ -890,7 +971,7 @@ sub gen {
 
 		push @genFuncs2,  "\t\tcase FIELDTYPE_$_:	return FIELDTYPE_$sftype;\n";
 	}
-	push @genFuncs2, 	"	return -1;;\n}\n}\n";
+	push @genFuncs2, 	"	}\n	return -1;\n}\n";
 	push @str, "int convertToSFType (int st);\n";
 
 
@@ -1012,6 +1093,7 @@ sub gen {
 	"#endif\n".
 	"#define COPY_SFVEC3F_TO_POINT_XYZ(too,from) { too.x = from[0]; too.y = from[1]; too.z = from[2];}\n".
 	"#define COPY_POINT_XYZ_TO_SFVEC3F(too,from) { too[0] = from.x; too[1] = from.y; too[2] = from.z;}\n".
+	"#define offsetPointer_deref(t, me, offs) ((t)(((char*)(me))+offs))\n".
 
 	"\n/* now, generated structures for each VRML/X3D Node*/\n";
 
@@ -1423,7 +1505,7 @@ sub gen {
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: VRMLC.pm,v 1.19 2009/07/22 14:36:19 crc_canada Exp $
+$Id: VRMLC.pm,v 1.20 2009/08/12 17:22:54 crc_canada Exp $
 
 NodeFields.h  generated by VRMLC.pm. DO NOT MODIFY, MODIFY VRMLC.pm INSTEAD
 */
@@ -1459,7 +1541,7 @@ END_NODE(NodeName)
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: VRMLC.pm,v 1.19 2009/07/22 14:36:19 crc_canada Exp $
+$Id: VRMLC.pm,v 1.20 2009/08/12 17:22:54 crc_canada Exp $
 
 Structs.h generated by VRMLC.pm. DO NOT MODIFY, MODIFY VRMLC.pm INSTEAD
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.69 2009/08/08 23:07:45 crc_canada Exp $
+$Id: headers.h,v 1.70 2009/08/12 17:22:54 crc_canada Exp $
 
 Global includes.
 
@@ -997,183 +997,21 @@ void doBrowserAction (void);
 void add_parent(struct X3D_Node *node_, struct X3D_Node *parent_,char *file, int line);
 void remove_parent(struct X3D_Node *child, struct X3D_Node *parent);
 void EAI_readNewWorld(char *inputstring);
+
+
+
 void make_genericfaceset(struct X3D_IndexedFaceSet *this_);
-
-void render_LoadSensor(struct X3D_LoadSensor *this_);
-
-void render_Text (struct X3D_Text * this_);
 #define rendray_Text render_ray_polyrep
-void make_Text (struct X3D_Text * this_);
-void collide_Text (struct X3D_Text * this_);
-void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *this_);
-void render_TextureCoordinate(struct X3D_TextureCoordinate *this_);
-
-/* VRML1 nodes */
-void prep_VRML1_Separator (struct X3D_VRML1_Separator *this_);
-void fin_VRML1_Separator (struct X3D_VRML1_Separator *this_);
-void child_VRML1_Separator (struct X3D_VRML1_Separator *this_);
-void render_VRML1_Cone (struct X3D_VRML1_Cone *this);
-void render_VRML1_Cube (struct X3D_VRML1_Cube *this);
-void render_VRML1_Sphere (struct X3D_VRML1_Sphere *this);
-void render_VRML1_AsciiText (struct X3D_VRML1_AsciiText *this);
-void render_VRML1_Cylinder (struct X3D_VRML1_Cylinder *this);
-void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *this);
 #define rendray_VRML1_IndexedFaceSet render_ray_polyrep
 #define make_VRML1_IndexedFaceSet make_genericfaceset
 #define collide_VRML1_IndexedFaceSet collide_genericfaceset
-void render_VRML1_IndexedLineSet (struct X3D_VRML1_IndexedLineSet *this);
-void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this);
-void render_VRML1_Scale (struct X3D_VRML1_Scale *this);
-void render_VRML1_Transform (struct X3D_VRML1_Transform *this);
-void render_VRML1_Translation (struct X3D_VRML1_Translation *this);
-void render_VRML1_Rotation (struct X3D_VRML1_Rotation *this);
-void render_VRML1_Material (struct X3D_VRML1_Material *this);
-void render_VRML1_SpotLight (struct X3D_VRML1_SpotLight *this);
-void render_VRML1_PointLight (struct X3D_VRML1_PointLight *this);
-void render_VRML1_DirectionalLight (struct X3D_VRML1_DirectionalLight *this);
-
-void render_VRML1_Coordinate3 (struct X3D_VRML1_Coordinate3  *node) ;
-void render_VRML1_FontStyle (struct X3D_VRML1_FontStyle  *node) ;
-void render_VRML1_MaterialBinding (struct X3D_VRML1_MaterialBinding  *node) ;
-void render_VRML1_Normal (struct X3D_VRML1_Normal  *node) ;
-void render_VRML1_NormalBinding (struct X3D_VRML1_NormalBinding  *node) ;
-void render_VRML1_Texture2 (struct X3D_VRML1_Texture2  *node) ;
-void render_VRML1_Texture2Transform (struct X3D_VRML1_Texture2Transform  *node) ;
-void render_VRML1_TextureCoordinate2 (struct X3D_VRML1_TextureCoordinate2  *node) ;
-void render_VRML1_ShapeHints (struct X3D_VRML1_ShapeHints  *node) ;
-void render_VRML1_MatrixTransform (struct X3D_VRML1_MatrixTransform  *node) ;
-void render_VRML1_Switch (struct X3D_VRML1_Switch  *node) ;
-void render_VRML1_WWWAnchor (struct X3D_VRML1_WWWAnchor  *node) ;
-void render_VRML1_LOD (struct X3D_VRML1_LOD  *node) ;
-void render_VRML1_OrthographicCamera (struct X3D_VRML1_OrthographicCamera  *node) ;
-void render_VRML1_PerspectiveCamera (struct X3D_VRML1_PerspectiveCamera  *node) ;
-void render_VRML1_WWWInline (struct X3D_VRML1_WWWInline  *node) ;
-
-
-
-/* Component Grouping */
-void prep_Transform (struct X3D_Transform *this_);
-void fin_Transform (struct X3D_Transform *this_);
-void child_Transform (struct X3D_Transform *this_);
-void prep_Group (struct X3D_Group *this_);
-void child_Group (struct X3D_Group *this_);
-void child_StaticGroup (struct X3D_StaticGroup *this_);
-void child_Switch (struct X3D_Switch *this_);
-
-void changed_Group (struct X3D_Group *this_);
-void changed_Switch (struct X3D_Switch *this_);
-void changed_StaticGroup (struct X3D_StaticGroup *this_);
-void changed_Transform (struct X3D_Transform *this_);
-
-/* Environmental Sensor nodes */
-void proximity_ProximitySensor (struct X3D_ProximitySensor *this_);
-void child_VisibilitySensor (struct X3D_VisibilitySensor *this_);
-
-/* Navigation Component */
-void prep_Billboard (struct X3D_Billboard *this_);
-void proximity_Billboard (struct X3D_Billboard *this_);
-void changed_Billboard (struct X3D_Billboard *this_);
-void prep_Viewpoint(struct X3D_Viewpoint *node);
-void child_Billboard (struct X3D_Billboard *this_);
-void child_LOD (struct X3D_LOD *this_);
-void changed_LOD (struct X3D_LOD *this_);
-void proximity_LOD (struct X3D_LOD *this_);
-void fin_Billboard (struct X3D_Billboard *this_);
-void child_Collision (struct X3D_Collision *this_);
-void changed_Collision (struct X3D_Collision *this_);
-
-
-/* HAnim Component */
-void prep_HAnimJoint (struct X3D_HAnimJoint *this_);
-void prep_HAnimSite (struct X3D_HAnimSite *this_);
-
-void child_HAnimHumanoid(struct X3D_HAnimHumanoid *this_); 
-void child_HAnimJoint(struct X3D_HAnimJoint *this_); 
-void child_HAnimSegment(struct X3D_HAnimSegment *this_); 
-void child_HAnimSite(struct X3D_HAnimSite *this_); 
-
-void render_HAnimHumanoid (struct X3D_HAnimHumanoid *node);
-void render_HAnimJoint (struct X3D_HAnimJoint * node);
-
-void fin_HAnimSite (struct X3D_HAnimSite *this_);
-void fin_HAnimJoint (struct X3D_HAnimJoint *this_);
-
-void changed_HAnimSite (struct X3D_HAnimSite *this_);
-
-
-
-/* Sound Component */
-void render_Sound (struct X3D_Sound *this_);
-void render_AudioControl (struct X3D_AudioControl *this_);
-void render_AudioClip (struct X3D_AudioClip *this_);
-
-/* Texturing Component */
-void render_PixelTexture (struct X3D_PixelTexture *this_);
-void render_ImageTexture (struct X3D_ImageTexture *this_);
-void render_MultiTexture (struct X3D_MultiTexture *this_);
-void render_MovieTexture (struct X3D_MovieTexture *this_);
-
-/* Shape Component */
-void render_Appearance (struct X3D_Appearance *this_);
-void render_FillProperties (struct X3D_FillProperties *this_);
-void render_LineProperties (struct X3D_LineProperties *this_);
-void render_Material (struct X3D_Material *this_);
-void render_TwoSidedMaterial (struct X3D_TwoSidedMaterial *this_);
-void child_Shape (struct X3D_Shape *this_);
-void child_Appearance (struct X3D_Appearance *this_);
-
-/* Geometry3D nodes */
-void render_Box (struct X3D_Box *this);
-void compile_Box (struct X3D_Box *this);
-void collide_Box (struct X3D_Box *this);
-void render_Cone (struct X3D_Cone *this);
-void compile_Cone (struct X3D_Cone *this);
-void collide_Cone (struct X3D_Cone *this);
-void render_Cylinder (struct X3D_Cylinder *this);
-void compile_Cylinder (struct X3D_Cylinder *this);
-void collide_Cylinder (struct X3D_Cylinder *this);
-void render_ElevationGrid (struct X3D_ElevationGrid *this);
 #define rendray_ElevationGrid  render_ray_polyrep
 #define collide_ElevationGrid collide_genericfaceset
-void render_Extrusion (struct X3D_Extrusion *this);
-void collide_Extrusion (struct X3D_Extrusion *this);
 #define rendray_Extrusion render_ray_polyrep
-void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
-void collide_genericfaceset (struct X3D_IndexedFaceSet *this);
 #define rendray_IndexedFaceSet render_ray_polyrep 
-void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
-void render_Sphere (struct X3D_Sphere *this);
-void compile_Sphere (struct X3D_Sphere *this);
-void collide_Sphere (struct X3D_Sphere *this);
-void make_Extrusion (struct X3D_Extrusion *this);
 #define make_IndexedFaceSet make_genericfaceset
 #define make_ElevationGrid make_genericfaceset
 #define rendray_ElevationGrid render_ray_polyrep
-void rendray_Box (struct X3D_Box *this_);
-void rendray_Sphere (struct X3D_Sphere *this_);
-void rendray_Cylinder (struct X3D_Cylinder *this_);
-void rendray_Cone (struct X3D_Cone *this_);
-
-/* Geometry2D nodes */
-void render_Arc2D (struct X3D_Arc2D *this_);
-void compile_Arc2D (struct X3D_Arc2D *this_);
-void render_ArcClose2D (struct X3D_ArcClose2D *this_);
-void compile_ArcClose2D (struct X3D_ArcClose2D *this_);
-void render_Circle2D (struct X3D_Circle2D *this_);
-void compile_Circle2D (struct X3D_Circle2D *this_);
-void render_Disk2D (struct X3D_Disk2D *this_);
-void compile_Disk2D (struct X3D_Disk2D *this_);
-void render_Polyline2D (struct X3D_Polyline2D *this_);
-void compile_Polyline2D (struct X3D_Polyline2D *this_);
-void render_Polypoint2D (struct X3D_Polypoint2D *this_);
-void compile_Polypoint2D (struct X3D_Polypoint2D *this_);
-void render_Rectangle2D (struct X3D_Rectangle2D *this_);
-void compile_Rectangle2D (struct X3D_Rectangle2D *this_);
-void render_TriangleSet2D (struct X3D_TriangleSet2D *this_);
-void compile_TriangleSet2D (struct X3D_TriangleSet2D *this_);
-void collide_Disk2D (struct X3D_Disk2D *this_);
-void collide_Rectangle2D (struct X3D_Rectangle2D *this_);
-void collide_TriangleSet2D (struct X3D_TriangleSet2D *this_);
 
 /* Component Rendering nodes */
 #define rendray_IndexedTriangleSet render_ray_polyrep
@@ -1182,15 +1020,6 @@ void collide_TriangleSet2D (struct X3D_TriangleSet2D *this_);
 #define rendray_TriangleSet render_ray_polyrep
 #define rendray_TriangleFanSet render_ray_polyrep
 #define rendray_TriangleStripSet render_ray_polyrep
-void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_); 
-void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_); 
-void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_); 
-void render_TriangleFanSet (struct X3D_TriangleFanSet *this_); 
-void render_TriangleStripSet (struct X3D_TriangleStripSet *this_); 
-void render_TriangleSet (struct X3D_TriangleSet *this_); 
-void render_LineSet (struct X3D_LineSet *this_); 
-void render_IndexedLineSet (struct X3D_IndexedLineSet *this_); 
-void render_PointSet (struct X3D_PointSet *this_); 
 #define collide_IndexedFaceSet collide_genericfaceset
 #define collide_IndexedTriangleFanSet  collide_genericfaceset
 #define collide_IndexedTriangleSet  collide_genericfaceset
@@ -1204,155 +1033,12 @@ void render_PointSet (struct X3D_PointSet *this_);
 #define make_TriangleFanSet  make_genericfaceset
 #define make_TriangleSet  make_genericfaceset
 #define make_TriangleStripSet  make_genericfaceset
-void compile_PointSet (struct X3D_PointSet *this_); 
-void compile_LineSet (struct X3D_LineSet *this_); 
-void compile_IndexedLineSet (struct X3D_IndexedLineSet *this_); 
-
-/* Component Lighting Nodes */
-void render_DirectionalLight (struct X3D_DirectionalLight *this_);
-void render_SpotLight (struct X3D_SpotLight *this_);
-void render_PointLight (struct X3D_PointLight *this_);
-void prep_SpotLight (struct X3D_SpotLight *this_);
-void prep_DirectionalLight (struct X3D_DirectionalLight *this_);
-void prep_PointLight (struct X3D_PointLight *this_);
-
-/* Geospatial nodes */
-int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **points, int *npoints);
-void render_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 #define rendray_GeoElevationGrid  render_ray_polyrep
 #define collide_GeoElevationGrid collide_genericfaceset
 #define make_GeoElevationGrid make_genericfaceset
-void prep_GeoLocation (struct X3D_GeoLocation *this_);
-void prep_GeoViewpoint (struct X3D_GeoViewpoint *this_);
-void fin_GeoLocation (struct X3D_GeoLocation *this_);
-void changed_GeoLocation (struct X3D_GeoLocation *this_);
-void child_GeoLOD (struct X3D_GeoLOD *this_);
-void changed_GeoLOD (struct X3D_GeoLOD *this_);
-void child_GeoLocation (struct X3D_GeoLocation *this_);
-void compile_GeoCoordinate (struct X3D_GeoCoordinate * this_);
-void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * this_);
-void compile_GeoLocation (struct X3D_GeoLocation * this_);
-void compile_GeoLOD (struct X3D_GeoLOD * this_);
-void compile_GeoMetadata (struct X3D_GeoMetadata * this_);
-void compile_GeoOrigin (struct X3D_GeoOrigin * this_);
-void compile_GeoPositionInterpolator (struct X3D_GeoPositionInterpolator * this_);
-void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * this_);
-void compile_GeoViewpoint (struct X3D_GeoViewpoint * this_);
-void compile_GeoProximitySensor (struct X3D_GeoProximitySensor *this_);
-void compile_GeoTransform (struct X3D_GeoTransform * node);
-
-void prep_GeoTransform (struct X3D_GeoTransform *);
-void child_GeoTransform (struct X3D_GeoTransform *);
-void fin_GeoTransform (struct X3D_GeoTransform *);
-void changed_GeoTransform (struct X3D_GeoTransform *);
 
 
-/* Networking Component */
-void child_Anchor (struct X3D_Anchor *this_);
-void child_Inline (struct X3D_Inline *this_);
-void changed_Inline (struct X3D_Inline *this_);
-void changed_Anchor (struct X3D_Anchor *this_);
-
-/* KeyDevice Component */
-void killKeySensorNodeList(void);
-void addNodeToKeySensorList(struct X3D_Node* node);
 int KeySensorNodePresent(void);
-void sendKeyToKeySensor(const char key, int upDown);
-
-/* Programmable Shaders Component */
-void render_ComposedShader (struct X3D_ComposedShader *);
-void render_PackagedShader (struct X3D_PackagedShader *);
-void render_ProgramShader (struct X3D_ProgramShader *);
-void compile_ComposedShader (struct X3D_ComposedShader *);
-void compile_PackagedShader (struct X3D_PackagedShader *);
-void compile_ProgramShader (struct X3D_ProgramShader *);
-
-
-/* PROTO sliding about */
-void changed_MetadataSFFloat (struct X3D_MetadataSFFloat *);
-void changed_MetadataMFFloat (struct X3D_MetadataMFFloat *);
-void changed_MetadataSFRotation (struct X3D_MetadataSFRotation *);
-void changed_MetadataMFRotation (struct X3D_MetadataMFRotation *);
-void changed_MetadataSFVec3f (struct X3D_MetadataSFVec3f *);
-void changed_MetadataMFVec3f (struct X3D_MetadataMFVec3f *);
-void changed_MetadataMFBool (struct X3D_MetadataMFBool *);
-void changed_MetadataSFBool (struct X3D_MetadataSFBool *);
-void changed_MetadataSFInt32 (struct X3D_MetadataSFInt32 *);
-void changed_MetadataMFInt32 (struct X3D_MetadataMFInt32 *);
-void changed_MetadataSFNode (struct X3D_MetadataSFNode *);
-void changed_MetadataMFNode (struct X3D_MetadataMFNode *);
-void changed_MetadataSFColor (struct X3D_MetadataSFColor *);
-void changed_MetadataMFColor (struct X3D_MetadataMFColor *);
-void changed_MetadataSFColorRGBA (struct X3D_MetadataSFColorRGBA *);
-void changed_MetadataMFColorRGBA (struct X3D_MetadataMFColorRGBA *);
-void changed_MetadataSFTime (struct X3D_MetadataSFTime *);
-void changed_MetadataMFTime (struct X3D_MetadataMFTime *);
-void changed_MetadataSFString (struct X3D_MetadataSFString *);
-void changed_MetadataMFString (struct X3D_MetadataMFString *);
-void changed_MetadataSFVec2f (struct X3D_MetadataSFVec2f *);
-void changed_MetadataMFVec2f (struct X3D_MetadataMFVec2f *);
-void changed_MetadataSFImage (struct X3D_MetadataSFImage *);
-void changed_MetadataSFVec3d (struct X3D_MetadataSFVec3d *);
-void changed_MetadataMFVec3d (struct X3D_MetadataMFVec3d *);
-void changed_MetadataSFDouble (struct X3D_MetadataSFDouble *);
-void changed_MetadataMFDouble (struct X3D_MetadataMFDouble *);
-void changed_MetadataSFMatrix3f (struct X3D_MetadataSFMatrix3f *);
-void changed_MetadataMFMatrix3f (struct X3D_MetadataMFMatrix3f *);
-void changed_MetadataSFMatrix3d (struct X3D_MetadataSFMatrix3d *);
-void changed_MetadataMFMatrix3d (struct X3D_MetadataMFMatrix3d *);
-void changed_MetadataSFMatrix4f (struct X3D_MetadataSFMatrix4f *);
-void changed_MetadataMFMatrix4f (struct X3D_MetadataMFMatrix4f *);
-void changed_MetadataSFMatrix4d (struct X3D_MetadataSFMatrix4d *);
-void changed_MetadataMFMatrix4d (struct X3D_MetadataMFMatrix4d *);
-void changed_MetadataSFVec2d (struct X3D_MetadataSFVec2d *);
-void changed_MetadataMFVec2d (struct X3D_MetadataMFVec2d *);
-void changed_MetadataSFVec4f (struct X3D_MetadataSFVec4f *);
-void changed_MetadataMFVec4f (struct X3D_MetadataMFVec4f *);
-void changed_MetadataSFVec4d (struct X3D_MetadataSFVec4d *);
-void changed_MetadataMFVec4d (struct X3D_MetadataMFVec4d *);
-
-void compile_MetadataSFFloat (struct X3D_MetadataSFFloat *);
-void compile_MetadataMFFloat (struct X3D_MetadataMFFloat *);
-void compile_MetadataSFRotation (struct X3D_MetadataSFRotation *);
-void compile_MetadataMFRotation (struct X3D_MetadataMFRotation *);
-void compile_MetadataSFVec3f (struct X3D_MetadataSFVec3f *);
-void compile_MetadataMFVec3f (struct X3D_MetadataMFVec3f *);
-void compile_MetadataMFBool (struct X3D_MetadataMFBool *);
-void compile_MetadataSFBool (struct X3D_MetadataSFBool *);
-void compile_MetadataSFInt32 (struct X3D_MetadataSFInt32 *);
-void compile_MetadataMFInt32 (struct X3D_MetadataMFInt32 *);
-void compile_MetadataSFNode (struct X3D_MetadataSFNode *);
-void compile_MetadataMFNode (struct X3D_MetadataMFNode *);
-void compile_MetadataSFColor (struct X3D_MetadataSFColor *);
-void compile_MetadataMFColor (struct X3D_MetadataMFColor *);
-void compile_MetadataSFColorRGBA (struct X3D_MetadataSFColorRGBA *);
-void compile_MetadataMFColorRGBA (struct X3D_MetadataMFColorRGBA *);
-void compile_MetadataSFTime (struct X3D_MetadataSFTime *);
-void compile_MetadataMFTime (struct X3D_MetadataMFTime *);
-void compile_MetadataSFString (struct X3D_MetadataSFString *);
-void compile_MetadataMFString (struct X3D_MetadataMFString *);
-void compile_MetadataSFVec2f (struct X3D_MetadataSFVec2f *);
-void compile_MetadataMFVec2f (struct X3D_MetadataMFVec2f *);
-void compile_MetadataSFImage (struct X3D_MetadataSFImage *);
-void compile_MetadataSFVec3d (struct X3D_MetadataSFVec3d *);
-void compile_MetadataMFVec3d (struct X3D_MetadataMFVec3d *);
-void compile_MetadataSFDouble (struct X3D_MetadataSFDouble *);
-void compile_MetadataMFDouble (struct X3D_MetadataMFDouble *);
-void compile_MetadataSFMatrix3f (struct X3D_MetadataSFMatrix3f *);
-void compile_MetadataMFMatrix3f (struct X3D_MetadataMFMatrix3f *);
-void compile_MetadataSFMatrix3d (struct X3D_MetadataSFMatrix3d *);
-void compile_MetadataMFMatrix3d (struct X3D_MetadataMFMatrix3d *);
-void compile_MetadataSFMatrix4f (struct X3D_MetadataSFMatrix4f *);
-void compile_MetadataMFMatrix4f (struct X3D_MetadataMFMatrix4f *);
-void compile_MetadataSFMatrix4d (struct X3D_MetadataSFMatrix4d *);
-void compile_MetadataMFMatrix4d (struct X3D_MetadataMFMatrix4d *);
-void compile_MetadataSFVec2d (struct X3D_MetadataSFVec2d *);
-void compile_MetadataMFVec2d (struct X3D_MetadataMFVec2d *);
-void compile_MetadataSFVec4f (struct X3D_MetadataSFVec4f *);
-void compile_MetadataMFVec4f (struct X3D_MetadataMFVec4f *);
-void compile_MetadataSFVec4d (struct X3D_MetadataSFVec4d *);
-void compile_MetadataMFVec4d (struct X3D_MetadataMFVec4d *);
-
 
 #ifdef GL_VERSION_2_0
 	#define TURN_APPEARANCE_SHADER_OFF \

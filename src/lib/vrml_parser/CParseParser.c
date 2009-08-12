@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.37 2009/08/07 16:14:13 crc_canada Exp $
+  $Id: CParseParser.c,v 1.38 2009/08/12 17:22:54 crc_canada Exp $
 
   ???
 
@@ -1994,10 +1994,10 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int offs,
         printf ("parser_fieldValue, not an IS\n");
 #endif
         /* Get a pointer to the actual field */
-#define offsetPointer_deref(t, me) \
+#define myOffsetPointer_deref(t, me) \
  ((t)(((char*)(node))+offs))
 
-        void* directRet=offsetPointer_deref(void*, ret);
+        void* directRet=myOffsetPointer_deref(void*, ret);
 
         /* we could print out a type, as shown below for the first element of a Multi_Color:
            { struct Multi_Color * mc;

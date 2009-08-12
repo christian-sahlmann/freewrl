@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.h,v 1.5 2009/06/12 20:13:00 crc_canada Exp $
+$Id: Polyrep.h,v 1.6 2009/08/12 17:22:54 crc_canada Exp $
 
 Polyrep ???
 
@@ -99,8 +99,5 @@ void
 do_glNormal3fv(struct SFColor *dest, GLfloat *param);
 
 void stream_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
-void
-render_ray_polyrep(void *node);
-
 void compile_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
 

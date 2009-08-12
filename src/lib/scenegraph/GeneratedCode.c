@@ -46,6 +46,10 @@
 /* #include "Component_Geospatial.h" */ 
 #include "Polyrep.h" 
 /* #include "CProto.h" */ 
+void addNodeToKeySensorList(struct X3D_Node* node);
+void collide_genericfaceset (struct X3D_IndexedFaceSet *node );
+void make_genericfaceset(struct X3D_IndexedFaceSet *this_);
+void render_ray_polyrep(void *node);
 
 /* Table of built-in fieldIds */
        const char *FIELDNAMES[] = {
@@ -1504,223 +1508,664 @@ const indexT FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 const indexT NODES_COUNT = ARR_SIZE(NODES);
 
 /* Virtual tables for each node */
+
+void child_Anchor(struct X3D_Anchor *);
+void changed_Anchor(struct X3D_Anchor *);
 struct X3D_Virt virt_Anchor = { NULL,NULL,(void *)child_Anchor,NULL,NULL,NULL,(void *)changed_Anchor,NULL,NULL,NULL};
+
+void child_Appearance(struct X3D_Appearance *);
 struct X3D_Virt virt_Appearance = { NULL,NULL,(void *)child_Appearance,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_Arc2D(struct X3D_Arc2D *);
+void compile_Arc2D(struct X3D_Arc2D *);
 struct X3D_Virt virt_Arc2D = { NULL,(void *)render_Arc2D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Arc2D};
+
+void render_ArcClose2D(struct X3D_ArcClose2D *);
+void compile_ArcClose2D(struct X3D_ArcClose2D *);
 struct X3D_Virt virt_ArcClose2D = { NULL,(void *)render_ArcClose2D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_ArcClose2D};
+
+void render_AudioClip(struct X3D_AudioClip *);
 struct X3D_Virt virt_AudioClip = { NULL,(void *)render_AudioClip,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_AudioControl(struct X3D_AudioControl *);
 struct X3D_Virt virt_AudioControl = { NULL,(void *)render_AudioControl,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_Background(struct X3D_Background *);
 struct X3D_Virt virt_Background = { NULL,(void *)render_Background,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void prep_Billboard(struct X3D_Billboard *);
+void child_Billboard(struct X3D_Billboard *);
+void fin_Billboard(struct X3D_Billboard *);
+void changed_Billboard(struct X3D_Billboard *);
+void proximity_Billboard(struct X3D_Billboard *);
 struct X3D_Virt virt_Billboard = { (void *)prep_Billboard,NULL,(void *)child_Billboard,(void *)fin_Billboard,NULL,NULL,(void *)changed_Billboard,(void *)proximity_Billboard,NULL,NULL};
+
 struct X3D_Virt virt_BooleanFilter = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_BooleanSequencer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_BooleanToggle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_BooleanTrigger = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_Box(struct X3D_Box *);
+void rendray_Box(struct X3D_Box *);
+void collide_Box(struct X3D_Box *);
+void compile_Box(struct X3D_Box *);
 struct X3D_Virt virt_Box = { NULL,(void *)render_Box,NULL,NULL,(void *)rendray_Box,NULL,NULL,NULL,(void *)collide_Box,(void *)compile_Box};
+
+void render_Circle2D(struct X3D_Circle2D *);
+void compile_Circle2D(struct X3D_Circle2D *);
 struct X3D_Virt virt_Circle2D = { NULL,(void *)render_Circle2D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Circle2D};
+
 struct X3D_Virt virt_ClipPlane = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void child_Collision(struct X3D_Collision *);
+void changed_Collision(struct X3D_Collision *);
 struct X3D_Virt virt_Collision = { NULL,NULL,(void *)child_Collision,NULL,NULL,NULL,(void *)changed_Collision,NULL,NULL,NULL};
+
 struct X3D_Virt virt_Color = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_ColorInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_ColorRGBA = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *);
 struct X3D_Virt virt_ComposedCubeMapTexture = { NULL,(void *)render_ComposedCubeMapTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_ComposedShader(struct X3D_ComposedShader *);
+void compile_ComposedShader(struct X3D_ComposedShader *);
 struct X3D_Virt virt_ComposedShader = { NULL,(void *)render_ComposedShader,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_ComposedShader};
+
+void render_Cone(struct X3D_Cone *);
+void rendray_Cone(struct X3D_Cone *);
+void collide_Cone(struct X3D_Cone *);
+void compile_Cone(struct X3D_Cone *);
 struct X3D_Virt virt_Cone = { NULL,(void *)render_Cone,NULL,NULL,(void *)rendray_Cone,NULL,NULL,NULL,(void *)collide_Cone,(void *)compile_Cone};
+
 struct X3D_Virt virt_Contour2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_ContourPolyLine2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_Coordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_CoordinateInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_CoordinateInterpolator2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_Cylinder(struct X3D_Cylinder *);
+void rendray_Cylinder(struct X3D_Cylinder *);
+void collide_Cylinder(struct X3D_Cylinder *);
+void compile_Cylinder(struct X3D_Cylinder *);
 struct X3D_Virt virt_Cylinder = { NULL,(void *)render_Cylinder,NULL,NULL,(void *)rendray_Cylinder,NULL,NULL,NULL,(void *)collide_Cylinder,(void *)compile_Cylinder};
+
 struct X3D_Virt virt_CylinderSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void prep_DirectionalLight(struct X3D_DirectionalLight *);
+void render_DirectionalLight(struct X3D_DirectionalLight *);
 struct X3D_Virt virt_DirectionalLight = { (void *)prep_DirectionalLight,(void *)render_DirectionalLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_Disk2D(struct X3D_Disk2D *);
+void collide_Disk2D(struct X3D_Disk2D *);
+void compile_Disk2D(struct X3D_Disk2D *);
 struct X3D_Virt virt_Disk2D = { NULL,(void *)render_Disk2D,NULL,NULL,NULL,NULL,NULL,NULL,(void *)collide_Disk2D,(void *)compile_Disk2D};
+
 struct X3D_Virt virt_EaseInEaseOut = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_ElevationGrid(struct X3D_ElevationGrid *);
 struct X3D_Virt virt_ElevationGrid = { NULL,(void *)render_ElevationGrid,NULL,NULL,(void *)rendray_ElevationGrid,(void *)make_ElevationGrid,NULL,NULL,(void *)collide_ElevationGrid,NULL};
+
+void render_Extrusion(struct X3D_Extrusion *);
+void make_Extrusion(struct X3D_Extrusion *);
+void collide_Extrusion(struct X3D_Extrusion *);
 struct X3D_Virt virt_Extrusion = { NULL,(void *)render_Extrusion,NULL,NULL,(void *)rendray_Extrusion,(void *)make_Extrusion,NULL,NULL,(void *)collide_Extrusion,NULL};
+
+void render_FillProperties(struct X3D_FillProperties *);
 struct X3D_Virt virt_FillProperties = { NULL,(void *)render_FillProperties,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_FloatVertexAttribute = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_Fog(struct X3D_Fog *);
 struct X3D_Virt virt_Fog = { NULL,(void *)render_Fog,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_FogCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_FontStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_GeneratedCubeMapTexture(struct X3D_GeneratedCubeMapTexture *);
 struct X3D_Virt virt_GeneratedCubeMapTexture = { NULL,(void *)render_GeneratedCubeMapTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void compile_GeoCoordinate(struct X3D_GeoCoordinate *);
 struct X3D_Virt virt_GeoCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoCoordinate};
+
+void render_GeoElevationGrid(struct X3D_GeoElevationGrid *);
+void compile_GeoElevationGrid(struct X3D_GeoElevationGrid *);
 struct X3D_Virt virt_GeoElevationGrid = { NULL,(void *)render_GeoElevationGrid,NULL,NULL,(void *)rendray_GeoElevationGrid,(void *)make_GeoElevationGrid,NULL,NULL,(void *)collide_GeoElevationGrid,(void *)compile_GeoElevationGrid};
+
+void child_GeoLOD(struct X3D_GeoLOD *);
+void changed_GeoLOD(struct X3D_GeoLOD *);
+void compile_GeoLOD(struct X3D_GeoLOD *);
 struct X3D_Virt virt_GeoLOD = { NULL,NULL,(void *)child_GeoLOD,NULL,NULL,NULL,(void *)changed_GeoLOD,NULL,NULL,(void *)compile_GeoLOD};
+
+void prep_GeoLocation(struct X3D_GeoLocation *);
+void child_GeoLocation(struct X3D_GeoLocation *);
+void fin_GeoLocation(struct X3D_GeoLocation *);
+void changed_GeoLocation(struct X3D_GeoLocation *);
+void compile_GeoLocation(struct X3D_GeoLocation *);
 struct X3D_Virt virt_GeoLocation = { (void *)prep_GeoLocation,NULL,(void *)child_GeoLocation,(void *)fin_GeoLocation,NULL,NULL,(void *)changed_GeoLocation,NULL,NULL,(void *)compile_GeoLocation};
+
+void compile_GeoMetadata(struct X3D_GeoMetadata *);
 struct X3D_Virt virt_GeoMetadata = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoMetadata};
+
+void compile_GeoOrigin(struct X3D_GeoOrigin *);
 struct X3D_Virt virt_GeoOrigin = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoOrigin};
+
+void compile_GeoPositionInterpolator(struct X3D_GeoPositionInterpolator *);
 struct X3D_Virt virt_GeoPositionInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoPositionInterpolator};
+
+void compile_GeoProximitySensor(struct X3D_GeoProximitySensor *);
 struct X3D_Virt virt_GeoProximitySensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoProximitySensor};
+
+void compile_GeoTouchSensor(struct X3D_GeoTouchSensor *);
 struct X3D_Virt virt_GeoTouchSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoTouchSensor};
+
+void prep_GeoTransform(struct X3D_GeoTransform *);
+void child_GeoTransform(struct X3D_GeoTransform *);
+void fin_GeoTransform(struct X3D_GeoTransform *);
+void changed_GeoTransform(struct X3D_GeoTransform *);
+void compile_GeoTransform(struct X3D_GeoTransform *);
 struct X3D_Virt virt_GeoTransform = { (void *)prep_GeoTransform,NULL,(void *)child_GeoTransform,(void *)fin_GeoTransform,NULL,NULL,(void *)changed_GeoTransform,NULL,NULL,(void *)compile_GeoTransform};
+
+void prep_GeoViewpoint(struct X3D_GeoViewpoint *);
+void compile_GeoViewpoint(struct X3D_GeoViewpoint *);
 struct X3D_Virt virt_GeoViewpoint = { (void *)prep_GeoViewpoint,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoViewpoint};
+
+void prep_Group(struct X3D_Group *);
+void child_Group(struct X3D_Group *);
+void changed_Group(struct X3D_Group *);
 struct X3D_Virt virt_Group = { (void *)prep_Group,NULL,(void *)child_Group,NULL,NULL,NULL,(void *)changed_Group,NULL,NULL,NULL};
+
 struct X3D_Virt virt_HAnimDisplacer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_HAnimHumanoid(struct X3D_HAnimHumanoid *);
+void child_HAnimHumanoid(struct X3D_HAnimHumanoid *);
 struct X3D_Virt virt_HAnimHumanoid = { NULL,(void *)render_HAnimHumanoid,(void *)child_HAnimHumanoid,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void prep_HAnimJoint(struct X3D_HAnimJoint *);
+void render_HAnimJoint(struct X3D_HAnimJoint *);
+void child_HAnimJoint(struct X3D_HAnimJoint *);
+void fin_HAnimJoint(struct X3D_HAnimJoint *);
 struct X3D_Virt virt_HAnimJoint = { (void *)prep_HAnimJoint,(void *)render_HAnimJoint,(void *)child_HAnimJoint,(void *)fin_HAnimJoint,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void child_HAnimSegment(struct X3D_HAnimSegment *);
 struct X3D_Virt virt_HAnimSegment = { NULL,NULL,(void *)child_HAnimSegment,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void prep_HAnimSite(struct X3D_HAnimSite *);
+void child_HAnimSite(struct X3D_HAnimSite *);
+void fin_HAnimSite(struct X3D_HAnimSite *);
+void changed_HAnimSite(struct X3D_HAnimSite *);
 struct X3D_Virt virt_HAnimSite = { (void *)prep_HAnimSite,NULL,(void *)child_HAnimSite,(void *)fin_HAnimSite,NULL,NULL,(void *)changed_HAnimSite,NULL,NULL,NULL};
+
+void render_ImageCubeMapTexture(struct X3D_ImageCubeMapTexture *);
 struct X3D_Virt virt_ImageCubeMapTexture = { NULL,(void *)render_ImageCubeMapTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_ImageTexture(struct X3D_ImageTexture *);
 struct X3D_Virt virt_ImageTexture = { NULL,(void *)render_ImageTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_IndexedFaceSet(struct X3D_IndexedFaceSet *);
 struct X3D_Virt virt_IndexedFaceSet = { NULL,(void *)render_IndexedFaceSet,NULL,NULL,(void *)rendray_IndexedFaceSet,(void *)make_IndexedFaceSet,NULL,NULL,(void *)collide_IndexedFaceSet,NULL};
+
+void render_IndexedLineSet(struct X3D_IndexedLineSet *);
+void compile_IndexedLineSet(struct X3D_IndexedLineSet *);
 struct X3D_Virt virt_IndexedLineSet = { NULL,(void *)render_IndexedLineSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_IndexedLineSet};
+
+void render_IndexedTriangleFanSet(struct X3D_IndexedTriangleFanSet *);
 struct X3D_Virt virt_IndexedTriangleFanSet = { NULL,(void *)render_IndexedTriangleFanSet,NULL,NULL,(void *)rendray_IndexedTriangleFanSet,(void *)make_IndexedTriangleFanSet,NULL,NULL,(void *)collide_IndexedTriangleFanSet,NULL};
+
+void render_IndexedTriangleSet(struct X3D_IndexedTriangleSet *);
 struct X3D_Virt virt_IndexedTriangleSet = { NULL,(void *)render_IndexedTriangleSet,NULL,NULL,(void *)rendray_IndexedTriangleSet,(void *)make_IndexedTriangleSet,NULL,NULL,(void *)collide_IndexedTriangleSet,NULL};
+
+void render_IndexedTriangleStripSet(struct X3D_IndexedTriangleStripSet *);
 struct X3D_Virt virt_IndexedTriangleStripSet = { NULL,(void *)render_IndexedTriangleStripSet,NULL,NULL,(void *)rendray_IndexedTriangleStripSet,(void *)make_IndexedTriangleStripSet,NULL,NULL,(void *)collide_IndexedTriangleStripSet,NULL};
+
+void child_Inline(struct X3D_Inline *);
+void changed_Inline(struct X3D_Inline *);
 struct X3D_Virt virt_Inline = { NULL,NULL,(void *)child_Inline,NULL,NULL,NULL,(void *)changed_Inline,NULL,NULL,NULL};
+
 struct X3D_Virt virt_IntegerSequencer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_IntegerTrigger = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_KeySensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void child_LOD(struct X3D_LOD *);
+void changed_LOD(struct X3D_LOD *);
+void proximity_LOD(struct X3D_LOD *);
 struct X3D_Virt virt_LOD = { NULL,NULL,(void *)child_LOD,NULL,NULL,NULL,(void *)changed_LOD,(void *)proximity_LOD,NULL,NULL};
+
+void render_LineProperties(struct X3D_LineProperties *);
 struct X3D_Virt virt_LineProperties = { NULL,(void *)render_LineProperties,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_LineSet(struct X3D_LineSet *);
+void compile_LineSet(struct X3D_LineSet *);
 struct X3D_Virt virt_LineSet = { NULL,(void *)render_LineSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_LineSet};
+
+void render_LoadSensor(struct X3D_LoadSensor *);
 struct X3D_Virt virt_LoadSensor = { NULL,(void *)render_LoadSensor,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_LocalFog = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_Material(struct X3D_Material *);
 struct X3D_Virt virt_Material = { NULL,(void *)render_Material,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_Matrix3VertexAttribute = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_Matrix4VertexAttribute = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_MetadataDouble = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_MetadataFloat = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_MetadataInteger = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void compile_MetadataMFBool(struct X3D_MetadataMFBool *);
 struct X3D_Virt virt_MetadataMFBool = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFBool};
+
+void compile_MetadataMFColor(struct X3D_MetadataMFColor *);
 struct X3D_Virt virt_MetadataMFColor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFColor};
+
+void compile_MetadataMFColorRGBA(struct X3D_MetadataMFColorRGBA *);
 struct X3D_Virt virt_MetadataMFColorRGBA = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFColorRGBA};
+
+void compile_MetadataMFDouble(struct X3D_MetadataMFDouble *);
 struct X3D_Virt virt_MetadataMFDouble = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFDouble};
+
+void compile_MetadataMFFloat(struct X3D_MetadataMFFloat *);
 struct X3D_Virt virt_MetadataMFFloat = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFFloat};
+
+void compile_MetadataMFInt32(struct X3D_MetadataMFInt32 *);
 struct X3D_Virt virt_MetadataMFInt32 = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFInt32};
+
+void compile_MetadataMFMatrix3d(struct X3D_MetadataMFMatrix3d *);
 struct X3D_Virt virt_MetadataMFMatrix3d = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFMatrix3d};
+
+void compile_MetadataMFMatrix3f(struct X3D_MetadataMFMatrix3f *);
 struct X3D_Virt virt_MetadataMFMatrix3f = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFMatrix3f};
+
+void compile_MetadataMFMatrix4d(struct X3D_MetadataMFMatrix4d *);
 struct X3D_Virt virt_MetadataMFMatrix4d = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFMatrix4d};
+
+void compile_MetadataMFMatrix4f(struct X3D_MetadataMFMatrix4f *);
 struct X3D_Virt virt_MetadataMFMatrix4f = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFMatrix4f};
+
+void compile_MetadataMFNode(struct X3D_MetadataMFNode *);
 struct X3D_Virt virt_MetadataMFNode = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFNode};
+
+void compile_MetadataMFRotation(struct X3D_MetadataMFRotation *);
 struct X3D_Virt virt_MetadataMFRotation = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFRotation};
+
+void compile_MetadataMFString(struct X3D_MetadataMFString *);
 struct X3D_Virt virt_MetadataMFString = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFString};
+
+void compile_MetadataMFTime(struct X3D_MetadataMFTime *);
 struct X3D_Virt virt_MetadataMFTime = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFTime};
+
+void compile_MetadataMFVec2d(struct X3D_MetadataMFVec2d *);
 struct X3D_Virt virt_MetadataMFVec2d = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFVec2d};
+
+void compile_MetadataMFVec2f(struct X3D_MetadataMFVec2f *);
 struct X3D_Virt virt_MetadataMFVec2f = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFVec2f};
+
+void compile_MetadataMFVec3d(struct X3D_MetadataMFVec3d *);
 struct X3D_Virt virt_MetadataMFVec3d = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFVec3d};
+
+void compile_MetadataMFVec3f(struct X3D_MetadataMFVec3f *);
 struct X3D_Virt virt_MetadataMFVec3f = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFVec3f};
+
+void compile_MetadataMFVec4d(struct X3D_MetadataMFVec4d *);
 struct X3D_Virt virt_MetadataMFVec4d = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFVec4d};
+
+void compile_MetadataMFVec4f(struct X3D_MetadataMFVec4f *);
 struct X3D_Virt virt_MetadataMFVec4f = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFVec4f};
+
+void compile_MetadataSFBool(struct X3D_MetadataSFBool *);
 struct X3D_Virt virt_MetadataSFBool = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFBool};
+
+void compile_MetadataSFColor(struct X3D_MetadataSFColor *);
 struct X3D_Virt virt_MetadataSFColor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFColor};
+
+void compile_MetadataSFColorRGBA(struct X3D_MetadataSFColorRGBA *);
 struct X3D_Virt virt_MetadataSFColorRGBA = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFColorRGBA};
+
+void compile_MetadataSFDouble(struct X3D_MetadataSFDouble *);
 struct X3D_Virt virt_MetadataSFDouble = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFDouble};
+
+void compile_MetadataSFFloat(struct X3D_MetadataSFFloat *);
 struct X3D_Virt virt_MetadataSFFloat = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFFloat};
+
+void compile_MetadataSFImage(struct X3D_MetadataSFImage *);
 struct X3D_Virt virt_MetadataSFImage = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFImage};
+
+void compile_MetadataSFInt32(struct X3D_MetadataSFInt32 *);
 struct X3D_Virt virt_MetadataSFInt32 = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFInt32};
+
+void compile_MetadataSFMatrix3d(struct X3D_MetadataSFMatrix3d *);
 struct X3D_Virt virt_MetadataSFMatrix3d = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFMatrix3d};
+
+void compile_MetadataSFMatrix3f(struct X3D_MetadataSFMatrix3f *);
 struct X3D_Virt virt_MetadataSFMatrix3f = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFMatrix3f};
+
+void compile_MetadataSFMatrix4d(struct X3D_MetadataSFMatrix4d *);
 struct X3D_Virt virt_MetadataSFMatrix4d = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFMatrix4d};
+
+void compile_MetadataSFMatrix4f(struct X3D_MetadataSFMatrix4f *);
 struct X3D_Virt virt_MetadataSFMatrix4f = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFMatrix4f};
+
+void compile_MetadataSFNode(struct X3D_MetadataSFNode *);
 struct X3D_Virt virt_MetadataSFNode = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFNode};
+
+void compile_MetadataSFRotation(struct X3D_MetadataSFRotation *);
 struct X3D_Virt virt_MetadataSFRotation = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFRotation};
+
+void compile_MetadataSFString(struct X3D_MetadataSFString *);
 struct X3D_Virt virt_MetadataSFString = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFString};
+
+void compile_MetadataSFTime(struct X3D_MetadataSFTime *);
 struct X3D_Virt virt_MetadataSFTime = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFTime};
+
+void compile_MetadataSFVec2d(struct X3D_MetadataSFVec2d *);
 struct X3D_Virt virt_MetadataSFVec2d = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFVec2d};
+
+void compile_MetadataSFVec2f(struct X3D_MetadataSFVec2f *);
 struct X3D_Virt virt_MetadataSFVec2f = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFVec2f};
+
+void compile_MetadataSFVec3d(struct X3D_MetadataSFVec3d *);
 struct X3D_Virt virt_MetadataSFVec3d = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFVec3d};
+
+void compile_MetadataSFVec3f(struct X3D_MetadataSFVec3f *);
 struct X3D_Virt virt_MetadataSFVec3f = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFVec3f};
+
+void compile_MetadataSFVec4d(struct X3D_MetadataSFVec4d *);
 struct X3D_Virt virt_MetadataSFVec4d = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFVec4d};
+
+void compile_MetadataSFVec4f(struct X3D_MetadataSFVec4f *);
 struct X3D_Virt virt_MetadataSFVec4f = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFVec4f};
+
 struct X3D_Virt virt_MetadataSet = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_MetadataString = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void prep_MidiControl(struct X3D_MidiControl *);
 struct X3D_Virt virt_MidiControl = { (void *)prep_MidiControl,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_MovieTexture(struct X3D_MovieTexture *);
 struct X3D_Virt virt_MovieTexture = { NULL,(void *)render_MovieTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_MultiTexture(struct X3D_MultiTexture *);
 struct X3D_Virt virt_MultiTexture = { NULL,(void *)render_MultiTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_MultiTextureCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_MultiTextureTransform = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_NavigationInfo(struct X3D_NavigationInfo *);
 struct X3D_Virt virt_NavigationInfo = { NULL,(void *)render_NavigationInfo,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_Normal = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_NormalInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_NurbsCurve = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_NurbsCurve2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_NurbsGroup = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_NurbsPositionInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_NurbsSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_NurbsTextureSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_NurbsTrimmedSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_OrientationInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_PackagedShader(struct X3D_PackagedShader *);
+void compile_PackagedShader(struct X3D_PackagedShader *);
 struct X3D_Virt virt_PackagedShader = { NULL,(void *)render_PackagedShader,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_PackagedShader};
+
+void render_PixelTexture(struct X3D_PixelTexture *);
 struct X3D_Virt virt_PixelTexture = { NULL,(void *)render_PixelTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_PlaneSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void prep_PointLight(struct X3D_PointLight *);
+void render_PointLight(struct X3D_PointLight *);
 struct X3D_Virt virt_PointLight = { (void *)prep_PointLight,(void *)render_PointLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_PointSet(struct X3D_PointSet *);
+void compile_PointSet(struct X3D_PointSet *);
 struct X3D_Virt virt_PointSet = { NULL,(void *)render_PointSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_PointSet};
+
+void render_Polyline2D(struct X3D_Polyline2D *);
+void compile_Polyline2D(struct X3D_Polyline2D *);
 struct X3D_Virt virt_Polyline2D = { NULL,(void *)render_Polyline2D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Polyline2D};
+
+void render_Polypoint2D(struct X3D_Polypoint2D *);
+void compile_Polypoint2D(struct X3D_Polypoint2D *);
 struct X3D_Virt virt_Polypoint2D = { NULL,(void *)render_Polypoint2D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Polypoint2D};
+
 struct X3D_Virt virt_PositionInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_PositionInterpolator2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_ProgramShader(struct X3D_ProgramShader *);
+void compile_ProgramShader(struct X3D_ProgramShader *);
 struct X3D_Virt virt_ProgramShader = { NULL,(void *)render_ProgramShader,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_ProgramShader};
+
+void proximity_ProximitySensor(struct X3D_ProximitySensor *);
 struct X3D_Virt virt_ProximitySensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)proximity_ProximitySensor,NULL,NULL};
+
+void render_Rectangle2D(struct X3D_Rectangle2D *);
+void collide_Rectangle2D(struct X3D_Rectangle2D *);
+void compile_Rectangle2D(struct X3D_Rectangle2D *);
 struct X3D_Virt virt_Rectangle2D = { NULL,(void *)render_Rectangle2D,NULL,NULL,NULL,NULL,NULL,NULL,(void *)collide_Rectangle2D,(void *)compile_Rectangle2D};
+
 struct X3D_Virt virt_ScalarInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_Script = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_ShaderPart = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_ShaderProgram = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void child_Shape(struct X3D_Shape *);
 struct X3D_Virt virt_Shape = { NULL,NULL,(void *)child_Shape,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_Sound(struct X3D_Sound *);
 struct X3D_Virt virt_Sound = { NULL,(void *)render_Sound,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_Sphere(struct X3D_Sphere *);
+void rendray_Sphere(struct X3D_Sphere *);
+void collide_Sphere(struct X3D_Sphere *);
+void compile_Sphere(struct X3D_Sphere *);
 struct X3D_Virt virt_Sphere = { NULL,(void *)render_Sphere,NULL,NULL,(void *)rendray_Sphere,NULL,NULL,NULL,(void *)collide_Sphere,(void *)compile_Sphere};
+
 struct X3D_Virt virt_SphereSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_SplinePositionInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_SplinePositionInterpolator2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_SplineScalarInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void prep_SpotLight(struct X3D_SpotLight *);
+void render_SpotLight(struct X3D_SpotLight *);
 struct X3D_Virt virt_SpotLight = { (void *)prep_SpotLight,(void *)render_SpotLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_SquadOrientationInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void child_StaticGroup(struct X3D_StaticGroup *);
+void changed_StaticGroup(struct X3D_StaticGroup *);
 struct X3D_Virt virt_StaticGroup = { NULL,NULL,(void *)child_StaticGroup,NULL,NULL,NULL,(void *)changed_StaticGroup,NULL,NULL,NULL};
+
 struct X3D_Virt virt_StringSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void child_Switch(struct X3D_Switch *);
+void changed_Switch(struct X3D_Switch *);
 struct X3D_Virt virt_Switch = { NULL,NULL,(void *)child_Switch,NULL,NULL,NULL,(void *)changed_Switch,NULL,NULL,NULL};
+
+void render_Text(struct X3D_Text *);
+void make_Text(struct X3D_Text *);
+void collide_Text(struct X3D_Text *);
 struct X3D_Virt virt_Text = { NULL,(void *)render_Text,NULL,NULL,(void *)rendray_Text,(void *)make_Text,NULL,NULL,(void *)collide_Text,NULL};
+
+void render_TextureBackground(struct X3D_TextureBackground *);
 struct X3D_Virt virt_TextureBackground = { NULL,(void *)render_TextureBackground,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_TextureCoordinate(struct X3D_TextureCoordinate *);
 struct X3D_Virt virt_TextureCoordinate = { NULL,(void *)render_TextureCoordinate,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *);
 struct X3D_Virt virt_TextureCoordinateGenerator = { NULL,(void *)render_TextureCoordinateGenerator,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_TextureProperties = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_TextureTransform = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_TimeSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_TimeTrigger = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_TouchSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void prep_Transform(struct X3D_Transform *);
+void child_Transform(struct X3D_Transform *);
+void fin_Transform(struct X3D_Transform *);
+void changed_Transform(struct X3D_Transform *);
 struct X3D_Virt virt_Transform = { (void *)prep_Transform,NULL,(void *)child_Transform,(void *)fin_Transform,NULL,NULL,(void *)changed_Transform,NULL,NULL,NULL};
+
+void render_TriangleFanSet(struct X3D_TriangleFanSet *);
 struct X3D_Virt virt_TriangleFanSet = { NULL,(void *)render_TriangleFanSet,NULL,NULL,(void *)rendray_TriangleFanSet,(void *)make_TriangleFanSet,NULL,NULL,(void *)collide_TriangleFanSet,NULL};
+
+void render_TriangleSet(struct X3D_TriangleSet *);
 struct X3D_Virt virt_TriangleSet = { NULL,(void *)render_TriangleSet,NULL,NULL,(void *)rendray_TriangleSet,(void *)make_TriangleSet,NULL,NULL,(void *)collide_TriangleSet,NULL};
+
+void render_TriangleSet2D(struct X3D_TriangleSet2D *);
+void collide_TriangleSet2D(struct X3D_TriangleSet2D *);
+void compile_TriangleSet2D(struct X3D_TriangleSet2D *);
 struct X3D_Virt virt_TriangleSet2D = { NULL,(void *)render_TriangleSet2D,NULL,NULL,NULL,NULL,NULL,NULL,(void *)collide_TriangleSet2D,(void *)compile_TriangleSet2D};
+
+void render_TriangleStripSet(struct X3D_TriangleStripSet *);
 struct X3D_Virt virt_TriangleStripSet = { NULL,(void *)render_TriangleStripSet,NULL,NULL,(void *)rendray_TriangleStripSet,(void *)make_TriangleStripSet,NULL,NULL,(void *)collide_TriangleStripSet,NULL};
+
+void render_TwoSidedMaterial(struct X3D_TwoSidedMaterial *);
 struct X3D_Virt virt_TwoSidedMaterial = { NULL,(void *)render_TwoSidedMaterial,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_AsciiText(struct X3D_VRML1_AsciiText *);
 struct X3D_Virt virt_VRML1_AsciiText = { NULL,(void *)render_VRML1_AsciiText,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Cone(struct X3D_VRML1_Cone *);
 struct X3D_Virt virt_VRML1_Cone = { NULL,(void *)render_VRML1_Cone,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Coordinate3(struct X3D_VRML1_Coordinate3 *);
 struct X3D_Virt virt_VRML1_Coordinate3 = { NULL,(void *)render_VRML1_Coordinate3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Cube(struct X3D_VRML1_Cube *);
 struct X3D_Virt virt_VRML1_Cube = { NULL,(void *)render_VRML1_Cube,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Cylinder(struct X3D_VRML1_Cylinder *);
 struct X3D_Virt virt_VRML1_Cylinder = { NULL,(void *)render_VRML1_Cylinder,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_DirectionalLight(struct X3D_VRML1_DirectionalLight *);
 struct X3D_Virt virt_VRML1_DirectionalLight = { NULL,(void *)render_VRML1_DirectionalLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_FontStyle(struct X3D_VRML1_FontStyle *);
 struct X3D_Virt virt_VRML1_FontStyle = { NULL,(void *)render_VRML1_FontStyle,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *);
 struct X3D_Virt virt_VRML1_IndexedFaceSet = { NULL,(void *)render_VRML1_IndexedFaceSet,NULL,NULL,(void *)rendray_VRML1_IndexedFaceSet,(void *)make_VRML1_IndexedFaceSet,NULL,NULL,(void *)collide_VRML1_IndexedFaceSet,NULL};
+
+void render_VRML1_IndexedLineSet(struct X3D_VRML1_IndexedLineSet *);
 struct X3D_Virt virt_VRML1_IndexedLineSet = { NULL,(void *)render_VRML1_IndexedLineSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_VRML1_Info = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_VRML1_LOD = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Material(struct X3D_VRML1_Material *);
 struct X3D_Virt virt_VRML1_Material = { NULL,(void *)render_VRML1_Material,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_MaterialBinding(struct X3D_VRML1_MaterialBinding *);
 struct X3D_Virt virt_VRML1_MaterialBinding = { NULL,(void *)render_VRML1_MaterialBinding,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_MatrixTransform(struct X3D_VRML1_MatrixTransform *);
 struct X3D_Virt virt_VRML1_MatrixTransform = { NULL,(void *)render_VRML1_MatrixTransform,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Normal(struct X3D_VRML1_Normal *);
 struct X3D_Virt virt_VRML1_Normal = { NULL,(void *)render_VRML1_Normal,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_NormalBinding(struct X3D_VRML1_NormalBinding *);
 struct X3D_Virt virt_VRML1_NormalBinding = { NULL,(void *)render_VRML1_NormalBinding,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_VRML1_OrthographicCamera = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_VRML1_PerspectiveCamera = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_PointLight(struct X3D_VRML1_PointLight *);
 struct X3D_Virt virt_VRML1_PointLight = { NULL,(void *)render_VRML1_PointLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_PointSet(struct X3D_VRML1_PointSet *);
 struct X3D_Virt virt_VRML1_PointSet = { NULL,(void *)render_VRML1_PointSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Rotation(struct X3D_VRML1_Rotation *);
 struct X3D_Virt virt_VRML1_Rotation = { NULL,(void *)render_VRML1_Rotation,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Scale(struct X3D_VRML1_Scale *);
 struct X3D_Virt virt_VRML1_Scale = { NULL,(void *)render_VRML1_Scale,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void prep_VRML1_Separator(struct X3D_VRML1_Separator *);
+void child_VRML1_Separator(struct X3D_VRML1_Separator *);
+void fin_VRML1_Separator(struct X3D_VRML1_Separator *);
 struct X3D_Virt virt_VRML1_Separator = { (void *)prep_VRML1_Separator,NULL,(void *)child_VRML1_Separator,(void *)fin_VRML1_Separator,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_ShapeHints(struct X3D_VRML1_ShapeHints *);
 struct X3D_Virt virt_VRML1_ShapeHints = { NULL,(void *)render_VRML1_ShapeHints,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Sphere(struct X3D_VRML1_Sphere *);
 struct X3D_Virt virt_VRML1_Sphere = { NULL,(void *)render_VRML1_Sphere,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_SpotLight(struct X3D_VRML1_SpotLight *);
 struct X3D_Virt virt_VRML1_SpotLight = { NULL,(void *)render_VRML1_SpotLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_VRML1_Switch = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Texture2(struct X3D_VRML1_Texture2 *);
 struct X3D_Virt virt_VRML1_Texture2 = { NULL,(void *)render_VRML1_Texture2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Texture2Transform(struct X3D_VRML1_Texture2Transform *);
 struct X3D_Virt virt_VRML1_Texture2Transform = { NULL,(void *)render_VRML1_Texture2Transform,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_TextureCoordinate2(struct X3D_VRML1_TextureCoordinate2 *);
 struct X3D_Virt virt_VRML1_TextureCoordinate2 = { NULL,(void *)render_VRML1_TextureCoordinate2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Transform(struct X3D_VRML1_Transform *);
 struct X3D_Virt virt_VRML1_Transform = { NULL,(void *)render_VRML1_Transform,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_VRML1_Translation(struct X3D_VRML1_Translation *);
 struct X3D_Virt virt_VRML1_Translation = { NULL,(void *)render_VRML1_Translation,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_VRML1_WWWAnchor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_VRML1_WWWInline = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void prep_Viewpoint(struct X3D_Viewpoint *);
 struct X3D_Virt virt_Viewpoint = { (void *)prep_Viewpoint,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void child_VisibilitySensor(struct X3D_VisibilitySensor *);
 struct X3D_Virt virt_VisibilitySensor = { NULL,NULL,(void *)child_VisibilitySensor,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_WorldInfo = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 
@@ -4482,8 +4927,8 @@ int convertToSFType (int st) {
 		case FIELDTYPE_MFVec4f:	return FIELDTYPE_SFVec4f;
 		case FIELDTYPE_SFVec4d:	return FIELDTYPE_SFVec4d;
 		case FIELDTYPE_MFVec4d:	return FIELDTYPE_SFVec4d;
-	return -1;;
-}
+	}
+	return -1;
 }
 /* Return a pointer to a string representation of the fieldtype type */
 const char *stringFieldtypeType (int st) {
