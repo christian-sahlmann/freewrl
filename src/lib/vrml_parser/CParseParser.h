@@ -1,7 +1,7 @@
 /* 
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseParser.h,v 1.12 2009/08/12 19:50:29 crc_canada Exp $
+$Id: CParseParser.h,v 1.13 2009/08/12 20:36:05 crc_canada Exp $
 
 Parser (input of non-terminal symbols) for CParse
 
@@ -88,27 +88,11 @@ void parser_scopeOut(struct VRMLParser*);
 #define parser_fromString(me, str) \
  lexer_fromString(me->lexer, str)
 
-/* Parses MF* field values */
-BOOL parser_mfboolValue(struct VRMLParser*, struct Multi_Bool*);
-BOOL parser_mfcolorValue(struct VRMLParser*, struct Multi_Color*);
-BOOL parser_mfcolorrgbaValue(struct VRMLParser*, struct Multi_ColorRGBA*);
-BOOL parser_mffloatValue(struct VRMLParser*, struct Multi_Float*);
-BOOL parser_mfint32Value(struct VRMLParser*, struct Multi_Int32*);
-BOOL parser_mfnodeValue(struct VRMLParser*, struct Multi_Node*);
-BOOL parser_mfrotationValue(struct VRMLParser*, struct Multi_Rotation*);
-BOOL parser_mfstringValue(struct VRMLParser*, struct Multi_String*);
-BOOL parser_mftimeValue(struct VRMLParser*, struct Multi_Time*);
-BOOL parser_mfvec2fValue(struct VRMLParser*, struct Multi_Vec2f*);
-BOOL parser_mfvec3fValue(struct VRMLParser*, struct Multi_Vec3f*);
-BOOL parser_mfvec3dValue(struct VRMLParser*, struct Multi_Vec3d*);
-
 /* Parses SF* field values */
 #define parser_sffloatValue(me, ret) \
  lexer_float(me->lexer, ret)
-BOOL parser_sfimageValue(struct VRMLParser*, vrmlImageT*);
 #define parser_sfint32Value(me, ret) \
  lexer_int32(me->lexer, ret)
-BOOL parser_sfstringValue_(struct VRMLParser*, vrmlStringT*);
 #define parser_sfstringValue(me, ret) \
  lexer_string(me->lexer, ret)
 #define lexer_sfstringValue(me, ret) \

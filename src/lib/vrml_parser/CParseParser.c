@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.39 2009/08/12 19:50:29 crc_canada Exp $
+  $Id: CParseParser.c,v 1.40 2009/08/12 20:36:05 crc_canada Exp $
 
   ???
 
@@ -106,19 +106,35 @@ static BOOL parser_sfmatrix4fValue (struct VRMLParser *, void *);
 static BOOL parser_sfvec2fValue (struct VRMLParser *, void *);
 static BOOL parser_sfvec3fValue (struct VRMLParser *, void *);
 static BOOL parser_sfvec4fValue (struct VRMLParser *, void *);
-
 static BOOL parser_sfvec2dValue (struct VRMLParser *, void *);
 static BOOL parser_sfvec3dValue (struct VRMLParser *, void *);
 static BOOL parser_sfvec4dValue (struct VRMLParser *, void *);
 static BOOL parser_sfmatrix3dValue (struct VRMLParser *, void *);
 static BOOL parser_sfmatrix4dValue (struct VRMLParser *, void *);
+static BOOL parser_mfboolValue(struct VRMLParser*, void*);
+static BOOL parser_mfcolorValue(struct VRMLParser*, void*);
+static BOOL parser_mfcolorrgbaValue(struct VRMLParser*, void*);
+static BOOL parser_mffloatValue(struct VRMLParser*, void*);
+static BOOL parser_mfint32Value(struct VRMLParser*, void*);
+static BOOL parser_mfnodeValue(struct VRMLParser*, void*);
+static BOOL parser_mfrotationValue(struct VRMLParser*, void*);
+static BOOL parser_mfstringValue(struct VRMLParser*, void*);
+static BOOL parser_mftimeValue(struct VRMLParser*, void*);
+static BOOL parser_mfvec2fValue(struct VRMLParser*, void*);
+static BOOL parser_mfvec3fValue(struct VRMLParser*, void*);
+static BOOL parser_mfvec3dValue(struct VRMLParser*, void*);
+static BOOL parser_sfstringValue_(struct VRMLParser*, void*);
+static BOOL parser_sfimageValue(struct VRMLParser*, void*);
+
+
+
 
 #define parser_sfvec3fValue(me, ret) \
  parser_sfcolorValue(me, ret)
 
 
 /* for those types not parsed yet, call this to print an error message */
-BOOL parser_fieldTypeNotParsedYet(struct VRMLParser* me, vrmlTimeT* ret);
+static BOOL parser_fieldTypeNotParsedYet(struct VRMLParser* me, void* ret);
 
 
 BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
@@ -2402,9 +2418,10 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
 
 /* Parse a MF* field */
 #define PARSER_MFFIELD(name, type) \
- BOOL parser_mf##name##Value(struct VRMLParser* me, struct Multi_##type* ret) { \
+ static BOOL parser_mf##name##Value(struct VRMLParser* me, void *ret) { \
   struct Vector* vec; \
   vrmlNodeT *RCX; \
+  struct Multi_##type *rv; \
   RCX = NULL; \
   vec = NULL; \
   \
@@ -2441,7 +2458,6 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
 if (me->lexer->curID != NULL) { \
         /* printf ("parser_MF, curID was not null (it is %s) me %u lexer %u... lets just parse node\n",me->lexer->curID,me,me->lexer); */ \
         if (!parser_node(me, (vrmlNodeT*)&RCX, ID_UNDEFINED)) { \
-        /* if(!parser_sf##name##Value(me, RCX)) ... */ \
                 return FALSE; \
         } \
         if (RCX == NULL) return FALSE; \
@@ -2490,14 +2506,15 @@ if((!lexer_openSquare(me->lexer)) && (!(me->parsingX3DfromXML))) { \
                 lexer_skip(me->lexer); \
         } \
   }\
-  ret->n=vector_size(vec); \
-  ret->p=vector_releaseData(vrml##type##T, vec); \
+  rv = (struct Multi_##type*) ret; \
+  rv->n=vector_size(vec); \
+  rv->p=vector_releaseData(vrml##type##T, vec); \
   \
   deleteVector(vrml##type##T, vec); \
   return TRUE; \
  } 
 
-PARSER_MFFIELD(bool, Bool)
+    PARSER_MFFIELD(bool, Bool)
     PARSER_MFFIELD(color, Color)
     PARSER_MFFIELD(colorrgba, ColorRGBA)
     PARSER_MFFIELD(float, Float)
@@ -2568,12 +2585,16 @@ static BOOL set_X3Dstring(struct VRMLLexer* me, vrmlStringT* ret) {
     return TRUE;
 }
 
-BOOL parser_sfstringValue_(struct VRMLParser* me, vrmlStringT* ret) {
+static BOOL parser_sfstringValue_(struct VRMLParser* me, void* ret) {
+    vrmlStringT* rv;
+
+    rv = (vrmlStringT*)ret;
+
     /* are we parsing the "classic VRML" formatted string? Ie, one with
        starting and finishing quotes? */
-    if (!me->parsingX3DfromXML) return lexer_string(me->lexer, ret);
+    if (!me->parsingX3DfromXML) return lexer_string(me->lexer, rv);
 
-    else return set_X3Dstring(me->lexer, ret);
+    else return set_X3Dstring(me->lexer, rv);
         
     return TRUE;
 }
@@ -2640,10 +2661,13 @@ BOOL parser_sfboolValue(struct VRMLParser* me, void* ret) {
 /* JAS this code assumes that the ret points to a SFInt_32 type, and just
    fills in the values. */
  
-    BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
+    static BOOL parser_sfimageValue(struct VRMLParser* me, void* ret)
     {
+	vrmlImageT *rv;
         vrmlInt32T width, height, depth;
         vrmlInt32T* ptr;
+
+	rv = (vrmlImageT*) ret;
  
         if(!lexer_int32(me->lexer, &width))
             return FALSE;
@@ -2653,17 +2677,17 @@ BOOL parser_sfboolValue(struct VRMLParser* me, void* ret) {
             return FALSE;
 
 
-        ret->n=3+width*height;
-        ret->p=MALLOC(sizeof(int) * ret->n);
-        ret->p[0]=width;
-        ret->p[1]=height;
-        ret->p[2]=depth;
+        rv->n=3+width*height;
+        rv->p=MALLOC(sizeof(int) * rv->n);
+        rv->p[0]=width;
+        rv->p[1]=height;
+        rv->p[2]=depth;
 
-        for(ptr=ret->p+3; ptr!=ret->p+ret->n; ++ptr)
+        for(ptr=rv->p+3; ptr!=rv->p+rv->n; ++ptr)
             if(!lexer_int32(me->lexer, ptr))
             {
-                FREE_IF_NZ(ret->p);
-                ret->n=0;
+                FREE_IF_NZ(rv->p);
+                rv->n=0;
                 return FALSE;
             }
 
@@ -2671,7 +2695,7 @@ BOOL parser_sfboolValue(struct VRMLParser* me, void* ret) {
     }
 
 
-BOOL parser_sfnodeValue(struct VRMLParser* me, void* ret) {
+static BOOL parser_sfnodeValue(struct VRMLParser* me, void* ret) {
     unsigned tmp;
     vrmlNodeT* rv;
 
@@ -2699,7 +2723,7 @@ BOOL parser_sfnodeValue(struct VRMLParser* me, void* ret) {
 }
 
 
-BOOL parser_sftimeValue(struct VRMLParser* me, void* ret)
+static BOOL parser_sftimeValue(struct VRMLParser* me, void* ret)
     {
 	vrmlTimeT *rv;
 	rv = (vrmlTimeT*)ret;
@@ -2707,7 +2731,7 @@ BOOL parser_sftimeValue(struct VRMLParser* me, void* ret)
     }
 
 
-BOOL parser_fieldTypeNotParsedYet(struct VRMLParser* me, vrmlTimeT* ret) {
+static BOOL parser_fieldTypeNotParsedYet(struct VRMLParser* me, void* ret) {
     CPARSE_ERROR_CURID ("received a request to parse a type not supported yet");
     return FALSE;
 }
