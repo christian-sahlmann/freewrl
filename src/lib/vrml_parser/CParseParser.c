@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.38 2009/08/12 17:22:54 crc_canada Exp $
+  $Id: CParseParser.c,v 1.39 2009/08/12 19:50:29 crc_canada Exp $
 
   ???
 
@@ -93,8 +93,33 @@ int parsedSuccessfully(void) {return foundInputErrors == 0;}
    MFVec4d
 */
 
+static BOOL parser_sffloatValue_ (struct VRMLParser *, void *);
+static BOOL parser_sfint32Value_ (struct VRMLParser *, void *);
+static BOOL parser_sftimeValue (struct VRMLParser *, void *);
+static BOOL parser_sfboolValue (struct VRMLParser *, void *);
+static BOOL parser_sfnodeValue (struct VRMLParser *, void *);
+static BOOL parser_sfrotationValue (struct VRMLParser *, void *);
+static BOOL parser_sfcolorValue (struct VRMLParser *, void *);
+static BOOL parser_sfcolorrgbaValue (struct VRMLParser *, void *);
+static BOOL parser_sfmatrix3fValue (struct VRMLParser *, void *);
+static BOOL parser_sfmatrix4fValue (struct VRMLParser *, void *);
+static BOOL parser_sfvec2fValue (struct VRMLParser *, void *);
+static BOOL parser_sfvec3fValue (struct VRMLParser *, void *);
+static BOOL parser_sfvec4fValue (struct VRMLParser *, void *);
+
+static BOOL parser_sfvec2dValue (struct VRMLParser *, void *);
+static BOOL parser_sfvec3dValue (struct VRMLParser *, void *);
+static BOOL parser_sfvec4dValue (struct VRMLParser *, void *);
+static BOOL parser_sfmatrix3dValue (struct VRMLParser *, void *);
+static BOOL parser_sfmatrix4dValue (struct VRMLParser *, void *);
+
+#define parser_sfvec3fValue(me, ret) \
+ parser_sfcolorValue(me, ret)
+
+
 /* for those types not parsed yet, call this to print an error message */
 BOOL parser_fieldTypeNotParsedYet(struct VRMLParser* me, vrmlTimeT* ret);
+
 
 BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
     &parser_sffloatValue_, &parser_mffloatValue,
@@ -2490,26 +2515,29 @@ PARSER_MFFIELD(bool, Bool)
 
 /* Parses a fixed-size vector-field of floats (SFColor, SFRotation, SFVecXf) */
 #define PARSER_FIXED_VEC(name, type, cnt) \
- BOOL parser_sf##name##Value(struct VRMLParser* me, vrml##type##T* ret) \
+ BOOL parser_sf##name##Value(struct VRMLParser* me, void* ret) \
  { \
   int i; \
+  vrml##type##T *rv; \
   ASSERT(me->lexer); \
+  rv = (vrml##type##T *) ret; \
   for(i=0; i!=cnt; ++i) {\
-   if(!parser_sffloatValue(me, ret->c+i)) \
+   if(!parser_sffloatValue(me, rv->c+i)) \
     return FALSE; \
-	/* printf ("parser_sf, %d of %d is %f\n",i,cnt,*(ret->c+i)); */ \
   }\
   return TRUE; \
  }
 
 /* Parses a fixed-size vector-field of floats (SFColor, SFRotation, SFVecXf) */
 #define PARSER_FIXED_DOUBLE_VEC(name, type, cnt) \
- BOOL parser_sf##name##Value(struct VRMLParser* me, vrml##type##T* ret) \
+ BOOL parser_sf##name##Value(struct VRMLParser* me, void* ret) \
  { \
   int i; \
+  vrml##type##T *rv; \
   ASSERT(me->lexer); \
+  rv = (vrml##type##T *) ret; \
   for(i=0; i!=cnt; ++i) {\
-   if(!parser_sfdoubleValue_(me, ret->c+i)) \
+   if(!parser_sfdoubleValue_(me, rv->c+i)) \
     return FALSE; \
   }\
   return TRUE; \
@@ -2519,13 +2547,17 @@ PARSER_MFFIELD(bool, Bool)
     {
         return lexer_double(me->lexer, ret);
     }
-BOOL parser_sffloatValue_(struct VRMLParser* me, vrmlFloatT* ret)
-    {
-	return lexer_float(me->lexer, ret);
+BOOL parser_sffloatValue_(struct VRMLParser* me, void* ret)
+    {   
+	vrmlFloatT *rf;
+	rf = (vrmlFloatT*)ret;
+	return lexer_float(me->lexer, rf);
     }
-BOOL parser_sfint32Value_(struct VRMLParser* me, vrmlInt32T* ret)
+BOOL parser_sfint32Value_(struct VRMLParser* me, void* ret)
     {
-        return lexer_int32(me->lexer, ret);
+	vrmlInt32T* rf;
+	rf = (vrmlInt32T*)ret;
+        return lexer_int32(me->lexer, rf);
     }
 
 
@@ -2546,45 +2578,49 @@ BOOL parser_sfstringValue_(struct VRMLParser* me, vrmlStringT* ret) {
     return TRUE;
 }
 
-BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret) {
+BOOL parser_sfboolValue(struct VRMLParser* me, void* ret) {
+    vrmlBoolT *rv;
+
+    rv = (vrmlBoolT*)ret;
+
     /* are we in the VRML (x3dv) parser? */
     if (!me->parsingX3DfromXML) {
         if(lexer_keyword(me->lexer, KW_TRUE)) {
-            *ret=TRUE;
+            *rv=TRUE;
             return TRUE;
         }
         if(lexer_keyword(me->lexer, KW_FALSE)) {
-            *ret=FALSE;
+            *rv=FALSE;
             return TRUE;
         }
         return FALSE;
     }
     /* possibly, this is from the XML Parser */
     if (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"true")) {
-        *ret = TRUE;
+        *rv = TRUE;
         return TRUE;
     }
     if (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"false")) {
-        *ret = FALSE;
+        *rv = FALSE;
         return TRUE;
     }
 
     /* possibly this is from the XML parser, but there is a case problem */
     if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"TRUE"))) {
 	CPARSE_ERROR_CURID("found upper case TRUE in XML file - should be lower case");
-        *ret = TRUE;
+        *rv = TRUE;
         return TRUE;
     }
     if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"FALSE"))) {
 	CPARSE_ERROR_CURID ("found upper case FALSE in XML file - should be lower case");
-        *ret = FALSE;
+        *rv = FALSE;
         return TRUE;
     }
 
 
         
     /* Noperooni - this was from X3D, but did not parse */
-    *ret = FALSE;
+    *rv = FALSE;
     return FALSE;
 }
 
@@ -2635,41 +2671,39 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret) {
     }
 
 
-BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret) {
+BOOL parser_sfnodeValue(struct VRMLParser* me, void* ret) {
     unsigned tmp;
+    vrmlNodeT* rv;
 
     ASSERT(me->lexer);
+    rv = (vrmlNodeT*)ret;
+
     if(lexer_keyword(me->lexer, KW_NULL)) {
-        *ret=NULL;
+        *rv=NULL;
         return TRUE;
     }
 
     /* are we parsing from a proto expansion? */
     if (!me->parsingX3DfromXML) {
-        return parser_nodeStatement(me, ret);
+        return parser_nodeStatement(me, rv);
     } else {
         /* expect something like a number (memory pointer) to be here */
         if (sscanf(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel], "%u",  &tmp) != 1) {
             CPARSE_ERROR_FIELDSTRING ("error finding SFNode id on line :%s:",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);
-            *ret=NULL;
+            *rv=NULL;
             return FALSE;
         }
-        *ret = (vrmlNodeT)tmp;
+        *rv = (vrmlNodeT)tmp;
     }
     return TRUE;
 }
 
 
-BOOL parser_sftimeValue(struct VRMLParser* me, vrmlTimeT* ret)
+BOOL parser_sftimeValue(struct VRMLParser* me, void* ret)
     {
-        vrmlFloatT f;
-
-        ASSERT(me->lexer);
-        if(!lexer_float(me->lexer, &f))
-            return FALSE;
-
-        *ret=(vrmlTimeT)f;
-        return TRUE;
+	vrmlTimeT *rv;
+	rv = (vrmlTimeT*)ret;
+        return lexer_double(me->lexer, rv);
     }
 
 
