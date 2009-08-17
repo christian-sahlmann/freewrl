@@ -23,7 +23,8 @@ AM_CPPFLAGS += \
 				$(GL_CFLAGS) \
 				$(JPEG_CFLAGS) \
 				$(PNG_CFLAGS) \
-				$(LIBCURL_CFLAGS)
+				$(LIBCURL_CFLAGS) \
+				$(IMLIB2_CFLAGS)
 
 EXTERNAL_LIBS = \
 				$(ZLIB_LIBS) \
@@ -35,7 +36,8 @@ EXTERNAL_LIBS = \
 				$(GL_LIBS) \
 				$(JPEG_LIBS) \
 				$(PNG_LIBS) \
-				$(LIBCURL_LIBS)
+				$(LIBCURL_LIBS) \
+				$(IMLIB2_LIBS)
 
 
 # X11 flags specific to x11 target (default on Linux -- optional on Mac)

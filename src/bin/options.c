@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: options.c,v 1.15 2009/08/08 23:07:45 crc_canada Exp $
+  $Id: options.c,v 1.16 2009/08/17 22:25:58 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -181,8 +181,8 @@ int parseCommandLine (int argc, char **argv)
 	} else {
 	    real_option_name = long_options[real_option_index].name;
 	}
-/* 	FW_DEBUG("option_index=%d optopt=%c option=%s\n", real_option_index, c, */
-/* 		 real_option_name); */
+	DEBUG_MSG("option_index=%d optopt=%c option=%s\n", real_option_index, c,
+		  real_option_name);
 
 	switch (c) {
 

@@ -96,8 +96,11 @@ AM_CONDITIONAL([OS_MAC],[test "$os_type" = "mac"])
 # FreeWRL specific configuration: debug build
 # ====================================================
 
+# A lot of DEBUG, _DEBUG, DEBUG_ defines are out there. So I prefer to create
+# a new one for FreeWRL:
+
 AC_MY_DEFINE_SWITCH([debug],[enable debugging (default=off)],off,FW_DEBUG)
-AM_CONDITIONAL([DEBUG],[test "$sw_debug" != no])
+AM_CONDITIONAL([FW_DEBUG],[test "$sw_debug" != no])
 
 # Fonts configuration
 AC_ARG_WITH([fontsdir],
@@ -417,6 +420,9 @@ AC_SUBST(JPEG_LIBS)
 
 # PNG
 PKG_CHECK_MODULES(PNG, libpng)
+
+# Imlib2
+PKG_CHECK_MODULES(IMLIB2, imlib2)
 
 # ======================================
 # LibFreeWRLEAI configuration

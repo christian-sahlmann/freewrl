@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.6 2009/07/10 19:36:10 crc_canada Exp $
+$Id: Textures.h,v 1.7 2009/08/17 22:25:58 couannette Exp $
 
 Screen snapshot.
 
@@ -10,6 +10,34 @@ Screen snapshot.
 #ifndef __FREEWRL_TEXTURES_H__
 #define __FREEWRL_TEXTURES_H__
 
+
+/* Texture loading table :
+   newer Texture handling procedures
+   each texture has this kind of structure
+*/
+struct textureTableIndexStruct {
+	struct	X3D_Node*	scenegraphNode;
+	int			nodeType;
+	int	imageType;
+	int 	status;
+	int	depth;
+	int 	hasAlpha;
+	GLuint	*OpenGLTexture;
+	int	frames;
+	char    *filename;
+        int x;
+        int y;
+        unsigned char *texdata;
+	struct Multi_Int32 *pixelData;
+        GLint Src;
+        GLint Trc;
+};
+
+extern struct textureTableIndexStruct* loadThisTexture;
+
+/* imageType */
+#define PNGTexture 200
+#define JPGTexture 300
 
 #define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
                                 if (thisTextureType==NODE_ImageTexture){ \

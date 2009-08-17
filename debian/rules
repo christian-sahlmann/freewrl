@@ -41,8 +41,7 @@ configure-stamp:
 		--disable-debug \
 		--with-target=motif \
 		--with-mesa \
-		--enable-eai \
-		--enable-ignore-missing-programs \
+		--enable-libeai \
 		--with-browser=/usr/bin/firefox \
 		--with-soundconv=/usr/bin/sox \
 		--with-unzip=/usr/bin/unzip \

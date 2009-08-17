@@ -6,7 +6,7 @@
  *
  * Library internal declarations.
  *
- * $Id: internal.h,v 1.15 2009/08/06 21:24:03 couannette Exp $
+ * $Id: internal.h,v 1.16 2009/08/17 22:25:58 couannette Exp $
  *
  *******************************************************************/
 
@@ -30,7 +30,8 @@ char *fw_strndup(const char *str, int len);
 #  define DEBUG_(_expr)
 #endif
 
-/* To conform C99 ISO C : */
+/* To conform C99 ISO C (do not use GCC extension) */
+#define DEBUG_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))

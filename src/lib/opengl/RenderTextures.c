@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.14 2009/08/06 02:07:44 crc_canada Exp $
+$Id: RenderTextures.c,v 1.15 2009/08/17 22:25:58 couannette Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -385,3 +385,15 @@ static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode) {
 		}
 	}
 }
+
+/*
+  Some functions in Textures.c should be moved here
+  and possibly renamed to textureDraw_###### :
+
+  loadBackgroundTextures
+  loadTextureBackgroundTextures
+
+  Reason: it seems those function do a render job
+  whereas other load functions do a fetch & load job.
+*/
+

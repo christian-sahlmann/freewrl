@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: main.h,v 1.3 2009/08/01 09:45:39 couannette Exp $
+$Id: main.h,v 1.4 2009/08/17 22:25:58 couannette Exp $
 
 FreeWRL/X3D main program.
 Internal header: helper macros.
@@ -19,9 +19,11 @@ Internal header: helper macros.
 # define DEBUG_(...)
 #endif
 
-#define TRACE_MSG(_formargs...) DEBUG_(fprintf(stdout, ##_formargs))
-#define WARN_MSG(_formargs...)  DEBUG_(fprintf(stdout, ##_formargs))
-#define ERROR_MSG(_formargs...) DEBUG_(fprintf(stderr, ##_formargs))
+/* To conform C99 ISO C (do not use GCC extension) */
+#define DEBUG_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))
 
 
 #endif /* __FREEWRL_MAIN_H__ */

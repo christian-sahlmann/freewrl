@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.19 2009/08/07 16:16:15 crc_canada Exp $
+$Id: Textures.c,v 1.20 2009/08/17 22:25:58 couannette Exp $
 
 General Texture objects.
 
@@ -47,27 +47,6 @@ General Texture objects.
 /* we keep track of which textures have been loaded, and which have not */
 extern void *texParams[];
 
-/* newer Texture handling procedures */
-/* each texture has this kind of structure */
-struct textureTableIndexStruct {
-	struct	X3D_Node*	scenegraphNode;
-	int			nodeType;
-	int	imageType;
-	int 	status;
-	int	depth;
-	int 	hasAlpha;
-	GLuint	*OpenGLTexture;
-	int	frames;
-	char    *filename;
-        int x;
-        int y;
-        unsigned char *texdata;
-	struct Multi_Int32 *pixelData;
-        GLint Src;
-        GLint Trc;
-};
-#define PNGTexture 200
-#define JPGTexture 300
 
 /* each block of allocated code contains this... */
 struct textureTableStruct {

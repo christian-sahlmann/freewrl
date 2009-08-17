@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.24 2009/08/01 09:45:39 couannette Exp $
+$Id: ProdCon.c,v 1.25 2009/08/17 22:25:58 couannette Exp $
 
 CProto ???
 
@@ -335,13 +335,29 @@ char* freewrl_mktemp()
 }
 #endif
 
-#ifdef HAVE_LIBCURL
-# include <curl/curl.h>
+#if defined(HAVE_LIBCURL)
+
+/*
+  Instead of downloading files at once with wget,
+  I propose to try libCurl which provides some nice
+  mechanism to reuse open connections and to multi-
+  thread downloads.
+
+  At the moment I've only hacked a basic mise en oeuvre
+  of this library.
+ */
+
+#include <curl/curl.h>
 
 static CURL *curl_h = NULL;
 
 int with_libcurl = FALSE;
 
+/*
+  libCurl needs to be initialized once.
+  We've choosen the very simple method of curl_easy_init
+  but, in the future we'll use the full features.
+*/
 void init_curl()
 {
     CURLcode c;
@@ -361,7 +377,8 @@ void init_curl()
     }
 }
 
-const char* do_get_url_curl(const char *url)
+/* return the temp file where we got the contents of the URL requested */
+char* do_get_url_curl(const char *url)
 {
     CURLcode success;
     char *temp;
@@ -384,6 +401,10 @@ const char* do_get_url_curl(const char *url)
 	init_curl();
     }
 
+    /*
+      Ask libCurl to download one url at once,
+      and to write it to the specified file.
+    */
     curl_easy_setopt(curl_h, CURLOPT_URL, url);
 
     curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, file);
@@ -391,13 +412,16 @@ const char* do_get_url_curl(const char *url)
     success = curl_easy_perform(curl_h); 
 
     if (success == 0) {
-	printf("Waaou !\n");
+#ifdef TRACE_DOWNLOADS
+	TRACE_MSG("Download sucessfull [curl] for url %s\n", url);
+#endif
 	fclose(file);
 	return temp;
     } else {
-	free(temp);
-	fclose(file);
 	ERROR_MSG("Download failed for url %s (%d)\n", url, (int) success);
+	fclose(file);
+	unlink(temp);
+	free(temp);
 	return NULL;
     }
 }
@@ -405,7 +429,7 @@ const char* do_get_url_curl(const char *url)
 #endif
 
 /* return the temp file where we got the contents of the URL requested */
-const char* do_get_url(const char *filename)
+char* do_get_url_wget(const char *filename)
 {
     char *temp, *wgetcmd;
 
@@ -433,7 +457,25 @@ const char* do_get_url(const char *filename)
     return temp;
 }
 
-int do_file_exists(const char *filename)
+/*
+  To be effectively used, libCurl has to be enabled
+  during configure, then it has to be enabled on 
+  the command line (see options.c).
+*/
+char* do_get_url(const char *url)
+{
+#if defined(HAVE_LIBCURL)
+    if (with_libcurl) {
+	return do_get_url_curl(url);
+    } else {
+	return do_get_url_wget(url);
+    }
+#else 
+    return do_get_url_wget(url);
+#endif
+}
+
+bool do_file_exists(const char *filename)
 {
     if (access(filename, R_OK) == 0) {
 	return TRUE;

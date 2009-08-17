@@ -6,10 +6,10 @@
 #
 
 # Debug options
-if DEBUG
-DEBUG_FLAGS=-g
+if FW_DEBUG
+DEBUG_FLAGS=-g -O0
 else
-DEBUG_FLAGS=
+DEBUG_FLAGS=-O2
 endif
 
 # Compiler warnings: 
