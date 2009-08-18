@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.42 2009/08/12 22:15:04 crc_canada Exp $
+  $Id: CParseParser.c,v 1.43 2009/08/18 21:19:34 dug9 Exp $
 
   ???
 
@@ -472,7 +472,7 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
             if(parser_nodeStatement(me, &node))
             {
                 /* Add the node just parsed to the ROOT node for this scene */
-                AddRemoveChildren(me->ptr, me->ptr+me->ofs, (uintptr_t*)&node, 1, 1,__FILE__,__LINE__);
+                AddRemoveChildren(me->ptr, offsetPointer_deref(void *,me->ptr,me->ofs), (uintptr_t *)&node, 1, 1,__FILE__,__LINE__);
 #ifdef CPARSERVERBOSE
                 printf("parser_vrmlScene: node parsed\n");
 #endif
