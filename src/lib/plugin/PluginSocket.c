@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: PluginSocket.c,v 1.8 2009/08/19 13:36:03 crc_canada Exp $
+$Id: PluginSocket.c,v 1.9 2009/08/19 17:12:51 crc_canada Exp $
 
 Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
@@ -59,7 +59,7 @@ static struct timeval mytime;
 
 static double Time1970sec(void) {
         gettimeofday(&mytime, NULL);
-        TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+        return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 }
 #endif
 

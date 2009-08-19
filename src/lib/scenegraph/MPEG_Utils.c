@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MPEG_Utils.c,v 1.10 2009/08/19 13:36:03 crc_canada Exp $
+$Id: MPEG_Utils.c,v 1.11 2009/08/19 17:12:51 crc_canada Exp $
 
 ???
 
@@ -427,7 +427,7 @@ static struct timeval mytime;
 
 static double Time1970sec(void) {
         gettimeofday(&mytime, NULL);
-        TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+        return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 }
 #endif
 
