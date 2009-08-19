@@ -6,7 +6,7 @@
  *
  * Library internal declarations.
  *
- * $Id: internal.h,v 1.16 2009/08/17 22:25:58 couannette Exp $
+ * $Id: internal.h,v 1.17 2009/08/19 04:16:49 dug9 Exp $
  *
  *******************************************************************/
 
@@ -30,6 +30,12 @@ char *fw_strndup(const char *str, int len);
 #  define DEBUG_(_expr)
 #endif
 
+#if defined(_MSC_VER)
+#include <stddef.h> /* for offsetof(...) */
+/* textures.c > jpeg > jmorecfg.h tries to redefine booleand but you can say you have it */
+#define HAVE_BOOLEAN 1    
+#define M_PI acos(-1.0)
+#endif
 /* To conform C99 ISO C (do not use GCC extension) */
 #define DEBUG_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
@@ -65,11 +71,15 @@ void *freewrlStrdup(int line, char *file, char *str);
 # define MALLOC malloc
 # define REALLOC realloc
 # define FREE free
-
+#if defined(_MSC_VER)
+# define STRDUP _strdup
+# define UNLINK _unlink
+# define TEMPNAM _tempnam
+#else
 # define STRDUP strdup
 # define UNLINK unlink
 # define TEMPNAM tempnam
-
+#endif
 # define ASSERT(_whatever)
 
 #endif /* defined(FW_DEBUG) && defined(DEBUG_MALLOC) */
