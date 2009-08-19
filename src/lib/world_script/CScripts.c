@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.20 2009/07/20 18:07:07 crc_canada Exp $
+$Id: CScripts.c,v 1.21 2009/08/19 04:15:36 dug9 Exp $
 
 ???
 
@@ -348,6 +348,9 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  printf ("script_initCodeFromUri, uri is %s\n",uri); 
  #endif
 
+#if defined(_MSC_VER)
+#define PATH_MAX _MAX_PATH  /*32kb*/
+#endif
  // Test if this could be a path name
  if (strlen(getInputURL) >= PATH_MAX) {
      return FALSE;

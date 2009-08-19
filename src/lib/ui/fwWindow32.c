@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: fwWindow32.c,v 1.1 2009/08/01 13:53:19 couannette Exp $
+  $Id: fwWindow32.c,v 1.2 2009/08/19 04:13:30 dug9 Exp $
 
   FreeWRL main window : win32 code.
 
@@ -82,7 +82,7 @@ int mouseX, mouseY;
 
 static short gcWheelDelta = 0;
 
-extern int	shutterGlasses; /* stereo shutter glasses */
+/*extern int	shutterGlasses; /* stereo shutter glasses */
 
 float myFps = 0.0;
 
@@ -220,6 +220,33 @@ GLvoid drawScene(GLvoid)
 
     SwapBuffers(wglGetCurrentDC());
 } 
+
+void swapbuffers32()
+{
+	static int swapcount = 0;
+   PAINTSTRUCT ps;
+	RECT rect;
+	swapcount++;
+    /*
+	GetClientRect(ghWnd, &rect); 
+	glDrawBuffer(GL_BACK);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	initializeGL(rect.right, rect.bottom);
+	*/
+	/* drawScene(); */
+	ghDC = wglGetCurrentDC();
+
+    /*TextOut( ghDC, 10, 10, "Hello, Windows!", 13 ); */
+
+	SwapBuffers(ghDC); /* ghDC); /*( SWAPBUFFERS; */
+	/*
+	GetClientRect(ghWnd, &rect); 
+	initializeGL(rect.right, rect.bottom);
+	drawScene();
+	/* glFinish(); */
+
+}
+
 
 void setMenuStatus(char *stat) {
     /*strncpy (myMenuStatus, stat, MAXSTAT);*/
@@ -389,13 +416,12 @@ BOOL bSetupPixelFormat(HDC hdc)
  
     ppfd->nSize = sizeof(PIXELFORMATDESCRIPTOR); 
     ppfd->nVersion = 1; 
-    ppfd->dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |  
-	PFD_DOUBLEBUFFER; 
+    ppfd->dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER; 
     ppfd->dwLayerMask = PFD_MAIN_PLANE; 
     ppfd->iPixelType = PFD_TYPE_COLORINDEX; 
     ppfd->cColorBits = 8; 
     ppfd->cDepthBits = 16; 
-    ppfd->cAccumBits = 0; 
+    ppfd->cAccumBits = 8; /*need accum buffer for shader anaglyph*/
     ppfd->cStencilBits = 0; 
  
     pixelformat = ChoosePixelFormat(hdc, ppfd); 
@@ -476,7 +502,7 @@ LRESULT CALLBACK PopupWndProc(
     LONG lRet = 1; 
     RECT rect; 
     char kp;
-    int mev;
+    int mev,err;
     int butnum;
     /*
       short cmd;
@@ -505,6 +531,15 @@ LRESULT CALLBACK PopupWndProc(
 	ghRC = wglCreateContext(ghDC); 
 	wglMakeCurrent(ghDC, ghRC); 
 	GetClientRect(hWnd, &rect); 
+    err = glewInit();
+    if (GLEW_OK != err)
+    {
+	/* Problem: glewInit failed, something is seriously wrong. */
+	printf("Error: %s\n", glewGetErrorString(err));
+	 
+    }
+    printf( "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
 	screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 	screenHeight = rect.bottom;
 	/* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
@@ -517,6 +552,7 @@ LRESULT CALLBACK PopupWndProc(
 	screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 	screenHeight = rect.bottom;
 	resize(rect.right, rect.bottom); 
+	setScreenDim(rect.right,rect.bottom);
 	break; 
 
     case WM_DISPLAYCHANGE:

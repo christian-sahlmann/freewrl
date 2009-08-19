@@ -6,7 +6,7 @@
  *
  * Program system dependencies.
  *
- * $Id: system.h,v 1.7 2009/08/01 09:45:39 couannette Exp $
+ * $Id: system.h,v 1.8 2009/08/19 04:07:34 dug9 Exp $
  *
  *******************************************************************/
 
@@ -58,9 +58,57 @@ typedef unsigned char _Bool;
 # include <unistd.h>
 #endif
 
-#if defined(HAVE_SIGNAL_H)
-# include <signal.h>
+#if defined(_MSC_VER)
+
+#if HAVE_SYS_WAIT_H
+# include <sys/wait.h>
 #endif
+#ifndef WEXITSTATUS
+# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
+#endif
+#ifndef WIFEXITED
+# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
+#endif
+
+#if HAVE_PTHREAD
+# include <pthread.h>
+#endif
+
+#if HAVE_SYS_IPC_H
+# include <sys/ipc.h>
+#endif
+
+#if HAVE_SYS_MSG_H
+# include <sys/msg.h>
+#endif
+
+#if !defined(assert)
+# include <assert.h>
+#endif
+
+#if HAVE_DIRECT_H
+#include <direct.h>
+#endif
+
+#if HAVE_SIGNAL_H 
+#include <signal.h>
+    /* install the signal handler for SIGQUIT */
+#define SIGQUIT SIGINT
+/*#define SIGTERM SIGTERM  *//*not generated under win32 but can raise */
+/*#define SIGSEGV SIGSEGV */  /* memory overrun */
+#define SIGALRM SIGABRT  /* I don't know so I guessed the lookup */
+#define SIGHUP SIGFPE   /* fpe means floating poinot error */
+#endif
+
+
+#else
+
+#if HAVE_SIGNAL_H 
+#include <signal.h>
+#endif
+
+#endif
+
 
 
 #endif /* __FREEWRL_SYSTEM_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: main.c,v 1.14 2009/08/01 09:45:39 couannette Exp $
+$Id: main.c,v 1.15 2009/08/19 04:07:34 dug9 Exp $
 
 FreeWRL main program.
 
@@ -28,7 +28,7 @@ int wantEAI = FALSE;
 void catch_SIGQUIT();
 void catch_SIGSEGV();
 
-#if !defined(WIN32)
+#if !defined(CYGWIN)
 void catch_SIGALRM(int);
 void catch_SIGHUP();
 #endif
@@ -60,7 +60,7 @@ int main (int argc, char **argv)
     signal(SIGTERM, (void(*)(int)) catch_SIGQUIT);
     signal(SIGSEGV, (void(*)(int)) catch_SIGSEGV);
 
-#if !defined(WIN32)
+#if !defined(CYGWIN)
     signal(SIGQUIT, (void(*)(int)) catch_SIGQUIT);
     signal(SIGALRM, (void(*)(int)) catch_SIGALRM);
     signal(SIGHUP,  (void(*)(int)) catch_SIGHUP);
@@ -94,7 +94,7 @@ int main (int argc, char **argv)
     }
 
     /* doug- redirect stdout to a file - works, useful for sending bug reports */
-    /* freopen("freopen.out", "w", stdout ); */
+    /*freopen("freopen.txt", "w", stdout ); */
 
     /* start threads, parse initial scene, etc */
     initFreewrl();
@@ -127,7 +127,7 @@ void catch_SIGSEGV()
     exit(1);
 }
 
-#if !defined(WIN32)
+#if !defined(CYGWIN)
 
 void catch_SIGHUP()
 {
@@ -135,6 +135,9 @@ void catch_SIGHUP()
     Anchor_ReplaceWorld(BrowserFullPath);
 }
 
+#if defined(_MSC_VER)
+#define alarm(0) printf("\a")
+#endif
 void catch_SIGALRM(int sig)
 {
     signal(SIGALRM, SIG_IGN);

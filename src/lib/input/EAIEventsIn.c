@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.27 2009/08/08 23:07:45 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.28 2009/08/19 04:08:24 dug9 Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -871,7 +871,7 @@ void EAI_RW(char *str) {
 		i = sscanf (str, "%u",(unsigned int *)&newNode);
 
 		if (i>0) {
-			AddRemoveChildren (rootNode,rootNode + offsetof (struct X3D_Group, children),(uintptr_t *)&newNode,1,1,__FILE__,__LINE__);
+			AddRemoveChildren (rootNode,offsetPointer_deref(void*,rootNode,offsetof (struct X3D_Group, children)),(uintptr_t *)&newNode,1,1,__FILE__,__LINE__);
 		}
 		while (isdigit(*str)) str++;
 		while (isspace(*str)) str++;

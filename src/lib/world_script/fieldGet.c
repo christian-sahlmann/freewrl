@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.20 2009/08/06 21:24:03 couannette Exp $
+$Id: fieldGet.c,v 1.21 2009/08/19 04:15:36 dug9 Exp $
 
 Javascript C language binding.
 
@@ -33,7 +33,7 @@ Javascript C language binding.
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
 #include "fieldGet.h"
-
+#define offsetPointer_deref(t, me, offs) ((t)(((char*)(me))+offs))
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
 /********************************************************************
 
@@ -213,10 +213,10 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in += elementlen;
-				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in += elementlen;
-				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in += elementlen;
-				fp = (float *)fp_in; SFRPptr->v.c[3] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)fp_in; SFRPptr->v.c[3] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -260,9 +260,9 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in += elementlen;
-				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in += elementlen;
-				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -306,9 +306,9 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in += elementlen;
-				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in += elementlen;
-				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)fp_in; SFRPptr->v.c[2] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -352,8 +352,8 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in += elementlen;
-				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in += elementlen;
+				fp = (float *)fp_in; SFRPptr->v.c[0] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				fp = (float *)fp_in; SFRPptr->v.c[1] = *fp; fp_in = offsetPointer_deref(float *,fp_in,elementlen);
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
@@ -392,7 +392,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				
 				fp = (float *)fp_in; 
 				newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
-				fp_in += elementlen;
+				fp_in = offsetPointer_deref(float *,fp_in,elementlen);
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
@@ -429,7 +429,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				
 				fp = (float *)fp_in; 
 				newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
-				fp_in += elementlen;
+				fp_in = offsetPointer_deref(float *,fp_in,elementlen);
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
@@ -466,7 +466,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				
 				ip = (int *)fp_in; 
 				newjsval = INT_TO_JSVAL(ip);
-				fp_in += elementlen;
+				fp_in = offsetPointer_deref(float *,fp_in,elementlen);
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
@@ -539,7 +539,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			for (x=0; x<datalen; x++) {
 				ip = (int *)fp_in; 
 				newjsval = INT_TO_JSVAL(ip);
-				fp_in += elementlen;
+				fp_in = offsetPointer_deref(float *,fp_in,elementlen);
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
@@ -1006,7 +1006,7 @@ void setScriptMultiElementtype (uintptr_t num)
 		cx = (JSContext *) ScriptControl[myObj->num].cx;
 		obj = (JSObject *)ScriptControl[myObj->num].glob;
 
-		fn += fptr;
+		fn = offsetPointer_deref(void*,fn,fptr); /*fn += fptr;*/
 
 		set_one_MultiElementType (myObj->num, tptr, (void*)fn, len);
 	}

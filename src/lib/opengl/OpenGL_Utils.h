@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.8 2009/08/06 20:10:11 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.9 2009/08/19 04:10:33 dug9 Exp $
 
 Screen snapshot.
 
@@ -19,7 +19,7 @@ glpOpenGLInitialize(void);
 
 
 void
-BackEndClearBuffer(void);
+BackEndClearBuffer(int);
 
 void
 BackEndLightsOff(void);

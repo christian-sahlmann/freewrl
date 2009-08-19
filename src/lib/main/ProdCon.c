@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.25 2009/08/17 22:25:58 couannette Exp $
+$Id: ProdCon.c,v 1.26 2009/08/19 04:09:21 dug9 Exp $
 
 CProto ???
 
@@ -316,6 +316,14 @@ int checkNetworkFile(char *fn)
 #define outputDirector "-o"
 #else
 #define outputDirector "-O"
+#endif
+#if defined(_MSC_VER)
+#include <io.h>
+#define access _access
+#define R_OK 00
+#include <process.h>
+#define getpid _getpid
+#define tempnam _tempnam
 #endif
 
 #ifdef HAVE_MKTEMP
@@ -1083,22 +1091,6 @@ void registerBindable (struct X3D_Node *node) {
 /*************************NORMAL ROUTINES***************************/
 
 
-/* Shutter glasses, stereo mode configure  Mufti@rus*/
-float eyedist = 0.06;
-float screendist = 0.8;
-
-void setEyeDist (const char *optArg) {
-	int i;
-	i= sscanf(optArg,"%f",&eyedist);
-	if (i==0) printf ("warning, command line eyedist parameter incorrect - was %s\n",optArg);
-}
-
-void setScreenDist (const char *optArg) {
-	int i;
-	i= sscanf(optArg,"%f",&screendist);
-	if (i==0) printf ("warning, command line screendist parameter incorrect - was %s\n",optArg);
-}
-/* end of Shutter glasses, stereo mode configure */
 
 
 /* handle an INLINE - should make it into a CreateVRMLfromURL type command */
@@ -1225,7 +1217,7 @@ void __pt_doStringUrl () {
       	/* now that we have the VRML/X3D file, load it into the scene. */
 	if (psp.ptr != NULL) {
 		/* add the new nodes to wherever the caller wanted */
-		AddRemoveChildren(psp.ptr, psp.ptr+psp.ofs, (uintptr_t*)nRn->children.p,nRn->children.n,1,__FILE__,__LINE__);
+		AddRemoveChildren(psp.ptr,offsetPointer_deref(void*,psp.ptr,psp.ofs), (uintptr_t*)nRn->children.p,nRn->children.n,1,__FILE__,__LINE__);
 
 		/* and, remove them from this nRn node, so that they are not multi-parented */
 		AddRemoveChildren(X3D_NODE(nRn), (struct Multi_Node *)((char *)nRn + offsetof (struct X3D_Group, children)), (uintptr_t *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);

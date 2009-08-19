@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.7 2009/08/01 09:45:39 couannette Exp $
+$Id: Tess.c,v 1.8 2009/08/19 04:12:29 dug9 Exp $
 
 ???
 
@@ -22,18 +22,13 @@ $Id: Tess.c,v 1.7 2009/08/01 09:45:39 couannette Exp $
 #ifdef AQUA
 typedef GLvoid (*_GLUfuncptr)(GLvoid);
 #endif
-/* #ifdef WIN32 */
-/* typedef  void (__stdcall *_GLUfuncptr)(); */
-/* #endif */
+#if defined(_MSC_VER)
+typedef  void (__stdcall *_GLUfuncptr)();
+#endif
 
 /* WIN32 p.411 openGL programmers guide - windows needs CALLBACK, unix not */
 #ifndef CALLBACK 
 #define CALLBACK
-#endif
-
-/* from Doug Sanden - highaspirations - at - hotmail.com */
-#ifndef CALLBACK
-#define CALLBACK /* this is a null on POSIX, but wgl defines it */
 #endif
 
 

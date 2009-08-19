@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MPEG_Utils.c,v 1.8 2009/08/01 09:45:39 couannette Exp $
+$Id: MPEG_Utils.c,v 1.9 2009/08/19 04:12:29 dug9 Exp $
 
 ???
 
@@ -2233,13 +2233,13 @@ static unsigned char cropTbl[NUM_CROP_ENTRIES];
 double
 ReadSysClock()
 {
-/* #ifdef WIN32 */
-/*   return Time1970sec(); */
-/* #else */
+#if defined(_MSC_VER)
+  return Time1970sec();
+#else
   struct timeval tv;
   (void) gettimeofday(&tv, (struct timezone *)NULL);
   return (tv.tv_sec + tv.tv_usec / 1000000.0);
-/* #endif */
+#endif
 }
 
 

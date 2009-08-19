@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.70 2009/08/12 17:22:54 crc_canada Exp $
+$Id: headers.h,v 1.71 2009/08/19 04:09:21 dug9 Exp $
 
 Global includes.
 
@@ -1132,6 +1132,11 @@ void destroyCParserData();
 
 void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex);
 
+#if defined(_MSC_VER)
+#define ConsoleMessage printf
+#else
+int ConsoleMessage(const char *fmt, ...);
+#endif
 void closeConsoleMessage(void);
 extern int consMsgCount;
 

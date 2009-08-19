@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.27 2009/08/01 09:45:39 couannette Exp $
+$Id: CRoutes.c,v 1.28 2009/08/19 04:14:29 dug9 Exp $
 
 ???
 
@@ -575,32 +575,18 @@ void AddRemoveChildren (
 		/* first, set children to 0, in case render thread comes through here */
 		tn->n = 0;
 
-#ifdef WIN32
-		newmal = MALLOC ((oldlen+len)*sizeof(DWORD_PTR));
-
-		/* copy the old stuff over */
-		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(DWORD_PTR));
-#else
 		newmal = MALLOC ((oldlen+len)*sizeof(void *));
 
 		/* copy the old stuff over */
 		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
-#endif
+
 		/* set up the C structures for this new MFNode addition */
 		FREE_IF_NZ (tn->p);
 		tn->p = newmal;
 
 		/* copy the new stuff over - note, newmal changes 
 		what it points to */
-#ifdef WIN32
-		/* win32 complains void* unknown size. Is DWORD_PTR what you meant? ms-help://MS.MSSDK.1033/MS.WinSDK.1033/winprog/winprog/windows_data_types.htm */
-
-		newmal = (void *) ((DWORD_PTR)newmal + sizeof(DWORD_PTR) * oldlen);
-		memcpy(newmal,nodelist,sizeof(DWORD_PTR) * len);
-#else
-		newmal = (void *) (newmal + sizeof (void *) * oldlen);
-		memcpy(newmal,nodelist,sizeof(void *) * len);
-#endif
+		newmal = offsetPointer_deref(void *,newmal, sizeof(void*) * oldlen);//sizeof(DWORD_PTR) * oldlen);
 
 		/* tell each node in the nodelist that it has a new parent */
 		for (counter = 0; counter < len; counter++) {
@@ -891,8 +877,11 @@ void CRoutes_RegisterSimple(
 		interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
 	else
 		interpolatorPointer=NULL;
-
+#if defined(_MSC_VER)
+	sprintf_s(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
+#else
 	snprintf(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
+#endif
 
 	CRoutes_Register(1, from, fromOfs, 1, tonode_str, len, interpolatorPointer, dir, extraData);
 }
@@ -917,7 +906,11 @@ void CRoutes_RemoveSimple(
 
   	interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
 
+#if defined(_MSC_VER)
+ 	sprintf_s(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
+#else
  	snprintf(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
+#endif
 
  	CRoutes_Register(0, from, fromOfs, 1, tonode_str, len, 
   		interpolatorPointer, 0, extraData);
@@ -1642,9 +1635,11 @@ void process_eventsProcessed() {
 		if (!JS_ExecuteScript((JSContext *) ScriptControl[counter].cx,
                                 (JSObject *) ScriptControl[counter].glob,
 				(JSScript *) ScriptControl[counter].eventsProcessed, &retval)) {
-		    printf ("can not run eventsProcessed() for script %d thread %u\n",
-			    counter, ID_THREAD(pthread_self()));
-
+#if defined(_MSC_VER)
+			printf ("can not run eventsProcessed() for script %d thread %u\n",counter,(unsigned int)pthread_self().x);
+#else
+			printf ("can not run eventsProcessed() for script %d thread %u\n",counter,(unsigned int)pthread_self());
+#endif
 		}
 
 	}

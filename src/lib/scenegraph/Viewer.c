@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.28 2009/08/01 09:45:39 couannette Exp $
+$Id: Viewer.c,v 1.29 2009/08/19 04:12:29 dug9 Exp $
 
 CProto ???
 
@@ -85,15 +85,15 @@ void viewer_default() {
 
 	set_viewer_type(EXAMINE);
 
-	set_eyehalf( eyedist/2.0,
-		atan2(eyedist/2.0,screendist)*360.0/(2.0*3.1415926));
+	set_eyehalf( Viewer.eyedist/2.0,
+		atan2(Viewer.eyedist/2.0,Viewer.screendist)*360.0/(2.0*3.1415926));
 
 	/* assume we are not bound to a GeoViewpoint */
 	Viewer.GeoSpatialNode = NULL;
 
 #ifndef AQUA
-	if (shutterGlasses)
-	    setXEventStereo();
+	if (Viewer.shutterGlasses)
+	    setStereoBufferStyle(0);/* setXEventStereo();*/
 #endif
 }
 
@@ -150,12 +150,14 @@ get_buffer()
 	return(Viewer.buffer);
 }
 
+/*
 void
-set_buffer(const unsigned int buffer)
+set_buffer(const unsigned int buffer,int iside)
 {
 	Viewer.buffer = buffer;
+	Viewer.iside = iside;
 }
-
+*/
 int get_headlight() { 
 	return(Viewer.headlight);
 }
@@ -174,6 +176,7 @@ void toggle_headlight() {
 void set_eyehalf(const double eyehalf, const double eyehalfangle) {
 	Viewer.eyehalf = eyehalf;
 	Viewer.eyehalfangle = eyehalfangle;
+	Viewer.isStereo = 1;
 }
 
 void set_viewer_type(const int type) {
@@ -247,9 +250,8 @@ printf ("RP, aft orig calc %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Orig
 	}
 }
 void viewer_togl(double fieldofview) {
-	if (Viewer.buffer != GL_BACK) {
-		set_stereo_offset(Viewer.buffer, Viewer.eyehalf, Viewer.eyehalfangle, fieldofview);
-	}
+	if (Viewer.isStereo) /* buffer != GL_BACK)  */
+		set_stereo_offset0(); /*Viewer.iside, Viewer.eyehalf, Viewer.eyehalfangle);*/
 
 	if (Viewer.SLERPing) {
 		double tickFrac;
@@ -925,31 +927,276 @@ xy2qua(Quaternion *ret, const double x, const double y)
 	quaternion_normalize(ret);
 }
 
-float stereoParameter = 0.4;
+void initStereoDefaults()
+{
+	Viewer.shutterGlasses = 0;
+	Viewer.haveAnaglyphShader = 0;
+	Viewer.isStereo = 0;
+	Viewer.eyedist = 0.06;
+	Viewer.screendist = 0.8;
+	Viewer.stereoParameter = 0.4;
+	Viewer.dominantEye = 1; /*0=Left 1=Right used for picking*/
+}
+
+
+/*static char *anaglyphGlasses = "RC";*/
+int initAnaglyphShaders()
+{
+	//p.642 red book
+	GLint compiled, linked;
+	GLuint shader, program;
+	int retval,i;
+
+	//one shader and program for each of Red, Green, Blue, Amber(Red+Green), Cyan(Green+Blue). Magenta(Red+Blue).
+	const GLchar* shaderSrc_R[] = {
+		"void main()"
+		"{"
+		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
+		"     gl_FragColor = vec4(gray, 0.0,0.0, gl_Color.a);"
+		"}"
+	};
+	const GLchar* shaderSrc_G[] = {
+		"void main()"
+		"{"
+		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
+		"     gl_FragColor = vec4(0.0,gray,0.0, gl_Color.a);"
+		"}"
+	};
+	const GLchar* shaderSrc_B[] = {
+		"void main()"
+		"{"
+		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
+		"     gl_FragColor = vec4(0.0,0.0,gray, gl_Color.a);"
+		"}"
+	};
+	const GLchar* shaderSrc_A[] = {
+		"void main()"
+		"{"
+		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
+		"     gl_FragColor = vec4(gray,gray,0.0, gl_Color.a);"
+		"}"
+	};
+	const GLchar* shaderSrc_C[] = {
+		"void main()"
+		"{"
+		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
+		"     gl_FragColor = vec4(0.0,gray,gray, gl_Color.a);"
+		"}"
+	};
+	const GLchar* shaderSrc_M[] = {
+		"void main()"
+		"{"
+		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
+		"     gl_FragColor = vec4(gray,0.0,gray, gl_Color.a);"
+		"}"
+	};
+
+	const GLchar **src[6];
+	src[0] = shaderSrc_R;
+	src[1] = shaderSrc_G;
+	src[2] = shaderSrc_B;
+	src[3] = shaderSrc_A;
+	src[4] = shaderSrc_C;
+	src[5] = shaderSrc_M;
+	retval = 1;
+	for(i=0;i<6;i++)
+	{
+		shader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(shader,1,src[i],NULL);
+		glCompileShader(shader);
+		glGetShaderiv(shader,GL_COMPILE_STATUS,&compiled);
+		if(!compiled){
+			GLint length;
+			GLchar* log;
+			glGetShaderiv(shader,GL_INFO_LOG_LENGTH,&length);
+			log = (GLchar*)malloc(length);
+			glGetShaderInfoLog(shader,length,&length,log);
+			fprintf(stderr,"compile log - '%s\n",log);
+			retval = 0;
+			break;
+		}
+		program = glCreateProgram();
+		glAttachShader(program,shader);
+		glLinkProgram(program);
+
+		glGetProgramiv(program,GL_LINK_STATUS,&linked);
+
+		if(linked){
+			Viewer.shaders[i] = shader;
+			Viewer.programs[i] = program;
+			retval = retval && 1;
+		}else{
+			GLint length;
+			GLchar* log;
+			glGetProgramiv(program,GL_INFO_LOG_LENGTH,&length);
+			log = (GLchar*)malloc(length);
+			glGetProgramInfoLog(program,length,&length,log);
+			fprintf(stderr,"link log = '%s'\n",log);
+			retval = 0;
+			break;
+		}
+	}
+	return retval;
+}
+void viewer_postGLinit_init(void)
+{
+	if(Viewer.haveAnaglyphShader)
+	{
+		if( !initAnaglyphShaders() )
+		{
+			printf("shaders did not initialize - do you have opengl 2.0+ drivers?\n");
+			Viewer.isStereo = 0;
+			Viewer.haveAnaglyphShader = 0;
+		}
+	}
+}
+
+void deleteAnaglyphShaders()
+{
+	int i;
+	for(i=0;i<6;i++)
+	{
+		glDeleteShader(Viewer.shaders[i]);
+		glDeleteProgram(Viewer.programs[i]);
+	}
+}
+
+void setAnaglyphParameter(const char *optArg) {
+	int i;
+	//char glasses[32];
+	char* glasses;
+	glasses = optArg;
+	if(Viewer.isStereo == 0)
+		initStereoDefaults();
+	/*(i = sscanf_s(optArg,"%s",glasses);*/
+    //strncpy(&glasses[0],optArg,3);
+	if(strlen(glasses)!=2)
+	{
+	  printf ("warning, command line anaglyph parameter incorrect - was %s need something like RC\n",optArg);
+	  strcpy(glasses,"RC");
+	}
+/*
+	if( !initAnaglyphShaders() )
+	{
+		printf("shaders did not initialize - do you have opengl 2.0+ drivers?\n");
+		Viewer.isStereo = 0;
+		Viewer.haveAnaglyphShader = 0;
+	}
+	else
+*/
+	{
+		Viewer.iprog[0]=Viewer.iprog[1]=-1;
+		for(i=0;i<2;i++)
+		{
+		   switch (glasses[i]) {
+		   case 'R':
+			   Viewer.iprog[i] = 0;
+			   break;
+		   case 'G':
+			   Viewer.iprog[i] = 1;
+				break;
+		   case 'B':
+			   Viewer.iprog[i] = 2;
+			  break;
+		   case 'A':
+			   Viewer.iprog[i] = 3;
+			  break;
+		   case 'C':
+			   Viewer.iprog[i] = 4;
+			  break;
+		   case 'M':
+			   Viewer.iprog[i] = 5;
+			  break;
+		   }
+		}
+		if(Viewer.iprog[0]>-1 && Viewer.iprog[1]>-1)
+			strcpy(Viewer.anaglasses,glasses);
+		else
+		{
+			printf ("warning, command line anaglyph parameter incorrect - was %s need something like RG\n",optArg);
+			strcpy(Viewer.anaglasses,"RG");
+		}
+		Viewer.haveAnaglyphShader = 1;
+		Viewer.isStereo = 1;
+		setStereoBufferStyle(1);
+	}
+
+}
+/* shutter glasses, stereo view  from Mufti@rus */
+/* handle setting shutter from parameters */
+void setShutter (void) {
+	GLboolean quadbuffer;
+
+	if(Viewer.isStereo == 0)
+		initStereoDefaults();
+
+   Viewer.shutterGlasses = 1;
+   /* does this opengl driver/hardware support GL_STEREO? p.469, p.729 RedBook and
+   WhiteDune > swt.c L1306
+   */
+	quadbuffer = '\0';
+	glGetBooleanv(GL_STEREO,&quadbuffer);
+    if (quadbuffer == GL_FALSE) {
+        ConsoleMessage("Unable to get quadbuffer stereo visual \n");
+		Viewer.shutterGlasses = 2; /*go ahead and render anyway to GL_BACK, but manually swap every 2 seconds in flutter mode*/
+    }
+   setStereoBufferStyle(0); 
+}
+void setSideBySide()
+{
+	if(Viewer.isStereo == 0)
+		initStereoDefaults();
+
+	setStereoBufferStyle(1); 
+	Viewer.sidebyside = 1;
+}
+
 
 void setStereoParameter (const char *optArg) {
+
 	int i;
-	i = sscanf(optArg,"%f",&stereoParameter);
+	if(Viewer.isStereo == 0)
+		initStereoDefaults();
+
+	i = sscanf(optArg,"%lf",&Viewer.stereoParameter);
 	if (i==0) printf ("warning, command line stereo parameter incorrect - was %s\n",optArg);
 }
 
-void
-set_stereo_offset(unsigned int buffer, const double eyehalf, const double eyehalfangle, const double fieldofview)
+void setEyeDist (const char *optArg) {
+	int i;
+	if(Viewer.isStereo == 0)
+		initStereoDefaults();
+
+	i= sscanf(optArg,"%lf",&Viewer.eyedist);
+	if (i==0) printf ("warning, command line eyedist parameter incorrect - was %s\n",optArg);
+}
+
+void setScreenDist (const char *optArg) {
+	int i;
+	if(Viewer.isStereo == 0)
+		initStereoDefaults();
+
+	i= sscanf(optArg,"%lf",&Viewer.screendist);
+	if (i==0) printf ("warning, command line screendist parameter incorrect - was %s\n",optArg);
+}
+/* end of Shutter glasses, stereo mode configure */
+
+void set_stereo_offset0() /*int iside, double eyehalf, double eyehalfangle)*/
 {
       double x = 0.0, angle = 0.0;
-      UNUSED (fieldofview);
 
-      if (buffer == GL_BACK_LEFT) {
-              x = eyehalf;
-              angle = eyehalfangle * stereoParameter;
-      } else if (buffer == GL_BACK_RIGHT) {
-              x = -eyehalf;
-              angle = -eyehalfangle * stereoParameter;
+      if (Viewer.iside == 0) {
+		      /* left */
+              x = Viewer.eyehalf;
+              angle = Viewer.eyehalfangle * Viewer.stereoParameter;
+      } else if (Viewer.iside == 1) {
+		      /* right */
+              x = -Viewer.eyehalf;
+              angle = -Viewer.eyehalfangle * Viewer.stereoParameter;
       }
       FW_GL_TRANSLATE_D(x, 0.0, 0.0);
       FW_GL_ROTATE_D(angle, 0.0, 1.0, 0.0);
 }
-
 
 /* used to move, in WALK, FLY modes. */
 void increment_pos(struct point_XYZ *vec) {

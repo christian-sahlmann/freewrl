@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.52 2009/08/10 00:34:44 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.53 2009/08/19 04:10:33 dug9 Exp $
 
 ???
 
@@ -600,8 +600,11 @@ void glpOpenGLInitialize() {
 
 }
 
-void BackEndClearBuffer() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void BackEndClearBuffer(int which) {
+	if(which == 2)
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	else if(which==1)
+		glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 /* turn off all non-headlight lights; will turn them on if required. */

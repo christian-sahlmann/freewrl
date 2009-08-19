@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statusbar.c,v 1.9 2009/08/01 09:45:39 couannette Exp $
+$Id: statusbar.c,v 1.10 2009/08/19 04:13:30 dug9 Exp $
 
 ???
 
@@ -38,8 +38,12 @@ $Id: statusbar.c,v 1.9 2009/08/01 09:45:39 couannette Exp $
 /* put the text (second translation) back behind where the clip plane will be (the z axis) and down near the bottom of the screen a bit */
 /* look at the gluPerspective(fieldofview, screenRatio, nearPlane, farPlane); line in MainLoop.c */
 
-#define STATUS_TEXT "#VRML V2.0 utf8\rTransform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
-
+#if defined(_MSC_VER)
+/* <windows.h> is poluting the namespace with its own TEXT macro */
+#define TEXTWRL "Transform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
+#else
+#define TEXT "#VRML V2.0 utf8\rTransform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
+#endif
 
 
 static int sb_initialized = FALSE;
@@ -117,8 +121,11 @@ static void statusbar_init() {
 	proxNode->enabled = FALSE;
 	myn->children.n = 0;
 
-	inputParse(FROMSTRING, STATUS_TEXT, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE);
-
+#if defined(_MSC_VER)
+	inputParse(FROMSTRING, TEXTWRL, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE);
+#else
+	inputParse(FROMSTRING, TEXT, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE);
+#endif
 	transNode = myn->children.p[0];
 
 	/* because the routes will not act immediately, we need to place this manually first time */
@@ -165,8 +172,8 @@ static void statusbar_init() {
 
 	/* set the Uni_String to zero length */
 	myline->len = 0;
-	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), (uintptr_t*)&proxNode, 1, 1,__FILE__,__LINE__);
-	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), (uintptr_t*)&transNode, 1, 1,__FILE__,__LINE__);
+	AddRemoveChildren(rootNode, offsetPointer_deref(void *,rootNode,offsetof (struct X3D_Group, children)), (uintptr_t*)&proxNode, 1, 1,__FILE__,__LINE__);
+	AddRemoveChildren(rootNode, offsetPointer_deref(void *,rootNode,offsetof (struct X3D_Group, children)), (uintptr_t*)&transNode, 1, 1,__FILE__,__LINE__);
 
 	CRoutes_RegisterSimple((void *)proxNode, offsetof (struct X3D_ProximitySensor, orientation_changed), 
 		(void *)transNode, offsetof (struct X3D_Transform, rotation), sizeof (struct SFRotation));

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.45 2009/08/06 20:10:11 crc_canada Exp $
+$Id: MainLoop.c,v 1.46 2009/08/19 04:09:21 dug9 Exp $
 
 Main loop
 
@@ -180,6 +180,12 @@ static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int sta
 static bool pluginRunning;
 int isBrowserPlugin = FALSE;
 
+#if defined(_MSC_VER)
+const char *libFreeWRL_get_version()
+{
+ return "1.22.4"; /*Q. where do I get this function? */
+}
+#endif
 
 /* stop the display thread. Used (when this comment was made) by the OSX Safari plugin; keeps
 most things around, just stops display thread, when the user exits a world. */
@@ -205,8 +211,12 @@ void EventLoop() {
 #endif
 
         static int loop_count = 0;
+#if defined(_MSC_VER)
+		double waitsec;
+#else
         struct timeval waittime;
         struct timeval mytime;
+#endif
 
 #ifdef AQUA
         if (RUNNINGASPLUGIN) {
@@ -231,8 +241,12 @@ void EventLoop() {
         doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
 
         /* Set the timestamp */
+#if defined(_MSC_VER)
+		TickTime = Time1970sec();
+#else
         gettimeofday(&mytime, NULL);
         TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+#endif
         
         /* any scripts to do?? */
         INITIALIZE_ANY_SCRIPTS;
@@ -252,13 +266,23 @@ void EventLoop() {
                 timeAA = timeA = timeB = timeC = timeD = timeE = timeF =0.0;
                 #endif
         } else {
-	    /*  rate limit ourselves to about 65fps.*/
+#if defined(_MSC_VER)
+                waitsec = (TickTime - lastTime - 0.0153);
+                if (waitsec < 0.0) {
+                        waitsec = -waitsec;
+						/* printf("waiting\n"); it does wait almost every loop on small files*/
+                        /* printf ("waiting %d\n",(int)waittime.tv_usec);*/
+
+                        Sleep((int)(waitsec*1000.0));
+				}
+#else
                 waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0;
                 if (waittime.tv_usec < 0.0) {
                         waittime.tv_usec = -waittime.tv_usec;
                         /* printf ("waiting %d\n",(int)waittime.tv_usec);*/
                         usleep((unsigned)waittime.tv_usec);
                 }
+#endif
         }
         if (loop_count == 25) {
 
@@ -701,22 +725,87 @@ static void render_pre() {
 
         glPrintError("GLBackend::render_pre");
 }
+void setup_projection(int pick, int x, int y) 
+{
+	GLsizei screenwidth2 = screenWidth;
+	GLdouble aspect2 = screenRatio;
+	GLint xvp = 0;
+	if(Viewer.sidebyside) 
+	{
+		screenwidth2 = (int)((screenwidth2 * .5)+.5);
+		aspect2 = aspect2 * .5;
+		if(Viewer.iside == 1) xvp = (GLint)screenwidth2;
+	}
+        #ifdef AQUA
+        if (RUNNINGASPLUGIN) {
+                aglSetCurrentContext(aqglobalContext);
+        } else {
+                CGLSetCurrentContext(myglobalContext);
+        }
+        #endif
+
+        FW_GL_MATRIX_MODE(GL_PROJECTION);
+		glViewport(xvp,clipPlane,screenwidth2,screenHeight);
+        FW_GL_LOAD_IDENTITY();
+        if(pick) {
+                /* picking for mouse events */
+                glGetIntegerv(GL_VIEWPORT,viewPort2);
+                gluPickMatrix((float)x,(float)viewPort2[3]-y,
+                        (float)100,(float)100,viewPort2);
+        }
+
+        /* bounds check */
+        if ((fieldofview <= 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
+        /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
+        gluPerspective(fieldofview, aspect2, nearPlane, farPlane); 
+
+        FW_GL_MATRIX_MODE(GL_MODELVIEW);
+
+        glPrintError("XEvents::setup_projection");
+
+}
+
 
 /* Render the scene */
 static void render() {
         int count;
-
+	static double shuttertime;
+	static int shutterside;
         /*  profile*/
         /* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
         /* struct timeval mytime;*/
         /* struct timezone tz; unused see man gettimeofday */
 
         for (count = 0; count < maxbuffers; count++) {
-                set_buffer((unsigned)bufferarray[count]);               /*  in Viewer.c*/
+                /*set_buffer((unsigned)bufferarray[count],count); */              /*  in Viewer.c*/
+			    Viewer.buffer = (unsigned)bufferarray[count]; /*dug9 can I go directly or is there thread issues*/
+				Viewer.iside = count;
 				glDrawBuffer((unsigned)bufferarray[count]);
 
                 /*  turn lights off, and clear buffer bits*/
-                BackEndClearBuffer();
+				if(Viewer.isStereo)
+				{
+					if(Viewer.shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
+					{
+						if(Time1970sec() - shuttertime > 2.0)
+						{
+							shuttertime = Time1970sec();
+							if(shutterside > 0) shutterside = 0;
+							else shutterside = 1;
+						}
+						if(count != shutterside) continue;
+					}
+					if(Viewer.haveAnaglyphShader)
+						glUseProgram(Viewer.programs[Viewer.iprog[count]]);
+					setup_projection(0, 0, 0);
+					if(Viewer.sidebyside && count >0)
+						BackEndClearBuffer(1);
+					else
+						BackEndClearBuffer(2);
+					setup_viewpoint(); 
+				}
+				else
+					BackEndClearBuffer(2);
                 BackEndLightsOff();
 				
                 /*  turn light #0 off only if it is not a headlight.*/
@@ -725,7 +814,8 @@ static void render() {
                 }
 
                 /*  Correct Viewpoint, only needed when in stereo mode.*/
-                if (maxbuffers > 1) setup_viewpoint();
+                /* if (maxbuffers > 1) setup_viewpoint(); i think this is done above now */
+				
 
                 /*  Other lights*/
                 glPrintError("XEvents::render, before render_hier");
@@ -749,10 +839,29 @@ static void render() {
                         glDepthMask(TRUE);
                         glPrintError("XEvents::render, render_hier(VF_Geom)");
                 }
+				if(Viewer.isStereo)
+				{
+					if(Viewer.haveAnaglyphShader)
+					{
+						if(count==0)
+						{
+						   glUseProgram(0);
+						   glAccum(GL_LOAD,1.0); 
+						}
+						else if(count==1)
+						{
+							glUseProgram(0);
+							glAccum(GL_ACCUM,1.0); 
+							glAccum(GL_RETURN,1.0);
+						}
+					}
+				}
 
         }
-
-	/* FIXME: michel */
+		if(Viewer.isStereo)
+		{
+			Viewer.iside = Viewer.dominantEye; /*is used later in picking to set the cursor pick box on the (left=0 or right=1) viewport*/
+		}
 
 #if defined( AQUA )
 	if (RUNNINGASPLUGIN) {
@@ -847,35 +956,6 @@ static void setup_viewpoint() {
 }
 
 
-
-static void setup_projection(int pick, int x, int y) {
-        #ifdef AQUA
-        if (RUNNINGASPLUGIN) {
-                aglSetCurrentContext(aqglobalContext);
-        } else {
-                CGLSetCurrentContext(myglobalContext);
-        }
-        #endif
-
-        FW_GL_MATRIX_MODE(GL_PROJECTION);
-        glViewport(0,clipPlane,screenWidth,screenHeight);
-        FW_GL_LOAD_IDENTITY();
-        if(pick) {
-                /* picking for mouse events */
-                glGetIntegerv(GL_VIEWPORT,viewPort2);
-                gluPickMatrix((float)x,(float)viewPort2[3]-y,
-                        (float)100,(float)100,viewPort2);
-        }
-
-        /* bounds check */
-        if ((fieldofview <= 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
-        /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
-        gluPerspective(fieldofview, screenRatio, nearPlane, farPlane); 
-
-        FW_GL_MATRIX_MODE(GL_MODELVIEW);
-
-        glPrintError("XEvents::setup_projection");
-}
 
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
 void do_keyPress(const char kp, int type) {
@@ -1038,11 +1118,22 @@ static void get_hyperhit() {
 }
 
 /* set stereo buffers, if required */
-void setXEventStereo()
+void setStereoBufferStyle(int itype) /*setXEventStereo()*/
 {
-    bufferarray[0]=GL_BACK_LEFT;
-    bufferarray[1]=GL_BACK_RIGHT;
-    maxbuffers=2;
+	if(itype==0)
+	{
+		/* quad buffer crystal eyes style */
+		bufferarray[0]=GL_BACK_LEFT;
+		bufferarray[1]=GL_BACK_RIGHT;
+		maxbuffers=2;
+	}
+	else if(itype==1)
+	{
+		/*sidebyside and anaglyph type*/
+		bufferarray[0]=GL_BACK;
+		bufferarray[1]=GL_BACK;
+		maxbuffers=2;
+	}
 }
 
 /* go to the first viewpoint */
@@ -1145,6 +1236,8 @@ static void displayThread()
     glpOpenGLInitialize(); 
     new_tessellation();
 #endif
+	viewer_postGLinit_init();
+
     
     /* see if we want OpenGL errors to be found and printed - note, this creates bottlenecks,
        in the OpenGL pipeline, so we do not do this all the time, only for debugging */
@@ -1275,12 +1368,20 @@ if (global_strictParsing) printf ("STRICT PARSING SET\n");
 #endif
                 initializeInputParseThread();
                 while (!isInputThreadInitialized()) {
+#if defined(_MSC_VER)
+			Sleep(1); /*miliseconds */
+#else
                         usleep(50);
+#endif
                 }
 
                 initializeTextureThread();
                 while (!isTextureinitialized()) {
+#if defined(_MSC_VER)
+			Sleep(1); /*miliseconds */
+#else
                         usleep(50);
+#endif
                 }
 
                 /* create the root node */
@@ -1423,7 +1524,11 @@ void setSnapTmp(const char* file)
 void outOfMemory(const char *msg) {
         ConsoleMessage ("FreeWRL has encountered a memory allocation problem\n"\
                         "and is exiting.\nPlease email this file to freewrl-09@rogers.com\n -- %s--",msg);
+#if defined(_MSC_VER)
+		Sleep(10);
+#else
         usleep(10 * 1000);
+#endif
         exit(EXIT_FAILURE);
 }
 

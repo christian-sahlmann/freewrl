@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.20 2009/08/17 22:25:58 couannette Exp $
+$Id: Textures.c,v 1.21 2009/08/19 04:10:33 dug9 Exp $
 
 General Texture objects.
 
@@ -1832,7 +1832,11 @@ static void __reallyloadImageTexture() {
 
 
 	filename = loadThisTexture->filename;
+#if defined(_MSC_VER)
+	infile = openLocalFile(filename,"rb");
+#else
 	infile = openLocalFile(filename,"r");
+#endif
 
 
 	/* printf ("reallyLoad on linux, texture type %d\n",loadThisTexture->imageType); */

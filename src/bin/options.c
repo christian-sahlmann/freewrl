@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: options.c,v 1.16 2009/08/17 22:25:58 couannette Exp $
+  $Id: options.c,v 1.17 2009/08/19 04:07:34 dug9 Exp $
 
   FreeWRL command line arguments.
 
@@ -17,7 +17,7 @@
 #include "options.h"
 
 #if HAVE_GETOPT_H
-# include <getopt.h>
+#include <getopt.h>
 #endif
 
 extern int wantEAI;
@@ -65,6 +65,8 @@ void usage()
 	    "  -y|--eyedist <float>    Set eye distance.\n"
 	    "  -u|--shutter            Set shutter glasses.\n"
 	    "  -t|--stereo <float>     Set stereo parameter (angle factor).\n"
+	    "  -A|--anaglyph <string>  Set anaglyph color pair ie: RB for left red, right blue. any of RGBCAM.\n"
+	    "  -B|--sidebyside         Set side-by-side stereo.\n"
 	    "  -K|--keypress <string>  Set immediate key pressed when ready.\n"
 	    "\nInternal options:\n"
 	    "  -i|--plugin <string>    Called from plugin.\n"
@@ -81,21 +83,6 @@ const char * validate_string_arg(const char *optarg)
 {
     return NULL; /* TODO: implement validate_* functions */
 }
-
-int parseCommandLine (int argc, char **argv)
-{
-    int c;
-    float ftmp;
-    int option_index = 0;
-    int real_option_index;
-    const char *real_option_name;
-
-#if defined(DOSNAPSEQUENCE)
-    static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utC";
-#else
-    static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:utC";
-#endif
-
     static struct option long_options[] = {
 
 /* { const char *name, int has_arg, int *flag, int val }, */
@@ -127,8 +114,9 @@ int parseCommandLine (int argc, char **argv)
 	{"eyedist", required_argument, 0, 'y'},
 	{"shutter", no_argument, 0, 'u'},
 	{"stereo", no_argument, 0, 't'},
+	{"anaglyph", required_argument, 0, 'A'},
+	{"sidebyside", no_argument, 0, 'B'},
 	{"keypress", required_argument, 0, 'K'},
-
 	{"plugin", required_argument, 0, 'i'},
 	{"fd", required_argument, 0, 'j'},
 	{"instance", required_argument, 0, 'k'},
@@ -138,7 +126,7 @@ int parseCommandLine (int argc, char **argv)
 	{0, 0, 0, 0}
     };
 
-    int find_opt_for_optopt(char c) {
+int find_opt_for_optopt(char c) {
 	int i;
 	struct option *p;
 
@@ -155,7 +143,23 @@ int parseCommandLine (int argc, char **argv)
 	    p = &(long_options[++i]);
 	}
 	return -1;
-    }
+}
+
+int parseCommandLine (int argc, char **argv)
+{
+    int c;
+    float ftmp;
+    int option_index = 0;
+    int real_option_index;
+    const char *real_option_name;
+
+#if defined(DOSNAPSEQUENCE)
+    static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utC";
+#else
+    static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:utC";
+#endif
+
+
 
     while (1) {
 
@@ -163,7 +167,17 @@ int parseCommandLine (int argc, char **argv)
 	opterr = 0;
 
 # if HAVE_GETOPT_LONG
+
+#if defined(_MSC_VER)
+	for(c=0;c<argc;c++)
+	{
+		printf("argv[%d]=%s\n",c,argv[c]);
+	}
+	c =	_getopt_internal (argc, argv, optstring, long_options, &option_index, 0);
+#else
 	c = getopt_long(argc, argv, optstring, long_options, &option_index);
+#endif
+
 # else
 	c = getopt(argc, argv, optstring);
 # endif
@@ -301,11 +315,18 @@ int parseCommandLine (int argc, char **argv)
 
 	case 'u': /* --shutter, no argument */
 	    setShutter();
-	    setXEventStereo();
+	    /*setXEventStereo();*/
 	    break;
 
 	case 't': /* --stereo, required argument: float */
 	    setStereoParameter(optarg);
+	    break;
+	case 'A': /* --anaglyph, required argument: string */
+	    setAnaglyphParameter(optarg);
+	    break;
+
+	case 'B': /* --sidebyside, no argument */
+	    setSideBySide();
 	    break;
 
 	case 'K': /* --keypress, required argument: string */

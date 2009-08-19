@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.15 2009/08/01 09:45:39 couannette Exp $
+$Id: Viewer.h,v 1.16 2009/08/19 04:12:29 dug9 Exp $
 
 Viewer ???
 
@@ -137,8 +137,25 @@ typedef struct viewer {
 	int headlight;
 	double speed;
 	double Dist;
+	/*stereovision...*/
+	int isStereo; /*=1 stereovision of any type (all types require viewpoint to shift left and right in scene) */
+	int iside;    /* rendering buffer index Left=0 Right=1 */
+	int sidebyside; /*=1 if 2 viewport method*/
+	int shutterGlasses;
+	int dominantEye; /* 2D screen cursor picks in which viewport? 0=Left 1=Right */
+	double stereoParameter;
 	double eyehalf;
 	double eyehalfangle;
+	double screendist;
+	double eyedist;
+	/*anaglyph...*/
+	char anaglasses[3];
+	int haveAnaglyphShader;
+	int haveVer2;
+	GLuint shaders[6]; /*= {0,0,0,0,0,0};*/
+	GLuint programs[6]; /*= {0,0,0,0,0,0}; //p.642 red book */
+	int iprog[2]; /*which shader program for left vp,right vp */
+	/* */
 	unsigned int buffer;
 	int oktypes[6];		/* boolean for types being acceptable. */
 	X3D_Viewer_Walk *walk;
@@ -157,6 +174,7 @@ typedef struct viewer {
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
 } X3D_Viewer;
 
+void viewer_postGLinit_init(void);
 
 void
 viewer_init(X3D_Viewer *viewer,
@@ -168,8 +186,10 @@ print_viewer();
 unsigned int
 get_buffer();
 
+/*
 void
-set_buffer( const unsigned int buffer);
+set_buffer( const unsigned int buffer, int iside);
+*/
 
 int
 get_headlight();
@@ -214,12 +234,14 @@ handle_tick();
 void
 set_action(char *key);
 
+void set_stereo_offset0(); /*int iside, double eyehalf, double eyehalfangle);*/
+/*
 void
 set_stereo_offset(unsigned int buffer,
 				  const double eyehalf,
 				  const double eyehalfangle,
 				  double fieldofview);
-
+*/
 void
 increment_pos( struct point_XYZ *vec);
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.13 2009/08/01 09:45:40 couannette Exp $
+$Id: jsVRMLBrowser.c,v 1.14 2009/08/19 04:15:36 dug9 Exp $
 
 Javascript C language binding.
 
@@ -93,8 +93,11 @@ void jsRegisterRoute(
 	int len, const char *adrem) {
  	char tonode_str[15];
 	int ad;
-
+#if defined(_MSC_VER)
+ 	sprintf_s(tonode_str, 15, "%lu:%d", to, toOfs);
+#else
  	snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
+#endif
 
 	if (strcmp("addRoute",adrem) == 0) 
 		ad = 1;
