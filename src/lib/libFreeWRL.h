@@ -4,7 +4,7 @@
  *
  * public API - libFreeWRL.h
  *
- * $Id: libFreeWRL.h,v 1.6 2009/08/19 04:16:49 dug9 Exp $
+ * $Id: libFreeWRL.h,v 1.7 2009/08/19 13:36:03 crc_canada Exp $
  *
  *******************************************************************/
 
@@ -56,12 +56,13 @@ __inline double Time1970sec()
 }
 
 #else
-inline double Time1970sec()
+/* JAS inline double Time1970sec() 
 {
   struct timeval tv;
   (void) gettimeofday(&tv, (struct timezone *)NULL);
   return (tv.tv_sec + tv.tv_usec / 1000000.0);
 }
+*/
 #endif
 
 int checkNetworkFile(char *fn);

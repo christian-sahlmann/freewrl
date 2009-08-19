@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.23 2009/08/19 04:16:49 dug9 Exp $
+$Id: display.h,v 1.24 2009/08/19 13:36:03 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -42,10 +42,10 @@ extern int displayDepth;
  */
 #if defined TARGET_AQUA
 
+# include <GL/glew.h> /* will include GL/gl.h, GL/glu.h and GL/glext.h */
 # include <OpenGL/OpenGL.h>
 # include <OpenGL/CGLTypes.h>
 # include <AGL/AGL.h>
-# include <OpenGL/glu.h>
 
 extern CGLContextObj myglobalContext;
 extern AGLContext aqglobalContext;

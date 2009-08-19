@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MPEG_Utils.c,v 1.9 2009/08/19 04:12:29 dug9 Exp $
+$Id: MPEG_Utils.c,v 1.10 2009/08/19 13:36:03 crc_canada Exp $
 
 ???
 
@@ -420,7 +420,16 @@ unsigned short int dct_coeff_first[256] =
     }
 
 
+/* Doug Sandens windows function; lets make it static here for non-windows */
+#if defined(_MSC_VER)
+#else
+static struct timeval mytime;
 
+static double Time1970sec(void) {
+        gettimeofday(&mytime, NULL);
+        TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+}
+#endif
 
 /*
  *--------------------------------------------------------------
@@ -2233,13 +2242,7 @@ static unsigned char cropTbl[NUM_CROP_ENTRIES];
 double
 ReadSysClock()
 {
-#if defined(_MSC_VER)
   return Time1970sec();
-#else
-  struct timeval tv;
-  (void) gettimeofday(&tv, (struct timezone *)NULL);
-  return (tv.tv_sec + tv.tv_usec / 1000000.0);
-#endif
 }
 
 
