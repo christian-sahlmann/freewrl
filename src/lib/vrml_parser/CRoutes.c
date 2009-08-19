@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.28 2009/08/19 04:14:29 dug9 Exp $
+$Id: CRoutes.c,v 1.29 2009/08/19 15:22:38 crc_canada Exp $
 
 ???
 
@@ -514,10 +514,8 @@ void AddRemoveChildren (
 	uintptr_t *remptr;
 	uintptr_t *tmpptr;
 	int done;
-	struct Multi_Node *sortedChildrenPtr;
 
 	int counter, c2;
-
 	#ifdef CRVERBOSE
 	
 	printf ("\n start of AddRemoveChildren; parent is a %s at %u %x\n",stringNodeType(parent->_nodeType),parent,parent);
@@ -575,7 +573,7 @@ void AddRemoveChildren (
 		/* first, set children to 0, in case render thread comes through here */
 		tn->n = 0;
 
-		newmal = MALLOC ((oldlen+len)*sizeof(void *));
+		newmal = MALLOC ((oldlen+len)*sizeof(struct X3D_Node *));
 
 		/* copy the old stuff over */
 		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
@@ -584,16 +582,15 @@ void AddRemoveChildren (
 		FREE_IF_NZ (tn->p);
 		tn->p = newmal;
 
-		/* copy the new stuff over - note, newmal changes 
-		what it points to */
-		newmal = offsetPointer_deref(void *,newmal, sizeof(void*) * oldlen);//sizeof(DWORD_PTR) * oldlen);
+		/* copy the new stuff over - note, newmal changes what it points to */
+		newmal = offsetPointer_deref(void *,newmal, sizeof(struct X3D_Node *) * oldlen);
+                memcpy(newmal,nodelist,sizeof(struct X3D_Node *) * len);
 
 		/* tell each node in the nodelist that it has a new parent */
 		for (counter = 0; counter < len; counter++) {
 			#ifdef CRVERBOSE
 			printf ("AddRemove, count %d of %d, node %u parent %u\n",counter, len,nodelist[counter],parent);
 			#endif
-
 			ADD_PARENT((void *)nodelist[counter],(void *)parent);
 		}
 
@@ -1869,7 +1866,9 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 
 	/* is this an MFNode or SFNode? */
 	if (multitype==ROUTING_SFNODE) {
-printf ("got a ROUTING_SFNODE, adding %u to %u\n",fn,toNode);
+#ifdef CRVERBOSE
+		printf ("got a ROUTING_SFNODE, adding %u to %u\n",(unsigned int) fn, (unsigned int) toNode);
+#endif
 		ADD_PARENT(X3D_NODE(fn),toNode);
 	}
 	if (multitype==ROUTING_MFNODE) {
