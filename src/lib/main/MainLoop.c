@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.49 2009/08/20 00:37:52 couannette Exp $
+$Id: MainLoop.c,v 1.50 2009/08/20 03:12:03 dug9 Exp $
 
 Main loop
 
@@ -271,12 +271,24 @@ void EventLoop() {
                 timeAA = timeA = timeB = timeC = timeD = timeE = timeF =0.0;
                 #endif
         } else {
+#if defined(_MSC_VER)
+                waitsec = (TickTime - lastTime - 0.0153);
+                if (waitsec < 0.0) {
+                        waitsec = -waitsec;
+						/* printf("waiting\n"); it does wait almost every loop on small files*/
+                        /* printf ("waiting %d\n",(int)waittime.tv_usec);*/
+
+                        usleep((unsigned)waitsec);
+				}
+#else
 	    waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0;
 	    if (waittime.tv_usec < 0.0) {
 		waittime.tv_usec = -waittime.tv_usec;
 		/* printf ("waiting %d\n",(int)waittime.tv_usec); */
 		usleep((unsigned)waittime.tv_usec);
 	    }
+#endif
+
         }
         if (loop_count == 25) {
 
@@ -781,9 +793,9 @@ static void render() {
 				{
 					if(Viewer.shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
 					{
-						if(Time1970sec() - shuttertime > 2.0)
+						if(TickTime - shuttertime > 2.0)
 						{
-							shuttertime = Time1970sec();
+							shuttertime = TickTime;
 							if(shutterside > 0) shutterside = 0;
 							else shutterside = 1;
 						}
@@ -950,7 +962,7 @@ static void setup_viewpoint() {
 }
 
 
-
+void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
 void do_keyPress(const char kp, int type) {
         /* does this X3D file have a KeyDevice node? if so, send it to it */

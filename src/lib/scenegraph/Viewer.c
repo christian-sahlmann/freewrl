@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.30 2009/08/20 00:37:52 couannette Exp $
+$Id: Viewer.c,v 1.31 2009/08/20 03:10:30 dug9 Exp $
 
 CProto ???
 
@@ -1069,7 +1069,7 @@ void setAnaglyphParameter(const char *optArg) {
 	if(Viewer.isStereo == 0)
 		initStereoDefaults();
 	/*(i = sscanf_s(optArg,"%s",glasses);*/
-    //strncpy(&glasses[0],optArg,3);
+    /*strncpy(&glasses[0],optArg,3);*/
 	if(strlen(glasses)!=2)
 	{
 	  printf ("warning, command line anaglyph parameter incorrect - was %s need something like RC\n",optArg);
@@ -1128,7 +1128,7 @@ void setShutter (void)
 {
     GLboolean quadbuffer;
 
-    shutterGlasses = 1; /* initialization of visual needs this */
+    /* shutterGlasses = 1; */ /* initialization of visual needs this NOT > I moved it to Viewer.shutterGlasses=1, wont that work for you? dug9  */
 
     if(Viewer.isStereo == 0)
 	initStereoDefaults();
@@ -1193,7 +1193,7 @@ void set_stereo_offset0() /*int iside, double eyehalf, double eyehalfangle)*/
       if (Viewer.iside == 0) {
 		      /* left */
               x = Viewer.eyehalf;
-              angle = Viewer.eyehalfangle * Viewer.stereoParameter;
+              angle = Viewer.eyehalfangle * Viewer.stereoParameter; /*stereoparamter: 0-1 1=toe in to cross-over at Screendist 0=look at infinity, eyes parallel*/
       } else if (Viewer.iside == 1) {
 		      /* right */
               x = -Viewer.eyehalf;

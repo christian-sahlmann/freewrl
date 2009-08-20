@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Lighting.c,v 1.9 2009/08/10 18:10:59 crc_canada Exp $
+$Id: Component_Lighting.c,v 1.10 2009/08/20 03:10:30 dug9 Exp $
 
 X3D Lighting Component
 
@@ -28,11 +28,6 @@ X3D Lighting Component
 
 
 
-/* global lights  are done before the rendering of geometry */
-void prep_DirectionalLight (struct X3D_DirectionalLight *node) {
-	if (!render_light) return;
-	render_DirectionalLight(node);
-}
 
 void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 
@@ -67,15 +62,13 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 	}
 }
 
-
-
-/* pointLights are done before the rendering of geometry */
-void prep_PointLight (struct X3D_PointLight *node) {
-
+/* global lights  are done before the rendering of geometry */
+void prep_DirectionalLight (struct X3D_DirectionalLight *node) {
 	if (!render_light) return;
-	/* this will be a global light here... */
-	render_PointLight(node);
+	render_DirectionalLight(node);
 }
+
+
 
 void render_PointLight (struct X3D_PointLight *node) {
 
@@ -123,13 +116,15 @@ void render_PointLight (struct X3D_PointLight *node) {
 	}
 }
 
+/* pointLights are done before the rendering of geometry */
+void prep_PointLight (struct X3D_PointLight *node) {
 
-/* SpotLights are done before the rendering of geometry */
-void prep_SpotLight (struct X3D_SpotLight *node) {
-	float ft;
 	if (!render_light) return;
-	render_SpotLight(node);
+	/* this will be a global light here... */
+	render_PointLight(node);
 }
+
+
 
 void render_SpotLight(struct X3D_SpotLight *node) {
 	float ft;
@@ -187,4 +182,10 @@ void render_SpotLight(struct X3D_SpotLight *node) {
 			glLightf(light, GL_SPOT_CUTOFF, ft);
 		}
 	}
+}
+/* SpotLights are done before the rendering of geometry */
+void prep_SpotLight (struct X3D_SpotLight *node) {
+	float ft;
+	if (!render_light) return;
+	render_SpotLight(node);
 }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.7 2009/07/24 19:46:20 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.8 2009/08/20 03:10:30 dug9 Exp $
 
 X3D VRML1 Component
 
@@ -194,6 +194,67 @@ void prep_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 	FW_GL_PUSH_MATRIX();
 }
 
+void render_VRML1_Material (struct X3D_VRML1_Material *node) {
+	int i;
+	float dcol[4];
+	float ecol[4];
+	float scol[4];
+	float trans=1.0;
+
+	#define whichFace GL_FRONT_AND_BACK
+
+	/* save this node pointer */
+	if (cSLD!=NULL) cSLD->matNode = node;
+
+
+	/* set the transparency here for the material */
+	if(node->transparency.n>0)
+	trans = 1.0 - node->transparency.p[0];
+
+	if (trans<0.0) trans = 0.0;
+	if (trans>=0.999999) trans = 0.9999999;
+	global_transparency = trans;
+
+	dcol[3] = trans;
+	scol[3] = trans;
+	ecol[3] = trans;
+
+	if (node->diffuseColor.n>0)  {
+		for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.p[0].c[i]; }		
+	} else {
+		for (i=0; i<3;i++){ dcol[i] = 0.8; }		
+	}
+	do_glMaterialfv(whichFace, GL_DIFFUSE, dcol);
+
+	/* do the ambientIntensity; this will allow lights with ambientIntensity to
+	   illuminate it as per the spec. Note that lights have the ambientIntensity
+	   set to 0.0 by default; this should make ambientIntensity lighting be zero
+	   via OpenGL lighting equations. */
+	if (node->ambientColor.n>0)  {
+		for (i=0; i<3;i++){ dcol[i] *= node->ambientColor.p[0].c[i]; }		
+	} else {
+		for (i=0; i<3;i++){ dcol[i] *= 0.2; }		
+	}
+	do_glMaterialfv(whichFace, GL_AMBIENT, dcol);
+
+	if (node->specularColor.n>0)  {
+		for (i=0; i<3;i++){ scol[i] = node->specularColor.p[0].c[i]; }		
+	} else {
+		for (i=0; i<3;i++){ scol[i] = 0.0; }		
+	}
+	do_glMaterialfv(whichFace, GL_SPECULAR, scol);
+		\
+	if (node->emissiveColor.n>0)  {
+		for (i=0; i<3;i++){ ecol[i] = node->emissiveColor.p[0].c[i]; }		
+	} else {
+		for (i=0; i<3;i++){ ecol[i] = 0.0; }		
+	}
+
+	do_glMaterialfv(whichFace, GL_EMISSION, ecol);
+	
+	if (node->shininess.n>0)
+	do_shininess(whichFace,node->shininess.p[0]);
+}
 
 void fin_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 	/* printf ("finSep %u\n",node); */
@@ -352,67 +413,6 @@ void render_VRML1_Translation (struct X3D_VRML1_Translation *node) {
 
 
 
-void render_VRML1_Material (struct X3D_VRML1_Material *node) {
-	int i;
-	float dcol[4];
-	float ecol[4];
-	float scol[4];
-	float trans=1.0;
-
-	#define whichFace GL_FRONT_AND_BACK
-
-	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->matNode = node;
-
-
-	/* set the transparency here for the material */
-	if(node->transparency.n>0)
-	trans = 1.0 - node->transparency.p[0];
-
-	if (trans<0.0) trans = 0.0;
-	if (trans>=0.999999) trans = 0.9999999;
-	global_transparency = trans;
-
-	dcol[3] = trans;
-	scol[3] = trans;
-	ecol[3] = trans;
-
-	if (node->diffuseColor.n>0)  {
-		for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.p[0].c[i]; }		
-	} else {
-		for (i=0; i<3;i++){ dcol[i] = 0.8; }		
-	}
-	do_glMaterialfv(whichFace, GL_DIFFUSE, dcol);
-
-	/* do the ambientIntensity; this will allow lights with ambientIntensity to
-	   illuminate it as per the spec. Note that lights have the ambientIntensity
-	   set to 0.0 by default; this should make ambientIntensity lighting be zero
-	   via OpenGL lighting equations. */
-	if (node->ambientColor.n>0)  {
-		for (i=0; i<3;i++){ dcol[i] *= node->ambientColor.p[0].c[i]; }		
-	} else {
-		for (i=0; i<3;i++){ dcol[i] *= 0.2; }		
-	}
-	do_glMaterialfv(whichFace, GL_AMBIENT, dcol);
-
-	if (node->specularColor.n>0)  {
-		for (i=0; i<3;i++){ scol[i] = node->specularColor.p[0].c[i]; }		
-	} else {
-		for (i=0; i<3;i++){ scol[i] = 0.0; }		
-	}
-	do_glMaterialfv(whichFace, GL_SPECULAR, scol);
-		\
-	if (node->emissiveColor.n>0)  {
-		for (i=0; i<3;i++){ ecol[i] = node->emissiveColor.p[0].c[i]; }		
-	} else {
-		for (i=0; i<3;i++){ ecol[i] = 0.0; }		
-	}
-
-	do_glMaterialfv(whichFace, GL_EMISSION, ecol);
-	
-	if (node->shininess.n>0)
-	do_shininess(whichFace,node->shininess.p[0]);
-}
 
 void render_VRML1_Rotation (struct X3D_VRML1_Rotation *node) {
 	glRotatef(node->rotation.c[3]/3.1415926536*180, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
@@ -822,7 +822,8 @@ static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *n
 	}
 }
 
-
+void compile_IndexedLineSet(struct X3D_IndexedLineSet *);
+void render_IndexedLineSet(struct X3D_IndexedLineSet *);
 void render_VRML1_IndexedLineSet (struct X3D_VRML1_IndexedLineSet *node) {
 	/* call an X3D IndexedLineSet here */
 	if (node->_ILS == NULL) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.20 2009/08/08 23:07:46 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.21 2009/08/20 03:12:56 dug9 Exp $
 
 ???
 
@@ -721,7 +721,7 @@ static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, 
 		 IS = strstr(curProtoPtr,strIS); \
 		/* printf ("	FIND_THE_IS: IS string is :%s:\n",IS); */ 
 
-	#define ZERO_IS_TEXT_IN_ORIG \ 
+	#define ZERO_IS_TEXT_IN_ORIG \
 		{ char *is; is = IS; \
 		while ((is != endIS) && (*is != '\0')) { *is = ' '; is++; }}
 

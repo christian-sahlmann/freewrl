@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: main.c,v 1.15 2009/08/19 04:07:34 dug9 Exp $
+$Id: main.c,v 1.16 2009/08/20 03:14:08 dug9 Exp $
 
 FreeWRL main program.
 
@@ -31,6 +31,13 @@ void catch_SIGSEGV();
 #if !defined(CYGWIN)
 void catch_SIGALRM(int);
 void catch_SIGHUP();
+#endif
+
+#if defined(_MSC_VER)
+const char *freewrl_get_version()
+{
+	return "version 1.22.4";
+}
 #endif
 
 /**
@@ -135,9 +142,6 @@ void catch_SIGHUP()
     Anchor_ReplaceWorld(BrowserFullPath);
 }
 
-#if defined(_MSC_VER)
-#define alarm(0) printf("\a")
-#endif
 void catch_SIGALRM(int sig)
 {
     signal(SIGALRM, SIG_IGN);
@@ -146,7 +150,11 @@ void catch_SIGALRM(int sig)
     /* fprintf(stderr,"An alarm signal just arrived ...IT WAS IGNORED!\n"); */
     /* end of alarm actions */
 
-    alarm(0);
+#if defined(_MSC_VER)
+	printf("\a");
+#else
+	alarm(0);
+#endif
     signal(SIGALRM, catch_SIGALRM);
 }
 
