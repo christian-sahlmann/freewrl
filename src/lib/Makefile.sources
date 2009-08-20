@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.23 2009/08/17 22:25:58 couannette Exp $
+# $Id: Makefile.sources,v 1.24 2009/08/20 17:39:31 crc_canada Exp $
 #
 # List all source files
 #
@@ -96,6 +96,7 @@ scenegraph/Tess.c \
 scenegraph/Component_DIS.c \
 scenegraph/Component_Rendering.c \
 scenegraph/Component_Interpolation.c \
+scenegraph/Component_Core.h \
 scenegraph/Component_Core.c \
 scenegraph/Component_EnvironEffects.c \
 scenegraph/Component_Grouping.c \

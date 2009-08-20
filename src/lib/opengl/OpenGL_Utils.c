@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.53 2009/08/19 04:10:33 dug9 Exp $
+$Id: OpenGL_Utils.c,v 1.54 2009/08/20 17:39:31 crc_canada Exp $
 
 ???
 
@@ -33,6 +33,7 @@ $Id: OpenGL_Utils.c,v 1.53 2009/08/19 04:10:33 dug9 Exp $
 #include "../input/EAIheaders.h"
 #include "Frustum.h"
 #include "../opengl/Material.h"
+#include "../scenegraph/Component_Core.h"
 
 #include <float.h>
 
