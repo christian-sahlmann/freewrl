@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.48 2009/08/19 17:12:51 crc_canada Exp $
+$Id: MainLoop.c,v 1.49 2009/08/20 00:37:52 couannette Exp $
 
 Main loop
 
@@ -271,23 +271,12 @@ void EventLoop() {
                 timeAA = timeA = timeB = timeC = timeD = timeE = timeF =0.0;
                 #endif
         } else {
-#if defined(_MSC_VER)
-                waitsec = (TickTime - lastTime - 0.0153);
-                if (waitsec < 0.0) {
-                        waitsec = -waitsec;
-						/* printf("waiting\n"); it does wait almost every loop on small files*/
-                        /* printf ("waiting %d\n",(int)waittime.tv_usec);*/
-
-                        Sleep((int)(waitsec*1000.0));
-				}
-#else
-                waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0;
-                if (waittime.tv_usec < 0.0) {
-                        waittime.tv_usec = -waittime.tv_usec;
-                        /* printf ("waiting %d\n",(int)waittime.tv_usec); */
-                        usleep((unsigned)waittime.tv_usec);
-                }
-#endif
+	    waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0;
+	    if (waittime.tv_usec < 0.0) {
+		waittime.tv_usec = -waittime.tv_usec;
+		/* printf ("waiting %d\n",(int)waittime.tv_usec); */
+		usleep((unsigned)waittime.tv_usec);
+	    }
         }
         if (loop_count == 25) {
 
@@ -1373,20 +1362,12 @@ if (global_strictParsing) printf ("STRICT PARSING SET\n");
 #endif
                 initializeInputParseThread();
                 while (!isInputThreadInitialized()) {
-#if defined(_MSC_VER)
-			Sleep(1); /*miliseconds */
-#else
-                        usleep(50);
-#endif
+		    usleep(50);
                 }
 
                 initializeTextureThread();
                 while (!isTextureinitialized()) {
-#if defined(_MSC_VER)
-			Sleep(1); /*miliseconds */
-#else
-                        usleep(50);
-#endif
+		    usleep(50);
                 }
 
                 /* create the root node */
@@ -1529,11 +1510,7 @@ void setSnapTmp(const char* file)
 void outOfMemory(const char *msg) {
         ConsoleMessage ("FreeWRL has encountered a memory allocation problem\n"\
                         "and is exiting.\nPlease email this file to freewrl-09@rogers.com\n -- %s--",msg);
-#if defined(_MSC_VER)
-		Sleep(10);
-#else
         usleep(10 * 1000);
-#endif
         exit(EXIT_FAILURE);
 }
 

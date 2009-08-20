@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: fwWindow32.c,v 1.2 2009/08/19 04:13:30 dug9 Exp $
+  $Id: fwWindow32.c,v 1.3 2009/08/20 00:37:52 couannette Exp $
 
   FreeWRL main window : win32 code.
 
@@ -81,8 +81,6 @@ int button[5];
 int mouseX, mouseY;
 
 static short gcWheelDelta = 0;
-
-/*extern int	shutterGlasses; /* stereo shutter glasses */
 
 float myFps = 0.0;
 

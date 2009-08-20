@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.71 2009/08/19 04:09:21 dug9 Exp $
+$Id: headers.h,v 1.72 2009/08/20 00:37:52 couannette Exp $
 
 Global includes.
 
@@ -897,10 +897,6 @@ extern void setWantEAI(int flag);
 extern void setPluginPipe(const char *optarg);
 extern void setPluginFD(const char *optarg);
 extern void setPluginInstance(const char *optarg);
-
-#ifndef AQUA
-extern int shutterGlasses;
-#endif
 
 extern int isPerlinitialized(void);
 

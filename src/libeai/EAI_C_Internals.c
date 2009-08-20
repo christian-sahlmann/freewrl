@@ -250,12 +250,7 @@ RE_EOT
 
 		if (_X3D_queryno != readquery) {
 			printf ("server: warning, _X3D_queryno %d != received %d\n",_X3D_queryno,readquery);
-			sched_yield();
-#ifdef WIN32
-            Sleep(5);
-#else
-			sleep(5);
-#endif
+			usleep(5000);
 			sched_yield();
 		}
 

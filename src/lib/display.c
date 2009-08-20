@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.c,v 1.11 2009/08/01 09:45:39 couannette Exp $
+$Id: display.c,v 1.12 2009/08/20 00:37:52 couannette Exp $
 
 FreeWRL support library.
 Display (X11/Motif or OSX/Aqua) initialization.
@@ -37,6 +37,7 @@ int show_mouse;
 int xPos = 0;
 int yPos = 0;
 
+int shutterGlasses = 0; /* stereo shutter glasses */
 
 int display_initialize()
 {

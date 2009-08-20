@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.24 2009/08/19 13:36:03 crc_canada Exp $
+$Id: display.h,v 1.25 2009/08/20 00:37:52 couannette Exp $
 
 FreeWRL support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -36,6 +36,8 @@ extern int xPos;
 extern int yPos;
 
 extern int displayDepth;
+
+extern int shutterGlasses; /* stereo shutter glasses */
 
 /**
  * Specific platform : Mac

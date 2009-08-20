@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwWindow.c,v 1.12 2009/08/01 09:45:39 couannette Exp $
+$Id: fwWindow.c,v 1.13 2009/08/20 00:37:52 couannette Exp $
 
 FreeWRL main window.
 
@@ -84,9 +84,6 @@ static int  default_attributes3[] =
    GLX_RGBA,	       GL_TRUE,
    0
    };
-
-
-extern int	shutterGlasses; /* stereo shutter glasses */
 
 #define MAXSTAT 200
 float myFps = 0.0;

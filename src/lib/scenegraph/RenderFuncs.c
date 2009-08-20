@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.c,v 1.26 2009/08/19 04:12:29 dug9 Exp $
+$Id: RenderFuncs.c,v 1.27 2009/08/20 00:37:52 couannette Exp $
 
 Scenegraph rendering.
 
@@ -81,9 +81,6 @@ int texture_count;
 int	have_transparency=FALSE;/* did any Shape have transparent material? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */
 int	cullFace;		/* is GL_CULL_FACE enabled or disabled?		*/
-
-/*int     shutterGlasses = 0; 	/* stereo shutter glasses */
-
 
 GLint smooth_normals = TRUE; /* do normal generation? */
 
@@ -581,11 +578,7 @@ render_hier(struct X3D_Node *p, int rwhat) {
 
 	if (!p) {
 		/* we have no geometry yet, sleep for a tiny bit */
-#ifdef WIN32
-		Sleep(1);
-#else
 		usleep(1000);
-#endif
 		return;
 	}
 

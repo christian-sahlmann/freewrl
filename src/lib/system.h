@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.12 2009/08/01 09:45:39 couannette Exp $
+$Id: system.h,v 1.13 2009/08/20 00:37:52 couannette Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -72,6 +72,20 @@ typedef unsigned char _Bool;
 #if HAVE_UNISTD_H
 # include <sys/types.h>
 # include <unistd.h>
+#endif
+
+#if !defined(HAVE_STRNLEN)
+#define strnlen __fw_strnlen
+size_t __fw_strnlen(const char *s, size_t maxlen)
+#endif
+
+#if !defined(HAVE_STRNDUP)
+#define strndup __fw_strndup
+char *__fw_strndup(const char *s, size_t n);
+#endif
+
+#if !defined(HAVE_USLEEP) && defined(WIN32)
+#define usleep(us) Sleep((us)/1000)
 #endif
 
 #if defined(HAVE_SYS_WAIT_H)

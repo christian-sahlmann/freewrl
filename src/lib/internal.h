@@ -6,7 +6,7 @@
  *
  * Library internal declarations.
  *
- * $Id: internal.h,v 1.17 2009/08/19 04:16:49 dug9 Exp $
+ * $Id: internal.h,v 1.18 2009/08/20 00:37:52 couannette Exp $
  *
  *******************************************************************/
 
@@ -18,11 +18,6 @@
  * Internal stuff needed by multiple C files in the library
  */
 
-#if !defined(HAVE_STRNDUP)
-char *fw_strndup(const char *str, int len);
-#define strndup fw_strndup
-#endif
-
 /* Useful to suppress things from non-debug builds */
 #if defined(FW_DEBUG)
 #  define DEBUG_(_expr) _expr
@@ -31,11 +26,13 @@ char *fw_strndup(const char *str, int len);
 #endif
 
 #if defined(_MSC_VER)
+/* FIXME: investigate on this... (michel) */
 #include <stddef.h> /* for offsetof(...) */
 /* textures.c > jpeg > jmorecfg.h tries to redefine booleand but you can say you have it */
 #define HAVE_BOOLEAN 1    
 #define M_PI acos(-1.0)
 #endif
+
 /* To conform C99 ISO C (do not use GCC extension) */
 #define DEBUG_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
