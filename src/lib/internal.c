@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.c,v 1.2 2009/08/20 00:37:52 couannette Exp $
+$Id: internal.c,v 1.3 2009/08/20 16:56:36 crc_canada Exp $
 
 FreeWRL support library.
 Internal functions: some very usefull functions are not always
@@ -43,7 +43,9 @@ char *fw_strndup(const char *s, size_t n)
 	return NULL;
     
     new[len] = '\0';
-    return memcpy(new, s, len);
+    memcpy(new, s, len);
+    /* although we could return the output of memcpy, OSX cacks on it, so return mallocd area */
+    return new;
 }
 
 #endif
