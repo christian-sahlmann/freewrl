@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.14 2009/05/21 20:30:09 crc_canada Exp $
+$Id: JScript.c,v 1.15 2009/08/20 19:00:58 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -41,6 +41,9 @@ Javascript C language binding.
 
 #define STACK_CHUNK_SIZE 8192
 
+static int JSaddGlobalECMANativeProperty(uintptr_t num, const char *name);
+static int JSaddGlobalAssignProperty(uintptr_t num, const char *name, const char *str);
+
 /*
  * Global JS variables (from Brendan Eichs short embedding tutorial):
  *
@@ -74,7 +77,7 @@ Javascript C language binding.
  *
  */
 
-char *DefaultScriptMethods = "function initialize() {}; " \
+static char *DefaultScriptMethods = "function initialize() {}; " \
 			" function shutdown() {}; " \
 			" function eventsProcessed() {}; " \
 			" TRUE=true; FALSE=false; " \
@@ -184,7 +187,7 @@ void JSInit(uintptr_t num) {
 }
 
 /* Save the text, so that when the script is initialized in the EventLoop thread, it will be there */
-void SaveScriptText(uintptr_t num, char *text) {
+void SaveScriptText(uintptr_t num, const char *text) {
 
 	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
 	if (num >= JSMaxScript)  {
@@ -567,7 +570,7 @@ void SFVec4dNativeAssign(void *top, void *fromp) {
 */
 
 /* save this field from the parser; initialize it when the EventLoop wants to initialize it */
-void SaveScriptField (int num, indexT kind, indexT type, char* field, union anyVrml value) {
+void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value) {
 	struct ScriptParamList **nextInsert;
 	struct ScriptParamList *newEntry;
 
@@ -597,7 +600,7 @@ void SaveScriptField (int num, indexT kind, indexT type, char* field, union anyV
 }
 
 /* the EventLoop is initializing this field now */
-void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVrml value) {
+void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value) {
 	jsval rval;
 	char *smallfield = NULL;
 	char mynewname[400];
@@ -943,7 +946,7 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 	#endif
 }
 
-int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
+static int JSaddGlobalECMANativeProperty(uintptr_t num, const char *name) {
 	JSContext *_context;
 	JSObject *_globalObj;
 	jsval rval = INT_TO_JSVAL(0);
@@ -964,7 +967,7 @@ int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
 	return JS_TRUE;
 }
 
-int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
+static int JSaddGlobalAssignProperty(uintptr_t num, const char *name, const char *str) {
 	jsval _rval = INT_TO_JSVAL(0);
 	JSContext *_context;
 	JSObject *_globalObj;

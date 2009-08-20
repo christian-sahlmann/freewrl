@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.21 2009/08/19 04:15:36 dug9 Exp $
+$Id: CScripts.c,v 1.22 2009/08/20 19:00:58 crc_canada Exp $
 
 ???
 
@@ -166,7 +166,7 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 	ConsoleMessage ("call to scriptFieldDecl_getRoutingOffset made with NULL input");
 	return INT_ID_UNDEFINED;
  }
- return JSparamIndex((char *)me->ASCIIname, (char *)me->ASCIItype);
+ return JSparamIndex(me->ASCIIname, me->ASCIItype);
 }
 
 /* Initialize JSField */

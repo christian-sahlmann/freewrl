@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.24 2009/08/20 17:39:31 crc_canada Exp $
+# $Id: Makefile.sources,v 1.25 2009/08/20 19:00:58 crc_canada Exp $
 #
 # List all source files
 #
@@ -113,6 +113,7 @@ scenegraph/Component_Lighting.c \
 scenegraph/LinearAlgebra.h \
 scenegraph/Component_Geospatial.c \
 scenegraph/Component_Scripting.c \
+scenegraph/Component_KeyDevice.h \
 scenegraph/Component_KeyDevice.c \
 scenegraph/StreamPoly.c \
 scenegraph/Viewer.h \

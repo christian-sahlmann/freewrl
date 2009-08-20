@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.13 2009/07/13 18:49:50 crc_canada Exp $
+$Id: Bindable.c,v 1.14 2009/08/20 19:00:58 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -40,15 +40,13 @@ uintptr_t background_stack[MAX_STACK];
 uintptr_t fog_stack[MAX_STACK];
 uintptr_t viewpoint_stack[MAX_STACK];
 uintptr_t navi_stack[MAX_STACK];
-int forceBackgroundRecompile = FALSE;
+static int forceBackgroundRecompile = FALSE;
 
 /* Background - fog nodes do not affect the background node rendering. */
-int fog_enabled = FALSE;
+static int fog_enabled = FALSE;
 
 
-void saveBGVert (float *colptr, float *pt,
-		int *vertexno, float *col, double dist,
-		double x, double y, double z) ;
+static void saveBGVert (float *colptr, float *pt, int *vertexno, float *col, double dist, double x, double y, double z) ;
 
 /* this is called after a Viewpoint or GeoViewpoint bind */
 void reset_upvector() {
@@ -215,7 +213,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 /* Do binding for node and stack - works for all bindable nodes */
 
 /* return the setBind offset of this node */
-unsigned int setBindofst(void *node) {
+static unsigned int setBindofst(void *node) {
 	struct X3D_Background *tn;
 	tn = (struct X3D_Background *) node;
 	switch (tn->_nodeType) {
@@ -231,7 +229,7 @@ unsigned int setBindofst(void *node) {
 }
 
 /* return the isBound offset of this node */
-int bindTimeoffst (struct X3D_Node  *node) {
+static int bindTimeoffst (struct X3D_Node  *node) {
 	X3D_NODE_CHECK(node);
 
 	switch (node->_nodeType) {
@@ -247,8 +245,10 @@ int bindTimeoffst (struct X3D_Node  *node) {
 }
 
 /* return the isBound offset of this node */
-int isboundofst(void *node) {
+static int isboundofst(void *node) {
 	struct X3D_Background *tn;
+
+	/* initialization */
 	tn = (struct X3D_Background *) node;
 
 	X3D_NODE_CHECK(node);
@@ -432,13 +432,13 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 void render_Fog (struct X3D_Fog *node) {
 	GLdouble mod[16];
 	GLdouble proj[16];
-	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 	GLdouble x,y,z;
 	GLdouble x1,y1,z1;
 	GLdouble sx, sy, sz;
 	GLfloat fog_colour [4];
 	char *fogptr;
 	int foglen;
+	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 
 
 	/* printf ("render_Fog, node %d isBound %d color %f %f %f set_bind %d\n",
@@ -514,7 +514,7 @@ void render_Fog (struct X3D_Fog *node) {
  ******************************************************************************/
 
 /* save a Background vertex into the __points and __colours arrays */
-void saveBGVert (float *colptr, float *pt,
+static void saveBGVert (float *colptr, float *pt,
 		int *vertexno, float *col, double dist,
 		double x, double y, double z) {
 		/* save the colour */
@@ -529,7 +529,7 @@ void saveBGVert (float *colptr, float *pt,
 }
 
 /* the background centre follows our position, so, move it! */
-void moveBackgroundCentre () {
+static void moveBackgroundCentre () {
 	GLdouble mod[16];
 	GLdouble proj[16];
 	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
@@ -561,9 +561,9 @@ void moveBackgroundCentre () {
 	FW_GL_SCALE_D(sx,sy,sz);
 }
 
-void recalculateBackgroundVectors(struct X3D_Background *node) {
+static void recalculateBackgroundVectors(struct X3D_Background *node) {
 	struct SFColor *c1,*c2;
-	int hdiv = 20;			/* number of horizontal strips allowed */
+	int hdiv;			/* number of horizontal strips allowed */
 	int h,v;
 	double va1, va2, ha1, ha2;	/* JS - vert and horiz angles 	*/
 	int estq;
@@ -578,6 +578,10 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 	float  *skyAng; int skyAngCt;
 	float  *gndAng; int gndAngCt;
 	float *newPoints; float *newColors;
+
+	/* initialization */
+	tbnode = NULL;
+	hdiv = 20;
 
 	/* We draw spheres, one for the sky, one for the ground - outsideRadius and insideRadius */
 	double outsideRadius =  DEFAULT_FARPLANE* 0.750;

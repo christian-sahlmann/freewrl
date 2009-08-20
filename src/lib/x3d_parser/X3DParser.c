@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.29 2009/08/01 09:45:40 couannette Exp $
+$Id: X3DParser.c,v 1.30 2009/08/20 19:00:58 crc_canada Exp $
 
 ???
 
@@ -160,7 +160,7 @@ con:
 */
 
 /* add this data to the end of the current CData array for later use */
-void appendDataToFieldValue(char *data, int len) {
+static void appendDataToFieldValue(char *data, int len) {
 	if ((CDATA_Text_curlen+len) > CDATA_TextMallocSize-100) {
 		while ((CDATA_Text_curlen+len) > CDATA_TextMallocSize-100) {
 			if (CDATA_TextMallocSize == 0) CDATA_TextMallocSize = 2048;
@@ -175,7 +175,7 @@ void appendDataToFieldValue(char *data, int len) {
 }
 
 /* we are finished with a 3.3 fieldValue, tie it in */
-void setFieldValueDataActive(void) {
+static void setFieldValueDataActive(void) {
 	if (!in3_3_fieldValue) printf ("expected this to be in a fieldValue\n");
 
 	/* if we had a valid field for this node... */
@@ -198,7 +198,6 @@ void setFieldValueDataActive(void) {
 
 /* for EAI/SAI - if we have a Node, look up the name in the DEF names */
 char *X3DParser_getNameFromNode(struct X3D_Node* myNode) {
-	int ctr;
 	return NULL;
 }
 
@@ -242,7 +241,7 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 	ASSERT(ind<vector_size(stack_top(struct Vector*, DEFedNodes)));
 
 	/* if we did not find this node, just return */
-	if (ind == ID_UNDEFINED) {node = NULL; return; }
+	if (ind == ID_UNDEFINED) {return NULL; }
 
 	node=vector_get(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes),ind);
 	/* printf ("DEFNameIndex for %s, returning %u, nt %s\n",name, node,stringNodeType(node->_nodeType)); */
@@ -724,7 +723,7 @@ static void endProtoInterfaceTag() {
 	setParserMode(PARSING_PROTODECLARE);
 }
 
-static void endProtoBodyTag(char *name) {
+static void endProtoBodyTag(const char *name) {
 	/* ending <ProtoBody> */
 	/* printf ("endProtoBody, mode is %s\n",parserModeStrings[getParserMode()]); */
 	if (getParserMode() != PARSING_PROTOBODY) {
@@ -818,7 +817,7 @@ static void endProtoInstanceField(const char *name) {
 
 
 
-
+#ifdef OLDCODE
 static void endFieldTag() {
 	/* is this possibly a field name, that we do not expect? */
 	if (getParserMode() == PARSING_NODES) {
@@ -833,6 +832,7 @@ static void endFieldValueTag() {
 		printf ("Got a <fieldValue> but not in a <ProtoInstance>\n");
 	}
 } 
+#endif
 
 void linkNodeIn() {
 	int coffset;

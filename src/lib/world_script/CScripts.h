@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.9 2009/06/01 19:37:43 istakenv Exp $
+$Id: CScripts.h,v 1.10 2009/08/20 19:00:58 crc_canada Exp $
 
 Class to wrap a java script for CParser
 
@@ -105,8 +105,7 @@ struct ScriptFieldDecl* script_getField(struct Shader_Script*, indexT ind, index
 struct ScriptFieldDecl* script_getField_viaASCIIname (struct Shader_Script* me, const char *name);
 
 
-void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVrml value);
-void SaveScriptField (int num, indexT kind, indexT type, char* field, union anyVrml value);
+void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value);
 struct ScriptParamList {
         struct ScriptParamList *next;
         indexT kind;

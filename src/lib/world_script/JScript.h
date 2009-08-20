@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.h,v 1.4 2009/05/13 20:30:49 crc_canada Exp $
+$Id: JScript.h,v 1.5 2009/08/20 19:00:58 crc_canada Exp $
 
 ???
 
@@ -16,7 +16,7 @@ void kill_javascript(void);
 void cleanupDie(uintptr_t num, const char *msg);
 void JSMaxAlloc(void);
 void JSInit(uintptr_t num);
-void SaveScriptText(uintptr_t num, char *text);
+void SaveScriptText(uintptr_t num, const char *text);
 void JSInitializeScriptAndFields (uintptr_t num);
 void JSCreateScriptContext(uintptr_t num);
 
@@ -47,10 +47,8 @@ void * SFVec4fNativeNew(void);
 void SFVec4fNativeAssign(void *top, void *fromp);
 void * SFVec4dNativeNew(void);
 void SFVec4dNativeAssign(void *top, void *fromp);
-void SaveScriptField (int num, indexT kind, indexT type, char* field, union anyVrml value);
-void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVrml value);
-int JSaddGlobalECMANativeProperty(uintptr_t num, char *name);
-int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str);
+void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value);
+void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value);
 
 
 #endif /* __FREEWRL_JS_JSCRIPT_H__ */

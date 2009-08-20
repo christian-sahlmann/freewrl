@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.29 2009/08/19 15:22:38 crc_canada Exp $
+$Id: CRoutes.c,v 1.30 2009/08/20 19:00:58 crc_canada Exp $
 
 ???
 
@@ -747,7 +747,7 @@ stores ascii names with types (see code for type equivalences).
 
 ********************************************************************/
 
-int JSparamIndex (char *name, char *type) {
+int JSparamIndex (const char *name, const char *type) {
 	unsigned len;
 	int ty;
 	int ctr;

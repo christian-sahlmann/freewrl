@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.21 2009/08/20 03:12:56 dug9 Exp $
+$Id: X3DProtoScript.c,v 1.22 2009/08/20 19:00:58 crc_canada Exp $
 
 ???
 
@@ -36,6 +36,7 @@ static int currentProtoDeclare  = INT_ID_UNDEFINED;
 static int MAXProtos = 0;
 static int curProDecStackInd = 0;
 static int currentProtoInstance = INT_ID_UNDEFINED;
+static int getFieldValueFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono, char **value);
 
 #define X3DPARSERVERBOSE 1
 
@@ -104,7 +105,7 @@ void freeProtoMemory () {
 
 	
 	#ifdef X3DPARSERVERBOSE
-	printf ("freeProtoMemory, currentProtoDeclare is %d PROTONames = %d \n",currentProtoDeclare,PROTONames);
+	printf ("freeProtoMemory, currentProtoDeclare is %d PROTONames = %d \n",currentProtoDeclare,(int) PROTONames);
 	#endif
 
 	if (PROTONames != NULL) {
@@ -265,10 +266,9 @@ int i;printf ("X3D_ node name :%s:\n",name);for (i = 0; atts[i]; i += 2) {printf
 				struct X3D_Node *rv;
 				char *val = MALLOC(20);
 
-				rv = DEFNameIndex(atts[1],NULL,FALSE);
-				/* X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force) */
+				rv = DEFNameIndex(atts[1],X3D_NODE(NULL),FALSE);
 				/* printf ("found USE in proto expansion for SFNode, is %u\n",rv); */
-				sprintf (val, "%u",rv);
+				sprintf (val, "%u",(unsigned int) rv);
 				ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = val;
 			} else {
 				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
@@ -819,10 +819,10 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 		struct X3D_Node * me; 
 		#ifdef X3DPARSERVERBOSE
 			printf ("ProtoInstance, have a DEF, defining :%s: for node %u\n",
-			ProtoInstanceTable[curProtoInsStackInd].defName,myGroup);
+			ProtoInstanceTable[curProtoInsStackInd].defName,(unsigned int) myGroup);
 		#endif
 
-		me = DEFNameIndex(ProtoInstanceTable[curProtoInsStackInd].defName,myGroup,FALSE);
+		me = DEFNameIndex(ProtoInstanceTable[curProtoInsStackInd].defName,X3D_NODE(myGroup),FALSE);
 		FREE_IF_NZ(ProtoInstanceTable[curProtoInsStackInd].defName);
 	}
 
@@ -1028,7 +1028,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	int myparams[MPFIELDS];
 	int which;
 	int myFieldNumber;
-	char *myValueString;
+	const char *myValueString;
 	int myAccessType;
 	struct Shader_Script *myObj;
 	struct ScriptFieldDecl* sdecl;
@@ -1164,7 +1164,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	if (myparams[MP_VALUE] != INT_ID_UNDEFINED) myValueString = atts[myparams[MP_VALUE]];
 
 	/* register this field with the Javascript Field Indexer */
-	myFieldNumber = JSparamIndex((char *)atts[myparams[MP_NAME]],(char *)atts[myparams[MP_TYPE]]);
+	myFieldNumber = JSparamIndex(atts[myparams[MP_NAME]],atts[myparams[MP_TYPE]]);
 
 
 	/* convert eventIn, eventOut, field, and exposedField to new names */
@@ -1222,7 +1222,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 
 	/* for now, set the value  -either the default, or not... */
 	if (myValueString != NULL) {
-		Parser_scanStringValueToMem(X3D_NODE(&defaultVal), 0, sdecl->fieldDecl->type, myValueString, TRUE);
+		Parser_scanStringValueToMem(X3D_NODE(&defaultVal), 0, sdecl->fieldDecl->type, (char *)myValueString, TRUE);
 	}
 	scriptFieldDecl_setFieldValue(sdecl, defaultVal);
 
@@ -1362,7 +1362,7 @@ static int getFieldValueFromProtoInterface (struct VRMLLexer *myLexer, char *fie
 #undef LOOK_FOR_FIELD_IN
 
 	if (myField != NULL) {
-		*value = myField->ASCIIvalue;
+		*value = (char *)myField->ASCIIvalue;
 		return TRUE;
 	}
 

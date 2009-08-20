@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.72 2009/08/20 00:37:52 couannette Exp $
+$Id: headers.h,v 1.73 2009/08/20 19:00:58 crc_canada Exp $
 
 Global includes.
 
@@ -758,7 +758,7 @@ void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, uintptr_
 void update_node(struct X3D_Node *ptr);
 void update_renderFlag(struct X3D_Node *ptr, int flag);
 
-int JSparamIndex (char *name, char *type);
+int JSparamIndex (const char *name, const char *type);
 
 /* setting script eventIns from routing table or EAI */
 void Set_one_MultiElementtype (uintptr_t tn, uintptr_t tptr, void *fn, unsigned len);
@@ -822,7 +822,6 @@ extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
 void JSCreateScriptContext(uintptr_t num); 
 void JSInitializeScriptAndFields (uintptr_t num);
-void SaveScriptText(uintptr_t num, char *text);
 
 
 void update_status(char* msg);
@@ -1034,8 +1033,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *this_);
 #define make_GeoElevationGrid make_genericfaceset
 
 
-int KeySensorNodePresent(void);
-
 #ifdef GL_VERSION_2_0
 	#define TURN_APPEARANCE_SHADER_OFF \
 		{if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgram(0);}}
@@ -1158,7 +1155,6 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent);
 void setglClearColor (float *val); 
 void doglClearColor(void);
 extern int cc_changed;
-extern int forceBackgroundRecompile;
 
 int mapFieldTypeToInernaltype (indexT kwIndex);
 void finishEventLoop();

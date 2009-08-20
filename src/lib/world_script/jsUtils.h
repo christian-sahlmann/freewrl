@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.h,v 1.5 2009/02/18 13:37:50 istakenv Exp $
+$Id: jsUtils.h,v 1.6 2009/08/20 19:00:58 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -73,19 +73,10 @@ JSrunScript(uintptr_t num,
 			struct Uni_String *rnum);
 
 int
-JSaddGlobalAssignProperty(uintptr_t num,
-						  char *name,
-						  char *str);
-
-int
 JSaddSFNodeProperty(uintptr_t num,
 					char *nodeName,
 					char *name,
 					char *str);
-
-int
-JSaddGlobalECMANativeProperty(uintptr_t num,
-							  char *name);
 
 void
 reportWarningsOn(void);

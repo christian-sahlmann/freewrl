@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.9 2009/08/01 09:45:40 couannette Exp $
+$Id: X3DParser.h,v 1.10 2009/08/20 19:00:58 crc_canada Exp $
 
 X3D parser functions.
 
@@ -63,7 +63,6 @@ void parseProtoInstance (const char **atts);
 void parseProtoInstanceFields(const char *name, const char **atts);
 void dumpProtoBody (const char *name, const char **atts);
 void dumpCDATAtoProtoBody (char *str);
-void endDumpProtoBody (const char *name);
 void parseScriptProtoField(struct VRMLLexer *, const char **atts);
 int getFieldFromScript (struct VRMLLexer* myLexer, char *fieldName, struct Shader_Script *, int *offs, int *type, int *accessType);
 void expandProtoInstance(struct VRMLLexer *, struct X3D_Group * myGroup);
