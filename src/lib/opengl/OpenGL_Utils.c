@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.54 2009/08/20 17:39:31 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.55 2009/08/21 18:26:28 crc_canada Exp $
 
 ???
 
@@ -520,7 +520,7 @@ void glpOpenGLInitialize() {
 	do_shininess(GL_FRONT_AND_BACK,0.2);
 
 	/* get extensions for runtime */
-	printf ("OpenGL - getting extensions\n");
+	/* printf ("OpenGL - getting extensions\n"); */
 	
         glExtensions = (char *)glGetString(GL_EXTENSIONS);
 
@@ -570,7 +570,7 @@ void glpOpenGLInitialize() {
 				opengl_has_numTextureUnits,MAX_MULTITEXTURE);
 			opengl_has_numTextureUnits = MAX_MULTITEXTURE;
 		}
-		printf ("can do multitexture we have %d units\n",opengl_has_numTextureUnits);
+		/* printf ("can do multitexture we have %d units\n",opengl_has_numTextureUnits); */
 
 
 		/* we assume that GL_TEXTURE*_ARB are sequential. Lets to a little check */
@@ -580,7 +580,6 @@ void glpOpenGLInitialize() {
 	}
 
 
-#define VERBOSE
 	#ifdef VERBOSE
 	{
 		char *p = glExtensions;
@@ -596,9 +595,6 @@ void glpOpenGLInitialize() {
 	printf ("max texture size      %d\n",opengl_has_textureSize);
 	printf ("texture units         %d\n",opengl_has_numTextureUnits);
 	#endif	
-
-#undef VERBOSE
-
 }
 
 void BackEndClearBuffer(int which) {
