@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.22 2009/08/20 19:00:58 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.23 2009/08/21 18:26:55 crc_canada Exp $
 
 ???
 
@@ -38,7 +38,7 @@ static int curProDecStackInd = 0;
 static int currentProtoInstance = INT_ID_UNDEFINED;
 static int getFieldValueFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono, char **value);
 
-#define X3DPARSERVERBOSE 1
+#undef X3DPARSERVERBOSE
 
 /* for parsing fields in PROTO expansions */
 /* FIELD_END is an ascii string that will pass the XML parser, but should not be found in a field value */
@@ -747,15 +747,12 @@ static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, 
 
 	#define INITIATE_SCENE \
 	{ \
-		fdl += fprintf (fileDescriptor, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Scene>\n"); \
+		fdl += fprintf (fileDescriptor, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<X3D><Scene> <!-- INITIATE SCENE -->\n"); \
 	}
 
-	/* NOTE: we use <Scene> here because it does nothing - so Group children, etc, are safe 
-	   from having these nodes placed in the children field. These nodes will get parsed, just
-	   not linked in */
 	#define MAKE_PROTO_COPY_FIELDS \
 	myObj = PROTONames[curProtoInsStackInd].fieldDefs; \
-	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields -->\n<Scene>\n"); \
+	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields -->\n"); \
 	for (ind=0; ind<vector_size(myObj->fields); ind++) { \
 		struct ScriptFieldDecl* field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); \
 		if (field->fieldDecl->mode != PKW_initializeOnly) \
@@ -766,7 +763,7 @@ static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, 
 			currentProtoInstance, \
 			field->ASCIIvalue); \
 	} \
-	fdl += fprintf (fileDescriptor, "</Scene>\n");
+	fdl += fprintf (fileDescriptor, "<!-- end of MAKE_PROTO_COPY_FIELDS --> \n");
 
 
 
@@ -895,7 +892,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 
 	/* ROUTES and final scene */
 	fdl += fprintf (fileDescriptor,"<!-- Routes go here\n-->\n");
-	fdl += fprintf (fileDescriptor, "</Scene>\n");
+	fdl += fprintf (fileDescriptor, "</Scene></X3D>\n");
 
 
 	fclose(fileDescriptor);

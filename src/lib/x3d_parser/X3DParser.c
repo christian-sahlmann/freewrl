@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.30 2009/08/20 19:00:58 crc_canada Exp $
+$Id: X3DParser.c,v 1.31 2009/08/21 18:26:54 crc_canada Exp $
 
 ???
 
@@ -35,7 +35,6 @@ $Id: X3DParser.c,v 1.30 2009/08/20 19:00:58 crc_canada Exp $
 #if HAVE_EXPAT_H
 # include <expat.h>
 #endif
-/*#define X3DPARSERVERBOSE 1*/
 
 /* If XMLCALL isn't defined, use empty one */
 #ifndef XMLCALL
@@ -221,7 +220,9 @@ the new node */
 struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force) {
 	indexT ind = ID_UNDEFINED;
 
-	/* printf ("DEFNameIndex, looking for :%s:, force %d\n",name,force); */
+#ifdef X3DPARSERVERBOSE
+	printf ("DEFNameIndex, looking for :%s:, force %d\n",name,force);
+#endif
 
 	/* lexer_defineNodeName is #defined as lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE) */
 	/* Checks if this node already exists in the userNodeNames vector.  If it doesn't, adds it. */
@@ -231,7 +232,9 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 	if(!lexer_defineNodeName(myLexer, &ind))
 		printf ("Expected nodeNameId after DEF!\n");
 
-	/* printf ("DEF returns id of %d for %s\n",ind,name); */
+#ifdef X3DPARSERVERBOSE
+	printf ("DEF returns id of %d for %s\n",ind,name);
+#endif
 
 	ASSERT(ind<=vector_size(stack_top(struct Vector*, DEFedNodes)));
 
@@ -244,7 +247,12 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 	if (ind == ID_UNDEFINED) {return NULL; }
 
 	node=vector_get(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes),ind);
-	/* printf ("DEFNameIndex for %s, returning %u, nt %s\n",name, node,stringNodeType(node->_nodeType)); */
+
+#ifdef X3DPARSERVERBOSE
+	printf ("DEFNameIndex = %u\n",node);
+	if (node != NULL) printf ("DEFNameIndex for %s, returning %u, nt %s\n",name, node,stringNodeType(node->_nodeType));
+	else printf ("DEFNameIndex, node is NULL\n");
+#endif
 
 	return node;
 }
@@ -471,7 +479,6 @@ printf ("hey, we have maybe a Node (%s) in a Script list... line %d: expected pa
 				#ifdef X3DPARSERVERBOSE
 				printf ("Warning - line %d duplicate DEF name: \'%s\'\n",LINE,atts[i+1]);
 				#endif
-				printf ("Warning - line %d duplicate DEF name: \'%s\'\n",LINE,atts[i+1]);
 			}
 
 		} else if (strcmp ("USE",atts[i]) == 0) {
@@ -1150,6 +1157,11 @@ int X3DParse (struct X3D_Group* myParent, char *inputstring) {
 
 	INCREMENT_PARENTINDEX
 	parentStack[parentIndex] = X3D_NODE(myParent);
+
+#ifdef X3DPARSERVERBOSE
+	printf ("X3DPARSE on :\n%s:\n",inputstring);
+#endif
+
 	
 	if (XML_Parse(currentX3DParser, inputstring, strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
 		fprintf(stderr,
@@ -1166,6 +1178,10 @@ int X3DParse (struct X3D_Group* myParent, char *inputstring) {
        	endt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 	printf ("X3DParser time taken %lf\n",endt-startt);
 	#endif
+
+#ifdef X3DPARSERVERBOSE
+	printf ("X3DPARSE - returning\n");
+#endif
 
 	return TRUE;
 }
