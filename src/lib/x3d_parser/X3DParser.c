@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.31 2009/08/21 18:26:54 crc_canada Exp $
+$Id: X3DParser.c,v 1.32 2009/08/21 19:43:04 crc_canada Exp $
 
 ???
 
@@ -44,7 +44,7 @@ $Id: X3DParser.c,v 1.31 2009/08/21 18:26:54 crc_canada Exp $
 static int inCDATA = FALSE;
 
 static struct VRMLLexer *myLexer = NULL;
-static Stack* DEFedNodes;
+static Stack* DEFedNodes = NULL;
 
 
 char *CDATA_Text = NULL;
@@ -211,9 +211,11 @@ struct X3D_Node *X3DParser_getNodeFromName(const char *name) {
 
 /* "forget" the DEFs. Keep the table around, though, as the entries will simply be used again. */
 void kill_X3DDefs(void) {
-/* printf ("kill_X3DDefs - nothing here\n"); */
+printf ("kill_X3DDefs - nothing here - have to get rid of the DEFedNodes Stack\n");
 /* XXX fill this in */
 }
+
+
 
 /* return a node assoicated with this name. If the name exists, return the previous node. If not, return
 the new node */
@@ -221,7 +223,7 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 	indexT ind = ID_UNDEFINED;
 
 #ifdef X3DPARSERVERBOSE
-	printf ("DEFNameIndex, looking for :%s:, force %d\n",name,force);
+	printf ("DEFNameIndex, looking for :%s:, force %d nodePointer %u\n",name,force,node);
 #endif
 
 	/* lexer_defineNodeName is #defined as lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE) */
@@ -238,6 +240,10 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 
 	ASSERT(ind<=vector_size(stack_top(struct Vector*, DEFedNodes)));
 
+#ifdef X3DPARSERVERBOSE
+	printf ("so, in DEFNameIndex, we have ind %d, vector_size %d\n",ind,vector_size(stack_top(struct Vector*, DEFedNodes)));
+#endif
+
 	if(ind==vector_size(stack_top(struct Vector*, DEFedNodes))) {
 		vector_pushBack(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes), node);
 	}
@@ -249,7 +255,6 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 	node=vector_get(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes),ind);
 
 #ifdef X3DPARSERVERBOSE
-	printf ("DEFNameIndex = %u\n",node);
 	if (node != NULL) printf ("DEFNameIndex for %s, returning %u, nt %s\n",name, node,stringNodeType(node->_nodeType));
 	else printf ("DEFNameIndex, node is NULL\n");
 #endif
@@ -264,6 +269,10 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node *node, int 
 	int accessType;
 	struct Shader_Script *myObj;
  
+#ifdef X3DPARSERVERBOSE
+	printf ("getRouteField, node %u\n",node);
+	printf ("getRouteField, nt %s\n",stringNodeType(node->_nodeType));
+#endif
 	switch (node->_nodeType) {
 
 	case NODE_Script: {
@@ -1147,12 +1156,14 @@ int X3DParse (struct X3D_Group* myParent, char *inputstring) {
 
 	/* Use classic parser Lexer for storing DEF name info */
 	if (myLexer == NULL) myLexer = newLexer();
-	DEFedNodes = newStack(struct Vector*);
-	ASSERT(DEFedNodes);
-	#define DEFMEM_INIT_SIZE 16
-	stack_push(struct Vector*, DEFedNodes,
-               newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
-	ASSERT(!stack_empty(DEFedNodes));
+	if (DEFedNodes == NULL) {
+		DEFedNodes = newStack(struct Vector*);
+		ASSERT(DEFedNodes);
+		#define DEFMEM_INIT_SIZE 16
+		stack_push(struct Vector*, DEFedNodes,
+        	       newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
+		ASSERT(!stack_empty(DEFedNodes));
+	}
 
 
 	INCREMENT_PARENTINDEX
