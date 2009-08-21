@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.14 2009/08/20 19:00:58 crc_canada Exp $
+$Id: Bindable.c,v 1.15 2009/08/21 21:16:55 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -578,14 +578,15 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 	float  *skyAng; int skyAngCt;
 	float  *gndAng; int gndAngCt;
 	float *newPoints; float *newColors;
+	double outsideRadius, insideRadius;
 
 	/* initialization */
 	tbnode = NULL;
 	hdiv = 20;
 
 	/* We draw spheres, one for the sky, one for the ground - outsideRadius and insideRadius */
-	double outsideRadius =  DEFAULT_FARPLANE* 0.750;
-	double insideRadius = DEFAULT_FARPLANE * 0.50;
+	outsideRadius =  DEFAULT_FARPLANE* 0.750;
+	insideRadius = DEFAULT_FARPLANE * 0.50;
 
 	/* lets try these values - we will scale when we draw this */
 	outsideRadius = 1.0;
