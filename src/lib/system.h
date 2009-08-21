@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.14 2009/08/20 00:40:22 couannette Exp $
+$Id: system.h,v 1.15 2009/08/21 07:41:36 couannette Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -111,6 +111,11 @@ char *__fw_strndup(const char *s, size_t n);
 #endif
 #if HAVE_TIME_H
 # include <time.h>
+#endif
+
+#if !defined(HAVE_GETTIMEOFDAY) && defined(WIN32)
+#define gettimeofday __fw_gettimeofday
+int __fw_gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
 #if HAVE_FCNTL_H

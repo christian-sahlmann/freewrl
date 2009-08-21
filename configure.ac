@@ -68,7 +68,7 @@ AC_HEADER_STDBOOL
 AC_FUNC_FORK
 AC_PROG_GCC_TRADITIONAL
 dnl AC_FUNC_MALLOC
-AC_CHECK_FUNCS([strchr strrchr strdup strndup getopt getopt_long getopt_long_only malloc calloc realloc usleep])
+AC_CHECK_FUNCS([strchr strrchr strdup strndup getopt getopt_long getopt_long_only malloc calloc realloc usleep gettimeofday])
 
 
 # ====================================================
