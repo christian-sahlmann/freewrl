@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.32 2009/08/21 07:41:36 couannette Exp $
+$Id: Viewer.c,v 1.33 2009/08/22 01:12:07 dug9 Exp $
 
 CProto ???
 
@@ -1049,6 +1049,21 @@ void viewer_postGLinit_init(void)
 			Viewer.haveAnaglyphShader = 0;
 		}
 	}
+	if(Viewer.shutterGlasses)
+	{
+		/* does this opengl driver/hardware support GL_STEREO? p.469, p.729 RedBook and
+		   WhiteDune > swt.c L1306
+		*/
+		GLboolean quadbuffer;
+
+		glGetBooleanv(GL_STEREO,&quadbuffer);
+		if (quadbuffer != GL_TRUE) {
+			ConsoleMessage("Unable to get quadbuffer stereo visual, switching to flutter mode\n");
+			Viewer.shutterGlasses = 2; /*  render to GL_BACK, alternate L/R every 2 seconds*/
+			shutterGlasses = 0; /*let the platform-specific pixelformat code know not to try again ie on resize*/
+		}
+		setStereoBufferStyle(0); 
+	}
 }
 
 void deleteAnaglyphShaders()
@@ -1126,29 +1141,10 @@ void setAnaglyphParameter(const char *optArg) {
 /* handle setting shutter from parameters */
 void setShutter (void)
 {
-    GLboolean quadbuffer;
-
-    /* initialization of visual needs this 
-       NOT > I moved it to Viewer.shutterGlasses=1, wont that work for you? dug9  
-       YES > I think this is needed during window creation, so keep this variable (Michel).
-    */
-    shutterGlasses = 1;
-
+    shutterGlasses = 1; /* platform specific pixelformat/window initialization code should hint PRF_STEREO */
     if(Viewer.isStereo == 0)
-	initStereoDefaults();
-
+		initStereoDefaults();
     Viewer.shutterGlasses = 1;
-
-    /* does this opengl driver/hardware support GL_STEREO? p.469, p.729 RedBook and
-       WhiteDune > swt.c L1306
-    */
-    quadbuffer = '\0';
-    glGetBooleanv(GL_STEREO,&quadbuffer);
-    if (quadbuffer == GL_FALSE) {
-        ConsoleMessage("Unable to get quadbuffer stereo visual \n");
-	Viewer.shutterGlasses = 2; /*go ahead and render anyway to GL_BACK, but manually swap every 2 seconds in flutter mode*/
-    }
-    setStereoBufferStyle(0); 
 }
 
 void setSideBySide()

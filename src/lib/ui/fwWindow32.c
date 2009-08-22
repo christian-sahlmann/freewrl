@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: fwWindow32.c,v 1.3 2009/08/20 00:37:52 couannette Exp $
+  $Id: fwWindow32.c,v 1.4 2009/08/22 01:12:07 dug9 Exp $
 
   FreeWRL main window : win32 code.
 
@@ -21,7 +21,7 @@
 /* #include "../plugin/pluginUtils.h" */
 
 #include <winuser.h>
-
+#include <wingdi.h>
 
 void do_keyPress(const char kp, int type);
 
@@ -71,7 +71,7 @@ static int oldx = 0, oldy = 0;
 /* #undef XTDEBUG */
 
 /* static int screen; */
-static int quadbuff_stereo_mode;
+extern int shutterGlasses;
 
 char *GL_VER = NULL;
 char *GL_VEN = NULL;
@@ -261,7 +261,7 @@ static bool dualmonitor = false;
 static RECT smallrect;
 bool EnableFullscreen(int w, int h, int bpp)
 {
-#if 0
+#if defined(_MSC_VER)
     /* adapted from http://www.gamedev.net/community/forums/topic.asp?topic_id=418397 */
     /* normally I pass in bpp=32. If you set debugit=true below and do a run, you'll see the modes available */
     /* CDS_FULLSCREEN
@@ -366,7 +366,7 @@ bool EnableFullscreen(int w, int h, int bpp)
 
 void DisableFullscreen()
 {
-#if 0
+#if defined(_MSC_VER)
     if(m_fullscreen) {
 
         /* Find out the name of the device this window
@@ -407,29 +407,40 @@ void DisableFullscreen()
 
 BOOL bSetupPixelFormat(HDC hdc) 
 { 
+	/* http://msdn.microsoft.com/en-us/library/dd318284(VS.85).aspx */
     PIXELFORMATDESCRIPTOR pfd, *ppfd; 
     int pixelformat; 
- 
-    ppfd = &pfd; 
+	int more;
+
+	ppfd = &pfd; 
  
     ppfd->nSize = sizeof(PIXELFORMATDESCRIPTOR); 
     ppfd->nVersion = 1; 
     ppfd->dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER; 
-    ppfd->dwLayerMask = PFD_MAIN_PLANE; 
-    ppfd->iPixelType = PFD_TYPE_COLORINDEX; 
-    ppfd->cColorBits = 8; 
-    ppfd->cDepthBits = 16; 
-    ppfd->cAccumBits = 8; /*need accum buffer for shader anaglyph*/
-    ppfd->cStencilBits = 0; 
+	if(shutterGlasses ==1)
+		ppfd->dwFlags |= PFD_STEREO;
+	ppfd->iLayerType = PFD_MAIN_PLANE;
+    ppfd->iPixelType = PFD_TYPE_RGBA; /* PFD_TYPE_COLORINDEX; */
+    ppfd->cColorBits = 24; 
+	ppfd->cAlphaBits = 8;
+    ppfd->cDepthBits = 32; 
+    ppfd->cAccumBits = 64; /*need accum buffer for shader anaglyph - 8 bits per channel OK*/
+    ppfd->cStencilBits = 8; 
+	ppfd->cAuxBuffers = 0;
  
-    pixelformat = ChoosePixelFormat(hdc, ppfd); 
+    /* pixelformat = ChoosePixelFormat(hdc, ppfd); */
+	if ( (pixelformat = ChoosePixelFormat(hdc, ppfd)) == 0 ) 
+	{ 
+		MessageBox(NULL, "ChoosePixelFormat failed", "Error", MB_OK); 
+		return FALSE; 
+	} 
  
-    if ( (pixelformat = ChoosePixelFormat(hdc, ppfd)) == 0 ) 
-    { 
-        MessageBox(NULL, "ChoosePixelFormat failed", "Error", MB_OK); 
-        return FALSE; 
-    } 
- 
+	/*  seems to fail stereo gracefully/quietly, allowing you to detect with glGetbooleanv(GL_STEREO,) in shared code
+	DescribePixelFormat(hdc, pixelformat, sizeof(PIXELFORMATDESCRIPTOR), ppfd);
+	if(shutterGlasses > 0)
+		printf("got stereo? = %d\n",(int)(ppfd->dwFlags & PFD_STEREO));
+	*/
+
     if (SetPixelFormat(hdc, pixelformat, ppfd) == FALSE) 
     { 
         MessageBox(NULL, "SetPixelFormat failed", "Error", MB_OK); 
