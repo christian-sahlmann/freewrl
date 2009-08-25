@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.32 2009/08/21 19:43:04 crc_canada Exp $
+$Id: X3DParser.c,v 1.33 2009/08/25 19:53:28 crc_canada Exp $
 
 ???
 
@@ -99,16 +99,11 @@ int getParserMode(void) { return currentParserMode; }
 
 /* get the line number of the current parser for error purposes */
 int freewrl_XML_GetCurrentLineNumber(void) {
-#ifdef WIN32
 	if (X3DParserRecurseLevel > INT_ID_UNDEFINED)
 	{
 		currentX3DParser = x3dparser[X3DParserRecurseLevel]; /*dont trust current*/
 		return XML_GetCurrentLineNumber(currentX3DParser); 
 	}
-#else
-	if (currentX3DParser != NULL)
-		return XML_GetCurrentLineNumber(currentX3DParser); 
-#endif
 	return INT_ID_UNDEFINED;
 }
 
@@ -317,9 +312,6 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node *node, int 
 			error = TRUE;
 		}
 	}
-/* #ifdef WIN32 */
-/* 	} */
-/* #endif */
 	return error;
 }
 
@@ -695,6 +687,7 @@ static void parseMeta(const char **atts) {
 static void parseFieldValue(const char *name, const char **atts) {
 	int i;
 	int nameIndex = INT_ID_UNDEFINED;
+
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("parseFieldValue, mode %s\n",parserModeStrings[getParserMode()]);  
@@ -1135,10 +1128,8 @@ static void shutdownX3DParser () {
 	/* CDATA text space, free it up */
         FREE_IF_NZ(CDATA_Text);
         CDATA_TextMallocSize = 0; 
-#ifdef WIN32
 	if (X3DParserRecurseLevel > INT_ID_UNDEFINED)
 		currentX3DParser = x3dparser[X3DParserRecurseLevel];
-#endif
 }
 
 int X3DParse (struct X3D_Group* myParent, char *inputstring) {

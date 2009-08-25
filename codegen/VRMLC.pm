@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.20 2009/08/12 17:22:54 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.21 2009/08/25 19:53:28 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.21  2009/08/25 19:53:28  crc_canada
+# more XML PROTO parsing/routing. Still needs routing to/from PROTOS.
+#
 # Revision 1.20  2009/08/12 17:22:54  crc_canada
 # Moving defines out of headers.h and into perl-generated code.
 #
@@ -489,7 +492,7 @@ sub gen {
 		"/* \n".
 		"=INSERT_TEMPLATE_HERE= \n".
 		" \n".
-		"$Id: VRMLC.pm,v 1.20 2009/08/12 17:22:54 crc_canada Exp $ \n".
+		"$Id: VRMLC.pm,v 1.21 2009/08/25 19:53:28 crc_canada Exp $ \n".
 		" \n".
 		"??? \n".
 		" \n".
@@ -628,7 +631,7 @@ sub gen {
 	# make a function to print field name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the field type */\n". 
 		"const char *stringFieldType (int st) {\n".
-		"	if ((st < 0) || (st >= FIELDNAMES_COUNT)) return \"FIELD OUT OF RANGE\"; \n".
+		"	if ((st < 0) || (st >= FIELDNAMES_COUNT)) return \"(fieldName invalid)\"; \n".
 		"	return FIELDNAMES[st];\n}\n\n";
 	push @str, "const char *stringFieldType(int st);\n";
 
@@ -724,7 +727,7 @@ sub gen {
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the keyword type */\n". 
 		"const char *stringKeywordType (int st) {\n".
-		"	if ((st < 0) || (st >= KEYWORDS_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
+		"	if ((st < 0) || (st >= KEYWORDS_COUNT)) return \"(keyword invalid)\"; \n".
 		"	return KEYWORDS[st];\n}\n\n";
 	push @str, "const char *stringKeywordType(int st);\n";
 
@@ -755,7 +758,7 @@ sub gen {
 	# make a function to print Profile name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the profile type */\n". 
 		"const char *stringProfileType (int st) {\n".
-		"	if ((st < 0) || (st >= PROFILES_COUNT)) return \"PROFILE OUT OF RANGE\"; \n".
+		"	if ((st < 0) || (st >= PROFILES_COUNT)) return \"(profile invalid)\"; \n".
 		"	return PROFILES[st];\n}\n\n";
 	push @str, "const char *stringProfileType(int st);\n";
 
@@ -785,7 +788,7 @@ sub gen {
 	# make a function to print Component name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the component type */\n". 
 		"const char *stringComponentType (int st) {\n".
-		"	if ((st < 0) || (st >= COMPONENTS_COUNT)) return \"COMPONENT OUT OF RANGE\"; \n".
+		"	if ((st < 0) || (st >= COMPONENTS_COUNT)) return \"(component invalid)\"; \n".
 		"	return COMPONENTS[st];\n}\n\n";
 	push @str, "const char *stringComponentType(int st);\n";
 
@@ -812,7 +815,7 @@ sub gen {
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the PROTO keyword type */\n". 
 		"const char *stringPROTOKeywordType (int st) {\n".
-		"	if ((st < 0) || (st >= PROTOKEYWORDS_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
+		"	if ((st < 0) || (st >= PROTOKEYWORDS_COUNT)) return \"(proto keyword invalid)\"; \n".
 		"	return PROTOKEYWORDS[st];\n}\n\n";
 	push @str, "const char *stringPROTOKeywordType(int st);\n";
 
@@ -838,7 +841,7 @@ sub gen {
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the X3DSPECIAL keyword type */\n". 
 		"const char *stringX3DSPECIALType (int st) {\n".
-		"	if ((st < 0) || (st >= X3DSPECIAL_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
+		"	if ((st < 0) || (st >= X3DSPECIAL_COUNT)) return \"(special keyword invalid)\"; \n".
 		"	return X3DSPECIAL[st];\n}\n\n";
 	push @str, "const char *stringX3DSPECIALType(int st);\n";
 
@@ -864,7 +867,7 @@ sub gen {
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the VRML1Modifier keyword type */\n". 
 		"const char *stringVRML1ModifierType (int st) {\n".
-		"	if ((st < 0) || (st >= VRML1Modifier_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
+		"	if ((st < 0) || (st >= VRML1Modifier_COUNT)) return \"(VRML1 modifier invalid)\"; \n".
 		"	return VRML1Modifier[st];\n}\n\n";
 	push @str, "const char *stringVRML1ModifierType(int st);\n";
 
@@ -890,7 +893,7 @@ sub gen {
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the GEOSPATIAL keyword type */\n". 
 		"const char *stringGEOSPATIALType (int st) {\n".
-		"	if ((st < 0) || (st >= GEOSPATIAL_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
+		"	if ((st < 0) || (st >= GEOSPATIAL_COUNT)) return \"(keyword invalid)\"; \n".
 		"	return GEOSPATIAL[st];\n}\n\n";
 	push @str, "const char *stringGEOSPATIALType(int st);\n";
 
@@ -916,7 +919,7 @@ sub gen {
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the VRML1_ keyword type */\n". 
 		"const char *stringVRML1_Type (int st) {\n".
-		"	if ((st < 0) || (st >= VRML1__COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
+		"	if ((st < 0) || (st >= VRML1__COUNT)) return \"(VRML1 keyword invalid)\"; \n".
 		"	return VRML1_[st];\n}\n\n";
 	push @str, "const char *stringVRML1_Type(int st);\n";
 
@@ -1009,7 +1012,7 @@ sub gen {
 	# make a function to print fieldtype name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the fieldtype type */\n". 
 		"const char *stringFieldtypeType (int st) {\n".
-		"	if ((st < 0) || (st >= FIELDTYPES_COUNT)) return \"FIELDTYPE OUT OF RANGE\"; \n".
+		"	if ((st < 0) || (st >= FIELDTYPES_COUNT)) return \"(fieldType invalid)\"; \n".
 		"	return FIELDTYPES[st];\n}\n\n";
 	push @str, "const char *stringFieldtypeType(int st);\n";
 
@@ -1032,7 +1035,7 @@ sub gen {
 	# make a function to print node name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the node type */\n". 
 		"const char *stringNodeType (int st) {\n".
-		"	if ((st < 0) || (st >= NODES_COUNT)) return \"NODE OUT OF RANGE\"; \n".
+		"	if ((st < 0) || (st >= NODES_COUNT)) return \"(node invalid)\"; \n".
 		"	return NODES[st];\n}\n\n";
 	push @str, "const char *stringNodeType(int st);\n";
 
@@ -1505,7 +1508,7 @@ sub gen {
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: VRMLC.pm,v 1.20 2009/08/12 17:22:54 crc_canada Exp $
+$Id: VRMLC.pm,v 1.21 2009/08/25 19:53:28 crc_canada Exp $
 
 NodeFields.h  generated by VRMLC.pm. DO NOT MODIFY, MODIFY VRMLC.pm INSTEAD
 */
@@ -1541,7 +1544,7 @@ END_NODE(NodeName)
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: VRMLC.pm,v 1.20 2009/08/12 17:22:54 crc_canada Exp $
+$Id: VRMLC.pm,v 1.21 2009/08/25 19:53:28 crc_canada Exp $
 
 Structs.h generated by VRMLC.pm. DO NOT MODIFY, MODIFY VRMLC.pm INSTEAD
 

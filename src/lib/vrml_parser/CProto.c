@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.29 2009/08/01 09:45:39 couannette Exp $
+$Id: CProto.c,v 1.30 2009/08/25 19:53:28 crc_canada Exp $
 
 CProto ???
 
@@ -1296,6 +1296,83 @@ static int addProtoUpdateRoute (struct VRMLLexer *me, FILE *routefile, char *fie
 
 
 /* make an expansion of the PROTO, and return it to the main caller */
+/* ok, now, this is kind of complicated.
+
+A proto of:
+PROTO FullRound [
+        field SFTime cycleInterval 6
+        eventOut SFRotation value_changed
+        field SFVec3f axis 1 0 0
+] {
+        DEF TIMER TimeSensor
+          {cycleInterval IS cycleInterval
+           startTime 0 stopTime -1 enabled TRUE loop TRUE}
+        DEF ORI ScalarInterpolator {
+                key [ 0 0.25 0.5 0.75 1]
+                keyValue [
+                        0
+                        1.570796
+                        3.141593
+                        4.71238898
+                        6.2831853
+                ]
+        }
+        DEF SCRI Script {
+                eventIn SFFloat set_fraction
+                eventOut SFRotation value_changed IS value_changed
+                field SFVec3f axis IS axis
+                url "javascript:
+                   function set_fraction(val,time) {
+                        value_changed = new SFRotation(
+                         axis.x,axis.y,axis.z,val
+                        );
+                   }
+                "
+        }
+        ROUTE TIMER.fraction_changed TO ORI.set_fraction
+        ROUTE ORI.value_changed TO SCRI.set_fraction
+}
+
+
+gets expanded to the following. 
+
+NOTE:	- the PROTOInterfaceNodes section;
+	- routing to/from these nodes at the end.
+	- DEF names become uniqie;
+	- local routing (see last 2 routes above) get redefined to use local names;
+	- any routing TO/FROM the proto goes to the nodes in the FreeWRL_PROTOInterfaceNodes;
+	  the routes to/from these nodes do the route multiplication; eg, one route to the
+	  PROTO can get expanded into many IS references.
+
+
+Group{
+	FreeWRL__protoDef 11446464 FreeWRL_PROTOInterfaceNodes [	
+		DEF PROTO_11446464_value_changed MetadataSFRotation { }
+] #PROTOPARAMS
+
+  children[ #PROTOGROUP
+DEF  fReEwEL_fAbricatio_dEF_11_TIMER TimeSensor {cycleInterval     40 startTime 0 stopTime -1 enabled TRUE loop TRUE } #PROTO EXPANSION of FullRound
+DEF  fReEwEL_fAbricatio_dEF_11_ORI ScalarInterpolator {key [0 0.250000 0.500000 0.750000 1 ]keyValue [0 1.570796 3.141593 4.712389 6.283185 ]} #PROTO EXPANSION of FullRound
+DEF  fReEwEL_fAbricatio_dEF_11_SCRI Script {i
+	eventIn SFFloat set_fraction 
+	eventOut SFRotation value_changed  
+	field SFVec3f axis   0 0 1 url "javascript:
+		   function set_fraction(val,time) {
+		   	value_changed = new SFRotation(
+			 axis.x,axis.y,axis.z,val
+			);
+		   }
+		" } #PROTO EXPANSION of FullRound
+ROUTE  fReEwEL_fAbricatio_dEF_11_TIMER .fraction_changed TO  fReEwEL_fAbricatio_dEF_11_ORI .set_fraction 
+ROUTE  fReEwEL_fAbricatio_dEF_11_ORI .value_changed TO  fReEwEL_fAbricatio_dEF_11_SCRI .set_fraction ] #End of PROTO Expansion children field
+
+ROUTE  fReEwEL_fAbricatio_dEF_11_SCRI.value_changed TO PROTO_11446464_value_changed.setValue #Meta route, inputOutput or outputOnly
+}#END PROTOGROUP
+
+*/
+
+
+
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto, int *protoSize) {
 	char *newProtoText;
 	char tempname[1000];
@@ -1560,6 +1637,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif
 
+	printf ("so, newProtoText \n%s\n",newProtoText);
 	*protoSize = curstringlen + routeSize + strlen(ENDPROTOGROUP);
 	newProtoText[*protoSize] = '\0';
 

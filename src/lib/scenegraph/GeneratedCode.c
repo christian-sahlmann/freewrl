@@ -12,7 +12,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.19 2009/07/22 14:36:19 crc_canada Exp n 
+: VRMLC.pm,v 1.20 2009/08/12 17:22:54 crc_canada Exp n 
 ??? 
  
 */ 
@@ -4732,55 +4732,55 @@ const int *NODE_OFFSETS[] = {
 	};
 /* Return a pointer to a string representation of the field type */
 const char *stringFieldType (int st) {
-	if ((st < 0) || (st >= FIELDNAMES_COUNT)) return "FIELD OUT OF RANGE"; 
+	if ((st < 0) || (st >= FIELDNAMES_COUNT)) return "(fieldName invalid)"; 
 	return FIELDNAMES[st];
 }
 
 /* Return a pointer to a string representation of the keyword type */
 const char *stringKeywordType (int st) {
-	if ((st < 0) || (st >= KEYWORDS_COUNT)) return "KEYWORD OUT OF RANGE"; 
+	if ((st < 0) || (st >= KEYWORDS_COUNT)) return "(keyword invalid)"; 
 	return KEYWORDS[st];
 }
 
 /* Return a pointer to a string representation of the profile type */
 const char *stringProfileType (int st) {
-	if ((st < 0) || (st >= PROFILES_COUNT)) return "PROFILE OUT OF RANGE"; 
+	if ((st < 0) || (st >= PROFILES_COUNT)) return "(profile invalid)"; 
 	return PROFILES[st];
 }
 
 /* Return a pointer to a string representation of the component type */
 const char *stringComponentType (int st) {
-	if ((st < 0) || (st >= COMPONENTS_COUNT)) return "COMPONENT OUT OF RANGE"; 
+	if ((st < 0) || (st >= COMPONENTS_COUNT)) return "(component invalid)"; 
 	return COMPONENTS[st];
 }
 
 /* Return a pointer to a string representation of the PROTO keyword type */
 const char *stringPROTOKeywordType (int st) {
-	if ((st < 0) || (st >= PROTOKEYWORDS_COUNT)) return "KEYWORD OUT OF RANGE"; 
+	if ((st < 0) || (st >= PROTOKEYWORDS_COUNT)) return "(proto keyword invalid)"; 
 	return PROTOKEYWORDS[st];
 }
 
 /* Return a pointer to a string representation of the X3DSPECIAL keyword type */
 const char *stringX3DSPECIALType (int st) {
-	if ((st < 0) || (st >= X3DSPECIAL_COUNT)) return "KEYWORD OUT OF RANGE"; 
+	if ((st < 0) || (st >= X3DSPECIAL_COUNT)) return "(special keyword invalid)"; 
 	return X3DSPECIAL[st];
 }
 
 /* Return a pointer to a string representation of the VRML1Modifier keyword type */
 const char *stringVRML1ModifierType (int st) {
-	if ((st < 0) || (st >= VRML1Modifier_COUNT)) return "KEYWORD OUT OF RANGE"; 
+	if ((st < 0) || (st >= VRML1Modifier_COUNT)) return "(VRML1 modifier invalid)"; 
 	return VRML1Modifier[st];
 }
 
 /* Return a pointer to a string representation of the GEOSPATIAL keyword type */
 const char *stringGEOSPATIALType (int st) {
-	if ((st < 0) || (st >= GEOSPATIAL_COUNT)) return "KEYWORD OUT OF RANGE"; 
+	if ((st < 0) || (st >= GEOSPATIAL_COUNT)) return "(keyword invalid)"; 
 	return GEOSPATIAL[st];
 }
 
 /* Return a pointer to a string representation of the VRML1_ keyword type */
 const char *stringVRML1_Type (int st) {
-	if ((st < 0) || (st >= VRML1__COUNT)) return "KEYWORD OUT OF RANGE"; 
+	if ((st < 0) || (st >= VRML1__COUNT)) return "(VRML1 keyword invalid)"; 
 	return VRML1_[st];
 }
 
@@ -4932,13 +4932,13 @@ int convertToSFType (int st) {
 }
 /* Return a pointer to a string representation of the fieldtype type */
 const char *stringFieldtypeType (int st) {
-	if ((st < 0) || (st >= FIELDTYPES_COUNT)) return "FIELDTYPE OUT OF RANGE"; 
+	if ((st < 0) || (st >= FIELDTYPES_COUNT)) return "(fieldType invalid)"; 
 	return FIELDTYPES[st];
 }
 
 /* Return a pointer to a string representation of the node type */
 const char *stringNodeType (int st) {
-	if ((st < 0) || (st >= NODES_COUNT)) return "NODE OUT OF RANGE"; 
+	if ((st < 0) || (st >= NODES_COUNT)) return "(node invalid)"; 
 	return NODES[st];
 }
 
