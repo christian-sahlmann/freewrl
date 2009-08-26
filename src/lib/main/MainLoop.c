@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.50 2009/08/20 03:12:03 dug9 Exp $
+$Id: MainLoop.c,v 1.51 2009/08/26 14:35:26 crc_canada Exp $
 
 Main loop
 
@@ -191,7 +191,7 @@ const char *libFreeWRL_get_version()
 most things around, just stops display thread, when the user exits a world. */
 static void stopDisplayThread()
 {
-    if (TEST_NULL_THREAD(DispThrd)) {
+    if (!TEST_NULL_THREAD(DispThrd)) {
 	quitThread = TRUE;
 	pthread_join(DispThrd,NULL);
 	ZERO_THREAD(DispThrd);
@@ -1411,7 +1411,7 @@ void setSnapSeq() {
 void closeFreewrl() {
         struct Multi_Node* tn;
         struct X3D_Group* rn;
-        /* printf ("closeFreewrl called\n"); */
+        printf ("closeFreewrl called\n"); 
 
         #ifdef AQUA
         pluginRunning = FALSE;
