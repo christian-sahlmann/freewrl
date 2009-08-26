@@ -12,7 +12,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.20 2009/08/12 17:22:54 crc_canada Exp n 
+: VRMLC.pm,v 1.21 2009/08/25 19:53:28 crc_canada Exp n 
 ??? 
  
 */ 
@@ -6130,7 +6130,7 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_Group *) tmp;
 			tmp2->v = &virt_Group;
 			tmp2->children.n=0; tmp2->children.p=0;
-			tmp2->FreeWRL__protoDef = 0;
+			tmp2->FreeWRL__protoDef = INT_ID_UNDEFINED;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->FreeWRL_PROTOInterfaceNodes.n=0; tmp2->FreeWRL_PROTOInterfaceNodes.p=0;

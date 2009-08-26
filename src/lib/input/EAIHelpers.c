@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.26 2009/08/01 09:45:39 couannette Exp $
+$Id: EAIHelpers.c,v 1.27 2009/08/26 13:57:16 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -208,7 +208,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 
 		/* save the node type; either this is a EAI_NODETYPE_SCRIPT, EAI_NODETYPE_PROTO, or EAI_NODETYPE_STANDARD */
 		if (myn->_nodeType == NODE_Script) EAINodeIndex[mynindex].nodeType = EAI_NODETYPE_SCRIPT;
-		else if ((myn->_nodeType == NODE_Group) & (X3D_GROUP(myn)->FreeWRL__protoDef != 0)) EAINodeIndex[mynindex].nodeType = EAI_NODETYPE_PROTO;
+		else if ((myn->_nodeType == NODE_Group) & (X3D_GROUP(myn)->FreeWRL__protoDef != INT_ID_UNDEFINED)) EAINodeIndex[mynindex].nodeType = EAI_NODETYPE_PROTO;
 		else EAINodeIndex[mynindex].nodeType = EAI_NODETYPE_STANDARD;
 	}
 
@@ -271,7 +271,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 		printf ("changeExpanded - looking for field %s in node...\n",*fp); 
 	}
 
-	myProtoDecl = X3D_GROUP(*np)->FreeWRL__protoDef;
+	myProtoDecl = getProtoDefinition(X3D_GROUP(*np));
 	if (eaiverbose) {
 		printf ("and, the proto name is %s\n",myProtoDecl->protoName);
 	}
@@ -374,7 +374,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 
 	/* is this a proto expansion? */
 	if (X3D_NODE(nodePtr)->_nodeType == NODE_Group) {
-		if (X3D_GROUP(nodePtr)->FreeWRL__protoDef != 0) {
+		if (X3D_GROUP(nodePtr)->FreeWRL__protoDef != INT_ID_UNDEFINED) {
 			isProtoExpansion = TRUE;
 		}
 	}

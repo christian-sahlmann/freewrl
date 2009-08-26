@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.30 2009/08/25 19:53:28 crc_canada Exp $
+$Id: CProto.c,v 1.31 2009/08/26 13:57:16 crc_canada Exp $
 
 CProto ???
 
@@ -58,7 +58,7 @@ CProto ???
 #define SOMETHING_IN_ISVALUE (strlen(newTl) > 0) 
 #define APPEND_ISVALUE PROTO_CAT (newTl);
 #define APPEND_STARTPROTOGROUP_1 \
-	sprintf(thisID,STARTPROTOGROUP,*thisProto); \
+	sprintf(thisID,STARTPROTOGROUP,newProtoDefinitionPointer(*thisProto)); \
 	PROTO_CAT(thisID);
 
 
@@ -110,7 +110,7 @@ static struct ProtoElementPointer* newProtoElementPointer(void) {
 }
 
 /* in CFuncs/CProto.h #define deleteProtoElementPointer(me)  */
-
+#ifdef OLDCODE
 static struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer * me) {
 	struct ProtoElementPointer *ret=MALLOC(sizeof(struct ProtoElementPointer));
 	ASSERT (ret);
@@ -123,6 +123,8 @@ static struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPo
 	ret->fabricatedDef = me->fabricatedDef;	
 	return ret;
 }
+#endif
+
 
 
 /* ************************************************************************** */
@@ -469,8 +471,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
   #undef FIELD
 
   default:
-   fprintf(stderr, "Nodetype %lu unsupported for deep-copy...\n",
-    node->_nodeType);
+   fprintf(stderr, "Nodetype %s unsupported for deep-copy...\n", stringNodeType(node->_nodeType));
    break;
 
  }
@@ -797,12 +798,8 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 	
 				/* get a link to the beginning of this field */
 				FREE_IF_NZ(me->lexer->curID);
-				copyPointer = me->lexer->nextIn;
-				initCP = me->lexer->startOfStringPtr[me->lexer->lexerInputLevel];
-#ifdef PROTO_IN_PROTO_OLDCODE
-				inputCopy = STRDUP(me->lexer->nextIn);
-				/* printf ("inputCopy is %s\n",inputCopy); */
-#endif
+				copyPointer = (char *) me->lexer->nextIn;
+				initCP = (char *) me->lexer->startOfStringPtr[me->lexer->lexerInputLevel];
 
 				#ifdef CPROTOVERBOSE
 				printf ("getProtoInvocationField, going to parse type of %d mode (%s), curID %s, starting at :%s:\n",pdecl->type, stringPROTOKeywordType(pdecl->mode),
@@ -858,57 +855,15 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 
 					if (initCP != me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]) {
 					printf ("getProtoInvocationField, initCP %u startOfStringPtr %u\n",initCP, me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]); 
-#ifdef PROTO_IN_PROTO_OLDCODE
-
-						char *a1;
-						char *a2;
-						/* we had a proto expansion of a field here... */
-							
-						/* printf ("we are probably missing %s off of front\n", inputCopy);
-						printf ("currently, lexer is %u\n",me->lexer); */
-
-						a1 = strstr(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],ENDPROTOGROUP);
-						if (a1 != NULL) {
-							/* printf ("a1 before adding len %s\n",a1); */
-							a1 = a1+strlen(ENDPROTOGROUP);
-		
-							/* printf ("a1 is :%s:\n",a1);  */
-							/* ok, where is that string in the original? */
-							a2 = strstr (inputCopy,a1);
-
-							if (a2 != NULL) {
-								/* printf ("in inputcopy, we found :%s: here :%s:\n", a1, a2); */
-								*a2 = '\0';
-								/* printf ("should remove the last field of:%s:\n",inputCopy); */
-								/* go back, and try and remove the PROTO name and parameters from this field */
-								removeProtoFieldFromThis(inputCopy);
-
-							} else inputCopy[0] = '\0';
-
-						} else inputCopy[0] = '\0';
-
-						/* printf ("so, inputCopy is :%s:\n",inputCopy); */
-
-
-						copyPointer = me->lexer->startOfStringPtr[me->lexer->lexerInputLevel];
-					} else {
-						inputCopy[0] = '\0';
-#else
 printf ("PROTO HEADER - possible proto expansion in header?? \n");
-#endif
 					}
 
 					/* copy over the new value */
 					initCP = (char *) (me->lexer->nextIn);
 					tmp = *initCP; *initCP = '\0';
 					FREE_IF_NZ(pdecl->fieldString); 
-#ifdef PROTO_IN_PROTO_OLDCODE
-					pdecl->fieldString = MALLOC (3 + strlen(inputCopy) + strlen(copyPointer));
-					strcpy(pdecl->fieldString,inputCopy);
-#else
 					pdecl->fieldString = MALLOC (3 + strlen(copyPointer));
 					pdecl->fieldString[0] = '\0';
-#endif
 					strcat (pdecl->fieldString, " ");
 					strcat (pdecl->fieldString,copyPointer);
 					*initCP = tmp;
@@ -1637,7 +1592,6 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif
 
-	printf ("so, newProtoText \n%s\n",newProtoText);
 	*protoSize = curstringlen + routeSize + strlen(ENDPROTOGROUP);
 	newProtoText[*protoSize] = '\0';
 
@@ -1694,4 +1648,50 @@ BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto,
 	}
 
 	return (ret != ID_UNDEFINED);
+}
+
+
+/****************************************************************************
+
+Utility functions for holding on to proto definitions. Note that in both VRML
+classic and XML encoded, the protoDefinitions are kept around. This used to be
+a pointer stuffed into an int; now it is a reference to here.
+
+If you look, a group has a definition in it of:
+
+FreeWRL__protoDef => [SFInt32, INT_ID_UNDEFINED,
+
+so if it has a "FreeWRL__protoDef" that is != INT_ID_UNDEFINED, it is a valid
+index here.
+
+******************************************************************************/
+
+static struct Vector *protoDefVec = NULL;
+
+int newProtoDefinitionPointer (struct ProtoDefinition *npd) {
+
+	if (protoDefVec == NULL) {
+		protoDefVec = newVector(struct ProtoDefinition *, 16);
+	}
+	vector_pushBack (struct ProtoDefinition *,protoDefVec, npd);	
+	/* printf ("newProtoDefinitionPointer, returning %d\n",(int)(vector_size(protoDefVec)-1)); */
+	return (int) (vector_size(protoDefVec)-1);
+}
+
+struct ProtoDefinition *getProtoDefinition (struct X3D_Group *me) {
+	int mpd = me->FreeWRL__protoDef;
+
+	printf ("getProtoDefinition, looking for %d\n",mpd);
+	if (mpd == INT_ID_UNDEFINED) return NULL;
+	if (mpd >= vector_size(protoDefVec)) {
+		printf ("internal error, can not get proto def %d, out of bounds\n",mpd);
+		return NULL;
+	}
+	/* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */
+	return vector_get(struct ProtoDefinition *,protoDefVec,mpd);
+}
+
+/* note, this is not right; should kill memory in Vector first */
+void kill_ProtoDefinitionTable (void) {
+	FREE_IF_NZ(protoDefVec);
 }

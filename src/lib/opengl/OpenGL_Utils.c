@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.55 2009/08/21 18:26:28 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.56 2009/08/26 13:57:16 crc_canada Exp $
 
 ???
 
@@ -1596,9 +1596,6 @@ void kill_X3DNodes(void){
 		
 			if (*fieldOffsetsPtr == FIELDNAMES___lastParent) 
 				break; /* can be a duplicate SFNode pointer - field only in NODE_TextureCoordinate */
-		
-			if (*fieldOffsetsPtr == FIELDNAMES_FreeWRL__protoDef) 
-				break; /* can be a duplicate SFNode pointer - field only in NODE_Group */
 		
 			if (*fieldOffsetsPtr == FIELDNAMES__selected) 
 				break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */

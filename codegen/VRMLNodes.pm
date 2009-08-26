@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.30 2009/07/22 14:36:19 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.31 2009/08/26 13:57:16 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -218,7 +218,7 @@ package VRML::NodeType;
 		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
-		FreeWRL__protoDef => [SFInt32, 0, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # tell renderer that this is a proto...
+		FreeWRL__protoDef => [SFInt32, INT_ID_UNDEFINED, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # tell renderer that this is a proto...
 		FreeWRL_PROTOInterfaceNodes =>[MFNode, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_sortedChildren => [MFNode, [], inputOutput, 0],
 	},"X3DGroupingNode"),

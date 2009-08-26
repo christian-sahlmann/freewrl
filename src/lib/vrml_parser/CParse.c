@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.14 2009/08/20 00:37:52 couannette Exp $
+$Id: CParse.c,v 1.15 2009/08/26 13:57:16 crc_canada Exp $
 
 ???
 
@@ -99,7 +99,7 @@ char* parser_getPROTONameFromNode(struct X3D_Node *node)
 {
 	struct ProtoDefinition* cpd;
 
-	cpd = (struct ProtoDefinition *) X3D_GROUP(node)->FreeWRL__protoDef;
+	cpd = getProtoDefinition(X3D_GROUP(node));
 	if (cpd != NULL) return cpd->protoName;
 	return NULL;
 }

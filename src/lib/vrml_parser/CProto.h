@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.h,v 1.8 2009/05/18 19:05:45 crc_canada Exp $
+$Id: CProto.h,v 1.9 2009/08/26 13:57:16 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -254,5 +254,8 @@ void tokenizeProtoBody(struct ProtoDefinition *, char *);
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto, int *protoSize);
 BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, char * thisField, struct X3D_Node **Node);
 
+int newProtoDefinitionPointer (struct ProtoDefinition *npd); 
+struct ProtoDefinition *getProtoDefinition (struct X3D_Group *me);
+void kill_ProtoDefinitionTable (void);
 
 #endif /* __FREEWRL_CPROTO_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.22 2009/07/24 19:46:20 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.23 2009/08/26 13:57:16 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -235,7 +235,7 @@ void child_Group (struct X3D_Group *node) {
 		int x;
 		struct X3D_Node *xx;
 
-		printf ("child_Group, this %u rf %x isProto %p\n",node,node->_renderFlags, node->FreeWRL__protoDef);
+		printf ("child_Group, this %u rf %x isProto %d\n",node,node->_renderFlags, node->FreeWRL__protoDef);
         printf ("	..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
          render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 
@@ -251,7 +251,7 @@ void child_Group (struct X3D_Group *node) {
 	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
 
 	/* now, just render the non-directionalLight children */
-	if (node->FreeWRL__protoDef && render_geom) {
+	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && render_geom) {
 		(node->children).n = 1;
 		normalChildren(node->children);
 		(node->children).n = nc;

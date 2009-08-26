@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.33 2009/08/25 19:53:28 crc_canada Exp $
+$Id: X3DParser.c,v 1.34 2009/08/26 13:57:16 crc_canada Exp $
 
 ???
 
@@ -772,11 +772,13 @@ static void endProtoInstanceTag() {
 	setParserMode(PARSING_NODES);
 
 	protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+#define X3DPARSERVERBOSE
 		#ifdef X3DPARSERVERBOSE
 		if (protoExpGroup != NULL) {
 			printf ("\nOK, linking in this proto. I'm %d, ps-1 is %d, and p %d\n",protoExpGroup,parentStack[parentIndex-1], parentStack[parentIndex]);
 		}
 		#endif
+#undef X3DPARSERVERBOSE
 
 	expandProtoInstance(myLexer, protoExpGroup);
 }
