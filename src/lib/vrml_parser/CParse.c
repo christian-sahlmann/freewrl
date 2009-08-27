@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.15 2009/08/26 13:57:16 crc_canada Exp $
+$Id: CParse.c,v 1.16 2009/08/27 18:34:33 crc_canada Exp $
 
 ???
 
@@ -99,7 +99,7 @@ char* parser_getPROTONameFromNode(struct X3D_Node *node)
 {
 	struct ProtoDefinition* cpd;
 
-	cpd = getProtoDefinition(X3D_GROUP(node));
+	cpd = getVRMLprotoDefinition(X3D_GROUP(node));
 	if (cpd != NULL) return cpd->protoName;
 	return NULL;
 }

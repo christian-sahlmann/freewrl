@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.24 2009/08/25 19:53:28 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.25 2009/08/27 18:34:33 crc_canada Exp $
 
 ???
 
@@ -87,7 +87,7 @@ static struct PROTOInstanceEntry ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
 
 /* PROTO table */
 struct PROTOnameStruct {
-	char *name;
+	char *definedProtoName;
 	FILE *fileDescriptor;
 	char *fileName;
 	int charLen;
@@ -111,7 +111,7 @@ void freeProtoMemory () {
 		for (i=0; i<= currentProtoDeclare; i++) {
 			if (PROTONames[i].fileOpen) fclose(PROTONames[i].fileDescriptor); /* should never happen... */
 
-			FREE_IF_NZ (PROTONames[i].name);
+			FREE_IF_NZ (PROTONames[i].definedProtoName);
 			if (PROTONames[i].fileName != NULL) UNLINK (PROTONames[i].fileName);
 			free (PROTONames[i].fileName); /* can not FREE_IF_NZ this one as it's memory is not kept track of by MALLOC */
 
@@ -134,7 +134,7 @@ void freeProtoMemory () {
 static void registerProto(const char *name) {
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
-	printf ("registerProto for %s\n",name);
+	printf ("registerProto for currentProtoDeclare %d name %s\n",currentProtoDeclare, name);
 	#endif
 
 
@@ -145,7 +145,7 @@ static void registerProto(const char *name) {
 		PROTONames = (struct PROTOnameStruct*)REALLOC (PROTONames, sizeof(*PROTONames) * MAXProtos);
 	}
 
-	PROTONames[currentProtoDeclare].name = STRDUP((char *)name);
+	PROTONames[currentProtoDeclare].definedProtoName = STRDUP((char *)name);
 	PROTONames[currentProtoDeclare].fileName = TEMPNAM("/tmp","freewrl_proto");
 	PROTONames[currentProtoDeclare].fileDescriptor = fopen(PROTONames[currentProtoDeclare].fileName,"w");
 	PROTONames[currentProtoDeclare].charLen =  0;
@@ -155,7 +155,7 @@ static void registerProto(const char *name) {
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 	printf ("opened name %s for PROTO name %s id %d\n",PROTONames[currentProtoDeclare].fileName,
-		PROTONames[currentProtoDeclare].name,currentProtoDeclare);
+		PROTONames[currentProtoDeclare].definedProtoName,currentProtoDeclare);
 	#endif
 }
 
@@ -422,7 +422,7 @@ static char *getProtoValue(struct VRMLLexer *myLexer, int ProtoInvoc, char *id) 
 
 	/* if we are here, we did not find that parameter */
 	ConsoleMessage ("ProtoInstance <%s>, could not find parameter <%s>",
-			PROTONames[ProtoInvoc].name, id);
+			PROTONames[ProtoInvoc].definedProtoName, id);
 
 	return "";
 }
@@ -489,9 +489,8 @@ static void getDefFromScriptShader(char *protoInString, char *foundNameEquals, c
 	}
 }
 
-
 /* pushes onto a Vector a XML string for routing to a PROTO internal data structure, used for "fanning" i/o to/from a PROTO */
-static void generateRoutes(char *myDefName, char *nodeFieldID, char *protoFieldID,int myFieldKind, struct Vector **routVec){
+static void generateRoutes(char *myDefName, char *nodeFieldID, char *protoFieldID,int myFieldKind, struct Vector **routVec, int uniqueExpandedID){
 	char *routeStr;
 	int rsl;
 
@@ -502,24 +501,24 @@ static void generateRoutes(char *myDefName, char *nodeFieldID, char *protoFieldI
 	switch (myFieldKind) {
 		case PKW_inputOnly: 
 			routeStr = MALLOC(sizeof (char *) + rsl);
-			/* 1 */sprintf (routeStr,"<ROUTE fromNode='%s_FrEEWrL_pRotto_%d' fromField='valueChanged' toNode='%s' toField='%s'/>\n",
-					protoFieldID,curProtoInsStackInd,myDefName,nodeFieldID);
+			/* 1 */sprintf (routeStr,"<ROUTE fromNode='%s_%s_%d' fromField='valueChanged' toNode='%s' toField='%s'/>\n",
+					protoFieldID,FREEWRL_SPECIFIC,uniqueExpandedID,myDefName,nodeFieldID);
 			vector_pushBack(char *, *routVec,routeStr);
 			break;
 		case PKW_outputOnly: 
 			routeStr = MALLOC(sizeof (char *) + rsl);
-			/* 2 */sprintf (routeStr,"<ROUTE toNode='%s_FrEEWrL_pRotto_%d' toField='setValue' fromNode='%s' fromField='%s'/>\n",
-					protoFieldID,curProtoInsStackInd,myDefName,nodeFieldID);
+			/* 2 */sprintf (routeStr,"<ROUTE toNode='%s_%s_%d' toField='setValue' fromNode='%s' fromField='%s'/>\n",
+					protoFieldID,FREEWRL_SPECIFIC,uniqueExpandedID,myDefName,nodeFieldID);
 			vector_pushBack(char *, *routVec,routeStr);
 			break;
 		case PKW_inputOutput: 
 			routeStr = MALLOC(sizeof (char *) + rsl);
-			/* 1 */sprintf (routeStr,"<ROUTE fromNode='%s_FrEEWrL_pRotto_%d' fromField='valueChanged' toNode='%s' toField='%s'/>\n",
-					protoFieldID,curProtoInsStackInd,myDefName,nodeFieldID);
+			/* 1 */sprintf (routeStr,"<ROUTE fromNode='%s_%s_%d' fromField='valueChanged' toNode='%s' toField='%s'/>\n",
+					protoFieldID,FREEWRL_SPECIFIC,uniqueExpandedID,myDefName,nodeFieldID);
 			vector_pushBack(char *, *routVec,routeStr);
 			routeStr = MALLOC(sizeof (char *) + rsl);
-			/* 2 */sprintf (routeStr,"<ROUTE toNode='%s_FrEEWrL_pRotto_%d' toField='setValue' fromNode='%s' fromField='%s'/>\n",
-					protoFieldID,curProtoInsStackInd,myDefName,nodeFieldID);
+			/* 2 */sprintf (routeStr,"<ROUTE toNode='%s_%s_%d' toField='setValue' fromNode='%s' fromField='%s'/>\n",
+					protoFieldID,FREEWRL_SPECIFIC,uniqueExpandedID,myDefName,nodeFieldID);
 			vector_pushBack(char *, *routVec,routeStr);
 			break;
 		case PKW_initializeOnly: 
@@ -602,9 +601,9 @@ void parseProtoInstance (const char **atts) {
 
 		/* go through the PROTO table, and find the match, if it exists */
 		for (protoTableIndex = 0; protoTableIndex <= currentProtoDeclare; protoTableIndex ++) {
-			if (strcmp(atts[nameIndex],PROTONames[protoTableIndex].name) == 0) {
+			if (strcmp(atts[nameIndex],PROTONames[protoTableIndex].definedProtoName) == 0) {
 #ifdef X3DPARSERVERBOSE
-				printf("successfully matched :%s: protoDeclare to protoInstance\n",atts[nameIndex]);
+				printf("successfully matched :%s: to :%s: protoDeclare to protoInstance\n",PROTONames[protoTableIndex].definedProtoName,atts[nameIndex]);
 #endif
 				currentProtoInstance = protoTableIndex;
 				return;
@@ -638,12 +637,16 @@ static void findThisDefName(int *hasDef, char *myDefName, char *openBrace) {
 
 	foundDEF = strstr (openBrace,"DEF=");
 	if (foundDEF == NULL) {
+#ifdef X3DPARSERVERBOSE
 		printf ("findThisDefName - have to generate a DEF name\n");
+#endif
 		*hasDef = FALSE;
 		/* just make up a name; use the current memptr for the DEF name */
 		sprintf (myDefName,"FrEEWrL_pRot_%u",(unsigned) openBrace);
 	} else {
+#ifdef X3DPARSERVERBOSE
 		printf ("findThisDefName - have a DEF in here :%s:\n",foundDEF);
+#endif
 		*hasDef = TRUE;
 		while ((*foundDEF != '"') && (*foundDEF != '\'') && (*foundDEF != '\0')) foundDEF++;
 		printf ("start of DEF now is :%s:\n",foundDEF);
@@ -691,7 +694,7 @@ static void findThisDefName(int *hasDef, char *myDefName, char *openBrace) {
 /* IS - just a pointer into protoInString of where the IS was, before it was spaced out */
 /* isString - the IS string that we have to substitute for */
 
-static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, char *isString,struct Vector ** routVec) {
+static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, char *isString,struct Vector ** routVec,int uniqueExpandedID) {
 	char *connect;
 	char *ns;
 	char *ps;
@@ -782,7 +785,8 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 			if (myDefName[0] == '\0') {
 				ConsoleMessage ("XML PROTO with Script/Shader with <IS>; no DEF Name, can not get handle for it");
 			} else {
-				generateRoutes(myDefName, nodeFieldID, protoFieldID,getProtoKind(myLexer,currentProtoInstance,protoFieldID),routVec);
+				generateRoutes(myDefName, nodeFieldID, protoFieldID,getProtoKind(myLexer,currentProtoInstance,protoFieldID),routVec,
+					uniqueExpandedID);
 			}
 
 
@@ -816,7 +820,7 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 			hasDef = FALSE;
 			myDefName[0] = '\0';
 			findThisDefName(&hasDef, myDefName, openBrace);
-			printf ("so, found DEF name is :%s:\n",myDefName);
+			/* printf ("so, found DEF name is :%s:\n",myDefName); */
 
 			*IS = ctmp; /* restore value */
 
@@ -828,7 +832,8 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 
 				/* ok, we know the location of the last ">", lets go and make a string with all
 				   of this in it together */
-				generateRoutes(myDefName, nodeFieldID, protoFieldID,getProtoKind(myLexer,currentProtoInstance,protoFieldID),routVec);
+				generateRoutes(myDefName, nodeFieldID, protoFieldID,getProtoKind(myLexer,currentProtoInstance,protoFieldID),routVec,
+					uniqueExpandedID);
 
 				/* the value of the PROTO substitution field: */
 				valueStr = getProtoValue(myLexer, currentProtoInstance,protoFieldID);
@@ -893,7 +898,7 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 		fclose (PROTONames[currentProtoInstance].fileDescriptor); \
 		/* printf ("OPEN AND READ %s returns:%s\n:\n",PROTONames[currentProtoInstance].fileName, protoInString); */ \
 		if (rs != PROTONames[currentProtoInstance].charLen) { \
-			ConsoleMessage ("protoInstance :%s:, expected to read %d, actually read %d\n",PROTONames[currentProtoInstance].name,  \
+			ConsoleMessage ("protoInstance :%s:, expected to read %d, actually read %d\n",PROTONames[currentProtoInstance].definedProtoName,  \
 				PROTONames[currentProtoInstance].charLen,rs); \
 		} 
 
@@ -904,7 +909,7 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 		endIS = strstr(mystr,strNOTIS); \
 		/* printf ("	FIND_THE_END_OF_IS: endIS string is :%s:\n",endIS); */ \
 		if (endIS == NULL) { \
-			ConsoleMessage ("did not find an </IS> for ProtoInstance %s\n",PROTONames[currentProtoInstance].name); \
+			ConsoleMessage ("did not find an </IS> for ProtoInstance %s\n",PROTONames[currentProtoInstance].definedProtoName); \
 			FREE_IF_NZ(protoInString); \
 			return; \
 		} \
@@ -940,11 +945,11 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 
 	#define INITIATE_SCENE \
 	{ \
-		fdl += fprintf (fileDescriptor, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<X3D><Scene> <!-- INITIATE SCENE -->\n"); \
+		fdl += fprintf (fileDescriptor, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<X3D><Scene><Group FreeWRL__protoDef='%d'> <!-- INITIATE SCENE -->\n",uniqueExpandedID); \
 	}
 
 	#define MAKE_PROTO_COPY_FIELDS \
-	myObj = PROTONames[curProtoInsStackInd].fieldDefs; \
+	myObj = PROTONames[currentProtoInstance].fieldDefs; \
 	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields has %d fields -->\n",vector_size(myObj->fields)); \
 	for (ind=0; ind<vector_size(myObj->fields); ind++) { \
 		struct ScriptFieldDecl* field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); \
@@ -954,14 +959,14 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 			field->ASCIItype, \
 			field->ASCIIname,  \
 			FREEWRL_SPECIFIC,  \
-			currentProtoInstance, \
+			uniqueExpandedID, \
 			field->ASCIIvalue); \
 		} else { \
 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' />\n", \
 			field->ASCIItype, \
 			field->ASCIIname,  \
 			FREEWRL_SPECIFIC,  \
-			currentProtoInstance); \
+			uniqueExpandedID); \
 		}} \
 	} \
 	fdl += fprintf (fileDescriptor, "<!-- end of MAKE_PROTO_COPY_FIELDS --> \n");
@@ -985,6 +990,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	int fdl;
 	char uniqueIDstring[20];
 	struct Vector *protoInternalRouting;
+	int uniqueExpandedID;
 
 
 	/* initialization */
@@ -995,6 +1001,9 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	tmpf = tempnam("/tmp","freewrl_proto");
 	fdl = 0;
 	protoInternalRouting = newVector(char *, 16);
+
+	/* we tie a unique number to the currentProto */
+	uniqueExpandedID = newProtoDefinitionPointer(NULL,currentProtoInstance);
 
 
 	/* first, do we actually have a valid proto here? */
@@ -1084,7 +1093,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 		ZERO_IS_TEXT_IN_ORIG
 
 		/* do IS substitutions */
-		curProtoPtr = doISsubs(myLexer, curProtoPtr,IS,isString, &protoInternalRouting);
+		curProtoPtr = doISsubs(myLexer, curProtoPtr,IS,isString, &protoInternalRouting,uniqueExpandedID);
 
 		/* and keep doing this, until we have not more <IS> fields */
 		FIND_THE_IS		
@@ -1105,7 +1114,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	}
 	FREE_IF_NZ(protoInternalRouting);
 
-	fdl += fprintf (fileDescriptor, "</Scene></X3D>\n");
+	fdl += fprintf (fileDescriptor, "</Group></Scene></X3D>\n");
 
 
 	fclose(fileDescriptor);
@@ -1123,10 +1132,10 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	#ifdef X3DPARSERVERBOSE
 	printf ("PROTO EXPANSION IS:\n%s\n:\n",protoInString);
 	#endif
+	printf ("PROTO EXPANSION IS:\n%s\n:\n",protoInString);
 
 
 	/* parse this string */
-
 	if (X3DParse (myGroup,protoInString)) {
 		#ifdef X3DPARSERVERBOSE
 		printf ("PARSED OK\n");
@@ -1163,13 +1172,81 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	curProtoInsStackInd--;
         FREE_IF_NZ(protoInString);
 
-#define X3DPARSERVERBOSE
+	/* ok, now, what happens is that we have Group->Group; and the second group has all the interesting stuff relating
+	   to the PROTO expansion. Lets move this info to the parent Group. */
+	{
+		struct X3D_Group *par;
+		struct X3D_Group *chi;
+		int ind;
+
+		par = myGroup;
+
+		if (par->children.n==1) {
+			chi = X3D_GROUP(par->children.p[0]);
+
+			/* unlink the child node */
+			AddRemoveChildren(X3D_NODE(par), 
+				offsetPointer_deref(struct Multi_Node *,par,offsetof(struct X3D_Group,children)),
+					(uintptr_t*) &chi,
+					1,2,__FILE__,__LINE__);
+
+
+			/* copy the original children from the chi node, to the par node */
+			while (chi->children.n>0) {
+				struct X3D_Node *offspring;
+
+				/* printf ("now, parent has %d children...\n",par->children.n);
+				printf ("and chi has %d children\n",chi->children.n);
+				*/
+
+				offspring = X3D_NODE(chi->children.p[0]);
+				/* printf ("offspring %d is %u, type %s\n",ind,offspring,stringNodeType(offspring->_nodeType)); */
+
+				AddRemoveChildren(chi,offsetPointer_deref(struct Multi_Node *,chi,offsetof(struct X3D_Group,children)),
+					(uintptr_t*) &offspring, 1, 2, __FILE__, __LINE__);
+
+				AddRemoveChildren(par,offsetPointer_deref(struct Multi_Node *,par,offsetof(struct X3D_Group,children)),
+					(uintptr_t*) &offspring, 1, 1, __FILE__, __LINE__);
+
+				/* 
+				printf ("offspring type is still %s\n",stringNodeType(offspring->_nodeType));
+				printf ("moved offspring has %d parents \n",offspring->_nparents);
+				printf ("and it is %u and parent is %u and chi is %u\n",
+					offspring->_parents[0],par,chi);
+				*/
+			}
+			
+
+			/* copy the protoDef pointer over */
+			par->FreeWRL__protoDef = chi->FreeWRL__protoDef;
+
+			/* move the FreeWRL_PROTOInterfaceNodes nodes to the parent */
+			/* this is the same code as for the "children" field, above */
+			while (chi->FreeWRL_PROTOInterfaceNodes.n>0) {
+				struct X3D_Node *offspring;
+				offspring = X3D_NODE(chi->FreeWRL_PROTOInterfaceNodes.p[0]);
+
+				AddRemoveChildren(chi,offsetPointer_deref(struct Multi_Node *,chi,offsetof(struct X3D_Group,FreeWRL_PROTOInterfaceNodes)),
+					(uintptr_t*) &offspring, 1, 2, __FILE__, __LINE__);
+
+				AddRemoveChildren(par,offsetPointer_deref(struct Multi_Node *,par,offsetof(struct X3D_Group,FreeWRL_PROTOInterfaceNodes)),
+					(uintptr_t*) &offspring, 1, 1, __FILE__, __LINE__);
+			}
+
+		
+		}
+
+	}
+	/* NOTE: the "chi" node is now an empty group node, we could dispose of it */
+
+
 	#ifdef X3DPARSERVERBOSE
 {
 	struct X3D_Group *myg;
 	int i;
 	myg = myGroup;
-		printf ("expandProto, parent group has %d children, and %d FreeWRL_PROTOInterfaceNodes and freewrldefptr %u\n",
+		printf ("expandProto, group %u has %d children, and %d FreeWRL_PROTOInterfaceNodes and freewrldefptr %d\n",
+			myg,
 			myg->children.n, myg->FreeWRL_PROTOInterfaceNodes.n,myg->FreeWRL__protoDef);
 	for (i=0; i<myg->children.n; i++) {
 		printf ("child %d is %s\n",i,stringNodeType(X3D_NODE(myg->children.p[i])->_nodeType));
@@ -1179,7 +1256,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	
 	myg = X3D_GROUP(myg->children.p[0]);
 
-		printf ("children/children; expandProto, parent group has %d children, and %d FreeWRL_PROTOInterfaceNodes defpyr %u\n",
+		printf ("children/children; expandProto, parent group has %d children, and %d FreeWRL_PROTOInterfaceNodes defpyr %d\n",
 			myg->children.n, myg->FreeWRL_PROTOInterfaceNodes.n,myg->FreeWRL__protoDef);
 	for (i=0; i<myg->children.n; i++) {
 		printf ("child %d is %s\n",i,stringNodeType(X3D_NODE(myg->children.p[i])->_nodeType));
@@ -1187,7 +1264,6 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	}
 }
 	#endif
-#undef X3DPARSERVERBOSE
 
 }
 

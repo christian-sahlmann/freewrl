@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.34 2009/08/26 13:57:16 crc_canada Exp $
+$Id: X3DParser.c,v 1.35 2009/08/27 18:34:33 crc_canada Exp $
 
 ???
 
@@ -258,11 +258,15 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 }
 
 
-static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, char *name, int routeTo) {
-	int error = FALSE;
+static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, int *offs, int* type, char *name, int routeTo) {
+	int error;
 	int fieldInt;
 	int accessType;
 	struct Shader_Script *myObj;
+	struct X3D_Node *node;
+
+	error = FALSE;
+	node = *innode; /* ease of use - contents of pointer in param line */
  
 #ifdef X3DPARSERVERBOSE
 	printf ("getRouteField, node %u\n",node);
@@ -292,6 +296,55 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node *node, int 
 		if (fieldInt >=0) findFieldInOFFSETS(node->_nodeType, 
 				fieldInt, offs, type, &accessType);
 	}
+
+	if ((*offs <0) && (node->_nodeType==NODE_Group)) {
+		/* is this a PROTO expansion? */
+		struct X3D_Group *myg;
+		int myp;
+		int i;
+
+		/* lets go finding; if this is a PROTO expansion, we will have FreeWRL__protoDef != INT_ID_UNDEFINED */
+		myg = X3D_GROUP(node);
+
+		myp = myg->FreeWRL__protoDef;
+
+		if (myp != INT_ID_UNDEFINED) {
+			char newname[1000];
+			struct X3D_Node *newn;
+printf ("we are routing to an X3D PROTO Expansion\n");
+			printf ("looking for name %s\n",name);
+#define FREEWRL_SPECIFIC "FrEEWrL_pRotto"
+			sprintf (newname,"%s_%s_%d",name,FREEWRL_SPECIFIC,myp);
+printf ("and, defined name is %s\n",newname);
+
+			/* look up this node; if it exists, look for field within it */
+			newn = DEFNameIndex ((const char *)newname, NULL, FALSE);
+
+			printf ("newn is %u\n",newn);
+			if (newn!=NULL){
+				printf ("newn node type %s\n",stringNodeType(newn->_nodeType));
+				if (routeTo == 0) {
+					printf ("and we are routing FROM this proto expansion\n");
+					fieldInt = findRoutedFieldInFIELDNAMES(newn,"valueChanged",routeTo);
+				} else {
+					printf ("and, routing TO this proto expansion\n");
+					fieldInt = findRoutedFieldInFIELDNAMES(newn,"setValue",routeTo);
+				}
+				if (fieldInt >=0) {
+					findFieldInOFFSETS(newn->_nodeType, 
+					fieldInt, offs, type, &accessType);
+					*innode = newn; /* pass back this new node for routing */
+				}
+			}
+
+
+		
+	
+		}
+
+	}
+
+
 
 	if (*offs <0) {
 		ConsoleMessage ("ROUTE: line %d Field %s not found in node type %s",LINE,
@@ -372,19 +425,21 @@ static void parseRoutes (const char **atts) {
 	/* second pass - get the fields of the nodes */
 	for (i = 0; atts[i]; i += 2) {
 		if (strcmp("fromField",atts[i])==0) {
-			error = getRouteField(myLexer, fromNode, &fromOffset, &fromType, (char *)atts[i+1],0);
+			error = getRouteField(myLexer, &fromNode, &fromOffset, &fromType, (char *)atts[i+1],0);
 		} else if (strcmp("toField",atts[i]) ==0) {
-			error = getRouteField(myLexer, toNode, &toOffset, &toType, (char *)atts[i+1],1);
+			error = getRouteField(myLexer, &toNode, &toOffset, &toType, (char *)atts[i+1],1);
 		}
 	}	
 
 	/* get out of here if an error is found */
 	if (error) return;
 
+#define X3DPARSERVERBOSE
 	#ifdef X3DPARSERVERBOSE
 	printf ("now routing from a %s to a %s \n",stringFieldtypeType(fromType), stringFieldtypeType(toType));
 	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
 	#endif
+#undef X3DPARSERVERBOSE
 
 	/* are the types the same? */
 	if (fromType != toType) {
@@ -772,15 +827,43 @@ static void endProtoInstanceTag() {
 	setParserMode(PARSING_NODES);
 
 	protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-#define X3DPARSERVERBOSE
 		#ifdef X3DPARSERVERBOSE
 		if (protoExpGroup != NULL) {
 			printf ("\nOK, linking in this proto. I'm %d, ps-1 is %d, and p %d\n",protoExpGroup,parentStack[parentIndex-1], parentStack[parentIndex]);
+			printf ("types %s %s and %s respectively. \n",
+				stringNodeType(X3D_NODE(protoExpGroup)->_nodeType),
+				stringNodeType(X3D_NODE(parentStack[parentIndex-1])->_nodeType),
+				stringNodeType(X3D_NODE(parentStack[parentIndex])->_nodeType));
+		}
+		{int i;
+		for (i=parentIndex; i>=0; i--) {
+			printf ("parentStack %d node %u \n",i,parentStack[i]);
+			if (parentStack[i] != NULL) {
+				printf ("  type %s\n",stringNodeType(parentStack[i]->_nodeType));
+			}
+		}
 		}
 		#endif
-#undef X3DPARSERVERBOSE
 
 	expandProtoInstance(myLexer, protoExpGroup);
+
+#ifdef X3DPARSERVERBOSE
+printf ("after expandProtoInstance, my group has %d children, %d Meta nodes, and is protodef %d\n",
+protoExpGroup->children.n, protoExpGroup->FreeWRL_PROTOInterfaceNodes.n, protoExpGroup->FreeWRL__protoDef);
+{int i;
+	for (i=0; i<protoExpGroup->children.n; i++) {
+		printf ("child %d is %u, type %s\n",i,protoExpGroup->children.p[i], 
+			stringNodeType(X3D_GROUP(protoExpGroup->children.p[i])->_nodeType));
+		if (X3D_GROUP(protoExpGroup->children.p[i])->_nodeType == NODE_Group) {
+			struct X3D_Group * pxx = X3D_GROUP(protoExpGroup->children.p[i]);
+			printf (" and it has %d children, %d Meta nodes, and is protodef %d\n",
+			pxx->children.n, pxx->FreeWRL_PROTOInterfaceNodes.n, pxx->FreeWRL__protoDef);
+		}
+
+	}
+}
+#endif
+
 }
 
 

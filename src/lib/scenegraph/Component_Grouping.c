@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.23 2009/08/26 13:57:16 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.24 2009/08/27 18:34:33 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -250,6 +250,8 @@ void child_Group (struct X3D_Group *node) {
 	/* do we have a DirectionalLight for a child? */
 	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
 
+	/* printf ("chld_Group, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
+		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
 	/* now, just render the non-directionalLight children */
 	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && render_geom) {
 		(node->children).n = 1;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.27 2009/08/26 13:57:16 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.28 2009/08/27 18:34:33 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -271,7 +271,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 		printf ("changeExpanded - looking for field %s in node...\n",*fp); 
 	}
 
-	myProtoDecl = getProtoDefinition(X3D_GROUP(*np));
+	myProtoDecl = getVRMLprotoDefinition(X3D_GROUP(*np));
 	if (eaiverbose) {
 		printf ("and, the proto name is %s\n",myProtoDecl->protoName);
 	}

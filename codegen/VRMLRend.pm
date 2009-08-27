@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.20 2009/07/24 18:09:19 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.21 2009/08/27 18:34:32 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.21  2009/08/27 18:34:32  crc_canada
+# More XML coded PROTO routing.
+#
 # Revision 1.20  2009/07/24 18:09:19  crc_canada
 # Geometry2D extent calculations now performed for all 2D shapes.
 #
@@ -374,48 +377,48 @@
 	MetadataString		=>metadata,
 
 	
-	MetadataSFFloat		=>metadata,
-	MetadataMFFloat		=>metadata,
-	MetadataSFRotation	=>metadata,
-	MetadataMFRotation	=>metadata,
-	MetadataSFVec3f		=>metadata,
-	MetadataMFVec3f		=>metadata,
-	MetadataSFBool		=>metadata,
-	MetadataMFBool		=>metadata,
-	MetadataSFInt32		=>metadata,
-	MetadataMFInt32		=>metadata,
-	MetadataSFNode		=>metadata,
-	MetadataMFNode		=>metadata,
-	MetadataSFColor		=>metadata,
-	MetadataMFColor		=>metadata,
-	MetadataSFColorRGBA	=>metadata,
-	MetadataMFColorRGBA	=>metadata,
-	MetadataSFTime		=>metadata,
-	MetadataMFTime		=>metadata,
-	MetadataSFString	=>metadata,
-	MetadataMFString	=>metadata,
-	MetadataSFVec2f		=>metadata,
-	MetadataMFVec2f		=>metadata,
-	MetadataSFImage		=>metadata,
-	MetadataFreeWRLPTR	=>metadata,
-	MetadataSFVec3d		=>metadata,
-	MetadataMFVec3d		=>metadata,
-	MetadataSFDouble	=>metadata,
-	MetadataMFDouble	=>metadata,
-	MetadataSFMatrix3f	=>metadata,
-	MetadataMFMatrix3f	=>metadata,
-	MetadataSFMatrix3d	=>metadata,
-	MetadataMFMatrix3d	=>metadata,
-	MetadataSFMatrix4f	=>metadata,
-	MetadataMFMatrix4f	=>metadata,
-	MetadataSFMatrix4d	=>metadata,
-	MetadataMFMatrix4d	=>metadata,
-	MetadataSFVec2d		=>metadata,
-	MetadataMFVec2d		=>metadata,
-	MetadataSFVec4f		=>metadata,
-	MetadataMFVec4f		=>metadata,
-	MetadataSFVec4d		=>metadata,
-	MetadataMFVec4d		=>metadata,
+	MetadataSFFloat		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFFloat		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFRotation	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFRotation	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFVec3f		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFVec3f		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFBool		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFBool		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFInt32		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFInt32		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFNode		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFNode		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFColor		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFColor		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFColorRGBA	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFColorRGBA	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFTime		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFTime		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFString	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFString	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFVec2f		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFVec2f		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFImage		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataFreeWRLPTR	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFVec3d		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFVec3d		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFDouble	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFDouble	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFMatrix3f	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFMatrix3f	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFMatrix3d	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFMatrix3d	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFMatrix4f	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFMatrix4f	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFMatrix4d	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFMatrix4d	=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFVec2d		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFVec2d		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFVec4f		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFVec4f		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataSFVec4d		=>FreeWRL_PROTOInterfaceNodes,
+	MetadataMFVec4d		=>FreeWRL_PROTOInterfaceNodes,
 
 	EaseInEaseOut 	=>children,
 	SplinePositionInterpolator 	=>children,

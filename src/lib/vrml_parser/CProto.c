@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.31 2009/08/26 13:57:16 crc_canada Exp $
+$Id: CProto.c,v 1.32 2009/08/27 18:34:33 crc_canada Exp $
 
 CProto ???
 
@@ -30,7 +30,7 @@ CProto ???
 
 #undef CPROTOVERBOSE
 
-#define PROTO_CAT(newString) { char *pt = newString; int len=0; int wlen = 0;\
+#define PROTO_CAT(newString) { char *pt = (char *)newString; int len=0; int wlen = 0;\
 		while ((*pt)) {len++; pt++;}; \
 		wlen = fwrite (newString,len,1,pexfile); \
 		curstringlen += len; } 
@@ -58,7 +58,7 @@ CProto ???
 #define SOMETHING_IN_ISVALUE (strlen(newTl) > 0) 
 #define APPEND_ISVALUE PROTO_CAT (newTl);
 #define APPEND_STARTPROTOGROUP_1 \
-	sprintf(thisID,STARTPROTOGROUP,newProtoDefinitionPointer(*thisProto)); \
+	sprintf(thisID,STARTPROTOGROUP,newProtoDefinitionPointer(*thisProto,INT_ID_UNDEFINED)); \
 	PROTO_CAT(thisID);
 
 
@@ -79,7 +79,7 @@ CProto ???
 	if (lastKeyword != NULL) { \
 		/* is this a KW_IS, or another keyword that needs a PROTO expansion specific ID? */ \
 		if (lastKeyword->isKEYWORD != KW_IS) { \
-			sprintf (thisID," %s%d_",FABRICATED_DEF_HEADER,(*thisProto)->protoDefNumber); \
+			sprintf (thisID," %s%d_",FABRICATED_DEF_HEADER,(int) ((*thisProto)->protoDefNumber)); \
 			APPEND_THISID \
 			APPEND_STRINGTOKEN \
 		} \
@@ -1454,7 +1454,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 			PROTO_CAT ( "# at B\n");
 			#endif
 				PROTO_CAT ("DEF ");
-				sprintf (thisID, "%s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
+				sprintf (thisID, "%s%d_",FABRICATED_DEF_HEADER,(int)(ele->fabricatedDef));
 				APPEND_THISID
 				APPEND_SPACE
 			}
@@ -1667,20 +1667,30 @@ index here.
 ******************************************************************************/
 
 static struct Vector *protoDefVec = NULL;
+struct protoInsert {
+		struct ProtoDefinition *vrmlProtoDef;
+		int xmlProtoDef;
+};
 
-int newProtoDefinitionPointer (struct ProtoDefinition *npd) {
+int newProtoDefinitionPointer (struct ProtoDefinition *vrmlpd, int xmlpd) {
+	struct protoInsert *npd = MALLOC(sizeof (struct protoInsert));
+
+	npd->vrmlProtoDef = vrmlpd;
+	npd->xmlProtoDef = xmlpd;
 
 	if (protoDefVec == NULL) {
-		protoDefVec = newVector(struct ProtoDefinition *, 16);
+		protoDefVec = newVector(struct protoInsert *, 16);
 	}
-	vector_pushBack (struct ProtoDefinition *,protoDefVec, npd);	
+	vector_pushBack (struct protoInsert*,protoDefVec, npd);	
 	/* printf ("newProtoDefinitionPointer, returning %d\n",(int)(vector_size(protoDefVec)-1)); */
 	return (int) (vector_size(protoDefVec)-1);
 }
 
-struct ProtoDefinition *getProtoDefinition (struct X3D_Group *me) {
-	int mpd = me->FreeWRL__protoDef;
+struct ProtoDefinition *getVRMLprotoDefinition (struct X3D_Group *me) {
+	struct protoInsert *npd;
+	int mpd;
 
+	mpd = me->FreeWRL__protoDef;
 	printf ("getProtoDefinition, looking for %d\n",mpd);
 	if (mpd == INT_ID_UNDEFINED) return NULL;
 	if (mpd >= vector_size(protoDefVec)) {
@@ -1688,7 +1698,24 @@ struct ProtoDefinition *getProtoDefinition (struct X3D_Group *me) {
 		return NULL;
 	}
 	/* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */
-	return vector_get(struct ProtoDefinition *,protoDefVec,mpd);
+	npd = vector_get(struct protoInsert*,protoDefVec,mpd);
+	return npd->vrmlProtoDef;
+}
+
+int getXMLprotoDefinition (struct X3D_Group *me) {
+	struct protoInsert *npd;
+	int mpd;
+
+	mpd = me->FreeWRL__protoDef;
+	printf ("getProtoDefinition, looking for %d\n",mpd);
+	if (mpd == INT_ID_UNDEFINED) return INT_ID_UNDEFINED;
+	if (mpd >= vector_size(protoDefVec)) {
+		printf ("internal error, can not get proto def %d, out of bounds\n",mpd);
+		return INT_ID_UNDEFINED;
+	}
+	/* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */
+	npd = vector_get(struct protoInsert*,protoDefVec,mpd);
+	return npd->xmlProtoDef;
 }
 
 /* note, this is not right; should kill memory in Vector first */
