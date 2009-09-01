@@ -3,9 +3,13 @@ Priority list
 08/07/2009:
 	(DONE) (JAS) FreeWRL__protoDef - is this a pointer, or an int? verify, might break on 64 bit systems if incorrect.
 	(DONE) (JAS) EAI node pointers sent/received- are these 64 bit friendly?
-	(JAS) Michel suggests library (fill in when network back) that is platform-independent. Is it kept up to date?
-		eg, can we use camera raw files?
+	(JAS) Michel suggests library (Imlib2) that is platform-independent. 
+	      Is it kept up to date? eg, can we use camera raw files?
+        (MB)  Imlib2 can load & decode: gif, jpg, png, tiff, ...
+              Implementation is in LoadTextures.c. I'm trying to understand
+              how to modify loading during rendering...
 	(JAS) look at using OpenAL
+        (MB)  Specific DEBUG defines for specific parts : all in src/lib/debug.h. 
 
 
 08/02/2009:
