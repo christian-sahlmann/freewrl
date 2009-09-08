@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.25 2009/08/27 18:34:33 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.26 2009/09/08 17:01:03 crc_canada Exp $
 
 ???
 
@@ -631,6 +631,7 @@ printf ("getProtoValue, curProtoInsStackInd %d, MAX %d\n",curProtoInsStackInd, P
 
 
 /* for IS routing - get a DEF name, if one exists in this code snippet; if not, make one up for later inclusion */
+static unsigned int uniqueDefNameNumber = 31567;
 static void findThisDefName(int *hasDef, char *myDefName, char *openBrace) {
 	char *foundDEF;
 	char singleDoubleQuote;
@@ -642,7 +643,8 @@ static void findThisDefName(int *hasDef, char *myDefName, char *openBrace) {
 #endif
 		*hasDef = FALSE;
 		/* just make up a name; use the current memptr for the DEF name */
-		sprintf (myDefName,"FrEEWrL_pRot_%u",(unsigned) openBrace);
+		sprintf (myDefName,"FrEEWrL_pRot_%u",uniqueDefNameNumber);
+		uniqueDefNameNumber++;
 	} else {
 #ifdef X3DPARSERVERBOSE
 		printf ("findThisDefName - have a DEF in here :%s:\n",foundDEF);
@@ -702,7 +704,7 @@ static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, 
 	char protoFieldID[200];
 	char tmp[200];
 	char *newProtoInString;
-	char *doobie;
+	char *closeBrace;
 	char *openBrace;
 	char ctmp;
 
@@ -715,7 +717,7 @@ static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, 
 	connect = NULL;
 	ns = NULL;
 	ps = NULL;
-	doobie = NULL;
+	closeBrace = NULL;
 	openBrace = NULL;
 
 	#ifdef X3DPARSERVERBOSE
@@ -811,7 +813,7 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 			/* so, to do that, we have to take off the trailing ">" from the node name */
 			ctmp = *IS; *IS='\0'; /* set current pointer to null */
 			openBrace = strrchr(protoInString,'<');
-			doobie = strrchr(protoInString,'>');
+			closeBrace = strrchr(protoInString,'>');
 
 			/* so, hopefully we have a string "<ImageTexture" in openBrace. Do we need to define
 			   a DEF name so that we can route to/from this? Can we get the current DEF name if
@@ -820,13 +822,13 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 			hasDef = FALSE;
 			myDefName[0] = '\0';
 			findThisDefName(&hasDef, myDefName, openBrace);
-			/* printf ("so, found DEF name is :%s:\n",myDefName); */
+			printf ("so, found DEF name is :%s:\n",myDefName); 
 
 			*IS = ctmp; /* restore value */
 
 
 		
-			if (doobie != NULL) {
+			if (closeBrace != NULL) {
 				char *valueStr;
 				valueStr = NULL;
 
@@ -841,7 +843,7 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 				/* lets make up a new string long enough for the proto substitution */
 				newProtoInString = MALLOC(strlen(valueStr) + strlen(protoInString) + strlen (myDefName) + 20);
 
-				*doobie = '\0';
+				*closeBrace = '\0';
 				strcpy (newProtoInString,protoInString);
 				strcat (newProtoInString, " ");
 
@@ -863,8 +865,8 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 				/* any more additions go in here, so... */
 				IS = newProtoInString + strlen(newProtoInString);
 
-				*doobie=' ';
-				strcat (newProtoInString, doobie);
+				*closeBrace=' ';
+				strcat (newProtoInString, closeBrace);
 				FREE_IF_NZ(protoInString);
 				protoInString = newProtoInString;
 			}
@@ -885,7 +887,6 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 
 	return protoInString;
 }
-#undef X3DPARSERVERBOSE
 
 
 
@@ -1055,6 +1056,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	/* change any of the UNIQUE_NUMBER_HOLDERS to this one */
 	CHANGE_UNIQUE_TO_SPECIFIC
 
+
 	#ifdef X3DPARSERVERBOSE
 	printf ("expandProtoInstance, now, we have in memory:\n%s:\n", protoInString);
 	#endif
@@ -1132,7 +1134,6 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	#ifdef X3DPARSERVERBOSE
 	printf ("PROTO EXPANSION IS:\n%s\n:\n",protoInString);
 	#endif
-	printf ("PROTO EXPANSION IS:\n%s\n:\n",protoInString);
 
 
 	/* parse this string */
