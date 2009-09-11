@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.10 2009/08/20 19:00:58 crc_canada Exp $
+$Id: X3DParser.h,v 1.11 2009/09/11 19:13:10 crc_canada Exp $
 
 X3D parser functions.
 
@@ -9,6 +9,12 @@ X3D parser functions.
 
 #ifndef __FREEWRL_X3D_PARSER_H__
 #define __FREEWRL_X3D_PARSER_H__
+
+/* attributes get put into this structure */
+struct nameValuePairs {
+        char *fieldName;
+        char *fieldValue;
+};
 
 
 /* header file for the X3D parser, only items common between the X3DParser files should be here. */
@@ -27,6 +33,8 @@ X3D parser functions.
 /* for our internal PROTO tables, and, for initializing the XML parser */
 #define PROTOINSTANCE_MAX_LEVELS 50
 #define PROTOINSTANCE_MAX_PARAMS 20
+
+#define FREEWRL_SPECIFIC "FrEEWrL_pRotto"
 
 #define DECREMENT_PARENTINDEX \
         if (parentIndex > 0) parentIndex--; else ConsoleMessage ("X3DParser, line %d stack underflow",LINE);
@@ -68,9 +76,11 @@ int getFieldFromScript (struct VRMLLexer* myLexer, char *fieldName, struct Shade
 void expandProtoInstance(struct VRMLLexer *, struct X3D_Group * myGroup);
 void freeProtoMemory (void);
 void kill_X3DProtoScripts(void);
-void linkNodeIn(void);
-
+void linkNodeIn(char *, int);
+void parseConnect(struct VRMLLexer * myLexer, const char **atts, struct Vector *tos);
+void endConnect();
 struct X3D_Node *X3DParser_getNodeFromName(const char *name);
+int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, char *name, int routeTo);
 char *X3DParser_getNameFromNode(struct X3D_Node* myNode);
 
 #endif /*  __FREEWRL_X3D_PARSER_H__ */

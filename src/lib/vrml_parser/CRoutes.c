@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.30 2009/08/20 19:00:58 crc_canada Exp $
+$Id: CRoutes.c,v 1.31 2009/09/11 19:13:09 crc_canada Exp $
 
 ???
 
@@ -844,7 +844,7 @@ void CRoutes_RegisterSimple(
 			return;
 		}
 	}
-
+#define CRVERBOSE
 	#ifdef CRVERBOSE
  	printf ("CRoutes_RegisterSimple, from (%s) %u fromOfs %u, to (%s) %u toOfs %u, len %d dir %d\n",
 			stringNodeType(from->_nodeType),
@@ -867,7 +867,7 @@ void CRoutes_RegisterSimple(
 	}
 
 	#endif
-
+#undef CRVERBOSE
 
 	/* When routing to a script, to is not a node pointer! */
 	if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT)

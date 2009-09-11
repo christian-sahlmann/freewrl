@@ -1,11 +1,12 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.26 2009/09/08 17:01:03 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.27 2009/09/11 19:13:10 crc_canada Exp $
 
 ???
 
 */
+
 
 #include <config.h>
 #include <system.h>
@@ -36,20 +37,21 @@ static int currentProtoDeclare  = INT_ID_UNDEFINED;
 static int MAXProtos = 0;
 static int curProDecStackInd = 0;
 static int currentProtoInstance = INT_ID_UNDEFINED;
-static int getFieldValueFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono, char **value);
 static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono);
 
 /* for parsing fields in PROTO expansions */
 /* FIELD_END is an ascii string that will pass the XML parser, but should not be found in a field value */
 #define FIELD_END "\t \t\n" 
-#define strIS "<IS>"
-#define strNOTIS "</IS>"
+#define strIS "<IXXS>"
+#define strNOTIS "</IXXS>"
 #define strCONNECT  "<connect"
 #define strNODEFIELD "nodeField"
 #define strPROTOFIELD "protoField"
 #define MAX_ID_SIZE 1000
 #define NODEFIELD_EQUALS "nodeField=\""
 #define PROTOFIELD_EQUALS "protoField=\""
+
+#define CPI ProtoInstanceTable[curProtoInsStackInd]
 
 /* for parsing script initial fields */
 #define MPFIELDS 4
@@ -58,7 +60,6 @@ static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, ch
 #define MP_TYPE 2
 #define MP_VALUE 3
 
-#define FREEWRL_SPECIFIC "FrEEWrL_pRotto"
 #define UNIQUE_NUMBER_HOLDER "-fReeWrl-UniqueNumH"
 
 static const char *parserModeStrings[] = {
@@ -82,6 +83,7 @@ struct PROTOInstanceEntry {
 	char *defName;
 	int container;
 	int paircount;
+	int uniqueNumber;
 };
 static struct PROTOInstanceEntry ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
 
@@ -96,6 +98,7 @@ struct PROTOnameStruct {
 };
 static struct PROTOnameStruct *PROTONames = NULL;
 
+#ifdef OLDCODE
 /****************************** PROTOS ***************************************************/
 
 /* we are closing off a parse of an XML file. Lets go through and free/unlink/cleanup. */
@@ -130,6 +133,8 @@ void freeProtoMemory () {
 }
 
 
+#endif
+
 /* record each field of each script - the type, kind, name, and associated script */
 static void registerProto(const char *name) {
 	#ifdef X3DPARSERVERBOSE
@@ -158,6 +163,333 @@ static void registerProto(const char *name) {
 		PROTONames[currentProtoDeclare].definedProtoName,currentProtoDeclare);
 	#endif
 }
+
+
+
+static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono) {
+	const char** userArr;
+	size_t userCnt;
+	struct Shader_Script* myObj;
+	indexT retUO;
+
+	#ifdef X3DPARSERVERBOSE
+	printf ("getFieldValueFromProtoInterface, lexer %u looking for :%s: in proto %d\n",myLexer, fieldName, protono);
+	#endif
+	
+	myObj = PROTONames[protono].fieldDefs;
+
+        
+#define LOOK_FOR_FIELD_IN(whicharr) \
+        userArr=&vector_get(const char*, myLexer->user_##whicharr, 0); \
+        userCnt=vector_size(myLexer->user_##whicharr);\
+        retUO=findFieldInARR(fieldName, userArr, userCnt);\
+        if (retUO != ID_UNDEFINED) { \
+		return PKW_##whicharr; \
+        } 
+                
+        LOOK_FOR_FIELD_IN(initializeOnly);
+        LOOK_FOR_FIELD_IN(inputOnly);
+        LOOK_FOR_FIELD_IN(outputOnly);
+        LOOK_FOR_FIELD_IN(inputOutput);
+        
+#undef LOOK_FOR_FIELD_IN
+
+	/* did not find it. */
+	return INT_ID_UNDEFINED;
+}
+
+static int getProtoKind(struct VRMLLexer *myLexer, int ProtoInvoc, char *id) {
+	char *retptr;
+	int i;
+
+	#ifdef X3DPARSERVERBOSE
+	printf ("getProtoKind for proto %d, char :%s:\n",ProtoInvoc, id);
+	#endif
+
+	/* get the start/end value pairs, and copy them into the id field. */
+	if ((curProtoInsStackInd < 0) || (curProtoInsStackInd >= PROTOINSTANCE_MAX_LEVELS)) {
+		return INT_ID_UNDEFINED;
+	}
+
+	return getFieldAccessMethodFromProtoInterface (myLexer, id, ProtoInvoc);
+}
+
+#define TOD parentStack[parentIndex]
+
+#define ROUTE_FROM_META_TO_ISD \
+	getRoutingInfo (myLexer, TOD, &nodeOffs, &type, &accessType, nodeField, 1); \
+	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(metaNode, metaFromOffs, TOD, nodeOffs, returnRoutingElementLength(type)); 
+
+#define XROUTE_FROM_META_TO_ISD \
+	fieldInt = findRoutedFieldInFIELDNAMES (TOD, nodeField , TRUE); \
+	nodeOffs = INT_ID_UNDEFINED; \
+	if (fieldInt >=0) {findFieldInOFFSETS(TOD->_nodeType, fieldInt, &nodeOffs, &type, &accessType); \
+	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(metaNode, metaFromOffs, TOD, nodeOffs, returnRoutingElementLength(type)); }
+
+#define ROUTE_FROM_ISD_TO_META \
+	getRoutingInfo (myLexer, TOD, &nodeOffs, &type, &accessType, nodeField, 0); \
+	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(TOD, nodeOffs, metaNode, metaToOffs, returnRoutingElementLength(type)); 
+
+#define XROUTE_FROM_ISD_TO_META \
+	fieldInt = findRoutedFieldInFIELDNAMES (TOD, nodeField , TRUE); \
+	nodeOffs = INT_ID_UNDEFINED; \
+	if (fieldInt >=0) {findFieldInOFFSETS(TOD->_nodeType, fieldInt, &nodeOffs, &type, &accessType); \
+	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(TOD, nodeOffs, metaNode, metaToOffs, returnRoutingElementLength(type)); }
+
+static unsigned int uniqueDefNameNumber = 31567;
+static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* protoField, char *nodeField) {
+	int myFieldKind;
+	char *protoFieldID = "pfID";
+	char *myDefName="(top of stack node)";
+	char newname[1000];
+	struct X3D_Node *newn;
+	struct X3D_Node *metaNode;
+	int fromOffset, toOffset, fromType;
+	int fieldInt;
+	int metaToOffs;
+	int metaFromOffs;
+	int type;
+	int accessType;
+	int nodeOffs;
+
+
+	if (TOD==NULL) {
+		printf ("generateRoute, internal problem, TOD==NULL\n");
+		return;
+	}
+
+	
+	/* we have names and fields, lets generate routes for this */
+	myFieldKind = getProtoKind(myLexer,currentProtoInstance,protoField->ASCIIname);
+
+	/* find the MetaMF/MetaSF node to route to/from to: */
+	sprintf(newname,"%s_%s_%d",protoField->ASCIIname,FREEWRL_SPECIFIC,CPI.uniqueNumber);
+	metaNode = DEFNameIndex ((const char *)newname,NULL,FALSE);
+
+	/* set up these offsets for routing to/from the Meta node */
+	fieldInt = findRoutedFieldInFIELDNAMES (metaNode, "valueChanged", FALSE);
+	if (fieldInt >=0) findFieldInOFFSETS(metaNode->_nodeType, fieldInt, &metaFromOffs, &type, &accessType);
+
+	fieldInt = findRoutedFieldInFIELDNAMES (metaNode, "setValue", TRUE);
+	if (fieldInt >=0) findFieldInOFFSETS(metaNode->_nodeType, fieldInt, &metaToOffs, &type, &accessType);
+
+printf (" should generate a route or two here to route from the internal Meta node to the ISd node, kind %d\n",myFieldKind);
+
+
+printf ("end testing\n");
+
+
+	switch (myFieldKind) {
+		case PKW_inputOnly: 
+			/* 1 */ printf ("<ROUTE fromNode='%s_%s_%d' fromField='valueChanged' toNode='%s' toField='%s'/>\n",
+					protoField->ASCIIname,FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
+				ROUTE_FROM_META_TO_ISD
+
+			break;
+		case PKW_outputOnly: 
+			/* 2 */printf ("<ROUTE toNode='%s_%s_%d' toField='setValue' fromNode='%s' fromField='%s'/>\n",
+					protoField->ASCIIname,FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
+				ROUTE_FROM_ISD_TO_META
+			break;
+		case PKW_inputOutput: 
+			/* 1 */ printf ("<ROUTE fromNode='%s_%s_%d' fromField='valueChanged' toNode='%s' toField='%s'/>\n",
+					protoField->ASCIIname,FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
+				ROUTE_FROM_META_TO_ISD
+			/* 2 */printf ("<ROUTE toNode='%s_%s_%d' toField='setValue' fromNode='%s' fromField='%s'/>\n",
+					protoField->ASCIIname,FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
+				ROUTE_FROM_ISD_TO_META
+			break;
+		case PKW_initializeOnly: 
+			/* printf ("PKW_initializeOnly - do nothing\n"); */
+			break;
+		default :
+			printf ("generateRoute unknown proto type - ignoring\n");
+	}
+}
+
+
+#define REPLACE_CONNECT_VALUE(value) \
+printf ("REPLACE_CONNECT_VALUE is %s %d\n",value,value); \
+			/* now, we have a match, replace (or push) this onto the params */ \
+       			for (nodeind=0; nodeind<vector_size(tos); nodeind++) { \
+               			nvp = vector_get(struct nameValuePairs*, tos,nodeind); \
+				printf ("      nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue); \
+				if (nvp!=NULL) { \
+					if (strcmp(nvp->fieldName,atts[nfInd+1])==0) { \
+						/* we have a field already of this name, replace the value */ \
+						printf ("we had %s, now have %s\n",nvp->fieldValue, value); \
+						FREE_IF_NZ(nvp->fieldValue); \
+						nvp->fieldValue=STRDUP(value); \
+						return; \
+					} \
+				} \
+			} \
+			printf ("no match, have to create new entty and push it\n"); \
+			nvp = MALLOC(sizeof (struct nameValuePairs *)); \
+			nvp->fieldName=STRDUP(atts[nfInd+1]); \
+			nvp->fieldValue=STRDUP(value); \
+			vector_pushBack(struct nameValuePairs*,tos,nvp); \
+			printf ("pushed %s=%s to tos\n",nvp->fieldName, nvp->fieldValue); \
+			return;
+
+/*
+
+parseConnect - we may have had a proto defined like:
+<ProtoDeclare name='Sphere'>
+ <ProtoInterface>
+        <field accessType='inputOutput' name='SphereColour' type='SFColor' value='0.8 0.8 0.8' />
+ </ProtoInterface>
+
+ <ProtoBody>
+        <Shape>
+         <Appearance>
+                <Material>
+                <IS>
+                <connect nodeField='diffuseColor' protoField='SphereColour'/>
+                </IS>
+                </Material>
+         </Appearance>
+         <Sphere/>
+      </Shape>
+ </ProtoBody>
+</ProtoDeclare>
+
+and, an invocation like:
+
+        <ProtoInstance containerField='children' name='Sphere'>
+        <fieldValue name='SphereColour' value='1 1 0'/>
+        </ProtoInstance>o
+
+will yield:
+
+	<?xml version="1.0" encoding="utf-8"?>
+	<X3D><Scene><Group FreeWRL__protoDef='0'> <!-- INITIATE SCENE -->
+	<!--
+	ProtoInterface fields has 1 fields -->
+		<MetadataSFColor DEF='SphereColour_FrEEWrL_pRotto_0' value='0.8 0.8 0.8'/>
+	<!-- end of MAKE_PROTO_COPY_FIELDS --> 
+	<Shape>
+	<Appearance>
+	<Material>
+		<IS>
+			<connect nodeField="diffuseColor" protoField="SphereColour">
+			</connect>
+		</IS>
+	</Material>
+	</Appearance>
+	<Sphere>
+	</Sphere>
+	</Shape>
+</Group></Scene></X3D>
+
+
+
+*/
+void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *tos) {
+	int i;
+	struct nameValuePairs *nvp;
+	size_t ind;
+	size_t nodeind;
+	int nfInd;
+	int pfInd;
+	struct Shader_Script* myObj;
+	int matched;
+
+	nfInd=INT_ID_UNDEFINED;
+	pfInd=INT_ID_UNDEFINED;
+
+	printf ("parseConnect mode is %s\n",parserModeStrings[getParserMode()]); 
+
+	if (getParserMode() != PARSING_IS) {
+		ConsoleMessage ("parseConnect: got a <connect> but not in a Proto Expansion at line %d",LINE);
+	}
+
+	/* find the nodeField and protoField tags */
+        for (i = 0; atts[i]; i += 2) {
+                /* printf("parseConnect:%s=%s\n", atts[i], atts[i + 1]); */
+		if (strcmp("nodeField",atts[i])==0) nfInd=i;
+		if (strcmp("protoField",atts[i])==0) pfInd=i;
+	}
+
+	if (nfInd==INT_ID_UNDEFINED) {
+		ConsoleMessage ("have a <connect> without a :nodeField: parameter");
+		return;
+	}
+	if (pfInd==INT_ID_UNDEFINED) {
+		ConsoleMessage ("have a <connect> without a :protoField: parameter");
+		return;
+	}
+
+	/* worry about generating routes to/from this field */
+	/* printf ("parseConnect, currentProto is %d\n",currentProtoInstance); 
+	printf ("	and, we have %s and %s\n",atts[pfInd+1],atts[nfInd+1]);*/
+	matched = FALSE;
+	myObj = PROTONames[currentProtoInstance].fieldDefs; 
+	for (ind=0; ind<vector_size(myObj->fields); ind++) { 
+		struct ScriptFieldDecl* field; 
+		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); 
+		printf ("ind %d name %s value %s\n", ind, field->ASCIIname,  field->ASCIIvalue); 
+
+		if (strcmp(field->ASCIIname,atts[pfInd+1])==0) {
+			/* printf ("parseConnect, have match, value is %s\n",field->ASCIIvalue); */
+			matched=TRUE;
+			generateRoute(myLexer, field, atts[nfInd+1]);
+		}
+	} 
+
+	/* if we did not get a match, we have an error... */
+	if (!matched) {
+		ConsoleMessage ("<connect> problem, no field %s in ProtoDeclare\n",atts[pfInd+1]);
+		return;
+	}
+
+
+
+	/* ok, we have a good connection here. Lets go through and find the protoField 
+	   in the protoInvocation. */
+
+	/* go through the current ProtoInstance, and see if we can do a match */
+	/* printf ("parseConnect, curProtoInsStackInd %d\n",curProtoInsStackInd); */
+	for (i=0; i<CPI.paircount; i++) {
+		/* printf ("	index %d is name :%s: value :%s:\n",i,CPI.name[i],
+			CPI.value[i]);
+
+		printf ("... comparing %s and %s\n",CPI.name[i],atts[pfInd+1]); */
+		if (strcmp(CPI.name[i],atts[pfInd+1])==0) {
+			printf ("parseConnect, have match, value is %s\n",CPI.value[i]);  
+			/* if there is no value here, just return, as some accessMethods do not have value */
+			if (CPI.value[i]==NULL) return;
+
+			REPLACE_CONNECT_VALUE(CPI.value[i])
+			printf ("parseConnect, match completed\n");
+		}
+	}
+
+	/* did not find it in the ProtoInstance fields, lets look in the ProtoDeclare */
+	/* printf ("parseConnect, did not find %s in the ProtoInstance, looking for it in ProtoDeclare\n",atts[pfInd+1]); */
+	
+	myObj = PROTONames[currentProtoInstance].fieldDefs; 
+	for (ind=0; ind<vector_size(myObj->fields); ind++) { 
+		struct ScriptFieldDecl* field; 
+		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); 
+		/* printf ("ind %d name %s value %s\n", ind, field->ASCIIname,  field->ASCIIvalue);  */
+
+		if (strcmp(field->ASCIIname,atts[pfInd+1])==0) {
+			printf ("parseConnect, have match, value is %s\n",field->ASCIIvalue);
+			/* if there is no value here, just return, as some accessMethods do not have value */
+			if (field->ASCIIvalue==NULL) return;
+
+			REPLACE_CONNECT_VALUE(field->ASCIIvalue)
+			printf ("parseConnect, match completed\n");
+		}
+	} 
+}
+
+void endConnect() {
+	printf ("endConnect mode is %s\n",parserModeStrings[getParserMode()]); 
+	setParserMode(PARSING_NODES);
+}
+
 
 void parseProtoInstanceFields(const char *name, const char **atts) {
 	int count;
@@ -296,6 +628,8 @@ int i;printf ("X3D_ node name :%s:\n",name);for (i = 0; atts[i]; i += 2) {printf
 
 /***********************************************************************************/
 
+#ifdef OLDCODE
+#endif
 
 void dumpProtoBody (const char *name, const char **atts) {
 	int count;
@@ -380,152 +714,6 @@ void endDumpProtoBody (const char *name) {
 			printf ("endDumpProtoBody, just closed %s, it is %d characters long\n",
 				PROTONames[currentProtoDeclare].fileName, PROTONames[currentProtoDeclare].charLen);
 		#endif
-	}
-}
-
-
-/* find a value for the proto field on invocation. First look at the ProtoInstance, if not there, then look
-   at the ProtoDeclare for the field. */
-static char *getProtoValue(struct VRMLLexer *myLexer, int ProtoInvoc, char *id) {
-	char *retptr;
-	int i;
-
-	#ifdef X3DPARSERVERBOSE
-	printf ("getProtoValue for proto %d, char :%s:\n",ProtoInvoc, id);
-	#endif
-
-	/* get the start/end value pairs, and copy them into the id field. */
-	if ((curProtoInsStackInd < 0) || (curProtoInsStackInd >= PROTOINSTANCE_MAX_LEVELS)) {
-		return "";
-	} else {
-		/* is this to be matched in the ProtoInstance fields? */
-		for (i=0; i<ProtoInstanceTable[curProtoInsStackInd].paircount; i++) {
-			#ifdef X3DPARSERVERBOSE
-				printf (" 	getProtoValue - ProtoInstance - comparing ind %d, :%s:  :%s:\n",
-					i,id,ProtoInstanceTable[curProtoInsStackInd].name[i]);
-			#endif
-			if (strcmp(id,ProtoInstanceTable[curProtoInsStackInd].name[i]) == 0) {
-				/* printf ("getProtoValue, found name!\n"); */
-				return ProtoInstanceTable[curProtoInsStackInd].value[i];
-			}
-		}
-
-		/* no, maybe the field is in the ProtoInterface definitions? */
-		#ifdef X3DPARSERVERBOSE
-		printf ("have to look for id :%s: in ProtoInterface\n",id);
-		#endif
-
-		if (getFieldValueFromProtoInterface (myLexer, id, ProtoInvoc, &retptr)) {
-			return retptr;
-		}
-	}
-
-	/* if we are here, we did not find that parameter */
-	ConsoleMessage ("ProtoInstance <%s>, could not find parameter <%s>",
-			PROTONames[ProtoInvoc].definedProtoName, id);
-
-	return "";
-}
-
-static int getProtoKind(struct VRMLLexer *myLexer, int ProtoInvoc, char *id) {
-	char *retptr;
-	int i;
-
-	#ifdef X3DPARSERVERBOSE
-	printf ("getProtoKind for proto %d, char :%s:\n",ProtoInvoc, id);
-	#endif
-
-	/* get the start/end value pairs, and copy them into the id field. */
-	if ((curProtoInsStackInd < 0) || (curProtoInsStackInd >= PROTOINSTANCE_MAX_LEVELS)) {
-		return INT_ID_UNDEFINED;
-	}
-
-	return getFieldAccessMethodFromProtoInterface (myLexer, id, ProtoInvoc);
-}
-
-/* go back through this proto string, and find an associated DEF with a Script/Shader, ok? */
-static void getDefFromScriptShader(char *protoInString, char *foundNameEquals, char *myDefName) {
-	char *myn;
-
-	myDefName[0] = 0;
-	/* so, we have this proto, protoInString; and we have somewhere in it, a "name='field'", lets
-	   go and find the associated DEF for this. */
-	while (foundNameEquals != protoInString) {
-		foundNameEquals--;
-		if (*foundNameEquals == '<') {
-			/* printf ("possible ShaderScript at :%s:\n",foundNameEquals); */
-			if ((strncmp("<Script",foundNameEquals,strlen("<Script")) == 0) ||
-			   (strncmp("<ComposedShader",foundNameEquals,strlen("<ComposedShader")) == 0) ||
-			   (strncmp("<PackagedShader",foundNameEquals,strlen("<PackagedShader")) == 0) ||
-			   (strncmp("<ShaderProgram",foundNameEquals,strlen("<ShaderProgram")) == 0)) {
-				char tmp;
-				char *cb;
-				char *def;
-
-				cb = strchr(foundNameEquals,'>');
-				if (cb==NULL) return;  /* should always find a close brace, but... */
-				tmp = *cb; *cb= '\0';  /* make this null for finding the DEF name... */
-
-				def = strstr(foundNameEquals,"DEF=");
-				if (def ==NULL) {*cb=tmp; return;}
-
-				/* found a "DEF=", skip forward to start of DEF string */
-				while ((*def != '\'') && (*def != '"') && (*def != '\0')) def++;
-
-				/* copy the name over */
-				if (*def != '\0') {
-					def++;
-					while ((*def != '\'') && (*def != '"') && (*def != '\0')) {
-						*myDefName = *def;
-						myDefName++; def++;
-					}
-					*myDefName = '\0';
-				}
-
-				/* restore this end marker */
-				*cb = tmp;
-			}
-		}
-	}
-}
-
-/* pushes onto a Vector a XML string for routing to a PROTO internal data structure, used for "fanning" i/o to/from a PROTO */
-static void generateRoutes(char *myDefName, char *nodeFieldID, char *protoFieldID,int myFieldKind, struct Vector **routVec, int uniqueExpandedID){
-	char *routeStr;
-	int rsl;
-
-	/* approximate string length for one route line */
-	rsl = strlen(myDefName) + strlen(nodeFieldID) + strlen(protoFieldID) + 100;
-
-
-	switch (myFieldKind) {
-		case PKW_inputOnly: 
-			routeStr = MALLOC(sizeof (char *) + rsl);
-			/* 1 */sprintf (routeStr,"<ROUTE fromNode='%s_%s_%d' fromField='valueChanged' toNode='%s' toField='%s'/>\n",
-					protoFieldID,FREEWRL_SPECIFIC,uniqueExpandedID,myDefName,nodeFieldID);
-			vector_pushBack(char *, *routVec,routeStr);
-			break;
-		case PKW_outputOnly: 
-			routeStr = MALLOC(sizeof (char *) + rsl);
-			/* 2 */sprintf (routeStr,"<ROUTE toNode='%s_%s_%d' toField='setValue' fromNode='%s' fromField='%s'/>\n",
-					protoFieldID,FREEWRL_SPECIFIC,uniqueExpandedID,myDefName,nodeFieldID);
-			vector_pushBack(char *, *routVec,routeStr);
-			break;
-		case PKW_inputOutput: 
-			routeStr = MALLOC(sizeof (char *) + rsl);
-			/* 1 */sprintf (routeStr,"<ROUTE fromNode='%s_%s_%d' fromField='valueChanged' toNode='%s' toField='%s'/>\n",
-					protoFieldID,FREEWRL_SPECIFIC,uniqueExpandedID,myDefName,nodeFieldID);
-			vector_pushBack(char *, *routVec,routeStr);
-			routeStr = MALLOC(sizeof (char *) + rsl);
-			/* 2 */sprintf (routeStr,"<ROUTE toNode='%s_%s_%d' toField='setValue' fromNode='%s' fromField='%s'/>\n",
-					protoFieldID,FREEWRL_SPECIFIC,uniqueExpandedID,myDefName,nodeFieldID);
-			vector_pushBack(char *, *routVec,routeStr);
-			break;
-		case PKW_initializeOnly: 
-			/* printf ("PKW_initializeOnly - do nothing\n"); */
-			break;
-		default :
-			printf ("generateRoutes unknown proto type - ignoring\n");
 	}
 }
 
@@ -627,269 +815,6 @@ printf ("getProtoValue, curProtoInsStackInd %d, MAX %d\n",curProtoInsStackInd, P
 	#endif
 }
 
-/*******************************************************************************************/
-
-
-/* for IS routing - get a DEF name, if one exists in this code snippet; if not, make one up for later inclusion */
-static unsigned int uniqueDefNameNumber = 31567;
-static void findThisDefName(int *hasDef, char *myDefName, char *openBrace) {
-	char *foundDEF;
-	char singleDoubleQuote;
-
-	foundDEF = strstr (openBrace,"DEF=");
-	if (foundDEF == NULL) {
-#ifdef X3DPARSERVERBOSE
-		printf ("findThisDefName - have to generate a DEF name\n");
-#endif
-		*hasDef = FALSE;
-		/* just make up a name; use the current memptr for the DEF name */
-		sprintf (myDefName,"FrEEWrL_pRot_%u",uniqueDefNameNumber);
-		uniqueDefNameNumber++;
-	} else {
-#ifdef X3DPARSERVERBOSE
-		printf ("findThisDefName - have a DEF in here :%s:\n",foundDEF);
-#endif
-		*hasDef = TRUE;
-		while ((*foundDEF != '"') && (*foundDEF != '\'') && (*foundDEF != '\0')) foundDEF++;
-		printf ("start of DEF now is :%s:\n",foundDEF);
-		if (*foundDEF == '\0') return; /* hmmm - an error! */
-
-		singleDoubleQuote = *foundDEF; foundDEF++;
-		while ((*foundDEF != singleDoubleQuote) && (*foundDEF != '\0')) {
-			*myDefName = *foundDEF;
-			myDefName++; foundDEF++;
-		}
-		*myDefName = '\0';
-	}
-
-
-}
-
-
-#define FIND_THE_CONNECT(mystr)  \
-	connect = strstr(mystr,strCONNECT);  \
-	if (connect != NULL) {  \
-	 mystr = connect + strlen (strCONNECT); }
-
-#define FIND_NODE_PROTO_FIELD(mystr,ns,ps) \
-	ns = strstr(mystr, NODEFIELD_EQUALS); \
-	ps = strstr(mystr, PROTOFIELD_EQUALS); \
-	if (ns!=NULL) ns += strlen(NODEFIELD_EQUALS); \
-	if (ps!=NULL) ps += strlen(PROTOFIELD_EQUALS);
-
-#define FILL_ID(mystr,myid) \
-	{ char *dq;   \
-		myid[0]='\0'; \
-		if (mystr!=NULL) { \
-			dq = strchr(mystr,'"'); \
-			if (dq != NULL) { \
-				*dq = '\0'; \
-				strcpy(myid,mystr); \
-				*dq = '"'; \
-			} \
-		} \
-	}
-
-
-/* substitute the IS connects in the protoInString with the values from the IS, and return the string */
-/* protoInString = original string, with the <IS> copied, and spaced out */
-/* IS - just a pointer into protoInString of where the IS was, before it was spaced out */
-/* isString - the IS string that we have to substitute for */
-
-static char* doISsubs(struct VRMLLexer *myLexer, char *protoInString, char *IS, char *isString,struct Vector ** routVec,int uniqueExpandedID) {
-	char *connect;
-	char *ns;
-	char *ps;
-	char nodeFieldID[200];
-	char protoFieldID[200];
-	char tmp[200];
-	char *newProtoInString;
-	char *closeBrace;
-	char *openBrace;
-	char ctmp;
-
-	/* for finding IS node DEF name */
-	int hasDef;
-	char myDefName[255];
-
-
-	/* initialization */
-	connect = NULL;
-	ns = NULL;
-	ps = NULL;
-	closeBrace = NULL;
-	openBrace = NULL;
-
-	#ifdef X3DPARSERVERBOSE
-		printf ("\nstart of doISsubs\n");
-		printf ("doISsubs, orig :%s:\n",protoInString);
-		printf ("IS pointer is at:%s:\n",IS);
-		printf ("and the isString is :%s:\n",isString);
-	#endif
-
-	/* find a <connect>, and go through all <connect> strings until we have finished with this IS */
-	/* win32 comment: could this kind of parsing be done more reliably with xml parser rather than strstr? 
-	   usually that's what the xml doms and parsers are for.
-	*/
-	FIND_THE_CONNECT(isString)
-	while (connect != NULL) {
-		char *foundNameEquals = NULL;
-
-		#ifdef X3DPARSERVERBOSE
-			printf ("doISsubs loop, find the connect:%s:\n",connect);
-		#endif
-
-		FIND_NODE_PROTO_FIELD(connect,ns,ps)
-		FILL_ID(ns,nodeFieldID)
-		FILL_ID(ps,protoFieldID)
-
-		#ifdef X3DPARSERVERBOSE
-			printf ("nodeFieldID :%s:  protoFieldID :%s:\n",nodeFieldID, protoFieldID);
-		#endif
-
-		/* What do we attach the nodeFieldID to?? lets go back and see what we can find */
-		/* could this be a Script field, like:
-			<field accessType="initializeOnly" name="imageName"> </field> ? */
-
-		/* first, try it with double quotes */
-		strcpy (tmp,"name=\""); strcat (tmp,nodeFieldID); strcat (tmp,"\"");
-
-		#ifdef X3DPARSERVERBOSE
-			printf ("trying to find the following :%s:\n",tmp);
-		#endif
-
-		foundNameEquals = strstr(protoInString,tmp);
-		if (foundNameEquals == NULL) {
-			/* try it with single quotes */
-			strcpy (tmp,"name='"); strcat (tmp,nodeFieldID); strcat (tmp,"'");
-
-			#ifdef X3DPARSERVERBOSE
-				printf ("now trying to find the following :%s:\n",tmp);
-			#endif
-
-			foundNameEquals = strstr(protoInString,tmp);
-		}
-
-		/* ok, did we find the name=value; if so, this is part of a script */		
-		if (foundNameEquals != NULL) {
-#ifdef X3DPARSERVERBOSE
-			printf ("found this at offset %d probably script field\n",(int)foundNameEquals - (int)protoInString);
-			printf ("ok, probably in a Script, lets see if we can find a start of Script, and go nuts with this.\n");
-			printf ("nodeFieldID :%s:  protoFieldID :%s:\n",nodeFieldID, protoFieldID);
-#endif
-
-			getDefFromScriptShader(protoInString,foundNameEquals,myDefName);
-#ifdef X3DPARSERVERBOSE
-printf ("well, myDefName should be :%s:\n",myDefName);
-#endif
-
-			/* lets find the script name, and save this for our use */
-			if (myDefName[0] == '\0') {
-				ConsoleMessage ("XML PROTO with Script/Shader with <IS>; no DEF Name, can not get handle for it");
-			} else {
-				generateRoutes(myDefName, nodeFieldID, protoFieldID,getProtoKind(myLexer,currentProtoInstance,protoFieldID),routVec,
-					uniqueExpandedID);
-			}
-
-
-		} else {
-			#ifdef X3DPARSERVERBOSE	
-			printf ("did not find it, lets go back and find node to attach to\n"); 
-			#endif
-
-			/* we probably have something like this: 
-			<ImageTexture>
-                        	<IS>
-                        		<connect nodeField='url' protoField='imageName'/>
-					<connect nodeField='repeatS' protoField='yes'/>
-                        	</IS>
-                	</ImageTexture>
-
-			which we want to turn into something like:
-			<ImageTexture url=(substituted string) repeatS=(substituted string) />
-
-			*/
-
-			/* so, to do that, we have to take off the trailing ">" from the node name */
-			ctmp = *IS; *IS='\0'; /* set current pointer to null */
-			openBrace = strrchr(protoInString,'<');
-			closeBrace = strrchr(protoInString,'>');
-
-			/* so, hopefully we have a string "<ImageTexture" in openBrace. Do we need to define
-			   a DEF name so that we can route to/from this? Can we get the current DEF name if
-			   it exists? ie, if we have "<ImageTexture DEF='myTexture'" lets find "myTexture",
-			   if not, lets create a name for us. */
-			hasDef = FALSE;
-			myDefName[0] = '\0';
-			findThisDefName(&hasDef, myDefName, openBrace);
-			printf ("so, found DEF name is :%s:\n",myDefName); 
-
-			*IS = ctmp; /* restore value */
-
-
-		
-			if (closeBrace != NULL) {
-				char *valueStr;
-				valueStr = NULL;
-
-				/* ok, we know the location of the last ">", lets go and make a string with all
-				   of this in it together */
-				generateRoutes(myDefName, nodeFieldID, protoFieldID,getProtoKind(myLexer,currentProtoInstance,protoFieldID),routVec,
-					uniqueExpandedID);
-
-				/* the value of the PROTO substitution field: */
-				valueStr = getProtoValue(myLexer, currentProtoInstance,protoFieldID);
-
-				/* lets make up a new string long enough for the proto substitution */
-				newProtoInString = MALLOC(strlen(valueStr) + strlen(protoInString) + strlen (myDefName) + 20);
-
-				*closeBrace = '\0';
-				strcpy (newProtoInString,protoInString);
-				strcat (newProtoInString, " ");
-
-				/* do we have to generate a DEF for this node? */
-				if (!hasDef) {
-					hasDef = TRUE; /* do this once only */
-					strcat (newProtoInString,"DEF='");
-					strcat (newProtoInString,myDefName);
-					strcat (newProtoInString,"' ");
-				}
-				
-				strcat (newProtoInString,nodeFieldID);
-				strcat (newProtoInString,"='");
-
-				/* now, is this possibly an MFString? */
-				strcat (newProtoInString,valueStr); /* value from proto inv */
-
-				strcat (newProtoInString,"'> ");
-				/* any more additions go in here, so... */
-				IS = newProtoInString + strlen(newProtoInString);
-
-				*closeBrace=' ';
-				strcat (newProtoInString, closeBrace);
-				FREE_IF_NZ(protoInString);
-				protoInString = newProtoInString;
-			}
-				
-		}
-		
-
-		/* lets loop and do the next <connect> */
-		connect += strlen (strCONNECT);
-		FIND_THE_CONNECT(connect)
-
-	}
-
-
-	#ifdef X3DPARSERVERBOSE
-		printf ("RETURNING :%s:\n",protoInString);
-	#endif
-
-	return protoInString;
-}
-
-
-
 
 
 	#define OPEN_AND_READ_PROTO \
@@ -946,32 +871,37 @@ printf ("well, myDefName should be :%s:\n",myDefName);
 
 	#define INITIATE_SCENE \
 	{ \
-		fdl += fprintf (fileDescriptor, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<X3D><Scene><Group FreeWRL__protoDef='%d'> <!-- INITIATE SCENE -->\n",uniqueExpandedID); \
+		fdl += fprintf (fileDescriptor, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<X3D><Scene><Group FreeWRL__protoDef='%d'> <!-- INITIATE SCENE -->\n",CPI.uniqueNumber); \
 	}
 
 	#define MAKE_PROTO_COPY_FIELDS \
 	myObj = PROTONames[currentProtoInstance].fieldDefs; \
 	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields has %d fields -->\n",vector_size(myObj->fields)); \
 	for (ind=0; ind<vector_size(myObj->fields); ind++) { \
-		struct ScriptFieldDecl* field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); \
+		int i; struct ScriptFieldDecl* field; char *fv; \
+		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); \
+		fv = field->ASCIIvalue; /* pointer to ProtoDef value - might be replaced in loop below */ \
+		for (i=0; i<CPI.paircount; i++) { \
+			/* printf ("CPI has %s and %s\n",CPI.name[i],CPI.value[i]); */ \
+			if (strcmp(CPI.name[i],field->ASCIIname)==0) {/* use the value passed in on invocation */ fv=(char *)CPI.value[i];} \
+		} \
 		if (field->fieldDecl->mode != PKW_initializeOnly) {\
-		if (field->ASCIIvalue != NULL) { \
+		if (fv != NULL) { \
 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' value='%s'/>\n", \
 			field->ASCIItype, \
 			field->ASCIIname,  \
 			FREEWRL_SPECIFIC,  \
-			uniqueExpandedID, \
-			field->ASCIIvalue); \
+			CPI.uniqueNumber, \
+			fv); \
 		} else { \
 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' />\n", \
 			field->ASCIItype, \
 			field->ASCIIname,  \
 			FREEWRL_SPECIFIC,  \
-			uniqueExpandedID); \
+			CPI.uniqueNumber); \
 		}} \
 	} \
 	fdl += fprintf (fileDescriptor, "<!-- end of MAKE_PROTO_COPY_FIELDS --> \n");
-
 
 
 /* have a </ProtoInstance> so should have valid name and fieldValues */
@@ -990,8 +920,6 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	FILE *fileDescriptor;
 	int fdl;
 	char uniqueIDstring[20];
-	struct Vector *protoInternalRouting;
-	int uniqueExpandedID;
 
 
 	/* initialization */
@@ -1001,10 +929,11 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	myObj = NULL;
 	tmpf = tempnam("/tmp","freewrl_proto");
 	fdl = 0;
-	protoInternalRouting = newVector(char *, 16);
 
 	/* we tie a unique number to the currentProto */
-	uniqueExpandedID = newProtoDefinitionPointer(NULL,currentProtoInstance);
+	CPI.uniqueNumber = newProtoDefinitionPointer(NULL,currentProtoInstance);
+
+printf ("expandProtoInstance, CPI.uniqueNumber %d, curProtoStackInd %d\n",CPI.uniqueNumber,curProtoInsStackInd);
 
 
 	/* first, do we actually have a valid proto here? */
@@ -1022,7 +951,10 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	}
 
 	/* make up a string here; this will replace the UNIQUE_NUMBER_HOLDER string */
+#ifdef OLDCODE
 	sprintf (uniqueIDstring,"%d",currentProtoInstance);
+#endif
+	sprintf (uniqueIDstring,"%d",CPI.uniqueNumber);
 
 	/* step 0. Does this one contain a DEF? */
 	if (ProtoInstanceTable[curProtoInsStackInd].defName != NULL) {
@@ -1064,58 +996,23 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	/* dump in a Group containing any routable fields */
 	INITIATE_SCENE
 
-	/* make that group for routing to/from this proto invocation */
-	MAKE_PROTO_COPY_FIELDS
+	/* make that group for routing to/from this proto invocation. We might use the
+	   default value as presented in the ProtoDeclare, or we might use a overwritten
+	   value as passed in in the ProtoInstance */
 
-	/* loop through, and replace any IS'd fields with our PROTO expansion stuff... */
-	FIND_THE_IS
-
-	while (IS != NULL) {
-		char *isString;
-		unsigned int islen;
-
-		FIND_THE_END_OF_IS(IS)
-
-		if (endIS == NULL) {
-			ConsoleMessage ("did not find </IS> in PROTO expansion");
-			return;
-		}
-
-		/* copy the IS text over */
-		islen =  (endIS - IS);
-		isString = MALLOC(islen + 10);
-		memcpy (isString,IS,islen);
-		isString[islen] = '\0';
-		
-		#ifdef X3DPARSERVERBOSE
-			printf ("is text is :%s:\n",isString);
-		#endif
-
-		/* zero the original data between the IS and the ENDIS */
-		ZERO_IS_TEXT_IN_ORIG
-
-		/* do IS substitutions */
-		curProtoPtr = doISsubs(myLexer, curProtoPtr,IS,isString, &protoInternalRouting,uniqueExpandedID);
-
-		/* and keep doing this, until we have not more <IS> fields */
-		FIND_THE_IS		
+	#ifdef X3DPARSERVERBOSE
+	printf ("before MAKE_PROTO_COPY_FIELDS\n");
+	printf ("ProtoInstance pair count %d\n",CPI.paircount);
+	for (i=0; i<CPI.paircount; i++) {
+		printf ("name %s\n",CPI.name[i]);
+		printf ("value %s\n",CPI.value[i]);
 	}
+	#endif
+
+	MAKE_PROTO_COPY_FIELDS
 
 	/* dump the modified string down here */
 	fdl += fprintf(fileDescriptor,"%s",curProtoPtr);
-
-	/* ROUTES and final scene */
-	fdl += fprintf (fileDescriptor,"<!-- Internal Metadata routes go here -->\n");
-	for (ind=0 ;ind<vector_size(protoInternalRouting); ind++) {
-		char *str = vector_get(char *,protoInternalRouting,ind);
-		/* printf ("dumping routing :%s:\n",str); */
-		if (str != NULL) {
-			fdl += fprintf (fileDescriptor, "%s\n",str);
-			FREE_IF_NZ(str);
-		}
-	}
-	FREE_IF_NZ(protoInternalRouting);
-
 	fdl += fprintf (fileDescriptor, "</Group></Scene></X3D>\n");
 
 
@@ -1134,7 +1031,6 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	#ifdef X3DPARSERVERBOSE
 	printf ("PROTO EXPANSION IS:\n%s\n:\n",protoInString);
 	#endif
-
 
 	/* parse this string */
 	if (X3DParse (myGroup,protoInString)) {
@@ -1168,10 +1064,12 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	printf ("expandProtoInstance: decrementing curProtoInsStackInd from %d\n",curProtoInsStackInd);
 	#endif
 
-	linkNodeIn(); 
+	linkNodeIn(__FILE__,__LINE__); 
 	DECREMENT_PARENTINDEX
 	curProtoInsStackInd--;
         FREE_IF_NZ(protoInString);
+
+
 
 	/* ok, now, what happens is that we have Group->Group; and the second group has all the interesting stuff relating
 	   to the PROTO expansion. Lets move this info to the parent Group. */
@@ -1266,7 +1164,11 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 }
 	#endif
 
+printf ("end of expandProtoInstance\n");
 }
+
+#ifdef OLDCODE
+#endif
 
 void parseProtoBody (const char **atts) {
 	#ifdef X3DPARSERVERBOSE
@@ -1276,6 +1178,9 @@ void parseProtoBody (const char **atts) {
 
 	setParserMode(PARSING_PROTOBODY);
 }
+
+#ifdef OLDCODE
+#endif
 
 void parseProtoDeclare (const char **atts) {
 	int count;
@@ -1313,6 +1218,7 @@ void parseProtoDeclare (const char **atts) {
 		ConsoleMessage ("\"ProtoDeclare\" found, but field \"name\" not found!\n");
 	}
 }
+
 
 /* simple sanity check, and change mode */
 void parseProtoInterface (const char **atts) {
@@ -1385,7 +1291,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 				return;
 			}
 		}
-	} else if (getParserMode() == PARSING_PROTOINTERFACE) {
+	} else if ((getParserMode() == PARSING_PROTOINTERFACE) || (getParserMode() == PARSING_NODES)){
 		#ifdef X3DPARSERVERBOSE
 		printf ("start of parseScriptProtoField, parserMode %s\n",parserModeStrings[getParserMode()]);
 		#endif
@@ -1398,7 +1304,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 		printf ("parseScriptProtoField, working on proto idNumber %d\n",myScriptNumber);
 		#endif
 	} else {
-		printf ("there seems to be an error here, expecting PARSING_SCRIPT or PARSING_PROTOINTERFACE, got %s\n",
+		printf ("there seems to be an error here, not expecting mode to be %s\n",
 			parserModeStrings[getParserMode()]);
 		return;
 	}
@@ -1546,7 +1452,6 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	script_addField(myObj,sdecl);
 }
 
-
 /* we get script text from a number of sources; from the URL field, from CDATA, from a file
    pointed to by the URL field, etc... handle the data in one place */
 
@@ -1606,6 +1511,9 @@ void addToProtoCode(const char *name) {
         if (PROTONames[currentProtoDeclare].fileOpen) 
                 PROTONames[currentProtoDeclare].charLen += fprintf (PROTONames[currentProtoDeclare].fileDescriptor,"</%s>\n",name);
 }
+
+#ifdef OLDCODE
+#endif
 
 void endProtoDeclare(void) {
 
@@ -1679,37 +1587,6 @@ static int getFieldValueFromProtoInterface (struct VRMLLexer *myLexer, char *fie
 
 
 
-static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono) {
-	const char** userArr;
-	size_t userCnt;
-	struct Shader_Script* myObj;
-	indexT retUO;
-
-	#ifdef X3DPARSERVERBOSE
-	printf ("getFieldValueFromProtoInterface, lexer %u looking for :%s: in proto %d\n",myLexer, fieldName, protono);
-	#endif
-	
-	myObj = PROTONames[protono].fieldDefs;
-
-        
-#define LOOK_FOR_FIELD_IN(whicharr) \
-        userArr=&vector_get(const char*, myLexer->user_##whicharr, 0); \
-        userCnt=vector_size(myLexer->user_##whicharr);\
-        retUO=findFieldInARR(fieldName, userArr, userCnt);\
-        if (retUO != ID_UNDEFINED) { \
-		return PKW_##whicharr; \
-        } 
-                
-        LOOK_FOR_FIELD_IN(initializeOnly);
-        LOOK_FOR_FIELD_IN(inputOnly);
-        LOOK_FOR_FIELD_IN(outputOnly);
-        LOOK_FOR_FIELD_IN(inputOutput);
-        
-#undef LOOK_FOR_FIELD_IN
-
-	/* did not find it. */
-	return INT_ID_UNDEFINED;
-}
 
 /* look through the script fields for this field, and return the values. */
 int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struct Shader_Script *me, int *offs, int *type, int *accessType) {
@@ -1777,3 +1654,4 @@ int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struct Shade
 	*offs = INT_ID_UNDEFINED;  *type = 0;
 	return FALSE;
 }
+
