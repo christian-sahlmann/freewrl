@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.27 2009/09/11 19:13:10 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.28 2009/09/11 19:42:35 crc_canada Exp $
 
 ???
 
@@ -216,25 +216,16 @@ static int getProtoKind(struct VRMLLexer *myLexer, int ProtoInvoc, char *id) {
 
 #define TOD parentStack[parentIndex]
 
+/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 #define ROUTE_FROM_META_TO_ISD \
 	getRoutingInfo (myLexer, TOD, &nodeOffs, &type, &accessType, nodeField, 1); \
 	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(metaNode, metaFromOffs, TOD, nodeOffs, returnRoutingElementLength(type)); 
 
-#define XROUTE_FROM_META_TO_ISD \
-	fieldInt = findRoutedFieldInFIELDNAMES (TOD, nodeField , TRUE); \
-	nodeOffs = INT_ID_UNDEFINED; \
-	if (fieldInt >=0) {findFieldInOFFSETS(TOD->_nodeType, fieldInt, &nodeOffs, &type, &accessType); \
-	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(metaNode, metaFromOffs, TOD, nodeOffs, returnRoutingElementLength(type)); }
 
 #define ROUTE_FROM_ISD_TO_META \
 	getRoutingInfo (myLexer, TOD, &nodeOffs, &type, &accessType, nodeField, 0); \
 	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(TOD, nodeOffs, metaNode, metaToOffs, returnRoutingElementLength(type)); 
 
-#define XROUTE_FROM_ISD_TO_META \
-	fieldInt = findRoutedFieldInFIELDNAMES (TOD, nodeField , TRUE); \
-	nodeOffs = INT_ID_UNDEFINED; \
-	if (fieldInt >=0) {findFieldInOFFSETS(TOD->_nodeType, fieldInt, &nodeOffs, &type, &accessType); \
-	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(TOD, nodeOffs, metaNode, metaToOffs, returnRoutingElementLength(type)); }
 
 static unsigned int uniqueDefNameNumber = 31567;
 static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* protoField, char *nodeField) {
@@ -276,7 +267,6 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 printf (" should generate a route or two here to route from the internal Meta node to the ISd node, kind %d\n",myFieldKind);
 
 
-printf ("end testing\n");
 
 
 	switch (myFieldKind) {
@@ -305,11 +295,11 @@ printf ("end testing\n");
 		default :
 			printf ("generateRoute unknown proto type - ignoring\n");
 	}
+printf ("end generate internal nodes\n");
 }
 
 
 #define REPLACE_CONNECT_VALUE(value) \
-printf ("REPLACE_CONNECT_VALUE is %s %d\n",value,value); \
 			/* now, we have a match, replace (or push) this onto the params */ \
        			for (nodeind=0; nodeind<vector_size(tos); nodeind++) { \
                			nvp = vector_get(struct nameValuePairs*, tos,nodeind); \
@@ -398,7 +388,7 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 	nfInd=INT_ID_UNDEFINED;
 	pfInd=INT_ID_UNDEFINED;
 
-	printf ("parseConnect mode is %s\n",parserModeStrings[getParserMode()]); 
+	/* printf ("parseConnect mode is %s\n",parserModeStrings[getParserMode()]);  */
 
 	if (getParserMode() != PARSING_IS) {
 		ConsoleMessage ("parseConnect: got a <connect> but not in a Proto Expansion at line %d",LINE);
@@ -428,7 +418,7 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 	for (ind=0; ind<vector_size(myObj->fields); ind++) { 
 		struct ScriptFieldDecl* field; 
 		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); 
-		printf ("ind %d name %s value %s\n", ind, field->ASCIIname,  field->ASCIIvalue); 
+		/* printf ("ind %d name %s value %s\n", ind, field->ASCIIname,  field->ASCIIvalue);  */
 
 		if (strcmp(field->ASCIIname,atts[pfInd+1])==0) {
 			/* printf ("parseConnect, have match, value is %s\n",field->ASCIIvalue); */
@@ -456,12 +446,12 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 
 		printf ("... comparing %s and %s\n",CPI.name[i],atts[pfInd+1]); */
 		if (strcmp(CPI.name[i],atts[pfInd+1])==0) {
-			printf ("parseConnect, have match, value is %s\n",CPI.value[i]);  
+			/* printf ("parseConnect, have match, value is %s\n",CPI.value[i]);   */
 			/* if there is no value here, just return, as some accessMethods do not have value */
 			if (CPI.value[i]==NULL) return;
 
 			REPLACE_CONNECT_VALUE(CPI.value[i])
-			printf ("parseConnect, match completed\n");
+			/* printf ("parseConnect, match completed\n"); */
 		}
 	}
 
@@ -475,12 +465,12 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 		/* printf ("ind %d name %s value %s\n", ind, field->ASCIIname,  field->ASCIIvalue);  */
 
 		if (strcmp(field->ASCIIname,atts[pfInd+1])==0) {
-			printf ("parseConnect, have match, value is %s\n",field->ASCIIvalue);
+			/* printf ("parseConnect, have match, value is %s\n",field->ASCIIvalue); */
 			/* if there is no value here, just return, as some accessMethods do not have value */
 			if (field->ASCIIvalue==NULL) return;
 
 			REPLACE_CONNECT_VALUE(field->ASCIIvalue)
-			printf ("parseConnect, match completed\n");
+			/* printf ("parseConnect, match completed\n"); */
 		}
 	} 
 }
@@ -1164,11 +1154,8 @@ printf ("expandProtoInstance, CPI.uniqueNumber %d, curProtoStackInd %d\n",CPI.un
 }
 	#endif
 
-printf ("end of expandProtoInstance\n");
+	/* printf ("end of expandProtoInstance\n"); */
 }
-
-#ifdef OLDCODE
-#endif
 
 void parseProtoBody (const char **atts) {
 	#ifdef X3DPARSERVERBOSE
@@ -1178,9 +1165,6 @@ void parseProtoBody (const char **atts) {
 
 	setParserMode(PARSING_PROTOBODY);
 }
-
-#ifdef OLDCODE
-#endif
 
 void parseProtoDeclare (const char **atts) {
 	int count;
@@ -1599,6 +1583,8 @@ int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struct Shade
 	myField = NULL;
 	retUO = ID_UNDEFINED;
 
+#define X3DPARSERVERBOSE
+
 	#ifdef X3DPARSERVERBOSE
 	printf ("getFieldFromScript, looking for %s\n",fieldName);
 	#endif
@@ -1607,7 +1593,7 @@ int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struct Shade
 
 
 	#ifdef CPROTOVERBOSE
-	printf ("getProtoFieldDeclaration, for field :%s:\n",thisID);
+	printf ("getProtoFieldDeclaration, for field :%s:\n",fieldName);
 	#endif
 
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.36 2009/09/11 19:13:10 crc_canada Exp $
+$Id: X3DParser.c,v 1.37 2009/09/11 19:42:35 crc_canada Exp $
 
 ???
 
@@ -323,6 +323,7 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 		}
 	}
 	return error;
+#undef X3DPARSERVERBOSE
 }
 
 
@@ -336,7 +337,7 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
  
 	error = getRoutingInfo(myLexer,node,offs,type,&accessType, name,routeTo);
 
-	printf ("getRouteField, offs %d type %d\n",*offs, *type);
+	/* printf ("getRouteField, offs %d type %d\n",*offs, *type); */
 
 	if ((*offs <0) && (node->_nodeType==NODE_Group)) {
 		/* is this a PROTO expansion? */
@@ -742,7 +743,6 @@ static void XMLCALL endCDATA (void *userData) {
         inCDATA = FALSE;
 
         if (getParserMode() == PARSING_PROTOBODY) {
-printf ("have to dump CDATA to Proto Body\n");
                 dumpCDATAtoProtoBody (CDATA_Text);
         }
 
@@ -917,7 +917,7 @@ static void parseFieldValue(const char *name, const char **atts) {
 
 
 static void parseIS() {
-	printf ("parseIS mode is %s\n",parserModeStrings[getParserMode()]); 
+	/* printf ("parseIS mode is %s\n",parserModeStrings[getParserMode()]); */ 
 	setParserMode(PARSING_IS);
 
 }
@@ -925,7 +925,7 @@ static void parseIS() {
 
 
 static void endIS() {
-	printf ("endIS mode is %s\n",parserModeStrings[getParserMode()]); 
+	/* printf ("endIS mode is %s\n",parserModeStrings[getParserMode()]);  */
 	setParserMode(PARSING_NODES);
 }
 
