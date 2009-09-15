@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.57 2009/08/26 14:35:26 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.58 2009/09/15 16:50:59 crc_canada Exp $
 
 ???
 
@@ -1604,6 +1604,9 @@ void kill_X3DNodes(void){
 				break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
 
 			if (*fieldOffsetsPtr == FIELDNAMES___oldMFString) 
+				break; 
+
+			if (*fieldOffsetsPtr == FIELDNAMES___scriptObj) 
 				break; 
 
 			if (*fieldOffsetsPtr == FIELDNAMES___oldSFString) 

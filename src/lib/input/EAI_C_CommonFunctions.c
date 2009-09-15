@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.19 2009/08/01 09:45:39 couannette Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.20 2009/09/15 16:50:59 crc_canada Exp $
 
 ???
 
@@ -49,7 +49,7 @@ int eaiverbose = FALSE;
 
 #define PST_SF_SIMPLE_ELEMENT(type1,type2,size3) \
 	case FIELDTYPE_SF##type1: { \
-		memcpy((void*)nst, &myVal.sf##type2, size3); \
+		memcpy(nst, &myVal.sf##type2, size3); \
 		break; }
 
 
@@ -235,7 +235,7 @@ int returnElementRowSize (int type) {
 
 static struct VRMLParser *parser = NULL;
 void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, char *value, int isXML) {
-	char *nst;                      /* used for pointer maths */
+	void *nst;                      /* used for pointer maths */
 	union anyVrml myVal;
 	char *mfstringtmp = NULL;
 	int oldXMLflag;
@@ -298,21 +298,19 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 
         if (ctype == FIELDTYPE_SFNode) {
                 struct X3D_Node* oldvalue;
-                nst = (char *) node;
-                nst += coffset;
+		nst = offsetPointer_deref(void *,node,coffset);
                 memcpy (&oldvalue, nst, sizeof(struct X3D_Node*));
                 if (oldvalue) {
                         remove_parent(oldvalue, node);
                 }
-                memcpy((void*)nst, (void*)&np, sizeof(struct X3D_Node*));
+                memcpy(nst, (void*)&np, sizeof(struct X3D_Node*));
                 add_parent(np, node, "sarah's add", 0);
 
         } else if (parseType(parser, ctype, &myVal)) {
 
 		/* printf ("parsed successfully\n");  */
 
-		nst = (char *) node; /* should be 64 bit compatible */
-		nst += coffset; 
+		nst = offsetPointer_deref(void *,node,coffset);
 
 
 /*

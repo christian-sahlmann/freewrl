@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.11 2009/09/11 19:13:10 crc_canada Exp $
+$Id: X3DParser.h,v 1.12 2009/09/15 16:50:59 crc_canada Exp $
 
 X3D parser functions.
 
@@ -72,7 +72,6 @@ void parseProtoInstanceFields(const char *name, const char **atts);
 void dumpProtoBody (const char *name, const char **atts);
 void dumpCDATAtoProtoBody (char *str);
 void parseScriptProtoField(struct VRMLLexer *, const char **atts);
-int getFieldFromScript (struct VRMLLexer* myLexer, char *fieldName, struct Shader_Script *, int *offs, int *type, int *accessType);
 void expandProtoInstance(struct VRMLLexer *, struct X3D_Group * myGroup);
 void freeProtoMemory (void);
 void kill_X3DProtoScripts(void);
@@ -80,7 +79,8 @@ void linkNodeIn(char *, int);
 void parseConnect(struct VRMLLexer * myLexer, const char **atts, struct Vector *tos);
 void endConnect();
 struct X3D_Node *X3DParser_getNodeFromName(const char *name);
-int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, char *name, int routeTo);
+int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, struct Shader_Script **myObj, char *name, int routeTo);
+ 
 char *X3DParser_getNameFromNode(struct X3D_Node* myNode);
 
 #endif /*  __FREEWRL_X3D_PARSER_H__ */

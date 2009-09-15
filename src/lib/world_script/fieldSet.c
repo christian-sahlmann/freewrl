@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.23 2009/08/26 13:57:16 crc_canada Exp $
+$Id: fieldSet.c,v 1.24 2009/09/15 16:50:59 crc_canada Exp $
 
 ???
 
@@ -588,7 +588,6 @@ int findFieldInARR(const char* field, const char** arr, size_t cnt)
 	#endif
 	
 	mystrlen = strlen(field);
-	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen);  */
 	for (x=0; x!=cnt; ++x) {
 		if (strlen(arr[x]) == mystrlen) {
 			if (strcmp(field, arr[x])==0) return x;

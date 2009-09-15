@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.37 2009/09/11 19:42:35 crc_canada Exp $
+$Id: X3DParser.c,v 1.38 2009/09/15 16:50:59 crc_canada Exp $
 
 ???
 
@@ -282,9 +282,62 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 }
 
 
-int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, char *name, int routeTo) {
+
+/* look through the script fields for this field, and return the values. */
+static int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struct Shader_Script *me, int *offs, int *type, int *accessType) {
+
+	struct ScriptFieldDecl* myField;
+	const char** userArr;
+	size_t userCnt;
+	indexT retUO;
+
+	/* initialize */
+	myField = NULL;
+	retUO = ID_UNDEFINED;
+
+
+	#ifdef X3DPARSERVERBOSE
+	printf ("getFieldFromScript, looking for %s\n",fieldName);
+	#endif
+
+	/* go through the user arrays in this lexer, and see if we have a match */
+
+	myField = script_getField_viaASCIIname (me, fieldName);
+	/* printf ("try2: getFieldFromScript, field %s is %d\n",fieldName,myField); */
+
+	if (myField != NULL) {
+		int myFieldNumber;
+
+		/* is this a script? if so, lets do the conversion from our internal lexer name index to
+		   the scripting name index. */
+		if (me->ShaderScriptNode->_nodeType == NODE_Script) {
+			/* wow - have to get the Javascript text string index from this one */
+			myFieldNumber = JSparamIndex(fieldName,stringFieldtypeType(myField->fieldDecl->type)); 
+
+			*offs=myFieldNumber;
+
+
+		} else {
+			*offs = myField->fieldDecl->name;
+		}
+		*type = myField->fieldDecl->type;
+		/* go from PKW_xxx to KW_xxx  .... sigh ... */
+		*accessType = mapToKEYWORDindex(myField->fieldDecl->mode);
+		return TRUE;
+	}
+
+	#ifdef X3DPARSERVERBOSE
+	printf ("getFieldFromScript, did not find field %s in script\n",fieldName);
+	#endif
+	
+	/* did not find it */
+	*offs = INT_ID_UNDEFINED;  *type = 0;
+	return FALSE;
+
+}
+
+int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, struct Shader_Script **myObj, char *name, int routeTo) {
 	int error;
-	struct Shader_Script *myObj;
 	int fieldInt;
 
 #ifdef X3DPARSERVERBOSE
@@ -295,22 +348,24 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 	switch (node->_nodeType) {
 
 	case NODE_Script: {
-		myObj = X3D_SCRIPT(node)->__scriptObj;
-		error = !(getFieldFromScript (myLexer, name,myObj,offs,type,accessType));
+		*myObj = X3D_SCRIPT(node)->__scriptObj;
+		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	case NODE_ComposedShader: {
-		myObj = X3D_COMPOSEDSHADER(node)->__shaderObj;
-		error = !(getFieldFromScript (myLexer, name,myObj,offs,type,accessType));
+		*myObj = X3D_COMPOSEDSHADER(node)->__shaderObj;
+		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	case NODE_ShaderProgram: {
-		myObj = X3D_SHADERPROGRAM(node)->__shaderObj;
-		error = !(getFieldFromScript (myLexer, name,myObj,offs,type,accessType));
+		*myObj = X3D_SHADERPROGRAM(node)->__shaderObj;
+		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	case NODE_PackagedShader: {
-		myObj = X3D_PACKAGEDSHADER(node)->__shaderObj;
-		error = !(getFieldFromScript (myLexer, name,myObj,offs,type,accessType));
+		*myObj = X3D_PACKAGEDSHADER(node)->__shaderObj;
+		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	default:
+		*myObj=NULL;
+
 		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 		fieldInt = findRoutedFieldInFIELDNAMES (node, name, routeTo);
 
@@ -323,7 +378,6 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 		}
 	}
 	return error;
-#undef X3DPARSERVERBOSE
 }
 
 
@@ -332,10 +386,11 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 	int fieldInt;
 	int accessType;
 	struct X3D_Node *node;
+	struct Shader_Script *holder;
 
 	node = *innode; /* ease of use - contents of pointer in param line */
  
-	error = getRoutingInfo(myLexer,node,offs,type,&accessType, name,routeTo);
+	error = getRoutingInfo(myLexer,node,offs,type,&accessType, &holder, name,routeTo);
 
 	/* printf ("getRouteField, offs %d type %d\n",*offs, *type); */
 
@@ -355,14 +410,14 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 			char newname[1000];
 			struct X3D_Node *newn;
 
-/*
-printf ("we are routing to an X3D PROTO Expansion\n");
-			printf ("looking for name %s\n",name);
-*/
+
+			/* printf ("we are routing to an X3D PROTO Expansion\n");
+			printf ("looking for name %s\n",name); */
+
 			sprintf (newname,"%s_%s_%d",name,FREEWRL_SPECIFIC,myp);
-/*
-printf ("and, defined name is %s\n",newname);
-*/
+
+			/* printf ("and, defined name is %s\n",newname); */
+
 
 			/* look up this node; if it exists, look for field within it */
 			newn = DEFNameIndex ((const char *)newname, NULL, FALSE);
@@ -1166,7 +1221,7 @@ static void parseAttributes(void) {
 	/* printf  ("parseAttributes..level %d for node type %s\n",parentIndex,stringNodeType(thisNode->_nodeType)); */
 	for (ind=0; ind<vector_size(childAttributes[parentIndex]); ind++) {
 		nvp = vector_get(struct nameValuePairs*, childAttributes[parentIndex],ind);
-		DEBUG_X3DPARSER ("	nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue);
+		/* printf ("	nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue); */
 
 		/* see if we have a containerField here */
 		if (strcmp("containerField",nvp->fieldName)==0) {
@@ -1180,7 +1235,57 @@ static void parseAttributes(void) {
 				thisNode->_defaultContainer = tmp;
 			}
 		} else {
-			setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
+			/* Scripts/Shaders are different from normal nodes - here we go through the initialization tables for the 
+			   Script/Shader, and possibly change the initialization value - this HAS to be run before the script is
+			   initialized in JSInitializeScriptAndFields of course! */
+			switch (thisNode->_nodeType) {
+				case NODE_Script:
+        			case NODE_ComposedShader: 
+        			case NODE_ShaderProgram: 
+        			case NODE_PackagedShader: {
+					int rv, offs, type, accessType;
+					struct Shader_Script *myObj;
+
+					/* this is a Shader/Script, look through the parameters and see if there is a replacement for value */
+					rv = getRoutingInfo (myLexer, thisNode, &offs, &type, &accessType, &myObj, nvp->fieldName,0);
+					/* printf ("parseAttributes, for fieldName %s value %s have offs %d type %d accessType %d rv %d\n",
+nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv);  */
+
+
+					/* found the name, if the offset is not INT_ID_UNDEFINED */
+					if (offs != INT_ID_UNDEFINED) {
+
+					        struct ScriptParamList *thisEntry;
+        					struct ScriptParamList *nextEntry;
+
+        					thisEntry = ScriptControl[myObj->num].paramList;
+        					while (thisEntry != NULL) {
+        					        /* printf ("script field is %s\n",thisEntry->field); */
+							if (strcmp (nvp->fieldName, thisEntry->field) == 0) {
+
+								/* printf ("name MATCH\n");
+								printf ("thisEntry->kind %d type %d value %f\n",
+									thisEntry->kind,thisEntry->type,thisEntry->value); */
+							if ((thisEntry->kind==PKW_initializeOnly) ||
+							    (thisEntry->kind==PKW_inputOutput)) {
+						                if (nvp->fieldValue== NULL) {
+                        					ConsoleMessage ("PROTO connect field, an initializeOnly or inputOut needs an initialValue for name %s",nvp->fieldName);
+                						} else {
+									/* printf ("have to parse fieldValue :%s: and place it into my value\n",nvp->fieldValue); */
+									Parser_scanStringValueToMem(X3D_NODE(&(thisEntry->value)), 0, FIELDTYPE_SFFloat, nvp->fieldValue, TRUE);
+								}
+							}
+
+							}
+							thisEntry=thisEntry->next;
+						}
+					}
+
+				}
+				break;
+
+				default: setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
+			}
 		}
 
 		/* do not need these anymore */
@@ -1192,9 +1297,9 @@ static void parseAttributes(void) {
 
 static void XMLCALL startElement(void *unused, const char *name, const char **atts) {
 	int myNodeIndex;
-/*
-	printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]);
-*/
+
+	/* printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]); */
+
 
 	/* are we storing a PROTO body?? */
 	if (getParserMode() == PARSING_PROTOBODY) {
@@ -1218,9 +1323,6 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 		DEBUG_X3DPARSER ("	creating new vector for parentIndex %d\n",parentIndex); 
 		INCREMENT_CHILDREN_LEVEL
 		saveAttributes(myNodeIndex,name,atts);
-#ifdef OLDCODE
-		linkNodeIn(__FILE__,__LINE__);
-#endif
 		return;
 	}
 
@@ -1244,9 +1346,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 			case X3DSP_component: parseComponent(atts); break;
 			case X3DSP_export: parseExport(atts); break;
 			case X3DSP_import: parseImport(atts); break;
-			case X3DSP_connect: 
-				
-			parseConnect(myLexer, atts,childAttributes[parentIndex]); break;
+			case X3DSP_connect: parseConnect(myLexer, atts,childAttributes[parentIndex]); break;
 
 			default: printf ("	huh? startElement, X3DSPECIAL, but not handled?? %d, :%s:\n",myNodeIndex,X3DSPECIAL[myNodeIndex]);
 		}
@@ -1259,9 +1359,9 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 static void XMLCALL endElement(void *unused, const char *name) {
 	int myNodeIndex;
 
-/*
-	printf("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]);
-*/
+
+	/* printf("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]); */
+
 
 
 
