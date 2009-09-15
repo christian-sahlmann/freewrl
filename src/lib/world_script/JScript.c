@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.16 2009/09/15 16:50:59 crc_canada Exp $
+$Id: JScript.c,v 1.17 2009/09/15 17:10:26 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -236,7 +236,6 @@ void JSInitializeScriptAndFields (uintptr_t num) {
 	}
 	FREE_IF_NZ(ScriptControl[num].scriptText);
 	ScriptControl[num]._initialized = TRUE;
-	printf ("finished JSInitializeScriptAndFields\n");
 }
 
 /* create the script context for this script. This is called from the thread
