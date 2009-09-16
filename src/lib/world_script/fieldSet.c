@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.24 2009/09/15 16:50:59 crc_canada Exp $
+$Id: fieldSet.c,v 1.25 2009/09/16 22:48:24 couannette Exp $
 
 ???
 
@@ -22,8 +22,7 @@ $Id: fieldSet.c,v 1.24 2009/09/15 16:50:59 crc_canada Exp $
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
-#include "../input/EAIheaders.h"
-#include "../input/EAIHelpers.h"
+#include "../input/EAIHeaders.h"
 #include "../x3d_parser/Bindable.h"
 
 #include "CScripts.h"

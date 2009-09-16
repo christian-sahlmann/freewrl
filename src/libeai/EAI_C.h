@@ -9,7 +9,7 @@
 #define __EAI_C_HEADERS__
 #include <sys/types.h>
 #include <stdint.h>
-#include <EAIheaders.h>
+#include <EAIHeaders.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.12 2009/08/01 09:45:40 couannette Exp $
+$Id: jsVRMLClasses.c,v 1.13 2009/09/16 22:48:24 couannette Exp $
 
 ???
 
@@ -25,7 +25,6 @@ $Id: jsVRMLClasses.c,v 1.12 2009/08/01 09:45:40 couannette Exp $
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
-/* #include "../input/EAIheaders.h" */
 
 #include "CScripts.h"
 #include "jsUtils.h"

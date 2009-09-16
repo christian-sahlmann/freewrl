@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.59 2009/09/16 19:08:24 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.60 2009/09/16 22:48:24 couannette Exp $
 
 ???
 
@@ -30,7 +30,6 @@ $Id: OpenGL_Utils.c,v 1.59 2009/09/16 19:08:24 crc_canada Exp $
 #include "../scenegraph/sounds.h"
 #include "../scenegraph/LinearAlgebra.h"
 #include "../input/InputFunctions.h"
-#include "../input/EAIheaders.h"
 #include "Frustum.h"
 #include "../opengl/Material.h"
 #include "../scenegraph/Component_Core.h"

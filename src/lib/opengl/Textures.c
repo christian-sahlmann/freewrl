@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.21 2009/08/19 04:10:33 dug9 Exp $
+$Id: Textures.c,v 1.22 2009/09/16 22:48:24 couannette Exp $
 
 General Texture objects.
 
@@ -24,6 +24,9 @@ General Texture objects.
 #include "../opengl/Material.h"
 #include "../opengl/OpenGL_Utils.h"
 
+#ifdef TEXTURES_MB
+#include "LoadTextures.h"
+#endif
 
 #ifdef AQUA
 # include <Carbon/Carbon.h>
@@ -226,23 +229,20 @@ void releaseTexture(struct X3D_Node *node) {
 }
 
 /* called on "kill oldworld" */
-void kill_openGLTextures() {
+void kill_openGLTextures() 
+{
 	int count;
 	struct textureTableStruct * listRunner;
 	struct textureTableStruct * tmp;
-
+	
 	/* remove the OpenGL textures */
 	listRunner = readTextureTable;
-
+	
 	while (listRunner != NULL) {
 		/* zero out the fields in this new block */
 		for (count = 0; count < 32; count ++) {
-			if  (listRunner->entry[count].OpenGLTexture != NULL) {
-#ifdef TEXVERBOSE
-				printf ("deleting %d %d\n",listRunner->entry[count].frames, 
-					(int) listRunner->entry[count].OpenGLTexture);
-#endif
-
+			if (listRunner->entry[count].OpenGLTexture != NULL) {
+				DEBUG_TEX("deleting %d %d\n",listRunner->entry[count].frames, (int) listRunner->entry[count].OpenGLTexture);
 				glDeleteTextures(listRunner->entry[count].frames, 
 						 listRunner->entry[count].OpenGLTexture);
 				FREE_IF_NZ (listRunner->entry[count].OpenGLTexture);
@@ -252,7 +252,7 @@ void kill_openGLTextures() {
 		}
 		listRunner = listRunner->next;
 	}
-
+	
 	/* now, delete the tables themselves */
 	listRunner = readTextureTable;
 	readTextureTable = NULL;
@@ -1158,9 +1158,10 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 #endif
 	    currentlyWorkingOn = thisTexture;
 	    loadThisTexture = myTableIndex;
-#ifdef TEXVERBOSE
-	    printf ("just set currentlyWorkingOn to %d\n",currentlyWorkingOn);
-#endif
+/* #ifdef TEXVERBOSE */
+/* 	    printf ("just set currentlyWorkingOn to %d\n",currentlyWorkingOn); */
+/* #endif */
+	    DEBUG_TEX("just set currentlyWorkingOn to %d\n", currentlyWorkingOn);
 	}
 	T_LOCK_SIGNAL;
 	TUNLOCK;
@@ -1375,27 +1376,27 @@ void _textureThread(void)
 	T_LOCK_WAIT;
 	REGENLOCK;
 
-#ifdef TEXVERBOSE
-	printf ("textureThread - working on %d ",currentlyWorkingOn);
-	printf ("which is node %d, nodeType %d status %s, opengltex %d, and frames %d\n",
-		(int) loadThisTexture->scenegraphNode, loadThisTexture->nodeType, 
-		texst(loadThisTexture->status), (int) loadThisTexture->OpenGLTexture, 
-		loadThisTexture->frames);
-#endif
+	DEBUG_TEX("textureThread - working on %d\n"
+		  "which is node %d, nodeType %d status %s, opengltex %d, and frames %d\n",
+		  currentlyWorkingOn,
+		  (int) loadThisTexture->scenegraphNode, loadThisTexture->nodeType, 
+		  texst(loadThisTexture->status), (int) loadThisTexture->OpenGLTexture, 
+		  loadThisTexture->frames);
 
 	loadThisTexture->status = TEX_LOADING;
 	TextureParsing = TRUE;
 	
 	/* look for the file. If one does not exist, or it
 	   is a duplicate, just unlock and return */
-#ifdef TEXVERBOSE
-	printf ("textureThread, currentlyworking on %d\n",currentlyWorkingOn);
-#endif
+	DEBUG_TEX("textureThread, currentlyworking on %d\n", currentlyWorkingOn);
 
+#ifdef TEXTURES_MB
+	if (!findTextureFile(currentlyWorkingOn)) {
+		WARN_MSG("Could not load texture: %s\n", loadThisTexture->filename);
+	}
+#else
 	if (findTextureFile(currentlyWorkingOn)) {
-#ifdef TEXVERBOSE
-	    printf ("textureThread, findTextureFile ok for %d\n",currentlyWorkingOn);
-#endif
+	    DEBUG_TEX("textureThread, findTextureFile ok for %d\n", currentlyWorkingOn);
 	    /* is this a pixeltexture? */
 	    if (loadThisTexture->nodeType==NODE_ImageTexture) {
 		__reallyloadImageTexture();
@@ -1405,45 +1406,31 @@ void _textureThread(void)
 		__reallyloadImageTexture();
 	    } else {
 		__reallyloadPixelTexure();
-	    }
-	    
-#ifdef TEXVERBOSE
-	    printf ("textureThread, after reallyLoad for  %d\n",(int) currentlyWorkingOn);
-#endif
+	    }  
+	    DEBUG_TEX("textureThread, after reallyLoad for %d\n", (int) currentlyWorkingOn);
 
 #ifdef DO_MULTI_OPENGL_THREADS
 	    if (!RUNNINGASPLUGIN) {
-# ifdef TEXVERBOSE 
-		printf ("tex %d needs binding, name %s\n",(int) loadThisTexture->OpenGLTexture,
-			loadThisTexture->filename);
-# endif /* TEXVERBOSE */
-
-		do_possible_textureSequence(loadThisTexture);
-		
-#ifdef TEXVERBOSE 
-		printf ("tex %d now loaded\n",(int) loadThisTexture->OpenGLTexture);
-#endif
+		    DEBUG_TEX("tex %d needs binding, name %s\n",
+			      (int) loadThisTexture->OpenGLTexture,
+			      loadThisTexture->filename);
+		    do_possible_textureSequence(loadThisTexture);
+		    DEBUG_TEX("tex %d now loaded\n",(int) loadThisTexture->OpenGLTexture);
 	    } else {
-		loadThisTexture->status = TEX_NEEDSBINDING;
+		    loadThisTexture->status = TEX_NEEDSBINDING;
 	    }
-	    
 #else /* DO_MULTI_OPENGL_THREADS */
-
 	    /* we can not do this in 2 threads, let the main OpenGL thread do this */
 	    /* printf ("we can not do multi-threads, %d set to TEX_NEEDSBINDING\n",
 	       loadThisTexture->scenegraphNode); */
-
 	    loadThisTexture->status = TEX_NEEDSBINDING;
 #endif /* DO_MULTI_OPENGL_THREADS */
 	} else {
-	    printf ("can not find file - error!!\n");
+	    ERROR_MSG("Could not find texture file: %s\n");
 	}
-
 	/* signal that we are finished */
-#ifdef TEXVERBOSE
-	printf ("textureThread: finished parsing texture for currentlyWorkingOn %d\n",
-		currentlyWorkingOn);
-#endif
+#endif /* TEXTURES_MB */
+	DEBUG_TEX("textureThread: finished parsing texture for currentlyWorkingOn %d\n", currentlyWorkingOn);
 	TextureParsing=FALSE;
 	currentlyWorkingOn = -1;
 	REGENUNLOCK;

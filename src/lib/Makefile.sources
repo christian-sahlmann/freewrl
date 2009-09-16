@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.26 2009/09/01 11:24:26 couannette Exp $
+# $Id: Makefile.sources,v 1.27 2009/09/16 22:48:24 couannette Exp $
 #
 # List all source files
 #
@@ -141,7 +141,7 @@ scenegraph/Component_VRML1.c \
 input/EAI_C_CommonFunctions.c \
 input/EAIEventsIn.c \
 input/EAIEventsOut.c \
-input/EAIheaders.h \
+input/EAIHeaders.h \
 input/EAIHelpers.c \
 input/EAIHelpers.h \
 input/EAIServ.c \

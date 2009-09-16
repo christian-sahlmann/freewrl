@@ -99,5 +99,5 @@ libFreeWRLEAIincludedir = $(includedir)/FreeWRLEAI
 
 include Makefile.sources
 
-libFreeWRLEAIinclude_HEADERS += $(LIBFREEWRL_SRCDIR)/input/EAIheaders.h
+libFreeWRLEAIinclude_HEADERS += $(LIBFREEWRL_SRCDIR)/input/EAIHeaders.h
 libFreeWRLEAI_la_SOURCES += internal_version.c

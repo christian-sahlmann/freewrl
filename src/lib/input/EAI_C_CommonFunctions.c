@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.20 2009/09/15 16:50:59 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.21 2009/09/16 22:48:24 couannette Exp $
 
 ???
 
@@ -24,7 +24,7 @@ $Id: EAI_C_CommonFunctions.c,v 1.20 2009/09/15 16:50:59 crc_canada Exp $
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
-#include "EAIheaders.h"
+#include "EAIHeaders.h"
 #include "EAIHelpers.h"
 
 /* TODO: clean-up Rewire */

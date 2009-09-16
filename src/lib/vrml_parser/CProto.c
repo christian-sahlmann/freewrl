@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.32 2009/08/27 18:34:33 crc_canada Exp $
+$Id: CProto.c,v 1.33 2009/09/16 22:48:24 couannette Exp $
 
 CProto ???
 
@@ -22,7 +22,6 @@ CProto ???
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
-#include "../input/EAIheaders.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "CProto.h"

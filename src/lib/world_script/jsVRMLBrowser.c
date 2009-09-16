@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.14 2009/08/19 04:15:36 dug9 Exp $
+$Id: jsVRMLBrowser.c,v 1.15 2009/09/16 22:48:24 couannette Exp $
 
 Javascript C language binding.
 
@@ -27,8 +27,6 @@ Javascript C language binding.
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
-#include "../input/EAIheaders.h"
-#include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 
 #include "CScripts.h"

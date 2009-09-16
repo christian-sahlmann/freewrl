@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_SFClasses.c,v 1.15 2009/05/13 20:30:49 crc_canada Exp $
+$Id: jsVRML_SFClasses.c,v 1.16 2009/09/16 22:48:24 couannette Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -26,7 +26,6 @@ which is the sample application included with the javascript engine.
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
-/* #include "../input/EAIheaders.h" */
 
 #include "CScripts.h"
 #include "jsUtils.h"

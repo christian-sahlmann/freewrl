@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsOut.c,v 1.5 2009/08/01 09:45:39 couannette Exp $
+$Id: EAIEventsOut.c,v 1.6 2009/09/16 22:48:24 couannette Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -17,7 +17,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
-#include "../input/EAIheaders.h"
+#include "../input/EAIHeaders.h"
 
 
 /*****************************************************************

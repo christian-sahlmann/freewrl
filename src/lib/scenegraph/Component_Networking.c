@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.14 2009/09/16 19:08:24 crc_canada Exp $
+$Id: Component_Networking.c,v 1.15 2009/09/16 22:48:24 couannette Exp $
 
 X3D Networking Component
 
@@ -17,7 +17,7 @@ X3D Networking Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
-#include "../input/EAIheaders.h"
+#include "../input/EAIHeaders.h"
 #include "../opengl/Frustum.h"
 
 #include "Component_Networking.h"

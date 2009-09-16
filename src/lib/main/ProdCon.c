@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.c,v 1.26 2009/08/19 04:09:21 dug9 Exp $
+$Id: ProdCon.c,v 1.27 2009/09/16 22:52:53 couannette Exp $
 
 CProto ???
 
@@ -31,7 +31,6 @@ CProto ???
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
-#include "../input/EAIheaders.h"
 #include "../input/InputFunctions.h"
 
 #include "../plugin/pluginUtils.h"

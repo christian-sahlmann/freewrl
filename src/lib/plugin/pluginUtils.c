@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: pluginUtils.c,v 1.7 2009/08/01 09:45:39 couannette Exp $
+$Id: pluginUtils.c,v 1.8 2009/09/16 22:48:24 couannette Exp $
 
 ???
 
@@ -16,10 +16,6 @@ $Id: pluginUtils.c,v 1.7 2009/08/01 09:45:39 couannette Exp $
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-#include "../input/EAIheaders.h"
-#include "../input/InputFunctions.h"
-
-/* #include <float.h> */
 
 #include "../x3d_parser/Bindable.h"
 

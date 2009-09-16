@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.5 2009/08/01 09:45:39 couannette Exp $
+$Id: Snapshot.c,v 1.6 2009/09/16 22:52:53 couannette Exp $
 
 CProto ???
 
@@ -25,7 +25,6 @@ CProto ???
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
-#include "../input/EAIheaders.h"
 
 #if HAVE_DIRENT_H
 # include <dirent.h>

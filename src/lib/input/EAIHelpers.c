@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.28 2009/08/27 18:34:33 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.29 2009/09/16 22:48:24 couannette Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -27,7 +27,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 
-#include "EAIheaders.h"
+#include "EAIHeaders.h"
 #include "SensInterps.h"
 
 #include "../vrml_parser/Structs.h"

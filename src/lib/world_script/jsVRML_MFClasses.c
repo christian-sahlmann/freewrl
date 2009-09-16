@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.12 2009/07/29 18:15:52 istakenv Exp $
+$Id: jsVRML_MFClasses.c,v 1.13 2009/09/16 22:48:24 couannette Exp $
 
 ???
 
@@ -25,7 +25,6 @@ $Id: jsVRML_MFClasses.c,v 1.12 2009/07/29 18:15:52 istakenv Exp $
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 #include "../scenegraph/LinearAlgebra.h"
-/* #include "../input/EAIheaders.h" */
 
 #include "CScripts.h"
 #include "jsUtils.h"

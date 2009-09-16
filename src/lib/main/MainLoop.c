@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.51 2009/08/26 14:35:26 crc_canada Exp $
+$Id: MainLoop.c,v 1.52 2009/09/16 22:52:53 couannette Exp $
 
 Main loop
 
@@ -29,7 +29,7 @@ Main loop
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
-#include "../input/EAIheaders.h"
+#include "../input/EAIHeaders.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../opengl/Frustum.h"
 #include "../input/InputFunctions.h"
