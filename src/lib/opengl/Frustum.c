@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.18 2009/08/19 04:10:33 dug9 Exp $
+$Id: Frustum.c,v 1.19 2009/09/16 17:09:45 crc_canada Exp $
 
 ???
 
@@ -412,8 +412,8 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 
 	/* record this for ME for sorting purposes for sorting children fields */
 	me->EXTENT_MAX_X = maxx; me->EXTENT_MIN_X = minx;
-	me->EXTENT_MAX_Y = maxx; me->EXTENT_MIN_Y = miny;
-	me->EXTENT_MAX_Z = maxx; me->EXTENT_MIN_Z = minz;
+	me->EXTENT_MAX_Y = maxy; me->EXTENT_MIN_Y = miny;
+	me->EXTENT_MAX_Z = maxz; me->EXTENT_MIN_Z = minz;
 
 	for (c=0; c<(me->_nparents); c++) {
 		shapeParent = X3D_NODE(me->_parents[c]);
@@ -450,8 +450,16 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 			PROP_EXTENT_CHECK;
 	
 			#ifdef FRUSTUMVERBOSE
-			printf ("setExtent - now parent %u has extent maxx %f minx %f maxy %f miny %f maxz %f minz %f\n",
-					geomParent,
+			printf ("setExtent - now I am %u (%s) has extent maxx %f minx %f maxy %f miny %f maxz %f minz %f\n",
+					me, stringNodeType(me->_nodeType),
+					me->EXTENT_MAX_X ,
+					me->EXTENT_MIN_X ,
+					me->EXTENT_MAX_Y ,
+					me->EXTENT_MIN_Y ,
+					me->EXTENT_MAX_Z ,
+					me->EXTENT_MIN_Z);
+			printf ("setExtent - now parent %u (%s) has extent maxx %f minx %f maxy %f miny %f maxz %f minz %f\n",
+					geomParent, stringNodeType(geomParent->_nodeType),
 					geomParent->EXTENT_MAX_X ,
 					geomParent->EXTENT_MIN_X ,
 					geomParent->EXTENT_MAX_Y ,
@@ -569,21 +577,20 @@ void propagateExtent(struct X3D_Node *me) {
 			default: {
 				PROP_EXTENT_CHECK;
 			}
-
-			#ifdef FRUSTUMVERBOSE
-			printf ("after calcs me (%u %s) my parent %d is (%u %s) ext %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f\n",
-				me, stringNodeType(me->_nodeType),i,geomParent, stringNodeType(geomParent->_nodeType),
-				geomParent->EXTENT_MAX_X, geomParent->EXTENT_MIN_X,
-				geomParent->EXTENT_MAX_Y, geomParent->EXTENT_MIN_Y,
-				geomParent->EXTENT_MAX_Z, geomParent->EXTENT_MIN_Z);
-			#endif
 		}
+
+		#ifdef FRUSTUMVERBOSE
+		printf ("after calcs me (%u %s) my parent %d is (%u %s) ext %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f\n",
+			me, stringNodeType(me->_nodeType),i,geomParent, stringNodeType(geomParent->_nodeType),
+			geomParent->EXTENT_MAX_X, geomParent->EXTENT_MIN_X,
+			geomParent->EXTENT_MAX_Y, geomParent->EXTENT_MIN_Y,
+			geomParent->EXTENT_MAX_Z, geomParent->EXTENT_MIN_Z);
+		#endif
 
 		/* now, send these up the line, assuming this child makes the extent larger */
 		if (touched) propagateExtent(geomParent); 
 	}
 }
-
 
 /* perform all the viewpoint rotations for a point */
 /* send in a pointer for the result, the current bounding box point to rotate, and the current ModelView matrix */
@@ -693,11 +700,6 @@ void OcclusionStartofEventLoop() {
 	   there is not an implicit 1:1 mapping between shapes and occlude queries */
 
 	potentialOccluderCount = 0;
-
-	/* if the headers.h does not define OCCLUSION, skip all this */
-	#ifndef OCCLUSION
-	OccFailed = TRUE;
-	#endif
 
 	/* did we have a failure here ? */
 	if (OccFailed) return;
