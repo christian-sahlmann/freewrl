@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.24 2009/08/27 18:34:33 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.25 2009/09/16 20:38:00 dug9 Exp $
 
 X3D Grouping Component
 
@@ -266,10 +266,10 @@ void child_Group (struct X3D_Group *node) {
 
 
 void child_Transform (struct X3D_Transform *node) {
+	LOCAL_LIGHT_SAVE
 	CHILDREN_COUNT
 	OCCLUSIONTEST
 
-	LOCAL_LIGHT_SAVE
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* any children at all? */
