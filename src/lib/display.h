@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.25 2009/08/20 00:37:52 couannette Exp $
+$Id: display.h,v 1.26 2009/09/16 23:17:36 dug9 Exp $
 
 FreeWRL support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -181,9 +181,10 @@ int create_main_window_x11(); /* mb */
 #include <display_win32.h>
 
 /* i dont know why cursors are showing up in the pan-platform section of mainloop.c */
+/* moved to display_win32.h and fwWindow32.c
 #define SENSOR_CURSOR {}
 #define ARROW_CURSOR {}
-
+*/
 int create_main_window_win32();
 
 #endif /* TARGET_WIN32 */

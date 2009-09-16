@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display_win32.h,v 1.2 2009/08/01 09:45:39 couannette Exp $
+$Id: display_win32.h,v 1.3 2009/09/16 23:17:36 dug9 Exp $
 
 FreeWRL support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -88,6 +88,8 @@ void setMenuFps(float fps);
 void setMenuButton_navModes(int type);
 int getEventsWin32(int*,int,int*,int*); 
 int doEventsWin32A();
+#define SENSOR_CURSOR sensor_cursor32();
+#define ARROW_CURSOR arrow_cursor32();
 
 
 #endif /* __LIBFREEWRL_DISPLAY_WIN32_H__ */
