@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.73 2009/08/20 19:00:58 crc_canada Exp $
+$Id: headers.h,v 1.74 2009/09/16 19:08:24 crc_canada Exp $
 
 Global includes.
 
@@ -358,96 +358,6 @@ void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fie
 extern char *GL_VEN;
 extern char *GL_VER;
 extern char *GL_REN;
-
-#if 0 /* This is handled by Glew */
-
-/* do we have GL Occlusion Culling? */
-#ifndef GLEW
-#ifdef AQUA
-	#define OCCLUSION
-        #define VISIBILITYOCCLUSION
-        #define SHAPEOCCLUSION
-        #define glGenQueries(a,b) glGenQueriesARB(a,b)
-        #define glDeleteQueries(a,b) glDeleteQueriesARB(a,b)
-#else
-	/* on Linux, test to see if we have this defined. */
-	#ifdef HAVE_GL_QUERIES_ARB
-		#define OCCLUSION
-		#define VISIBILITYOCCLUSION
-		#define SHAPEOCCLUSION
-		#define glGenQueries(a,b) glGenQueriesARB(a,b)
-		#define glDeleteQueries(a,b) glDeleteQueriesARB(a,b)
-	#else 
-		#undef OCCLUSION
-		#undef VISIBILITYOCCLUSION
-		#undef SHAPEOCCLUSION
-		#define glGenQueries(a,b)
-		#define glDeleteQueries(a,b)
-	#endif
-#endif
-
-#define glIsQuery(a) glIsQueryARB(a)
-#define glBeginQuery(a,b) glBeginQueryARB(a,b)
-#define glEndQuery(a) glEndQueryARB(a)
-#define glGetQueryiv(a,b,c) glGetQueryivARB(a,b,c)
-#define glGetQueryObjectiv(a,b,c) glGetQueryObjectivARB(a,b,c)
-#define glGetQueryObjectuiv(a,b,c) glGetQueryObjectuivARB(a,b,c)
-
-#endif /* ifndef GLEW */
-
-#endif
-
-extern GLuint OccQuerySize;
-extern GLint OccResultsAvailable;
-extern int OccFailed;
-extern int *OccCheckCount;
-extern GLuint *OccQueries;
-extern void * *OccNodes;
-int newOcclude(void);
-extern GLuint potentialOccluderCount;
-extern void* *occluderNodePointer;
-
-#ifdef OCCLUSION
-#define OCCLUSIONTEST \
-	/* a value of ZERO means that it HAS visible children - helps with initialization */ \
-        if ((render_geom!=0) | (render_sensitive!=0)) { \
-		/* printf ("OCCLUSIONTEST node %d fl %x\n",node, node->_renderFlags & VF_hasVisibleChildren); */ \
-                if ((node->_renderFlags & VF_hasVisibleChildren) == 0) { \
-                        /* printf ("WOW - we do NOT need to do this transform but doing it %x!\n",(node->_renderFlags)); \
- printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n", \
-         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */ \
-                        return; \
-                } \
-        } 
-#else
-#define OCCLUSIONTEST
-#endif
-
-
-
-#define BEGINOCCLUSIONQUERY \
-	if (render_geom) { \
-		if (potentialOccluderCount < OccQuerySize) { \
-/* printf ("beginOcclusionQuery, potoc %d occQ %d\n",potentialOccluderCount, OccQuerySize, node->__occludeCheckCount); */ \
-			if (node->__occludeCheckCount < 0) { \
-				/* printf ("beginOcclusionQuery, query %u, node %s\n",potentialOccluderCount, stringNodeType(node->_nodeType)); */ \
-				glBeginQuery(GL_SAMPLES_PASSED, OccQueries[potentialOccluderCount]); \
-				occluderNodePointer[potentialOccluderCount] = (void *)node; \
-			} \
-		} \
-	} 
-
-
-#define ENDOCCLUSIONQUERY \
-	if (render_geom) { \
-		if (potentialOccluderCount < OccQuerySize) { \
-			if (node->__occludeCheckCount < 0) { \
-				/* printf ("glEndQuery node %u\n",node); */ \
-				glEndQuery(GL_SAMPLES_PASSED); \
-				potentialOccluderCount++; \
-			} \
-		} \
-	} 
 
 #define EXTENTTOBBOX
 #define INITIALIZE_EXTENT        { node->EXTENT_MAX_X = -10000.0; \

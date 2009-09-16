@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.9 2009/08/19 04:10:33 dug9 Exp $
+$Id: OpenGL_Utils.h,v 1.10 2009/09/16 19:08:24 crc_canada Exp $
 
 Screen snapshot.
 
@@ -32,9 +32,6 @@ extern void glpOpenGLInitialize(void);
 extern void glPrintError(char *);
 void drawBBOX(struct X3D_Node *node);
 
-extern int opengl_has_shaders;
-extern int opengl_has_multitexture;
-extern int opengl_has_occlusionQuery;
 extern int opengl_has_numTextureUnits;
 extern GLint opengl_has_textureSize;
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.13 2009/07/22 14:36:20 crc_canada Exp $
+$Id: Component_Networking.c,v 1.14 2009/09/16 19:08:24 crc_canada Exp $
 
 X3D Networking Component
 
@@ -18,6 +18,7 @@ X3D Networking Component
 #include "../main/headers.h"
 
 #include "../input/EAIheaders.h"
+#include "../opengl/Frustum.h"
 
 #include "Component_Networking.h"
 

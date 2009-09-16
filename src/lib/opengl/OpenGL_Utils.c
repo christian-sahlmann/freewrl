@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.58 2009/09/15 16:50:59 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.59 2009/09/16 19:08:24 crc_canada Exp $
 
 ???
 
@@ -57,9 +57,6 @@ static int lights[8];
 /* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 int displayDepth = 24;
 
-int opengl_has_shaders = FALSE;
-int opengl_has_multitexture = FALSE;
-int opengl_has_occlusionQuery = FALSE;
 int opengl_has_numTextureUnits = 0;
 GLint opengl_has_textureSize = 0;
 
@@ -448,6 +445,8 @@ void glpOpenGLInitialize() {
         float shin[] = { 0.6, 0.6, 0.6, 1.0 };
         float As[] = { 0.0, 0.0, 0.0, 1.0 };
 	int checktexsize;
+	GLenum err;
+
 
         #ifdef AQUA
 	/* aqglobalContext is found at the initGL routine in MainLoop.c. Here
@@ -462,6 +461,12 @@ void glpOpenGLInitialize() {
 
         /* already set aqglobalContext = CGLGetCurrentContext(); */
         /* printf("OpenGL globalContext %p\n", aqglobalContext); */
+
+	/* initialize GLEW here for all OSX front ends */
+	err = glewInit();
+	if (GLEW_OK != err) {
+  		ConsoleMessage ("GLEW Error: %s\n", glewGetErrorString(err));
+	}
         #endif
 
 	/* Configure OpenGL for our uses. */
@@ -524,17 +529,6 @@ void glpOpenGLInitialize() {
 	
         glExtensions = (char *)glGetString(GL_EXTENSIONS);
 
-	/* Shaders */
-        opengl_has_shaders = ((strstr (glExtensions, "GL_ARB_fragment_shader")!=0)  &&
-                (strstr (glExtensions,"GL_ARB_vertex_shader")!=0));
-
-	/* Multitexturing */
-        opengl_has_multitexture = (strstr (glExtensions, "GL_ARB_multitexture")!=0);
-
-	/* Occlusion Queries */
-	opengl_has_occlusionQuery = (strstr (glExtensions, "GL_ARB_occlusion_query") !=0);
-
-	
 	/* first, lets check to see if we have a max texture size yet */
 
 	/* note - we reduce the max texture size on computers with the (incredibly inept) Intel GMA 9xx chipsets - like the Intel
@@ -589,9 +583,9 @@ void glpOpenGLInitialize() {
 		}
 	}
 	printf ("extensions %s\n",glExtensions);
-	printf ("Shader support:       "); if (opengl_has_shaders) printf ("TRUE\n"); else printf ("FALSE\n");
-	printf ("Multitexture support: "); if (opengl_has_multitexture) printf ("TRUE\n"); else printf ("FALSE\n");
-	printf ("Occlusion support:    "); if (opengl_has_occlusionQuery) printf ("TRUE\n"); else printf ("FALSE\n");
+	printf ("Shader support:       "); if (GLEW_ARB_fragment_shader) printf ("TRUE\n"); else printf ("FALSE\n");
+	printf ("Multitexture support: "); if (GLEW_ARB_multitexture) printf ("TRUE\n"); else printf ("FALSE\n");
+	printf ("Occlusion support:    "); if (GLEW_ARB_occlusion_query) printf ("TRUE\n"); else printf ("FALSE\n");
 	printf ("max texture size      %d\n",opengl_has_textureSize);
 	printf ("texture units         %d\n",opengl_has_numTextureUnits);
 	#endif	
