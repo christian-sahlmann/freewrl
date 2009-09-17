@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.c,v 1.4 2009/08/21 07:41:36 couannette Exp $
+$Id: internal.c,v 1.5 2009/09/17 15:10:32 crc_canada Exp $
 
 FreeWRL support library.
 Internal functions: some very usefull functions are not always
@@ -34,7 +34,7 @@ size_t __fw_strnlen(const char *s, size_t maxlen)
 /* Jens Rieks sent in some changes - some of which uses strndup, which does not
    always exist... */
 
-char *fw_strndup(const char *s, size_t n)
+char *__fw_strndup(const char *s, size_t n)
 {
     size_t len = strnlen(s, n);
     char *new = MALLOC(len + 1);

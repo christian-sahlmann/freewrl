@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LoadTextures.c,v 1.2 2009/09/16 22:48:24 couannette Exp $
+$Id: LoadTextures.c,v 1.3 2009/09/17 15:10:32 crc_canada Exp $
 
 New implementation of the texture thread.
  - Setup renderer capabilities
@@ -41,7 +41,8 @@ char * strndup(const char *s, size_t n)
     return NULL;
 
   new[len] = '\0';
-  return memcpy (new, s, len);
+  memcpy (new, s, len);
+  return new;
 }
 
 #endif
