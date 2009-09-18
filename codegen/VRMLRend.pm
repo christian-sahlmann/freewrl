@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.21 2009/08/27 18:34:32 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.22 2009/09/18 20:20:29 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.22  2009/09/18 20:20:29  crc_canada
+# Starting ExternProtoDeclare for XML parsing.
+#
 # Revision 1.21  2009/08/27 18:34:32  crc_canada
 # More XML coded PROTO routing.
 #
@@ -1210,6 +1213,7 @@
 	Header
 	head
 	meta
+	ExternProtoDeclare
 	ProtoDeclare
 	ProtoInterface
 	ProtoInstance

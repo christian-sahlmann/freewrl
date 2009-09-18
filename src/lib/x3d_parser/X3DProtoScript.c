@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.30 2009/09/16 22:48:23 couannette Exp $
+$Id: X3DProtoScript.c,v 1.31 2009/09/18 20:20:32 crc_canada Exp $
 
 ???
 
@@ -38,40 +38,17 @@ static int curProDecStackInd = 0;
 static int currentProtoInstance = INT_ID_UNDEFINED;
 static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono);
 
-/* for parsing fields in PROTO expansions */
-/* FIELD_END is an ascii string that will pass the XML parser, but should not be found in a field value */
-#define FIELD_END "\t \t\n" 
-#define strIS "<IXXS>"
-#define strNOTIS "</IXXS>"
-#define strCONNECT  "<connect"
-#define strNODEFIELD "nodeField"
-#define strPROTOFIELD "protoField"
-#define MAX_ID_SIZE 1000
-#define NODEFIELD_EQUALS "nodeField=\""
-#define PROTOFIELD_EQUALS "protoField=\""
-
 #define CPI ProtoInstanceTable[curProtoInsStackInd]
+#define CPD PROTONames[currentProtoDeclare]
 
 /* for parsing script initial fields */
-#define MPFIELDS 4
 #define MP_NAME 0
 #define MP_ACCESSTYPE 1
 #define MP_TYPE 2
 #define MP_VALUE 3
+#define MPFIELDS 4 /* MUST be the highest MP* plus one - array size */
 
 #define UNIQUE_NUMBER_HOLDER "-fReeWrl-UniqueNumH"
-
-static const char *parserModeStrings[] = {
-                "unused",
-                "PARSING_NODES",
-                "PARSING_SCRIPT",
-                "PARSING_PROTODECLARE ",
-                "PARSING_PROTOINTERFACE ",
-                "PARSING_PROTOBODY",
-                "PARSING_PROTOINSTANCE",
-                "PARSING_IS",
-                "PARSING_CONNECT",
-                "unused high"};
 
 /* ProtoInstance table This table is a dynamic table that is used for keeping track of ProtoInstance field values... */
 static int curProtoInsStackInd = -1;
@@ -89,10 +66,12 @@ static struct PROTOInstanceEntry ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
 /* PROTO table */
 struct PROTOnameStruct {
 	char *definedProtoName;
+	char *url;
 	FILE *fileDescriptor;
 	char *fileName;
 	int charLen;
 	int fileOpen;
+	int isExternProto;
 	struct Shader_Script *fieldDefs;
 };
 static struct PROTOnameStruct *PROTONames = NULL;
@@ -135,7 +114,7 @@ void freeProtoMemory () {
 #endif
 
 /* record each field of each script - the type, kind, name, and associated script */
-static void registerProto(const char *name) {
+static void registerProto(const char *name, const char *url) {
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 	printf ("registerProto for currentProtoDeclare %d name %s\n",currentProtoDeclare, name);
@@ -149,17 +128,19 @@ static void registerProto(const char *name) {
 		PROTONames = (struct PROTOnameStruct*)REALLOC (PROTONames, sizeof(*PROTONames) * MAXProtos);
 	}
 
-	PROTONames[currentProtoDeclare].definedProtoName = STRDUP((char *)name);
-	PROTONames[currentProtoDeclare].fileName = TEMPNAM("/tmp","freewrl_proto");
-	PROTONames[currentProtoDeclare].fileDescriptor = fopen(PROTONames[currentProtoDeclare].fileName,"w");
-	PROTONames[currentProtoDeclare].charLen =  0;
-	PROTONames[currentProtoDeclare].fileOpen = TRUE;
-	PROTONames[currentProtoDeclare].fieldDefs = new_Shader_Script(NULL);
+	CPD.definedProtoName = STRDUP((char *)name);
+	CPD.fileName = TEMPNAM("/tmp","freewrl_proto");
+	CPD.fileDescriptor = fopen(CPD.fileName,"w");
+	CPD.charLen =  0;
+	CPD.fileOpen = TRUE;
+	CPD.isExternProto = (url != NULL);
+	CPD.fieldDefs = new_Shader_Script(NULL);
+	if (url != NULL) CPD.url=STRDUP((char *)url); else CPD.url=NULL;
 
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
-	printf ("opened name %s for PROTO name %s id %d\n",PROTONames[currentProtoDeclare].fileName,
-		PROTONames[currentProtoDeclare].definedProtoName,currentProtoDeclare);
+	printf ("opened name %s for PROTO name %s id %d\n",CPD.fileName,
+		CPD.definedProtoName,currentProtoDeclare);
 	#endif
 }
 
@@ -226,7 +207,6 @@ static int getProtoKind(struct VRMLLexer *myLexer, int ProtoInvoc, char *id) {
 
 static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* protoField, char *nodeField) {
 	int myFieldKind;
-	char *myDefName="(top of stack node)";
 	char newname[1000];
 	struct X3D_Node *metaNode;
 	int fieldInt;
@@ -236,6 +216,11 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 	int accessType;
 	int nodeOffs;
 	struct ShaderScript *holder; /* not used, only for parameter in getRoutingInfo */
+
+
+	#ifdef X3DPARSERVERBOSE
+	char *myDefName="(top of stack node)";
+	#endif
 
 
 	if (TOD==NULL) {
@@ -629,27 +614,26 @@ void dumpProtoBody (const char *name, const char **atts) {
 	printf ("dumping ProtoBody for %s\n",name);
 	#endif
 
-	if (PROTONames[currentProtoDeclare].fileOpen) {
+	if (CPD.fileOpen) {
 		inRoute = strcmp(name,"ROUTE") == 0;
 
-		PROTONames[currentProtoDeclare].charLen += fprintf (PROTONames[currentProtoDeclare].fileDescriptor, "<%s",name);
+		CPD.charLen += fprintf (CPD.fileDescriptor, "<%s",name);
 
 		/* if we are in a ROUTE statement, encode the fromNode and toNode names */
 		if (inRoute) {
 		    for (count = 0; atts[count]; count += 2) {
 			/* printf ("dumpProtoBody - do we need to worry about quotes in :%s: \n",atts[count+1]); */
 			if ((strcmp("fromNode",atts[count])==0) || (strcmp("toNode",atts[count])==0)) {
-				PROTONames[currentProtoDeclare].charLen +=
-				    fprintf (PROTONames[currentProtoDeclare].fileDescriptor," %s='%s_%s_%s' %s",
+				CPD.charLen +=
+				    fprintf (CPD.fileDescriptor," %s='%s_%s_%s'\n",
 					atts[count],
 					atts[count+1],
 					FREEWRL_SPECIFIC,
-					UNIQUE_NUMBER_HOLDER,
-					FIELD_END);
+					UNIQUE_NUMBER_HOLDER);
 
 			} else {
-			    PROTONames[currentProtoDeclare].charLen += 
-				fprintf (PROTONames[currentProtoDeclare].fileDescriptor," %s=\"%s\" %s",atts[count],atts[count+1],FIELD_END);
+			    CPD.charLen += 
+				fprintf (CPD.fileDescriptor," %s=\"%s\"\n",atts[count],atts[count+1]);
 			}
 		    }
 
@@ -658,47 +642,46 @@ void dumpProtoBody (const char *name, const char **atts) {
 		    for (count = 0; atts[count]; count += 2) {
 			/* printf ("dumpProtoBody - do we need to worry about quotes in :%s: \n",atts[count+1]); */
 			if ((strcmp("DEF",atts[count])==0) || (strcmp("USE",atts[count])==0)) {
-				PROTONames[currentProtoDeclare].charLen +=
-				    fprintf (PROTONames[currentProtoDeclare].fileDescriptor," %s='%s_%s_%s' %s",
+				CPD.charLen +=
+				    fprintf (CPD.fileDescriptor," %s='%s_%s_%s'\n",
 					atts[count],
 					atts[count+1],
 					FREEWRL_SPECIFIC,
-					UNIQUE_NUMBER_HOLDER,
-					FIELD_END);
+					UNIQUE_NUMBER_HOLDER);
 
 			} else {
 			  if (atts[count+1][0] == '"') {
 			    /* put single quotes around this one */
-			    PROTONames[currentProtoDeclare].charLen += 
-				fprintf (PROTONames[currentProtoDeclare].fileDescriptor," %s='%s' %s",atts[count],atts[count+1],FIELD_END);
+			    CPD.charLen += 
+				fprintf (CPD.fileDescriptor," %s='%s'\n",atts[count],atts[count+1]);
 			  } else {
-			    PROTONames[currentProtoDeclare].charLen += 
-				fprintf (PROTONames[currentProtoDeclare].fileDescriptor," %s=\"%s\" %s",atts[count],atts[count+1],FIELD_END);
+			    CPD.charLen += 
+				fprintf (CPD.fileDescriptor," %s=\"%s\"\n",atts[count],atts[count+1]);
 			  }
 			}
 		    }
 		}
-		PROTONames[currentProtoDeclare].charLen += fprintf (PROTONames[currentProtoDeclare].fileDescriptor,">\n");
+		CPD.charLen += fprintf (CPD.fileDescriptor,">\n");
 	}
 }
 
 void dumpCDATAtoProtoBody (char *str) {
-	if (PROTONames[currentProtoDeclare].fileOpen) {
-		PROTONames[currentProtoDeclare].charLen += 
-			fprintf (PROTONames[currentProtoDeclare].fileDescriptor,"<![CDATA[%s]]>",str);
+	if (CPD.fileOpen) {
+		CPD.charLen += 
+			fprintf (CPD.fileDescriptor,"<![CDATA[%s]]>",str);
 	}
 }
 
 void endDumpProtoBody (const char *name) {
 	/* we are at the end of the ProtoBody, close our tempory file */
-	if (PROTONames[currentProtoDeclare].fileOpen) {
-		fclose (PROTONames[currentProtoDeclare].fileDescriptor);
-		PROTONames[currentProtoDeclare].fileOpen = FALSE;
+	if (CPD.fileOpen) {
+		fclose (CPD.fileDescriptor);
+		CPD.fileOpen = FALSE;
 
 		#ifdef X3DPARSERVERBOSE
 			TTY_SPACE
 			printf ("endDumpProtoBody, just closed %s, it is %d characters long\n",
-				PROTONames[currentProtoDeclare].fileName, PROTONames[currentProtoDeclare].charLen);
+				CPD.fileName, CPD.charLen);
 		#endif
 	}
 }
@@ -815,26 +798,6 @@ void parseProtoInstance (const char **atts) {
 				PROTONames[currentProtoInstance].charLen,rs); \
 		} 
 
-
-
-	#define FIND_THE_END_OF_IS(mystr) \
-		/* printf ("FIND_THE_END_OF_IS, input str :%s:\n",mystr); */ \
-		endIS = strstr(mystr,strNOTIS); \
-		/* printf ("	FIND_THE_END_OF_IS: endIS string is :%s:\n",endIS); */ \
-		if (endIS == NULL) { \
-			ConsoleMessage ("did not find an </IS> for ProtoInstance %s\n",PROTONames[currentProtoInstance].definedProtoName); \
-			FREE_IF_NZ(protoInString); \
-			return; \
-		} \
-		endIS += strlen(strNOTIS); 
-
-	#define FIND_THE_IS \
-		 IS = strstr(curProtoPtr,strIS); \
-		/* printf ("	FIND_THE_IS: IS string is :%s:\n",IS); */ 
-
-	#define ZERO_IS_TEXT_IN_ORIG \
-		{ char *is; is = IS; \
-		while ((is != endIS) && (*is != '\0')) { *is = ' '; is++; }}
 
 	#define CHANGE_UNIQUE_TO_SPECIFIC \
 	{char *cp; while ((cp=strstr(curProtoPtr,UNIQUE_NUMBER_HOLDER))!=NULL) { \
@@ -1187,9 +1150,57 @@ void parseProtoDeclare (const char **atts) {
 	/* did we find the name? */
 	if (nameIndex != INT_ID_UNDEFINED) {
 		/* found it, lets open a new PROTO for this one */
-		registerProto(atts[nameIndex]);
+		registerProto(atts[nameIndex],NULL);
 	} else {
 		ConsoleMessage ("\"ProtoDeclare\" found, but field \"name\" not found!\n");
+	}
+}
+
+
+void parseExternProtoDeclare (const char **atts) {
+	int count;
+	int nameIndex;
+	int urlIndex;
+
+	/* initialization */
+	nameIndex = INT_ID_UNDEFINED;
+	urlIndex = INT_ID_UNDEFINED;
+
+	/* increment the currentProtoDeclare field. Check to see how many PROTOS we (bounds check) */
+	currentProtoDeclare++;
+	curProDecStackInd++;
+
+	setParserMode(PARSING_EXTERNPROTODECLARE);
+	
+	for (count = 0; atts[count]; count += 2) {
+		#ifdef X3DPARSERVERBOSE
+		TTY_SPACE
+		printf ("parseExternProtoDeclare: field:%s=%s\n", atts[count], atts[count + 1]);
+		#endif
+
+		if (strcmp("name",atts[count]) == 0) {nameIndex=count+1;}
+		if (strcmp("url",atts[count]) == 0) {urlIndex=count+1;}
+		else if ((strcmp("appinfo", atts[count]) != 0)  ||
+			(strcmp("documentation",atts[count]) != 0)) {
+			#ifdef X3DPARSERVERBOSE
+			ConsoleMessage ("found field :%s: in a ProtoDeclare -skipping",atts[count]);
+			#endif
+		}
+	}
+
+ 
+	/* did we find the name? */
+	if (nameIndex != INT_ID_UNDEFINED) {
+		/* did we find the url? */
+		if (urlIndex != INT_ID_UNDEFINED) {
+			/* found it, lets open a new PROTO for this one */
+			registerProto(atts[nameIndex],atts[urlIndex]);
+		} else {
+			ConsoleMessage ("ExternProtoDeclare: no :url: field for ExternProto %s",atts[nameIndex]);
+		}
+		
+	} else {
+		ConsoleMessage ("\"ExternProtoDeclare\" found, but field \"name\" not found!\n");
 	}
 }
 
@@ -1230,41 +1241,54 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	printf ("start of parseScriptProtoField, parentStack is of type %s\n",stringNodeType(parentStack[parentIndex]->_nodeType));
 	#endif
 
-	/* configure internal variables, and check sanity for top of stack This should be a Script node */
-	switch (parentStack[parentIndex]->_nodeType) {
-		case NODE_Script: {
-			struct X3D_Script* myScr = NULL;
-			myScr = X3D_SCRIPT(parentStack[parentIndex]);
-			myObj = (struct Shader_Script *) myScr->__scriptObj;
-			/* myScriptNumber = myObj->num; */
-			break; }
-		case NODE_ComposedShader: {
-			struct X3D_ComposedShader* myScr = NULL;
-			myScr = X3D_COMPOSEDSHADER(parentStack[parentIndex]);
-			myObj = (struct Shader_Script *) myScr->__shaderObj;
-			break; }
-		case NODE_ShaderProgram: {
-			struct X3D_ShaderProgram* myScr = NULL;
-			myScr = X3D_SHADERPROGRAM(parentStack[parentIndex]);
-			myObj = (struct Shader_Script *) myScr->__shaderObj;
-			break; }
-		case NODE_PackagedShader: {
-			struct X3D_PackagedShader* myScr = NULL;
-			myScr = X3D_PACKAGEDSHADER(parentStack[parentIndex]);
-			myObj = (struct Shader_Script *) myScr->__shaderObj;
-			break; }
-		case NODE_Group: {
-			/* myScriptNumber = currentProtoDeclare; */
-			myObj = PROTONames[currentProtoDeclare].fieldDefs;
-			break; }
-
-			default: {
-				ConsoleMessage("got an error on parseScriptProtoField, do not know how to handle a %s",
-					stringNodeType(parentStack[parentIndex]->_nodeType));
-				return;
-			}
+	/* are we parsing an EXTERNPROTO? If so, we should... */
+	if (getParserMode() == PARSING_EXTERNPROTODECLARE) {
+		if (currentProtoDeclare != INT_ID_UNDEFINED) {
+			myObj = CPD.fieldDefs;
 		}
+	} else {
+		/* configure internal variables, and check sanity for top of stack This should be a Script node */
+		switch (parentStack[parentIndex]->_nodeType) {
+			case NODE_Script: {
+				struct X3D_Script* myScr = NULL;
+				myScr = X3D_SCRIPT(parentStack[parentIndex]);
+				myObj = (struct Shader_Script *) myScr->__scriptObj;
+				/* myScriptNumber = myObj->num; */
+				break; }
+			case NODE_ComposedShader: {
+				struct X3D_ComposedShader* myScr = NULL;
+				myScr = X3D_COMPOSEDSHADER(parentStack[parentIndex]);
+				myObj = (struct Shader_Script *) myScr->__shaderObj;
+				break; }
+			case NODE_ShaderProgram: {
+				struct X3D_ShaderProgram* myScr = NULL;
+				myScr = X3D_SHADERPROGRAM(parentStack[parentIndex]);
+				myObj = (struct Shader_Script *) myScr->__shaderObj;
+				break; }
+			case NODE_PackagedShader: {
+				struct X3D_PackagedShader* myScr = NULL;
+				myScr = X3D_PACKAGEDSHADER(parentStack[parentIndex]);
+				myObj = (struct Shader_Script *) myScr->__shaderObj;
+				break; }
+			case NODE_Group: {
+				/* make sure we are really in a proto declare */
+				if ((currentProtoDeclare > INT_ID_UNDEFINED) && (currentProtoDeclare < MAXProtos))
+					myObj = CPD.fieldDefs;
+				break; }
+	
+				default: {
+					ConsoleMessage("got an error on parseScriptProtoField, do not know how to handle a %s",
+						stringNodeType(parentStack[parentIndex]->_nodeType));
+					return;
+				}
+		}
+	}
 
+	/* error checking */
+	if (myObj == NULL) {
+		ConsoleMessage ("parsing a <field> but not really in a PROTO or Script");
+		return;
+	}
 
 	/* set up defaults for field parsing */
 	for (i=0;i<MPFIELDS;i++) myparams[i] = INT_ID_UNDEFINED;
@@ -1279,7 +1303,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 		#endif
 
 		/* skip any "appinfo" or "documentation" fields here */
-		if ((strcmp("appinfo", atts[i]) != 0)  ||
+		if ((strcmp("appinfo", atts[i]) != 0)  &&
 			(strcmp("documentation",atts[i]) != 0)) {
 			if (strcmp(atts[i],"name") == 0) { which = MP_NAME;
 			} else if (strcmp(atts[i],"accessType") == 0) { which = MP_ACCESSTYPE;
@@ -1364,17 +1388,18 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 		return;
     	}
 
-	/* so, inputOnlys and outputOnlys DO NOT have initialValues, 
-	   inputOutput and initializeOnly DO */
-	if ((myAccessType == PKW_initializeOnly) || (myAccessType == PKW_inputOutput)) {
-		if (myValueString == NULL) {
-			ConsoleMessage ("Field, an initializeOnly or inputOut needs an initialValue");
-			return;
-		}
-	} else {
-		if (myValueString != NULL) {
-			ConsoleMessage ("Field, an inputOnly or outputOnly can not have an initialValue");
-			return;
+	if (getParserMode() != PARSING_EXTERNPROTODECLARE) {
+		/* so, inputOnlys and outputOnlys DO NOT have initialValues, inputOutput and initializeOnly DO */
+		if ((myAccessType == PKW_initializeOnly) || (myAccessType == PKW_inputOutput)) {
+			if (myValueString == NULL) {
+				ConsoleMessage ("Field, an initializeOnly or inputOut needs an initialValue");
+				return;
+			}
+		} else {
+			if (myValueString != NULL) {
+				ConsoleMessage ("Field, an inputOnly or outputOnly can not have an initialValue");
+				return;
+			}
 		}
 	}
 				
@@ -1464,10 +1489,78 @@ void initScriptWithScript() {
 }
 
 void addToProtoCode(const char *name) {
-        if (PROTONames[currentProtoDeclare].fileOpen) 
-                PROTONames[currentProtoDeclare].charLen += fprintf (PROTONames[currentProtoDeclare].fileDescriptor,"</%s>\n",name);
+        if (CPD.fileOpen) 
+                CPD.charLen += fprintf (CPD.fileDescriptor,"</%s>\n",name);
 }
 
+
+void endExternProtoDeclare(void) {
+		char *pound;
+		char *buffer;
+
+		#ifdef X3DPARSERVERBOSE
+		TTY_SPACE
+		printf ("endElement, end of ExternProtoDeclare %d stack %d\n",currentExternProtoDeclare,curProDecStackInd);
+		#endif
+
+printf ("\n\nendExternProtoDeclare - now the rubber hits the road\n");
+
+printf ("externProtoName %s\nexternProtoName.url %s/n",CPD.definedProtoName,CPD.url);
+		if (CPD.url != NULL) {
+			struct Multi_String url;
+			int i;
+			char *testname;
+			char emptyString[100];
+
+			pound = NULL;
+			buffer = NULL;
+			testname = (char *)MALLOC (1000);
+
+
+			Parser_scanStringValueToMem(X3D_NODE(&url),0,FIELDTYPE_MFString,CPD.url,TRUE);
+			printf ("just scanned %d strings...\n",url.n);
+
+			for (i=0; i< url.n; i++) {
+				printf ("trying url %s\n",(url.p[i])->strptr); 
+				pound = strchr((url.p[i])->strptr,'#');
+				if (pound != NULL) {
+					/* we take the pound character off, BUT USE this variable later */
+					*pound = '\0';
+				}
+
+
+				if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
+
+
+					buffer = readInputString(testname);
+					FREE_IF_NZ(testname);
+				} else {
+					printf ("fileExists returns failure for %s\n",testname); 
+				}
+
+			}
+
+        		FREE_IF_NZ(testname);
+
+			if (buffer != NULL) { 
+				printf ("EPD: just read in %s\n",buffer);
+			}
+
+		}
+
+	
+		/* decrement the protoDeclare stack count. If we are nested, get out of the nesting */
+		curProDecStackInd--;
+
+		/* now, a ExternProtoDeclare should be within normal nodes; make the expected mode PARSING_NODES, assuming
+		   we don't have nested ExternProtoDeclares  */
+		if (curProDecStackInd == 0) setParserMode(PARSING_NODES);
+
+		if (curProDecStackInd < 0) {
+			ConsoleMessage ("X3D_Parser found too many end ExternProtoDeclares at line %d\n",LINE);
+			curProDecStackInd = 0; /* reset it */
+		}
+}
 
 void endProtoDeclare(void) {
 

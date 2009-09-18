@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.39 2009/09/16 22:48:23 couannette Exp $
+$Id: X3DParser.c,v 1.40 2009/09/18 20:20:32 crc_canada Exp $
 
 ???
 
@@ -77,6 +77,7 @@ static const char *parserModeStrings[] = {
 		"PARSING_PROTOINSTANCE",
 		"PARSING_IS",
 		"PARSING_CONNECT",
+		"PARSING_EXTERNPROTODECLARE",
 		"unused high"};
 		
 int currentParserMode = PARSING_NODES;
@@ -1004,6 +1005,18 @@ static void endProtoBodyTag(const char *name) {
 	/* now, a ProtoBody should be within a ProtoDeclare, so, make the expected mode PARSING_PROTODECLARE */
 	setParserMode(PARSING_PROTODECLARE);
 }
+
+static void endExternProtoDeclareTag() {
+	/* ending <ExternProtoDeclare> */
+
+	if (getParserMode() != PARSING_EXTERNPROTODECLARE) {
+		ConsoleMessage ("endExternProtoDeclareTag: got a </ExternProtoDeclare> but not parsing one at line %d",LINE);
+		setParserMode(PARSING_EXTERNPROTODECLARE);
+	}
+
+	endExternProtoDeclare();
+}
+
 static void endProtoDeclareTag() {
 	/* ending <ProtoDeclare> */
 
@@ -1269,7 +1282,7 @@ nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv);  */
 						                if (nvp->fieldValue== NULL) {
                         					ConsoleMessage ("PROTO connect field, an initializeOnly or inputOut needs an initialValue for name %s",nvp->fieldName);
                 						} else {
-									/* printf ("have to parse fieldValue :%s: and place it into my value\n",nvp->fieldValue); */
+									printf ("have to parse fieldValue :%s: and place it into my value\n",nvp->fieldValue); 
 									Parser_scanStringValueToMem(X3D_NODE(&(thisEntry->value)), 0, FIELDTYPE_SFFloat, nvp->fieldValue, TRUE);
 								}
 							}
@@ -1329,6 +1342,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		switch (myNodeIndex) {
 			case X3DSP_ProtoDeclare: parseProtoDeclare(atts); break;
+			case X3DSP_ExternProtoDeclare: parseExternProtoDeclare(atts); break;
 			case X3DSP_ProtoBody: parseProtoBody(atts); break;
 			case X3DSP_ProtoInterface: parseProtoInterface(atts); break;
 			case X3DSP_ProtoInstance: parseProtoInstance(atts); break;
@@ -1435,7 +1449,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 			case X3DSP_ProtoInterface: endProtoInterfaceTag(); break;
 			case X3DSP_ProtoBody: endProtoBodyTag(name); break;
 			case X3DSP_ProtoDeclare: endProtoDeclareTag(); break;
-			/* case X3DSP_ProtoInstance: endProtoInstanceTag(); break; */
+			case X3DSP_ExternProtoDeclare: endExternProtoDeclareTag(); break;
 			case X3DSP_IS: endIS(); break;
 			case X3DSP_connect:
 			case X3DSP_ROUTE: 

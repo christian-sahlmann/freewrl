@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.12 2009/09/15 16:50:59 crc_canada Exp $
+$Id: X3DParser.h,v 1.13 2009/09/18 20:20:32 crc_canada Exp $
 
 X3D parser functions.
 
@@ -29,6 +29,7 @@ struct nameValuePairs {
 #define PARSING_PROTOINSTANCE   6
 #define PARSING_IS		7
 #define PARSING_CONNECT		8
+#define PARSING_EXTERNPROTODECLARE 9
 
 /* for our internal PROTO tables, and, for initializing the XML parser */
 #define PROTOINSTANCE_MAX_LEVELS 50
@@ -65,6 +66,7 @@ extern int CDATA_Text_curlen;
 struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force);
 
 void parseProtoDeclare (const char **atts);
+void parseExternProtoDeclare (const char **atts);
 void parseProtoInterface (const char **atts);
 void parseProtoBody (const char **atts);
 void parseProtoInstance (const char **atts);
@@ -77,7 +79,9 @@ void freeProtoMemory (void);
 void kill_X3DProtoScripts(void);
 void linkNodeIn(char *, int);
 void parseConnect(struct VRMLLexer * myLexer, const char **atts, struct Vector *tos);
-void endConnect();
+void endConnect(void);
+void endProtoDeclare(void);
+void endExternProtoDeclare(void);
 struct X3D_Node *X3DParser_getNodeFromName(const char *name);
 int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, struct Shader_Script **myObj, char *name, int routeTo);
  
