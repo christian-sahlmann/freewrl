@@ -1,3 +1,16 @@
+ 
+Getting Started:
+1. download the free MS Visual C++ 2008 Express edition if you don't already have it
+http://www.microsoft.com/Express/vc/ 
+2. navigate your web browser to the download page from freewrl.sourceforge.net http://freewrl.sourceforge.net/download.html and download the Source Code tar and unzip
+3. download the msvc compatible libraries from
+http://cid-4a0d5f15141a58d5.skydrive.live.com/browse.aspx/GPUGroupX3D/freewrlWin32
+libAndJS_msvcCompat.zip
+unzip and put the lib, JS and Fonts directories in freewrl/freex3d
+4. You should be able to build the Debug version of lib and standalone projects, except when you go to run it will complain about missing dlls.
+Go into the lib/windows/ directories and copy the dlls from the dlls_copy_to_debug directory and put in the projectfiles_vc9/Debug directory
+
+
 Current state of the MSVC freewrl project as of Aug 23, 2009
 - standalone (src/lib src/bin projectfiles_vc9) can be cvs checked out (main branch: freewrl/freex3d - see download page) and builds and runs not bad (hard to know without seeing other versions)
 - uses glew and wgl for opengl
@@ -24,16 +37,3 @@ expat - likely: http://sourceforge.net/projects/expat/ which has a 2007 download
 glew - http://glew.sourceforge.net/  
 JS (javascript) - I got from an older freewrl source .tar and tinkered
 ^  www.yafaray.org - has vs2008 .sln files (their server is slow right now)
- 
-Getting Started:
-1. download the free MS Visual C++ 2008 Express edition if you don't already have it
-http://www.microsoft.com/Express/vc/ 
-2. navigate your web browser to the download page from freewrl.sourceforge.net http://freewrl.sourceforge.net/download.html and download the Source Code tar and unzip
-3. download the msvc compatible libraries from
-http://cid-4a0d5f15141a58d5.skydrive.live.com/browse.aspx/GPUGroupX3D?authkey=4bdDXsKjZ2k%24 
-GPUgroupX3D > freewrlWin32 > Current_Aug309 > libAndJS_msvcCompat_Aug1009.zip
-move the lib, JS directories so they at the same level as freewrl/freex3d/src
-4. You should be able to build the Debug version of lib and standalone projects, except when you go to run it will complain about missing dlls.
-Go into the lib/windows/ directories and get the missing dlls and put in the projectfiles_vc9/Debug directory
-
-
