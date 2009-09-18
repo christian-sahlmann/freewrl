@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: pluginUtils.c,v 1.8 2009/09/16 22:48:24 couannette Exp $
+$Id: pluginUtils.c,v 1.9 2009/09/18 23:06:44 dug9 Exp $
 
 ???
 
@@ -27,10 +27,12 @@ $Id: pluginUtils.c,v 1.8 2009/09/16 22:48:24 couannette Exp $
  * people (or, to try to stop) from typing malicious code. */
 
 /* keep a list of children; if one hangs, doQuit will hang, also. */
+#ifndef WIN32
 #define MAXPROCESSLIST 128
 pid_t childProcess[MAXPROCESSLIST];
 int lastchildProcess = 0;
 int childProcessListInit = FALSE;
+#endif
 
 void killErrantChildren(void) {
 #ifndef WIN32
