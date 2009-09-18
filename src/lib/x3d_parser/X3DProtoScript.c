@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.31 2009/09/18 20:20:32 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.32 2009/09/18 20:56:18 crc_canada Exp $
 
 ???
 
@@ -1517,11 +1517,12 @@ printf ("externProtoName %s\nexternProtoName.url %s/n",CPD.definedProtoName,CPD.
 			testname = (char *)MALLOC (1000);
 
 
+			/* change the string of strings into an array of strings */
 			Parser_scanStringValueToMem(X3D_NODE(&url),0,FIELDTYPE_MFString,CPD.url,TRUE);
-			printf ("just scanned %d strings...\n",url.n);
+			/* printf ("just scanned %d strings...\n",url.n); */
 
 			for (i=0; i< url.n; i++) {
-				printf ("trying url %s\n",(url.p[i])->strptr); 
+				/* printf ("trying url %s\n",(url.p[i])->strptr);  */
 				pound = strchr((url.p[i])->strptr,'#');
 				if (pound != NULL) {
 					/* we take the pound character off, BUT USE this variable later */
@@ -1544,6 +1545,9 @@ printf ("externProtoName %s\nexternProtoName.url %s/n",CPD.definedProtoName,CPD.
 
 			if (buffer != NULL) { 
 				printf ("EPD: just read in %s\n",buffer);
+			}
+			if (pound != NULL) {
+				printf ("EPD, pound is %s\n",pound);
 			}
 
 		}
