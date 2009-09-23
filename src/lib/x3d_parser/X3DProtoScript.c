@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.32 2009/09/18 20:56:18 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.33 2009/09/23 14:53:24 crc_canada Exp $
 
 ???
 
@@ -76,6 +76,20 @@ struct PROTOnameStruct {
 };
 static struct PROTOnameStruct *PROTONames = NULL;
 
+static const char *parserModeStrings[] = {
+                "unused",
+                "PARSING_NODES",
+                "PARSING_SCRIPT",
+                "PARSING_PROTODECLARE ",
+                "PARSING_PROTOINTERFACE ",
+                "PARSING_PROTOBODY",
+                "PARSING_PROTOINSTANCE",
+                "PARSING_IS",
+                "PARSING_CONNECT",
+                "PARSING_EXTERNPROTODECLARE",
+                "unused high"};
+
+
 #ifdef OLDCODE
 /****************************** PROTOS ***************************************************/
 
@@ -129,13 +143,16 @@ static void registerProto(const char *name, const char *url) {
 	}
 
 	CPD.definedProtoName = STRDUP((char *)name);
-	CPD.fileName = TEMPNAM("/tmp","freewrl_proto");
+
+	/* a Proto Expansion (NOT ExternProtoDeclare) will have a local file */
+	CPD.isExternProto = (url != NULL);
+
+	if (!CPD.isExternProto) CPD.fileName = TEMPNAM("/tmp","freewrl_proto"); else CPD.fileName=NULL;
 	CPD.fileDescriptor = fopen(CPD.fileName,"w");
 	CPD.charLen =  0;
 	CPD.fileOpen = TRUE;
-	CPD.isExternProto = (url != NULL);
 	CPD.fieldDefs = new_Shader_Script(NULL);
-	if (url != NULL) CPD.url=STRDUP((char *)url); else CPD.url=NULL;
+	if (CPD.isExternProto) CPD.url=STRDUP((char *)url); else CPD.url=NULL;
 
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
@@ -561,11 +578,7 @@ int i;printf ("X3D_ node name :%s:\n",name);for (i = 0; atts[i]; i += 2) {printf
 		{
 		}
 		/* allow ONLY USEs here, at least for now? */
-/* #ifdef WIN32 */
-/* 		if(atts[0] != NULL ){ */
-/* #else */
-		if (atts != NULL) {
-/* #endif */
+ 		if(atts[0] != NULL ){ 
 			if (strcmp("USE",atts[0]) == 0) {
 				struct X3D_Node *rv;
 				char *val = MALLOC(20);
@@ -686,6 +699,156 @@ void endDumpProtoBody (const char *name) {
 	}
 }
 
+/* we have an ExternProtoDeclare and the represented ProtoDeclare. Make sure they match! */
+static void verifyExternAndProtoFields(void) {
+	int extPro;
+	int curPro;
+	size_t curInd, extInd;
+	struct Shader_Script *extProF;
+	struct Shader_Script *curProF;
+	struct ScriptFieldDecl* curField;
+	struct ScriptFieldDecl* extField;
+#ifdef werwerweqwete
+/*
+ struct FieldDecl* fieldDecl;
+*/
+struct FieldDecl
+{
+ indexT mode; /* PKW_initializeOnly PKW_inputOutput, PKW_inputOnly, PKW_outputOnly */
+ indexT type; /* field type ,eg FIELDTYPE_MFInt32 */
+ indexT name; /* field "name" (its lexer-index) */
+ int shaderVariableID;  /* glGetUniformLocation() cast to int */
+ int shaderVariableIsUniform; /* TRUE: this is a Uniform var, or else it is a varying.. */
+};
+#endif
+
+
+
+	/* we will have in the stack, ExternProtoDeclare then the CurrentProto */
+	if (currentProtoDeclare <1) {
+		return;
+	}
+
+	/* do comparison of fields */
+	extPro = currentProtoDeclare-1;
+	curPro = currentProtoDeclare;
+
+	/* printf ("we compare names %s and %s\n",PROTONames[extPro].definedProtoName,PROTONames[curPro].definedProtoName); */
+	if (strcmp(PROTONames[extPro].definedProtoName,PROTONames[curPro].definedProtoName) != 0) {
+		ConsoleMessage ("<ExternProtoDeclare> :%s: does not match found <ProtoDeclare> %s",
+			PROTONames[extPro].definedProtoName,PROTONames[curPro].definedProtoName);
+	}
+
+	/* go through the fields - these should match */
+	extProF = PROTONames[extPro].fieldDefs;
+	curProF = PROTONames[curPro].fieldDefs;
+
+        for (curInd=0; curInd<vector_size(curProF->fields); curInd++) { 
+		int matched=FALSE;
+                curField = vector_get(struct ScriptFieldDecl*, curProF->fields, curInd); 
+        	for (extInd=0; extInd<vector_size(extProF->fields); extInd++) { 
+                	extField = vector_get(struct ScriptFieldDecl*, extProF->fields, extInd); 
+			if ((curField->fieldDecl->mode == extField->fieldDecl->mode)  &&
+			(curField->fieldDecl->type == extField->fieldDecl->type) &&
+			(curField->fieldDecl->name == extField->fieldDecl->name)) {
+				matched=TRUE;
+				
+				/* now, we flagged that this ExternProtoDeclare field is "ok", we signal this by
+				   REMOVING its ASCII name and field as it will not be used again */
+				FREE_IF_NZ(extField->ASCIIname);
+				FREE_IF_NZ(extField->ASCIIvalue);
+			}
+		}
+		if (!matched) {
+			ConsoleMessage ("<ExternProtoDeclare> and embedded <ProtoDeclare> field mismatch, could not match up <ProtoDeclare> field :%s: in <ExternProtoDeclare>",curField->ASCIIname);
+		}
+	}
+
+	/* do we have any ExternProtoDeclare fields that are NOT matched by the ProtoDeclare? */
+       	for (extInd=0; extInd<vector_size(extProF->fields); extInd++) { 
+               	extField = vector_get(struct ScriptFieldDecl*, extProF->fields, extInd); 
+		if (extField->ASCIIname != NULL) {
+			ConsoleMessage ("<ExternProtoDeclare> field :%s: not matched in embedded Proto",
+				extField->ASCIIname);
+			FREE_IF_NZ(extField->ASCIIname);
+			FREE_IF_NZ(extField->ASCIIvalue);
+		}
+	}
+}
+
+
+/* take the text of an ExternProtoDeclare, and make it into a ProtoDeclare */
+void compareExternProtoDeclareWithProto(char *buffer,char *pound) {
+	char *startProtoDeclare;
+	char *endProtoDeclare;
+	char *startScene;
+	char *endScene;
+	struct X3D_Group *myGroup;
+
+	if (buffer==NULL) return;
+
+	/* printf ("compareExternProtoDeclareWithProto starting\n");
+	  printf ("	name %s\n	fileName %s\n",CPD.definedProtoName, CPD.fileName);
+ 	  printf ("	buffer %s\n",buffer);
+	*/
+
+	startScene = strstr(buffer,"<Scene>");
+	if (startScene == NULL) {
+		ConsoleMessage ("ExternProtoDeclare: did not find <Scene> in retrieved file %s",CPD.definedProtoName);
+		return;
+	}
+	startScene += strlen ("<Scene>");
+
+
+	startProtoDeclare = strstr(startScene,"<ProtoDeclare");
+	if (startProtoDeclare == NULL) {
+		ConsoleMessage ("ExternProtoDeclare: did not find <ProtoDeclare> in retrieved file");
+		return;
+	}
+	/* just for the fun of it, do we have a null ProtoDeclare? */
+	if (strncmp(startProtoDeclare,"</ProtoDeclare>",15) == 0) {
+		ConsoleMessage ("ExternProtoDeclare: <ProtoDeclare/> in retrieved file - Proto is empty");
+		return;
+	}
+
+	endProtoDeclare = strstr(startProtoDeclare,"</ProtoDeclare>");
+	if (endProtoDeclare == NULL) {
+		ConsoleMessage ("ExternProtoDeclare: did not find </ProtoDeclare> in retrieved file");
+		return;
+	}
+	endProtoDeclare += strlen ("</EndProtoDeclare>");
+
+	endScene = strstr(endProtoDeclare,"</Scene>");
+	if (endScene == NULL) {
+		ConsoleMessage ("ExternProtoDeclare: did not find </Scene> in retrieved file %s",CPD.definedProtoName);
+
+		return;
+	}
+
+	/* get rid of everything between the <Scene> and the <ProtoDeclare> */
+	while (startScene != startProtoDeclare) {
+		*startScene = ' '; startScene++;
+	}
+
+	/* get rid of everything between the </ProtoDeclare> and the </Scene> */
+	while (endProtoDeclare != endScene) {
+		*endProtoDeclare = ' '; endProtoDeclare++; 
+	}
+		
+	/* printf ("ok, so we have the Protodeclare as\n %s\n",buffer); */
+
+	/* parse this text now */
+	myGroup = createNewX3DNode (NODE_Group);
+	if (X3DParse(myGroup,buffer)) {
+		/* printf ("ExternProto parsed OK\n"); */
+	} else {
+		ConsoleMessage ("ExternProto retrieval of :%s: did not parse correctly",CPD.definedProtoName);
+	}
+
+	/* do the fields match up? */
+	verifyExternAndProtoFields();
+}
+
 
 /* handle a <ProtoInstance> tag */
 void parseProtoInstance (const char **atts) {
@@ -758,12 +921,12 @@ void parseProtoInstance (const char **atts) {
 
 		/* go through the PROTO table, and find the match, if it exists */
 		for (protoTableIndex = 0; protoTableIndex <= currentProtoDeclare; protoTableIndex ++) {
-			if (strcmp(atts[nameIndex],PROTONames[protoTableIndex].definedProtoName) == 0) {
-#ifdef X3DPARSERVERBOSE
-				printf("successfully matched :%s: to :%s: protoDeclare to protoInstance\n",PROTONames[protoTableIndex].definedProtoName,atts[nameIndex]);
-#endif
-				currentProtoInstance = protoTableIndex;
-				return;
+			if (!PROTONames[protoTableIndex].isExternProto){
+				if (strcmp(atts[nameIndex],PROTONames[protoTableIndex].definedProtoName) == 0) {
+					currentProtoInstance = protoTableIndex;
+					/* printf ("expanding proto %d\n",currentProtoInstance); */
+					return;
+				}
 			}
 		}
 	
@@ -782,7 +945,6 @@ void parseProtoInstance (const char **atts) {
 	#ifdef X3DPARSERVERBOSE
 	printf("unsuccessful end parseProtoInstance\n");
 	#endif
-
 }
 
 
@@ -1107,7 +1269,6 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 
 	/* printf ("end of expandProtoInstance\n"); */
 }
-#undef X3DPARSERVERBOSE
 
 
 void parseProtoBody (const char **atts) {
@@ -1239,6 +1400,10 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("start of parseScriptProtoField, parentStack is of type %s\n",stringNodeType(parentStack[parentIndex]->_nodeType));
+	printf ("	mode is %s, currentProtoDeclare is %d\n",
+				parserModeStrings[getParserMode()],
+				currentProtoDeclare);
+	if (PROTONames[currentProtoDeclare].isExternProto) printf ("	it IS an ExternProto\n"); else printf ("	it is NOT an ExternProto\n");
 	#endif
 
 	/* are we parsing an EXTERNPROTO? If so, we should... */
@@ -1431,6 +1596,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 
 	/* add this field to the script */
 	script_addField(myObj,sdecl);
+#undef X3DPARSERVERBOSE
 }
 
 /* we get script text from a number of sources; from the URL field, from CDATA, from a file
@@ -1495,65 +1661,98 @@ void addToProtoCode(const char *name) {
 
 
 void endExternProtoDeclare(void) {
-		char *pound;
-		char *buffer;
+	char *pound;
+	char *buffer;
+	int foundOk;
 
-		#ifdef X3DPARSERVERBOSE
-		TTY_SPACE
-		printf ("endElement, end of ExternProtoDeclare %d stack %d\n",currentExternProtoDeclare,curProDecStackInd);
-		#endif
+	#ifdef X3DPARSERVERBOSE
+	TTY_SPACE
+	printf ("endElement, end of ExternProtoDeclare %d stack %d\n",currentExternProtoDeclare,curProDecStackInd);
+	#endif
 
-printf ("\n\nendExternProtoDeclare - now the rubber hits the road\n");
+	foundOk = FALSE;
 
-printf ("externProtoName %s\nexternProtoName.url %s/n",CPD.definedProtoName,CPD.url);
-		if (CPD.url != NULL) {
-			struct Multi_String url;
-			int i;
-			char *testname;
-			char emptyString[100];
+	/* printf ("endExternProtoDeclare - now the rubber hits the road\n"); */
 
-			pound = NULL;
-			buffer = NULL;
-			testname = (char *)MALLOC (1000);
+	/* printf ("externProtoName %s\nexternProtoName.url %s/n",CPD.definedProtoName,CPD.url); */
+	if (CPD.url != NULL) {
+		struct Multi_String url;
+		int i;
+		char *testname;
+		char emptyString[100];
+
+		pound = NULL;
+		buffer = NULL;
+		testname = (char *)MALLOC (1000);
 
 
-			/* change the string of strings into an array of strings */
-			Parser_scanStringValueToMem(X3D_NODE(&url),0,FIELDTYPE_MFString,CPD.url,TRUE);
-			/* printf ("just scanned %d strings...\n",url.n); */
+		/* change the string of strings into an array of strings */
+		Parser_scanStringValueToMem(X3D_NODE(&url),0,FIELDTYPE_MFString,CPD.url,TRUE);
+		/* printf ("just scanned %d strings...\n",url.n); */
 
-			for (i=0; i< url.n; i++) {
-				/* printf ("trying url %s\n",(url.p[i])->strptr);  */
+		for (i=0; i< url.n; i++) {
+			if (!foundOk) {
+				/* printf ("ExternProtoDeclare: trying url %s\n",(url.p[i])->strptr);  */
 				pound = strchr((url.p[i])->strptr,'#');
 				if (pound != NULL) {
 					/* we take the pound character off, BUT USE this variable later */
 					*pound = '\0';
 				}
 
-
 				if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
-
-
+					foundOk = TRUE;
 					buffer = readInputString(testname);
 					FREE_IF_NZ(testname);
 				} else {
-					printf ("fileExists returns failure for %s\n",testname); 
+					/* printf ("fileExists returns failure for %s\n",testname); */
 				}
-
-			}
-
-        		FREE_IF_NZ(testname);
-
-			if (buffer != NULL) { 
-				printf ("EPD: just read in %s\n",buffer);
-			}
-			if (pound != NULL) {
-				printf ("EPD, pound is %s\n",pound);
-			}
-
+			} /* else, just skip the rest of the list */
 		}
 
-	
+        	FREE_IF_NZ(testname);
+
+		/* if (buffer != NULL) { 
+			printf ("EPD: just read in %s\n",buffer);
+		}
+		if (pound != NULL) {
+			printf ("EPD, pound is %s\n",pound);
+		} */
+
+
+		/* were we successful? */
+		if (!foundOk) {
+			ConsoleMessage ("<ExternProtoDeclare> of name %s not found",CPD.definedProtoName);
+		} else {
+			/* printf ("finding and expanding ExternProtoDeclare %s\n",CPD.definedProtoName);
+			printf ("	pound %s\n",pound);
+			printf ("	currentProtoDeclare %d\n",currentProtoDeclare); */
+			
+			setParserMode(PARSING_NODES);
+
+			compareExternProtoDeclareWithProto(buffer,pound);
+			setParserMode(PARSING_EXTERNPROTODECLARE);
+		}
+
 		/* decrement the protoDeclare stack count. If we are nested, get out of the nesting */
+		#ifdef X3DPARSERVERBOSE
+		printf ("endExternProtoDeclare, stack was %d, decrementing it\n",curProDecStackInd);
+		{
+		int i;
+		printf ("endExternProtoDeclare, PROTONames: \n");
+		for (i=0; i<=currentProtoDeclare; i++) {
+		printf ("	cpd %d of %d\n",i,currentProtoDeclare);
+		printf ("	definedProtoName: %s\n",PROTONames[i].definedProtoName);
+		printf ("	url	        : %s\n",PROTONames[i].url);
+		printf ("	charLen         : %d\n",PROTONames[i].charLen);
+		printf ("	fileName	: %s\n",PROTONames[i].fileName);
+		if (PROTONames[i].isExternProto)
+		printf ("	isExternProto	: TRUE\n");
+		else printf ("	isExternProto	: FALSE\n");
+		printf ("\n");
+		}
+		}
+		#endif
+
 		curProDecStackInd--;
 
 		/* now, a ExternProtoDeclare should be within normal nodes; make the expected mode PARSING_NODES, assuming
@@ -1564,6 +1763,8 @@ printf ("externProtoName %s\nexternProtoName.url %s/n",CPD.definedProtoName,CPD.
 			ConsoleMessage ("X3D_Parser found too many end ExternProtoDeclares at line %d\n",LINE);
 			curProDecStackInd = 0; /* reset it */
 		}
+
+	}
 }
 
 void endProtoDeclare(void) {
@@ -1571,6 +1772,21 @@ void endProtoDeclare(void) {
 		#ifdef X3DPARSERVERBOSE
 		TTY_SPACE
 		printf ("endElement, end of ProtoDeclare %d stack %d\n",currentProtoDeclare,curProDecStackInd);
+		{
+		int i;
+		printf ("endProtoDeclare, PROTONames: \n");
+		for (i=0; i<=currentProtoDeclare; i++) {
+		printf ("	cpd %d of %d\n",i,currentProtoDeclare);
+		printf ("	definedProtoName: %s\n",PROTONames[i].definedProtoName);
+		printf ("	url	        : %s\n",PROTONames[i].url);
+		printf ("	charLen         : %d\n",PROTONames[i].charLen);
+		printf ("	fileName	: %s\n",PROTONames[i].fileName);
+		if (PROTONames[i].isExternProto)
+		printf ("	isExternProto	: TRUE\n");
+		else printf ("	isExternProto	: FALSE\n");
+		printf ("\n");
+		}
+		}
 		#endif
 
 		/* decrement the protoDeclare stack count. If we are nested, get out of the nesting */
@@ -1584,5 +1800,8 @@ void endProtoDeclare(void) {
 			ConsoleMessage ("X3D_Parser found too many end ProtoDeclares at line %d\n",LINE);
 			curProDecStackInd = 0; /* reset it */
 		}
+
+		DECREMENT_PARENTINDEX
 }
+
 

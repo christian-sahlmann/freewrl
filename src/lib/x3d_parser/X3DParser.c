@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.41 2009/09/18 20:56:17 crc_canada Exp $
+$Id: X3DParser.c,v 1.42 2009/09/23 14:53:24 crc_canada Exp $
 
 ???
 
@@ -680,7 +680,6 @@ printf ("hey, we have maybe a Node (%s) in a Script list... line %d: expected pa
 
 #endif
 
-
 void linkNodeIn(char *where, int lineno) {
 	int coffset;
 	int ctype;
@@ -771,7 +770,6 @@ void linkNodeIn(char *where, int lineno) {
                 1, 1,__FILE__,__LINE__);
 	}
 }
-
 
 static void XMLCALL startCDATA (void *userData) {
 	if (CDATA_Text_curlen != 0) {
@@ -952,7 +950,7 @@ static void parseFieldValue(const char *name, const char **atts) {
 		if (strcmp(atts[i],"name") == 0) nameIndex= i+1;
 	}
 
-	if (getParserMode() == PARSING_PROTOINSTANCE) {
+	if ((getParserMode() == PARSING_EXTERNPROTODECLARE) || (getParserMode() == PARSING_PROTOINSTANCE)) {
 		parseProtoInstanceFields(name,atts);
 	} else {
 		if (in3_3_fieldValue) printf ("parseFieldValue - did not expect in3_3_fieldValue to be set\n");
@@ -1013,7 +1011,8 @@ static void endExternProtoDeclareTag() {
 		ConsoleMessage ("endExternProtoDeclareTag: got a </ExternProtoDeclare> but not parsing one at line %d",LINE);
 		setParserMode(PARSING_EXTERNPROTODECLARE);
 	}
-
+	
+	/* we do the DECREMENT_PARENTINDEX here because successful parsing of the included ProtoDeclare leaves it too high */
 	endExternProtoDeclare();
 }
 
@@ -1313,7 +1312,8 @@ nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv);  */
 static void XMLCALL startElement(void *unused, const char *name, const char **atts) {
 	int myNodeIndex;
 
-	/* printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]); */
+	DEBUG_X3DPARSER ("startElement: %s : level %d parserMode: %s currentParser %u \n",name,parentIndex,parserModeStrings[getParserMode()],
+			currentX3DParser);
 
 
 	/* are we storing a PROTO body?? */
@@ -1376,14 +1376,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	int myNodeIndex;
 
 
-	/* printf("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]); */
-
-
-
-
-	#ifdef X3DPARSERVERBOSE
-	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]);
-	#endif
+	DEBUG_X3DPARSER("endElement: %s : parentIndex %d mode %s currentX3DParser %u\n",name,parentIndex,parserModeStrings[getParserMode()],currentX3DParser); 
 
 	/* are we storing a PROTO body?? */
 	if (getParserMode() == PARSING_PROTOBODY) {
@@ -1495,11 +1488,13 @@ static XML_Parser initializeX3DParser () {
 		XML_SetDefaultHandler (x3dparser[X3DParserRecurseLevel],handleCDATA);
 		XML_SetUserData(x3dparser[X3DParserRecurseLevel], &parentIndex);
 	}
+	/* printf ("initializeX3DParser, level %d, parser %u\n",x3dparser[X3DParserRecurseLevel]); */
 
 	return x3dparser[X3DParserRecurseLevel];
 }
 
 static void shutdownX3DParser () {
+	/* printf ("shutdownX3DParser, recurseLevel %d\n",X3DParserRecurseLevel); */
 	XML_ParserFree(x3dparser[X3DParserRecurseLevel]);
 	X3DParserRecurseLevel--;
 	
@@ -1520,10 +1515,13 @@ static void shutdownX3DParser () {
         CDATA_TextMallocSize = 0; 
 	if (X3DParserRecurseLevel > INT_ID_UNDEFINED)
 		currentX3DParser = x3dparser[X3DParserRecurseLevel];
+	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */
 }
 
 int X3DParse (struct X3D_Group* myParent, char *inputstring) {
 	currentX3DParser = initializeX3DParser();
+
+	/* printf ("X3DParse, current X3DParser is %u\n",currentX3DParser); */
 
 	if (childAttributes == NULL) {
 		int count;
