@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.33 2009/09/23 14:53:24 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.34 2009/09/24 19:47:15 crc_canada Exp $
 
 ???
 
@@ -1768,7 +1768,6 @@ void endExternProtoDeclare(void) {
 }
 
 void endProtoDeclare(void) {
-
 		#ifdef X3DPARSERVERBOSE
 		TTY_SPACE
 		printf ("endElement, end of ProtoDeclare %d stack %d\n",currentProtoDeclare,curProDecStackInd);
@@ -1801,7 +1800,11 @@ void endProtoDeclare(void) {
 			curProDecStackInd = 0; /* reset it */
 		}
 
+		/* if we are in an ExternProtoDeclare, we need to decrement here to keep things sane */
+		if (currentProtoDeclare >=1) {
+			if (PROTONames[currentProtoDeclare-1].isExternProto)
 		DECREMENT_PARENTINDEX
+		}
 }
 
 
