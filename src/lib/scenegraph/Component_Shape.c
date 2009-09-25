@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.13 2009/08/10 00:38:46 crc_canada Exp $
+$Id: Component_Shape.c,v 1.14 2009/09/25 17:32:15 dug9 Exp $
 
 X3D Shape Component
 
@@ -490,6 +490,10 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* any shader turned on? if so, turn it off */
 	TURN_APPEARANCE_SHADER_OFF
+
+	/* put texture specular light secondary color back to default single color state unconditionally */
+    glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,GL_SINGLE_COLOR);
+
 }
 
 
@@ -550,6 +554,10 @@ void child_Appearance (struct X3D_Appearance *node) {
 
 		/* now, render the texture */
 		POSSIBLE_PROTO_EXPANSION(node->texture,tmpN)
+		/* for textured appearance add specular highlights as a separate secondary color
+		   redbook p.270, p.455 and http://www.gamedev.net/reference/programming/features/oglch9excerpt/
+	    */
+		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,GL_SEPARATE_SPECULAR_COLOR);
 		render_node(tmpN);
 	}
 	/* shaders here/supported?? */
