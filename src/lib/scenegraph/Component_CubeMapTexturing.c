@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.4 2009/05/07 17:01:24 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.5 2009/09/27 09:33:19 couannette Exp $
 
 X3D Cubemap Texturing Component
 
@@ -116,82 +116,95 @@ CubeFunc(unsigned char resultColor[3], float vec[3])
   return resultColor;
 }
 
-
-void render_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *node) {
+void ixxrender_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *node) 
+{
 	int i,j,k;
-
-  for (i = 0; i < CUBE_MAP_SIZE; i++) {
-    float t = 1.0 / (2 * CUBE_MAP_SIZE) + (float) i / CUBE_MAP_SIZE;
-    t = 2.0 * t - 1.0;
-    for (j = 0; j < CUBE_MAP_SIZE; j++) {
-      float s = 1.0 / (2 * CUBE_MAP_SIZE) + (float) j / CUBE_MAP_SIZE;
-      float pt[3];
-      s = 2.0 * s - 1.0;
-      pt[0] = 1;
-      pt[1] = t;
-      pt[2] = -s;
-      CubeFunc(CubeMap[CUBE_POS_X][i][j], pt);
-      pt[0] = -1;
-      pt[1] = t;
-      pt[2] = s;
-      CubeFunc(CubeMap[CUBE_NEG_X][i][j], pt);
-
-      pt[1] = 1;
-      pt[0] = s;
-      pt[2] = -t;
-      CubeFunc(CubeMap[CUBE_POS_Y][i][j], pt);
-      pt[1] = -1;
-      pt[0] = s;
-      pt[2] = t;
-      CubeFunc(CubeMap[CUBE_NEG_Y][i][j], pt);
-      pt[2] = 1;
-      pt[0] = s;
-      pt[1] = t;
-      CubeFunc(CubeMap[CUBE_POS_Z][i][j], pt);
-      pt[2] = -1;
-      pt[0] = -s;
-      pt[1] = t;
-      CubeFunc(CubeMap[CUBE_NEG_Z][i][j], pt);
-      for (k = CUBE_POS_X; k <= CUBE_NEG_Z; k++) {
-        CubeMap[k][i][j][3] = 255;
-      }
-    }
-  }
-
-  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-
-  for (i = 0; i < 6; i++) {
-    glTexImage2D(
-      cubefaces[i],
-      0,                  // level
-      GL_RGBA8,          // internal format
-      CUBE_MAP_SIZE,     // width
-      CUBE_MAP_SIZE,     // height
-      0,                 // border
-      GL_RGBA,           // format
-      GL_UNSIGNED_BYTE,   // type
-      CubeMap[CUBE_POS_X + i]); // pixel data
-  }
-
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-  glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-  glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-  glEnable(GL_TEXTURE_CUBE_MAP_EXT);
-  glEnable(GL_TEXTURE_GEN_S);
-  glEnable(GL_TEXTURE_GEN_T);
-  glEnable(GL_TEXTURE_GEN_R);
-  glEnable(GL_NORMALIZE);
+	
+	for (i = 0; i < CUBE_MAP_SIZE; i++) {
+		float t = 1.0 / (2 * CUBE_MAP_SIZE) + (float) i / CUBE_MAP_SIZE;
+		t = 2.0 * t - 1.0;
+		for (j = 0; j < CUBE_MAP_SIZE; j++) {
+			float s = 1.0 / (2 * CUBE_MAP_SIZE) + (float) j / CUBE_MAP_SIZE;
+			float pt[3];
+			s = 2.0 * s - 1.0;
+			pt[0] = 1;
+			pt[1] = t;
+			pt[2] = -s;
+			CubeFunc(CubeMap[CUBE_POS_X][i][j], pt);
+			pt[0] = -1;
+			pt[1] = t;
+			pt[2] = s;
+			CubeFunc(CubeMap[CUBE_NEG_X][i][j], pt);
+			
+			pt[1] = 1;
+			pt[0] = s;
+			pt[2] = -t;
+			CubeFunc(CubeMap[CUBE_POS_Y][i][j], pt);
+			pt[1] = -1;
+			pt[0] = s;
+			pt[2] = t;
+			CubeFunc(CubeMap[CUBE_NEG_Y][i][j], pt);
+			pt[2] = 1;
+			pt[0] = s;
+			pt[1] = t;
+			CubeFunc(CubeMap[CUBE_POS_Z][i][j], pt);
+			pt[2] = -1;
+			pt[0] = -s;
+			pt[1] = t;
+			CubeFunc(CubeMap[CUBE_NEG_Z][i][j], pt);
+			for (k = CUBE_POS_X; k <= CUBE_NEG_Z; k++) {
+				CubeMap[k][i][j][3] = 255;
+			}
+		}
+	}
+	
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	
+	for (i = 0; i < 6; i++) {
+		glTexImage2D(
+			cubefaces[i],
+			0,                  // level
+			GL_RGBA8,          // internal format
+			CUBE_MAP_SIZE,     // width
+			CUBE_MAP_SIZE,     // height
+			0,                 // border
+			GL_RGBA,           // format
+			GL_UNSIGNED_BYTE,   // type
+			CubeMap[CUBE_POS_X + i]); // pixel data
+	}
+	
+	glTexParameteri(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	
+	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+	glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+	glEnable(GL_TEXTURE_CUBE_MAP_EXT);
+	glEnable(GL_TEXTURE_GEN_S);
+	glEnable(GL_TEXTURE_GEN_T);
+	glEnable(GL_TEXTURE_GEN_R);
+	glEnable(GL_NORMALIZE);
 }
 
-
-
 /* end of testing */
-void ixxrender_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *node) {
+
+void render_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *node)
+{
 	struct X3D_Node *thistex = 0;
 	int count;
+	char *name = NULL;
+
+#if 1
+	/* Michel testing stuff, please ignore :) */
+	static int ft = 0;
+	if (ft == 0) {
+		/* name = X3DParser_getNameFromNode(X3D_NODE(node)); */ /* => will SIGSEGV */
+		/* name = parser_getNameFromNode(X3D_NODE(node));    */ /* => idem         */
+		DEBUG_MSG("render_ComposedCubeMapTexture: %p (%s) [%s]\n",
+			  (void*) node, name ? name : "<node>", stringNodeType(node->_nodeType));
+		ft = 1;
+	}
+#endif
 
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */

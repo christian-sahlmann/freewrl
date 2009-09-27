@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.14 2009/09/25 17:32:15 dug9 Exp $
+$Id: Component_Shape.c,v 1.15 2009/09/27 09:33:19 couannette Exp $
 
 X3D Shape Component
 
@@ -417,7 +417,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 	if((render_collision) || (render_sensitive)) {
 		/* only need to forward the call to the child */
-		POSSIBLE_PROTO_EXPANSION(node->geometry,tmpN)
+		POSSIBLE_PROTO_EXPANSION(node->geometry,tmpN);
 		render_node(tmpN);
 		return;
 	}
@@ -438,7 +438,7 @@ void child_Shape (struct X3D_Shape *node) {
 	/* assume that lighting is enabled. Absence of Material or Appearance
 	   node will turn lighting off; in this case, at the end of Shape, we
 	   have to turn lighting back on again. */
-	LIGHTING_ON
+	LIGHTING_ON;
 
 	/* if we have a very few samples, it means that:
 		- Occlusion culling is working on this system (default is -1)
@@ -449,38 +449,34 @@ void child_Shape (struct X3D_Shape *node) {
 
 	if (!OccFailed && (node->__Samples <=4)) {
 		/* draw this as a subdued grey */
-       			glColor3f(0.3,0.3,0.3);
+		glColor3f(0.3,0.3,0.3);
 
 		/* dont do any textures, or anything */
 		last_texture_type = NOTEXTURE;
 	} else {
 		/* is there an associated appearance node? */
-		RENDER_MATERIAL_SUBNODES(node->appearance)
+		RENDER_MATERIAL_SUBNODES(node->appearance);
 	}
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (render_blend == (node->_renderFlags & VF_Blend)) {
 
-		#ifdef SHAPEOCCLUSION
-		BEGINOCCLUSIONQUERY
-		#endif
-
-		POSSIBLE_PROTO_EXPANSION(node->geometry,tmpN)
-
-
+#ifdef SHAPEOCCLUSION
+		BEGINOCCLUSIONQUERY;
+#endif
+		POSSIBLE_PROTO_EXPANSION(node->geometry,tmpN);
 		render_node(tmpN);
 
-		#ifdef SHAPEOCCLUSION
-		ENDOCCLUSIONQUERY
-		#endif
-
+#ifdef SHAPEOCCLUSION
+		ENDOCCLUSIONQUERY;
+#endif
 	}
 
-       /* did the lack of an Appearance or Material node turn lighting off? */
-	LIGHTING_ON
+	/* did the lack of an Appearance or Material node turn lighting off? */
+	LIGHTING_ON;
 
 	/* any FillProperties? */
-	TURN_FILLPROPERTIES_SHADER_OFF
+	TURN_FILLPROPERTIES_SHADER_OFF;
 
 	if (linePropertySet) {
 		glDisable (GL_LINE_STIPPLE);
@@ -489,11 +485,7 @@ void child_Shape (struct X3D_Shape *node) {
 	}
 
 	/* any shader turned on? if so, turn it off */
-	TURN_APPEARANCE_SHADER_OFF
-
-	/* put texture specular light secondary color back to default single color state unconditionally */
-    glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,GL_SINGLE_COLOR);
-
+	TURN_APPEARANCE_SHADER_OFF;
 }
 
 
@@ -501,68 +493,66 @@ void child_Appearance (struct X3D_Appearance *node) {
 	void *tmpN;
 	struct X3D_Node *localShaderNode;
 	last_texture_type;  
-
+	
 	/* initialization */
 	last_texture_type = NOTEXTURE;
 	localShaderNode = NULL;
-
+	
 	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
-	 printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
-
+	   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	   render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
+	
 	/* shaders here/supported?? */
 	if (node->shaders.n !=0) {
 		int count;
 		int foundGoodShader = FALSE;
-
+		
 		for (count=0; count<node->shaders.n; count++) {
-			POSSIBLE_PROTO_EXPANSION(node->shaders.p[count], tmpN)
-
+			POSSIBLE_PROTO_EXPANSION(node->shaders.p[count], tmpN);
+			
 			/* have we found a valid shader yet? */
 			if (foundGoodShader) {
 				/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
 				/* yes, just tell other shaders that they are not selected */
-				SET_SHADER_SELECTED_FALSE(tmpN)
+				SET_SHADER_SELECTED_FALSE(tmpN);
 			} else {
 				/* render this node; if it is valid, then we call this one the selected one */
 				localShaderNode = tmpN;
-				SET_FOUND_GOOD_SHADER(localShaderNode)
+				SET_FOUND_GOOD_SHADER(localShaderNode);
 			}
 		}
 	}
-
+	
 	/* Render the material node... */
-	RENDER_MATERIAL_SUBNODES(node->material)
-
+	RENDER_MATERIAL_SUBNODES(node->material);
+	
 	if (node->fillProperties) {
-		POSSIBLE_PROTO_EXPANSION(node->fillProperties,tmpN)
+		POSSIBLE_PROTO_EXPANSION(node->fillProperties,tmpN);
 		render_node(tmpN);
 	}
-
+	
 	/* set line widths - if we have line a lineProperties node */
 	if (node->lineProperties) {
-		POSSIBLE_PROTO_EXPANSION(node->lineProperties,tmpN)
+		POSSIBLE_PROTO_EXPANSION(node->lineProperties,tmpN);
 		render_node(tmpN);
 	}
-
+	
 	if(node->texture) {
 		/* we have to do a glPush, then restore, later */
 		/* glPushAttrib(GL_ENABLE_BIT); */
-
+		
 		/* is there a TextureTransform? if no texture, fugutaboutit */
-		POSSIBLE_PROTO_EXPANSION(node->textureTransform,this_textureTransform)
-
+		POSSIBLE_PROTO_EXPANSION(node->textureTransform,this_textureTransform);
+		
 		/* now, render the texture */
-		POSSIBLE_PROTO_EXPANSION(node->texture,tmpN)
-		/* for textured appearance add specular highlights as a separate secondary color
-		   redbook p.270, p.455 and http://www.gamedev.net/reference/programming/features/oglch9excerpt/
-	    */
-		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL,GL_SEPARATE_SPECULAR_COLOR);
+		POSSIBLE_PROTO_EXPANSION(node->texture,tmpN);
+
 		render_node(tmpN);
 	}
 	/* shaders here/supported?? */
 	if (localShaderNode != NULL) {
-		/* printf ("running shader (%s) %d of %d\n",stringNodeType(X3D_NODE(localShaderNode)->_nodeType),count, node->shaders.n); */
+		DEBUG_SHADER("running shader (%s) %d of %d\n",
+			     stringNodeType(X3D_NODE(localShaderNode)->_nodeType),count, node->shaders.n);
 		render_node(localShaderNode);
 	}
 }

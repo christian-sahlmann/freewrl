@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.60 2009/09/16 22:48:24 couannette Exp $
+$Id: OpenGL_Utils.c,v 1.61 2009/09/27 09:33:19 couannette Exp $
 
 ???
 
@@ -493,10 +493,18 @@ void glpOpenGLInitialize() {
 
 	/* end of ALPHA test */
 	glEnable(GL_NORMALIZE);
-	LIGHTING_INITIALIZE
+	LIGHTING_INITIALIZE;
 
 	glEnable (GL_COLOR_MATERIAL);
 	glColorMaterial (GL_FRONT_AND_BACK, GL_DIFFUSE);
+
+	/* for textured appearance add specular highlights as a separate secondary color
+	   redbook p.270, p.455 and http://www.gamedev.net/reference/programming/features/oglch9excerpt/
+
+	   if we don't have texture we can disable this (less computation)...
+	   but putting this here is already a saving ;)...
+	*/
+	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 
 	/* keep track of light states; initial turn all lights off except for headlight */
 	for (i=0; i<8; i++) {
@@ -512,7 +520,7 @@ void glpOpenGLInitialize() {
         glLightfv(GL_LIGHT0+HEADLIGHT_LIGHT, GL_SPECULAR, shin);
 
 	/* ensure state of GL_CULL_FACE */
-	CULL_FACE_INITIALIZE
+	CULL_FACE_INITIALIZE;
 
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
