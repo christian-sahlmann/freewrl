@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.h,v 1.4 2009/05/06 20:35:46 crc_canada Exp $
+$Id: Component_Geospatial.h,v 1.5 2009/09/29 17:22:07 istakenv Exp $
 
 Proximity sensor macro.
 
@@ -154,5 +154,6 @@ void proximity_##type (struct X3D_##type *node) { \
 	*/ \
 } 
 
+int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **points, int *npoints);
 
 #endif /* __FREEWRL_SCENEGRAPH_GEOSPATIAL_H__ */

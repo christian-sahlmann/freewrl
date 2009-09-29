@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.c,v 1.25 2009/09/16 22:48:24 couannette Exp $
+$Id: fieldSet.c,v 1.26 2009/09/29 17:22:08 istakenv Exp $
 
 ???
 
@@ -23,6 +23,7 @@ $Id: fieldSet.c,v 1.25 2009/09/16 22:48:24 couannette Exp $
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../input/EAIHeaders.h"
+#include "../input/EAIHelpers.h"	/* resolving implicit declarations */
 #include "../x3d_parser/Bindable.h"
 
 #include "CScripts.h"

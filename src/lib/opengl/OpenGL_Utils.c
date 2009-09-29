@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.61 2009/09/27 09:33:19 couannette Exp $
+$Id: OpenGL_Utils.c,v 1.62 2009/09/29 17:22:07 istakenv Exp $
 
 ???
 
@@ -29,6 +29,8 @@ $Id: OpenGL_Utils.c,v 1.61 2009/09/27 09:33:19 couannette Exp $
 #include "../scenegraph/Viewer.h"
 #include "../scenegraph/sounds.h"
 #include "../scenegraph/LinearAlgebra.h"
+#include "../scenegraph/Component_KeyDevice.h"	/* resolving implicit declarations */
+#include "../input/EAIHeaders.h"		/* resolving implicit declarations */
 #include "../input/InputFunctions.h"
 #include "Frustum.h"
 #include "../opengl/Material.h"

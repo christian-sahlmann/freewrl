@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.52 2009/09/16 22:52:53 couannette Exp $
+$Id: MainLoop.c,v 1.53 2009/09/29 17:22:07 istakenv Exp $
 
 Main loop
 
@@ -31,6 +31,7 @@ Main loop
 #include "../x3d_parser/Bindable.h"
 #include "../input/EAIHeaders.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../scenegraph/Component_KeyDevice.h"	/* resolving implicit declarations */
 #include "../opengl/Frustum.h"
 #include "../input/InputFunctions.h"
 

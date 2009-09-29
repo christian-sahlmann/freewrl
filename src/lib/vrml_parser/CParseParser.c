@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.45 2009/09/16 22:48:24 couannette Exp $
+  $Id: CParseParser.c,v 1.46 2009/09/29 17:22:07 istakenv Exp $
 
   ???
 
@@ -22,6 +22,8 @@
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
+#include "../input/EAIHeaders.h"	/* resolving implicit declarations */
+#include "../input/EAIHelpers.h"	/* resolving implicit declarations */
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "CProto.h"

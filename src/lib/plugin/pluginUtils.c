@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: pluginUtils.c,v 1.9 2009/09/18 23:06:44 dug9 Exp $
+$Id: pluginUtils.c,v 1.10 2009/09/29 17:22:07 istakenv Exp $
 
 ???
 
@@ -16,6 +16,7 @@ $Id: pluginUtils.c,v 1.9 2009/09/18 23:06:44 dug9 Exp $
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../input/EAIHeaders.h"	/* for implicit declarations */
 
 #include "../x3d_parser/Bindable.h"
 
