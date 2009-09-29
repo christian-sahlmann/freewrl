@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\JS\js1.5\src;..\..\src\Lib;..\;..\..\lib\windows\pthreads\include;..\..\lib\windows\zlib\include;..\..\lib\windows\expat\source\lib;..\..\lib\windows\jpeg\include;..\..\lib\windows\freetype2\include;..\..\lib\windows\png\include;..\..\lib\windows\glew\include"
+				AdditionalIncludeDirectories="..\..\lib\windows\JS\js1.5\src;..\..\src\Lib;..\;..\..\lib\windows\pthreads.2;..\..\lib\windows\zlib\include;..\..\lib\windows\expat\source\lib;..\..\lib\windows\jpeg\include;..\..\lib\windows\freetype2\include;..\..\lib\windows\png\include;..\..\lib\windows\glew\include"
 				PreprocessorDefinitions="WIN32;GLEW;_CRT_SECURE_NO_WARNINGS;XP_WIN"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

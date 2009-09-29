@@ -5,8 +5,8 @@ http://www.microsoft.com/Express/vc/
 2. navigate your web browser to the download page from freewrl.sourceforge.net http://freewrl.sourceforge.net/download.html and download the Source Code tar and unzip
 3. download the msvc compatible libraries from
 http://cid-4a0d5f15141a58d5.skydrive.live.com/browse.aspx/GPUGroupX3D/freewrlWin32
-libAndJS_msvcCompat.zip
-unzip and put the lib, JS and Fonts directories in freewrl/freex3d
+lib_msvcCompat.zip
+unzip and put the lib and Fonts directories in freewrl/freex3d
 4. You should be able to build the Debug version of lib and standalone projects, except when you go to run it will complain about missing dlls.
 Go into the lib/windows/ directories and copy the dlls from the dlls_copy_to_debug directory and put in the projectfiles_vc9/Debug directory
 
@@ -28,7 +28,7 @@ MSVC compatible libraries - likely just recompiled gnu libs - where I got them:
 jpeg - OpenCV (book CD) try:  http://opencv.willowgarage.com/wiki/ and/or http://sourceforge.net/project/showfiles.php?group_id=22870 pre1.1 win
 MSopenGL - my windows system directories, for a msvc 6.0A directory (not sure what it was installed with. Just opengl 2.1)
 zlib - yafaray^ see below
-pthreads - yafaray
+pthreads - http://sourceware.org/pthreads-win32/
 png - yafaray
 openexr_static - yafaray
 libxml2 - yafaray
