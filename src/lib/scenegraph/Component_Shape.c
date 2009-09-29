@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.15 2009/09/27 09:33:19 couannette Exp $
+$Id: Component_Shape.c,v 1.16 2009/09/29 18:04:04 crc_canada Exp $
 
 X3D Shape Component
 
@@ -103,34 +103,57 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 	}
 }
 
-/* JAS - do FillProperties with shaders on OSX right now - Linux sometimes requires
-more defines for Shaders. This is JUST a test... */
 
-#ifndef TARGET_AQUA
-void render_FillProperties (struct X3D_FillProperties *node) {
-}
+/* FillProperties code. Use a Shader to do the filling. */
+
+#ifdef GL_VERSION_2_0
+	#define HAVE_SHADERS
+	#define VERTEX_SHADER GL_VERTEX_SHADER
+	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER
+	#define SHADER_SOURCE glShaderSource
+	#define COMPILE_SHADER glCompileShader
+	#define CREATE_PROGRAM glCreateProgram();
+	#define ATTACH_SHADER glAttachShader
+	#define LINK_SHADER glLinkProgram
+	#define USE_SHADER glUseProgram
+	#define CREATE_SHADER glCreateShader
+	#define GET_UNIFORM(aaa,bbb) glGetUniformLocation(aaa,bbb)
+	#define GLUNIFORM2F glUniform2f
+	#define GLUNIFORM1I glUniform1i
+	#define GLUNIFORM4F glUniform4f
 #else
+#ifdef GL_VERSION_1_5
+	#define HAVE_SHADERS
+	#define VERTEX_SHADER GL_VERTEX_SHADER_ARB
+	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER_ARB
+	#define SHADER_SOURCE glShaderSourceARB
+	#define COMPILE_SHADER glCompileShaderARB
+	#define CREATE_PROGRAM glCreateProgramObjectARB();
+	#define ATTACH_SHADER glAttachObjectARB
+	#define LINK_SHADER glLinkProgramARB
+	#define USE_SHADER  glUseProgramObjectARB
+	#define CREATE_SHADER glCreateShaderObjectARB
+	#define GET_UNIFORM(aaa,bbb) glGetUniformLocationARB(aaa,bbb)
+	#define GLUNIFORM2F GLUNIFORM2FARB
+	#define GLUNIFORM1I glUniform1iARB
+	#define GLUNIFORM4F glUniform4fARB
+#endif
+#endif
 
 static int fpshaderloaded = FALSE; 
 static GLint hatchColour;
 static GLint hatchPercent;
 static GLint filledBool;
 static GLint hatchedBool;
-
-	GLfloat hatchX;
-	GLfloat hatchY;
-	GLint algor, algorithm;
-	GLint hatched;
-	GLint filled;
-	
-/* 
-                filled => [SFBool, TRUE, inputOutput],
-                hatchColor => [SFColor, [1,1,1], inputOutput],
-                hatched => [SFBool, TRUE, inputOutput],
-                hatchStyle => [SFInt32, 1, inputOutput],
-*/
+static GLint algorithm;
 
 void render_FillProperties (struct X3D_FillProperties *node) {
+	GLfloat hatchX;
+	GLfloat hatchY;
+	GLint algor;
+	GLint hatched;
+	GLint filled;
+
 	if (!fpshaderloaded) {
 		const char *vs = "\
 			/* \n\
@@ -216,7 +239,7 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 				if (fract(position.y) > 0.5)  { \n\
         			    if (fract(position.x) < 0.5) position.x += curpos.y; \n\
         			    else position.x -= curpos.y; \n\
-				} else { \n\ 
+				} else { \n\
         			    if (fract(position.x) > 0.5) position.x += curpos.y; \n\
         			    else position.x -= curpos.y; \n\
 				} \n\
@@ -243,51 +266,51 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 		#endif
 
 
-		v = glCreateShader(GL_VERTEX_SHADER);
-		f = glCreateShader(GL_FRAGMENT_SHADER);	
+		v = CREATE_SHADER(GL_VERTEX_SHADER);
+		f = CREATE_SHADER(GL_FRAGMENT_SHADER);	
 	
 		#ifdef FILLVERBOSE
 			printf ("assigning shader source\n");
 		#endif
 
 
-		glShaderSource(v, 1, &vs,NULL);
-		glShaderSource(f, 1, &fs,NULL);
+		SHADER_SOURCE(v, 1, &vs,NULL);
+		SHADER_SOURCE(f, 1, &fs,NULL);
 	
 		#ifdef FILLVERBOSE
 			printf ("compiling shaders\n");
 		#endif
 
 
-		glCompileShader(v);
-		glCompileShader(f);
+		COMPILE_SHADER(v);
+		COMPILE_SHADER(f);
 	
 
 		#ifdef FILLVERBOSE
 			printf ("creating program and attaching\n");
 		#endif
 
-		fillpropCurrentShader = glCreateProgram();
+		fillpropCurrentShader = CREATE_PROGRAM;
 		
-		glAttachShader(fillpropCurrentShader,v);
-		glAttachShader(fillpropCurrentShader,f);
+		ATTACH_SHADER(fillpropCurrentShader,v);
+		ATTACH_SHADER(fillpropCurrentShader,f);
 	
 		#ifdef FILLVERBOSE
 			printf ("linking program\n");
 		#endif
 
 
-		glLinkProgram(fillpropCurrentShader);
+		LINK_SHADER(fillpropCurrentShader);
 
 		#ifdef FILLVERBOSE
 			printf ("getting shader vars\n");
 		#endif
 
-		hatchColour = glGetUniformLocation(fillpropCurrentShader,"HatchColour");
-		hatchPercent = glGetUniformLocation(fillpropCurrentShader,"HatchPct");
-		filledBool = glGetUniformLocation(fillpropCurrentShader,"filled");
-		hatchedBool = glGetUniformLocation(fillpropCurrentShader,"hatched");
-		algorithm = glGetUniformLocation(fillpropCurrentShader,"algorithm");
+		hatchColour = GET_UNIFORM(fillpropCurrentShader,"HatchColour");
+		hatchPercent = GET_UNIFORM(fillpropCurrentShader,"HatchPct");
+		filledBool = GET_UNIFORM(fillpropCurrentShader,"filled");
+		hatchedBool = GET_UNIFORM(fillpropCurrentShader,"hatched");
+		algorithm = GET_UNIFORM(fillpropCurrentShader,"algorithm");
 		#ifdef FILLVERBOSE
 			printf ("hatchColour %d hatchPercent %d filledbool %d hatchedbool %d algor %d\n",hatchColour,hatchPercent,filledBool,hatchedBool,algor);
 		#endif
@@ -295,7 +318,7 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 
 		fpshaderloaded = TRUE;
 	}
-	glUseProgram(fillpropCurrentShader);
+	USE_SHADER(fillpropCurrentShader);
 
 
 	hatchX = 0.80; hatchY = 0.80;
@@ -312,17 +335,14 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 			node->hatched = FALSE;
 		}
 	}
-	glUniform2f(hatchPercent,hatchX, hatchY);
-	glUniform1i(filledBool,filled);
-	glUniform1i(hatchedBool,hatched);
-	glUniform1i(algorithm,algor);
-	glUniform4f(hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0);
-
-	
-	
+	GLUNIFORM2F(hatchPercent,hatchX, hatchY);
+	GLUNIFORM1I(filledBool,filled);
+	GLUNIFORM1I(hatchedBool,hatched);
+	GLUNIFORM1I(algorithm,algor);
+	GLUNIFORM4F(hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0);
 }
 
-#endif
+
 
 
 #define DO_MAT(diffusec,emissc,shinc,ambc,specc,transc) \
@@ -492,7 +512,6 @@ void child_Shape (struct X3D_Shape *node) {
 void child_Appearance (struct X3D_Appearance *node) {
 	void *tmpN;
 	struct X3D_Node *localShaderNode;
-	last_texture_type;  
 	
 	/* initialization */
 	last_texture_type = NOTEXTURE;
