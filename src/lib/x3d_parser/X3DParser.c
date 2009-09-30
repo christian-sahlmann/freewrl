@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.45 2009/09/29 17:22:08 istakenv Exp $
+$Id: X3DParser.c,v 1.46 2009/09/30 20:08:49 crc_canada Exp $
 
 ???
 
@@ -1230,10 +1230,10 @@ static void parseAttributes(void) {
 	struct X3D_Node *thisNode;
 
 	thisNode = parentStack[parentIndex];
-	/* printf  ("parseAttributes..level %d for node type %s\n",parentIndex,stringNodeType(thisNode->_nodeType)); */
+	/* printf  ("parseAttributes..level %d for node type %s\n",parentIndex,stringNodeType(thisNode->_nodeType));  */
 	for (ind=0; ind<vector_size(childAttributes[parentIndex]); ind++) {
 		nvp = vector_get(struct nameValuePairs*, childAttributes[parentIndex],ind);
-		/* printf ("	nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue); */
+		/* printf ("	nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue);  */
 
 		/* see if we have a containerField here */
 		if (strcmp("containerField",nvp->fieldName)==0) {
@@ -1261,7 +1261,7 @@ static void parseAttributes(void) {
 					/* this is a Shader/Script, look through the parameters and see if there is a replacement for value */
 					rv = getRoutingInfo (myLexer, thisNode, &offs, &type, &accessType, &myObj, nvp->fieldName,0);
 					/* printf ("parseAttributes, for fieldName %s value %s have offs %d type %d accessType %d rv %d\n",
-nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv);  */
+nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv); */
 
 
 					/* found the name, if the offset is not INT_ID_UNDEFINED */
@@ -1283,7 +1283,7 @@ nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv);  */
 						                if (nvp->fieldValue== NULL) {
                         					ConsoleMessage ("PROTO connect field, an initializeOnly or inputOut needs an initialValue for name %s",nvp->fieldName);
                 						} else {
-									printf ("have to parse fieldValue :%s: and place it into my value\n",nvp->fieldValue); 
+									/* printf ("have to parse fieldValue :%s: and place it into my value\n",nvp->fieldValue);  */
 									Parser_scanStringValueToMem(X3D_NODE(&(thisEntry->value)), 0, 
 										thisEntry->type, nvp->fieldValue, TRUE);
 								}
@@ -1292,7 +1292,12 @@ nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv);  */
 							}
 							thisEntry=thisEntry->next;
 						}
+					} else {
+						/* some fields, eg "PackagedShader language field" or any other field that is not a field,
+						   is just a normal field as defined in the spec, so make it so */
+						setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 					}
+		
 
 				}
 				break;
@@ -1420,7 +1425,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 
 	myNodeIndex = findFieldInNODES(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
-		DEBUG_X3DPARSER ("endElement - normalNode :%s:\n",name);
+		/* printf ("endElement - normalNode :%s:\n",name); */
 		switch (myNodeIndex) {
 			case NODE_Script: initScriptWithScript(); break;
 			default: linkNodeIn(__FILE__,__LINE__);

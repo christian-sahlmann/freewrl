@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.32 2009/09/11 19:42:35 crc_canada Exp $
+$Id: CRoutes.c,v 1.33 2009/09/30 20:08:49 crc_canada Exp $
 
 ???
 
@@ -28,10 +28,12 @@ $Id: CRoutes.c,v 1.32 2009/09/11 19:42:35 crc_canada Exp $
 #include "../world_script/jsUtils.h"
 #include "../world_script/jsNative.h"
 #include "../input/SensInterps.h"
+#include "../scenegraph/Component_ProgrammableShaders.h"
 
 #include "CRoutes.h"
 
 static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, int multitype);
+static void sendScriptEventIn(uintptr_t num);
 
 /* defines for getting touched flags and exact Javascript pointers */
 
@@ -824,9 +826,22 @@ void CRoutes_RegisterSimple(
 	int dir = 0;
 	
 	/* get direction flags here */
-	if (from->_nodeType == NODE_Script) dir  = dir | FROM_SCRIPT;
-	if (to->_nodeType == NODE_Script) dir  = dir | TO_SCRIPT;
-
+	switch (from->_nodeType) {
+		case NODE_Script:
+		case NODE_ComposedShader:
+		case NODE_PackagedShader:
+		case NODE_ShaderProgram: 
+			dir  = dir | FROM_SCRIPT; break;
+		default: {}
+	}
+	switch (to->_nodeType) {
+		case NODE_Script:
+		case NODE_ComposedShader:
+		case NODE_PackagedShader:
+		case NODE_ShaderProgram: 
+			dir  = dir | TO_SCRIPT; break;
+		default: {}
+	}
 
 	/* check to ensure that we are not doing with a StaticGroup here */
 	if (dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT) {
@@ -1425,9 +1440,8 @@ static void gatherScriptEventOuts(void) {
 }
 
 
-
 /* we have a Script/Shader at routing table element %d, send events to it */
-void sendScriptEventIn(uintptr_t num) {
+static void sendScriptEventIn(uintptr_t num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
@@ -1446,26 +1460,29 @@ void sendScriptEventIn(uintptr_t num) {
 		for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 			struct Shader_Script *myObj;
 			to_ptr = &(CRoutes[num].tonodes[to_counter]);
-			/*printf ("to_ptr->routeNode type = %s\n",stringNodeType(X3D_NODE(to_ptr->routeToNode)->_nodeType)); */
 
-			myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
 			#ifdef CRVERBOSE
 			printf ("myScriptNumber is %d\n",myObj->num);
 			#endif
 
 
-			/* this script initialized yet? We make sure that on initialization that the Parse Thread
-			   does the initialization, once it is finished parsing. */
-			if (ScriptControl[myObj->num]._initialized!=TRUE) {
-				/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
-				return;
+			if (to_ptr->routeToNode->_nodeType == NODE_Script) {
+				/* this script initialized yet? We make sure that on initialization that the Parse Thread
+				   does the initialization, once it is finished parsing. */
+				if (ScriptControl[myObj->num]._initialized!=TRUE) {
+					/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
+					return;
+				}
+
+				/* get the value from the VRML structure, in order to propagate it to a script */
+				myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
+
+				/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
+				mark_script(myObj->num);
+				getField_ToJavascript(num,to_ptr->foffset);
+			} else {
+				getField_ToShader(num);
 			}
-
-			/* get the value from the VRML structure, in order to propagate it to a script */
-
-			/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
-			mark_script(myObj->num);
-			getField_ToJavascript(num,to_ptr->foffset);
 		}
 	} else {
 		#ifdef CRVERBOSE 

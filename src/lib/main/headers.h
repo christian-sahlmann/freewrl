@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.74 2009/09/16 19:08:24 crc_canada Exp $
+$Id: headers.h,v 1.75 2009/09/30 20:08:49 crc_canada Exp $
 
 Global includes.
 
@@ -712,7 +712,6 @@ void propagate_events(void);
 int getRoutesCount(void);
 void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset, 
                 uintptr_t *toNode, int *toOffset);
-void sendScriptEventIn(uintptr_t num);
 void getField_ToJavascript (int num, int fromoffset);
 void add_first(struct X3D_Node * node);
 void registerTexture(struct X3D_Node * node);

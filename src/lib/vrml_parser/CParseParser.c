@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.46 2009/09/29 17:22:07 istakenv Exp $
+  $Id: CParseParser.c,v 1.47 2009/09/30 20:08:49 crc_canada Exp $
 
   ???
 
@@ -1219,47 +1219,53 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
   } \
   \
   /* Field, user/built-in depending on whether node is a Script instance */ \
-  if(!(pre##Node->_nodeType == NODE_Script)) { \
-   /* This is a builtin DEFed node.  */ \
-   /* Look for the next token (field of the DEFed node) in the builtin EVENT_IN/EVENT_OUT or EXPOSED_FIELD arrays */ \
-   if(!lexer_##eventType(me->lexer, pre##Node, \
-    &pre##FieldO, &pre##FieldE, NULL, NULL))  {\
-        /* event not found in any built in array.  Error. */ \
-        CPARSE_ERROR_CURID("ERROR:Expected built-in event " #eventType " after .") \
-        PARSER_FINALLY;  \
-        return FALSE;  \
-    } \
-  } else \
-  { \
-   /* SCRIPT - This is a user defined node type */ \
-   /* Look for the next token (field of the DEFed node) in the user_inputOnly/user_outputOnly, user_inputOutput arrays */ \
-   if(lexer_##eventType(me->lexer, pre##Node, \
-    NULL, NULL, &pre##UFieldO, &pre##UFieldE)) \
-   { \
-    if(pre##UFieldO!=ID_UNDEFINED) \
-    { \
-     /* We found the event in user_inputOnly or Out */ \
-      /* If this is a Script get the scriptFieldDecl for this event */ \
-      pre##ScriptField=script_getField(X3D_SCRIPT(pre##Node)->__scriptObj, pre##UFieldO, \
-       PKW_##eventType); \
-    } else \
-    { \
-     /* We found the event in user_inputOutput */ \
-      /* If this is a Script get the scriptFieldDecl for this event */ \
-      pre##ScriptField=script_getField(X3D_SCRIPT(pre##Node)->__scriptObj, pre##UFieldE, \
-       PKW_inputOutput); \
-    } \
-    if(pre##Node->_nodeType==NODE_Script && !pre##ScriptField) \
-     PARSE_ERROR("Event-field invalid for this PROTO/Script!") \
-   } else \
-    PARSE_ERROR("Expected an event of type :" #eventType ": ") \
-  } \
-  /* Process script routing */ \
-  if(pre##Node->_nodeType == NODE_Script) \
-  { \
-   ASSERT(pre##ScriptField); \
-   pre##Ofs=scriptFieldDecl_getRoutingOffset(pre##ScriptField); \
-  } 
+	switch (pre##Node->_nodeType) { \
+		case NODE_Script: \
+		case NODE_ComposedShader: \
+		case NODE_ShaderProgram : \
+		case NODE_PackagedShader: \
+   			/* SCRIPT - This is a user defined node type */ \
+   			/* Look for the next token (field of the DEFed node) in the user_inputOnly/user_outputOnly, user_inputOutput arrays */ \
+   			if(lexer_##eventType(me->lexer, pre##Node, NULL, NULL, &pre##UFieldO, &pre##UFieldE)) { \
+    				if(pre##UFieldO!=ID_UNDEFINED) { \
+     					/* We found the event in user_inputOnly or Out */ \
+      					/* If this is a Script get the scriptFieldDecl for this event */ \
+					switch (pre##Node->_nodeType) { \
+      					case NODE_Script: pre##ScriptField=script_getField(X3D_SCRIPT(pre##Node)->__scriptObj, pre##UFieldO, PKW_##eventType); break;\
+      					case NODE_ComposedShader: pre##ScriptField=script_getField(X3D_COMPOSEDSHADER(pre##Node)->__shaderObj, pre##UFieldO, PKW_##eventType); break;\
+      					case NODE_ShaderProgram: pre##ScriptField=script_getField(X3D_SHADERPROGRAM(pre##Node)->__shaderObj, pre##UFieldO, PKW_##eventType); break;\
+      					case NODE_PackagedShader: pre##ScriptField=script_getField(X3D_PACKAGEDSHADER(pre##Node)->__shaderObj, pre##UFieldO, PKW_##eventType); break;\
+					} \
+    				} else { \
+    	 				/* We found the event in user_inputOutput */ \
+      					/* If this is a Script get the scriptFieldDecl for this event */ \
+					switch (pre##Node->_nodeType) { \
+      					case NODE_Script: pre##ScriptField=script_getField(X3D_SCRIPT(pre##Node)->__scriptObj, pre##UFieldE, PKW_inputOutput); break; \
+      					case NODE_ComposedShader: pre##ScriptField=script_getField(X3D_COMPOSEDSHADER(pre##Node)->__shaderObj, pre##UFieldE, PKW_inputOutput); break; \
+      					case NODE_ShaderProgram: pre##ScriptField=script_getField(X3D_SHADERPROGRAM(pre##Node)->__shaderObj, pre##UFieldE, PKW_inputOutput); break; \
+      					case NODE_PackagedShader: pre##ScriptField=script_getField(X3D_PACKAGEDSHADER(pre##Node)->__shaderObj, pre##UFieldE, PKW_inputOutput); break; \
+					} \
+    				} \
+    				if(pre##Node->_nodeType==NODE_Script && !pre##ScriptField) \
+     					PARSE_ERROR("Event-field invalid for this PROTO/Script!") \
+   			} else { \
+    				PARSE_ERROR("Expected an event of type :" #eventType ": ") \
+  			} \
+   			ASSERT(pre##ScriptField); \
+   			pre##Ofs=scriptFieldDecl_getRoutingOffset(pre##ScriptField); \
+		break; \
+\
+		default: \
+\
+   		/* This is a builtin DEFed node.  */ \
+   		/* Look for the next token (field of the DEFed node) in the builtin EVENT_IN/EVENT_OUT or EXPOSED_FIELD arrays */ \
+   		if(!lexer_##eventType(me->lexer, pre##Node, &pre##FieldO, &pre##FieldE, NULL, NULL))  {\
+        		/* event not found in any built in array.  Error. */ \
+        		CPARSE_ERROR_CURID("ERROR:Expected built-in event " #eventType " after .") \
+        		PARSER_FINALLY;  \
+        		return FALSE;  \
+    		} \
+	} /* end of case */ 
 
 
 
@@ -2596,7 +2602,7 @@ static BOOL parser_sfint32Value_(struct VRMLParser* me, void* ret)
 
 
 static BOOL set_X3Dstring(struct VRMLLexer* me, vrmlStringT* ret) {
-    /* printf ("lexer_X3DString, setting string to be :%s:\n",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]); */
+    /* printf ("lexer_X3DString, setting string to be :%s:\n",me->startOfStringPtr[me->lexerInputLevel]); */
     *ret=newASCIIString((char *)me->startOfStringPtr[me->lexerInputLevel]);
     return TRUE;
 }
