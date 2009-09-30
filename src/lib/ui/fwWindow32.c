@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: fwWindow32.c,v 1.5 2009/09/16 23:17:36 dug9 Exp $
+  $Id: fwWindow32.c,v 1.6 2009/09/30 17:27:09 dug9 Exp $
 
   FreeWRL main window : win32 code.
 
@@ -593,17 +593,18 @@ LRESULT CALLBACK PopupWndProc(
 	doQuit();
 	break; 
 
+	/*
 	case WM_SETCURSOR: 
- 
-    // If the window is minimized, draw the hCurs3 cursor. 
-    // If the window is not minimized, draw the default 
-    // cursor (class cursor). 
- 
+	break;
     if(sensor_cursor) 
-        SetCursor(hSensor); 
+	{
+        SetCursor(hSensor);
+		break;
+	}
     else
 		SetCursor(hArrow);
     break; 
+	*/
 
 /**************************************************************\
  *     WM_PAINT:                                                *
@@ -905,9 +906,12 @@ http://msdn.microsoft.com/en-us/library/ms648380(VS.85).aspx
 http://msdn.microsoft.com/en-us/library/ms648393(VS.85).aspx
 http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx 
 	*/
+	if( sensor_cursor )
+		SetCursor(hArrow);
 	sensor_cursor = 0;
 }
 void sensor_cursor32()
 {
 	sensor_cursor = 1;
+    SetCursor(hSensor);
 }
