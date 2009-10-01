@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: options.c,v 1.17 2009/08/19 04:07:34 dug9 Exp $
+  $Id: options.c,v 1.18 2009/10/01 14:00:51 istakenv Exp $
 
   FreeWRL command line arguments.
 
@@ -346,7 +346,7 @@ int parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'k': /* --instance, required argument: number */
-	    sscanf(optarg,"%u",(unsigned int *)&_fw_instance);
+	    sscanf(optarg,"%u",(unsigned int *)(void *)(&_fw_instance));
 	    break;
 
 #ifdef HAVE_LIBCURL
