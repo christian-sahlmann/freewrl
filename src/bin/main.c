@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: main.c,v 1.17 2009/10/01 19:35:36 crc_canada Exp $
+$Id: main.c,v 1.18 2009/10/02 20:53:41 dug9 Exp $
 
 FreeWRL main program.
 
@@ -114,7 +114,11 @@ int main (int argc, char **argv)
 	if (checkNetworkFile(argv[optind])) {
 	    setFullPath(argv[optind]);
 	} else {
+#ifdef _MSC_VER
+		strcpy(initialFilename,argv[optind]);
+#else
 	    makeAbsoluteFileName(initialFilename, pwd, argv[optind]);
+#endif
 	    setFullPath(initialFilename);
 	}
 	free(initialFilename);
