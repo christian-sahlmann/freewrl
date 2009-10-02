@@ -27,7 +27,7 @@
 /* 
 =INSERT_TEMPLATE_HERE= 
  
-: VRMLC.pm,v 1.22 2009/09/16 22:48:24 couannette Exp n 
+: VRMLC.pm,v 1.23 2009/10/01 19:35:36 crc_canada Exp n 
 ??? 
  
 */ 
@@ -86,6 +86,7 @@ void render_ray_polyrep(void *node);
 	"__child4Node",
 	"stripCount",
 	"groundColor",
+	"__diffuseColor",
 	"previous",
 	"direction",
 	"maxPosition",
@@ -104,6 +105,7 @@ void render_ray_polyrep(void *node);
 	"__localFileName",
 	"backAmbientIntensity",
 	"exitTime",
+	"__emissiveColor",
 	"joints",
 	"_oldhitNormal",
 	"deletionAllowed",
@@ -114,6 +116,7 @@ void render_ray_polyrep(void *node);
 	"skeleton",
 	"_oldhitPoint",
 	"type",
+	"__shininess",
 	"creaseAngle",
 	"triggerTime",
 	"displacers",
@@ -206,6 +209,7 @@ void render_ray_polyrep(void *node);
 	"collide",
 	"specularColor",
 	"transitionTime",
+	"__specularColor",
 	"_oldintValue",
 	"color",
 	"deviceMinVal",
@@ -338,6 +342,7 @@ void render_ray_polyrep(void *node);
 	"normalPerVertex",
 	"topTexture",
 	"position_changed",
+	"__ambientIntensity",
 	"_initialized",
 	"__hit",
 	"maxBack",
@@ -829,8 +834,8 @@ const indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"backEmissiveColor",
 	"transparency",
 	"textureTransform",
-	"viewpoints",
 	"height",
+	"viewpoints",
 	"right",
 	"index",
 	"length",
@@ -1772,7 +1777,8 @@ struct X3D_Virt virt_LoadSensor = { NULL,(void *)render_LoadSensor,NULL,NULL,NUL
 struct X3D_Virt virt_LocalFog = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_Material(struct X3D_Material *);
-struct X3D_Virt virt_Material = { NULL,(void *)render_Material,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_Material(struct X3D_Material *);
+struct X3D_Virt virt_Material = { NULL,(void *)render_Material,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Material};
 
 struct X3D_Virt virt_Matrix3VertexAttribute = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -3220,9 +3226,15 @@ const int OFFSETS_LocalFog[] = {
 const int OFFSETS_Material[] = {
 	FIELDNAMES_transparency, offsetof (struct X3D_Material, transparency),  FIELDTYPE_SFFloat, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_specularColor, offsetof (struct X3D_Material, specularColor),  FIELDTYPE_SFColor, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___shininess, offsetof (struct X3D_Material, __shininess),  FIELDTYPE_SFFloat, KW_inputOutput,0,
 	FIELDNAMES_shininess, offsetof (struct X3D_Material, shininess),  FIELDTYPE_SFFloat, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_diffuseColor, offsetof (struct X3D_Material, diffuseColor),  FIELDTYPE_SFColor, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___specularColor, offsetof (struct X3D_Material, __specularColor),  FIELDTYPE_SFColor, KW_inputOutput,0,
+	FIELDNAMES___transparency, offsetof (struct X3D_Material, __transparency),  FIELDTYPE_SFFloat, KW_inputOutput,0,
 	FIELDNAMES_ambientIntensity, offsetof (struct X3D_Material, ambientIntensity),  FIELDTYPE_SFFloat, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	FIELDNAMES___ambientIntensity, offsetof (struct X3D_Material, __ambientIntensity),  FIELDTYPE_SFFloat, KW_inputOutput,0,
+	FIELDNAMES___diffuseColor, offsetof (struct X3D_Material, __diffuseColor),  FIELDTYPE_SFColor, KW_inputOutput,0,
+	FIELDNAMES___emissiveColor, offsetof (struct X3D_Material, __emissiveColor),  FIELDTYPE_SFColor, KW_inputOutput,0,
 	FIELDNAMES_emissiveColor, offsetof (struct X3D_Material, emissiveColor),  FIELDTYPE_SFColor, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_metadata, offsetof (struct X3D_Material, metadata),  FIELDTYPE_SFNode, KW_inputOutput,(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES___oldmetadata, offsetof (struct X3D_Material, __oldmetadata),  FIELDTYPE_SFNode, KW_inputOutput,0,
@@ -6587,9 +6599,15 @@ void *createNewX3DNode (int nt) {
 			tmp2->v = &virt_Material;
 			tmp2->transparency = 0;
 			tmp2->specularColor.c[0] = 0;tmp2->specularColor.c[1] = 0;tmp2->specularColor.c[2] = 0;;
+			tmp2->__shininess = 0.2;
 			tmp2->shininess = 0.2;
 			tmp2->diffuseColor.c[0] = 0.8;tmp2->diffuseColor.c[1] = 0.8;tmp2->diffuseColor.c[2] = 0.8;;
+			tmp2->__specularColor.c[0] = 0;tmp2->__specularColor.c[1] = 0;tmp2->__specularColor.c[2] = 0;;
+			tmp2->__transparency = 0;
 			tmp2->ambientIntensity = 0.2;
+			tmp2->__ambientIntensity = 0.2;
+			tmp2->__diffuseColor.c[0] = 0.8;tmp2->__diffuseColor.c[1] = 0.8;tmp2->__diffuseColor.c[2] = 0.8;;
+			tmp2->__emissiveColor.c[0] = 0;tmp2->__emissiveColor.c[1] = 0;tmp2->__emissiveColor.c[2] = 0;;
 			tmp2->emissiveColor.c[0] = 0;tmp2->emissiveColor.c[1] = 0;tmp2->emissiveColor.c[2] = 0;;
 			tmp2->metadata = NULL;
 			tmp2->__oldmetadata = 0;
@@ -9515,11 +9533,23 @@ void dump_scene (int level, struct X3D_Node* node) {
 			spacer printf ("\tspecularColor (SFColor): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->specularColor.c[i]); }
 			printf ("\n");
+			spacer printf ("\t__shininess (SFFloat) \t%4.3f\n",tmp->__shininess);
 			spacer printf ("\tshininess (SFFloat) \t%4.3f\n",tmp->shininess);
 			spacer printf ("\tdiffuseColor (SFColor): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->diffuseColor.c[i]); }
 			printf ("\n");
+			spacer printf ("\t__specularColor (SFColor): \t");
+			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->__specularColor.c[i]); }
+			printf ("\n");
+			spacer printf ("\t__transparency (SFFloat) \t%4.3f\n",tmp->__transparency);
 			spacer printf ("\tambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
+			spacer printf ("\t__ambientIntensity (SFFloat) \t%4.3f\n",tmp->__ambientIntensity);
+			spacer printf ("\t__diffuseColor (SFColor): \t");
+			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->__diffuseColor.c[i]); }
+			printf ("\n");
+			spacer printf ("\t__emissiveColor (SFColor): \t");
+			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->__emissiveColor.c[i]); }
+			printf ("\n");
 			spacer printf ("\temissiveColor (SFColor): \t");
 			for (i=0; i<3; i++) { printf ("%4.3f  ",tmp->emissiveColor.c[i]); }
 			printf ("\n");

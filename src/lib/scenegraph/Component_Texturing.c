@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.6 2009/10/01 19:35:36 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.7 2009/10/02 21:34:53 crc_canada Exp $
 
 X3D Texturing Component
 
@@ -38,6 +38,7 @@ X3D Texturing Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../scenegraph/Component_Shape.h"
 
 
 /* verify the TextureCoordinateGenerator node - if the params are ok, then the internal
@@ -166,7 +167,7 @@ void render_PixelTexture (struct X3D_PixelTexture *node) {
 }
 
 void render_ImageTexture (struct X3D_ImageTexture *node) {
-	/* printf ("render_ImageTexture, global Transparency %f\n",global_transparency); */
+	/* printf ("render_ImageTexture, global Transparency %f\n",appearanceProperties.transparency); */
 	loadTextureNode(X3D_NODE(node),NULL);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 }

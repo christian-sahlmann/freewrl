@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.27 2009/09/16 22:48:24 couannette Exp $
+# $Id: Makefile.sources,v 1.28 2009/10/02 21:34:52 crc_canada Exp $
 #
 # List all source files
 #
@@ -123,6 +123,7 @@ scenegraph/Component_CubeMapTexturing.c \
 scenegraph/Component_CubeMapTexturing.h \
 scenegraph/Component_HAnim.c \
 scenegraph/Vector.c \
+scenegraph/Component_Shape.h \
 scenegraph/Component_Shape.c \
 scenegraph/Component_Navigation.c \
 scenegraph/readpng.h \

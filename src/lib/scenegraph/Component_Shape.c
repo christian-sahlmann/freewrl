@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.17 2009/10/01 19:35:36 crc_canada Exp $
+$Id: Component_Shape.c,v 1.18 2009/10/02 21:34:53 crc_canada Exp $
 
 X3D Shape Component
 
@@ -41,12 +41,12 @@ X3D Shape Component
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
 #include "Component_ProgrammableShaders.h"
+#include "Component_Shape.h"
 
 
 static int     linePropertySet;  /* line properties -width, etc                  */
 
-
-float global_transparency = 1.0;
+struct matpropstruct appearanceProperties;
 
 /* this is for the FillProperties node */
 static GLuint fillpropCurrentShader = 0;
@@ -379,7 +379,7 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 		\
 	if (trans<0.0) trans = 0.0;		\
 	if (trans>=0.999999) trans = 0.9999999;		\
-	global_transparency = trans;		\
+	appearanceProperties.transparency = trans;		\
 		\
 	dcol[3] = trans;		\
 	scol[3] = trans;		\
@@ -430,8 +430,32 @@ void render_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 	DO_MAT(diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
 	
 	/* remember this one */
-	global_transparency = trans;
+	appearanceProperties.transparency = trans;
 }
+
+
+void compile_Material (struct X3D_Material *node) {
+
+#ifdef wrwerwer
+
+                ambientIntensity => [SFFloat, 0.2, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                diffuseColor => [SFColor, [0.8, 0.8, 0.8], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                emissiveColor => [SFColor, [0, 0, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                shininess => [SFFloat, 0.2, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                specularColor => [SFColor, [0, 0, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                transparency => [SFFloat, 0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                __ambientIntensity => [SFFloat, 0.2, inputOutput, 0],
+                __diffuseColor => [SFColor, [0.8, 0.8, 0.8], inputOutput, 0],
+                __emissiveColor => [SFColor, [0, 0, 0], inputOutput, 0],
+                __shininess => [SFFloat, 0.2, inputOutput, 0],
+                __specularColor => [SFColor, [0, 0, 0], inputOutput, 0],
+                __transparency => [SFFloat, 0, inputOutput, 0],
+
+#endif
+	MARK_NODE_COMPILED
+}
+
 
 void render_Material (struct X3D_Material *node) {
 	int i;
@@ -443,10 +467,12 @@ void render_Material (struct X3D_Material *node) {
 
 	#define whichFace GL_FRONT_AND_BACK
 
+	COMPILE_IF_REQUIRED
+
 	DO_MAT(diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
 	
 	/* remember this one */
-	global_transparency = trans;
+	appearanceProperties.transparency = trans;
 }
 
 
@@ -454,6 +480,7 @@ void child_Shape (struct X3D_Shape *node) {
 	void *tmpN;
 
 	if(!(node->geometry)) { return; }
+
 
 	RECORD_DISTANCE
 
@@ -464,10 +491,11 @@ void child_Shape (struct X3D_Shape *node) {
 		return;
 	}
 
+	/* set up Appearance Properties here */
 	/* reset textureTransform pointer */
 	this_textureTransform = NULL;
 	linePropertySet=FALSE;
-	global_transparency = 0.0;
+	appearanceProperties.transparency = 0.0;
 
 
 	/* JAS - if not collision, and render_geom is not set, no need to go further */

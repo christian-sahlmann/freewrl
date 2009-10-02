@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.17 2009/10/01 19:35:36 crc_canada Exp $
+$Id: RenderTextures.c,v 1.18 2009/10/02 21:34:53 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -39,6 +39,7 @@ texture enabling - works for single texture, for multitexture.
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../scenegraph/Component_Shape.h"
 
 #include "OpenGL_Utils.h"
 #include "Textures.h"
@@ -286,7 +287,7 @@ static void passedInGenTex(GLfloat *genTex) {
 	for (c=0; c<texture_count; c++) {
 		/* are we ok with this texture yet? */
 		if (bound_textures[c]!=0) {
-			if (setActiveTexture(c,global_transparency)) {
+			if (setActiveTexture(c,appearanceProperties.transparency)) {
         			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 				glTexCoordPointer (2,GL_FLOAT,0,genTex);
@@ -312,7 +313,7 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 		/* are we ok with this texture yet? */
 		/* printf ("haveTexCoord, bound_textures[c] = %d\n",bound_textures[c]); */
 		if (bound_textures[c] !=0) {
-			if (setActiveTexture(c,global_transparency)) {
+			if (setActiveTexture(c,appearanceProperties.transparency)) {
 	       			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 				glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
@@ -346,7 +347,7 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 				render_node (X3D_NODE(myTCnode));
 				/* are we ok with this texture yet? */
 				if (bound_textures[c] != 0) {
-					if (setActiveTexture(c,global_transparency)) {
+					if (setActiveTexture(c,appearanceProperties.transparency)) {
         					if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 						glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 						glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
@@ -365,7 +366,7 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 		}
 		/* are we ok with this texture yet? */
 		if (bound_textures[c] != 0) {
-			if (setActiveTexture(c,global_transparency)) {
+			if (setActiveTexture(c,appearanceProperties.transparency)) {
         			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
@@ -393,7 +394,7 @@ static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode) {
 		render_node ((void *)myTCnode);
 		/* are we ok with this texture yet? */
 		if (bound_textures[c] != 0) {
-			if (setActiveTexture(c,global_transparency)) {
+			if (setActiveTexture(c,appearanceProperties.transparency)) {
 	       			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 

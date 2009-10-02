@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.13 2009/10/01 19:35:36 crc_canada Exp $
+$Id: Polyrep.c,v 1.14 2009/10/02 21:34:53 crc_canada Exp $
 
 ???
 
@@ -39,6 +39,7 @@ $Id: Polyrep.c,v 1.13 2009/10/01 19:35:36 crc_canada Exp $
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
+#include "../scenegraph/Component_Shape.h"
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
@@ -58,7 +59,7 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 	float *op, *np;
 
 	/* first, make sure we do not do this over and over... */
-	r->transparency = global_transparency;
+	r->transparency = appearanceProperties.transparency;
 
 	newcolors = (struct SFColorRGBA*)MALLOC (sizeof (struct SFColorRGBA)*r->ntri*3);
 	op = r->color;
@@ -68,7 +69,7 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 		*np = *op; np++; op++;  		/* R */
 		*np = *op; np++; op++;  		/* G */
 		*np = *op; np++; op++;  		/* B */
-		*np = global_transparency; np++; op++;	/* A */
+		*np = appearanceProperties.transparency; np++; op++;	/* A */
 	}
 	FREE_IF_NZ(r->color);
 	r->color = (float *)newcolors;
@@ -803,7 +804,7 @@ void render_polyrep(void *node) {
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) {
 		if (!r->isRGBAcolorNode) 
-			if (!APPROX(r->transparency,global_transparency)) {
+			if (!APPROX(r->transparency,appearanceProperties.transparency)) {
 				recalculateColorField(r);
 			}
 	
