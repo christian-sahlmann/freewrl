@@ -8,9 +8,9 @@
 #undef BROWSER
 #define BROWSER "C:/Program Files/Mozilla Firefox/firefox.exe"
 
-/* Directory for fonts. */
+/* Directory for fonts. C:/Program Files/CRC/fonts */
 #undef FONTS_DIR
-#define FONTS_DIR "C:/source/freewrl/fonts"
+#define FONTS_DIR "../fonts"
 
 /* The FreeWRL message wrapper program name. */
 #undef FREEWRL_MESSAGE_WRAPPER
@@ -222,16 +222,16 @@
 #undef STDC_HEADERS
 #define STDC_HEADERS 1
 
-/* Path to zip decompressor */
+/* Path to zip decompressor "C:/Program Files/GnuWin32/bin/unzip.exe"*/
 #undef UNZIP
-#define UNZIP "C:/Program Files/GnuWin32/bin/unzip.exe"
+#define UNZIP "unzip.exe"
 
 /* Version number of package */
 #undef VERSION
 
-/* Path to http fetcher */
+/* Path to http fetcher "C:/Program Files/GnuWin32/bin/wget.exe"*/
 #undef WGET
-#define WGET "C:/Program Files/GnuWin32/bin/wget.exe"
+#define WGET "wget.exe"
 
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING
