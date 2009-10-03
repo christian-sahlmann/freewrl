@@ -9,7 +9,7 @@ lib_msvcCompat.zip
 unzip and put the lib and Fonts directories in freewrl/freex3d
 4. You should be able to build the Debug version of lib and standalone projects, except when you go to run it will complain about missing dlls.
 Go into the lib/windows/ directories and copy the dlls from the dlls_copy_to_debug directory and put in the projectfiles_vc9/Debug directory
-
+5. Download and install Wget and Unzip from http://gnuwin32.sourceforge.net/packages.html into C:/Program Files/GnuWin32
 
 Current state of the MSVC freewrl project as of Aug 23, 2009
 - standalone (src/lib src/bin projectfiles_vc9) can be cvs checked out (main branch: freewrl/freex3d - see download page) and builds and runs not bad (hard to know without seeing other versions)

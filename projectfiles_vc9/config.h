@@ -224,14 +224,14 @@
 
 /* Path to zip decompressor */
 #undef UNZIP
-#define UNZIP "C:/Program Files/GnuWin32/bin"
+#define UNZIP "C:/Program Files/GnuWin32/bin/unzip.exe"
 
 /* Version number of package */
 #undef VERSION
 
 /* Path to http fetcher */
 #undef WGET
-#define WGET "C:/Program Files/GnuWin32/bin"
+#define WGET "C:/Program Files/GnuWin32/bin/wget.exe"
 
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING
