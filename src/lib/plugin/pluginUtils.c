@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: pluginUtils.c,v 1.11 2009/10/01 19:35:36 crc_canada Exp $
+$Id: pluginUtils.c,v 1.12 2009/10/03 18:44:48 dug9 Exp $
 
 ???
 
@@ -55,6 +55,8 @@ $Id: pluginUtils.c,v 1.11 2009/10/01 19:35:36 crc_canada Exp $
 pid_t childProcess[MAXPROCESSLIST];
 int lastchildProcess = 0;
 int childProcessListInit = FALSE;
+#else
+#include <process.h>
 #endif
 
 void killErrantChildren(void) {
@@ -74,7 +76,7 @@ void killErrantChildren(void) {
 /* FIXME: what are the possible return codes for this function ??? */
 int freewrlSystem (const char *sysline) {
 #ifdef WIN32
-	return 0;
+	return system(sysline);
 #else
 #define MAXEXECPARAMS 10
 #define EXECBUFSIZE	2000
