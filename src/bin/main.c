@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: main.c,v 1.19 2009/10/03 23:23:23 dug9 Exp $
+$Id: main.c,v 1.20 2009/10/04 21:51:50 dug9 Exp $
 
 FreeWRL main program.
 
@@ -80,25 +80,39 @@ int main (int argc, char **argv)
     }
 #ifdef _MSC_VER
 	/*
-	the exe is run in the directory where the .x3d / .wrl file is, and thats the getcwd() path.
-	we plan to install the fonts relative to the where the .exe file is, ../fonts
-	C:/Program Files/CRC/fonts/Arial.ttf 
-	C:/Program Files/CRC/freewrl/freewrld.exe 
-	InputFunctions.c > makeFontDirectory() looks in the environment variable for fonts
-	we plan to set the fonts path environment variable (temporarily) from here 
-	(rather than permanently in windows) by taking the .exe path from argv[0], strip the
-	program name, and append "../fonts" smartly, then set the environment variable.
+	Set fonts directory
+	ideally we would check if we are in a) projectfiles go ../../fonts b) else c:/windows/Fonts
 	*/
+	if(strstr(argv[0],"projectfiles"))
 	{
+		/* we are testing - use local fonts (may be obsolete someday) */
 		static char *fdir;
 		char *pp = strcpy(malloc(MAX_PATH),argv[0]);
 		PathRemoveFileSpec(pp);
-		PathAppend(pp,"..\\fonts"); 
+		PathAppend(pp,"..\\..\\fonts"); 
 		fdir = malloc(MAX_PATH); 
 		strcpy(fdir,"FREEWRL_FONTS_DIR=");
 		strcat(fdir,pp);
 		_putenv( fdir );
 		free(pp);
+	}
+	else
+	{
+		/* deployed system (with intalled fonts) - use system fonts  
+		we plan to use a professional installer to install the fonts to %windir%\Fonts directory 
+		where all the system fonts already are.
+		Then in this program we will get the %windir%\Fonts directory, and set it as temporary
+		environment variable for InputFunctions.C > makeFontsDirectory() to fetch.
+		*/
+		static char *fdir;
+		char *syspath;
+		syspath = getenv("windir");
+		printf("windir path=[%s]\n",syspath);
+		fdir = malloc(MAX_PATH); 
+		strcpy(fdir,"FREEWRL_FONTS_DIR=");
+		strcat(fdir,syspath);
+		strcat(fdir,"\\Fonts");
+		_putenv( fdir );
 	}
 
 #endif
