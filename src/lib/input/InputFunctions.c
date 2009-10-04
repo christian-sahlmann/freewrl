@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: InputFunctions.c,v 1.9 2009/10/01 19:35:36 crc_canada Exp $
+$Id: InputFunctions.c,v 1.10 2009/10/04 21:50:33 dug9 Exp $
 
 CProto ???
 
@@ -75,6 +75,8 @@ int dirExists(const char *dir)
 	{
 		if(c_file.attrib == _A_SUBDIR )
 			return TRUE;
+		else if(c_file.attrib == _A_ARCH | _A_RDONLY )
+			return TRUE; /* ie c:/windows/Fonts is 20 + 1 */
 		else
 			printf("Internal error: not a directory: %s\n", dir);
 	}
