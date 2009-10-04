@@ -1,11 +1,37 @@
-FreeWRL
+FreeWRL			$log: $
 -------
 
-Documentation online:
+Welcome to FreeWRL : X3D / VRML visualization program for Linux, Mac
+and Windows. It can be used as a standalone application or integrated
+as a browser plugin.
+
+FreeWRL is currently packaged for Mac OS X, Linux (Gentoo, Debian,
+Ubuntu), and, in the near future, for Windows.
+
+If you want to build FreeWRL from sources please refer to the 
+documentation in INSTALL.
+
+Included documentation
+----------------------
+
+In the 'doc' directory you will find some old documentation.
+
+Type 'man freewrl' to learn command line options.
+
+Online Documentation
+--------------------
 
 http://freewrl.sourceforge.net/
 
-Building FreeWRL on Linux:
+Online 3D test files
+--------------------
 
-http://freewrl.sourceforge.net/install_Linux.html
+First, test the simple cone at:
 
+  http://freewrl.sourceforge.net/test.wrl
+
+You can invoke FreeWRL with the command line:
+
+  $ freewrl <URL>
+
+Or you can point your browser to the same URL.

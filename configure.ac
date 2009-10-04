@@ -116,10 +116,10 @@ AC_DEFINE_DIR([FONTS_DIR],[fontsdir],[Directory for fonts.])
 AC_ARG_WITH([plugindir],
             AS_HELP_STRING([--with-plugindir=DIR],[browser plugin install path @<:@/usr/lib/mozilla/plugins@:>@]),
             [if test x$withval = xno; then
-              plugindir="$(libdir)/mozilla/plugins"
+              plugindir="/usr/lib/mozilla/plugins"
             else
               plugindir="$withval"
-            fi],[plugindir="$(libdir)/mozilla/plugins"])
+            fi],[plugindir="/usr/lib/mozilla/plugins"])
 
 AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugin.])
 

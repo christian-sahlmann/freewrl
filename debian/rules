@@ -38,7 +38,7 @@ configure-stamp:
 		--with-fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera \
 		--disable-static \
 		--disable-dependency-tracking \
-		--disable-debug \
+		--enaable-debug \
 		--with-target=motif \
 		--with-mesa \
 		--enable-libeai \
@@ -55,7 +55,6 @@ build-stamp: configure-stamp
 	dh_testdir
 	dh_prep
 	$(MAKE)
-	#docbook-to-man debian/freewrl.sgml > freewrl.1
 	touch build-stamp
 
 clean-source:

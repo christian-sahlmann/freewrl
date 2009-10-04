@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LoadTextures.c,v 1.4 2009/10/01 19:35:36 crc_canada Exp $
+$Id: LoadTextures.c,v 1.5 2009/10/04 22:36:23 couannette Exp $
 
 New implementation of the texture thread.
  - Setup renderer capabilities
@@ -49,26 +49,7 @@ NOTE: a lot of work have to be done here ;*).
 
 #include <Imlib2.h>
 
-#include <string.h> /* strndup */
 #include <libgen.h> /* dirname */
-
-#ifndef strndup
-
-char * strndup(const char *s, size_t n)
-{
-  size_t len = strnlen (s, n);
-  char *new = malloc (len + 1);
-
-  if (new == NULL)
-    return NULL;
-
-  new[len] = '\0';
-  memcpy (new, s, len);
-  return new;
-}
-
-#endif
-
 
 /* Globals */
 
@@ -187,6 +168,7 @@ bool findTextureFile_MB(int cwo)
 	break;
     default:
 	WARN_MSG("findTextureFile_MB: node type = %d not implemented\n", loadThisTexture->nodeType);
+	return FALSE;
 	break;
     }
 

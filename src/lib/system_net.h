@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_net.h,v 1.5 2009/10/02 19:34:16 crc_canada Exp $
+$Id: system_net.h,v 1.6 2009/10/04 22:36:23 couannette Exp $
 
 FreeWRL support library.
 Internal header: network dependencies.
@@ -33,17 +33,8 @@ Internal header: network dependencies.
 
 #if !defined(WIN32)
 
-/* Try to fix problem in EAIServ.c */
-#if !(defined(OS_MAC) && defined(ARCH_PPC))
-/* JAS - no longer required 
-# include <sys/ipc.h>
-# include <sys/msg.h> 
-*/
-
-#endif
-
 #include <netinet/in.h> 
-#include <sys/socket.h>
+#include <sys/msg.h> 
 
 #else
 
