@@ -121,12 +121,12 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\lib\windows\pthreads\include"
+				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\lib\windows\pthreads.2"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="1"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -140,9 +140,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libFreeWRL.lib Glu32.lib glew32.lib Opengl32.lib libexpat.lib libjpeg.lib libpng.lib pthreadVC2.lib zlib.lib js32.lib fdlibm.lib ws2_32.lib freetype239.lib"
+				AdditionalDependencies="libFreeWRL.lib Glu32.lib glew32.lib Opengl32.lib libexpat.lib libjpeg.lib libpng.lib pthreadVC2.lib zlib.lib js32.lib fdlibm.lib ws2_32.lib freetype239.lib shlwapi.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\lib\windows\MSopenGL\lib;..\..\lib\windows\glew\lib;..\..\JS\js1.5\src\Debug;..\..\lib\windows\pthreads\lib;..\..\lib\windows\freetype2\lib;..\..\lib\windows\expat\Bin\debug;..\..\lib\windows\zlib\lib;..\..\lib\windows\png\lib;..\..\lib\windows\jpeg\lib;..\Release"
+				AdditionalLibraryDirectories="..\..\lib\windows\MSopenGL\lib;..\..\lib\windows\glew\lib;..\..\lib\windows\JS\js1.5\src\Release;..\..\lib\windows\pthreads.2;..\..\lib\windows\freetype2\lib;..\..\lib\windows\expat\Bin\debug;..\..\lib\windows\zlib\lib;..\..\lib\windows\png\lib;..\..\lib\windows\jpeg\lib;..\Release"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

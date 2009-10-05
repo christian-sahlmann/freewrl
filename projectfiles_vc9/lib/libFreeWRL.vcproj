@@ -105,11 +105,11 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\JS\js1.5\src;..\..\src\Lib;..\;..\..\lib\windows\pthreads\include;..\..\lib\windows\zlib\include;..\..\lib\windows\expat\source\lib;..\..\lib\windows\jpeg\include;..\..\lib\windows\freetype2\include;..\..\lib\windows\png\include;&quot;..\,,\lib\windows\glew\include&quot;"
+				AdditionalIncludeDirectories="..\..\lib\windows\JS\js1.5\src;..\..\src\Lib;..\;..\..\lib\windows\pthreads.2;..\..\lib\windows\zlib\include;..\..\lib\windows\expat\source\lib;..\..\lib\windows\jpeg\include;..\..\lib\windows\freetype2\include;..\..\lib\windows\png\include;..\..\lib\windows\glew\include"
 				PreprocessorDefinitions="WIN32;GLEW;_CRT_SECURE_NO_WARNINGS;XP_WIN"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				WarningLevel="3"
+				WarningLevel="1"
 				DebugInformationFormat="3"
 			/>
 			<Tool
