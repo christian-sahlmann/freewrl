@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_SFClasses.c,v 1.17 2009/10/01 19:35:36 crc_canada Exp $
+$Id: jsVRML_SFClasses.c,v 1.18 2009/10/05 15:07:24 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -14,7 +14,7 @@ which is the sample application included with the javascript engine.
     Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
 
     FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 

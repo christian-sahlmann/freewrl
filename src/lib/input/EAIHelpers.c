@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.30 2009/10/01 19:35:36 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.31 2009/10/05 15:07:23 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -14,7 +14,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
     Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
 
     FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 

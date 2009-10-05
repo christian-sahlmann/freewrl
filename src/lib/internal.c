@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.c,v 1.6 2009/10/01 19:35:36 crc_canada Exp $
+$Id: internal.c,v 1.7 2009/10/05 15:07:23 crc_canada Exp $
 
 FreeWRL support library.
 Internal functions: some very usefull functions are not always
@@ -16,7 +16,7 @@ present (example: strndup, ...).
     Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
 
     FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 

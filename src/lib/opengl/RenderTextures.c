@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.18 2009/10/02 21:34:53 crc_canada Exp $
+$Id: RenderTextures.c,v 1.19 2009/10/05 15:07:23 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -15,7 +15,7 @@ texture enabling - works for single texture, for multitexture.
     Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
 
     FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 

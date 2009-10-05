@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseGeneral.h,v 1.8 2009/10/01 19:35:36 crc_canada Exp $
+$Id: CParseGeneral.h,v 1.9 2009/10/05 15:07:24 crc_canada Exp $
 
 General header for VRML-parser (lexer/parser)
 
@@ -13,7 +13,7 @@ General header for VRML-parser (lexer/parser)
     Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
 
     FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 

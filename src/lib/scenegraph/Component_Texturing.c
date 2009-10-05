@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.7 2009/10/02 21:34:53 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.8 2009/10/05 15:07:23 crc_canada Exp $
 
 X3D Texturing Component
 
@@ -14,7 +14,7 @@ X3D Texturing Component
     Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
 
     FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 

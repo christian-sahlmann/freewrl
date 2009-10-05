@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.31 2009/10/01 19:35:36 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.32 2009/10/05 15:07:23 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -13,7 +13,7 @@ Handle incoming EAI (and java class) events with panache.
     Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
 
     FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 

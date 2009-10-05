@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.17 2009/10/01 19:35:36 crc_canada Exp $
+$Id: SensInterps.c,v 1.18 2009/10/05 15:07:23 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -16,7 +16,7 @@ Interps are the "EventsProcessed" fields of interpolators.
     Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
 
     FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LoadTextures.c,v 1.5 2009/10/04 22:36:23 couannette Exp $
+$Id: LoadTextures.c,v 1.6 2009/10/05 15:07:23 crc_canada Exp $
 
 New implementation of the texture thread.
  - Setup renderer capabilities
@@ -19,7 +19,7 @@ NOTE: a lot of work have to be done here ;*).
     Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
 
     FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
