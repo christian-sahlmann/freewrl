@@ -112,17 +112,6 @@ AC_ARG_WITH([fontsdir],
 AC_DEFINE_DIR([FONTS_DIR],[fontsdir],[Directory for fonts.])
 
 
-# Mozilla plugin install dir
-AC_ARG_WITH([plugindir],
-            AS_HELP_STRING([--with-plugindir=DIR],[browser plugin install path @<:@/usr/lib/mozilla/plugins@:>@]),
-            [if test x$withval = xno; then
-              plugindir="/usr/lib/mozilla/plugins"
-            else
-              plugindir="$withval"
-            fi],[plugindir="/usr/lib/mozilla/plugins"])
-
-AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugin.])
-
 # ====================================================
 # FreeWRL specific configuration: library checking
 # ====================================================
@@ -476,7 +465,7 @@ else
               MAYBE_PLUGIN=
               ;;
 
-      *)      # Build plugin for Netscape compatible browser on Linux  
+      *)      # Build plugin for Netscape compatible browser on Linux
               AC_MSG_NOTICE([Determining browser plug-in framework to build against])
               found_MOZILLA_PLUGIN=no
               AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,iceape-plugin)
@@ -494,8 +483,19 @@ else
                   MAYBE_PLUGIN=plugin
                   AC_MSG_NOTICE([Installing plugin to $plugindir])
               fi
+
+	      # Mozilla plugin install dir
+	      AC_ARG_WITH([plugindir],
+		AS_HELP_STRING([--with-plugindir=DIR],[browser plugin install path @<:@/usr/lib/mozilla/plugins@:>@]),
+		[plugindir="$withval"],			       # user supplied value
+		[plugindir="/usr/lib/mozilla/plugins"])	       # default value
+
+	      AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugin.])
+
               ;;
   esac
+
+
 fi
 AC_SUBST(MAYBE_PLUGIN)
 
