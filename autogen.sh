@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: autogen.sh,v 1.14 2009/10/06 13:16:55 couannette Exp $
+# $Id: autogen.sh,v 1.15 2009/10/06 14:31:20 couannette Exp $
 #
 
 # options
@@ -8,6 +8,7 @@ eai=1
 curl=0
 debug=0
 trace=0
+plugin=1
 
 # variables
 cflags=
@@ -18,7 +19,7 @@ default_fontsdir=/usr/X11/lib/X11/fonts/TTF
 default_target=motif
 
 # Pick up autogen options and leave other arguments to configure
-while getopts ":cdet" option
+while getopts ":cdetp" option
 do
   case $option in
       c ) curl=1
@@ -32,6 +33,9 @@ do
 	  ;;
       t ) trace=1
 	  echo "Enabling traces."
+	  ;;
+	  p ) plugin=0
+	  echo "Disabling plugin."
 	  ;;
   esac
 done
@@ -53,6 +57,8 @@ case $platform in
 	    echo "Please install the ttf-bitstream-vera font package."
 	    exit 0
 	fi
+
+	target=$default_target
 	;;
 
     Darwin)
@@ -84,7 +90,11 @@ if [ ! -z "$add_path" ] ; then
     lflags="$lflags -L$add_path/lib"
 fi
 
-my_options="--with-fontsdir=$fontsdir --with-target=$target"
+if [ $debug -eq 1 ] ; then
+    my_options="$my_options --enable-debug"
+else
+    my_options="$my_options --disable-debug"
+fi
 
 if [ $curl -eq 1 ] ; then
     my_options="$my_options --enable-libcurl"
@@ -92,16 +102,16 @@ else
     my_options="$my_options --disable-libcurl"
 fi
 
-if [ $debug -eq 1 ] ; then
-    my_options="$my_options --enable-debug"
-else
-    my_options="$my_options --disable-debug"
-fi
-
 if [ $eai -eq 1 ] ; then
     my_options="$my_options --enable-libeai"
 else
     my_options="$my_options --disable-libeai"
+fi
+
+if [ $plugin -eq 1 ] ; then
+    my_options="$my_options --enable-plugin"
+else
+    my_options="$my_options --disable-plugin"
 fi
 
 if [ $trace -eq 1 ] ; then
@@ -115,9 +125,9 @@ lf=$(echo $lflags|xargs)
 echo "Regenerating configure files..."
 autoreconf --force --install
 
-my_options="$my_options CFLAGS=\"$cf\" LDFLAGS=\"$lf\" $@"
+my_options="$my_options --with-fontsdir=$fontsdir --with-target=$target CFLAGS=$cf LDFLAGS=$lf $@"
 
 echo "Configure options are: $my_options"
 echo "Starting configure..."
 
-./configure "$my_options"
+./configure $my_options
