@@ -302,7 +302,7 @@ AC_CHECK_HEADERS(X11/extensions/xf86vmode.h,
                 ],,
                 $X_LIBS -lXext -lX11 $X_EXTRA_LIBS)
         ],
-        AC_MSG_WARN([[XFree86 VMODE extension not found, Wine will be built without it]]),
+        AC_MSG_WARN([[XFree86 VMODE extension not found, this package will be built without it]]),
         [#include <X11/Xlib.h>])
 fi
 
