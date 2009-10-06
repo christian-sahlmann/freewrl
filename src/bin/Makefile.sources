@@ -4,4 +4,5 @@ freewrl_SOURCES = \
 		internal.h \
 		system.h \
 		options.c \
-		options.h
+		options.h \
+		fwdebug.h

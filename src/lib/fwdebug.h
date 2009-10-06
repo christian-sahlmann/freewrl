@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwdebug.h,v 1.3 2009/10/05 15:07:23 crc_canada Exp $
+$Id: fwdebug.h,v 1.4 2009/10/06 01:03:53 couannette Exp $
 
 FreeWRL support library.
 Internal header: debug definitions.
@@ -26,7 +26,6 @@ Internal header: debug definitions.
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
-
 
 
 #ifndef __LIBFREEWRL_DEBUG_H__
@@ -199,6 +198,12 @@ Internal header: debug definitions.
 #define DEBUG_TEXT(...) DEBUG_(printf("TEXT: " __VA_ARGS__))
 #else
 #define DEBUG_TEXT(...)
+#endif
+
+#ifdef ARGSVERBOSE
+#define DEBUG_ARGS(...) DEBUG_(printf("TEXT: " __VA_ARGS__))
+#else
+#define DEBUG_ARGS(...)
 #endif
 
 /**

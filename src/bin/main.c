@@ -1,12 +1,9 @@
 /*
-=INSERT_TEMPLATE_HERE=
-
-$Id: main.c,v 1.21 2009/10/05 15:07:23 crc_canada Exp $
+$Id: main.c,v 1.22 2009/10/06 01:03:53 couannette Exp $
 
 FreeWRL main program.
 
 */
-
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -34,6 +31,8 @@ FreeWRL main program.
 #include <internal.h>
 
 #include <libFreeWRL.h>
+
+#include "fwdebug.h"
 
 #include "main.h"
 #include "options.h"
