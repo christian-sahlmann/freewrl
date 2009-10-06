@@ -13,7 +13,7 @@
 # We also define the maintainer address.
 AC_INIT([freewrl], [1.22.5pre1], [freewrl@crc.ca])
 
-# Little cutomizatin: all autotools derived files go in a sub-directory.
+# Little customization: all autotools derived files go in a sub-directory.
 AC_CONFIG_AUX_DIR([config])
 # If you have custom m4 files, declare this macro (and its twins in Makefile.am)
 AC_CONFIG_MACRO_DIR([m4])
@@ -26,6 +26,9 @@ AC_CANONICAL_HOST
 AM_INIT_AUTOMAKE([subdir-objects]) # this option tells automake to generate
 # object files in the same subdir as the source file - this prevent us to have
 # all object files in the subdir where Makefile resides...
+
+# "shaved feature" of automake 1.11... output only compiled file, not gcc command line
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # We have a script (vtempl) that uses a system command (sed): we need
 # to be sure to call the good sed binary whatever the system is. So we 

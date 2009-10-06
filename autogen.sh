@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: autogen.sh,v 1.13 2009/08/19 22:20:07 couannette Exp $
+# $Id: autogen.sh,v 1.14 2009/10/06 13:16:55 couannette Exp $
 #
 
 # options
@@ -9,50 +9,59 @@ curl=0
 debug=0
 trace=0
 
+# variables
+cflags=
+lflags=
+
+# constants
+default_fontsdir=/usr/X11/lib/X11/fonts/TTF
+default_target=motif
+
 # Pick up autogen options and leave other arguments to configure
-while getopts "cdet" option
+while getopts ":cdet" option
 do
   case $option in
       c ) curl=1
+	  echo "Enabling libcurl support."
 	  ;;
       d ) debug=1
+	  echo "Enabling debug mode."
 	  ;;
       e ) eai=0
+	  echo "Disabling libeai."
 	  ;;
       t ) trace=1
+	  echo "Enabling traces."
 	  ;;
   esac
 done
 shift $(($OPTIND - 1))
 
+echo "Remaining args: $@" # must be preceded by '--'
 
 platform=$(uname -s)
 
-# Font directory
-# default:
-fontsdir=/usr/X11/lib/X11/fonts/TTF
-
-if [ -f /etc/debian_version ] ; then
-    if [ -d /usr/share/fonts/truetype/ttf-bitstream-vera ] ; then
-	fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera
-	echo "Fonts dir: $fontsdir"
-    else
-	echo "Debian system: please install the ttf-bitstream-vera font package."
-    fi
-else
-    echo "Default fonts dir: $fontsdir"
-fi
-
-# Target
-target=motif
-
 case $platform in
-    Darwin) 
+    Linux)
+	echo "Platform: Linux"
+	if [ -f /etc/debian_version ] ; then
+	    echo "Distribution: Debian / Ubuntu"
+	    if [ -d /usr/share/fonts/truetype/ttf-bitstream-vera ] ; then
+		fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera
+	    fi
+	else
+	    echo "Please install the ttf-bitstream-vera font package."
+	    exit 0
+	fi
+	;;
+
+    Darwin)
+	echo "Platform: Mac"
+
+	fontsdir=$default_fontsdir
+
 	echo "Mac system: default target is x11"
 	echo "(Carbon is not yet supported by this build system)"
-	echo "Add this to the configure command line:"
-	echo "--with-target=x11"
-	echo
 	target=x11
 
 	port=$(port version)
@@ -61,22 +70,21 @@ case $platform in
 	    add_path=/opt/local
 	fi
 	;;
+
     win32|CYGWIN*|cygwin*)
-	echo "Windows platform detected : $platform"
+	echo "Platform: Windows ($platform)"
+
+	fontsdir="C:\\Windows\\Fonts"
 	target=win32
-	;;
+	;;    
 esac
 
 if [ ! -z "$add_path" ] ; then
-    cflags="CPPFLAGS=-I$add_path/include"
-    lflags="LDFLAGS=-L$add_path/lib"
+    cflags="$cflags -I$add_path/include"
+    lflags="$lflags -L$add_path/lib"
 fi
 
 my_options="--with-fontsdir=$fontsdir --with-target=$target"
-
-echo
-echo "configure options: $my_options"
-echo
 
 if [ $curl -eq 1 ] ; then
     my_options="$my_options --enable-libcurl"
@@ -97,9 +105,19 @@ else
 fi
 
 if [ $trace -eq 1 ] ; then
-    cflags="$cflags -DTEXVERBOSE"
+    cflags="$cflags -DVERBOSE"
 fi
 
-[ ! -e configure ] && autoreconf --force --install
+# Strip useless spaces in cflags & lflags
+cf=$(echo $cflags|xargs)
+lf=$(echo $lflags|xargs)
 
-./configure $my_options $cflags $lflags "$@"
+echo "Regenerating configure files..."
+autoreconf --force --install
+
+my_options="$my_options CFLAGS=\"$cf\" LDFLAGS=\"$lf\" $@"
+
+echo "Configure options are: $my_options"
+echo "Starting configure..."
+
+./configure "$my_options"
