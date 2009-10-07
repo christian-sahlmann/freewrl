@@ -4,7 +4,7 @@
  *
  * main.c
  *
- * $Id: OSX_miniglew.c,v 1.1 2009/10/07 19:32:20 crc_canada Exp $
+ * $Id: OSX_miniglew.c,v 1.2 2009/10/07 19:51:23 crc_canada Exp $
  *
  *******************************************************************/
 
@@ -129,6 +129,11 @@ GLenum glewInit(void) {
 	#endif	
 
 	return GLEW_OK;
+}
+
+char *glewGetErrorString(GLenum err){
+
+	return "OpenGL Error";
 }
 #endif
 

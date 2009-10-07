@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LoadTextures.c,v 1.6 2009/10/05 15:07:23 crc_canada Exp $
+$Id: LoadTextures.c,v 1.7 2009/10/07 19:51:23 crc_canada Exp $
 
 New implementation of the texture thread.
  - Setup renderer capabilities
@@ -47,7 +47,9 @@ NOTE: a lot of work have to be done here ;*).
 #include "LoadTextures.h"
 #include "Textures.h"
 
+#ifdef TEXTURE_MB
 #include <Imlib2.h>
+#endif
 
 #include <libgen.h> /* dirname */
 
@@ -266,6 +268,8 @@ bool findTextureFile_MB(int cwo)
 
 bool load_texture_from_file(struct X3D_ImageTexture *node, char *filename)
 {
+#ifdef TEXTURE_MB
+/*JAS - Michel Briand code - not active yet, so commented out to reduce size of OSX binary distro */
     Imlib_Image image;
 
     image = imlib_load_image_immediately(filename);
@@ -291,6 +295,7 @@ bool load_texture_from_file(struct X3D_ImageTexture *node, char *filename)
     /* this will trigger effective Imlib2 loading */
     loadThisTexture->texdata = (unsigned char *) imlib_image_get_data_for_reading_only();
     
+#endif
     return TRUE;
 }
 
