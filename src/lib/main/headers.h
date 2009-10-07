@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.79 2009/10/07 19:11:35 crc_canada Exp $
+$Id: headers.h,v 1.80 2009/10/07 19:32:20 crc_canada Exp $
 
 Global includes.
 
@@ -1102,6 +1102,9 @@ extern void *setViewpointBindInRender;
 extern void *setFogBindInRender;
 extern void *setBackgroundBindInRender;
 extern void *setNavigationBindInRender;
+
+extern int displayOpenGLErrors;
+
 
 /* VRML/X3D version */
 #define IS_TYPE_XML_X3D	100
