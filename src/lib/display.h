@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.28 2009/10/05 15:07:23 crc_canada Exp $
+$Id: display.h,v 1.29 2009/10/07 19:11:35 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -65,10 +65,10 @@ extern int shutterGlasses; /* stereo shutter glasses */
  */
 #if defined TARGET_AQUA
 
-# include <GL/glew.h> /* will include GL/gl.h, GL/glu.h and GL/glext.h */
 # include <OpenGL/OpenGL.h>
 # include <OpenGL/CGLTypes.h>
 # include <AGL/AGL.h>
+# include "./opengl/OSX_miniglew.h" /* will include GL/gl.h, GL/glu.h and GL/glext.h */
 
 extern CGLContextObj myglobalContext;
 extern AGLContext aqglobalContext;

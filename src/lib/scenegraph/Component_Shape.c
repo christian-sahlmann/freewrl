@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.19 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Shape.c,v 1.20 2009/10/07 19:11:35 crc_canada Exp $
 
 X3D Shape Component
 
@@ -434,25 +434,28 @@ void render_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 }
 
 
+/* bounds check the material node fields */
 void compile_Material (struct X3D_Material *node) {
+	int i;
 
-#ifdef wrwerwer
+	/* verify that the numbers are within range */
+	if (node->ambientIntensity < 0.0) node->ambientIntensity=0.0;
+	if (node->ambientIntensity > 1.0) node->ambientIntensity=1.0;
+	if (node->shininess < 0.0) node->shininess=0.0;
+	if (node->shininess > 1.0) node->shininess=1.0;
+	if (node->transparency < 0.0) node->transparency=0.0;
+	if (node->transparency > 1.0) node->transparency=1.0;
 
-                ambientIntensity => [SFFloat, 0.2, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                diffuseColor => [SFColor, [0.8, 0.8, 0.8], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                emissiveColor => [SFColor, [0, 0, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                shininess => [SFFloat, 0.2, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                specularColor => [SFColor, [0, 0, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                transparency => [SFFloat, 0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                __ambientIntensity => [SFFloat, 0.2, inputOutput, 0],
-                __diffuseColor => [SFColor, [0.8, 0.8, 0.8], inputOutput, 0],
-                __emissiveColor => [SFColor, [0, 0, 0], inputOutput, 0],
-                __shininess => [SFFloat, 0.2, inputOutput, 0],
-                __specularColor => [SFColor, [0, 0, 0], inputOutput, 0],
-                __transparency => [SFFloat, 0, inputOutput, 0],
+	for (i=0; i<3; i++) {
+		if (node->diffuseColor.c[i] < 0.0) node->diffuseColor.c[i]=0.0;
+		if (node->diffuseColor.c[i] > 1.0) node->diffuseColor.c[i]=1.0;
+		if (node->emissiveColor.c[i] < 0.0) node->emissiveColor.c[i]=0.0;
+		if (node->emissiveColor.c[i] > 1.0) node->emissiveColor.c[i]=1.0;
+		if (node->specularColor.c[i] < 0.0) node->specularColor.c[i]=0.0;
+		if (node->specularColor.c[i] > 1.0) node->specularColor.c[i]=1.0;
+	}
 
-#endif
+
 	MARK_NODE_COMPILED
 }
 

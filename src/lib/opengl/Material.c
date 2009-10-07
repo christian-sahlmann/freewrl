@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.7 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Material.c,v 1.8 2009/10/07 19:11:35 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -71,6 +71,8 @@ void do_shininess (GLenum face, float shininess) {
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 	int i;
 
+	/* checking should now be done in the compile_ functions */
+#ifdef OLDCODE
 	for (i=0; i<4; i++) {
 		if ((param[i] < 0.0) || (param[i] >1.0)) {
 			/* printf ("do_glMaterialfv, pname %d idx %d val %f out of range\n",
@@ -79,6 +81,7 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 			/* JAS return; bounds check error found, break out */
 		}
 	}
+#endif
 
 	/* for IndexedLineSet, etc, we keep the last emissiveColor around */
 	if (pname == GL_EMISSION)
@@ -88,16 +91,13 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 			
 
 	/* compare default values with new */
-if (pname != GL_DIFFUSE)
 	glMaterialfv (face,pname,param);
-else {
-	glMaterialfv (face,pname,param);
-
-	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial (face,pname);
-	glColor4fv(param);
-}
-
+	if (pname == GL_DIFFUSE)
+	{
+		glEnable(GL_COLOR_MATERIAL);
+		glColorMaterial (face,pname);
+		glColor4fv(param);
+	}
 }
 
 

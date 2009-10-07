@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.78 2009/10/05 15:07:23 crc_canada Exp $
+$Id: headers.h,v 1.79 2009/10/07 19:11:35 crc_canada Exp $
 
 Global includes.
 
@@ -440,7 +440,6 @@ extern char *GL_REN;
 )
 
 /* from VRMLC.pm */
-extern int displayOpenGLErrors;
 extern int sound_from_audioclip;
 extern int global_lineProperties;
 extern int global_fillProperties;
