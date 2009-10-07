@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.35 2009/10/05 15:07:24 crc_canada Exp $
+$Id: CRoutes.c,v 1.36 2009/10/07 17:28:40 crc_canada Exp $
 
 ???
 
@@ -1490,13 +1490,15 @@ static void sendScriptEventIn(uintptr_t num) {
 			if (to_ptr->routeToNode->_nodeType == NODE_Script) {
 				/* this script initialized yet? We make sure that on initialization that the Parse Thread
 				   does the initialization, once it is finished parsing. */
+
+				/* get the value from the VRML structure, in order to propagate it to a script */
+				myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
+
+
 				if (ScriptControl[myObj->num]._initialized!=TRUE) {
 					/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
 					return;
 				}
-
-				/* get the value from the VRML structure, in order to propagate it to a script */
-				myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
 
 				/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
 				mark_script(myObj->num);
