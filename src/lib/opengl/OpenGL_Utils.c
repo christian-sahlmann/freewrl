@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.64 2009/10/05 15:07:23 crc_canada Exp $
+$Id: OpenGL_Utils.c,v 1.65 2009/10/11 09:19:17 couannette Exp $
 
 ???
 
@@ -1004,10 +1004,12 @@ static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh) {
 	printf ("sortChild returning.\n");
 	for(i=0; i<nc; i++) {
 		b = sortedCh->p[i];
-		printf ("child %d %u %f %s",i,b,b->_dist,stringNodeType(b->_nodeType));
+		if (b)
+			printf ("child %d %u %f %s",i,b,b->_dist,stringNodeType(b->_nodeType));
+		else
+			printf ("no child %d", i);
 		b = ch->p[i];
 		printf (" unsorted %u\n",b);
-
 	}
 	#endif
 }
