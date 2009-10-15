@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.36 2009/10/07 17:28:40 crc_canada Exp $
+$Id: CRoutes.c,v 1.37 2009/10/15 19:51:58 sdumoulin Exp $
 
 ???
 
@@ -50,6 +50,7 @@ $Id: CRoutes.c,v 1.36 2009/10/07 17:28:40 crc_canada Exp $
 #include "../world_script/jsNative.h"
 #include "../input/SensInterps.h"
 #include "../scenegraph/Component_ProgrammableShaders.h"
+#include "../input/EAIheaders.h"
 
 #include "CRoutes.h"
 
@@ -1904,6 +1905,7 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 	memcpy (toptr,fromptr,structlen * fromcount);
 
 	/* is this an MFNode or SFNode? */
+	if (toNode != EAIListenerData) {
 	if (multitype==ROUTING_SFNODE) {
 #ifdef CRVERBOSE
 		printf ("got a ROUTING_SFNODE, adding %u to %u\n",(unsigned int) fn, (unsigned int) toNode);
@@ -1928,6 +1930,7 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 
 				ADD_PARENT(arrptr[count],toNode);
 			}
+	}
 	}
 }
 
