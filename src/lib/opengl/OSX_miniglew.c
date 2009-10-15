@@ -4,7 +4,7 @@
  *
  * main.c
  *
- * $Id: OSX_miniglew.c,v 1.2 2009/10/07 19:51:23 crc_canada Exp $
+ * $Id: OSX_miniglew.c,v 1.3 2009/10/15 20:29:29 crc_canada Exp $
  *
  *******************************************************************/
 
@@ -109,8 +109,6 @@ GLenum glewInit(void) {
 			printf ("Warning, code expects GL_TEXTURE0 to be 1 less than GL_TEXTURE1\n");
 		} 
 	}
-
-#define VERBOSE
 
 	#ifdef VERBOSE
 	{
