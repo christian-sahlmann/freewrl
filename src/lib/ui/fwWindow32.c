@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: fwWindow32.c,v 1.6 2009/09/30 17:27:09 dug9 Exp $
+  $Id: fwWindow32.c,v 1.7 2009/10/17 15:08:19 dug9 Exp $
 
   FreeWRL main window : win32 code.
 
@@ -789,7 +789,10 @@ int createWindow32()
     wc.lpfnWndProc = PopupWndProc; //MainWndProc;
     wc.style = CS_VREDRAW | CS_HREDRAW; /* 0 CS_OWNDC |  */
     wc.hInstance = hInstance;
-    wc.hIcon = LoadIcon( NULL, IDI_APPLICATION );
+    wc.hIcon = LoadIcon(wc.hInstance, "APPICON");
+    if (!wc.hIcon) {
+		wc.hIcon = LoadIcon( NULL, IDI_APPLICATION );
+	}
     wc.hCursor = hArrow;
     wc.hbrBackground = (HBRUSH)( COLOR_WINDOW+1 );
     wc.lpszMenuName = 0; /* "GenericAppMenu"; */
