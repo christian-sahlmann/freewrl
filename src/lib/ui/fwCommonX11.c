@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display_x11.c,v 1.14 2009/10/05 15:07:23 crc_canada Exp $
+$Id: fwCommonX11.c,v 1.1 2009/10/18 12:35:16 couannette Exp $
 
 FreeWRL support library.
 Display (X11) initialization.
