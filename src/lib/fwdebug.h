@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwdebug.h,v 1.4 2009/10/06 01:03:53 couannette Exp $
+$Id: fwdebug.h,v 1.5 2009/10/21 19:18:30 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: debug definitions.
@@ -229,6 +229,13 @@ void *freewrlStrdup(int line, char *file, char *str);
 # define ASSERT(_ptr) do { if (!(_ptr)) { \
                            ERROR_MSG("ERROR: assert failed: %s (%s:%d)\n", #_ptr, __FILE__, __LINE__); } \
                       } while (0)
+
+/* JAS */
+#if defined(_MSC_VER)
+# define TEMPNAM _tempnam
+#else
+# define TEMPNAM tempnam
+#endif
 
 #else /* defined(FW_DEBUG) && defined(DEBUG_MALLOC) */
 

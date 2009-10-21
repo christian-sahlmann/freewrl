@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.23 2009/10/02 21:34:52 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.24 2009/10/21 19:18:30 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.24  2009/10/21 19:18:30  crc_canada
+# Working on XML parsing and Material rendering. compile_TwoSidedMaterials added; XML parsing modified to clean up memory; and to better handle PROTO expansions. Still have a bit more work to do on SF/MFNode Proto/Script fields.
+#
 # Revision 1.23  2009/10/02 21:34:52  crc_canada
 # start gathering appearance properties together for eventual movement to OpenGL-ES and OpenGL-3.0
 #
@@ -685,6 +688,7 @@
 #
 %CompileC = map {($_=>1)} qw/
 	Material
+	TwoSidedMaterial
 	IndexedLineSet
 	LineSet
 	PointSet

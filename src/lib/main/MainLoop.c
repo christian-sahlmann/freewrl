@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: MainLoop.c,v 1.55 2009/10/05 15:07:23 crc_canada Exp $
+$Id: MainLoop.c,v 1.56 2009/10/21 19:18:30 crc_canada Exp $
 
 Main loop
 
@@ -224,6 +224,7 @@ static void stopDisplayThread()
 #if defined(_MSC_VER)
 		double waitsec;
 #else
+		double waitsec;
 static struct timeval waittime;
 static struct timeval mytime;
 
@@ -292,30 +293,20 @@ void EventLoop() {
                 timeAA = timeA = timeB = timeC = timeD = timeE = timeF =0.0;
                 #endif
         } else {
-#if defined(_MSC_VER)
-                waitsec = (TickTime - lastTime - 0.0153);
-                if (waitsec < 0.0) {
-                        waitsec = -waitsec;
-						/* printf("waiting\n"); it does wait almost every loop on small files*/
-                        /* printf ("waiting %d\n",(int)waittime.tv_usec);*/
-
-                        usleep((unsigned)waitsec);
-				}
-#else
-	    waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0;
-	    if (waittime.tv_usec < 0.0) {
-		waittime.tv_usec = -waittime.tv_usec;
-		/* printf ("waiting %d\n",(int)waittime.tv_usec); */
-		usleep((unsigned)waittime.tv_usec);
-	    }
-#endif
+		/* calculate how much to wait so that we are running around 100fps. Adjust the constant
+		   in the line below to raise/lower this frame rate */
+               waitsec = 7000.0 + TickTime - lastTime;
+               if (waitsec > 0.0) {
+                       /* printf ("waiting %lf\n",waitsec); */
+                       usleep((unsigned)waitsec);
+		}
 
         }
         if (loop_count == 25) {
 
                 BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
                 setMenuFps(BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
-                /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
+                /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop); */
 
 		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane); */
 

@@ -20,11 +20,7 @@ Priority list
 
 
 08/07/2009:
-	(DONE) (JAS) FreeWRL__protoDef - is this a pointer, or an int? verify, might break on 64 bit systems if incorrect.
-	(DONE) (JAS) EAI node pointers sent/received- are these 64 bit friendly?
-	(DONE) (JAS) Michel suggests library (Imlib2) that is platform-independent. 
-	      Is it kept up to date? eg, can we use camera raw files?
-        (DONE) (MB)  Imlib2 can load & decode: gif, jpg, png, tiff, ...
+        (MB)  Imlib2 can load & decode: gif, jpg, png, tiff, ...
               Implementation is in LoadTextures.c. I'm trying to understand
               how to modify loading during rendering...
 	(JAS) look at using OpenAL
@@ -40,11 +36,6 @@ Priority list
 	http://freewrl.sf.net/tomasMikulaExample.x3dv
 
 08/02/2009:
-	(JAS) Anups car test - calculate bounding boxes from actual used
-	coordinates, not all coordinates. (if user has one Coordinate node,
-	and uses indexed for individual shapes, boundingboxes will be all
-	same)
-
 	(JAS) MIDI/C EAI input appears to loose events once in a while. Verify
 	by making townSquare.wrl have wallDelay be set just before clock 
 	tower ding.
@@ -59,9 +50,6 @@ Priority list
 
 06/30/2009:
 	(JAS) Wondering about collision and small scales; Bob Kilmek's second example should not have collisions.
-
-	(JAS) (DONE) LineSets and PointSets must call setExtent to get near/far clipplanes correctly calculated. 
-	eg, tests/48.wrl - rotate it, and some lines will disappear.
 
 (going through specs, finding what component conformance level FreeWRL is currently at; lower priority) 06/16/2009:
 	TimeSensor pause - verify code.

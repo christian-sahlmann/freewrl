@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.49 2009/10/05 15:07:24 crc_canada Exp $
+$Id: X3DParser.c,v 1.50 2009/10/21 19:18:30 crc_canada Exp $
 
 ???
 
@@ -66,6 +66,9 @@ static int inCDATA = FALSE;
 
 static struct VRMLLexer *myLexer = NULL;
 static Stack* DEFedNodes = NULL;
+#define MAX_CHILD_ATTRIBUTE_DEPTH 32
+static struct Vector** childAttributes= NULL;
+
 
 
 char *CDATA_Text = NULL;
@@ -197,11 +200,16 @@ static void setFieldValueDataActive(void) {
 	/* if we had a valid field for this node... */
 	if (in3_3_fieldIndex != INT_ID_UNDEFINED) {
 
-		/* printf ("setFieldValueDataActive field %s, parent is a %s\n",
-			stringFieldType(in3_3_fieldIndex),stringNodeType(parentStack[parentIndex]->_nodeType)); */
+#ifdef X3DPARSERVERBOSE
+		printf ("setFieldValueDataActive field %s, parent is a %s\n",
+			stringFieldType(in3_3_fieldIndex),stringNodeType(parentStack[parentIndex]->_nodeType)); 
+#endif
 
 		setField_fromJavascript (parentStack[parentIndex], (char *) stringFieldType(in3_3_fieldIndex),
 			CDATA_Text, TRUE);
+	} else {
+
+		printf ("in a end field tag, what should we do here?? \n");
 	}
 
 	/* free data */
@@ -209,10 +217,6 @@ static void setFieldValueDataActive(void) {
 	CDATA_Text_curlen = 0;
 	in3_3_fieldIndex = INT_ID_UNDEFINED;
 }
-
-
-void freeProtoMemory () {
-printf ("freeProtoMemory\n");}
 
 
 /**************************************************************************************/
@@ -253,8 +257,30 @@ struct X3D_Node *X3DParser_getNodeFromName(const char *name) {
 
 /* "forget" the DEFs. Keep the table around, though, as the entries will simply be used again. */
 void kill_X3DDefs(void) {
-/* printf ("kill_X3DDefs - nothing here - have to get rid of the DEFedNodes Stack\n"); */
-/* XXX fill this in */
+	int i,j;
+	FREE_IF_NZ(childAttributes);
+
+	if (DEFedNodes != NULL) {
+		for (i=0; i<vector_size(DEFedNodes); i++) {
+			struct Vector * myele = vector_get (struct Vector*, DEFedNodes, i);
+
+			/* we DO NOT delete individual elements of this vector, as they are pointers
+			   to struct X3D_Node*; these get deleted in the general "Destroy all nodes
+			   and fields" routine; kill_X3DNodes(void). */
+			deleteVector (struct Vector *,myele);
+		}
+		deleteVector(struct Vector*, DEFedNodes);
+	}
+
+	/* now, for the lexer... */
+	if (myLexer != NULL) {
+		lexer_destroyData(myLexer);
+		deleteLexer(myLexer);
+		myLexer=NULL;
+	}
+
+	/* do we have a parser for scanning string values to memory? */
+	Parser_deleteParserForScanStringValueToMem();
 }
 
 
@@ -1050,61 +1076,69 @@ static void endProtoDeclareTag() {
 	endProtoDeclare();
 }
 
-static void endProtoInstanceTag() {
+static void endProtoInstanceField(const char *name) {
 	struct X3D_Group *protoExpGroup = NULL;
 
-	/* ending <ProtoInstance> */
+	/* ending </field> */
 	#ifdef X3DPARSERVERBOSE
-	printf ("endProtoInstanceTag, goot ProtoInstance got to find it, and expand it.\n");
+	printf ("endProtoInstanceField, got %s got to find it, and expand it.\n",name);
+	printf ("endProtoInstanceField, parentIndex %d\n",parentIndex);
 	#endif
 
-	if (getParserMode() != PARSING_PROTOINSTANCE) {
-		ConsoleMessage ("endProtoInstanceTag: got a </ProtoInstance> but not parsing one at line %d",LINE);
-	}
-
-	/* we should just be assuming that we are parsing regular nodes for the scene graph now */
-	setParserMode(PARSING_NODES);
-
-	protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-		#ifdef X3DPARSERVERBOSE
-		if (protoExpGroup != NULL) {
-			printf ("\nOK, linking in this proto. I'm %d, ps-1 is %d, and p %d\n",protoExpGroup,parentStack[parentIndex-1], parentStack[parentIndex]);
-			printf ("types %s %s and %s respectively. \n",
-				stringNodeType(X3D_NODE(protoExpGroup)->_nodeType),
-				stringNodeType(X3D_NODE(parentStack[parentIndex-1])->_nodeType),
-				stringNodeType(X3D_NODE(parentStack[parentIndex])->_nodeType));
-		}
+	if (strcmp(name,"ProtoInstance")==0) {
+		/* we should just be assuming that we are parsing regular nodes for the scene graph now */
+		setParserMode(PARSING_NODES);
+	
+		protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+			#ifdef X3DPARSERVERBOSE
+			if (protoExpGroup != NULL) {
+				printf ("\nOK, linking in this proto. I'm %d, ps-1 is %d, and p %d\n",protoExpGroup,parentStack[parentIndex-1], parentStack[parentIndex]);
+				printf ("types %s %s and %s respectively. \n",
+					stringNodeType(X3D_NODE(protoExpGroup)->_nodeType),
+					stringNodeType(X3D_NODE(parentStack[parentIndex-1])->_nodeType),
+					stringNodeType(X3D_NODE(parentStack[parentIndex])->_nodeType));
+			}
+			{int i;
+			for (i=parentIndex; i>=0; i--) {
+				printf ("parentStack %d node %u \n",i,parentStack[i]);
+				if (parentStack[i] != NULL) {
+					printf ("  type %s\n",stringNodeType(parentStack[i]->_nodeType));
+				}
+			}
+			}
+			#endif
+	
+		expandProtoInstance(myLexer, protoExpGroup);
+	
+#ifdef X3DPARSERVERBOSE
+		printf ("after expandProtoInstance, my group (%u)has %d children, %d Meta nodes, and is protodef %d\n",
+		protoExpGroup,
+		protoExpGroup->children.n, protoExpGroup->FreeWRL_PROTOInterfaceNodes.n, protoExpGroup->FreeWRL__protoDef);
 		{int i;
-		for (i=parentIndex; i>=0; i--) {
-			printf ("parentStack %d node %u \n",i,parentStack[i]);
-			if (parentStack[i] != NULL) {
-				printf ("  type %s\n",stringNodeType(parentStack[i]->_nodeType));
+			for (i=0; i<protoExpGroup->children.n; i++) {
+				printf ("child %d is %u, type %s\n",i,protoExpGroup->children.p[i], 
+					stringNodeType(X3D_GROUP(protoExpGroup->children.p[i])->_nodeType));
+				if (X3D_GROUP(protoExpGroup->children.p[i])->_nodeType == NODE_Group) {
+					struct X3D_Group * pxx = X3D_GROUP(protoExpGroup->children.p[i]);
+					printf (" and it has %d children, %d Meta nodes, and is protodef %d\n",
+					pxx->children.n, pxx->FreeWRL_PROTOInterfaceNodes.n, pxx->FreeWRL__protoDef);
+				}
+		
 			}
 		}
-		}
-		#endif
-
-	expandProtoInstance(myLexer, protoExpGroup);
-
-#ifdef X3DPARSERVERBOSE
-printf ("after expandProtoInstance, my group (%u)has %d children, %d Meta nodes, and is protodef %d\n",
-protoExpGroup,
-protoExpGroup->children.n, protoExpGroup->FreeWRL_PROTOInterfaceNodes.n, protoExpGroup->FreeWRL__protoDef);
-{int i;
-	for (i=0; i<protoExpGroup->children.n; i++) {
-		printf ("child %d is %u, type %s\n",i,protoExpGroup->children.p[i], 
-			stringNodeType(X3D_GROUP(protoExpGroup->children.p[i])->_nodeType));
-		if (X3D_GROUP(protoExpGroup->children.p[i])->_nodeType == NODE_Group) {
-			struct X3D_Group * pxx = X3D_GROUP(protoExpGroup->children.p[i]);
-			printf (" and it has %d children, %d Meta nodes, and is protodef %d\n",
-			pxx->children.n, pxx->FreeWRL_PROTOInterfaceNodes.n, pxx->FreeWRL__protoDef);
-		}
-
+#endif
+	} else if (strcmp(name,"field")==0) {
+		printf ("endProtoInstanceField, got %s, ignoring it\n",name);
+	} else {
+		/* this could be something like the ending of shape in the following:
+		   <fieldValue...> <Shape> <Box/> </Shape> </fieldValue> */
+		printf ("endProtoInstanceField, got %s, ignoring it\n",name);
 	}
 }
-#endif
 
-}
+
+
+
 
 
 /* did we get a USE in a proto instance, like:
@@ -1136,29 +1170,15 @@ static void saveProtoInstanceFields (const char *name, const char **atts) {
 	#endif
 }
 
-static void endProtoInstanceField(const char *name) {
 
-	#ifdef X3DPARSERVERBOSE
-		printf ("endProtoInstanceField, name :%s:\n",name);
-	#endif
-	if (strcmp(name,"ProtoInstance")==0) {
-		endProtoInstanceTag();
-	} else if (strcmp(name,"fieldValue") != 0) {
-		/* printf ("warning - endProtoInstanceField, dont know what to do with :%s:\n",name); */
-	}
-}
 /********************************************************/
 
 #define INCREMENT_CHILDREN_LEVEL \
 	{ \
 		if ((parentIndex <0) || (parentIndex > MAX_CHILD_ATTRIBUTE_DEPTH)) {printf ("stack overflow\n"); return;} \
-		if (childAttributes[parentIndex] != NULL) {printf ("hey, cpindex ne NULL\n");} \
 		childAttributes[parentIndex] = newVector (struct nameValuePairs *, 8); \
 	}
 
-
-#define MAX_CHILD_ATTRIBUTE_DEPTH 32
-static struct Vector** childAttributes= NULL;
 
 static void saveAttributes(int myNodeType, const char *name, const char** atts) {
 	struct nameValuePairs* nvp;
@@ -1307,6 +1327,7 @@ nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv); */
 									/* printf ("have to parse fieldValue :%s: and place it into my value\n",nvp->fieldValue);  */
 									Parser_scanStringValueToMem(X3D_NODE(&(thisEntry->value)), 0, 
 										thisEntry->type, nvp->fieldValue, TRUE);
+printf ("done this parsing\n");
 								}
 							}
 
@@ -1454,8 +1475,8 @@ static void XMLCALL endElement(void *unused, const char *name) {
 		parseAttributes();
 		setParserMode(PARSING_NODES);
 
-		FREE_IF_NZ(childAttributes[parentIndex]);
-
+		if (childAttributes[parentIndex]!=NULL) deleteVector (struct nameValuePairs*, childAttributes[parentIndex]);
+		childAttributes[parentIndex] = NULL;
 
 		DECREMENT_PARENTINDEX
 		DEBUG_X3DPARSER (" 	destroying vector for parentIndex %d\n",parentIndex); 

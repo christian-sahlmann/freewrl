@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.37 2009/10/05 15:07:24 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.38 2009/10/21 19:18:30 crc_canada Exp $
 
 ???
 
@@ -112,7 +112,6 @@ static const char *parserModeStrings[] = {
                 "unused high"};
 
 
-#ifdef OLDCODE
 /****************************** PROTOS ***************************************************/
 
 /* we are closing off a parse of an XML file. Lets go through and free/unlink/cleanup. */
@@ -138,16 +137,7 @@ void freeProtoMemory () {
 
 	currentProtoDeclare  = INT_ID_UNDEFINED;
 	MAXProtos = 0;
-
-	#ifdef X3DPARSERVERBOSE
-/* error: `ScriptFieldNames' undeclared (first use in this function) */
-/* 	printf ("freeProtoMemory,ScriptFieldNames is %d ScriptFieldTableSize %d, MAXScriptFieldParams %d\n",ScriptFieldNames, ScriptFieldTableSize, MAXScriptFieldParams); */
-	#endif
-
 }
-
-
-#endif
 
 /* record each field of each script - the type, kind, name, and associated script */
 static void registerProto(const char *name, const char *url) {
@@ -1143,6 +1133,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 
 
 	fclose(fileDescriptor);
+	FREE_IF_NZ(protoInString);
 	fileDescriptor = fopen (tmpf,"r");
 	if (fileDescriptor == NULL) {
 		printf ("wierd problem opening proto expansion file\n"); 
@@ -1397,6 +1388,67 @@ void parseProtoInterface (const char **atts) {
 }
 
 
+static char *getDefaultValuePointer(int type) {
+	if ((type < 0) || (type > FIELDTYPES_COUNT)) return "";
+	switch (type) {
+		case FIELDTYPE_SFDouble      :
+		case FIELDTYPE_MFDouble      :
+		case FIELDTYPE_SFTime        :
+		case FIELDTYPE_MFTime        :
+		case FIELDTYPE_SFInt32      :
+		case FIELDTYPE_MFInt32      :
+		case FIELDTYPE_SFFloat      : 
+		case FIELDTYPE_MFFloat      : return "0";
+
+		case FIELDTYPE_SFVec2d       :
+		case FIELDTYPE_MFVec2d       :
+		case FIELDTYPE_SFVec2f       :
+		case FIELDTYPE_MFVec2f       : return "0 0";
+
+		case FIELDTYPE_SFVec3d       :  
+		case FIELDTYPE_MFVec3d       :
+		case FIELDTYPE_SFImage       :
+		case FIELDTYPE_SFColor       :
+		case FIELDTYPE_MFColor       :
+		case FIELDTYPE_SFVec3f      : 
+		case FIELDTYPE_MFVec3f      : return "0 0 0";
+
+		case FIELDTYPE_SFVec4f       :
+		case FIELDTYPE_MFVec4f       :
+		case FIELDTYPE_SFVec4d       :
+		case FIELDTYPE_MFVec4d       :
+		case FIELDTYPE_SFColorRGBA   : 
+		case FIELDTYPE_MFColorRGBA   :
+		case FIELDTYPE_SFRotation   : 
+		case FIELDTYPE_MFRotation   : return "0 0 0 0";
+
+		case FIELDTYPE_SFBool       : 
+		case FIELDTYPE_MFBool       : return "true";
+
+		case FIELDTYPE_FreeWRLPTR    :
+		case FIELDTYPE_SFNode        :
+		case FIELDTYPE_MFNode        : return "NULL";
+
+		case FIELDTYPE_SFString      : 
+		case FIELDTYPE_MFString      : return "\"\"";
+
+		case FIELDTYPE_SFMatrix3f    :
+		case FIELDTYPE_MFMatrix3f    :
+		case FIELDTYPE_SFMatrix3d    :
+		case FIELDTYPE_MFMatrix3d    : return "0 0 0 0 0 0 0 0 0";
+		case FIELDTYPE_SFMatrix4f    :
+		case FIELDTYPE_MFMatrix4f    :
+		case FIELDTYPE_SFMatrix4d    :
+		case FIELDTYPE_MFMatrix4d    : return "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+		default: {
+			ConsoleMessage ("getDefaultValuePointer, unhandled type\n");
+			return "0";
+		}
+	}
+}
+
+
+
 /* parse a script or proto field. Note that they are in essence the same, just used differently */
 void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	int i;
@@ -1575,18 +1627,10 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 		return;
     	}
 
-	if (getParserMode() != PARSING_EXTERNPROTODECLARE) {
-		/* so, inputOnlys and outputOnlys DO NOT have initialValues, inputOutput and initializeOnly DO */
-		if ((myAccessType == PKW_initializeOnly) || (myAccessType == PKW_inputOutput)) {
-			if (myValueString == NULL) {
-				ConsoleMessage ("Field, an initializeOnly or inputOut needs an initialValue");
-				return;
-			}
-		} else {
-			if (myValueString != NULL) {
-				ConsoleMessage ("Field, an inputOnly or outputOnly can not have an initialValue");
-				return;
-			}
+	/* so, inputOnlys and outputOnlys DO NOT have initialValues, inputOutput and initializeOnly DO */
+	if ((myAccessType == PKW_initializeOnly) || (myAccessType == PKW_inputOutput)) {
+		if (myValueString == NULL) {
+			myValueString = getDefaultValuePointer(myparams[MP_TYPE]);
 		}
 	}
 				
@@ -1825,7 +1869,7 @@ void endProtoDeclare(void) {
 		/* if we are in an ExternProtoDeclare, we need to decrement here to keep things sane */
 		if (currentProtoDeclare >=1) {
 			if (PROTONames[currentProtoDeclare-1].isExternProto)
-		DECREMENT_PARENTINDEX
+				DECREMENT_PARENTINDEX
 		}
 }
 

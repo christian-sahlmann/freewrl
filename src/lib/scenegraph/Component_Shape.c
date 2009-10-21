@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.20 2009/10/07 19:11:35 crc_canada Exp $
+$Id: Component_Shape.c,v 1.21 2009/10/21 19:18:30 crc_canada Exp $
 
 X3D Shape Component
 
@@ -54,44 +54,11 @@ static GLuint fillpropCurrentShader = 0;
 /* pointer for a TextureTransform type of node */
 struct X3D_Node *  this_textureTransform;  /* do we have some kind of textureTransform? */
 
+
+/* for doing shader material properties */
+static struct X3D_TwoSidedMaterial *material_twoSided;
+static struct X3D_Material *material_oneSided;
  
-#define SET_SHADER_SELECTED_FALSE(x3dNode) \
-	switch (X3D_NODE(x3dNode)->_nodeType) { \
-		case NODE_ComposedShader: \
-			X3D_COMPOSEDSHADER(x3dNode)->isSelected = FALSE; \
-			break; \
-		case NODE_ProgramShader: \
-			X3D_PROGRAMSHADER(x3dNode)->isSelected = FALSE; \
-			break; \
-		case NODE_PackagedShader: \
-			X3D_PROGRAMSHADER(x3dNode)->isSelected = FALSE; \
-			break; \
-		default: { \
-			/* this is NOT a shader; should we say something, or just \
-			   ignore? Lets ignore, for now */ \
-		} \
-	}
-
-#define SET_FOUND_GOOD_SHADER(x3dNode) \
-	switch (X3D_NODE(x3dNode)->_nodeType) { \
-		case NODE_ComposedShader: \
-			foundGoodShader = X3D_COMPOSEDSHADER(x3dNode)->isValid; \
-			X3D_COMPOSEDSHADER(x3dNode)->isSelected = foundGoodShader; \
-			break; \
-		case NODE_ProgramShader: \
-			foundGoodShader = X3D_PROGRAMSHADER(x3dNode)->isValid; \
-			X3D_PROGRAMSHADER(x3dNode)->isSelected = foundGoodShader; \
-			break; \
-		case NODE_PackagedShader: \
-			foundGoodShader = X3D_PROGRAMSHADER(x3dNode)->isValid; \
-			X3D_PACKAGEDSHADER(x3dNode)->isSelected = foundGoodShader; \
-			break; \
-		default: { \
-			/* this is NOT a shader; should we say something, or just \
-			   ignore? Lets ignore, for now */ \
-		} \
-	}
-
 void render_LineProperties (struct X3D_LineProperties *node) {
 	GLint	factor;
 	GLushort pat;
@@ -365,72 +332,50 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 }
 
 
+void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
+	int i;
+
+	/* verify that the numbers are within range */
+	if (node->ambientIntensity < 0.0) node->ambientIntensity=0.0;
+	if (node->ambientIntensity > 1.0) node->ambientIntensity=1.0;
+	if (node->shininess < 0.0) node->shininess=0.0;
+	if (node->shininess > 1.0) node->shininess=1.0;
+	if (node->transparency < 0.0) node->transparency=0.0;
+	if (node->transparency > 1.0) node->transparency=1.0;
+
+	if (node->backAmbientIntensity < 0.0) node->backAmbientIntensity=0.0;
+	if (node->backAmbientIntensity > 1.0) node->backAmbientIntensity=1.0;
+	if (node->backShininess < 0.0) node->backShininess=0.0;
+	if (node->backShininess > 1.0) node->backShininess=1.0;
+	if (node->backTransparency < 0.0) node->backTransparency=0.0;
+	if (node->backTransparency > 1.0) node->backTransparency=1.0;
+
+	for (i=0; i<3; i++) {
+		if (node->diffuseColor.c[i] < 0.0) node->diffuseColor.c[i]=0.0;
+		if (node->diffuseColor.c[i] > 1.0) node->diffuseColor.c[i]=1.0;
+		if (node->emissiveColor.c[i] < 0.0) node->emissiveColor.c[i]=0.0;
+		if (node->emissiveColor.c[i] > 1.0) node->emissiveColor.c[i]=1.0;
+		if (node->specularColor.c[i] < 0.0) node->specularColor.c[i]=0.0;
+		if (node->specularColor.c[i] > 1.0) node->specularColor.c[i]=1.0;
+
+		if (node->backDiffuseColor.c[i] < 0.0) node->backDiffuseColor.c[i]=0.0;
+		if (node->backDiffuseColor.c[i] > 1.0) node->backDiffuseColor.c[i]=1.0;
+		if (node->backEmissiveColor.c[i] < 0.0) node->backEmissiveColor.c[i]=0.0;
+		if (node->backEmissiveColor.c[i] > 1.0) node->backEmissiveColor.c[i]=1.0;
+		if (node->backSpecularColor.c[i] < 0.0) node->backSpecularColor.c[i]=0.0;
+		if (node->backSpecularColor.c[i] > 1.0) node->backSpecularColor.c[i]=1.0;
+	}
 
 
-#define DO_MAT(diffusec,emissc,shinc,ambc,specc,transc) \
-		\
-	/* set the diffuseColor; we will reset this later if the		\
-	   texture depth is 3 (RGB texture) */		\
-		\
-	for (i=0; i<3;i++){ dcol[i] = node->diffusec.c[i]; }		\
-		\
-	/* set the transparency here for the material */		\
-	trans = 1.0 - node->transc;		\
-		\
-	if (trans<0.0) trans = 0.0;		\
-	if (trans>=0.999999) trans = 0.9999999;		\
-	appearanceProperties.transparency = trans;		\
-		\
-	dcol[3] = trans;		\
-	scol[3] = trans;		\
-	ecol[3] = trans;		\
-		\
-	/* the diffuseColor might change, depending on the texture depth - that we do not have yet */		\
-	do_glMaterialfv(whichFace, GL_DIFFUSE, dcol);		\
-		\
-	/* do the ambientIntensity; this will allow lights with ambientIntensity to		\
-	   illuminate it as per the spec. Note that lights have the ambientIntensity		\
-	   set to 0.0 by default; this should make ambientIntensity lighting be zero		\
-	   via OpenGL lighting equations. */		\
-	amb = node->ambc;		\
-		\
- 		for(i=0; i<3; i++) { dcol[i] *= amb; } 		\
-	do_glMaterialfv(whichFace, GL_AMBIENT, dcol);		\
-		\
-	for (i=0; i<3;i++){ scol[i] = node->specc.c[i]; }		\
-	do_glMaterialfv(whichFace, GL_SPECULAR, scol);		\
-		\
-	for (i=0; i<3;i++){ ecol[i] = node->emissc.c[i]; }		\
-	do_glMaterialfv(whichFace, GL_EMISSION, ecol);		\
-		\
-	do_shininess(whichFace,node->shinc);
-
-
-
-
+	MARK_NODE_COMPILED
+}
 
 void render_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
-	int i;
-	float dcol[4];
-	float ecol[4];
-	float scol[4];
-	float amb;
-	float trans= 1.0;
-
-	GLenum whichFace;
-
-	/* first, do back */
-	if (node->separateBackColor) {
-		whichFace = GL_BACK;
-		DO_MAT(backDiffuseColor,backEmissiveColor,backShininess,backAmbientIntensity,backSpecularColor,backTransparency)
-		whichFace = GL_FRONT;
-	} else {
-		whichFace=GL_FRONT_AND_BACK;
-	}
-	DO_MAT(diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
 	
-	/* remember this one */
-	appearanceProperties.transparency = trans;
+	COMPILE_IF_REQUIRED
+
+	/* record this node for OpenGL-ES and OpenGL-3.1 operation */
+	material_twoSided = node;
 }
 
 
@@ -461,26 +406,22 @@ void compile_Material (struct X3D_Material *node) {
 
 
 void render_Material (struct X3D_Material *node) {
-	int i;
-	float dcol[4];
-	float ecol[4];
-	float scol[4];
-	float amb;
-	float trans=1.0;
-
-	#define whichFace GL_FRONT_AND_BACK
 
 	COMPILE_IF_REQUIRED
 
-	DO_MAT(diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
-	
-	/* remember this one */
-	appearanceProperties.transparency = trans;
+	/* record this node for OpenGL-ES and OpenGL-3.1 operation */
+	material_oneSided = node;
 }
 
 
 void child_Shape (struct X3D_Shape *node) {
 	void *tmpN;
+	int i;
+	float dcol[4];
+	float ecol[4];
+	float scol[4];
+	float amb;
+	float trans= 1.0;
 
 	if(!(node->geometry)) { return; }
 
@@ -495,10 +436,11 @@ void child_Shape (struct X3D_Shape *node) {
 	}
 
 	/* set up Appearance Properties here */
-	/* reset textureTransform pointer */
 	this_textureTransform = NULL;
 	linePropertySet=FALSE;
 	appearanceProperties.transparency = 0.0;
+	material_twoSided = NULL;
+	material_oneSided = NULL;
 
 
 	/* JAS - if not collision, and render_geom is not set, no need to go further */
@@ -529,6 +471,41 @@ void child_Shape (struct X3D_Shape *node) {
 	} else {
 		/* is there an associated appearance node? */
 		RENDER_MATERIAL_SUBNODES(node->appearance);
+	}
+
+
+	/* do the appearance here */
+
+	/* if we do NOT have a shader node, do the appearance nodes */
+	if (globalCurrentShader == 0) {
+		if (material_oneSided != NULL) {
+			/* we have a normal material node */
+			#define whichFace GL_FRONT_AND_BACK
+			DO_MAT(material_oneSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
+			#undef whichFace
+		} else if (material_twoSided != NULL) {
+			GLenum whichFace;
+			/* we have a two sided material here */
+			/* first, do back */
+			if (material_twoSided->separateBackColor) {
+				whichFace = GL_BACK;
+				DO_MAT(material_twoSided,backDiffuseColor,backEmissiveColor,backShininess,backAmbientIntensity,backSpecularColor,backTransparency)
+				whichFace = GL_FRONT;
+			} else {
+				whichFace=GL_FRONT_AND_BACK;
+			}
+			DO_MAT(material_twoSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
+		} else {
+			/* no material, so just colour the following shape */ 
+			/* Spec says to disable lighting and set coloUr to 1,1,1 */ 
+			LIGHTING_OFF  
+			glColor3f(1,1,1); 
+	 
+			/* tell the rendering passes that this is just "normal" */ 
+			last_texture_type = NOTEXTURE; 
+			/* same with materialProperties.transparency */ 
+			appearanceProperties.transparency=0.99999; 
+		}
 	}
 
 	/* now, are we rendering blended nodes or normal nodes?*/

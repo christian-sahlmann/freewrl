@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.23 2009/10/05 15:07:23 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.24 2009/10/21 19:18:30 crc_canada Exp $
 
 ???
 
@@ -93,7 +93,7 @@ struct Uni_String *newASCIIString(char *str) {
 	retval->len = len+1;
 	retval->touched = 1; /* make it 1, to signal that this is a NEW string. */
 
-	/* printf ("newASCIIString, returning UniString %u, strptr %u for string :%s:\n",retval, retval->strptr,str); */
+	/* printf ("newASCIIString, returning UniString %x, strptr %u for string :%s:\n",retval, retval->strptr,str); */
 
 	return retval;
 }
@@ -256,6 +256,17 @@ int returnElementRowSize (int type) {
 }
 
 static struct VRMLParser *parser = NULL;
+
+/* from the XML parser, for instance, we can call this on close to delete memory and memory tables */
+void Parser_deleteParserForScanStringValueToMem(void) {
+	if (parser != NULL) {
+		lexer_destroyData(parser->lexer);
+		deleteParser(parser);
+		parser = NULL;
+	}
+}
+
+
 void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, char *value, int isXML) {
 	void *nst;                      /* used for pointer maths */
 	union anyVrml myVal;
@@ -272,6 +283,18 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 	      - that the destination node is not important (the NULL, offset 0) */
 
 	if (parser == NULL) parser=newParser(NULL, 0, TRUE);
+
+	/* October 20, 2009; XML parsing should not go through here; XML encoded X3D should not have a "value=" field, but
+	   have the SFNode or MFNode as part of the syntax, eg <field ...> <Box/> </field> */
+
+	if (isXML) {
+		/* printf ("we have XML parsing for type %s, string :%s:\n",stringFieldtypeType(ctype),value); */
+		if ((ctype==FIELDTYPE_SFNode) || (ctype==FIELDTYPE_MFNode)) {
+			/* printf ("returning\n"); */
+			return;
+		}
+
+	}
 
 	/* there is a difference sometimes, in the XML format and VRML classic format. The XML
 	   parser will use xml format, scripts and EAI will use the classic format */
@@ -306,6 +329,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 			mfstringtmp = STRDUP(value);
 		}
 		parser_fromString(parser,mfstringtmp);
+		FREE_IF_NZ(mfstringtmp);
         } else if (ctype == FIELDTYPE_SFNode) {
                 /* Need to change index to proper node ptr */
                 np = getEAINodeFromTable(atoi(value), -1);
@@ -313,6 +337,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 
 		mfstringtmp = STRDUP(value);
 		parser_fromString(parser,mfstringtmp);
+		FREE_IF_NZ(mfstringtmp);
 	}
 
 	ASSERT(parser->lexer);
