@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.37 2009/10/15 19:51:58 sdumoulin Exp $
+$Id: CRoutes.c,v 1.38 2009/10/22 17:40:59 sdumoulin Exp $
 
 ???
 
@@ -50,7 +50,7 @@ $Id: CRoutes.c,v 1.37 2009/10/15 19:51:58 sdumoulin Exp $
 #include "../world_script/jsNative.h"
 #include "../input/SensInterps.h"
 #include "../scenegraph/Component_ProgrammableShaders.h"
-#include "../input/EAIheaders.h"
+#include "../input/EAIHeaders.h"
 
 #include "CRoutes.h"
 
