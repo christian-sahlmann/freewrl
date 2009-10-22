@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.c,v 1.65 2009/10/11 09:19:17 couannette Exp $
+$Id: OpenGL_Utils.c,v 1.66 2009/10/22 16:58:49 crc_canada Exp $
 
 ???
 
@@ -208,7 +208,7 @@ cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
 
 /* draw a simple bounding box around an object */
 void drawBBOX(struct X3D_Node *node) {
-	glDisable(GL_LIGHTING);
+	FW_GL_DISABLE(GL_LIGHTING);
 	glColor3f(1.0,0.6,0.6);
 
 	/* left group */
@@ -274,7 +274,7 @@ void drawBBOX(struct X3D_Node *node) {
 	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
 	glEnd();
 
-	glEnable (GL_LIGHTING);
+	FW_GL_ENABLE (GL_LIGHTING);
 }
 
 
@@ -380,7 +380,7 @@ void start_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 
 	/* stuff common to all textureTransforms - gets undone at end_textureTransform */
 	FW_GL_MATRIX_MODE(GL_TEXTURE);
-       	/* done in RenderTextures now glEnable(GL_TEXTURE_2D); */
+       	/* done in RenderTextures now FW_GL_ENABLE(GL_TEXTURE_2D); */
 	FW_GL_LOAD_IDENTITY();
 
 	/* is this a simple TextureTransform? */
@@ -439,8 +439,8 @@ void end_textureTransform (void) {
 void lightState(GLint light, int status) {
 	if (light<0) return; /* nextlight will return -1 if too many lights */
 	if (lights[light] != status) {
-		if (status) glEnable(GL_LIGHT0+light);
-		else glDisable(GL_LIGHT0+light);
+		if (status) FW_GL_ENABLE(GL_LIGHT0+light);
+		else FW_GL_DISABLE(GL_LIGHT0+light);
 		lights[light]=status;
 	}
 }
@@ -493,17 +493,17 @@ void glpOpenGLInitialize() {
         #endif
 
 	/* Configure OpenGL for our uses. */
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_NORMAL_ARRAY);
+        FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+        FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	glClearColor(cc_red, cc_green, cc_blue, cc_alpha);
 	glShadeModel(GL_SMOOTH);
 	glDepthFunc(GL_LEQUAL);
-	glEnable(GL_DEPTH_TEST);
+	FW_GL_ENABLE(GL_DEPTH_TEST);
 	glLineWidth(gl_linewidth);
 	glPointSize (gl_linewidth);
 
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
-	glEnable (GL_RESCALE_NORMAL);
+	FW_GL_ENABLE (GL_RESCALE_NORMAL);
 
 	/*
      * JAS - ALPHA testing for textures - right now we just use 0/1 alpha
@@ -511,15 +511,15 @@ void glpOpenGLInitialize() {
      * JAS   nodes.
 	 */
 
-	glEnable(GL_BLEND);
+	FW_GL_ENABLE(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* end of ALPHA test */
-	glEnable(GL_NORMALIZE);
+	FW_GL_ENABLE(GL_NORMALIZE);
 	LIGHTING_INITIALIZE;
 
-	glEnable (GL_COLOR_MATERIAL);
+	FW_GL_ENABLE (GL_COLOR_MATERIAL);
 	glColorMaterial (GL_FRONT_AND_BACK, GL_DIFFUSE);
 
 	/* for textured appearance add specular highlights as a separate secondary color

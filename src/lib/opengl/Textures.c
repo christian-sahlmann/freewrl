@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.24 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Textures.c,v 1.25 2009/10/22 16:58:49 crc_canada Exp $
 
 General Texture objects.
 
@@ -1385,7 +1385,7 @@ void _textureThread(void)
     /* set up some common storage info */
 #ifdef DO_MULTI_OPENGL_THREADS
     if (!RUNNINGASPLUGIN) {
-	glEnable(GL_TEXTURE_2D);
+	FW_GL_ENABLE(GL_TEXTURE_2D);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
     }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.80 2009/10/07 19:32:20 crc_canada Exp $
+$Id: headers.h,v 1.81 2009/10/22 16:58:49 crc_canada Exp $
 
 Global includes.
 
@@ -1008,16 +1008,16 @@ void do_TimeTrigger (void *node);
 #define CULL_FACE(v) /* printf ("nodeSolid %d cullFace %d GL_FALSE %d FALSE %d\n",v,cullFace,GL_FALSE,FALSE); */ \
 		if (v != cullFace) {	\
 			cullFace = v; \
-			if (cullFace == 1) glEnable(GL_CULL_FACE);\
-			else glDisable(GL_CULL_FACE);\
+			if (cullFace == 1) FW_GL_ENABLE(GL_CULL_FACE);\
+			else FW_GL_DISABLE(GL_CULL_FACE);\
 		}
 #define DISABLE_CULL_FACE CULL_FACE(0)
 #define ENABLE_CULL_FACE CULL_FACE(1)
-#define CULL_FACE_INITIALIZE cullFace=0; glDisable(GL_CULL_FACE);
+#define CULL_FACE_INITIALIZE cullFace=0; FW_GL_DISABLE(GL_CULL_FACE);
 
-#define LIGHTING_ON if (!lightingOn) {lightingOn=TRUE;glEnable(GL_LIGHTING);}
-#define LIGHTING_OFF if(lightingOn) {lightingOn=FALSE;glDisable(GL_LIGHTING);}
-#define LIGHTING_INITIALIZE lightingOn=TRUE; glEnable(GL_LIGHTING);
+#define LIGHTING_ON if (!lightingOn) {lightingOn=TRUE;FW_GL_ENABLE(GL_LIGHTING);}
+#define LIGHTING_OFF if(lightingOn) {lightingOn=FALSE;FW_GL_DISABLE(GL_LIGHTING);}
+#define LIGHTING_INITIALIZE lightingOn=TRUE; FW_GL_ENABLE(GL_LIGHTING);
 
 void zeroAllBindables(void);
 void Next_ViewPoint(void);

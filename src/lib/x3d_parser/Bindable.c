@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.17 2009/10/05 15:07:24 crc_canada Exp $
+$Id: Bindable.c,v 1.18 2009/10/22 16:58:49 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -471,7 +471,7 @@ void render_Fog (struct X3D_Fog *node) {
 		bind_node (X3D_NODE(node), &fog_tos,&fog_stack[0]);
 
 		/* if we do not have any more nodes on top of stack, disable fog */
-		glDisable (GL_FOG);
+		FW_GL_DISABLE (GL_FOG);
 		fog_enabled = FALSE;		
 
 
@@ -521,7 +521,7 @@ void render_Fog (struct X3D_Fog *node) {
 		glFogf(GL_FOG_END, (float) (node->visibilityRange));
 		glFogi(GL_FOG_MODE, GL_LINEAR);
 	}
-	glEnable (GL_FOG);
+	FW_GL_ENABLE (GL_FOG);
 	fog_enabled = TRUE;
 
 	FW_GL_POP_MATRIX();
@@ -839,7 +839,7 @@ void render_Background (struct X3D_Background *node) {
 	if(!node->isBound) return;
 
 	/* is fog enabled? if so, disable it right now */
-	if (fog_enabled ==TRUE) glDisable (GL_FOG);
+	if (fog_enabled ==TRUE) FW_GL_DISABLE (GL_FOG);
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
@@ -856,13 +856,13 @@ void render_Background (struct X3D_Background *node) {
 	/* now, display the lists */
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
 	glColorPointer(3, GL_FLOAT, 0, (GLfloat *)node->__colours);
-	glEnableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
 	FW_GL_DRAWARRAYS (GL_QUADS, 0, node->__quadcount);
 
-	glDisableClientState(GL_COLOR_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
+	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
 
 	/* now, for the textures, if they exist */
@@ -873,21 +873,21 @@ void render_Background (struct X3D_Background *node) {
 			((node->topUrl).n>0) ||
 			((node->bottomUrl).n>0)) {
 
-        	glEnable(GL_TEXTURE_2D);
+        	FW_GL_ENABLE(GL_TEXTURE_2D);
         	glColor3d(1.0,1.0,1.0);
-        	glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+        	FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
         	glVertexPointer (3,GL_FLOAT,0,BackgroundVert);
         	glNormalPointer (GL_FLOAT,0,Backnorms);
         	glTexCoordPointer (2,GL_FLOAT,0,Backtex);
 
 		loadBackgroundTextures(node);
 
-        	glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+        	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 	}
 	FW_GL_POP_MATRIX();
 
 	/* is fog enabled? if so, disable it right now */
-	if (fog_enabled ==TRUE) glEnable (GL_FOG);
+	if (fog_enabled ==TRUE) FW_GL_ENABLE (GL_FOG);
 
 }
 
@@ -907,7 +907,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	if(!node->isBound) return;
 
 	/* is fog enabled? if so, disable it right now */
-	if (fog_enabled ==TRUE) glDisable (GL_FOG);
+	if (fog_enabled ==TRUE) FW_GL_DISABLE (GL_FOG);
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
@@ -924,13 +924,13 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	/* now, display the lists */
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
 	glColorPointer(3, GL_FLOAT, 0, (GLfloat *)node->__colours);
-	glEnableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
 	FW_GL_DRAWARRAYS (GL_QUADS, 0, node->__quadcount);
 
-	glDisableClientState(GL_COLOR_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
+	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
 	/* now, for the textures, if they exist */
 	if ((node->backTexture !=0) ||
@@ -941,13 +941,13 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 			(node->bottomTexture !=0)) {
 
 		loadTextureBackgroundTextures(node);
-        	glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+        	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 	}
 
 	/* pushes are done in moveBackgroundCentre */
 	FW_GL_POP_MATRIX();
 
 	/* is fog enabled? if so, disable it right now */
-	if (fog_enabled ==TRUE) glEnable (GL_FOG);
+	if (fog_enabled ==TRUE) FW_GL_ENABLE (GL_FOG);
 
 }

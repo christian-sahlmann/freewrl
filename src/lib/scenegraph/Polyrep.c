@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.15 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Polyrep.c,v 1.16 2009/10/22 16:58:49 crc_canada Exp $
 
 ???
 
@@ -820,7 +820,7 @@ void render_polyrep(void *node) {
 
 	/*  status bar, text do not have normals*/
 	if (r->normal) glNormalPointer(GL_FLOAT,0,(GLfloat *) r->normal);
-	else glDisableClientState(GL_NORMAL_ARRAY); 
+	else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
 
 	/*  textures?*/
 	if (r->GeneratedTexCoords) {
@@ -831,7 +831,7 @@ void render_polyrep(void *node) {
 
 	/*  colours?*/
 	if (r->color) {
-		glEnableClientState(GL_COLOR_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 		glColorPointer(4,GL_FLOAT,0,r->color);
 	}
 
@@ -868,9 +868,9 @@ void render_polyrep(void *node) {
 	#endif
 
 	/*  put things back to the way they were;*/
-	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);
+	if (!r->normal) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	if (r->color) {
-		glDisableClientState(GL_COLOR_ARRAY);
+		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 	}
 	if (r->GeneratedTexCoords) {
 			textureDraw_end();

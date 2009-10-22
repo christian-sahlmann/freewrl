@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.12 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.13 2009/10/22 16:58:49 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -193,19 +193,19 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	}
 	if(node->bottom) {
 		textureDraw_start(NULL,cylendtex);
-		glDisableClientState (GL_NORMAL_ARRAY);
+		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		glNormal3f(0.0,-1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cylbotindx);
-		glEnableClientState(GL_NORMAL_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		trisThisLoop += CYLDIV+2;
 	}
 
 	if (node->top) {
 		textureDraw_start(NULL,cylendtex);
-		glDisableClientState (GL_NORMAL_ARRAY);
+		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		glNormal3f(0.0,1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
-		glEnableClientState(GL_NORMAL_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		trisThisLoop += CYLDIV+2;
 	}
 	textureDraw_end();
@@ -316,12 +316,12 @@ void render_Cone (struct X3D_Cone *node) {
 	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
 
 	if(node->bottom) {
-		glDisableClientState (GL_NORMAL_ARRAY);
+		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__botpoints);
 		textureDraw_start(NULL,tribottex);
 		glNormal3f(0.0,-1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
-		glEnableClientState(GL_NORMAL_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		trisThisLoop += CONEDIV+2;
 	}
 

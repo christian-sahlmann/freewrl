@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.19 2009/10/05 15:07:23 crc_canada Exp $
+$Id: RenderTextures.c,v 1.20 2009/10/22 16:58:49 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -68,8 +68,8 @@ static void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
 	case GL_NORMAL_MAP:
                                 glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,this->__compiledmode);
                                 glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,this->__compiledmode);                      
-                                glEnable(GL_TEXTURE_GEN_S);
-                                glEnable(GL_TEXTURE_GEN_T);
+                                FW_GL_ENABLE(GL_TEXTURE_GEN_S);
+                                FW_GL_ENABLE(GL_TEXTURE_GEN_T);
 	break;
 	default: {}
 		/* printf ("problem with compiledmode %d\n",this->__compiledmode); */
@@ -110,7 +110,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 	}
 
 	/* ENABLE_TEXTURES */
-	glEnable(GL_TEXTURE_2D);
+	FW_GL_ENABLE(GL_TEXTURE_2D);
 
 	/* is this a MultiTexture, or just a "normal" single texture?  When we
 	   bind_image, we store a pointer for the texture parameters. It is
@@ -176,7 +176,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 			}
 
 		} else {
-			glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
+			FW_GL_DISABLE(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
 			return FALSE;
 		}
 	}
@@ -251,21 +251,21 @@ void textureDraw_end(void) {
 		}
 
 	        if (this_textureTransform) end_textureTransform();
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
                 /*glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
                 glTexGeni(GL_T, GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);*/
-		glDisable(GL_TEXTURE_GEN_S);
-		glDisable (GL_TEXTURE_GEN_T);
-		glDisable(GL_TEXTURE_2D);
+		FW_GL_DISABLE(GL_TEXTURE_GEN_S);
+		FW_GL_DISABLE (GL_TEXTURE_GEN_T);
+		FW_GL_DISABLE(GL_TEXTURE_2D);
 	    }
 
 	} else {
 
 	        if (this_textureTransform) end_textureTransform();
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisable(GL_TEXTURE_GEN_S);
-		glDisable (GL_TEXTURE_GEN_T);
-		glDisable(GL_TEXTURE_2D);
+		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
+		FW_GL_DISABLE(GL_TEXTURE_GEN_S);
+		FW_GL_DISABLE (GL_TEXTURE_GEN_T);
+		FW_GL_DISABLE(GL_TEXTURE_2D);
 
 	}
 
@@ -291,7 +291,7 @@ static void passedInGenTex(GLfloat *genTex) {
         			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 				glTexCoordPointer (2,GL_FLOAT,0,genTex);
-				glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+				FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 			}
 		}
 	}
@@ -317,7 +317,7 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 	       			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 				glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
-				glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+				FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 			}
 		}
 	}
@@ -351,7 +351,7 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
         					if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 						glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 						glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
-						glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+						FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 					}
 				}
 			#ifdef TEXVERBOSE

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.13 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.14 2009/10/22 16:58:49 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -340,12 +340,12 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 
 	/* do we have to re-verify IndexedLineSet? */
 	if (node->__segCount > 0) {
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		glVertexPointer (3,GL_FLOAT,0,node->__vertices);
 
 		if (node->__colours) {
-			glEnableClientState(GL_COLOR_ARRAY);
+			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 			glColorPointer (4,GL_FLOAT,0,node->__colours);
 		} else {
 			DO_COLOUR_POINTER
@@ -362,9 +362,9 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 				node->__vertIndx, node->__segCount); 
 		*/
 
-		glEnableClientState (GL_NORMAL_ARRAY);
+		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		if (node->__colours) {
-			glDisableClientState(GL_COLOR_ARRAY);
+			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 		}
 	}
 }
@@ -441,7 +441,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 	#endif
 
 	if (ncolors>0) {
-		glEnableClientState(GL_COLOR_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
                 cc = (struct X3D_Color *) node->color;
 		/* is this a Color or ColorRGBA color node? */
                	if (cc->_nodeType == NODE_Color) {
@@ -455,15 +455,15 @@ void render_PointSet (struct X3D_PointSet *node) {
 
 
 	/* draw the shape */
-	glDisableClientState (GL_NORMAL_ARRAY);
+	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 
 	glVertexPointer (3,GL_FLOAT,0,points);
 	FW_GL_DRAWARRAYS(GL_POINTS,0,npoints);
 
 	/* put things back to normal */
-	glEnableClientState(GL_NORMAL_ARRAY);
+	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	if (ncolors>0) {
-		glDisableClientState(GL_COLOR_ARRAY);
+		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 	}
 
 
@@ -492,11 +492,11 @@ void render_LineSet (struct X3D_LineSet *node) {
 
 	/* now, actually draw array */
 	if (node->__segCount > 0) {
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
 		if (node->color) {
-			glEnableClientState(GL_COLOR_ARRAY);
+			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
                 	cc = (struct X3D_Color *) node->color;
 			/* is this a Color or ColorRGBA color node? */
                 	if (cc->_nodeType == NODE_Color) {
@@ -522,9 +522,9 @@ void render_LineSet (struct X3D_LineSet *node) {
 		glMultiDrawElements ( GL_LINE_STRIP, node->vertexCount.p, GL_UNSIGNED_INT,
 			node->__vertIndx, node->__segCount);  */
 		
-		glEnableClientState (GL_NORMAL_ARRAY);
+		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		if (node->color) {
-			glDisableClientState(GL_COLOR_ARRAY);
+			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 		}
 	}
 }

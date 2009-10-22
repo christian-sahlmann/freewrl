@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.21 2009/10/21 19:18:30 crc_canada Exp $
+$Id: Component_Shape.c,v 1.22 2009/10/22 16:58:49 crc_canada Exp $
 
 X3D Shape Component
 
@@ -87,7 +87,7 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 				default: {}
 			}
 			glLineStipple (factor,pat);
-			glEnable(GL_LINE_STIPPLE);
+			FW_GL_ENABLE(GL_LINE_STIPPLE);
 		}
 	}
 }
@@ -529,7 +529,7 @@ void child_Shape (struct X3D_Shape *node) {
 	TURN_FILLPROPERTIES_SHADER_OFF;
 
 	if (linePropertySet) {
-		glDisable (GL_LINE_STIPPLE);
+		FW_GL_DISABLE (GL_LINE_STIPPLE);
 		glLineWidth(1.0);
 		glPointSize(1.0);
 	}

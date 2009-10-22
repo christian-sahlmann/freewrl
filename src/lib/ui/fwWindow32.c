@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: fwWindow32.c,v 1.7 2009/10/17 15:08:19 dug9 Exp $
+  $Id: fwWindow32.c,v 1.8 2009/10/22 16:58:49 crc_canada Exp $
 
   FreeWRL main window : win32 code.
 
@@ -158,7 +158,7 @@ GLvoid initializeGL(GLsizei width, GLsizei height)
     glClearIndex( (GLfloat)BLACK_INDEX); 
     glClearDepth( 1.0 ); 
  
-    glEnable(GL_DEPTH_TEST); 
+    FW_GL_ENABLE(GL_DEPTH_TEST); 
  
     glMatrixMode( GL_PROJECTION ); 
     glLoadIdentity(); /*inserted by doug*/

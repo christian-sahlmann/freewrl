@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.7 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.8 2009/10/22 16:58:49 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -199,11 +199,11 @@ void ixxrender_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *node)
 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 	glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-	glEnable(GL_TEXTURE_CUBE_MAP_EXT);
-	glEnable(GL_TEXTURE_GEN_S);
-	glEnable(GL_TEXTURE_GEN_T);
-	glEnable(GL_TEXTURE_GEN_R);
-	glEnable(GL_NORMALIZE);
+	FW_GL_ENABLE(GL_TEXTURE_CUBE_MAP_EXT);
+	FW_GL_ENABLE(GL_TEXTURE_GEN_S);
+	FW_GL_ENABLE(GL_TEXTURE_GEN_T);
+	FW_GL_ENABLE(GL_TEXTURE_GEN_R);
+	FW_GL_ENABLE(GL_NORMALIZE);
 }
 
 /* end of testing */

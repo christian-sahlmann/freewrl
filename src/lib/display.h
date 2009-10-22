@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: display.h,v 1.29 2009/10/07 19:11:35 crc_canada Exp $
+$Id: display.h,v 1.30 2009/10/22 16:58:49 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: display (X11/Motif or OSX/Aqua) dependencies.
@@ -229,6 +229,20 @@ void setScreenDim(int wi, int he);
 /* debugging OpenGL calls  - allows us to keep track of what is happening */
 #undef DEBUG_OPENGL_CALLS
 #ifdef DEBUG_OPENGL_CALLS
+	#define FW_GL_ENABLE(aaa) \
+		{glEnable(aaa); \
+		 printf ("glEnable %d at %s:%d\n",aaa,__FILE__,__LINE__);}
+	#define FW_GL_DISABLE(aaa) \
+		{glDisable(aaa); \
+		 printf ("glDisable %d at %s:%d\n",aaa,__FILE__,__LINE__);}
+
+	#define FW_GL_ENABLECLIENTSTATE(aaa) \
+		{glEnableClientState(aaa); \
+		 printf ("glEnableClientState %d at %s:%d\n",aaa,__FILE__,__LINE__);}
+	#define FW_GL_DISABLECLIENTSTATE(aaa) \
+		{glDisableClientState(aaa); \
+		 printf ("glDisableClientState %d at %s:%d\n",aaa,__FILE__,__LINE__);}
+
 	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) \
 		{glDrawArrays(xxx,yyy,zzz); \
 		printf ("glDrawArrays tat %s:%d\n",__FILE__,__LINE__);}
@@ -264,6 +278,10 @@ void setScreenDim(int wi, int he);
 		printf ("fwGetDoublev at %s:%d\n",__FILE__,__LINE__);}
 
 #else
+	#define FW_GL_ENABLE(aaa) glEnable(aaa)
+	#define FW_GL_DISABLE(aaa) glDisable(aaa); 
+	#define FW_GL_ENABLECLIENTSTATE(aaa) glEnableClientState(aaa)
+	#define FW_GL_DISABLECLIENTSTATE(aaa) glDisableClientState(aaa); 
 	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) glDrawArrays(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) glTranslatef(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) glTranslated(xxx,yyy,zzz)
