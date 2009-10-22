@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.12 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Text.c,v 1.13 2009/10/22 17:18:27 crc_canada Exp $
 
 X3D Text Component
 
@@ -754,7 +754,7 @@ int open_font()
 #ifdef AQUA
         ConsoleMessage ("No Fonts; this should not happen on OSX computers; contact FreeWRL team\n");
 #else
-        ConsoleMessage ("No Fonts; check the build parameter --with-fontsdir, or set FREEWRL_FONT_PATH environment variable\n");
+        ConsoleMessage ("No Fonts; check the build parameter --with-fontsdir, or set FREEWRL_FONTSDIR environment variable\n");
 #endif
         return FALSE;
     }
