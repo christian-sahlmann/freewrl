@@ -5,8 +5,9 @@ http://www.microsoft.com/Express/vc/
 2. navigate your web browser to the download page from freewrl.sourceforge.net http://freewrl.sourceforge.net/download.html and download the Source Code tar and unzip
 3. download the msvc compatible libraries from
 http://cid-4a0d5f15141a58d5.skydrive.live.com/browse.aspx/GPUGroupX3D/freewrlWin32
-lib_msvcCompat.zip
-unzip and put the lib and Fonts directories in freewrl/freex3d
+3.a lib_msvcCompat.zip
+3.b fonts.zip
+unzip and put them in freewrl/freex3d/lib and freewrl/freex3d/fonts
 4. You should be able to build the Debug version of lib and standalone projects, except when you go to run it will complain about missing dlls.
 Go into the lib/windows/ directories and copy the dlls from the dlls_copy_to_debug directory and put in the projectfiles_vc9/Debug directory
 5. Download and install Wget and Unzip from http://gnuwin32.sourceforge.net/packages.html into C:/Program Files/GnuWin32
