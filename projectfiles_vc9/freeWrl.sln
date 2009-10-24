@@ -1,6 +1,9 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual C++ Express 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "freeWRL", "bin\bin.vcproj", "{1A94CE13-4B7F-4565-A463-D0C6C873B9F0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D35384EF-4B8A-4256-9729-D6A94CCB88B8} = {D35384EF-4B8A-4256-9729-D6A94CCB88B8}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFreeWRL", "lib\libFreeWRL.vcproj", "{D35384EF-4B8A-4256-9729-D6A94CCB88B8}"
 EndProject
