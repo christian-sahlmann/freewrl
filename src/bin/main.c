@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.23 2009/10/26 08:03:34 couannette Exp $
+  $Id: main.c,v 1.24 2009/10/26 10:43:14 couannette Exp $
 
   FreeWRL main program.
 
@@ -36,14 +36,14 @@
 #include "options.h"
 
 /**
- * Local variables
+ * FreeWRL parameters
  */
-static int CaughtSEGV = FALSE;
-int wantEAI = FALSE;
+freewrl_params_t *params = NULL;
 
 /**
  * Signal handlers 
  */
+static int CaughtSEGV = FALSE;
 void catch_SIGQUIT();
 void catch_SIGSEGV();
 
@@ -56,7 +56,7 @@ void catch_SIGHUP();
 #include <shlwapi.h>
 const char *freewrl_get_version()
 {
-	return "version 1.22.4";
+	return "version 1.22.5";
 }
 #endif
 
@@ -113,12 +113,6 @@ int main (int argc, char **argv)
 
 #endif
 
-    /* set the screen width and height before getting into arguments */
-    win_width = 600;
-    win_height = 400;
-    fullscreen = 0;
-/*     wantEAI = 0; */
-
     /* install the signal handlers */
 
     signal(SIGTERM, (void(*)(int)) catch_SIGQUIT);
@@ -130,20 +124,26 @@ int main (int argc, char **argv)
     signal(SIGHUP,  (void(*)(int)) catch_SIGHUP);
 #endif
 
+    /* Before we parse the command line, setup the FreeWRL default parameters */
+    params = calloc(1, sizeof(freewrl_params_t));
+
+    /* Default values */
+    params->width = 600;
+    params->height = 400;
+    params->eai = FALSE;
+    params->fullscreen = FALSE;
+
     /* parse command line arguments */
-    /* JAS - for last parameter of long_options entries, choose
-     * ANY character that is not 'h', and that is not used */
     if (parseCommandLine(argc, argv)) {
 
 	    start_url = argv[optind];
-
     }
 
     /* doug- redirect stdout to a file - works, useful for sending bug reports */
     /*freopen("freopen.txt", "w", stdout ); */
 
     /* start threads, parse initial scene, etc */
-    if (!initFreeWRL()) {
+    if (!initFreeWRL(params)) {
 	    ERROR_MSG("main: aborting during initialization.\n");
 	    exit(1);
     }
@@ -176,7 +176,7 @@ void catch_SIGSEGV()
 void catch_SIGHUP()
 {
     /* ConsoleMessage ("FreeWRL got a SIGHUP signal - reloading"); */
-/*MBFILES     Anchor_ReplaceWorld(BrowserFullPath); */
+    /* MBFILES     Anchor_ReplaceWorld(BrowserFullPath); */
 }
 
 void catch_SIGALRM(int sig)
