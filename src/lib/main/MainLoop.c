@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.57 2009/10/26 10:47:11 couannette Exp $
+  $Id: MainLoop.c,v 1.58 2009/10/26 13:19:27 couannette Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -36,6 +36,8 @@
 #include <libFreeWRL.h>
 #include <threads.h>
 
+#include <X11/Intrinsic.h>
+
 #include "../vrml_parser/Structs.h"
 #include "headers.h"
 #include "../vrml_parser/CParseGeneral.h"
@@ -45,26 +47,24 @@
 #include "Snapshot.h"
 #include "../scenegraph/LinearAlgebra.h"
 #include "../scenegraph/Collision.h"
-#include "../scenegraph/quaternion.h"
+
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 #include "../input/EAIHeaders.h"
-#include "../scenegraph/RenderFuncs.h"
+
 #include "../scenegraph/Component_KeyDevice.h"	/* resolving implicit declarations */
 #include "../opengl/Frustum.h"
 #include "../input/InputFunctions.h"
 
-#include "../ui/ui.h"
 #include "../opengl/OpenGL_Utils.h"
-
 
 #ifdef AQUA
 #include "../ui/aquaInt.h"
 #endif
 
 #include "MainLoop.h"
-#include "ProdCon.h"
+
 
 extern freewrl_params_t fw_params; /* will move to internal.h as soon as I've the time to include this last one everywhere ... */
 
