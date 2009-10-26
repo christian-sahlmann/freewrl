@@ -47,11 +47,6 @@ AM_LDFLAGS += \
                                 $(MOTIF_LIBS)
 endif
 
-# Aqua flags specific to aqua target (only on Mac)
-if WINDOW_USE_AQUA
-AM_CPPFLAGS += $(MAC_CFLAGS) -DAQUA
-endif
-
 if OS_MAC
 # I found this in spidermonkey build files: -Wall -Wno-format -no-cpp-precomp -fno-common -DJS_THREADSAFE -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN  -UDEBUG -DNDEBUG -UDEBUG_root -DJS_THREADSAFE -DEDITLINE
 AM_CPPFLAGS += -Wno-format -no-cpp-precomp -fno-common 
@@ -101,3 +96,22 @@ include Makefile.sources
 
 libFreeWRLEAIinclude_HEADERS += $(LIBFREEWRL_SRCDIR)/input/EAIHeaders.h
 libFreeWRLEAI_la_SOURCES += internal_version.c
+
+#
+# WINDOW_USE_* are exclusive
+#
+if WINDOW_USE_X11
+AM_CPPFLAGS+=-DTARGET_X11
+endif
+
+if WINDOW_USE_MOTIF
+AM_CPPFLAGS+=-DTARGET_MOTIF
+endif
+
+if WINDOW_USE_AQUA
+AM_CPPFLAGS+=-DTARGET_AQUA -DAQUA
+endif
+
+if WINDOW_USE_WIN32
+AM_CPPFLAGS+=-DTARGET_WIN32
+endif
