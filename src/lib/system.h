@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.18 2009/10/05 15:07:23 crc_canada Exp $
+$Id: system.h,v 1.19 2009/10/26 10:57:07 couannette Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -94,7 +94,11 @@ typedef unsigned char _Bool;
 # include <unistd.h>
 #endif
 
-#if defined(HAVE_STRNLEN) || defined(HAVE_STRNDUP)
+#if defined(HAVE_LIMITS_H)
+# include <limits.h>
+#endif
+
+#if defined(HAVE_STRING_H)
 # include <string.h>
 #endif
 
@@ -103,9 +107,7 @@ typedef unsigned char _Bool;
 size_t __fw_strnlen(const char *s, size_t maxlen);
 #endif
 
-#if defined(HAVE_STRNDUP)
-# include <string.h>
-#else
+#if !defined(HAVE_STRNDUP)
 # define strndup __fw_strndup
 char *__fw_strndup(const char *s, size_t n);
 #endif
@@ -155,7 +157,7 @@ int __fw_gettimeofday(struct timeval *tv, struct timezone *tz);
 /**
  * Misc
  */
-#if defined(WIN32)
+#if defined(_WIN32)
 
 /* FIXME: those calls to bzero & bcopy shall be remove from libeai ;)... */
 
@@ -163,6 +165,47 @@ int __fw_gettimeofday(struct timeval *tv, struct timezone *tz);
 /*  http://www.opengroup.org/onlinepubs/000095399/functions/bcopy.html */
 #define bzero(b,len) (memset((b), '\0', (len)), (void) 0) 
 #define bcopy(b1,b2,len) (memmove((b2), (b1), (len)), (void) 0)
+
+/* borrowed from CScripts.c */
+#define PATH_MAX _MAX_PATH  /*32kb*/
+
+/**
+ *    For Win32 portability: we need to define 
+ *    those standard functions.
+ */
+
+/* _strdup is defined in string.h */
+# include <string.h>
+# define strdup _strdup
+
+/* _unlink is defined in io.h and (needs stdio.h) */
+# include <io.h>
+# include <stdio.h>
+# define unlink _unlink
+
+/* _access is defined in io.h and error constants in errno.h */
+# include <io.h>
+# include <errno.h>
+# define access _access
+
+/* _getpid is defined in process.h */
+# include <process.h>
+# define getpid _getpid
+
+/* _tempnam is defined in stdio.h */
+# include <stdio.h>
+# define tempnam _tempnam
+
+/* _stat is defined in sys/stat.h (needs sys/types.h) */
+# include <sys/types.h>
+# include <sys/stats.h>
+# define stat _stat
+/* NOTE: http://msdn.microsoft.com/en-us/library/14h5k7ff.aspx
+   stat usage:
+   If path contains the location of a directory, it cannot 
+   contain a trailing backslash. If it does, -1 will be returned 
+   and errno will be set to ENOENT. 
+*/
 
 #endif
 

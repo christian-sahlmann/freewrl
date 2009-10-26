@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.18 2009/10/05 15:07:24 crc_canada Exp $
+$Id: Viewer.h,v 1.19 2009/10/26 10:57:07 couannette Exp $
 
 Viewer ???
 
@@ -31,12 +31,6 @@ Viewer ???
 #define __FREEWRL_VIEWER_H__
 
 #include "quaternion.h"
-
-#define NONE 0
-#define EXAMINE 1
-#define WALK 2
-#define EXFLY 3
-#define FLY 4
 
 #define VIEWER_STRING(type) ( \
 	type == NONE ? "NONE" : ( \
@@ -223,9 +217,6 @@ use_keys(void);
 void
 set_eyehalf( const double eyehalf,
 			const double eyehalfangle);
-
-void
-set_viewer_type(const int type);
 
 void
 resolve_pos(void);

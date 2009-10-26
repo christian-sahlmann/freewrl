@@ -1,5 +1,5 @@
 /*
-  $Id: internal.h,v 1.22 2009/10/06 01:03:53 couannette Exp $
+  $Id: internal.h,v 1.23 2009/10/26 10:57:07 couannette Exp $
 
   FreeWRL support library.
   Library internal declarations.
@@ -30,11 +30,8 @@
 #define __LIBFREEWRL_DECL_H__
 
 
-/**
- * Internal stuff needed by multiple C files in the library
- */
-
 #include "fwdebug.h"
+
 
 #if defined(_MSC_VER)
 /* FIXME: investigate on this... (michel) */
@@ -43,6 +40,28 @@
 #define HAVE_BOOLEAN 1    
 #define M_PI acos(-1.0)
 #endif
+
+/* Move those to a better place: */
+void initialize_parser();
+
+/* Global FreeWRL options (will become profiles ?) */
+
+extern bool global_strictParsing;       /* are we doing "strict" parsing, 
+                                           as per FreeX3D, or "loose" parsing, 
+                                           as per FreeWRL ? */
+
+extern bool global_plugin_print;        /* are we printing messages to a file 
+                                           because we are running as a plugin ? */
+
+extern bool global_occlusion_disable;   /* do we disable all occlusion query
+				           calls in the renderer ? */
+
+extern unsigned global_texture_size;    /* do we manually set up the texture
+                                           size ? */
+
+extern bool global_print_opengl_errors; /* print OpenGL errors as they come ? */
+
+extern bool global_trace_threads;       /* trace thread creation / switch ... ? */
 
 
 #endif /* __LIBFREEWRL_DECL_H__ */

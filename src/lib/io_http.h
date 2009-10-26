@@ -1,13 +1,10 @@
-/*******************************************************************
- *
- * FreeWRL support library
- *
- * display_aqua.c
- *
- * $Id: display_aqua.c,v 1.5 2009/10/05 15:07:23 crc_canada Exp $
- *
- *******************************************************************/
+/*
+  $Id: io_http.h,v 1.1 2009/10/26 10:57:07 couannette Exp $
 
+  FreeWRL support library.
+  IO with HTTP.
+
+*/
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -30,36 +27,19 @@
 
 
 
-#include "config.h"
-#include "system.h"
-#include "display.h"
-#include "internal.h"
+#ifndef __LIBFREEWRL_IO_HTTP_H__
+#define __LIBFREEWRL_IO_HTTP_H__
 
-/* display part specific to Mac */
 
-CGLContextObj myglobalContext;
-AGLContext aqglobalContext;
+char* download_url(const char *url, const char *tmp);
 
-GLboolean cErr;
+extern char *currentWorkingUrl;
 
-GDHandle gGDevice;
+void pushInputURL(char *url);
+char *getInputURL();
 
-int ccurse = ACURSE;
-int ocurse = ACURSE;
+/* URL manipulation */
+bool checkNetworkFile(const char *fn);
 
-/* for handling Safari window changes at the top of the display event loop */
-int PaneClipnpx;
-int PaneClipnpy;
-WindowPtr PaneClipfwWindow;
-int PaneClipct;
-int PaneClipcb;
-int PaneClipcr;
-int PaneClipcl;
-int PaneClipwidth;
-int PaneClipheight;
-int PaneClipChanged = FALSE;
 
-int create_main_window_aqua()
-{
-    return FALSE;
-}
+#endif /* __LIBFREEWRL_IO_HTTP_H__ */

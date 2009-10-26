@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.28 2009/10/02 21:34:52 crc_canada Exp $
+# $Id: Makefile.sources,v 1.29 2009/10/26 10:57:07 couannette Exp $
 #
 # List all source files
 #
@@ -17,9 +17,17 @@ libFreeWRL_la_SOURCES = \
 			libFreeWRL.h \
 			main.c \
 			display.c \
+			threads.h \
 			threads.c \
-			plugin.c \
 			internal.c \
+			io_files.c \
+			io_files.h \
+			io_http.c \
+			io_http.h \
+			list.h \
+			list.c \
+			resources.h \
+			resources.c \
  \
 main/headers.h \
 main/MainLoop.c \
@@ -167,9 +175,6 @@ opengl/LoadTextures.c \
 ui/ui.h \
 ui/statusbar.c \
 ui/aquaInt.h \
-ui/GLwDrawA.c \
-ui/GLwDrawA.h \
-ui/GLwDrawAP.h \
  \
 plugin/pluginUtils.c \
 plugin/pluginUtils.h \

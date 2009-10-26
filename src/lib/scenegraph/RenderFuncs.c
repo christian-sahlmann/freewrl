@@ -1,12 +1,10 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: RenderFuncs.c,v 1.31 2009/10/26 10:57:07 couannette Exp $
 
-$Id: RenderFuncs.c,v 1.30 2009/10/05 15:07:24 crc_canada Exp $
-
-Scenegraph rendering.
+  FreeWRL support library.
+  Scenegraph rendering.
 
 */
-
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -34,7 +32,6 @@ Scenegraph rendering.
 #include <display.h>
 #include <internal.h>
 
-#include <pthread.h> /* this is needed here, for some reason JAS */
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
@@ -61,13 +58,11 @@ int lightcode[7] = {
 	GL_LIGHT5,
 	GL_LIGHT6,
 };
+
 int nextlight() {
 	if(curlight == nlightcodes) { return -1; }
 	return lightcode[curlight++];
 }
-
-
-
 
 /* material node usage depends on texture depth; if rgb (depth1) we blend color field
    and diffusecolor with texture, else, we dont bother with material colors */
@@ -93,8 +88,6 @@ int render_sensitive;
 int render_blend;
 int render_proximity;
 int render_collision;
-
-int be_collision = 0;	/* do collision detection? */
 
 /* texture stuff - see code. Need array because of MultiTextures */
 GLuint bound_textures[MAX_MULTITEXTURE];
@@ -149,26 +142,21 @@ struct currayhit rayHit,rayph,rayHitHyper;
 /* used to test new hits */
 
 /* this is used to return the duration of an audioclip to the perl
-side of things. works, but need to figure out all
-references, etc. to bypass this fudge JAS */
+   side of things. works, but need to figure out all
+   references, etc. to bypass this fudge JAS */
 float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
-				-1.0,-1.0,-1.0,-1.0,-1.0,
-				-1.0,-1.0,-1.0,-1.0,-1.0,
-				-1.0,-1.0,-1.0,-1.0,-1.0,
-				-1.0,-1.0,-1.0,-1.0,-1.0,
-				-1.0,-1.0,-1.0,-1.0,-1.0,
-				-1.0,-1.0,-1.0,-1.0,-1.0,
-				-1.0,-1.0,-1.0,-1.0,-1.0,
-				-1.0,-1.0,-1.0,-1.0,-1.0,
-				-1.0,-1.0,-1.0,-1.0,-1.0} ;
+			      -1.0,-1.0,-1.0,-1.0,-1.0,
+			      -1.0,-1.0,-1.0,-1.0,-1.0,
+			      -1.0,-1.0,-1.0,-1.0,-1.0,
+			      -1.0,-1.0,-1.0,-1.0,-1.0,
+			      -1.0,-1.0,-1.0,-1.0,-1.0,
+			      -1.0,-1.0,-1.0,-1.0,-1.0,
+			      -1.0,-1.0,-1.0,-1.0,-1.0,
+			      -1.0,-1.0,-1.0,-1.0,-1.0,
+			      -1.0,-1.0,-1.0,-1.0,-1.0} ;
 
 /* is the sound engine started yet? */
 int SoundEngineStarted = FALSE;
-
-/* stored FreeWRL version, pointers to initialize data */
-#ifdef DO_MULTI_OPENGL_THREADS
-pthread_t shapeThread = NULL;
-#endif
 
 void *rootNode=NULL;	/* scene graph root node */
 void *empty_group=0;
@@ -177,18 +165,18 @@ void *empty_group=0;
 
 /* Sub, rather than big macro... */
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
-float tx,float ty, char *descr)  {
+	    float tx,float ty, char *descr)  {
 	GLdouble modelMatrix[16];
 	GLdouble projMatrix[16];
 
 	/* Real rat-testing */
-	#ifdef RENDERVERBOSE
-		printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\n\tR: (%f %f %f) (%f %f %f)\n",
-		descr, rat,cx,cy,cz,nx,ny,nz,
-		t_r1.x, t_r1.y, t_r1.z,
-		t_r2.x, t_r2.y, t_r2.z
+#ifdef RENDERVERBOSE
+	printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\n\tR: (%f %f %f) (%f %f %f)\n",
+	       descr, rat,cx,cy,cz,nx,ny,nz,
+	       t_r1.x, t_r1.y, t_r1.z,
+	       t_r2.x, t_r2.y, t_r2.z
 		);
-	#endif
+#endif
 
 	if(rat<0 || (rat>hpdist && hpdist >= 0)) {
 		return;
@@ -199,9 +187,9 @@ float tx,float ty, char *descr)  {
 	hpdist = rat;
 	rayHit=rayph;
 	rayHitHyper=rayph;
-	#ifdef RENDERVERBOSE 
-		printf ("Rayhit, hp.x y z: - %f %f %f rat %f hpdist %f\n",hp.x,hp.y,hp.z, rat, hpdist);
-	#endif
+#ifdef RENDERVERBOSE 
+	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hpdist %f\n",hp.x,hp.y,hp.z, rat, hpdist);
+#endif
 }
 
 
@@ -212,14 +200,14 @@ void upd_ray() {
 	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	gluUnProject(r1.x,r1.y,r1.z,modelMatrix,projMatrix,viewport,
-		&t_r1.x,&t_r1.y,&t_r1.z);
+		     &t_r1.x,&t_r1.y,&t_r1.z);
 	gluUnProject(r2.x,r2.y,r2.z,modelMatrix,projMatrix,viewport,
-		&t_r2.x,&t_r2.y,&t_r2.z);
+		     &t_r2.x,&t_r2.y,&t_r2.z);
 	gluUnProject(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
-		&t_r3.x,&t_r3.y,&t_r3.z);
+		     &t_r3.x,&t_r3.y,&t_r3.z);
 /*	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",
-		r1.x,r1.y,r1.z,r2.x,r2.y,r2.z,
-		t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
+	r1.x,r1.y,r1.z,r2.x,r2.y,r2.z,
+	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
 */
 }
 
@@ -230,7 +218,7 @@ void upd_ray() {
 void update_node(struct X3D_Node *node) {
 	int i;
 
-	#ifdef VERBOSE
+#ifdef VERBOSE
 	printf ("update_node for %d %s nparents %d renderflags %x\n",node, stringNodeType(node->_nodeType),node->_nparents, node->_renderFlags); 
 	if (node->_nparents == 0) {
 		if (node == rootNode) printf ("...no parents, this IS the rootNode\n"); 
@@ -244,16 +232,16 @@ void update_node(struct X3D_Node *node) {
 			printf ("	parent %d is NULL\n",i);
 		}
 	}
-	#endif
+#endif
 
 	node->_change ++;
 	for (i = 0; i < node->_nparents; i++) {
 		struct X3D_Node *n = X3D_NODE(node->_parents[i]);
 		if(n == node) {
-		    fprintf(stderr, "Error: self-referential node structure! (node:'%s')\n", stringNodeType(node->_nodeType));
-		    node->_parents[i] = empty_group;
+			fprintf(stderr, "Error: self-referential node structure! (node:'%s')\n", stringNodeType(node->_nodeType));
+			node->_parents[i] = empty_group;
 		} else if( n != 0 ) {
-		    update_node(n);
+			update_node(n);
 		}
 	}
 }
@@ -269,6 +257,25 @@ void update_node(struct X3D_Node *node) {
 static int renderLevel = 0;
 #endif
 
+#define PRINT_NODE(_node, _v)  do {					\
+		if (global_print_opengl_errors && (_global_gl_err != GL_NO_ERROR)) { \
+			printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",(int) _v, \
+			       stringNodeType(_node->_nodeType),	\
+			       (int) _v->prep,				\
+			       (int) _v->rend,				\
+			       (int) _v->children,			\
+			       (int) _v->fin,				\
+			       (int) _v->rendray,			\
+			       (int) hypersensitive);			\
+			printf("Render_state geom %d light %d sens %d\n", \
+			       render_geom,				\
+			       render_light,				\
+			       render_sensitive);			\
+			printf("pchange %d pichange %d vchanged %d\n", _node->_change, _node->_ichange,(int) _v->changed); \
+		}							\
+	} while (0)
+
+
 void render_node(struct X3D_Node *node) {
 	struct X3D_Virt *v;
 	int srg = 0;
@@ -279,48 +286,45 @@ void render_node(struct X3D_Node *node) {
 
 	X3D_NODE_CHECK(node);
 
-	#ifdef RENDERVERBOSE
-		renderLevel ++;
-	#endif
+#ifdef RENDERVERBOSE
+	renderLevel ++;
+#endif
 
 	if(!node) {
-		#ifdef RENDERVERBOSE
-		printf ("%d no node, quick return\n",renderLevel); renderLevel--;
-		#endif
+#ifdef RENDERVERBOSE
+		DEBUG_RENDER("%d no node, quick return\n", renderLevel);
+		renderLevel--;
+#endif
 		return;
 	}
 
 	v = *(struct X3D_Virt **)node;
-	#ifdef RENDERVERBOSE 
-	    printf("%d =========================================NODE RENDERED===================================================\n",renderLevel);
-	printf ("%d node %u (%s) , v %u renderFlags %x ",renderLevel, node,stringNodeType(node->_nodeType),v,node->_renderFlags);
-	    printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v, v->prep, v->rend, v->children, v->fin,
-		   v->rendray, hypersensitive);
-            printf ("%d state: vp %d geom %d light %d sens %d blend %d prox %d col %d ", renderLevel, 
+#ifdef RENDERVERBOSE 
+	printf("%d =========================================NODE RENDERED===================================================\n",renderLevel);
+	printf("%d node %u (%s) , v %u renderFlags %x ",renderLevel, node,stringNodeType(node->_nodeType),v,node->_renderFlags);
+	printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v, v->prep, v->rend, v->children, v->fin,
+	       v->rendray, hypersensitive);
+	printf("%d state: vp %d geom %d light %d sens %d blend %d prox %d col %d ", renderLevel, 
          	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
-	    printf ("change %d ichange %d changed %d\n",node->_change, node->_ichange,v->changed);
-	#endif
+	printf("change %d ichange %d changed %d\n",node->_change, node->_ichange,v->changed);
+#endif
 
 
 	/* call the "changed_" function */
 	if(NODE_NEEDS_COMPILING  && (v->changed != NULL)) {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 1 pch %d pich %d vch %d\n",node->_change,node->_ichange,v->changed);
-	    #endif
-	    v->changed(node);
-	    MARK_NODE_COMPILED
-
-	    if (displayOpenGLErrors) 
-	  	  if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "change";
-	  }
+		DEBUG_RENDER("rs 1 pch %d pich %d vch %d\n",node->_change,node->_ichange,v->changed);
+		v->changed(node);
+		MARK_NODE_COMPILED;
+		PRINT_GL_ERROR_IF_ANY("change"); PRINT_NODE(node,v);
+	}
 
         /* if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here */ 
         if (render_vp == VF_Viewpoint) { 
                 if ((node->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { 
-			#ifdef RENDERVERBOSE
+#ifdef RENDERVERBOSE
                         printf ("doing Viewpoint, but this  node is not for us - just returning\n"); 
 			renderLevel--;
-			#endif
+#endif
                         return; 
                 } 
         }
@@ -328,157 +332,97 @@ void render_node(struct X3D_Node *node) {
 	/* are we working through global PointLights, DirectionalLights or SpotLights, but none exist from here on down? */
         if (render_light == VF_globalLight) { 
                 if ((node->_renderFlags & VF_globalLight) != VF_globalLight) { 
-			#ifdef RENDERVERBOSE
+#ifdef RENDERVERBOSE
                         printf ("doing globalLight, but this  node is not for us - just returning\n"); 
 			renderLevel--;
-			#endif
+#endif
                         return; 
                 }
         }
 
-
 	if(v->prep) {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 2\n");
-	    #endif
-
-	    v->prep(node);
-	    if(render_sensitive && !hypersensitive) {
-		upd_ray();
-	      }
-	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "prep";
-	  }
+		DEBUG_RENDER("rs 2\n");
+		v->prep(node);
+		if(render_sensitive && !hypersensitive) {
+			upd_ray();
+		}
+		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,v);
+	}
 
 	if(render_proximity && v->proximity) {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 2a\n");
-	    #endif
-	    v->proximity(node);
-	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_proximity";
+		DEBUG_RENDER("rs 2a\n");
+		v->proximity(node);
+		PRINT_GL_ERROR_IF_ANY("render_proximity"); PRINT_NODE(node,v);
 	}
 
 	if(render_collision && v->collision) {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 2b\n");
-	    #endif
-
-	    v->collision(node);
-	    #ifdef RENDERVERBOSE 
-	    #endif
-	
-	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_collision";
+		DEBUG_RENDER("rs 2b\n");
+		v->collision(node);
+		PRINT_GL_ERROR_IF_ANY("render_collision"); PRINT_NODE(node,v);
 	}
 
-
-
 	if(render_geom && !render_sensitive && v->rend) {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 3\n");
-	    #endif
-
-	    v->rend(node);
-	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_geom";
-	  }
+		DEBUG_RENDER("rs 3\n");
+		v->rend(node);
+		PRINT_GL_ERROR_IF_ANY("render_geom"); PRINT_NODE(node,v);
+	}
 	 
 	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 5\n");
-	    #endif
+		DEBUG_RENDER("rs 5\n");
+		srg = render_geom;
+		render_geom = 1;
+		DEBUG_RENDER("CH1 %d: %d\n",node, cur_hits, node->_hit);
+		sch = cur_hits;
+		cur_hits = 0;
+		/* HP */
+		srh = rayph;
+		rayph.node = node;
+		fwGetDoublev(GL_MODELVIEW_MATRIX, rayph.modelMatrix);
+		fwGetDoublev(GL_PROJECTION_MATRIX, rayph.projMatrix);
+		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,v);
+	}
 
-	    srg = render_geom;
-	    render_geom = 1;
-	    #ifdef RENDERVERBOSE 
-		printf("CH1 %d: %d\n",node, cur_hits, node->_hit);
-	    #endif
-
-	    sch = cur_hits;
-	    cur_hits = 0;
-	    /* HP */
-	      srh = rayph;
-	    rayph.node = node;
-	    fwGetDoublev(GL_MODELVIEW_MATRIX, rayph.modelMatrix);
-	    fwGetDoublev(GL_PROJECTION_MATRIX, rayph.projMatrix);
-	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_sensitive";
-
-	  }
 	if(render_geom && render_sensitive && !hypersensitive && v->rendray) {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 6\n");
-	    #endif
-
-	    v->rendray(node);
-	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "rs 6";
-	  }
-
+		DEBUG_RENDER("rs 6\n");
+		v->rendray(node);
+		PRINT_GL_ERROR_IF_ANY("rs 6"); PRINT_NODE(node,v);
+	}
 
         if((render_sensitive) && (hypersensitive == node)) {
-            #ifdef RENDERVERBOSE 
-		printf ("rs 7\n");
-	    #endif
-
-            hyper_r1 = t_r1;
-            hyper_r2 = t_r2;
-            hyperhit = 1;
+		DEBUG_RENDER("rs 7\n");
+		hyper_r1 = t_r1;
+		hyper_r2 = t_r2;
+		hyperhit = 1;
         }
-        if(v->children) { 
-	#ifdef RENDERVERBOSE 
-		printf ("rs 8 - has valid child node pointer\n");
-	    #endif
 
-            v->children(node);
-	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "children";
+        if(v->children) { 
+		DEBUG_RENDER("rs 8 - has valid child node pointer\n");
+		v->children(node);
+		PRINT_GL_ERROR_IF_ANY("children"); PRINT_NODE(node,v);
         }
 
 	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 9\n");
-	    #endif
+		DEBUG_RENDER("rs 9\n");
+		render_geom = srg;
+		cur_hits = sch;
+		DEBUG_RENDER("CH3: %d %d\n",cur_hits, node->_hit);
+		/* HP */
+		rayph = srh;
+	}
 
-	    render_geom = srg;
-	    cur_hits = sch;
-	    #ifdef RENDERVERBOSE 
-		printf("CH3: %d %d\n",cur_hits, node->_hit);
-	    #endif
-
-	    /* HP */
-	      rayph = srh;
-	  }
 	if(v->fin) {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs A\n");
-	    #endif
+		DEBUG_RENDER("rs A\n");
+		v->fin(node);
+		if(render_sensitive && v == &virt_Transform) {
+			upd_ray();
+		}
+		PRINT_GL_ERROR_IF_ANY("fin"); PRINT_NODE(node,v);
+	}
 
-	    v->fin(node);
-
-	    if(render_sensitive && v == &virt_Transform)
-	      {
-		upd_ray();
-	      }
-	    if (displayOpenGLErrors) if(glerror != GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "fin";
-	  }
-	#ifdef RENDERVERBOSE 
-		printf("%d (end render_node)\n",renderLevel);
-		renderLevel--;
-	#endif
-
-	if (displayOpenGLErrors) if(glerror != GL_NONE)
-	  {
-	    printf("============== GLERROR : %s in stage %s =============\n",gluErrorString(glerror),stage);
-	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",(int) v,
-		   stringNodeType(node->_nodeType),
-		   (int) v->prep,
-		   (int) v->rend,
-		   (int) v->children,
-		   (int) v->fin,
-		   (int) v->rendray,
-		   (int) hypersensitive);
-	    printf("Render_state geom %d light %d sens %d\n",
-		   render_geom,
-		   render_light,
-		   render_sensitive);
-	    printf ("pchange %d pichange %d vchanged %d\n",node->_change, node->_ichange,(int) v->changed);
-	    printf("==============\n");
-	  }
+#ifdef RENDERVERBOSE 
+	printf("%d (end render_node)\n",renderLevel);
+	renderLevel--;
+#endif
 }
 
 /*
@@ -494,10 +438,10 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 
 	if(!node) return;
 
-	#ifdef CHILDVERBOSE
+#ifdef CHILDVERBOSE
 	printf ("add_parent; adding node %u (%s) to parent %u (%s) at %s:%d\n",node, stringNodeType(node->_nodeType), 
-			parent, stringNodeType(parent->_nodeType),file,line);
-	#endif
+		parent, stringNodeType(parent->_nodeType),file,line);
+#endif
 
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 
@@ -508,8 +452,8 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 		if (node->_parents == NULL)  {
 			node->_parents = (void **)MALLOC(sizeof(node->_parents[0])* node->_nparalloc) ;
 		} else {
-		node->_parents = (void **)REALLOC(node->_parents, sizeof(node->_parents[0])*
-							node->_nparalloc) ;
+			node->_parents = (void **)REALLOC(node->_parents, sizeof(node->_parents[0])*
+							  node->_nparalloc) ;
 		}
 	}
 	node->_parents[oldparcount] = parent;
@@ -526,10 +470,10 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 	if(!child) return;
 	if(!parent) return;
 	
-	#ifdef CHILDVERBOSE
+#ifdef CHILDVERBOSE
 	printf ("remove_parent, parent %u (%s) , child %u (%s)\n",parent, stringNodeType(parent->_nodeType),
 		child, stringNodeType(child->_nodeType));
-	#endif
+#endif
 
 	/* find the index of this parent in this child. */
 	pi = -1;
@@ -550,31 +494,31 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 	 * has already happened).
 	 */
 
-	#ifdef CHILDVERBOSE
+#ifdef CHILDVERBOSE
 	printf ("remove_parent, pi %d, index at end %d\n",pi, child->_nparents-1);
-	#endif
+#endif
 
 	child->_parents[pi]=child->_parents[child->_nparents-1];
 	child->_nparents--;
 
-	#ifdef CHILDVERBOSE
+#ifdef CHILDVERBOSE
 	if (child->_nparents == -1) {
 		printf ("remove_parent, THIS NODE HAS NO PARENTS...\n");
 	}
-	#endif
+#endif
 }
 
 void
 render_hier(struct X3D_Node *p, int rwhat) {
 	struct point_XYZ upvec = {0,1,0};
 	GLdouble modelMatrix[16];
-	#define XXXrender_pre_profile
-	#ifdef render_pre_profile
+#define XXXrender_pre_profile
+#ifdef render_pre_profile
 	/*  profile */
 	double xx,yy,zz,aa,bb,cc,dd,ee,ff;
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
-	#endif
+#endif
 
 
 	render_vp = rwhat & VF_Viewpoint;
@@ -588,15 +532,15 @@ render_hier(struct X3D_Node *p, int rwhat) {
 	hpdist = -1;
 
 
-	#ifdef render_pre_profile
+#ifdef render_pre_profile
 	if (render_geom) {
 		gettimeofday (&mytime,&tz);
 		aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	}
-	#endif
+#endif
 
 	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
+	   render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
 
 	if (!p) {
 		/* we have no geometry yet, sleep for a tiny bit */
@@ -604,44 +548,44 @@ render_hier(struct X3D_Node *p, int rwhat) {
 		return;
 	}
 
-	#ifdef RENDERVERBOSE
-  		printf("Render_hier node=%d what=%d\n", p, rwhat);
-	#endif
+#ifdef RENDERVERBOSE
+	printf("Render_hier node=%d what=%d\n", p, rwhat);
+#endif
 
-	#ifdef render_pre_profile
+#ifdef render_pre_profile
 	if (render_geom) {
 		gettimeofday (&mytime,&tz);
 		bb = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	}
-	#endif
+#endif
 
 	if (render_sensitive) {
 		upd_ray();
 	}
 
-	#ifdef render_pre_profile
+#ifdef render_pre_profile
 	if (render_geom) {
 		gettimeofday (&mytime,&tz);
 		cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	}
-	#endif
+#endif
 
 	render_node(p);
 
-	#ifdef render_pre_profile
+#ifdef render_pre_profile
 	if (render_geom) {
 		gettimeofday (&mytime,&tz);
 		dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 		printf ("render_geom status %f ray %f geom %f\n",bb-aa, cc-bb, dd-cc);
 	}
-	#endif
+#endif
 
 
 	/*get viewpoint result, only for upvector*/
 	if (render_vp &&
-		ViewerUpvector.x == 0 &&
-		ViewerUpvector.y == 0 &&
-		ViewerUpvector.z == 0) {
+	    ViewerUpvector.x == 0 &&
+	    ViewerUpvector.y == 0 &&
+	    ViewerUpvector.z == 0) {
 
 		/* store up vector for gravity and collision detection */
 		/* naviinfo.reset_upvec is set to 1 after a viewpoint change */
@@ -649,9 +593,9 @@ render_hier(struct X3D_Node *p, int rwhat) {
 		matinverse(modelMatrix,modelMatrix);
 		transform3x3(&ViewerUpvector,&upvec,modelMatrix);
 
-		#ifdef RENDERVERBOSE 
+#ifdef RENDERVERBOSE 
 		printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
-		#endif
+#endif
 
 	}
 }
@@ -684,13 +628,16 @@ static void *shapecolor;		/* Polyrep shape color node		*/
 static void *shapenormal;		/* Polyrep shape normal node		*/
 static void *shapetexCoord;		/* Polyrep shape tex coord node		*/
 
-void _shapeCompileThread () {
+void _shapeCompileThread ()
+{
+	ENTER_THREAD("shape compiler");
+
 	/* we wait forever for the data signal to be sent */
 	for (;;) {
 		SLOCK
-		CompileThreadInitialized = TRUE;
+			CompileThreadInitialized = TRUE;
 		S_LOCK_WAIT
-		shapeCompiling = TRUE;
+			shapeCompiling = TRUE;
 		/* printf ("shapethread compiling\n"); */
 
 		/* so, lets do the compile */
@@ -698,26 +645,16 @@ void _shapeCompileThread () {
 
 		shapeCompiling = FALSE;
 		SUNLOCK
-	}
+			}
 }
-
-
-void initializeShapeCompileThread() {
-	int iret;
-
-	if (shapeThread == NULL) {
-        	iret = pthread_create(&shapeThread, NULL, (void *(*)(void *))&_shapeCompileThread, NULL);
-	}
-}
-
 #endif
 
 int isShapeCompilerParsing() {
-	#ifdef DO_MULTI_OPENGL_THREADS
+#ifdef DO_MULTI_OPENGL_THREADS
 	return shapeCompiling;
-	#else
+#else
 	return FALSE;
-	#endif
+#endif
 }
 
 void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *Icoord, void *Icolor, void *Inormal, void *ItexCoord) {
@@ -734,48 +671,48 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 
 	/* are any of these SFNodes PROTOS? If so, get the underlying real node, as PROTOS are handled like Groups. */
 	POSSIBLE_PROTO_EXPANSION(Icoord,coord)
-	POSSIBLE_PROTO_EXPANSION(Icolor,color)
-	POSSIBLE_PROTO_EXPANSION(Inormal,normal)
-	POSSIBLE_PROTO_EXPANSION(ItexCoord,texCoord)
+		POSSIBLE_PROTO_EXPANSION(Icolor,color)
+		POSSIBLE_PROTO_EXPANSION(Inormal,normal)
+		POSSIBLE_PROTO_EXPANSION(ItexCoord,texCoord)
 
-	#ifdef DO_MULTI_OPENGL_THREADS
+#ifdef DO_MULTI_OPENGL_THREADS
 
-	/* do we want to use a seperate thread for compiling shapes, or THIS thread? */
-	if (useShapeThreadIfPossible) {
-		if (!shapeCompiling) {
-			if (!CompileThreadInitialized) return; /* still starting up */
+		/* do we want to use a seperate thread for compiling shapes, or THIS thread? */
+		if (useShapeThreadIfPossible) {
+			if (!shapeCompiling) {
+				if (!CompileThreadInitialized) return; /* still starting up */
 	
 	
-			/* lock for exclusive thread access */
-	        	SLOCK
+				/* lock for exclusive thread access */
+				SLOCK
 	
-			/* copy our params over */
-			shapemethodptr = nodefn;
-			shapenodeptr = node;
-			shapecoord = coord;
-			shapecolor = color;
-			shapenormal = normal;
-			shapetexCoord = texCoord;
-			/* signal to the shape compiler thread that there is data here */
-			S_LOCK_SIGNAL
-	        	SUNLOCK
+					/* copy our params over */
+					shapemethodptr = nodefn;
+				shapenodeptr = node;
+				shapecoord = coord;
+				shapecolor = color;
+				shapenormal = normal;
+				shapetexCoord = texCoord;
+				/* signal to the shape compiler thread that there is data here */
+				S_LOCK_SIGNAL
+					SUNLOCK
 			
+					}
+			sched_yield();
+		} else {
+			/* ok, we do not want to use the shape compile thread, just do it */
+			nodefn(node, coord, color, normal, texCoord);
 		}
-		sched_yield();
-	} else {
-		/* ok, we do not want to use the shape compile thread, just do it */
-		nodefn(node, coord, color, normal, texCoord);
-	}
 
-	#else
+#else
 	/* ok, we cant do a shape compile thread, just do it */
 	nodefn(node, coord, color, normal, texCoord);
-	#endif
+#endif
 }
 
 
 /* for CRoutes, we need to have a function pointer to an interpolator to run, if we
-route TO an interpolator */
+   route TO an interpolator */
 void *returnInterpolatorPointer (const char *x) {
 	if (strcmp("OrientationInterpolator",x)==0) { return (void *)do_Oint4;
 	} else if (strcmp("CoordinateInterpolator2D",x)==0) { return (void *)do_OintCoord2D;
@@ -829,10 +766,10 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 	while (*offsetptr >= 0) {
 
 		/* 
-		printf ("	field %s",FIELDNAMES[offsetptr[0]]); 
-		printf ("	offset %d",offsetptr[1]);
-		printf ("	type %s",FIELDTYPES[offsetptr[2]]);
-		printf ("	kind %s\n",KEYWORDS[offsetptr[3]]);
+		   printf ("	field %s",FIELDNAMES[offsetptr[0]]); 
+		   printf ("	offset %d",offsetptr[1]);
+		   printf ("	type %s",FIELDTYPES[offsetptr[2]]);
+		   printf ("	kind %s\n",KEYWORDS[offsetptr[3]]);
 		*/
 
 		/* worry about SFNodes and MFNodes */
@@ -877,7 +814,7 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 
 	POSSIBLE_PROTO_EXPANSION (innode,node)
 
-	xc = X3D_COORD(node);
+		xc = X3D_COORD(node);
 	/* printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType)); */
 
 	if (xc->_nodeType == NODE_Coordinate) {

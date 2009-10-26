@@ -1,10 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: display.h,v 1.31 2009/10/26 10:57:07 couannette Exp $
 
-$Id: display.h,v 1.30 2009/10/22 16:58:49 crc_canada Exp $
-
-FreeWRL support library.
-Internal header: display (X11/Motif or OSX/Aqua) dependencies.
+  FreeWRL support library.
+  Display global definitions for all architectures.
 
 */
 
@@ -32,6 +30,32 @@ Internal header: display (X11/Motif or OSX/Aqua) dependencies.
 #ifndef __LIBFREEWRL_DISPLAY_H__
 #define __LIBFREEWRL_DISPLAY_H__
 
+
+/* Main initialization function */
+int display_initialize();
+extern bool display_initialized;
+#define IS_DISPLAY_INITIALIZED (display_initialized==TRUE)
+
+/**
+ * Sort of "virtual" functions
+ *
+ * TARGET_AQUA   : 
+ * TARGET_X11    : ui/fwBareWindow.c
+ * TARGET_MOTIF  : ui/fwMotifWindow.c
+ * TARGET_WIN32  : ui/fwWindow32.c
+ */
+int open_display();
+int create_main_window(int argc, char *argv[]);
+bool create_GLcontext();
+bool bind_GLcontext();
+bool initialize_GL();
+
+void setMessageBar(void);
+void setMenuStatus(char *stat);
+#define MAXSTAT 200
+extern char myMenuStatus[MAXSTAT];
+extern float myFps;
+
 /**
  * Main window parameters
  */
@@ -58,7 +82,28 @@ extern int yPos;
 
 extern int displayDepth;
 
-extern int shutterGlasses; /* stereo shutter glasses */
+extern int shutterGlasses; /* shutter glasses, stereo enabled ? */
+extern int quadbuff_stereo_mode; /* quad buffer enabled ? */
+
+/* OpenGL renderer capabilities */
+
+typedef struct {
+
+	char *renderer; /* replace GL_REN */
+	char *version;
+	char *vendor;
+
+	bool av_multitexture; /* Multi textures available */
+	bool av_glsl_shaders; /* GLSL shaders available   */ 
+	bool av_npot_texture; /* Non power of 2 textures  */
+	bool av_texture_rect; /* Rectangle textures */
+	
+	int texture_units;
+	unsigned max_texture_size[2];
+	
+} s_renderer_capabilities_t;
+
+extern s_renderer_capabilities_t rdr_caps;
 
 /**
  * Specific platform : Mac
@@ -99,8 +144,6 @@ extern int PaneClipheight;
 extern int PaneClipChanged;
 
 void eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height);
-
-int create_main_window_aqua(); /* mb */
 
 # if defined(WANT_MULTI_OPENGL_THREADS)
 /* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
@@ -169,29 +212,15 @@ extern int vmode_mode_selected;
 
 extern XtAppContext Xtcx;
 
-int create_main_window_motif(); /* mb */
-
-int isMotifDisplayInitialized();
 void getMotifWindowedGLwin(Window *win);
-void openMotifMainWindow(int argc, char ** argv);
-void createMotifMainWindow();
-# define ISDISPLAYINITIALIZED isMotifDisplayInitialized()
 # define GET_GLWIN getMotifWindowedGLwin(&GLwin)
-# define OPEN_TOOLKIT_MAINWINDOW openMotifMainWindow(argc, argv)
-# define CREATE_TOOLKIT_MAIN_WINDOW createMotifMainWindow()
 
 # else /* defined(TARGET_MOTIF) */
 
 /**
  * Only X11, no Motif
  */
-int create_main_window_x11(); /* mb */
-
-# define HAVE_NOTOOLKIT
-# define ISDISPLAYINITIALIZED TRUE
 # define GET_GLWIN getBareWindowedGLwin(&GLwin)
-# define OPEN_TOOLKIT_MAINWINDOW openBareMainWindow (argc, argv);
-# define CREATE_TOOLKIT_MAIN_WINDOW createBareMainWindow();
 
 # endif /* defined(TARGET_MOTIF) */
 
@@ -199,14 +228,7 @@ int create_main_window_x11(); /* mb */
 
 #ifdef TARGET_WIN32
 
-#include <display_win32.h>
-
-/* i dont know why cursors are showing up in the pan-platform section of mainloop.c */
-/* moved to display_win32.h and fwWindow32.c
-#define SENSOR_CURSOR {}
-#define ARROW_CURSOR {}
-*/
-int create_main_window_win32();
+/* Nothing special :P ... */
 
 #endif /* TARGET_WIN32 */
 
@@ -214,14 +236,16 @@ int create_main_window_win32();
  * General : all systems
  */
 
+extern GLenum _global_gl_err;
 #define GL_ERROR_MSG gluErrorString(glGetError())
-
-int display_initialize(); /* mb */
-int open_display(); /* mb */
-int create_main_window(); /* mb */
-int create_GL_context(); /* mb */
-int initialize_gl_context(); /* mb */
-int initialize_viewport(); /* mb */
+#define PRINT_GL_ERROR_IF_ANY(_where) do { if (global_print_opengl_errors) { \
+                                              GLenum _global_gl_err = glGetError(); \
+                                              if (_global_gl_err != GL_NO_ERROR) { \
+                                                 char *_str = (char *) gluErrorString(_global_gl_err); \
+                                                 fprintf(stderr, "GL error: %s, here: %s\n", _str, _where); \
+                                              } \
+                                           } \
+                                      } while (0)
 
 void resetGeometry();
 void setScreenDim(int wi, int he);

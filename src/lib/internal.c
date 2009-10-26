@@ -1,14 +1,11 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: internal.c,v 1.8 2009/10/26 10:57:07 couannette Exp $
 
-$Id: internal.c,v 1.7 2009/10/05 15:07:23 crc_canada Exp $
-
-FreeWRL support library.
-Internal functions: some very usefull functions are not always
-present (example: strndup, ...).
+  FreeWRL support library.
+  Internal functions: some very usefull functions are not always
+  present (example: strndup, ...).
 
 */
-
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -30,12 +27,12 @@ present (example: strndup, ...).
 ****************************************************************************/
 
 
-
-
 #include <config.h>
 #include <system.h>
 #include <internal.h>
 
+#include <stdarg.h>
+#include <errno.h>
 
 #if !defined(HAVE_STRNLEN)
 
@@ -51,10 +48,6 @@ size_t __fw_strnlen(const char *s, size_t maxlen)
 #endif
 
 #if !defined(HAVE_STRNDUP)
-
-/******************************************************************************/
-/* Jens Rieks sent in some changes - some of which uses strndup, which does not
-   always exist... */
 
 char *__fw_strndup(const char *s, size_t n)
 {
@@ -121,3 +114,19 @@ int __fw_gettimeofday(struct timeval *tv, struct timezone *tz)
 }
 
 #endif
+
+void fw_perror(FILE *f, const char *format, ...)
+{
+    int e;
+    va_list ap;
+    va_start(ap, format);
+	
+    e = errno;
+	
+    vfprintf(f, format, ap);
+	    
+    va_end(ap);
+	    
+    fprintf(f, "[System error: %s]\n", strerror(e));
+    fflush(f);
+}

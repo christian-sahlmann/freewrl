@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.10 2009/10/06 01:03:53 couannette Exp $
+  $Id: libFreeWRL.h,v 1.11 2009/10/26 10:57:07 couannette Exp $
 
   FreeWRL library API (public)
 
@@ -36,11 +36,25 @@ const char *libFreeWRL_get_version();
 /**
  * Initialization
  */
-void initFreewrl(); /* FIXME: clean up those scatered entry points... */
-void closeFreewrl();
-int initFreeWRL();
+typedef struct freewrl_params {
+	/* Put here global parameters, parsed in main program
+	   and needed to initialize libFreeWRL
+	   example: width, height, fullscreen, multithreading, eai...
+	*/
+	int width;
+	int height;
+	bool fullscreen;
+	bool multithreading;
+	bool eai;
+	bool verbose;
+	int collision;	/* do collision detection? */
+
+} freewrl_params_t;
+
+bool initFreeWRL(freewrl_params_t *params);
+void startFreeWRL(const char *url);
 void closeFreeWRL();
-void startFreeWRL();
+void terminateFreeWRL();
 
 /**
  * General functions
@@ -51,44 +65,20 @@ void startFreeWRL();
 int ConsoleMessage(const char *fmt, ...);
 #endif
 
-#if defined(_MSC_VER)
-#ifndef _WINSOCKAPI_
-#define _WINSOCKAPI_   /* to block loading of older winsock. Or #define WIN32_LEAN_AND_MEAN */
-#endif
-
-#include <windows.h>
-__inline double Time1970sec()
-{
-   SYSTEMTIME mytimet; /*winNT and beyond */
-   /* the windows getlocaltime has a granularity of 1ms at best. 
-   There are a gazillion time functions in windows so I isolated it here in case I got it wrong*/
-		/* win32 there are some higher performance timer functions (win95-vista)
-		but a system might not support it - lpFrequency returns 0 if not supported
-		BOOL QueryPerformanceFrequency( LARGE_INTEGER *lpFrequency );
-		BOOL QueryPerformanceCounter( LARGE_INTEGER *lpPerformanceCount );
-		*/
-
-   GetLocalTime(&mytimet);
-   return (double) mytimet.wHour*3600.0 + (double)mytimet.wMinute*60.0 + (double)mytimet.wSecond + (double)mytimet.wMilliseconds/1000.0;
-}
-
-#else
-/* JAS inline double Time1970sec() 
-{
-  struct timeval tv;
-  (void) gettimeofday(&tv, (struct timezone *)NULL);
-  return (tv.tv_sec + tv.tv_usec / 1000000.0);
-}
-*/
-#endif
-
-int checkNetworkFile(char *fn);
-void setFullPath(const char* file);
-void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
 void create_EAI();
 void create_MIDIEAI();
 void doQuit();
-void Anchor_ReplaceWorld(char *name);
+
+/* void Anchor_ReplaceWorld(char *name); */
+bool Anchor_ReplaceWorld();
+
+#define NONE 0
+#define EXAMINE 1
+#define WALK 2
+#define EXFLY 3
+#define FLY 4
+void set_viewer_type(const int type);
+
 void setTexSize(int requestedsize);
 void setGeometry_from_cmdline(const char *gstring);
 void setSnapFile(const char* file);
@@ -113,16 +103,12 @@ void setSnapGif();
 
 #define RUNNINGASPLUGIN (isBrowserPlugin)
 
-extern int win_height;
-extern int win_width;
-extern int fullscreen;
 extern char *BrowserFullPath;
 
 extern int _fw_pipe, _fw_FD;
 extern int _fw_browser_plugin;
 extern int isBrowserPlugin;
 extern uintptr_t _fw_instance;
-extern int be_collision;
 extern char *keypress_string;
 
 #ifdef HAVE_LIBCURL

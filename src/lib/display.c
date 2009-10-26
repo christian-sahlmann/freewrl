@@ -1,13 +1,10 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: display.c,v 1.15 2009/10/26 10:57:07 couannette Exp $
 
-$Id: display.c,v 1.14 2009/10/05 15:07:23 crc_canada Exp $
-
-FreeWRL support library.
-Display (X11/Motif or OSX/Aqua) initialization.
+  FreeWRL support library.
+  Display (X11/Motif or OSX/Aqua) initialization.
 
 */
-
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -31,11 +28,13 @@ Display (X11/Motif or OSX/Aqua) initialization.
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
+#include <threads.h>
 
 
-/* common function between display_x11, display_motif and display_aqua */
+bool display_initialized = FALSE;
 
 int win_height = 0; /* window */
 int win_width = 0;
@@ -59,71 +58,67 @@ int xPos = 0;
 int yPos = 0;
 
 int shutterGlasses = 0; /* stereo shutter glasses */
+int quadbuff_stereo_mode = 0;
 
+s_renderer_capabilities_t rdr_caps;
+
+float myFps = 0.0;
+char myMenuStatus[MAXSTAT];
+
+GLenum _global_gl_err;
+
+/**
+ *  display_initialize: takes care of all the initialization process, 
+ *                      creates the display thread and wait for it to complete
+ *                      the OpenGL initialization and the Window creation.
+ */
 int display_initialize()
 {
-    // Default width / height
-    if (!win_width)
-	win_width = 800;
-    if (!win_height)
-	win_height = 600;
+	memset(&rdr_caps, 0, sizeof(rdr_caps));
 
-    #ifndef TARGET_AQUA
-    if (!open_display())
-	return FALSE;
-    #endif
+	/* make the window, get the OpenGL context */
+	if (!open_display()) {
+		return FALSE;
+	}
 
-    #ifndef TARGET_AQUA
-    if (!create_GL_context())
-	return FALSE;
-    #else
-    printf ("SKIPPING CREATE_GL_CONTEXT\n");
-    #endif
+	if (!create_GLcontext()) {
+		return FALSE;
+	}
 
-    if (!create_main_window())
-	return FALSE;
 
-    #ifndef TARGET_AQUA
-    if (!initialize_gl_context()) {
-	return FALSE;
-    }
-    #endif
+	if (!create_main_window(0 /*argc*/, NULL /*argv*/)) {
+		return FALSE;
+	}
 
-    if (!initialize_viewport()) {
-	return FALSE;
-    }
+	bind_GLcontext();
 
-    return TRUE;
+#if HAVE_LIBGLEW
+	/* Initialize GLEW */
+	GLenum err = glewInit();
+	if (GLEW_OK != err) {
+		/* Problem: glewInit failed, something is seriously wrong. */
+		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
+		return FALSE;
+	}
+	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
+#else
+	/* Initialize renderer capabilities without GLEW */
+#endif
+
+	if (!initialize_GL()) {
+		return FALSE;
+	}
+
+	/* Display full initialized :P cool ! */
+	display_initialized = TRUE;
+
+	return TRUE;
 }
 
-int create_main_window()
-{
-    /* theses flags are exclusive */
-
-#if (defined TARGET_X11)
-    return create_main_window_x11();
-#endif
-
-#if (defined TARGET_MOTIF)
-    return create_main_window_motif();
-#endif
-
-#if (defined TARGET_AQUA)
-    return create_main_window_aqua();
-#endif
-
-#if (defined TARGET_WIN32)
-    return create_main_window_win32();
-#endif
-
-}
-
-int initialize_viewport()
-{
-    glViewport(0, 0, win_width, win_height);
-    return TRUE;
-}
-
+/**
+ *   setGeometry_from_cmdline: scan command line arguments (X11 convention), to
+ *                             set up the window dimensions.
+ */
 void setGeometry_from_cmdline(const char *gstring)
 {
     int c;
@@ -131,9 +126,10 @@ void setGeometry_from_cmdline(const char *gstring)
     /* tell OpenGL what the screen dims are */
     setScreenDim(win_width,win_height);
 }
-FILE *theFile = NULL;
 
-/* set internal variables for screen sizes, and calculate frustum */
+/**
+ *   setScreenDim: set internal variables for screen sizes, and calculate frustum
+ */
 void setScreenDim(int wi, int he)
 {
     screenWidth = wi;
@@ -141,4 +137,71 @@ void setScreenDim(int wi, int he)
 
     if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
     else screenRatio =  screenWidth;
+}
+
+/**
+ *   create_GLcontext: create the main OpenGL context.
+ *                     TODO: finish implementation for Mac and Windows.
+ */
+bool create_GLcontext()
+{	
+	int direct_rendering = TRUE;
+
+	fw_thread_dump();
+
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
+
+#ifdef DO_MULTI_OPENGL_THREADS
+	direct_rendering = FALSE;
+#endif
+
+	GLcx = glXCreateContext(Xdpy, Xvi, NULL, direct_rendering);
+	if (!GLcx) {
+		ERROR_MSG("can't create OpenGL context.\n");
+		return FALSE;
+	}
+	if (glXIsDirect(Xdpy, GLcx)) {
+		TRACE_MSG("glX: direct rendering enabled\n");
+	}
+#endif
+	
+	return TRUE;
+}
+
+/**
+ *   resize_GL: when the window is resized we have to update the GL viewport.
+ */
+GLvoid resize_GL(GLsizei width, GLsizei height)
+{ 
+    glViewport( 0, 0, width, height ); 
+}
+
+/**
+ *   bind_GLcontext: attache the OpenGL context to the main window.
+ *                   TODO: finish implementation for Mac and Windows.
+ */
+bool bind_GLcontext()
+{
+	fw_thread_dump();
+
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
+	if (!Xwin) {
+		ERROR_MSG("window not initialized, can't initialize OpenGL context.\n");
+		return FALSE;
+	}
+	if (!glXMakeCurrent(Xdpy, GLwin, GLcx)) {
+		ERROR_MSG("bind_GLcontext: can't set OpenGL context for this thread %d (glXMakeCurrent: %s).\n", fw_thread_id(), GL_ERROR_MSG);
+		return FALSE;
+	}
+#endif
+
+#if defined(TARGET_AQUA)
+	return aglSetCurrentContext(aqglobalContext);
+#endif
+
+#if defined(TARGET_WIN32)
+	return wglMakeCurrent(ghDC, ghRC);
+#endif
+
+	return TRUE;
 }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwdebug.h,v 1.5 2009/10/21 19:18:30 crc_canada Exp $
+$Id: fwdebug.h,v 1.6 2009/10/26 10:57:07 couannette Exp $
 
 FreeWRL support library.
 Internal header: debug definitions.
@@ -32,6 +32,8 @@ Internal header: debug definitions.
 #define __LIBFREEWRL_DEBUG_H__
 
 
+#define BOOL_STR(b) (b ? "TRUE" : "FALSE")
+
 /* Useful to suppress things from non-debug builds */
 #if defined(FW_DEBUG)
 #  define DEBUG_(_expr) _expr
@@ -39,16 +41,25 @@ Internal header: debug definitions.
 #  define DEBUG_(_expr)
 #endif
 
+void fw_perror(FILE *f, const char *format, ...);
+
 /* To conform C99 ISO C (do not use GCC extension) */
 #define DEBUG_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))
+#define PERROR_MSG(...) DEBUG_(fw_perror(stderr, __VA_ARGS__))
 
 #ifdef VERBOSE
 #define DEBUG_FW(...) DEBUG_(printf("FW: " __VA_ARGS__))
 #else
 #define DEBUG_FW(...)
+#endif
+
+#ifdef RESVERBOSE 
+#define DEBUG_RES(...) DEBUG_(printf("RES: " __VA_ARGS__))
+#else
+#define DEBUG_RES(...)
 #endif
 
 #ifdef TEXVERBOSE
@@ -211,20 +222,29 @@ Internal header: debug definitions.
  */
 #if defined(FW_DEBUG) && defined(DEBUG_MALLOC)
 
-# define MALLOC(_sz) freewrlMalloc(__LINE__,__FILE__,_sz)
-# define REALLOC(_a,_b) freewrlRealloc(__LINE__,__FILE__,_a,_b) 
-# define FREE(_ptr) freewrlFree(__LINE__,__FILE__,_ptr)
-# define STRDUP(_a) freewrlStrdup(__LINE__,__FILE__,_a)
-#include <stdlib.h>
 void *freewrlMalloc(int line, char *file, size_t sz);
 void *freewrlRealloc(int line, char *file, void *ptr, size_t size);
 void freewrlFree(int line, char *file, void *a);
 void *freewrlStrdup(int line, char *file, char *str);
 
+# define MALLOC(_sz)         freewrlMalloc(__LINE__, __FILE__, _sz)
+# define CALLOC(_fill, _sz)  freewrlCalloc(__LINE__, __FILE__, _fill, _sz)
+# define REALLOC(_a,_b)     freewrlRealloc(__LINE__, __FILE__, _a, _b) 
+# define FREE(_ptr)            freewrlFree(__LINE__, __FILE__, _ptr)
+
+# define XALLOC(_type)    (_type *) CALLOC(1, sizeof(_type))
+# define XFREE(_ptr)      {if (_ptr) { FREE(_ptr); _ptr = NULL; }}
+
+# define STRDUP(_a)          freewrlStrdup(__LINE__, __FILE__, _a)
+
 # define UNLINK(_fdd) do { \
 		           TRACE_MSG("TRACE: unlink %s at %s:%d\n",_fdd,__FILE__,__LINE__); \
 		           unlink (_fdd); \
 		      } while (0)
+
+# define TEMPNAM(_dir,_pfx) tempnam(_dir, _pfx); do { \
+				TRACE_MSG("TRACE: tempnam %s/%s at %s:%d\n", _dir, _pfx, __FILE__, __LINE__); \
+				} while (0)
 
 # define ASSERT(_ptr) do { if (!(_ptr)) { \
                            ERROR_MSG("ERROR: assert failed: %s (%s:%d)\n", #_ptr, __FILE__, __LINE__); } \
@@ -242,15 +262,14 @@ void *freewrlStrdup(int line, char *file, char *str);
 # define MALLOC malloc
 # define REALLOC realloc
 # define FREE free
-#if defined(_MSC_VER)
-# define STRDUP _strdup
-# define UNLINK _unlink
-# define TEMPNAM _tempnam
-#else
+
+# define XALLOC(_type)    (_type *) calloc(1, sizeof(_type))
+# define XFREE(_ptr)      {if (_ptr) { free(_ptr); _ptr = NULL; }}
+
 # define STRDUP strdup
 # define UNLINK unlink
 # define TEMPNAM tempnam
-#endif
+
 # define ASSERT(_whatever)
 
 #endif /* defined(FW_DEBUG) && defined(DEBUG_MALLOC) */
@@ -261,7 +280,7 @@ void *freewrlStrdup(int line, char *file, char *str);
                              FREE(_ptr); \
                              _ptr = 0; } \
                          else { \
-                             DEBUG_MEM("free, pointer is already null at %s:%d\n", __FILE__, __LINE__); \
+                             DEBUG_MEM("double free: %s:%d\n", __FILE__, __LINE__); \
                          }
 
 
