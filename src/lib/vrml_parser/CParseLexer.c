@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.24 2009/10/05 15:07:24 crc_canada Exp $
+$Id: CParseLexer.c,v 1.25 2009/10/26 10:53:35 couannette Exp $
 
 ???
 
@@ -34,6 +34,8 @@ $Id: CParseLexer.c,v 1.24 2009/10/05 15:07:24 crc_canada Exp $
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include <list.h>
+#include <resources.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
@@ -1347,6 +1349,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         char *buffer;
         char emptyString[100];
         char *testname;
+	resource_item_t *res;
 
         testname = (char *)MALLOC (1000);
 
@@ -1403,7 +1406,19 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
                         *pound = '\0';
                 }
 
+		res = resource_create_single(testname);
+		send_resource_to_parser(res);
+		resource_wait(res);
 
+		if (res->status == ress_loaded) {
+                        /* ok - we are replacing EXTERNPROTO with PROTO */
+                        me->curID = STRDUP("PROTO");
+			return;
+		}
+
+		resource_destroy(res);
+
+#if 0 //MBFILES
                 if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
 
 
@@ -1417,6 +1432,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
                 } else {
                         /* printf ("fileExists returns failure for %s\n",testname); */
                 }
+#endif
 
         }
 
