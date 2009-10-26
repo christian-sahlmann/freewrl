@@ -1,10 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: jsVRML_SFClasses.c,v 1.19 2009/10/26 10:55:13 couannette Exp $
 
-$Id: jsVRML_SFClasses.c,v 1.18 2009/10/05 15:07:24 crc_canada Exp $
-
-A substantial amount of code has been adapted from js/src/js.c,
-which is the sample application included with the javascript engine.
+  A substantial amount of code has been adapted from js/src/js.c,
+  which is the sample application included with the javascript engine.
 
 */
 
@@ -36,6 +34,9 @@ which is the sample application included with the javascript engine.
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include <list.h>
+#include <io_files.h>
+#include <resources.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
@@ -834,12 +835,12 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 JSBool
 SFImageAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return doMFAddProperty(cx, obj, id, vp,"SFImageAddProperty");
+	return doMFAddProperty(cx, obj, id, vp, "SFImage"); //FIXME: is this ok ??? "SFImageAddProperty");
 }
 
 JSBool
 SFImageGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return _standardMFGetProperty(cx, obj, id, vp, "_FreeWRL_Internal = 0", "SFImage");
+	return _standardMFGetProperty(cx, obj, id, vp, "_FreeWRL_Internal = 0", FIELDTYPE_SFImage); //FIXME: is this ok ???  "SFImage");
 }
 
 JSBool
@@ -1003,11 +1004,18 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 				sscanf (cString,"%ld",&newHandle);
 				cString = STRDUP("node created in SFNodeConstr");
 			} else {
+				resource_item_t *res;
 
 				/* try compiling this X3D code... */
 				myGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-	                        inputParse(FROMSTRING, cString, FALSE, FALSE, myGroup, offsetof(struct X3D_Group, children), 
-					&tmp, FALSE);
+
+				res = resource_create_from_string(cString);
+				res->where = myGroup;
+				send_resource_to_parser(res);
+				resource_wait(res);
+
+/* 	                        inputParse(FROMSTRING, cString, FALSE, FALSE, myGroup, offsetof(struct X3D_Group, children),  */
+/* 					&tmp, FALSE); */
 	
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("SFNodeConstr we have created %d nodes\n",myGroup->children.n);

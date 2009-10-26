@@ -1,9 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: capabilitiesHandler.c,v 1.9 2009/10/26 10:54:19 couannette Exp $
 
-$Id: capabilitiesHandler.c,v 1.8 2009/10/05 15:07:24 crc_canada Exp $
-
-???
+  FreeWRL support library.
+  X3D capabilities.
 
 */
 
@@ -28,8 +27,6 @@ $Id: capabilitiesHandler.c,v 1.8 2009/10/05 15:07:24 crc_canada Exp $
 
 
 
-
-
 #include <config.h>
 #include <system.h>
 #include <display.h>
@@ -37,9 +34,11 @@ $Id: capabilitiesHandler.c,v 1.8 2009/10/05 15:07:24 crc_canada Exp $
 
 #include <libFreeWRL.h>
 
+#include <io_files.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+
 
 /* table showing which levels are supported by which component */
 static const int capabilities[] = {

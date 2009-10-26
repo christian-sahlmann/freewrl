@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: InputFunctions.h,v 1.5 2009/10/05 15:07:23 crc_canada Exp $
+$Id: InputFunctions.h,v 1.6 2009/10/26 10:48:59 couannette Exp $
 
 Global includes.
 
@@ -33,7 +33,6 @@ Global includes.
 /**
  * in InputFunctions.c
  */
-int dirExists(const char *dir);
 char* makeFontDirectory();
 char *readInputString(char *fn);
 FILE *openLocalFile (char *fn, char* access);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.18 2009/10/05 15:07:23 crc_canada Exp $
+$Id: SensInterps.c,v 1.19 2009/10/26 10:48:59 couannette Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -37,6 +37,8 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include <list.h>
+#include <resources.h>
 
 #include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
@@ -1665,10 +1667,25 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 void locateAudioSource (struct X3D_AudioClip *node) {
 	char *filename;
 	char *mypath;
+	resource_item_t *res;
 
 	node->__sourceNumber = SoundSourceNumber;
 	SoundSourceNumber++;
 
+	res = resource_create_multi(&node->url);
+	send_resource_to_parser(res);
+	resource_wait(res);
+	
+	if (res->status == ress_loaded) {
+		/* TODO: check into the audio file ??? */
+		return;
+	}
+
+	resource_destroy(res);	
+	
+	node->__sourceNumber = BADAUDIOSOURCE;
+
+#if 0 //MBFILES
 	filename = (char*)MALLOC(1000);
 	filename[0] = '\0';
 
@@ -1688,4 +1705,5 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	}
 	FREE_IF_NZ (mypath);
 	FREE_IF_NZ (filename);
+#endif
 }

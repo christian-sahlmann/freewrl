@@ -1,12 +1,10 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: InputFunctions.c,v 1.12 2009/10/26 10:48:59 couannette Exp $
 
-$Id: InputFunctions.c,v 1.11 2009/10/05 15:07:23 crc_canada Exp $
-
-CProto ???
+  FreeWRL support library.
+  Input functions (EAI, mouse, keyboard, ...).
 
 */
-
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -37,6 +35,9 @@ CProto ???
 
 #include <libFreeWRL.h>
 
+#include <io_files.h>
+#include <threads.h>
+
 #include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
 #include "../scenegraph/Vector.h"
@@ -56,50 +57,6 @@ char * stripLocalFileName (char * origName) {
 	return origName;
 }
 
-
-#if defined(_MSC_VER)
-#include <io.h>
-int dirExists(const char *dir)
-{
-	/*   http://msdn.microsoft.com/en-us/library/kda16keh(VS.80).aspx */
-	struct _finddata_t c_file;
-	intptr_t hFile;
-
-	hFile = _findfirst(dir,&c_file);
-	_findclose(hFile);
-	if( hFile == -1L)
-	{
-		printf("Internal error: directory does not exist: %s\n", dir);
-	}
-	else
-	{
-		if(c_file.attrib == _A_SUBDIR )
-			return TRUE;
-		else if(c_file.attrib == _A_ARCH | _A_RDONLY )
-			return TRUE; /* ie c:/windows/Fonts is 20 + 1 */
-		else
-			printf("Internal error: not a directory: %s\n", dir);
-	}
-	return FALSE;
-}
-#else
-int dirExists(const char *dir)
-{
-	static struct stat ss;
-
-	if (stat(dir, &ss) == 0) {
-		if (access(dir,X_OK) == 0) {
-			return TRUE;
-		} else {
-			printf("Internal error: cannot access directory: %s\n", dir);
-		}
-	} else {
-		printf("Internal error: directory does not exist: %s\n", dir);
-	}
-	return FALSE;
-}
-#endif
-
 char* makeFontDirectory()
 {
 	char *tmp;
@@ -114,7 +71,7 @@ char* makeFontDirectory()
 	}
 
 	/* Check if dir exists */
-	if (dirExists(tmp)) {
+	if (do_dir_exists(tmp)) {
 		/* do not return directory the string
 		as it may be static, but make a copy */
 		return strdup(tmp);
@@ -173,6 +130,7 @@ static void localCopy(char *outFile, char *inFile) {
 	return;
 }
 
+#if 0 //MBFILES
 /* read a file, put it into memory. */
 char * readInputString(char *fn) {
         char *buffer;
@@ -261,7 +219,7 @@ char * readInputString(char *fn) {
         if (isTemp) UNLINK(unzippedFileName);
         return (buffer);
 }
-
+#endif
 
 /********************************************************************************/
 /*										*/
@@ -294,40 +252,61 @@ static struct shadowEntry *newShadowElement (char *x3dname, char *localname) {
 
 }
 
-
-/* get a FILE to the file name; if the file happens to have a shadow file, open the shadow file. */
-FILE *openLocalFile (char *fn, char* access) {
+/**
+ *   search_shadow_table: try to find the given filename in the shadow table.
+ */
+struct shadowEntry* search_shadow_table(const char *fn)
+{
 	indexT ind;
 
-	/* do we have to search the shadow file vector? */
-	if (!shadowFiles) return fopen(fn,access);
+	if (!shadowFiles) return NULL;
 
-	LOCK_SHADOW_ACCESS
+	LOCK_SHADOW_ACCESS;
 	ind = vector_size (shadowFiles);
-	/* printf ("openLocalFile, and we have %d entries...\n",ind); */
 
-	/* count down from latest to first - stop at zero */
-	for (ind=vector_size(shadowFiles)-1; ((int)ind) >= 0; ind--) {
-		struct shadowEntry *ele = vector_get(struct shadowEntry *,shadowFiles, ind);
-		/* printf ("for element %d, we have :%s: and :%s:\n",ind,ele->x3dName, ele->localName); */
-		if (!strcmp(fn,ele->x3dName)) {
-			/* printf ("found it!\n"); */
-			UNLOCK_SHADOW_ACCESS
-			return fopen(ele->localName,access);
+	for (ind = vector_size(shadowFiles)-1; ((int)ind) >= 0; ind--) {
+
+		struct shadowEntry *ele = vector_get(struct shadowEntry *, shadowFiles, ind);
+
+		if ( ! strcmp(fn, ele->x3dName) ) {
+			UNLOCK_SHADOW_ACCESS;
+			return ele;
 		}
 	}
-	/* hmmm - did we fail to find a match? */
-	/* printf ("openLocalFile, no match for :%s:\n",fn); */
-	UNLOCK_SHADOW_ACCESS
+
+	UNLOCK_SHADOW_ACCESS;
 	return NULL;
 }
 
+/**
+ *   openLocalFile: to open a local file try to find it in the shadow table.
+ *   If found, open the file.
+ *   TODO: FIXME: what is not found ? enqueue a download ?
+ */
+FILE *openLocalFile(char *fn, char* access)
+{
+	struct shadowEntry *ele;
+	
+/* 	if (!shadowFiles) return fopen(fn,access); */
+
+	ele = search_shadow_table(fn);
+
+	if (ele) {
+		return fopen(ele->localName, access);
+	} else {
+		return fopen(fn, access);
+	}
+}
 
 /* clean up the cache files. We can do this on cleanup on exit */
-void unlinkShadowFile(char *fn) {
-	indexT ind;
+void unlinkShadowFile(char *fn)
+{
+	struct shadowEntry *ele;
 
-	/* printf ("unlinkShadowFile :%s:\n",fn); */
+	ele = search_shadow_table(fn);
+	if (ele) {
+		DEBUG_MSG("unlinkShadowFile :%s:\n", fn);		
+	}
 }
 
 

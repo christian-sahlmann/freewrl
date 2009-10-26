@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.50 2009/10/21 19:18:30 crc_canada Exp $
+$Id: X3DParser.c,v 1.51 2009/10/26 10:54:19 couannette Exp $
 
 ???
 
@@ -1563,7 +1563,7 @@ static void shutdownX3DParser () {
 	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */
 }
 
-int X3DParse (struct X3D_Group* myParent, char *inputstring) {
+int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
 	currentX3DParser = initializeX3DParser();
 
 	/* printf ("X3DParse, current X3DParser is %u\n",currentX3DParser); */

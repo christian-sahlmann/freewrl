@@ -274,14 +274,13 @@ void tokenizeVRML1_(char *pb) {
 }
 }
 
-
-char *convert1To2 (char *inp) {
+char *convert1To2 (const char *inp)
+{
 	char *retval = NULL;
-	char *tptr;
-	
+	char *dinp, *tptr;
 
-	/* sanitize input */
-	tptr = inp;
+	/* sanitize input but copy data before altering it */
+	dinp = tptr = strdup(inp);
 	while (*tptr != '\0') {
 		if ((*tptr < 0) || (*tptr > (char) 0x7d)) {
 			printf ("found a char of %x\n",*tptr);
@@ -291,23 +290,25 @@ char *convert1To2 (char *inp) {
 	}
 	retval = NULL;
 
+	/* FIXME: make use of new API */
 	sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
-	fp= fopen (tempname,"w");
+	fp = fopen (tempname,"w");
 	if (fp != NULL) {
-		tokenizeVRML1_(inp);
-		fclose (fp);
-		fp= fopen (tempname,"r");
+		
+		tokenizeVRML1_(dinp);
+		fclose(fp);
 
+		FREE(dinp);
+		
+		fp = fopen(tempname,"r");
 		retval = MALLOC(written+10);
 		fread(retval,written,1,fp);
 		retval[written] = '\0';
+		/* printf ("and have read back in :%s:\n",retval);  */
 
-/* printf ("and have read back in :%s:\n",retval);  */
-		
-		fclose (fp);
+		fclose(fp);
 		return retval;
 	}
-		
 	return STRDUP("Shape{geometry Box {}}");
 
 }

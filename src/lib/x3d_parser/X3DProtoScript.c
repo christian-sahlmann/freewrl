@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.38 2009/10/21 19:18:30 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.39 2009/10/26 10:54:19 couannette Exp $
 
 ???
 
@@ -34,7 +34,8 @@ $Id: X3DProtoScript.c,v 1.38 2009/10/21 19:18:30 crc_canada Exp $
 #include <internal.h>
 
 #include <libFreeWRL.h>
-
+#include <list.h>
+#include <resources.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
@@ -1730,6 +1731,7 @@ void endExternProtoDeclare(void) {
 	char *pound;
 	char *buffer;
 	int foundOk;
+	resource_item_t *res;
 
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
@@ -1765,6 +1767,18 @@ void endExternProtoDeclare(void) {
 					*pound = '\0';
 				}
 
+				res = resource_create_single(testname);
+				send_resource_to_parser(res);
+				resource_wait(res);
+				
+				if (res->status == ress_loaded) {
+					foundOk = TRUE;
+					break;
+				}
+				
+				resource_destroy(res);
+
+#if 0 //MBFILES
 				if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
 					foundOk = TRUE;
 					buffer = readInputString(testname);
@@ -1772,6 +1786,8 @@ void endExternProtoDeclare(void) {
 				} else {
 					/* printf ("fileExists returns failure for %s\n",testname); */
 				}
+#endif
+
 			} /* else, just skip the rest of the list */
 		}
 
@@ -1784,7 +1800,7 @@ void endExternProtoDeclare(void) {
 			printf ("EPD, pound is %s\n",pound);
 		} */
 
-
+#if 0 //MBFILES
 		/* were we successful? */
 		if (!foundOk) {
 			ConsoleMessage ("<ExternProtoDeclare> of name %s not found",CPD.definedProtoName);
@@ -1798,6 +1814,7 @@ void endExternProtoDeclare(void) {
 			compareExternProtoDeclareWithProto(buffer,pound);
 			setParserMode(PARSING_EXTERNPROTODECLARE);
 		}
+#endif
 
 		/* decrement the protoDeclare stack count. If we are nested, get out of the nesting */
 		#ifdef X3DPARSERVERBOSE

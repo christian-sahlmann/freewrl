@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.32 2009/10/05 15:07:23 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.33 2009/10/26 10:48:59 couannette Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -287,7 +287,7 @@ void EAI_parse_commands () {
 					/* finish this, note the pointer maths */
 					bufPtr = EOT+3-EAIbuffer;
 				} else {
- 					char *filename = (char *)MALLOC(1000);
+/*  					char *filename = (char *)MALLOC(1000); */
 					char *mypath;
 
 					/* sanitize this string - remove leading and trailing garbage */
@@ -300,21 +300,23 @@ void EAI_parse_commands () {
 
 					/* get the current parent */
 					mypath = STRDUP(ctmp);
-					/* printf ("CREATEVU, mypath %s\n",mypath); */
+					DEBUG_MSG("CREATEVU, mypath %s\n", mypath);
 
 					/* and strip off the file name, leaving any path */
-					removeFilenameFromPath (mypath);
+/* 					removeFilenameFromPath (mypath); */
 					/* printf ("CREATEVU, mypath sans file: %s\n",mypath); */
 
 					/* add the two together */
-					makeAbsoluteFileName(filename,mypath,ctmp);
+/* 					makeAbsoluteFileName(filename,mypath,ctmp); */
 					/* printf ("CREATEVU, filename, %s\n",filename); */
 
-					if (eaiverbose) {	
-						printf ("CREATEVU %s\n",filename);
-					}	
-					ra = EAI_CreateVrml("URL",filename,nodarr,200);
-					FREE_IF_NZ(filename);
+/* 					if (eaiverbose) {	 */
+/* 						printf ("CREATEVU %s\n",filename); */
+/* 					}	 */
+
+/* 					ra = EAI_CreateVrml("URL",filename,nodarr,200); */
+					ra = EAI_CreateVrml("URL", mypath, nodarr, 200);
+/* 					FREE_IF_NZ(filename); */
 					FREE_IF_NZ(mypath);
 				}
 

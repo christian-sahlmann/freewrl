@@ -1,9 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: pluginUtils.c,v 1.14 2009/10/26 10:51:41 couannette Exp $
 
-$Id: pluginUtils.c,v 1.13 2009/10/05 15:07:23 crc_canada Exp $
-
-???
+  FreeWRL support library.
+  Plugin interaction.
 
 */
 
@@ -27,14 +26,15 @@ $Id: pluginUtils.c,v 1.13 2009/10/05 15:07:23 crc_canada Exp $
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
-
 #include <config.h>
 #include <system.h>
 #include <display.h>
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include <list.h>
+#include <io_files.h>
+#include <resources.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
@@ -73,174 +73,58 @@ void killErrantChildren(void) {
 #endif
 }
 
-/* FIXME: what are the possible return codes for this function ??? */
-int freewrlSystem (const char *sysline) {
-#ifdef WIN32
-	return system(sysline);
-#else
-#define MAXEXECPARAMS 10
-#define EXECBUFSIZE	2000
-	char *paramline[MAXEXECPARAMS];
-	char buf[EXECBUFSIZE];
-	char *internbuf;
-	int count;
-	/* pid_t childProcess[lastchildProcess]; */
-	int pidStatus;
-	int waitForChild;
-	int haveXmessage;
-
-
-	/* make all entries in the child process list = 0 */
-	if (childProcessListInit == FALSE) {
-		memset(childProcess, 0, MAXPROCESSLIST);
-		childProcessListInit = TRUE;
-	}
-	
-	/* initialize the paramline... */
-	memset(paramline, 0, sizeof(paramline));
-		
-	waitForChild = TRUE;
-	haveXmessage = !strncmp(sysline, FREEWRL_MESSAGE_WRAPPER, strlen(FREEWRL_MESSAGE_WRAPPER));
-
-	internbuf = buf;
-
-	/* bounds check */
-	if (strlen(sysline)>=EXECBUFSIZE) return FALSE;
-	strcpy (buf,sysline);
-
-	/* printf ("freewrlSystem, have %s here\n",internbuf); */
-	count = 0;
-
-	/* do we have a console message - (which is text with spaces) */
-	if (haveXmessage) {
-		paramline[0] = FREEWRL_MESSAGE_WRAPPER;
-		paramline[1] = strchr(internbuf,' ');
-		count = 2;
-	} else {
-		/* split the command off of internbuf, for execing. */
-		while (internbuf != NULL) {
-			/* printf ("freewrlSystem: looping, count is %d\n",count);  */
-			paramline[count] = internbuf;
-			internbuf = strchr(internbuf,' ');
-			if (internbuf != NULL) {
-				/* printf ("freewrlSystem: more strings here! :%s:\n",internbuf); */
-				*internbuf = '\0';
-				/* printf ("param %d is :%s:\n",count,paramline[count]); */
-				internbuf++;
-				count ++;
-				if (count >= MAXEXECPARAMS) return -1; /*  never...*/
-			}
-		}
-	}
-	
-	/* printf ("freewrlSystem: finished while loop, count %d\n",count); 
-	
-	 { int xx;
-		for (xx=0; xx<MAXEXECPARAMS;xx++) {
-			printf ("item %d is :%s:\n",xx,paramline[xx]);
-	}} */
-	
-	if (haveXmessage) {
-		waitForChild = FALSE;
-	} else {
-		/* is the last string "&"? if so, we don't need to wait around */
-		if (strncmp(paramline[count],"&",strlen(paramline[count])) == 0) {
-			waitForChild=FALSE;
-			paramline[count] = '\0'; /*  remove the ampersand.*/
-		}
-	}
-
-	if (count > 0) {
-		switch (childProcess[lastchildProcess]=fork()) {
-			case -1:
-				perror ("fork");
-				exit(1);
-				break;
-
-			case 0: 
-			{
-				int Xrv;
-				
-				/* child process */
-				/* printf ("freewrlSystem: child execing, pid %d %d\n",childProcess[lastchildProcess], getpid());  */
-				Xrv = execl((const char *)paramline[0],
-							(const char *)paramline[0],paramline[1], paramline[2],
-							paramline[3],paramline[4],paramline[5],
-							paramline[6],paramline[7]);
-				printf ("FreeWRL: Fatal problem execing %s\n",paramline[0]);
-				perror("FreeWRL: "); 
-				exit (Xrv);
-			}
-				break;
-
-			default: 
-			{
-				/* parent process */
-				/* printf ("freewrlSystem: parent waiting for child %d\n",childProcess[lastchildProcess]); */
-				
-				lastchildProcess++;
-				if (lastchildProcess == MAXPROCESSLIST) lastchildProcess=0;
-				
-				/* do we have to wait around? */
-				if (!waitForChild) {
-					/* printf ("freewrlSystem - do not have to wait around\n"); */
-					return TRUE;
-				}
-				waitpid (childProcess[lastchildProcess],&pidStatus,0);
-				/* printf ("freewrlSystem: parent - child finished - pidStatus %d \n",
-				   pidStatus);  */
-				
-				/* printf ("freewrlSystem: WIFEXITED is %d\n",WIFEXITED(pidStatus)); */
-				
-				/* if (WIFEXITED(pidStatus) == TRUE) printf ("returned ok\n"); else printf ("problem with return\n"); */
-			}
-		}
-		return (WIFEXITED(pidStatus) == TRUE);
-	} else {
-		printf ("System call failed :%s:\n",sysline);
-	}
-	return -1; /* should we return FALSE or -1 ??? */
-#endif
-}
-
 /* implement Anchor/Browser actions */
 
-void doBrowserAction () {
-	int count;
-
-	int localNode;
-	int tableIndex;
-
-	char *filename;
-	char *mypath;
-	char *thisurl;
-	int flen;
-
-#define LINELEN 2000
-	char sysline[LINELEN];
-	int testlen;
-
+void doBrowserAction()
+{
+/* 	int count; */
+/* 	int localNode; */
+/* 	int tableIndex; */
+/* 	char *filename; */
+/* 	char *mypath; */
+/* 	char *thisurl; */
+/* 	int flen; */
+/* #define LINELEN 2000 */
+/* 	char sysline[LINELEN]; */
+/* 	int testlen; */
+/*      struct Multi_String { int n; SV * *p; }; */
 
 	struct Multi_String Anchor_url;
-	/* struct Multi_String { int n; SV * *p; };*/
+	resource_item_t *res = NULL; 	/* If this res is valid, then we can replace root_res with it */
+	char *parent_url, *description;
+	
 
 	Anchor_url = AnchorsAnchor->url;
+	parent_url = AnchorsAnchor->__parenturl->strptr;
+	description = AnchorsAnchor->description->strptr;
 
-	/* if (!RUNNINGASPLUGIN)
-		printf ("FreeWRL::Anchor: going to \"%s\"\n",
-			AnchorsAnchor->description->strptr);
-	*/
+	TRACE_MSG("doBrowserAction: parent url=<%s> description: %s\n", parent_url, description);
 
-	filename = (char *)MALLOC(1000);
+	res = resource_create_multi(&Anchor_url);
+	send_resource_to_parser(res);
+	resource_wait(res);
 
+	switch (res->status) {
+	case ress_parsed:
+		EAI_Anchor_Response(TRUE);
+	default:
+		EAI_Anchor_Response(FALSE);
+	}
+
+	return;
+
+/* 	if (!RUNNINGASPLUGIN) { */
+/* 		TRACE_MSG("FreeWRL::Anchor: going to \"%s\"\n", */
+/* 			  AnchorsAnchor->description->strptr); */
+/* 	} */
+/* 	filename = (char *)MALLOC(1000); */
 	/* copy the parent path over */
-	mypath = STRDUP(AnchorsAnchor->__parenturl->strptr);
-
+/* 	mypath = STRDUP(AnchorsAnchor->__parenturl->strptr); */
 	/* and strip off the file name, leaving any path */
-	removeFilenameFromPath (mypath);
-
+/* 	removeFilenameFromPath (mypath); */
 	/* printf ("Anchor, url so far is %s\n",mypath); */
 
+#if 0
 	/* try the first url, up to the last */
 	count = 0;
 	while (count < Anchor_url.n) {
@@ -266,102 +150,114 @@ void doBrowserAction () {
 			} else {
 				printf ("failed to match local Viewpoint\n");
 			}
-
 			/*  lets get outa here - jobs done.*/
-			FREE_IF_NZ (filename);
+/* 			FREE_IF_NZ (filename); */
 			return;
 		}
 
 		/* check to make sure we don't overflow */
-		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
-
-
+/* 		if ((strlen(thisurl)+strlen(mypath)) > 900) break; */
 		/* put the path and the file name together */
-		makeAbsoluteFileName(filename,mypath,thisurl);
+/* 		makeAbsoluteFileName(filename,mypath,thisurl); */
 		/* printf ("so, Anchor, filename %s, mypath %s, thisurl %s\n",filename, mypath, thisurl); */
-
 		/* if this is a html page, just assume it's ok. If
 		 * it is a VRML/X3D file, check to make sure it exists */
-
-		if (!checkIfX3DVRMLFile(filename)) { break; }
-
+/* 		if (!checkIfX3DVRMLFile(filename)) { break; } */
 		/* ok, it might be a file we load into our world. */
-		if (fileExists(filename,NULL,FALSE)) { break; }
+		/* MBFILE
+		   if (fileExists(filename,NULL,FALSE)) { break; }
+		*/
+		res = resource_try_load(thisurl);
+		if (res)
+			break;
 		count ++;
 	}
 
-	/*  did we locate that file?*/
-	if (count == Anchor_url.n) {
-		if (count > 0) {
-			printf ("Could not locate url (last choice was %s)\n",filename);
-		}
-		FREE_IF_NZ (filename);
-
-		/* if EAI was waiting for a loadURL, tell it it failed */
+	if (res) {
+		Anchor_ReplaceWorld(res->actual_file);
+		EAI_Anchor_Response (TRUE);
+	} else {
+		/* error */
 		EAI_Anchor_Response (FALSE);
 		return;
 	}
-	/* printf ("we were successful at locating :%s:\n",filename); */
 
-	/* which browser are we running under? if we are running as a*/
-	/* plugin, we'll have some of this information already.*/
+	/*  did we locate that file?*/
+/* 	if (count == Anchor_url.n) { */
+/* 		if (count > 0) { */
+/* 			printf ("Could not locate url (last choice was %s)\n",filename); */
+/* 		} */
+/* 		FREE_IF_NZ (filename); */
 
-	if (checkIfX3DVRMLFile(filename)) {
-		Anchor_ReplaceWorld (filename);
+/* 		/\* if EAI was waiting for a loadURL, tell it it failed *\/ */
+/* 		EAI_Anchor_Response (FALSE); */
+/* 		return; */
+/* 	} */
+/* 	/\* printf ("we were successful at locating :%s:\n",filename); *\/ */
+
+/* 	/\* which browser are we running under? if we are running as a*\/ */
+/* 	/\* plugin, we'll have some of this information already.*\/ */
+
+/* 	if (checkIfX3DVRMLFile(filename)) { */
+/* 		Anchor_ReplaceWorld (filename); */
+/* 	} else { */
+
+#endif
+
+/* ANCHOR non VRML/X3D file == link */
+
+#if 0 // MBFILE ....
+
+#ifdef AQUA
+	if (RUNNINGASPLUGIN) {
+		/* printf ("Anchor, running as a plugin - load non-vrml file\n"); */
+		requestNewWindowfromPlugin(_fw_browser_plugin, _fw_instance, res->parsed_request);
 	} else {
-		#ifdef AQUA
-		if (RUNNINGASPLUGIN) {
-		 	/* printf ("Anchor, running as a plugin - load non-vrml file\n"); */
-		 	requestNewWindowfromPlugin(_fw_browser_plugin, _fw_instance, filename);
-		} else {
-		#endif
-			/* printf ("IS NOT a vrml/x3d file\n");
-			printf ("Anchor: -DBROWSER is :%s:\n",BROWSER); */
-
-		    /* char *browser = getenv("BROWSER"); */
-		    char *browser = freewrl_get_browser_program();
-		    if (!browser) {
+#endif
+		/* printf ("IS NOT a vrml/x3d file\n");
+		   printf ("Anchor: -DBROWSER is :%s:\n",BROWSER); */
+		
+		char *browser = freewrl_get_browser_program();
+		if (!browser) {
 			ConsoleMessage ("Error: no Internet browser found.");
 			return;
-		    }
-
-			/* bounds check here */
-			if (browser) testlen = strlen(browser);
-			else testlen = strlen(browser);
-			testlen += strlen(filename) + 10; 
-			if (testlen > LINELEN) {
-				ConsoleMessage ("Anchor: combination of browser name and file name too long.");
-			} else {
-
-				if (browser) strcpy (sysline, browser);
-				else strcpy (sysline, browser);
-				strcat (sysline, " ");
-				strcat (sysline, filename);
-				strcat (sysline, " &");
-				freewrlSystem (sysline);
-			}
-
-			/* bounds check here */
-			if (browser) testlen = strlen(browser) + strlen(filename) + 20;
-			else testlen = strlen (browser) + strlen(filename) + 20;
-
-
-			if (testlen > LINELEN) {
-				ConsoleMessage ("Anchor: combination of browser name and file name too long.");
-			} else {
-				if (browser) sprintf(sysline, "open -a %s %s &", browser, filename);
-				else sprintf(sysline, "open -a %s %s &",  browser, filename);
-				system (sysline);
-			}
-		#ifdef AQUA
 		}
-		#endif
-
+		
+		/* bounds check here */
+		if (browser) testlen = strlen(browser);
+		else testlen = strlen(browser);
+		testlen += strlen(res->parsed_request) + 10; 
+		if (testlen > LINELEN) {
+			ConsoleMessage ("Anchor: combination of browser name and file name too long.");
+		} else {
+			
+			if (browser) strcpy (sysline, browser);
+			else strcpy (sysline, browser);
+			strcat (sysline, " ");
+			strcat (sysline, res->parsed_request);
+			strcat (sysline, " &");
+			freewrlSystem (sysline);
+		}
+		
+		/* bounds check here */
+		if (browser) testlen = strlen(browser) + strlen(res->parsed_request) + 20;
+		else testlen = strlen (browser) + strlen(res->parsed_request) + 20;
+		
+		
+		if (testlen > LINELEN) {
+			ConsoleMessage ("Anchor: combination of browser name and file name too long.");
+		} else {
+			if (browser) sprintf(sysline, "open -a %s %s &", browser, res->parsed_request);
+			else sprintf(sysline, "open -a %s %s &",  browser, res->parsed_request);
+			system (sysline);
+		}
+#ifdef AQUA
 	}
-	FREE_IF_NZ (filename);
+#endif
+/* 	FREE_IF_NZ(filename); */
+
+#endif
 }
-
-
 
 /*
  * Check to see if the file name is a geometry file.
@@ -388,12 +284,23 @@ int checkIfX3DVRMLFile(char *fn) {
 /* we are an Anchor, and we are not running in a browser, and we are
  * trying to do an external VRML or X3D world.
  */
-void Anchor_ReplaceWorld (char *name)
+/* void Anchor_ReplaceWorld (char *name) */
+bool Anchor_ReplaceWorld(const char *name)
 {
-	int tmp;
-	void *tt;
-	char filename[1000];
+	resource_item_t *res;
 
+	res = resource_create_single(name);
+	res->new_root = TRUE;
+	send_resource_to_parser(res);
+	resource_wait(res);
+
+	if (res->status != ress_loaded) {
+		/* FIXME: destroy this new node tree */
+		return FALSE;
+	}
+	return TRUE;
+
+#if 0
 	/* sanity check - are we actually going to do something with a name? */
 	if (name != NULL)
 		if (strlen (name) > 1) {
@@ -421,8 +328,8 @@ void Anchor_ReplaceWorld (char *name)
 			}
 		} 
 	EAI_Anchor_Response (FALSE);
+#endif
 }
-
 
 /* send in a 0 to 15, return a char representation */
 char tohex (int mychar) {
@@ -453,7 +360,7 @@ int URLmustEncode(int ch) {
 
 
 /***************/
-static FILE * tty = NULL;
+/* static FILE * tty = NULL; */
 
 /* prints to a log file if we are running as a plugin */
 void URLprint (const char *m, const char *p) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.27 2009/10/05 15:07:24 crc_canada Exp $
+$Id: CScripts.c,v 1.28 2009/10/26 10:55:12 couannette Exp $
 
 ???
 
@@ -34,7 +34,8 @@ $Id: CScripts.c,v 1.27 2009/10/05 15:07:24 crc_canada Exp $
 #include <internal.h>
 
 #include <libFreeWRL.h>
-
+#include <list.h>
+#include <resources.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
@@ -342,12 +343,15 @@ BOOL script_initCode(struct Shader_Script* me, const char* code)
    contains a file that (hopefully) contains the script */
 
 static char *buffer = NULL;
+
 static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 {
  size_t i;
  char *filename = NULL;
  char *mypath = NULL;
- int rv;
+ char *input_url = NULL;
+ int rv, l1, l2;
+ resource_item_t *res;
 
  /* strip off whitespace at the beginning JAS */
  while ((*uri<= ' ') && (*uri>0)) uri++;
@@ -367,7 +371,19 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
   /* Is this a "data:text/plain," uri? JAS*/
   if((!*v && *u==',') || (!*v && *u==':')) {
    	if (me != NULL) {
+#if 0 //MBFILES
 		return script_initCode(me, u+1); /* a script */
+#endif
+
+		res = resource_create_from_string(u+1);
+		send_resource_to_parser(res);
+		resource_wait(res);
+		
+		if (res->status == ress_parsed) {
+			return TRUE;
+		}
+		resource_destroy(res);
+
 	} else {
 		buffer = STRDUP(u+1);
 		return TRUE; /* a shader, program text will be in the "buffer" */
@@ -378,28 +394,35 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  /* Not a valid script in this SFString. Lets see if this
     is this a possible file that we have to get? */
 
- #ifdef CPARSERVERBOSE
- printf ("script_initCodeFromUri, uri is %s\n",uri); 
- #endif
+ DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
 
-#if defined(_MSC_VER)
-#define PATH_MAX _MAX_PATH  /*32kb*/
-#endif
+#if 0 //MBFILES
  // Test if this could be a path name
- if (strlen(getInputURL) >= PATH_MAX) {
+ input_url = getInputURL();
+ l1 = strlen(input_url); 
+ if ( l1 >= PATH_MAX) {
      return FALSE;
  }
 
- filename = (char *)MALLOC(PATH_MAX);
+ l2 = strlen(uri);
+
+ filename = (char *) MALLOC( l1 + l2 + 1 );
 
  /* get the current parent */
- mypath = STRDUP(getInputURL());
+/*  mypath = STRDUP(input_url); */
 
  /* and strip off the file name, leaving any path */
- removeFilenameFromPath (mypath);
+/*  removeFilenameFromPath (mypath); */
+
+ DEBUG_MSG("********** input url : %s\n", input_url);
+ mypath = remove_filename_from_path(input_url);
+ DEBUG_MSG("********** without filename : %s\n", mypath);
 
  /* add the two together */
- makeAbsoluteFileName(filename,mypath,(char *)uri);
+/*  makeAbsoluteFileName(filename,mypath,(char *)uri); */
+
+ sprintf(filename, "%s/%s", mypath, uri);
+ DEBUG_MSG("********** filename : %s\n", filename);
 
  /* and see if it exists. If it does, try running script_initCode() on it */
  rv = FALSE;
@@ -413,6 +436,17 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  FREE_IF_NZ (mypath);
 
  return rv;
+#endif
+
+ res = resource_create_single(filename);
+ send_resource_to_parser(res);
+ resource_wait(res);
+
+ if (res->status == ress_parsed) {
+	 return TRUE;
+ }
+ resource_destroy(res);
+ return FALSE;
 }
 
 

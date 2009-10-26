@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.18 2009/10/05 15:07:24 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.19 2009/10/26 10:55:13 couannette Exp $
 
 Javascript C language binding.
 
@@ -34,6 +34,8 @@ Javascript C language binding.
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include <list.h>
+#include <resources.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
@@ -114,9 +116,9 @@ void jsRegisterRoute(
  	char tonode_str[15];
 	int ad;
 #if defined(_MSC_VER)
- 	sprintf_s(tonode_str, 15, "%lu:%d", to, toOfs);
+ 	sprintf_s(tonode_str, 15, "%p:%d", to, toOfs);
 #else
- 	snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
+ 	snprintf(tonode_str, 15, "%p:%d", to, toOfs);
 #endif
 
 	if (strcmp("addRoute",adrem) == 0) 
@@ -472,7 +474,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		strcpy (xstr,"new MFNode(");
 		for (count=0; count<ra; count += 2) {
 			tmpstr = MALLOC(strlen(_c) + 100);
-			sprintf (tmpstr,"new SFNode('%s','%ld')",_c,nodarr[count*2+1]);
+			sprintf (tmpstr,"new SFNode('%s','%p')",_c, (void*) nodarr[count*2+1]);
 			wantedsize = strlen(tmpstr) + strlen(xstr);
 			if (wantedsize > MallocdSize) {
 				MallocdSize = wantedsize +200;
@@ -515,8 +517,8 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	struct X3D_Node *myptr;
 	int ra;
 	#define myFileSizeLimit 4000
-	char filename[myFileSizeLimit];
-	char tfilename [myFileSizeLimit];
+/* 	char filename[myFileSizeLimit]; */
+/* 	char tfilename [myFileSizeLimit]; */
 	char *tfptr; 
 	char *coptr;
 	char *bfp;
@@ -528,13 +530,14 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	int myField;
 	char *address;
 
+	resource_item_t *res = NULL;
+
 	#ifdef JSVERBOSE
 	printf ("JS start of createVrmlFromURL\n");
 	#endif
 
 	/* rval is always zero, so lets just set it */
 	*rval = INT_TO_JSVAL(0);
-
 
 	/* first parameter - expect a MFString Object here */
 	if (JSVAL_IS_OBJECT(argv[0])) {
@@ -627,14 +630,24 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	*/
 
 	/* find a file name that exists. If not, return JS_FALSE */
-	bfp = STRDUP(BrowserFullPath);
+/* 	bfp = STRDUP(BrowserFullPath); */
 	/* and strip off the file name, leaving any path */
-	removeFilenameFromPath (bfp);
+/* 	removeFilenameFromPath (bfp); */
 
-	#ifdef JSVERBOSE
-	printf ("have path now, of :%s:\n",bfp);
-	#endif
+/* 	#ifdef JSVERBOSE */
+/* 	printf ("have path now, of :%s:\n",bfp); */
+/* 	#endif */
 
+	res = resource_create_single(_costr0);
+	res->where = myptr;
+	send_resource_to_parser(res);
+	resource_wait(res);
+	
+	if (res->status == ress_parsed) {
+		/* Cool :) */
+	}
+
+#if 0
 	/* go through the elements and find which (if any) url exists */	
 	found = FALSE;
 	coptr = _costr0;
@@ -665,26 +678,23 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 			printf ("found string is :%s:\n",tfilename);
 			#endif
 		}
-
-
-        	        /* we work in absolute filenames... */
-                	makeAbsoluteFileName(filename,bfp,tfilename);
-
-                	if (fileExists(filename,NULL,TRUE)) {
+        	 
+		/* we work in absolute filenames... */
+		makeAbsoluteFileName(filename,bfp,tfilename);
+		
+		if (fileExists(filename,NULL,TRUE)) {
 			/* printf ("file exists, break\n"); */
 			found = TRUE;
-        	        } 
-			#ifdef JSVERBOSE
-			else printf ("nope, file %s does not exist\n",filename);
-			#endif
+		}
+#ifdef JSVERBOSE
+		ERROR_MSG("nope, file %s does not exist\n", tfilename);
+#endif
 
 		/* skip along to the start of the next name */
 		if (*coptr == '"') coptr++;
 		if (*coptr == ',') coptr++;
 		if (*coptr == ']') coptr++; /* this allows us to error out, above */
-
 	}
-
 
 	/* call the parser */
 	/* "save" the old classic parser state, so that names do not cross-pollute */
@@ -692,6 +702,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	globalParser = NULL;
 	ra = EAI_CreateVrml("URL",filename,nodarr,200);
 	globalParser = savedParser;
+#endif 
 
 	/* get the field from the beginning of this node as an offset */
 	/* try finding it, maybe with a "set_" or "changed" removed */
@@ -714,23 +725,32 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 	/* did we find the field? */
 	address = ((char *) myptr) + offset;
+	
+	struct X3D_Group *subtree = (struct X3D_Group *) myptr;
+	
+	/* MBFILES: process the children of myptr loaded by parser */
+	for (count = 1; count < subtree->children.n; count++) {
+		static char dtmp[100];
+		sprintf(dtmp, "%lu", subtree->children.p[count]);
+		getMFNodetype(dtmp, (struct Multi_Node *) address, myptr, 1);
+	}
 
+#if 0
 	/* now go through, and add the nodes to the parent node */
 	for (count = 1; count < ra; count +=2) {
 		char dtmp[100];
-
 		/* ensure that this node is not NULL */
 		if (nodarr[count] != 0) {
-			sprintf (dtmp,"%lu",nodarr[count]);
+			sprintf (dtmp,"%lu", (void*) nodarr[count]);
 			/* so, we send in the new node encoded as a string, 
 			   the actual pointer in memory of the MFNode field,
 			   the node pointer containing this field, 
 			   we ALWAYS add this to the field, even if it is a "removeChildren"
 			   and we let the scene graph determine whether it is an add or remove */
 			getMFNodetype (dtmp,(struct Multi_Node *)address, myptr, 1);
-
 		}
 	}
+#endif
 
 	MARK_EVENT(myptr,offset);
 	return JS_TRUE;

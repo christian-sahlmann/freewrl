@@ -1,9 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: fieldSet.c,v 1.29 2009/10/26 10:55:13 couannette Exp $
 
-$Id: fieldSet.c,v 1.28 2009/10/05 15:07:24 crc_canada Exp $
-
-???
+  FreeWRL support library.
+  VRML/X3D fields manipulation.
 
 */
 
@@ -34,6 +33,8 @@ $Id: fieldSet.c,v 1.28 2009/10/05 15:07:24 crc_canada Exp $
 #include <internal.h>
 
 #include <libFreeWRL.h>
+
+#include <io_files.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
