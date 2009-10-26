@@ -1,13 +1,10 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: fwCommonX11.c,v 1.2 2009/10/26 10:52:22 couannette Exp $
 
-$Id: fwCommonX11.c,v 1.1 2009/10/18 12:35:16 couannette Exp $
-
-FreeWRL support library.
-Display (X11) initialization.
+  FreeWRL support library.
+  X11 common functions.
 
 */
-
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -35,22 +32,16 @@ Display (X11) initialization.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeWRL.h>
+#include <threads.h>
 
 
-/**
- * X11 initialization functions. Available to Motif as well.
- */
-
-/**
- * public variables
- */
 GLXContext GLcx;
 long event_mask;
 XEvent event;
 Display *Xdpy;
 int Xscreen;
 Window Xroot_window;
+Colormap colormap;
 XVisualInfo *Xvi;
 Window Xwin;
 Window GLwin;
@@ -68,10 +59,11 @@ long event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
                     PointerMotionMask;
 
 /**
- * local variables
+ * X86 vmode : choose extended graphic mode
  */
-
 #ifdef HAVE_XF86_VMODE
+
+int oldx = 0, oldy = 0;
 int vmode_nb_modes;
 XF86VidModeModeInfo **vmode_modes = NULL;
 int vmode_mode_selected = -1;
@@ -103,15 +95,90 @@ void switch_to_mode(int i)
     XF86VidModeSwitchToMode(Xdpy, Xscreen, vmode_modes[i]);
     XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
 }
-#endif
+#endif /* HAVE_XF86_VMODE */
 
 /**
- * Initialize X-Window
+ *   find_best_visual: use GLX to choose the X11 visual.
+ */
+XVisualInfo *find_best_visual()
+{
+	XVisualInfo *vi = NULL;
+#define DEFAULT_COMPONENT_WEIGHT 5
+
+	/*
+	 * If FreeWRL is to be configurable one day,
+	 * we will improve this visual query.
+	 * One possibility: glXGetConfig.
+	 */
+	static int attribs[100] = {
+		GLX_RGBA,
+		GLX_DOUBLEBUFFER,
+		GLX_RED_SIZE,    DEFAULT_COMPONENT_WEIGHT,
+		GLX_GREEN_SIZE,  DEFAULT_COMPONENT_WEIGHT,
+		GLX_BLUE_SIZE,   DEFAULT_COMPONENT_WEIGHT,
+		GLX_ALPHA_SIZE,  DEFAULT_COMPONENT_WEIGHT,
+		GLX_DEPTH_SIZE,  DEFAULT_COMPONENT_WEIGHT,
+		None
+	};
+
+	if (shutterGlasses) {
+		/* FIXME: handle stereo visual creation */
+#ifdef STEREOCOMMAND
+		system(STEREOCOMMAND);
+#endif
+	}
+
+	if ((shutterGlasses) && (quadbuff_stereo_mode == 0)) {
+		TRACE_MSG("Warning: No quadbuffer stereo visual found !");
+		TRACE_MSG("On SGI IRIX systems read 'man setmon' or 'man xsetmon'\n");
+	}
+
+	quadbuff_stereo_mode = 0;
+
+	vi = glXChooseVisual(Xdpy, Xscreen, attribs);
+	return vi;
+}
+
+static int catch_XLIB(Display *disp, XErrorEvent *err)
+{
+	static int XLIB_errors = 0;
+	static char error_msg[4096];
+
+	XGetErrorText(disp, err->error_code, error_msg, sizeof(error_msg));
+
+	ERROR_MSG("FreeWRL caught an XLib error !\n"
+		  "   Display:    %s (%p)\n"
+		  "   Error code: %d\n"
+		  "   Error msg:  %s\n"
+		  "   Request:    %d\n",
+		  XDisplayName(NULL), disp, err->error_code, 
+		  error_msg, err->request_code);
+	
+	XLIB_errors++;
+	if (XLIB_errors > 20) {
+		ERROR_MSG("FreeWRL - too many XLib errors (%d>20), exiting...\n", XLIB_errors);
+		exit(0);
+	}
+	return 0;
+}
+
+int create_colormap()
+{
+	colormap = XCreateColormap(Xdpy, RootWindow(Xdpy, Xvi->screen),Xvi->visual, AllocNone);
+	return TRUE;
+}
+
+/**
+ *   open_display: setup up X11, choose visual, create colomap and query fullscreen capabilities.
  */
 int open_display()
 {
     char *display;
-    int i;
+
+    fw_thread_dump();
+
+    /* Display */
+    XInitThreads();
 
     display = getenv("DISPLAY");
     Xdpy = XOpenDisplay(display);
@@ -120,128 +187,81 @@ int open_display()
 	return FALSE;
     }
 
+    /* start up a XLib error handler to catch issues with FreeWRL. There
+       should not be any issues, but, if there are, we'll most likely just
+       throw our hands up, and continue */
+    XSetErrorHandler(catch_XLIB); 
+
     Xscreen = DefaultScreen(Xdpy);
     Xroot_window = RootWindow(Xdpy,Xscreen);
 
+    /* Visual */
+
+    Xvi = find_best_visual();
+    if(!Xvi) { 
+	    ERROR_MSG("FreeWRL can not find an appropriate visual from GLX\n");
+	    return FALSE;
+    }
+
+    /* Fullscreen */
+
     if (fullscreen) {
 #ifdef HAVE_XF86_VMODE
-	if (vmode_modes == NULL) {
-	    if (XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes) == 0) {
-		ERROR_MSG("can`t get mode lines through XF86VidModeGetAllModeLines.\n");
-		return FALSE;
+	    int i;
+	    if (vmode_modes == NULL) {
+		    if (XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes) == 0) {
+			    ERROR_MSG("can`t get mode lines through XF86VidModeGetAllModeLines.\n");
+			    return FALSE;
+		    }
+		    qsort(vmode_modes, vmode_nb_modes, sizeof(XF86VidModeModeInfo*), mode_cmp);
 	    }
-	    qsort(vmode_modes, vmode_nb_modes, sizeof(XF86VidModeModeInfo*), mode_cmp);
-	}
-	for (i = 0; i < vmode_nb_modes; i++) {
-	    if (vmode_modes[i]->hdisplay <= win_width && vmode_modes[i]->vdisplay <= win_height) {
-		switch_to_mode(i);
+	    for (i = 0; i < vmode_nb_modes; i++) {
+		    if (vmode_modes[i]->hdisplay <= win_width && vmode_modes[i]->vdisplay <= win_height) {
+			    switch_to_mode(i);
+			    break;
+		    }
+	    }
+#endif
+    }
+
+
+    /* Color map */
+    create_colormap();
+
+    return TRUE;
+}
+
+void setMenuStatus(char *stat)
+{
+	strncpy(myMenuStatus, stat, MAXSTAT);
+	setMessageBar();
+}
+
+void setMenuFps(float fps)
+{
+	myFps = fps;
+	setMessageBar();
+}
+
+void resetGeometry()
+{
+#ifdef HAVE_XF86_VMODE
+    int oldMode, i;
+
+    if (fullscreen) {
+	XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes);
+	oldMode = 0;
+	
+	for (i=0; i < vmode_nb_modes; i++) {
+	    if ((vmode_modes[i]->hdisplay == oldx) && (vmode_modes[i]->vdisplay==oldy)) {
+		oldMode = i;
 		break;
 	    }
 	}
-#endif
-    }
-    return TRUE;
-}
-
-int create_main_window_x11()
-{
-    Window root_ret;
-    Window child_ret;
-    int root_x_ret;
-    int root_y_ret;
-    unsigned int mask_ret;
-
-    attr.background_pixel = 0;
-    attr.border_pixel = 0;
-    attr.colormap = XCreateColormap(Xdpy, Xroot_window, Xvi->visual, AllocNone);
-
-    attr.event_mask = StructureNotifyMask | KeyPressMask | KeyReleaseMask | PointerMotionMask | LeaveWindowMask | MapNotify | ButtonPressMask | ButtonReleaseMask | FocusChangeMask;
-
-    if (fullscreen) {
-	mask = CWBackPixel | CWColormap | CWOverrideRedirect | CWSaveUnder | CWBackingStore | CWEventMask;
-	attr.override_redirect = true;
-	attr.backing_store = NotUseful;
-	attr.save_under = false;
-    } else {
-	mask = CWBackPixel | CWBorderPixel | CWColormap | CWEventMask;
-    }
-		
-    Xwin = XCreateWindow(Xdpy, Xroot_window, 0, 0, win_width, win_height,
-			 0, Xvi->depth, InputOutput, Xvi->visual, mask, &attr);
-    XMapWindow(Xdpy, Xwin);
-		
-    if (fullscreen) {
-	XMoveWindow(Xdpy, Xwin, 0, 0);
-	XRaiseWindow(Xdpy, Xwin);
-	XFlush(Xdpy);
-#ifdef HAVE_XF86_VMODE
+	
+	XF86VidModeSwitchToMode(Xdpy, Xscreen, vmode_modes[oldMode]);
 	XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
-#endif
-	XGrabPointer(Xdpy, Xwin, TRUE, 0, GrabModeAsync, GrabModeAsync, Xwin, None, CurrentTime);
-	XGrabKeyboard(Xdpy, Xwin, TRUE, GrabModeAsync, GrabModeAsync, CurrentTime);
-    } else {
-	WM_DELETE_WINDOW = XInternAtom(Xdpy, "WM_DELETE_WINDOW", FALSE);
-	XSetWMProtocols(Xdpy, Xwin, &WM_DELETE_WINDOW, 1);
+	XFlush(Xdpy);
     }
-		
-/*     XFlush(Xdpy); */
-
-    XQueryPointer(Xdpy, Xwin, &root_ret, &child_ret, &root_x_ret, &root_y_ret,
-		  &mouse_x, &mouse_y, &mask_ret);
-
-    window_title = "FreeWRL";
-    XStoreName(Xdpy, Xwin, window_title);
-    XSetIconName(Xdpy, Xwin, window_title);
-		
-    XFlush(Xdpy);
-
-    return TRUE;
-}
-
-/**
- * Create OpenGL context
- */
-int create_GL_context()
-{
-
-#define DEFAULT_COMPONENT_WEIGHT 5
-
-    static int attribs[] = {
-	GLX_RGBA,
-	GLX_DOUBLEBUFFER,
-	GLX_RED_SIZE,    DEFAULT_COMPONENT_WEIGHT,
-	GLX_GREEN_SIZE,  DEFAULT_COMPONENT_WEIGHT,
-	GLX_BLUE_SIZE,   DEFAULT_COMPONENT_WEIGHT,
-	GLX_ALPHA_SIZE,  DEFAULT_COMPONENT_WEIGHT,
-	GLX_DEPTH_SIZE,  DEFAULT_COMPONENT_WEIGHT,
-	None
-    };
-
-    Xvi = glXChooseVisual(Xdpy, Xscreen, attribs);
-    if (!Xvi) {
-	ERROR_MSG("can't choose appropriate visual (component weight=%d).\n", 
-	      DEFAULT_COMPONENT_WEIGHT);
-	return FALSE;
-    }
-
-    GLcx = glXCreateContext(Xdpy, Xvi, GLcx, TRUE);
-    if (!GLcx) {
-	ERROR_MSG("can't create OpenGL context.\n");
-	return FALSE;
-    }
-
-    return TRUE;
-}
-
-int initialize_gl_context()
-{
-    if (!Xwin) {
-	ERROR_MSG("window not initialized, can't initialize OpenGL context.\n");
-	return FALSE;
-    }
-    if (!glXMakeCurrent(Xdpy, Xwin, GLcx)) {
-	ERROR_MSG("can't initialize OpenGL context (glXMakeCurrent: %s).\n", GL_ERROR_MSG);
-	return FALSE;
-    }
-    return TRUE;
+#endif /* HAVE_XF86_VMODE */
 }

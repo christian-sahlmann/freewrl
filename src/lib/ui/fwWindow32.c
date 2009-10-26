@@ -1,8 +1,7 @@
 /*
-  =INSERT_TEMPLATE_HERE=
+  $Id: fwWindow32.c,v 1.9 2009/10/26 10:52:22 couannette Exp $
 
-  $Id: fwWindow32.c,v 1.8 2009/10/22 16:58:49 crc_canada Exp $
-
+  FreeWRL support library.
   FreeWRL main window : win32 code.
 
 */
@@ -73,16 +72,10 @@ static int oldx = 0, oldy = 0;
 /* static int screen; */
 extern int shutterGlasses;
 
-char *GL_VER = NULL;
-char *GL_VEN = NULL;
-char *GL_REN = NULL;
-
 int button[5];
 int mouseX, mouseY;
 
 static short gcWheelDelta = 0;
-
-float myFps = 0.0;
 
 void setMenuButton_collision(int val){}
 void setMenuButton_texSize(int size){}
@@ -105,20 +98,6 @@ void pause()
     printf(":");
     getchar();
 }
-
-GLvoid resize( GLsizei width, GLsizei height ) 
-{ 
-    GLfloat aspect; 
- 
-    glViewport( 0, 0, width, height ); 
- 
-    aspect = (GLfloat) width / height; 
- 
-    glMatrixMode( GL_PROJECTION ); 
-    glLoadIdentity(); 
-    gluPerspective( 45.0, aspect, .3, 700.0); /* 3.0, 7.0 ); */
-    glMatrixMode( GL_MODELVIEW ); 
-}     
 
 GLvoid createObjects() 
 { 
@@ -450,7 +429,7 @@ BOOL bSetupPixelFormat(HDC hdc)
     return TRUE; 
 } 
 
-void createContext32()
+int create_GLcontext()
 {
     RECT rect; 
     GLenum err;
@@ -464,42 +443,18 @@ void createContext32()
 	printf("ouch - bSetupPixelFormat failed\n");
     ghRC = wglCreateContext(ghDC); 
     printf("created context\n");
-
-    bb = wglMakeCurrent(ghDC, ghRC); 
-    printf("made current %u\n", bb);
-
-    GetClientRect(ghWnd, &rect); 
-
-    err = glewInit();
-    if (GLEW_OK != err)
-    {
-	/* Problem: glewInit failed, something is seriously wrong. */
-	printf("Error: %s\n", glewGetErrorString(err));
-	 
-    }
-    printf( "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-
-    printf("before initializeGL\n");
-    initializeGL(rect.right, rect.bottom); 
-    printf("after initializeGl\n");
-
+    return TRUE;
 }
-
-void createGLContext(void)
+ 
+int bind_GLcontext()
 {
-    /* createContext32(); */
-    /* save this info for later use */
-    GL_REN = (char *)glGetString(GL_RENDERER);
-    GL_VER = (char *)glGetString(GL_VERSION);
-    GL_VEN = (char *)glGetString(GL_VENDOR);
-
-    /* Set up the OpenGL state. This'll get overwritten later... */
-    glClearDepth (1.0);
-    glClearColor (0.0, 0.0, 1.0, 0.0);
-    FW_GL_MATRIX_MODE (GL_PROJECTION);
-    glFrustum (-1.0, 1.0, -1.0, 1.0, 1.0, 20);
-    FW_GL_MATRIX_MODE (GL_MODELVIEW);
+	if (wglMakeCurrent(ghDC, ghRC)) {
+		printf("made current %u\n", bb);
+		return TRUE;
+	}
+	return FALSE;
 }
+
 static int sensor_cursor = 0;
 static HCURSOR hSensor, hArrow;
 LRESULT CALLBACK PopupWndProc( 
@@ -561,7 +516,7 @@ LRESULT CALLBACK PopupWndProc(
 	GetClientRect(hWnd, &rect); 
 	screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 	screenHeight = rect.bottom;
-	resize(rect.right, rect.bottom); 
+	resize_GL(rect.right, rect.bottom); 
 	setScreenDim(rect.right,rect.bottom);
 	break; 
 
@@ -749,7 +704,7 @@ LRESULT CALLBACK PopupWndProc(
     return 0;
 }
 
-int createWindow32()
+int create_main_window(int argc, char *argv[])
 {
     HINSTANCE hInstance; 
     WNDCLASS wc;
@@ -818,6 +773,8 @@ int createWindow32()
         return FALSE; 
 
     printf("made a window\n");
+
+    GetClientRect(ghWnd, &rect); 
    
     ShowWindow( ghWnd, SW_SHOW); /* SW_SHOWNORMAL); /*nCmdShow );*/
     printf("showed window\n");
@@ -826,31 +783,6 @@ int createWindow32()
     UpdateWindow(ghWnd); 
     printf("updated window - leaving createwindow\n");
    
-    return TRUE;
-
-}
-
-void openMainWindow (int argc, char **argv)
-{
-    GLenum err;
-
-    /*
-      int argcc;
-      char * argvv[1];
-      argcc = 1;
-      argvv[0] = "freewrlg";
-      glutInit(&argcc, argvv);
-      glutCreateWindow("GLEW Test");
-      create_main_window_win32();
-    */
-    createWindow32();
-    printf("after createwindow32\n");
-}
-
-int create_main_window_win32()
-{
-    createWindow32();
-    printf("after createwindow32 in create_main_window_win32\n");
     return TRUE;
 }
 
@@ -913,8 +845,15 @@ http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx
 		SetCursor(hArrow);
 	sensor_cursor = 0;
 }
+
 void sensor_cursor32()
 {
 	sensor_cursor = 1;
-    SetCursor(hSensor);
+	SetCursor(hSensor);
+}
+
+int open_display()
+{
+	/* nothing to do */
+	return TRUE;
 }

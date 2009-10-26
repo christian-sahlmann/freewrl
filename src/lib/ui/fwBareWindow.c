@@ -1,7 +1,5 @@
 /*
-  =INSERT_TEMPLATE_HERE=
-
-  $Id: fwBareWindow.c,v 1.8 2009/10/05 15:07:24 crc_canada Exp $
+  $Id: fwBareWindow.c,v 1.9 2009/10/26 10:52:22 couannette Exp $
 
   Create X11 window. Manage events.
 
@@ -41,10 +39,8 @@
 
 #include "fwBareWindow.h"
 
-char    *wintitle =  "FreeWRL VRML/X3D Browser";
 XTextProperty windowName;
 Window Pwin;
-static Colormap Cmap;
 static XSetWindowAttributes Swa;
 
 /* we have no buttons; just make these functions do nothing */
@@ -68,6 +64,7 @@ void openBareMainWindow (int argc, char **argv)
     if (!Xdpy) { fprintf(stderr, "No display!\n");exit(-1);}
 }
 
+#if 0
 void createBareMainWindow ()
 {
     /* create a color map */
@@ -100,4 +97,62 @@ void createBareMainWindow ()
         XSetInputFocus(Xdpy, Pwin, RevertToParent, CurrentTime);
     }
 /*      } */
+}
+#endif
+
+int create_main_window(int argc, char *argv[])
+{
+    Window root_ret;
+    Window child_ret;
+    int root_x_ret;
+    int root_y_ret;
+    unsigned int mask_ret;
+
+    attr.background_pixel = 0;
+    attr.border_pixel = 0;
+    attr.colormap = colormap;
+
+    attr.event_mask = StructureNotifyMask | KeyPressMask | KeyReleaseMask | PointerMotionMask | LeaveWindowMask | MapNotify | ButtonPressMask | ButtonReleaseMask | FocusChangeMask;
+
+    if (fullscreen) {
+	mask = CWBackPixel | CWColormap | CWOverrideRedirect | CWSaveUnder | CWBackingStore | CWEventMask;
+	attr.override_redirect = true;
+	attr.backing_store = NotUseful;
+	attr.save_under = false;
+    } else {
+	mask = CWBackPixel | CWBorderPixel | CWColormap | CWEventMask;
+    }
+		
+    Xwin = XCreateWindow(Xdpy, Xroot_window, 0, 0, win_width, win_height,
+			 0, Xvi->depth, InputOutput, Xvi->visual, mask, &attr);
+    XMapWindow(Xdpy, Xwin);
+		
+    if (fullscreen) {
+	XMoveWindow(Xdpy, Xwin, 0, 0);
+	XRaiseWindow(Xdpy, Xwin);
+	XFlush(Xdpy);
+#ifdef HAVE_XF86_VMODE
+	XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
+#endif
+	XGrabPointer(Xdpy, Xwin, TRUE, 0, GrabModeAsync, GrabModeAsync, Xwin, None, CurrentTime);
+	XGrabKeyboard(Xdpy, Xwin, TRUE, GrabModeAsync, GrabModeAsync, CurrentTime);
+    } else {
+	WM_DELETE_WINDOW = XInternAtom(Xdpy, "WM_DELETE_WINDOW", FALSE);
+	XSetWMProtocols(Xdpy, Xwin, &WM_DELETE_WINDOW, 1);
+    }
+		
+/*     XFlush(Xdpy); */
+
+    XQueryPointer(Xdpy, Xwin, &root_ret, &child_ret, &root_x_ret, &root_y_ret,
+		  &mouse_x, &mouse_y, &mask_ret);
+
+    window_title = "FreeWRL";
+    XStoreName(Xdpy, Xwin, window_title);
+    XSetIconName(Xdpy, Xwin, window_title);
+
+    GLwin = Xwin;
+		
+    XFlush(Xdpy);
+
+    return TRUE;
 }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwBareWindow.h,v 1.3 2009/10/05 15:07:24 crc_canada Exp $
+$Id: fwBareWindow.h,v 1.4 2009/10/26 10:52:22 couannette Exp $
 
 UI declarations.
 
@@ -35,7 +35,6 @@ UI declarations.
 extern "C" {
 #endif
 
-void setMessageBar(void);
 void getBareWindowedGLwin(Window *);
 void openBareMainWindow(int, char **);
 void createBareMainWindow();

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ui.h,v 1.5 2009/10/05 15:07:24 crc_canada Exp $
+$Id: ui.h,v 1.6 2009/10/26 10:52:22 couannette Exp $
 
 UI declarations.
 
@@ -34,9 +34,6 @@ UI declarations.
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void openMainWindow (int argc, char **argv);
-void createGLContext(void);
 
 #ifdef __cplusplus
 }

@@ -1,8 +1,7 @@
 /*
-  =INSERT_TEMPLATE_HERE=
+  $Id: fwMotifWindow.c,v 1.8 2009/10/26 10:52:22 couannette Exp $
 
-  $Id: fwMotifWindow.c,v 1.7 2009/10/05 15:07:24 crc_canada Exp $
-
+  FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
 
 */
@@ -33,31 +32,25 @@
 #include <display.h>
 #include <internal.h>
 
+#include <libFreeWRL.h>
+extern freewrl_params_t fw_params;
+#include <threads.h>
+#include "../main/MainLoop.h"
+
+#include <Xm/MainW.h>
+#include <Xm/RowColumn.h>
+#include <Xm/PushB.h>
+#include <Xm/ToggleB.h>
+#include <Xm/CascadeB.h>
+#include <Xm/TextF.h>
+#include <Xm/Separator.h>
+#include <Xm/PanedW.h>
+#include <Xm/Text.h>
+#include <Xm/ScrolledW.h>
+#include <Xm/FileSB.h>
 #include <Xm/SelectioB.h>
 #include <Xm/MessageB.h>
-
-#include <libFreeWRL.h>
-
-#include "../vrml_parser/Structs.h"
-#include "../main/headers.h"
-#include "../main/MainLoop.h"
-#include "../main/ProdCon.h"
-#include "../vrml_parser/CParseGeneral.h"
-#include "../scenegraph/Vector.h"
-#include "../vrml_parser/CFieldDecls.h"
-#include "../world_script/CScripts.h"
-#include "../vrml_parser/CParseParser.h"
-#include "../vrml_parser/CParseLexer.h"
-#include "../vrml_parser/CParse.h"
-
-#include <float.h>
-
-#include "../x3d_parser/Bindable.h"
-#include "../scenegraph/Collision.h"
-#include "../scenegraph/quaternion.h"
-#include "../scenegraph/Viewer.h"
-
-#include "fwMotifWindow.h"
+#include <Xm/DrawingA.h> /* simple drawing area */
 
 #define ABOUT_FREEWRL "FreeWRL Version %s\n \
 %s %s.\n \n \
@@ -69,32 +62,7 @@ Thanks to the Open Source community for all the help received.\n \
 Communications Research Centre\n \
 Ottawa, Ontario, Canada.\nhttp://www.crc.ca"
 
-#include <X11/Intrinsic.h>
-#include <X11/cursorfont.h>
-
-#include <Xm/MainW.h>
-#include <Xm/RowColumn.h>
-#include <Xm/PushB.h>
-#include <Xm/ToggleB.h>
-#include <Xm/CascadeB.h>
-#include <Xm/Frame.h>
-#include <Xm/TextF.h>
-#include <Xm/Label.h>
-#include <Xm/Separator.h>
-#include <Xm/PanedW.h>
-#include <Xm/Text.h>
-#include <Xm/ScrolledW.h>
-#include <Xm/FileSB.h>
-extern WidgetClass glwDrawingAreaWidgetClass;
-
 void setDefaultBackground(int colour);
-
-/************************************************************************
-
-Set window variables from FreeWRL 
-
-************************************************************************/
-
 
 /* background colours - must be sequential range */
 #define colourBlack     0
@@ -108,6 +76,8 @@ Set window variables from FreeWRL
 #define colourOrange    8
 #define colourWhite     9
 
+extern Colormap colormap;
+
 /* because of threading issues in Linux, if we can only use 1 thread, we
    delay setting of info until this time. */
 int colbut; int colbutChanged = FALSE;
@@ -117,14 +87,15 @@ int msgChanged = FALSE;
 char *consMsg = NULL; int consmsgChanged = FALSE;
 int localtexpri = TRUE; /* mimics textures_take_priority in CFuncs/RenderFuncs.c */
 int localshapepri = TRUE; /* mimics textures_take_priority in CFuncs/RenderFuncs.c */
-#define MAXSTAT 200
+
 char fpsstr[MAXSTAT+20];
 
-static String defaultResources[200];
+/* static String defaultResources[200]; */
 int MainWidgetRealized = FALSE;
 int msgWindowOnscreen = FALSE;
 int consWindowOnscreen = FALSE;
 
+XtAppContext Xtcx;
 Widget freewrlTopWidget, mainw, menubar,menuworkwindow;
 Widget menumessagewindow = NULL; /* tested against NULL in code */
 Widget frame, freewrlDrawArea;
@@ -157,9 +128,8 @@ float backgroundColours[] = {
 Arg args[10];
 Arg buttonArgs[10]; int buttonArgc = 0;
 Arg textArgs[10]; int textArgc = 0;
-/* XtAppContext freewrlXtAppContext; */
+
 extern char myMenuStatus[];
-extern float myFps;
 
 void createMenuBar(void);
 void createDrawingFrame(void);
@@ -175,53 +145,98 @@ void myXtManageChild (int c, Widget child)
 
 
 /* see if/when we become iconified - if so, dont bother doing OpenGL stuff */
-XtEventHandler StateWatcher (Widget w, caddr_t unused, XEvent *event)
+void StateWatcher (Widget w, XtPointer unused, XEvent *event, Boolean *cont)
 {
     if (event->type == MapNotify) setDisplayed (TRUE);
     else if (event->type == UnmapNotify) setDisplayed (FALSE);
 }
 
-void createMotifMainWindow()
+/**
+ *   create_main_window: (virtual) create the window with Motif.
+ */
+int create_main_window(int argc, char *argv[])
 {
-    Dimension width, height;
+	int argc_out = 0;
+	char *argv_out[1] = { NULL };
+	Dimension width, height;
+	Arg initArgs[10]; int initArgc = 0;
 
-    mainw = XmCreateMainWindow (freewrlTopWidget, "mainw", NULL, 0);
-    myXtManageChild (29,mainw);
+/* 	argc_out = argc; */
+/* 	argv_out = argv; */
 
-    /* Create a menu bar. */
-    createMenuBar();
+	/* XtVaAppInitialize ??? */
+	XtSetArg(initArgs[initArgc], XmNlabelString, XmStringCreate(window_title, XmSTRING_DEFAULT_CHARSET)); initArgc++;
+	XtSetArg(initArgs[initArgc], XmNheight, win_height); initArgc++;
+	XtSetArg(initArgs[initArgc], XmNwidth, win_width); initArgc++;
 
-    /* Create a framed drawing area for OpenGL rendering. */
-    createDrawingFrame();
+	/**
+	 *   This new initialization sequence let us create the Display and GLX context "à part" from Motif and use the
+	 *   same routines for bare X11 and Motif ...
+	 */
+	XtToolkitInitialize();
+	Xtcx = XtCreateApplicationContext();
 
-    /* Set up the application's window layout. */
-    XtVaSetValues(mainw, 
-                  XmNworkWindow, frame,
-                  XmNcommandWindow,  NULL,
-                  XmNmenuBar, menubar,
-                  XmNmessageWindow, menumessagewindow,
-                  NULL);
+	XtDisplayInitialize(Xtcx, Xdpy, "FreeWRL", "FreeWRL_class", NULL, 0, &argc_out, argv_out);
 
+	freewrlTopWidget = XtAppCreateShell("FreeWRL", "FreeWRL_class", applicationShellWidgetClass, Xdpy, initArgs, initArgc);
 
-    XtRealizeWidget (freewrlTopWidget);
-    MainWidgetRealized = TRUE;
+	if (!freewrlTopWidget) {
+		ERROR_MSG("Can't initialize Motif\n");
+		return FALSE;
+	}
 
-    /* let the user ask for this one We do it here, again, because on Ubuntu,
-     * this pops up on startup. Maybe because it has scrollbars, or other internal
-     * widgets? */
-    XtUnmanageChild(consoleTextWidget);
+	/* Inform Motif that we have our visual and colormap already ... (before top level is realized) */
+	XtVaSetValues(freewrlTopWidget,
+		      XmNdepth, Xvi->depth,
+		      XmNvisual, Xvi->visual,
+		      XmNcolormap, colormap,
+		      NULL);
 
-
-    Xwin = XtWindow (freewrlTopWidget);
-
-    /* now, lets tell the OpenGL window what its dimensions are */
-
-    XtVaGetValues (freewrlDrawArea, XmNwidth, &width, XmNheight, &height, NULL);
-    setScreenDim (width,height);
-
-    /* lets see when this goes iconic */
-    XtAddEventHandler (freewrlTopWidget, StructureNotifyMask, FALSE, StateWatcher, NULL);
-
+	/* zero status stuff */
+	myMenuStatus[0] = '\0';
+	
+	mainw = XmCreateMainWindow(freewrlTopWidget, window_title, NULL, 0);
+	if (!mainw)
+		return FALSE;
+	
+	myXtManageChild(29, mainw);
+	
+	/* Create a menu bar. */
+	createMenuBar();
+	
+	/* Create a framed drawing area for OpenGL rendering. */
+	createDrawingFrame();
+	
+	/* Set up the application's window layout. */
+	XtVaSetValues(mainw, 
+		      XmNworkWindow, frame,
+		      XmNcommandWindow,  NULL,
+		      XmNmenuBar, menubar,
+		      XmNmessageWindow, menumessagewindow,
+		      NULL);
+	
+	
+	XtRealizeWidget (freewrlTopWidget);
+	MainWidgetRealized = XtIsRealized(freewrlTopWidget); /*TRUE;*/
+	TRACE_MSG("create_main_window: top widget realized: %s\n", BOOL_STR(MainWidgetRealized));
+	
+	/* let the user ask for this one We do it here, again, because on Ubuntu,
+	 * this pops up on startup. Maybe because it has scrollbars, or other internal
+	 * widgets? */
+	XtUnmanageChild(consoleTextWidget);
+	
+	Xwin = XtWindow(freewrlTopWidget);
+	GLwin = XtWindow(freewrlDrawArea);
+	
+	/* now, lets tell the OpenGL window what its dimensions are */
+	
+	XtVaGetValues(freewrlDrawArea, XmNwidth, &width, XmNheight, &height, NULL);
+	setScreenDim(width,height);
+	
+	/* lets see when this goes iconic */
+	XtAddEventHandler(freewrlTopWidget, StructureNotifyMask, FALSE, StateWatcher, NULL);
+	
+	return TRUE;
 }
 
 /************************************************************************
@@ -251,7 +266,8 @@ XmString xec_NewString(char *s)
     p         = strtok(t,"\n");
     xms1      = XmStringCreateLocalized(p);
 
-    while (p = strtok(NULL,"\n"))
+    /* FIXME: ???? why NULL here */
+    while ((p = strtok(NULL,"\n")))
     {
         line = XmStringCreateLocalized(p);
         xms2 = XmStringConcat(xms1,separator);
@@ -271,23 +287,25 @@ void aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData)
 { 
     int ac;
     Arg args[10];
-    char ns[2000];
+    const char *ver;
+    char *msg, *rdr, *vendor;
     XmString diastring;
     ac = 0;
-    /*
-      printf ("version is %s\n",GL_VER);
-      printf ("vendor is %s\n",GL_VEN);
-      printf ("renderer is %s\n",GL_REN);
-    */
 
-    /* set the string here - OpenGL is now opened. */
-    sprintf (ns,ABOUT_FREEWRL,getLibVersion(),"Render: ",GL_REN);
-    diastring = xec_NewString(ns);
+    ver = libFreeWRL_get_version();
 
-        
+    rdr = rdr_caps.renderer;
+    vendor = rdr_caps.vendor;
+
+    msg = malloc(strlen(ABOUT_FREEWRL) + strlen(ver) 
+		 + strlen(rdr) + strlen(vendor));
+    sprintf(msg, ABOUT_FREEWRL, ver, rdr, vendor);
+
+    diastring = xec_NewString(msg);     
     XtSetArg(args[ac], XmNmessageString, diastring); ac++;
-    XtSetValues(about_widget,args,ac);
+    XtSetValues(about_widget, args, ac);
     XmStringFree(diastring);
+    FREE(msg);
 
     myXtManageChild(2,about_widget);
 }
@@ -300,9 +318,8 @@ void quitMenuBar (Widget w, XtPointer data, XtPointer callData)
 
 void reloadFile (Widget w, XtPointer data, XtPointer callData)
 {
-    /* ConsoleMessage ("reloading %s", BrowserFullPath); */
-    /* Anchor - this is just a "replace world" call */
-    Anchor_ReplaceWorld (BrowserFullPath);
+	ConsoleMessage ("reloading %s", BrowserFullPath);
+	/* FIXME: implement reload function */
 }
 
 void ViewpointFirst (Widget w, XtPointer data, XtPointer callData) {
@@ -328,7 +345,8 @@ void ViewpointPrev (Widget w, XtPointer data, XtPointer callData)
 
 void BackColour(Widget w, XtPointer data, XtPointer callData)
 {
-    setDefaultBackground(data);
+	int color = (int) data;
+	setDefaultBackground(color);
 }
 
 void Tex128(Widget w, XtPointer data, XtPointer callData)
@@ -400,7 +418,7 @@ void Headlight (Widget w, XtPointer data, XtPointer callData)
 
 void Collision (Widget w, XtPointer data, XtPointer callData)
 {
-    be_collision = !be_collision;
+    fw_params.collision = !fw_params.collision;
 }
 
 void ViewpointStraighten (Widget w, XtPointer data, XtPointer callData)
@@ -417,9 +435,9 @@ void fileSelectPressed (Widget w, XtPointer data, XmFileSelectionBoxCallbackStru
     XmStringGetLtoR(callData->value, 
                     XmSTRING_DEFAULT_CHARSET, &newfile);
 
-    /* Anchor - this is just a "replace world" call */
-    setFullPath (newfile);
-    Anchor_ReplaceWorld (BrowserFullPath);
+    if (!Anchor_ReplaceWorld(newfile)) {
+	    /* error message */
+    }
     XtUnmanageChild(w);
 }
 
@@ -452,7 +470,7 @@ void GLAreaexpose (Widget w, XtPointer data, XtPointer callData)
 /* resize, configure events */
 void GLArearesize (Widget w, XtPointer data, XtPointer callData)
 {
-    XmDrawingAreaCallbackStruct *cd = (XmDrawingAreaCallbackStruct *) callData;
+/*     XmDrawingAreaCallbackStruct *cd = (XmDrawingAreaCallbackStruct *) callData; */
     Dimension width, height;
 
     XtVaGetValues (w, XmNwidth, &width, XmNheight, &height, NULL);
@@ -495,17 +513,20 @@ void removeWidgetFromSelect (Widget parent,
 void freewrlHomePopup (Widget w, XtPointer data, XtPointer callData)
 { 
 #define MAXLINE 2000
-    char *browser;
-    char sysline[MAXLINE];
+	const char *browser;
+	char *sysline;
+	const char pattern[] = "%s http://www.crc.ca/FreeWRL &";
 
-    browser = getenv("BROWSER");
-    if (browser) {
-        if (strlen(browser)>(MAXLINE-30)) return;
-        strcpy (sysline, browser);
-    } else
-        strcpy (sysline, BROWSER);
-    strcat (sysline, " http://www.crc.ca/FreeWRL &");
-    freewrlSystem (sysline);
+	browser = freewrl_get_browser_program();
+	if (!browser) {
+		browser = BROWSER;
+	}
+	sysline = MALLOC(strlen(browser)+strlen(pattern));
+	sprintf(sysline, pattern, browser);
+
+	freewrlSystem(sysline);
+
+	FREE(sysline);
 }
 
 #ifdef XTDEBUG
@@ -831,6 +852,11 @@ void createDrawingFrame(void)
                                                NULL);
 
     /* create the FreeWRL OpenGL drawing area, and map it. */
+
+#if 0 /* MB: do not create a glwDrawingArea but a simple widget
+	 we have our own initialization of OpenGL ...
+	 in the near future we could remove completely the GLwDrawA files...
+      */
     freewrlDrawArea = XtVaCreateManagedWidget ("freewrlDrawArea", glwDrawingAreaWidgetClass,
                                                frame, "visualInfo", Xvi, 
                                                XmNtopAttachment, XmATTACH_WIDGET,
@@ -838,6 +864,9 @@ void createDrawingFrame(void)
                                                XmNleftAttachment, XmATTACH_FORM,
                                                XmNrightAttachment, XmATTACH_FORM,
                                                NULL);
+#endif
+
+    freewrlDrawArea = XmCreateDrawingArea (frame, "drawing_a", NULL, 0);
 
 #ifdef DOESNOTGETICONICSTATE
     XtAddCallback (freewrlDrawArea, XmNexposeCallback, GLAreaexpose, NULL);
@@ -852,39 +881,14 @@ void createDrawingFrame(void)
     XtUnmanageChild(consoleTextWidget);
 }
 
-void openMotifMainWindow (int argc, char **argv)
-{
-    String dummyargc[] = { " ", " "};
-    Arg initArgs[10]; int initArgc = 0;
-    argc = 0;
-
-#ifdef DO_MULTI_OPENGL_THREADS
-    XInitThreads();
-#endif
-
-    XtSetArg(initArgs[initArgc],XmNlabelString,XmStringCreate("FreeWRL VRML X3D Browser",XmSTRING_DEFAULT_CHARSET)); initArgc++;
-    XtSetArg(initArgs[initArgc],XmNheight, win_height); initArgc++;
-    XtSetArg(initArgs[initArgc],XmNwidth, win_width); initArgc++;
-    freewrlTopWidget = XtAppInitialize (&Xtcx, "FreeWRL", NULL, 0, 
-                                        &argc, dummyargc, NULL, initArgs, initArgc);
-
-    Xdpy = XtDisplay (freewrlTopWidget);
-
-    /* if we are running as a plugin, let the plugin control code map and manage this window. */
-    if (RUNNINGASPLUGIN) {
-        XtSetMappedWhenManaged (freewrlTopWidget,False);
-    }
-}
-
-
 void setConsoleMessage (char *str)
 {
     char *tptr;
     int nl;
 
     /* is the consoleTextWidget created yet?? */
-    if (ISDISPLAYINITIALIZED != TRUE) {
-        printf ("ConsoleMessage: %s\n",str);
+    if (IS_DISPLAY_INITIALIZED != TRUE) {
+	    ERROR_MSG("display not initialized: can't write ConsoleMessage: %s\n", str);
     } else {
         /* make sure console window is on screen */
         if (!consWindowOnscreen) {
@@ -1024,11 +1028,6 @@ void getMotifWindowedGLwin(Window *win)
 {
     *win = XtWindow(freewrlDrawArea);
 }
-
-int isMotifDisplayInitialized (void)
-{
-    return  (MainWidgetRealized);
-}               
 
 void setDefaultBackground(int colour)
 {

@@ -1,9 +1,5 @@
 /*
-=INSERT_TEMPLATE_HERE=
-
-$Id: statusbar.c,v 1.12 2009/10/05 15:07:24 crc_canada Exp $
-
-???
+  $Id: statusbar.c,v 1.13 2009/10/26 10:52:22 couannette Exp $
 
 */
 
@@ -33,6 +29,9 @@ $Id: statusbar.c,v 1.12 2009/10/05 15:07:24 crc_canada Exp $
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include <list.h>
+#include <io_files.h>
+#include <resources.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
@@ -53,17 +52,17 @@ $Id: statusbar.c,v 1.12 2009/10/05 15:07:24 crc_canada Exp $
 
 
 /* DO NOT CHANGE THESE DEFINES WITHOUT CHECKING THE USE OF THE CODE, BELOW */
-#define PROX "#VRML V2.0 utf8\rProximitySensor { enabled FALSE size 1000 1000 1000 }"
+#define STATUS_BAR_NODE_PROX "#VRML V2.0 utf8\rProximitySensor { enabled FALSE size 1000 1000 1000 }"
 
 /* put the text (second translation) back behind where the clip plane will be (the z axis) and down near the bottom of the screen a bit */
 /* look at the gluPerspective(fieldofview, screenRatio, nearPlane, farPlane); line in MainLoop.c */
 
-#if defined(_MSC_VER)
-/* <windows.h> is poluting the namespace with its own TEXT macro */
-#define TEXTWRL "Transform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
-#else
-#define TEXT "#VRML V2.0 utf8\rTransform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
-#endif
+//////#if defined(_MSC_VER)
+///////* <windows.h> is poluting the namespace with its own TEXT macro */
+/////#define TEXTWRL "Transform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
+////#else
+#define STATUS_BAR_NODE_TEXT "#VRML V2.0 utf8\rTransform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
+/////#endif
 
 
 static int sb_initialized = FALSE;
@@ -114,13 +113,20 @@ void update_status(char* msg) {
 
 /* render the status bar. If it is required... */ 
 static void statusbar_init() {
-	int tmp;
+/* 	int tmp; */
 	struct X3D_Group * myn;
 	struct X3D_Node *tempn;
+	resource_item_t *res;
 
 	/* put a ProximitySensor and text string in there. */
 	myn = createNewX3DNode(NODE_Group);
-	inputParse(FROMSTRING, PROX, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE);
+
+/* 	inputParse(FROMSTRING, PROX, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE); */
+
+	res = resource_create_from_string(STATUS_BAR_NODE_PROX);
+	res->where = myn;
+	send_resource_to_parser(res);
+	resource_wait(res);
 
 	/* is there some error parsing? */
 	if (myn->children.n==0) {
@@ -128,7 +134,6 @@ static void statusbar_init() {
 		proxNode = NULL; 	/* ENSURE that the update knows that this failed */
 		return;			/* and get out of here */
 	}
-
 
 	/* get the ProximitySensor node from this parse. Note, errors are not checked. If this gives an errror,
 	   then there are REALLY bad things happening somewhere else */
@@ -141,11 +146,17 @@ static void statusbar_init() {
 	proxNode->enabled = FALSE;
 	myn->children.n = 0;
 
-#if defined(_MSC_VER)
-	inputParse(FROMSTRING, TEXTWRL, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE);
-#else
-	inputParse(FROMSTRING, TEXT, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE);
-#endif
+	res = resource_create_from_string(STATUS_BAR_NODE_TEXT);
+	res->where = myn;
+	send_resource_to_parser(res);
+	resource_wait(res);
+
+/* #if defined(_MSC_VER) */
+/* 	inputParse(FROMSTRING, TEXTWRL, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE); */
+/* #else */
+/* 	inputParse(FROMSTRING, TEXT, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE); */
+/* #endif */
+
 	transNode = myn->children.p[0];
 
 	/* because the routes will not act immediately, we need to place this manually first time */
