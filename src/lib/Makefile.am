@@ -124,21 +124,25 @@ libFreeWRL_la_SOURCES += internal_version.c
 # WINDOW_USE_* are exclusive
 #
 if WINDOW_USE_X11
-libFreeWRL_la_SOURCES += display_x11.c ui/fwWindow.c ui/fwBareWindow.c ui/fwBareWindow.h
+libFreeWRL_la_SOURCES += ui/fwCommonX11.c ui/fwBareWindow.c ui/fwBareWindow.h
 AM_CPPFLAGS+=-DTARGET_X11
 endif
 
 if WINDOW_USE_MOTIF
-libFreeWRL_la_SOURCES += display_x11.c display_motif.c ui/fwWindow.c ui/fwMotifWindow.c ui/fwMotifWindow.h
+libFreeWRL_la_SOURCES += ui/fwCommonX11.c ui/fwMotifWindow.c ui/fwMotifWindow.h
 AM_CPPFLAGS+=-DTARGET_MOTIF
 endif
 
 if WINDOW_USE_AQUA
-libFreeWRL_la_SOURCES += display_aqua.c
+libFreeWRL_la_SOURCES += 
 AM_CPPFLAGS+=-DTARGET_AQUA
 endif
 
 if WINDOW_USE_WIN32
-libFreeWRL_la_SOURCES += display_win32.c ui/fwWindow32.c
+libFreeWRL_la_SOURCES += ui/fwWindow32.c
 AM_CPPFLAGS+=-DTARGET_WIN32
 endif
+
+# We'll try to maintain a dependency for generated code (first try here)
+scenegraph/GeneratedCode.c: $(top_srcdir)/codegen/VRMLC.pm
+	cd $(top_srcdir)/codegen && perl VRMLC.pm
