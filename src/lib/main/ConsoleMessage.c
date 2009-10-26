@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.9 2009/10/05 15:07:23 crc_canada Exp $
+$Id: ConsoleMessage.c,v 1.10 2009/10/26 10:47:11 couannette Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -206,7 +206,7 @@ int ConsoleMessage(const char *fmt, ...) {
 					count += sprintf(tempbuf, "%%");
 					break;
 				default:
-					printf("Invalid format specifier in ConsoleMessage().\n");
+					ERROR_MSG("ConsoleMessage: invalid format specifier: %c\n", format[j]);
 				}
 			}
 		if ((strlen(tempbuf) + strlen(FWbuffer)) <

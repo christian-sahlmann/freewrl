@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.81 2009/10/22 16:58:49 crc_canada Exp $
+$Id: headers.h,v 1.82 2009/10/26 10:47:11 couannette Exp $
 
 Global includes.
 
@@ -31,11 +31,15 @@ Global includes.
 #ifndef __FREEWRL_HEADERS_H__
 #define __FREEWRL_HEADERS_H__
 
+/* NO INCLUDE IN INCLUDE: this prevent us from doing real
+   include separation :)...
+*/
+   
 /* for lightState() */
-#include "../opengl/OpenGL_Utils.h"
+/* #include "../opengl/OpenGL_Utils.h" */
 
 /* for localLightChildren */
-#include "../scenegraph/Children.h"
+/* #include "../scenegraph/Children.h" */
 
 /**
  * in utils.c
@@ -358,10 +362,6 @@ void setField_fromJavascript (struct X3D_Node *ptr, char *field, char *value, in
 unsigned int setField_FromEAI (char *ptr);
 void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fieldType, unsigned len, int extraData, uintptr_t mycx);
 
-extern char *GL_VEN;
-extern char *GL_VER;
-extern char *GL_REN;
-
 #define EXTENTTOBBOX
 #define INITIALIZE_EXTENT        { node->EXTENT_MAX_X = -10000.0; \
         node->EXTENT_MAX_Y = -10000.0; \
@@ -420,8 +420,6 @@ extern char *GL_REN;
 
 #define UNUSED(v) ((void) v)
 #define ISUSED(v) ((void) v)
-
-#define BOOL_STRING(b) (b ? "TRUE" : "FALSE")
 
 #ifdef M_PI
 #define PI M_PI
@@ -508,9 +506,9 @@ void normalize_ifs_face (float *point_normal,
                         float creaseAngle);
 
 
-void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstring, unsigned int nl, double *length,
-                double maxext, double spacing, double mysize, unsigned int fsparam,
-                struct X3D_PolyRep *rp);
+/* void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstring, unsigned int nl, double *length, */
+/*                 double maxext, double spacing, double mysize, unsigned int fsparam, */
+/*                 struct X3D_PolyRep *rp); */
 
 
 /* Triangulator extern defs - look in CFuncs/Tess.c */
@@ -549,10 +547,6 @@ extern int display_status;
 #define TEXTURE_ALPHA 2
 
 extern int last_texture_type;
-
-/* are we doing strict parsing, or letting warnings go? */
-extern int global_strictParsing;
-
 
 /* Text node system fonts. On startup, freewrl checks to see where the fonts
  * are stored
@@ -743,7 +737,6 @@ void setMenuButton_collision (int val) ;
 void setMenuButton_headlight (int val) ;
 void setMenuButton_navModes (int type) ;
 void setConsoleMessage(char *stat) ;
-void setMenuStatus(char *stat) ;
 void setMenuFps (float fps) ;
 void setMenuButton_texSize (int size);
 extern int textures_take_priority;
@@ -774,22 +767,10 @@ extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data.
 #undef die
 #endif
 
-
-/* types to tell the Perl thread what to handle */
-#define FROMSTRING 	1
-#define	FROMURL		2
-#define INLINE		3
-#define ZEROBINDABLES   8   /* get rid of Perl datastructures */
-#define FROMCREATENODE	13  /* create a node by just giving its node type */
-#define FROMCREATEPROTO	14  /* create a node by just giving its node type */
-#define UPDATEPROTOD	16  /* update a PROTO definition */
-#define GETPROTOD	17  /* update a PROTO definition */
-
-
-
 extern void *rootNode;
+
 extern int isPerlParsing(void);
-extern int isURLLoaded(void);	/* initial scene loaded? Robert Sim */
+/* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */
 extern int isTextureParsing(void);
 extern void loadInline(struct X3D_Inline *node);
 extern void loadTextureNode(struct X3D_Node *node,  void *param);
@@ -825,14 +806,11 @@ extern GLint smooth_normals;
 extern void xs_init(void);
 
 extern int navi_tos;
-extern void initializeTextureThread(void);
-extern int isTextureinitialized(void);
-extern int fileExists(char *fname, char *firstBytes, int GetIt);
 extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
-int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes);
+/* int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes); */
 void removeFilenameFromPath (char *path);
 
 int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, int retarrsize);
@@ -1025,13 +1003,12 @@ void Prev_ViewPoint(void);
 void First_ViewPoint(void);
 void Last_ViewPoint(void);
 
-int freewrlSystem (const char *string);
-
 int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
                         void *ptr, unsigned ofs, int *complete,
                         int zeroBind);
 void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *a, void *b, void *c, void *d);
 void destroyCParserData();
+extern struct VRMLParser* savedParser;
 
 void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex);
 
@@ -1094,7 +1071,7 @@ struct Multi_Vec3f *getCoordinate (void *node, char *str);
 void replaceWorldNeeded(char* str);
 
 /* X3D C parser */
-int X3DParse (struct X3D_Group *parent, char *inputstring);
+int X3DParse(struct X3D_Group *parent, const char *inputstring);
 void *createNewX3DNode (int nt);
 
 /* node binding */
@@ -1105,18 +1082,7 @@ extern void *setNavigationBindInRender;
 
 extern int displayOpenGLErrors;
 
+char* convert1To2(const char *inp);
 
-/* VRML/X3D version */
-#define IS_TYPE_XML_X3D	100
-#define IS_TYPE_VRML 	101
-#define IS_TYPE_VRML1	102
-#define IS_TYPE_SKETCHUP	103
-#define IS_TYPE_KML		104
-#define IS_TYPE_COLLADA		105
-#define IS_TYPE_UNKNOWN	200
 
-extern int inputFileType;
-extern int inputFileVersion[];
-
-char * convert1To2(char *);
 #endif /* __FREEWRL_HEADERS_H__ */

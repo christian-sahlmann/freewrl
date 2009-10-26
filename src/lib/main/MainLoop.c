@@ -1,9 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: MainLoop.c,v 1.57 2009/10/26 10:47:11 couannette Exp $
 
-$Id: MainLoop.c,v 1.56 2009/10/21 19:18:30 crc_canada Exp $
-
-Main loop
+  FreeWRL support library.
+  Main loop : handle events, ...
 
 */
 
@@ -35,6 +34,7 @@ Main loop
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include <threads.h>
 
 #include "../vrml_parser/Structs.h"
 #include "headers.h"
@@ -66,15 +66,13 @@ Main loop
 #include "MainLoop.h"
 #include "ProdCon.h"
 
+extern freewrl_params_t fw_params; /* will move to internal.h as soon as I've the time to include this last one everywhere ... */
+
 /* do we want OpenGL errors to be printed to the console?? */
 int displayOpenGLErrors = FALSE;
 
-/* are we doing "strict" parsing, as per FreeX3D, or "loose" parsing, as per FreeWRL? */
-int global_strictParsing = FALSE;
-
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;
-
 
 /* do we do event propagation, proximity calcs?? */
 static int doEvents = FALSE;
@@ -85,14 +83,8 @@ static char debs[300];
 
 /* void debug_print(char *s) {printf ("debug_print:%s\n",s);} */
 
-/* handle X11 requests, windowing calls, etc if on X11 */
-/* #ifdef WIN32 */
-/* pthread_t DispThrd = {0,0}; /\* win32 struct init requires curly braces - should this be a pointer? ie pthread_t * DispThrd *\/ */
-/* #else */
-DEF_THREAD(DispThrd);
-
 /* #endif */
-char* threadmsg;
+/* char* threadmsg; */
 char* PluginFullPath;
 
 static int replaceWorld = FALSE;
@@ -204,7 +196,9 @@ int isBrowserPlugin = FALSE;
 #if defined(_MSC_VER)
 const char *libFreeWRL_get_version()
 {
- return "1.22.4"; /*Q. where do I get this function? */
+ return "1.22.5"; /*Q. where do I get this function? 
+		    A: the configure build process will create it automatically in internal_version.c.
+		   */
 }
 #endif
 
@@ -212,34 +206,48 @@ const char *libFreeWRL_get_version()
 most things around, just stops display thread, when the user exits a world. */
 static void stopDisplayThread()
 {
-    if (!TEST_NULL_THREAD(DispThrd)) {
-	quitThread = TRUE;
-	pthread_join(DispThrd,NULL);
-	ZERO_THREAD(DispThrd);
-    }
+	if (!TEST_NULL_THREAD(DispThrd)) {
+		quitThread = TRUE;
+		pthread_join(DispThrd,NULL);
+		ZERO_THREAD(DispThrd);
+	}
 }
 
+static double waitsec;
 
-/* Doug Sandens windows function; lets make it static here for non-windows */
-#if defined(_MSC_VER)
-		double waitsec;
-#else
-		double waitsec;
-static struct timeval waittime;
+#if !defined(_WIN32)
+
 static struct timeval mytime;
 
+/* Doug Sandens windows function; lets make it static here for non-windows */
 static double Time1970sec(void) {
         gettimeofday(&mytime, NULL);
         return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 }
+
+#else 
+
+#ifdef STRANGE_FUNCTION_FROM_LIBFREEWRL_H
+
+#include <windows.h>
+__inline double Time1970sec()
+{
+   SYSTEMTIME mytimet; /*winNT and beyond */
+   /* the windows getlocaltime has a granularity of 1ms at best. 
+   There are a gazillion time functions in windows so I isolated it here in case I got it wrong*/
+		/* win32 there are some higher performance timer functions (win95-vista)
+		but a system might not support it - lpFrequency returns 0 if not supported
+		BOOL QueryPerformanceFrequency( LARGE_INTEGER *lpFrequency );
+		BOOL QueryPerformanceCounter( LARGE_INTEGER *lpPerformanceCount );
+		*/
+
+   GetLocalTime(&mytimet);
+   return (double) mytimet.wHour*3600.0 + (double)mytimet.wMinute*60.0 + (double)mytimet.wSecond + (double)mytimet.wMilliseconds/1000.0;
+}
+
 #endif
 
-
-
-
-const char *getLibVersion() {
-        return libFreeWRL_get_version();
-}
+#endif
 
 /* Main eventloop for FreeWRL!!! */
 void EventLoop() {
@@ -348,7 +356,8 @@ void EventLoop() {
         }
 
         if (replaceWorld) {
-                Anchor_ReplaceWorld(replace_name);
+/*MBFILES          Anchor_ReplaceWorld(replace_name); */
+		/* FIXME: implement reload fw_main_try_reload(); */
                 replaceWorld= FALSE;
         }
 
@@ -371,20 +380,87 @@ void EventLoop() {
                 }
         }
 
-        /* if we are not letting Motif handle things, check here for keys, etc */
-#if !defined( AQUA ) && !defined( WIN32 )
+	/**
+	 *   Merge of Bare X11 and Motif/X11 event handling ...
+	 */
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
+
+	/* REMARK: Do we want to process all pending events ? */
+
+	/* Bare or Motif ? */
+	if (Xwin == GLwin) {
+		/* We are running our own bare window */
+		while (XPending(Xdpy)) {
+			XNextEvent(Xdpy, &event);
+			handle_Xevents(event);
+		}
+	} else {
+		/* any updates to the menu buttons? Because of Linux threading
+		   issues, we try to make all updates come from 1 thread */
+		frontendUpdateButtons();
+		
+		/* do the Xt events here. */
+		while (XtAppPending(Xtcx)!= 0) {
+			XAnyEvent *aev;
+	
+			XtAppNextEvent(Xtcx, &event);
+
+			aev = &event.xany;
+
+#ifdef XEVENT_VERBOSE
+			XButtonEvent *bev;
+			XMotionEvent *mev;
+
+			switch (event.type) {
+			case MotionNotify:
+				mev = &event.xmotion;
+				TRACE_MSG("mouse motion event: win=%u, state=%d\n",
+					  mev->window, mev->state);
+				break;
+			case ButtonPress:
+			case ButtonRelease:
+				bev = &event.xbutton;
+				TRACE_MSG("mouse button event: win=%u, state=%d\n",
+					  bev->window, bev->state);
+				break;
+			}
+#endif
+			/**
+			 *   Quick hack to make events propagate
+			 *   to the drawing area.... :)
+			 */
+			if (aev->window == GLwin) {
+				handle_Xevents(event);
+			} else {
+				XtDispatchEvent (&event);
+			}
+		}
+	}
+#else
+
+#if defined(TARGET_AQUA)
+	/* Just guessing what would fit :P ... */
+	handle_aqua();
+#endif
+
+#if defined(TARGET_WIN32)
+	/**
+	 *   Win32 event loop
+	 *   gives windows message handler a time slice and 
+	 *   it calls handle_aqua and do_keypress from fwWindow32.c 
+	 */
+	doEventsWin32A(); 
+#endif
+
+#endif /* defined(TARGET_X11) || defined(TARGET_MOTIF) */
+
+#if 0 // was !defined( AQUA ) && !defined( WIN32 )
 #ifndef HAVE_MOTIF
         while (XPending(Xdpy)) {
             XNextEvent(Xdpy, &event);
             handle_Xevents(event);
         }
-#ifdef HAVE_GTK2
-        printf ("GTK event loop should be here\n");
 #endif
-#endif
-#endif
-#ifdef WIN32
-		doEventsWin32A(); /* do-events - gives windows message handler a time slice and it calls handle_aqua and do_keypress from fwWindow32.c */
 #endif
 
         #ifdef PROFILE
@@ -448,7 +524,9 @@ void EventLoop() {
                 /* for nodes that use an "isOver" eventOut... */
                 if (lastOver != CursorOverSensitive) {
                         #ifdef VERBOSE
-                        printf ("%lf over changed, lastOver %u cursorOverSensitive %u, butDown1 %d\n",TickTime, lastOver,CursorOverSensitive,ButDown[1]);
+                        printf ("%lf over changed, lastOver %u cursorOverSensitive %u, butDown1 %d\n",
+				TickTime, (unsigned int) lastOver, (unsigned int) CursorOverSensitive,
+				ButDown[1]);
                         #endif
 
                         if (ButDown[1]==0) {
@@ -468,7 +546,10 @@ void EventLoop() {
 
                 }
                 #ifdef VERBOSE
-                if (CursorOverSensitive != NULL) printf ("COS %d (%s)\n",CursorOverSensitive,stringNodeType(CursorOverSensitive->_nodeType));
+                if (CursorOverSensitive != NULL) 
+			printf("COS %d (%s)\n",
+			       (unsigned int) CursorOverSensitive,
+			       stringNodeType(CursorOverSensitive->_nodeType));
                 #endif
 
                 /* did we have a click of button 1? */
@@ -732,7 +813,7 @@ static void render_pre() {
         setup_viewpoint();      /*  need this to render collisions correctly*/
 
         /* 4. Collisions */
-        if (be_collision == 1) {
+        if (fw_params.collision == 1) {
                 render_collisions();
                 setup_viewpoint(); /*  update viewer position after collision, to*/
                                    /*  give accurate info to Proximity sensors.*/
@@ -741,7 +822,7 @@ static void render_pre() {
         /* 5. render hierarchy - proximity */
         if (doEvents) render_hier(rootNode, VF_Proximity);
 
-        glPrintError("GLBackend::render_pre");
+        PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
 void setup_projection(int pick, int x, int y) 
 {
@@ -779,7 +860,7 @@ void setup_projection(int pick, int x, int y)
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
-        glPrintError("XEvents::setup_projection");
+        PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
 
 }
 
@@ -836,14 +917,14 @@ static void render() {
 				
 
                 /*  Other lights*/
-                glPrintError("XEvents::render, before render_hier");
+                PRINT_GL_ERROR_IF_ANY("XEvents::render, before render_hier");
 
                 render_hier(rootNode, VF_globalLight);
-                glPrintError("XEvents::render, render_hier(VF_globalLight)");
+                PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_globalLight)");
 
                 /*  4. Nodes (not the blended ones)*/
                 render_hier(rootNode, VF_Geom);
-                glPrintError("XEvents::render, render_hier(VF_Geom)");
+                PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
 
                 /*  5. Blended Nodes*/
                 if (have_transparency) {
@@ -855,7 +936,7 @@ static void render() {
 
                         /*  and turn writing to the depth buffer back on*/
                         glDepthMask(TRUE);
-                        glPrintError("XEvents::render, render_hier(VF_Geom)");
+                        PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
                 }
 				if(Viewer.isStereo)
 				{
@@ -904,7 +985,7 @@ static void render() {
 #endif
 #endif
 
-        glPrintError("XEvents::render");
+        PRINT_GL_ERROR_IF_ANY("XEvents::render");
 }
 
 
@@ -958,7 +1039,7 @@ static void setup_viewpoint() {
 
         viewer_togl(fieldofview);
         render_hier(rootNode, VF_Viewpoint);
-        glPrintError("XEvents::setup_viewpoint");
+        PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 
 	/*
 	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
@@ -995,8 +1076,8 @@ void do_keyPress(const char kp, int type) {
                                             }
                                             break;
                                           }
-                                case 'c': {be_collision = !be_collision; 
-                                                setMenuButton_collision(be_collision); break; }
+                                case 'c': {fw_params.collision = !fw_params.collision; 
+                                                setMenuButton_collision(fw_params.collision); break; }
                                 case 'v': {Next_ViewPoint(); break;}
                                 case 'b': {Prev_ViewPoint(); break;}
                                 case 's': {setSnapshot(); break;}
@@ -1218,7 +1299,7 @@ void setInstance (uintptr_t instance) {
 /* osx Safari plugin is telling us where the initial file is */
 void setFullPath(const char* file) 
 {
-    if (!be_collision) {
+    if (!fw_params.collision) {
         char ks = 'c';
         do_keyPress(ks, KeyPress);
     }
@@ -1232,38 +1313,43 @@ void setFullPath(const char* file)
 
 
 /* handle all the displaying and event loop stuff. */
-static void displayThread()
+void _displayThread()
 {
-    /* printf ("displayThread, I am %u \n",pthread_self()); */
-    
-    /* Create an OpenGL rendering context. */
-#ifdef AQUA
-    if (RUNNINGASPLUGIN) {
-        aglSetCurrentContext(aqglobalContext);
-        glpOpenGLInitialize();
-        new_tessellation();
-        set_viewer_type(EXAMINE);
-    } else {
-        glpOpenGLInitialize();
-        new_tessellation();
-    }
-#else
-    /* make the window, get the OpenGL context */
-    openMainWindow(0, NULL);
-    createGLContext();
-    glpOpenGLInitialize(); 
-    new_tessellation();
-#endif
-	viewer_postGLinit_init();
+/* #ifdef AQUA */
+/*     if (RUNNINGASPLUGIN) { */
+/*         aglSetCurrentContext(aqglobalContext); */
+/*         glpOpenGLInitialize(); */
+/*         new_tessellation(); */
+/*         set_viewer_type(EXAMINE); */
+/*     } else { */
+/*         glpOpenGLInitialize(); */
+/*         new_tessellation(); */
+/*     } */
+/* #else */
+/*     /\* make the window, get the OpenGL context *\/ */
+/*     openMainWindow(0, NULL); */
+/*     createGLContext(); */
+/*     glpOpenGLInitialize();  */
+/*     new_tessellation(); */
+/* #endif */
 
-    
-    /* see if we want OpenGL errors to be found and printed - note, this creates bottlenecks,
-       in the OpenGL pipeline, so we do not do this all the time, only for debugging */
-    if (getenv ("FREEWRL_PRINT_OPENGL_ERRORS")!= NULL) {
-        displayOpenGLErrors = TRUE;
-        printf ("FREEWRL_PRINT_OPENGL_ERRORS set\n");
-        printf ("rendering on a \"%s\" chipset\n",glGetString(GL_RENDERER));
-    }
+	ENTER_THREAD("display");
+
+	/* Initialize display */
+	if (!display_initialize()) {
+		ERROR_MSG("initFreeWRL: error in display initialization.\n");
+		exit(1);
+	}
+
+	/* Context has been created,
+	   make it current to this thread */
+	bind_GLcontext();
+
+	new_tessellation();
+	
+	set_viewer_type(EXAMINE);
+	
+	viewer_postGLinit_init();
     
     /* loop and loop, and loop... */
     while (!quitThread) {
@@ -1271,32 +1357,35 @@ static void displayThread()
         /* FreeWRL SceneGraph */
         EventLoop();
         
-#if !defined( AQUA ) && !defined( WIN32 )
-#ifdef HAVE_MOTIF
+#if 0 /* was HAVE_MOTIF */
+
         /* X11 Windowing calls */
         
         /* any updates to the menu buttons? Because of Linux threading
            issues, we try to make all updates come from 1 thread */
         frontendUpdateButtons();
-        
-        
+              
         /* do the Xt events here. */
         while (XtAppPending(Xtcx)!= 0) {
+		XButtonEvent *bev;
+		XMotionEvent *mev;
+
             XtAppNextEvent(Xtcx, &event);
+	    switch (event.type) {
+	    case MotionNotify:
+		    mev = &event.xmotion;
+		    TRACE_MSG("mouse motion event: win=%u, state=%d\n",
+			      mev->window, mev->state);
+		    break;
+	    case ButtonPress:
+	    case ButtonRelease:
+		    bev = &event.xbutton;
+		    TRACE_MSG("mouse button event: win=%u, state=%d\n",
+			      bev->window, bev->state);
+		    break;
+	    }
             XtDispatchEvent (&event);
         }
-#endif
-        
-#ifdef HAVE_GTK2
-        /* X11 GTK windowing calls */
-        /* any updates to the menu buttons? Because of Linux threading
-           issues, we try to make all updates come from 1 thread */
-        frontendUpdateButtons();
-        
-        /* GTK events here */
-        printf ("look for GTK events here\n");
-#endif
-        
 #endif
     }
     
@@ -1340,77 +1429,25 @@ void setLastMouseEvent(int etype) {
         lastMouseEvent = etype;
 }
 
-void startFreeWRL()
-{
-    /* now wait around until something kills this thread. */
-    pthread_join(DispThrd, NULL);
-}
-
 /* load up the world, and run with it! */
-void initFreewrl() {
-        int tmp = 0;
-        setbuf(stdout,0);
-        setbuf(stderr,0);
-        threadmsg = "event loop";
+/* void initFreewrl() { */
+
+void initialize_parser()
+{
+/*         threadmsg = "event loop"; */
         quitThread = FALSE;
 
-        /* printf ("initFreewrl called\n"); */
 
-	/* do we want to really look at the details?? */
-	global_strictParsing = (getenv("FREEWRL_STRICT_PARSING") != NULL);
-if (global_strictParsing) printf ("STRICT PARSING SET\n");
+/* MB: display thread init: if (TEST_NULL_THREAD(DispThrd)) { */
 
-        #ifdef AQUA
-        if (pluginRunning) {
-        /* printf ("initFreeWRL, setting aglSetCurrentContext %u\n", aqglobalContext); */
-                aglSetCurrentContext(aqglobalContext);
-        }
-        #endif
+	/* create the root node */
+	if (rootNode == NULL) {
+		rootNode = createNewX3DNode (NODE_Group);	
+		/*remove this node from the deleting list*/
+		doNotRegisterThisNodeForDestroy(rootNode);
+	}
 
-	if (TEST_NULL_THREAD(DispThrd)) {
-
-	    pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
-
-#if !defined( AQUA ) && !defined( WIN32 )
-
-	    TRACE_MSG("initFreewrl, waiting for display to become initialized...\n");
-
-	    while (ISDISPLAYINITIALIZED == FALSE) {
-		usleep(50);
-	    }
-#endif
-
-                /* shape compiler thread - if we can do this */
-#ifdef DO_MULTI_OPENGL_THREADS
-                initializeShapeCompileThread();
-#endif
-                initializeInputParseThread();
-                while (!isInputThreadInitialized()) {
-		    usleep(50);
-                }
-
-                initializeTextureThread();
-                while (!isTextureinitialized()) {
-		    usleep(50);
-                }
-
-                /* create the root node */
-                if (rootNode == NULL) {
-                        rootNode = createNewX3DNode (NODE_Group);
-
-                        /*remove this node from the deleting list*/
-                        doNotRegisterThisNodeForDestroy(rootNode);
-                }
-        /* printf ("initFreewrl, down to here\n"); */
-        }
-
-        /* printf ("initFreewrl, bfp %s\n",BrowserFullPath); */
-
-        /* is there a file name to parse? (ie, does the user just want to start off with a blank screen?) */
-        if (BrowserFullPath != NULL) 
-                if (strlen(BrowserFullPath) > 1) 
-                        inputParse(FROMURL, BrowserFullPath, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
-        /* printf ("initFreewrl call finished\n"); */
+/*         } */
 }
 
 void setSnapSeq() {
@@ -1484,8 +1521,8 @@ void setTexSize(int requestedsize) {
 }
 
 void setNoCollision() {
-        be_collision = 0;
-        setMenuButton_collision(be_collision);
+        fw_params.collision = 0;
+        setMenuButton_collision(fw_params.collision);
 }
 
 void setKeyString(const char* kstring)

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.h,v 1.5 2009/10/05 15:07:23 crc_canada Exp $
+$Id: ProdCon.h,v 1.6 2009/10/26 10:47:11 couannette Exp $
 
 General functions declarations.
 
@@ -31,13 +31,7 @@ General functions declarations.
 #define __FREEWRL_PRODCON_MAIN_H__
 
 
-int isinputThreadParsing(void);
-int isInputThreadInitialized(void);
-void initializeInputParseThread(void);
 void registerBindable(struct X3D_Node *);
-
-char* do_get_url(const char *url);
-bool do_file_exists(const char *filename);
 
 
 #endif /* __FREEWRL_PRODCON_MAIN_H__ */

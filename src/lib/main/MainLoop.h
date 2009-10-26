@@ -1,9 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: MainLoop.h,v 1.4 2009/10/26 10:47:11 couannette Exp $
 
-$Id: MainLoop.h,v 1.3 2009/10/05 15:07:23 crc_canada Exp $
-
-UI declarations.
+  FreeWRL support library.
+  UI declarations.
 
 */
 
@@ -31,14 +30,23 @@ UI declarations.
 #ifndef __FREEWRL_MAINLOOP_MAIN_H__
 #define __FREEWRL_MAINLOOP_MAIN_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void setDisplayed(int);
+void First_ViewPoint();
+void Last_ViewPoint();
+void Prev_ViewPoint();
+void Next_ViewPoint();
+void setTextures_take_priority (int x);
+void setUseShapeThreadIfPossible(int x);
+void toggle_headlight();
 
-#ifdef __cplusplus
-}
-#endif
+/* should be in OpenGL_Utils.h but this would grab all X3D defs.... */
+void setglClearColor(float *val);
+int isTextureParsing();
+int isShapeCompilerParsing();
+
+/* where this should be ? */
+const char* freewrl_get_browser_program();
+
 
 #endif /* __FREEWRL_MAINLOOP_MAIN_H__ */
