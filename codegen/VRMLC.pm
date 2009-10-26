@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.27 2009/10/26 08:03:34 couannette Exp $
+# $Id: VRMLC.pm,v 1.28 2009/10/26 09:07:07 couannette Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.28  2009/10/26 09:07:07  couannette
+# Fix a bizarre include of EAI_C.h
+#
 # Revision 1.27  2009/10/26 08:03:34  couannette
 # First set of modifications (configure build, main program).
 #
@@ -974,9 +977,8 @@ sub gen {
 	##############################################################
 
 	# Convert TO/FROM EAI to Internal field types. (EAI types are ascii).
-		my $st = "#include "EAI_C.h\n/* convert an internal type to EAI type */\n". 
-		"char mapFieldTypeToEAItype (int st) {\n".
-		"	switch (st) { \n";
+		my $st = "char mapFieldTypeToEAItype (int st) {\n".
+		    "	switch (st) { \n";
 	push @genFuncs2, $st; push @EAICommon, $st;
 
 
