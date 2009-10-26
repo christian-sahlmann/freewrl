@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.12 2009/10/05 15:07:23 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.13 2009/10/26 10:50:08 couannette Exp $
 
 Screen snapshot.
 
@@ -35,10 +35,6 @@ void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void end_textureTransform (void);
 
 void
-glpOpenGLInitialize(void);
-
-
-void
 BackEndClearBuffer(int);
 
 void
@@ -46,10 +42,6 @@ BackEndLightsOff(void);
 
 void lightState (GLint light, int state);
 
-
-extern void glpOpenGLInitialize(void);
-
-extern void glPrintError(char *);
 void drawBBOX(struct X3D_Node *node);
 
 extern int opengl_has_numTextureUnits;

@@ -1,10 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: OpenGL_Utils.c,v 1.67 2009/10/26 10:50:08 couannette Exp $
 
-$Id: OpenGL_Utils.c,v 1.66 2009/10/22 16:58:49 crc_canada Exp $
-
-???
-
+  FreeWRL support library.
+  OpenGL initialization and functions. Rendering functions.
 */
 
 
@@ -80,6 +78,9 @@ static int lights[8];
 /* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 int displayDepth = 24;
 
+/*
+ * SEE renderer capabilities...
+ */
 int opengl_has_numTextureUnits = 0;
 GLint opengl_has_textureSize = 0;
 
@@ -202,10 +203,6 @@ cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
 	}
 }
 
-
-
-
-
 /* draw a simple bounding box around an object */
 void drawBBOX(struct X3D_Node *node) {
 	FW_GL_DISABLE(GL_LIGHTING);
@@ -276,7 +273,6 @@ void drawBBOX(struct X3D_Node *node) {
 
 	FW_GL_ENABLE (GL_LIGHTING);
 }
-
 
 static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	struct point_XYZ bboxPoints[8];
@@ -363,20 +359,8 @@ void doglClearColor() {
 	cc_changed = FALSE;
 }
 
-
-/* if we had an opengl error... */
-void glPrintError(char *str) {
-        if (displayOpenGLErrors) {
-                int err;
-                while((err = glGetError()) != GL_NO_ERROR)
-                        printf("OpenGL Error: \"%s\" in %s\n", gluErrorString((unsigned)err),str);
-        }
-}
-
-
 /* did we have a TextureTransform in the Appearance node? */
 void start_textureTransform (struct X3D_Node *textureNode, int ttnum) {
-	
 
 	/* stuff common to all textureTransforms - gets undone at end_textureTransform */
 	FW_GL_MATRIX_MODE(GL_TEXTURE);
@@ -460,8 +444,11 @@ void restoreLightState(int *ls) {
 	}
 }
 
-
-void glpOpenGLInitialize() {
+/**
+ *   initializa_GL: initialize GLEW (->rdr caps) and OpenGL initial state
+ */
+bool initialize_GL()
+{
 	int i;
         float pos[] = { 0.0, 0.0, 1.0, 0.0 }; 
         float dif[] = { 1.0, 1.0, 1.0, 1.0 };
@@ -470,27 +457,35 @@ void glpOpenGLInitialize() {
 	int checktexsize;
 	GLenum err;
 
+	/* OpenGL is initialized, context is created,
+	   get some info, for later use ...*/
+        rdr_caps.renderer = (char *) glGetString(GL_RENDERER);
+        rdr_caps.version  = (char *) glGetString(GL_VERSION);
+        rdr_caps.vendor   = (char *) glGetString(GL_VENDOR);
 
-        #ifdef AQUA
-	/* aqglobalContext is found at the initGL routine in MainLoop.c. Here
-	   we make it the current Context. */
+	PRINT_GL_ERROR_IF_ANY("initialize_GL");
 
-        /* printf("OpenGL at start of glpOpenGLInitialize globalContext %p\n", aqglobalContext); */
-        if (RUNNINGASPLUGIN) {
-                aglSetCurrentContext(aqglobalContext);
-        } else {
-                CGLSetCurrentContext(myglobalContext);
-        }
+	TRACE_MSG("initialize_GL:\n"
+		  "  OpenGL Renderer: %s\n"
+		  "  OpenGL Version:  %s\n"
+		  "  OpenGL Vendor:   %s\n",
+		  rdr_caps.renderer, rdr_caps.version, rdr_caps.vendor);
 
-        /* already set aqglobalContext = CGLGetCurrentContext(); */
-        /* printf("OpenGL globalContext %p\n", aqglobalContext); */
 
-	/* initialize GLEW here for all OSX front ends */
-	err = glewInit();
-	if (GLEW_OK != err) {
-  		ConsoleMessage ("GLEW Error: %s\n", glewGetErrorString(err));
-	}
-        #endif
+	rdr_caps.av_multitexture = GLEW_ARB_multitexture;
+	rdr_caps.av_glsl_shaders = GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader;
+	/* continue ... */
+
+	/* lets make sure everything is sync'd up */
+	XFlush(Xdpy);
+
+	/* Set up the OpenGL state. This'll get overwritten later... */
+	glClearDepth (1.0);
+	glClearColor (0.0, 0.0, 1.0, 0.0);
+	FW_GL_MATRIX_MODE (GL_PROJECTION);
+	glFrustum (-1.0, 1.0, -1.0, 1.0, 1.0, 20);
+	FW_GL_MATRIX_MODE (GL_MODELVIEW);
+	glLoadIdentity();
 
 	/* Configure OpenGL for our uses. */
         FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
@@ -566,8 +561,9 @@ void glpOpenGLInitialize() {
 	   Mac minis, and macbooks up to November 2007 */
 	if (opengl_has_textureSize<=0) { 
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &checktexsize); 
-		if (getenv("FREEWRL_256x256_TEXTURES")!= NULL) checktexsize = 256; 
-		if (getenv("FREEWRL_512x512_TEXTURES")!= NULL) checktexsize = 512; 
+/* WARNING ! New environment variable: FREEWRL_TEXTURE_SIZE */
+/* 		if (getenv("FREEWRL_256x256_TEXTURES")!= NULL) checktexsize = 256;  */
+/* 		if (getenv("FREEWRL_512x512_TEXTURES")!= NULL) checktexsize = 512;  */
 		opengl_has_textureSize = -opengl_has_textureSize; 
 		if (opengl_has_textureSize == 0) opengl_has_textureSize = checktexsize; 
 		if (opengl_has_textureSize > checktexsize) opengl_has_textureSize = checktexsize; 
@@ -604,7 +600,6 @@ void glpOpenGLInitialize() {
 		} 
 	}
 
-
 	#ifdef VERBOSE
 	{
 		char *p = glExtensions;
@@ -614,12 +609,15 @@ void glpOpenGLInitialize() {
 		}
 	}
 	printf ("extensions %s\n",glExtensions);
+	#endif
+
 	printf ("Shader support:       "); if (GLEW_ARB_fragment_shader) printf ("TRUE\n"); else printf ("FALSE\n");
 	printf ("Multitexture support: "); if (GLEW_ARB_multitexture) printf ("TRUE\n"); else printf ("FALSE\n");
 	printf ("Occlusion support:    "); if (GLEW_ARB_occlusion_query) printf ("TRUE\n"); else printf ("FALSE\n");
 	printf ("max texture size      %d\n",opengl_has_textureSize);
 	printf ("texture units         %d\n",opengl_has_numTextureUnits);
-	#endif	
+
+	return TRUE;
 }
 
 void BackEndClearBuffer(int which) {

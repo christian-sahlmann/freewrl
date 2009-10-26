@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.22 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Frustum.c,v 1.23 2009/10/26 10:50:08 couannette Exp $
 
 ???
 
@@ -733,8 +733,7 @@ void OcclusionStartofEventLoop() {
 		#endif
 
 		/* do we have an environment variable for this? */
-		if (getenv ("FREEWRL_NO_GL_ARB_OCCLUSION_QUERY")!= NULL) {
-			printf ("FreeWRL: FREEWRL_NO_GL_ARB_OCCLUSION_QUERY set, turning off hardware Occlusion Culling\n");
+		if (global_occlusion_disable) {
 			OccFailed = TRUE;
 		} else {
 	        	if (GLEW_ARB_occlusion_query) {
@@ -870,7 +869,7 @@ void OcclusionCulling ()  {
 		/* an Occlusion test will have been run on this one */
 
 		glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
-		glPrintError ("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
+		PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
 
 		#define SLEEP_FOR_QUERY_RESULTS
 		#ifdef SLEEP_FOR_QUERY_RESULTS
@@ -879,7 +878,7 @@ void OcclusionCulling ()  {
 			/* printf ("waiting and looping for results\n"); */
 			usleep(100);
 			glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
-			glPrintError ("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
+			PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
 		}
 		#endif
 
@@ -893,7 +892,7 @@ void OcclusionCulling ()  {
 		if (OccResultsAvailable == GL_FALSE) samples = 10000;  
 			
 	        glGetQueryObjectiv (OccQueries[i], GL_QUERY_RESULT, &samples);
-		glPrintError ("glGetQueryObjectiv::QUERY");
+		PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY");
 				
 		#ifdef OCCLUSIONVERBOSE
 		printf ("i %d checkc %d samples %d\n",i,checkCount,samples);

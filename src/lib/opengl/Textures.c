@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.25 2009/10/22 16:58:49 crc_canada Exp $
+$Id: Textures.c,v 1.26 2009/10/26 10:50:08 couannette Exp $
 
 General Texture objects.
 
@@ -36,6 +36,10 @@ General Texture objects.
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include <list.h>
+#include <resources.h>
+
+#include <threads.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
@@ -88,9 +92,6 @@ struct textureTableIndexStruct* loadThisTexture;
 
 static struct Multi_Int32 invalidFilePixelDataNode;
 static int	invalidFilePixelData[] = {1,1,3,0x707070};
-
-/* threading variables for loading textures in threads */
-DEF_THREAD(loadThread);
 
 static pthread_mutex_t texmutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t texcond   = PTHREAD_COND_INITIALIZER;
@@ -163,15 +164,6 @@ struct Uni_String *newASCIIString(char *str);
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
 void readpng_cleanup(int free_image_data);
 
-
-/************************************************************************/
-/* start up the texture thread */
-void initializeTextureThread()
-{
-    if (TEST_NULL_THREAD(loadThread)) {
-	pthread_create (&loadThread, NULL, (void*(*)(void *))&_textureThread, NULL);
-    }
-}
 
 /* does a texture have alpha?  - pass in a __tableIndex from a MovieTexture, ImageTexture or PixelTexture. */
 int isTextureAlpha(int texno) {
@@ -1204,6 +1196,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
    in different threads */
 
 static int findTextureFile (int cwo) {
+#if 0 //MBFILES
 	char *filename;
 	char *mypath;
 	char firstBytes[4];
@@ -1211,8 +1204,49 @@ static int findTextureFile (int cwo) {
 	char *sysline;
 #endif
 
+
         struct Uni_String *thisParent = NULL;
         struct Multi_String thisUrl;
+#endif
+
+	resource_item_t *res;
+	struct Multi_String *url;
+
+	/* FIXME: we should have a generic point to the current node, clean-up this mess */
+	switch (loadThisTexture->nodeType) {
+
+	case NODE_PixelTexture:
+		/* FIXME: ??? */
+		url = NULL;
+		break;
+
+	case NODE_ImageTexture:
+		url = & (((struct X3D_ImageTexture *)loadThisTexture->scenegraphNode)->url);
+		break;
+
+	case NODE_MovieTexture:
+		url = & (((struct X3D_MovieTexture *)loadThisTexture->scenegraphNode)->url);
+		break;
+
+	case NODE_VRML1_Texture2:
+		url = & (((struct X3D_VRML1_Texture2 *)loadThisTexture->scenegraphNode)->filename); /*FIXME: !!!! */
+		break;
+
+	}
+
+	res = resource_create_multi(url);
+/*FIXME:	res->where = node; */
+	send_resource_to_parser(res);
+	resource_wait(res);
+
+	if (res->status == ress_parsed) {
+		/* Cool :) */
+		return TRUE;
+	}
+
+	return FALSE;
+
+#if 0 //MBFILES
 
 	/* pattern matching, for finding internally handled types */
 	char firstPNG[] = {0x89,0x50,0x4e,0x47};
@@ -1344,15 +1378,18 @@ static int findTextureFile (int cwo) {
 	}
 	
 	FREE_IF_NZ (filename);
+
+#endif //MBFILES
+
 	return TRUE;
 }
 
 /*************************************************************/
 /* _textureThread - work on textures, until the end of time. */
 
-void _textureThread(void)
+void _textureThread()
 {
-    /* printf ("textureThread is %u\n",pthread_self()); */
+	ENTER_THREAD("texture loading");
 
 #ifdef AQUA
 
