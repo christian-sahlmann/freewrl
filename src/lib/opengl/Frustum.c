@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.23 2009/10/26 10:50:08 couannette Exp $
+$Id: Frustum.c,v 1.24 2009/10/26 17:48:43 couannette Exp $
 
 ???
 
@@ -736,7 +736,7 @@ void OcclusionStartofEventLoop() {
 		if (global_occlusion_disable) {
 			OccFailed = TRUE;
 		} else {
-	        	if (GLEW_ARB_occlusion_query) {
+	        	if (rdr_caps.av_occlusion_q) {
 				#ifdef OCCLUSIONVERBOSE
 	        	        printf ("OcclusionStartofEventLoop: have OcclusionQuery\n"); 
 				#endif

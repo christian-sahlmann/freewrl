@@ -1,5 +1,5 @@
 /*
-  $Id: fwBareWindow.c,v 1.9 2009/10/26 10:52:22 couannette Exp $
+  $Id: fwBareWindow.c,v 1.10 2009/10/26 17:48:43 couannette Exp $
 
   Create X11 window. Manage events.
 
@@ -33,9 +33,9 @@
 
 #include <libFreeWRL.h>
 
-#include <X11/keysym.h>
-#include <X11/Intrinsic.h>
-#include <X11/cursorfont.h>
+/* #include <X11/keysym.h> */
+/* #include <X11/Intrinsic.h> */
+/* #include <X11/cursorfont.h> */
 
 #include "fwBareWindow.h"
 
@@ -63,42 +63,6 @@ void openBareMainWindow (int argc, char **argv)
     Xdpy = XOpenDisplay(0);
     if (!Xdpy) { fprintf(stderr, "No display!\n");exit(-1);}
 }
-
-#if 0
-void createBareMainWindow ()
-{
-    /* create a color map */
-    Cmap = XCreateColormap(Xdpy, RootWindow(Xdpy, Xvi->screen),Xvi->visual, AllocNone);
-    /* create a window */
-    Swa.colormap = Cmap;
-    Swa.border_pixel = 0;
-    Swa.event_mask = event_mask;
-
-
-    Pwin = RootWindow(Xdpy, Xvi->screen);
-    Xwin = XCreateWindow(Xdpy, Pwin,
-                         xPos, yPos, win_width, win_height, 0, Xvi->depth, InputOutput,
-                         Xvi->visual, CWBorderPixel | CWColormap | CWEventMask, &Swa);
-
-    /* create window and icon name */
-    if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
-        fprintf(stderr,
-                "XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
-                wintitle);
-    }
-    XSetWMName(Xdpy, Xwin, &windowName);
-    XSetWMIconName(Xdpy, Xwin, &windowName);
-        
-    /* are we running without Motif, and as a plugin? */
-/*      if (!RUNNINGONAMD64) { */
-    if (!RUNNINGASPLUGIN) {
-        /* just map us to the display */
-        XMapWindow(Xdpy, Xwin);
-        XSetInputFocus(Xdpy, Pwin, RevertToParent, CurrentTime);
-    }
-/*      } */
-}
-#endif
 
 int create_main_window(int argc, char *argv[])
 {
@@ -141,8 +105,6 @@ int create_main_window(int argc, char *argv[])
 	XSetWMProtocols(Xdpy, Xwin, &WM_DELETE_WINDOW, 1);
     }
 		
-/*     XFlush(Xdpy); */
-
     XQueryPointer(Xdpy, Xwin, &root_ret, &child_ret, &root_x_ret, &root_y_ret,
 		  &mouse_x, &mouse_y, &mask_ret);
 

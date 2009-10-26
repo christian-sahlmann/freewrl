@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.20 2009/10/22 16:58:49 crc_canada Exp $
+$Id: RenderTextures.c,v 1.21 2009/10/26 17:48:43 couannette Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -94,7 +94,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 
 	*/
 
-	if (GLEW_ARB_multitexture) { // test the availability at runtime of multi textures
+	if (rdr_caps.av_multitexture) { // test the availability at runtime of multi textures
 	    
 	    if (c != currentTextureUnit) {
 		glActiveTexture(GL_TEXTURE0+c);
@@ -240,7 +240,7 @@ void textureDraw_end(void) {
 	printf ("start of textureDraw_end\n");
 #endif
 
-	if (GLEW_ARB_multitexture) { // test the availability at runtime of multi textures
+	if (rdr_caps.av_multitexture) { // test the availability at runtime of multi textures
 
 	    for (c=0; c<texture_count; c++) {
 

@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.8 2009/10/26 10:50:08 couannette Exp $
+  $Id: LoadTextures.c,v 1.9 2009/10/26 17:48:43 couannette Exp $
 
   FreeWRL support library.
 
@@ -54,30 +54,7 @@
 #include <Imlib2.h>
 #endif
 
-#include <libgen.h> /* dirname */
-
-/* Globals */
-
-s_renderer_capabilities_t rdr_caps;
-
-/* all functions here are named _mb_ and lower case */
-
-/* utility routines */
-
-static void rdr_caps_dump(s_renderer_capabilities_t *rc)
-{
-    if (!rc) {
-	printf("renderer capabilities: NULL\n");
-	return;
-    } else {
-	printf( "renderer capabilities: %p\n"
-		" multi textures : %s\n"
-		" texture unites : %u\n",
-		rc,
-		BOOL_STR(rc->av_multitexture),
-		rc->texture_units );
-    }
-}
+/* #include <libgen.h> /\* dirname *\/ */
 
 /* init before threading */
 
@@ -85,30 +62,11 @@ void texture_loader_initialize()
 {
     /* init Imlib2, get load capabilities : not much to do ... */
 
-    /* get renderer capabilities 
-       interesting caps:
-       - multi texture     : true/false
-       - texture units     : integer
-       - shader GLSL       : true/false
-       - max texture size  : integer x integer
-       - non PO2 texture   : true/false
-    */
-    memset(&rdr_caps, 0, sizeof(rdr_caps));
-
-    if (GLEW_ARB_multitexture) {
-	rdr_caps.av_multitexture = TRUE;
-	glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &rdr_caps.texture_units);
-	PRINT_GL_ERROR_IF_ANY("query texture units");
-    }
-
     /* load default material */
 
     /* load default texture */
 
     /* load default shader */
-
-    /* print some debug infos */
-    rdr_caps_dump(&rdr_caps);
 }
 
 /* thread safe functions */

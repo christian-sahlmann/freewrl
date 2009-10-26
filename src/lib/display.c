@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.15 2009/10/26 10:57:07 couannette Exp $
+  $Id: display.c,v 1.16 2009/10/26 17:48:43 couannette Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -91,19 +91,6 @@ int display_initialize()
 	}
 
 	bind_GLcontext();
-
-#if HAVE_LIBGLEW
-	/* Initialize GLEW */
-	GLenum err = glewInit();
-	if (GLEW_OK != err) {
-		/* Problem: glewInit failed, something is seriously wrong. */
-		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
-		return FALSE;
-	}
-	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
-#else
-	/* Initialize renderer capabilities without GLEW */
-#endif
 
 	if (!initialize_GL()) {
 		return FALSE;

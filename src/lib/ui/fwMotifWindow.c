@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.8 2009/10/26 10:52:22 couannette Exp $
+  $Id: fwMotifWindow.c,v 1.9 2009/10/26 17:48:43 couannette Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -75,8 +75,6 @@ void setDefaultBackground(int colour);
 #define colourGrey      7
 #define colourOrange    8
 #define colourWhite     9
-
-extern Colormap colormap;
 
 /* because of threading issues in Linux, if we can only use 1 thread, we
    delay setting of info until this time. */

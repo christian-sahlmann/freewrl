@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.67 2009/10/26 10:50:08 couannette Exp $
+  $Id: OpenGL_Utils.c,v 1.68 2009/10/26 17:48:43 couannette Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -457,24 +457,11 @@ bool initialize_GL()
 	int checktexsize;
 	GLenum err;
 
-	/* OpenGL is initialized, context is created,
-	   get some info, for later use ...*/
-        rdr_caps.renderer = (char *) glGetString(GL_RENDERER);
-        rdr_caps.version  = (char *) glGetString(GL_VERSION);
-        rdr_caps.vendor   = (char *) glGetString(GL_VENDOR);
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start");
 
-	PRINT_GL_ERROR_IF_ANY("initialize_GL");
+	initialize_rdr_caps();
 
-	TRACE_MSG("initialize_GL:\n"
-		  "  OpenGL Renderer: %s\n"
-		  "  OpenGL Version:  %s\n"
-		  "  OpenGL Vendor:   %s\n",
-		  rdr_caps.renderer, rdr_caps.version, rdr_caps.vendor);
-
-
-	rdr_caps.av_multitexture = GLEW_ARB_multitexture;
-	rdr_caps.av_glsl_shaders = GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader;
-	/* continue ... */
+	initialize_rdr_functions();
 
 	/* lets make sure everything is sync'd up */
 	XFlush(Xdpy);
@@ -549,73 +536,6 @@ bool initialize_GL()
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
 
 	do_shininess(GL_FRONT_AND_BACK,0.2);
-
-	/* get extensions for runtime */
-	/* printf ("OpenGL - getting extensions\n"); */
-	
-        glExtensions = (char *)glGetString(GL_EXTENSIONS);
-
-	/* first, lets check to see if we have a max texture size yet */
-
-	/* note - we reduce the max texture size on computers with the (incredibly inept) Intel GMA 9xx chipsets - like the Intel
-	   Mac minis, and macbooks up to November 2007 */
-	if (opengl_has_textureSize<=0) { 
-		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &checktexsize); 
-/* WARNING ! New environment variable: FREEWRL_TEXTURE_SIZE */
-/* 		if (getenv("FREEWRL_256x256_TEXTURES")!= NULL) checktexsize = 256;  */
-/* 		if (getenv("FREEWRL_512x512_TEXTURES")!= NULL) checktexsize = 512;  */
-		opengl_has_textureSize = -opengl_has_textureSize; 
-		if (opengl_has_textureSize == 0) opengl_has_textureSize = checktexsize; 
-		if (opengl_has_textureSize > checktexsize) opengl_has_textureSize = checktexsize; 
-		if (strncmp((const char *)glGetString(GL_RENDERER),"NVIDIA GeForce2",strlen("NVIDIA GeForce2")) == 0) { 
-		/* 	printf ("possibly reducing texture size because of NVIDIA GeForce2 chip\n"); */ 
-			if (opengl_has_textureSize > 1024) opengl_has_textureSize = 1024; 
-		}  
-		if (strncmp((const char *)glGetString(GL_RENDERER),"Intel GMA 9",strlen("Intel GMA 9")) == 0) { 
-		/* 	printf ("possibly reducing texture size because of Intel GMA chip\n"); */
-			if (opengl_has_textureSize > 1024) opengl_has_textureSize = 1024;
-		}
-		if (displayOpenGLErrors) printf ("CHECK_MAX_TEXTURE_SIZE, ren %s ver %s ven %s ts %d\n",glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_VENDOR),opengl_has_textureSize);
-		setMenuButton_texSize (opengl_has_textureSize);
-	} 
-
-
-	/* how many Texture units? */
-	if ((strstr (glExtensions, "GL_ARB_texture_env_combine")!=0) &&
-		(strstr (glExtensions,"GL_ARB_multitexture")!=0)) {
-
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS,&opengl_has_numTextureUnits);
-
-		if (opengl_has_numTextureUnits > MAX_MULTITEXTURE) {
-			printf ("init_multitexture_handling - reducing number of multitexs from %d to %d\n",
-				opengl_has_numTextureUnits,MAX_MULTITEXTURE);
-			opengl_has_numTextureUnits = MAX_MULTITEXTURE;
-		}
-		/* printf ("can do multitexture we have %d units\n",opengl_has_numTextureUnits); */
-
-
-		/* we assume that GL_TEXTURE*_ARB are sequential. Lets to a little check */
-		if ((GL_TEXTURE0 +1) != GL_TEXTURE1) {
-			printf ("Warning, code expects GL_TEXTURE0 to be 1 less than GL_TEXTURE1\n");
-		} 
-	}
-
-	#ifdef VERBOSE
-	{
-		char *p = glExtensions;
-		while (*p != '\0') {
-			if (*p == ' ') *p = '\n';
-			p++;
-		}
-	}
-	printf ("extensions %s\n",glExtensions);
-	#endif
-
-	printf ("Shader support:       "); if (GLEW_ARB_fragment_shader) printf ("TRUE\n"); else printf ("FALSE\n");
-	printf ("Multitexture support: "); if (GLEW_ARB_multitexture) printf ("TRUE\n"); else printf ("FALSE\n");
-	printf ("Occlusion support:    "); if (GLEW_ARB_occlusion_query) printf ("TRUE\n"); else printf ("FALSE\n");
-	printf ("max texture size      %d\n",opengl_has_textureSize);
-	printf ("texture units         %d\n",opengl_has_numTextureUnits);
 
 	return TRUE;
 }

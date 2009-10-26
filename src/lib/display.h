@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.31 2009/10/26 10:57:07 couannette Exp $
+  $Id: display.h,v 1.32 2009/10/26 17:48:43 couannette Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -89,17 +89,19 @@ extern int quadbuff_stereo_mode; /* quad buffer enabled ? */
 
 typedef struct {
 
-	char *renderer; /* replace GL_REN */
-	char *version;
-	char *vendor;
+	const char *renderer; /* replace GL_REN */
+	const char *version;
+	const char *vendor;
+	const char *extensions;
 
-	bool av_multitexture; /* Multi textures available */
-	bool av_glsl_shaders; /* GLSL shaders available   */ 
-	bool av_npot_texture; /* Non power of 2 textures  */
-	bool av_texture_rect; /* Rectangle textures */
+	bool av_multitexture; /* Multi textures available ? */
+	bool av_glsl_shaders; /* GLSL shaders available ? */ 
+	bool av_npot_texture; /* Non power of 2 textures available ? */
+	bool av_texture_rect; /* Rectangle textures available ? */
+	bool av_occlusion_q;  /* Occlusion query available ? */
 	
 	int texture_units;
-	unsigned max_texture_size[2];
+	int max_texture_size;
 	
 } s_renderer_capabilities_t;
 
@@ -108,7 +110,7 @@ extern s_renderer_capabilities_t rdr_caps;
 /**
  * Specific platform : Mac
  */
-#if defined TARGET_AQUA
+#ifdef TARGET_AQUA
 
 # include <OpenGL/OpenGL.h>
 # include <OpenGL/CGLTypes.h>
@@ -163,11 +165,21 @@ void eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int 
  * X11 common: weither we use Motif or not
  */
 
-# include <GL/glew.h> /* will include GL/gl.h, GL/glu.h and GL/glext.h */
-
 # include <X11/Xlib.h>
 # include <X11/Xutil.h>
 # include <X11/keysym.h>
+
+# ifdef HAVE_LIBGLEW
+
+# include <GL/glew.h> /* will include GL/gl.h, GL/glu.h and GL/glext.h */
+
+# else
+
+# include <GL/gl.h>
+# include <GL/glu.h>
+# include <GL/glext.h>
+
+# endif
 
 # include <GL/glx.h>
 
@@ -179,6 +191,7 @@ extern Display *Xdpy;
 extern int Xscreen;
 extern Window Xroot_window;
 extern XVisualInfo *Xvi;
+extern Colormap colormap;
 extern Window Xwin;
 extern Window GLwin;
 extern XSetWindowAttributes attr;

@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.12 2009/10/26 10:57:07 couannette Exp $
+  $Id: main.c,v 1.13 2009/10/26 17:48:43 couannette Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -54,7 +54,7 @@ freewrl_params_t fw_params = {
 bool global_strictParsing = FALSE;
 bool global_plugin_print = FALSE;
 bool global_occlusion_disable = FALSE;
-unsigned global_texture_size = 256;
+unsigned global_texture_size = 0;
 bool global_print_opengl_errors = FALSE;
 bool global_trace_threads = FALSE;
 

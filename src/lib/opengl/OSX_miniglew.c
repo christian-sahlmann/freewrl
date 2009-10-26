@@ -1,13 +1,10 @@
-/*******************************************************************
- *
- * FreeWRL Apple specific support library
- *
- * main.c
- *
- * $Id: OSX_miniglew.c,v 1.3 2009/10/15 20:29:29 crc_canada Exp $
- *
- *******************************************************************/
+/*
+  $Id: OSX_miniglew.c,v 1.4 2009/10/26 17:48:43 couannette Exp $
 
+  FreeWRL support library.
+  OpenGL extensions detection and setup.
+
+*/
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -28,110 +25,141 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifdef TARGET_AQUA
+/**
+ * On all platforms, when we don't have GLEW, we simulate it.
+ * In any case we setup the rdr_capabilities struct.
+ */
 
+#include <config.h>
+#include <system.h>
+#include <system_threads.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeWRL.h>
+
+#ifdef TARGET_AQUA
 # include <OpenGL/OpenGL.h>
 # include <OpenGL/CGLTypes.h>
 # include <AGL/AGL.h>
 # include "OSX_miniglew.h"
 # include "../ui/aquaInt.h"
+#endif //TARGET_AQUA
 
-static char * glExtensions;
+bool initialize_rdr_caps()
+{
+	/* OpenGL is initialized, context is created,
+	   get some info, for later use ...*/
+        rdr_caps.renderer   = (char *) glGetString(GL_RENDERER);
+        rdr_caps.version    = (char *) glGetString(GL_VERSION);
+        rdr_caps.vendor     = (char *) glGetString(GL_VENDOR);
+	rdr_caps.extensions = (char *) glGetString(GL_EXTENSIONS);
 
-int GLEW_ARB_multitexture;
-int GLEW_ARB_occlusion_query;
-int GLEW_ARB_fragment_shader;
-extern int opengl_has_textureSize;
-extern int opengl_has_numTextureUnits;
-extern int displayOpenGLErrors;
+#ifdef HAVE_LIBGLEW
 
+	/* Initialize GLEW */
+	GLenum err = glewInit();
+	if (GLEW_OK != err) {
+		/* Problem: glewInit failed, something is seriously wrong. */
+		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
+		return FALSE;
+	}
+	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
 
+	rdr_caps.av_glsl_shader = GLEW_ARB_fragment_shader;
+	rdr_caps.av_multitexture = GLEW_ARB_multitexture;
+	rdr_caps.av_occlusion_q = GLEW_ARB_occlusion_query;
+	rdr_caps.av_npot_texture = GLEW_ARB_texture_non_power_of_two;
+	rdr_caps.av_texture_rect = GLEW_ARB_texture_rectangle;
 
-GLenum glewInit(void) {
-	GLint checktexsize;
-
-	/* get extensions for runtime */
-	/* printf ("OpenGL - getting extensions\n"); */
-	
-        glExtensions = (char *)glGetString(GL_EXTENSIONS);
+#else
+	/* Initialize renderer capabilities without GLEW */
 
 	/* Shaders */
-        GLEW_ARB_fragment_shader = (strstr (glExtensions, "GL_ARB_fragment_shader")!=0);
- 
+        rdr_caps.av_glsl_shader = (strstr (rdr_caps.extensions, "GL_ARB_fragment_shader")!=0);
+	
 	/* Multitexturing */
-        GLEW_ARB_multitexture = (strstr (glExtensions, "GL_ARB_multitexture")!=0);
+	rdr_caps.av_multitexture = (strstr (rdr_caps.extensions, "GL_ARB_multitexture")!=0);
 
 	/* Occlusion Queries */
-	GLEW_ARB_occlusion_query = (strstr (glExtensions, "GL_ARB_occlusion_query") !=0);
+	rdr_caps.av_occlusion_q = (strstr (rdr_caps.extensions, "GL_ARB_occlusion_query") !=0);
 
-	
-	/* first, lets check to see if we have a max texture size yet */
+	/* Non-power-of-two textures */
+	rdr_caps.av_npot_texture = (strstr (rdr_caps.extensions, "GL_ARB_texture_non_power_of_two") !=0);
 
-	/* note - we reduce the max texture size on computers with the (incredibly inept) Intel GMA 9xx chipsets - like the Intel
-	   Mac minis, and macbooks up to November 2007 */
-	if (opengl_has_textureSize<=0) { 
-		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &checktexsize); 
-		if (getenv("FREEWRL_256x256_TEXTURES")!= NULL) checktexsize = 256; 
-		if (getenv("FREEWRL_512x512_TEXTURES")!= NULL) checktexsize = 512; 
-		opengl_has_textureSize = -opengl_has_textureSize; 
-		if (opengl_has_textureSize == 0) opengl_has_textureSize = checktexsize; 
-		if (opengl_has_textureSize > checktexsize) opengl_has_textureSize = checktexsize; 
-		if (strncmp((const char *)glGetString(GL_RENDERER),"NVIDIA GeForce2",strlen("NVIDIA GeForce2")) == 0) { 
-		/* 	printf ("possibly reducing texture size because of NVIDIA GeForce2 chip\n"); */ 
-			if (opengl_has_textureSize > 1024) opengl_has_textureSize = 1024; 
-		}  
-		if (strncmp((const char *)glGetString(GL_RENDERER),"Intel GMA 9",strlen("Intel GMA 9")) == 0) { 
-		/* 	printf ("possibly reducing texture size because of Intel GMA chip\n"); */
-			if (opengl_has_textureSize > 1024) opengl_has_textureSize = 1024;
-		}
-		if (displayOpenGLErrors) printf ("CHECK_MAX_TEXTURE_SIZE, ren %s ver %s ven %s ts %d\n",glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_VENDOR),opengl_has_textureSize);
-		setMenuButton_texSize (opengl_has_textureSize);
-	} 
-
-
-	/* how many Texture units? */
-	if ((strstr (glExtensions, "GL_ARB_texture_env_combine")!=0) &&
-		(strstr (glExtensions,"GL_ARB_multitexture")!=0)) {
-
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS,&opengl_has_numTextureUnits);
-
-#define MAX_MULTITEXTURE 10 /* from headers.h */
-		if (opengl_has_numTextureUnits > MAX_MULTITEXTURE) {
-			printf ("init_multitexture_handling - reducing number of multitexs from %d to %d\n",
-				opengl_has_numTextureUnits,MAX_MULTITEXTURE);
-			opengl_has_numTextureUnits = MAX_MULTITEXTURE;
-		}
-		/* printf ("can do multitexture we have %d units\n",opengl_has_numTextureUnits); */
-
-
-		/* we assume that GL_TEXTURE*_ARB are sequential. Lets to a little check */
-		if ((GL_TEXTURE0 +1) != GL_TEXTURE1) {
-			printf ("Warning, code expects GL_TEXTURE0 to be 1 less than GL_TEXTURE1\n");
-		} 
-	}
-
-	#ifdef VERBOSE
-	{
-		char *p = glExtensions;
-		while (*p != '\0') {
-			if (*p == ' ') *p = '\n';
-			p++;
-		}
-	}
-	printf ("extensions %s\n",glExtensions);
-	printf ("Shader support:       "); if (GLEW_ARB_fragment_shader) printf ("TRUE\n"); else printf ("FALSE\n");
-	printf ("Multitexture support: "); if (GLEW_ARB_multitexture) printf ("TRUE\n"); else printf ("FALSE\n");
-	printf ("Occlusion support:    "); if (GLEW_ARB_occlusion_query) printf ("TRUE\n"); else printf ("FALSE\n");
-	printf ("max texture size      %d\n",opengl_has_textureSize);
-	printf ("texture units         %d\n",opengl_has_numTextureUnits);
-	#endif	
-
-	return GLEW_OK;
-}
-
-char *glewGetErrorString(GLenum err){
-
-	return "OpenGL Error";
-}
+	/* Texture rectangle (x != y) */
+	rdr_caps.av_texture_rect = (strstr (rdr_caps.extensions, "GL_ARB_texture_rectangle") !=0);
 #endif
 
+	/* Max texture size */
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &rdr_caps.max_texture_size);
+	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &rdr_caps.texture_units);
+
+	/* TODO: Update the code to use
+	   - rdr_caps.max_texture_size
+	   - rdr_caps.texture_units
+	   instead of
+	   - opengl_has_textureSize
+	   - opengl_has_numTextureUnits
+	*/
+
+	/* User settings in environment */
+
+	if (global_texture_size > 0) {
+		DEBUG_MSG("Environment set texture size: %d", global_texture_size);
+		rdr_caps.max_texture_size = global_texture_size;
+	}
+
+	/* Special drivers settings */
+
+	if (strncmp(rdr_caps.renderer, "Intel GMA 9", 11) == 0) {
+		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024;
+	}
+
+	if (strncmp(rdr_caps.renderer, "NVIDIA GeForce2", 15) == 0) {
+		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024; 
+	}
+
+	/* print some debug infos */
+	rdr_caps_dump(&rdr_caps);
+}
+
+void rdr_caps_dump()
+{
+#ifdef VERBOSE
+	{
+		char *p, *pp;
+		p = pp = STRDUP(rdr_caps.extensions);
+		while (*pp != '\0') {
+			if (*pp == ' ') *pp = '\n';
+			pp++;
+		}
+		DEBUG_MSG ("OpenGL extensions : %s\n", p);
+		FREE(p);
+	}
+#endif //VERBOSE
+
+	DEBUG_MSG ("Shader support:       %s\n", BOOL_STR(rdr_caps.av_glsl_shader));
+	DEBUG_MSG ("Multitexture support: %s\n", BOOL_STR(rdr_caps.av_multitexture));
+	DEBUG_MSG ("Occlusion support:    %s\n", BOOL_STR(rdr_caps.av_occlusion_q));
+	DEBUG_MSG ("Max texture size      %d\n", opengl_has_textureSize);
+	DEBUG_MSG ("Texture units         %d\n", opengl_has_numTextureUnits);
+
+#endif //HAVE_LIBGLEW
+}
+
+void initialize_rdr_functions()
+{
+	/**
+	 * WARNING:
+	 *
+	 * Linux OpenGL driver (Mesa or ATI or NVIDIA) and Windows driver
+	 * will not initialize function pointers. So we use GLEW or we
+	 * initialize them ourself.
+	 *
+	 * OSX 10.4 : same as above.
+	 * OSX 10.5 and OSX 10.6 : Apple driver will initialize functions.
+	 */
+
+	
+}

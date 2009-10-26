@@ -66,13 +66,6 @@ EXTERNAL_LIBS += \
 				$(XAW_LIBS)
 endif
 
-# Aqua flags specific to aqua target (only on Mac)
-if WINDOW_USE_AQUA
-
-AM_CPPFLAGS += $(MAC_CFLAGS) -DAQUA
-
-endif
-
 if OS_MAC
 
 # I found this in spidermonkey build files: -Wall -Wno-format -no-cpp-precomp -fno-common -DJS_THREADSAFE -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN  -UDEBUG -DNDEBUG -UDEBUG_root -DJS_THREADSAFE -DEDITLINE
@@ -135,7 +128,7 @@ endif
 
 if WINDOW_USE_AQUA
 libFreeWRL_la_SOURCES += 
-AM_CPPFLAGS+=-DTARGET_AQUA
+AM_CPPFLAGS+=-DTARGET_AQUA -DAQUA
 endif
 
 if WINDOW_USE_WIN32

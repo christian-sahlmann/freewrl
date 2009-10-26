@@ -291,7 +291,10 @@ AC_PATH_X
 # X11 extra libraries
 AC_PATH_XTRA
 # Check all X11 stuff with pkg-config
-PKG_CHECK_MODULES(XAW, xproto x11 xt xmu xaw7)
+case "$os_type" in
+     mac) PKG_CHECK_MODULES(XAW, xproto x11 xt xmu) ;;
+     *)   PKG_CHECK_MODULES(XAW, xproto x11 xt xmu xaw7) ;;
+esac
 
 # Check for XFree86/Xorg VMODE extension
 AC_CHECK_HEADERS(X11/extensions/xf86vmode.h,
@@ -353,22 +356,35 @@ AC_ARG_WITH(glew,AS_HELP_STRING([--with-glew=<dir>],[Use glew from here]),[
                 GLEW_CFLAGS="-I$withval/include"
                 GLEW_LIBS="-L$withval/lib -lGLEW"])
 
+case "$glew" in
+     no) # Do not use GLEW
+     	 AC_MSG_NOTICE([glew disabled.])
+     	 ;;
+     *)  # Search for GLEW
+
   # save global cflags/libs
   oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
   # set cflags/libs for this case
   CPPFLAGS="$CPPFLAGS $GLEW_CFLAGS $GL_CFLAGS"
   LDFLAGS="$LDFLAGS $GLEW_LIBS $GL_LIBS"
 
-AC_CHECK_HEADERS([GL/glew.h], [AC_DEFINE([HAVE_GLEW_H], [], [We have the glew library.])],
-     [AC_MSG_ERROR([Can't find glew.h. Please install glew.])])
-AC_CHECK_LIB(GLEW, glewInit, [],
-   [AC_MSG_ERROR([Can't find glew library. Please install glew.])])
+glew_found=
+AC_CHECK_HEADERS([GL/glew.h], [glew_found=yes;AC_DEFINE([HAVE_GLEW_H], [], [We have the glew library.])],
+     [AC_MSG_RESULT([glew not found. FreeWRL will not use it.])])
+
+case "$glew_found" in
+     yes) AC_CHECK_LIB(GLEW, glewInit, [],
+     	  [AC_MSG_ERROR([glew headers found but glew library not found. Please correct this.])])
+esac
 
   # restore global cflags/libs
   CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS
 
 AC_SUBST(GLEW_CFLAGS)
 AC_SUBST(GLEW_LIBS)
+
+	;;
+esac
 
 # JPEG
 AC_ARG_WITH(jpeg,AS_HELP_STRING([--with-jpeg=<dir>],[Use jpeg from here]),[

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.58 2009/10/26 13:19:27 couannette Exp $
+  $Id: MainLoop.c,v 1.59 2009/10/26 17:48:43 couannette Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -35,8 +35,6 @@
 
 #include <libFreeWRL.h>
 #include <threads.h>
-
-#include <X11/Intrinsic.h>
 
 #include "../vrml_parser/Structs.h"
 #include "headers.h"
@@ -383,60 +381,58 @@ void EventLoop() {
 	/**
 	 *   Merge of Bare X11 and Motif/X11 event handling ...
 	 */
-#if defined(TARGET_X11) || defined(TARGET_MOTIF)
-
 	/* REMARK: Do we want to process all pending events ? */
 
-	/* Bare or Motif ? */
-	if (Xwin == GLwin) {
-		/* We are running our own bare window */
-		while (XPending(Xdpy)) {
-			XNextEvent(Xdpy, &event);
-			handle_Xevents(event);
-		}
-	} else {
-		/* any updates to the menu buttons? Because of Linux threading
-		   issues, we try to make all updates come from 1 thread */
-		frontendUpdateButtons();
-		
-		/* do the Xt events here. */
-		while (XtAppPending(Xtcx)!= 0) {
-			XAnyEvent *aev;
-	
-			XtAppNextEvent(Xtcx, &event);
-
-			aev = &event.xany;
-
-#ifdef XEVENT_VERBOSE
-			XButtonEvent *bev;
-			XMotionEvent *mev;
-
-			switch (event.type) {
-			case MotionNotify:
-				mev = &event.xmotion;
-				TRACE_MSG("mouse motion event: win=%u, state=%d\n",
-					  mev->window, mev->state);
-				break;
-			case ButtonPress:
-			case ButtonRelease:
-				bev = &event.xbutton;
-				TRACE_MSG("mouse button event: win=%u, state=%d\n",
-					  bev->window, bev->state);
-				break;
-			}
-#endif
-			/**
-			 *   Quick hack to make events propagate
-			 *   to the drawing area.... :)
-			 */
-			if (aev->window == GLwin) {
-				handle_Xevents(event);
-			} else {
-				XtDispatchEvent (&event);
-			}
-		}
+#if defined(TARGET_X11)
+	/* We are running our own bare window */
+	while (XPending(Xdpy)) {
+	    XNextEvent(Xdpy, &event);
+	    handle_Xevents(event);
 	}
-#else
+#endif
+
+#if defined(TARGET_MOTIF)
+	/* any updates to the menu buttons? Because of Linux threading
+	   issues, we try to make all updates come from 1 thread */
+	frontendUpdateButtons();
+	
+	/* do the Xt events here. */
+	while (XtAppPending(Xtcx)!= 0) {
+	    XAnyEvent *aev;
+	    
+	    XtAppNextEvent(Xtcx, &event);
+	    
+	    aev = &event.xany;
+	    
+#ifdef XEVENT_VERBOSE
+	    XButtonEvent *bev;
+	    XMotionEvent *mev;
+	    
+	    switch (event.type) {
+	    case MotionNotify:
+		mev = &event.xmotion;
+		TRACE_MSG("mouse motion event: win=%u, state=%d\n",
+			  mev->window, mev->state);
+		break;
+	    case ButtonPress:
+	    case ButtonRelease:
+		bev = &event.xbutton;
+		TRACE_MSG("mouse button event: win=%u, state=%d\n",
+			  bev->window, bev->state);
+		break;
+	    }
+#endif //XEVENT_VERBOSE
+	    /**
+	     *   Quick hack to make events propagate
+	     *   to the drawing area.... :)
+	     */
+	    if (aev->window == GLwin) {
+		handle_Xevents(event);
+	    } else {
+		XtDispatchEvent (&event);
+	    }
+	}
+#endif //defined(TARGET_MOTIF)
 
 #if defined(TARGET_AQUA)
 	/* Just guessing what would fit :P ... */
@@ -451,8 +447,6 @@ void EventLoop() {
 	 */
 	doEventsWin32A(); 
 #endif
-
-#endif /* defined(TARGET_X11) || defined(TARGET_MOTIF) */
 
 #if 0 // was !defined( AQUA ) && !defined( WIN32 )
 #ifndef HAVE_MOTIF
