@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.21 2009/10/06 01:03:53 couannette Exp $
+  $Id: options.c,v 1.22 2009/10/26 08:03:34 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -388,10 +388,10 @@ int parseCommandLine (int argc, char **argv)
 	}
 
 	/* save the url for later use, if required */
-	setFullPath(argv[optind]);
+/*MBFILES 	setFullPath(argv[optind]); */
     } else {
 	/* printf ("no options  - just make BrowserFullPath point to nothing\n"); */
-	setFullPath("");
+	//MBFILES setFullPath("");
 	return FALSE;
     }
     return TRUE;

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: autogen.sh,v 1.15 2009/10/06 14:31:20 couannette Exp $
+# $Id: autogen.sh,v 1.16 2009/10/26 08:03:34 couannette Exp $
 #
 
 # options
@@ -9,6 +9,7 @@ curl=0
 debug=0
 trace=0
 plugin=1
+motif=1
 
 # variables
 cflags=
@@ -19,7 +20,7 @@ default_fontsdir=/usr/X11/lib/X11/fonts/TTF
 default_target=motif
 
 # Pick up autogen options and leave other arguments to configure
-while getopts ":cdetp" option
+while getopts ":cdetpm" option
 do
   case $option in
       c ) curl=1
@@ -37,6 +38,9 @@ do
 	  p ) plugin=0
 	  echo "Disabling plugin."
 	  ;;
+	  m ) motif=0
+	  echo "Disabling Motif."
+	  ;;
   esac
 done
 shift $(($OPTIND - 1))
@@ -48,6 +52,9 @@ platform=$(uname -s)
 case $platform in
     Linux)
 	echo "Platform: Linux"
+
+# 	cflags="$cflags -D_GNU_SOURCE"
+
 	if [ -f /etc/debian_version ] ; then
 	    echo "Distribution: Debian / Ubuntu"
 	    if [ -d /usr/share/fonts/truetype/ttf-bitstream-vera ] ; then
@@ -58,7 +65,10 @@ case $platform in
 	    exit 0
 	fi
 
-	target=$default_target
+	case $motif in
+		0) target=x11;;
+		1) target=motif;;
+	esac
 	;;
 
     Darwin)
@@ -66,9 +76,13 @@ case $platform in
 
 	fontsdir=$default_fontsdir
 
-	echo "Mac system: default target is x11"
+	echo "Mac system: default target is x11 (maybe motif)"
 	echo "(Carbon is not yet supported by this build system)"
-	target=x11
+
+	case $motif in
+		0) target=x11;;
+		1) target=motif;;
+	esac
 
 	port=$(port version)
 	if [ $? -eq 0 ] ; then

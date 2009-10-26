@@ -1,7 +1,7 @@
 /*
-$Id: main.c,v 1.22 2009/10/06 01:03:53 couannette Exp $
+  $Id: main.c,v 1.23 2009/10/26 08:03:34 couannette Exp $
 
-FreeWRL main program.
+  FreeWRL main program.
 
 */
 
@@ -29,10 +29,8 @@ FreeWRL main program.
 #include <config.h>
 #include <system.h>
 #include <internal.h>
-
+#include <fwdebug.h>
 #include <libFreeWRL.h>
-
-#include "fwdebug.h"
 
 #include "main.h"
 #include "options.h"
@@ -67,8 +65,7 @@ const char *freewrl_get_version()
  */
 int main (int argc, char **argv)
 {
-    char *pwd;
-    char *initialFilename;	/* file to start FreeWRL with */
+    char *start_url = NULL;	/* file/url to start FreeWRL with */
     const char *libver, *progver;
 
     /* first, get the FreeWRL shared lib, and verify the version. */
@@ -137,46 +134,22 @@ int main (int argc, char **argv)
     /* JAS - for last parameter of long_options entries, choose
      * ANY character that is not 'h', and that is not used */
     if (parseCommandLine(argc, argv)) {
-	/* create the initial scene, from the file passed in
-	   and place it as a child of the rootNode. */
 
-	/* FIXME: try to NEVER use immediate size; compute length with argument's lengths */
-	initialFilename = (char *) malloc(1000 * sizeof (char));
-	pwd = (char *) malloc(1000 * sizeof (char));
+	    start_url = argv[optind];
 
-	getcwd(pwd,1000);
-
-	/* if this is a network file, leave the name as is. If it is
-	   a local file, prepend the path to it */
-
-	if (checkNetworkFile(argv[optind])) {
-	    setFullPath(argv[optind]);
-	} else {
-#ifdef _MSC_VER
-		strcpy(initialFilename,argv[optind]);
-#else
-	    makeAbsoluteFileName(initialFilename, pwd, argv[optind]);
-#endif
-	    setFullPath(initialFilename);
-	}
-	free(initialFilename);
-    } else {
-	BrowserFullPath = NULL;
     }
 
     /* doug- redirect stdout to a file - works, useful for sending bug reports */
     /*freopen("freopen.txt", "w", stdout ); */
 
     /* start threads, parse initial scene, etc */
-    initFreewrl();
-
-    /* do we require EAI? */
-    if (wantEAI) {
-	create_EAI();
+    if (!initFreeWRL()) {
+	    ERROR_MSG("main: aborting during initialization.\n");
+	    exit(1);
     }
 
     /* give control to the library */
-    startFreeWRL();
+    startFreeWRL(start_url);
     return 0;
 }
 
@@ -203,7 +176,7 @@ void catch_SIGSEGV()
 void catch_SIGHUP()
 {
     /* ConsoleMessage ("FreeWRL got a SIGHUP signal - reloading"); */
-    Anchor_ReplaceWorld(BrowserFullPath);
+/*MBFILES     Anchor_ReplaceWorld(BrowserFullPath); */
 }
 
 void catch_SIGALRM(int sig)

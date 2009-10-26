@@ -19,9 +19,13 @@ CC_WARNINGS=-Wall -Wundef -Wunused-macros
 
 # Compiler options / general flags
 
-# Needed by ipc.h => error: #warning "Files using this header must be compiled with _SVID_SOURCE or _XOPEN_SOURCE"
-# If we use _XOPEN_SOURCE then we must define also _BSD_SOURCE to have Motif compile...
-CC_GENERAL=-D_XOPEN_SOURCE=500 -D_BSD_SOURCE
+# NOT NEEDED ANYMORE : WE SETUP -D_GNU_SOURCE ON LINUX 
+#
+# # Needed by ipc.h => error: #warning "Files using this header must be compiled with _SVID_SOURCE or _XOPEN_SOURCE"
+# # If we use _XOPEN_SOURCE then we must define also _BSD_SOURCE to have Motif compile...
+# # CC_GENERAL=-D_XOPEN_SOURCE=500 -D_BSD_SOURCE
+#
+# WARNING: THIS IS MAYBE NEEDED ON MAC OR WINDOWS...
 
 # Linker options
 
@@ -39,3 +43,8 @@ AM_LDFLAGS = $(DEBUG_FLAGS) $(LD_OPTS)
 if OS_WIN32
 AM_CFLAGS += -mno-cygwin -D_WIN32 -DWIN32
 endif
+
+if OS_LINUX
+AM_CFLAGS += -D_GNU_SOURCE
+endif
+

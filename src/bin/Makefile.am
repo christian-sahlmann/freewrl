@@ -38,7 +38,7 @@ newversion:
 	-rm -f internal_version.*
 	$(MAKE)
 
-# Link with FreeWRL library
+# Compile/Link with FreeWRL library
 LIBFREEWRL_SRCDIR=$(top_srcdir)/src/lib
 LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
 AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)

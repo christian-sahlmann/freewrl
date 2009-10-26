@@ -58,7 +58,7 @@ export PKG_CONFIG_PATH=$srcdir:$PKG_CONFIG_PATH
 
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([ctype.h dirent.h errno.h fcntl.h getopt.h math.h signal.h sched.h stdbool.h stdio.h stdint.h stdlib.h string.h sys/ioctl.h sys/ipc.h sys/msg.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/wait.h time.h unistd.h])
+AC_CHECK_HEADERS([ctype.h dirent.h errno.h fcntl.h getopt.h math.h signal.h sched.h stdbool.h stdio.h stdint.h stdlib.h string.h sys/ioctl.h sys/ipc.h sys/msg.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/wait.h time.h unistd.h limits.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIGNAL
@@ -84,7 +84,7 @@ AC_CHECK_FUNCS([strchr strrchr strdup strndup getopt getopt_long getopt_long_onl
 case "$host_os" in
      *mingw32*|*cygwin*) os_type=win32 ;;
      darwin*) os_type=mac ;;
-     *) os_type=unix ;;
+     *) os_type=linux ;;
 esac
 
 echo "Platform: $host_os, $os_type"
@@ -92,7 +92,7 @@ echo "Platform: $host_os, $os_type"
 # OS conditionals
 AM_CONDITIONAL([OS_WIN32],[test "$os_type" = "win32"])
 AM_CONDITIONAL([OS_UNIX],[test "$os_type" != "win32"])
-AM_CONDITIONAL([OS_LINUX],[test "$host_os" = "linux"])
+AM_CONDITIONAL([OS_LINUX],[test "$os_type" = "linux"])
 AM_CONDITIONAL([OS_MAC],[test "$os_type" = "mac"])
 
 # ====================================================
@@ -550,7 +550,7 @@ AC_MY_HELPERAPP([browser],[BROWSER],[internet browser],[$DEFAULT_BROWSER],[
         ])
 
 ## Soundconv program check (sox)
-if test x$MAYBE_PLUGIN = xsound; then
+if test x$MAYBE_SOUND = xsound; then
     AC_MY_HELPERAPP([soundconv],[SOUNDCONV],[sound converter],[$DEFAULT_SOUNDCONV],[
         MAYBE_SOUND=
         AC_MSG_WARN([No soundconv helper -- Not building sound module])
@@ -585,7 +585,7 @@ case $os_type in
      # FIXME: name of plugin?
      win32) FREEWRL_PLUGIN="plugin_windows.dll" ;;
      mac)   FREEWRL_PLUGIN="npfreewrl.dynlib" ;;
-     unix)  FREEWRL_PLUGIN="npfreewrl.so" ;;
+     *)     FREEWRL_PLUGIN="npfreewrl.so" ;;
 esac
 
 AC_SUBST(FREEWRL_PROGRAM)

@@ -1,9 +1,12 @@
 # Toplevel Makefile.am
 #
-# $Id: Makefile.am,v 1.8 2009/06/09 09:49:06 couannette Exp $
+# $Id: Makefile.am,v 1.9 2009/10/26 08:03:34 couannette Exp $
 #
 # Defines build subdirectories.
 # Defines all files distributed by this package.
+
+# Get global variables for Makefile defined by toplevel Makefile.globals
+include $(top_srcdir)/Makefile.globals
 
 # See configure.ac
 ACLOCAL_AMFLAGS = -I m4
