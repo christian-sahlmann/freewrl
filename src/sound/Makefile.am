@@ -24,7 +24,13 @@ internal_version.c: $(_EV)
 # And add it to the list of files to clean
 CLEANFILES=internal_version.c
 
+# Compile/Link with FreeWRL library
+LIBFREEWRL_SRCDIR=$(top_srcdir)/src/lib
+LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
+AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
+
 bin_PROGRAMS = freewrl_snd
+freewrl_snd_LDADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la
 
 include Makefile.sources
 

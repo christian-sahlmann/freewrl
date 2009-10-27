@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.68 2009/10/26 17:48:43 couannette Exp $
+  $Id: OpenGL_Utils.c,v 1.69 2009/10/27 10:44:02 couannette Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -464,7 +464,9 @@ bool initialize_GL()
 	initialize_rdr_functions();
 
 	/* lets make sure everything is sync'd up */
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
 	XFlush(Xdpy);
+#endif
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	glClearDepth (1.0);

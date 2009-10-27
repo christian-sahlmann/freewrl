@@ -1,5 +1,5 @@
 /*
-  $Id: fwCommonX11.c,v 1.2 2009/10/26 10:52:22 couannette Exp $
+  $Id: fwCommonX11.c,v 1.3 2009/10/27 10:44:02 couannette Exp $
 
   FreeWRL support library.
   X11 common functions.
@@ -168,6 +168,43 @@ int create_colormap()
 	return TRUE;
 }
 
+void setMenuStatus(char *stat)
+{
+	strncpy(myMenuStatus, stat, MAXSTAT);
+	setMessageBar();
+}
+
+void setMenuFps(float fps)
+{
+	myFps = fps;
+	setMessageBar();
+}
+
+void resetGeometry()
+{
+#ifdef HAVE_XF86_VMODE
+    int oldMode, i;
+
+    if (fullscreen) {
+	XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes);
+	oldMode = 0;
+	
+	for (i=0; i < vmode_nb_modes; i++) {
+	    if ((vmode_modes[i]->hdisplay == oldx) && (vmode_modes[i]->vdisplay==oldy)) {
+		oldMode = i;
+		break;
+	    }
+	}
+	
+	XF86VidModeSwitchToMode(Xdpy, Xscreen, vmode_modes[oldMode]);
+	XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
+	XFlush(Xdpy);
+    }
+#endif /* HAVE_XF86_VMODE */
+}
+
+/*======== "VIRTUAL FUNCTIONS" ==============*/
+
 /**
  *   open_display: setup up X11, choose visual, create colomap and query fullscreen capabilities.
  */
@@ -231,37 +268,62 @@ int open_display()
     return TRUE;
 }
 
-void setMenuStatus(char *stat)
-{
-	strncpy(myMenuStatus, stat, MAXSTAT);
-	setMessageBar();
-}
+/*=== create_main_window: in fwBareWindow.c or in fwMotifWindow.c */
 
-void setMenuFps(float fps)
-{
-	myFps = fps;
-	setMessageBar();
-}
+/**
+ *   create_GLcontext: create the main OpenGL context.
+ *                     TODO: finish implementation for Mac and Windows.
+ */
+bool create_GLcontext()
+{	
+	int direct_rendering = TRUE;
 
-void resetGeometry()
-{
-#ifdef HAVE_XF86_VMODE
-    int oldMode, i;
+	fw_thread_dump();
 
-    if (fullscreen) {
-	XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes);
-	oldMode = 0;
-	
-	for (i=0; i < vmode_nb_modes; i++) {
-	    if ((vmode_modes[i]->hdisplay == oldx) && (vmode_modes[i]->vdisplay==oldy)) {
-		oldMode = i;
-		break;
-	    }
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
+
+#ifdef DO_MULTI_OPENGL_THREADS
+	direct_rendering = FALSE;
+#endif
+
+	GLcx = glXCreateContext(Xdpy, Xvi, NULL, direct_rendering);
+	if (!GLcx) {
+		ERROR_MSG("can't create OpenGL context.\n");
+		return FALSE;
 	}
-	
-	XF86VidModeSwitchToMode(Xdpy, Xscreen, vmode_modes[oldMode]);
-	XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
-	XFlush(Xdpy);
-    }
-#endif /* HAVE_XF86_VMODE */
+	if (glXIsDirect(Xdpy, GLcx)) {
+		TRACE_MSG("glX: direct rendering enabled\n");
+	}
+#endif
+	return TRUE;
+}
+
+/**
+ *   bind_GLcontext: attache the OpenGL context to the main window.
+ *                   TODO: finish implementation for Mac and Windows.
+ */
+bool bind_GLcontext()
+{
+	fw_thread_dump();
+
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
+	if (!Xwin) {
+		ERROR_MSG("window not initialized, can't initialize OpenGL context.\n");
+		return FALSE;
+	}
+	if (!glXMakeCurrent(Xdpy, GLwin, GLcx)) {
+		ERROR_MSG("bind_GLcontext: can't set OpenGL context for this thread %d (glXMakeCurrent: %s).\n", fw_thread_id(), GL_ERROR_MSG);
+		return FALSE;
+	}
+#endif
+
+#if defined(TARGET_AQUA)
+	return aglSetCurrentContext(aqglobalContext);
+#endif
+
+#if defined(TARGET_WIN32)
+	return wglMakeCurrent(ghDC, ghRC);
+#endif
+
+	return TRUE;
 }

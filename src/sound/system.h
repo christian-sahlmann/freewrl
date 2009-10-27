@@ -88,6 +88,11 @@ typedef unsigned char _Bool;
 # include <sys/ipc.h>
 #endif
 
+#if HAVE_SYS_MSG_H
+# include <sys/msg.h>
+#endif
+
+
 #include <linux/soundcard.h>
 
 

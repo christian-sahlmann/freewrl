@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.10 2009/10/26 10:47:11 couannette Exp $
+$Id: ConsoleMessage.c,v 1.11 2009/10/27 10:44:02 couannette Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -82,6 +82,16 @@ void closeConsoleMessage() {
 }
 
 /* for win32 I #define ConsoleMessage printf in headers.h libfreewrl.h and assume console + window not plugin */
+
+/**
+ ** ALL the Console stuff has to be refactored.
+ **
+ ** I suggest a very simple solution: write to stdout/stderr.
+ **
+ ** On OSX the Console application should wait for something written on those file descriptors...
+ ** ... and display the last string each time a new data arrives.
+ **/
+
 #ifndef WIN32
 int ConsoleMessage(const char *fmt, ...) {
 	va_list ap;
@@ -252,15 +262,16 @@ int ConsoleMessage(const char *fmt, ...) {
 	}
 #else
 	/* are we running under Motif or Gtk? */
-	#ifndef HAVE_NOTOOLKIT
+#if defined(TARGET_MOTIF)
 		setConsoleMessage (FWbuffer);
-	#else
+# else
 		if (RUNNINGASPLUGIN) {
 			freewrlSystem (FWbuffer);
 		} else {
 			printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n");
 		}
-	#endif
+#endif //TARGET_MOTIF
+
 #endif
 	return count;
 }

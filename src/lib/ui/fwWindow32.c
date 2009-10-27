@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.9 2009/10/26 10:52:22 couannette Exp $
+  $Id: fwWindow32.c,v 1.10 2009/10/27 10:44:02 couannette Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -224,7 +224,6 @@ void swapbuffers32()
 
 }
 
-
 void setMenuStatus(char *stat) {
     /*strncpy (myMenuStatus, stat, MAXSTAT);*/
     setMessageBar();
@@ -429,32 +428,6 @@ BOOL bSetupPixelFormat(HDC hdc)
     return TRUE; 
 } 
 
-int create_GLcontext()
-{
-    RECT rect; 
-    GLenum err;
-    BOOL bb;
-
-    printf("starting createcontext32\n");
-
-    ghDC = GetDC(ghWnd); 
-    printf("got hdc\n");
-    if (!bSetupPixelFormat(ghDC))
-	printf("ouch - bSetupPixelFormat failed\n");
-    ghRC = wglCreateContext(ghDC); 
-    printf("created context\n");
-    return TRUE;
-}
- 
-int bind_GLcontext()
-{
-	if (wglMakeCurrent(ghDC, ghRC)) {
-		printf("made current %u\n", bb);
-		return TRUE;
-	}
-	return FALSE;
-}
-
 static int sensor_cursor = 0;
 static HCURSOR hSensor, hArrow;
 LRESULT CALLBACK PopupWndProc( 
@@ -493,17 +466,21 @@ LRESULT CALLBACK PopupWndProc(
 	if (!bSetupPixelFormat(ghDC)) 
 	    PostQuitMessage (0); 
 	printf("WM_Create happening now\n");
-	ghRC = wglCreateContext(ghDC); 
-	wglMakeCurrent(ghDC, ghRC); 
-	GetClientRect(hWnd, &rect); 
-    err = glewInit();
-    if (GLEW_OK != err)
-    {
-	/* Problem: glewInit failed, something is seriously wrong. */
-	printf("Error: %s\n", glewGetErrorString(err));
-	 
-    }
-    printf( "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
+	/* OpenGL init : done in display_initialize 
+
+	   maybe this can be done synchronously ?
+	   maybe not....
+
+	 */
+
+	create_GLcontext();
+	bind_GLcontext();
+
+	/* GLEW init : done in initialize_rdr_caps */
+
+	initialize_rdr_caps();
+	initialize_rdr_functions();
 
 	screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 	screenHeight = rect.bottom;
@@ -526,9 +503,14 @@ LRESULT CALLBACK PopupWndProc(
 	if (!bSetupPixelFormat(ghDC)) 
 	    PostQuitMessage (0); 
 	printf("WM_DISPLAYCHANGE happening now\n");
+
+	/* ???? do we have to recreate an OpenGL context 
+	   when display mode changed ? */
+
 	ghRC = wglCreateContext(ghDC); 
 	wglMakeCurrent(ghDC, ghRC); 
 	GetClientRect(hWnd, &rect); 
+
 	screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 	screenHeight = rect.bottom;
 	/* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
@@ -704,6 +686,87 @@ LRESULT CALLBACK PopupWndProc(
     return 0;
 }
 
+int doEventsWin32A()
+{
+    static int eventcount = 0;
+    MSG msg;
+    do
+    {
+	while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) == TRUE) 
+        { 
+            if (GetMessage(&msg, NULL, 0, 0) ) 
+            { 
+                TranslateMessage(&msg);
+                DispatchMessage(&msg); 
+            } else { 
+                return TRUE; 
+            } 
+
+        } 
+	eventcount++;
+    }while(0); /*eventcount < 1000);*/
+    eventcount = 0;
+    return FALSE;
+}
+
+int getEventsWin32(int* ButDown,int len,int* currentX,int* currentY)
+{
+    int res;
+    int i;
+    res = doEventsWin32A();
+    for(i=0;i<len;i++)
+	ButDown[i] = button[i];
+    (*currentX) = mouseX;
+    (*currentY) = mouseY;
+    return TRUE;
+	
+}
+
+int startMessageLoop()
+{
+    while(1)
+	if(doEventsWin32A()) return TRUE;
+    drawScene();
+    return FALSE;
+}
+
+void resetGeometry()
+{
+}
+
+void arrow_cursor32()
+{
+	/*
+http://msdn.microsoft.com/en-us/library/ms648380(VS.85).aspx 
+http://msdn.microsoft.com/en-us/library/ms648393(VS.85).aspx
+http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx 
+	*/
+	if( sensor_cursor )
+		SetCursor(hArrow);
+	sensor_cursor = 0;
+}
+
+void sensor_cursor32()
+{
+	sensor_cursor = 1;
+	SetCursor(hSensor);
+}
+
+
+/*======== "VIRTUAL FUNCTIONS" ==============*/
+
+/**
+ *   open_display: setup up Win32.
+ */
+int open_display()
+{
+	/* nothing to do */
+	return TRUE;
+}
+
+/**
+ *   create_main_window: setup up Win32 main window and TODO query fullscreen capabilities.
+ */
 int create_main_window(int argc, char *argv[])
 {
     HINSTANCE hInstance; 
@@ -786,74 +849,43 @@ int create_main_window(int argc, char *argv[])
     return TRUE;
 }
 
-int doEventsWin32A()
-{
-    static int eventcount = 0;
-    MSG msg;
-    do
-    {
-	while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) == TRUE) 
-        { 
-            if (GetMessage(&msg, NULL, 0, 0) ) 
-            { 
-                TranslateMessage(&msg);
-                DispatchMessage(&msg); 
-            } else { 
-                return TRUE; 
-            } 
-
-        } 
-	eventcount++;
-    }while(0); /*eventcount < 1000);*/
-    eventcount = 0;
-    return FALSE;
-}
-
-int getEventsWin32(int* ButDown,int len,int* currentX,int* currentY)
-{
-    int res;
-    int i;
-    res = doEventsWin32A();
-    for(i=0;i<len;i++)
-	ButDown[i] = button[i];
-    (*currentX) = mouseX;
-    (*currentY) = mouseY;
-    return TRUE;
+/**
+ *   create_GLcontext: create the main OpenGL context.
+ *                     TODO: finish implementation for Mac and Windows.
+ */
+bool create_GLcontext()
+{	
+	RECT rect; 
+	GLenum err;
+	BOOL bb;
 	
-}
+	fw_thread_dump();
 
-int startMessageLoop()
-{
-    while(1)
-	if(doEventsWin32A()) return TRUE;
-    drawScene();
-    return FALSE;
-}
+	printf("starting createcontext32\n");
 
-void resetGeometry()
-{
-}
+	ghDC = GetDC(ghWnd); 
+	printf("got hdc\n");
+	if (!bSetupPixelFormat(ghDC))
+		printf("ouch - bSetupPixelFormat failed\n");
+	ghRC = wglCreateContext(ghDC); 
+	printf("created context\n");
 
-void arrow_cursor32()
-{
-	/*
-http://msdn.microsoft.com/en-us/library/ms648380(VS.85).aspx 
-http://msdn.microsoft.com/en-us/library/ms648393(VS.85).aspx
-http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx 
-	*/
-	if( sensor_cursor )
-		SetCursor(hArrow);
-	sensor_cursor = 0;
-}
-
-void sensor_cursor32()
-{
-	sensor_cursor = 1;
-	SetCursor(hSensor);
-}
-
-int open_display()
-{
-	/* nothing to do */
 	return TRUE;
+}
+
+/**
+ *   bind_GLcontext: attache the OpenGL context to the main window.
+ *                   TODO: finish implementation for Mac and Windows.
+ */
+bool bind_GLcontext()
+{
+	fw_thread_dump();
+
+	if (wglMakeCurrent(ghDC, ghRC)) {
+		printf("made current %u\n", bb);
+		GetClientRect(hWnd, &rect); 
+		return TRUE;
+	}
+
+	return FALSE;
 }

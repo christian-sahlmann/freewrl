@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.16 2009/10/26 17:48:43 couannette Exp $
+  $Id: display.c,v 1.17 2009/10/27 10:44:02 couannette Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -126,34 +126,6 @@ void setScreenDim(int wi, int he)
     else screenRatio =  screenWidth;
 }
 
-/**
- *   create_GLcontext: create the main OpenGL context.
- *                     TODO: finish implementation for Mac and Windows.
- */
-bool create_GLcontext()
-{	
-	int direct_rendering = TRUE;
-
-	fw_thread_dump();
-
-#if defined(TARGET_X11) || defined(TARGET_MOTIF)
-
-#ifdef DO_MULTI_OPENGL_THREADS
-	direct_rendering = FALSE;
-#endif
-
-	GLcx = glXCreateContext(Xdpy, Xvi, NULL, direct_rendering);
-	if (!GLcx) {
-		ERROR_MSG("can't create OpenGL context.\n");
-		return FALSE;
-	}
-	if (glXIsDirect(Xdpy, GLcx)) {
-		TRACE_MSG("glX: direct rendering enabled\n");
-	}
-#endif
-	
-	return TRUE;
-}
 
 /**
  *   resize_GL: when the window is resized we have to update the GL viewport.
@@ -164,31 +136,123 @@ GLvoid resize_GL(GLsizei width, GLsizei height)
 }
 
 /**
- *   bind_GLcontext: attache the OpenGL context to the main window.
- *                   TODO: finish implementation for Mac and Windows.
+ * On all platforms, when we don't have GLEW, we simulate it.
+ * In any case we setup the rdr_capabilities struct.
  */
-bool bind_GLcontext()
+bool initialize_rdr_caps()
 {
-	fw_thread_dump();
+	/* OpenGL is initialized, context is created,
+	   get some info, for later use ...*/
+        rdr_caps.renderer   = (char *) glGetString(GL_RENDERER);
+        rdr_caps.version    = (char *) glGetString(GL_VERSION);
+        rdr_caps.vendor     = (char *) glGetString(GL_VENDOR);
+	rdr_caps.extensions = (char *) glGetString(GL_EXTENSIONS);
 
-#if defined(TARGET_X11) || defined(TARGET_MOTIF)
-	if (!Xwin) {
-		ERROR_MSG("window not initialized, can't initialize OpenGL context.\n");
+#ifdef HAVE_LIBGLEW
+
+	/* Initialize GLEW */
+	GLenum err = glewInit();
+	if (GLEW_OK != err) {
+		/* Problem: glewInit failed, something is seriously wrong. */
+		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
 		return FALSE;
 	}
-	if (!glXMakeCurrent(Xdpy, GLwin, GLcx)) {
-		ERROR_MSG("bind_GLcontext: can't set OpenGL context for this thread %d (glXMakeCurrent: %s).\n", fw_thread_id(), GL_ERROR_MSG);
-		return FALSE;
+	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
+
+	rdr_caps.av_glsl_shaders = GLEW_ARB_fragment_shader;
+	rdr_caps.av_multitexture = GLEW_ARB_multitexture;
+	rdr_caps.av_occlusion_q = GLEW_ARB_occlusion_query;
+	rdr_caps.av_npot_texture = GLEW_ARB_texture_non_power_of_two;
+	rdr_caps.av_texture_rect = GLEW_ARB_texture_rectangle;
+
+#else
+	/* Initialize renderer capabilities without GLEW */
+
+	/* Shaders */
+        rdr_caps.av_glsl_shaders = (strstr (rdr_caps.extensions, "GL_ARB_fragment_shader")!=0);
+	
+	/* Multitexturing */
+	rdr_caps.av_multitexture = (strstr (rdr_caps.extensions, "GL_ARB_multitexture")!=0);
+
+	/* Occlusion Queries */
+	rdr_caps.av_occlusion_q = (strstr (rdr_caps.extensions, "GL_ARB_occlusion_query") !=0);
+
+	/* Non-power-of-two textures */
+	rdr_caps.av_npot_texture = (strstr (rdr_caps.extensions, "GL_ARB_texture_non_power_of_two") !=0);
+
+	/* Texture rectangle (x != y) */
+	rdr_caps.av_texture_rect = (strstr (rdr_caps.extensions, "GL_ARB_texture_rectangle") !=0);
+#endif
+
+	/* Max texture size */
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &rdr_caps.max_texture_size);
+	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &rdr_caps.texture_units);
+
+	/* TODO: Update the code to use
+	   - rdr_caps.max_texture_size
+	   - rdr_caps.texture_units
+	   instead of
+	   - opengl_has_textureSize
+	   - opengl_has_numTextureUnits
+	*/
+
+	/* User settings in environment */
+
+	if (global_texture_size > 0) {
+		DEBUG_MSG("Environment set texture size: %d", global_texture_size);
+		rdr_caps.max_texture_size = global_texture_size;
 	}
-#endif
 
-#if defined(TARGET_AQUA)
-	return aglSetCurrentContext(aqglobalContext);
-#endif
+	/* Special drivers settings */
 
-#if defined(TARGET_WIN32)
-	return wglMakeCurrent(ghDC, ghRC);
-#endif
+	if (strncmp(rdr_caps.renderer, "Intel GMA 9", 11) == 0) {
+		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024;
+	}
+
+	if (strncmp(rdr_caps.renderer, "NVIDIA GeForce2", 15) == 0) {
+		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024; 
+	}
+
+	/* print some debug infos */
+	rdr_caps_dump(&rdr_caps);
 
 	return TRUE;
+}
+
+void initialize_rdr_functions()
+{
+	/**
+	 * WARNING:
+	 *
+	 * Linux OpenGL driver (Mesa or ATI or NVIDIA) and Windows driver
+	 * will not initialize function pointers. So we use GLEW or we
+	 * initialize them ourself.
+	 *
+	 * OSX 10.4 : same as above.
+	 * OSX 10.5 and OSX 10.6 : Apple driver will initialize functions.
+	 */
+
+	
+}
+
+void rdr_caps_dump()
+{
+#ifdef VERBOSE
+	{
+		char *p, *pp;
+		p = pp = STRDUP(rdr_caps.extensions);
+		while (*pp != '\0') {
+			if (*pp == ' ') *pp = '\n';
+			pp++;
+		}
+		DEBUG_MSG ("OpenGL extensions : %s\n", p);
+		FREE(p);
+	}
+#endif //VERBOSE
+
+	DEBUG_MSG ("Shader support:       %s\n", BOOL_STR(rdr_caps.av_glsl_shaders));
+	DEBUG_MSG ("Multitexture support: %s\n", BOOL_STR(rdr_caps.av_multitexture));
+	DEBUG_MSG ("Occlusion support:    %s\n", BOOL_STR(rdr_caps.av_occlusion_q));
+	DEBUG_MSG ("Max texture size      %d\n", rdr_caps.max_texture_size);
+	DEBUG_MSG ("Texture units         %d\n", rdr_caps.texture_units);
 }
