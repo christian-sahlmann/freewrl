@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# run FreeWRL in strict parsing mode
+export FREEWRL_STRICT_PARSING=1
+/Applications/FreeWRL/FreeWRL.app/Contents/MacOS/FreeWRL $* `pwd`
