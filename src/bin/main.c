@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.24 2009/10/26 10:43:14 couannette Exp $
+  $Id: main.c,v 1.25 2009/10/28 17:52:28 crc_canada Exp $
 
   FreeWRL main program.
 
@@ -133,11 +133,14 @@ int main (int argc, char **argv)
     params->eai = FALSE;
     params->fullscreen = FALSE;
 
+#if !defined(TARGET_AQUA) /* Aqua front ends do the parsing */
     /* parse command line arguments */
     if (parseCommandLine(argc, argv)) {
 
 	    start_url = argv[optind];
     }
+#endif
+
 
     /* doug- redirect stdout to a file - works, useful for sending bug reports */
     /*freopen("freopen.txt", "w", stdout ); */

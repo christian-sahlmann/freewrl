@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.17 2009/10/27 10:44:02 couannette Exp $
+  $Id: display.c,v 1.18 2009/10/28 17:52:28 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -32,6 +32,7 @@
 #include <display.h>
 #include <internal.h>
 #include <threads.h>
+#include <libFreeWRL.h>
 
 
 bool display_initialized = FALSE;
@@ -67,6 +68,34 @@ char myMenuStatus[MAXSTAT];
 
 GLenum _global_gl_err;
 
+
+#if defined (TARGET_AQUA)
+/* display part specific to Mac */
+
+CGLContextObj myglobalContext;
+AGLContext aqglobalContext;
+
+GLboolean cErr;
+
+GDHandle gGDevice;
+
+int ccurse = ACURSE;
+int ocurse = ACURSE;
+
+/* for handling Safari window changes at the top of the display event loop */
+int PaneClipnpx;
+int PaneClipnpy;
+WindowPtr PaneClipfwWindow;
+int PaneClipct;
+int PaneClipcb;
+int PaneClipcr;
+int PaneClipcl;
+int PaneClipwidth;
+int PaneClipheight;
+int PaneClipChanged = FALSE;
+#endif
+
+
 /**
  *  display_initialize: takes care of all the initialization process, 
  *                      creates the display thread and wait for it to complete
@@ -76,6 +105,7 @@ int display_initialize()
 {
 	memset(&rdr_caps, 0, sizeof(rdr_caps));
 
+#if !defined (TARGET_AQUA)
 	/* make the window, get the OpenGL context */
 	if (!open_display()) {
 		return FALSE;
@@ -91,6 +121,11 @@ int display_initialize()
 	}
 
 	bind_GLcontext();
+#else
+	if (RUNNINGASPLUGIN) { 
+         	aglSetCurrentContext(aqglobalContext); 
+	}
+#endif /* TARGET_AQUA */
 
 	if (!initialize_GL()) {
 		return FALSE;

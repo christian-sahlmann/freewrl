@@ -1,5 +1,5 @@
 /*
-  $Id: internal.h,v 1.23 2009/10/26 10:57:07 couannette Exp $
+  $Id: internal.h,v 1.24 2009/10/28 17:52:28 crc_canada Exp $
 
   FreeWRL support library.
   Library internal declarations.
@@ -29,7 +29,7 @@
 #ifndef __LIBFREEWRL_DECL_H__
 #define __LIBFREEWRL_DECL_H__
 
-
+#include <config.h>
 #include "fwdebug.h"
 
 

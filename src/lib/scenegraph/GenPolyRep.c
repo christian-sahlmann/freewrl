@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.13 2009/10/05 15:07:23 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.14 2009/10/28 17:52:28 crc_canada Exp $
 
 ???
 
@@ -41,6 +41,7 @@ $Id: GenPolyRep.c,v 1.13 2009/10/05 15:07:23 crc_canada Exp $
 
 #include "LinearAlgebra.h"
 #include "Polyrep.h"
+#include "Tess.h"
 #include "Component_Geospatial.h"	/* resolving implicit declarations */
 
 /*****************************************

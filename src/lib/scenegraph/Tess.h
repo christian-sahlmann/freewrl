@@ -1,8 +1,7 @@
 /*
-  $Id: OSX_miniglew.c,v 1.5 2009/10/28 17:52:28 crc_canada Exp $
+=INSERT_TEMPLATE_HERE=
 
-  FreeWRL support library.
-  OpenGL extensions detection and setup.
+$Id: Tess.h,v 1.1 2009/10/28 17:52:28 crc_canada Exp $
 
 */
 
@@ -25,24 +24,18 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-/**
- * On all platforms, when we don't have GLEW, we simulate it.
- * In any case we setup the rdr_capabilities struct.
- */
 
-#include <config.h>
-#include <system.h>
-#include <system_threads.h>
-#include <display.h>
-#include <internal.h>
+#ifndef __FREEWRL_TESS_H__
+#define __FREEWRL_TESS_H__
 
-#include <libFreeWRL.h>
+#include <gl.h>
+#include <glu.h>
 
-#ifdef TARGET_AQUA
-# include <OpenGL/OpenGL.h>
-# include <OpenGL/CGLTypes.h>
-# include <AGL/AGL.h>
-# include "OSX_miniglew.h"
-# include "../ui/aquaInt.h"
-#endif //TARGET_AQUA
+/* Triangulator extern defs - look in CFuncs/Tess.c */
+extern struct X3D_PolyRep *global_tess_polyrep;
+extern GLUtriangulatorObj *global_tessobj;
+extern int global_IFS_Coords[];
+extern int global_IFS_Coord_count;
 
+
+#endif /* __FREEWRL_TESS_H__ */

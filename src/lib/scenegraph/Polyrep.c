@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.16 2009/10/22 16:58:49 crc_canada Exp $
+$Id: Polyrep.c,v 1.17 2009/10/28 17:52:28 crc_canada Exp $
 
 ???
 
@@ -43,6 +43,7 @@ $Id: Polyrep.c,v 1.16 2009/10/22 16:58:49 crc_canada Exp $
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
+#include "Tess.h"
 
 
 /* reset colors to defaults, if we have to */

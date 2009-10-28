@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.82 2009/10/26 10:47:11 couannette Exp $
+$Id: headers.h,v 1.83 2009/10/28 17:52:28 crc_canada Exp $
 
 Global includes.
 
@@ -509,13 +509,6 @@ void normalize_ifs_face (float *point_normal,
 /* void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstring, unsigned int nl, double *length, */
 /*                 double maxext, double spacing, double mysize, unsigned int fsparam, */
 /*                 struct X3D_PolyRep *rp); */
-
-
-/* Triangulator extern defs - look in CFuncs/Tess.c */
-extern struct X3D_PolyRep *global_tess_polyrep;
-extern GLUtriangulatorObj *global_tessobj;
-extern int global_IFS_Coords[];
-extern int global_IFS_Coord_count;
 
 /* do we have to do textures?? */
 #define HAVETODOTEXTURES (texture_count != 0)

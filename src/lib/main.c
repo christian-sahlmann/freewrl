@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.13 2009/10/26 17:48:43 couannette Exp $
+  $Id: main.c,v 1.14 2009/10/28 17:52:28 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -49,6 +49,10 @@ freewrl_params_t fw_params = {
 	/* verbose */        FALSE,
 };
 
+#ifdef OLDCODE
+
+moved out of here because the OSX native code does not use main.c JohnS.
+
 /* Global FreeWRL options (will become profiles ?) */
 
 bool global_strictParsing = FALSE;
@@ -57,7 +61,7 @@ bool global_occlusion_disable = FALSE;
 unsigned global_texture_size = 0;
 bool global_print_opengl_errors = FALSE;
 bool global_trace_threads = FALSE;
-
+#endif
 
 /**
  * library initialization

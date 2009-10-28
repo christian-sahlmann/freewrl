@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fwdebug.h,v 1.6 2009/10/26 10:57:07 couannette Exp $
+$Id: fwdebug.h,v 1.7 2009/10/28 17:52:28 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: debug definitions.
@@ -31,7 +31,6 @@ Internal header: debug definitions.
 #ifndef __LIBFREEWRL_DEBUG_H__
 #define __LIBFREEWRL_DEBUG_H__
 
-
 #define BOOL_STR(b) (b ? "TRUE" : "FALSE")
 
 /* Useful to suppress things from non-debug builds */
@@ -40,6 +39,8 @@ Internal header: debug definitions.
 #else
 #  define DEBUG_(_expr)
 #endif
+
+#include <stdio.h>
 
 void fw_perror(FILE *f, const char *format, ...);
 

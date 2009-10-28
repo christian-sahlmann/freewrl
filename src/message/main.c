@@ -35,6 +35,7 @@
 #define MINTITLE "FreeWRL Console:"
 #define MAXLINE 2000
 
+#if !defined(TARGET_AQUA)
 /* Define an application context */
 XtAppContext app_context;
 
@@ -91,3 +92,4 @@ int main(int argc, char **argv) {
 	XtAppMainLoop(app_context);
 	return 0;
 }
+#endif

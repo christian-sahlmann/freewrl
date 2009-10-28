@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.59 2009/10/26 17:48:43 couannette Exp $
+  $Id: MainLoop.c,v 1.60 2009/10/28 17:52:28 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -65,6 +65,17 @@
 
 
 extern freewrl_params_t fw_params; /* will move to internal.h as soon as I've the time to include this last one everywhere ... */
+
+
+/* Global FreeWRL options (will become profiles ?) */
+
+bool global_strictParsing = FALSE;
+bool global_plugin_print = FALSE;
+bool global_occlusion_disable = FALSE;
+unsigned global_texture_size = 0;
+bool global_print_opengl_errors = FALSE;
+bool global_trace_threads = FALSE;
+
 
 /* do we want OpenGL errors to be printed to the console?? */
 int displayOpenGLErrors = FALSE;
@@ -436,7 +447,8 @@ void EventLoop() {
 
 #if defined(TARGET_AQUA)
 	/* Just guessing what would fit :P ... */
-	handle_aqua();
+	/* handle_aqua(); */
+	printf ("handling handle_aqua badly\n");
 #endif
 
 #if defined(TARGET_WIN32)
@@ -829,6 +841,7 @@ void setup_projection(int pick, int x, int y)
 		aspect2 = aspect2 * .5;
 		if(Viewer.iside == 1) xvp = (GLint)screenwidth2;
 	}
+
         #ifdef AQUA
         if (RUNNINGASPLUGIN) {
                 aglSetCurrentContext(aqglobalContext);
@@ -1422,9 +1435,6 @@ void setButDown(int button, int value) {
 void setLastMouseEvent(int etype) {
         lastMouseEvent = etype;
 }
-
-/* load up the world, and run with it! */
-/* void initFreewrl() { */
 
 void initialize_parser()
 {

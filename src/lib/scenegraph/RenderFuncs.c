@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.31 2009/10/26 10:57:07 couannette Exp $
+  $Id: RenderFuncs.c,v 1.32 2009/10/28 17:52:28 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -43,6 +43,8 @@
 #include "Viewer.h"
 #include "LinearAlgebra.h"
 #include "../input/SensInterps.h"
+#include "system_threads.h"
+#include "threads.h"
 
 #include "RenderFuncs.h"
 
