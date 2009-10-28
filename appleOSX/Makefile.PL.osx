@@ -30,7 +30,7 @@ use Cwd qw(getcwd chdir);
 # get the correct.conf file.
 require './vrml.conf.aqua';
 
-my $vers = `cat ../freex3d/versions/FREEWRL`;
+my $vers = `cat ../versions/FREEWRL`;
 $vers =~ s/\s+$//;
 $VRML_CONFIG{VERSION} = $vers;
 
@@ -61,7 +61,7 @@ $jsobjdir = "$jsdir/Darwin";
 
 #location of the spidermonkey js engine.
 $jsobjdir .= "_OPT.OBJ";
-my $libFreeWRLjspath = "../freewrl/JS/".$jsobjdir."/libFreeWRLjs.so";
+my $libFreeWRLjspath = "../../freewrl/JS/".$jsobjdir."/libFreeWRLjs.so";
 
 #print "the javascript engine should be located at: $libFreeWRLjspath\n";
 
@@ -86,12 +86,12 @@ if ($ok eq 0) {
 }
 
 push @inc, $VRML_CONFIG{FREEWRL_INC}, 
-	"-I../freewrl/JS/$jsobjdir", 
-	"-I../freewrl/JS/$jsdir", 
-	"-I../freex3d/src/lib ",
+	"-I../../freewrl/JS/$jsobjdir", 
+	"-I../../freewrl/JS/$jsdir", 
+	"-I../src/lib ",
 	" -IOSX_Specific ";
-push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-L../freewrl/JS/$jsobjdir", "-lFreeWRLjs";
-push @ldflags, $VRML_CONFIG{LDFLAGS}, "-L../freewrl/JS/$jsobjdir";
+push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-L../../freewrl/JS/$jsobjdir", "-lFreeWRLjs";
+push @ldflags, $VRML_CONFIG{LDFLAGS}, "-L../../freewrl/JS/$jsobjdir";
 
 # push build directory, for running standalone
 
@@ -105,8 +105,8 @@ if (defined $VRML_CONFIG{'USE_JAVA_HOME'})
 }
 
 #put the version to a file that is compiled
-open OUT, ">../freex3d/src/lib/JOHNS_lib_version.c" or die ("Couldn't write to JOHNSversion file");
-my $vers = `cat ../freex3d/versions/FREEWRL`;
+open OUT, ">../src/lib/JOHNS_lib_version.c" or die ("Couldn't write to JOHNSversion file");
+my $vers = `cat ../versions/FREEWRL`;
 $vers =~ s/\s+$//;
 
 print OUT "char freewrl_get_version(void) { return \"",$vers,"\";}";
@@ -247,7 +247,7 @@ sub writeMakefileFinalTargets() {
 	
 	if (($JAVAC ne "") && ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
 		print MK "\tinstall -d  \$(INSTALL_DIR)\/freewrl\n";
-		print MK "\tinstall ../freewrl/java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
+		print MK "\tinstall ../../freewrl/java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
 	}
 	print MK "\tcp -f ./OSX_Specific/freex3d.aquascript /usr/bin/freex3d\n";
 	print MK "\tchmod 755 /usr/bin/freex3d\n";
@@ -255,10 +255,10 @@ sub writeMakefileFinalTargets() {
 	print MK "\tchmod 755 /usr/bin/freewrl\n";
 
 	# for the libEAI
-	print MK "\tcp -f ../freex3d/src/libeai/EAI_C.h /usr/local/include\n";
-	print MK "\tcp -f ../freex3d/src/lib/input/EAIheaders.h /usr/local/include\n";
-	print MK "\tcp -f ../freex3d/src/libeai/X3DNode.h /usr/local/include\n";
-	print MK "\tcp -f ../freex3d/src/libeai/GeneratedHeaders.h /usr/local/include\n";
+	print MK "\tcp -f ../src/libeai/EAI_C.h /usr/local/include\n";
+	print MK "\tcp -f ../src/lib/input/EAIheaders.h /usr/local/include\n";
+	print MK "\tcp -f ../src/libeai/X3DNode.h /usr/local/include\n";
+	print MK "\tcp -f ../src/libeai/GeneratedHeaders.h /usr/local/include\n";
 	
 	print MK "\tinstall -d \$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\tinstall ./OSX_Specific/fonts/*.ttf \$(INSTALL_DIR)/freewrl/fonts\n";
@@ -267,7 +267,7 @@ sub writeMakefileFinalTargets() {
 }
 
 sub writeVariables () {	
-	my @CFuncsSourceFiles = split (' ',`find ../freex3d  | grep -v "src/plugin" |grep -v libeai | grep -v "options.c" | grep -v "npunix" | grep -v "/sound/" | grep -v fwWindow | grep -v fwBareWindow | grep -v display_x11 | grep -iv motif | grep -v fwCommonX11 | grep -v win32 | grep "\\.c\$" `);
+	my @CFuncsSourceFiles = split (' ',`find ../src  | grep -v "src/plugin" |grep -v libeai | grep -v "options.c" | grep -v "npunix" | grep -v "/sound/" | grep -v fwWindow | grep -v fwBareWindow | grep -v display_x11 | grep -iv motif | grep -v fwCommonX11 | grep -v win32 | grep "\\.c\$" `);
 
 	print MK "\n#CFuncs Make\n";
 	print MK "LIBFWSRCS=";
@@ -303,21 +303,21 @@ sub write_linux_makefile_javascript() {
 	## make the Javascript libraries if needed
     
 	print MK "Javascript:\n";
-	print MK "\tcd ../freewrl/JS/$jsdir; make -f Makefile.ref BUILD_OPT=1 STACKPROT=$noStackProtector; cd $pwd\n";
+	print MK "\tcd ../../freewrl/JS/$jsdir; make -f Makefile.ref BUILD_OPT=1 STACKPROT=$noStackProtector; cd $pwd\n";
 }
 
 
 
 sub write_linux_makefile_javaClasses() {
 	if ($JAVAC ne "" ) {
-		my @JavaSourceFiles = split (' ',`find ../freewrl -name "*java" | grep "java\/classes"`);
+		my @JavaSourceFiles = split (' ',`find ../../freewrl -name "*java" | grep "java\/classes"`);
 
 		foreach my $fullname (@JavaSourceFiles) {
 			# remove the Java from the front, and the .c from the end.
 			my $nm = $fullname;
 			$nm =~ s/^\.\///; $nm =~ s/.java$/.class/;
 	
-			print MK "$nm:\n	\$(JAVAC) -classpath ../freewrl/java/classes $fullname\n";
+			print MK "$nm:\n	\$(JAVAC) -classpath ../../freewrl/java/classes $fullname\n";
 		}
 		
 		print MK "JavaClasses:\t";
@@ -331,7 +331,7 @@ sub write_linux_makefile_javaClasses() {
 		print MK "\n";
 	
 		# make the jar file here
-		print MK "	\$(JAR) -cf ../freewrl/java/classes/vrml.jar $@ `find ../freewrl/java/classes/vrml -name *.class`\n";
+		print MK "	\$(JAR) -cf ../../freewrl/java/classes/vrml.jar $@ `find ../../freewrl/java/classes/vrml -name *.class`\n";
 	}
 }
 
@@ -342,35 +342,35 @@ sub writeMakefileDistclean() {
 	print MK "	rm -f libFreeWRLFunc.so\n";
 	print MK "	rm -f freewrl\n";
 	if ($VRML_CONFIG{SOUND_ENGINE}) {
-		print MK "	rm -f SoundEngine/*o\n";
-		print MK "	rm -f SoundEngine/FreeWRL_SoundServer\n";
+		print MK "	rm -f ../../SoundEngine/*o\n";
+		print MK "	rm -f ../../SoundEngine/FreeWRL_SoundServer\n";
 	}
-	print MK "	rm -f ../freewrl/java/classes/vrml/external/field/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/vrml/field/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/vrml/external/node/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/vrml/external/FreeWRLEAI/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/vrml/external/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/vrml/external/exception/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/vrml/node/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/vrml/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/vrml/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/sai/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/sai/eai/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/org/web3d/x3d/sai/*class\n";
-	print MK "	rm -f ../freewrl/java/classes/vrml.jar\n";
-	print MK "	rm -rf ../freewrl/JS/$jsobjdir\n";
+	print MK "	rm -f ../../freewrl/java/classes/vrml/external/field/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/vrml/field/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/vrml/external/node/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/vrml/external/FreeWRLEAI/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/vrml/external/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/vrml/external/exception/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/vrml/node/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/vrml/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/vrml/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/sai/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/sai/eai/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/org/web3d/x3d/sai/*class\n";
+	print MK "	rm -f ../../freewrl/java/classes/vrml.jar\n";
+	print MK "	rm -rf ../../freewrl/JS/$jsobjdir\n";
 
-	print MK "	rm -f ../freex3d/src/bin/*\.o\n";
-	print MK "	rm -f ../freex3d/src/lib/*\.o\n";
-	print MK "	rm -f ../freex3d/src/lib/input/*\.o\n";
-	print MK "	rm -f ../freex3d/src/lib/main/*\.o\n";
-	print MK "	rm -f ../freex3d/src/lib/opengl/*\.o\n";
-	print MK "	rm -f ../freex3d/src/lib/plugin/*\.o\n";
-	print MK "	rm -f ../freex3d/src/lib/scenegraph/*\.o\n";
-	print MK "	rm -f ../freex3d/src/lib/ui/*\.o\n";
-	print MK "	rm -f ../freex3d/src/lib/vrml_parser/*\.o\n";
-	print MK "	rm -f ../freex3d/src/lib/world_script/*\.o\n";
-	print MK "	rm -f ../freex3d/src/lib/x3d_parser/*\.o\n";
+	print MK "	rm -f ../src/bin/*\.o\n";
+	print MK "	rm -f ../src/lib/*\.o\n";
+	print MK "	rm -f ../src/lib/input/*\.o\n";
+	print MK "	rm -f ../src/lib/main/*\.o\n";
+	print MK "	rm -f ../src/lib/opengl/*\.o\n";
+	print MK "	rm -f ../src/lib/plugin/*\.o\n";
+	print MK "	rm -f ../src/lib/scenegraph/*\.o\n";
+	print MK "	rm -f ../src/lib/ui/*\.o\n";
+	print MK "	rm -f ../src/lib/vrml_parser/*\.o\n";
+	print MK "	rm -f ../src/lib/world_script/*\.o\n";
+	print MK "	rm -f ../src/lib/x3d_parser/*\.o\n";
 
 
 	print MK "	rm -f /usr/local/lib/libFreeWRLFunc.dylib\n";
@@ -378,9 +378,9 @@ sub writeMakefileDistclean() {
 
 	# remove other JS directories
 	$jsobjdir =~s/src/src\/editline/;
-	print MK "	rm -rf ../freewrl/JS/$jsobjdir\n";
+	print MK "	rm -rf ../../freewrl/JS/$jsobjdir\n";
 	$jsobjdir =~ s/editline/fdlibm/;
-	print MK "	rm -rf ../freewrl/JS/$jsobjdir\n";
+	print MK "	rm -rf ../../freewrl/JS/$jsobjdir\n";
 
 	print MK "\n#remove installed images\n";
 	print MK "distclean:	clean\n";
