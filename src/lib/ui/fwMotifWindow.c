@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.9 2009/10/26 17:48:43 couannette Exp $
+  $Id: fwMotifWindow.c,v 1.10 2009/10/29 00:08:50 couannette Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -33,8 +33,8 @@
 #include <internal.h>
 
 #include <libFreeWRL.h>
-extern freewrl_params_t fw_params;
 #include <threads.h>
+
 #include "../main/MainLoop.h"
 
 #include <Xm/MainW.h>
@@ -581,6 +581,7 @@ void createFilePulldown()
     Arg args[10];
            
     /* Create the FileSelectionDialog */     
+    memset(args, 0, sizeof(args));
     ac = 0;
     mask  = XmStringCreateLocalized("*.wrl");
     XtSetArg(args[ac], XmNdirMask, mask); ac++;
@@ -800,6 +801,7 @@ void createMenuBar(void)
     Arg menuArgs[10]; int menuArgc = 0;
 
     /* create the menu bar */
+    memset(menuArgs, 0, sizeof(menuArgs));
     menuArgc = 0;
         
     /* the following XtSetArg is not required; it only "pretties" up the display
