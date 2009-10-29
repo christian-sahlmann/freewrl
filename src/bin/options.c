@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.23 2009/10/26 10:43:15 couannette Exp $
+  $Id: options.c,v 1.24 2009/10/29 22:05:09 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -30,8 +30,6 @@
 #include <internal.h>
 
 #include <libFreeWRL.h>
-
-#include "fwdebug.h"
 
 #include "main.h"
 #include "options.h"
