@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.62 2009/10/29 01:33:09 couannette Exp $
+  $Id: MainLoop.c,v 1.63 2009/10/29 16:03:39 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -452,7 +452,10 @@ void EventLoop() {
 #if defined(TARGET_AQUA)
 	/* Just guessing what would fit :P ... */
 	/* handle_aqua(); */
-	printf ("handling handle_aqua badly\n");
+{ static int badly = FALSE;
+	if (!badly) printf ("handling handle_aqua badly\n");
+badly=TRUE;
+}
 #endif
 
 #if defined(TARGET_WIN32)
@@ -1326,24 +1329,6 @@ void setFullPath(const char* file)
 /* handle all the displaying and event loop stuff. */
 void _displayThread()
 {
-/* #ifdef AQUA */
-/*     if (RUNNINGASPLUGIN) { */
-/*         aglSetCurrentContext(aqglobalContext); */
-/*         glpOpenGLInitialize(); */
-/*         new_tessellation(); */
-/*         set_viewer_type(EXAMINE); */
-/*     } else { */
-/*         glpOpenGLInitialize(); */
-/*         new_tessellation(); */
-/*     } */
-/* #else */
-/*     /\* make the window, get the OpenGL context *\/ */
-/*     openMainWindow(0, NULL); */
-/*     createGLContext(); */
-/*     glpOpenGLInitialize();  */
-/*     new_tessellation(); */
-/* #endif */
-
 	ENTER_THREAD("display");
 
 	/* Initialize display */
@@ -1407,16 +1392,15 @@ void _displayThread()
 
 #ifdef AQUA
 void initGL() {
-        /* printf ("initGL called\n"); */
+        printf ("OSX initGL called\n"); 
         if (RUNNINGASPLUGIN) {
                 //aqglobalContext = aglGetCurrentContext();
-        /* printf ("initGL - runningasplugin...\n"); */
                 pluginRunning = TRUE;
                 aglSetCurrentContext(aqglobalContext);
         } else {
                 myglobalContext = CGLGetCurrentContext();
         }
-        /* printf ("initGL call finished\n"); */
+        printf ("initGL call finished - aqglobalContext %u, myglobalContext %u\n",aqglobalContext,myglobalContext);
 }
 
 int getOffset() {
@@ -1424,12 +1408,13 @@ int getOffset() {
 }
 
 void setCurXY(int cx, int cy) {
-	/* printf ("setCurXY, have %d %d\n",currentX,currentY); */
+	printf ("setCurXY, have %d %d\n",currentX,currentY); 
         currentX = cx;
         currentY = cy;
 }
 
 void setButDown(int button, int value) {
+	printf ("old qua code, setButDown...\n");
         ButDown[button] = value;
 }
 

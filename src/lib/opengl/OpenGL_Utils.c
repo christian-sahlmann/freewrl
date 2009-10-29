@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.69 2009/10/27 10:44:02 couannette Exp $
+  $Id: OpenGL_Utils.c,v 1.70 2009/10/29 16:03:39 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -458,6 +458,18 @@ bool initialize_GL()
 	GLenum err;
 
 	PRINT_GL_ERROR_IF_ANY("initialize_GL start");
+
+#if defined (TARGET_AQUA)
+        /* aqglobalContext is found at the initGL routine in MainLoop.c. Here
+           we make it the current Context. */
+
+        printf("OpenGL at start of glpOpenGLInitialize globalContext %p\n", aqglobalContext);
+        if (RUNNINGASPLUGIN) {
+                aglSetCurrentContext(aqglobalContext);
+        } else {
+                CGLSetCurrentContext(myglobalContext);
+        }
+#endif
 
 	initialize_rdr_caps();
 
