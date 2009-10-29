@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.10 2009/10/27 10:44:02 couannette Exp $
+  $Id: fwWindow32.c,v 1.11 2009/10/29 00:15:12 couannette Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -15,9 +15,6 @@
 #include <float.h>
 
 #include <main/headers.h>
-
-#include "ui.h"
-/* #include "../plugin/pluginUtils.h" */
 
 #include <winuser.h>
 #include <wingdi.h>
