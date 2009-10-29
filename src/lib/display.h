@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.34 2009/10/28 17:52:28 crc_canada Exp $
+  $Id: display.h,v 1.35 2009/10/29 06:29:40 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -156,6 +156,8 @@ void eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int 
    not working that well... */
 #undef DO_MULTI_OPENGL_THREADS
 # endif
+
+#include "OpenGL/glu.h"
 
 #endif /* defined TARGET_AQUA */
 

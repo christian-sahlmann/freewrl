@@ -133,7 +133,6 @@ print OUT "#define FREEX3D_MESSAGE_WRAPPER \"/usr/bin/say\"\n";
 print OUT "#define FREEWRL_MESSAGE_WRAPPER \"/usr/bin/say\"\n";
 print OUT "#define REWIRE_SERVER \"",$VRML_CONFIG{BIN_DIR},"/freewrlReWireServer\"\n";
 print OUT "#define SOUNDSERVERBINARY \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_SoundServer\"\n";
-print OUT "#include <internal.h>\n";
 print OUT "#include <stdio.h>\n";
 print OUT "#include <stdlib.h>\n";
 print OUT "#include <stdbool.h>\n";
@@ -143,6 +142,7 @@ print OUT "#include <sys/time.h>\n";
 print OUT "#include <dirent.h>\n";
 print OUT "#include <fcntl.h>\n";
 print OUT "#include <expat.h>\n";
+print OUT "#include <internal.h>\n";
 print OUT "#define HAVE_STDINT_H 1\n";
 print OUT "#define HAVE_STDBOOL_H 1\n";
 print OUT "#define HAVE_UNISTD_H 1\n";
@@ -267,7 +267,7 @@ sub writeMakefileFinalTargets() {
 }
 
 sub writeVariables () {	
-	my @CFuncsSourceFiles = split (' ',`find ../src  | grep -v "src/plugin" |grep -v libeai | grep -v "options.c" | grep -v "npunix" | grep -v "/sound/" | grep -v fwWindow | grep -v fwBareWindow | grep -v display_x11 | grep -iv motif | grep -v fwCommonX11 | grep -v win32 | grep "\\.c\$" `);
+	my @CFuncsSourceFiles = split (' ',`find ../src  | grep -v "src/plugin" |grep -v libeai | grep -v "options.c" | grep -v "npunix" | grep -v "/sound/" | grep -v fwWindow32 | grep -v fwBareWindow | grep -v display_x11 | grep -iv motif | grep -v fwCommonX11 | grep -v win32 | grep "\\.c\$" `);
 
 	print MK "\n#CFuncs Make\n";
 	print MK "LIBFWSRCS=";

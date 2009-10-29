@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.16 2009/10/29 01:33:09 couannette Exp $
+$Id: Component_Text.c,v 1.17 2009/10/29 06:29:40 crc_canada Exp $
 
 X3D Text Component
 
@@ -43,7 +43,6 @@ X3D Text Component
 
 #include "Collision.h"
 #include "LinearAlgebra.h"
-
 #include "../scenegraph/Tess.h"
 
 

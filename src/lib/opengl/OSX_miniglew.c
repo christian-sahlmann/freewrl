@@ -1,10 +1,12 @@
 /*
-  $Id: OSX_miniglew.c,v 1.5 2009/10/28 17:52:28 crc_canada Exp $
+  $Id: OSX_miniglew.c,v 1.6 2009/10/29 06:29:40 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL extensions detection and setup.
 
 */
+
+#ifdef OLDCODE
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -45,4 +47,4 @@
 # include "OSX_miniglew.h"
 # include "../ui/aquaInt.h"
 #endif //TARGET_AQUA
-
+#endif /* OLDCODE */

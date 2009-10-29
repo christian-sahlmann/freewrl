@@ -26,7 +26,6 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-lSystem '.
 		'-lexpat '.
 		'-lfreetype '.
-		'-lGLEW '.
 		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -framework QuickTime -framework ApplicationServices',
 
 #JAS		' -F/System/Library/Frameworks -framework QuickTime -framework OpenGL -framework GLUT -framework Cocoa -framework ApplicationServices',
