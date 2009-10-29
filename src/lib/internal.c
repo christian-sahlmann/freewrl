@@ -1,5 +1,5 @@
 /*
-  $Id: internal.c,v 1.8 2009/10/26 10:57:07 couannette Exp $
+  $Id: internal.c,v 1.9 2009/10/29 00:52:59 couannette Exp $
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always
@@ -112,21 +112,44 @@ int __fw_gettimeofday(struct timeval *tv, struct timezone *tz)
     
     return 0;
 }
-
 #endif
 
 void fw_perror(FILE *f, const char *format, ...)
 {
     int e;
     va_list ap;
-    va_start(ap, format);
-	
+
+    va_start(ap, format);	
     e = errno;
-	
     vfprintf(f, format, ap);
-	    
     va_end(ap);
-	    
+
     fprintf(f, "[System error: %s]\n", strerror(e));
     fflush(f);
 }
+
+/* This can be extended ... */
+freewrl_params_t fw_params = {
+	/* width */          800,
+	/* height */         600,
+	/* fullscreen */     FALSE,
+	/* multithreading */ TRUE,
+	/* eai */            TRUE,
+	/* verbose */        FALSE,
+};
+
+/*
+moved out of here because the OSX native code does not use main.c JohnS.
+
+moved here. Michel.
+*/
+
+/* Global FreeWRL options (will become profiles ?) */
+
+bool global_strictParsing = FALSE;
+bool global_plugin_print = FALSE;
+bool global_occlusion_disable = FALSE;
+unsigned global_texture_size = 0;
+bool global_print_opengl_errors = FALSE;
+bool global_trace_threads = FALSE;
+

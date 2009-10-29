@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.11 2009/10/26 10:57:07 couannette Exp $
+  $Id: libFreeWRL.h,v 1.12 2009/10/29 00:52:59 couannette Exp $
 
   FreeWRL library API (public)
 
@@ -50,6 +50,9 @@ typedef struct freewrl_params {
 	int collision;	/* do collision detection? */
 
 } freewrl_params_t;
+
+/* FreeWRL parameters */
+extern freewrl_params_t fw_params;
 
 bool initFreeWRL(freewrl_params_t *params);
 void startFreeWRL(const char *url);

@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.18 2009/10/28 17:52:28 crc_canada Exp $
+  $Id: display.c,v 1.19 2009/10/29 00:52:59 couannette Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -32,6 +32,8 @@
 #include <display.h>
 #include <internal.h>
 #include <threads.h>
+#include <libFreeWRL.h>
+
 #include <libFreeWRL.h>
 
 
@@ -104,6 +106,11 @@ int PaneClipChanged = FALSE;
 int display_initialize()
 {
 	memset(&rdr_caps, 0, sizeof(rdr_caps));
+
+	/* FreeWRL parameters */
+	fullscreen = fw_params.fullscreen;
+	win_width = fw_params.width;
+	win_height = fw_params.height;
 
 #if !defined (TARGET_AQUA)
 	/* make the window, get the OpenGL context */

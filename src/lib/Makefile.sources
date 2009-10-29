@@ -1,13 +1,12 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.31 2009/10/29 00:15:52 couannette Exp $
+# $Id: Makefile.sources,v 1.32 2009/10/29 00:52:59 couannette Exp $
 #
 # List all source files
 #
 
 libFreeWRL_la_SOURCES = \
 			internal.h \
-			fwdebug.h \
 			system.h \
 			system_net.h \
 			system_threads.h \

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.60 2009/10/28 17:52:28 crc_canada Exp $
+  $Id: MainLoop.c,v 1.61 2009/10/29 00:52:59 couannette Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -34,7 +34,9 @@
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include <list.h>
 #include <threads.h>
+#include <resources.h>
 
 #include "../vrml_parser/Structs.h"
 #include "headers.h"
@@ -64,21 +66,11 @@
 #include "MainLoop.h"
 
 
-extern freewrl_params_t fw_params; /* will move to internal.h as soon as I've the time to include this last one everywhere ... */
-
-
-/* Global FreeWRL options (will become profiles ?) */
-
-bool global_strictParsing = FALSE;
-bool global_plugin_print = FALSE;
-bool global_occlusion_disable = FALSE;
-unsigned global_texture_size = 0;
-bool global_print_opengl_errors = FALSE;
-bool global_trace_threads = FALSE;
-
-
-/* do we want OpenGL errors to be printed to the console?? */
-int displayOpenGLErrors = FALSE;
+#ifdef NEW_SYNC_ROOT
+#define IS_WORLD_LOADED ((root_res != NULL) && (root_res->status == ress_parsed))
+#else
+extern int isURLLoaded(void);	/* initial scene loaded? Robert Sim */
+#endif
 
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;
@@ -90,10 +82,6 @@ static int doEvents = FALSE;
 static char debs[300];
 #endif
 
-/* void debug_print(char *s) {printf ("debug_print:%s\n",s);} */
-
-/* #endif */
-/* char* threadmsg; */
 char* PluginFullPath;
 
 static int replaceWorld = FALSE;
@@ -105,14 +93,20 @@ float gl_linewidth = 1.0;
 /* what kind of file was just parsed? */
 int currentFileVersion = 0;
 
-/* we want to run initialize() from the calling thread. NOTE: if initialize creates VRML/X3D nodes, it
-   will call the ProdCon methods to do this, and these methods will check to see if nodes, yada, yada,
-   yada, until we run out of stack. So, we check to see if we are initializing; if so, don't worry about
-   checking for new scripts */
-        /* any scripts to initialize here? we do it here, because we may just have created new scripts during 
-           X3D/VRML parsing. Routing in the Display thread may have noted new scripts, but will ignore them until  
-           we have told it that the scripts are initialized. */ 
-/*                 printf ("have scripts to initialize in EventLoop old %d new %d\n",max_script_found, max_script_found_and_initialized);  \*/
+/*
+   we want to run initialize() from the calling thread. NOTE: if
+   initialize creates VRML/X3D nodes, it will call the ProdCon methods
+   to do this, and these methods will check to see if nodes, yada,
+   yada, yada, until we run out of stack. So, we check to see if we
+   are initializing; if so, don't worry about checking for new scripts
+   any scripts to initialize here? we do it here, because we may just
+   have created new scripts during  X3D/VRML parsing. Routing in the
+   Display thread may have noted new scripts, but will ignore them
+   until   we have told it that the scripts are initialized.  printf
+   ("have scripts to initialize in EventLoop old %d new
+   %d\n",max_script_found, max_script_found_and_initialized);
+*/
+
 #define INITIALIZE_ANY_SCRIPTS \
         if (max_script_found != max_script_found_and_initialized) { \
                 int i; jsval retval; \
@@ -284,7 +278,17 @@ void EventLoop() {
         }
 #endif
 
-        /* printf ("start of MainLoop\n");  */
+#ifdef VERBOSE
+
+#ifdef NEW_SYNC_ROOT
+        printf ("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
+		BOOL_STR(isinputThreadParsing()), BOOL_STR(IS_WORLD_LOADED));
+#else
+        printf ("start of MainLoop (parsing=%s) (url loaded=%s)\n",
+		BOOL_STR(isinputThreadParsing()), BOOL_STR(isURLLoaded()));
+#endif
+
+#endif
 
         /* should we do events, or maybe a parser is parsing? */
         doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
