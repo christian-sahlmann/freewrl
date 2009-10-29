@@ -599,9 +599,9 @@ FREEWRL_SOUND_MANAGER="freewrl_snd"
 FREEWRL_MESSAGE_WRAPPER="freewrl_msg"
 case $os_type in
      # FIXME: name of plugin?
-     win32) FREEWRL_PLUGIN="plugin_windows.dll" ;;
-     mac)   FREEWRL_PLUGIN="npfreewrl.dynlib" ;;
-     *)     FREEWRL_PLUGIN="npfreewrl.so" ;;
+     win32) FREEWRL_PLUGIN="libFreeWRLplugin.dll" ;;
+     mac)   FREEWRL_PLUGIN="libFreeWRLplugin.dynlib" ;;
+     *)     FREEWRL_PLUGIN="libFreeWRLplugin.so" ;;
 esac
 
 AC_SUBST(FREEWRL_PROGRAM)
