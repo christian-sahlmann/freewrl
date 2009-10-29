@@ -11,7 +11,9 @@
 
 build_support_parallelization=true
 
+# we may want to pick up this from the config.h after configure...
 plugin=libFreeWRLplugin.so
+# ditto
 jar=FreeWRL.jar
 
 CFLAGS = -g
@@ -38,10 +40,11 @@ configure-stamp:
 		--with-fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera \
 		--disable-static \
 		--disable-dependency-tracking \
-		--enaable-debug \
+		--enable-debug \
 		--with-target=motif \
 		--with-mesa \
 		--enable-libeai \
+		--with-plugindir=/usr/lib/mozilla/plugins \
 		--with-browser=/usr/bin/firefox \
 		--with-soundconv=/usr/bin/sox \
 		--with-unzip=/usr/bin/unzip \
@@ -71,19 +74,18 @@ install: build
 	dh_testdir
 	dh_testroot
 	dh_installdirs
-	# Install through Make target
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/freewrl
-	-rm -f $(PLUGIN_DIR)/*.la
-	# Plugin is installed in /usr/lib/mozilla/plugins (default on Debian)
-	# but if other directory exists (Ubuntu) we create symlink 
-	# for the plugin in other directories
-	for i in firefox firefox-plugins xulrunner-addons iceape iceweasel mozilla-firefox; do \
-	mkdir -p $(CURDIR)/debian/freewrl/usr/lib/$$i/plugins; \
-	cd $(CURDIR)/debian/freewrl/usr/lib/$$i/plugins; \
-	pwd; echo $$i; \
-	ln -s ../../mozilla/plugins/$(plugin) $(plugin); \
-	ln -s ../../mozilla/plugins/$(jar) $(jar); \
-	done
+# 	-rm -f $(PLUGIN_DIR)/*.la
+# 	# Plugin is installed in /usr/lib/mozilla/plugins (default on Debian)
+# 	# but if other directory exists (Ubuntu) we create symlink 
+# 	# for the plugin in other directories
+# 	for i in firefox firefox-plugins xulrunner-addons iceape iceweasel mozilla-firefox; do \
+# 	mkdir -p $(CURDIR)/debian/freewrl/usr/lib/$$i/plugins; \
+# 	cd $(CURDIR)/debian/freewrl/usr/lib/$$i/plugins; \
+# 	pwd; echo $$i; \
+# 	ln -s ../../mozilla/plugins/$(plugin) $(plugin); \
+# 	ln -s ../../mozilla/plugins/$(jar) $(jar); \
+# 	done
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -94,28 +96,18 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs
-#	dh_installdocs
-#	dh_installexamples
-#	dh_install
+	dh_installdocs
+#	dh_installexamples (option paquet separe: freewrl-testdata)
 	dh_installmenu
-#	dh_installdebconf	
-#	dh_installlogrotate
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installmime
-#	dh_installinit
-#	dh_installcron
-#	dh_installinfo
+#	dh_installmime 
 	dh_installman
 	dh_link
 	dh_strip
 	dh_compress
 	dh_fixperms
-#	dh_perl
-#	dh_python
-#	dh_makeshlibs
+	dh_makeshlibs
 	dh_installdeb
-#	dh_shlibdeps
+	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
