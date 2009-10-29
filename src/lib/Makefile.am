@@ -122,12 +122,12 @@ AM_CPPFLAGS+=-DTARGET_X11
 endif
 
 if WINDOW_USE_MOTIF
-libFreeWRL_la_SOURCES += ui/fwCommonX11.c ui/fwMotifWindow.c ui/fwMotifWindow.h
+libFreeWRL_la_SOURCES += ui/fwCommonX11.c ui/fwMotifWindow.c
 AM_CPPFLAGS+=-DTARGET_MOTIF
 endif
 
 if WINDOW_USE_AQUA
-libFreeWRL_la_SOURCES += 
+libFreeWRL_la_SOURCES += ui/fwWindowAqua.c
 AM_CPPFLAGS+=-DTARGET_AQUA -DAQUA
 endif
 
