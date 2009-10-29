@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.30 2009/10/28 17:52:28 crc_canada Exp $
+# $Id: Makefile.sources,v 1.31 2009/10/29 00:15:52 couannette Exp $
 #
 # List all source files
 #
@@ -173,7 +173,6 @@ opengl/Material.c \
 opengl/LoadTextures.h \
 opengl/LoadTextures.c \
  \
-ui/ui.h \
 ui/statusbar.c \
 ui/aquaInt.h \
  \
