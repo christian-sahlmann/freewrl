@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.30 2009/10/26 10:47:11 couannette Exp $
+  $Id: ProdCon.c,v 1.31 2009/10/29 00:26:27 couannette Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -177,11 +177,18 @@ int inputParseInitialized=FALSE;
 /* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
 int inputThreadParsing=FALSE;
 
-/* Initial URL loaded yet? - Robert Sim */
+#ifdef NEW_SYNC_ROOT
+
+/* Initial URL loaded -- MB res API */
 #define IS_WORLD_LOADED ((root_res != NULL) && (root_res->status == ress_parsed))
-/* int URLLoaded=FALSE; */
-/* is the initial URL loaded? Robert Sim */
-/* int isURLLoaded() {return(URLLoaded&&!inputThreadParsing);} */
+
+#else 
+
+/* Is the initial URL loaded ? Robert Sim */
+int URLLoaded = FALSE;
+int isURLLoaded() { return (URLLoaded && !inputThreadParsing); }
+
+#endif
 
 /* psp is the data structure that holds parameters for the parsing thread */
 struct PSStruct psp;
@@ -570,13 +577,15 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	}
 	
 	struct X3D_Group *nRn;
-	
+	nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+#if 0
 	if (res->where) {
 		nRn = (struct X3D_Group *) res->where;
 	} else {
 		/* get the data from wherever we were originally told to find it */
 		nRn = rootNode;
 	}
+#endif
 	
 	/* ACTUALLY CALLS THE PARSER */
 	PARSE_STRING(of->text, nRn);
@@ -624,7 +633,8 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 		res->node_count = totret; /* remember, the old "perl node number" */
 	}
-	
+
+#if 0
 	/* Called from "replace world" action */
 	if (res->new_root) {
 		kill_oldWorld(FALSE,TRUE,TRUE,__FILE__,__LINE__);
@@ -635,10 +645,12 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		/*remove this node from the deleting list*/
 		doNotRegisterThisNodeForDestroy(rootNode);
 	}
-	
+#endif	
+
 	struct X3D_Group *insert_node;
 	
 	if (res->where == NULL) {
+		ASSERT(rootNode);
 		insert_node = rootNode;
 	} else {
 		insert_node = (struct X3D_Group *) res->where;
@@ -656,8 +668,14 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	
 	AddRemoveChildren(X3D_NODE(nRn),
 			  (struct Multi_Node *)((char *)nRn + offsetof (struct X3D_Group, children)),
-			  (uintptr_t *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);
-	
+			  (uintptr_t *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);	
+
+	/* Final test */
+#ifndef NEW_SYNC_ROOT
+	if (res == root_res) {
+		URLLoaded = TRUE;
+	}
+#endif
 	res->complete = TRUE;
 
 	return TRUE;
@@ -790,11 +808,21 @@ void parser_process_res(s_list_t *item)
 			break;
 		case resm_vrml:
 		case resm_x3d:
-			parser_process_res_VRML_X3D(res);
+			if (parser_process_res_VRML_X3D(res)) {
+				DEBUG_MSG("parser successfull: %s\n", res->request);
+				res->status = ress_parsed;
+			} else {
+				ERROR_MSG("parser failed for resource: %s\n", res->request);
+			}
 			break;
 		case resm_pshader:
 		case resm_fshader:
-			parser_process_res_SHADER(res);
+			if (parser_process_res_SHADER(res)) {
+				DEBUG_MSG("parser successfull: %s\n", res->request);
+				res->status = ress_parsed;
+			} else {
+				ERROR_MSG("parser failed for resource: %s\n", res->request);
+			}
 			break;
 		}
 		/* Parse only once ! */
