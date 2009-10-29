@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.31 2009/10/29 00:26:27 couannette Exp $
+  $Id: ProdCon.c,v 1.32 2009/10/29 01:33:09 couannette Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -659,7 +659,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	/* now that we have the VRML/X3D file, load it into the scene. */
 	/* add the new nodes to wherever the caller wanted */
 	
-	AddRemoveChildren(insert_node,
+	AddRemoveChildren(X3D_NODE(insert_node),
 			  offsetPointer_deref(void*, rootNode, offsetof(struct X3D_Group, children)), 
 			  (uintptr_t*)nRn->children.p,
 			  nRn->children.n, 1, __FILE__,__LINE__);
@@ -689,7 +689,7 @@ bool parser_process_res_PROTO(resource_item_t *res)
 	s_list_t *l;
 	openned_file_t *of;
 	struct VRMLLexer *lexer;
-	const char *buffer;
+	char *buffer;
 
 	switch (res->type) {
 	case rest_invalid:
@@ -720,7 +720,10 @@ bool parser_process_res_PROTO(resource_item_t *res)
 
 	lexer = (struct VRMLLexer *) res->where;
 
+	/* note: this may modify buffer */
 	embedEXTERNPROTO(lexer, lexer->curID, buffer, NULL); //pound);
+	/* FIXME: how to get a return value ? */
+	return TRUE;
 }
 
 /**
@@ -823,6 +826,9 @@ void parser_process_res(s_list_t *item)
 			} else {
 				ERROR_MSG("parser failed for resource: %s\n", res->request);
 			}
+			break;
+		case resm_image:
+		case resm_movie:
 			break;
 		}
 		/* Parse only once ! */

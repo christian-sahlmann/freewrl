@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.19 2009/10/26 10:57:07 couannette Exp $
+$Id: Viewer.h,v 1.20 2009/10/29 01:33:09 couannette Exp $
 
 Viewer ???
 
@@ -33,11 +33,11 @@ Viewer ???
 #include "quaternion.h"
 
 #define VIEWER_STRING(type) ( \
-	type == NONE ? "NONE" : ( \
-	type == EXAMINE ? "EXAMINE" : ( \
-	type == WALK ? "WALK" : ( \
-	type == EXFLY ? "EXFLY" : ( \
-	type == FLY ? "FLY" : "UNKNOWN")))))
+	type == VIEWER_NONE ? "NONE" : ( \
+	type == VIEWER_EXAMINE ? "EXAMINE" : ( \
+	type == VIEWER_WALK ? "WALK" : ( \
+	type == VIEWER_EXFLY ? "EXFLY" : ( \
+	type == VIEWER_FLY ? "FLY" : "UNKNOWN")))))
 
 #define PRESS "PRESS"
 #define PRESS_LEN 5

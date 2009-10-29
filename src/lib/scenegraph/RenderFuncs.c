@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.32 2009/10/28 17:52:28 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.33 2009/10/29 01:33:09 couannette Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -283,8 +283,6 @@ void render_node(struct X3D_Node *node) {
 	int srg = 0;
 	int sch = 0;
 	struct currayhit srh;
-	GLint glerror = GL_NONE;
-	char* stage = "";
 
 	X3D_NODE_CHECK(node);
 

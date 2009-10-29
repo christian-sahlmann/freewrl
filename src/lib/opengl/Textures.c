@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.26 2009/10/26 10:50:08 couannette Exp $
+$Id: Textures.c,v 1.27 2009/10/29 01:33:09 couannette Exp $
 
 General Texture objects.
 
@@ -923,7 +923,9 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 			while(sy) {sy /= 2; ry *= 2;}
 			if(ry/2 == y) {ry /= 2;}
 
-			if (displayOpenGLErrors) printf ("initial texture scale to %d %d\n",rx,ry);
+			if (global_print_opengl_errors) {
+				DEBUG_MSG("initial texture scale to %d %d\n",rx,ry);
+			}
 
 			if(rx != x || ry != y || rx > opengl_has_textureSize || ry > opengl_has_textureSize) {
 				/* do we have texture limits??? */
@@ -931,8 +933,9 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 				if (ry > opengl_has_textureSize) ry = opengl_has_textureSize;
 			}
 
-			if (displayOpenGLErrors)
-				printf ("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
+			if (global_print_opengl_errors) {
+				DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
+			}
 	
 			/* try this texture on for size, keep scaling down until we can do it */
 			texOk = FALSE;
@@ -947,9 +950,10 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 
 				if ((width == 0) || (height == 0)) {
 					rx= rx/2; ry = ry/2;
-					if (displayOpenGLErrors)
-					    printf ("width %d height %d going to try size %d %d, last time %d %d\n",
-						width, height, rx,ry,x,y);
+					if (global_print_opengl_errors) {
+						DEBUG_MSG("width %d height %d going to try size %d %d, last time %d %d\n",
+							  width, height, rx,ry,x,y);
+					}
 					if ((rx==0) || (ry==0)) {
 					    ConsoleMessage ("out of texture memory");
 					    me->status = TEX_LOADED; /* yeah, right */
@@ -961,8 +965,9 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 			}
 
 
-			if (displayOpenGLErrors)
-				printf ("after proxy image stuff, size %d %d\n",rx,ry);
+			if (global_print_opengl_errors) {
+				DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
+			}
 
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 			glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);

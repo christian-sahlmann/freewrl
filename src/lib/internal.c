@@ -1,5 +1,5 @@
 /*
-  $Id: internal.c,v 1.9 2009/10/29 00:52:59 couannette Exp $
+  $Id: internal.c,v 1.10 2009/10/29 01:33:09 couannette Exp $
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always
@@ -30,6 +30,8 @@
 #include <config.h>
 #include <system.h>
 #include <internal.h>
+
+#include <libFreeWRL.h>
 
 #include <stdarg.h>
 #include <errno.h>

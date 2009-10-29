@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.h,v 1.1 2009/10/28 17:52:28 crc_canada Exp $
+$Id: Tess.h,v 1.2 2009/10/29 01:33:09 couannette Exp $
 
 */
 
@@ -28,8 +28,6 @@ $Id: Tess.h,v 1.1 2009/10/28 17:52:28 crc_canada Exp $
 #ifndef __FREEWRL_TESS_H__
 #define __FREEWRL_TESS_H__
 
-#include <gl.h>
-#include <glu.h>
 
 /* Triangulator extern defs - look in CFuncs/Tess.c */
 extern struct X3D_PolyRep *global_tess_polyrep;

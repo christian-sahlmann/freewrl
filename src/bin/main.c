@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.25 2009/10/28 17:52:28 crc_canada Exp $
+  $Id: main.c,v 1.26 2009/10/29 01:33:09 couannette Exp $
 
   FreeWRL main program.
 
@@ -29,7 +29,7 @@
 #include <config.h>
 #include <system.h>
 #include <internal.h>
-#include <fwdebug.h>
+
 #include <libFreeWRL.h>
 
 #include "main.h"

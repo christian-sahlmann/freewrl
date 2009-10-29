@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.1 2009/10/26 10:57:07 couannette Exp $
+  $Id: resources.c,v 1.2 2009/10/29 01:33:09 couannette Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -449,7 +449,7 @@ bool resource_load(resource_item_t *res)
  */
 void resource_identify_type(resource_item_t *res)
 {
-	char *test_it;
+	char *test_it = NULL;
 	s_list_t *l;
 	openned_file_t *of;
 	int t;

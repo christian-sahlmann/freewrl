@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.28 2009/10/26 10:55:12 couannette Exp $
+$Id: CScripts.c,v 1.29 2009/10/29 01:33:09 couannette Exp $
 
 ???
 
@@ -279,7 +279,7 @@ struct ScriptFieldDecl* script_getField_viaASCIIname (struct Shader_Script* me, 
  for(i=0; i!=vector_size(me->fields); ++i)
  {
   struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
-  if(strcmp(name,curField->ASCIIname) == NULL)
+  if(strcmp(name,curField->ASCIIname) == 0)
    return curField;
  }
 

@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.12 2009/10/29 00:52:59 couannette Exp $
+  $Id: libFreeWRL.h,v 1.13 2009/10/29 01:33:09 couannette Exp $
 
   FreeWRL library API (public)
 
@@ -75,11 +75,11 @@ void doQuit();
 /* void Anchor_ReplaceWorld(char *name); */
 bool Anchor_ReplaceWorld();
 
-#define NONE 0
-#define EXAMINE 1
-#define WALK 2
-#define EXFLY 3
-#define FLY 4
+#define VIEWER_NONE 0	  /* would have conflicted with another NONE definition */
+#define VIEWER_EXAMINE 1
+#define VIEWER_WALK 2
+#define VIEWER_EXFLY 3
+#define VIEWER_FLY 4
 void set_viewer_type(const int type);
 
 void setTexSize(int requestedsize);

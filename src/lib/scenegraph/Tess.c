@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.11 2009/10/28 17:52:28 crc_canada Exp $
+$Id: Tess.c,v 1.12 2009/10/29 01:33:09 couannette Exp $
 
 ???
 
@@ -37,7 +37,6 @@ $Id: Tess.c,v 1.11 2009/10/28 17:52:28 crc_canada Exp $
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-#include "Tess.h"
 
 
 /* JAS */

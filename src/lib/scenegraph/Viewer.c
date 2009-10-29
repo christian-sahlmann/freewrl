@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.35 2009/10/05 15:07:24 crc_canada Exp $
+$Id: Viewer.c,v 1.36 2009/10/29 01:33:09 couannette Exp $
 
 CProto ???
 
@@ -46,7 +46,7 @@ CProto ???
 int doExamineModeDistanceCalculations = FALSE;
 static int examineCounter = 5;
 
-static int viewer_type = NONE;
+static int viewer_type = VIEWER_NONE;
 int viewer_initialized = FALSE;
 static X3D_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
 static X3D_Viewer_Examine viewer_examine = { { 0, 0, 0 }, {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
@@ -104,7 +104,7 @@ void viewer_default() {
 	Viewer.examine = &viewer_examine;
 	Viewer.fly = &viewer_fly;
 
-	set_viewer_type(EXAMINE);
+	set_viewer_type(VIEWER_EXAMINE);
 
 	set_eyehalf( Viewer.eyedist/2.0,
 		atan2(Viewer.eyedist/2.0,Viewer.screendist)*360.0/(2.0*3.1415926));
@@ -219,23 +219,23 @@ void set_viewer_type(const int type) {
 	setMenuButton_navModes(viewer_type);
 
 	switch(type) {
-	case NONE:
-	case EXAMINE:
-	case WALK:
-	case EXFLY:
-	case FLY:
+	case VIEWER_NONE:
+	case VIEWER_EXAMINE:
+	case VIEWER_WALK:
+	case VIEWER_EXFLY:
+	case VIEWER_FLY:
 		viewer_type = type;
 		break;
 	default:
 		fprintf(stderr, "Viewer type %d is not supported. See Viewer.h.\n", type);
-		viewer_type = NONE;
+		viewer_type = VIEWER_NONE;
 		break;
 	}
 }
 
 
 int use_keys() {
-	if (viewer_type == FLY) {
+	if (viewer_type == VIEWER_FLY) {
 		return TRUE;
 	}
 	return FALSE;
@@ -250,7 +250,7 @@ void resolve_pos() {
 	X3D_Viewer_Examine *examine = Viewer.examine;
 
 
-	if (viewer_type == EXAMINE) {
+	if (viewer_type == VIEWER_EXAMINE) {
 		/* my $z = $this->{Quat}->invert->rotate([0,0,1]); */
 		quaternion_inverse(&q_inv, &(Viewer.Quat));
 		quaternion_rotation(&rot, &q_inv, &z_axis);
@@ -281,7 +281,7 @@ void viewer_togl(double fieldofview) {
 		Quaternion origLookatQuat;
 		Quaternion currentLookatQuat;
 
-		printf ("slerping in togl, type %s\n",VIEWER_STRING(viewer_type));
+		printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type));
 		tickFrac = TickTime - Viewer.startSLERPtime;
 		tickFrac = tickFrac/4.0;
 		printf ("tick frac %lf\n",tickFrac);
@@ -558,17 +558,17 @@ void handle(const int mev, const unsigned int button, const float x, const float
 	}
 
 	switch(viewer_type) {
-	case NONE:
+	case VIEWER_NONE:
 		break;
-	case EXAMINE:
+	case VIEWER_EXAMINE:
 		handle_examine(mev, button, ((float) x), ((float) y));
 		break;
-	case WALK:
+	case VIEWER_WALK:
 		handle_walk(mev, button, ((float) x), ((float) y));
 		break;
-	case EXFLY:
+	case VIEWER_EXFLY:
 		break;
-	case FLY:
+	case VIEWER_FLY:
 		break;
 	default:
 		break;
@@ -583,7 +583,7 @@ handle_key(const char key)
 	char _key;
 	int i;
 
-	if (viewer_type == FLY) {
+	if (viewer_type == VIEWER_FLY) {
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
 
@@ -605,7 +605,7 @@ handle_keyrelease(const char key)
 	char _key;
 	int i;
 
-	if (viewer_type == FLY) {
+	if (viewer_type == VIEWER_FLY) {
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
 
@@ -708,7 +708,7 @@ handle_tick_exfly()
 				IN_FILE);
 
 		/* allow the user to continue in default Viewer mode */
-		viewer_type = EXAMINE;
+		viewer_type = VIEWER_EXAMINE;
 		setMenuButton_navModes(viewer_type);
 		return;
 	}
@@ -882,17 +882,17 @@ void
 handle_tick()
 {
 	switch(viewer_type) {
-	case NONE:
+	case VIEWER_NONE:
 		break;
-	case EXAMINE:
+	case VIEWER_EXAMINE:
 		break;
-	case WALK:
+	case VIEWER_WALK:
 		handle_tick_walk();
 		break;
-	case EXFLY:
+	case VIEWER_EXFLY:
 		handle_tick_exfly();
 		break;
-	case FLY:
+	case VIEWER_FLY:
 		handle_tick_fly();
 		break;
 	default:
@@ -1098,6 +1098,9 @@ void deleteAnaglyphShaders()
 }
 
 void setAnaglyphParameter(const char *optArg) {
+/*
+  NOTE: "const char" means that you wont modify it in the function :)
+ */
 	int i;
 	//char glasses[32];
 	char* glasses;

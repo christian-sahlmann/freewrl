@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.25 2009/10/26 10:53:35 couannette Exp $
+$Id: CParseLexer.c,v 1.26 2009/10/29 01:33:09 couannette Exp $
 
 ???
 
@@ -1260,7 +1260,7 @@ int lexer_EXTERNPROTO_mfstringValue(struct VRMLLexer* me, struct Multi_String* r
 }
 
 /* isolate the PROTO that we want from the just read in EXTERNPROTO string */
-void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound) {
+void embedEXTERNPROTO(struct VRMLLexer *me, const char *myName, char *buffer, char *pound) {
         char *cp;
         char *externProtoPointer;
         char *proto;

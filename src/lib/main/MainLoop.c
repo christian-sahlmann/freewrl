@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.61 2009/10/29 00:52:59 couannette Exp $
+  $Id: MainLoop.c,v 1.62 2009/10/29 01:33:09 couannette Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1076,10 +1076,10 @@ void do_keyPress(const char kp, int type) {
         } else {
                 if (type == KeyPress) {
                         switch (kp) {
-                                case 'e': { set_viewer_type (EXAMINE); break; }
-                                case 'w': { set_viewer_type (WALK); break; }
-                                case 'd': { set_viewer_type (FLY); break; }
-                                case 'f': { set_viewer_type (EXFLY); break; }
+                                case 'e': { set_viewer_type (VIEWER_EXAMINE); break; }
+                                case 'w': { set_viewer_type (VIEWER_WALK); break; }
+                                case 'd': { set_viewer_type (VIEWER_FLY); break; }
+                                case 'f': { set_viewer_type (VIEWER_EXFLY); break; }
                                 case 'h': { toggle_headlight(); break;}
                                 case '/': { print_viewer(); break; }
                                 case 'q': { if (!RUNNINGASPLUGIN) {
@@ -1358,7 +1358,7 @@ void _displayThread()
 
 	new_tessellation();
 	
-	set_viewer_type(EXAMINE);
+	set_viewer_type(VIEWER_EXAMINE);
 	
 	viewer_postGLinit_init();
     
@@ -1490,7 +1490,7 @@ void closeFreewrl() {
         viewer_initialized = FALSE;
 
         if (!RUNNINGASPLUGIN) {
-                set_viewer_type (EXAMINE);
+                set_viewer_type (VIEWER_EXAMINE);
         }
         glFlush();
         glFinish();

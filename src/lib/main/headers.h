@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.83 2009/10/28 17:52:28 crc_canada Exp $
+$Id: headers.h,v 1.84 2009/10/29 01:33:09 couannette Exp $
 
 Global includes.
 
@@ -1072,8 +1072,6 @@ extern void *setViewpointBindInRender;
 extern void *setFogBindInRender;
 extern void *setBackgroundBindInRender;
 extern void *setNavigationBindInRender;
-
-extern int displayOpenGLErrors;
 
 char* convert1To2(const char *inp);
 

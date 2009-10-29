@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.18 2009/10/22 16:58:49 crc_canada Exp $
+$Id: Bindable.c,v 1.19 2009/10/29 01:33:09 couannette Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -115,31 +115,31 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 		typeptr = svptr[i]->strptr;
 
 		if (strcmp(typeptr,"WALK") == 0) {
-			Viewer.oktypes[WALK] = TRUE;
-			if (i==0) set_viewer_type(WALK);
+			Viewer.oktypes[VIEWER_WALK] = TRUE;
+			if (i==0) set_viewer_type(VIEWER_WALK);
 		}
 		if (strcmp(typeptr,"FLY") == 0) {
-			Viewer.oktypes[FLY] = TRUE;
-			if (i==0) set_viewer_type(FLY);
+			Viewer.oktypes[VIEWER_FLY] = TRUE;
+			if (i==0) set_viewer_type(VIEWER_FLY);
 		}
 		if (strcmp(typeptr,"EXAMINE") == 0) {
-			Viewer.oktypes[EXAMINE] = TRUE;
-			if (i==0) set_viewer_type(EXAMINE);
+			Viewer.oktypes[VIEWER_EXAMINE] = TRUE;
+			if (i==0) set_viewer_type(VIEWER_EXAMINE);
 		}
 		if (strcmp(typeptr,"NONE") == 0) {
-			Viewer.oktypes[NONE] = TRUE;
-			if (i==0) set_viewer_type(NONE);
+			Viewer.oktypes[VIEWER_NONE] = TRUE;
+			if (i==0) set_viewer_type(VIEWER_NONE);
 		}
 		if (strcmp(typeptr,"EXFLY") == 0) {
-			Viewer.oktypes[EXFLY] = TRUE;
-			if (i==0) set_viewer_type(EXFLY);
+			Viewer.oktypes[VIEWER_EXFLY] = TRUE;
+			if (i==0) set_viewer_type(VIEWER_EXFLY);
 		}
 		if (strcmp(typeptr,"ANY") == 0) {
-			Viewer.oktypes[EXAMINE] = TRUE;
-			Viewer.oktypes[WALK] = TRUE;
-			Viewer.oktypes[EXFLY] = TRUE;
-			Viewer.oktypes[FLY] = TRUE;
-			if (i==0) set_viewer_type (WALK); /*  just choose one */
+			Viewer.oktypes[VIEWER_EXAMINE] = TRUE;
+			Viewer.oktypes[VIEWER_WALK] = TRUE;
+			Viewer.oktypes[VIEWER_EXFLY] = TRUE;
+			Viewer.oktypes[VIEWER_FLY] = TRUE;
+			if (i==0) set_viewer_type (VIEWER_WALK); /*  just choose one */
 		}
 	}
         Viewer.headlight = node->headlight;
