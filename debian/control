@@ -2,11 +2,11 @@ Source: freewrl
 Section: graphics
 Priority: optional
 Maintainer: Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>
-Build-Depends: debhelper (>= 7), libxxf86vm-dev, libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libglew1.5-dev, libxaw7-dev, lesstif2-dev, libimlib2-dev, libxml2-dev, libexpat1-dev, libmozjs-dev, gcj | java-compiler, iceape-dev
+Build-Depends: debhelper (>= 7), libxxf86vm-dev, libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libglew1.5-dev, libxaw7-dev, libmotif3-dev, libimlib2-dev, libxml2-dev, libexpat1-dev, libmozjs-dev, gcj | java-compiler, iceape-dev
 Standards-Version: 3.8.0
 
 Package: freewrl
 Architecture: any
-Depends: libgl1, libglu1, libglew1.5, libxaw7, lesstif2, libimlib2, libxml2, libexpat1, libmozjs1d, java-runtime
+Depends: libgl1, libglu1, libglew1.5, libxaw7, libmotif3, libimlib2, libxml2, libexpat1, libmozjs1d, java-runtime
 Recommends: ttf-bitstream-vera, wget, sox, convert
 Description: FreeWRL X3D/VRML browser 
