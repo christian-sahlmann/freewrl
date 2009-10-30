@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.11 2009/10/29 01:33:09 couannette Exp $
+  $Id: fwMotifWindow.c,v 1.12 2009/10/30 18:57:35 crc_canada Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -1007,7 +1007,7 @@ void setMessageBar()
         if (strlen(myMenuStatus) == 0) {
             strcat (myMenuStatus, "NONE");
         }
-        if (isShapeCompilerParsing() || 
+        if ( 
 	    isinputThreadParsing() || 
 	    isTextureParsing() || 
 	    (!isInputThreadInitialized())) {

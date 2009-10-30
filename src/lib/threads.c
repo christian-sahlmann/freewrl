@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.7 2009/10/26 10:57:07 couannette Exp $
+  $Id: threads.c,v 1.8 2009/10/30 18:57:34 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -41,10 +41,6 @@ pthread_t mainThread;
 
 DEF_THREAD(DispThrd);
 
-#ifdef DO_MULTI_OPENGL_THREADS
-DEF_THREAD(shapeThread);
-#endif
-
 DEF_THREAD(PCthread);
 
 DEF_THREAD(loadThread);
@@ -83,27 +79,6 @@ void initializeDisplayThread()
 	}
 #endif
 }
-
-#ifdef DO_MULTI_OPENGL_THREADS
-void initializeShapeCompileThread()
-{
-	int ret;
-
-	/* Synchronize trace/error log... */
-	fflush(stdout);
-	fflush(stderr);
-
-	ASSERT(TEST_NULL_THREAD(shapeThread));
-	ret = pthread_create(&shapeThread, NULL, (void *(*)(void *))&_shapeCompileThread, NULL);
-	switch (ret) {
-	case 0: 
-		break;
-	case EAGAIN: 
-		ERROR_MSG("initializeShapeCompileThread: not enough system resources to create a process for the new thread.");
-		return;
-	}
-}
-#endif
 
 /* create consumer thread and set the "read only" flag indicating this */
 void initializeInputParseThread()

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.63 2009/10/29 16:03:39 crc_canada Exp $
+  $Id: MainLoop.c,v 1.64 2009/10/30 18:57:35 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -291,7 +291,7 @@ void EventLoop() {
 #endif
 
         /* should we do events, or maybe a parser is parsing? */
-        doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
+        doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && isInputThreadInitialized();
 
         /* Set the timestamp */
 	TickTime = Time1970sec();

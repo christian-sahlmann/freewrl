@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.33 2009/10/29 01:33:09 couannette Exp $
+  $Id: RenderFuncs.c,v 1.34 2009/10/30 18:57:35 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -606,56 +606,6 @@ render_hier(struct X3D_Node *p, int rwhat) {
  * shape compiler "thread"
  *
  ******************************************************************************/
-#ifdef DO_MULTI_OPENGL_THREADS
-
-/* threading variables for loading shapes in threads */
-static pthread_mutex_t shapeMutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t shapeCond   = PTHREAD_COND_INITIALIZER;
-#define SLOCK           pthread_mutex_lock(&shapeMutex);
-#define SUNLOCK         pthread_mutex_unlock(&shapeMutex);
-#define S_LOCK_SIGNAL   pthread_cond_signal(&shapeCond);
-#define S_LOCK_WAIT     pthread_cond_wait(&shapeCond,&shapeMutex);
-/* lock the reallocs of data structures */
-
-/* are we currently active? */
-int shapeCompiling = FALSE;
-
-int CompileThreadInitialized = FALSE;
-static void (*shapemethodptr)(void *, void *, void *, void *, void *); 	/* method used to compile this node 	*/
-static void *shapenodeptr;		/* node pointer of node data		*/
-static void *shapecoord;		/* Polrep shape coord node		*/
-static void *shapecolor;		/* Polyrep shape color node		*/
-static void *shapenormal;		/* Polyrep shape normal node		*/
-static void *shapetexCoord;		/* Polyrep shape tex coord node		*/
-
-void _shapeCompileThread ()
-{
-	ENTER_THREAD("shape compiler");
-
-	/* we wait forever for the data signal to be sent */
-	for (;;) {
-		SLOCK
-			CompileThreadInitialized = TRUE;
-		S_LOCK_WAIT
-			shapeCompiling = TRUE;
-		/* printf ("shapethread compiling\n"); */
-
-		/* so, lets do the compile */
-		shapemethodptr(shapenodeptr, shapecoord, shapecolor, shapenormal, shapetexCoord);
-
-		shapeCompiling = FALSE;
-		SUNLOCK
-			}
-}
-#endif
-
-int isShapeCompilerParsing() {
-#ifdef DO_MULTI_OPENGL_THREADS
-	return shapeCompiling;
-#else
-	return FALSE;
-#endif
-}
 
 void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *Icoord, void *Icolor, void *Inormal, void *ItexCoord) {
 	void *coord; void *color; void *normal; void *texCoord;
@@ -675,39 +625,7 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 		POSSIBLE_PROTO_EXPANSION(Inormal,normal)
 		POSSIBLE_PROTO_EXPANSION(ItexCoord,texCoord)
 
-#ifdef DO_MULTI_OPENGL_THREADS
-
-		/* do we want to use a seperate thread for compiling shapes, or THIS thread? */
-		if (useShapeThreadIfPossible) {
-			if (!shapeCompiling) {
-				if (!CompileThreadInitialized) return; /* still starting up */
-	
-	
-				/* lock for exclusive thread access */
-				SLOCK
-	
-					/* copy our params over */
-					shapemethodptr = nodefn;
-				shapenodeptr = node;
-				shapecoord = coord;
-				shapecolor = color;
-				shapenormal = normal;
-				shapetexCoord = texCoord;
-				/* signal to the shape compiler thread that there is data here */
-				S_LOCK_SIGNAL
-					SUNLOCK
-			
-					}
-			sched_yield();
-		} else {
-			/* ok, we do not want to use the shape compile thread, just do it */
-			nodefn(node, coord, color, normal, texCoord);
-		}
-
-#else
-	/* ok, we cant do a shape compile thread, just do it */
 	nodefn(node, coord, color, normal, texCoord);
-#endif
 }
 
 

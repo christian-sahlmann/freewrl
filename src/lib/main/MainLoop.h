@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.h,v 1.4 2009/10/26 10:47:11 couannette Exp $
+  $Id: MainLoop.h,v 1.5 2009/10/30 18:57:35 crc_canada Exp $
 
   FreeWRL support library.
   UI declarations.
@@ -43,7 +43,6 @@ void toggle_headlight();
 /* should be in OpenGL_Utils.h but this would grab all X3D defs.... */
 void setglClearColor(float *val);
 int isTextureParsing();
-int isShapeCompilerParsing();
 
 /* where this should be ? */
 const char* freewrl_get_browser_program();

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.84 2009/10/29 01:33:09 couannette Exp $
+$Id: headers.h,v 1.85 2009/10/30 18:57:35 crc_canada Exp $
 
 Global includes.
 
@@ -208,7 +208,6 @@ extern double geoHeightinZAxis;
    meshes are rendered using the PolyRep scheme, which also compiles into OpenGL 
    calls, using the PolyRep (and, stream_PolyRep) methodology */
 
-int isShapeCompilerParsing(void);
 void compile_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
 
 #define NODE_CHANGE_INIT_VAL 153	/* node->_change is set to this when created */

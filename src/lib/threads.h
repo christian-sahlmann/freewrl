@@ -1,5 +1,5 @@
 /*
-  $Id: threads.h,v 1.1 2009/10/26 13:30:36 couannette Exp $
+  $Id: threads.h,v 1.2 2009/10/30 18:57:35 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -61,12 +61,6 @@ extern pthread_t loadThread;
 /* DISPLAY THREAD */
 void initializeDisplayThread();
 void _displayThread();
-
-#ifdef DO_MULTI_OPENGL_THREADS
-/* SHAPE COMPILER THREAD */
-void initializeShapeCompileThread();
-void _shapeCompileThread();
-#endif
 
 /* PARSER THREAD */
 void initializeInputParseThread();
