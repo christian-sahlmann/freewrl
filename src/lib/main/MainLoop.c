@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.64 2009/10/30 18:57:35 crc_canada Exp $
+  $Id: MainLoop.c,v 1.65 2009/10/30 19:23:47 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1303,28 +1303,6 @@ void Next_ViewPoint() {
                 send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
         }
 }
-
-/* OSX plugin is telling us the id to refer to */
-void setInstance (uintptr_t instance) {
-        /* printf ("setInstance, setting to %u\n",instance); */
-        _fw_instance = instance;
-}
-
-/* osx Safari plugin is telling us where the initial file is */
-void setFullPath(const char* file) 
-{
-    if (!fw_params.collision) {
-        char ks = 'c';
-        do_keyPress(ks, KeyPress);
-    }
-
-    /* remove a FILE:// or file:// off of the front */
-    file = stripLocalFileName ((char *)file);
-    FREE_IF_NZ (BrowserFullPath);
-    BrowserFullPath = STRDUP((char *) file);
-    /* ConsoleMessage ("setBrowserFullPath is %s (%d)",BrowserFullPath,strlen(BrowserFullPath));  */
-}
-
 
 /* handle all the displaying and event loop stuff. */
 void _displayThread()
