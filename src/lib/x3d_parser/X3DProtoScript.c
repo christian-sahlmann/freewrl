@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.39 2009/10/26 10:54:19 couannette Exp $
+$Id: X3DProtoScript.c,v 1.40 2009/10/31 16:21:46 couannette Exp $
 
 ???
 
@@ -35,6 +35,7 @@ $Id: X3DProtoScript.c,v 1.39 2009/10/26 10:54:19 couannette Exp $
 
 #include <libFreeWRL.h>
 #include <list.h>
+#include <io_files.h>
 #include <resources.h>
 
 #include "../vrml_parser/Structs.h"
@@ -1758,6 +1759,35 @@ void endExternProtoDeclare(void) {
 		Parser_scanStringValueToMem(X3D_NODE(&url),0,FIELDTYPE_MFString,CPD.url,TRUE);
 		/* printf ("just scanned %d strings...\n",url.n); */
 
+		res = resource_create_multi(&url);
+		resource_identify(root_res, res);
+		if (res->type != rest_invalid) {
+			if (resource_fetch(res)) {
+				if (resource_load(res)) {
+					s_list_t *l;
+					openned_file_t *of;
+					l = res->openned_files;
+					of = ml_elem(l);
+					buffer = of->text;
+/* 				pound = strchr(buffer, '#'); */
+/* 				embedEXTERNPROTO(me, myName, buffer, pound); */
+					printf("**** X3D EXTERNPROTO:\n%s\n", buffer);
+				}
+			}
+		}
+		
+		
+		if (res->status == ress_loaded) {
+			/* ok - we are replacing EXTERNPROTO with PROTO */
+			res->status = ress_parsed;
+			res->complete = TRUE;
+			foundOk = TRUE;
+		} else {
+			/* failure, FIXME: remove res from root_res... */
+/* 		resource_destroy(res); */
+		}
+
+#if 0 //MBFILES
 		for (i=0; i< url.n; i++) {
 			if (!foundOk) {
 				/* printf ("ExternProtoDeclare: trying url %s\n",(url.p[i])->strptr);  */
@@ -1767,18 +1797,6 @@ void endExternProtoDeclare(void) {
 					*pound = '\0';
 				}
 
-				res = resource_create_single(testname);
-				send_resource_to_parser(res);
-				resource_wait(res);
-				
-				if (res->status == ress_loaded) {
-					foundOk = TRUE;
-					break;
-				}
-				
-				resource_destroy(res);
-
-#if 0 //MBFILES
 				if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
 					foundOk = TRUE;
 					buffer = readInputString(testname);
@@ -1786,12 +1804,10 @@ void endExternProtoDeclare(void) {
 				} else {
 					/* printf ("fileExists returns failure for %s\n",testname); */
 				}
-#endif
-
 			} /* else, just skip the rest of the list */
 		}
-
         	FREE_IF_NZ(testname);
+#endif
 
 		/* if (buffer != NULL) { 
 			printf ("EPD: just read in %s\n",buffer);

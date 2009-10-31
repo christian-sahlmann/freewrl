@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.9 2009/10/26 17:48:43 couannette Exp $
+  $Id: LoadTextures.c,v 1.10 2009/10/31 16:21:46 couannette Exp $
 
   FreeWRL support library.
 
@@ -70,15 +70,6 @@ void texture_loader_initialize()
 }
 
 /* thread safe functions */
-
-/* concat two string with a / in between */
-char* concat_path(const char *a, const char *b)
-{
-    char *tmp;
-    tmp = MALLOC(strlen(a) + strlen(b) + 1);
-    sprintf(tmp, "%s/%s", a, b);
-    return tmp;
-}
 
 bool is_url(const char *url)
 {

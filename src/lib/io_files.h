@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.h,v 1.2 2009/10/26 10:57:07 couannette Exp $
+  $Id: io_files.h,v 1.3 2009/10/31 16:21:46 couannette Exp $
 
   FreeWRL support library.
   IO with files.
@@ -30,6 +30,7 @@
 
 
 /* Path manipulation */
+char* concat_path(const char *a, const char *b);
 char* remove_filename_from_path(const char *path);
 
 /* Simple functions for file/dir access */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.29 2009/10/29 01:33:09 couannette Exp $
+$Id: CScripts.c,v 1.30 2009/10/31 16:21:46 couannette Exp $
 
 ???
 
@@ -35,6 +35,7 @@ $Id: CScripts.c,v 1.29 2009/10/29 01:33:09 couannette Exp $
 
 #include <libFreeWRL.h>
 #include <list.h>
+#include <io_files.h>
 #include <resources.h>
 
 #include "../vrml_parser/Structs.h"
@@ -371,19 +372,7 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
   /* Is this a "data:text/plain," uri? JAS*/
   if((!*v && *u==',') || (!*v && *u==':')) {
    	if (me != NULL) {
-#if 0 //MBFILES
 		return script_initCode(me, u+1); /* a script */
-#endif
-
-		res = resource_create_from_string(u+1);
-		send_resource_to_parser(res);
-		resource_wait(res);
-		
-		if (res->status == ress_parsed) {
-			return TRUE;
-		}
-		resource_destroy(res);
-
 	} else {
 		buffer = STRDUP(u+1);
 		return TRUE; /* a shader, program text will be in the "buffer" */
@@ -395,6 +384,33 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
     is this a possible file that we have to get? */
 
  DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
+
+ res = resource_create_single(uri);
+ resource_identify(root_res, res);
+ if (res->type != rest_invalid) {
+	 if (resource_fetch(res)) {
+		 if (resource_load(res)) {
+			 s_list_t *l;
+			 openned_file_t *of;
+			 l = res->openned_files;
+			 of = ml_elem(l);
+			 buffer = of->text;
+			 printf("**** Script:\n%s\n", buffer);
+			 rv = script_initCode(me, buffer);
+		 }
+	 }
+ }
+ 
+ 
+ if (res->status == ress_loaded && rv) {
+	 /* ok - we are replacing EXTERNPROTO with PROTO */
+	 res->status = ress_parsed;
+	 res->complete = TRUE;
+	 return TRUE;
+ } else {
+	 /* failure, FIXME: remove res from root_res... */
+/* 		resource_destroy(res); */
+ }
 
 #if 0 //MBFILES
  // Test if this could be a path name
@@ -438,14 +454,6 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  return rv;
 #endif
 
- res = resource_create_single(filename);
- send_resource_to_parser(res);
- resource_wait(res);
-
- if (res->status == ress_parsed) {
-	 return TRUE;
- }
- resource_destroy(res);
  return FALSE;
 }
 

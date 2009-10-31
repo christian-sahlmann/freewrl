@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.2 2009/10/29 01:33:09 couannette Exp $
+  $Id: resources.c,v 1.3 2009/10/31 16:21:46 couannette Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -41,6 +41,7 @@
 #include <threads.h>
 
 #include <vrml_parser/Structs.h>
+
 
 /**
  *   When main world/file is initialized, setup this
@@ -187,10 +188,9 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 			l = res->m_request;
 			/* Pick up next request in our list */			
 			res->request = (char *) l->elem;
-			/* Remove it from the list */
+			/* Point to the next... */
 			res->m_request = res->m_request->next;
-			FREE_IF_NZ(l->elem);
-			FREE(l);
+			/* FIXME: how to free that list ??? */
 		} else {
 			/* list empty */
 			return;
@@ -263,7 +263,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 				} else {
 					res->type = rest_file;
 					res->status = ress_starts_good;
-					url = strcat(base->base, res->request);
+					url = concat_path(base->base, res->request);
 				}
 
 			} else {
@@ -726,6 +726,7 @@ void resource_push_multi_request(struct Multi_String *request)
  */
 void resource_wait(resource_item_t *res)
 {
+	TRACE_MSG("resource_wait: starts waiting for res to complete: %s\n", res->request);
 	/* Wait while parser is working */
 	while (!res->complete) {
 		sleep(1);

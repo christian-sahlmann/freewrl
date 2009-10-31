@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.27 2009/10/29 01:33:09 couannette Exp $
+$Id: Textures.c,v 1.28 2009/10/31 16:21:46 couannette Exp $
 
 General Texture objects.
 
@@ -163,6 +163,16 @@ struct Uni_String *newASCIIString(char *str);
 
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
 void readpng_cleanup(int free_image_data);
+
+
+static char *texst (int num) {
+	if (num == TEX_NOTLOADED) return "TEX_NOTLOADED";
+	if (num == TEX_LOADING) return "TEX_LOADING";
+	if (num == TEX_NEEDSBINDING)return "TEX_NEEDSBINDING";
+	if (num == TEX_LOADED)return "TEX_LOADED";
+	if (num == TEX_UNSQUASHED)return "UNSQUASHED";
+	return "unknown";
+}
 
 
 /* does a texture have alpha?  - pass in a __tableIndex from a MovieTexture, ImageTexture or PixelTexture. */
@@ -513,7 +523,9 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 void loadTextureNode (struct X3D_Node *node, void *param) 
 {
     struct X3D_MovieTexture *mym;
-    
+
+    DEBUG_MSG("loadTextureNode: %s\n", stringNodeType(node->_nodeType));
+
     if (NODE_NEEDS_COMPILING) {
 	/* force a node reload - make it a new texture. Don't change
 	   the parameters for the original number, because if this
@@ -573,11 +585,11 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		/* alloc fields, if required - only do this once, even if node changes */
 		if (node->__params == 0) {
 			/* printf ("loadMulti, MALLOCing for params\n"); */
-			node->__params = MALLOC (sizeof (struct multiTexParams) * opengl_has_numTextureUnits);
+			node->__params = MALLOC (sizeof (struct multiTexParams) * rdr_caps.texture_units);
 			paramPtr = (struct multiTexParams*) node->__params;
 
 			/* set defaults for these fields */
-			for (count = 0; count < opengl_has_numTextureUnits; count++) {
+			for (count = 0; count < rdr_caps.texture_units; count++) {
 				paramPtr->texture_env_mode  = GL_MODULATE; 
 				paramPtr->combine_rgb = GL_MODULATE;
 				paramPtr->source0_rgb = GL_TEXTURE;
@@ -601,7 +613,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 		/* how many textures can we use? no sense scanning those we cant use */
 		max = node->mode.n; 
-		if (max > opengl_has_numTextureUnits) max = opengl_has_numTextureUnits;
+		if (max > rdr_caps.texture_units) max = rdr_caps.texture_units;
 
 		/* go through the params, and change string name into a GLint */
 		paramPtr = (struct multiTexParams*) node->__params;
@@ -717,7 +729,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 	/* how many textures can we use? */
 	max = node->texture.n; 
-	if (max > opengl_has_numTextureUnits) max = opengl_has_numTextureUnits;
+	if (max > rdr_caps.texture_units) max = rdr_caps.texture_units;
 
 	/* go through and get all of the textures */
 	paramPtr = (struct multiTexParams *) node->__params;
@@ -1036,17 +1048,6 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 
 	param - vrml fields, but translated into GL_TEXTURE_ENV_MODE, GL_MODULATE, etc.
 ************************************************************************************/
-
-#ifdef TEXVERBOSE
-char *texst (int num) {
-	if (num == TEX_NOTLOADED) return "TEX_NOTLOADED";
-	if (num == TEX_LOADING) return "TEX_LOADING";
-	if (num == TEX_NEEDSBINDING)return "TEX_NEEDSBINDING";
-	if (num == TEX_LOADED)return "TEX_LOADED";
-	if (num == TEX_UNSQUASHED)return "UNSQUASHED";
-	return "unknown";
-}
-#endif
 
 void new_bind_image(struct X3D_Node *node, void *param) {
 	int thisTexture;
@@ -1440,7 +1441,7 @@ void _textureThread()
 	T_LOCK_WAIT;
 	REGENLOCK;
 
-	DEBUG_TEX("textureThread - working on %d\n"
+	DEBUG_MSG("textureThread - working on %d\n"
 		  "which is node %d, nodeType %d status %s, opengltex %d, and frames %d\n",
 		  currentlyWorkingOn,
 		  (int) loadThisTexture->scenegraphNode, loadThisTexture->nodeType, 

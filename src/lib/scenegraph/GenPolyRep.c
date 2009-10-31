@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.14 2009/10/28 17:52:28 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.15 2009/10/31 16:21:46 couannette Exp $
 
 ???
 
@@ -1375,6 +1375,11 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	 * one of the NIST tests has this - the pie-shaped convex one
 	 *
 	 ************************************************************************/
+/*FIXME:
+  to prevent a crash with script generated data
+*/
+
+	if (nspi < 1) return;
 
 	/* is there anything to this Extrusion??? */
 	if (nsec < 1) {

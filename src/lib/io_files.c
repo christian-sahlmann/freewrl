@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.1 2009/10/26 10:57:07 couannette Exp $
+  $Id: io_files.c,v 1.2 2009/10/31 16:21:46 couannette Exp $
 
   FreeWRL support library.
   IO with files.
@@ -52,6 +52,17 @@ void append_openned_file(s_list_t *list, const char *filename, int fd, char *tex
 int inputFileType = IS_TYPE_UNKNOWN;
 int inputFileVersion[3] = {0,0,0};
 
+
+/**
+ *   concat_path: concat two string with a / in between
+ */
+char* concat_path(const char *a, const char *b)
+{
+    char *tmp;
+    tmp = MALLOC(strlen(a) + strlen(b) + 1);
+    sprintf(tmp, "%s/%s", a, b);
+    return tmp;
+}
 
 /**
  *   remove_filename_from_path: this works also with url.

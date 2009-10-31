@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.26 2009/10/29 01:33:09 couannette Exp $
+$Id: CParseLexer.c,v 1.27 2009/10/31 16:21:46 couannette Exp $
 
 ???
 
@@ -35,6 +35,7 @@ $Id: CParseLexer.c,v 1.26 2009/10/29 01:33:09 couannette Exp $
 
 #include <libFreeWRL.h>
 #include <list.h>
+#include <io_files.h>
 #include <resources.h>
 
 #include "../vrml_parser/Structs.h"
@@ -1398,6 +1399,33 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
                 PARSE_ERROR ("EXTERNPROTO - problem reading URL string");
         }
 
+	res = resource_create_multi(&url);
+	resource_identify(root_res, res);
+	if (res->type != rest_invalid) {
+		if (resource_fetch(res)) {
+			if (resource_load(res)) {
+				s_list_t *l;
+				openned_file_t *of;
+				l = res->openned_files;
+				of = ml_elem(l);
+				buffer = of->text;
+/* 				pound = strchr(buffer, '#'); */
+/* 				embedEXTERNPROTO(me, myName, buffer, pound); */
+				printf("**** VRML EXTERNPROTO:\n%s\n", buffer);
+			}
+		}
+	}
+	
+	if (res->status == ress_loaded) {
+		/* ok - we are replacing EXTERNPROTO with PROTO */
+		res->status = ress_parsed;
+		res->complete = TRUE;
+	} else {
+		/* failure, FIXME: remove res from root_res... */
+/* 		resource_destroy(res); */
+	}
+
+#if 0 //MBFILES
         for (i=0; i< url.n; i++) {
                 /* printf ("trying url %s\n",(url.p[i])->strptr); */
                 pound = strchr((url.p[i])->strptr,'#');
@@ -1406,21 +1434,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
                         *pound = '\0';
                 }
 
-		res = resource_create_single(testname);
-		send_resource_to_parser(res);
-		resource_wait(res);
-
-		if (res->status == ress_loaded) {
-                        /* ok - we are replacing EXTERNPROTO with PROTO */
-                        me->curID = STRDUP("PROTO");
-			return;
-		}
-
-		resource_destroy(res);
-
-#if 0 //MBFILES
                 if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
-
 
                         buffer = readInputString(testname);
                         FREE_IF_NZ(testname);
@@ -1432,8 +1446,6 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
                 } else {
                         /* printf ("fileExists returns failure for %s\n",testname); */
                 }
-#endif
-
         }
 
         FREE_IF_NZ(testname);
@@ -1444,7 +1456,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         strcat (emptyString,myName);
         strcat (emptyString,"\"");
         ConsoleMessage("Parse error: %s ", emptyString); fprintf(stderr, "%s\n",emptyString);
-
+#endif
         /* so, lets continue. Maybe this EXTERNPROTO is never referenced?? */
         lexer_setCurID(me);
         /* printf ("so, curID is :%s: and rest is :%s:\n",me->curID, me->nextIn); */
