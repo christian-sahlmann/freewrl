@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.30 2009/10/31 16:21:46 couannette Exp $
+$Id: CScripts.c,v 1.31 2009/11/03 16:20:12 crc_canada Exp $
 
 ???
 
@@ -334,6 +334,7 @@ BOOL script_initCode(struct Shader_Script* me, const char* code)
 {
  	ASSERT(!me->loaded);
 
+printf ("script_initCode, me is %u, me->num is %d, code %s\n",me,me,code);
 	SaveScriptText (me->num, (char *)code);
  	me->loaded=TRUE;
  	return TRUE;
@@ -392,11 +393,21 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 		 if (resource_load(res)) {
 			 s_list_t *l;
 			 openned_file_t *of;
+
 			 l = res->openned_files;
 			 of = ml_elem(l);
-			 buffer = of->text;
-			 printf("**** Script:\n%s\n", buffer);
-			 rv = script_initCode(me, buffer);
+
+			/* ok - Scripts get initialized; shaders get the buffer returned */
+			if (me==NULL) { /* a Shader */
+			 	buffer = STRDUP(of->text);
+			 	printf("**** Shader:\n%s\n", buffer); 
+				printf ("*** Shader: doing the quick return here\n");
+				return TRUE;
+			} else {
+				/* a Script */
+			 	/* printf("**** Script:\n%s\n", buffer); */
+			 	rv = script_initCode(me, of->text);
+			}
 		 }
 	 }
  }
@@ -483,10 +494,12 @@ char **shader_initCodeFromMFUri(const struct Multi_String* s) {
 	for(i=0; i!=s->n; ++i) {
 		FREE_IF_NZ(buffer);
 		if(script_initCodeFromUri(NULL, s->p[i]->strptr)) {
+printf ("shader_initCodeFromMFUri - got %s\n",buffer);
    			return &buffer;
 		}
 	}
 
+printf ("shader - initCodeFromMFUri, failure...\n");
 	/* failure... */
 	FREE_IF_NZ(buffer);
  	return NULL;
