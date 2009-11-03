@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.65 2009/10/30 19:23:47 crc_canada Exp $
+  $Id: MainLoop.c,v 1.66 2009/11/03 04:19:38 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -262,12 +262,14 @@ void EventLoop() {
         static int loop_count = 0;
 
 #ifdef AQUA
-        if (RUNNINGASPLUGIN) {
+#ifdef OLDCODE
+        if (RUNNINGASPLUGIN) { // commented out
                 cErr = aglSetCurrentContext(aqglobalContext);
                 if (cErr == GL_FALSE) {
                         printf("set current context error!");
                 }
         }
+#endif
 
         /* window size changed by Safari? */
         if (PaneClipChanged) {
@@ -448,15 +450,6 @@ void EventLoop() {
 	    }
 	}
 #endif //defined(TARGET_MOTIF)
-
-#if defined(TARGET_AQUA)
-	/* Just guessing what would fit :P ... */
-	/* handle_aqua(); */
-{ static int badly = FALSE;
-	if (!badly) printf ("handling handle_aqua badly\n");
-badly=TRUE;
-}
-#endif
 
 #if defined(TARGET_WIN32)
 	/**
@@ -849,13 +842,15 @@ void setup_projection(int pick, int x, int y)
 		if(Viewer.iside == 1) xvp = (GLint)screenwidth2;
 	}
 
+#ifdef OLDCODE
         #ifdef AQUA
-        if (RUNNINGASPLUGIN) {
+        if (RUNNINGASPLUGIN) { //commented out
                 aglSetCurrentContext(aqglobalContext);
         } else {
                 CGLSetCurrentContext(myglobalContext);
         }
         #endif
+#endif
 
         FW_GL_MATRIX_MODE(GL_PROJECTION);
 		glViewport(xvp,clipPlane,screenwidth2,screenHeight);

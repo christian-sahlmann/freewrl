@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.19 2009/10/29 00:52:59 couannette Exp $
+  $Id: display.c,v 1.20 2009/11/03 04:19:38 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -129,9 +129,11 @@ int display_initialize()
 
 	bind_GLcontext();
 #else
-	if (RUNNINGASPLUGIN) { 
+#ifdef OLDCODE
+	if (RUNNINGASPLUGIN) {  // commented out
          	aglSetCurrentContext(aqglobalContext); 
 	}
+#endif
 #endif /* TARGET_AQUA */
 
 	if (!initialize_GL()) {
