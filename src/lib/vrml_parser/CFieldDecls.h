@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CFieldDecls.h,v 1.6 2009/10/05 15:07:24 crc_canada Exp $
+$Id: CFieldDecls.h,v 1.7 2009/11/03 22:57:10 crc_canada Exp $
 
 This is a common base class for FieldDeclarations on PROTOs and Scripts
 
@@ -37,19 +37,18 @@ struct FieldDecl
  indexT type; /* field type ,eg FIELDTYPE_MFInt32 */
  indexT name; /* field "name" (its lexer-index) */
  int shaderVariableID; 	/* glGetUniformLocation() cast to int */
- int shaderVariableIsUniform; /* TRUE: this is a Uniform var, or else it is a varying.. */
 };
 
 /* Constructor and destructor */
 /* ************************** */
 
-struct FieldDecl* newFieldDecl(indexT, indexT, indexT, int, int);
+struct FieldDecl* newFieldDecl(indexT, indexT, indexT, int);
 #define deleteFieldDecl(me) \
  FREE_IF_NZ(me)
 
 /* Copies */
 #define fieldDecl_copy(me) \
- newFieldDecl((me)->mode, (me)->type, (me)->name, (me)->shaderVariableID, (me)->shaderVariableIsUniform)
+ newFieldDecl((me)->mode, (me)->type, (me)->name, (me)->shaderVariableID)
 
 /* Accessors */
 /* ********* */
@@ -66,14 +65,6 @@ struct FieldDecl* newFieldDecl(indexT, indexT, indexT, int, int);
 
 #define fieldDecl_setshaderVariableID(me,varid) \
 	((me)->shaderVariableID) = (GLint) (varid)
-
-#define fieldDecl_isshaderVariableUniform(me) \
-	((me)->shaderVariableIsUniform)
-
-#define fieldDecl_setshaderVariableUniform(me,val) \
-	((me)->shaderVariableIsUniform) = val;
-
-
 
 #define fieldDecl_getStringName(lex, me) \
  lexer_stringUser_fieldName(lex, fieldDecl_getIndexName(me), \

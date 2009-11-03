@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.40 2009/10/31 16:21:46 couannette Exp $
+$Id: X3DProtoScript.c,v 1.41 2009/11/03 22:57:10 crc_canada Exp $
 
 ???
 
@@ -722,21 +722,6 @@ static void verifyExternAndProtoFields(void) {
 	struct Shader_Script *curProF;
 	struct ScriptFieldDecl* curField;
 	struct ScriptFieldDecl* extField;
-#ifdef werwerweqwete
-/*
- struct FieldDecl* fieldDecl;
-*/
-struct FieldDecl
-{
- indexT mode; /* PKW_initializeOnly PKW_inputOutput, PKW_inputOnly, PKW_outputOnly */
- indexT type; /* field type ,eg FIELDTYPE_MFInt32 */
- indexT name; /* field "name" (its lexer-index) */
- int shaderVariableID;  /* glGetUniformLocation() cast to int */
- int shaderVariableIsUniform; /* TRUE: this is a Uniform var, or else it is a varying.. */
-};
-#endif
-
-
 
 	/* we will have in the stack, ExternProtoDeclare then the CurrentProto */
 	if (currentProtoDeclare <1) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.85 2009/10/30 18:57:35 crc_canada Exp $
+$Id: headers.h,v 1.86 2009/11/03 22:57:10 crc_canada Exp $
 
 Global includes.
 
@@ -158,7 +158,9 @@ extern char *BrowserFullPath;
    blows plugins out of the water, because of the XLib threaded call in FrontEnd
    not working that well... */
 #ifdef AQUA
+#ifdef OLDCODE /* JAS  testing things out */
 	#define DO_MULTI_OPENGL_THREADS
+#endif
 #endif
 
 /* rendering constants used in SceneGraph, etc. */

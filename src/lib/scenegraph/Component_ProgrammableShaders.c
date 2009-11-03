@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.28 2009/10/26 17:48:43 couannette Exp $
+$Id: Component_ProgrammableShaders.c,v 1.29 2009/11/03 22:57:10 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -38,30 +38,29 @@ Notes:
 
 
 X3D type			GLSL type		Initialize	Route In	Route Out
-									(uniform variables only)
 -------------------------------------------------------------------------------------------------
 FIELDTYPE_SFFloat		GL_FLOAT		YES		YES
-FIELDTYPE_MFFloat		GL_FLOAT		Uniform only
+FIELDTYPE_MFFloat		GL_FLOAT		YES
 FIELDTYPE_SFRotation		GL_FLOAT_VEC4		YES	
-FIELDTYPE_MFRotation		GL_FLOAT_VEC4		Uniform only
+FIELDTYPE_MFRotation		GL_FLOAT_VEC4		YES
 FIELDTYPE_SFVec3f		GL_FLOAT_VEC3		YES		YES
-FIELDTYPE_MFVec3f		GL_FLOAT_VEC3		Uniform only
-FIELDTYPE_SFBool	
-FIELDTYPE_MFBool	
-FIELDTYPE_SFInt32	
-FIELDTYPE_MFInt32	
-FIELDTYPE_SFNode		GL_INT	
+FIELDTYPE_MFVec3f		GL_FLOAT_VEC3		YES
+FIELDTYPE_SFBool		GL_BOOL			YES
+FIELDTYPE_MFBool		GL_BOOL			YES
+FIELDTYPE_SFInt32		GL_INT			YES	
+FIELDTYPE_MFInt32		GL_INT			YES
+FIELDTYPE_SFNode		
 FIELDTYPE_MFNode		--
 FIELDTYPE_SFColor		GL_FLOAT_VEC3		YES
-FIELDTYPE_MFColor		GL_FLOAT_VEC3		Uniform only
+FIELDTYPE_MFColor		GL_FLOAT_VEC3		YES
 FIELDTYPE_SFColorRGBA		GL_FLOAT_VEC4		YES
-FIELDTYPE_MFColorRGBA		GL_FLOAT_VEC4		Uniform only
+FIELDTYPE_MFColorRGBA		GL_FLOAT_VEC4		YES
 FIELDTYPE_SFTime		GL_FLOAT		YES(float)
 FIELDTYPE_MFTime	
 FIELDTYPE_SFString		--
 FIELDTYPE_MFString		--
 FIELDTYPE_SFVec2f		GL_FLOAT_VEC2		YES
-FIELDTYPE_MFVec2f		GL_FLOAT_VEC2		Uniform only
+FIELDTYPE_MFVec2f		GL_FLOAT_VEC2		YES
 FIELDTYPE_SFImage	
 FIELDTYPE_FreeWRLPTR		--
 FIELDTYPE_SFVec3d		GL_FLOAT_VEC3		YES(float)
@@ -128,22 +127,16 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 	#define COMPILE_STATUS GL_COMPILE_STATUS
 	#define GET_UNIFORM(aaa,bbb) glGetUniformLocation(aaa,bbb)
 	#define GET_ATTRIB(aaa,bbb) glGetAttribLocation(aaa,bbb)
+	#define GLUNIFORM1I glUniform1i
 	#define GLUNIFORM1F glUniform1f
 	#define GLUNIFORM2F glUniform2f
 	#define GLUNIFORM3F glUniform3f
 	#define GLUNIFORM4F glUniform4f
+	#define GLUNIFORM1IV glUniform1iv
 	#define GLUNIFORM1FV glUniform1fv
 	#define GLUNIFORM2FV glUniform2fv
 	#define GLUNIFORM3FV glUniform3fv
 	#define GLUNIFORM4FV glUniform4fv
-	#define GLATTRIB1F glVertexAttrib1f
-	#define GLATTRIB2F glVertexAttrib2f
-	#define GLATTRIB3F glVertexAttrib3f
-	#define GLATTRIB4F glVertexAttrib4f
-	#define GLATTRIB1FV glVertexAttrib1fv
-	#define GLATTRIB2FV glVertexAttrib2fv
-	#define GLATTRIB3FV glVertexAttrib3fv
-	#define GLATTRIB4FV glVertexAttrib4fv
 #else
 #ifdef GL_VERSION_1_5
 	#define HAVE_SHADERS
@@ -162,21 +155,15 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 	#define GET_UNIFORM(aaa,bbb) glGetUniformLocationARB(aaa,bbb)
 	#define GET_ATTRIB(aaa,bbb) glGetAttribLocationARB(aaa,bbb)
 	#define GLUNIFORM1F glUniform1fARB
+	#define GLUNIFORM1I glUniform1iARB
 	#define GLUNIFORM2F glUniform2fARB
 	#define GLUNIFORM3F glUniform3fARB
 	#define GLUNIFORM4F glUniform4fARB
+	#define GLUNIFORM1IV glUniform1ivARB
 	#define GLUNIFORM1FV glUniform1fvARB
 	#define GLUNIFORM2FV glUniform2fvARB
 	#define GLUNIFORM3FV glUniform3fvARB
 	#define GLUNIFORM4FV glUniform4fvARB
-	#define GLATTRIB1F glVertexAttrib1fARB
-	#define GLATTRIB2F glVertexAttrib2fARB
-	#define GLATTRIB3F glVertexAttrib3fARB
-	#define GLATTRIB4F glVertexAttrib4fARB
-	#define GLATTRIB1FV glVertexAttrib1fvARB
-	#define GLATTRIB2FV glVertexAttrib2fvARB
-	#define GLATTRIB3FV glVertexAttrib3fvARB
-	#define GLATTRIB4FV glVertexAttrib4fvARB
 #endif
 #endif
 
@@ -334,7 +321,7 @@ static void shaderErrorLog(GLuint myShader) {
 
 /* do type checking of shader and field variables when initializing interface */
 static int shader_checkType(struct FieldDecl * myField,
-		GLuint myShader, int isUniform, GLint myVar) {
+		GLuint myShader, GLint myVar) {
 	int retval;
 
 	/* check the type, if we are OpenGL 2.0 or above */
@@ -348,9 +335,7 @@ static int shader_checkType(struct FieldDecl * myField,
 	retval = FALSE;
 	ch[0] = '\0';
 	
-	if (isUniform)	glGetActiveUniform (myShader,myVar,90,&len,&size,&type,ch);
-	else glGetActiveAttrib (myShader,myVar,90,&len,&size,&type,ch);
-
+	glGetActiveUniform(myShader,myVar,90,&len,&size,&type,ch);
 
 	/* verify that the X3D fieldType matches the Shader type */
 	switch (myField->type) {
@@ -360,10 +345,10 @@ static int shader_checkType(struct FieldDecl * myField,
 		case FIELDTYPE_MFRotation: 	retval = type == GL_FLOAT_VEC4; break;
 		case FIELDTYPE_SFVec3f: 	retval = type == GL_FLOAT_VEC3; break;
 		case FIELDTYPE_MFVec3f: 	retval = type == GL_FLOAT_VEC3; break;
-		case FIELDTYPE_SFBool: 		break;
-		case FIELDTYPE_MFBool: 		break;
-		case FIELDTYPE_SFInt32: 	break;
-		case FIELDTYPE_MFInt32: 	break;
+		case FIELDTYPE_MFInt32:
+		case FIELDTYPE_SFInt32:		retval = type == GL_INT; break;
+		case FIELDTYPE_MFBool: 		
+		case FIELDTYPE_SFBool: 		retval = type == GL_BOOL; break;
 		case FIELDTYPE_SFNode: 		break;
 		case FIELDTYPE_MFNode: 		break;
 		case FIELDTYPE_SFColor: 	retval = type == GL_FLOAT_VEC3; break;
@@ -402,6 +387,7 @@ static int shader_checkType(struct FieldDecl * myField,
 
 	if (!retval) {
 		ConsoleMessage ("Shader type check fail X3D type not compatible for variable :%s:",ch);
+#define VERBOSE
 #ifdef VERBOSE
 	printf ("shaderCheck mode %d (%s) type %d (%s) name %d\n",myField->mode, 
 			stringPROTOKeywordType(myField->mode), myField->type, stringFieldtypeType(myField->type),myField->name);
@@ -424,30 +410,33 @@ static int shader_checkType(struct FieldDecl * myField,
 	case GL_FLOAT_MAT2: printf ("GL_FLOAT_MAT2\n"); break;
 	case GL_FLOAT_MAT3: printf ("GL_FLOAT_MAT3\n"); break;
 	case GL_FLOAT_MAT4: printf ("GL_FLOAT_MAT4\n"); break;
+/*
 	case GL_FLOAT_MAT2x3: printf ("GL_FLOAT_MAT2x3\n"); break;
 	case GL_FLOAT_MAT2x4: printf ("GL_FLOAT_MAT2x4\n"); break;
 	case GL_FLOAT_MAT3x2: printf ("GL_FLOAT_MAT3x2\n"); break;
 	case GL_FLOAT_MAT3x4: printf ("GL_FLOAT_MAT3x4\n"); break;
 	case GL_FLOAT_MAT4x2: printf ("GL_FLOAT_MAT4x2\n"); break;
 	case GL_FLOAT_MAT4x3: printf ("GL_FLOAT_MAT4x3\n"); break;
+*/
 	case GL_SAMPLER_1D: printf ("GL_SAMPLER_1D\n"); break;
 	case GL_SAMPLER_2D: printf ("GL_SAMPLER_2D\n"); break;
 	case GL_SAMPLER_3D: printf ("GL_SAMPLER_3D\n"); break;
 	case GL_SAMPLER_CUBE: printf ("GL_SAMPLER_CUBE\n"); break;
 	case GL_SAMPLER_1D_SHADOW: printf ("GL_SAMPLER_1D_SHADOW\n"); break;
 	case GL_SAMPLER_2D_SHADOW: printf ("GL_SAMPLER_2D_SHADOW\n"); break;
+default :{printf ("not decoded yet, probably a matrix type\n");}
 	}
 #endif
 	}
 #endif 
 	return retval;
 }
+#undef VERBOSE
 
 
 /* fieldDecl_getshaderVariableID(myf), fieldDecl_getValue(myf)); */
 static void sendValueToShader(struct ScriptFieldDecl* myField) {
 	GLint shaderVariable = fieldDecl_getshaderVariableID(myField->fieldDecl);
-	int isUniform = fieldDecl_isshaderVariableUniform(myField->fieldDecl);
 
 	#ifdef SHADERVERBOSE
 	printf ("sendValueToShader... ft %s\n",stringFieldtypeType(fieldDecl_getType(myField->fieldDecl)));
@@ -461,44 +450,39 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 
 #define SF_FLOATS_TO_SHADER(ttt,ty1,ty2) \
 		case FIELDTYPE_SF##ty1: \
-			if (isUniform) \
-				GLUNIFORM##ttt##FV(shaderVariable, 1, myField->value.sf##ty2.c); \
-			else \
-				GLATTRIB##ttt##FV(shaderVariable, myField->value.sf##ty2.c); \
+			GLUNIFORM##ttt##FV(shaderVariable, 1, myField->value.sf##ty2.c); \
 		break; 
 
 #define SF_DOUBLES_TO_SHADER(ttt,ty1,ty2) \
 		case FIELDTYPE_SF##ty1: {float val[4]; int i; \
 			for (i=0; i<ttt; i++) { val[i] = (float) (myField->value.sf##ty2.c[i]); } \
-			if (isUniform) \
 				GLUNIFORM##ttt##FV(shaderVariable, 1, val); \
-			else \
-				GLATTRIB##ttt##FV(shaderVariable, val); \
 		break; }
 
 #define SF_FLOAT_TO_SHADER(ty1,ty2) \
 		case FIELDTYPE_SF##ty1: \
-			if (isUniform) \
-				GLUNIFORM1F(shaderVariable, myField->value.sf##ty2); \
-			else \
-				GLATTRIB1F(shaderVariable, myField->value.sf##ty2); \
+			GLUNIFORM1F(shaderVariable, myField->value.sf##ty2); \
 		break; 
 
 #define SF_DOUBLE_TO_SHADER(ty1,ty2) \
 		case FIELDTYPE_SF##ty1: {float val = myField->value.sf##ty2; \
-			if (isUniform) \
-				GLUNIFORM1F(shaderVariable, val); \
-			else \
-				GLATTRIB1F(shaderVariable, val); \
+			GLUNIFORM1F(shaderVariable, val); \
 		break; }
 
 #define MF_FLOATS_TO_SHADER(ttt,ty1,ty2) \
 		case FIELDTYPE_MF##ty1: \
-			if (isUniform) \
-				GLUNIFORM##ttt##FV(shaderVariable, myField->value.mf##ty2.n, (float *)myField->value.mf##ty2.p); \
-			else \
-				ConsoleMessage ("problem sending MF to Shader Attribute"); \
+			GLUNIFORM##ttt##FV(shaderVariable, myField->value.mf##ty2.n, (float *)myField->value.mf##ty2.p); \
 		break; 
+
+#define SF_INTS_TO_SHADER(ty1,ty2) \
+		case FIELDTYPE_SF##ty1: \
+			GLUNIFORM1I(shaderVariable, myField->value.sf##ty2);  \
+			break;
+
+#define MF_INTS_TO_SHADER(ty1,ty2) \
+		case FIELDTYPE_MF##ty1: \
+			GLUNIFORM1IV(shaderVariable, (GLsizei) myField->value.mf##ty2.n, (const GLint *)myField->value.mf##ty2.p); \
+			break;
 
 
 		SF_FLOAT_TO_SHADER(Float,float)
@@ -522,14 +506,18 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 		MF_FLOATS_TO_SHADER(4,ColorRGBA,colorrgba)
 		MF_FLOATS_TO_SHADER(4,Rotation,rotation)
 
+		SF_INTS_TO_SHADER(Bool,bool)
+		SF_INTS_TO_SHADER(Int32,int32)
+		MF_INTS_TO_SHADER(Bool,bool)
+		MF_INTS_TO_SHADER(Int32,int32)
+
+
 		//MF_FLOATS_TO_SHADER(4,Vec4f,vec4f)
 
 		//SF_FLOAT_TO_SHADER(9,Matrix3f, matrix3f)
 		//SF_FLOAT_TO_SHADER(16,Matrix4f, matrix4f)
 
 		case FIELDTYPE_SFNode:
-		case FIELDTYPE_SFInt32:
-		case FIELDTYPE_SFBool:
 		case FIELDTYPE_SFImage:
 		case FIELDTYPE_FreeWRLPTR:
 		case FIELDTYPE_SFString:
@@ -537,8 +525,6 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 		case FIELDTYPE_SFMatrix4d:
 
 
-		case FIELDTYPE_MFBool:
-		case FIELDTYPE_MFInt32:
 		case FIELDTYPE_MFNode:
 		case FIELDTYPE_MFTime:
 		case FIELDTYPE_MFString:
@@ -630,7 +616,6 @@ void getField_ToShader(int num) {
 
 
 	for(i=0; i!=vector_size(myObj->fields); ++i) {
-		int isUniform; 
 		GLint myVar;
 		struct ScriptFieldDecl* curField;
 		struct FieldDecl * myf;
@@ -652,7 +637,6 @@ void getField_ToShader(int num) {
 			printf ("	field match, %d==%d\n",fromFieldID, myf->name);
 			printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,myf->type);
 			printf ("	shaderVariableID is %d\n",myf->shaderVariableID);
-			printf ("	shaderVariableIsUniform %d\n",myf->shaderVariableIsUniform);
 			*/
 
 		/* ok, here we have the Shader_Script, the field offset, and the entry */
@@ -763,14 +747,12 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 
 
 	for(i=0; i!=vector_size(me->fields); ++i) {
-		int isUniform; 
 		GLint myVar;
 		struct ScriptFieldDecl* curField;
 		struct FieldDecl * myf;
 
 		/* initialization */
 		myVar = -1;
-		isUniform = TRUE;
 		curField = vector_get(struct ScriptFieldDecl*, me->fields, i);
 		myf = curField->fieldDecl;
 
@@ -782,21 +764,21 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 
 		/* ask the shader for its handle for this variable */
 
-		/* try Uniform variables first */
+		/* try Uniform  */
 		myVar = GET_UNIFORM(myShader,curField->ASCIIname);
 		if (myVar == INT_ID_UNDEFINED) {
-			myVar = GET_ATTRIB(myShader,curField->ASCIIname);
-			isUniform = FALSE;
+			if (GET_ATTRIB(myShader,curField->ASCIIname) != INT_ID_UNDEFINED)
+			ConsoleMessage ("Shader variable :%s: is declared as an attribute; we can not do much with this",curField->ASCIIname);
+			else
+			ConsoleMessage ("Shader variable :%s: is not declared",curField->ASCIIname);
 		}
-
-		fieldDecl_setshaderVariableUniform(myf,isUniform);
 
 		#ifdef SHADERVERBOSE
 		printf ("trying to get ID for :%s:\n",curField->name);
 		#endif
 
 		/* do the types of the field variable, and the shader variable match? */
-		shader_checkType(myf,myShader,isUniform,myVar);
+		shader_checkType(myf,myShader,myVar);
 
 			
 		/* save the variable object for this variable */
