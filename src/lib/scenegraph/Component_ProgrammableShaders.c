@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.29 2009/11/03 22:57:10 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.30 2009/11/04 03:05:51 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -45,9 +45,9 @@ FIELDTYPE_SFRotation		GL_FLOAT_VEC4		YES
 FIELDTYPE_MFRotation		GL_FLOAT_VEC4		YES
 FIELDTYPE_SFVec3f		GL_FLOAT_VEC3		YES		YES
 FIELDTYPE_MFVec3f		GL_FLOAT_VEC3		YES
-FIELDTYPE_SFBool		GL_BOOL			YES
+FIELDTYPE_SFBool		GL_BOOL			YES		YES
 FIELDTYPE_MFBool		GL_BOOL			YES
-FIELDTYPE_SFInt32		GL_INT			YES	
+FIELDTYPE_SFInt32		GL_INT			YES		YES
 FIELDTYPE_MFInt32		GL_INT			YES
 FIELDTYPE_SFNode		
 FIELDTYPE_MFNode		--
@@ -667,12 +667,18 @@ void getField_ToShader(int num) {
 				GLUNIFORM4FV(myf->shaderVariableID, 1, sourceData);
 				break;
 
+			case FIELDTYPE_SFBool:
+			case FIELDTYPE_SFInt32: {
+			int *sd = (int *)sourceData;
+				/* printf ("sending in %d\n",*sd); */
+				GLUNIFORM1I (myf->shaderVariableID, *sd);
+			break; }
+
+			
 			case FIELDTYPE_MFFloat:
 			case FIELDTYPE_MFRotation:
 			case FIELDTYPE_MFVec3f:
-			case FIELDTYPE_SFBool:
 			case FIELDTYPE_MFBool:
-			case FIELDTYPE_SFInt32:
 			case FIELDTYPE_MFInt32:
 			case FIELDTYPE_SFNode:
 			case FIELDTYPE_MFNode:
@@ -702,10 +708,10 @@ void getField_ToShader(int num) {
 			case FIELDTYPE_MFVec4f:
 			case FIELDTYPE_SFVec4d:
 			case FIELDTYPE_MFVec4d:
-				ConsoleMessage ("shader field type i%f not routable yet",stringFieldtypeType(myf->type));
+				ConsoleMessage ("shader field type %s not routable yet",stringFieldtypeType(JSparamnames[fromFieldID].type));
 				break;
 			default: {
-				ConsoleMessage ("shader field type i%f not routable yet",stringFieldtypeType(myf->type));
+				ConsoleMessage ("shader field type %s not routable yet",stringFieldtypeType(JSparamnames[fromFieldID].type));
 			}
 
 
