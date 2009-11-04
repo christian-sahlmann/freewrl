@@ -1,5 +1,8 @@
 Priority list
 
+11/05/2009: 
+	(JAS) Verify that FaceSets generate events when fields change - eg, index in IndexedTriangleFanSet.
+
 09/23/2009:
 	From Russ Kinter; http://www.sevenemeraldtablets.net/VisibilityTest/VisibilityTest2.wrl 
 	a) VisibilitySensor gets removed by LOD thus never gets drawn to indicate it is out of the scene;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.30 2009/11/04 03:05:51 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.31 2009/11/04 22:36:07 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -55,7 +55,7 @@ FIELDTYPE_SFColor		GL_FLOAT_VEC3		YES
 FIELDTYPE_MFColor		GL_FLOAT_VEC3		YES
 FIELDTYPE_SFColorRGBA		GL_FLOAT_VEC4		YES
 FIELDTYPE_MFColorRGBA		GL_FLOAT_VEC4		YES
-FIELDTYPE_SFTime		GL_FLOAT		YES(float)
+FIELDTYPE_SFTime		GL_FLOAT		YES(float)	YES(float)
 FIELDTYPE_MFTime	
 FIELDTYPE_SFString		--
 FIELDTYPE_MFString		--
@@ -65,7 +65,7 @@ FIELDTYPE_SFImage
 FIELDTYPE_FreeWRLPTR		--
 FIELDTYPE_SFVec3d		GL_FLOAT_VEC3		YES(float)
 FIELDTYPE_MFVec3d	
-FIELDTYPE_SFDouble		GL_FLOAT		YES(float)
+FIELDTYPE_SFDouble		GL_FLOAT		YES(float)	YES(float)
 FIELDTYPE_MFDouble	
 FIELDTYPE_SFMatrix3f	
 FIELDTYPE_MFMatrix3f	
@@ -556,7 +556,7 @@ void getField_ToShader(int num) {
 
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		fromFieldID = to_ptr->foffset;
-		/* printf ("getField_ToShader, num %d, foffset %d\n",num,fromFieldID); */
+		/* printf ("getField_ToShader, num %d, foffset %d\n",num,fromFieldID);  */
 
 		switch (to_ptr->routeToNode->_nodeType) {
 		case NODE_ComposedShader:
@@ -615,6 +615,7 @@ void getField_ToShader(int num) {
 	}
 
 
+	/* printf ("going through fields.... have %d fields\n",vector_size(myObj->fields)); */
 	for(i=0; i!=vector_size(myObj->fields); ++i) {
 		GLint myVar;
 		struct ScriptFieldDecl* curField;
@@ -624,10 +625,12 @@ void getField_ToShader(int num) {
 		curField = vector_get(struct ScriptFieldDecl*, myObj->fields, i);
 		myf = curField->fieldDecl;
 
+		
 		/*
 		printf ("curField %d name %d type %d ",i,myf->name,myf->type);
 		printf ("fieldDecl mode %d (%s) type %d (%s) name %d\n",myf->mode, 
 			stringPROTOKeywordType(myf->mode), myf->type, stringFieldtypeType(myf->type),myf->name);
+		printf ("comparing fromFieldID %d and name %d\n",fromFieldID, myf->name);
 		*/
 
 
@@ -638,6 +641,7 @@ void getField_ToShader(int num) {
 			printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,myf->type);
 			printf ("	shaderVariableID is %d\n",myf->shaderVariableID);
 			*/
+		
 
 		/* ok, here we have the Shader_Script, the field offset, and the entry */
 
@@ -651,6 +655,15 @@ void getField_ToShader(int num) {
 			case FIELDTYPE_SFFloat:
 				GLUNIFORM1FV(myf->shaderVariableID, 1, sourceData);
 				break;
+
+			case FIELDTYPE_SFDouble:
+			case FIELDTYPE_SFTime: {
+				float sd; double *dd1; double val;
+				dd1 = (double*) sourceData;
+				val = *dd1;
+				sd = (float) val;
+				GLUNIFORM1FV(myf->shaderVariableID, 1, &sd);
+				break;}
 
 			case FIELDTYPE_SFVec2f:
 				GLUNIFORM2FV(myf->shaderVariableID, 1, sourceData);
@@ -674,17 +687,21 @@ void getField_ToShader(int num) {
 				GLUNIFORM1I (myf->shaderVariableID, *sd);
 			break; }
 
+			case FIELDTYPE_MFBool:
+			case FIELDTYPE_MFInt32: {
+			struct Multi_Int32 *sd = (struct Multi_Int32 *) sourceData;
+
+				 printf ("sending in to a shader a MFBool or MFInt32 of %d length\n",sd->n);
+				GLUNIFORM1IV (myf->shaderVariableID, sd->n, (int *)sd->p);
+			break; }
 			
 			case FIELDTYPE_MFFloat:
 			case FIELDTYPE_MFRotation:
 			case FIELDTYPE_MFVec3f:
-			case FIELDTYPE_MFBool:
-			case FIELDTYPE_MFInt32:
 			case FIELDTYPE_SFNode:
 			case FIELDTYPE_MFNode:
 			case FIELDTYPE_MFColor:
 			case FIELDTYPE_MFColorRGBA:
-			case FIELDTYPE_SFTime:
 			case FIELDTYPE_MFTime:
 			case FIELDTYPE_SFString:
 			case FIELDTYPE_MFString:
@@ -693,7 +710,6 @@ void getField_ToShader(int num) {
 			case FIELDTYPE_FreeWRLPTR:
 			case FIELDTYPE_SFVec3d:
 			case FIELDTYPE_MFVec3d:
-			case FIELDTYPE_SFDouble:
 			case FIELDTYPE_MFDouble:
 			case FIELDTYPE_SFMatrix3f:
 			case FIELDTYPE_MFMatrix3f:
