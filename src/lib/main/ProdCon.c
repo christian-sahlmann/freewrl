@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.32 2009/10/29 01:33:09 couannette Exp $
+  $Id: ProdCon.c,v 1.33 2009/11/04 08:06:25 couannette Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -829,6 +829,9 @@ void parser_process_res(s_list_t *item)
 			break;
 		case resm_image:
 		case resm_movie:
+			/* Texture file has been loaded into memory
+			   the node could be updated ... i.e. texture created */
+			res->complete = TRUE; /* small hack */
 			break;
 		}
 		/* Parse only once ! */

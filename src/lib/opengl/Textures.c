@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.c,v 1.28 2009/10/31 16:21:46 couannette Exp $
+$Id: Textures.c,v 1.29 2009/11/04 08:06:25 couannette Exp $
 
 General Texture objects.
 
@@ -1241,12 +1241,14 @@ static int findTextureFile (int cwo) {
 	}
 
 	res = resource_create_multi(url);
+	res->media_type = resm_image; /* quick hack */
 /*FIXME:	res->where = node; */
 	send_resource_to_parser(res);
 	resource_wait(res);
 
-	if (res->status == ress_parsed) {
+	if (res->status == ress_loaded) {
 		/* Cool :) */
+		DEBUG_MSG("%s texture loaded (file downloaded and loaded into memory): we should create the OpenGL texture...\n", res->request);
 		return TRUE;
 	}
 
