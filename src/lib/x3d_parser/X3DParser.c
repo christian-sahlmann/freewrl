@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.51 2009/10/26 10:54:19 couannette Exp $
+$Id: X3DParser.c,v 1.52 2009/11/05 18:39:09 crc_canada Exp $
 
 ???
 
@@ -360,17 +360,18 @@ static int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struc
 		   the scripting name index. */
 		if (me->ShaderScriptNode->_nodeType == NODE_Script) {
 			/* wow - have to get the Javascript text string index from this one */
-			myFieldNumber = JSparamIndex(fieldName,stringFieldtypeType(myField->fieldDecl->type)); 
+			myFieldNumber = JSparamIndex(fieldName,stringFieldtypeType(
+				fieldDecl_getType(myField->fieldDecl))); 
 
 			*offs=myFieldNumber;
 
 
 		} else {
-			*offs = myField->fieldDecl->name;
+			*offs = fieldDecl_getIndexName(myField->fieldDecl);
 		}
-		*type = myField->fieldDecl->type;
+		*type = fieldDecl_getType(myField->fieldDecl);
 		/* go from PKW_xxx to KW_xxx  .... sigh ... */
-		*accessType = mapToKEYWORDindex(myField->fieldDecl->mode);
+		*accessType = mapToKEYWORDindex(fieldDecl_getAccessType(myField->fieldDecl));
 		return TRUE;
 	}
 

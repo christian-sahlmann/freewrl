@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.32 2009/11/05 15:17:38 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.33 2009/11/05 18:39:09 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -339,7 +339,7 @@ static int shader_checkType(struct FieldDecl * myField,
 	glGetActiveUniform(myShader,myVar,90,&len,&size,&type,ch);
 
 	/* verify that the X3D fieldType matches the Shader type */
-	switch (myField->type) {
+	switch (fieldDecl_getType(myField)) {
 		case FIELDTYPE_SFFloat: 	retval = type == GL_FLOAT; break;
 		case FIELDTYPE_MFFloat: 	retval = type == GL_FLOAT; break;
 		case FIELDTYPE_SFRotation: 	retval = type == GL_FLOAT_VEC4; break;
@@ -390,8 +390,10 @@ static int shader_checkType(struct FieldDecl * myField,
 		ConsoleMessage ("Shader type check fail X3D type not compatible for variable :%s:",ch);
 #define VERBOSE
 #ifdef VERBOSE
-	printf ("shaderCheck mode %d (%s) type %d (%s) name %d\n",myField->mode, 
-			stringPROTOKeywordType(myField->mode), myField->type, stringFieldtypeType(myField->type),myField->name);
+	printf ("shaderCheck mode %d (%s) type %d (%s) name %d\n",fieldDecl_getAccessType(myField),
+			stringPROTOKeywordType(fieldDecl_getAccessType(myField)), 
+			fieldDecl_getType(myField), stringFieldtypeType(fieldDecl_getType(myField)),
+			fieldDecl_getIndexName(myField));
 
 	printf ("len %d size %d type %d ch %s\n",len,size,type,ch);
 	switch (type) {
@@ -627,19 +629,25 @@ void getField_ToShader(int num) {
 		myf = curField->fieldDecl;
 
 		
-		/*
-		printf ("curField %d name %d type %d ",i,myf->name,myf->type);
-		printf ("fieldDecl mode %d (%s) type %d (%s) name %d\n",myf->mode, 
-			stringPROTOKeywordType(myf->mode), myf->type, stringFieldtypeType(myf->type),myf->name);
-		printf ("comparing fromFieldID %d and name %d\n",fromFieldID, myf->name);
-		*/
+		
+		printf ("curField %d name %d type %d ",i,
+			fieldDecl_getIndexName(myf), fieldDecl_getType(myf));
+		printf ("fieldDecl mode %d (%s) type %d (%s) name %d\n",
+				fieldDecl_getAccessType(myf),
+			stringPROTOKeywordType(fieldDecl_getAccessType(myf)), 
+				fieldDecl_getType(myf), stringFieldtypeType(fieldDecl_getType(myf)),
+				fieldDecl_getIndexName(myf));
+		printf ("comparing fromFieldID %d and name %d\n",fromFieldID, fieldDecl_getIndexName(myf));
+			printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
+			printf ("	shader ascii name is %s\n",curField->ASCIIname);
+		
 
 
 
-		if (fromFieldID == myf->name) {
+		if (fromFieldID == fieldDecl_getIndexName(myf)) {
 			/*
-			printf ("	field match, %d==%d\n",fromFieldID, myf->name);
-			printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,myf->type);
+			printf ("	field match, %d==%d\n",fromFieldID, fieldDecl_getIndexName(myf));
+			printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
 			printf ("	shaderVariableID is %d\n",myf->shaderVariableID);
 			*/
 		
@@ -807,7 +815,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 		/* save the variable object for this variable */
 		fieldDecl_setshaderVariableID(myf,myVar);
 
-		if ((myf->mode==PKW_initializeOnly) || (myf->mode==PKW_inputOutput)) {
+		if ((fieldDecl_getAccessType(myf)==PKW_initializeOnly) || (fieldDecl_getAccessType(myf)==PKW_inputOutput)) {
 			#ifdef SHADERVERBOSE
 			printf ("initializing Shader %d variable %s, type %s\n",myShader, curField->name,stringFieldtypeType(myf->type));
 			#endif

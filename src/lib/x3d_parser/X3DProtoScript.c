@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.41 2009/11/03 22:57:10 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.42 2009/11/05 18:39:09 crc_canada Exp $
 
 ???
 
@@ -747,9 +747,10 @@ static void verifyExternAndProtoFields(void) {
                 curField = vector_get(struct ScriptFieldDecl*, curProF->fields, curInd); 
         	for (extInd=0; extInd<vector_size(extProF->fields); extInd++) { 
                 	extField = vector_get(struct ScriptFieldDecl*, extProF->fields, extInd); 
-			if ((curField->fieldDecl->mode == extField->fieldDecl->mode)  &&
-			(curField->fieldDecl->type == extField->fieldDecl->type) &&
-			(curField->fieldDecl->name == extField->fieldDecl->name)) {
+			if ((fieldDecl_getAccessType(curField->fieldDecl) == 
+				fieldDecl_getAccessType(extField->fieldDecl))  &&
+			(fieldDecl_getType(curField->fieldDecl) == fieldDecl_getType(extField->fieldDecl)) &&
+			(fieldDecl_getIndexName(curField->fieldDecl) == fieldDecl_getIndexName(extField->fieldDecl))) {
 				matched=TRUE;
 				
 				/* now, we flagged that this ExternProtoDeclare field is "ok", we signal this by
@@ -1632,7 +1633,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 
 	/* for now, set the value  -either the default, or not... */
 	if (myValueString != NULL) {
-		Parser_scanStringValueToMem(X3D_NODE(&defaultVal), 0, sdecl->fieldDecl->type, (char *)myValueString, TRUE);
+		Parser_scanStringValueToMem(X3D_NODE(&defaultVal), 0, fieldDecl_getType(sdecl->fieldDecl), (char *)myValueString, TRUE);
 	}
 	scriptFieldDecl_setFieldValue(sdecl, defaultVal);
 

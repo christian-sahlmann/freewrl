@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.32 2009/11/03 22:57:10 crc_canada Exp $
+$Id: CScripts.c,v 1.33 2009/11/05 18:39:09 crc_canada Exp $
 
 ???
 
@@ -154,7 +154,7 @@ struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct Scrip
 	ret->ASCIItype = me->ASCIItype;
 	ret->ASCIIvalue = me->ASCIIvalue;
 	
-	ret->valueSet=((ret->fieldDecl->mode)!=PKW_initializeOnly);
+	ret->valueSet=(fieldDecl_getAccessType(ret->fieldDecl)!=PKW_initializeOnly);
 	return ret;
 }
 
@@ -198,7 +198,8 @@ static void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t nu
 	#endif
 
 	ASSERT(me->valueSet);
- 	SaveScriptField(num, me->fieldDecl->mode, me->fieldDecl->type, me->ASCIIname, me->value);
+ 	SaveScriptField(num, fieldDecl_getAccessType(me->fieldDecl), 
+		fieldDecl_getType(me->fieldDecl), me->ASCIIname, me->value);
 }
 
 /* ************************************************************************** */
