@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.24 2009/10/21 19:18:30 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.25 2009/11/05 01:16:16 crc_canada Exp $
 
 ???
 
@@ -283,6 +283,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 	      - that the destination node is not important (the NULL, offset 0) */
 
 	if (parser == NULL) parser=newParser(NULL, 0, TRUE);
+	lexer_forceStringCleanup(parser->lexer);
 
 	/* October 20, 2009; XML parsing should not go through here; XML encoded X3D should not have a "value=" field, but
 	   have the SFNode or MFNode as part of the syntax, eg <field ...> <Box/> </field> */
@@ -291,6 +292,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 		/* printf ("we have XML parsing for type %s, string :%s:\n",stringFieldtypeType(ctype),value); */
 		if ((ctype==FIELDTYPE_SFNode) || (ctype==FIELDTYPE_MFNode)) {
 			/* printf ("returning\n"); */
+			lexer_forceStringCleanup(parser->lexer);
 			return;
 		}
 
@@ -329,7 +331,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 			mfstringtmp = STRDUP(value);
 		}
 		parser_fromString(parser,mfstringtmp);
-		FREE_IF_NZ(mfstringtmp);
+		/* FREE_IF_NZ(mfstringtmp); */
         } else if (ctype == FIELDTYPE_SFNode) {
                 /* Need to change index to proper node ptr */
                 np = getEAINodeFromTable(atoi(value), -1);
@@ -337,7 +339,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 
 		mfstringtmp = STRDUP(value);
 		parser_fromString(parser,mfstringtmp);
-		FREE_IF_NZ(mfstringtmp);
+		/* FREE_IF_NZ(mfstringtmp); */
 	}
 
 	ASSERT(parser->lexer);
@@ -415,6 +417,7 @@ MF_TYPE(MFNode, mfnode, Node)
 
 			default: {
 				printf ("unhandled type, in EAIParse  %s\n",stringFieldtypeType(ctype));
+				lexer_forceStringCleanup(parser->lexer);
 				return;
 			}
 		}
