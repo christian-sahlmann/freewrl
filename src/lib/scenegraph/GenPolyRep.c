@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.15 2009/10/31 16:21:46 couannette Exp $
+$Id: GenPolyRep.c,v 1.16 2009/11/05 15:49:49 crc_canada Exp $
 
 ???
 
@@ -637,6 +637,13 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) node->normal;
 			tc = (struct X3D_TextureCoordinate *) node->texCoord;
 			co = (struct X3D_Coordinate *) node->coord;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, attrib));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, color));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, coord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, fogCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, metadata));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, normal));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, texCoord));
 			break;
 		case NODE_ElevationGrid:
 			orig_coordIndex= &X3D_ELEVATIONGRID(node)->_coordIndex;
@@ -646,6 +653,12 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			cc = (struct X3D_Color *) X3D_ELEVATIONGRID(node)->color;
 			nc = (struct X3D_Normal *) X3D_ELEVATIONGRID(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_ELEVATIONGRID(node)->texCoord;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_ElevationGrid, attrib));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_ElevationGrid, color));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_ElevationGrid, fogCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_ElevationGrid, metadata));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_ElevationGrid, normal));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_ElevationGrid, texCoord));
 			break;
 		case NODE_GeoElevationGrid:
 			orig_coordIndex= &X3D_GEOELEVATIONGRID(node)->_coordIndex;
@@ -655,6 +668,10 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			cc = (struct X3D_Color *) X3D_GEOELEVATIONGRID(node)->color;
 			nc = (struct X3D_Normal *) X3D_GEOELEVATIONGRID(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_GEOELEVATIONGRID(node)->texCoord;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_GeoElevationGrid, color));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_GeoElevationGrid, metadata));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_GeoElevationGrid, normal));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_GeoElevationGrid, texCoord));
 			break;
 		case NODE_IndexedTriangleFanSet:
 			checkIndexedTriangleFanSetFields(X3D_INDEXEDTRIANGLEFANSET(node));
@@ -666,6 +683,14 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLEFANSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLEFANSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLEFANSET(node)->coord;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, attrib));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, color));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, coord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, fogCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, metadata));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, normal));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, texCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, index));
 			break;
 		case NODE_IndexedTriangleSet:
 			checkIndexedTriangleSetFields(X3D_INDEXEDTRIANGLESET(node));
@@ -677,6 +702,14 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLESET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLESET(node)->coord;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, attrib));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, color));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, coord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, fogCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, metadata));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, normal));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, texCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, index));
 			break;
 		case NODE_IndexedTriangleStripSet:
 			checkIndexedTriangleStripSetFields(X3D_INDEXEDTRIANGLESTRIPSET(node));
@@ -688,6 +721,14 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLESTRIPSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESTRIPSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLESTRIPSET(node)->coord;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, attrib));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, color));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, coord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, fogCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, metadata));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, normal));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, texCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, index));
 			break;
 		case NODE_TriangleFanSet:
 			checkTriangleFanSetFields(X3D_TRIANGLEFANSET(node));
@@ -699,6 +740,13 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_TRIANGLEFANSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLEFANSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_TRIANGLEFANSET(node)->coord;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, attrib));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, color));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, coord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, fogCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, metadata));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, normal));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, texCoord));
 			break;
 		case NODE_TriangleSet:
 			checkTriangleSetFields(X3D_TRIANGLESET(node));
@@ -710,6 +758,13 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_TRIANGLESET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLESET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_TRIANGLESET(node)->coord;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleSet, attrib));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleSet, color));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleSet, coord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleSet, fogCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleSet, metadata));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleSet, normal));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleSet, texCoord));
 			break;
 		case NODE_TriangleStripSet:
 			checkTriangleStripSetFields(X3D_TRIANGLESTRIPSET(node));
@@ -721,6 +776,13 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_TRIANGLESTRIPSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLESTRIPSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_TRIANGLESTRIPSET(node)->coord;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, attrib));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, color));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, coord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, fogCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, metadata));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, normal));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, texCoord));
 			break;
 		case NODE_VRML1_IndexedFaceSet:
 			orig_coordIndex= &VRML1_INDEXEDFACESET(node)->coordIndex;
@@ -732,6 +794,10 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			tc = (struct X3D_TextureCoordinate *) VRML1_INDEXEDFACESET(node)->_texCoord;
 			co = (struct X3D_Coordinate *) VRML1_INDEXEDFACESET(node)->_coord;
 			creaseAngle = VRML1_INDEXEDFACESET(node)->_creaseAngle;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_VRML1_IndexedFaceSet, coordIndex));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_VRML1_IndexedFaceSet, materialIndex));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_VRML1_IndexedFaceSet, normalIndex));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_VRML1_IndexedFaceSet, textureCoordIndex));
 			break;
 		default:
 			ConsoleMessage ("unknown type for make_genericfaceset, %d\n",node->_nodeType);
