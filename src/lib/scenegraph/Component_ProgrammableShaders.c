@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.31 2009/11/04 22:36:07 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.32 2009/11/05 15:17:38 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -91,6 +91,7 @@ FIELDTYPE_MFVec4d
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../lib/scenegraph/Vector.h"

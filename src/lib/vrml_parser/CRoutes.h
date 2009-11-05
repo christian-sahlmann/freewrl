@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.h,v 1.3 2009/10/05 15:07:24 crc_canada Exp $
+$Id: CRoutes.h,v 1.4 2009/11/05 15:17:38 crc_canada Exp $
 
 VRML-parsing routines in C.
 
@@ -30,6 +30,27 @@ VRML-parsing routines in C.
 #ifndef __FREEWRL_CROUTES_H__
 #define __FREEWRL_CROUTES_H__
 
+/* C routes */
+typedef struct _CRnodeStruct {
+        struct X3D_Node *routeToNode;
+        unsigned int foffset;
+} CRnodeStruct;
+
+
+struct CRStruct {
+        struct X3D_Node*  routeFromNode;
+        uintptr_t fnptr;
+        unsigned int tonode_count;
+        CRnodeStruct *tonodes;
+        int     isActive;
+        int     len;
+        void    (*interpptr)(void *); /* pointer to an interpolator to run */
+        int     direction_flag; /* if non-zero indicates script in/out,
+                                                   proto in/out */
+        int     extra;          /* used to pass a parameter (eg, 1 = addChildren..) */
+	int 	intTimeStamp;	/* used for ROUTE loop breaking */
+};
+extern struct CRStruct *CRoutes;
 
 /* function protos */
 int get_valueChanged_flag (uintptr_t, uintptr_t);

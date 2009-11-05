@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.86 2009/11/03 22:57:10 crc_canada Exp $
+$Id: headers.h,v 1.87 2009/11/05 15:17:38 crc_canada Exp $
 
 Global includes.
 
@@ -104,11 +104,6 @@ const char* freewrl_get_browser_program();
 
 #define INT_ID_UNDEFINED -1
 
-typedef struct _CRnodeStruct {
-        struct X3D_Node *routeToNode;
-        unsigned int foffset;
-} CRnodeStruct;
-
 /* Size of static array */
 #define ARR_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
@@ -121,21 +116,8 @@ typedef struct _CRnodeStruct {
 #define sizeof_member(str, var) \
  sizeof(((str*)NULL)->var)
 
-/* C routes */
 #define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
 
-struct CRStruct {
-        struct X3D_Node*  routeFromNode;
-        uintptr_t fnptr;
-        unsigned int tonode_count;
-        CRnodeStruct *tonodes;
-        int     isActive;
-        int     len;
-        void    (*interpptr)(void *); /* pointer to an interpolator to run */
-        int     direction_flag; /* if non-zero indicates script in/out,
-                                                   proto in/out */
-        int     extra;          /* used to pass a parameter (eg, 1 = addChildren..) */
-};
 struct CRjsnameStruct {
         int     	type;
         char    	name[MAXJSVARIABLELENGTH];
@@ -144,7 +126,6 @@ struct CRjsnameStruct {
 
 
 extern struct CRjsnameStruct *JSparamnames;
-extern struct CRStruct *CRoutes;
 extern int jsnameindex;
 extern int MAXJSparamNames;
 

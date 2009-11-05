@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.66 2009/11/03 04:19:38 crc_canada Exp $
+  $Id: MainLoop.c,v 1.67 2009/11/05 15:17:37 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -977,6 +977,7 @@ static void render() {
 	    aglSwapBuffers(aqglobalContext);
 	} else {
 	    CGLError err = CGLFlushDrawable(myglobalContext);
+	    
 	    if (err != kCGLNoError) printf ("CGLFlushDrawable error %d\n",err);
 	    updateContext();
 	}

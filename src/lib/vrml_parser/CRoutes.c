@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.38 2009/10/22 17:40:59 sdumoulin Exp $
+$Id: CRoutes.c,v 1.39 2009/11/05 15:17:38 crc_canada Exp $
 
 ???
 
@@ -56,6 +56,9 @@ $Id: CRoutes.c,v 1.38 2009/10/22 17:40:59 sdumoulin Exp $
 
 static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, int multitype);
 static void sendScriptEventIn(uintptr_t num);
+
+/* we count times through the scenegraph; helps to break routing loops */
+static int thisIntTimeStamp = 1;
 
 /* defines for getting touched flags and exact Javascript pointers */
 
@@ -1054,12 +1057,14 @@ static void actually_do_CRoutes_Register(int num) {
 		CRoutes[0].tonodes = NULL;
 		CRoutes[0].isActive = FALSE;
 		CRoutes[0].interpptr = 0;
+		CRoutes[0].intTimeStamp = 0;
 		CRoutes[1].routeFromNode = X3D_NODE(-1);
 		CRoutes[1].fnptr = 0x8FFFFFFF;
 		CRoutes[1].tonode_count = 0;
 		CRoutes[1].tonodes = NULL;
 		CRoutes[1].isActive = FALSE;
 		CRoutes[1].interpptr = 0;
+		CRoutes[1].intTimeStamp = 0;
 		CRoutes_Count = 2;
 		CRoutes_Initiated = TRUE;
 	}
@@ -1169,6 +1174,7 @@ static void actually_do_CRoutes_Register(int num) {
 	CRoutes[insert_here].interpptr = (void (*)(void*))RTR.intptr;
 	CRoutes[insert_here].direction_flag = RTR.scrdir;
 	CRoutes[insert_here].extra = RTR.extra;
+	CRoutes[insert_here].intTimeStamp = 0;
 
 	if (RTR.to_count > 0) {
 		if ((CRoutes[insert_here].tonodes =
@@ -1319,7 +1325,16 @@ void mark_event (struct X3D_Node *from, unsigned int totalptr) {
 		#ifdef CRVERBOSE
 			printf ("found event at %d\n",findit);
 		#endif
-		CRoutes[findit].isActive=TRUE;
+printf ("MARK EVENT - route timestamp %d, TickTime %d\n",CRoutes[findit].intTimeStamp,thisIntTimeStamp);
+		if (CRoutes[findit].intTimeStamp!=thisIntTimeStamp) {
+			CRoutes[findit].isActive=TRUE;
+			CRoutes[findit].intTimeStamp=thisIntTimeStamp;
+		}
+
+#ifdef CRVERBOSE
+		else printf ("routing loop broken, findit %d\n",findit);
+#endif
+
 		findit ++;
 	}
 	#ifdef CRVERBOSE
@@ -1536,6 +1551,9 @@ void propagate_events() {
 		#ifdef CRVERBOSE
 		printf ("\npropagate_events start\n");
 		#endif
+
+	/* increment the "timestamp" for this entry */
+	thisIntTimeStamp ++; 
 
 	do {
 		havinterp=FALSE; /* assume no interpolators triggered */
