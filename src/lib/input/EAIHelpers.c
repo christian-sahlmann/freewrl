@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.31 2009/10/05 15:07:23 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.32 2009/11/06 00:09:01 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -459,7 +459,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 				printf ("   field %d,  name %s type %s (type %s accessType %d (%s), indexName %d, stringType %s)\n",
 						i,
 						sfield->ASCIIname, 
-						sfield->ASCIItype, 
+						stringFieldtypeType(fieldDecl_getType(sfield->fieldDecl)),
 						stringFieldtypeType(fieldDecl_getType(sfield->fieldDecl)),
 						fieldDecl_getAccessType(sfield->fieldDecl),
 						stringPROTOKeywordType(fieldDecl_getAccessType(sfield->fieldDecl)),
@@ -472,12 +472,13 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 					/* call JSparamIndex to get a unique index for this name - this is used for ALL
 					   script access, whether from EAI or not */
 					if(eaiverbose)
-					printf ("found it at index, %d but returning JSparamIndex %d\n",i,JSparamIndex(sfield->ASCIIname, sfield->ASCIItype)); 
+					printf ("found it at index, %d but returning JSparamIndex %d\n",i,
+						fieldDecl_getShaderScriptIndex(sfield->fieldDecl));
 
-					myFieldOffs = JSparamIndex(sfield->ASCIIname, sfield->ASCIItype);
+					myFieldOffs = fieldDecl_getShaderScriptIndex(sfield->fieldDecl);
 					/* switch from "PKW" to "KW" types */
 					*accessType = mapToKEYWORDindex(fieldDecl_getAccessType(sfield->fieldDecl));
-					ctype = findFieldInFIELDTYPES(sfield->ASCIItype);
+					ctype = fieldDecl_getType(sfield->fieldDecl);
 					break;
 				}
 			}

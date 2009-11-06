@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.41 2009/11/05 18:39:09 crc_canada Exp $
+$Id: CRoutes.c,v 1.42 2009/11/06 00:09:01 crc_canada Exp $
 
 ???
 
@@ -778,7 +778,6 @@ int JSparamIndex (const char *name, const char *type) {
 	unsigned len;
 	int ty;
 	int ctr;
-#define CRVERBOSE
 
 	#ifdef CRVERBOSE
 	printf ("start of JSparamIndex, name %s, type %s\n",name,type);
@@ -832,7 +831,6 @@ int JSparamIndex (const char *name, const char *type) {
 
 	return jsnameindex;
 }
-#undef CRVERBOSE
 
 /********************************************************************
 

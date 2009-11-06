@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.33 2009/11/05 18:39:09 crc_canada Exp $
+$Id: CScripts.c,v 1.34 2009/11/06 00:09:01 crc_canada Exp $
 
 ???
 
@@ -85,20 +85,29 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
  ASSERT(mod!=PKW_inputOutput);
 
 	/* shaderID will get set when shader is activiated */
- 	ret->fieldDecl=newFieldDecl(mod, type, name, -1);
+ 	ret->fieldDecl=newFieldDecl(mod, type, name, 
+		JSparamIndex(lexer_stringUser_fieldName(me,name,mod),FIELDTYPES[type])
+		, -1);
  ASSERT(ret->fieldDecl);
 
  /* Stringify */
  ret->ASCIIname=fieldDecl_getStringName(me, ret->fieldDecl);
- ret->ASCIItype=FIELDTYPES[type];
  ret->ASCIIvalue=NULL; /* used only for XML PROTO ProtoInterface fields */
+ 
+ /* printf ("newScript, asciiType %s,\n",stringFieldtypeType(
+		fieldDecl_getType(ret->fieldDecl)));
+ printf ("newScriptFieldDecl, name :%s:, getIndexName %d, ShaderScriptIndex %d\n", 
+	ret->ASCIIname,
+	fieldDecl_getIndexName(ret->fieldDecl), fieldDecl_getShaderScriptIndex(ret->fieldDecl)); */
 
  /* Field's value not yet initialized! */
  ret->valueSet=(mod!=PKW_initializeOnly);
  /* value is set later on */
 
  #ifdef CPARSERVERBOSE
- printf ("newScriptFieldDecl, returning name %s, type %s, mode %s\n",ret->ASCIIname, ret->ASCIItype,PROTOKEYWORDS[ret->fieldDecl->mode]); 
+ printf ("newScriptFieldDecl, returning name %s, type %s, mode %s\n",ret->ASCIIname, 
+		stringFieldtypeType( fieldDecl_getType(ret->fieldDecl))
+,PROTOKEYWORDS[ret->fieldDecl->mode]); 
  #endif
 
  return ret;
@@ -151,7 +160,6 @@ struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct Scrip
 	ASSERT(ret->fieldDecl);	
 
 	ret->ASCIIname = fieldDecl_getStringName(lex, ret->fieldDecl);
-	ret->ASCIItype = me->ASCIItype;
 	ret->ASCIIvalue = me->ASCIIvalue;
 	
 	ret->valueSet=(fieldDecl_getAccessType(ret->fieldDecl)!=PKW_initializeOnly);
@@ -182,14 +190,20 @@ void scriptFieldDecl_setFieldASCIIValue(struct ScriptFieldDecl *me, const char *
 
 
 /* Get "offset" data for routing. Return an error if we are passed an invalid pointer. */
+/* this is the field used for Scripts and Shaders; each number identifies a name AND data
+   type; eg, 0="Var1","SFInt32", 1="Var1","MFFloat" while the lexerNameIndex would be the
+   same */
+
 int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 {
  if (me == NULL) {
 	ConsoleMessage ("call to scriptFieldDecl_getRoutingOffset made with NULL input");
 	return INT_ID_UNDEFINED;
  }
- return JSparamIndex(me->ASCIIname, me->ASCIItype);
+ return fieldDecl_getShaderScriptIndex(me->fieldDecl);
 }
+
+
 
 /* Initialize JSField */
 static void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num) {
@@ -335,7 +349,6 @@ BOOL script_initCode(struct Shader_Script* me, const char* code)
 {
  	ASSERT(!me->loaded);
 
-printf ("script_initCode, me is %u, me->num is %d, code %s\n",me,me,code);
 	SaveScriptText (me->num, (char *)code);
  	me->loaded=TRUE;
  	return TRUE;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CFieldDecls.h,v 1.8 2009/11/05 18:39:09 crc_canada Exp $
+$Id: CFieldDecls.h,v 1.9 2009/11/06 00:09:01 crc_canada Exp $
 
 This is a common base class for FieldDeclarations on PROTOs and Scripts
 
@@ -36,19 +36,21 @@ struct FieldDecl
  indexT PKWmode; /* PKW_initializeOnly PKW_inputOutput, PKW_inputOnly, PKW_outputOnly */
  indexT fieldType; /* field type ,eg FIELDTYPE_MFInt32 */
  indexT lexerNameIndex; /* field "name" (its lexer-index) */
+ indexT JSparamNameIndex; /* JSparamname - has index unique with fieldType */
  int shaderVariableID; 	/* glGetUniformLocation() cast to int */
 };
 
 /* Constructor and destructor */
 /* ************************** */
 
-struct FieldDecl* newFieldDecl(indexT, indexT, indexT, int);
+struct FieldDecl* newFieldDecl(indexT, indexT, indexT, int, int);
 #define deleteFieldDecl(me) \
  FREE_IF_NZ(me)
 
 /* Copies */
 #define fieldDecl_copy(me) \
- newFieldDecl((me)->PKWmode, (me)->fieldType, (me)->lexerNameIndex, (me)->shaderVariableID)
+ newFieldDecl((me)->PKWmode, (me)->fieldType, (me)->lexerNameIndex, \
+		(me)->JSparamNameIndex, (me)->shaderVariableID)
 
 /* Accessors */
 /* ********* */
@@ -57,9 +59,10 @@ struct FieldDecl* newFieldDecl(indexT, indexT, indexT, int);
  ((me)->fieldType)
 #define fieldDecl_getAccessType(me) \
  ((me)->PKWmode)
+#define fieldDecl_getShaderScriptIndex(me) \
+ ((me)->JSparamNameIndex)
 #define fieldDecl_getIndexName(me) \
  ((me)->lexerNameIndex)
-
 #define fieldDecl_getshaderVariableID(me) \
 	(GLint) ((me)->shaderVariableID)
 

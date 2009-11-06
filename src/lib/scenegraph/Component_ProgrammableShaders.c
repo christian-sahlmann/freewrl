@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.33 2009/11/05 18:39:09 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.34 2009/11/06 00:09:01 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -46,9 +46,9 @@ FIELDTYPE_MFRotation		GL_FLOAT_VEC4		YES
 FIELDTYPE_SFVec3f		GL_FLOAT_VEC3		YES		YES
 FIELDTYPE_MFVec3f		GL_FLOAT_VEC3		YES
 FIELDTYPE_SFBool		GL_BOOL			YES		YES
-FIELDTYPE_MFBool		GL_BOOL			YES
+FIELDTYPE_MFBool		GL_BOOL			YES		YES
 FIELDTYPE_SFInt32		GL_INT			YES		YES
-FIELDTYPE_MFInt32		GL_INT			YES
+FIELDTYPE_MFInt32		GL_INT			YES		YES
 FIELDTYPE_SFNode		
 FIELDTYPE_MFNode		--
 FIELDTYPE_SFColor		GL_FLOAT_VEC3		YES
@@ -621,16 +621,18 @@ void getField_ToShader(int num) {
 	/* printf ("going through fields.... have %d fields\n",vector_size(myObj->fields)); */
 	for(i=0; i!=vector_size(myObj->fields); ++i) {
 		GLint myVar;
+		GLint shaderVariable;
 		struct ScriptFieldDecl* curField;
 		struct FieldDecl * myf;
 
 		/* initialization */
 		curField = vector_get(struct ScriptFieldDecl*, myObj->fields, i);
 		myf = curField->fieldDecl;
+		shaderVariable = fieldDecl_getshaderVariableID(myf);
 
 		
 		
-		printf ("curField %d name %d type %d ",i,
+		/*printf ("curField %d name %d type %d ",i,
 			fieldDecl_getIndexName(myf), fieldDecl_getType(myf));
 		printf ("fieldDecl mode %d (%s) type %d (%s) name %d\n",
 				fieldDecl_getAccessType(myf),
@@ -640,15 +642,16 @@ void getField_ToShader(int num) {
 		printf ("comparing fromFieldID %d and name %d\n",fromFieldID, fieldDecl_getIndexName(myf));
 			printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
 			printf ("	shader ascii name is %s\n",curField->ASCIIname);
+		*/
 		
 
 
 
-		if (fromFieldID == fieldDecl_getIndexName(myf)) {
+		if (fromFieldID == fieldDecl_getShaderScriptIndex(myf)) {
 			/*
 			printf ("	field match, %d==%d\n",fromFieldID, fieldDecl_getIndexName(myf));
 			printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
-			printf ("	shaderVariableID is %d\n",myf->shaderVariableID);
+			printf ("	shaderVariableID is %d\n",fieldDecl_getShaderVariableID(myf));
 			*/
 		
 
@@ -662,7 +665,7 @@ void getField_ToShader(int num) {
 		/* send in the correct parameters */
 		switch (JSparamnames[fromFieldID].type) {
 			case FIELDTYPE_SFFloat:
-				GLUNIFORM1FV(myf->shaderVariableID, 1, sourceData);
+				GLUNIFORM1FV(shaderVariable, 1, sourceData);
 				break;
 
 			case FIELDTYPE_SFDouble:
@@ -671,37 +674,35 @@ void getField_ToShader(int num) {
 				dd1 = (double*) sourceData;
 				val = *dd1;
 				sd = (float) val;
-				GLUNIFORM1FV(myf->shaderVariableID, 1, &sd);
+				GLUNIFORM1FV(shaderVariable, 1, &sd);
 				break;}
 
 			case FIELDTYPE_SFVec2f:
-				GLUNIFORM2FV(myf->shaderVariableID, 1, sourceData);
+				GLUNIFORM2FV(shaderVariable, 1, sourceData);
 				break;
 
 			case FIELDTYPE_SFVec3f:
 			case FIELDTYPE_SFColor:
-				GLUNIFORM3FV(myf->shaderVariableID, 1, sourceData);
+				GLUNIFORM3FV(shaderVariable, 1, sourceData);
 				break;
 
 			case FIELDTYPE_SFColorRGBA:
 			case FIELDTYPE_SFRotation:
 			case FIELDTYPE_SFVec4f:
-				GLUNIFORM4FV(myf->shaderVariableID, 1, sourceData);
+				GLUNIFORM4FV(shaderVariable, 1, sourceData);
 				break;
 
 			case FIELDTYPE_SFBool:
 			case FIELDTYPE_SFInt32: {
 			int *sd = (int *)sourceData;
 				/* printf ("sending in %d\n",*sd); */
-				GLUNIFORM1I (myf->shaderVariableID, *sd);
+				GLUNIFORM1I (shaderVariable, *sd);
 			break; }
 
 			case FIELDTYPE_MFBool:
 			case FIELDTYPE_MFInt32: {
 			struct Multi_Int32 *sd = (struct Multi_Int32 *) sourceData;
-
-				 printf ("sending in to a shader a MFBool or MFInt32 of %d length\n",sd->n);
-				GLUNIFORM1IV (myf->shaderVariableID, sd->n, (int *)sd->p);
+				GLUNIFORM1IV (shaderVariable, sd->n, (int *)sd->p);
 			break; }
 			
 			case FIELDTYPE_MFFloat:

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.42 2009/11/05 18:39:09 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.43 2009/11/06 00:09:01 crc_canada Exp $
 
 ???
 
@@ -1000,14 +1000,14 @@ void parseProtoInstance (const char **atts) {
 		/* JAS if (field->fieldDecl->mode != PKW_initializeOnly) { */ \
 		if (fv != NULL) { \
 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' value='%s'/>\n", \
-			field->ASCIItype, \
+			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), \
 			field->ASCIIname,  \
 			FREEWRL_SPECIFIC,  \
 			CPI.uniqueNumber, \
 			fv); \
 		} else { \
 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' />\n", \
-			field->ASCIItype, \
+			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), \
 			field->ASCIIname,  \
 			FREEWRL_SPECIFIC,  \
 			CPI.uniqueNumber); \
@@ -1640,7 +1640,6 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 		
 	/* fill in the string name and type */
 	sdecl->ASCIIname=STRDUP(atts[myparams[MP_NAME]]);
-	sdecl->ASCIItype=STRDUP(atts[myparams[MP_TYPE]]);
 
 	/* if we are parsing a PROTO interface, we might as well save the value as a string, because we will need it later */
 	if (getParserMode() == PARSING_PROTOINTERFACE) {
