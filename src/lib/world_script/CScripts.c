@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.34 2009/11/06 00:09:01 crc_canada Exp $
+$Id: CScripts.c,v 1.35 2009/11/06 17:01:35 crc_canada Exp $
 
 ???
 
@@ -91,13 +91,12 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
  ASSERT(ret->fieldDecl);
 
  /* Stringify */
- ret->ASCIIname=fieldDecl_getStringName(me, ret->fieldDecl);
  ret->ASCIIvalue=NULL; /* used only for XML PROTO ProtoInterface fields */
  
  /* printf ("newScript, asciiType %s,\n",stringFieldtypeType(
 		fieldDecl_getType(ret->fieldDecl)));
  printf ("newScriptFieldDecl, name :%s:, getIndexName %d, ShaderScriptIndex %d\n", 
-	ret->ASCIIname,
+	fieldDecl_getShaderScriptName(ret->fieldDecl),
 	fieldDecl_getIndexName(ret->fieldDecl), fieldDecl_getShaderScriptIndex(ret->fieldDecl)); */
 
  /* Field's value not yet initialized! */
@@ -105,7 +104,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
  /* value is set later on */
 
  #ifdef CPARSERVERBOSE
- printf ("newScriptFieldDecl, returning name %s, type %s, mode %s\n",ret->ASCIIname, 
+ printf ("newScriptFieldDecl, returning name %s, type %s, mode %s\n",fieldDecl_getShaderScriptName(ret->fieldDecl), 
 		stringFieldtypeType( fieldDecl_getType(ret->fieldDecl))
 ,PROTOKEYWORDS[ret->fieldDecl->mode]); 
  #endif
@@ -159,7 +158,6 @@ struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct Scrip
 	ret->fieldDecl = fieldDecl_copy(me->fieldDecl);
 	ASSERT(ret->fieldDecl);	
 
-	ret->ASCIIname = fieldDecl_getStringName(lex, ret->fieldDecl);
 	ret->ASCIIvalue = me->ASCIIvalue;
 	
 	ret->valueSet=(fieldDecl_getAccessType(ret->fieldDecl)!=PKW_initializeOnly);
@@ -213,7 +211,7 @@ static void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t nu
 
 	ASSERT(me->valueSet);
  	SaveScriptField(num, fieldDecl_getAccessType(me->fieldDecl), 
-		fieldDecl_getType(me->fieldDecl), me->ASCIIname, me->value);
+		fieldDecl_getType(me->fieldDecl), fieldDecl_getShaderScriptName(me->fieldDecl), me->value);
 }
 
 /* ************************************************************************** */
@@ -295,7 +293,7 @@ struct ScriptFieldDecl* script_getField_viaASCIIname (struct Shader_Script* me, 
  for(i=0; i!=vector_size(me->fields); ++i)
  {
   struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
-  if(strcmp(name,curField->ASCIIname) == 0)
+  if(strcmp(name,fieldDecl_getShaderScriptName(curField->fieldDecl)) == 0)
    return curField;
  }
 
@@ -330,7 +328,7 @@ void script_addField(struct Shader_Script* me, struct ScriptFieldDecl* field)
 		for(i=0; i!=vector_size(me->fields); ++i) {
 			struct ScriptFieldDecl* curField=
 				vector_get(struct ScriptFieldDecl*, me->fields, i);
-			printf ("script_addField, now have field %d of %d, ASCIIname %s:",i,vector_size(me->fields),curField->ASCIIname);
+			printf ("script_addField, now have field %d of %d, ASCIIname %s:",i,vector_size(me->fields),fieldDecl_getShaderScriptName(curField->fieldDecl));
 			printf ("\n");
 		}
 

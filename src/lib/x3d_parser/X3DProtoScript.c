@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.43 2009/11/06 00:09:01 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.44 2009/11/06 17:01:35 crc_canada Exp $
 
 ???
 
@@ -261,10 +261,10 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 
 	
 	/* we have names and fields, lets generate routes for this */
-	myFieldKind = getProtoKind(myLexer,currentProtoInstance,protoField->ASCIIname);
+	myFieldKind = getProtoKind(myLexer,currentProtoInstance,fieldDecl_getShaderScriptName(protoField->fieldDecl));
 
 	/* find the MetaMF/MetaSF node to route to/from to: */
-	sprintf(newname,"%s_%s_%d",protoField->ASCIIname,FREEWRL_SPECIFIC,CPI.uniqueNumber);
+	sprintf(newname,"%s_%s_%d",fieldDecl_getShaderScriptName(protoField->fieldDecl),FREEWRL_SPECIFIC,CPI.uniqueNumber);
 
 	/* printf ("looking for name %s\n",newname); */
 
@@ -288,21 +288,21 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 	switch (myFieldKind) {
 		case PKW_inputOnly: 
 			/* 1 */ DEBUG_X3DPARSER ("inputOnly: <ROUTE fromNode='%s_%s_%d' fromField='valueChanged' toNode='%s' toField='%s'/>\n",
-					protoField->ASCIIname,FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
+					fieldDecl_getShaderScriptName(protoField->fieldDecl),FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
 				ROUTE_FROM_META_TO_ISD
 
 			break;
 		case PKW_outputOnly: 
 			/* 2 */DEBUG_X3DPARSER ("outputOnly: <ROUTE toNode='%s_%s_%d' toField='setValue' fromNode='%s' fromField='%s'/>\n",
-					protoField->ASCIIname,FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
+					fieldDecl_getShaderScriptName(protoField->fieldDecl),FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
 				ROUTE_FROM_ISD_TO_META
 			break;
 		case PKW_inputOutput: 
 			/* 1 */ DEBUG_X3DPARSER ("inputOutput: <ROUTE fromNode='%s_%s_%d' fromField='valueChanged' toNode='%s' toField='%s'/>\n",
-					protoField->ASCIIname,FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
+					fieldDecl_getShaderScriptName(protoField->fieldDecl),FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
 				ROUTE_FROM_META_TO_ISD
 			/* 2 */DEBUG_X3DPARSER ("inputOutput: <ROUTE toNode='%s_%s_%d' toField='setValue' fromNode='%s' fromField='%s'/>\n",
-					protoField->ASCIIname,FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
+					fieldDecl_getShaderScriptName(protoField->fieldDecl),FREEWRL_SPECIFIC,CPI.uniqueNumber,myDefName,nodeField);
 				ROUTE_FROM_ISD_TO_META
 			break;
 		case PKW_initializeOnly: 
@@ -433,9 +433,9 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 	for (ind=0; ind<vector_size(myObj->fields); ind++) { 
 		struct ScriptFieldDecl* field; 
 		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); 
-		/* printf ("ind %d name %s value %s\n", ind, field->ASCIIname,  field->ASCIIvalue); */
+		/* printf ("ind %d name %s value %s\n", ind, fieldDecl_getShaderScriptName(field->fieldDecl),  field->ASCIIvalue); */
 
-		if (strcmp(field->ASCIIname,atts[pfInd+1])==0) {
+		if (strcmp(fieldDecl_getShaderScriptName(field->fieldDecl),atts[pfInd+1])==0) {
 			/* printf ("parseConnect, routing, have match, value is %s\n",atts[nfInd+1]); */
 			matched=TRUE;
 			generateRoute(myLexer, field, atts[nfInd+1]);
@@ -477,9 +477,9 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 	for (ind=0; ind<vector_size(myObj->fields); ind++) { 
 		struct ScriptFieldDecl* field; 
 		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); 
-		/* printf ("ind %d name %s value %s\n", ind, field->ASCIIname,  field->ASCIIvalue);  */
+		/* printf ("ind %d name %s value %s\n", ind, fieldDecl_getShaderScriptName(field->fieldDecl),  field->ASCIIvalue);  */
 
-		if (strcmp(field->ASCIIname,atts[pfInd+1])==0) {
+		if (strcmp(fieldDecl_getShaderScriptName(field->fieldDecl),atts[pfInd+1])==0) {
 			/* printf ("parseConnect, have match, value is %s\n",field->ASCIIvalue); */
 			/* if there is no value here, just return, as some accessMethods do not have value */
 			if (field->ASCIIvalue==NULL) return;
@@ -755,22 +755,20 @@ static void verifyExternAndProtoFields(void) {
 				
 				/* now, we flagged that this ExternProtoDeclare field is "ok", we signal this by
 				   REMOVING its ASCII name and field as it will not be used again */
-				FREE_IF_NZ(extField->ASCIIname);
 				FREE_IF_NZ(extField->ASCIIvalue);
 			}
 		}
 		if (!matched) {
-			ConsoleMessage ("<ExternProtoDeclare> and embedded <ProtoDeclare> field mismatch, could not match up <ProtoDeclare> field :%s: in <ExternProtoDeclare>",curField->ASCIIname);
+			ConsoleMessage ("<ExternProtoDeclare> and embedded <ProtoDeclare> field mismatch, could not match up <ProtoDeclare> field :%s: in <ExternProtoDeclare>",fieldDecl_getShaderScriptName(curField->fieldDecl));
 		}
 	}
 
 	/* do we have any ExternProtoDeclare fields that are NOT matched by the ProtoDeclare? */
        	for (extInd=0; extInd<vector_size(extProF->fields); extInd++) { 
                	extField = vector_get(struct ScriptFieldDecl*, extProF->fields, extInd); 
-		if (extField->ASCIIname != NULL) {
+		if (fieldDecl_getShaderScriptName(extField->fieldDecl) != NULL) {
 			ConsoleMessage ("<ExternProtoDeclare> field :%s: not matched in embedded Proto",
-				extField->ASCIIname);
-			FREE_IF_NZ(extField->ASCIIname);
+				fieldDecl_getShaderScriptName(extField->fieldDecl));
 			FREE_IF_NZ(extField->ASCIIvalue);
 		}
 	}
@@ -995,20 +993,20 @@ void parseProtoInstance (const char **atts) {
 		fv = field->ASCIIvalue; /* pointer to ProtoDef value - might be replaced in loop below */ \
 		for (i=0; i<CPI.paircount; i++) { \
 			/* printf ("CPI has %s and %s\n",CPI.name[i],CPI.value[i]); */ \
-			if (strcmp(CPI.name[i],field->ASCIIname)==0) {/* use the value passed in on invocation */ fv=(char *)CPI.value[i];} \
+			if (strcmp(CPI.name[i],fieldDecl_getShaderScriptName(field->fieldDecl))==0) {/* use the value passed in on invocation */ fv=(char *)CPI.value[i];} \
 		} \
 		/* JAS if (field->fieldDecl->mode != PKW_initializeOnly) { */ \
 		if (fv != NULL) { \
 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' value='%s'/>\n", \
 			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), \
-			field->ASCIIname,  \
+			fieldDecl_getShaderScriptName(field->fieldDecl),  \
 			FREEWRL_SPECIFIC,  \
 			CPI.uniqueNumber, \
 			fv); \
 		} else { \
 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' />\n", \
 			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), \
-			field->ASCIIname,  \
+			fieldDecl_getShaderScriptName(field->fieldDecl),  \
 			FREEWRL_SPECIFIC,  \
 			CPI.uniqueNumber); \
 		/* }  */  } \
@@ -1639,7 +1637,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 
 		
 	/* fill in the string name and type */
-	sdecl->ASCIIname=STRDUP(atts[myparams[MP_NAME]]);
+	/* sdecl->ASCIIname=STRDUP(atts[myparams[MP_NAME]]); */
 
 	/* if we are parsing a PROTO interface, we might as well save the value as a string, because we will need it later */
 	if (getParserMode() == PARSING_PROTOINTERFACE) {

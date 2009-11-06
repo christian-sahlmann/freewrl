@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CFieldDecls.h,v 1.9 2009/11/06 00:09:01 crc_canada Exp $
+$Id: CFieldDecls.h,v 1.10 2009/11/06 17:01:35 crc_canada Exp $
 
 This is a common base class for FieldDeclarations on PROTOs and Scripts
 
@@ -68,6 +68,9 @@ struct FieldDecl* newFieldDecl(indexT, indexT, indexT, int, int);
 
 #define fieldDecl_setshaderVariableID(me,varid) \
 	((me)->shaderVariableID) = (GLint) (varid)
+
+#define fieldDecl_getShaderScriptName(me) \
+	(JSparamnames[fieldDecl_getShaderScriptIndex(me)].name)
 
 #define fieldDecl_getStringName(lex, me) \
  lexer_stringUser_fieldName(lex, fieldDecl_getIndexName(me), \
