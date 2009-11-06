@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.34 2009/11/06 00:09:01 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.35 2009/11/06 22:29:43 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -36,34 +36,33 @@ Notes:
 	via X3D. Even if it is defined as a Uniform variable, if it does not exist in the shader, it will not 
 	be able to be initialized, and thus the shader interface will return an error.
 
-
 X3D type			GLSL type		Initialize	Route In	Route Out
 -------------------------------------------------------------------------------------------------
 FIELDTYPE_SFFloat		GL_FLOAT		YES		YES
-FIELDTYPE_MFFloat		GL_FLOAT		YES
-FIELDTYPE_SFRotation		GL_FLOAT_VEC4		YES	
-FIELDTYPE_MFRotation		GL_FLOAT_VEC4		YES
+FIELDTYPE_MFFloat		GL_FLOAT		YES		YES
+FIELDTYPE_SFRotation		GL_FLOAT_VEC4		YES		YES
+FIELDTYPE_MFRotation		GL_FLOAT_VEC4		YES		YES
 FIELDTYPE_SFVec3f		GL_FLOAT_VEC3		YES		YES
-FIELDTYPE_MFVec3f		GL_FLOAT_VEC3		YES
+FIELDTYPE_MFVec3f		GL_FLOAT_VEC3		YES		YES
 FIELDTYPE_SFBool		GL_BOOL			YES		YES
 FIELDTYPE_MFBool		GL_BOOL			YES		YES
 FIELDTYPE_SFInt32		GL_INT			YES		YES
 FIELDTYPE_MFInt32		GL_INT			YES		YES
 FIELDTYPE_SFNode		
 FIELDTYPE_MFNode		--
-FIELDTYPE_SFColor		GL_FLOAT_VEC3		YES
-FIELDTYPE_MFColor		GL_FLOAT_VEC3		YES
-FIELDTYPE_SFColorRGBA		GL_FLOAT_VEC4		YES
-FIELDTYPE_MFColorRGBA		GL_FLOAT_VEC4		YES
+FIELDTYPE_SFColor		GL_FLOAT_VEC3		YES		YES
+FIELDTYPE_MFColor		GL_FLOAT_VEC3		YES		YES
+FIELDTYPE_SFColorRGBA		GL_FLOAT_VEC4		YES		YES
+FIELDTYPE_MFColorRGBA		GL_FLOAT_VEC4		YES		YES
 FIELDTYPE_SFTime		GL_FLOAT		YES(float)	YES(float)
 FIELDTYPE_MFTime	
 FIELDTYPE_SFString		--
 FIELDTYPE_MFString		--
-FIELDTYPE_SFVec2f		GL_FLOAT_VEC2		YES
-FIELDTYPE_MFVec2f		GL_FLOAT_VEC2		YES
+FIELDTYPE_SFVec2f		GL_FLOAT_VEC2		YES		YES
+FIELDTYPE_MFVec2f		GL_FLOAT_VEC2		YES		YES
 FIELDTYPE_SFImage	
 FIELDTYPE_FreeWRLPTR		--
-FIELDTYPE_SFVec3d		GL_FLOAT_VEC3		YES(float)
+FIELDTYPE_SFVec3d		GL_FLOAT_VEC3		YES(float)	YES(float)
 FIELDTYPE_MFVec3d	
 FIELDTYPE_SFDouble		GL_FLOAT		YES(float)	YES(float)
 FIELDTYPE_MFDouble	
@@ -75,11 +74,11 @@ FIELDTYPE_SFMatrix4f
 FIELDTYPE_MFMatrix4f	
 FIELDTYPE_SFMatrix4d	
 FIELDTYPE_MFMatrix4d	
-FIELDTYPE_SFVec2d		GL_FLOAT_2		YES(float)
+FIELDTYPE_SFVec2d		GL_FLOAT_2		YES(float)	YES(float)
 FIELDTYPE_MFVec2d	
-FIELDTYPE_SFVec4f		GL_FLOAT_VEC4		YES
+FIELDTYPE_SFVec4f		GL_FLOAT_VEC4		YES		YES
 FIELDTYPE_MFVec4f				
-FIELDTYPE_SFVec4d		GL_FLOAT_VEC4		YES(float)
+FIELDTYPE_SFVec4d		GL_FLOAT_VEC4		YES(float)	YES(float)
 FIELDTYPE_MFVec4d	
 */
 
@@ -641,7 +640,7 @@ void getField_ToShader(int num) {
 				fieldDecl_getIndexName(myf));
 		printf ("comparing fromFieldID %d and name %d\n",fromFieldID, fieldDecl_getIndexName(myf));
 			printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
-			printf ("	shader ascii name is %s\n",curField->ASCIIname);
+			printf ("	shader ascii name is %s\n",fieldDecl_getShaderScriptName(curField->fieldDecl));
 		*/
 		
 
@@ -662,24 +661,83 @@ void getField_ToShader(int num) {
 		/* turn the selected shader program ON */
 		USE_SHADER(currentShader);
 
+#define ROUTE_SF_FLOAT_TO_SHADER(ty1) \
+                case FIELDTYPE_SF##ty1: \
+                        GLUNIFORM1F(shaderVariable, *((float*)sourceData)); \
+                break;
+
+#define ROUTE_SF_DOUBLE_TO_SHADER(ty1) \
+                case FIELDTYPE_SF##ty1: {float val = (float) *((double *)sourceData); \
+                        GLUNIFORM1F(shaderVariable, val); \
+                break; }
+
+#define ROUTE_SF_INTS_TO_SHADER(ty1) \
+                case FIELDTYPE_SF##ty1: \
+                        GLUNIFORM1I(shaderVariable, *((int*)sourceData));  \
+                        break;
+
+#define ROUTE_SF_FLOATS_TO_SHADER(ttt,ty1) \
+                case FIELDTYPE_SF##ty1: \
+                        GLUNIFORM##ttt##FV(shaderVariable, 1, (float*)sourceData); \
+                break;
+
+#define ROUTE_SF_DOUBLES_TO_SHADER(ttt,ty1) \
+                case FIELDTYPE_SF##ty1: {float val[4]; int i; double *fp = (double*)sourceData; \
+                        for (i=0; i<ttt; i++) { val[i] = (float) (*sourceData); sourceData++; } \
+                                GLUNIFORM##ttt##FV(shaderVariable, 1, val); \
+                break; }
+
+#define ROUTE_MF_FLOATS_TO_SHADER(ttt,ty1) \
+                case FIELDTYPE_MF##ty1: { struct Multi_##ty1 *sd = (struct Multi_##ty1*) sourceData; \
+                        GLUNIFORM##ttt##FV(shaderVariable, sd->n, (float *)sd->p); \
+                break; }
+
+#define ROUTE_MF_INTS_TO_SHADER(ttt,ty1) \
+                case FIELDTYPE_MF##ty1: { struct Multi_##ty1 *sd = (struct Multi_##ty1*) sourceData; \
+                        GLUNIFORM##ttt##IV(shaderVariable, sd->n, (int *)sd->p); \
+                break; }
+
+
+
 		/* send in the correct parameters */
 		switch (JSparamnames[fromFieldID].type) {
-			case FIELDTYPE_SFFloat:
-				GLUNIFORM1FV(shaderVariable, 1, sourceData);
-				break;
+                ROUTE_SF_FLOAT_TO_SHADER(Float)
+                ROUTE_SF_DOUBLE_TO_SHADER(Double)
+                ROUTE_SF_DOUBLE_TO_SHADER(Time)
+		ROUTE_SF_INTS_TO_SHADER(Bool)
+		ROUTE_SF_INTS_TO_SHADER(Int32)
 
-			case FIELDTYPE_SFDouble:
-			case FIELDTYPE_SFTime: {
-				float sd; double *dd1; double val;
-				dd1 = (double*) sourceData;
-				val = *dd1;
-				sd = (float) val;
-				GLUNIFORM1FV(shaderVariable, 1, &sd);
-				break;}
+                ROUTE_SF_FLOATS_TO_SHADER(2,Vec2f)
+                ROUTE_SF_FLOATS_TO_SHADER(3,Vec3f)
+                ROUTE_SF_FLOATS_TO_SHADER(3,Color)
+                ROUTE_SF_FLOATS_TO_SHADER(4,ColorRGBA)
+                ROUTE_SF_FLOATS_TO_SHADER(4,Rotation)
+                ROUTE_SF_FLOATS_TO_SHADER(4,Vec4f)
+                ROUTE_SF_DOUBLES_TO_SHADER(2,Vec2d)
+                ROUTE_SF_DOUBLES_TO_SHADER(3,Vec3d)
+                ROUTE_SF_DOUBLES_TO_SHADER(4,Vec4d)
+
+                ROUTE_MF_FLOATS_TO_SHADER(1,Float)
+                ROUTE_MF_FLOATS_TO_SHADER(2,Vec2f)
+                ROUTE_MF_FLOATS_TO_SHADER(3,Color)
+                ROUTE_MF_FLOATS_TO_SHADER(3,Vec3f)
+                ROUTE_MF_FLOATS_TO_SHADER(4,ColorRGBA)
+                ROUTE_MF_FLOATS_TO_SHADER(4,Rotation)
+
+                ROUTE_MF_INTS_TO_SHADER(1,Bool)
+                ROUTE_MF_INTS_TO_SHADER(1,Int32)
+
+
+
+#ifdef OLDCODE
 
 			case FIELDTYPE_SFVec2f:
 				GLUNIFORM2FV(shaderVariable, 1, sourceData);
 				break;
+			case FIELDTYPE_SFVec2d:
+				GLUNIFORM2FV(shaderVariable, 1, sourceData);
+				break;
+
 
 			case FIELDTYPE_SFVec3f:
 			case FIELDTYPE_SFColor:
@@ -692,33 +750,24 @@ void getField_ToShader(int num) {
 				GLUNIFORM4FV(shaderVariable, 1, sourceData);
 				break;
 
-			case FIELDTYPE_SFBool:
-			case FIELDTYPE_SFInt32: {
-			int *sd = (int *)sourceData;
-				/* printf ("sending in %d\n",*sd); */
-				GLUNIFORM1I (shaderVariable, *sd);
-			break; }
-
 			case FIELDTYPE_MFBool:
 			case FIELDTYPE_MFInt32: {
 			struct Multi_Int32 *sd = (struct Multi_Int32 *) sourceData;
 				GLUNIFORM1IV (shaderVariable, sd->n, (int *)sd->p);
 			break; }
+			case FIELDTYPE_MFFloat: {
+			struct Multi_Float *sd = (struct Multi_Float *) sourceData;
+				GLUNIFORM1FV (shaderVariable, sd->n, (int *)sd->p);
+			break; }
 			
-			case FIELDTYPE_MFFloat:
-			case FIELDTYPE_MFRotation:
-			case FIELDTYPE_MFVec3f:
+#endif
 			case FIELDTYPE_SFNode:
 			case FIELDTYPE_MFNode:
-			case FIELDTYPE_MFColor:
-			case FIELDTYPE_MFColorRGBA:
 			case FIELDTYPE_MFTime:
 			case FIELDTYPE_SFString:
 			case FIELDTYPE_MFString:
-			case FIELDTYPE_MFVec2f:
 			case FIELDTYPE_SFImage:
 			case FIELDTYPE_FreeWRLPTR:
-			case FIELDTYPE_SFVec3d:
 			case FIELDTYPE_MFVec3d:
 			case FIELDTYPE_MFDouble:
 			case FIELDTYPE_SFMatrix3f:
@@ -729,10 +778,7 @@ void getField_ToShader(int num) {
 			case FIELDTYPE_MFMatrix4f:
 			case FIELDTYPE_SFMatrix4d:
 			case FIELDTYPE_MFMatrix4d:
-			case FIELDTYPE_SFVec2d:
 			case FIELDTYPE_MFVec2d:
-			case FIELDTYPE_MFVec4f:
-			case FIELDTYPE_SFVec4d:
 			case FIELDTYPE_MFVec4d:
 				ConsoleMessage ("shader field type %s not routable yet",stringFieldtypeType(JSparamnames[fromFieldID].type));
 				break;
@@ -797,12 +843,12 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 		/* ask the shader for its handle for this variable */
 
 		/* try Uniform  */
-		myVar = GET_UNIFORM(myShader,curField->ASCIIname);
+		myVar = GET_UNIFORM(myShader,fieldDecl_getShaderScriptName(curField->fieldDecl));
 		if (myVar == INT_ID_UNDEFINED) {
-			if (GET_ATTRIB(myShader,curField->ASCIIname) != INT_ID_UNDEFINED)
-			ConsoleMessage ("Shader variable :%s: is declared as an attribute; we can not do much with this",curField->ASCIIname);
+			if (GET_ATTRIB(myShader,fieldDecl_getShaderScriptName(curField->fieldDecl)) != INT_ID_UNDEFINED)
+			ConsoleMessage ("Shader variable :%s: is declared as an attribute; we can not do much with this",fieldDecl_getShaderScriptName(curField->fieldDecl));
 			else
-			ConsoleMessage ("Shader variable :%s: is not declared",curField->ASCIIname);
+			ConsoleMessage ("Shader variable :%s: is not declared",fieldDecl_getShaderScriptName(curField->fieldDecl));
 		}
 
 		#ifdef SHADERVERBOSE

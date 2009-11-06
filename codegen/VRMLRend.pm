@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.24 2009/10/21 19:18:30 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.25 2009/11/06 22:29:42 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.25  2009/11/06 22:29:42  crc_canada
+# Shader Routing, and Metadata MARK_EVENT working.
+#
 # Revision 1.24  2009/10/21 19:18:30  crc_canada
 # Working on XML parsing and Material rendering. compile_TwoSidedMaterials added; XML parsing modified to clean up memory; and to better handle PROTO expansions. Still have a bit more work to do on SF/MFNode Proto/Script fields.
 #
@@ -760,6 +763,11 @@
 	MetadataSFVec2d
 	MetadataSFVec4f
 	MetadataSFVec4d
+	MetadataSet
+	MetadataInteger	
+	MetadataDouble
+	MetadataFloat
+	MetadataString
 /;
 
 

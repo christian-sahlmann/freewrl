@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Core.c,v 1.4 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Core.c,v 1.5 2009/11/06 22:29:43 crc_canada Exp $
 
 X3D Core Component
 
@@ -33,9 +33,6 @@ X3D Core Component
 
 	X3D Core Component
 
-The Metadata nodes are parsed and removed - we do nothing with them
-for the moment.
-
 *********************************************************************/
 
 #include <config.h>
@@ -47,6 +44,50 @@ for the moment.
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+
+
+/************************************************************************************************/
+/*												*/
+/*	Metadata standard X3D nodes								*/
+/*												*/
+/************************************************************************************************/
+
+void compile_MetadataInteger (struct X3D_MetadataInteger *node) {
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataInteger, metadata));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataInteger, name));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataInteger, reference));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataInteger, value));
+	MARK_NODE_COMPILED;
+}
+void compile_MetadataDouble (struct X3D_MetadataDouble *node) {
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataDouble, metadata));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataDouble, name));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataDouble, reference));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataDouble, value));
+	MARK_NODE_COMPILED;
+}
+void compile_MetadataFloat (struct X3D_MetadataFloat *node) {
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataFloat, metadata));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataFloat, name));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataFloat, reference));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataFloat, value));
+	MARK_NODE_COMPILED;
+}
+void compile_MetadataSet (struct X3D_MetadataSet *node) {
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataSet, metadata));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataSet, name));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataSet, reference));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataSet, value));
+	MARK_NODE_COMPILED;
+}
+void compile_MetadataString (struct X3D_MetadataString *node) {
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataString, metadata));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataString, name));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataString, reference));
+	MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_MetadataString, value));
+	MARK_NODE_COMPILED;
+}
+
 
 /************************************************************************************************/
 /*												*/

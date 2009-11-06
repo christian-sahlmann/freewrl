@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Core.h,v 1.4 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Core.h,v 1.5 2009/11/06 22:29:43 crc_canada Exp $
 
 X3D Core Component
 
@@ -29,6 +29,12 @@ X3D Core Component
 
 #ifndef __FREEWRL_SCENEGRAPH_CORE_H__
 #define __FREEWRL_SCENEGRAPH_CORE_H__
+
+void compile_MetadataInteger (struct X3D_MetadataInteger *node);
+void compile_MetadataDouble (struct X3D_MetadataDouble *node);
+void compile_MetadataFloat (struct X3D_MetadataFloat *node);
+void compile_MetadataSet (struct X3D_MetadataSet *node);
+void compile_MetadataString (struct X3D_MetadataString *node);
 
 
 void compile_MetadataSFBool (struct X3D_MetadataSFBool *node);
