@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.53 2009/11/06 00:09:01 crc_canada Exp $
+$Id: X3DParser.c,v 1.54 2009/11/07 00:31:57 crc_canada Exp $
 
 ???
 
@@ -350,7 +350,7 @@ static int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struc
 
 	/* go through the user arrays in this lexer, and see if we have a match */
 
-	myField = script_getField_viaASCIIname (me, fieldName);
+	myField = script_getField_viaCharName (me, fieldName);
 	printf ("try2: getFieldFromScript, field %s is %d\n",fieldName,myField); 
 
 	if (myField != NULL) {

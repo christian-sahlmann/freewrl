@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.13 2009/11/06 00:09:01 crc_canada Exp $
+$Id: CScripts.h,v 1.14 2009/11/07 00:31:57 crc_canada Exp $
 
 Class to wrap a java script for CParser
 
@@ -51,8 +51,7 @@ struct ScriptFieldDecl
  /* subclass of FieldDecl */
  struct FieldDecl* fieldDecl;
 
- /* Stringified */
- const char* ASCIIname;
+ /* Stringified value, if required by a parser. */
  const char* ASCIIvalue; 
 
  /* For fields */
@@ -121,7 +120,7 @@ void script_addField(struct Shader_Script*, struct ScriptFieldDecl*);
 
 /* Get a field by name */
 struct ScriptFieldDecl* script_getField(struct Shader_Script*, indexT ind, indexT mod);
-struct ScriptFieldDecl* script_getField_viaASCIIname (struct Shader_Script* me, const char *name);
+struct ScriptFieldDecl* script_getField_viaCharName (struct Shader_Script* me, const char *name);
 
 
 void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value);

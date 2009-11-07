@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.32 2009/11/06 00:09:01 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.33 2009/11/07 00:31:57 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -458,7 +458,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 				if (eaiverbose)
 				printf ("   field %d,  name %s type %s (type %s accessType %d (%s), indexName %d, stringType %s)\n",
 						i,
-						sfield->ASCIIname, 
+						fieldDecl_getShaderScriptName(sfield->fieldDecl),
 						stringFieldtypeType(fieldDecl_getType(sfield->fieldDecl)),
 						stringFieldtypeType(fieldDecl_getType(sfield->fieldDecl)),
 						fieldDecl_getAccessType(sfield->fieldDecl),
@@ -468,7 +468,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 				);
 				
 				
-				if (strcmp(fieldString,sfield->ASCIIname) == 0) {
+				if (strcmp(fieldString,fieldDecl_getShaderScriptName(sfield->fieldDecl)) == 0) {
 					/* call JSparamIndex to get a unique index for this name - this is used for ALL
 					   script access, whether from EAI or not */
 					if(eaiverbose)
