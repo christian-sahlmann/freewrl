@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.54 2009/11/07 00:31:57 crc_canada Exp $
+$Id: X3DParser.c,v 1.55 2009/11/09 21:13:16 crc_canada Exp $
 
 ???
 
@@ -56,6 +56,8 @@ $Id: X3DParser.c,v 1.54 2009/11/07 00:31:57 crc_canada Exp $
 #if HAVE_EXPAT_H
 # include <expat.h>
 #endif
+
+#define PROTO_MARKER 567000
 
 /* If XMLCALL isn't defined, use empty one */
 #ifndef XMLCALL
@@ -730,12 +732,37 @@ printf ("hey, we have maybe a Node (%s) in a Script list... line %d: expected pa
 
 #endif
 
+
+/* linkNodeIn - put nodes into parents.
+
+
+WARNING - PROTOS have a two extra groups put in; one to hold while parsing, and one Group that is always there. 
+
+ <Scene>
+
+  <ProtoDeclare name='txt001'>
+  <ProtoBody>
+    <Material ambientIntensity='0' diffuseColor='1 0.85 0.7' specularColor='1 0.85 0.7' shininess='0.3'/>
+  </ProtoBody>
+  </ProtoDeclare>
+  <Shape>
+        <Cone/>
+     <Appearance>
+                <ProtoInstance  name='txt001'/>
+</Appearance>
+  </Shape>
+</Scene>
+
+is a good test to see what happens for these nodes. */
+
+
 void linkNodeIn(char *where, int lineno) {
 	int coffset;
 	int ctype;
 	int ctmp;
 	uintptr_t *destnode;
 	char *memptr;
+	int myContainer;
 
 	/* did we have a valid node here? Things like ProtoDeclares are NOT valid nodes, and we can ignore them,
 	   because there will be no code associated with them */
@@ -750,10 +777,15 @@ void linkNodeIn(char *where, int lineno) {
 		ConsoleMessage ("linkNodeIn: NULL found in stack");
 		return;
 	}
+
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
+/*
 	printf ("linkNodeIn at %s:%d: parserMode %s parentIndex %d, ",
 			where,lineno,
+			parserModeStrings[getParserMode()],parentIndex);
+*/
+	printf ("linkNodeIn parserMode %s parentIndex %d, ",
 			parserModeStrings[getParserMode()],parentIndex);
 	printf ("linking in %s (%u) to %s (%u), field %s (%d)\n",
 		stringNodeType(parentStack[parentIndex]->_nodeType),
@@ -762,11 +794,96 @@ void linkNodeIn(char *where, int lineno) {
 		parentStack[parentIndex-1],
 		stringFieldType(parentStack[parentIndex]->_defaultContainer),
 		parentStack[parentIndex]->_defaultContainer);
+
+	if (parentStack[parentIndex]->_nodeType == NODE_Group) {
+	TTY_SPACE
+		printf ("stack %d is a Group; FreeWRL__protoDef is %d\n",
+			parentIndex,
+			X3D_GROUP(parentStack[parentIndex])->FreeWRL__protoDef);
+
+	}
+
+	if (parentStack[parentIndex-1]->_nodeType == NODE_Group) {
+	TTY_SPACE
+		printf ("stack %d is a Group; FreeWRL__protoDef is %d\n",
+			parentIndex-1,
+			X3D_GROUP(parentStack[parentIndex-1])->FreeWRL__protoDef);
+
+	}
 	#endif
+
+	/* where to put this node... */
+	myContainer = parentStack[parentIndex]->_defaultContainer;
 
 	/* Link it in; the parent containerField should exist, and should be an SF or MFNode  */
 	findFieldInOFFSETS(parentStack[parentIndex-1]->_nodeType, 
 		parentStack[parentIndex]->_defaultContainer, &coffset, &ctype, &ctmp);
+
+	/* PROTOS - we will have a Group node here */
+	/* first case, assigning a node to a PROTO Group expansion - eg, Material should go to appearance, but make
+	   it go to children here. */
+
+	if ((ctype == INT_ID_UNDEFINED) && (parentStack[parentIndex-1]->_nodeType == NODE_Group)) {
+		/* printf ("problem finding field %d in a Group %u, so we are pretending this is a PROTO for now\n",
+			stringFieldType(parentStack[parentIndex-1],
+			stringFieldType(myContainer)); */
+		/* printf ("and, FreeWRL__protodEf for the group is %d\n",X3D_GROUP(parentStack[parentIndex-1])->FreeWRL__protoDef); */
+
+		/* lets see if we have a base node with a PROTO Group flag. */
+		if (parentIndex>=2) {
+			/* printf ("we have enough space...\n"); */
+			if(parentStack[parentIndex-2]->_nodeType == NODE_Group) {
+				/* printf ("and we have a group->group\n"); */
+				if (X3D_GROUP(parentStack[parentIndex-2])->FreeWRL__protoDef == PROTO_MARKER) {
+					/* printf ("proto, step1, were going to go to a %s, not to children\n",stringFieldType(myContainer)); */
+					findFieldInOFFSETS(NODE_Group, 
+						FIELDNAMES_children, &coffset, &ctype, &ctmp);
+					/* printf ("changed it to ctype %d\n",ctype); */
+				}
+			}
+		}
+	}
+
+	/* PROTOS, second case: we have the PROTO group, and it is going to an invalid container field.... */
+	if ((ctype == INT_ID_UNDEFINED) && (parentStack[parentIndex]->_nodeType == NODE_Group)) {
+		/* is this linking in the PROTO? */
+		if (X3D_GROUP(parentStack[parentIndex])->FreeWRL__protoDef == PROTO_MARKER) {
+			/* printf ("WE HAVE PROTODEF %d\n",X3D_GROUP(parentStack[parentIndex])->FreeWRL__protoDef);
+			printf ("GROUP has %d children\n",X3D_GROUP(parentStack[parentIndex])->children.n); */
+			if (X3D_GROUP(parentStack[parentIndex])->children.n>0) {
+				struct X3D_Group *firstCh = X3D_GROUP(parentStack[parentIndex])->children.p[0];
+
+				/* printf ("first child is of type %s\n", stringNodeType(firstCh->_nodeType)); */
+
+				if (firstCh->_nodeType == NODE_Group) {
+					/* printf ("we have the Group->Group symbology\n"); */
+					firstCh = X3D_GROUP(firstCh->children.p[0]);
+
+					/*
+					printf ("now, firstCh is of type %s\n",stringNodeType(firstCh->_nodeType));
+					printf ("defaultContainers are %s %s %s\n",
+					stringFieldType(parentStack[parentIndex]->_defaultContainer),
+					stringFieldType(parentStack[parentIndex-1]->_defaultContainer),
+					stringFieldType(parentStack[parentIndex-2]->_defaultContainer));
+					printf ("upstack defaultContainers are %s %s %s\n",
+					stringFieldType(parentStack[parentIndex]->_defaultContainer),
+					stringFieldType(parentStack[parentIndex+1]->_defaultContainer),
+					stringFieldType(parentStack[parentIndex+2]->_defaultContainer));
+					*/
+					
+					myContainer = parentStack[parentIndex+2]->_defaultContainer;
+					
+					/*
+					printf ("and, we are going to look for container %s\n",stringFieldType(myContainer));
+					printf ("in a node type of %s\n",stringNodeType(X3D_NODE(parentStack[parentIndex-1])->_nodeType));
+					*/
+
+					findFieldInOFFSETS(X3D_NODE(parentStack[parentIndex-1])->_nodeType, myContainer,
+						&coffset, &ctype, &ctmp);
+				}
+			}
+		}
+	}
 
 	/* FreeWRL verses FreeX3D - lets see if this is a Metadatafield not following guidelines */
 
@@ -799,9 +916,10 @@ void linkNodeIn(char *where, int lineno) {
 		}
 	}
 
+	/* this will be a MFNode or an SFNode if the marking is ok. */
 	if ((ctype != FIELDTYPE_MFNode) && (ctype != FIELDTYPE_SFNode)) {
 		ConsoleMessage ("X3DParser: warning, line %d: trouble linking to containerField :%s: of parent node type :%s: (specified in a :%s: node)", LINE,
-			stringFieldType(parentStack[parentIndex]->_defaultContainer),
+			stringFieldType(myContainer),
 			stringNodeType(parentStack[parentIndex-1]->_nodeType),
 			stringNodeType(parentStack[parentIndex]->_nodeType));
 		return;
@@ -820,6 +938,7 @@ void linkNodeIn(char *where, int lineno) {
                 1, 1,__FILE__,__LINE__);
 	}
 }
+
 
 static void XMLCALL startCDATA (void *userData) {
 	if (CDATA_Text_curlen != 0) {
@@ -1091,6 +1210,8 @@ static void endProtoInstanceField(const char *name) {
 		setParserMode(PARSING_NODES);
 	
 		protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+		protoExpGroup->FreeWRL__protoDef = PROTO_MARKER;
+
 			#ifdef X3DPARSERVERBOSE
 			if (protoExpGroup != NULL) {
 				printf ("\nOK, linking in this proto. I'm %d, ps-1 is %d, and p %d\n",protoExpGroup,parentStack[parentIndex-1], parentStack[parentIndex]);

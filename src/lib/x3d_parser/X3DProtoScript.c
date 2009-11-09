@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.44 2009/11/06 17:01:35 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.45 2009/11/09 21:13:16 crc_canada Exp $
 
 ???
 
@@ -1181,6 +1181,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 		struct X3D_Group *chi;
 
 		par = myGroup;
+		/* printf ("doing Group-Group stuff, par %u, chi %u\n",par,chi); */
 
 		if (par->children.n==1) {
 			chi = X3D_GROUP(par->children.p[0]);
@@ -1219,7 +1220,8 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 			
 
 			/* copy the protoDef pointer over */
-			par->FreeWRL__protoDef = chi->FreeWRL__protoDef;
+			/* printf ("par->protoDef was %d, now %d\n",par->FreeWRL__protoDef, chi->FreeWRL__protoDef); */
+			par->FreeWRL__protoDef = chi->FreeWRL__protoDef; 
 
 			/* move the FreeWRL_PROTOInterfaceNodes nodes to the parent */
 			/* this is the same code as for the "children" field, above */
@@ -1239,7 +1241,6 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 
 	}
 	/* NOTE: the "chi" node is now an empty group node, we could dispose of it */
-
 
 	#ifdef X3DPARSERVERBOSE
 {
@@ -1265,7 +1266,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	}
 }
 	#endif
-
+#undef X3DPARSERVERBOSE
 	/* printf ("end of expandProtoInstance\n"); */
 }
 

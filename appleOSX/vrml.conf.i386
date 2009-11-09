@@ -22,21 +22,18 @@ FREEWRL_CCFLAGS => '-arch '.
     FREEWRL_LIBS => '-L/usr/lib '.
 		'-L/usr/local/lib '.
 		'-L/System/Library/Frameworks/OpenGL.framework/Libraries '.
-		'-L/opt/local/lib '.
 		'-lSystem '.
 		'-lexpat '.
 		'-lfreetype '.
 		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -framework QuickTime -framework ApplicationServices',
 
-#JAS		' -F/System/Library/Frameworks -framework QuickTime -framework OpenGL -framework GLUT -framework Cocoa -framework ApplicationServices',
     # when building on Leopard 10.5, keep the version at 10.4 - see:
     # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
     # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
 
-    #FREEWRL_DEFINE => '-DJAVASCRIPTVERBOSE -D_REENTRANT -DAQUA -fno-common -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
+    # can also add -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC to display malloc issues.
 
     FREEWRL_DEFINE => ' -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
-    #FREEWRL_DEFINE => ' -DHAVE_STRNLEN -DHAVE_STRNDUP -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.
