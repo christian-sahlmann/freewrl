@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.33 2009/11/04 08:06:25 couannette Exp $
+  $Id: ProdCon.c,v 1.34 2009/11/10 10:18:26 couannette Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -61,6 +61,9 @@
 
 #include "../plugin/pluginUtils.h"
 #include "../plugin/PluginSocket.h"
+
+#include "../opengl/Textures.h"
+#include "../opengl/LoadTextures.h"
 
 #include "ProdCon.h"
 
@@ -460,6 +463,22 @@ void send_resource_to_parser(resource_item_t *res)
 	pthread_mutex_unlock( &mutex_resource_list );
 }
 
+void dump_resource_waiting(resource_item_t* res)
+{
+#ifdef FW_DEBUG
+	printf("%s\t%s\n",( res->complete ? "<finished>" : "<waiting>" ), res->request);
+#endif
+}
+
+void dump_parser_wait_queue()
+{
+#ifdef FW_DEBUG
+	printf("Parser wait queue:\n");
+	ml_foreach(resource_list_to_parse, dump_resource_waiting((resource_item_t*)(__l->elem)));
+	printf(".\n");
+#endif
+}
+
 #if 0 //MBFILES
 
 int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
@@ -798,7 +817,11 @@ void parser_process_res(s_list_t *item)
 		break;
 
 	case ress_downloaded:
-		resource_load(res);
+		/* Here we may want to delegate loading into another thread ... */
+		if (!resource_load(res)) {
+			ERROR_MSG("failure when trying to load resource: %s\n", res->request);
+			remove_it = TRUE;
+		}
 		break;
 
 	case ress_failed:
@@ -852,18 +875,14 @@ void parser_process_res(s_list_t *item)
 	}
 
 	if (remove_it) {
+		dump_parser_wait_queue();
+
 		/* Lock access to the resource list */
 		pthread_mutex_lock( &mutex_resource_list );
 		
 		/* Remove the parsed resource from the list */
-		if (item == resource_list_to_parse) {
-			/* First element */
-			resource_list_to_parse = resource_list_to_parse->next;
-			/* Do not remove the resource, just the item of the list */
-			XFREE(item);
-		} else {
-			ml_delete(resource_list_to_parse, item);
-		}
+		resource_list_to_parse = ml_delete_self(resource_list_to_parse, item);
+
 		/* Unlock the resource list */
 		pthread_mutex_unlock( &mutex_resource_list );
 	}
@@ -893,7 +912,6 @@ void _inputParseThread(void)
 /* 		WAIT_WHILE_NO_DATA; */
 
 		inputThreadParsing = TRUE;
-/* 		TRACE_MSG("PARSING RESOURCE LIST: %d items\n", ml_count(resource_list_to_parse)); */
 		
 		/* Process all resource list items, whatever status they may have */
 		ml_foreach(resource_list_to_parse, parser_process_res(__l));

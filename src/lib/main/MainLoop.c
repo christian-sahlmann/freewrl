@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.67 2009/11/05 15:17:37 crc_canada Exp $
+  $Id: MainLoop.c,v 1.68 2009/11/10 10:18:25 couannette Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -702,12 +702,12 @@ void handle_Xevents(XEvent event) {
         #endif
 
         switch(event.type) {
-                #ifdef HAVE_NOTOOLKIT
+//#ifdef HAVE_NOTOOLKIT
                 /* Motif, etc, usually handles this. */
                 case ConfigureNotify:
                         setScreenDim (event.xconfigure.width,event.xconfigure.height);
                         break;
-                #endif
+//#endif
                 case KeyPress:
                 case KeyRelease:
                         XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
@@ -1064,6 +1064,13 @@ static void setup_viewpoint() {
 
 }
 
+extern void dump_scene (int level, struct X3D_Node* node); // in GeneratedCode.c
+void dump_scenegraph()
+{
+#ifdef FW_DEBUG
+	dump_scene(0, rootNode);
+#endif
+}
 
 void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
@@ -1081,6 +1088,7 @@ void do_keyPress(const char kp, int type) {
                                 case 'f': { set_viewer_type (VIEWER_EXFLY); break; }
                                 case 'h': { toggle_headlight(); break;}
                                 case '/': { print_viewer(); break; }
+			        case '\\': { dump_scenegraph(); break; }
                                 case 'q': { if (!RUNNINGASPLUGIN) {
                                                   doQuit();
                                             }
@@ -1484,7 +1492,7 @@ void setTextures_take_priority (int x) {
    -512 hopefully sets to size 512x512; this will be bounds checked in the texture
    thread */
 void setTexSize(int requestedsize) {
-        opengl_has_textureSize = requestedsize;
+/*         opengl_has_textureSize = requestedsize; */	
 }
 
 void setNoCollision() {

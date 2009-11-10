@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.21 2009/10/26 17:48:43 couannette Exp $
+$Id: RenderTextures.c,v 1.22 2009/11/10 10:18:26 couannette Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -45,7 +45,6 @@ texture enabling - works for single texture, for multitexture.
 #include "Textures.h"
 #include "Material.h"
 
-#undef TEXVERBOSE
 
 /* variables for keeping track of status */
 static int currentTextureUnit = 99;
@@ -84,17 +83,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
         struct multiTexParams *paramPtr;
 	float allones[] = {1.0, 1.0, 1.0, 1.0};
 
-	/* FIXME: this has to be handled beforehand... 
-	   this test reduce performances... 
-
-	   We better make those tests at OpenGL initialization
-	   and set up a handfull of internal variable to define
-	   the code path we are able to implement given the platform
-	   we are currently running ...
-
-	*/
-
-	if (rdr_caps.av_multitexture) { // test the availability at runtime of multi textures
+	if (rdr_caps.av_multitexture) {
 	    
 	    if (c != currentTextureUnit) {
 		glActiveTexture(GL_TEXTURE0+c);

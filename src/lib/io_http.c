@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.1 2009/10/26 10:57:07 couannette Exp $
+  $Id: io_http.c,v 1.2 2009/11/10 10:18:25 couannette Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -67,6 +67,32 @@ bool checkNetworkFile(const char *fn)
 	return TRUE;
 }
 
+bool is_url(const char *url)
+{
+#define	MAX_PROTOS 4
+	static const char *protos[MAX_PROTOS] = { "ftp", "http", "https", "urn" };
+
+	int i;
+	char *pat;
+	unsigned long delta = 0;
+
+	pat = strstr(url, "://");
+	if (!pat) {
+		return FALSE;
+	}
+
+	delta = (long)pat - (long)url;
+	if (delta > 5) {
+		return FALSE;
+	}
+
+	for (i = 0; i < MAX_PROTOS ; i++) {
+		if (strncasecmp(protos[i], url, strlen(protos[i])) == 0) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
 
 
 /*
@@ -268,3 +294,4 @@ char *resource_current_url(resource_item_t *res)
 	*/
 	return NULL;
 }
+

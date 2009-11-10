@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.9 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Textures.h,v 1.10 2009/11/10 10:18:26 couannette Exp $
 
 Screen snapshot.
 
@@ -31,6 +31,8 @@ Screen snapshot.
 #define __FREEWRL_TEXTURES_H__
 
 
+#define TEXTURE_INVALID 0
+
 /* Texture loading table :
    newer Texture handling procedures
    each texture has this kind of structure
@@ -42,7 +44,7 @@ struct textureTableIndexStruct {
 	int 	status;
 	int	depth;
 	int 	hasAlpha;
-	GLuint	*OpenGLTexture;
+	GLuint	OpenGLTexture;
 	int	frames;
 	char    *filename;
         int x;

@@ -1,5 +1,5 @@
 /*
-  $Id: list.h,v 1.1 2009/10/26 10:57:07 couannette Exp $
+  $Id: list.h,v 1.2 2009/11/10 10:18:25 couannette Exp $
 
   FreeWRL support library.
   Linked lists.
@@ -55,6 +55,7 @@ extern s_list_t* ml_find_elem(s_list_t *list, void *elem);
 extern s_list_t* ml_insert(s_list_t *list, s_list_t *point, s_list_t *item);
 extern s_list_t* ml_append(s_list_t *list, s_list_t *item);
 extern void      ml_delete(s_list_t *list, s_list_t *item);
+extern s_list_t* ml_delete_self(s_list_t *list, s_list_t *item);
 extern void      ml_delete2(s_list_t *list, s_list_t *item, f_free_t f);
 extern void      ml_delete_all(s_list_t *list);
 extern void      ml_delete_all2(s_list_t *list, f_free_t f);

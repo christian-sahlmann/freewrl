@@ -1,5 +1,5 @@
 /*
-  $Id: list.c,v 1.1 2009/10/26 10:57:07 couannette Exp $
+  $Id: list.c,v 1.2 2009/11/10 10:18:25 couannette Exp $
 
   FreeWRL support library.
   Linked lists.
@@ -168,6 +168,27 @@ void ml_delete(s_list_t *list, s_list_t *item)
     } else {
 	ERROR_MSG("ml_delete: trying to destroy first element in a list\n");
     }
+}
+
+
+/**
+ * ml_delete_self: destroy 'item' from 'list', even if item is the first
+ * when 'item' holds a single value not to be freed
+ * return the new list, in case we delete the first item: this is a "new" list
+ *
+ * could also be implemented as a macro....
+ */
+s_list_t* ml_delete_self(s_list_t *list, s_list_t *item)
+{
+    s_list_t *it;
+    if (list == item) {
+	/* first element */
+	it = item->next;
+	XFREE(item);
+	return it;
+    }
+    ml_delete(list, item);
+    return list;
 }
 
 /**

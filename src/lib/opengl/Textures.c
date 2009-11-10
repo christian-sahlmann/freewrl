@@ -1,12 +1,9 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id: Textures.c,v 1.30 2009/11/10 10:18:26 couannette Exp $
 
-$Id: Textures.c,v 1.29 2009/11/04 08:06:25 couannette Exp $
-
-General Texture objects.
+  General Texture objects.
 
 */
-
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -50,9 +47,7 @@ General Texture objects.
 #include "../opengl/Material.h"
 #include "../opengl/OpenGL_Utils.h"
 
-#ifdef TEXTURES_MB
 #include "LoadTextures.h"
-#endif
 
 #ifdef AQUA
 # include <Carbon/Carbon.h>
@@ -89,6 +84,8 @@ char *workingOnFileName = NULL;
 static void new_bind_image(struct X3D_Node *node, void *param);
 struct textureTableIndexStruct *getTableIndex(int i);
 struct textureTableIndexStruct* loadThisTexture;
+
+void texture_process_entry(int n, struct textureTableIndexStruct *entry);
 
 static struct Multi_Int32 invalidFilePixelDataNode;
 static int	invalidFilePixelData[] = {1,1,3,0x707070};
@@ -145,7 +142,7 @@ GLXContext textureContext = NULL;
 #endif
 
 /* function Prototypes */
-static int findTextureFile (int cwo);
+static int findTextureFile (int cwo, struct textureTableIndexStruct *entry);
 void _textureThread(void);
 void store_tex_info(
 		struct textureTableIndexStruct *me,
@@ -238,17 +235,19 @@ void releaseTexture(struct X3D_Node *node) {
 	printf ("releaseTexture, ti %u, ti->status %d\n",(int) ti,ti->status);
 	ti->status = TEX_NOTLOADED;
 
-	if (ti->OpenGLTexture != NULL) {
-		printf ("deleting %d textures, starting at %d\n",ti->frames, *(ti->OpenGLTexture));
-		FREE_IF_NZ(ti->OpenGLTexture);
+	if (ti->OpenGLTexture != TEXTURE_INVALID) {
+		printf ("deleting %d textures, starting at %u\n",ti->frames, ti->OpenGLTexture);
+		ti->OpenGLTexture = TEXTURE_INVALID;
+/* 		FREE_IF_NZ(ti->OpenGLTexture); */
 	}
 #endif
 
 	ti = getTableIndex(tableIndex);
 	ti->status = TEX_NOTLOADED;
-	if (ti->OpenGLTexture != NULL) {
-		glDeleteTextures(ti->frames, ti->OpenGLTexture);
-		FREE_IF_NZ(ti->OpenGLTexture);
+	if (ti->OpenGLTexture != TEXTURE_INVALID) {
+		glDeleteTextures(1, &ti->OpenGLTexture);
+		ti->OpenGLTexture = TEXTURE_INVALID;
+/* 		FREE_IF_NZ(ti->OpenGLTexture); */
 	}
 }
 
@@ -265,12 +264,11 @@ void kill_openGLTextures()
 	while (listRunner != NULL) {
 		/* zero out the fields in this new block */
 		for (count = 0; count < 32; count ++) {
-			if (listRunner->entry[count].OpenGLTexture != NULL) {
-				DEBUG_TEX("deleting %d %d\n",listRunner->entry[count].frames, (int) listRunner->entry[count].OpenGLTexture);
-				glDeleteTextures(listRunner->entry[count].frames, 
-						 listRunner->entry[count].OpenGLTexture);
-				FREE_IF_NZ (listRunner->entry[count].OpenGLTexture);
-				listRunner->entry[count].OpenGLTexture = NULL;
+			if (listRunner->entry[count].OpenGLTexture != TEXTURE_INVALID) {
+				DEBUG_TEX("deleting %u\n", listRunner->entry[count].OpenGLTexture);
+				glDeleteTextures(1, &listRunner->entry[count].OpenGLTexture);
+				listRunner->entry[count].OpenGLTexture = TEXTURE_INVALID;
+/* 				FREE_IF_NZ (listRunner->entry[count].OpenGLTexture); */
 				listRunner->entry[count].frames = 0;
 			}
 		}
@@ -333,7 +331,27 @@ struct textureTableIndexStruct *getTableIndex(int indx) {
 	return &(currentBlock->entry[whichEntry]);
 }
 
+/**
+ * function to debug multi strings
+ * we need to find where to put it....
+ */
+extern void debug_print_multi(struct Multi_String *url);
 
+void debug_print_multi(struct Multi_String *url)
+{
+#ifdef TEXVERBOSE
+	if (url && url->p) {
+		int i;
+
+		printf("multi url: ");
+		for (i = 0; i < url->n; i++) {
+			struct Uni_String *s = url->p[i];
+			printf("[%d] %s", i, s->strptr);
+		}
+	}
+	printf("\n");
+#endif
+}
 
 /* is this node a texture node? if so, lets keep track of its textures. */
 /* worry about threads - do not make anything reallocable */
@@ -356,14 +374,20 @@ void registerTexture(struct X3D_Node *tmp) {
 	if ((it->_nodeType == NODE_ImageTexture) || (it->_nodeType == NODE_PixelTexture) ||
 		(it->_nodeType == NODE_MovieTexture) || (it->_nodeType == NODE_VRML1_Texture2)) {
 
+		if (it->_nodeType == NODE_ImageTexture) {
+			DEBUG_TEX("CREATING TEXTURE NODE: type %d url ", it->_nodeType);
+			debug_print_multi(&it->url);
+		}
+
 		if ((nextFreeTexture & 0x1f) == 0) {
+
 			newStruct = (struct textureTableStruct*) MALLOC (sizeof (struct textureTableStruct));
 			
 			/* zero out the fields in this new block */
 			for (count = 0; count < 32; count ++) {
 				/* newStruct->entry[count].nodeType = 0; */
 				newStruct->entry[count].status = TEX_NOTLOADED;
-				newStruct->entry[count].OpenGLTexture = NULL;
+				newStruct->entry[count].OpenGLTexture = TEXTURE_INVALID;
 				newStruct->entry[count].frames = 0;
 				newStruct->entry[count].depth = 0;
 				newStruct->entry[count].scenegraphNode = NULL;
@@ -524,9 +548,10 @@ void loadTextureNode (struct X3D_Node *node, void *param)
 {
     struct X3D_MovieTexture *mym;
 
-    DEBUG_MSG("loadTextureNode: %s\n", stringNodeType(node->_nodeType));
-
     if (NODE_NEEDS_COMPILING) {
+
+	    DEBUG_TEX("FORCE NODE RELOAD: %p %s\n", node, stringNodeType(node->_nodeType));
+
 	/* force a node reload - make it a new texture. Don't change
 	   the parameters for the original number, because if this
 	   texture is shared, then ALL references will change! so,
@@ -827,12 +852,12 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	/* do we need to convert this to an OpenGL texture stream?*/
 
 	/* we need to get parameters. */	
-	if (me->OpenGLTexture == NULL) {
-		me->OpenGLTexture = MALLOC (sizeof (GLuint) * me->frames);
-		glGenTextures(me->frames, me->OpenGLTexture);
+	if (me->OpenGLTexture == TEXTURE_INVALID) {
+/* 		me->OpenGLTexture = MALLOC (sizeof (GLuint) * me->frames); */
+		glGenTextures(1, &me->OpenGLTexture);
 #ifdef TEXVERBOSE
-		printf ("just glGend %d textures  for block %d is %d\n",
-			(int) me->frames, (int) me, (int) me->OpenGLTexture);
+		printf ("just glGend texture for block %d is %u\n",
+			(int) me, me->OpenGLTexture);
 #endif
 
 		/* get the repeatS and repeatT info from the scenegraph node */
@@ -885,8 +910,8 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 	/* a pointer to the tex data. We increment the pointer for movie texures */
 	mytexdata = me->texdata;
 
-	for (count = 0; count < me->frames; count ++) {
-		glBindTexture (GL_TEXTURE_2D, me->OpenGLTexture[count]);
+/* 	for (count = 0; count < me->frames; count ++) { */
+		glBindTexture (GL_TEXTURE_2D, me->OpenGLTexture);
 	
 		/* save this to determine whether we need to do material node
 		  within appearance or not */
@@ -928,10 +953,12 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 			int texOk = FALSE;
 
 			unsigned char *dest = mytexdata;
-			rx = 1; sx = x;
+			rx = 1;
+			sx = x;
 			while(sx) {sx /= 2; rx *= 2;}
 			if(rx/2 == x) {rx /= 2;}
-			ry = 1; sy = y;
+			ry = 1; 
+			sy = y;
 			while(sy) {sy /= 2; ry *= 2;}
 			if(ry/2 == y) {ry /= 2;}
 
@@ -939,10 +966,10 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 				DEBUG_MSG("initial texture scale to %d %d\n",rx,ry);
 			}
 
-			if(rx != x || ry != y || rx > opengl_has_textureSize || ry > opengl_has_textureSize) {
+			if(rx != x || ry != y || rx > rdr_caps.max_texture_size || ry > rdr_caps.max_texture_size) {
 				/* do we have texture limits??? */
-				if (rx > opengl_has_textureSize) rx = opengl_has_textureSize;
-				if (ry > opengl_has_textureSize) ry = opengl_has_textureSize;
+				if (rx > rdr_caps.max_texture_size) rx = rdr_caps.max_texture_size;
+				if (ry > rdr_caps.max_texture_size) ry = rdr_caps.max_texture_size;
 			}
 
 			if (global_print_opengl_errors) {
@@ -981,7 +1008,10 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 				DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
 			}
 
-			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+			/* FIXME: format from Imlib2  is always RGBA
+			   we must find a mean to have any format...
+			 */
+			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, GL_RGBA/*format*/, GL_UNSIGNED_BYTE, dest);
 			glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
 
 			if(mytexdata != dest) {FREE_IF_NZ(dest);}
@@ -997,10 +1027,10 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
                         ry = 1; sy = y;
                         while(sy) {sy /= 2; ry *= 2;}
                         if(ry/2 == y) {ry /= 2;}
-                        if(rx != x || ry != y || rx > opengl_has_textureSize || ry > opengl_has_textureSize) {
+                        if(rx != x || ry != y || rx > rdr_caps.max_texture_size || ry > rdr_caps.max_texture_size) {
                                 /* do we have texture limits??? */
-                                if (rx > opengl_has_textureSize) rx = opengl_has_textureSize;
-                                if (ry > opengl_has_textureSize) ry = opengl_has_textureSize;
+                                if (rx > rdr_caps.max_texture_size) rx = rdr_caps.max_texture_size;
+                                if (ry > rdr_caps.max_texture_size) ry = rdr_caps.max_texture_size;
 
                                 /* We have to scale */
                                 dest = (unsigned char *)MALLOC((unsigned) (me->depth) * rx * ry);
@@ -1016,9 +1046,9 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 
 #endif /* DO_PROXY_IMAGE */
 
-		/* increment, used in movietextures for frames more than 1 */
-		mytexdata += x*y*me->depth;
-	}
+/* 		/\* increment, used in movietextures for frames more than 1 *\/ */
+/* 		mytexdata += x*y*me->depth; */
+/* 	} */
 
 	FREE_IF_NZ (me->texdata);
 
@@ -1058,36 +1088,47 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	struct X3D_VRML1_Texture2 *v1t;
 	struct textureTableIndexStruct *myTableIndex;
 	float dcol[] = {0.8, 0.8, 0.8, 1.0};
+	int status;
+
+        TLOCK;
 
 	GET_THIS_TEXTURE;
 
-	bound_textures[texture_count] = 0;
-
-	/* what is the status of this texture? */
-#ifdef TEXVERBOSE
-	printf ("new_bind_image, calling getTableIndex\n");
-#endif
-
 	myTableIndex = getTableIndex(thisTexture);
+	currentlyWorkingOn = thisTexture;
+	loadThisTexture = myTableIndex;
+	status = loadThisTexture->status;
+
+	T_LOCK_SIGNAL;
+	TUNLOCK;
+
+	if (status != TEX_NEEDSBINDING) {
+		return;
+	}
+		
+	DEBUG_TEX("YES !\n");
+	
+	bound_textures[texture_count] = 0;
 
 #ifdef TEXVERBOSE
 	printf ("myTableIndex %x\n",(unsigned int) myTableIndex);
 	printf ("	scenegraphNode %d (%s)\n",(int) myTableIndex->scenegraphNode,
 				stringNodeType(X3D_NODE(myTableIndex->scenegraphNode)->_nodeType));
 	printf ("	status %d\n",myTableIndex->status);
-	printf ("	status %d\n",myTableIndex->status);
 	printf ("	frames %d\n",myTableIndex->frames);
-	printf ("	OpenGLTexture %d\n",*(myTableIndex->OpenGLTexture));
+	printf ("	OpenGLTexture %u\n", myTableIndex->OpenGLTexture);
 
 	printf ("texture status %s\n",texst(myTableIndex->status));
 #endif
+
+	do_possible_textureSequence(myTableIndex);
 
 	/* have we already processed this one before? */
 	if (myTableIndex->status == TEX_LOADED) {
 
 #ifdef TEXVERBOSE 
-		printf ("now binding to pre-bound tex%d\n",
-			*(myTableIndex->OpenGLTexture));
+		printf ("now binding to pre-bound tex %u\n",
+			myTableIndex->OpenGLTexture);
 #endif
 		/* set the texture depth - required for Material diffuseColor selection */
 		if (myTableIndex->hasAlpha) last_texture_type =  TEXTURE_ALPHA;
@@ -1101,7 +1142,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 		}
 
 		if (myTableIndex->nodeType != NODE_MovieTexture) {
-			if (myTableIndex->OpenGLTexture == NULL) {
+			if (myTableIndex->OpenGLTexture == TEXTURE_INVALID) {
 #ifdef TEXVERBOSE
 				printf ("no openGLtexture here status %s\n",
 					texst(myTableIndex->status));
@@ -1109,7 +1150,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 				return;
 			}
 
-			bound_textures[texture_count] = myTableIndex->OpenGLTexture[0];
+			bound_textures[texture_count] = myTableIndex->OpenGLTexture;
 		} else {
 			bound_textures[texture_count] = 
 				((struct X3D_MovieTexture *)myTableIndex->scenegraphNode)->__ctex;
@@ -1129,18 +1170,16 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 		sched_yield();
 		/* we are already working on a texture. Is it THIS one? */
 		if (textureInProcess != thisTexture) {
-#ifdef TEXVERBOSE 
-			printf ("bind_image, textureInProcess = %d, texture_num %d returning \n",
-				textureInProcess,thisTexture);
-#endif
 
+			DEBUG_TEX("bind_image, textureInProcess = %d, texture_num %d returning \n",
+				  textureInProcess,thisTexture);
 			return;
 		}
-#ifdef TEXVERBOSE 
-		printf ("bind_image, textureInProcess == texture_num\n");
-#endif
+		DEBUG_TEX("bind_image, textureInProcess == texture_num\n");
 	}
 
+
+#if 0 // OLD CODE
 	/* signal that his is the one we want to work on */
 	textureInProcess = thisTexture;
 
@@ -1185,6 +1224,8 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	}
 	T_LOCK_SIGNAL;
 	TUNLOCK;
+#endif // OLD CODE
+
 }
 
 /****************************************************************/
@@ -1201,25 +1242,13 @@ void new_bind_image(struct X3D_Node *node, void *param) {
    this is almost identical to the one for Inlines, but running
    in different threads */
 
-static int findTextureFile (int cwo) {
-#if 0 //MBFILES
-	char *filename;
-	char *mypath;
-	char firstBytes[4];
-#ifndef AQUA
-	char *sysline;
-#endif
-
-
-        struct Uni_String *thisParent = NULL;
-        struct Multi_String thisUrl;
-#endif
-
+static int findTextureFile(int cwo, struct textureTableIndexStruct *entry)
+{
 	resource_item_t *res;
 	struct Multi_String *url;
 
 	/* FIXME: we should have a generic point to the current node, clean-up this mess */
-	switch (loadThisTexture->nodeType) {
+	switch (entry->nodeType) {
 
 	case NODE_PixelTexture:
 		/* FIXME: ??? */
@@ -1227,24 +1256,32 @@ static int findTextureFile (int cwo) {
 		break;
 
 	case NODE_ImageTexture:
-		url = & (((struct X3D_ImageTexture *)loadThisTexture->scenegraphNode)->url);
+		url = & (((struct X3D_ImageTexture *)entry->scenegraphNode)->url);
 		break;
 
 	case NODE_MovieTexture:
-		url = & (((struct X3D_MovieTexture *)loadThisTexture->scenegraphNode)->url);
+		url = & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);
 		break;
 
 	case NODE_VRML1_Texture2:
-		url = & (((struct X3D_VRML1_Texture2 *)loadThisTexture->scenegraphNode)->filename); /*FIXME: !!!! */
+		url = & (((struct X3D_VRML1_Texture2 *)entry->scenegraphNode)->filename); /*FIXME: !!!! */
 		break;
 
 	}
 
+	/* FIXME: very straitforward use of resource API... need rewrite ... */
+
 	res = resource_create_multi(url);
 	res->media_type = resm_image; /* quick hack */
+
+	resource_identify(root_res, res);
+	if (resource_fetch(res)) {
+		if (load_texture_from_file(entry, res->actual_file)) {
+			res->status = ress_loaded;
+		}
+	}
+
 /*FIXME:	res->where = node; */
-	send_resource_to_parser(res);
-	resource_wait(res);
 
 	if (res->status == ress_loaded) {
 		/* Cool :) */
@@ -1436,32 +1473,76 @@ void _textureThread()
     }
 #endif
 
+    TextureThreadInitialized = TRUE;
+
     /* we wait forever for the data signal to be sent */
     for (;;) {
-	TLOCK;
-	TextureThreadInitialized = TRUE;
-	T_LOCK_WAIT;
-	REGENLOCK;
+	    int i, max_t, n;
+	    struct textureTableIndexStruct *entry;
 
-	DEBUG_MSG("textureThread - working on %d\n"
-		  "which is node %d, nodeType %d status %s, opengltex %d, and frames %d\n",
-		  currentlyWorkingOn,
-		  (int) loadThisTexture->scenegraphNode, loadThisTexture->nodeType, 
-		  texst(loadThisTexture->status), (int) loadThisTexture->OpenGLTexture, 
-		  loadThisTexture->frames);
+	    /* Scan texture table for entries to work on ... */
 
-	loadThisTexture->status = TEX_LOADING;
-	TextureParsing = TRUE;
+	    TLOCK;
+
+	    /* Count the number of texture that needs loading ... */
+	    n = 0;
+	    max_t = nextFreeTexture;
+	    for (i = 0; i < max_t; i++) {
+		    entry = getTableIndex(i);
+		    if (entry->status == TEX_NOTLOADED) {
+			    n++;
+		    }
+	    }
+
+	    T_LOCK_SIGNAL;
+	    TUNLOCK;
+
+	    if (n == 0) {
+		    usleep(500);
+		    continue;
+	    }
+
+	    /* Loop over textures that needs loading ... */
+	    while (n > 0) {
+
+		    for (i = 0; i < max_t; i++) {
+			    entry = getTableIndex(i);
+			    if (entry->status == TEX_NOTLOADED) {
+				    texture_process_entry(i, entry);
+				    n--;
+			    }
+		    }
+
+		    usleep(50);
+	    }
+    }
+}
+
+void texture_process_entry(int n, struct textureTableIndexStruct *entry)
+{
+	if (entry->status == TEX_NOTLOADED) {
+
+		DEBUG_MSG("textureThread - working on %d\n"
+			  "which is node %p, nodeType %d status %s, opengltex %u, and frames %d\n",
+			  n, entry->scenegraphNode, entry->nodeType, 
+			  texst(entry->status), entry->OpenGLTexture, 
+			  entry->frames);
+
+		entry->status = TEX_LOADING;
+		TextureParsing = TRUE;
 	
-	/* look for the file. If one does not exist, or it
-	   is a duplicate, just unlock and return */
-	DEBUG_TEX("textureThread, currentlyworking on %d\n", currentlyWorkingOn);
+		/* look for the file. If one does not exist, or it
+		   is a duplicate, just unlock and return */
+/* 		DEBUG_TEX("textureThread, currentlyworking on %d\n", currentlyWorkingOn); */
+		
+		if (!findTextureFile(n, entry)) {
+			ConsoleMessage("Could not load texture: %s\n", entry->filename);
+		}
 
-#ifdef TEXTURES_MB
-	if (!findTextureFile(currentlyWorkingOn)) {
-		WARN_MSG("Could not load texture: %s\n", loadThisTexture->filename);
 	}
-#else
+}
+
+#if 0 // OLD CODE
 	if (findTextureFile(currentlyWorkingOn)) {
 	    DEBUG_TEX("textureThread, findTextureFile ok for %d\n", currentlyWorkingOn);
 	    /* is this a pixeltexture? */
@@ -1478,11 +1559,11 @@ void _textureThread()
 
 #ifdef DO_MULTI_OPENGL_THREADS
 	    if (!RUNNINGASPLUGIN) {
-		    DEBUG_TEX("tex %d needs binding, name %s\n",
-			      (int) loadThisTexture->OpenGLTexture,
+		    DEBUG_TEX("tex %u needs binding, name %s\n",
+			      loadThisTexture->OpenGLTexture,
 			      loadThisTexture->filename);
 		    do_possible_textureSequence(loadThisTexture);
-		    DEBUG_TEX("tex %d now loaded\n",(int) loadThisTexture->OpenGLTexture);
+		    DEBUG_TEX("tex %u now loaded\n", loadThisTexture->OpenGLTexture);
 	    } else {
 		    loadThisTexture->status = TEX_NEEDSBINDING;
 	    }
@@ -1492,18 +1573,20 @@ void _textureThread()
 	       loadThisTexture->scenegraphNode); */
 	    loadThisTexture->status = TEX_NEEDSBINDING;
 #endif /* DO_MULTI_OPENGL_THREADS */
+
 	} else {
 	    ERROR_MSG("Could not find texture file: %s\n");
 	}
+
 	/* signal that we are finished */
-#endif /* TEXTURES_MB */
+
 	DEBUG_TEX("textureThread: finished parsing texture for currentlyWorkingOn %d\n", currentlyWorkingOn);
 	TextureParsing=FALSE;
 	currentlyWorkingOn = -1;
 	REGENUNLOCK;
 	TUNLOCK;
-    }
-}
+
+#endif // OLD CODE 
 
 /********************************************************************************/
 /* load specific types of textures						*/
@@ -1774,8 +1857,6 @@ static void __reallyloadImageTexture() {
 	printf ("GetWidth %d\n",(int) CGBitmapContextGetWidth(cgctx));
 	#endif
 	
-#undef TEXVERBOSE
-
 	data = (unsigned char *)CGBitmapContextGetData(cgctx);
 
 	#ifdef TEXVERBOSE
@@ -2048,11 +2129,12 @@ void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex) {
 
        	ti = getTableIndex(myIndex);
 
-	if (ti->frames>0) {
-		if (ti->OpenGLTexture != NULL) {
-			*lowest = ti->OpenGLTexture[0];
-			*highest = ti->OpenGLTexture[(ti->frames) -1];
+/* 	if (ti->frames>0) { */
+		if (ti->OpenGLTexture != TEXTURE_INVALID) {
+			*lowest = ti->OpenGLTexture;
+			*highest = 0;
+/* 			*highest = ti->OpenGLTexture[(ti->frames) -1]; */
 		}
-	}
+/* 	} */
 }
 

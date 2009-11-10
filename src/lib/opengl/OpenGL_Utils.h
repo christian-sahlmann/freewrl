@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.13 2009/10/26 10:50:08 couannette Exp $
+$Id: OpenGL_Utils.h,v 1.14 2009/11/10 10:18:26 couannette Exp $
 
 Screen snapshot.
 
@@ -44,7 +44,5 @@ void lightState (GLint light, int state);
 
 void drawBBOX(struct X3D_Node *node);
 
-extern int opengl_has_numTextureUnits;
-extern GLint opengl_has_textureSize;
 
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

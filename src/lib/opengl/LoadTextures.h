@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LoadTextures.h,v 1.5 2009/10/26 10:50:08 couannette Exp $
+$Id: LoadTextures.h,v 1.6 2009/11/10 10:18:26 couannette Exp $
 
  */
 
@@ -29,15 +29,10 @@ $Id: LoadTextures.h,v 1.5 2009/10/26 10:50:08 couannette Exp $
 #define __FREEWRL_LOAD_TEXTURES_H__
 
 
-/* Loading functions */
-
-/* transition function */
-bool findTextureFile_MB(int cwo);
-
 /* new functions */
 void texture_loader_initialize();
 bool is_url(const char *url);
-bool load_texture_from_file(struct X3D_ImageTexture *node, char *filename);
+bool load_texture_from_file(struct textureTableIndexStruct* this_tex, char *filename);
 bool bind_texture(struct X3D_ImageTexture *node);
 
 
