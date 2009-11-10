@@ -3,9 +3,6 @@ Priority list
 11/06/2009: 
 	(JAS) Review all nodes so that they send events when compiled or made.
 
-11/05/2009: 
-	(DONE)(JAS) Verify that FaceSets generate events when fields change - eg, index in IndexedTriangleFanSet.
-
 09/23/2009:
 	From Russ Kinter; http://www.sevenemeraldtablets.net/VisibilityTest/VisibilityTest2.wrl 
 	a) VisibilitySensor gets removed by LOD thus never gets drawn to indicate it is out of the scene;
@@ -32,10 +29,6 @@ Priority list
 	(JAS) look at using OpenAL
         (MB)  Specific DEBUG defines for specific parts : all in src/lib/debug.h. 
 
-
-08/02/2009:
-	(DONE) initialization OpenGL functionality checking; eg, checkShaders, multitexturing, etc, put all checks at OpenGL initialization.
-	(DONE) (JAS) Michel suggests using GLEW on all platforms; shows how to do this on OSX.
 
 08/02/2009:
 	(JAS) shader differences between OSX and Linux; eg:
@@ -106,15 +99,6 @@ Priority list
 		- Freewrl do not compile without some "XF86/XF86VidModeModeInfo" things 
   		  (again). Please add a matching test case in your machine park...
 
-18/05/2009:
-	(JAS) Script/shader routing - no longer use dubious (from Perl days) methodology of having to/from nodes
-	as script indexes, now leave them as NODE_Script types.
-		- Have to ensure that XML coding of scripts follows this (DONE);
-		- Shader routing can use same methodology.
-
-14/05/2009: 
-	(JAS) (DONE) Shader text, if local, should start with uri "data:text/plain," 
-
 13/05/2009: 
 	(JAS) Javascript.
 		- added sfvec4f and sfvec4d input/output; only basic methods defined. There is nothing in the
@@ -181,8 +165,6 @@ Priority list
 
 
 26/02/2009:
-	(DONE) (JAS) Work on verifying capabilities, src/lib/x3d_parser/capabilitiesHandler.c.
-
 	(JAS) Continue filling in ECMAScript capabilities; see "NEWCLASSES" ifdef in the code.
 		- latest non-released spec requested from Dick Puck, 26/02/09, as the on on-line
 		  is from 2005.	

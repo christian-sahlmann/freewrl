@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.55 2009/11/09 21:13:16 crc_canada Exp $
+$Id: X3DParser.c,v 1.56 2009/11/10 01:42:47 crc_canada Exp $
 
 ???
 
@@ -753,7 +753,30 @@ WARNING - PROTOS have a two extra groups put in; one to hold while parsing, and 
   </Shape>
 </Scene>
 
-is a good test to see what happens for these nodes. */
+is a good test to see what happens for these nodes. 
+
+Note the "PROTO_MARKER" which is assigned to the bottom-most group. This is the group that is created to
+hold the proto expansion, and is passed in to the expandProtoInstance function. So, we KNOW that this
+Group node is the base for the PROTO.  If you look at the code to expand the PROTO, the first node is a
+Group node, too. So, we will have a Group, children Group, children actual nodes in file. eg:
+
+	Material
+	Group
+	Group   marker = PROTO_MARKER.
+
+Now, in the example above, the "Material" tries to put itself inside an "appearance" field of an Appearance
+node.  So, if the parentIndex-1 and parentIndex-2 entry are Groups, and parentIndex-2 has PROTO_MARKER
+set, we know this is a PROTO expansion, so just assign the Material node to the children field, and worry
+about it later.
+
+Ok, later, we have the opposite problem, so we look UP the stack to see what the defaultContainer was
+actually expected to be. This is the "second case" below.
+
+Note that if we are dealing with Groups as Proto Expansions, none of the above is a problem; just if we
+need to put a node into something other than the "children" field.
+
+*/
+
 
 
 void linkNodeIn(char *where, int lineno) {
@@ -820,8 +843,8 @@ void linkNodeIn(char *where, int lineno) {
 		parentStack[parentIndex]->_defaultContainer, &coffset, &ctype, &ctmp);
 
 	/* PROTOS - we will have a Group node here */
-	/* first case, assigning a node to a PROTO Group expansion - eg, Material should go to appearance, but make
-	   it go to children here. */
+	/* first case, assigning a node to a PROTO Group expansion - eg, in the above example, 
+	   Material should go to appearance, but FORCE it go to children here. */
 
 	if ((ctype == INT_ID_UNDEFINED) && (parentStack[parentIndex-1]->_nodeType == NODE_Group)) {
 		/* printf ("problem finding field %d in a Group %u, so we are pretending this is a PROTO for now\n",
