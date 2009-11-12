@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.50 2009/11/05 18:39:09 crc_canada Exp $
+  $Id: CParseParser.c,v 1.51 2009/11/12 16:49:03 crc_canada Exp $
 
   ???
 
@@ -251,7 +251,7 @@ char fw_outline[2000];
 /* General processing macros */
 #define PROCESS_EVENT(constPre, destPre, node, field, type, var) \
  case constPre##_##field: \
-  destPre##Len= \
+  destPre##Type= \
    (ROUTE_REAL_SIZE_##type ? sizeof_member(struct X3D_##node, var) : 0); \
   destPre##Ofs=offsetof(struct X3D_##node, var); \
   break;
@@ -1157,7 +1157,7 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
     indexT fromUFieldO;
     indexT fromUFieldE;
     int fromOfs = 0;
-    int fromLen = 0;
+    int fromType = 0;
     struct ScriptFieldDecl* fromScriptField=NULL;
 
     indexT toNodeIndex;
@@ -1168,7 +1168,7 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
     indexT toUFieldO;
     indexT toUFieldE;
     int toOfs = 0;
-    int toLen = 0;
+    int toType = 0;
     struct ScriptFieldDecl* toScriptField=NULL;
     int temp, tempFE, tempFO, tempTE, tempTO;
 
@@ -1506,7 +1506,7 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
 
         /* Process to inputOnly */
         /* Get the offset to the inputOnly in the toNode and store it in toOfs */
-        /* Get the size of the outputOnly type and store it in fromLen */
+        /* Get the size of the outputOnly type and store it in fromType */
         if(!toScriptField) {
             /* If this is an exposed field */
             if(toFieldE!=ID_UNDEFINED) {
@@ -1553,41 +1553,41 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
 #undef FIELD
 #undef END_NODE
 
-        /* set the toLen and fromLen from the PROTO/Script info, if appropriate */
-        if(fromScriptField) fromLen=returnRoutingElementLength(fieldDecl_getType(fromScriptField->fieldDecl));
-        if(toScriptField) toLen=returnRoutingElementLength(fieldDecl_getType(toScriptField->fieldDecl));
+        /* set the toType and fromType from the PROTO/Script info, if appropriate */
+        if(fromScriptField) fromType=fieldDecl_getType(fromScriptField->fieldDecl);
+        if(toScriptField) toType=fieldDecl_getType(toScriptField->fieldDecl);
 
    /* printf ("fromScriptField %d, toScriptField %d\n",fromScriptField, toScriptField);
-   printf ("fromlen %d tolen %d\n",fromLen, toLen);  */
+   printf ("fromlen %d tolen %d\n",fromType, toType);  */
 
         /* to "simple" MF nodes, we have to call a procedure to determine exactly what kind of "length" this
            node has - it is not as simple as using a "sizeof(int)" command, but, something that is interpreted at
            runtime. So, looking at "#define ROUTE_REAL_SIZE_mffloat FALSE" above, anything that is defined as FALSE
            is a complex type, and, we will have a length as 0 right here. Lets really fill in the "special" lengths
            for these ones. */
-        if (toLen == 0) {
+        if (toType == INT_ID_UNDEFINED) {
             int b,c,tmp=0;
             if (toNode != NULL) {
                 if (toFieldE != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(toNode,EXPOSED_FIELD[toFieldE],1);
                 if (toFieldO != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(toNode,EVENT_IN[toFieldO],1);
                 findFieldInOFFSETS(toNode->_nodeType, tmp,  &toOfs, &b, &c);      
-                toLen = returnRoutingElementLength(b);
+                toType = b;
             }
         }
-        if (fromLen == 0) {
+        if (fromType == INT_ID_UNDEFINED) {
             int b,c,tmp=0;
             if (fromNode != NULL) {
                 if (fromFieldE != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(fromNode,EXPOSED_FIELD[fromFieldE],1);
                 if (fromFieldO != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(fromNode,EVENT_OUT[fromFieldO],1);
                 findFieldInOFFSETS(fromNode->_nodeType, tmp,  &fromOfs, &b, &c);  
-                fromLen = returnRoutingElementLength(b);
+                fromType = b;
             }
         }
 
         /* FIXME:  Not a really safe check for types in ROUTE! */
         /* JAS - made message better. Should compare types, not lengths. */
         /* We can only ROUTE between two equivalent fields.  If the size of one field value is different from the size of the other, we have problems (i.e. can't route SFInt to MFNode) */
-        if(fromLen!=toLen) {
+        if(fromType!=toType) {
             /* try to make a better error message. */
             strcpy (fw_outline,"ERROR:Types mismatch in ROUTE: ");
             if (fromNode != NULL) { strcat (fw_outline, " from type:"); strcat (fw_outline, stringNodeType(fromNode->_nodeType)); strcat (fw_outline, " "); }
@@ -1626,7 +1626,7 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
             ASSERT(!fromScript && !toScript);
         }
         /* Built-in to built-in */
-        parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toLen);
+        parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType);
   
         return TRUE;
 }
@@ -1639,13 +1639,13 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
 void parser_registerRoute(struct VRMLParser* me,
                           struct X3D_Node* fromNode, int fromOfs,
                           struct X3D_Node* toNode, int toOfs,
-                          size_t len)
+                          int ft)
 {
     ASSERT(me);
 	if ((fromOfs == INT_ID_UNDEFINED) || (toOfs == INT_ID_UNDEFINED)) {
 		ConsoleMessage ("problem registering route - either fromField or toField invalid");
 	} else {
-        	CRoutes_RegisterSimple(fromNode, (unsigned) fromOfs, toNode, (unsigned) toOfs, len);
+        	CRoutes_RegisterSimple(fromNode, (unsigned) fromOfs, toNode, (unsigned) toOfs, ft);
 	}
 }
 

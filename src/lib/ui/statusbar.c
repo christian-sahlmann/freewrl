@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.13 2009/10/26 10:52:22 couannette Exp $
+  $Id: statusbar.c,v 1.14 2009/11/12 16:49:03 crc_canada Exp $
 
 */
 
@@ -207,10 +207,10 @@ static void statusbar_init() {
 	AddRemoveChildren(rootNode, offsetPointer_deref(void *,rootNode,offsetof (struct X3D_Group, children)), (uintptr_t*)&transNode, 1, 1,__FILE__,__LINE__);
 
 	CRoutes_RegisterSimple((void *)proxNode, offsetof (struct X3D_ProximitySensor, orientation_changed), 
-		(void *)transNode, offsetof (struct X3D_Transform, rotation), sizeof (struct SFRotation));
+		(void *)transNode, offsetof (struct X3D_Transform, rotation), FIELDTYPE_SFRotation);
 
 	CRoutes_RegisterSimple((void *)proxNode, offsetof (struct X3D_ProximitySensor, position_changed), 
-		(void *)transNode, offsetof (struct X3D_Transform, translation), sizeof (struct SFColor));
+		(void *)transNode, offsetof (struct X3D_Transform, translation), FIELDTYPE_SFColor);
 	
 	sb_initialized = TRUE;
 }

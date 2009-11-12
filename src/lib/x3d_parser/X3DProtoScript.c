@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.45 2009/11/09 21:13:16 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.46 2009/11/12 16:49:03 crc_canada Exp $
 
 ???
 
@@ -228,12 +228,12 @@ static int getProtoKind(struct VRMLLexer *myLexer, int ProtoInvoc, char *id) {
 /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 #define ROUTE_FROM_META_TO_ISD \
 	getRoutingInfo (myLexer, TOD, &nodeOffs, &type, &accessType, &holder, nodeField, 1); \
-	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(metaNode, metaFromOffs, TOD, nodeOffs, returnRoutingElementLength(type)); 
+	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(metaNode, metaFromOffs, TOD, nodeOffs, type); 
 
 
 #define ROUTE_FROM_ISD_TO_META \
 	getRoutingInfo (myLexer, TOD, &nodeOffs, &type, &accessType, &holder, nodeField, 0); \
-	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(TOD, nodeOffs, metaNode, metaToOffs, returnRoutingElementLength(type)); 
+	if (nodeOffs != INT_ID_UNDEFINED) CRoutes_RegisterSimple(TOD, nodeOffs, metaNode, metaToOffs, type); 
 
 
 static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* protoField, char *nodeField) {

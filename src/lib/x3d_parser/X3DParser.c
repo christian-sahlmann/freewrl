@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.56 2009/11/10 01:42:47 crc_canada Exp $
+$Id: X3DParser.c,v 1.57 2009/11/12 16:49:03 crc_canada Exp $
 
 ???
 
@@ -603,7 +603,7 @@ static void parseRoutes (const char **atts) {
 
 
 	/* can we register the route? */
-	CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, returnRoutingElementLength(fromType));
+	CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, fromType);
 }
 
 #ifdef OLDCODE

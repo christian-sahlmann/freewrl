@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.42 2009/11/06 00:09:01 crc_canada Exp $
+$Id: CRoutes.c,v 1.43 2009/11/12 16:49:03 crc_canada Exp $
 
 ???
 
@@ -305,7 +305,7 @@ struct CR_RegStruct {
 		int fromoffset;
 		unsigned int to_count;
 		char *tonode_str;
-		int length;
+		int fieldType;
 		void *intptr;
 		int scrdir;
 		int extra; };
@@ -842,7 +842,7 @@ CRoutes_Register.  Currently a wrapper around that other function.
 void CRoutes_RegisterSimple(
 	struct X3D_Node* from, int fromOfs,
 	struct X3D_Node* to, int toOfs,
-	int len)  {
+	int type)  {
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
  	char tonode_str[15];
@@ -850,6 +850,8 @@ void CRoutes_RegisterSimple(
  	int extraData = 0;
 	int dir = 0;
 	
+printf ("CRoutes_RegisterSimple, have type %d\n",type);
+
 	/* get direction flags here */
 	switch (from->_nodeType) {
 		case NODE_Script:
@@ -919,7 +921,7 @@ void CRoutes_RegisterSimple(
 	snprintf(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
 #endif
 
-	CRoutes_Register(1, from, fromOfs, 1, tonode_str, len, interpolatorPointer, dir, extraData);
+	CRoutes_Register(1, from, fromOfs, 1, tonode_str, type, interpolatorPointer, dir, extraData);
 }
  
 
@@ -933,7 +935,7 @@ CRoutes_Register.  Currently a wrapper around that other function.
 void CRoutes_RemoveSimple(
 	struct X3D_Node* from, int fromOfs,
 	struct X3D_Node* to, int toOfs,
-	int len) {
+	int type) {
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
  	char tonode_str[15];
@@ -948,7 +950,7 @@ void CRoutes_RemoveSimple(
  	snprintf(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
 #endif
 
- 	CRoutes_Register(0, from, fromOfs, 1, tonode_str, len, 
+ 	CRoutes_Register(0, from, fromOfs, 1, tonode_str, type, 
   		interpolatorPointer, 0, extraData);
 }
 
@@ -967,7 +969,7 @@ void CRoutes_Register(
 		int fromoffset,
 		unsigned int to_count,
 		char *tonode_str,
-		int length,
+		int type,
 		void *intptr,
 		int scrdir,
 		int extra) {
@@ -983,7 +985,7 @@ void CRoutes_Register(
 	routesToRegister[rTr].fromoffset = fromoffset;
 	routesToRegister[rTr].to_count = to_count;
 	routesToRegister[rTr].tonode_str= STRDUP(tonode_str);
-	routesToRegister[rTr].length = length;
+	routesToRegister[rTr].fieldType = type;
 	routesToRegister[rTr].intptr = intptr;
 	routesToRegister[rTr].scrdir = scrdir;
 	routesToRegister[rTr].extra = extra;
@@ -1001,6 +1003,7 @@ static void actually_do_CRoutes_Register(int num) {
 	struct Multi_Node *Mchptr;
 	void * chptr;
 	int rv;				/* temp for sscanf rets */
+	int routingLength;
 
 	char buf[20];
 	long unsigned int toof;		/* used to help determine duplicate routes */
@@ -1015,12 +1018,16 @@ static void actually_do_CRoutes_Register(int num) {
 		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
 	#endif
 
+
+	routingLength = returnRoutingElementLength(RTR.fieldType);
+
 	/* is this a script to script route??? */
 	/* if so, we need an intermediate location for memory, as the values must
 	   be placed somewhere FROM the script node, to be found when sending TO
 	   the other script */
 	if (RTR.scrdir == SCRIPT_TO_SCRIPT) {
-		if (RTR.length <= 0) {
+printf ("SCRIPT_TO_SCRIPT routing, fieldType %d\n",RTR.fieldType);
+		if (RTR.fieldType <= 0) {
 			/* this is of an unknown length - most likely a MF* field */
 
 			/* So, this is a Multi_Node, MALLOC it... */
@@ -1029,7 +1036,7 @@ static void actually_do_CRoutes_Register(int num) {
 
 			#ifdef CRVERBOSE 
 				printf ("hmmm - script to script, len %d ptr %d %x\n",
-				RTR.length,chptr,chptr);
+				RTR.fieldType,chptr,chptr);
 			#endif
 
 			Mchptr->n = 0; /* make it 0 nodes long */
@@ -1037,11 +1044,11 @@ static void actually_do_CRoutes_Register(int num) {
 			
 		} else {
 			/* this is just a block of memory, eg, it will hold an "SFInt32" */
-			chptr = MALLOC (sizeof (char) * RTR.length);
+			chptr = MALLOC (sizeof (char) * routingLength);
 		}
 		sprintf (buf,"%u:0",(unsigned int)chptr);
-		CRoutes_Register (RTR.adrem, RTR.from, RTR.fromoffset,1,buf, RTR.length, 0, FROM_SCRIPT, RTR.extra);
-		CRoutes_Register (RTR.adrem, chptr, 0, RTR.to_count, RTR.tonode_str,RTR.length, 0, TO_SCRIPT, RTR.extra);
+		CRoutes_Register (RTR.adrem, RTR.from, RTR.fromoffset,1,buf, routingLength, 0, FROM_SCRIPT, RTR.extra);
+		CRoutes_Register (RTR.adrem, chptr, 0, RTR.to_count, RTR.tonode_str,routingLength, 0, TO_SCRIPT, RTR.extra);
 		return;
 	}
 
@@ -1170,7 +1177,7 @@ static void actually_do_CRoutes_Register(int num) {
 	CRoutes[insert_here].isActive = FALSE;
 	CRoutes[insert_here].tonode_count = 0;
 	CRoutes[insert_here].tonodes = NULL;
-	CRoutes[insert_here].len = RTR.length;
+	CRoutes[insert_here].len = RTR.fieldType;
 	CRoutes[insert_here].interpptr = (void (*)(void*))RTR.intptr;
 	CRoutes[insert_here].direction_flag = RTR.scrdir;
 	CRoutes[insert_here].extra = RTR.extra;

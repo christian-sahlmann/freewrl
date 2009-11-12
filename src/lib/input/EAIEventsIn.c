@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.35 2009/11/10 10:18:25 couannette Exp $
+$Id: EAIEventsIn.c,v 1.36 2009/11/12 16:49:03 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -811,8 +811,8 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 		toOffset = getEAIActualOffset(toretNode,toretField);
 
 		/* is this an add or delete route? */
-		if (command == ADDROUTE) CRoutes_RegisterSimple(fromNode,fromOffset,toNode,toOffset,fromdataLen);
-		else CRoutes_RemoveSimple(fromNode,fromOffset,toNode,toOffset,fromdataLen);
+		if (command == ADDROUTE) CRoutes_RegisterSimple(fromNode,fromOffset,toNode,toOffset,fromfieldType);
+		else CRoutes_RemoveSimple(fromNode,fromOffset,toNode,toOffset,fromfieldType);
 
 		strcat (buf, "0");
 	} else {
