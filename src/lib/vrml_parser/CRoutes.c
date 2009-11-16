@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.43 2009/11/12 16:49:03 crc_canada Exp $
+$Id: CRoutes.c,v 1.44 2009/11/16 20:42:46 crc_canada Exp $
 
 ???
 
@@ -56,6 +56,7 @@ $Id: CRoutes.c,v 1.43 2009/11/12 16:49:03 crc_canada Exp $
 
 static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, int multitype);
 static void sendScriptEventIn(uintptr_t num);
+static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfsetValue, int *offsetOfvalueChanged);
 
 /* we count times through the scenegraph; helps to break routing loops */
 static int thisIntTimeStamp = 1;
@@ -310,9 +311,7 @@ struct CR_RegStruct {
 		int scrdir;
 		int extra; };
 
-struct CR_RegStruct *routesToRegister = NULL;
-int maxRTR = 0;
-int rTr = 0;
+static struct Vector* routesToRegister = NULL;
 
 
 /* if we get mark_events sent, before routing is established, save them and use them
@@ -329,6 +328,9 @@ pthread_mutex_t  preRouteLock = PTHREAD_MUTEX_INITIALIZER;
 #define LOCK_PREROUTETABLE                pthread_mutex_lock(&preRouteLock);
 #define UNLOCK_PREROUTETABLE              pthread_mutex_unlock(&preRouteLock);
 
+pthread_mutex_t  insertRouteLock = PTHREAD_MUTEX_INITIALIZER;
+#define MUTEX_LOCK_ROUTING_UPDATES                pthread_mutex_lock(&insertRouteLock);
+#define MUTEX_FREE_LOCK_ROUTING_UPDATES		pthread_mutex_unlock(&insertRouteLock);
 
 
 /* a Script (JavaScript or CLASS) has given us an event, tell the system of this */
@@ -850,8 +852,6 @@ void CRoutes_RegisterSimple(
  	int extraData = 0;
 	int dir = 0;
 	
-printf ("CRoutes_RegisterSimple, have type %d\n",type);
-
 	/* get direction flags here */
 	switch (from->_nodeType) {
 		case NODE_Script:
@@ -973,279 +973,278 @@ void CRoutes_Register(
 		void *intptr,
 		int scrdir,
 		int extra) {
-	/* have to increase routing space?? */
 
-	if (rTr >= maxRTR) {
-		maxRTR += 50;
-		routesToRegister = (struct CR_RegStruct *)REALLOC(routesToRegister,sizeof (struct CR_RegStruct) * (maxRTR+1));
+	struct CR_RegStruct *newEntry;
+
+/* Script to Script - we actually put a small node in, and route to/from this node so routing is a 2 step process */
+	if (scrdir == SCRIPT_TO_SCRIPT) {
+		struct X3D_Node *chptr;
+		int set, changed;
+		char buf[20];
+
+		/* initialize stuff for compile checks */
+		set = 0; changed = 0;
+
+		chptr = returnSpecificTypeNode(type, &set, &changed);
+
+
+		sprintf (buf,"%u:%d",(unsigned int)chptr,set);
+		CRoutes_Register (adrem, from, fromoffset,1,buf, type, 0, FROM_SCRIPT, extra);
+		CRoutes_Register (adrem, chptr, changed, to_count, tonode_str,type, 0, TO_SCRIPT, extra);
+		return;
 	}
 
-	routesToRegister[rTr].adrem = adrem;
-	routesToRegister[rTr].from = from;
-	routesToRegister[rTr].fromoffset = fromoffset;
-	routesToRegister[rTr].to_count = to_count;
-	routesToRegister[rTr].tonode_str= STRDUP(tonode_str);
-	routesToRegister[rTr].fieldType = type;
-	routesToRegister[rTr].intptr = intptr;
-	routesToRegister[rTr].scrdir = scrdir;
-	routesToRegister[rTr].extra = extra;
-	rTr ++;
+	MUTEX_LOCK_ROUTING_UPDATES
+
+	if (routesToRegister == NULL) {
+		routesToRegister = newVector(struct CR_RegStruct *, 16);
+	}
+
+
+	newEntry = MALLOC(sizeof (struct CR_RegStruct));
+	newEntry->adrem = adrem;
+	newEntry->from = from;
+	newEntry->fromoffset = fromoffset;
+	newEntry->to_count = to_count;
+	newEntry->tonode_str= STRDUP(tonode_str);
+	newEntry->fieldType = type;
+	newEntry->intptr = intptr;
+	newEntry->scrdir = scrdir;
+	newEntry->extra = extra;
+	vector_pushBack(struct CR_RegStruct *, routesToRegister, newEntry);
+
+	MUTEX_FREE_LOCK_ROUTING_UPDATES
 
 }
 
-#define RTR routesToRegister[num] 
-static void actually_do_CRoutes_Register(int num) {
+static void actually_do_CRoutes_Register() {
 	int insert_here, shifter;
 	char *buffer;
 	const char *token = " ";
 	CRnodeStruct *to_ptr = NULL;
 	unsigned int to_counter;
-	struct Multi_Node *Mchptr;
-	void * chptr;
 	int rv;				/* temp for sscanf rets */
-	int routingLength;
-
-	char buf[20];
 	long unsigned int toof;		/* used to help determine duplicate routes */
 	long unsigned int toN;
+	indexT ind;
 
-	#ifdef CRVERBOSE  
-		printf ("CRoutes_Register adrem %d from %u ",RTR.adrem, RTR.from);
-		if (RTR.from > JSMaxScript) printf ("(%s) ",stringNodeType(X3D_NODE(RTR.from->_nodeType)));
+	if (routesToRegister == NULL) return; /* should never get here, but... */
 
-		printf ("off %u to %u %s len %d intptr %u\n",
-				RTR.fromoffset, RTR.to_count, RTR.tonode_str, RTR.length, RTR.intptr);
+	/* printf ("actually_do_CRoutes_Register, vector size %d\n",vector_size(routesToRegister)); */
+
+	for (ind=0; ind<vector_size(routesToRegister); ind++ ) {
+		struct CR_RegStruct *newEntry;
+
+		newEntry = vector_get(struct CR_RegStruct *, routesToRegister, ind);
+
+#ifdef CRVERBOSE  
+		printf ("CRoutes_Register adrem %d from %u ",newEntry->adrem, newEntry->from);
+		if (newEntry->from > JSMaxScript) printf ("(%s) ",stringNodeType(X3D_NODE(newEntry->from->_nodeType)));
+
+		printf ("off %u to %u %s intptr %u\n",
+				newEntry->fromoffset, newEntry->to_count, newEntry->tonode_str, newEntry->intptr);
 		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
-	#endif
+#endif
 
 
-	routingLength = returnRoutingElementLength(RTR.fieldType);
-
-	/* is this a script to script route??? */
-	/* if so, we need an intermediate location for memory, as the values must
-	   be placed somewhere FROM the script node, to be found when sending TO
-	   the other script */
-	if (RTR.scrdir == SCRIPT_TO_SCRIPT) {
-printf ("SCRIPT_TO_SCRIPT routing, fieldType %d\n",RTR.fieldType);
-		if (RTR.fieldType <= 0) {
-			/* this is of an unknown length - most likely a MF* field */
-
-			/* So, this is a Multi_Node, MALLOC it... */
-			chptr = MALLOC (sizeof(struct Multi_Node));
-			Mchptr = (struct Multi_Node *)chptr; 
-
-			#ifdef CRVERBOSE 
-				printf ("hmmm - script to script, len %d ptr %d %x\n",
-				RTR.fieldType,chptr,chptr);
-			#endif
-
-			Mchptr->n = 0; /* make it 0 nodes long */
-			Mchptr->p = 0; /* it has no memory MALLOCd here */
-			
-		} else {
-			/* this is just a block of memory, eg, it will hold an "SFInt32" */
-			chptr = MALLOC (sizeof (char) * routingLength);
+		/* first time through, create minimum and maximum for insertion sorts */
+		if (!CRoutes_Initiated) {
+			/* allocate the CRoutes structure */
+			CRoutes_MAX = 25; /* arbitrary number; max 25 routes to start off with */
+			CRoutes = (struct CRStruct *)MALLOC (sizeof (*CRoutes) * CRoutes_MAX);
+	
+			CRoutes[0].routeFromNode = X3D_NODE(0);
+			CRoutes[0].fnptr = 0;
+			CRoutes[0].tonode_count = 0;
+			CRoutes[0].tonodes = NULL;
+			CRoutes[0].isActive = FALSE;
+			CRoutes[0].interpptr = 0;
+			CRoutes[0].intTimeStamp = 0;
+			CRoutes[1].routeFromNode = X3D_NODE(-1);
+			CRoutes[1].fnptr = 0x8FFFFFFF;
+			CRoutes[1].tonode_count = 0;
+			CRoutes[1].tonodes = NULL;
+			CRoutes[1].isActive = FALSE;
+			CRoutes[1].interpptr = 0;
+			CRoutes[1].intTimeStamp = 0;
+			CRoutes_Count = 2;
+			CRoutes_Initiated = TRUE;
 		}
-		sprintf (buf,"%u:0",(unsigned int)chptr);
-		CRoutes_Register (RTR.adrem, RTR.from, RTR.fromoffset,1,buf, routingLength, 0, FROM_SCRIPT, RTR.extra);
-		CRoutes_Register (RTR.adrem, chptr, 0, RTR.to_count, RTR.tonode_str,routingLength, 0, TO_SCRIPT, RTR.extra);
-		return;
-	}
-
-	/* first time through, create minimum and maximum for insertion sorts */
-	if (!CRoutes_Initiated) {
-		/* allocate the CRoutes structure */
-		CRoutes_MAX = 25; /* arbitrary number; max 25 routes to start off with */
-		CRoutes = (struct CRStruct *)MALLOC (sizeof (*CRoutes) * CRoutes_MAX);
-
-		CRoutes[0].routeFromNode = X3D_NODE(0);
-		CRoutes[0].fnptr = 0;
-		CRoutes[0].tonode_count = 0;
-		CRoutes[0].tonodes = NULL;
-		CRoutes[0].isActive = FALSE;
-		CRoutes[0].interpptr = 0;
-		CRoutes[0].intTimeStamp = 0;
-		CRoutes[1].routeFromNode = X3D_NODE(-1);
-		CRoutes[1].fnptr = 0x8FFFFFFF;
-		CRoutes[1].tonode_count = 0;
-		CRoutes[1].tonodes = NULL;
-		CRoutes[1].isActive = FALSE;
-		CRoutes[1].interpptr = 0;
-		CRoutes[1].intTimeStamp = 0;
-		CRoutes_Count = 2;
-		CRoutes_Initiated = TRUE;
-	}
-
-	insert_here = 1;
-
-	/* go through the routing list, finding where to put it */
-	while (RTR.from > CRoutes[insert_here].routeFromNode) {
-		#ifdef CRVERBOSE 
-			printf ("comparing %u to %u\n",RTR.from, CRoutes[insert_here].routeFromNode);
-		#endif
-		insert_here++;
-	}
-
-	/* hmmm - do we have a route from this node already? If so, go
-	   through and put the offsets in order */
-	while ((RTR.from == CRoutes[insert_here].routeFromNode) &&
-		(RTR.fromoffset > CRoutes[insert_here].fnptr)) {
-		#ifdef CRVERBOSE 
-			printf ("same routeFromNode, different offset\n");
-		#endif
-		insert_here++;
-	}
-
-
-	/* Quick check to verify that we don't have a duplicate route here
-	   OR to delete a route... */
-
-	#ifdef CRVERBOSE
-	printf ("ok, CRoutes_Register - is this a duplicate? comparing from (%d %d), fnptr (%d %d) intptr (%d %d) and tonodes %d\n",
-		CRoutes[insert_here].routeFromNode, RTR.from,
-		CRoutes[insert_here].fnptr, RTR.fromoffset,
-		CRoutes[insert_here].interpptr, RTR.intptr,
-		CRoutes[insert_here].tonodes);
-	#endif
-
-	if ((CRoutes[insert_here].routeFromNode==RTR.from) &&
-		(CRoutes[insert_here].fnptr==(unsigned)RTR.fromoffset) &&
-		(CRoutes[insert_here].interpptr==RTR.intptr) &&
-		(CRoutes[insert_here].tonodes!=0)) {
-
-		/* possible duplicate route */
-		rv=sscanf (RTR.tonode_str, "%lu:%lu", &toN,&toof);
-		/* printf ("from tonode_str %s we have %u %u\n",tonode_str, toN, toof); */
-
-		if ((toN == ((uintptr_t)(CRoutes[insert_here].tonodes)->routeToNode)) &&
-			(toof == (CRoutes[insert_here].tonodes)->foffset)) {
-			/* this IS a duplicate, now, what to do? */
-
-			#ifdef CRVERBOSE
-			printf ("duplicate route; maybe this is a remove? \n");
+	
+		insert_here = 1;
+	
+		/* go through the routing list, finding where to put it */
+		while (newEntry->from > CRoutes[insert_here].routeFromNode) {
+			#ifdef CRVERBOSE 
+				printf ("comparing %u to %u\n",newEntry->from, CRoutes[insert_here].routeFromNode);
 			#endif
-
-			/* is this an add? */
-			if (RTR.adrem == 1) {
+			insert_here++;
+		}
+	
+		/* hmmm - do we have a route from this node already? If so, go
+		   through and put the offsets in order */
+		while ((newEntry->from == CRoutes[insert_here].routeFromNode) &&
+			(newEntry->fromoffset > CRoutes[insert_here].fnptr)) {
+			#ifdef CRVERBOSE 
+				printf ("same routeFromNode, different offset\n");
+			#endif
+			insert_here++;
+		}
+	
+	
+		/* Quick check to verify that we don't have a duplicate route here
+		   OR to delete a route... */
+	
+		#ifdef CRVERBOSE
+		printf ("ok, CRoutes_Register - is this a duplicate? comparing from (%d %d), fnptr (%d %d) intptr (%d %d) and tonodes %d\n",
+			CRoutes[insert_here].routeFromNode, newEntry->from,
+			CRoutes[insert_here].fnptr, newEntry->fromoffset,
+			CRoutes[insert_here].interpptr, newEntry->intptr,
+			CRoutes[insert_here].tonodes);
+		#endif
+	
+		if ((CRoutes[insert_here].routeFromNode==newEntry->from) &&
+			(CRoutes[insert_here].fnptr==(unsigned)newEntry->fromoffset) &&
+			(CRoutes[insert_here].interpptr==newEntry->intptr) &&
+			(CRoutes[insert_here].tonodes!=0)) {
+	
+			/* possible duplicate route */
+			rv=sscanf (newEntry->tonode_str, "%lu:%lu", &toN,&toof);
+			/* printf ("from tonode_str %s we have %u %u\n",tonode_str, toN, toof); */
+	
+			if ((toN == ((uintptr_t)(CRoutes[insert_here].tonodes)->routeToNode)) &&
+				(toof == (CRoutes[insert_here].tonodes)->foffset)) {
+				/* this IS a duplicate, now, what to do? */
+	
 				#ifdef CRVERBOSE
-					printf ("definite duplicate, returning\n");
+				printf ("duplicate route; maybe this is a remove? \n");
 				#endif
-				return;
-			} else {
-				/* this is a remove */
-
-				for (shifter = insert_here; shifter < CRoutes_Count; shifter++) {
-				#ifdef CRVERBOSE 
-					printf ("copying from %d to %d\n",shifter, shifter-1);
-				#endif
-					memcpy ((void *)&CRoutes[shifter],
-						(void *)&CRoutes[shifter+1],
-						sizeof (struct CRStruct));
-				}
-				CRoutes_Count --;
-				#ifdef CRVERBOSE 
-					printf ("routing table now %d\n",CRoutes_Count);
-					for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
-						printf ("%u %u %u\n",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
-							CRoutes[shifter].interpptr);
+	
+				/* is this an add? */
+				if (newEntry->adrem == 1) {
+					#ifdef CRVERBOSE
+						printf ("definite duplicate, returning\n");
+					#endif
+					return;
+				} else {
+					/* this is a remove */
+	
+					for (shifter = insert_here; shifter < CRoutes_Count; shifter++) {
+					#ifdef CRVERBOSE 
+						printf ("copying from %d to %d\n",shifter, shifter-1);
+					#endif
+						memcpy ((void *)&CRoutes[shifter],
+							(void *)&CRoutes[shifter+1],
+							sizeof (struct CRStruct));
 					}
-				#endif
-
-				return;
+					CRoutes_Count --;
+					#ifdef CRVERBOSE 
+						printf ("routing table now %d\n",CRoutes_Count);
+						for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
+							printf ("%u %u %u\n",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
+								CRoutes[shifter].interpptr);
+						}
+					#endif
+	
+					return;
+				}
 			}
 		}
-	}
-
-	/* is this a removeRoute? if so, its not found, and we SHOULD return here */
-	if (RTR.adrem != 1) return;
-	#ifdef CRVERBOSE 
-		printf ("CRoutes, inserting at %d\n",insert_here);
-	#endif
-
-	/* create the space for this entry. */
-	for (shifter = CRoutes_Count; shifter > insert_here; shifter--) {
-		memcpy ((void *)&CRoutes[shifter], (void *)&CRoutes[shifter-1],sizeof(struct CRStruct));
+	
+		/* is this a removeRoute? if so, its not found, and we SHOULD return here */
+		if (newEntry->adrem != 1) return;
 		#ifdef CRVERBOSE 
-			printf ("Copying from index %d to index %d\n",shifter, shifter-1);
+			printf ("CRoutes, inserting at %d\n",insert_here);
 		#endif
-	}
-
-
-	/* and put it in */
-	CRoutes[insert_here].routeFromNode = RTR.from;
-	CRoutes[insert_here].fnptr = RTR.fromoffset;
-	CRoutes[insert_here].isActive = FALSE;
-	CRoutes[insert_here].tonode_count = 0;
-	CRoutes[insert_here].tonodes = NULL;
-	CRoutes[insert_here].len = RTR.fieldType;
-	CRoutes[insert_here].interpptr = (void (*)(void*))RTR.intptr;
-	CRoutes[insert_here].direction_flag = RTR.scrdir;
-	CRoutes[insert_here].extra = RTR.extra;
-	CRoutes[insert_here].intTimeStamp = 0;
-
-	if (RTR.to_count > 0) {
-		if ((CRoutes[insert_here].tonodes =
-			 (CRnodeStruct *) calloc(RTR.to_count, sizeof(CRnodeStruct))) == NULL) {
-			fprintf(stderr, "CRoutes_Register: calloc failed to allocate memory.\n");
-		} else {
-			CRoutes[insert_here].tonode_count = RTR.to_count;
-			#ifdef CRVERBOSE
-				printf("CRoutes at %d to nodes: %s\n",
-					   insert_here, RTR.tonode_str);
+	
+		/* create the space for this entry. */
+		for (shifter = CRoutes_Count; shifter > insert_here; shifter--) {
+			memcpy ((void *)&CRoutes[shifter], (void *)&CRoutes[shifter-1],sizeof(struct CRStruct));
+			#ifdef CRVERBOSE 
+				printf ("Copying from index %d to index %d\n",shifter, shifter-1);
 			#endif
-
-			if ((buffer = strtok(RTR.tonode_str, token)) != NULL) {
-				/* printf("\t%s\n", buffer); */
-				to_ptr = &(CRoutes[insert_here].tonodes[0]);
-				if (sscanf(buffer, "%u:%u",
-						   (unsigned int*)&(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
-					#ifdef CRVERBOSE 
-						printf("\tsscanf returned: %u, %u\n",
-						  to_ptr->routeToNode, to_ptr->foffset);
-					#endif
-				}
-
-
-				/* condition statement changed */
-				buffer = strtok(NULL, token);
-				for (to_counter = 1;
-					 ((to_counter < RTR.to_count) && (buffer != NULL));
-					 to_counter++) {
-					to_ptr = &(CRoutes[insert_here].tonodes[to_counter]);
+		}
+	
+	
+		/* and put it in */
+		CRoutes[insert_here].routeFromNode = newEntry->from;
+		CRoutes[insert_here].fnptr = newEntry->fromoffset;
+		CRoutes[insert_here].isActive = FALSE;
+		CRoutes[insert_here].tonode_count = 0;
+		CRoutes[insert_here].tonodes = NULL;
+		CRoutes[insert_here].len = newEntry->fieldType;
+		CRoutes[insert_here].interpptr = (void (*)(void*))newEntry->intptr;
+		CRoutes[insert_here].direction_flag = newEntry->scrdir;
+		CRoutes[insert_here].extra = newEntry->extra;
+		CRoutes[insert_here].intTimeStamp = 0;
+	
+		if (newEntry->to_count > 0) {
+			if ((CRoutes[insert_here].tonodes =
+				 (CRnodeStruct *) calloc(newEntry->to_count, sizeof(CRnodeStruct))) == NULL) {
+				fprintf(stderr, "CRoutes_Register: calloc failed to allocate memory.\n");
+			} else {
+				CRoutes[insert_here].tonode_count = newEntry->to_count;
+				#ifdef CRVERBOSE
+					printf("CRoutes at %d to nodes: %s\n",
+						   insert_here, newEntry->tonode_str);
+				#endif
+	
+				if ((buffer = strtok(newEntry->tonode_str, token)) != NULL) {
+					/* printf("\t%s\n", buffer); */
+					to_ptr = &(CRoutes[insert_here].tonodes[0]);
 					if (sscanf(buffer, "%u:%u",
 							   (unsigned int*)&(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
 						#ifdef CRVERBOSE 
 							printf("\tsscanf returned: %u, %u\n",
-								  to_ptr->routeToNode, to_ptr->foffset);
+							  to_ptr->routeToNode, to_ptr->foffset);
 						#endif
 					}
+	
+	
+					/* condition statement changed */
 					buffer = strtok(NULL, token);
+					for (to_counter = 1;
+						 ((to_counter < newEntry->to_count) && (buffer != NULL));
+						 to_counter++) {
+						to_ptr = &(CRoutes[insert_here].tonodes[to_counter]);
+						if (sscanf(buffer, "%u:%u",
+								   (unsigned int*)&(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
+							#ifdef CRVERBOSE 
+								printf("\tsscanf returned: %u, %u\n",
+									  to_ptr->routeToNode, to_ptr->foffset);
+							#endif
+						}
+						buffer = strtok(NULL, token);
+					}
 				}
 			}
 		}
-	}
-
-	/* record that we have one more route, with upper limit checking... */
-	if (CRoutes_Count >= (CRoutes_MAX-2)) {
-		/* printf("WARNING: expanding routing table\n");  */
-		CRoutes_MAX += 50; /* arbitrary expansion number */
-		CRoutes =(struct CRStruct *) REALLOC (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
-	}
-
-	CRoutes_Count ++;
-
-	#ifdef CRVERBOSE 
-		printf ("routing table now %d\n",CRoutes_Count);
-		for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
-			printf ("%u %u %u direction %d, len %d extra %d : ",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
-				CRoutes[shifter].interpptr, CRoutes[shifter].direction_flag, CRoutes[shifter].len, CRoutes[shifter].extra);
-			for (insert_here = 0; insert_here < CRoutes[shifter].tonode_count; insert_here++) {
-				printf (" to: %u %u",CRoutes[shifter].tonodes[insert_here].routeToNode,
-							CRoutes[shifter].tonodes[insert_here].foffset);
-			}
-			printf ("\n");
+	
+		/* record that we have one more route, with upper limit checking... */
+		if (CRoutes_Count >= (CRoutes_MAX-2)) {
+			/* printf("WARNING: expanding routing table\n");  */
+			CRoutes_MAX += 50; /* arbitrary expansion number */
+			CRoutes =(struct CRStruct *) REALLOC (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
 		}
-	#endif
+	
+		CRoutes_Count ++;
+	
+#ifdef CRVERBOSE 
+			printf ("routing table now %d\n",CRoutes_Count);
+			for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
+				printf ("%u %u %u direction %d, len %d extra %d : ",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
+					CRoutes[shifter].interpptr, CRoutes[shifter].direction_flag, CRoutes[shifter].len, CRoutes[shifter].extra);
+				for (insert_here = 0; insert_here < CRoutes[shifter].tonode_count; insert_here++) {
+					printf (" to: %u %u",CRoutes[shifter].tonodes[insert_here].routeToNode,
+								CRoutes[shifter].tonodes[insert_here].foffset);
+				}
+				printf ("\n");
+			}
+#endif
+	FREE_IF_NZ(newEntry);
+	}
+	FREE_IF_NZ(routesToRegister);
+
 }
 
 #ifdef DEBUG_VALIDNODE
@@ -1718,7 +1717,6 @@ the first thing in the event loop.
 
 void do_first() {
 	int counter;
-
 	/* go through the array; add_first will NOT add a null pointer
 	   to either field, so we don't need to bounds check here */
 
@@ -1735,10 +1733,11 @@ void do_first() {
 	   which will be this thread, or by EAI, which will also be this
 	   thread, so the following should be pretty thread_safe */ 
 
-	for (counter = 0; counter < rTr; counter++) {
-		actually_do_CRoutes_Register (counter);
+	if (routesToRegister != NULL) {
+		MUTEX_LOCK_ROUTING_UPDATES
+		actually_do_CRoutes_Register();
+		MUTEX_FREE_LOCK_ROUTING_UPDATES
 	}
-	rTr = 0;
 
 	/* any mark_events kicking around, waiting for someone to come in and tell us off?? */
 	/* CRoutes_Inititated should be set here, as it would have been created in 
@@ -2002,5 +2001,35 @@ void resetScriptTouchedFlag(int actualscript, int fptr) {
 		default: {printf ("can not reset touched_flag for %s\n",stringFieldtypeType(JSparamnames[fptr].type));
 		}
 	}
+}
+
+/*********************************************************************************************/
+
+static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfsetValue, int *offsetOfvalueChanged) {
+	struct X3D_Node *rv;
+
+	rv = NULL;
+printf ("returnSpecific, requested %d, %s\n",requestedType,stringFieldtypeType(requestedType));
+
+	switch  (requestedType) {
+                 #define SF_TYPE(fttype, type, ttype) \
+                        case FIELDTYPE_##fttype: \
+			rv = createNewX3DNode(NODE_Metadata##fttype); \
+			*offsetOfsetValue = offsetof (struct X3D_Metadata##fttype, setValue); \
+			*offsetOfvalueChanged = offsetof (struct X3D_Metadata##fttype, valueChanged); \
+			break; 
+
+                        #define MF_TYPE(fttype, type, ttype) \
+                                SF_TYPE(fttype, type, ttype)
+
+                        #include "VrmlTypeList.h"
+                        #undef SF_TYPE
+                        #undef MF_TYPE
+			default: {
+				printf ("returnSpecific, not found %d\n",requestedType);
+			}
+	}
+printf ("returning rv %u type %s\n",rv,stringNodeType(rv->_nodeType));
+	return rv;
 }
 
