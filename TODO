@@ -1,5 +1,12 @@
 Priority list
 
+11/16/2009:
+	(JAS) via Marvin Simkin:
+		Your movement speed in fly mode does not seem to be sensitive to the following:
+		NavigationInfo { speed 123.45 }
+		so if I have a big model with a large speed value, the movement crawls so slow 
+		as to be unusable.
+
 11/13/2009:
 	(JAS)
 	CRoutes_RegisterSimple - changed last parameter to fieldType from length; ensure all calls use this, and work through SCRIPT_TO_SCRIPT for Shaders as well.
