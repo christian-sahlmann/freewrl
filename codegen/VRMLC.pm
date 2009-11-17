@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.28 2009/10/26 09:07:07 couannette Exp $
+# $Id: VRMLC.pm,v 1.29 2009/11/17 20:49:27 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.29  2009/11/17 20:49:27  crc_canada
+# Change code to determine routing length
+#
 # Revision 1.28  2009/10/26 09:07:07  couannette
 # Fix a bizarre include of EAI_C.h
 #
@@ -1493,9 +1496,10 @@ sub gen {
 				}
 
 				my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
+				my $origFt = "FIELDTYPE_".$VRML::Nodes{$node}{FieldTypes}{$field};
 				$ft =~ tr/A-Z/a-z/; # convert to lowercase
 
-				push @fieldNodes, "$fk($node,$field,$ft,$field)\n";
+				push @fieldNodes, "$fk($node,$field,$ft,$field,$origFt)\n";
 			}
 		};
 		push @fieldNodes, "END_NODE($node)\n";

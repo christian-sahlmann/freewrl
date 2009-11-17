@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.57 2009/11/12 16:49:03 crc_canada Exp $
+$Id: X3DParser.c,v 1.58 2009/11/17 20:49:27 crc_canada Exp $
 
 ???
 
@@ -70,8 +70,6 @@ static struct VRMLLexer *myLexer = NULL;
 static Stack* DEFedNodes = NULL;
 #define MAX_CHILD_ATTRIBUTE_DEPTH 32
 static struct Vector** childAttributes= NULL;
-
-
 
 char *CDATA_Text = NULL;
 static int CDATA_TextMallocSize = 0;

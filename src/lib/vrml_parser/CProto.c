@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.36 2009/11/05 18:39:09 crc_canada Exp $
+$Id: CProto.c,v 1.37 2009/11/17 20:49:27 crc_canada Exp $
 
 CProto ???
 
@@ -472,14 +472,14 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
 
   /* Copying of fields depending on type */
 
-  #define FIELD(n, field, type, var) \
+  #define FIELD(n, field, type, var, realType) \
    ret2->var=DEEPCOPY_##type(lex, node2->var, new, hash); \
    UNUSED(ret2);
 
-  #define EVENT_IN(n, f, t, v)
-  #define EVENT_OUT(n, f, t, v)
-  #define EXPOSED_FIELD(n, field, type, var) \
-   FIELD(n, field, type, var)
+  #define EVENT_IN(n, f, t, v, realType)
+  #define EVENT_OUT(n, f, t, v, realType)
+  #define EXPOSED_FIELD(n, field, type, var, realType) \
+   FIELD(n, field, type, var, realType)
 
   #include "NodeFields.h"
 

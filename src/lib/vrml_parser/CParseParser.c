@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.51 2009/11/12 16:49:03 crc_canada Exp $
+  $Id: CParseParser.c,v 1.52 2009/11/17 20:49:27 crc_canada Exp $
 
   ???
 
@@ -200,60 +200,12 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
 /* for error messages */
 char fw_outline[2000];
 
-/* Macro definitions used more than once for event processing */
-/* ********************************************************** */
-
-/* Use real size for those types? */
-#define ROUTE_REAL_SIZE_sfbool  TRUE
-#define ROUTE_REAL_SIZE_sfcolor TRUE
-#define ROUTE_REAL_SIZE_sffloat TRUE
-#define ROUTE_REAL_SIZE_sfimage FALSE
-#define ROUTE_REAL_SIZE_sfint32 TRUE
-#define ROUTE_REAL_SIZE_sfnode  FALSE
-#define ROUTE_REAL_SIZE_sfrotation      TRUE
-#define ROUTE_REAL_SIZE_sfcolorrgba      TRUE
-#define ROUTE_REAL_SIZE_sfstring       FALSE 
-#define ROUTE_REAL_SIZE_sftime  TRUE
-#define ROUTE_REAL_SIZE_sfdouble  TRUE
-#define ROUTE_REAL_SIZE_sfvec2f TRUE
-#define ROUTE_REAL_SIZE_sfvec2d TRUE
-#define ROUTE_REAL_SIZE_sfvec3f TRUE
-#define ROUTE_REAL_SIZE_sfvec3d TRUE
-#define ROUTE_REAL_SIZE_sfvec4f TRUE
-#define ROUTE_REAL_SIZE_sfvec4d TRUE
-#define ROUTE_REAL_SIZE_mfbool  FALSE
-#define ROUTE_REAL_SIZE_mfcolor FALSE
-#define ROUTE_REAL_SIZE_mfcolorrgba     FALSE
-#define ROUTE_REAL_SIZE_mffloat FALSE
-#define ROUTE_REAL_SIZE_mfimage FALSE
-#define ROUTE_REAL_SIZE_mfint32 FALSE
-#define ROUTE_REAL_SIZE_mfnode  FALSE
-#define ROUTE_REAL_SIZE_mfrotation      FALSE
-#define ROUTE_REAL_SIZE_mfstring        FALSE
-#define ROUTE_REAL_SIZE_mftime  FALSE
-#define ROUTE_REAL_SIZE_mfvec2f FALSE
-#define ROUTE_REAL_SIZE_mfvec2d FALSE
-#define ROUTE_REAL_SIZE_mfvec3f FALSE
-#define ROUTE_REAL_SIZE_mfvec3d FALSE
-#define ROUTE_REAL_SIZE_mfvec4f FALSE
-#define ROUTE_REAL_SIZE_mfvec4d FALSE
-#define ROUTE_REAL_SIZE_mfdouble        FALSE
-
-#define ROUTE_REAL_SIZE_sfmatrix3f TRUE
-#define ROUTE_REAL_SIZE_mfmatrix3f FALSE
-#define ROUTE_REAL_SIZE_sfmatrix3d TRUE
-#define ROUTE_REAL_SIZE_mfmatrix3d FALSE
-#define ROUTE_REAL_SIZE_sfmatrix4f TRUE
-#define ROUTE_REAL_SIZE_mfmatrix4d FALSE
-#define ROUTE_REAL_SIZE_sfmatrix4d TRUE
-#define ROUTE_REAL_SIZE_mfmatrix4f FALSE
 
 /* General processing macros */
-#define PROCESS_EVENT(constPre, destPre, node, field, type, var) \
+#define PROCESS_EVENT(constPre, destPre, node, field, type, var, realType) \
  case constPre##_##field: \
-  destPre##Type= \
-   (ROUTE_REAL_SIZE_##type ? sizeof_member(struct X3D_##node, var) : 0); \
   destPre##Ofs=offsetof(struct X3D_##node, var); \
+  destPre##Type = realType; \
   break;
 
 #define EVENT_BEGIN_NODE(fieldInd, ptr, node) \
@@ -1174,7 +1126,6 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
 
     fromFieldE = ID_UNDEFINED; fromFieldO = ID_UNDEFINED; toFieldE = ID_UNDEFINED; toFieldO = ID_UNDEFINED;
 
-
     ASSERT(me->lexer);
     lexer_skip(me->lexer);
 
@@ -1323,7 +1274,7 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
         /* ************************************* */
 
         /* Ignore the fields. */
-#define FIELD(n, f, t, v)
+#define FIELD(n, f, t, v, realType)
 
 #define END_NODE(n) EVENT_END_NODE(n,XFIELD[fromFieldE])
 
@@ -1458,16 +1409,16 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
 
         /* Process from outputOnly */
         /* Get the offset to the outputOnly in the fromNode and store it in fromOfs */
-        /* Get the size of the outputOnly type and store it in fromLen */
+        /* Get the type of the outputOnly type and store it in fromType */
         if(!fromScriptField) {
             /* If the from field is an exposed field */
             if(fromFieldE!=ID_UNDEFINED) {
                 /* Get the offset and size of this field in the fromNode */
                 switch(fromNode->_nodeType) {
-#define EVENT_IN(n, f, t, v)
-#define EVENT_OUT(n, f, t, v)
-#define EXPOSED_FIELD(node, field, type, var) \
-     PROCESS_EVENT(EXPOSED_FIELD, from, node, field, type, var)
+#define EVENT_IN(n, f, t, v, realType)
+#define EVENT_OUT(n, f, t, v, realType)
+#define EXPOSED_FIELD(node, field, type, var, realType) \
+     PROCESS_EVENT(EXPOSED_FIELD, from, node, field, type, var, realType)
 #define BEGIN_NODE(node) \
      EVENT_BEGIN_NODE(fromFieldE, fromNode, node)
 #include "NodeFields.h"
@@ -1484,10 +1435,10 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
             } else if(fromFieldO!=ID_UNDEFINED) {
                 /* Get the offset and size of this field in the fromNode */
                 switch(fromNode->_nodeType) {
-#define EVENT_IN(n, f, t, v)
-#define EXPOSED_FIELD(n, f, t, v)
-#define EVENT_OUT(node, field, type, var) \
-     PROCESS_EVENT(EVENT_OUT, from, node, field, type, var)
+#define EVENT_IN(n, f, t, v, realType)
+#define EXPOSED_FIELD(n, f, t, v, realType)
+#define EVENT_OUT(node, field, type, var, realType) \
+     PROCESS_EVENT(EVENT_OUT, from, node, field, type, var, realType)
 #define BEGIN_NODE(node) \
      EVENT_BEGIN_NODE(fromFieldO, fromNode, node)
 #include "NodeFields.h"
@@ -1512,10 +1463,10 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
             if(toFieldE!=ID_UNDEFINED) {
                 /* get the offset and size of this field in the toNode */
                 switch(toNode->_nodeType) {
-#define EVENT_IN(n, f, t, v)
-#define EVENT_OUT(n, f, t, v)
-#define EXPOSED_FIELD(node, field, type, var) \
-     PROCESS_EVENT(EXPOSED_FIELD, to, node, field, type, var)
+#define EVENT_IN(n, f, t, v, realType)
+#define EVENT_OUT(n, f, t, v, realType)
+#define EXPOSED_FIELD(node, field, type, var, realType) \
+     PROCESS_EVENT(EXPOSED_FIELD, to, node, field, type, var, realType)
 #define BEGIN_NODE(node) \
      EVENT_BEGIN_NODE(toFieldE, toNode, node)
 #include "NodeFields.h"
@@ -1533,10 +1484,10 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
             } else if(toFieldO!=ID_UNDEFINED) {
                 /* Get the offset and size of this field in the toNode */
                 switch(toNode->_nodeType) {
-#define EVENT_OUT(n, f, t, v)
-#define EXPOSED_FIELD(n, f, t, v)
-#define EVENT_IN(node, field, type, var) \
-     PROCESS_EVENT(EVENT_IN, to, node, field, type, var)
+#define EVENT_OUT(n, f, t, v, realType)
+#define EXPOSED_FIELD(n, f, t, v, realType)
+#define EVENT_IN(node, field, type, var, realType) \
+     PROCESS_EVENT(EVENT_IN, to, node, field, type, var, realType)
 #define BEGIN_NODE(node) \
      EVENT_BEGIN_NODE(toFieldO, toNode, node)
 #include "NodeFields.h"
@@ -1557,35 +1508,12 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
         if(fromScriptField) fromType=fieldDecl_getType(fromScriptField->fieldDecl);
         if(toScriptField) toType=fieldDecl_getType(toScriptField->fieldDecl);
 
-   /* printf ("fromScriptField %d, toScriptField %d\n",fromScriptField, toScriptField);
-   printf ("fromlen %d tolen %d\n",fromType, toType);  */
+	/* 
+	printf ("fromScriptField %d, toScriptField %d\n",fromScriptField, toScriptField);
+	printf ("fromType %d, toType %d\n",fromType,toType);
+	printf ("types, %s and %s\n",stringFieldtypeType(fromType), stringFieldtypeType(toType));
+	*/
 
-        /* to "simple" MF nodes, we have to call a procedure to determine exactly what kind of "length" this
-           node has - it is not as simple as using a "sizeof(int)" command, but, something that is interpreted at
-           runtime. So, looking at "#define ROUTE_REAL_SIZE_mffloat FALSE" above, anything that is defined as FALSE
-           is a complex type, and, we will have a length as 0 right here. Lets really fill in the "special" lengths
-           for these ones. */
-        if (toType == INT_ID_UNDEFINED) {
-            int b,c,tmp=0;
-            if (toNode != NULL) {
-                if (toFieldE != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(toNode,EXPOSED_FIELD[toFieldE],1);
-                if (toFieldO != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(toNode,EVENT_IN[toFieldO],1);
-                findFieldInOFFSETS(toNode->_nodeType, tmp,  &toOfs, &b, &c);      
-                toType = b;
-            }
-        }
-        if (fromType == INT_ID_UNDEFINED) {
-            int b,c,tmp=0;
-            if (fromNode != NULL) {
-                if (fromFieldE != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(fromNode,EXPOSED_FIELD[fromFieldE],1);
-                if (fromFieldO != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(fromNode,EVENT_OUT[fromFieldO],1);
-                findFieldInOFFSETS(fromNode->_nodeType, tmp,  &fromOfs, &b, &c);  
-                fromType = b;
-            }
-        }
-
-        /* FIXME:  Not a really safe check for types in ROUTE! */
-        /* JAS - made message better. Should compare types, not lengths. */
         /* We can only ROUTE between two equivalent fields.  If the size of one field value is different from the size of the other, we have problems (i.e. can't route SFInt to MFNode) */
         if(fromType!=toType) {
             /* try to make a better error message. */
@@ -1607,6 +1535,7 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
         /* Finally, register the route. */
         /* **************************** */
 
+#ifdef OLDCODE
         /* Calculate dir parameter */
 	#define fromScript (fromNode->_nodeType==NODE_Script)
 	#define toScript (toNode->_nodeType==NODE_Script)
@@ -1625,6 +1554,8 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
         {
             ASSERT(!fromScript && !toScript);
         }
+#endif
+
         /* Built-in to built-in */
         parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType);
   
@@ -2161,8 +2092,8 @@ static BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 	return FALSE;
 
     /* Ignore all events */
-#define EVENT_IN(n, f, t, v)
-#define EVENT_OUT(n, f, t, v)
+#define EVENT_IN(n, f, t, v, realType)
+#define EVENT_OUT(n, f, t, v, realType)
 
     /* End of node is the same for fields and inputOutputs */
 #define END_NODE(type) \
@@ -2299,11 +2230,11 @@ if(fieldE!=ID_UNDEFINED)
      {
 
 /* Process exposed fields */
-#define EXPOSED_FIELD(node, field, fieldType, var) \
+#define EXPOSED_FIELD(node, field, fieldType, var, realType) \
     PROCESS_FIELD(EXPOSED_, node, field, fieldType, var, fieldE)
 
 /* Ignore just fields */
-#define FIELD(n, f, t, v)
+#define FIELD(n, f, t, v, realType)
 
 /* Process it */
 #include "NodeFields.h"
@@ -2332,11 +2263,11 @@ if(fieldO!=ID_UNDEFINED)
      {
 
          /* Process fields */
-#define FIELD(node, field, fieldType, var) \
+#define FIELD(node, field, fieldType, var, realType) \
     PROCESS_FIELD(, node, field, fieldType, var, ID_UNDEFINED)
 
          /* Ignore exposed fields */
-#define EXPOSED_FIELD(n, f, t, v)
+#define EXPOSED_FIELD(n, f, t, v, realType)
 
          /* Process it */
 #include "NodeFields.h"

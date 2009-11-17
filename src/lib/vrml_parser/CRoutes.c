@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.44 2009/11/16 20:42:46 crc_canada Exp $
+$Id: CRoutes.c,v 1.45 2009/11/17 20:49:27 crc_canada Exp $
 
 ???
 
@@ -845,6 +845,7 @@ void CRoutes_RegisterSimple(
 	struct X3D_Node* from, int fromOfs,
 	struct X3D_Node* to, int toOfs,
 	int type)  {
+	/* printf ("CRoutes_RegisterSimple, registering a route of %s\n",stringFieldtypeType(type)); */
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
  	char tonode_str[15];
@@ -886,29 +887,6 @@ void CRoutes_RegisterSimple(
 			return;
 		}
 	}
-
-	#ifdef CRVERBOSE
- 	printf ("CRoutes_RegisterSimple, from (%s) %u fromOfs %u, to (%s) %u toOfs %u, len %d dir %d\n",
-			stringNodeType(from->_nodeType),
-			from, fromOfs, 
-			stringNodeType(to->_nodeType),
-			to, toOfs, len, dir); 
-	if (from->_nodeType == NODE_Script) {
-		struct Shader_Script *sp = (struct Shader_Script *) X3D_SCRIPT(from)->__scriptObj;
-                int actualscript = sp->num;
-		printf ("	... from is script %d field %s\n",
-			actualscript,
-			JSparamnames[fromOfs].name);
-	}
-	if (to->_nodeType == NODE_Script) {
-		struct Shader_Script *sp = (struct Shader_Script *) X3D_SCRIPT(to)->__scriptObj;
-                int actualscript = sp->num;
-		printf ("	... to is script %d field %s\n",
-			actualscript,
-			JSparamnames[toOfs].name);
-	}
-
-	#endif
 
 	/* When routing to a script, to is not a node pointer! */
 	if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT)
@@ -1172,7 +1150,7 @@ static void actually_do_CRoutes_Register() {
 		CRoutes[insert_here].isActive = FALSE;
 		CRoutes[insert_here].tonode_count = 0;
 		CRoutes[insert_here].tonodes = NULL;
-		CRoutes[insert_here].len = newEntry->fieldType;
+		CRoutes[insert_here].len = returnRoutingElementLength(newEntry->fieldType);
 		CRoutes[insert_here].interpptr = (void (*)(void*))newEntry->intptr;
 		CRoutes[insert_here].direction_flag = newEntry->scrdir;
 		CRoutes[insert_here].extra = newEntry->extra;
@@ -1599,7 +1577,6 @@ void propagate_events() {
 						sendScriptEventIn(counter);
 						havinterp = TRUE;
 					} else {
-
 						/* copy the value over */
 						if (CRoutes[counter].len > 0) {
 						/* simple, fixed length copy */
