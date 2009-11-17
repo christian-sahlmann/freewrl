@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.68 2009/11/10 10:18:25 couannette Exp $
+  $Id: MainLoop.c,v 1.69 2009/11/17 08:49:07 couannette Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -66,11 +66,8 @@
 #include "MainLoop.h"
 
 
-#ifdef NEW_SYNC_ROOT
 #define IS_WORLD_LOADED ((root_res != NULL) && (root_res->status == ress_parsed))
-#else
-extern int isURLLoaded(void);	/* initial scene loaded? Robert Sim */
-#endif
+/* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */
 
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;
@@ -196,14 +193,12 @@ static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int sta
 static bool pluginRunning;
 int isBrowserPlugin = FALSE;
 
-#if defined(_MSC_VER)
-const char *libFreeWRL_get_version()
-{
- return "1.22.5"; /*Q. where do I get this function? 
-		    A: the configure build process will create it automatically in internal_version.c.
-		   */
-}
-#endif
+/* libFreeWRL_get_version()
+
+  Q. where do I get this function ?
+  A: look in Makefile.am (vtempl will create it automatically in internal_version.c).
+
+*/
 
 /* stop the display thread. Used (when this comment was made) by the OSX Safari plugin; keeps
 most things around, just stops display thread, when the user exits a world. */
@@ -252,6 +247,10 @@ __inline double Time1970sec()
 
 #endif
 
+#define TI(_tv) gettimeofdat(&_tv)
+#define TID(_tv) ((double)_tv.tv_sec + (double)_tv.tv_usec/1000000.0)
+
+
 /* Main eventloop for FreeWRL!!! */
 void EventLoop() {
 
@@ -280,17 +279,8 @@ void EventLoop() {
         }
 #endif
 
-#ifdef VERBOSE
-
-#ifdef NEW_SYNC_ROOT
-        printf ("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
-		BOOL_STR(isinputThreadParsing()), BOOL_STR(IS_WORLD_LOADED));
-#else
-        printf ("start of MainLoop (parsing=%s) (url loaded=%s)\n",
-		BOOL_STR(isinputThreadParsing()), BOOL_STR(isURLLoaded()));
-#endif
-
-#endif
+        DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
+		     BOOL_STR(isinputThreadParsing()), BOOL_STR(IS_WORLD_LOADED));
 
         /* should we do events, or maybe a parser is parsing? */
         doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && isInputThreadInitialized();
@@ -325,6 +315,7 @@ void EventLoop() {
 		}
 
         }
+
         if (loop_count == 25) {
 
                 BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
@@ -458,15 +449,6 @@ void EventLoop() {
 	 *   it calls handle_aqua and do_keypress from fwWindow32.c 
 	 */
 	doEventsWin32A(); 
-#endif
-
-#if 0 // was !defined( AQUA ) && !defined( WIN32 )
-#ifndef HAVE_MOTIF
-        while (XPending(Xdpy)) {
-            XNextEvent(Xdpy, &event);
-            handle_Xevents(event);
-        }
-#endif
 #endif
 
         #ifdef PROFILE
@@ -667,14 +649,12 @@ void EventLoop() {
            nodes use the lastTime variable */
         lastTime = TickTime;
 
-
         #ifdef PROFILE
         gettimeofday(&mytime, NULL);
         oxf = xxf;
         xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
         timeF = (double)timeF +  (double)xxf - oxf;
         #endif
-
 }
 
 #if !defined( AQUA ) && !defined( WIN32 )
@@ -875,101 +855,124 @@ void setup_projection(int pick, int x, int y)
 
 
 /* Render the scene */
-static void render() {
+static void render() 
+{
+#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
+
         int count;
 	static double shuttertime;
 	static int shutterside;
-        /*  profile*/
+
+	/*  profile*/
         /* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
         /* struct timeval mytime;*/
         /* struct timezone tz; unused see man gettimeofday */
 
         for (count = 0; count < maxbuffers; count++) {
+	
                 /*set_buffer((unsigned)bufferarray[count],count); */              /*  in Viewer.c*/
-			    Viewer.buffer = (unsigned)bufferarray[count]; /*dug9 can I go directly or is there thread issues*/
-				Viewer.iside = count;
-				glDrawBuffer((unsigned)bufferarray[count]);
+		
+		Viewer.buffer = (unsigned)bufferarray[count]; /*dug9 can I go directly or is there thread issues*/
+		Viewer.iside = count;
+		glDrawBuffer((unsigned)bufferarray[count]);
 
                 /*  turn lights off, and clear buffer bits*/
-				if(Viewer.isStereo)
-				{
-					if(Viewer.shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
-					{
-						if(TickTime - shuttertime > 2.0)
-						{
-							shuttertime = TickTime;
-							if(shutterside > 0) shutterside = 0;
-							else shutterside = 1;
-						}
-						if(count != shutterside) continue;
+		
+		if (Viewer.isStereo) {
+					
+			if (Viewer.shutterGlasses == 2) { /* flutter mode - like --shutter but no GL_STEREO so alternates */
+
+				if (TickTime - shuttertime > 2.0) {
+					
+					shuttertime = TickTime;
+					if (shutterside > 0) {
+						shutterside = 0;
+					} else {
+						shutterside = 1;
 					}
-					if(Viewer.haveAnaglyphShader)
-						glUseProgram(Viewer.programs[Viewer.iprog[count]]);
-					setup_projection(0, 0, 0);
-					if(Viewer.sidebyside && count >0)
-						BackEndClearBuffer(1);
-					else
-						BackEndClearBuffer(2);
-					setup_viewpoint(); 
+					if (count != shutterside) {
+						continue;
+					}
 				}
-				else
+					
+				if (Viewer.haveAnaglyphShader) {
+					glUseProgram(Viewer.programs[Viewer.iprog[count]]);
+				}
+
+				setup_projection(0, 0, 0);
+
+				if (Viewer.sidebyside && count >0) {
+					BackEndClearBuffer(1);
+				} else {
 					BackEndClearBuffer(2);
-                BackEndLightsOff();
-				
-                /*  turn light #0 off only if it is not a headlight.*/
-                if (!get_headlight()) {
-                        lightState(HEADLIGHT_LIGHT,FALSE);
-                }
-
-                /*  Correct Viewpoint, only needed when in stereo mode.*/
-                /* if (maxbuffers > 1) setup_viewpoint(); i think this is done above now */
-				
-
-                /*  Other lights*/
-                PRINT_GL_ERROR_IF_ANY("XEvents::render, before render_hier");
-
-                render_hier(rootNode, VF_globalLight);
-                PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_globalLight)");
-
-                /*  4. Nodes (not the blended ones)*/
-                render_hier(rootNode, VF_Geom);
-                PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
-
-                /*  5. Blended Nodes*/
-                if (have_transparency) {
-                        /*  turn off writing to the depth buffer*/
-                        glDepthMask(FALSE);
-
-                        /*  render the blended nodes*/
-                        render_hier(rootNode, VF_Geom | VF_Blend);
-
-                        /*  and turn writing to the depth buffer back on*/
-                        glDepthMask(TRUE);
-                        PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
-                }
-				if(Viewer.isStereo)
-				{
-					if(Viewer.haveAnaglyphShader)
-					{
-						if(count==0)
-						{
-						   glUseProgram(0);
-						   glAccum(GL_LOAD,1.0); 
-						}
-						else if(count==1)
-						{
-							glUseProgram(0);
-							glAccum(GL_ACCUM,1.0); 
-							glAccum(GL_RETURN,1.0);
-						}
-					}
 				}
+					
+				setup_viewpoint(); 
+			} else {
 
-        }
-		if(Viewer.isStereo)
-		{
-			Viewer.iside = Viewer.dominantEye; /*is used later in picking to set the cursor pick box on the (left=0 or right=1) viewport*/
+				BackEndClearBuffer(2);
+
+			}
+			BackEndLightsOff();
 		}
+
+#else
+
+	BackEndClearBuffer(2); // no stereo, no shutter glasses: simple clear
+
+#endif // SHUTTER GLASSES or STEREO	
+
+	/*  turn light #0 off only if it is not a headlight.*/
+	if (!get_headlight()) {
+		lightState(HEADLIGHT_LIGHT,FALSE);
+	}
+	
+	/*  Other lights*/
+	PRINT_GL_ERROR_IF_ANY("XEvents::render, before render_hier");
+	
+	render_hier(rootNode, VF_globalLight);
+	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_globalLight)");
+	
+	/*  4. Nodes (not the blended ones)*/
+	render_hier(rootNode, VF_Geom);
+	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
+	
+	/*  5. Blended Nodes*/
+	if (have_transparency) {
+		/*  turn off writing to the depth buffer*/
+		glDepthMask(FALSE);
+		
+		/*  render the blended nodes*/
+		render_hier(rootNode, VF_Geom | VF_Blend);
+		
+		/*  and turn writing to the depth buffer back on*/
+		glDepthMask(TRUE);
+		PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
+	}
+	
+#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
+
+		if (Viewer.isStereo) {
+			if (Viewer.haveAnaglyphShader) {
+				if (count==0) {
+					glUseProgram(0);
+					glAccum(GL_LOAD,1.0); 
+				}
+				else if(count==1) {
+					glUseProgram(0);
+					glAccum(GL_ACCUM,1.0); 
+					glAccum(GL_RETURN,1.0);
+				}
+			}
+		}
+
+	} /* for loop */
+
+	if (Viewer.isStereo) {
+		Viewer.iside = Viewer.dominantEye; /*is used later in picking to set the cursor pick box on the (left=0 or right=1) viewport*/
+	}
+
+#endif
 
 #if defined( AQUA )
 	if (RUNNINGASPLUGIN) {
@@ -1089,6 +1092,7 @@ void do_keyPress(const char kp, int type) {
                                 case 'h': { toggle_headlight(); break;}
                                 case '/': { print_viewer(); break; }
 			        case '\\': { dump_scenegraph(); break; }
+				case '$': resource_tree_dump(0, root_res); break;
                                 case 'q': { if (!RUNNINGASPLUGIN) {
                                                   doQuit();
                                             }
@@ -1328,48 +1332,15 @@ void _displayThread()
 	set_viewer_type(VIEWER_EXAMINE);
 	
 	viewer_postGLinit_init();
-    
-    /* loop and loop, and loop... */
-    while (!quitThread) {
-        
-        /* FreeWRL SceneGraph */
-        EventLoop();
-        
-#if 0 /* was HAVE_MOTIF */
 
-        /* X11 Windowing calls */
-        
-        /* any updates to the menu buttons? Because of Linux threading
-           issues, we try to make all updates come from 1 thread */
-        frontendUpdateButtons();
-              
-        /* do the Xt events here. */
-        while (XtAppPending(Xtcx)!= 0) {
-		XButtonEvent *bev;
-		XMotionEvent *mev;
-
-            XtAppNextEvent(Xtcx, &event);
-	    switch (event.type) {
-	    case MotionNotify:
-		    mev = &event.xmotion;
-		    TRACE_MSG("mouse motion event: win=%u, state=%d\n",
-			      mev->window, mev->state);
-		    break;
-	    case ButtonPress:
-	    case ButtonRelease:
-		    bev = &event.xbutton;
-		    TRACE_MSG("mouse button event: win=%u, state=%d\n",
-			      bev->window, bev->state);
-		    break;
-	    }
-            XtDispatchEvent (&event);
-        }
-#endif
-    }
-    
 #ifndef AQUA
-    if (fullscreen) resetGeometry();
+	if (fullscreen) resetGeometry();
 #endif
+    
+	/* loop and loop, and loop... */
+	while (!quitThread) {
+		EventLoop();
+	}
 }
 
 #ifdef AQUA
@@ -1409,11 +1380,7 @@ void setLastMouseEvent(int etype) {
 
 void initialize_parser()
 {
-/*         threadmsg = "event loop"; */
         quitThread = FALSE;
-
-
-/* MB: display thread init: if (TEST_NULL_THREAD(DispThrd)) { */
 
 	/* create the root node */
 	if (rootNode == NULL) {
@@ -1421,8 +1388,6 @@ void initialize_parser()
 		/*remove this node from the deleting list*/
 		doNotRegisterThisNodeForDestroy(rootNode);
 	}
-
-/*         } */
 }
 
 void setSnapSeq() {

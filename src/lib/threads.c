@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.8 2009/10/30 18:57:34 crc_canada Exp $
+  $Id: threads.c,v 1.9 2009/11/17 08:49:06 couannette Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -49,6 +49,7 @@ DEF_THREAD(loadThread);
 
 pthread_mutex_t mutex_resource_tree = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_resource_list = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_texture_list = PTHREAD_MUTEX_INITIALIZER;
 
 
 void initializeDisplayThread()
@@ -110,6 +111,8 @@ void initializeTextureThread()
 	/* Synchronize trace/error log... */
 	fflush(stdout);
 	fflush(stderr);
+
+	pthread_mutex_init( &mutex_texture_list, NULL );
 
 	ASSERT(TEST_NULL_THREAD(loadThread));
 	ret = pthread_create(&loadThread, NULL, (void *(*)(void *))&_textureThread, NULL);

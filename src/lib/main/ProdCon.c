@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.34 2009/11/10 10:18:26 couannette Exp $
+  $Id: ProdCon.c,v 1.35 2009/11/17 08:49:07 couannette Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -180,18 +180,12 @@ int inputParseInitialized=FALSE;
 /* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
 int inputThreadParsing=FALSE;
 
-#ifdef NEW_SYNC_ROOT
-
 /* Initial URL loaded -- MB res API */
 #define IS_WORLD_LOADED ((root_res != NULL) && (root_res->status == ress_parsed))
 
-#else 
-
-/* Is the initial URL loaded ? Robert Sim */
-int URLLoaded = FALSE;
-int isURLLoaded() { return (URLLoaded && !inputThreadParsing); }
-
-#endif
+/* /\* Is the initial URL loaded ? Robert Sim *\/ */
+/* int URLLoaded = FALSE; */
+/* int isURLLoaded() { return (URLLoaded && !inputThreadParsing); } */
 
 /* psp is the data structure that holds parameters for the parsing thread */
 struct PSStruct psp;
@@ -474,7 +468,7 @@ void dump_parser_wait_queue()
 {
 #ifdef FW_DEBUG
 	printf("Parser wait queue:\n");
-	ml_foreach(resource_list_to_parse, dump_resource_waiting((resource_item_t*)(__l->elem)));
+	ml_foreach(resource_list_to_parse, dump_resource_waiting((resource_item_t*)ml_elem(__l)));
 	printf(".\n");
 #endif
 }
@@ -689,12 +683,6 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 			  (struct Multi_Node *)((char *)nRn + offsetof (struct X3D_Group, children)),
 			  (uintptr_t *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);	
 
-	/* Final test */
-#ifndef NEW_SYNC_ROOT
-	if (res == root_res) {
-		URLLoaded = TRUE;
-	}
-#endif
 	res->complete = TRUE;
 
 	return TRUE;
@@ -795,12 +783,12 @@ void parser_process_res(s_list_t *item)
 	bool remove_it = FALSE;
 	resource_item_t *res;
 
-	DEBUG_RES("processing resource: %d, %d\n", res->type, res->status);
-
 	if (!item || !item->elem)
 		return;
 
 	res = ml_elem(item);
+
+	DEBUG_RES("processing resource: %d, %d\n", res->type, res->status);
 
 	switch (res->status) {
 
@@ -904,22 +892,14 @@ void _inputParseThread(void)
 		usleep(50);
 	}
 
-/* 	viewer_default(); */
-
 	/* now, loop here forever, waiting for instructions and obeying them */
 	for (;;) {
-
-/* 		WAIT_WHILE_NO_DATA; */
-
 		inputThreadParsing = TRUE;
 		
 		/* Process all resource list items, whatever status they may have */
 		ml_foreach(resource_list_to_parse, parser_process_res(__l));
 		
-/* 		URLLoaded=TRUE; */
-		inputThreadParsing=FALSE;
-		PARSER_FINISHING;
-		UNLOCK;
+		inputThreadParsing = FALSE;
 	}
 
 // MBFILES : old code below

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.87 2009/11/05 15:17:38 crc_canada Exp $
+$Id: headers.h,v 1.88 2009/11/17 08:49:07 couannette Exp $
 
 Global includes.
 
@@ -46,6 +46,8 @@ Global includes.
  */
 extern char *BrowserName;
 const char* freewrl_get_browser_program();
+
+void Multi_String_print(struct Multi_String *url);
 
 /* see if an inputOnly "set_" field has changed */
 #define IO_FLOAT -2335549.0

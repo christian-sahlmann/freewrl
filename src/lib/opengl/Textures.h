@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.10 2009/11/10 10:18:26 couannette Exp $
+$Id: Textures.h,v 1.11 2009/11/17 08:49:08 couannette Exp $
 
 Screen snapshot.
 
@@ -79,10 +79,11 @@ extern struct textureTableIndexStruct* loadThisTexture;
 /* for texIsloaded structure */
 #define TEX_NOTLOADED       0
 #define TEX_LOADING         1
-#define TEX_NEEDSBINDING	2
+#define TEX_NEEDSBINDING    2
 #define TEX_LOADED          3
 #define TEX_UNSQUASHED      4
 
+const char *texst(int num);
 
 struct multiTexParams {
 	GLint texture_env_mode;

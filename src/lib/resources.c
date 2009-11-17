@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.3 2009/10/31 16:21:46 couannette Exp $
+  $Id: resources.c,v 1.4 2009/11/17 08:49:05 couannette Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -96,7 +96,7 @@ resource_item_t* resource_create_multi(s_Multi_String_t *request)
 	resource_item_t *item;
 	int i;
 
-	DEBUG_RES("creating resource: MULTI: %d, %s ...\n", request->n, request->p[0]);
+	DEBUG_RES("creating resource: MULTI: %d, %s ...\n", request->n, request->p[0]->strptr);
 
 	item = XALLOC(resource_item_t);
 	item->request = NULL;
@@ -317,7 +317,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 		res->base = base->base;
 	}
 
-	DEBUG_MSG("resource_parse: request=<%s> base=<%s> url=<%s>\n", res->request, res->base, res->parsed_request);
+	DEBUG_RES("resource_parse: request=<%s> base=<%s> url=<%s>\n", res->request, res->base, res->parsed_request);
 }
 
 /**
@@ -731,4 +731,44 @@ void resource_wait(resource_item_t *res)
 	while (!res->complete) {
 		sleep(1);
 	}
+}
+
+/**
+ *   resource_tree_dump: print the resource tree for debugging.
+ */
+void resource_tree_dump(int level, resource_item_t *root)
+{
+#define spacer	for (lc=0; lc<level; lc++) printf ("\t");
+
+	s_list_t *children;
+	int lc;
+
+	if (root == NULL) return; 
+	if (level == 0) printf("\nstarting dump resources\n\n");
+	else printf("\n");
+
+	spacer printf("==> request:\t %s\n\n", root->request);
+	spacer printf("parent:\t %p\n", root->parent);
+	spacer printf("network:\t %s\n", BOOL_STR(root->network));
+	spacer printf("new_root:\t %s\n", BOOL_STR(root->new_root));
+	spacer printf("type:\t %u\n", root->type);
+	spacer printf("status:\t %u\n", root->status);
+	spacer printf("complete:\t %s\n", BOOL_STR(root->complete));
+	spacer printf("where:\t %p\n", root->where);
+	spacer printf("node_count:\t %u\n", root->node_count);
+	spacer printf("m_request:\t %p\n", root->m_request);
+	spacer printf("base:\t %s\n", root->base);
+	spacer printf("temp_dir:\t %s\n", root->temp_dir);
+	spacer printf("parsed_request:\t %s\n", root->parsed_request);
+	spacer printf("actual_file:\t %s\n", root->actual_file);
+	spacer printf("cached_files:\t %p\n", root->cached_files);
+	spacer printf("openned_files:\t %p\n", root->openned_files);
+	spacer printf("four_first_bytes:\t %c %c %c %c\n", root->four_first_bytes[0], root->four_first_bytes[1], root->four_first_bytes[2], root->four_first_bytes[3]);
+	spacer printf("media_type:\t %u\n", root->media_type);
+
+	children = root->children;
+
+	ml_foreach(children, resource_tree_dump(level + 1, ml_elem(__l)));
+
+	printf("\n");
 }
