@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.h,v 1.3 2009/10/31 16:21:46 couannette Exp $
+  $Id: io_files.h,v 1.4 2009/11/18 10:18:25 couannette Exp $
 
   FreeWRL support library.
   IO with files.
@@ -45,6 +45,7 @@ typedef struct openned_file {
 	char *text;
 } openned_file_t;
 
+void of_dump(openned_file_t *of);
 openned_file_t* load_file(const char *filename);
 
 /**

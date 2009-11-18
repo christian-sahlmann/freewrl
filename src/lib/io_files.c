@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.2 2009/10/31 16:21:46 couannette Exp $
+  $Id: io_files.c,v 1.3 2009/11/18 10:18:24 couannette Exp $
 
   FreeWRL support library.
   IO with files.
@@ -164,6 +164,18 @@ bool do_dir_exists(const char *dir)
 	}
 	return FALSE;
 #endif
+}
+
+/**
+ *   of_dump: print the structure.
+ */
+void of_dump(openned_file_t *of)
+{
+	static char first_ten[11];
+	if (of->text) {
+		strncpy(first_ten, of->text, 10);
+	}
+	printf("{%s, %d, %s%s}\n", of->filename, of->fd, (of->text ? &first_ten : "(null)"), (of->text ? "..." : ""));
 }
 
 /**
