@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.29 2009/11/17 20:49:27 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.30 2009/11/18 08:47:09 couannette Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.30  2009/11/18 08:47:09  couannette
+# Fix dump_scene generation. Activated with FW_DEBUG.
+#
 # Revision 1.29  2009/11/17 20:49:27  crc_canada
 # Change code to determine routing length
 #
@@ -1278,7 +1281,7 @@ sub gen {
 
 	push @genFuncs2,
 	"/* Dump the scene graph.  */\n".
-	"#ifdef WANT_DUMP_SCENE\n".
+	"#ifdef FW_DEBUG\n".
 	"void dump_scene (int level, struct X3D_Node* node) {\n".
 	"	#define spacer	for (lc=0; lc<level; lc++) printf (\"\\t\");\n".
 	"	int lc;\n".
@@ -1374,7 +1377,7 @@ sub gen {
 				} elsif (($ft eq "MFRotation") || ($ft eq "MFColorRGBA")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
-						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f, %4.3f]\\n\",i,(tmp->$field.p[i]).r[0], (tmp->$field.p[i]).r[1],(tmp->$field.p[i]).r[2],(tmp->$field.p[i]).r[3]); }\n";
+						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f, %4.3f]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1],(tmp->$field.p[i]).c[2],(tmp->$field.p[i]).c[3]); }\n";
 
 
 				} elsif (($ft eq "MFVec4f") || ($ft eq "MFVec4d")) {
@@ -1403,7 +1406,7 @@ sub gen {
 	}
 	push @genFuncs2, "		default: {}\n";
 
-	push @genFuncs2, " } spacer printf (\"L%d end\\n\",level); if (level == 0) printf (\"ending dump_scene\\n\"); }\n#endif\n";
+	push @genFuncs2, " } spacer printf (\"L%d end\\n\",level); if (level == 0) printf (\"ending dump_scene\\n\"); }\n#endif //FW_DEBUG\n";
 	
 	#####################
 	# create an array for each node. The array contains the following:
