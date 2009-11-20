@@ -1,17 +1,25 @@
 Priority list
 
+============================================================================
+For 1.22.6 release:
+
+1) ProdCon threading - Mutex lock so that it does not loop continuously.
+2) Imlib2 on OSX - decision as to whether it will be distributed with FreeWRL or not.
+	If not, stub the imlib2 calls.
+3) Imlib2 on Windows - decision as to whether it will be distributed with FreeWRL or not. 
+	If not, stub the imlib2 calls.
+4) FreeWRL OSX front end - move Objective-C calls to use newer interface routines.
+5) FreeWRL Windows front end - move to use newer interface routines.
+6) Inline nodes not working.
+7) Anchor nodes not working.
+============================================================================
+
 11/16/2009:
 	(JAS) via Marvin Simkin:
 		Your movement speed in fly mode does not seem to be sensitive to the following:
 		NavigationInfo { speed 123.45 }
 		so if I have a big model with a large speed value, the movement crawls so slow 
 		as to be unusable.
-
-11/13/2009:
-	(JAS)
-	CRoutes_RegisterSimple - changed last parameter to fieldType from length; ensure all calls use this, and work through SCRIPT_TO_SCRIPT for Shaders as well.
-
-
 11/06/2009: 
 	(JAS) Review all nodes so that they send events when compiled or made.
 
