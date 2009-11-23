@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.36 2009/11/23 01:43:19 dug9 Exp $
+  $Id: ProdCon.c,v 1.37 2009/11/23 20:39:18 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -127,7 +127,7 @@ int _P_LOCK_VAR;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condition = PTHREAD_COND_INITIALIZER;
 
-s_list_t *resource_list_to_parse = NULL;
+static s_list_t *resource_list_to_parse = NULL;
 
 #define PARSE_STRING(input,where) parser_do_parse_string(input,where)
 
@@ -175,7 +175,7 @@ int totviewpointnodes = 0;
 int currboundvpno=0;
 
 /* is the inputParse thread created? */
-int inputParseInitialized=FALSE;
+static int inputParseInitialized=FALSE;
 
 /* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
 int inputThreadParsing=FALSE;
@@ -447,11 +447,29 @@ void send_resource_to_parser(resource_item_t *res)
 	   We send it to parser.
 	*/
 
+
+printf ("send_resource_to_parser, waiting for display to be initialized\n");
+	/* Wait for display thread to be fully initialized */
+	while (IS_DISPLAY_INITIALIZED == FALSE) {
+		usleep(50);
+	}
+
+printf ("send_resource_to_parser, starting, swaiting for parser to be initialized \n");
+	/* wait for the parser thread to come up to speed */
+	while (!inputParseInitialized) usleep(50);
+
+printf ("send_resource_to_parser, lets do this!\n");
+
+
 	/* Lock access to the resource list */
 	pthread_mutex_lock( &mutex_resource_list );
 
 	/* Add our resource item */
 	resource_list_to_parse = ml_append(resource_list_to_parse, ml_new(res));
+
+printf ("send_resource_to_parser, signalling parse thread to run\n");
+	/* signal that we have data on resource list */
+	pthread_cond_signal(&resource_list_condition);
 
 	/* Unlock the resource list */
 	pthread_mutex_unlock( &mutex_resource_list );
@@ -466,11 +484,13 @@ void dump_resource_waiting(resource_item_t* res)
 
 void dump_parser_wait_queue()
 {
+#define FW_DEBUG
 #ifdef FW_DEBUG
 	printf("Parser wait queue:\n");
 	ml_foreach(resource_list_to_parse, dump_resource_waiting((resource_item_t*)ml_elem(__l)));
 	printf(".\n");
 #endif
+#undef FW_DEBUG
 }
 
 #if 0 //MBFILES
@@ -881,25 +901,33 @@ void parser_process_res(s_list_t *item)
  */
 void _inputParseThread(void)
 {
+printf ("start of inputThraed\n");
 	ENTER_THREAD("input parser");
-
-	PARSER_LOCKING_INIT;
 
 	inputParseInitialized = TRUE;
 
-	/* Wait for display thread to be fully initialized */
-	while (IS_DISPLAY_INITIALIZED == FALSE) {
-		usleep(50);
-	}
-
 	/* now, loop here forever, waiting for instructions and obeying them */
 	for (;;) {
-		inputThreadParsing = TRUE;
 		
 		/* Process all resource list items, whatever status they may have */
+
+		/* Lock access to the resource list */
+		pthread_mutex_lock( &mutex_resource_list );
+
+printf ("parseThread, waiting for something to happen on resource list\n");
+		/* wait around until we have been signalled */
+		pthread_cond_wait (&resource_list_condition, &mutex_resource_list);
+
+printf ("parseThread, got signal...lets parse baby!\n");
+		inputThreadParsing = TRUE;
+
 		ml_foreach(resource_list_to_parse, parser_process_res(__l));
-		
+
+printf ("parseThread, now we are done parsing\n");
 		inputThreadParsing = FALSE;
+
+		/* Unlock the resource list */
+		pthread_mutex_unlock( &mutex_resource_list );
 	}
 
 // MBFILES : old code below

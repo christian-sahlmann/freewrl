@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.10 2009/11/23 01:43:19 dug9 Exp $
+  $Id: threads.c,v 1.11 2009/11/23 20:39:18 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -50,6 +50,10 @@ DEF_THREAD(loadThread);
 pthread_mutex_t mutex_resource_tree = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_resource_list = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_texture_list = PTHREAD_MUTEX_INITIALIZER;
+
+pthread_cond_t resource_list_condition = PTHREAD_COND_INITIALIZER;
+
+
 #ifdef _MSC_VER
 void sync(){}
 #endif
@@ -93,6 +97,9 @@ void initializeInputParseThread()
 
 	pthread_mutex_init( &mutex_resource_tree, NULL );
 	pthread_mutex_init( &mutex_resource_list, NULL );
+	/* JAS pthread_cond_init ( &resource_list_condition, NULL ); */
+
+
 
 	ASSERT(TEST_NULL_THREAD(PCthread));
 	ret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);

@@ -1,5 +1,5 @@
 /*
-  $Id: threads.h,v 1.4 2009/11/23 01:43:19 dug9 Exp $
+  $Id: threads.h,v 1.5 2009/11/23 20:39:18 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -84,6 +84,7 @@ void trace_enter_thread(const char *str);
 extern pthread_mutex_t mutex_resource_tree;
 extern pthread_mutex_t mutex_resource_list;
 extern pthread_mutex_t mutex_texture_list;
+extern pthread_cond_t resource_list_condition;
 
 
 #endif /* __LIBFREEWRL_THREADS_H__ */

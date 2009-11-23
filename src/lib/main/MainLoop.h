@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.h,v 1.5 2009/10/30 18:57:35 crc_canada Exp $
+  $Id: MainLoop.h,v 1.6 2009/11/23 20:39:18 crc_canada Exp $
 
   FreeWRL support library.
   UI declarations.
@@ -39,6 +39,7 @@ void Next_ViewPoint();
 void setTextures_take_priority (int x);
 void setUseShapeThreadIfPossible(int x);
 void toggle_headlight();
+void EventLoop();
 
 /* should be in OpenGL_Utils.h but this would grab all X3D defs.... */
 void setglClearColor(float *val);

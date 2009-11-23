@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.18 2009/11/23 01:43:19 dug9 Exp $
+  $Id: main.c,v 1.19 2009/11/23 20:39:18 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -68,6 +68,43 @@ void __attribute__ ((destructor)) libFreeWRL_fini(void)
 
 
 #if defined (TARGET_AQUA)
+
+/* put some config stuff here, as that way the Objective-C Standalone OSX front end does not
+need to worry about specific structures and calls */
+
+static freewrl_params_t *OSXparams = NULL;
+
+void OSX_initializeParameters(const char* initialURL) {
+    const char *libver, *progver;
+
+    /* first, get the FreeWRL shared lib, and verify the version. */
+
+    libver = libFreeWRL_get_version();
+    progver = freewrl_get_version();
+    if (strcmp(progver, libver)) {
+	ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
+    }
+
+    /* Before we parse the command line, setup the FreeWRL default parameters */
+    OSXparams = calloc(1, sizeof(freewrl_params_t));
+
+    /* Default values */
+    OSXparams->width = 600;
+    OSXparams->height = 400;
+    OSXparams->eai = FALSE;
+    OSXparams->fullscreen = FALSE;
+
+    /* start threads, parse initial scene, etc */
+    if (!initFreeWRL(OSXparams)) {
+	    ERROR_MSG("main: aborting during initialization.\n");
+	    exit(1);
+    }
+
+    /* Give the main argument to the resource handler */
+    resource_push_single_request(initialURL);
+}
+
+
 /* OLDCODE for the OSX front end - change the calls from the front end once JohnS has the source from work */
 void initFreewrl () {
 printf ("calling OLD initFreeWRL... change this\n");

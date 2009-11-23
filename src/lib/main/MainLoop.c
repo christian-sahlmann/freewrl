@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.70 2009/11/23 01:43:19 dug9 Exp $
+  $Id: MainLoop.c,v 1.71 2009/11/23 20:39:18 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -186,7 +186,6 @@ static void render_collisions(void);
 static void render_pre(void);
 static void render(void);
 static void setup_projection(int pick, int x, int y);
-void EventLoop(void);
 static struct X3D_Node*  getRayHit(void);
 static void get_hyperhit(void);
 static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
@@ -320,7 +319,7 @@ void EventLoop() {
 
                 BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
                 setMenuFps(BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
-                /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop); */
+                /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
 
 		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane); */
 
@@ -1361,7 +1360,7 @@ int getOffset() {
 }
 
 void setCurXY(int cx, int cy) {
-	printf ("setCurXY, have %d %d\n",currentX,currentY); 
+	/* printf ("setCurXY, have %d %d\n",currentX,currentY);  */
         currentX = cx;
         currentY = cy;
 }
