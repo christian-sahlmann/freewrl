@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.26 2009/10/29 01:33:09 couannette Exp $
+  $Id: main.c,v 1.27 2009/11/23 01:44:09 dug9 Exp $
 
   FreeWRL main program.
 
@@ -54,10 +54,6 @@ void catch_SIGHUP();
 
 #if defined(_MSC_VER)
 #include <shlwapi.h>
-const char *freewrl_get_version()
-{
-	return "version 1.22.5";
-}
 #endif
 
 /**

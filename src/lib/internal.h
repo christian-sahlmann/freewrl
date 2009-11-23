@@ -1,5 +1,5 @@
 /*
-  $Id: internal.h,v 1.26 2009/10/29 01:33:09 couannette Exp $
+  $Id: internal.h,v 1.27 2009/11/23 01:43:19 dug9 Exp $
 
   FreeWRL support library.
   Library internal declarations.
@@ -317,6 +317,5 @@ extern unsigned global_texture_size;    /* do we manually set up the texture
 extern bool global_print_opengl_errors; /* print OpenGL errors as they come ? */
 
 extern bool global_trace_threads;       /* trace thread creation / switch ... ? */
-
 
 #endif /* __LIBFREEWRL_DECL_H__ */

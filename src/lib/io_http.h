@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.h,v 1.1 2009/10/26 10:57:07 couannette Exp $
+  $Id: io_http.h,v 1.2 2009/11/23 01:43:19 dug9 Exp $
 
   FreeWRL support library.
   IO with HTTP.
@@ -40,6 +40,9 @@ char *getInputURL();
 
 /* URL manipulation */
 bool checkNetworkFile(const char *fn);
+#ifdef _MSC_VER
+#define strncasecmp _strnicmp
+#endif
 
 
 #endif /* __LIBFREEWRL_IO_HTTP_H__ */

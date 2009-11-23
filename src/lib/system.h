@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.19 2009/10/26 10:57:07 couannette Exp $
+$Id: system.h,v 1.20 2009/11/23 01:43:19 dug9 Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -113,7 +113,9 @@ char *__fw_strndup(const char *s, size_t n);
 #endif
 
 #if !defined(HAVE_USLEEP) && defined(WIN32)
+#include <windows.h>
 #define usleep(us) Sleep((us)/1000)
+#define sleep(us) Sleep(us)
 #endif
 
 #if defined(HAVE_SYS_WAIT_H)
@@ -198,7 +200,7 @@ int __fw_gettimeofday(struct timeval *tv, struct timezone *tz);
 
 /* _stat is defined in sys/stat.h (needs sys/types.h) */
 # include <sys/types.h>
-# include <sys/stats.h>
+# include <sys/stat.h>
 # define stat _stat
 /* NOTE: http://msdn.microsoft.com/en-us/library/14h5k7ff.aspx
    stat usage:

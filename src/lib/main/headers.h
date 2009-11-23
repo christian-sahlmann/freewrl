@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.88 2009/11/17 08:49:07 couannette Exp $
+$Id: headers.h,v 1.89 2009/11/23 01:43:19 dug9 Exp $
 
 Global includes.
 
@@ -1020,7 +1020,8 @@ void setglClearColor (float *val);
 void doglClearColor(void);
 extern int cc_changed;
 
-int mapFieldTypeToInernaltype (indexT kwIndex);
+/* int mapFieldTypeToInernaltype (indexT kwIndex); msvc has problem perhaps with typedef typdef unsigned int indexT*/
+int mapFieldTypeToInernaltype (unsigned int kwIndex);
 void finishEventLoop();
 void resetEventLoop();
 

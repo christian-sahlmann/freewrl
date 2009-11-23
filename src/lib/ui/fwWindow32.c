@@ -1,23 +1,41 @@
 /*
-  $Id: fwWindow32.c,v 1.11 2009/10/29 00:15:12 couannette Exp $
+  $Id: fwWindow32.c,v 1.12 2009/11/23 01:43:19 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
 
 */
+/* #define WIN32_LEAN_AND_MEAN 1*/
+
+#include <windows.h>
+/*
+#include <winuser.h>
+#include <wingdi.h>
+*/
+
 
 #include <config.h>
 #include <system.h>
 #include <display.h>
+#include <main/headers.h>
+
 #include <internal.h>
 
 #include <libFreeWRL.h>
 #include <float.h>
 
-#include <main/headers.h>
 
-#include <winuser.h>
-#include <wingdi.h>
+HWND  ghWnd;   /* on a hunch I made these static so they are once per program */
+HDC   ghDC; 
+HGLRC ghRC; 
+
+#define BLACK_INDEX     0 
+#define RED_INDEX       13 
+#define GREEN_INDEX     14 
+#define BLUE_INDEX      16 
+#define WIDTH           300 
+#define HEIGHT          200 
+
 
 void do_keyPress(const char kp, int type);
 
@@ -425,6 +443,57 @@ BOOL bSetupPixelFormat(HDC hdc)
     return TRUE; 
 } 
 
+/**
+ *   create_GLcontext: create the main OpenGL context.
+ *                     TODO: finish implementation for Mac and Windows.
+ */
+bool create_GLcontext()
+{	
+	RECT rect; 
+	GLenum err;
+	BOOL bb;
+	
+	fw_thread_dump();
+
+	printf("starting createcontext32\n");
+
+	ghDC = GetDC(ghWnd); 
+	printf("got hdc\n");
+	if (!bSetupPixelFormat(ghDC))
+		printf("ouch - bSetupPixelFormat failed\n");
+	ghRC = wglCreateContext(ghDC); 
+	printf("created context\n");
+
+	return TRUE;
+}
+
+/**
+ *   bind_GLcontext: attache the OpenGL context to the main window.
+ *                   TODO: finish implementation for Mac and Windows.
+ */
+bool bind_GLcontext()
+{
+    BOOL bb;
+    HWND hWnd;
+	RECT rect;
+	//hWnd = gHwnd;
+	fw_thread_dump();
+
+	if (wglMakeCurrent(ghDC, ghRC)) {
+		//printf("made current %u\n", bb);
+		GetClientRect(ghWnd, &rect); 
+		screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
+		screenHeight = rect.bottom;
+		/* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
+		initializeGL(rect.right, rect.bottom); 
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+
 static int sensor_cursor = 0;
 static HCURSOR hSensor, hArrow;
 LRESULT CALLBACK PopupWndProc( 
@@ -457,13 +526,41 @@ LRESULT CALLBACK PopupWndProc(
     switch( msg ) {
 
     case WM_CREATE: 
-	printf("wm_create\n");
-		   
+
+	if(0)
+	{
+	//old code
 	ghDC = GetDC(hWnd); 
 	if (!bSetupPixelFormat(ghDC)) 
 	    PostQuitMessage (0); 
 	printf("WM_Create happening now\n");
+	ghRC = wglCreateContext(ghDC); 
+	wglMakeCurrent(ghDC, ghRC); 
+	GetClientRect(hWnd, &rect); 
+    err = glewInit();
+    if (GLEW_OK != err)
+    {
+	/* Problem: glewInit failed, something is seriously wrong. */
+	printf("Error: %s\n", glewGetErrorString(err));
+	 
+    }
+    printf( "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
+	screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
+	screenHeight = rect.bottom;
+	/* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
+	initializeGL(rect.right, rect.bottom); 
+	}
+	else
+	{
+		//new code
+	printf("wm_create\n");
+	/*	   
+	ghDC = GetDC(hWnd); 
+	if (!bSetupPixelFormat(ghDC)) 
+	    PostQuitMessage (0); 
+	printf("WM_Create happening now\n");
+	*/
 	/* OpenGL init : done in display_initialize 
 
 	   maybe this can be done synchronously ?
@@ -479,10 +576,11 @@ LRESULT CALLBACK PopupWndProc(
 	initialize_rdr_caps();
 	initialize_rdr_functions();
 
-	screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-	screenHeight = rect.bottom;
-	/* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
-	initializeGL(rect.right, rect.bottom); 
+	//screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
+	//screenHeight = rect.bottom;
+	///* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
+	//initializeGL(rect.right, rect.bottom); 
+	}
 			
 	break; 
  
@@ -508,10 +606,10 @@ LRESULT CALLBACK PopupWndProc(
 	wglMakeCurrent(ghDC, ghRC); 
 	GetClientRect(hWnd, &rect); 
 
-	screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-	screenHeight = rect.bottom;
-	/* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
-	initializeGL(rect.right, rect.bottom); 
+	//screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
+	//screenHeight = rect.bottom;
+	///* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
+	//initializeGL(rect.right, rect.bottom); 
 	break; 
 
     case WM_CLOSE: 
@@ -769,6 +867,7 @@ int create_main_window(int argc, char *argv[])
     HINSTANCE hInstance; 
     WNDCLASS wc;
     MSG msg;
+    RECT rect; 
 
     int nCmdShow = SW_SHOW;
     printf("starting createWindow32\n");
@@ -846,43 +945,3 @@ int create_main_window(int argc, char *argv[])
     return TRUE;
 }
 
-/**
- *   create_GLcontext: create the main OpenGL context.
- *                     TODO: finish implementation for Mac and Windows.
- */
-bool create_GLcontext()
-{	
-	RECT rect; 
-	GLenum err;
-	BOOL bb;
-	
-	fw_thread_dump();
-
-	printf("starting createcontext32\n");
-
-	ghDC = GetDC(ghWnd); 
-	printf("got hdc\n");
-	if (!bSetupPixelFormat(ghDC))
-		printf("ouch - bSetupPixelFormat failed\n");
-	ghRC = wglCreateContext(ghDC); 
-	printf("created context\n");
-
-	return TRUE;
-}
-
-/**
- *   bind_GLcontext: attache the OpenGL context to the main window.
- *                   TODO: finish implementation for Mac and Windows.
- */
-bool bind_GLcontext()
-{
-	fw_thread_dump();
-
-	if (wglMakeCurrent(ghDC, ghRC)) {
-		printf("made current %u\n", bb);
-		GetClientRect(hWnd, &rect); 
-		return TRUE;
-	}
-
-	return FALSE;
-}

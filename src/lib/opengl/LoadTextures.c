@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.12 2009/11/17 08:49:07 couannette Exp $
+  $Id: LoadTextures.c,v 1.13 2009/11/23 01:43:19 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -48,8 +48,11 @@
 #include "OpenGL_Utils.h"
 #include "Textures.h"
 #include "LoadTextures.h"
-
+#ifdef _MSC_VER
+#include "gdiPlusImageLoader.h"
+#else
 #include <Imlib2.h>
+#endif
 
 
 /* is the texture thread up and running yet? */
@@ -87,6 +90,10 @@ static void texture_dump_list()
  */
 static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *filename)
 {
+#ifdef _MSC_VER
+	loadImage(this_tex, filename);
+
+#else
     Imlib_Image image;
 
     image = imlib_load_image_immediately(filename);
@@ -112,7 +119,7 @@ static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, cha
 
     this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only();
     /* FIXME: imlib image is not freed - do we need to save memory ? copy this data, then free it ? */
-
+#endif
     return TRUE;
 }
 

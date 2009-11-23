@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.17 2009/10/30 19:23:46 crc_canada Exp $
+  $Id: main.c,v 1.18 2009/11/23 01:43:19 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -43,14 +43,22 @@
 /**
  * library initialization
  */
+#ifdef _MSC_VER
+void libFreeWRL_init(void)
+#else
 void __attribute__ ((constructor)) libFreeWRL_init(void)
+#endif
 {
 }
 
 /**
  * library exit routine
  */
+#ifdef _MSC_VER
+void libFreeWRL_fini(void)
+#else
 void __attribute__ ((destructor)) libFreeWRL_fini(void)
+#endif
 {
 }
 

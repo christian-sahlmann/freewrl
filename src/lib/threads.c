@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.9 2009/11/17 08:49:06 couannette Exp $
+  $Id: threads.c,v 1.10 2009/11/23 01:43:19 dug9 Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -50,7 +50,9 @@ DEF_THREAD(loadThread);
 pthread_mutex_t mutex_resource_tree = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_resource_list = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_texture_list = PTHREAD_MUTEX_INITIALIZER;
-
+#ifdef _MSC_VER
+void sync(){}
+#endif
 
 void initializeDisplayThread()
 {
@@ -60,7 +62,6 @@ void initializeDisplayThread()
 	fflush(stdout);
 	fflush(stderr);
 	sync();
-
 	ASSERT(TEST_NULL_THREAD(DispThrd));
 	ret = pthread_create(&DispThrd, NULL, (void *) _displayThread, NULL);
 	switch (ret) {
@@ -130,6 +131,30 @@ int fw_thread_id()
 	pthread_t current_thread;
 
 	current_thread = pthread_self();
+#ifdef _MSC_VER
+	if (!current_thread.p) {
+		ERROR_MSG("Critical: pthread_self returned 0\n");
+		return 0;
+	}
+
+	if (current_thread.p == mainThread.p)
+		return 1;
+
+	if (current_thread.p == DispThrd.p)
+		return 2;
+
+	if (current_thread.p == PCthread.p)
+		return 4;
+
+	if (current_thread.p == loadThread.p)
+		return 5;
+
+#ifdef DO_MULTI_OPENGL_THREADS
+	if (current_thread.p == shapeThread.p)
+		return 4;
+#endif
+
+#else
 	if (!current_thread) {
 		ERROR_MSG("Critical: pthread_self returned 0\n");
 		return 0;
@@ -151,7 +176,7 @@ int fw_thread_id()
 	if (current_thread == shapeThread)
 		return 4;
 #endif
-
+#endif
 	return -1;
 }
 

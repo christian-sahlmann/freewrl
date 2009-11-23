@@ -1,5 +1,5 @@
 /*
-  $Id: threads.h,v 1.3 2009/11/17 08:49:06 couannette Exp $
+  $Id: threads.h,v 1.4 2009/11/23 01:43:19 dug9 Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -29,7 +29,9 @@
 #ifndef __LIBFREEWRL_THREADS_H__
 #define __LIBFREEWRL_THREADS_H__
 
-
+#ifdef _MSC_VER
+#include <system_threads.h>
+#endif
 int freewrlSystem(const char *string);
 
 /**
@@ -54,7 +56,6 @@ extern pthread_t shapeThread;
 extern pthread_t PCthread;
 
 extern pthread_t loadThread;
-
 /**
  *   Gather here all functions that create threads 
  */
@@ -83,7 +84,6 @@ void trace_enter_thread(const char *str);
 extern pthread_mutex_t mutex_resource_tree;
 extern pthread_mutex_t mutex_resource_list;
 extern pthread_mutex_t mutex_texture_list;
-
 
 
 #endif /* __LIBFREEWRL_THREADS_H__ */

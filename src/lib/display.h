@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.35 2009/10/29 06:29:40 crc_canada Exp $
+  $Id: display.h,v 1.36 2009/11/23 01:43:19 dug9 Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -247,6 +247,10 @@ void getMotifWindowedGLwin(Window *win);
 #ifdef TARGET_WIN32
 
 /* Nothing special :P ... */
+#include <GL/glew.h>
+#define SENSOR_CURSOR sensor_cursor32();
+#define ARROW_CURSOR arrow_cursor32();
+#define ERROR 0
 
 #endif /* TARGET_WIN32 */
 

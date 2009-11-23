@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.35 2009/11/17 08:49:07 couannette Exp $
+  $Id: ProdCon.c,v 1.36 2009/11/23 01:43:19 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -531,6 +531,9 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 {
 	s_list_t *l;
 	openned_file_t *of;
+	struct X3D_Group *nRn;
+	struct X3D_Group *insert_node;
+	int i;
 
 	DEBUG_RES("processing VRML/X3D resource: %s\n", res->request);
 
@@ -589,7 +592,6 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 	}
 	
-	struct X3D_Group *nRn;
 	nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 #if 0
 	if (res->where) {
@@ -607,7 +609,6 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		globalParser = savedParser;
 	}
 	
-	int i;
 	
 	if (totfognodes != 0) { 
 		for (i=0; i < totfognodes; ++i) send_bind_to(X3D_NODE(fognodes[i]), 0); /* Initialize binding info */
@@ -660,7 +661,6 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	}
 #endif	
 
-	struct X3D_Group *insert_node;
 	
 	if (res->where == NULL) {
 		ASSERT(rootNode);

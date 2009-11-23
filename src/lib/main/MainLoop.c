@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.69 2009/11/17 08:49:07 couannette Exp $
+  $Id: MainLoop.c,v 1.70 2009/11/23 01:43:19 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -225,7 +225,7 @@ static double Time1970sec(void) {
 
 #else 
 
-#ifdef STRANGE_FUNCTION_FROM_LIBFREEWRL_H
+/* #ifdef STRANGE_FUNCTION_FROM_LIBFREEWRL_H */
 
 #include <windows.h>
 __inline double Time1970sec()
@@ -243,7 +243,7 @@ __inline double Time1970sec()
    return (double) mytimet.wHour*3600.0 + (double)mytimet.wMinute*60.0 + (double)mytimet.wSecond + (double)mytimet.wMilliseconds/1000.0;
 }
 
-#endif
+/* #endif */
 
 #endif
 

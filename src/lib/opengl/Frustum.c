@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.24 2009/10/26 17:48:43 couannette Exp $
+$Id: Frustum.c,v 1.25 2009/11/23 01:43:19 dug9 Exp $
 
 ???
 
@@ -731,7 +731,7 @@ void OcclusionStartofEventLoop() {
 		#ifdef OCCLUSIONVERBOSE
 		printf ("initializing OcclusionCulling...\n");
 		#endif
-
+		global_occlusion_disable = 1;
 		/* do we have an environment variable for this? */
 		if (global_occlusion_disable) {
 			OccFailed = TRUE;

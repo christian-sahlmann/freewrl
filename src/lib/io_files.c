@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.3 2009/11/18 10:18:24 couannette Exp $
+  $Id: io_files.c,v 1.4 2009/11/23 01:43:19 dug9 Exp $
 
   FreeWRL support library.
   IO with files.
@@ -38,7 +38,9 @@
 
 #include <threads.h> /* for freewrlSystem */
 
+#ifndef _MSC_VER
 #include <sys/mman.h> /* mmap */
+#endif
 #include <limits.h>   /* SSIZE_MAX */
 
 #include "input/InputFunctions.h"
@@ -236,7 +238,11 @@ static openned_file_t* load_file_read(const char *filename)
 	struct stat ss;
 	int fd;
 	char *text, *current;
+#ifdef _MSC_VER
+	size_t blocksz, readsz, left2read;
+#else
 	ssize_t blocksz, readsz, left2read;
+#endif
 
 	if (stat(filename, &ss) < 0) {
 		PERROR_MSG("load_file_read: could not stat: %s\n", filename);
