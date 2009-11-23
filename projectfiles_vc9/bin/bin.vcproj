@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libFreeWRLd.lib Glu32.lib glew32.lib Opengl32.lib libexpat.lib libjpeg.lib libpng.lib pthreadVC2d.lib zlib.lib js32d.lib fdlibmd.lib ws2_32.lib freetype239_D.lib shlwapi.lib"
+				AdditionalDependencies="libFreeWRLd.lib Glu32.lib glew32.lib Opengl32.lib libexpat.lib libjpeg.lib libpng.lib pthreadVC2d.lib zlib.lib js32d.lib fdlibmd.lib ws2_32.lib freetype239_D.lib shlwapi.lib gdiplus.lib"
 				OutputFile="$(OutDir)\$(ProjectName)d.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\lib\windows\MSopenGL\lib;..\..\lib\windows\glew\lib;..\..\lib\windows\JS\js1.5\src\Debug;..\..\lib\windows\pthreads.2;..\..\lib\windows\freetype2\lib;..\..\lib\windows\expat\Bin\debug;..\..\lib\windows\zlib\lib;..\..\lib\windows\png\lib;..\..\lib\windows\jpeg\lib;..\Debug"
