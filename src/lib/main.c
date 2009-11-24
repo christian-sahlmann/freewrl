@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.19 2009/11/23 20:39:18 crc_canada Exp $
+  $Id: main.c,v 1.20 2009/11/24 22:06:26 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -76,6 +76,7 @@ static freewrl_params_t *OSXparams = NULL;
 
 void OSX_initializeParameters(const char* initialURL) {
     const char *libver, *progver;
+    resource_item_t *res;
 
     /* first, get the FreeWRL shared lib, and verify the version. */
 
@@ -101,56 +102,14 @@ void OSX_initializeParameters(const char* initialURL) {
     }
 
     /* Give the main argument to the resource handler */
-    resource_push_single_request(initialURL);
-}
+    res = resource_create_single(initialURL);
+    send_resource_to_parser(res);
 
-
-/* OLDCODE for the OSX front end - change the calls from the front end once JohnS has the source from work */
-void initFreewrl () {
-printf ("calling OLD initFreeWRL... change this\n");
-
-#include <config.h>
-#include <system.h>
-#include <internal.h>
-
-#include <libFreeWRL.h>
-
-
-/**
- * FreeWRL parameters
- */
-freewrl_params_t *params = NULL;
-
-    char *start_url = NULL;	/* file/url to start FreeWRL with */
-    const char *libver, *progver;
-
-    /* first, get the FreeWRL shared lib, and verify the version. */
-
-    libver = libFreeWRL_get_version();
-    progver = freewrl_get_version();
-    if (strcmp(progver, libver)) {
-	ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
+printf ("initFreewrl - we have res %d\n",res->complete);
+    while (!res->complete) {
+            sleep(1);
+printf ("initFreewrl - we have res status %d complete %d\n",res->status, res->complete);
     }
-
-    /* Before we parse the command line, setup the FreeWRL default parameters */
-    params = calloc(1, sizeof(freewrl_params_t));
-
-    /* Default values */
-    params->width = 600;
-    params->height = 400;
-    params->eai = FALSE;
-    params->fullscreen = FALSE;
-
-printf ("initFreewrl - aqglobalContext %u myglobalContext %u\n",aqglobalContext, myglobalContext);
-
-    /* start threads, parse initial scene, etc */
-    if (!initFreeWRL(params)) {
-	    ERROR_MSG("main: aborting during initialization.\n");
-	    exit(1);
-    }
-
-    /* Give the main argument to the resource handler */
-    resource_push_single_request(BrowserFullPath);
 }
 
 int isShapeCompilerParsing() {return TRUE;} /* remove this when we re-do the OSX front end */

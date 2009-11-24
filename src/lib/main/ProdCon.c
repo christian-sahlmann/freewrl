@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.37 2009/11/23 20:39:18 crc_canada Exp $
+  $Id: ProdCon.c,v 1.38 2009/11/24 22:06:26 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -447,19 +447,13 @@ void send_resource_to_parser(resource_item_t *res)
 	   We send it to parser.
 	*/
 
-
-printf ("send_resource_to_parser, waiting for display to be initialized\n");
 	/* Wait for display thread to be fully initialized */
 	while (IS_DISPLAY_INITIALIZED == FALSE) {
 		usleep(50);
 	}
 
-printf ("send_resource_to_parser, starting, swaiting for parser to be initialized \n");
 	/* wait for the parser thread to come up to speed */
 	while (!inputParseInitialized) usleep(50);
-
-printf ("send_resource_to_parser, lets do this!\n");
-
 
 	/* Lock access to the resource list */
 	pthread_mutex_lock( &mutex_resource_list );
@@ -467,7 +461,6 @@ printf ("send_resource_to_parser, lets do this!\n");
 	/* Add our resource item */
 	resource_list_to_parse = ml_append(resource_list_to_parse, ml_new(res));
 
-printf ("send_resource_to_parser, signalling parse thread to run\n");
 	/* signal that we have data on resource list */
 	pthread_cond_signal(&resource_list_condition);
 
@@ -484,13 +477,11 @@ void dump_resource_waiting(resource_item_t* res)
 
 void dump_parser_wait_queue()
 {
-#define FW_DEBUG
 #ifdef FW_DEBUG
 	printf("Parser wait queue:\n");
 	ml_foreach(resource_list_to_parse, dump_resource_waiting((resource_item_t*)ml_elem(__l)));
 	printf(".\n");
 #endif
-#undef FW_DEBUG
 }
 
 #if 0 //MBFILES
@@ -612,15 +603,8 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 	}
 	
+	/* create a container so that the parser has a place to put the nodes */
 	nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-#if 0
-	if (res->where) {
-		nRn = (struct X3D_Group *) res->where;
-	} else {
-		/* get the data from wherever we were originally told to find it */
-		nRn = rootNode;
-	}
-#endif
 	
 	/* ACTUALLY CALLS THE PARSER */
 	PARSE_STRING(of->text, nRn);
@@ -689,16 +673,24 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		insert_node = (struct X3D_Group *) res->where;
 	}
 	
+	DEBUG_RES ("parser_process_res_VRML_X3D, res->where %u, insert_node %u, rootNode %u\n",res->where, insert_node, rootNode);
+
 	/* now that we have the VRML/X3D file, load it into the scene. */
 	/* add the new nodes to wherever the caller wanted */
+
+	/* this has to be a GROUP node! */
+	if (insert_node->_nodeType != NODE_Group) {
+		ConsoleMessage ("we have to add to a Group node, but have something else here\n");
+		return FALSE;
+	}
 	
+	/* take the nodes from the nRn node, and put them into the place where we have decided to put them */
 	AddRemoveChildren(X3D_NODE(insert_node),
 			  offsetPointer_deref(void*, rootNode, offsetof(struct X3D_Group, children)), 
 			  (uintptr_t*)nRn->children.p,
 			  nRn->children.n, 1, __FILE__,__LINE__);
 	
 	/* and, remove them from this nRn node, so that they are not multi-parented */
-	
 	AddRemoveChildren(X3D_NODE(nRn),
 			  (struct Multi_Node *)((char *)nRn + offsetof (struct X3D_Group, children)),
 			  (uintptr_t *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);	
@@ -901,7 +893,6 @@ void parser_process_res(s_list_t *item)
  */
 void _inputParseThread(void)
 {
-printf ("start of inputThraed\n");
 	ENTER_THREAD("input parser");
 
 	inputParseInitialized = TRUE;
@@ -914,16 +905,16 @@ printf ("start of inputThraed\n");
 		/* Lock access to the resource list */
 		pthread_mutex_lock( &mutex_resource_list );
 
-printf ("parseThread, waiting for something to happen on resource list\n");
 		/* wait around until we have been signalled */
 		pthread_cond_wait (&resource_list_condition, &mutex_resource_list);
 
-printf ("parseThread, got signal...lets parse baby!\n");
 		inputThreadParsing = TRUE;
 
-		ml_foreach(resource_list_to_parse, parser_process_res(__l));
+		/* go through the resource list until it is empty */
+		while (resource_list_to_parse != NULL) {
+			ml_foreach(resource_list_to_parse, parser_process_res(__l));
+		}
 
-printf ("parseThread, now we are done parsing\n");
 		inputThreadParsing = FALSE;
 
 		/* Unlock the resource list */
