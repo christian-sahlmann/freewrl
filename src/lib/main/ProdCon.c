@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.38 2009/11/24 22:06:26 crc_canada Exp $
+  $Id: ProdCon.c,v 1.39 2009/11/25 18:26:26 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -475,6 +475,8 @@ void dump_resource_waiting(resource_item_t* res)
 #endif
 }
 
+
+
 void dump_parser_wait_queue()
 {
 #ifdef FW_DEBUG
@@ -538,7 +540,7 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 /**
  *   parser_process_res_VRML_X3D: this is the final parser (loader) stage, then call the real parser.
  */
-bool parser_process_res_VRML_X3D(resource_item_t *res)
+static bool parser_process_res_VRML_X3D(resource_item_t *res)
 {
 	s_list_t *l;
 	openned_file_t *of;
@@ -703,7 +705,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 /**
  *   parser_process_res_PROTO: this is the final parser (loader) stage, then call the real parser.
  */
-bool parser_process_res_PROTO(resource_item_t *res)
+static bool parser_process_res_PROTO(resource_item_t *res)
 {
 	s_list_t *l;
 	openned_file_t *of;
@@ -748,7 +750,7 @@ bool parser_process_res_PROTO(resource_item_t *res)
 /**
  *   parser_process_res_SHADER: this is the final parser (loader) stage, then call the real parser.
  */
-bool parser_process_res_SHADER(resource_item_t *res)
+static bool parser_process_res_SHADER(resource_item_t *res)
 {
 	s_list_t *l;
 	openned_file_t *of;
@@ -790,7 +792,7 @@ bool parser_process_res_SHADER(resource_item_t *res)
 /**
  *   parser_process_res: for each resource state, advance the process of loading.
  */
-void parser_process_res(s_list_t *item)
+static void parser_process_res(s_list_t *item)
 {
 	bool remove_it = FALSE;
 	resource_item_t *res;
@@ -877,20 +879,25 @@ void parser_process_res(s_list_t *item)
 	if (remove_it) {
 		dump_parser_wait_queue();
 
+#ifdef OLDCODE // already locked in inputParseThread, so this will deadlock
 		/* Lock access to the resource list */
 		pthread_mutex_lock( &mutex_resource_list );
+#endif
 		
 		/* Remove the parsed resource from the list */
 		resource_list_to_parse = ml_delete_self(resource_list_to_parse, item);
 
+#ifdef OLDCODE // already locked in inputParseThread, so this will deadlock
 		/* Unlock the resource list */
 		pthread_mutex_unlock( &mutex_resource_list );
+#endif
 	}
 }
 
 /**
  *   _inputParseThread: parser (loader) thread.
  */
+
 void _inputParseThread(void)
 {
 	ENTER_THREAD("input parser");

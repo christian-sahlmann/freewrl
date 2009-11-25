@@ -1,5 +1,5 @@
 /*
-  $Id: resources.h,v 1.2 2009/11/17 08:49:06 couannette Exp $
+  $Id: resources.h,v 1.3 2009/11/25 18:26:26 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -169,5 +169,6 @@ void resource_wait(resource_item_t *res);
 
 void resource_tree_dump(int level, resource_item_t *root);
 
+char *resourceStatusToString(int status);
 
 #endif /* __LIBFREEWRL_RESOURCES_H__ */

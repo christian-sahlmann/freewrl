@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.20 2009/11/24 22:06:26 crc_canada Exp $
+  $Id: main.c,v 1.21 2009/11/25 18:26:26 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -105,10 +105,16 @@ void OSX_initializeParameters(const char* initialURL) {
     res = resource_create_single(initialURL);
     send_resource_to_parser(res);
 
-printf ("initFreewrl - we have res %d\n",res->complete);
-    while (!res->complete) {
-            sleep(1);
-printf ("initFreewrl - we have res status %d complete %d\n",res->status, res->complete);
+    while ((!res->complete) && (res->status != ress_failed) && (res->status != ress_not_loaded)) {
+            usleep(50);
+    }
+
+    /* did this load correctly? */
+    if (res->status == ress_not_loaded) {
+	ConsoleMessage ("FreeWRL: Problem loading file \"%s\"", res->request);
+    }
+    if (res->status == ress_failed) {
+	ConsoleMessage ("FreeWRL: unknown data on command line: \"%s\"", res->request);
     }
 }
 
