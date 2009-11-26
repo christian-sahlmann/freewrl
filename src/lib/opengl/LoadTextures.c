@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.14 2009/11/26 19:55:22 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.15 2009/11/26 20:41:44 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -231,14 +231,21 @@ static void texture_process_list(s_list_t *item)
 	if (remove_it) {
 		texture_dump_list();
 		
+#ifdef OLDCODE
+mutex is already locked here; just do it 
+printf ("going to mutex lock for textures, is this a good idea?\n");
 		/* Lock access to the resource list */
 		pthread_mutex_lock( &mutex_texture_list );
+printf ("got texture mutex lock\n");
+#endif
 		
 		/* Remove the parsed resource from the list */
 		texture_list = ml_delete_self(texture_list, item);
 		
+#ifdef OLDCODE
 		/* Unlock the resource list */
 		pthread_mutex_unlock( &mutex_texture_list );
+#endif
 	}
 }
 
@@ -249,6 +256,9 @@ void send_texture_to_loader(struct textureTableIndexStruct *entry)
 	
 	/* Add our texture entry */
 	texture_list = ml_append(texture_list, ml_new(entry));
+
+        /* signal that we have data on resource list */
+        pthread_cond_signal(&texture_list_condition);
 	
 	/* Unlock the resource list */
 	pthread_mutex_unlock( &mutex_texture_list );
@@ -266,13 +276,23 @@ void _textureThread()
 	/* we wait forever for the data signal to be sent */
 	for (;;) {
 		
+		/* Lock access to the resource list */
+		pthread_mutex_lock( &mutex_texture_list );
+
+		/* wait around until we have been signalled */
+		pthread_cond_wait (&texture_list_condition, &mutex_texture_list);
+
+
 		TextureParsing = TRUE;
 		
 		/* Process all resource list items, whatever status they may have */
-		ml_foreach(texture_list, texture_process_list(__l));
+		while (texture_list != NULL) {
+			ml_foreach(texture_list, texture_process_list(__l));
+		}
 		
 		TextureParsing = FALSE;
 		
-		usleep(50);
+		/* Unlock the resource list */
+		pthread_mutex_unlock( &mutex_texture_list );
 	}
 }

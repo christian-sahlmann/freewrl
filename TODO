@@ -4,6 +4,7 @@ Priority list
 For 1.22.6 release:
 
 1) ProdCon threading - Mutex lock so that it does not loop continuously.
+	DONE
 2) Imlib2 on OSX - decision as to whether it will be distributed with FreeWRL or not.
 	If not, stub the imlib2 calls.
 3) Imlib2 on Windows - decision as to whether it will be distributed with FreeWRL or not. 
@@ -12,6 +13,11 @@ For 1.22.6 release:
 5) FreeWRL Windows front end - move to use newer interface routines.
 6) Inline nodes not working.
 7) Anchor nodes not working.
+8) Texture threading - Mutex lock so that it does not loop continuously.
+	DONE
+9) MovieTextures not working.
+10) PixelTexture not working.
+
 ============================================================================
 
 11/16/2009:

@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.71 2009/11/10 10:18:26 couannette Exp $
+  $Id: OpenGL_Utils.c,v 1.72 2009/11/26 20:41:44 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -457,7 +457,7 @@ bool initialize_GL()
         /* aqglobalContext is found at the initGL routine in MainLoop.c. Here
            we make it the current Context. */
 
-        printf("OpenGL at start of glpOpenGLInitialize globalContext %p\n", aqglobalContext);
+        /* printf("OpenGL at start of glpOpenGLInitialize globalContext %p\n", aqglobalContext); */
         if (RUNNINGASPLUGIN) {
                 aglSetCurrentContext(aqglobalContext);
         } else {
