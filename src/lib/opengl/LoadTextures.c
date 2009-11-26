@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.15 2009/11/26 20:41:44 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.16 2009/11/26 21:13:58 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -64,6 +64,8 @@ int TextureParsing = FALSE;
 /* list of texture table entries to load */
 s_list_t *texture_list = NULL;
 
+/* defaultBlankTexture... */
+GLuint defaultBlankTexture;
 
 /* All functions here works with the array of 'textureTableIndexStruct'.
  * In the future we may want to refactor this struct.

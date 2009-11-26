@@ -17,6 +17,8 @@ For 1.22.6 release:
 	DONE
 9) MovieTextures not working.
 10) PixelTexture not working.
+11) generate "blank" texture, and use this until TEX_LOADED flag is set
+	DONE
 
 ============================================================================
 

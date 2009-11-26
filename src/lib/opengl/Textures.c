@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.32 2009/11/26 19:55:22 crc_canada Exp $
+  $Id: Textures.c,v 1.33 2009/11/26 21:13:58 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1074,6 +1074,9 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 
 	/* printf ("new_bind_image, I am %u, texture_count %d, thisTexture is %u status %s\n",
 		node,texture_count,thisTexture,texst(myTableIndex->status));  */
+
+	/* default here; this is just a blank texture */
+	bound_textures[texture_count] = defaultBlankTexture;
 
 	switch (myTableIndex->status) {
 		case TEX_NOTLOADED:

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.11 2009/11/17 08:49:08 couannette Exp $
+$Id: Textures.h,v 1.12 2009/11/26 21:13:58 crc_canada Exp $
 
 Screen snapshot.
 
@@ -56,6 +56,7 @@ struct textureTableIndexStruct {
 };
 
 extern struct textureTableIndexStruct* loadThisTexture;
+extern GLuint defaultBlankTexture;
 
 /* imageType */
 #define PNGTexture 200
