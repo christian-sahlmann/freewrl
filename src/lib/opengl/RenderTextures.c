@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.22 2009/11/10 10:18:26 couannette Exp $
+$Id: RenderTextures.c,v 1.23 2009/11/26 19:55:22 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -270,7 +270,7 @@ static void passedInGenTex(GLfloat *genTex) {
 	int c;
 
 	#ifdef TEXVERBOSE
-	printf ("textureDraw_start, using passed in genTex\n");
+	printf ("passedInGenTex, using passed in genTex\n");
 	#endif 
  
 	for (c=0; c<texture_count; c++) {

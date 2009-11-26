@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.31 2009/11/17 08:49:08 couannette Exp $
+  $Id: Textures.c,v 1.32 2009/11/26 19:55:22 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -349,7 +349,7 @@ void registerTexture(struct X3D_Node *tmp) {
 		(it->_nodeType == NODE_MovieTexture) || (it->_nodeType == NODE_VRML1_Texture2)) {
 
 		DEBUG_TEX("CREATING TEXTURE NODE: type %d url ", it->_nodeType);
-		Multi_String_print(&it->url);
+		/* Multi_String_print(&it->url); */
 		DEBUG_TEX("parent url: %s\n", it->__parenturl->strptr);
 
 		if ((nextFreeTexture & 0x1f) == 0) {
@@ -908,16 +908,22 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 #ifdef DO_PROXY_IMAGE
 		if((me->depth) && x && y) {
 			int texOk = FALSE;
-
 			unsigned char *dest = mytexdata;
-			rx = 1;
-			sx = x;
-			while(sx) {sx /= 2; rx *= 2;}
-			if(rx/2 == x) {rx /= 2;}
-			ry = 1; 
-			sy = y;
-			while(sy) {sy /= 2; ry *= 2;}
-			if(ry/2 == y) {ry /= 2;}
+
+			/* do we have to do power of two textures? */
+			if (GL_ARB_texture_non_power_of_two) {
+				rx = x; ry = y;
+			} else {
+				/* find a power of two that fits */
+				rx = 1;
+				sx = x;
+				while(sx) {sx /= 2; rx *= 2;}
+				if(rx/2 == x) {rx /= 2;}
+				ry = 1; 
+				sy = y;
+				while(sy) {sy /= 2; ry *= 2;}
+				if(ry/2 == y) {ry /= 2;}
+			}
 
 			if (global_print_opengl_errors) {
 				DEBUG_MSG("initial texture scale to %d %d\n",rx,ry);
@@ -972,9 +978,12 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 			glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
 
 			if(mytexdata != dest) {FREE_IF_NZ(dest);}
+
+			/* we can get rid of the original texture data here */
+			FREE_IF_NZ(me->texdata);
 		}
 
-#else /* DO_PROXY_IMAGE */
+#else /* do not do DO_PROXY_IMAGE */
 
                 if((me->depth) && x && y) {
                         unsigned char *dest = mytexdata;
@@ -1063,73 +1072,63 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	GET_THIS_TEXTURE;
 	myTableIndex = getTableIndex(thisTexture);
 
-	if (myTableIndex->status == TEX_NOTLOADED) {
-		send_texture_to_loader(myTableIndex);
-		return;
-	}
+	/* printf ("new_bind_image, I am %u, texture_count %d, thisTexture is %u status %s\n",
+		node,texture_count,thisTexture,texst(myTableIndex->status));  */
 
-	if (myTableIndex->status != TEX_NEEDSBINDING)
-		return;
+	switch (myTableIndex->status) {
+		case TEX_NOTLOADED:
+			send_texture_to_loader(myTableIndex);
+			break;
 
-	currentlyWorkingOn = thisTexture;
-	loadThisTexture = myTableIndex;
+		case TEX_LOADING:
+			currentlyWorkingOn = thisTexture;
+			loadThisTexture = myTableIndex;
+			break;
 
-	DEBUG_TEX("YES !\n");
+		case TEX_NEEDSBINDING:
+                	do_possible_textureSequence(myTableIndex); 
+			break;
+
+		case TEX_LOADED:
+			DEBUG_TEX("now binding to pre-bound tex %u\n", myTableIndex->OpenGLTexture);
 	
-	bound_textures[texture_count] = 0;
-
-	DEBUG_TEX("myTableIndex %p\n"
-		  "     url (first)    %s\n"
-		  "	scenegraphNode %p (%s)\n"
-		  "	status         %d\n"
-		  "	frames         %d\n"
-		  "	OpenGLTexture  %u\n"
-		  "texture status %s\n",
-		  myTableIndex,
-		  it->url.p[0]->strptr,
-		  myTableIndex->scenegraphNode, stringNodeType(X3D_NODE(myTableIndex->scenegraphNode)->_nodeType), 
-		  myTableIndex->status, myTableIndex->frames, myTableIndex->OpenGLTexture,
-		  texst(myTableIndex->status));
-
-	do_possible_textureSequence(myTableIndex);
-
-	/* have we already processed this one before? */
-	if (myTableIndex->status == TEX_LOADED) {
-
-		DEBUG_TEX("now binding to pre-bound tex %u\n", myTableIndex->OpenGLTexture);
-
-		/* set the texture depth - required for Material diffuseColor selection */
-		if (myTableIndex->hasAlpha) last_texture_type =  TEXTURE_ALPHA;
-		else last_texture_type = TEXTURE_NO_ALPHA;
-
-		/* if, we have RGB, or RGBA, X3D Spec 17.2.2.3 says ODrgb = IDrgb, ie, the diffuseColor is
-		   ignored. We do this here, because when we do the Material node, we do not know what the
-		   texture depth is (if there is any texture, even) */
-		if (myTableIndex->hasAlpha) {
-			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
-		}
-
-		if (myTableIndex->nodeType != NODE_MovieTexture) {
-			if (myTableIndex->OpenGLTexture == TEXTURE_INVALID) {
-
-				DEBUG_TEX("no openGLtexture here status %s\n", texst(myTableIndex->status));
-				return;
+			/* set the texture depth - required for Material diffuseColor selection */
+			if (myTableIndex->hasAlpha) last_texture_type =  TEXTURE_ALPHA;
+			else last_texture_type = TEXTURE_NO_ALPHA;
+	
+			/* if, we have RGB, or RGBA, X3D Spec 17.2.2.3 says ODrgb = IDrgb, ie, the diffuseColor is
+			   ignored. We do this here, because when we do the Material node, we do not know what the
+			   texture depth is (if there is any texture, even) */
+			if (myTableIndex->hasAlpha) {
+				do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 			}
-
-			bound_textures[texture_count] = myTableIndex->OpenGLTexture;
-		} else {
-			bound_textures[texture_count] = 
-				((struct X3D_MovieTexture *)myTableIndex->scenegraphNode)->__ctex;
+	
+			if (myTableIndex->nodeType != NODE_MovieTexture) {
+				if (myTableIndex->OpenGLTexture == TEXTURE_INVALID) {
+	
+					DEBUG_TEX("no openGLtexture here status %s\n", texst(myTableIndex->status));
+					return;
+				}
+	
+				bound_textures[texture_count] = myTableIndex->OpenGLTexture;
+			} else {
+				bound_textures[texture_count] = 
+					((struct X3D_MovieTexture *)myTableIndex->scenegraphNode)->__ctex;
+			}
+	
+			/* save the texture params for when we go through the MultiTexture stack. Non
+			   MultiTextures should have this texture_count as 0 */
+			 
+			texParams[texture_count] = param; 
+	
+			textureInProcess = -1; /* we have finished the whole process */
+			break;
+			
+		case TEX_UNSQUASHED:
+		default: {
+			printf ("unknown texture status %d\n",myTableIndex->status);
 		}
-
-		/* save the texture params for when we go through the MultiTexture stack. Non
-		   MultiTextures should have this texture_count as 0 */
-		 
-		texParams[texture_count] = param; 
-
-		textureInProcess = -1; /* we have finished the whole process */
-		return;
-	} 
+	}
 }
 
 /* FIXME: removed old "really load functions" ... needs to implement loading

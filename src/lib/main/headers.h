@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.89 2009/11/23 01:43:19 dug9 Exp $
+$Id: headers.h,v 1.90 2009/11/26 19:55:22 crc_canada Exp $
 
 Global includes.
 
@@ -142,7 +142,8 @@ extern char *BrowserFullPath;
    not working that well... */
 #ifdef AQUA
 #ifdef OLDCODE /* JAS  testing things out */
-	#define DO_MULTI_OPENGL_THREADS
+	#define DO_MULTI_OPENGL_THREADS //JAS - commented out
+#undef DO_MULTI_OPENGL_THREADS
 #endif
 #endif
 
