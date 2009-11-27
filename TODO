@@ -8,7 +8,7 @@ For 1.22.6 release:
 2) Imlib2 on OSX - decision as to whether it will be distributed with FreeWRL or not.
 	If not, stub the imlib2 calls.
 3) Imlib2 on Windows - decision as to whether it will be distributed with FreeWRL or not. 
-	If not, stub the imlib2 calls.
+	DONE (Doug Sanden)
 4) FreeWRL OSX front end - move Objective-C calls to use newer interface routines.
 5) FreeWRL Windows front end - move to use newer interface routines.
 6) Inline nodes not working.
@@ -17,8 +17,10 @@ For 1.22.6 release:
 	DONE
 9) MovieTextures not working.
 10) PixelTexture not working.
+	DONE - 1,2,3, and 4 component images tested.
 11) generate "blank" texture, and use this until TEX_LOADED flag is set
 	DONE
+12) VRML1_Texture2 not working.
 
 ============================================================================
 

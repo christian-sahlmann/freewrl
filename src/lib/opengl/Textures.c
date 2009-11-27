@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.33 2009/11/26 21:13:58 crc_canada Exp $
+  $Id: Textures.c,v 1.34 2009/11/27 18:36:34 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -136,13 +136,6 @@ GLXContext textureContext = NULL;
 /* function Prototypes */
 int findTextureFile(struct textureTableIndexStruct *entry);
 void _textureThread(void);
-void store_tex_info(
-		struct textureTableIndexStruct *me,
-		int depth,
-		int x,
-		int y,
-		unsigned char *ptr,
-		int hasAlpha);
 
 static void __reallyloadPixelTexure(void);
 static void __reallyloadImageTexture(void);
@@ -282,25 +275,6 @@ void kill_openGLTextures()
 	}
 }
 
-/* copy the pixel raw pointer over- we need to store this here, as it is
-   possible (if an external texture is invalid) that an ImageTexture or
-   MovieTexture can "change" into a small PixelTexture indicating an error.
-   This saves having missing geometry in the scene. */
-void copyPixelTextureEntry (struct X3D_PixelTexture *me) {
-	struct textureTableIndexStruct *myEntry;
-	struct Multi_Int32* ptr;
-
-#ifdef TEXVERBOSE
-	printf ("copying pixelTexture entry calling getTableIndex\n");
-#endif
-
-	ptr = &(me->image);
-	myEntry = getTableIndex(me->__textureTableIndex);
-	myEntry->pixelData =  ptr;
-	myEntry->status = TEX_NOTLOADED;
-}
-
-
 /* find ourselves - given an index, return the struct */
 struct textureTableIndexStruct *getTableIndex(int indx) {
 	int count;
@@ -362,7 +336,6 @@ void registerTexture(struct X3D_Node *tmp) {
 				newStruct->entry[count].status = TEX_NOTLOADED;
 				newStruct->entry[count].OpenGLTexture = TEXTURE_INVALID;
 				newStruct->entry[count].frames = 0;
-				newStruct->entry[count].depth = 0;
 				newStruct->entry[count].scenegraphNode = NULL;
 				newStruct->entry[count].filename = NULL;
 				newStruct->entry[count].nodeType = 0;
@@ -535,27 +508,38 @@ void loadTextureNode (struct X3D_Node *node, void *param)
 	/* this will cause bind_image to create a new "slot" for this texture */
 	/* cast to GLuint because __texture defined in VRMLNodes.pm as SFInt */
 	
-	if (node->_nodeType != NODE_MovieTexture) {
-	    releaseTexture(node); 
-	} else {
-	    
-	    mym = (struct X3D_MovieTexture *)node;
-	    /*  did the URL's change? we can't test for _change here, because
-		movie running will change it, so we look at the urls. */
-	    if ((mym->url.p) != (mym->__oldurl.p)) {
-		releaseTexture(node); 
-		mym->__oldurl.p = mym->url.p;
+	switch (node->_nodeType) {
+
+		case NODE_MovieTexture: {
+	    		mym = (struct X3D_MovieTexture *)node;
+	    		/*  did the URL's change? we can't test for _change here, because
+				movie running will change it, so we look at the urls. */
+			    if ((mym->url.p) != (mym->__oldurl.p)) {
+				releaseTexture(node); 
+				mym->__oldurl.p = mym->url.p;
+			    }
+		}
+		break;
+
+		case NODE_PixelTexture:
+	    		releaseTexture(node); 
+		break;
+
+		case NODE_ImageTexture:
+	    		releaseTexture(node); 
+		break;
+
+		case NODE_VRML1_Texture2:
+	    		releaseTexture(node); 
+		break;
+
+		default: {
+			printf ("loadTextureNode, unknown node type %s\n",stringNodeType(node->_nodeType));
+			return;
+		}
+
 	    }
 	}
-	/* if this is a PixelTexture, copy the pixelImage parameter into
-	   the table structure. (textureTableIndexStruct). This is because,
-	   if we have an ImageTexture that is bad, we change *that* into a 
-	   PixelTexture; so we need to have the pixeltexture raw data in
-	   the textureTableIndexStruct entry */
-	if (node->_nodeType == NODE_PixelTexture) {
-	    copyPixelTextureEntry((struct X3D_PixelTexture*)node);
-	}
-    }
     new_bind_image (X3D_NODE(node), param);
 }
 
@@ -889,24 +873,11 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 		}
 
 	
-		if (me->hasAlpha) {
-			iformat = GL_RGBA; format = GL_RGBA;
-		} else {
-			switch (me->depth) {
-				case 1: iformat = GL_LUMINANCE; format = GL_LUMINANCE; break;
-				case 2: iformat = GL_LUMINANCE_ALPHA; format = GL_LUMINANCE_ALPHA; break;
-				case 3: iformat = GL_RGB; format = GL_RGB; break;
-				default: iformat = GL_RGBA; format = GL_RGBA; break;
-			}
-		}
+		/* NOTE: trying BGRA format from textures */
+		iformat = GL_RGBA; format = GL_BGRA;
 	
 		/* do the image. */
-		/* note -for some computers with poor graphics chips, large textures will just not
-		   work, so we do PROXY textures. The old "just do it" code is here, in case the new
-		   code will not compile on some machines */
-#define DO_PROXY_IMAGE
-#ifdef DO_PROXY_IMAGE
-		if((me->depth) && x && y) {
+		if(x && y) {
 			int texOk = FALSE;
 			unsigned char *dest = mytexdata;
 
@@ -941,7 +912,8 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 	
 			/* try this texture on for size, keep scaling down until we can do it */
 			texOk = FALSE;
-			dest = (unsigned char *)MALLOC((unsigned) (me->depth) * rx * ry);
+			/* all textures are 4 bytes/pixel */
+			dest = (unsigned char *)MALLOC((unsigned) 4 * rx * ry);
 			while (!texOk) {
 				GLint width, height;
 				gluScaleImage(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
@@ -971,10 +943,7 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 				DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
 			}
 
-			/* FIXME: format from Imlib2  is always RGBA
-			   we must find a mean to have any format...
-			 */
-			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, GL_RGBA/*format*/, GL_UNSIGNED_BYTE, dest);
+			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 			glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
 
 			if(mytexdata != dest) {FREE_IF_NZ(dest);}
@@ -983,34 +952,6 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 			FREE_IF_NZ(me->texdata);
 		}
 
-#else /* do not do DO_PROXY_IMAGE */
-
-                if((me->depth) && x && y) {
-                        unsigned char *dest = mytexdata;
-                        rx = 1; sx = x;
-                        while(sx) {sx /= 2; rx *= 2;}
-                        if(rx/2 == x) {rx /= 2;}
-                        ry = 1; sy = y;
-                        while(sy) {sy /= 2; ry *= 2;}
-                        if(ry/2 == y) {ry /= 2;}
-                        if(rx != x || ry != y || rx > rdr_caps.max_texture_size || ry > rdr_caps.max_texture_size) {
-                                /* do we have texture limits??? */
-                                if (rx > rdr_caps.max_texture_size) rx = rdr_caps.max_texture_size;
-                                if (ry > rdr_caps.max_texture_size) ry = rdr_caps.max_texture_size;
-
-                                /* We have to scale */
-                                dest = (unsigned char *)MALLOC((unsigned) (me->depth) * rx * ry);
-                                gluScaleImage(format,
-                                     x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry,
-                                     GL_UNSIGNED_BYTE, dest);
-        
-                        }
-        
-                        if((mytexdata) != dest) FREE_IF_NZ(dest);
-
-                }
-
-#endif /* DO_PROXY_IMAGE */
 
 /* 		/\* increment, used in movietextures for frames more than 1 *\/ */
 /* 		mytexdata += x*y*me->depth; */
@@ -1025,22 +966,6 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 
 	/* and, now, the Texture is loaded */
 	me->status = TEX_LOADED;
-}
-
-void store_tex_info(
-		struct textureTableIndexStruct *me,
-		int depth,
-		int x,
-		int y,
-		unsigned char *ptr,
-		int hasAlpha) {
-
-	me->frames=1;
-	me->depth=depth;
-	me->x = x;
-	me->y = y;
-	me->texdata = ptr;
-	me->hasAlpha = hasAlpha;
 }
 
 /**********************************************************************************
@@ -1150,7 +1075,7 @@ static void __reallyloadMovieTexture () {
 	printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
 	#endif
 
-	store_tex_info(loadThisTexture, depth, x, y, ptr,depth==4);
+	/* store_tex_info(loadThisTexture, depth, x, y, ptr,depth==4); */
 
 	/* and, manually put the frameCount in. */
 	loadThisTexture->frames = frameCount;

@@ -15,7 +15,6 @@ struct textureTableIndexStruct {
 	int			nodeType;
 	int	imageType;
 	int 	status;
-	int	depth;
 	int 	hasAlpha;
 	int	OpenGLTexture;
 	int	frames;
@@ -23,7 +22,7 @@ struct textureTableIndexStruct {
         int x;
         int y;
         unsigned char *texdata;
-	char *pixelData;
+	/* JAS char *pixelData; */
         int Src;
         int Trc;
 };

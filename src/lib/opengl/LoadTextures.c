@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.16 2009/11/26 21:13:58 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.17 2009/11/27 18:36:34 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -86,6 +86,106 @@ static void texture_dump_list()
 #endif
 }
 
+
+/**
+ *   texture_load_from_pixelTexture: have a PixelTexture node,
+ *                           load it now.
+ */
+static bool texture_load_from_pixelTexture (struct textureTableIndexStruct* this_tex, struct X3D_PixelTexture *node)
+{
+
+/* load a PixelTexture that is stored in the PixelTexture as an MFInt32 */
+	int hei,wid,depth;
+	unsigned char *texture;
+	int count;
+	int ok;
+	int *iptr;
+	int tctr;
+
+	iptr = node->image.p;
+	this_tex->status = TEX_NEEDSBINDING;
+
+	ok = TRUE;
+
+	/* are there enough numbers for the texture? */
+	if (node->image.n < 3) {
+		printf ("PixelTexture, need at least 3 elements, have %d\n",node->image.n);
+		ok = FALSE;
+	} else {
+		wid = *iptr; iptr++;
+		hei = *iptr; iptr++;
+		depth = *iptr; iptr++;
+
+		if ((depth < 0) || (depth >4)) {
+			printf ("PixelTexture, depth %d out of range, assuming 1\n",(int) depth);
+			depth = 1;
+		}
+	
+		if ((wid*hei-3) > node->image.n) {
+			printf ("PixelTexture, not enough data for wid %d hei %d, have %d\n",
+					wid, hei, (wid*hei)-2);
+			ok = FALSE;
+		}
+	}
+
+	/* did we have any errors? if so, create a grey pixeltexture and get out of here */
+	if (!ok) {
+		char buff[] = {0x70, 0x70, 0x70, 0xff} ; /* same format as ImageTextures - GL_BGRA here */
+
+		this_tex->x = 1;
+		this_tex->y = 1;
+		this_tex->hasAlpha = FALSE;
+		this_tex->texdata = MALLOC(4);
+		memcpy (this_tex->texdata, buff, 4);
+		return TRUE;
+	}
+
+	/* ok, we are good to go here */
+	this_tex->x = wid;
+	this_tex->y = hei;
+	this_tex->hasAlpha = ((depth == 2) || (depth == 4));
+
+	texture = (unsigned char *)MALLOC (wid*hei*4);
+	this_tex->texdata = texture; /* this will be freed when texture opengl-ized */
+
+	tctr = 0;
+	for (count = 0; count < (wid*hei); count++) {
+		switch (depth) {
+			case 1: {
+				   texture[tctr++] = *iptr & 0xff;
+				   texture[tctr++] = *iptr & 0xff;
+				   texture[tctr++] = *iptr & 0xff;
+				   texture[tctr++] = 0xff; /*alpha, but force it to be ff */
+				   break;
+			   }
+			case 2: {
+				   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
+				   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
+				   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
+				   texture[tctr++] = (*iptr>>0) & 0xff; /*A*/
+				   break;
+			   }
+			case 3: {
+				   texture[tctr++] = (*iptr>>0) & 0xff; /*B*/
+				   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
+				   texture[tctr++] = (*iptr>>16) & 0xff; /*R*/
+				   texture[tctr++] = 0xff; /*alpha, but force it to be ff */
+				   break;
+			   }
+			case 4: {
+				   texture[tctr++] = (*iptr>>8) & 0xff;	 /*B*/
+				   texture[tctr++] = (*iptr>>16) & 0xff; /*G*/
+				   texture[tctr++] = (*iptr>>24) & 0xff; /*R*/
+				   texture[tctr++] = (*iptr>>0) & 0xff; /*A*/
+				   break;
+			   }
+		}
+		iptr++;
+	}
+}
+
+
+
 /**
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
@@ -114,16 +214,11 @@ static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, cha
     this_tex->hasAlpha = (imlib_image_has_alpha() == 1);
     this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
 
-    /* imlib returns textures as DATA32 - 4 bytes/texture - RGBA when viewed as a byte stream */
-    /* this_tex->depth = (this_tex->hasAlpha ? 4 : 3); */
-    this_tex->depth = 4; /* textures are returned as RGBA */
-
     this_tex->frames = 1;
     this_tex->x = imlib_image_get_width();
     this_tex->y = imlib_image_get_height();
 
     this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only(); 
-
 #endif
     return TRUE;
 }
@@ -156,8 +251,8 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 	switch (entry->nodeType) {
 
 	case NODE_PixelTexture:
-		/* FIXME: ??? */
-		url = NULL;
+		texture_load_from_pixelTexture(entry,(struct X3D_PixelTexture *)entry->scenegraphNode);
+		return TRUE;
 		break;
 
 	case NODE_ImageTexture:
@@ -175,27 +270,31 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 	}
 
 	/* FIXME: very straitforward use of resource API... need rewrite ... */
+	if (url != NULL) {
 
-	res = resource_create_multi(url);
-	res->media_type = resm_image; /* quick hack */
+		res = resource_create_multi(url);
+		res->media_type = resm_image; /* quick hack */
 
-	resource_identify(root_res, res);
-	if (resource_fetch(res)) {
-		if (texture_load_from_file(entry, res->actual_file)) {
-			res->status = ress_loaded;
+		resource_identify(root_res, res);
+		if (resource_fetch(res)) {
+			if (texture_load_from_file(entry, res->actual_file)) {
+				res->status = ress_loaded;
+			}
 		}
-	}
 
-	if (res->status == ress_loaded) {
-		/* Cool :) */
-		DEBUG_TEX("%s texture loaded (file downloaded and loaded into memory): we should create the OpenGL texture...\n", res->request);
-		res->complete = TRUE;
-		entry->status = TEX_NEEDSBINDING;
-		return TRUE;
-	}
+		if (res->status == ress_loaded) {
+			/* Cool :) */
+			DEBUG_TEX("%s texture loaded (file downloaded and loaded into memory): we should create the OpenGL texture...\n", res->request);
+			res->complete = TRUE;
+			entry->status = TEX_NEEDSBINDING;
+			return TRUE;
+		}
 
-	ERROR_MSG("Could not load texture: %s\n", entry->filename);
-	return FALSE;
+		ERROR_MSG("Could not load texture: %s\n", entry->filename);
+		return FALSE;
+	} else {
+		ERROR_MSG("Could not load texture, no URL present\n");
+	}
 }
 
 /**
@@ -233,21 +332,8 @@ static void texture_process_list(s_list_t *item)
 	if (remove_it) {
 		texture_dump_list();
 		
-#ifdef OLDCODE
-mutex is already locked here; just do it 
-printf ("going to mutex lock for textures, is this a good idea?\n");
-		/* Lock access to the resource list */
-		pthread_mutex_lock( &mutex_texture_list );
-printf ("got texture mutex lock\n");
-#endif
-		
 		/* Remove the parsed resource from the list */
 		texture_list = ml_delete_self(texture_list, item);
-		
-#ifdef OLDCODE
-		/* Unlock the resource list */
-		pthread_mutex_unlock( &mutex_texture_list );
-#endif
 	}
 }
 
