@@ -548,6 +548,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\config.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\display.h"
 				>
 			</File>
@@ -560,7 +564,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\io_files.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\libFreeWRL.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\lib\list.h"
 				>
 			</File>
 			<File

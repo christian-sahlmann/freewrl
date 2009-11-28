@@ -22,7 +22,7 @@ struct textureTableIndexStruct {
         int x;
         int y;
         unsigned char *texdata;
-	/* JAS char *pixelData; */
+	// JAS char *pixelData; 
         int Src;
         int Trc;
 };
@@ -43,21 +43,29 @@ int shutdownImageLoader()
 }
 int loadImage(struct textureTableIndexStruct *tti, char *fname)
 {
+	/* http://msdn.microsoft.com/en-us/library/ms536298(VS.85).aspx   GDI+ Lockbits example - what this function is based on*/
+	/* http://www.microsoft.com/downloads/details.aspx?FamilyID=6a63ab9c-df12-4d41-933c-be590feaa05a&DisplayLang=en  GDI+ redistributable download - gdiplus.dll 2MB */
 	if(!loaded)
 	{
 		initImageLoader();
 		loaded = 1;
 	}
 	// convert to wide char http://msdn.microsoft.com/en-us/library/ms235631(VS.80).aspx   
-    size_t origsize = strlen(fname) + 1;
+	//fname = "C:/source2/freewrl/freex3d/tests/helpers/brick.png";  
+    //fname = "junk.jpg"; //test failure condition
+	size_t origsize = strlen(fname) + 1;
     const size_t newsize = 100;
     size_t convertedChars = 0;
     wchar_t wcstring[newsize];
     mbstowcs_s(&convertedChars, wcstring, origsize, fname, _TRUNCATE);
-    tti->filename = fname;
-    tti->status = TEX_NEEDSBINDING;
+	Bitmap *bitmap = NULL;
+	Status stat;
+	bitmap = Bitmap::FromFile(wcstring,false); //new Bitmap(wcstring); //or Bitmap::FromFile(wcstring,false); L"LockBitsTest1.bmp");
+	// verifying the success of constructors http://msdn.microsoft.com/en-us/library/ms533801(VS.85).aspx
 
-   Bitmap* bitmap = new Bitmap(wcstring); //L"LockBitsTest1.bmp");
+	stat = bitmap->GetLastStatus(); // http://msdn.microsoft.com/en-us/library/ms535410(VS.85).aspx
+	if(stat != Ok)
+		return 0; //should come here if it can't find the image file
    BitmapData* bitmapData = new BitmapData;
 
 //#define verbose 1
@@ -76,7 +84,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 #endif
    Rect rect(0,0,bitmap->GetWidth(),bitmap->GetHeight());
 
-   // Lock a 5x3 rectangular portion of the bitmap for reading.
+   // Lock a rectangular portion of the bitmap for reading.
    bitmap->LockBits(
       &rect,
       ImageLockModeRead,
@@ -105,29 +113,32 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    //deep copy data so browser owns it (and does its FREE_IF_NZ) and we can delete our copy here and forget about it
    tti->x = bitmapData->Width;
    tti->y = bitmapData->Height;
-   tti->depth = 4;
+   //tti->depth = 4;
    tti->frames = 1;
-   int totalbytes = tti->x * tti->y * tti->depth;
-   //tti->texdata = (unsigned char*)malloc(bitmapData->Width * bitmapData->Height * tti->depth);
-   tti->texdata = (unsigned char*)malloc(totalbytes); //tti->x * tti->y * tti->depth);
-   memcpy(tti->texdata,pixels,totalbytes); //bitmapData->Width * bitmapData->Height * tti->depth);
-   tti->hasAlpha = Gdiplus::IsAlphaPixelFormat(bitmapData->PixelFormat)?1:0; //bitmap->GetPixelFormat());
+   int totalbytes = tti->x * tti->y * 4; //tti->depth;
+   tti->texdata = (unsigned char*)malloc(totalbytes); 
+   memcpy(tti->texdata,pixels,totalbytes); 
+   tti->hasAlpha = Gdiplus::IsAlphaPixelFormat(bitmapData->PixelFormat)?1:0; 
 
-
+#ifdef verbose
    for(UINT row = 0; row < 23; ++row)
    {
       for(UINT col = 0; col < 5; ++col)
       {
          //printf("%x\n", *(UINT*)&(tti->texdata[(row * bitmapData->Stride / 4 + col)*tti->depth]));
-         printf("%x\n", *(UINT*)&(tti->texdata[(row * tti->x + col)*tti->depth]));
+         printf("%x\n", *(UINT*)&(tti->texdata[(row * tti->x + col)*4])); //tti->depth]));
       }
       printf("- - - - - - - - - - \n");
    }
+#endif
+
+   tti->filename = fname;
+   tti->status = TEX_NEEDSBINDING;
 
    bitmap->UnlockBits(bitmapData);
    delete bitmapData;
    delete bitmap;
-   GdiplusShutdown(gdiplusToken);
+   //shutdownImageLoader();  //we'll keep it loaded
 
    return 0;
 

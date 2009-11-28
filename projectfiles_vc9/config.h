@@ -257,3 +257,4 @@
 
 #undef HAVE_DIRECT_H
 #define HAVE_DIRECT_H 1
+#define HAVE_LIBGLEW 1
