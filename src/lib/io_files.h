@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.h,v 1.5 2009/11/23 01:43:19 dug9 Exp $
+  $Id: io_files.h,v 1.6 2009/11/28 22:46:05 dug9 Exp $
 
   FreeWRL support library.
   IO with files.
@@ -82,9 +82,10 @@ int determineFileType(const char *buffer);
 #ifdef _MSC_VER
 #include <io.h>
 #include <fcntl.h>
+#include <stdio.h>
 #define R_OK 4
 #define X_OK 4
 #define O_NONBLOCK 0
-#define SSIZE_MAX 1000000000
+#define SSIZE_MAX 100000000L
 #endif
 #endif /* __LIBFREEWRL_IO_FILES_H__ */

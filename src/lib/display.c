@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.24 2009/11/26 21:13:58 crc_canada Exp $
+  $Id: display.c,v 1.25 2009/11/28 22:46:05 dug9 Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -208,7 +208,9 @@ bool initialize_rdr_caps()
 #ifdef HAVE_LIBGLEW
 
 	/* Initialize GLEW */
-	GLenum err = glewInit();
+	{
+	GLenum err;
+	err = glewInit();
 	if (GLEW_OK != err) {
 		/* Problem: glewInit failed, something is seriously wrong. */
 		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
@@ -221,6 +223,7 @@ bool initialize_rdr_caps()
 	rdr_caps.av_occlusion_q = GLEW_ARB_occlusion_query;
 	rdr_caps.av_npot_texture = GLEW_ARB_texture_non_power_of_two;
 	rdr_caps.av_texture_rect = GLEW_ARB_texture_rectangle;
+	}
 
 #else
 	/* Initialize renderer capabilities without GLEW */

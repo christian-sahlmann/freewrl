@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.4 2009/11/23 01:43:19 dug9 Exp $
+  $Id: io_files.c,v 1.5 2009/11/28 22:46:05 dug9 Exp $
 
   FreeWRL support library.
   IO with files.
@@ -248,7 +248,11 @@ static openned_file_t* load_file_read(const char *filename)
 		PERROR_MSG("load_file_read: could not stat: %s\n", filename);
 		return NULL;
 	}
+#ifdef _MSC_VER
+	fd = open(filename, O_RDONLY | O_BINARY);
+#else
 	fd = open(filename, O_RDONLY | O_NONBLOCK);
+#endif
 	if (fd < 0) {
 		PERROR_MSG("load_file_read: could not open: %s\n", filename);
 		return NULL;
@@ -259,7 +263,7 @@ static openned_file_t* load_file_read(const char *filename)
 		return NULL;
 	}
 
-	text = current = MALLOC(ss.st_size);
+	text = current = MALLOC(ss.st_size); //+10);
 	if (!text) {
 		ERROR_MSG("load_file_read: cannot allocate memory to read file %s\n", filename);
 		close(fd);
@@ -270,10 +274,10 @@ static openned_file_t* load_file_read(const char *filename)
 		/* file is greater that read's max block size: we must make a loop */
 		blocksz = SSIZE_MAX;
 	} else {
-		blocksz = ss.st_size;
+		blocksz = ss.st_size+1;
 	}
 
-	left2read = ss.st_size;
+	left2read = ss.st_size; //+1;
 	readsz = 0;
 
 	while (left2read > 0) {

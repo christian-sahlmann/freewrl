@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.40 2009/11/26 20:41:44 crc_canada Exp $
+  $Id: ProdCon.c,v 1.41 2009/11/28 22:46:05 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -904,7 +904,16 @@ void _inputParseThread(void)
 
 		/* go through the resource list until it is empty */
 		while (resource_list_to_parse != NULL) {
-			ml_foreach(resource_list_to_parse, parser_process_res(__l));
+			//ml_foreach(resource_list_to_parse, parser_process_res(__l));
+					s_list_t *__l;
+					s_list_t *next;
+					s_list_t *_list = resource_list_to_parse;
+					for(__l=_list;__l!=NULL;)  
+					{
+						next = ml_next(__l); /* get next from __l before action parser_process_res deletes __l */
+						parser_process_res(__l);
+						__l = next;
+					}
 		}
 
 		inputThreadParsing = FALSE;
