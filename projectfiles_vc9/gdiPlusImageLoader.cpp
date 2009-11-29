@@ -82,12 +82,26 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 	   printf("not canonical\n");
    printf("Number of bits per pixel %d\n",Gdiplus::GetPixelFormatSize(bitmap->GetPixelFormat()));
 #endif
+   bool flipVertically = true;
    Rect rect(0,0,bitmap->GetWidth(),bitmap->GetHeight());
+   if(flipVertically)
+		bitmapData->Stride = -bitmap->GetWidth()*4;
+   else
+	   bitmapData->Stride = bitmap->GetWidth()*4;
+   bitmapData->Width = bitmap->GetWidth();
+   bitmapData->Height = bitmap->GetHeight();
+   bitmapData->PixelFormat = PixelFormat32bppARGB;
+   int totalbytes = bitmap->GetWidth() * bitmap->GetHeight() * 4; //tti->depth;
+   unsigned char * blob = (unsigned char*)malloc(totalbytes);
+   if(flipVertically)
+		bitmapData->Scan0 = &blob[bitmap->GetWidth()*bitmap->GetHeight()*4 + bitmapData->Stride]; 
+   else
+	   bitmapData->Scan0 = blob;
 
    // Lock a rectangular portion of the bitmap for reading.
    bitmap->LockBits(
       &rect,
-      ImageLockModeRead,
+      ImageLockModeRead|ImageLockModeUserInputBuf,
 	  PixelFormat32bppARGB, //PixelFormat24bppRGB, 
       bitmapData);
 
@@ -95,11 +109,11 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    printf("The stride is %d.\n\n", bitmapData->Stride);
    printf("bitmapData W=%d H=%d\n",bitmapData->Width,bitmapData->Height);
 #endif
+#ifdef verbose
 
    // Display the hexadecimal value of each pixel in the 5x3 rectangle.
    UINT* pixels = (UINT*)bitmapData->Scan0;
 
-#ifdef verbose
    for(UINT row = 0; row < 23; ++row)
    {
       for(UINT col = 0; col < 5; ++col)
@@ -113,11 +127,8 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    //deep copy data so browser owns it (and does its FREE_IF_NZ) and we can delete our copy here and forget about it
    tti->x = bitmapData->Width;
    tti->y = bitmapData->Height;
-   //tti->depth = 4;
    tti->frames = 1;
-   int totalbytes = tti->x * tti->y * 4; //tti->depth;
-   tti->texdata = (unsigned char*)malloc(totalbytes); 
-   memcpy(tti->texdata,pixels,totalbytes); 
+   tti->texdata = blob; 
    tti->hasAlpha = Gdiplus::IsAlphaPixelFormat(bitmapData->PixelFormat)?1:0; 
 
 #ifdef verbose
@@ -133,7 +144,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 #endif
 
    tti->filename = fname;
-   tti->status = TEX_NEEDSBINDING;
+   tti->status = TEX_NEEDSBINDING; //make this the last thing you set, because another thread is watching ready to bind
 
    bitmap->UnlockBits(bitmapData);
    delete bitmapData;
