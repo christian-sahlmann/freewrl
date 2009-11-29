@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.18 2009/11/28 22:46:05 dug9 Exp $
+  $Id: LoadTextures.c,v 1.19 2009/11/29 16:38:21 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -193,12 +193,7 @@ static bool texture_load_from_pixelTexture (struct textureTableIndexStruct* this
 static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *filename)
 {
 #ifdef _MSC_VER
-	/* return FALSE; // to see the default grey image working first */
-    if (!loadImage(this_tex, filename)) {
-		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
-		return FALSE;
-    }
-
+	loadImage(this_tex, filename);
 
 #else
     Imlib_Image image;
@@ -247,12 +242,6 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		  entry->frames);
 	
 	entry->status = TEX_LOADING;
-	
-	/* look for the file. If one does not exist, or it
-	   is a duplicate, just unlock and return */
-
-
-	/* FIXME: we should have a generic point to the current node, clean-up this mess */
 	switch (entry->nodeType) {
 
 	case NODE_PixelTexture:
@@ -269,7 +258,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		break;
 
 	case NODE_VRML1_Texture2:
-		url = & (((struct X3D_VRML1_Texture2 *)entry->scenegraphNode)->filename); /*FIXME: !!!! */
+		url = & (((struct X3D_VRML1_Texture2 *)entry->scenegraphNode)->filename);
 		break;
 
 	}
@@ -380,17 +369,7 @@ void _textureThread()
 		
 		/* Process all resource list items, whatever status they may have */
 		while (texture_list != NULL) {
-			/* ml_foreach(texture_list, texture_process_list(__l)); */
-			
-					s_list_t *__l;
-					s_list_t *next;
-					s_list_t *_list = texture_list;
-					for(__l=_list;__l!=NULL;)  
-					{
-						next = ml_next(__l); /*we need to get next from __l before action texture_process_list deletes __l */
-						texture_process_list(__l);
-						__l = next;
-					}
+			ml_foreach(texture_list, texture_process_list(__l));
 		}
 		
 		TextureParsing = FALSE;

@@ -10,17 +10,39 @@ For 1.22.6 release:
 3) Imlib2 on Windows - decision as to whether it will be distributed with FreeWRL or not. 
 	DONE (Doug Sanden)
 4) FreeWRL OSX front end - move Objective-C calls to use newer interface routines.
+	DONE
 5) FreeWRL Windows front end - move to use newer interface routines.
-6) Inline nodes not working.
-7) Anchor nodes not working.
-8) Texture threading - Mutex lock so that it does not loop continuously.
+	In progress - Doug Sanden
+6) Texture threading - Mutex lock so that it does not loop continuously.
 	DONE
-9) MovieTextures not working.
-10) PixelTexture not working.
-	DONE - 1,2,3, and 4 component images tested.
-11) generate "blank" texture, and use this until TEX_LOADED flag is set
+7) generate "blank" texture, and use this until TEX_LOADED flag is set
 	DONE
-12) VRML1_Texture2 not working.
+
+8) Verify the following nodes for proper URL handling:
+
+	Anchor
+	Inline
+	AudioClip
+	ImageTexture		DONE
+	MovieTexture
+	PixelTexture		DONE
+	ImageCubeMapTexture
+	Background
+	TextureBackground
+	GeoLOD
+	GeoMetaData
+	Script
+	PackagedShader
+	ShaderPart
+	ShaderProgram
+	VRML1_Texture2		DONE
+
+9) OSX Safari Plugin
+
+10) generate an "intro" x3d image for OSX, for when FreeWRL is started with nothing on command line
+	"/Applications/FreeWRL/blankScreen.wrl"
+
+11) Texture loading; test direct local url, relative local url, http url, file url, etc.
 
 ============================================================================
 

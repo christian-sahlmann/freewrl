@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.34 2009/11/27 18:36:34 crc_canada Exp $
+  $Id: Textures.c,v 1.35 2009/11/29 16:38:21 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -216,6 +216,8 @@ void releaseTexture(struct X3D_Node *node) {
 			tableIndex  = ((struct X3D_PixelTexture *)node)->__textureTableIndex;
 		} else if (node->_nodeType == NODE_MovieTexture) {
 			tableIndex  = ((struct X3D_MovieTexture *)node)->__textureTableIndex;
+		} else if (node->_nodeType == NODE_VRML1_Texture2) {
+			tableIndex  = ((struct X3D_VRML1_Texture2 *)node)->__textureTableIndex;
 		} else return;
 
 #ifdef TEXVERBOSE

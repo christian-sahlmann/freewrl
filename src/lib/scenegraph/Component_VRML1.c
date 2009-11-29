@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.12 2009/10/22 16:58:49 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.13 2009/11/29 16:38:21 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -197,6 +197,9 @@ static void renderSpecificMaterial (int ind) {
 void prep_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 	/* printf ("prepSep %u\n",node); */
 
+	/* lets set the transparency param to 1.0 here, it can be overridden later */
+	appearanceProperties.transparency = 1.0;
+
 	/* lets push on to the stack... */
 	separatorLevel++;
 	/* do we need to create a new vector stack? */
@@ -298,7 +301,7 @@ void fin_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 	/* did we have a textureTransform? */
 	if (cSLD->t2tNode!=NULL) end_textureTransform();
 
-	if (cSLD->t2tNode) FW_GL_DISABLE(GL_TEXTURE_2D);
+	if (cSLD->t2Node) FW_GL_DISABLE(GL_TEXTURE_2D);
 } 
 
 void child_VRML1_Separator (struct X3D_VRML1_Separator *node) { 
