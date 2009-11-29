@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.27 2009/11/23 01:44:09 dug9 Exp $
+  $Id: main.c,v 1.28 2009/11/29 23:02:07 dug9 Exp $
 
   FreeWRL main program.
 
@@ -54,6 +54,8 @@ void catch_SIGHUP();
 
 #if defined(_MSC_VER)
 #include <shlwapi.h>
+char *get_current_dir();
+
 #endif
 
 /**
@@ -106,6 +108,7 @@ int main (int argc, char **argv)
 		strcat(fdir,"\\Fonts");
 		_putenv( fdir );
 	}
+	get_current_dir();
 
 #endif
 
@@ -134,6 +137,37 @@ int main (int argc, char **argv)
     if (parseCommandLine(argc, argv)) {
 
 	    start_url = argv[optind];
+#ifdef _MSC_VER
+		if( start_url )
+		{
+			/* goal - split the url into path and file, then set 
+				set current working directy = path
+				and set starturl = file
+			   motivation - doug can't comprehend resource.c path mangling otherwise 
+			*/
+			int jj;
+			char *slash;
+			char *path;
+			for( jj=0;jj<strlen(start_url);jj++)
+				if(start_url[jj] == '\\' ) start_url[jj] = '/';
+			slash = strrchr(start_url, '/');
+			path = NULL;
+			if(slash)
+			{
+				path = start_url;
+				slash[0] = '\0';
+				start_url = &slash[1];
+				if(_chdir(path)==-1)
+				{
+					/* either directory doesn't exist or its ftp/http */
+					slash[0] = '/';
+					start_url = path;
+					path = NULL;
+				}
+			}
+			printf("workding dir=%s start_url=%s\n",path,start_url);
+		}
+#endif
     }
 #endif
 
