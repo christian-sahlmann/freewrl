@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.6 2009/11/25 18:26:26 crc_canada Exp $
+  $Id: resources.c,v 1.7 2009/11/29 18:01:35 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -177,7 +177,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 	char *url = NULL;
 	int len;
 
-	DEBUG_RES("identifying resource: %s\n", res->request);
+	DEBUG_RES("identifying resource: %s, %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status));
 
 	ASSERT(res);
 
@@ -215,7 +215,6 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 
 	/* Parse request as url or local file ? */
 	if (res->network || network) {
-
 		/* We will always have a network url */
 
 		if (res->network) {
@@ -252,31 +251,35 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 			ERROR_MSG("resource_parse: path too long: %s\n", res->request);
 
 		} else {
+			char *cleanedURL;
+			/* remove any possible file:// off of the front of the name */
+			/* NOTE: this is NOT a new string, possibly just incremented res->request */
+
+			cleanedURL = stripLocalFileName(res->request);
 
 			/* We are relative to current dir or base */
 			if (base) {
-
 				/* Relative to base */
-				if (res->request[0] == '/') {
-					res->type = rest_invalid;
-					ERROR_MSG("resource_parse: can't handle absolute filename when we parse a child resource: %s\n", res->request);
+				if (cleanedURL[0] == '/') {
+					res->type = rest_file;
+					res->status = ress_starts_good;
+					url = STRDUP(cleanedURL);
+
 				} else {
 					res->type = rest_file;
 					res->status = ress_starts_good;
-					url = concat_path(base->base, res->request);
+					url = concat_path(base->base, cleanedURL);
 				}
-
 			} else {
-
 				/* Is this a full path ? */
-				if (res->request[0] == '/') {
+				if (cleanedURL[0] == '/') {
 					
 					/* This is an absolute filename */
 
 					/* resource_fetch will test that filename */
 					res->type = rest_file;
 					res->status = ress_starts_good;
-					url = strdup(res->request);
+					url = strdup(cleanedURL);
 
 				} else {
 
@@ -295,8 +298,8 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 						/* Make full path from current dir and relative filename */
 
 						char *fullpath;
-						fullpath = malloc(strlen(cwd)+strlen(res->request) + 1);
-						sprintf(fullpath, "%s/%s", cwd, res->request);
+						fullpath = malloc(strlen(cwd)+strlen(cleanedURL) + 1);
+						sprintf(fullpath, "%s/%s", cwd, cleanedURL);
 
 						/* resource_fetch will test that filename */
 						res->type = rest_file;
@@ -325,7 +328,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
  */
 bool resource_fetch(resource_item_t *res)
 {
-	DEBUG_RES("fetching resource: %d, %d\n", res->type, res->status);
+	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->request);
 
 	ASSERT(res);
 
@@ -776,6 +779,18 @@ void resource_tree_dump(int level, resource_item_t *root)
 
 	printf("\n");
 }
+
+char *resourceTypeToString(int type) {
+	switch (type) {
+		case rest_invalid: return "rest_invalid";
+		case rest_url: return "rest_url";
+		case rest_file: return "rest_file";
+		case rest_multi: return "rest_multi";
+		case rest_string : return "rest_string ";
+		default: return "resource OUT OF RANGE";
+	}
+}
+
 
 char *resourceStatusToString(int status) {
 	switch (status) {

@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.2 2009/11/10 10:18:25 couannette Exp $
+  $Id: io_http.c,v 1.3 2009/11/29 18:01:35 crc_canada Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -58,10 +58,14 @@ bool checkNetworkFile(const char *fn)
 	    (strncmp(fn,"HTTP://", strlen("HTTP://"))) &&
 	    (strncmp(fn,"https://", strlen("https://"))) &&
 	    (strncmp(fn,"HTTPS://", strlen("HTTPS://"))) &&
+/* JAS - these really are local files 
 	    (strncmp(fn,"file://", strlen("file://"))) &&
 	    (strncmp(fn,"FILE://", strlen("FILE://"))) &&
+*/
 	    (strncmp(fn,"urn://", strlen("urn://"))) &&
-	    (strncmp(fn,"URN://", strlen("URN://")))) {
+	    (strncmp(fn,"URN://", strlen("URN://")))
+
+	) {
 		return FALSE;
 	}
 	return TRUE;

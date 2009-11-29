@@ -43,6 +43,10 @@ For 1.22.6 release:
 	"/Applications/FreeWRL/blankScreen.wrl"
 
 11) Texture loading; test direct local url, relative local url, http url, file url, etc.
+	local url (eg, url "tests/fff.png")  DONE
+	file url (eg, url "file:///Applications/FreeWRL/fff.png") DONE
+	direct local url (eg, "/Users/john/tests/fff.png") DONE
+	http url (eg, "http://freewrl.sourceforge.net/images/vrmllogo2.0.gif") calls curl; check with proxy server settings correct
 
 ============================================================================
 

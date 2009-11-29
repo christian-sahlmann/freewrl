@@ -1,5 +1,5 @@
 /*
-  $Id: InputFunctions.c,v 1.12 2009/10/26 10:48:59 couannette Exp $
+  $Id: InputFunctions.c,v 1.13 2009/11/29 18:01:35 crc_canada Exp $
 
   FreeWRL support library.
   Input functions (EAI, mouse, keyboard, ...).
@@ -49,6 +49,9 @@
 
 
 char * stripLocalFileName (char * origName) {
+	/* remove whitespace, etc */
+	while ((*origName != '\0') && (*origName <= ' ')) origName++;
+
         if ((strncmp(origName,"file://", strlen("file://"))== 0) || 
         (strncmp(origName,"FILE://", strlen("FILE://"))== 0)) {
 		origName += strlen ("FILE://");
