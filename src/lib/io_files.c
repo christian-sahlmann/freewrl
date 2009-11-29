@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.5 2009/11/28 22:46:05 dug9 Exp $
+  $Id: io_files.c,v 1.6 2009/11/29 23:04:16 dug9 Exp $
 
   FreeWRL support library.
   IO with files.
@@ -87,6 +87,14 @@ char *get_current_dir()
 	char *cwd;
 	cwd = MALLOC(PATH_MAX);
 	getcwd(cwd, PATH_MAX);
+#ifdef _MSC_VER
+	{
+			int jj;
+			for( jj=0;jj<strlen(cwd);jj++)
+				if(cwd[jj] == '\\' ) cwd[jj] = '/';
+	}
+	printf("\n\n cwd from get_current_dir io_files.c L90 =%s\n\n",cwd);
+#endif
 	return cwd;
 #endif
 }

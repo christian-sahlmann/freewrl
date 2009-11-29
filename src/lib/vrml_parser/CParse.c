@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.19 2009/10/26 10:53:35 couannette Exp $
+$Id: CParse.c,v 1.20 2009/11/29 23:04:16 dug9 Exp $
 
 ???
 
@@ -64,7 +64,6 @@ bool cParse(void* ptr, unsigned ofs, const char* data) {
 	gettimeofday (&mytime,&tz);
 	startt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 	#endif
-
  	if (!globalParser) {
 		/* printf ("cParse, new parser\n"); */
 		/* the FALSE in the newParser call signifies that we are using "VRML" formatted strings */

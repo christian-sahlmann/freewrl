@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.12 2009/11/26 20:41:44 crc_canada Exp $
+  $Id: threads.c,v 1.13 2009/11/29 23:04:16 dug9 Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -202,6 +202,10 @@ void trace_enter_thread(const char *str)
 		fflush(stdout);
 		fflush(stderr);
 		sync();
+#ifdef _MSC_VER
+		TRACE_MSG("*** ENTERING THREAD: %s, ID=%d self=%p\n", str, fw_thread_id(), (void*) pthread_self().p);
+#else
 		TRACE_MSG("*** ENTERING THREAD: %s, ID=%d self=%p\n", str, fw_thread_id(), (void*) pthread_self());
+#endif
 	}
 }
