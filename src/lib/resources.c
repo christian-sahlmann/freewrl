@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.7 2009/11/29 18:01:35 crc_canada Exp $
+  $Id: resources.c,v 1.8 2009/11/29 23:17:25 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -298,9 +298,9 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 						/* Make full path from current dir and relative filename */
 
 						char *fullpath;
-						fullpath = malloc(strlen(cwd)+strlen(cleanedURL) + 1);
-						sprintf(fullpath, "%s/%s", cwd, cleanedURL);
-
+						fullpath = malloc(strlen(cwd)+strlen(res->request) + 1);
+						printf("about to join %s and %s resource.c L299\n",cwd,res->request);
+						sprintf(fullpath, "%s/%s", cwd, res->request);
 						/* resource_fetch will test that filename */
 						res->type = rest_file;
 						res->status = ress_starts_good;
