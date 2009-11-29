@@ -54,10 +54,17 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 	//fname = "C:/source2/freewrl/freex3d/tests/helpers/brick.png";  
     //fname = "junk.jpg"; //test failure condition
 	size_t origsize = strlen(fname) + 1;
-    const size_t newsize = 100;
+	char* fname2 = (char*) malloc(origsize);
+	strcpy(fname2,fname);
+	for(int jj=0;jj<strlen(fname2);jj++)
+		if(fname2[jj] == '/' ) fname2[jj] = '\\';
+
+    const size_t newsize = 225;
     size_t convertedChars = 0;
     wchar_t wcstring[newsize];
-    mbstowcs_s(&convertedChars, wcstring, origsize, fname, _TRUNCATE);
+    //mbstowcs_s(&convertedChars, wcstring, origsize, fname, _TRUNCATE);
+    mbstowcs_s(&convertedChars, wcstring, origsize, fname2, _TRUNCATE);
+	free(fname2);
 	Bitmap *bitmap = NULL;
 	Status stat;
 	bitmap = Bitmap::FromFile(wcstring,false); //new Bitmap(wcstring); //or Bitmap::FromFile(wcstring,false); L"LockBitsTest1.bmp");
@@ -151,7 +158,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    delete bitmap;
    //shutdownImageLoader();  //we'll keep it loaded
 
-   return 0;
+   return 1;
 
 }
 }
