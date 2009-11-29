@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.3 2009/11/29 18:01:35 crc_canada Exp $
+  $Id: io_http.c,v 1.4 2009/11/29 23:07:56 dug9 Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -241,7 +241,7 @@ char* download_url_wget(const char *url, const char *tmp)
     wgetcmd = malloc( strlen(WGET) +
 	                    strlen(WGET_OPTIONS) + 
 	                    strlen(url) +
-                            strlen(temp) + 6);
+                            strlen(temp) + 6 +1);
     sprintf(wgetcmd, "%s %s %s -O %s",
 	    WGET, WGET_OPTIONS, url, temp);
 
