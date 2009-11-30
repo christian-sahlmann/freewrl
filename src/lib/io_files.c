@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.6 2009/11/29 23:04:16 dug9 Exp $
+  $Id: io_files.c,v 1.7 2009/11/30 20:37:20 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -61,7 +61,7 @@ int inputFileVersion[3] = {0,0,0};
 char* concat_path(const char *a, const char *b)
 {
     char *tmp;
-    tmp = MALLOC(strlen(a) + strlen(b) + 1);
+    tmp = MALLOC(strlen(a) + strlen(b) + 2); /* why 2? room for the slash and the trailing NULL */
     sprintf(tmp, "%s/%s", a, b);
     return tmp;
 }

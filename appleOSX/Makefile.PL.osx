@@ -219,7 +219,7 @@ sub writeMakefileInitialize() {
 	print MK "INC = $MYINC\n";
 	print MK "DEFINE = $noStackProtector $MYDEFINE\n";
 
-	print MK "FWFLAGS = -c -Wall -O2 -g -pipe -fno-strict-aliasing -fPIC\n";
+	print MK "FWFLAGS = -V 4.0.1 -c -Wall -O2 -g -pipe -fno-strict-aliasing -fPIC\n";
 	print MK "MYLIBS = $MYLIBS\n";
 	print MK "MYFELIBS = $MYFELIBS\n";
 	print MK "MYSELIBS = $MYSELIBS\n";
