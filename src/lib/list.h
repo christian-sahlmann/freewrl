@@ -1,5 +1,5 @@
 /*
-  $Id: list.h,v 1.2 2009/11/10 10:18:25 couannette Exp $
+  $Id: list.h,v 1.3 2009/12/01 14:53:28 crc_canada Exp $
 
   FreeWRL support library.
   Linked lists.
@@ -61,12 +61,24 @@ extern void      ml_delete_all(s_list_t *list);
 extern void      ml_delete_all2(s_list_t *list, f_free_t f);
 extern s_list_t* ml_get(s_list_t *list, int index);
 
+#ifdef OLDCODE
 #define ml_foreach(_list,_action) {\
 					s_list_t *__l;\
 					for(__l=_list;__l!=NULL;__l=ml_next(__l)) {\
 						_action;\
 					}\
 				  }
+#else
+#define ml_foreach(_list,_action) {\
+					s_list_t *__l;\
+					s_list_t *next;\
+					for(__l=_list;__l!=NULL;) {\
+						next = ml_next(__l); /* we need to get next from __l before action deletes element */ \
+						_action;\
+						__l = next; \
+					}\
+				  }
+#endif
 
 extern void ml_dump(s_list_t *list);
 extern void ml_dump_char(s_list_t *list);
