@@ -1,5 +1,5 @@
 /*
-  $Id: resources.h,v 1.4 2009/11/29 18:01:35 crc_canada Exp $
+  $Id: resources.h,v 1.5 2009/12/01 21:34:51 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -75,7 +75,7 @@ typedef struct resource_item {
 	/* Resource has passed all the steps */
 	bool complete;
 	void *where;
-	unsigned int node_count;
+	int offsetFromWhere;
 
 	/* We can be feed with a Multi_String list of requests */
 	s_list_t *m_request;
@@ -171,5 +171,6 @@ void resource_tree_dump(int level, resource_item_t *root);
 
 char *resourceStatusToString(int status);
 char *resourceTypeToString(int type);
+char *resourceMediaTypeToString(int type);
 
 #endif /* __LIBFREEWRL_RESOURCES_H__ */

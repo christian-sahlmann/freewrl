@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.20 2009/11/23 01:43:19 dug9 Exp $
+$Id: jsVRMLBrowser.c,v 1.21 2009/12/01 21:34:51 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -640,6 +640,14 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 	res = resource_create_single(_costr0);
 	res->where = myptr;
+	if (myptr->_nodeType == NODE_Group)
+		res->offsetFromWhere = offsetof (struct X3D_Group, children);
+	else {
+		ConsoleMessage ("Can not determine where to plug values in node of type %s",stringNodeType(myptr->_nodeType));
+		return JS_FALSE;
+	}
+
+
 	send_resource_to_parser(res);
 	resource_wait(res);
 	

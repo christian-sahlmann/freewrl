@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.19 2009/10/26 10:55:13 couannette Exp $
+  $Id: jsVRML_SFClasses.c,v 1.20 2009/12/01 21:34:51 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1011,6 +1011,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 				res = resource_create_from_string(cString);
 				res->where = myGroup;
+				res->offsetFromWhere = offsetof (struct X3D_Group, children);
 				send_resource_to_parser(res);
 				resource_wait(res);
 

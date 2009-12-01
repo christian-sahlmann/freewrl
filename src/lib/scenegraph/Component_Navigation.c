@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.23 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.24 2009/12/01 21:34:51 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -358,9 +358,12 @@ void proximity_LOD (struct X3D_LOD *node) {
 
 
 
+#ifdef OLDCODE
 void changed_Inline (struct X3D_Inline *node) {
+printf ("changed_Inline\n");
 		INITIALIZE_EXTENT
 }
+#endif
 
 
 void changed_Collision (struct X3D_Collision *node) {

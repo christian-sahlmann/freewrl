@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.8 2009/11/29 23:17:25 dug9 Exp $
+  $Id: resources.c,v 1.9 2009/12/01 21:34:51 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -178,6 +178,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 	int len;
 
 	DEBUG_RES("identifying resource: %s, %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status));
+printf("identifying resource: %s, %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status));
 
 	ASSERT(res);
 
@@ -758,7 +759,7 @@ void resource_tree_dump(int level, resource_item_t *root)
 	spacer printf("status:\t %u\n", root->status);
 	spacer printf("complete:\t %s\n", BOOL_STR(root->complete));
 	spacer printf("where:\t %p\n", root->where);
-	spacer printf("node_count:\t %u\n", root->node_count);
+	spacer printf("offsetFromWhere:\t %p\n", root->offsetFromWhere);
 	spacer printf("m_request:\t %p\n", root->m_request);
 	spacer printf("base:\t %s\n", root->base);
 	spacer printf("temp_dir:\t %s\n", root->temp_dir);
@@ -803,6 +804,19 @@ char *resourceStatusToString(int status) {
 		case ress_not_loaded: return "ress_not_loaded";
 		case ress_parsed: return "ress_parsed";
 		case ress_not_parsed: return "ress_not_parsed";
+		default: return "resource OUT OF RANGE";
+	}
+}
+
+char *resourceMediaTypeToString (int mt) {
+	switch (mt) {
+		case  resm_unknown: return " resm_unknown";
+		case  resm_vrml: return " resm_vrml";
+		case  resm_x3d: return " resm_x3d";
+		case  resm_image: return " resm_image";
+		case  resm_movie: return " resm_movie";
+		case  resm_pshader: return " resm_pshader";
+		case  resm_fshader: return " resm_fshader";
 		default: return "resource OUT OF RANGE";
 	}
 }

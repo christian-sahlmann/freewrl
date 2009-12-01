@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.17 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Networking.c,v 1.18 2009/12/01 21:34:51 crc_canada Exp $
 
 X3D Networking Component
 
@@ -38,6 +38,8 @@ X3D Networking Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include <list.h>
+#include <resources.h>
 
 #include "../input/EAIHeaders.h"
 #include "../opengl/Frustum.h"
@@ -1201,6 +1203,69 @@ void child_Anchor (struct X3D_Anchor *node) {
 	LOCAL_LIGHT_OFF
 }
 
+void changed_Inline (struct X3D_Inline *node) {
+	/*printf ("changed_Inline\n"); */
+                INITIALIZE_EXTENT
+}
+
+
+void load_Inline (struct X3D_Inline *node) {
+	resource_item_t *res;
+
+/* printf ("load_Inline, loadStatus %d loadResource %u\n",node->__loadstatus, node->__loadResource); */
+
+	if (node->load) {
+		/* printf ("loading Inline\n"); */
+
+		switch (node->__loadstatus) {
+			case INLINE_INITIAL_STATE: /* nothing happened yet */
+
+			if (node->url.n == 0) {
+				node->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
+			} else {
+				res = resource_create_multi(&(node->url));
+				res->media_type = resm_unknown;
+				resource_identify(root_res, res);
+				node->__loadstatus = INLINE_FETCHING_RESOURCE;
+				node->__loadResource = res;
+			}
+			break;
+
+			case INLINE_FETCHING_RESOURCE:
+			res = node->__loadResource;
+			resource_fetch(res);
+			if ((res->status == ress_failed) || (res->status == ress_invalid)) {
+				printf ("resource failed to load\n");
+				node->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
+			} else if (res->status == ress_downloaded) {
+				res->media_type = resm_unknown;
+				res->where = X3D_NODE(node);
+				res->offsetFromWhere = offsetof (struct X3D_Inline, __children);
+				send_resource_to_parser(res);
+				node->__loadstatus = INLINE_PARSING; /* a "do-nothing" approach */
+			} else {
+			}
+
+			break;
+
+			case INLINE_PARSING:
+				res = node->__loadResource;
+/*
+				printf ("inline parsing.... %s\n",resourceStatusToString(res->status));
+				printf ("res complete %d\n",res->complete);
+*/
+				if (res->status == ress_parsed) {
+					node->__loadstatus = INLINE_STABLE; 
+				} 
+
+			break;
+		}
+	} else {
+		printf ("unloading Inline\n");
+	}
+}
+
+
 
 void child_Inline (struct X3D_Inline *node) {
 	int nc = (node->__children).n;
@@ -1211,9 +1276,6 @@ void child_Inline (struct X3D_Inline *node) {
 	printf("RENDER INLINE START %d (%d)\n",node, nc);
 	printf ("	child_Inline, %u, loadStatus %d, nc %d\n",node,node->__loadstatus, nc);
 	#endif
-
-	/* lets see if we still have to load this one... */
-	if ((node->__loadstatus)==0) loadInline(node);
 
 	#ifdef CHILDVERBOSE
 		{int i;

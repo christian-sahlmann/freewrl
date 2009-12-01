@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.42 2009/12/01 14:53:28 crc_canada Exp $
+  $Id: ProdCon.c,v 1.43 2009/12/01 21:34:51 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -268,25 +268,6 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 	return ret;
 }
 
-/* Inlines... Multi_URLs, load only when available, etc, etc */
-void loadInline(struct X3D_Inline *node) 
-{
-	resource_item_t *res;
-
-/* 	/\* first, are we busy? *\/ */
-/* 	if (inputThreadParsing) return; */
-
-/* 	inputParse(INLINE,(char *)node, FALSE, FALSE, */
-/* 		(void *) node, */
-/* 		offsetof (struct X3D_Inline, __children), */
-/* 		&node->__loadstatus,FALSE); */
-
-	res = resource_create_from_string((char *)node);
-	res->where = node;
-	send_resource_to_parser(res);
-	resource_wait(res);
-}
-
 /* interface for telling the parser side to forget about everything...  */
 void EAI_killBindables (void) {
 	int complete;
@@ -532,6 +513,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	struct X3D_Group *nRn;
 	struct X3D_Group *insert_node;
 	int i;
+	int offsetInNode;
 
 	DEBUG_RES("processing VRML/X3D resource: %s\n", res->request);
 
@@ -618,46 +600,14 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		setViewpointBindInRender = viewpointnodes[0];
 	}
 	
-	/* did the caller want these values returned? 
-	   apparently only if called from EAI ....
-	*/
-	if (res->where) {
-		
-		int totret = 0;
-		int count;
-		
-		for (count=0; count < nRn->children.n; count++) {
-			/* only return the non-null children */
-			if (nRn->children.p[count] != NULL) {
-				psp.retarr[totret] = 0; /* the "perl" node number */
-				totret++;
-				psp.retarr[totret] = ((uintptr_t) 
-						      nRn->children.p[count]); /* the Node Pointer */
-				totret++;
-			}
-		}
-		res->node_count = totret; /* remember, the old "perl node number" */
-	}
-
-#if 0
-	/* Called from "replace world" action */
-	if (res->new_root) {
-		kill_oldWorld(FALSE,TRUE,TRUE,__FILE__,__LINE__);
-		FREE(rootNode);
-		rootNode = NULL;
-		
-		rootNode = createNewX3DNode (NODE_Group);	
-		/*remove this node from the deleting list*/
-		doNotRegisterThisNodeForDestroy(rootNode);
-	}
-#endif	
-
-	
+	/* we either put things at the rootNode (ie, a new world) or we put them as a children to another node */
 	if (res->where == NULL) {
 		ASSERT(rootNode);
 		insert_node = rootNode;
+		offsetInNode = offsetof(struct X3D_Group, children);
 	} else {
-		insert_node = (struct X3D_Group *) res->where;
+		insert_node = X3D_GROUP(res->where); /* casting here for compiler */
+		offsetInNode = res->offsetFromWhere;
 	}
 	
 	DEBUG_RES ("parser_process_res_VRML_X3D, res->where %u, insert_node %u, rootNode %u\n",res->where, insert_node, rootNode);
@@ -665,15 +615,17 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	/* now that we have the VRML/X3D file, load it into the scene. */
 	/* add the new nodes to wherever the caller wanted */
 
+#ifdef OLDCODE
 	/* this has to be a GROUP node! */
 	if (insert_node->_nodeType != NODE_Group) {
 		ConsoleMessage ("we have to add to a Group node, but have something else here\n");
 		return FALSE;
 	}
+#endif
 	
 	/* take the nodes from the nRn node, and put them into the place where we have decided to put them */
 	AddRemoveChildren(X3D_NODE(insert_node),
-			  offsetPointer_deref(void*, rootNode, offsetof(struct X3D_Group, children)), 
+			  offsetPointer_deref(void*, insert_node, offsetInNode), 
 			  (uintptr_t*)nRn->children.p,
 			  nRn->children.n, 1, __FILE__,__LINE__);
 	

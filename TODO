@@ -21,7 +21,7 @@ For 1.22.6 release:
 8) Verify the following nodes for proper URL handling:
 
 	Anchor
-	Inline
+	Inline			DONE
 	AudioClip
 	ImageTexture		DONE
 	MovieTexture
@@ -47,6 +47,8 @@ For 1.22.6 release:
 	file url (eg, url "file:///Applications/FreeWRL/fff.png") DONE
 	direct local url (eg, "/Users/john/tests/fff.png") DONE
 	http url (eg, "http://freewrl.sourceforge.net/images/vrmllogo2.0.gif") calls curl; check with proxy server settings correct
+
+12) MultiURL loading - note that, at least for Inlines, only the first url is checked; the rest are not used.
 
 ============================================================================
 

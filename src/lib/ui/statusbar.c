@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.14 2009/11/12 16:49:03 crc_canada Exp $
+  $Id: statusbar.c,v 1.15 2009/12/01 21:34:51 crc_canada Exp $
 
 */
 
@@ -125,6 +125,7 @@ static void statusbar_init() {
 
 	res = resource_create_from_string(STATUS_BAR_NODE_PROX);
 	res->where = myn;
+	res->offsetFromWhere = offsetof (struct X3D_Group, children);
 	send_resource_to_parser(res);
 	resource_wait(res);
 
@@ -148,6 +149,7 @@ static void statusbar_init() {
 
 	res = resource_create_from_string(STATUS_BAR_NODE_TEXT);
 	res->where = myn;
+	res->offsetFromWhere = offsetof (struct X3D_Group, children);
 	send_resource_to_parser(res);
 	resource_wait(res);
 

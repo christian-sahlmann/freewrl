@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.90 2009/11/26 19:55:22 crc_canada Exp $
+$Id: headers.h,v 1.91 2009/12/01 21:34:51 crc_canada Exp $
 
 Global includes.
 
@@ -750,7 +750,6 @@ extern void *rootNode;
 extern int isPerlParsing(void);
 /* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */
 extern int isTextureParsing(void);
-extern void loadInline(struct X3D_Inline *node);
 extern void loadTextureNode(struct X3D_Node *node,  void *param);
 extern void loadMovieTexture(struct X3D_MovieTexture *node,  void *param);
 extern void loadMultiTexture(struct X3D_MultiTexture *node);

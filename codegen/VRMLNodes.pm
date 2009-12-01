@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.33 2009/10/07 19:11:35 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.34 2009/12/01 21:34:51 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -183,6 +183,7 @@ package VRML::NodeType;
 		__loadstatus =>[SFInt32,0,initializeOnly, 0],
 		__parenturl =>[SFString,"",initializeOnly, 0],
 		_sortedChildren => [MFNode, [], inputOutput, 0],
+		 __loadResource => [FreeWRLPTR, 0, initializeOnly, 0],
 	},"X3DNetworkSensorNode"),
 
 	LoadSensor => new VRML::NodeType("LoadSensor", {
