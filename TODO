@@ -31,10 +31,10 @@ For 1.22.6 release:
 	TextureBackground
 	GeoLOD
 	GeoMetaData
-	Script
-	PackagedShader
-	ShaderPart
-	ShaderProgram
+	Script			DONE
+	PackagedShader		DONE
+	ShaderPart		DONE
+	ShaderProgram		DONE
 	VRML1_Texture2		DONE
 
 9) OSX Safari Plugin

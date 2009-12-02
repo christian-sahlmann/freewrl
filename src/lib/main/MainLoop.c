@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.72 2009/11/26 20:41:44 crc_canada Exp $
+  $Id: MainLoop.c,v 1.73 2009/12/02 21:00:46 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -111,8 +111,7 @@ int currentFileVersion = 0;
                         /* printf ("initializing script %d in thread %u\n",i,pthread_self());  */ \
                         JSCreateScriptContext(i); \
                         JSInitializeScriptAndFields(i); \
-                        ACTUALRUNSCRIPT(i, "initialize()" ,&retval); \
-                        ScriptControl[i]._initialized=TRUE; \
+			if (ScriptControl[i].scriptOK) ACTUALRUNSCRIPT(i, "initialize()" ,&retval); \
                         /* printf ("initialized script %d\n",i);*/  \
                 } \
                 max_script_found_and_initialized = max_script_found; \

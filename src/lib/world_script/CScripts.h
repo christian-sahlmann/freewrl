@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.14 2009/11/07 00:31:57 crc_canada Exp $
+$Id: CScripts.h,v 1.15 2009/12/02 21:00:46 crc_canada Exp $
 
 Class to wrap a java script for CParser
 
@@ -143,6 +143,7 @@ struct CRscriptStruct {
 	uintptr_t	eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
 	char *scriptText;
 	struct ScriptParamList *paramList;
+	int 		scriptOK;		/* set to TRUE if the script loads ok */
 };
 
 

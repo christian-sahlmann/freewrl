@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.45 2009/11/17 20:49:27 crc_canada Exp $
+$Id: CRoutes.c,v 1.46 2009/12/02 21:00:46 crc_canada Exp $
 
 ???
 
@@ -1383,7 +1383,7 @@ static void gatherScriptEventOuts(void) {
 			route, actualscript,mys);  */
 		/* this script initialized yet? We make sure that on initialization that the Parse Thread
 		   does the initialization, once it is finished parsing. */
-		if (ScriptControl[actualscript]._initialized!=TRUE) {
+		if (!ScriptControl[actualscript]._initialized) {
 			/* printf ("waiting for initializing script %d at %s:%d\n",actualscript, __FILE__,__LINE__); */
 			return;
 		}
@@ -1393,6 +1393,10 @@ static void gatherScriptEventOuts(void) {
 			return;
 		}
 
+		if (!ScriptControl[actualscript].scriptOK) {
+			/* printf ("gatherScriptEventOuts - script initialized but not OK\n"); */
+			return;
+		}
 		
 		/* is this the same from node/field as before? */
 		if ((CRoutes[route].routeFromNode == CRoutes[route-1].routeFromNode) &&
@@ -1493,8 +1497,8 @@ static void sendScriptEventIn(uintptr_t num) {
 				/* get the value from the VRML structure, in order to propagate it to a script */
 				myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
 
-
-				if (ScriptControl[myObj->num]._initialized!=TRUE) {
+				/* is the script ok and initialized? */
+				if ((!ScriptControl[myObj->num]._initialized) || (!ScriptControl[myObj->num].scriptOK)) {
 					/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
 					return;
 				}

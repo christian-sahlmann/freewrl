@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.19 2009/10/05 15:07:24 crc_canada Exp $
+$Id: JScript.c,v 1.20 2009/12/02 21:00:46 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -189,6 +189,7 @@ void JSMaxAlloc() {
 		ScriptControl[count].cx = 0;
 		ScriptControl[count].glob = 0;
 		ScriptControl[count]._initialized = FALSE;
+		ScriptControl[count].scriptOK = FALSE;
 		ScriptControl[count].scriptText = NULL;
 		ScriptControl[count].paramList = NULL;
 	}
@@ -253,10 +254,13 @@ void JSInitializeScriptAndFields (uintptr_t num) {
 
 	if (!ACTUALRUNSCRIPT(num, ScriptControl[num].scriptText, &rval)) {
 		ConsoleMessage ("JSInitializeScriptAndFields, script failure");
+		ScriptControl[num].scriptOK = FALSE;
+		ScriptControl[num]._initialized = TRUE;
 		return;
 	}
 	FREE_IF_NZ(ScriptControl[num].scriptText);
 	ScriptControl[num]._initialized = TRUE;
+	ScriptControl[num].scriptOK = TRUE;
 }
 
 /* create the script context for this script. This is called from the thread
