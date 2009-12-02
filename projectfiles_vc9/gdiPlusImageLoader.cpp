@@ -157,6 +157,11 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    delete bitmapData;
    delete bitmap;
    //shutdownImageLoader();  //we'll keep it loaded
+   if(1)
+   {
+	   shutdownImageLoader();
+	   loaded = 0;
+   }
 
    return 1;
 
