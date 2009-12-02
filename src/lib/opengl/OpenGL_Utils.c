@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.73 2009/12/01 21:34:51 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.74 2009/12/02 19:22:30 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -86,12 +86,12 @@ int cc_changed = FALSE;
 static char *glExtensions;
 
 static pthread_mutex_t  memtablelock = PTHREAD_MUTEX_INITIALIZER;
-/*
-#define LOCK_MEMORYTABLE
-#define UNLOCK_MEMORYTABLE
-*/
 #define LOCK_MEMORYTABLE 		pthread_mutex_lock(&memtablelock);
 #define UNLOCK_MEMORYTABLE		pthread_mutex_unlock(&memtablelock);
+/*
+#define LOCK_MEMORYTABLE 		{printf ("LOCK_MEMORYTABLE at %s:%d\n",__FILE__,__LINE__); pthread_mutex_lock(&memtablelock);}
+#define UNLOCK_MEMORYTABLE		{printf ("UNLOCK_MEMORYTABLE at %s:%d\n",__FILE__,__LINE__); pthread_mutex_unlock(&memtablelock);}
+*/
 
 
 /******************************************************************/
@@ -1110,11 +1110,15 @@ void startOfLoopNodeUpdates(void) {
 	struct Multi_Node *removeChildren;
 	struct Multi_Node *childrenPtr;
 
+	/* process one inline per loop; do it outside of the lock/unlock memory table */
+	struct Vector *loadInlines;
+
 	/* initialization */
 	addChildren = NULL;
 	removeChildren = NULL;
 	childrenPtr = NULL;
 	pp = NULL;
+	loadInlines = NULL;
 
 	/* assume that we do not have any sensitive nodes at all... */
 	HaveSensitive = FALSE;
@@ -1272,8 +1276,13 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				BEGIN_NODE(Inline) 
-					if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE)
-						load_Inline (X3D_INLINE(node));
+					if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE) {
+						/* schedule this after we have unlocked the memory table */
+						if (loadInlines == NULL) {
+							loadInlines = newVector(struct X3D_Inline*, 16);
+						}
+						vector_pushBack(struct X3D_Inline *, loadInlines, X3D_INLINE(node));
+					}
 					sortChildren (&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren);
 					propagateExtent(X3D_NODE(node));
 				END_NODE
@@ -1483,6 +1492,18 @@ void startOfLoopNodeUpdates(void) {
 
 
 	UNLOCK_MEMORYTABLE
+
+	/* do we have Inlines to load here, outside of the memorytable lock? */
+	if (loadInlines != NULL) {
+		indexT ind;
+
+		for (ind=0; ind<vector_size(loadInlines); ind++) {
+			struct X3D_Inline *node;
+			node=vector_get(struct X3D_Inline*, loadInlines,ind);
+			load_Inline (node);
+		}
+		deleteVector (struct X3D_Inline*, loadInlines);
+	}
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
 	if (viewpoint_stack[viewpoint_tos] != 0) {

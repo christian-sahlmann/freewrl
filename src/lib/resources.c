@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.9 2009/12/01 21:34:51 crc_canada Exp $
+  $Id: resources.c,v 1.10 2009/12/02 19:22:30 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -178,7 +178,6 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 	int len;
 
 	DEBUG_RES("identifying resource: %s, %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status));
-printf("identifying resource: %s, %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status));
 
 	ASSERT(res);
 
