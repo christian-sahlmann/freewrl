@@ -136,7 +136,9 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    tti->y = bitmapData->Height;
    tti->frames = 1;
    tti->texdata = blob; 
-   tti->hasAlpha = Gdiplus::IsAlphaPixelFormat(bitmapData->PixelFormat)?1:0; 
+   //tti->hasAlpha = Gdiplus::IsAlphaPixelFormat(bitmapData->PixelFormat)?1:0; 
+   tti->hasAlpha = Gdiplus::IsAlphaPixelFormat(bitmap->GetPixelFormat())?1:0; 
+   printf("fname=%s alpha=%ld\n",fname,tti->hasAlpha);
 
 #ifdef verbose
    for(UINT row = 0; row < 23; ++row)
