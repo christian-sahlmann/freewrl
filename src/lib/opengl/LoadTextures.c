@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.22 2009/12/03 03:00:25 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.23 2009/12/03 19:43:28 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -211,7 +211,7 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
 	bitmapByteCount     = (bitmapBytesPerRow * pixelsHigh);
 
 	// Use the generic RGB color space.
-	colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+colorSpace = CGColorSpaceCreateDeviceRGB();
 	if (colorSpace == NULL)
 	{
 	    fprintf(stderr, "Error allocating color space\n");
@@ -225,6 +225,9 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
 	if (bitsPerComponent >= 8) {
 		CGRect rect = {{0,0},{pixelsWide, pixelsHigh}};
 		bitmapInfo = kCGImageAlphaNoneSkipLast;
+
+bitmapInfo = kCGImageAlphaPremultipliedFirst |
+                                kCGBitmapByteOrder32Host;
 
 		/* Allocate memory for image data. This is the destination in memory
 		   where any drawing to the bitmap context will be rendered. */
@@ -385,9 +388,32 @@ static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, cha
 
 	image_width = CGImageGetWidth(image);
 	image_height = CGImageGetHeight(image);
-	hasAlpha = CGImageGetAlphaInfo(image) != kCGImageAlphaNone;
+
+	/* go through every possible return value and check alpha. 
+		note, in testing, kCGImageAlphaLast and kCGImageAlphaNoneSkipLast
+		are what got returned - which makes sense for BGRA textures */
+	switch (CGImageGetAlphaInfo(image)) {
+		case kCGImageAlphaNone: hasAlpha = FALSE; break;
+		case kCGImageAlphaPremultipliedLast: hasAlpha = TRUE; break;
+		case kCGImageAlphaPremultipliedFirst: hasAlpha = TRUE; break;
+		case kCGImageAlphaLast: hasAlpha = TRUE; break;
+		case kCGImageAlphaFirst: hasAlpha = TRUE; break;
+		case kCGImageAlphaNoneSkipLast: hasAlpha = FALSE; break;
+		case kCGImageAlphaNoneSkipFirst: hasAlpha = FALSE; break;
+		default: hasAlpha = FALSE; /* should never get here */
+	}
 
 	#ifdef TEXVERBOSE
+	printf ("\nLoadTexture %s\n",filename);
+	printf ("CGImageGetAlphaInfo(image) returns %x\n",CGImageGetAlphaInfo(image));
+	printf ("   kCGImageAlphaNone %x\n",   kCGImageAlphaNone);
+	printf ("   kCGImageAlphaPremultipliedLast %x\n",   kCGImageAlphaPremultipliedLast);
+	printf ("   kCGImageAlphaPremultipliedFirst %x\n",   kCGImageAlphaPremultipliedFirst);
+	printf ("   kCGImageAlphaLast %x\n",   kCGImageAlphaLast);
+	printf ("   kCGImageAlphaFirst %x\n",   kCGImageAlphaFirst);
+	printf ("   kCGImageAlphaNoneSkipLast %x\n",   kCGImageAlphaNoneSkipLast);
+	printf ("   kCGImageAlphaNoneSkipFirst %x\n",   kCGImageAlphaNoneSkipFirst);
+
 	if (hasAlpha) printf ("Image has Alpha channel\n"); else printf ("image - no alpha channel \n");
 
 	printf ("raw image, AlphaInfo %x\n",(int) CGImageGetAlphaInfo(image));
@@ -399,6 +425,7 @@ static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, cha
 	printf ("raw image, ImageWidth %d\n",(int) CGImageGetWidth(image));
 	#endif
 	
+
 	/* now, lets "draw" this so that we get the exact bit values */
 	cgctx = CreateARGBBitmapContext(image);
 
@@ -413,6 +440,7 @@ static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, cha
 	printf ("GetWidth %d\n",(int) CGBitmapContextGetWidth(cgctx));
 	#endif
 	
+#undef TEXVERBOSE
 	data = (unsigned char *)CGBitmapContextGetData(cgctx);
 
 	#ifdef TEXVERBOSE
