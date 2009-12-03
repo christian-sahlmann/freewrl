@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.36 2009/12/01 21:34:51 crc_canada Exp $
+  $Id: Textures.c,v 1.37 2009/12/03 18:23:32 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -65,7 +65,7 @@
 
 
 #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
-                do_possible_textureSequence(myTableIndex); \
+                move_texture_to_opengl(myTableIndex); \
                 return;	\
 		}
 
@@ -140,7 +140,7 @@ void _textureThread(void);
 static void __reallyloadPixelTexure(void);
 static void __reallyloadImageTexture(void);
 static void __reallyloadMovieTexture(void);
-void do_possible_textureSequence(struct textureTableIndexStruct*);
+static void move_texture_to_opengl(struct textureTableIndexStruct*);
 struct Uni_String *newASCIIString(char *str);
 
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
@@ -759,7 +759,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 /* do we do 1 texture, or is this a series of textures, requiring final binding
    by this thread? */
 
-void do_possible_textureSequence(struct textureTableIndexStruct* me) {
+static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	int rx,ry,sx,sy;
 	int x,y;
 	GLint iformat;
@@ -792,7 +792,6 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	Src = 0; Trc = 0;
 	tpNode = NULL;
 
-printf ("do_possible_textureSequence me %u\n",me);
 	/* do we need to convert this to an OpenGL texture stream?*/
 
 	/* we need to get parameters. */	
@@ -1017,7 +1016,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 			break;
 
 		case TEX_NEEDSBINDING:
-                	do_possible_textureSequence(myTableIndex); 
+                	move_texture_to_opengl(myTableIndex); 
 			break;
 
 		case TEX_LOADED:
