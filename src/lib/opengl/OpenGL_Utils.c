@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.74 2009/12/02 19:22:30 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.75 2009/12/03 03:00:25 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -763,9 +763,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL, char *f
 
 	/* free memory */
 	kill_X3DNodes();
-
-	/* kill the shadowFileTable, if it exists */
-	kill_shadowFileTable();
 
 	#ifndef AQUA
 		sprintf (mystring, "QUIT");

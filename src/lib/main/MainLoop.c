@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.73 2009/12/02 21:00:46 crc_canada Exp $
+  $Id: MainLoop.c,v 1.74 2009/12/03 03:00:25 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1409,7 +1409,6 @@ void closeFreewrl() {
         kill_status();
         kill_openGLTextures();
         kill_javascript();
-	kill_shadowFileTable();
 
         #endif
         /* kill any remaining children */

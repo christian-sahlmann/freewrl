@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.21 2009/12/01 14:53:29 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.22 2009/12/03 03:00:25 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -185,6 +185,88 @@ static bool texture_load_from_pixelTexture (struct textureTableIndexStruct* this
 }
 
 
+#if defined (TARGET_AQUA)
+/* render from aCGImageRef into a buffer, to get EXACT bits, as a CGImageRef contains only
+estimates. */
+/* from http://developer.apple.com/qa/qa2007/qa1509.html */
+
+static inline double radians (double degrees) {return degrees * M_PI/180;}
+CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
+	CGContextRef    context = NULL;
+	CGColorSpaceRef colorSpace;
+	void *          bitmapData;
+	int             bitmapByteCount;
+	int             bitmapBytesPerRow;
+	CGBitmapInfo	bitmapInfo;
+	size_t		bitsPerComponent;
+
+	 // Get image width, height. Well use the entire image.
+	size_t pixelsWide = CGImageGetWidth(inImage);
+	size_t pixelsHigh = CGImageGetHeight(inImage);
+
+	// Declare the number of bytes per row. Each pixel in the bitmap in this
+	// example is represented by 4 bytes; 8 bits each of red, green, blue, and
+	// alpha.
+	bitmapBytesPerRow   = (pixelsWide * 4);
+	bitmapByteCount     = (bitmapBytesPerRow * pixelsHigh);
+
+	// Use the generic RGB color space.
+	colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+	if (colorSpace == NULL)
+	{
+	    fprintf(stderr, "Error allocating color space\n");
+	    return NULL;
+	}
+
+	
+	/* figure out the bitmap mapping */
+	bitsPerComponent = CGImageGetBitsPerComponent(inImage);
+
+	if (bitsPerComponent >= 8) {
+		CGRect rect = {{0,0},{pixelsWide, pixelsHigh}};
+		bitmapInfo = kCGImageAlphaNoneSkipLast;
+
+		/* Allocate memory for image data. This is the destination in memory
+		   where any drawing to the bitmap context will be rendered. */
+		bitmapData = malloc( bitmapByteCount );
+		if (bitmapData == NULL) {
+		    fprintf (stderr, "Memory not allocated!");
+		    CGColorSpaceRelease( colorSpace );
+		    return NULL;
+		}
+	
+		/* Create the bitmap context. We want pre-multiplied ARGB, 8-bits
+		  per component. Regardless of what the source image format is
+		  (CMYK, Grayscale, and so on) it will be converted over to the format
+		  specified here by CGBitmapContextCreate. */
+		context = CGBitmapContextCreate (bitmapData, pixelsWide, pixelsHigh,
+			bitsPerComponent, bitmapBytesPerRow, colorSpace, bitmapInfo); 
+	
+		if (context == NULL) {
+		    free (bitmapData);
+		    fprintf (stderr, "Context not created!");
+		} else {
+	
+			/* try scaling and rotating this image to fit our ideas on life in general */
+			CGContextTranslateCTM (context, 0, pixelsHigh);
+			CGContextScaleCTM (context,1.0, -1.0);
+		}
+		CGContextDrawImage(context, rect,inImage);
+	} else {
+		CGRect rect = {{0,0},{pixelsWide, pixelsHigh}};
+		/* this is a mask. */
+
+		printf ("bits per component of %d not handled\n",bitsPerComponent);
+		return NULL;
+	}
+
+	/* Make sure and release colorspace before returning */
+	CGColorSpaceRelease( colorSpace );
+
+	return context;
+}
+#endif
+
 
 /**
  *   texture_load_from_file: a local filename has been found / downloaded,
@@ -192,7 +274,9 @@ static bool texture_load_from_pixelTexture (struct textureTableIndexStruct* this
  */
 static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *filename)
 {
-#ifdef _MSC_VER
+
+/* WINDOWS */
+#if defined (_MSC_VER)
 	/* return FALSE; // to see the default grey image working first */
     if (!loadImage(this_tex, filename)) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
@@ -200,7 +284,11 @@ static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, cha
     }
 
 
-#else
+#endif
+
+
+/* LINUX */
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA)
     Imlib_Image image;
 
     image = imlib_load_image_immediately(filename);
@@ -224,8 +312,145 @@ static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, cha
     this_tex->y = imlib_image_get_height();
 
     this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only(); 
-#endif
     return TRUE;
+#endif
+
+/* OSX */
+#if defined (TARGET_AQUA)
+
+#include <Carbon/Carbon.h>
+#include <QuickTime/QuickTime.h>
+
+
+	CGImageRef 	image;
+	CFStringRef	path;
+	CFURLRef 	url;
+	size_t 		image_width;
+	size_t 		image_height;
+#ifdef OSX_USE_QUICKTIME
+	int useQuicktime = TRUE;
+#else
+	int useQuicktime = FALSE;
+#endif
+
+
+	CGContextRef 	cgctx;
+
+	/* Quicktime params */
+	OSErr 		err;
+	GraphicsImportComponent gi;
+	Handle 		dataRef;
+	OSType 		dataRefType;
+	/* end of Quicktime params */
+
+	unsigned char *	data;
+	int		hasAlpha;
+
+	CGDataProviderRef provider;
+	CGImageSourceRef 	sourceRef;
+
+	/* initialization */
+	image = NULL;
+	hasAlpha = FALSE;
+
+	path = CFStringCreateWithCString(NULL, filename, kCFStringEncodingUTF8);
+	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, 0);
+
+	/* ok, we can define USE_CG_DATA_PROVIDERS or TRY_QUICKTIME...*/
+
+	/* I dont know whether to use quicktime or not... Probably not... as the other ways using core 
+		graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs
+	*/
+	if (useQuicktime) {
+		/* lets let quicktime decide on what to do with this image */
+		err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
+
+		if (dataRef != NULL) {
+			err = GetGraphicsImporterForDataRef (dataRef, dataRefType, &gi);
+			err = GraphicsImportCreateCGImage (gi, &image, 0);
+			DisposeHandle (dataRef);
+			CloseComponent(gi);
+		}
+	} else {
+		sourceRef = CGImageSourceCreateWithURL(url,NULL);
+
+		if (sourceRef != NULL) {
+			image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
+			CFRelease (sourceRef);
+		}
+	}
+
+	CFRelease(url);
+	CFRelease(path);
+
+	image_width = CGImageGetWidth(image);
+	image_height = CGImageGetHeight(image);
+	hasAlpha = CGImageGetAlphaInfo(image) != kCGImageAlphaNone;
+
+	#ifdef TEXVERBOSE
+	if (hasAlpha) printf ("Image has Alpha channel\n"); else printf ("image - no alpha channel \n");
+
+	printf ("raw image, AlphaInfo %x\n",(int) CGImageGetAlphaInfo(image));
+	printf ("raw image, BitmapInfo %x\n",(int) CGImageGetBitmapInfo(image));
+	printf ("raw image, BitsPerComponent %d\n",(int) CGImageGetBitsPerComponent(image));
+	printf ("raw image, BitsPerPixel %d\n",(int) CGImageGetBitsPerPixel(image));
+	printf ("raw image, BytesPerRow %d\n",(int) CGImageGetBytesPerRow(image));
+	printf ("raw image, ImageHeight %d\n",(int) CGImageGetHeight(image));
+	printf ("raw image, ImageWidth %d\n",(int) CGImageGetWidth(image));
+	#endif
+	
+	/* now, lets "draw" this so that we get the exact bit values */
+	cgctx = CreateARGBBitmapContext(image);
+
+	 
+	#ifdef TEXVERBOSE
+	printf ("GetAlphaInfo %x\n",(int) CGBitmapContextGetAlphaInfo(cgctx));
+	printf ("GetBitmapInfo %x\n",(int) CGBitmapContextGetBitmapInfo(cgctx));
+	printf ("GetBitsPerComponent %d\n",(int) CGBitmapContextGetBitsPerComponent(cgctx));
+	printf ("GetBitsPerPixel %d\n",(int) CGBitmapContextGetBitsPerPixel(cgctx));
+	printf ("GetBytesPerRow %d\n",(int) CGBitmapContextGetBytesPerRow(cgctx));
+	printf ("GetHeight %d\n",(int) CGBitmapContextGetHeight(cgctx));
+	printf ("GetWidth %d\n",(int) CGBitmapContextGetWidth(cgctx));
+	#endif
+	
+	data = (unsigned char *)CGBitmapContextGetData(cgctx);
+
+	#ifdef TEXVERBOSE
+	if (CGBitmapContextGetWidth(cgctx) < 65) {
+		int i;
+
+		printf ("dumping image\n");
+		for (i=0; i<CGBitmapContextGetBytesPerRow(cgctx)*CGBitmapContextGetHeight(cgctx); i++) {
+			printf ("%2x ",data[i]);
+		}
+		printf ("\n");
+	}
+	#endif
+
+	/* is there possibly an error here, like a file that is not a texture? */
+	if (CGImageGetBitsPerPixel(image) == 0) {
+		ConsoleMessage ("texture file invalid: %s",filename);
+	}
+
+	if (data != NULL) {
+    this_tex->filename = filename;
+    this_tex->status = TEX_NEEDSBINDING;
+    this_tex->hasAlpha = hasAlpha;
+    this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
+
+    this_tex->frames = 1;
+    this_tex->x = image_width;
+    this_tex->y = image_height;
+
+    this_tex->texdata = data;
+
+	}
+
+	CGContextRelease(cgctx);
+	return TRUE;
+#endif
+
+	return FALSE;
 }
 
 /**

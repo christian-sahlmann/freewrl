@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: InputFunctions.h,v 1.6 2009/10/26 10:48:59 couannette Exp $
+$Id: InputFunctions.h,v 1.7 2009/12/03 03:00:25 crc_canada Exp $
 
 Global includes.
 
@@ -36,10 +36,6 @@ Global includes.
 char* makeFontDirectory();
 char *readInputString(char *fn);
 FILE *openLocalFile (char *fn, char* access);
-void unlinkShadowFile(char *fn);
-void addShadowFile(char *x3dname, char *myshadowname);
-char *getShadowFileNamePtr (char *fn);
-void kill_shadowFileTable (void);
 char * stripLocalFileName (char * origName);
 
 
