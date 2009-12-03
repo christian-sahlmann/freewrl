@@ -6,7 +6,7 @@ For 1.22.6 release:
 1) ProdCon threading - Mutex lock so that it does not loop continuously.
 	DONE
 2) Imlib2 on OSX - decision as to whether it will be distributed with FreeWRL or not.
-	If not, stub the imlib2 calls.
+	DONE
 3) Imlib2 on Windows - decision as to whether it will be distributed with FreeWRL or not. 
 	DONE (Doug Sanden)
 4) FreeWRL OSX front end - move Objective-C calls to use newer interface routines.
