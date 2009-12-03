@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.25 2009/11/23 01:43:19 dug9 Exp $
+$Id: Frustum.c,v 1.26 2009/12/03 18:18:12 crc_canada Exp $
 
 ???
 
@@ -62,6 +62,7 @@ static void multiply_in_scale(struct point_XYZ *arr, float x, float y, float z, 
  * Thanks Steve!
  *
  */
+
 
 #undef OCCLUSIONVERBOSE
 
@@ -731,7 +732,6 @@ void OcclusionStartofEventLoop() {
 		#ifdef OCCLUSIONVERBOSE
 		printf ("initializing OcclusionCulling...\n");
 		#endif
-		global_occlusion_disable = 1;
 		/* do we have an environment variable for this? */
 		if (global_occlusion_disable) {
 			OccFailed = TRUE;
@@ -770,6 +770,7 @@ void OcclusionStartofEventLoop() {
 		}
 
 	}
+
 
 	/* did we find more shapes than before? */
 	if (maxOccludersFound > QueryCount) {
@@ -819,7 +820,6 @@ void OcclusionCulling ()  {
 	printf ("currentQuery is %d\n",query);
 #endif
 
-	
 	/* Step 0. go through list of assigned nodes, and either:
 		- if we have OcclusionQueries: REMOVE the VF_hasVisibleChildren flag;
 		- else, set every node to VF_hasVisibleChildren */
