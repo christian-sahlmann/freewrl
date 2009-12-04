@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.43 2009/12/01 21:34:51 crc_canada Exp $
+  $Id: ProdCon.c,v 1.44 2009/12/04 17:57:35 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -840,6 +840,8 @@ void _inputParseThread(void)
 	ENTER_THREAD("input parser");
 
 	inputParseInitialized = TRUE;
+
+	viewer_default();
 
 	/* now, loop here forever, waiting for instructions and obeying them */
 	for (;;) {

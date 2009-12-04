@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.74 2009/12/03 03:00:25 crc_canada Exp $
+  $Id: MainLoop.c,v 1.75 2009/12/04 17:57:35 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -857,62 +857,49 @@ static void render()
 {
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 
-        int count;
+    int count;
 	static double shuttertime;
 	static int shutterside;
 
 	/*  profile*/
-        /* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
-        /* struct timeval mytime;*/
-        /* struct timezone tz; unused see man gettimeofday */
+    /* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
+    /* struct timeval mytime;*/
+    /* struct timezone tz; unused see man gettimeofday */
 
-        for (count = 0; count < maxbuffers; count++) {
-	
-                /*set_buffer((unsigned)bufferarray[count],count); */              /*  in Viewer.c*/
-		
+    for (count = 0; count < maxbuffers; count++) {
+
+        /*set_buffer((unsigned)bufferarray[count],count); */              /*  in Viewer.c*/
+
 		Viewer.buffer = (unsigned)bufferarray[count]; /*dug9 can I go directly or is there thread issues*/
 		Viewer.iside = count;
 		glDrawBuffer((unsigned)bufferarray[count]);
 
-                /*  turn lights off, and clear buffer bits*/
-		
-		if (Viewer.isStereo) {
-					
-			if (Viewer.shutterGlasses == 2) { /* flutter mode - like --shutter but no GL_STEREO so alternates */
+        /*  turn lights off, and clear buffer bits*/
 
-				if (TickTime - shuttertime > 2.0) {
-					
-					shuttertime = TickTime;
-					if (shutterside > 0) {
-						shutterside = 0;
-					} else {
-						shutterside = 1;
+			if(Viewer.isStereo)
+			{
+				if(Viewer.shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
+				{
+					if(TickTime - shuttertime > 2.0)
+					{
+						shuttertime = TickTime;
+						if(shutterside > 0) shutterside = 0;
+						else shutterside = 1;
 					}
-					if (count != shutterside) {
-						continue;
-					}
+					if(count != shutterside) continue;
 				}
-					
-				if (Viewer.haveAnaglyphShader) {
+				if(Viewer.haveAnaglyphShader)
 					glUseProgram(Viewer.programs[Viewer.iprog[count]]);
-				}
-
 				setup_projection(0, 0, 0);
-
-				if (Viewer.sidebyside && count >0) {
+				if(Viewer.sidebyside && count >0)
 					BackEndClearBuffer(1);
-				} else {
+				else
 					BackEndClearBuffer(2);
-				}
-					
 				setup_viewpoint(); 
-			} else {
-
-				BackEndClearBuffer(2);
-
 			}
-			BackEndLightsOff();
-		}
+		else 
+			BackEndClearBuffer(2);
+		BackEndLightsOff();
 
 #else
 
