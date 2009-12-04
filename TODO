@@ -22,9 +22,9 @@ For 1.22.6 release:
 
 	Anchor
 	Inline			DONE
-	AudioClip
+	AudioClip		DONE (needs re-implementing, so current code commented out)
 	ImageTexture		DONE
-	MovieTexture
+	MovieTexture		DONE (needs re-implementing, so current code commented out)
 	PixelTexture		DONE
 	ImageCubeMapTexture
 	Background

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Sound.c,v 1.10 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Sound.c,v 1.11 2009/12/04 16:44:45 crc_canada Exp $
 
 X3D Sound Component
 
@@ -235,6 +235,7 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 }
 
 void render_Sound (struct X3D_Sound *node) {
+#ifdef MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
 	GLdouble mod[16];
 	GLdouble proj[16];
 	struct point_XYZ vec, direction, location;
@@ -396,9 +397,11 @@ void render_Sound (struct X3D_Sound *node) {
 		}
 		FW_GL_POP_MATRIX();
 	}
+#endif /* MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL */
 }
 
 void render_AudioClip (struct X3D_AudioClip *node) {
+#ifdef MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
 	/*  register an audioclip*/
 	float pitch,stime, sttime;
 	int loop;
@@ -435,4 +438,5 @@ void render_AudioClip (struct X3D_AudioClip *node) {
 		/* printf ("globalDuration source %d %f\n",
 				node->__sourceNumber,AC_LastDuration[node->__sourceNumber]);  */
 	}
+#endif /* MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL */
 }

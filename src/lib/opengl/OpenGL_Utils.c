@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.75 2009/12/03 03:00:25 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.76 2009/12/04 16:44:45 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1680,9 +1680,11 @@ void kill_X3DNodes(void){
 					struct Uni_String* ustr;
 					for (j=0; j<MString->n; j++) {
 						ustr=MString->p[j];
+						if (ustr != NULL) {
 						ustr->len=0;
 						ustr->touched=0;
 						FREE_IF_NZ(ustr->strptr);
+						}
 					}
 					MString->n=0;
 					FREE_IF_NZ(MString->p);

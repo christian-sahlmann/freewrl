@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.23 2009/12/03 19:43:28 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.24 2009/12/04 16:44:44 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -182,6 +182,23 @@ static bool texture_load_from_pixelTexture (struct textureTableIndexStruct* this
 		}
 		iptr++;
 	}
+}
+
+
+
+/* rewrite MovieTexture loading - for now, just do a blank texture. See:
+	HAVE_TO_REIMPLEMENT_MOVIETEXTURES
+define */
+static bool texture_load_from_MovieTexture (struct textureTableIndexStruct* this_tex)
+{
+	char buff[] = {0x70, 0x70, 0x70, 0xff} ; /* same format as ImageTextures - GL_BGRA here */
+	this_tex->status = TEX_NEEDSBINDING;
+	this_tex->x = 1;
+	this_tex->y = 1;
+	this_tex->hasAlpha = FALSE;
+	this_tex->texdata = MALLOC(4);
+	memcpy (this_tex->texdata, buff, 4);
+	return TRUE;
 }
 
 
@@ -512,8 +529,12 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		break;
 
 	case NODE_MovieTexture:
+		texture_load_from_MovieTexture(entry);
+		return TRUE;
+#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 		url = & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);
 		break;
+#endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 
 	case NODE_VRML1_Texture2:
 		url = & (((struct X3D_VRML1_Texture2 *)entry->scenegraphNode)->filename);
@@ -628,22 +649,6 @@ void _textureThread()
 		/* Process all resource list items, whatever status they may have */
 		while (texture_list != NULL) {
 			ml_foreach(texture_list, texture_process_list(__l));
-#ifdef OLDCODE
-Doug Sanden had problems with the original ml_foreach macro; macro changed, to reflect problem. Doug's fixed
-code is shown here for reference:
-
-			
-					s_list_t *__l;
-					s_list_t *next;
-					s_list_t *_list = texture_list;
-					for(__l=_list;__l!=NULL;)  
-					{
-						next = ml_next(__l); /*we need to get next from __l before action texture_process_list deletes __l */
-						texture_process_list(__l);
-						__l = next;
-					}
-#endif
-
 		}
 		
 		TextureParsing = FALSE;

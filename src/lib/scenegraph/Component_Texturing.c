@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.8 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.9 2009/12/04 16:44:45 crc_canada Exp $
 
 X3D Texturing Component
 
@@ -177,6 +177,7 @@ void render_MultiTexture (struct X3D_MultiTexture *node) {
 }
 
 void render_MovieTexture (struct X3D_MovieTexture *node) {
+#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	/* really simple, the texture number is calculated, then simply sent here.
 	   The bound_textures field is sent, and, made current */
 
@@ -186,6 +187,9 @@ void render_MovieTexture (struct X3D_MovieTexture *node) {
 	loadTextureNode(X3D_NODE(node),NULL);
 	bound_textures[texture_count] = node->__ctex;
 	/* not multitexture, should have saved to bound_textures[0] */
+#else /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
+	loadTextureNode(X3D_NODE(node),NULL);
+#endif
 	
 	texture_count=1;
 }

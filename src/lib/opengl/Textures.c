@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.38 2009/12/03 21:04:30 crc_canada Exp $
+  $Id: Textures.c,v 1.39 2009/12/04 16:44:45 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -137,9 +137,6 @@ GLXContext textureContext = NULL;
 int findTextureFile(struct textureTableIndexStruct *entry);
 void _textureThread(void);
 
-static void __reallyloadPixelTexure(void);
-static void __reallyloadImageTexture(void);
-static void __reallyloadMovieTexture(void);
 static void move_texture_to_opengl(struct textureTableIndexStruct*);
 struct Uni_String *newASCIIString(char *str);
 
@@ -513,6 +510,8 @@ void loadTextureNode (struct X3D_Node *node, void *param)
 	switch (node->_nodeType) {
 
 		case NODE_MovieTexture: {
+	    		releaseTexture(node); 
+#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	    		mym = (struct X3D_MovieTexture *)node;
 	    		/*  did the URL's change? we can't test for _change here, because
 				movie running will change it, so we look at the urls. */
@@ -520,6 +519,7 @@ void loadTextureNode (struct X3D_Node *node, void *param)
 				releaseTexture(node); 
 				mym->__oldurl.p = mym->url.p;
 			    }
+#endif
 		}
 		break;
 
@@ -788,6 +788,7 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	GLint Src, Trc;
 	unsigned char *mytexdata;
 
+printf ("move_texture_to_opengl\n");
 	/* initialization */
 	Src = 0; Trc = 0;
 	tpNode = NULL;
@@ -853,111 +854,106 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 	/* a pointer to the tex data. We increment the pointer for movie texures */
 	mytexdata = me->texdata;
 
-/* 	for (count = 0; count < me->frames; count ++) { */
-		glBindTexture (GL_TEXTURE_2D, me->OpenGLTexture);
+	glBindTexture (GL_TEXTURE_2D, me->OpenGLTexture);
 	
-		/* save this to determine whether we need to do material node
-		  within appearance or not */
+	/* save this to determine whether we need to do material node
+	  within appearance or not */
 		
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, me->Src);
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, me->Trc);
-		glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
-		x = me->x;
-		y = me->y;
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, me->Src);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, me->Trc);
+	glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
+	x = me->x;
+	y = me->y;
 
-		/* choose smaller images to be NEAREST, larger ones to be LINEAR */
-		if ((x<=256) || (y<=256)) {
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	/* choose smaller images to be NEAREST, larger ones to be LINEAR */
+	if ((x<=256) || (y<=256)) {
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	} else {
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+
+	
+	/* NOTE: trying BGRA format from textures */
+	iformat = GL_RGBA; format = GL_BGRA;
+	
+	/* do the image. */
+	if(x && y) {
+		int texOk = FALSE;
+		unsigned char *dest = mytexdata;
+
+		/* do we have to do power of two textures? */
+		if (rdr_caps.av_npot_texture) {
+			rx = x; ry = y;
 		} else {
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			/* find a power of two that fits */
+			rx = 1;
+			sx = x;
+			while(sx) {sx /= 2; rx *= 2;}
+			if(rx/2 == x) {rx /= 2;}
+			ry = 1; 
+			sy = y;
+			while(sy) {sy /= 2; ry *= 2;}
+			if(ry/2 == y) {ry /= 2;}
 		}
 
+		if (global_print_opengl_errors) {
+			DEBUG_MSG("initial texture scale to %d %d\n",rx,ry);
+		}
+
+		if(rx != x || ry != y || rx > rdr_caps.max_texture_size || ry > rdr_caps.max_texture_size) {
+			/* do we have texture limits??? */
+			if (rx > rdr_caps.max_texture_size) rx = rdr_caps.max_texture_size;
+			if (ry > rdr_caps.max_texture_size) ry = rdr_caps.max_texture_size;
+		}
+
+		if (global_print_opengl_errors) {
+			DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
+		}
 	
-		/* NOTE: trying BGRA format from textures */
-		iformat = GL_RGBA; format = GL_BGRA;
-	
-		/* do the image. */
-		if(x && y) {
-			int texOk = FALSE;
-			unsigned char *dest = mytexdata;
+		/* try this texture on for size, keep scaling down until we can do it */
+		texOk = FALSE;
+		/* all textures are 4 bytes/pixel */
+		dest = (unsigned char *)MALLOC((unsigned) 4 * rx * ry);
+		while (!texOk) {
+			GLint width, height;
+			gluScaleImage(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
+			glTexImage2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 
-			/* do we have to do power of two textures? */
-			if (rdr_caps.av_npot_texture) {
-				rx = x; ry = y;
-			} else {
-				/* find a power of two that fits */
-				rx = 1;
-				sx = x;
-				while(sx) {sx /= 2; rx *= 2;}
-				if(rx/2 == x) {rx /= 2;}
-				ry = 1; 
-				sy = y;
-				while(sy) {sy /= 2; ry *= 2;}
-				if(ry/2 == y) {ry /= 2;}
-			}
+			glGetTexLevelParameteriv (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
+			glGetTexLevelParameteriv (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
 
-			if (global_print_opengl_errors) {
-				DEBUG_MSG("initial texture scale to %d %d\n",rx,ry);
-			}
-
-			if(rx != x || ry != y || rx > rdr_caps.max_texture_size || ry > rdr_caps.max_texture_size) {
-				/* do we have texture limits??? */
-				if (rx > rdr_caps.max_texture_size) rx = rdr_caps.max_texture_size;
-				if (ry > rdr_caps.max_texture_size) ry = rdr_caps.max_texture_size;
-			}
-
-			if (global_print_opengl_errors) {
-				DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
-			}
-	
-			/* try this texture on for size, keep scaling down until we can do it */
-			texOk = FALSE;
-			/* all textures are 4 bytes/pixel */
-			dest = (unsigned char *)MALLOC((unsigned) 4 * rx * ry);
-			while (!texOk) {
-				GLint width, height;
-				gluScaleImage(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
-				glTexImage2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-
-				glGetTexLevelParameteriv (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
-				glGetTexLevelParameteriv (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
-
-				if ((width == 0) || (height == 0)) {
-					rx= rx/2; ry = ry/2;
-					if (global_print_opengl_errors) {
-						DEBUG_MSG("width %d height %d going to try size %d %d, last time %d %d\n",
-							  width, height, rx,ry,x,y);
-					}
-					if ((rx==0) || (ry==0)) {
-					    ConsoleMessage ("out of texture memory");
-					    me->status = TEX_LOADED; /* yeah, right */
-					    return;
-					}
-				} else {
-					texOk = TRUE;
+			if ((width == 0) || (height == 0)) {
+				rx= rx/2; ry = ry/2;
+				if (global_print_opengl_errors) {
+					DEBUG_MSG("width %d height %d going to try size %d %d, last time %d %d\n",
+						  width, height, rx,ry,x,y);
 				}
+				if ((rx==0) || (ry==0)) {
+				    ConsoleMessage ("out of texture memory");
+				    me->status = TEX_LOADED; /* yeah, right */
+				    return;
+				}
+			} else {
+				texOk = TRUE;
 			}
-
-
-			if (global_print_opengl_errors) {
-				DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
-			}
-
-			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-			glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
-
-			if(mytexdata != dest) {FREE_IF_NZ(dest);}
-
-			/* we can get rid of the original texture data here */
-			FREE_IF_NZ(me->texdata);
 		}
 
 
-/* 		/\* increment, used in movietextures for frames more than 1 *\/ */
-/* 		mytexdata += x*y*me->depth; */
-/* 	} */
+		if (global_print_opengl_errors) {
+			DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+		glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
+
+		if(mytexdata != dest) {FREE_IF_NZ(dest);}
+
+		/* we can get rid of the original texture data here */
+		FREE_IF_NZ(me->texdata);
+	}
+
 
 	FREE_IF_NZ (me->texdata);
 
@@ -1033,7 +1029,9 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 				do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 			}
 	
+#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 			if (myTableIndex->nodeType != NODE_MovieTexture) {
+#endif
 				if (myTableIndex->OpenGLTexture == TEXTURE_INVALID) {
 	
 					DEBUG_TEX("no openGLtexture here status %s\n", texst(myTableIndex->status));
@@ -1041,10 +1039,12 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 				}
 	
 				bound_textures[texture_count] = myTableIndex->OpenGLTexture;
+#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 			} else {
 				bound_textures[texture_count] = 
 					((struct X3D_MovieTexture *)myTableIndex->scenegraphNode)->__ctex;
 			}
+#endif
 	
 			/* save the texture params for when we go through the MultiTexture stack. Non
 			   MultiTextures should have this texture_count as 0 */
@@ -1061,6 +1061,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	}
 }
 
+#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 /* FIXME: removed old "really load functions" ... needs to implement loading
           of movie textures.
 */
@@ -1107,4 +1108,4 @@ void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex) {
 		}
 /* 	} */
 }
-
+#endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */

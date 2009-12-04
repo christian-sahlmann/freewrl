@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.19 2009/10/26 10:48:59 couannette Exp $
+$Id: SensInterps.c,v 1.20 2009/12/04 16:44:44 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -950,6 +950,7 @@ void do_CollisionTick( void *ptr) {
 /* Audio AudioClip sensor code */
 /* void do_AudioTick(struct X3D_AudioClip *node) {*/
 void do_AudioTick(void *ptr) {
+#ifdef MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
 	struct X3D_AudioClip *node = (struct X3D_AudioClip *)ptr;
 	int 	oldstatus;
 	double pitch; /* gcc and params - make all doubles to do_active_inactive */
@@ -995,6 +996,7 @@ void do_AudioTick(void *ptr) {
 		}
         	SetAudioActive (node->__sourceNumber,node->isActive);
 	}
+#endif
 }
 
 
@@ -1062,6 +1064,7 @@ void do_ProximitySensorTick( void *ptr) {
 /* Audio MovieTexture code */
 /* void do_MovieTextureTick(struct X3D_MovieTexture *node) {*/
 void do_MovieTextureTick( void *ptr) {
+#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	struct X3D_MovieTexture *node = (struct X3D_MovieTexture *)ptr;
 	int 	oldstatus;
 	float 	frac;		/* which texture to display */
@@ -1136,6 +1139,7 @@ void do_MovieTextureTick( void *ptr) {
 			update_node(X3D_NODE(node));
 		}
 	}
+#endif /*HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 }
 
 
