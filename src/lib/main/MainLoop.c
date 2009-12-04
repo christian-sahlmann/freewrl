@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.75 2009/12/04 17:57:35 dug9 Exp $
+  $Id: MainLoop.c,v 1.76 2009/12/04 21:11:00 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -168,11 +168,6 @@ double BrowserStartTime;        /* start of calculating FPS     */
 double BrowserFPS = 0.0;        /* calculated FPS               */
 double BrowserSpeed = 0.0;      /* calculated movement speed    */
 
-#undef PROFILE
-#ifdef PROFILE
-static double timeAA, timeA, timeB, timeC, timeD, timeE, timeF, xxf, oxf;
-#endif
-
 int trisThisLoop;
 
 /* do we have some sensitive nodes in scene graph? */
@@ -299,10 +294,6 @@ void EventLoop() {
         if (loop_count == 0) {
                 BrowserStartTime = TickTime;
                 lastTime = TickTime;
-                #ifdef PROFILE
-                /* printf ("time setup for debugging\n"); */ 
-                timeAA = timeA = timeB = timeC = timeD = timeE = timeF =0.0;
-                #endif
         } else {
 		/* calculate how much to wait so that we are running around 100fps. Adjust the constant
 		   in the line below to raise/lower this frame rate */
@@ -322,23 +313,6 @@ void EventLoop() {
 
 		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane); */
 
-                #ifdef PROFILE
-                oxf = timeAA + timeA + timeB + timeC + timeD + timeE + timeF;
-                if (oxf > 0.01) 
-                printf ("fps %f times beg:%lf eve:%lf handle_tick:%lf render_pre:%lf do_first:%lf render:%lf ending:%lf\n",
-                                BrowserFPS,
-/*
-                                timeAA,
-                                timeA,timeB,
-                                timeC, timeD,
-                                timeE,timeF);
-*/
-                                timeAA/oxf*100.0,
-                                timeA/oxf*100.0,timeB/oxf*100.0,
-                                timeC/oxf*100.0, timeD/oxf*100.0,
-                                timeE/oxf*100.0,timeF/oxf*100.0);
-
-                #endif
                 BrowserStartTime = TickTime;
                 loop_count = 1;
         } else {
@@ -346,12 +320,6 @@ void EventLoop() {
         }
 
         trisThisLoop = 0;
-
-        #ifdef PROFILE
-        gettimeofday(&mytime, NULL);
-        xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-        timeAA = (double)timeAA +  (double)xxf - TickTime;
-        #endif
 
         /* BrowserAction required? eg, anchors, etc */
         if (BrowserAction) {
@@ -449,54 +417,21 @@ void EventLoop() {
 	doEventsWin32A(); 
 #endif
 
-        #ifdef PROFILE
-        gettimeofday(&mytime, NULL);
-        oxf = xxf;
-        xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-        timeA = (double)timeA +  (double)xxf - oxf;
-        #endif
+	/* status bar, if we have one */
+	drawStatusBar();
 
         /* Viewer move viewpoint */
         handle_tick();
 
-        #ifdef PROFILE
-        gettimeofday(&mytime, NULL);
-        oxf = xxf;
-        xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-        timeB = (double)timeB +  (double)xxf - oxf;
-        #endif
-
         /* setup Projection and activate ProximitySensors */
         if (onScreen) render_pre(); 
-
-        #ifdef PROFILE
-        gettimeofday(&mytime, NULL);
-        oxf = xxf;
-        xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-        timeC = (double)timeC +  (double)xxf - oxf;
-        #endif
-
 
         /* first events (clock ticks, etc) if we have other things to do, yield */
         if (doEvents) do_first (); else sched_yield();
 
-        #ifdef PROFILE
-        gettimeofday(&mytime, NULL);
-        oxf = xxf;
-        xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-        timeD = (double)timeD +  (double)xxf - oxf;
-        #endif
-
         /* actual rendering */
         if (onScreen)
 			render();
-
-        #ifdef PROFILE
-        gettimeofday(&mytime, NULL);
-        oxf = xxf;
-        xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-        timeE = (double)timeE +  (double)xxf - oxf;
-        #endif
 
         /* handle_mouse events if clicked on a sensitive node */
 		/*printf("nav mode =%d sensitive= %d\n",NavigationMode, HaveSensitive); */
@@ -646,13 +581,6 @@ void EventLoop() {
         /* record the TickTime here, for rate setting. We don't do this earlier, as some
            nodes use the lastTime variable */
         lastTime = TickTime;
-
-        #ifdef PROFILE
-        gettimeofday(&mytime, NULL);
-        oxf = xxf;
-        xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-        timeF = (double)timeF +  (double)xxf - oxf;
-        #endif
 }
 
 #if !defined( AQUA ) && !defined( WIN32 )
@@ -1851,7 +1779,7 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
         int tmp;
         char *ns;
 
-        if (CursorOverSensitive == NULL) update_status ("");
+        if (CursorOverSensitive == NULL) update_status (NULL);
         else {
 
                 ns = NULL;

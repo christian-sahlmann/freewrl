@@ -27,8 +27,8 @@ For 1.22.6 release:
 	MovieTexture		DONE (needs re-implementing, so current code commented out)
 	PixelTexture		DONE
 	ImageCubeMapTexture
-	Background
-	TextureBackground
+	Background		DONE
+	TextureBackground	DONE
 	GeoLOD
 	GeoMetaData
 	Script			DONE

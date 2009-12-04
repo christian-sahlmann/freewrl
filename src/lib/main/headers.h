@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.91 2009/12/01 21:34:51 crc_canada Exp $
+$Id: headers.h,v 1.92 2009/12/04 21:11:00 crc_canada Exp $
 
 Global includes.
 
@@ -1060,5 +1060,6 @@ extern void *setNavigationBindInRender;
 
 char* convert1To2(const char *inp);
 
+updateStatusBar(void);
 
 #endif /* __FREEWRL_HEADERS_H__ */

@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.39 2009/12/04 16:44:45 crc_canada Exp $
+  $Id: Textures.c,v 1.40 2009/12/04 21:11:00 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -788,7 +788,6 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	GLint Src, Trc;
 	unsigned char *mytexdata;
 
-printf ("move_texture_to_opengl\n");
 	/* initialization */
 	Src = 0; Trc = 0;
 	tpNode = NULL;
