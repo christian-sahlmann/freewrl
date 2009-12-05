@@ -502,7 +502,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\lib\ui\statusbar.c"
+				RelativePath="..\statusbar.c"
 				>
 			</File>
 			<File
