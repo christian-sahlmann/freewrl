@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.1 2009/12/05 00:51:26 dug9 Exp $
+  $Id: statusbar.c,v 1.2 2009/12/05 19:47:31 dug9 Exp $
 
 */
 
@@ -74,7 +74,6 @@ void makeRasterFont(void)
 {
    GLuint i, j;
    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
    fontOffset = glGenLists (128);
    for (i = 0,j = 'A'; i < 26; i++,j++) {
       glNewList(fontOffset + j, GL_COMPILE);
@@ -163,38 +162,81 @@ void display(void)
    //glFlush ();
 }
 extern int currentX, currentY;
+static int useStencil = 1;
+static int followCursor = 0;
+static int windowPos = 1;
 void drawStatusBar() 
 {
 	char *p; 
 	int xvp;
-	int followCursor;
+	float c[4];
+	int ic[4];
 	if (!sb_hasString) {
-		glDisable(GL_STENCIL_TEST);
+		if(useStencil) glDisable(GL_STENCIL_TEST);
 		return;
 	}
 	if(!fontInitialized) initFont();
-	xvp = setup_projection2(); 
-	FW_GL_LOAD_IDENTITY();
+	xvp = 0;
+	if(windowPos)
+	{
+		if( Viewer.iside == 1) xvp = screenWidth/2.0;
+	}else{
+		xvp = setup_projection2(); 
+		FW_GL_LOAD_IDENTITY();
+	}
 
-	glClearColor (1.0f, 1.0f, 1.0f, 0.0f);
-	glClearStencil(0);
-	glEnable(GL_STENCIL_TEST);
-	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glStencilFunc(GL_NEVER, 0x0, 0x0);
-	glStencilOp(GL_INCR, GL_INCR, GL_INCR);
-	//glColor3f(1.0f, 1.0f, 1.0f);
+	if(useStencil)
+	{
+		//you call drawStatusBar() with stencil before you start rendering, and the stencil bits won't be over-written
+		glGetFloatv(GL_COLOR_CLEAR_VALUE,c);
+		glClearColor (1.0f, 1.0f, 1.0f, 0.0f);
+		glClearStencil(0);
+		glEnable(GL_STENCIL_TEST);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glClear(GL_STENCIL_BUFFER_BIT);
+		glStencilFunc(GL_NEVER, 0x0, 0x0);
+		glStencilOp(GL_INCR, GL_INCR, GL_INCR);
+		glColor3f(1.0f, 1.0f, 1.0f);
+	}else{
+		// you must call drawStatusBar() from render() just before swapbuffers 
+		glDepthMask(FALSE);
+		glDisable(GL_DEPTH_TEST);
+		glColor3f(1.0f,1.0f,1.0f);
+	}
 	//display();
-	followCursor = 0;
-	if( followCursor)
-		glRasterPos2i(currentX,screenHeight - currentY); 
-	else
-		glRasterPos2i(xvp+5,screenHeight -15);
+	if(windowPos)
+	{
+		//glWindowPos seems to set the bitmap color correctly in windows
+		if( followCursor)
+			glWindowPos2i(currentX,screenHeight - currentY); 
+		else
+			glWindowPos2i(xvp+5,screenHeight -15);
+	}else{
+		//glRasterPos does not seem to set the bitmap color correctly.
+		if( followCursor)
+			glRasterPos2i(currentX,screenHeight - currentY); 
+		else
+			glRasterPos2i(xvp+5,screenHeight -15);
+	}
 	p = buffer;
+	//glGetFloatv(GL_CURRENT_RASTER_COLOR,c);
+	//printf("c=%f %f %f",c[0],c[1],c[2]);
+	//glGetIntegerv(GL_CURRENT_RASTER_INDEX,ic);
+	//printf("ic=%d ",ic[0]);
+	//glColor3f(1.0,1.0,1.0);
 	printString(p); 
 
-	     
-	// Now, allow drawing, except where the stencil pattern is 0x1
-	// and do not make any further changes to the stencil buffer
-	glStencilFunc(GL_NOTEQUAL, 0x1, 0x1);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	if(useStencil)
+	{
+		// Now, allow drawing, except where the stencil pattern is 0x1
+		// and do not make any further changes to the stencil buffer
+		glStencilFunc(GL_NOTEQUAL, 0x1, 0x1);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		//glClearColor(c[0],c[1],c[2],c[3]); //, 1.0f, 1.0f, 0.0f);
+	}else{
+		glDepthMask(TRUE);
+		glEnable(GL_DEPTH_TEST);
+		glFlush();
+
+	}
 }
