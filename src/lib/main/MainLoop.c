@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.77 2009/12/07 20:31:15 crc_canada Exp $
+  $Id: MainLoop.c,v 1.78 2009/12/07 23:23:21 couannette Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -417,11 +417,6 @@ void EventLoop() {
 	doEventsWin32A(); 
 #endif
 
-#ifdef OLDCODE
-	/* status bar, if we have one */
-	drawStatusBar();
-#endif
-
         /* Viewer move viewpoint */
         handle_tick();
 
@@ -551,6 +546,7 @@ void EventLoop() {
                 }
 #endif
         }
+
 
         /* handle snapshots */
         if (doSnapshot) {
@@ -889,7 +885,7 @@ static void render()
 
 #endif
 
-	/* Dougs statusbar drawn here */
+	/* status bar, if we have one */
 	drawStatusBar();
 
 #if defined( AQUA )

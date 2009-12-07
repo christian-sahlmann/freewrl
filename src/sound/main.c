@@ -454,12 +454,13 @@ int main(int argc,char **argv) {
 		/* printf ("server, from FreeWRL=%x message='%s'\n",xx,msg.msg);*/
 		process_command ();
 	} while (strncmp ("QUIT",msg.msg,4));
+#if 0
 	for (count=0; count<current_max; count++) {
 		sprintf (fileRemove,"/tmp/sound%d.wav",count);
 		/* printf ("unlinking %d\n",count);*/
 		unlinkShadowFile(fileRemove);
 	}
-
+#endif
 	/* printf ("Server exiting normally\n");*/
 	exit(0);
 }

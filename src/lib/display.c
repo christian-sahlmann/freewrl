@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.25 2009/11/28 22:46:05 dug9 Exp $
+  $Id: display.c,v 1.26 2009/12/07 23:23:21 couannette Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -35,6 +35,7 @@
 #include <libFreeWRL.h>
 
 #include "opengl/Textures.h"
+#include "opengl/RasterFont.h"
 
 
 bool display_initialized = FALSE;
@@ -145,6 +146,14 @@ int display_initialize()
 		return FALSE;
 	}
 
+	/* initialize raster font 
+	   font is just an example picked up with xfontsel...
+	   we handle only XFont here... we'll come with a cross
+	   platform soon :)...
+	 */
+	if (!rf_xfont_init("-*-bitstream vera sans mono-medium-r-*-*-*-120-*-*-*-*-*-*")) {
+		ERROR_MSG("could not initialize raster font\n");
+	}
 
 	/* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
 	glGenTextures(1,&defaultBlankTexture);
