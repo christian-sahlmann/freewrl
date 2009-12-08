@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.18 2009/12/07 23:23:21 couannette Exp $
+  $Id: statusbar.c,v 1.19 2009/12/08 21:09:30 crc_canada Exp $
 
 */
 
@@ -53,7 +53,6 @@
 #include "../opengl/RasterFont.h"
 
 
-static int sb_hasString = FALSE;
 static struct Uni_String *myline;
 
 #define MAX_BUFFER_SIZE 4096
@@ -65,22 +64,17 @@ void render_init(void);
 /* make sure that on a re-load that we re-init */
 void kill_status (void) {
 	/* hopefully, by this time, rendering has been stopped */
-	sb_hasString = FALSE;
 }
 
 
 /* trigger a update */
 void update_status(char* msg)
 {
-#if 0
 	if (!msg) {
-		sb_hasString = FALSE;
+		buffer[0] = '\0';
 	} else {
-		sb_hasString = TRUE;
 		strncpy(buffer, msg, MAX_BUFFER_SIZE);
 	}
-#endif
-	snprintf(buffer, MAX_BUFFER_SIZE, "fps: %.2f", myFps);
 }
 
 void setup_projection(int pick, int x, int y) 
@@ -115,10 +109,10 @@ void setup_projection(int pick, int x, int y)
 void drawStatusBar()
 {
 	/* update fps message (maybe extend this with other "text widgets" */
-	update_status(NULL);
+	/* JAS update_status(NULL); */
 
 	rf_xfont_set_color(xf_white);
 	rf_layer2D();
-	rf_printf(10, 10, buffer);
+	rf_printf(15, 15, buffer);
 	rf_leave_layer2D();
 }

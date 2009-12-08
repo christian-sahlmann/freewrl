@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.92 2009/12/04 21:11:00 crc_canada Exp $
+$Id: headers.h,v 1.93 2009/12/08 21:09:30 crc_canada Exp $
 
 Global includes.
 
@@ -571,8 +571,6 @@ extern struct X3D_Anchor *AnchorsAnchor;
 int checkIfX3DVRMLFile(char *fn);
 void EAI_Anchor_Response (int resp);
 extern int wantEAI;
-struct Uni_String *newASCIIString(char *str);
-void verify_Uni_String(struct  Uni_String *unis, char *str);
 
 void *returnInterpolatorPointer (const char *x);
 

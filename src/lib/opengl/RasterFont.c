@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.1 2009/12/07 23:23:21 couannette Exp $
+  $Id: RasterFont.c,v 1.2 2009/12/08 21:09:30 crc_canada Exp $
 
 */
 
@@ -33,9 +33,11 @@
 #include <stdarg.h>
 
 
+#include "../input/EAIHelpers.h"
+static struct X3D_Text myText;
+static struct X3D_FontStyle myFont;
+
 static bool rf_initialized = FALSE;
-static char xfont_buffer[5000];
-unsigned int xfont_list_base = 0;
 
 static int xf_color = xf_white;
 static vec4f_t xf_colors[3] = { 
@@ -45,19 +47,23 @@ static vec4f_t xf_colors[3] = {
 };
 
 
-void rf_print(const char *text)
+static void rf_print(const char *text)
 {
-    ASSERT(text);
-    if (strlen(text) > 0) {
-	glPushAttrib(GL_LIST_BIT);
-	glListBase(xfont_list_base);
-	glCallLists(strlen(text), GL_UNSIGNED_BYTE, (GLubyte *) text);
-	glPopAttrib();
-    }
+	/* has text changed? */
+	myText.string.p[0]->touched = 0;
+	verify_Uni_String (myText.string.p[0],(char *)text);
+	if (myText.string.p[0]->touched > 0) {
+		/* mark the FontStyle and Text node that things have changed */
+		myText._change++;
+		myFont._change++;
+	}
+
+	render_Text (&myText);
 }
 
 void rf_printf(int x, int y, const char *format, ...)
 {
+	char xfont_buffer[5000];
     if (!rf_initialized) {
 	ERROR_MSG("xfont not initialized !!! initializing with defaults (fixed white)\n");
 	if (!rf_xfont_init("fixed")) {
@@ -108,31 +114,52 @@ void rf_leave_layer2D()
     glPopMatrix();
 }
 
-int rf_xfont_init(const char *fontname)
+static int rf_xfont_init(const char *fontname)
 {
-    int ret;
-    Font xfont;
+	/* create a new text node, but DO NOT call one of the createNewX3DNode interface, because we only
+		want a holder here, this is NOT a scenegraph node. */
 
-    if (!fontname) {
-	    fontname = "-*-fixed-medium-r-*-*-*-*-*-*-*-*-*-*";
-    }
-    xfont_list_base = glGenLists(256); // I used to have this stored internally... dri_next_list_range_available(256);
+	/* write zeroes here - we do not want any pointers, parents, etc, etc. */
+	bzero (&myText,sizeof (struct X3D_Text));
 
-    TRACE_MSG("Loading XFont %s\n", fontname);
-    xfont = XLoadFont(Xdpy, fontname);
-    if (xfont == BadAlloc || xfont == BadName) {
-	    ERROR_MSG("rf_xfont_init: XLoadFont error");
-	return FALSE;
-    }
+	myText.v = &virt_Text;
+	myText.fontStyle = NULL;
+	myText.solid = TRUE;
+	myText.__rendersub = 0;
+	myText.origin.c[0] = 0;myText.origin.c[1] = 0;myText.origin.c[2] = 0;;
 
-    glXUseXFont(xfont, 0, 256, xfont_list_base);
+	/* give this 1 string */
+ myText.string.p = MALLOC (sizeof(struct Uni_String)*1);myText.string.p[0] = newASCIIString("Initial String for Status Line");myText.string.n=1; ;
 
-    ret = XUnloadFont(Xdpy, xfont);
-    if (ret == BadFont) {
-	// should not happen
-	glDeleteLists(xfont_list_base, 256);
-	ERROR_MSG("rf_xfont_init: XUnloadFont error");
-    }
+	
+	myText.textBounds.c[0] = 0;myText.textBounds.c[1] = 0;;
+	myText.length.n=0; myText.length.p=0;
+	myText.maxExtent = 0;
+	myText.lineBounds.n=0; myText.lineBounds.p=0;
+	myText.metadata = NULL;
+	myText.__oldmetadata = 0;
+	myText._defaultContainer = FIELDNAMES_geometry;
+
+	/* create a new FontStyle node here and link it in */
+	bzero (&myFont, sizeof (struct X3D_FontStyle));
+
+	myFont._nodeType = NODE_FontStyle; /* needed for scenegraph structure in make_Text */
+	myFont.v = &virt_FontStyle;
+	myFont.language = newASCIIString("");
+	myFont.leftToRight = TRUE;
+	myFont.topToBottom = TRUE;
+	myFont.style = newASCIIString("PLAIN");
+	myFont.size = 30.0;
+	myFont.justify.p = MALLOC (sizeof(struct Uni_String)*1);myFont.justify.p[0] = newASCIIString("BEGIN");myFont.justify.n=1; ;
+	myFont.metadata = NULL;
+	myFont.spacing = 1;
+	myFont.__oldmetadata = 0;
+	myFont.horizontal = TRUE;
+	myFont.family.p = MALLOC (sizeof(struct Uni_String)*1);myFont.family.p[0] = newASCIIString("SERIF");myFont.family.n=1; ;
+	myFont._defaultContainer = FIELDNAMES_fontStyle;
+
+	myText.fontStyle = &myFont;
+
     rf_initialized = TRUE;
     return TRUE;
 }
@@ -143,21 +170,10 @@ void rf_xfont_set_color(e_xfont_color_t index)
     xf_color = index;
 }
 
-void rf_xfont_set_usercolor(vec4f_t color)
+static void rf_xfont_set_usercolor(vec4f_t color)
 {
     xf_colors[xf_user][0] = color[0];
     xf_colors[xf_user][1] = color[1];
     xf_colors[xf_user][2] = color[2];
     xf_colors[xf_user][3] = color[3];
 }
-
-#if 0
-void rf_mvar_print(int x, int y, s_mvar_t *mvar)
-{
-    static char buffer[4096];
-    ASSERTE(mvar);
-    mvar_dump_str(mvar, buffer, 4096);
-    rf_printf(x, y, "%s = %s", mvar->name, buffer);
-
-}
-#endif

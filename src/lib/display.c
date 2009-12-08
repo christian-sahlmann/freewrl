@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.26 2009/12/07 23:23:21 couannette Exp $
+  $Id: display.c,v 1.27 2009/12/08 21:09:30 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -146,6 +146,7 @@ int display_initialize()
 		return FALSE;
 	}
 
+#ifdef OLDCODE
 	/* initialize raster font 
 	   font is just an example picked up with xfontsel...
 	   we handle only XFont here... we'll come with a cross
@@ -154,6 +155,7 @@ int display_initialize()
 	if (!rf_xfont_init("-*-bitstream vera sans mono-medium-r-*-*-*-120-*-*-*-*-*-*")) {
 		ERROR_MSG("could not initialize raster font\n");
 	}
+#endif
 
 	/* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
 	glGenTextures(1,&defaultBlankTexture);

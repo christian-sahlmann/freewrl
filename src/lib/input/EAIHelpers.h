@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.h,v 1.9 2009/10/05 15:07:23 crc_canada Exp $
+$Id: EAIHelpers.h,v 1.10 2009/12/08 21:09:30 crc_canada Exp $
 
 EAI Helpers functions
 
@@ -32,6 +32,8 @@ EAI Helpers functions
 
 #include "../vrml_parser/Structs.h"
 
+struct Uni_String *newASCIIString(char *str);
+void verify_Uni_String(struct  Uni_String *unis, char *str);
 struct X3D_Node *getEAINodeFromTable(int index, int field);
 int returnElementRowSize (int type);					/* from EAI_C_CommonFunctions.c */
 int returnElementLength(int type);					/* from EAI_C_CommonFunctions.c */
