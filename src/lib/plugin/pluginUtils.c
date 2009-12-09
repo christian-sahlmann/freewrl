@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.14 2009/10/26 10:51:41 couannette Exp $
+  $Id: pluginUtils.c,v 1.15 2009/12/09 18:28:51 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -44,6 +44,8 @@
 
 #include "pluginUtils.h"
 
+static int checkIfX3DVRMLFile(char *fn);
+
 
 /* get all system commands, and pass them through here. What we do
  * is take parameters and execl them, in specific formats, to stop
@@ -75,20 +77,34 @@ void killErrantChildren(void) {
 
 /* implement Anchor/Browser actions */
 
+static void goToViewpoint(char *vp) {
+	struct X3D_Node *localNode;
+	int tableIndex;
+	int flen;
+
+
+	/* see if we can get a node that matches this DEF name */
+	localNode = EAI_GetViewpoint(vp);
+	
+	/*  did we find a match with known Viewpoints?*/
+	if (localNode != NULL) {
+		for (flen=0; flen<totviewpointnodes;flen++) {
+			if (localNode == viewpointnodes[flen]) {
+				/* unbind current, and bind this one */
+				send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
+				currboundvpno=flen;
+				send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
+
+				return;
+			}
+		}
+	}
+	/* printf ("goToViewpoint - failed to match local Viewpoint\n"); */
+}
+
+
 void doBrowserAction()
 {
-/* 	int count; */
-/* 	int localNode; */
-/* 	int tableIndex; */
-/* 	char *filename; */
-/* 	char *mypath; */
-/* 	char *thisurl; */
-/* 	int flen; */
-/* #define LINELEN 2000 */
-/* 	char sysline[LINELEN]; */
-/* 	int testlen; */
-/*      struct Multi_String { int n; SV * *p; }; */
-
 	struct Multi_String Anchor_url;
 	resource_item_t *res = NULL; 	/* If this res is valid, then we can replace root_res with it */
 	char *parent_url, *description;
@@ -99,16 +115,39 @@ void doBrowserAction()
 	description = AnchorsAnchor->description->strptr;
 
 	TRACE_MSG("doBrowserAction: parent url=<%s> description: %s\n", parent_url, description);
+	printf("doBrowserAction: parent url=<%s> description: %s\n", parent_url, description);
 
-	res = resource_create_multi(&Anchor_url);
-	send_resource_to_parser(res);
-	resource_wait(res);
+	/* are we going to load up a new VRML/X3D world, or are we going to just go and load up a new web page ? */
+	if (Anchor_url.n < 0) {
+		/* printf ("have Anchor, empty URL\n"); */
+		return;
+	} 
 
-	switch (res->status) {
-	case ress_parsed:
-		EAI_Anchor_Response(TRUE);
-	default:
-		EAI_Anchor_Response(FALSE);
+	printf ("ok, Anchor first url is :%s:\n",Anchor_url.p[0]->strptr);
+	if (checkIfX3DVRMLFile(Anchor_url.p[0]->strptr)) {
+		printf ("this IS an X3D file...\n");
+
+
+		res = resource_create_multi(&Anchor_url);
+		send_resource_to_parser(res);
+		resource_wait(res);
+
+		switch (res->status) {
+			case ress_parsed:
+				EAI_Anchor_Response(TRUE);
+			default:
+				EAI_Anchor_Response(FALSE);
+		}
+
+	} else {
+
+		/* ok, not a new world to load, lets see if it is a Viewpoint in current world: */
+		if (Anchor_url.p[0]->strptr[0] == '#') {
+			printf ("this IS a viewpoint in local world\n");
+			goToViewpoint (&(Anchor_url.p[0]->strptr[1]));
+		} else {
+			printf ("have to get a new window up and running here\n");
+		}
 	}
 
 	return;
@@ -267,7 +306,7 @@ void doBrowserAction()
  * Plugin/netscape/source/npfreewrl.c
  */
 
-int checkIfX3DVRMLFile(char *fn) {
+static int checkIfX3DVRMLFile(char *fn) {
 	if ((strstr(fn,".wrl") > 0) ||
 		(strstr(fn,".WRL") > 0) ||
 		(strstr(fn,".x3d") > 0) ||
@@ -289,6 +328,8 @@ bool Anchor_ReplaceWorld(const char *name)
 {
 	resource_item_t *res;
 
+printf ("Anchor_ReplaceWorld - parsing %s\n",name);
+
 	res = resource_create_single(name);
 	res->new_root = TRUE;
 	send_resource_to_parser(res);
@@ -299,36 +340,6 @@ bool Anchor_ReplaceWorld(const char *name)
 		return FALSE;
 	}
 	return TRUE;
-
-#if 0
-	/* sanity check - are we actually going to do something with a name? */
-	if (name != NULL)
-		if (strlen (name) > 1) {
-			strcpy (filename,name);
-
-			/* there is a good chance that this name has already been vetted from the
-			   network. BUT - plugin code might pass us a networked file name for loading,
-			   (eg, check out current OSX plugin; hopefully still valid) */
-
-	                if (fileExists(filename,NULL,TRUE)) {
-				/* kill off the old world, but keep EAI open, if it is... */
-				kill_oldWorld(FALSE,TRUE,TRUE,__FILE__,__LINE__);
-
-				inputParse(FROMURL, filename,TRUE,FALSE, 
-					rootNode, offsetof (struct X3D_Group, children),&tmp,
-					TRUE);
-			
-				tt = BrowserFullPath;
-				BrowserFullPath = STRDUP(filename);
-				FREE_IF_NZ(tt);
-				EAI_Anchor_Response (TRUE);
-				return;
-			} else {
-				ConsoleMessage ("file %s does not exist",name);
-			}
-		} 
-	EAI_Anchor_Response (FALSE);
-#endif
 }
 
 /* send in a 0 to 15, return a char representation */

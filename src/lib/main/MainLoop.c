@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.78 2009/12/07 23:23:21 couannette Exp $
+  $Id: MainLoop.c,v 1.79 2009/12/09 18:28:51 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -81,7 +81,6 @@ static char debs[300];
 
 char* PluginFullPath;
 
-static int replaceWorld = FALSE;
 static char  replace_name[FILENAME_MAX];
 
 /* linewidth for lines and points - passed in on command line */
@@ -325,12 +324,6 @@ void EventLoop() {
         if (BrowserAction) {
                 doBrowserAction ();
                 BrowserAction = FALSE;  /* action complete */
-        }
-
-        if (replaceWorld) {
-/*MBFILES          Anchor_ReplaceWorld(replace_name); */
-		/* FIXME: implement reload fw_main_try_reload(); */
-                replaceWorld= FALSE;
         }
 
         /* handle any events provided on the command line - Robert Sim */
@@ -1770,8 +1763,8 @@ void setEaiVerbose() {
 /* called from the standalone OSX front end */
 void replaceWorldNeeded(char* str)
 {
-    strncpy(replace_name, str, FILENAME_MAX);
-    replaceWorld = TRUE; 
+printf ("replaceWorldneeded called\n");
+
 }
 
 

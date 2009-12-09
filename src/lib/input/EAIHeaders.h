@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHeaders.h,v 1.4 2009/10/05 15:07:23 crc_canada Exp $
+$Id: EAIHeaders.h,v 1.5 2009/12/09 18:28:51 crc_canada Exp $
 
 EAI and java CLASS invocation
 
@@ -47,7 +47,7 @@ extern int eaiverbose;
 
 void shutdown_EAI(void);
 int EAI_GetNode(const char *str);
-unsigned int EAI_GetViewpoint(const char *str);
+struct X3D_Node *EAI_GetViewpoint(const char *str);
 void EAI_killBindables (void);
 
 /* function prototypes */

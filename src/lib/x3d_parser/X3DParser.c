@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.59 2009/11/18 20:22:58 crc_canada Exp $
+$Id: X3DParser.c,v 1.60 2009/12/09 18:28:51 crc_canada Exp $
 
 ???
 
@@ -296,6 +296,8 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 	/* lexer_defineNodeName is #defined as lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE) */
 	/* Checks if this node already exists in the userNodeNames vector.  If it doesn't, adds it. */
 
+	if (myLexer == NULL) return NULL;
+
 	lexer_fromString(myLexer,STRDUP(name));
 
 	if(!lexer_defineNodeName(myLexer, &ind))
@@ -328,7 +330,6 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 
 	return node;
 }
-
 
 
 /* look through the script fields for this field, and return the values. */

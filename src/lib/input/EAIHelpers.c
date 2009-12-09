@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.33 2009/11/07 00:31:57 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.34 2009/12/09 18:28:51 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -544,9 +544,19 @@ char * SAI_StrRetCommand (char cmnd, const char *fn) {
 	return "iunknownreturn";
 }
 
-unsigned int EAI_GetViewpoint(const char *str) {
-	printf ("HELP::EAI_GetViewpoint %s\n",str);
-	return 0;
+/* returns an viewpoint node  or NULL if not found */
+struct X3D_Node *EAI_GetViewpoint(const char *str) {
+       struct X3D_Node * myNode;
+
+        /* Try to get X3D node name */
+
+        myNode = X3DParser_getNodeFromName(str);
+        if (myNode == NULL) {
+                /* Try to get VRML node name */
+                myNode = parser_getNodeFromName(str);
+        }
+
+	return myNode;
 }
 
 
