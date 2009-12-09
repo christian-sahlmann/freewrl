@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.8 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Snapshot.c,v 1.9 2009/12/09 01:11:09 couannette Exp $
 
 CProto ???
 
@@ -91,18 +91,19 @@ void setSnapGif()
 
 /* turn snapshotting on; if sequenced; possibly turn off an convert sequence */
 void setSnapshot() {
-	if (!doSnapshot) {
-		doSnapshot = TRUE;
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
-
+	if (!doSnapshot) {
+		doSnapshot = TRUE;
 	} else {
 		if (snapsequence) {
 			doSnapshot = FALSE;
 			saveSnapSequence();
 		}
-#endif
 	}
+#else
+	doSnapshot = ! doSnapshot;
+#endif
 }
 
 #ifdef DOSNAPSEQUENCE
