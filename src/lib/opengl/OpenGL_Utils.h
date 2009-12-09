@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.14 2009/11/10 10:18:26 couannette Exp $
+$Id: OpenGL_Utils.h,v 1.15 2009/12/09 22:19:11 crc_canada Exp $
 
 Screen snapshot.
 
@@ -33,6 +33,7 @@ Screen snapshot.
 
 void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void end_textureTransform (void);
+void markForDispose(struct X3D_Node *node, int recursive);
 
 void
 BackEndClearBuffer(int);

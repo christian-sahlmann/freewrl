@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.76 2009/12/04 16:44:45 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.77 2009/12/09 22:19:11 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -56,6 +56,7 @@
 #include "../opengl/Material.h"
 #include "../scenegraph/Component_Core.h"
 #include "../scenegraph/Component_Networking.h"
+#include "OpenGL_Utils.h"
 
 #include <float.h>
 
@@ -65,13 +66,14 @@
 void kill_rendering(void);
 
 /* Node Tracking */
-void kill_X3DNodes(void);
+static void kill_X3DNodes(void);
 static void createdMemoryTable();
 static void increaseMemoryTable();
 static struct X3D_Node ** memoryTable = NULL;
 static int tableIndexSize = INT_ID_UNDEFINED;
 static int nextEntry = 0;
 static struct X3D_Node *forgottenNode;
+static void killNode (int index);
 
 /* lights status. Light 0 is the headlight */
 static int lights[8];
@@ -712,7 +714,9 @@ inline void fwXformPop(void) {
 }
 #endif
 /* for Sarah's front end - should be removed sometime... */
-void kill_rendering() {kill_X3DNodes();}
+void kill_rendering() {
+printf ("kill_rendering called...\n");
+}
 
 
 /* if we have a ReplaceWorld style command, we have to remove the old world. */
@@ -722,10 +726,19 @@ void kill_rendering() {kill_X3DNodes();}
    ones, really, it's just replace the rootNode children, as WE DO NOT KNOW
    what the user has programmed, and what nodes are (re) used in the Scene Graph */
 
-void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL, char *file, int line) {
+void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
+	int i;
 	#ifndef AQUA
         char mystring[20];
 	#endif
+
+	/* mark all rootNode children for Dispose */
+	for (i=0; i<X3D_GROUP(rootNode)->children.n; i++) {
+		markForDispose(X3D_GROUP(rootNode)->children.p[i], TRUE);
+	}
+
+	/* stop rendering */
+	X3D_GROUP(rootNode)->children.n = 0;
 
 	/* close the Console Message system, if required. */
 	closeConsoleMessage();
@@ -744,8 +757,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL, char *f
 	/* stop routing */
 	kill_routing();
 
-	/* stop rendering */
-	X3D_GROUP(rootNode)->children.n = 0;
 
 	/* tell the statusbar that it needs to reinitialize */
 	kill_status();
@@ -760,9 +771,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL, char *f
 	if (kill_EAI) {
 	       	shutdown_EAI();
 	}
-
-	/* free memory */
-	kill_X3DNodes();
 
 	#ifndef AQUA
 		sprintf (mystring, "QUIT");
@@ -795,8 +803,10 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 	LOCK_MEMORYTABLE
 	for (tc = 0; tc< nextEntry; tc++)
 		if (memoryTable[tc] == node) {
+			if (node->referenceCount > 0) {
 			UNLOCK_MEMORYTABLE
 			return TRUE;
+		}
 	}
 
 
@@ -959,12 +969,15 @@ void zeroVisibilityFlag(void) {
 		   and hope that, sometime, the user gets a good computer graphics card */
 		for (i=0; i<nextEntry; i++){		
 			node = memoryTable[i];	
-			node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
+			if (node != NULL) {
+				node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
+			}
 		}	
 	} else {
 		/* we do... lets zero the hasVisibleChildren flag */
 		for (i=0; i<nextEntry; i++){		
 			node = memoryTable[i];		
+			if (node != NULL) {
 		
 			#ifdef OCCLUSIONVERBOSE
 			if (((node->_renderFlags) & VF_hasVisibleChildren) != 0) {
@@ -973,6 +986,7 @@ void zeroVisibilityFlag(void) {
 			#endif
 
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasVisibleChildren);
+			}
 	
 		}		
 	}
@@ -1131,12 +1145,17 @@ void startOfLoopNodeUpdates(void) {
 	for (i=0; i<nextEntry; i++){		
 		node = memoryTable[i];	
 		if (node != NULL) {
-			/* turn OFF these flags */
-			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
-			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);
-			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_localLight);
-			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_globalLight);
-			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Blend);
+			/* printf ("%d ref %d\n",i,node->referenceCount); */
+			if (node->referenceCount == 0) {
+				/* killNode(i); */
+			} else {
+				/* turn OFF these flags */
+				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
+				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);
+				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_localLight);
+				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_globalLight);
+				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Blend);
+			}
 		}
 	}
 
@@ -1153,7 +1172,8 @@ void startOfLoopNodeUpdates(void) {
 
 	for (i=0; i<nextEntry; i++){		
 		node = memoryTable[i];	
-		if (node != NULL) {
+		if (node != NULL) 
+		if (node->referenceCount > 0) {
 			switch (node->_nodeType) {
 				BEGIN_NODE(Shape)
 					/* send along a "look at me" flag if we are visible, or we should look again */
@@ -1514,9 +1534,109 @@ void startOfLoopNodeUpdates(void) {
 	}
 }
 
+void markForDispose(struct X3D_Node *node, int recursive){
+	struct Multi_Node* MNode;
+	struct X3D_Node sfnode;
+	uintptr_t *fieldOffsetsPtr;
+	char * fieldPtr;
+
+	if (node==NULL) return;
+
+	 
+/*
+	printf ("\nmarkingForDispose %u (%s) currently at %d\n",node,
+		stringNodeType(node->_nodeType),node->referenceCount);
+*/
+	
+	if (node->referenceCount > 0) node->referenceCount --;
+
+	if (recursive) {
+
+	fieldOffsetsPtr = (uintptr_t *) NODE_OFFSETS[node->_nodeType];
+	/*go thru all field*/				
+	while (*fieldOffsetsPtr != -1) {
+		fieldPtr = offsetPointer_deref(char *, node,*(fieldOffsetsPtr+1));
+		#ifdef VERBOSE
+		printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
+		#endif
+
+		/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
+		if (*fieldOffsetsPtr == FIELDNAMES_setValue) 
+			break; /* can be a duplicate SF/MFNode pointer */
+	
+		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged) 
+			break; /* can be a duplicate SF/MFNode pointer */
+	
+
+		if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata) 
+			break; /* can be a duplicate SFNode pointer */
+	
+		if (*fieldOffsetsPtr == FIELDNAMES___lastParent) 
+			break; /* can be a duplicate SFNode pointer - field only in NODE_TextureCoordinate */
+	
+		if (*fieldOffsetsPtr == FIELDNAMES__selected) 
+			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
+
+		if (*fieldOffsetsPtr == FIELDNAMES___oldChildren) 
+			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
+
+		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr) 
+			break; /* used for seeing if interpolator values change */
+
+		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr) 
+			break; /* used for seeing if interpolator values change */
+
+		/* GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes */
+		if (node->_nodeType == NODE_GeoLOD) {
+			if (*fieldOffsetsPtr == FIELDNAMES_children) break;
+		}
+	
+		/* nope, not a special field, lets just get rid of it as best we can */
+		switch(*(fieldOffsetsPtr+2)){
+			case FIELDTYPE_MFNode: {
+				int i;
+				struct X3D_Node *tp;
+				MNode=(struct Multi_Node *)fieldPtr;
+		/* printf (" ... field MFNode, %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); */
+
+				for (i=0; i<MNode->n; i++) {
+					tp = MNode->p[i];
+					 
+					if (tp!=NULL)
+						markForDispose(tp,TRUE);
+				}
+				MNode->n=0;
+				break;
+				}	
+#ifdef wrwewetwetwe
+			case FIELDTYPE_SFNode: {
+				struct X3D_Node *SNode;
+
+				SNode = (struct X3D_Node *)*fieldPtr;
+printf ("SFNode, field is %u...\n",SNode);
+if (SNode != NULL)
+printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
+
+		printf (" ... field SFNode, %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
+				printf ("marking this SFnode for dispose, %u\n",SNode); 
+				markForDispose(SNode, TRUE);
+				break;
+				
+
+			}	
+#endif
+			default:; /* do nothing - field not malloc'd */
+		}
+		fieldOffsetsPtr+=5;	
+	}
+
+
+	}
+}
+
+
 /*delete node created*/
-void kill_X3DNodes(void){
-	int i=0;
+static void killNode (int index) {
 	int j=0;
 	uintptr_t *fieldOffsetsPtr;
 	char * fieldPtr;
@@ -1535,189 +1655,180 @@ void kill_X3DNodes(void){
 	uintptr_t * VPtr;
 	struct Uni_String *MyS;
 
-	LOCK_MEMORYTABLE
-	/*go thru all node until table is empty*/
-	for (i=0; i<nextEntry; i++){		
-		structptr = memoryTable[i];		
+	structptr = memoryTable[index];		
 
+	#ifdef VERBOSE
+	printf("Node pointer	= %u entry %d of %d ",structptr,i,nextEntry);
+	printf (" number of parents %d ", structptr->_nparents);
+	printf("Node Type	= %s\n",stringNodeType(structptr->_nodeType));  
+	#endif
+
+	/* kill any parents that may exist. */
+	FREE_IF_NZ (structptr->_parents);
+
+	fieldOffsetsPtr = (uintptr_t *) NODE_OFFSETS[structptr->_nodeType];
+	/*go thru all field*/				
+	while (*fieldOffsetsPtr != -1) {
+		fieldPtr = offsetPointer_deref(char *, structptr,*(fieldOffsetsPtr+1));
 		#ifdef VERBOSE
-		printf("Node pointer	= %u entry %d of %d ",structptr,i,nextEntry);
-		printf (" number of parents %d ", structptr->_nparents);
-		printf("Node Type	= %s\n",stringNodeType(structptr->_nodeType));  
+		printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
 		#endif
 
-		/* kill any parents that may exist. */
-		FREE_IF_NZ (structptr->_parents);
+		/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
+		if (*fieldOffsetsPtr == FIELDNAMES_setValue) 
+			break; /* can be a duplicate SF/MFNode pointer */
+	
+		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged) 
+			break; /* can be a duplicate SF/MFNode pointer */
+	
 
-		fieldOffsetsPtr = (uintptr_t *) NODE_OFFSETS[structptr->_nodeType];
-		/*go thru all field*/				
-		while (*fieldOffsetsPtr != -1) {
-			fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-			#ifdef VERBOSE
-			printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
-			#endif
+		if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata) 
+			break; /* can be a duplicate SFNode pointer */
+	
+		if (*fieldOffsetsPtr == FIELDNAMES___lastParent) 
+			break; /* can be a duplicate SFNode pointer - field only in NODE_TextureCoordinate */
+	
+		if (*fieldOffsetsPtr == FIELDNAMES__selected) 
+			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
 
-			/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
-			if (*fieldOffsetsPtr == FIELDNAMES_setValue) 
-				break; /* can be a duplicate SF/MFNode pointer */
-		
-			if (*fieldOffsetsPtr == FIELDNAMES_valueChanged) 
-				break; /* can be a duplicate SF/MFNode pointer */
-		
+		if (*fieldOffsetsPtr == FIELDNAMES___oldChildren) 
+			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
 
-			if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata) 
-				break; /* can be a duplicate SFNode pointer */
-		
-			if (*fieldOffsetsPtr == FIELDNAMES___lastParent) 
-				break; /* can be a duplicate SFNode pointer - field only in NODE_TextureCoordinate */
-		
-			if (*fieldOffsetsPtr == FIELDNAMES__selected) 
-				break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
+		if (*fieldOffsetsPtr == FIELDNAMES___oldMFString) 
+			break; 
 
-			if (*fieldOffsetsPtr == FIELDNAMES___oldChildren) 
-				break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
+		if (*fieldOffsetsPtr == FIELDNAMES___scriptObj) 
+			break; 
 
-			if (*fieldOffsetsPtr == FIELDNAMES___oldMFString) 
-				break; 
+		if (*fieldOffsetsPtr == FIELDNAMES___oldSFString) 
+			break; 
 
-			if (*fieldOffsetsPtr == FIELDNAMES___scriptObj) 
-				break; 
+		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr) 
+			break; /* used for seeing if interpolator values change */
 
-			if (*fieldOffsetsPtr == FIELDNAMES___oldSFString) 
-				break; 
+		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr) 
+			break; /* used for seeing if interpolator values change */
 
-			if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr) 
-				break; /* used for seeing if interpolator values change */
-
-			if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr) 
-				break; /* used for seeing if interpolator values change */
-
-			if (*fieldOffsetsPtr == FIELDNAMES___shaderIDS) {
-				struct X3D_ComposedShader *cps = (struct X3D_ComposedShader *) structptr;
-				if ((cps->_nodeType == NODE_ComposedShader) || (cps->_nodeType == NODE_ProgramShader)) {
+		if (*fieldOffsetsPtr == FIELDNAMES___shaderIDS) {
+			struct X3D_ComposedShader *cps = (struct X3D_ComposedShader *) structptr;
+			if ((cps->_nodeType == NODE_ComposedShader) || (cps->_nodeType == NODE_ProgramShader)) {
 #ifdef GL_VERSION_2_0
-					if (cps->__shaderIDS.p != NULL) {
-						glDeleteProgram((GLuint) cps->__shaderIDS.p[0]);
-						FREE_IF_NZ(cps->__shaderIDS.p);
-						cps->__shaderIDS.n=0;
-					}
+				if (cps->__shaderIDS.p != NULL) {
+					glDeleteProgram((GLuint) cps->__shaderIDS.p[0]);
+					FREE_IF_NZ(cps->__shaderIDS.p);
+					cps->__shaderIDS.n=0;
+				}
 #endif
 
-				} else {
-					ConsoleMessage ("error destroying shaderIDS on kill");
-				}
+			} else {
+				ConsoleMessage ("error destroying shaderIDS on kill");
 			}
-
-			/* GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes */
-			if (structptr->_nodeType == NODE_GeoLOD) {
-				if (*fieldOffsetsPtr == FIELDNAMES_children) break;
-			}
-		
-			/* nope, not a special field, lets just get rid of it as best we can */
-			switch(*(fieldOffsetsPtr+2)){
-				case FIELDTYPE_MFFloat:
-					MFloat=(struct Multi_Float *)fieldPtr;
-					MFloat->n=0;
-					FREE_IF_NZ(MFloat->p);
-					break;
-				case FIELDTYPE_MFRotation:
-					MRotation=(struct Multi_Rotation *)fieldPtr;
-					MRotation->n=0;
-					FREE_IF_NZ(MRotation->p);
-					break;
-				case FIELDTYPE_MFVec3f:
-					MVec3f=(struct Multi_Vec3f *)fieldPtr;
-					MVec3f->n=0;
-					FREE_IF_NZ(MVec3f->p);
-					break;
-				case FIELDTYPE_MFBool:
-					Mbool=(struct Multi_Bool *)fieldPtr;
-					Mbool->n=0;
-					FREE_IF_NZ(Mbool->p);
-					break;
-				case FIELDTYPE_MFInt32:
-					MInt32=(struct Multi_Int32 *)fieldPtr;
-					MInt32->n=0;
-					FREE_IF_NZ(MInt32->p);
-					break;
-				case FIELDTYPE_MFNode:
-					MNode=(struct Multi_Node *)fieldPtr;
-					#ifdef VERBOSE
-					/* verify node structure. Each child should point back to me. */
-					{
-						int i;
-						struct X3D_Node *tp;
-						for (i=0; i<MNode->n; i++) {
-							tp = MNode->p[i];
-							printf ("	MNode field has child %u\n",tp);
-							if (tp!=NULL)
-							printf ("	ct %s\n",stringNodeType(tp->_nodeType));
-						}
-					}	
-					#endif
-					MNode->n=0;
-					FREE_IF_NZ(MNode->p);
-					break;
-
-				case FIELDTYPE_MFColor:
-					MColor=(struct Multi_Color *)fieldPtr;
-					MColor->n=0;
-					FREE_IF_NZ(MColor->p);
-					break;
-				case FIELDTYPE_MFColorRGBA:
-					MColorRGBA=(struct Multi_ColorRGBA *)fieldPtr;
-					MColorRGBA->n=0;
-					FREE_IF_NZ(MColorRGBA->p);
-					break;
-				case FIELDTYPE_MFTime:
-					MTime=(struct Multi_Time *)fieldPtr;
-					MTime->n=0;
-					FREE_IF_NZ(MTime->p);
-					break;
-				case FIELDTYPE_MFString: 
-					MString=(struct Multi_String *)fieldPtr;
-					{
-					struct Uni_String* ustr;
-					for (j=0; j<MString->n; j++) {
-						ustr=MString->p[j];
-						if (ustr != NULL) {
-						ustr->len=0;
-						ustr->touched=0;
-						FREE_IF_NZ(ustr->strptr);
-						}
-					}
-					MString->n=0;
-					FREE_IF_NZ(MString->p);
-					}
-					break;
-				case FIELDTYPE_MFVec2f:
-					MVec2f=(struct Multi_Vec2f *)fieldPtr;
-					MVec2f->n=0;
-					FREE_IF_NZ(MVec2f->p);
-					break;
-				case FIELDTYPE_FreeWRLPTR:
-					VPtr = (uintptr_t *) fieldPtr;
-					VPtr = (uintptr_t *) (*VPtr);
-					FREE_IF_NZ(VPtr);
-					break;
-				case FIELDTYPE_SFString:
-					VPtr = (uintptr_t *) fieldPtr;
-					MyS = (struct Uni_String *) *VPtr;
-					MyS->len = 0;
-					FREE_IF_NZ(MyS->strptr);
-					FREE_IF_NZ(MyS);
-					break;
-					
-				default:; /* do nothing - field not malloc'd */
-			}
-			fieldOffsetsPtr+=5;	
 		}
-		FREE_IF_NZ(memoryTable[i]);
-		memoryTable[i]=NULL;
+
+		/* GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes */
+		if (structptr->_nodeType == NODE_GeoLOD) {
+			if (*fieldOffsetsPtr == FIELDNAMES_children) break;
+		}
+	
+		/* nope, not a special field, lets just get rid of it as best we can */
+		switch(*(fieldOffsetsPtr+2)){
+			case FIELDTYPE_MFFloat:
+				MFloat=(struct Multi_Float *)fieldPtr;
+				MFloat->n=0;
+				FREE_IF_NZ(MFloat->p);
+				break;
+			case FIELDTYPE_MFRotation:
+				MRotation=(struct Multi_Rotation *)fieldPtr;
+				MRotation->n=0;
+				FREE_IF_NZ(MRotation->p);
+				break;
+			case FIELDTYPE_MFVec3f:
+				MVec3f=(struct Multi_Vec3f *)fieldPtr;
+				MVec3f->n=0;
+				FREE_IF_NZ(MVec3f->p);
+				break;
+			case FIELDTYPE_MFBool:
+				Mbool=(struct Multi_Bool *)fieldPtr;
+				Mbool->n=0;
+				FREE_IF_NZ(Mbool->p);
+				break;
+			case FIELDTYPE_MFInt32:
+				MInt32=(struct Multi_Int32 *)fieldPtr;
+				MInt32->n=0;
+				FREE_IF_NZ(MInt32->p);
+				break;
+			case FIELDTYPE_MFNode:
+				MNode=(struct Multi_Node *)fieldPtr;
+				#ifdef VERBOSE
+				/* verify node structure. Each child should point back to me. */
+				{
+					int i;
+					struct X3D_Node *tp;
+					for (i=0; i<MNode->n; i++) {
+						tp = MNode->p[i];
+						printf ("	MNode field has child %u\n",tp);
+						if (tp!=NULL)
+						printf ("	ct %s\n",stringNodeType(tp->_nodeType));
+					}
+				}	
+				#endif
+				MNode->n=0;
+				FREE_IF_NZ(MNode->p);
+				break;
+
+			case FIELDTYPE_MFColor:
+				MColor=(struct Multi_Color *)fieldPtr;
+				MColor->n=0;
+				FREE_IF_NZ(MColor->p);
+				break;
+			case FIELDTYPE_MFColorRGBA:
+				MColorRGBA=(struct Multi_ColorRGBA *)fieldPtr;
+				MColorRGBA->n=0;
+				FREE_IF_NZ(MColorRGBA->p);
+				break;
+			case FIELDTYPE_MFTime:
+				MTime=(struct Multi_Time *)fieldPtr;
+				MTime->n=0;
+				FREE_IF_NZ(MTime->p);
+				break;
+			case FIELDTYPE_MFString: 
+				MString=(struct Multi_String *)fieldPtr;
+				{
+				struct Uni_String* ustr;
+				for (j=0; j<MString->n; j++) {
+					ustr=MString->p[j];
+					if (ustr != NULL) {
+					ustr->len=0;
+					ustr->touched=0;
+					FREE_IF_NZ(ustr->strptr);
+					}
+				}
+				MString->n=0;
+				FREE_IF_NZ(MString->p);
+				}
+				break;
+			case FIELDTYPE_MFVec2f:
+				MVec2f=(struct Multi_Vec2f *)fieldPtr;
+				MVec2f->n=0;
+				FREE_IF_NZ(MVec2f->p);
+				break;
+			case FIELDTYPE_FreeWRLPTR:
+				VPtr = (uintptr_t *) fieldPtr;
+				VPtr = (uintptr_t *) (*VPtr);
+				FREE_IF_NZ(VPtr);
+				break;
+			case FIELDTYPE_SFString:
+				VPtr = (uintptr_t *) fieldPtr;
+				MyS = (struct Uni_String *) *VPtr;
+				MyS->len = 0;
+				FREE_IF_NZ(MyS->strptr);
+				FREE_IF_NZ(MyS);
+				break;
+				
+			default:; /* do nothing - field not malloc'd */
+		}
+		fieldOffsetsPtr+=5;	
 	}
-	FREE_IF_NZ(memoryTable);
-	memoryTable=NULL;
-	tableIndexSize=INT_ID_UNDEFINED;
-	nextEntry=0;
-	UNLOCK_MEMORYTABLE
+	FREE_IF_NZ(memoryTable[index]);
+	memoryTable[index]=NULL;
 }

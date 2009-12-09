@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.30 2009/11/18 08:47:09 couannette Exp $
+# $Id: VRMLC.pm,v 1.31 2009/12/09 22:19:11 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.31  2009/12/09 22:19:11  crc_canada
+# Anchor - load URLs, add reference count for nodes, start worrying about disposing of nodes
+#
 # Revision 1.30  2009/11/18 08:47:09  couannette
 # Fix dump_scene generation. Activated with FW_DEBUG.
 #
@@ -365,6 +368,7 @@ my $interalNodeCommonFields =
 	       "       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ \n" .
                "       void *_intern; \n"              	.
                "       int _nodeType; /* unique integer for each type */ \n".
+               "       int referenceCount; /* if this reaches zero, nobody wants it anymore */ \n".
 	       "       int _defaultContainer; /* holds the container */\n".
                " 	/*** node specific data: *****/\n";
 
@@ -1205,6 +1209,7 @@ sub gen {
 	"	INITIALIZE_EXTENT\n".
 	"	node->_intern = 0;\n".
 	"	node->_nodeType = nt; /* unique integer for each type */\n".
+	"	node->referenceCount = 1; /* we have requested this, we want it! */\n".
 	"	\n";
 
 

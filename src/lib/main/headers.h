@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.94 2009/12/09 18:28:51 crc_canada Exp $
+$Id: headers.h,v 1.95 2009/12/09 22:19:11 crc_canada Exp $
 
 Global includes.
 
@@ -818,7 +818,7 @@ extern void setBrowserFullPath(const char *str);
 extern void setInstance(uintptr_t instance);
 
 extern const char *getLibVersion();
-extern void doBrowserAction ();
+extern int doBrowserAction ();
 
 
 extern char *myPerlInstallDir;
@@ -850,7 +850,6 @@ void fwXformPush(void);
 void fwXformPop(void);
 void fwLoadIdentity (void);
 void invalidateCurMat(void);
-void doBrowserAction (void);
 void add_parent(struct X3D_Node *node_, struct X3D_Node *parent_,char *file, int line);
 void remove_parent(struct X3D_Node *child, struct X3D_Node *parent);
 void EAI_readNewWorld(char *inputstring);
@@ -1001,7 +1000,7 @@ void killErrantChildren(void);
 void kill_routing(void);
 void kill_bindables(void);
 void kill_javascript(void);
-void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL, char *file, int line);
+void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line);
 void kill_clockEvents(void);
 void kill_openGLTextures(void);
 void kill_X3DDefs(void);

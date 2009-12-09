@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.79 2009/12/09 18:28:51 crc_canada Exp $
+  $Id: MainLoop.c,v 1.80 2009/12/09 22:19:11 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -322,8 +322,7 @@ void EventLoop() {
 
         /* BrowserAction required? eg, anchors, etc */
         if (BrowserAction) {
-                doBrowserAction ();
-                BrowserAction = FALSE;  /* action complete */
+                BrowserAction = doBrowserAction ();
         }
 
         /* handle any events provided on the command line - Robert Sim */
@@ -1426,7 +1425,7 @@ void doQuit()
 {
     stopDisplayThread();
 
-    kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
+    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
     /* set geometry to normal size from fullscreen */
 #ifndef AQUA

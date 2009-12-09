@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.16 2009/12/09 19:19:49 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.17 2009/12/09 22:19:11 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -139,52 +139,73 @@ static void startNewHTMLWindow(char *url) {
 		freewrlSystem (sysline);
 	}
 		
-printf ("we have browser :%s:\n",browser);
 	if (browser) sprintf(sysline, "%s %s &", browser, url);
 	else sprintf(sysline, "open %s &",  url);
-printf ("we have sysline :%s:\n",sysline);
 	system (sysline);
 #ifdef AQUA
 	}
 #endif
 }
 
+/* we keep polling here, if we are loading a url...*/
+static int waitingForURLtoLoad = FALSE;
+static resource_item_t *res = NULL; 	/* If this res is valid, then we can replace root_res with it */
 
-void doBrowserAction()
+static int urlLoadingStatus() {
+	/* printf ("urlLoadingStatus %s\n",resourceStatusToString(res->status)); */
+
+	switch (res->status) {
+		case ress_parsed:
+			EAI_Anchor_Response(TRUE);
+			waitingForURLtoLoad = FALSE;
+			break;
+		case ress_failed:
+			ConsoleMessage ("Failed to load URL\n");
+			EAI_Anchor_Response(FALSE);
+			waitingForURLtoLoad = FALSE;
+			break;
+		default: {}
+	}
+
+	return waitingForURLtoLoad;
+}
+
+
+
+/* returns FALSE if we are DONE the action, whether or not it was successful; 
+   TRUE if we want to hit this next time through the event loop */
+
+int doBrowserAction()
 {
 	struct Multi_String Anchor_url;
-	resource_item_t *res = NULL; 	/* If this res is valid, then we can replace root_res with it */
 	char *parent_url, *description;
 	
+	/* are we in the process of polling for a new X3D URL to load? */
+	if (waitingForURLtoLoad) return urlLoadingStatus();
 
 	Anchor_url = AnchorsAnchor->url;
 	parent_url = AnchorsAnchor->__parenturl->strptr;
 	description = AnchorsAnchor->description->strptr;
 
 	TRACE_MSG("doBrowserAction: parent url=<%s> description: %s\n", parent_url, description);
-	printf("doBrowserAction: parent url=<%s> description: %s\n", parent_url, description);
 
 	/* are we going to load up a new VRML/X3D world, or are we going to just go and load up a new web page ? */
 	if (Anchor_url.n < 0) {
 		/* printf ("have Anchor, empty URL\n"); */
-		return;
+		return FALSE; /* done the action, the url is just not good */
 	} 
 
-	printf ("ok, Anchor first url is :%s:\n",Anchor_url.p[0]->strptr);
+	/* printf ("ok, Anchor first url is :%s:\n",Anchor_url.p[0]->strptr); */
 	if (checkIfX3DVRMLFile(Anchor_url.p[0]->strptr)) {
 		printf ("this IS an X3D file...\n");
-
-
 		res = resource_create_multi(&Anchor_url);
-		send_resource_to_parser(res);
-		resource_wait(res);
 
-		switch (res->status) {
-			case ress_parsed:
-				EAI_Anchor_Response(TRUE);
-			default:
-				EAI_Anchor_Response(FALSE);
-		}
+		kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+
+
+		send_resource_to_parser(res);
+		waitingForURLtoLoad = TRUE;
+		return TRUE; /* keep the browser ticking along here */
 
 	} else {
 
@@ -196,127 +217,7 @@ void doBrowserAction()
 		}
 	}
 
-	return;
-
-/* 	if (!RUNNINGASPLUGIN) { */
-/* 		TRACE_MSG("FreeWRL::Anchor: going to \"%s\"\n", */
-/* 			  AnchorsAnchor->description->strptr); */
-/* 	} */
-/* 	filename = (char *)MALLOC(1000); */
-	/* copy the parent path over */
-/* 	mypath = STRDUP(AnchorsAnchor->__parenturl->strptr); */
-	/* and strip off the file name, leaving any path */
-/* 	removeFilenameFromPath (mypath); */
-	/* printf ("Anchor, url so far is %s\n",mypath); */
-
-#if 0
-	/* try the first url, up to the last */
-	count = 0;
-	while (count < Anchor_url.n) {
-		thisurl = Anchor_url.p[count]->strptr;
-
-		/* check to make sure we don't overflow */
-/* 		if ((strlen(thisurl)+strlen(mypath)) > 900) break; */
-		/* put the path and the file name together */
-/* 		makeAbsoluteFileName(filename,mypath,thisurl); */
-		/* printf ("so, Anchor, filename %s, mypath %s, thisurl %s\n",filename, mypath, thisurl); */
-		/* if this is a html page, just assume it's ok. If
-		 * it is a VRML/X3D file, check to make sure it exists */
-/* 		if (!checkIfX3DVRMLFile(filename)) { break; } */
-		/* ok, it might be a file we load into our world. */
-		/* MBFILE
-		   if (fileExists(filename,NULL,FALSE)) { break; }
-		*/
-		res = resource_try_load(thisurl);
-		if (res)
-			break;
-		count ++;
-	}
-
-	if (res) {
-		Anchor_ReplaceWorld(res->actual_file);
-		EAI_Anchor_Response (TRUE);
-	} else {
-		/* error */
-		EAI_Anchor_Response (FALSE);
-		return;
-	}
-
-	/*  did we locate that file?*/
-/* 	if (count == Anchor_url.n) { */
-/* 		if (count > 0) { */
-/* 			printf ("Could not locate url (last choice was %s)\n",filename); */
-/* 		} */
-/* 		FREE_IF_NZ (filename); */
-
-/* 		/\* if EAI was waiting for a loadURL, tell it it failed *\/ */
-/* 		EAI_Anchor_Response (FALSE); */
-/* 		return; */
-/* 	} */
-/* 	/\* printf ("we were successful at locating :%s:\n",filename); *\/ */
-
-/* 	/\* which browser are we running under? if we are running as a*\/ */
-/* 	/\* plugin, we'll have some of this information already.*\/ */
-
-/* 	if (checkIfX3DVRMLFile(filename)) { */
-/* 		Anchor_ReplaceWorld (filename); */
-/* 	} else { */
-
-#endif
-
-/* ANCHOR non VRML/X3D file == link */
-
-#if 0 // MBFILE ....
-
-#ifdef AQUA
-	if (RUNNINGASPLUGIN) {
-		/* printf ("Anchor, running as a plugin - load non-vrml file\n"); */
-		requestNewWindowfromPlugin(_fw_browser_plugin, _fw_instance, res->parsed_request);
-	} else {
-#endif
-		/* printf ("IS NOT a vrml/x3d file\n");
-		   printf ("Anchor: -DBROWSER is :%s:\n",BROWSER); */
-		
-		char *browser = freewrl_get_browser_program();
-		if (!browser) {
-			ConsoleMessage ("Error: no Internet browser found.");
-			return;
-		}
-		
-		/* bounds check here */
-		if (browser) testlen = strlen(browser);
-		else testlen = strlen(browser);
-		testlen += strlen(res->parsed_request) + 10; 
-		if (testlen > LINELEN) {
-			ConsoleMessage ("Anchor: combination of browser name and file name too long.");
-		} else {
-			
-			if (browser) strcpy (sysline, browser);
-			else strcpy (sysline, browser);
-			strcat (sysline, " ");
-			strcat (sysline, res->parsed_request);
-			strcat (sysline, " &");
-			freewrlSystem (sysline);
-		}
-		
-		/* bounds check here */
-		if (browser) testlen = strlen(browser) + strlen(res->parsed_request) + 20;
-		else testlen = strlen (browser) + strlen(res->parsed_request) + 20;
-		
-		
-		if (testlen > LINELEN) {
-			ConsoleMessage ("Anchor: combination of browser name and file name too long.");
-		} else {
-			if (browser) sprintf(sysline, "open -a %s %s &", browser, res->parsed_request);
-			else sprintf(sysline, "open -a %s %s &",  browser, res->parsed_request);
-			system (sysline);
-		}
-#ifdef AQUA
-	}
-#endif
-/* 	FREE_IF_NZ(filename); */
-
-#endif
+	return FALSE; /* we are done the action */
 }
 
 /*
