@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.15 2009/12/09 18:28:51 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.16 2009/12/09 19:19:49 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -102,6 +102,53 @@ static void goToViewpoint(char *vp) {
 	/* printf ("goToViewpoint - failed to match local Viewpoint\n"); */
 }
 
+static void startNewHTMLWindow(char *url) {
+	char *browser;
+#define LINELEN 4000
+	char sysline[LINELEN];
+	int testlen;
+
+	browser = NULL;
+
+#ifdef AQUA
+	if (RUNNINGASPLUGIN) {
+		/* printf ("Anchor, running as a plugin - load non-vrml file\n"); */
+		requestNewWindowfromPlugin(_fw_browser_plugin, _fw_instance, url);
+	} else {
+#endif
+	browser = freewrl_get_browser_program();
+	if (!browser) {
+		ConsoleMessage ("Error: no Internet browser found.");
+		return;
+	}
+		
+	/* bounds check here */
+	testlen = 0;
+	if (browser) testlen = strlen(browser);
+
+	testlen += strlen(url) + 10; 
+	if (testlen > LINELEN) {
+		ConsoleMessage ("Anchor: combination of browser name and file name too long.");
+	} else {
+			
+		if (browser) strcpy (sysline, browser);
+		else strcpy (sysline, browser);
+		strcat (sysline, " ");
+		strcat (sysline, url);
+		strcat (sysline, " &");
+		freewrlSystem (sysline);
+	}
+		
+printf ("we have browser :%s:\n",browser);
+	if (browser) sprintf(sysline, "%s %s &", browser, url);
+	else sprintf(sysline, "open %s &",  url);
+printf ("we have sysline :%s:\n",sysline);
+	system (sysline);
+#ifdef AQUA
+	}
+#endif
+}
+
 
 void doBrowserAction()
 {
@@ -143,10 +190,9 @@ void doBrowserAction()
 
 		/* ok, not a new world to load, lets see if it is a Viewpoint in current world: */
 		if (Anchor_url.p[0]->strptr[0] == '#') {
-			printf ("this IS a viewpoint in local world\n");
 			goToViewpoint (&(Anchor_url.p[0]->strptr[1]));
 		} else {
-			printf ("have to get a new window up and running here\n");
+			startNewHTMLWindow(Anchor_url.p[0]->strptr);
 		}
 	}
 
@@ -168,31 +214,6 @@ void doBrowserAction()
 	count = 0;
 	while (count < Anchor_url.n) {
 		thisurl = Anchor_url.p[count]->strptr;
-
-		/*  is this a local Viewpoint?*/
-		if (thisurl[0] == '#') {
-			localNode = EAI_GetViewpoint(&thisurl[1]);
-			tableIndex = -1;
-
-			for (flen=0; flen<totviewpointnodes;flen++) {
-				if (localNode == viewpointnodes[flen]) {
-					 tableIndex = flen;
-					 break;
-				}
-			}
-			/*  did we find a match with known Viewpoints?*/
-			if (tableIndex>=0) {
-				/* unbind current, and bind this one */
-				send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
-				currboundvpno=tableIndex;
-				send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
-			} else {
-				printf ("failed to match local Viewpoint\n");
-			}
-			/*  lets get outa here - jobs done.*/
-/* 			FREE_IF_NZ (filename); */
-			return;
-		}
 
 		/* check to make sure we don't overflow */
 /* 		if ((strlen(thisurl)+strlen(mypath)) > 900) break; */

@@ -21,6 +21,17 @@ For 1.22.6 release:
 8) Verify the following nodes for proper URL handling:
 
 	Anchor
+		No action (url = blank) 	DONE
+		go to Viewpoint			DONE (checked both XML and classic encodings)
+		invoke external app (eg, open an html page)	
+			- Standalone OSX	DONE
+			- within Plugin OSX	
+		
+		load a new X3D file
+			- Standalone OSX
+			- within Plugin OSX
+
+
 	Inline			DONE
 	AudioClip		DONE (needs re-implementing, so current code commented out)
 	ImageTexture		DONE
