@@ -51,7 +51,7 @@ For 1.22.6 release:
 9) OSX Safari Plugin
 
 10) generate an "intro" x3d image for OSX, for when FreeWRL is started with nothing on command line
-	"/Applications/FreeWRL/blankScreen.wrl"
+	"/Applications/FreeWRL/blankScreen.wrl" DONE
 
 11) Texture loading; test direct local url, relative local url, http url, file url, etc.
 	local url (eg, url "tests/fff.png")  DONE
@@ -61,6 +61,10 @@ For 1.22.6 release:
 
 12) MultiURL loading - note that, at least for Inlines, only the first url is checked; the rest are not used.
 
+13) OSX standalone frontEnd - changes to code
+	DONE
+
+14) Garbage collection - freeing node resources and associated textures needs verification.
 ============================================================================
 
 11/16/2009:

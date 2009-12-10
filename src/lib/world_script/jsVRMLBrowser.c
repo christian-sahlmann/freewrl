@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.21 2009/12/01 21:34:51 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.22 2009/12/10 20:51:55 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -39,6 +39,7 @@ Javascript C language binding.
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../scenegraph/RenderFuncs.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"

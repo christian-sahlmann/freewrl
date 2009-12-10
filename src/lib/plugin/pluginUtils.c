@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.17 2009/12/09 22:19:11 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.18 2009/12/10 20:51:54 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -41,6 +41,7 @@
 #include "../input/EAIHeaders.h"	/* for implicit declarations */
 
 #include "../x3d_parser/Bindable.h"
+#include "../scenegraph/RenderFuncs.h"
 
 #include "pluginUtils.h"
 
@@ -183,38 +184,56 @@ int doBrowserAction()
 	/* are we in the process of polling for a new X3D URL to load? */
 	if (waitingForURLtoLoad) return urlLoadingStatus();
 
-	Anchor_url = AnchorsAnchor->url;
-	parent_url = AnchorsAnchor->__parenturl->strptr;
-	description = AnchorsAnchor->description->strptr;
+	/* is this an Anchor (thus Multi-URL call) or a single url call? */
+#ifdef wrwe
+       AnchorsAnchor = NULL;
+        FREE_IF_NZ(OSX_replace_world_from_console);
+        OSX_replace_world_from_console = STRDUP(str);
+#endif
 
-	TRACE_MSG("doBrowserAction: parent url=<%s> description: %s\n", parent_url, description);
+	if (AnchorsAnchor != NULL) {
+		Anchor_url = AnchorsAnchor->url;
+		parent_url = AnchorsAnchor->__parenturl->strptr;
+		description = AnchorsAnchor->description->strptr;
 
-	/* are we going to load up a new VRML/X3D world, or are we going to just go and load up a new web page ? */
-	if (Anchor_url.n < 0) {
-		/* printf ("have Anchor, empty URL\n"); */
-		return FALSE; /* done the action, the url is just not good */
-	} 
+		TRACE_MSG("doBrowserAction: parent url=<%s> description: %s\n", parent_url, description);
 
-	/* printf ("ok, Anchor first url is :%s:\n",Anchor_url.p[0]->strptr); */
-	if (checkIfX3DVRMLFile(Anchor_url.p[0]->strptr)) {
-		printf ("this IS an X3D file...\n");
-		res = resource_create_multi(&Anchor_url);
+		/* are we going to load up a new VRML/X3D world, or are we going to just go and load up a new web page ? */
+		if (Anchor_url.n < 0) {
+			/* printf ("have Anchor, empty URL\n"); */
+			return FALSE; /* done the action, the url is just not good */
+		} 
 
+		/* printf ("ok, Anchor first url is :%s:\n",Anchor_url.p[0]->strptr); */
+		if (checkIfX3DVRMLFile(Anchor_url.p[0]->strptr)) {
+			printf ("this IS an X3D file...\n");
+			res = resource_create_multi(&Anchor_url);
+
+			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+
+
+			send_resource_to_parser(res);
+			waitingForURLtoLoad = TRUE;
+			return TRUE; /* keep the browser ticking along here */
+
+		} else {
+
+			/* ok, not a new world to load, lets see if it is a Viewpoint in current world: */
+			if (Anchor_url.p[0]->strptr[0] == '#') {
+				goToViewpoint (&(Anchor_url.p[0]->strptr[1]));
+			} else {
+				startNewHTMLWindow(Anchor_url.p[0]->strptr);
+			}
+		}
+	} else {
+		printf ("we have a single replacement here\n");
+		res = resource_create_single (OSX_replace_world_from_console);
 		kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
 
 		send_resource_to_parser(res);
 		waitingForURLtoLoad = TRUE;
 		return TRUE; /* keep the browser ticking along here */
-
-	} else {
-
-		/* ok, not a new world to load, lets see if it is a Viewpoint in current world: */
-		if (Anchor_url.p[0]->strptr[0] == '#') {
-			goToViewpoint (&(Anchor_url.p[0]->strptr[1]));
-		} else {
-			startNewHTMLWindow(Anchor_url.p[0]->strptr);
-		}
 	}
 
 	return FALSE; /* we are done the action */

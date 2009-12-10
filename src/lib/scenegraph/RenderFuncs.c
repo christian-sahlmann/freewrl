@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.34 2009/10/30 18:57:35 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.35 2009/12/10 20:51:55 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -137,7 +137,8 @@ struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
 /* Any action for the Browser to do? */
 int BrowserAction = FALSE;
-struct X3D_Anchor *AnchorsAnchor;
+struct X3D_Anchor *AnchorsAnchor = NULL;
+char *OSX_replace_world_from_console = NULL;
 
 
 struct currayhit rayHit,rayph,rayHitHyper;

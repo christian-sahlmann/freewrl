@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.95 2009/12/09 22:19:11 crc_canada Exp $
+$Id: headers.h,v 1.96 2009/12/10 20:51:54 crc_canada Exp $
 
 Global includes.
 
@@ -566,9 +566,6 @@ extern double defaultExamineDist;
 
 
 /* Sending events back to Browser (eg, Anchor) */
-extern int BrowserAction;
-extern struct X3D_Anchor *AnchorsAnchor;
-void EAI_Anchor_Response (int resp);
 extern int wantEAI;
 
 void *returnInterpolatorPointer (const char *x);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.22 2009/12/09 19:19:49 crc_canada Exp $
+$Id: SensInterps.c,v 1.23 2009/12/10 20:51:54 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -42,6 +42,7 @@ Interps are the "EventsProcessed" fields of interpolators.
 
 #include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
+#include "../scenegraph/RenderFuncs.h"
 
 #include "../x3d_parser/Bindable.h"
 #include "../scenegraph/LinearAlgebra.h"
@@ -1366,6 +1367,7 @@ void do_Anchor ( void *ptr, int ev, int but1, int over) {
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
 		AnchorsAnchor = node;
+		FREE_IF_NZ(OSX_replace_world_from_console);
 		BrowserAction = TRUE;
 	}
 }

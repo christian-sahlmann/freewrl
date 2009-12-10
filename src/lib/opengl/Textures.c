@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.40 2009/12/04 21:11:00 crc_canada Exp $
+  $Id: Textures.c,v 1.41 2009/12/10 20:51:54 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -239,6 +239,7 @@ void releaseTexture(struct X3D_Node *node) {
 	}
 }
 
+#ifdef OLDCODE
 /* called on "kill oldworld" */
 void kill_openGLTextures() 
 {
@@ -273,6 +274,8 @@ void kill_openGLTextures()
 		FREE_IF_NZ (tmp);
 	}
 }
+#endif
+
 
 /* find ourselves - given an index, return the struct */
 struct textureTableIndexStruct *getTableIndex(int indx) {

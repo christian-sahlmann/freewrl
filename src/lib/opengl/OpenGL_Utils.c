@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.77 2009/12/09 22:19:11 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.78 2009/12/10 20:51:54 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -732,6 +732,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
         char mystring[20];
 	#endif
 
+printf ("start kill_oldWorld...\n");
+
 	/* mark all rootNode children for Dispose */
 	for (i=0; i<X3D_GROUP(rootNode)->children.n; i++) {
 		markForDispose(X3D_GROUP(rootNode)->children.p[i], TRUE);
@@ -740,30 +742,40 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	/* stop rendering */
 	X3D_GROUP(rootNode)->children.n = 0;
 
+printf ("stopping console...\n");
 	/* close the Console Message system, if required. */
 	closeConsoleMessage();
 
+printf ("zeroing occlusion...\n");
 	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
 	zeroOcclusion();
 
+
+printf ("stopping clock events...\n");
 	/* clock events - stop them from ticking */
 	kill_clockEvents();
 
+printf ("killing defs, etc...\n");
 	/* kill DEFS, handles */
 	EAI_killBindables();
 	kill_bindables();
 	killKeySensorNodeList();
 
+printf ("killing routing...\n");
 	/* stop routing */
 	kill_routing();
 
-
+printf ("killing status...\n");
 	/* tell the statusbar that it needs to reinitialize */
 	kill_status();
 
+printf ("skipping killing textures...\n");
 	/* free textures */
+/*
 	kill_openGLTextures();
+*/
 	
+printf ("killing scripts...\n");
 	/* free scripts */
 	kill_javascript();
 
@@ -786,6 +798,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	/* tell statusbar that we have none */
 	viewer_default();
 	setMenuStatus("NONE");
+printf ("and, we are done now...\n");
 }
 
 /* for verifying that a memory pointer exists */

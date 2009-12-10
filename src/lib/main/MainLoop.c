@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.80 2009/12/09 22:19:11 crc_canada Exp $
+  $Id: MainLoop.c,v 1.81 2009/12/10 20:51:54 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -47,6 +47,7 @@
 #include "Snapshot.h"
 #include "../scenegraph/LinearAlgebra.h"
 #include "../scenegraph/Collision.h"
+#include "../scenegraph/RenderFuncs.h"
 
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
@@ -1303,6 +1304,7 @@ void setSnapSeq() {
 #endif
 }
 
+#ifdef OLDCODE
 void closeFreewrl() {
         struct Multi_Node* tn;
         struct X3D_Group* rn;
@@ -1315,7 +1317,7 @@ void closeFreewrl() {
         kill_bindables();
         kill_routing();
         kill_status();
-        kill_openGLTextures();
+        /* JAS - follow the kill_oldWorld style kill_openGLTextures(); */
         kill_javascript();
 
         #endif
@@ -1335,6 +1337,7 @@ void closeFreewrl() {
         clipPlane = 0;
         /* printf ("closeFreewrl call finished\n"); */
 }
+#endif
 
 void setEAIport(int pnum) {
         EAIport = pnum;
@@ -1702,6 +1705,8 @@ void Safari_disposeContext() {
         /* printf ("Safari_disposeContext call finished\n"); */
 }
 
+
+#ifdef OLDCODE
 /* older code - is this called from the front end? keep it around until
 verified that it is no longer required: */
 
@@ -1729,6 +1734,7 @@ void disposeContext() {
         }
         aqglobalContext = nil;
 }
+#endif
 
 void sendPluginFD(int fd) {
         /* printf ("sendPluginFD, FreeWRL received %d\n",fd); */
@@ -1758,13 +1764,17 @@ void setDisplayed (int state) {
 void setEaiVerbose() {
         eaiverbose = TRUE;
 }
-        
+
 /* called from the standalone OSX front end */
 void replaceWorldNeeded(char* str)
 {
-printf ("replaceWorldneeded called\n");
-
+	printf ("replaceWorldneeded called - file %s\n",str);
+        AnchorsAnchor = NULL;
+        FREE_IF_NZ(OSX_replace_world_from_console);
+	OSX_replace_world_from_console = STRDUP(str);
+        BrowserAction = TRUE;
 }
+
 
 
 /* send the description to the statusbar line */

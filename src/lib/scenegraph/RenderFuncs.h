@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.h,v 1.5 2009/10/26 10:57:07 couannette Exp $
+$Id: RenderFuncs.h,v 1.6 2009/12/10 20:51:55 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -36,6 +36,11 @@ Proximity sensor macro.
 /* function protos */
 int nextlight(void);
 void render_node(struct X3D_Node *node);
+
+extern int BrowserAction;
+extern struct X3D_Anchor *AnchorsAnchor;
+extern char *OSX_replace_world_from_console;
+
 
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */
