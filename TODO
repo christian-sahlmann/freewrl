@@ -142,6 +142,8 @@ For 1.22.6 release:
 		VRML1_WWWInline
 	Spec is at: http://www.web3d.org/x3d/specifications/vrml/VRML1.0
 
+	Model to test with: www.intoronto.com - look for the toronto.wrl file
+
 
 05/06/2009:
 	(JAS) Continue going through current X3D spec to ensure that all fields of all nodes are parsed correctly.
