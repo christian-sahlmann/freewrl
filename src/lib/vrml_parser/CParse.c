@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.21 2009/12/09 18:28:51 crc_canada Exp $
+$Id: CParse.c,v 1.22 2009/12/12 16:19:21 dug9 Exp $
 
 ???
 
@@ -103,10 +103,11 @@ bool cParse(void* ptr, unsigned ofs, const char* data) {
 /* Return DEFed node from its name */
 struct X3D_Node* parser_getNodeFromName(const char* name)
 {
+	indexT ind;
 	/* is globalParser actually not NULL? */
 	if (globalParser == NULL) return NULL;
 
-	indexT ind=lexer_nodeName2id(globalParser->lexer, name);
+	ind=lexer_nodeName2id(globalParser->lexer, name);
 	if(ind==ID_UNDEFINED)
 		return NULL;
 
