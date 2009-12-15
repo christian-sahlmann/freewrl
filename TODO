@@ -280,7 +280,6 @@ For 1.22.6 release:
 - EAI - Sarah (C bindings) and JohnS (Russ Kinters testing, and general Java code)
 - threading issues with XLib - harold and Michel.
 - merge into freewrl
-- OSX standalone front end updateContext()
 - XML parser - Script and Proto work, and general cleanup
 - DVD standalone - get Geospatial content on there, and running.
 - OSX sound revisit.
@@ -299,7 +298,6 @@ Priority list (as of 20/11/2008):
 - EAI - Sarah and Russ Kinter
 - merge into freewrl
 - Apple - Gurob email
-- OSX standalone front end updateContext()
 - XML parser - Script and Proto work, and general cleanup
 - Component verification
 
