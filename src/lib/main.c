@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.21 2009/11/25 18:26:26 crc_canada Exp $
+  $Id: main.c,v 1.22 2009/12/15 14:49:01 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -117,8 +117,6 @@ void OSX_initializeParameters(const char* initialURL) {
 	ConsoleMessage ("FreeWRL: unknown data on command line: \"%s\"", res->request);
     }
 }
-
-int isShapeCompilerParsing() {return TRUE;} /* remove this when we re-do the OSX front end */
 
 /* OSX plugin is telling us the id to refer to */
 void setInstance (uintptr_t instance) {
