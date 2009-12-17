@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.27 2009/10/31 16:21:46 couannette Exp $
+$Id: CParseLexer.c,v 1.28 2009/12/17 17:18:45 crc_canada Exp $
 
 ???
 
@@ -1400,7 +1400,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         }
 
 	res = resource_create_multi(&url);
-	resource_identify(root_res, res);
+	resource_identify(root_res, res, NULL);
 	if (res->type != rest_invalid) {
 		if (resource_fetch(res)) {
 			if (resource_load(res)) {

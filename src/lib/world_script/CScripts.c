@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.36 2009/11/07 00:31:57 crc_canada Exp $
+$Id: CScripts.c,v 1.37 2009/12/17 17:18:45 crc_canada Exp $
 
 ???
 
@@ -399,7 +399,7 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
 
  res = resource_create_single(uri);
- resource_identify(root_res, res);
+ resource_identify(root_res, res, NULL);
  if (res->type != rest_invalid) {
 	 if (resource_fetch(res)) {
 		 if (resource_load(res)) {

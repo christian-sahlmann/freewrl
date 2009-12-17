@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.h,v 1.2 2009/11/23 01:43:19 dug9 Exp $
+  $Id: io_http.h,v 1.3 2009/12/17 17:18:44 crc_canada Exp $
 
   FreeWRL support library.
   IO with HTTP.
@@ -36,6 +36,8 @@ char* download_url(const char *url, const char *tmp);
 extern char *currentWorkingUrl;
 
 void pushInputURL(char *url);
+void popInputURL();
+
 char *getInputURL();
 
 /* URL manipulation */

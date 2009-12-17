@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.10 2009/12/02 19:22:30 crc_canada Exp $
+  $Id: resources.c,v 1.11 2009/12/17 17:18:44 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -41,6 +41,9 @@
 #include <threads.h>
 
 #include <vrml_parser/Structs.h>
+
+static void removeFilenameFromPath (char *path);
+
 
 
 /**
@@ -171,7 +174,7 @@ resource_item_t* resource_create_from_string(const char *string)
  *   try to be idempotent
  *   parse status: res->type
  */
-void resource_identify(resource_item_t *base, resource_item_t *res)
+void resource_identify(resource_item_t *base, resource_item_t *res, char *parentUrl)
 {
 	bool network;
 	char *url = NULL;
@@ -273,7 +276,6 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 			} else {
 				/* Is this a full path ? */
 				if (cleanedURL[0] == '/') {
-					
 					/* This is an absolute filename */
 
 					/* resource_fetch will test that filename */
@@ -286,7 +288,12 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 					/* Relative to current dir (we are loading main file/world) */
 					char *cwd;
 					
-					cwd = get_current_dir();
+					if (parentUrl==NULL) 
+						cwd = STRDUP(currentWorkingUrl);
+					else 
+						cwd = STRDUP(parentUrl);
+					removeFilenameFromPath(cwd);
+
 					if (!cwd) {
 
 						/* System problem */
@@ -299,7 +306,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 
 						char *fullpath;
 						fullpath = malloc(strlen(cwd)+strlen(res->request) + 1);
-						printf("about to join %s and %s resource.c L299\n",cwd,res->request);
+						/* printf("about to join :%s: and :%s: resource.c L299\n",cwd,res->request); */
 						sprintf(fullpath, "%s/%s", cwd, res->request);
 						/* resource_fetch will test that filename */
 						res->type = rest_file;
@@ -817,5 +824,48 @@ char *resourceMediaTypeToString (int mt) {
 		case  resm_pshader: return " resm_pshader";
 		case  resm_fshader: return " resm_fshader";
 		default: return "resource OUT OF RANGE";
+	}
+}
+
+
+
+#define SLASHDOTDOTSLASH "/../"
+static void removeFilenameFromPath (char *path) {
+	char *slashindex;
+	char *slashDotDotSlash;
+
+	/* and strip off the file name from the current path, leaving any path */
+	slashindex = (char *) rindex(path, ((int) '/'));
+	if (slashindex != NULL) {
+		slashindex ++; /* leave the slash there */
+		*slashindex = 0;
+	} else {path[0] = 0;}
+	/* printf ("removeFielnameFromPath, parenturl is %s\n",path); */
+
+	/* are there any "/../" bits in the path? if so, lets clean them up */
+	slashDotDotSlash = strstr(path, SLASHDOTDOTSLASH);
+	while (slashDotDotSlash != NULL) {
+		char tmpline[2000];
+		/* might have something like: _levels_plus/tiles/0/../1/../1/../2/../ */
+		/* find the preceeding slash: */
+		*slashDotDotSlash = '\0';
+		/* printf ("have slashdotdot, path now :%s:\n",path); */
+
+		slashindex = (char *)rindex(path, ((int) '/'));
+		if (slashindex != NULL) {
+			
+			slashindex ++;
+			*slashindex = '\0';
+			slashDotDotSlash += strlen(SLASHDOTDOTSLASH);
+			strcpy(tmpline,path);
+			/* printf ("tmpline step 1 is :%s:\n",tmpline); */
+			strcat (tmpline, slashDotDotSlash);
+			/* printf ("tmpline step 2 is :%s:\n",tmpline); */
+			strcpy (path, tmpline);
+			slashDotDotSlash = strstr(path, SLASHDOTDOTSLASH);
+			/* printf ("end of loop, path :%s: slashdot %u\n",path,slashDotDotSlash); */
+
+
+		}
 	}
 }

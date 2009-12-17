@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.46 2009/11/12 16:49:03 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.47 2009/12/17 17:18:45 crc_canada Exp $
 
 ???
 
@@ -1744,7 +1744,7 @@ void endExternProtoDeclare(void) {
 		/* printf ("just scanned %d strings...\n",url.n); */
 
 		res = resource_create_multi(&url);
-		resource_identify(root_res, res);
+		resource_identify(root_res, res, NULL);
 		if (res->type != rest_invalid) {
 			if (resource_fetch(res)) {
 				if (resource_load(res)) {

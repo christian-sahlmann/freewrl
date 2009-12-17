@@ -65,6 +65,9 @@ For 1.22.6 release:
 	DONE
 
 14) Garbage collection - freeing node resources and associated textures needs verification.
+
+15) resource_identify - verify that parentUrl could be set to non-null.
+
 ============================================================================
 
 11/16/2009:

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.19 2009/12/04 16:44:45 crc_canada Exp $
+$Id: Component_Networking.c,v 1.20 2009/12/17 17:18:44 crc_canada Exp $
 
 X3D Networking Component
 
@@ -35,7 +35,7 @@ X3D Networking Component
 #include <internal.h>
 
 #include <libFreeWRL.h>
-
+#include <io_http.h>
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include <list.h>
@@ -1214,7 +1214,8 @@ void changed_Inline (struct X3D_Inline *node) {
 void load_Inline (struct X3D_Inline *node) {
 	resource_item_t *res;
 
-/* printf ("load_Inline, loadStatus %d loadResource %u\n",node->__loadstatus, node->__loadResource); */
+	/* printf ("load_Inline %u, loadStatus %d loadResource %u\n",node, node->__loadstatus, node->__loadResource);
+	printf ("	load_Inline, parentURL %s\n",node->__parenturl->strptr); */
 
 	if (node->load) {
 		/* printf ("loading Inline\n"); */
@@ -1227,7 +1228,7 @@ void load_Inline (struct X3D_Inline *node) {
 			} else {
 				res = resource_create_multi(&(node->url));
 				res->media_type = resm_unknown;
-				resource_identify(root_res, res);
+				resource_identify(NULL, res,node->__parenturl->strptr);
 				node->__loadstatus = INLINE_FETCHING_RESOURCE;
 				node->__loadResource = res;
 			}

@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.44 2009/12/04 17:57:35 dug9 Exp $
+  $Id: ProdCon.c,v 1.45 2009/12/17 17:18:44 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -517,6 +517,8 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 	DEBUG_RES("processing VRML/X3D resource: %s\n", res->request);
 
+	/* save the current URL so that any local-url gets are relative to this */
+	pushInputURL(res->parsed_request);
 	l = (s_list_t *) res->openned_files;
 	if (!l) {
 		/* error */
@@ -536,7 +538,8 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	
 	if (res == root_res) {
 		/* FIXME: try to find a better way to handle this ;P ... */
-		pushInputURL(res->parsed_request);
+/* JAS - we want the current URL to be "stacked" */
+		/* pushInputURL(res->parsed_request); */
 		
 		/* FIXME: 
 		   - parser initialization ...
@@ -615,14 +618,6 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	/* now that we have the VRML/X3D file, load it into the scene. */
 	/* add the new nodes to wherever the caller wanted */
 
-#ifdef OLDCODE
-	/* this has to be a GROUP node! */
-	if (insert_node->_nodeType != NODE_Group) {
-		ConsoleMessage ("we have to add to a Group node, but have something else here\n");
-		return FALSE;
-	}
-#endif
-	
 	/* take the nodes from the nRn node, and put them into the place where we have decided to put them */
 	AddRemoveChildren(X3D_NODE(insert_node),
 			  offsetPointer_deref(void*, insert_node, offsetInNode), 
@@ -635,6 +630,10 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 			  (uintptr_t *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);	
 
 	res->complete = TRUE;
+	
+
+	/* remove this url from the stack */
+	popInputURL();
 
 	return TRUE;
 }
@@ -745,7 +744,7 @@ static void parser_process_res(s_list_t *item)
 
 	case ress_invalid:
 	case ress_none:
-		resource_identify(res->parent, res);
+		resource_identify(res->parent, res, NULL);
 		if (res->type == rest_invalid) {
 			remove_it = TRUE;
 		}
