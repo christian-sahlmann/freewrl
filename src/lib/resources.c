@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.11 2009/12/17 17:18:44 crc_canada Exp $
+  $Id: resources.c,v 1.12 2009/12/17 20:44:56 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -288,10 +288,16 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 					/* Relative to current dir (we are loading main file/world) */
 					char *cwd;
 					
-					if (parentUrl==NULL) 
-						cwd = STRDUP(currentWorkingUrl);
-					else 
+					if (parentUrl==NULL)  {
+printf ("resources, parentUrl is null, lets strdup the currentWorkingUrl, %u\n",currentWorkingUrl);
+						if (currentWorkingUrl==NULL) {
+							cwd = get_current_dir();
+						} else {
+							cwd = STRDUP(currentWorkingUrl);
+						}
+					} else { 
 						cwd = STRDUP(parentUrl);
+					}
 					removeFilenameFromPath(cwd);
 
 					if (!cwd) {
@@ -304,14 +310,11 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 
 						/* Make full path from current dir and relative filename */
 
-						char *fullpath;
-						fullpath = malloc(strlen(cwd)+strlen(res->request) + 1);
-						/* printf("about to join :%s: and :%s: resource.c L299\n",cwd,res->request); */
-						sprintf(fullpath, "%s/%s", cwd, res->request);
+						/* printf("about to join :%s: and :%s: resource.c L299\n",cwd,res->request);*/
+						url = concat_path(cwd,res->request);
 						/* resource_fetch will test that filename */
 						res->type = rest_file;
 						res->status = ress_starts_good;
-						url = fullpath;
 					}
 				}
 			}

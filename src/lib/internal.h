@@ -1,5 +1,5 @@
 /*
-  $Id: internal.h,v 1.27 2009/11/23 01:43:19 dug9 Exp $
+  $Id: internal.h,v 1.28 2009/12/17 20:44:56 crc_canada Exp $
 
   FreeWRL support library.
   Library internal declarations.
@@ -224,13 +224,13 @@ void fw_perror(FILE *f, const char *format, ...);
  */
 #if defined(FW_DEBUG) && defined(DEBUG_MALLOC)
 
-void *freewrlMalloc(int line, char *file, size_t sz);
+void *freewrlMalloc(int line, char *file, size_t sz, int zeroData);
 void *freewrlRealloc(int line, char *file, void *ptr, size_t size);
 void freewrlFree(int line, char *file, void *a);
 void *freewrlStrdup(int line, char *file, char *str);
 
-# define MALLOC(_sz)         freewrlMalloc(__LINE__, __FILE__, _sz)
-# define CALLOC(_fill, _sz)  freewrlCalloc(__LINE__, __FILE__, _fill, _sz)
+# define MALLOC(_sz)         freewrlMalloc(__LINE__, __FILE__, _sz, FALSE)
+# define CALLOC(_fill, _sz)  freewrlMalloc(__LINE__, __FILE__, _fill * _sz, TRUE);
 # define REALLOC(_a,_b)     freewrlRealloc(__LINE__, __FILE__, _a, _b) 
 # define FREE(_ptr)            freewrlFree(__LINE__, __FILE__, _ptr)
 

@@ -1,5 +1,5 @@
 /*
-  $Id: utils.c,v 1.10 2009/11/17 08:49:07 couannette Exp $
+  $Id: utils.c,v 1.11 2009/12/17 20:44:56 crc_canada Exp $
 
   General utility functions.
 
@@ -109,7 +109,7 @@ void scanMallocTableOnQuit()
 /**
  * Check all mallocs
  */
-void *freewrlMalloc(int line, char *file, size_t sz)
+void *freewrlMalloc(int line, char *file, size_t sz, int zeroData)
 {
     void *rv;
     char myline[400];
@@ -130,6 +130,8 @@ void *freewrlMalloc(int line, char *file, size_t sz)
     }
     printf ("%x malloc %d at %s:%d\n",rv,sz,file,line); 
     RESERVETABLE(rv,file,line);
+
+    if (zeroData) bzero (rv, sz);
     return rv;
 }
 
@@ -166,6 +168,7 @@ void *freewrlStrdup (int line, char *file, char *str)
 	sprintf (myline, "STRDUP PROBLEM - out of memory at %s:%d ",file,line);
 	outOfMemory (myline);
     }
+printf ("freewrlStrdup, before reservetable\n");
 
     RESERVETABLE(rv,file,line);
     return rv;

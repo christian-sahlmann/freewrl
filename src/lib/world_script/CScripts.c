@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.37 2009/12/17 17:18:45 crc_canada Exp $
+$Id: CScripts.c,v 1.38 2009/12/17 20:44:56 crc_canada Exp $
 
 ???
 
@@ -176,7 +176,7 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 /* Sets script field value */
 void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
 {
- ASSERT(me->fieldDecl->mode==PKW_initializeOnly); 
+ ASSERT(me->fieldDecl->PKWmode==PKW_initializeOnly); 
  me->value=v;
  me->valueSet=TRUE;
 }
