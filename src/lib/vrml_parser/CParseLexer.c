@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.28 2009/12/17 17:18:45 crc_canada Exp $
+$Id: CParseLexer.c,v 1.29 2009/12/18 17:41:09 istakenv Exp $
 
 ???
 
@@ -46,6 +46,7 @@ $Id: CParseLexer.c,v 1.28 2009/12/17 17:18:45 crc_canada Exp $
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
 #include "../input/InputFunctions.h"
+#include "../input/EAIHelpers.h"	/* for newASCIIString() */
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "CParse.h"
