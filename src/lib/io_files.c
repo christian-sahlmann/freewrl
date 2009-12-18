@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.8 2009/12/17 20:44:56 crc_canada Exp $
+  $Id: io_files.c,v 1.9 2009/12/18 17:08:04 dug9 Exp $
 
   FreeWRL support library.
   IO with files.
@@ -100,11 +100,14 @@ char *get_current_dir()
 	getcwd(cwd, PATH_MAX);
 #ifdef _MSC_VER
 	{
-			int jj;
-			for( jj=0;jj<strlen(cwd);jj++)
+			int jj,ll;
+			ll = strlen(cwd);
+			for( jj=0;jj<ll;jj++)
 				if(cwd[jj] == '\\' ) cwd[jj] = '/';
+			cwd[ll] = '/';  /* put / ending to match posix version which puts local file name on end*/
+			cwd[ll+1] = '\0';
 	}
-	printf("\n\n cwd from get_current_dir io_files.c L90 =%s\n\n",cwd);
+	printf("cwd from get_current_dir io_files.c L90 =[%s]\n",cwd);
 #endif
 	return cwd;
 #endif

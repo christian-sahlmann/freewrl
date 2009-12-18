@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.12 2009/12/17 20:44:56 crc_canada Exp $
+  $Id: resources.c,v 1.13 2009/12/18 17:08:04 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -298,6 +298,8 @@ printf ("resources, parentUrl is null, lets strdup the currentWorkingUrl, %u\n",
 					} else { 
 						cwd = STRDUP(parentUrl);
 					}
+					printf("cwd=%s\n",cwd);
+						
 					removeFilenameFromPath(cwd);
 
 					if (!cwd) {
@@ -833,6 +835,9 @@ char *resourceMediaTypeToString (int mt) {
 
 
 #define SLASHDOTDOTSLASH "/../"
+#ifdef _MSC_VER
+#define rindex strrchr
+#endif
 static void removeFilenameFromPath (char *path) {
 	char *slashindex;
 	char *slashDotDotSlash;
@@ -840,7 +845,7 @@ static void removeFilenameFromPath (char *path) {
 	/* and strip off the file name from the current path, leaving any path */
 	slashindex = (char *) rindex(path, ((int) '/'));
 	if (slashindex != NULL) {
-		slashindex ++; /* leave the slash there */
+		/* slashindex ++; /* <msvc DO NOT> leave the slash there */
 		*slashindex = 0;
 	} else {path[0] = 0;}
 	/* printf ("removeFielnameFromPath, parenturl is %s\n",path); */
