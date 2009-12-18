@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.13 2009/12/18 17:08:04 dug9 Exp $
+  $Id: resources.c,v 1.14 2009/12/18 17:30:07 istakenv Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -40,7 +40,8 @@
 #include <resources.h>
 #include <threads.h>
 
-#include <vrml_parser/Structs.h>
+#include "vrml_parser/Structs.h"
+#include "input/InputFunctions.h"
 
 static void removeFilenameFromPath (char *path);
 

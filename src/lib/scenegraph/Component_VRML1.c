@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.13 2009/11/29 16:38:21 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.14 2009/12/18 17:30:12 istakenv Exp $
 
 X3D VRML1 Component
 
@@ -77,6 +77,7 @@ Have fun! John A. Stewart, June 2009
 
 
 #include "LinearAlgebra.h"
+#include "Children.h"
 
 #define VRML1CHILDREN_COUNT int nc = node->VRML1children.n;
 

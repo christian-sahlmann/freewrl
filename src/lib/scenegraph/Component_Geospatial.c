@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.31 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.32 2009/12/18 17:30:12 istakenv Exp $
 
 X3D Geospatial Component
 
@@ -46,10 +46,12 @@ X3D Geospatial Component
 #include "Viewer.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
+#include "../input/EAIHelpers.h"	/* for newASCIIString() */
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
 #include "Component_Geospatial.h"
+#include "Children.h"
 
 /*
 Coordinate Conversion algorithms were taken from 2 locations after

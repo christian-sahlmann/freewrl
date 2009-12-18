@@ -92,6 +92,9 @@ typedef unsigned char _Bool;
 # include <sys/msg.h>
 #endif
 
+#if HAVE_SYS_IOCTL_H
+# include <sys/ioctl.h>
+#endif
 
 #include <linux/soundcard.h>
 

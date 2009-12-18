@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.20 2009/12/17 17:18:44 crc_canada Exp $
+$Id: Component_Networking.c,v 1.21 2009/12/18 17:30:12 istakenv Exp $
 
 X3D Networking Component
 
@@ -42,9 +42,11 @@ X3D Networking Component
 #include <resources.h>
 
 #include "../input/EAIHeaders.h"
+#include "../input/EAIHelpers.h"
 #include "../opengl/Frustum.h"
 
 #include "Component_Networking.h"
+#include "Children.h"
 
 /* keep track of the Midi nodes. */
 static uintptr_t *MidiNodes = NULL;

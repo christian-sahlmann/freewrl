@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.8 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_KeyDevice.c,v 1.9 2009/12/18 17:30:12 istakenv Exp $
 
 X3D Key Device Component
 
@@ -38,6 +38,7 @@ X3D Key Device Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../input/EAIHelpers.h"	/* for newASCIIString() */
 
 #include "Component_KeyDevice.h"
 

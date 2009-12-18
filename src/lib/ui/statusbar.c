@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.19 2009/12/08 21:09:30 crc_canada Exp $
+  $Id: statusbar.c,v 1.20 2009/12/18 17:30:13 istakenv Exp $
 
 */
 
@@ -51,7 +51,7 @@
 #include "../scenegraph/Viewer.h"
 
 #include "../opengl/RasterFont.h"
-
+#include "statusbar.h"
 
 static struct Uni_String *myline;
 

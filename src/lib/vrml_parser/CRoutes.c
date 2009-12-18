@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.46 2009/12/02 21:00:46 crc_canada Exp $
+$Id: CRoutes.c,v 1.47 2009/12/18 17:30:14 istakenv Exp $
 
 ???
 
@@ -51,6 +51,7 @@ $Id: CRoutes.c,v 1.46 2009/12/02 21:00:46 crc_canada Exp $
 #include "../input/SensInterps.h"
 #include "../scenegraph/Component_ProgrammableShaders.h"
 #include "../input/EAIHeaders.h"
+#include "../input/EAIHelpers.h"		/* for verify_Uni_String */
 
 #include "CRoutes.h"
 

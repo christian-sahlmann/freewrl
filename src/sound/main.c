@@ -42,7 +42,7 @@
 #include "system.h"
 #include "soundheader.h"
 #include <input/InputFunctions.h>
-
+#include "internal.h"
 
 int freewrlSystem (char *string);
 

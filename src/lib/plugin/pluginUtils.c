@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.18 2009/12/10 20:51:54 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.19 2009/12/18 17:30:10 istakenv Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -30,6 +30,7 @@
 #include <system.h>
 #include <display.h>
 #include <internal.h>
+#include "../threads.h"
 
 #include <libFreeWRL.h>
 #include <list.h>

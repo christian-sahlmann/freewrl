@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_HAnim.c,v 1.15 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_HAnim.c,v 1.16 2009/12/18 17:30:12 istakenv Exp $
 
 X3D H-Anim Component
 
@@ -39,6 +39,8 @@ X3D H-Anim Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Material.h"
+
+#include "Children.h"
 
 /* #include "OpenFW_GL_Utils.h" */
 

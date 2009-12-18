@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.24 2009/12/01 21:34:51 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.25 2009/12/18 17:30:12 istakenv Exp $
 
 X3D Navigation Component
 
@@ -45,6 +45,7 @@ X3D Navigation Component
 #include "quaternion.h"
 #include "Viewer.h"
 #include "../opengl/Frustum.h"
+#include "Children.h"
 
 
 extern struct sCollisionInfo OldCollisionInfo;

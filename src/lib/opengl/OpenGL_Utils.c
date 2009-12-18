@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.79 2009/12/17 17:18:44 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.80 2009/12/18 17:30:09 istakenv Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -30,6 +30,7 @@
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
+#include "../threads.h"		/* for isinputThreadParsing() */
 #include <display.h>
 #include <internal.h>
 

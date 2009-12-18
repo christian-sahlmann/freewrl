@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.82 2009/12/15 17:55:01 crc_canada Exp $
+  $Id: MainLoop.c,v 1.83 2009/12/18 17:30:08 istakenv Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -59,6 +59,7 @@
 #include "../input/InputFunctions.h"
 
 #include "../opengl/OpenGL_Utils.h"
+#include "../ui/statusbar.h"
 
 #ifdef AQUA
 #include "../ui/aquaInt.h"
