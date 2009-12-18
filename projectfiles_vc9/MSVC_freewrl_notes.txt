@@ -1,32 +1,20 @@
  
-Getting Started:
-1. download the free MS Visual C++ 2008 Express edition if you don't already have it
-http://www.microsoft.com/Express/vc/ 
-2. navigate your web browser to the download page from freewrl.sourceforge.net http://freewrl.sourceforge.net/download.html and download the Source Code tar and unzip
-3. download the msvc compatible libraries from
-http://cid-4a0d5f15141a58d5.skydrive.live.com/browse.aspx/GPUGroupX3D/freewrlWin32
-lib_msvcCompat.zip
-fonts.zip
-unzip and put them in freewrl/freex3d/lib and freewrl/freex3d/fonts respectively
-4. You should be able to build the Debug version of lib and standalone projects, except when you go to run it will complain about missing dlls.
-Go into the lib/windows/ directories and copy the dlls from the dlls_copy_to_debug directory and put in the projectfiles_vc9/Debug directory
-Likewise, from lib/windows/dlls_copy_to_release directory copy them to projectfiles_vc9/Release directory
-5. Download and install Wget and Unzip from http://gnuwin32.sourceforge.net/packages.html into C:/Program Files/GnuWin32
+Instructions are posted at:
+http://freewrl.sourceforge.net/windowsBuild.html 
 
-Current state of the MSVC freewrl project as of Aug 23, 2009
-- standalone (src/lib src/bin projectfiles_vc9) can be cvs checked out (main branch: freewrl/freex3d - see download page) and builds and runs not bad (hard to know without seeing other versions)
-- uses glew and wgl for opengl
-- you need also the msvc-compatible libraries (include,lib,dll) and JS currently available on Dougs skydrive - see link from download page
-- in the code WIN32 define is for both cygwin and msvc ports, _MSC_VER is for MSVC and is automatically defined by the compiler
 
 To do/not done yet: 
--  libeai - test cvs code for win32/msvc changes, update WIN32 to _MSC_VER where appropriate  
--  plugin, sound not attempted yet
+-  libeai - doug did a port but it was never applied  
+see http://cid-4a0d5f15141a58d5.skydrive.live.com/browse.aspx/GPUGroupX3D/PyEAI/Current > libeai_r122rc2_win32_June1.zip
+-  plugin and sound not attempted
 -  snapshot, consoleMessage stubbed out
--  fwWindow32.c is a mess of dead code, fullscreen not properly implemented
+-  fwWindow32.c has some dead code, fullscreen not properly implemented
 
 
-MSVC compatible libraries - likely just recompiled gnu libs - where I got them:
+MSVC compatible libraries - you got them from the link on the windowsbuild page. But where did I get them?
+gdiplus.lib/.dll - .lib seems to be on my system somewhere
+http://www.microsoft.com/downloads/details.aspx?FamilyID=6a63ab9c-df12-4d41-933c-be590feaa05a&DisplayLang=en  GDI+ redistributable download - gdiplus.dll 2MB 
+
 jpeg - OpenCV (book CD) try:  http://opencv.willowgarage.com/wiki/ and/or http://sourceforge.net/project/showfiles.php?group_id=22870 pre1.1 win
 MSopenGL - my windows system directories, for a msvc 6.0A directory (not sure what it was installed with. Just opengl 2.1)
 zlib - yafaray^ see below
