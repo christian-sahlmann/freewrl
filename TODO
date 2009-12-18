@@ -68,6 +68,8 @@ For 1.22.6 release:
 
 15) resource_identify - verify that parentUrl could be set to non-null.
 
+16) Luis Daiz Mas; add case 'x': {Snapshot(); break;} for single snaps on all platforms.
+
 ============================================================================
 
 11/16/2009:

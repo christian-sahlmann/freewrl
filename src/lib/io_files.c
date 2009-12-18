@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.10 2009/12/18 19:59:05 istakenv Exp $
+  $Id: io_files.c,v 1.11 2009/12/18 20:31:45 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -255,6 +255,7 @@ static openned_file_t* load_file_read(const char *filename)
 	struct stat ss;
 	int fd;
 	char *text, *current;
+
 #ifdef _MSC_VER
 	size_t blocksz, readsz, left2read;
 #else
@@ -373,7 +374,6 @@ int determineFileType(const char *buffer)
 				if (*rv != '!') foundStart = TRUE;
 			} else if (*rv == '\0') foundStart = TRUE;	
 		}
-		/* printf ("after foundStart, we have:%s:\n",rv); */
 		if (strncmp(rv,"X3D",3) == 0) {
 			/* the full version number will be found by the parser */
 			inputFileVersion[0] = 3;

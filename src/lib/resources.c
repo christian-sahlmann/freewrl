@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.15 2009/12/18 20:08:25 istakenv Exp $
+  $Id: resources.c,v 1.16 2009/12/18 20:31:45 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -43,8 +43,10 @@
 #include "vrml_parser/Structs.h"
 #include "input/InputFunctions.h"
 
-static void removeFilenameFromPath (char *path);
+#include "zlib.h"
 
+static void removeFilenameFromPath (char *path);
+static void possiblyUnzip (openned_file_t *of);
 
 
 /**
@@ -298,7 +300,6 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 					} else { 
 						cwd = STRDUP(parentUrl);
 					}
-						
 					removeFilenameFromPath(cwd);
 
 					if (!cwd) {
@@ -496,9 +497,12 @@ void resource_identify_type(resource_item_t *res)
 				/* error */
 				return;
 			}
+			/* might this be a gzipped input file? */
+			possiblyUnzip(of);
 			test_it = of->text;
 			break;
 		}
+
 
 		/* Test it */
 		t = determineFileType(test_it);
@@ -507,6 +511,9 @@ void resource_identify_type(resource_item_t *res)
 		case IS_TYPE_VRML1:
 			res->media_type = resm_vrml;
 			break;
+		case IS_TYPE_COLLADA:
+		case IS_TYPE_KML:
+		case IS_TYPE_SKETCHUP:
 		case IS_TYPE_XML_X3D:
 			res->media_type = resm_x3d;
 			break;
@@ -876,3 +883,56 @@ static void removeFilenameFromPath (char *path) {
 		}
 	}
 }
+
+
+/* is this a gzipped file? if so, unzip the text and replace the original with this. */
+static void possiblyUnzip (openned_file_t *of) {
+	if (of->text == NULL) return;
+	if (of->text[0] == '\0') return;
+	if (of->text[1] == '\0') return;
+        if (((unsigned char) of->text[0] == 0x1f) && ((unsigned char) of->text[1] == 0x8b)) {
+		#define GZIP_BUFF_SIZE 2048
+
+		gzFile *source;
+		FILE *dest;
+		char buffer[GZIP_BUFF_SIZE];
+		int num_read = 0;
+		openned_file_t *newFile;
+
+		char tempname[1000];
+
+		/* make a temporary name for the gunzipped file */
+                sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp")); 
+
+		/* read in the text, unzip it, write it out again */
+		source = gzopen(of->filename,"rb");
+		dest = fopen(tempname,"wb");
+
+		if (!source || !source) {
+			ConsoleMessage ("unable to unzip this file: %s\n",of->filename);
+			printf ("wow - problem\n");
+		}
+
+		while ((num_read = gzread(source, buffer, GZIP_BUFF_SIZE)) > 0) {
+			fwrite(buffer, 1, num_read, dest);
+		}
+
+		gzclose(source);
+		fclose(dest);
+
+		/* read in the unzipped text... */
+		newFile = load_file((const char *) tempname);
+
+		if (newFile->text == NULL) {
+			ConsoleMessage ("problem re-reading gunzipped text file");
+			return;
+		}
+
+		/* replace the old text with the unzipped; and clean up */
+		FREE_IF_NZ(of->text);
+		of->text = newFile->text;
+		FREE_IF_NZ(newFile);
+		unlink (tempname);
+	}
+}
+
