@@ -1,3 +1,9 @@
+freewrl (1.22.6-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Sat, 19 Dec 2009 15:59:59 +0100
+
 freewrl (1.22.5-2) unstable; urgency=low
 
   * Fixed faulty debian/rules.

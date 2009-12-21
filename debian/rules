@@ -40,10 +40,11 @@ configure-stamp:
 		--with-fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera \
 		--disable-static \
 		--disable-dependency-tracking \
-		--enable-debug \
+		--disable-debug \
 		--with-target=motif \
 		--with-mesa \
 		--enable-libeai \
+		--disable-libcurl \
 		--with-plugindir=/usr/lib/mozilla/plugins \
 		--with-browser=/usr/bin/firefox \
 		--with-soundconv=/usr/bin/sox \

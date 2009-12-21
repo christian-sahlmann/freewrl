@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.46 2009/12/18 20:31:45 crc_canada Exp $
+  $Id: ProdCon.c,v 1.47 2009/12/21 10:44:33 couannette Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -228,9 +228,6 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 	inputFileType = determineFileType(input);
 	DEBUG_MSG("PARSE STRING, ft %d, fv %d.%d.%d\n",
 		  inputFileType, inputFileVersion[0], inputFileVersion[1], inputFileVersion[2]);
-printf ("PARSE STRING, ft %d, fv %d.%d.%d\n",
-                  inputFileType, inputFileVersion[0], inputFileVersion[1], inputFileVersion[2]);
-
 
 	switch (inputFileType) {
 	case IS_TYPE_XML_X3D:
