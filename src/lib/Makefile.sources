@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.33 2009/12/07 23:23:21 couannette Exp $
+# $Id: Makefile.sources,v 1.34 2009/12/21 23:25:03 crc_canada Exp $
 #
 # List all source files
 #
@@ -64,6 +64,9 @@ x3d_parser/X3DParser.h \
 x3d_parser/X3DProtoScript.c \
 x3d_parser/X3DProtoScript.h \
 x3d_parser/capabilitiesHandler.c \
+ \
+non_web3d_formats/ColladaParser.h \
+non_web3d_formats/ColladaParser.c \
  \
 world_script/CScripts.h \
 world_script/CScripts.c \
