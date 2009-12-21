@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.47 2009/12/21 10:44:33 couannette Exp $
+  $Id: ProdCon.c,v 1.48 2009/12/21 23:23:24 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -244,6 +244,7 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 		break;
 	case IS_TYPE_COLLADA:
 		ConsoleMessage ("Collada not supported yet");
+		ret = ColladaParse (nRn, input);
 		break;
 	case IS_TYPE_SKETCHUP:
 		ConsoleMessage ("Google Sketchup format not supported yet");
