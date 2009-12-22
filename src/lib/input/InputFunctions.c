@@ -1,5 +1,5 @@
 /*
-  $Id: InputFunctions.c,v 1.14 2009/12/03 03:00:25 crc_canada Exp $
+  $Id: InputFunctions.c,v 1.15 2009/12/22 03:25:18 couannette Exp $
 
   FreeWRL support library.
   Input functions (EAI, mouse, keyboard, ...).
@@ -48,12 +48,16 @@
 #define READSIZE 2048
 
 
-char * stripLocalFileName (char * origName) {
+char * stripLocalFileName (char * origName) 
+{
+	if (!origName)
+		return NULL;
+
 	/* remove whitespace, etc */
 	while ((*origName != '\0') && (*origName <= ' ')) origName++;
 
         if ((strncmp(origName,"file://", strlen("file://"))== 0) || 
-        (strncmp(origName,"FILE://", strlen("FILE://"))== 0)) {
+	    (strncmp(origName,"FILE://", strlen("FILE://"))== 0)) {
 		origName += strlen ("FILE://");
 		return origName;
 	}

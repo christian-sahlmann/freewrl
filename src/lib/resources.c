@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.16 2009/12/18 20:31:45 crc_canada Exp $
+  $Id: resources.c,v 1.17 2009/12/22 03:25:17 couannette Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -183,7 +183,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 	char *url = NULL;
 	int len;
 
-	DEBUG_RES("identifying resource: %s, %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status));
+	DEBUG_RES("identifying resource: %s\n", res->request);
 
 	ASSERT(res);
 
@@ -199,10 +199,12 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 			/* FIXME: how to free that list ??? */
 		} else {
 			/* list empty */
+			ERROR_MSG("resource_identify: ERROR: empty multi string as input\n");
 			return;
 		}
 	}
 
+#if 0 // I DON'T REMEMBER WHY I INVENTED THIS new_root FLAG ???
 	if (!res->new_root) {
 		/* We are in the default case: first resource tree */
 		if (base) {
@@ -214,6 +216,12 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 	} else {
 		/* Not default case: a new resource tree is being loaded (try replace world) */
 		network = FALSE;
+	}
+#endif
+
+	if (base) {
+		network = TRUE;
+		PTR_REPLACE(res->parent, base);
 	}
 
 	/* URI specifier at the beginning ? */
@@ -228,7 +236,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 			/* We have an absolute url for this resource */
 			res->type = rest_url;
 			res->status = ress_starts_good;
-			url = strdup(res->request);
+			url = STRDUP(res->request);
 
 		} else {
 
@@ -238,10 +246,10 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 			if (base) {
 				res->type = rest_url;
 				res->status = ress_starts_good;
-				url = strcat(base->base, res->request);
+				url = concat_path(base->base, res->request);
 			} else {
 				res->type = rest_invalid;
-				ERROR_MSG("resource_parse: can't handle relative url without base: %s\n", res->request);
+				ERROR_MSG("resource_identify: can't handle relative url without base: %s\n", res->request);
 			}
 		}		
 			
@@ -254,10 +262,10 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 		if (len > PATH_MAX) {
 
 			res->type = rest_invalid;
-			ERROR_MSG("resource_parse: path too long: %s\n", res->request);
+			ERROR_MSG("resource_identify: path too long: %s\n", res->request);
 
 		} else {
-			char *cleanedURL;
+			char *cleanedURL = NULL;
 			/* remove any possible file:// off of the front of the name */
 			/* NOTE: this is NOT a new string, possibly just incremented res->request */
 
@@ -267,9 +275,13 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 			if (base) {
 				/* Relative to base */
 				if (cleanedURL[0] == '/') {
+					/*
 					res->type = rest_file;
 					res->status = ress_starts_good;
 					url = STRDUP(cleanedURL);
+					*/
+					res->status = ress_invalid;
+					ERROR_MSG("resource_identify: could not load an absolute filename relatively to base: %s\n", base->parsed_request);
 
 				} else {
 					res->type = rest_file;
@@ -284,7 +296,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 					/* resource_fetch will test that filename */
 					res->type = rest_file;
 					res->status = ress_starts_good;
-					url = strdup(cleanedURL);
+					url = STRDUP(cleanedURL);
 
 				} else {
 
@@ -327,12 +339,17 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 
 	/* Parse own's base */
 	if (!base) {
-		res->base = remove_filename_from_path(url);
+		PTR_REPLACE(res->base, remove_filename_from_path(url));
 	} else {
-		res->base = base->base;
+		PTR_REPLACE_DUP(res->base, base->base);
 	}
 
-	DEBUG_RES("resource_parse: request=<%s> base=<%s> url=<%s>\n", res->request, res->base, res->parsed_request);
+	DEBUG_RES("resource_parse: network=%s type=%s status=%s"
+		  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n", 
+		  BOOL_STR(res->network), resourceTypeToString(res->type), 
+		  resourceStatusToString(res->status), res->request, 
+		  res->base, res->parsed_request,
+		  res->parent, (res->parent ? res->parent->base : "N/A"));
 }
 
 /**
@@ -776,7 +793,7 @@ void resource_tree_dump(int level, resource_item_t *root)
 	spacer printf("status:\t %u\n", root->status);
 	spacer printf("complete:\t %s\n", BOOL_STR(root->complete));
 	spacer printf("where:\t %p\n", root->where);
-	spacer printf("offsetFromWhere:\t %p\n", root->offsetFromWhere);
+	spacer printf("offsetFromWhere:\t %d\n", root->offsetFromWhere);
 	spacer printf("m_request:\t %p\n", root->m_request);
 	spacer printf("base:\t %s\n", root->base);
 	spacer printf("temp_dir:\t %s\n", root->temp_dir);
@@ -851,7 +868,7 @@ static void removeFilenameFromPath (char *path) {
 	/* and strip off the file name from the current path, leaving any path */
 	slashindex = (char *) rindex(path, ((int) '/'));
 	if (slashindex != NULL) {
-		/* slashindex ++; /* <msvc DO NOT> leave the slash there */
+		/* slashindex ++; */ /* <msvc DO NOT> leave the slash there */
 		*slashindex = 0;
 	} else {path[0] = 0;}
 	/* printf ("removeFielnameFromPath, parenturl is %s\n",path); */
