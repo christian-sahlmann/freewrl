@@ -72,6 +72,9 @@ libFreeWRLplugin_la_SOURCES += internal_version.c
 register-plugin:
 	mkdir -p $(DESTDIR)$(libdir)
 	mkdir -p $(DESTDIR)$(PLUGIN_DIR)
-	if test -w $(DESTDIR)$(PLUGIN_DIR); then ln -s $(DESTDIR)$(libdir)/$(FREEWRL_PLUGIN) $(DESTDIR)$(PLUGIN_DIR); fi
+	if test -w $(DESTDIR)$(PLUGIN_DIR); then \
+		cd $(DESTDIR)$(PLUGIN_DIR); \
+		ln -s $(libdir)/$(FREEWRL_PLUGIN); \
+	fi
 
 install-exec-am: register-plugin
