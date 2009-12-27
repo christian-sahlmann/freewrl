@@ -50,11 +50,6 @@ fi
     AC_SEARCH_LIBS(glAccum,         $GL_search_list,  have_GL=yes,   have_GL=no)
     AC_SEARCH_LIBS(gluBeginCurve,   $GLU_search_list, have_GLU=yes,  have_GLU=no)
     AC_SEARCH_LIBS(glXChooseVisual, $GLX_search_list, have_GLX=yes,  have_GLX=no)
-    AC_SEARCH_LIBS(glutInit,        glut,             have_glut=yes, have_glut=no)
-
-
-    # Restore pretty messages.
-    exec AC_FD_MSG>&8
 
     if test -n "$LIBS"; then
       mdl_cv_have_OpenGL=yes
@@ -63,6 +58,29 @@ fi
       mdl_cv_have_OpenGL=no
       GL_CFLAGS=
     fi
+
+    LIBS="-lglut $LIBS"
+
+    AC_SEARCH_LIBS(glutInit,        glut,             have_glut=yes, have_glut=no)
+
+    if test -n "$LIBS"; then
+      mdl_cv_have_glut=yes
+      GLUT_LIBS="$LIBS"
+    else
+      mdl_cv_have_glut=no
+      GLUT_CFLAGS=
+    fi
+
+    # Restore pretty messages.
+    exec AC_FD_MSG>&8
+
+#     if test -n "$LIBS"; then
+#       mdl_cv_have_OpenGL=yes
+#       GL_LIBS="$LIBS"
+#     else
+#       mdl_cv_have_OpenGL=no
+#       GL_CFLAGS=
+#     fi
 
 dnl Reset GL_X_LIBS regardless, since it was just a temporary variable
 dnl and we don't want to be global namespace polluters.
@@ -89,5 +107,7 @@ dnl bugfix: dont forget to cache this variables, too
   have_glut="$mdl_cv_have_glut"
   AC_SUBST(GL_CFLAGS)
   AC_SUBST(GL_LIBS)
+  AC_SUBST(GLUT_CFLAGS)
+  AC_SUBST(GLUT_LIBS)
 ])
 dnl endof bugfix -ainan

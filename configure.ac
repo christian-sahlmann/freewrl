@@ -351,6 +351,8 @@ case "$TARGET" in
 esac
 
 # Glew
+GLEW_CFLAGS=""
+GLEW_LIBS="-lGLEW"
 AC_ARG_WITH(glew,AS_HELP_STRING([--with-glew=<dir>],[Use glew from here]),[
                 glew=$withval
                 GLEW_CFLAGS="-I$withval/include"
@@ -385,6 +387,9 @@ AC_SUBST(GLEW_LIBS)
 
 	;;
 esac
+
+# workaround LIBS appended with -lz, how to prevent this ???
+LIBS=
 
 # JPEG
 AC_ARG_WITH(jpeg,AS_HELP_STRING([--with-jpeg=<dir>],[Use jpeg from here]),[
@@ -425,6 +430,9 @@ AC_CHECK_LIB([jpeg],[jpeg_start_decompress],[],
 
 AC_SUBST(JPEG_CFLAGS)
 AC_SUBST(JPEG_LIBS)
+
+# workaround LIBS appended with -lz, how to prevent this ???
+LIBS=
 
 # PNG
 PKG_CHECK_MODULES(PNG, libpng)
