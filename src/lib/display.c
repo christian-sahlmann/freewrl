@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.27 2009/12/08 21:09:30 crc_canada Exp $
+  $Id: display.c,v 1.28 2009/12/28 00:55:41 couannette Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -166,6 +166,14 @@ int display_initialize()
 
 	/* Display full initialized :P cool ! */
 	display_initialized = TRUE;
+
+	DEBUG_MSG("FreeWRL: running as a plugin: %s\n", BOOL_STR(isBrowserPlugin));
+
+#if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
+	if (RUNNINGASPLUGIN) {
+		sendXwinToPlugin();
+	}
+#endif
 
 	return TRUE;
 }
