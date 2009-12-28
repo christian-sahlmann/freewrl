@@ -49,7 +49,8 @@ AM_CPPFLAGS += \
 EXTERNAL_LIBS += \
 				$(X_PRE_LIBS) \
 				$(X_LIBS) $(X_EXTRA_LIBS) \
-				$(XAW_LIBS)
+				$(XAW_LIBS) \
+				$(GLEW_LIBS)
 endif
 
 # Motif flags specific to motif target (only on Linux at the moment)
@@ -63,7 +64,8 @@ EXTERNAL_LIBS += \
 				$(X_PRE_LIBS) \
 				$(MOTIF_LIBS) \
 				$(X_LIBS) $(X_EXTRA_LIBS) \
-				$(XAW_LIBS)
+				$(XAW_LIBS) \
+				$(GLEW_LIBS)
 endif
 
 if OS_MAC
