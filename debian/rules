@@ -9,6 +9,8 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+my_switch=enable
+
 build_support_parallelization=true
 
 # we may want to pick up this from the config.h after configure...
@@ -39,8 +41,8 @@ configure-stamp:
 	./configure --prefix=/usr \
 		--with-fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera \
 		--disable-static \
-		--disable-dependency-tracking \
-		--disable-debug \
+		--${my_switch}-dependency-tracking \
+		--${my_switch}-debug \
 		--with-target=motif \
 		--with-mesa \
 		--enable-libeai \
