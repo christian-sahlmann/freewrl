@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.41 2009/12/10 20:51:54 crc_canada Exp $
+  $Id: Textures.c,v 1.42 2009/12/28 15:57:46 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -47,6 +47,7 @@
 #include "Textures.h"
 #include "../opengl/Material.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../world_script/fieldSet.h"
 
 #include "LoadTextures.h"
 
@@ -122,7 +123,6 @@ CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
 CGLPixelFormatObj pixelFormat = NULL;
 long numPixelFormats = 0;
 CGLContextObj aqtextureContext = NULL;
-static int useQuicktime = FALSE;
 
 
 #elif defined(WIN32)
@@ -759,8 +759,28 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 }
 
 
+#define BOUNDARY_TO_GL(direct) \
+				switch (findFieldInTEXTUREBOUNDARYKEYWORDS(tpNode->boundaryMode##direct->strptr)) { \
+					case TB_CLAMP: direct##rc=GL_CLAMP; break; \
+					case TB_CLAMP_TO_EDGE: direct##rc=GL_CLAMP_TO_EDGE; break; \
+					case TB_CLAMP_TO_BOUNDARY: direct##rc=GL_CLAMP_TO_BORDER; break; \
+					case TB_MIRRORED_REPEAT: direct##rc=GL_MIRRORED_REPEAT; break; \
+					case TB_REPEAT: direct##rc=GL_REPEAT; break; \
+					default: direct##rc = GL_REPEAT; \
+				}
+
 /* do we do 1 texture, or is this a series of textures, requiring final binding
    by this thread? */
+#define DEF_FINDFIELD(arr) \
+ static int findFieldIn##arr(const char* field) \
+ { \
+  return findFieldInARR(field, arr, arr##_COUNT); \
+ }
+
+DEF_FINDFIELD(TEXTUREMINIFICATIONKEYWORDS)
+DEF_FINDFIELD(TEXTUREMAGNIFICATIONKEYWORDS)
+DEF_FINDFIELD(TEXTUREBOUNDARYKEYWORDS)
+DEF_FINDFIELD(TEXTURECOMPRESSIONKEYWORDS)
 
 static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	int rx,ry,sx,sy;
@@ -770,17 +790,15 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	int count;
 
 	/* default texture properties; can be changed by a TextureProperties node */
-	float anisotropicDegree=0.0;
+	float anisotropicDegree=1.0;
 	struct SFColorRGBA borderColor;
-	int borderWidth=0;
-	int boundaryModeS = GL_REPEAT;
-	int boundaryModeT = GL_REPEAT;
-	int boundaryModeR = GL_REPEAT;
-	int magnificationFilter = GL_FASTEST;
-	int minificationFilter = GL_FASTEST;
-	int textureCompression = GL_FASTEST;
-	int texturePriority = 0;
-	int generateMipMaps = TRUE;
+	int borderWidth;
+
+        GLint Trc,Src,Rrc;
+        GLint minFilter, magFilter;
+        GLint compression;
+        int generateMipMaps;
+
 	
 	/* for getting repeatS and repeatT info. */
 	struct X3D_PixelTexture *pt = NULL;
@@ -788,12 +806,20 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	struct X3D_ImageTexture *it = NULL;
 	struct X3D_VRML1_Texture2* v1t = NULL;
 	struct X3D_TextureProperties *tpNode = NULL;
-	GLint Src, Trc;
 	unsigned char *mytexdata;
+	int haveValidTexturePropertiesNode;
+	GLfloat texPri;
+	struct SFColorRGBA borderColour;
+
 
 	/* initialization */
-	Src = 0; Trc = 0;
+	Src = FALSE; Trc = FALSE; Rrc = FALSE;
 	tpNode = NULL;
+	haveValidTexturePropertiesNode = FALSE;
+	texPri=0.0;
+	borderColour.c[0]=0.0;borderColour.c[1]=0.0;borderColour.c[2]=0.0;borderColour.c[3]=0.0;
+	compression = GL_FALSE;
+	borderWidth = 0;
 
 	/* do we need to convert this to an OpenGL texture stream?*/
 
@@ -805,51 +831,121 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 		printf ("just glGend texture for block %d is %u\n",
 			(int) me, me->OpenGLTexture);
 #endif
+	}
 
-		/* get the repeatS and repeatT info from the scenegraph node */
-		if (me->nodeType == NODE_ImageTexture) {
-			it = (struct X3D_ImageTexture *) me->scenegraphNode;
-			Src = it->repeatS; Trc = it->repeatT;
-			tpNode = it->textureProperties;
-		} else if (me->nodeType == NODE_PixelTexture) {
-			pt = (struct X3D_PixelTexture *) me->scenegraphNode;
-			Src = pt->repeatS; Trc = pt->repeatT;
-			tpNode = pt->textureProperties;
-		} else if (me->nodeType == NODE_MovieTexture) {
-			mt = (struct X3D_MovieTexture *) me->scenegraphNode;
-			Src = mt->repeatS; Trc = mt->repeatT;
-			tpNode = mt->textureProperties;
-		} else if (me->nodeType == NODE_VRML1_Texture2) {
-			v1t = (struct X3D_VRML1_Texture2 *) me->scenegraphNode;
-			Src = v1t->_wrapS==VRML1MOD_REPEAT;
-			Trc = v1t->_wrapT==VRML1MOD_REPEAT;
-		}
-		/* save texture params */
-		me->Src = Src ? GL_REPEAT : GL_CLAMP;
-		me->Trc = Trc ? GL_REPEAT : GL_CLAMP;
+	/* get the repeatS and repeatT info from the scenegraph node */
+	if (me->nodeType == NODE_ImageTexture) {
+		it = (struct X3D_ImageTexture *) me->scenegraphNode;
+		Src = it->repeatS; Trc = it->repeatT;
+		tpNode = it->textureProperties;
+	} else if (me->nodeType == NODE_PixelTexture) {
+		pt = (struct X3D_PixelTexture *) me->scenegraphNode;
+		Src = pt->repeatS; Trc = pt->repeatT;
+		tpNode = pt->textureProperties;
+	} else if (me->nodeType == NODE_MovieTexture) {
+		mt = (struct X3D_MovieTexture *) me->scenegraphNode;
+		Src = mt->repeatS; Trc = mt->repeatT;
+		tpNode = mt->textureProperties;
+	} else if (me->nodeType == NODE_VRML1_Texture2) {
+		v1t = (struct X3D_VRML1_Texture2 *) me->scenegraphNode;
+		Src = v1t->_wrapS==VRML1MOD_REPEAT;
+		Trc = v1t->_wrapT==VRML1MOD_REPEAT;
+	}
 
-		if (tpNode) {
-			printf ("Texture, have textureProperties\n");
-/*
-  SFFloat     [in,out] anisotropicDegree   1.0       [1,∞)
-  SFColorRGBA [in,out] borderColor         0 0 0 0   [0,1]
-  SFInt32     [in,out] borderWidth         0         [0,1]
-  SFString    [in,out] boundaryModeS       "REPEAT"  [see Table 18.7]
-  SFString    [in,out] boundaryModeT       "REPEAT"  [see Table 18.7]
-  SFString    [in,out] boundaryModeR       "REPEAT"  [see Table 18.7]
-  SFString    [in,out] magnificationFilter "FASTEST" [see Table 18.8]
-  SFString    [in,out] minificationFilter  "FASTEST" [see Table 18.9]
-  SFString    [in,out] textureCompression  "FASTEST" [see Table 18.10]
-  SFFloat     [in,out] texturePriority     0         [0,1]
-  SFBool      []       generateMipMaps     FALSE
-if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMipMaps\n");
-*/
-			if (tpNode->_nodeType == NODE_TextureProperties) {
-				generateMipMaps = tpNode->generateMipMaps;
-			} else {
-				ConsoleMessage ("a texture node has a textureProperties of type %s - ignoring",
-					stringNodeType(tpNode->_nodeType));
+	/* do we have a TextureProperties node? */
+	if (tpNode) {
+		if (tpNode->_nodeType != NODE_TextureProperties) {
+			ConsoleMessage ("have a %s as a textureProperties node",stringNodeType(tpNode->_nodeType));
+		} else {
+			haveValidTexturePropertiesNode = TRUE;
+			generateMipMaps = tpNode->generateMipMaps?GL_TRUE:GL_FALSE;
+			texPri = tpNode->texturePriority;
+			if ((texPri < 0.0) || (texPri>1.0)) {
+				texPri = 0.0;
+				ConsoleMessage ("invalid texturePriority of %f",tpNode->texturePriority);
 			}
+			memcpy(&borderColour,&(tpNode->borderColor),sizeof(struct SFColorRGBA));
+
+			anisotropicDegree = tpNode->anisotropicDegree;
+			if ((anisotropicDegree < 1.0) || (anisotropicDegree>rdr_caps.anisotropicDegree)) {
+				/* we can be quiet here 
+				   ConsoleMessage ("anisotropicDegree error %f, must be between 1.0 and %f",anisotropicDegree, rdr_caps.anisotropicDegree);
+				*/
+				anisotropicDegree = rdr_caps.anisotropicDegree;
+			}			
+
+			borderWidth = tpNode->borderWidth;
+			if (borderWidth < 0) borderWidth=0; if (borderWidth>1) borderWidth = 1;
+
+			switch (findFieldInTEXTUREMAGNIFICATIONKEYWORDS(tpNode->magnificationFilter->strptr)) {
+				case TMAG_AVG_PIXEL: magFilter = GL_NEAREST; break;
+				case TMAG_DEFAULT: magFilter = GL_LINEAR; break;
+				case TMAG_FASTEST: magFilter = GL_LINEAR; break;  /* DEFAULT */
+				case TMAG_NEAREST_PIXEL: magFilter = GL_NEAREST; break;
+				case TMAG_NICEST: magFilter = GL_NEAREST; break;
+				default: magFilter = GL_NEAREST; ConsoleMessage ("unknown magnification filter %s",
+					tpNode->magnificationFilter->strptr);
+			}
+
+			/* minFilter depends on Mipmapping */
+			if (generateMipMaps) switch (findFieldInTEXTUREMINIFICATIONKEYWORDS(tpNode->minificationFilter->strptr)) {
+				case TMIN_AVG_PIXEL: minFilter = GL_NEAREST; break;
+				case TMIN_AVG_PIXEL_AVG_MIPMAP: minFilter = GL_NEAREST_MIPMAP_NEAREST; break;
+				case TMIN_AVG_PIXEL_NEAREST_MIPMAP: minFilter = GL_NEAREST_MIPMAP_NEAREST; break;
+				case TMIN_DEFAULT: minFilter = GL_NEAREST_MIPMAP_LINEAR; break;
+				case TMIN_FASTEST: minFilter = GL_NEAREST_MIPMAP_LINEAR; break;
+				case TMIN_NICEST: minFilter = GL_NEAREST_MIPMAP_NEAREST; break;
+				case TMIN_NEAREST_PIXEL: minFilter = GL_NEAREST; break;
+				case TMIN_NEAREST_PIXEL_NEAREST_MIPMAP: minFilter = GL_NEAREST_MIPMAP_LINEAR; break;
+				default: minFilter = GL_NEAREST_MIPMAP_NEAREST;
+					ConsoleMessage ("unknown minificationFilter of %s",
+						tpNode->minificationFilter->strptr);
+			}
+			else switch (findFieldInTEXTUREMINIFICATIONKEYWORDS(tpNode->minificationFilter->strptr)) {
+				case TMIN_AVG_PIXEL: 
+				case TMIN_AVG_PIXEL_AVG_MIPMAP: 
+				case TMIN_AVG_PIXEL_NEAREST_MIPMAP: 
+				case TMIN_DEFAULT: 
+				case TMIN_FASTEST: 
+				case TMIN_NICEST: 
+				case TMIN_NEAREST_PIXEL: minFilter = GL_NEAREST; break;
+				case TMIN_NEAREST_PIXEL_NEAREST_MIPMAP: minFilter = GL_LINEAR; break;
+				default: minFilter = GL_NEAREST;
+					ConsoleMessage ("unknown minificationFilter of %s",
+						tpNode->minificationFilter->strptr);
+			}
+					
+			switch (findFieldInTEXTURECOMPRESSIONKEYWORDS(tpNode->textureCompression->strptr)) {
+				case TC_DEFAULT: compression = GL_FASTEST; break;
+				case TC_FASTEST: compression = GL_NONE; break; /* DEFAULT */
+				case TC_HIGH: compression = GL_FASTEST; break;
+				case TC_LOW: compression = GL_NONE; break;
+				case TC_MEDIUM: compression = GL_NICEST; break;
+				case TC_NICEST: compression = GL_NICEST; break;
+
+				default: compression = GL_NEAREST_MIPMAP_NEAREST;
+					ConsoleMessage ("unknown textureCompression of %s",
+						tpNode->textureCompression->strptr);
+			}
+
+			BOUNDARY_TO_GL(S);
+			BOUNDARY_TO_GL(T);
+			BOUNDARY_TO_GL(R);
+		}
+	} if (!haveValidTexturePropertiesNode) {
+		/* convert TRUE/FALSE to GL_TRUE/GL_FALSE for wrapS and wrapT */
+		Src = Src ? GL_REPEAT : GL_CLAMP;
+		Trc = Trc ? GL_REPEAT : GL_CLAMP;
+		Rrc = Rrc ? GL_REPEAT : GL_CLAMP;
+		generateMipMaps = GL_TRUE;
+
+		/* choose smaller images to be NEAREST, larger ones to be LINEAR */
+		if ((me->x<=256) || (me->y<=256)) {
+			minFilter = GL_NEAREST_MIPMAP_NEAREST;
+			magFilter = GL_NEAREST;
+		} else {
+			minFilter = GL_NEAREST_MIPMAP_LINEAR;
+			magFilter = GL_LINEAR;
 		}
 	}
 
@@ -861,20 +957,24 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 	/* save this to determine whether we need to do material node
 	  within appearance or not */
 		
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, me->Src);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, me->Trc);
-	glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Src);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Trc);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, Rrc);
+	glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, generateMipMaps);
+	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_PRIORITY, texPri);
+	glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,&borderColour);
+	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAX_ANISOTROPY_EXT,anisotropicDegree);
+
+	if (compression != GL_NONE) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
+		glHint(GL_TEXTURE_COMPRESSION_HINT, compression);
+	}
 	x = me->x;
 	y = me->y;
 
-	/* choose smaller images to be NEAREST, larger ones to be LINEAR */
-	if ((x<=256) || (y<=256)) {
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	} else {
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	}
+
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
 	
 	/* NOTE: trying BGRA format from textures */
@@ -921,7 +1021,7 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 		while (!texOk) {
 			GLint width, height;
 			gluScaleImage(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
-			glTexImage2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+			glTexImage2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
 
 			glGetTexLevelParameteriv (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
 			glGetTexLevelParameteriv (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 

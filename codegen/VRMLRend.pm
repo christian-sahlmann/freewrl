@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.25 2009/11/06 22:29:42 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.26 2009/12/28 15:57:46 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.26  2009/12/28 15:57:46  crc_canada
+# TextureProperties node now active.
+#
 # Revision 1.25  2009/11/06 22:29:42  crc_canada
 # Shader Routing, and Metadata MARK_EVENT working.
 #
@@ -1212,6 +1215,75 @@
 	outputOnly
 	inputOutput
 	initializeOnly
+/;
+
+#######################################################################
+#######################################################################
+#######################################################################
+
+#
+# Texture Boundary Keywords
+# 
+
+%TextureBoundaryC = map {($_=>1)} qw/
+	CLAMP
+	CLAMP_TO_EDGE
+	CLAMP_TO_BOUNDARY
+	MIRRORED_REPEAT
+	REPEAT
+/;
+
+#######################################################################
+#######################################################################
+#######################################################################
+
+#
+# Texture MAgnifiation Keywords
+# 
+
+%TextureMagnificationC = map {($_=>1)} qw/
+	AVG_PIXEL
+	DEFAULT
+	FASTEST
+	NEAREST_PIXEL
+	NICEST
+/;
+
+#######################################################################
+#######################################################################
+#######################################################################
+
+#
+# Texture Minification Keywords
+# 
+
+%TextureMinificationC = map {($_=>1)} qw/
+	AVG_PIXEL
+	AVG_PIXEL_AVG_MIPMAP
+	AVG_PIXEL_NEAREST_MIPMAP
+	DEFAULT
+	FASTEST
+	NEAREST_PIXEL
+	NEAREST_PIXEL_AVG_MIPMAP
+	NEAREST_PIXEL_NEAREST_MIPMAP
+	NICEST
+/;
+
+#######################################################################
+#######################################################################
+#######################################################################
+
+#
+# Texture Compression Keywords
+# 
+
+%TextureCompressionC = map {($_=>1)} qw/
+	DEFAULT
+	FASTEST
+	HIGH
+	LOW
+	MEDIUM
+	NICEST
 /;
 
 #######################################################################

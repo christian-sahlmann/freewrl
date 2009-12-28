@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.27 2009/12/28 03:00:50 dug9 Exp $
+  $Id: LoadTextures.c,v 1.28 2009/12/28 15:57:46 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -552,7 +552,14 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		res = resource_create_multi(url);
 		res->media_type = resm_image; /* quick hack */
 
-		resource_identify(root_res, res, parentPath);
+		/* JAS Doug Sanden reversed my "NULL" param here - so lets ifdef around this
+		   TODO FIXME item; Michel Briand is aware of the issue with parentPaths and
+		   resources */
+#ifdef TARGET_AQUA
+		resource_identify(NULL, res, parentPath);
+#else
+		resource_identify(root_res, res, parentPath); 
+#endif
 
 		if (resource_fetch(res)) {
 			if (texture_load_from_file(entry, res->actual_file)) {

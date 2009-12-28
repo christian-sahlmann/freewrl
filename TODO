@@ -72,6 +72,8 @@ For 1.22.6 release:
 
 ============================================================================
 
+December 22 2009: have code for TextureProperties Node, but verify fields are used properly.
+
 11/16/2009:
 	(JAS) via Marvin Simkin:
 		Your movement speed in fly mode does not seem to be sensitive to the following:
@@ -130,9 +132,7 @@ For 1.22.6 release:
 
 (going through specs, finding what component conformance level FreeWRL is currently at; lower priority) 06/16/2009:
 	TimeSensor pause - verify code.
-	ImageTexture - textureProperties field.
 	MovieTexture - textureProperties field.
-	TextureProperties Node.
 	EaseInEaseOut Node.
 	SplinePositionInterpolator Node
 	SplinePositionInterpolator2D Node

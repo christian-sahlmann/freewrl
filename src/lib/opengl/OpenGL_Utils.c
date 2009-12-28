@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.80 2009/12/18 17:30:09 istakenv Exp $
+  $Id: OpenGL_Utils.c,v 1.81 2009/12/28 15:57:46 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -455,7 +455,6 @@ bool initialize_GL()
 	int checktexsize;
 	GLenum err;
 
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start");
 
 #if defined (TARGET_AQUA)
         /* aqglobalContext is found at the initGL routine in MainLoop.c. Here
@@ -472,6 +471,8 @@ bool initialize_GL()
 	initialize_rdr_caps();
 
 	initialize_rdr_functions();
+
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start");
 
 	/* lets make sure everything is sync'd up */
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)

@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.32 2009/12/18 17:30:07 istakenv Exp $
+# $Id: VRMLC.pm,v 1.33 2009/12/28 15:57:46 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.33  2009/12/28 15:57:46  crc_canada
+# TextureProperties node now active.
+#
 # Revision 1.32  2009/12/18 17:30:07  istakenv
 # fixed implicit declarations
 #
@@ -909,6 +912,113 @@ sub gen {
 		"	if ((st < 0) || (st >= X3DSPECIAL_COUNT)) return \"(special keyword invalid)\"; \n".
 		"	return X3DSPECIAL[st];\n}\n\n";
 	push @str, "const char *stringX3DSPECIALType(int st);\n";
+
+
+	#####################
+	# process TEXTUREBOUNDARY keywords 
+	push @str, "\n/* Table of built-in TEXTUREBOUNDARY keywords */\nextern const char *TEXTUREBOUNDARYKEYWORDS[];\n";
+	push @str, "extern const indexT TEXTUREBOUNDARYKEYWORDS_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of TEXTUREBOUNDARY keywords */\n       const char *TEXTUREBOUNDARYKEYWORDS[] = {\n";
+
+        my @sf = keys %TextureBoundaryC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		push @str, "#define TB_".$_."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT TEXTUREBOUNDARYKEYWORDS_COUNT = ARR_SIZE(TEXTUREBOUNDARYKEYWORDS);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREBOUNDARY keyword type */\n". 
+		"const char *stringTEXTUREBOUNDARYKeywordType (int st) {\n".
+		"	if ((st < 0) || (st >= TEXTUREBOUNDARYKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
+		"	return TEXTUREBOUNDARYKEYWORDS[st];\n}\n\n";
+	push @str, "const char *stringTEXTUREBOUNDARYKeywordType(int st);\n";
+
+	#####################
+	# process TEXTUREMAGNIFICATION keywords 
+	push @str, "\n/* Table of built-in TEXTUREMAGNIFICATION keywords */\nextern const char *TEXTUREMAGNIFICATIONKEYWORDS[];\n";
+	push @str, "extern const indexT TEXTUREMAGNIFICATIONKEYWORDS_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of TEXTUREMAGNIFICATION keywords */\n       const char *TEXTUREMAGNIFICATIONKEYWORDS[] = {\n";
+
+        my @sf = keys %TextureMagnificationC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		push @str, "#define TMAG_".$_."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT TEXTUREMAGNIFICATIONKEYWORDS_COUNT = ARR_SIZE(TEXTUREMAGNIFICATIONKEYWORDS);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREMAGNIFICATION keyword type */\n". 
+		"const char *stringTEXTUREMAGNIFICATIONKeywordType (int st) {\n".
+		"	if ((st < 0) || (st >= TEXTUREMAGNIFICATIONKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
+		"	return TEXTUREMAGNIFICATIONKEYWORDS[st];\n}\n\n";
+	push @str, "const char *stringTEXTUREMAGNIFICATIONKeywordType(int st);\n";
+
+
+	#####################
+	# process TEXTUREMINIFICATION keywords 
+	push @str, "\n/* Table of built-in TEXTUREMINIFICATION keywords */\nextern const char *TEXTUREMINIFICATIONKEYWORDS[];\n";
+	push @str, "extern const indexT TEXTUREMINIFICATIONKEYWORDS_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of TEXTUREMINIFICATION keywords */\n       const char *TEXTUREMINIFICATIONKEYWORDS[] = {\n";
+
+        my @sf = keys %TextureMinificationC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		push @str, "#define TMIN_".$_."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT TEXTUREMINIFICATIONKEYWORDS_COUNT = ARR_SIZE(TEXTUREMINIFICATIONKEYWORDS);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREMINIFICATION keyword type */\n". 
+		"const char *stringTEXTUREMINIFICATIONKeywordType (int st) {\n".
+		"	if ((st < 0) || (st >= TEXTUREMINIFICATIONKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
+		"	return TEXTUREMINIFICATIONKEYWORDS[st];\n}\n\n";
+	push @str, "const char *stringTEXTUREMINIFICATIONKeywordType(int st);\n";
+
+	#####################
+	# process TEXTURECOMPRESSION keywords 
+	push @str, "\n/* Table of built-in TEXTURECOMPRESSION keywords */\nextern const char *TEXTURECOMPRESSIONKEYWORDS[];\n";
+	push @str, "extern const indexT TEXTURECOMPRESSIONKEYWORDS_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of TEXTURECOMPRESSION keywords */\n       const char *TEXTURECOMPRESSIONKEYWORDS[] = {\n";
+
+        my @sf = keys %TextureCompressionC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		push @str, "#define TC_".$_."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT TEXTURECOMPRESSIONKEYWORDS_COUNT = ARR_SIZE(TEXTURECOMPRESSIONKEYWORDS);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTURECOMPRESSION keyword type */\n". 
+		"const char *stringTEXTURECOMPRESSIONKeywordType (int st) {\n".
+		"	if ((st < 0) || (st >= TEXTURECOMPRESSIONKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
+		"	return TEXTURECOMPRESSIONKEYWORDS[st];\n}\n\n";
+	push @str, "const char *stringTEXTURECOMPRESSIONKeywordType(int st);\n";
+
 
 	#####################
 	# process VRML1Modifier keywords 
