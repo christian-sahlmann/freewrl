@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.36 2009/10/29 01:33:09 couannette Exp $
+$Id: Viewer.c,v 1.37 2009/12/28 03:00:50 dug9 Exp $
 
 CProto ???
 
@@ -106,16 +106,16 @@ void viewer_default() {
 
 	set_viewer_type(VIEWER_EXAMINE);
 
-	set_eyehalf( Viewer.eyedist/2.0,
-		atan2(Viewer.eyedist/2.0,Viewer.screendist)*360.0/(2.0*3.1415926));
+	//set_eyehalf( Viewer.eyedist/2.0,
+	//	atan2(Viewer.eyedist/2.0,Viewer.screendist)*360.0/(2.0*3.1415926));
 
 	/* assume we are not bound to a GeoViewpoint */
 	Viewer.GeoSpatialNode = NULL;
 
-#ifndef AQUA
-	if (Viewer.shutterGlasses)
-	    setStereoBufferStyle(0);/* setXEventStereo();*/
-#endif
+//#ifndef AQUA
+//	if (Viewer.shutterGlasses)
+//	    setStereoBufferStyle(0);/* setXEventStereo();*/
+//#endif
 }
 
 void viewer_init (X3D_Viewer *viewer, int type) {
@@ -948,19 +948,8 @@ xy2qua(Quaternion *ret, const double x, const double y)
 	quaternion_normalize(ret);
 }
 
-void initStereoDefaults()
-{
-	Viewer.shutterGlasses = 0;
-	Viewer.haveAnaglyphShader = 0;
-	Viewer.isStereo = 0;
-	Viewer.eyedist = 0.06;
-	Viewer.screendist = 0.8;
-	Viewer.stereoParameter = 0.4;
-	Viewer.dominantEye = 1; /*0=Left 1=Right used for picking*/
-}
 
 
-/*static char *anaglyphGlasses = "RC";*/
 int initAnaglyphShaders()
 {
 	//p.642 red book
@@ -1059,33 +1048,28 @@ int initAnaglyphShaders()
 	}
 	return retval;
 }
-void viewer_postGLinit_init(void)
+int StereoInitializedOnce = 0;
+void initStereoDefaults()
 {
-	if(Viewer.haveAnaglyphShader)
+	/* must call this before getting values from command line in options.c */
+	Viewer.shutterGlasses = 0;
+	Viewer.anaglyph = 0;
+	Viewer.sidebyside = 0;
+	Viewer.isStereo = 0;
+	if(!StereoInitializedOnce)
 	{
-		if( !initAnaglyphShaders() )
-		{
-			printf("shaders did not initialize - do you have opengl 2.0+ drivers?\n");
-			Viewer.isStereo = 0;
-			Viewer.haveAnaglyphShader = 0;
-		}
-	}
-	if(Viewer.shutterGlasses)
-	{
-		/* does this opengl driver/hardware support GL_STEREO? p.469, p.729 RedBook and
-		   WhiteDune > swt.c L1306
-		*/
-		GLboolean quadbuffer;
-
-		glGetBooleanv(GL_STEREO,&quadbuffer);
-		if (quadbuffer != GL_TRUE) {
-			ConsoleMessage("Unable to get quadbuffer stereo visual, switching to flutter mode\n");
-			Viewer.shutterGlasses = 2; /*  render to GL_BACK, alternate L/R every 2 seconds*/
-			shutterGlasses = 0; /*let the platform-specific pixelformat code know not to try again ie on resize*/
-		}
-		setStereoBufferStyle(0); 
+		Viewer.eyedist = 0.06;
+		Viewer.screendist = 0.8;
+		Viewer.stereoParameter = 0.4;
+		Viewer.dominantEye = 1; /*0=Left 1=Right used for picking*/
+		Viewer.haveAnaglyphShader = 0; /* call after gl initialized initAnaglyphShaders(); */
+		Viewer.iprog[0] = 0; /* left red */
+		Viewer.iprog[1] = 1; /* right green */
+		Viewer.haveQuadbuffer = 0;
+		StereoInitializedOnce = 1;
 	}
 }
+
 
 void deleteAnaglyphShaders()
 {
@@ -1096,117 +1080,183 @@ void deleteAnaglyphShaders()
 		glDeleteProgram(Viewer.programs[i]);
 	}
 }
+//char * RGBACM = "RGBACM";
+//int indexRGBACM(int a)
+//{
+//	return strchr(RGBACM,a)-RGBACM;
+//}
 
+void setAnaglyphSideColor(char val, int iside)
+{
+	Viewer.iprog[iside] = indexRGBACM(val);
+}
 void setAnaglyphParameter(const char *optArg) {
 /*
   NOTE: "const char" means that you wont modify it in the function :)
  */
 	int i;
-	//char glasses[32];
-	char* glasses;
+	const char* glasses;
 	glasses = optArg;
-	if(Viewer.isStereo == 0)
-		initStereoDefaults();
-	/*(i = sscanf_s(optArg,"%s",glasses);*/
-    /*strncpy(&glasses[0],optArg,3);*/
 	if(strlen(glasses)!=2)
 	{
 	  printf ("warning, command line anaglyph parameter incorrect - was %s need something like RC\n",optArg);
-	  strcpy(glasses,"RC");
+	  glasses ="RC";
 	}
-/*
-	if( !initAnaglyphShaders() )
+	Viewer.iprog[0] = indexRGBACM(glasses[0]);
+	Viewer.iprog[1] = indexRGBACM(glasses[1]);
+	if(Viewer.iprog[0] == -1 || Viewer.iprog[1] == -1)
 	{
-		printf("shaders did not initialize - do you have opengl 2.0+ drivers?\n");
-		Viewer.isStereo = 0;
-		Viewer.haveAnaglyphShader = 0;
+		printf ("warning, command line anaglyph parameter incorrect - was %s need something like RG\n",optArg);
+		Viewer.iprog[0] = 0;
+		Viewer.iprog[1] = 1;
 	}
-	else
-*/
-	{
-		Viewer.iprog[0]=Viewer.iprog[1]=-1;
-		for(i=0;i<2;i++)
-		{
-		   switch (glasses[i]) {
-		   case 'R':
-			   Viewer.iprog[i] = 0;
-			   break;
-		   case 'G':
-			   Viewer.iprog[i] = 1;
-				break;
-		   case 'B':
-			   Viewer.iprog[i] = 2;
-			  break;
-		   case 'A':
-			   Viewer.iprog[i] = 3;
-			  break;
-		   case 'C':
-			   Viewer.iprog[i] = 4;
-			  break;
-		   case 'M':
-			   Viewer.iprog[i] = 5;
-			  break;
-		   }
-		}
-		if(Viewer.iprog[0]>-1 && Viewer.iprog[1]>-1)
-			strcpy(Viewer.anaglasses,glasses);
-		else
-		{
-			printf ("warning, command line anaglyph parameter incorrect - was %s need something like RG\n",optArg);
-			strcpy(Viewer.anaglasses,"RG");
-		}
-		Viewer.haveAnaglyphShader = 1;
-		Viewer.isStereo = 1;
-		setStereoBufferStyle(1);
-	}
-
+	Viewer.anaglyph = 1;
+	Viewer.shutterGlasses = 0;
+	Viewer.sidebyside = 0;
+	//Viewer.haveAnaglyphShader = 1; do not set until openGL initialized
+	Viewer.isStereo = 1;
+	setStereoBufferStyle(1);
 }
 /* shutter glasses, stereo view  from Mufti@rus */
 /* handle setting shutter from parameters */
 void setShutter (void)
 {
-    shutterGlasses = 1; /* platform specific pixelformat/window initialization code should hint PRF_STEREO */
-    if(Viewer.isStereo == 0)
-		initStereoDefaults();
-    Viewer.shutterGlasses = 1;
+	/* if you put --shutter on the command line, you'll come in here twice: 
+	  first: from options.c but haveQuadbuffer will == 0 because we haven't init gl yet, so don't know
+	  second: post_gl_init - we'll know haveQuadbuffer which might = 1 (if not it goes into flutter mode)
+    */
+
+	shutterGlasses = 2;
+	Viewer.shutterGlasses = 2;
+	setStereoBufferStyle(1); 
+	if(Viewer.haveQuadbuffer)
+	{
+		shutterGlasses = 1; /* platform specific pixelformat/window initialization code should hint PRF_STEREO */
+		Viewer.shutterGlasses = 1;
+		setStereoBufferStyle(0); 
+	}
+	Viewer.isStereo = 1;
+
 }
 
 void setSideBySide()
 {
-	if(Viewer.isStereo == 0)
-		initStereoDefaults();
-
 	setStereoBufferStyle(1); 
+	Viewer.isStereo = 1;
 	Viewer.sidebyside = 1;
 }
+void setAnaglyph()
+{
+	/* called from post_gl_init and hud/options (option.c calls setAnaglyphParameter above) */
+	if(Viewer.haveAnaglyphShader)
+	{
+		Viewer.anaglyph = 1;
+		Viewer.isStereo = 1;
+		setStereoBufferStyle(1);
+	}
+}
+void setMono()
+{
+	Viewer.isStereo = 0;
+	Viewer.anaglyph = 0;
+	Viewer.sidebyside = 0;
+	Viewer.shutterGlasses = 0;
+	shutterGlasses = 0;
+}
 
+void setStereo(int type)
+{
+	/* type: 0 off  1 shutterglasses 2 sidebyside 3 analgyph */
+	/* can only be called after opengl is initialized */
+	//initStereoDefaults(); 
+	setMono();
+	switch(type)
+	{
+	case 0: {/*setMono()*/;break;}
+	case 1: {setShutter(); break;}
+	case 2: {setSideBySide(); break;}
+	case 3: {setAnaglyph(); break;}
+	default: break;
+	}
+}
+void toggleOrSetStereo(int type)
+{
+	/* if user clicks the active stereovision type on a HUD, then it should turn it off - back to mono
+	if it's not active, then it should be set active*/
+	int curtype, shut;
+	shut = Viewer.shutterGlasses ? 1 : 0;
+	curtype = Viewer.isStereo*( (shut)*1 + Viewer.sidebyside*2 + Viewer.anaglyph*3);
+	if(type != curtype) 
+		setStereo(type);
+	else
+		setMono();
+}
+void updateEyehalf()
+{
+	if( Viewer.screendist != 0.0)
+		set_eyehalf( Viewer.eyedist/2.0,atan2(Viewer.eyedist/2.0,Viewer.screendist)*360.0/(2.0*3.1415926));
+}
+
+void viewer_postGLinit_init(void)
+{
+	GLboolean quadbuffer;
+	int type;
+	glGetBooleanv(GL_STEREO,&quadbuffer);
+	Viewer.haveQuadbuffer = (quadbuffer == GL_TRUE);
+	Viewer.haveAnaglyphShader = initAnaglyphShaders();
+	updateEyehalf();
+	type = 0;
+	if( Viewer.shutterGlasses ) type = 1;
+	if( Viewer.sidebyside ) type = 2;
+	if( Viewer.anaglyph ) type = 3;
+	
+	if(Viewer.anaglyph) 
+	{
+		if( !Viewer.haveAnaglyphShader ) 
+		{
+			ConsoleMessage("anaglyph shaders did not initialize - do you have opengl 2.0+ drivers?\n");
+		}
+	}
+	if(Viewer.shutterGlasses)
+	{
+		// does this opengl driver/hardware support GL_STEREO? p.469, p.729 RedBook and
+		//   WhiteDune > swt.c L1306
+		if (!Viewer.haveQuadbuffer ) {
+			ConsoleMessage("Unable to get quadbuffer stereo visual, switching to flutter mode\n");
+		}
+	}
+	setStereo(type);
+}
 
 void setStereoParameter (const char *optArg) {
 
 	int i;
-	if(Viewer.isStereo == 0)
-		initStereoDefaults();
+	//if(Viewer.isStereo == 0)
+	//	initStereoDefaults();
 
 	i = sscanf(optArg,"%lf",&Viewer.stereoParameter);
 	if (i==0) printf ("warning, command line stereo parameter incorrect - was %s\n",optArg);
+	else updateEyehalf();
 }
 
 void setEyeDist (const char *optArg) {
 	int i;
-	if(Viewer.isStereo == 0)
-		initStereoDefaults();
+	//if(Viewer.isStereo == 0)
+	//	initStereoDefaults();
 
 	i= sscanf(optArg,"%lf",&Viewer.eyedist);
 	if (i==0) printf ("warning, command line eyedist parameter incorrect - was %s\n",optArg);
+	else updateEyehalf();
 }
 
 void setScreenDist (const char *optArg) {
 	int i;
-	if(Viewer.isStereo == 0)
-		initStereoDefaults();
+	//if(Viewer.isStereo == 0)
+	//	initStereoDefaults();
 
 	i= sscanf(optArg,"%lf",&Viewer.screendist);
 	if (i==0) printf ("warning, command line screendist parameter incorrect - was %s\n",optArg);
+	else updateEyehalf();
 }
 /* end of Shutter glasses, stereo mode configure */
 

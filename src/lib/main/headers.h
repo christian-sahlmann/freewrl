@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.97 2009/12/28 00:52:44 couannette Exp $
+$Id: headers.h,v 1.98 2009/12/28 03:00:50 dug9 Exp $
 
 Global includes.
 
@@ -981,12 +981,16 @@ void destroyCParserData();
 extern struct VRMLParser* savedParser;
 
 void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex);
-
-#if defined(_MSC_VER)
-#define ConsoleMessage printf
-#else
 int ConsoleMessage(const char *fmt, ...);
+/* >>> statusbar hud change */
+#define NEW_CONSOLEMESSAGE_VERSION 1
+#ifdef NEW_CONSOLEMESSAGE_VERSION
+int BrowserPrintConsoleMessage(const char *fmt, ...);
+extern int Console_writeToCRT;
+extern int Console_writeToFile;
+extern int Console_writeToHud;
 #endif
+/* <<< statusbar hud changes */
 void closeConsoleMessage(void);
 extern int consMsgCount;
 
@@ -1053,5 +1057,6 @@ extern void *setNavigationBindInRender;
 
 char* convert1To2(const char *inp);
 
+//updateStatusBar(void);
 
 #endif /* __FREEWRL_HEADERS_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.12 2009/12/28 00:52:17 couannette Exp $
+$Id: ConsoleMessage.c,v 1.13 2009/12/28 03:00:50 dug9 Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -45,11 +45,7 @@ for loosing the reference. Also, most if it is found in
 #include <display.h>
 #include <internal.h>
 
-#ifdef WIN32
 #include <stdio.h>
-#else
-#include <syslog.h> //TODO: configure check
-#endif
 #include <stdarg.h> //TODO: configure check
 
 #include <libFreeWRL.h>
@@ -59,29 +55,267 @@ for loosing the reference. Also, most if it is found in
 #include "../plugin/pluginUtils.h"
 #include "../plugin/PluginSocket.h"
 
+/* >>> statusbar hud */
+void hudSetConsoleMessage(char *buffer);
+/* <<< statusbar hud */
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
-#define MAXMESSAGES 5 
-
-/* for sending text to the System Console */
-static int logFileOpened = FALSE;
 
 static char FWbuffer [STRING_LENGTH];
 int consMsgCount = 0;
 extern int _fw_browser_plugin;
-
-
+#define MAXMESSAGES 5 
 void closeConsoleMessage() {
 	consMsgCount = 0;
-#ifdef WIN32
-	if (logFileOpened) printf("FreeWRL loading a new file\n");
-#else
+#ifdef AQUA
 	if (logFileOpened) syslog (LOG_ALERT, "FreeWRL loading a new file");
-#endif
 	logFileOpened = FALSE;
+#endif
 }
 
-/* for win32 I #define ConsoleMessage printf in headers.h libfreewrl.h and assume console + window not plugin */
+#define NEW_CONSOLEMESSAGE_VERSION 1
+//#define OLD_CONSOLEMESSAGE_VERSION 1
+
+#ifdef NEW_CONSOLEMESSAGE_VERSION
+
+/* try to open a file descriptor to the Console Log - on OS X 
+	   this should display the text on the "Console.app" */
+#ifdef AQUA
+#include <syslog.h> //TODO: configure check
+/* for sending text to the System Console */
+static int logFileOpened = FALSE;
+char ConsoleLogName[100];
+#endif
+void openLogfile()
+{
+	#ifdef AQUA
+	if (!logFileOpened) {
+		logFileOpened = TRUE;
+		openlog("freewrl", LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
+		setlogmask(LOG_UPTO(LOG_ERR));
+		syslog(LOG_ALERT,"FreeWRL opened Console Log");
+	}
+	#endif
+}
+void writeToLogFile(char *buffer)
+{
+	#ifdef AQUA
+	if(!logFileOpened) openLogFile();
+	/* print this to the console log */
+	syslog (LOG_ALERT, buffer);
+	#endif
+}
+
+
+
+
+int fwvsnprintf(char *buffer,int buffer_length, const char *fmt, va_list ap)
+{
+	int i,j,count,stat;
+	//char tempbuf[STRING_LENGTH];
+	//char format[STRING_LENGTH];
+	char *tempbuf;
+	char *format;
+	char c;
+	double d;
+	unsigned u;
+	char *s;
+	void *v;
+	tempbuf = malloc(buffer_length);
+	format = malloc(buffer_length);
+	count = 0;
+	buffer[0] = '\0';
+	while (*fmt) 
+	{
+		tempbuf[0] = '\0';
+		for (j = 0; fmt[j] && fmt[j] != '%'; j++) {
+			format[j] = fmt[j];	/* not a format string	*/
+		}
+
+		if (j) {
+			format[j] = '\0';
+			count += sprintf(tempbuf, format);/* printf it verbatim				*/
+			fmt += j;
+		} else {
+			for (j = 0; !isalpha(fmt[j]); j++) {	 /* find end of format specifier */
+				format[j] = fmt[j];
+				if (j && fmt[j] == '%')				/* special case printing '%'		*/
+					break;
+			}
+			format[j] = fmt[j];			/* finish writing specifier		 */
+			format[j + 1] = '\0';			/* don't forget NULL terminator */
+			fmt += j + 1;
+
+			switch (format[j]) {			 /* cases for all specifiers		 */
+			case 'd':
+			case 'i':						/* many use identical actions	 */
+				i = va_arg(ap, int);		 /* process the argument	 */
+				count += sprintf(tempbuf, format, i); /* and printf it		 */
+				break;
+			case 'o':
+			case 'x':
+			case 'X':
+			case 'u':
+				u = va_arg(ap, unsigned);
+				count += sprintf(tempbuf, format, u);
+				break;
+			case 'c':
+				c = (char) va_arg(ap, int);		/* must cast!			 */
+				count += sprintf(tempbuf, format, c);
+				break;
+			case 's':
+				s = va_arg(ap, char *);
+				/* limit string to a certain length */
+				if ((strlen(s) + count) > buffer_length) {
+					char tmpstr[100];
+					int ltc;
+					ltc = strlen(s);
+					if (ltc>80) ltc=80;
+					strncpy (tmpstr, s, ltc);
+					tmpstr[ltc] = '.'; ltc++;
+					tmpstr[ltc] = '.'; ltc++;
+					tmpstr[ltc] = '.'; ltc++;
+					tmpstr[ltc] = '\0';
+
+					count += sprintf (tempbuf, format, tmpstr);
+				} else count += sprintf(tempbuf, format, s);
+				break;
+			case 'f':
+			case 'e':
+			case 'E':
+			case 'g':
+			case 'G':
+				d = va_arg(ap, double);
+				count += sprintf(tempbuf, format, d);
+				break;
+			case 'p':
+				v = va_arg(ap, void *);
+				count += sprintf(tempbuf, format, v);
+				break;
+			case 'n':
+				count += sprintf(tempbuf, "%d", count);
+				break;
+			case '%':
+				count += sprintf(tempbuf, "%%");
+				break;
+			default:
+				ERROR_MSG("ConsoleMessage: invalid format specifier: %c\n", format[j]);
+			}
+		}
+		if( (strlen(tempbuf) + strlen(buffer)) < (buffer_length) -10) 
+		{
+			strcat (buffer,tempbuf);
+		}
+	}
+	free(tempbuf);
+	free(format);
+	return 1;
+}
+
+
+/* >>> statusbar hud */
+int Console_writeToCRT = 1; /*regular printf*/
+int Console_writeToFile = 0;
+int Console_writeToHud = 0; /*something should change this to 1 if running statusbarHUD or (a gui with no console and) statusbarConsole*/
+int Console_writeToLog = 0;
+
+int consolefileOpened = 0;
+FILE* consolefile;
+int ConsoleMessage0(const char *fmt, va_list args)  
+{
+	int retval;
+	int len;
+	char * buffer;
+	int doFree = 0;
+
+#ifdef HAVE_VSCPRINTF
+	/* msvc can do this  http://msdn.microsoft.com/en-ca/library/xa1a1a6z(VS.80).aspx  */
+	len = _vscprintf( fmt, args ) +1; /* counts only */
+	buffer = malloc( len * sizeof(char) );
+	retval = vsprintf_s( buffer, len, fmt, args ); /*allocates the len you pass in*/
+	doFree = 1;
+#elif HAVE_VASPRINTF
+	/* http://linux.die.net/man/3/vasprintf a GNU extension, not tested */
+	retval = vasprintf(buffer,fmt,args); /*allocates correct length buffer and writes*/
+	doFree = 1;
+#elif HAVE_FWVSNPRINTF
+	/* reworked code from aqua - seems OK in msvc - if you don't have regular vsnprintf or _vscprintf we can use this */
+	retval = fwvsnprintf(FWbuffer,STRING_LENGTH-1,fmt,args); /*hope STRING_LENGTH is long enough, else -1 skip */
+	buffer = FWbuffer;
+	doFree = 0;
+#else
+	/* and msvc can do this, _msc_ver currently uses. */
+	retval = vsnprintf(FWbuffer,STRING_LENGTH-1,fmt,args); /*hope STRING_LENGTH is long enough, else -1 skip */
+	if(retval < 0) return retval;
+	buffer = FWbuffer;
+	doFree = 0;
+#endif
+	if(Console_writeToCRT)
+		printf(buffer);
+	if(Console_writeToFile)
+	{
+		if(!consolefileOpened)
+		{
+			consolefile = fopen("freewrl_console.txt","w");
+			consolefileOpened = 1;
+		}
+		fprintf(consolefile,buffer);
+	}
+	if(Console_writeToLog)
+		writeToLogFile(buffer);
+	if(Console_writeToHud)
+	{
+		hudSetConsoleMessage(buffer);
+	}
+	if(doFree) free( buffer ); 
+	return retval;
+}
+int ConsoleMessage(const char *fmt, ...)
+{
+	/*
+		There's lots I don't understand such as aqua vs motif vs ??? and plugin vs ??? and the sound/speaker method
+		Q. if we call ConsoleMessage from any thread, should there be a thread lock on something, 
+		for example s_list_t *conlist (see hudConsoleMessage() in statusbarHud.c)?
+	*/
+
+	va_list args;
+	va_start( args, fmt );
+	return ConsoleMessage0(fmt,args);
+}
+int BrowserPrintConsoleMessage(const char *fmt, ...) 
+{
+	/* Q. am I right to assume any denial of service attacks would only come from the jsVRMLBrowser.c VRMLBrowserPrint() function?
+	    If so I propose the defence should be just against that, by
+		calling this function instead of ConsoleMessage from VRMLBrowserPrint.
+		Dec 23 2009 status: tested ndef-motif-ndef-aqua branch calling BrowserPrintConsoleMessage from mainloop as a test but 
+		not from VRMLBrowserPrint - is there  a test .wrl for it?
+	*/
+	int retval;
+	va_list args;
+
+#ifndef HAVE_MOTIF
+/* did we have too many messages - don't want to make this into a 
+   denial of service attack! (thanks, Mufti) */
+#ifdef AQUA
+	if (RUNNINGASPLUGIN && consMsgCount > MAXMESSAGES) {
+#else 
+	if (consMsgCount > MAXMESSAGES) {
+#endif
+		if (consMsgCount > (MAXMESSAGES + 5)) return -1;
+		consMsgCount = MAXMESSAGES + 100;
+		return ConsoleMessage("Too many freewrl messages - stopping ConsoleMessage");
+	} 
+	consMsgCount++;
+#endif
+	va_start( args, fmt );
+	return ConsoleMessage0(fmt,args);
+}
+
+
+/* <<< statusbar hud */
+
+#endif
+
 
 /**
  ** ALL the Console stuff has to be refactored.
@@ -92,7 +326,9 @@ void closeConsoleMessage() {
  ** ... and display the last string each time a new data arrives.
  **/
 
-#ifndef WIN32
+#ifdef OLD_CONSOLEMESSAGE_VERSION
+int Console_writeToHud;
+
 int ConsoleMessage(const char *fmt, ...) {
 	va_list ap;
 	char tempbuf[STRING_LENGTH];
@@ -261,29 +497,19 @@ int ConsoleMessage(const char *fmt, ...) {
 		FWbuffer[0] = '\0';
 	}
 #else
-
-	/* I want all output to be printed (debugging plugin */
-	printf (FWbuffer); 
-	if (FWbuffer[strlen(FWbuffer-1)] != '\n') {
-		printf ("\n");
-	}
-
 	/* are we running under Motif or Gtk? */
-
 #if defined(TARGET_MOTIF)
 		setConsoleMessage (FWbuffer);
 # else
 		if (RUNNINGASPLUGIN) {
 			freewrlSystem (FWbuffer);
+		} else {
+			printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n");
 		}
-/* 		else { */
-/* 			printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n"); */
-/* 		} */
-
 #endif //TARGET_MOTIF
 
 #endif
 	return count;
 }
-#endif /*ifndef WIN32 */
+#endif /*ifdef OLD_CONSOLEMESSAGE_VERSION */
 

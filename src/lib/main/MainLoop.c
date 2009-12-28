@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.83 2009/12/18 17:30:08 istakenv Exp $
+  $Id: MainLoop.c,v 1.84 2009/12/28 03:00:50 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -147,7 +147,6 @@ GLint viewPort2[10];
 
 /* screen width and height. */
 int clipPlane = 0;
-
 struct X3D_Node* CursorOverSensitive=NULL;      /*  is Cursor over a Sensitive node?*/
 struct X3D_Node* oldCOS=NULL;                   /*  which node was cursor over before this node?*/
 int NavigationMode=FALSE;               /*  are we navigating or sensing?*/
@@ -298,11 +297,11 @@ void EventLoop() {
         } else {
 		/* calculate how much to wait so that we are running around 100fps. Adjust the constant
 		   in the line below to raise/lower this frame rate */
-
 		/* NOTE: OSX front end now syncs with the monitor, meaning, this sleep is no longer needed */
 #ifdef TARGET_AQUA
 		if (RUNNINGASPLUGIN) {
 #endif
+
                waitsec = 7000.0 + TickTime - lastTime;
                if (waitsec > 0.0) {
                        /* printf ("waiting %lf\n",waitsec); */
@@ -319,6 +318,7 @@ void EventLoop() {
                 BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
                 setMenuFps(BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
+                ConsoleMessage("fps %f tris %d\n",BrowserFPS,trisThisLoop);   
 
 		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane); */
 
@@ -663,6 +663,7 @@ void handle_Xevents(XEvent event) {
                         /* printf("got a button press or button release\n"); */
                         /*  if a button is pressed, we should not change state,*/
                         /*  so keep a record.*/
+						if(handleStatusbarHud(event.type, &clipPlane))break;
                         if (event.xbutton.button>=5) break;  /* bounds check*/
                         ButDown[event.xbutton.button] = (event.type == ButtonPress);
 
@@ -690,7 +691,7 @@ void handle_Xevents(XEvent event) {
                         currentX = event.xbutton.x;
                         currentY = event.xbutton.y;
                         /* printf("navigationMode is %d\n", NavigationMode); */
-
+						if(handleStatusbarHud(6, &clipPlane))break;
                         if (NavigationMode) {
                                 /*  find out what the first button down is*/
                                 count = 0;
@@ -759,6 +760,15 @@ void setup_projection(int pick, int x, int y)
 #endif
 
         FW_GL_MATRIX_MODE(GL_PROJECTION);
+		/* >>> statusbar hud */
+		if(clipPlane != 0)
+		{   /* scissor used to prevent mainloop from glClear()ing the statusbar area
+			 which is updated only every 10-25 loops */
+			glScissor(0,clipPlane,screenWidth,screenHeight);
+			glEnable(GL_SCISSOR_TEST);
+		}
+		/* <<< statusbar hud */
+
 		glViewport(xvp,clipPlane,screenwidth2,screenHeight);
         FW_GL_LOAD_IDENTITY();
         if(pick) {
@@ -804,27 +814,27 @@ static void render()
 
         /*  turn lights off, and clear buffer bits*/
 
-			if(Viewer.isStereo)
+		if(Viewer.isStereo)
+		{
+			if(Viewer.shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
 			{
-				if(Viewer.shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
+				if(TickTime - shuttertime > 2.0)
 				{
-					if(TickTime - shuttertime > 2.0)
-					{
-						shuttertime = TickTime;
-						if(shutterside > 0) shutterside = 0;
-						else shutterside = 1;
-					}
-					if(count != shutterside) continue;
+					shuttertime = TickTime;
+					if(shutterside > 0) shutterside = 0;
+					else shutterside = 1;
 				}
-				if(Viewer.haveAnaglyphShader)
-					glUseProgram(Viewer.programs[Viewer.iprog[count]]);
-				setup_projection(0, 0, 0);
-				if(Viewer.sidebyside && count >0)
-					BackEndClearBuffer(1);
-				else
-					BackEndClearBuffer(2);
-				setup_viewpoint(); 
+				if(count != shutterside) continue;
 			}
+			if(Viewer.anaglyph) //haveAnaglyphShader)
+				glUseProgram(Viewer.programs[Viewer.iprog[count]]);
+			setup_projection(0, 0, 0);
+			if(Viewer.sidebyside && count >0)
+				BackEndClearBuffer(1);
+			else
+				BackEndClearBuffer(2);
+			setup_viewpoint(); 
+		}
 		else 
 			BackEndClearBuffer(2);
 		BackEndLightsOff();
@@ -866,7 +876,8 @@ static void render()
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 
 		if (Viewer.isStereo) {
-			if (Viewer.haveAnaglyphShader) {
+			if (Viewer.anaglyph) //haveAnaglyphShader) 
+			{
 				if (count==0) {
 					glUseProgram(0);
 					glAccum(GL_LOAD,1.0); 
@@ -896,6 +907,7 @@ static void render()
 	    aglSwapBuffers(aqglobalContext);
 	} else {
 	    CGLError err = CGLFlushDrawable(myglobalContext);
+	    
 	    if (err != kCGLNoError) printf ("CGLFlushDrawable error %d\n",err);
 	}
 
@@ -1017,6 +1029,7 @@ void do_keyPress(const char kp, int type) {
                                 case 'v': {Next_ViewPoint(); break;}
                                 case 'b': {Prev_ViewPoint(); break;}
                                 case 's': {setSnapshot(); break;}
+								case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
                                 default: {handle_key(kp);}
         
                         }
@@ -1458,6 +1471,7 @@ void freewrlDie (const char *format) {
         doQuit();
 }
 
+
 #if defined(AQUA) || defined(WIN32)
 
 /* MIMIC what happens in handle_Xevents, but without the X events */
@@ -1473,11 +1487,15 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
 
         /* save this one... This allows Sensors to get mouse movements if required. */
         lastMouseEvent = mev;
+        /* save the current x and y positions for picking. */
+        currentX = x;
+        currentY = y;
+
+		if( handleStatusbarHud(mev, &clipPlane) )return; /* statusbarHud options screen should swallow mouse clicks */
 
         if ((mev == ButtonPress) || (mev == ButtonRelease)) {
                 /* record which button is down */
                 ButDown[button] = (mev == ButtonPress);
-
                 /* if we are Not over an enabled sensitive node, and we do NOT already have a 
                    button down from a sensitive node... */
 
@@ -1488,10 +1506,9 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
         }
 
         if (mev == MotionNotify) {
-
                 /* save the current x and y positions for picking. */
-                currentX = x;
-                currentY = y;
+                // above currentX = x;
+                //currentY = y;
 
                 if (NavigationMode) {
                         /* find out what the first button down is */

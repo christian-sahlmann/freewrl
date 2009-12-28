@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.20 2009/10/29 01:33:09 couannette Exp $
+$Id: Viewer.h,v 1.21 2009/12/28 03:00:50 dug9 Exp $
 
 Viewer ???
 
@@ -156,6 +156,8 @@ typedef struct viewer {
 	int iside;    /* rendering buffer index Left=0 Right=1 */
 	int sidebyside; /*=1 if 2 viewport method*/
 	int shutterGlasses;
+	int haveQuadbuffer;
+	int anaglyph; /* =1 if analglyph is turned on */
 	int dominantEye; /* 2D screen cursor picks in which viewport? 0=Left 1=Right */
 	double stereoParameter;
 	double eyehalf;
@@ -163,12 +165,11 @@ typedef struct viewer {
 	double screendist;
 	double eyedist;
 	/*anaglyph...*/
-	char anaglasses[3];
 	int haveAnaglyphShader;
 	int haveVer2;
 	GLuint shaders[6]; /*= {0,0,0,0,0,0};*/
 	GLuint programs[6]; /*= {0,0,0,0,0,0}; //p.642 red book */
-	int iprog[2]; /*which shader program for left vp,right vp */
+	int iprog[2]; /*which shader program for left vp,right vp 0-5 */
 	/* */
 	unsigned int buffer;
 	int oktypes[6];		/* boolean for types being acceptable. */
@@ -187,6 +188,13 @@ typedef struct viewer {
 
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
 } X3D_Viewer;
+
+static char * RGBACM = "RGBACM";
+static int indexRGBACM(int a)
+{
+	return strchr(RGBACM,a)-RGBACM;
+}
+
 
 void viewer_postGLinit_init(void);
 

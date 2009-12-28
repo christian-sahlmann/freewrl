@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.20 2009/12/18 17:30:13 istakenv Exp $
+  $Id: statusbar.c,v 1.21 2009/12/28 03:00:50 dug9 Exp $
 
 */
 
@@ -51,7 +51,7 @@
 #include "../scenegraph/Viewer.h"
 
 #include "../opengl/RasterFont.h"
-#include "statusbar.h"
+
 
 static struct Uni_String *myline;
 
@@ -76,7 +76,20 @@ void update_status(char* msg)
 		strncpy(buffer, msg, MAX_BUFFER_SIZE);
 	}
 }
+void hudSetConsoleMessage(char *buffer){}
+void handleButtonOver(){}
+void handleOptionPress(){}
+void handleButtonPress(){}
 
+void setMenuButton_collision(int val){}
+void setMenuButton_texSize(int size){}
+void setMenuButton_headlight(int val){}
+void setMenuButton_navModes(int type){}
+void setMenuStatus(char *stat) {}
+void setMenuFps (float fps) {}
+
+int handleStatusbarHud(int mev, int* clipplane)
+{ return 0; }
 void setup_projection(int pick, int x, int y) 
 {
 	GLsizei screenwidth2 = screenWidth;

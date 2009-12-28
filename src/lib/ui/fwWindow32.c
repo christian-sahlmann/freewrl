@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.12 2009/11/23 01:43:19 dug9 Exp $
+  $Id: fwWindow32.c,v 1.13 2009/12/28 03:00:50 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -92,14 +92,26 @@ int mouseX, mouseY;
 
 static short gcWheelDelta = 0;
 
+/* >>> statusbar hud - these moved to statusbar.c 
 void setMenuButton_collision(int val){}
 void setMenuButton_texSize(int size){}
 void setMenuButton_headlight(int val){}
 void setMenuButton_navModes(int type){}
-
 void setMessageBar()
 {
 }
+void setMenuStatus(char *stat) {
+    //strncpy (myMenuStatus, stat, MAXSTAT);
+    setMessageBar();
+}
+
+void setMenuFps (float fps) {
+    myFps = fps;
+    setMessageBar();
+}
+
+*/
+
 GLfloat latitude, longitude, latinc, longinc; 
 GLdouble radius; 
  
@@ -239,15 +251,6 @@ void swapbuffers32()
 
 }
 
-void setMenuStatus(char *stat) {
-    /*strncpy (myMenuStatus, stat, MAXSTAT);*/
-    setMessageBar();
-}
-
-void setMenuFps (float fps) {
-    myFps = fps;
-    setMessageBar();
-}
 
 static bool m_fullscreen = false;
 static bool dualmonitor = false;

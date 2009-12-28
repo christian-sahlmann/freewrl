@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.26 2009/12/22 03:25:18 couannette Exp $
+  $Id: LoadTextures.c,v 1.27 2009/12/28 03:00:50 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -292,7 +292,7 @@ bitmapInfo = kCGImageAlphaPremultipliedFirst |
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
  */
-static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *filename)
+bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *filename)
 {
 
 /* WINDOWS */

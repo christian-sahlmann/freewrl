@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.14 2009/11/23 01:43:19 dug9 Exp $
+  $Id: libFreeWRL.h,v 1.15 2009/12/28 03:00:50 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -66,11 +66,8 @@ void terminateFreeWRL();
 /**
  * General functions
  */
-#if defined(WIN32)
-# define ConsoleMessage printf
-#else
 int ConsoleMessage(const char *fmt, ...);
-#endif
+//#endif
 
 void create_EAI();
 void create_MIDIEAI();

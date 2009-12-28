@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.22 2009/12/10 20:51:55 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.23 2009/12/28 03:00:50 dug9 Exp $
 
 Javascript C language binding.
 
@@ -777,8 +777,10 @@ VrmlBrowserAddRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, 
 	*rval = _rval;
 	return JS_TRUE;
 }
-
-
+//#define OLD_CONSOLEMESSAGE_VERSION 1
+#ifdef OLD_CONSOLEMESSAGE_VERSION
+#define BrowserPrintConsoleMessage ConsoleMessage
+#endif
 JSBool
 VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {	int count;
@@ -793,14 +795,14 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 			_str = JSVAL_TO_STRING(argv[count]);
 			_id_c = JS_GetStringBytes(_str);
 			#ifdef AQUA
-			ConsoleMessage(_id_c);
+			BrowserPrintConsoleMessage(_id_c); /* statusbar hud */
 			consMsgCount = 0; /* reset the "Maximum" count */
 			#else
 				#ifdef HAVE_NOTOOLKIT 
 					printf ("%s", _id_c);
 				#else
 					printf ("%s\n", _id_c);
-					ConsoleMessage(_id_c);
+					BrowserPrintConsoleMessage(_id_c); /* statusbar hud */
 					consMsgCount = 0; /* reset the "Maximum" count */
 				#endif
 			#endif
@@ -809,7 +811,7 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 		}
 	}
 	#ifdef AQUA
-	ConsoleMessage("\n");
+	BrowserPrintConsoleMessage("\n"); /* statusbar hud */
 	consMsgCount = 0; /* reset the "Maximum" count */
 	#else
 		#ifdef HAVE_NOTOOLKIT
