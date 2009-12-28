@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.36 2009/11/23 01:43:19 dug9 Exp $
+  $Id: display.h,v 1.37 2009/12/28 15:58:56 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -106,6 +106,7 @@ typedef struct {
 	
 	int texture_units;
 	int max_texture_size;
+	float anisotropicDegree;
 	
 } s_renderer_capabilities_t;
 

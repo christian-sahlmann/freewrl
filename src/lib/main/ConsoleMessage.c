@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.13 2009/12/28 03:00:50 dug9 Exp $
+$Id: ConsoleMessage.c,v 1.14 2009/12/28 15:58:56 crc_canada Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -61,7 +61,16 @@ void hudSetConsoleMessage(char *buffer);
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
 
+#ifdef AQUA
+	#include <syslog.h> //TODO: configure check
+	/* for sending text to the System Console */
+	static int logFileOpened = FALSE;
+	char ConsoleLogName[200];
+#endif
+
 static char FWbuffer [STRING_LENGTH];
+
+
 int consMsgCount = 0;
 extern int _fw_browser_plugin;
 #define MAXMESSAGES 5 
@@ -80,12 +89,6 @@ void closeConsoleMessage() {
 
 /* try to open a file descriptor to the Console Log - on OS X 
 	   this should display the text on the "Console.app" */
-#ifdef AQUA
-#include <syslog.h> //TODO: configure check
-/* for sending text to the System Console */
-static int logFileOpened = FALSE;
-char ConsoleLogName[100];
-#endif
 void openLogfile()
 {
 	#ifdef AQUA
@@ -100,7 +103,7 @@ void openLogfile()
 void writeToLogFile(char *buffer)
 {
 	#ifdef AQUA
-	if(!logFileOpened) openLogFile();
+	if(!logFileOpened) openLogfile();
 	/* print this to the console log */
 	syslog (LOG_ALERT, buffer);
 	#endif
