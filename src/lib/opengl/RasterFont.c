@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.4 2009/12/09 14:34:27 crc_canada Exp $
+  $Id: RasterFont.c,v 1.5 2009/12/28 00:51:15 couannette Exp $
 
 */
 
@@ -118,7 +118,7 @@ void rf_leave_layer2D()
     glPopMatrix();
 }
 
-static int rf_xfont_init(const char *fontname)
+int rf_xfont_init(const char *fontname)
 {
 	/* create a new text node, but DO NOT call one of the createNewX3DNode interface, because we only
 		want a holder here, this is NOT a scenegraph node. */
@@ -174,7 +174,7 @@ void rf_xfont_set_color(e_xfont_color_t index)
     xf_color = index;
 }
 
-static void rf_xfont_set_usercolor(vec4f_t color)
+void rf_xfont_set_usercolor(vec4f_t color)
 {
     xf_colors[xf_user][0] = color[0];
     xf_colors[xf_user][1] = color[1];

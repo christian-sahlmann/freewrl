@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.h,v 1.2 2009/12/08 21:09:30 crc_canada Exp $
+  $Id: RasterFont.h,v 1.3 2009/12/28 00:51:15 couannette Exp $
 
   FreeWRL support library.
   Raster fonts.
@@ -44,13 +44,14 @@ typedef enum {
 } e_xfont_color_t;
 
 
-static void rf_print(const char *text);
+void rf_print(const char *text);
 void rf_printf(int x, int y, const char *format, ...);
 void rf_layer2D();
 void rf_leave_layer2D();
-static int  rf_xfont_init(const char *fontname);
+int  rf_xfont_init(const char *fontname);
 void rf_xfont_set_color(e_xfont_color_t index);
-static void rf_xfont_set_usercolor(vec4f_t color);
+void rf_xfont_set_usercolor(vec4f_t color);
+
 #if 0
 // used in my engine to print mvar=multi value variables...
 void rf_mvar_print(int x, int y, s_mvar_t *mvar);
