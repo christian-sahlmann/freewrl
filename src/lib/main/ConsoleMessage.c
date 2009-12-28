@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.11 2009/10/27 10:44:02 couannette Exp $
+$Id: ConsoleMessage.c,v 1.12 2009/12/28 00:52:17 couannette Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -261,15 +261,25 @@ int ConsoleMessage(const char *fmt, ...) {
 		FWbuffer[0] = '\0';
 	}
 #else
+
+	/* I want all output to be printed (debugging plugin */
+	printf (FWbuffer); 
+	if (FWbuffer[strlen(FWbuffer-1)] != '\n') {
+		printf ("\n");
+	}
+
 	/* are we running under Motif or Gtk? */
+
 #if defined(TARGET_MOTIF)
 		setConsoleMessage (FWbuffer);
 # else
 		if (RUNNINGASPLUGIN) {
 			freewrlSystem (FWbuffer);
-		} else {
-			printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n");
 		}
+/* 		else { */
+/* 			printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n"); */
+/* 		} */
+
 #endif //TARGET_MOTIF
 
 #endif
