@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.14 2009/12/28 15:58:56 crc_canada Exp $
+$Id: ConsoleMessage.c,v 1.15 2009/12/28 16:04:10 dug9 Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -227,34 +227,11 @@ FILE* consolefile;
 int ConsoleMessage0(const char *fmt, va_list args)  
 {
 	int retval;
-	int len;
-	char * buffer;
-	int doFree = 0;
-
-#ifdef HAVE_VSCPRINTF
-	/* msvc can do this  http://msdn.microsoft.com/en-ca/library/xa1a1a6z(VS.80).aspx  */
-	len = _vscprintf( fmt, args ) +1; /* counts only */
-	buffer = malloc( len * sizeof(char) );
-	retval = vsprintf_s( buffer, len, fmt, args ); /*allocates the len you pass in*/
-	doFree = 1;
-#elif HAVE_VASPRINTF
-	/* http://linux.die.net/man/3/vasprintf a GNU extension, not tested */
-	retval = vasprintf(buffer,fmt,args); /*allocates correct length buffer and writes*/
-	doFree = 1;
-#elif HAVE_FWVSNPRINTF
-	/* reworked code from aqua - seems OK in msvc - if you don't have regular vsnprintf or _vscprintf we can use this */
-	retval = fwvsnprintf(FWbuffer,STRING_LENGTH-1,fmt,args); /*hope STRING_LENGTH is long enough, else -1 skip */
-	buffer = FWbuffer;
-	doFree = 0;
-#else
-	/* and msvc can do this, _msc_ver currently uses. */
-	retval = vsnprintf(FWbuffer,STRING_LENGTH-1,fmt,args); /*hope STRING_LENGTH is long enough, else -1 skip */
-	if(retval < 0) return retval;
-	buffer = FWbuffer;
-	doFree = 0;
-#endif
+	retval = 0;
+	//Console_writeToCRT = 0; //test
+	//Console_writeToFile = 1; //test
 	if(Console_writeToCRT)
-		printf(buffer);
+		retval = vfprintf(stdout,fmt,args); //printf(buffer);
 	if(Console_writeToFile)
 	{
 		if(!consolefileOpened)
@@ -262,15 +239,43 @@ int ConsoleMessage0(const char *fmt, va_list args)
 			consolefile = fopen("freewrl_console.txt","w");
 			consolefileOpened = 1;
 		}
-		fprintf(consolefile,buffer);
+		retval = vfprintf(consolefile,fmt,args); //fprintf(consolefile,buffer);
 	}
-	if(Console_writeToLog)
-		writeToLogFile(buffer);
-	if(Console_writeToHud)
+	if(Console_writeToLog || Console_writeToHud)
 	{
-		hudSetConsoleMessage(buffer);
+		int len;
+		char * buffer;
+		int doFree = 0;
+
+#ifdef HAVE_VSCPRINTF
+		/* msvc can do this  http://msdn.microsoft.com/en-ca/library/xa1a1a6z(VS.80).aspx  */
+		len = _vscprintf( fmt, args ) +1; /* counts only */
+		buffer = malloc( len * sizeof(char) );
+		retval = vsprintf_s( buffer, len, fmt, args ); /*allocates the len you pass in*/
+		doFree = 1;
+#elif HAVE_VASPRINTF
+		/* http://linux.die.net/man/3/vasprintf a GNU extension, not tested */
+		retval = vasprintf(buffer,fmt,args); /*allocates correct length buffer and writes*/
+	`	//retval = vfprintf(FILE*, fmt, args); //michel says standard lib, writes to FILE*
+		doFree = 1;
+#elif HAVE_FWVSNPRINTF
+		/* reworked code from aqua - seems OK in msvc - if you don't have regular vsnprintf or _vscprintf we can use this */
+		retval = fwvsnprintf(FWbuffer,STRING_LENGTH-1,fmt,args); /*hope STRING_LENGTH is long enough, else -1 skip */
+		buffer = FWbuffer;
+		doFree = 0;
+#else
+		/* and msvc can do this, _msc_ver currently uses. */
+		retval = vsnprintf(FWbuffer,STRING_LENGTH-1,fmt,args); /*hope STRING_LENGTH is long enough, else -1 skip */
+		if(retval < 0) return retval;
+		buffer = FWbuffer;
+		doFree = 0;
+#endif
+		if(Console_writeToLog)
+			writeToLogFile(buffer);
+		if(Console_writeToHud)
+			hudSetConsoleMessage(buffer);
+		if(doFree) free( buffer ); 
 	}
-	if(doFree) free( buffer ); 
 	return retval;
 }
 int ConsoleMessage(const char *fmt, ...)
