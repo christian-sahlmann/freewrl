@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.24 2009/10/29 22:05:09 couannette Exp $
+  $Id: options.c,v 1.25 2009/12/28 00:54:07 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -89,6 +89,7 @@ void usage()
 	    "  -i|--plugin <string>    Called from plugin.\n"
 	    "  -j|--fd <number>        Pipe to command the program.\n"
 	    "  -k|--instance <number>  Instance of plugin.\n"
+	    "  -L|--logfile <filename> Log file where all messages should go.\n"
 #ifdef HAVE_LIBCURL
 	    "  -C|--curl               Use libcurl instead of wget.\n"
 #endif
@@ -137,6 +138,7 @@ const char * validate_string_arg(const char *optarg)
 	{"plugin", required_argument, 0, 'i'},
 	{"fd", required_argument, 0, 'j'},
 	{"instance", required_argument, 0, 'k'},
+	{"logfile", required_argument, 0, 'L'},
 
 	{"curl", no_argument, 0, 'C'},
 
@@ -169,11 +171,12 @@ int parseCommandLine (int argc, char **argv)
     int option_index = 0;
     int real_option_index;
     const char *real_option_name;
+    char *logFileName = NULL;
 
 #if defined(DOSNAPSEQUENCE)
-    static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utC";
+    static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utCL:";
 #else
-    static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:utC";
+    static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:utCL:";
 #endif
 
 
@@ -366,6 +369,15 @@ int parseCommandLine (int argc, char **argv)
 	    sscanf(optarg,"%u",(unsigned int *)(void *)(&_fw_instance));
 	    break;
 
+	case 'L': /* --logfile, required argument: log filename */
+	    if (optarg) {
+		logFileName = strdup(optarg);
+	    } else {
+		ERROR_MSG("Option -L|--logfile: log filename required\n");
+		return FALSE;
+	    }
+	    break;
+
 #ifdef HAVE_LIBCURL
 	case 'C': /* --curl, no argument */
 	    with_libcurl = TRUE;
@@ -377,6 +389,13 @@ int parseCommandLine (int argc, char **argv)
 	    exit(1);
 	    break;
 	}
+    }
+
+    /* Quick hack: redirect stdout and stderr to logFileName if supplied */
+    if (logFileName) {
+	printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);	
+	freopen(logFileName, "a", stdout);
+	freopen(logFileName, "a", stderr);
     }
 
     if (optind < argc) {
