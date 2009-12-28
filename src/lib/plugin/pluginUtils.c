@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.19 2009/12/18 17:30:10 istakenv Exp $
+  $Id: pluginUtils.c,v 1.20 2009/12/28 00:50:57 couannette Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -389,17 +389,18 @@ void URLencod (char *dest, const char *src, int maxlen) {
 
 /* this is for Unix only */
 #if !defined(AQUA) && !defined(WIN32)
-void sendXwinToPlugin() {
+
+void sendXwinToPlugin()
+{
 	XWindowAttributes mywin;
 
 	/* send the window id back to the plugin parent */
+	printf("sendXwinToPlugin...\n");
 
-	#ifdef URLPRINTDEBUG
         XGetWindowAttributes(Xdpy,Xwin, &mywin);
-        printf ("sendXwin starting, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
+        DEBUG_MSG("sendXwinToPlugin: sendXwin starting, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
 
-	URLprint ("sending Xwin ID back to plugin - %d bytes\n",sizeof (Xwin));
-	#endif
+	DEBUG_MSG("sendXwinToPlugin: sending Xwin ID back to plugin - %d bytes\n",sizeof (Xwin));
 
 	write (_fw_pipe,&Xwin,sizeof(Xwin));
 	close (_fw_pipe);
