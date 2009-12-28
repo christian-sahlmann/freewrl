@@ -166,6 +166,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\non_web3d_formats\ColladaParser.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\scenegraph\Collision.c"
 				>
 			</File>
@@ -506,7 +510,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\lib\ui\statusbar.c"
+				RelativePath="..\..\src\lib\ui\statusbarConsole.c"
 				>
 			</File>
 			<File
