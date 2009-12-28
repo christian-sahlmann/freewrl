@@ -1,3 +1,10 @@
+/*
+  $Id: plugin_main.c,v 1.10 2009/12/28 00:48:50 couannette Exp $
+
+  FreeWRL plugin for Mozilla compatible browsers.
+  Works in Firefox 1.x - 3.0 on Linux.
+
+*/
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -36,7 +43,7 @@
  * The Plugin uses this window id to rehost the window.
  *
  * John Stewart, Alya Khan, Sarah Dumoulin - CRC Canada 2002 - 2006.
- *
+ * Michel Briand - 2009.
  ******************************************************************************/
 
 #include <config.h>
@@ -48,6 +55,9 @@
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
+
+/* Include usefull macros from libFreeWRL here */
+#include "../lib/internal.h"
 
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
@@ -64,11 +74,10 @@
 /* used in init. Don't write to the socket until a request has been received */
 int gotRequestFromFreeWRL = FALSE;
 
-
-char *paramline[15]; /* parameter line */
+char *paramline[20]; /* parameter line */
 static int seqNo = 0;
 
-static int PluginVerbose = 0;  /* CHECK LOG FILE PATH BEFORE SETTING THIS TO 1 */
+static int PluginVerbose = 1;  /* CHECK LOG FILE PATH BEFORE SETTING THIS TO 1 */
 
 /*******************************************************************************
  * Instance state information about the plugin.
@@ -88,24 +97,22 @@ typedef struct _FW_PluginInstance
 	int			interfacePipe[2];		/* pipe plugin FROM freewrl	*/
 	char 			*cacheFileName;
 	int 			cacheFileNameLen;
+	FILE			*logFile;
+	char			*logFileName;
 } FW_PluginInstance;
 
-
+static FW_PluginInstance *plugin_instance; /* this is a real hack: output routine will need this */
 
 typedef void (* Sigfunc) (int);
-
-
 
 static int np_fileDescriptor;
 
 /* Socket file descriptors */
 #define SOCKET_2 0
-#define SOCKET_1   1
+#define SOCKET_1 1
 
-#define PIPE_PLUGINSIDE 0
-#define PIPE_FREEWRLSIDE   1
-
-
+#define PIPE_PLUGINSIDE  0
+#define PIPE_FREEWRLSIDE 1
 
 static void signalHandler (int);
 static int freewrlRecieve (int);
@@ -113,11 +120,19 @@ static int init_socket (int, Boolean);
 Sigfunc signal (int, Sigfunc func);
 void freewrlReceive(int fileDescriptor);
 
-/*******************************************************************************
- ******************************************************************************/
+/* libFreeWRL defines those macros ...
+   we will redefine them here for our own purpose
+*/
+#undef MALLOC
+#define MALLOC NPN_MemAlloc
+#undef FREE
+#define FREE   NPN_MemFree
 
-char debs[256];
-static FILE * tty = NULL;
+/* FIXME: We need to guard the call to sprintf,
+   with snprintf maybe ?
+*/
+#define TEXT_BUFFER_SIZE 4096
+static char debs[TEXT_BUFFER_SIZE];
 
 struct timeval mytime;
 struct timezone tz; /* unused see man gettimeofday */
@@ -125,34 +140,79 @@ double TickTime;
 NPStream *currentStream = NULL;
 
 
-/* Debugging routine */
-static void print_here (char * xx) {
-/*
-	printf ("debug: %f : ",TickTime);
-	printf("plug-in: %s\n", xx);
-*/
-	if (!PluginVerbose) return;
+/**
+ *   print_here: debugging routine. Use 'tty' as output stream.
+ *               This stream is 'stderr' until an instance of the
+ *               plugin is fully initialized. Then it's a tmp file.
+ */
+static void print_here2(FW_PluginInstance *me, char * xx)
+{
+	FILE *tty;
 
-	if (tty == NULL) {
-		tty = fopen("/tmp/npfreewrl.log", "a");
-		if (tty == NULL)
-			PluginVerbose = FALSE;
-		fprintf (tty, "\nplugin restarted\n");
-	}
+	if (!PluginVerbose) return;
 
         /* Set the timestamp */
         gettimeofday (&mytime,&tz);
         TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 
-	fprintf (tty,"%f: ",TickTime);
-	fprintf(tty, "plug-in: %s\n", xx);
-	fflush(tty);
+	if (!me) {
+		tty = stderr;
+	} else {
+		if (me->logFile) {
+			tty = me->logFile;
+		} else {
+			/* construct a log filename like this: 
+			   /tmp/npfreewrl-HOSTNAME-USERNAME.log 
+			*/
 
-	/* printf ("plugin: %s\n",xx); */
+			char *logfilename, *hostname, *username;
+
+			hostname = MALLOC(10);
+			if (gethostname(hostname, 10) < 0) {
+				sprintf(hostname, "(unknown)");
+			}
+			username = getlogin();
+			if (!username) {
+				username = "[unknown]";
+			}
+
+			logfilename = MALLOC(strlen("/tmp/npfreewrl_%s-%s.log")
+					     + strlen(hostname) + strlen(username) - 3);
+			sprintf(logfilename, 
+				"/tmp/npfreewrl_%s-%s.log",
+				hostname, username);
+
+			tty = fopen(logfilename, "a");
+			
+			if (tty == NULL) {
+				PluginVerbose = FALSE;
+				fprintf (stderr, "\nFreeWRL plugin ERROR: plugin could not open log file: %s. Will output to stderr.\n", logfilename);
+				FREE(logfilename);
+				logfilename = NULL;
+				tty = stderr;
+			} else {
+
+				/* Update running instance with our log file info */
+				me->logFile = tty;
+				me->logFileName = logfilename;
+
+			}
+
+			fprintf (tty, "\n%f: FreeWRL plugin log restarted. Version: %s. Build: %s\n",
+				 TickTime, freewrl_plugin_get_version(), BUILD_TIMESTAMP);
+		}
+	}
+
+	fprintf (tty,"%f: ",TickTime);
+	fprintf(tty, "FreeWRL plugin: %s\n", xx);
+	fflush(tty);
 }
 
+#define print_here(_msg) print_here2(plugin_instance, _msg)
 
-Sigfunc signal(int signo, Sigfunc func) {
+
+Sigfunc signal(int signo, Sigfunc func)
+{
 	struct sigaction action, old_action;
 
 	action.sa_handler = func;
@@ -198,7 +258,8 @@ void freewrlReceive(int fileDescriptor) {
 	size_t request_size = 0;
 	int rv = 0;
 
-	sprintf(debs, "Call to freewrlReceive fileDescriptor %d.", fileDescriptor); print_here (debs);
+	sprintf(debs, "Call to freewrlReceive fileDescriptor %d.", fileDescriptor);
+	print_here(debs);
 
 	bzero(request.url, FILENAME_MAX);
 	request.instance = 0;
@@ -359,8 +420,14 @@ void Run (NPP instance) {
 	print_here ("start of Run");
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-	sprintf (debs,"Run, checking if can run; disp win %x %x fname %s",
-		FW_Plugin->mozwindow, FW_Plugin->display, FW_Plugin->fName); 
+	if (FW_Plugin) {
+		plugin_instance = FW_Plugin;
+	}
+
+	sprintf(debs,"Run, checking if can run; disp %x win %x fname %s",
+		(unsigned int) FW_Plugin->mozwindow,
+		(unsigned int) FW_Plugin->display,
+		FW_Plugin->fName); 
 	print_here (debs);
 
 	/* Return if we do not have all of the required parameters. */
@@ -370,52 +437,74 @@ void Run (NPP instance) {
 
 	if (FW_Plugin->display == 0) return;
 
-	sprintf (debs,"Run, can run; disp win %x %x fname %s",
-		FW_Plugin->mozwindow, FW_Plugin->display, FW_Plugin->fName);
+	sprintf(debs,"Run, can run; disp win %x %x fname %s",
+		(unsigned int) FW_Plugin->mozwindow,
+		(unsigned int) FW_Plugin->display,
+		FW_Plugin->fName);
 	print_here (debs);
 
 
 	/* start FreeWRL, if it is not running already. */
 	if (!FW_Plugin->freewrl_running) {
 		FW_Plugin->freewrl_running = TRUE;
-		sprintf (debs,"STARTING testrun program, disp and win %x %x\n",FW_Plugin->display, FW_Plugin->mozwindow);
+		sprintf(debs,
+			"STARTING testrun program, disp and win %x %x\n",
+			(unsigned int) FW_Plugin->display,
+			(unsigned int) FW_Plugin->mozwindow);
 		print_here (debs);
 
 		FW_Plugin->childPID = fork ();
 		if (FW_Plugin->childPID == -1) {
+
+			/* system error */ 
 			sprintf (debs, "\tFreeWRL: Fork for plugin failed: ");
 			print_here (debs);
 			FW_Plugin->childPID = 0;
+
 		} else if (FW_Plugin->childPID == 0) {
+
+			/* child */
+
+			/* For FreeWRL to log output in a place where to look at...
+			   we setup it's stdout and stderr to the log file created
+			   by the plugin. */
+
 			pid_t mine = getpid();
 			if (setpgid(mine,mine) < 0) {
 				sprintf (debs,"\tFreeWRL child group set failed");
 				print_here (debs);
 			} else {
+				int carg = 0;
+
 				/* Nice FreeWRL to a lower priority */
-				paramline[0] = "nice";
-				paramline[1] = "freewrl";
+
+				paramline[carg++] = "nice";
+
+				paramline[carg++] = "freewrl";
+
+				paramline[carg++] = "--logfile";
+				paramline[carg++] = FW_Plugin->logFileName;
 
 				/* We have the file name, so include it */
-				paramline[2] = FW_Plugin->fName;
+				paramline[carg++] = FW_Plugin->fName;
 
 				/* Pass in the pipe number so FreeWRL can return the
 				window id */
-				paramline[3] = "--plugin";
-				paramline[4] = pipetome;
+				paramline[carg++] = "--plugin";
+				paramline[carg++] = pipetome;
 
 				/* EAI connection */
-				paramline [5] = "--eai";
+				paramline [carg++] = "--eai";
 
 				/* File descriptor and instance  - allows FreeWRL to
 				 request files from browser's cache */
 
-				paramline[6] = "--fd";
-				paramline[7] = childFd;
-				paramline[8] = "--instance";
-				paramline[9] = instanceStr;
+				paramline[carg++] = "--fd";
+				paramline[carg++] = childFd;
+				paramline[carg++] = "--instance";
+				paramline[carg++] = instanceStr;
 				
-				paramline[10] = NULL;
+				paramline[carg] = NULL;
 
 
 				/* create pipe string */
@@ -433,13 +522,27 @@ void Run (NPP instance) {
 						paramline[8],paramline[9],paramline[10]);
 
 				print_here (debs);
+
+				/* stdout and stderr redirect */
+				sprintf (debs,
+					 "redirect stdout and stderr to %s\n", FW_Plugin->logFileName);
+				print_here (debs);
+
+				fflush(stdout);
+				fflush(stderr);
+				freopen(FW_Plugin->logFileName, "a", stdout);
+				freopen(FW_Plugin->logFileName, "a", stderr);
+
 			    	execvp(paramline[0], (char* const *) paramline);
 			}
 
 			print_here("\tFreeWRL Plugin: Couldn\'t run FreeWRL.\n");
 
 		} else {
-		    	/* return error */
+
+		    	/* father */
+			sprintf(debs, "CHILD %d", FW_Plugin->childPID);
+			print_here(debs);
 		}
 	}
 
@@ -458,11 +561,14 @@ void Run (NPP instance) {
 
 	/*reparent the window */
 
-	#ifdef ewrwetw
+//	#ifdef ewrwetw
 	XGetWindowAttributes(FW_Plugin->display,FW_Plugin->fwwindow, &mywin);
-	printf ("Plugin: mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
-	printf ("x %d y %d wid %d height %d\n",mywin.x,mywin.y,mywin.width,mywin.height);
-	#endif
+	sprintf (debs, "Plugin: mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
+	print_here (debs);
+
+	sprintf (debs, "x %d y %d wid %d height %d\n",mywin.x,mywin.y,mywin.width,mywin.height);
+	print_here (debs);
+//	#endif
 
 	/* print_here ("going to XFlush"); */
 	XFlush(FW_Plugin->display);
@@ -473,16 +579,26 @@ void Run (NPP instance) {
 	/* print_here ("going to reparent"); */
 	XReparentWindow(FW_Plugin->display, FW_Plugin->fwwindow, FW_Plugin->mozwindow, 0,0);
 	
-	XResizeWindow(FW_Plugin->display, FW_Plugin->fwwindow,
-				  FW_Plugin->width, FW_Plugin->height);
-	
+	sprintf(debs, "Going to resize FreeWRL: %d x %d -> %d x %d\n",
+		mywin.width, mywin.height,
+		FW_Plugin->width, FW_Plugin->height);
+	print_here (debs);
+
+	/* MB 28-12-2009 : added this sync to prevent the plugin from "loosing" the resize event ... */
+	XSync (FW_Plugin->display, FALSE);
+
+	/* here the two next calls seems to be operating well in any order... hum... */
+	XResizeWindow(FW_Plugin->display, FW_Plugin->fwwindow, FW_Plugin->width, FW_Plugin->height);
 	XMapWindow(FW_Plugin->display,FW_Plugin->fwwindow);
 
-	#ifdef ewrwetw
+//	#ifdef ewrwetw
 	XGetWindowAttributes(FW_Plugin->display,FW_Plugin->fwwindow, &mywin);
-	printf ("Plugin, after reparenting, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
-	printf ("x %d y %d wid %d height %d\n",mywin.x,mywin.y,mywin.width,mywin.height);
-	#endif
+	sprintf (debs, "Plugin, after reparenting, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
+	print_here (debs);
+
+	sprintf (debs, "x %d y %d wid %d height %d\n",mywin.x,mywin.y,mywin.width,mywin.height);
+	print_here (debs);
+//	#endif
 	
 
 	print_here ("Run function finished\n");
@@ -491,8 +607,7 @@ void Run (NPP instance) {
 
 /*******************************************************************************
  ******************************************************************************/
-char*
-NPP_GetMIMEDescription(void)
+/*const*/ char* NPP_GetMIMEDescription(void)
 {
 	static const char mime_types[] =
 		"x-world/x-vrml:wrl:FreeWRL VRML Browser;"
@@ -504,7 +619,7 @@ NPP_GetMIMEDescription(void)
 		;
 
 	print_here ("NPP_GetMIMEDescription");
-	return mime_types;
+	return (char *) mime_types;
 /*
         return("x-world/x-vrml:wrl:FreeWRL VRML Browser;model/vrml:wrl:FreeWRL VRML Browser;model/x3d+vrml:x3dv:FreeWRL VRML Browser;model/x3d+xml:x3d:FreeWRL X3D Browser;model/x3d+vrml:x3dv:FreeWRL X3D Browser;model/x3d+binary:x3db:FreeWRL X3D Browser");
 */
@@ -572,9 +687,9 @@ NPP_New(NPMIMEType pluginType,
 		char* argv[],
 		NPSavedData* saved) {
 
-	NPError result = NPERR_NO_ERROR;
+/* 	NPError result = NPERR_NO_ERROR; */
 	FW_PluginInstance* FW_Plugin;
-	char factString[60];
+/* 	char factString[60]; */
 	unsigned int err;
 
 
@@ -614,6 +729,8 @@ NPP_New(NPMIMEType pluginType,
 	seqNo = 0;
 	FW_Plugin->cacheFileName = NULL;
 	FW_Plugin->cacheFileNameLen = 0;
+	FW_Plugin->logFile = NULL;
+	FW_Plugin->logFileName = NULL;
 
 	gotRequestFromFreeWRL = FALSE;
 	pipe(FW_Plugin->interfacePipe);
@@ -709,7 +826,9 @@ NPP_URLNotify (NPP instance, const char *url, NPReason reason, void* notifyData)
 
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-	sprintf (debs,"NPP_URLNotify, url %s reason %d notifyData %d",url,reason, notifyData);
+	sprintf(debs,
+		"NPP_URLNotify, url %s reason %d notifyData %p",
+		url, reason, notifyData);
 	print_here (debs);
 
 	if (seqNo != ((int)notifyData)) {
@@ -760,8 +879,8 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 {
 	NPError result = NPERR_NO_ERROR;
 	FW_PluginInstance* FW_Plugin;
-	int X_err;
-	int count;
+/* 	int X_err; */
+/* 	int count; */
 
 	print_here ("start of NPP_SetWindow"); 
 
@@ -780,7 +899,9 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 			FW_Plugin->display = ((NPSetWindowCallbackStruct *) 
 				browser_window->ws_info)->display; 
  
-			sprintf (debs,"NPP_SetWindow, plugin display now is %p", FW_Plugin->display); 
+			sprintf(debs,
+				"NPP_SetWindow, plugin display now is %x",
+				(unsigned int) FW_Plugin->display); 
 			print_here (debs); 
 		} 
 	} 
@@ -796,7 +917,9 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 		}
 	}
 
-	sprintf (debs, "NPP_SetWindow, moz window is %x childPID is %d",browser_window->window,FW_Plugin->childPID);
+	sprintf(debs,
+		"NPP_SetWindow, moz window is %x childPID is %u",
+		(unsigned int) browser_window->window, FW_Plugin->childPID);
 	print_here (debs);
 
 
@@ -809,8 +932,12 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 
 		/* run FreeWRL, if it is not already running. It might not be... */
 		if (!FW_Plugin->freewrl_running) {
+
 			print_here ("NPP_SetWindow, running FreeWRL here!");
+
 			Run(instance);
+
+			print_here ("NPP_SetWindow, returned from Run!");
 		}
 	}
 
@@ -842,7 +969,6 @@ NPP_NewStream(NPP instance,
 
 	if (instance == NULL) return NPERR_INVALID_INSTANCE_ERROR;
 
-
 	if (stream->url == NULL) return(NPERR_NO_DATA);
 
 	if (currentStream == NULL) {
@@ -853,16 +979,19 @@ NPP_NewStream(NPP instance,
 
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-	sprintf (debs,"NPP_NewStream, filename %s instance %d, type %d, stream %d, seekable %d stype %d",
-		FW_Plugin->fName, instance, type, stream, seekable,*stype);
+	sprintf(debs,
+		"NPP_NewStream, filename %s instance %p, type %s, stream %p, seekable %s stype %d",
+		FW_Plugin->fName, instance, type, stream, BOOL_STR(seekable), (stype ? (*stype) : 0));
 	print_here(debs);
 
 	RECORD_FILE_NAME_IF_NULL
 
 	/* run FreeWRL, if it is not already running. It might not be... */
 	if (!FW_Plugin->freewrl_running) {
+
 		print_here ("NPP_NewStream, running FreeWRL here!");
-			Run(instance);
+		
+		Run(instance);
 	}
 
 	/* Lets tell netscape to save this to a file. */
@@ -909,8 +1038,11 @@ int32 NPP_Write(NPP instance, NPStream *stream, int32 offset, int32 len, void *b
 NPError
 NPP_DestroyStream(NPP instance, NPStream *stream, NPError reason)
 {
-	sprintf (debs,"NPP_DestroyStream, instance %d stream %d",instance,stream);
+	sprintf(debs,
+		"NPP_DestroyStream, instance %p stream %p",
+		instance, stream);
 	print_here(debs);
+
 	if (reason == NPRES_DONE) print_here("reason: NPRES_DONE");
 	if (reason == NPRES_USER_BREAK) print_here("reason: NPRES_USER_BREAK");
 	if (reason == NPRES_NETWORK_ERR) print_here("reason: NPRES_NETWORK_ERR");
