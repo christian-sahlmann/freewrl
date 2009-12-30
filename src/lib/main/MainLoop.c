@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.84 2009/12/28 03:00:50 dug9 Exp $
+  $Id: MainLoop.c,v 1.85 2009/12/30 22:04:10 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -254,15 +254,6 @@ void EventLoop() {
         static int loop_count = 0;
 
 #ifdef AQUA
-#ifdef OLDCODE
-        if (RUNNINGASPLUGIN) { // commented out
-                cErr = aglSetCurrentContext(aqglobalContext);
-                if (cErr == GL_FALSE) {
-                        printf("set current context error!");
-                }
-        }
-#endif
-
         /* window size changed by Safari? */
         if (PaneClipChanged) {
                 eventLoopsetPaneClipRect( PaneClipnpx, PaneClipnpy, PaneClipfwWindow,
@@ -298,16 +289,12 @@ void EventLoop() {
 		/* calculate how much to wait so that we are running around 100fps. Adjust the constant
 		   in the line below to raise/lower this frame rate */
 		/* NOTE: OSX front end now syncs with the monitor, meaning, this sleep is no longer needed */
-#ifdef TARGET_AQUA
-		if (RUNNINGASPLUGIN) {
-#endif
+#ifndef TARGET_AQUA
 
                waitsec = 7000.0 + TickTime - lastTime;
                if (waitsec > 0.0) {
                        /* printf ("waiting %lf\n",waitsec); */
                        usleep((unsigned)waitsec);
-		}
-#ifdef TARGET_AQUA
 		}
 #endif
 
@@ -748,16 +735,6 @@ void setup_projection(int pick, int x, int y)
 		aspect2 = aspect2 * .5;
 		if(Viewer.iside == 1) xvp = (GLint)screenwidth2;
 	}
-
-#ifdef OLDCODE
-        #ifdef AQUA
-        if (RUNNINGASPLUGIN) { //commented out
-                aglSetCurrentContext(aqglobalContext);
-        } else {
-                CGLSetCurrentContext(myglobalContext);
-        }
-        #endif
-#endif
 
         FW_GL_MATRIX_MODE(GL_PROJECTION);
 		/* >>> statusbar hud */
@@ -1324,41 +1301,6 @@ void setSnapSeq() {
 #endif
 }
 
-#ifdef OLDCODE
-void closeFreewrl() {
-        struct Multi_Node* tn;
-        struct X3D_Group* rn;
-        printf ("closeFreewrl called\n"); 
-
-        #ifdef AQUA
-        pluginRunning = FALSE;
-        kill_clockEvents();
-        EAI_killBindables();
-        kill_bindables();
-        kill_routing();
-        kill_status();
-        /* JAS - follow the kill_oldWorld style kill_openGLTextures(); */
-        kill_javascript();
-
-        #endif
-        /* kill any remaining children */
-        rn = (struct X3D_Group*) rootNode;
-        tn =  &(rn->children);
-        tn->n = 0;
-        quitThread = TRUE;
-        viewer_initialized = FALSE;
-
-        if (!RUNNINGASPLUGIN) {
-                set_viewer_type (VIEWER_EXAMINE);
-        }
-        glFlush();
-        glFinish();
-        screenWidth = screenHeight = 1;
-        clipPlane = 0;
-        /* printf ("closeFreewrl call finished\n"); */
-}
-#endif
-
 void setEAIport(int pnum) {
         EAIport = pnum;
 }
@@ -1729,36 +1671,6 @@ void Safari_disposeContext() {
         /* printf ("Safari_disposeContext call finished\n"); */
 }
 
-
-#ifdef OLDCODE
-/* older code - is this called from the front end? keep it around until
-verified that it is no longer required: */
-
-void disposeContext() {
-        //debug_print("called dispose context");
-        //sprintf(debs, "context is currently %p\n", aqglobalContext);
-        //debug_print(debs);
-
-        stopDisplayThread();
-
-        kill_X3DDefs();
-        closeFreewrl();
-
-        cErr = aglSetCurrentContext(nil);
-        if (cErr == GL_FALSE) {
-                printf("FreeWRL: set current context error!\n");
-        }
-        cErr = aglSetDrawable(aqglobalContext, nil);
-        if (cErr == GL_FALSE) {
-                printf("FreeWRL: set current context error!\n");
-        }
-        cErr = aglDestroyContext(aqglobalContext);
-        if (cErr == GL_FALSE) {
-                printf("FreeWRL: set current context error!\n");
-        }
-        aqglobalContext = nil;
-}
-#endif
 
 void sendPluginFD(int fd) {
         /* printf ("sendPluginFD, FreeWRL received %d\n",fd); */

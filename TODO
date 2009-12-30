@@ -1,7 +1,17 @@
 Priority list
 
 ============================================================================
-For 1.22.6 release:
+For 1.22.7 release:
+
+OSX plugin:
+- init and end properly.
+- url getting
+- mouse,keyboard
+- more than one window at a time
+- embed tag testing
+- object tag testing
+- universal binary.
+
 
 1) ProdCon threading - Mutex lock so that it does not loop continuously.
 	DONE
