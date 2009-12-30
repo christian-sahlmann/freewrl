@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.85 2009/12/30 22:04:10 crc_canada Exp $
+  $Id: MainLoop.c,v 1.86 2009/12/30 22:51:58 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -254,13 +254,15 @@ void EventLoop() {
         static int loop_count = 0;
 
 #ifdef AQUA
-        /* window size changed by Safari? */
-        if (PaneClipChanged) {
-                eventLoopsetPaneClipRect( PaneClipnpx, PaneClipnpy, PaneClipfwWindow,
-                        PaneClipct, PaneClipcb, PaneClipcr, PaneClipcl,
-                        PaneClipwidth, PaneClipheight);
-                PaneClipChanged = FALSE;
-        }
+#ifdef OLDCODE
+OLDCODE        /* window size changed by Safari? */
+OLDCODE        if (PaneClipChanged) {
+OLDCODE                eventLoopsetPaneClipRect( PaneClipnpx, PaneClipnpy, PaneClipfwWindow,
+OLDCODE                        PaneClipct, PaneClipcb, PaneClipcr, PaneClipcl,
+OLDCODE                        PaneClipwidth, PaneClipheight);
+OLDCODE                PaneClipChanged = FALSE;
+OLDCODE        }
+#endif
 #endif
 
         DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
@@ -879,14 +881,18 @@ static void render()
 	drawStatusBar();
 
 #if defined( AQUA )
-	if (RUNNINGASPLUGIN) {
-	    aglSetCurrentContext(aqglobalContext);
-	    aglSwapBuffers(aqglobalContext);
-	} else {
+#ifdef OLDCODE
+OLDCODE	if (RUNNINGASPLUGIN) {
+OLDCODE	    aglSetCurrentContext(aqglobalContext);
+OLDCODE	    aglSwapBuffers(aqglobalContext);
+OLDCODE	} else {
+#endif
 	    CGLError err = CGLFlushDrawable(myglobalContext);
 	    
 	    if (err != kCGLNoError) printf ("CGLFlushDrawable error %d\n",err);
-	}
+#ifdef OLDCODE
+OLDCODE	}
+#endif
 
 #else
 
@@ -1250,14 +1256,18 @@ void _displayThread()
 #ifdef AQUA
 void initGL() {
         /* printf ("OSX initGL called\n");  */
-        if (RUNNINGASPLUGIN) {
-                //aqglobalContext = aglGetCurrentContext();
-                pluginRunning = TRUE;
-                aglSetCurrentContext(aqglobalContext);
-        } else {
+#ifdef OLDCODE
+OLDCODE        if (RUNNINGASPLUGIN) {
+OLDCODE                //aqglobalContext = aglGetCurrentContext();
+OLDCODE                pluginRunning = TRUE;
+OLDCODE                aglSetCurrentContext(aqglobalContext);
+OLDCODE        } else {
+#endif
                 myglobalContext = CGLGetCurrentContext();
-        }
-        /* printf ("initGL call finished - aqglobalContext %u, myglobalContext %u\n",aqglobalContext,myglobalContext); */
+#ifdef OLDCODE
+OLDCODE        }
+#endif
+        /* printf ("initGL call finished - myglobalContext %u\n",myglobalContext); */
 }
 
 int getOffset() {
@@ -1493,198 +1503,207 @@ ConsoleMessage ("setIsPlugin, BrowserFullPath :%s:");
         */
         
 }
-void createContext(CGrafPtr grafPtr) {
-        AGLPixelFormat  fmt;
-        GLboolean      mkc, ok;
-        const GLint    attribWindow[]   = {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_NO_RECOVERY, AGL_ALL_RENDERERS, AGL_ACCELERATED, AGL_DEPTH_SIZE, 24, AGL_STENCIL_SIZE, 8, AGL_NONE};
-        AGLDrawable             aglWin;
 
-        /* printf ("createContext called\n"); */
-        if (aqglobalContext) {
-                /* printf ("FreeWRL: createContext already made\n"); */
-        /* printf ("FreeWRL: createContext already made\n");  */
-                aglUpdateContext(aqglobalContext);
-                return;
-        }
-
-        gGDevice = GetMainDevice();
-        fmt = aglChoosePixelFormat(&gGDevice, 1, attribWindow);
-
-        if ((fmt == NULL) || (aglGetError() != AGL_NO_ERROR)) {
-                printf("FreeWRL: aglChoosePixelFormat failed!\n");
-        }
-
-        aqglobalContext = aglCreateContext(fmt, nil);
-        if ((aqglobalContext == nil) || (aglGetError() != AGL_NO_ERROR)) {
-                printf("FreeWRL: aglCreateContext failed!\n");
-        }
-
-        aglWin = (AGLDrawable)grafPtr;
-        ok = aglSetDrawable(aqglobalContext, aglWin);
-
-        if ((!ok) || (aglGetError() != AGL_NO_ERROR)) {
-                if (aglGetError() == AGL_BAD_ALLOC) {
-                        printf("FreeWRL: Not enough VRAM to initialize the draw context.\n");
-                } else {
-                        printf("FreeWRL: OGL_InitDrawContext: aglSetDrawable failed!\n");
-                }
-        }
-
-        mkc = aglSetCurrentContext(aqglobalContext);
-        if ((mkc == 0) || (aglGetError() != AGL_NO_ERROR)) {
-                printf("FreeWRL: aglSetCurrentContext failed!\n");
-        }
-
-        aglDestroyPixelFormat(fmt);
-
-        //sprintf(debs, "Created context: %p", aqglobalContext);
-        //debug_print(debs);
-
-        pluginRunning = TRUE;
-        /* printf ("createContext call finished\n"); */
-}
-
-
-
-void setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height) {
-        /* record these items so that they get handled in the display thread */
-        PaneClipnpx = npx;
-        PaneClipnpy = npy;
-        PaneClipfwWindow = fwWindow;
-        PaneClipct = ct;
-        PaneClipcb = cb;
-        PaneClipcr = cr;
-        PaneClipcl = cl;
-        PaneClipwidth = width;
-        PaneClipheight = height;
-
-        PaneClipChanged = TRUE;
-}
-
-void eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height) {
-        GLint   bufferRect[4];
-        Rect    r;
-        int     x,y;
-        int     clipHeight;
-        int     windowHeight;
-
-        #ifdef VERBOSE
-        sprintf(debs, "eventLoopPaneClipRect npx %d npy %d ct %d cb %d cr %d cl %d width %d height %d\n", 
-                npx, npy, ct, cb, cr, cl, width, height);
-        debug_print(debs);
-        #endif
-
-        if (aqglobalContext == nil) return;
-
-        if (!pluginRunning) return;
-
-        cErr = aglSetCurrentContext(aqglobalContext);
-        if (cErr == GL_FALSE) {
-                printf("FreeWRL: EventLoopPaneClipRect: set current context error!\n");
-                return;
-        }
-
-        x = npx;
+#ifdef OLDCODE
+OLDCODEvoid createContext(CGrafPtr grafPtr) {
+OLDCODE        AGLPixelFormat  fmt;
+OLDCODE        GLboolean      mkc, ok;
+OLDCODE        const GLint    attribWindow[]   = {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_NO_RECOVERY, AGL_ALL_RENDERERS, AGL_ACCELERATED, AGL_DEPTH_SIZE, 24, AGL_STENCIL_SIZE, 8, AGL_NONE};
+OLDCODE        AGLDrawable             aglWin;
+OLDCODE
+OLDCODE        /* printf ("createContext called\n"); */
+OLDCODE        if (aqglobalContext) {
+OLDCODE                /* printf ("FreeWRL: createContext already made\n"); */
+OLDCODE        /* printf ("FreeWRL: createContext already made\n");  */
+OLDCODE                aglUpdateContext(aqglobalContext);
+OLDCODE                return;
+OLDCODE        }
+OLDCODE
+OLDCODE        gGDevice = GetMainDevice();
+OLDCODE        fmt = aglChoosePixelFormat(&gGDevice, 1, attribWindow);
+OLDCODE
+OLDCODE        if ((fmt == NULL) || (aglGetError() != AGL_NO_ERROR)) {
+OLDCODE                printf("FreeWRL: aglChoosePixelFormat failed!\n");
+OLDCODE        }
+OLDCODE
+OLDCODE        aqglobalContext = aglCreateContext(fmt, nil);
+OLDCODE        if ((aqglobalContext == nil) || (aglGetError() != AGL_NO_ERROR)) {
+OLDCODE                printf("FreeWRL: aglCreateContext failed!\n");
+OLDCODE        }
+OLDCODE
+OLDCODE        aglWin = (AGLDrawable)grafPtr;
+OLDCODE        ok = aglSetDrawable(aqglobalContext, aglWin);
+OLDCODE
+OLDCODE        if ((!ok) || (aglGetError() != AGL_NO_ERROR)) {
+OLDCODE                if (aglGetError() == AGL_BAD_ALLOC) {
+OLDCODE                        printf("FreeWRL: Not enough VRAM to initialize the draw context.\n");
+OLDCODE                } else {
+OLDCODE                        printf("FreeWRL: OGL_InitDrawContext: aglSetDrawable failed!\n");
+OLDCODE                }
+OLDCODE        }
+OLDCODE
+OLDCODE        mkc = aglSetCurrentContext(aqglobalContext);
+OLDCODE        if ((mkc == 0) || (aglGetError() != AGL_NO_ERROR)) {
+OLDCODE                printf("FreeWRL: aglSetCurrentContext failed!\n");
+OLDCODE        }
+OLDCODE
+OLDCODE        aglDestroyPixelFormat(fmt);
+OLDCODE
+OLDCODE        //sprintf(debs, "Created context: %p", aqglobalContext);
+OLDCODE        //debug_print(debs);
+OLDCODE
+OLDCODE        pluginRunning = TRUE;
+OLDCODE        /* printf ("createContext call finished\n"); */
+OLDCODE}
+#endif
 
 
-        #ifdef VERBOSE
-        debug_print("get window bounds");
-        #endif
+#ifdef OLDCODE
+OLDCODEvoid setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height) {
+OLDCODE        /* record these items so that they get handled in the display thread */
+OLDCODE        PaneClipnpx = npx;
+OLDCODE        PaneClipnpy = npy;
+OLDCODE        PaneClipfwWindow = fwWindow;
+OLDCODE        PaneClipct = ct;
+OLDCODE        PaneClipcb = cb;
+OLDCODE        PaneClipcr = cr;
+OLDCODE        PaneClipcl = cl;
+OLDCODE        PaneClipwidth = width;
+OLDCODE        PaneClipheight = height;
+OLDCODE
+OLDCODE        PaneClipChanged = TRUE;
+OLDCODE}
+#endif
 
-        GetWindowBounds(fwWindow, kWindowContentRgn, &r);               // get size of actual Mac window
+#ifdef OLDCODE
+OLDCODEvoid eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height) {
+OLDCODE        GLint   bufferRect[4];
+OLDCODE        Rect    r;
+OLDCODE        int     x,y;
+OLDCODE        int     clipHeight;
+OLDCODE        int     windowHeight;
+OLDCODE
+OLDCODE        #ifdef VERBOSE
+OLDCODE        sprintf(debs, "eventLoopPaneClipRect npx %d npy %d ct %d cb %d cr %d cl %d width %d height %d\n", 
+OLDCODE                npx, npy, ct, cb, cr, cl, width, height);
+OLDCODE        debug_print(debs);
+OLDCODE        #endif
+OLDCODE
+OLDCODE        if (aqglobalContext == nil) return;
+OLDCODE
+OLDCODE        if (!pluginRunning) return;
+OLDCODE
+OLDCODE        cErr = aglSetCurrentContext(aqglobalContext);
+OLDCODE        if (cErr == GL_FALSE) {
+OLDCODE                printf("FreeWRL: EventLoopPaneClipRect: set current context error!\n");
+OLDCODE                return;
+OLDCODE        }
+OLDCODE
+OLDCODE        x = npx;
+OLDCODE
+OLDCODE
+OLDCODE        #ifdef VERBOSE
+OLDCODE        debug_print("get window bounds");
+OLDCODE        #endif
+OLDCODE
+OLDCODE        GetWindowBounds(fwWindow, kWindowContentRgn, &r);               // get size of actual Mac window
+OLDCODE
+OLDCODE        windowHeight = r.bottom - r.top;
+OLDCODE
+OLDCODE        #ifdef VERBOSE
+OLDCODE        sprintf (debs,"window from getWindowBounds, t %d b %d l %d r %d\n",r.top,r.bottom,r.left,r.right);
+OLDCODE        debug_print(debs);
+OLDCODE        #endif
+OLDCODE
+OLDCODE        clipPlane = cb - npy;
+OLDCODE        y = windowHeight - npy - clipPlane;
+OLDCODE
+OLDCODE        clipHeight = cb - ct;
+OLDCODE
+OLDCODE        bufferRect[0] = x;
+OLDCODE        bufferRect[1] = y;
+OLDCODE        bufferRect[2] = cr - x;
+OLDCODE        bufferRect[3] = clipHeight;
+OLDCODE
+OLDCODE        #ifdef VERBOSE
+OLDCODE        sprintf (debs,"setting bufferRect  to %d %d %d %d\n",bufferRect[0],bufferRect[1],bufferRect[2],bufferRect[3]);
+OLDCODE        debug_print(debs);
+OLDCODE        sprintf (debs,"but, screen width/height is %d %d\n",width,height); debug_print(debs);
+OLDCODE        #endif
+OLDCODE
+OLDCODE        if ((width != bufferRect[2]) || (height != bufferRect[3])) {
+OLDCODE                #ifdef VERBOSE
+OLDCODE                debug_print("DIFFERENCE IN SIZES! choosing the largest \n");
+OLDCODE                #endif
+OLDCODE
+OLDCODE                if (bufferRect[2] > width) width = bufferRect[2];
+OLDCODE                if (bufferRect[3] > height) height = bufferRect[3];
+OLDCODE        } else {
+OLDCODE                setScreenDim(width, height);
+OLDCODE
+OLDCODE                #ifdef VERBOSE
+OLDCODE                debug_print("calling agl buffer rect ... ");
+OLDCODE                #endif
+OLDCODE
+OLDCODE                aglSetInteger (aqglobalContext, AGL_BUFFER_RECT, bufferRect);
+OLDCODE        }
+OLDCODE
+OLDCODE
+OLDCODE        /* ok to here... */
+OLDCODE        aglEnable (aqglobalContext, AGL_BUFFER_RECT);
+OLDCODE        clipPlane = y - npy;
+OLDCODE        clipPlane += cb - height;
+OLDCODE
+OLDCODE        clipPlane -= (r.bottom - cb);
+OLDCODE        clipPlane += r.top;
+OLDCODE
+OLDCODE        #ifdef VERBOSE
+OLDCODE        sprintf(debs, "leaving set clip - set cp to %d\n", clipPlane);
+OLDCODE        debug_print(debs);
+OLDCODE        #endif
+OLDCODE}
+#endif
 
-        windowHeight = r.bottom - r.top;
 
-        #ifdef VERBOSE
-        sprintf (debs,"window from getWindowBounds, t %d b %d l %d r %d\n",r.top,r.bottom,r.left,r.right);
-        debug_print(debs);
-        #endif
-
-        clipPlane = cb - npy;
-        y = windowHeight - npy - clipPlane;
-
-        clipHeight = cb - ct;
-
-        bufferRect[0] = x;
-        bufferRect[1] = y;
-        bufferRect[2] = cr - x;
-        bufferRect[3] = clipHeight;
-
-        #ifdef VERBOSE
-        sprintf (debs,"setting bufferRect  to %d %d %d %d\n",bufferRect[0],bufferRect[1],bufferRect[2],bufferRect[3]);
-        debug_print(debs);
-        sprintf (debs,"but, screen width/height is %d %d\n",width,height); debug_print(debs);
-        #endif
-
-        if ((width != bufferRect[2]) || (height != bufferRect[3])) {
-                #ifdef VERBOSE
-                debug_print("DIFFERENCE IN SIZES! choosing the largest \n");
-                #endif
-
-                if (bufferRect[2] > width) width = bufferRect[2];
-                if (bufferRect[3] > height) height = bufferRect[3];
-        } else {
-                setScreenDim(width, height);
-
-                #ifdef VERBOSE
-                debug_print("calling agl buffer rect ... ");
-                #endif
-
-                aglSetInteger (aqglobalContext, AGL_BUFFER_RECT, bufferRect);
-        }
-
-
-        /* ok to here... */
-        aglEnable (aqglobalContext, AGL_BUFFER_RECT);
-        clipPlane = y - npy;
-        clipPlane += cb - height;
-
-        clipPlane -= (r.bottom - cb);
-        clipPlane += r.top;
-
-        #ifdef VERBOSE
-        sprintf(debs, "leaving set clip - set cp to %d\n", clipPlane);
-        debug_print(debs);
-        #endif
-}
-
-/* make a disposeContext but without some of the node destroys. */
-void Safari_disposeContext() {
-        /* printf ("Safari_disposeContext called\n"); */
-
-
-        stopDisplayThread();
-
-        cErr = aglSetCurrentContext(nil);
-        if (cErr == GL_FALSE) {
-                printf("FreeWRL: set current context error!\n");
-        }
-        cErr = aglSetDrawable(aqglobalContext, nil);
-        if (cErr == GL_FALSE) {
-                printf("FreeWRL: set current context error!\n");
-        }
-        cErr = aglDestroyContext(aqglobalContext);
-        if (cErr == GL_FALSE) {
-                printf("FreeWRL: set current context error!\n");
-        }
-        aqglobalContext = nil;
-        /* printf ("Safari_disposeContext call finished\n"); */
-}
-
-
-void sendPluginFD(int fd) {
-        /* printf ("sendPluginFD, FreeWRL received %d\n",fd); */
-        _fw_browser_plugin = fd;
-}
-void aquaPrintVersion() {
-        printf ("FreeWRL version: %s\n", libFreeWRL_get_version()); 
-        exit(EXIT_SUCCESS);
-}
-void setPluginPath(char* path) {
-        FREE_IF_NZ(PluginFullPath);
-        PluginFullPath = strdup(path);
-}
-
+#ifdef OLDCODE
+OLDCODE/* make a disposeContext but without some of the node destroys. */
+OLDCODEvoid Safari_disposeContext() {
+OLDCODE        /* printf ("Safari_disposeContext called\n"); */
+OLDCODE
+OLDCODE
+OLDCODE        stopDisplayThread();
+OLDCODE
+OLDCODE        cErr = aglSetCurrentContext(nil);
+OLDCODE        if (cErr == GL_FALSE) {
+OLDCODE                printf("FreeWRL: set current context error!\n");
+OLDCODE        }
+OLDCODE        cErr = aglSetDrawable(aqglobalContext, nil);
+OLDCODE        if (cErr == GL_FALSE) {
+OLDCODE                printf("FreeWRL: set current context error!\n");
+OLDCODE        }
+OLDCODE        cErr = aglDestroyContext(aqglobalContext);
+OLDCODE        if (cErr == GL_FALSE) {
+OLDCODE                printf("FreeWRL: set current context error!\n");
+OLDCODE        }
+OLDCODE        aqglobalContext = nil;
+OLDCODE        /* printf ("Safari_disposeContext call finished\n"); */
+OLDCODE}
+OLDCODE
+OLDCODE
+OLDCODEvoid sendPluginFD(int fd) {
+OLDCODE        /* printf ("sendPluginFD, FreeWRL received %d\n",fd); */
+OLDCODE        _fw_browser_plugin = fd;
+OLDCODE}
+OLDCODEvoid aquaPrintVersion() {
+OLDCODE        printf ("FreeWRL version: %s\n", libFreeWRL_get_version()); 
+OLDCODE        exit(EXIT_SUCCESS);
+OLDCODE}
+OLDCODEvoid setPluginPath(char* path) {
+OLDCODE        FREE_IF_NZ(PluginFullPath);
+OLDCODE        PluginFullPath = strdup(path);
+OLDCODE}
+OLDCODE
+#endif
 
 #endif
 

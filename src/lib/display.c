@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.29 2009/12/28 15:58:56 crc_canada Exp $
+  $Id: display.c,v 1.30 2009/12/30 22:51:58 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -76,11 +76,13 @@ GLenum _global_gl_err;
 /* display part specific to Mac */
 
 CGLContextObj myglobalContext;
-AGLContext aqglobalContext;
+#ifdef OLDCODE
+AGLContext aqglobalContext; 
 
 GLboolean cErr;
 
 GDHandle gGDevice;
+#endif
 
 int ccurse = ACURSE;
 int ocurse = ACURSE;
@@ -88,7 +90,10 @@ int ocurse = ACURSE;
 /* for handling Safari window changes at the top of the display event loop */
 int PaneClipnpx;
 int PaneClipnpy;
-WindowPtr PaneClipfwWindow;
+#ifdef OLDCODE
+OLDCODE WindowPtr PaneClipfwWindow;
+#endif
+
 int PaneClipct;
 int PaneClipcb;
 int PaneClipcr;
@@ -136,9 +141,9 @@ int display_initialize()
 #endif
 #else
 #ifdef OLDCODE
-	if (RUNNINGASPLUGIN) {  // commented out
-         	aglSetCurrentContext(aqglobalContext); 
-	}
+OLDCODE	if (RUNNINGASPLUGIN) {  // commented out
+OLDCODE         	aglSetCurrentContext(aqglobalContext); 
+OLDCODE	}
 #endif
 #endif /* TARGET_AQUA */
 

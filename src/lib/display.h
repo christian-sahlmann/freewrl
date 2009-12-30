@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.37 2009/12/28 15:58:56 crc_canada Exp $
+  $Id: display.h,v 1.38 2009/12/30 22:51:58 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -119,14 +119,16 @@ extern s_renderer_capabilities_t rdr_caps;
 
 # include <OpenGL/OpenGL.h>
 # include <OpenGL/CGLTypes.h>
-# include <AGL/AGL.h>
+
+# include <AGL/AGL.h> 
+#ifdef OLDCODE
+OLDCODEextern GLboolean cErr;
+OLDCODEextern GDHandle gGDevice;
+OLDCODEextern AGLContext aqglobalContext;
+#endif
 
 extern CGLContextObj myglobalContext;
-extern AGLContext aqglobalContext;
 
-extern GLboolean cErr;
-
-extern GDHandle gGDevice;
 
 extern int ccurse;
 extern int ocurse;
@@ -140,7 +142,11 @@ extern int ocurse;
 /* for handling Safari window changes at the top of the display event loop */
 extern int PaneClipnpx;
 extern int PaneClipnpy;
-extern WindowPtr PaneClipfwWindow;
+
+#ifdef OLDCODE
+OLDCODE extern WindowPtr PaneClipfwWindow;
+#endif
+
 extern int PaneClipct;
 extern int PaneClipcb;
 extern int PaneClipcr;
@@ -149,7 +155,9 @@ extern int PaneClipwidth;
 extern int PaneClipheight;
 extern int PaneClipChanged;
 
-void eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height);
+#ifdef OLDCODE
+OLDCODEvoid eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height);
+#endif
 
 # if defined(WANT_MULTI_OPENGL_THREADS)
 /* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
