@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.20 2009/11/23 01:43:19 dug9 Exp $
+$Id: system.h,v 1.21 2009/12/31 10:37:15 couannette Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -131,6 +131,20 @@ char *__fw_strndup(const char *s, size_t n);
 #if HAVE_MATH_H
 # include <math.h>
 #endif
+
+/* Those macro may not be declared everywhere */
+#if !defined(min)
+# define min(X, Y)                     \
+     ({ typeof (X) __x = (X), __y = (Y);   \
+        (__x < __y) ? __x : __y; })
+#endif
+
+#if !defined(max)
+# define max(X, Y)                     \
+     ({ typeof (X) __x = (X), __y = (Y);   \
+        (__x > __y) ? __x : __y; })
+#endif
+
 
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
