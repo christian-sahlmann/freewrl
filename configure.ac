@@ -476,6 +476,14 @@ AC_ARG_WITH([plugintarget],
         [PLUGIN_TARGET=$withval],
         [PLUGIN_TARGET=auto])
 
+# Mozilla plugin install dir
+AC_ARG_WITH([plugindir],
+            AS_HELP_STRING([--with-plugindir=DIR],[browser plugin install path @<:@/usr/lib/mozilla/plugins@:>@]),
+            [plugindir="$withval"],			       # user supplied value
+            [plugindir="/usr/lib/mozilla/plugins"])	       # default value
+
+AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugin.])
+
 if test x$sw_plugin = xno; then
   AC_MSG_NOTICE([Not building browser plug-in])
   MAYBE_PLUGIN=
@@ -510,15 +518,6 @@ else
                   MAYBE_PLUGIN=plugin
                   AC_MSG_NOTICE([Installing plugin to $plugindir])
               fi
-
-	      # Mozilla plugin install dir
-	      AC_ARG_WITH([plugindir],
-		AS_HELP_STRING([--with-plugindir=DIR],[browser plugin install path @<:@/usr/lib/mozilla/plugins@:>@]),
-		[plugindir="$withval"],			       # user supplied value
-		[plugindir="/usr/lib/mozilla/plugins"])	       # default value
-
-	      AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugin.])
-
               ;;
   esac
 
@@ -530,6 +529,22 @@ PLUGIN_CFLAGS=$MOZILLA_PLUGIN_CFLAGS
 PLUGIN_LIBS=
 AC_SUBST(PLUGIN_CFLAGS)
 AC_SUBST(PLUGIN_LIBS)
+
+# ======================================
+# Status bar configuration
+# ======================================
+AC_ARG_WITH([statusbar],
+        [AS_HELP_STRING([--with-statusbar=<standard,hud>],[Select status bar flavor])],
+        [SB=$withval],
+        [SB=standard])
+
+case "$SB" in
+     standard|hud) AC_MSG_NOTICE([Status bar flavor: $SB.]) ;; # valid input
+     *) AC_MSG_ERROR([Invalid input for status bar flavor: $SB.]) ;;
+esac
+
+AM_CONDITIONAL([STATUSBAR_STD], [test "$SB" = standard])
+AM_CONDITIONAL([STATUSBAR_HUD], [test "$SB" = hud])
 
 # ======================================
 # FreeWRL helpers programs
