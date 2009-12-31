@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.86 2009/12/30 22:51:58 crc_canada Exp $
+  $Id: MainLoop.c,v 1.87 2009/12/31 16:06:24 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -291,14 +291,14 @@ OLDCODE        }
 		/* calculate how much to wait so that we are running around 100fps. Adjust the constant
 		   in the line below to raise/lower this frame rate */
 		/* NOTE: OSX front end now syncs with the monitor, meaning, this sleep is no longer needed */
-#ifndef TARGET_AQUA
+/* Johns - OSX plugin sometimes runs away, so for now, keep this here #ifndef TARGET_AQUA */
 
                waitsec = 7000.0 + TickTime - lastTime;
                if (waitsec > 0.0) {
                        /* printf ("waiting %lf\n",waitsec); */
                        usleep((unsigned)waitsec);
 		}
-#endif
+/* #endif */
 
         }
 
@@ -307,7 +307,7 @@ OLDCODE        }
                 BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
                 setMenuFps(BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
-                ConsoleMessage("fps %f tris %d\n",BrowserFPS,trisThisLoop);   
+                /* ConsoleMessage("fps %f tris %d\n",BrowserFPS,trisThisLoop);   */
 
 		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane); */
 
@@ -1720,10 +1720,10 @@ void setEaiVerbose() {
         eaiverbose = TRUE;
 }
 
-/* called from the standalone OSX front end */
+/* called from the standalone OSX front end and the OSX plugin */
 void replaceWorldNeeded(char* str)
 {
-	printf ("replaceWorldneeded called - file %s\n",str);
+	/* printf ("replaceWorldneeded called - file %s\n",str); */
         AnchorsAnchor = NULL;
         FREE_IF_NZ(OSX_replace_world_from_console);
 	OSX_replace_world_from_console = STRDUP(str);

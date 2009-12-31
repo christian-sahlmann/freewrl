@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.20 2009/12/28 00:50:57 couannette Exp $
+  $Id: pluginUtils.c,v 1.21 2009/12/31 16:06:24 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -186,11 +186,13 @@ int doBrowserAction()
 	if (waitingForURLtoLoad) return urlLoadingStatus();
 
 	/* is this an Anchor (thus Multi-URL call) or a single url call? */
-#ifdef wrwe
-       AnchorsAnchor = NULL;
-        FREE_IF_NZ(OSX_replace_world_from_console);
-        OSX_replace_world_from_console = STRDUP(str);
-#endif
+	/* OSX frontend and now plugin for loading up a new url does:
+	#ifdef wrwe
+	       AnchorsAnchor = NULL;
+	        FREE_IF_NZ(OSX_replace_world_from_console);
+	        OSX_replace_world_from_console = STRDUP(str);
+	#endif
+	*/
 
 	if (AnchorsAnchor != NULL) {
 		Anchor_url = AnchorsAnchor->url;
@@ -227,7 +229,7 @@ int doBrowserAction()
 			}
 		}
 	} else {
-		printf ("we have a single replacement here\n");
+		/* printf ("\nwe have a single replacement here\n"); */
 		res = resource_create_single (OSX_replace_world_from_console);
 		kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 

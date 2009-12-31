@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.18 2009/12/28 00:56:35 couannette Exp $
+  $Id: resources.c,v 1.19 2009/12/31 16:06:24 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -47,7 +47,6 @@
 
 static void removeFilenameFromPath (char *path);
 static void possiblyUnzip (openned_file_t *of);
-
 
 /**
  *   When main world/file is initialized, setup this
@@ -257,6 +256,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 			
 	} else {
 
+		DEBUG_RES("resource_identify, we may have a local file for resource %s\n",res->request);
 		/* We may have a local file */
 
 		/* We do not want to have system error */
@@ -275,15 +275,19 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 
 			/* We are relative to current dir or base */
 			if (base) {
+				DEBUG_RES("resource_identify = we have base cleanedurl = %s\n",cleanedURL);
 				/* Relative to base */
 				if (cleanedURL[0] == '/') {
-					/*
+					/* this is an absolute url, which we can do, even if we have a base to
+					   base this from. eg, url='/Users/john/tests/2.wrl'  */
 					res->type = rest_file;
 					res->status = ress_starts_good;
 					url = STRDUP(cleanedURL);
-					*/
+
+					/* Michel had the following: 
 					res->status = ress_invalid;
 					ERROR_MSG("resource_identify: could not load an absolute filename relatively to base: %s\n", base->parsed_request);
+					*/
 
 				} else {
 					res->type = rest_file;
@@ -291,6 +295,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 					url = concat_path(base->base, cleanedURL);
 				}
 			} else {
+DEBUG_RES("resource_identify = not relative to base, cleanedURL %s\n",cleanedURL);
 				/* Is this a full path ? */
 				if (cleanedURL[0] == '/') {
 					/* This is an absolute filename */
