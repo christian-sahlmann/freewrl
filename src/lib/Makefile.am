@@ -138,6 +138,17 @@ libFreeWRL_la_SOURCES += ui/fwWindow32.c
 AM_CPPFLAGS+=-DTARGET_WIN32
 endif
 
+if STATUSBAR_STD
+libFreeWRL_la_SOURCES += ui/statusbar.c
+AM_CPPFLAGS+=-DSTATUSBAR_STD
+endif
+
+if STATUSBAR_HUD
+libFreeWRL_la_SOURCES += ui/statusbarHud.c
+AM_CPPFLAGS+=-DSTATUSBAR_HUD
+endif
+
+
 # We'll try to maintain a dependency for generated code (first try here)
 scenegraph/GeneratedCode.c: $(top_srcdir)/codegen/VRMLC.pm
 	cd $(top_srcdir)/codegen && perl VRMLC.pm
