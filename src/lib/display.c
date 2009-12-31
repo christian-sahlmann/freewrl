@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.30 2009/12/30 22:51:58 crc_canada Exp $
+  $Id: display.c,v 1.31 2009/12/31 18:08:06 istakenv Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -36,7 +36,7 @@
 
 #include "opengl/Textures.h"
 #include "opengl/RasterFont.h"
-
+#include "plugin/pluginUtils.h"
 
 bool display_initialized = FALSE;
 
@@ -76,13 +76,6 @@ GLenum _global_gl_err;
 /* display part specific to Mac */
 
 CGLContextObj myglobalContext;
-#ifdef OLDCODE
-AGLContext aqglobalContext; 
-
-GLboolean cErr;
-
-GDHandle gGDevice;
-#endif
 
 int ccurse = ACURSE;
 int ocurse = ACURSE;
@@ -90,9 +83,6 @@ int ocurse = ACURSE;
 /* for handling Safari window changes at the top of the display event loop */
 int PaneClipnpx;
 int PaneClipnpy;
-#ifdef OLDCODE
-OLDCODE WindowPtr PaneClipfwWindow;
-#endif
 
 int PaneClipct;
 int PaneClipcb;
@@ -140,27 +130,12 @@ int display_initialize()
 	bind_GLcontext();
 #endif
 #else
-#ifdef OLDCODE
-OLDCODE	if (RUNNINGASPLUGIN) {  // commented out
-OLDCODE         	aglSetCurrentContext(aqglobalContext); 
-OLDCODE	}
-#endif
 #endif /* TARGET_AQUA */
 
 	if (!initialize_GL()) {
 		return FALSE;
 	}
 
-#ifdef OLDCODE
-	/* initialize raster font 
-	   font is just an example picked up with xfontsel...
-	   we handle only XFont here... we'll come with a cross
-	   platform soon :)...
-	 */
-	if (!rf_xfont_init("-*-bitstream vera sans mono-medium-r-*-*-*-120-*-*-*-*-*-*")) {
-		ERROR_MSG("could not initialize raster font\n");
-	}
-#endif
 
 	/* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
 	glGenTextures(1,&defaultBlankTexture);
@@ -272,8 +247,9 @@ bool initialize_rdr_caps()
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &rdr_caps.max_texture_size);
 	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &rdr_caps.texture_units);
 
-	/* max supported texturing anisotropicDegree- can be changed in TextureProperties */
-	glGetFloatv (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &rdr_caps.anisotropicDegree);
+	/* max supported texturing anisotropicDegree- can be changed in TextureProperties
+        -- commented out for tagging in 1.22.6
+	glGetFloatv (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &rdr_caps.anisotropicDegree); */
 
 	/* User settings in environment */
 
