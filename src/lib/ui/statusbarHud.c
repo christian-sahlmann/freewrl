@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.2 2009/12/28 15:58:56 crc_canada Exp $
+  $Id: statusbarHud.c,v 1.3 2009/12/31 10:53:18 couannette Exp $
 
 */
 
@@ -32,18 +32,8 @@
 #include "main/headers.h"
 #include "vrml_parser/Structs.h"
 #include "scenegraph/Viewer.h"
-#include "opengl/textures.h"
+#include "opengl/Textures.h"
 #include "opengl/LoadTextures.h"
-
-
-/* OSX does not have max and min, define them here if required */
-#ifndef max
-	#define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
-#endif
-
-#ifndef min
-	#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
-#endif
 
 
 /* the following are bitmap icons for the toolbar, 
