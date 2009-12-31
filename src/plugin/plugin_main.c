@@ -1,5 +1,5 @@
 /*
-  $Id: plugin_main.c,v 1.10 2009/12/28 00:48:50 couannette Exp $
+  $Id: plugin_main.c,v 1.11 2009/12/31 10:34:09 couannette Exp $
 
   FreeWRL plugin for Mozilla compatible browsers.
   Works in Firefox 1.x - 3.0 on Linux.
@@ -169,10 +169,14 @@ static void print_here2(FW_PluginInstance *me, char * xx)
 
 			hostname = MALLOC(10);
 			if (gethostname(hostname, 10) < 0) {
+				int err = errno;
+				fprintf(stderr, "system error: %s\n", strerror(err));
 				sprintf(hostname, "(unknown)");
 			}
 			username = getlogin();
 			if (!username) {
+				int err = errno;
+				fprintf(stderr, "system error: %s\n", strerror(err));
 				username = "[unknown]";
 			}
 
