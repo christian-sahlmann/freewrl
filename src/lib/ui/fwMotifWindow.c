@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.12 2009/10/30 18:57:35 crc_canada Exp $
+  $Id: fwMotifWindow.c,v 1.13 2009/12/31 10:40:52 couannette Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -945,61 +945,63 @@ void frontendUpdateButtons()
     }
 }
 
-void setMenuButton_collision (int val)
-{
-#ifdef DO_MULTI_OPENGL_THREADS
-    XmToggleButtonSetState (collisionButton,val,FALSE);
-#else
-    colbut = val;
-    colbutChanged = TRUE;
+/* void setMenuButton_collision (int val) */
+/* { */
+/* #ifdef DO_MULTI_OPENGL_THREADS */
+/*     XmToggleButtonSetState (collisionButton,val,FALSE); */
+/* #else */
+/*     colbut = val; */
+/*     colbutChanged = TRUE; */
                 
-#endif
-}
-void setMenuButton_headlight (int val)
-{
-#ifdef DO_MULTI_OPENGL_THREADS
-    XmToggleButtonSetState (headlightButton,val,FALSE);
-#else
-    headbut = val;
-    headbutChanged = TRUE;
+/* #endif */
+/* } */
+
+/* void setMenuButton_headlight (int val) */
+/* { */
+/* #ifdef DO_MULTI_OPENGL_THREADS */
+/*     XmToggleButtonSetState (headlightButton,val,FALSE); */
+/* #else */
+/*     headbut = val; */
+/*     headbutChanged = TRUE; */
                 
-#endif
-}
+/* #endif */
+/* } */
 
-void setMenuButton_navModes (int type)
-{
-    fl = FALSE; ex = FALSE; wa = FALSE;
-    switch(type) {
-    case VIEWER_NONE: break;
-    case VIEWER_EXAMINE: ex = TRUE; break;
-    case VIEWER_WALK: wa = TRUE; break;
-    case VIEWER_FLY: fl = TRUE; break;
-    default: break;
-    }
-#ifdef DO_MULTI_OPENGL_THREADS
-    XmToggleButtonSetState (walkButton,wa,FALSE);
-    XmToggleButtonSetState (flyButton,fl,FALSE);
-    XmToggleButtonSetState (examineButton,ex,FALSE);
-#else
-    navbutChanged = TRUE;
-#endif
-}
+/* void setMenuButton_navModes (int type) */
+/* { */
+/*     fl = FALSE; ex = FALSE; wa = FALSE; */
+/*     switch(type) { */
+/*     case VIEWER_NONE: break; */
+/*     case VIEWER_EXAMINE: ex = TRUE; break; */
+/*     case VIEWER_WALK: wa = TRUE; break; */
+/*     case VIEWER_FLY: fl = TRUE; break; */
+/*     default: break; */
+/*     } */
+/* #ifdef DO_MULTI_OPENGL_THREADS */
+/*     XmToggleButtonSetState (walkButton,wa,FALSE); */
+/*     XmToggleButtonSetState (flyButton,fl,FALSE); */
+/*     XmToggleButtonSetState (examineButton,ex,FALSE); */
+/* #else */
+/*     navbutChanged = TRUE; */
+/* #endif */
+/* } */
 
-void setMenuButton_texSize (int size)
-{
-    int val;
-    /* this is called from the texture thread, so there is not a threading problem here */
-    val = FALSE;
-    /* set all thread buttons to FALSE */
-    XmToggleButtonSetState (tex128_button, val, FALSE);
-    XmToggleButtonSetState (tex256_button, val, FALSE);
-    XmToggleButtonSetState (texFull_button, val, FALSE);
-    val = TRUE;
-    if (size <= 128) {XmToggleButtonSetState (tex128_button, val, FALSE);
-    } else if (size <=256) {XmToggleButtonSetState (tex256_button, val, FALSE);
-    } else {XmToggleButtonSetState (texFull_button, val, FALSE); }
-}
+/* void setMenuButton_texSize (int size) */
+/* { */
+/*     int val; */
+/*     /\* this is called from the texture thread, so there is not a threading problem here *\/ */
+/*     val = FALSE; */
+/*     /\* set all thread buttons to FALSE *\/ */
+/*     XmToggleButtonSetState (tex128_button, val, FALSE); */
+/*     XmToggleButtonSetState (tex256_button, val, FALSE); */
+/*     XmToggleButtonSetState (texFull_button, val, FALSE); */
+/*     val = TRUE; */
+/*     if (size <= 128) {XmToggleButtonSetState (tex128_button, val, FALSE); */
+/*     } else if (size <=256) {XmToggleButtonSetState (tex256_button, val, FALSE); */
+/*     } else {XmToggleButtonSetState (texFull_button, val, FALSE); } */
+/* } */
 
+#if defined(STATUSBAR_STD)
 void setMessageBar()
 {   
     if (menumessagewindow != NULL) {
@@ -1023,6 +1025,7 @@ void setMessageBar()
     }
 
 }
+#endif /* STATUSBAR_STD */
 
 void getMotifWindowedGLwin(Window *win)
 {

@@ -1,5 +1,5 @@
 /*
-  $Id: fwBareWindow.c,v 1.10 2009/10/26 17:48:43 couannette Exp $
+  $Id: fwBareWindow.c,v 1.11 2009/12/31 10:40:52 couannette Exp $
 
   Create X11 window. Manage events.
 
@@ -45,10 +45,10 @@ static XSetWindowAttributes Swa;
 
 /* we have no buttons; just make these functions do nothing */
 void frontendUpdateButtons() {}
-void setMenuButton_collision (int val) {}
-void setMenuButton_headlight (int val) {}
-void setMenuButton_navModes (int type) {}
-void setMenuButton_texSize (int size) {}
+/* void setMenuButton_collision (int val) {} */
+/* void setMenuButton_headlight (int val) {} */
+/* void setMenuButton_navModes (int type) {} */
+/* void setMenuButton_texSize (int size) {} */
 void setMessageBar() {}
 
 
