@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.87 2009/12/31 16:06:24 crc_canada Exp $
+  $Id: MainLoop.c,v 1.88 2009/12/31 18:54:32 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1227,6 +1227,7 @@ void _displayThread()
 {
 	ENTER_THREAD("display");
 
+printf ("displayThread is %u\n",pthread_self());
 	/* Initialize display */
 	if (!display_initialize()) {
 		ERROR_MSG("initFreeWRL: error in display initialization.\n");
@@ -1730,6 +1731,14 @@ void replaceWorldNeeded(char* str)
         BrowserAction = TRUE;
 }
 
+/* OSX the Plugin is telling the displayThread to stop and clean everything up */
+void stopRenderingLoop(void) {
+
+	/* lets do an equivalent to replaceWorldNeeded, but with NULL for the new world */
+        AnchorsAnchor = NULL;
+        BrowserAction = TRUE;
+        FREE_IF_NZ(OSX_replace_world_from_console);
+}
 
 
 /* send the description to the statusbar line */

@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.22 2009/12/31 18:14:36 istakenv Exp $
+  $Id: pluginUtils.c,v 1.23 2009/12/31 18:54:32 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -228,15 +228,24 @@ int doBrowserAction()
 				startNewHTMLWindow(Anchor_url.p[0]->strptr);
 			}
 		}
+
+
 	} else {
 		/* printf ("\nwe have a single replacement here\n"); */
-		res = resource_create_single (OSX_replace_world_from_console);
-		kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+		if (OSX_replace_world_from_console == NULL) {
+			/* this is just a simple "clean out the old world" */
+			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+			return FALSE;
+		} else {
+			
+			/* we want to clean out the old world AND load a new one in */
+			res = resource_create_single (OSX_replace_world_from_console);
+			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
-
-		send_resource_to_parser(res);
-		waitingForURLtoLoad = TRUE;
-		return TRUE; /* keep the browser ticking along here */
+			send_resource_to_parser(res);
+			waitingForURLtoLoad = TRUE;
+			return TRUE; /* keep the browser ticking along here */
+		}
 	}
 
 	return FALSE; /* we are done the action */

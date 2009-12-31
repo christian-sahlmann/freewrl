@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.82 2009/12/30 22:51:58 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.83 2009/12/31 18:54:32 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -738,35 +738,55 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
         char mystring[20];
 	#endif
 
+	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), DispThrd);
+	if (pthread_self() != DispThrd) {
+		ConsoleMessage ("kill_oldWorld must run in the displayThread called at %s:%d\n",file,line);
+		return;
+	}
+
 	/* mark all rootNode children for Dispose */
 	for (i=0; i<X3D_GROUP(rootNode)->children.n; i++) {
 		markForDispose(X3D_GROUP(rootNode)->children.p[i], TRUE);
 	}
 
+
+printf ("kill 2\n");
 	/* stop rendering */
 	X3D_GROUP(rootNode)->children.n = 0;
 
+printf ("kill 3\n");
 	/* close the Console Message system, if required. */
 	closeConsoleMessage();
 
+
+printf ("kill 4\n");
 	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
 	zeroOcclusion();
 
 
+printf ("kill 5\n");
 	/* clock events - stop them from ticking */
 	kill_clockEvents();
 
+
+printf ("kill 6\n");
 	/* kill DEFS, handles */
 	EAI_killBindables();
 	kill_bindables();
 	killKeySensorNodeList();
 
+
+printf ("kill 7\n");
 	/* stop routing */
 	kill_routing();
 
+
+printf ("kill 8\n");
 	/* tell the statusbar that it needs to reinitialize */
 	kill_status();
 
+
+printf ("kill 9\n");
 	/* free textures */
 /*
 	kill_openGLTextures();
@@ -775,6 +795,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	/* free scripts */
 	kill_javascript();
 
+
+printf ("kill 10\n");
 	/* free EAI */
 	if (kill_EAI) {
 	       	shutdown_EAI();
@@ -785,15 +807,21 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 		Sound_toserver(mystring);
 	#endif
 
+
+printf ("kill 11\n");
 	/* reset any VRML Parser data */
 	if (globalParser != NULL) {
 		parser_destroyData(globalParser);
 		globalParser = NULL;
 	}
 
+
+printf ("kill 12\n");
 	/* tell statusbar that we have none */
 	viewer_default();
 	setMenuStatus("NONE");
+
+printf ("kill 13\n");
 }
 
 /* for verifying that a memory pointer exists */

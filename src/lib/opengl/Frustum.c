@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.26 2009/12/03 18:18:12 crc_canada Exp $
+$Id: Frustum.c,v 1.27 2009/12/31 18:54:32 crc_canada Exp $
 
 ???
 
@@ -961,7 +961,28 @@ void OcclusionCulling ()  {
 
 /* shut down the occlusion stuff */
 void zeroOcclusion(void) {
+	int i;
 	if (OccFailed) return;
+
+        #ifdef OCCLUSIONVERBOSE
+        printf ("zeroOcclusion - potentialOccluderCount %d\n",potentialOccluderCount);
+        #endif
+
+        for (i=0; i<potentialOccluderCount; i++) {
+                printf ("checking node %d of %d\n",i, potentialOccluderCount);
+
+                glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
+                PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
+
+                /* for now, lets loop to see when we get results */
+                while (OccResultsAvailable == GL_FALSE) {
+                        printf ("waiting and looping for results\n"); 
+                        usleep(100);
+                        glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
+                        PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
+                }
+	}
+	printf ("zeroOcclusion - done waiting\n");
 
 	QueryCount = 0;
 	glDeleteQueries (OccQuerySize, OccQueries);
@@ -970,6 +991,7 @@ void zeroOcclusion(void) {
 	OccQuerySize=0;
 	maxOccludersFound = 0;
 	OccInitialized = FALSE;
+	potentialOccluderCount = 0;
 	FREE_IF_NZ(OccQueries);
 	FREE_IF_NZ(occluderNodePointer);
 }
