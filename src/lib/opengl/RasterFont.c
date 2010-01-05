@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.5 2009/12/28 00:51:15 couannette Exp $
+  $Id: RasterFont.c,v 1.6 2010/01/05 21:37:33 crc_canada Exp $
 
 */
 
@@ -80,42 +80,42 @@ void rf_printf(int x, int y, const char *format, ...)
     vsprintf(xfont_buffer, format, ap);
     va_end(ap);
 
-    glRasterPos2i(x, y);
+    FW_GL_RASTERPOS2I(x, y);
 
-    glColor4fv(xf_colors[xf_color]);
+    FW_GL_COLOR4FV(xf_colors[xf_color]);
 
     rf_print(xfont_buffer);
 }
 
 void rf_layer2D()
 {
-    glPushAttrib(GL_ENABLE_BIT);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_LIGHTING);
+    FW_GL_PUSH_ATTRIB(GL_ENABLE_BIT);
+    FW_GL_DISABLE(GL_DEPTH_TEST);
+    FW_GL_DISABLE(GL_CULL_FACE);
+    FW_GL_DISABLE(GL_LIGHTING);
 
     // On assume être en MODELVIEW
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0.0, (GLfloat) screenWidth,  // we need a viewport variable: glc.viewport[2],
+    FW_GL_MATRIX_MODE(GL_PROJECTION);
+    FW_GL_PUSH_MATRIX();
+    FW_GL_LOAD_IDENTITY();
+    FW_GL_ORTHO(0.0, (GLfloat) screenWidth,  // we need a viewport variable: glc.viewport[2],
 	    0.0, (GLfloat) screenHeight, // glc.viewport[3],
 	    -1, 1);
-    // Faire un glPopMatrix après ...
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    glTranslatef(0.375, 0.375, 0.);
+    // Faire un FW_GL_POP_MATRIX après ...
+    FW_GL_MATRIX_MODE(GL_MODELVIEW);
+    FW_GL_PUSH_MATRIX();
+    FW_GL_LOAD_IDENTITY();
+    FW_GL_TRANSLATE_F(0.375, 0.375, 0.);
 }
 
 void rf_leave_layer2D()
 {
-    glPopAttrib();
+    FW_GL_POP_ATTRIB();
 
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
+    FW_GL_MATRIX_MODE(GL_PROJECTION);
+    FW_GL_POP_MATRIX();
+    FW_GL_MATRIX_MODE(GL_MODELVIEW);
+    FW_GL_POP_MATRIX();
 }
 
 int rf_xfont_init(const char *fontname)

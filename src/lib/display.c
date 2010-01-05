@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.32 2009/12/31 18:09:00 istakenv Exp $
+  $Id: display.c,v 1.33 2010/01/05 21:37:33 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -213,7 +213,7 @@ void setScreenDim(int wi, int he)
  */
 GLvoid resize_GL(GLsizei width, GLsizei height)
 { 
-    glViewport( 0, 0, width, height ); 
+    FW_GL_VIEWPORT( 0, 0, width, height ); 
 }
 
 /**

@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.22 2009/12/15 14:49:01 crc_canada Exp $
+  $Id: main.c,v 1.23 2010/01/05 21:37:33 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -78,27 +78,32 @@ void OSX_initializeParameters(const char* initialURL) {
     const char *libver, *progver;
     resource_item_t *res;
 
-    /* first, get the FreeWRL shared lib, and verify the version. */
+    /* have we been through once already (eg, plugin loading new file)? */
+    if (OSXparams == NULL) {
+    	/* first, get the FreeWRL shared lib, and verify the version. */
 
-    libver = libFreeWRL_get_version();
-    progver = freewrl_get_version();
-    if (strcmp(progver, libver)) {
-	ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
-    }
+    	libver = libFreeWRL_get_version();
+    	progver = freewrl_get_version();
+    	if (strcmp(progver, libver)) {
+		ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
+    	}
 
-    /* Before we parse the command line, setup the FreeWRL default parameters */
-    OSXparams = calloc(1, sizeof(freewrl_params_t));
+    	/* Before we parse the command line, setup the FreeWRL default parameters */
+    	OSXparams = calloc(1, sizeof(freewrl_params_t));
 
-    /* Default values */
-    OSXparams->width = 600;
-    OSXparams->height = 400;
-    OSXparams->eai = FALSE;
-    OSXparams->fullscreen = FALSE;
+    	/* Default values */
+    	OSXparams->width = 600;
+    	OSXparams->height = 400;
+    	OSXparams->eai = FALSE;
+    	OSXparams->fullscreen = FALSE;
 
-    /* start threads, parse initial scene, etc */
-    if (!initFreeWRL(OSXparams)) {
-	    ERROR_MSG("main: aborting during initialization.\n");
-	    exit(1);
+    	/* start threads, parse initial scene, etc */
+    	if (!initFreeWRL(OSXparams)) {
+	    	ERROR_MSG("main: aborting during initialization.\n");
+	    	exit(1);
+    	}
+    } else {
+	printf ("OSX_initializeParameters - just creating new resource\n");
     }
 
     /* Give the main argument to the resource handler */

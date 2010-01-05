@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.3 2009/12/31 10:53:18 couannette Exp $
+  $Id: statusbarHud.c,v 1.4 2010/01/05 21:37:33 crc_canada Exp $
 
 */
 
@@ -976,11 +976,11 @@ void printTextCursor()
 	txy = screen2text(sxy.x,sxy.y);
 	cxy = text2screen(txy.x,txy.y);
 	rgba[0] = .5f; rgba[1] = .5f; rgba[2] = .5f, rgba[3] = .75f;
-	glWindowPos2i(cxy.x,cxy.y);
-	glPixelZoom(bmWH.x,bmWH.y); 
+	FW_GL_WINDOWPOS2I(cxy.x,cxy.y);
+	FW_GL_PIXELZOOM(bmWH.x,bmWH.y); 
 	glDrawPixels(1,1,GL_RGBA,GL_FLOAT,rgba);
 	//restore
-	glPixelZoom(1.0f,1.0f);
+	FW_GL_PIXELZOOM(1.0f,1.0f);
 }
 
 void printOptions()
@@ -993,9 +993,9 @@ void printOptions()
 	for(j=0;j<lenOptions;j++)
 	{
 		XY xy = text2screen(0,j);
-		glWindowPos2i(xy.x,xy.y); 
+		FW_GL_WINDOWPOS2I(xy.x,xy.y); 
 		printString(optionsVal[j]);  /* "  0.050  " */
-		glWindowPos2i(xy.x,xy.y); 
+		FW_GL_WINDOWPOS2I(xy.x,xy.y); 
 		printString(optionsText[j]); /* "<       >" */
 	}
 }
@@ -1144,7 +1144,7 @@ void printKeyboardHelp()
 	for(j=0;j<lenhelp;j++)
 	{
 		XY xy = text2screen(0,j);
-		glWindowPos2i(xy.x,xy.y); 
+		FW_GL_WINDOWPOS2I(xy.x,xy.y); 
 		printString(keyboardShortcutHelp[j]); 
 	}
 }
@@ -1196,7 +1196,7 @@ void printConsoleText()
 			if(j >= jstart) /* no need to print off-screen text */
 			{
 				XY xy = text2screen(0,j-jstart);
-				glWindowPos2i(xy.x,xy.y); 
+				FW_GL_WINDOWPOS2I(xy.x,xy.y); 
 				printString(__l->elem); 
 			}
 			j++;
@@ -1436,15 +1436,15 @@ void renderButtons()
 	float zoomfactor;
 	if(!butsLoaded)
 		initButtons();
-	glScissor(0,0,screenWidth,clipPlane*2);
-	glEnable(GL_SCISSOR_TEST);
-	glClearColor(.922f,.91f,.844f,1.0f); //windowing gray
+	FW_GL_SCISSOR(0,0,screenWidth,clipPlane*2);
+	FW_GL_ENABLE(GL_SCISSOR_TEST);
+	FW_GL_CLEAR_COLOR(.922f,.91f,.844f,1.0f); //windowing gray
 	//glClearColor(.754f,.82f,.93f,1.0f); //193.0f/256.0f,210.0f/256.0f,238.0f/256.0f,1.0f); //windowing blue
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_SCISSOR_TEST);
+	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
+	FW_GL_DISABLE(GL_SCISSOR_TEST);
 	doglClearColor(); //set back for other cases
 	zoomfactor = (float)iconSize/32.0f;
-	glPixelZoom(zoomfactor,zoomfactor); //.5f,.5f);
+	FW_GL_PIXELZOOM(zoomfactor,zoomfactor); //.5f,.5f);
 	for(i=0;i<nbuts;i++)
 	{
 		if(buttonType==0) loaded = (butts[i][0].status == 2);
@@ -1457,18 +1457,21 @@ void renderButtons()
 				float rgba[4];
 				//rgba[0] = .754f; rgba[1] = .82f; rgba[2] = .93f, rgba[3] = 1.0f;
 				rgba[0] = .8f; rgba[1] = .87f; rgba[2] = .97f, rgba[3] = 1.0f;
-				glWindowPos2i(butrect[0][i],butrect[1][i]);
-				glPixelZoom((float)(butrect[2][i]-butrect[0][i]),(float)(butrect[3][i]-butrect[1][i]));
+				FW_GL_WINDOWPOS2I(butrect[0][i],butrect[1][i]);
+				FW_GL_PIXELZOOM((float)(butrect[2][i]-butrect[0][i]),(float)(butrect[3][i]-butrect[1][i]));
 				glDrawPixels(1,1,GL_RGBA,GL_FLOAT,rgba);
 				//restore
-				glPixelZoom(zoomfactor,zoomfactor); //.5f,.5f);
+				FW_GL_PIXELZOOM(zoomfactor,zoomfactor); //.5f,.5f);
 			}
 			if(buttonType==1)
 			{
-				if(butStatus[i]) glColor3f(.6f,.7f,.8f); //.617f,.793f,.920f); /*light blue*/
-				else glColor3f(.8f,.8f,.8f); /*light gray*/
+				if(butStatus[i]) {
+					FW_GL_COLOR3F(.6f,.7f,.8f); //.617f,.793f,.920f); /*light blue*/
+				} else {
+					FW_GL_COLOR3F(.8f,.8f,.8f); /*light gray*/
+				}
 			}
-			glWindowPos2i(butrect[0][i],butrect[1][i]);
+			FW_GL_WINDOWPOS2I(butrect[0][i],butrect[1][i]);
 			if(buttonType==0)
 				glDrawPixels(butts[i][0].x,butts[i][0].y,GL_BGRA,GL_UNSIGNED_BYTE,butts[i][butStatus[i]].texdata);
 			else if(buttonType==1)
@@ -1476,7 +1479,7 @@ void renderButtons()
 
 		}
 	}
-	glPixelZoom(1.0f,1.0f);
+	FW_GL_PIXELZOOM(1.0f,1.0f);
 	hadString = 1;
 }
 int handleStatusbarHud(int mev, int* clipplane)
@@ -1585,10 +1588,10 @@ H	void updateEyehalf();								//"
 		if(hadString)
 		{
 			/* clear the status bar because there's nothing to show */
-			glScissor(0,0,screenWidth,clipPlane);
-			glEnable(GL_SCISSOR_TEST);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glDisable(GL_SCISSOR_TEST);
+			FW_GL_SCISSOR(0,0,screenWidth,clipPlane);
+			FW_GL_ENABLE(GL_SCISSOR_TEST);
+			FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
+			FW_GL_DISABLE(GL_SCISSOR_TEST);
 			hadString = 0;
 		}
 		return;
@@ -1604,17 +1607,17 @@ H	void updateEyehalf();								//"
 	/* OK time to update the status bar */
 	if(!fontInitialized) initFont();
 	/* unconditionally clear the statusbar area */
-	glScissor(0,0,screenWidth,clipPlane);
-	glEnable(GL_SCISSOR_TEST);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_SCISSOR_TEST);
+	FW_GL_SCISSOR(0,0,screenWidth,clipPlane);
+	FW_GL_ENABLE(GL_SCISSOR_TEST);
+	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
+	FW_GL_DISABLE(GL_SCISSOR_TEST);
 
 	// you must call drawStatusBar() from render() just before swapbuffers 
-	glDepthMask(FALSE);
-	glDisable(GL_DEPTH_TEST);
-	glColor3f(1.0f,1.0f,1.0f);
+	FW_GL_DEPTHMASK(FALSE);
+	FW_GL_DISABLE(GL_DEPTH_TEST);
+	FW_GL_COLOR3F(1.0f,1.0f,1.0f);
 	//glWindowPos seems to set the bitmap color correctly in windows
-	glWindowPos2i(5,0); 
+	FW_GL_WINDOWPOS2I(5,0); 
 	if(sb_hasString)
 	{
 		p = buffer;
@@ -1622,15 +1625,15 @@ H	void updateEyehalf();								//"
 		printString(p); 
 		hadString = 1;
 	}else{
-		glWindowPos2i(300,0);
+		FW_GL_WINDOWPOS2I(300,0);
 		printString(messagebar);
 	}
 	if(butStatus[8]) printKeyboardHelp();
 	if(butStatus[9]) printConsoleText();
 	if(butStatus[10]) printOptions();
 
-	glDepthMask(TRUE);
-	glEnable(GL_DEPTH_TEST);
-	glFlush();
+	FW_GL_DEPTHMASK(TRUE);
+	FW_GL_ENABLE(GL_DEPTH_TEST);
+	FW_GL_FLUSH();
 
 }

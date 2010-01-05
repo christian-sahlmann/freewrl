@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarConsole.c,v 1.1 2009/12/28 02:55:21 dug9 Exp $
+  $Id: statusbarConsole.c,v 1.2 2010/01/05 21:37:33 crc_canada Exp $
 
 */
 
@@ -567,7 +567,7 @@ void printConsoleText()
 			if(j >= jstart) /* no need to print off-screen text */
 			{
 				XY xy = text2screen(0,j-jstart);
-				glWindowPos2i(xy.x,xy.y); 
+				FW_GL_WINDOWPOS2I(xy.x,xy.y); 
 				printString(__l->elem); 
 			}
 			j++;
@@ -592,16 +592,16 @@ void drawStatusBar()
 		if(hadString)
 		{
 			/* clear the status bar because there's nothing to show */
-			glScissor(0,0,screenWidth,clipPlane);
-			glEnable(GL_SCISSOR_TEST);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glDisable(GL_SCISSOR_TEST);
+			FW_GL_SCISSOR(0,0,screenWidth,clipPlane);
+			FW_GL_ENABLE(GL_SCISSOR_TEST);
+			FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
+			FW_GL_DISABLE(GL_SCISSOR_TEST);
 			hadString = 0;
 		}
 		return;
 	}
 	/* to improve frame rates we don't need to update the status bar every loop,
-	because the mainloop scene rendering should be using a scissor test to avoid glClear()ing 
+	because the mainloop scene rendering should be using a scissor test to avoid FW_GL_CLEAR()ing 
 	the statusbar area. 
 	*/
 	hadString = 1;
@@ -614,17 +614,17 @@ void drawStatusBar()
 	/* OK time to update the status bar */
 	if(!fontInitialized) initFont();
 	/* unconditionally clear the statusbar area */
-	glScissor(0,0,screenWidth,clipPlane);
-	glEnable(GL_SCISSOR_TEST);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_SCISSOR_TEST);
+	FW_GL_SCISSOR(0,0,screenWidth,clipPlane);
+	FW_GL_ENABLE(GL_SCISSOR_TEST);
+	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
+	FW_GL_DISABLE(GL_SCISSOR_TEST);
 
 	// you must call drawStatusBar() from render() just before swapbuffers 
-	glDepthMask(FALSE);
-	glDisable(GL_DEPTH_TEST);
+	FW_GL_DEPTHMASK(FALSE);
+	FW_GL_DISABLE(GL_DEPTH_TEST);
 	glColor3f(1.0f,1.0f,1.0f);
 	//glWindowPos seems to set the bitmap color correctly in windows
-	glWindowPos2i(5,0); 
+	FW_GL_WINDOWPOS2I(5,0); 
 	if(sb_hasString)
 	{
 		p = buffer;
@@ -632,13 +632,13 @@ void drawStatusBar()
 		printString(p); 
 		hadString = 1;
 	}
-	glWindowPos2i(300,0);
+	FW_GL_WINDOWPOS2I(300,0);
 	printString(messagebar);
 
 	printConsoleText();
 
-	glDepthMask(TRUE);
-	glEnable(GL_DEPTH_TEST);
+	FW_GL_DEPTHMASK(TRUE);
+	FW_GL_ENABLE(GL_DEPTH_TEST);
 	glFlush();
 
 }

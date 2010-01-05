@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.27 2009/12/31 18:54:32 crc_canada Exp $
+$Id: Frustum.c,v 1.28 2010/01/05 21:37:33 crc_canada Exp $
 
 ???
 
@@ -868,6 +868,9 @@ void OcclusionCulling ()  {
 
 		/* an Occlusion test will have been run on this one */
 
+#ifdef AQUA
+if (myglobalContext == NULL) printf ("mycontext null before glGetQueryObjectiv\n");
+#endif
 		glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
 		PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
 
@@ -875,7 +878,7 @@ void OcclusionCulling ()  {
 		#ifdef SLEEP_FOR_QUERY_RESULTS
 		/* for now, lets loop to see when we get results */
 		while (OccResultsAvailable == GL_FALSE) {
-			/* printf ("waiting and looping for results\n"); */
+			/* printf ("waiting and looping for results - myglobalContext %u\n",myglobalContext);  */
 			usleep(100);
 			glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
 			PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
@@ -976,8 +979,8 @@ void zeroOcclusion(void) {
 
                 /* for now, lets loop to see when we get results */
                 while (OccResultsAvailable == GL_FALSE) {
-                        printf ("waiting and looping for results\n"); 
-                        usleep(100);
+                        printf ("zero - waiting and looping for results\n"); 
+                        usleep(10000);
                         glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
                         PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
                 }

@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.83 2009/12/31 18:54:32 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.84 2010/01/05 21:37:33 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -353,7 +353,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 }
 
 void doglClearColor() {
-	glClearColor(cc_red, cc_green, cc_blue, cc_alpha);
+	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
 	cc_changed = FALSE;
 }
 
@@ -421,8 +421,11 @@ void end_textureTransform (void) {
 void lightState(GLint light, int status) {
 	if (light<0) return; /* nextlight will return -1 if too many lights */
 	if (lights[light] != status) {
-		if (status) FW_GL_ENABLE(GL_LIGHT0+light);
-		else FW_GL_DISABLE(GL_LIGHT0+light);
+		if (status) {
+			FW_GL_ENABLE(GL_LIGHT0+light);
+		} else {
+			FW_GL_DISABLE(GL_LIGHT0+light);
+		}
 		lights[light]=status;
 	}
 }
@@ -484,24 +487,24 @@ OLDCODE        }
 #endif
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
-	glClearDepth (1.0);
-	glClearColor (0.0, 0.0, 1.0, 0.0);
-	FW_GL_MATRIX_MODE (GL_PROJECTION);
-	glFrustum (-1.0, 1.0, -1.0, 1.0, 1.0, 20);
-	FW_GL_MATRIX_MODE (GL_MODELVIEW);
-	glLoadIdentity();
+	FW_GL_CLEAR_DEPTH(1.0);
+	FW_GL_CLEAR_COLOR(0.0, 0.0, 1.0, 0.0);
+	FW_GL_MATRIX_MODE(GL_PROJECTION);
+	FW_GL_FRUSTUM(-1.0, 1.0, -1.0, 1.0, 1.0, 20);
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
+	FW_GL_LOAD_IDENTITY();
 
 	/* Configure OpenGL for our uses. */
         FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-	glClearColor(cc_red, cc_green, cc_blue, cc_alpha);
-	glShadeModel(GL_SMOOTH);
-	glDepthFunc(GL_LEQUAL);
+	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
+	FW_GL_SHADEMODEL(GL_SMOOTH);
+	FW_GL_DEPTHFUNC(GL_LEQUAL);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
-	glLineWidth(gl_linewidth);
-	glPointSize (gl_linewidth);
+	FW_GL_LINEWIDTH(gl_linewidth);
+	FW_GL_POINTSIZE(gl_linewidth);
 
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
+	FW_GL_HINT(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
 	FW_GL_ENABLE (GL_RESCALE_NORMAL);
 
 	/*
@@ -511,8 +514,8 @@ OLDCODE        }
 	 */
 
 	FW_GL_ENABLE(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-	glClear(GL_COLOR_BUFFER_BIT);
+	FW_GL_BLENDFUNC(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
 
 	/* end of ALPHA test */
 	FW_GL_ENABLE(GL_NORMALIZE);
@@ -527,7 +530,7 @@ OLDCODE        }
 	   if we don't have texture we can disable this (less computation)...
 	   but putting this here is already a saving ;)...
 	*/
-	glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+	FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 
 	/* keep track of light states; initial turn all lights off except for headlight */
 	for (i=0; i<8; i++) {
@@ -537,20 +540,20 @@ OLDCODE        }
 	/* headlight is GL_LIGHT7 */
 	lightState(HEADLIGHT_LIGHT, TRUE);
 
-        glLightfv(GL_LIGHT0+HEADLIGHT_LIGHT, GL_POSITION, pos);
-        glLightfv(GL_LIGHT0+HEADLIGHT_LIGHT, GL_AMBIENT, As);
-        glLightfv(GL_LIGHT0+HEADLIGHT_LIGHT, GL_DIFFUSE, dif);
-        glLightfv(GL_LIGHT0+HEADLIGHT_LIGHT, GL_SPECULAR, shin);
+        FW_GL_LIGHTFV(GL_LIGHT0+HEADLIGHT_LIGHT, GL_POSITION, pos);
+        FW_GL_LIGHTFV(GL_LIGHT0+HEADLIGHT_LIGHT, GL_AMBIENT, As);
+        FW_GL_LIGHTFV(GL_LIGHT0+HEADLIGHT_LIGHT, GL_DIFFUSE, dif);
+        FW_GL_LIGHTFV(GL_LIGHT0+HEADLIGHT_LIGHT, GL_SPECULAR, shin);
 
 	/* ensure state of GL_CULL_FACE */
 	CULL_FACE_INITIALIZE;
 
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT,As);
-	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-	glPixelStorei(GL_PACK_ALIGNMENT,1);
+	FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
+	FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	FW_GL_LIGHTMODELFV(GL_LIGHT_MODEL_AMBIENT,As);
+	FW_GL_PIXELSTOREI(GL_UNPACK_ALIGNMENT,1);
+	FW_GL_PIXELSTOREI(GL_PACK_ALIGNMENT,1);
 
 	do_shininess(GL_FRONT_AND_BACK,0.2);
 
@@ -558,10 +561,13 @@ OLDCODE        }
 }
 
 void BackEndClearBuffer(int which) {
-	if(which == 2)
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	else if(which==1)
-		glClear(GL_DEPTH_BUFFER_BIT);
+	if(which == 2) {
+		FW_GL_CLEAR(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	} else { 
+		if(which==1) {
+			FW_GL_CLEAR(GL_DEPTH_BUFFER_BIT);
+		}
+	}
 }
 
 /* turn off all non-headlight lights; will turn them on if required. */
@@ -643,7 +649,7 @@ void fwGetDoublev (int ty, double *mat) {
 	/* we were trying to cache OpenGL gets, but, over time this code
 	   has not worked too well as some rotates, etc, did not invalidate
 	   our local flag. Just ignore the optimizations for now */
-	glGetDoublev(ty,mat);
+	FW_GL_GETDOUBLEV(ty,mat);
 	return;
 
 #ifdef DEBUGCACHEMATRIX
@@ -663,7 +669,7 @@ void fwGetDoublev (int ty, double *mat) {
 		} else sav ++;
 
 		// debug memory calls
-		glGetDoublev(ty,TMPmat);
+		FW_GL_GETDOUBLEV(ty,TMPmat);
 		compare ("MODELVIEW", TMPmat, MODmat);
 		memcpy (MODmat,TMPmat, sizeof (MODmat));
 		// end of debug
@@ -681,7 +687,7 @@ void fwGetDoublev (int ty, double *mat) {
 		} else sav ++;
 
 		// debug memory calls
-		glGetDoublev(ty,TMPmat);
+		FW_GL_GETDOUBLEV(ty,TMPmat);
 		compare ("PROJECTION", TMPmat, PROJmat);
 		memcpy (PROJmat,TMPmat, sizeof (PROJmat));
 		// end of debug
@@ -822,6 +828,9 @@ printf ("kill 12\n");
 	setMenuStatus("NONE");
 
 printf ("kill 13\n");
+	myglobalContext = NULL;
+
+
 }
 
 /* for verifying that a memory pointer exists */

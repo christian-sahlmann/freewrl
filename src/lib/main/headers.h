@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.98 2009/12/28 03:00:50 dug9 Exp $
+$Id: headers.h,v 1.99 2010/01/05 21:37:33 crc_canada Exp $
 
 Global includes.
 
@@ -956,8 +956,8 @@ void do_TimeTrigger (void *node);
 #define CULL_FACE(v) /* printf ("nodeSolid %d cullFace %d GL_FALSE %d FALSE %d\n",v,cullFace,GL_FALSE,FALSE); */ \
 		if (v != cullFace) {	\
 			cullFace = v; \
-			if (cullFace == 1) FW_GL_ENABLE(GL_CULL_FACE);\
-			else FW_GL_DISABLE(GL_CULL_FACE);\
+			if (cullFace == 1) {FW_GL_ENABLE(GL_CULL_FACE);}\
+			else { FW_GL_DISABLE(GL_CULL_FACE);}\
 		}
 #define DISABLE_CULL_FACE CULL_FACE(0)
 #define ENABLE_CULL_FACE CULL_FACE(1)

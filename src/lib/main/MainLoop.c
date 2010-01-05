@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.88 2009/12/31 18:54:32 crc_canada Exp $
+  $Id: MainLoop.c,v 1.89 2010/01/05 21:37:33 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -277,6 +277,21 @@ OLDCODE        }
         /* any scripts to do?? */
         INITIALIZE_ANY_SCRIPTS;
 
+
+        /* BrowserAction required? eg, anchors, etc */
+        if (BrowserAction) {
+                BrowserAction = doBrowserAction ();
+        }
+
+#if defined (TARGET_AQUA)
+	if (myglobalContext == NULL) {
+		printf ("myglobalContext  is NULL in EventLoop, skipping...\n"); 
+		usleep(100000);
+		return;
+	}
+#endif
+
+
         /* has the default background changed? */
         if (cc_changed) doglClearColor();
 
@@ -318,11 +333,6 @@ OLDCODE        }
         }
 
         trisThisLoop = 0;
-
-        /* BrowserAction required? eg, anchors, etc */
-        if (BrowserAction) {
-                BrowserAction = doBrowserAction ();
-        }
 
         /* handle any events provided on the command line - Robert Sim */
         if (keypress_string && doEvents) {
@@ -743,12 +753,12 @@ void setup_projection(int pick, int x, int y)
 		if(clipPlane != 0)
 		{   /* scissor used to prevent mainloop from glClear()ing the statusbar area
 			 which is updated only every 10-25 loops */
-			glScissor(0,clipPlane,screenWidth,screenHeight);
-			glEnable(GL_SCISSOR_TEST);
+			FW_GL_SCISSOR(0,clipPlane,screenWidth,screenHeight);
+			FW_GL_ENABLE(GL_SCISSOR_TEST);
 		}
 		/* <<< statusbar hud */
 
-		glViewport(xvp,clipPlane,screenwidth2,screenHeight);
+		FW_GL_VIEWPORT(xvp,clipPlane,screenwidth2,screenHeight);
         FW_GL_LOAD_IDENTITY();
         if(pick) {
                 /* picking for mouse events */
@@ -760,7 +770,7 @@ void setup_projection(int pick, int x, int y)
         /* bounds check */
         if ((fieldofview <= 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
         /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
-        gluPerspective(fieldofview, aspect2, nearPlane, farPlane); 
+        FW_GLU_PERSPECTIVE(fieldofview, aspect2, nearPlane, farPlane); 
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
@@ -842,13 +852,13 @@ static void render()
 	/*  5. Blended Nodes*/
 	if (have_transparency) {
 		/*  turn off writing to the depth buffer*/
-		glDepthMask(FALSE);
+		FW_GL_DEPTHMASK(FALSE);
 		
 		/*  render the blended nodes*/
 		render_hier(rootNode, VF_Geom | VF_Blend);
 		
 		/*  and turn writing to the depth buffer back on*/
-		glDepthMask(TRUE);
+		FW_GL_DEPTHMASK(TRUE);
 		PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
 	}
 	
@@ -887,9 +897,10 @@ OLDCODE	    aglSetCurrentContext(aqglobalContext);
 OLDCODE	    aglSwapBuffers(aqglobalContext);
 OLDCODE	} else {
 #endif
-	    CGLError err = CGLFlushDrawable(myglobalContext);
+if (myglobalContext == NULL) printf ("hmmm - going to flush and myglobalContext is NULL\n");
+	    CGLError err = FW_GL_CGLFLUSHDRAWABLE(myglobalContext);
 	    
-	    if (err != kCGLNoError) printf ("CGLFlushDrawable error %d\n",err);
+	    if (err != kCGLNoError) printf ("FW_GL_CGLFLUSHDRAWABLE error %d\n",err);
 #ifdef OLDCODE
 OLDCODE	}
 #endif
