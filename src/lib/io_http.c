@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.6 2009/12/22 03:25:17 couannette Exp $
+  $Id: io_http.c,v 1.7 2010/01/08 19:43:05 crc_canada Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -225,8 +225,14 @@ char* download_url_wget(const char *url, const char *tmp)
     char *temp, *wgetcmd;
     int ret;
 
-// move this to another place (where we check wget options)
-#define WGET_OPTIONS "--no-check-certificate"
+#if defined (TARGET_AQUA)
+	#define WGET_OPTIONS ""
+	#define WGET_OUTPUT_DIRECT "-o"
+#else
+	// move this to another place (where we check wget options)
+	#define WGET_OPTIONS "--no-check-certificate"
+	#define WGET_OUTPUT_DIRECT "-O"
+#endif
 
     // create temp filename
     if (tmp) {
@@ -243,9 +249,16 @@ char* download_url_wget(const char *url, const char *tmp)
     wgetcmd = malloc( strlen(WGET) +
 	                    strlen(WGET_OPTIONS) + 
 	                    strlen(url) +
-                            strlen(temp) + 6 +1);
-    sprintf(wgetcmd, "%s %s %s -O %s",
-	    WGET, WGET_OPTIONS, url, temp);
+                            strlen(temp) + 6 +1+1);
+
+#if defined (TARGET_AQUA)
+    /* AQUA - we DO NOT have the options, but we can not have the space - it screws the freewrlSystem up */
+    sprintf(wgetcmd, "%s %s %s %s", WGET, url, WGET_OUTPUT_DIRECT, temp);
+#else
+    sprintf(wgetcmd, "%s %s %s %s %s", WGET, WGET_OPTIONS, url, WGET_OUTPUT_DIRECT, temp);
+#endif
+
+    /* printf ("wgetcmd is %s\n",wgetcmd); */
 
     // call wget
     ret = freewrlSystem(wgetcmd);

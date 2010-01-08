@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.84 2010/01/05 21:37:33 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.85 2010/01/08 19:43:05 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -828,7 +828,7 @@ printf ("kill 12\n");
 	setMenuStatus("NONE");
 
 printf ("kill 13\n");
-	myglobalContext = NULL;
+	myglobalContext = NULL; 
 
 
 }
