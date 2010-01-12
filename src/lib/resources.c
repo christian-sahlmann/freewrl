@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.19 2009/12/31 16:06:24 crc_canada Exp $
+  $Id: resources.c,v 1.20 2010/01/12 01:28:00 couannette Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -181,10 +181,34 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 	bool network;
 	char *url = NULL;
 	int len;
+	resource_item_t *defaults = NULL;
+
+	ASSERT(res);
 
 	DEBUG_RES("identifying resource: %s\n", res->request);
 
-	ASSERT(res);
+	if (base) {
+		DEBUG_RES(" base specified, taking base's values.\n");
+		defaults = base;
+		PTR_REPLACE(res->parent, base);
+	} else {
+		if (res->parent) {
+			DEBUG_RES(" no base specified, taking parent's values.\n");
+			defaults = res->parent;
+		} else {
+			DEBUG_RES(" no base neither parent, no default values.\n");
+		}
+	}
+
+	if (defaults) {
+		DEBUG_RES(" default values: network=%s type=%s status=%s"
+			  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n",
+			  BOOL_STR(defaults->network), resourceTypeToString(defaults->type), 
+			  resourceStatusToString(defaults->status), defaults->request, 
+			  defaults->base, defaults->parsed_request,
+			  defaults->parent, (defaults->parent ? defaults->parent->base : "N/A")
+			);
+	}
 
 	if (res->type == rest_multi) {
 		/* We want to consume the list of requests */
@@ -203,30 +227,17 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 		}
 	}
 
-#if 0 // I DON'T REMEMBER WHY I INVENTED THIS new_root FLAG ???
-	if (!res->new_root) {
-		/* We are in the default case: first resource tree */
-		if (base) {
-			res->parent = base;
-			network = base->network;
-		} else {
-			network = FALSE;
-		}
-	} else {
-		/* Not default case: a new resource tree is being loaded (try replace world) */
-		network = FALSE;
-	}
-#endif
-
 	network = FALSE;
-	if (base) {
-		network = base->network;
-		PTR_REPLACE(res->parent, base);
+	if (defaults) {
+		network = defaults->network;
 	}
 
 	/* URI specifier at the beginning ? */
 	res->network = checkNetworkFile(res->request);
-	DEBUG_RES("resource_identify: check network resource: %s\n", BOOL_STR(res->network));
+
+	DEBUG_RES("resource_identify: base network / resource network: %s/%s\n", 
+		  BOOL_STR(network),
+		  BOOL_STR(res->network));
 
 	/* Parse request as url or local file ? */
 	if (res->network || network) {
@@ -244,10 +255,10 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 			/* We have an absolute url for main world,
 			   and a relative url for this resource:
 			   Create an url with base+request */
-			if (base) {
+			if (defaults) {
 				res->type = rest_url;
 				res->status = ress_starts_good;
-				url = concat_path(base->base, res->request);
+				url = concat_path(defaults->base, res->request);
 			} else {
 				res->type = rest_invalid;
 				ERROR_MSG("resource_identify: can't handle relative url without base: %s\n", res->request);
@@ -255,9 +266,8 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 		}		
 			
 	} else {
-
-		DEBUG_RES("resource_identify, we may have a local file for resource %s\n",res->request);
 		/* We may have a local file */
+		DEBUG_RES("resource_identify, we may have a local file for resource %s\n", res->request);
 
 		/* We do not want to have system error */
 		len = strlen(res->request);
@@ -274,8 +284,8 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 			cleanedURL = stripLocalFileName(res->request);
 
 			/* We are relative to current dir or base */
-			if (base) {
-				DEBUG_RES("resource_identify = we have base cleanedurl = %s\n",cleanedURL);
+			if (defaults) {
+				DEBUG_RES("resource_identify = we have base cleanedurl = %s\n", cleanedURL);
 				/* Relative to base */
 				if (cleanedURL[0] == '/') {
 					/* this is an absolute url, which we can do, even if we have a base to
@@ -292,10 +302,12 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 				} else {
 					res->type = rest_file;
 					res->status = ress_starts_good;
-					url = concat_path(base->base, cleanedURL);
+					url = concat_path(defaults->base, cleanedURL);
 				}
+
 			} else {
-DEBUG_RES("resource_identify = not relative to base, cleanedURL %s\n",cleanedURL);
+				/* No default values: we are hanging alone */
+				DEBUG_RES("resource_identify = not relative to base, cleanedURL %s\n", cleanedURL);
 				/* Is this a full path ? */
 				if (cleanedURL[0] == '/') {
 					/* This is an absolute filename */
@@ -332,7 +344,7 @@ DEBUG_RES("resource_identify = not relative to base, cleanedURL %s\n",cleanedURL
 						/* Make full path from current dir and relative filename */
 
 						/* printf("about to join :%s: and :%s: resource.c L299\n",cwd,res->request);*/
-						url = concat_path(cwd,res->request);
+						url = concat_path(cwd, res->request);
 						/* resource_fetch will test that filename */
 						res->type = rest_file;
 						res->status = ress_starts_good;
@@ -345,13 +357,16 @@ DEBUG_RES("resource_identify = not relative to base, cleanedURL %s\n",cleanedURL
 	res->parsed_request = url;
 
 	/* Parse own's base */
-	if (!base) {
+/*
+	if (!defaults) {
 		PTR_REPLACE(res->base, remove_filename_from_path(url));
 	} else {
-		PTR_REPLACE_DUP(res->base, base->base);
+		PTR_REPLACE_DUP(res->base, defaults->base);
 	}
+*/
+	PTR_REPLACE(res->base, remove_filename_from_path(url));
 
-	DEBUG_RES("resource_parse: network=%s type=%s status=%s"
+	DEBUG_RES("resource_identify (end): network=%s type=%s status=%s"
 		  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n", 
 		  BOOL_STR(res->network), resourceTypeToString(res->type), 
 		  resourceStatusToString(res->status), res->request, 
