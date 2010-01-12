@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Sound.c,v 1.11 2009/12/04 16:44:45 crc_canada Exp $
+$Id: Component_Sound.c,v 1.12 2010/01/12 20:04:47 sdumoulin Exp $
 
 X3D Sound Component
 
@@ -42,8 +42,8 @@ X3D Sound Component
 #include "sounds.h"
 
 void render_AudioControl (struct X3D_AudioControl *node) {
-	GLdouble mod[16];
-	GLdouble proj[16];
+	GLDOUBLE mod[16];
+	GLDOUBLE proj[16];
 	struct point_XYZ vec, direction, location;
 	double len;
 	double angle;
@@ -103,8 +103,8 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 
 
 
-	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
-	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
 	gluUnProject (viewport[2]/2,viewport[3]/2,0.0,
 		mod,proj,viewport, &vec.x,&vec.y,&vec.z);
 	/* printf ("mod %lf %lf %lf proj %lf %lf %lf\n",*/
@@ -236,8 +236,8 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 
 void render_Sound (struct X3D_Sound *node) {
 #ifdef MUST_RE_IMPLEMENT_SOUND_WITH_OPENAL
-	GLdouble mod[16];
-	GLdouble proj[16];
+	GLDOUBLE mod[16];
+	GLDOUBLE proj[16];
 	struct point_XYZ vec, direction, location;
 	double len;
 	double angle;
@@ -324,8 +324,8 @@ void render_Sound (struct X3D_Sound *node) {
 
 
 
-		fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
-		fwGetDoublev(GL_PROJECTION_MATRIX, proj);
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
 		gluUnProject (viewport[2]/2,viewport[3]/2,0.0,
 			mod,proj,viewport, &vec.x,&vec.y,&vec.z);
 		/* printf ("mod %lf %lf %lf proj %lf %lf %lf\n",*/

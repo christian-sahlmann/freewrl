@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.99 2010/01/05 21:37:33 crc_canada Exp $
+$Id: headers.h,v 1.100 2010/01/12 20:04:47 sdumoulin Exp $
 
 Global includes.
 
@@ -559,7 +559,7 @@ void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);
 
 /* bindable nodes */
 extern GLint viewport[];
-extern GLdouble fieldofview;
+extern GLDOUBLE fieldofview;
 extern struct point_XYZ ViewerUpvector;
 extern struct sNaviInfo naviinfo;
 extern double defaultExamineDist;
@@ -646,8 +646,8 @@ void mark_script (uintptr_t num);
 /* structure for rayhits */
 struct currayhit {
 	struct X3D_Node *node; /* What node hit at that distance? */
-	GLdouble modelMatrix[16]; /* What the matrices were at that node */
-	GLdouble projMatrix[16];
+	GLDOUBLE modelMatrix[16]; /* What the matrices were at that node */
+	GLDOUBLE projMatrix[16];
 };
 
 

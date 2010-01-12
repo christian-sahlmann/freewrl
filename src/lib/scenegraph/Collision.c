@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.8 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Collision.c,v 1.9 2010/01/12 20:04:47 sdumoulin Exp $
 
 Render the children of nodes.
 
@@ -1510,7 +1510,7 @@ static struct point_XYZ* prd_normals = NULL;
 static int prd_normals_size = 0;
 
 /*uses sphere displacement, and a cylinder for stepping */
-struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLdouble* mat, prflags flags) {
+struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags) {
     int i;
     int maxc;
 
@@ -1610,7 +1610,7 @@ struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double ystep, dou
 }
 
 
-struct point_XYZ planar_polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLdouble* mat, prflags flags, struct point_XYZ n) {
+struct point_XYZ planar_polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags, struct point_XYZ n) {
     int i;
     int maxc;
 
@@ -1650,14 +1650,14 @@ struct point_XYZ planar_polyrep_disp(double y1, double y2, double ystep, double 
 
 
 struct point_XYZ elevationgrid_disp( double y1, double y2, double ystep, double r, struct X3D_PolyRep pr,
-			      int xdim, int zdim, double xs, double zs, GLdouble* mat, prflags flags) {
+			      int xdim, int zdim, double xs, double zs, GLDOUBLE* mat, prflags flags) {
     struct point_XYZ orig;
     int x1,x2,z1,z2; /*integer index bounds to elevation grid tests.*/
     double maxr = sqrt((y2-y1)*(y2-y1) + r*r); /*maximum radius of cylinder */
     struct point_XYZ dispf = {0,0,0};
     struct point_XYZ dispb = {0,0,0};
     double scale; /* inverse scale factor.*/
-    GLdouble invmat[16]; /* inverse transformation matrix*/
+    GLDOUBLE invmat[16]; /* inverse transformation matrix*/
     double maxd2f = 0; /* maximum distance of polygon displacements, frontfacing (squared)*/
     double maxd2b = 0; /* maximum distance of polygon displacements, backfacing (squared)*/
     int dispcountf = 0; /* number of polygon displacements*/
@@ -1826,9 +1826,9 @@ void printpolyrep(struct X3D_PolyRep pr) {
 
 };
 
-void printmatrix(GLdouble* mat) {
+void printmatrix(GLDOUBLE* mat) {
     int i;
-    printf("void getmatrix(GLdouble* mat, struct point_XYZ disp) {\n");
+    printf("void getmatrix(GLDOUBLE* mat, struct point_XYZ disp) {\n");
     for(i = 0; i< 16; i++) {
 	printf("mat[%d] = %f%s;\n",i,mat[i],i==12 ? " +disp.x" : i==13? " +disp.y" : i==14? " +disp.z" : "");
     }

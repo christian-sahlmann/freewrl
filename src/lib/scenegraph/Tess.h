@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.h,v 1.2 2009/10/29 01:33:09 couannette Exp $
+$Id: Tess.h,v 1.3 2010/01/12 20:04:47 sdumoulin Exp $
 
 */
 
@@ -31,7 +31,9 @@ $Id: Tess.h,v 1.2 2009/10/29 01:33:09 couannette Exp $
 
 /* Triangulator extern defs - look in CFuncs/Tess.c */
 extern struct X3D_PolyRep *global_tess_polyrep;
+#ifndef IPHONE
 extern GLUtriangulatorObj *global_tessobj;
+#endif
 extern int global_IFS_Coords[];
 extern int global_IFS_Coord_count;
 

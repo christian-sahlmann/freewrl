@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.h,v 1.7 2009/10/05 15:07:23 crc_canada Exp $
+$Id: LinearAlgebra.h,v 1.8 2010/01/12 20:04:47 sdumoulin Exp $
 
 Linear algebra.
 
@@ -150,7 +150,7 @@ Linear algebra.
 float veclength( struct point_XYZ p );
 
 /* returns vector length, too */
-GLdouble vecnormal(struct point_XYZ*r, struct point_XYZ* v);
+GLDOUBLE vecnormal(struct point_XYZ*r, struct point_XYZ* v);
 
 #define normalize_vector(pt) vecnormal(pt,pt)
 
@@ -164,16 +164,16 @@ double vecangle(struct point_XYZ* V1, struct point_XYZ* V2);
 void veccross(struct point_XYZ *c , struct point_XYZ a, struct point_XYZ b);
 
 
-GLdouble det3x3(GLdouble* data);
+GLDOUBLE det3x3(GLDOUBLE* data);
 
-struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLdouble* b);
-float* transformf(float* r, const float* a, const GLdouble* b);
+struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b);
+float* transformf(float* r, const float* a, const GLDOUBLE* b);
 
 /*only transforms using the rotation component.
   Usefull for transforming normals, and optimizing when you know there's no translation */
-struct point_XYZ* transform3x3(struct point_XYZ* r, const struct point_XYZ* a, const GLdouble* b);
+struct point_XYZ* transform3x3(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b);
 
-struct point_XYZ* vecscale(struct point_XYZ* r, struct point_XYZ* v, GLdouble s);
+struct point_XYZ* vecscale(struct point_XYZ* r, struct point_XYZ* v, GLDOUBLE s);
 
 double vecdot(struct point_XYZ* a, struct point_XYZ* b);
 
@@ -188,21 +188,21 @@ struct point_XYZ* vecdiff(struct point_XYZ* r, struct point_XYZ* v, struct point
 /*specify a direction "n", and you get two vectors i, and j, perpendicular to n and themselfs. */
 void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, struct point_XYZ n);
 
-GLdouble* matinverse(GLdouble* res, GLdouble* m);
-GLdouble* mattranspose(GLdouble* res, GLdouble* m);
+GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* m);
+GLDOUBLE* mattranspose(GLDOUBLE* res, GLDOUBLE* m);
 
 struct point_XYZ* polynormal(struct point_XYZ* r, struct point_XYZ* p1, struct point_XYZ* p2, struct point_XYZ* p3);
 /*simple wrapper for now. optimize later */
 struct point_XYZ* polynormalf(struct point_XYZ* r, float* p1, float* p2, float* p3);
 
-GLdouble* matrotate(GLdouble* Result, double Theta, double x, double y, double z);
+GLDOUBLE* matrotate(GLDOUBLE* Result, double Theta, double x, double y, double z);
 
 /*rotates dv back on iv*/
-double matrotate2v(GLdouble* res, struct point_XYZ iv/*original*/, struct point_XYZ dv/*result*/);
+double matrotate2v(GLDOUBLE* res, struct point_XYZ iv/*original*/, struct point_XYZ dv/*result*/);
 
-GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz);
+GLDOUBLE* mattranslate(GLDOUBLE* r, double dx, double dy, double dz);
 
-GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n);
+GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n);
 
 void scale_to_matrix (double *mat, struct point_XYZ *scale);
 void loadIdentityMatrix (double *mat);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.h,v 1.7 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Geospatial.h,v 1.8 2010/01/12 20:04:47 sdumoulin Exp $
 
 Proximity sensor macro.
 
@@ -47,8 +47,8 @@ void proximity_##type (struct X3D_##type *node) { \
 	static const struct point_XYZ zpvec = {0,0,0.05}; \
 	static const struct point_XYZ orig = {0,0,0}; \
 	struct point_XYZ t_zvec, t_yvec, t_orig; \
-	GLdouble modelMatrix[16]; \
-	GLdouble projMatrix[16]; \
+	GLDOUBLE modelMatrix[16]; \
+	GLDOUBLE projMatrix[16]; \
  \
 	if(!((node->enabled))) return; \
 	initializer1 \
@@ -62,11 +62,11 @@ void proximity_##type (struct X3D_##type *node) { \
 	 */ \
 	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix); \
 	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix); \
-	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport, \
+	FW_GLU_UNPROJECT(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport, \
 		&t_orig.x,&t_orig.y,&t_orig.z); \
-	gluUnProject(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport, \
+	FW_GLU_UNPROJECT(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport, \
 		&t_zvec.x,&t_zvec.y,&t_zvec.z); \
-	gluUnProject(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, \
+	FW_GLU_UNPROJECT(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, \
 		&t_yvec.x,&t_yvec.y,&t_yvec.z); \
  \
  \

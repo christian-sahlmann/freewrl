@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.37 2009/12/28 03:00:50 dug9 Exp $
+$Id: Viewer.c,v 1.38 2010/01/12 20:04:47 sdumoulin Exp $
 
 CProto ???
 
@@ -61,7 +61,7 @@ struct point_XYZ VPvelocity;
 double nearPlane=DEFAULT_NEARPLANE;                     /* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
 double farPlane=DEFAULT_FARPLANE;                       /* a good default value */
 double backgroundPlane = DEFAULT_BACKGROUNDPLANE;	/* where Background and TextureBackground nodes go */
-double fieldofview=45.0;
+GLDOUBLE fieldofview=45.0;
 double calculatedNearPlane = 0.0;
 double calculatedFarPlane = 0.0;
 
@@ -371,8 +371,8 @@ void getCurrentPosInModel (int addInAntiPos) {
 	struct point_XYZ rp;
 	struct point_XYZ tmppt;
 
-	GLdouble modelMatrix[16];
-	GLdouble inverseMatrix[16];
+	GLDOUBLE modelMatrix[16];
+	GLDOUBLE inverseMatrix[16];
 
 	/* "Matrix Quaternion FAQ: 8.050
 	Given the current ModelView matrix, how can I determine the object-space location of the camera?

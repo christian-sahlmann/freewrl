@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.28 2010/01/05 21:37:33 crc_canada Exp $
+$Id: Frustum.c,v 1.29 2010/01/12 20:04:47 sdumoulin Exp $
 
 ???
 
@@ -530,7 +530,7 @@ static void multiply_in_scale(struct point_XYZ *arr, float x, float y, float z, 
 }
 
 
-void printmatrix(GLdouble* mat) {
+void printmatrix(GLDOUBLE* mat) {
     int i;
     for(i = 0; i< 16; i++) {
 	printf("mat[%d] = %4.3f%s",i,mat[i],i==3 ? "\n" : i==7? "\n" : i==11? "\n" : "");
@@ -645,7 +645,7 @@ void moveAndRotateThisPoint(struct point_XYZ *mypt, double x, double y, double z
 
 
 void record_ZBufferDistance(struct X3D_Node *node) {
-	GLdouble modelMatrix[16];
+	GLDOUBLE modelMatrix[16];
 /*
 	double rad;
 	double vl;
@@ -687,7 +687,7 @@ void record_ZBufferDistance(struct X3D_Node *node) {
 
 	
 	/* get the current pos in modelMatrix land */
-	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	/* rotate the center of this point */
 	moveAndRotateThisPoint (&movedPt, ex,ey,ez,modelMatrix);
@@ -869,7 +869,9 @@ void OcclusionCulling ()  {
 		/* an Occlusion test will have been run on this one */
 
 #ifdef AQUA
+#ifndef IPHONE
 if (myglobalContext == NULL) printf ("mycontext null before glGetQueryObjectiv\n");
+#endif
 #endif
 		glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
 		PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");

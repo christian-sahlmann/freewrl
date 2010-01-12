@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.16 2009/11/05 15:49:49 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.17 2010/01/12 20:04:47 sdumoulin Exp $
 
 ???
 
@@ -589,7 +589,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int	*faceok = NULL;	/*  is this face ok? (ie, not degenerate triangles, etc)*/
 	int	*pointfaces = NULL;
 
-	GLdouble tess_v[3];             /*param.to gluTessVertex()*/
+	GLDOUBLE tess_v[3];             /*param.to FW_GLU_TESS_VERTEX()*/
 	int *tess_vs = NULL;              /* pointer to space needed */
 
 
@@ -996,7 +996,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 			/* If we have concave, tesselate! */
 			if (!convex) {
-				gluBeginPolygon(global_tessobj);
+				FW_GLU_BEGIN_POLYGON(global_tessobj);
 			} else {
 				initind = relative_coord++;
 				lastind = relative_coord++;
@@ -1012,7 +1012,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 					tess_v[1] = c1->c[1];
 					tess_v[2] = c1->c[2];
 					tess_vs[relative_coord] = relative_coord;
-					gluTessVertex(global_tessobj,tess_v,&tess_vs[relative_coord++]);
+					FW_GLU_TESS_VERTEX(global_tessobj,tess_v,&tess_vs[relative_coord++]);
 				} else {
 					/* take coordinates and make triangles out of them */
 					global_IFS_Coords[global_IFS_Coord_count++] = initind;
@@ -1030,7 +1030,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			}
 
 			if (!convex) {
-				gluEndPolygon(global_tessobj);
+				FW_GLU_END_POLYGON(global_tessobj);
 
 				/* Tesselated faces may have a different normal than calculated previously */
 				/* bounds check, once again */
@@ -2251,7 +2251,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 		/* give us some memory - this array will contain tessd triangle counts */
 		int *tess_vs;
 		struct SFColor *c1;
-		GLdouble tess_v[3];
+		GLDOUBLE tess_v[3];
 		int endpoint;
 
 		tess_vs=(int *)MALLOC(sizeof(*(tess_vs)) * (nsec - 3 - ncolinear_at_end) * 3);
@@ -2263,7 +2263,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 		if (beginCap) {
 			global_IFS_Coord_count = 0;
-			gluBeginPolygon(global_tessobj);
+			FW_GLU_BEGIN_POLYGON(global_tessobj);
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
 				/* printf ("starting tv for x %d of %d\n",x,endpoint);*/
@@ -2273,9 +2273,9 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 				tess_v[0] = c1->c[0]; tess_v[1] = c1->c[1]; tess_v[2] = c1->c[2];
 				tess_vs[x] = x;
-				gluTessVertex(global_tessobj,tess_v,&tess_vs[x]);
+				FW_GLU_TESS_VERTEX(global_tessobj,tess_v,&tess_vs[x]);
 			}
-			gluEndPolygon(global_tessobj);
+			FW_GLU_END_POLYGON(global_tessobj);
 			verify_global_IFS_Coords(ntri*3);
 
 			for (x=0; x<global_IFS_Coord_count; x+=3) {
@@ -2295,15 +2295,15 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 		if (endCap) {
 			global_IFS_Coord_count = 0;
-			gluBeginPolygon(global_tessobj);
+			FW_GLU_BEGIN_POLYGON(global_tessobj);
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
 	                	c1 = (struct SFColor *) &rep_->actualCoord[3*(x+(nspi-1)*nsec)];
 				tess_v[0] = c1->c[0]; tess_v[1] = c1->c[1]; tess_v[2] = c1->c[2];
 				tess_vs[x] = x+(nspi-1)*nsec;
-				gluTessVertex(global_tessobj,tess_v,&tess_vs[x]);
+				FW_GLU_TESS_VERTEX(global_tessobj,tess_v,&tess_vs[x]);
 			}
-			gluEndPolygon(global_tessobj);
+			FW_GLU_END_POLYGON(global_tessobj);
 			verify_global_IFS_Coords(ntri*3);
 
 			for (x=0; x<global_IFS_Coord_count; x+=3) {

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.89 2010/01/05 21:37:33 crc_canada Exp $
+  $Id: MainLoop.c,v 1.90 2010/01/12 20:04:47 sdumoulin Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -284,11 +284,13 @@ OLDCODE        }
         }
 
 #if defined (TARGET_AQUA)
+#ifndef IPHONE
 	if (myglobalContext == NULL) {
 		printf ("myglobalContext  is NULL in EventLoop, skipping...\n"); 
 		usleep(100000);
 		return;
 	}
+#endif
 #endif
 
 
@@ -308,11 +310,13 @@ OLDCODE        }
 		/* NOTE: OSX front end now syncs with the monitor, meaning, this sleep is no longer needed */
 /* Johns - OSX plugin sometimes runs away, so for now, keep this here #ifndef TARGET_AQUA */
 
+#ifndef IPHONE
                waitsec = 7000.0 + TickTime - lastTime;
                if (waitsec > 0.0) {
                        /* printf ("waiting %lf\n",waitsec); */
                        usleep((unsigned)waitsec);
 		}
+#endif
 /* #endif */
 
         }
@@ -739,7 +743,7 @@ static void render_pre() {
 void setup_projection(int pick, int x, int y) 
 {
 	GLsizei screenwidth2 = screenWidth;
-	GLdouble aspect2 = screenRatio;
+	GLDOUBLE aspect2 = screenRatio;
 	GLint xvp = 0;
 	if(Viewer.sidebyside) 
 	{
@@ -763,7 +767,7 @@ void setup_projection(int pick, int x, int y)
         if(pick) {
                 /* picking for mouse events */
                 glGetIntegerv(GL_VIEWPORT,viewPort2);
-                gluPickMatrix((float)x,(float)viewPort2[3]-y,
+                FW_GLU_PICK_MATRIX((float)x,(float)viewPort2[3]-y,
                         (float)100,(float)100,viewPort2);
         }
 
@@ -890,7 +894,8 @@ static void render()
 	/* status bar, if we have one */
 	drawStatusBar();
 
-#if defined( AQUA )
+#ifndef IPHONE
+#if defined( AQUA ) 
 #ifdef OLDCODE
 OLDCODE	if (RUNNINGASPLUGIN) {
 OLDCODE	    aglSetCurrentContext(aqglobalContext);
@@ -904,7 +909,6 @@ if (myglobalContext == NULL) printf ("hmmm - going to flush and myglobalContext 
 #ifdef OLDCODE
 OLDCODE	}
 #endif
-
 #else
 
 #if defined( WIN32 )
@@ -915,6 +919,7 @@ OLDCODE	}
 
 	glXSwapBuffers(Xdpy,GLwin);
 
+#endif
 #endif
 #endif
 
@@ -965,7 +970,7 @@ static void render_collisions() {
 
 static void setup_viewpoint() {
 	
-	/* GLdouble projMatrix[16]; */
+	/* GLDOUBLE projMatrix[16]; */
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         FW_GL_LOAD_IDENTITY();
@@ -1140,9 +1145,9 @@ static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int sta
    for use later                                                                */
 static void get_hyperhit() {
         double x1,y1,z1,x2,y2,z2,x3,y3,z3;
-        GLdouble projMatrix[16];
+        GLDOUBLE projMatrix[16];
 
-        fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+        FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
         gluUnProject(r1.x, r1.y, r1.z, rayHitHyper.modelMatrix,
                 projMatrix, viewport, &x1, &y1, &z1);
         gluUnProject(r2.x, r2.y, r2.z, rayHitHyper.modelMatrix,
@@ -1265,7 +1270,7 @@ printf ("displayThread is %u\n",pthread_self());
 	}
 }
 
-#ifdef AQUA
+#if defined( AQUA) && !defined(IPHONE) 
 void initGL() {
         /* printf ("OSX initGL called\n");  */
 #ifdef OLDCODE

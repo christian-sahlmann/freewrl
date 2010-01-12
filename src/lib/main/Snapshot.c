@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.9 2009/12/09 01:11:09 couannette Exp $
+$Id: Snapshot.c,v 1.10 2010/01/12 20:04:47 sdumoulin Exp $
 
 CProto ???
 
@@ -74,7 +74,7 @@ int doSnapshot = FALSE;		/* are we doing a snapshot?			*/
 void saveSnapSequence();
 #endif
 
-#ifdef WIN32
+#if defined( WIN32) || defined (IPHONE)
 /* stubbs for now */
 void setSnapshot() {}
 void Snapshot () {}

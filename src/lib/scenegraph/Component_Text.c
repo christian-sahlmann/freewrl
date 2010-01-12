@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.17 2009/10/29 06:29:40 crc_canada Exp $
+$Id: Component_Text.c,v 1.18 2010/01/12 20:04:47 sdumoulin Exp $
 
 X3D Text Component
 
@@ -141,7 +141,7 @@ void render_Text (struct X3D_Text * node)
 
 void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
 {
-    GLdouble v2[3];
+    GLDOUBLE v2[3];
 
     UNUSED(Vertex_x);
     UNUSED(Vertex_y);
@@ -164,7 +164,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
     v2[2]=FW_rep_->actualCoord[FW_pointctr*3+2];
 
 	/* printf("glu s.b. rev 1.2 or newer, is: %s\n",gluGetString(GLU_VERSION)); */
-    gluTessVertex(global_tessobj,v2,&FW_RIA[FW_RIA_indx]);
+    FW_GLU_TESS_VERTEX(global_tessobj,v2,&FW_RIA[FW_RIA_indx]);
 
     if (TextVerbose) {
         printf ("FW_NewVertexPoint %f %f %f index %d\n",
@@ -189,7 +189,7 @@ int FW_moveto (FT_Vector* to, void* user)
 
     /* Have we started a new line */
     if (contour_started) {
-       gluNextContour(global_tessobj,GLU_UNKNOWN);
+       FW_GLU_NEXT_CONTOUR(global_tessobj,GLU_UNKNOWN);
     }
 
     /* well if not, tell us that we have started one */
@@ -416,18 +416,18 @@ void FW_draw_outline (FT_OutlineGlyph oglyph)
     int retval = 0;
 
     /* JAS gluTessBeginPolygon(global_tessobj,NULL); */
-    gluBeginPolygon(global_tessobj);
+    FW_GLU_BEGIN_POLYGON(global_tessobj);
     FW_Vertex = 0;
 
     /* thisptr may possibly be null; I dont think it is use in freetype */
     retval = FT_Outline_Decompose( &oglyph->outline, &FW_outline_interface, &thisptr);
 
     if (contour_started) {
-         glEnd(); 
+         FW_GL_END(); 
     }
 
     /* gluTessEndPolygon(global_tessobj); */
-    gluEndPolygon(global_tessobj);
+    FW_GLU_END_POLYGON(global_tessobj);
 
     if (retval != FT_Err_Ok)
         printf("FT_Outline_Decompose, error %d\n",retval);
@@ -776,12 +776,12 @@ int open_font()
 
 void collide_Text (struct X3D_Text *node)
 {
-    GLdouble awidth = naviinfo.width; /*avatar width*/
-    GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-    GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-    GLdouble astep = -naviinfo.height+naviinfo.step;
-    GLdouble modelMatrix[16];
-    GLdouble upvecmat[16];
+    GLDOUBLE awidth = naviinfo.width; /*avatar width*/
+    GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+    GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+    GLDOUBLE astep = -naviinfo.height+naviinfo.step;
+    GLDOUBLE modelMatrix[16];
+    GLDOUBLE upvecmat[16];
 
     struct point_XYZ t_orig = {0,0,0};
 
@@ -820,7 +820,7 @@ void collide_Text (struct X3D_Text *node)
         return;
     }
 
-    fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+    FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
     transform3x3(&tupv,&tupv,modelMatrix);
     matrotate2v(upvecmat,ViewerUpvector,tupv);

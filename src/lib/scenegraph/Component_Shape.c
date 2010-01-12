@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.22 2009/10/22 16:58:49 crc_canada Exp $
+$Id: Component_Shape.c,v 1.23 2010/01/12 20:04:47 sdumoulin Exp $
 
 X3D Shape Component
 
@@ -67,7 +67,7 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 		linePropertySet=TRUE;
 		if (node->linewidthScaleFactor > 1.0) {
 			glLineWidth(node->linewidthScaleFactor);
-			glPointSize(node->linewidthScaleFactor);
+			FW_GL_POINTSIZE(node->linewidthScaleFactor);
 		}
 			
 		if (node->linetype > 0) {
@@ -86,7 +86,7 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 				case 13: pat = 0x0000; break; /* optional */
 				default: {}
 			}
-			glLineStipple (factor,pat);
+			FW_GL_LINE_STIPPLE(factor,pat);
 			FW_GL_ENABLE(GL_LINE_STIPPLE);
 		}
 	}
@@ -464,7 +464,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 	if (!OccFailed && (node->__Samples <=4)) {
 		/* draw this as a subdued grey */
-		glColor3f(0.3,0.3,0.3);
+		FW_GL_COLOR3F(0.3,0.3,0.3);
 
 		/* dont do any textures, or anything */
 		last_texture_type = NOTEXTURE;
@@ -499,7 +499,7 @@ void child_Shape (struct X3D_Shape *node) {
 			/* no material, so just colour the following shape */ 
 			/* Spec says to disable lighting and set coloUr to 1,1,1 */ 
 			LIGHTING_OFF  
-			glColor3f(1,1,1); 
+			FW_GL_COLOR3F(1,1,1); 
 	 
 			/* tell the rendering passes that this is just "normal" */ 
 			last_texture_type = NOTEXTURE; 
@@ -531,7 +531,7 @@ void child_Shape (struct X3D_Shape *node) {
 	if (linePropertySet) {
 		FW_GL_DISABLE (GL_LINE_STIPPLE);
 		glLineWidth(1.0);
-		glPointSize(1.0);
+		FW_GL_POINTSIZE(1.0);
 	}
 
 	/* any shader turned on? if so, turn it off */

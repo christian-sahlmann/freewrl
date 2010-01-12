@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.13 2009/10/22 16:58:49 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.14 2010/01/12 20:04:47 sdumoulin Exp $
 
 X3D Geometry 3D Component
 
@@ -462,14 +462,14 @@ void render_Extrusion (struct X3D_Extrusion *node) {
 
 
 void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
-	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLdouble astep = -naviinfo.height+naviinfo.step;
-	       GLdouble modelMatrix[16];
-	       GLdouble upvecmat[16];
+	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
+	       GLDOUBLE modelMatrix[16];
+	       GLDOUBLE upvecmat[16];
 
-	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct point_XYZ t_orig = {0,0,0};
 
 	       struct point_XYZ tupv = {0,1,0};
@@ -511,7 +511,7 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 			pr.actualCoord = (float *) tmp->p;
 		}
 
-	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -562,16 +562,16 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       struct point_XYZ t_orig; /*transformed origin*/
 	       struct point_XYZ p_orig; /*projected transformed origin */
 	       struct point_XYZ n_orig; /*normal(unit length) transformed origin */
-	       GLdouble modelMatrix[16];
-	       GLdouble upvecmat[16];
-	       GLdouble dist2;
+	       GLDOUBLE modelMatrix[16];
+	       GLDOUBLE upvecmat[16];
+	       GLDOUBLE dist2;
 	       struct point_XYZ delta = {0,0,0};
-	       GLdouble radius;
+	       GLDOUBLE radius;
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 
 	       struct point_XYZ tupv = {0,1,0};
 
@@ -581,7 +581,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 		}
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
-	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -637,7 +637,7 @@ printf ("sphere, p_orig %lf %lf %lf, n_orig %lf %lf %lf\n",p_orig.x, p_orig.y, p
 		       delta.y = (p_orig.y - radius) - (atop);
 		   } else {
 		       struct point_XYZ d2s;
-		       GLdouble ratio;
+		       GLDOUBLE ratio;
 		       #ifdef RENDERVERBOSE
 			printf(" /* over side */ \n");
 			#endif
@@ -671,7 +671,7 @@ printf ("sphere, p_orig %lf %lf %lf, n_orig %lf %lf %lf\n",p_orig.x, p_orig.y, p
 		       delta.y = (p_orig.y + radius) -abottom;
 		   } else {
 		       struct point_XYZ d2s;
-		       GLdouble ratio;
+		       GLDOUBLE ratio;
 			#ifdef RENDERVERBOSE
 		       printf(" /* under side */ \n");
 			#endif
@@ -723,20 +723,20 @@ printf ("sphere, p_orig %lf %lf %lf, n_orig %lf %lf %lf\n",p_orig.x, p_orig.y, p
 
 void collide_Box (struct X3D_Box *node) {
 	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLdouble astep = -naviinfo.height+naviinfo.step;
+	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 
-	       GLdouble modelMatrix[16];
-	       GLdouble upvecmat[16];
+	       GLDOUBLE modelMatrix[16];
+	       GLDOUBLE upvecmat[16];
 	       struct point_XYZ iv = {0,0,0};
 	       struct point_XYZ jv = {0,0,0};
 	       struct point_XYZ kv = {0,0,0};
 	       struct point_XYZ ov = {0,0,0};
 
 	       struct point_XYZ t_orig = {0,0,0};
-	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
 
 	       struct point_XYZ delta;
 	       struct point_XYZ tupv = {0,1,0};
@@ -749,7 +749,7 @@ void collide_Box (struct X3D_Box *node) {
 
 
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
-	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -796,20 +796,20 @@ void collide_Box (struct X3D_Box *node) {
 void collide_Cone (struct X3D_Cone *node) {
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLdouble astep = -naviinfo.height+naviinfo.step;
+	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 
 
                 float h = (node->height) /2;
                 float r = (node->bottomRadius) ;
 
-	       GLdouble modelMatrix[16];
-	       GLdouble upvecmat[16];
+	       GLDOUBLE modelMatrix[16];
+	       GLDOUBLE upvecmat[16];
 	       struct point_XYZ iv = {0,0,0};
 	       struct point_XYZ jv = {0,0,0};
-	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct point_XYZ t_orig = {0,0,0};
 
 	       struct point_XYZ delta;
@@ -818,7 +818,7 @@ void collide_Cone (struct X3D_Cone *node) {
 	       iv.y = h; jv.y = -h;
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
-	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -861,20 +861,20 @@ void collide_Cone (struct X3D_Cone *node) {
 
 void collide_Cylinder (struct X3D_Cylinder *node) {
 	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLdouble astep = -naviinfo.height+naviinfo.step;
+	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 
                 float h = (node->height)/2;
                 float r = (node->radius);
 
 
-	       GLdouble modelMatrix[16];
-	       GLdouble upvecmat[16];
+	       GLDOUBLE modelMatrix[16];
+	       GLDOUBLE upvecmat[16];
 	       struct point_XYZ iv = {0,0,0};
 	       struct point_XYZ jv = {0,0,0};
-	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct point_XYZ t_orig = {0,0,0};
 
 	       struct point_XYZ tupv = {0,1,0};
@@ -885,7 +885,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 		jv.y = -h;
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
-	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -929,14 +929,14 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 }
 
 void collide_Extrusion (struct X3D_Extrusion *node) {
-	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLdouble astep = -naviinfo.height+naviinfo.step;
-	       GLdouble modelMatrix[16];
-	       GLdouble upvecmat[16];
+	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
+	       GLDOUBLE modelMatrix[16];
+	       GLDOUBLE upvecmat[16];
 
-	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct point_XYZ t_orig = {0,0,0};
 
 	       struct point_XYZ tupv = {0,1,0};
@@ -965,7 +965,7 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 	       }
 /*	       printf("_PolyRep = %d\n",node->_intern);*/
 	       pr = *((struct X3D_PolyRep*)node->_intern);
-	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);

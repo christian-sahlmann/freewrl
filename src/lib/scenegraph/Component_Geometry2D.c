@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.13 2009/10/22 16:58:49 crc_canada Exp $
+$Id: Component_Geometry2D.c,v 1.14 2010/01/12 20:04:47 sdumoulin Exp $
 
 X3D Geometry2D  Component
 
@@ -645,20 +645,20 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 		/* Modified Box code. */
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLdouble astep = -naviinfo.height+naviinfo.step;
+	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 
-	       GLdouble modelMatrix[16];
-	       GLdouble upvecmat[16];
+	       GLDOUBLE modelMatrix[16];
+	       GLDOUBLE upvecmat[16];
 	       struct point_XYZ iv = {0,0,0};
 	       struct point_XYZ jv = {0,0,0};
 	       struct point_XYZ kv = {0,0,0};
 	       struct point_XYZ ov = {0,0,0};
 
 	       struct point_XYZ t_orig = {0,0,0};
-	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
 
 	       struct point_XYZ delta;
 	       struct point_XYZ tupv = {0,1,0};
@@ -669,7 +669,7 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 		ov.x = -((node->size).c[0])/2; ov.y = -((node->size).c[1])/2; ov.z = 0.0;
 
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
-	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);

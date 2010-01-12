@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.33 2010/01/05 21:37:33 crc_canada Exp $
+  $Id: display.c,v 1.34 2010/01/12 20:04:47 sdumoulin Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -75,6 +75,7 @@ GLenum _global_gl_err;
 #if defined (TARGET_AQUA)
 /* display part specific to Mac */
 
+#ifndef IPHONE
 CGLContextObj myglobalContext;
 #ifdef OLDCODE
 AGLContext aqglobalContext; 
@@ -101,6 +102,7 @@ int PaneClipcl;
 int PaneClipwidth;
 int PaneClipheight;
 int PaneClipChanged = FALSE;
+#endif
 #endif
 
 static char blankTexture[] = {0x40, 0x40, 0x40, 0xFF};

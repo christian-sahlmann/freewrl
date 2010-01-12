@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.42 2009/12/28 15:57:46 crc_canada Exp $
+  $Id: Textures.c,v 1.43 2010/01/12 20:04:47 sdumoulin Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -52,8 +52,10 @@
 #include "LoadTextures.h"
 
 #ifdef AQUA
+#ifndef IPHONE
 # include <Carbon/Carbon.h>
 # include <QuickTime/QuickTime.h>
+#endif
 #else
 # if HAVE_JPEGLIB_H
 #undef HAVE_STDLIB_H
@@ -115,6 +117,7 @@ void 	*global_tcin_lastParent;
 
 /* # include "CGDirectDisplay.h" */
 
+#ifndef IPHONE
 CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
                                       kCGLPFAFullScreen,
                                       kCGLPFADoubleBuffer,
@@ -123,6 +126,7 @@ CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
 CGLPixelFormatObj pixelFormat = NULL;
 long numPixelFormats = 0;
 CGLContextObj aqtextureContext = NULL;
+#endif
 
 
 #elif defined(WIN32)
@@ -440,11 +444,11 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			texture_count = 0;
 			/* render the proper texture */
 			render_node((void *)thistex);
-		        glColor3d(1.0,1.0,1.0);
+		        FW_GL_COLOR3D(1.0,1.0,1.0);
 
         		textureDraw_start(NULL,Backtex);
-        		glVertexPointer (3,GL_FLOAT,0,BackgroundVert);
-        		glNormalPointer (GL_FLOAT,0,Backnorms);
+        		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
+        		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
         		FW_GL_DRAWARRAYS (GL_QUADS, count*4, 4);
         		textureDraw_end();
@@ -478,11 +482,11 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 				texture_count = 0;
 				/* render the proper texture */
 				render_node((void *)thistex);
-		                glColor3d(1.0,1.0,1.0);
+		                FW_GL_COLOR3D(1.0,1.0,1.0);
 
         			textureDraw_start(NULL,Backtex);
-        			glVertexPointer (3,GL_FLOAT,0,BackgroundVert);
-        			glNormalPointer (GL_FLOAT,0,Backnorms);
+        			FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
+        			FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
         			FW_GL_DRAWARRAYS (GL_QUADS, count*4, 4);
         			textureDraw_end();
@@ -1020,11 +1024,11 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 		dest = (unsigned char *)MALLOC((unsigned) 4 * rx * ry);
 		while (!texOk) {
 			GLint width, height;
-			gluScaleImage(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
+			FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
 			glTexImage2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
 
-			glGetTexLevelParameteriv (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
-			glGetTexLevelParameteriv (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
+			FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
+			FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
 
 			if ((width == 0) || (height == 0)) {
 				rx= rx/2; ry = ry/2;

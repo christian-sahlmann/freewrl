@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.19 2009/10/29 01:33:09 couannette Exp $
+$Id: Bindable.c,v 1.20 2010/01/12 20:04:47 sdumoulin Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -451,15 +451,15 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 }
 
 void render_Fog (struct X3D_Fog *node) {
-	GLdouble mod[16];
-	GLdouble proj[16];
-	GLdouble x,y,z;
-	GLdouble x1,y1,z1;
-	GLdouble sx, sy, sz;
+	GLDOUBLE mod[16];
+	GLDOUBLE proj[16];
+	GLDOUBLE x,y,z;
+	GLDOUBLE x1,y1,z1;
+	GLDOUBLE sx, sy, sz;
 	GLfloat fog_colour [4];
 	char *fogptr;
 	int foglen;
-	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+	GLDOUBLE unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 
 
 	/* printf ("render_Fog, node %d isBound %d color %f %f %f set_bind %d\n",
@@ -488,38 +488,38 @@ void render_Fog (struct X3D_Fog *node) {
 	fogptr = node->fogType->strptr;
 	foglen = node->fogType->len;
 	FW_GL_PUSH_MATRIX();
-	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
-	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
 	/* Get origin */
-	gluUnProject(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
+	FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
 	FW_GL_TRANSLATE_D(x,y,z);
 
-	gluUnProject(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
+	FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
 	/* Get scale */
-	gluProject(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
+	FW_GLU_PROJECT(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
 	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-	gluProject(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
+	FW_GLU_PROJECT(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
 	sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-	gluProject(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
+	FW_GLU_PROJECT(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
 	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
 	/* Undo the translation and scale effects */
 	FW_GL_SCALE_D(sx,sy,sz);
 
 
 	/* now do the foggy stuff */
-	glFogfv(GL_FOG_COLOR,fog_colour);
+	FW_GL_FOGFV(GL_FOG_COLOR,fog_colour);
 
 	/* make the fog look like the examples in the VRML Source Book */
 	if (strcmp("LINEAR",fogptr)) {
 		/* Exponential */
-		glFogf(GL_FOG_DENSITY, (float) (4.0)/ (node->visibilityRange));
-		glFogf(GL_FOG_END, (float) (node->visibilityRange));
-		glFogi(GL_FOG_MODE, GL_EXP);
+		FW_GL_FOGF(GL_FOG_DENSITY, (float) (4.0)/ (node->visibilityRange));
+		FW_GL_FOGF(GL_FOG_END, (float) (node->visibilityRange));
+		FW_GL_FOGI(GL_FOG_MODE, GL_EXP);
 	} else {
 		/* Linear */
-		glFogf(GL_FOG_START, 1.0);
-		glFogf(GL_FOG_END, (float) (node->visibilityRange));
-		glFogi(GL_FOG_MODE, GL_LINEAR);
+		FW_GL_FOGF(GL_FOG_START, 1.0);
+		FW_GL_FOGF(GL_FOG_END, (float) (node->visibilityRange));
+		FW_GL_FOGI(GL_FOG_MODE, GL_LINEAR);
 	}
 	FW_GL_ENABLE (GL_FOG);
 	fog_enabled = TRUE;
@@ -551,31 +551,31 @@ static void saveBGVert (float *colptr, float *pt,
 
 /* the background centre follows our position, so, move it! */
 static void moveBackgroundCentre () {
-	GLdouble mod[16];
-	GLdouble proj[16];
-	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
-	GLdouble x,y,z;
-	GLdouble x1,y1,z1;
-	GLdouble sx, sy, sz;
+	GLDOUBLE mod[16];
+	GLDOUBLE proj[16];
+	GLDOUBLE unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+	GLDOUBLE x,y,z;
+	GLDOUBLE x1,y1,z1;
+	GLDOUBLE sx, sy, sz;
 
 	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);  */
-	glShadeModel(GL_SMOOTH);
+	FW_GL_SHADE_MODEL(GL_SMOOTH);
 	FW_GL_PUSH_MATRIX();
-	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
-	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
 	/* Get origin */
-	gluUnProject(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
+	FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
 	FW_GL_TRANSLATE_D(x,y,z);
 
 	LIGHTING_OFF
 
-	gluUnProject(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
+	FW_GLU_UNPROJECT(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
 	/* Get scale */
-	gluProject(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
+	FW_GLU_PROJECT(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
 	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-	gluProject(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
+	FW_GLU_PROJECT(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
 	sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-	gluProject(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
+	FW_GLU_PROJECT(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
 	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
 
 	/* Undo the translation and scale effects */

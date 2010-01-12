@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.h,v 1.4 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Frustum.h,v 1.5 2010/01/12 20:04:47 sdumoulin Exp $
 
 Global includes.
 
@@ -82,7 +82,7 @@ extern void* *occluderNodePointer;
 /* printf ("beginOcclusionQuery, potoc %d occQ %d\n",potentialOccluderCount, OccQuerySize, node->__occludeCheckCount); */ \
 			if (node->__occludeCheckCount < 0) { \
 				/* printf ("beginOcclusionQuery, query %u, node %s\n",potentialOccluderCount, stringNodeType(node->_nodeType)); */ \
-				glBeginQuery(GL_SAMPLES_PASSED, OccQueries[potentialOccluderCount]); \
+				FW_GL_BEGIN_QEURY(GL_SAMPLES_PASSED, OccQueries[potentialOccluderCount]); \
 				occluderNodePointer[potentialOccluderCount] = (void *)node; \
 			} \
 		} \
@@ -94,7 +94,7 @@ extern void* *occluderNodePointer;
 		if (potentialOccluderCount < OccQuerySize) { \
 			if (node->__occludeCheckCount < 0) { \
 				/* printf ("glEndQuery node %u\n",node); */ \
-				glEndQuery(GL_SAMPLES_PASSED); \
+				FW_GL_END_QUERY(GL_SAMPLES_PASSED); \
 				potentialOccluderCount++; \
 			} \
 		} \
@@ -102,7 +102,7 @@ extern void* *occluderNodePointer;
 
 void moveAndRotateThisPoint(struct point_XYZ *mypt, double x, double y, double z, double *MM);
 void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float minz, struct X3D_Node *me);
-void printmatrix(GLdouble* mat);
+void printmatrix(GLDOUBLE* mat);
 void propagateExtent(struct X3D_Node *me);
 void record_ZBufferDistance(struct X3D_Node *node);
 void OcclusionStartofEventLoop(void);

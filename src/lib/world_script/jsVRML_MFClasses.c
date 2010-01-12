@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.15 2009/10/05 15:07:24 crc_canada Exp $
+$Id: jsVRML_MFClasses.c,v 1.16 2010/01/12 20:04:47 sdumoulin Exp $
 
 ???
 
@@ -832,10 +832,10 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 
 #undef TESTING
 #ifdef TESTING
-	GLdouble xxmat[16];
+	GLDOUBLE xxmat[16];
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glLoadIdentity();
+	FW_GL_LOAD_IDENTITY();
 #endif
 
 

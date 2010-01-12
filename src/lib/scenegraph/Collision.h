@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.h,v 1.5 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Collision.h,v 1.6 2010/01/12 20:04:47 sdumoulin Exp $
 
 Collision ???
 
@@ -231,14 +231,14 @@ struct point_XYZ cone_disp(double y1, double y2, double ydisp, double r, struct 
 struct point_XYZ cylinder_disp(double y1, double y2, double ydisp, double r, struct point_XYZ base, struct point_XYZ top, double baseradius);
 
 /*uses sphere displacement, and a cylinder for stepping */
-struct point_XYZ polyrep_disp(double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr, GLdouble* mat, prflags flags);
+struct point_XYZ polyrep_disp(double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags);
 
 /*displacement when the polyrep structure is all in the same plane
   if normal is zero, it will be calculated form the first triangle*/
-struct point_XYZ planar_polyrep_disp(double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr, GLdouble* mat, prflags flags, struct point_XYZ n);
+struct point_XYZ planar_polyrep_disp(double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags, struct point_XYZ n);
 
 struct point_XYZ elevationgrid_disp( double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr,
-			      int xdim, int zdim, double xs, double zs, GLdouble* mat, prflags flags);
+			      int xdim, int zdim, double xs, double zs, GLDOUBLE* mat, prflags flags);
 
 /* functions VERY usefull for debugging purposes
    Use these inside FreeWRL to export a scene to
@@ -246,7 +246,7 @@ struct point_XYZ elevationgrid_disp( double y1, double y2, double ydisp, double 
 #ifdef DEBUG_SCENE_EXPORT
 void printpolyrep(struct X3D_PolyRep pr, int npoints);
 
-void printmatrix(GLdouble* mat);
+void printmatrix(GLDOUBLE* mat);
 #endif
 
 

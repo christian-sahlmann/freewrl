@@ -1,5 +1,5 @@
 /*
-  $Id: OpenGL_Utils.c,v 1.86 2010/01/12 01:25:43 couannette Exp $
+  $Id: OpenGL_Utils.c,v 1.87 2010/01/12 20:04:47 sdumoulin Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -204,70 +204,70 @@ cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
 /* draw a simple bounding box around an object */
 void drawBBOX(struct X3D_Node *node) {
 	FW_GL_DISABLE(GL_LIGHTING);
-	glColor3f(1.0,0.6,0.6);
+	FW_GL_COLOR3F(1.0,0.6,0.6);
 
 	/* left group */
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	glEnd();
+	FW_GL_BEGIN(GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	FW_GL_END();
 	
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	glEnd();
+	FW_GL_BEGIN (GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	FW_GL_END();
 	
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	glEnd();
+	FW_GL_BEGIN (GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	FW_GL_END();
 	
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	glEnd();
+	FW_GL_BEGIN (GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	FW_GL_END();
 	
 	/* right group */
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	glEnd();
+	FW_GL_BEGIN (GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	FW_GL_END();
 	
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	glEnd();
+	FW_GL_BEGIN (GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	FW_GL_END();
 	
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	glEnd();
+	FW_GL_BEGIN (GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	FW_GL_END();
 	
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	glEnd();
+	FW_GL_BEGIN (GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	FW_GL_END();
 	
 	/* joiners */
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	glEnd();
+	FW_GL_BEGIN (GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+	FW_GL_END();
 	
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	glEnd();
+	FW_GL_BEGIN (GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+	FW_GL_END();
 	
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	glEnd();
+	FW_GL_BEGIN (GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+	FW_GL_END();
 	
-	glBegin (GL_LINES);
-	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	glEnd();
+	FW_GL_BEGIN (GL_LINES);
+	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+	FW_GL_END();
 
 	FW_GL_ENABLE (GL_LIGHTING);
 }
@@ -276,7 +276,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	struct point_XYZ bboxPoints[8];
 	double cfp = DBL_MIN;
 	double cnp = DBL_MAX;
-	GLdouble MM[16];
+	GLDOUBLE MM[16];
 
 	int ci;
 
@@ -456,7 +456,7 @@ bool initialize_GL()
         float shin[] = { 0.6, 0.6, 0.6, 1.0 };
         float As[] = { 0.0, 0.0, 0.0, 1.0 };
 
-#if defined (TARGET_AQUA)
+#if defined (TARGET_AQUA) && !defined(IPHONE)
 #ifdef OLDCODE
 OLDCODE        /* aqglobalContext is found at the initGL routine in MainLoop.c. Here
 OLDCODE           we make it the current Context. */
@@ -825,8 +825,11 @@ printf ("kill 12\n");
 	setMenuStatus("NONE");
 
 printf ("kill 13\n");
+
 #ifdef TARGET_AQUA
+#ifndef IPHONE
 	myglobalContext = NULL; 
+#endif
 #endif
 
 }

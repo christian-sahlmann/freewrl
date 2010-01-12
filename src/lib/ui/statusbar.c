@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.22 2010/01/05 21:37:33 crc_canada Exp $
+  $Id: statusbar.c,v 1.23 2010/01/12 20:04:47 sdumoulin Exp $
 
 */
 
@@ -93,7 +93,7 @@ int handleStatusbarHud(int mev, int* clipplane)
 void setup_projection(int pick, int x, int y) 
 {
 	GLsizei screenwidth2 = screenWidth;
-	GLdouble aspect2 = screenRatio;
+	GLDOUBLE aspect2 = screenRatio;
 	GLint xvp = 0;
 	if(Viewer.sidebyside) 
 	{

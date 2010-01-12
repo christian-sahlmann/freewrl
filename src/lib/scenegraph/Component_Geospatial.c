@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.32 2009/12/18 17:30:12 istakenv Exp $
+$Id: Component_Geospatial.c,v 1.33 2010/01/12 20:04:47 sdumoulin Exp $
 
 X3D Geospatial Component
 
@@ -2742,7 +2742,7 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 		ov.z = -(node->EXTENT_MAX_Z);
 
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
-	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);

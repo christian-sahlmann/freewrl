@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.12 2009/10/29 01:33:09 couannette Exp $
+$Id: Tess.c,v 1.13 2010/01/12 20:04:47 sdumoulin Exp $
 
 ???
 
@@ -65,13 +65,17 @@ typedef  void (__stdcall *_GLUfuncptr)();
  * to point towards enough memory.
  * (And you have to give gluTessVertex a third argument, in which
  * the new coords are written, it has to be a vector of
- * GLdouble s with enough space)
+ * GLDOUBLE s with enough space)
  * After calling gluTessEndPolygon() these vector will be filled.
  * global_tess_polyrep->ntri will contain the absolute
  * number of triangles in global_tess_polyrep after tessellation.
  */
 
+#ifndef IPHONE
 GLUtriangulatorObj *global_tessobj;
+#else
+int global_tessobj;
+#endif
 struct X3D_PolyRep *global_tess_polyrep=NULL;
 int global_IFS_Coords[TESS_MAX_COORDS];
 int global_IFS_Coord_count=0;
@@ -119,13 +123,13 @@ void CALLBACK FW_IFS_tess_vertex(void *p) {
 void CALLBACK FW_tess_error(GLenum e) {
 	/* Prints out tesselation errors. Older versions of at least MESA would
 	 give errors, so for now at least, lets just ignore them.
-	 printf("FW_tess_error %d: >%s<\n",e,gluErrorString(e)); */
+	 printf("FW_tess_error %d: >%s<\n",e,GL_ERROR_MSG); */
 }
 
 
 
-void CALLBACK FW_tess_combine_data (GLdouble c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
-	GLdouble *nv = (GLdouble *) MALLOC(sizeof(GLdouble)*3);
+void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
+	GLDOUBLE *nv = (GLDOUBLE *) MALLOC(sizeof(GLDOUBLE)*3);
 	/* printf("FW_tess_combine data\n"); 
 	 printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
 		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); 
@@ -167,8 +171,8 @@ void verify_global_IFS_Coords(int max) {
 	}
 }
 
-void CALLBACK FW_tess_combine (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
-	GLdouble *nv = (GLdouble *) MALLOC(sizeof(GLdouble)*3);
+void CALLBACK FW_tess_combine (GLDOUBLE c[3], void *d[4], GLfloat w[4], void **out) {
+	GLDOUBLE *nv = (GLDOUBLE *) MALLOC(sizeof(GLDOUBLE)*3);
 	/*printf("FW_tess_combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
 		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); */
 	nv[0] = c[0];
@@ -182,7 +186,7 @@ void CALLBACK FW_tess_combine (GLdouble c[3], void *d[4], GLfloat w[4], void **o
 	and before tessellation is started			*/
 
 void new_tessellation(void) {
-	global_tessobj=gluNewTess();
+	global_tessobj=FW_GLU_NEW_TESS();
 	if(!global_tessobj)
 		freewrlDie("Got no memory for Tessellation Object!");
 

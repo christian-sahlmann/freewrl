@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.23 2009/12/10 20:51:54 crc_canada Exp $
+$Id: SensInterps.c,v 1.24 2010/01/12 20:04:47 sdumoulin Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -1378,7 +1378,7 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 	float rot, radius, ang, length;
 	double det, pos, neg, temp;
 	Quaternion bv, dir1, dir2, tempV;
-	GLdouble modelMatrix[16];
+	GLDOUBLE modelMatrix[16];
 
 	UNUSED(over);
 	
@@ -1408,7 +1408,7 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 				ray_save_posn.c[1] * ray_save_posn.c[1] +
 				ray_save_posn.c[2] * ray_save_posn.c[2];
 
-        	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+        	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
      		/*
      		printf ("Cur Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
                		modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],

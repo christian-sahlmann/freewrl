@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.c,v 1.8 2009/10/05 15:07:23 crc_canada Exp $
+$Id: LinearAlgebra.c,v 1.9 2010/01/12 20:04:47 sdumoulin Exp $
 
 ???
 
@@ -94,9 +94,9 @@ float calc_angle_between_two_vectors(struct point_XYZ a, struct point_XYZ b)
 }
 
 /* returns vector length, too */
-GLdouble vecnormal(struct point_XYZ*r, struct point_XYZ* v)
+GLDOUBLE vecnormal(struct point_XYZ*r, struct point_XYZ* v)
 {
-    GLdouble ret = sqrt(vecdot(v,v));
+    GLDOUBLE ret = sqrt(vecdot(v,v));
     /* if(ret == 0.) return 0.; */
     if (APPROX(ret, 0)) return 0.;
     vecscale(r,v,1./ret);
@@ -106,12 +106,12 @@ GLdouble vecnormal(struct point_XYZ*r, struct point_XYZ* v)
 
 /*will add functions here as needed. */
 
-GLdouble det3x3(GLdouble* data)
+GLDOUBLE det3x3(GLDOUBLE* data)
 {
     return -data[1]*data[10]*data[4] +data[0]*data[10]*data[5] -data[2]*data[5]*data[8] +data[1]*data[6]*data[8] +data[2]*data[4]*data[9] -data[0]*data[6]*data[9];
 }
 
-struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLdouble* b)
+struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b)
 {
     struct point_XYZ tmp; /* JAS*/
 
@@ -129,7 +129,7 @@ struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, cons
     return r;
 }
 
-float* transformf(float* r, const float* a, const GLdouble* b)
+float* transformf(float* r, const float* a, const GLDOUBLE* b)
 {
     float tmp[3];  /* JAS*/
 
@@ -146,7 +146,7 @@ float* transformf(float* r, const float* a, const GLdouble* b)
     return r;
 }
 /*transform point, but ignores translation.*/
-struct point_XYZ* transform3x3(struct point_XYZ* r, const struct point_XYZ* a, const GLdouble* b)
+struct point_XYZ* transform3x3(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b)
 {
     struct point_XYZ tmp;
 
@@ -164,7 +164,7 @@ struct point_XYZ* transform3x3(struct point_XYZ* r, const struct point_XYZ* a, c
     return r;
 }
 
-struct point_XYZ* vecscale(struct point_XYZ* r, struct point_XYZ* v, GLdouble s)
+struct point_XYZ* vecscale(struct point_XYZ* r, struct point_XYZ* v, GLDOUBLE s)
 {
     r->x = v->x * s;
     r->y = v->y * s;
@@ -278,13 +278,13 @@ void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, stru
 }
 
 
-GLdouble* mattranspose(GLdouble* res, GLdouble* m)
+GLDOUBLE* mattranspose(GLDOUBLE* res, GLDOUBLE* m)
 {
-	GLdouble mcpy[16];
+	GLDOUBLE mcpy[16];
 	int i, j;
 
 	if(res == m) {
-		memcpy(mcpy,m,sizeof(GLdouble)*16);
+		memcpy(mcpy,m,sizeof(GLDOUBLE)*16);
 		m = mcpy;
 	}
 
@@ -296,13 +296,13 @@ GLdouble* mattranspose(GLdouble* res, GLdouble* m)
 }
 
 
-GLdouble* matinverse(GLdouble* res, GLdouble* m)
+GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* m)
 {
     double Deta;
-    GLdouble mcpy[16];
+    GLDOUBLE mcpy[16];
 
     if(res == m) {
-	memcpy(mcpy,m,sizeof(GLdouble)*16);
+	memcpy(mcpy,m,sizeof(GLDOUBLE)*16);
 	m = mcpy;
     }
 
@@ -357,10 +357,10 @@ struct point_XYZ* polynormalf(struct point_XYZ* r, float* p1, float* p2, float* 
 }
 
 
-GLdouble* matrotate(GLdouble* Result, double Theta, double x, double y, double z)
+GLDOUBLE* matrotate(GLDOUBLE* Result, double Theta, double x, double y, double z)
 {
-    GLdouble CosTheta = cos(Theta);
-    GLdouble SinTheta = sin(Theta);
+    GLDOUBLE CosTheta = cos(Theta);
+    GLDOUBLE SinTheta = sin(Theta);
 
     Result[0] = x*x + (y*y+z*z)*CosTheta;
     Result[1] = x*y - x*y*CosTheta + z*SinTheta;
@@ -382,7 +382,7 @@ GLdouble* matrotate(GLdouble* Result, double Theta, double x, double y, double z
     return Result;
 }
 
-GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz)
+GLDOUBLE* mattranslate(GLDOUBLE* r, double dx, double dy, double dz)
 {
     r[0] = r[5] = r[10] = r[15] = 1;
     r[1] = r[2] = r[3] = r[4] =
@@ -394,16 +394,16 @@ GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz)
     return r;
 }
 
-GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n)
+GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n)
 {
-    GLdouble tm[16],tn[16];
+    GLDOUBLE tm[16],tn[16];
     /* prevent self-multiplication problems.*/
     if(r == m) {
-	memcpy(tm,m,sizeof(GLdouble)*16);
+	memcpy(tm,m,sizeof(GLDOUBLE)*16);
 	m = tm;
     }
     if(r == n) {
-	memcpy(tn,n,sizeof(GLdouble)*16);
+	memcpy(tn,n,sizeof(GLDOUBLE)*16);
 	n = tn;
     }
     r[0] = m[0]*n[0]+m[4]*n[1]+m[8]*n[2];
@@ -425,7 +425,7 @@ GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n)
 }
 
 /*puts dv back on iv*/
-double matrotate2v(GLdouble* res, struct point_XYZ iv/*original*/, struct point_XYZ dv/*result*/) {
+double matrotate2v(GLDOUBLE* res, struct point_XYZ iv/*original*/, struct point_XYZ dv/*result*/) {
     struct point_XYZ cv;
     double cvl,a;
 
@@ -450,7 +450,7 @@ double matrotate2v(GLdouble* res, struct point_XYZ iv/*original*/, struct point_
 
 #ifdef COMMENT
 /*fast crossproduct using references, that checks for auto-assignments */
-GLdouble* veccross(GLdouble* r, GLdouble* v1, GLdouble* v2)
+GLDOUBLE* veccross(GLDOUBLE* r, GLDOUBLE* v1, GLDOUBLE* v2)
 {
     /*check against self-assignment. */
     if(r != v1) {
@@ -459,13 +459,13 @@ GLdouble* veccross(GLdouble* r, GLdouble* v1, GLdouble* v2)
 	    r[1] = v1[2]*v2[0] - v1[0]*v2[2];
 	    r[2] = v1[0]*v2[1] - v1[1]*v2[0];
 	} else { /* r == v2 */
-	    GLdouble v2c[3] = {v2[0],v2[1],v2[2]};
+	    GLDOUBLE v2c[3] = {v2[0],v2[1],v2[2]};
 	    r[0] = v1[1]*v2c[2] - v1[2]*v2c[1];
 	    r[1] = v1[2]*v2c[0] - v1[0]*v2c[2];
 	    r[2] = v1[0]*v2c[1] - v1[1]*v2c[0];
 	}
     } else { /* r == v1 */
-	GLdouble v1c[3] = {v1[0],v1[1],v1[2]};
+	GLDOUBLE v1c[3] = {v1[0],v1[1],v1[2]};
 	r[0] = v1c[1]*v2[2] - v1c[2]*v2[1];
 	r[1] = v1c[2]*v2[0] - v1c[0]*v2[2];
 	r[2] = v1c[0]*v2[1] - v1c[1]*v2[0];

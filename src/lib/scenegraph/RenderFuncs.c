@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.35 2009/12/10 20:51:55 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.36 2010/01/12 20:04:47 sdumoulin Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -169,8 +169,8 @@ void *empty_group=0;
 /* Sub, rather than big macro... */
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	    float tx,float ty, char *descr)  {
-	GLdouble modelMatrix[16];
-	GLdouble projMatrix[16];
+	GLDOUBLE modelMatrix[16];
+	GLDOUBLE projMatrix[16];
 
 	/* Real rat-testing */
 #ifdef RENDERVERBOSE
@@ -184,9 +184,9 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	if(rat<0 || (rat>hpdist && hpdist >= 0)) {
 		return;
 	}
-	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-	gluProject(cx,cy,cz, modelMatrix, projMatrix, viewport, &hp.x, &hp.y, &hp.z);
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+	FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &hp.x, &hp.y, &hp.z);
 	hpdist = rat;
 	rayHit=rayph;
 	rayHitHyper=rayph;
@@ -198,15 +198,15 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 
 /* Call this when modelview and projection modified */
 void upd_ray() {
-	GLdouble modelMatrix[16];
-	GLdouble projMatrix[16];
-	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-	gluUnProject(r1.x,r1.y,r1.z,modelMatrix,projMatrix,viewport,
+	GLDOUBLE modelMatrix[16];
+	GLDOUBLE projMatrix[16];
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+	FW_GLU_UNPROJECT(r1.x,r1.y,r1.z,modelMatrix,projMatrix,viewport,
 		     &t_r1.x,&t_r1.y,&t_r1.z);
-	gluUnProject(r2.x,r2.y,r2.z,modelMatrix,projMatrix,viewport,
+	FW_GLU_UNPROJECT(r2.x,r2.y,r2.z,modelMatrix,projMatrix,viewport,
 		     &t_r2.x,&t_r2.y,&t_r2.z);
-	gluUnProject(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
+	FW_GLU_UNPROJECT(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
 		     &t_r3.x,&t_r3.y,&t_r3.z);
 /*	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",
 	r1.x,r1.y,r1.z,r2.x,r2.y,r2.z,
@@ -378,8 +378,8 @@ void render_node(struct X3D_Node *node) {
 		/* HP */
 		srh = rayph;
 		rayph.node = node;
-		fwGetDoublev(GL_MODELVIEW_MATRIX, rayph.modelMatrix);
-		fwGetDoublev(GL_PROJECTION_MATRIX, rayph.projMatrix);
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, rayph.modelMatrix);
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, rayph.projMatrix);
 		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,v);
 	}
 
@@ -512,7 +512,7 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 void
 render_hier(struct X3D_Node *p, int rwhat) {
 	struct point_XYZ upvec = {0,1,0};
-	GLdouble modelMatrix[16];
+	GLDOUBLE modelMatrix[16];
 #define XXXrender_pre_profile
 #ifdef render_pre_profile
 	/*  profile */
@@ -590,7 +590,7 @@ render_hier(struct X3D_Node *p, int rwhat) {
 
 		/* store up vector for gravity and collision detection */
 		/* naviinfo.reset_upvec is set to 1 after a viewpoint change */
-		fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 		matinverse(modelMatrix,modelMatrix);
 		transform3x3(&ViewerUpvector,&upvec,modelMatrix);
 

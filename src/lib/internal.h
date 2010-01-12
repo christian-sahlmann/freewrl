@@ -1,5 +1,5 @@
 /*
-  $Id: internal.h,v 1.29 2009/12/22 03:25:17 couannette Exp $
+  $Id: internal.h,v 1.30 2010/01/12 20:04:47 sdumoulin Exp $
 
   FreeWRL support library.
   Library internal declarations.
@@ -326,6 +326,12 @@ void *freewrlStrdup(int line, char *file, char *str);
 /* FIXME: investigate on this... (michel) */
 #include <stddef.h> /* for offsetof(...) */
 /* textures.c > jpeg > jmorecfg.h tries to redefine booleand but you can say you have it */
+#define HAVE_BOOLEAN 1    
+#define M_PI acos(-1.0)
+#endif
+
+#ifdef IPHONE
+#include <stddef.h>
 #define HAVE_BOOLEAN 1    
 #define M_PI acos(-1.0)
 #endif

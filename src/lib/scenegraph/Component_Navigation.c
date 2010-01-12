@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.25 2009/12/18 17:30:12 istakenv Exp $
+$Id: Component_Navigation.c,v 1.26 2010/01/12 20:04:47 sdumoulin Exp $
 
 X3D Navigation Component
 
@@ -104,8 +104,8 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	static const struct point_XYZ orig = {0.0, 0.0, 0.0};
 	static const struct point_XYZ zvec = {0.0, 0.0, 1.0};
 	struct orient_XYZA viewer_orient;
-	GLdouble mod[16];
-	GLdouble proj[16];
+	GLDOUBLE mod[16];
+	GLDOUBLE proj[16];
 	int align;
 	double len, len2, angle;
 	int sign;
@@ -123,8 +123,8 @@ void prep_Billboard (struct X3D_Billboard *node) {
 
 	FW_GL_PUSH_MATRIX();
 
-	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
-	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
 	gluUnProject(orig.x, orig.y, orig.z, mod, proj,
 		viewport, &vpos.x, &vpos.y, &vpos.z);
 
@@ -299,8 +299,8 @@ void child_LOD (struct X3D_LOD *node) {
 
 /* calculate the LOD distance */
 void proximity_LOD (struct X3D_LOD *node) {
-        GLdouble mod[16];
-        GLdouble proj[16];
+        GLDOUBLE mod[16];
+        GLDOUBLE proj[16];
         struct point_XYZ vec;
         double dist;
         int nran = (node->range).n;
@@ -322,9 +322,9 @@ void proximity_LOD (struct X3D_LOD *node) {
         }
 
         /* calculate which one to display */
-        fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
+        FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
         /* printf ("LOD, mat %f %f %f\n",mod[12],mod[13],mod[14]); */
-        fwGetDoublev(GL_PROJECTION_MATRIX, proj);
+        FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
         gluUnProject(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
         vec.x -= (node->center).c[0];
         vec.y -= (node->center).c[1];
