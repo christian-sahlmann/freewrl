@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.40 2010/01/12 20:04:47 sdumoulin Exp $
+  $Id: display.h,v 1.41 2010/01/12 20:56:42 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -299,7 +299,6 @@ void setScreenDim(int wi, int he);
 /* debugging OpenGL calls  - allows us to keep track of what is happening */
 #undef DEBUG_OPENGL_CALLS
 #ifdef DEBUG_OPENGL_CALLS
-/*
 	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) \
 		{glOrtho(aaa,bbb,ccc,ddd,eee,fff); \
 		printf ("glOrtho at %s:%d\n",__FILE__,__LINE__);}
@@ -438,7 +437,7 @@ void setScreenDim(int wi, int he);
 		printf ("gluPerspective at %s:%d\n",__FILE__,__LINE__);}
 
 	
-*/
+
 
 	/* these are Null Ops */
 /*
@@ -489,7 +488,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd)
 */
 
-
+/*
 	#define FW_GL_GETDOUBLEV(aaa,bbb) \
 		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
 	#define FW_GL_PIXELSTOREI(aaa,bbb) \
@@ -579,11 +578,11 @@ void setScreenDim(int wi, int he);
 		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) \
 		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
+*/
 
 
 
-
-#else
+#else /* DEBUG_OPENGL_CALLS */
 #ifndef IPHONE
 	#define FW_GL_GETDOUBLEV(aaa,bbb) glGetDoublev(aaa,bbb);
 	#define FW_GL_LOAD_IDENTITY glLoadIdentity
@@ -608,11 +607,11 @@ void setScreenDim(int wi, int he);
 #if defined(_MSC_VER)
 	#define FW_GL_PUSH_MATRIX(...) glPushMatrix()
 	#define FW_GL_POP_MATRIX(...) glPopMatrix()
-#else
+#else /* _MSC_VER */
 	#define FW_GL_PUSH_MATRIX(aaa) glPushMatrix()
 	#define FW_GL_POP_MATRIX(aaa) glPopMatrix()
 
-#endif
+#endif /* _MSC_VER */
         #define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) glScissor(aaa,bbb,ccc,ddd); 
         #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
         #define FW_GL_POP_ATTRIB(aaa) glPopAttrib(aaa); 
@@ -637,10 +636,9 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_CGLFLUSHDRAWABLE(aaa) CGLFlushDrawable(aaa)
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
 	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
+#endif /* NDEF IPHONE */
 
-
-#endif
-#endif
+#endif /* DEBUG_OPENGL_CALLS */
 
 // Use macros to enable compilation under OpenGL ES 2.0 
 #ifdef IPHONE
@@ -789,6 +787,7 @@ void setScreenDim(int wi, int he);
 #define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd)
 #define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee)
 #define FW_GL_MATERIALF(aaa, bbb, ccc)
+#define FW_GL_MATERIALFV(aaa, bbb, ccc)
 #define FW_GL_COLOR_MATERIAL(aaa, bbb)
 #define FW_GL_COLOR4FV(aaa)
 #define FW_GL_COLOR3F(aaa, bbb, ccc)
@@ -828,7 +827,7 @@ void setScreenDim(int wi, int he);
 #define FW_GL_SHADE_MODEL(aaa)
 
 
-#else
+#else  /* ifndef IPHONE */
 
 #define GLDOUBLE GLdouble
 #define FW_GL_SHADE_MODEL(aaa) glShadeModel(aaa)
@@ -842,7 +841,6 @@ void setScreenDim(int wi, int he);
 #define FW_GLU_NEXT_CONTOUR(aaa, bbb) gluNextContour(aaa,bbb)
 #define FW_GL_BEGIN_QUERY(aaa, bbb) glBeginQuery(aaa, bbb)
 #define FW_GL_END_QUERY(aaa) glEndQuery(aaa)
-#define FW_GL_POINTSIZE(aaa) glPointSize(aaa)
 #define FW_GL_LINE_STIPPLE(aaa, bbb) glLineStipple(aaa, bbb)
 #define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 #define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
@@ -852,12 +850,11 @@ void setScreenDim(int wi, int he);
 #define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) glNormalPointer(aaa, bbb, ccc)
 #define FW_GL_BEGIN(aaa) glBegin(aaa)
 #define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
+#define FW_GL_MATERIALFV(aaa, bbb, ccc) glMaterialfv(aaa, bbb, ccc)
 #define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
-#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa)
-#define FW_GL_COLOR3F(aaa, bbb, ccc) glColor3f(aaa, bbb, ccc)
 #define FW_GL_COLOR3D(aaa, bbb, ccc) glColor3d(aaa, bbb, ccc)
 #define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluScaleImage(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 #define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
-#endif
+#endif /* ifdef IPHONE */
 
 #endif /* __LIBFREEWRL_DISPLAY_H__ */
