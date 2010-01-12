@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.41 2010/01/12 20:56:42 crc_canada Exp $
+  $Id: display.h,v 1.42 2010/01/12 21:04:41 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -603,7 +603,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) glRotatef(aaa,xxx,yyy,zzz)
 	#define FW_GL_SCALE_F(xxx,yyy,zzz) glScalef(xxx,yyy,zzz)
 	#define FW_GL_SCALE_D(xxx,yyy,zzz) glScaled(xxx,yyy,zzz)
-	#define FW_GL_LOAD_IDENTITY glLoadIdentity
 #if defined(_MSC_VER)
 	#define FW_GL_PUSH_MATRIX(...) glPushMatrix()
 	#define FW_GL_POP_MATRIX(...) glPopMatrix()
@@ -834,7 +833,7 @@ void setScreenDim(int wi, int he);
 #define FW_GL_FOGFV(aaa, bbb) glFogfv(aaa, bbb)
 #define FW_GL_FOGF(aaa, bbb) glFogf(aaa, bbb)
 #define FW_GL_FOGI(aaa, bbb) glFogi(aaa, bbb)
-#define FW_GLU_NEW_TESS() gluNewTess
+#define FW_GLU_NEW_TESS gluNewTess
 #define FW_GLU_END_POLYGON(aaa) gluEndPolygon(aaa)
 #define FW_GLU_BEGIN_POLYGON(aaa) gluBeginPolygon(aaa)
 #define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) gluTessVertex(aaa, bbb, ccc)
