@@ -1,0 +1,80 @@
+%VRML_CONFIG = (
+############################################################################
+BIN_DIR => "/usr/bin",
+LIB_DIR => "/usr/local/lib",
+BROWSER => "/usr/bin/open",
+WGET => "/usr/bin/curl",
+ASCIITERM => "/usr/X11R6/bin/rxvt",
+UNZIP => "/usr/bin/gunzip",
+
+# Java compiler - if no java, comment this line and the JAVA_INST line below.
+JAVA => "/usr/bin/java",
+
+SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
+
+FREEWRL_CCFLAGS => '-arch '.
+		   'armv6 '.
+		   ' -pipe -no-cpp-precomp -miphoneos-version-min=2.2 '.
+		   '-fno-common ',
+
+############################################################################
+# Main defines for OpenGL, freetype
+    FREEWRL_LIBS => '-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
+		'-L/usr/local/lib '.
+		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks/OpenGLES.framework/Libraries '.
+		'-lSystem '.
+		'-lexpat '.
+		'-lfreetype '.
+		' -F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks -framework OpenGLES ',
+
+    # when building on Leopard 10.5, keep the version at 10.4 - see:
+    # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
+
+    # can also add -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC to display malloc issues.
+
+#     FREEWRL_DEFINE => ' -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -DIPHONE -fno-common -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk',
+    FREEWRL_DEFINE => ' -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DIPHONE -DAQUA -fno-common -arch armv6 -miphoneos-version-min=2.2  -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk',
+
+    FREEWRL_INC => '-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/include '.
+		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/include/sys '.
+		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks/OpenGLES.framework/Headers '.
+		'-I/usr/local/include/freetype2 '.
+		'-I/usr/local/include/freetype2/freetype '.
+		'-I/usr/local/include '.
+		'-I/opt/local/include '.
+		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib/gcc/arm-apple-darwin9/4.2.1/include '.
+		'-I/Xcode3.1.4/Platforms/iPhoneOS.platform/Developer/usr/lib/gcc/arm-apple-darwin9/4.0.1/include '.
+		' ',
+
+############################################################################
+# Netscape installation
+    NETSCAPE_INST => '/Users/johnstewart/temp',
+    JAVA_INST => '/Users/johnstewart/temp',
+
+############################################################################
+# LD flags
+
+    # when building on Leopard 10.5, keep the version at 10.4 - see:
+    # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
+
+
+	LDFLAGS => '-flat_namespace '.
+		'-undefined error '.
+		'-isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk'.
+		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
+		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks '. 
+		'-framework OpenGLES '.
+		'-arch armv6 '.
+		'-miphoneos-version-min=2.2 '.
+		'-lAquaIntLib ',
+
+	LDFLAGS2 => '-flat_namespace '.
+		'-undefined error '.
+		'-bundle '.
+		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
+		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks '.
+		'-framework OpenGLES '.
+		'-lAquaIntLib ',
+);
