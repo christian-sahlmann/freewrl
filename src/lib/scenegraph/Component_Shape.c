@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.23 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Component_Shape.c,v 1.24 2010/01/13 19:51:26 crc_canada Exp $
 
 X3D Shape Component
 
@@ -423,8 +423,11 @@ void child_Shape (struct X3D_Shape *node) {
 	float amb;
 	float trans= 1.0;
 
-	if(!(node->geometry)) { return; }
+	/* JAS - if not collision, and render_geom is not set, no need to go further */
+	/* printf ("render_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
+	if(!(node->geometry)) { return; }
 
 	RECORD_DISTANCE
 
@@ -442,10 +445,6 @@ void child_Shape (struct X3D_Shape *node) {
 	material_twoSided = NULL;
 	material_oneSided = NULL;
 
-
-	/* JAS - if not collision, and render_geom is not set, no need to go further */
-	/* printf ("render_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
-	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
 
 	/* a texture and a transparency flag... */
 	texture_count = 0; /* will be >=1 if textures found */
@@ -476,37 +475,35 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* do the appearance here */
 
-	/* if we do NOT have a shader node, do the appearance nodes */
-	if (globalCurrentShader == 0) {
-		if (material_oneSided != NULL) {
-			/* we have a normal material node */
-			#define whichFace GL_FRONT_AND_BACK
-			DO_MAT(material_oneSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
-			#undef whichFace
-		} else if (material_twoSided != NULL) {
-			GLenum whichFace;
-			/* we have a two sided material here */
-			/* first, do back */
-			if (material_twoSided->separateBackColor) {
-				whichFace = GL_BACK;
-				DO_MAT(material_twoSided,backDiffuseColor,backEmissiveColor,backShininess,backAmbientIntensity,backSpecularColor,backTransparency)
-				whichFace = GL_FRONT;
-			} else {
-				whichFace=GL_FRONT_AND_BACK;
-			}
-			DO_MAT(material_twoSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
+	if (material_oneSided != NULL) {
+		/* we have a normal material node */
+		#define whichFace GL_FRONT_AND_BACK
+		DO_MAT(material_oneSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
+		#undef whichFace
+	} else if (material_twoSided != NULL) {
+		GLenum whichFace;
+		/* we have a two sided material here */
+		/* first, do back */
+		if (material_twoSided->separateBackColor) {
+			whichFace = GL_BACK;
+			DO_MAT(material_twoSided,backDiffuseColor,backEmissiveColor,backShininess,backAmbientIntensity,backSpecularColor,backTransparency)
+			whichFace = GL_FRONT;
 		} else {
-			/* no material, so just colour the following shape */ 
-			/* Spec says to disable lighting and set coloUr to 1,1,1 */ 
-			LIGHTING_OFF  
-			FW_GL_COLOR3F(1,1,1); 
-	 
-			/* tell the rendering passes that this is just "normal" */ 
-			last_texture_type = NOTEXTURE; 
-			/* same with materialProperties.transparency */ 
-			appearanceProperties.transparency=0.99999; 
+			whichFace=GL_FRONT_AND_BACK;
 		}
+		DO_MAT(material_twoSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
+	} else {
+		/* no material, so just colour the following shape */ 
+		/* Spec says to disable lighting and set coloUr to 1,1,1 */ 
+		LIGHTING_OFF  
+		FW_GL_COLOR3F(1,1,1); 
+	 
+		/* tell the rendering passes that this is just "normal" */ 
+		last_texture_type = NOTEXTURE; 
+		/* same with materialProperties.transparency */ 
+		appearanceProperties.transparency=0.99999; 
 	}
+
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (render_blend == (node->_renderFlags & VF_Blend)) {
@@ -536,41 +533,22 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* any shader turned on? if so, turn it off */
 	TURN_APPEARANCE_SHADER_OFF;
+
+	/* turn off face culling */
+	DISABLE_CULL_FACE;
+	/* printf ("end of render_Shape\n"); */
 }
 
 
 void child_Appearance (struct X3D_Appearance *node) {
 	void *tmpN;
-	struct X3D_Node *localShaderNode;
 	
 	/* initialization */
 	last_texture_type = NOTEXTURE;
-	localShaderNode = NULL;
 	
 	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
 	   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	   render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
-	
-	/* shaders here/supported?? */
-	if (node->shaders.n !=0) {
-		int count;
-		int foundGoodShader = FALSE;
-		
-		for (count=0; count<node->shaders.n; count++) {
-			POSSIBLE_PROTO_EXPANSION(node->shaders.p[count], tmpN);
-			
-			/* have we found a valid shader yet? */
-			if (foundGoodShader) {
-				/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
-				/* yes, just tell other shaders that they are not selected */
-				SET_SHADER_SELECTED_FALSE(tmpN);
-			} else {
-				/* render this node; if it is valid, then we call this one the selected one */
-				localShaderNode = tmpN;
-				SET_FOUND_GOOD_SHADER(localShaderNode);
-			}
-		}
-	}
 	
 	/* Render the material node... */
 	RENDER_MATERIAL_SUBNODES(node->material);
@@ -598,10 +576,28 @@ void child_Appearance (struct X3D_Appearance *node) {
 
 		render_node(tmpN);
 	}
+
 	/* shaders here/supported?? */
-	if (localShaderNode != NULL) {
-		DEBUG_SHADER("running shader (%s) %d of %d\n",
-			     stringNodeType(X3D_NODE(localShaderNode)->_nodeType),count, node->shaders.n);
-		render_node(localShaderNode);
+	if (node->shaders.n !=0) {
+		int count;
+		int foundGoodShader = FALSE;
+		
+		for (count=0; count<node->shaders.n; count++) {
+			POSSIBLE_PROTO_EXPANSION(node->shaders.p[count], tmpN);
+			
+			/* have we found a valid shader yet? */
+			if (foundGoodShader) {
+				/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
+				/* yes, just tell other shaders that they are not selected */
+				SET_SHADER_SELECTED_FALSE(tmpN);
+			} else {
+				/* render this node; if it is valid, then we call this one the selected one */
+				SET_FOUND_GOOD_SHADER(tmpN);
+				DEBUG_SHADER("running shader (%s) %d of %d\n",
+			    	 stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->shaders.n);
+				render_node(tmpN);
+			}
+		}
 	}
+	
 }
