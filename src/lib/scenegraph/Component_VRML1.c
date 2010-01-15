@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.14 2009/12/18 17:30:12 istakenv Exp $
+$Id: Component_VRML1.c,v 1.15 2010/01/15 22:07:26 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -71,6 +71,7 @@ Have fun! John A. Stewart, June 2009
 
 #include "../opengl/OpenGL_Utils.h"
 #include "../opengl/Material.h"
+#include "../opengl/Textures.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Vector.h"
 #include "../scenegraph/Component_Shape.h"
@@ -309,7 +310,7 @@ void child_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 	LOCAL_LIGHT_SAVE
 
 	/* ensure that textures start off at the first texture unit */
-	texture_count = 0;
+	textureStackTop = 0;
 
 	/* printf ("vhild_sep %u, vp %d geom %d light %d sens %d blend %d prox %d col %d\n",node,
 	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
@@ -611,7 +612,7 @@ void render_VRML1_Texture2 (struct X3D_VRML1_Texture2  *node) {
 	if (cSLD!=NULL) cSLD->t2Node = node;
 	/* printf ("tex2, parent %s, me %s\n",node->__parenturl->strptr, node->filename.p[0]->strptr); */
         loadTextureNode(X3D_NODE(node),NULL);
-        texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
+        textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
 
 void render_VRML1_Texture2Transform (struct X3D_VRML1_Texture2Transform  *node) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.35 2009/11/06 22:29:43 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.36 2010/01/15 22:07:26 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -98,6 +98,7 @@ FIELDTYPE_MFVec4d
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CFieldDecls.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../opengl/Textures.h"
 #include "Component_ProgrammableShaders.h"
 
 
@@ -817,6 +818,19 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 	printf ("\n");
 	#endif
 
+	/* lets look for, and tie in, textures */
+	/* we make X3D_Texture0 = 0; X3D_Texture1=1, etc */
+	for (i=0; i<MAX_MULTITEXTURE; i++) {
+		char myShaderTextureName[200];
+		GLint myVar;
+
+		sprintf (myShaderTextureName,"X3D_Texture%d",i);
+		if (myVar == GET_UNIFORM(myShader,myShaderTextureName)) {
+			/* printf ("for texture %s, we got %d\n", myShaderTextureName,myVar); */
+			GLUNIFORM1I(myVar,i);
+		}
+	}
+
 	/* is there any fields? */
 	if (me == NULL) return;
 
@@ -836,8 +850,8 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 
 		#ifdef SHADERVERBOSE
 		printf ("curField %d name %s type %s ",i,curField->name,curField->type);
-		printf ("fieldDecl mode %d (%s) type %d (%s) name %d\n",myf->mode, 
-			stringPROTOKeywordType(myf->mode), myf->type, stringFieldtypeType(myf->type),myf->name);
+		printf ("fieldDecl mode %d (%s) type %d (%s) name %d\n",myf->PKWmode, 
+			stringPROTOKeywordType(myf->PKWmode), myf->fieldType, stringFieldtypeType(myf->fieldType),myf->lexerNameIndex);
 		#endif
 
 		/* ask the shader for its handle for this variable */
@@ -906,6 +920,7 @@ Note the differing location of the fields...
 static void sendInitialFieldsToShader(struct X3D_Node * node) {
 	int i;
 	GLuint myShader;
+printf ("sendInitialFieldsToShader...\n");
 
 	switch (node->_nodeType) {
 		case NODE_ProgramShader: {

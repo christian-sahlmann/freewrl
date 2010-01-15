@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.36 2010/01/12 20:04:47 sdumoulin Exp $
+  $Id: RenderFuncs.c,v 1.37 2010/01/15 22:07:26 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -36,6 +36,7 @@
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Textures.h"
 
 #include "Polyrep.h"
 #include "Collision.h"
@@ -92,8 +93,8 @@ int render_proximity;
 int render_collision;
 
 /* texture stuff - see code. Need array because of MultiTextures */
-GLuint bound_textures[MAX_MULTITEXTURE];
-int texture_count;
+GLuint boundTextureStack[MAX_MULTITEXTURE];
+int textureStackTop;
 
 int	have_transparency=FALSE;/* did any Shape have transparent material? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */

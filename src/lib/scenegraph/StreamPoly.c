@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.11 2009/10/05 15:07:24 crc_canada Exp $
+$Id: StreamPoly.c,v 1.12 2010/01/15 22:07:26 crc_canada Exp $
 
 ???
 
@@ -37,6 +37,7 @@ $Id: StreamPoly.c,v 1.11 2009/10/05 15:07:24 crc_canada Exp $
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Textures.h"
 
 #include "Polyrep.h"
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.24 2010/01/13 19:51:26 crc_canada Exp $
+$Id: Component_Shape.c,v 1.25 2010/01/15 22:07:26 crc_canada Exp $
 
 X3D Shape Component
 
@@ -40,6 +40,7 @@ X3D Shape Component
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
+#include "../opengl/Textures.h"
 #include "Component_ProgrammableShaders.h"
 #include "Component_Shape.h"
 
@@ -424,7 +425,7 @@ void child_Shape (struct X3D_Shape *node) {
 	float trans= 1.0;
 
 	/* JAS - if not collision, and render_geom is not set, no need to go further */
-	/* printf ("render_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	/* printf ("child_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
 	if(!(node->geometry)) { return; }
@@ -447,7 +448,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 
 	/* a texture and a transparency flag... */
-	texture_count = 0; /* will be >=1 if textures found */
+	textureStackTop = 0; /* will be >=1 if textures found */
 
 	/* assume that lighting is enabled. Absence of Material or Appearance
 	   node will turn lighting off; in this case, at the end of Shape, we
@@ -474,6 +475,31 @@ void child_Shape (struct X3D_Shape *node) {
 
 
 	/* do the appearance here */
+#ifdef SHAPEVERBOSE
+	printf ("child_Shape, material_oneSided %u, textureStackTop %d\n",material_oneSided,textureStackTop);
+	{int i; for (i=0; i<textureStackTop; i++) {
+		printf ("boundTextureStack[%d] is texture %d\n",i,boundTextureStack[i]);
+		if (textureParameterStack[i] == NULL) {
+			printf ("textureParameterStack empty\n");
+		} else {
+			printf ("	texture_env_mode	 %d\n",textureParameterStack[i]->texture_env_mode);
+			printf ("	combine_rgb		 %d\n",textureParameterStack[i]->combine_rgb);
+			printf ("	source0_rgb		 %d\n",textureParameterStack[i]->source0_rgb);
+			printf ("	operand0_rgb		 %d\n",textureParameterStack[i]->operand0_rgb);
+			printf ("	source1_rgb		 %d\n",textureParameterStack[i]->source1_rgb);
+			printf ("	operand1_rgb		 %d\n",textureParameterStack[i]->operand1_rgb);
+			printf ("	combine_alpha		 %d\n",textureParameterStack[i]->combine_alpha);
+			printf ("	source0_alpha		 %d\n",textureParameterStack[i]->source0_alpha);
+			printf ("	operand0_alpha		 %d\n",textureParameterStack[i]->operand0_alpha);
+			printf ("	source1_alpha		 %d\n",textureParameterStack[i]->source1_alpha);
+			printf ("	operand1_alpha		 %d\n",textureParameterStack[i]->operand1_alpha);
+			printf ("	rgb_scale		 %d\n",textureParameterStack[i]->rgb_scale);
+			printf ("	alpha_scale		 %d\n",textureParameterStack[i]->alpha_scale);
+		}
+	}
+	}
+#endif
+
 
 	if (material_oneSided != NULL) {
 		/* we have a normal material node */
@@ -536,7 +562,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* turn off face culling */
 	DISABLE_CULL_FACE;
-	/* printf ("end of render_Shape\n"); */
+	/* printf ("end of render_Shape\n");  */
 }
 
 

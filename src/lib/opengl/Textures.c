@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.43 2010/01/12 20:04:47 sdumoulin Exp $
+  $Id: Textures.c,v 1.44 2010/01/15 22:07:25 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -72,8 +72,6 @@
                 return;	\
 		}
 
-/* we keep track of which textures have been loaded, and which have not */
-extern void *texParams[];
 
 
 /* each block of allocated code contains this... */
@@ -85,7 +83,7 @@ struct textureTableStruct* readTextureTable = NULL;
 
 static int nextFreeTexture = 0;
 char *workingOnFileName = NULL;
-static void new_bind_image(struct X3D_Node *node, void *param);
+static void new_bind_image(struct X3D_Node *node, struct multiTexParams *param);
 struct textureTableIndexStruct *getTableIndex(int i);
 struct textureTableIndexStruct* loadThisTexture;
 
@@ -441,7 +439,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			}
 
 			/* we have an image specified for this face */
-			texture_count = 0;
+			textureStackTop = 0;
 			/* render the proper texture */
 			render_node((void *)thistex);
 		        FW_GL_COLOR3D(1.0,1.0,1.0);
@@ -479,7 +477,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 			    (thistex->_nodeType == NODE_MovieTexture) ||
 			    (thistex->_nodeType == NODE_MultiTexture)) {
 
-				texture_count = 0;
+				textureStackTop = 0;
 				/* render the proper texture */
 				render_node((void *)thistex);
 		                FW_GL_COLOR3D(1.0,1.0,1.0);
@@ -496,7 +494,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 }
 
 /* load in a texture, if possible */
-void loadTextureNode (struct X3D_Node *node, void *param) 
+void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param) 
 {
     struct X3D_MovieTexture *mym;
 
@@ -739,7 +737,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 			case NODE_MovieTexture:
 			case NODE_VRML1_Texture2:
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
-				loadTextureNode (X3D_NODE(nt), (void *)paramPtr);
+				loadTextureNode (X3D_NODE(nt), paramPtr);
 				break;
 			case NODE_MultiTexture:
 				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
@@ -749,11 +747,11 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 						nt->_nodeType);
 		}
 
-		/* now, lets increment texture_count. The current texture will be
-		   stored in bound_textures[texture_count]; texture_count will be 1
+		/* now, lets increment textureStackTop. The current texture will be
+		   stored in boundTextureStack[textureStackTop]; textureStackTop will be 1
 		   for "normal" textures; at least 1 for MultiTextures. */
 
-        	texture_count++;
+        	textureStackTop++;
 		paramPtr++;
 
 #ifdef TEXVERBOSE
@@ -1088,7 +1086,7 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 
 	param - vrml fields, but translated into GL_TEXTURE_ENV_MODE, GL_MODULATE, etc.
 ************************************************************************************/
-void new_bind_image(struct X3D_Node *node, void *param) {
+void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	int thisTexture;
 	int thisTextureType;
 	struct X3D_ImageTexture *it;
@@ -1101,11 +1099,11 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	GET_THIS_TEXTURE;
 	myTableIndex = getTableIndex(thisTexture);
 
-	/* printf ("new_bind_image, I am %u, texture_count %d, thisTexture is %u status %s\n",
-		node,texture_count,thisTexture,texst(myTableIndex->status));  */
+	/* printf ("new_bind_image, I am %u, textureStackTop %d, thisTexture is %u status %s\n",
+		node,textureStackTop,thisTexture,texst(myTableIndex->status));  */
 
 	/* default here; this is just a blank texture */
-	bound_textures[texture_count] = defaultBlankTexture;
+	boundTextureStack[textureStackTop] = defaultBlankTexture;
 
 	switch (myTableIndex->status) {
 		case TEX_NOTLOADED:
@@ -1144,18 +1142,18 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 					return;
 				}
 	
-				bound_textures[texture_count] = myTableIndex->OpenGLTexture;
+				boundTextureStack[textureStackTop] = myTableIndex->OpenGLTexture;
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 			} else {
-				bound_textures[texture_count] = 
+				boundTextureStack[textureStackTop] = 
 					((struct X3D_MovieTexture *)myTableIndex->scenegraphNode)->__ctex;
 			}
 #endif
 	
 			/* save the texture params for when we go through the MultiTexture stack. Non
-			   MultiTextures should have this texture_count as 0 */
+			   MultiTextures should have this textureStackTop as 0 */
 			 
-			texParams[texture_count] = param; 
+			textureParameterStack[textureStackTop] = param; 
 	
 			textureInProcess = -1; /* we have finished the whole process */
 			break;

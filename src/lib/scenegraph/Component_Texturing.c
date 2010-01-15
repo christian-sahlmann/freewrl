@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.9 2009/12/04 16:44:45 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.10 2010/01/15 22:07:26 crc_canada Exp $
 
 X3D Texturing Component
 
@@ -38,6 +38,7 @@ X3D Texturing Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Textures.h"
 #include "../scenegraph/Component_Shape.h"
 
 
@@ -163,13 +164,13 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 
 void render_PixelTexture (struct X3D_PixelTexture *node) {
 	loadTextureNode(X3D_NODE(node),NULL);
-	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
+	textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
 
 void render_ImageTexture (struct X3D_ImageTexture *node) {
 	/* printf ("render_ImageTexture, global Transparency %f\n",appearanceProperties.transparency); */
 	loadTextureNode(X3D_NODE(node),NULL);
-	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
+	textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
 
 void render_MultiTexture (struct X3D_MultiTexture *node) {
@@ -179,17 +180,17 @@ void render_MultiTexture (struct X3D_MultiTexture *node) {
 void render_MovieTexture (struct X3D_MovieTexture *node) {
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	/* really simple, the texture number is calculated, then simply sent here.
-	   The bound_textures field is sent, and, made current */
+	   The boundTextureStack field is sent, and, made current */
 
 	/*  if this is attached to a Sound node, tell it...*/
 	sound_from_audioclip = FALSE;
 
 	loadTextureNode(X3D_NODE(node),NULL);
-	bound_textures[texture_count] = node->__ctex;
-	/* not multitexture, should have saved to bound_textures[0] */
+	boundTextureStack[textureStackTop] = node->__ctex;
+	/* not multitexture, should have saved to boundTextureStack[0] */
 #else /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 	loadTextureNode(X3D_NODE(node),NULL);
 #endif
 	
-	texture_count=1;
+	textureStackTop=1;
 }

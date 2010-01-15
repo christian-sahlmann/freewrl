@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.42 2010/01/12 21:04:41 crc_canada Exp $
+  $Id: display.h,v 1.43 2010/01/15 22:07:24 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -435,6 +435,8 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) \
 		gluPerspective(aaa,bbb,ccc,ddd); \
 		printf ("gluPerspective at %s:%d\n",__FILE__,__LINE__);}
+	#define SET_TEXTURE_UNIT(aaa) { printf ("setActiveTexture to %d at %s:%d\n",aaa,__FILE__,__LINE__); \
+			glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
 
 	
 
@@ -486,6 +488,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_CGLFLUSHDRAWABLE(aaa) GL_FALSE
 	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd)
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd)
+	#define SET_TEXTURE_UNIT(aaa)
 */
 
 /*
@@ -635,6 +638,10 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_CGLFLUSHDRAWABLE(aaa) CGLFlushDrawable(aaa)
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
 	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
+	#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
+	#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
+	#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
+	#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
 #endif /* NDEF IPHONE */
 
 #endif /* DEBUG_OPENGL_CALLS */
@@ -824,6 +831,11 @@ void setScreenDim(int wi, int he);
 #define FW_GL_FOGF(aaa, bbb)
 #define FW_GL_FOGI(aaa, bbb)
 #define FW_GL_SHADE_MODEL(aaa)
+#define SET_TEXTURE_UNIT(aaa)
+#define FW_GL_TEXENVI(aaa,bbb,ccc)
+#define FW_GL_TEXGENI(aaa,bbb,ccc)
+#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) 
+#define FW_GL_BINDTEXTURE(aaa,bbb)
 
 
 #else  /* ifndef IPHONE */
@@ -854,6 +866,11 @@ void setScreenDim(int wi, int he);
 #define FW_GL_COLOR3D(aaa, bbb, ccc) glColor3d(aaa, bbb, ccc)
 #define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluScaleImage(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 #define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
+#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
+#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
+#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
+#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
+#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
 #endif /* ifdef IPHONE */
 
 #endif /* __LIBFREEWRL_DISPLAY_H__ */

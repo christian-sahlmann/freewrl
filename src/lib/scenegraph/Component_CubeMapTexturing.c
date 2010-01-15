@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.8 2009/10/22 16:58:49 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.9 2010/01/15 22:07:26 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -36,6 +36,7 @@ X3D Cubemap Texturing Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Textures.h"
 
 
 /* testing */
@@ -244,7 +245,7 @@ void render_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *node)
 			    (thistex->_nodeType == NODE_MovieTexture) ||
 			    (thistex->_nodeType == NODE_MultiTexture)) {
 
-				texture_count = 0;
+				textureStackTop = 0;
 				/* render the proper texture */
 				render_node((void *)thistex);
 			} 

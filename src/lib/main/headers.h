@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.101 2010/01/13 19:51:26 crc_canada Exp $
+$Id: headers.h,v 1.102 2010/01/15 22:07:25 crc_canada Exp $
 
 Global includes.
 
@@ -491,40 +491,8 @@ void normalize_ifs_face (float *point_normal,
                         float creaseAngle);
 
 
-/* void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstring, unsigned int nl, double *length, */
-/*                 double maxext, double spacing, double mysize, unsigned int fsparam, */
-/*                 struct X3D_PolyRep *rp); */
-
-/* do we have to do textures?? */
-#define HAVETODOTEXTURES (texture_count != 0)
-
-/* multitexture and single texture handling */
-#define MAX_MULTITEXTURE 10
-
-/* texture stuff - see code. Need array because of MultiTextures */
-extern GLuint bound_textures[MAX_MULTITEXTURE];
-extern int texture_count; 
-extern int     *global_tcin;
-extern int     global_tcin_count; 
-extern void 	*global_tcin_lastParent;
-
-extern void textureDraw_start(struct X3D_Node *texC, GLfloat *tex);
-extern void textureDraw_end(void);
-
-extern struct X3D_Node *this_textureTransform;  /* do we have some kind of textureTransform? */
-
-extern int isTextureLoaded(int texno);
-extern int isTextureAlpha(int n);
-extern int display_status;
 
 #define RUNNINGONAMD64 (sizeof(void *) == 8)
-
-/* appearance does material depending on last texture depth */
-#define NOTEXTURE 0
-#define TEXTURE_NO_ALPHA 1
-#define TEXTURE_ALPHA 2
-
-extern int last_texture_type;
 
 /* Text node system fonts. On startup, freewrl checks to see where the fonts
  * are stored
@@ -744,7 +712,6 @@ extern void *rootNode;
 extern int isPerlParsing(void);
 /* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */
 extern int isTextureParsing(void);
-extern void loadTextureNode(struct X3D_Node *node,  void *param);
 extern void loadMovieTexture(struct X3D_MovieTexture *node,  void *param);
 extern void loadMultiTexture(struct X3D_MultiTexture *node);
 extern void loadBackgroundTextures (struct X3D_Background *node);

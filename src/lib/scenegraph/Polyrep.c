@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.17 2009/10/28 17:52:28 crc_canada Exp $
+$Id: Polyrep.c,v 1.18 2010/01/15 22:07:26 crc_canada Exp $
 
 ???
 
@@ -39,6 +39,7 @@ $Id: Polyrep.c,v 1.17 2009/10/28 17:52:28 crc_canada Exp $
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
+#include "../opengl/Textures.h"
 #include "../scenegraph/Component_Shape.h"
 
 #include "Polyrep.h"
