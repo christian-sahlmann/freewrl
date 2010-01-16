@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.90 2010/01/12 20:04:47 sdumoulin Exp $
+  $Id: MainLoop.c,v 1.91 2010/01/16 21:22:09 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -801,7 +801,7 @@ static void render()
 
         /*set_buffer((unsigned)bufferarray[count],count); */              /*  in Viewer.c*/
 
-		Viewer.buffer = (unsigned)bufferarray[count]; /*dug9 can I go directly or is there thread issues*/
+		Viewer.buffer = (unsigned)bufferarray[count]; 
 		Viewer.iside = count;
 		glDrawBuffer((unsigned)bufferarray[count]);
 
@@ -926,27 +926,58 @@ OLDCODE	}
         PRINT_GL_ERROR_IF_ANY("XEvents::render");
 }
 
-
-
-static void
-get_collisionoffset(double *x, double *y, double *z)
+static void get_collisionoffset(double *x, double *y, double *z)
 {
+		struct point_XYZ xyz;
         struct point_XYZ res = CollisionInfo.Offset;
-
+		/* collision.offset should be in collision space coordinates: fly/examine: avatar space, walk: BVVA space */
         /* uses mean direction, with maximum distance */
-        if (CollisionInfo.Count == 0) {
-            *x = *y = *z = 0;
-        } else {
-            if (APPROX(vecnormal(&res, &res),0.0)) {
-                        *x = *y = *z = 0;
-            } else {
-                        vecscale(&res, &res, sqrt(CollisionInfo.Maximum2));
-                        *x = res.x;
-                        *y = res.y;
-                        *z = res.z;
-                         /* printf ("get_collisionoffset, %lf %lf %lf\n",*x, *y, *z);  */
-            }
-        }
+
+		/* xyz is in collision space- fly/examine: avatar space, walk: BVVA space */
+		xyz.x = xyz.y = xyz.z = 0.0;
+
+		if(CollisionInfo.Count > 0 && !APPROX(vecnormal(&res, &res),0.0) )
+				vecscale(&xyz, &res, sqrt(CollisionInfo.Maximum2));
+
+		/* for WALK + collision */
+		if(FallInfo.walking)
+		{
+			if(FallInfo.canFall && FallInfo.isFall ) 
+			{
+				/* canFall == true if we aren't climbing, isFall == true if there's no climb, and there's geom to fall to  */
+				double floatfactor = .1;
+				if(FallInfo.allowClimbing) floatfactor = 0.0; /*popcycle method */
+				if(FallInfo.smoothStep)
+					xyz.y = max(FallInfo.hfall,-FallInfo.fallStep) + naviinfo.height*floatfactor; //.1;
+				else
+					xyz.y = FallInfo.hfall + naviinfo.height*floatfactor; //.1; 
+				if(FallInfo.verticalOnly)
+				{
+					xyz.x = 0.0;
+					xyz.z = 0.0;
+				}
+			}
+			if(FallInfo.isClimb && FallInfo.allowClimbing)
+			{
+				/* stepping up normally handled by cyclindrical collision, but there are settings to use this climb instead */
+				if(FallInfo.smoothStep)
+					xyz.y = min(FallInfo.hclimb,FallInfo.fallStep);
+				else
+					xyz.y = FallInfo.hclimb; 
+				if(FallInfo.verticalOnly)
+				{
+					xyz.x = 0.0;
+					xyz.z = 0.0;
+				}
+			}
+		}
+		/* now convert collision-space deltas to avatar space via collision2avatar- fly/examine: identity (do nothing), walk:BVVA2A */
+		transform3x3(&xyz,&xyz,FallInfo.collision2avatar);
+		/* now xyz is in avatar space, ready to be added to avatar viewer.pos */
+		*x = xyz.x;
+		*y = xyz.y;
+		*z = xyz.z;
+		/* another transform possible: from avatar space into navigation space. fly/examine: identity walk: A2BVVA*/
 }
 
 static void render_collisions() {
@@ -957,13 +988,61 @@ static void render_collisions() {
         CollisionInfo.Count = 0;
         CollisionInfo.Maximum2 = 0.;
 
+		/* popcycle shaped avatar collision volume: ground to stepheight is a ray, stepheight to avatarheight is a cylinder, 
+		   and a sphere on top?
+		   -keeps cyclinder from dragging in terrain mesh, easy to harmonize fall and climb math so not fighting (now a ray both ways)
+		   -2 implementations: analytical cyclinder, sampler
+		   The sampler method intersects line segments radiating from the the avatar axis with shape facets - misses small shapes but good
+		   for walls and floors; intersection math is simple: line intersect plane.
+		*/
+		FallInfo.fallHeight = 100.0; /* when deciding to fall, how far down do you look for a landing surface before giving up and floating */
+		FallInfo.fallStep = 1.0; /* maximum height to fall on one frame */
+		FallInfo.walking = getViewerType() == VIEWER_WALK; //viewer_type == VIEWER_WALK;
+		FallInfo.canFall = FallInfo.walking; /* && COLLISION (but we wouldn't be in here if not). Will be set to 0 if a climb is found. */
+		FallInfo.hits = 0; /* counter (number of vertical hits) set to zero here once per frame */
+		FallInfo.isFall = 0; /*initialize here once per frame - flags if there's a fall found */
+		FallInfo.isClimb = 0; /* initialize here each frame */
+		FallInfo.smoothStep = 1; /* [1] setting - will only fall by fallstep on a frame rather than the full hfall */
+		FallInfo.allowClimbing = 1; /* [0] - setting - 0=climbing done by collision with cyclinder 1=signals popcycle avatar collision volume and allows single-footpoint climbing  */
+		FallInfo.verticalOnly = 0; /* [0] - setting - will completely over-ride/skip cylindrical collision and do only fall/climb */
+		FallInfo.gravityVectorMethod = 1; //[1] - setting -  0=global Y down gravity 1= bound viewpoint Y down gravity as per specs
+		FallInfo.fastTestMethod = 2; //[2] - setting -0=old method - uses fast cylinder test 1= MBB shape space 2= MBB avatar space 3=ignor fast cylinder test and keep going 
+		FallInfo.walkColliderMethod = 3; /* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler */
+		/* at this point we know the navigation mode and the pose of the avatar, and of the boundviewpoint 
+		   so pre-compute some handy matrices for collision calcs - the avatar2collision and back (a tilt matrix for gravity direction)
+		*/
+		if(FallInfo.walking)
+		{
+			if(FallInfo.gravityVectorMethod==1)
+			{
+				/*bound viewpoint vertical aligned gravity as per specs*/
+				avatar2BoundViewpointVerticalAvatar(FallInfo.avatar2collision, FallInfo.collision2avatar);
+			}
+			if(FallInfo.gravityVectorMethod==0)
+			{
+				/* Y-up-world aligned gravity */
+				double modelMatrix[16];
+				struct point_XYZ tupvBoundViewpoint, tupvWorld = {0,1,0};
+				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+				transform3x3(&tupvBoundViewpoint,&tupvWorld,modelMatrix);
+				matrotate2v(FallInfo.avatar2collision,tupvWorld,tupvBoundViewpoint);
+				matrotate2v(FallInfo.collision2avatar,tupvBoundViewpoint,tupvWorld);
+			}
+		}
+		else
+		{
+			/* when flying or examining, no gravity - up is your avatar's up */
+			loadIdentityMatrix(FallInfo.avatar2collision);
+			loadIdentityMatrix(FallInfo.collision2avatar);
+		}
+
         render_hier(rootNode, VF_Collision);
         get_collisionoffset(&(v.x), &(v.y), &(v.z));
 
 	/* if (!APPROX(v.x,0.0) || !APPROX(v.y,0.0) || !APPROX(v.z,0.0)) {
 		printf ("MainLoop, rendercollisions, offset %f %f %f\n",v.x,v.y,v.z);
 	} */
-
+		/* v should be in avatar coordinates*/
         increment_pos(&v);
 }
 

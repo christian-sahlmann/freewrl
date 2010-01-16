@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.c,v 1.9 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: LinearAlgebra.c,v 1.10 2010/01/16 21:22:09 dug9 Exp $
 
 ???
 
@@ -424,23 +424,25 @@ GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n)
     return r;
 }
 
-/*puts dv back on iv*/
+/*puts dv back on iv - return the 4x4 rotation matrix that will rotate vector dv onto iv*/
 double matrotate2v(GLDOUBLE* res, struct point_XYZ iv/*original*/, struct point_XYZ dv/*result*/) {
     struct point_XYZ cv;
     double cvl,a;
 
-    vecnormal(&dv,&dv);
+	/* step 1 get sin of angle between 2 vectors using cross product rule: ||u x v|| = ||u||*||v||*sin(theta) */
+    vecnormal(&dv,&dv); /*normalizes vector to unit length U -> u^ (length 1) */
     vecnormal(&iv,&iv);
 
-    veccross(&cv,dv,iv); /*the axis of rotation*/
-    cvl = vecnormal(&cv,&cv);
+    veccross(&cv,dv,iv); /*the axis of rotation cv = dv X iv*/
+    cvl = vecnormal(&cv,&cv); /* cvl = ||u x v|| / ||u^||*||v^|| = ||u x v|| = sin(theta)*/
     /* if(cvl == 0) { */
     if(APPROX(cvl, 0)) {
 		cv.z = 1;
 	}
-
-    a = atan2(cvl,vecdot(&dv,&iv)); /*the angle*/
-
+	/* step 2 get cos of angle between 2 vectors using dot product rule: u dot v = ||u||*||v||*cos(theta) or cos(theta) = u dot v/( ||u|| ||v||) 
+	   or, since U,V already unit length from being normalized, cos(theta) = u dot v */
+    a = atan2(cvl,vecdot(&dv,&iv)); /*the angle theta = arctan(rise/run) = atan2(sin_theta,cos_theta) in radians*/
+    /* step 3 convert rotation angle around unit directional vector of rotation into an equivalent rotation matrix 4x4 */
     matrotate(res,a,cv.x,cv.y,cv.z);
     return a;
 }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.14 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Component_Geometry3D.c,v 1.15 2010/01/16 21:22:09 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -179,7 +179,6 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	if (!node->__points) return;
 
 	CULL_FACE(node->solid)
-
 	/*  Display the shape*/
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
 
@@ -311,7 +310,6 @@ void render_Cone (struct X3D_Cone *node) {
 
 
 	CULL_FACE(node->solid)
-
 	/*  OK - we have vertex data, so lets just render it.*/
 	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
 
@@ -334,6 +332,7 @@ void render_Cone (struct X3D_Cone *node) {
 		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 60);
 		trisThisLoop += 60;
 	}
+
 	textureDraw_end();
 }
 
@@ -430,6 +429,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 	/*  Display the shape*/
 	textureDraw_start(NULL,spheretex);
+
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
 	glNormalPointer (GL_FLOAT,0,spherenorms);
 
@@ -460,19 +460,126 @@ void render_Extrusion (struct X3D_Extrusion *node) {
 		render_polyrep(node);
 }
 
+/* Fast culling possibilities:
+   a) sphere-sphere
+   b) MBB (axes-aligned Minimum Bounding Box or 'extent') (pr->maxVals[i], pr->minVals[i] i=0,1,2 or equivalent)
+   two optional spaces in which to do the comparison: shape space or avatar(collision) space
+   1. shape sphere/MBB > [Shape2Collision] > collision space coordinates. Or - 
+   2. avatar collision volume > [Collision2Shape] > into shape coords
+   which ever way, we expect false positives, but don't want any false negatives which could make you fall through 
+   terrain or slide through walls. To be safe, error on the side of bigger collision volumes for shape and avatar.
+*/
+
+/* note as of Jan 16, 2010 - not all collide_<shape> scenarios come through the following avatarCollisionVolumeIntersectMBB. 
+   All walking scnearios do. 
+   collide_generic, collide_box, collide_extrusion, collide_Text, collide_Rectangle2D: all walk/fly/examine do. 
+   collide_sphere,collide_cylinder,collide_cone - only walk comes through here. fly/examine done with the original analytical shape/analytical avatar code.
+*/
+
+int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, double* prmaxvals) 
+{
+	/* returns 1 if your shape MBB overlaps the avatar collision volume
+	   modelMatrix[16] == shape2collision transform. collision space is like avatar space, except vertical aligned to gravity - current bound viewpoint(walk), or avatar(fly/examine) or global gravity
+	   prminvals[3],prmaxvals[3] - MBB minimum bounding box or extent of shape, in shape space
+	   the fastTestMethod can be set in mainloop.c render_collisions()
+	*/
+	if(FallInfo.walking)
+	{
+		/* cylindrical / popcycle shaped avatar collision volume */
+		GLdouble awidth = naviinfo.width; /*avatar width*/
+		GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+		GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+		GLdouble astep = -naviinfo.height+naviinfo.step;
+
+		/* the following 2 flags are checked a few levels down, in the triangle/quad intersect avatar code get_poly_disp_2(p, 3, nused) */
+		FallInfo.checkCylinder = 1; /* 1= shape MBB overlaps avatar collision MBB, else 0 */
+		FallInfo.checkFall = 1;     /* 1= shape MBB overlaps avatar fall/climb line segment else 0 */
+		if(FallInfo.fastTestMethod==0)
+		{
+		   /* I'm getting false negatives - I'll be navigating along and this will start returning here
+			 - possibly why it quits colliding with the terrain and just floats through / falls through terrain mesh
+			 */
+			GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+			struct point_XYZ t_orig = {0,0,0};
+			/* lets try and see if we are close - this gives false positives, but it does
+					weed out fairly distant objects */
+
+			/* values for rapid test */
+			t_orig.x = modelMatrix[12];
+			t_orig.y = modelMatrix[13];
+			t_orig.z = modelMatrix[14];
+			scale = pow(det3x3(modelMatrix),1./3.);
+			if(!fast_ycylinder_polyrep_intersect2(abottom,atop,awidth,t_orig,scale,prminvals,prmaxvals)){/*printf("#");*/ return 0;}
+			FallInfo.checkCylinder = 1;
+			FallInfo.checkFall = 0;
+		}
+		if(FallInfo.fastTestMethod==1)
+		{
+		   /*  minimum bounding box MBB test in shape space */
+			int i;
+			GLdouble Collision2Shape[16];
+			double foot = abottom;
+			if(FallInfo.allowClimbing) foot = astep; /* < popcycle shaped avatar collision volume. problem: stem and succulent part intersection are intersected together later so I can't return here if the succulent part is a miss - the stem might intersect */
+			matinverse(Collision2Shape,modelMatrix);
+			/* do fall/climb bounds test (popcycle stick) */
+			FallInfo.checkFall = FallInfo.canFall;
+			if(FallInfo.checkFall) FallInfo.checkFall = fast_ycylinder_MBB_intersect_shapeSpace(-FallInfo.fallHeight,atop,0.0, Collision2Shape, prminvals, prmaxvals);
+			/* do collision volume bounds test (popcycle succulent part)*/
+			FallInfo.checkCylinder = fast_ycylinder_MBB_intersect_shapeSpace(foot,atop,awidth, Collision2Shape, prminvals, prmaxvals); 
+			if(!FallInfo.checkCylinder && !FallInfo.checkFall){/*printf("@");*/ return 0;} 
+		}
+		if(FallInfo.fastTestMethod==2)
+		{
+		   /*  minimum bounding box MBB test in avatar/collision space */
+			double foot = abottom;
+			if(FallInfo.allowClimbing) foot = astep; /* < popcycle shaped avatar collision volume */
+			/* do fall/climb bounds test (popcycle stick) */
+			FallInfo.checkFall = FallInfo.canFall; /* only do the falling/climbing if we aren't already colliding - colliding over-rules falling/climbing */
+			if(FallInfo.checkFall) FallInfo.checkFall = fast_ycylinder_MBB_intersect_collisionSpace(-FallInfo.fallHeight,atop,0.0, modelMatrix, prminvals, prmaxvals);
+			/* do collision volume bounds test (popcycle succulent part)*/
+			FallInfo.checkCylinder = fast_ycylinder_MBB_intersect_collisionSpace(foot,atop,awidth, modelMatrix, prminvals, prmaxvals);
+			if(!FallInfo.checkCylinder && !FallInfo.checkFall){/*printf("$");*/ return 0;} 
+		}
+		if(FallInfo.fastTestMethod==3)
+		{
+		   //skip fast method
+		}
+	}
+	else
+	{
+		/* examine/fly spherical avatar collision volume */
+		GLdouble awidth = naviinfo.width; /*avatar width - used as avatar sphere radius*/
+		if(FallInfo.fastTestMethod==2 || FallInfo.fastTestMethod == 0)
+			if( !fast_sphere_MBB_intersect_collisionSpace(awidth, modelMatrix, prminvals, prmaxvals )) return 0;
+		if(FallInfo.fastTestMethod == 1 )
+		{
+			GLdouble Collision2Shape[16];
+			matinverse(Collision2Shape,modelMatrix);
+			if( !fast_sphere_MBB_intersect_shapeSpace(awidth, Collision2Shape, prminvals, prmaxvals )) return 0;
+		}
+		if(FallInfo.fastTestMethod==3)
+		{
+		   //skip fast method
+		}
+	}
+	return 1;
+}
+
+int avatarCollisionVolumeIntersectMBBf(double *modelMatrix, float *minVals, float *maxVals)
+{
+	/* converts pr.floats to doubles and re-delegates */
+	int i;
+	GLdouble prminvals[3],prmaxvals[3];
+	for(i=0;i<3;i++)
+	{
+		prminvals[i] = minVals[i]; 
+		prmaxvals[i] = maxVals[i];
+	}
+	return avatarCollisionVolumeIntersectMBB(modelMatrix, prminvals,prmaxvals);
+}
 
 void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
-	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
-	       GLDOUBLE modelMatrix[16];
-	       GLDOUBLE upvecmat[16];
-
-	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
-	       struct point_XYZ t_orig = {0,0,0};
-
-	       struct point_XYZ tupv = {0,1,0};
+	       GLdouble modelMatrix[16];
 	       struct point_XYZ delta = {0,0,0};
 
 	       struct X3D_PolyRep pr;
@@ -500,6 +607,7 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 
 	       pr = *((struct X3D_PolyRep*)node->_intern);
 
+
 		/* IndexedFaceSets are "different", in that the user specifies points, among
 		   other things.  The rendering pass takes these external points, and streams
 		   them to make rendering much faster on hardware accel. We have to check to
@@ -512,38 +620,57 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 		}
 
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+		   /* 
+			For examine and fly navigation modes, there's no gravity direction. Avatar collision volume is aligned
+			to avatar and is spherical and symmetrically directional. This is the simple case.
+			Specifications say for walk navigation mode gravity vector is down {0,-1,0} with respect to (wrt) the 
+			currently bound viewpoint, not including the viewpoint's orientation field and not including avatar 
+			navigation/tilt away from its parent bound-viewpoint pose. When you collide in walk mode, the avatar collision
+			volume is aligned to bound-viewpoint. This is a slightly more complex case.
+			To generalize the 2 cases, some	Definitions:
+			Spaces:
+				Avatar space 
+					- gravity is avatar-down
+					- Avatar is at {0,0,0} and +Y up is as you see up in your current view, +Z aft and +X to the right
+				BoundViewpoint space - currently bound viewpoint (transform parent to avatar)
+				BVVA space - Bound-Viewpoint-Vertically-aligned Avatar-centric 
+					- same as Avatar space with avatar at {0,0,0} except tilted so that gravity is in the direction 
+						of down {0,-1,0} for the currently bound viewpoint (instead for avatar), as per specs
+					- gravity is bound-viewpoint down
+				Collision space - Fly/Examine mode: Avatar space. Walk mode: BVVA space
+					- the avatar collision volume - height, stepsize, width - are defined for collision space and axes aligned with it
+				Shape space - raw shape <Coordinate> space
+			Transforms:
+				Bound2Avatar     - transforms from BoundViewpoint space to Avatar space - computed from viewer.quat,viewer.pos
+				Avatar2BVVA,BVVA2Avatar 
+								- computed from downvector in BoundViewpoint space transformed via Bound2Avatar into Avatar space
+								- constant for a frame, computable once navigation mode and avatar pose is know for the frame
+				Avatar2Collision - Fly/Examine: Identity,    Walk: Avatar2BVVA
+				Collision2Avatar - Fly/Examine: Identity,    Walk: BVVA2Avatar
+				Shape2Collision  - Fly/Examine: modelMatrix, Walk: Avatar2BVVA*modelMatrix
 
-	       transform3x3(&tupv,&tupv,modelMatrix);
-	       matrotate2v(upvecmat,ViewerUpvector,tupv);
-	       matmultiply(modelMatrix,upvecmat,modelMatrix);
-	       matinverse(upvecmat,upvecmat);
+			goal: transform shape geometry into Collision space. (The avatar collision volume is by definition in collision space.)
+			      Do some collisions between shape and avatar.
+				  Transform collision correction deltas from collision space to avatar space, apply deltas to avatar position.
+		    implementation:
+				transform shape into collision space - Fly/Examine:modelMatrix or Walk:(Avatar2BVVA * modelMatrix)
+				transform collision correction deltas from collision space to avatar space: 
+					- done in Mainloop.c get_collisionoffset() with FallInfo.collision2avatar
+		   */
+			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
-	       /* values for rapid test */
-	       t_orig.x = modelMatrix[12];
-	       t_orig.y = modelMatrix[13];
-	       t_orig.z = modelMatrix[14];
-	       scale = pow(det3x3(modelMatrix),1./3.);
-
-		/* lets try and see if we are close - this gives false positives, but it does
-		   weed out fairly distant objects */
-		if(!fast_ycylinder_polyrep_intersect(abottom,atop,awidth,t_orig,scale, &pr)) return;
-
-		/* printf ("trying larger radius \n"); */
-	       /* delta = polyrep_disp(abottom,atop,astep,awidth*2,pr,modelMatrix,flags); */
-	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
-
-
-
-
-	/*	printf ("collide_IFS, node %u, delta %f %f %f\n",node,delta.x, delta.y, delta.z); */
-
+		   /* at this point, whichever method - modelMatrix is Shape2Collision and upvecmat is Collision2Avatar 
+		   - pr.actualCoord - these are Shape space coordinates
+			They will be transformed into CollisionSpace coordinates by the modelMatrix transform.
+		   */
+			if(!avatarCollisionVolumeIntersectMBBf(modelMatrix, pr.minVals, pr.maxVals))return;
+		   /* passed fast test. Now for gruelling test */
+			delta = polyrep_disp2(pr,modelMatrix,flags); //polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
+		   /* delta is in collision space */
+			/* lets say you are floating above ground by 3 units + avatar.height 1.75 = 4.75. 
+			Then delta = (0,3,0)*/
 	       vecscale(&delta,&delta,-1);
-	       transform3x3(&delta,&delta,upvecmat);
-		/* printf ("collide_IFS after transform, node %u, delta %f %f %f\n",node,delta.x, delta.y, delta.z); */
-
-	       accumulate_disp(&CollisionInfo,delta);
-		/* printf ("collide_IFS, colinfo %lf %lf %lf, count %d Maximum2 %lf\n",CollisionInfo.Offset.x,
-			CollisionInfo.Offset.y, CollisionInfo.Offset.z,CollisionInfo.Count, CollisionInfo.Maximum2);  */
+	       accumulate_disp(&CollisionInfo,delta); /* we are accumulating in collision space (fly/examine: avatar space, walk: BVVA space) */
 
 		#ifdef RENDERVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
@@ -555,15 +682,112 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 
 	       }
 		#endif
+
+}
+typedef int cquad[4];
+typedef int ctri[3];
+
+struct sCollisionSphere
+{
+	struct point_XYZ *pts;
+	struct point_XYZ *tpts;
+	ctri *tris;
+	int ntris;
+	int npts;
+	double smin[3],smax[3];
+	double tmin[3],tmax[3];
+} collisionSphere;
+
+void collisionSphere_init(struct X3D_Sphere *node)
+{
+	ctri ct;
+	struct point_XYZ a,b,n;
+	int i,j,k,count,biggestNum;
+	double rad;
+	struct SFColor *pts = node->__points;
+	/*  re-using the compile_sphere node->__points data which is organized into GL_QUAD_STRIPS
+		my understanding: there are SPHDIV/2 quad strips. Each quadstrip has SPHDIV quads, and enough points to do that many quads
+		without sharing points with other quadstrips. So to make SPHDIV quads, you need 2 rows of SPHDIV+1 points.
+		because there's 2 triangles per quad, there should be 2x as many triangles as quads.
+		num quads = SPHDIV/2 x SPHDIV
+		num points = SPHDIV/2 X [(SPHDIV+1) X 2] = SPHDIV*(SPHDIV+1)
+		num tris = quads x 2 = SPHDIV X SPHDIV 
+	*/
+	collisionSphere.npts = SPHDIV*(SPHDIV+1);
+	collisionSphere.pts = malloc(collisionSphere.npts * sizeof(struct point_XYZ));
+	collisionSphere.tpts = malloc(collisionSphere.npts * sizeof(struct point_XYZ));
+	for(i=0;i<collisionSphere.npts;i++)
+	{
+		collisionSphere.pts[i].x = pts[i].c[0];
+		collisionSphere.pts[i].y = pts[i].c[1];
+		collisionSphere.pts[i].z = pts[i].c[2];
+	}
+
+	collisionSphere.ntris = SPHDIV * SPHDIV;
+	collisionSphere.tris = malloc(collisionSphere.ntris * sizeof(ctri));
+	count = 0;
+	for(i = 0; i < SPHDIV/2; i ++)  
+	{ 
+		/* one quad strip  of  SPHDIV quads or SPHDIV*2 triangles */
+		for(j=0;j<(2*SPHDIV);j+=2) //=+)
+		{
+			/* first triangle */
+			collisionSphere.tris[count][0] = i*(SPHDIV+1)*2 + j;
+			collisionSphere.tris[count][1] = i*(SPHDIV+1)*2 + j+1;
+			collisionSphere.tris[count][2] = i*(SPHDIV+1)*2 + j+2; 
+			count ++;
+			/* second triangle */
+			collisionSphere.tris[count][0] = i*(SPHDIV+1)*2 + j+3; 
+			collisionSphere.tris[count][1] = i*(SPHDIV+1)*2 + j+2; 
+			collisionSphere.tris[count][2] = i*(SPHDIV+1)*2 + j+1; 
+			count ++;
+		}
+	}
+	/* count should == num triangles 
+	debug check on indexing - biggestNum should == npts -1
+	biggestNum = 0;
+	for(i=0;i<collisionSphere.ntris;i++)
+		for(j=0;j<3;j++)
+			biggestNum = max(biggestNum,collisionSphere.tris[i][j]);
+	*/
+	/* MBB */
+	rad = node->radius;
+	for(i=0;i<3;i++)
+	{
+		collisionSphere.smin[i] = -rad;
+		collisionSphere.smax[i] = rad;
+	}
+
+}
+int collisionSphere_render()
+{
+	/* I needed to verify the collision mesh sphere was good, and it uses triangles, so I drew it the triangle way and it looked good 
+	   to see it draw, you need to turn on collision and get close to a sphere - then it will initialize and start drawing it.
+	*/
+	int i,j,m,count,highest;
+	count = 0;
+	highest = 0;
+	for(i =0; i < collisionSphere.ntris; i++)  
+	{ 
+		struct point_XYZ pts[3]; //,a,b,n;
+		pts[0] = collisionSphere.pts[collisionSphere.tris[i][0]];
+		pts[1] = collisionSphere.pts[collisionSphere.tris[i][1]];
+		pts[2] = collisionSphere.pts[collisionSphere.tris[i][2]];
+		glBegin(GL_TRIANGLES);
+		for(j=0;j<3;j++)
+			glVertex3d(pts[j].x,pts[j].y,pts[j].z);
+		glEnd();
+	}
+	return 0;
 }
 
-
+struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n);
+#define FLOAT_TOLERANCE 0.00000001
 void collide_Sphere (struct X3D_Sphere *node) {
 	       struct point_XYZ t_orig; /*transformed origin*/
 	       struct point_XYZ p_orig; /*projected transformed origin */
 	       struct point_XYZ n_orig; /*normal(unit length) transformed origin */
 	       GLDOUBLE modelMatrix[16];
-	       GLDOUBLE upvecmat[16];
 	       GLDOUBLE dist2;
 	       struct point_XYZ delta = {0,0,0};
 	       GLDOUBLE radius;
@@ -572,8 +796,8 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
 	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 
-	       struct point_XYZ tupv = {0,1,0};
 
 		/* are we initialized yet? */
 		if (node->__points==0) {
@@ -582,133 +806,170 @@ void collide_Sphere (struct X3D_Sphere *node) {
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
-	       transform3x3(&tupv,&tupv,modelMatrix);
-	       matrotate2v(upvecmat,ViewerUpvector,tupv);
-	       matmultiply(modelMatrix,upvecmat,modelMatrix);
-	       matinverse(upvecmat,upvecmat);
+			if(FallInfo.walking)
+			{
+				/* mesh method */
+				int i;
+				double disp;
+				struct point_XYZ n;
+				struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
+				double maxdisp = 0;
+				if(!collisionSphere.npts) collisionSphere_init(node);
+				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionSphere.smin,collisionSphere.smax)) return;
 
-	       t_orig.x = modelMatrix[12];
-	       t_orig.y = modelMatrix[13];
-	       t_orig.z = modelMatrix[14];
-	       radius = pow(det3x3(modelMatrix),1./3.) * node->radius;
+				for(i=0;i<collisionSphere.npts;i++)
+					transform(&collisionSphere.tpts[i],&collisionSphere.pts[i],modelMatrix);
 
-	       /* squared distance to center of sphere (on the y plane)*/
-	       dist2 = t_orig.x * t_orig.x + t_orig.z * t_orig.z;
+				for(i = 0; i < collisionSphere.ntris; i++) 
+				{
+					/*only clip faces "facing" origin */
+					//if(vecdot(&n[ci],&middle) < 0.) {
+					{
+						struct point_XYZ pts[3];
+						pts[0] = collisionSphere.tpts[collisionSphere.tris[i][0]];
+						pts[1] = collisionSphere.tpts[collisionSphere.tris[i][1]];
+						pts[2] = collisionSphere.tpts[collisionSphere.tris[i][2]];
+						/* compute normal - could compute once in shapespace then transform */
+						VECDIFF(pts[1],pts[0],a);
+						VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
+						veccross(&n,a,b); /* 6 multiplies */
+						vecnormal(&n,&n); 
+						dispv = get_poly_disp_2(pts,3,n);
+					    disp = vecdot(&dispv,&dispv);
+						if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
+							maxdisp = disp;
+							maxdispv = dispv;
+						}
+					}
+				}
+				delta = maxdispv;
+		        vecscale(&delta,&delta,-1);
+			}
+			else
+			{
+				/* easy analytical sphere-sphere stuff */
+			   t_orig.x = modelMatrix[12];
+			   t_orig.y = modelMatrix[13];
+			   t_orig.z = modelMatrix[14];
+			   radius = pow(det3x3(modelMatrix),1./3.) * node->radius;
 
-	       /* easy tests. clip as if sphere was a box */
-	       /*clip with cylinder */
+			   /* squared distance to center of sphere (on the y plane)*/
+			   dist2 = t_orig.x * t_orig.x + t_orig.z * t_orig.z;
 
-	       if(dist2 - (radius + awidth) * (radius +awidth) > 0) {
-		   return;
-	       }
-	       /*clip with bottom plane */
-	       if(t_orig.y + radius < abottom) {
-		   return;
-	       }
-	       /*clip with top plane */
-	       if(t_orig.y-radius > atop) {
-		   return;
-	       }
+			   /* easy tests. clip as if sphere was a box */
+			   /*clip with cylinder */
 
-	       /* project onto (y x t_orig) plane */
-	       p_orig.x = sqrt(dist2);
-	       p_orig.y = t_orig.y;
-	       p_orig.z = 0;
-	       /* we need this to unproject rapidly */
-	       /* n_orig is t_orig.y projected on the y plane, then normalized. */
-	       n_orig.x = t_orig.x;
-	       n_orig.y = 0.0;
-	       n_orig.z = t_orig.z;
-	       VECSCALE(n_orig,1.0/p_orig.x); /*equivalent to vecnormal(n_orig);, but faster */
-		#ifdef RENDERVERBOSE
-printf ("sphere, p_orig %lf %lf %lf, n_orig %lf %lf %lf\n",p_orig.x, p_orig.y, p_orig.z, n_orig.x, n_orig.y, n_orig.z);
-		#endif
-
-	       /* 5 cases : sphere is over, over side, side, under and side, under (relative to y axis) */
-	       /* these 5 cases correspond to the 5 vornoi regions of the cylinder */
-	       if(p_orig.y > atop) {
-
-		   if(p_orig.x < awidth) {
-			#ifdef RENDERVERBOSE
-		       printf(" /* over, we push down. */ \n");
-			#endif
-
-		       delta.y = (p_orig.y - radius) - (atop);
-		   } else {
-		       struct point_XYZ d2s;
-		       GLDOUBLE ratio;
-		       #ifdef RENDERVERBOSE
-			printf(" /* over side */ \n");
-			#endif
-
-		       /* distance vector from corner to center of sphere*/
-		       d2s.x = p_orig.x - awidth;
-		       d2s.y = p_orig.y - (atop);
-		       d2s.z = 0;
-
-		       ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
-
-		       if(ratio >= 0) {
-			   /* no collision */
+			   if(dist2 - (radius + awidth) * (radius +awidth) > 0) {
 			   return;
-		       }
-
-		       /* distance vector from corner to surface of sphere, (do the math) */
-		       VECSCALE(d2s, ratio );
-
-		       /* unproject, this is the fastest way */
-		       delta.y = d2s.y;
-		       delta.x = d2s.x* n_orig.x;
-		       delta.z = d2s.x* n_orig.z;
-		   }
-	       } else if(p_orig.y < abottom) {
-		   if(p_orig.x < awidth) {
-			#ifdef RENDERVERBOSE
-		       printf(" /* under, we push up. */ \n");
-			#endif
-
-		       delta.y = (p_orig.y + radius) -abottom;
-		   } else {
-		       struct point_XYZ d2s;
-		       GLDOUBLE ratio;
-			#ifdef RENDERVERBOSE
-		       printf(" /* under side */ \n");
-			#endif
-
-		       /* distance vector from corner to center of sphere*/
-		       d2s.x = p_orig.x - awidth;
-		       d2s.y = p_orig.y - abottom;
-		       d2s.z = 0;
-
-		       ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
-
-		       if(ratio >= 0) {
-			   /* no collision */
+			   }
+			   /*clip with bottom plane */
+			   if(t_orig.y + radius < abottom) {
 			   return;
-		       }
+			   }
+			   /*clip with top plane */
+			   if(t_orig.y-radius > atop) {
+			   return;
+			   }
 
-		       /* distance vector from corner to surface of sphere, (do the math) */
-		       VECSCALE(d2s, ratio );
+			   /* project onto (y x t_orig) plane */
+			   p_orig.x = sqrt(dist2);
+			   p_orig.y = t_orig.y;
+			   p_orig.z = 0;
+			   /* we need this to unproject rapidly */
+			   /* n_orig is t_orig.y projected on the y plane, then normalized. */
+			   n_orig.x = t_orig.x;
+			   n_orig.y = 0.0;
+			   n_orig.z = t_orig.z;
+			   VECSCALE(n_orig,1.0/p_orig.x); /*equivalent to vecnormal(n_orig);, but faster */
+			#ifdef RENDERVERBOSE
+	printf ("sphere, p_orig %lf %lf %lf, n_orig %lf %lf %lf\n",p_orig.x, p_orig.y, p_orig.z, n_orig.x, n_orig.y, n_orig.z);
+			#endif
 
-		       /* unproject, this is the fastest way */
-		       delta.y = d2s.y;
-		       delta.x = d2s.x* n_orig.x;
-		       delta.z = d2s.x* n_orig.z;
-		   }
+			   /* 5 cases : sphere is over, over side, side, under and side, under (relative to y axis) */
+			   /* these 5 cases correspond to the 5 vornoi regions of the cylinder */
+			   if(p_orig.y > atop) {
 
-	       } else {
-		   #ifdef RENDERVERBOSE
-			printf(" /* side */ \n");
-		   #endif
+			   if(p_orig.x < awidth) {
+				#ifdef RENDERVERBOSE
+				   printf(" /* over, we push down. */ \n");
+				#endif
 
-		   /* push to side */
-		   delta.x = ((p_orig.x - radius)- awidth) * n_orig.x;
-		   delta.z = ((p_orig.x - radius)- awidth) * n_orig.z;
-	       }
+				   delta.y = (p_orig.y - radius) - (atop);
+			   } else {
+				   struct point_XYZ d2s;
+		                   GLDOUBLE ratio;
+				   #ifdef RENDERVERBOSE
+				printf(" /* over side */ \n");
+				#endif
 
+				   /* distance vector from corner to center of sphere*/
+				   d2s.x = p_orig.x - awidth;
+				   d2s.y = p_orig.y - (atop);
+				   d2s.z = 0;
 
-	       transform3x3(&delta,&delta,upvecmat);
+				   ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
+
+				   if(ratio >= 0) {
+				   /* no collision */
+				   return;
+				   }
+
+				   /* distance vector from corner to surface of sphere, (do the math) */
+				   VECSCALE(d2s, ratio );
+
+				   /* unproject, this is the fastest way */
+				   delta.y = d2s.y;
+				   delta.x = d2s.x* n_orig.x;
+				   delta.z = d2s.x* n_orig.z;
+			   }
+			   } else if(p_orig.y < abottom) {
+			   if(p_orig.x < awidth) {
+				#ifdef RENDERVERBOSE
+				   printf(" /* under, we push up. */ \n");
+				#endif
+
+				   delta.y = (p_orig.y + radius) -abottom;
+			   } else {
+				   struct point_XYZ d2s;
+		                 GLDOUBLE ratio;
+				#ifdef RENDERVERBOSE
+				   printf(" /* under side */ \n");
+				#endif
+
+				   /* distance vector from corner to center of sphere*/
+				   d2s.x = p_orig.x - awidth;
+				   d2s.y = p_orig.y - abottom;
+				   d2s.z = 0;
+
+				   ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
+
+				   if(ratio >= 0) {
+				   /* no collision */
+				   return;
+				   }
+
+				   /* distance vector from corner to surface of sphere, (do the math) */
+				   VECSCALE(d2s, ratio );
+
+				   /* unproject, this is the fastest way */
+				   delta.y = d2s.y;
+				   delta.x = d2s.x* n_orig.x;
+				   delta.z = d2s.x* n_orig.z;
+			   }
+
+			   } else {
+			   #ifdef RENDERVERBOSE
+				printf(" /* side */ \n");
+			   #endif
+
+			   /* push to side */
+			   delta.x = ((p_orig.x - radius)- awidth) * n_orig.x;
+			   delta.z = ((p_orig.x - radius)- awidth) * n_orig.z;
+			   }
+
+			}
 	       accumulate_disp(&CollisionInfo,delta);
 
 		#ifdef RENDERVERBOSE
@@ -729,7 +990,6 @@ void collide_Box (struct X3D_Box *node) {
 	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 
 	       GLDOUBLE modelMatrix[16];
-	       GLDOUBLE upvecmat[16];
 	       struct point_XYZ iv = {0,0,0};
 	       struct point_XYZ jv = {0,0,0};
 	       struct point_XYZ kv = {0,0,0};
@@ -739,7 +999,6 @@ void collide_Box (struct X3D_Box *node) {
 	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
 
 	       struct point_XYZ delta;
-	       struct point_XYZ tupv = {0,1,0};
 
 
                 iv.x = ((node->size).c[0]);
@@ -751,18 +1010,18 @@ void collide_Box (struct X3D_Box *node) {
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-	       transform3x3(&tupv,&tupv,modelMatrix);
-	       matrotate2v(upvecmat,ViewerUpvector,tupv);
-	       matmultiply(modelMatrix,upvecmat,modelMatrix);
-	       matinverse(upvecmat,upvecmat);
+			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			{
+				int i;
+				double shapeMBBmin[3],shapeMBBmax[3];
+				for(i=0;i<3;i++)
+				{
+					shapeMBBmin[i] = min(-(node->size).c[i]*.5,(node->size).c[i]*.5);
+					shapeMBBmax[i] = max(-(node->size).c[i]*.5,(node->size).c[i]*.5);
+				}
 
-	       /* values for rapid test */
-	       t_orig.x = modelMatrix[12];
-	       t_orig.y = modelMatrix[13];
-	       t_orig.z = modelMatrix[14];
-	       scale = pow(det3x3(modelMatrix),1./3.);
-               if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*((node->size).c[0]),scale*((node->size).c[1]),scale*((node->size).c[2]))) return;
-
+				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, shapeMBBmin,shapeMBBmax)) return;
+			}
 	       /* get transformed box edges and position */
 	       transform(&ov,&ov,modelMatrix);
 	       transform3x3(&iv,&iv,modelMatrix);
@@ -773,7 +1032,6 @@ void collide_Box (struct X3D_Box *node) {
 	       delta = box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
 
 	       vecscale(&delta,&delta,-1);
-	       transform3x3(&delta,&delta,upvecmat);
 
 	       accumulate_disp(&CollisionInfo,delta);
 
@@ -792,6 +1050,114 @@ void collide_Box (struct X3D_Box *node) {
 		#endif
 }
 
+struct sCollisionCone
+{
+	struct point_XYZ *pts;
+	struct point_XYZ *tpts;
+	ctri *tris;
+	int ntris;
+	int npts;
+	double smin[3],smax[3];
+	double tmin[3],tmax[3];
+} collisionCone;
+#define  CONEDIV 20
+
+void collisionCone_init(struct X3D_Cone *node)
+{
+	ctri ct;
+	struct point_XYZ a,b,n;
+	int i,j,k,count,biggestNum;
+	double h,r;
+	struct SFColor *pts;// = node->__botpoints;
+	extern unsigned char tribotindx[];
+	
+	/*  re-using the compile_cone node->__points data which is organized into GL_TRAIANGLE_FAN (bottom) and GL_TRIANGLES (side)
+
+		my understanding: 
+		bottom: there are CONEDIV triangles arranged in a fan around a center point, with CONEDIV perimeter points 
+		side: there are CONEDIV side triangles formed with the top point and perimeter points
+		num triangles: CONEDIV x 2
+		num points: CONEDIV perimeter + center bottom + centre top = CONEDIV+2 
+		__botpoints:
+			pt[0] - top point of cone
+			pt[1-CONEDIV] - perimeter points
+			pt[CONEDIV+1] - centre of bottom
+		(there are sidepoints too, but duplicate the points in botpoints) 
+	*/
+	collisionCone.npts = CONEDIV+2;
+	collisionCone.pts = malloc(collisionCone.npts * sizeof(struct point_XYZ));
+	collisionCone.tpts = malloc(collisionCone.npts * sizeof(struct point_XYZ));
+
+	collisionCone.ntris = CONEDIV *2;
+	collisionCone.tris = malloc(collisionCone.ntris * sizeof(ctri));
+	count = 0;
+
+	if(node->bottom) {
+		pts = node->__botpoints;
+		for(i=0;i<(CONEDIV+2);i++)
+		{
+			/* points */
+			collisionCone.pts[i].x = pts[i].c[0];
+			collisionCone.pts[i].y = pts[i].c[1];
+			collisionCone.pts[i].z = pts[i].c[2];
+		}
+		for(i=0;i<CONEDIV;i++)
+		{
+			/* side triangles */
+			collisionCone.tris[count][0] = 0;   /* top point */
+			collisionCone.tris[count][1] = i +1;
+			collisionCone.tris[count][2] = i > (CONEDIV-2)? 1 : i+2; /*wrap-around, normally i+2 */
+			count ++;
+		}
+		for(i=0;i<CONEDIV;i++)
+		{
+			/* bottom triangles */
+			collisionCone.tris[count][0] = CONEDIV+1; /* bottom center point */
+			collisionCone.tris[count][1] = i +1;
+			collisionCone.tris[count][2] = i > (CONEDIV-2)?  1 : i+2; 
+			count ++;
+		}
+	}
+
+
+	/* count should == num triangles 
+	debug check on indexing - biggestNum should == npts -1 
+	biggestNum = 0;
+	for(i=0;i<collisionCone.ntris;i++)
+		for(j=0;j<3;j++)
+			biggestNum = max(biggestNum,collisionCone.tris[i][j]);
+	*/
+	/* MBB */
+	h = (node->height)/2;
+	r = node->bottomRadius;
+	for(i=0;i<3;i+=2)
+	{
+		collisionCone.smin[i] = -r;
+		collisionCone.smax[i] = r;
+	}
+	collisionCone.smin[1] = -h;
+	collisionCone.smax[1] = h;
+
+}
+int collisionCone_render()
+{
+	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
+	   to see it draw, you need to turn on collision and get close to the mesh object - then it will initialize and start drawing it.
+	*/
+	int i,j;
+	for(i =0; i < collisionCone.ntris; i++)  
+	{ 
+		struct point_XYZ pts[3]; //,a,b,n;
+		pts[0] = collisionCone.pts[collisionCone.tris[i][0]];
+		pts[1] = collisionCone.pts[collisionCone.tris[i][1]];
+		pts[2] = collisionCone.pts[collisionCone.tris[i][2]];
+		glBegin(GL_TRIANGLES);
+		for(j=0;j<3;j++)
+			glVertex3d(pts[j].x,pts[j].y,pts[j].z);
+		glEnd();
+	}
+	return 0;
+}
 
 void collide_Cone (struct X3D_Cone *node) {
 
@@ -806,41 +1172,75 @@ void collide_Cone (struct X3D_Cone *node) {
                 float r = (node->bottomRadius) ;
 
 	       GLDOUBLE modelMatrix[16];
-	       GLDOUBLE upvecmat[16];
 	       struct point_XYZ iv = {0,0,0};
 	       struct point_XYZ jv = {0,0,0};
 	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct point_XYZ t_orig = {0,0,0};
 
 	       struct point_XYZ delta;
-	       struct point_XYZ tupv = {0,1,0};
 
 	       iv.y = h; jv.y = -h;
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-	       transform3x3(&tupv,&tupv,modelMatrix);
-	       matrotate2v(upvecmat,ViewerUpvector,tupv);
-	       matmultiply(modelMatrix,upvecmat,modelMatrix);
-	       matinverse(upvecmat,upvecmat);
+			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			if(FallInfo.walking)
+			{
+				/* mesh method */
+				int i;
+				double disp;
+				struct point_XYZ n;
+				struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
+				double maxdisp = 0;
 
-	       /* values for rapid test */
-	       t_orig.x = modelMatrix[12];
-	       t_orig.y = modelMatrix[13];
-	       t_orig.z = modelMatrix[14];
-	       scale = pow(det3x3(modelMatrix),1./3.);
+				if(!collisionCone.npts) collisionCone_init(node);
+				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCone.smin,collisionCone.smax)) return;
 
-	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
 
-	       /* get transformed box edges and position */
-	       transform(&iv,&iv,modelMatrix);
-	       transform(&jv,&jv,modelMatrix);
+				for(i=0;i<collisionCone.npts;i++)
+					transform(&collisionCone.tpts[i],&collisionCone.pts[i],modelMatrix);
+				for(i = 0; i < collisionCone.ntris; i++) 
+				{
+					/*only clip faces "facing" origin */
+					//if(vecdot(&n[ci],&middle) < 0.) {
+					{
+						struct point_XYZ pts[3];
+						pts[0] = collisionCone.tpts[collisionCone.tris[i][0]];
+						pts[1] = collisionCone.tpts[collisionCone.tris[i][1]];
+						pts[2] = collisionCone.tpts[collisionCone.tris[i][2]];
+						/* compute normal - could compute once in shapespace then transform */
+						VECDIFF(pts[1],pts[0],a);
+						VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
+						veccross(&n,a,b); /* 6 multiplies */
+						vecnormal(&n,&n); 
+						dispv = get_poly_disp_2(pts,3,n);
+					    disp = vecdot(&dispv,&dispv);
+						if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
+							maxdisp = disp;
+							maxdispv = dispv;
+						}
+					}
+				}
+				delta = maxdispv;
+			}
+			else
+			{
+			   /* values for rapid test */
+			   t_orig.x = modelMatrix[12];
+			   t_orig.y = modelMatrix[13];
+			   t_orig.z = modelMatrix[14];
+			   scale = pow(det3x3(modelMatrix),1./3.);
 
-	       delta = cone_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
+			   if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
 
+			   /* get transformed box edges and position */
+			   transform(&iv,&iv,modelMatrix);
+			   transform(&jv,&jv,modelMatrix);
+
+			   delta = cone_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
+			}
 	       vecscale(&delta,&delta,-1);
-	       transform3x3(&delta,&delta,upvecmat);
 
 	       accumulate_disp(&CollisionInfo,delta);
 
@@ -858,6 +1258,141 @@ void collide_Cone (struct X3D_Cone *node) {
 			  );
 		#endif
 }
+struct sCollisionCylinder
+{
+	struct point_XYZ *pts;
+	struct point_XYZ *tpts;
+	ctri *tris;
+	int ntris;
+	cquad *quads;
+	int nquads;
+	int npts;
+	double smin[3],smax[3];
+	double tmin[3],tmax[3];
+} collisionCylinder;
+
+void collisionCylinder_init(struct X3D_Cylinder *node)
+{
+	ctri ct;
+	struct point_XYZ a,b,n;
+	int i,j,k,tcount,qcount,biggestNum;
+	double h,r;
+	struct SFColor *pts;// = node->__botpoints;
+	
+	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top) 
+	    and GL_QUADS (side)
+
+		my understanding: 
+		bottom and top: there are CYLDIV triangles arranged in a fan around a center point, with CYLDIV perimeter points 
+		side: there are CYLDIV side quads formed with the top and bottom perimeter points
+		num triangles: CYLDIV x 2
+		num quads: CYLDIV
+		num points: CYLDIV * 2 + center bottom + centre top = CYLDIV*2 +2 
+		__points:
+			pt[0- CYLDIV*2-1 + 2] - perimeter points including wrap-around points ordered as follows:
+			    +h,-h,+h,-h .. vertical pair order, with 2 extra for easy wrap-around indexing
+			pt[CYLDIV*2+2] - top center point of cylinder
+			pt[CYLDIV*2+3] - centre of bottom
+	*/
+	collisionCylinder.npts = CYLDIV*2+2+2;
+	collisionCylinder.pts = malloc(collisionCylinder.npts * sizeof(struct point_XYZ));
+	collisionCylinder.tpts = malloc(collisionCylinder.npts * sizeof(struct point_XYZ));
+
+	collisionCylinder.ntris = CYLDIV *2;
+	collisionCylinder.tris = malloc(collisionCylinder.ntris * sizeof(ctri));
+	collisionCylinder.nquads = CYLDIV;
+	collisionCylinder.quads = malloc(collisionCylinder.nquads * sizeof(cquad));
+
+	tcount = 0;
+	qcount = 0;
+	pts = node->__points;
+	for(i=0;i<collisionCylinder.npts;i++)
+	{
+		/* points */
+		collisionCylinder.pts[i].x = pts[i].c[0];
+		collisionCylinder.pts[i].y = pts[i].c[1];
+		collisionCylinder.pts[i].z = pts[i].c[2];
+	}
+	for(i=0;i<CYLDIV;i++)
+	{
+		/* side quads */
+		collisionCylinder.quads[qcount][0] = i*2;   /* top point */
+		collisionCylinder.quads[qcount][1] = i*2 +1;
+		collisionCylinder.quads[qcount][2] = i*2 +3; /*wrap-around, normally i+2 */
+		collisionCylinder.quads[qcount][3] = i*2 +2;
+		qcount ++;
+	}
+	//pt[CYLDIV*2+2].c[0] = 0.0; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0;
+	//pt[CYLDIV*2+3].c[0] = 0.0; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0;
+
+	for(i=0;i<CYLDIV;i++)
+	{
+		/* bottom triangles */
+		collisionCylinder.tris[tcount][0] = CYLDIV*2+3; /* bottom center point */
+		collisionCylinder.tris[tcount][1] = i*2 +1;
+		collisionCylinder.tris[tcount][2] = (i+1)*2 +1; 
+		tcount ++;
+	}
+	for(i=0;i<CYLDIV;i++)
+	{
+		/* top triangles */
+		collisionCylinder.tris[tcount][0] = CYLDIV*2+2; /* top center point */
+		collisionCylinder.tris[tcount][1] = i*2;
+		collisionCylinder.tris[tcount][2] = (i+1)*2; 
+		tcount ++;
+	}
+
+
+	/* count should == num triangles 
+	debug check on indexing - biggestNum should == npts -1 
+	biggestNum = 0;
+	for(i=0;i<collisionCylinder.ntris;i++)
+		for(j=0;j<3;j++)
+			biggestNum = max(biggestNum,collisionCylinder.tris[i][j]);
+	*/
+	/* MBB */
+	h = (node->height)/2.0;
+	r = node->radius;
+	for(i=0;i<3;i+=2)
+	{
+		collisionCylinder.smin[i] = -r;
+		collisionCylinder.smax[i] = r;
+	}
+	collisionCylinder.smin[1] = -h;
+	collisionCylinder.smax[1] = h;
+
+}
+int collisionCylinder_render()
+{
+	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
+	   to see it draw, you need to turn on collision and get close to the mesh object - then it will initialize and start drawing it.
+	*/
+	int i,j;
+	for(i =0; i < collisionCylinder.ntris; i++)  
+	{ 
+		struct point_XYZ pts[3]; //,a,b,n;
+		pts[0] = collisionCylinder.pts[collisionCylinder.tris[i][0]];
+		pts[1] = collisionCylinder.pts[collisionCylinder.tris[i][1]];
+		pts[2] = collisionCylinder.pts[collisionCylinder.tris[i][2]];
+		glBegin(GL_TRIANGLES);
+		for(j=0;j<3;j++)
+			glVertex3d(pts[j].x,pts[j].y,pts[j].z);
+		glEnd();
+	}
+	for(i =0; i < collisionCylinder.nquads; i++)  
+	{ 
+		struct point_XYZ pts[4]; //,a,b,n;
+		pts[0] = collisionCylinder.pts[collisionCylinder.quads[i][0]];
+		pts[1] = collisionCylinder.pts[collisionCylinder.quads[i][1]];
+		pts[2] = collisionCylinder.pts[collisionCylinder.quads[i][2]];
+		pts[3] = collisionCylinder.pts[collisionCylinder.quads[i][3]];
+		glBegin(GL_QUADS);
+		for(j=0;j<4;j++)
+			glVertex3d(pts[j].x,pts[j].y,pts[j].z);
+		glEnd();
+	}
+	return 0;
+}
 
 void collide_Cylinder (struct X3D_Cylinder *node) {
 	       /*easy access, naviinfo.step unused for sphere collisions */
@@ -871,13 +1406,11 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 
 
 	       GLDOUBLE modelMatrix[16];
-	       GLDOUBLE upvecmat[16];
 	       struct point_XYZ iv = {0,0,0};
 	       struct point_XYZ jv = {0,0,0};
 	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct point_XYZ t_orig = {0,0,0};
 
-	       struct point_XYZ tupv = {0,1,0};
 	       struct point_XYZ delta;
 
 
@@ -887,29 +1420,81 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-	       transform3x3(&tupv,&tupv,modelMatrix);
-	       matrotate2v(upvecmat,ViewerUpvector,tupv);
-	       matmultiply(modelMatrix,upvecmat,modelMatrix);
-	       matinverse(upvecmat,upvecmat);
+			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			if(FallInfo.walking)
+			{
+				/* mesh method */
+				int i;
+				double disp;
+				struct point_XYZ n;
+				struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
+				double maxdisp = 0;
 
-	       /* values for rapid test */
-	       t_orig.x = modelMatrix[12];
-	       t_orig.y = modelMatrix[13];
-	       t_orig.z = modelMatrix[14];
-	       scale = pow(det3x3(modelMatrix),1./3.);
-	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
+				if(!collisionCylinder.npts) collisionCylinder_init(node);
+				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCylinder.smin,collisionCylinder.smax)) return;
+
+				for(i=0;i<collisionCylinder.npts;i++)
+					transform(&collisionCylinder.tpts[i],&collisionCylinder.pts[i],modelMatrix);
+
+				for(i = 0; i < collisionCylinder.ntris; i++) 
+				{
+					struct point_XYZ pts[3];
+					pts[0] = collisionCylinder.tpts[collisionCylinder.tris[i][0]];
+					pts[1] = collisionCylinder.tpts[collisionCylinder.tris[i][1]];
+					pts[2] = collisionCylinder.tpts[collisionCylinder.tris[i][2]];
+					/* compute normal - could compute once in shapespace then transform */
+					VECDIFF(pts[1],pts[0],a);
+					VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
+					veccross(&n,a,b); /* 6 multiplies */
+					vecnormal(&n,&n); 
+					dispv = get_poly_disp_2(pts,3,n);
+				    disp = vecdot(&dispv,&dispv);
+					if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
+						maxdisp = disp;
+						maxdispv = dispv;
+					}
+				}
+				for(i = 0; i < collisionCylinder.nquads; i++) 
+				{
+					struct point_XYZ pts[4];
+					pts[0] = collisionCylinder.tpts[collisionCylinder.quads[i][0]];
+					pts[1] = collisionCylinder.tpts[collisionCylinder.quads[i][1]];
+					pts[2] = collisionCylinder.tpts[collisionCylinder.quads[i][2]];
+					pts[3] = collisionCylinder.tpts[collisionCylinder.quads[i][3]];
+					/* compute normal - could compute once in shapespace then transform */
+					VECDIFF(pts[1],pts[0],a);
+					VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
+					veccross(&n,a,b); /* 6 multiplies */
+					vecnormal(&n,&n); 
+					dispv = get_poly_disp_2(pts,4,n);
+				    disp = vecdot(&dispv,&dispv);
+					if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
+						maxdisp = disp;
+						maxdispv = dispv;
+					}
+				}
+				delta = maxdispv;
+			}
+			else
+			{
+
+			   /* values for rapid test */
+			   t_orig.x = modelMatrix[12];
+			   t_orig.y = modelMatrix[13];
+			   t_orig.z = modelMatrix[14];
+			   scale = pow(det3x3(modelMatrix),1./3.);
+			   if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
 
 
 
-	       /* get transformed box edges and position */
-	       transform(&iv,&iv,modelMatrix);
-	       transform(&jv,&jv,modelMatrix);
+			   /* get transformed box edges and position */
+			   transform(&iv,&iv,modelMatrix);
+			   transform(&jv,&jv,modelMatrix);
 
 
-	       delta = cylinder_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
-
+			   delta = cylinder_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
+			}
 	       vecscale(&delta,&delta,-1);
-	       transform3x3(&delta,&delta,upvecmat);
 
 	       accumulate_disp(&CollisionInfo,delta);
 
@@ -929,17 +1514,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 }
 
 void collide_Extrusion (struct X3D_Extrusion *node) {
-	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 	       GLDOUBLE modelMatrix[16];
-	       GLDOUBLE upvecmat[16];
-
-	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
-	       struct point_XYZ t_orig = {0,0,0};
-
-	       struct point_XYZ tupv = {0,1,0};
 	       struct point_XYZ delta = {0,0,0};
 
 	       struct X3D_PolyRep pr;
@@ -967,26 +1542,13 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 	       pr = *((struct X3D_PolyRep*)node->_intern);
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-	       transform3x3(&tupv,&tupv,modelMatrix);
-	       matrotate2v(upvecmat,ViewerUpvector,tupv);
-	       matmultiply(modelMatrix,upvecmat,modelMatrix);
-	       matinverse(upvecmat,upvecmat);
+			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
-	       /* values for rapid test */
-	       t_orig.x = modelMatrix[12];
-	       t_orig.y = modelMatrix[13];
-	       t_orig.z = modelMatrix[14];
-	       scale = pow(det3x3(modelMatrix),1./3.);
-/*	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;*/
+			if(!avatarCollisionVolumeIntersectMBBf(modelMatrix, pr.minVals, pr.maxVals))return;
 
-/*	       printf("ntri=%d\n",pr.ntri);
-	       for(i = 0; i < pr.ntri; i++) {
-		   printf("cindex[%d]=%d\n",i,pr.cindex[i]);
-	       }*/
-	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
+	       delta = polyrep_disp2(pr,modelMatrix,flags); 
 
 	       vecscale(&delta,&delta,-1);
-	       transform3x3(&delta,&delta,upvecmat);
 
 	       accumulate_disp(&CollisionInfo,delta);
 

@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.37 2010/01/15 22:07:26 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.38 2010/01/16 21:22:09 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -106,12 +106,13 @@ int cur_hits=0;
 
 /* Collision detection results */
 struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
+struct sFallInfo FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; /* too many to initialize here */
 
 /* dimentions of viewer, and "up" vector (for collision detection) */
 struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
 
 /* for alignment of collision cylinder, and gravity (later). */
-struct point_XYZ ViewerUpvector = {0,0,0};
+//struct point_XYZ ViewerUpvector = {0,0,0};
 
 X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
 
@@ -583,23 +584,25 @@ render_hier(struct X3D_Node *p, int rwhat) {
 #endif
 
 
-	/*get viewpoint result, only for upvector*/
-	if (render_vp &&
-	    ViewerUpvector.x == 0 &&
-	    ViewerUpvector.y == 0 &&
-	    ViewerUpvector.z == 0) {
-
-		/* store up vector for gravity and collision detection */
-		/* naviinfo.reset_upvec is set to 1 after a viewpoint change */
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-		matinverse(modelMatrix,modelMatrix);
-		transform3x3(&ViewerUpvector,&upvec,modelMatrix);
-
-#ifdef RENDERVERBOSE 
-		printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
-#endif
-
-	}
+	/*get viewpoint result, only for upvector Jan16,2010 not needed now - gravity recomputed in mainloop.c render_collisions on each frame*/
+//	if (render_vp &&
+//	    ViewerUpvector.x == 0 &&
+//	    ViewerUpvector.y == 0 &&
+//	    ViewerUpvector.z == 0) {
+//
+//		/* store up vector for gravity and collision detection for component_grouping/compnent_geospatial #ifdef COLLISIONTRANSFORM
+//			see also mainloop.c render_collisions() which computes gravity matrix for regular collision and terrain following */
+//		/* naviinfo.reset_upvec is set to 1 after a viewpoint change */
+//		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+//		matinverse(modelMatrix,modelMatrix);
+//		transform3x3(&ViewerUpvector,&upvec,modelMatrix); 
+//		printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
+//		
+//#ifdef RENDERVERBOSE 
+//		printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
+//#endif
+//
+//	}
 }
 
 

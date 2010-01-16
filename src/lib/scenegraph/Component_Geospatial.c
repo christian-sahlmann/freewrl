@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.33 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Component_Geospatial.c,v 1.34 2010/01/16 21:22:09 dug9 Exp $
 
 X3D Geospatial Component
 
@@ -2744,10 +2744,11 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-	       transform3x3(&tupv,&tupv,modelMatrix);
-	       matrotate2v(upvecmat,ViewerUpvector,tupv);
-	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	      // transform3x3(&tupv,&tupv,modelMatrix);
+	      // matrotate2v(upvecmat,ViewerUpvector,tupv);
+	     //  matmultiply(modelMatrix,upvecmat,modelMatrix);
 	       /* matinverse(upvecmat,upvecmat); */
+			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];

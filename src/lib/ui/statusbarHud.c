@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.5 2010/01/12 20:04:47 sdumoulin Exp $
+  $Id: statusbarHud.c,v 1.6 2010/01/16 21:22:09 dug9 Exp $
 
 */
 
@@ -1210,12 +1210,12 @@ extern int clipPlane;
 static int hadString = 0;
 
 int showButtons =0;
-#define mbuts 12
+#define mbuts 11
 int nbuts = mbuts;
 int butrect[4][mbuts];
 int butStatus[mbuts];
 struct textureTableIndexStruct butts[mbuts][2];
-char * butFnames[mbuts] = {"walk.png","fly.png","flyEx.png","examine.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png","level.png"};
+char * butFnames[mbuts] = {"walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png"};//"flyEx.png",
 GLubyte *bmIcon[mbuts]; 
 int butsLoaded = 0;
 int isOver = -1;
@@ -1306,8 +1306,8 @@ void initButtons()
 	{
 		bmIcon[0] = walk;
 		bmIcon[1] = fly;
-		bmIcon[2] = flyex;
-		bmIcon[3] = examine;
+		bmIcon[2] = examine;
+		bmIcon[3] = level;
 		bmIcon[4] = headlight;
 		bmIcon[5] = collision;
 		bmIcon[6] = prev;
@@ -1315,7 +1315,8 @@ void initButtons()
 		bmIcon[8] = help;
 		bmIcon[9] = messages;
 		bmIcon[10] = options;
-		bmIcon[11] = level;
+		//bmIcon[2] = flyex;
+
 	}
 
 	butsLoaded = 1;
@@ -1337,9 +1338,9 @@ void setMenuButton_navModes(int type)
 	switch(type)
 	{
 		case VIEWER_NONE: break;
-		case VIEWER_EXAMINE: {butStatus[3] = 1;break;}
+		case VIEWER_EXAMINE: {butStatus[2] = 1;break;}
 		case VIEWER_WALK: {butStatus[0] = 1;break;}
-		case VIEWER_EXFLY:{butStatus[2] = 1;break;}
+		//case VIEWER_EXFLY:{butStatus[2] = 1;break;}
 		case VIEWER_FLY:{butStatus[1] = 1;break;}
 	}
 return;
@@ -1377,17 +1378,17 @@ void handleButtonPress()
 		&& y > butrect[1][i] && y < butrect[3][i] )
 		{
 			printf("[%d=",i); /* button pressed */
-			if( i < 4 )
+			if( i < 3 )
 			{
 				/* radio button - just one on at a time walk,fly,examine */
-				for(j=0;j<4;j++) butStatus[j] = 0;
+				for(j=0;j<3;j++) butStatus[j] = 0;
 				butStatus[i] = 1;
 				switch(i)
 				{
                     case 0: { set_viewer_type (VIEWER_WALK); break; }
                     case 1: { set_viewer_type (VIEWER_FLY); break; }
-                    case 2: { set_viewer_type (VIEWER_EXFLY); break; }
-                    case 3: { set_viewer_type (VIEWER_EXAMINE); break; }
+                    //case 2: { set_viewer_type (VIEWER_EXFLY); break; }
+                    case 2: { set_viewer_type (VIEWER_EXAMINE); break; }
 				}
 
 			}
@@ -1419,10 +1420,11 @@ void handleButtonPress()
                 case 7: {Next_ViewPoint(); break;}
 				}
 			}
-			else if(i == 11)
+			else if(i == 3)
 			{
 				/* level */
-				printf("leveling function not implemented\n");
+				//printf("leveling function not implemented\n");
+				viewer_level_to_bound();
 			}
 
 			printf("%d",butStatus[i]);
@@ -1573,6 +1575,7 @@ H	void setStereo(int type);							//implement in viewer.c
 H	void toggleOrSetStereo(int type);					// "
 H	void setAnaglyphSideColor(char color, int iside);	//"
 H	void updateEyehalf();								//" 
+M	viewer_level_to_bound();							//"
     */
 	char *p; 
 	float c[4];

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.102 2010/01/15 22:07:25 crc_canada Exp $
+$Id: headers.h,v 1.103 2010/01/16 21:22:09 dug9 Exp $
 
 Global includes.
 
@@ -528,7 +528,7 @@ void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);
 /* bindable nodes */
 extern GLint viewport[];
 extern GLDOUBLE fieldofview;
-extern struct point_XYZ ViewerUpvector;
+//extern struct point_XYZ ViewerUpvector;
 extern struct sNaviInfo naviinfo;
 extern double defaultExamineDist;
 
@@ -738,6 +738,7 @@ extern void *hypersensitive; 		/* in VRMLC.pm */
 extern int hyperhit;			/* in VRMLC.pm */
 extern struct point_XYZ r1, r2;		/* in VRMLC.pm */
 extern struct sCollisionInfo CollisionInfo;
+extern struct sFallInfo FallInfo; /*like sCollisionInfo, except for vertical falls */
 extern struct currayhit rayHit,rayph,rayHitHyper;
 extern GLint smooth_normals;
 

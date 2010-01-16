@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.38 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Viewer.c,v 1.39 2010/01/16 21:22:09 dug9 Exp $
 
 CProto ???
 
@@ -270,7 +270,119 @@ printf ("RP, aft orig calc %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Orig
 */
 	}
 }
-void viewer_togl(double fieldofview) {
+double vecangle2(struct point_XYZ* V1, struct point_XYZ* V2, struct point_XYZ* rotaxis) {
+	/* similar full circle angle computation as:
+	double matrotate2v() 
+	*/
+
+	double cosine, sine, ulen, vlen, scale, dot, angle;
+	struct point_XYZ cross;
+	/* use dot product to get cosine:  cosTheta = (U dot V)/(||u||||v||) */
+	dot = vecdot(V1,V2);
+	ulen = sqrt(vecdot(V1,V1));
+	vlen = sqrt(vecdot(V2,V2));
+	scale = ulen*vlen;
+	if( APPROX(scale, 0.0) )
+	{
+		rotaxis->y = rotaxis->z = 0.0;
+		rotaxis->x = 1.0; //arbitrary axis
+		return 0.0;
+	}
+	cosine = dot/scale;
+	/* use cross product to get sine: ||u X v|| = ||u||||v||sin(theta) or sinTheta = ||uXv||/(||u||||v||)*/
+	veccross(&cross,*V1,*V2);
+	sine = sqrt(vecdot(&cross,&cross))/scale;
+	/* get full circle unambiguous angle using both cosine and sine */
+	angle = atan2(sine,cosine);
+	vecnormal(rotaxis,&cross);
+	return angle;
+};
+void avatar2BoundViewpointVerticalAvatar(GLdouble *matA2BVVA, GLdouble *matBVVA2A)
+{
+	/* goal: make 2 transform matrices to go back and forth from Avatar A to 
+	   Bound-Viewpoint-Vertical aligned Avatar-centric (no translations or scales - just 2 tilts) coordinates
+    */
+	struct point_XYZ tilted;
+	struct point_XYZ downvec = {0.0,-1.0,0.0};
+
+	//downvec is in bound viewpoint space
+	quaternion_rotation(&tilted, &Viewer.Quat, &downvec);
+	//tilted is in avatar space.
+	matrotate2v(matA2BVVA,downvec,tilted); 
+	matrotate2v(matBVVA2A,tilted,downvec); 
+	//matinverse(matBVVA2A,matA2BVVA);
+	return;
+}
+
+void viewer_level_to_bound() 
+{
+/* 
+Goal: Gravity as per specs 
+Gravity:
+	From specs > abstract > architecture > 23.3.4 NavigationInfo:
+	"The speed, avatarSize and visibilityLimit values are all scaled by the transformation being applied 
+	to the currently bound Viewpoint node. 
+	If there is no currently bound Viewpoint node, the values are interpreted in the world coordinate system. "
+
+	"For purposes of terrain following, the browser maintains a notion of the down direction (down vector), since gravity 
+	is applied in the direction of the down vector. This down vector shall be along the negative Y-axis in the 
+	local coordinate system of the currently bound Viewpoint node (i.e., the accumulation of the Viewpoint node's 
+	ancestors' transformations, not including the Viewpoint node's orientation field)."
+
+	From specs > abstract > architecture > 23.3.5 Viewpoint
+	"When a Viewpoint node is at the top of the stack, the user's view is 
+	conceptually re-parented as a child of the Viewpoint node."
+	
+	"Navigation types (see 23.3.4 NavigationInfo) that require a definition of a down vector (e.g., terrain following) 
+	shall use the negative Y-axis of the coordinate system of the currently bound Viewpoint node. 
+	Likewise, navigation types that require a definition of an up vector shall use the positive Y-axis of the 
+	coordinate system of the currently bound Viewpoint node. The orientation field of the Viewpoint node does 
+	not affect the definition of the down or up vectors. This allows the author to separate the viewing direction 
+	from the gravity direction."
+
+	Implication: if your entire scene is tilted (ie. Z up), along with your viewpoint, you shouldn't notice. 
+	Even when terrain following, stepping, colliding.
+
+Transforms:
+World > [TransformStack] > Bound-Viewpoint > [Quat + Pos] > viewer/avatar > [AntiQuat + AntiPos?] > Bound-Viewpoint > Inverse[TransformStack] > World   
+Viewer.Quat, Viewer.Pos - local pose of avatar wrt its currently bound viewpoint parent. 
+	Includes/contains the viewpoint node's position and orientation field info.
+
+ViewerUpVector: - looks like a global tilt of the avatar - I don't use it here or in collision
+ViewerUpVector computation - see RenderFuncs.c L595   
+*/
+
+	/*
+	first attempts at leveling avatar to bound viewpoint:
+	1. Transform a bound-viewpoint-coordinates down vector {0,-1,0} to avatar coords using Quat
+	2. compute tilts of that down vector in avatar space
+	3. apply inverse tilts to end of transform chain ie Quat = Quat*inverse(tilts)
+	*/
+	struct point_XYZ rotaxis, tilted;
+	Quaternion q, nq, Quat; //, AntiQuat;
+	double angle;
+	struct point_XYZ downvec = {0.0,-1.0,0.0};
+
+	Quat = Viewer.Quat;
+	//AntiQuat = Viewer.AntiQuat;
+	quaternion_rotation(&tilted, &Quat, &downvec);
+	//tilted is in avatar space.
+	angle = vecangle2(&downvec,&tilted,&rotaxis);
+	if( APPROX(angle,0.0) ) return; //we're level already
+	vrmlrot_to_quaternion(&q, rotaxis.x, rotaxis.y, rotaxis.z, -angle );
+	quaternion_normalize(&q);
+	quaternion_multiply(&(Viewer.Quat), &q, &Quat);
+
+	/* make sure Viewer.Dist is configured properly for Examine mode */
+	CALCULATE_EXAMINE_DISTANCE
+}
+
+void viewer_togl(double fieldofview) 
+{
+	/* goal: take the curring Viewer pose (.Pos, .Quat) and set openGL transforms
+	   to prepare for a separate call to move the viewpoint - 
+	   (currently done in Mainloop.c setup_viewpoint())
+    */
 	if (Viewer.isStereo) /* buffer != GL_BACK)  */
 		set_stereo_offset0(); /*Viewer.iside, Viewer.eyehalf, Viewer.eyehalfangle);*/
 
@@ -436,6 +548,11 @@ printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13]
 
 
 static void handle_walk(const int mev, const unsigned int button, const float x, const float y) {
+/*
+ * walk.xd,zd are in a plane parallel to the scene/global horizon.
+ * walk.yd is vertical in the global/scene
+ * walk.rd is an angle in the global/scene horizontal plane (around vertical axis)
+*/
 	X3D_Viewer_Walk *walk = Viewer.walk;
 
 	if (mev == ButtonPress ) {
@@ -546,7 +663,10 @@ printf ("examine->origin %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin
 }
 /************************************************************************************/
 
-
+int getViewerType()
+{
+	return viewer_type;
+}
 void handle(const int mev, const unsigned int button, const float x, const float y)
 {
 
@@ -629,6 +749,9 @@ handle_keyrelease(const char key)
  * (and event triggering) take place.
  * Position dictated by this routine is NOT final, and is likely to
  * change if the viewer is left in a state of collision. (ncoder)
+ * walk.xd,zd are in a plane parallel to the scene/global horizon.
+ * walk.yd is vertical in the global/scene
+ * walk.rd is an angle in the global/scene horizontal plane (around vertical axis)
  */
 
 static void
@@ -679,7 +802,11 @@ handle_tick_walk()
 /* my $string = ""; */
 /* my $inc = 0; */
 /* my $inf = 0; */
-
+#ifdef _MSC_VER
+exflyMethod = 1;  /* could be a user settable option, which kind of exfly to do */
+#else
+exflyMethod = 0;
+#endif
 static void
 handle_tick_exfly()
 {
@@ -724,20 +851,40 @@ handle_tick_exfly()
 
 /* 	if (length($string)>0) */
 	if ((len = strlen(string)) > 0) {
-		len = sscanf (string, "%f %f %f %f %f %f %f",&px,&py,&pz,
-			&q1,&q2,&q3,&q4);
+		if(exflyMethod == 0)
+		{
+			len = sscanf (string, "%f %f %f %f %f %f %f",&px,&py,&pz,
+				&q1,&q2,&q3,&q4);
 
-		/* read error? */
-		if (len != 7) return;
+			/* read error? */
+			if (len != 7) return;
 
-		(Viewer.Pos).x = px;
-		(Viewer.Pos).y = py;
-		(Viewer.Pos).z = pz;
+			(Viewer.Pos).x = px;
+			(Viewer.Pos).y = py;
+			(Viewer.Pos).z = pz;
 
-		(Viewer.Quat).w = q1;
-		(Viewer.Quat).x = q2;
-		(Viewer.Quat).y = q3;
-		(Viewer.Quat).z = q4;
+			(Viewer.Quat).w = q1;
+			(Viewer.Quat).x = q2;
+			(Viewer.Quat).y = q3;
+			(Viewer.Quat).z = q4;
+		}else if(exflyMethod == 1){
+			static int lastbut = 0;
+			int mev, but;
+			len = sscanf (string, "%d %f %f ",&but,&px,&py);
+			if (len != 3) return;
+			mev = ButtonRelease;
+			if(but) mev = MotionNotify;
+			if(but != lastbut)
+			{
+				mev = (but==1 || but==4)? ButtonPress : ButtonRelease;
+			}
+			// change raw wii values from ( -1 to 1 ) to (0 - 1.0)
+			//px = (px + 1.0)*.5;  //done in wiimote code
+			//py = 1.0 - (py + 1.0)*.5;  //done in wiimote code
+			handle_walk(mev,but,px,py);
+			handle_tick_walk();
+			lastbut = but;
+		}
 	}
 }
 
@@ -1289,16 +1436,17 @@ void increment_pos(struct point_XYZ *vec) {
 	VPvelocity.x = nv.x; VPvelocity.y = nv.y; VPvelocity.z = nv.z;
 
 	/* and, act on this change of location. */
-	Viewer.Pos.x += nv.x; Viewer.Pos.y += nv.y; Viewer.Pos.z += nv.z;
-
+	Viewer.Pos.x += nv.x; 
+	Viewer.Pos.y += nv.y; 
+	Viewer.Pos.z += nv.z;
+	
 
 	/* printf ("increment_pos; oldpos %4.2f %4.2f %4.2f, anti %4.2f %4.2f %4.2f nv %4.2f %4.2f %4.2f \n",
 		Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, 
 		Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z, 
-		nv.x, nv.y, nv.z);
-	*/
+		nv.x, nv.y, nv.z); */
+	
 }
-
 
 /* We have a Viewpoint node being bound. (not a GeoViewpoint node) */
 void bind_viewpoint (struct X3D_Viewpoint *vp) {
@@ -1346,7 +1494,32 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	printf ("	center of rotation %f %f %f\n",vp->centerOfRotation.c[0], vp->centerOfRotation.c[1],vp->centerOfRotation.c[2]);
 	*/
 	
+	/* 
 	
+	From specs > abstract > architecture > 23.3.5 Viewpoint
+	"When a Viewpoint node is at the top of the stack, the user's view is 
+	conceptually re-parented as a child of the Viewpoint node. All subsequent changes to the Viewpoint node's
+	coordinate system change the user's view (e.g., changes to any ancestor transformation nodes or to 
+	the Viewpoint node's position or orientation fields)."
+	
+	"Navigation types (see 23.3.4 NavigationInfo) that require a definition of a down vector (e.g., terrain following) 
+	shall use the negative Y-axis of the coordinate system of the currently bound Viewpoint node. 
+	Likewise, navigation types that require a definition of an up vector shall use the positive Y-axis of the 
+	coordinate system of the currently bound Viewpoint node. The orientation field of the Viewpoint node does 
+	not affect the definition of the down or up vectors. This allows the author to separate the viewing direction 
+	from the gravity direction."
+
+	concept of transformations Jan3,2010:
+world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar 
+"            < inverse[Transformstack] < "         < [AntiPos,AntiQuat] < avatar 
+	gravity (according to specs): Y-down in the (bound Viewpoint local coords). 
+	The viewpoint node orientation field doesn't count toward specs-gravity.
+	If you want global-gravity, then put your viewpoint node at the scene level, or compute a 
+	per-frame gravity for spherical worlds - see mainloop.c render_collisions.
+
+	Implication: the user button LEVEL should level out/cancel/zero the bound-viewpoint's orientation field value.
+
+	*/
 	Viewer.Pos.x = vp->position.c[0];
 	Viewer.Pos.y = vp->position.c[1];
 	Viewer.Pos.z = vp->position.c[2];

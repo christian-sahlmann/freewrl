@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.14 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Component_Geometry2D.c,v 1.15 2010/01/16 21:22:09 dug9 Exp $
 
 X3D Geometry2D  Component
 
@@ -651,7 +651,7 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 
 	       GLDOUBLE modelMatrix[16];
-	       GLDOUBLE upvecmat[16];
+	       //GLDOUBLE upvecmat[16];
 	       struct point_XYZ iv = {0,0,0};
 	       struct point_XYZ jv = {0,0,0};
 	       struct point_XYZ kv = {0,0,0};
@@ -671,30 +671,28 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-	       transform3x3(&tupv,&tupv,modelMatrix);
-	       matrotate2v(upvecmat,ViewerUpvector,tupv);
-	       matmultiply(modelMatrix,upvecmat,modelMatrix);
-	       matinverse(upvecmat,upvecmat);
+			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
-	       /* values for rapid test */
-	       t_orig.x = modelMatrix[12];
-	       t_orig.y = modelMatrix[13];
-	       t_orig.z = modelMatrix[14];
-	       scale = pow(det3x3(modelMatrix),1./3.);
-	       if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*node->size.c[0],
-			scale*node->size.c[1],0.0)) return;
-
+		   {
+			   /*  minimum bounding box MBB test in avatar/collision space */
+				GLdouble shapeMBBmin[3], shapeMBBmax[3];
+				int i;
+				for(i=0;i<3;i++)
+				{
+					shapeMBBmin[i] = min(-(node->size).c[i]*.5,(node->size).c[i]*.5);
+					shapeMBBmax[i] = max(-(node->size).c[i]*.5,(node->size).c[i]*.5);
+				}
+				if(!avatarCollisionVolumeIntersectMBB(modelMatrix, shapeMBBmin, shapeMBBmax))return;
+		   }
 	       /* get transformed box edges and position */
 	       transform(&ov,&ov,modelMatrix);
 	       transform3x3(&iv,&iv,modelMatrix);
 	       transform3x3(&jv,&jv,modelMatrix);
 	       transform3x3(&kv,&kv,modelMatrix);
 
-
 	       delta = box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
 
 	       vecscale(&delta,&delta,-1);
-	       transform3x3(&delta,&delta,upvecmat);
 
 	       accumulate_disp(&CollisionInfo,delta);
 

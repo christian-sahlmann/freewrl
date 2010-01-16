@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.9 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Collision.c,v 1.10 2010/01/16 21:22:09 dug9 Exp $
 
 Render the children of nodes.
 
@@ -40,6 +40,11 @@ Render the children of nodes.
 #include "LinearAlgebra.h"
 #include "Collision.h"
 
+//static int dug9debug = 0;
+//int	setdug9debug()
+//{ dug9debug = 1; return 0;}
+//int cleardug9debug()
+//{ dug9debug = 0; return 0;}
 
 #define swap(x,y) {double k = x; x = y; y = k; }
 #define FLOAT_TOLERANCE 0.00000001
@@ -71,6 +76,24 @@ struct point_XYZ res ={0,0,0};
 
 /*a constructor */
 #define make_pt(p,xc,yc,zc) { p.x = (xc); p.y = (yc); p.z = (zc); }
+
+int overlapMBBs(GLdouble *MBBmin1, GLdouble *MBBmax1, GLdouble *MBBmin2, GLdouble* MBBmax2)
+{
+	/* test for overlap between two axes aligned minimum bounding boxes MBBs in same space. 
+	   returns true if they overlap
+	   rule: must overlap in all 3 dimensions in order to intersect
+	   dimension your MBB: double MBBmin[3], MBBmax[3];
+	*/
+	int i, overlap;
+	overlap = 1;
+	for(i=0;i<3;i++)
+	{
+		overlap = overlap && !(MBBmin1[i] > MBBmax2[i] || MBBmax1[i] < MBBmin2[i]);
+	}
+	return overlap;
+}
+
+
 
 /*accumulator function, for displacements. */
 void accumulate_disp(struct sCollisionInfo* ci, struct point_XYZ add) {
@@ -384,66 +407,66 @@ int helper_poly_clip_cap(struct point_XYZ* clippedpoly, int clippedpolynum, cons
     int i;
 
     if(!stepping) {
-	ppoly = (struct point_XYZ*) MALLOC(sizeof(struct point_XYZ) * num);
+		ppoly = (struct point_XYZ*) MALLOC(sizeof(struct point_XYZ) * num);
 
-	/*sqush poly on cylinder cap plane.*/
-	for(i= 0; i < num; i++) {
-	    ppoly[i] = project_on_yplane(p[i],n,y);
-	}
+		/*sqush poly on cylinder cap plane.*/
+		for(i= 0; i < num; i++) {
+			ppoly[i] = project_on_yplane(p[i],n,y);
+		}
     } else
-	ppoly = (struct point_XYZ*)p; /*const cast*/
+		ppoly = (struct point_XYZ*)p; /*const cast*/
 
     /*find points of poly hitting cylinder cap*/
     for(i= 0; i < num; i++) {
-	if(ppoly[i].x*ppoly[i].x + ppoly[i].z*ppoly[i].z > r*r) {
-	    allin = 0;
-	} else {
-	    DEBUGPTSPRINT("intersect_point_cap(%f)= %d\n",y,clippedpolynum);
-	    clippedpoly[clippedpolynum++] = ppoly[i];
-	}
+		if(ppoly[i].x*ppoly[i].x + ppoly[i].z*ppoly[i].z > r*r) {
+			allin = 0;
+		} else {
+			DEBUGPTSPRINT("intersect_point_cap(%f)= %d\n",y,clippedpolynum);
+			clippedpoly[clippedpolynum++] = ppoly[i];
+		}
     }
 
     if(!allin) {
-	int numdessect = 0;
-	struct point_XYZ dessect[2];
-	double k1,k2;
-	int nsect;
+		int numdessect = 0;
+		struct point_XYZ dessect[2];
+		double k1,k2;
+		int nsect;
 
-	/*find intersections of poly with cylinder cap edge*/
-	for(i=0; i <num; i++) {
-	    nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,ppoly[i],ppoly[(i+1)%num]);
-	    switch(nsect) {
-	    case 2:
-		if(fabs(k1-k2) < FLOAT_TOLERANCE) /* segment touches edge of circle. we want to ignore this. */
-		    break;
-		DEBUGPTSPRINT("intersect_segment_cap(%f)_2= %d\n",y,clippedpolynum);
-		clippedpoly[clippedpolynum++] = weighted_sum(ppoly[i],ppoly[(i+1)%num],k2);
-	    case 1:
-		DEBUGPTSPRINT("intersect_segment_cap(%f)_1= %d\n",y,clippedpolynum);
-		clippedpoly[clippedpolynum++] = weighted_sum(ppoly[i],ppoly[(i+1)%num],k1);
-	    case 0: break;
-	    }
-	    /*find points of poly intersecting descending line on poly*/
-	    if((numdessect != 2) && intersect_segment_with_line_on_yplane(&dessect[numdessect],ppoly[i],ppoly[(i+1)%num],n,zero)) {
-		numdessect++;
-	    }
-	}
-	/*find intersections of descending segment too.
-	  these will point out maximum and minimum in cylinder cap edge that is inside triangle */
-	if(numdessect == 2) {
-	    nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,dessect[0],dessect[1]);
-	    switch(nsect) {
-	    case 2:
-		if(fabs(k1-k2) < FLOAT_TOLERANCE) /* segment touches edge of circle. we want to ignore this. */
-		    break;
-		DEBUGPTSPRINT("intersect_descending_segment_cap(%f)_2= %d\n",y,clippedpolynum);
-		clippedpoly[clippedpolynum++] = weighted_sum(dessect[0],dessect[1],k2);
-	    case 1:
-		DEBUGPTSPRINT("intersect_descending_segment_cap(%f)_1= %d\n",y,clippedpolynum);
-		clippedpoly[clippedpolynum++] = weighted_sum(dessect[0],dessect[1],k1);
-	    case 0: break;
-	    }
-	}
+		/*find intersections of poly with cylinder cap edge*/
+		for(i=0; i <num; i++) {
+			nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,ppoly[i],ppoly[(i+1)%num]);
+			switch(nsect) {
+				case 2:
+				if(fabs(k1-k2) < FLOAT_TOLERANCE) /* segment touches edge of circle. we want to ignore this. */
+					break;
+				DEBUGPTSPRINT("intersect_segment_cap(%f)_2= %d\n",y,clippedpolynum);
+				clippedpoly[clippedpolynum++] = weighted_sum(ppoly[i],ppoly[(i+1)%num],k2);
+				case 1:
+				DEBUGPTSPRINT("intersect_segment_cap(%f)_1= %d\n",y,clippedpolynum);
+				clippedpoly[clippedpolynum++] = weighted_sum(ppoly[i],ppoly[(i+1)%num],k1);
+				case 0: break;
+			}
+			/*find points of poly intersecting descending line on poly*/
+			if((numdessect != 2) && intersect_segment_with_line_on_yplane(&dessect[numdessect],ppoly[i],ppoly[(i+1)%num],n,zero)) {
+				numdessect++;
+			}
+		}
+		/*find intersections of descending segment too.
+		  these will point out maximum and minimum in cylinder cap edge that is inside triangle */
+		if(numdessect == 2) {
+			nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,dessect[0],dessect[1]);
+			switch(nsect) {
+				case 2:
+				if(fabs(k1-k2) < FLOAT_TOLERANCE) /* segment touches edge of circle. we want to ignore this. */
+					break;
+				DEBUGPTSPRINT("intersect_descending_segment_cap(%f)_2= %d\n",y,clippedpolynum);
+				clippedpoly[clippedpolynum++] = weighted_sum(dessect[0],dessect[1],k2);
+				case 1:
+				DEBUGPTSPRINT("intersect_descending_segment_cap(%f)_1= %d\n",y,clippedpolynum);
+				clippedpoly[clippedpolynum++] = weighted_sum(dessect[0],dessect[1],k1);
+				case 0: break;
+			}
+		}
     }
 
     if(!stepping) FREE_IF_NZ (ppoly);
@@ -458,7 +481,8 @@ double get_poly_mindisp;
 
 /*feed a poly, and stats of a cylinder, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more.*/
-struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n) {
+struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n) 
+{
     int i;
     double polydisp;
     struct point_XYZ result;
@@ -473,116 +497,123 @@ struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct poi
 #endif
 
     /*allocate data */
-    if ((num*5+4)>clippedPoly1Size) {
+    if ((num*5+4)>clippedPoly1Size) 
+	{
         clippedPoly1 = (struct point_XYZ*) REALLOC(clippedPoly1,sizeof(struct point_XYZ) * (num*5+4));
         clippedPoly1Size = num*5+4;
     }
 
-
     /*if normal not specified, calculate it */
     /* if(n.x == 0 && n.y == 0 && n.z == 0) */
-    if(APPROX(n.x, 0) && APPROX(n.y, 0) && APPROX(n.z, 0)) {
+    if(APPROX(n.x, 0) && APPROX(n.y, 0) && APPROX(n.z, 0)) 
+	{
 		polynormal(&n,&p[0],&p[1],&p[2]);
     }
 
-    for(i = 0; i < num; i++) {
-	if(project_on_cylindersurface(&clippedPoly1[clippedPoly1num],weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_y_axis(p[i],p[(i+1)%num])),n,r) &&
-	   clippedPoly1[clippedPoly1num].y < y2 &&
-	   clippedPoly1[clippedPoly1num].y > y1 ) {
+    for(i = 0; i < num; i++) 
+	{
+		if(project_on_cylindersurface(&clippedPoly1[clippedPoly1num],weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_y_axis(p[i],p[(i+1)%num])),n,r) &&
+		   clippedPoly1[clippedPoly1num].y < y2 &&
+		   clippedPoly1[clippedPoly1num].y > y1 ) 
+		{
 
-	    DEBUGPTSPRINT("intersect_closestpolypoints_on_surface[%d]= %d\n",i,clippedPoly1num);
-	    clippedPoly1num++;
-	}
+			DEBUGPTSPRINT("intersect_closestpolypoints_on_surface[%d]= %d\n",i,clippedPoly1num);
+			clippedPoly1num++;
+		}
     }
 
     /* clip polygon on top and bottom cap */
     /* if(n.y!= 0.) */
-    if(! APPROX(n.y, 0)) {
+    if(! APPROX(n.y, 0)) 
+	{
 		clippedPoly1num = helper_poly_clip_cap(clippedPoly1, clippedPoly1num, p, num, r, n, y1, 0 /*stepping false*/);
 		clippedPoly1num = helper_poly_clip_cap(clippedPoly1, clippedPoly1num, p, num, r, n, y2, 0 /*stepping false*/);
     }
 
     /*find intersections of poly with cylinder side*/
     /* if(n.y != 1. && n.y != -1.) { */ /*n.y == +/-1 makes n.x == n.z == 0, wich does div's by 0, besides making no sense at all. */
-    if(! APPROX(n.y, 1) && ! APPROX(n.y, -1)) { /*n.y == +/-1 makes n.x == n.z == 0, wich does div's by 0, besides making no sense at all. */
+    if(! APPROX(n.y, 1) && ! APPROX(n.y, -1)) 
+	{ /*n.y == +/-1 makes n.x == n.z == 0, wich does div's by 0, besides making no sense at all. */
+		int numdessect3d = 0;
+		struct point_XYZ dessect3d[2];
+		double k1,k2;
+		int nsect;
 
-	int numdessect3d = 0;
-	struct point_XYZ dessect3d[2];
-	double k1,k2;
-	int nsect;
-
-
-	for(i=0; i <num; i++) {
-	    /*find points of poly intersecting descending line on poly, (non-projected)*/
-	    if((numdessect3d != 2) && intersect_segment_with_line_on_yplane(&dessect3d[numdessect3d],p[i],p[(i+1)%num],n,zero)) {
-		numdessect3d++;
-	    }
-	}
-
-	if(numdessect3d == 2) {
-	    dessect3d[0] = project_on_cylindersurface_plane(dessect3d[0],n,r);
-	    dessect3d[1] = project_on_cylindersurface_plane(dessect3d[1],n,r);
-
-	    /*only do/correct points if dessect3d line is somewhere inside the cylinder */
-	    if((dessect3d[0].y <= y2 || dessect3d[1].y <= y2) && (dessect3d[0].y >= y1 || dessect3d[1].y >= y1)) {
-		if(dessect3d[0].y > y2) dessect3d[0].y = y2;
-		if(dessect3d[0].y < y1) dessect3d[0].y = y1;
-		if(dessect3d[1].y > y2) dessect3d[1].y = y2;
-		if(dessect3d[1].y < y1) dessect3d[1].y = y1;
-
-		DEBUGPTSPRINT("project_on_cylindersurface_plane(%d)= %d\n",1,clippedPoly1num);
-		clippedPoly1[clippedPoly1num++] = dessect3d[0];
-		DEBUGPTSPRINT("project_on_cylindersurface_plane(%d)= %d\n",2,clippedPoly1num);
-		clippedPoly1[clippedPoly1num++] = dessect3d[1];
-	    }
-
-	}
-	{ /*find intersections on cylinder of polygon points projected on surface */
-	    struct point_XYZ sect;
-	    for(i = 0; i < num; i++) {
-		nsect = getk_intersect_line_with_ycylinder(&k1, &k2, r, p[i], n);
-		if(nsect == 0) continue;
-
-		/*sect = p[i] + k2 n*/
-		vecscale(&sect,&n,k2);
-		VECADD(sect,p[i]);
-
-		if(sect.y > y1 && sect.y < y2) {
-		    DEBUGPTSPRINT("intersect_polypoints_on_surface[%d]= %d\n",i,clippedPoly1num);
-		    clippedPoly1[clippedPoly1num++] = sect;
+		for(i=0; i <num; i++) 
+		{
+			/*find points of poly intersecting descending line on poly, (non-projected)*/
+			if((numdessect3d != 2) && intersect_segment_with_line_on_yplane(&dessect3d[numdessect3d],p[i],p[(i+1)%num],n,zero)) 
+			{
+				numdessect3d++;
+			}
 		}
-	    }
-	}
+		if(numdessect3d == 2) 
+		{
+			dessect3d[0] = project_on_cylindersurface_plane(dessect3d[0],n,r);
+			dessect3d[1] = project_on_cylindersurface_plane(dessect3d[1],n,r);
 
+			/*only do/correct points if dessect3d line is somewhere inside the cylinder */
+			if((dessect3d[0].y <= y2 || dessect3d[1].y <= y2) && (dessect3d[0].y >= y1 || dessect3d[1].y >= y1)) 
+			{
+				if(dessect3d[0].y > y2) dessect3d[0].y = y2;
+				if(dessect3d[0].y < y1) dessect3d[0].y = y1;
+				if(dessect3d[1].y > y2) dessect3d[1].y = y2;
+				if(dessect3d[1].y < y1) dessect3d[1].y = y1;
+
+				DEBUGPTSPRINT("project_on_cylindersurface_plane(%d)= %d\n",1,clippedPoly1num);
+				clippedPoly1[clippedPoly1num++] = dessect3d[0];
+				DEBUGPTSPRINT("project_on_cylindersurface_plane(%d)= %d\n",2,clippedPoly1num);
+				clippedPoly1[clippedPoly1num++] = dessect3d[1];
+			}
+		}
+		{ /*find intersections on cylinder of polygon points projected on surface */
+			struct point_XYZ sect;
+			for(i = 0; i < num; i++) 
+			{
+				nsect = getk_intersect_line_with_ycylinder(&k1, &k2, r, p[i], n);
+				if(nsect == 0) continue;
+
+				/*sect = p[i] + k2 n*/
+				vecscale(&sect,&n,k2);
+				VECADD(sect,p[i]);
+
+				if(sect.y > y1 && sect.y < y2) 
+				{
+					DEBUGPTSPRINT("intersect_polypoints_on_surface[%d]= %d\n",i,clippedPoly1num);
+					clippedPoly1[clippedPoly1num++] = sect;
+				}
+			}
+		}
     }
-
 #ifdef DEBUGPTS
     for(i=0; i < clippedPoly1num; i++) {
 	debugpts.push_back(clippedPoly1[i]);
     }
 #endif
-
     /*here we find mimimum displacement possible */
     polydisp = vecdot(&p[0],&n);
 
     /*calculate farthest point from the "n" plane passing through the origin */
-    for(i = 0; i < clippedPoly1num; i++) {
-	double disp = vecdot(&clippedPoly1[i],&n) - polydisp;
-	if(disp < get_poly_mindisp) {
-	    get_poly_mindisp = disp;
-	}
+    for(i = 0; i < clippedPoly1num; i++) 
+	{
+		double disp = vecdot(&clippedPoly1[i],&n) - polydisp;
+		if(disp < get_poly_mindisp) 
+		{
+			get_poly_mindisp = disp;
+		}
     }
-    if(get_poly_mindisp <= 0.) {
+    if(get_poly_mindisp <= 0.) 
+	{
 	    vecscale(&result,&n,get_poly_mindisp);
     } else
-	result = zero;
+		result = zero;
 
     /*free alloc'd data */
     return result;
 }
-
 /*feed a poly, and stats of a cylinder, it returns the vertical displacement that is needed for them not to intersect any more,
   if this displacement is less than the height of the cylinder (y2-y1).*/
+
 struct point_XYZ get_poly_step_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n) {
     int i;
     /* int allin = 1; */
@@ -604,62 +635,281 @@ struct point_XYZ get_poly_step_disp(double y1, double y2, double r, struct point
 		polynormal(&n,&p[0],&p[1],&p[2]);
     }
 
-    /*get highest point (not nessesarily inside)*/
-    for(i = 0; i < num; i++) {
-	if(p[i].y > pmax)
-	    pmax = p[i].y;
-    }
-    if(((pmax > y2 || n.y < 0) && n.y < STEPUP_MAXINCLINE)) /*to high to step on and to steep to step on or facing downward*/
-	return zero;
+
+	/*get highest point (not nessesarily inside)*/
+	for(i = 0; i < num; i++) {
+		if(p[i].y > pmax)
+			pmax = p[i].y;
+	}
+	if(((pmax > y2 || n.y < 0) && n.y < STEPUP_MAXINCLINE)) /*to high to step on and to steep to step on or facing downward*/
+		return zero;
 
 
-    /*allocate data */
-    if ((num*3+4)>clippedPoly2Size) {
-    	clippedPoly2 = (struct point_XYZ*) REALLOC(clippedPoly2,sizeof(struct point_XYZ) * (num*3+4));
-	clippedPoly2Size = num*3+4;
-    }
-
-    clippedPoly2num = helper_poly_clip_cap(clippedPoly2, clippedPoly2num, p, num, r, n, y1, 1 /*stepping true*/ );
+	/*allocate data */
+	if ((num*3+4)>clippedPoly2Size) {
+		clippedPoly2 = (struct point_XYZ*) REALLOC(clippedPoly2,sizeof(struct point_XYZ) * (num*3+4));
+		clippedPoly2Size = num*3+4;
+	}
+	clippedPoly2num = helper_poly_clip_cap(clippedPoly2, clippedPoly2num, p, num, r, n, y1, 1 /*stepping true*/ );
 
 #ifdef DEBUGPTS
-    for(i=0; i < clippedPoly2num; i++) {
+	for(i=0; i < clippedPoly2num; i++) {
 	debugpts.push_back(clippedPoly2[i]);
-    }
+	}
 #endif
 
-    /*get maximum*/
-    for(i = 0; i < clippedPoly2num; i++) {
-	if(clippedPoly2[i].y > dmax)
-	    dmax = clippedPoly2[i].y;
-    }
+	/*get maximum*/
+	for(i = 0; i < clippedPoly2num; i++) {
+		if(clippedPoly2[i].y > dmax)
+			dmax = clippedPoly2[i].y;
+	}
 
     /*diplace only if displacement completely clears polygon*/
     if(dmax > y2)
-	return zero;
+		return zero;
 
     get_poly_mindisp = y1-dmax;
 
     if(dmax > y1) {
-	result.x = 0;
-	result.y = get_poly_mindisp;
-	result.z = 0;
-	return result;
+		result.x = 0;
+		result.y = get_poly_mindisp;
+		result.z = 0;
+		return result;
     } else
-	return zero;
+		return zero;
 }
 
 /*feed a poly, and stats of a cylinder, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more, or vertically if contact point below ystep*/
 struct point_XYZ get_poly_disp(double y1, double y2, double ystep, double r, struct point_XYZ* p, int num, struct point_XYZ n) {
     struct point_XYZ result;
-    result = get_poly_step_disp(y1,ystep,r,p,num,n);
+	result.x = result.y = result.z = 0.0;
+    result = get_poly_step_disp(y1,ystep,r,p,num,n); /*dug9 - competes with climb for the knee-down part*/
     /* if(result.y != 0.) */
     if(! APPROX(result.y, 0)) {
 		return result;
     } else {
-		return get_poly_normal_disp(y1,y2,r,p,num,n);
+		return get_poly_normal_disp(y1,y2,r,p,num,n); /*dug9 - for walking should be used instead of sphere: just do this */
 	}
 }
+void accumulateFallingClimbing(double y1, double y2, double ystep, struct point_XYZ *p, int num, struct point_XYZ nused, double *tmin, double *tmax);
+
+int pointOnPlaneInsidePoly(struct point_XYZ D,struct point_XYZ *p, int num, struct point_XYZ* n )
+{
+	int i,j,overlap,inside;
+
+	struct point_XYZ a, b,c,last; //,d,e;
+
+	inside = 1;
+	for(i=0;i<num;i++)
+	{
+		j = (i+1)%num; //i==(num-1)? 0 : i + 1;
+		vecdiff(&a,&D,&p[i]);
+		vecdiff(&b,&p[j],&p[i]);
+		veccross(&c,a,b);
+		if( i > 0 )
+			inside = inside && vecdot(&last,&c) >= 0.0;
+		last = c;
+	}
+	return inside;
+}
+
+int dug9debug2 = 0;
+int intersectLineSegmentWithPoly(struct point_XYZ s0,struct point_XYZ s1,double r, struct point_XYZ *p,int num,struct point_XYZ n,double *dr)
+{
+	int hit = 0;
+	double d,t,t1, ndotD;
+	struct point_XYZ D;
+	/* I'm following p.391 of Graphics Gems I */
+	/* step1 intersect infinite line with infinite plane */
+	d = -vecdot(&n,&p[0]); /* compute plane constant */
+	VECDIFF(s1,s0,D); /* compute ray direction vector from line segment start and end points */
+	/* vecnormal(&D,&D); D should already be normalized - just sin & cos values */
+	ndotD = vecdot(&n,&D);
+	*dr = 0.0; /* displacement inward from r */
+	if(APPROX(ndotD,0.0) )
+	{
+		/* infinite plane and infinite line are parallel - no intersection */
+		*dr = 0.0;
+		return hit;
+	}
+	t = - ( (d + vecdot(&n,&s0)) / ndotD ); /*magic plane-line intersection equation - t is parametric value of intersection point on line */
+	/* step2 test intersection in line segment */
+	if( t < 0.0 || t > r )
+	{
+		/* intersection is outside of line segment */
+		return hit;
+	}
+	/* step3 test intersection in poly */
+	vecscale(&D,&D,t);
+	VECADD(D,s0);
+	hit = pointOnPlaneInsidePoly(D,p,num,&n);
+	if( hit ) *dr = r - t;
+	return hit;
+}
+
+/*feed a poly, and stats of a cylinder, it returns the displacement in the radial direction of the
+  avatar that is needed for them not to intersect any more */
+struct point_XYZ get_poly_radialSample_disp(double y1, double y2, double ystep, double r,struct point_XYZ* p, int num, struct point_XYZ n, double *tmin, double *tmax)
+{ 
+	/* uses a statistical sampler method - 8 radial rays at the ystep, avatar origin Y=0, and y2, levels, each ray segment r long 
+	   It's a sampler because it will miss small things. But it is supposed to catch major things like walls.
+	*/
+	int i,j,hit;
+	double level[3],dr,dmax,eighth,theta, avmin[3], avmax[3];
+	struct point_XYZ s0,s1,result = zero;
+	level[0] = ystep;
+	level[1] = 0.0;
+	level[2] = y2;
+	s0.x = s0.y = s0.z = 0.0; /*avatar axis*/
+	dmax = 0.0;
+	eighth = M_PI * 2.0 / 8.0;
+
+	for(i=0;i<3;i++)
+	{
+		avmin[i] = -r;
+		avmax[i] =  r;
+	}
+	avmin[1] = ystep; avmax[1] = y2;
+	if(!overlapMBBs(avmin,avmax,tmin,tmax)) return result;
+
+
+	for(i=0;i<3;i++)
+	{
+		s0.y = level[i];
+		s1.y = level[i];
+		theta = 0.0;
+		for(j=0;j<8;j++)
+		{
+			theta += eighth;
+			s1.x = cos(theta);
+			s1.z = sin(theta);
+			/* quick check of overlap */
+			avmin[0] = min(s0.x,s1.x);
+			avmin[1] = min(s0.y,s1.y);
+			avmin[2] = min(s0.z,s1.z);
+			avmax[0] = max(s0.x,s1.x);
+			avmax[1] = max(s0.y,s1.y);
+			avmax[2] = max(s0.z,s1.z);
+			if( overlapMBBs(avmin,avmax,tmin,tmax) )
+			{
+				hit = intersectLineSegmentWithPoly(s0,s1,r,p,num,n,&dr);
+				if(hit)
+				{
+					if( (dr > FLOAT_TOLERANCE) && (dr > dmax) )
+					{
+						dmax = dr;
+						vecscale(&result,&s1,dr);
+						result.y = 0.0;
+						//printf(">");
+					}
+				}
+			}
+		}
+	}
+	/* process hits to find optimal direction and magnitude */
+	return result;
+}
+
+
+//struct point_XYZ get_poly_disp_2(double y1, double y2, double ystep, double r, struct point_XYZ* p, int num, struct point_XYZ n) {
+struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n) {
+	/* dug9 - attempt to generalize logic for all planar facet geometry and avatar collision volumes 
+	   If you can break your geometry into planar facets, then call this for each facet. 
+	   We will know what to do here based on global structs.
+
+		 The avatar collision volume - 
+		 A.for flying/examining:
+		    1. sphere.
+
+		 B.For walking:
+		   1. cylinder (body) from  (-Height + stepSize) to (+avatarWidth)
+		   2. line - climb/fall (legs,feet) from (-FallInfo.FallHeight to 0)
+		   Order of tests (so can exit early to save unnecessary computations):
+		   a) cylinder b) line
+		   If you have a cylinder hit, you don't need to test climb/fall.
+		   if you have a climb, you can skip the fall.
+		   otherwise test for fall.
+
+		   fast tests using MBB in the caller elliminate some volumes
+		   docollision - sphere and cyclinder should be tested
+		   dofall - climb and fall should be tested
+
+		   Total logic for walking:
+		   collision = docollision
+		   if(docollision)
+			do cylinder
+			if not cylinder
+				collision = 0
+		   if( dofall && !collision )
+			do line
+			if not climb
+				do fall
+
+	*/
+
+    struct point_XYZ result;
+	int hit,i;
+	double tmin[3],tmax[3]; /* MBB for facet */
+	GLdouble awidth = naviinfo.width; /*avatar width*/
+	GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	GLdouble astep = -naviinfo.height+naviinfo.step;
+	GLdouble aradius = awidth * .5;
+//box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
+//	      (     y1,  y2,ystep,    r,
+	result = zero;
+	get_poly_mindisp = 0.0;
+	if(FallInfo.walking)
+	{
+		tmin[0] = tmax[0] = p[0].x;
+		tmin[1] = tmax[1] = p[0].y;
+		tmin[2] = tmax[2] = p[0].z;
+		for(i=1;i<num;i++)
+		{
+			tmin[0] = min(tmin[0],p[i].x);
+			tmin[1] = min(tmin[1],p[i].y);
+			tmin[2] = min(tmin[2],p[i].z);
+			tmax[0] = max(tmax[0],p[i].x);
+			tmax[1] = max(tmax[1],p[i].y);
+			tmax[2] = max(tmax[2],p[i].z);
+		}
+
+		/* walking */
+		hit = 0;
+		if(FallInfo.checkCylinder)
+		{
+			/* the poly normal is jerky with wild displacements. I need a cylinder collision like the sphere. */
+			/* get_poly_normal_disp(y1,y2,r,p,num,n); */
+			/* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler. Jan 15, 2010 Sampler is the best for walking. Sphere works but ducks */
+			switch(FallInfo.walkColliderMethod)
+			{
+				case 0: result = get_poly_min_disp_with_sphere(awidth, p, num, n); break;
+				case 1: result = get_poly_normal_disp(abottom,atop,awidth,p,num,n);break; /*y1-ystep,y2,r,p,num,n); dug9 - for walking should be used instead of sphere: just do this */
+				case 2:	result = get_poly_disp(abottom,atop,astep,awidth,p,num,n); break;/*y1-ystep,y2,r,p,num,n); dug9 - for walking should be used instead of sphere: just do this */
+				case 3: result = get_poly_radialSample_disp(abottom,atop,astep,awidth,p,num,n,tmin,tmax); break; //statistical method
+				case 4: result = get_poly_step_disp(abottom,atop,awidth,p,num,n); break; //<<< doesn't make sense I've got a cylinder going from foot to ystep
+			}
+
+			hit = !(APPROX(result.x, 0) && APPROX(result.y, 0) && APPROX(result.z, 0));
+			if(hit) 
+				FallInfo.canFall = 0; /* rule: don't fall or climb if we are colliding */
+		}
+		if(FallInfo.checkFall && !hit)
+		{
+			accumulateFallingClimbing(abottom,atop,astep,p,num,n,tmin,tmax); //y1, y2, p, num, n);
+
+		}
+	}
+	else
+	{
+		/* fly, examine */
+		result = get_poly_min_disp_with_sphere(awidth, p, num, n);
+	}
+	get_poly_mindisp = vecdot(&result,&result);
+	return result;
+}
+
 
 /*feed a poly, and radius of a sphere, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more.*/
@@ -668,7 +918,7 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
     double polydisp;
     struct point_XYZ result;
 
-    double get_poly_mindisp;
+    //double get_poly_mindisp;
     int clippedPoly3num = 0;
 
     get_poly_mindisp = 1E90;
@@ -731,18 +981,42 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
     return result;
 }
 
-/*feed a poly, and radius of a sphere, it returns the minimum displacement and
-  the direction  that is needed for them not to intersect any more.*/
 
+/*feed a poly, and radius of a sphere, it returns the minimum displacement and
+  the direction  that is needed for them not to intersect any more.
+*/
 struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n) {
-    int i;
+    int i,j,overlap;
     /* double polydisp; */
     struct point_XYZ result;
-
+	double tmin[3],tmax[3],rmin[3],rmax[3],q[3];
     double get_poly_mindisp;
     int clippedPoly4num = 0;
-
     get_poly_mindisp = 1E90;
+	
+	/* cheap MBB test */
+	//double tmin[3],tmax[3],rmin[3],rmax[3],q[3];
+	memcpy(tmin,&p[0],3*sizeof(double));
+	memcpy(tmax,&p[3],3*sizeof(double));
+	for(i=0;i<num;i++)
+	{
+		memcpy(q,&p[i],3*sizeof(double));
+		for(j=0;j<3;j++)
+		{
+			tmin[j] = min(tmin[j],q[j]);
+			tmax[j] = max(tmax[j],q[j]);
+		}
+	}
+	for(i=0;i<3;i++)
+	{
+		rmin[i] = -r;
+		rmax[i] = r;
+	}
+	if( !overlapMBBs(rmin,rmax,tmin,tmax) )
+	{
+		return zero;
+	}
+	/* end cheap MBB test */
 
 #ifdef DEBUGFACEMASK
     if(facemask != debugsurface++)
@@ -751,7 +1025,7 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
     /*allocate data */
     if ((num+1)>clippedPoly4Size) {
     	clippedPoly4 = (struct point_XYZ*) REALLOC(clippedPoly4,sizeof(struct point_XYZ) * (num + 1));
-	clippedPoly4Size = num+1;
+		clippedPoly4Size = num+1;
     }
 
     /*if normal not specified, calculate it */
@@ -761,8 +1035,8 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
     }
 
     for(i = 0; i < num; i++) {
-	DEBUGPTSPRINT("intersect_closestpolypoints_on_surface[%d]= %d\n",i,clippedPoly4num);
-	clippedPoly4[clippedPoly4num++] = weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_origin(p[i],p[(i+1)%num]));
+		DEBUGPTSPRINT("intersect_closestpolypoints_on_surface[%d]= %d\n",i,clippedPoly4num);
+		clippedPoly4[clippedPoly4num++] = weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_origin(p[i],p[(i+1)%num]));
     }
 
     /*find closest point of polygon plane*/
@@ -770,8 +1044,8 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
 
     /*keep if inside*/
     if(perpendicular_line_passing_inside_poly(clippedPoly4[clippedPoly4num],p, num)) {
-	DEBUGPTSPRINT("perpendicular_line_passing_inside_poly[%d]= %d\n",0,clippedPoly4num);
-	clippedPoly4num++;
+		DEBUGPTSPRINT("perpendicular_line_passing_inside_poly[%d]= %d\n",0,clippedPoly4num);
+		clippedPoly4num++;
 	}
 
 
@@ -784,37 +1058,45 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
     /*here we find mimimum displacement possible */
 
     /*calculate the closest point to origin */
-    for(i = 0; i < clippedPoly4num; i++) {
-	/* printf ("get_poly_min_disp_with_sphere, checking against %d %f %f %f",i,clippedPoly4[i].x, 
-	clippedPoly4[i].y,clippedPoly4[i].z); */
+    for(i = 0; i < clippedPoly4num; i++) 
+	{
+		/* printf ("get_poly_min_disp_with_sphere, checking against %d %f %f %f",i,clippedPoly4[i].x, 
+		clippedPoly4[i].y,clippedPoly4[i].z); */
 
-	double disp = vecdot(&clippedPoly4[i],&clippedPoly4[i]);
+		double disp = vecdot(&clippedPoly4[i],&clippedPoly4[i]);
 
-	/* printf (" disp %lf, get_poly_mindisp %lf\n",disp,get_poly_mindisp); */
+		/* printf (" disp %lf, get_poly_mindisp %lf\n",disp,get_poly_mindisp); */
 
-	if(disp < get_poly_mindisp) {
-	    get_poly_mindisp = disp;
-	    result = clippedPoly4[i];
-	}
+		if(disp < get_poly_mindisp) 
+		{
+			get_poly_mindisp = disp;
+			result = clippedPoly4[i];
+		}
     }
-    if(get_poly_mindisp <= r*r) {
-	/*  scale result to length of missing distance. */
-	double rl;
-	rl = veclength(result);
-	/* printf ("get_poly_min_disp_with_sphere, comparing %f and %f veclen %lf result %f %f %f\n",get_poly_mindisp, r*r, rl, result.x,result.y,result.z); */
-	/* if(rl != 0.) */
-	if(! APPROX(rl, 0)) {
-		/* printf ("approx rl, 0... scaling by %lf, %lf - %lf / %lf\n",(r-sqrt(get_poly_mindisp)) / rl,
-			r, sqrt(get_poly_mindisp), rl); */
-	    vecscale(&result,&result,(r-sqrt(get_poly_mindisp)) / rl);
-	} else
-	    result = zero;
+    if(get_poly_mindisp <= r*r) 
+	{
+		/*  scale result to length of missing distance. */
+		double rl;
+		rl = veclength(result);
+		/* printf ("get_poly_min_disp_with_sphere, comparing %f and %f veclen %lf result %f %f %f\n",get_poly_mindisp, r*r, rl, result.x,result.y,result.z); */
+		/* if(rl != 0.) */
+		if(! APPROX(rl, 0)) 
+		{
+			/* printf ("approx rl, 0... scaling by %lf, %lf - %lf / %lf\n",(r-sqrt(get_poly_mindisp)) / rl,
+				r, sqrt(get_poly_mindisp), rl); */
+			vecscale(&result,&result,(r-sqrt(get_poly_mindisp)) / rl);
+		} 
+		else
+		{
+			result = zero;
+		}
     }
     else
-	result = zero;
+	{
+		result = zero;
+	}
     return result;
 }
-
 
 
 /*used by get_line_normal_disp to clip the polygon on the cylinder caps, called twice*/
@@ -1091,8 +1373,8 @@ struct point_XYZ get_point_disp(double y1, double y2, double ystep, double r, st
 struct point_XYZ box_disp(double y1, double y2, double ystep, double r,struct point_XYZ p0, struct point_XYZ i, struct point_XYZ j, struct point_XYZ k) {
     struct point_XYZ p[8];
     struct point_XYZ n[6];
-    struct point_XYZ mindispv = {0,0,0};
-    double mindisp = 1E99;
+    struct point_XYZ maxdispv = {0,0,0};
+	double maxdisp = 0;
     struct point_XYZ middle;
     /*draw this up, you will understand: */
     static const int faces[6][4] = {
@@ -1103,7 +1385,7 @@ struct point_XYZ box_disp(double y1, double y2, double ystep, double r,struct po
 	{7,1,5,4},
 	{6,2,7,4}
     };
-    int ci;
+    int ci,m;
 
     for(ci = 0; ci < 8; ci++) p[ci] = p0;
 
@@ -1128,32 +1410,35 @@ struct point_XYZ box_disp(double y1, double y2, double ystep, double r,struct po
     vecscale(&n[5],&n[2],-1.);
 
     /*what it says : middle of box */
-    middle = weighted_sum(p[0],p[4],.5);
+    //middle = weighted_sum(p[0],p[4],.5);
 
     for(ci = 0; ci < 6; ci++) {
 	/*only clip faces "facing" origin */
-	if(vecdot(&n[ci],&middle) < 0.) {
-	    struct point_XYZ pts[4];
+	//if(vecdot(&n[ci],&middle) < 0.) {
+	{
+	    struct point_XYZ pts[5];
 	    struct point_XYZ dispv;
 	    double disp;
 	    pts[0] = p[faces[ci][0]];
 	    pts[1] = p[faces[ci][1]];
 	    pts[2] = p[faces[ci][2]];
 	    pts[3] = p[faces[ci][3]];
-
-	    dispv = get_poly_disp(y1,y2,ystep,r,pts,4,n[ci]);
+	    pts[4] = p[faces[ci][0]]; /* dug9 - for test split into 2 triangles for sphere test - no help with sphere*/
+	    //dispv = get_poly_disp(y1,y2,ystep,r,pts,4,n[ci]);
+		dispv = get_poly_disp_2(pts,4,n[ci]);
 	    disp = vecdot(&dispv,&dispv);
 
-	    /*get minimal displacement*/
-	    if(disp < mindisp) {
-		mindisp = disp;
-		mindispv = dispv;
+		/*keep result only if:
+		  displacement is positive
+		  displacement is smaller than minimum displacement up to date 
+		*/ 
+		if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
+			maxdisp = disp;
+			maxdispv = dispv;
 	    }
-
-	}
     }
-
-    return mindispv;
+	}
+    return maxdispv;
 
 }
 
@@ -1166,6 +1451,127 @@ int fast_ycylinder_box_intersect(double y1, double y2, double r,struct point_XYZ
 
     double lefteq = sqrt(y*y + r*r) + sqrt(xs*xs + ys*ys + zs*zs);
     return lefteq*lefteq > vecdot(&pcenter,&pcenter);
+}
+void transformMBB(GLdouble *rMBBmin, GLdouble *rMBBmax, GLdouble *matTransform, GLdouble* inMBBmin, GLdouble* inMBBmax)
+{
+	/* transform axes aligned minimum bounding box MBB via octo box - will expand as necessary to cover original volume */
+	struct point_XYZ abox[8];
+	int i,j,k,m, overlap;
+	GLdouble p[3],rx,ry,rz;
+
+	/* generate an 8 corner box in shape space to represent the shape collision volume */
+	m = 0;
+	for(i=0;i<2;i++)
+	{
+		rx = i==0? inMBBmin[0] : inMBBmax[0];
+		for(j=0;j<2;j++)
+		{
+			ry = j==0? inMBBmin[1] : inMBBmax[1];
+			for(k=0;k<2;k++)
+			{
+				rz = k==0? inMBBmin[2] : inMBBmax[2];
+				abox[m].x = rx;
+				abox[m].y = ry;
+				abox[m].z = rz;
+				m++;
+			}
+		}
+	}
+
+	/* transform the corners of the octo box  */
+	for(m=0;m<8;m++)
+       transform(&abox[m],&abox[m],matTransform);
+
+	/*find the MBB of the transformed octo box */
+	memcpy(rMBBmin,&abox[0],3*sizeof(GLdouble)); //sizeof(struct point_XYZ)); 
+	memcpy(rMBBmax,&abox[0],3*sizeof(GLdouble));
+	for(m=1;m<8;m++)
+	{
+		memcpy(p,&abox[m],3*sizeof(GLdouble));
+		for(i=0;i<3;i++)
+		{
+			rMBBmin[i] = min(rMBBmin[i],p[i]);
+			rMBBmax[i] = max(rMBBmax[i],p[i]);
+		}
+	}
+}
+int fast_ycylinder_MBB_intersect_shapeSpace(double y1, double y2, double r, GLdouble *collision2shape, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax )
+{ //foot,atop,awidth, Collision2Shape, node->size.c))
+	/* goal: transform avatar collision volume from avatar space to raw shape space, get its enclosing 
+	  axes-aligned minimum bounding box MBB in shape space, and test against raw shape MBB 
+	  returns 1 if they intersect
+	  Issue: caller must invert modelMatrix
+	*/
+	int i;
+	GLdouble p[3], avmin[3], avmax[3], smin[3], smax[3];
+
+	/* generate mins and maxes for avatar cylinder in avatar/collision space to represent the avatar collision volume */
+	for(i=0;i<3;i++)
+	{
+		avmin[i] = -r;
+		avmax[i] =  r;
+	}
+	avmin[1] = y1; avmax[1] = y2;
+	transformMBB(avmin,avmax,collision2shape,avmin,avmax);
+	return overlapMBBs(shapeMBBmin,shapeMBBmax,avmin,avmax);
+}
+int fast_ycylinder_MBB_intersect_collisionSpace(double y1, double y2, double r, GLdouble *shape2collision, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax ) 
+{
+	/* goal: transform shape MBB to avatar/collision space, get its MBB there, and return 1 if the shape MBB intersects 
+	  the avatar cylinderical collision volume MBB 
+	 Issue: you'll likely have more false positives with the avatar-space MBB intersection test (versus shape-space)
+	 shapes in shape space are statistically more often cuboid and axes-aligned - think of wall-like objects.
+	 As a result a MBB in shape space is relatively smaller than the MBB recomputed after transforming to 
+	 avatar space. (Same could be said in theory for the avatar cylinder going the other way, but when I think of wall
+	 objects I'd rather be doing it in shape space. 
+	*/
+	int i;
+	GLdouble smin[3], smax[3], avmin[3], avmax[3];
+
+	/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
+	for(i=0;i<3;i++)
+	{
+		avmin[i] = -r;
+		avmax[i] =  r;
+	}
+	avmin[1] = y1; avmax[1] = y2;
+
+	transformMBB(smin,smax,shape2collision,shapeMBBmin,shapeMBBmax);
+	return overlapMBBs(avmin,avmax,smin,smax);
+}
+int fast_sphere_MBB_intersect_collisionSpace(double r, GLdouble *shape2collision, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax ) 
+{
+	/* goal: transform shape MBB to avatar/collision space, get its MBB there, and return 1 if the shape MBB intersects 
+	  the avatar spherical collision volume MBB 
+	*/
+	int i;
+	GLdouble smin[3], smax[3], avmin[3], avmax[3];
+
+	/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
+	for(i=0;i<3;i++)
+	{
+		avmin[i] = -r;
+		avmax[i] =  r;
+	}
+	transformMBB(smin,smax,shape2collision,shapeMBBmin,shapeMBBmax);
+	return overlapMBBs(avmin,avmax,smin,smax);
+}
+int fast_sphere_MBB_intersect_shapeSpace(double r, GLdouble *collision2shape, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax ) 
+{
+	/* goal: transform avatar/collision MBB to shape space, get its MBB there, and return 1 if the shape MBB intersects 
+	  the avatar spherical collision volume MBB 
+	*/
+	int i;
+	GLdouble avmin[3], avmax[3];
+
+	/* generate mins and maxes for avatar sphere in shape space to represent the avatar collision volume */
+	for(i=0;i<3;i++)
+	{
+		avmin[i] = -r;
+		avmax[i] =  r;
+	}
+	transformMBB(avmin,avmax,collision2shape,avmin,avmax);
+	return overlapMBBs(avmin,avmax,shapeMBBmin,shapeMBBmax);
 }
 
 /*
@@ -1205,7 +1611,37 @@ int fast_ycylinder_polyrep_intersect(double y1, double y2, double AVr,struct poi
 
 	return lefteq*lefteq > vecdot(&pcenter,&pcenter);
 }
+int fast_ycylinder_polyrep_intersect2(double y1, double y2, double AVr,struct point_XYZ pcenter, double scale, double *minVals, double *maxVals) {
+	double AVy = pcenter.y < 0 ? y1 : y2;
+	double rx, rz, myr;
+	double myh;
+	double lefteq;
 
+	
+	/*
+	printf ("fast_ycylinder_polyrep, y %lf, r %lf, scale %lf, pcenter %lf %lf %lf\n",AVy,AVr,scale,pcenter.x,pcenter.y,pcenter.z);
+	printf ("we have min/max for x and z: %lf, %lf and %lf %lf\n",pr->minVals[0],pr->maxVals[0], pr->minVals[2], pr->maxVals[2]);
+	*/
+	
+
+	/* find the largest radius - use this for the cylinder radius */
+	rx = (maxVals[0]-minVals[0])/2.0;
+	myh = (maxVals[1]-minVals[1])/2.0*scale;
+	rz = (maxVals[2]-minVals[2])/2.0;
+	myr = sqrt (rx*rx + rz*rz)*scale;
+
+	
+	/* printf ("chose radius %lf from %lf, %lf passed in r is %lf\n",myr, rx,rz,AVr); */
+	
+
+	/* simplify - we know that (A + B)(A + B) = AA + AB + BA + BB */
+	lefteq = sqrt(AVy*AVy + AVr*AVr) + sqrt(myh*myh + myr*myr); 
+
+	/* if (lefteq*lefteq > vecdot(&pcenter,&pcenter)) printf ("returning TRUE\n"); else printf ("returing FALSE\n");  */
+	
+
+	return lefteq*lefteq > vecdot(&pcenter,&pcenter);
+}
 
 /*fast test to see if a cone intersects a y-cylinder. */
 /*gives false positives. */
@@ -1383,124 +1819,231 @@ struct point_XYZ cylinder_disp(double y1, double y2, double ystep, double r, str
 
     return mindispv;
 }
+int intersectionHeightOfVerticalLineWithSurfaceElement(double* height, struct point_XYZ* p, int num, struct point_XYZ* n, double *tmin, double *tmax )
+{
 
-/*used by polyrep_disp */
-struct point_XYZ polyrep_disp_rec(double y1, double y2, double ystep, double r, struct X3D_PolyRep* pr, struct point_XYZ* n,  struct point_XYZ dispsum, prflags flags) {
+	/* 	Intersects a Y vertical infinite line passing through origin with a convex polygon  
+	    convex polygon - like a triangle or quad or pentagon. Not like a star or general polygon like font glyph outline 
+			etc which could be concave like a U
+		Input: 
+		p[num] - polygon vertices 
+		n - polygon normal
+		returns:
+		0 if intersection fails due to either vertical polygon face or intesection point outside polygon
+		height - if inside, this will be the Y height relative to the origin of the intersection point
+	*/
+	/* step 1 compute the infinite plane through the points p. Use the normal N passed in. */
+	int i,j,overlap,inside;
+	struct point_XYZ D, a, b,c,last; 
+	double t, dd, ndotD; 
+	overlap = tmax[0] >= 0.0 && tmin[0] <= 0.0 && tmax[2] >= 0.0 && tmin[2] <= 0.0;
+	if(!overlap) return 0;
+	/* end cheap MBR test */
+	dd = -vecdot(&p[0],n);
+	/* the Origin is 0,0,0 and N*O is 0 */
+	/* D is the ray direction - our zenith vector */
+	D.x = 0.0;
+	D.y = 1.0;
+	D.z = 0.0;
+	ndotD = vecdot(n,&D);
+	/* slope check - if near vertical should we skip it?. */
+	if( fabs(ndotD) < .1 )
+	{
+		return 0; /* vertical wall */
+	}
+	*height = - dd/ndotD;
+	/* step 2 determine if inside the triangle */
+	/* in theory if the cross products (D*height - p[i]) x (p[i+1] - p[i]) 
+	   point in the same general direction, it's inside (if one alternates, its outside)*/
+	D.y = *height;
+	return pointOnPlaneInsidePoly(D,p,num,n);
+}
+
+void accumulateFallingClimbing(double y1, double y2, double ystep, struct point_XYZ *p, int num, struct point_XYZ nused, double *tmin, double *tmax)
+{
+	if(FallInfo.walking) 
+	{
+		/* Goal: Falling - if we're floating above the terrain we'll have no regular collision
+		   so we need special test to see if we should fall. If climbing we nullify any fall.
+	    */
+		double hh;
+		if( intersectionHeightOfVerticalLineWithSurfaceElement(&hh,&p[0],num,&nused, tmin, tmax))
+		{
+			/* terrain below avatar at 0,0,0? */
+			double hhbelowy1 = hh - y1;
+			if( hh < 0.0 )
+			{
+				/* falling */
+				if( hh < y1 && hh > -FallInfo.fallHeight) 
+				{
+					/* FALLING */
+					if(FallInfo.hits ==0)
+						FallInfo.hfall = hhbelowy1; //hh - y1;
+					else
+						if(hhbelowy1 > FallInfo.hfall) FallInfo.hfall = hhbelowy1; //hh - y1;
+					FallInfo.hits++;
+					FallInfo.isFall = 1;
+				}else
+				/* regular below / nadir collision - below avatar center but above avatar's feet which are at 0.0 - avatar.height*/
+				if( hh >= y1  ) /* && hh <= (y1-ystep) ) //no step height implementation */
+				{
+					/* CLIMBING. handled elsewhere for displacements, except annihilates any fall*/
+					FallInfo.canFall = 0;
+
+					if( FallInfo.isClimb == 0 )
+						FallInfo.hclimb = hhbelowy1; //hh - y1;
+					else
+					    FallInfo.hclimb = max(FallInfo.hclimb,hhbelowy1);
+					FallInfo.isClimb = 1;
+				}
+				/* no stepheight implementation here
+				else
+				if(hh > (y1-ystep) && hh < 0.0 )
+				{
+					// blocked by a high step, no climb 
+					printf("S");
+				}
+				*/
+					
+
+			}else{
+				/* regular above / zenith collision */
+				if( hh > 0.0 && hh < y2 )
+				{
+					/* HEAD-BUMP handled elsewhere */
+					if(0) printf("c");
+				}
+				else
+					if(0) printf("B"); /* head is CLEAR of ceiling point */
+			}
+		}
+	}
+}
+
+/*used by polyrep_disp 
+  - coming in - all coords are already transformed into collision space
+  - sets up avatar collision volume: a cyclinder for walking/stepping, a sphere for fly/examine
+  - tests triangle by triangle for a collision
+  - accumulates displacements from collisions
+y1,y2,ystep,r (usually abottom,atop,astep,width from naviinfo height,step,width for the avatar) are in global scale coordinates
+	pr.actualCoord[pr->ntri] 
+	n[pr->ntri] - one normal for each triangle
+dispsum.xyz - output - sum of collision displacement vectors - a mean will be computed by caller
+flags - doublesided, front/back facing hints, no-stepping (?)
+*/
+//struct point_XYZ polyrep_disp_rec(double y1, double y2, double ystep, double r, struct X3D_PolyRep* pr, struct point_XYZ* n,  struct point_XYZ dispsum, prflags flags) {
+struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n,  struct point_XYZ dispsum, prflags flags) {
     struct point_XYZ p[3];
     double maxdisp = 0;
-    /* double minangle = 2 * M_PI; */
-    /* double angle; */
-    /* struct point_XYZ meanpt; */
     struct point_XYZ maxdispv = {0,0,0};
     double disp;
     struct point_XYZ dispv;
-    static int recursion_count = 0;
-    int nextrec = 0;
     int i;
     int frontfacing;
-    int minisfrontfacing = 1;
     int ccw;
 
     ccw = pr->ccw;
+    for(i = 0; i < pr->ntri; i++) 
+	{
+		p[0].x = pr->actualCoord[pr->cindex[i*3]*3]    +dispsum.x;
+		p[0].y = pr->actualCoord[pr->cindex[i*3]*3+1]  +dispsum.y;
+		p[0].z = pr->actualCoord[pr->cindex[i*3]*3+2]  +dispsum.z;
 
-    for(i = 0; i < pr->ntri; i++) {
-	p[0].x = pr->actualCoord[pr->cindex[i*3]*3]    +dispsum.x;
-	p[0].y = pr->actualCoord[pr->cindex[i*3]*3+1]  +dispsum.y;
-	p[0].z = pr->actualCoord[pr->cindex[i*3]*3+2]  +dispsum.z;
+		if (ccw) frontfacing = (vecdot(&n[i],&p[0]) < 0);	/*if normal facing avatar. avatar is at 0,0,0. If vector P going opposite direction to N, P*N will be negative */
+		else frontfacing = (vecdot(&n[i],&p[0]) >= 0);		/*if ccw facing avatar */
 
-	if (ccw) frontfacing = (vecdot(&n[i],&p[0]) < 0);	/*if normal facing avatar */
-	else frontfacing = (vecdot(&n[i],&p[0]) >= 0);		/*if ccw facing avatar */
+		/* printf ("polyrep_disp_rec, frontfacing %d BACKFACING %d FRONTFACING %d DOUBLESIDED %d\n",
+			frontfacing, flags & PR_BACKFACING, flags & PR_FRONTFACING, flags & PR_DOUBLESIDED); */
+		/* use if either:
+		   -frontfacing and not in doubleside mode;
+		   -if in doubleside mode:
+			   use if either:
+			   -PR_FRONTFACING or PR_BACKFACING not yet specified
+			   -fontfacing and PR_FRONTFACING specified
+			   -not frontfacing and PR_BACKFACING specified 
+		*/
+		if(    (frontfacing && !(flags & PR_DOUBLESIDED) )
+			|| ( (flags & PR_DOUBLESIDED)  && !(flags & (PR_FRONTFACING | PR_BACKFACING) )  )
+			|| (frontfacing && (flags & PR_FRONTFACING))
+			|| (!frontfacing && (flags & PR_BACKFACING))  ) 
+		{
 
-	/* printf ("polyrep_disp_rec, frontfacing %d BACKFACING %d FRONTFACING %d DOUBLESIDED %d\n",
-		frontfacing, flags & PR_BACKFACING, flags & PR_FRONTFACING, flags & PR_DOUBLESIDED); */
-	/* use if either:
-	   -frontfacing and not in doubleside mode;
-	   -if in doubleside mode:
-	       use if either:
-	       -PR_FRONTFACING or PR_BACKFACING not yet specified
-	       -fontfacing and PR_FRONTFACING specified
-	       -not frontfacing and PR_BACKFACING specified */
-	if(    (frontfacing && !(flags & PR_DOUBLESIDED) )
-	    || ( (flags & PR_DOUBLESIDED)  && !(flags & (PR_FRONTFACING | PR_BACKFACING) )  )
-	    || (frontfacing && (flags & PR_FRONTFACING))
-	    || (!frontfacing && (flags & PR_BACKFACING))  ) {
+			struct point_XYZ nused;
+			p[1].x = pr->actualCoord[pr->cindex[i*3+1]*3]    +dispsum.x;
+			p[1].y = pr->actualCoord[pr->cindex[i*3+1]*3+1]  +dispsum.y;
+			p[1].z = pr->actualCoord[pr->cindex[i*3+1]*3+2]  +dispsum.z;
+			p[2].x = pr->actualCoord[pr->cindex[i*3+2]*3]    +dispsum.x;
+			p[2].y = pr->actualCoord[pr->cindex[i*3+2]*3+1]  +dispsum.y;
+			p[2].z = pr->actualCoord[pr->cindex[i*3+2]*3+2]  +dispsum.z;
 
-	    struct point_XYZ nused;
+			if(frontfacing) 
+			{
+				nused = n[i];
+			} else { /*can only be here in DoubleSided mode*/
+				/*reverse polygon orientation, and do calculations*/
+				vecscale(&nused,&n[i],-1.0);
+			}
+			/* ready to start testing the triangle against our collision volume (sphere/cylinder/line) tests.
+			 The avatar collision volume - 
+			 A.for flying/examining:
+			    1. sphere.
 
-	    p[1].x = pr->actualCoord[pr->cindex[i*3+1]*3]    +dispsum.x;
-	    p[1].y = pr->actualCoord[pr->cindex[i*3+1]*3+1]  +dispsum.y;
-	    p[1].z = pr->actualCoord[pr->cindex[i*3+1]*3+2]  +dispsum.z;
-	    p[2].x = pr->actualCoord[pr->cindex[i*3+2]*3]    +dispsum.x;
-	    p[2].y = pr->actualCoord[pr->cindex[i*3+2]*3+1]  +dispsum.y;
-	    p[2].z = pr->actualCoord[pr->cindex[i*3+2]*3+2]  +dispsum.z;
+			 B.For walking:
+			   1. sphere (head)  <<<<< problem I do not like this displacement logic when walking
+					  because you'll end up floating over something that's just below avatar 0,0,0 
+					  which for walking is wrong - you should collide with the cylinder going from top to bottom. 
+					  Recommendation: either always do both sphere and cylinder or
+			          just do #2 cylinder abottom to atop for head and body.
+			   2. cylinder (body)
+			   3. line - climb/fall (legs,feet)
+			   Order of tests (so can exit early to save unnecessary computations):
+			   sphere > cylinder > climb > fall
+			   if you have a sphere hit you don't need to test the rest.
+			   If you have a cylinder hit, you don't need to test climb/fall.
+			   if you have a climb, you can skip the fall.
+			   otherwise test for fall.
 
-	    if(frontfacing) {
-		nused = n[i];
-	    } else { /*can only be here in DoubleSided mode*/
-		/*reverse polygon orientation, and do calculations*/
-		vecscale(&nused,&n[i],-1.0);
-	    }
-	    dispv = get_poly_min_disp_with_sphere(r, p, 3, nused);
-	    disp = vecdot(&dispv,&dispv);
-	    /* if(dispv.x == 0. && dispv.y == 0. && dispv.z == 0. && !(flags & PR_NOSTEPING)) */ /*stepping allowed*/
-	    if (APPROX(dispv.x, 0) && APPROX(dispv.y, 0) && APPROX(dispv.z, 0) && !(flags & PR_NOSTEPING)) { /*stepping allowed*/
-		dispv = get_poly_step_disp(y1,ystep,r,p,3,nused);
-		disp = -get_poly_mindisp;
-	    } else {
-		if(!(flags & PR_NOSTEPING)) {
-		    /*first mention of collision with main sphere. ignore previous stepping (if any),
-		      and start sphere displacements only */
-		    maxdisp = 0;
-		    flags = flags | PR_NOSTEPING;
-		    maxdispv = dispv;
+			   fast tests using MBB in the caller elliminate some volumes
+			   docollision - sphere and cyclinder should be tested
+			   dofall - climb and fall should be tested
+
+			   Total logic for walking:
+			   collision = docollision
+			   if(docollision)
+				do sphere
+				if not sphere 
+					do cylinder
+					if not cylinder
+						collision = 0
+			   if( dofall && !collision )
+				do line
+				if not climb
+					do fall
+		   */
+			dispv = get_poly_disp_2(p, 3, nused); //get_poly_disp_2(y1,y2,ystep,r, p, 3, nused);
+			disp = vecdot(&dispv,&dispv);
+
+	#ifdef DEBUGPTS
+			if(dispv.x != 0 || dispv.y != 0 || dispv.z != 0)
+			printf("polyd: (%f,%f,%f) |%f|\n",dispv.x,dispv.y,dispv.z,disp);
+	#endif
+
+
+			/*keep result only if:
+			  displacement is positive
+			  displacement is smaller than minimum displacement up to date 
+			 */ 
+			if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ) 
+			{
+				maxdisp = disp;
+				maxdispv = dispv;
+				/* printf ("polyrep_disp_rec, maxdisp now %f, dispv %f %f %f\n",maxdisp,dispv.x, dispv.y, dispv.z); */
+			}
 		}
-	    }
-
-#ifdef DEBUGPTS
-	    if(dispv.x != 0 || dispv.y != 0 || dispv.z != 0)
-		printf("polyd: (%f,%f,%f) |%f|\n",dispv.x,dispv.y,dispv.z,disp);
-#endif
-
-
-	    /*keep result only if:
-	      displacement is positive
-	      displacement is smaller than minimum displacement up to date
-	     */
-	    if((disp > FLOAT_TOLERANCE) && (disp > maxdisp)) {
-		maxdisp = disp;
-		maxdispv = dispv;
-		nextrec = 1;
-		minisfrontfacing = frontfacing;
-		/* printf ("polyrep_disp_rec, maxdisp now %f, dispv %f %f %f\n",maxdisp,dispv.x, dispv.y, dispv.z); */
-	    }
-	}
-
     }
 
-
-    VECADD(dispsum,maxdispv);
-    if(nextrec && maxdisp > FLOAT_TOLERANCE && recursion_count++ < MAX_POLYREP_DISP_RECURSION_COUNT) {
-	/*jugement has been rendered on the first pass, wether we should be on the
-	  front side of the surface, or the back side of the surface.
-	  setting the PR_xFACING flag enforces the decision, for following passes */
-	if(recursion_count ==1) {
-	    if(minisfrontfacing)
-		flags = flags | PR_FRONTFACING;
-	    else
-		flags = flags | PR_BACKFACING;
-	}
-
-	return polyrep_disp_rec(y1, y2, ystep, r, pr, n, dispsum, flags);
-    } else /*end condition satisfied */
-    {
-#ifdef DEBUGPTS
-	printf("recursion_count = %d\n",recursion_count);
-#endif
-	recursion_count = 0;
-	/* printf ("polyrep_disp_rec, returning recurs %d %f %f %f\n",recursion_count, dispsum.x, dispsum.y, dispsum.z); */
+	VECADD(dispsum,maxdispv);
 	return dispsum;
-    }
-
 }
 
 
@@ -1509,8 +2052,15 @@ static int prd_newc_floats_size = 0;
 static struct point_XYZ* prd_normals = NULL;
 static int prd_normals_size = 0;
 
-/*uses sphere displacement, and a cylinder for stepping */
-struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags) {
+/*uses sphere displacement, and a cylinder for stepping 
+ y1, y2, ystep, r -  (usually abottom, atop, astep, awidth) are from naviiinfo avatar height, step, width 
+ pr - will be transformed by mat from raw shape coordinates into collision space: 
+      Fly/Examine: avatar space
+	  Walk: Bound-Viewpoint-Vertical-aligned Avatar-centric BVVA space.
+ flags - 
+*/
+//struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLdouble* mat, prflags flags) {
+struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLdouble* mat, prflags flags) {
     int i;
     int maxc;
 
@@ -1522,7 +2072,7 @@ struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, stru
 	if (pr.cindex[i] > maxc) {maxc = pr.cindex[i];}
     }
 
-    /*transform all points to viewer space */
+    /*transform all points from raw shape to viewer(fly) or BVAAC(walk) space */
     if (maxc>prd_newc_floats_size) {
 		prd_newc_floats = REALLOC(prd_newc_floats,maxc*9*sizeof(float));
 		prd_newc_floats_size = maxc;
@@ -1532,9 +2082,9 @@ struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, stru
     for(i = 0; i < pr.ntri*3; i++) {
 	transformf(&prd_newc_floats[pr.cindex[i]*3],&pr.actualCoord[pr.cindex[i]*3],mat);
    }
+   pr.actualCoord = prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
 
-    pr.actualCoord = prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
-
+ 
     /*pre-calculate face normals */
     if (pr.ntri>prd_normals_size) {
 		prd_normals = REALLOC(prd_normals,pr.ntri*sizeof(struct point_XYZ));
@@ -1544,7 +2094,8 @@ struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, stru
     for(i = 0; i < pr.ntri; i++) {
 	polynormalf(&prd_normals[i],&pr.actualCoord[pr.cindex[i*3]*3],&pr.actualCoord[pr.cindex[i*3+1]*3],&pr.actualCoord[pr.cindex[i*3+2]*3]);
     }
-    res = polyrep_disp_rec(y1,y2,ystep,r,&pr,prd_normals,res,flags);
+
+	res = polyrep_disp_rec2(&pr,prd_normals,res,flags); //polyrep_disp_rec(y1,y2,ystep,r,&pr,prd_normals,res,flags);
 
     pr.actualCoord = 0;
     return res;
@@ -1587,7 +2138,8 @@ struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double ystep, dou
 	p[2].y = pr->actualCoord[pr->cindex[i*3+2]*3+1]  +dispsum.y;
 	p[2].z = pr->actualCoord[pr->cindex[i*3+2]*3+2]  +dispsum.z;
 
-	dispv = get_poly_disp(y1,y2,ystep, r, p, 3, n);
+	//dispv = get_poly_disp(y1,y2,ystep, r, p, 3, n);
+	dispv = get_poly_disp_2(p, 3, n);
 	disp = -get_poly_mindisp; /*global variable. was calculated inside poly_normal_disp already. */
 
 #ifdef DEBUGPTS
@@ -1739,7 +2291,8 @@ struct point_XYZ elevationgrid_disp( double y1, double y2, double ystep, double 
 		if((flags & PR_DOUBLESIDED) || frontfacing) {
 		    if(!frontfacing) vecscale(&normal,&normal,-1.0);
 
-		    pd = get_poly_disp(y1,y2,ystep,r, tris+(i*3), 3, normal);
+		    /* pd = get_poly_disp(y1,y2,ystep,r, tris+(i*3), 3, normal); */
+		    pd = get_poly_disp_2(tris+(i*3), 3, normal);
 		    /* if(pd.x != 0. || pd.y != 0. || pd.z != 0.) */
 		    if(! APPROX(pd.x, 0) || ! APPROX(pd.y, 0) || ! APPROX(pd.z, 0)) {
 			double l2;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.20 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Bindable.c,v 1.21 2010/01/16 21:22:09 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -69,12 +69,13 @@ static int fog_enabled = FALSE;
 
 static void saveBGVert (float *colptr, float *pt, int *vertexno, float *col, double dist, double x, double y, double z) ;
 
-/* this is called after a Viewpoint or GeoViewpoint bind */
-void reset_upvector() {
-    ViewerUpvector.x = 0;
-    ViewerUpvector.y = 0;
-    ViewerUpvector.z = 0;
-}
+/* this is called after a Viewpoint or GeoViewpoint bind. Jan 16, 2010 not necessary now - recomputed on each frame in 
+ mainloop.c render_collisions() */
+//void reset_upvector() {
+//    ViewerUpvector.x = 0;
+//    ViewerUpvector.y = 0;
+//    ViewerUpvector.z = 0;
+//}
 
 /* common entry routine for setting avatar size */
 void set_naviWidthHeightStep(double wid, double hei, double step) {
@@ -99,7 +100,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	} else {
 		set_naviWidthHeightStep ((double)(node->avatarSize.p[0]),
 			(double)(node->avatarSize.p[1]),
-			(double)((node->avatarSize.p[2] * node->speed) * 2));
+			(double)((node->avatarSize.p[2]))); //dug9 Jan 6, 2010 - this is too crazy for the new gravity. * node->speed) * 2));
 	}
 
 	/* keep track of valid Navigation types. */
@@ -188,7 +189,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 
 		/* up_vector is reset after a bind */
 		if (value==1) {
-			reset_upvector();
+			//reset_upvector();
 			bind_viewpoint (vp);
 		}
 		break;
@@ -203,7 +204,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 
 		/* up_vector is reset after a bind */
 		if (value==1) {
-			reset_upvector();
+			//reset_upvector();
 			bind_geoviewpoint (gvp);
 		}
 		break;

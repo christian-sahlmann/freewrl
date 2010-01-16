@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.19 2010/01/15 22:07:26 crc_canada Exp $
+$Id: Component_Text.c,v 1.20 2010/01/16 21:22:09 dug9 Exp $
 
 X3D Text Component
 
@@ -775,6 +775,8 @@ int open_font()
     return TRUE;
 }
 
+int avatarCollisionVolumeIntersectMBBf(double *modelMatrix, float *minVals, float *maxVals);
+
 void collide_Text (struct X3D_Text *node)
 {
     GLDOUBLE awidth = naviinfo.width; /*avatar width*/
@@ -782,7 +784,7 @@ void collide_Text (struct X3D_Text *node)
     GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
     GLDOUBLE astep = -naviinfo.height+naviinfo.step;
     GLDOUBLE modelMatrix[16];
-    GLDOUBLE upvecmat[16];
+    //GLDOUBLE upvecmat[16];
 
     struct point_XYZ t_orig = {0,0,0};
 
@@ -823,26 +825,13 @@ void collide_Text (struct X3D_Text *node)
 
     FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-    transform3x3(&tupv,&tupv,modelMatrix);
-    matrotate2v(upvecmat,ViewerUpvector,tupv);
-    matmultiply(modelMatrix,upvecmat,modelMatrix);
-    matinverse(upvecmat,upvecmat);
+	matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
-    /* values for rapid test */
-    t_orig.x = modelMatrix[12];
-    t_orig.y = modelMatrix[13];
-    t_orig.z = modelMatrix[14];
-    /*
-      if (!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r))
-          return; 
-      must find data
-    */
-
+	if(!avatarCollisionVolumeIntersectMBBf(modelMatrix,pr.minVals,pr.maxVals) )return;
     delta = planar_polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,PR_DOUBLESIDED,delta); 
     /* delta used as zero */
 
     vecscale(&delta,&delta,-1);
-    transform3x3(&delta,&delta,upvecmat);
 
     accumulate_disp(&CollisionInfo,delta);
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.h,v 1.6 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Collision.h,v 1.7 2010/01/16 21:22:09 dug9 Exp $
 
 Collision ???
 
@@ -231,7 +231,8 @@ struct point_XYZ cone_disp(double y1, double y2, double ydisp, double r, struct 
 struct point_XYZ cylinder_disp(double y1, double y2, double ydisp, double r, struct point_XYZ base, struct point_XYZ top, double baseradius);
 
 /*uses sphere displacement, and a cylinder for stepping */
-struct point_XYZ polyrep_disp(double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags);
+//struct point_XYZ polyrep_disp(double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags);
+struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags);
 
 /*displacement when the polyrep structure is all in the same plane
   if normal is zero, it will be calculated form the first triangle*/
@@ -248,6 +249,32 @@ void printpolyrep(struct X3D_PolyRep pr, int npoints);
 
 void printmatrix(GLDOUBLE* mat);
 #endif
+
+#define VIEWER_WALK 2
+//int viewer_type = VIEWER_WALK; // force to walking
+struct sFallInfo
+{
+	double fallHeight; /*[100.0] a setting - the maximum you want to search for ground beneath before giving up and staying at your current level */
+	double fallStep; /*[1.0] a setting - how much maximum on a frame to fall ie so it's not 1 frame to fall all the way, you can spread it out */
+	double hfall;  /*if canFall && isFall then this is how far to fall to hit ground, in collision space dist +down */
+	double hclimb; /* if isClimb then (similar to hfall) this is how far to climb to get back on top of the ground - redundant with cylinder collisions, so this is a primitive thunk */
+	int isFall; /* true if there's ground underneath (within fallHeight) to fall to, and no climb is registered (isClimb is false) */
+	int canFall; /* true if WALKING && COLLISION, set in render_pre() */
+	int isClimb; /* true if avatar feet are below ground, in which case add hclimb in collision space */
+	int hits; /* counter of vertical intersections found per frame*/
+	int walking; /* true if viewer_type == VIEWER_WALK, initialize before doing collision detection */
+	int smoothStep; /* [1] setting - will only fall by fallstep on a frame rather than the full hfall */
+	int verticalOnly; /* [0] - setting - will over-ride cylindrical collision and do only fall/climb */
+	int allowClimbing; /* [0] - setting - will allow climbing in which case cyclindrical Y collision is over-ridden */
+	/* the following could be moved to sCollisionInfo */
+	GLdouble collision2avatar[16], avatar2collision[16]; /* fly/examine: Identity, walk: BVVA2A, A2BVVA (BVVA bound-viewpoint-vertical avatar-centric) see viewer.c  */
+	int gravityVectorMethod; //[1] - setting -  0=old method 1=new method either bound viewpoint down or avatar down
+	int fastTestMethod; //[2] - setting -0=old method - uses fast cylinder test 1= MBB shape space 2= MBB avatar space 3=ignor fast cylinder test and keep going 
+	int checkFall;
+	int checkCylinder;
+	int walkColliderMethod; /* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler */
+};
+
 
 
 #endif /* __FREEWRL_COLLISION_H__ */
