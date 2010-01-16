@@ -510,7 +510,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\lib\ui\statusbarConsole.c"
+				RelativePath="..\..\src\lib\ui\statusbarHud.c"
 				>
 			</File>
 			<File
