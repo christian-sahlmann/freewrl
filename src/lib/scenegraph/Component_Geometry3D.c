@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.15 2010/01/16 21:22:09 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.16 2010/01/19 00:23:46 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -686,24 +686,26 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 }
 typedef int cquad[4];
 typedef int ctri[3];
-
-struct sCollisionSphere
+struct sCollisionGeometry
 {
 	struct point_XYZ *pts;
 	struct point_XYZ *tpts;
 	ctri *tris;
 	int ntris;
+	cquad *quads;
+	int nquads;
 	int npts;
 	double smin[3],smax[3];
-	double tmin[3],tmax[3];
-} collisionSphere;
+};
+
+struct sCollisionGeometry collisionSphere;
 
 void collisionSphere_init(struct X3D_Sphere *node)
 {
 	ctri ct;
 	struct point_XYZ a,b,n;
 	int i,j,k,count,biggestNum;
-	double rad;
+	double radinverse;
 	struct SFColor *pts = node->__points;
 	/*  re-using the compile_sphere node->__points data which is organized into GL_QUAD_STRIPS
 		my understanding: there are SPHDIV/2 quad strips. Each quadstrip has SPHDIV quads, and enough points to do that many quads
@@ -716,15 +718,20 @@ void collisionSphere_init(struct X3D_Sphere *node)
 	collisionSphere.npts = SPHDIV*(SPHDIV+1);
 	collisionSphere.pts = malloc(collisionSphere.npts * sizeof(struct point_XYZ));
 	collisionSphere.tpts = malloc(collisionSphere.npts * sizeof(struct point_XYZ));
+	/* undo radius field on node so radius == 1 (generic, for all spheres, scale back later) */
+	radinverse = 1.0;
+	if( !APPROX(node->radius,0.0) ) radinverse = 1.0/node->radius;
 	for(i=0;i<collisionSphere.npts;i++)
 	{
-		collisionSphere.pts[i].x = pts[i].c[0];
-		collisionSphere.pts[i].y = pts[i].c[1];
-		collisionSphere.pts[i].z = pts[i].c[2];
+		collisionSphere.pts[i].x = pts[i].c[0] * radinverse;
+		collisionSphere.pts[i].y = pts[i].c[1] * radinverse;
+		collisionSphere.pts[i].z = pts[i].c[2] * radinverse;
 	}
+
 
 	collisionSphere.ntris = SPHDIV * SPHDIV;
 	collisionSphere.tris = malloc(collisionSphere.ntris * sizeof(ctri));
+	collisionSphere.nquads = 0;
 	count = 0;
 	for(i = 0; i < SPHDIV/2; i ++)  
 	{ 
@@ -751,15 +758,14 @@ void collisionSphere_init(struct X3D_Sphere *node)
 			biggestNum = max(biggestNum,collisionSphere.tris[i][j]);
 	*/
 	/* MBB */
-	rad = node->radius;
 	for(i=0;i<3;i++)
 	{
-		collisionSphere.smin[i] = -rad;
-		collisionSphere.smax[i] = rad;
+		collisionSphere.smin[i] = -1.0; //rad;
+		collisionSphere.smax[i] =  1.0; //rad;
 	}
 
 }
-int collisionSphere_render()
+int collisionSphere_render(double radius)
 {
 	/* I needed to verify the collision mesh sphere was good, and it uses triangles, so I drew it the triangle way and it looked good 
 	   to see it draw, you need to turn on collision and get close to a sphere - then it will initialize and start drawing it.
@@ -775,7 +781,7 @@ int collisionSphere_render()
 		pts[2] = collisionSphere.pts[collisionSphere.tris[i][2]];
 		glBegin(GL_TRIANGLES);
 		for(j=0;j<3;j++)
-			glVertex3d(pts[j].x,pts[j].y,pts[j].z);
+			glVertex3d(pts[j].x*radius,pts[j].y*radius,pts[j].z*radius);
 		glEnd();
 	}
 	return 0;
@@ -787,7 +793,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       struct point_XYZ t_orig; /*transformed origin*/
 	       struct point_XYZ p_orig; /*projected transformed origin */
 	       struct point_XYZ n_orig; /*normal(unit length) transformed origin */
-	       GLDOUBLE modelMatrix[16];
+	       GLDOUBLE modelMatrix[16], radiusScale[16];
 	       GLDOUBLE dist2;
 	       struct point_XYZ delta = {0,0,0};
 	       GLDOUBLE radius;
@@ -806,16 +812,25 @@ void collide_Sphere (struct X3D_Sphere *node) {
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			/* apply radius to generic r=1 sphere */
+			//radscale.x = radscale.y = radscale.z = node->radius;
+			//scale_to_matrix (modelMatrix, &radscale);
+			//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
 			if(FallInfo.walking)
 			{
 				/* mesh method */
+
 				int i;
 				double disp;
 				struct point_XYZ n;
 				struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
+				struct point_XYZ radscale;
 				double maxdisp = 0;
+				radscale.x = radscale.y = radscale.z = node->radius;
+				scale_to_matrix (modelMatrix, &radscale);
+				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+
 				if(!collisionSphere.npts) collisionSphere_init(node);
 				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionSphere.smin,collisionSphere.smax)) return;
 
@@ -850,6 +865,8 @@ void collide_Sphere (struct X3D_Sphere *node) {
 			else
 			{
 				/* easy analytical sphere-sphere stuff */
+				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+
 			   t_orig.x = modelMatrix[12];
 			   t_orig.y = modelMatrix[13];
 			   t_orig.z = modelMatrix[14];
@@ -1050,16 +1067,8 @@ void collide_Box (struct X3D_Box *node) {
 		#endif
 }
 
-struct sCollisionCone
-{
-	struct point_XYZ *pts;
-	struct point_XYZ *tpts;
-	ctri *tris;
-	int ntris;
-	int npts;
-	double smin[3],smax[3];
-	double tmin[3],tmax[3];
-} collisionCone;
+struct sCollisionGeometry collisionCone;
+
 #define  CONEDIV 20
 
 void collisionCone_init(struct X3D_Cone *node)
@@ -1067,7 +1076,7 @@ void collisionCone_init(struct X3D_Cone *node)
 	ctri ct;
 	struct point_XYZ a,b,n;
 	int i,j,k,count,biggestNum;
-	double h,r;
+	double h,r,inverseh,inverser;
 	struct SFColor *pts;// = node->__botpoints;
 	extern unsigned char tribotindx[];
 	
@@ -1091,15 +1100,21 @@ void collisionCone_init(struct X3D_Cone *node)
 	collisionCone.ntris = CONEDIV *2;
 	collisionCone.tris = malloc(collisionCone.ntris * sizeof(ctri));
 	count = 0;
+	h = (node->height); ///2;
+	r = node->bottomRadius;
+	inverseh = 1.0;
+	inverser = 1.0;
+	if( !APPROX(h,0.0) ) inverseh = 1.0/h;
+	if( !APPROX(r,0.0) ) inverser = 1.0/r;
 
 	if(node->bottom) {
 		pts = node->__botpoints;
 		for(i=0;i<(CONEDIV+2);i++)
 		{
 			/* points */
-			collisionCone.pts[i].x = pts[i].c[0];
-			collisionCone.pts[i].y = pts[i].c[1];
-			collisionCone.pts[i].z = pts[i].c[2];
+			collisionCone.pts[i].x = pts[i].c[0]*inverser;
+			collisionCone.pts[i].y = pts[i].c[1]*inverseh;
+			collisionCone.pts[i].z = pts[i].c[2]*inverser;
 		}
 		for(i=0;i<CONEDIV;i++)
 		{
@@ -1128,18 +1143,16 @@ void collisionCone_init(struct X3D_Cone *node)
 			biggestNum = max(biggestNum,collisionCone.tris[i][j]);
 	*/
 	/* MBB */
-	h = (node->height)/2;
-	r = node->bottomRadius;
 	for(i=0;i<3;i+=2)
 	{
-		collisionCone.smin[i] = -r;
-		collisionCone.smax[i] = r;
+		collisionCone.smin[i] = -1.0; //r;
+		collisionCone.smax[i] =  1.0; //r;
 	}
-	collisionCone.smin[1] = -h;
-	collisionCone.smax[1] = h;
+	collisionCone.smin[1] = -1.0; //-h;
+	collisionCone.smax[1] =  1.0; //h;
 
 }
-int collisionCone_render()
+int collisionCone_render(double r, double h)
 {
 	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
 	   to see it draw, you need to turn on collision and get close to the mesh object - then it will initialize and start drawing it.
@@ -1153,7 +1166,7 @@ int collisionCone_render()
 		pts[2] = collisionCone.pts[collisionCone.tris[i][2]];
 		glBegin(GL_TRIANGLES);
 		for(j=0;j<3;j++)
-			glVertex3d(pts[j].x,pts[j].y,pts[j].z);
+			glVertex3d(pts[j].x*r,pts[j].y*h,pts[j].z*r);
 		glEnd();
 	}
 	return 0;
@@ -1184,7 +1197,7 @@ void collide_Cone (struct X3D_Cone *node) {
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 			if(FallInfo.walking)
 			{
 				/* mesh method */
@@ -1193,8 +1206,13 @@ void collide_Cone (struct X3D_Cone *node) {
 				struct point_XYZ n;
 				struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
 				double maxdisp = 0;
+				struct point_XYZ radscale;
 
 				if(!collisionCone.npts) collisionCone_init(node);
+				radscale.x = radscale.z = node->bottomRadius;
+				radscale.y = node->height;
+				scale_to_matrix (modelMatrix, &radscale);
+				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCone.smin,collisionCone.smax)) return;
 
 
@@ -1227,6 +1245,8 @@ void collide_Cone (struct X3D_Cone *node) {
 			else
 			{
 			   /* values for rapid test */
+				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+
 			   t_orig.x = modelMatrix[12];
 			   t_orig.y = modelMatrix[13];
 			   t_orig.z = modelMatrix[14];
@@ -1258,25 +1278,14 @@ void collide_Cone (struct X3D_Cone *node) {
 			  );
 		#endif
 }
-struct sCollisionCylinder
-{
-	struct point_XYZ *pts;
-	struct point_XYZ *tpts;
-	ctri *tris;
-	int ntris;
-	cquad *quads;
-	int nquads;
-	int npts;
-	double smin[3],smax[3];
-	double tmin[3],tmax[3];
-} collisionCylinder;
+struct sCollisionGeometry collisionCylinder;
 
 void collisionCylinder_init(struct X3D_Cylinder *node)
 {
 	ctri ct;
 	struct point_XYZ a,b,n;
 	int i,j,k,tcount,qcount,biggestNum;
-	double h,r;
+	double h,r,inverseh,inverser;
 	struct SFColor *pts;// = node->__botpoints;
 	
 	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top) 
@@ -1306,12 +1315,18 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	tcount = 0;
 	qcount = 0;
 	pts = node->__points;
+	h = (node->height);
+	r = node->radius;
+	inverseh = inverser = 1.0;
+	if(!APPROX(h,0.0)) inverseh = 1.0/h;
+	if(!APPROX(r,0.0)) inverser = 1.0/r;
+
 	for(i=0;i<collisionCylinder.npts;i++)
 	{
 		/* points */
-		collisionCylinder.pts[i].x = pts[i].c[0];
-		collisionCylinder.pts[i].y = pts[i].c[1];
-		collisionCylinder.pts[i].z = pts[i].c[2];
+		collisionCylinder.pts[i].x = pts[i].c[0]*inverser;
+		collisionCylinder.pts[i].y = pts[i].c[1]*inverseh;
+		collisionCylinder.pts[i].z = pts[i].c[2]*inverser;
 	}
 	for(i=0;i<CYLDIV;i++)
 	{
@@ -1351,18 +1366,16 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 			biggestNum = max(biggestNum,collisionCylinder.tris[i][j]);
 	*/
 	/* MBB */
-	h = (node->height)/2.0;
-	r = node->radius;
 	for(i=0;i<3;i+=2)
 	{
-		collisionCylinder.smin[i] = -r;
-		collisionCylinder.smax[i] = r;
+		collisionCylinder.smin[i] = -1.0; //r;
+		collisionCylinder.smax[i] =  1.0; //r;
 	}
-	collisionCylinder.smin[1] = -h;
-	collisionCylinder.smax[1] = h;
+	collisionCylinder.smin[1] = -1.0; //-h/2;
+	collisionCylinder.smax[1] =  1.0; //h/2;
 
 }
-int collisionCylinder_render()
+int collisionCylinder_render(double r, double h)
 {
 	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
 	   to see it draw, you need to turn on collision and get close to the mesh object - then it will initialize and start drawing it.
@@ -1376,7 +1389,7 @@ int collisionCylinder_render()
 		pts[2] = collisionCylinder.pts[collisionCylinder.tris[i][2]];
 		glBegin(GL_TRIANGLES);
 		for(j=0;j<3;j++)
-			glVertex3d(pts[j].x,pts[j].y,pts[j].z);
+			glVertex3d(pts[j].x*r,pts[j].y*h,pts[j].z*r);
 		glEnd();
 	}
 	for(i =0; i < collisionCylinder.nquads; i++)  
@@ -1388,7 +1401,7 @@ int collisionCylinder_render()
 		pts[3] = collisionCylinder.pts[collisionCylinder.quads[i][3]];
 		glBegin(GL_QUADS);
 		for(j=0;j<4;j++)
-			glVertex3d(pts[j].x,pts[j].y,pts[j].z);
+			glVertex3d(pts[j].x*r,pts[j].y*h,pts[j].z*r);
 		glEnd();
 	}
 	return 0;
@@ -1420,17 +1433,21 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 			if(FallInfo.walking)
 			{
 				/* mesh method */
 				int i;
 				double disp;
 				struct point_XYZ n;
-				struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
+				struct point_XYZ a,b, dispv, radscale, maxdispv = {0,0,0};
 				double maxdisp = 0;
 
 				if(!collisionCylinder.npts) collisionCylinder_init(node);
+				radscale.x = radscale.z = node->radius;
+				radscale.y = node->height;
+				scale_to_matrix (modelMatrix, &radscale);
+				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCylinder.smin,collisionCylinder.smax)) return;
 
 				for(i=0;i<collisionCylinder.npts;i++)
@@ -1479,6 +1496,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 			{
 
 			   /* values for rapid test */
+				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 			   t_orig.x = modelMatrix[12];
 			   t_orig.y = modelMatrix[13];
 			   t_orig.z = modelMatrix[14];
