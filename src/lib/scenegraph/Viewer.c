@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.39 2010/01/16 21:22:09 dug9 Exp $
+$Id: Viewer.c,v 1.40 2010/01/19 01:38:55 dug9 Exp $
 
 CProto ???
 
@@ -1534,12 +1534,12 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 	*/
 
 	vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.c[0],
-		vp->orientation.c[1],vp->orientation.c[2],vp->orientation.c[3]);
+		vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* dug9 sign change on orientation Jan 18,2010 to accomodate level_to_bound() */
 	vrmlrot_to_quaternion (&Viewer.bindTimeQuat,vp->orientation.c[0],
-		vp->orientation.c[1],vp->orientation.c[2],vp->orientation.c[3]);
+		vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */
 
 	vrmlrot_to_quaternion (&q_i,vp->orientation.c[0],
-		vp->orientation.c[1],vp->orientation.c[2],vp->orientation.c[3]);
+		vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */
 	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
 	resolve_pos();
