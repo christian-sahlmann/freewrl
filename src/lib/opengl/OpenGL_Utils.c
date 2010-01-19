@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.89 2010/01/19 19:18:47 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.90 2010/01/19 20:10:32 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -372,7 +372,7 @@ void start_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 		/*  Render transformations according to spec.*/
         	FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
         	FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
-        	FW_GL_ROTATE_F((ttt->rotation) /3.1415926536*180,0,0,1);			/*  3*/
+        	FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
         	FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
         	FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
 
@@ -386,7 +386,7 @@ void start_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 				/*  Render transformations according to spec.*/
         			FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
         			FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
-        			FW_GL_ROTATE_F((ttt->rotation) /3.1415926536*180,0,0,1);			/*  3*/
+        			FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
         			FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
         			FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
 			} else {
@@ -402,7 +402,7 @@ void start_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 		/*  Render transformations according to spec.*/
         	FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
         	FW_GL_SCALE_F(((ttt->scaleFactor).c[0]),((ttt->scaleFactor).c[1]),1);			/*  4*/
-        	FW_GL_ROTATE_F((ttt->rotation) /3.1415926536*180,0,0,1);			/*  3*/
+        	FW_GL_ROTATE_F(ttt->rotation,0,0,1);						/*  3*/
         	FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
         	FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
 	} else {
@@ -669,6 +669,40 @@ void fw_glTranslatef(float x, float y, float z) {
  	glLoadMatrixd(currentMatrix); 
 }
 
+/* perform rotation, assuming that the angle is in radians. */
+void fw_glRotateRad (double angle, double x, double y, double z) {
+	MATRIX4 myMat;
+	double mag;
+
+	loadIdentityMatrix (myMat);
+
+	/* FIXME - any way we can ensure that the angles are normalized? */
+	mag =  x*x + y*y + z*z; 
+
+	/* bounds check - the axis is invalid. */
+	if (APPROX(mag,0.00)) {
+		return;
+	}
+
+	/* bounds check - angle is zero, no rotation happening here */
+	if (APPROX(angle,0.0)) {
+		return;
+	}
+
+	if (!APPROX(mag,1.0)) {
+		struct point_XYZ in; struct point_XYZ out;
+		in.x = x; in.y = y, in.z = z;
+		vecnormal(&out,&in);
+		x = out.x; y = out.y; z = out.z;
+	}
+
+
+	matrotate(myMat,angle,x,y,z); 
+	matmultiply(currentMatrix,currentMatrix,myMat); 
+ 	glLoadMatrixd(currentMatrix); 
+}
+
+/* perform the rotation, assuming that the angle is in degrees */
 void fw_glRotated (double angle, double x, double y, double z) {
 	MATRIX4 myMat;
 	double mag;
@@ -682,6 +716,17 @@ void fw_glRotated (double angle, double x, double y, double z) {
 
 	/* FIXME - any way we can ensure that the angles are normalized? */
 	mag =  x*x + y*y + z*z; 
+
+	/* bounds check - the axis is invalid. */
+	if (APPROX(mag,0.00)) {
+		return;
+	}
+
+	/* bounds check - angle is zero, no rotation happening here */
+	if (APPROX(angle,0.0)) {
+		return;
+	}
+
 	if (!APPROX(mag,1.0)) {
 		struct point_XYZ in; struct point_XYZ out;
 		in.x = x; in.y = y, in.z = z;
@@ -698,7 +743,6 @@ void fw_glRotated (double angle, double x, double y, double z) {
 	matmultiply(currentMatrix,currentMatrix,myMat); 
  	glLoadMatrixd(currentMatrix); 
 }
-
 
 void fw_glRotatef (float a, float x, float y, float z) {
 	fw_glRotated((double)a, (double)x, (double)y, (double)z);
@@ -752,6 +796,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
         char mystring[20];
 	#endif
 
+#ifdef VERBOSE
 	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), DispThrd);
 #ifdef _MSC_VER
 	if (pthread_self().p != DispThrd.p ) {
@@ -761,50 +806,39 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 		ConsoleMessage ("kill_oldWorld must run in the displayThread called at %s:%d\n",file,line);
 		return;
 	}
+#endif
+
 
 	/* mark all rootNode children for Dispose */
 	for (i=0; i<X3D_GROUP(rootNode)->children.n; i++) {
 		markForDispose(X3D_GROUP(rootNode)->children.p[i], TRUE);
 	}
 
-
-printf ("kill 2\n");
 	/* stop rendering */
 	X3D_GROUP(rootNode)->children.n = 0;
 
-printf ("kill 3\n");
 	/* close the Console Message system, if required. */
 	closeConsoleMessage();
 
-
-printf ("kill 4\n");
 	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
 	zeroOcclusion();
 
-
-printf ("kill 5\n");
 	/* clock events - stop them from ticking */
 	kill_clockEvents();
 
 
-printf ("kill 6\n");
 	/* kill DEFS, handles */
 	EAI_killBindables();
 	kill_bindables();
 	killKeySensorNodeList();
 
 
-printf ("kill 7\n");
 	/* stop routing */
 	kill_routing();
 
-
-printf ("kill 8\n");
 	/* tell the statusbar that it needs to reinitialize */
 	kill_status();
 
-
-printf ("kill 9\n");
 	/* free textures */
 /*
 	kill_openGLTextures();
@@ -814,7 +848,6 @@ printf ("kill 9\n");
 	kill_javascript();
 
 
-printf ("kill 10\n");
 	/* free EAI */
 	if (kill_EAI) {
 	       	shutdown_EAI();
@@ -826,7 +859,6 @@ printf ("kill 10\n");
 	#endif
 
 
-printf ("kill 11\n");
 	/* reset any VRML Parser data */
 	if (globalParser != NULL) {
 		parser_destroyData(globalParser);
@@ -834,12 +866,9 @@ printf ("kill 11\n");
 	}
 
 
-printf ("kill 12\n");
 	/* tell statusbar that we have none */
 	viewer_default();
 	setMenuStatus("NONE");
-
-printf ("kill 13\n");
 
 #ifdef TARGET_AQUA
 #ifndef IPHONE

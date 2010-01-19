@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.27 2010/01/19 19:18:47 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.28 2010/01/19 20:10:32 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -76,7 +76,7 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	
 
 	/* perform Viewpoint translations */
-	FW_GL_ROTATE_D(-node->orientation.c[3]/PI*180.0,node->orientation.c[0],node->orientation.c[1],
+	FW_GL_ROTATE_RADIANS(-node->orientation.c[3],node->orientation.c[0],node->orientation.c[1],
 		node->orientation.c[2]);
 	FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 
@@ -149,7 +149,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	VECCP(vpos, ax, cp); /* cp is now 90deg to both vector and axis */
 	len = sqrt(VECSQ(cp));
 	if (APPROX(len, 0)) {
-		FW_GL_ROTATE_F(-viewer_orient.a/3.1415926536*180, ax.x, ax.y, ax.z);
+		FW_GL_ROTATE_RADIANS(-viewer_orient.a, ax.x, ax.y, ax.z);
 		return;
 	}
 	VECSCALE(cp, 1/len);
@@ -164,7 +164,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	if (VECPT(cp, arcp) > 0) { sign = -1; } else { sign = 1; }
 	angle = atan2(len2, sign*len);
 
-	FW_GL_ROTATE_F(angle/3.1415926536*180, ax.x, ax.y, ax.z);
+	FW_GL_ROTATE_RADIANS(angle, ax.x, ax.y, ax.z);
 }
 
 void fin_Billboard (struct X3D_Billboard *node) {

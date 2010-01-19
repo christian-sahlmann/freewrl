@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.34 2010/01/16 21:22:09 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.35 2010/01/19 20:10:32 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1604,8 +1604,7 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 
 		printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
 
-		my_rotation = node->__localOrient.c[3]/3.1415926536*180;
-		FW_GL_ROTATE_D(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
+		FW_GL_ROTATE_RADIANS(node->__localOrient.c[3], node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
 
 		/*
 		printf ("geoLocation trans %7.4f %7.4f %7.4f\n",node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
@@ -1627,8 +1626,7 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 		double my_rotation;
 
 		if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
-		my_rotation = -(node->__localOrient.c[3]/3.1415926536*180);
-		FW_GL_ROTATE_D(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
+		FW_GL_ROTATE_RADIANS(-node->__localOrient.c[3], node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
 		FW_GL_TRANSLATE_D(-node->__movedCoords.c[0], -node->__movedCoords.c[1], -node->__movedCoords.c[2]);
 
 		}
@@ -2384,7 +2382,7 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	#endif
 
 	/* perform GeoViewpoint translations */
-	FW_GL_ROTATE_D(-node->__movedOrientation.c[3]/PI*180.0,node->__movedOrientation.c[0],node->__movedOrientation.c[1],
+	FW_GL_ROTATE_RADIANS(-node->__movedOrientation.c[3],node->__movedOrientation.c[0],node->__movedOrientation.c[1],
 		node->__movedOrientation.c[2]); 
 
 	FW_GL_TRANSLATE_D(-node->__movedPosition.c[0],-node->__movedPosition.c[1],-node->__movedPosition.c[2]);
@@ -2642,19 +2640,16 @@ void prep_GeoTransform (struct X3D_GeoTransform *node) {
                 printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
                 
                         
-                my_rotation = node->__localOrient.c[3]/3.1415926536*180;
-                FW_GL_ROTATE_D(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
+                FW_GL_ROTATE_RADIANS(node->__localOrient.c[3], node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
                 
 		/* ROTATION */
 		if (node->__do_rotation) {
-			my_rotation = node->rotation.c[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_rotation, node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
+			FW_GL_ROTATE_RADIANS(node->rotation.c[3], node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
 		}
 
 		/* SCALEORIENTATION */
 		if (node->__do_scaleO) {
-			my_scaleO = node->scaleOrientation.c[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
+			FW_GL_ROTATE_RADIANS(node->scaleOrientation.c[3], node->scaleOrientation.c[0],
 				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 		}
 
@@ -2664,7 +2659,7 @@ void prep_GeoTransform (struct X3D_GeoTransform *node) {
 
 		/* REVERSE SCALE ORIENTATION */
 		if (node->__do_scaleO)
-			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.c[0],
+			FW_GL_ROTATE_RADIANS(-node->scaleOrientation.c[3], node->scaleOrientation.c[0],
 				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 
 		/* REVERSE CENTER */
@@ -2687,13 +2682,11 @@ void fin_GeoTransform (struct X3D_GeoTransform *node) {
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
                 FW_GL_TRANSLATE_D(((node->__movedCoords).c[0]),((node->__movedCoords).c[1]),((node->__movedCoords).c[2])
                 );
-                FW_GL_ROTATE_F(((node->scaleOrientation).c[3])/3.1415926536*180,((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
-                );
+                FW_GL_ROTATE_RADIANS(node->scaleOrientation.c[3],node->scaleOrientation.c[0],node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
                 FW_GL_SCALE_F(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
                 );
-                FW_GL_ROTATE_F(-(((node->scaleOrientation).c[3])/3.1415926536*180),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
-                );
-                FW_GL_ROTATE_F(-(((node->rotation).c[3]))/3.1415926536*180,((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
+                FW_GL_ROTATE_RADIANS(-node->scaleOrientation.c[3],node->scaleOrientation.c[0],node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
+                FW_GL_ROTATE_RADIANS(-(((node->rotation).c[3])),((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
                 );
                 FW_GL_TRANSLATE_D(-(((node->__movedCoords).c[0])),-(((node->__movedCoords).c[1])),-(((node->__movedCoords).c[2]))
                 );

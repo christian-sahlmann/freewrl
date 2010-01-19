@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.92 2010/01/19 19:18:47 crc_canada Exp $
+  $Id: MainLoop.c,v 1.93 2010/01/19 20:10:31 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1322,7 +1322,6 @@ void _displayThread()
 {
 	ENTER_THREAD("display");
 
-printf ("displayThread is %u\n",pthread_self());
 	/* Initialize display */
 	if (!display_initialize()) {
 		ERROR_MSG("initFreeWRL: error in display initialization.\n");

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.30 2010/01/16 21:22:09 dug9 Exp $
+$Id: Component_Grouping.c,v 1.31 2010/01/19 20:10:32 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -72,8 +72,6 @@ void prep_Group (struct X3D_Group *node) {
 
 /* do transforms, calculate the distance */
 void prep_Transform (struct X3D_Transform *node) {
-	GLfloat my_rotation;
-	GLfloat my_scaleO=0;
 
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
@@ -105,16 +103,12 @@ to NOT do it is here for performance testing reasons, to see if many pushes/pops
 
 		/* ROTATION */
 		if (node->__do_rotation) {
-			my_rotation = node->rotation.c[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_rotation,
-				node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
+			FW_GL_ROTATE_RADIANS(node->rotation.c[3], node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
 		}
 
 		/* SCALEORIENTATION */
 		if (node->__do_scaleO) {
-			my_scaleO = node->scaleOrientation.c[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
-				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
+			FW_GL_ROTATE_RADIANS(node->scaleOrientation.c[3], node->scaleOrientation.c[0], node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 		}
 
 
@@ -124,8 +118,7 @@ to NOT do it is here for performance testing reasons, to see if many pushes/pops
 
 		/* REVERSE SCALE ORIENTATION */
 		if (node->__do_scaleO)
-			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.c[0],
-				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
+			FW_GL_ROTATE_RADIANS(-node->scaleOrientation.c[3], node->scaleOrientation.c[0], node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 
 		/* REVERSE CENTER */
 		if (node->__do_center)
@@ -152,9 +145,7 @@ void fin_Transform (struct X3D_Transform *node) {
 
 		/* 6 REVERSE SCALE ORIENTATION */
 		if (node->__do_scaleO) {
-			GLfloat my_scaleO=0;
-			my_scaleO = -(node->scaleOrientation.c[3]/3.1415926536*180);
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
+			FW_GL_ROTATE_RADIANS(-node->scaleOrientation.c[3], node->scaleOrientation.c[0],
 				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 		}
 
@@ -164,15 +155,13 @@ void fin_Transform (struct X3D_Transform *node) {
 
 		/* 4 SCALEORIENTATION */
 		if (node->__do_scaleO) {
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
+			FW_GL_ROTATE_RADIANS(node->scaleOrientation.c[3], node->scaleOrientation.c[0],
 				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
 		}
 
 		/* 3 ROTATION */
 		if (node->__do_rotation) {
-			GLfloat my_rotation;
-			my_rotation = -(node->rotation.c[3]/3.1415926536*180);
-			FW_GL_ROTATE_F(my_rotation,
+			FW_GL_ROTATE_RADIANS(-node->rotation.c[3],
 				node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
 		}
 
@@ -193,13 +182,13 @@ void fin_Transform (struct X3D_Transform *node) {
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
                 FW_GL_TRANSLATE_F(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
                 );
-                FW_GL_ROTATE_F(((node->scaleOrientation).c[3])/3.1415926536*180,((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
+                FW_GL_ROTATE_RADIANS(((node->scaleOrientation).c[3]),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
                 );
                 FW_GL_SCALE_F(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
                 );
-                FW_GL_ROTATE_F(-(((node->scaleOrientation).c[3])/3.1415926536*180),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
+                FW_GL_ROTATE_RADIANS(-(((node->scaleOrientation).c[3])),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
                 );
-                FW_GL_ROTATE_F(-(((node->rotation).c[3]))/3.1415926536*180,((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
+                FW_GL_ROTATE_RADIANS(-(((node->rotation).c[3])),((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
                 );
                 FW_GL_TRANSLATE_F(-(((node->center).c[0])),-(((node->center).c[1])),-(((node->center).c[2]))
                 );

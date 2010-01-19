@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.29 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Frustum.c,v 1.30 2010/01/19 20:10:32 crc_canada Exp $
 
 ???
 
@@ -974,7 +974,9 @@ void zeroOcclusion(void) {
         #endif
 
         for (i=0; i<potentialOccluderCount; i++) {
+#ifdef OCCLUSIONVERBOSE
                 printf ("checking node %d of %d\n",i, potentialOccluderCount);
+#endif
 
                 glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
                 PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
@@ -987,7 +989,9 @@ void zeroOcclusion(void) {
                         PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
                 }
 	}
+#ifdef OCCLUSIONVERBOSE
 	printf ("zeroOcclusion - done waiting\n");
+#endif
 
 	QueryCount = 0;
 	glDeleteQueries (OccQuerySize, OccQueries);

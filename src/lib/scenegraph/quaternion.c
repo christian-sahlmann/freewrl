@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.c,v 1.14 2009/10/05 15:07:24 crc_canada Exp $
+$Id: quaternion.c,v 1.15 2010/01/19 20:10:32 crc_canada Exp $
 
 ???
 
@@ -383,7 +383,7 @@ quaternion_togl(Quaternion *quat)
 
 	/* get the angle, but turn us around 180 degrees */
 	/* printf ("togl: setting rotation %f %f %f %f\n",quat->w,quat->x,quat->y,quat->z);*/
-	FW_GL_ROTATE_D((2 * (acos(quat->w) / M_PI * 180)), quat->x, quat->y, quat->z);
+	FW_GL_ROTATE_RADIANS(2.0 * acos(quat->w), quat->x, quat->y, quat->z);
 }
 
 void

@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.44 2010/01/19 19:18:47 crc_canada Exp $
+  $Id: display.h,v 1.45 2010/01/19 20:10:31 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -350,6 +350,10 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) \
 		{fw_glRotated(aaa,xxx,yyy,zzz); \
 		printf ("fw_glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) \
+		{fw_glRotateRad(aaa,xxx,yyy,zzz); \
+		printf ("fw_glRotateRadians\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+	
 	#define FW_GL_SCALE_F(xxx,yyy,zzz) \
 		{fw_glScalef(xxx,yyy,zzz); \
 		printf ("fw_glScalef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
@@ -438,153 +442,6 @@ void setScreenDim(int wi, int he);
 	#define SET_TEXTURE_UNIT(aaa) { printf ("setActiveTexture to %d at %s:%d\n",aaa,__FILE__,__LINE__); \
 			glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
 
-	
-
-
-	/* these are Null Ops */
-/*
-	#define FW_GL_GETDOUBLEV(aaa,bbb)
-	#define FW_GL_PIXELSTOREI(aaa,bbb)
-	#define FW_GL_LINEWIDTH(aaa)
-	#define FW_GL_POINTSIZE(aaa)
-	#define FW_GL_SHADEMODEL(aaa)
-	#define FW_GL_CLEAR(zzz)
-	#define FW_GL_DEPTHFUNC(zzz)
-	#define FW_GL_HINT(aaa,bbb)
-	#define FW_GL_LIGHTFV(aaa,bbb,ccc)
-	#define FW_GL_BLENDFUNC(aaa,bbb)
-	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff)
-	#define FW_GL_CLEAR_DEPTH(aaa)
-	#define FW_GL_LIGHTMODELI(aaa,bbb)
-	#define FW_GL_LIGHTMODELFV(aaa,bbb)
-	#define FW_GL_PIXELZOOM(aaa,bbb)
-	#define FW_GL_COLOR3F(aaa,bbb,ccc)
-        #define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) 
-	#define FW_GL_ENABLE(aaa) 
-	#define FW_GL_DISABLE(aaa) 
-	#define FW_GL_ENABLECLIENTSTATE(aaa) 
-	#define FW_GL_DISABLECLIENTSTATE(aaa) 
-	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) 
-	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) 
-	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) 
-	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) 
-	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) 
-	#define FW_GL_SCALE_F(xxx,yyy,zzz) 
-	#define FW_GL_SCALE_D(xxx,yyy,zzz) 
-	#define FW_GL_LOAD_IDENTITY(aaa) 
-	#define FW_GL_PUSH_MATRIX(aaa) 
-	#define FW_GL_POP_MATRIX(aaa) 
-	#define FW_GL_MATRIX_MODE(aaa) 
-	#define FW_GL_GETDOUBLEV(aaa,bbb) 
-        #define FW_GL_PUSH_ATTRIB(aaa) 
-        #define FW_GL_POP_ATTRIB(aaa) 
-	#define FW_GL_WINDOWPOS2I(aaa,bbb) 
-	#define FW_GL_FLUSH()
-	#define FW_GL_DEPTHMASK(aaa)
-	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff)
-	#define FW_GL_COLOR4FV(aaa)
-	#define FW_GL_RASTERPOS2I(aaa,bbb) 
-	#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd) 
-	#define FW_GL_CGLFLUSHDRAWABLE(aaa) GL_FALSE
-	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd)
-	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd)
-	#define SET_TEXTURE_UNIT(aaa)
-*/
-
-/*
-	#define FW_GL_GETDOUBLEV(aaa,bbb) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_PIXELSTOREI(aaa,bbb) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_LINEWIDTH(aaa) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_POINTSIZE(aaa) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_SHADEMODEL(aaa) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_CLEAR(zzz) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_DEPTHFUNC(zzz) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_HINT(aaa,bbb) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_LIGHTFV(aaa,bbb,ccc) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_BLENDFUNC(aaa,bbb) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_CLEAR_DEPTH(aaa) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_LIGHTMODELI(aaa,bbb) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_LIGHTMODELFV(aaa,bbb) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_PIXELZOOM(aaa,bbb) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_COLOR3F(aaa,bbb,ccc) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-        #define FW_GL_SCISSOR(aaa,bbb,ccc,ddd)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_ENABLE(aaa)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_DISABLE(aaa)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_ENABLECLIENTSTATE(aaa)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_DISABLECLIENTSTATE(aaa)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_SCALE_F(xxx,yyy,zzz)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_SCALE_D(xxx,yyy,zzz)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_LOAD_IDENTITY(aaa)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_PUSH_MATRIX(aaa)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_POP_MATRIX(aaa)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_MATRIX_MODE(aaa)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_GETDOUBLEV(aaa,bbb)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-        #define FW_GL_PUSH_ATTRIB(aaa)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-        #define FW_GL_POP_ATTRIB(aaa)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_WINDOWPOS2I(aaa,bbb)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_FLUSH() \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_DEPTHMASK(aaa) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_COLOR4FV(aaa) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_RASTERPOS2I(aaa,bbb)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd)  \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_CGLFLUSHDRAWABLE(aaa) GL_FALSE 
-	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) \
-		if (myglobalContext ==NULL) printf ("got a gl call with null at %s:%d\n",__FILE__,__LINE__);
-*/
-
-
-
 #else /* DEBUG_OPENGL_CALLS */
 #ifndef IPHONE
 	#define FW_GL_GETDOUBLEV(aaa,bbb) glGetDoublev(aaa,bbb);
@@ -602,8 +459,18 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) glDrawArrays(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) fw_glTranslatef(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) fw_glTranslated(xxx,yyy,zzz)
+
+	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) \
+		{fw_glRotatef(aaa,xxx,yyy,zzz); \
+		printf ("fw_glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) \
+		{fw_glRotated(aaa,xxx,yyy,zzz); \
+		printf ("fw_glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) fw_glRotateRad(aaa,xxx,yyy,zzz)
+/*
 	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) fw_glRotated(aaa,xxx,yyy,zzz)
 	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) fw_glRotatef(aaa,xxx,yyy,zzz)
+*/
 	#define FW_GL_SCALE_F(xxx,yyy,zzz) fw_glScalef(xxx,yyy,zzz)
 	#define FW_GL_SCALE_D(xxx,yyy,zzz) fw_glScaled(xxx,yyy,zzz)
 #if defined(_MSC_VER)
@@ -772,6 +639,7 @@ void setScreenDim(int wi, int he);
 #define FW_GL_TRANSLATE_D(xxx,yyy,zzz)
 #define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz)
 #define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz)
+#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz)
 #define FW_GL_SCALE_F(xxx,yyy,zzz)
 #define FW_GL_SCALE_D(xxx,yyy,zzz)
 #define FW_GL_LOAD_IDENTITY(aaa)
