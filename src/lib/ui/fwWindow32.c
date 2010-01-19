@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.14 2010/01/12 20:04:47 sdumoulin Exp $
+  $Id: fwWindow32.c,v 1.15 2010/01/19 19:18:47 crc_canada Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -145,14 +145,14 @@ GLvoid createObjects()
       glEndList(); 
     */
     glNewList(CYLINDER, GL_COMPILE); 
-    glPushMatrix (); 
-    glRotatef ((GLfloat)90.0, (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0.0); 
-    glTranslatef ((GLfloat)0.0, (GLfloat)0.0, (GLfloat)-1.0); 
+    FW_GL_PUSH_MATRIX(); 
+    FW_GL_ROTATE_F((GLfloat)90.0, (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0.0); 
+    FW_GL_TRANSLATE_F((GLfloat)0.0, (GLfloat)0.0, (GLfloat)-1.0); 
     quadObj = gluNewQuadric (); 
     gluQuadricDrawStyle (quadObj, GLU_FILL); 
     gluQuadricNormals (quadObj, GLU_SMOOTH); 
     gluCylinder (quadObj, 0.3, 0.3, 0.6, 12, 2); 
-    glPopMatrix (); 
+    FW_GL_POP_MATRIX(); 
     glEndList(); 
 }
 
@@ -166,12 +166,12 @@ GLvoid initializeGL(GLsizei width, GLsizei height)
  
     FW_GL_ENABLE(GL_DEPTH_TEST); 
  
-    glMatrixMode( GL_PROJECTION ); 
-    glLoadIdentity(); /*inserted by doug*/
+    FW_GL_MATRIX_MODE( GL_PROJECTION ); 
+    FW_GL_LOAD_IDENTITY(); /*inserted by doug*/
 
     aspect = (GLfloat) width / height; 
     gluPerspective( 45.0, aspect, .3, 700.0 ); 
-    glMatrixMode( GL_MODELVIEW ); 
+    FW_GL_MATRIX_MODE( GL_MODELVIEW ); 
  
     near_plane = 3.0; 
     far_plane = 7.0; 
@@ -189,10 +189,10 @@ GLvoid initializeGL(GLsizei width, GLsizei height)
 void polarView(GLDOUBLE radius, GLDOUBLE twist, GLDOUBLE latitude, 
 	       GLDOUBLE longitude) 
 { 
-    glTranslated(0.0, 0.0, -radius); 
-    glRotated(-twist, 0.0, 0.0, 1.0); 
-    glRotated(-latitude, 1.0, 0.0, 0.0); 
-    glRotated(longitude, 0.0, 0.0, 1.0);      
+    FW_GL_TRANSLATE_D(0.0, 0.0, -radius); 
+    FW_GL_ROTATE_D(-twist, 0.0, 0.0, 1.0); 
+    FW_GL_ROTATE_D(-latitude, 1.0, 0.0, 0.0); 
+    FW_GL_ROTATE_D(longitude, 0.0, 0.0, 1.0);      
  
 } 
  
@@ -200,7 +200,7 @@ GLvoid drawScene(GLvoid)
 { 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); 
  
-    glPushMatrix(); 
+    FW_GL_PUSH_MATRIX(); 
  
     latitude += latinc; 
     longitude += longinc; 
@@ -214,13 +214,13 @@ GLvoid drawScene(GLvoid)
     glCallList(GLOBE); 
  
     glIndexi(GREEN_INDEX); 
-    glPushMatrix(); 
-    glTranslatef(0.8F, -0.65F, 0.0F); 
-    glRotatef(30.0F, 1.0F, 0.5F, 1.0F); 
+    FW_GL_PUSHMATRIX(); 
+    FW_GL_TRANSLATE_F(0.8F, -0.65F, 0.0F); 
+    FW_GL_ROTATE_F(30.0F, 1.0F, 0.5F, 1.0F); 
     glCallList(CYLINDER); 
-    glPopMatrix(); 
+    FW_GL_POP_MATRIX(); 
  
-    glPopMatrix(); 
+    FW_GL_POP_MATRIX(); 
 
     SwapBuffers(wglGetCurrentDC());
 } 

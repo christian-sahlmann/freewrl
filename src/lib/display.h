@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.43 2010/01/15 22:07:24 crc_canada Exp $
+  $Id: display.h,v 1.44 2010/01/19 19:18:47 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -339,35 +339,35 @@ void setScreenDim(int wi, int he);
 		{glDrawArrays(xxx,yyy,zzz); \
 		printf ("glDrawArrays tat %s:%d\n",__FILE__,__LINE__);}
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) \
-		{glTranslatef(xxx,yyy,zzz); \
-		printf ("glTranslatef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
+		{fw_glTranslatef(xxx,yyy,zzz); \
+		printf ("fw_glTranslatef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
 	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) \
-		{glTranslated(xxx,yyy,zzz); \
-		printf ("glTranslated\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
+		{fw_glTranslated(xxx,yyy,zzz); \
+		printf ("fw_glTranslated\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
 	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) \
-		{glRotatef(aaa,xxx,yyy,zzz); \
-		printf ("glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+		{fw_glRotatef(aaa,xxx,yyy,zzz); \
+		printf ("fw_glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
 	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) \
-		{glRotated(aaa,xxx,yyy,zzz); \
-		printf ("glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+		{fw_glRotated(aaa,xxx,yyy,zzz); \
+		printf ("fw_glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
 	#define FW_GL_SCALE_F(xxx,yyy,zzz) \
-		{glScalef(xxx,yyy,zzz); \
-		printf ("glScalef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
+		{fw_glScalef(xxx,yyy,zzz); \
+		printf ("fw_glScalef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
 	#define FW_GL_SCALE_D(xxx,yyy,zzz) \
-		{glScaled(xxx,yyy,zzz); \
-		printf ("glScaled\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define FW_GL_LOAD_IDENTITY(aaa) {glLoadIdentity();printf ("glLoadIdentity\t at%s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_PUSH_MATRIX(aaa) {glPushMatrix();printf ("glPushMatrix\t at%s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_POP_MATRIX(aaa) {glPopMatrix();printf ("glPopMatrix\t at%s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_MATRIX_MODE(aaa) {glMatrixMode(aaa); \
-		printf ("glMatrixMode("); \
+		{fw_glScaled(xxx,yyy,zzz); \
+		printf ("fw_glScaled\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_LOAD_IDENTITY(aaa) {fw_glLoadIdentity();printf ("fw_glLoadIdentity\t at%s:%d\n",__FILE__,__LINE__);}
+	#define FW_GL_PUSH_MATRIX(aaa) {fw_glPushMatrix();printf ("fw_glPushMatrix\t at%s:%d\n",__FILE__,__LINE__);}
+	#define FW_GL_POP_MATRIX(aaa) {fw_glPopMatrix();printf ("fw_glPopMatrix\t at%s:%d\n",__FILE__,__LINE__);}
+	#define FW_GL_MATRIX_MODE(aaa) {fw_glMatrixMode(aaa); \
+		printf ("fw_glMatrixMode("); \
 		if (aaa==GL_TEXTURE) printf ("GL_TEXTURE"); \
 		else if (aaa==GL_MODELVIEW) printf ("GL_MODELVIEW"); \
 		else if (aaa==GL_PROJECTION) printf ("GL_PROJECTION"); \
 		else printf ("unknown mode"); printf (")\tat %s:%d\n",__FILE__,__LINE__); }
 	#define FW_GL_GETDOUBLEV(aaa,bbb) \
-		{ fwGetDoublev(aaa,bbb); \
-		printf ("fwGetDoublev at %s:%d\n",__FILE__,__LINE__);}
+		{ fw_glGetDoublev(aaa,bbb); \
+		printf ("fw_glGetDoublev at %s:%d\n",__FILE__,__LINE__);}
 
 	#define FW_GL_PUSH_ATTRIB(aaa) \
 		{ glPushAttrib(aaa); \
@@ -588,8 +588,8 @@ void setScreenDim(int wi, int he);
 #else /* DEBUG_OPENGL_CALLS */
 #ifndef IPHONE
 	#define FW_GL_GETDOUBLEV(aaa,bbb) glGetDoublev(aaa,bbb);
-	#define FW_GL_LOAD_IDENTITY glLoadIdentity
-	#define FW_GL_MATRIX_MODE(aaa) glMatrixMode(aaa)
+	#define FW_GL_LOAD_IDENTITY fw_glLoadIdentity
+	#define FW_GL_MATRIX_MODE(aaa) fw_glMatrixMode(aaa)
 	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) glViewport(aaa,bbb,ccc,ddd);
 	#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd) glClearColor(aaa,bbb,ccc,ddd);
 	#define FW_GL_COLOR3F(aaa,bbb,ccc) glColor3f(aaa,bbb,ccc);
@@ -600,18 +600,18 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_ENABLECLIENTSTATE(aaa) glEnableClientState(aaa)
 	#define FW_GL_DISABLECLIENTSTATE(aaa) glDisableClientState(aaa); 
 	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) glDrawArrays(xxx,yyy,zzz)
-	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) glTranslatef(xxx,yyy,zzz)
-	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) glTranslated(xxx,yyy,zzz)
-	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) glRotated(aaa,xxx,yyy,zzz)
-	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) glRotatef(aaa,xxx,yyy,zzz)
-	#define FW_GL_SCALE_F(xxx,yyy,zzz) glScalef(xxx,yyy,zzz)
-	#define FW_GL_SCALE_D(xxx,yyy,zzz) glScaled(xxx,yyy,zzz)
+	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) fw_glTranslatef(xxx,yyy,zzz)
+	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) fw_glTranslated(xxx,yyy,zzz)
+	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) fw_glRotated(aaa,xxx,yyy,zzz)
+	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) fw_glRotatef(aaa,xxx,yyy,zzz)
+	#define FW_GL_SCALE_F(xxx,yyy,zzz) fw_glScalef(xxx,yyy,zzz)
+	#define FW_GL_SCALE_D(xxx,yyy,zzz) fw_glScaled(xxx,yyy,zzz)
 #if defined(_MSC_VER)
-	#define FW_GL_PUSH_MATRIX(...) glPushMatrix()
-	#define FW_GL_POP_MATRIX(...) glPopMatrix()
+	#define FW_GL_PUSH_MATRIX(...) fw_glPushMatrix()
+	#define FW_GL_POP_MATRIX(...) fw_glPopMatrix()
 #else /* _MSC_VER */
-	#define FW_GL_PUSH_MATRIX(aaa) glPushMatrix()
-	#define FW_GL_POP_MATRIX(aaa) glPopMatrix()
+	#define FW_GL_PUSH_MATRIX(aaa) fw_glPushMatrix()
+	#define FW_GL_POP_MATRIX(aaa) fw_glPopMatrix()
 
 #endif /* _MSC_VER */
         #define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) glScissor(aaa,bbb,ccc,ddd); 

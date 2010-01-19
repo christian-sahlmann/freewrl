@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.15 2009/12/09 22:19:11 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.16 2010/01/19 19:18:47 crc_canada Exp $
 
 Screen snapshot.
 
@@ -44,6 +44,19 @@ BackEndLightsOff(void);
 void lightState (GLint light, int state);
 
 void drawBBOX(struct X3D_Node *node);
+
+
+void fw_glMatrixMode(GLint mode);
+void fw_glLoadIdentity(void);
+void fw_glPushMatrix(void);
+void fw_glPopMatrix(void);
+void fw_glTranslated(double a, double b, double c);
+void fw_glTranslatef(float a, float b, float c);
+void fw_glRotated (double a, double b, double c, double d);
+void fw_glRotatef (float a, float b, float c, float d);
+void fw_glScaled (double a, double b, double c);
+void fw_glScalef (float a, float b, float c);
+void fw_glGetDoublev (int ty, double *mat);
 
 
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

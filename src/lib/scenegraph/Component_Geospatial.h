@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.h,v 1.8 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Component_Geospatial.h,v 1.9 2010/01/19 19:18:47 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -60,8 +60,8 @@ void proximity_##type (struct X3D_##type *node) { \
 	/* transforms viewers coordinate space into sensors coordinate space. \
 	 * this gives the orientation of the viewer relative to the sensor. \
 	 */ \
-	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix); \
-	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix); \
+	fw_glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix); \
+	fw_glGetDoublev(GL_PROJECTION_MATRIX, projMatrix); \
 	FW_GLU_UNPROJECT(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport, \
 		&t_orig.x,&t_orig.y,&t_orig.z); \
 	FW_GLU_UNPROJECT(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport, \

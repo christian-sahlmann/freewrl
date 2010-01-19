@@ -1,5 +1,6 @@
+
 /*
-  $Id: OpenGL_Utils.c,v 1.88 2010/01/16 21:22:09 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.89 2010/01/19 19:18:47 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -575,153 +576,163 @@ void BackEndLightsOff() {
 	}
 }
 
-/* OpenGL tuning stuff - cache the modelview matrix */
+/* OpenGL perform matrix state here */
+#define MAX_LARGE_MATRIX_STACK 32	/* depth of stacks */
+#define MAX_SMALL_MATRIX_STACK 2	/* depth of stacks */
+#define MATRIX_SIZE 16		/* 4 x 4 matrix */
+typedef double MATRIX4[MATRIX_SIZE];
 
-static int myMat = -111;
-static int MODmatOk = FALSE;
-static int PROJmatOk = FALSE;
-static double MODmat[16];
-static double PROJmat[16];
-#ifdef DEBUGCACHEMATRIX
-static int sav = 0;
-static int tot = 0;
-#endif
 
-void invalidateCurMat() {
-	return;
+static MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
+static MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
+static MATRIX4 FW_TextureView[MAX_SMALL_MATRIX_STACK];
+ 
+static int modelviewTOS = 0;
+static int projectionviewTOS = 0;
+static int textureviewTOS = 0;
 
-	if (myMat == GL_PROJECTION) PROJmatOk=FALSE;
-	else if (myMat == GL_MODELVIEW) MODmatOk=FALSE;
-	else {
-		printf ("fwLoad, unknown %d\n",myMat);
+static int whichMode = GL_MODELVIEW;
+static double *currentMatrix = (double *)FW_ModelView;
+
+
+void fw_glMatrixMode(GLint mode) {
+	whichMode = mode;
+	/* printf ("fw_glMatrixMode %d\n",mode); */
+	switch (whichMode) {
+		case GL_PROJECTION: currentMatrix = (double *)FW_ProjectionView[projectionviewTOS]; break;
+		case GL_MODELVIEW: currentMatrix = (double *)FW_ModelView[modelviewTOS]; break;
+		case GL_TEXTURE: currentMatrix = (double *)FW_TextureView[textureviewTOS]; break;
+		default: printf ("invalid mode sent in\n");
 	}
+	/* set the matrix element */
+	glMatrixMode(mode); 
 }
 
-void fwLoadIdentity () {
-	FW_GL_LOAD_IDENTITY();
-	invalidateCurMat();
-}
-	
-void fwMatrixMode (int mode) {
-	if (myMat != mode) {
-		/* printf ("FW_GL_MATRIX_MODE ");
-		if (mode == GL_PROJECTION) printf ("GL_PROJECTION\n");
-		else if (mode == GL_MODELVIEW) printf ("GL_MODELVIEW\n");
-		else {printf ("unknown %d\n",mode);}
-		*/
-		
+void fw_glLoadIdentity(void) {
+	/* printf ("fw_glLoadIdentity myMode %d \n",whichMode); */
 
-		myMat = mode;
-		FW_GL_MATRIX_MODE(mode);
+	loadIdentityMatrix(currentMatrix);
+ 	glLoadMatrixd(currentMatrix); 
+}
+
+#define PUSHMAT(a,b,c,d) case a: b++; if (b>=c) {b=c-1; printf ("stack overflow, whichmode %d\n",whichMode); } \
+		memcpy ((void *)d[b], (void *)d[b-1],sizeof(double)*16); currentMatrix = d[b]; break;
+
+void fw_glPushMatrix(void) {
+	/* printf ("fw_glPushMatrix\n"); */
+	/* glPushMatrix(); */
+	switch (whichMode) {
+		PUSHMAT (GL_PROJECTION,projectionviewTOS,MAX_SMALL_MATRIX_STACK,FW_ProjectionView)
+		PUSHMAT (GL_MODELVIEW,modelviewTOS,MAX_LARGE_MATRIX_STACK,FW_ModelView)
+		PUSHMAT (GL_TEXTURE,textureviewTOS,MAX_SMALL_MATRIX_STACK,FW_TextureView)
+		default :printf ("wrong mode in popMatrix\n");
 	}
+
+ 	glLoadMatrixd(currentMatrix); 
+#undef PUSHMAT
 }
 
-#ifdef DEBUGCACHEMATRIX
-void pmat (double *mat) {
-	int i;
-	for (i=0; i<16; i++) {
-		printf ("%3.2f ",mat[i]);
+#define POPMAT(a,b,c) case a: b--; if (b<0) {b=0;printf ("popMatrix, stack underflow, whichMode %d\n",whichMode);} currentMatrix = c[b]; break;
+
+void fw_glPopMatrix(void) {
+	/* printf ("fw_glPopMatrix\n"); */
+	/* glPopMatrix();  */
+	switch (whichMode) {
+		POPMAT(GL_PROJECTION,projectionviewTOS,FW_ProjectionView)
+		POPMAT(GL_MODELVIEW,modelviewTOS,FW_ModelView)
+		POPMAT (GL_TEXTURE,textureviewTOS,FW_TextureView)
+		default :printf ("wrong mode in popMatrix\n");
 	}
-	printf ("\n");
+ 	glLoadMatrixd(currentMatrix); 
+}
+#undef POPMAT
+
+
+void fw_glTranslated(double x, double y, double z) {
+	/* printf ("fw_glTranslated %lf %lf %lf\n",x,y,z); */
+
+	currentMatrix[12] = currentMatrix[0] * x + currentMatrix[4] * y + currentMatrix[8]  * z + currentMatrix[12];
+	currentMatrix[13] = currentMatrix[1] * x + currentMatrix[5] * y + currentMatrix[9]  * z + currentMatrix[13];
+	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
+	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
+
+ 	glLoadMatrixd(currentMatrix); 
 }
 
-void compare (char *where, double *a, double *b) {
-	int count;
-	double va, vb;
+void fw_glTranslatef(float x, float y, float z) {
+	/* printf ("fw_glTranslatef %f %f %f\n",x,y,z); */
+	currentMatrix[12] = currentMatrix[0] * x + currentMatrix[4] * y + currentMatrix[8]  * z + currentMatrix[12];
+	currentMatrix[13] = currentMatrix[1] * x + currentMatrix[5] * y + currentMatrix[9]  * z + currentMatrix[13];
+	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
+	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
 
-	for (count = 0; count < 16; count++) {
-		va = a[count];
-		vb = b[count];
-		if (fabs(va-vb) > 0.001) {
-			printf ("%s difference at %d %lf %lf\n",
-					where,count,va,vb);
-		}
+ 	glLoadMatrixd(currentMatrix); 
+}
 
+void fw_glRotated (double angle, double x, double y, double z) {
+	MATRIX4 myMat;
+	double mag;
+	double radAng;
+
+	/* convert angle from degrees to radians */
+	/* FIXME - must try and make up a rotate-radians call to get rid of these incessant conversions */
+	radAng = angle * 3.1415926536/ 180.0;
+
+	loadIdentityMatrix (myMat);
+
+	/* FIXME - any way we can ensure that the angles are normalized? */
+	mag =  x*x + y*y + z*z; 
+	if (!APPROX(mag,1.0)) {
+		struct point_XYZ in; struct point_XYZ out;
+		in.x = x; in.y = y, in.z = z;
+		vecnormal(&out,&in);
+		x = out.x; y = out.y; z = out.z;
 	}
-}
-#endif
-
-void fwGetDoublev (int ty, double *mat) {
-
-	/* we were trying to cache OpenGL gets, but, over time this code
-	   has not worked too well as some rotates, etc, did not invalidate
-	   our local flag. Just ignore the optimizations for now */
-	FW_GL_GETDOUBLEV(ty,mat);
-	return;
-
-#ifdef DEBUGCACHEMATRIX
-	double TMPmat[16];
-	/*printf (" sav %d tot %d\n",sav,tot); */
-	tot++;
-
-#endif
 
 
-	if (ty == GL_MODELVIEW_MATRIX) {
-		if (!MODmatOk) {
-			FW_GL_GETDOUBLEV (ty, MODmat);
-			MODmatOk = TRUE;
-
-#ifdef DEBUGCACHEMATRIX
-		} else sav ++;
-
-		// debug memory calls
-		FW_GL_GETDOUBLEV(ty,TMPmat);
-		compare ("MODELVIEW", TMPmat, MODmat);
-		memcpy (MODmat,TMPmat, sizeof (MODmat));
-		// end of debug
-#else
-		}
-#endif
-
-		memcpy (mat, MODmat, sizeof (MODmat));
-
-	} else if (ty == GL_PROJECTION_MATRIX) {
-		if (!PROJmatOk) {
-			FW_GL_GETDOUBLEV (ty, PROJmat);
-			PROJmatOk = TRUE;
-#ifdef DEBUGCACHEMATRIX
-		} else sav ++;
-
-		// debug memory calls
-		FW_GL_GETDOUBLEV(ty,TMPmat);
-		compare ("PROJECTION", TMPmat, PROJmat);
-		memcpy (PROJmat,TMPmat, sizeof (PROJmat));
-		// end of debug
-#else
-		}
-#endif
-
-		memcpy (mat, PROJmat, sizeof (PROJmat));
-	} else {
-		printf ("fwGetDoublev, inv type %d\n",ty);
+	/* are the axis close to zero? */
+	if (mag < 0.001) {
+		return;
 	}
+	matrotate(myMat,radAng,x,y,z); 
+	matmultiply(currentMatrix,currentMatrix,myMat); 
+ 	glLoadMatrixd(currentMatrix); 
 }
 
-#ifdef WIN32
-/* FIXME: why use a C++ compiler ??? */
-/* inline is cpp, ms has __inline for C */
-__inline void fwXformPush(void) {
-	FW_GL_PUSH_MATRIX(); 
-	MODmatOk = FALSE;
+
+void fw_glRotatef (float a, float x, float y, float z) {
+	fw_glRotated((double)a, (double)x, (double)y, (double)z);
 }
 
-__inline void fwXformPop(void) {
-	FW_GL_POP_MATRIX(); 
-	MODmatOk = FALSE;
+void fw_glScaled (double x, double y, double z) {
+	currentMatrix[0] *= x;   currentMatrix[4] *= y;   currentMatrix[8]  *= z;
+	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
+	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
+	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
+ 	glLoadMatrixd(currentMatrix); 
 }
 
-#else
-inline void fwXformPush(void) {
-	FW_GL_PUSH_MATRIX(); 
-	MODmatOk = FALSE;
+void fw_glScalef (float x, float y, float z) {
+	currentMatrix[0] *= x;   currentMatrix[4] *= y;   currentMatrix[8]  *= z;
+	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
+	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
+	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
+ 	glLoadMatrixd(currentMatrix); 
 }
 
-inline void fwXformPop(void) {
-	FW_GL_POP_MATRIX(); 
-	MODmatOk = FALSE;
+void fw_glGetDoublev (int ty, double *mat) {
+	double *dp;
+
+	switch (ty) {
+		case GL_PROJECTION: dp = FW_ProjectionView[projectionviewTOS]; break;
+		case GL_MODELVIEW: dp = FW_ModelView[modelviewTOS]; break;
+		case GL_TEXTURE: dp = FW_TextureView[textureviewTOS]; break;
+		default: {printf ("invalid mode sent in\n"); loadIdentityMatrix(mat); return;}
+	}
+	memcpy((void *)mat, (void *) dp, sizeof (double) * MATRIX_SIZE);
 }
-#endif
+
+
 /* for Sarah's front end - should be removed sometime... */
 void kill_rendering() {
 printf ("kill_rendering called...\n");

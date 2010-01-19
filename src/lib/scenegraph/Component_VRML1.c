@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.15 2010/01/15 22:07:26 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.16 2010/01/19 19:18:47 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -402,7 +402,7 @@ void render_VRML1_Cylinder (struct X3D_VRML1_Cylinder *node) {
 }
 
 void render_VRML1_Scale (struct X3D_VRML1_Scale *node) {
-	glScalef(node->scaleFactor.c[0], node->scaleFactor.c[1], node->scaleFactor.c[2]);
+	FW_GL_SCALE_F(node->scaleFactor.c[0], node->scaleFactor.c[1], node->scaleFactor.c[2]);
 }
 
 void render_VRML1_Transform (struct X3D_VRML1_Transform *node) {
@@ -426,24 +426,24 @@ Translation { translation -T2 }
 */
 
 	
-	glTranslatef(node->translation.c[0], node->translation.c[1], node->translation.c[2]);
-	glTranslatef(node->center.c[0], node->center.c[1], node->center.c[2]);
-	glRotatef(node->rotation.c[3]/3.1415926536*180, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
-	glRotatef(node->scaleOrientation.c[3]/3.1415926536*180, node->scaleOrientation.c[0], node->scaleOrientation.c[1], node->scaleOrientation.c[2]);
-	glScalef(node->scaleFactor.c[0], node->scaleFactor.c[1], node->scaleFactor.c[2]);
-	glRotatef(-node->rotation.c[3]/3.1415926536*180, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
-	glTranslatef(-node->center.c[0], -node->center.c[1], -node->center.c[2]);
+	FW_GL_TRANSLATE_F(node->translation.c[0], node->translation.c[1], node->translation.c[2]);
+	FW_GL_TRANSLATE_F(node->center.c[0], node->center.c[1], node->center.c[2]);
+	FW_GL_ROTATE_F(node->rotation.c[3]/3.1415926536*180, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
+	FW_GL_ROTATE_F(node->scaleOrientation.c[3]/3.1415926536*180, node->scaleOrientation.c[0], node->scaleOrientation.c[1], node->scaleOrientation.c[2]);
+	FW_GL_SCALE_F(node->scaleFactor.c[0], node->scaleFactor.c[1], node->scaleFactor.c[2]);
+	FW_GL_ROTATE_F(-node->rotation.c[3]/3.1415926536*180, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
+	FW_GL_TRANSLATE_F(-node->center.c[0], -node->center.c[1], -node->center.c[2]);
 }
 
 void render_VRML1_Translation (struct X3D_VRML1_Translation *node) {
-	glTranslatef(node->translation.c[0], node->translation.c[1], node->translation.c[2]);
+	FW_GL_TRANSLATE_F(node->translation.c[0], node->translation.c[1], node->translation.c[2]);
 }
 
 
 
 
 void render_VRML1_Rotation (struct X3D_VRML1_Rotation *node) {
-	glRotatef(node->rotation.c[3]/3.1415926536*180, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
+	FW_GL_ROTATE_F(node->rotation.c[3]/3.1415926536*180, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
 }
 
 void render_VRML1_DirectionalLight (struct X3D_VRML1_DirectionalLight *node) {

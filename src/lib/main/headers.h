@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.103 2010/01/16 21:22:09 dug9 Exp $
+$Id: headers.h,v 1.104 2010/01/19 19:18:47 crc_canada Exp $
 
 Global includes.
 
@@ -809,12 +809,6 @@ char * SAI_StrRetCommand (char cmnd, const char *fn);
 char *EAI_GetTypeName (unsigned int uretval);
 char* EAI_GetValue(unsigned int nodenum, const char *fieldname, const char *nodename);
 
-void fwGetDoublev (int ty, double *mat);
-void fwMatrixMode (int mode);
-void fwXformPush(void);
-void fwXformPop(void);
-void fwLoadIdentity (void);
-void invalidateCurMat(void);
 void add_parent(struct X3D_Node *node_, struct X3D_Node *parent_,char *file, int line);
 void remove_parent(struct X3D_Node *child, struct X3D_Node *parent);
 void EAI_readNewWorld(char *inputstring);

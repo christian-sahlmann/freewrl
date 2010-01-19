@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.16 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: jsVRML_MFClasses.c,v 1.17 2010/01/19 19:18:47 crc_canada Exp $
 
 ???
 
@@ -833,8 +833,8 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 #undef TESTING
 #ifdef TESTING
 	GLDOUBLE xxmat[16];
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
+	FW_GL_PUSH_MATRIX();
 	FW_GL_LOAD_IDENTITY();
 #endif
 
@@ -900,9 +900,6 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
                 	matrix[12]=Vptr->v.c[0];
                 	matrix[13]=Vptr->v.c[1];
                 	matrix[14]=Vptr->v.c[2];
-#ifdef TESTING
-			glTranslatef(Vptr->v.c[0], Vptr->v.c[1], Vptr->v.c[2]);
-#endif
 		}
 	}
 
@@ -917,10 +914,6 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 			/* printf ("from rotation %f %f %f %f\n",Rptr->v.c[0], Rptr->v.c[1], Rptr->v.c[2], Rptr->v.c[3]);
 			printf ("quaternion is %f %f %f %f\n",quat.x,quat.y,quat.x, quat.w); */
 			quaternion_to_matrix (matrix, &quat);
-
-#ifdef TESTING
-                        glRotatef(Rptr->v.c[3]/3.1415926536*180, Rptr->v.c[0], Rptr->v.c[1], Rptr->v.c[2]);
-#endif
 		}
 	}
 
@@ -935,9 +928,6 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 			COPY_SFVEC3F_TO_POINT_XYZ (myScale,Vptr->v.c);
 			scale_to_matrix(matrix, &myScale);
 		}
-#ifdef TESTING
-		glScalef(Vptr->v.c[0], Vptr->v.c[1], Vptr->v.c[2]);
-#endif
 
 	}
 
@@ -956,7 +946,7 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
                 xxmat[1],  xxmat[5],  xxmat[ 9],  xxmat[13],
                 xxmat[2],  xxmat[6],  xxmat[10],  xxmat[14],
                 xxmat[3],  xxmat[7],  xxmat[11],  xxmat[15]);
-	glPopMatrix();
+	FW_GL_POP_MATRIX();
 #endif
 	
 	return JS_TRUE;
