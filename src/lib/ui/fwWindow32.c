@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.15 2010/01/19 19:18:47 crc_canada Exp $
+  $Id: fwWindow32.c,v 1.16 2010/01/20 21:44:20 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -214,7 +214,7 @@ GLvoid drawScene(GLvoid)
     glCallList(GLOBE); 
  
     glIndexi(GREEN_INDEX); 
-    FW_GL_PUSHMATRIX(); 
+    FW_GL_PUSH_MATRIX(); 
     FW_GL_TRANSLATE_F(0.8F, -0.65F, 0.0F); 
     FW_GL_ROTATE_F(30.0F, 1.0F, 0.5F, 1.0F); 
     glCallList(CYLINDER); 
