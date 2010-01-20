@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.16 2010/01/19 00:23:46 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.17 2010/01/20 21:25:21 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -512,6 +512,7 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 			if(!fast_ycylinder_polyrep_intersect2(abottom,atop,awidth,t_orig,scale,prminvals,prmaxvals)){/*printf("#");*/ return 0;}
 			FallInfo.checkCylinder = 1;
 			FallInfo.checkFall = 0;
+			FallInfo.checkPenetration = 0;
 		}
 		if(FallInfo.fastTestMethod==1)
 		{
@@ -526,7 +527,10 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 			if(FallInfo.checkFall) FallInfo.checkFall = fast_ycylinder_MBB_intersect_shapeSpace(-FallInfo.fallHeight,atop,0.0, Collision2Shape, prminvals, prmaxvals);
 			/* do collision volume bounds test (popcycle succulent part)*/
 			FallInfo.checkCylinder = fast_ycylinder_MBB_intersect_shapeSpace(foot,atop,awidth, Collision2Shape, prminvals, prmaxvals); 
-			if(!FallInfo.checkCylinder && !FallInfo.checkFall){/*printf("@");*/ return 0;} 
+			FallInfo.checkPenetration = 0;
+			if( FallInfo.canPenetrate )
+				FallInfo.checkPenetration = overlapMBBs(FallInfo.penMin,FallInfo.penMax,prminvals,prmaxvals);
+			if(!FallInfo.checkCylinder && !FallInfo.checkFall && !FallInfo.checkPenetration){/*printf("@");*/ return 0;} 
 		}
 		if(FallInfo.fastTestMethod==2)
 		{
@@ -538,7 +542,10 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 			if(FallInfo.checkFall) FallInfo.checkFall = fast_ycylinder_MBB_intersect_collisionSpace(-FallInfo.fallHeight,atop,0.0, modelMatrix, prminvals, prmaxvals);
 			/* do collision volume bounds test (popcycle succulent part)*/
 			FallInfo.checkCylinder = fast_ycylinder_MBB_intersect_collisionSpace(foot,atop,awidth, modelMatrix, prminvals, prmaxvals);
-			if(!FallInfo.checkCylinder && !FallInfo.checkFall){/*printf("$");*/ return 0;} 
+			FallInfo.checkPenetration = 0;
+			if( FallInfo.canPenetrate )
+				FallInfo.checkPenetration = overlapMBBs(FallInfo.penMin,FallInfo.penMax,prminvals,prmaxvals);
+			if(!FallInfo.checkCylinder && !FallInfo.checkFall && !FallInfo.checkPenetration){/*printf("$");*/ return 0;} 
 		}
 		if(FallInfo.fastTestMethod==3)
 		{

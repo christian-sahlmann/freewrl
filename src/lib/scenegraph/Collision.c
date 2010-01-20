@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.10 2010/01/16 21:22:09 dug9 Exp $
+$Id: Collision.c,v 1.11 2010/01/20 21:25:21 dug9 Exp $
 
 Render the children of nodes.
 
@@ -747,6 +747,38 @@ int intersectLineSegmentWithPoly(struct point_XYZ s0,struct point_XYZ s1,double 
 	if( hit ) *dr = r - t;
 	return hit;
 }
+int intersectLineSegmentWithPoly2(struct point_XYZ s0,struct point_XYZ s1,double r, struct point_XYZ *p,int num,struct point_XYZ n,double *dr)
+{
+	int hit = 0;
+	double d,t,t1, ndotD;
+	struct point_XYZ D;
+	/* I'm following p.391 of Graphics Gems I */
+	/* step1 intersect infinite line with infinite plane */
+	d = -vecdot(&n,&p[0]); /* compute plane constant */
+	VECDIFF(s1,s0,D); /* compute ray direction vector from line segment start and end points */
+	/* vecnormal(&D,&D); D should already be normalized - just sin & cos values */
+	ndotD = vecdot(&n,&D);
+	*dr = 0.0; /* displacement inward from r */
+	if(APPROX(ndotD,0.0) )
+	{
+		/* infinite plane and infinite line are parallel - no intersection */
+		*dr = 0.0;
+		return hit;
+	}
+	t = - ( (d + vecdot(&n,&s0)) / ndotD ); /*magic plane-line intersection equation - t is parametric value of intersection point on line */
+	/* step2 test intersection in line segment */
+	if( t < 0.0 || t > r )
+	{
+		/* intersection is outside of line segment */
+		return hit;
+	}
+	/* step3 test intersection in poly */
+	vecscale(&D,&D,t);
+	VECADD(D,s0);
+	hit = pointOnPlaneInsidePoly(D,p,num,&n);
+	if( hit ) *dr = t;
+	return hit;
+}
 
 /*feed a poly, and stats of a cylinder, it returns the displacement in the radial direction of the
   avatar that is needed for them not to intersect any more */
@@ -808,6 +840,47 @@ struct point_XYZ get_poly_radialSample_disp(double y1, double y2, double ystep, 
 		}
 	}
 	/* process hits to find optimal direction and magnitude */
+	return result;
+}
+struct point_XYZ viewer_get_pos();
+struct point_XYZ viewer_get_lastpos();
+struct point_XYZ get_poly_penetration_disp( double r,struct point_XYZ* p, int num, struct point_XYZ n, double *tmin, double *tmax)
+{
+	int i,j,hit;
+	double dmax,dr, avmin[3], avmax[3];
+	double radiusOfConcern;
+	struct point_XYZ s0=zero,s1,sn, result = zero;
+	dmax = 0.0;
+
+	//somehow we need to get these from bound-viewpoint to avatar to collision space. s0 should be {0,0,0}. 
+	//hint: look at what we do with mouse navigation ie how we increment the position and orientation on each frame
+	//s0 = viewer_get_pos(); //Viewer.Pos; 
+	//s1 = viewer_get_lastpos(); //Viewer.lastPos;
+
+	/* quick check of overlap */
+	//avmin[0] = min(s0.x,s1.x);
+	//avmin[1] = min(s0.y,s1.y);
+	//avmin[2] = min(s0.z,s1.z);
+	//avmax[0] = max(s0.x,s1.x);
+	//avmax[1] = max(s0.y,s1.y);
+	//avmax[2] = max(s0.z,s1.z);
+	radiusOfConcern = FallInfo.penRadius; //sqrt(vecdot(&s1,&s1)); 
+	//if(APPROX(radiusOfConcern,0.0))return result;
+	vecnormal(&sn,&FallInfo.penvec);
+	if( overlapMBBs(FallInfo.penMin,FallInfo.penMax,tmin,tmax) )
+	{
+		hit = intersectLineSegmentWithPoly2(s0,FallInfo.penvec,radiusOfConcern,p,num,n,&dr);
+		if(hit)
+		{
+			if( (dr > FLOAT_TOLERANCE) && (dr > dmax) )
+			{
+				dmax = dr;
+				vecscale(&result,&sn,-(dr+r)); /* seems to be a magic formula (I found by experimenting) but why? */
+				//result.y = 0.0;
+				printf(">");
+			}
+		}
+	}
 	return result;
 }
 
@@ -877,7 +950,12 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 
 		/* walking */
 		hit = 0;
-		if(FallInfo.checkCylinder)
+		if(FallInfo.checkPenetration)
+		{
+			result = get_poly_penetration_disp(awidth,p,num,n,tmin,tmax);
+			hit = !(APPROX(result.x, 0) && APPROX(result.y, 0) && APPROX(result.z, 0));
+		}
+		if(FallInfo.checkCylinder && !hit)
 		{
 			/* the poly normal is jerky with wild displacements. I need a cylinder collision like the sphere. */
 			/* get_poly_normal_disp(y1,y2,r,p,num,n); */

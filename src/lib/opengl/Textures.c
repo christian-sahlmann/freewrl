@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.44 2010/01/15 22:07:25 crc_canada Exp $
+  $Id: Textures.c,v 1.45 2010/01/20 21:25:21 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -953,6 +953,9 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 
 	/* a pointer to the tex data. We increment the pointer for movie texures */
 	mytexdata = me->texdata;
+#ifdef _MSC_VER
+	if(!mytexdata) return; /*dug9 -not sure how it gets in here with no image data, but then it bombs in glTexImage2D below. In a big scene all the textures eventually shows up */
+#endif
 
 	glBindTexture (GL_TEXTURE_2D, me->OpenGLTexture);
 	

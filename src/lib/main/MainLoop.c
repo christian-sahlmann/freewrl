@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.93 2010/01/19 20:10:31 crc_canada Exp $
+  $Id: MainLoop.c,v 1.94 2010/01/20 21:25:21 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -979,7 +979,7 @@ static void get_collisionoffset(double *x, double *y, double *z)
 		*z = xyz.z;
 		/* another transform possible: from avatar space into navigation space. fly/examine: identity walk: A2BVVA*/
 }
-
+struct point_XYZ viewer_get_lastpos();
 static void render_collisions() {
         struct point_XYZ v;
         CollisionInfo.Offset.x = 0;
@@ -1008,6 +1008,7 @@ static void render_collisions() {
 		FallInfo.gravityVectorMethod = 1; //[1] - setting -  0=global Y down gravity 1= bound viewpoint Y down gravity as per specs
 		FallInfo.fastTestMethod = 2; //[2] - setting -0=old method - uses fast cylinder test 1= MBB shape space 2= MBB avatar space 3=ignor fast cylinder test and keep going 
 		FallInfo.walkColliderMethod = 3; /* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler */
+		FallInfo.canPenetrate = 1; /*if 0 won't check for wall penetration */
 		/* at this point we know the navigation mode and the pose of the avatar, and of the boundviewpoint 
 		   so pre-compute some handy matrices for collision calcs - the avatar2collision and back (a tilt matrix for gravity direction)
 		*/
@@ -1034,6 +1035,29 @@ static void render_collisions() {
 			/* when flying or examining, no gravity - up is your avatar's up */
 			loadIdentityMatrix(FallInfo.avatar2collision);
 			loadIdentityMatrix(FallInfo.collision2avatar);
+		}
+		if(FallInfo.walking && FallInfo.canPenetrate)
+		{
+			/* set up last - current vector */
+			double plen = 0.0;
+			struct point_XYZ lastpos = viewer_get_lastpos();
+			/* if vector length == 0 can't penetrate - don't bother to check */
+			plen = sqrt(vecdot(&lastpos,&lastpos));
+			if(APPROX(plen,0.0))
+				FallInfo.canPenetrate = 0;
+			else
+			{
+				/* precompute MBB for penetration vector */
+				struct point_XYZ pos = {0.0,0.0,0.0};
+				FallInfo.penMin[0] = min(pos.x,lastpos.x);
+				FallInfo.penMin[1] = min(pos.y,lastpos.y);
+				FallInfo.penMin[2] = min(pos.z,lastpos.z);
+				FallInfo.penMax[0] = max(pos.x,lastpos.x);
+				FallInfo.penMax[1] = max(pos.y,lastpos.y);
+				FallInfo.penMax[2] = max(pos.z,lastpos.z);
+				FallInfo.penRadius = plen;
+				FallInfo.penvec = lastpos;
+			}
 		}
 
         render_hier(rootNode, VF_Collision);

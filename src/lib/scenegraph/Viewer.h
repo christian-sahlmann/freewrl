@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.22 2010/01/16 21:22:09 dug9 Exp $
+$Id: Viewer.h,v 1.23 2010/01/20 21:25:21 dug9 Exp $
 
 Viewer ???
 
@@ -143,6 +143,7 @@ typedef struct viewer_fly {
 
 typedef struct viewer {
 	struct point_XYZ Pos;
+	struct point_XYZ LastPos; /* dug9 added for walking>wall penetration detection&correction jan192010 */
 	struct point_XYZ AntiPos;
 	struct point_XYZ currentPosInModel;
 	Quaternion Quat;

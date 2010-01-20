@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.h,v 1.7 2010/01/16 21:22:09 dug9 Exp $
+$Id: Collision.h,v 1.8 2010/01/20 21:25:21 dug9 Exp $
 
 Collision ???
 
@@ -267,12 +267,17 @@ struct sFallInfo
 	int verticalOnly; /* [0] - setting - will over-ride cylindrical collision and do only fall/climb */
 	int allowClimbing; /* [0] - setting - will allow climbing in which case cyclindrical Y collision is over-ridden */
 	/* the following could be moved to sCollisionInfo */
-	GLdouble collision2avatar[16], avatar2collision[16]; /* fly/examine: Identity, walk: BVVA2A, A2BVVA (BVVA bound-viewpoint-vertical avatar-centric) see viewer.c  */
+	GLDOUBLE collision2avatar[16], avatar2collision[16]; /* fly/examine: Identity, walk: BVVA2A, A2BVVA (BVVA bound-viewpoint-vertical avatar-centric) see viewer.c  */
 	int gravityVectorMethod; //[1] - setting -  0=old method 1=new method either bound viewpoint down or avatar down
 	int fastTestMethod; //[2] - setting -0=old method - uses fast cylinder test 1= MBB shape space 2= MBB avatar space 3=ignor fast cylinder test and keep going 
 	int checkFall;
 	int checkCylinder;
+	int checkPenetration;
 	int walkColliderMethod; /* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler */
+	int canPenetrate; /* setting once per frame - if 1 will check for wall penetration */
+	GLDOUBLE penMin[3], penMax[3];
+	double penRadius;
+	struct point_XYZ penvec;
 };
 
 

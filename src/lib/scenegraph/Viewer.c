@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.40 2010/01/19 01:38:55 dug9 Exp $
+$Id: Viewer.c,v 1.41 2010/01/20 21:25:21 dug9 Exp $
 
 CProto ???
 
@@ -1423,18 +1423,38 @@ void set_stereo_offset0() /*int iside, double eyehalf, double eyehalfangle)*/
       FW_GL_TRANSLATE_D(x, 0.0, 0.0);
       FW_GL_ROTATE_D(angle, 0.0, 1.0, 0.0);
 }
+viewer_save_lastPos(struct point_XYZ *vec)
+{
+	Viewer.LastPos = *vec; //Viewer.Pos;
+}
+struct point_XYZ viewer_get_pos()
+{ 
+	struct point_XYZ nv;
+	//quaternion_rotation(&nv, &Viewer.Quat, &Viewer.Pos);
+	nv.x = nv.y = nv.z = 0.0;
+	return nv; 
+}
+struct point_XYZ viewer_get_lastpos()
+{ 
+	//somehow we need to get these from bound-viewpoint to avatar to collision space. pos should be {0,0,0}. 
+	//hint: look at what we do with mouse navigation ie how we increment the position and orientation on each frame
+
+	struct point_XYZ nv = Viewer.LastPos;
+	vecscale(&nv,&nv,-1.0); //quaternion_rotation(&nv, &Viewer.Quat, &Viewer.LastPos);
+	return nv; 
+}
 
 /* used to move, in WALK, FLY modes. */
 void increment_pos(struct point_XYZ *vec) {
 	struct point_XYZ nv;
 	Quaternion q_i;
+	viewer_save_lastPos(vec);
 
 	quaternion_inverse(&q_i, &(Viewer.Quat));
 	quaternion_rotation(&nv, &q_i, vec);
 
 	/* save velocity calculations for this mode; used for EAI calls only */
 	VPvelocity.x = nv.x; VPvelocity.y = nv.y; VPvelocity.z = nv.z;
-
 	/* and, act on this change of location. */
 	Viewer.Pos.x += nv.x; 
 	Viewer.Pos.y += nv.y; 
@@ -1542,6 +1562,7 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 		vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */
 	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
+	viewer_save_lastPos(&Viewer.Pos);
 	resolve_pos();
 }
 
