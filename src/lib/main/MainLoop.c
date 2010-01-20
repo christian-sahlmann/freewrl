@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.94 2010/01/20 21:25:21 dug9 Exp $
+  $Id: MainLoop.c,v 1.95 2010/01/20 22:34:02 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1040,7 +1040,8 @@ static void render_collisions() {
 		{
 			/* set up last - current vector */
 			double plen = 0.0;
-			struct point_XYZ lastpos = viewer_get_lastpos();
+			struct point_XYZ lastpos = viewer_get_lastpos(); /* in viewer/avatar space */
+			transform(&lastpos,&lastpos,FallInfo.avatar2collision); /* in collision space */
 			/* if vector length == 0 can't penetrate - don't bother to check */
 			plen = sqrt(vecdot(&lastpos,&lastpos));
 			if(APPROX(plen,0.0))

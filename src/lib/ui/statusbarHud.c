@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.6 2010/01/16 21:22:09 dug9 Exp $
+  $Id: statusbarHud.c,v 1.7 2010/01/20 22:34:02 dug9 Exp $
 
 */
 
@@ -1358,7 +1358,7 @@ void handleButtonOver()
 		if(x > butrect[0][i] && x < butrect[2][i] 
 		&& y > butrect[1][i] && y < butrect[3][i] ) 
 		{
-			printf("%d",i); /* is over */
+			/* printf("%d",i); /* is over */
 			isOver = i;
 			break;
 		}
@@ -1377,7 +1377,7 @@ void handleButtonPress()
 		if(x > butrect[0][i] && x < butrect[2][i] 
 		&& y > butrect[1][i] && y < butrect[3][i] )
 		{
-			printf("[%d=",i); /* button pressed */
+			/* printf("[%d=",i); /* button pressed */
 			if( i < 3 )
 			{
 				/* radio button - just one on at a time walk,fly,examine */
@@ -1427,8 +1427,8 @@ void handleButtonPress()
 				viewer_level_to_bound();
 			}
 
-			printf("%d",butStatus[i]);
-			printf("]");
+			/*printf("%d",butStatus[i]);
+			printf("]");*/
 			break;
 		}
 }
