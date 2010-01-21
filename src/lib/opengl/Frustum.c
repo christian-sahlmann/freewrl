@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.30 2010/01/19 20:10:32 crc_canada Exp $
+$Id: Frustum.c,v 1.31 2010/01/21 19:26:27 crc_canada Exp $
 
 ???
 
@@ -637,23 +637,19 @@ void moveAndRotateThisPoint(struct point_XYZ *mypt, double x, double y, double z
 /**************************************************************************************/
 
 /* get the center of the bounding box, rotate it, and find out how far it is Z distance from us.
-   
-   NOTE: we sort on the center of the BB; the comments have code for finding radius; yada, yada,
-   but lets just keep it at the center for now. 
-
 */
 
 
 void record_ZBufferDistance(struct X3D_Node *node) {
 	GLDOUBLE modelMatrix[16];
-/*
-	double rad;
 	double vl;
-*/
 	double ex;
 	double ey;
 	double ez;
 	struct point_XYZ movedPt;
+	double minMovedDist;
+
+	minMovedDist = -1000000000;
 
 	#ifdef FRUSTUMVERBOSE
 	printf ("\nrecordDistance for node %u nodeType %s size %4.2f %4.2f %4.2f ",node, stringNodeType (node->_nodeType),
@@ -661,6 +657,7 @@ void record_ZBufferDistance(struct X3D_Node *node) {
 	node->EXTENT_MAX_Y - node->EXTENT_MIN_Y,
 	node->EXTENT_MAX_Z - node->EXTENT_MIN_Z
 	); 
+printf ("render_geom %d, render_blend %d\n",render_geom, render_blend);
 
 	if (APPROX(node->EXTENT_MAX_X,-10000.0)) printf ("EXTENT NOT INIT");
 
@@ -671,45 +668,99 @@ void record_ZBufferDistance(struct X3D_Node *node) {
 		node->EXTENT_MAX_Z , node->EXTENT_MIN_Z);
 	#endif
 
+	/* get the current pos in modelMatrix land */
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+
+#ifdef TRY_ONLY_ONE_POINT
+#ifdef TRY_RADIUS
 	/* get radius of bounding box around its origin */
-	/*
 	ex = (node->EXTENT_MAX_X - node->EXTENT_MIN_X) / 2.0;
 	ey = (node->EXTENT_MAX_Y - node->EXTENT_MIN_Y) / 2.0;
 	ez = (node->EXTENT_MAX_Z - node->EXTENT_MIN_Z) / 2.0;
 	printf ("	ex %lf ey %lf ez %lf\n",ex,ey,ez);
-	rad = sqrt (ex*ex + ey*ey + ez*ez);
-	*/
-
+#else
 	/* get the center of the bounding box */
 	ex = node->EXTENT_MAX_X + node->EXTENT_MIN_X;
 	ey = node->EXTENT_MAX_Y + node->EXTENT_MIN_Y;
 	ez = node->EXTENT_MAX_Z + node->EXTENT_MIN_Z;
+#endif
 
 	
-	/* get the current pos in modelMatrix land */
-	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-
 	/* rotate the center of this point */
 	moveAndRotateThisPoint (&movedPt, ex,ey,ez,modelMatrix);
+	printf ("%lf %lf %lf centre is %lf %lf %lf\n",ex,ey,ez,movedPt.x, movedPt.y, movedPt.z);
+	minMovedDist = movedPt.z;
+
+#else
 	
+	/* printf ("moving all 8 points of this bounding box\n"); */
+	ex = node->EXTENT_MIN_X;
+	ey = node->EXTENT_MIN_Y;
+	ez = node->EXTENT_MIN_Z;
+	moveAndRotateThisPoint (&movedPt, ex,ey,ez,modelMatrix);
+	if (movedPt.z > minMovedDist) minMovedDist = movedPt.z;
+	/* printf ("%lf %lf %lf moved is %lf %lf %lf\n",ex,ey,ez,movedPt.x, movedPt.y, movedPt.z); */
 
+	ex = node->EXTENT_MIN_X;
+	ey = node->EXTENT_MIN_Y;
+	ez = node->EXTENT_MAX_Z;
+	moveAndRotateThisPoint (&movedPt, ex,ey,ez,modelMatrix);
+	if (movedPt.z > minMovedDist) minMovedDist = movedPt.z;
+	/* printf ("%lf %lf %lf moved is %lf %lf %lf\n",ex,ey,ez,movedPt.x, movedPt.y, movedPt.z); */
 
-	/*
-	printf ("model is centered at %lf %lf %lf\n",ex,ey,ez);
+	ex = node->EXTENT_MIN_X;
+	ey = node->EXTENT_MAX_Y;
+	ez = node->EXTENT_MIN_Z;
+	moveAndRotateThisPoint (&movedPt, ex,ey,ez,modelMatrix);
+	if (movedPt.z > minMovedDist) minMovedDist = movedPt.z;
+	/* printf ("%lf %lf %lf moved is %lf %lf %lf\n",ex,ey,ez,movedPt.x, movedPt.y, movedPt.z); */
+
+	ex = node->EXTENT_MIN_X;
+	ey = node->EXTENT_MAX_Y;
+	ez = node->EXTENT_MAX_Z;
+	moveAndRotateThisPoint (&movedPt, ex,ey,ez,modelMatrix);
+	if (movedPt.z > minMovedDist) minMovedDist = movedPt.z;
+	/* printf ("%lf %lf %lf moved is %lf %lf %lf\n",ex,ey,ez,movedPt.x, movedPt.y, movedPt.z); */
+
+	ex = node->EXTENT_MAX_X;
+	ey = node->EXTENT_MIN_Y;
+	ez = node->EXTENT_MIN_Z;
+	moveAndRotateThisPoint (&movedPt, ex,ey,ez,modelMatrix);
+	if (movedPt.z > minMovedDist) minMovedDist = movedPt.z;
+	/* printf ("%lf %lf %lf moved is %lf %lf %lf\n",ex,ey,ez,movedPt.x, movedPt.y, movedPt.z); */
+
+	ex = node->EXTENT_MAX_X;
+	ey = node->EXTENT_MIN_Y;
+	ez = node->EXTENT_MAX_Z;
+	moveAndRotateThisPoint (&movedPt, ex,ey,ez,modelMatrix);
+	if (movedPt.z > minMovedDist) minMovedDist = movedPt.z;
+	/* printf ("%lf %lf %lf moved is %lf %lf %lf\n",ex,ey,ez,movedPt.x, movedPt.y, movedPt.z); */
+
+	ex = node->EXTENT_MAX_X;
+	ey = node->EXTENT_MAX_Y;
+	ez = node->EXTENT_MIN_Z;
+	moveAndRotateThisPoint (&movedPt, ex,ey,ez,modelMatrix);
+	if (movedPt.z > minMovedDist) minMovedDist = movedPt.z;
+	/* printf ("%lf %lf %lf moved is %lf %lf %lf\n",ex,ey,ez,movedPt.x, movedPt.y, movedPt.z); */
+
+	ex = node->EXTENT_MAX_X;
+	ey = node->EXTENT_MAX_Y;
+	ez = node->EXTENT_MAX_Z;
+	moveAndRotateThisPoint (&movedPt, ex,ey,ez,modelMatrix);
+	if (movedPt.z > minMovedDist) minMovedDist = movedPt.z;
+	/* printf ("%lf %lf %lf moved is %lf %lf %lf\n",ex,ey,ez,movedPt.x, movedPt.y, movedPt.z); */
+#endif
+
+	node->_dist = minMovedDist;
+
+#ifdef FRUSTUMVERBOSE
 	printf ("I am at %lf %lf %lf\n",Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
-	printf ("moved point is %lf %lf %lf\n",movedPt.x, movedPt.y, movedPt.z);
+	printf ("and distance to the nearest corner of the BB for this node is %lf\n", node->_dist);
+#endif
 
-	vl = sqrt (ex*ex + ey*ey + ez*ez);
-	*/
 
-	
-	#ifdef FRUSTUMVERBOSE
-	printf ("recordDistance, radius %lf, have modelMatrix %4.2f %4.2f %4.2f\n",rad,
-			modelMatrix[12],modelMatrix[13],modelMatrix[14]);
-	printf ("recordDistance, rad %lf, vl %lf, dist %lf\n",rad,vl, vl-rad);
-	#endif
-
-	node->_dist = movedPt.z;
+ 
+#undef FRUSTUMVERBOSE
 
 }
 

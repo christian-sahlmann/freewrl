@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.48 2009/12/21 23:23:24 crc_canada Exp $
+  $Id: ProdCon.c,v 1.49 2010/01/21 19:26:27 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -231,7 +231,10 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 
 	switch (inputFileType) {
 	case IS_TYPE_XML_X3D:
+printf ("isX3D, calling X3D parser\n");
+
 		ret = X3DParse(nRn, input);
+printf ("finished X3D parser\n");
 		break;
 	case IS_TYPE_VRML:
 		ret = cParse(nRn,offsetof (struct X3D_Group, children), input);
@@ -736,7 +739,7 @@ static void parser_process_res(s_list_t *item)
 
 	res = ml_elem(item);
 
-	DEBUG_RES("processing resource: %d, %d\n", res->type, res->status);
+	DEBUG_RES("processing resource: %d, %s\n", res->type, resourceStatusToString(res->status));
 
 	switch (res->status) {
 
@@ -765,8 +768,13 @@ static void parser_process_res(s_list_t *item)
 		break;
 
 	case ress_loaded:
+		DEBUG_RES("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type));
 		switch (res->media_type) {
 		case resm_unknown:
+			ConsoleMessage ("deciphering loaded file, unknown file type encountered.");
+			remove_it = TRUE;
+			res->complete=TRUE; /* not going to do anything else with this one */
+			res->status = ress_not_loaded;
 			break;
 		case resm_vrml:
 		case resm_x3d:
@@ -812,19 +820,8 @@ static void parser_process_res(s_list_t *item)
 
 	if (remove_it) {
 		dump_parser_wait_queue();
-
-#ifdef OLDCODE // already locked in inputParseThread, so this will deadlock
-		/* Lock access to the resource list */
-		pthread_mutex_lock( &mutex_resource_list );
-#endif
-		
 		/* Remove the parsed resource from the list */
 		resource_list_to_parse = ml_delete_self(resource_list_to_parse, item);
-
-#ifdef OLDCODE // already locked in inputParseThread, so this will deadlock
-		/* Unlock the resource list */
-		pthread_mutex_unlock( &mutex_resource_list );
-#endif
 	}
 }
 
@@ -870,7 +867,6 @@ code is shown here for reference:
 					}
 #endif
 		}
-
 		inputThreadParsing = FALSE;
 
 		/* Unlock the resource list */

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.90 2010/01/19 20:10:32 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.91 2010/01/21 19:26:27 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -204,7 +204,6 @@ cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
 
 /* draw a simple bounding box around an object */
 void drawBBOX(struct X3D_Node *node) {
-	FW_GL_DISABLE(GL_LIGHTING);
 	FW_GL_COLOR3F(1.0,0.6,0.6);
 
 	/* left group */
@@ -270,7 +269,6 @@ void drawBBOX(struct X3D_Node *node) {
 	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
 	FW_GL_END();
 
-	FW_GL_ENABLE (GL_LIGHTING);
 }
 
 static void calculateNearFarplanes(struct X3D_Node *vpnode) {
@@ -497,7 +495,7 @@ OLDCODE        }
         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
 	FW_GL_SHADEMODEL(GL_SMOOTH);
-	FW_GL_DEPTHFUNC(GL_LEQUAL);
+	FW_GL_DEPTHFUNC(GL_LESS);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
 	FW_GL_LINEWIDTH(gl_linewidth);
 	FW_GL_POINTSIZE(gl_linewidth);
@@ -513,6 +511,10 @@ OLDCODE        }
 
 	FW_GL_ENABLE(GL_BLEND);
 	FW_GL_BLENDFUNC(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+	FW_GL_ENABLE(GL_ALPHA_TEST);
+	FW_GL_ALPHAFUNC(GL_GREATER, 0); 
+
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
 
 	/* end of ALPHA test */

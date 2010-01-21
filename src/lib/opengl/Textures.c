@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.45 2010/01/20 21:25:21 dug9 Exp $
+  $Id: Textures.c,v 1.46 2010/01/21 19:26:27 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -946,7 +946,7 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 			minFilter = GL_NEAREST_MIPMAP_NEAREST;
 			magFilter = GL_NEAREST;
 		} else {
-			minFilter = GL_NEAREST_MIPMAP_LINEAR;
+			minFilter = GL_LINEAR_MIPMAP_NEAREST;
 			magFilter = GL_LINEAR;
 		}
 	}
