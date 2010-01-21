@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.10 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Snapshot.c,v 1.11 2010/01/21 17:29:12 sdumoulin Exp $
 
 CProto ???
 
@@ -68,6 +68,8 @@ char *snapsnapB = NULL;		/* --snapb -single snapshot files		*/
 const char default_seqtmp[] = "freewrl_tmp"; /* default value for seqtmp        */
 char *seqtmp = NULL;		/* --seqtmp - directory for temp files		*/
 int doSnapshot = FALSE;		/* are we doing a snapshot?			*/
+int doPrintshot = FALSE; 	/* are we taking a snapshot in order to print? */
+int savedSnapshot = FALSE;
 
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
@@ -87,6 +89,13 @@ void saveSnapSequence() {}
 void setSnapGif()
 {
     snapGif = TRUE;
+}
+
+void setPrintShot() {
+	doPrintshot = TRUE;
+	savedSnapshot = doSnapshot;
+	doSnapshot = TRUE;
+	printf("setting printshot/ snapshot\n");
 }
 
 /* turn snapshotting on; if sequenced; possibly turn off an convert sequence */
@@ -219,6 +228,7 @@ void Snapshot () {
 	CGContextRef myBitmapContext;
 	#endif
 	
+	printf("do Snapshot ... \n");
 	/* make up base names - these may be command line parameters */
 	
 #ifdef DOSNAPSEQUENCE
@@ -307,10 +317,19 @@ void Snapshot () {
 
 
 		snapGoodCount++;
-		sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,snapGoodCount);
+		if (doPrintshot) {
+			sprintf (thisGoodFile, "/tmp/FW_print_snap_tmp.png");
+			doPrintshot = FALSE;
+			doSnapshot = savedSnapshot;
+	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
+			printf("thisGoodFile is %s\n", thisGoodFile);
+	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
+		} else {
+			sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,snapGoodCount);
 
-	        path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
-	        url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
+	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
+	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
+		}
 
 		imageDest = CGImageDestinationCreateWithURL(url, CFSTR("public.png"), 1, NULL);
 		CFRelease(url);
