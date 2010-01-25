@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.25 2010/01/15 22:07:26 crc_canada Exp $
+$Id: Component_Shape.c,v 1.26 2010/01/25 18:19:07 crc_canada Exp $
 
 X3D Shape Component
 
@@ -422,7 +422,7 @@ void child_Shape (struct X3D_Shape *node) {
 	float ecol[4];
 	float scol[4];
 	float amb;
-	float trans= 1.0;
+	int tryingOcclusionDrawing;
 
 	/* JAS - if not collision, and render_geom is not set, no need to go further */
 	/* printf ("child_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
@@ -462,12 +462,14 @@ void child_Shape (struct X3D_Shape *node) {
 		  Occlusion Culling.
 	*/
 
-	if (!OccFailed && (node->__Samples <=4)) {
-		/* draw this as a subdued grey */
-		FW_GL_COLOR3F(0.3,0.3,0.3);
+	/* see if we are maybe drawing this shape for Occlusion testing; if we are,
+	   then we do not turn lighting off, because that would cause really loud shapes
+	   to be seen. */
+	tryingOcclusionDrawing = FALSE;
 
-		/* dont do any textures, or anything */
-		last_texture_type = NOTEXTURE;
+	if (!OccFailed && (node->__Samples <=4)) {
+		/* keep track of the fact that we are looking here */
+		tryingOcclusionDrawing = TRUE;
 	} else {
 		/* is there an associated appearance node? */
 		RENDER_MATERIAL_SUBNODES(node->appearance);
@@ -502,12 +504,16 @@ void child_Shape (struct X3D_Shape *node) {
 
 
 	if (material_oneSided != NULL) {
+		float trans;
+
 		/* we have a normal material node */
 		#define whichFace GL_FRONT_AND_BACK
 		DO_MAT(material_oneSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
 		#undef whichFace
 	} else if (material_twoSided != NULL) {
 		GLenum whichFace;
+		float trans;
+
 		/* we have a two sided material here */
 		/* first, do back */
 		if (material_twoSided->separateBackColor) {
@@ -519,10 +525,16 @@ void child_Shape (struct X3D_Shape *node) {
 		}
 		DO_MAT(material_twoSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
 	} else {
-		/* no material, so just colour the following shape */ 
-		/* Spec says to disable lighting and set coloUr to 1,1,1 */ 
-		LIGHTING_OFF  
-		FW_GL_COLOR3F(1,1,1); 
+
+		if (tryingOcclusionDrawing) {
+			/* draw this as a subdued grey */
+			FW_GL_COLOR3F(0.3,0.3,0.3);
+		} else {
+			/* no material, so just colour the following shape */ 
+			/* Spec says to disable lighting and set coloUr to 1,1,1 */ 
+			LIGHTING_OFF  
+			FW_GL_COLOR3F(1,1,1); 
+		}
 	 
 		/* tell the rendering passes that this is just "normal" */ 
 		last_texture_type = NOTEXTURE; 
