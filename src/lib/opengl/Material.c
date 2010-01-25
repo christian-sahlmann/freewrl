@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.11 2010/01/12 20:56:42 crc_canada Exp $
+$Id: Material.c,v 1.12 2010/01/25 16:27:07 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -92,12 +92,15 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 
 	/* compare default values with new */
 	FW_GL_MATERIALFV(face,pname,param);
+#ifdef TRACK_GL_COLORMATERIAL
 	if (pname == GL_DIFFUSE)
 	{
 		FW_GL_ENABLE(GL_COLOR_MATERIAL);
 		FW_GL_COLOR_MATERIAL(face,pname);
 		FW_GL_COLOR4FV(param);
 	}
+#endif
+
 }
 
 
