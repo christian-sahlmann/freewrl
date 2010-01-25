@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.8 2010/01/25 00:28:33 dug9 Exp $
+  $Id: statusbarHud.c,v 1.9 2010/01/25 00:44:44 dug9 Exp $
 
 */
 
@@ -1583,9 +1583,12 @@ M       void toggle_collision()                             //"
 	Console_writeToHud = 1;
 	//Console_writeToCRT = 1;
 	//Console_writeToFile = 0;
+	FW_GL_DEPTHMASK(GL_FALSE);
+
 	if(showButtons)
 	{
 		renderButtons();
+		FW_GL_DEPTHMASK(GL_TRUE);
 		return;
 	}
 	if (!sb_hasString && !showConText &&!butStatus[8] &&!butStatus[9] && !butStatus[10]) {
@@ -1598,6 +1601,7 @@ M       void toggle_collision()                             //"
 			FW_GL_DISABLE(GL_SCISSOR_TEST);
 			hadString = 0;
 		}
+		FW_GL_DEPTHMASK(GL_TRUE);
 		return;
 	}
 	/* to improve frame rates we don't need to update the status bar every loop,
@@ -1605,7 +1609,11 @@ M       void toggle_collision()                             //"
 	the statusbar area. 
 	*/
 	loopcount++;
-	if(loopcount < 15 && !hadString) return;
+	if(loopcount < 15 && !hadString)
+	{
+		FW_GL_DEPTHMASK(GL_TRUE);
+		return;
+	}
 	loopcount = 0;
 
 	/* OK time to update the status bar */
