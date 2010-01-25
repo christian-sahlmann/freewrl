@@ -72,7 +72,8 @@ OSX plugin:
 12) MultiURL loading - note that, at least for Inlines, only the first url is checked; the rest are not used.
 
 13) OSX standalone frontEnd - changes to code
-	DONE
+	was DONE - Sarah doing more work on it.
+
 
 14) Garbage collection - freeing node resources and associated textures needs verification.
 
@@ -80,9 +81,20 @@ OSX plugin:
 
 16) Luis Daiz Mas; add case 'x': {Snapshot(); break;} for single snaps on all platforms.
 
+17) ensure that Doug Sanden's stereo options are available on Linux and OSX front ends. 
+
+18) start OpenGL -ES and 3.2 port.
+
+20) Can we fit in any EAI code fixes?
+
+21) Some alpha textures are not sorted properly - can we fix?
+	- DONE - sort on nearest bounding box vertex now; also re-work alpha blending modes.
+
+
 ============================================================================
 
 December 22 2009: have code for TextureProperties Node, but verify fields are used properly.
+	DONE.
 
 11/16/2009:
 	(JAS) via Marvin Simkin:
