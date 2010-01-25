@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.11 2010/01/20 21:25:21 dug9 Exp $
+$Id: Collision.c,v 1.12 2010/01/25 00:28:32 dug9 Exp $
 
 Render the children of nodes.
 
@@ -714,13 +714,29 @@ int pointOnPlaneInsidePoly(struct point_XYZ D,struct point_XYZ *p, int num, stru
 	return inside;
 }
 
-int dug9debug2 = 0;
 int intersectLineSegmentWithPoly(struct point_XYZ s0,struct point_XYZ s1,double r, struct point_XYZ *p,int num,struct point_XYZ n,double *dr)
 {
+	/* returns 1 if a line segment intersects a convex planar polygon, else 0
+	   if 1, returns dr the fraction of D=(s1-s0) where the intersection point is
+	   so to get the intersection point from dr, go (s1-s0)*dr + s0 in your calling code
+	   tested use: send in s1 normalized (length 1), s0=0,0,0 and r the length you want the segment
+	   see p.391 of Graphics Gems I (a book)
+	   line segment:
+	      s0 - starting point of ray
+		  s1 - direction vector of ray unit length
+		  r - scalar length of ray
+	   polygon:
+	      p[num] - points
+		  n - normal (precomputed)
+	   return: 
+	      0 - no intersection 
+		  1 - intersection within poly and within line segment
+		  dr - intersection point expressed as fraction of (s1-s0) in range 0 to r
+	*/
+	   
 	int hit = 0;
 	double d,t,t1, ndotD;
 	struct point_XYZ D;
-	/* I'm following p.391 of Graphics Gems I */
 	/* step1 intersect infinite line with infinite plane */
 	d = -vecdot(&n,&p[0]); /* compute plane constant */
 	VECDIFF(s1,s0,D); /* compute ray direction vector from line segment start and end points */
@@ -740,38 +756,7 @@ int intersectLineSegmentWithPoly(struct point_XYZ s0,struct point_XYZ s1,double 
 		/* intersection is outside of line segment */
 		return hit;
 	}
-	/* step3 test intersection in poly */
-	vecscale(&D,&D,t);
-	VECADD(D,s0);
-	hit = pointOnPlaneInsidePoly(D,p,num,&n);
-	if( hit ) *dr = r - t;
-	return hit;
-}
-int intersectLineSegmentWithPoly2(struct point_XYZ s0,struct point_XYZ s1,double r, struct point_XYZ *p,int num,struct point_XYZ n,double *dr)
-{
-	int hit = 0;
-	double d,t,t1, ndotD;
-	struct point_XYZ D;
-	/* I'm following p.391 of Graphics Gems I */
-	/* step1 intersect infinite line with infinite plane */
-	d = -vecdot(&n,&p[0]); /* compute plane constant */
-	VECDIFF(s1,s0,D); /* compute ray direction vector from line segment start and end points */
-	/* vecnormal(&D,&D); D should already be normalized - just sin & cos values */
-	ndotD = vecdot(&n,&D);
-	*dr = 0.0; /* displacement inward from r */
-	if(APPROX(ndotD,0.0) )
-	{
-		/* infinite plane and infinite line are parallel - no intersection */
-		*dr = 0.0;
-		return hit;
-	}
-	t = - ( (d + vecdot(&n,&s0)) / ndotD ); /*magic plane-line intersection equation - t is parametric value of intersection point on line */
-	/* step2 test intersection in line segment */
-	if( t < 0.0 || t > r )
-	{
-		/* intersection is outside of line segment */
-		return hit;
-	}
+
 	/* step3 test intersection in poly */
 	vecscale(&D,&D,t);
 	VECADD(D,s0);
@@ -830,8 +815,8 @@ struct point_XYZ get_poly_radialSample_disp(double y1, double y2, double ystep, 
 				{
 					if( (dr > FLOAT_TOLERANCE) && (dr > dmax) )
 					{
-						dmax = dr;
-						vecscale(&result,&s1,dr);
+						dmax = r-dr;
+						vecscale(&result,&s1,r-dr);
 						result.y = 0.0;
 						//printf(">");
 					}
@@ -842,54 +827,52 @@ struct point_XYZ get_poly_radialSample_disp(double y1, double y2, double ystep, 
 	/* process hits to find optimal direction and magnitude */
 	return result;
 }
-struct point_XYZ viewer_get_pos();
-struct point_XYZ viewer_get_lastpos();
-struct point_XYZ get_poly_penetration_disp( double r,struct point_XYZ* p, int num, struct point_XYZ n, double *tmin, double *tmax)
+
+int get_poly_penetration_disp( double r,struct point_XYZ* p, int num, struct point_XYZ n, double *tmin, double *tmax, struct point_XYZ *result, double *rmax)
 {
-	int i,j,hit;
-	double dmax,dr, avmin[3], avmax[3];
-	double radiusOfConcern;
-	struct point_XYZ s0=zero,s1,sn, result = zero;
-	dmax = 0.0;
+	/*	checks for wall penetration and computes a correction
+	    checks between the convex poly you pass in, 
+		and LastPos-Pos vector saved in FallInfo struct in render_collision()
+		r - avatar radius - will be added onto a penetration correction so avatar is repositioned off the wall
+		p[num] - convex planar poly to test 
+		n - poly normal precomputed
+		tmin[3],tmax[3] - poly MBB precomputed
+		returns: 
+			zero (0,0,0) if no intersection else 
+			result - the displacement vector needed to move the avatar back
+		all coordinates in collision space 
+	*/
+	int hit = 0; 
+	double dr; 
+	struct point_XYZ s0=zero,s1;
+	*result = zero;
+	*rmax = 0.0;
 
-	//somehow we need to get these from bound-viewpoint to avatar to collision space. s0 should be {0,0,0}. 
-	//hint: look at what we do with mouse navigation ie how we increment the position and orientation on each frame
-	//s0 = viewer_get_pos(); //Viewer.Pos; 
-	//s1 = viewer_get_lastpos(); //Viewer.lastPos;
-
-	/* quick check of overlap */
-	//avmin[0] = min(s0.x,s1.x);
-	//avmin[1] = min(s0.y,s1.y);
-	//avmin[2] = min(s0.z,s1.z);
-	//avmax[0] = max(s0.x,s1.x);
-	//avmax[1] = max(s0.y,s1.y);
-	//avmax[2] = max(s0.z,s1.z);
-	radiusOfConcern = FallInfo.penRadius; //sqrt(vecdot(&s1,&s1)); 
-	//if(APPROX(radiusOfConcern,0.0))return result;
-	vecnormal(&sn,&FallInfo.penvec);
+	/*	from FallInfo struct:
+		penvec - unit vector in direction from avatar (0,0,0) toward the last avatar position on the last loop (or more precisely, last time checked)
+		penRadius - distance between avatar(0,0,0) and last avatar position 0+ - infinity 
+		penMin[3],penMax[3] - pre-computed MBB of penvec
+		all coordinates in collision space
+	*/
 	if( overlapMBBs(FallInfo.penMin,FallInfo.penMax,tmin,tmax) )
 	{
-		hit = intersectLineSegmentWithPoly2(s0,FallInfo.penvec,radiusOfConcern,p,num,n,&dr);
+		/* penvec length 1.0 normalized. penRadius can be 0 to 1000+ - how far did you travel/navigate on one loop */
+		hit = intersectLineSegmentWithPoly(s0,FallInfo.penvec,FallInfo.penRadius,p,num,n,&dr);
 		if(hit)
 		{
-			if( (dr > FLOAT_TOLERANCE) && (dr > dmax) )
-			{
-				dmax = dr;
-				vecscale(&result,&sn,-(dr+r)); /* seems to be a magic formula (I found by experimenting) but why? */
-				//result.y = 0.0;
-				printf(">");
-			}
+			vecscale(result,&FallInfo.penvec,(dr + r));
+			*rmax = dr;
 		}
 	}
-	return result;
+	return hit; 
 }
-
 
 //struct point_XYZ get_poly_disp_2(double y1, double y2, double ystep, double r, struct point_XYZ* p, int num, struct point_XYZ n) {
 struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n) {
-	/* dug9 - attempt to generalize logic for all planar facet geometry and avatar collision volumes 
-	   If you can break your geometry into planar facets, then call this for each facet. 
-	   We will know what to do here based on global structs.
+	/* 
+		generalized logic for all planar facet geometry and avatar collision volumes 
+		If you can break your geometry into planar facets, then call this for each facet. 
+		We will know what to do here based on global structs.
 
 		 The avatar collision volume - 
 		 A.for flying/examining:
@@ -898,27 +881,18 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 		 B.For walking:
 		   1. cylinder (body) from  (-Height + stepSize) to (+avatarWidth)
 		   2. line - climb/fall (legs,feet) from (-FallInfo.FallHeight to 0)
+		   3. ray to last avatar position for wall penetration
 		   Order of tests (so can exit early to save unnecessary computations):
-		   a) cylinder b) line
+		   a) ray b) cylinder c) line
+		   If you have a wall penetration ray hit, you don't need to check for cylinder collision.
 		   If you have a cylinder hit, you don't need to test climb/fall.
 		   if you have a climb, you can skip the fall.
 		   otherwise test for fall.
 
-		   fast tests using MBB in the caller elliminate some volumes
-		   docollision - sphere and cyclinder should be tested
-		   dofall - climb and fall should be tested
-
-		   Total logic for walking:
-		   collision = docollision
-		   if(docollision)
-			do cylinder
-			if not cylinder
-				collision = 0
-		   if( dofall && !collision )
-			do line
-			if not climb
-				do fall
-
+		   fast tests using MBB in the caller elliminate some volumes by setting check variables to true if MBB overlap
+		   checkPenetration - ray for wall penetration should be tested
+		   checkCylinder - sphere or cyclinder should be tested
+		   checkFall - climb and fall should be tested
 	*/
 
     struct point_XYZ result;
@@ -929,8 +903,7 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 	GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 	GLdouble astep = -naviinfo.height+naviinfo.step;
 	GLdouble aradius = awidth * .5;
-//box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
-//	      (     y1,  y2,ystep,    r,
+	
 	result = zero;
 	get_poly_mindisp = 0.0;
 	if(FallInfo.walking)
@@ -952,8 +925,18 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 		hit = 0;
 		if(FallInfo.checkPenetration)
 		{
-			result = get_poly_penetration_disp(awidth,p,num,n,tmin,tmax);
-			hit = !(APPROX(result.x, 0) && APPROX(result.y, 0) && APPROX(result.z, 0));
+			double rmax;
+			struct point_XYZ presult;
+			hit = get_poly_penetration_disp(awidth,p,num,n,tmin,tmax,&presult,&rmax);
+			if(hit) 
+			{
+				FallInfo.isPenetrate = 1;
+				if(rmax > FallInfo.pendisp)
+				{
+					FallInfo.pencorrection = presult;
+					FallInfo.pendisp = rmax;
+				}
+			}
 		}
 		if(FallInfo.checkCylinder && !hit)
 		{

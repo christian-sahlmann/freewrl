@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.7 2010/01/20 22:34:02 dug9 Exp $
+  $Id: statusbarHud.c,v 1.8 2010/01/25 00:28:33 dug9 Exp $
 
 */
 
@@ -1407,8 +1407,7 @@ void handleButtonPress()
 				switch(i)
 				{
                     case 4: { toggle_headlight(); break;}
-                    case 5: {fw_params.collision = !fw_params.collision; 
-                            setMenuButton_collision(fw_params.collision); break; }
+					case 5: { toggle_collision(); break; }
 				}
 			}
 			else if(i == 6 || i == 7 )
@@ -1576,6 +1575,7 @@ H	void toggleOrSetStereo(int type);					// "
 H	void setAnaglyphSideColor(char color, int iside);	//"
 H	void updateEyehalf();								//" 
 M	viewer_level_to_bound();							//"
+M       void toggle_collision()                             //"
     */
 	char *p; 
 	float c[4];

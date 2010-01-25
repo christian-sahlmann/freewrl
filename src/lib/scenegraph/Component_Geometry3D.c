@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.17 2010/01/20 21:25:21 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.18 2010/01/25 00:28:33 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -494,6 +494,7 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 		/* the following 2 flags are checked a few levels down, in the triangle/quad intersect avatar code get_poly_disp_2(p, 3, nused) */
 		FallInfo.checkCylinder = 1; /* 1= shape MBB overlaps avatar collision MBB, else 0 */
 		FallInfo.checkFall = 1;     /* 1= shape MBB overlaps avatar fall/climb line segment else 0 */
+		FallInfo.checkPenetration = 1;
 		if(FallInfo.fastTestMethod==0)
 		{
 		   /* I'm getting false negatives - I'll be navigating along and this will start returning here

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.h,v 1.8 2010/01/20 21:25:21 dug9 Exp $
+$Id: Collision.h,v 1.9 2010/01/25 00:28:33 dug9 Exp $
 
 Collision ???
 
@@ -274,10 +274,13 @@ struct sFallInfo
 	int checkCylinder;
 	int checkPenetration;
 	int walkColliderMethod; /* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler */
-	int canPenetrate; /* setting once per frame - if 1 will check for wall penetration */
-	GLDOUBLE penMin[3], penMax[3];
-	double penRadius;
-	struct point_XYZ penvec;
+	int canPenetrate; /* setting 1 will check for wall penetration */
+	int isPenetrate; /* initialize to 0 once per frame, will return as 1 if a wall penetration was found */
+	GLDOUBLE penMin[3], penMax[3]; /* MBB of scaled penetration vector (penRadius x penvec) - initialize once per frame */
+	struct point_XYZ penvec; /* normalized (unit) vector from avatar(0,0,0) to last valid avatar position ie on last frame/loop */
+	double penRadius; /* distance from avatar(0,0,0) to last avatar position */
+	struct point_XYZ pencorrection; /* if isPenetration, this will hold the displacement vector to apply to the avatar position to un penetrate */
+	double pendisp; /* set to zero once per frame, used to sort (pick) penetration intersection closest to last position */
 };
 
 

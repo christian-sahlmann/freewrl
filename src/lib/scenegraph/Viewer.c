@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.41 2010/01/20 21:25:21 dug9 Exp $
+$Id: Viewer.c,v 1.42 2010/01/25 00:28:33 dug9 Exp $
 
 CProto ???
 
@@ -193,6 +193,19 @@ void toggle_headlight() {
 	setMenuButton_headlight(Viewer.headlight);
 
 }
+void setNoCollision() {
+        fw_params.collision = 0;
+        setMenuButton_collision(fw_params.collision);
+}
+
+int get_collision() { 
+	return fw_params.collision;
+}
+void toggle_collision() {
+	fw_params.collision = !fw_params.collision; 
+	setMenuButton_collision(fw_params.collision);
+}
+
 
 void set_eyehalf(const double eyehalf, const double eyehalfangle) {
 	Viewer.eyehalf = eyehalf;
@@ -296,7 +309,7 @@ double vecangle2(struct point_XYZ* V1, struct point_XYZ* V2, struct point_XYZ* r
 	angle = atan2(sine,cosine);
 	vecnormal(rotaxis,&cross);
 	return angle;
-};
+}
 void avatar2BoundViewpointVerticalAvatar(GLdouble *matA2BVVA, GLdouble *matBVVA2A)
 {
 	/* goal: make 2 transform matrices to go back and forth from Avatar A to 
@@ -740,6 +753,38 @@ handle_keyrelease(const char key)
 	}
 }
 
+/* wall penetration detection variables
+   lastP - last avatar position, relative to current avatar position at 0,0,0 in avatar space
+		- is a sum of walk_tick and collision displacement increment_pos()
+   lastQ - quaternion increment from walk_tick which applies to previous lastP:
+         if current frame number is i, and lastP is from i-1, then lastQ applies to i-1 lastP
+*/
+struct point_XYZ viewer_lastP;
+void viewer_lastP_clear()
+{
+	viewer_lastP.x = viewer_lastP.y = viewer_lastP.z = 0.0;
+}
+void viewer_lastQ_set(Quaternion *lastQ)
+{
+	quaternion_rotation(&viewer_lastP,lastQ,&viewer_lastP); 
+}
+void viewer_lastP_add(struct point_XYZ *vec) 
+{
+	if(get_collision()) /* fw_params.collision use if(1) to test with toggling_collision */
+	{
+		VECADD(viewer_lastP,*vec);
+	}
+	else
+		viewer_lastP_clear();
+}
+
+struct point_XYZ viewer_get_lastP()
+{ 
+	/* returns a vector from avatar to the last avatar location ie on the last loop, in avatar space */
+	struct point_XYZ nv = viewer_lastP;
+	vecscale(&nv,&nv,-1.0); 
+	return nv; 
+}
 
 /*
  * handle_tick_walk: called once per frame.
@@ -761,7 +806,6 @@ handle_tick_walk()
 	Quaternion q, nq;
 	struct point_XYZ p;
 
-	
 	p.x = 0.15 * walk->XD;
 	p.y = 0.15 * walk->YD;
 	p.z = 0.15 * walk->ZD;
@@ -777,6 +821,7 @@ handle_tick_walk()
 	increment_pos(&p);
 
 	quaternion_normalize(&nq);
+	viewer_lastQ_set(&nq);
 	quaternion_multiply(&(Viewer.Quat), &nq, &q);
 
 	/* make sure Viewer.Dist is configured properly for Examine mode */
@@ -1423,40 +1468,22 @@ void set_stereo_offset0() /*int iside, double eyehalf, double eyehalfangle)*/
       FW_GL_TRANSLATE_D(x, 0.0, 0.0);
       FW_GL_ROTATE_D(angle, 0.0, 1.0, 0.0);
 }
-viewer_save_lastPos(struct point_XYZ *vec)
-{
-	Viewer.LastPos = *vec; //Viewer.Pos;
-}
-struct point_XYZ viewer_get_pos()
-{ 
-	struct point_XYZ nv;
-	//quaternion_rotation(&nv, &Viewer.Quat, &Viewer.Pos);
-	nv.x = nv.y = nv.z = 0.0;
-	return nv; 
-}
-struct point_XYZ viewer_get_lastpos()
-{ 
-	//somehow we need to get these from bound-viewpoint to avatar to collision space. pos should be {0,0,0}. 
-	//hint: look at what we do with mouse navigation ie how we increment the position and orientation on each frame
-
-	struct point_XYZ nv = Viewer.LastPos;
-	vecscale(&nv,&nv,-1.0); //quaternion_rotation(&nv, &Viewer.Quat, &Viewer.LastPos);
-	return nv; 
-}
 
 /* used to move, in WALK, FLY modes. */
 void increment_pos(struct point_XYZ *vec) {
 	struct point_XYZ nv;
 	Quaternion q_i;
-	viewer_save_lastPos(vec);
 
+	viewer_lastP_add(vec);
+
+	/* bound-viewpoint-space > Viewer.Pos,Viewer.Quat > avatar-space */
 	quaternion_inverse(&q_i, &(Viewer.Quat));
 	quaternion_rotation(&nv, &q_i, vec);
 
 	/* save velocity calculations for this mode; used for EAI calls only */
 	VPvelocity.x = nv.x; VPvelocity.y = nv.y; VPvelocity.z = nv.z;
 	/* and, act on this change of location. */
-	Viewer.Pos.x += nv.x; 
+	Viewer.Pos.x += nv.x;  /* Viewer.Pos must be in bound-viewpoint space */
 	Viewer.Pos.y += nv.y; 
 	Viewer.Pos.z += nv.z;
 	
@@ -1562,7 +1589,7 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 		vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */
 	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
-	viewer_save_lastPos(&Viewer.Pos);
+	viewer_lastP_clear();
 	resolve_pos();
 }
 

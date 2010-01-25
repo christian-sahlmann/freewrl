@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.96 2010/01/21 19:26:27 crc_canada Exp $
+  $Id: MainLoop.c,v 1.97 2010/01/25 00:28:31 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -967,6 +967,11 @@ static void get_collisionoffset(double *x, double *y, double *z)
 					xyz.z = 0.0;
 				}
 			}
+			if(FallInfo.isPenetrate)
+			{
+				/*over-ride everything else*/
+				xyz = FallInfo.pencorrection;
+			}
 		}
 		/* now convert collision-space deltas to avatar space via collision2avatar- fly/examine: identity (do nothing), walk:BVVA2A */
 		transform3x3(&xyz,&xyz,FallInfo.collision2avatar);
@@ -976,7 +981,7 @@ static void get_collisionoffset(double *x, double *y, double *z)
 		*z = xyz.z;
 		/* another transform possible: from avatar space into navigation space. fly/examine: identity walk: A2BVVA*/
 }
-struct point_XYZ viewer_get_lastpos();
+struct point_XYZ viewer_get_lastP();
 static void render_collisions() {
         struct point_XYZ v;
         CollisionInfo.Offset.x = 0;
@@ -1005,7 +1010,9 @@ static void render_collisions() {
 		FallInfo.gravityVectorMethod = 1; //[1] - setting -  0=global Y down gravity 1= bound viewpoint Y down gravity as per specs
 		FallInfo.fastTestMethod = 2; //[2] - setting -0=old method - uses fast cylinder test 1= MBB shape space 2= MBB avatar space 3=ignor fast cylinder test and keep going 
 		FallInfo.walkColliderMethod = 3; /* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler */
-		FallInfo.canPenetrate = 1; /*if 0 won't check for wall penetration */
+		FallInfo.canPenetrate = 1; /* setting - 0= don't check for wall penetration 1= check for wall penetration */
+		FallInfo.isPenetrate = 0; /* set to zero once per loop and will come back 1 if there was a penetration detected and corrected */
+
 		/* at this point we know the navigation mode and the pose of the avatar, and of the boundviewpoint 
 		   so pre-compute some handy matrices for collision calcs - the avatar2collision and back (a tilt matrix for gravity direction)
 		*/
@@ -1033,19 +1040,22 @@ static void render_collisions() {
 			loadIdentityMatrix(FallInfo.avatar2collision);
 			loadIdentityMatrix(FallInfo.collision2avatar);
 		}
+
+		/* wall penetration detection and correction initialization */
 		if(FallInfo.walking && FallInfo.canPenetrate)
 		{
-			/* set up last - current vector */
+			/* set up avatar to last valid avatar position vector in avatar space */
 			double plen = 0.0;
-			struct point_XYZ lastpos = viewer_get_lastpos(); /* in viewer/avatar space */
-			transform(&lastpos,&lastpos,FallInfo.avatar2collision); /* in collision space */
+			struct point_XYZ lastpos;  
+			lastpos = viewer_get_lastP(); /* in viewer/avatar space */
+			transform(&lastpos,&lastpos,FallInfo.avatar2collision); /* convert to collision space */
 			/* if vector length == 0 can't penetrate - don't bother to check */
 			plen = sqrt(vecdot(&lastpos,&lastpos));
 			if(APPROX(plen,0.0))
 				FallInfo.canPenetrate = 0;
 			else
 			{
-				/* precompute MBB for penetration vector */
+				/* precompute MBB/extent etc in collision space for penetration vector */
 				struct point_XYZ pos = {0.0,0.0,0.0};
 				FallInfo.penMin[0] = min(pos.x,lastpos.x);
 				FallInfo.penMin[1] = min(pos.y,lastpos.y);
@@ -1054,11 +1064,20 @@ static void render_collisions() {
 				FallInfo.penMax[1] = max(pos.y,lastpos.y);
 				FallInfo.penMax[2] = max(pos.z,lastpos.z);
 				FallInfo.penRadius = plen;
+				vecnormal(&lastpos,&lastpos);
 				FallInfo.penvec = lastpos;
+				FallInfo.pendisp = 0.0; /* used to sort penetration intersections to pick one closest to last valid avatar position */
 			}
 		}
 
         render_hier(rootNode, VF_Collision);
+		if(!FallInfo.isPenetrate) 
+		{
+			/* we don't clear if we just solved a penetration, otherwise we'll get another penetration going back, from the correction.
+			   No pen? Then clear here to start over on the next loop.
+			*/
+			viewer_lastP_clear(); 
+		}
         get_collisionoffset(&(v.x), &(v.y), &(v.z));
 
 	/* if (!APPROX(v.x,0.0) || !APPROX(v.y,0.0) || !APPROX(v.z,0.0)) {
@@ -1124,8 +1143,7 @@ void do_keyPress(const char kp, int type) {
                                             }
                                             break;
                                           }
-                                case 'c': {fw_params.collision = !fw_params.collision; 
-                                                setMenuButton_collision(fw_params.collision); break; }
+                                case 'c': { toggle_collision(); break;}
                                 case 'v': {Next_ViewPoint(); break;}
                                 case 'b': {Prev_ViewPoint(); break;}
                                 case 's': {setSnapshot(); break;}
@@ -1457,10 +1475,6 @@ void setTexSize(int requestedsize) {
 /*         opengl_has_textureSize = requestedsize; */	
 }
 
-void setNoCollision() {
-        fw_params.collision = 0;
-        setMenuButton_collision(fw_params.collision);
-}
 
 void setKeyString(const char* kstring)
 {

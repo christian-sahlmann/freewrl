@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.46 2010/01/21 19:26:27 crc_canada Exp $
+  $Id: display.h,v 1.47 2010/01/25 00:28:31 dug9 Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -463,10 +463,10 @@ void setScreenDim(int wi, int he);
 
 	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) \
 		{fw_glRotatef(aaa,xxx,yyy,zzz); \
-		printf ("fw_glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+		DEBUG_MSG("fw_glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
 	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) \
 		{fw_glRotated(aaa,xxx,yyy,zzz); \
-		printf ("fw_glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+		DEBUG_MSG("fw_glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
 	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) fw_glRotateRad(aaa,xxx,yyy,zzz)
 /*
 	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) fw_glRotated(aaa,xxx,yyy,zzz)
