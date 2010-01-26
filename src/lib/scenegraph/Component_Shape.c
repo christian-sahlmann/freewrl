@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.26 2010/01/25 18:19:07 crc_canada Exp $
+$Id: Component_Shape.c,v 1.27 2010/01/26 20:32:03 crc_canada Exp $
 
 X3D Shape Component
 
@@ -93,42 +93,6 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 	}
 }
 
-
-/* FillProperties code. Use a Shader to do the filling. */
-
-#ifdef GL_VERSION_2_0
-	#define HAVE_SHADERS
-	#define VERTEX_SHADER GL_VERTEX_SHADER
-	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER
-	#define SHADER_SOURCE glShaderSource
-	#define COMPILE_SHADER glCompileShader
-	#define CREATE_PROGRAM glCreateProgram();
-	#define ATTACH_SHADER glAttachShader
-	#define LINK_SHADER glLinkProgram
-	#define USE_SHADER glUseProgram
-	#define CREATE_SHADER glCreateShader
-	#define GET_UNIFORM(aaa,bbb) glGetUniformLocation(aaa,bbb)
-	#define GLUNIFORM2F glUniform2f
-	#define GLUNIFORM1I glUniform1i
-	#define GLUNIFORM4F glUniform4f
-#else
-#ifdef GL_VERSION_1_5
-	#define HAVE_SHADERS
-	#define VERTEX_SHADER GL_VERTEX_SHADER_ARB
-	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER_ARB
-	#define SHADER_SOURCE glShaderSourceARB
-	#define COMPILE_SHADER glCompileShaderARB
-	#define CREATE_PROGRAM glCreateProgramObjectARB();
-	#define ATTACH_SHADER glAttachObjectARB
-	#define LINK_SHADER glLinkProgramARB
-	#define USE_SHADER  glUseProgramObjectARB
-	#define CREATE_SHADER glCreateShaderObjectARB
-	#define GET_UNIFORM(aaa,bbb) glGetUniformLocationARB(aaa,bbb)
-	#define GLUNIFORM2F GLUNIFORM2FARB
-	#define GLUNIFORM1I glUniform1iARB
-	#define GLUNIFORM4F glUniform4fARB
-#endif
-#endif
 
 static int fpshaderloaded = FALSE; 
 static GLint hatchColour;

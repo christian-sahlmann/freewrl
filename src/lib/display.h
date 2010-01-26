@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.47 2010/01/25 00:28:31 dug9 Exp $
+  $Id: display.h,v 1.48 2010/01/26 20:32:03 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -295,6 +295,65 @@ extern GLenum _global_gl_err;
 
 void resetGeometry();
 void setScreenDim(int wi, int he);
+
+/* GLSL variables */
+/* Versions 1.5 and above have shaders */
+#ifdef GL_VERSION_2_0
+	#define HAVE_SHADERS
+	#define VERTEX_SHADER GL_VERTEX_SHADER
+	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER
+	#define SHADER_SOURCE glShaderSource
+	#define COMPILE_SHADER glCompileShader
+	#define CREATE_PROGRAM glCreateProgram();
+	#define ATTACH_SHADER glAttachShader
+	#define LINK_SHADER glLinkProgram
+	#define USE_SHADER glUseProgram
+	#define CREATE_SHADER glCreateShader
+	#define GET_SHADER_INFO glGetShaderiv
+	#define LINK_STATUS GL_LINK_STATUS
+	#define COMPILE_STATUS GL_COMPILE_STATUS
+	#define GET_UNIFORM(aaa,bbb) glGetUniformLocation(aaa,bbb)
+	#define GET_ATTRIB(aaa,bbb) glGetAttribLocation(aaa,bbb)
+	#define GLUNIFORM1I glUniform1i
+	#define GLUNIFORM1F glUniform1f
+	#define GLUNIFORM2F glUniform2f
+	#define GLUNIFORM3F glUniform3f
+	#define GLUNIFORM4F glUniform4f
+	#define GLUNIFORM1IV glUniform1iv
+	#define GLUNIFORM1FV glUniform1fv
+	#define GLUNIFORM2FV glUniform2fv
+	#define GLUNIFORM3FV glUniform3fv
+	#define GLUNIFORM4FV glUniform4fv
+#else
+#ifdef GL_VERSION_1_5
+	#define HAVE_SHADERS
+	#define VERTEX_SHADER GL_VERTEX_SHADER_ARB
+	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER_ARB
+	#define SHADER_SOURCE glShaderSourceARB
+	#define COMPILE_SHADER glCompileShaderARB
+	#define CREATE_PROGRAM glCreateProgramObjectARB();
+	#define ATTACH_SHADER glAttachObjectARB
+	#define LINK_SHADER glLinkProgramARB
+	#define USE_SHADER  glUseProgramObjectARB
+	#define CREATE_SHADER glCreateShaderObjectARB
+	#define GET_SHADER_INFO glGetObjectParameterivARB
+	#define LINK_STATUS GL_OBJECT_LINK_STATUS_ARB
+	#define COMPILE_STATUS GL_OBJECT_COMPILE_STATUS_ARB
+	#define GET_UNIFORM(aaa,bbb) glGetUniformLocationARB(aaa,bbb)
+	#define GET_ATTRIB(aaa,bbb) glGetAttribLocationARB(aaa,bbb)
+	#define GLUNIFORM1F glUniform1fARB
+	#define GLUNIFORM1I glUniform1iARB
+	#define GLUNIFORM2F glUniform2fARB
+	#define GLUNIFORM3F glUniform3fARB
+	#define GLUNIFORM4F glUniform4fARB
+	#define GLUNIFORM1IV glUniform1ivARB
+	#define GLUNIFORM1FV glUniform1fvARB
+	#define GLUNIFORM2FV glUniform2fvARB
+	#define GLUNIFORM3FV glUniform3fvARB
+	#define GLUNIFORM4FV glUniform4fvARB
+#endif
+#endif
+
 
 /* debugging OpenGL calls  - allows us to keep track of what is happening */
 #undef DEBUG_OPENGL_CALLS

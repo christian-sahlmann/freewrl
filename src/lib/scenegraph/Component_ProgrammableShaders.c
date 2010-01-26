@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.36 2010/01/15 22:07:26 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.37 2010/01/26 20:32:03 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -109,64 +109,6 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 #define MAX_INFO_LOG_SIZE 512
 /* we do support older versions of shaders; but not all info logs are printed if we
    have OpenGL prior to 2.0 */
-
-
-/* Versions 1.5 and above have shaders */
-#ifdef GL_VERSION_2_0
-	#define HAVE_SHADERS
-	#define VERTEX_SHADER GL_VERTEX_SHADER
-	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER
-	#define SHADER_SOURCE glShaderSource
-	#define COMPILE_SHADER glCompileShader
-	#define CREATE_PROGRAM glCreateProgram();
-	#define ATTACH_SHADER glAttachShader
-	#define LINK_SHADER glLinkProgram
-	#define USE_SHADER glUseProgram
-	#define CREATE_SHADER glCreateShader
-	#define GET_SHADER_INFO glGetShaderiv
-	#define LINK_STATUS GL_LINK_STATUS
-	#define COMPILE_STATUS GL_COMPILE_STATUS
-	#define GET_UNIFORM(aaa,bbb) glGetUniformLocation(aaa,bbb)
-	#define GET_ATTRIB(aaa,bbb) glGetAttribLocation(aaa,bbb)
-	#define GLUNIFORM1I glUniform1i
-	#define GLUNIFORM1F glUniform1f
-	#define GLUNIFORM2F glUniform2f
-	#define GLUNIFORM3F glUniform3f
-	#define GLUNIFORM4F glUniform4f
-	#define GLUNIFORM1IV glUniform1iv
-	#define GLUNIFORM1FV glUniform1fv
-	#define GLUNIFORM2FV glUniform2fv
-	#define GLUNIFORM3FV glUniform3fv
-	#define GLUNIFORM4FV glUniform4fv
-#else
-#ifdef GL_VERSION_1_5
-	#define HAVE_SHADERS
-	#define VERTEX_SHADER GL_VERTEX_SHADER_ARB
-	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER_ARB
-	#define SHADER_SOURCE glShaderSourceARB
-	#define COMPILE_SHADER glCompileShaderARB
-	#define CREATE_PROGRAM glCreateProgramObjectARB();
-	#define ATTACH_SHADER glAttachObjectARB
-	#define LINK_SHADER glLinkProgramARB
-	#define USE_SHADER  glUseProgramObjectARB
-	#define CREATE_SHADER glCreateShaderObjectARB
-	#define GET_SHADER_INFO glGetObjectParameterivARB
-	#define LINK_STATUS GL_OBJECT_LINK_STATUS_ARB
-	#define COMPILE_STATUS GL_OBJECT_COMPILE_STATUS_ARB
-	#define GET_UNIFORM(aaa,bbb) glGetUniformLocationARB(aaa,bbb)
-	#define GET_ATTRIB(aaa,bbb) glGetAttribLocationARB(aaa,bbb)
-	#define GLUNIFORM1F glUniform1fARB
-	#define GLUNIFORM1I glUniform1iARB
-	#define GLUNIFORM2F glUniform2fARB
-	#define GLUNIFORM3F glUniform3fARB
-	#define GLUNIFORM4F glUniform4fARB
-	#define GLUNIFORM1IV glUniform1ivARB
-	#define GLUNIFORM1FV glUniform1fvARB
-	#define GLUNIFORM2FV glUniform2fvARB
-	#define GLUNIFORM3FV glUniform3fvARB
-	#define GLUNIFORM4FV glUniform4fvARB
-#endif
-#endif
 
 #define SUPPORT_GLSL_ONLY \
 	if (strcmp(node->language->strptr,"GLSL")) { \
@@ -388,7 +330,6 @@ static int shader_checkType(struct FieldDecl * myField,
 
 	if (!retval) {
 		ConsoleMessage ("Shader type check fail X3D type not compatible for variable :%s:",ch);
-#define VERBOSE
 #ifdef VERBOSE
 	printf ("shaderCheck mode %d (%s) type %d (%s) name %d\n",fieldDecl_getAccessType(myField),
 			stringPROTOKeywordType(fieldDecl_getAccessType(myField)), 
@@ -596,6 +537,9 @@ void getField_ToShader(int num) {
 		return;
 	}
 
+	/* initialize this one */
+	currentShader = 0;
+
 	switch (to_ptr->routeToNode->_nodeType) {
 	case NODE_ComposedShader:
 		currentShader = (GLuint) X3D_COMPOSEDSHADER(to_ptr->routeToNode)->__shaderIDS.p[0];
@@ -620,7 +564,6 @@ void getField_ToShader(int num) {
 
 	/* printf ("going through fields.... have %d fields\n",vector_size(myObj->fields)); */
 	for(i=0; i!=vector_size(myObj->fields); ++i) {
-		GLint myVar;
 		GLint shaderVariable;
 		struct ScriptFieldDecl* curField;
 		struct FieldDecl * myf;
@@ -684,18 +627,18 @@ void getField_ToShader(int num) {
 
 #define ROUTE_SF_DOUBLES_TO_SHADER(ttt,ty1) \
                 case FIELDTYPE_SF##ty1: {float val[4]; int i; double *fp = (double*)sourceData; \
-                        for (i=0; i<ttt; i++) { val[i] = (float) (*sourceData); sourceData++; } \
+                        for (i=0; i<ttt; i++) { val[i] = (float) (*fp); fp++; } \
                                 GLUNIFORM##ttt##FV(shaderVariable, 1, val); \
                 break; }
 
 #define ROUTE_MF_FLOATS_TO_SHADER(ttt,ty1) \
                 case FIELDTYPE_MF##ty1: { struct Multi_##ty1 *sd = (struct Multi_##ty1*) sourceData; \
-                        GLUNIFORM##ttt##FV(shaderVariable, sd->n, (float *)sd->p); \
+                        GLUNIFORM##ttt##FV(shaderVariable, sd->n, (const GLfloat *)sd->p); \
                 break; }
 
 #define ROUTE_MF_INTS_TO_SHADER(ttt,ty1) \
                 case FIELDTYPE_MF##ty1: { struct Multi_##ty1 *sd = (struct Multi_##ty1*) sourceData; \
-                        GLUNIFORM##ttt##IV(shaderVariable, sd->n, (int *)sd->p); \
+                        GLUNIFORM##ttt##IV(shaderVariable, sd->n, (const GLint *)sd->p); \
                 break; }
 
 
@@ -824,8 +767,9 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 		char myShaderTextureName[200];
 		GLint myVar;
 
-		sprintf (myShaderTextureName,"X3D_Texture%d",i);
-		if (myVar == GET_UNIFORM(myShader,myShaderTextureName)) {
+		sprintf (myShaderTextureName,"X3D_Texture%d",(int) i);
+		myVar = GET_UNIFORM(myShader,myShaderTextureName);
+		if (myVar != INT_ID_UNDEFINED) {
 			/* printf ("for texture %s, we got %d\n", myShaderTextureName,myVar); */
 			GLUNIFORM1I(myVar,i);
 		}
