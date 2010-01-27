@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.38 2010/01/16 21:22:09 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.39 2010/01/27 21:18:52 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -49,23 +49,157 @@
 
 #include "RenderFuncs.h"
 
-/* Rearrange to take advantage of headlight when off */
-static int curlight = 0;
-int nlightcodes = 7;
-int lightcode[7] = {
-	GL_LIGHT0,
-	GL_LIGHT1,
-	GL_LIGHT2,
-	GL_LIGHT3,
-	GL_LIGHT4,
-	GL_LIGHT5,
-	GL_LIGHT6,
-};
+typedef float shaderVec4[4];
 
+static float light_linAtten[8];
+static float light_constAtten[8];
+static float light_quadAtten[8];
+static float light_spotCut[8];
+static float light_spotExp[8];
+static shaderVec4 light_amb[8];
+static shaderVec4 light_dif[8];
+static shaderVec4 light_pos[8];
+static shaderVec4 light_spec[8];
+static shaderVec4 light_spot[8];
+
+/* Rearrange to take advantage of headlight when off */
+static int nextFreeLight = 0;
+
+/* lights status. Light 7 is the headlight */
+static int lights[8];
+
+/* should we send light changes along? */
+bool lightStatusDirty = FALSE;
+bool lightParamsDirty = FALSE;
+
+/* we assume max 8 lights. The max light is the Headlight, so we go through 0-6 for Lights */
 int nextlight() {
-	if(curlight == nlightcodes) { return -1; }
-	return lightcode[curlight++];
+	int rv = nextFreeLight;
+	if(nextFreeLight == 7) { return -1; }
+	nextFreeLight ++;
+	return rv;
 }
+
+
+/* keep track of lighting */
+void lightState(GLint light, int status) {
+	if (light<0) return; /* nextlight will return -1 if too many lights */
+	if (lights[light] != status) {
+		if (status) {
+			/* printf ("light %d on\n",light);  */
+			FW_GL_ENABLE(GL_LIGHT0+light);
+			lightStatusDirty = TRUE;
+		} else {
+			/* printf ("light %d off\n",light);  */
+			FW_GL_DISABLE(GL_LIGHT0+light);
+			lightStatusDirty = TRUE;
+		}
+		lights[light]=status;
+	}
+}
+
+/* for local lights, we keep track of what is on and off */
+void saveLightState(int *ls) {
+	int i;
+	for (i=0; i<7; i++) ls[i] = lights[i];
+} 
+
+void restoreLightState(int *ls) {
+	int i;
+	for (i=0; i<7; i++) {
+		if (ls[i] != lights[i]) {
+			lightState(i,ls[i]);
+		}
+	}
+}
+
+void fwglLightfv (int light, int pname, GLfloat *params) {
+	/* printf ("glLightfv %d %d %f %f %f %f\n",light,pname,params[0], params[1],params[2],params[3]);  */
+	glLightfv(GL_LIGHT0+light,pname,params);
+	switch (pname) {
+		case GL_AMBIENT:
+			memcpy ((void *)light_amb[light],(void *)params,sizeof(shaderVec4));
+			break;
+		case GL_DIFFUSE:
+			memcpy ((void *)light_dif[light],(void *)params,sizeof(shaderVec4));
+			break;
+		case GL_POSITION:
+			memcpy ((void *)light_pos[light],(void *)params,sizeof(shaderVec4));
+			break;
+		case GL_SPECULAR:
+			memcpy ((void *)light_spec[light],(void *)params,sizeof(shaderVec4));
+			break;
+		case GL_SPOT_DIRECTION:
+			memcpy ((void *)light_spot[light],(void *)params,sizeof(shaderVec4));
+			break;
+		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
+	}
+	lightParamsDirty=TRUE;
+}
+
+void fwglLightf (int light, int pname, GLfloat param) {
+	/* printf ("glLightf %d %d %f\n",light,pname,param);  */
+	glLightf(GL_LIGHT0+light,pname,param);
+	switch (pname) {
+		case GL_CONSTANT_ATTENUATION:
+			light_constAtten[light] = param;
+			break;
+		case GL_LINEAR_ATTENUATION:
+			light_linAtten[light] = param;
+			break;
+		case GL_QUADRATIC_ATTENUATION:
+			light_quadAtten[light] = param;
+			break;
+		case GL_SPOT_CUTOFF:
+			light_spotCut[light] = param;
+			break;
+		case GL_SPOT_EXPONENT:
+			light_spotExp[light] = param;
+			break;
+		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
+	}
+	lightParamsDirty = TRUE;
+}
+
+/* send this info to the shader, if required */
+void propagateLightingInfo(void) {
+	if (rdr_caps.genericAppearanceShader != 0) {
+		printf ("propagate, have shader\n");
+	}
+
+	lightParamsDirty = FALSE;
+	lightStatusDirty = FALSE;
+}
+
+
+void initializeLightTables() {
+        float pos[] = { 0.0, 0.0, 1.0, 0.0 };
+        float dif[] = { 1.0, 1.0, 1.0, 1.0 };
+        float shin[] = { 0.6, 0.6, 0.6, 1.0 };
+        float As[] = { 0.0, 0.0, 0.0, 1.0 };
+
+	int i;
+        for (i=0; i<8; i++) {
+                lights[i] = 9999;
+                lightState(i,FALSE);
+
+        	FW_GL_LIGHTFV(i, GL_POSITION, pos);
+        	FW_GL_LIGHTFV(i, GL_AMBIENT, As);
+        	FW_GL_LIGHTFV(i, GL_DIFFUSE, dif);
+        	FW_GL_LIGHTFV(i, GL_SPECULAR, shin);
+        }
+        lightState(HEADLIGHT_LIGHT, TRUE);
+
+        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
+        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+        FW_GL_LIGHTMODELFV(GL_LIGHT_MODEL_AMBIENT,As);
+
+	LIGHTING_INITIALIZE
+
+}
+
 
 /* material node usage depends on texture depth; if rgb (depth1) we blend color field
    and diffusecolor with texture, else, we dont bother with material colors */
@@ -531,7 +665,7 @@ render_hier(struct X3D_Node *p, int rwhat) {
 	render_blend = rwhat & VF_Blend;
 	render_proximity = rwhat & VF_Proximity;
 	render_collision = rwhat & VF_Collision;
-	curlight = 0;
+	nextFreeLight = 0;
 	hpdist = -1;
 
 

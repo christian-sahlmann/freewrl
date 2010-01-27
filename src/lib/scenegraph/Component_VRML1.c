@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.16 2010/01/19 19:18:47 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.17 2010/01/27 21:18:52 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -451,24 +451,24 @@ void render_VRML1_DirectionalLight (struct X3D_VRML1_DirectionalLight *node) {
 		int light = nextlight();
 		if(light >= 0) {
 			float vec[4];
-			lightState(light-GL_LIGHT0,TRUE);
+			lightState(light,TRUE);
 			vec[0] = -((node->direction).c[0]);
 			vec[1] = -((node->direction).c[1]);
 			vec[2] = -((node->direction).c[2]);
 			vec[3] = 0;
-			glLightfv(light, GL_POSITION, vec);
+			FW_GL_LIGHTFV(light, GL_POSITION, vec);
 			vec[0] = ((node->color).c[0]) * (node->intensity);
 			vec[1] = ((node->color).c[1]) * (node->intensity);
 			vec[2] = ((node->color).c[2]) * (node->intensity);
 			vec[3] = 1;
-			glLightfv(light, GL_DIFFUSE, vec);
-			glLightfv(light, GL_SPECULAR, vec);
+			FW_GL_LIGHTFV(light, GL_DIFFUSE, vec);
+			FW_GL_LIGHTFV(light, GL_SPECULAR, vec);
 
 			vec[0] = ((node->color).c[0]) * 0.2;
 			vec[1] = ((node->color).c[1]) * 0.2;
 			vec[2] = ((node->color).c[2]) * 0.2;
 
-			glLightfv(light, GL_AMBIENT, vec);
+			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
 		}
 	}
 
@@ -480,39 +480,39 @@ void render_VRML1_PointLight (struct X3D_VRML1_PointLight *node) {
 		int light = nextlight();
 		if(light >= 0) {
 			float vec[4];
-			lightState(light-GL_LIGHT0,TRUE);
+			lightState(light,TRUE);
 			#ifdef VRML2
 			vec[0] = ((node->direction).c[0]);
 			vec[1] = ((node->direction).c[1]);
 			vec[2] = ((node->direction).c[2]);
 			vec[3] = 1;
-			glLightfv(light, GL_SPOT_DIRECTION, vec);
+			FW_GL_LIGHTFV(light, GL_SPOT_DIRECTION, vec);
 			#endif
 
 			vec[0] = ((node->location).c[0]);
 			vec[1] = ((node->location).c[1]);
 			vec[2] = ((node->location).c[2]);
 			vec[3] = 1;
-			glLightfv(light, GL_POSITION, vec);
+			FW_GL_LIGHTFV(light, GL_POSITION, vec);
 
-			glLightf(light, GL_CONSTANT_ATTENUATION, 1.0);
-			glLightf(light, GL_LINEAR_ATTENUATION, 0.0);
-			glLightf(light, GL_QUADRATIC_ATTENUATION, 0.0);
+			FW_GL_LIGHTF(light, GL_CONSTANT_ATTENUATION, 1.0);
+			FW_GL_LIGHTF(light, GL_LINEAR_ATTENUATION, 0.0);
+			FW_GL_LIGHTF(light, GL_QUADRATIC_ATTENUATION, 0.0);
 
 			vec[0] = ((node->color).c[0]) * (node->intensity);
 			vec[1] = ((node->color).c[1]) * (node->intensity);
 			vec[2] = ((node->color).c[2]) * (node->intensity);
 			vec[3] = 1;
-			glLightfv(light, GL_DIFFUSE, vec);
-			glLightfv(light, GL_SPECULAR, vec);
+			FW_GL_LIGHTFV(light, GL_DIFFUSE, vec);
+			FW_GL_LIGHTFV(light, GL_SPECULAR, vec);
 
 			vec[0] = ((node->color).c[0]) * 0.2;
 			vec[1] = ((node->color).c[1]) * 0.2;
 			vec[2] = ((node->color).c[2]) * 0.2;
-			glLightfv(light, GL_AMBIENT, vec);
+			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
 
 			/* XXX */
-			glLightf(light, GL_SPOT_CUTOFF, 180);
+			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 180);
 		}
 	}
 
@@ -525,45 +525,45 @@ void render_VRML1_SpotLight (struct X3D_VRML1_SpotLight *node) {
 		if(light >= 0) {
 			float vec[4];
 			float ft;
-			lightState(light-GL_LIGHT0,TRUE);
+			lightState(light,TRUE);
 
 			vec[0] = ((node->direction).c[0]);
 			vec[1] = ((node->direction).c[1]);
 			vec[2] = ((node->direction).c[2]);
 			vec[3] = 1;
-			glLightfv(light, GL_SPOT_DIRECTION, vec);
+			FW_GL_LIGHTFV(light, GL_SPOT_DIRECTION, vec);
 			vec[0] = ((node->location).c[0]);
 			vec[1] = ((node->location).c[1]);
 			vec[2] = ((node->location).c[2]);
 			vec[3] = 1;
-			glLightfv(light, GL_POSITION, vec);
+			FW_GL_LIGHTFV(light, GL_POSITION, vec);
 
-			glLightf(light, GL_CONSTANT_ATTENUATION,1.0);
-			glLightf(light, GL_LINEAR_ATTENUATION,0.0);
-			glLightf(light, GL_QUADRATIC_ATTENUATION,0.0);
+			FW_GL_LIGHTF(light, GL_CONSTANT_ATTENUATION,1.0);
+			FW_GL_LIGHTF(light, GL_LINEAR_ATTENUATION,0.0);
+			FW_GL_LIGHTF(light, GL_QUADRATIC_ATTENUATION,0.0);
 
 			vec[0] = ((node->color).c[0]) * (node->intensity);
 			vec[1] = ((node->color).c[1]) * (node->intensity);
 			vec[2] = ((node->color).c[2]) * (node->intensity);
 			vec[3] = 1;
-			glLightfv(light, GL_DIFFUSE, vec);
-			glLightfv(light, GL_SPECULAR, vec);
+			FW_GL_LIGHTFV(light, GL_DIFFUSE, vec);
+			FW_GL_LIGHTFV(light, GL_SPECULAR, vec);
 
 			vec[0] = ((node->color).c[0]) * 0.2;
 			vec[1] = ((node->color).c[1]) * 0.2;
 			vec[2] = ((node->color).c[2]) * 0.2;
 
-			glLightfv(light, GL_AMBIENT, vec);
+			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
 
 			ft = 0.5/(1.570796 +0.1); /* 1.570796 = default beamWidth in X3D */
 			if (ft>128.0) ft=128.0;
 			if (ft<0.0) ft=0.0;
-			glLightf(light, GL_SPOT_EXPONENT,ft);
+			FW_GL_LIGHTF(light, GL_SPOT_EXPONENT,ft);
 
 			ft = node->cutOffAngle /3.1415926536*180;
 			if (ft>90.0) ft=90.0;
 			if (ft<0.0) ft=0.0;
-			glLightf(light, GL_SPOT_CUTOFF, ft);
+			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, ft);
 		}
 	}
 }

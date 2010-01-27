@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Lighting.c,v 1.13 2009/10/22 16:58:49 crc_canada Exp $
+$Id: Component_Lighting.c,v 1.14 2010/01/27 21:18:52 crc_canada Exp $
 
 X3D Lighting Component
 
@@ -59,25 +59,25 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 		int light = nextlight();
 		if(light >= 0) {
 			float vec[4];
-			lightState(light-GL_LIGHT0,TRUE);
+			lightState(light,TRUE);
 			vec[0] = -((node->direction).c[0]);
 			vec[1] = -((node->direction).c[1]);
 			vec[2] = -((node->direction).c[2]);
 			vec[3] = 0.0; /* 0.0 = DirectionalLight */
-			glLightfv(light, GL_POSITION, vec);
+			FW_GL_LIGHTFV(light, GL_POSITION, vec);
 			vec[0] = ((node->color).c[0]) * (node->intensity);
 			vec[1] = ((node->color).c[1]) * (node->intensity);
 			vec[2] = ((node->color).c[2]) * (node->intensity);
 			vec[3] = 1;
-			glLightfv(light, GL_DIFFUSE, vec);
-			glLightfv(light, GL_SPECULAR, vec);
+			FW_GL_LIGHTFV(light, GL_DIFFUSE, vec);
+			FW_GL_LIGHTFV(light, GL_SPECULAR, vec);
 
 			/* Aubrey Jaffer */
 			vec[0] = ((node->color).c[0]) * (node->ambientIntensity);
 			vec[1] = ((node->color).c[1]) * (node->ambientIntensity);
 			vec[2] = ((node->color).c[2]) * (node->ambientIntensity);
 
-			glLightfv(light, GL_AMBIENT, vec);
+			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
 		}
 	}
 }
@@ -99,21 +99,21 @@ void render_PointLight (struct X3D_PointLight *node) {
 		int light = nextlight();
 		if(light >= 0) {
 			float vec[4];
-			lightState(light-GL_LIGHT0,TRUE);
+			lightState(light,TRUE);
 			vec[0] = 0.0; vec[1] = 0.0; vec[2] = -1.0; vec[3] = 1;
 
-			glLightfv(light, GL_SPOT_DIRECTION, vec);
+			FW_GL_LIGHTFV(light, GL_SPOT_DIRECTION, vec);
 			vec[0] = ((node->location).c[0]);
 			vec[1] = ((node->location).c[1]);
 			vec[2] = ((node->location).c[2]);
 			vec[3] = 1;
-			glLightfv(light, GL_POSITION, vec);
+			FW_GL_LIGHTFV(light, GL_POSITION, vec);
 
-			glLightf(light, GL_CONSTANT_ATTENUATION,
+			FW_GL_LIGHTF(light, GL_CONSTANT_ATTENUATION,
 				((node->attenuation).c[0]));
-			glLightf(light, GL_LINEAR_ATTENUATION,
+			FW_GL_LIGHTF(light, GL_LINEAR_ATTENUATION,
 				((node->attenuation).c[1]));
-			glLightf(light, GL_QUADRATIC_ATTENUATION,
+			FW_GL_LIGHTF(light, GL_QUADRATIC_ATTENUATION,
 				((node->attenuation).c[2]));
 
 
@@ -121,17 +121,17 @@ void render_PointLight (struct X3D_PointLight *node) {
 			vec[1] = ((node->color).c[1]) * (node->intensity);
 			vec[2] = ((node->color).c[2]) * (node->intensity);
 			vec[3] = 1;
-			glLightfv(light, GL_DIFFUSE, vec);
-			glLightfv(light, GL_SPECULAR, vec);
+			FW_GL_LIGHTFV(light, GL_DIFFUSE, vec);
+			FW_GL_LIGHTFV(light, GL_SPECULAR, vec);
 
 			/* Aubrey Jaffer */
 			vec[0] = ((node->color).c[0]) * (node->ambientIntensity);
 			vec[1] = ((node->color).c[1]) * (node->ambientIntensity);
 			vec[2] = ((node->color).c[2]) * (node->ambientIntensity);
-			glLightfv(light, GL_AMBIENT, vec);
+			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
 
 			/* XXX */
-			glLightf(light, GL_SPOT_CUTOFF, 180);
+			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 180);
 		}
 	}
 }
@@ -156,24 +156,24 @@ void render_SpotLight(struct X3D_SpotLight *node) {
 		int light = nextlight();
 		if(light >= 0) {
 			float vec[4];
-			lightState(light-GL_LIGHT0,TRUE);
+			lightState(light,TRUE);
 	       
 			vec[0] = ((node->direction).c[0]);
 			vec[1] = ((node->direction).c[1]);
 			vec[2] = ((node->direction).c[2]);
 			vec[3] = 1;
-			glLightfv(light, GL_SPOT_DIRECTION, vec);
+			FW_GL_LIGHTFV(light, GL_SPOT_DIRECTION, vec);
 			vec[0] = ((node->location).c[0]);
 			vec[1] = ((node->location).c[1]);
 			vec[2] = ((node->location).c[2]);
 			vec[3] = 1;
-			glLightfv(light, GL_POSITION, vec);
+			FW_GL_LIGHTFV(light, GL_POSITION, vec);
 	
-			glLightf(light, GL_CONSTANT_ATTENUATION,
+			FW_GL_LIGHTF(light, GL_CONSTANT_ATTENUATION,
 					((node->attenuation).c[0]));
-			glLightf(light, GL_LINEAR_ATTENUATION,
+			FW_GL_LIGHTF(light, GL_LINEAR_ATTENUATION,
 					((node->attenuation).c[1]));
-			glLightf(light, GL_QUADRATIC_ATTENUATION,
+			FW_GL_LIGHTF(light, GL_QUADRATIC_ATTENUATION,
 					((node->attenuation).c[2]));
 	
 	
@@ -181,25 +181,25 @@ void render_SpotLight(struct X3D_SpotLight *node) {
 			vec[1] = ((node->color).c[1]) * (node->intensity);
 			vec[2] = ((node->color).c[2]) * (node->intensity);
 			vec[3] = 1; 
-			glLightfv(light, GL_DIFFUSE, vec);
-			glLightfv(light, GL_SPECULAR, vec);
+			FW_GL_LIGHTFV(light, GL_DIFFUSE, vec);
+			FW_GL_LIGHTFV(light, GL_SPECULAR, vec);
 
 			/* Aubrey Jaffer */
 			vec[0] = ((node->color).c[0]) * (node->ambientIntensity);
 			vec[1] = ((node->color).c[1]) * (node->ambientIntensity);
 			vec[2] = ((node->color).c[2]) * (node->ambientIntensity);
 
-			glLightfv(light, GL_AMBIENT, vec);
+			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
 
 			ft = 0.5/(node->beamWidth +0.1);
 			if (ft>128.0) ft=128.0;
 			if (ft<0.0) ft=0.0;
-			glLightf(light, GL_SPOT_EXPONENT,ft);
+			FW_GL_LIGHTF(light, GL_SPOT_EXPONENT,ft);
 
 			ft = node->cutOffAngle /3.1415926536*180;
 			if (ft>90.0) ft=90.0;
 			if (ft<0.0) ft=0.0;
-			glLightf(light, GL_SPOT_CUTOFF, ft);
+			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, ft);
 		}
 	}
 }

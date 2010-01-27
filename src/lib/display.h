@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.48 2010/01/26 20:32:03 crc_canada Exp $
+  $Id: display.h,v 1.49 2010/01/27 21:18:52 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -29,6 +29,34 @@
 
 #ifndef __LIBFREEWRL_DISPLAY_H__
 #define __LIBFREEWRL_DISPLAY_H__
+
+
+/**
+ * Specific platform : Mac
+ */
+#ifdef TARGET_AQUA
+
+#ifdef IPHONE
+#include <OpenGLES/ES2/gl.h>
+#include <OpenGLES/ES2/glext.h>
+extern int ccurse;
+extern int ocurse;
+#define SCURSE 1
+#define ACURSE 0
+
+#define SENSOR_CURSOR ccurse = SCURSE
+#define ARROW_CURSOR  ccurse = ACURSE
+#else
+
+# include <OpenGL/OpenGL.h>
+# include <OpenGL/CGLTypes.h>
+
+# include <AGL/AGL.h> 
+#ifdef OLDCODE
+OLDCODEextern GLboolean cErr;
+OLDCODEextern GDHandle gGDevice;
+OLDCODEextern AGLContext aqglobalContext;
+#endif
 
 
 /* Main initialization function */
@@ -107,37 +135,24 @@ typedef struct {
 	int texture_units;
 	int max_texture_size;
 	float anisotropicDegree;
+
+	/* for general Appearance Shaders */
+	GLuint genericAppearanceShader;	
+	GLint myMaterialAmbient;
+	GLint myMaterialDiffuse;
+	GLint myMaterialSpecular;
+	GLint myMaterialShininess;
+	GLint myMaterialEmission;
+	GLint lightState;
+	GLint lightAmbient;
+	GLint lightDiffuse;
+	GLint lightSpecular;
+	GLint lightPosition;
 	
 } s_renderer_capabilities_t;
 
 extern s_renderer_capabilities_t rdr_caps;
 
-/**
- * Specific platform : Mac
- */
-#ifdef TARGET_AQUA
-
-#ifdef IPHONE
-#include <OpenGLES/ES2/gl.h>
-#include <OpenGLES/ES2/glext.h>
-extern int ccurse;
-extern int ocurse;
-#define SCURSE 1
-#define ACURSE 0
-
-#define SENSOR_CURSOR ccurse = SCURSE
-#define ARROW_CURSOR  ccurse = ACURSE
-#else
-
-# include <OpenGL/OpenGL.h>
-# include <OpenGL/CGLTypes.h>
-
-# include <AGL/AGL.h> 
-#ifdef OLDCODE
-OLDCODEextern GLboolean cErr;
-OLDCODEextern GDHandle gGDevice;
-OLDCODEextern AGLContext aqglobalContext;
-#endif
 
 extern CGLContextObj myglobalContext;
 
@@ -466,8 +481,11 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_BLENDFUNC(aaa,bbb) \
 		{glBlendFunc(aaa,bbb); \
 		printf ("glBlendFunc at %s:%d\n",__FILE__,__LINE__);}
+	#define FW_GL_LIGHTF(aaa,bbb,ccc) \
+		{fwglLightf(aaa,bbb,ccc);\
+		printf ("glLightf at %s:%d\n",__FILE__,__LINE__);}
 	#define FW_GL_LIGHTFV(aaa,bbb,ccc) \
-		{glLightfv(aaa,bbb,ccc);\
+		{fwglLightfv(aaa,bbb,ccc);\
 		printf ("glLightfv at %s:%d\n",__FILE__,__LINE__);}
 	#define FW_GL_HINT(aaa,bbb) \
 		{glHint(aaa,bbb); \
@@ -555,7 +573,8 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_CLEAR_DEPTH(aaa) glClearDepth(aaa); 
 	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) glFrustum(aaa,bbb,ccc,ddd,eee,fff);
 	#define FW_GL_BLENDFUNC(aaa,bbb) glBlendFunc(aaa,bbb);
-	#define FW_GL_LIGHTFV(aaa,bbb,ccc) glLightfv(aaa,bbb,ccc);
+	#define FW_GL_LIGHTFV(aaa,bbb,ccc) fwglLightfv(aaa,bbb,ccc);
+	#define FW_GL_LIGHTF(aaa,bbb,ccc) fwglLightf(aaa,bbb,ccc);
 	#define FW_GL_HINT(aaa,bbb) glHint(aaa,bbb); 
 	#define FW_GL_CLEAR(zzz) glClear(zzz); 
 	#define FW_GL_DEPTHFUNC(zzz) glDepthFunc(zzz); 
@@ -683,6 +702,7 @@ void setScreenDim(int wi, int he);
 #define FW_GL_DEPTHFUNC(zzz)
 #define FW_GL_HINT(aaa,bbb)
 #define FW_GL_LIGHTFV(aaa,bbb,ccc)
+#define FW_GL_LIGHTF(aaa,bbb,ccc)
 #define FW_GL_BLENDFUNC(aaa,bbb)
 #define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff)
 #define FW_GL_CLEAR_DEPTH(aaa)

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.92 2010/01/25 16:27:07 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.93 2010/01/27 21:18:52 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -37,6 +37,8 @@
 
 #include <libFreeWRL.h>
 
+
+#include <io_files.h>
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../main/ProdCon.h"
@@ -58,6 +60,7 @@
 #include "../opengl/Material.h"
 #include "../scenegraph/Component_Core.h"
 #include "../scenegraph/Component_Networking.h"
+#include "../scenegraph/RenderFuncs.h"
 #include "OpenGL_Utils.h"
 
 #include <float.h>
@@ -76,9 +79,6 @@ static int tableIndexSize = INT_ID_UNDEFINED;
 static int nextEntry = 0;
 static struct X3D_Node *forgottenNode;
 static void killNode (int index);
-
-/* lights status. Light 0 is the headlight */
-static int lights[8];
 
 /* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 int displayDepth = 24;
@@ -140,6 +140,115 @@ mountain peak, so we just go and find the value representing the highest peak. O
 near plane is thus farPlane - highestPeak. 
 
 **************************************************************************************/
+
+/* read a file, put it into memory. */
+static char * readInputString(char *fn) {
+        char *buffer;
+        FILE *infile;
+        int justread;
+
+	#define MAXREADSIZE 4000
+
+        /* ok, now, really read this one. */
+        infile = fopen(fn,"r");
+
+        if (infile == NULL){
+                ConsoleMessage("problem reading file '%s' \n",fn);
+                return NULL;
+        }
+
+
+        buffer =(char *)MALLOC(MAXREADSIZE * sizeof (char));
+        justread = fread (buffer,1,MAXREADSIZE,infile);
+	if (justread >= MAXREADSIZE) {
+		ConsoleMessage ("Shader too large for buffer\n");
+		return NULL;
+	}
+
+	fclose (infile);
+
+	buffer[justread] = '\0';
+        return (buffer);
+}
+#undef MAXREADSIZE
+
+
+static void shaderErrorLog(GLuint myShader) {
+        #ifdef GL_VERSION_2_0
+#define MAX_INFO_LOG_SIZE 512
+                GLchar infoLog[MAX_INFO_LOG_SIZE];
+                glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog);
+                ConsoleMessage ("problem with VERTEX shader: %s",infoLog);
+        #else
+                ConsoleMessage ("Problem compiling shader");
+        #endif
+}
+
+/* read in shaders and place the resulting shader program in the "whichShader" field if success. */
+static void getAppearanceShader(char *pathToShaders) {
+	char *inTextFile;
+	char *inTextPointer;
+	GLint success;
+	GLuint myVertexShader = 0;
+	GLuint myFragmentShader= 0;
+
+	if (strlen(pathToShaders) > 1000) return;  /* bounds error */
+	inTextFile = MALLOC(2000);
+
+	/* get Vertex shader */
+	strcpy (inTextFile,pathToShaders);
+	strcat (inTextFile,".vs");
+
+	printf ("getAppearanceShader, path %s\n",inTextFile);
+	inTextPointer = readInputString(inTextFile);
+	if (inTextPointer==NULL) return;
+
+
+	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
+	SHADER_SOURCE(myVertexShader, 1, (const GLchar **) &inTextPointer, NULL);
+	COMPILE_SHADER(myVertexShader);
+	GET_SHADER_INFO(myVertexShader, COMPILE_STATUS, &success);
+	if (!success) {
+		shaderErrorLog(myVertexShader);
+	} else {
+		ATTACH_SHADER(rdr_caps.genericAppearanceShader, myVertexShader);
+	}
+	FREE_IF_NZ(inTextPointer);
+
+	/* get Fragment shader */
+	strcpy (inTextFile,pathToShaders);
+	strcat (inTextFile,".fs");
+
+	printf ("getAppearanceShader, path %s\n",inTextFile);
+	inTextPointer = readInputString(inTextFile);
+	if (inTextPointer==NULL) return;
+
+	myFragmentShader = CREATE_SHADER (FRAGMENT_SHADER);
+	SHADER_SOURCE(myFragmentShader, 1, (const GLchar **) &inTextPointer, NULL);
+	COMPILE_SHADER(myFragmentShader);
+	GET_SHADER_INFO(myFragmentShader, COMPILE_STATUS, &success);
+	if (!success) {
+		shaderErrorLog(myFragmentShader);
+	} else {
+		ATTACH_SHADER(rdr_caps.genericAppearanceShader, myFragmentShader);
+	}
+	FREE_IF_NZ(inTextPointer);
+	FREE_IF_NZ(inTextFile);
+
+	rdr_caps.myMaterialAmbient = GET_UNIFORM(rdr_caps.genericAppearanceShader,"myMaterialAmbient");
+	rdr_caps.myMaterialDiffuse = GET_UNIFORM(rdr_caps.genericAppearanceShader,"myMaterialDiffuse");
+	rdr_caps.myMaterialSpecular = GET_UNIFORM(rdr_caps.genericAppearanceShader,"myMaterialSpecular");
+	rdr_caps.myMaterialShininess = GET_UNIFORM(rdr_caps.genericAppearanceShader,"myMaterialShininess");
+	rdr_caps.myMaterialEmission = GET_UNIFORM(rdr_caps.genericAppearanceShader,"myMaterialEmission");
+	rdr_caps.lightState = GET_UNIFORM(rdr_caps.genericAppearanceShader,"lightState");
+	rdr_caps.lightAmbient = GET_UNIFORM(rdr_caps.genericAppearanceShader,"lightAmbient");
+	rdr_caps.lightDiffuse = GET_UNIFORM(rdr_caps.genericAppearanceShader,"lightDiffuse");
+	rdr_caps.lightSpecular = GET_UNIFORM(rdr_caps.genericAppearanceShader,"lightSpecular");
+	rdr_caps.lightPosition = GET_UNIFORM(rdr_caps.genericAppearanceShader,"lightPosition");
+
+}
+
+
 
 static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 	int oldInRange;
@@ -416,44 +525,19 @@ void end_textureTransform (void) {
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
-/* keep track of lighting */
-void lightState(GLint light, int status) {
-	if (light<0) return; /* nextlight will return -1 if too many lights */
-	if (lights[light] != status) {
-		if (status) {
-			FW_GL_ENABLE(GL_LIGHT0+light);
-		} else {
-			FW_GL_DISABLE(GL_LIGHT0+light);
-		}
-		lights[light]=status;
-	}
-}
-
-/* for local lights, we keep track of what is on and off */
-void saveLightState(int *ls) {
-	int i;
-	for (i=0; i<7; i++) ls[i] = lights[i];
-} 
-
-void restoreLightState(int *ls) {
-	int i;
-	for (i=0; i<7; i++) {
-		if (ls[i] != lights[i]) {
-			lightState(i,ls[i]);
-		}
-	}
-}
 
 /**
  *   initializa_GL: initialize GLEW (->rdr caps) and OpenGL initial state
  */
 bool initialize_GL()
 {
-	int i;
-        float pos[] = { 0.0, 0.0, 1.0, 0.0 }; 
-        float dif[] = { 1.0, 1.0, 1.0, 1.0 };
-        float shin[] = { 0.6, 0.6, 0.6, 1.0 };
-        float As[] = { 0.0, 0.0, 0.0, 1.0 };
+#ifdef OLDCODE
+OLDCODE	int i;
+OLDCODE        float pos[] = { 0.0, 0.0, 1.0, 0.0 }; 
+OLDCODE        float dif[] = { 1.0, 1.0, 1.0, 1.0 };
+OLDCODE        float shin[] = { 0.6, 0.6, 0.6, 1.0 };
+OLDCODE        float As[] = { 0.0, 0.0, 0.0, 1.0 };
+#endif
 
 #if defined (TARGET_AQUA) && !defined(IPHONE)
 #ifdef OLDCODE
@@ -481,6 +565,15 @@ OLDCODE        }
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
 	XFlush(Xdpy);
 #endif
+
+
+	/* are we using shaders for Appearance, etc? (OpenGL-ES) */
+	if (global_use_shaders_when_possible) {
+		getAppearanceShader("./shaderReplacement/freewrlAppearanceShader");
+
+	} else {
+		/* put non-shader stuff here eventually */
+	}
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	FW_GL_CLEAR_DEPTH(1.0);
@@ -519,7 +612,6 @@ OLDCODE        }
 
 	/* end of ALPHA test */
 	FW_GL_ENABLE(GL_NORMALIZE);
-	LIGHTING_INITIALIZE;
 
 #ifdef TRACK_GL_COLORMATERIAL
 	FW_GL_ENABLE (GL_COLOR_MATERIAL);
@@ -532,28 +624,13 @@ OLDCODE        }
 	   if we don't have texture we can disable this (less computation)...
 	   but putting this here is already a saving ;)...
 	*/
-	FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 
 	/* keep track of light states; initial turn all lights off except for headlight */
-	for (i=0; i<8; i++) {
-		lights[i] = 9999;
-		lightState(i,FALSE);
-	}
-	/* headlight is GL_LIGHT7 */
-	lightState(HEADLIGHT_LIGHT, TRUE);
-
-        FW_GL_LIGHTFV(GL_LIGHT0+HEADLIGHT_LIGHT, GL_POSITION, pos);
-        FW_GL_LIGHTFV(GL_LIGHT0+HEADLIGHT_LIGHT, GL_AMBIENT, As);
-        FW_GL_LIGHTFV(GL_LIGHT0+HEADLIGHT_LIGHT, GL_DIFFUSE, dif);
-        FW_GL_LIGHTFV(GL_LIGHT0+HEADLIGHT_LIGHT, GL_SPECULAR, shin);
+	initializeLightTables();
 
 	/* ensure state of GL_CULL_FACE */
 	CULL_FACE_INITIALIZE;
 
-	FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-	FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
-	FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-	FW_GL_LIGHTMODELFV(GL_LIGHT_MODEL_AMBIENT,As);
 	FW_GL_PIXELSTOREI(GL_UNPACK_ALIGNMENT,1);
 	FW_GL_PIXELSTOREI(GL_PACK_ALIGNMENT,1);
 

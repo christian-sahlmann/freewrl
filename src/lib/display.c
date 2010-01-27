@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.34 2010/01/12 20:04:47 sdumoulin Exp $
+  $Id: display.c,v 1.35 2010/01/27 21:18:52 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -29,8 +29,8 @@
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
-#include <display.h>
 #include <internal.h>
+#include <display.h>
 #include <threads.h>
 #include <libFreeWRL.h>
 
@@ -294,6 +294,13 @@ bool initialize_rdr_caps()
 		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024; 
 	}
 
+	/* Shaders for OpenGL-ES and OpenGL-3.2ish */
+	/*	
+		GLuint appearanceNoTextureShader;
+		GLuint appearanceOneTextureShader;
+		GLuint appearanceMultiTextureShader;
+	are set to 0 by the memset above; 0 means no shader */
+
 	/* print some debug infos */
 	rdr_caps_dump(&rdr_caps);
 
@@ -336,4 +343,6 @@ void rdr_caps_dump()
 	DEBUG_MSG ("Occlusion support:    %s\n", BOOL_STR(rdr_caps.av_occlusion_q));
 	DEBUG_MSG ("Max texture size      %d\n", rdr_caps.max_texture_size);
 	DEBUG_MSG ("Texture units         %d\n", rdr_caps.texture_units);
+	DEBUG_MSG ("Shaders for Appear:   %d %d %d\n",rdr_caps.appearanceNoTextureShader, rdr_caps.appearanceOneTextureShader,
+						rdr_caps.appearanceMultiTextureShader);
 }

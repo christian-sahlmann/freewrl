@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.23 2010/01/05 21:37:33 crc_canada Exp $
+  $Id: main.c,v 1.24 2010/01/27 21:18:52 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -189,6 +189,15 @@ bool initFreeWRL(freewrl_params_t *params)
 	global_trace_threads = (getenv("FREEWRL_TRACE_THREADS") != NULL);
 	if (global_trace_threads) {
 		TRACE_MSG("Env: TRACE THREADS enabled.\n");
+	}
+
+#ifdef IPHONE
+	global_use_shaders_when_possible = TRUE; /* OpenGL-ES 2.0 requires this */
+#else
+	global_use_shaders_when_possible = (getenv("FREEWRL_USE_SHADERS_WHEN_POSSIBLE") != NULL);
+#endif
+	if (global_use_shaders_when_possible) {
+		TRACE_MSG("Env: USE_SHADERS_WHEN_POSSIBLE  enabled.\n");
 	}
 
 	/* Check parameters */

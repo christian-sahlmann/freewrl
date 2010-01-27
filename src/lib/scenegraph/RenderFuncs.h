@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.h,v 1.6 2009/12/10 20:51:55 crc_canada Exp $
+$Id: RenderFuncs.h,v 1.7 2010/01/27 21:18:52 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -41,6 +41,14 @@ extern int BrowserAction;
 extern struct X3D_Anchor *AnchorsAnchor;
 extern char *OSX_replace_world_from_console;
 
+
+void lightState(GLint light, int status);
+void saveLightState(int *ls);
+void restoreLightState(int *ls);
+void fwglLightfv (int light, int pname, GLfloat *params);
+void fwglLightf (int light, int pname, GLfloat param);
+void initializeLightTables(void);
+void propagateLightingInfo(void);
 
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

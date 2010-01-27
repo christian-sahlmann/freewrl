@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.17 2010/01/19 20:10:32 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.18 2010/01/27 21:18:52 crc_canada Exp $
 
 Screen snapshot.
 
@@ -40,8 +40,6 @@ BackEndClearBuffer(int);
 
 void
 BackEndLightsOff(void);
-
-void lightState (GLint light, int state);
 
 void drawBBOX(struct X3D_Node *node);
 
