@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.29 2010/01/28 15:01:19 crc_canada Exp $
+$Id: Component_Shape.c,v 1.30 2010/01/28 20:50:48 crc_canada Exp $
 
 X3D Shape Component
 
@@ -347,6 +347,8 @@ void render_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 /* bounds check the material node fields */
 void compile_Material (struct X3D_Material *node) {
 	int i;
+	float trans;
+
 
 	/* verify that the numbers are within range */
 	if (node->ambientIntensity < 0.0) node->ambientIntensity=0.0;
@@ -364,6 +366,35 @@ void compile_Material (struct X3D_Material *node) {
 		if (node->specularColor.c[i] < 0.0) node->specularColor.c[i]=0.0;
 		if (node->specularColor.c[i] > 1.0) node->specularColor.c[i]=1.0;
 	}
+
+        /* set the transparency here for the material */
+        trans = 1.0 - node->transparency;
+                
+        node->_dcol.c[3] = trans;
+        node->_amb.c[3] = trans;
+        node->_scol.c[3] = trans;
+        node->_ecol.c[3] = trans;
+                
+	memcpy((void *)node->_dcol.c, node->diffuseColor.c, sizeof (float) * 3);
+        /* for (i=0; i<3;i++){ node->_dcol[i] = node->diffuseColor.c[i]; } */
+
+        for(i=0; i<3; i++) { node->_amb.c[i] = node->_dcol.c[i] * node->ambientIntensity; }
+
+	/* for (i=0; i<3;i++){ node->_scol[i] = node->specularColor.c[i]; } */
+	memcpy((void *)node->_scol.c, node->specularColor.c, sizeof (float) * 3);
+
+	/* for (i=0; i<3;i++){ node->_ecol[i] = node->emissiveColor.c[i]; } */
+	memcpy((void *)node->_ecol.c, node->emissiveColor.c, sizeof (float) * 3);
+
+        node->_shin = node->shininess * 128.0;
+
+#define MAX_SHIN 128.0
+#define MIN_SHIN 0.01
+        if ((node->_shin > MAX_SHIN) || (node->_shin < MIN_SHIN)) {
+                if (node->_shin>MAX_SHIN){node->_shin = MAX_SHIN;}else{node->_shin=MIN_SHIN;}
+        }
+#undef MAX_SHIN
+#undef MIN_SHIN
 
 
 	MARK_NODE_COMPILED
@@ -470,46 +501,47 @@ void child_Shape (struct X3D_Shape *node) {
         if (globalCurrentShader == 0) {
 		/* get the generic Appearance Shader up to current state */
 		if (rdr_caps.haveGenericAppearanceShader) {
-			chooseAppearanceShader();
-		}
-
-		if (material_oneSided != NULL) {
-			float trans;
-
-			/* we have a normal material node */
-			#define whichFace GL_FRONT_AND_BACK
-			DO_MAT(material_oneSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
-			#undef whichFace
-		} else if (material_twoSided != NULL) {
-			GLenum whichFace;
-			float trans;
-	
-			/* we have a two sided material here */
-			/* first, do back */
-			if (material_twoSided->separateBackColor) {
-				whichFace = GL_BACK;
-				DO_MAT(material_twoSided,backDiffuseColor,backEmissiveColor,backShininess,backAmbientIntensity,backSpecularColor,backTransparency)
-				whichFace = GL_FRONT;
-			} else {
-				whichFace=GL_FRONT_AND_BACK;
-			}
-			DO_MAT(material_twoSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
+			chooseAppearanceShader(material_oneSided,material_twoSided);
 		} else {
-
-			if (tryingOcclusionDrawing) {
-				/* draw this as a subdued grey */
-				FW_GL_COLOR3F(0.3,0.3,0.3);
-			} else {
-				/* no material, so just colour the following shape */ 
-				/* Spec says to disable lighting and set coloUr to 1,1,1 */ 
-				LIGHTING_OFF  
-				FW_GL_COLOR3F(1,1,1); 
+			if (material_oneSided != NULL) {
+				/* we have a normal material node */
+				appearanceProperties.transparency = material_oneSided->transparency;
+				do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_oneSided->_dcol.c); 
+				do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_oneSided->_amb.c);
+				do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_oneSided->_scol.c);
+				do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, material_oneSided->_ecol.c);
+				do_shininess(GL_FRONT_AND_BACK,material_oneSided->shininess);
+			} else if (material_twoSided != NULL) {
+				GLenum whichFace;
+				float trans;
+		
+				/* we have a two sided material here */
+				/* first, do back */
+				if (material_twoSided->separateBackColor) {
+					whichFace = GL_BACK;
+					DO_MAT(material_twoSided,backDiffuseColor,backEmissiveColor,backShininess,backAmbientIntensity,backSpecularColor,backTransparency)
+					whichFace = GL_FRONT;
+				} else {
+					whichFace=GL_FRONT_AND_BACK;
 				}
-	 
-			/* tell the rendering passes that this is just "normal" */ 
-			last_texture_type = NOTEXTURE; 
-			/* same with materialProperties.transparency */ 
-			appearanceProperties.transparency=0.99999; 
+				DO_MAT(material_twoSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
+			} else {
+	
+				if (tryingOcclusionDrawing) {
+					/* draw this as a subdued grey */
+					FW_GL_COLOR3F(0.3,0.3,0.3);
+				} else {
+					/* no material, so just colour the following shape */ 
+					/* Spec says to disable lighting and set coloUr to 1,1,1 */ 
+					LIGHTING_OFF  
+					FW_GL_COLOR3F(1,1,1); 
+					}
+		 
+				/* tell the rendering passes that this is just "normal" */ 
+				last_texture_type = NOTEXTURE; 
+				/* same with materialProperties.transparency */ 
+				appearanceProperties.transparency=0.99999; 
+			}
 		}
 	}
 

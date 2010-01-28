@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.50 2010/01/28 15:01:19 crc_canada Exp $
+  $Id: display.h,v 1.51 2010/01/28 20:50:48 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -151,12 +151,18 @@ typedef struct {
 
 	/* for general Appearance Shaders */
 	bool haveGenericAppearanceShader;  /* do immediate mode or shader? */
-	s_shader_capabilities_t genericHeadlightNoTextureAppearanceShader;	
-	s_shader_capabilities_t multiLightNoTextureAppearanceShader;	
-	s_shader_capabilities_t headlightOneTextureAppearanceShader;	
-	s_shader_capabilities_t headlightMultiTextureAppearanceShader;
-	s_shader_capabilities_t multiLightMultiTextureAppearanceShader;
+	s_shader_capabilities_t shaderArrays[10]; /* one element for each shader_type */
 } s_renderer_capabilities_t;
+
+typedef enum shader_type {
+	noLightNoTextureAppearanceShader,
+	genericHeadlightNoTextureAppearanceShader,
+	multiLightNoTextureAppearanceShader,
+	headlightOneTextureAppearanceShader,
+	headlightMultiTextureAppearanceShader,
+	multiLightMultiTextureAppearanceShader
+} shader_type_t;
+
 
 extern s_renderer_capabilities_t rdr_caps;
 

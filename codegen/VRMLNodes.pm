@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.36 2009/12/28 15:57:46 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.37 2010/01/28 20:50:48 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -513,6 +513,11 @@ package VRML::NodeType;
 		specularColor => [SFColor, [0, 0, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		transparency => [SFFloat, 0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 __oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
+		_dcol => [SFVec4f, [0,0,0,0], inputOutput, 0],
+		_scol => [SFVec4f, [0,0,0,0], inputOutput, 0],
+		_ecol => [SFVec4f, [0,0,0,0], inputOutput, 0],
+		_amb => [SFVec4f, [0,0,0,0], inputOutput, 0],
+		_shin => [SFFloat, 0.2, inputOutput, 0],
 	},"X3DMaterialNode"),
 
 	Shape => new VRML::NodeType ("Shape", {

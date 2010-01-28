@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.94 2010/01/28 15:01:19 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.95 2010/01/28 20:50:48 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -191,6 +191,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	GLint success;
 	GLuint myVertexShader = 0;
 	GLuint myFragmentShader= 0;
+	GLuint myProg = 0;
 
 	if (strlen(pathToShaders) > 1000) return;  /* bounds error */
 	inTextFile = MALLOC(2000);
@@ -204,6 +205,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	if (inTextPointer==NULL) return;
 	
 	(*myShader).myShaderProgram = CREATE_PROGRAM;
+	myProg = (*myShader).myShaderProgram;
 
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
 	SHADER_SOURCE(myVertexShader, 1, (const GLchar **) &inTextPointer, NULL);
@@ -212,9 +214,11 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	if (!success) {
 		shaderErrorLog(myVertexShader);
 	} else {
-		ATTACH_SHADER(((*myShader)).myShaderProgram, myVertexShader);
+
+		ATTACH_SHADER(myProg, myVertexShader);
 	}
 	FREE_IF_NZ(inTextPointer);
+
 
 	/* get Fragment shader */
 	strcpy (inTextFile,pathToShaders);
@@ -231,21 +235,23 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	if (!success) {
 		shaderErrorLog(myFragmentShader);
 	} else {
-		ATTACH_SHADER((*myShader).myShaderProgram, myFragmentShader);
+		ATTACH_SHADER(myProg, myFragmentShader);
 	}
 	FREE_IF_NZ(inTextPointer);
 	FREE_IF_NZ(inTextFile);
 
-	(*myShader).myMaterialAmbient = GET_UNIFORM((*myShader).myShaderProgram,"myMaterialAmbient");
-	(*myShader).myMaterialDiffuse = GET_UNIFORM((*myShader).myShaderProgram,"myMaterialDiffuse");
-	(*myShader).myMaterialSpecular = GET_UNIFORM((*myShader).myShaderProgram,"myMaterialSpecular");
-	(*myShader).myMaterialShininess = GET_UNIFORM((*myShader).myShaderProgram,"myMaterialShininess");
-	(*myShader).myMaterialEmission = GET_UNIFORM((*myShader).myShaderProgram,"myMaterialEmission");
-	(*myShader).lightState = GET_UNIFORM((*myShader).myShaderProgram,"lightState");
-	(*myShader).lightAmbient = GET_UNIFORM((*myShader).myShaderProgram,"lightAmbient");
-	(*myShader).lightDiffuse = GET_UNIFORM((*myShader).myShaderProgram,"lightDiffuse");
-	(*myShader).lightSpecular = GET_UNIFORM((*myShader).myShaderProgram,"lightSpecular");
-	(*myShader).lightPosition = GET_UNIFORM((*myShader).myShaderProgram,"lightPosition");
+	LINK_SHADER(myProg);
+
+	(*myShader).myMaterialAmbient = GET_UNIFORM(myProg,"myMaterialAmbient");
+	(*myShader).myMaterialDiffuse = GET_UNIFORM(myProg,"myMaterialDiffuse");
+	(*myShader).myMaterialSpecular = GET_UNIFORM(myProg,"myMaterialSpecular");
+	(*myShader).myMaterialShininess = GET_UNIFORM(myProg,"myMaterialShininess");
+	(*myShader).myMaterialEmission = GET_UNIFORM(myProg,"myMaterialEmission");
+	(*myShader).lightState = GET_UNIFORM(myProg,"lightState");
+	(*myShader).lightAmbient = GET_UNIFORM(myProg,"lightAmbient");
+	(*myShader).lightDiffuse = GET_UNIFORM(myProg,"lightDiffuse");
+	(*myShader).lightSpecular = GET_UNIFORM(myProg,"lightSpecular");
+	(*myShader).lightPosition = GET_UNIFORM(myProg,"lightPosition");
 
 }
 
@@ -570,11 +576,26 @@ OLDCODE        }
 
 	/* are we using shaders for Appearance, etc? (OpenGL-ES) */
 	if (global_use_shaders_when_possible) {
-		getAppearanceShader(&rdr_caps.genericHeadlightNoTextureAppearanceShader, "./shaderReplacement/genericHeadlightNoTextureAppearanceShader");
-		getAppearanceShader(&rdr_caps.multiLightNoTextureAppearanceShader, "./shaderReplacement/multiLightNoTextureAppearanceShader");
-		getAppearanceShader(&rdr_caps.headlightOneTextureAppearanceShader, "./shaderReplacement/headlightOneTextureAppearanceShader");
-		getAppearanceShader(&rdr_caps.headlightMultiTextureAppearanceShader, "./shaderReplacement/headlightMultiTextureAppearanceShader");
-		getAppearanceShader(&rdr_caps.multiLightMultiTextureAppearanceShader, "./shaderReplacement/multiLightMultiTextureAppearanceShader");
+/*
+	we choose the shader based on the following, so get all the shaders loaded 
+
+        noLightNoTextureAppearanceShader:		no lights, no textures, only emissive lights.
+        genericHeadlightNoTextureAppearanceShader:	headlight on, no textures.
+        multiLightNoTextureAppearanceShader:		more than headlight on; no textures.
+        headlightOneTextureAppearanceShader:		headlight, no othere lights, one texture.
+        headlightMultiTextureAppearanceShader:		headlight, no other light, multi-texture.
+        multiLightMultiTextureAppearanceShader:		everything including kitchen sink.
+*/
+
+		getAppearanceShader(&rdr_caps.shaderArrays[noLightNoTextureAppearanceShader], "./shaderReplacement/noLightNoTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[genericHeadlightNoTextureAppearanceShader], "./shaderReplacement/genericHeadlightNoTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[multiLightNoTextureAppearanceShader], "./shaderReplacement/multiLightNoTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[headlightOneTextureAppearanceShader], "./shaderReplacement/headlightOneTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[headlightMultiTextureAppearanceShader], "./shaderReplacement/headlightMultiTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[multiLightMultiTextureAppearanceShader], "./shaderReplacement/multiLightMultiTextureAppearanceShader");
+
+		/* tell the child_Shape routine to use these shaders, if there is not a user-specified shader */
+		rdr_caps.haveGenericAppearanceShader = TRUE;
 	} else {
 		/* put non-shader stuff here eventually */
 	}

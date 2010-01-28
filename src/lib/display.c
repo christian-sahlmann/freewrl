@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.36 2010/01/28 15:01:19 crc_canada Exp $
+  $Id: display.c,v 1.37 2010/01/28 20:50:48 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -255,7 +255,6 @@ bool initialize_rdr_caps()
 	/* Initialize renderer capabilities without GLEW */
 
 	/* Shaders */
-	rdr_caps.haveGenericAppearanceShader = FALSE;
         rdr_caps.av_glsl_shaders = (strstr (rdr_caps.extensions, "GL_ARB_fragment_shader")!=0);
 	
 	/* Multitexturing */

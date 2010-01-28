@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.40 2010/01/28 15:01:19 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.41 2010/01/28 20:50:48 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -165,10 +165,36 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	lightParamsDirty = TRUE;
 }
 
+void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_TwoSidedMaterial *material_twoSided) {
+	shader_type_t whichShader;
 
-void chooseAppearanceShader() {
-	currentShaderStruct = &(rdr_caps.genericHeadlightNoTextureAppearanceShader);
-	globalCurrentShader = rdr_caps.genericHeadlightNoTextureAppearanceShader.myShaderProgram;
+	/* is the headlight on? */
+	if (lights[HEADLIGHT_LIGHT]) {
+		whichShader = genericHeadlightNoTextureAppearanceShader;
+	} else {
+		whichShader = noLightNoTextureAppearanceShader;
+	}
+	
+	currentShaderStruct = &(rdr_caps.shaderArrays[whichShader]);
+	globalCurrentShader = currentShaderStruct->myShaderProgram;
+	USE_SHADER(globalCurrentShader);
+
+	switch (whichShader) {
+		case noLightNoTextureAppearanceShader:
+			/* send up material selection to shader */
+			glUniform4fv(currentShaderStruct->myMaterialEmission,1,material_oneSided->_ecol.c);
+		break;
+		case genericHeadlightNoTextureAppearanceShader:
+			/* send up material selection to shader */
+			glUniform4fv(currentShaderStruct->myMaterialAmbient,1,material_oneSided->_amb.c);
+			glUniform4fv(currentShaderStruct->myMaterialDiffuse,1,material_oneSided->_dcol.c);
+			glUniform4fv(currentShaderStruct->myMaterialSpecular,1,material_oneSided->_scol.c);
+			glUniform1f(currentShaderStruct->myMaterialShininess,material_oneSided->_shin);
+			glUniform4fv(currentShaderStruct->myMaterialEmission,1,material_oneSided->_ecol.c);
+		break;
+		default: {}; /* invalid shader here... */
+
+	}
 	lightParamsDirty = FALSE;
 	lightStatusDirty = FALSE;
 }
