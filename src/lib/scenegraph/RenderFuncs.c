@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.39 2010/01/27 21:18:52 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.40 2010/01/28 15:01:19 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -37,6 +37,7 @@
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Textures.h"
+#include "../scenegraph/Component_ProgrammableShaders.h"
 
 #include "Polyrep.h"
 #include "Collision.h"
@@ -68,9 +69,12 @@ static int nextFreeLight = 0;
 /* lights status. Light 7 is the headlight */
 static int lights[8];
 
+/* which shader is currently selected (general appearance shaders) */
+static s_shader_capabilities_t *currentShaderStruct = NULL;
+
 /* should we send light changes along? */
-bool lightStatusDirty = FALSE;
-bool lightParamsDirty = FALSE;
+static bool lightStatusDirty = FALSE;
+static bool lightParamsDirty = FALSE;
 
 /* we assume max 8 lights. The max light is the Headlight, so we go through 0-6 for Lights */
 int nextlight() {
@@ -161,12 +165,10 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	lightParamsDirty = TRUE;
 }
 
-/* send this info to the shader, if required */
-void propagateLightingInfo(void) {
-	if (rdr_caps.genericAppearanceShader != 0) {
-		printf ("propagate, have shader\n");
-	}
 
+void chooseAppearanceShader() {
+	currentShaderStruct = &(rdr_caps.genericHeadlightNoTextureAppearanceShader);
+	globalCurrentShader = rdr_caps.genericHeadlightNoTextureAppearanceShader.myShaderProgram;
 	lightParamsDirty = FALSE;
 	lightStatusDirty = FALSE;
 }

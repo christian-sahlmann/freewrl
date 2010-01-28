@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.24 2010/01/27 21:18:52 crc_canada Exp $
+  $Id: main.c,v 1.25 2010/01/28 15:01:19 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -198,6 +198,7 @@ bool initFreeWRL(freewrl_params_t *params)
 #endif
 	if (global_use_shaders_when_possible) {
 		TRACE_MSG("Env: USE_SHADERS_WHEN_POSSIBLE  enabled.\n");
+		rdr_caps.haveGenericAppearanceShader = TRUE;
 	}
 
 	/* Check parameters */

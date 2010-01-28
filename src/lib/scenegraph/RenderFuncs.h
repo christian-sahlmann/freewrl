@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.h,v 1.7 2010/01/27 21:18:52 crc_canada Exp $
+$Id: RenderFuncs.h,v 1.8 2010/01/28 15:01:19 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -48,7 +48,7 @@ void restoreLightState(int *ls);
 void fwglLightfv (int light, int pname, GLfloat *params);
 void fwglLightf (int light, int pname, GLfloat param);
 void initializeLightTables(void);
-void propagateLightingInfo(void);
+void chooseAppearanceShader(void);
 
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

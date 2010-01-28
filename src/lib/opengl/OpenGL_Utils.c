@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.93 2010/01/27 21:18:52 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.94 2010/01/28 15:01:19 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -185,7 +185,7 @@ static void shaderErrorLog(GLuint myShader) {
 }
 
 /* read in shaders and place the resulting shader program in the "whichShader" field if success. */
-static void getAppearanceShader(char *pathToShaders) {
+static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToShaders) {
 	char *inTextFile;
 	char *inTextPointer;
 	GLint success;
@@ -202,7 +202,8 @@ static void getAppearanceShader(char *pathToShaders) {
 	printf ("getAppearanceShader, path %s\n",inTextFile);
 	inTextPointer = readInputString(inTextFile);
 	if (inTextPointer==NULL) return;
-
+	
+	(*myShader).myShaderProgram = CREATE_PROGRAM;
 
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
 	SHADER_SOURCE(myVertexShader, 1, (const GLchar **) &inTextPointer, NULL);
@@ -211,7 +212,7 @@ static void getAppearanceShader(char *pathToShaders) {
 	if (!success) {
 		shaderErrorLog(myVertexShader);
 	} else {
-		ATTACH_SHADER(rdr_caps.genericAppearanceShader, myVertexShader);
+		ATTACH_SHADER(((*myShader)).myShaderProgram, myVertexShader);
 	}
 	FREE_IF_NZ(inTextPointer);
 
@@ -230,21 +231,21 @@ static void getAppearanceShader(char *pathToShaders) {
 	if (!success) {
 		shaderErrorLog(myFragmentShader);
 	} else {
-		ATTACH_SHADER(rdr_caps.genericAppearanceShader, myFragmentShader);
+		ATTACH_SHADER((*myShader).myShaderProgram, myFragmentShader);
 	}
 	FREE_IF_NZ(inTextPointer);
 	FREE_IF_NZ(inTextFile);
 
-	rdr_caps.myMaterialAmbient = GET_UNIFORM(rdr_caps.genericAppearanceShader,"myMaterialAmbient");
-	rdr_caps.myMaterialDiffuse = GET_UNIFORM(rdr_caps.genericAppearanceShader,"myMaterialDiffuse");
-	rdr_caps.myMaterialSpecular = GET_UNIFORM(rdr_caps.genericAppearanceShader,"myMaterialSpecular");
-	rdr_caps.myMaterialShininess = GET_UNIFORM(rdr_caps.genericAppearanceShader,"myMaterialShininess");
-	rdr_caps.myMaterialEmission = GET_UNIFORM(rdr_caps.genericAppearanceShader,"myMaterialEmission");
-	rdr_caps.lightState = GET_UNIFORM(rdr_caps.genericAppearanceShader,"lightState");
-	rdr_caps.lightAmbient = GET_UNIFORM(rdr_caps.genericAppearanceShader,"lightAmbient");
-	rdr_caps.lightDiffuse = GET_UNIFORM(rdr_caps.genericAppearanceShader,"lightDiffuse");
-	rdr_caps.lightSpecular = GET_UNIFORM(rdr_caps.genericAppearanceShader,"lightSpecular");
-	rdr_caps.lightPosition = GET_UNIFORM(rdr_caps.genericAppearanceShader,"lightPosition");
+	(*myShader).myMaterialAmbient = GET_UNIFORM((*myShader).myShaderProgram,"myMaterialAmbient");
+	(*myShader).myMaterialDiffuse = GET_UNIFORM((*myShader).myShaderProgram,"myMaterialDiffuse");
+	(*myShader).myMaterialSpecular = GET_UNIFORM((*myShader).myShaderProgram,"myMaterialSpecular");
+	(*myShader).myMaterialShininess = GET_UNIFORM((*myShader).myShaderProgram,"myMaterialShininess");
+	(*myShader).myMaterialEmission = GET_UNIFORM((*myShader).myShaderProgram,"myMaterialEmission");
+	(*myShader).lightState = GET_UNIFORM((*myShader).myShaderProgram,"lightState");
+	(*myShader).lightAmbient = GET_UNIFORM((*myShader).myShaderProgram,"lightAmbient");
+	(*myShader).lightDiffuse = GET_UNIFORM((*myShader).myShaderProgram,"lightDiffuse");
+	(*myShader).lightSpecular = GET_UNIFORM((*myShader).myShaderProgram,"lightSpecular");
+	(*myShader).lightPosition = GET_UNIFORM((*myShader).myShaderProgram,"lightPosition");
 
 }
 
@@ -569,8 +570,11 @@ OLDCODE        }
 
 	/* are we using shaders for Appearance, etc? (OpenGL-ES) */
 	if (global_use_shaders_when_possible) {
-		getAppearanceShader("./shaderReplacement/freewrlAppearanceShader");
-
+		getAppearanceShader(&rdr_caps.genericHeadlightNoTextureAppearanceShader, "./shaderReplacement/genericHeadlightNoTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.multiLightNoTextureAppearanceShader, "./shaderReplacement/multiLightNoTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.headlightOneTextureAppearanceShader, "./shaderReplacement/headlightOneTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.headlightMultiTextureAppearanceShader, "./shaderReplacement/headlightMultiTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.multiLightMultiTextureAppearanceShader, "./shaderReplacement/multiLightMultiTextureAppearanceShader");
 	} else {
 		/* put non-shader stuff here eventually */
 	}
