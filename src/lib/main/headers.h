@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.104 2010/01/19 19:18:47 crc_canada Exp $
+$Id: headers.h,v 1.105 2010/01/29 21:11:09 crc_canada Exp $
 
 Global includes.
 
@@ -752,7 +752,7 @@ void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **pt
 /* int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes); */
 void removeFilenameFromPath (char *path);
 
-int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, int retarrsize);
+int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *node);
 void EAI_Route(char cmnd, const char *tf);
 void EAI_replaceWorld(const char *inputstring);
 

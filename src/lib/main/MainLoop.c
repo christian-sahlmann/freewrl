@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.97 2010/01/25 00:28:31 dug9 Exp $
+  $Id: MainLoop.c,v 1.98 2010/01/29 21:11:08 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1849,6 +1849,7 @@ void setDisplayed (int state) {
 
 void setEaiVerbose() {
         eaiverbose = TRUE;
+printf ("set EAIVerbose to true\n");
 }
 
 /* called from the standalone OSX front end and the OSX plugin */

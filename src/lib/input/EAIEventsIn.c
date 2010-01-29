@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.38 2009/12/10 20:51:54 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.39 2010/01/29 21:11:07 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -94,7 +94,7 @@ void EAI_parse_commands () {
 	char buf[EAIREADSIZE];	/* return value place*/
 	char ctmp[EAIREADSIZE];	/* temporary character buffer*/
 	char dtmp[EAIREADSIZE];	/* temporary character buffer*/
-	uintptr_t nodarr[200]; /* returning node/backnode combos from CreateVRML fns.*/
+	struct X3D_Group *retGroup;
 
 	int count;
 	char command;
@@ -267,6 +267,8 @@ void EAI_parse_commands () {
 			case CREATEVU:
 			case CREATEVS: {
 				/*format int seq# COMMAND vrml text     string EOT*/
+
+				retGroup = createNewX3DNode(NODE_Group);
 				if (command == CREATEVS) {
 					if (eaiverbose) {	
 						printf ("CREATEVS %s\n",&EAI_BUFFER_CUR);
@@ -281,7 +283,7 @@ void EAI_parse_commands () {
 
 					*EOT = 0; /* take off the EOT marker*/
 
-					ra = EAI_CreateVrml("String",(&EAI_BUFFER_CUR),nodarr,200);
+					ra = EAI_CreateVrml("String",(&EAI_BUFFER_CUR),retGroup);
 					/* finish this, note the pointer maths */
 					bufPtr = EOT+3-EAIbuffer;
 				} else {
@@ -312,24 +314,18 @@ void EAI_parse_commands () {
 /* 						printf ("CREATEVU %s\n",filename); */
 /* 					}	 */
 
-/* 					ra = EAI_CreateVrml("URL",filename,nodarr,200); */
-					ra = EAI_CreateVrml("URL", mypath, nodarr, 200);
+					ra = EAI_CreateVrml("URL", mypath, retGroup);
 /* 					FREE_IF_NZ(filename); */
 					FREE_IF_NZ(mypath);
 				}
 
+				/* printf ("ok, we are going to return the following number of nodes: %d\n",retGroup->children.n); */
 				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
-				for (rb = 0; rb < ra; rb++) {
-					/* printf ("create returns %d of %d %u\n",rb, ra, nodarr[rb]); */
-					/* we have to skip the "perl" nodes, as they are not used and are
-					   always going to be zero, but the real ones have to be EAIregistered */
-					if (nodarr[rb] == 0)
-						strcat (buf, "0 ");
-					else {
-						sprintf (ctmp,"%d ", registerEAINodeForAccess(X3D_NODE(nodarr[rb])));
-						strcat (buf,ctmp);
-					}
+				for (rb = 0; rb < retGroup->children.n; rb++) {
+					sprintf (ctmp,"%d ", registerEAINodeForAccess(X3D_NODE(retGroup->children.p[rb])));
+					strcat (buf,ctmp);
 				}
+				markForDispose(X3D_NODE(retGroup),FALSE);
 				break;
 				}
 
@@ -527,7 +523,8 @@ void EAI_parse_commands () {
 
 				/* set up the beginnings of the return string... */
 				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
-
+	
+				retGroup = createNewX3DNode(NODE_Group);
 				if (command == CREATENODE) {
 					if (eaiverbose) {	
 						printf ("CREATENODE, %s is this a simple node? %d\n",ctmp,findFieldInNODES(ctmp));
@@ -541,18 +538,20 @@ void EAI_parse_commands () {
 						/* set ra to 0 so that the sprintf below is not used */
 						ra = 0;
 					} else {
-						ra = EAI_CreateVrml("CREATENODE",ctmp,nodarr,200); 
+						ra = EAI_CreateVrml("CREATENODE",ctmp,retGroup); 
 					}
 				} else if (command == CREATEPROTO)
-					ra = EAI_CreateVrml("CREATEPROTO",ctmp,nodarr,200); 
+					ra = EAI_CreateVrml("CREATEPROTO",ctmp,retGroup); 
 				else 
 					printf ("eai - huh????\n");
 
 
-				for (rb = 0; rb < ra; rb++) {
-					sprintf (ctmp,"%ld ", nodarr[rb]);
+				for (rb = 0; rb < retGroup->children.n; rb++) {
+					sprintf (ctmp,"%ld ", retGroup->children.p[rb]);
 					strcat (buf,ctmp);
 				}
+
+				markForDispose(X3D_NODE(retGroup),FALSE);
 				break;
 				}
 
@@ -625,9 +624,9 @@ void handleGETROUTES (char *bufptr, char *buf, int repno) {
 	for (count = 1; count < (numRoutes-1); count++) {
 		getSpecificRoute (count,&fromNode, &fromOffset, &toNode, &toOffset);
 
-		sprintf (ctmp, "%d %u %s %d %u %s ",0,(unsigned int) fromNode,
+		sprintf (ctmp, "%u %s %u %s ",(unsigned int) fromNode,
 			findFIELDNAMESfromNodeOffset(X3D_NODE(fromNode),fromOffset),
-			0,(unsigned int) toNode,
+			(unsigned int) toNode,
 			findFIELDNAMESfromNodeOffset(X3D_NODE(toNode),toOffset)
 			);
 		strcat (buf,ctmp);
@@ -653,10 +652,10 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 
 	/* is this the SAI asking for the root node? */
 	if (strcmp(ctmp,SYSTEMROOTNODE)) {
-		sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,repno, EAI_GetNode(ctmp));
+		sprintf (buf,"RE\n%f\n%d\n%d",TickTime,repno, EAI_GetNode(ctmp));
 	} else {
 		/* yep i this is a call for the rootNode */
-		sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,repno, EAI_GetRootNode());
+		sprintf (buf,"RE\n%f\n%d\n%d",TickTime,repno, EAI_GetRootNode());
 	}
 	if (eaiverbose) {	
 		printf ("GETNODE returns %s\n",buf); 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.23 2009/12/28 03:00:50 dug9 Exp $
+$Id: jsVRMLBrowser.c,v 1.24 2010/01/29 21:11:09 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -439,7 +439,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 	char *_c, *_c_args = "SFString vrmlSyntax", *_c_format = "s";
 
 	/* for the return of the nodes */
-	uintptr_t nodarr[200];
+	struct X3D_Group *retGroup;
 	char *xstr; 
 	char *tmpstr;
 	int ra;
@@ -460,7 +460,8 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 
 		/* do the call to make the VRML code  - create a new browser just for this string */
 		savedParser = globalParser; globalParser = NULL;
-		ra = EAI_CreateVrml("String",_c,nodarr,200);
+		retGroup = createNewX3DNode(NODE_Group);
+		ra = EAI_CreateVrml("String",_c,retGroup);
 		globalParser = savedParser; /* restore it */
 
 
@@ -473,9 +474,9 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		MallocdSize = 200;
 		xstr = MALLOC (MallocdSize);
 		strcpy (xstr,"new MFNode(");
-		for (count=0; count<ra; count += 2) {
+		for (count=0; count<retGroup->children.n; count ++) {
 			tmpstr = MALLOC(strlen(_c) + 100);
-			sprintf (tmpstr,"new SFNode('%s','%p')",_c, (void*) nodarr[count*2+1]);
+			sprintf (tmpstr,"new SFNode('%s','%p')",_c, (void*) retGroup->children.p[count]);
 			wantedsize = strlen(tmpstr) + strlen(xstr);
 			if (wantedsize > MallocdSize) {
 				MallocdSize = wantedsize +200;
@@ -487,6 +488,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 			FREE_IF_NZ (tmpstr);
 		}
 		strcat (xstr,")");
+		markForDispose(retGroup,FALSE);
 		
 		#ifdef JSVERBOSE
 		printf ("running runscript on :%s:\n",xstr);
