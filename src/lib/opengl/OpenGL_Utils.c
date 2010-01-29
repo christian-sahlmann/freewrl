@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.95 2010/01/28 20:50:48 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.96 2010/01/29 14:42:48 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -579,6 +579,7 @@ OLDCODE        }
 /*
 	we choose the shader based on the following, so get all the shaders loaded 
 
+	noAppearanceNoMaterialShader:			no lighting, no appearance.
         noLightNoTextureAppearanceShader:		no lights, no textures, only emissive lights.
         genericHeadlightNoTextureAppearanceShader:	headlight on, no textures.
         multiLightNoTextureAppearanceShader:		more than headlight on; no textures.
@@ -587,8 +588,9 @@ OLDCODE        }
         multiLightMultiTextureAppearanceShader:		everything including kitchen sink.
 */
 
-		getAppearanceShader(&rdr_caps.shaderArrays[noLightNoTextureAppearanceShader], "./shaderReplacement/noLightNoTextureAppearanceShader");
 		getAppearanceShader(&rdr_caps.shaderArrays[genericHeadlightNoTextureAppearanceShader], "./shaderReplacement/genericHeadlightNoTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[noLightNoTextureAppearanceShader], "./shaderReplacement/noLightNoTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[noAppearanceNoMaterialShader], "./shaderReplacement/noAppearanceNoMaterialShader");
 		getAppearanceShader(&rdr_caps.shaderArrays[multiLightNoTextureAppearanceShader], "./shaderReplacement/multiLightNoTextureAppearanceShader");
 		getAppearanceShader(&rdr_caps.shaderArrays[headlightOneTextureAppearanceShader], "./shaderReplacement/headlightOneTextureAppearanceShader");
 		getAppearanceShader(&rdr_caps.shaderArrays[headlightMultiTextureAppearanceShader], "./shaderReplacement/headlightMultiTextureAppearanceShader");

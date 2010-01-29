@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.30 2010/01/28 20:50:48 crc_canada Exp $
+$Id: Component_Shape.c,v 1.31 2010/01/29 14:42:48 crc_canada Exp $
 
 X3D Shape Component
 
@@ -43,6 +43,7 @@ X3D Shape Component
 #include "../opengl/Textures.h"
 #include "Component_ProgrammableShaders.h"
 #include "Component_Shape.h"
+#include "RenderFuncs.h"
 
 
 static int     linePropertySet;  /* line properties -width, etc                  */
@@ -506,11 +507,11 @@ void child_Shape (struct X3D_Shape *node) {
 			if (material_oneSided != NULL) {
 				/* we have a normal material node */
 				appearanceProperties.transparency = material_oneSided->transparency;
-				do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_oneSided->_dcol.c); 
-				do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_oneSided->_amb.c);
-				do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_oneSided->_scol.c);
-				do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, material_oneSided->_ecol.c);
-				do_shininess(GL_FRONT_AND_BACK,material_oneSided->shininess);
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_DIFFUSE, material_oneSided->_dcol.c); 
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_AMBIENT, material_oneSided->_amb.c);
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_SPECULAR, material_oneSided->_scol.c);
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_EMISSION, material_oneSided->_ecol.c);
+				FW_GL_MATERIALF(GL_FRONT_AND_BACK, GL_SHININESS,material_oneSided->_shin);
 			} else if (material_twoSided != NULL) {
 				GLenum whichFace;
 				float trans;

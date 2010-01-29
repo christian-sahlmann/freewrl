@@ -90,6 +90,10 @@ OSX plugin:
 21) Some alpha textures are not sorted properly - can we fix?
 	- DONE - sort on nearest bounding box vertex now; also re-work alpha blending modes.
 
+22) OpenGL-ES porting:
+	- more shaders for material selections;
+	- face culling; 
+	- revisit two_sided material, follow compile and run of one-sided material.
 
 ============================================================================
 

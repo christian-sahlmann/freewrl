@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.51 2010/01/28 20:50:48 crc_canada Exp $
+  $Id: display.h,v 1.52 2010/01/29 14:42:48 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -155,6 +155,7 @@ typedef struct {
 } s_renderer_capabilities_t;
 
 typedef enum shader_type {
+	noAppearanceNoMaterialShader,
 	noLightNoTextureAppearanceShader,
 	genericHeadlightNoTextureAppearanceShader,
 	multiLightNoTextureAppearanceShader,
