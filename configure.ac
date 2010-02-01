@@ -534,17 +534,16 @@ AC_SUBST(PLUGIN_LIBS)
 # Status bar configuration
 # ======================================
 AC_ARG_WITH([statusbar],
-        [AS_HELP_STRING([--with-statusbar=<standard,hud>],[Select status bar flavor])],
-        [SB=$withval],
-        [SB=standard])
+        [AS_HELP_STRING([--with-statusbar=@<:@standard,hud@:>@],[Select status bar flavor])],
+        [statusbar="$withval"],
+        [statusbar="standard"])
 
-case "$SB" in
-     standard|hud) AC_MSG_NOTICE([Status bar flavor: $SB.]) ;; # valid input
-     *) AC_MSG_ERROR([Invalid input for status bar flavor: $SB.]) ;;
+case "$statusbar" in
+     standard|hud) AC_MSG_NOTICE([Status bar flavor: $statusbar]) ;; # valid input
+     *) AC_MSG_ERROR([Invalid input for status bar flavor: $statusbar]) ;;
 esac
-
-AM_CONDITIONAL([STATUSBAR_STD], [test "$SB" = standard])
-AM_CONDITIONAL([STATUSBAR_HUD], [test "$SB" = hud])
+AM_CONDITIONAL([STATUSBAR_STD], [test "$statusbar" = standard])
+AM_CONDITIONAL([STATUSBAR_HUD], [test "$statusbar" = hud])
 
 # ======================================
 # FreeWRL helpers programs
