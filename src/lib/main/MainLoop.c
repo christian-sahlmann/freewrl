@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.98 2010/01/29 21:11:08 crc_canada Exp $
+  $Id: MainLoop.c,v 1.99 2010/02/01 17:11:53 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -891,34 +891,8 @@ static void render()
 	/* status bar, if we have one */
 	drawStatusBar();
 
-#ifndef IPHONE
-#if defined( AQUA ) 
-#ifdef OLDCODE
-OLDCODE	if (RUNNINGASPLUGIN) {
-OLDCODE	    aglSetCurrentContext(aqglobalContext);
-OLDCODE	    aglSwapBuffers(aqglobalContext);
-OLDCODE	} else {
-#endif
-if (myglobalContext == NULL) printf ("hmmm - going to flush and myglobalContext is NULL\n");
-	    CGLError err = FW_GL_CGLFLUSHDRAWABLE(myglobalContext);
-	    
-	    if (err != kCGLNoError) printf ("FW_GL_CGLFLUSHDRAWABLE error %d\n",err);
-#ifdef OLDCODE
-OLDCODE	}
-#endif
-#else
-
-#if defined( WIN32 )
-
-	SwapBuffers(wglGetCurrentDC());
-
-#else
-
-	glXSwapBuffers(Xdpy,GLwin);
-
-#endif
-#endif
-#endif
+	/* swap the rendering area */
+	FW_GL_SWAPBUFFERS;
 
         PRINT_GL_ERROR_IF_ANY("XEvents::render");
 }

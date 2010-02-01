@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.52 2010/01/29 14:42:48 crc_canada Exp $
+  $Id: display.h,v 1.53 2010/02/01 17:11:53 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -52,12 +52,6 @@ extern int ocurse;
 # include <OpenGL/CGLTypes.h>
 
 # include <AGL/AGL.h> 
-#ifdef OLDCODE
-OLDCODEextern GLboolean cErr;
-OLDCODEextern GDHandle gGDevice;
-OLDCODEextern AGLContext aqglobalContext;
-#endif
-
 
 /* Main initialization function */
 int display_initialize();
@@ -184,10 +178,6 @@ extern int ocurse;
 extern int PaneClipnpx;
 extern int PaneClipnpy;
 
-#ifdef OLDCODE
-OLDCODE extern WindowPtr PaneClipfwWindow;
-#endif
-
 extern int PaneClipct;
 extern int PaneClipcb;
 extern int PaneClipcr;
@@ -195,10 +185,6 @@ extern int PaneClipcl;
 extern int PaneClipwidth;
 extern int PaneClipheight;
 extern int PaneClipChanged;
-
-#ifdef OLDCODE
-OLDCODEvoid eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height);
-#endif
 
 # if defined(WANT_MULTI_OPENGL_THREADS)
 /* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
@@ -383,159 +369,44 @@ void setScreenDim(int wi, int he);
 #endif
 #endif
 
-
-/* debugging OpenGL calls  - allows us to keep track of what is happening */
-#undef DEBUG_OPENGL_CALLS
-#ifdef DEBUG_OPENGL_CALLS
-	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) \
-		{glOrtho(aaa,bbb,ccc,ddd,eee,fff); \
-		printf ("glOrtho at %s:%d\n",__FILE__,__LINE__);}
-
-	#define FW_GL_LINEWIDTH(aaa) \
-		{glLineWidth(aaa); \
-		printf ("glLineWdith at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_DEPTHMASK(aaa) \
-		{glDepthMask(aaa);
-		printf ("glDepthMask at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_COLOR3F(aaa,bbb,ccc) \
-		{glColor3f(aaa,bbb,ccc);\
-		printf ("glColor3f at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_COLOR4FV(aaa) \
-		{glColor3fv(aaa);\
-		printf ("glColor4fv at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_RASTERPOS2I(aaa,bbb) \
-		{glRasterPos2i(aaa,bbb); \
-		printf ("glRasterPos2i at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) \
-		{glScissor(aaa,bbb,ccc,ddd); \
-		printf ("glScissor at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_ENABLE(aaa) \
-		{glEnable(aaa); \
-		 printf ("glEnable %d at %s:%d\n",aaa,__FILE__,__LINE__);}
-	#define FW_GL_DISABLE(aaa) \
-		{glDisable(aaa); \
-		 printf ("glDisable %d at %s:%d\n",aaa,__FILE__,__LINE__);}
-
-	#define FW_GL_ENABLECLIENTSTATE(aaa) \
-		{glEnableClientState(aaa); \
-		 printf ("glEnableClientState %d at %s:%d\n",aaa,__FILE__,__LINE__);}
-	#define FW_GL_DISABLECLIENTSTATE(aaa) \
-		{glDisableClientState(aaa); \
-		 printf ("glDisableClientState %d at %s:%d\n",aaa,__FILE__,__LINE__);}
-
-	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) \
-		{glDrawArrays(xxx,yyy,zzz); \
-		printf ("glDrawArrays tat %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) \
-		{fw_glTranslatef(xxx,yyy,zzz); \
-		printf ("fw_glTranslatef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) \
-		{fw_glTranslated(xxx,yyy,zzz); \
-		printf ("fw_glTranslated\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) \
-		{fw_glRotatef(aaa,xxx,yyy,zzz); \
-		printf ("fw_glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) \
-		{fw_glRotated(aaa,xxx,yyy,zzz); \
-		printf ("fw_glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) \
-		{fw_glRotateRad(aaa,xxx,yyy,zzz); \
-		printf ("fw_glRotateRadians\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
-	
-	#define FW_GL_SCALE_F(xxx,yyy,zzz) \
-		{fw_glScalef(xxx,yyy,zzz); \
-		printf ("fw_glScalef\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define FW_GL_SCALE_D(xxx,yyy,zzz) \
-		{fw_glScaled(xxx,yyy,zzz); \
-		printf ("fw_glScaled\t%6.2f %6.2f %6.2f\tat %s:%d\n",xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define FW_GL_LOAD_IDENTITY(aaa) {fw_glLoadIdentity();printf ("fw_glLoadIdentity\t at%s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_PUSH_MATRIX(aaa) {fw_glPushMatrix();printf ("fw_glPushMatrix\t at%s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_POP_MATRIX(aaa) {fw_glPopMatrix();printf ("fw_glPopMatrix\t at%s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_ALPHAFUNC(aaa,bbb){glAlphaFunc(aaa,bbb); printf ("glAlphaFunc at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_MATRIX_MODE(aaa) {fw_glMatrixMode(aaa); \
-		printf ("fw_glMatrixMode("); \
-		if (aaa==GL_TEXTURE) printf ("GL_TEXTURE"); \
-		else if (aaa==GL_MODELVIEW) printf ("GL_MODELVIEW"); \
-		else if (aaa==GL_PROJECTION) printf ("GL_PROJECTION"); \
-		else printf ("unknown mode"); printf (")\tat %s:%d\n",__FILE__,__LINE__); }
-	#define FW_GL_GETDOUBLEV(aaa,bbb) \
-		{ fw_glGetDoublev(aaa,bbb); \
-		printf ("fw_glGetDoublev at %s:%d\n",__FILE__,__LINE__);}
-
-	#define FW_GL_PUSH_ATTRIB(aaa) \
-		{ glPushAttrib(aaa); \
-		printf ("glPushAttrib at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_POP_ATTRIB(aaa) \
-		{ glPopAttrib(aaa); \
-		printf ("glPopAttrib at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_WINDOWPOS2I(aaa,bbb) \
-		{ glWindowPos2i(aaa,bbb); \
-		printf ("glWindowPos2i at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_FLUSH() \
-		{glFlush(); \
-		printf ("glFlush at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_PIXELZOOM(aaa,bbb) \
-		{glPixelZoom(aaa,bbb); \
-		glPixelZoom(aaa,bbb);}
-	#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd) \
-		{ glClearColor(aaa,bbb,ccc,ddd);
-		printf ("glClearColor at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_CLEAR_DEPTH(aaa) \
-		{glClearDepth(aaa); \
-		printf ("glClearDepth at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_LIGHTMODELFV(aaa,bbb) \
-		{glLightModelfv(aaa,bbb); \
-		printf ("glLightModelfv at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_LIGHTMODELI(aaa,bbb) \
-		{glLightModeli(aaa,bbb); \
-		printf ("glLightModeli at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) \
-		{glFrustum(aaa,bbb,ccc,ddd,eee,fff); \
-		printf ("glFrustum at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_BLENDFUNC(aaa,bbb) \
-		{glBlendFunc(aaa,bbb); \
-		printf ("glBlendFunc at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_LIGHTF(aaa,bbb,ccc) \
-		{fwglLightf(aaa,bbb,ccc);\
-		printf ("glLightf at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_LIGHTFV(aaa,bbb,ccc) \
-		{fwglLightfv(aaa,bbb,ccc);\
-		printf ("glLightfv at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_HINT(aaa,bbb) \
-		{glHint(aaa,bbb); \
-		printf ("glHint at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_CLEAR(aaa) \
-		{glClear(aaa); \
-		printf ("glClear at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_DEPTHFUNC(aaa) \
-		{glDepthFunc(aaa); \
-		printf ("glDepthFunc at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_SHADEMODEL(aaa) \
-		{glShadeModel(aaa); \
-		printf ("glShadeModel at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_PIXELSTOREI(aaa,bbb) \
-		{glPixelStorei(aaa,bbb); \
-		printf ("glPixelNstorei at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_POINTSIZE(aaa) \
-		{glPointSize(aaa); \
-		printf ("glPointSize at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_CGLFLUSHDRAWABLE(aaa) \
-		CGLFlushDrawable(aaa); \
-		printf ("CGLFLushDrawable at %s:%d\n",__FILE__,__LINE__);
-	#define FW_GL_GETDOUBLEV(aaa,bbb) \
-		{glGetDoublev(aaa,bbb);
-		printf ("glGetDoublev at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) \
-		{glViewport(aaa,bbb,ccc,ddd);
-		printf ("glViewpoirt at %s:%d\n",__FILE__,__LINE__);}
-	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) \
-		gluPerspective(aaa,bbb,ccc,ddd); \
-		printf ("gluPerspective at %s:%d\n",__FILE__,__LINE__);}
-	#define SET_TEXTURE_UNIT(aaa) { printf ("setActiveTexture to %d at %s:%d\n",aaa,__FILE__,__LINE__); \
-			glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
-
-#else /* DEBUG_OPENGL_CALLS */
+/* OpenGL-2.x and OpenGL-3.x "desktop" systems calls */
 #ifndef IPHONE
+	/****************************************************************/
+	/* First - any platform specifics to do? 			*/
+	/****************************************************************/
+
+	#if defined(_MSC_VER)
+		#define FW_GL_PUSH_MATRIX(...) fw_glPushMatrix()
+		#define FW_GL_POP_MATRIX(...) fw_glPopMatrix()
+		#define FW_GL_SWAPBUFFERS SwapBuffers(wglGetCurrentDC());
+	#endif
+
+	#if defined (TARGET_AQUA)
+		#define FW_GL_SWAPBUFFERS { \
+			CGLError err = FW_GL_CGLFLUSHDRAWABLE(myglobalContext); \
+			if (err != kCGLNoError) printf ("FW_GL_CGLFLUSHDRAWABLE error %d\n",err); }
+
+	#endif
+
+	#if defined (TARGET_X11)
+		#define FW_GL_SWAPBUFFERS glXSwapBuffers(Xdpy,GLwin);
+	#endif
+
+
+	/****************************************************************/
+	/* Second - things that might be specific to one platform;	*/
+	/*	this is the "catch for other OS" here 			*/
+	/****************************************************************/
+
+	#if !defined (FW_GL_PUSH_MATRIX)
+		#define FW_GL_PUSH_MATRIX(aaa) fw_glPushMatrix()
+		#define FW_GL_POP_MATRIX(aaa) fw_glPopMatrix()
+	#endif 
+
+	/****************************************************************/
+	/* Third - common across all platforms				*/
+	/****************************************************************/
+
 	#define FW_GL_GETDOUBLEV(aaa,bbb) glGetDoublev(aaa,bbb);
 	#define FW_GL_LOAD_IDENTITY fw_glLoadIdentity
 	#define FW_GL_MATRIX_MODE(aaa) fw_glMatrixMode(aaa)
@@ -559,20 +430,8 @@ void setScreenDim(int wi, int he);
 		{fw_glRotated(aaa,xxx,yyy,zzz); \
 		DEBUG_MSG("fw_glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
 	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) fw_glRotateRad(aaa,xxx,yyy,zzz)
-/*
-	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) fw_glRotated(aaa,xxx,yyy,zzz)
-	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) fw_glRotatef(aaa,xxx,yyy,zzz)
-*/
 	#define FW_GL_SCALE_F(xxx,yyy,zzz) fw_glScalef(xxx,yyy,zzz)
 	#define FW_GL_SCALE_D(xxx,yyy,zzz) fw_glScaled(xxx,yyy,zzz)
-#if defined(_MSC_VER)
-	#define FW_GL_PUSH_MATRIX(...) fw_glPushMatrix()
-	#define FW_GL_POP_MATRIX(...) fw_glPopMatrix()
-#else /* _MSC_VER */
-	#define FW_GL_PUSH_MATRIX(aaa) fw_glPushMatrix()
-	#define FW_GL_POP_MATRIX(aaa) fw_glPopMatrix()
-
-#endif /* _MSC_VER */
 	#define FW_GL_ALPHAFUNC(aaa,bbb) glAlphaFunc(aaa,bbb); 
         #define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) glScissor(aaa,bbb,ccc,ddd); 
         #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
@@ -603,9 +462,40 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
 	#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
 	#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
-#endif /* NDEF IPHONE */
 
-#endif /* DEBUG_OPENGL_CALLS */
+
+#define GLDOUBLE GLdouble
+#define FW_GL_SHADE_MODEL(aaa) glShadeModel(aaa)
+#define FW_GL_FOGFV(aaa, bbb) glFogfv(aaa, bbb)
+#define FW_GL_FOGF(aaa, bbb) glFogf(aaa, bbb)
+#define FW_GL_FOGI(aaa, bbb) glFogi(aaa, bbb)
+#define FW_GLU_NEW_TESS gluNewTess
+#define FW_GLU_END_POLYGON(aaa) gluEndPolygon(aaa)
+#define FW_GLU_BEGIN_POLYGON(aaa) gluBeginPolygon(aaa)
+#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) gluTessVertex(aaa, bbb, ccc)
+#define FW_GLU_NEXT_CONTOUR(aaa, bbb) gluNextContour(aaa,bbb)
+#define FW_GL_BEGIN_QUERY(aaa, bbb) glBeginQuery(aaa, bbb)
+#define FW_GL_END_QUERY(aaa) glEndQuery(aaa)
+#define FW_GL_LINE_STIPPLE(aaa, bbb) glLineStipple(aaa, bbb)
+#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+#define FW_GL_END() glEnd()
+#define FW_GL_VERTEX3D(aaa, bbb, ccc) glVertex3d(aaa, bbb, ccc)
+#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) glVertexPointer(aaa, bbb, ccc, ddd)
+#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) glNormalPointer(aaa, bbb, ccc)
+#define FW_GL_BEGIN(aaa) glBegin(aaa)
+#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
+#define FW_GL_MATERIALFV(aaa, bbb, ccc) glMaterialfv(aaa, bbb, ccc)
+#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
+#define FW_GL_COLOR3D(aaa, bbb, ccc) glColor3d(aaa, bbb, ccc)
+#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluScaleImage(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
+#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
+#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
+#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
+#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
+#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
+#endif /* NDEF IPHONE */
 
 // Use macros to enable compilation under OpenGL ES 2.0 
 #ifdef IPHONE
@@ -800,41 +690,7 @@ void setScreenDim(int wi, int he);
 #define FW_GL_TEXGENI(aaa,bbb,ccc)
 #define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) 
 #define FW_GL_BINDTEXTURE(aaa,bbb)
-
-
-#else  /* ifndef IPHONE */
-
-#define GLDOUBLE GLdouble
-#define FW_GL_SHADE_MODEL(aaa) glShadeModel(aaa)
-#define FW_GL_FOGFV(aaa, bbb) glFogfv(aaa, bbb)
-#define FW_GL_FOGF(aaa, bbb) glFogf(aaa, bbb)
-#define FW_GL_FOGI(aaa, bbb) glFogi(aaa, bbb)
-#define FW_GLU_NEW_TESS gluNewTess
-#define FW_GLU_END_POLYGON(aaa) gluEndPolygon(aaa)
-#define FW_GLU_BEGIN_POLYGON(aaa) gluBeginPolygon(aaa)
-#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) gluTessVertex(aaa, bbb, ccc)
-#define FW_GLU_NEXT_CONTOUR(aaa, bbb) gluNextContour(aaa,bbb)
-#define FW_GL_BEGIN_QUERY(aaa, bbb) glBeginQuery(aaa, bbb)
-#define FW_GL_END_QUERY(aaa) glEndQuery(aaa)
-#define FW_GL_LINE_STIPPLE(aaa, bbb) glLineStipple(aaa, bbb)
-#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-#define FW_GL_END() glEnd()
-#define FW_GL_VERTEX3D(aaa, bbb, ccc) glVertex3d(aaa, bbb, ccc)
-#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) glVertexPointer(aaa, bbb, ccc, ddd)
-#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) glNormalPointer(aaa, bbb, ccc)
-#define FW_GL_BEGIN(aaa) glBegin(aaa)
-#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
-#define FW_GL_MATERIALFV(aaa, bbb, ccc) glMaterialfv(aaa, bbb, ccc)
-#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
-#define FW_GL_COLOR3D(aaa, bbb, ccc) glColor3d(aaa, bbb, ccc)
-#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluScaleImage(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
-#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
-#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
-#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
-#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
-#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
+#define FW_GL_SWAPBUFFERS
 #endif /* ifdef IPHONE */
 
 #endif /* __LIBFREEWRL_DISPLAY_H__ */
