@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.39 2010/01/29 21:11:07 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.40 2010/02/02 20:53:19 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -949,7 +949,7 @@ void createLoadURL(char *bufptr) {
 
 		if (spbrk!=NULL) bufptr = spbrk;
 	}
-	EAI_AnchorNode.__parenturl = newASCIIString("./");
+	/* EAI_AnchorNode.__parenturl = newASCIIString("./"); */
 }
 
 

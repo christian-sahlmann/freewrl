@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.7 2010/01/08 19:43:05 crc_canada Exp $
+  $Id: io_http.c,v 1.8 2010/02/02 20:53:19 crc_canada Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -33,11 +33,11 @@
 #include <internal.h>
 
 #include <libFreeWRL.h>
-
 #include <list.h>
+#include <resources.h>
+
 #include <io_files.h>
 #include <io_http.h>
-#include <resources.h>
 #include <threads.h>
 #include "scenegraph/Vector.h"
 
@@ -290,44 +290,31 @@ char* download_url(const char *url, const char *tmp)
  *
  * this is a Vector; we keep track of n depths.
  */
-char *currentWorkingUrl = NULL;
-static struct Stack *urlStack = NULL;
-
-void pushInputURL(char *url) 
+static struct Stack *resStack = NULL;
+void pushInputResource(resource_item_t *url) 
 {
-	char *stackEntry;
-
-	FREE_IF_NZ(currentWorkingUrl);
-	currentWorkingUrl = STRDUP(url);
-	DEBUG_MSG("current URL is %s\n", currentWorkingUrl);
+	DEBUG_MSG("pushInputResource current Resource is %s\n", url->parsed_request);
 
 	/* push this one */
-	if (urlStack==NULL) {
-		urlStack = newVector (char *, 8);
+	if (resStack==NULL) {
+		resStack = newVector (resource_item_t *, 8);
 	}
 
-	stackEntry = STRDUP(url);
-	stack_push (char *, urlStack, stackEntry);
+	stack_push (resource_item_t*, resStack, url);
 }
 
-void popInputURL() {
-	FREE_IF_NZ(currentWorkingUrl);
-	stack_pop((char *), urlStack);
-	currentWorkingUrl = vector_get (char *, urlStack,((struct Vector*)urlStack)->n);
+void popInputResource() {
+	resource_item_t *cwu;
+	stack_pop((resource_item_t *), resStack);
+
+	cwu = vector_get (resource_item_t *, resStack,((struct Vector*)resStack)->n);
+
+	DEBUG_MSG("popInputResource current Resource is %s\n", cwu->parsed_request);
 }
 
-char *getInputURL()
+resource_item_t *getInputResource()
 {
-	return currentWorkingUrl;
+	DEBUG_MSG("getInputResource \n");
+	if (resStack==NULL) return NULL;
+	return vector_get (resource_item_t *, resStack,((struct Vector*)resStack)->n);
 }
-
-char *resource_current_url(resource_item_t *res)
-{
-	/* What do you want from me ?
-	   - original request ?
-	   - parsed request ?
-	   - actual file ?
-	*/
-	return NULL;
-}
-

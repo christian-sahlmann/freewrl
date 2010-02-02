@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.23 2009/12/31 18:54:32 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.24 2010/02/02 20:53:19 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -180,7 +180,7 @@ static int urlLoadingStatus() {
 int doBrowserAction()
 {
 	struct Multi_String Anchor_url;
-	char *parent_url, *description;
+	char *description;
 	
 	/* are we in the process of polling for a new X3D URL to load? */
 	if (waitingForURLtoLoad) return urlLoadingStatus();
@@ -196,10 +196,9 @@ int doBrowserAction()
 
 	if (AnchorsAnchor != NULL) {
 		Anchor_url = AnchorsAnchor->url;
-		parent_url = AnchorsAnchor->__parenturl->strptr;
 		description = AnchorsAnchor->description->strptr;
 
-		TRACE_MSG("doBrowserAction: parent url=<%s> description: %s\n", parent_url, description);
+		TRACE_MSG("doBrowserAction: description: %s\n", description);
 
 		/* are we going to load up a new VRML/X3D world, or are we going to just go and load up a new web page ? */
 		if (Anchor_url.n < 0) {

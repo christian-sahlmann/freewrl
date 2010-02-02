@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.38 2009/12/17 20:44:56 crc_canada Exp $
+$Id: CScripts.c,v 1.39 2010/02/02 20:53:19 crc_canada Exp $
 
 ???
 
@@ -231,7 +231,7 @@ struct X3D_Script * protoScript_copy (struct X3D_Script *me) {
 	struct X3D_Script* ret;
 
 	ret = createNewX3DNode(NODE_Script);
-	ret->__parenturl = me->__parenturl;
+	ret->_parentResource = me->_parentResource;
 	ret->directOutput = me->directOutput;
 	ret->mustEvaluate = me->mustEvaluate;
 	ret->url = me->url;
@@ -399,7 +399,7 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
 
  res = resource_create_single(uri);
- resource_identify(root_res, res, NULL);
+ resource_identify(root_res, res);
  if (res->type != rest_invalid) {
 	 if (resource_fetch(res)) {
 		 if (resource_load(res)) {

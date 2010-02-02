@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.30 2010/01/20 21:25:21 dug9 Exp $
+  $Id: LoadTextures.c,v 1.31 2010/02/02 20:53:19 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -34,11 +34,9 @@
 #include <internal.h>
 
 #include <list.h>
-
+#include <resources.h>
 #include <io_files.h>
 #include <io_http.h>
-
-#include <resources.h>
 
 #include <threads.h>
 
@@ -510,7 +508,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 {
 	resource_item_t *res;
 	struct Multi_String *url;
-	char *parentPath = NULL;
+	resource_item_t *parentPath = NULL;
 
 	DEBUG_TEX("textureThread - working on %p (%s)\n"
 		  "which is node %p, nodeType %d status %s, opengltex %u, and frames %d\n",
@@ -528,7 +526,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 
 	case NODE_ImageTexture:
 		url = & (((struct X3D_ImageTexture *)entry->scenegraphNode)->url);
-		parentPath = ((struct X3D_ImageTexture *)entry->scenegraphNode)->__parenturl->strptr;
+		parentPath = (resource_item_t *)(((struct X3D_ImageTexture *)entry->scenegraphNode)->_parentResource);
 		break;
 
 	case NODE_MovieTexture:
@@ -536,13 +534,13 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		return TRUE;
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 		url = & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);
-		parentPath = ((struct X3D_ImageTexture *)entry->scenegraphNode)->__parenturl->strptr;
+		parentPath = (resource_item_t *)(((struct X3D_MovieTexture *)entry->scenegraphNode)->_parentResource);
 		break;
 #endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 
 	case NODE_VRML1_Texture2:
 		url = & (((struct X3D_VRML1_Texture2 *)entry->scenegraphNode)->filename);
-		parentPath = ((struct X3D_ImageTexture *)entry->scenegraphNode)->__parenturl->strptr;
+		parentPath = (resource_item_t *)(((struct X3D_VRML1_Texture2 *)entry->scenegraphNode)->_parentResource);
 		break;
 
 	}
@@ -553,14 +551,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		res = resource_create_multi(url);
 		res->media_type = resm_image; /* quick hack */
 
-		/* JAS Doug Sanden reversed my "NULL" param here - so lets ifdef around this
-		   TODO FIXME item; Michel Briand is aware of the issue with parentPaths and
-		   resources */
-#ifdef TARGET_AQUA
-		resource_identify(NULL, res, parentPath);
-#else
-		resource_identify(root_res, res, parentPath); 
-#endif
+		resource_identify(parentPath, res); 
 
 		if (resource_fetch(res)) {
 			if (texture_load_from_file(entry, res->actual_file)) {

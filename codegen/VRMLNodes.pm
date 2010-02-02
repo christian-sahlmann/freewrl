@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.37 2010/01/28 20:50:48 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.38 2010/02/02 20:53:18 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -165,7 +165,7 @@ package VRML::NodeType;
 		bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
-		__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		_sortedChildren => [MFNode, [], inputOutput, 0],
 	},"X3DGroupingNode"),
@@ -181,7 +181,7 @@ package VRML::NodeType;
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
                 __children => [MFNode, [], inputOutput, 0],
 		__loadstatus =>[SFInt32,0,initializeOnly, 0],
-		__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 		_sortedChildren => [MFNode, [], inputOutput, 0],
 		 __loadResource => [FreeWRLPTR, 0, initializeOnly, 0],
 	},"X3DNetworkSensorNode"),
@@ -802,8 +802,7 @@ package VRML::NodeType;
 		isActive => [SFBool, FALSE, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isPaused => [SFBool, TRUE,outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
-		# parent url, gets replaced at node build time
-		__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 		# internal sequence number
 		__sourceNumber => [SFInt32, -1, initializeOnly, 0],
 		# local name, as received on system
@@ -918,7 +917,7 @@ package VRML::NodeType;
 		textureProperties => [SFNode, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
-		__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 	},"X3DTextureNode"),
 
 	MovieTexture => new VRML::NodeType ("MovieTexture", {
@@ -946,8 +945,7 @@ package VRML::NodeType;
 		 #__inittime => [SFTime, 0, initializeOnly, 0],
 		 # internal sequence number
 		 #__sourceNumber => [SFInt32, -1, initializeOnly, 0],
-		# parent url, gets replaced at node build time
-		__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 	},"X3DTextureNode"),
 
 
@@ -982,7 +980,7 @@ package VRML::NodeType;
 		repeatT => [SFBool, TRUE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		textureProperties => [SFNode, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
-		__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 	},"X3DTextureNode"),
 
@@ -1198,7 +1196,7 @@ package VRML::NodeType;
 		textureProperties => [SFNode, NULL, initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
-		__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 	},"X3DEnvironmentTextureNode"),
 
 
@@ -1475,7 +1473,7 @@ package VRML::NodeType;
 		isBound => [SFBool, FALSE, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
-		__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 		__points =>[FreeWRLPTR,0,initializeOnly, 0],
 		__colours =>[FreeWRLPTR,0,initializeOnly, 0],
 		__quadcount => [SFInt32,0,initializeOnly, 0],
@@ -1539,7 +1537,7 @@ package VRML::NodeType;
 		isBound => [SFBool, FALSE, outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
-		__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 		__points =>[FreeWRLPTR,0,initializeOnly, 0],
 		__colours =>[FreeWRLPTR,0,initializeOnly, 0],
 		__quadcount => [SFInt32,0,initializeOnly, 0],
@@ -2061,7 +2059,7 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 			 __scriptObj => [FreeWRLPTR, 0, initializeOnly, 0],
-			__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 					   },"X3DScriptNode"
 					  ),
 
@@ -2212,7 +2210,7 @@ package VRML::NodeType;
 			url => [MFString, [], inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			type => [SFString,"VERTEX",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
-			__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 	}, "X3DUrlObject"),
 
 	ShaderProgram => new VRML::NodeType("ShaderProgram", {
@@ -2221,7 +2219,7 @@ package VRML::NodeType;
 			type => [SFString,"",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 			 __shaderObj => [FreeWRLPTR, 0, initializeOnly, 0],
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
-			__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 	}, "X3DUrlObject"),
 
 
@@ -2640,7 +2638,7 @@ package VRML::NodeType;
 		wrapS => [SFString,"REPEAT",inputOutput,"SPEC_VRML1"],
 		wrapT => [SFString,"REPEAT",inputOutput,"SPEC_VRML1"],
 		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
-		__parenturl =>[SFString,"",initializeOnly, 0],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 		_initialized => [SFInt32,FALSE,inputOutput, 0],
 		_wrapS =>[SFInt32,-1,inputOutput,0],
 		_wrapT =>[SFInt32,-1,inputOutput,0],

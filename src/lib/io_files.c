@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.12 2010/01/12 01:26:35 couannette Exp $
+  $Id: io_files.c,v 1.13 2010/02/02 20:53:18 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -31,10 +31,11 @@
 #include <internal.h>
 #include <libFreeWRL.h>
 
+#include <list.h> /* internal use only */
+#include <resources.h>
 #include <io_files.h>
 #include <io_http.h>
 
-#include <list.h> /* internal use only */
 
 #include <threads.h> /* for freewrlSystem */
 

@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.50 2010/01/29 21:11:09 crc_canada Exp $
+  $Id: ProdCon.c,v 1.51 2010/02/02 20:53:19 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -32,11 +32,12 @@
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include <list.h>
+#include <resources.h>
 
 #include <io_files.h>
 #include <io_http.h>
 
-#include <list.h>
 #include <resources.h>
 
 #include <threads.h>
@@ -335,7 +336,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	DEBUG_RES("processing VRML/X3D resource: %s\n", res->request);
 
 	/* save the current URL so that any local-url gets are relative to this */
-	pushInputURL(res->parsed_request);
+	pushInputResource(res);
 
 
 	/* OK Boyz - here we go... if this if from the EAI, just parse it, as it will be a simple string */
@@ -372,8 +373,6 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 		if (res == root_res) {
 			/* FIXME: try to find a better way to handle this ;P ... */
-	/* JAS - we want the current URL to be "stacked" */
-			/* pushInputURL(res->parsed_request); */
 		
 			/* FIXME: 
 			   - parser initialization ...
@@ -451,8 +450,8 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	res->complete = TRUE;
 	
 
-	/* remove this url from the stack */
-	popInputURL();
+	/* remove this resource from the stack */
+	popInputResource();
 
 	return TRUE;
 }
@@ -563,7 +562,7 @@ static void parser_process_res(s_list_t *item)
 
 	case ress_invalid:
 	case ress_none:
-		resource_identify(res->parent, res, NULL);
+		resource_identify(res->parent, res);
 		if (res->type == rest_invalid) {
 			remove_it = TRUE;
 		}

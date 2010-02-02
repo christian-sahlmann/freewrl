@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.18 2009/10/05 15:07:24 crc_canada Exp $
+$Id: jsUtils.c,v 1.19 2010/02/02 20:53:19 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -779,7 +779,7 @@ uintptr_t *getFOP (uintptr_t *handle, const char *str) {
                 fieldOffsetsPtr = (uintptr_t *) NODE_OFFSETS[node->_nodeType];
                 /*go thru all field*/
 		/* what we have is a list of 4 numbers, representing:
-        		FIELDNAMES___parenturl, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,
+        		FIELDNAMES__parentResource, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,
 		*/
 
                 while (*fieldOffsetsPtr != -1) {
@@ -851,7 +851,7 @@ JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	   for Routing. */
 
 	/* fieldOffsetsPtr points to a 4-number line like:
-		FIELDNAMES___parenturl, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly */
+		FIELDNAMES__parentResource, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly */
         switch (*(fieldOffsetsPtr+2)) {
 		case FIELDTYPE_SFBool:
 		case FIELDTYPE_SFFloat:
@@ -937,7 +937,7 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	   it to the X3D Scenegraph. */
 
 	/* fieldOffsetsPtr points to a 4-number line like:
-		FIELDNAMES___parenturl, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly */
+		FIELDNAMES__parentResource, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly */
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("and a field type of %s\n",FIELDTYPES[*(fieldOffsetsPtr+2)]);
 	#endif
@@ -1027,7 +1027,7 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
                 fieldOffsetsPtr = (uintptr_t *) NODE_OFFSETS[ptr->_nodeType];
                 /*go thru all field*/
 		/* what we have is a list of 4 numbers, representing:
-        		FIELDNAMES___parenturl, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,
+        		FIELDNAMES__parentResource, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,
 		*/
 
                 while (*fieldOffsetsPtr != -1) {
