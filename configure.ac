@@ -534,7 +534,7 @@ AC_SUBST(PLUGIN_LIBS)
 # Status bar configuration
 # ======================================
 AC_ARG_WITH([statusbar],
-        [AS_HELP_STRING([--with-statusbar=@<:@standard,hud@:>@],[Select status bar flavor])],
+        [AS_HELP_STRING([--with-statusbar=STATUSBAR],[Select status bar flavour -- 'hud' or 'standard'])],
         [statusbar="$withval"],
         [statusbar="standard"])
 
