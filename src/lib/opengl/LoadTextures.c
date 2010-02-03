@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.31 2010/02/02 20:53:19 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.32 2010/02/03 21:20:33 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -545,9 +545,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 
 	}
 
-	/* FIXME: very straitforward use of resource API... need rewrite ... */
 	if (url != NULL) {
-
 		res = resource_create_multi(url);
 		res->media_type = resm_image; /* quick hack */
 

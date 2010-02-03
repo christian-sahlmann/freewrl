@@ -1,5 +1,5 @@
 #
-# $Id: VRMLFields.pm,v 1.5 2010/02/02 20:53:18 crc_canada Exp $
+# $Id: VRMLFields.pm,v 1.6 2010/02/03 21:20:33 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log: VRMLFields.pm,v $
+# Revision 1.6  2010/02/03 21:20:33  crc_canada
+# More resource loading work.
+#
 # Revision 1.5  2010/02/02 20:53:18  crc_canada
 # removed JAS char string hack for resource_identify; changed nodes __parenturl field to _parentResource
 #
@@ -1052,13 +1055,12 @@ sub ctype {return "void * $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {$val = 0} # inputOnlys, set it to any value
-	return "$field = $val";
-}
 	if ($field eq "tmp2->_parentResource") {
 		return "$field = getInputResource()";
 	} else {
 		return "$field = $val";
 	}
+}
 
 ###########################################################
 ###########################################################

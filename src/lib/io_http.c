@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.8 2010/02/02 20:53:19 crc_canada Exp $
+  $Id: io_http.c,v 1.9 2010/02/03 21:20:33 crc_canada Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -290,6 +290,7 @@ char* download_url(const char *url, const char *tmp)
  *
  * this is a Vector; we keep track of n depths.
  */
+
 static struct Stack *resStack = NULL;
 void pushInputResource(resource_item_t *url) 
 {
@@ -297,7 +298,7 @@ void pushInputResource(resource_item_t *url)
 
 	/* push this one */
 	if (resStack==NULL) {
-		resStack = newVector (resource_item_t *, 8);
+		resStack = newStack (resource_item_t *);
 	}
 
 	stack_push (resource_item_t*, resStack, url);
@@ -307,14 +308,26 @@ void popInputResource() {
 	resource_item_t *cwu;
 	stack_pop((resource_item_t *), resStack);
 
-	cwu = vector_get (resource_item_t *, resStack,((struct Vector*)resStack)->n);
-
-	DEBUG_MSG("popInputResource current Resource is %s\n", cwu->parsed_request);
+	if (stack_empty(resStack)) {
+		DEBUG_MSG ("popInputResource, stack now empty\n");
+	} else {
+		cwu = stack_top(resource_item_t *, resStack);
+		DEBUG_MSG("popInputResource before pop, current Resource is %s\n", cwu->parsed_request);
+	}
 }
 
 resource_item_t *getInputResource()
 {
+	resource_item_t *cwu;
+
 	DEBUG_MSG("getInputResource \n");
-	if (resStack==NULL) return NULL;
-	return vector_get (resource_item_t *, resStack,((struct Vector*)resStack)->n);
+	if (resStack==NULL) {
+		DEBUG_MSG("getInputResource, stack NULL\n");
+		return NULL;
+	}
+	cwu = stack_top(resource_item_t *, resStack);
+	DEBUG_MSG("getInputResource current Resource is %u %x %s\n", cwu,cwu,cwu->parsed_request);
+
+	return stack_top(resource_item_t *, resStack);
+
 }

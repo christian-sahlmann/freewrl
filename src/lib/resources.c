@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.21 2010/02/02 20:53:19 crc_canada Exp $
+  $Id: resources.c,v 1.22 2010/02/03 21:20:33 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -79,6 +79,7 @@ resource_item_t* resource_create_single(const char *request)
 	if (!root_res) {
 		/* This is the first resource we try to load */
 		root_res = item;
+		DEBUG_RES("setting root_res in resource_create_single for file %s\n",request);
 	} else {
 		/* Not the first, so keep it in the main list */
 		root_res->children = ml_append(root_res->children, ml_new(item));
@@ -120,6 +121,7 @@ resource_item_t* resource_create_multi(s_Multi_String_t *request)
 	if (!root_res) {
 		/* This is the first resource we try to load */
 		root_res = item;
+		DEBUG_RES ("setting root_res in resource_create_multi\n");
 	} else {
 		/* Not the first, so keep it in the main list */
 		root_res->children = ml_append(root_res->children, ml_new(item));
@@ -154,6 +156,7 @@ resource_item_t* resource_create_from_string(const char *string)
 	if (!root_res) {
 		/* This is the first resource we try to load */
 		root_res = item;
+		printf ("setting root_res in resource_create_from_string\n");
 	} else {
 		/* Not the first, so keep it in the main list */
 		root_res->children = ml_append(root_res->children, ml_new(item));
@@ -176,7 +179,7 @@ resource_item_t* resource_create_from_string(const char *string)
  *   try to be idempotent
  *   parse status: res->type
  */
-void resource_identify(resource_item_t *base, resource_item_t *res)
+void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 {
 	bool network;
 	char *url = NULL;
@@ -185,12 +188,12 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 
 	ASSERT(res);
 
-	DEBUG_RES("identifying resource: %s\n", res->request);
+	DEBUG_RES("resource_identify, we have resource %s ptrs %u and %u\n",res->request,baseResource,res);
 
-	if (base) {
+	if (baseResource) {
 		DEBUG_RES(" base specified, taking base's values.\n");
-		defaults = base;
-		PTR_REPLACE(res->parent, base);
+		defaults = baseResource;
+		res->parent = baseResource;
 	} else {
 		if (res->parent) {
 			DEBUG_RES(" no base specified, taking parent's values.\n");
@@ -201,6 +204,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 	}
 
 	if (defaults) {
+		/* printf ("resource_identify, have defaults, base %s, parsed_request %s\n",defaults->base, defaults->parsed_request); */
 		DEBUG_RES(" default values: network=%s type=%s status=%s"
 			  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n",
 			  BOOL_STR(defaults->network), resourceTypeToString(defaults->type), 
@@ -287,6 +291,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 			if (defaults) {
 				DEBUG_RES("resource_identify = we have base cleanedurl = %s\n", cleanedURL);
 				/* Relative to base */
+printf ("looking to see if this is relative -will not work on Windows %s \n",cleanedURL);
 				if (cleanedURL[0] == '/') {
 					/* this is an absolute url, which we can do, even if we have a base to
 					   base this from. eg, url='/Users/john/tests/2.wrl'  */
@@ -300,15 +305,19 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 					*/
 
 				} else {
+					char *cwd;
+					cwd = STRDUP(defaults->base);
 					res->type = rest_file;
 					res->status = ress_starts_good;
-					url = concat_path(defaults->base, cleanedURL);
+					url = concat_path(cwd, cleanedURL);
+					FREE_IF_NZ(cwd);
 				}
 
 			} else {
 				/* No default values: we are hanging alone */
 				DEBUG_RES("resource_identify = not relative to base, cleanedURL %s\n", cleanedURL);
 				/* Is this a full path ? */
+printf ("this cleanedURL might not be ok for windows machines \n");
 				if (cleanedURL[0] == '/') {
 					/* This is an absolute filename */
 
@@ -321,52 +330,28 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 
 					/* Relative to current dir (we are loading main file/world) */
 					char *cwd;
-					
-#ifdef OLDCODE
-					if (parentUrl==NULL)  {
-						if (getInputURL()==NULL) {
-							cwd = get_current_dir();
-						} else {
-							cwd = STRDUP(getInputURL());
-						}
-					} else { 
-						cwd = STRDUP(parentUrl);
-					}
-#endif
+					resource_item_t *currentBase;
+
+
+                                        cwd = get_current_dir();
 					removeFilenameFromPath(cwd);
 
-					if (!cwd) {
+					/* Make full path from current dir and relative filename */
 
-						/* System problem */
-						res->type = rest_invalid;
-						PERROR_MSG("resource_parse: make absolute path from request: %s\n", res->request);
-
-					} else {
-
-						/* Make full path from current dir and relative filename */
-
-						/* printf("about to join :%s: and :%s: resource.c L299\n",cwd,res->request);*/
-						url = concat_path(cwd, res->request);
-						/* resource_fetch will test that filename */
-						res->type = rest_file;
-						res->status = ress_starts_good;
-					}
+					/* printf("about to join :%s: and :%s: resource.c L299\n",cwd,res->request);*/
+					url = concat_path(cwd, res->request);
+					/* resource_fetch will test that filename */
+					res->type = rest_file;
+					res->status = ress_starts_good;
 				}
 			}
 		}
 	}
 
+	/* record the url, and the path to the url */
 	res->parsed_request = url;
-
-	/* Parse own's base */
-/*
-	if (!defaults) {
-		PTR_REPLACE(res->base, remove_filename_from_path(url));
-	} else {
-		PTR_REPLACE_DUP(res->base, defaults->base);
-	}
-*/
-	PTR_REPLACE(res->base, remove_filename_from_path(url));
+	res->base = STRDUP(url);
+	removeFilenameFromPath(res->base);
 
 	DEBUG_RES("resource_identify (end): network=%s type=%s status=%s"
 		  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n", 
@@ -374,6 +359,7 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 		  resourceStatusToString(res->status), res->request, 
 		  res->base, res->parsed_request,
 		  res->parent, (res->parent ? res->parent->base : "N/A"));
+	DEBUG_RES ("\n\n");
 }
 
 /**
@@ -719,6 +705,7 @@ void resource_remove_child(resource_item_t *parent, resource_item_t *child)
  */
 void destroy_root_res()
 {
+printf ("calling destroy_root_res\n");
 	resource_destroy(root_res);
 	root_res = NULL;
 }

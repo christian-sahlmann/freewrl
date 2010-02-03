@@ -3,6 +3,8 @@ Priority list
 ============================================================================
 For 1.22.7 release:
 
+General - material and textures, material {} ImageTexture {url "wrew"} will currently not display correctly  - see can.wrl
+
 OSX plugin:
 - init and end properly.
 - url getting
