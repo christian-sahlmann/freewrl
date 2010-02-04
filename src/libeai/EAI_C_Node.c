@@ -26,7 +26,6 @@
 X3DNode *X3D_getNode (char *name) {
 	char *ptr;
 	uintptr_t adr;
-	int oldPerl;
 	X3DNode *retval;
 
 	retval = malloc (sizeof(X3DNode));
@@ -35,15 +34,15 @@ X3DNode *X3D_getNode (char *name) {
 
 	retval->X3D_SFNode.adr = 0;
 
-	/* get the node address. ignore the old perl pointer, save the address. */
+	/* get the node address. save the address. */
 	ptr = _X3D_make1StringCommand(GETNODE,name);
 	
-	if (sscanf (ptr,"%d %lu",&oldPerl, &adr) != 2) {
+	if (sscanf (ptr,"%lu", &adr) != 2) {
 		printf ("error getting %s\n",name);
 	} else {
 		#ifdef VERBOSE
 		printf ("X3D_getNode, ptr %s\n",ptr);
-		printf ("oldPerl %d adr %p\n",oldPerl, (void*) adr);
+		printf ("adr %p\n",(void*) adr);
 		#endif
 
 		if (adr == 0) {
@@ -1008,18 +1007,12 @@ X3DNode *X3D_createVrmlFromString(char *str) {
 	printf ("return pointer is %s\n",ptr);
 	#endif
 
-	/* now, how many numbers did it return? ignore the (obsolete) perl pointers */
+	/* now, how many numbers did it return? */
 	retvals = _X3D_countWords(ptr);
-	retval->X3D_MFNode.p = malloc (retvals/2 * sizeof (X3DNode));
-	retval->X3D_MFNode.n = retvals/2;
+	retval->X3D_MFNode.p = malloc (retvals * sizeof (X3DNode));
+	retval->X3D_MFNode.n = retvals;
 
-	for (count = 0; count < (retvals/2); count++) {
-		/* skip to perlpointer */
-		SKIP_CONTROLCHARS
-
-		/* skip over perlpointer */
-		SKIP_IF_GT_SPACE
-
+	for (count = 0; count < retvals; count++) {
 		/* skip to the memory pointer */
 		SKIP_CONTROLCHARS
 
