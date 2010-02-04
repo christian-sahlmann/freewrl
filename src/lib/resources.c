@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.22 2010/02/03 21:20:33 crc_canada Exp $
+  $Id: resources.c,v 1.23 2010/02/04 16:36:18 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -289,10 +289,8 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 
 			/* We are relative to current dir or base */
 			if (defaults) {
-				DEBUG_RES("resource_identify = we have base cleanedurl = %s\n", cleanedURL);
 				/* Relative to base */
-printf ("looking to see if this is relative -will not work on Windows %s \n",cleanedURL);
-				if (cleanedURL[0] == '/') {
+				IF_cleanedURL_IS_ABSOLUTE {
 					/* this is an absolute url, which we can do, even if we have a base to
 					   base this from. eg, url='/Users/john/tests/2.wrl'  */
 					res->type = rest_file;
@@ -315,10 +313,8 @@ printf ("looking to see if this is relative -will not work on Windows %s \n",cle
 
 			} else {
 				/* No default values: we are hanging alone */
-				DEBUG_RES("resource_identify = not relative to base, cleanedURL %s\n", cleanedURL);
 				/* Is this a full path ? */
-printf ("this cleanedURL might not be ok for windows machines \n");
-				if (cleanedURL[0] == '/') {
+				IF_cleanedURL_IS_ABSOLUTE {
 					/* This is an absolute filename */
 
 					/* resource_fetch will test that filename */

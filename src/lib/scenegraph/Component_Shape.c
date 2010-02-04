@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.31 2010/01/29 14:42:48 crc_canada Exp $
+$Id: Component_Shape.c,v 1.32 2010/02/04 16:36:18 crc_canada Exp $
 
 X3D Shape Component
 
@@ -438,7 +438,7 @@ void child_Shape (struct X3D_Shape *node) {
 	/* set up Appearance Properties here */
 	this_textureTransform = NULL;
 	linePropertySet=FALSE;
-	appearanceProperties.transparency = 0.0;
+	appearanceProperties.transparency = 1.0;  /* 1 == totally solid, 0 = totally transparent */  
 	material_twoSided = NULL;
 	material_oneSided = NULL;
 
@@ -506,7 +506,8 @@ void child_Shape (struct X3D_Shape *node) {
 		} else {
 			if (material_oneSided != NULL) {
 				/* we have a normal material node */
-				appearanceProperties.transparency = material_oneSided->transparency;
+				appearanceProperties.transparency = 1.0 - material_oneSided->transparency; /* 1 == solid, 0 = totally transparent */ 
+
 				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_DIFFUSE, material_oneSided->_dcol.c); 
 				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_AMBIENT, material_oneSided->_amb.c);
 				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_SPECULAR, material_oneSided->_scol.c);
@@ -541,7 +542,7 @@ void child_Shape (struct X3D_Shape *node) {
 				/* tell the rendering passes that this is just "normal" */ 
 				last_texture_type = NOTEXTURE; 
 				/* same with materialProperties.transparency */ 
-				appearanceProperties.transparency=0.99999; 
+				appearanceProperties.transparency=1.0; 
 			}
 		}
 	}
