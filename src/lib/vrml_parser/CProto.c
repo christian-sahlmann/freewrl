@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.38 2009/12/18 17:30:13 istakenv Exp $
+$Id: CProto.c,v 1.39 2010/02/05 21:41:37 crc_canada Exp $
 
 CProto ???
 
@@ -1699,11 +1699,15 @@ int newProtoDefinitionPointer (struct ProtoDefinition *vrmlpd, int xmlpd) {
 	npd->vrmlProtoDef = vrmlpd;
 	npd->xmlProtoDef = xmlpd;
 
+
 	if (protoDefVec == NULL) {
 		protoDefVec = newVector(struct protoInsert *, 16);
 	}
 	vector_pushBack (struct protoInsert*,protoDefVec, npd);	
-	/* printf ("newProtoDefinitionPointer, returning %d\n",(int)(vector_size(protoDefVec)-1)); */
+
+	/* printf ("newProtoDefinitionPointer, have vrmlpd %u and xmlpd %d\n",vrmlpd,xmlpd);
+	printf ("newProtoDefinitionPointer, returning %d\n",(int)(vector_size(protoDefVec)-1)); */
+
 	return (int) (vector_size(protoDefVec)-1);
 }
 
@@ -1712,10 +1716,11 @@ struct ProtoDefinition *getVRMLprotoDefinition (struct X3D_Group *me) {
 	int mpd;
 
 	mpd = me->FreeWRL__protoDef;
-	printf ("getProtoDefinition, looking for %d\n",mpd);
+
+	/* printf ("getVRMLprotoDefinition, looking for %d\n",mpd); */
 	if (mpd == INT_ID_UNDEFINED) return NULL;
 	if (mpd >= vector_size(protoDefVec)) {
-		printf ("internal error, can not get proto def %d, out of bounds\n",mpd);
+		printf ("internal error, can not get proto def %d, out of bounds; vector size %d\n",mpd,vector_size(protoDefVec));
 		return NULL;
 	}
 	/* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */
@@ -1728,7 +1733,7 @@ int getXMLprotoDefinition (struct X3D_Group *me) {
 	int mpd;
 
 	mpd = me->FreeWRL__protoDef;
-	printf ("getProtoDefinition, looking for %d\n",mpd);
+	printf ("getXMLProtoDefinition, looking for %d\n",mpd);
 	if (mpd == INT_ID_UNDEFINED) return INT_ID_UNDEFINED;
 	if (mpd >= vector_size(protoDefVec)) {
 		printf ("internal error, can not get proto def %d, out of bounds\n",mpd);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.42 2010/02/05 14:52:28 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.43 2010/02/05 21:41:36 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -151,7 +151,7 @@ void EAI_parse_commands () {
 		/* step 3, get the command */
 
 		command = EAI_BUFFER_CUR;
-		if (eaiverbose) 
+		//if (eaiverbose) 
 			printf ("EAI command %s (%c) strlen %d\n",eaiPrintCommand(command), command,(int)strlen(&EAI_BUFFER_CUR));
 
 		bufPtr++;

@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.26 2010/01/28 20:50:48 crc_canada Exp $
+  $Id: main.c,v 1.27 2010/02/05 21:41:36 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -105,6 +105,9 @@ void OSX_initializeParameters(const char* initialURL) {
     } else {
 	printf ("OSX_initializeParameters - just creating new resource\n");
     }
+
+    /* enable collisions by default */
+    fw_params.collision = 1;
 
     /* Give the main argument to the resource handler */
     res = resource_create_single(initialURL);

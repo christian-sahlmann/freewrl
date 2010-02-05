@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.99 2010/02/01 17:11:53 crc_canada Exp $
+  $Id: MainLoop.c,v 1.100 2010/02/05 21:41:36 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1362,41 +1362,6 @@ void _displayThread()
 	}
 }
 
-#if defined( AQUA) && !defined(IPHONE) 
-void initGL() {
-        /* printf ("OSX initGL called\n");  */
-#ifdef OLDCODE
-OLDCODE        if (RUNNINGASPLUGIN) {
-OLDCODE                //aqglobalContext = aglGetCurrentContext();
-OLDCODE                pluginRunning = TRUE;
-OLDCODE                aglSetCurrentContext(aqglobalContext);
-OLDCODE        } else {
-#endif
-                myglobalContext = CGLGetCurrentContext();
-#ifdef OLDCODE
-OLDCODE        }
-#endif
-        /* printf ("initGL call finished - myglobalContext %u\n",myglobalContext); */
-}
-
-int getOffset() {
-        return offsetof(struct X3D_Group, children);
-}
-
-void setCurXY(int cx, int cy) {
-	/* printf ("setCurXY, have %d %d\n",currentX,currentY);  */
-        currentX = cx;
-        currentY = cy;
-}
-
-void setButDown(int button, int value) {
-	/* printf ("old qua code, setButDown...\n"); */
-        ButDown[button] = value;
-}
-
-#endif
-
-
 void setLastMouseEvent(int etype) {
         lastMouseEvent = etype;
 }
@@ -1579,6 +1544,31 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
 }
 #endif
 #ifdef AQUA
+
+#if !defined(IPHONE) 
+void initGL() {
+        /* printf ("OSX initGL called\n");  */
+        myglobalContext = CGLGetCurrentContext();
+        /* printf ("initGL call finished - myglobalContext %u\n",myglobalContext); */
+}
+
+int getOffset() {
+        return offsetof(struct X3D_Group, children);
+}
+
+void setCurXY(int cx, int cy) {
+	/* printf ("setCurXY, have %d %d\n",currentX,currentY);  */
+        currentX = cx;
+        currentY = cy;
+}
+
+void setButDown(int button, int value) {
+	/* printf ("old qua code, setButDown...\n"); */
+        ButDown[button] = value;
+}
+
+#endif
+
 void setIsPlugin() {
 
         RUNNINGASPLUGIN = TRUE;

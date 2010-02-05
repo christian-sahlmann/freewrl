@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.24 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: SensInterps.c,v 1.25 2010/02/05 21:41:36 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -1149,7 +1149,6 @@ void do_MovieTextureTick( void *ptr) {
 	Sensitive nodes
 
 *****************************************************************************/
-/* void do_TouchSensor (struct X3D_TouchSensor *node, int ev, int over) {*/
 void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 
 	struct X3D_TouchSensor *node = (struct X3D_TouchSensor *)ptr;
@@ -1188,8 +1187,6 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 	}
 
 	/* active */
-	/* if (over) { */
-
 		/* button presses */
 		if (ev == ButtonPress) {
 			node->isActive=TRUE;
@@ -1239,7 +1236,6 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 			memcpy ((void *) &node->hitNormal_changed, (void *) &node->_oldhitNormal, sizeof(struct SFColor));
 			MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitNormal_changed));
 		}
-	/* } */
 }
 
 /* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/

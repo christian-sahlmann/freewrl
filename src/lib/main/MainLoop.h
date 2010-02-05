@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.h,v 1.6 2009/11/23 20:39:18 crc_canada Exp $
+  $Id: MainLoop.h,v 1.7 2010/02/05 21:41:37 crc_canada Exp $
 
   FreeWRL support library.
   UI declarations.
@@ -30,6 +30,7 @@
 #ifndef __FREEWRL_MAINLOOP_MAIN_H__
 #define __FREEWRL_MAINLOOP_MAIN_H__
 
+extern int currentX, currentY;
 
 void setDisplayed(int);
 void First_ViewPoint();

@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.9 2010/01/25 00:44:44 dug9 Exp $
+  $Id: statusbarHud.c,v 1.10 2010/02/05 21:41:37 crc_canada Exp $
 
 */
 
@@ -34,6 +34,7 @@
 #include "scenegraph/Viewer.h"
 #include "opengl/Textures.h"
 #include "opengl/LoadTextures.h"
+#include "main/MainLoop.h"
 
 
 /* the following are bitmap icons for the toolbar, 
@@ -875,7 +876,6 @@ void update_status(char* msg) {
 }
 
 
-extern int currentX, currentY;
 /* start cheapskate widgets >>>> */
 int lenOptions = 15;
 char * optionsText[15] = {

@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.38 2010/02/02 20:53:18 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.39 2010/02/05 21:41:35 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2236,6 +2236,7 @@ package VRML::NodeType;
 			value => [SFFloat,0.0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFFloat,0.0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFFloat,0.0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2243,6 +2244,7 @@ package VRML::NodeType;
 			value => [MFFloat,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFFloat,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFFloat,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2250,6 +2252,7 @@ package VRML::NodeType;
 			value => [SFRotation,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFRotation,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFRotation,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2257,6 +2260,7 @@ package VRML::NodeType;
 			value => [MFRotation,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFRotation,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFRotation,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2264,6 +2268,7 @@ package VRML::NodeType;
 			value => [SFVec3f,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFVec3f,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFVec3f,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2271,6 +2276,7 @@ package VRML::NodeType;
 			value => [MFVec3f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFVec3f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFVec3f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2278,6 +2284,7 @@ package VRML::NodeType;
 			value => [SFBool,FALSE,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFBool,FALSE,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFBool,FALSE,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2285,6 +2292,7 @@ package VRML::NodeType;
 			value => [MFBool,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFBool,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFBool,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2292,6 +2300,7 @@ package VRML::NodeType;
 			value => [SFInt32,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFInt32,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFInt32,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2299,6 +2308,7 @@ package VRML::NodeType;
 			value => [MFInt32,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFInt32,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFInt32,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2306,6 +2316,7 @@ package VRML::NodeType;
 			value => [SFNode,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFNode,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFNode,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2313,6 +2324,7 @@ package VRML::NodeType;
 			value => [MFNode,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFNode,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFNode,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2320,6 +2332,7 @@ package VRML::NodeType;
 			value => [SFColor,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFColor,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFColor,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2327,6 +2340,7 @@ package VRML::NodeType;
 			value => [MFColor,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFColor,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFColor,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2334,6 +2348,7 @@ package VRML::NodeType;
 			value => [SFColorRGBA,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFColorRGBA,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFColorRGBA,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2341,6 +2356,7 @@ package VRML::NodeType;
 			value => [MFColorRGBA,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFColorRGBA,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFColorRGBA,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2348,6 +2364,7 @@ package VRML::NodeType;
 			value => [SFTime,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFTime,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFTime,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2355,6 +2372,7 @@ package VRML::NodeType;
 			value => [MFTime,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFTime,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFTime,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2362,6 +2380,7 @@ package VRML::NodeType;
 			value => [SFString,"",inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFString,"",outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFString,"",inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2369,6 +2388,7 @@ package VRML::NodeType;
 			value => [MFString,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFString,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFString,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2376,6 +2396,7 @@ package VRML::NodeType;
 			value => [SFVec2f,[0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFVec2f,[0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFVec2f,[0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2383,6 +2404,7 @@ package VRML::NodeType;
 			value => [MFVec2f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFVec2f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFVec2f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2390,6 +2412,7 @@ package VRML::NodeType;
 			value => [SFImage,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFImage,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFImage,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2397,6 +2420,7 @@ package VRML::NodeType;
 			value => [SFVec3d,[0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFVec3d,[0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFVec3d,[0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2404,6 +2428,7 @@ package VRML::NodeType;
 			value => [MFVec3d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFVec3d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFVec3d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2411,6 +2436,7 @@ package VRML::NodeType;
 			value => [SFDouble,0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFDouble,0,outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFDouble,0,inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2418,6 +2444,7 @@ package VRML::NodeType;
 			value => [MFDouble,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFDouble,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFDouble,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2425,6 +2452,7 @@ package VRML::NodeType;
 			value => [SFMatrix3f,[0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFMatrix3f,[0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFMatrix3f,[0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2432,6 +2460,7 @@ package VRML::NodeType;
 			value => [MFMatrix3f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFMatrix3f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFMatrix3f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2439,6 +2468,7 @@ package VRML::NodeType;
 			value => [SFMatrix3d,[0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFMatrix3d,[0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFMatrix3d,[0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2446,6 +2476,7 @@ package VRML::NodeType;
 			value => [MFMatrix3d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFMatrix3d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFMatrix3d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2453,6 +2484,7 @@ package VRML::NodeType;
 			value => [SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFMatrix4f,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2460,6 +2492,7 @@ package VRML::NodeType;
 			value => [MFMatrix4f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFMatrix4f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFMatrix4f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2467,6 +2500,7 @@ package VRML::NodeType;
 			value => [SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFMatrix4d,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2474,6 +2508,7 @@ package VRML::NodeType;
 			value => [MFMatrix4d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFMatrix4d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFMatrix4d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2481,6 +2516,7 @@ package VRML::NodeType;
 			value => [SFVec2d,[0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFVec2d,[0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFVec2d,[0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2488,6 +2524,7 @@ package VRML::NodeType;
 			value => [MFVec2d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFVec2d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFVec2d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2495,6 +2532,7 @@ package VRML::NodeType;
 			value => [SFVec4f,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFVec4f,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFVec4f,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2502,6 +2540,7 @@ package VRML::NodeType;
 			value => [MFVec4f,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFVec4f,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFVec4f,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2509,6 +2548,7 @@ package VRML::NodeType;
 			value => [SFVec4d,[0,0,0,0],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[SFVec4d,[0,0,0,0],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[SFVec4d,[0,0,0,0],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 	#used mainly for PROTO invocation parameters 
@@ -2516,6 +2556,7 @@ package VRML::NodeType;
 			value => [MFVec4d,[],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			valueChanged=>[MFVec4d,[],outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 			setValue =>[MFVec4d,[],inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+			tickTime=>[SFTime,0,inputOnly,0],
 	}, "X3DChildNode"),
 
 

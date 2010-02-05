@@ -88,6 +88,8 @@ OSX plugin:
 18) start OpenGL -ES and 3.2 port.
 
 20) Can we fit in any EAI code fixes?
+	Working on Russ Kinter and some of his tests.
+
 
 21) Some alpha textures are not sorted properly - can we fix?
 	- DONE - sort on nearest bounding box vertex now; also re-work alpha blending modes.
@@ -96,6 +98,8 @@ OSX plugin:
 	- more shaders for material selections;
 	- face culling; 
 	- revisit two_sided material, follow compile and run of one-sided material.
+
+23) work on PROTO routing - copy the TickTime changes from I32 to other nodes.
 
 ============================================================================
 

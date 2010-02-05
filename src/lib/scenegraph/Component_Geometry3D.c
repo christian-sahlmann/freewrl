@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.18 2010/01/25 00:28:33 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.19 2010/02/05 21:41:37 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -813,10 +813,9 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 
 
+
 		/* are we initialized yet? */
-		if (node->__points==0) {
-			return;
-		}
+		if (node->__points==0) return;
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
@@ -1200,6 +1199,10 @@ void collide_Cone (struct X3D_Cone *node) {
 
 	       struct point_XYZ delta;
 
+
+                /* is this node initialized? if not, get outta here and do this later */
+                if ((node->__sidepoints == 0)  && (node->__botpoints==0)) return;
+
 	       iv.y = h; jv.y = -h;
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
@@ -1434,6 +1437,8 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 
 	       struct point_XYZ delta;
 
+		/* is this node initialized? if not, get outta here and do this later */
+		if (node->__points == 0) return;
 
 		iv.y = h;
 		jv.y = -h;
@@ -1552,7 +1557,6 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 
 		/* JAS - no triangles in this text structure */
 		if ((((struct X3D_PolyRep *)node->_intern)->ntri) == 0) return;
-
 
 	       /*save changed state.*/
 	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->irep_change;
