@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.13 2010/02/02 20:53:18 crc_canada Exp $
+  $Id: io_files.c,v 1.14 2010/02/05 14:52:27 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -293,7 +293,7 @@ static openned_file_t* load_file_read(const char *filename)
 		return NULL;
 	}
 
-	text = current = MALLOC(ss.st_size); //+10);
+	text = current = MALLOC(ss.st_size +1); /* include space for a null terminating character */
 	if (!text) {
 		ERROR_MSG("load_file_read: cannot allocate memory to read file %s\n", filename);
 		close(fd);
@@ -331,8 +331,8 @@ static openned_file_t* load_file_read(const char *filename)
 			}
 		}
 	}
-	/* FIXME: how to make the parser stop ???? */
-	text[ss.st_size-1] = '\0';
+	/* null terminate this string */
+	text[ss.st_size] = '\0';
 	return create_openned_file(filename, fd, text);
 }
 

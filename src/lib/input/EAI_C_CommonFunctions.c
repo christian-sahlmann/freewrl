@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.26 2010/02/04 18:36:07 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.27 2010/02/05 14:52:28 crc_canada Exp $
 
 ???
 
@@ -56,7 +56,7 @@ $Id: EAI_C_CommonFunctions.c,v 1.26 2010/02/04 18:36:07 crc_canada Exp $
 #endif
 
 /* assume eaiverbose is false, unless told otherwise */
-int eaiverbose = TRUE;
+int eaiverbose = FALSE;
 
 #define PST_MF_STRUCT_ELEMENT(type1,type2) \
 	case FIELDTYPE_MF##type1: { \
