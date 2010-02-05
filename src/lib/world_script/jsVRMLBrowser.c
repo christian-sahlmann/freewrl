@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.24 2010/01/29 21:11:09 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.25 2010/02/05 15:29:23 istakenv Exp $
 
 Javascript C language binding.
 
@@ -107,7 +107,7 @@ struct VRMLParser* savedParser;
 
 /* for setting field values to the output of a CreateVrml style of call */
 /* it is kept at zero, unless it has been used. Then it is reset to zero */
-jsval JSCreate_global_return_val = INT_TO_JSVAL(0);
+jsval JSCreate_global_return_val;
 
 /* we add/remove routes with this call */
 void jsRegisterRoute(
@@ -210,6 +210,8 @@ JSBool
 VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow)
 {
 	JSObject *obj;
+
+JSCreate_global_return_val = INT_TO_JSVAL(0);
 
 	#ifdef JSVERBOSE
 		printf("VrmlBrowserInit\n");

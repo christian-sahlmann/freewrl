@@ -108,5 +108,17 @@ typedef unsigned char _Bool;
 # include <sys/socket.h>
 #endif
 
+#ifndef HAVE_INT32
+# define int32 int32_t
+#endif
+#ifndef HAVE_UINT32
+# define uint32 uint32_t
+#endif
+#ifndef HAVE_INT16
+# define int16 int16_t
+#endif
+#ifndef HAVE_UINT16
+# define uint16 uint16_t
+#endif
 
 #endif /* __FREEWRL_PLUGIN_SYSTEM_H__ */

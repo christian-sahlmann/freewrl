@@ -126,7 +126,7 @@ AC_ARG_WITH(zlib,AS_HELP_STRING([--with-zlib=<dir>],[Use zlib from here]),[
                 ZLIB_LIBS="-L$withval/lib $ZLIB_LIBS"])
 
   # save global cflags/libs
-  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS
   # set cflags/libs for this case
   CPPFLAGS="$CPPFLAGS $ZLIB_CFLAGS"
   LDFLAGS="$LDFLAGS $ZLIB_LIBS"
@@ -137,7 +137,7 @@ AC_CHECK_LIB(z, deflate, [],
    [AC_MSG_ERROR([Can't find zlib library. Please install zlib.])])
 
   # restore global cflags/libs
-  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS
+  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS
 
 AC_SUBST(ZLIB_CFLAGS)
 AC_SUBST(ZLIB_LIBS)
@@ -218,7 +218,7 @@ AC_ARG_WITH(expat,AS_HELP_STRING([--with-expat=<dir>],[Use expat from here]),[
                 EXPAT_LIBS="-L$withval/lib $EXPAT_LIBS"])
 
   # save global cflags/libs
-  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS
   # set cflags/libs for this case
   CPPFLAGS="$CPPFLAGS $EXPAT_CFLAGS"
   LDFLAGS="$LDFLAGS $EXPAT_LIBS"
@@ -229,8 +229,7 @@ AC_CHECK_LIB(expat, XML_ParserCreate, [],
    [AC_MSG_ERROR([Can't find expat library. Please install expat.])])
 
   # restore global cflags/libs
-  CPPFLAGS=$oCPPFLAGS
-  LDFLAGS=$oLDFLAGS
+  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS
 
 AC_SUBST(EXPAT_CFLAGS)
 AC_SUBST(EXPAT_LIBS)
@@ -365,7 +364,7 @@ case "$glew" in
      *)  # Search for GLEW
 
   # save global cflags/libs
-  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS
   # set cflags/libs for this case
   CPPFLAGS="$CPPFLAGS $GLEW_CFLAGS $GL_CFLAGS"
   LDFLAGS="$LDFLAGS $GLEW_LIBS $GL_LIBS"
@@ -380,7 +379,7 @@ case "$glew_found" in
 esac
 
   # restore global cflags/libs
-  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS
+  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS
 
 AC_SUBST(GLEW_CFLAGS)
 AC_SUBST(GLEW_LIBS)
@@ -398,7 +397,7 @@ AC_ARG_WITH(jpeg,AS_HELP_STRING([--with-jpeg=<dir>],[Use jpeg from here]),[
                 JPEG_LIBS="-L$withval/lib -ljpeg"])
 
   # save global cflags/libs
-  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS
+  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS
   # set cflags/libs for this case
   CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
   LDFLAGS="$LDFLAGS $JPEG_LIBS"
@@ -426,7 +425,7 @@ AC_CHECK_LIB([jpeg],[jpeg_start_decompress],[],
      )
 
   # restore global cflags/libs
-  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS
+  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS
 
 AC_SUBST(JPEG_CFLAGS)
 AC_SUBST(JPEG_LIBS)
@@ -529,6 +528,17 @@ PLUGIN_CFLAGS=$MOZILLA_PLUGIN_CFLAGS
 PLUGIN_LIBS=
 AC_SUBST(PLUGIN_CFLAGS)
 AC_SUBST(PLUGIN_LIBS)
+
+#
+# Check if 'int32' type is defined (would be included in plugin's includes)
+
+  # save global cflags/libs
+  oCPPFLAGS=$CPPFLAGS;oLDFLAGS=$LDFLAGS;oCFLAGS=$CFLAGS
+  CFLAGS="$CFLAGS $PLUGIN_CFLAGS"
+AC_CHECK_TYPES([int32, uint32, int16, uint16], [], [], [[#include <npapi.h>]])
+  # restore global cflags/libs
+  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS
+
 
 # ======================================
 # Status bar configuration

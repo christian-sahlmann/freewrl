@@ -65,6 +65,9 @@
 # define PLUGINDEBUGSTR(msg)
 #endif
 
+/* fix for int32,uint32,int16,uint16 undefined errors with newer xulrunners */
+#include <config.h>
+#include <system.h>
 
 /***********************************************************************
  *
@@ -256,8 +259,8 @@ NPN_GetURLNotify(NPP instance, const char* url, const char* window, void* notify
 #endif
 }
 
-
 #ifdef MY_JAVA
+/*
 JRIEnv* NPN_GetJavaEnv()
 {
 # if (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
@@ -266,6 +269,7 @@ JRIEnv* NPN_GetJavaEnv()
 	return (*gNetscapeFuncs.getJavaEnv);
 # endif
 }
+*/
 
 jref NPN_GetJavaPeer(NPP instance)
 {
@@ -377,10 +381,10 @@ Private_URLNotify(NPP instance, const char* url, NPReason reason, void *notifyDa
        NPP_URLNotify(instance, url, reason, notifyData);
 }
 
+/*JAS 
 JRIGlobalRef
 Private_GetJavaClass(void)
 {
-/*JAS 
 #ifdef MY_JAVA
     jref clazz = NPP_GetJavaClass();
 #else 
@@ -390,9 +394,9 @@ Private_GetJavaClass(void)
 	JRIEnv* env = NPN_GetJavaEnv();
 	return JRI_NewGlobalRef(env, clazz);
     }
-*/
     return NULL;
 }
+*/
 
 /*********************************************************************** 
  *
@@ -533,7 +537,8 @@ NP_Initialize(NPNetscapeFuncs* nsTable, NPPluginFuncs* pluginFuncs)
                 pluginFuncs->urlnotify  = (NPP_URLNotifyProcPtr)(Private_URLNotify);
 #endif
 		pluginFuncs->event      = NULL;
-		pluginFuncs->javaClass	= Private_GetJavaClass();
+/*		pluginFuncs->javaClass	= Private_GetJavaClass(); */
+		pluginFuncs->javaClass	= NULL; 
 
 		err = NPP_Initialize();
 	}
