@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.29 2009/12/28 03:00:50 dug9 Exp $
+  $Id: main.c,v 1.30 2010/02/07 22:45:24 dug9 Exp $
 
   FreeWRL main program.
 
@@ -139,7 +139,8 @@ int main (int argc, char **argv)
 
 	    start_url = argv[optind];
 #ifdef _MSC_VER
-		if( start_url )
+		//if( start_url )
+		if(0) //deprecated feb7,2010 - need to test in win32-installer-installed version before deleting
 		{
 			/* goal - split the url into path and file, then set 
 				set current working directy = path
