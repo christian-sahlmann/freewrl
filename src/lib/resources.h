@@ -1,5 +1,5 @@
 /*
-  $Id: resources.h,v 1.9 2010/02/07 18:24:23 dug9 Exp $
+  $Id: resources.h,v 1.10 2010/02/07 21:18:40 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -35,7 +35,7 @@
 	DEBUG_RES("resource_identify = we have base cleanedurl = %s\n", cleanedURL); \
 	if ((cleanedURL[0] != '\0') && \
 		((islower(cleanedURL[0])) != 0 || (isupper(cleanedURL[0] != 0)))  && \
-		(cleanedURL[1]== ':')) \
+		(cleanedURL[1]== ':')) 
 #else
 
 #define IF_cleanedURL_IS_ABSOLUTE \
