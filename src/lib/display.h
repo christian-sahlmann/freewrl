@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.53 2010/02/01 17:11:53 crc_canada Exp $
+  $Id: display.h,v 1.54 2010/02/07 18:24:23 dug9 Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -52,6 +52,18 @@ extern int ocurse;
 # include <OpenGL/CGLTypes.h>
 
 # include <AGL/AGL.h> 
+#endif /* defined IPHONE */
+#endif /* defined TARGET_AQUA */
+
+#ifdef TARGET_WIN32
+
+/* Nothing special :P ... */
+#include <GL/glew.h>
+#define SENSOR_CURSOR sensor_cursor32();
+#define ARROW_CURSOR arrow_cursor32();
+#define ERROR 0
+
+#endif /* TARGET_WIN32 */
 
 /* Main initialization function */
 int display_initialize();
@@ -161,7 +173,7 @@ typedef enum shader_type {
 
 extern s_renderer_capabilities_t rdr_caps;
 
-
+#ifdef TARGET_AQUA
 extern CGLContextObj myglobalContext;
 
 
@@ -195,7 +207,6 @@ extern int PaneClipChanged;
 
 #include "OpenGL/glu.h"
 
-#endif /* defined IPHONE */
 #endif /* defined TARGET_AQUA */
 
 /**
@@ -281,15 +292,6 @@ void getMotifWindowedGLwin(Window *win);
 
 #endif /* defined(TARGET_X11) || defined(TARGET_MOTIF) */
 
-#ifdef TARGET_WIN32
-
-/* Nothing special :P ... */
-#include <GL/glew.h>
-#define SENSOR_CURSOR sensor_cursor32();
-#define ARROW_CURSOR arrow_cursor32();
-#define ERROR 0
-
-#endif /* TARGET_WIN32 */
 
 /**
  * General : all systems

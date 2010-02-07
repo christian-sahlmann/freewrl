@@ -1,5 +1,5 @@
 /*
-  $Id: resources.h,v 1.8 2010/02/04 16:36:18 crc_canada Exp $
+  $Id: resources.h,v 1.9 2010/02/07 18:24:23 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -33,9 +33,9 @@
 #if defined(_MSC_VER)
 #define IF_cleanedURL_IS_ABSOLUTE \
 	DEBUG_RES("resource_identify = we have base cleanedurl = %s\n", cleanedURL); \
-	if ((cleanedURL[0] != '\0') &&
-		((islower(cleanedURL[0])) != 0 || (isupper(cleanedURL[0] != 0)))  &&
-		(cleanedURL[1]== ':'))
+	if ((cleanedURL[0] != '\0') && \
+		((islower(cleanedURL[0])) != 0 || (isupper(cleanedURL[0] != 0)))  && \
+		(cleanedURL[1]== ':')) \
 #else
 
 #define IF_cleanedURL_IS_ABSOLUTE \
