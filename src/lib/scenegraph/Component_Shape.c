@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.32 2010/02/04 16:36:18 crc_canada Exp $
+$Id: Component_Shape.c,v 1.33 2010/02/08 19:51:01 crc_canada Exp $
 
 X3D Shape Component
 
@@ -297,6 +297,8 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 	GLUNIFORM4F(hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0);
 }
 
+#define MIN_NODE_TRANSPARENCY 0.0
+#define MAX_NODE_TRANSPARENCY 0.99  /* if 1.0, then occlusion culling will cause flashing */
 
 void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 	int i;
@@ -306,8 +308,8 @@ void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 	if (node->ambientIntensity > 1.0) node->ambientIntensity=1.0;
 	if (node->shininess < 0.0) node->shininess=0.0;
 	if (node->shininess > 1.0) node->shininess=1.0;
-	if (node->transparency < 0.0) node->transparency=0.0;
-	if (node->transparency > 1.0) node->transparency=1.0;
+	if (node->transparency < 0.0) node->transparency=MIN_NODE_TRANSPARENCY;
+	if (node->transparency >= 1.0) node->transparency=MAX_NODE_TRANSPARENCY;
 
 	if (node->backAmbientIntensity < 0.0) node->backAmbientIntensity=0.0;
 	if (node->backAmbientIntensity > 1.0) node->backAmbientIntensity=1.0;
@@ -356,8 +358,8 @@ void compile_Material (struct X3D_Material *node) {
 	if (node->ambientIntensity > 1.0) node->ambientIntensity=1.0;
 	if (node->shininess < 0.0) node->shininess=0.0;
 	if (node->shininess > 1.0) node->shininess=1.0;
-	if (node->transparency < 0.0) node->transparency=0.0;
-	if (node->transparency > 1.0) node->transparency=1.0;
+	if (node->transparency < 0.0) node->transparency=MIN_NODE_TRANSPARENCY;
+	if (node->transparency >= 1.0) node->transparency=MAX_NODE_TRANSPARENCY;
 
 	for (i=0; i<3; i++) {
 		if (node->diffuseColor.c[i] < 0.0) node->diffuseColor.c[i]=0.0;
@@ -438,7 +440,7 @@ void child_Shape (struct X3D_Shape *node) {
 	/* set up Appearance Properties here */
 	this_textureTransform = NULL;
 	linePropertySet=FALSE;
-	appearanceProperties.transparency = 1.0;  /* 1 == totally solid, 0 = totally transparent */  
+	appearanceProperties.transparency = MAX_NODE_TRANSPARENCY;  /* 1 == totally solid, 0 = totally transparent */  
 	material_twoSided = NULL;
 	material_oneSided = NULL;
 
@@ -542,7 +544,7 @@ void child_Shape (struct X3D_Shape *node) {
 				/* tell the rendering passes that this is just "normal" */ 
 				last_texture_type = NOTEXTURE; 
 				/* same with materialProperties.transparency */ 
-				appearanceProperties.transparency=1.0; 
+				appearanceProperties.transparency=MAX_NODE_TRANSPARENCY; 
 			}
 		}
 	}

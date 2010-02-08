@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.h,v 1.3 2009/10/21 19:18:30 crc_canada Exp $
+$Id: Component_Shape.h,v 1.4 2010/02/08 19:51:01 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -36,6 +36,10 @@ struct matpropstruct {
 };
 
 extern struct matpropstruct appearanceProperties;
+
+#define MIN_NODE_TRANSPARENCY 0.0
+#define MAX_NODE_TRANSPARENCY 0.99  /* if 1.0, then occlusion culling will cause flashing */
+
 
 
 #define DO_MAT(myNode, diffusec,emissc,shinc,ambc,specc,transc) \

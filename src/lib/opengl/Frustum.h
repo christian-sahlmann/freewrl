@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.h,v 1.7 2010/01/21 19:26:27 crc_canada Exp $
+$Id: Frustum.h,v 1.8 2010/02/08 19:51:01 crc_canada Exp $
 
 Global includes.
 
@@ -108,6 +108,9 @@ void record_ZBufferDistance(struct X3D_Node *node);
 void OcclusionStartofEventLoop(void);
 void OcclusionCulling (void);
 void zeroOcclusion(void);
+
+int is_Switchchild_inrange(struct X3D_Switch *node, struct X3D_Node *me);
+int is_GeoLODchild_inrange (struct X3D_GeoLOD* gpnode, struct X3D_Node *me);
 
 
 
