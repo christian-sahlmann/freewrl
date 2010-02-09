@@ -136,6 +136,8 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    tti->y = bitmapData->Height;
    tti->frames = 1;
    tti->texdata = blob; 
+   if(!blob)
+	   printf("ouch in gdiplus image loader L140 - no image data\n");
    //tti->hasAlpha = Gdiplus::IsAlphaPixelFormat(bitmapData->PixelFormat)?1:0; 
    tti->hasAlpha = Gdiplus::IsAlphaPixelFormat(bitmap->GetPixelFormat())?1:0; 
    //printf("fname=%s alpha=%ld\n",fname,tti->hasAlpha);
@@ -153,13 +155,15 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 #endif
 
    tti->filename = fname;
-   tti->status = TEX_NEEDSBINDING; //make this the last thing you set, because another thread is watching ready to bind
+  // wrong: tti->status = TEX_NEEDSBINDING; //make this the last thing you set, because another thread is watching ready to bind
+   // wrong - let the calling function set the status otherwise textures disappear sometimes
+
 
    bitmap->UnlockBits(bitmapData);
    delete bitmapData;
    delete bitmap;
    //shutdownImageLoader();  //we'll keep it loaded
-   if(1)
+   if(0)
    {
 	   shutdownImageLoader();
 	   loaded = 0;
