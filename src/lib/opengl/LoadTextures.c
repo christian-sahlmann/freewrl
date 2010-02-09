@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.32 2010/02/03 21:20:33 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.33 2010/02/09 19:57:30 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -89,7 +89,7 @@ static void texture_dump_list()
  *   texture_load_from_pixelTexture: have a PixelTexture node,
  *                           load it now.
  */
-static bool texture_load_from_pixelTexture (struct textureTableIndexStruct* this_tex, struct X3D_PixelTexture *node)
+static void texture_load_from_pixelTexture (struct textureTableIndexStruct* this_tex, struct X3D_PixelTexture *node)
 {
 
 /* load a PixelTexture that is stored in the PixelTexture as an MFInt32 */
@@ -101,7 +101,6 @@ static bool texture_load_from_pixelTexture (struct textureTableIndexStruct* this
 	int tctr;
 
 	iptr = node->image.p;
-	this_tex->status = TEX_NEEDSBINDING;
 
 	ok = TRUE;
 
@@ -128,13 +127,6 @@ static bool texture_load_from_pixelTexture (struct textureTableIndexStruct* this
 
 	/* did we have any errors? if so, create a grey pixeltexture and get out of here */
 	if (!ok) {
-		char buff[] = {0x70, 0x70, 0x70, 0xff} ; /* same format as ImageTextures - GL_BGRA here */
-
-		this_tex->x = 1;
-		this_tex->y = 1;
-		this_tex->hasAlpha = FALSE;
-		this_tex->texdata = MALLOC(4);
-		memcpy (this_tex->texdata, buff, 4);
 		return TRUE;
 	}
 
@@ -187,16 +179,8 @@ static bool texture_load_from_pixelTexture (struct textureTableIndexStruct* this
 /* rewrite MovieTexture loading - for now, just do a blank texture. See:
 	HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 define */
-static bool texture_load_from_MovieTexture (struct textureTableIndexStruct* this_tex)
+static void texture_load_from_MovieTexture (struct textureTableIndexStruct* this_tex)
 {
-	char buff[] = {0x70, 0x70, 0x70, 0xff} ; /* same format as ImageTextures - GL_BGRA here */
-	this_tex->status = TEX_NEEDSBINDING;
-	this_tex->x = 1;
-	this_tex->y = 1;
-	this_tex->hasAlpha = FALSE;
-	this_tex->texdata = MALLOC(4);
-	memcpy (this_tex->texdata, buff, 4);
-	return TRUE;
 }
 
 
@@ -322,7 +306,6 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 
     /* store actual filename, status, ... */
     this_tex->filename = filename;
-    this_tex->status = TEX_NEEDSBINDING;
     this_tex->hasAlpha = (imlib_image_has_alpha() == 1);
     this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
 
@@ -477,18 +460,15 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 	}
 
 	if (data != NULL) {
-    this_tex->filename = filename;
-    this_tex->status = TEX_NEEDSBINDING;
-    this_tex->hasAlpha = hasAlpha;
-    this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
+		this_tex->filename = filename;
+		this_tex->hasAlpha = hasAlpha;
+		this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
 
-    this_tex->frames = 1;
-    this_tex->x = image_width;
-    this_tex->y = image_height;
-
-    this_tex->texdata = data;
-
-	}
+		this_tex->frames = 1;
+		this_tex->x = image_width;
+		this_tex->y = image_height;
+		this_tex->texdata = data;
+}
 
 	CGContextRelease(cgctx);
 	return TRUE;
@@ -561,7 +541,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 			/* Cool :) */
 			DEBUG_TEX("%s texture loaded (file downloaded and loaded into memory): we should create the OpenGL texture...\n", res->request);
 			res->complete = TRUE;
-			entry->status = TEX_NEEDSBINDING;
+			entry->status = TEX_NEEDSBINDING; /* tell the texture thread to convert data to OpenGL-format */
 			return TRUE;
 		}
 

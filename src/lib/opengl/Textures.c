@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.46 2010/01/21 19:26:27 crc_canada Exp $
+  $Id: Textures.c,v 1.47 2010/02/09 19:57:30 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -343,6 +343,7 @@ void registerTexture(struct X3D_Node *tmp) {
 				newStruct->entry[count].scenegraphNode = NULL;
 				newStruct->entry[count].filename = NULL;
 				newStruct->entry[count].nodeType = 0;
+				newStruct->entry[count].texdata = NULL;
 			}
 			
 			newStruct->next = NULL;
@@ -823,6 +824,17 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	compression = GL_FALSE;
 	borderWidth = 0;
 
+	/* is this texture invalid and NOT caught before here? */
+	/* this is the same as the defaultBlankTexture; the following code should NOT be executed */
+	if (me->texdata == NULL) {
+		char buff[] = {0x70, 0x70, 0x70, 0xff} ; /* same format as ImageTextures - GL_BGRA here */
+		me->x = 1;
+		me->y = 1;
+		me->hasAlpha = FALSE;
+		me->texdata = MALLOC(4);
+		memcpy (me->texdata, buff, 4);
+	}
+
 	/* do we need to convert this to an OpenGL texture stream?*/
 
 	/* we need to get parameters. */	
@@ -953,9 +965,10 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 
 	/* a pointer to the tex data. We increment the pointer for movie texures */
 	mytexdata = me->texdata;
-#ifdef _MSC_VER
-	if(!mytexdata) return; /*dug9 -not sure how it gets in here with no image data, but then it bombs in glTexImage2D below. In a big scene all the textures eventually shows up */
-#endif
+	if (mytexdata == NULL) {
+		printf ("mytexdata is null, texture failed, put something here\n");
+	}
+
 
 	glBindTexture (GL_TEXTURE_2D, me->OpenGLTexture);
 	
