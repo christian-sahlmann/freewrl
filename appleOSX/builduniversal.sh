@@ -22,8 +22,8 @@ install_name_tool -id libFreeWRLFunc.dylib libFreeWRLFunc.dylib
 cp libFreeWRLFunc.dylib /usr/local/lib/libFreeWRLFunc.dylib
 
 #build javascript
-../../freewrl/JS/js1.8/build64_32.sh
-cp ../../freewrl/JS/js1.8/Darwin_DBG.OBJ/libjs.dylib /usr/local/lib/libjs.dylib 
+../../freewrl/JS/js1.8/src/build64_32.sh
+cp ../../freewrl/JS/js1.8/src/Darwin_DBG.OBJ/libjs.dylib /usr/local/lib/libjs.dylib 
 
 ## Clean up
 rm -f VRMLFunc_i386.dylib
