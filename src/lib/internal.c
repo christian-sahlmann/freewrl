@@ -1,5 +1,5 @@
 /*
-  $Id: internal.c,v 1.13 2010/02/10 18:22:31 sdumoulin Exp $
+  $Id: internal.c,v 1.14 2010/02/10 18:36:37 sdumoulin Exp $
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always
@@ -130,6 +130,7 @@ void fw_perror(FILE *f, const char *format, ...)
     //fprintf(f, "[System error: %s]\n", strerror(e));
 #else
     fprintf(f, "[System error: %d]\n", e);
+#endif
     fflush(f);
 }
 
