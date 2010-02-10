@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.43 2010/02/05 21:41:36 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.44 2010/02/10 18:19:58 sdumoulin Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -889,6 +889,7 @@ void EAI_RW(char *str) {
 	int i;
 
 	/* clean the slate! keep EAI running, though */
+	printf("EAI replace world, calling kill_oldWorld\n");
 	kill_oldWorld(FALSE,TRUE,__FILE__,__LINE__);
 
 	/* go through the string, and send the nodes into the rootnode */

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.97 2010/02/05 14:52:28 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.98 2010/02/10 18:19:58 sdumoulin Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -556,6 +556,7 @@ OLDCODE        if (RUNNINGASPLUGIN) {
 OLDCODE                aglSetCurrentContext(aqglobalContext);
 OLDCODE        } else {
 #endif
+		printf("initialize gl, myglobalcontext is %u", myglobalContext);
                 CGLSetCurrentContext(myglobalContext);
 #ifdef OLDCODE
 OLDCODE        }

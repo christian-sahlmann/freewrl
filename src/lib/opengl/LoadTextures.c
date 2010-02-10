@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.33 2010/02/09 19:57:30 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.34 2010/02/10 18:19:58 sdumoulin Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -339,11 +339,13 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 	CGContextRef 	cgctx;
 
 	/* Quicktime params */
+#ifdef OSX_USE_QUICKTIME
 	OSErr 		err;
 	GraphicsImportComponent gi;
 	Handle 		dataRef;
 	OSType 		dataRefType;
 	/* end of Quicktime params */
+#endif
 
 	unsigned char *	data;
 	int		hasAlpha;
@@ -363,6 +365,7 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 	/* I dont know whether to use quicktime or not... Probably not... as the other ways using core 
 		graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs
 	*/
+#ifdef OSX_USE_QUICKTIME
 	if (useQuicktime) {
 		/* lets let quicktime decide on what to do with this image */
 		err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
@@ -374,6 +377,8 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 			CloseComponent(gi);
 		}
 	} else {
+#endif
+	if (1) {
 		sourceRef = CGImageSourceCreateWithURL(url,NULL);
 
 		if (sourceRef != NULL) {

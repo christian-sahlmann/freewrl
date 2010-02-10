@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.38 2010/02/07 18:24:22 dug9 Exp $
+  $Id: display.c,v 1.39 2010/02/10 18:19:58 sdumoulin Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -207,6 +207,7 @@ void setScreenDim(int wi, int he)
 
     if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
     else screenRatio =  screenWidth;
+    printf("screenwidth %d screenheight %d screenRation %f\n", screenWidth, screenHeight, screenRatio);
 }
 
 
@@ -216,6 +217,7 @@ void setScreenDim(int wi, int he)
 GLvoid resize_GL(GLsizei width, GLsizei height)
 { 
     FW_GL_VIEWPORT( 0, 0, width, height ); 
+	printf("resize_GL\n");
 }
 
 /**
