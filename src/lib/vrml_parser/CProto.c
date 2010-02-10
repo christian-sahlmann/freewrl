@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.39 2010/02/05 21:41:37 crc_canada Exp $
+$Id: CProto.c,v 1.40 2010/02/10 20:09:49 crc_canada Exp $
 
 CProto ???
 
@@ -313,7 +313,8 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
 {
  /* TODO:  O(log(n)) by sorting */
  size_t i;
-/* printf ("protoDefinition_getField; sizeof iface %d\n",vector_size(me->iface)); */
+ /* printf ("protoDefinition_getField; sizeof iface %d\n",vector_size(me->iface));  */
+ if (!me) return NULL; /* error here, can not go through fields */
  for(i=0; i!=vector_size(me->iface); ++i)
  {
   struct ProtoFieldDecl* f=vector_get(struct ProtoFieldDecl*, me->iface, i);

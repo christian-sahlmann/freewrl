@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.37 2010/01/26 20:32:03 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.38 2010/02/10 20:09:49 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -864,7 +864,6 @@ Note the differing location of the fields...
 static void sendInitialFieldsToShader(struct X3D_Node * node) {
 	int i;
 	GLuint myShader;
-printf ("sendInitialFieldsToShader...\n");
 
 	switch (node->_nodeType) {
 		case NODE_ProgramShader: {

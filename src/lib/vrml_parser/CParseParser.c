@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.53 2010/02/05 21:41:37 crc_canada Exp $
+  $Id: CParseParser.c,v 1.54 2010/02/10 20:09:49 crc_canada Exp $
 
   ???
 
@@ -618,10 +618,12 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
                                 ASSERT(pField->mode==PKW_inputOutput);
                     }
         
-            /* Add this scriptfielddecl to the list of script fields mapped to this proto field */
-            sfield = newScriptFieldInstanceInfo(sdecl, script);
-            vector_pushBack(struct ScriptFieldInstanceInfo*, pField->scriptDests, sfield);
-            defaultVal = pField->defaultVal;
+	    if (pField) {
+            	/* Add this scriptfielddecl to the list of script fields mapped to this proto field */
+            	sfield = newScriptFieldInstanceInfo(sdecl, script);
+            	vector_pushBack(struct ScriptFieldInstanceInfo*, pField->scriptDests, sfield);
+            	defaultVal = pField->defaultVal;
+	    }
 
         } else {
             startOfField = (char *)me->lexer->nextIn;
@@ -687,7 +689,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 
             /* Add this script as a destination for this proto field */
             sfield = newScriptFieldInstanceInfo(sdecl, script);
-            vector_pushBack(struct ScriptFieldInstanceInfo*, pField->scriptDests, sfield);
+            if (pField) vector_pushBack(struct ScriptFieldInstanceInfo*, pField->scriptDests, sfield);
         }
     }
 
