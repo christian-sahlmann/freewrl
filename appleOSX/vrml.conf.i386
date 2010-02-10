@@ -25,7 +25,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-lSystem '.
 		'-lexpat '.
 		'-lfreetype '.
-		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -framework QuickTime -framework ApplicationServices',
+		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -framework ApplicationServices',
 
     # when building on Leopard 10.5, keep the version at 10.4 - see:
     # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
@@ -33,8 +33,8 @@ FREEWRL_CCFLAGS => '-arch '.
 
     # can also add -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC to display malloc issues.
 
-#     FREEWRL_DEFINE => ' -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
-    FREEWRL_DEFINE => ' -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
+#     FREEWRL_DEFINE => ' -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch x86_64 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
+    FREEWRL_DEFINE => ' -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -DXP_UNIX ',
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.
@@ -46,6 +46,8 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-I/usr/local/include '.
 		'-I/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include '.
 		'-I/opt/local/include '.
+		'-I/FreeWRL/js/src '.
+		'-I/FreeWRL/js/src/Darwin_DBG.OBJ '.
 		' ',
 
 ############################################################################
@@ -71,6 +73,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa '.
+		'-L/FreeWRL/js/src/Darwin_DBG.OBJ '.
 		'-lAquaIntLib ',
 
 	LDFLAGS2 => '-flat_namespace '.
@@ -78,6 +81,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-bundle '.
 		'-L/usr/lib '.
 		'-F/System/Library/Frameworks '.
+		'-L/FreeWRL/js/src/Darwin_DBG.OBJ '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa '.

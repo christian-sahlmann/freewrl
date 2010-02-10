@@ -46,24 +46,16 @@ $VRML_CONFIG{PLATFORM} = "Darwin";
 ## Handle platform-specific compile options for the Javascript engine
 ## and others specific to FreeWRL.
 
-my $jsdir = "js1.5/src";
-my $jsobjdir;
 my $noStackProtector = "";
 
 my @inc;
 my @libs;
 my @ldflags;
-my @jsinc;
-my @jslibs;
 
 
-$jsobjdir = "$jsdir/Darwin";
 
 #location of the spidermonkey js engine.
-$jsobjdir .= "_OPT.OBJ";
-my $libFreeWRLjspath = "../../freewrl/JS/".$jsobjdir."/libFreeWRLjs.so";
 
-#print "the javascript engine should be located at: $libFreeWRLjspath\n";
 
 
 
@@ -86,15 +78,12 @@ if ($ok eq 0) {
 }
 
 push @inc, $VRML_CONFIG{FREEWRL_INC}, 
-	"-I../../freewrl/JS/$jsobjdir", 
-	"-I../../freewrl/JS/$jsdir", 
 	"-I../src/lib ",
 	" -IOSX_Specific ";
-push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-L../../freewrl/JS/$jsobjdir", "-lFreeWRLjs";
-push @ldflags, $VRML_CONFIG{LDFLAGS}, "-L../../freewrl/JS/$jsobjdir";
+push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-ljs";
+push @ldflags, $VRML_CONFIG{LDFLAGS};
 
 # push build directory, for running standalone
-
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
 $VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
 
@@ -169,7 +158,6 @@ writeAllTarget();
 
 writeMakefileLibFreeWRL();
 
-write_linux_makefile_javascript();
 write_linux_makefile_javaClasses();
 writeMakefileDistclean();
 writeMakefileFinalTargets();
@@ -178,7 +166,7 @@ print "The Makefile has been generated. Type \"make\" and\/or \"make install\" t
 
 sub writeAllTarget () {
 	# should edit this line to suit build
-	print MK "all: Javascript libFreeWRL";
+	print MK "all: libFreeWRL";
 	if ($JAVAC ne "") {print MK " JavaClasses";}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
 	print MK "\n";
@@ -303,7 +291,6 @@ sub write_linux_makefile_javascript() {
 	## make the Javascript libraries if needed
     
 	print MK "Javascript:\n";
-	print MK "\tcd ../../freewrl/JS/$jsdir; make -f Makefile.ref BUILD_OPT=1 STACKPROT=$noStackProtector; cd $pwd\n";
 }
 
 
@@ -358,7 +345,6 @@ sub writeMakefileDistclean() {
 	print MK "	rm -f ../../freewrl/java/classes/sai/eai/*class\n";
 	print MK "	rm -f ../../freewrl/java/classes/org/web3d/x3d/sai/*class\n";
 	print MK "	rm -f ../../freewrl/java/classes/vrml.jar\n";
-	print MK "	rm -rf ../../freewrl/JS/$jsobjdir\n";
 
 	print MK "	rm -f ../src/bin/*\.o\n";
 	print MK "	rm -f ../src/lib/*\.o\n";
@@ -374,13 +360,8 @@ sub writeMakefileDistclean() {
 
 
 	print MK "	rm -f /usr/local/lib/libFreeWRLFunc.dylib\n";
-	print MK "	rm -f /usr/local/lib/libFreeWRLjs.dylib\n";
 
 	# remove other JS directories
-	$jsobjdir =~s/src/src\/editline/;
-	print MK "	rm -rf ../../freewrl/JS/$jsobjdir\n";
-	$jsobjdir =~ s/editline/fdlibm/;
-	print MK "	rm -rf ../../freewrl/JS/$jsobjdir\n";
 
 	print MK "\n#remove installed images\n";
 	print MK "distclean:	clean\n";
