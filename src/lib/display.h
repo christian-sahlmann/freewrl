@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.54 2010/02/07 18:24:23 dug9 Exp $
+  $Id: display.h,v 1.55 2010/02/10 18:35:10 sdumoulin Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -78,6 +78,10 @@ extern bool display_initialized;
  * TARGET_MOTIF  : ui/fwMotifWindow.c
  * TARGET_WIN32  : ui/fwWindow32.c
  */
+#undef TARGET_WIN32
+#undef TARGET_MOTIF
+#undef TARGET_X11
+#define TARGET_AQUA
 int open_display();
 int create_main_window(int argc, char *argv[]);
 bool create_GLcontext();
@@ -291,7 +295,6 @@ void getMotifWindowedGLwin(Window *win);
 # endif /* defined(TARGET_MOTIF) */
 
 #endif /* defined(TARGET_X11) || defined(TARGET_MOTIF) */
-
 
 /**
  * General : all systems
@@ -645,7 +648,7 @@ void setScreenDim(int wi, int he);
 #define FW_GL_RASTERPOS2I(aaa,bbb)
 #define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd)
 #define FW_GL_CGLFLUSHDRAWABLE(aaa) GL_FALSE
-#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd)
+#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) printf("WRONG");
 #define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd)
 #define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee)
 #define FW_GL_MATERIALF(aaa, bbb, ccc)

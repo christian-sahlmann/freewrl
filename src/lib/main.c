@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.27 2010/02/05 21:41:36 crc_canada Exp $
+  $Id: main.c,v 1.28 2010/02/10 18:35:10 sdumoulin Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -81,12 +81,13 @@ void OSX_initializeParameters(const char* initialURL) {
     /* have we been through once already (eg, plugin loading new file)? */
     if (OSXparams == NULL) {
     	/* first, get the FreeWRL shared lib, and verify the version. */
-
+	/*
     	libver = libFreeWRL_get_version();
     	progver = freewrl_get_version();
     	if (strcmp(progver, libver)) {
 		ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
     	}
+	*/
 
     	/* Before we parse the command line, setup the FreeWRL default parameters */
     	OSXparams = calloc(1, sizeof(freewrl_params_t));
@@ -96,17 +97,13 @@ void OSX_initializeParameters(const char* initialURL) {
     	OSXparams->height = 400;
     	OSXparams->eai = FALSE;
     	OSXparams->fullscreen = FALSE;
+    } 
+    /* start threads, parse initial scene, etc */
+   if (!initFreeWRL(OSXparams)) {
+	ERROR_MSG("main: aborting during initialization.\n");
+	exit(1);
+   }
 
-    	/* start threads, parse initial scene, etc */
-    	if (!initFreeWRL(OSXparams)) {
-	    	ERROR_MSG("main: aborting during initialization.\n");
-	    	exit(1);
-    	}
-    } else {
-	printf ("OSX_initializeParameters - just creating new resource\n");
-    }
-
-    /* enable collisions by default */
     fw_params.collision = 1;
 
     /* Give the main argument to the resource handler */
@@ -120,10 +117,14 @@ void OSX_initializeParameters(const char* initialURL) {
     /* did this load correctly? */
     if (res->status == ress_not_loaded) {
 	ConsoleMessage ("FreeWRL: Problem loading file \"%s\"", res->request);
+	printf("could not load %s\n", initialURL);
     }
     if (res->status == ress_failed) {
+	printf("load failed %s\n", initialURL);
 	ConsoleMessage ("FreeWRL: unknown data on command line: \"%s\"", res->request);
-    }
+    } else {
+	printf("loaded %s\n", initialURL);
+	}
 }
 
 /* OSX plugin is telling us the id to refer to */

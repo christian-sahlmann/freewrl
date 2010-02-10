@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.100 2010/02/05 21:41:36 crc_canada Exp $
+  $Id: MainLoop.c,v 1.101 2010/02/10 18:35:10 sdumoulin Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -765,7 +765,16 @@ void setup_projection(int pick, int x, int y)
 		}
 		/* <<< statusbar hud */
 
-		FW_GL_VIEWPORT(xvp,clipPlane,screenwidth2,screenHeight);
+		//printf("should be setting viewport to %d %d\n", screenwidth2, screenHeight);
+		//FW_GL_VIEWPORT(xvp,clipPlane,screenwidth2,screenHeight);
+                myglobalContext = CGLGetCurrentContext();
+		//printf("global context is %u\n", myglobalContext);
+		CGLSetCurrentContext(myglobalContext);
+		glViewport(xvp, clipPlane, screenwidth2, screenHeight);
+		/*
+		if (myglobalContext != NULL)
+			aglUpdateContext(myglobalContext);
+		*/
         FW_GL_LOAD_IDENTITY();
         if(pick) {
                 /* picking for mouse events */
@@ -845,7 +854,10 @@ static void render()
 	if (!get_headlight()) {
 		lightState(HEADLIGHT_LIGHT,FALSE);
 	}
-	
+/*
+                myglobalContext = CGLGetCurrentContext();
+		CGLSetCurrentContext(myglobalContext);
+*/
 	/*  Other lights*/
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, before render_hier");
 	
@@ -1098,7 +1110,7 @@ void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
 void do_keyPress(const char kp, int type) {
         /* does this X3D file have a KeyDevice node? if so, send it to it */
-        /*printf("%c%d\n",kp,type);*/
+        /* printf("%c%d\n",kp,type); */
         if (KeySensorNodePresent()) {
                 sendKeyToKeySensor(kp,type);
         } else {
@@ -1359,7 +1371,9 @@ void _displayThread()
 	/* loop and loop, and loop... */
 	while (!quitThread) {
 		EventLoop();
-	}
+	} 
+	printf("end of display thread, call kill_oldWorld\n");
+    	kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 }
 
 void setLastMouseEvent(int etype) {
@@ -1470,6 +1484,7 @@ void doQuit()
 {
     stopDisplayThread();
 
+	printf("doQuit, calling kill_oldWorld\n");
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
     /* set geometry to normal size from fullscreen */
@@ -1789,16 +1804,16 @@ OLDCODEvoid sendPluginFD(int fd) {
 OLDCODE        /* printf ("sendPluginFD, FreeWRL received %d\n",fd); */
 OLDCODE        _fw_browser_plugin = fd;
 OLDCODE}
-OLDCODEvoid aquaPrintVersion() {
-OLDCODE        printf ("FreeWRL version: %s\n", libFreeWRL_get_version()); 
-OLDCODE        exit(EXIT_SUCCESS);
-OLDCODE}
 OLDCODEvoid setPluginPath(char* path) {
 OLDCODE        FREE_IF_NZ(PluginFullPath);
 OLDCODE        PluginFullPath = strdup(path);
 OLDCODE}
 OLDCODE
 #endif
+aquaPrintVersion() {
+	printf ("FreeWRL version: %s\n", libFreeWRL_get_version()); 
+	exit(EXIT_SUCCESS);
+}
 
 #endif
 
@@ -1829,7 +1844,10 @@ void replaceWorldNeeded(char* str)
 /* OSX the Plugin is telling the displayThread to stop and clean everything up */
 void stopRenderingLoop(void) {
 
+    	stopDisplayThread();
+    	//killErrantChildren();
 	/* lets do an equivalent to replaceWorldNeeded, but with NULL for the new world */
+	myglobalContext = NULL;
         AnchorsAnchor = NULL;
         BrowserAction = TRUE;
         FREE_IF_NZ(OSX_replace_world_from_console);
