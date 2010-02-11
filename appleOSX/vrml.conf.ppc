@@ -1,12 +1,7 @@
-# Default VRML Configuration.
-# You will probably need to edit at least these variables
-# to inform the compiler where the libraries are on your system.
 %VRML_CONFIG = (
 ############################################################################
 BIN_DIR => "/usr/bin",
 LIB_DIR => "/usr/local/lib",
-DEBUG => "off",
-#JAS - try /usr/bin/open to get the default browser BROWSER => "/Applications/Safari.app/Contents/MacOS/Safari",
 BROWSER => "/usr/bin/open",
 WGET => "/usr/bin/curl",
 ASCIITERM => "/usr/X11R6/bin/rxvt",
@@ -17,38 +12,42 @@ JAVA => "/usr/bin/java",
 
 SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 
-# when building on Leopard 10.5, keep the version at 10.4 - see:
-# http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
-# make sure you change the JS/js1.5/src/config/Darwin.mk.ppc also!
-
-FREEWRL_CCFLAGS => '-arch ppc -mmacosx-version-min=10.4',
+FREEWRL_CCFLAGS => '-arch '.
+		   'ppc '.
+		   '-mmacosx-version-min=10.4 '.
+		   '-fno-common ',
 
 ############################################################################
-# Main defines for OpenGL, libjpeg, libpng, and freetype
+# Main defines for OpenGL, freetype
     FREEWRL_LIBS => '-L/usr/lib '.
 		'-L/usr/local/lib '.
 		'-L/System/Library/Frameworks/OpenGL.framework/Libraries '.
-		'-lexpat '.
 		'-lSystem '.
+		'-lexpat '.
 		'-lfreetype '.
 		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -framework ApplicationServices',
 
     # when building on Leopard 10.5, keep the version at 10.4 - see:
     # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
-    # make sure you change the JS/js1.5/src/config/Darwin.mk.ppc also!
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
 
-    #had a problem with the redefinition of uint64, try to define _UINT64 and see what happens
-    FREEWRL_DEFINE => '-DAQUA -DARCH_PPC -D_REENTRANT -D_UINT64 -arch ppc -mmacosx-version-min=10.4 -fno-common',
+    # can also add -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC to display malloc issues.
 
-    FREEWRL_INC => 
+#     FREEWRL_DEFINE => ' -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch x86_64 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
+    FREEWRL_DEFINE => ' -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch ppc -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -DXP_UNIX ',
+
+    FREEWRL_INC => '-I/usr/include '.
+		'-I/usr/include/sys '.
 		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
 		'-I/System/Library/Frameworks/GLUT.framework/Headers '.
 		'-I/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/Frameworks/CoreGraphics.framework/Versions/A/Headers/ '.
 		'-I/usr/local/include/freetype2 '.
 		'-I/usr/local/include/freetype2/freetype '.
 		'-I/usr/local/include '.
-		'-I/Developer/SDKs/MacOSX10.3.9.sdk/usr/X11R6/include/freetype2 '.
-		'-I/Developer/SDKs/MacOSX10.3.9.sdk/Developer/Headers/FlatCarbon -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3 -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++ -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++/ppc-darwin -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include '.
+		'-I/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include '.
+		'-I/opt/local/include '.
+		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src '.
+		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		' ',
 
 ############################################################################
@@ -58,20 +57,23 @@ FREEWRL_CCFLAGS => '-arch ppc -mmacosx-version-min=10.4',
 
 ############################################################################
 # LD flags
+
     # when building on Leopard 10.5, keep the version at 10.4 - see:
     # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
-    # make sure you change the JS/js1.5/src/config/Darwin.mk.ppc also!
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
+
 
 	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
 		'-L/usr/lib '.
 		'-F/System/Library/Frameworks '. 
 		'-arch ppc '.
-		' -mmacosx-version-min=10.4 '.
-		#'-isysroot /Developer/SDKs/MacOSX10.3.9.sdk -Wl -syslibroot /Developer/SDKs/MacOSX10.3.9.sdk '.
+		'-mmacosx-version-min=10.4 '.
+		'-isysroot /Developer/SDKs/MacOSX10.4u.sdk '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa '.
+		'-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		'-lAquaIntLib ',
 
 	LDFLAGS2 => '-flat_namespace '.
@@ -79,9 +81,7 @@ FREEWRL_CCFLAGS => '-arch ppc -mmacosx-version-min=10.4',
 		'-bundle '.
 		'-L/usr/lib '.
 		'-F/System/Library/Frameworks '.
-		'-arch ppc '.
-		' -mmacosx-version-min=10.4 '.
-		'-isysroot /Developer/SDKs/MacOSX10.3.9.sdk '.
+		'-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa '.

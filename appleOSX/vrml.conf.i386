@@ -46,8 +46,8 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-I/usr/local/include '.
 		'-I/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include '.
 		'-I/opt/local/include '.
-		'-I/FreeWRL/js/src '.
-		'-I/FreeWRL/js/src/Darwin_DBG.OBJ '.
+		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src '.
+		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		' ',
 
 ############################################################################
@@ -73,7 +73,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa '.
-		'-L/FreeWRL/js/src/Darwin_DBG.OBJ '.
+		'-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		'-lAquaIntLib ',
 
 	LDFLAGS2 => '-flat_namespace '.
@@ -81,7 +81,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-bundle '.
 		'-L/usr/lib '.
 		'-F/System/Library/Frameworks '.
-		'-L/FreeWRL/js/src/Darwin_DBG.OBJ '.
+		'-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa '.
