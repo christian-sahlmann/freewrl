@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.31 2010/01/19 20:10:32 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.32 2010/02/11 20:21:27 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -360,18 +360,21 @@ void child_Transform (struct X3D_Transform *node) {
 }
 
 void changed_StaticGroup (struct X3D_StaticGroup *node) { 
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_StaticGroup, metadata));
 	INITIALIZE_EXTENT;
 }
 
 
 void changed_Group (struct X3D_Group *node) { 
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Group, metadata))
+	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Group, metadata));
+	MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_Group, children));
 	INITIALIZE_EXTENT;
 }
 
 void changed_Switch (struct X3D_Switch *node) { 
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Switch, metadata))
+	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Switch, metadata));
+	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Switch, choice));
+	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Switch, children ));
+	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Switch, whichChoice ));
 	INITIALIZE_EXTENT;
 }
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.47 2009/12/18 17:30:14 istakenv Exp $
+$Id: CRoutes.c,v 1.48 2010/02/11 20:21:27 crc_canada Exp $
 
 ???
 
@@ -645,7 +645,7 @@ void AddRemoveChildren (
 				printf ("remove, comparing %u with %u\n",*remptr, *remchild); 
 				#endif
 				if ((*remptr == *remchild) && (!done)) {
-					#ifdef VRVERBOSE
+					#ifdef CRVERBOSE
 					printf ("removing this child from this parent\n");
 					#endif
 
@@ -1009,7 +1009,9 @@ static void actually_do_CRoutes_Register() {
 
 	if (routesToRegister == NULL) return; /* should never get here, but... */
 
-	/* printf ("actually_do_CRoutes_Register, vector size %d\n",vector_size(routesToRegister)); */
+#ifdef CRVERBOSE
+	printf ("actually_do_CRoutes_Register, vector size %d\n",vector_size(routesToRegister));
+#endif
 
 	for (ind=0; ind<vector_size(routesToRegister); ind++ ) {
 		struct CR_RegStruct *newEntry;
@@ -1125,105 +1127,107 @@ static void actually_do_CRoutes_Register() {
 						}
 					#endif
 	
-					return;
+					/* return; */
 				}
 			}
 		}
 	
-		/* is this a removeRoute? if so, its not found, and we SHOULD return here */
-		if (newEntry->adrem != 1) return;
-		#ifdef CRVERBOSE 
-			printf ("CRoutes, inserting at %d\n",insert_here);
-		#endif
-	
-		/* create the space for this entry. */
-		for (shifter = CRoutes_Count; shifter > insert_here; shifter--) {
-			memcpy ((void *)&CRoutes[shifter], (void *)&CRoutes[shifter-1],sizeof(struct CRStruct));
+		/* this is an Add; removes should be handled above. */
+		if (newEntry->adrem == 1)  {
 			#ifdef CRVERBOSE 
-				printf ("Copying from index %d to index %d\n",shifter, shifter-1);
+				printf ("CRoutes, inserting at %d\n",insert_here);
 			#endif
-		}
-	
-	
-		/* and put it in */
-		CRoutes[insert_here].routeFromNode = newEntry->from;
-		CRoutes[insert_here].fnptr = newEntry->fromoffset;
-		CRoutes[insert_here].isActive = FALSE;
-		CRoutes[insert_here].tonode_count = 0;
-		CRoutes[insert_here].tonodes = NULL;
-		CRoutes[insert_here].len = returnRoutingElementLength(newEntry->fieldType);
-		CRoutes[insert_here].interpptr = (void (*)(void*))newEntry->intptr;
-		CRoutes[insert_here].direction_flag = newEntry->scrdir;
-		CRoutes[insert_here].extra = newEntry->extra;
-		CRoutes[insert_here].intTimeStamp = 0;
-	
-		if (newEntry->to_count > 0) {
-			if ((CRoutes[insert_here].tonodes =
-				 (CRnodeStruct *) calloc(newEntry->to_count, sizeof(CRnodeStruct))) == NULL) {
-				fprintf(stderr, "CRoutes_Register: calloc failed to allocate memory.\n");
-			} else {
-				CRoutes[insert_here].tonode_count = newEntry->to_count;
-				#ifdef CRVERBOSE
-					printf("CRoutes at %d to nodes: %s\n",
-						   insert_here, newEntry->tonode_str);
+		
+			/* create the space for this entry. */
+			for (shifter = CRoutes_Count; shifter > insert_here; shifter--) {
+				memcpy ((void *)&CRoutes[shifter], (void *)&CRoutes[shifter-1],sizeof(struct CRStruct));
+				#ifdef CRVERBOSE 
+					printf ("Copying from index %d to index %d\n",shifter, shifter-1);
 				#endif
-	
-				if ((buffer = strtok(newEntry->tonode_str, token)) != NULL) {
-					/* printf("\t%s\n", buffer); */
-					to_ptr = &(CRoutes[insert_here].tonodes[0]);
-					if (sscanf(buffer, "%u:%u",
-							   (unsigned int*)&(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
-						#ifdef CRVERBOSE 
-							printf("\tsscanf returned: %u, %u\n",
-							  to_ptr->routeToNode, to_ptr->foffset);
-						#endif
-					}
-	
-	
-					/* condition statement changed */
-					buffer = strtok(NULL, token);
-					for (to_counter = 1;
-						 ((to_counter < newEntry->to_count) && (buffer != NULL));
-						 to_counter++) {
-						to_ptr = &(CRoutes[insert_here].tonodes[to_counter]);
+			}
+		
+		
+			/* and put it in */
+			CRoutes[insert_here].routeFromNode = newEntry->from;
+			CRoutes[insert_here].fnptr = newEntry->fromoffset;
+			CRoutes[insert_here].isActive = FALSE;
+			CRoutes[insert_here].tonode_count = 0;
+			CRoutes[insert_here].tonodes = NULL;
+			CRoutes[insert_here].len = returnRoutingElementLength(newEntry->fieldType);
+			CRoutes[insert_here].interpptr = (void (*)(void*))newEntry->intptr;
+			CRoutes[insert_here].direction_flag = newEntry->scrdir;
+			CRoutes[insert_here].extra = newEntry->extra;
+			CRoutes[insert_here].intTimeStamp = 0;
+		
+			if (newEntry->to_count > 0) {
+				if ((CRoutes[insert_here].tonodes =
+					 (CRnodeStruct *) calloc(newEntry->to_count, sizeof(CRnodeStruct))) == NULL) {
+					fprintf(stderr, "CRoutes_Register: calloc failed to allocate memory.\n");
+				} else {
+					CRoutes[insert_here].tonode_count = newEntry->to_count;
+					#ifdef CRVERBOSE
+						printf("CRoutes at %d to nodes: %s\n",
+							   insert_here, newEntry->tonode_str);
+					#endif
+		
+					if ((buffer = strtok(newEntry->tonode_str, token)) != NULL) {
+						/* printf("\t%s\n", buffer); */
+						to_ptr = &(CRoutes[insert_here].tonodes[0]);
 						if (sscanf(buffer, "%u:%u",
 								   (unsigned int*)&(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
 							#ifdef CRVERBOSE 
 								printf("\tsscanf returned: %u, %u\n",
-									  to_ptr->routeToNode, to_ptr->foffset);
+								  to_ptr->routeToNode, to_ptr->foffset);
 							#endif
 						}
+		
+		
+						/* condition statement changed */
 						buffer = strtok(NULL, token);
+						for (to_counter = 1;
+							 ((to_counter < newEntry->to_count) && (buffer != NULL));
+							 to_counter++) {
+							to_ptr = &(CRoutes[insert_here].tonodes[to_counter]);
+							if (sscanf(buffer, "%u:%u",
+									   (unsigned int*)&(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
+								#ifdef CRVERBOSE 
+									printf("\tsscanf returned: %u, %u\n",
+										  to_ptr->routeToNode, to_ptr->foffset);
+								#endif
+							}
+							buffer = strtok(NULL, token);
+						}
 					}
 				}
 			}
-		}
-	
-		/* record that we have one more route, with upper limit checking... */
-		if (CRoutes_Count >= (CRoutes_MAX-2)) {
-			/* printf("WARNING: expanding routing table\n");  */
-			CRoutes_MAX += 50; /* arbitrary expansion number */
-			CRoutes =(struct CRStruct *) REALLOC (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
-		}
-	
-		CRoutes_Count ++;
-	
-#ifdef CRVERBOSE 
-			printf ("routing table now %d\n",CRoutes_Count);
-			for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
-				printf ("%u %u %u direction %d, len %d extra %d : ",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
-					CRoutes[shifter].interpptr, CRoutes[shifter].direction_flag, CRoutes[shifter].len, CRoutes[shifter].extra);
-				for (insert_here = 0; insert_here < CRoutes[shifter].tonode_count; insert_here++) {
-					printf (" to: %u %u",CRoutes[shifter].tonodes[insert_here].routeToNode,
-								CRoutes[shifter].tonodes[insert_here].foffset);
-				}
-				printf ("\n");
+		
+			/* record that we have one more route, with upper limit checking... */
+			if (CRoutes_Count >= (CRoutes_MAX-2)) {
+				/* printf("WARNING: expanding routing table\n");  */
+				CRoutes_MAX += 50; /* arbitrary expansion number */
+				CRoutes =(struct CRStruct *) REALLOC (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
 			}
-#endif
-	FREE_IF_NZ(newEntry);
+		
+			CRoutes_Count ++;
+		
+	#ifdef CRVERBOSE 
+				printf ("routing table now %d\n",CRoutes_Count);
+				for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
+					printf ("%u %u %u direction %d, len %d extra %d : ",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
+						CRoutes[shifter].interpptr, CRoutes[shifter].direction_flag, CRoutes[shifter].len, CRoutes[shifter].extra);
+					for (insert_here = 0; insert_here < CRoutes[shifter].tonode_count; insert_here++) {
+						printf (" to: %u %u",CRoutes[shifter].tonodes[insert_here].routeToNode,
+									CRoutes[shifter].tonodes[insert_here].foffset);
+					}
+					printf ("\n");
+				}
+	#endif
+		FREE_IF_NZ(newEntry);
+		}
 	}
 	FREE_IF_NZ(routesToRegister);
 
+#undef CRVERBOSE
 }
 
 #ifdef DEBUG_VALIDNODE

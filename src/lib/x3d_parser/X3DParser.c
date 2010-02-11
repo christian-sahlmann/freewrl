@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.60 2009/12/09 18:28:51 crc_canada Exp $
+$Id: X3DParser.c,v 1.61 2010/02/11 20:21:27 crc_canada Exp $
 
 ???
 
@@ -226,7 +226,9 @@ char *X3DParser_getNameFromNode(struct X3D_Node* myNode) {
 	indexT ind;
 	struct X3D_Node* node;
 
-	/* printf ("getNameFromNode called on %u\n",myNode); */
+	/* printf ("X3DParser_getNameFromNode called on %u, DEFedNodes %u\n",myNode,DEFedNodes); */
+	if (!DEFedNodes) return NULL;
+	/* printf ("X3DParser_getNameFromNode, DEFedNodes not null\n"); */
 
 	/* go through the DEFed nodes and match the node pointers */
 	for (ind=0; ind<vector_size(stack_top(struct Vector*, DEFedNodes)); ind++) {

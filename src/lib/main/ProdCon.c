@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.51 2010/02/02 20:53:19 crc_canada Exp $
+  $Id: ProdCon.c,v 1.52 2010/02/11 20:21:27 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -258,6 +258,9 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 	if (strncmp(tp, "URL", 3) == 0) {
 
 		res = resource_create_single(inputstring);
+		res->where = where;
+		res->offsetFromWhere = offsetof (struct X3D_Group, children);
+printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where);
 
 	} else { // all other cases are inline code to parse... let the parser do the job ;P...
 

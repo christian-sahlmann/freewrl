@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.98 2010/02/10 18:19:58 sdumoulin Exp $
+  $Id: OpenGL_Utils.c,v 1.99 2010/02/11 20:21:27 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1227,6 +1227,7 @@ void zeroVisibilityFlag(void) {
 
 #define CHILDREN_NODE(thistype) \
 			addChildren = NULL; removeChildren = NULL; \
+			offsetOfChildrenPtr = offsetof (struct X3D_##thistype, children); \
 			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
 				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
 				childrenPtr = &((struct X3D_##thistype *)node)->children; \
@@ -1238,6 +1239,7 @@ void zeroVisibilityFlag(void) {
 
 #define CHILDREN_SWITCH_NODE(thistype) \
 			addChildren = NULL; removeChildren = NULL; \
+			offsetOfChildrenPtr = offsetof (struct X3D_##thistype, choice); \
 			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
 				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
 				childrenPtr = &((struct X3D_##thistype *)node)->choice; \
@@ -1249,6 +1251,7 @@ void zeroVisibilityFlag(void) {
 
 #define CHILDREN_LOD_NODE \
 			addChildren = NULL; removeChildren = NULL; \
+			offsetOfChildrenPtr = offsetof (struct X3D_LOD, children); \
 			if (X3D_LODNODE(node)->addChildren.n > 0) { \
 				addChildren = &X3D_LODNODE(node)->addChildren; \
 				if (X3D_LODNODE(node)->__isX3D == 0) childrenPtr = &X3D_LODNODE(node)->level; \
@@ -1322,6 +1325,7 @@ void startOfLoopNodeUpdates(void) {
 	struct Multi_Node *addChildren;
 	struct Multi_Node *removeChildren;
 	struct Multi_Node *childrenPtr;
+	int offsetOfChildrenPtr;
 
 	/* process one inline per loop; do it outside of the lock/unlock memory table */
 	struct Vector *loadInlines;
@@ -1332,6 +1336,7 @@ void startOfLoopNodeUpdates(void) {
 	childrenPtr = NULL;
 	pp = NULL;
 	loadInlines = NULL;
+	offsetOfChildrenPtr = 0;
 
 	/* assume that we do not have any sensitive nodes at all... */
 	HaveSensitive = FALSE;
@@ -1369,7 +1374,6 @@ void startOfLoopNodeUpdates(void) {
 	/* go through the list of nodes, and "work" on any that need work */
 	nParents = 0;
 	setBindPtr = NULL;
-	childrenPtr = NULL;
 	anchorPtr = NULL;
 
 	for (i=0; i<nextEntry; i++){		
@@ -1704,6 +1708,8 @@ void startOfLoopNodeUpdates(void) {
 				AddRemoveChildren(node,childrenPtr,(uintptr_t *) removeChildren->p,removeChildren->n,2,__FILE__,__LINE__);
 				removeChildren->n=0;
 			}
+			/* printf ("OpenGL, marking children changed\n"); */
+			MARK_EVENT(node,offsetOfChildrenPtr);
 			childrenPtr = NULL;
 		}
 	}

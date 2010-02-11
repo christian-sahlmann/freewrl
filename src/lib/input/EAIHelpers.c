@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.34 2009/12/09 18:28:51 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.35 2010/02/11 20:21:27 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -501,7 +501,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 		printf ("recompile with MAXFIELDSPERNODE increased in value\n");
 	}
 	EAINodeIndex[cNode].params[maxparamindex].fieldOffset = myFieldOffs;
-	EAINodeIndex[cNode].params[maxparamindex].datalen = returnRoutingElementLength(ctype);
+	EAINodeIndex[cNode].params[maxparamindex].datalen = ctype;
 	EAINodeIndex[cNode].params[maxparamindex].typeString = mapFieldTypeToEAItype(ctype);
 	EAINodeIndex[cNode].params[maxparamindex].scripttype = myScriptType;
 	EAINodeIndex[cNode].params[maxparamindex].invokedPROTOValue = invokedValPtr;

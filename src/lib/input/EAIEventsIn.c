@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.44 2010/02/10 18:19:58 sdumoulin Exp $
+$Id: EAIEventsIn.c,v 1.45 2010/02/11 20:21:27 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -151,7 +151,7 @@ void EAI_parse_commands () {
 		/* step 3, get the command */
 
 		command = EAI_BUFFER_CUR;
-		//if (eaiverbose) 
+		if (eaiverbose) 
 			printf ("EAI command %s (%c) strlen %d\n",eaiPrintCommand(command), command,(int)strlen(&EAI_BUFFER_CUR));
 
 		bufPtr++;
@@ -333,6 +333,7 @@ void EAI_parse_commands () {
 					sprintf (ctmp,"%d ", registerEAINodeForAccess(X3D_NODE(retGroup->children.p[rb])));
 					strcat (buf,ctmp);
 				}
+
 				markForDispose(X3D_NODE(retGroup),FALSE);
 				break;
 				}
@@ -374,6 +375,7 @@ void EAI_parse_commands () {
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&tmp_a,&tmp_b,ctmp,&tmp_c);
 				node = getEAINodeFromTable(tmp_a, tmp_b);
 				offset = getEAIActualOffset(tmp_a, tmp_b);
+
 				/* is this a script node? if so, get the actual string name in the table for this one */
 				if (node->_nodeType == NODE_Script) {
 					struct Shader_Script * sp;
@@ -393,7 +395,8 @@ void EAI_parse_commands () {
 				/* so, count = query id, tmp_a pointer, tmp_b, offset, ctmp[0] type, tmp_c, length*/
 				ctmp[1]=0;
 
-				if (eaiverbose) printf ("REGISTERLISTENER from %lu foffset %d fieldlen %d type %s \n",
+				if (eaiverbose) 
+					printf ("REGISTERLISTENER from %lu foffset %d fieldlen %d type %s \n",
 						(uintptr_t)node, offset ,tmp_c,ctmp);
 
 
@@ -401,9 +404,10 @@ void EAI_parse_commands () {
 				   the route - the route propagation will copy data to here */
 				sprintf (EAIListenerArea,"%lu:0",(uintptr_t)&EAIListenerData);
 
-				/* set up the route from this variable to the handle_Listener routine */
+				/* set up the route from this variable to the handle Listener routine */
 				CRoutes_Register  (1,node, offset, 1, EAIListenerArea, (int) tmp_c,(void *) 
-					&handle_Listener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
+					&EAIListener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
+
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
@@ -444,9 +448,9 @@ void EAI_parse_commands () {
 				   the route - the route propagation will copy data to here */
 				sprintf (EAIListenerArea,"%lu:0",(uintptr_t)&EAIListenerData);
 
-				/* set up the route from this variable to the handle_Listener routine */
+				/* set up the route from this variable to the handle Listener routine */
 				CRoutes_Register  (0,node, offset, 1, EAIListenerArea, (int) tmp_c,(void *) 
-					&handle_Listener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
+					&EAIListener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
