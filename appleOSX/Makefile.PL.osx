@@ -357,8 +357,8 @@ sub writeMakefileDistclean() {
 	print MK "	rm -f ../src/lib/vrml_parser/*\.o\n";
 	print MK "	rm -f ../src/lib/world_script/*\.o\n";
 	print MK "	rm -f ../src/lib/x3d_parser/*\.o\n";
-
-
+	print MK "	rm -f ../src/lib/non_web3d_formats/*\.o\n";
+	print MK "	rm -f ../src/message/*\.o\n";
 	print MK "	rm -f /usr/local/lib/libFreeWRLFunc.dylib\n";
 
 	# remove other JS directories

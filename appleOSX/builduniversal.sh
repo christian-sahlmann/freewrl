@@ -9,8 +9,6 @@ cd ../../../../freex3d/appleOSX/
 
 ## Make i386 library first
 make distclean
-rm -f ../src/lib/non_web3d_formats/*.o
-rm -f ../src/message/*.o
 cp -f vrml.conf.i386 vrml.conf.aqua
 perl Makefile.PL.osx
 make install
@@ -18,8 +16,6 @@ cp -f libFreeWRLFunc.dylib VRMLFunc_i386.dylib
 
 ## Clean and make x86_64 library
 make distclean
-rm -f ../src/lib/non_web3d_formats/*.o
-rm -f ../src/message/*.o
 cp -f vrml.conf.x86_64 vrml.conf.aqua
 perl Makefile.PL.osx
 make install
@@ -27,8 +23,6 @@ cp -f libFreeWRLFunc.dylib VRMLFunc_x86_64.dylib
 
 ## Clean and make ppc library
 make distclean
-rm -f ../src/lib/non_web3d_formats/*.o
-rm -f ../src/message/*.o
 cp -f vrml.conf.ppc vrml.conf.aqua
 perl Makefile.PL.osx
 make install
