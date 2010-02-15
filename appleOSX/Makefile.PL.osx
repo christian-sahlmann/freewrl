@@ -202,7 +202,7 @@ sub writeMakefileInitialize() {
 	
 	# do the headers.
 	print MK "#Make file for FreeWRL\n";
-	print MK "CC = gcc\n";
+	print MK "CC = /usr/bin/gcc-4.0\n";
 	print MK "JAVAC = javac\n";
 	print MK "INC = $MYINC\n";
 	print MK "DEFINE = $noStackProtector $MYDEFINE\n";

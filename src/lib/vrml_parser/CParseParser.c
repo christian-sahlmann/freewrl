@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.54 2010/02/10 20:09:49 crc_canada Exp $
+  $Id: CParseParser.c,v 1.55 2010/02/15 17:58:16 crc_canada Exp $
 
   ???
 
@@ -1105,28 +1105,30 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
 {
     indexT fromNodeIndex;
     struct X3D_Node* fromNode;
-    struct ProtoDefinition* fromProto=NULL;
+    struct ProtoDefinition* fromProto;
     indexT fromFieldO;
     indexT fromFieldE;
     indexT fromUFieldO;
     indexT fromUFieldE;
     int fromOfs = 0;
     int fromType = 0;
-    struct ScriptFieldDecl* fromScriptField=NULL;
+    struct ScriptFieldDecl* fromScriptField;
 
     indexT toNodeIndex;
     struct X3D_Node* toNode;
-    struct ProtoDefinition* toProto=NULL;
+    struct ProtoDefinition* toProto;
     indexT toFieldO;
     indexT toFieldE;
     indexT toUFieldO;
     indexT toUFieldE;
     int toOfs = 0;
     int toType = 0;
-    struct ScriptFieldDecl* toScriptField=NULL;
+    struct ScriptFieldDecl* toScriptField;
     int temp, tempFE, tempFO, tempTE, tempTO;
 
     fromFieldE = ID_UNDEFINED; fromFieldO = ID_UNDEFINED; toFieldE = ID_UNDEFINED; toFieldO = ID_UNDEFINED;
+    toNode = NULL; fromNode = NULL; toProto=NULL; fromProto=NULL;
+    fromScriptField=NULL; toScriptField=NULL;
 
     ASSERT(me->lexer);
     lexer_skip(me->lexer);
@@ -1250,7 +1252,7 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
     ROUTE_PARSE_NODEFIELD(from, outputOnly);
 
         /* printf ("ROUTE_PARSE_NODEFIELD, found fromFieldE %d fromFieldO %d\n",fromFieldE, fromFieldO);
-           printf ("fromNode %u fromProto %u fromScript %u fromNodeIndex %d\n",fromNode, fromScript, fromProto, fromNodeIndex); */
+           printf ("fromNode %u fromProto %u fromScript %u fromNodeIndex %d\n",fromNode, fromScriptField, fromProto, fromNodeIndex); */
 
         /* Next token has to be "TO" */
         if(!lexer_keyword(me->lexer, KW_TO)) {
@@ -1270,8 +1272,8 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
 /* Parse the second part of a routing statement: DEFEDNODE.event by locating the node DEFEDNODE in either the builtin or user-defined name arrays 
    and locating the event in the builtin or user-defined event name arrays */
 	ROUTE_PARSE_NODEFIELD(to, inputOnly);
-         /* printf ("ROUTE_PARSE_NODEFIELD, found toFieldE %d toFieldO %d\n",toFieldE, toFieldO);
-           printf ("toNode %u toProto %u toScript %u toNodeIndex %d\n",toNode, toScript, toProto, toNodeIndex);  */
+	/* printf ("ROUTE_PARSE_NODEFIELD, found toFieldE %d toFieldO %d\n",toFieldE, toFieldO);
+		printf ("toNode %u toProto %u toScript %u toNodeIndex %d\n",toNode, toScriptField, toProto, toNodeIndex); */
 
         /* Now, do the really hard macro work... */
         /* ************************************* */
@@ -1537,27 +1539,6 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
 
         /* Finally, register the route. */
         /* **************************** */
-
-#ifdef OLDCODE
-        /* Calculate dir parameter */
-	#define fromScript (fromNode->_nodeType==NODE_Script)
-	#define toScript (toNode->_nodeType==NODE_Script)
-
-        if(fromScript && toScript) {
-        }
-        else if(fromScript)
-        {
-            ASSERT(!toScript);
-            fromOfs = scriptFieldDecl_getRoutingOffset(fromScriptField);
-        } else if(toScript)
-        {
-            ASSERT(!fromScript);
-            toOfs = scriptFieldDecl_getRoutingOffset(toScriptField);
-        } else
-        {
-            ASSERT(!fromScript && !toScript);
-        }
-#endif
 
         /* Built-in to built-in */
         parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toType);

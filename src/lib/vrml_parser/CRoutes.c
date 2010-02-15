@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.48 2010/02/11 20:21:27 crc_canada Exp $
+$Id: CRoutes.c,v 1.49 2010/02/15 17:58:43 crc_canada Exp $
 
 ???
 
@@ -305,8 +305,8 @@ struct CR_RegStruct {
 		int adrem;
 		struct X3D_Node *from;
 		int fromoffset;
-		unsigned int to_count;
-		char *tonode_str;
+		struct X3D_Node *to;
+		int toOfs;
 		int fieldType;
 		void *intptr;
 		int scrdir;
@@ -491,7 +491,6 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
                         printf ("JS_GetProperty failed for length_flag\n"); 
                 } 
                 len = JSVAL_TO_INT(mainElement); 
-printf ("len is %d\n",len);
                 /* go through each element of the main array. */ 
                 for (i = 0; i < len; i++) { 
                         if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { 
@@ -849,7 +848,6 @@ void CRoutes_RegisterSimple(
 	/* printf ("CRoutes_RegisterSimple, registering a route of %s\n",stringFieldtypeType(type)); */
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
- 	char tonode_str[15];
  	void* interpolatorPointer;
  	int extraData = 0;
 	int dir = 0;
@@ -894,13 +892,7 @@ void CRoutes_RegisterSimple(
 		interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
 	else
 		interpolatorPointer=NULL;
-#if defined(_MSC_VER)
-	sprintf_s(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
-#else
-	snprintf(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
-#endif
-
-	CRoutes_Register(1, from, fromOfs, 1, tonode_str, type, interpolatorPointer, dir, extraData);
+	CRoutes_Register(1, from, fromOfs, to,toOfs, type, interpolatorPointer, dir, extraData);
 }
  
 
@@ -917,19 +909,12 @@ void CRoutes_RemoveSimple(
 	int type) {
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
- 	char tonode_str[15];
  	void* interpolatorPointer;
  	int extraData = 0;
 
   	interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
 
-#if defined(_MSC_VER)
- 	sprintf_s(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
-#else
- 	snprintf(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
-#endif
-
- 	CRoutes_Register(0, from, fromOfs, 1, tonode_str, type, 
+ 	CRoutes_Register(0, from, fromOfs, to, toOfs, type, 
   		interpolatorPointer, 0, extraData);
 }
 
@@ -946,8 +931,8 @@ void CRoutes_Register(
 		int adrem,
 		struct X3D_Node *from,
 		int fromoffset,
-		unsigned int to_count,
-		char *tonode_str,
+		struct X3D_Node *to,
+		int toOfs,
 		int type,
 		void *intptr,
 		int scrdir,
@@ -955,21 +940,18 @@ void CRoutes_Register(
 
 	struct CR_RegStruct *newEntry;
 
+
 /* Script to Script - we actually put a small node in, and route to/from this node so routing is a 2 step process */
 	if (scrdir == SCRIPT_TO_SCRIPT) {
 		struct X3D_Node *chptr;
 		int set, changed;
-		char buf[20];
 
 		/* initialize stuff for compile checks */
 		set = 0; changed = 0;
 
 		chptr = returnSpecificTypeNode(type, &set, &changed);
-
-
-		sprintf (buf,"%u:%d",(unsigned int)chptr,set);
-		CRoutes_Register (adrem, from, fromoffset,1,buf, type, 0, FROM_SCRIPT, extra);
-		CRoutes_Register (adrem, chptr, changed, to_count, tonode_str,type, 0, TO_SCRIPT, extra);
+		CRoutes_Register (adrem, from, fromoffset,chptr,set, type, 0, FROM_SCRIPT, extra);
+		CRoutes_Register (adrem, chptr, changed, to, toOfs, type, 0, TO_SCRIPT, extra);
 		return;
 	}
 
@@ -984,8 +966,8 @@ void CRoutes_Register(
 	newEntry->adrem = adrem;
 	newEntry->from = from;
 	newEntry->fromoffset = fromoffset;
-	newEntry->to_count = to_count;
-	newEntry->tonode_str= STRDUP(tonode_str);
+	newEntry->to = to;
+	newEntry->toOfs = toOfs;
 	newEntry->fieldType = type;
 	newEntry->intptr = intptr;
 	newEntry->scrdir = scrdir;
@@ -999,7 +981,6 @@ void CRoutes_Register(
 static void actually_do_CRoutes_Register() {
 	int insert_here, shifter;
 	char *buffer;
-	const char *token = " ";
 	CRnodeStruct *to_ptr = NULL;
 	unsigned int to_counter;
 	int rv;				/* temp for sscanf rets */
@@ -1022,8 +1003,8 @@ static void actually_do_CRoutes_Register() {
 		printf ("CRoutes_Register adrem %d from %u ",newEntry->adrem, newEntry->from);
 		if (newEntry->from > JSMaxScript) printf ("(%s) ",stringNodeType(X3D_NODE(newEntry->from->_nodeType)));
 
-		printf ("off %u to %u %s intptr %u\n",
-				newEntry->fromoffset, newEntry->to_count, newEntry->tonode_str, newEntry->intptr);
+		printf ("off %u to %u %u intptr %u\n",
+				newEntry->fromoffset, newEntry->to_count, newEntry->to, newEntry->intptr);
 		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
 #endif
 
@@ -1090,9 +1071,9 @@ static void actually_do_CRoutes_Register() {
 			(CRoutes[insert_here].tonodes!=0)) {
 	
 			/* possible duplicate route */
-			rv=sscanf (newEntry->tonode_str, "%lu:%lu", &toN,&toof);
-			/* printf ("from tonode_str %s we have %u %u\n",tonode_str, toN, toof); */
-	
+			/* rv=sscanf (newEntry->tonode_str, "%lu:%lu", &toN,&toof); */
+			toN = newEntry->to; toof = newEntry->toOfs;
+
 			if ((toN == ((uintptr_t)(CRoutes[insert_here].tonodes)->routeToNode)) &&
 				(toof == (CRoutes[insert_here].tonodes)->foffset)) {
 				/* this IS a duplicate, now, what to do? */
@@ -1159,46 +1140,16 @@ static void actually_do_CRoutes_Register() {
 			CRoutes[insert_here].extra = newEntry->extra;
 			CRoutes[insert_here].intTimeStamp = 0;
 		
-			if (newEntry->to_count > 0) {
-				if ((CRoutes[insert_here].tonodes =
-					 (CRnodeStruct *) calloc(newEntry->to_count, sizeof(CRnodeStruct))) == NULL) {
-					fprintf(stderr, "CRoutes_Register: calloc failed to allocate memory.\n");
-				} else {
-					CRoutes[insert_here].tonode_count = newEntry->to_count;
-					#ifdef CRVERBOSE
-						printf("CRoutes at %d to nodes: %s\n",
-							   insert_here, newEntry->tonode_str);
-					#endif
+			if ((CRoutes[insert_here].tonodes =
+				 (CRnodeStruct *) MALLOC(sizeof(CRnodeStruct))) == NULL) {
+				fprintf(stderr, "CRoutes_Register: calloc failed to allocate memory.\n");
+			} else {
+				CRoutes[insert_here].tonode_count = 1;
+				/* printf ("inserting route, to %u, offset %d\n",newEntry->to, newEntry->toOfs); */
 		
-					if ((buffer = strtok(newEntry->tonode_str, token)) != NULL) {
-						/* printf("\t%s\n", buffer); */
-						to_ptr = &(CRoutes[insert_here].tonodes[0]);
-						if (sscanf(buffer, "%u:%u",
-								   (unsigned int*)&(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
-							#ifdef CRVERBOSE 
-								printf("\tsscanf returned: %u, %u\n",
-								  to_ptr->routeToNode, to_ptr->foffset);
-							#endif
-						}
-		
-		
-						/* condition statement changed */
-						buffer = strtok(NULL, token);
-						for (to_counter = 1;
-							 ((to_counter < newEntry->to_count) && (buffer != NULL));
-							 to_counter++) {
-							to_ptr = &(CRoutes[insert_here].tonodes[to_counter]);
-							if (sscanf(buffer, "%u:%u",
-									   (unsigned int*)&(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
-								#ifdef CRVERBOSE 
-									printf("\tsscanf returned: %u, %u\n",
-										  to_ptr->routeToNode, to_ptr->foffset);
-								#endif
-							}
-							buffer = strtok(NULL, token);
-						}
-					}
-				}
+				to_ptr = &(CRoutes[insert_here].tonodes[0]);
+				to_ptr->routeToNode = newEntry->to;
+				to_ptr->foffset = newEntry->toOfs;
 			}
 		
 			/* record that we have one more route, with upper limit checking... */
@@ -1534,6 +1485,19 @@ nodes have eventins/eventouts - have to do the table multiple times
 in this case.
 
 ********************************************************************/
+#ifdef OLDCODE
+void xmemcpy (void *too, void *from, int len) {
+	char *to = (char *) too;
+	char *fm = (char *) from;
+	int i;
+printf ("xmemcpy\n");
+	for (i=0; i<len; i++) {
+		*to = *fm;
+		to ++; fm++;
+	}
+}
+#endif
+
 void propagate_events() {
 	int havinterp;
 	int counter;
@@ -1589,9 +1553,9 @@ void propagate_events() {
 						/* copy the value over */
 						if (CRoutes[counter].len > 0) {
 						/* simple, fixed length copy */
-							memcpy((void *)((uintptr_t)to_ptr->routeToNode + to_ptr->foffset),
-								   (void *)((uintptr_t)CRoutes[counter].routeFromNode + CRoutes[counter].fnptr),
-								   (unsigned)CRoutes[counter].len);
+							memcpy( offsetPointer_deref(void *,to_ptr->routeToNode ,to_ptr->foffset),
+								offsetPointer_deref(void *,CRoutes[counter].routeFromNode , CRoutes[counter].fnptr),
+								(unsigned)CRoutes[counter].len);
 						} else {
 							/* this is a Multi*node, do a specialized copy. eg, Tiny3D EAI test will
 							   trigger this */

@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.39 2010/02/10 18:19:58 sdumoulin Exp $
+  $Id: display.c,v 1.40 2010/02/15 17:56:58 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -345,8 +345,4 @@ void rdr_caps_dump()
 	DEBUG_MSG ("Occlusion support:    %s\n", BOOL_STR(rdr_caps.av_occlusion_q));
 	DEBUG_MSG ("Max texture size      %d\n", rdr_caps.max_texture_size);
 	DEBUG_MSG ("Texture units         %d\n", rdr_caps.texture_units);
-#ifndef _MSC_VER
-	DEBUG_MSG ("Shaders for Appear:   %d %d %d\n",rdr_caps.appearanceNoTextureShader, rdr_caps.appearanceOneTextureShader,
-						rdr_caps.appearanceMultiTextureShader);
-#endif
 }

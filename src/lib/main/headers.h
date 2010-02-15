@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.105 2010/01/29 21:11:09 crc_canada Exp $
+$Id: headers.h,v 1.106 2010/02/15 17:57:30 crc_canada Exp $
 
 Global includes.
 
@@ -636,8 +636,8 @@ void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len);
 void CRoutes_Register(int adrem,        struct X3D_Node *from,
                                  int fromoffset,
-                                 unsigned int to_count,
-                                 char *tonode_str,
+				 struct X3D_Node *to,
+				 int toOffset,
                                  int length,
                                  void *intptr,
                                  int scrdir,
