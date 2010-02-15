@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.40 2010/02/15 17:56:58 crc_canada Exp $
+  $Id: display.c,v 1.41 2010/02/15 21:45:01 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -66,7 +66,7 @@ int quadbuff_stereo_mode = 0;
 
 s_renderer_capabilities_t rdr_caps;
 
-float myFps = 0.0;
+float myFps = (float) 0.0;
 char myMenuStatus[MAXSTAT];
 
 GLenum _global_gl_err;

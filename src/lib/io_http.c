@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.9 2010/02/03 21:20:33 crc_canada Exp $
+  $Id: io_http.c,v 1.10 2010/02/15 21:45:01 crc_canada Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -291,7 +291,7 @@ char* download_url(const char *url, const char *tmp)
  * this is a Vector; we keep track of n depths.
  */
 
-static struct Stack *resStack = NULL;
+static struct Vector *resStack = NULL;
 void pushInputResource(resource_item_t *url) 
 {
 	DEBUG_MSG("pushInputResource current Resource is %s\n", url->parsed_request);
@@ -328,6 +328,7 @@ resource_item_t *getInputResource()
 	cwu = stack_top(resource_item_t *, resStack);
 	DEBUG_MSG("getInputResource current Resource is %u %x %s\n", cwu,cwu,cwu->parsed_request);
 
+printf ("returning resource %lu %lx\n",stack_top(resource_item_t *, resStack),stack_top(resource_item_t *, resStack));
 	return stack_top(resource_item_t *, resStack);
 
 }

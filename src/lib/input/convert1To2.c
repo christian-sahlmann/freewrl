@@ -40,13 +40,13 @@
 #include "../vrml_parser/CProto.h"
 
 
-static int estimatedBodyLen = -1;
+static size_t estimatedBodyLen = -1;
 static struct Vector *deconstructedProtoBody = NULL;
 
 static indexT protoElementCount = ID_UNDEFINED;
 static char tempname[1000];
 static FILE *fp;
-static int written = 0;
+static size_t written = 0;
 
 #define DEF_FINDFIELD(arr) \
  int findFieldIn##arr(const char* field) \
@@ -242,6 +242,12 @@ void tokenizeVRML1_(char *pb) {
                 /* get the current element */
                 ele = vector_get(struct ProtoElementPointer*, deconstructedProtoBody, i);
 		
+{
+size_t *erx = stringNodeType(ele->isNODE);
+
+printf ("snt %s\n",erx);
+}
+
 
                 if (ele->isNODE != -1) 
                         written += fprintf (fp," VRML1_%s 		#NODE\n",stringNodeType(ele->isNODE));

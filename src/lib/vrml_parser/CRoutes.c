@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.49 2010/02/15 17:58:43 crc_canada Exp $
+$Id: CRoutes.c,v 1.50 2010/02/15 21:45:01 crc_canada Exp $
 
 ???
 
@@ -1205,7 +1205,7 @@ in the routing table that this node/offset triggered an event.
 
 ********************************************************************/
 
-void mark_event (struct X3D_Node *from, unsigned int totalptr) {
+void mark_event (struct X3D_Node *from, size_t totalptr) {
 	int findit;
 
 #ifdef WIN32

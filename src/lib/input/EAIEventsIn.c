@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.45 2010/02/11 20:21:27 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.46 2010/02/15 21:45:01 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -51,6 +51,7 @@ Handle incoming EAI (and java class) events with panache.
 #include "../opengl/Textures.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "../x3d_parser/X3DParser.h"
+#include "../vrml_parser/CRoutes.h"
 
 #include "EAIHelpers.h"
 

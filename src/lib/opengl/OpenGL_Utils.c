@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.99 2010/02/11 20:21:27 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.100 2010/02/15 21:45:01 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -145,7 +145,7 @@ near plane is thus farPlane - highestPeak.
 static char * readInputString(char *fn) {
         char *buffer;
         FILE *infile;
-        int justread;
+        size_t justread;
 
 	#define MAXREADSIZE 4000
 

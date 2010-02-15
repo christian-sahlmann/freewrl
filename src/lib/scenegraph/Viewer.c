@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.42 2010/01/25 00:28:33 dug9 Exp $
+$Id: Viewer.c,v 1.43 2010/02/15 21:45:01 crc_canada Exp $
 
 CProto ???
 
@@ -1272,11 +1272,13 @@ void deleteAnaglyphShaders()
 		glDeleteProgram(Viewer.programs[i]);
 	}
 }
-//char * RGBACM = "RGBACM";
-//int indexRGBACM(int a)
-//{
-//	return strchr(RGBACM,a)-RGBACM;
-//}
+
+static char * RGBACM = "RGBACM";
+static int indexRGBACM(int a)
+{
+	return strchr(RGBACM,a)-RGBACM;
+}
+
 
 void setAnaglyphSideColor(char val, int iside)
 {

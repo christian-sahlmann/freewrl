@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.14 2010/02/05 14:52:27 crc_canada Exp $
+  $Id: io_files.c,v 1.15 2010/02/15 21:45:01 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -108,7 +108,7 @@ char *get_current_dir()
 	cwd = MALLOC(PATH_MAX);
 	getcwd(cwd, PATH_MAX);
 	{
-			int jj,ll;
+			size_t jj,ll;
 			ll = strlen(cwd);
 #ifdef _MSC_VER
 			for( jj=0;jj<ll;jj++)

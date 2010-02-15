@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.21 2010/01/16 21:22:09 dug9 Exp $
+$Id: Bindable.c,v 1.22 2010/02/15 21:45:01 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -235,7 +235,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 /* Do binding for node and stack - works for all bindable nodes */
 
 /* return the setBind offset of this node */
-static unsigned int setBindofst(void *node) {
+static size_t setBindofst(void *node) {
 	struct X3D_Background *tn;
 	tn = (struct X3D_Background *) node;
 	switch (tn->_nodeType) {
@@ -251,7 +251,7 @@ static unsigned int setBindofst(void *node) {
 }
 
 /* return the isBound offset of this node */
-static int bindTimeoffst (struct X3D_Node  *node) {
+static size_t bindTimeoffst (struct X3D_Node  *node) {
 	X3D_NODE_CHECK(node);
 
 	switch (node->_nodeType) {
@@ -267,7 +267,7 @@ static int bindTimeoffst (struct X3D_Node  *node) {
 }
 
 /* return the isBound offset of this node */
-static int isboundofst(void *node) {
+static size_t isboundofst(void *node) {
 	struct X3D_Background *tn;
 
 	/* initialization */
@@ -297,7 +297,7 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 	unsigned int *oldboundptr;	/* previous nodes isBound */
 
 	struct X3D_Background *bgnode;
-	unsigned int offst;
+	size_t offst;
 
 	X3D_NODE_CHECK(node);
 
@@ -356,7 +356,7 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 		if (offst != 0) {
 			double *dp;
 			/* add them as bytes, not pointers. */
-			dp = (double *) (((unsigned char*)node)+offst);
+			dp = offsetPointer_deref(double*, node, offst);
 			*dp = TickTime;
 			MARK_EVENT (node, offst);
 		} 

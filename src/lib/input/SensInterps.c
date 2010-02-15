@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.25 2010/02/05 21:41:36 crc_canada Exp $
+$Id: SensInterps.c,v 1.26 2010/02/15 21:45:01 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -49,6 +49,7 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/sounds.h"
+#include "../vrml_parser/CRoutes.h"
 
 #include "SensInterps.h"
 
@@ -213,7 +214,7 @@ void do_OintScalar (void *node) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed = 0.0;
+		px->value_changed = (float) 0.0;
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
@@ -292,9 +293,9 @@ void do_OintNormal(void *node) {
 		#endif
 
 		for (indx = 0; indx < kpkv; indx++) {
-			valchanged[indx].c[0] = 0.0;
-			valchanged[indx].c[1] = 0.0;
-			valchanged[indx].c[2] = 0.0;
+			valchanged[indx].c[0] = (float) 0.0;
+			valchanged[indx].c[1] = (float) 0.0;
+			valchanged[indx].c[2] = (float) 0.0;
 		}
 		return;
 	}
@@ -384,9 +385,9 @@ void do_OintNormal(void *node) {
 		normalval.y = valchanged[indx].c[1];
 		normalval.z = valchanged[indx].c[2];
 		normalize_vector(&normalval);
-		valchanged[indx].c[0] = normalval.x;
-		valchanged[indx].c[1] = normalval.y;
-		valchanged[indx].c[2] = normalval.z;
+		valchanged[indx].c[0] = (float) normalval.x;
+		valchanged[indx].c[1] = (float) normalval.y;
+		valchanged[indx].c[2] = (float) normalval.z;
 	}
 	#ifdef SEVERBOSE
 	printf ("Done CoordinateInterpolator\n");
@@ -446,9 +447,9 @@ void do_OintCoord(void *node) {
 		#endif
 
 		for (indx = 0; indx < kpkv; indx++) {
-			valchanged[indx].c[0] = 0.0;
-			valchanged[indx].c[1] = 0.0;
-			valchanged[indx].c[2] = 0.0;
+			valchanged[indx].c[0] = (float) 0.0;
+			valchanged[indx].c[1] = (float) 0.0;
+			valchanged[indx].c[2] = (float) 0.0;
 		}
 		return;
 	}
@@ -592,8 +593,8 @@ void do_OintCoord2D(void *node) {
 		#endif
 
 		for (indx = 0; indx < kpkv; indx++) {
-			valchanged[indx].c[0] = 0.0;
-			valchanged[indx].c[1] = 0.0;
+			valchanged[indx].c[0] = (float) 0.0;
+			valchanged[indx].c[1] = (float) 0.0;
 		}
 		return;
 	}
@@ -707,8 +708,8 @@ void do_OintPos2D(void *node) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed.c[0] = 0.0;
-		px->value_changed.c[1] = 0.0;
+		px->value_changed.c[0] = (float) 0.0;
+		px->value_changed.c[1] = (float) 0.0;
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
@@ -768,9 +769,9 @@ void do_ColorInterpolator (void *node) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed.c[0] = 0.0;
-		px->value_changed.c[1] = 0.0;
-		px->value_changed.c[2] = 0.0;
+		px->value_changed.c[0] = (float) 0.0;
+		px->value_changed.c[1] = (float) 0.0;
+		px->value_changed.c[2] = (float) 0.0;
 		return;
 	}
 
@@ -819,9 +820,9 @@ void do_PositionInterpolator (void *node) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed.c[0] = 0.0;
-		px->value_changed.c[1] = 0.0;
-		px->value_changed.c[2] = 0.0;
+		px->value_changed.c[0] = (float) 0.0;
+		px->value_changed.c[1] = (float) 0.0;
+		px->value_changed.c[2] = (float) 0.0;
 		return;
 	}
 
@@ -880,10 +881,10 @@ void do_Oint4 (void *node) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed.c[0] = 0.0;
-		px->value_changed.c[1] = 0.0;
-		px->value_changed.c[2] = 0.0;
-		px->value_changed.c[3] = 0.0;
+		px->value_changed.c[0] = (float) 0.0;
+		px->value_changed.c[1] = (float) 0.0;
+		px->value_changed.c[2] = (float) 0.0;
+		px->value_changed.c[3] = (float) 0.0;
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
@@ -1224,9 +1225,9 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		normalval.y = hyp_save_norm.c[1];
 		normalval.z = hyp_save_norm.c[2];
 		normalize_vector(&normalval);
-		node->_oldhitNormal.c[0] = normalval.x;
-		node->_oldhitNormal.c[1] = normalval.y;
-		node->_oldhitNormal.c[2] = normalval.z;
+		node->_oldhitNormal.c[0] = (float) normalval.x;
+		node->_oldhitNormal.c[1] = (float) normalval.y;
+		node->_oldhitNormal.c[2] = (float) normalval.z;
 
 		/* did the hitNormal change between runs? */
 		if ((APPROX(node->_oldhitNormal.c[0],node->hitNormal_changed.c[0])!= TRUE) ||
@@ -1371,7 +1372,7 @@ void do_Anchor ( void *ptr, int ev, int but1, int over) {
 
 void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_CylinderSensor *node = (struct X3D_CylinderSensor *)ptr;
-	float rot, radius, ang, length;
+	double rot, radius, ang, length;
 	double det, pos, neg, temp;
 	Quaternion bv, dir1, dir2, tempV;
 	GLDOUBLE modelMatrix[16];
@@ -1502,10 +1503,10 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
             		}
         	}
 
-		node->_oldrotation.c[0] = 0;
-		node->_oldrotation.c[1] = 1;
-		node->_oldrotation.c[2] = 0;
-		node->_oldrotation.c[3] = rot;
+		node->_oldrotation.c[0] = (float) 0;
+		node->_oldrotation.c[1] = (float) 1;
+		node->_oldrotation.c[2] = (float) 0;
+		node->_oldrotation.c[3] = (float) rot;
 
 		if ((APPROX(node->_oldrotation.c[0],node->rotation_changed.c[0])!= TRUE) ||
 			(APPROX(node->_oldrotation.c[1],node->rotation_changed.c[1])!= TRUE) ||
@@ -1588,7 +1589,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 		ORIG_Z = CUR_Z;
 
 		/* record the current Radius */
-		RADIUS = sqrt(CUR_X * CUR_X + CUR_Y * CUR_Y + CUR_Z * CUR_Z);
+		RADIUS = (float) sqrt(CUR_X * CUR_X + CUR_Y * CUR_Y + CUR_Z * CUR_Z);
 
 		if (APPROX(RADIUS,0.0)) {
 			printf ("warning, RADIUS %lf == 0, can not compute\n",RADIUS);
@@ -1617,7 +1618,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 	} else if ((ev==MotionNotify) && (node->isActive)) {
 		
 		double dotProd;
-		float newRad;
+		double newRad;
 		struct SFColor normalizedCurrentPoint;
 		struct point_XYZ newA;
 
@@ -1653,10 +1654,10 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 			dotProd, newA.x,newA.y,newA.z,acos(dotProd));
 		*/
 
-		node->rotation_changed.c[0] = newA.x;
-		node->rotation_changed.c[1] = newA.y;
-		node->rotation_changed.c[2] = newA.z;
-		node->rotation_changed.c[3] = acos(dotProd);
+		node->rotation_changed.c[0] = (float) newA.x;
+		node->rotation_changed.c[1] = (float) newA.y;
+		node->rotation_changed.c[2] = (float) newA.z;
+		node->rotation_changed.c[3] = (float) acos(dotProd);
 		MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, rotation_changed));
 
 		node->trackPoint_changed.c[0] = NORM_CUR_X;
@@ -1667,8 +1668,6 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 }
 
 void locateAudioSource (struct X3D_AudioClip *node) {
-	char *filename;
-	char *mypath;
 	resource_item_t *res;
 
 	node->__sourceNumber = SoundSourceNumber;

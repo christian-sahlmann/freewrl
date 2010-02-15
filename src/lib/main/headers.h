@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.106 2010/02/15 17:57:30 crc_canada Exp $
+$Id: headers.h,v 1.107 2010/02/15 21:45:01 crc_canada Exp $
 
 Global includes.
 
@@ -515,9 +515,6 @@ extern double lastTime;
 
 /* number of triangles this rendering loop */
 extern int trisThisLoop;
-
-void mark_event (struct X3D_Node *from, unsigned int fromoffset);
-void mark_event_check (struct X3D_Node *from, unsigned int fromoffset,char *fn, int line);
 
 /* saved rayhit and hyperhit */
 extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;

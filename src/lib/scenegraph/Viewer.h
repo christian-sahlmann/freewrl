@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.24 2010/01/25 00:28:33 dug9 Exp $
+$Id: Viewer.h,v 1.25 2010/02/15 21:45:01 crc_canada Exp $
 
 Viewer ???
 
@@ -188,13 +188,6 @@ typedef struct viewer {
 
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
 } X3D_Viewer;
-
-static char * RGBACM = "RGBACM";
-static int indexRGBACM(int a)
-{
-	return strchr(RGBACM,a)-RGBACM;
-}
-
 
 void viewer_postGLinit_init(void);
 
