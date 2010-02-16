@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.107 2010/02/15 21:45:01 crc_canada Exp $
+$Id: headers.h,v 1.108 2010/02/16 13:54:45 crc_canada Exp $
 
 Global includes.
 
@@ -348,12 +348,12 @@ unsigned int setField_FromEAI (char *ptr);
 void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fieldType, unsigned len, int extraData, uintptr_t mycx);
 
 #define EXTENTTOBBOX
-#define INITIALIZE_EXTENT        { node->EXTENT_MAX_X = -10000.0; \
-        node->EXTENT_MAX_Y = -10000.0; \
-        node->EXTENT_MAX_Z = -10000.0; \
-        node->EXTENT_MIN_X = 10000.0; \
-        node->EXTENT_MIN_Y = 10000.0; \
-        node->EXTENT_MIN_Z = 10000.0; }
+#define INITIALIZE_EXTENT        { node->EXTENT_MAX_X = (float) -10000.0; \
+        node->EXTENT_MAX_Y = (float) -10000.0; \
+        node->EXTENT_MAX_Z = (float) -10000.0; \
+        node->EXTENT_MIN_X = (float) 10000.0; \
+        node->EXTENT_MIN_Y = (float) 10000.0; \
+        node->EXTENT_MIN_Z = (float) 10000.0; }
 
 /********************************
 	Verbosity
@@ -626,7 +626,6 @@ void resetScriptTouchedFlag(int actualscript, int fptr);
 int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setScriptMultiElementtype(uintptr_t);
-void Parser_scanStringValueToMem(struct X3D_Node *ptr, int coffset, int ctype, char *value, int isXML);
 void CRoutes_RemoveSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len);
 void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,

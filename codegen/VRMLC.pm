@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.33 2009/12/28 15:57:46 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.34 2010/02/16 13:54:45 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,10 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.34  2010/02/16 13:54:45  crc_canada
+# more 64 bit compiler warnings removal. Mainly items that will be of no operational
+# impact for FreeWRL.
+#
 # Revision 1.33  2009/12/28 15:57:46  crc_canada
 # TextureProperties node now active.
 #
@@ -1529,7 +1533,7 @@ sub gen {
 	
 	#####################
 	# create an array for each node. The array contains the following:
-	# const int OFFSETS_Text[
+	# const size_t OFFSETS_Text[
 	# 	FIELDNAMES_string, offsetof (struct X3D_Text, string), MFSTRING, KW_inputOutput,
 	#	FIELDNAMES_fontStype, offsetof (struct X3D_Text, fontStyle, SFNODE, KW_inputOutput,
 	# ....
@@ -1541,7 +1545,7 @@ sub gen {
 		#print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
 
-		push @genFuncs1, "\nconst int OFFSETS_".$node."[] = {\n";
+		push @genFuncs1, "\nconst size_t OFFSETS_".$node."[] = {\n";
 
  		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
 			#if (index($field,"_") !=0) {
@@ -1557,36 +1561,17 @@ sub gen {
 	}
 	#####################
 	# create an array for each node. The array contains the following:
-	# const int OFFSETS_Text[
+	# const size_t OFFSETS_Text[
 	# 	FIELDNAMES_string, offsetof (struct X3D_Text, string), MFSTRING, KW_inputOutput,
 	#	FIELDNAMES_fontStype, offsetof (struct X3D_Text, fontStyle, SFNODE, KW_inputOutput,
 	# ....
 	# 	-1, -1, -1, -1];
 	# NOTES:
 	# 1) we skip any field starting with an "_" (underscore)
-#JAS	# 
-#JAS	for my $node (@sortedNodeList) {
-#JAS		#print "node $_ is tagged as $nodeIntegerType\n";
-#JAS		# tag each node type with a integer key.
-#JAS
-#JAS		push @genFuncs1, "\nconst int OFFSETS_".$node."[] = {\n";
-#JAS
-#JAS 		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
-#JAS			#if (index($field,"_") !=0) {
-#JAS				my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
-#JAS				#$ft =~ tr/a-z/A-Z/; # convert to uppercase
-#JAS				my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
-#JAS				push @genFuncs1, "	FIELDNAMES_$field, offsetof (struct X3D_$node, $field), ".
-#JAS					" FIELDTYPE_$ft, KW_$fk,\n";
-#JAS			#}
-#JAS		};
-#JAS		push @genFuncs1, "	-1, -1, -1, -1};\n";
-#JAS	}
-#JAS
 	#####################
 	# make an array that contains all of the OFFSETS created above.
-	push @str, "\nextern const int *NODE_OFFSETS[];\n";
-	push @genFuncs1, "\nconst int *NODE_OFFSETS[] = {\n";
+	push @str, "\nextern const size_t *NODE_OFFSETS[];\n";
+	push @genFuncs1, "\nconst size_t *NODE_OFFSETS[] = {\n";
 	for my $node (@sortedNodeList) {
 		push @genFuncs1, "	OFFSETS_$node,\n";
 	}

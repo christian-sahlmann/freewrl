@@ -242,13 +242,6 @@ void tokenizeVRML1_(char *pb) {
                 /* get the current element */
                 ele = vector_get(struct ProtoElementPointer*, deconstructedProtoBody, i);
 		
-{
-size_t *erx = stringNodeType(ele->isNODE);
-
-printf ("snt %s\n",erx);
-}
-
-
                 if (ele->isNODE != -1) 
                         written += fprintf (fp," VRML1_%s 		#NODE\n",stringNodeType(ele->isNODE));
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.h,v 1.3 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_KeyDevice.h,v 1.4 2010/02/16 13:54:45 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -40,12 +40,9 @@ Proximity sensor macro.
 
 
 /* function protos */
-static void incrementKeySinkList();
 int KeySensorNodePresent();
 void addNodeToKeySensorList(struct X3D_Node* node);
 void killKeySensorNodeList();
 void sendKeyToKeySensor(const char key, int upDown);
-static void sendToKS(struct X3D_Node* wsk, int key, int upDown);
-static void sendToSS(struct X3D_Node *wsk, int key, int upDown);
 
 #endif /* __FREEWRL_SCENEGRAPH_KEYDEVICE_H__ */

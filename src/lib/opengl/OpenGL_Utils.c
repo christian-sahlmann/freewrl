@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.100 2010/02/15 21:45:01 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.101 2010/02/16 13:54:45 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -49,6 +49,7 @@
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../scenegraph/sounds.h"
@@ -61,6 +62,7 @@
 #include "../scenegraph/Component_Core.h"
 #include "../scenegraph/Component_Networking.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "Textures.h"
 #include "OpenGL_Utils.h"
 
 #include <float.h>
@@ -85,9 +87,6 @@ int displayDepth = 24;
 
 static float cc_red = 0.0f, cc_green = 0.0f, cc_blue = 0.0f, cc_alpha = 1.0f;
 int cc_changed = FALSE;
-
-/* for checking of runtime capabilities */
-static char *glExtensions;
 
 static pthread_mutex_t  memtablelock = PTHREAD_MUTEX_INITIALIZER;
 #define LOCK_MEMORYTABLE 		pthread_mutex_lock(&memtablelock);
@@ -320,7 +319,7 @@ cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
 
 /* draw a simple bounding box around an object */
 void drawBBOX(struct X3D_Node *node) {
-	FW_GL_COLOR3F(1.0,0.6,0.6);
+	FW_GL_COLOR3F((float)1.0,(float)0.6,(float)0.6);
 
 	/* left group */
 	FW_GL_BEGIN(GL_LINES);
@@ -538,29 +537,9 @@ void end_textureTransform (void) {
  */
 bool initialize_GL()
 {
-#ifdef OLDCODE
-OLDCODE	int i;
-OLDCODE        float pos[] = { 0.0, 0.0, 1.0, 0.0 }; 
-OLDCODE        float dif[] = { 1.0, 1.0, 1.0, 1.0 };
-OLDCODE        float shin[] = { 0.6, 0.6, 0.6, 1.0 };
-OLDCODE        float As[] = { 0.0, 0.0, 0.0, 1.0 };
-#endif
-
 #if defined (TARGET_AQUA) && !defined(IPHONE)
-#ifdef OLDCODE
-OLDCODE        /* aqglobalContext is found at the initGL routine in MainLoop.c. Here
-OLDCODE           we make it the current Context. */
-OLDCODE
-OLDCODE        /* printf("OpenGL at start of glpOpenGLInitialize globalContext %p\n", aqglobalContext); */
-OLDCODE        if (RUNNINGASPLUGIN) {
-OLDCODE                aglSetCurrentContext(aqglobalContext);
-OLDCODE        } else {
-#endif
-		printf("initialize gl, myglobalcontext is %u", myglobalContext);
+		/* printf("initialize gl, myglobalcontext is %u", myglobalContext); */
                 CGLSetCurrentContext(myglobalContext);
-#ifdef OLDCODE
-OLDCODE        }
-#endif
 #endif
 
 	initialize_rdr_caps();
@@ -605,7 +584,7 @@ OLDCODE        }
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	FW_GL_CLEAR_DEPTH(1.0);
-	FW_GL_CLEAR_COLOR(0.0, 0.0, 1.0, 0.0);
+	FW_GL_CLEAR_COLOR((float)0.0, (float)0.0, (float)1.0, (float)0.0);
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 	FW_GL_FRUSTUM(-1.0, 1.0, -1.0, 1.0, 1.0, 20);
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
@@ -662,7 +641,7 @@ OLDCODE        }
 	FW_GL_PIXELSTOREI(GL_UNPACK_ALIGNMENT,1);
 	FW_GL_PIXELSTOREI(GL_PACK_ALIGNMENT,1);
 
-	do_shininess(GL_FRONT_AND_BACK,0.2);
+	do_shininess(GL_FRONT_AND_BACK,(float) 0.2);
 
 	return TRUE;
 }
@@ -1012,7 +991,7 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 	}
 
 
-	printf ("checkNode: did not find %d in memory table at i%s %d\n",(int) node,fn,line);
+	printf ("checkNode: did not find %p in memory table at i%s %d\n",node,fn,line);
 
 	UNLOCK_MEMORYTABLE
 	return FALSE;
@@ -1325,7 +1304,7 @@ void startOfLoopNodeUpdates(void) {
 	struct Multi_Node *addChildren;
 	struct Multi_Node *removeChildren;
 	struct Multi_Node *childrenPtr;
-	int offsetOfChildrenPtr;
+	size_t offsetOfChildrenPtr;
 
 	/* process one inline per loop; do it outside of the lock/unlock memory table */
 	struct Vector *loadInlines;

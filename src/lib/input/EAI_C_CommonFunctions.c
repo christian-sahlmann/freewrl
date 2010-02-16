@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.27 2010/02/05 14:52:28 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.28 2010/02/16 13:54:45 crc_canada Exp $
 
 ???
 
@@ -267,7 +267,7 @@ void Parser_deleteParserForScanStringValueToMem(void) {
 }
 
 
-void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, char *value, int isXML) {
+void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctype, char *value, int isXML) {
 	void *nst;                      /* used for pointer maths */
 	union anyVrml myVal;
 	char *mfstringtmp = NULL;

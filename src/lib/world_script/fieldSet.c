@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.29 2009/10/26 10:55:13 couannette Exp $
+  $Id: fieldSet.c,v 1.30 2010/02/16 13:54:45 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -143,7 +143,7 @@ This is used mainly in parsing */
 
 void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, int isXML) {
 	int foffset;
-	int coffset;
+	size_t coffset;
 	int ctype;
 	int ctmp;
 
@@ -710,8 +710,8 @@ DEF_FINDROUTEDFIELD(EVENT_OUT)
 
 
 /* go through the OFFSETS for this node, looking for field, and return offset, type, and kind */
-void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype, int *ckind) {
-	int *x;
+void findFieldInOFFSETS(int nodeType, const size_t field, int *coffset, int *ctype, int *ckind) {
+	size_t *x;
 	int X3DLevel;
 	int mask = 0;
 
