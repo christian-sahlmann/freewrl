@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.55 2010/02/15 17:58:16 crc_canada Exp $
+  $Id: CParseParser.c,v 1.56 2010/02/16 21:21:47 crc_canada Exp $
 
   ???
 
@@ -2704,7 +2704,7 @@ void cParseErrorCurID(struct VRMLParser *me, char *str) {
 void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) {
 
 	char fw_outline[OUTLINELEN];
-	int str2len = strlen(str2);
+	size_t str2len = strlen(str2);
 
 	if (strlen(str) > FROMSRC) str[FROMSRC] = '\0';
 	strcpy(fw_outline,str);

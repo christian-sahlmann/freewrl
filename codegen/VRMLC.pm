@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.34 2010/02/16 13:54:45 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.35 2010/02/16 21:21:47 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.35  2010/02/16 21:21:47  crc_canada
+# more changes for 64 bit computing warning errors.
+#
 # Revision 1.34  2010/02/16 13:54:45  crc_canada
 # more 64 bit compiler warnings removal. Mainly items that will be of no operational
 # impact for FreeWRL.
@@ -702,10 +705,10 @@ sub gen {
 	
 	# make a function to print field name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the field type */\n". 
-		"const char *stringFieldType (int st) {\n".
+		"const char *stringFieldType (indexT st) {\n".
 		"	if ((st < 0) || (st >= FIELDNAMES_COUNT)) return \"(fieldName invalid)\"; \n".
 		"	return FIELDNAMES[st];\n}\n\n";
-	push @str, "const char *stringFieldType(int st);\n";
+	push @str, "const char *stringFieldType(indexT st);\n";
 
 	#####################
 	# we have a lists  of field types from ALL nodes. print out the ones without the underscores at the beginning
@@ -798,10 +801,10 @@ sub gen {
 
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the keyword type */\n". 
-		"const char *stringKeywordType (int st) {\n".
+		"const char *stringKeywordType (indexT st) {\n".
 		"	if ((st < 0) || (st >= KEYWORDS_COUNT)) return \"(keyword invalid)\"; \n".
 		"	return KEYWORDS[st];\n}\n\n";
-	push @str, "const char *stringKeywordType(int st);\n";
+	push @str, "const char *stringKeywordType(indexT st);\n";
 
 
 	#####################
@@ -829,10 +832,10 @@ sub gen {
 
 	# make a function to print Profile name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the profile type */\n". 
-		"const char *stringProfileType (int st) {\n".
+		"const char *stringProfileType (indexT st) {\n".
 		"	if ((st < 0) || (st >= PROFILES_COUNT)) return \"(profile invalid)\"; \n".
 		"	return PROFILES[st];\n}\n\n";
-	push @str, "const char *stringProfileType(int st);\n";
+	push @str, "const char *stringProfileType(indexT st);\n";
 
 	#####################
 	# process components 
@@ -859,10 +862,10 @@ sub gen {
 
 	# make a function to print Component name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the component type */\n". 
-		"const char *stringComponentType (int st) {\n".
+		"const char *stringComponentType (indexT st) {\n".
 		"	if ((st < 0) || (st >= COMPONENTS_COUNT)) return \"(component invalid)\"; \n".
 		"	return COMPONENTS[st];\n}\n\n";
-	push @str, "const char *stringComponentType(int st);\n";
+	push @str, "const char *stringComponentType(indexT st);\n";
 
 
 	#####################
@@ -886,10 +889,10 @@ sub gen {
 
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the PROTO keyword type */\n". 
-		"const char *stringPROTOKeywordType (int st) {\n".
+		"const char *stringPROTOKeywordType (indexT st) {\n".
 		"	if ((st < 0) || (st >= PROTOKEYWORDS_COUNT)) return \"(proto keyword invalid)\"; \n".
 		"	return PROTOKEYWORDS[st];\n}\n\n";
-	push @str, "const char *stringPROTOKeywordType(int st);\n";
+	push @str, "const char *stringPROTOKeywordType(indexT st);\n";
 
 	#####################
 	# process X3DSPECIAL keywords 
@@ -912,10 +915,10 @@ sub gen {
 
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the X3DSPECIAL keyword type */\n". 
-		"const char *stringX3DSPECIALType (int st) {\n".
+		"const char *stringX3DSPECIALType (indexT st) {\n".
 		"	if ((st < 0) || (st >= X3DSPECIAL_COUNT)) return \"(special keyword invalid)\"; \n".
 		"	return X3DSPECIAL[st];\n}\n\n";
-	push @str, "const char *stringX3DSPECIALType(int st);\n";
+	push @str, "const char *stringX3DSPECIALType(indexT st);\n";
 
 
 	#####################
@@ -939,10 +942,10 @@ sub gen {
 
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREBOUNDARY keyword type */\n". 
-		"const char *stringTEXTUREBOUNDARYKeywordType (int st) {\n".
+		"const char *stringTEXTUREBOUNDARYKeywordType (indexT st) {\n".
 		"	if ((st < 0) || (st >= TEXTUREBOUNDARYKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
 		"	return TEXTUREBOUNDARYKEYWORDS[st];\n}\n\n";
-	push @str, "const char *stringTEXTUREBOUNDARYKeywordType(int st);\n";
+	push @str, "const char *stringTEXTUREBOUNDARYKeywordType(indexT st);\n";
 
 	#####################
 	# process TEXTUREMAGNIFICATION keywords 
@@ -965,10 +968,10 @@ sub gen {
 
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREMAGNIFICATION keyword type */\n". 
-		"const char *stringTEXTUREMAGNIFICATIONKeywordType (int st) {\n".
+		"const char *stringTEXTUREMAGNIFICATIONKeywordType (indexT st) {\n".
 		"	if ((st < 0) || (st >= TEXTUREMAGNIFICATIONKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
 		"	return TEXTUREMAGNIFICATIONKEYWORDS[st];\n}\n\n";
-	push @str, "const char *stringTEXTUREMAGNIFICATIONKeywordType(int st);\n";
+	push @str, "const char *stringTEXTUREMAGNIFICATIONKeywordType(indexT st);\n";
 
 
 	#####################
@@ -992,10 +995,10 @@ sub gen {
 
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTUREMINIFICATION keyword type */\n". 
-		"const char *stringTEXTUREMINIFICATIONKeywordType (int st) {\n".
+		"const char *stringTEXTUREMINIFICATIONKeywordType (indexT st) {\n".
 		"	if ((st < 0) || (st >= TEXTUREMINIFICATIONKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
 		"	return TEXTUREMINIFICATIONKEYWORDS[st];\n}\n\n";
-	push @str, "const char *stringTEXTUREMINIFICATIONKeywordType(int st);\n";
+	push @str, "const char *stringTEXTUREMINIFICATIONKeywordType(indexT st);\n";
 
 	#####################
 	# process TEXTURECOMPRESSION keywords 
@@ -1018,10 +1021,10 @@ sub gen {
 
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the TEXTURECOMPRESSION keyword type */\n". 
-		"const char *stringTEXTURECOMPRESSIONKeywordType (int st) {\n".
+		"const char *stringTEXTURECOMPRESSIONKeywordType (indexT st) {\n".
 		"	if ((st < 0) || (st >= TEXTURECOMPRESSIONKEYWORDS_COUNT)) return \"(texture param keyword invalid)\"; \n".
 		"	return TEXTURECOMPRESSIONKEYWORDS[st];\n}\n\n";
-	push @str, "const char *stringTEXTURECOMPRESSIONKeywordType(int st);\n";
+	push @str, "const char *stringTEXTURECOMPRESSIONKeywordType(indexT st);\n";
 
 
 	#####################
@@ -1045,10 +1048,10 @@ sub gen {
 
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the VRML1Modifier keyword type */\n". 
-		"const char *stringVRML1ModifierType (int st) {\n".
+		"const char *stringVRML1ModifierType (indexT st) {\n".
 		"	if ((st < 0) || (st >= VRML1Modifier_COUNT)) return \"(VRML1 modifier invalid)\"; \n".
 		"	return VRML1Modifier[st];\n}\n\n";
-	push @str, "const char *stringVRML1ModifierType(int st);\n";
+	push @str, "const char *stringVRML1ModifierType(indexT st);\n";
 
 	#####################
 	# process GEOSPATIAL keywords 
@@ -1071,10 +1074,10 @@ sub gen {
 
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the GEOSPATIAL keyword type */\n". 
-		"const char *stringGEOSPATIALType (int st) {\n".
+		"const char *stringGEOSPATIALType (indexT st) {\n".
 		"	if ((st < 0) || (st >= GEOSPATIAL_COUNT)) return \"(keyword invalid)\"; \n".
 		"	return GEOSPATIAL[st];\n}\n\n";
-	push @str, "const char *stringGEOSPATIALType(int st);\n";
+	push @str, "const char *stringGEOSPATIALType(indexT st);\n";
 
 	#####################
 	# process VRML1_ keywords 
@@ -1097,15 +1100,15 @@ sub gen {
 
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the VRML1_ keyword type */\n". 
-		"const char *stringVRML1_Type (int st) {\n".
+		"const char *stringVRML1_Type (indexT st) {\n".
 		"	if ((st < 0) || (st >= VRML1__COUNT)) return \"(VRML1 keyword invalid)\"; \n".
 		"	return VRML1_[st];\n}\n\n";
-	push @str, "const char *stringVRML1_Type(int st);\n";
+	push @str, "const char *stringVRML1_Type(indexT st);\n";
 
 	##############################################################
 
 	# Convert TO/FROM EAI to Internal field types. (EAI types are ascii).
-		my $st = "char mapFieldTypeToEAItype (int st) {\n".
+		my $st = "char mapFieldTypeToEAItype (indexT st) {\n".
 		    "	switch (st) { \n";
 	push @genFuncs2, $st; push @EAICommon, $st;
 
@@ -1118,7 +1121,7 @@ sub gen {
 	}
 	my $st = "\t\tdefault: return -1;\n\t}\n\treturn -1;\n}\n";
 	push @genFuncs2, $st; push @EAICommon, $st;
-	push @str, "char mapFieldTypeToEAItype (int st);\n";
+	push @str, "char mapFieldTypeToEAItype (indexT st);\n";
 
 
 	####################
@@ -1140,7 +1143,7 @@ sub gen {
 
 	####################
 	push @genFuncs2, "/* convert an MF type to an SF type */\n". 
-		"int convertToSFType (int st) {\n".
+		"int convertToSFType (indexT st) {\n".
 		"	switch (st) { \n";
 
 
@@ -1153,7 +1156,7 @@ sub gen {
 		push @genFuncs2,  "\t\tcase FIELDTYPE_$_:	return FIELDTYPE_$sftype;\n";
 	}
 	push @genFuncs2, 	"	}\n	return -1;\n}\n";
-	push @str, "int convertToSFType (int st);\n";
+	push @str, "int convertToSFType (indexT st);\n";
 
 
 
@@ -1189,10 +1192,10 @@ sub gen {
 	}
 	# make a function to print fieldtype name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the fieldtype type */\n". 
-		"const char *stringFieldtypeType (int st) {\n".
+		"const char *stringFieldtypeType (indexT st) {\n".
 		"	if ((st < 0) || (st >= FIELDTYPES_COUNT)) return \"(fieldType invalid)\"; \n".
 		"	return FIELDTYPES[st];\n}\n\n";
-	push @str, "const char *stringFieldtypeType(int st);\n";
+	push @str, "const char *stringFieldtypeType(indexT st);\n";
 
 
 
@@ -1212,10 +1215,10 @@ sub gen {
 
 	# make a function to print node name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the node type */\n". 
-		"const char *stringNodeType (int st) {\n".
+		"const char *stringNodeType (indexT st) {\n".
 		"	if ((st < 0) || (st >= NODES_COUNT)) return \"(node invalid)\"; \n".
 		"	return NODES[st];\n}\n\n";
-	push @str, "const char *stringNodeType(int st);\n";
+	push @str, "const char *stringNodeType(indexT st);\n";
 
 
 	###################

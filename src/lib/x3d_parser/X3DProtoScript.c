@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.49 2010/02/02 20:53:19 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.50 2010/02/16 21:21:47 crc_canada Exp $
 
 ???
 
@@ -101,6 +101,7 @@ struct PROTOnameStruct {
 };
 static struct PROTOnameStruct *PROTONames = NULL;
 
+#ifdef X3DPARSERVERBOSE
 static const char *parserModeStrings[] = {
                 "unused",
                 "PARSING_NODES",
@@ -113,6 +114,7 @@ static const char *parserModeStrings[] = {
                 "PARSING_CONNECT",
                 "PARSING_EXTERNPROTODECLARE",
                 "unused high"};
+#endif
 
 
 /****************************** PROTOS ***************************************************/
@@ -226,6 +228,10 @@ static int getProtoKind(struct VRMLLexer *myLexer, int ProtoInvoc, char *id) {
 
 #define TOD parentStack[parentIndex]
 
+
+/*
+int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, struct Shader_Script **myObj, char *name, int routeTo)
+*/
 /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 #define ROUTE_FROM_META_TO_ISD \
 	getRoutingInfo (myLexer, TOD, &nodeOffs, &type, &accessType, &holder, nodeField, 1); \
@@ -247,7 +253,7 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 	int type;
 	int accessType;
 	int nodeOffs;
-	struct ShaderScript *holder; /* not used, only for parameter in getRoutingInfo */
+	struct ShaderScript **holder; /* not used, only for parameter in getRoutingInfo */
 
 
 	#ifdef X3DPARSERVERBOSE
@@ -499,8 +505,8 @@ void endConnect() {
 
 void parseProtoInstanceFields(const char *name, const char **atts) {
 	int count;
-	int picatindex;
-	int picatmalloc;
+	size_t picatindex;
+	size_t picatmalloc;
 
 	/* initialization */
 	picatindex = 0;
@@ -1205,10 +1211,10 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 				offspring = X3D_NODE(chi->children.p[0]);
 				/* printf ("offspring %d is %u, type %s\n",ind,offspring,stringNodeType(offspring->_nodeType)); */
 
-				AddRemoveChildren(chi,offsetPointer_deref(struct Multi_Node *,chi,offsetof(struct X3D_Group,children)),
+				AddRemoveChildren(X3D_NODE(chi),offsetPointer_deref(struct Multi_Node *,chi,offsetof(struct X3D_Group,children)),
 					(uintptr_t*) &offspring, 1, 2, __FILE__, __LINE__);
 
-				AddRemoveChildren(par,offsetPointer_deref(struct Multi_Node *,par,offsetof(struct X3D_Group,children)),
+				AddRemoveChildren(X3D_NODE(par),offsetPointer_deref(struct Multi_Node *,par,offsetof(struct X3D_Group,children)),
 					(uintptr_t*) &offspring, 1, 1, __FILE__, __LINE__);
 
 				/* 
@@ -1230,10 +1236,10 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 				struct X3D_Node *offspring;
 				offspring = X3D_NODE(chi->FreeWRL_PROTOInterfaceNodes.p[0]);
 
-				AddRemoveChildren(chi,offsetPointer_deref(struct Multi_Node *,chi,offsetof(struct X3D_Group,FreeWRL_PROTOInterfaceNodes)),
+				AddRemoveChildren(X3D_NODE(chi),offsetPointer_deref(struct Multi_Node *,chi,offsetof(struct X3D_Group,FreeWRL_PROTOInterfaceNodes)),
 					(uintptr_t*) &offspring, 1, 2, __FILE__, __LINE__);
 
-				AddRemoveChildren(par,offsetPointer_deref(struct Multi_Node *,par,offsetof(struct X3D_Group,FreeWRL_PROTOInterfaceNodes)),
+				AddRemoveChildren(X3D_NODE(par),offsetPointer_deref(struct Multi_Node *,par,offsetof(struct X3D_Group,FreeWRL_PROTOInterfaceNodes)),
 					(uintptr_t*) &offspring, 1, 1, __FILE__, __LINE__);
 			}
 
@@ -1633,6 +1639,9 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 
 	/* for now, set the value  -either the default, or not... */
 	if (myValueString != NULL) {
+/* 
+void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctype, char *value, int isXML);
+*/
 		Parser_scanStringValueToMem(X3D_NODE(&defaultVal), 0, fieldDecl_getType(sdecl->fieldDecl), (char *)myValueString, TRUE);
 	}
 	scriptFieldDecl_setFieldValue(sdecl, defaultVal);
@@ -1731,9 +1740,7 @@ void endExternProtoDeclare(void) {
 	/* printf ("externProtoName %s\nexternProtoName.url %s/n",CPD.definedProtoName,CPD.url); */
 	if (CPD.url != NULL) {
 		struct Multi_String url;
-		int i;
 		char *testname;
-		char emptyString[100];
 
 		pound = NULL;
 		buffer = NULL;
@@ -1772,50 +1779,12 @@ void endExternProtoDeclare(void) {
 /* 		resource_destroy(res); */
 		}
 
-#if 0 //MBFILES
-		for (i=0; i< url.n; i++) {
-			if (!foundOk) {
-				/* printf ("ExternProtoDeclare: trying url %s\n",(url.p[i])->strptr);  */
-				pound = strchr((url.p[i])->strptr,'#');
-				if (pound != NULL) {
-					/* we take the pound character off, BUT USE this variable later */
-					*pound = '\0';
-				}
-
-				if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
-					foundOk = TRUE;
-					buffer = readInputString(testname);
-					FREE_IF_NZ(testname);
-				} else {
-					/* printf ("fileExists returns failure for %s\n",testname); */
-				}
-			} /* else, just skip the rest of the list */
-		}
-        	FREE_IF_NZ(testname);
-#endif
-
 		/* if (buffer != NULL) { 
 			printf ("EPD: just read in %s\n",buffer);
 		}
 		if (pound != NULL) {
 			printf ("EPD, pound is %s\n",pound);
 		} */
-
-#if 0 //MBFILES
-		/* were we successful? */
-		if (!foundOk) {
-			ConsoleMessage ("<ExternProtoDeclare> of name %s not found",CPD.definedProtoName);
-		} else {
-			/* printf ("finding and expanding ExternProtoDeclare %s\n",CPD.definedProtoName);
-			printf ("	pound %s\n",pound);
-			printf ("	currentProtoDeclare %d\n",currentProtoDeclare); */
-			
-			setParserMode(PARSING_NODES);
-
-			compareExternProtoDeclareWithProto(buffer,pound);
-			setParserMode(PARSING_EXTERNPROTODECLARE);
-		}
-#endif
 
 		/* decrement the protoDeclare stack count. If we are nested, get out of the nesting */
 		#ifdef X3DPARSERVERBOSE
@@ -1886,8 +1855,9 @@ void endProtoDeclare(void) {
 
 		/* if we are in an ExternProtoDeclare, we need to decrement here to keep things sane */
 		if (currentProtoDeclare >=1) {
-			if (PROTONames[currentProtoDeclare-1].isExternProto)
+			if (PROTONames[currentProtoDeclare-1].isExternProto) {
 				DECREMENT_PARENTINDEX
+			}
 		}
 }
 

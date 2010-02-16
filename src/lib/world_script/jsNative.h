@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsNative.h,v 1.6 2009/10/05 15:07:24 crc_canada Exp $
+$Id: jsNative.h,v 1.7 2010/02/16 21:21:47 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -46,7 +46,7 @@ typedef struct _BrowserNative {
 
 typedef struct _SFNodeNative {
 	int valueChanged;
-	uintptr_t *handle;
+	struct X3D_Node *handle;
 	char *X3DString;
 	int fieldsExpanded;
 } SFNodeNative;

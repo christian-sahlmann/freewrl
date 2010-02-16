@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: InputFunctions.h,v 1.8 2010/01/27 21:18:52 crc_canada Exp $
+$Id: InputFunctions.h,v 1.9 2010/02/16 21:21:47 crc_canada Exp $
 
 Global includes.
 
@@ -36,7 +36,7 @@ Global includes.
 char* makeFontDirectory();
 FILE *openLocalFile (char *fn, char* access);
 char * stripLocalFileName (char * origName);
-
+void scanUnsignedIntoValue(char *sp, size_t *rv);
 
 #endif /* __FREEWRL_INPUTFUNCTIONS_H__ */
 

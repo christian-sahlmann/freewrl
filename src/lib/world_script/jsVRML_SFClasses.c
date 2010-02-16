@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.20 2009/12/01 21:34:51 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.21 2010/02/16 21:21:47 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -48,6 +48,7 @@
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
+#include "../input/InputFunctions.h"
 
 #include "CScripts.h"
 #include "jsUtils.h"
@@ -107,7 +108,7 @@ void convertHSVtoRGB( double h, double s, double v ,double *r, double *g, double
 		return;
 	}
 	h /= 60;			/* sector 0 to 5 */
-	i = floor( h );
+	i = (int) floor( h );
 	f = h - i;			/* factorial part of h */
 	p = v * ( 1 - s );
 	q = v * ( 1 - s * f );
@@ -190,9 +191,9 @@ SFColorSetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	#endif
 
 	convertHSVtoRGB(hue,saturation,value, &red, &green, &blue);
-	ptr->v.c[0] = red;
-	ptr->v.c[1] = green;
-	ptr->v.c[2] = blue;
+	ptr->v.c[0] = (float) red;
+	ptr->v.c[1] = (float) green;
+	ptr->v.c[2] = (float) blue;
 	ptr->valueChanged ++;
 	#ifdef JSCLASSESVERBOSE
         printf("hsv code, now rgb is %.9g %.9g %.9g\n", (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
@@ -291,13 +292,13 @@ SFColorConstr(JSContext *cx, JSObject *obj,
 	}
 
 	if (argc == 0) {
-		(ptr->v).c[0] = 0.0;
-		(ptr->v).c[1] = 0.0;
-		(ptr->v).c[2] = 0.0;
+		(ptr->v).c[0] = (float) 0.0;
+		(ptr->v).c[1] = (float) 0.0;
+		(ptr->v).c[2] = (float) 0.0;
 	} else if (JS_ConvertArguments(cx, argc, argv, "d d d", &(pars[0]), &(pars[1]), &(pars[2]))) {
-		(ptr->v).c[0] = pars[0];
-		(ptr->v).c[1] = pars[1];
-		(ptr->v).c[2] = pars[2];
+		(ptr->v).c[0] = (float) pars[0];
+		(ptr->v).c[1] = (float) pars[1];
+		(ptr->v).c[2] = (float) pars[2];
 	} else {
 		printf( "Invalid arguments for SFColorConstr.\n");
 		return JS_FALSE;
@@ -387,13 +388,13 @@ SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(_val);
+			(ptr->v).c[0] = (float) *JSVAL_TO_DOUBLE(_val);
 			break;
 		case 1:
-			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(_val);
+			(ptr->v).c[1] = (float) *JSVAL_TO_DOUBLE(_val);
 			break;
 		case 2:
-			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(_val);
+			(ptr->v).c[2] = (float) *JSVAL_TO_DOUBLE(_val);
 			break;
 
 		}
@@ -555,16 +556,16 @@ SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 	}
 
 	if (argc == 0) {
-		(ptr->v).c[0] = 0.0;
-		(ptr->v).c[1] = 0.0;
-		(ptr->v).c[2] = 0.0;
-		(ptr->v).c[3] = 0.0;
+		(ptr->v).c[0] = (float) 0.0;
+		(ptr->v).c[1] = (float) 0.0;
+		(ptr->v).c[2] = (float) 0.0;
+		(ptr->v).c[3] = (float) 0.0;
 	} else if (JS_ConvertArguments(cx, argc, argv, "d d d d",
 					&(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
-		(ptr->v).c[0] = pars[0];
-		(ptr->v).c[1] = pars[1];
-		(ptr->v).c[2] = pars[2];
-		(ptr->v).c[3] = pars[3];
+		(ptr->v).c[0] = (float) pars[0];
+		(ptr->v).c[1] = (float) pars[1];
+		(ptr->v).c[2] = (float) pars[2];
+		(ptr->v).c[3] = (float) pars[3];
 	} else {
 		printf( "Invalid arguments for SFColorRGBAConstr.\n");
 		return JS_FALSE;
@@ -664,16 +665,16 @@ SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(_val);
+			(ptr->v).c[0] = (float) *JSVAL_TO_DOUBLE(_val);
 			break;
 		case 1:
-			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(_val);
+			(ptr->v).c[1] = (float) *JSVAL_TO_DOUBLE(_val);
 			break;
 		case 2:
-			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(_val);
+			(ptr->v).c[2] = (float) *JSVAL_TO_DOUBLE(_val);
 			break;
 		case 3:
-			(ptr->v).c[3] = *JSVAL_TO_DOUBLE(_val);
+			(ptr->v).c[3] = (float) *JSVAL_TO_DOUBLE(_val);
 			break;
 
 		}
@@ -953,15 +954,14 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	SFNodeNative *newPtr;
 	SFNodeNative *oldPtr;
 
-	uintptr_t *newHandle;
+	struct X3D_Node *newHandle;
 	JSString *myStr;
 	char *cString;
-	int tmp;
 
 	struct X3D_Group *myGroup;
 
 	ADD_ROOT(cx,obj)
-	newHandle = 0;
+	newHandle = NULL;
 	cString = NULL;
 
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -970,7 +970,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 	/* verify the argc */
 	if (argc == 0) {
-		newHandle = 0;
+		newHandle = NULL;
 		cString = STRDUP("SFNodeConstr from argc eq 0");
 	} else if (argc == 1) {
 		/* is this a string, or a number indicating a node? */
@@ -1001,7 +1001,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 			/* is this just an integer, eg, "0" - happens on initialization for SFNodes */
 			if (JSVAL_IS_INT(argv[0])) {
-				sscanf (cString,"%ld",&newHandle);
+				newHandle = (struct X3D_Node *) JSVAL_TO_GCTHING(argv[0]);
 				cString = STRDUP("node created in SFNodeConstr");
 			} else {
 				resource_item_t *res;
@@ -1011,13 +1011,10 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 				res = resource_create_from_string(cString);
 				res->where = myGroup;
-				res->offsetFromWhere = offsetof (struct X3D_Group, children);
+				res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
 				send_resource_to_parser(res);
 				resource_wait(res);
 
-/* 	                        inputParse(FROMSTRING, cString, FALSE, FALSE, myGroup, offsetof(struct X3D_Group, children),  */
-/* 					&tmp, FALSE); */
-	
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("SFNodeConstr we have created %d nodes\n",myGroup->children.n);
 				#endif
@@ -1027,7 +1024,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 					printf ("SFNativeNew - created %d nodes, expected 1 only\n",myGroup->children.n);
 					return JS_FALSE;
 				}
-				newHandle = (uintptr_t *) myGroup->children.p[0];
+				newHandle =  X3D_NODE( myGroup->children.p[0]);
 			}
 		}	
 
@@ -1049,10 +1046,13 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 			_idStr = JS_ValueToString(cx, argv[1]);
 			_id_c = JS_GetStringBytes(_idStr);
 
+/*
 			if (sscanf (_id_c,"%d",&newHandle) != 1) {
 				printf ("SFNodeConstr - can not get handle from %s\n",_id_c);
 				return JS_FALSE;
 			}
+*/			newHandle = (struct X3D_Node *) JSVAL_TO_GCTHING(argv[1]);
+
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("string is :%s: new handle is %d\n",cString,newHandle);
 			#endif
@@ -1198,8 +1198,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	char *_id_c, *_val_c;
 	SFNodeNative *ptr;
 	int val_len;
-	uintptr_t ra;
-	uintptr_t tmp;
+	size_t tmp;
 
 
 	_idStr = JS_ValueToString(cx, id);
@@ -1221,7 +1220,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	if (JSVAL_IS_INT(id)) {
 		ptr->valueChanged++;
-		val_len = strlen(_val_c) + 1;
+		val_len = (int) strlen(_val_c) + 1;
 
 		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("switching on %d\n",JSVAL_TO_INT(id));
@@ -1237,10 +1236,8 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			memmove(ptr->X3DString, _val_c, val_len);
 			break;
 		case 1:
-			ra = sscanf (_val_c,"%u",(unsigned int*) &tmp);
-			if (ra != 1) {ConsoleMessage ("SFNodeSetProperty, case 1 error\n");}
-
-			ptr->handle = (uintptr_t *) tmp;
+			scanUnsignedIntoValue(_val_c,&tmp);
+			ptr->handle = X3D_NODE(tmp);
 			break;
 		}
 
@@ -1354,10 +1351,10 @@ SFRotationInverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 	/* and return the resultant, as a vrml rotation */
 	quaternion_to_vrmlrot(&qret, &a, &b, &c, &d);
 	/* double to floats, can not use pointers... */
-	_retNative->v.c[0] = a;
-	_retNative->v.c[1] = b;
-	_retNative->v.c[2] = c;
-	_retNative->v.c[3] = d;
+	_retNative->v.c[0] = (float) a;
+	_retNative->v.c[1] = (float) b;
+	_retNative->v.c[2] = (float) c;
+	_retNative->v.c[3] = (float) d;
 
 	/* and, we now have a new value */
 	_retNative->valueChanged = 1; 
@@ -1424,10 +1421,10 @@ SFRotationMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 	/* and return the resultant, as a vrml rotation */
 	quaternion_to_vrmlrot(&qret, &a, &b, &c, &d);
 	/* double to floats, can not use pointers... */
-	_retNative->v.c[0] = a;
-	_retNative->v.c[1] = b;
-	_retNative->v.c[2] = c;
-	_retNative->v.c[3] = d;
+	_retNative->v.c[0] = (float) a;
+	_retNative->v.c[1] = (float) b;
+	_retNative->v.c[2] = (float) c;
+	_retNative->v.c[3] = (float) d;
 
 	/* and, we now have a new value */
 	_retNative->valueChanged = 1; 
@@ -1486,16 +1483,16 @@ SFRotationMultVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 
 	rl = veclength(r);
 	vl = veclength(v);
-	rlpt = VECPT(r, v) / rl / vl;
-	s = sin(angle);
-	c = cos(angle);
+	rlpt = (float) VECPT(r, v) / rl / vl;
+	s = (float) sin(angle);
+	c = (float) cos(angle);
 	VECCP(r, v, c1);
 	VECSCALE(c1, 1.0 / rl);
 	VECCP(r, c1, c2);
 	VECSCALE(c2, 1.0 / rl) ;
-	_retNative->v.c[0] = v.x + s * c1.x + (1-c) * c2.x;
-	_retNative->v.c[1] = v.y + s * c1.y + (1-c) * c2.y;
-	_retNative->v.c[2] = v.z + s * c1.z + (1-c) * c2.z;
+	_retNative->v.c[0] = (float) (v.x + s * c1.x + (1-c) * c2.x);
+	_retNative->v.c[1] = (float) (v.y + s * c1.y + (1-c) * c2.y);
+	_retNative->v.c[2] = (float) (v.z + s * c1.z + (1-c) * c2.z);
 
 	return JS_TRUE;
 }
@@ -1744,7 +1741,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	}
 
 	if (argc == 0) {
-		(ptr->v).c[0] = 0.0; (ptr->v).c[1] = 0.0; (ptr->v).c[2] = 1.0; (ptr->v).c[3] = 0.0;
+		(ptr->v).c[0] = (float) 0.0; (ptr->v).c[1] = (float) 0.0; (ptr->v).c[2] = (float) 1.0; (ptr->v).c[3] = (float) 0.0;
 
 	} else if (argc == 2) {
 		/* two possibilities - SFVec3f/numeric, or SFVec3f/SFVec3f */
@@ -1788,7 +1785,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			(ptr->v).c[0] = _vec->v.c[0];
 			(ptr->v).c[1] = _vec->v.c[1];
 			(ptr->v).c[2] = _vec->v.c[2];
-			(ptr->v).c[3] = doub;
+			(ptr->v).c[3] = (float) doub;
 		} else {
 			v1.x = _vec->v.c[0];
 			v1.y = _vec->v.c[1];
@@ -1800,18 +1797,18 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			v1len = veclength(v1);
 			v2len = veclength(v2);
 			v12dp = vecdot(&v1, &v2);
-			(ptr->v).c[0] = v1.y * v2.z - v2.y * v1.z;
-			(ptr->v).c[1] = v1.z * v2.x - v2.z * v1.x;
-			(ptr->v).c[2] = v1.x * v2.y - v2.x * v1.y;
+			(ptr->v).c[0] = (float) (v1.y * v2.z - v2.y * v1.z);
+			(ptr->v).c[1] = (float) (v1.z * v2.x - v2.z * v1.x);
+			(ptr->v).c[2] = (float) (v1.x * v2.y - v2.x * v1.y);
 			v12dp /= v1len * v2len;
-			(ptr->v).c[3] = atan2(sqrt(1 - v12dp * v12dp), v12dp);
+			(ptr->v).c[3] = (float) atan2(sqrt(1 - v12dp * v12dp), v12dp);
 		}
 	} else if (argc == 4 && JS_ConvertArguments(cx, argc, argv, "d d d d",
 			&(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
-		(ptr->v).c[0] = pars[0];
-		(ptr->v).c[1] = pars[1];
-		(ptr->v).c[2] = pars[2];
-		(ptr->v).c[3] = pars[3];
+		(ptr->v).c[0] = (float) pars[0];
+		(ptr->v).c[1] = (float) pars[1];
+		(ptr->v).c[2] = (float) pars[2];
+		(ptr->v).c[3] = (float) pars[3];
 	} else {
 		printf( "Invalid arguments for SFRotationConstr.\n");
 		return JS_FALSE;
@@ -1919,16 +1916,16 @@ SFRotationSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[0] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 1:
-			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[1] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 2:
-			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[2] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 3:
-			(ptr->v).c[3] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[3] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		}
 	}
@@ -2089,8 +2086,8 @@ JSBool SFVec2fGeneric( JSContext *cx, JSObject *obj,
 			printf( "JS_GetPrivate failed for _retObj in SFVec2f.\n");
 			return JS_FALSE;
 		}
-		(_retNative->v).c[0] = d0;
-		(_retNative->v).c[1] = d1;
+		(_retNative->v).c[0] = (float) d0;
+		(_retNative->v).c[1] = (float) d1;
 	} else if (retNumeric) {
 		if ((dp = JS_NewDouble(cx,d)) == NULL) {
 			printf( "JS_NewDouble failed for %f in SFVec2f.\n",d);
@@ -2243,15 +2240,15 @@ SFVec2fConstr(JSContext *cx, JSObject *obj,
 	}
 
 	if (argc == 0) {
-		(ptr->v).c[0] = 0.0;
-		(ptr->v).c[1] = 0.0;
+		(ptr->v).c[0] = (float) 0.0;
+		(ptr->v).c[1] = (float) 0.0;
 	} else {
 		if (!JS_ConvertArguments(cx, argc, argv, "d d", &(pars[0]), &(pars[1]))) {
 			printf( "JS_ConvertArguments failed in SFVec2fConstr.\n");
 			return JS_FALSE;
 		}
-		(ptr->v).c[0] = pars[0];
-		(ptr->v).c[1] = pars[1];
+		(ptr->v).c[0] = (float) pars[0];
+		(ptr->v).c[1] = (float) pars[1];
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFVec2fConstr: obj = %u, %u args, %f %f\n",
@@ -2328,13 +2325,13 @@ SFVec2fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[0] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 1:
-			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[1] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 2:
-			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[2] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		}
 	}
@@ -2480,12 +2477,12 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 			break;
 		case __3FDOT:
 			v1.x = (_vec1->v).c[0]; v1.y=(_vec1->v).c[1];v1.z=(_vec1->v).c[2];
-			v2.x = pars[0]; v2.y=pars[1];v2.z=pars[2];
+			v2.x = (float) pars[0]; v2.y=(float) pars[1];v2.z=(float) pars[2];
 			d = vecdot (&v1, &v2);
 			break;
 		case __3FCROSS:
 			v1.x = (_vec1->v).c[0]; v1.y=(_vec1->v).c[1];v1.z=(_vec1->v).c[2];
-			v2.x = pars[0]; v2.y=pars[1];v2.z=pars[2];
+			v2.x = (float) pars[0]; v2.y=(float) pars[1];v2.z=(float) pars[2];
 			veccross(&ret, v1, v2);
 			d0 = ret.x;d1 = ret.y, d2 = ret.z;
 			break;
@@ -2531,9 +2528,9 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 			printf( "JS_GetPrivate failed for _retObj in SFVec3f.\n");
 			return JS_FALSE;
 		}
-		(_retNative->v).c[0] = d0;
-		(_retNative->v).c[1] = d1;
-		(_retNative->v).c[2] = d2;
+		(_retNative->v).c[0] = (float) d0;
+		(_retNative->v).c[1] = (float) d1;
+		(_retNative->v).c[2] = (float) d2;
 	} else if (retNumeric) {
 		if ((dp = JS_NewDouble(cx,d)) == NULL) {
 			printf( "JS_NewDouble failed for %f in SFVec3f.\n",d);
@@ -2716,18 +2713,18 @@ SFVec3fConstr(JSContext *cx, JSObject *obj,
 	}
 
 	if (argc == 0) {
-		(ptr->v).c[0] = 0.0;
-		(ptr->v).c[1] = 0.0;
-		(ptr->v).c[2] = 0.0;
+		(ptr->v).c[0] = (float) 0.0;
+		(ptr->v).c[1] = (float) 0.0;
+		(ptr->v).c[2] = (float) 0.0;
 	} else {
 		if (!JS_ConvertArguments(cx, argc, argv, "d d d",
 				 &(pars[0]), &(pars[1]), &(pars[2]))) {
 			printf( "JS_ConvertArguments failed in SFVec3fConstr.\n");
 			return JS_FALSE;
 		}
-		(ptr->v).c[0] = pars[0];
-		(ptr->v).c[1] = pars[1];
-		(ptr->v).c[2] = pars[2];
+		(ptr->v).c[0] = (float) pars[0];
+		(ptr->v).c[1] = (float) pars[1];
+		(ptr->v).c[2] = (float) pars[2];
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFVec3fConstr: obj = %u, %u args, %f %f %f\n",
@@ -2830,13 +2827,13 @@ SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[0] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 1:
-			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[1] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 2:
-			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[2] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		}
 	}
@@ -2977,12 +2974,12 @@ JSBool SFVec3dGeneric( JSContext *cx, JSObject *obj,
 			break;
 		case __3FDOT:
 			v1.x = (_vec1->v).c[0]; v1.y=(_vec1->v).c[1];v1.z=(_vec1->v).c[2];
-			v2.x = pars[0]; v2.y=pars[1];v2.z=pars[2];
+			v2.x = (float) pars[0]; v2.y=(float) pars[1];v2.z=(float) pars[2];
 			d = vecdot (&v1, &v2);
 			break;
 		case __3FCROSS:
 			v1.x = (_vec1->v).c[0]; v1.y=(_vec1->v).c[1];v1.z=(_vec1->v).c[2];
-			v2.x = pars[0]; v2.y=pars[1];v2.z=pars[2];
+			v2.x = (float) pars[0]; v2.y=(float) pars[1];v2.z=(float) pars[2];
 			veccross(&ret, v1, v2);
 			d0 = ret.x;d1 = ret.y, d2 = ret.z;
 			break;
@@ -3212,18 +3209,18 @@ SFVec3dConstr(JSContext *cx, JSObject *obj,
 	}
 
 	if (argc == 0) {
-		(ptr->v).c[0] = 0.0;
-		(ptr->v).c[1] = 0.0;
-		(ptr->v).c[2] = 0.0;
+		(ptr->v).c[0] = (float) 0.0;
+		(ptr->v).c[1] = (float) 0.0;
+		(ptr->v).c[2] = (float) 0.0;
 	} else {
 		if (!JS_ConvertArguments(cx, argc, argv, "d d d",
 				 &(pars[0]), &(pars[1]), &(pars[2]))) {
 			printf( "JS_ConvertArguments failed in SFVec3dConstr.\n");
 			return JS_FALSE;
 		}
-		(ptr->v).c[0] = pars[0];
-		(ptr->v).c[1] = pars[1];
-		(ptr->v).c[2] = pars[2];
+		(ptr->v).c[0] = (float) pars[0];
+		(ptr->v).c[1] = (float) pars[1];
+		(ptr->v).c[2] = (float) pars[2];
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFVec3dConstr: obj = %u, %u args, %f %f %f\n",
@@ -3443,20 +3440,20 @@ SFVec4fConstr(JSContext *cx, JSObject *obj,
 	}
 
 	if (argc == 0) {
-		(ptr->v).c[0] = 0.0;
-		(ptr->v).c[1] = 0.0;
-		(ptr->v).c[2] = 0.0;
-		(ptr->v).c[3] = 0.0;
+		(ptr->v).c[0] = (float) 0.0;
+		(ptr->v).c[1] = (float) 0.0;
+		(ptr->v).c[2] = (float) 0.0;
+		(ptr->v).c[3] = (float) 0.0;
 	} else {
 		if (!JS_ConvertArguments(cx, argc, argv, "d d d d",
 				 &(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
 			printf( "JS_ConvertArguments failed in SFVec4fConstr.\n");
 			return JS_FALSE;
 		}
-		(ptr->v).c[0] = pars[0];
-		(ptr->v).c[1] = pars[1];
-		(ptr->v).c[2] = pars[2];
-		(ptr->v).c[3] = pars[3];
+		(ptr->v).c[0] = (float) pars[0];
+		(ptr->v).c[1] = (float) pars[1];
+		(ptr->v).c[2] = (float) pars[2];
+		(ptr->v).c[3] = (float) pars[3];
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFVec4fConstr: obj = %u, %u args, %f %f %f %f\n",
@@ -3569,16 +3566,16 @@ SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[0] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 1:
-			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[1] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 2:
-			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[2] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 3:
-			(ptr->v).c[3] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[3] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		}
 	}
@@ -3690,20 +3687,20 @@ SFVec4dConstr(JSContext *cx, JSObject *obj,
 	}
 
 	if (argc == 0) {
-		(ptr->v).c[0] = 0.0;
-		(ptr->v).c[1] = 0.0;
-		(ptr->v).c[2] = 0.0;
-		(ptr->v).c[3] = 0.0;
+		(ptr->v).c[0] = (float) 0.0;
+		(ptr->v).c[1] = (float) 0.0;
+		(ptr->v).c[2] = (float) 0.0;
+		(ptr->v).c[3] = (float) 0.0;
 	} else {
 		if (!JS_ConvertArguments(cx, argc, argv, "d d d d",
 				 &(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
 			printf( "JS_ConvertArguments failed in SFVec4dConstr.\n");
 			return JS_FALSE;
 		}
-		(ptr->v).c[0] = pars[0];
-		(ptr->v).c[1] = pars[1];
-		(ptr->v).c[2] = pars[2];
-		(ptr->v).c[3] = pars[3];
+		(ptr->v).c[0] = (float) pars[0];
+		(ptr->v).c[1] = (float) pars[1];
+		(ptr->v).c[2] = (float) pars[2];
+		(ptr->v).c[3] = (float) pars[3];
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFVec4dConstr: obj = %u, %u args, %f %f %f %f\n",
@@ -3816,16 +3813,16 @@ SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[0] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 1:
-			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[1] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 2:
-			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[2] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		case 3:
-			(ptr->v).c[3] = *JSVAL_TO_DOUBLE(myv);
+			(ptr->v).c[3] = (float) *JSVAL_TO_DOUBLE(myv);
 			break;
 		}
 	}

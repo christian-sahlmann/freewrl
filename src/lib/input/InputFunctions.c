@@ -1,5 +1,5 @@
 /*
-  $Id: InputFunctions.c,v 1.15 2009/12/22 03:25:18 couannette Exp $
+  $Id: InputFunctions.c,v 1.16 2010/02/16 21:21:47 crc_canada Exp $
 
   FreeWRL support library.
   Input functions (EAI, mouse, keyboard, ...).
@@ -135,5 +135,17 @@ static void localCopy(char *outFile, char *inFile) {
   fclose(out);
 
 	return;
+}
+
+
+/* sscanf replacements */
+void scanUnsignedIntoValue(char *sp, size_t *rv) {
+        *rv = 0;
+
+        /* skip leading spaces, if there are any */
+        while ((*sp <= ' ') && (*sp != '\0')) sp++;
+        while ((*sp >='0') && (*sp <= '9')) {
+                *rv *= 10; *rv += (int) (*sp - '0'); sp++;
+        }
 }
 
