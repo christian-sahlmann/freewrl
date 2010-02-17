@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.19 2010/02/05 21:41:37 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.20 2010/02/17 18:03:06 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -39,10 +39,12 @@ X3D Geometry 3D Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
+#include "../opengl/Textures.h"
 
 #include "Collision.h"
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
+#include "Component_Geometry3D.h"
 
 
 /*******************************************************************************/
@@ -1757,27 +1759,28 @@ void rendray_Cylinder (struct X3D_Cylinder *node) {
         }
         /* Body -- do same as for sphere, except no y axis in distance */
         if((!XEQ) && (!ZEQ)) {
-                float dx = t_r2.x-t_r1.x; float dz = t_r2.z-t_r1.z;
-                float a = dx*dx + dz*dz;
-                float b = 2*(dx * t_r1.x + dz * t_r1.z);
-                float c = t_r1.x * t_r1.x + t_r1.z * t_r1.z - r*r;
+                float dx = (float)(t_r2.x-t_r1.x); 
+		float dz = (float)(t_r2.z-t_r1.z);
+                float a = (float)(dx*dx + dz*dz);
+                float b = (float) (2*(dx * t_r1.x + dz * t_r1.z));
+                float c = (float) (t_r1.x * t_r1.x + t_r1.z * t_r1.z - r*r);
                 float und;
                 b /= a; c /= a;
                 und = b*b - 4*c;
                 if(und > 0) { /* HITS the infinite cylinder */
-                        float sol1 = (-b+sqrt(und))/2;
-                        float sol2 = (-b-sqrt(und))/2;
+                        float sol1 = (-b+(float) sqrt(und))/2;
+                        float sol2 = (-b-(float) sqrt(und))/2;
                         float cy,cx,cz;
-                        cy = MRATY(sol1);
+                        cy = (float) MRATY(sol1);
                         if(cy > -h && cy < h) {
-                                cx = MRATX(sol1);
-                                cz = MRATZ(sol1);
+                                cx = (float) MRATX(sol1);
+                                cz = (float) MRATZ(sol1);
                                 rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 1");
                         }
                         cy = MRATY(sol2);
                         if(cy > -h && cy < h) {
-                                cx = MRATX(sol2);
-                                cz = MRATZ(sol2);
+                                cx = (float) MRATX(sol2);
+                                cz = (float) MRATZ(sol2);
                                 rayhit(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 2");
                         }
                 }
@@ -1788,13 +1791,14 @@ void rendray_Cone (struct X3D_Cone *node) {
 	float h = (node->height) /*cget*//2; /* pos and neg dir. */
 	float y = h;
 	float r = (node->bottomRadius) /*cget*/;
-	float dx = t_r2.x-t_r1.x; float dz = t_r2.z-t_r1.z;
-	float dy = t_r2.y-t_r1.y;
+	float dx = (float) (t_r2.x-t_r1.x); 
+	float dz = (float) (t_r2.z-t_r1.z);
+	float dy = (float) (t_r2.y-t_r1.y);
 	float a = dx*dx + dz*dz - (r*r*dy*dy/(2*h*2*h));
-	float b = 2*(dx*t_r1.x + dz*t_r1.z) +
-		2*r*r*dy/(2*h)*(0.5-t_r1.y/(2*h));
-	float tmp = (0.5-t_r1.y/(2*h));
-	float c = t_r1.x * t_r1.x + t_r1.z * t_r1.z
+	float b = (float) (2*(dx*t_r1.x + dz*t_r1.z) +
+		2*r*r*dy/(2*h)*(0.5-t_r1.y/(2*h)));
+	float tmp = (float)((0.5-t_r1.y/(2*h)));
+	float c = (float)(t_r1.x * t_r1.x + t_r1.z * t_r1.z)
 		- r*r*tmp*tmp;
 	float und;
 	b /= a; c /= a;
@@ -1806,22 +1810,22 @@ void rendray_Cone (struct X3D_Cone *node) {
 		dx, dy, dz, a, b, c, und);
 	*/
 	if(und > 0) { /* HITS the infinite cylinder */
-		float sol1 = (-b+sqrt(und))/2;
-		float sol2 = (-b-sqrt(und))/2;
+		float sol1 = (-b+(float)sqrt(und))/2;
+		float sol2 = (-b-(float)sqrt(und))/2;
 		float cy,cx,cz;
 		float cy0;
-		cy = MRATY(sol1);
+		cy = (float)MRATY(sol1);
 		if(cy > -h && cy < h) {
-			cx = MRATX(sol1);
-			cz = MRATZ(sol1);
+			cx = (float)MRATX(sol1);
+			cz = (float)MRATZ(sol1);
 			/* XXX Normal */
 			rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "conside 1");
 		}
 		cy0 = cy;
-		cy = MRATY(sol2);
+		cy = (float) MRATY(sol2);
 		if(cy > -h && cy < h) {
-			cx = MRATX(sol2);
-			cz = MRATZ(sol2);
+			cx = (float) MRATX(sol2);
+			cz = (float) MRATZ(sol2);
 			rayhit(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "conside 2");
 		}
 		/*
@@ -1829,10 +1833,10 @@ void rendray_Cone (struct X3D_Cone *node) {
 		*/
 	}
 	if(!YEQ) {
-		float yrat0 = YRAT(-y);
+		float yrat0 = (float) YRAT(-y);
 		if(TRAT(yrat0)) {
-			float cx = MRATX(yrat0);
-			float cz = MRATZ(yrat0);
+			float cx = (float) MRATX(yrat0);
+			float cz = (float) MRATZ(yrat0);
 			if(r*r > cx*cx + cz*cz) {
 				rayhit(yrat0, cx, -y, cz, 0, -1, 0, -1, -1, "conbot");
 			}

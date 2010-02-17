@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.43 2010/02/15 21:45:01 crc_canada Exp $
+$Id: Viewer.c,v 1.44 2010/02/17 18:03:06 crc_canada Exp $
 
 CProto ???
 
@@ -36,6 +36,7 @@ CProto ???
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../main/headers.h"
 
 #include "LinearAlgebra.h"
@@ -372,7 +373,7 @@ ViewerUpVector computation - see RenderFuncs.c L595
 	3. apply inverse tilts to end of transform chain ie Quat = Quat*inverse(tilts)
 	*/
 	struct point_XYZ rotaxis, tilted;
-	Quaternion q, nq, Quat; //, AntiQuat;
+	Quaternion q, Quat; //, AntiQuat;
 	double angle;
 	struct point_XYZ downvec = {0.0,-1.0,0.0};
 
@@ -848,9 +849,9 @@ handle_tick_walk()
 /* my $inc = 0; */
 /* my $inf = 0; */
 #ifdef _MSC_VER
-exflyMethod = 1;  /* could be a user settable option, which kind of exfly to do */
+static int exflyMethod = 1;  /* could be a user settable option, which kind of exfly to do */
 #else
-exflyMethod = 0;
+static int exflyMethod = 0;
 #endif
 static void
 handle_tick_exfly()
@@ -1276,7 +1277,7 @@ void deleteAnaglyphShaders()
 static char * RGBACM = "RGBACM";
 static int indexRGBACM(int a)
 {
-	return strchr(RGBACM,a)-RGBACM;
+	return (int) (strchr(RGBACM,a)-RGBACM);
 }
 
 
@@ -1288,7 +1289,6 @@ void setAnaglyphParameter(const char *optArg) {
 /*
   NOTE: "const char" means that you wont modify it in the function :)
  */
-	int i;
 	const char* glasses;
 	glasses = optArg;
 	if(strlen(glasses)!=2)

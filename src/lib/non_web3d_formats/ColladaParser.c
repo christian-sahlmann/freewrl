@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.1 2009/12/21 23:23:25 crc_canada Exp $
+$Id: ColladaParser.c,v 1.2 2010/02/17 18:03:06 crc_canada Exp $
 
 ???
 
@@ -90,7 +90,7 @@ static void XMLCALL endCDATA (void *userData) {
         #endif
         inCDATA = FALSE;
 
-        dumpCDATAtoProtoBody (CDATA_Text);
+        /* x3d specific dumpCDATAtoProtoBody (CDATA_Text); */
 
         #ifdef COLLADAPARSERVERBOSE
         printf ("returning from EndCData\n");
@@ -108,7 +108,6 @@ printf ("\n");
 }
 
 static void XMLCALL startElement(void *unused, const char *name, const char **atts) {
-	int myNodeIndex;
 
 #ifdef COLLADAVERBOSE
 {int i,j; for (j=0; j< indentLevel; j++) printf ("  ");
@@ -162,7 +161,7 @@ static void shutdownColladaParser () {
 	if (ColladaParserRecurseLevel == INT_ID_UNDEFINED) {
 		/* if we are at the bottom of the parser call nesting, lets reset parentIndex */
 		parentIndex = 0;
-		freeProtoMemory ();
+		/* x3d specific freeProtoMemory (); */
 	}
 
 	if (ColladaParserRecurseLevel < INT_ID_UNDEFINED) {

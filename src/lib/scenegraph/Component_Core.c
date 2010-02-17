@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Core.c,v 1.6 2010/02/05 21:41:37 crc_canada Exp $
+$Id: Component_Core.c,v 1.7 2010/02/17 18:03:06 crc_canada Exp $
 
 X3D Core Component
 
@@ -44,6 +44,7 @@ X3D Core Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../vrml_parser/CRoutes.h"
 
 
 /************************************************************************************************/

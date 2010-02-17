@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.28 2010/01/19 20:10:32 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.29 2010/02/17 18:03:06 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -46,6 +46,7 @@ X3D Navigation Component
 #include "Viewer.h"
 #include "../opengl/Frustum.h"
 #include "Children.h"
+#include "../opengl/OpenGL_Utils.h"
 
 
 extern struct sCollisionInfo OldCollisionInfo;
@@ -205,7 +206,6 @@ void  child_Billboard (struct X3D_Billboard *node) {
 
 void changed_Billboard (struct X3D_Billboard *node) {
 		CHILDREN_COUNT
-                int i;
 
 		INITIALIZE_EXTENT
 }

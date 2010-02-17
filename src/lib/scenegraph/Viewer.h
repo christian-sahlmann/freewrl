@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.25 2010/02/15 21:45:01 crc_canada Exp $
+$Id: Viewer.h,v 1.26 2010/02/17 18:03:06 crc_canada Exp $
 
 Viewer ???
 
@@ -95,9 +95,9 @@ Viewer ???
         	float xd, yd,zd; \
 		double test; \
 	        /* calculate distance between the node position and defined centerOfRotation */ \
-	        xd = Viewer.currentPosInModel.x; \
-	        yd = Viewer.currentPosInModel.y; \
-	        zd = Viewer.currentPosInModel.z; \
+	        xd = (float) Viewer.currentPosInModel.x; \
+	        yd = (float) Viewer.currentPosInModel.y; \
+	        zd = (float) Viewer.currentPosInModel.z; \
 	        test = sqrt (xd*xd+yd*yd+zd*zd); \
 		/* printf ("htw; cur Dist %4.2f, calculated %4.2f at %lf\n", Viewer.Dist, test,TickTime);  */\
 		Viewer.Dist = test; \

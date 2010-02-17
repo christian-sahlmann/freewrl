@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.8 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_EnvironSensor.c,v 1.9 2010/02/17 18:03:06 crc_canada Exp $
 
 X3D Environmental Sensors Component
 
@@ -37,11 +37,13 @@ X3D Environmental Sensors Component
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
 
 #include "LinearAlgebra.h"
 #include "Component_Geospatial.h"
 #include "../opengl/Frustum.h"
+#include "../opengl/OpenGL_Utils.h"
 
 
 /* can we do a VisibiltySensor? Only if we have OpenGL support for OcclusionCulling */
@@ -139,7 +141,7 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	}
 
 	/* note the ALPHA of zero - totally transparent */
-	glColor4f(0.0, 1.0, 0.0, 0.0);
+	glColor4f((float)0.0, (float)1.0, (float)0.0, (float)0.0);
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);

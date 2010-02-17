@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.19 2010/02/02 20:53:19 crc_canada Exp $
+$Id: jsUtils.c,v 1.20 2010/02/17 18:03:06 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -768,7 +768,7 @@ errorReporter(JSContext *context, const char *message, JSErrorReport *report)
 /* SFNode - find the fieldOffset pointer for this field within this node */
 uintptr_t *getFOP (uintptr_t *handle, const char *str) {
 	struct X3D_Node *node = (struct X3D_Node *)handle;
-	uintptr_t *fieldOffsetsPtr;
+	size_t *fieldOffsetsPtr;
 
 
 	if (node != NULL) {
@@ -776,7 +776,7 @@ uintptr_t *getFOP (uintptr_t *handle, const char *str) {
 		printf ("...getFOP... it is a %s\n",stringNodeType(node->_nodeType));
 		#endif
 
-                fieldOffsetsPtr = (uintptr_t *) NODE_OFFSETS[node->_nodeType];
+                fieldOffsetsPtr = (size_t *) NODE_OFFSETS[node->_nodeType];
                 /*go thru all field*/
 		/* what we have is a list of 4 numbers, representing:
         		FIELDNAMES__parentResource, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,
@@ -989,7 +989,7 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 
 /* for SFNodes, go through and insure that all properties are defined for the specific node type */
 int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, struct X3D_Node * ptr) {
-	uintptr_t *fieldOffsetsPtr;
+	size_t *fieldOffsetsPtr;
 	jsval rval = INT_TO_JSVAL(0);
 	uintN attrs = JSPROP_PERMANENT 
 		| JSPROP_ENUMERATE 
@@ -1024,7 +1024,7 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 			return JS_TRUE;
 		}
 
-                fieldOffsetsPtr = (uintptr_t *) NODE_OFFSETS[ptr->_nodeType];
+                fieldOffsetsPtr = (size_t *) NODE_OFFSETS[ptr->_nodeType];
                 /*go thru all field*/
 		/* what we have is a list of 4 numbers, representing:
         		FIELDNAMES__parentResource, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,

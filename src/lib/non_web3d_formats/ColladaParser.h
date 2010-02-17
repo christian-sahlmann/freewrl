@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.h,v 1.1 2009/12/21 23:23:25 crc_canada Exp $
+$Id: ColladaParser.h,v 1.2 2010/02/17 18:03:06 crc_canada Exp $
 
 Collada parser functions.
 
@@ -30,6 +30,7 @@ Collada parser functions.
 #ifndef __FREEWRL_COLLADA_PARSER_H__
 #define __FREEWRL_COLLADA_PARSER_H__
 
+int freewrl_XML_GetCurrentLineNumber();
 
 #define PARENTSTACKSIZE 256
 #define LINE freewrl_XML_GetCurrentLineNumber()

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Sound.c,v 1.12 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Component_Sound.c,v 1.13 2010/02/17 18:03:06 crc_canada Exp $
 
 X3D Sound Component
 
@@ -36,7 +36,9 @@ X3D Sound Component
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
+#include "../opengl/OpenGL_Utils.h"
 
 #include "LinearAlgebra.h"
 #include "sounds.h"
@@ -48,8 +50,6 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 	double len;
 	double angle;
 	float midmin, midmax;
-
-	char mystring[256];
 
 	/*  do the sound registering first, and tell us if this is an audioclip*/
 	/*  or movietexture.*/
@@ -71,8 +71,8 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 	location.y = node->location.c[1];
 	location.z = node->location.c[2];
 
-	midmin = (node->minFront - node->minBack) / 2.0;
-	midmax = (node->maxFront - node->maxBack) / 2.0;
+	midmin = (node->minFront - node->minBack) / (float) 2.0;
+	midmax = (node->maxFront - node->maxBack) / (float) 2.0;
 
 
 	FW_GL_PUSH_MATRIX();
@@ -85,7 +85,7 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 	directions.
 	*/
 
-	FW_GL_TRANSLATE_F (location.x + midmax*direction.x,
+	FW_GL_TRANSLATE_D (location.x + midmax*direction.x,
 			location.y + midmax*direction.y,
 			location.z + midmax * direction.z);
 
@@ -154,7 +154,7 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 	if (node->panInt32Val < 0) node->panInt32Val = 0; if (node->panInt32Val > 127) node->panInt32Val = 127;
 
 
-	node->volumeFloatVal = 0.0;
+	node->volumeFloatVal = (float) 0.0;
 	/* is this within the maxFront maxBack? */
 
 	/* this code needs rework JAS */
@@ -175,17 +175,17 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 		/* note: using vecs, length is always positive - need to work in direction
 		vector */
 		if (len < 0.0) {
-			if (len < node->minBack) {node->volumeFloatVal = 1.0;}
-			else { node->volumeFloatVal = (len - node->maxBack) / (node->maxBack - node->minBack); }
+			if (len < node->minBack) {node->volumeFloatVal = (float) 1.0;}
+			else { node->volumeFloatVal = ((float) len - node->maxBack) / (node->maxBack - node->minBack); }
 		} else {
-			if (len < node->minFront) {node->volumeFloatVal = 1.0;}
-			else { node->volumeFloatVal = (node->maxFront - len) / (node->maxFront - node->minFront); }
+			if (len < node->minFront) {node->volumeFloatVal = (float) 1.0;}
+			else { node->volumeFloatVal = (node->maxFront - (float) len) / (node->maxFront - node->minFront); }
 		}
 
 		/* work out the delta for len */
 		if (APPROX(node->maxDelta, 0.0)) {
 			printf ("AudioControl: maxDelta approaches zero!\n");
-			node->deltaFloatVal = 0.0;
+			node->deltaFloatVal = (float) 0.0;
 		} else {
 			#ifdef SOUNDVERBOSE
 			printf ("maxM/S %f \n",(node->__oldLen - len)/ (TickTime- lastTime));
@@ -194,8 +194,8 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 			/* calculate change as Metres/second */
 
 			/* compute node->deltaFloatVal, and clamp to range of -1.0 to 1.0 */
-			node->deltaFloatVal = ((node->__oldLen - len)/(TickTime-lastTime))/node->maxDelta;
-			if (node->deltaFloatVal < -1.0) node->deltaFloatVal = -1.0; if (node->deltaFloatVal > 1.0) node->deltaFloatVal = 1.0;
+			node->deltaFloatVal = (float) ((node->__oldLen - len)/(TickTime-lastTime))/node->maxDelta;
+			if (node->deltaFloatVal < (float) -1.0) node->deltaFloatVal = (float) -1.0; if (node->deltaFloatVal > (float) 1.0) node->deltaFloatVal = (float) 1.0;
 			node->__oldLen = len;
 		}
 

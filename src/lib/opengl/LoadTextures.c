@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.34 2010/02/10 18:19:58 sdumoulin Exp $
+  $Id: LoadTextures.c,v 1.35 2010/02/17 18:03:06 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -40,6 +40,7 @@
 
 #include <threads.h>
 
+#include <libFreeWRL.h>
 #include "vrml_parser/Structs.h"
 #include "main/ProdCon.h"
 
@@ -70,10 +71,12 @@ GLuint defaultBlankTexture;
  * In the meantime lets make it work :).
  */
 
+#ifdef TEXVERBOSE
 static void texture_dump_entry(struct textureTableIndexStruct *entry)
 {
 	DEBUG_TEX("%s\t%p\t%s\n", texst(entry->status), entry, entry->filename);
 }
+#endif
 
 static void texture_dump_list()
 {
@@ -127,7 +130,7 @@ static void texture_load_from_pixelTexture (struct textureTableIndexStruct* this
 
 	/* did we have any errors? if so, create a grey pixeltexture and get out of here */
 	if (!ok) {
-		return TRUE;
+		return;
 	}
 
 	/* ok, we are good to go here */
@@ -255,10 +258,7 @@ bitmapInfo = kCGImageAlphaPremultipliedFirst |
 		}
 		CGContextDrawImage(context, rect,inImage);
 	} else {
-		CGRect rect = {{0,0},{pixelsWide, pixelsHigh}};
-		/* this is a mask. */
-
-		printf ("bits per component of %d not handled\n",bitsPerComponent);
+		printf ("bits per component of %d not handled\n",(int) bitsPerComponent);
 		return NULL;
 	}
 
@@ -329,12 +329,6 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 	CFURLRef 	url;
 	size_t 		image_width;
 	size_t 		image_height;
-#ifdef OSX_USE_QUICKTIME
-	int useQuicktime = TRUE;
-#else
-	int useQuicktime = FALSE;
-#endif
-
 
 	CGContextRef 	cgctx;
 
@@ -350,7 +344,6 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 	unsigned char *	data;
 	int		hasAlpha;
 
-	CGDataProviderRef provider;
 	CGImageSourceRef 	sourceRef;
 
 	/* initialization */
@@ -366,26 +359,23 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 		graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs
 	*/
 #ifdef OSX_USE_QUICKTIME
-	if (useQuicktime) {
-		/* lets let quicktime decide on what to do with this image */
-		err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
+	/* lets let quicktime decide on what to do with this image */
+	err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
 
-		if (dataRef != NULL) {
-			err = GetGraphicsImporterForDataRef (dataRef, dataRefType, &gi);
-			err = GraphicsImportCreateCGImage (gi, &image, 0);
-			DisposeHandle (dataRef);
-			CloseComponent(gi);
-		}
-	} else {
-#endif
-	if (1) {
-		sourceRef = CGImageSourceCreateWithURL(url,NULL);
-
-		if (sourceRef != NULL) {
-			image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
-			CFRelease (sourceRef);
-		}
+	if (dataRef != NULL) {
+		err = GetGraphicsImporterForDataRef (dataRef, dataRefType, &gi);
+		err = GraphicsImportCreateCGImage (gi, &image, 0);
+		DisposeHandle (dataRef);
+		CloseComponent(gi);
 	}
+#else
+	sourceRef = CGImageSourceCreateWithURL(url,NULL);
+
+	if (sourceRef != NULL) {
+		image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
+		CFRelease (sourceRef);
+	}
+#endif
 
 	CFRelease(url);
 	CFRelease(path);
@@ -502,6 +492,8 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		  entry->frames);
 	
 	entry->status = TEX_LOADING;
+	url = NULL;
+
 	switch (entry->nodeType) {
 
 	case NODE_PixelTexture:
@@ -555,6 +547,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 	} else {
 		ERROR_MSG("Could not load texture, no URL present\n");
 	}
+	return FALSE;
 }
 
 /**

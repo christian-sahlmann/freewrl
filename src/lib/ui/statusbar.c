@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.23 2010/01/12 20:04:47 sdumoulin Exp $
+  $Id: statusbar.c,v 1.24 2010/02/17 18:03:06 crc_canada Exp $
 
 */
 
@@ -34,6 +34,7 @@
 #include <resources.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
@@ -52,8 +53,6 @@
 
 #include "../opengl/RasterFont.h"
 
-
-static struct Uni_String *myline;
 
 #define MAX_BUFFER_SIZE 4096
 static char buffer[MAX_BUFFER_SIZE] = "\0";

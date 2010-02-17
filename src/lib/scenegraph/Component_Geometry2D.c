@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.15 2010/01/16 21:22:09 dug9 Exp $
+$Id: Component_Geometry2D.c,v 1.16 2010/02/17 18:03:06 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -43,6 +43,8 @@ X3D Geometry2D  Component
 #include "LinearAlgebra.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
+#include "../opengl/Textures.h"
+#include "Component_Geometry3D.h"
 
 #include <float.h>
 
@@ -657,11 +659,7 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 	       struct point_XYZ kv = {0,0,0};
 	       struct point_XYZ ov = {0,0,0};
 
-	       struct point_XYZ t_orig = {0,0,0};
-	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
-
 	       struct point_XYZ delta;
-	       struct point_XYZ tupv = {0,1,0};
 
 		iv.x = node->size.c[0];
 		jv.y = node->size.c[1]; 

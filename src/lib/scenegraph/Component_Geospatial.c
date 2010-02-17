@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.35 2010/01/19 20:10:32 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.36 2010/02/17 18:03:06 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -37,6 +37,7 @@ X3D Geospatial Component
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
 
 #include "../world_script/fieldSet.h"
@@ -46,6 +47,7 @@ X3D Geospatial Component
 #include "Viewer.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../input/EAIHelpers.h"	/* for newASCIIString() */
 
 #include "Polyrep.h"
@@ -915,7 +917,7 @@ static void gdToUtm(double latitude, double longitude, int *zone, double *eastin
 
 	/* calculate the zone number if it is less than zero. If greater than zero, leave alone! */
 	if (*zone < 0) 
-		*zone = ((longitude + 180.0)/6.0) + 1;
+		*zone = (int) (((longitude + 180.0)/6.0) + 1);
 
 	lat_radian = latitude * DEG2RAD;
 	long_radian = longitude * DEG2RAD;
@@ -1071,7 +1073,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 		return;
 	}
 
-	srf->p[0] = this_srf;
+	srf->p[0] = (int) this_srf;
 	/* go through and ensure that we have the correct parameters for this spatial reference frame */
 	if (this_srf == GEOSP_GC) {
 		/* possible parameter: GC:	if "northing_first" TRUE, if "easting_first", FALSE */
@@ -1108,7 +1110,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 						break;
 
 						default:
-						srf->p[1] = tc;
+						srf->p[1] = (int) tc;
 					}
 				}
 			}
@@ -1144,7 +1146,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 						break;
 
 					default:
-						srf->p[1] = tc;
+						srf->p[1] = (int)tc;
 					}
 				}
 			}
@@ -1595,8 +1597,6 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 	OCCLUSIONTEST
 
 	if(!render_vp) {
-		double my_rotation;
-
 		FW_GL_PUSH_MATRIX();
 
 		/* TRANSLATION */
@@ -1623,8 +1623,6 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
         if(!render_vp) {
             FW_GL_POP_MATRIX();
         } else {
-		double my_rotation;
-
 		if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
 		FW_GL_ROTATE_RADIANS(-node->__localOrient.c[3], node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
 		FW_GL_TRANSLATE_D(-node->__movedCoords.c[0], -node->__movedCoords.c[1], -node->__movedCoords.c[2]);
@@ -1779,7 +1777,7 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 	/* for debugging purposes... */
 	if (node->__level == -1) node->__level = geoLodLevel;
 	else if (node->__level != geoLodLevel) {
-		printf ("hmmm - GeoLOD %u was level %d, now %d\n",(unsigned int) node,node->__level, geoLodLevel);
+		printf ("hmmm - GeoLOD %p was level %d, now %d\n",node,node->__level, geoLodLevel);
 	}
 
 	#ifdef VERBOSE
@@ -1971,9 +1969,9 @@ void do_GeoPositionInterpolator (void *innode) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		node->value_changed.c[0] = 0.0;
-		node->value_changed.c[1] = 0.0;
-		node->value_changed.c[2] = 0.0;
+		node->value_changed.c[0] = (float) 0.0;
+		node->value_changed.c[1] = (float) 0.0;
+		node->value_changed.c[2] = (float) 0.0;
 		node->geovalue_changed.c[0] = 0.0;
 		node->geovalue_changed.c[1] = 0.0;
 		node->geovalue_changed.c[2] = 0.0;
@@ -2275,9 +2273,9 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 	normalval.y = hyp_save_norm.c[1];
 	normalval.z = hyp_save_norm.c[2];
 	normalize_vector(&normalval);
-	node->_oldhitNormal.c[0] = normalval.x;
-	node->_oldhitNormal.c[1] = normalval.y;
-	node->_oldhitNormal.c[2] = normalval.z;
+	node->_oldhitNormal.c[0] = (float) normalval.x;
+	node->_oldhitNormal.c[1] = (float) normalval.y;
+	node->_oldhitNormal.c[2] = (float) normalval.z;
 
 	/* did the hitNormal change between runs? */
 	MARK_SFVEC3F_INOUT_EVENT(node->hitNormal_changed,node->_oldhitNormal,offsetof (struct X3D_GeoTouchSensor, hitNormal_changed))
@@ -2611,8 +2609,6 @@ void compile_GeoTransform (struct X3D_GeoTransform * node) {
 
 /* do transforms, calculate the distance */
 void prep_GeoTransform (struct X3D_GeoTransform *node) {
-	GLfloat my_rotation;
-	GLfloat my_scaleO=0;
 
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
@@ -2683,7 +2679,7 @@ void fin_GeoTransform (struct X3D_GeoTransform *node) {
                 FW_GL_TRANSLATE_D(((node->__movedCoords).c[0]),((node->__movedCoords).c[1]),((node->__movedCoords).c[2])
                 );
                 FW_GL_ROTATE_RADIANS(node->scaleOrientation.c[3],node->scaleOrientation.c[0],node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
-                FW_GL_SCALE_F(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
+                FW_GL_SCALE_F((float)1.0/(((node->scale).c[0])),(float)1.0/(((node->scale).c[1])),(float)1.0/(((node->scale).c[2]))
                 );
                 FW_GL_ROTATE_RADIANS(-node->scaleOrientation.c[3],node->scaleOrientation.c[0],node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
                 FW_GL_ROTATE_RADIANS(-(((node->rotation).c[3])),((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])

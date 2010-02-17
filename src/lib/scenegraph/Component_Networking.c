@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.24 2010/02/17 14:31:08 crc_canada Exp $
+$Id: Component_Networking.c,v 1.25 2010/02/17 18:03:06 crc_canada Exp $
 
 X3D Networking Component
 
@@ -39,11 +39,13 @@ X3D Networking Component
 #include <resources.h>
 #include <io_http.h>
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
 
 #include "../input/EAIHeaders.h"
 #include "../input/EAIHelpers.h"
 #include "../opengl/Frustum.h"
+#include "../opengl/Textures.h"
 
 #include "Component_Networking.h"
 #include "Children.h"
@@ -78,8 +80,8 @@ static void determineMIDIValFromFloat (struct X3D_MidiControl *node, int *value,
 	possibleValueSpread = maxV-minV +1;
 
 	/* bounds check the float value */
-	if (*fV<0.0) *fV=0.0;
-	if (*fV>1.0) *fV=1.0;
+	if (*fV<(float)0.0) *fV=(float)0.0;
+	if (*fV>(float)1.0) *fV=(float)1.0;
 	tv = *fV * possibleValueSpread + minV;
 	*value = (int) tv;
 
@@ -105,7 +107,7 @@ static void determineMIDIValFromInt (struct X3D_MidiControl *node, int *value, f
 	if (possibleValueSpread != 0) {
 		*fV = ((float) *value + minV) / (possibleValueSpread);
 	} else { 
-		*fV = 0.0;
+		*fV = (float) 0.0;
 	}
 	#ifdef MIDIVERBOSE
 	printf ("determine, minV %d maxV %d, val %d fv %f\n",minV, maxV,*value, *fV);
@@ -1035,7 +1037,9 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	int nowLoading;
 	int nowFinished;
 	struct X3D_ImageTexture *tnode;
+#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	struct X3D_MovieTexture *mnode;
+#endif HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	struct X3D_AudioClip *anode;
 	struct X3D_Inline *inode;
 	
@@ -1055,7 +1059,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 		MARK_NODE_COMPILED
 		node->__loading = 0;
 		node->__finishedloading = 0;
-		node->progress = 0.0;
+		node->progress = (float) 0.0;
 		node->__StartLoadTime = 0.0;
 	}
 
@@ -1131,7 +1135,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 		node->isLoaded = 1;
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, isLoaded));
 
-		node->progress = 1.0;
+		node->progress = (float) 1.0;
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, progress));
 
 		node->loadTime = TickTime;
@@ -1247,7 +1251,7 @@ void load_Inline (struct X3D_Inline *node) {
 			} else if (res->status == ress_downloaded) {
 				res->media_type = resm_unknown;
 				res->where = X3D_NODE(node);
-				res->offsetFromWhere = offsetof (struct X3D_Inline, __children);
+				res->offsetFromWhere = (float) offsetof (struct X3D_Inline, __children);
 				send_resource_to_parser(res);
 				node->__loadstatus = INLINE_PARSING; /* a "do-nothing" approach */
 			} else {

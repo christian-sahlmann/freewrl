@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.h,v 1.9 2010/01/19 19:18:47 crc_canada Exp $
+$Id: Component_Geospatial.h,v 1.10 2010/02/17 18:03:06 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -90,9 +90,9 @@ void proximity_##type (struct X3D_##type *node) { \
 	(node->__hit) /*cget*/ = 1; \
  \
 	/* Position */ \
-	((node->__t1).c[0]) = t_orig.x; \
-	((node->__t1).c[1]) = t_orig.y; \
-	((node->__t1).c[2]) = t_orig.z; \
+	((node->__t1).c[0]) = (float)t_orig.x; \
+	((node->__t1).c[1]) = (float)t_orig.y; \
+	((node->__t1).c[2]) = (float)t_orig.z; \
  \
 	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */ \
 	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */ \
@@ -130,16 +130,16 @@ void proximity_##type (struct X3D_##type *node) { \
  \
 	if(APPROX(dr1r2.z,1.0)) { \
 		/* rotation */ \
-		((node->__t2).c[0]) = 0; \
-		((node->__t2).c[1]) = 0; \
-		((node->__t2).c[2]) = 1; \
-		((node->__t2).c[3]) = atan2(-dr2r3.x,dr2r3.y); \
+		((node->__t2).c[0]) = (float) 0; \
+		((node->__t2).c[1]) = (float) 0; \
+		((node->__t2).c[2]) = (float) 1; \
+		((node->__t2).c[3]) = (float) atan2(-dr2r3.x,dr2r3.y); \
 	} else if(APPROX(dr2r3.y,1.0)) { \
 		/* rotation */ \
-		((node->__t2).c[0]) = 0; \
-		((node->__t2).c[1]) = 1; \
-		((node->__t2).c[2]) = 0; \
-		((node->__t2).c[3]) = atan2(dr1r2.x,dr1r2.z); \
+		((node->__t2).c[0]) = (float) 0; \
+		((node->__t2).c[1]) = (float) 1; \
+		((node->__t2).c[2]) = (float) 0; \
+		((node->__t2).c[3]) = (float) atan2(dr1r2.x,dr1r2.z); \
 	} else { \
 		/* Get the normal vectors of the possible rotation planes */ \
 		nor1 = dr1r2; \
@@ -159,12 +159,12 @@ void proximity_##type (struct X3D_##type *node) { \
 		len = sqrt(VECSQ(nor2)); VECSCALE(nor2,1/len); \
 		VECCP(nor1,nor2,ins); \
  \
-		((node->__t2).c[3]) = -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2)); \
+		((node->__t2).c[3]) = (float) -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2)); \
  \
 		/* rotation  - should normalize sometime... */ \
-		((node->__t2).c[0]) = ins.x; \
-		((node->__t2).c[1]) = ins.y; \
-		((node->__t2).c[2]) = ins.z; \
+		((node->__t2).c[0]) = (float) ins.x; \
+		((node->__t2).c[1]) = (float) ins.y; \
+		((node->__t2).c[2]) = (float) ins.z; \
 	} \
 	/* \
 	printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n", \

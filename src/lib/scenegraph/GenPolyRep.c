@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.17 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: GenPolyRep.c,v 1.18 2010/02/17 18:03:06 crc_canada Exp $
 
 ???
 
@@ -37,6 +37,7 @@ $Id: GenPolyRep.c,v 1.17 2010/01/12 20:04:47 sdumoulin Exp $
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
 
 #include "LinearAlgebra.h"
@@ -554,7 +555,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int tcin;
 	int colin;
 	int norin;
-	float creaseAngle = PI*2;
+	float creaseAngle = (float) PI*2;
 	int ccw = TRUE;
 
 	int ntri = 0;
@@ -664,7 +665,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			orig_coordIndex= &X3D_GEOELEVATIONGRID(node)->_coordIndex;
 			cpv = X3D_GEOELEVATIONGRID(node)->colorPerVertex;
 			npv = X3D_GEOELEVATIONGRID(node)->normalPerVertex;
-			creaseAngle = X3D_GEOELEVATIONGRID(node)->creaseAngle;
+			creaseAngle = (float) X3D_GEOELEVATIONGRID(node)->creaseAngle;
 			cc = (struct X3D_Color *) X3D_GEOELEVATIONGRID(node)->color;
 			nc = (struct X3D_Normal *) X3D_GEOELEVATIONGRID(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_GEOELEVATIONGRID(node)->texCoord;
@@ -875,7 +876,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	}
 
 	if (!smooth_normals){
-		creaseAngle = 0.0;  /* trick following code into doing things quick */
+		creaseAngle = (float) 0.0;  /* trick following code into doing things quick */
 	}
 
 	/* count the faces in this polyrep and allocate memory. */
@@ -1085,9 +1086,9 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 						rep_->norindex[vert_ind] = calc_normind++;
 					} else {
 						/* use the calculated normals */
-						rep_->normal[vert_ind*3+0]=facenormals[this_face].x;
-						rep_->normal[vert_ind*3+1]=facenormals[this_face].y;
-						rep_->normal[vert_ind*3+2]=facenormals[this_face].z;
+						rep_->normal[vert_ind*3+0]=(float) facenormals[this_face].x;
+						rep_->normal[vert_ind*3+1]=(float) facenormals[this_face].y;
+						rep_->normal[vert_ind*3+2]=(float) facenormals[this_face].z;
 						rep_->norindex[vert_ind] = vert_ind;
 						 /* printf ("using calculated normals %f %f %f for face %d, vert_ind %d\n",
 							rep_->normal[vert_ind*3+0],rep_->normal[vert_ind*3+1],
@@ -1215,7 +1216,7 @@ void compute_spy_spz(struct point_XYZ *spy, struct point_XYZ *spz, struct SFColo
  	}
 
 	/* normalize the non trivial vector */
-	spylen=1/sqrt(VECSQ(spp1)); VECSCALE(spp1,spylen);
+	spylen=1/(float) sqrt(VECSQ(spp1)); VECSCALE(spp1,spylen);
 	#ifdef VERBOSE
 		printf("Reference vector along spine=[%f,%f,%f]\n", spp1.x,spp1.y,spp1.z);
 	#endif
@@ -1238,7 +1239,7 @@ void compute_spy_spz(struct point_XYZ *spy, struct point_XYZ *spz, struct SFColo
 		/* get the angle for the x axis rotation	*/
 		/* asin of 1.0000 seems to fail sometimes, so */
 
-		alpha = getAlpha(spp1.x);
+		alpha = getAlpha((float)spp1.x);
 		gamma = getGamma(alpha,minorY?spp1.y:spp1.z);
 
 		#ifdef VERBOSE
@@ -1256,7 +1257,7 @@ void compute_spy_spz(struct point_XYZ *spy, struct point_XYZ *spz, struct SFColo
 	} else if(majorZ) {
 		/* get the angle for the z axis rotation	*/
 
-		alpha = getAlpha(spp1.z);
+		alpha = getAlpha((float)spp1.z);
 		gamma = getGamma(alpha,minorX?spp1.x:spp1.y);
 
 		#ifdef VERBOSE
@@ -1272,7 +1273,7 @@ void compute_spy_spz(struct point_XYZ *spy, struct point_XYZ *spz, struct SFColo
 	} else {
 		/* get the angle for the y axis rotation	*/
 
-		alpha = getAlpha(spp1.y);
+		alpha = getAlpha((float)spp1.y);
 		gamma = getGamma(alpha,minorX?spp1.x:spp1.z);
 
 		#ifdef VERBOSE
@@ -1924,9 +1925,9 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 		spy=SCP[spi].y; 
 		spz=SCP[spi].z;
 		VECCP(spy,spz,spx);
-		spylen = 1/sqrt(VECSQ(spy)); VECSCALE(spy, spylen);
-		spzlen = 1/sqrt(VECSQ(spz)); VECSCALE(spz, spzlen);
-		spxlen = 1/sqrt(VECSQ(spx)); VECSCALE(spx, spxlen);
+		spylen = 1/(float)sqrt(VECSQ(spy)); VECSCALE(spy, spylen);
+		spzlen = 1/(float)sqrt(VECSQ(spz)); VECSCALE(spz, spzlen);
+		spxlen = 1/(float)sqrt(VECSQ(spx)); VECSCALE(spx, spxlen);
 
 		/* rotate spx spy and spz			*/
 		if(nori) {
@@ -1976,13 +1977,13 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 		   /* 		&coord[(sec+spi*nsec)*3+0], sec, spi,nsec);*/
 
 		   coord[(sec+spi*nsec)*3+0] =
-		    spx.x * point.x + spy.x * point.y + spz.x * point.z
+		    (float)(spx.x * point.x + spy.x * point.y + spz.x * point.z)
 		    + node->spine.p[spi].c[0];
 		   coord[(sec+spi*nsec)*3+1] =
-		    spx.y * point.x + spy.y * point.y + spz.y * point.z
+		    (float)(spx.y * point.x + spy.y * point.y + spz.y * point.z)
 		    + node->spine.p[spi].c[1];
 		   coord[(sec+spi*nsec)*3+2] =
-		    spx.z * point.x + spy.z * point.y + spz.z * point.z
+		    (float)(spx.z * point.x + spy.z * point.y + spz.z * point.z)
 		    + node->spine.p[spi].c[2];
 
 		} /* for(sec */
@@ -2132,9 +2133,9 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 				);
 			#endif
 
-			coord[(ncoord)*3  ]=coord[A*3  ]+u*ab.x;
-			coord[(ncoord)*3+1]=coord[A*3+1]+u*ab.y;
-			coord[(ncoord)*3+2]=coord[A*3+2]+u*ab.z;
+			coord[(ncoord)*3  ]=coord[A*3  ]+(float)(u*ab.x);
+			coord[(ncoord)*3+1]=coord[A*3+1]+(float)(u*ab.y);
+			coord[(ncoord)*3+2]=coord[A*3+2]+(float)(u*ab.z);
 			E=ncoord;
 			F=ncoord;
 			ncoord_add++;
@@ -2179,9 +2180,9 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 				facenormals, pointfaces, cindex[tmp],
 				defaultface[tmp/3], creaseAngle);
 		} else {
-			rep_->normal[tmp*3+0] = facenormals[defaultface[tmp/3]].x;
-			rep_->normal[tmp*3+1] = facenormals[defaultface[tmp/3]].y;
-			rep_->normal[tmp*3+2] = facenormals[defaultface[tmp/3]].z;
+			rep_->normal[tmp*3+0] = (float) facenormals[defaultface[tmp/3]].x;
+			rep_->normal[tmp*3+1] = (float) facenormals[defaultface[tmp/3]].y;
+			rep_->normal[tmp*3+2] = (float) facenormals[defaultface[tmp/3]].z;
 		}
 		rep_->norindex[tmp] = tmp;
 	}
@@ -2331,9 +2332,9 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	/* for (tmp=0;tmp<tcindexsize; tmp++) printf ("index2 %d tcindex %d\n",tmp,tcindex[tmp]);*/
 	/* do normal calculations for the caps here note - no smoothing */
 	for (tmp=end_of_sides; tmp<(triind*3); tmp++) {
-		rep_->normal[tmp*3+0] = facenormals[defaultface[tmp/3]].x;
-		rep_->normal[tmp*3+1] = facenormals[defaultface[tmp/3]].y;
-		rep_->normal[tmp*3+2] = facenormals[defaultface[tmp/3]].z;
+		rep_->normal[tmp*3+0] = (float) facenormals[defaultface[tmp/3]].x;
+		rep_->normal[tmp*3+1] = (float) facenormals[defaultface[tmp/3]].y;
+		rep_->normal[tmp*3+2] = (float) facenormals[defaultface[tmp/3]].z;
 		rep_->norindex[tmp] = tmp;
 	}
 

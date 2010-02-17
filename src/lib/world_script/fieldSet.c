@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.30 2010/02/16 13:54:45 crc_canada Exp $
+  $Id: fieldSet.c,v 1.31 2010/02/17 18:03:06 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -37,6 +37,7 @@
 #include <io_files.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../main/Snapshot.h"
@@ -66,9 +67,9 @@ Different methods are used, depending on the format of the call.
 *********************************************************************/
 
 /* copy new scanned in data over to the memory area in the scene graph. */
-static uintptr_t Multi_Struct_memptr (int type, void *memptr) {
+static char *Multi_Struct_memptr (int type, char *memptr) {
 	struct Multi_Vec3f *mp;
-	uintptr_t retval;
+	char * retval;
 
 	/* is this a straight copy, or do we have a struct to send to? */
 	/* now, some internal reps use a structure defined as:
@@ -76,7 +77,7 @@ static uintptr_t Multi_Struct_memptr (int type, void *memptr) {
 	   so, we have to put the data in the p pointer, so as to
 	   not overwrite the data. */
 
-	retval = (uintptr_t) memptr;
+	retval = memptr;
 
 	switch (type) {
 		case FIELDTYPE_MFInt32:
@@ -89,7 +90,7 @@ static uintptr_t Multi_Struct_memptr (int type, void *memptr) {
 		case FIELDTYPE_MFVec2f:
 			mp = (struct Multi_Vec3f*) memptr;
 			/* printf ("Multi_Struct_memptr, have multi thing, have %d elements, pointer %u\n",mp->n, mp->p); */
-			retval = (uintptr_t) (mp->p);
+			retval = (char *) (mp->p);
 
 		default: {}
 		}
@@ -235,10 +236,8 @@ static unsigned int setField_FromEAI_ToScript(uintptr_t tonode, int toname,
 		printf ("SFNode copy, tonode %u...\n",tonode);
 		#endif
 
-		printf ("SFNode copy, tonode %u...\n",tonode);
 		datalen = returnElementLength(FIELDTYPE_SFNode);
 		set_one_MultiElementType (tonode, toname, data, datalen);
-		printf ("SFNode done copy, tonode %u...\n",tonode);
                 break;
 
 
@@ -283,8 +282,8 @@ unsigned int setField_FromEAI (char *ptr) {
 	unsigned int scripttype;
 	char *eol;
 
-	uintptr_t memptr = 0;
-	uintptr_t myptr = 0;
+	char * memptr = 0;
+	char * myptr = 0;
 
 	int valIndex;
 	struct Multi_Color *tcol;
@@ -341,9 +340,9 @@ unsigned int setField_FromEAI (char *ptr) {
 
 	if (scripttype == EAI_NODETYPE_SCRIPT) {
 		/* a local temporary area for us */
-		memptr = (uintptr_t) &myAnyValue;
+		memptr = (char *) &myAnyValue;
 	} else {
-		memptr = (uintptr_t) getEAIMemoryPointer (nodeIndex,fieldIndex);
+		memptr = (char *) getEAIMemoryPointer (nodeIndex,fieldIndex);
 	}
 
 	offset = getEAIActualOffset(nodeIndex, fieldIndex);
@@ -418,7 +417,7 @@ unsigned int setField_FromEAI (char *ptr) {
 		rowCount = returnNumberOfRows(datatype,memptr);
 
 		/* inch the type along, to the data pointer */
-		memptr = Multi_Struct_memptr(datatype, (void *) memptr);
+		memptr = Multi_Struct_memptr(datatype, memptr);
 
 		setField_FromEAI_ToScript(sp->num,offset,datatype,memptr,rowCount);
 	} else {
@@ -579,10 +578,10 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 /* find the ASCII string name of this field of this node */
 char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset) {
-	int* np;
+	size_t* np;
 	if (node == 0) return "unknown";
 
-	np = (int *) NODE_OFFSETS[node->_nodeType];  /* it is a const int* type */
+	np = (size_t *) NODE_OFFSETS[node->_nodeType];  /* it is a const size_t* type */
 	np++;  /* go to the offset field */
 
 	while ((*np != -1) && (*np != offset)) np +=5;
@@ -599,7 +598,7 @@ char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset) {
 int findFieldInARR(const char* field, const char** arr, size_t cnt)
 {
 	int x;
-	int mystrlen;
+	size_t mystrlen;
 	
 	if (field == NULL) return -1;
 
@@ -715,7 +714,7 @@ void findFieldInOFFSETS(int nodeType, const size_t field, int *coffset, int *cty
 	int X3DLevel;
 	int mask = 0;
 
-	x = (int *) NODE_OFFSETS[nodeType];
+	x = (size_t *) NODE_OFFSETS[nodeType];
 
 	#ifdef SETFIELDVERBOSE
 	printf ("findFieldInOFFSETS, nodeType %s\n",stringNodeType(nodeType));
@@ -726,7 +725,7 @@ void findFieldInOFFSETS(int nodeType, const size_t field, int *coffset, int *cty
 		x += 5;
 	}
 	if (*x == field) {
-		x++; *coffset = *x; x++; *ctype = *x; x++; *ckind = *x; x++; X3DLevel = *x;
+		x++; *coffset = (int)*x; x++; *ctype = (int)*x; x++; *ckind = (int)*x; x++; X3DLevel = (int)*x;
 
 		#ifdef SETFIELDVERBOSE
 		printf ("found field, coffset %d ctype %d ckind %d X3DLevel %x\n",*coffset, *ctype, *ckind, X3DLevel); 

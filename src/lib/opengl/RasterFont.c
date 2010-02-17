@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.6 2010/01/05 21:37:33 crc_canada Exp $
+  $Id: RasterFont.c,v 1.7 2010/02/17 18:03:06 crc_canada Exp $
 
 */
 
@@ -28,7 +28,9 @@
 #include <display.h>
 #include <internal.h>
 
+#include "../vrml_parser/Structs.h"
 #include "opengl/RasterFont.h"
+#include "opengl/OpenGL_Utils.h"
 
 #include <stdarg.h>
 

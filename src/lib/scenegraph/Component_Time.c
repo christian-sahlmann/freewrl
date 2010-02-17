@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Time.c,v 1.6 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Component_Time.c,v 1.7 2010/02/17 18:03:06 crc_canada Exp $
 
 X3D Time Component
 
@@ -37,6 +37,7 @@ X3D Time Component
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
 #include "../input/SensInterps.h"
 
@@ -134,7 +135,7 @@ void do_TimeSensorTick ( void *ptr) {
 		}
 		node->__ctflag = frac;
 
-		node->fraction_changed = frac;
+		node->fraction_changed = (float) frac;
 		MARK_EVENT (ptr, offsetof(struct X3D_TimeSensor, fraction_changed));
 
 	}

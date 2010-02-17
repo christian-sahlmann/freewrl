@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.c,v 1.15 2010/01/19 20:10:32 crc_canada Exp $
+$Id: quaternion.c,v 1.16 2010/02/17 18:03:06 crc_canada Exp $
 
 ???
 
@@ -35,6 +35,7 @@ $Id: quaternion.c,v 1.15 2010/01/19 20:10:32 crc_canada Exp $
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../main/headers.h"
 
 #include "LinearAlgebra.h"
