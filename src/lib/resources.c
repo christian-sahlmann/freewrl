@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.24 2010/02/15 21:45:01 crc_canada Exp $
+  $Id: resources.c,v 1.25 2010/02/17 14:31:08 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -187,8 +187,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	resource_item_t *defaults = NULL;
 
 	ASSERT(res);
-#define DEBUG_RES printf
-
 	DEBUG_RES("resource_identify, we have resource %s ptrs %lu and %lx\n",res->request,baseResource,baseResource);
 
 	if (baseResource) {
@@ -205,7 +203,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	}
 
 	if (defaults) {
-		printf ("resource_identify, have defaults, base %s, parsed_request %s\n",defaults->base, defaults->parsed_request);
 		DEBUG_RES(" default values: network=%s type=%s status=%s"
 			  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n",
 			  BOOL_STR(defaults->network), resourceTypeToString(defaults->type), 
@@ -702,7 +699,6 @@ void resource_remove_child(resource_item_t *parent, resource_item_t *child)
  */
 void destroy_root_res()
 {
-printf ("calling destroy_root_res\n");
 	resource_destroy(root_res);
 	root_res = NULL;
 }

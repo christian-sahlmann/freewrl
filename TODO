@@ -79,7 +79,7 @@ OSX plugin:
 
 14) Garbage collection - freeing node resources and associated textures needs verification.
 
-15) resource_identify - verify that parentUrl could be set to non-null.
+15) resource_identify - verify that parentUrl could be set to non-null. DONE
 
 16) Luis Daiz Mas; add case 'x': {Snapshot(); break;} for single snaps on all platforms.
 
@@ -100,6 +100,10 @@ OSX plugin:
 	- revisit two_sided material, follow compile and run of one-sided material.
 
 23) work on PROTO routing - copy the TickTime changes from I32 to other nodes.
+
+24) replace all sprintf calls with specific read input routines that return 32/64 bit values 
+    based on what platform they are compiled for. eg, see: scanUnsignedIntoValue in
+    src/lib/InputFunctions.c Have it return TRUE/FALSE depending on success.
 
 ============================================================================
 

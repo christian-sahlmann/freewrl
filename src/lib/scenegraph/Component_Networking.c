@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.23 2010/02/15 21:45:01 crc_canada Exp $
+$Id: Component_Networking.c,v 1.24 2010/02/17 14:31:08 crc_canada Exp $
 
 X3D Networking Component
 
@@ -1230,9 +1230,6 @@ void load_Inline (struct X3D_Inline *node) {
 			} else {
 				resource_item_t *myres;
 				myres = (resource_item_t*)(node->_parentResource);
-printf ("parentResource in hex: %lx\n",myres);
-
-
 				res = resource_create_multi(&(node->url));
 				res->media_type = resm_unknown;
 				resource_identify(((resource_item_t *)(node->_parentResource)), res);
