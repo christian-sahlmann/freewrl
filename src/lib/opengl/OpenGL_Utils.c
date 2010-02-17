@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.101 2010/02/16 13:54:45 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.102 2010/02/17 16:22:42 sdumoulin Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -963,7 +963,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 
 #ifdef TARGET_AQUA
 #ifndef IPHONE
+/* SJD taking this out as it prevents loading of a new world.  Not sure why it was here originally?
 	myglobalContext = NULL; 
+*/
 #endif
 #endif
 

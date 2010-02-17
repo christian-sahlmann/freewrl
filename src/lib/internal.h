@@ -1,5 +1,5 @@
 /*
-  $Id: internal.h,v 1.31 2010/01/27 21:18:52 crc_canada Exp $
+  $Id: internal.h,v 1.32 2010/02/17 16:22:42 sdumoulin Exp $
 
   FreeWRL support library.
   Library internal declarations.
@@ -57,7 +57,6 @@ void fw_perror(FILE *f, const char *format, ...);
 #else
 #define DEBUG_FW(...)
 #endif
-
 #ifdef RESVERBOSE 
 #define DEBUG_RES(...) DEBUG_(printf("RES: " __VA_ARGS__))
 #else

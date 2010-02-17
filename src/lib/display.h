@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.56 2010/02/16 13:54:45 crc_canada Exp $
+  $Id: display.h,v 1.57 2010/02/17 16:22:42 sdumoulin Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -34,7 +34,7 @@
 /**
  * Specific platform : Mac
  */
-#ifdef TARGET_AQUA
+#ifdef AQUA
 
 #ifdef IPHONE
 #include <OpenGLES/ES2/gl.h>
@@ -48,21 +48,22 @@ extern int ocurse;
 #define ARROW_CURSOR  ccurse = ACURSE
 #else
 
-# include <OpenGL/OpenGL.h>
-# include <OpenGL/CGLTypes.h>
+#include <OpenGL/OpenGL.h>
+#include <OpenGL/CGLTypes.h>
 
-# include <AGL/AGL.h> 
+#include <AGL/AGL.h> 
 #endif /* defined IPHONE */
 #endif /* defined TARGET_AQUA */
 
 #ifdef TARGET_WIN32
+#ifndef AQUA
 
 /* Nothing special :P ... */
 #include <GL/glew.h>
 #define SENSOR_CURSOR sensor_cursor32();
 #define ARROW_CURSOR arrow_cursor32();
 #define ERROR 0
-
+#endif
 #endif /* TARGET_WIN32 */
 
 /* Main initialization function */

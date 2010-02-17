@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.25 2010/02/10 18:19:58 sdumoulin Exp $
+  $Id: pluginUtils.c,v 1.26 2010/02/17 16:22:42 sdumoulin Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -211,7 +211,6 @@ int doBrowserAction()
 			printf ("this IS an X3D file...\n");
 			res = resource_create_multi(&Anchor_url);
 
-			printf("HERE1\n");
 			#ifndef AQUA
 			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 			#endif
@@ -236,7 +235,6 @@ int doBrowserAction()
 		/* printf ("\nwe have a single replacement here\n"); */
 		if (OSX_replace_world_from_console == NULL) {
 			/* this is just a simple "clean out the old world" */
-			printf("HERE2\n");
 			#ifndef AQUA
 			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 			#endif
@@ -245,10 +243,7 @@ int doBrowserAction()
 			
 			/* we want to clean out the old world AND load a new one in */
 			res = resource_create_single (OSX_replace_world_from_console);
-			printf("HERE3\n");
-			#ifndef AQUA
 			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
-			#endif
 
 			send_resource_to_parser(res);
 			waitingForURLtoLoad = TRUE;
