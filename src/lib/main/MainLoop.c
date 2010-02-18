@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.101 2010/02/10 18:35:10 sdumoulin Exp $
+  $Id: MainLoop.c,v 1.102 2010/02/18 19:55:40 sdumoulin Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1484,7 +1484,6 @@ void doQuit()
 {
     stopDisplayThread();
 
-	printf("doQuit, calling kill_oldWorld\n");
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
     /* set geometry to normal size from fullscreen */

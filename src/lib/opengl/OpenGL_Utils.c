@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.104 2010/02/18 19:12:19 sdumoulin Exp $
+  $Id: OpenGL_Utils.c,v 1.105 2010/02/18 19:55:40 sdumoulin Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -199,7 +199,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	strcpy (inTextFile,pathToShaders);
 	strcat (inTextFile,".vs");
 
-	printf ("getAppearanceShader, path %s\n",inTextFile);
+	/* printf ("getAppearanceShader, path %s\n",inTextFile); */
 	inTextPointer = readInputString(inTextFile);
 	if (inTextPointer==NULL) return;
 	
@@ -223,7 +223,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	strcpy (inTextFile,pathToShaders);
 	strcat (inTextFile,".fs");
 
-	printf ("getAppearanceShader, path %s\n",inTextFile);
+	/* printf ("getAppearanceShader, path %s\n",inTextFile); */
 	inTextPointer = readInputString(inTextFile);
 	if (inTextPointer==NULL) return;
 
@@ -870,7 +870,7 @@ void fw_glGetDoublev (int ty, double *mat) {
 
 /* for Sarah's front end - should be removed sometime... */
 void kill_rendering() {
-printf ("kill_rendering called...\n");
+/* printf ("kill_rendering called...\n"); */
 }
 
 
@@ -886,7 +886,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#ifndef AQUA
         char mystring[20];
 	#endif
-	printf("kill old world begin\n");
 
 #ifdef VERBOSE
 	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), DispThrd);
@@ -961,7 +960,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	/* tell statusbar that we have none */
 	viewer_default();
 	setMenuStatus("NONE");
-	printf("kill old world end\n");
 }
 
 /* for verifying that a memory pointer exists */

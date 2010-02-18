@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.53 2010/02/17 16:22:42 sdumoulin Exp $
+  $Id: ProdCon.c,v 1.54 2010/02/18 19:55:40 sdumoulin Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -336,7 +336,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	int i;
 	int offsetInNode;
 
-	printf("processing VRML/X3D resource: %s\n", res->request);
+	/* printf("processing VRML/X3D resource: %s\n", res->request); */
 
 	/* save the current URL so that any local-url gets are relative to this */
 	pushInputResource(res);
@@ -434,7 +434,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 	}
 	
-	printf ("parser_process_res_VRML_X3D, res->where %u, insert_node %u, rootNode %u\n",res->where, insert_node, rootNode);
+	/* printf ("parser_process_res_VRML_X3D, res->where %u, insert_node %u, rootNode %u\n",res->where, insert_node, rootNode); */
 
 	/* now that we have the VRML/X3D file, load it into the scene. */
 	/* add the new nodes to wherever the caller wanted */
@@ -559,7 +559,7 @@ static void parser_process_res(s_list_t *item)
 
 	res = ml_elem(item);
 
-	printf("processing resource: %d, %s\n", res->type, resourceStatusToString(res->status));
+	/* printf("processing resource: %d, %s\n", res->type, resourceStatusToString(res->status)); */
 
 	switch (res->status) {
 
@@ -588,7 +588,7 @@ static void parser_process_res(s_list_t *item)
 		break;
 
 	case ress_loaded:
-		printf("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type));
+		/* printf("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type)); */
 		switch (res->media_type) {
 		case resm_unknown:
 			ConsoleMessage ("deciphering loaded file, unknown file type encountered.");
