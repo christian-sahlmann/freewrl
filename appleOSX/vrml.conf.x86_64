@@ -33,9 +33,7 @@ FREEWRL_CCFLAGS => '-arch '.
 
     # can also add -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC to display malloc issues.
 
-#     FREEWRL_DEFINE => ' -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch x86_64 -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk -DXP_UNIX ',
-#      FREEWRL_DEFINE => ' -Wshorten-64-to-32 -DHAVE_MEMCPY -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch x86_64 -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk -DXP_UNIX -DRUNNING_X86_64 ',
-      FREEWRL_DEFINE => ' -DHAVE_MEMCPY -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch x86_64 -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk -DXP_UNIX -DRUNNING_X86_64 ',
+      FREEWRL_DEFINE => ' -Wshorten-64-to-32 -DHAVE_MEMCPY -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch x86_64 -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk -DXP_UNIX -DRUNNING_X86_64 ',
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.

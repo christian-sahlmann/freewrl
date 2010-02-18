@@ -35,6 +35,6 @@ cp libFreeWRLFunc.dylib /usr/local/lib/libFreeWRLFunc.dylib
 
 
 ## Clean up
-rm -f VRMLFunc_i386.dylib
-rm -f VRMLFunc_x86_64.dylib
-rm -f VRMLFunc_ppc.dylib
+#rm -f VRMLFunc_i386.dylib
+#rm -f VRMLFunc_x86_64.dylib
+#rm -f VRMLFunc_ppc.dylib
