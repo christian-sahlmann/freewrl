@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.102 2010/02/18 19:55:40 sdumoulin Exp $
+  $Id: MainLoop.c,v 1.103 2010/02/18 21:15:31 sdumoulin Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1372,7 +1372,6 @@ void _displayThread()
 	while (!quitThread) {
 		EventLoop();
 	} 
-	printf("end of display thread, call kill_oldWorld\n");
     	kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 }
 
