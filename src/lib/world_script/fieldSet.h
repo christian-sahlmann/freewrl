@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.h,v 1.11 2010/02/16 13:54:45 crc_canada Exp $
+$Id: fieldSet.h,v 1.12 2010/02/19 14:42:22 crc_canada Exp $
 
 ???
 
@@ -58,6 +58,8 @@ void getJSMultiNumType(JSContext *, struct Multi_Vec3f *, int);
 void getMFStringtype(JSContext *, jsval *, struct Multi_String *);
 int findIndexInFIELDNAMES(int, const char**, size_t);
 char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset);
+void getMFNodetype (struct X3D_Node *strp, struct Multi_Node *ch, struct X3D_Node *par, int ar);
+
 
 #define DEF_FINDROUTEDFIELDFP(arr) int findRoutedFieldIn##arr(struct X3D_Node* node, const char* field, int fromTo)
 DEF_FINDROUTEDFIELDFP(FIELDNAMES);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.108 2010/02/16 13:54:45 crc_canada Exp $
+$Id: headers.h,v 1.109 2010/02/19 14:42:20 crc_canada Exp $
 
 Global includes.
 
@@ -591,10 +591,6 @@ void *returnInterpolatorPointer (const char *x);
 void CRoutes_js_new (uintptr_t num,int scriptType);
 extern int max_script_found;
 extern int max_script_found_and_initialized;
-void getMFNodetype (char *strp, struct Multi_Node *ch, struct X3D_Node *par, int ar);
-/*
-void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar);
-*/
 void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar, char * where, int lin);
 
 void update_node(struct X3D_Node *ptr);

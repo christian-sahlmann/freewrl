@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.50 2010/02/15 21:45:01 crc_canada Exp $
+$Id: CRoutes.c,v 1.51 2010/02/19 14:42:21 crc_canada Exp $
 
 ???
 
@@ -990,6 +990,7 @@ static void actually_do_CRoutes_Register() {
 
 	if (routesToRegister == NULL) return; /* should never get here, but... */
 
+#define CRVERBOSE
 #ifdef CRVERBOSE
 	printf ("actually_do_CRoutes_Register, vector size %d\n",vector_size(routesToRegister));
 #endif
@@ -1003,11 +1004,12 @@ static void actually_do_CRoutes_Register() {
 		printf ("CRoutes_Register adrem %d from %u ",newEntry->adrem, newEntry->from);
 		if (newEntry->from > JSMaxScript) printf ("(%s) ",stringNodeType(X3D_NODE(newEntry->from->_nodeType)));
 
-		printf ("off %u to %u %u intptr %u\n",
-				newEntry->fromoffset, newEntry->to_count, newEntry->to, newEntry->intptr);
+		printf ("off %u to %u intptr %u\n",
+				newEntry->fromoffset, newEntry->to, newEntry->intptr);
 		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
 #endif
 
+#undef CRVERBOSE
 
 		/* first time through, create minimum and maximum for insertion sorts */
 		if (!CRoutes_Initiated) {
@@ -1553,6 +1555,7 @@ void propagate_events() {
 						/* copy the value over */
 						if (CRoutes[counter].len > 0) {
 						/* simple, fixed length copy */
+printf ("counter %d memcpy to %p offset %d, from %p offset %d, length %d\n",counter, to_ptr->routeToNode ,to_ptr->foffset, CRoutes[counter].routeFromNode , CRoutes[counter].fnptr, CRoutes[counter].len);
 							memcpy( offsetPointer_deref(void *,to_ptr->routeToNode ,to_ptr->foffset),
 								offsetPointer_deref(void *,CRoutes[counter].routeFromNode , CRoutes[counter].fnptr),
 								(unsigned)CRoutes[counter].len);

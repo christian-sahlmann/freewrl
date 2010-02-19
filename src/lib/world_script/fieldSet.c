@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.31 2010/02/17 18:03:06 crc_canada Exp $
+  $Id: fieldSet.c,v 1.32 2010/02/19 14:42:22 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -1145,57 +1145,17 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 /* structure								*/
 /************************************************************************/
 
-void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Node *parent, int ar) {
-	uintptr_t newptr;
-	int newlen;
-	char *cptr;
-	void *newmal;
-	uintptr_t *tmpptr;
-
+void getMFNodetype (struct X3D_Node *strp, struct Multi_Node *tn, struct X3D_Node *parent, int ar) {
 	/* is this 64 bit compatible? - unsure right now. */
 	if (sizeof(void *) != sizeof (unsigned int))
 		printf ("getMFNodetype - unverified that this works on 64 bit machines\n");
 
-	#ifdef SETFIELDVERBOSE 
-		printf ("getMFNodetype, %s ar %d\n",strp,ar);
-		printf ("getMFNodetype, parent %d has %d nodes currently\n",tn,tn->n);
-	#endif
-
-	newlen=0;
-
-	/* this string will be in the form "[ CNode addr CNode addr....]" */
-	/* count the numbers to add  or remove */
-	if (*strp == '[') { strp++; }
-	while (*strp == ' ') strp++; /* skip spaces */
-	cptr = strp;
-
-	while (sscanf (cptr,"%ld",&newptr) == 1) {
-		newlen++;
-		/* skip past this number */
-		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
-		while (*cptr == ' ') cptr++; /* skip spaces */
-	}
-	cptr = strp; /* reset this pointer to the first number */
-
-	/* printf ("newlen HERE is %d\n",newlen); */
-
-	/* create the list to send to the AddRemoveChildren function */
-	newmal = MALLOC (newlen*sizeof(void *));
-	tmpptr = (uintptr_t*)newmal;
-
-	/* scan through the string again, and get the node numbers. */
-	while (sscanf (cptr,"%ld", (uintptr_t *)tmpptr) == 1) {
-		/* printf ("just scanned in %d, which is a %s\n",*tmpptr, 
-			stringNodeType((X3D_NODE(*tmpptr))->_nodeType)); */
-
-		/* skip past this number */
-		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
-		while (*cptr == ' ') cptr++; /* skip spaces */
-		tmpptr = (uintptr_t*) (tmpptr + sizeof (void *));
-	}
 
 	/* now, perform the add/remove */
-	AddRemoveChildren (parent, tn, newmal, newlen, ar,__FILE__,__LINE__);
+printf ("getMFNodetype, going to AddRemove children...\n");
+
+	AddRemoveChildren (parent, tn,  &(strp), 1, ar,__FILE__,__LINE__);
+printf ("done AddRemoveChildren in getMFNodetype\n");
 }
 
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.47 2010/02/17 18:03:06 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.48 2010/02/19 14:42:18 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -349,7 +349,6 @@ void EAI_parse_commands () {
 
 				node = getEAINodeFromTable(ra,rb);
 				address = getEAIMemoryPointer (ra,rb);
-				sprintf (dtmp,"%u",(unsigned int) getEAINodeFromTable(rc,-1));
 
 				if (eaiverbose) {	
 					printf ("SENDCHILD Parent: %u ParentField: %u %s Child: %s\n",(unsigned int) ra, (unsigned int)rb, ctmp, dtmp);
@@ -359,7 +358,7 @@ void EAI_parse_commands () {
 				   remove, or whatever - it will handle the addChildren and removeChildren well
 				   so the add/remove/replace parameter of getMFNodetype is always 1 here */
 
-				getMFNodetype (dtmp,(struct Multi_Node *)address, node, 1);
+				getMFNodetype (getEAINodeFromTable(rc,-1),(struct Multi_Node *)address, node, 1);
 
 				/* tell the routing table that this node is updated - used for RegisterListeners */
 				MARK_EVENT(node,getEAIActualOffset(ra,rb));
