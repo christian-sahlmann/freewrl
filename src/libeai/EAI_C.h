@@ -66,47 +66,47 @@ extern const indexT FIELDTYPES_COUNT;
 		(*value == '-')) value++;
 
 /*cstruct*/
-struct Multi_Float { int n; float  *p; };
+struct Multi_Float { size_t n; float  *p; };
 struct SFRotation { float r[4]; };
-struct Multi_Rotation { int n; struct SFRotation  *p; };
+struct Multi_Rotation { size_t n; struct SFRotation  *p; };
 
-struct Multi_Vec3f { int n; struct SFColor  *p; };
+struct Multi_Vec3f { size_t n; struct SFColor  *p; };
 /*cstruct*/
-struct Multi_Bool { int n; int  *p; };
+struct Multi_Bool { size_t n; int  *p; };
 /*cstruct*/
-struct Multi_Int32 { int n; int  *p; };
+struct Multi_Int32 { size_t n; int  *p; };
 
-struct Multi_Node { int n; void * *p; };
+struct Multi_Node { size_t n; void * *p; };
 struct SFColor { float c[3]; };
-struct Multi_Color { int n; struct SFColor  *p; };
+struct Multi_Color { size_t n; struct SFColor  *p; };
 struct SFColorRGBA { float r[4]; };
-struct Multi_ColorRGBA { int n; struct SFColorRGBA  *p; };
+struct Multi_ColorRGBA { size_t n; struct SFColorRGBA  *p; };
 /*cstruct*/
-struct Multi_Time { int n; double  *p; };
+struct Multi_Time { size_t n; double  *p; };
 /*cstruct*/
 struct Multi_String { size_t n; struct Uni_String * *p; };
 struct SFVec2f { float c[2]; };
-struct Multi_Vec2f { int n; struct SFVec2f  *p; };
+struct Multi_Vec2f { size_t n; struct SFVec2f  *p; };
 /*cstruct*/
 /*cstruct*/
 struct SFVec3d { double c[3]; };
-struct Multi_Vec3d { int n; struct SFVec3d  *p; };
+struct Multi_Vec3d { size_t n; struct SFVec3d  *p; };
 /*cstruct*/
-struct Multi_Double { int n; double  *p; };
+struct Multi_Double { size_t n; double  *p; };
 struct SFMatrix3f { float c[9]; };
-struct Multi_Matrix3f { int n; struct SFMatrix3f  *p; };
+struct Multi_Matrix3f { size_t n; struct SFMatrix3f  *p; };
 struct SFMatrix3d { double c[9]; };
-struct Multi_Matrix3d { int n; struct SFMatrix3d  *p; };
+struct Multi_Matrix3d { size_t n; struct SFMatrix3d  *p; };
 struct SFMatrix4f { float c[16]; };
-struct Multi_Matrix4f { int n; struct SFMatrix4f  *p; };
+struct Multi_Matrix4f { size_t n; struct SFMatrix4f  *p; };
 struct SFMatrix4d { double c[16]; };
-struct Multi_Matrix4d { int n; struct SFMatrix4d  *p; };
+struct Multi_Matrix4d { size_t n; struct SFMatrix4d  *p; };
 struct SFVec2d { double c[2]; };
-struct Multi_Vec2d { int n; struct SFVec2d  *p; };
+struct Multi_Vec2d { size_t n; struct SFVec2d  *p; };
 struct SFVec4f { float c[4]; };
-struct Multi_Vec4f { int n; struct SFVec4f  *p; };
+struct Multi_Vec4f { size_t n; struct SFVec4f  *p; };
 struct SFVec4d { double c[4]; };
-struct Multi_Vec4d { int n; struct SFVec4d  *p; };
+struct Multi_Vec4d { size_t n; struct SFVec4d  *p; };
 
 /*cstruct*/
 /*cstruct*/
