@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.30 2010/02/02 20:53:19 crc_canada Exp $
+$Id: CParseLexer.c,v 1.31 2010/02/19 19:07:28 sdumoulin Exp $
 
 ???
 
@@ -171,7 +171,7 @@ void lexer_fromString (struct VRMLLexer *me, char *str) {
 	me->startOfStringPtr[me->lexerInputLevel]=str; 
 	me->oldNextIn[me->lexerInputLevel] = me->nextIn; /* save the old "nextIn" for popping back */
 	me->nextIn=str;
-
+#define CPARSERVERBOSE
 	#ifdef CPARSERVERBOSE
 	printf ("lexer_fromString, me %x %u\n",me,me);
 	printf ("lexer_fromString, working on level %d\n",me->lexerInputLevel);
@@ -955,7 +955,7 @@ BOOL lexer_float(struct VRMLLexer* me, vrmlFloatT* ret)
  /* Main processing loop. */
  *ret=0;
  afterPoint=FALSE;
- decimalFact=.1;
+ decimalFact=(float) 0.1;
  while(TRUE)
  {
   if(c=='.' && !afterPoint)
@@ -1010,7 +1010,7 @@ BOOL lexer_float(struct VRMLLexer* me, vrmlFloatT* ret)
 
   if(negExp)
    exp=-exp;
-  *ret*=pow(10, exp);
+  *ret*=(float)(pow(10, exp));
  }
  LEXER_UNGETINPUT(c)
 
@@ -1099,7 +1099,7 @@ BOOL lexer_double(struct VRMLLexer* me, vrmlDoubleT* ret)
 
   if(negExp)
    exp=-exp;
-  *ret*=pow(10, exp);
+  *ret*=(float)(pow(10, exp));
  }
  LEXER_UNGETINPUT(c)
 
@@ -1502,8 +1502,8 @@ void skipToEndOfOpenCurly(struct VRMLLexer *me, int level) {
 /* concat 2 strings, and tell the lexer to scan from this new string */
 void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b) {
 	char *newstring;
-	int len_a=0;
-	int len_b=0;
+	size_t len_a=0;
+	size_t len_b=0;
 	if (str_a != NULL) len_a = strlen(str_a);
 	if (str_b != NULL) len_b = strlen(str_b);
 

@@ -84,7 +84,7 @@ struct Multi_ColorRGBA { int n; struct SFColorRGBA  *p; };
 /*cstruct*/
 struct Multi_Time { int n; double  *p; };
 /*cstruct*/
-struct Multi_String { int n; struct Uni_String * *p; };
+struct Multi_String { size_t n; struct Uni_String * *p; };
 struct SFVec2f { float c[2]; };
 struct Multi_Vec2f { int n; struct SFVec2f  *p; };
 /*cstruct*/

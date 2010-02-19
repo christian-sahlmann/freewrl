@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.h,v 1.11 2010/02/19 16:06:31 sdumoulin Exp $
+$Id: EAIHelpers.h,v 1.12 2010/02/19 19:07:28 sdumoulin Exp $
 
 EAI Helpers functions
 
@@ -43,7 +43,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn);
 void handleEAIGetValue (char command, char *bufptr, char *buf, int repno);
 int EAI_GetRootNode(void);
 
-void EAI_GetType(int cNode, char *ctmp, char *dtmp,
+void EAI_GetType(uintptr_t cNode, char *ctmp, char *dtmp,
 		 uintptr_t *cNodePtr, uintptr_t *fieldOffset,
 		 uintptr_t *dataLen, uintptr_t *typeString, unsigned int *scripttype, int *accessType);
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.30 2010/02/19 16:06:31 sdumoulin Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.31 2010/02/19 19:07:28 sdumoulin Exp $
 
 ???
 
@@ -275,7 +275,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 	struct X3D_Node *np;
 	
 	#ifdef SETFIELDVERBOSE
-	printf ("\nPST, for %s we have %s strlen %d\n",stringFieldtypeType(ctype), value, strlen(value));
+	printf ("\nPST, for %s we have %s strlen %lu\n",stringFieldtypeType(ctype), value, strlen(value));
 	#endif
 
 	/* if this is the first time through, create a new parser, and tell it:
@@ -318,14 +318,14 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 		/* now, does the value string need quoting? */
 		if ((*value != '"') && (*value != '\'') && (*value != '[')) {
 			size_t len;
-			/* printf ("have to quote this string\n"); */
+			 printf ("have to quote this string\n"); 
 			len = strlen(value);
 			mfstringtmp = MALLOC (sizeof (char *) * len + 10);
 			memcpy (&mfstringtmp[1],value,len);
 			mfstringtmp[0] = '"';
 			mfstringtmp[len+1] = '"';
 			mfstringtmp[len+2] = '\0';
-			/* printf ("so, mfstring is :%s:\n",mfstringtmp); */
+			printf ("so, mfstring is :%s:\n",mfstringtmp); 
 			
 		} else {
 			mfstringtmp = STRDUP(value);

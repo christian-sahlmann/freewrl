@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.35 2010/02/11 20:21:27 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.36 2010/02/19 19:07:28 sdumoulin Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -336,7 +336,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	scripttype = 0 - meaning, not to/from a javascript. (see CRoutes.c for values and more info)
 */
 
-void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod, 
+void EAI_GetType (uintptr_t cNode,  char *inputFieldString, char *accessMethod, 
 		uintptr_t *cNodePtr, uintptr_t *fieldOffset,
 		uintptr_t *dataLen, uintptr_t *typeString,  unsigned int *scripttype, int *accessType) {
 
