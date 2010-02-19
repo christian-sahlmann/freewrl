@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.27 2010/02/19 18:09:47 crc_canada Exp $
+$Id: fieldGet.c,v 1.28 2010/02/19 20:51:53 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -68,7 +68,7 @@ void getField_ToJavascript (int num, int fromoffset) {
 	int ignored;
 
 	#ifdef SETFIELDVERBOSE 
-		printf ("CRoutes, sending ScriptEventIn from offset %d type %d num=%ld\n",
+		printf ("fetField_ToJavascript, from offset %d type %d num=%d\n",
 			fromoffset,JSparamnames[fromoffset].type,num);
 	#endif
 
@@ -168,8 +168,6 @@ void setScriptECMAtype (uintptr_t num) {
 	int len;
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
-
-printf ("setScriptECMAtype, num %d\n",num);
 
 	fn = (uintptr_t)(CRoutes[num].routeFromNode) + (uintptr_t)(CRoutes[num].fnptr);
 	len = CRoutes[num].len;
@@ -1047,7 +1045,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	float *fp;
 	int *ip;
 	int ival;
-	unsigned int uval;
+	struct X3D_Node *uval;
 	int row;			/* MF* counter */
 	struct Multi_String *MSptr;	/* MFString pointer */
 	struct Multi_Node *MNptr;	/* MFNode pointer */
@@ -1096,7 +1094,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			if (eaiverbose) { 
 			printf ("EAI_SFNODE\n");
 			}
-			memcpy(&uval,memptr,sizeof(unsigned int));
+			memcpy((void *)&uval,(void *)memptr,sizeof(void *));
 			sprintf (buf, "%s\n%f\n%d\n%u",reptype,TickTime,id,registerEAINodeForAccess(X3D_NODE(uval)));
 			break;
 		}

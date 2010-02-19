@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.53 2010/02/19 18:09:47 crc_canada Exp $
+$Id: CRoutes.c,v 1.54 2010/02/19 20:51:53 crc_canada Exp $
 
 ???
 
@@ -54,8 +54,6 @@ $Id: CRoutes.c,v 1.53 2010/02/19 18:09:47 crc_canada Exp $
 #include "../input/EAIHelpers.h"		/* for verify_Uni_String */
 
 #include "CRoutes.h"
-
-#undef CRVERBOSE
 
 static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype);
 static void sendScriptEventIn(uintptr_t num);
@@ -989,7 +987,6 @@ static void actually_do_CRoutes_Register() {
 
 	if (routesToRegister == NULL) return; /* should never get here, but... */
 
-#define CRVERBOSE
 #ifdef CRVERBOSE
 	printf ("actually_do_CRoutes_Register, vector size %d\n",vector_size(routesToRegister));
 #endif
@@ -1007,8 +1004,6 @@ static void actually_do_CRoutes_Register() {
 				newEntry->fromoffset, newEntry->to, newEntry->intptr);
 		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
 #endif
-
-#undef CRVERBOSE
 
 		/* first time through, create minimum and maximum for insertion sorts */
 		if (!CRoutes_Initiated) {
@@ -1104,7 +1099,7 @@ static void actually_do_CRoutes_Register() {
 					#ifdef CRVERBOSE 
 						printf ("routing table now %d\n",CRoutes_Count);
 						for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
-							printf ("%u %u %u\n",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
+							printf ("%d: %u %u %u\n",shifter, CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
 								CRoutes[shifter].interpptr);
 						}
 					#endif
@@ -1165,10 +1160,11 @@ static void actually_do_CRoutes_Register() {
 	#ifdef CRVERBOSE 
 				printf ("routing table now %d\n",CRoutes_Count);
 				for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
-					printf ("%u %u %u direction %d, len %d extra %d : ",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
+					printf ("%d: from: %p offset: %u Interpolator %p direction %d, len %d extra %d : ",shifter,
+						CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
 						CRoutes[shifter].interpptr, CRoutes[shifter].direction_flag, CRoutes[shifter].len, CRoutes[shifter].extra);
 					for (insert_here = 0; insert_here < CRoutes[shifter].tonode_count; insert_here++) {
-						printf (" to: %u %u",CRoutes[shifter].tonodes[insert_here].routeToNode,
+						printf (" to: %p %u",CRoutes[shifter].tonodes[insert_here].routeToNode,
 									CRoutes[shifter].tonodes[insert_here].foffset);
 					}
 					printf ("\n");
@@ -1179,7 +1175,6 @@ static void actually_do_CRoutes_Register() {
 	}
 	FREE_IF_NZ(routesToRegister);
 
-#undef CRVERBOSE
 }
 
 #ifdef DEBUG_VALIDNODE
@@ -1430,7 +1425,6 @@ static void sendScriptEventIn(uintptr_t num) {
 		CRoutes[num].direction_flag);
 	#endif
 
-
 	/* script value: 1: this is a from script route
 			 2: this is a to script route
 			 (3 = SCRIPT_TO_SCRIPT - this gets changed in to a FROM and a TO;
@@ -1440,20 +1434,17 @@ static void sendScriptEventIn(uintptr_t num) {
 		for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 			struct Shader_Script *myObj;
 			to_ptr = &(CRoutes[num].tonodes[to_counter]);
-
-			#ifdef CRVERBOSE
-			printf ("myScriptNumber is %d\n",myObj->num);
-			#endif
-
-			printf ("myScriptNumber is %d\n",myObj->num);
-
 			if (to_ptr->routeToNode->_nodeType == NODE_Script) {
-printf ("sending this into a script...\n");
 				/* this script initialized yet? We make sure that on initialization that the Parse Thread
 				   does the initialization, once it is finished parsing. */
 
 				/* get the value from the VRML structure, in order to propagate it to a script */
 				myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
+
+				#ifdef CRVERBOSE
+				printf ("myScriptNumber is %d\n",myObj->num);
+				#endif
+
 
 				/* is the script ok and initialized? */
 				if ((!ScriptControl[myObj->num]._initialized) || (!ScriptControl[myObj->num].scriptOK)) {
@@ -1462,11 +1453,8 @@ printf ("sending this into a script...\n");
 				}
 
 				/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
-printf ("calling mark_script...\n");
 				mark_script(myObj->num);
-printf ("calling getField_ToJavascript...\n");
 				getField_ToJavascript((int)num,to_ptr->foffset);
-printf ("ok, done scripts here\n");
 			} else {
 				getField_ToShader((int)num);
 			}
@@ -1527,7 +1515,7 @@ void propagate_events() {
 					/* first thing, set this to FALSE */
 					CRoutes[counter].isActive = FALSE;
 						#ifdef CRVERBOSE
-						printf("event %u %u len %d sent something", CRoutes[counter].routeFromNode, CRoutes[counter].fnptr,CRoutes[counter].len);
+						printf("event %p %u len %d sent something", CRoutes[counter].routeFromNode, CRoutes[counter].fnptr,CRoutes[counter].len);
 						if (CRoutes[counter].fnptr < 20) printf (" (script param: %s)",JSparamnames[CRoutes[counter].fnptr].name);
 						else {
 							printf (" (nodeType %s)",stringNodeType(X3D_NODE(CRoutes[counter].routeFromNode)->_nodeType));
@@ -1545,8 +1533,6 @@ void propagate_events() {
 						/* copy the value over */
 						if (CRoutes[counter].len > 0) {
 						/* simple, fixed length copy */
-printf ("counter %d memcpy to %p offset %d, from %p offset %u, length %u\n",counter, to_ptr->routeToNode ,to_ptr->foffset, CRoutes[counter].routeFromNode , 
-(unsigned int) CRoutes[counter].fnptr, (unsigned int) CRoutes[counter].len);
 							memcpy( offsetPointer_deref(void *,to_ptr->routeToNode ,to_ptr->foffset),
 								offsetPointer_deref(void *,CRoutes[counter].routeFromNode , CRoutes[counter].fnptr),
 								(unsigned)CRoutes[counter].len);
@@ -1556,13 +1542,14 @@ printf ("counter %d memcpy to %p offset %d, from %p offset %u, length %u\n",coun
 							#ifdef CRVERBOSE
 							printf ("in croutes, mmc len is %d\n",CRoutes[counter].len);
 							#endif
+							printf ("in croutes, mmc len is %d\n",CRoutes[counter].len);
 
 							Multimemcpy (
-									X3D_NODE(to_ptr->routeToNode),
-									X3D_NODE(CRoutes[counter].routeFromNode),
-									(void *)((uintptr_t)to_ptr->routeToNode + to_ptr->foffset),
-								 (void *)((uintptr_t)CRoutes[counter].routeFromNode + CRoutes[counter].fnptr),
-								 CRoutes[counter].len);
+								X3D_NODE(to_ptr->routeToNode),
+								X3D_NODE(CRoutes[counter].routeFromNode),
+								offsetPointer_deref(void *, to_ptr->routeToNode, to_ptr->foffset),
+								offsetPointer_deref(void *, CRoutes[counter].routeFromNode, 
+									CRoutes[counter].fnptr), CRoutes[counter].len);
 						}
 
 						/* is this an interpolator? if so call the code to do it */
@@ -1773,7 +1760,7 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 	struct Multi_Vec3f *mv3ffn, *mv3ftn;
 
 	#ifdef CRVERBOSE 
-		printf ("Multimemcpy, copying structures from %u (%s) to %u (%s)  %d %d type %d\n",
+		printf ("Multimemcpy, copying structures from %p (%s) to %p (%s)  %p %p type %d\n",
 			fromNode, stringNodeType(fromNode->_nodeType),
 			toNode, stringNodeType(toNode->_nodeType),
 			
@@ -1796,16 +1783,17 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 	/* and the from and to sizes */
 	fromcount = mv3ffn->n;
 	tocount = mv3ftn->n;
+
 	#ifdef CRVERBOSE 
 		printf ("Multimemcpy, fromcount %d\n",fromcount);
 	#endif
 
 	/* get the structure length */
 	switch (multitype) {
-		case ROUTING_SFNODE: structlen = sizeof (unsigned int); break;
-		case ROUTING_MFNODE: structlen = sizeof (unsigned int); break;
-		case ROUTING_SFIMAGE: structlen = sizeof (unsigned int); break;
-		case ROUTING_MFSTRING: structlen = sizeof (unsigned int); break;
+		case ROUTING_SFNODE: structlen = sizeof (void *); break;
+		case ROUTING_MFNODE: structlen = sizeof (void *); break;
+		case ROUTING_SFIMAGE: structlen = sizeof (void *); break;
+		case ROUTING_MFSTRING: structlen = sizeof (void *); break;
 		case ROUTING_MFFLOAT: structlen = sizeof (float); break;
 		case ROUTING_MFROTATION: structlen = sizeof (struct SFRotation); break;
 		case ROUTING_MFINT32: structlen = sizeof (int); break;
@@ -1865,8 +1853,9 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 	mv3ftn->n = fromcount;
 
 	#ifdef CRVERBOSE 
-		printf ("Multimemcpy, fromcount %d tocount %d fromptr %d toptr %d\n",fromcount,tocount,fromptr,toptr); 
+		printf ("Multimemcpy, fromcount %d tocount %d fromptr %p toptr %p\n",fromcount,tocount,fromptr,toptr); 
 	#endif
+		printf ("Multimemcpy, fromcount %d tocount %d fromptr %p toptr %p\n",fromcount,tocount,fromptr,toptr); 
 
 	/* and do the copy of the data */
 	memcpy (toptr,fromptr,structlen * fromcount);
@@ -1899,6 +1888,8 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 			}
 		}
 	}
+
+	printf ("done Multimemcpy!\n");
 }
 
 /* this script value has been looked at, set the touched flag in it to FALSE. */
@@ -1953,8 +1944,6 @@ static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfs
 	struct X3D_Node *rv;
 
 	rv = NULL;
-printf ("returnSpecific, requested %d, %s\n",requestedType,stringFieldtypeType(requestedType));
-
 	switch  (requestedType) {
                  #define SF_TYPE(fttype, type, ttype) \
                         case FIELDTYPE_##fttype: \
@@ -1974,7 +1963,6 @@ printf ("returnSpecific, requested %d, %s\n",requestedType,stringFieldtypeType(r
 				printf ("returnSpecific, not found %d\n",requestedType);
 			}
 	}
-printf ("returning rv %p type %s\n",rv,stringNodeType(rv->_nodeType));
 	return rv;
 }
 
