@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.103 2010/02/18 21:15:31 sdumoulin Exp $
+  $Id: MainLoop.c,v 1.104 2010/02/19 18:09:46 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -39,6 +39,7 @@
 #include <resources.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../world_script/jsUtils.h"

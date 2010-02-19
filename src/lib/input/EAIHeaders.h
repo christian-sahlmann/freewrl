@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHeaders.h,v 1.10 2010/02/19 16:06:30 sdumoulin Exp $
+$Id: EAIHeaders.h,v 1.11 2010/02/19 18:09:46 crc_canada Exp $
 
 EAI and java CLASS invocation
 
@@ -190,7 +190,6 @@ extern int EAIMIDIwanted;
 extern char *EAIbuffer;
 extern int EAIbufcount;
 extern char EAIListenerData[EAIREADSIZE];
-extern char EAIListenerArea[40];
 
 #define MIDI_CONTROLLER_UNUSED 4
 #define MIDI_CONTROLLER_FADER 1

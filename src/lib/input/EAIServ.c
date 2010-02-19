@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.17 2009/10/05 15:07:23 crc_canada Exp $
+$Id: EAIServ.c,v 1.18 2010/02/19 18:09:46 crc_canada Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -88,7 +88,6 @@ int EAIinitialized = FALSE;		/* are we running?*/
 int EAIfailed = FALSE;			/* did we not succeed in opening interface?*/
 int EAIMIDIfailed = FALSE;		/* did we not succeed in opening the MIDI interface? */
 char EAIListenerData[EAIREADSIZE]; /* this is the location for getting Listenered data back again.*/
-char EAIListenerArea[40];
 
 /* socket stuff */
 int 	EAIsockfd = -1;			/* main TCP socket fd*/

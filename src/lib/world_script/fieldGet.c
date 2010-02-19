@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.26 2009/11/05 15:17:38 crc_canada Exp $
+$Id: fieldGet.c,v 1.27 2010/02/19 18:09:47 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -168,6 +168,8 @@ void setScriptECMAtype (uintptr_t num) {
 	int len;
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
+
+printf ("setScriptECMAtype, num %d\n",num);
 
 	fn = (uintptr_t)(CRoutes[num].routeFromNode) + (uintptr_t)(CRoutes[num].fnptr);
 	len = CRoutes[num].len;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.110 2010/02/19 16:06:31 sdumoulin Exp $
+$Id: headers.h,v 1.111 2010/02/19 18:09:46 crc_canada Exp $
 
 Global includes.
 
@@ -588,10 +588,6 @@ void *returnInterpolatorPointer (const char *x);
 
 
 
-
-void CRoutes_js_new (uintptr_t num,int scriptType);
-extern int max_script_found;
-extern int max_script_found_and_initialized;
 void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar, char * where, int lin);
 
 void update_node(struct X3D_Node *ptr);
@@ -638,8 +634,6 @@ void CRoutes_Register(int adrem,        struct X3D_Node *from,
 void CRoutes_free(void);
 void propagate_events(void);
 int getRoutesCount(void);
-void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset, 
-                uintptr_t *toNode, int *toOffset);
 void getField_ToJavascript (int num, int fromoffset);
 void add_first(struct X3D_Node * node);
 void registerTexture(struct X3D_Node * node);

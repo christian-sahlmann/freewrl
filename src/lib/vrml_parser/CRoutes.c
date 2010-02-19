@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.52 2010/02/19 16:51:14 crc_canada Exp $
+$Id: CRoutes.c,v 1.53 2010/02/19 18:09:47 crc_canada Exp $
 
 ???
 
@@ -57,7 +57,7 @@ $Id: CRoutes.c,v 1.52 2010/02/19 16:51:14 crc_canada Exp $
 
 #undef CRVERBOSE
 
-static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, int multitype);
+static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype);
 static void sendScriptEventIn(uintptr_t num);
 static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfsetValue, int *offsetOfvalueChanged);
 
@@ -356,7 +356,7 @@ void markScriptResults(struct X3D_Node * tn, int tptr, int route, void * tonode)
 	#endif
 	}
 
-	MARK_EVENT (X3D_NODE(CRoutes[route].routeFromNode),CRoutes[route].fnptr);
+	MARK_EVENT (CRoutes[route].routeFromNode,CRoutes[route].fnptr);
 
 	/* run an interpolator, if one is attached. */
 	if (CRoutes[route].interpptr != 0) {
@@ -989,6 +989,7 @@ static void actually_do_CRoutes_Register() {
 
 	if (routesToRegister == NULL) return; /* should never get here, but... */
 
+#define CRVERBOSE
 #ifdef CRVERBOSE
 	printf ("actually_do_CRoutes_Register, vector size %d\n",vector_size(routesToRegister));
 #endif
@@ -1134,7 +1135,7 @@ static void actually_do_CRoutes_Register() {
 			CRoutes[insert_here].isActive = FALSE;
 			CRoutes[insert_here].tonode_count = 0;
 			CRoutes[insert_here].tonodes = NULL;
-			CRoutes[insert_here].len = returnRoutingElementLength(newEntry->fieldType);
+			CRoutes[insert_here].len = (int) returnRoutingElementLength(newEntry->fieldType);
 			CRoutes[insert_here].interpptr = (void (*)(void*))newEntry->intptr;
 			CRoutes[insert_here].direction_flag = newEntry->scrdir;
 			CRoutes[insert_here].extra = newEntry->extra;
@@ -1306,11 +1307,10 @@ eventOuts for this script
 static void gatherScriptEventOuts(void) {
 	int route;
 	size_t fptr;
-	int tptr;
-	unsigned len;
- 	void * tn;
-	void * fn;
-	/* temp for sscanf retvals */
+	size_t tptr;
+	size_t len;
+ 	struct X3D_Node* tn;
+	struct X3D_Node* fn;
 
 	int fromalready=FALSE;	 /* we have already got the from value string */
 	int touched_flag=FALSE;
@@ -1386,18 +1386,18 @@ static void gatherScriptEventOuts(void) {
 			for (to_counter = 0; to_counter < CRoutes[route].tonode_count; to_counter++) {
 				to_ptr = &(CRoutes[route].tonodes[to_counter]);
 				tn = to_ptr->routeToNode;
-				tptr = (int) to_ptr->foffset;
+				tptr = to_ptr->foffset;
 
 				#ifdef CRVERBOSE 
 					printf ("%s script %d VALUE CHANGED! copy value and update %d\n",JSparamnames[fptr].name,actualscript,tn);
 				#endif
 
 				/* eventOuts go to VRML data structures */
-				setField_javascriptEventOut(X3D_NODE(tn),tptr,JSparamnames[fptr].type, len, 
+				setField_javascriptEventOut(tn,(unsigned int) tptr,JSparamnames[fptr].type, (int) len, 
 					CRoutes[route].extra, ScriptControl[actualscript].cx);
 
 				/* tell this node now needs to redraw */
-				markScriptResults(tn, tptr, route, to_ptr->routeToNode);
+				markScriptResults(tn, (int) tptr, route, to_ptr->routeToNode);
 
 				#ifdef CRVERBOSE 
 					printf ("%s script %d has successfully updated  %u\n",JSparamnames[fptr].name,actualscript,tn);
@@ -1445,8 +1445,10 @@ static void sendScriptEventIn(uintptr_t num) {
 			printf ("myScriptNumber is %d\n",myObj->num);
 			#endif
 
+			printf ("myScriptNumber is %d\n",myObj->num);
 
 			if (to_ptr->routeToNode->_nodeType == NODE_Script) {
+printf ("sending this into a script...\n");
 				/* this script initialized yet? We make sure that on initialization that the Parse Thread
 				   does the initialization, once it is finished parsing. */
 
@@ -1460,8 +1462,11 @@ static void sendScriptEventIn(uintptr_t num) {
 				}
 
 				/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
+printf ("calling mark_script...\n");
 				mark_script(myObj->num);
+printf ("calling getField_ToJavascript...\n");
 				getField_ToJavascript((int)num,to_ptr->foffset);
+printf ("ok, done scripts here\n");
 			} else {
 				getField_ToShader((int)num);
 			}
@@ -1485,19 +1490,6 @@ nodes have eventins/eventouts - have to do the table multiple times
 in this case.
 
 ********************************************************************/
-#ifdef OLDCODE
-void xmemcpy (void *too, void *from, int len) {
-	char *to = (char *) too;
-	char *fm = (char *) from;
-	int i;
-printf ("xmemcpy\n");
-	for (i=0; i<len; i++) {
-		*to = *fm;
-		to ++; fm++;
-	}
-}
-#endif
-
 void propagate_events() {
 	int havinterp;
 	int counter;
@@ -1773,7 +1765,7 @@ void kill_routing (void) {
 
 
 /* internal variable to copy a C structure's Multi* field */
-static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, int multitype) {
+static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype) {
 	size_t structlen;
 	unsigned int fromcount, tocount;
 	void *fromptr, *toptr;
