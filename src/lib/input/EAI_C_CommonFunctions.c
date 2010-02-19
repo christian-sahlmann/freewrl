@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.29 2010/02/16 21:21:47 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.30 2010/02/19 16:06:31 sdumoulin Exp $
 
 ???
 
@@ -78,7 +78,7 @@ int eaiverbose = FALSE;
 /* create a structure to hold a string; it has a length, and a string pointer */
 struct Uni_String *newASCIIString(char *str) {
 	struct Uni_String *retval;
-	int len;
+	size_t len;
 
 	if (eaiverbose) {
 	printf ("newASCIIString for :%s:\n",str);
@@ -103,7 +103,7 @@ touch the touched flag */
 void verify_Uni_String(struct  Uni_String *unis, char *str) {
 	char *ns;
 	char *os;
-	int len;
+	size_t len;
 
 	/* bounds checking */
 	if (unis == NULL) {
@@ -127,7 +127,7 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 
 
 /* get how many bytes in the type */
-int returnElementLength(int type) {
+size_t returnElementLength(int type) {
 	  switch (type) {
 		case FIELDTYPE_SFVec2d:
 		case FIELDTYPE_MFVec2d:
@@ -157,7 +157,7 @@ int returnElementLength(int type) {
    in routing a memcpy is performed; if negative, then some inquiry is required to get correct length
    of both source/dest during routing. */
 
-int returnRoutingElementLength(int type) {
+size_t returnRoutingElementLength(int type) {
 	  switch (type) {
 		case FIELDTYPE_SFTime:	return sizeof(double); break;
 		case FIELDTYPE_SFBool:

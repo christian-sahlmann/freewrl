@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.109 2010/02/19 14:42:20 crc_canada Exp $
+$Id: headers.h,v 1.110 2010/02/19 16:06:31 sdumoulin Exp $
 
 Global includes.
 
@@ -363,6 +363,7 @@ void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fie
 
 
 #else
+#define SETFIELDVERBOSE
 /* Parsing & Lexing */
 #undef CPARSERVERBOSE 
 

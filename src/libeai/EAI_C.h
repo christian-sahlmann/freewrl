@@ -112,7 +112,7 @@ struct Multi_Vec4d { int n; struct SFVec4d  *p; };
 /*cstruct*/
 
 struct Uni_String {
-        int len;
+        size_t len;
         char * strptr;
 	int touched;
 };

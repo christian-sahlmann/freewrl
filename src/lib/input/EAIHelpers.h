@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.h,v 1.10 2009/12/08 21:09:30 crc_canada Exp $
+$Id: EAIHelpers.h,v 1.11 2010/02/19 16:06:31 sdumoulin Exp $
 
 EAI Helpers functions
 
@@ -36,7 +36,7 @@ struct Uni_String *newASCIIString(char *str);
 void verify_Uni_String(struct  Uni_String *unis, char *str);
 struct X3D_Node *getEAINodeFromTable(int index, int field);
 int returnElementRowSize (int type);					/* from EAI_C_CommonFunctions.c */
-int returnElementLength(int type);					/* from EAI_C_CommonFunctions.c */
+size_t returnElementLength(int type);					/* from EAI_C_CommonFunctions.c */
 int getEAIActualOffset(int node, int field);
 char *getEAIMemoryPointer (int node, int field);
 int registerEAINodeForAccess(struct X3D_Node* myn);
