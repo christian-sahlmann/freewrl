@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.56 2010/02/16 21:21:47 crc_canada Exp $
+  $Id: CParseParser.c,v 1.57 2010/02/19 22:01:42 sdumoulin Exp $
 
   ???
 
@@ -237,7 +237,7 @@ BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal) 
 
 
 /* put the string value of the PROTO field into the input stream */
-void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, int *outSize) {
+void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, size_t *outSize) {
     struct ProtoFieldDecl* pdecl=NULL;
     /* find the ascii name, and try and find it's protodefinition by type */
 #ifdef CPARSERVERBOSE
@@ -702,7 +702,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 
         /* copy the ASCII text over and save it as part of the field */
         if (startOfField != NULL) {
-            unsigned int sz = me->lexer->nextIn-startOfField;
+            uintptr_t sz = me->lexer->nextIn-startOfField;
             FREE_IF_NZ(pdecl->fieldString);
             pdecl->fieldString = MALLOC (sz + 2);
             strncpy(pdecl->fieldString,startOfField,sz);
@@ -742,7 +742,7 @@ static BOOL parser_protoStatement(struct VRMLParser* me)
     char *startOfBody;
     char *endOfBody;
     char *initCP;
-    unsigned int bodyLen;
+    uintptr_t bodyLen;
 
     /* Really a PROTO? */
     if(!lexer_keyword(me->lexer, KW_PROTO))
@@ -883,8 +883,8 @@ printf ("parser_protoStatement, FINISHED proto :%s:\n",obj->protoName);
 }
 
 static BOOL parser_componentStatement(struct VRMLParser* me) {
-    int myComponent = ID_UNDEFINED;
-    int myLevel = ID_UNDEFINED;
+    int myComponent = INT_ID_UNDEFINED;
+    int myLevel = INT_ID_UNDEFINED;
 #define COMPSTRINGSIZE 20
 
     ASSERT(me->lexer);
@@ -1061,7 +1061,7 @@ static BOOL parser_metaStatement(struct VRMLParser* me) {
 }
 
 static BOOL parser_profileStatement(struct VRMLParser* me) {
-    int myProfile = ID_UNDEFINED;
+    int myProfile = INT_ID_UNDEFINED;
 
     ASSERT(me->lexer);
     lexer_skip(me->lexer);
@@ -1110,8 +1110,8 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
     indexT fromFieldE;
     indexT fromUFieldO;
     indexT fromUFieldE;
-    int fromOfs = 0;
-    int fromType = 0;
+    uintptr_t fromOfs = 0;
+    int_t fromType = 0;
     struct ScriptFieldDecl* fromScriptField;
 
     indexT toNodeIndex;
@@ -1121,10 +1121,10 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
     indexT toFieldE;
     indexT toUFieldO;
     indexT toUFieldE;
-    int toOfs = 0;
-    int toType = 0;
+    uintptr_t toOfs = 0;
+    int_t toType = 0;
     struct ScriptFieldDecl* toScriptField;
-    int temp, tempFE, tempFO, tempTE, tempTO;
+    size_t temp, tempFE, tempFO, tempTE, tempTO;
 
     fromFieldE = ID_UNDEFINED; fromFieldO = ID_UNDEFINED; toFieldE = ID_UNDEFINED; toFieldO = ID_UNDEFINED;
     toNode = NULL; fromNode = NULL; toProto=NULL; fromProto=NULL;
@@ -1552,15 +1552,15 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
 /* If we are in a PROTO add a new ProtoRoute structure to the vector ProtoDefinition->routes */
 /* Otherwise, add the ROUTE to the routing table CRoutes */
 void parser_registerRoute(struct VRMLParser* me,
-                          struct X3D_Node* fromNode, int fromOfs,
-                          struct X3D_Node* toNode, int toOfs,
-                          int ft)
+                          struct X3D_Node* fromNode, uintptr_t fromOfs,
+                          struct X3D_Node* toNode, uintptr_t toOfs,
+                          int_t ft)
 {
     ASSERT(me);
-	if ((fromOfs == INT_ID_UNDEFINED) || (toOfs == INT_ID_UNDEFINED)) {
+	if ((fromOfs == ID_UNDEFINED) || (toOfs == ID_UNDEFINED)) {
 		ConsoleMessage ("problem registering route - either fromField or toField invalid");
 	} else {
-        	CRoutes_RegisterSimple(fromNode, (unsigned) fromOfs, toNode, (unsigned) toOfs, ft);
+        	CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, ft);
 	}
 }
 

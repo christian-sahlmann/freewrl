@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.111 2010/02/19 18:09:46 crc_canada Exp $
+$Id: headers.h,v 1.112 2010/02/19 22:01:42 sdumoulin Exp $
 
 Global includes.
 
@@ -44,6 +44,9 @@ Global includes.
 /**
  * in utils.c
  */
+
+#define int_t intptr_t
+
 extern char *BrowserName;
 const char* freewrl_get_browser_program();
 
@@ -621,8 +624,8 @@ void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setScriptMultiElementtype(uintptr_t);
 void CRoutes_RemoveSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len);
-void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
- struct X3D_Node* to, int toOfs, int len);
+void CRoutes_RegisterSimple(struct X3D_Node* from, uintptr_t fromOfs,
+ struct X3D_Node* to, uintptr_t toOfs, int_t len);
 void CRoutes_Register(int adrem,        struct X3D_Node *from,
                                  int fromoffset,
 				 struct X3D_Node *to,

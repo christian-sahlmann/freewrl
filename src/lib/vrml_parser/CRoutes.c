@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.54 2010/02/19 20:51:53 crc_canada Exp $
+$Id: CRoutes.c,v 1.55 2010/02/19 22:01:42 sdumoulin Exp $
 
 ???
 
@@ -842,9 +842,9 @@ CRoutes_Register.  Currently a wrapper around that other function.
 ********************************************************************/
 
 void CRoutes_RegisterSimple(
-	struct X3D_Node* from, int fromOfs,
-	struct X3D_Node* to, int toOfs,
-	int type)  {
+	struct X3D_Node* from, uintptr_t fromOfs,
+	struct X3D_Node* to, uintptr_t toOfs,
+	int_t type)  {
 	/* printf ("CRoutes_RegisterSimple, registering a route of %s\n",stringFieldtypeType(type)); */
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */

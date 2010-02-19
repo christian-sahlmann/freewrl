@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseGeneral.h,v 1.9 2009/10/05 15:07:24 crc_canada Exp $
+$Id: CParseGeneral.h,v 1.10 2010/02/19 22:01:42 sdumoulin Exp $
 
 General header for VRML-parser (lexer/parser)
 
@@ -38,7 +38,7 @@ typedef int	vrmlBoolT;
 typedef struct SFColor	vrmlColorT;
 typedef struct SFColorRGBA	vrmlColorRGBAT;
 typedef float	vrmlFloatT;
-typedef int32_t	vrmlInt32T;
+typedef int 	vrmlInt32T;
 typedef struct Multi_Int32	vrmlImageT;
 typedef struct X3D_Node*	vrmlNodeT;
 typedef struct SFRotation	vrmlRotationT;

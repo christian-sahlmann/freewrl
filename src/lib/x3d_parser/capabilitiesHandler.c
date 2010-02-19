@@ -1,5 +1,5 @@
 /*
-  $Id: capabilitiesHandler.c,v 1.9 2009/10/26 10:54:19 couannette Exp $
+  $Id: capabilitiesHandler.c,v 1.10 2010/02/19 22:01:42 sdumoulin Exp $
 
   FreeWRL support library.
   X3D capabilities.
@@ -277,7 +277,8 @@ void handleProfile (int myProfile) {
 		ConsoleMessage ("Something wrong in handleProfile for profile %s\n",
 			stringProfileType(myProfile));
 	} else {
-		int comp, lev;
+		int comp; 
+		int lev;
 
 		myTable = (int *)profTable[i].profileTable;
 		/* go through the selected table, and see if each component is within range */
