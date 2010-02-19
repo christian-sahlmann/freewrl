@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.51 2010/02/19 14:42:21 crc_canada Exp $
+$Id: CRoutes.c,v 1.52 2010/02/19 16:51:14 crc_canada Exp $
 
 ???
 
@@ -54,6 +54,8 @@ $Id: CRoutes.c,v 1.51 2010/02/19 14:42:21 crc_canada Exp $
 #include "../input/EAIHelpers.h"		/* for verify_Uni_String */
 
 #include "CRoutes.h"
+
+#undef CRVERBOSE
 
 static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, int multitype);
 static void sendScriptEventIn(uintptr_t num);
@@ -322,7 +324,7 @@ static int initialEventBeforeRoutesCount = 0;
 static int preRouteTableSize = 0;
 struct initialRouteStruct {
 	struct X3D_Node *from;
-	unsigned int totalptr;
+	size_t totalptr;
 };
 static struct initialRouteStruct *preEvents = NULL;
 pthread_mutex_t  preRouteLock = PTHREAD_MUTEX_INITIALIZER;
@@ -345,12 +347,12 @@ pthread_mutex_t  insertRouteLock = PTHREAD_MUTEX_INITIALIZER;
 void markScriptResults(struct X3D_Node * tn, int tptr, int route, void * tonode) {
 	if (tptr != 0) {
 		#ifdef CRVERBOSE
-		printf ("markScriptResults: can update this node %d %d\n",tn,tptr); 
+		printf ("markScriptResults: can update this node %p %d\n",tn,tptr); 
 		#endif
 		update_node(tn);
 	#ifdef CRVERBOSE
 	} else {
-		printf ("markScriptResults: skipping this node %d %d flag %d\n",tn,tptr,CRoutes[route].direction_flag); 
+		printf ("markScriptResults: skipping this node %p %d flag %d\n",tn,tptr,CRoutes[route].direction_flag); 
 	#endif
 	}
 
@@ -425,7 +427,7 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 	fullname = JSparamnames[fptr].name;
 
 	#ifdef CRVERBOSE
-	printf ("\ngetting property for fullname %s, cx %d, interpobj %d script %d, fptr %d (%s:%s)\n",
+	printf ("\ngetting property for fullname %s, cx %p, interpobj %d script %d, fptr %d (%s:%s)\n",
 		fullname,cx,interpobj,actualscript, fptr,
 		JSparamnames[fptr].name, FIELDTYPES[JSparamnames[fptr].type]);
 	#endif
@@ -759,12 +761,12 @@ Register a new script for future routing
 
 ********************************************************************/
 
-void CRoutes_js_new (uintptr_t num, int scriptType) {
+void CRoutes_js_new (int num, int scriptType) {
 	/* record whether this is a javascript, class invocation, ... */
 	ScriptControl[num].thisScriptType = scriptType;
 
 	/* compare with a intptr_t, because we need to compare to -1 */
-	if ((intptr_t)num > max_script_found) max_script_found = (intptr_t)num;
+	if (num > max_script_found) max_script_found = num;
 }
 
 
@@ -777,7 +779,7 @@ stores ascii names with types (see code for type equivalences).
 ********************************************************************/
 
 int JSparamIndex (const char *name, const char *type) {
-	unsigned len;
+	size_t len;
 	int ty;
 	int ctr;
 
@@ -980,17 +982,13 @@ void CRoutes_Register(
 
 static void actually_do_CRoutes_Register() {
 	int insert_here, shifter;
-	char *buffer;
 	CRnodeStruct *to_ptr = NULL;
-	unsigned int to_counter;
-	int rv;				/* temp for sscanf rets */
-	long unsigned int toof;		/* used to help determine duplicate routes */
-	long unsigned int toN;
+	size_t toof;		/* used to help determine duplicate routes */
+	struct X3D_Node *toN;
 	indexT ind;
 
 	if (routesToRegister == NULL) return; /* should never get here, but... */
 
-#define CRVERBOSE
 #ifdef CRVERBOSE
 	printf ("actually_do_CRoutes_Register, vector size %d\n",vector_size(routesToRegister));
 #endif
@@ -1004,7 +1002,7 @@ static void actually_do_CRoutes_Register() {
 		printf ("CRoutes_Register adrem %d from %u ",newEntry->adrem, newEntry->from);
 		if (newEntry->from > JSMaxScript) printf ("(%s) ",stringNodeType(X3D_NODE(newEntry->from->_nodeType)));
 
-		printf ("off %u to %u intptr %u\n",
+		printf ("off %u to %u intptr %p\n",
 				newEntry->fromoffset, newEntry->to, newEntry->intptr);
 		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
 #endif
@@ -1073,10 +1071,10 @@ static void actually_do_CRoutes_Register() {
 			(CRoutes[insert_here].tonodes!=0)) {
 	
 			/* possible duplicate route */
-			/* rv=sscanf (newEntry->tonode_str, "%lu:%lu", &toN,&toof); */
-			toN = newEntry->to; toof = newEntry->toOfs;
+			toN = newEntry->to; 
+			toof = newEntry->toOfs;
 
-			if ((toN == ((uintptr_t)(CRoutes[insert_here].tonodes)->routeToNode)) &&
+			if ((toN == (CRoutes[insert_here].tonodes)->routeToNode) &&
 				(toof == (CRoutes[insert_here].tonodes)->foffset)) {
 				/* this IS a duplicate, now, what to do? */
 	
@@ -1185,7 +1183,7 @@ static void actually_do_CRoutes_Register() {
 
 #ifdef DEBUG_VALIDNODE
 /* only if DEBUG_VALIDNODE is defined; helps us find memory/routing problems */
-void mark_event_check (struct X3D_Node *from, unsigned int totalptr, char *fn, int line) {
+void mark_event_check (struct X3D_Node *from, unsigned size_t totalptr, char *fn, int line) {
 	printf ("mark_event_check: at %s:%d\n",fn,line);
 	if (X3D_NODE_CHECK(from)) {
 		#ifdef CRVERBOSE
@@ -1307,8 +1305,8 @@ eventOuts for this script
 
 static void gatherScriptEventOuts(void) {
 	int route;
-	unsigned int fptr;
-	unsigned int tptr;
+	size_t fptr;
+	int tptr;
 	unsigned len;
  	void * tn;
 	void * fn;
@@ -1335,7 +1333,7 @@ static void gatherScriptEventOuts(void) {
 	if (X3D_NODE(CRoutes[route].routeFromNode)->_nodeType == NODE_Script) {
 		struct X3D_Script *mys = X3D_SCRIPT(CRoutes[route].routeFromNode);
 		struct Shader_Script *sp = (struct Shader_Script *) mys->__scriptObj;
-		int actualscript = sp->num;
+		size_t actualscript = sp->num;
 
 		/* printf ("gatherEvents, found a script at element %d, it is script number %d and node %u\n",
 			route, actualscript,mys);  */
@@ -1388,7 +1386,7 @@ static void gatherScriptEventOuts(void) {
 			for (to_counter = 0; to_counter < CRoutes[route].tonode_count; to_counter++) {
 				to_ptr = &(CRoutes[route].tonodes[to_counter]);
 				tn = to_ptr->routeToNode;
-				tptr = to_ptr->foffset;
+				tptr = (int) to_ptr->foffset;
 
 				#ifdef CRVERBOSE 
 					printf ("%s script %d VALUE CHANGED! copy value and update %d\n",JSparamnames[fptr].name,actualscript,tn);
@@ -1409,7 +1407,7 @@ static void gatherScriptEventOuts(void) {
 		}
 
 		/* unset the touched flag */
-		resetScriptTouchedFlag (actualscript, fptr);
+		resetScriptTouchedFlag ((int) actualscript, (int) fptr);
 
 		/* REMOVE_ROOT(ScriptControl[actualscript].cx,global_return_val); */
 	}
@@ -1463,9 +1461,9 @@ static void sendScriptEventIn(uintptr_t num) {
 
 				/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
 				mark_script(myObj->num);
-				getField_ToJavascript(num,to_ptr->foffset);
+				getField_ToJavascript((int)num,to_ptr->foffset);
 			} else {
-				getField_ToShader(num);
+				getField_ToShader((int)num);
 			}
 		}
 	} else {
@@ -1555,7 +1553,8 @@ void propagate_events() {
 						/* copy the value over */
 						if (CRoutes[counter].len > 0) {
 						/* simple, fixed length copy */
-printf ("counter %d memcpy to %p offset %d, from %p offset %d, length %d\n",counter, to_ptr->routeToNode ,to_ptr->foffset, CRoutes[counter].routeFromNode , CRoutes[counter].fnptr, CRoutes[counter].len);
+printf ("counter %d memcpy to %p offset %d, from %p offset %u, length %u\n",counter, to_ptr->routeToNode ,to_ptr->foffset, CRoutes[counter].routeFromNode , 
+(unsigned int) CRoutes[counter].fnptr, (unsigned int) CRoutes[counter].len);
 							memcpy( offsetPointer_deref(void *,to_ptr->routeToNode ,to_ptr->foffset),
 								offsetPointer_deref(void *,CRoutes[counter].routeFromNode , CRoutes[counter].fnptr),
 								(unsigned)CRoutes[counter].len);
@@ -1651,7 +1650,7 @@ void process_eventsProcessed() {
 #if defined(_MSC_VER)
 			printf ("can not run eventsProcessed() for script %d thread %u\n",counter,(unsigned int)pthread_self().x);
 #else
-			printf ("can not run eventsProcessed() for script %d thread %u\n",counter,(unsigned int)pthread_self());
+			printf ("can not run eventsProcessed() for script %d thread %p\n",counter,pthread_self());
 #endif
 		}
 
@@ -1725,20 +1724,20 @@ int getRoutesCount(void) {
 	return CRoutes_Count;
 }
 
-void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset, 
-		uintptr_t *toNode, int *toOffset) {
+void getSpecificRoute (int routeNo, struct X3D_Node **fromNode, int *fromOffset, 
+		struct X3D_Node **toNode, int *toOffset) {
         CRnodeStruct *to_ptr = NULL;
 
 
 	if ((routeNo <1) || (routeNo >= CRoutes_Count)) {
-		*fromNode = 0; *fromOffset = 0; *toNode = 0; *toOffset = 0;
+		*fromNode = NULL; *fromOffset = 0; *toNode = NULL; *toOffset = 0;
 	}
 /*
 	printf ("getSpecificRoute, fromNode %d fromPtr %d tonode_count %d\n",
 		CRoutes[routeNo].routeFromNode, CRoutes[routeNo].fnptr, CRoutes[routeNo].tonode_count);
 */
-		*fromNode = (uintptr_t) CRoutes[routeNo].routeFromNode;
-		*fromOffset = CRoutes[routeNo].fnptr;
+		*fromNode = CRoutes[routeNo].routeFromNode;
+		*fromOffset = (int) CRoutes[routeNo].fnptr;
 	/* there is not a case where tonode_count != 1 for a valid route... */
 	if (CRoutes[routeNo].tonode_count != 1) {
 		printf ("huh? tonode count %d\n",CRoutes[routeNo].tonode_count);
@@ -1748,7 +1747,7 @@ void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset,
 
 	/* get the first toNode,toOffset */
         to_ptr = &(CRoutes[routeNo].tonodes[0]);
-        *toNode = (uintptr_t) to_ptr->routeToNode;
+        *toNode = to_ptr->routeToNode;
 	*toOffset = to_ptr->foffset;
 
 
@@ -1775,7 +1774,7 @@ void kill_routing (void) {
 
 /* internal variable to copy a C structure's Multi* field */
 static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, int multitype) {
-	unsigned int structlen;
+	size_t structlen;
 	unsigned int fromcount, tocount;
 	void *fromptr, *toptr;
 
@@ -1881,14 +1880,14 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 	memcpy (toptr,fromptr,structlen * fromcount);
 
 	/* is this an MFNode or SFNode? */
-	if (toNode != EAIListenerData) {
-	if (multitype==ROUTING_SFNODE) {
+	if (toNode != (struct X3D_Node*) EAIListenerData) {
+		if (multitype==ROUTING_SFNODE) {
 #ifdef CRVERBOSE
-		printf ("got a ROUTING_SFNODE, adding %u to %u\n",(unsigned int) fn, (unsigned int) toNode);
+			printf ("got a ROUTING_SFNODE, adding %u to %u\n",(unsigned int) fn, (unsigned int) toNode);
 #endif
-		ADD_PARENT(X3D_NODE(fn),toNode);
-	}
-	if (multitype==ROUTING_MFNODE) {
+			ADD_PARENT(X3D_NODE(fn),toNode);
+		}
+		if (multitype==ROUTING_MFNODE) {
 			int count;
 			struct X3D_Node **arrptr = (struct X3D_Node **)mv3ffn->p;
 
@@ -1906,7 +1905,7 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 
 				ADD_PARENT(arrptr[count],toNode);
 			}
-	}
+		}
 	}
 }
 
@@ -1968,21 +1967,22 @@ printf ("returnSpecific, requested %d, %s\n",requestedType,stringFieldtypeType(r
                  #define SF_TYPE(fttype, type, ttype) \
                         case FIELDTYPE_##fttype: \
 			rv = createNewX3DNode(NODE_Metadata##fttype); \
-			*offsetOfsetValue = offsetof (struct X3D_Metadata##fttype, setValue); \
-			*offsetOfvalueChanged = offsetof (struct X3D_Metadata##fttype, valueChanged); \
+			*offsetOfsetValue = (int) offsetof (struct X3D_Metadata##fttype, setValue); \
+			*offsetOfvalueChanged = (int) offsetof (struct X3D_Metadata##fttype, valueChanged); \
 			break; 
 
                         #define MF_TYPE(fttype, type, ttype) \
                                 SF_TYPE(fttype, type, ttype)
 
                         #include "VrmlTypeList.h"
+
                         #undef SF_TYPE
                         #undef MF_TYPE
 			default: {
 				printf ("returnSpecific, not found %d\n",requestedType);
 			}
 	}
-printf ("returning rv %u type %s\n",rv,stringNodeType(rv->_nodeType));
+printf ("returning rv %p type %s\n",rv,stringNodeType(rv->_nodeType));
 	return rv;
 }
 

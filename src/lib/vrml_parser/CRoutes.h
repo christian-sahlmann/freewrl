@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.h,v 1.5 2010/02/15 21:45:01 crc_canada Exp $
+$Id: CRoutes.h,v 1.6 2010/02/19 16:51:14 crc_canada Exp $
 
 VRML-parsing routines in C.
 
@@ -54,8 +54,13 @@ extern struct CRStruct *CRoutes;
 
 /* function protos */
 int get_valueChanged_flag (uintptr_t, uintptr_t);
+void getSpecificRoute (int routeNo, struct X3D_Node **fromNode, int *fromOffset, struct X3D_Node **toNode, int *toOffset);
 
 void mark_event (struct X3D_Node *from, size_t fromoffset);
 void mark_event_check (struct X3D_Node *from, size_t fromoffset,char *fn, int line);
+
+void CRoutes_js_new (int num,int scriptType);
+extern int max_script_found;
+extern int max_script_found_and_initialized;
 
 #endif /* __FREEWRL_CROUTES_H__ */

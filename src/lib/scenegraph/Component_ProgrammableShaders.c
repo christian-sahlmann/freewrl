@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.38 2010/02/10 20:09:49 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.39 2010/02/19 16:51:14 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -771,7 +771,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 		myVar = GET_UNIFORM(myShader,myShaderTextureName);
 		if (myVar != INT_ID_UNDEFINED) {
 			/* printf ("for texture %s, we got %d\n", myShaderTextureName,myVar); */
-			GLUNIFORM1I(myVar,i);
+			GLUNIFORM1I(myVar,(int) i);
 		}
 	}
 
