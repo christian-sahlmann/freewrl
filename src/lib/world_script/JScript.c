@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.20 2009/12/02 21:00:46 crc_canada Exp $
+$Id: JScript.c,v 1.21 2010/02/22 21:45:26 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -147,9 +147,19 @@ int MAXJSparamNames = 0;
 
 /* housekeeping routines */
 void kill_javascript(void) {
+	int i;
+
 	/* printf ("calling kill_javascript()\n"); */
 	zeroScriptHandles();
 	if (runtime != NULL) {
+		for (i=0; i<=max_script_found_and_initialized; i++) {
+			/* printf ("kill_javascript, looking at %d\n",i); */
+			if (ScriptControl[i].cx != 0) {
+				/* printf ("kill_javascript, context is %p\n",ScriptControl[i].cx); */
+				JS_DestroyContextMaybeGC(ScriptControl[i].cx);
+			}
+		}
+
 		JS_DestroyRuntime(runtime);
 		runtime = NULL;
 	}
@@ -231,7 +241,7 @@ void JSInitializeScriptAndFields (uintptr_t num) {
 
 	/* printf ("JSInitializeScriptAndFields script %d, thread %u\n",num,pthread_self());   */
 	/* run through paramList, and run the script */
-	/* printf ("JSInitializeScriptAndFields, running through params and main script\n"); */
+	/* printf ("JSInitializeScriptAndFields, running through params and main script\n");  */
 	if (num >= JSMaxScript)  {
 		ConsoleMessage ("JSInitializeScriptAndFields: warning, script %d initialization out of order",num);
 		return;
@@ -239,7 +249,7 @@ void JSInitializeScriptAndFields (uintptr_t num) {
 	/* run through fields in order of entry in the X3D file */
         thisEntry = ScriptControl[num].paramList;
         while (thisEntry != NULL) {
-		/* printf ("script field is %s\n",thisEntry->field);  */
+		/* printf ("script field is %s\n",thisEntry->field); */
 		InitScriptField(num, thisEntry->kind, thisEntry->type, thisEntry->field, thisEntry->value);
 
 		/* get the next block; free the current name, current block, and make current = next */
@@ -261,6 +271,7 @@ void JSInitializeScriptAndFields (uintptr_t num) {
 	FREE_IF_NZ(ScriptControl[num].scriptText);
 	ScriptControl[num]._initialized = TRUE;
 	ScriptControl[num].scriptOK = TRUE;
+
 }
 
 /* create the script context for this script. This is called from the thread
@@ -624,6 +635,7 @@ void SaveScriptField (int num, indexT kind, indexT type, const char* field, unio
 	newEntry->value = value;
 }
 
+
 /* the EventLoop is initializing this field now */
 void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value) {
 	jsval rval;
@@ -639,7 +651,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 
 	int tlen;
 	float *FloatPtr;
-	uintptr_t  *VoidPtr;
+	struct X3D_Node *VoidPtr;
 	int *IntPtr;
 	double *DoublePtr;
 	struct Uni_String **SVPtr;
@@ -736,10 +748,10 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 			if (kind == PKW_initializeOnly) {
 				switch (type) {
 					case FIELDTYPE_SFImage:
-						VoidPtr = (uintptr_t *) (&(value.sfimage)); elements = 1;
+						VoidPtr = (struct X3D_Node *) (&(value.sfimage)); elements = 1;
 						break;
 					case FIELDTYPE_SFNode:
-						VoidPtr = (uintptr_t *) (&(value.sfnode)); elements = 1;
+						VoidPtr = (struct X3D_Node *) (&(value.sfnode)); elements = 1;
 						break;
 					case FIELDTYPE_MFColor:
 						FloatPtr = (float *) value.mfcolor.p; elements = value.mfcolor.n;
@@ -787,7 +799,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 						IntPtr = value.mfint32.p; elements = value.mfint32.n;
 						break;
 					case FIELDTYPE_MFNode:
-						VoidPtr = ((uintptr_t*)(value.mfnode.p)); elements = value.mfnode.n;
+						VoidPtr = (struct X3D_Node *)(value.mfnode.p); elements = value.mfnode.n;
 						break;
 					case FIELDTYPE_MFFloat: 
 						FloatPtr = value.mffloat.p; elements = value.mffloat.n;
@@ -812,8 +824,6 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 					/* Void types */
 					case FIELDTYPE_SFNode:
 					case FIELDTYPE_MFNode:
-						VoidPtr = defaultVoid; 
-						/* elements = 0; */
 						break;
 
 					/* Float types */
@@ -920,7 +930,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 						sptr[0] = *SVPtr; SVPtr++;
 						sprintf (thisValue,"\"%s\"",sptr[0]->strptr);
 					} else { /* must be a Void */
-						sprintf (thisValue,"%d",*VoidPtr); VoidPtr++;
+						sprintf (thisValue,"%p",*VoidPtr); VoidPtr++;
 					}
 					strcat (smallfield, thisValue);
 					if (rowCount < (rows-1)) strcat (smallfield,",");

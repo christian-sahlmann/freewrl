@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.28 2010/02/19 20:51:53 crc_canada Exp $
+$Id: fieldGet.c,v 1.29 2010/02/22 21:45:27 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -57,6 +57,10 @@ Javascript C language binding.
 #include "fieldGet.h"
 #define offsetPointer_deref(t, me, offs) ((t)(((char*)(me))+offs))
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
+
+
+
+
 /********************************************************************
 
 getField_ToJavascript.
@@ -738,188 +742,6 @@ int setMFElementtype (uintptr_t num) {
 	return FALSE; /* return value never checked; #defines expect a return value */
 }
 
-
-#ifdef OLDCODE
-void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
-
-    int tn, tptr;
-    char scriptline[2000];
-    char sline[100];
-    jsval retval;
-    int x;
-    int elementlen;
-    float *fp;
-    int *ip;
-    double *dp;
-
-    JSContext *cx;
-    JSObject *obj;
-
-    #ifdef SETFIELDVERBOSE 
-	printf("------------BEGIN set_EAI_MFElementtype ---------------\n");
-    #endif
-
-
-    tn   = num;
-    tptr = offset;
-
-    #ifdef SETFIELDVERBOSE 
-	printf ("got a script event! index %d\n",num);
-	printf ("\tto %#x toptr %#x\n",tn,tptr);
-	printf ("\tdata length %d\n",len);
-	printf ("and, sending it to %s\n",JSparamnames[tptr].name);
-    #endif
-
-    /* get context and global object for this script */
-    cx = (JSContext *) ScriptControl[tn].cx;
-    obj = (JSObject *)ScriptControl[tn].glob;
-    SET_JS_TICKTIME()
-
-    /* make up the name */
-    sprintf (scriptline,"%s(",JSparamnames[tptr].name);
-    switch (JSparamnames[tptr].type) {
-      case FIELDTYPE_MFVec3f: {
-	  strcat (scriptline, "new MFVec3f(");
-	  elementlen = sizeof (float) * 3;
-	  for (x=0; x<(len/elementlen); x++) {
-	      fp = (float *)pptr;
-	      sprintf (sline,"%f %f %f",*fp,
-		       *(fp+elementlen),
-		       *(fp+(elementlen*2)));
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case FIELDTYPE_MFColor: {
-	  strcat (scriptline, "new MFColor(");
-	  elementlen = sizeof (float) * 3;
-	  for (x=0; x<(len/elementlen); x++) {
-	      fp = (float *)pptr;
-	      sprintf (sline,"%f %f %f",*fp,
-		       *(fp+elementlen),
-		       *(fp+(elementlen*2)));
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case FIELDTYPE_MFFloat: {
-	  strcat (scriptline, "new MFFloat(");
-	  elementlen = sizeof (float);
-	  for (x=0; x<(len/elementlen); x++) {
-	      fp = (float *)pptr;
-	      sprintf (sline,"%f",*fp);
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-
-	  break;
-      }
-      case FIELDTYPE_MFTime:  {
-	  strcat (scriptline, "new MFTime(");
-	  elementlen = sizeof (double);
-	  for (x=0; x<(len/elementlen); x++) {
-	      dp = (double *)pptr;
-	      sprintf (sline,"%lf",*dp);
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case FIELDTYPE_MFInt32: {
-	  strcat (scriptline, "new MFInt32(");
-	  elementlen = sizeof (int);
-	  for (x=0; x<(len/elementlen); x++) {
-	      ip = (int *)pptr;
-	      sprintf (sline,"%d",*ip);
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case FIELDTYPE_MFString:{
-	  strcat (scriptline, "new MFString(");
-	  elementlen = sizeof (float);
-	  printf ("ScriptAssign, MFString probably broken\n");
-	  for (x=0; x<(len/elementlen); x++) {
-	      fp = (float *)pptr;
-	      sprintf (sline,"%f",*fp);
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case FIELDTYPE_MFNode:  {
-	  strcat (scriptline, "new MFNode(");
-	  elementlen = sizeof (int);
-	  for (x=0; x<(len/elementlen); x++) {
-	      ip = (int *)pptr;
-	      sprintf (sline,"%u",*ip);
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case FIELDTYPE_MFRotation: {	strcat (scriptline, "new MFRotation(");
-      elementlen = sizeof (float)*4;
-      for (x=0; x<(len/elementlen); x++) {
-	  fp = (float *)pptr;
-	  sprintf (sline,"%f %f %f %f",*fp,
-		   *(fp+elementlen),
-		   *(fp+(elementlen*2)),
-		   *(fp+(elementlen*3)));
-	  sprintf (sline,"%f",*fp);
-	  if (x < ((len/elementlen)-1)) {
-	      strcat(sline,",");
-	  }
-	  pptr += elementlen;
-	  strcat (scriptline,sline);
-      }
-      break;
-      }
-      default: {
-	  printf ("setMFElement, SHOULD NOT DISPLAY THIS\n");
-	  strcat (scriptline,"(");
-      }
-    }
-
-    /* convert these values to a jsval type */
-    strcat (scriptline,"))");
-
-    #ifdef SETFIELDVERBOSE 
-	printf("ScriptLine: %s\n",scriptline);
-    #endif
-
-    if (!ACTUALRUNSCRIPT(tn,scriptline,&retval))
-      printf ("AR failed in setxx\n");
-
-    #ifdef SETFIELDVERBOSE 
-	printf("------------END set_EAI_MFElementtype ---------------\n");
-    #endif
-}
-#endif /* OLDCODE */
 
 /****************************************************************/
 /* sets a SFVec3f and SFColor and SFVec3d 			*/
