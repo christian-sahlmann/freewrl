@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\lib\windows\pthreads.2"
-				PreprocessorDefinitions="FW_DEBUG;WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="W_DEBUG;WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
