@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.10 2010/02/05 21:41:37 crc_canada Exp $
+  $Id: statusbarHud.c,v 1.11 2010/02/23 00:44:11 dug9 Exp $
 
 */
 
@@ -820,7 +820,7 @@ XY bmWH = {10,15}; /* simple bitmap font from redbook above, width and height in
 void initFont(void)
 {
 	/*initialize raster bitmap font above */
-   glShadeModel (GL_FLAT);
+  // glShadeModel (GL_FLAT);
    fwMakeRasterFonts();
    fontInitialized = 1;
 }
@@ -900,6 +900,7 @@ char * optionsVal[15];
 void setOptionsVal()
 {
 }
+static char * RGBACM = "RGBACM";
 void initOptionsVal()
 {
 	int i,j;
@@ -1640,6 +1641,7 @@ M       void toggle_collision()                             //"
 		FW_GL_WINDOWPOS2I(300,0);
 		printString(messagebar);
 	}
+	FW_GL_SHADEMODEL(GL_FLAT);
 	if(butStatus[8]) printKeyboardHelp();
 	if(butStatus[9]) printConsoleText();
 	if(butStatus[10]) printOptions();
@@ -1647,6 +1649,7 @@ M       void toggle_collision()                             //"
 	FW_GL_DEPTHMASK(TRUE);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
 	FW_GL_FLUSH();
+	FW_GL_SHADEMODEL(GL_SMOOTH);
 
 }
 #endif

@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.42 2010/02/18 19:55:40 sdumoulin Exp $
+  $Id: display.c,v 1.43 2010/02/23 00:44:11 dug9 Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -231,6 +231,17 @@ bool initialize_rdr_caps()
         rdr_caps.version    = (char *) glGetString(GL_VERSION);
         rdr_caps.vendor     = (char *) glGetString(GL_VENDOR);
 	rdr_caps.extensions = (char *) glGetString(GL_EXTENSIONS);
+	/* rdr_caps.version = "1.5.7"; //"1.4.1"; //for testing */
+    rdr_caps.versionf = atof(rdr_caps.version); 
+	/* atof technique: http://www.opengl.org/resources/faq/technical/extensions.htm */
+    rdr_caps.have_GL_VERSION_1_1 = rdr_caps.versionf >= 1.1f;
+    rdr_caps.have_GL_VERSION_1_2 = rdr_caps.versionf >= 1.2f;
+    rdr_caps.have_GL_VERSION_1_3 = rdr_caps.versionf >= 1.3f;
+    rdr_caps.have_GL_VERSION_1_4 = rdr_caps.versionf >= 1.4f;
+    rdr_caps.have_GL_VERSION_1_5 = rdr_caps.versionf >= 1.5f;
+    rdr_caps.have_GL_VERSION_2_0 = rdr_caps.versionf >= 2.0f;
+    rdr_caps.have_GL_VERSION_2_1 = rdr_caps.versionf >= 2.1f;
+    rdr_caps.have_GL_VERSION_3_0 = rdr_caps.versionf >= 3.0f;
 
 #ifdef HAVE_LIBGLEW
 
@@ -238,6 +249,7 @@ bool initialize_rdr_caps()
 	{
 	GLenum err;
 	err = glewInit();
+    printf("opengl version=%s\n",rdr_caps.version);
 	if (GLEW_OK != err) {
 		/* Problem: glewInit failed, something is seriously wrong. */
 		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));

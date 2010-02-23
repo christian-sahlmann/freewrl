@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.13 2009/11/29 23:04:16 dug9 Exp $
+  $Id: threads.c,v 1.14 2010/02/23 00:44:11 dug9 Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -77,7 +77,7 @@ void initializeDisplayThread()
 		return;
 	}
 
-#if !defined(TARGET_AQUA) && !defined(TARGET_WIN32)
+#if !defined(TARGET_AQUA) && !defined(_MSC_VER) //TARGET_WIN32)
 	if (global_trace_threads) {
 		TRACE_MSG("initializeDisplayThread: waiting for display to become initialized...\n");
 		while (IS_DISPLAY_INITIALIZED == FALSE) {

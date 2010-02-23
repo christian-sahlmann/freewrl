@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.104 2010/02/19 18:09:46 crc_canada Exp $
+  $Id: MainLoop.c,v 1.105 2010/02/23 00:44:11 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -414,7 +414,7 @@ OLDCODE        }
 	}
 #endif //defined(TARGET_MOTIF)
 
-#if defined(TARGET_WIN32)
+#if defined(_MSC_VER) //TARGET_WIN32)
 	/**
 	 *   Win32 event loop
 	 *   gives windows message handler a time slice and 
@@ -768,9 +768,13 @@ void setup_projection(int pick, int x, int y)
 
 		//printf("should be setting viewport to %d %d\n", screenwidth2, screenHeight);
 		//FW_GL_VIEWPORT(xvp,clipPlane,screenwidth2,screenHeight);
+#ifdef AQUA
+#if !defined(IPHONE) 
                 myglobalContext = CGLGetCurrentContext();
 		//printf("global context is %u\n", myglobalContext);
 		CGLSetCurrentContext(myglobalContext);
+#endif
+#endif
 		glViewport(xvp, clipPlane, screenwidth2, screenHeight);
 		/*
 		if (myglobalContext != NULL)
@@ -1846,7 +1850,11 @@ void stopRenderingLoop(void) {
     	stopDisplayThread();
     	//killErrantChildren();
 	/* lets do an equivalent to replaceWorldNeeded, but with NULL for the new world */
+#ifdef AQUA
+#if !defined(IPHONE) 
 	myglobalContext = NULL;
+#endif
+#endif
         AnchorsAnchor = NULL;
         BrowserAction = TRUE;
         FREE_IF_NZ(OSX_replace_world_from_console);

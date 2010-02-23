@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.57 2010/02/17 16:22:42 sdumoulin Exp $
+  $Id: display.h,v 1.58 2010/02/23 00:44:11 dug9 Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -55,7 +55,7 @@ extern int ocurse;
 #endif /* defined IPHONE */
 #endif /* defined TARGET_AQUA */
 
-#ifdef TARGET_WIN32
+#ifdef _MSC_VER //TARGET_WIN32
 #ifndef AQUA
 
 /* Nothing special :P ... */
@@ -151,6 +151,15 @@ typedef struct {
 	const char *version;
 	const char *vendor;
 	const char *extensions;
+	float versionf;
+	bool have_GL_VERSION_1_1;
+	bool have_GL_VERSION_1_2;
+	bool have_GL_VERSION_1_3;
+	bool have_GL_VERSION_1_4;
+	bool have_GL_VERSION_1_5;
+	bool have_GL_VERSION_2_0;
+	bool have_GL_VERSION_2_1;
+	bool have_GL_VERSION_3_0;
 
 	bool av_multitexture; /* Multi textures available ? */
 	bool av_glsl_shaders; /* GLSL shaders available ? */ 

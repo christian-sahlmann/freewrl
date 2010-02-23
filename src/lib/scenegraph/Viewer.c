@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.44 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Viewer.c,v 1.45 2010/02/23 00:44:11 dug9 Exp $
 
 CProto ???
 
@@ -1195,6 +1195,7 @@ int initAnaglyphShaders()
 	};
 
 	const GLchar **src[6];
+	if(!rdr_caps.have_GL_VERSION_2_0) return 0;
 	src[0] = shaderSrc_R;
 	src[1] = shaderSrc_G;
 	src[2] = shaderSrc_B;
