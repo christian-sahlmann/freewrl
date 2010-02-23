@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.17 2010/02/23 02:04:14 dug9 Exp $
+  $Id: fwWindow32.c,v 1.18 2010/02/23 02:31:10 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -8,10 +8,6 @@
 /* #define WIN32_LEAN_AND_MEAN 1*/
 
 #include <windows.h>
-/*
-#include <winuser.h>
-#include <wingdi.h>
-*/
 
 
 #include <config.h>
@@ -29,16 +25,7 @@ HWND  ghWnd;   /* on a hunch I made these static so they are once per program */
 HDC   ghDC; 
 HGLRC ghRC; 
 
-#define BLACK_INDEX     0 
-#define RED_INDEX       13 
-#define GREEN_INDEX     14 
-#define BLUE_INDEX      16 
-#define WIDTH           300 
-#define HEIGHT          200 
-
-
 void do_keyPress(const char kp, int type);
-
 
 /* from Blender GHOST_SystemWin32.cpp: Key code values not found in winuser.h */
 #ifndef VK_MINUS
@@ -81,10 +68,6 @@ void do_keyPress(const char kp, int type);
 
 
 static int oldx = 0, oldy = 0;
-
-/* #undef XTDEBUG */
-
-/* static int screen; */
 extern int shutterGlasses;
 
 int button[5];
@@ -92,163 +75,10 @@ int mouseX, mouseY;
 
 static short gcWheelDelta = 0;
 
-/* >>> statusbar hud - these moved to statusbar.c 
-void setMenuButton_collision(int val){}
-void setMenuButton_texSize(int size){}
-void setMenuButton_headlight(int val){}
-void setMenuButton_navModes(int type){}
-void setMessageBar()
-{
-}
-void setMenuStatus(char *stat) {
-    //strncpy (myMenuStatus, stat, MAXSTAT);
-    setMessageBar();
-}
-
-void setMenuFps (float fps) {
-    myFps = fps;
-    setMessageBar();
-}
-
-*/
-
-GLfloat latitude, longitude, latinc, longinc; 
-GLDOUBLE radius; 
- 
-
-#define GLOBE    1 
-#define CYLINDER 2 
-#define CONE     3 
-
-void pause()
-{
-    printf(":");
-    getchar();
-}
-
-GLvoid createObjects() 
-{ 
-    GLUquadricObj *quadObj; 
- 
-    glNewList(GLOBE, GL_COMPILE); 
-    quadObj = gluNewQuadric (); 
-    gluQuadricDrawStyle (quadObj, GLU_LINE); 
-    gluSphere (quadObj, 1.5, 16, 16); 
-    glEndList(); 
- 
-    /*
-      glNewList(CONE, GL_COMPILE); 
-      quadObj = gluNewQuadric (); 
-      gluQuadricDrawStyle (quadObj, GLU_FILL); 
-      gluQuadricNormals (quadObj, GLU_SMOOTH); 
-      gluCylinder(quadObj, 0.3, 0.0, 0.6, 15, 10); 
-      glEndList(); 
-    */
-    glNewList(CYLINDER, GL_COMPILE); 
-    FW_GL_PUSH_MATRIX(); 
-    FW_GL_ROTATE_F((GLfloat)90.0, (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0.0); 
-    FW_GL_TRANSLATE_F((GLfloat)0.0, (GLfloat)0.0, (GLfloat)-1.0); 
-    quadObj = gluNewQuadric (); 
-    gluQuadricDrawStyle (quadObj, GLU_FILL); 
-    gluQuadricNormals (quadObj, GLU_SMOOTH); 
-    gluCylinder (quadObj, 0.3, 0.3, 0.6, 12, 2); 
-    FW_GL_POP_MATRIX(); 
-    glEndList(); 
-}
-
-GLvoid initializeGL(GLsizei width, GLsizei height) 
-{ 
-    GLfloat     maxObjectSize, aspect; 
-    GLDOUBLE    near_plane, far_plane; 
- 
-    glClearIndex( (GLfloat)BLACK_INDEX); 
-    glClearDepth( 1.0 ); 
- 
-    FW_GL_ENABLE(GL_DEPTH_TEST); 
- 
-    FW_GL_MATRIX_MODE( GL_PROJECTION ); 
-    FW_GL_LOAD_IDENTITY(); /*inserted by doug*/
-
-    aspect = (GLfloat) width / height; 
-    gluPerspective( 45.0, aspect, .3, 700.0 ); 
-    FW_GL_MATRIX_MODE( GL_MODELVIEW ); 
- 
-    near_plane = 3.0; 
-    far_plane = 7.0; 
-    maxObjectSize = 3.0F; 
-    radius = near_plane + maxObjectSize/2.0; 
- 
-    latitude = 0.0F; 
-    longitude = 0.0F; 
-    latinc = 6.0F; 
-    longinc = 2.5F; 
- 
-    createObjects(); 
-} 
- 
-void polarView(GLDOUBLE radius, GLDOUBLE twist, GLDOUBLE latitude, 
-	       GLDOUBLE longitude) 
-{ 
-    FW_GL_TRANSLATE_D(0.0, 0.0, -radius); 
-    FW_GL_ROTATE_D(-twist, 0.0, 0.0, 1.0); 
-    FW_GL_ROTATE_D(-latitude, 1.0, 0.0, 0.0); 
-    FW_GL_ROTATE_D(longitude, 0.0, 0.0, 1.0);      
- 
-} 
- 
-GLvoid drawScene(GLvoid) 
-{ 
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); 
- 
-    FW_GL_PUSH_MATRIX(); 
- 
-    latitude += latinc; 
-    longitude += longinc; 
- 
-    polarView( radius, 0, latitude, longitude ); 
- 
-    glIndexi(RED_INDEX); 
-    glCallList(CONE); 
- 
-    glIndexi(BLUE_INDEX); 
-    glCallList(GLOBE); 
- 
-    glIndexi(GREEN_INDEX); 
-    FW_GL_PUSH_MATRIX(); 
-    FW_GL_TRANSLATE_F(0.8F, -0.65F, 0.0F); 
-    FW_GL_ROTATE_F(30.0F, 1.0F, 0.5F, 1.0F); 
-    glCallList(CYLINDER); 
-    FW_GL_POP_MATRIX(); 
- 
-    FW_GL_POP_MATRIX(); 
-
-    SwapBuffers(wglGetCurrentDC());
-} 
-
 void swapbuffers32()
 {
-	static int swapcount = 0;
-   PAINTSTRUCT ps;
-	RECT rect;
-	swapcount++;
-    /*
-	GetClientRect(ghWnd, &rect); 
-	glDrawBuffer(GL_BACK);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	initializeGL(rect.right, rect.bottom);
-	*/
-	/* drawScene(); */
 	ghDC = wglGetCurrentDC();
-
-    /*TextOut( ghDC, 10, 10, "Hello, Windows!", 13 ); */
-
-	SwapBuffers(ghDC); /* ghDC); /*( SWAPBUFFERS; */
-	/*
-	GetClientRect(ghWnd, &rect); 
-	initializeGL(rect.right, rect.bottom);
-	drawScene();
-	/* glFinish(); */
-
+	SwapBuffers(ghDC); 
 }
 
 
@@ -452,21 +282,14 @@ BOOL bSetupPixelFormat(HDC hdc)
  */
 bool create_GLcontext()
 {	
-	RECT rect; 
-	GLenum err;
-	BOOL bb;
-	
 	fw_thread_dump();
-
 	printf("starting createcontext32\n");
-
 	ghDC = GetDC(ghWnd); 
 	printf("got hdc\n");
 	if (!bSetupPixelFormat(ghDC))
 		printf("ouch - bSetupPixelFormat failed\n");
 	ghRC = wglCreateContext(ghDC); 
 	printf("created context\n");
-
 	return TRUE;
 }
 
@@ -476,20 +299,13 @@ bool create_GLcontext()
  */
 bool bind_GLcontext()
 {
-    BOOL bb;
-    HWND hWnd;
 	RECT rect;
-	//hWnd = gHwnd;
 	fw_thread_dump();
 
 	if (wglMakeCurrent(ghDC, ghRC)) {
-		//printf("made current %u\n", bb);
 		GetClientRect(ghWnd, &rect); 
 		screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 		screenHeight = rect.bottom;
-		/* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
-		initializeGL(rect.right, rect.bottom); 
-
 		return TRUE;
 	}
 
@@ -511,78 +327,15 @@ LRESULT CALLBACK PopupWndProc(
     char kp;
     int mev,err;
     int butnum;
-    /*
-      short cmd;
-      WORD uDevice;
-      int dwKeys;
-      printf("msg=%ld ",(long)msg);
-      if( wParam ) printf(" %ld ",(long)wParam);
-      cmd  = GET_APPCOMMAND_LPARAM(lParam);
-      uDevice = GET_DEVICE_LPARAM(lParam);
-      dwKeys = GET_KEYSTATE_LPARAM(lParam);
-      printf(" %ld %ld %ld",(long)cmd, (long)uDevice, (long) dwKeys);
-      printf("\n");
-    */
     mev = 0;
     butnum = 0;
     ghWnd = hWnd;
     switch( msg ) {
 
     case WM_CREATE: 
-
-	if(0)
-	{
-	//old code
-	ghDC = GetDC(hWnd); 
-	if (!bSetupPixelFormat(ghDC)) 
-	    PostQuitMessage (0); 
-	printf("WM_Create happening now\n");
-	ghRC = wglCreateContext(ghDC); 
-	wglMakeCurrent(ghDC, ghRC); 
-	GetClientRect(hWnd, &rect); 
-    err = glewInit();
-    if (GLEW_OK != err)
-    {
-	/* Problem: glewInit failed, something is seriously wrong. */
-	printf("Error: %s\n", glewGetErrorString(err));
-	 
-    }
-    printf( "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-
-	screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-	screenHeight = rect.bottom;
-	/* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
-	initializeGL(rect.right, rect.bottom); 
-	}
-	else
-	{
-		//new code
 	printf("wm_create\n");
-	/*	   
-	ghDC = GetDC(hWnd); 
-	if (!bSetupPixelFormat(ghDC)) 
-	    PostQuitMessage (0); 
-	printf("WM_Create happening now\n");
-	*/
-	/* OpenGL init : done in display_initialize 
-
-	   maybe this can be done synchronously ?
-	   maybe not....
-
-	 */
-
 	create_GLcontext();
 	bind_GLcontext();
-
-	/* GLEW init : done in initialize_rdr_caps */
-	//initialize_rdr_caps(); done elsewhere
-	//initialize_rdr_functions();
-	//screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-	//screenHeight = rect.bottom;
-	///* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
-	//initializeGL(rect.right, rect.bottom); 
-	}
-			
 	break; 
  
     case WM_SIZE: 
@@ -604,15 +357,10 @@ LRESULT CALLBACK PopupWndProc(
 
 	/* ???? do we have to recreate an OpenGL context 
 	   when display mode changed ? */
-
 	ghRC = wglCreateContext(ghDC); 
 	wglMakeCurrent(ghDC, ghRC); 
 	GetClientRect(hWnd, &rect); 
 
-	//screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-	//screenHeight = rect.bottom;
-	///* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
-	//initializeGL(rect.right, rect.bottom); 
 	break; 
 
     case WM_CLOSE: 
@@ -807,26 +555,6 @@ int doEventsWin32A()
     return FALSE;
 }
 
-int getEventsWin32(int* ButDown,int len,int* currentX,int* currentY)
-{
-    int res;
-    int i;
-    res = doEventsWin32A();
-    for(i=0;i<len;i++)
-	ButDown[i] = button[i];
-    (*currentX) = mouseX;
-    (*currentY) = mouseY;
-    return TRUE;
-	
-}
-
-int startMessageLoop()
-{
-    while(1)
-	if(doEventsWin32A()) return TRUE;
-    drawScene();
-    return FALSE;
-}
 
 void resetGeometry()
 {
