@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.33 2010/02/19 20:51:54 crc_canada Exp $
+  $Id: fieldSet.c,v 1.34 2010/02/23 18:39:45 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -144,7 +144,7 @@ This is used mainly in parsing */
 
 void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, int isXML) {
 	int foffset;
-	size_t coffset;
+	int coffset;
 	int ctype;
 	int ctmp;
 
@@ -185,9 +185,8 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 		}
 	}
 
-	Parser_scanStringValueToMem(node, coffset, ctype, value, isXML);
+	Parser_scanStringValueToMem(node, (size_t) coffset, ctype, value, isXML);
 }
-
 
 /* and incoming EAI event has come in, and the destination is an inputOnly field of a script.
    Make It So. This mimics the routing function "getField_ToJavascript" except that we do not
@@ -691,7 +690,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 		strcat (mychar,"_changed");
 		retval = findFieldInARR(mychar, arr, cnt);
 	}
-	/* printf ("findRoutedField, mychar %s retval %d\n",mychar,retval); */
+	printf ("findRoutedField, mychar %s retval %d\n",mychar,retval);
 	FIELDCHECK (mychar)
 
 

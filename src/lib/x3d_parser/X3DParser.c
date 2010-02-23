@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.62 2010/02/15 17:58:43 crc_canada Exp $
+$Id: X3DParser.c,v 1.63 2010/02/23 18:39:45 crc_canada Exp $
 
 ???
 
@@ -592,9 +592,6 @@ static void parseRoutes (const char **atts) {
 	printf ("now routing from a %s to a %s \n",stringFieldtypeType(fromType), stringFieldtypeType(toType));
 	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
 	#endif
-
-	printf ("now routing from a %s to a %s \n",stringFieldtypeType(fromType), stringFieldtypeType(toType));
-	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
 
 	/* are the types the same? */
 	if (fromType != toType) {

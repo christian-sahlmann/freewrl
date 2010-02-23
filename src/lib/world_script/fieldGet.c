@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.29 2010/02/22 21:45:27 crc_canada Exp $
+$Id: fieldGet.c,v 1.30 2010/02/23 18:39:45 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -55,7 +55,6 @@ Javascript C language binding.
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
 #include "fieldGet.h"
-#define offsetPointer_deref(t, me, offs) ((t)(((char*)(me))+offs))
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
 
 

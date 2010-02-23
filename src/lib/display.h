@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.58 2010/02/23 00:44:11 dug9 Exp $
+  $Id: display.h,v 1.59 2010/02/23 18:39:45 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -313,16 +313,25 @@ void getMotifWindowedGLwin(Window *win);
  */
 
 extern GLenum _global_gl_err;
-#ifndef IPHONE
-#define GL_ERROR_MSG gluErrorString(glGetError())
-#define PRINT_GL_ERROR_IF_ANY(_where) do { if (global_print_opengl_errors) { \
+#ifdef IPHONE
+#define PRINT_GL_ERROR_IF_ANY(_where) if (global_print_opengl_errors) { \
                                               GLenum _global_gl_err = glGetError(); \
-                                              if (_global_gl_err != GL_NO_ERROR) { \
+                                              while (_global_gl_err != GL_NO_ERROR) { \
+						printf ("OpenGL_ES 2.0 error %d (%s), at %s:%d\n",_global_gl_err, _where, __FILE__,__LINE__); \
+                                                _global_gl_err = glGetError(); \
+                                              } \
+                                           } 
+                                      
+#define GL_ERROR_MSG gluErrorString(glGetError())
+#else
+#define PRINT_GL_ERROR_IF_ANY(_where) if (global_print_opengl_errors) { \
+                                              GLenum _global_gl_err = glGetError(); \
+                                              while (_global_gl_err != GL_NO_ERROR) { \
                                                  char *_str = (char *) gluErrorString(_global_gl_err); \
                                                  fprintf(stderr, "GL error: %s, here: %s\n", _str, _where); \
+                                                 _global_gl_err = glGetError(); \
                                               } \
-                                           } \
-                                      } while (0)
+                                           } 
 #endif
 
 void resetGeometry();
@@ -514,200 +523,213 @@ void setScreenDim(int wi, int he);
 #define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
 #endif /* NDEF IPHONE */
 
-// Use macros to enable compilation under OpenGL ES 2.0 
+
+
+
 #ifdef IPHONE
-#define GL_STEREO 0
-#define GL_FOG_COLOR 0
-#define GL_FOG_DENSITY 0
-#define GL_FOG_END 0
-#define GL_FOG_MODE 0
-#define GL_SMOOTH 0
-#define GL_FOG_START 0
-#define GL_EXP 0
-#define GLU_BEGIN 0
-#define GLU_EDGE_FLAG 0
-#define GLU_VERTEX 0
-#define GLU_TESS_VERTEX 0
-#define GLU_ERROR 0
-#define GLU_END 0
-#define GLU_TESS_COMBINE_DATA 0
-#define GLU_TESS_COMBINE 0
-#define GL_LIGHT1 0
-#define GL_LIGHT2 0
-#define GL_LIGHT3 0
-#define GL_LIGHT4 0
-#define GL_LIGHT5 0
-#define GL_LIGHT6 0
-#define GLU_UNKNOWN 0
-#define GL_SAMPLES_PASSED 0
-#define GL_LIGHT0 0
-#define GL_POSITION 0
-#define GL_SPECULAR 0
-#define GL_AMBIENT 0
-#define GL_SPOT_DIRECTION 0
-#define GL_POSITION 0
-#define GL_CONSTANT_ATTENUATION 0
-#define GL_LINEAR_ATTENUATION 0
-#define GL_QUADRATIC_ATTENUATION 0
-#define GL_SPOT_CUTOFF 0
-#define GL_SPOT_EXPONENT 0
-#define GL_RGBA8 0
-#define GL_R 0
-#define PATH_MAX 0
-#define GL_PREVIOUS 0
-#define GL_ADD 0
-#define GL_SUBTRACT 0
-#define GL_DOT3_RGB 0
-#define GL_ADD_SIGNED 0
-#define GL_CLAMP 0
-#define FL_CLAMP_TO_BORDER 0
-#define GL_TEXTURE_WRAP_R 0
-#define GL_GENERATE_MIPMAP 0
-#define GL_TEXTURE_PRIORITY 0
-#define GL_TEXTURE_BORDER_COLOR 0
-#define GL_TEXTURE_INTERNAL_FORMAT 0
-#define GL_COMPRESSED_RGBA 0
-#define GL_TEXTURE_COMPRESSION_HINT 0
-#define GL_CLAMP_TO_BORDER 0
-#define GL_PROXY_TEXTURE_2D 0
-#define GL_TEXTURE_WIDTH 0
-#define GL_TEXTURE_HEIGHT 0
-#define GL_OBJECT_LINEAR 20
-#define GL_EYE_LINEAR 210
-#define GL_REFLECTION_MAP 220
-#define GL_SPHERE_MAP 230
-#define GL_NORMAL_MAP 240
-#define GL_S 250
-#define GL_TEXTURE_GEN_MODE 260
-#define GL_T 270
-#define GL_TEXTURE_ENV 280
-#define GL_TEXTURE_ENV_MODE 290
-#define GL_MODULATE 30
-#define GL_COMBINE 310
-#define GL_COMBINE_RGB 1
-#define GL_SOURCE0_RGB 2
-#define GL_OPERAND0_RGB 3
-#define GL_SOURCE1_RGB 4
-#define GL_OPERAND1_RGB 5
-#define GL_COMBINE_ALPHA 7
-#define GL_SOURCE0_ALPHA 6
-#define GL_OPERAND0_ALPHA 8
-#define GL_SOURCE1_ALPHA 9
-#define GL_OPERAND1_ALPHA 10
-#define GL_RGB_SCALE 11
-#define GL_ALPHA_SCALE 120
-#define GL_PROJECTION 130
-#define GL_MODELVIEW 140
-#define GL_PROJECTION_MATRIX 150
-#define GL_SHININESS 160
-#define GL_EMISSION 170
-#define GL_DIFFUSE 180
-#define GL_BACK_LEFT 190
-#define GL_BACK_RIGHT 0
-#define GL_BACK 0
-#define GL_QUERY_RESULT_AVAILABLE 0
-#define GL_QUERY_RESULT 0
-#define GLDOUBLE GLfloat
-#define GL_MAX_TEXTURE_UNITS 16   // Made this up for now
-#define GL_MODELVIEW_MATRIX 0	 // Doesn't exist in 2.0, did exist in 1.1
-#define FW_GL_GETDOUBLEV(aaa,bbb) 
-#define FW_GL_LOAD_IDENTITY(aaa)
-#define FW_GL_MATRIX_MODE(aaa) 
-#define GL_ERROR_MSG 
-#define PRINT_GL_ERROR_IF_ANY(aaa)
-#define FW_GL_PIXELSTOREI(aaa,bbb)
-#define FW_GL_LINEWIDTH(aaa)
-#define FW_GL_POINTSIZE(aaa)
-#define FW_GL_SHADEMODEL(aaa)
-#define FW_GL_CLEAR(zzz)
-#define FW_GL_DEPTHFUNC(zzz)
-#define FW_GL_HINT(aaa,bbb)
-#define FW_GL_LIGHTFV(aaa,bbb,ccc)
-#define FW_GL_LIGHTF(aaa,bbb,ccc)
-#define FW_GL_BLENDFUNC(aaa,bbb)
-#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff)
-#define FW_GL_CLEAR_DEPTH(aaa)
-#define FW_GL_LIGHTMODELI(aaa,bbb)
-#define FW_GL_LIGHTMODELFV(aaa,bbb)
-#define FW_GL_PIXELZOOM(aaa,bbb)
-#define FW_GL_COLOR3F(aaa,bbb,ccc)
-#define FW_GL_SCISSOR(aaa,bbb,ccc,ddd)
-#define FW_GL_ALPHAFUNC(aaa,bbb)
-#define FW_GL_ENABLE(aaa)
-#define FW_GL_DISABLE(aaa)
-#define FW_GL_ENABLECLIENTSTATE(aaa)
-#define FW_GL_DISABLECLIENTSTATE(aaa)
-#define FW_GL_DRAWARRAYS(xxx,yyy,zzz)
-#define FW_GL_TRANSLATE_F(xxx,yyy,zzz)
-#define FW_GL_TRANSLATE_D(xxx,yyy,zzz)
-#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz)
-#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz)
-#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz)
-#define FW_GL_SCALE_F(xxx,yyy,zzz)
-#define FW_GL_SCALE_D(xxx,yyy,zzz)
-#define FW_GL_LOAD_IDENTITY(aaa)
-#define FW_GL_PUSH_MATRIX(aaa)
-#define FW_GL_POP_MATRIX(aaa)
-#define FW_GL_MATRIX_MODE(aaa)
-#define FW_GL_GETDOUBLEV(aaa,bbb)
-#define FW_GL_PUSH_ATTRIB(aaa)
-#define FW_GL_POP_ATTRIB(aaa)
-#define FW_GL_WINDOWPOS2I(aaa,bbb)
-#define FW_GL_FLUSH()
-#define FW_GL_DEPTHMASK(aaa)
-#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff)
-#define FW_GL_COLOR4FV(aaa)
-#define FW_GL_RASTERPOS2I(aaa,bbb)
-#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd)
-#define FW_GL_CGLFLUSHDRAWABLE(aaa) GL_FALSE
-#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) printf("WRONG");
-#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd)
-#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee)
-#define FW_GL_MATERIALF(aaa, bbb, ccc)
-#define FW_GL_MATERIALFV(aaa, bbb, ccc)
-#define FW_GL_COLOR_MATERIAL(aaa, bbb)
-#define FW_GL_COLOR4FV(aaa)
-#define FW_GL_COLOR3F(aaa, bbb, ccc)
-#define FW_GL_COLOR3D(aaa, bbb, ccc)
-#define FW_GL_BEGIN(aaa)
-#define FW_GL_VERTEX3D(aaa, bbb, ccc)
-#define FW_GL_END()
-#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd)
-#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc)
-#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd)
-#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-#define FW_GL_POINTSIZE(aaa)
-#define FW_GL_LINE_STIPPLE(aaa, bbb)
-#define CREATE_SHADER(aaa) 0 
-#define SHADER_SOURCE(aaa, bbb, ccc, ddd)
-#define COMPILE_SHADER(aaa)
-#define ATTACH_SHADER(aaa, bbb)
-#define LINK_SHADER(aaa)
-#define GET_UNIFORM(aaa, bbb) 0
-#define USE_SHADER(aaa)
-#define GLUNIFORM2F(aaa,bbb,ccc)
-#define GLUNIFORM1I(aaa,bbb)
-#define GLUNIFORM4F(aaa,bbb,ccc,ddd,eee)
-#define CREATE_PROGRAM 0
-#define FW_GL_BEGIN_QUERY(aaa, bbb)
-#define FW_GL_END_QUERY(aaa)
-#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc)
-#define FW_GLU_NEXT_CONTOUR(aaa,bbb)
-#define FW_GLU_BEGIN_POLYGON(aaa)
-#define FW_GLU_END_POLYGON(aaa)
-#define FW_GLU_NEW_TESS() 0
-#define FW_GL_FOGFV(aaa, bbb)
-#define FW_GL_FOGF(aaa, bbb)
-#define FW_GL_FOGI(aaa, bbb)
-#define FW_GL_SHADE_MODEL(aaa)
-#define SET_TEXTURE_UNIT(aaa)
-#define FW_GL_TEXENVI(aaa,bbb,ccc)
-#define FW_GL_TEXGENI(aaa,bbb,ccc)
-#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) 
-#define FW_GL_BINDTEXTURE(aaa,bbb)
-#define FW_GL_SWAPBUFFERS
+
+/* JAS - Sarah made these up to allow for compiling under OpenGL-ES 2.0. 
+	
+	Notes: 	- The constants NEED to be removed, and official ones from the framework used.
+		- function calls; many of the nulled functions exist in OpenGL-ES 2.0; others will
+		  need to be replicated.
+
+	Check out: http://www.khronos.org/opengles/sdk/docs/man/
+
+*/
+	
+	#define GL_STEREO 0
+	#define GL_FOG_COLOR 0
+	#define GL_FOG_DENSITY 0
+	#define GL_FOG_END 0
+	#define GL_FOG_MODE 0
+	#define GL_SMOOTH 0
+	#define GL_FOG_START 0
+	#define GL_EXP 0
+	#define GLU_BEGIN 0
+	#define GLU_EDGE_FLAG 0
+	#define GLU_VERTEX 0
+	#define GLU_TESS_VERTEX 0
+	#define GLU_ERROR 0
+	#define GLU_END 0
+	#define GLU_TESS_COMBINE_DATA 0
+	#define GLU_TESS_COMBINE 0
+	#define GL_LIGHT1 0
+	#define GL_LIGHT2 0
+	#define GL_LIGHT3 0
+	#define GL_LIGHT4 0
+	#define GL_LIGHT5 0
+	#define GL_LIGHT6 0
+	#define GLU_UNKNOWN 0
+	#define GL_SAMPLES_PASSED 0
+	#define GL_LIGHT0 0
+	#define GL_POSITION 0
+	#define GL_SPECULAR 0
+	#define GL_AMBIENT 0
+	#define GL_SPOT_DIRECTION 0
+	#define GL_POSITION 0
+	#define GL_CONSTANT_ATTENUATION 0
+	#define GL_LINEAR_ATTENUATION 0
+	#define GL_QUADRATIC_ATTENUATION 0
+	#define GL_SPOT_CUTOFF 0
+	#define GL_SPOT_EXPONENT 0
+	#define GL_RGBA8 0
+	#define GL_R 0
+	#define PATH_MAX 0
+	#define GL_PREVIOUS 0
+	#define GL_ADD 0
+	#define GL_SUBTRACT 0
+	#define GL_DOT3_RGB 0
+	#define GL_ADD_SIGNED 0
+	#define GL_CLAMP 0
+	#define FL_CLAMP_TO_BORDER 0
+	#define GL_TEXTURE_WRAP_R 0
+	#define GL_GENERATE_MIPMAP 0
+	#define GL_TEXTURE_PRIORITY 0
+	#define GL_TEXTURE_BORDER_COLOR 0
+	#define GL_TEXTURE_INTERNAL_FORMAT 0
+	#define GL_COMPRESSED_RGBA 0
+	#define GL_TEXTURE_COMPRESSION_HINT 0
+	#define GL_CLAMP_TO_BORDER 0
+	#define GL_PROXY_TEXTURE_2D 0
+	#define GL_TEXTURE_WIDTH 0
+	#define GL_TEXTURE_HEIGHT 0
+	#define GL_OBJECT_LINEAR 20
+	#define GL_EYE_LINEAR 210
+	#define GL_REFLECTION_MAP 220
+	#define GL_SPHERE_MAP 230
+	#define GL_NORMAL_MAP 240
+	#define GL_S 250
+	#define GL_TEXTURE_GEN_MODE 260
+	#define GL_T 270
+	#define GL_TEXTURE_ENV 280
+	#define GL_TEXTURE_ENV_MODE 290
+	#define GL_MODULATE 30
+	#define GL_COMBINE 310
+	#define GL_COMBINE_RGB 1
+	#define GL_SOURCE0_RGB 2
+	#define GL_OPERAND0_RGB 3
+	#define GL_SOURCE1_RGB 4
+	#define GL_OPERAND1_RGB 5
+	#define GL_COMBINE_ALPHA 7
+	#define GL_SOURCE0_ALPHA 6
+	#define GL_OPERAND0_ALPHA 8
+	#define GL_SOURCE1_ALPHA 9
+	#define GL_OPERAND1_ALPHA 10
+	#define GL_RGB_SCALE 11
+	#define GL_ALPHA_SCALE 120
+	#define GL_PROJECTION 130
+	#define GL_MODELVIEW 140
+	#define GL_PROJECTION_MATRIX 150
+	#define GL_SHININESS 160
+	#define GL_EMISSION 170
+	#define GL_DIFFUSE 180
+	#define GL_BACK_LEFT 190
+	#define GL_BACK_RIGHT 0
+	#define GL_BACK 0
+	#define GL_QUERY_RESULT_AVAILABLE 0
+	#define GL_QUERY_RESULT 0
+	#define GLDOUBLE GLfloat
+	#define GL_MAX_TEXTURE_UNITS 16   // Made this up for now
+	#define GL_MODELVIEW_MATRIX 0	 // Doesn't exist in 2.0, did exist in 1.1
+	#define FW_GL_GETDOUBLEV(aaa,bbb)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_LOAD_IDENTITY(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_MATRIX_MODE(aaa)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define GL_ERROR_MSG  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define PRINT_GL_ERROR_IF_ANY(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_PIXELSTOREI(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_LINEWIDTH(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_POINTSIZE(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_SHADEMODEL(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_CLEAR(zzz) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DEPTHFUNC(zzz) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_HINT(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_LIGHTFV(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_LIGHTF(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_BLENDFUNC(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_CLEAR_DEPTH(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_LIGHTMODELI(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_LIGHTMODELFV(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_PIXELZOOM(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_COLOR3F(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_ALPHAFUNC(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_ENABLE(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DISABLE(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_ENABLECLIENTSTATE(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DISABLECLIENTSTATE(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_SCALE_F(xxx,yyy,zzz) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_SCALE_D(xxx,yyy,zzz) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_LOAD_IDENTITY(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_PUSH_MATRIX(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_POP_MATRIX(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_MATRIX_MODE(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GETDOUBLEV(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_PUSH_ATTRIB(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_POP_ATTRIB(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_WINDOWPOS2I(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_FLUSH() {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DEPTHMASK(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_COLOR4FV(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_RASTERPOS2I(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_CGLFLUSHDRAWABLE(aaa) GL_FALSE {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) printf("WRONG"); {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_MATERIALF(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_MATERIALFV(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_COLOR_MATERIAL(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_COLOR4FV(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_COLOR3F(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_COLOR3D(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_BEGIN(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_VERTEX3D(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_END() {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_POINTSIZE(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_LINE_STIPPLE(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define CREATE_SHADER(aaa) 0  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define SHADER_SOURCE(aaa, bbb, ccc, ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define COMPILE_SHADER(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define ATTACH_SHADER(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define LINK_SHADER(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define GET_UNIFORM(aaa, bbb) 0 {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define USE_SHADER(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define GLUNIFORM2F(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define GLUNIFORM1I(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define GLUNIFORM4F(aaa,bbb,ccc,ddd,eee) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define CREATE_PROGRAM 0 {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_BEGIN_QUERY(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_END_QUERY(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_NEXT_CONTOUR(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_BEGIN_POLYGON(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_END_POLYGON(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_NEW_TESS() 0 {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_FOGFV(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_FOGF(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_FOGI(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_SHADE_MODEL(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define SET_TEXTURE_UNIT(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_TEXENVI(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_TEXGENI(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_BINDTEXTURE(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_SWAPBUFFERS {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 #endif /* ifdef IPHONE */
 
 #endif /* __LIBFREEWRL_DISPLAY_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.31 2010/02/19 19:07:28 sdumoulin Exp $
+$Id: CParseLexer.c,v 1.32 2010/02/23 18:39:45 crc_canada Exp $
 
 ???
 
@@ -171,7 +171,6 @@ void lexer_fromString (struct VRMLLexer *me, char *str) {
 	me->startOfStringPtr[me->lexerInputLevel]=str; 
 	me->oldNextIn[me->lexerInputLevel] = me->nextIn; /* save the old "nextIn" for popping back */
 	me->nextIn=str;
-#define CPARSERVERBOSE
 	#ifdef CPARSERVERBOSE
 	printf ("lexer_fromString, me %x %u\n",me,me);
 	printf ("lexer_fromString, working on level %d\n",me->lexerInputLevel);
