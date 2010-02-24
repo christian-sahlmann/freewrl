@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.h,v 1.12 2009/10/05 15:07:24 crc_canada Exp $
+$Id: CProto.h,v 1.13 2010/02/24 21:27:18 sdumoulin Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -140,8 +140,8 @@ struct ProtoRoute
 {
  struct X3D_Node* from;
  struct X3D_Node* to;
- int fromOfs;
- int toOfs;
+ uintptr_t fromOfs;
+ uintptr_t toOfs;
  size_t len;
  int dir;
 };

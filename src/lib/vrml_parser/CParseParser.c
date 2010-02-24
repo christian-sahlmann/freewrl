@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.57 2010/02/19 22:01:42 sdumoulin Exp $
+  $Id: CParseParser.c,v 1.58 2010/02/24 21:27:18 sdumoulin Exp $
 
   ???
 
@@ -1110,7 +1110,7 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
     indexT fromFieldE;
     indexT fromUFieldO;
     indexT fromUFieldE;
-    uintptr_t fromOfs = 0;
+    size_t fromOfs = 0;
     int_t fromType = 0;
     struct ScriptFieldDecl* fromScriptField;
 
@@ -1818,7 +1818,7 @@ static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
         struct Shader_Script* shader=NULL;
                  
         /* Get malloced struct of appropriate X3D_Node type with default values filled in */
-        node=X3D_NODE(createNewX3DNode(nodeTypeB));
+        node=X3D_NODE(createNewX3DNode((int)nodeTypeB));
         ASSERT(node);
                 
         /* if ind != ID_UNDEFINED, we have the first node of a DEF. Save this node pointer, in case
@@ -2286,7 +2286,7 @@ static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
     case FIELDTYPE_MFDouble:
     case FIELDTYPE_MFString:
     case FIELDTYPE_MFVec2f:
-    { int localSize;
+    { size_t localSize;
     localSize =  returnRoutingElementLength(convertToSFType(type)); /* converts MF to equiv SF type */
     /* struct Multi_Float { int n; float  *p; }; */
     /* treat these all the same, as the data type is same size */
@@ -2305,7 +2305,8 @@ static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
 /* if we expect to find a MF field, but the user only puts a SF Field, we make up the MF field with
    1 entry, and copy the data over */
 static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
-    int rsz,elelen;
+    int rsz;
+    size_t elelen;
 
     /* printf ("stuffSFintoMF, got vrmlT vector successfully - it is a type of %s\n",FIELDTYPES[type]);  */
 
@@ -2635,7 +2636,7 @@ static BOOL parser_sfboolValue(struct VRMLParser* me, void* ret) {
 
 
 static BOOL parser_sfnodeValue(struct VRMLParser* me, void* ret) {
-    unsigned tmp;
+    uintptr_t tmp;
     vrmlNodeT* rv;
 
     ASSERT(me->lexer);
@@ -2651,7 +2652,7 @@ static BOOL parser_sfnodeValue(struct VRMLParser* me, void* ret) {
         return parser_nodeStatement(me, rv);
     } else {
         /* expect something like a number (memory pointer) to be here */
-        if (sscanf(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel], "%u",  &tmp) != 1) {
+        if (sscanf(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel], "%lu",  &tmp) != 1) {
             CPARSE_ERROR_FIELDSTRING ("error finding SFNode id on line :%s:",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);
             *rv=NULL;
             return FALSE;

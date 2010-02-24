@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.113 2010/02/23 18:39:45 crc_canada Exp $
+$Id: headers.h,v 1.114 2010/02/24 21:27:18 sdumoulin Exp $
 
 Global includes.
 
@@ -622,8 +622,8 @@ void resetScriptTouchedFlag(int actualscript, int fptr);
 int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setScriptMultiElementtype(uintptr_t);
-void CRoutes_RemoveSimple(struct X3D_Node* from, int fromOfs,
- struct X3D_Node* to, int toOfs, int len);
+void CRoutes_RemoveSimple(struct X3D_Node* from, uintptr_t fromOfs,
+ struct X3D_Node* to, uintptr_t toOfs, int len);
 void CRoutes_RegisterSimple(struct X3D_Node* from, uintptr_t fromOfs,
  struct X3D_Node* to, uintptr_t toOfs, int_t len);
 void CRoutes_Register(int adrem,        struct X3D_Node *from,
