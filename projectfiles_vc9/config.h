@@ -231,7 +231,10 @@
 
 /* Path to http fetcher "C:/Program Files/GnuWin32/bin/wget.exe"*/
 #undef WGET
-#define WGET "wget.exe"
+//#define WGET "wget.exe"
+char *getWgetPath();
+#define WGET getWgetPath() 
+
 
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING
