@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.45 2010/02/23 00:44:11 dug9 Exp $
+$Id: Viewer.c,v 1.46 2010/02/24 23:13:40 dug9 Exp $
 
 CProto ???
 
@@ -1268,6 +1268,7 @@ void initStereoDefaults()
 void deleteAnaglyphShaders()
 {
 	int i;
+	if(!rdr_caps.have_GL_VERSION_2_0) return;
 	for(i=0;i<6;i++)
 	{
 		glDeleteShader(Viewer.shaders[i]);
