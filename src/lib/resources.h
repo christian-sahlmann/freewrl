@@ -1,5 +1,5 @@
 /*
-  $Id: resources.h,v 1.10 2010/02/07 21:18:40 dug9 Exp $
+  $Id: resources.h,v 1.11 2010/02/25 03:29:19 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -31,11 +31,13 @@
 
 /* is this file name relative to another path, or is it really, really, a direct file name? */
 #if defined(_MSC_VER)
-#define IF_cleanedURL_IS_ABSOLUTE \
-	DEBUG_RES("resource_identify = we have base cleanedurl = %s\n", cleanedURL); \
-	if ((cleanedURL[0] != '\0') && \
-		((islower(cleanedURL[0])) != 0 || (isupper(cleanedURL[0] != 0)))  && \
-		(cleanedURL[1]== ':')) 
+#define IF_cleanedURL_IS_ABSOLUTE if(cleanedURL[0] != '\0' && cleanedURL[1]== ':')
+
+//#define IF_cleanedURL_IS_ABSOLUTE \
+//	DEBUG_RES("resource_identify = we have base cleanedurl = %s\n", cleanedURL); \
+//	if ((cleanedURL[0] != '\0') && \
+//		((islower(cleanedURL[0])) != 0 || (isupper(cleanedURL[0] != 0)))  && \
+//		(cleanedURL[1]== ':')) 
 #else
 
 #define IF_cleanedURL_IS_ABSOLUTE \

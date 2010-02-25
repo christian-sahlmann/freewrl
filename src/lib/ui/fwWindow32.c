@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.19 2010/02/24 23:13:40 dug9 Exp $
+  $Id: fwWindow32.c,v 1.20 2010/02/25 03:29:19 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -8,7 +8,7 @@
 /* #define WIN32_LEAN_AND_MEAN 1*/
 
 #include <windows.h>
-
+#include <shlwapi.h>
 
 #include <config.h>
 #include <system.h>
@@ -597,26 +597,21 @@ char *getWgetPath()
 {
 	if(!wgetpathLoaded)
 	{
-		if( !GetModuleFileName( NULL, szPath, MAX_PATH ) )
+		if( !GetModuleFileName( NULL, &szPath[1], MAX_PATH ) )
 		{
 			printf("Cannot install service (%d)\n", GetLastError());
 			return 0;
 		}
 		else
 		{
-			int jj;
-			char *slash;
-			char *path;
-			for( jj=0;jj<strlen(szPath);jj++)
-				if(szPath[jj] == '\\' ) szPath[jj] = '/';
-			slash = strrchr(szPath, '/');
-			wgetpath = NULL;
-			if(slash)
-			{
-				wgetpath = szPath;
-				slash[0] = '\0';
-				wgetpath = strcat(wgetpath,"/wget.exe");
-			}
+			int len;
+			wgetpath = &szPath[1];
+			PathRemoveFileSpec(wgetpath);
+			PathAppend(wgetpath,"wget.exe"); 
+			// c:\program files\ breaks up in the space so we "" around the path
+			strcat(wgetpath,"\"");
+			wgetpath = szPath;
+			wgetpath[0] = '"';
 		}
 	}
 	wgetpathLoaded = 1;

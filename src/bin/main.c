@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.30 2010/02/07 22:45:24 dug9 Exp $
+  $Id: main.c,v 1.31 2010/02/25 03:29:19 dug9 Exp $
 
   FreeWRL main program.
 
@@ -140,12 +140,13 @@ int main (int argc, char **argv)
 	    start_url = argv[optind];
 #ifdef _MSC_VER
 		//if( start_url )
-		if(0) //deprecated feb7,2010 - need to test in win32-installer-installed version before deleting
+		if(1) //
 		{
 			/* goal - split the url into path and file, then set 
 				set current working directy = path
 				and set starturl = file
 			   motivation - doug can't comprehend resource.c path mangling otherwise 
+			   and it seems to make relative image urls into absolute relative to the .exe rather than scene .wrl
 			*/
 			int jj;
 			char *slash;
@@ -167,7 +168,7 @@ int main (int argc, char **argv)
 					path = NULL;
 				}
 			}
-			printf("workding dir=%s start_url=%s\n",path,start_url);
+			printf("working dir=%s start_url=%s\n",path,start_url);
 		}
 #endif
     }
