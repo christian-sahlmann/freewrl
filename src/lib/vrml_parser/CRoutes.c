@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.56 2010/02/24 21:27:18 sdumoulin Exp $
+$Id: CRoutes.c,v 1.57 2010/02/26 19:34:42 sdumoulin Exp $
 
 ???
 
@@ -842,9 +842,9 @@ CRoutes_Register.  Currently a wrapper around that other function.
 ********************************************************************/
 
 void CRoutes_RegisterSimple(
-	struct X3D_Node* from, uintptr_t fromOfs,
-	struct X3D_Node* to, uintptr_t toOfs,
-	int_t type)  {
+	struct X3D_Node* from, int fromOfs,
+	struct X3D_Node* to, int toOfs,
+	int type)  {
 	/* printf ("CRoutes_RegisterSimple, registering a route of %s\n",stringFieldtypeType(type)); */
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
@@ -904,8 +904,8 @@ CRoutes_Register.  Currently a wrapper around that other function.
 ********************************************************************/
 
 void CRoutes_RemoveSimple(
-	struct X3D_Node* from, uintptr_t fromOfs,
-	struct X3D_Node* to, uintptr_t toOfs,
+	struct X3D_Node* from, int fromOfs,
+	struct X3D_Node* to, int toOfs,
 	int type) {
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
@@ -1754,7 +1754,7 @@ void kill_routing (void) {
 /* internal variable to copy a C structure's Multi* field */
 static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype) {
 	size_t structlen;
-	unsigned int fromcount, tocount;
+	int fromcount, tocount;
 	void *fromptr, *toptr;
 
 	struct Multi_Vec3f *mv3ffn, *mv3ftn;

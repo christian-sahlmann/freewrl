@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.h,v 1.13 2010/02/26 16:18:08 sdumoulin Exp $
+$Id: EAIHelpers.h,v 1.14 2010/02/26 19:34:42 sdumoulin Exp $
 
 EAI Helpers functions
 
@@ -34,18 +34,18 @@ EAI Helpers functions
 
 struct Uni_String *newASCIIString(char *str);
 void verify_Uni_String(struct  Uni_String *unis, char *str);
-struct X3D_Node *getEAINodeFromTable(int_t index, int_t field);
+struct X3D_Node *getEAINodeFromTable(int index, int field);
 int returnElementRowSize (int type);					/* from EAI_C_CommonFunctions.c */
 size_t returnElementLength(int type);					/* from EAI_C_CommonFunctions.c */
-int_t getEAIActualOffset(int_t node, int_t field);
-char *getEAIMemoryPointer (int_t node, int_t field);
+int getEAIActualOffset(int node, int field);
+char *getEAIMemoryPointer (int node, int field);
 int registerEAINodeForAccess(struct X3D_Node* myn);
 void handleEAIGetValue (char command, char *bufptr, char *buf, int repno);
 int EAI_GetRootNode(void);
 
-void EAI_GetType(uintptr_t cNode, char *ctmp, char *dtmp,
-		 int_t *cNodePtr, int_t *fieldOffset,
-		 uintptr_t *dataLen, int_t *typeString, unsigned int *scripttype, int *accessType);
+void EAI_GetType(int cNode, char *ctmp, char *dtmp,
+		 int *cNodePtr, int *fieldOffset,
+		 uintptr_t *dataLen, int *typeString, unsigned int *scripttype, int *accessType);
 
 int mapToKEYWORDindex(indexT pkwIndex);
 

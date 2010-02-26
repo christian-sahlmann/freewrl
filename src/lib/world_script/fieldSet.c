@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.35 2010/02/26 16:24:37 sdumoulin Exp $
+  $Id: fieldSet.c,v 1.36 2010/02/26 19:34:43 sdumoulin Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -275,14 +275,14 @@ unsigned int setField_FromEAI (char *ptr) {
 	unsigned char nt;
 	int datatype;
 	int nodeIndex, fieldIndex;
-	uintptr_t nodeptr;
-	uintptr_t offset;
-	uintptr_t myoffset;
+	struct X3D_Node* nodeptr;
+	int offset;
+	int myoffset;
 	unsigned int scripttype;
 	char *eol;
 
 	char * memptr = 0;
-	char * myptr = 0;
+	struct X3D_Node* myptr = 0;
 
 	int valIndex;
 	struct Multi_Color *tcol;
@@ -346,7 +346,7 @@ unsigned int setField_FromEAI (char *ptr) {
 
 	offset = getEAIActualOffset(nodeIndex, fieldIndex);
 	myoffset = offset;
-	nodeptr = (uintptr_t) getEAINodeFromTable(nodeIndex,fieldIndex);
+	nodeptr = getEAINodeFromTable(nodeIndex,fieldIndex);
 	myptr = nodeptr;
 
 	/* now, we are at start of data. */
@@ -708,7 +708,7 @@ DEF_FINDROUTEDFIELD(EVENT_OUT)
 
 
 /* go through the OFFSETS for this node, looking for field, and return offset, type, and kind */
-void findFieldInOFFSETS(int nodeType, const size_t field, int_t *coffset, int_t *ctype, int *ckind) {
+void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype, int *ckind) {
 	size_t *x;
 	int X3DLevel;
 	int mask = 0;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.h,v 1.8 2010/02/19 20:51:53 crc_canada Exp $
+$Id: CRoutes.h,v 1.9 2010/02/26 19:34:43 sdumoulin Exp $
 
 VRML-parsing routines in C.
 
@@ -33,7 +33,7 @@ VRML-parsing routines in C.
 /* C routes */
 typedef struct _CRnodeStruct {
         struct X3D_Node *routeToNode;
-        unsigned int foffset;
+        int foffset;
 } CRnodeStruct;
 
 

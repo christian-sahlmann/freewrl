@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.53 2010/02/26 16:18:08 sdumoulin Exp $
+$Id: EAIEventsIn.c,v 1.54 2010/02/26 19:34:42 sdumoulin Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -374,7 +374,7 @@ void EAI_parse_commands () {
 				}
 			case REGLISTENER: {
 				struct X3D_Node * node;
-				int offset;
+				int  offset;
 				int directionFlag = 0;
 
 				/*143024848 88 8 e 6*/
@@ -752,7 +752,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	char fieldTemp[2000];
 	int fromOffset, toOffset;
 	int adrem;
-	uintptr_t fromfieldType, fromfieldNode, fromretNode, fromretField, fromdataLen;
+	int_t fromfieldType, fromfieldNode, fromretNode, fromretField, fromdataLen;
 	unsigned int fromscripttype;
 	int fromxxx;
 	uintptr_t tofieldNode, toretNode, toretField, todataLen, tofieldType;

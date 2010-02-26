@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.37 2010/02/26 16:18:08 sdumoulin Exp $
+$Id: EAIHelpers.c,v 1.38 2010/02/26 19:34:42 sdumoulin Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -117,8 +117,8 @@ static int lastNodeRequested = 0;
 
 struct EAINodeParams {
 	struct X3D_Node* thisFieldNodePointer;	/* ok, if this is a PROTO expansion, points to actual node */
-	int_t fieldOffset;
-	int_t datalen;
+	int fieldOffset;
+	size_t datalen;
 	int typeString;
 	int scripttype;
 	char *invokedPROTOValue; 	/* proto field value on invocation (default, or supplied) */
@@ -138,7 +138,7 @@ static struct  EAINodeIndexStruct *EAINodeIndex = NULL;
 
 
 /* get an actual memory pointer to field, assumes both node has passed ok check */
-char *getEAIMemoryPointer (int_t node, int_t field) {
+char *getEAIMemoryPointer (int node, int field) {
 	char *memptr;
 
 	/* we CAN NOT do this with a script */
@@ -170,17 +170,17 @@ static char * getEAIInvokedValue(int node, int field) {
 
 
 /* return the actual field offset as defined; change fieldHandle into an actual value */
-int_t getEAIActualOffset(int_t node, int_t field) {
+int getEAIActualOffset(int node, int field) {
 	return EAINodeIndex[node].params[field].fieldOffset;
 }
 
 /* returns node type - see above for definitions */
-int getEAINodeTypeFromTable(int_t node) {
+int getEAINodeTypeFromTable(int node) {
 	return EAINodeIndex[node].nodeType;
 }
 
 /* return a registered node. If index==0, return NULL */
-struct X3D_Node *getEAINodeFromTable(int_t index, int_t field) {
+struct X3D_Node *getEAINodeFromTable(int index, int field) {
 	if (index==0) return NULL;
 	if (index>lastNodeRequested) {
 		printf ("internal EAI error - requesting %d, highest node %d\n",
@@ -279,7 +279,7 @@ int mapToKEYWORDindex (indexT pkwIndex) {
 }
 
 /* in this proto expansion, just go and get the expanded node/field IF POSSIBLE */
-static int changeExpandedPROTOtoActualNode(int_t cNode, struct X3D_Node **np, char **fp, int direction) {
+static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char **fp, int direction) {
 	struct ProtoDefinition *myProtoDecl;
 	char thisID[2000];
 	
@@ -336,15 +336,15 @@ static int changeExpandedPROTOtoActualNode(int_t cNode, struct X3D_Node **np, ch
 	scripttype = 0 - meaning, not to/from a javascript. (see CRoutes.c for values and more info)
 */
 
-void EAI_GetType (uintptr_t cNode,  char *inputFieldString, char *accessMethod, 
-		int_t *cNodePtr, int_t *fieldOffset,
-		uintptr_t *dataLen, int_t *typeString,  unsigned int *scripttype, int *accessType) {
+void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod, 
+		int *cNodePtr, int *fieldOffset,
+		uintptr_t *dataLen, int *typeString,  unsigned int *scripttype, int *accessType) {
 
 	struct X3D_Node* nodePtr = getEAINodeFromTable(cNode,-1);
 	char *fieldString = inputFieldString;
 	int myField;
-	int_t ctype;
-	int_t myFieldOffs;
+	int ctype;
+	int myFieldOffs;
 	int maxparamindex = 0;
 	char *invokedValPtr = NULL;  /* for PROTOs - invocation value */
 	int myScriptType = EAI_NODETYPE_STANDARD;
