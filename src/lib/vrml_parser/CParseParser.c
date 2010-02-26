@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.58 2010/02/24 21:27:18 sdumoulin Exp $
+  $Id: CParseParser.c,v 1.59 2010/02/26 16:18:08 sdumoulin Exp $
 
   ???
 
@@ -1110,8 +1110,8 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
     indexT fromFieldE;
     indexT fromUFieldO;
     indexT fromUFieldE;
-    size_t fromOfs = 0;
-    int_t fromType = 0;
+    size_t fromOfs;
+    int_t fromType;
     struct ScriptFieldDecl* fromScriptField;
 
     indexT toNodeIndex;
@@ -1121,11 +1121,15 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
     indexT toFieldE;
     indexT toUFieldO;
     indexT toUFieldE;
-    uintptr_t toOfs = 0;
-    int_t toType = 0;
+    size_t toOfs;
+    int_t toType;
     struct ScriptFieldDecl* toScriptField;
     size_t temp, tempFE, tempFO, tempTE, tempTO;
 
+    fromOfs = 0;
+    fromType = 0;
+   toOfs = 0;
+   toType = 0;
     fromFieldE = ID_UNDEFINED; fromFieldO = ID_UNDEFINED; toFieldE = ID_UNDEFINED; toFieldO = ID_UNDEFINED;
     toNode = NULL; fromNode = NULL; toProto=NULL; fromProto=NULL;
     fromScriptField=NULL; toScriptField=NULL;

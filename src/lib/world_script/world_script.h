@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: world_script.h,v 1.7 2009/10/05 15:07:24 crc_canada Exp $
+$Id: world_script.h,v 1.8 2010/02/26 16:18:08 sdumoulin Exp $
 
 Local include for world_script directory.
 
@@ -31,7 +31,7 @@ Local include for world_script directory.
 #define __FREEWRL_WORLD_SCRIPT_LOCAL_H__
 
 
-void findFieldInOFFSETS(int nodeType , const int field, int *coffset, int *ctype, int *ckind);
+void findFieldInOFFSETS(int nodeType , const int field, int_t *coffset, int_t *ctype, int *ckind);
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to);
 void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Node *parent, int ar);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.52 2010/02/19 21:46:48 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.53 2010/02/26 16:18:08 sdumoulin Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -102,9 +102,10 @@ void EAI_parse_commands () {
 	int count;
 	char command;
 	uintptr_t cNode;
-	int bufPtr;		/* where we are in the EAI input buffer */
+	uintptr_t bufPtr;		/* where we are in the EAI input buffer */
 	
-	uintptr_t ra,rb,rc,rd;	/* temps*/
+	int_t ra,rb,rd;	/* temps*/
+	uintptr_t rc;
 	int tmp_a, tmp_b, tmp_c;
 
 	unsigned int scripttype;
@@ -350,7 +351,7 @@ void EAI_parse_commands () {
 
 				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
 
-				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %d",(int *)&ra,(int *)&rb,ctmp,(int *)&rc);
+				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %d",(int_t *)&ra,(int_t *)&rb,ctmp,(uintptr_t *)&rc);
 
 				node = getEAINodeFromTable(ra,rb);
 				address = getEAIMemoryPointer (ra,rb);
