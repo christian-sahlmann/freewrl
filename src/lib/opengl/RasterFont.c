@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.7 2010/02/17 18:03:06 crc_canada Exp $
+  $Id: RasterFont.c,v 1.8 2010/02/26 16:24:37 sdumoulin Exp $
 
 */
 
@@ -34,6 +34,7 @@
 
 #include <stdarg.h>
 
+#include "../main/headers.h"
 #include "../input/EAIHelpers.h"
 #include "../scenegraph/Component_Text.h"
 static struct X3D_Text myText;

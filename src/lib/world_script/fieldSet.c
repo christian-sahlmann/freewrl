@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.34 2010/02/23 18:39:45 crc_canada Exp $
+  $Id: fieldSet.c,v 1.35 2010/02/26 16:24:37 sdumoulin Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -708,7 +708,7 @@ DEF_FINDROUTEDFIELD(EVENT_OUT)
 
 
 /* go through the OFFSETS for this node, looking for field, and return offset, type, and kind */
-void findFieldInOFFSETS(int nodeType, const size_t field, int *coffset, int *ctype, int *ckind) {
+void findFieldInOFFSETS(int nodeType, const size_t field, int_t *coffset, int_t *ctype, int *ckind) {
 	size_t *x;
 	int X3DLevel;
 	int mask = 0;
