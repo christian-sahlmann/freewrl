@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.54 2010/02/26 19:34:42 sdumoulin Exp $
+$Id: EAIEventsIn.c,v 1.55 2010/02/26 21:47:55 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -246,7 +246,7 @@ void EAI_parse_commands () {
 
 				EAI_GetType (cNode, ctmp, dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
 
-				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d %s",TickTime,count,(int)ra,(int)rb,(int)rc,(int)rd,
+				sprintf (buf,"RE\n%lf\n%d\n%d %d %d %c %d %s",TickTime,count,(int)ra,(int)rb,(int)rc,(int)rd,
 						scripttype,stringKeywordType(xxx));
 				break;
 				}
@@ -848,7 +848,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	struct X3D_Node *boxptr;
 	int myc;
-	size_t *np;
+	int *np;
 	char myline[200];
 
 	boxptr = X3D_NODE(myptr);
@@ -866,7 +866,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 
 
 	/* how many fields in this node? */
-	np = (size_t *)NODE_OFFSETS[boxptr->_nodeType];
+	np = NODE_OFFSETS[boxptr->_nodeType];
 	myc = 0;
 	while (*np != -1) {
 		/* is this a hidden field? */
@@ -884,7 +884,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	strcat (buf, myline);
 
 	/* now go through and get the name, type, keyword */
-	np = (size_t *)NODE_OFFSETS[boxptr->_nodeType];
+	np = NODE_OFFSETS[boxptr->_nodeType];
 	while (*np != -1) {
 		if (strcmp (FIELDNAMES[*np],"_") != 0) {
 			sprintf (myline,"%s %c %s ",stringFieldType(np[0]), (char) mapFieldTypeToEAItype(np[2]), 

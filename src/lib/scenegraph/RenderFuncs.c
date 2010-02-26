@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.45 2010/02/19 18:09:47 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.46 2010/02/26 21:48:04 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -845,7 +845,7 @@ void *returnInterpolatorPointer (const char *x) {
 void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
         int n;
 
-	size_t *offsetptr;
+	int *offsetptr;
 	char *memptr;
 	struct Multi_Node *mfn;
 	uintptr_t *voidptr;
@@ -862,7 +862,7 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 	}
 
 	/* find all the fields of this node */
-	offsetptr = (size_t *)NODE_OFFSETS[node->_nodeType];
+	offsetptr = NODE_OFFSETS[node->_nodeType];
 
 	/* FIELDNAMES_bboxCenter, offsetof (struct X3D_Group, bboxCenter),  FIELDTYPE_SFVec3f, KW_field, */
 	while (*offsetptr >= 0) {

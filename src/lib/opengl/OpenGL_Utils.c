@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.105 2010/02/18 19:55:40 sdumoulin Exp $
+  $Id: OpenGL_Utils.c,v 1.106 2010/02/26 21:47:57 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1717,7 +1717,7 @@ void startOfLoopNodeUpdates(void) {
 void markForDispose(struct X3D_Node *node, int recursive){
 	struct Multi_Node* MNode;
 	struct X3D_Node sfnode;
-	size_t *fieldOffsetsPtr;
+	int *fieldOffsetsPtr;
 	char * fieldPtr;
 
 	if (node==NULL) return;
@@ -1732,7 +1732,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 
 	if (recursive) {
 
-	fieldOffsetsPtr = (size_t *) NODE_OFFSETS[node->_nodeType];
+	fieldOffsetsPtr = NODE_OFFSETS[node->_nodeType];
 	/*go thru all field*/				
 	while (*fieldOffsetsPtr != -1) {
 		fieldPtr = offsetPointer_deref(char *, node,*(fieldOffsetsPtr+1));
@@ -1818,7 +1818,7 @@ printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
 /*delete node created*/
 static void killNode (int index) {
 	int j=0;
-	size_t *fieldOffsetsPtr;
+	int *fieldOffsetsPtr;
 	char * fieldPtr;
 	struct X3D_Node* structptr;
 	struct Multi_Float* MFloat;
@@ -1846,7 +1846,7 @@ static void killNode (int index) {
 	/* kill any parents that may exist. */
 	FREE_IF_NZ (structptr->_parents);
 
-	fieldOffsetsPtr = (size_t *) NODE_OFFSETS[structptr->_nodeType];
+	fieldOffsetsPtr = NODE_OFFSETS[structptr->_nodeType];
 	/*go thru all field*/				
 	while (*fieldOffsetsPtr != -1) {
 		fieldPtr = offsetPointer_deref(char *, structptr,*(fieldOffsetsPtr+1));

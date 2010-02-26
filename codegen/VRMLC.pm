@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.36 2010/02/17 14:31:08 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.37 2010/02/26 21:47:50 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.37  2010/02/26 21:47:50  crc_canada
+# 64 bit conversion changes.
+#
 # Revision 1.36  2010/02/17 14:31:08  crc_canada
 # More 64/32 bit compile changes. Major one - getInputResource fixed.
 #
@@ -644,7 +647,7 @@ sub gen {
 
 	#####################
 	
-	push @str, "/* Data type for index into ID-table. */\ntypedef size_t indexT;\n\n";
+	push @str, "/* Data type for index into ID-table. */\ntypedef int indexT;\n\n";
 
 	# now, go through nodes, and do a few things:
 	#	- create a "#define NODE_Shape 300" line for CFuncs/Structs.h;
@@ -1542,7 +1545,7 @@ sub gen {
 	
 	#####################
 	# create an array for each node. The array contains the following:
-	# const size_t OFFSETS_Text[
+	# const int OFFSETS_Text[
 	# 	FIELDNAMES_string, offsetof (struct X3D_Text, string), MFSTRING, KW_inputOutput,
 	#	FIELDNAMES_fontStype, offsetof (struct X3D_Text, fontStyle, SFNODE, KW_inputOutput,
 	# ....
@@ -1554,7 +1557,7 @@ sub gen {
 		#print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
 
-		push @genFuncs1, "\nconst size_t OFFSETS_".$node."[] = {\n";
+		push @genFuncs1, "\nconst int OFFSETS_".$node."[] = {\n";
 
  		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
 			#if (index($field,"_") !=0) {
@@ -1562,15 +1565,15 @@ sub gen {
 				#$ft =~ tr/a-z/A-Z/; # convert to uppercase
 				my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
 				my $specVersion = $VRML::Nodes{$node}{SpecLevel}{$field};
-				push @genFuncs1, "	FIELDNAMES_$field, offsetof (struct X3D_$node, $field), ".
-					" FIELDTYPE_$ft, KW_$fk,$specVersion,\n";
+				push @genFuncs1, "	(int) FIELDNAMES_$field, (int) offsetof (struct X3D_$node, $field), ".
+					" (int) FIELDTYPE_$ft, (int) KW_$fk, (int) $specVersion,\n";
 			#}
 		};
 		push @genFuncs1, "	-1, -1, -1, -1, -1};\n";
 	}
 	#####################
 	# create an array for each node. The array contains the following:
-	# const size_t OFFSETS_Text[
+	# const int OFFSETS_Text[
 	# 	FIELDNAMES_string, offsetof (struct X3D_Text, string), MFSTRING, KW_inputOutput,
 	#	FIELDNAMES_fontStype, offsetof (struct X3D_Text, fontStyle, SFNODE, KW_inputOutput,
 	# ....
@@ -1579,8 +1582,8 @@ sub gen {
 	# 1) we skip any field starting with an "_" (underscore)
 	#####################
 	# make an array that contains all of the OFFSETS created above.
-	push @str, "\nextern const size_t *NODE_OFFSETS[];\n";
-	push @genFuncs1, "\nconst size_t *NODE_OFFSETS[] = {\n";
+	push @str, "\nextern const int *NODE_OFFSETS[];\n";
+	push @genFuncs1, "\nconst int *NODE_OFFSETS[] = {\n";
 	for my $node (@sortedNodeList) {
 		push @genFuncs1, "	OFFSETS_$node,\n";
 	}

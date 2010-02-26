@@ -35,8 +35,8 @@ General purpose containers - vector and stack (implemented on top of it)
 /* This is the vector structure. */
 struct Vector
 {
- size_t	n;
- size_t	allocn;
+ int	n;
+ int	allocn;
  void*	data;
 };
 

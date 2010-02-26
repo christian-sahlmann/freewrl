@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.32 2010/02/23 18:39:45 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.33 2010/02/26 21:47:57 crc_canada Exp $
 
 ???
 
@@ -78,7 +78,7 @@ int eaiverbose = FALSE;
 /* create a structure to hold a string; it has a length, and a string pointer */
 struct Uni_String *newASCIIString(char *str) {
 	struct Uni_String *retval;
-	size_t len;
+	int len;
 
 	if (eaiverbose) {
 	printf ("newASCIIString for :%s:\n",str);
@@ -86,7 +86,7 @@ struct Uni_String *newASCIIString(char *str) {
 
 	/* the returning Uni_String is here. Make blank struct */
 	retval = MALLOC (sizeof (struct Uni_String));
-	len = strlen(str);
+	len = (int) strlen(str);
 
 	retval->strptr  = MALLOC (sizeof(char) * len+1);
 	strncpy(retval->strptr,str,len+1);
@@ -127,7 +127,7 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 
 
 /* get how many bytes in the type */
-size_t returnElementLength(int type) {
+int  returnElementLength(int type) {
 	  switch (type) {
 		case FIELDTYPE_SFVec2d:
 		case FIELDTYPE_MFVec2d:
@@ -142,14 +142,14 @@ size_t returnElementLength(int type) {
 		case FIELDTYPE_SFMatrix4d:
 		case FIELDTYPE_MFMatrix4d:
 		case FIELDTYPE_SFTime :
-    		case FIELDTYPE_MFTime : return sizeof(double); break;
-    		case FIELDTYPE_MFInt32: return sizeof(int)   ; break;
+    		case FIELDTYPE_MFTime : return (int) sizeof(double); break;
+    		case FIELDTYPE_MFInt32: return (int) sizeof(int)   ; break;
 		case FIELDTYPE_FreeWRLPTR:
     		case FIELDTYPE_SFNode :
-    		case FIELDTYPE_MFNode : return sizeof(void *); break;
+    		case FIELDTYPE_MFNode : return (int) sizeof(void *); break;
 	  	default     : {}
 	}
-	return sizeof(float) ; /* turn into byte count */
+	return (int) sizeof(float) ; /* turn into byte count */
 }
 
 /* for passing into CRoutes/CRoutes_Register */

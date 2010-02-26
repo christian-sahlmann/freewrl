@@ -40,13 +40,13 @@
 #include "../vrml_parser/CProto.h"
 
 
-static size_t estimatedBodyLen = -1;
+static int estimatedBodyLen = -1;
 static struct Vector *deconstructedProtoBody = NULL;
 
-static indexT protoElementCount = ID_UNDEFINED;
+static int protoElementCount = ID_UNDEFINED;
 static char tempname[1000];
 static FILE *fp;
-static size_t written = 0;
+static int written = 0;
 
 #define DEF_FINDFIELD(arr) \
  int findFieldIn##arr(const char* field) \
@@ -121,7 +121,7 @@ void tokenizeVRML1_(char *pb) {
 	while ((*pb != '\0') && (*pb <= ' ')) pb++;
 
 	/* record this body length to help us with MALLOCing when expanding PROTO */
-	estimatedBodyLen = strlen(pb) * 2;
+	estimatedBodyLen = (int) strlen(pb) * 2;
 
 	lex = newLexer();
 	lexer_fromString(lex,pb);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.30 2010/02/23 18:39:45 crc_canada Exp $
+$Id: fieldGet.c,v 1.31 2010/02/26 21:48:10 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -228,7 +228,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = sizeof (float);
+			elementlen = (int) sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFRotation object */
 				newSFObject = JS_ConstructObject(cx,&SFRotationClass,NULL, newMFObject);
@@ -275,7 +275,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = sizeof (float);
+			elementlen = (int) sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFVec3f object */
 				newSFObject = JS_ConstructObject(cx,&SFVec3fClass,NULL, newMFObject);
@@ -321,7 +321,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = sizeof (float);
+			elementlen = (int) sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFColor object */
 				newSFObject = JS_ConstructObject(cx,&SFColorClass,NULL, newMFObject);
@@ -367,7 +367,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = sizeof (float);
+			elementlen = (int) sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFVec2f object */
 				newSFObject = JS_ConstructObject(cx,&SFVec2fClass,NULL, newMFObject);
@@ -411,7 +411,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = sizeof (float);
+			elementlen = (int) sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFFloat object */
 				
@@ -448,7 +448,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = sizeof (float);
+			elementlen = (int) sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFTime object */
 				
@@ -485,7 +485,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = sizeof (float);
+			elementlen = (int) sizeof (float);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFInt32 object */
 				
@@ -560,7 +560,7 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = sizeof (float);
+			elementlen = (int) sizeof (float);
 			for (x=0; x<datalen; x++) {
 				ip = (int *)fp_in; 
 				newjsval = INT_TO_JSVAL(ip);

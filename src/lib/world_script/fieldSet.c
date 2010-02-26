@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.36 2010/02/26 19:34:43 sdumoulin Exp $
+  $Id: fieldSet.c,v 1.37 2010/02/26 21:48:12 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -108,7 +108,7 @@ MF_TYPE(MFColorRGBA, mfcolorrgba, ColorRGBA)
 */
 
 /* how many rows are in this data type? SF nodes have 1, other nodes... */
-int returnNumberOfRows(int datatype,union anyVrml *memptr) {
+static int returnNumberOfRows(int datatype,union anyVrml *memptr) {
 	switch (datatype) {
 
   #define SF_TYPE(fttype, type, ttype) \
@@ -194,8 +194,8 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 */
 
 static unsigned int setField_FromEAI_ToScript(uintptr_t tonode, int toname,
-		int datatype, void *data, unsigned rowcount) {
-	unsigned datalen;
+	int datatype, void *data, unsigned rowcount) {
+	int datalen;
 
 	#ifdef SETFIELDVERBOSE
 	printf ("doing setField_FromEAI_ToScript, for script %u, nameIndex %u, type %s\n",tonode, toname, stringFieldtypeType(datatype));
@@ -388,7 +388,7 @@ unsigned int setField_FromEAI (char *ptr) {
 		datatype = convertToSFType(datatype);
 
 		/* For ONEVAL need to pass memptr, not nodeptr */
-		myptr = memptr;
+		myptr = X3D_NODE(memptr);
 		myoffset = 0;
 	}
 
@@ -413,7 +413,7 @@ unsigned int setField_FromEAI (char *ptr) {
 		mark_script (sp->num);
 
 		/* now, send the number of rows along; SFs return 1, MFS return rows */
-		rowCount = returnNumberOfRows(datatype,memptr);
+		rowCount = returnNumberOfRows(datatype,(union anyVrml *) memptr);
 
 		/* inch the type along, to the data pointer */
 		memptr = Multi_Struct_memptr(datatype, memptr);
@@ -545,7 +545,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		case FIELDTYPE_MFNode: {
 				strval = JS_ValueToString(scriptContext, JSglobal_return_val);
 	        		strp = JS_GetStringBytes(strval);
-				getMFNodetype (strp,(struct Multi_Node *)memptr,X3D_NODE(tn),extraData); break;
+				getMFNodetype (X3D_NODE(strp),(struct Multi_Node *)memptr,X3D_NODE(tn),extraData); break;
 		}
 		case FIELDTYPE_MFString: {
 			getMFStringtype (scriptContext, (jsval *)JSglobal_return_val,(struct Multi_String *)memptr);
@@ -577,10 +577,10 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 /* find the ASCII string name of this field of this node */
 char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset) {
-	size_t* np;
+	int* np;
 	if (node == 0) return "unknown";
 
-	np = (size_t *) NODE_OFFSETS[node->_nodeType];  /* it is a const size_t* type */
+	np = NODE_OFFSETS[node->_nodeType];  /* it is a const size_t* type */
 	np++;  /* go to the offset field */
 
 	while ((*np != -1) && (*np != offset)) np +=5;
@@ -709,11 +709,11 @@ DEF_FINDROUTEDFIELD(EVENT_OUT)
 
 /* go through the OFFSETS for this node, looking for field, and return offset, type, and kind */
 void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype, int *ckind) {
-	size_t *x;
+	int *x;
 	int X3DLevel;
 	int mask = 0;
 
-	x = (size_t *) NODE_OFFSETS[nodeType];
+	x = NODE_OFFSETS[nodeType];
 
 	#ifdef SETFIELDVERBOSE
 	printf ("findFieldInOFFSETS, nodeType %s\n",stringNodeType(nodeType));
@@ -1146,7 +1146,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 void getMFNodetype (struct X3D_Node *strp, struct Multi_Node *tn, struct X3D_Node *parent, int ar) {
 	/* now, perform the add/remove */
-	AddRemoveChildren (parent, tn,  &(strp), 1, ar,__FILE__,__LINE__);
+	AddRemoveChildren (parent, tn,  (uintptr_t *)(&(strp)), 1, ar,__FILE__,__LINE__);
 }
 
 
