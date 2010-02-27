@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.33 2010/02/08 19:51:01 crc_canada Exp $
+$Id: Component_Shape.c,v 1.34 2010/02/27 21:02:25 crc_canada Exp $
 
 X3D Shape Component
 
@@ -276,15 +276,15 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 	USE_SHADER(fillpropCurrentShader);
 
 
-	hatchX = 0.80; hatchY = 0.80;
+	hatchX = 0.80f; hatchY = 0.80f;
 	algor = node->hatchStyle; filled = node->filled; hatched = node->hatched;
 	switch (node->hatchStyle) {
-		case 1: hatchX = 1.0; break; /* horizontal lines */
-		case 2: hatchY = 1.0; break; /* vertical lines */
-		case 3: hatchY=1.0; break; /* positive sloped lines */
-		case 4: hatchY=1.0; break; /* negative sloped lines */
+		case 1: hatchX = 1.0f; break; /* horizontal lines */
+		case 2: hatchY = 1.0f; break; /* vertical lines */
+		case 3: hatchY=1.0f; break; /* positive sloped lines */
+		case 4: hatchY=1.0f; break; /* negative sloped lines */
 		case 5: break; /* square pattern */
-		case 6: hatchY = 1.0; break; /* diamond pattern */
+		case 6: hatchY = 1.0f; break; /* diamond pattern */
 
 		default :{
 			node->hatched = FALSE;
@@ -294,44 +294,41 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 	GLUNIFORM1I(filledBool,filled);
 	GLUNIFORM1I(hatchedBool,hatched);
 	GLUNIFORM1I(algorithm,algor);
-	GLUNIFORM4F(hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0);
+	GLUNIFORM4F(hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0f);
 }
-
-#define MIN_NODE_TRANSPARENCY 0.0
-#define MAX_NODE_TRANSPARENCY 0.99  /* if 1.0, then occlusion culling will cause flashing */
 
 void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 	int i;
 
 	/* verify that the numbers are within range */
-	if (node->ambientIntensity < 0.0) node->ambientIntensity=0.0;
-	if (node->ambientIntensity > 1.0) node->ambientIntensity=1.0;
-	if (node->shininess < 0.0) node->shininess=0.0;
-	if (node->shininess > 1.0) node->shininess=1.0;
+	if (node->ambientIntensity < 0.0) node->ambientIntensity=0.0f;
+	if (node->ambientIntensity > 1.0) node->ambientIntensity=1.0f;
+	if (node->shininess < 0.0) node->shininess=0.0f;
+	if (node->shininess > 1.0) node->shininess=1.0f;
 	if (node->transparency < 0.0) node->transparency=MIN_NODE_TRANSPARENCY;
 	if (node->transparency >= 1.0) node->transparency=MAX_NODE_TRANSPARENCY;
 
-	if (node->backAmbientIntensity < 0.0) node->backAmbientIntensity=0.0;
-	if (node->backAmbientIntensity > 1.0) node->backAmbientIntensity=1.0;
-	if (node->backShininess < 0.0) node->backShininess=0.0;
-	if (node->backShininess > 1.0) node->backShininess=1.0;
-	if (node->backTransparency < 0.0) node->backTransparency=0.0;
-	if (node->backTransparency > 1.0) node->backTransparency=1.0;
+	if (node->backAmbientIntensity < 0.0) node->backAmbientIntensity=0.0f;
+	if (node->backAmbientIntensity > 1.0) node->backAmbientIntensity=1.0f;
+	if (node->backShininess < 0.0) node->backShininess=0.0f;
+	if (node->backShininess > 1.0) node->backShininess=1.0f;
+	if (node->backTransparency < 0.0) node->backTransparency=0.0f;
+	if (node->backTransparency > 1.0) node->backTransparency=1.0f;
 
 	for (i=0; i<3; i++) {
-		if (node->diffuseColor.c[i] < 0.0) node->diffuseColor.c[i]=0.0;
-		if (node->diffuseColor.c[i] > 1.0) node->diffuseColor.c[i]=1.0;
-		if (node->emissiveColor.c[i] < 0.0) node->emissiveColor.c[i]=0.0;
-		if (node->emissiveColor.c[i] > 1.0) node->emissiveColor.c[i]=1.0;
-		if (node->specularColor.c[i] < 0.0) node->specularColor.c[i]=0.0;
-		if (node->specularColor.c[i] > 1.0) node->specularColor.c[i]=1.0;
+		if (node->diffuseColor.c[i] < 0.0) node->diffuseColor.c[i]=0.0f;
+		if (node->diffuseColor.c[i] > 1.0) node->diffuseColor.c[i]=1.0f;
+		if (node->emissiveColor.c[i] < 0.0) node->emissiveColor.c[i]=0.0f;
+		if (node->emissiveColor.c[i] > 1.0) node->emissiveColor.c[i]=1.0f;
+		if (node->specularColor.c[i] < 0.0) node->specularColor.c[i]=0.0f;
+		if (node->specularColor.c[i] > 1.0) node->specularColor.c[i]=1.0f;
 
-		if (node->backDiffuseColor.c[i] < 0.0) node->backDiffuseColor.c[i]=0.0;
-		if (node->backDiffuseColor.c[i] > 1.0) node->backDiffuseColor.c[i]=1.0;
-		if (node->backEmissiveColor.c[i] < 0.0) node->backEmissiveColor.c[i]=0.0;
-		if (node->backEmissiveColor.c[i] > 1.0) node->backEmissiveColor.c[i]=1.0;
-		if (node->backSpecularColor.c[i] < 0.0) node->backSpecularColor.c[i]=0.0;
-		if (node->backSpecularColor.c[i] > 1.0) node->backSpecularColor.c[i]=1.0;
+		if (node->backDiffuseColor.c[i] < 0.0) node->backDiffuseColor.c[i]=0.0f;
+		if (node->backDiffuseColor.c[i] > 1.0) node->backDiffuseColor.c[i]=1.0f;
+		if (node->backEmissiveColor.c[i] < 0.0) node->backEmissiveColor.c[i]=0.0f;
+		if (node->backEmissiveColor.c[i] > 1.0) node->backEmissiveColor.c[i]=1.0f;
+		if (node->backSpecularColor.c[i] < 0.0) node->backSpecularColor.c[i]=0.0f;
+		if (node->backSpecularColor.c[i] > 1.0) node->backSpecularColor.c[i]=1.0f;
 	}
 
 
@@ -354,24 +351,24 @@ void compile_Material (struct X3D_Material *node) {
 
 
 	/* verify that the numbers are within range */
-	if (node->ambientIntensity < 0.0) node->ambientIntensity=0.0;
-	if (node->ambientIntensity > 1.0) node->ambientIntensity=1.0;
-	if (node->shininess < 0.0) node->shininess=0.0;
-	if (node->shininess > 1.0) node->shininess=1.0;
-	if (node->transparency < 0.0) node->transparency=MIN_NODE_TRANSPARENCY;
-	if (node->transparency >= 1.0) node->transparency=MAX_NODE_TRANSPARENCY;
+	if (node->ambientIntensity < 0.0f) node->ambientIntensity=0.0f;
+	if (node->ambientIntensity > 1.0f) node->ambientIntensity=1.0f;
+	if (node->shininess < 0.0f) node->shininess=0.0f;
+	if (node->shininess > 1.0f) node->shininess=1.0f;
+	if (node->transparency < 0.0f) node->transparency=MIN_NODE_TRANSPARENCY;
+	if (node->transparency >= 1.0f) node->transparency=MAX_NODE_TRANSPARENCY;
 
 	for (i=0; i<3; i++) {
-		if (node->diffuseColor.c[i] < 0.0) node->diffuseColor.c[i]=0.0;
-		if (node->diffuseColor.c[i] > 1.0) node->diffuseColor.c[i]=1.0;
-		if (node->emissiveColor.c[i] < 0.0) node->emissiveColor.c[i]=0.0;
-		if (node->emissiveColor.c[i] > 1.0) node->emissiveColor.c[i]=1.0;
-		if (node->specularColor.c[i] < 0.0) node->specularColor.c[i]=0.0;
-		if (node->specularColor.c[i] > 1.0) node->specularColor.c[i]=1.0;
+		if (node->diffuseColor.c[i] < 0.0f) node->diffuseColor.c[i]=0.0f;
+		if (node->diffuseColor.c[i] > 1.0f) node->diffuseColor.c[i]=1.0f;
+		if (node->emissiveColor.c[i] < 0.0f) node->emissiveColor.c[i]=0.0f;
+		if (node->emissiveColor.c[i] > 1.0f) node->emissiveColor.c[i]=1.0f;
+		if (node->specularColor.c[i] < 0.0f) node->specularColor.c[i]=0.0f;
+		if (node->specularColor.c[i] > 1.0f) node->specularColor.c[i]=1.0f;
 	}
 
         /* set the transparency here for the material */
-        trans = 1.0 - node->transparency;
+        trans = 1.0f - node->transparency;
                 
         node->_dcol.c[3] = trans;
         node->_amb.c[3] = trans;
@@ -389,10 +386,10 @@ void compile_Material (struct X3D_Material *node) {
 	/* for (i=0; i<3;i++){ node->_ecol[i] = node->emissiveColor.c[i]; } */
 	memcpy((void *)node->_ecol.c, node->emissiveColor.c, sizeof (float) * 3);
 
-        node->_shin = node->shininess * 128.0;
+        node->_shin = node->shininess * 128.0f;
 
-#define MAX_SHIN 128.0
-#define MIN_SHIN 0.01
+#define MAX_SHIN 128.0f
+#define MIN_SHIN 0.01f
         if ((node->_shin > MAX_SHIN) || (node->_shin < MIN_SHIN)) {
                 if (node->_shin>MAX_SHIN){node->_shin = MAX_SHIN;}else{node->_shin=MIN_SHIN;}
         }
@@ -508,7 +505,7 @@ void child_Shape (struct X3D_Shape *node) {
 		} else {
 			if (material_oneSided != NULL) {
 				/* we have a normal material node */
-				appearanceProperties.transparency = 1.0 - material_oneSided->transparency; /* 1 == solid, 0 = totally transparent */ 
+				appearanceProperties.transparency = 1.0f - material_oneSided->transparency; /* 1 == solid, 0 = totally transparent */ 
 
 				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_DIFFUSE, material_oneSided->_dcol.c); 
 				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_AMBIENT, material_oneSided->_amb.c);
@@ -533,12 +530,12 @@ void child_Shape (struct X3D_Shape *node) {
 	
 				if (tryingOcclusionDrawing) {
 					/* draw this as a subdued grey */
-					FW_GL_COLOR3F(0.3,0.3,0.3);
+					FW_GL_COLOR3F(0.3f,0.3f,0.3f);
 				} else {
 					/* no material, so just colour the following shape */ 
 					/* Spec says to disable lighting and set coloUr to 1,1,1 */ 
 					LIGHTING_OFF  
-					FW_GL_COLOR3F(1,1,1); 
+					FW_GL_COLOR3F(1.0f,1.0f,1.0f); 
 					}
 		 
 				/* tell the rendering passes that this is just "normal" */ 
@@ -572,8 +569,8 @@ void child_Shape (struct X3D_Shape *node) {
 
 	if (linePropertySet) {
 		FW_GL_DISABLE (GL_LINE_STIPPLE);
-		glLineWidth(1.0);
-		FW_GL_POINTSIZE(1.0);
+		glLineWidth(1.0f);
+		FW_GL_POINTSIZE(1.0f);
 	}
 
 	/* any shader turned on? if so, turn it off */

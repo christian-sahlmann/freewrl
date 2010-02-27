@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statusbar.h,v 1.1 2009/12/18 17:30:13 istakenv Exp $
+$Id: statusbar.h,v 1.2 2010/02/27 21:02:27 crc_canada Exp $
 
 UI declarations.
 
@@ -36,6 +36,7 @@ extern "C" {
 #endif
 
 void drawStatusBar();
+int handleStatusbarHud(int mev, int* clipplane);
 
 #ifdef __cplusplus
 }

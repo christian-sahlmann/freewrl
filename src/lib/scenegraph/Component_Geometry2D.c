@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.16 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Component_Geometry2D.c,v 1.17 2010/02/27 21:02:25 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -64,10 +64,10 @@ void compile_##myType (struct X3D_##myType *node){ \
 	int count; \
  \
 	if (node->myField.n<=0) { \
-		node->EXTENT_MIN_X = (double) 0; \
-		node->EXTENT_MAX_X = (double) 0; \
-		node->EXTENT_MIN_Y = (double) 0; \
-		node->EXTENT_MAX_Y = (double) 0; \
+		node->EXTENT_MIN_X = 0.0f; \
+		node->EXTENT_MAX_X = 0.0f; \
+		node->EXTENT_MIN_Y = 0.0f; \
+		node->EXTENT_MAX_Y = 0.0f; \
 	} else { \
 		for (count = 0; count < node->myField.n; count++) { \
 			if (node->myField.p[count].c[0] > mymaxx) mymaxx = node->myField.p[count].c[0]; \
@@ -75,10 +75,10 @@ void compile_##myType (struct X3D_##myType *node){ \
 			if (node->myField.p[count].c[1] > mymaxy) mymaxy = node->myField.p[count].c[1]; \
 			if (node->myField.p[count].c[1] < myminy) myminy = node->myField.p[count].c[1]; \
 		} \
-		node->EXTENT_MAX_X = (double) mymaxx; \
-		node->EXTENT_MIN_X = (double) myminx; \
-		node->EXTENT_MAX_Y = (double) mymaxy; \
-		node->EXTENT_MIN_Y = (double) myminy; \
+		node->EXTENT_MAX_X = mymaxx; \
+		node->EXTENT_MIN_X = myminx; \
+		node->EXTENT_MAX_Y = mymaxy; \
+		node->EXTENT_MIN_Y = myminy; \
 	} \
  \
 	MARK_NODE_COMPILED \
@@ -111,7 +111,7 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 	if (node->__numPoints>0) {	
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
-			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
 		GET_COLOUR_POINTER
 	        LIGHTING_OFF
@@ -507,7 +507,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	if (!node->__points) return;
 
 	/* for BoundingBox calculations */
-	setExtent(x,-x,y,-y,0.0,0.0,X3D_NODE(node));
+	setExtent(x,-x,y,-y,0.0f,0.0f,X3D_NODE(node));
 
 	CULL_FACE(node->solid)
 
@@ -515,7 +515,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	textureDraw_start(NULL,boxtex);
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
 	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-	glNormal3f (0.0, 0.0, 1.0);
+	glNormal3f (0.0f, 0.0f, 1.0f);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	FW_GL_DRAWARRAYS (GL_QUADS, 0, 4);
@@ -548,9 +548,9 @@ static void *createLines (float start, float end, float radius, int closed, int 
 	isCircle =  APPROX(start,end);
 
 	/* bounds check, and sort values */
-	if ((start < PI*2.0) || (start > PI*2.0)) start = 0;
-	if ((end < PI*2.0) || (end > PI*2.0)) end = PI/2;
-	if (radius<0.0) radius = 1.0;
+	if ((start < PI*2.0f) || (start > PI*2.0f)) start = 0;
+	if ((end < PI*2.0f) || (end > PI*2.0f)) end = PI/2.0f;
+	if (radius<0.0) radius = 1.0f;
 
 	if (end > start) {
 		tmp = start;
@@ -589,16 +589,16 @@ static void *createLines (float start, float end, float radius, int closed, int 
 	/* do we have to draw any pies, cords, etc, etc? */
 	if (closed == CHORD) {
 		/* loop back to origin */
-		*fp = -radius * sinf(0.0/((float)SEGMENTS_PER_CIRCLE));	
+		*fp = -radius * sinf(0.0f/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
-		*fp = radius * cosf(0.0/((float)SEGMENTS_PER_CIRCLE));	
+		*fp = radius * cosf(0.0f/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
 	} else if (closed == PIE) {
 		/* go to origin */
-		*fp = 0.0; fp++; *fp=0.0; fp++; 
-		*fp = -radius * sinf(0.0/((float)SEGMENTS_PER_CIRCLE));	
+		*fp = 0.0f; fp++; *fp=0.0f; fp++; 
+		*fp = -radius * sinf(0.0f/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
-		*fp = radius * cosf(0.0/((float)SEGMENTS_PER_CIRCLE));	
+		*fp = radius * cosf(0.0f/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
 	}
 
@@ -606,10 +606,10 @@ static void *createLines (float start, float end, float radius, int closed, int 
 	/* find extents */
 	*size = numPoints;
 	if (numPoints==0) {
-                EXTENT_MAX_X = (double) 0;
-                EXTENT_MIN_X = (double) 0;
-                EXTENT_MAX_Y = (double) 0;
-                EXTENT_MIN_Y = (double) 0;
+                EXTENT_MAX_X = 0.0f;
+                EXTENT_MIN_X = 0.0f;
+                EXTENT_MAX_Y = 0.0f;
+                EXTENT_MIN_Y = 0.0f;
         } else { 
 		/* find min/max for setExtent for these points */
 		fp = points;
@@ -623,10 +623,10 @@ static void *createLines (float start, float end, float radius, int closed, int 
                         if (*fp < myminy) myminy = *fp;
 			fp++;
 		}
-		EXTENT_MIN_X = (double) myminx;
-		EXTENT_MAX_X = (double) mymaxx;
-		EXTENT_MIN_Y = (double) myminy;
-		EXTENT_MAX_Y = (double) mymaxy;
+		EXTENT_MIN_X = myminx;
+		EXTENT_MAX_X = mymaxx;
+		EXTENT_MIN_Y = myminy;
+		EXTENT_MAX_Y = mymaxy;
 	}
 
 	return (void *)points;

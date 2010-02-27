@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.13 2010/01/29 14:42:48 crc_canada Exp $
+$Id: Material.c,v 1.14 2010/02/27 21:02:24 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -41,10 +41,10 @@ Only do material settings that "matter" and bounds check all values.
 
 
 /* default material properties */
-GLfloat default_diffuse[]  = {0.8,0.8,0.8,1.0};
-GLfloat default_ambient[]  = {0.2,0.2,0.2,1.0};
-GLfloat default_specular[] = {0.0,0.0,0.0,1.0};
-GLfloat default_emission[] = {0.0,0.0,0.0,1.0};
+GLfloat default_diffuse[]  = {0.8f,0.8f,0.8f,1.0f};
+GLfloat default_ambient[]  = {0.2f,0.2f,0.2f,1.0f};
+GLfloat default_specular[] = {0.0f,0.0f,0.0f,1.0f};
+GLfloat default_emission[] = {0.0f,0.0f,0.0f,1.0f};
 
 GLfloat last_emission[4];
 
@@ -55,12 +55,12 @@ void do_shininess (GLenum face, float shininess) {
 	so, we either do 1.0-shininess * 128, or we do shininess * 128... */
 
 	/* shininess = (1.0 - shininess) * 128.0; */
-	shininess *= 128.0;
+	shininess *= 128.0f;
 
 	/* printf ("do_shininess, %f for face %d, GL_FRONT %d, BACK %d F&B %d\n",shininess, face, GL_FRONT,GL_BACK,GL_FRONT_AND_BACK);  */
 
-#define MAX_SHIN 128.0
-#define MIN_SHIN 0.01
+#define MAX_SHIN 128.0f
+#define MIN_SHIN 0.01f
 	if ((shininess > MAX_SHIN) || (shininess < MIN_SHIN)) {
 		if (shininess>MAX_SHIN){shininess = MAX_SHIN;}else{shininess=MIN_SHIN;}
 	}

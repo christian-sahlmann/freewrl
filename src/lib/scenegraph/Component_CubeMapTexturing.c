@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.9 2010/01/15 22:07:26 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.10 2010/02/27 21:02:25 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -142,12 +142,12 @@ void ixxrender_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *node)
 	int i,j,k;
 	
 	for (i = 0; i < CUBE_MAP_SIZE; i++) {
-		float t = 1.0 / (2 * CUBE_MAP_SIZE) + (float) i / CUBE_MAP_SIZE;
-		t = 2.0 * t - 1.0;
+		float t = 1.0f / (2 * CUBE_MAP_SIZE) + (float) i / CUBE_MAP_SIZE;
+		t = 2.0f * t - 1.0f;
 		for (j = 0; j < CUBE_MAP_SIZE; j++) {
-			float s = 1.0 / (2 * CUBE_MAP_SIZE) + (float) j / CUBE_MAP_SIZE;
+			float s = 1.0f / (2 * CUBE_MAP_SIZE) + (float) j / CUBE_MAP_SIZE;
 			float pt[3];
-			s = 2.0 * s - 1.0;
+			s = 2.0f * s - 1.0f;
 			pt[0] = 1;
 			pt[1] = t;
 			pt[2] = -s;
@@ -213,9 +213,9 @@ void render_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *node)
 {
 	struct X3D_Node *thistex = 0;
 	int count;
-	char *name = NULL;
 
 #if 1
+	char *name = NULL;
 	/* Michel testing stuff, please ignore :) */
 	static int ft = 0;
 	if (ft == 0) {

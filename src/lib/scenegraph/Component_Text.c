@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.21 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Component_Text.c,v 1.22 2010/02/27 21:02:25 crc_canada Exp $
 
 X3D Text Component
 
@@ -150,8 +150,8 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
 
     /* printf ("FW_NewVertexPoint setting coord index %d %d %d\n", */
     /*  FW_pointctr, FW_pointctr*3+2,FW_rep_->actualCoord[FW_pointctr*3+2]); */
-    FW_rep_->actualCoord[FW_pointctr*3+0] = OUT2GL(last_point.x + pen_x);
-    FW_rep_->actualCoord[FW_pointctr*3+1] = OUT2GL(last_point.y) + pen_y;
+    FW_rep_->actualCoord[FW_pointctr*3+0] = (float) OUT2GL(last_point.x + pen_x);
+    FW_rep_->actualCoord[FW_pointctr*3+1] = (float) (OUT2GL(last_point.y) + pen_y);
     FW_rep_->actualCoord[FW_pointctr*3+2] = TextZdist;
 
     /* the following should NEVER happen.... */
@@ -457,7 +457,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
                    double spacing, double mysize, unsigned int fsparam,
                    struct X3D_PolyRep *rp)
 {
-    unsigned char *str; /* string pointer- initialization gets around compiler warning */
+    unsigned char *str = NULL; /* string pointer- initialization gets around compiler warning */
     unsigned int i,row;
     double shrink = 0;
     double rshrink = 0;
@@ -497,10 +497,10 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 #ifdef CALCAULATEANGLETAN
         float angletan;
         /* convert fieldofview into radians */
-        angletan = fieldofview / 360.0 * PI * 2;
+        angletan = fieldofview / 360.0f * PI * 2;
 
         /* take half of the angle; */
-        angletan = angletan / 2.0;
+        angletan = angletan / 2.0f;
 
         /* find the tan of it; */
         angletan = tanf (angletan);
@@ -510,18 +510,18 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
         //printf ("fov %f tzd %f \n",(float) fieldofview, (float) TextZdist);
 #else
         /* the equation should be simple, but it did not work. Lets try the following: */
-        if (fieldofview < 12.0) {
-            TextZdist = -12.0;
-        } else if (fieldofview < 46.0) {
-            TextZdist = -0.2;
-        } else if (fieldofview  < 120.0) {
-            TextZdist = +2.0;
+        if (fieldofview < 12.0f) {
+            TextZdist = -12.0f;
+        } else if (fieldofview < 46.0f) {
+            TextZdist = -0.2f;
+        } else if (fieldofview  < 120.0f) {
+            TextZdist = +2.0f;
         } else {
-            TextZdist = + 2.88;
+            TextZdist = + 2.88f;
         }
 #endif
     } else {
-        TextZdist = 0.0;
+        TextZdist = 0.0f;
     }
 
     /* have we done any rendering yet */
@@ -605,7 +605,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
         for(row = 0; row < numrows; row++) {
             if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
             l = FW_extent(counter,(int) strlen((const char *)str));
-            counter += strlen((const char *)str);
+            counter += (int) strlen((const char *)str);
             if(l > maxlen) {maxlen = l;}
         }
 
@@ -695,7 +695,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
                 FW_rep_->cindex=(int *)REALLOC(FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*cindexmaxsize);
             }
         }
-        counter += strlen((const char *)str);
+        counter += (int) strlen((const char *)str);
 
         pen_y += spacing * y_size;
     }
@@ -715,9 +715,9 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
     /* now, generate normals */
     FW_rep_->normal = (float *)MALLOC(sizeof(*(FW_rep_->normal))*indx_count*3);
     for (i = 0; i<(unsigned int)indx_count; i++) {
-        FW_rep_->normal[i*3+0] = 0.0;
-        FW_rep_->normal[i*3+1] = 0.0;
-        FW_rep_->normal[i*3+2] = 1.0;
+        FW_rep_->normal[i*3+0] = 0.0f;
+        FW_rep_->normal[i*3+1] = 0.0f;
+        FW_rep_->normal[i*3+2] = 1.0f;
     }
 
     /* do we have texture mapping to do? */
@@ -726,9 +726,9 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
         /* an attempt to try to make this look like the NIST example */
         /* I can't find a standard as to how to map textures to text JAS */
         for (i=0; i<(unsigned int)FW_pointctr; i++) {
-            FW_rep_->GeneratedTexCoords[i*3+0] = FW_rep_->actualCoord[i*3+0]*1.66;
-            FW_rep_->GeneratedTexCoords[i*3+1] = 0.0;
-            FW_rep_->GeneratedTexCoords[i*3+2] = FW_rep_->actualCoord[i*3+1]*1.66;
+            FW_rep_->GeneratedTexCoords[i*3+0] = FW_rep_->actualCoord[i*3+0]*1.66f;
+            FW_rep_->GeneratedTexCoords[i*3+1] = 0.0f;
+            FW_rep_->GeneratedTexCoords[i*3+2] = FW_rep_->actualCoord[i*3+1]*1.66f;
         }
     }
 
@@ -787,13 +787,11 @@ void collide_Text (struct X3D_Text *node)
     GLDOUBLE modelMatrix[16];
     //GLDOUBLE upvecmat[16];
 
-    struct point_XYZ t_orig = {0,0,0};
 
     /*JAS - normals are always this way - helps because some
       normal calculations failed because of very small triangles
       which made collision calcs fail, which moved the Viewpoint...
       so, if there is no need to calculate normals..., why do it? */
-    struct point_XYZ tupv = {0,1,0};
     struct point_XYZ delta = {0,0,-1};
     struct X3D_PolyRep pr;
     int change = 0;

@@ -1,5 +1,5 @@
 #
-# $Id: VRMLFields.pm,v 1.7 2010/02/19 21:23:21 crc_canada Exp $
+# $Id: VRMLFields.pm,v 1.8 2010/02/27 21:02:21 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log: VRMLFields.pm,v $
+# Revision 1.8  2010/02/27 21:02:21  crc_canada
+# more 64 bit implicit conversion errors resolved.
+#
 # Revision 1.7  2010/02/19 21:23:21  crc_canada
 # more 64 bit changes....
 #
@@ -1085,7 +1088,7 @@ sub cstruct {
 	$r =~ s/VRML::Field::MF//;
 	$t =~ s/::MF/::SF/;
 	my $ct = $t->ctype;
-	return "struct Multi_$r { size_t n; $ct *p; };"
+	return "struct Multi_$r { int n; $ct *p; };"
 }
 
 

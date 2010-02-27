@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.18 2010/02/08 19:51:01 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.19 2010/02/27 21:02:25 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -141,7 +141,7 @@ static void renderSpecificMaterial (int ind) {
 	float dcol[4];
 	float ecol[4];
 	float scol[4];
-	float trans=1.0;
+	float trans=(float) 1.0;
 	struct X3D_VRML1_Material *node;
 
 	if (cSLD == NULL) return;
@@ -152,11 +152,11 @@ static void renderSpecificMaterial (int ind) {
 
 	/* set the transparency here for the material */
 	if(node->transparency.n>ind)
-	trans = 1.0 - node->transparency.p[ind];
+	trans = (float) 1.0 - node->transparency.p[ind];
 
-	if (trans<0.0) trans = MIN_NODE_TRANSPARENCY;
-	if (trans>=0.999999) trans = MAX_NODE_TRANSPARENCY;
-	appearanceProperties.transparency = 1.0 - trans;
+	if (trans<0.0f) trans = MIN_NODE_TRANSPARENCY;
+	if (trans>=0.999999f) trans = MAX_NODE_TRANSPARENCY;
+	appearanceProperties.transparency = 1.0f - trans;
 
 	dcol[3] = trans;
 	scol[3] = trans;
@@ -165,28 +165,28 @@ static void renderSpecificMaterial (int ind) {
 	if (node->diffuseColor.n>ind)  {
 		for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.p[ind].c[i]; }		
 	} else {
-		for (i=0; i<3;i++){ dcol[i] = 0.8; }		
+		for (i=0; i<3;i++){ dcol[i] = 0.8f; }		
 	}
 	do_glMaterialfv(whichFace, GL_DIFFUSE, dcol);
 
 	if (node->ambientColor.n>ind)  {
 		for (i=0; i<3;i++){ dcol[i] *= node->ambientColor.p[ind].c[i]; }		
 	} else {
-		for (i=0; i<3;i++){ dcol[i] *= 0.2; }		
+		for (i=0; i<3;i++){ dcol[i] *= 0.2f; }		
 	}
 	do_glMaterialfv(whichFace, GL_AMBIENT, dcol);
 
 	if (node->specularColor.n>ind)  {
 		for (i=0; i<3;i++){ scol[i] = node->specularColor.p[ind].c[i]; }		
 	} else {
-		for (i=0; i<3;i++){ scol[i] = 0.0; }		
+		for (i=0; i<3;i++){ scol[i] = 0.0f; }		
 	}
 	do_glMaterialfv(whichFace, GL_SPECULAR, scol);
 		\
 	if (node->emissiveColor.n>ind)  {
 		for (i=0; i<3;i++){ ecol[i] = node->emissiveColor.p[ind].c[i]; }		
 	} else {
-		for (i=0; i<3;i++){ ecol[i] = 0.0; }		
+		for (i=0; i<3;i++){ ecol[i] = 0.0f; }		
 	}
 
 	do_glMaterialfv(whichFace, GL_EMISSION, ecol);
@@ -227,7 +227,7 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 	float dcol[4];
 	float ecol[4];
 	float scol[4];
-	float trans=1.0;
+	float trans=1.0f;
 
 	#define whichFace GL_FRONT_AND_BACK
 
@@ -237,11 +237,11 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 
 	/* set the transparency here for the material */
 	if(node->transparency.n>0)
-	trans = 1.0 - node->transparency.p[0];
+	trans = 1.0f - node->transparency.p[0];
 
 	if (trans<0.0) trans = MIN_NODE_TRANSPARENCY;
 	if (trans>=0.999999) trans = MAX_NODE_TRANSPARENCY;
-	appearanceProperties.transparency = 1.0 - trans;
+	appearanceProperties.transparency = 1.0f - trans;
 
 	dcol[3] = trans;
 	scol[3] = trans;
@@ -250,7 +250,7 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 	if (node->diffuseColor.n>0)  {
 		for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.p[0].c[i]; }		
 	} else {
-		for (i=0; i<3;i++){ dcol[i] = 0.8; }		
+		for (i=0; i<3;i++){ dcol[i] = 0.8f; }		
 	}
 	do_glMaterialfv(whichFace, GL_DIFFUSE, dcol);
 
@@ -261,21 +261,21 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 	if (node->ambientColor.n>0)  {
 		for (i=0; i<3;i++){ dcol[i] *= node->ambientColor.p[0].c[i]; }		
 	} else {
-		for (i=0; i<3;i++){ dcol[i] *= 0.2; }		
+		for (i=0; i<3;i++){ dcol[i] *= 0.2f; }		
 	}
 	do_glMaterialfv(whichFace, GL_AMBIENT, dcol);
 
 	if (node->specularColor.n>0)  {
 		for (i=0; i<3;i++){ scol[i] = node->specularColor.p[0].c[i]; }		
 	} else {
-		for (i=0; i<3;i++){ scol[i] = 0.0; }		
+		for (i=0; i<3;i++){ scol[i] = 0.0f; }		
 	}
 	do_glMaterialfv(whichFace, GL_SPECULAR, scol);
 		\
 	if (node->emissiveColor.n>0)  {
 		for (i=0; i<3;i++){ ecol[i] = node->emissiveColor.p[0].c[i]; }		
 	} else {
-		for (i=0; i<3;i++){ ecol[i] = 0.0; }		
+		for (i=0; i<3;i++){ ecol[i] = 0.0f; }		
 	}
 
 	do_glMaterialfv(whichFace, GL_EMISSION, ecol);
@@ -428,10 +428,10 @@ Translation { translation -T2 }
 	
 	FW_GL_TRANSLATE_F(node->translation.c[0], node->translation.c[1], node->translation.c[2]);
 	FW_GL_TRANSLATE_F(node->center.c[0], node->center.c[1], node->center.c[2]);
-	FW_GL_ROTATE_F(node->rotation.c[3]/3.1415926536*180, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
-	FW_GL_ROTATE_F(node->scaleOrientation.c[3]/3.1415926536*180, node->scaleOrientation.c[0], node->scaleOrientation.c[1], node->scaleOrientation.c[2]);
+	FW_GL_ROTATE_F(node->rotation.c[3]/3.1415926536f*180.0f, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
+	FW_GL_ROTATE_F(node->scaleOrientation.c[3]/3.1415926536f*180.0f, node->scaleOrientation.c[0], node->scaleOrientation.c[1], node->scaleOrientation.c[2]);
 	FW_GL_SCALE_F(node->scaleFactor.c[0], node->scaleFactor.c[1], node->scaleFactor.c[2]);
-	FW_GL_ROTATE_F(-node->rotation.c[3]/3.1415926536*180, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
+	FW_GL_ROTATE_F(-node->rotation.c[3]/3.1415926536f*180.0f, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
 	FW_GL_TRANSLATE_F(-node->center.c[0], -node->center.c[1], -node->center.c[2]);
 }
 
@@ -443,7 +443,7 @@ void render_VRML1_Translation (struct X3D_VRML1_Translation *node) {
 
 
 void render_VRML1_Rotation (struct X3D_VRML1_Rotation *node) {
-	FW_GL_ROTATE_F(node->rotation.c[3]/3.1415926536*180, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
+	FW_GL_ROTATE_F(node->rotation.c[3]/3.1415926536f*180.0f, node->rotation.c[0], node->rotation.c[1], node->rotation.c[2]);
 }
 
 void render_VRML1_DirectionalLight (struct X3D_VRML1_DirectionalLight *node) {
@@ -464,9 +464,9 @@ void render_VRML1_DirectionalLight (struct X3D_VRML1_DirectionalLight *node) {
 			FW_GL_LIGHTFV(light, GL_DIFFUSE, vec);
 			FW_GL_LIGHTFV(light, GL_SPECULAR, vec);
 
-			vec[0] = ((node->color).c[0]) * 0.2;
-			vec[1] = ((node->color).c[1]) * 0.2;
-			vec[2] = ((node->color).c[2]) * 0.2;
+			vec[0] = ((node->color).c[0]) * 0.2f;
+			vec[1] = ((node->color).c[1]) * 0.2f;
+			vec[2] = ((node->color).c[2]) * 0.2f;
 
 			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
 		}
@@ -495,9 +495,9 @@ void render_VRML1_PointLight (struct X3D_VRML1_PointLight *node) {
 			vec[3] = 1;
 			FW_GL_LIGHTFV(light, GL_POSITION, vec);
 
-			FW_GL_LIGHTF(light, GL_CONSTANT_ATTENUATION, 1.0);
-			FW_GL_LIGHTF(light, GL_LINEAR_ATTENUATION, 0.0);
-			FW_GL_LIGHTF(light, GL_QUADRATIC_ATTENUATION, 0.0);
+			FW_GL_LIGHTF(light, GL_CONSTANT_ATTENUATION, 1.0f);
+			FW_GL_LIGHTF(light, GL_LINEAR_ATTENUATION, 0.0f);
+			FW_GL_LIGHTF(light, GL_QUADRATIC_ATTENUATION, 0.0f);
 
 			vec[0] = ((node->color).c[0]) * (node->intensity);
 			vec[1] = ((node->color).c[1]) * (node->intensity);
@@ -506,13 +506,13 @@ void render_VRML1_PointLight (struct X3D_VRML1_PointLight *node) {
 			FW_GL_LIGHTFV(light, GL_DIFFUSE, vec);
 			FW_GL_LIGHTFV(light, GL_SPECULAR, vec);
 
-			vec[0] = ((node->color).c[0]) * 0.2;
-			vec[1] = ((node->color).c[1]) * 0.2;
-			vec[2] = ((node->color).c[2]) * 0.2;
+			vec[0] = ((node->color).c[0]) * 0.2f;
+			vec[1] = ((node->color).c[1]) * 0.2f;
+			vec[2] = ((node->color).c[2]) * 0.2f;
 			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
 
 			/* XXX */
-			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 180);
+			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 180.0f);
 		}
 	}
 
@@ -538,31 +538,31 @@ void render_VRML1_SpotLight (struct X3D_VRML1_SpotLight *node) {
 			vec[3] = 1;
 			FW_GL_LIGHTFV(light, GL_POSITION, vec);
 
-			FW_GL_LIGHTF(light, GL_CONSTANT_ATTENUATION,1.0);
-			FW_GL_LIGHTF(light, GL_LINEAR_ATTENUATION,0.0);
-			FW_GL_LIGHTF(light, GL_QUADRATIC_ATTENUATION,0.0);
+			FW_GL_LIGHTF(light, GL_CONSTANT_ATTENUATION,1.0f);
+			FW_GL_LIGHTF(light, GL_LINEAR_ATTENUATION,0.0f);
+			FW_GL_LIGHTF(light, GL_QUADRATIC_ATTENUATION,0.0f);
 
 			vec[0] = ((node->color).c[0]) * (node->intensity);
 			vec[1] = ((node->color).c[1]) * (node->intensity);
 			vec[2] = ((node->color).c[2]) * (node->intensity);
-			vec[3] = 1;
+			vec[3] = 1.0f;
 			FW_GL_LIGHTFV(light, GL_DIFFUSE, vec);
 			FW_GL_LIGHTFV(light, GL_SPECULAR, vec);
 
-			vec[0] = ((node->color).c[0]) * 0.2;
-			vec[1] = ((node->color).c[1]) * 0.2;
-			vec[2] = ((node->color).c[2]) * 0.2;
+			vec[0] = ((node->color).c[0]) * 0.2f;
+			vec[1] = ((node->color).c[1]) * 0.2f;
+			vec[2] = ((node->color).c[2]) * 0.2f;
 
 			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
 
-			ft = 0.5/(1.570796 +0.1); /* 1.570796 = default beamWidth in X3D */
-			if (ft>128.0) ft=128.0;
-			if (ft<0.0) ft=0.0;
+			ft = 0.5f/(1.570796f +0.1f); /* 1.570796 = default beamWidth in X3D */
+			if (ft>128.0) ft=128.0f;
+			if (ft<0.0) ft=0.0f;
 			FW_GL_LIGHTF(light, GL_SPOT_EXPONENT,ft);
 
-			ft = node->cutOffAngle /3.1415926536*180;
-			if (ft>90.0) ft=90.0;
-			if (ft<0.0) ft=0.0;
+			ft = node->cutOffAngle /3.1415926536f*180.0f;
+			if (ft>90.0) ft=90.0f;
+			if (ft<0.0) ft=0.0f;
 			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, ft);
 		}
 	}
@@ -691,12 +691,12 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 		}
 		
 		node->_convex = cSLD->shNode->_faceValue == VRML1MOD_CONVEX;
-		node->_creaseAngle = cSLD->shNode->creaseAngle;
+		node->_creaseAngle = (float) cSLD->shNode->creaseAngle;
 	} else {
 		node->_ccw = FALSE;
 		node->_convex = TRUE;
 		node->_solid = FALSE;
-		node->_creaseAngle = 0.5;
+		node->_creaseAngle = 0.5f;
 	}
 
 

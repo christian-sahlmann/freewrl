@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Lighting.c,v 1.14 2010/01/27 21:18:52 crc_canada Exp $
+$Id: Component_Lighting.c,v 1.15 2010/02/27 21:02:25 crc_canada Exp $
 
 X3D Lighting Component
 
@@ -63,7 +63,7 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 			vec[0] = -((node->direction).c[0]);
 			vec[1] = -((node->direction).c[1]);
 			vec[2] = -((node->direction).c[2]);
-			vec[3] = 0.0; /* 0.0 = DirectionalLight */
+			vec[3] = 0.0f; /* 0.0 = DirectionalLight */
 			FW_GL_LIGHTFV(light, GL_POSITION, vec);
 			vec[0] = ((node->color).c[0]) * (node->intensity);
 			vec[1] = ((node->color).c[1]) * (node->intensity);
@@ -100,7 +100,7 @@ void render_PointLight (struct X3D_PointLight *node) {
 		if(light >= 0) {
 			float vec[4];
 			lightState(light,TRUE);
-			vec[0] = 0.0; vec[1] = 0.0; vec[2] = -1.0; vec[3] = 1;
+			vec[0] = 0.0f; vec[1] = 0.0f; vec[2] = -1.0f; vec[3] = 1.0f;
 
 			FW_GL_LIGHTFV(light, GL_SPOT_DIRECTION, vec);
 			vec[0] = ((node->location).c[0]);
@@ -191,21 +191,20 @@ void render_SpotLight(struct X3D_SpotLight *node) {
 
 			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
 
-			ft = 0.5/(node->beamWidth +0.1);
-			if (ft>128.0) ft=128.0;
-			if (ft<0.0) ft=0.0;
+			ft = 0.5f/(node->beamWidth +0.1f);
+			if (ft>128.0) ft=128.0f;
+			if (ft<0.0) ft=0.0f;
 			FW_GL_LIGHTF(light, GL_SPOT_EXPONENT,ft);
 
-			ft = node->cutOffAngle /3.1415926536*180;
-			if (ft>90.0) ft=90.0;
-			if (ft<0.0) ft=0.0;
+			ft = node->cutOffAngle /3.1415926536f*180.0f;
+			if (ft>90.0) ft=90.0f;
+			if (ft<0.0) ft=0.0f;
 			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, ft);
 		}
 	}
 }
 /* SpotLights are done before the rendering of geometry */
 void prep_SpotLight (struct X3D_SpotLight *node) {
-	float ft;
 	if (!render_light) return;
 	render_SpotLight(node);
 }

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.14 2009/10/22 16:58:49 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.15 2010/02/27 21:02:25 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -123,7 +123,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	int * colorInd;			/* used for streaming colors			*/
 
 	/* believe it or not - material emissiveColor can affect us... */
-	GLfloat defcolorRGBA[] = {1.0, 1.0, 1.0,1.0};
+	GLfloat defcolorRGBA[] = {1.0f, 1.0f, 1.0f,1.0f};
 
 	MARK_NODE_COMPILED
 	nSegments = 0;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.26 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Viewer.h,v 1.27 2010/02/27 21:02:27 crc_canada Exp $
 
 Viewer ???
 
@@ -272,5 +272,10 @@ extern float screendist;
 
 void getCurrentSpeed(void);
 void getCurrentPosInModel (int addInAntiPos);
+
+void toggle_collision(void);
+void viewer_lastP_clear();
+int getViewerType();
+void avatar2BoundViewpointVerticalAvatar(GLdouble *matA2BVVA, GLdouble *matBVVA2A);
 
 #endif /* __FREEWRL_VIEWER_H__ */

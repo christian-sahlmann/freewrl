@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.115 2010/02/26 19:34:42 sdumoulin Exp $
+$Id: headers.h,v 1.116 2010/02/27 21:02:24 crc_canada Exp $
 
 Global includes.
 
@@ -413,7 +413,7 @@ void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fie
 #ifdef M_PI
 #define PI M_PI
 #else
-#define PI 3.141592653589793
+#define PI 3.141592653589793f
 #endif
 /* return TRUE if numbers are very close */
 #define APPROX(a,b) (fabs((a)-(b))<0.00000001)

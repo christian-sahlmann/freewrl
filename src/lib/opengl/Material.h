@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.h,v 1.3 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Material.h,v 1.4 2010/02/27 21:02:25 crc_canada Exp $
 
 Global includes.
 
@@ -32,7 +32,7 @@ Global includes.
 
 
 #define DEFAULT_COLOUR_POINTER  \
-        GLfloat defColor[] = {1.0, 1.0, 1.0};\
+        GLfloat defColor[] = {1.0f, 1.0f, 1.0f};\
         GLfloat *thisColor;
 
 #define GET_COLOUR_POINTER \

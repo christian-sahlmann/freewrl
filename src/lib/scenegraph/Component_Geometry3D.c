@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.20 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.21 2010/02/27 21:02:25 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -144,22 +144,22 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 	/*  now, create the vertices; this is a quad, so each face = 4 points*/
 	pt = (struct SFColor *) tmpptr;
 	for (i=0; i<CYLDIV; i++) {
-		a1 = PI*2*i/(float)CYLDIV;
-		a2 = PI*2*(i+1)/(float)CYLDIV;
-		pt[i*2+0].c[0] = r*sin(a1);
+		a1 = (float) (PI*2*i)/(float)CYLDIV;
+		a2 = (float) (PI*2*(i+1))/(float)CYLDIV;
+		pt[i*2+0].c[0] = r* (float) sin(a1);
 		pt[i*2+0].c[1] = (float) h;
-		pt[i*2+0].c[2] = r*cos(a1);
-		pt[i*2+1].c[0] = r*sin(a1);
+		pt[i*2+0].c[2] = r* (float) cos(a1);
+		pt[i*2+1].c[0] = r*(float) sin(a1);
 		pt[i*2+1].c[1] = (float) -h;
-		pt[i*2+1].c[2] = r*cos(a1);
+		pt[i*2+1].c[2] = r*(float) cos(a1);
 	}
 
 	/*  wrap the points around*/
 	memcpy (&pt[CYLDIV*2].c[0],&pt[0].c[0],sizeof(struct SFColor)*2);
 
 	/*  center points of top and bottom*/
-	pt[CYLDIV*2+2].c[0] = 0.0; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0;
-	pt[CYLDIV*2+3].c[0] = 0.0; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0;
+	pt[CYLDIV*2+2].c[0] = 0.0f; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0f;
+	pt[CYLDIV*2+3].c[0] = 0.0f; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0f;
 	node->__points = tmpptr;
 }
 
@@ -195,7 +195,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	if(node->bottom) {
 		textureDraw_start(NULL,cylendtex);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		glNormal3f(0.0,-1.0,0.0);
+		glNormal3f(0.0f,-1.0f,0.0f);
 		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cylbotindx);
 		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		trisThisLoop += CYLDIV+2;
@@ -204,7 +204,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	if (node->top) {
 		textureDraw_start(NULL,cylendtex);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		glNormal3f(0.0,1.0,0.0);
+		glNormal3f(0.0f,1.0f,0.0f);
 		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
 		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		trisThisLoop += CYLDIV+2;
@@ -244,14 +244,14 @@ void compile_Cone (struct X3D_Cone *node) {
 	
 	/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
 	pt = (struct SFColor *)node->__botpoints;
-	pt[0].c[0] = 0.0; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0;
+	pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
 	for (i=1; i<=CONEDIV; i++) {
-		pt[i].c[0] = r*sin(PI*2*i/(float)CONEDIV);
+		pt[i].c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
 		pt[i].c[1] = (float) -h;
-		pt[i].c[2] = r*cos(PI*2*i/(float)CONEDIV);
+		pt[i].c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
 	}
 	/*  and throw another point that is centre of bottom*/
-	pt[CONEDIV+1].c[0] = 0.0; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0;
+	pt[CONEDIV+1].c[0] = 0.0f; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0f;
 
 	/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
 	memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
@@ -262,7 +262,7 @@ void compile_Cone (struct X3D_Cone *node) {
 	spt = (struct SFColor *)node->__sidepoints;
 	for (i=0; i<CONEDIV; i++) {
 		/*  top point*/
-		spt[i*3].c[0] = 0.0; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0;
+		spt[i*3].c[0] = 0.0f; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0f;
 		/*  left point*/
 		memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFColor));
 		/* right point*/
@@ -277,14 +277,14 @@ void compile_Cone (struct X3D_Cone *node) {
 	norm = (struct SFColor *)ptr;
 	for (i=0; i<=CONEDIV; i++) {
 		/*  top point*/
-		angle = PI * 2 * (i+0.5) / (float) (CONEDIV);
-		norm[i*3+0].c[0] = sin(angle); norm[i*3+0].c[1] = (float)h/r; norm[i*3+0].c[2] = cos(angle);
+		angle = (float) (PI * 2 * (i+0.5f)) / (float) (CONEDIV);
+		norm[i*3+0].c[0] = (float) sin(angle); norm[i*3+0].c[1] = (float)h/r; norm[i*3+0].c[2] = (float) cos(angle);
 		/* left point*/
-		angle = PI * 2 * (i+0) / (float) (CONEDIV);
-		norm[i*3+1].c[0] = sin(angle); norm[i*3+1].c[1] = (float)h/r; norm[i*3+1].c[2] = cos(angle);
+		angle = (float) (PI * 2 * (i+0.0f)) / (float) (CONEDIV);
+		norm[i*3+1].c[0] = (float) sin(angle); norm[i*3+1].c[1] = (float)h/r; norm[i*3+1].c[2] = (float) cos(angle);
 		/*  right point*/
-		angle = PI * 2 * (i+1) / (float) (CONEDIV);
-		norm[i*3+2].c[0] = sin(angle); norm[i*3+2].c[1] = (float)h/r; norm[i*3+2].c[2] = cos(angle);
+		angle = (float) (PI * 2 * (i+1.0f)) / (float) (CONEDIV);
+		norm[i*3+2].c[0] = (float) sin(angle); norm[i*3+2].c[1] = (float)h/r; norm[i*3+2].c[2] = (float) cos(angle);
 	}
 
 	/* ok, finished compiling, finish */
@@ -319,7 +319,7 @@ void render_Cone (struct X3D_Cone *node) {
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__botpoints);
 		textureDraw_start(NULL,tribottex);
-		glNormal3f(0.0,-1.0,0.0);
+		glNormal3f(0.0f,-1.0f,0.0f);
 		glDrawElements (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
 		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		trisThisLoop += CONEDIV+2;
@@ -344,12 +344,12 @@ void render_Cone (struct X3D_Cone *node) {
 
 
 void compile_Sphere (struct X3D_Sphere *node) {
-	#define INIT_TRIG1(div) t_aa = sin(PI/(div)); t_aa *= 2*t_aa; t_ab = -sin(2*PI/(div));
+	#define INIT_TRIG1(div) t_aa = (float) sin(PI/(div)); t_aa *= 2*t_aa; t_ab =(float) -sin(2*PI/(div));
 	#define START_TRIG1 t_sa = 0; t_ca = -1;
 	#define UP_TRIG1 t_sa1 = t_sa; t_sa -= t_sa*t_aa - t_ca * t_ab; t_ca -= t_ca * t_aa + t_sa1 * t_ab;
 	#define SIN1 t_sa
 	#define COS1 t_ca
-	#define INIT_TRIG2(div) t2_aa = sin(PI/(div)); t2_aa *= 2*t2_aa; t2_ab = -sin(2*PI/(div));
+	#define INIT_TRIG2(div) t2_aa = (float) sin(PI/(div)); t2_aa *= 2*t2_aa; t2_ab = (float) -sin(2*PI/(div));
 	#define START_TRIG2 t2_sa = -1; t2_ca = 0;
 	#define UP_TRIG2 t2_sa1 = t2_sa; t2_sa -= t2_sa*t2_aa - t2_ca * t2_ab; t2_ca -= t2_ca * t2_aa + t2_sa1 * t2_ab;
 	#define SIN2 t2_sa
@@ -520,7 +520,6 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 		if(FallInfo.fastTestMethod==1)
 		{
 		   /*  minimum bounding box MBB test in shape space */
-			int i;
 			GLdouble Collision2Shape[16];
 			double foot = abottom;
 			if(FallInfo.allowClimbing) foot = astep; /* < popcycle shaped avatar collision volume. problem: stem and succulent part intersection are intersected together later so I can't return here if the succulent part is a miss - the stem might intersect */
@@ -712,9 +711,8 @@ struct sCollisionGeometry collisionSphere;
 
 void collisionSphere_init(struct X3D_Sphere *node)
 {
-	ctri ct;
-	struct point_XYZ a,b,n;
-	int i,j,k,count,biggestNum;
+	int i,j,count;
+	/* for debug int k, biggestNum; */
 	double radinverse;
 	struct SFColor *pts = node->__points;
 	/*  re-using the compile_sphere node->__points data which is organized into GL_QUAD_STRIPS
@@ -780,7 +778,7 @@ int collisionSphere_render(double radius)
 	/* I needed to verify the collision mesh sphere was good, and it uses triangles, so I drew it the triangle way and it looked good 
 	   to see it draw, you need to turn on collision and get close to a sphere - then it will initialize and start drawing it.
 	*/
-	int i,j,m,count,highest;
+	int i,j,count,highest;
 	count = 0;
 	highest = 0;
 	for(i =0; i < collisionSphere.ntris; i++)  
@@ -803,7 +801,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       struct point_XYZ t_orig; /*transformed origin*/
 	       struct point_XYZ p_orig; /*projected transformed origin */
 	       struct point_XYZ n_orig; /*normal(unit length) transformed origin */
-	       GLDOUBLE modelMatrix[16], radiusScale[16];
+	       GLDOUBLE modelMatrix[16];
 	       GLDOUBLE dist2;
 	       struct point_XYZ delta = {0,0,0};
 	       GLDOUBLE radius;
@@ -812,9 +810,6 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
 	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
-
-
 
 		/* are we initialized yet? */
 		if (node->__points==0) return;
@@ -1021,9 +1016,6 @@ void collide_Box (struct X3D_Box *node) {
 	       struct point_XYZ kv = {0,0,0};
 	       struct point_XYZ ov = {0,0,0};
 
-	       struct point_XYZ t_orig = {0,0,0};
-	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
-
 	       struct point_XYZ delta;
 
 
@@ -1082,9 +1074,10 @@ struct sCollisionGeometry collisionCone;
 
 void collisionCone_init(struct X3D_Cone *node)
 {
-	ctri ct;
-	struct point_XYZ a,b,n;
-	int i,j,k,count,biggestNum;
+	/* for debug ctri ct; */
+	/* for debug struct point_XYZ a,b,n; */
+	int i,count;
+	/* for debug int j,k,biggestNum; */
 	double h,r,inverseh,inverser;
 	struct SFColor *pts;// = node->__botpoints;
 	extern unsigned char tribotindx[];
@@ -1295,9 +1288,10 @@ struct sCollisionGeometry collisionCylinder;
 
 void collisionCylinder_init(struct X3D_Cylinder *node)
 {
-	ctri ct;
-	struct point_XYZ a,b,n;
-	int i,j,k,tcount,qcount,biggestNum;
+	/* for debug ctri ct; */
+	/* for debug struct point_XYZ a,b,n; */
+	int i, tcount, qcount;
+	/* for debug - int j,k,biggestNum; */
 	double h,r,inverseh,inverser;
 	struct SFColor *pts;// = node->__botpoints;
 	
@@ -1598,20 +1592,18 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 
 
 void rendray_Sphere (struct X3D_Sphere *node) {
-        float r = (node->radius) /*cget*/;
+        float r = node->radius;
         /* Center is at zero. t_r1 to t_r2 and t_r1 to zero are the vecs */
-        float tr1sq = VECSQ(t_r1);
-        /* float tr2sq = VECSQ(t_r2); */
-        /* float tr1tr2 = VECPT(t_r1,t_r2); */
+        float tr1sq = (float) VECSQ(t_r1);
         struct point_XYZ dr2r1;
         float dlen;
         float a,b,c,disc;
 
         VECDIFF(t_r2,t_r1,dr2r1);
-        dlen = VECSQ(dr2r1);
+        dlen = (float) VECSQ(dr2r1);
 
         a = dlen; /* tr1sq - 2*tr1tr2 + tr2sq; */
-        b = 2*(VECPT(dr2r1, t_r1));
+        b = 2.0f*((float)VECPT(dr2r1, t_r1));
         c = tr1sq - r*r;
 
         disc = b*b - 4*a*c; /* The discriminant */
@@ -1621,7 +1613,7 @@ void rendray_Sphere (struct X3D_Sphere *node) {
                 float sol1 ;
                 float sol2 ;
                 float cx,cy,cz;
-                q = sqrt(disc);
+                q = (float) sqrt(disc);
                 /* q = (-b+(b>0)?q:-q)/2; */
                 sol1 = (-b+q)/(2*a);
                 sol2 = (-b-q)/(2*a);
@@ -1631,13 +1623,13 @@ void rendray_Sphere (struct X3D_Sphere *node) {
                 printf("SPHSOL: (%f %f %f) (%f) (%f %f) (%f) (%f %f)\n",
                         tr1sq, tr2sq, tr1tr2, a, b, c, und, sol1, sol2);
                 */ 
-                cx = MRATX(sol1);
-                cy = MRATY(sol1);
-                cz = MRATZ(sol1);
+                cx = (float) MRATX(sol1);
+                cy = (float) MRATY(sol1);
+                cz = (float) MRATZ(sol1);
                 rayhit(sol1, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 0");
-                cx = MRATX(sol2);
-                cy = MRATY(sol2);
-                cz = MRATZ(sol2);
+                cx = (float) MRATX(sol2);
+                cy = (float) MRATY(sol2);
+                cz = (float) MRATZ(sol2);
                 rayhit(sol2, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 1");
         }
 
@@ -1650,20 +1642,20 @@ void rendray_Box (struct X3D_Box *node) {
 	float z = ((node->size).c[2])/2;
 	/* 1. x=const-plane faces? */
 	if(!XEQ) {
-		float xrat0 = XRAT(x);
-		float xrat1 = XRAT(-x);
+		float xrat0 = (float) XRAT(x);
+		float xrat1 = (float) XRAT(-x);
 		#ifdef RENDERVERBOSE 
 		printf("!XEQ: %f %f\n",xrat0,xrat1);
 		#endif
 
 		if(TRAT(xrat0)) {
-			float cy = MRATY(xrat0);
+			float cy = (float) MRATY(xrat0);
 			#ifdef RENDERVERBOSE 
 			printf("TRok: %f\n",cy);
 			#endif
 
 			if(cy >= -y && cy < y) {
-				float cz = MRATZ(xrat0);
+				float cz = (float) MRATZ(xrat0);
 				#ifdef RENDERVERBOSE 
 				printf("cyok: %f\n",cz);
 				#endif
@@ -1678,9 +1670,9 @@ void rendray_Box (struct X3D_Box *node) {
 			}
 		}
 		if(TRAT(xrat1)) {
-			float cy = MRATY(xrat1);
+			float cy = (float) MRATY(xrat1);
 			if(cy >= -y && cy < y) {
-				float cz = MRATZ(xrat1);
+				float cz = (float) MRATZ(xrat1);
 				if(cz >= -z && cz < z) {
 					rayhit(xrat1, -x,cy,cz, -1,0,0, -1,-1, "cube x1");
 				}
@@ -1688,21 +1680,21 @@ void rendray_Box (struct X3D_Box *node) {
 		}
 	}
 	if(!YEQ) {
-		float yrat0 = YRAT(y);
-		float yrat1 = YRAT(-y);
+		float yrat0 = (float) YRAT(y);
+		float yrat1 = (float) YRAT(-y);
 		if(TRAT(yrat0)) {
-			float cx = MRATX(yrat0);
+			float cx = (float) MRATX(yrat0);
 			if(cx >= -x && cx < x) {
-				float cz = MRATZ(yrat0);
+				float cz = (float) MRATZ(yrat0);
 				if(cz >= -z && cz < z) {
 					rayhit(yrat0, cx,y,cz, 0,1,0, -1,-1, "cube y0");
 				}
 			}
 		}
 		if(TRAT(yrat1)) {
-			float cx = MRATX(yrat1);
+			float cx = (float) MRATX(yrat1);
 			if(cx >= -x && cx < x) {
-				float cz = MRATZ(yrat1);
+				float cz = (float) MRATZ(yrat1);
 				if(cz >= -z && cz < z) {
 					rayhit(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cube y1");
 				}
@@ -1710,21 +1702,21 @@ void rendray_Box (struct X3D_Box *node) {
 		}
 	}
 	if(!ZEQ) {
-		float zrat0 = ZRAT(z);
-		float zrat1 = ZRAT(-z);
+		float zrat0 = (float) ZRAT(z);
+		float zrat1 = (float) ZRAT(-z);
 		if(TRAT(zrat0)) {
-			float cx = MRATX(zrat0);
+			float cx = (float) MRATX(zrat0);
 			if(cx >= -x && cx < x) {
-				float cy = MRATY(zrat0);
+				float cy = (float) MRATY(zrat0);
 				if(cy >= -y && cy < y) {
 					rayhit(zrat0, cx,cy,z, 0,0,1, -1,-1,"cube z0");
 				}
 			}
 		}
 		if(TRAT(zrat1)) {
-			float cx = MRATX(zrat1);
+			float cx = (float) MRATX(zrat1);
 			if(cx >= -x && cx < x) {
-				float cy = MRATY(zrat1);
+				float cy = (float) MRATY(zrat1);
 				if(cy >= -y && cy < y) {
 					rayhit(zrat1, cx,cy,-z, 0,0,-1,  -1,-1,"cube z1");
 				}
@@ -1740,18 +1732,18 @@ void rendray_Cylinder (struct X3D_Cylinder *node) {
         float y = h;
         /* Caps */
         if(!YEQ) {
-                float yrat0 = YRAT(y);
-                float yrat1 = YRAT(-y);
+                float yrat0 = (float) YRAT(y);
+                float yrat1 = (float) YRAT(-y);
                 if(TRAT(yrat0)) {
-                        float cx = MRATX(yrat0);
-                        float cz = MRATZ(yrat0);
+                        float cx = (float) MRATX(yrat0);
+                        float cz = (float) MRATZ(yrat0);
                         if(r*r > cx*cx+cz*cz) {
                                 rayhit(yrat0, cx,y,cz, 0,1,0, -1,-1, "cylcap 0");
                         }
                 }
                 if(TRAT(yrat1)) {
-                        float cx = MRATX(yrat1);
-                        float cz = MRATZ(yrat1);
+                        float cx = (float) MRATX(yrat1);
+                        float cz = (float) MRATZ(yrat1);
                         if(r*r > cx*cx+cz*cz) {
                                 rayhit(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cylcap 1");
                         }
@@ -1777,7 +1769,7 @@ void rendray_Cylinder (struct X3D_Cylinder *node) {
                                 cz = (float) MRATZ(sol1);
                                 rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 1");
                         }
-                        cy = MRATY(sol2);
+                        cy = (float) MRATY(sol2);
                         if(cy > -h && cy < h) {
                                 cx = (float) MRATX(sol2);
                                 cz = (float) MRATZ(sol2);

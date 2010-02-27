@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.h,v 1.4 2010/02/08 19:51:01 crc_canada Exp $
+$Id: Component_Shape.h,v 1.5 2010/02/27 21:02:25 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -37,8 +37,8 @@ struct matpropstruct {
 
 extern struct matpropstruct appearanceProperties;
 
-#define MIN_NODE_TRANSPARENCY 0.0
-#define MAX_NODE_TRANSPARENCY 0.99  /* if 1.0, then occlusion culling will cause flashing */
+#define MIN_NODE_TRANSPARENCY 0.0f
+#define MAX_NODE_TRANSPARENCY 0.99f  /* if 1.0, then occlusion culling will cause flashing */
 
 
 
@@ -50,10 +50,10 @@ extern struct matpropstruct appearanceProperties;
 	for (i=0; i<3;i++){ dcol[i] = myNode->diffusec.c[i]; }		\
 		\
 	/* set the transparency here for the material */		\
-	trans = 1.0 - myNode->transc;		\
+	trans = 1.0f - myNode->transc;		\
 		\
-	if (trans<0.0) trans = 0.0;		\
-	if (trans>=0.999999) trans = 0.9999999;		\
+	if (trans<0.0f) trans = 0.0f;		\
+	if (trans>=0.999999f) trans = 0.9999999f;		\
 	appearanceProperties.transparency = trans;		\
 		\
 	dcol[3] = trans;		\
