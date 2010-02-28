@@ -46,7 +46,7 @@
 
 /* copied from ../CFuncs/ */
 typedef size_t indexT;
-#define ARR_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
+#define ARR_SIZE(arr) (int)(sizeof(arr)/sizeof((arr)[0]))
 /* Table of built-in fieldIds */
 extern const char *FIELDTYPES[];
 extern const indexT FIELDTYPES_COUNT;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.116 2010/02/27 21:02:24 crc_canada Exp $
+$Id: headers.h,v 1.117 2010/02/28 17:22:55 crc_canada Exp $
 
 Global includes.
 
@@ -53,7 +53,7 @@ const char* freewrl_get_browser_program();
 void Multi_String_print(struct Multi_String *url);
 
 /* see if an inputOnly "set_" field has changed */
-#define IO_FLOAT -2335549.0
+#define IO_FLOAT -2335549.0f
 
 /* specification versions, for close adherence to requested spec levels */
 #define SPEC_VRML 0x01
@@ -110,7 +110,7 @@ void Multi_String_print(struct Multi_String *url);
 #define INT_ID_UNDEFINED -1
 
 /* Size of static array */
-#define ARR_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
+#define ARR_SIZE(arr) (int)(sizeof(arr)/sizeof((arr)[0]))
 
 /* Some stuff for routing */
 #define FROM_SCRIPT 1
@@ -410,11 +410,8 @@ void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fie
 #define UNUSED(v) ((void) v)
 #define ISUSED(v) ((void) v)
 
-#ifdef M_PI
-#define PI M_PI
-#else
 #define PI 3.141592653589793f
-#endif
+
 /* return TRUE if numbers are very close */
 #define APPROX(a,b) (fabs((a)-(b))<0.00000001)
 /* defines for raycasting: */

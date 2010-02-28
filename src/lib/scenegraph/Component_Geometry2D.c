@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.17 2010/02/27 21:02:25 crc_canada Exp $
+$Id: Component_Geometry2D.c,v 1.18 2010/02/28 17:22:55 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -168,7 +168,7 @@ void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 	if (node->__numPoints>0) {	
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
-			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
 		GET_COLOUR_POINTER
 	        LIGHTING_OFF
@@ -192,7 +192,7 @@ void compile_Circle2D (struct X3D_Circle2D *node) {
        /*  have to regen the shape*/
 	MARK_NODE_COMPILED
 		
-	tmpptr_a = createLines (0.0, 0.0, node->radius, NONE, &tmpint,node->_extent);
+	tmpptr_a = createLines (0.0f, 0.0f, node->radius, NONE, &tmpint,node->_extent);
 
 	/* perform the switch - worry about threading here without locking */
 	node->__numPoints = 0;		/* tell us that it has zero points */
@@ -209,7 +209,7 @@ void render_Circle2D (struct X3D_Circle2D *node) {
 	if (node->__numPoints>0) {	
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
-			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
 		GET_COLOUR_POINTER
 	        LIGHTING_OFF
@@ -237,7 +237,7 @@ void render_Polyline2D (struct X3D_Polyline2D *node){
 	if (node->lineSegments.n>0) {
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
-			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
 		GET_COLOUR_POINTER
 	        LIGHTING_OFF
@@ -263,7 +263,7 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 	if (node->point.n>0) {
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
-			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
 		GET_COLOUR_POINTER
 	        LIGHTING_OFF
@@ -315,15 +315,15 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 		tp = stp = MALLOC (sizeof(GLfloat) * 2 * (tmpint));
 
 		/* initial TriangleFan point */
-		*fp = 0.0; fp++; *fp = 0.0; fp++;
-		*tp = 0.5; tp++; *tp = 0.5; tp++;
-		id = 2.0;
+		*fp = 0.0f; fp++; *fp = 0.0f; fp++;
+		*tp = 0.5f; tp++; *tp = 0.5f; tp++;
+		id = 2.0f;
 
 		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
-			*fp = node->outerRadius * sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->outerRadius * cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*tp = 0.5 + (sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
-			*tp = 0.5 + (cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
+			*fp = node->outerRadius * sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*fp = node->outerRadius * cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*tp = 0.5f + (sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
+			*tp = 0.5f + (cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
 		}
 	} else {
 		tmpint = (SEGMENTS_PER_CIRCLE+1) * 2;
@@ -332,18 +332,18 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 
 
 		/* texture scaling params */
-		od = 2.0;
-		id = node->outerRadius * 2.0 / node->innerRadius;
+		od = 2.0f;
+		id = node->outerRadius * 2.0f / node->innerRadius;
 
 		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
-			*fp = node->innerRadius * sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->innerRadius * cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->outerRadius * sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->outerRadius * cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*tp = 0.5 + (sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
-			*tp = 0.5 + (cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
-			*tp = 0.5 + (sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
-			*tp = 0.5 + (cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
+			*fp = node->innerRadius * (float) sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*fp = node->innerRadius * (float) cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*fp = node->outerRadius * (float) sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*fp = node->outerRadius * (float) cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*tp = 0.5f + ((float)sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
+			*tp = 0.5f + ((float)cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
+			*tp = 0.5f + ((float)sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
+			*tp = 0.5f + ((float)cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
 		}
 	}
 
@@ -360,10 +360,10 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 	FREE_IF_NZ (otp);
 
 	/* we can set the extents here... */
-	node->EXTENT_MAX_X = (double)node->outerRadius;
-	node->EXTENT_MIN_X = (double)-node->outerRadius;
-	node->EXTENT_MAX_Y = (double)node->outerRadius;
-	node->EXTENT_MIN_Y = (double)-node->outerRadius;
+	node->EXTENT_MAX_X = node->outerRadius;
+	node->EXTENT_MIN_X = -node->outerRadius;
+	node->EXTENT_MAX_Y = node->outerRadius;
+	node->EXTENT_MIN_Y = -node->outerRadius;
 }
 
 void render_Disk2D (struct X3D_Disk2D *node){
@@ -371,14 +371,14 @@ void render_Disk2D (struct X3D_Disk2D *node){
 	if (node->__numPoints>0) {	
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
-			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
 		CULL_FACE(node->solid)
 
 		textureDraw_start(NULL,(GLfloat *)node->__texCoords);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		glNormal3f (0.0, 0.0, 1.0);
+		glNormal3f (0.0f, 0.0f, 1.0f);
 
 		/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 		if (node->__simpleDisk) {FW_GL_DRAWARRAYS (GL_TRIANGLE_FAN, 0, node->__numPoints);}
@@ -428,10 +428,10 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	}
 
 	/* save these numbers for extents */
-	node->EXTENT_MAX_X = (double) maxX;
-	node->EXTENT_MIN_X = (double) minX;
-	node->EXTENT_MAX_Y = (double) maxY;
-	node->EXTENT_MIN_Y = (double) minY;
+	node->EXTENT_MAX_X = maxX;
+	node->EXTENT_MIN_X = minX;
+	node->EXTENT_MAX_Y = maxY;
+	node->EXTENT_MIN_Y = minY;
 
 	/* printf ("minX %f maxX %f minY %f maxY %f\n",minX, maxX, minY, maxY); */
 	Ssize = maxX - minX;
@@ -452,14 +452,14 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	if (node->vertices.n>0) {	
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
-			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0,0.0,X3D_NODE(node));
+			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
 		CULL_FACE(node->solid)
 
 		textureDraw_start(NULL,(GLfloat *)node->__texCoords);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->vertices.p);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		glNormal3f (0.0, 0.0, 1.0);
+		glNormal3f (0.0f, 0.0f, 1.0f);
 
 		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->vertices.n);
 
@@ -489,8 +489,8 @@ void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
 	/*  now, create points; 4 points per face.*/
 	pt = (float *) xx;
 	/*  front*/
-	*pt++ =  x; *pt++ =  y; *pt++ =  0.0; *pt++ = -x; *pt++ =  y; *pt++ =  0.0;
-	*pt++ = -x; *pt++ = -y; *pt++ =  0.0; *pt++ =  x; *pt++ = -y; *pt++ =  0.0;
+	*pt++ =  x; *pt++ =  y; *pt++ =  0.0f; *pt++ = -x; *pt++ =  y; *pt++ =  0.0f;
+	*pt++ = -x; *pt++ = -y; *pt++ =  0.0f; *pt++ =  x; *pt++ = -y; *pt++ =  0.0f;
 	if (!node->__points) node->__points =xx;
 }
 
@@ -548,8 +548,8 @@ static void *createLines (float start, float end, float radius, int closed, int 
 	isCircle =  APPROX(start,end);
 
 	/* bounds check, and sort values */
-	if ((start < PI*2.0f) || (start > PI*2.0f)) start = 0;
-	if ((end < PI*2.0f) || (end > PI*2.0f)) end = PI/2.0f;
+	if ((start < PI*2.0) || (start > PI*2.0)) start = 0.0f;
+	if ((end < PI*2.0) || (end > PI*2.0)) end = (float) (PI/2.0);
 	if (radius<0.0) radius = 1.0f;
 
 	if (end > start) {
@@ -563,7 +563,7 @@ static void *createLines (float start, float end, float radius, int closed, int 
 		numPoints = SEGMENTS_PER_CIRCLE;
 		closed = NONE; /* this is a circle, CHORD, PIE dont mean anything now */
 	} else {
-		numPoints = ((float) SEGMENTS_PER_CIRCLE * (start-end)/(PI*2.0));
+		numPoints = (int) ((float)(SEGMENTS_PER_CIRCLE * (start-end))/(PI*2.0f));
 		if (numPoints>SEGMENTS_PER_CIRCLE) numPoints=SEGMENTS_PER_CIRCLE;
 	}
 
@@ -580,9 +580,9 @@ static void *createLines (float start, float end, float radius, int closed, int 
 	fp = points;
 
 	for (i=0; i<arcpoints; i++) {
-		*fp = -radius * sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
+		*fp = -radius * sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
-		*fp = radius * cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
+		*fp = radius * cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
 	}
 

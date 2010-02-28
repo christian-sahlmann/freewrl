@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.54 2010/02/18 19:55:40 sdumoulin Exp $
+  $Id: ProdCon.c,v 1.55 2010/02/28 17:22:55 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -54,6 +54,7 @@
 #include "../world_script/jsUtils.h"
 #include "Snapshot.h"
 #include "../scenegraph/Collision.h"
+#include "../non_web3d_formats/ColladaParser.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
@@ -176,6 +177,8 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 {
 	bool ret;
 
+	ret = FALSE;
+
 	inputFileType = determineFileType(input);
 	DEBUG_MSG("PARSE STRING, ft %d, fv %d.%d.%d\n",
 		  inputFileType, inputFileVersion[0], inputFileVersion[1], inputFileVersion[2]);
@@ -185,12 +188,12 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 		ret = X3DParse(nRn, input);
 		break;
 	case IS_TYPE_VRML:
-		ret = cParse(nRn,offsetof (struct X3D_Group, children), input);
+		ret = cParse(nRn,(int) offsetof (struct X3D_Group, children), input);
 		haveParsedCParsed = TRUE;
 		break;
 	case IS_TYPE_VRML1: {
 		char *newData = convert1To2(input);
-		ret = cParse (nRn,offsetof (struct X3D_Group, children), newData);
+		ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
 	}
 		break;
 	case IS_TYPE_COLLADA:
@@ -207,7 +210,7 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 		if (global_strictParsing) { ConsoleMessage ("unknown text as input"); } else {
 			inputFileType = IS_TYPE_VRML;
 			inputFileVersion[0] = 2; /* try VRML V2 */
-			cParse (nRn,offsetof (struct X3D_Group, children), input);
+			cParse (nRn,(int) offsetof (struct X3D_Group, children), input);
 			haveParsedCParsed = TRUE; }
 	}
 	}
@@ -259,8 +262,8 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 
 		res = resource_create_single(inputstring);
 		res->where = where;
-		res->offsetFromWhere = offsetof (struct X3D_Group, children);
-printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where);
+		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
+		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
 
 	} else { // all other cases are inline code to parse... let the parser do the job ;P...
 
@@ -268,7 +271,7 @@ printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res-
 		res->media_type=resm_vrml;
 		res->parsed_request = EAI_Flag;
 		res->where = where;
-		res->offsetFromWhere = offsetof (struct X3D_Group, children);
+		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
 	}
 
 	send_resource_to_parser(res);
@@ -427,7 +430,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		if (res->where == NULL) {
 			ASSERT(rootNode);
 			insert_node = rootNode;
-			offsetInNode = offsetof(struct X3D_Group, children);
+			offsetInNode = (int) offsetof(struct X3D_Group, children);
 		} else {
 			insert_node = X3D_GROUP(res->where); /* casting here for compiler */
 			offsetInNode = res->offsetFromWhere;
@@ -459,6 +462,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	return TRUE;
 }
 
+#ifdef FUNCTION_UNUSED
 /**
  *   parser_process_res_PROTO: this is the final parser (loader) stage, then call the real parser.
  */
@@ -503,6 +507,7 @@ static bool parser_process_res_PROTO(resource_item_t *res)
 	/* FIXME: how to get a return value ? */
 	return TRUE;
 }
+#endif /* unused */
 
 /**
  *   parser_process_res_SHADER: this is the final parser (loader) stage, then call the real parser.
@@ -513,6 +518,8 @@ static bool parser_process_res_SHADER(resource_item_t *res)
 	openned_file_t *of;
 	struct Shader_Script* ss;
 	const char *buffer;
+
+	buffer = NULL;
 
 	switch (res->type) {
 	case rest_invalid:

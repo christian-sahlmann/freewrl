@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.12 2010/01/15 22:07:26 crc_canada Exp $
+$Id: StreamPoly.c,v 1.13 2010/02/28 17:22:56 crc_canada Exp $
 
 ???
 
@@ -99,7 +99,7 @@ static void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA, 
 	/* parameter checks */
 	for (i=0; i<pc; i++) {
 		if ((param[i] < 0.0) || (param[i] >1.0)) {
-			param[i] = 0.5;
+			param[i] = 0.5f;
 		}
 	}
 	dest->c[0] = param[0];
@@ -143,6 +143,8 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	struct SFColorRGBA *newcolors;
 	struct SFColorRGBA *oldColorsRGBA;
 	float *newtc;
+
+	oldColorsRGBA = NULL;
 
 	/* get internal structures */
 	node = X3D_NODE(innode);
@@ -280,8 +282,8 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	      if(points) {
 		    if (ind >= npoints) { 
 			/* bounds checking... */
-			r->minVals[j]=0.0;
-			r->maxVals[j]=0.0;
+			r->minVals[j]=0.0f;
+			r->maxVals[j]=0.0f;
 			printf ("spv, warning, index %d >= npoints %d\n",ind,npoints);
 		    } else {
 		    	if (r->minVals[j] > points[ind].c[j]) r->minVals[j] = points[ind].c[j];
@@ -291,8 +293,8 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 		    if (r->minVals[j] >  r->actualCoord[3*ind+j]) r->minVals[j] =  r->actualCoord[3*ind+j];
 		    if (r->maxVals[j] <  r->actualCoord[3*ind+j]) r->maxVals[j] =  r->actualCoord[3*ind+j];
 	      } else {
-		r->minVals[j]=0.0;
-		r->maxVals[j]=0.0;
+		r->minVals[j]=0.0f;
+		r->maxVals[j]=0.0f;
 	     }
 	  }
 	}
@@ -301,7 +303,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	if (MUST_GENERATE_TEXTURES) defaultTextureMap(node, r, points, npoints);
 
 	/* figure out transparency for this node. Go through scene graph, and looksie for it. */
-	thisTrans = 0.0;
+	thisTrans = 0.0f;
 	/* 
 	printf ("figuring out what the transparency of this node is \n");
 	printf ("nt %s\n",stringNodeType(X3D_NODE(node)->_nodeType));
@@ -436,9 +438,9 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 		if(points) {
 			if (ind>=npoints) {
 				/* bounds checking */
-				newpoints[i].c[0] = 0.0;
-				newpoints[i].c[1] = 0.0;
-				newpoints[i].c[2] = 0.0;
+				newpoints[i].c[0] = 0.0f;
+				newpoints[i].c[1] = 0.0f;
+				newpoints[i].c[2] = 0.0f;
 				printf ("spv, warning, index %d >= npoints %d\n",ind,npoints);
 			} else {
 				memcpy (&newpoints[i], &points[ind].c[0],sizeof (struct SFColor));
@@ -458,7 +460,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 			#ifdef STREAM_POLY_VERBOSE
 			printf ("spv, no points and no coords, setting to 0,0,0\n");
 			#endif
-			newpoints[i].c[0] = 0.0; newpoints[i].c[1]=0.0;newpoints[i].c[2]=0.0;
+			newpoints[i].c[0] = 0.0f; newpoints[i].c[1]=0.0f;newpoints[i].c[2]=0.0f;
 		}
 
 		/* Textures	*/
@@ -539,14 +541,14 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r, struct SFColor *points, int npoints) {
 
 	/* variables used only in this routine */
-	GLfloat Tsize = 0.0;
-	GLfloat Xsize = 0.0;
-	GLfloat Ysize = 0.0;
-	GLfloat Zsize = 0.0;
+	GLfloat Tsize = 0.0f;
+	GLfloat Xsize = 0.0f;
+	GLfloat Ysize = 0.0f;
+	GLfloat Zsize = 0.0f;
 
 	/* initialize variables used in other routines in this file. */
 	Sindex = 0; Tindex = 0;
-	Ssize = 0.0;
+	Ssize = 0.0f;
 	minVals[0]=r->minVals[0]; 
 	minVals[1]=r->minVals[1]; 
 	minVals[2]=r->minVals[2]; 

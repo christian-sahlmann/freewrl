@@ -1,5 +1,5 @@
 #
-# $Id: VRMLFields.pm,v 1.8 2010/02/27 21:02:21 crc_canada Exp $
+# $Id: VRMLFields.pm,v 1.9 2010/02/28 17:22:55 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -11,8 +11,8 @@
 # SFNode is in Parse.pm
 #
 # $Log: VRMLFields.pm,v $
-# Revision 1.8  2010/02/27 21:02:21  crc_canada
-# more 64 bit implicit conversion errors resolved.
+# Revision 1.9  2010/02/28 17:22:55  crc_canada
+# more 64 bit conversions
 #
 # Revision 1.7  2010/02/19 21:23:21  crc_canada
 # more 64 bit changes....
@@ -187,11 +187,20 @@ VRML::Error->import;
 sub cstruct {return "struct SFColor { float c[3]; };"}
 sub ctype {return "struct SFColor $_[1]"}
 sub cInitialize {
-	my ($this,$field,$val) = @_;
-	if (!defined $val) {print "undefined in SFColor\n"} # inputOnlys, set it to any value
-	return 	"$field.c[0] = @{$val}[0];".
-		"$field.c[1] = @{$val}[1];".
-		"$field.c[2] = @{$val}[2];";
+        my ($this,$field,$val) = @_;
+        if (!defined $val) {print "undefined in SFColor\n"} # inputOnlys, set it to any value
+        # get the actual value and ensure that it is a float
+        my $av0 = "@{$val}[0]";
+        my $av1 = "@{$val}[1]";
+        my $av2 = "@{$val}[2]";
+        my $pv = index $av0, "."; if ($pv < 0) { $av0 = $av0.".0f"; } else { $av0 = $av0."f"; }
+        my $pv = index $av1, "."; if ($pv < 0) { $av1 = $av1.".0f"; } else { $av1 = $av1."f"; }
+        my $pv = index $av2, "."; if ($pv < 0) { $av2 = $av2.".0f"; } else { $av2 = $av2."f"; }
+        # print "SFColor, field value now is $av0 $av1 $av2\n";
+
+        return  "$field.c[0] = $av0;".
+                "$field.c[1] = $av1;".
+                "$field.c[2] = $av2;";
 }
 
 package VRML::Field::MFColor;
@@ -213,7 +222,11 @@ sub cInitialize {
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 3; $whichVal++) {
-				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = ".@{$arline}[$whichVal]."; ";
+                                # get the actual value and ensure that it is a float
+                                my $av = "@{$arline}[$whichVal]";
+                                my $pv = index $av, ".";
+                                if ($pv < 0) { $av = $av.".0f"; } else { $av = $av."f"; }
+                                $retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = $av; ";
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";
@@ -263,7 +276,11 @@ sub cInitialize {
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 4; $whichVal++) {
-				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = ".@{$arline}[$whichVal]."; ";
+                                # get the actual value and ensure that it is a float
+                                my $av = "@{$arline}[$whichVal]";
+                                my $pv = index $av, ".";
+                                if ($pv < 0) { $av = $av.".0f"; } else { $av = $av."f"; }
+                                $retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = $av; ";
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";
@@ -320,8 +337,14 @@ VRML::Error->import();
 sub ctype {"float $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {$val = 0.0} # inputOnlys, set it to any value
-	return "$field = $val";
+	if (!defined $val) {$val = "0.0"} # inputOnlys, set it to any value
+
+	# get the actual value and ensure that it is a float
+	my $av = "$val";
+	my $pv = index $av, ".";
+	if ($pv < 0) { $av = $av.".0f"; } else { $av = $av."f"; }
+	#print "SFFloat, field value now is $av for orig value $pv\n";
+	return "$field = $av";
 }
 
 package VRML::Field::MFFloat;
@@ -339,7 +362,12 @@ sub cInitialize {
 		#print "MALLOC MFFLOAT field $field val @{$val} has $count INIT\n";
 		$retstr = $restsr . "$field.p = MALLOC (sizeof(float)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
-			$retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[tmp];\n";
+			# get the actual value and ensure that it is a float
+			my $av = "@{$val}[tmp]";
+			my $pv = index $av, ".";
+			if ($pv < 0) { $av = $av.".0f"; } else { $av = $av."f"; }
+			# print "MFFloat, field value now is $av for orig value $pv\n";
+			$retstr = $retstr .  "\t\t\t$field.p[$tmp] = $av;\n";
 		}
 		$retstr = $retstr . "\t\t\t$field.n=$count;";
 		
@@ -503,7 +531,11 @@ sub cInitialize {
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 9; $whichVal++) {
-				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = ".@{$arline}[$whichVal]."; ";
+                                # get the actual value and ensure that it is a float
+                                my $av = "@{$arline}[$whichVal]";
+                                my $pv = index $av, ".";
+                                if ($pv < 0) { $av = $av.".0f"; } else { $av = $av."f"; }
+                                $retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = $av; ";
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";
@@ -618,7 +650,11 @@ sub cInitialize {
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 16; $whichVal++) {
-				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = ".@{$arline}[$whichVal]."; ";
+                                # get the actual value and ensure that it is a float
+                                my $av = "@{$arline}[$whichVal]";
+                                my $pv = index $av, ".";
+                                if ($pv < 0) { $av = $av.".0f"; } else { $av = $av."f"; }
+                                $retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = $av; ";
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";
@@ -698,7 +734,11 @@ sub cInitialize {
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 4; $whichVal++) {
-				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = ".@{$arline}[$whichVal]."; ";
+                                # get the actual value and ensure that it is a float
+                                my $av = "@{$arline}[$whichVal]";
+                                my $pv = index $av, ".";
+                                if ($pv < 0) { $av = $av.".0f"; } else { $av = $av."f"; }
+                                $retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = $av; ";
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";
@@ -827,8 +867,15 @@ sub ctype {return "struct SFVec2f $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFVec2f\n"} # inputOnlys, set it to any value
-	return 	"$field.c[0] = @{$val}[0];".
-		"$field.c[1] = @{$val}[1];";
+	# get the actual value and ensure that it is a float
+	my $av0 = "@{$val}[0]";
+	my $av1 = "@{$val}[1]";
+	my $pv = index $av0, "."; if ($pv < 0) { $av0 = $av0.".0f"; } else { $av0 = $av0."f"; }
+	my $pv = index $av1, "."; if ($pv < 0) { $av1 = $av1.".0f"; } else { $av1 = $av1."f"; }
+	# print "SFVec2f, field value now is $av0 $av1\n";
+
+	return 	"$field.c[0] = $av0;".
+		"$field.c[1] = $av1;";
 }
 
 
@@ -852,7 +899,11 @@ sub cInitialize {
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 2; $whichVal++) {
-				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = ".@{$arline}[$whichVal]."; ";
+                                # get the actual value and ensure that it is a float
+                                my $av = "@{$arline}[$whichVal]";
+                                my $pv = index $av, ".";
+                                if ($pv < 0) { $av = $av.".0f"; } else { $av = $av."f"; }
+                                $retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = $av; ";
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count";
@@ -912,11 +963,20 @@ package VRML::Field::SFVec3f;
 @ISA=VRML::Field::SFColor;
 sub cstruct {return ""}
 sub cInitialize {
-	my ($this,$field,$val) = @_;
-	if (!defined $val) {print "undefined in SFVec3f\n"} # inputOnlys, set it to any value
-	return 	"$field.c[0] = @{$val}[0];".
-		"$field.c[1] = @{$val}[1];".
-		"$field.c[2] = @{$val}[2];";
+        my ($this,$field,$val) = @_;
+        if (!defined $val) {print "undefined in SFVec23\n"} # inputOnlys, set it to any value
+        # get the actual value and ensure that it is a float
+        my $av0 = "@{$val}[0]";
+        my $av1 = "@{$val}[1]";
+        my $av2 = "@{$val}[2]";
+        my $pv = index $av0, "."; if ($pv < 0) { $av0 = $av0.".0f"; } else { $av0 = $av0."f"; }
+        my $pv = index $av1, "."; if ($pv < 0) { $av1 = $av1.".0f"; } else { $av1 = $av1."f"; }
+        my $pv = index $av2, "."; if ($pv < 0) { $av2 = $av2.".0f"; } else { $av2 = $av2."f"; }
+        # print "SFVec3f, field value now is $av0 $av1 $av2\n";
+
+        return  "$field.c[0] = $av0;".
+                "$field.c[1] = $av1;".
+		"$field.c[2] = $av2;";
 }
 
 
@@ -939,7 +999,11 @@ sub cInitialize {
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 3; $whichVal++) {
-				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = ".@{$arline}[$whichVal]."; ";
+                                # get the actual value and ensure that it is a float
+                                my $av = "@{$arline}[$whichVal]";
+                                my $pv = index $av, ".";
+                                if ($pv < 0) { $av = $av.".0f"; } else { $av = $av."f"; }
+                                $retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = $av; ";
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";

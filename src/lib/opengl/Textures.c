@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.47 2010/02/09 19:57:30 crc_canada Exp $
+  $Id: Textures.c,v 1.48 2010/02/28 17:22:55 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -86,20 +86,6 @@ char *workingOnFileName = NULL;
 static void new_bind_image(struct X3D_Node *node, struct multiTexParams *param);
 struct textureTableIndexStruct *getTableIndex(int i);
 struct textureTableIndexStruct* loadThisTexture;
-
-static struct Multi_Int32 invalidFilePixelDataNode;
-static int	invalidFilePixelData[] = {1,1,3,0x707070};
-
-static pthread_mutex_t texmutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t texcond   = PTHREAD_COND_INITIALIZER;
-static pthread_mutex_t genmutex = PTHREAD_MUTEX_INITIALIZER;
-#define TLOCK 		pthread_mutex_lock(&texmutex);
-#define TUNLOCK 	pthread_mutex_unlock(&texmutex);
-#define T_LOCK_SIGNAL 	pthread_cond_signal(&texcond);
-#define T_LOCK_WAIT	pthread_cond_wait(&texcond,&texmutex);
-/* lock the reallocs of data structures */
-#define REGENLOCK 	pthread_mutex_lock(&genmutex);
-#define REGENUNLOCK 	pthread_mutex_unlock(&genmutex);
 
 /* current index into loadparams that texture thread is working on */
 int currentlyWorkingOn = -1;
@@ -497,8 +483,6 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 /* load in a texture, if possible */
 void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param) 
 {
-    struct X3D_MovieTexture *mym;
-
     if (NODE_NEEDS_COMPILING) {
 
 	    DEBUG_TEX("FORCE NODE RELOAD: %p %s\n", node, stringNodeType(node->_nodeType));
@@ -790,11 +774,9 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	int x,y;
 	GLint iformat;
 	GLenum format;
-	int count;
 
 	/* default texture properties; can be changed by a TextureProperties node */
-	float anisotropicDegree=1.0;
-	struct SFColorRGBA borderColor;
+	float anisotropicDegree=1.0f;
 	int borderWidth;
 
         GLint Trc,Src,Rrc;
@@ -819,8 +801,8 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	Src = FALSE; Trc = FALSE; Rrc = FALSE;
 	tpNode = NULL;
 	haveValidTexturePropertiesNode = FALSE;
-	texPri=0.0;
-	borderColour.c[0]=0.0;borderColour.c[1]=0.0;borderColour.c[2]=0.0;borderColour.c[3]=0.0;
+	texPri=0.0f;
+	borderColour.c[0]=0.0f;borderColour.c[1]=0.0f;borderColour.c[2]=0.0f;borderColour.c[3]=0.0f;
 	compression = GL_FALSE;
 	borderWidth = 0;
 
@@ -875,7 +857,7 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 			generateMipMaps = tpNode->generateMipMaps?GL_TRUE:GL_FALSE;
 			texPri = tpNode->texturePriority;
 			if ((texPri < 0.0) || (texPri>1.0)) {
-				texPri = 0.0;
+				texPri = 0.0f;
 				ConsoleMessage ("invalid texturePriority of %f",tpNode->texturePriority);
 			}
 			memcpy(&borderColour,&(tpNode->borderColor),sizeof(struct SFColorRGBA));
@@ -980,7 +962,7 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, Rrc);
 	glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, generateMipMaps);
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_PRIORITY, texPri);
-	glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,&borderColour);
+	glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,(GLfloat *)&borderColour);
 	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAX_ANISOTROPY_EXT,anisotropicDegree);
 
 	if (compression != GL_NONE) {
@@ -1110,7 +1092,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	struct X3D_MovieTexture *mt;
 	struct X3D_VRML1_Texture2 *v1t;
 	struct textureTableIndexStruct *myTableIndex;
-	float dcol[] = {0.8, 0.8, 0.8, 1.0};
+	float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
 
 	GET_THIS_TEXTURE;
 	myTableIndex = getTableIndex(thisTexture);
