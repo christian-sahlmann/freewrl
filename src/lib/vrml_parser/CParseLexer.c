@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.33 2010/03/01 12:32:59 crc_canada Exp $
+$Id: CParseLexer.c,v 1.34 2010/03/01 22:39:49 crc_canada Exp $
 
 ???
 
@@ -108,8 +108,8 @@ struct VRMLLexer* newLexer()
  
  /* Init id tables */
  ret->userNodeNames=newStack(struct Vector*);
- ret->userNodeTypesStack=newStack(size_t);
- stack_push(size_t, ret->userNodeTypesStack, 0);
+ ret->userNodeTypesStack=newStack(int);
+ stack_push(int, ret->userNodeTypesStack, 0);
  ret->userNodeTypesVec=newVector(char*, USER_IDS_INIT_SIZE);
  ret->user_initializeOnly=newVector(char*, USER_IDS_INIT_SIZE);
  ret->user_inputOutput=newVector(char*, USER_IDS_INIT_SIZE);
@@ -206,7 +206,7 @@ void lexer_destroyIdStack(Stack* s)
 }
 void lexer_destroyIdVector(struct Vector* v)
 {
- size_t i;
+ int i;
  ASSERT(v);
  for(i=0; i!=vector_size(v); ++i)
   FREE_IF_NZ (vector_get(char*, v, i));
@@ -228,7 +228,7 @@ void lexer_destroyData(struct VRMLLexer* me)
  /* User node types */
  DESTROY_IDVEC(me->userNodeTypesVec)
  if(me->userNodeTypesStack) {
-  	deleteStack(size_t, me->userNodeTypesStack);
+  	deleteStack(int, me->userNodeTypesStack);
 	me->userNodeTypesStack = NULL; /* JAS */
  }
 
@@ -250,7 +250,7 @@ static void lexer_scopeIn_(Stack** s)
 
 static void lexer_scopeOut_(Stack* s)
 {
- indexT i;
+ int i;
  ASSERT(!stack_empty(s));
 
  for(i=0; i!=vector_size(stack_top(struct Vector*, s)); ++i)
@@ -267,7 +267,7 @@ void lexer_scopeIn(struct VRMLLexer* me)
   /* printf("lexer_scopeIn: push value %d onto userNodeTypesStack\n", vector_size(me->userNodeTypesVec)); */
  /* Remember the number of PROTOs that were defined when we first entered this scope.  This is the 
     number of PROTOs that must be defined when we leave this scope.  Keep this number on the userNodeTypesStack */
- stack_push(size_t, me->userNodeTypesStack, vector_size(me->userNodeTypesVec));
+ stack_push(int, me->userNodeTypesStack, vector_size(me->userNodeTypesVec));
  /* Fields aren't scoped because they need to be accessible in two levels */
 }
 
@@ -280,7 +280,7 @@ void lexer_scopeOut(struct VRMLLexer* me)
  /* Fields aren't scoped because they need to be accessible in two levels */
 }
 
-/* stack_top(size_t, me->userNodeTypesStack) returns the number of PROTOs that were defined before
+/* stack_top(int, me->userNodeTypesStack) returns the number of PROTOs that were defined before
    we reached the local scope.  To scope out any added names, we take off names added to the vector
    userNodeTypesVec since the local scope started.  i.e. we keep removing the newest PROTO name 
    from userNodeTypesVec until the size of this vector is the same as the number popped off of the top of
@@ -288,8 +288,8 @@ void lexer_scopeOut(struct VRMLLexer* me)
    the scopeOut  */
 void lexer_scopeOut_PROTO(struct VRMLLexer* me)
 {
- /* printf("lexer_scopeOut_PROTO: userNodeTypesVec has %d PROTO IDs top of userNodeTypesStack is %d\n", vector_size(me->userNodeTypesVec), stack_top(size_t, userNodeTypesStack)); */
- while(vector_size(me->userNodeTypesVec)>stack_top(size_t, me->userNodeTypesStack))
+ /* printf("lexer_scopeOut_PROTO: userNodeTypesVec has %d PROTO IDs top of userNodeTypesStack is %d\n", vector_size(me->userNodeTypesVec), stack_top(int, userNodeTypesStack)); */
+ while(vector_size(me->userNodeTypesVec)>stack_top(int, me->userNodeTypesStack))
  {
   /* Free the last element added to the vector */
   FREE_IF_NZ (vector_back(char*, me->userNodeTypesVec));
@@ -299,7 +299,7 @@ void lexer_scopeOut_PROTO(struct VRMLLexer* me)
  }
  /* Take off the top value of userNodeTypesStack */
  /* printf("	popped items off of userNodeTypesVec, now take top item off of userNodeTypesStack\n"); */
- stack_pop(size_t, me->userNodeTypesStack);
+ stack_pop(int, me->userNodeTypesStack);
 }
 
 /* Sets curID of lexer */
@@ -359,7 +359,7 @@ breakIdLoop:
 }
 
 /* Lexes a keyword */
-BOOL lexer_keyword(struct VRMLLexer* me, indexT kw) {
+BOOL lexer_keyword(struct VRMLLexer* me, int kw) {
 	if(!lexer_setCurID(me)) return FALSE;
 	ASSERT(me->curID);
 
@@ -371,11 +371,11 @@ BOOL lexer_keyword(struct VRMLLexer* me, indexT kw) {
 }
 
 /* Finds the index of a given string */
-indexT lexer_string2id(const char* str, const struct Vector* v)
+int lexer_string2id(const char* str, const struct Vector* v)
 {
 
 /* printf ("lexer_string2id looking for %s vector %u\n",str,v); */
- indexT i;
+ int i;
  for(i=0; i!=vector_size(v); ++i) {
 	/* printf ("lexer_string2id, comparing %s to %s\n",str,vector_get(const char*, v, i)); */
   if(!strcmp(str, vector_get(const char*, v, i)))
@@ -390,8 +390,8 @@ indexT lexer_string2id(const char* str, const struct Vector* v)
    IDs passed in user.  Returns the index to the ID in retB (if found in the built in list) or retU (if found in the 
    user defined list) if it is found.  */
 
-BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
- const char** builtIn, const indexT builtInCount, struct Vector* user)
+BOOL lexer_specialID(struct VRMLLexer* me, int* retB, int* retU,
+ const char** builtIn, const int builtInCount, struct Vector* user)
 {
 	/* Get the next token */
 	if(!lexer_setCurID(me))
@@ -413,11 +413,11 @@ BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
 /* Checks for the ID passed in str in the builtin array of IDs passed in builtin and/or in the array of user defined
    IDs passed in user.  Returns the index to the ID in retB (if found in the built in list) or retU (if found in the 
    user defined list) if it is found.  */
-BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
- const char** builtIn, const indexT builtInCount,
+BOOL lexer_specialID_string(struct VRMLLexer* me, int* retB, int* retU,
+ const char** builtIn, const int builtInCount,
  struct Vector* user, const char* str)
 {
- indexT i;
+ int i;
  BOOL found=FALSE;
  int ind;
 
@@ -477,14 +477,14 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  /* Already defined user id? */
  /* Look for the ID in the passed user array.  If it is found, return the index to the ID in retU */
  /* JAS - COUNT DOWN from last entered to first; this makes duplicates use the latest entry. */
- /* use an index to see when we go from 0 to -1; indexT can not do this, as it is unsigned */
+ /* use an index to see when we go from 0 to -1; int can not do this, as it is unsigned */
  /* was : for(i=0; i!=vector_size(user); ++i) { */
 
 
 for (ind= (int)vector_size(user)-1; ind>=0; ind--) {
 
-	/* convert an int into an indexT */
-	i = (indexT) ind;
+	/* convert an int into an int */
+	i = (int) ind;
 
 	/* printf ("lexer sp, ele %d\n",i);
 	printf ("lexer_specialID_string, part II, comparing :%s: and :%s: lengths %d and %d\n", 
@@ -511,7 +511,7 @@ for (ind= (int)vector_size(user)-1; ind>=0; ind--) {
 /* Lexes and defines an ID */
 /* Adds the ID to the passed vector of IDs (unless it is already present) */
 /* Note that we only check for duplicate IDs if multi is TRUE */
-BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec, BOOL multi) {
+BOOL lexer_defineID(struct VRMLLexer* me, int* ret, struct Vector* vec, BOOL multi) {
 
 	/* Get the next token */
 	if(!lexer_setCurID(me))
@@ -529,7 +529,7 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec, BOOL 
 
 	/* If multiple definition possible? Look if the ID's already there */
 	if(multi) {
-		size_t i;
+		int i;
 		for(i=0; i!=vector_size(vec); ++i) {
 
 		#ifdef CPARSERVERBOSE
@@ -545,7 +545,7 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec, BOOL 
 	} else {
 		/* is this already defined? */
 		if (global_strictParsing) {
-			size_t i;
+			int i;
 			for(i=0; i!=vector_size(vec); ++i) {
 				if(!strcmp(me->curID, vector_get(const char*, vec, i))) {
 					ConsoleMessage ("warning, duplicate ID (%s at %u), using last DEF",me->curID,i);
@@ -581,16 +581,16 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec, BOOL 
 
 BOOL lexer_event(struct VRMLLexer* me,
  struct X3D_Node* routedNode,
- indexT* rBO, indexT* rBE, indexT* rUO, indexT* rUE,
+ int* rBO, int* rBE, int* rUO, int* rUE,
  int routedToFrom)
 {
  BOOL found=FALSE;
 
  struct Vector* uarr;
  const char** arr;
- size_t arrCnt;
+ int arrCnt;
  const char** userArr;
- size_t userCnt;
+ int userCnt;
 
  if(routedToFrom==ROUTED_FIELD_EVENT_IN)
  {
@@ -690,10 +690,10 @@ BOOL lexer_event(struct VRMLLexer* me,
 /* if retUE isn't null, checks for the field in the user_inputOutput vector */
 /* returns the index of the field in the corresponding ret value if found */
 BOOL lexer_field(struct VRMLLexer* me,
- indexT* retBO, indexT* retBE, indexT* retUO, indexT* retUE)
+ int* retBO, int* retBE, int* retUO, int* retUE)
 {
  const char** userArr;
- size_t userCnt;
+ int userCnt;
 
  BOOL found=FALSE;
 
@@ -763,7 +763,7 @@ BOOL lexer_field(struct VRMLLexer* me,
 
 
 /* Conversion of user field name to char* */
-const char* lexer_stringUser_fieldName(struct VRMLLexer* me, indexT name, indexT mode)
+const char* lexer_stringUser_fieldName(struct VRMLLexer* me, int name, int mode)
 {
 	#define OOB_RETURN_VAL "__UNDEFINED__"
 
@@ -1109,8 +1109,8 @@ BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
 {
  int c;
  char* buf;
- size_t bufLen=INITIAL_STRINGLEN;
- size_t cur=0;
+ int bufLen=INITIAL_STRINGLEN;
+ int cur=0;
 
  if(me->curID) return FALSE;
  lexer_skip(me);
@@ -1342,8 +1342,8 @@ void embedEXTERNPROTO(struct VRMLLexer *me, const char *myName, char *buffer, ch
 
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         char *myName = NULL;
-        indexT mode;
-        indexT type;
+        int mode;
+        int type;
         struct Multi_String url;
         char *pound;
         char *buffer;
@@ -1500,8 +1500,8 @@ void skipToEndOfOpenCurly(struct VRMLLexer *me, int level) {
 /* concat 2 strings, and tell the lexer to scan from this new string */
 void concatAndGiveToLexer(struct VRMLLexer *me, const char *str_a, const char *str_b) {
 	char *newstring;
-	size_t len_a=0;
-	size_t len_b=0;
+	int len_a=0;
+	int len_b=0;
 	if (str_a != NULL) len_a = strlen(str_a);
 	if (str_b != NULL) len_b = strlen(str_b);
 

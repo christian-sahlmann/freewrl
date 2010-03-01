@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.15 2009/12/02 21:00:46 crc_canada Exp $
+$Id: CScripts.h,v 1.16 2010/03/01 22:39:49 crc_canada Exp $
 
 Class to wrap a java script for CParser
 
@@ -52,7 +52,7 @@ struct ScriptFieldDecl
  struct FieldDecl* fieldDecl;
 
  /* Stringified value, if required by a parser. */
- const char* ASCIIvalue; 
+ char* ASCIIvalue; 
 
  /* For fields */
  union anyVrml value;
@@ -96,7 +96,7 @@ void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl*, union anyVrml);
 struct Shader_Script
 {
  struct X3D_Node *ShaderScriptNode; /* NODE_Script, NODE_ComposedShader, etc */
- uintptr_t num;	/* The script handle  if a script, -1 if a shader */
+ int num;	/* The script handle  if a script, -1 if a shader */
  BOOL loaded;	/* Has the code been loaded into this script? */
  struct Vector* fields;
 };
@@ -138,19 +138,26 @@ struct CRscriptStruct {
 
 	/* Javascript parameters */
 	int _initialized;			/* this script initialized yet? */
-	uintptr_t	cx;			/* JSContext		*/
-	uintptr_t	glob;			/* JSGlobals		*/
-	uintptr_t	eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
+	void *	cx;			/* JSContext		*/
+	void *	glob;			/* JSGlobals		*/
+	void *eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
 	char *scriptText;
 	struct ScriptParamList *paramList;
 	int 		scriptOK;		/* set to TRUE if the script loads ok */
 };
-
+extern struct CRscriptStruct *ScriptControl;
 
 /* function protos */
 
 struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldInstanceInfo*);
 void scriptFieldDecl_setFieldASCIIValue(struct ScriptFieldDecl *me, const char *val);
+
+int JSparamIndex (const char *name, const char *type);
+
+/* setting script eventIns from routing table or EAI */
+void Set_one_MultiElementtype (int tn, int tptr, void *fn, unsigned len);
+void mark_script (int num);
+
 
 
 #endif /* __FREEWRL_CSCRIPTS_H__ */

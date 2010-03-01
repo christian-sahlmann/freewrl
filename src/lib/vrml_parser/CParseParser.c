@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.60 2010/02/27 18:55:36 crc_canada Exp $
+  $Id: CParseParser.c,v 1.61 2010/03/01 22:39:49 crc_canada Exp $
 
   ???
 
@@ -124,7 +124,7 @@ static BOOL parser_profileStatement(struct VRMLParser*);
 
 static BOOL parser_protoStatement(struct VRMLParser*);
 static BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
-static BOOL parser_node(struct VRMLParser*, vrmlNodeT*, indexT);
+static BOOL parser_node(struct VRMLParser*, vrmlNodeT*, int);
 static BOOL parser_field(struct VRMLParser*, struct X3D_Node*);
 
 
@@ -204,7 +204,7 @@ char fw_outline[2000];
 /* General processing macros */
 #define PROCESS_EVENT(constPre, destPre, node, field, type, var, realType) \
  case constPre##_##field: \
-  destPre##Ofs=offsetof(struct X3D_##node, var); \
+  destPre##Ofs=(int) offsetof(struct X3D_##node, var); \
   destPre##Type = realType; \
   break;
 
@@ -230,14 +230,14 @@ printf ("EVENT_END_NODE no %s at %s:%d\n",fieldString,__FILE__,__LINE__); \
 
 /************************************************************************************************/
 /* parse an SF/MF; return the parsed value in the defaultVal field */
-BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal) {
+BOOL parseType(struct VRMLParser* me, int type,   union anyVrml *defaultVal) {
     ASSERT(PARSE_TYPE[type]);
     return PARSE_TYPE[type](me, (void*)defaultVal);
 }
 
 
 /* put the string value of the PROTO field into the input stream */
-void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, size_t *outSize) {
+void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, int *outSize) {
     struct ProtoFieldDecl* pdecl=NULL;
     /* find the ascii name, and try and find it's protodefinition by type */
 #ifdef CPARSERVERBOSE
@@ -262,7 +262,7 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
                 printf ("replaceProtoField, reallocing outTextPtr\n");
 #endif
 
-                *outSize = strlen(pdecl->fieldString) + 5;
+                *outSize = (int) strlen(pdecl->fieldString) + 5;
                 *outTextPtr = REALLOC(*outTextPtr,*outSize);
             }
         
@@ -500,9 +500,9 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
    Parses and stores the default value of fields and inputOutputs.
    Adds the protoFieldDecl or scriptFieldDecl to the list of fields in the ProtoDefinition or Script structure. */ 
 static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* proto, struct Shader_Script* script) {
-    indexT mode;
-    indexT type;
-    indexT name;
+    int mode;
+    int type;
+    int name;
     union anyVrml defaultVal;
     struct ProtoFieldDecl* pdecl=NULL;
     struct ProtoFieldDecl* pField=NULL;
@@ -593,8 +593,8 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
         /* Get the next token(s) from the lexer and store them in defaultVal as the appropriate type. 
            This is the default value for this field.  */
         if (script && lexer_keyword(me->lexer, KW_IS)) {
-            indexT fieldE;
-            indexT fieldO;
+            int fieldE;
+            int fieldO;
             struct ScriptFieldInstanceInfo* sfield;
 
             /* Find the proto field that this field is mapped to */
@@ -652,7 +652,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 
         /* If this is a Script inputOnly/outputOnly IS statement */
         if (script && lexer_keyword(me->lexer, KW_IS)) {
-            indexT evE, evO;
+            int evE, evO;
             struct ScriptFieldInstanceInfo* sfield;
             BOOL isIn = FALSE, isOut = FALSE;
 
@@ -737,7 +737,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 */ 
 static BOOL parser_protoStatement(struct VRMLParser* me)
 {
-    indexT name;
+    int name;
     struct ProtoDefinition* obj;
     char *startOfBody;
     char *endOfBody;
@@ -1103,28 +1103,28 @@ static BOOL parser_profileStatement(struct VRMLParser* me) {
 
 static BOOL parser_routeStatement(struct VRMLParser* me)
 {
-    indexT fromNodeIndex;
+    int fromNodeIndex;
     struct X3D_Node* fromNode;
     struct ProtoDefinition* fromProto;
-    indexT fromFieldO;
-    indexT fromFieldE;
-    indexT fromUFieldO;
-    indexT fromUFieldE;
-    size_t fromOfs;
-    int_t fromType;
+    int fromFieldO;
+    int fromFieldE;
+    int fromUFieldO;
+    int fromUFieldE;
+    int fromOfs;
+    int fromType;
     struct ScriptFieldDecl* fromScriptField;
 
-    indexT toNodeIndex;
+    int toNodeIndex;
     struct X3D_Node* toNode;
     struct ProtoDefinition* toProto;
-    indexT toFieldO;
-    indexT toFieldE;
-    indexT toUFieldO;
-    indexT toUFieldE;
-    size_t toOfs;
-    int_t toType;
+    int toFieldO;
+    int toFieldE;
+    int toUFieldO;
+    int toUFieldE;
+    int toOfs;
+    int toType;
     struct ScriptFieldDecl* toScriptField;
-    size_t temp, tempFE, tempFO, tempTE, tempTO;
+    int temp, tempFE, tempFO, tempTE, tempTO;
 
     fromOfs = 0;
     fromType = 0;
@@ -1556,9 +1556,9 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
 /* If we are in a PROTO add a new ProtoRoute structure to the vector ProtoDefinition->routes */
 /* Otherwise, add the ROUTE to the routing table CRoutes */
 void parser_registerRoute(struct VRMLParser* me,
-                          struct X3D_Node* fromNode, uintptr_t fromOfs,
-                          struct X3D_Node* toNode, uintptr_t toOfs,
-                          int_t ft)
+                          struct X3D_Node* fromNode, int fromOfs,
+                          struct X3D_Node* toNode, int toOfs,
+                          int ft)
 {
     ASSERT(me);
 	if ((fromOfs == ID_UNDEFINED) || (toOfs == ID_UNDEFINED)) {
@@ -1570,7 +1570,7 @@ void parser_registerRoute(struct VRMLParser* me,
 
 /* parse a DEF statement. Return a pointer to a vrmlNodeT */
 static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
-    indexT ind = ID_UNDEFINED;
+    int ind = ID_UNDEFINED;
     vrmlNodeT node;
 
     /* lexer_defineNodeName is #defined as lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE) */
@@ -1620,7 +1620,7 @@ static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
 
 /* parse a USE statement. Return a pointer to a vrmlNodeT */
 static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
-    indexT ind;
+    int ind;
 
     /* lexer_nodeName is #defined as lexer_specialID(me, NULL, ret, NULL, 0, stack_top(struct Vector*, userNodeNames)) */
     /* Look for the nodename in list of user-defined node names (userNodeNames) and return the index in ret */
@@ -1693,8 +1693,8 @@ static BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
    Return a pointer to the X3D_Node structure that is the scenegraph for this PROTO.
 */
 
-static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
-    indexT nodeTypeB, nodeTypeU;
+static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
+    int nodeTypeB, nodeTypeU;
     struct X3D_Node* node=NULL;
     struct ProtoDefinition *thisProto = NULL;
         
@@ -1963,7 +1963,7 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 /* Parses a field value of a certain type (literally or IS) */
 
 static BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int offs,
-                       indexT type, indexT origFieldE, BOOL protoExpansion, struct ProtoDefinition* pdef, struct ProtoFieldDecl* origField)
+                       int type, int origFieldE, BOOL protoExpansion, struct ProtoDefinition* pdef, struct ProtoFieldDecl* origField)
 {
 #undef PARSER_FINALLY
 #define PARSER_FINALLY
@@ -2039,8 +2039,8 @@ void parser_specificInitNode(struct X3D_Node* n, struct VRMLParser* me)
 /* Parses a built-in field and sets it in node */
 static BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 {
-    indexT fieldO;
-    indexT fieldE;
+    int fieldO;
+    int fieldE;
 
     ASSERT(me->lexer);
 
@@ -2290,13 +2290,13 @@ static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
     case FIELDTYPE_MFDouble:
     case FIELDTYPE_MFString:
     case FIELDTYPE_MFVec2f:
-    { size_t localSize;
+    { int localSize;
     localSize =  returnRoutingElementLength(convertToSFType(type)); /* converts MF to equiv SF type */
     /* struct Multi_Float { int n; float  *p; }; */
     /* treat these all the same, as the data type is same size */
     ((struct Multi_Node *)out)->n=1;
     ((struct Multi_Node *)out)->p=MALLOC(localSize);
-    memcpy (&((struct Multi_Node *)out)->p[0], &in, localSize);
+    memcpy (&((struct Multi_Node *)out)->p[0], &in, (size_t) localSize);
     break;
     }
     default: {
@@ -2310,7 +2310,7 @@ static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
    1 entry, and copy the data over */
 static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
     int rsz;
-    size_t elelen;
+    int elelen;
 
     /* printf ("stuffSFintoMF, got vrmlT vector successfully - it is a type of %s\n",FIELDTYPES[type]);  */
 
@@ -2709,7 +2709,7 @@ void cParseErrorCurID(struct VRMLParser *me, char *str) {
 void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) {
 
 	char fw_outline[OUTLINELEN];
-	size_t str2len = strlen(str2);
+	int str2len = (int) strlen(str2);
 
 	if (strlen(str) > FROMSRC) str[FROMSRC] = '\0';
 	strcpy(fw_outline,str);

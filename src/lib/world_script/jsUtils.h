@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.h,v 1.8 2009/10/05 15:07:24 crc_canada Exp $
+$Id: jsUtils.h,v 1.9 2010/03/01 22:39:49 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -73,7 +73,7 @@ void resetNameInECMATable(JSContext *context, char *toFind);
 /* We keep around the results of script routing, or just script running... */
 extern jsval JSCreate_global_return_val;
 extern jsval JSglobal_return_val;
-extern uintptr_t *JSSFpointer;
+extern void *JSSFpointer;
 
 int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval);
 int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, struct X3D_Node * ptr);
@@ -86,18 +86,6 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 /* now in JScript.h -- int ActualrunScript(uintptr_t num, char *script, jsval *rval); */
 #endif
 
-int
-JSrunScript(uintptr_t num,
-			char *script,
-			struct Uni_String *rstr,
-			struct Uni_String *rnum);
-
-int
-JSaddSFNodeProperty(uintptr_t num,
-					char *nodeName,
-					char *name,
-					char *str);
-
 void
 reportWarningsOn(void);
 
@@ -109,10 +97,7 @@ errorReporter(JSContext *cx,
 			  const char *message,
 			  JSErrorReport *report);
 
-int JSGetProperty(uintptr_t num, char *script, struct Uni_String *rstr);
-/* moved to JScript.h -- void JSInit(uintptr_t num); */
-
-void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, jsval *ret);
+void X3D_ECMA_TO_JS(JSContext *cx, void *Data, int datalen, int dataType, jsval *ret);
 JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 
 

@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.37 2010/02/26 21:48:12 crc_canada Exp $
+  $Id: fieldSet.c,v 1.38 2010/03/01 22:39:49 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -193,7 +193,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
    have a routing entry for the from address and size and type, so we have to do this by hand.
 */
 
-static unsigned int setField_FromEAI_ToScript(uintptr_t tonode, int toname,
+static int setField_FromEAI_ToScript(int tonode, int toname,
 	int datatype, void *data, unsigned rowcount) {
 	int datalen;
 
@@ -580,7 +580,7 @@ char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset) {
 	int* np;
 	if (node == 0) return "unknown";
 
-	np = NODE_OFFSETS[node->_nodeType];  /* it is a const size_t* type */
+	np = (int *) NODE_OFFSETS[node->_nodeType];
 	np++;  /* go to the offset field */
 
 	while ((*np != -1) && (*np != offset)) np +=5;
@@ -713,7 +713,7 @@ void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype,
 	int X3DLevel;
 	int mask = 0;
 
-	x = NODE_OFFSETS[nodeType];
+	x = (int *) NODE_OFFSETS[nodeType];
 
 	#ifdef SETFIELDVERBOSE
 	printf ("findFieldInOFFSETS, nodeType %s\n",stringNodeType(nodeType));

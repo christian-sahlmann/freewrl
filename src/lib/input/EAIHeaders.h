@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHeaders.h,v 1.11 2010/02/19 18:09:46 crc_canada Exp $
+$Id: EAIHeaders.h,v 1.12 2010/03/01 22:39:48 crc_canada Exp $
 
 EAI and java CLASS invocation
 
@@ -59,9 +59,9 @@ void EAI_RW(char *bufptr);
 
 /* more function prototypes to avoid implicit declarations */
 void Parser_deleteParserForScanStringValueToMem(void);			/* from EAI_C_CommonFunctions.c */
-void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT ctype, char *value, int isXML);
+void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctype, char *value, int isXML);
 									/* from EAI_C_CommonFunctions.c */
-size_t returnRoutingElementLength(int);					/* from EAI_C_CommonFunctions.c */
+int returnRoutingElementLength(int);					/* from EAI_C_CommonFunctions.c */
 void createLoadURL(char *);						/* from EAIEventsIn.c */
 void EAI_parse_commands(void);						/* from EAIEventsIn.c */
 void EAI_Anchor_Response(int);						/* from EAIEventsIn.c */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.15 2009/10/05 15:07:24 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.16 2010/03/01 22:39:49 crc_canada Exp $
 
 ???
 
@@ -1042,7 +1042,7 @@ _standardMFGetProperty(JSContext *cx,
 			/*  segfault; so, now, we run a script to do it.*/
 
 
-			newElemenLen = strlen(makeNewElement);
+			newElemenLen = (int)strlen(makeNewElement);
 
 			if (!JS_EvaluateScript(cx, obj, makeNewElement, newElemenLen,
 				FNAME_STUB, LINENO_STUB, &newEle)) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.21 2010/02/22 21:45:26 crc_canada Exp $
+$Id: JScript.c,v 1.22 2010/03/01 22:39:49 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -56,14 +56,14 @@ Javascript C language binding.
 
 
 /* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
-#define MAX_RUNTIME_BYTES 0x1000000L
+#define MAX_RUNTIME_BYTES 0x1000000
 /* #define MAX_RUNTIME_BYTES 0x4000000L */
 /* #define MAX_RUNTIME_BYTES 0xC00000L */
 
 #define STACK_CHUNK_SIZE 8192
 
-static int JSaddGlobalECMANativeProperty(uintptr_t num, const char *name);
-static int JSaddGlobalAssignProperty(uintptr_t num, const char *name, const char *str);
+static int JSaddGlobalECMANativeProperty(int num, const char *name);
+static int JSaddGlobalAssignProperty(int num, const char *name, const char *str);
 
 /*
  * Global JS variables (from Brendan Eichs short embedding tutorial):
@@ -176,26 +176,26 @@ void kill_javascript(void) {
 
 }
 
-void cleanupDie(uintptr_t num, const char *msg) {
+void cleanupDie(int num, const char *msg) {
 	kill_javascript();
 	freewrlDie(msg);
 }
 
 void JSMaxAlloc() {
 	/* perform some REALLOCs on JavaScript database stuff for interfacing */
-	uintptr_t count;
+	int count;
 
 	/* printf ("start of JSMaxAlloc, JSMaxScript %d\n",JSMaxScript); */
 
 	JSMaxScript += 10;
 	ScriptControl = (struct CRscriptStruct*)REALLOC (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
-	scr_act = (uintptr_t *)REALLOC (scr_act, sizeof (*scr_act) * JSMaxScript);
+	scr_act = (int *)REALLOC (scr_act, sizeof (*scr_act) * JSMaxScript);
 
 	/* mark these scripts inactive */
 	for (count=JSMaxScript-10; count<JSMaxScript; count++) {
 		scr_act[count]= FALSE;
 		ScriptControl[count].thisScriptType = NOSCRIPT;
-		ScriptControl[count].eventsProcessed = (uintptr_t) NULL;
+		ScriptControl[count].eventsProcessed = (int) NULL;
 		ScriptControl[count].cx = 0;
 		ScriptControl[count].glob = 0;
 		ScriptControl[count]._initialized = FALSE;
@@ -206,7 +206,7 @@ void JSMaxAlloc() {
 }
 
 /* set up table entry for this new script */
-void JSInit(uintptr_t num) {
+void JSInit(int num) {
 
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("JSinit: script %d\n",num);
@@ -219,7 +219,7 @@ void JSInit(uintptr_t num) {
 }
 
 /* Save the text, so that when the script is initialized in the EventLoop thread, it will be there */
-void SaveScriptText(uintptr_t num, const char *text) {
+void SaveScriptText(int num, const char *text) {
 
 	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
 	if (num >= JSMaxScript)  {
@@ -234,7 +234,7 @@ void SaveScriptText(uintptr_t num, const char *text) {
 	printf ("SaveScriptText, max_script_found now %d\n",max_script_found); */
 }
 
-void JSInitializeScriptAndFields (uintptr_t num) {
+void JSInitializeScriptAndFields (int num) {
         struct ScriptParamList *thisEntry;
         struct ScriptParamList *nextEntry;
 	jsval rval;
@@ -276,7 +276,7 @@ void JSInitializeScriptAndFields (uintptr_t num) {
 
 /* create the script context for this script. This is called from the thread
    that handles script calling in the EventLoop */
-void JSCreateScriptContext(uintptr_t num) {
+void JSCreateScriptContext(int num) {
 	jsval rval;
 	JSContext *_context; 	/* these are set here */
 	JSObject *_globalObj; 	/* these are set here */
@@ -328,8 +328,8 @@ void JSCreateScriptContext(uintptr_t num) {
 	br = (BrowserNative *) JS_malloc(_context, sizeof(BrowserNative));
 
 	/* for this script, here are the necessary data areas */
-	ScriptControl[num].cx = (uintptr_t) _context;
-	ScriptControl[num].glob = (uintptr_t) _globalObj;
+	ScriptControl[num].cx =  _context;
+	ScriptControl[num].glob =  _globalObj;
 
 
 	if (!loadVrmlClasses(_context, _globalObj))
@@ -359,11 +359,11 @@ void JSCreateScriptContext(uintptr_t num) {
 
 /* run the script from within C */
 #ifdef JAVASCRIPTVERBOSE
-int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *fn, int line) {
+int ActualrunScript(int num, char *script, jsval *rval, char *fn, int line) {
 #else
-int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
+int ActualrunScript(int num, char *script, jsval *rval) {
 #endif
-	size_t len;
+	int len;
 	JSContext *_context;
 	JSObject *_globalObj;
 
@@ -378,7 +378,7 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 	#endif
 	CLEANUP_JAVASCRIPT(_context)
 
-	len = strlen(script);
+	len = (int) strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len, FNAME_STUB, LINENO_STUB, rval)) {
 		printf ("ActualrunScript - JS_EvaluateScript failed for %s", script);
 		printf ("\n");
@@ -396,14 +396,14 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 /* run the script from within Javascript  */
 int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval) {
 
-	size_t len;
+	int len;
 
 	#ifdef JAVASCRIPTVERBOSE
 		printf("jsrrunScript script cx %x \"%s\", \n",
 			   _context, script);
 	#endif
 
-	len = strlen(script);
+	len = (int) strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len,
 						   FNAME_STUB, LINENO_STUB, rval)) {
 		ConsoleMessage ("jsrunScript - JS_EvaluateScript failed for %s", script);
@@ -656,10 +656,9 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 	double *DoublePtr;
 	struct Uni_String **SVPtr;
 
-	uintptr_t defaultVoid[] = {0,0};
-	float defaultFloat[] = {0.0,0.0,0.0,0.0};
+	float defaultFloat[] = {0.0f,0.0f,0.0f,0.0f};
 	int defaultInt[] = {0,0,0,0};
-	double defaultDouble[] = {0.0, 0.0, 0.0};
+	double defaultDouble[] = {0.0, 0.0, 0.0, 0.0};
 	struct Uni_String *sptr[1];
 
 	#ifdef JAVASCRIPTVERBOSE
@@ -695,9 +694,9 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 				JSaddGlobalECMANativeProperty(num, field);
 				if (kind == PKW_initializeOnly) {
 					if  (type == FIELDTYPE_SFString) {
-						tlen = strlen(value.sfstring->strptr) + 20;
+						tlen = (int) strlen(value.sfstring->strptr) + 20;
 					} else {
-						tlen = strlen(field) + 20;
+						tlen = (int) strlen(field) + 20;
 					}
 					smallfield = MALLOC (tlen);
 					smallfield[0] = '\0';
@@ -924,13 +923,11 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 						sprintf (thisValue,"%f",*FloatPtr); FloatPtr++;
 					} else if (DoublePtr != NULL) {
 						sprintf (thisValue,"%f",*DoublePtr); DoublePtr++;
-					} else if (FloatPtr != NULL) {
-						sprintf (thisValue,"%d",*FloatPtr); FloatPtr++;
 					} else if (SVPtr != NULL) {
 						sptr[0] = *SVPtr; SVPtr++;
 						sprintf (thisValue,"\"%s\"",sptr[0]->strptr);
 					} else { /* must be a Void */
-						sprintf (thisValue,"%p",*VoidPtr); VoidPtr++;
+						sprintf (thisValue,"%p", (*VoidPtr)); VoidPtr++;
 					}
 					strcat (smallfield, thisValue);
 					if (rowCount < (rows-1)) strcat (smallfield,",");
@@ -981,7 +978,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 	#endif
 }
 
-static int JSaddGlobalECMANativeProperty(uintptr_t num, const char *name) {
+static int JSaddGlobalECMANativeProperty(int num, const char *name) {
 	JSContext *_context;
 	JSObject *_globalObj;
 	jsval rval = INT_TO_JSVAL(0);
@@ -1002,7 +999,7 @@ static int JSaddGlobalECMANativeProperty(uintptr_t num, const char *name) {
 	return JS_TRUE;
 }
 
-static int JSaddGlobalAssignProperty(uintptr_t num, const char *name, const char *str) {
+static int JSaddGlobalAssignProperty(int num, const char *name, const char *str) {
 	jsval _rval = INT_TO_JSVAL(0);
 	JSContext *_context;
 	JSObject *_globalObj;
@@ -1016,7 +1013,7 @@ static int JSaddGlobalAssignProperty(uintptr_t num, const char *name, const char
 			   _context, _globalObj, name, str);
 	#endif
 
-	if (!JS_EvaluateScript(_context, _globalObj, str, strlen(str), FNAME_STUB, LINENO_STUB, &_rval)) {
+	if (!JS_EvaluateScript(_context, _globalObj, str, (int) strlen(str), FNAME_STUB, LINENO_STUB, &_rval)) {
 		ConsoleMessage ("JSaddGlobalAssignProperty - JS_EvaluateScript failed for %s", str);
 		return JS_FALSE;
 	}

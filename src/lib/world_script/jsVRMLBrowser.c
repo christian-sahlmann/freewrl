@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.27 2010/02/17 18:03:06 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.28 2010/03/01 22:39:49 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -463,11 +463,6 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		globalParser = savedParser; /* restore it */
 
 
-		#ifdef JSVERBOSE
-		printf ("EAI_CreateVrml returns %d nodes\n",ra);
-		printf ("nodes %d %d\n",nodarr[0],nodarr[1]);
-		#endif
-
 		/* and, make a string that we can use to create the javascript object */
 		MallocdSize = 200;
 		xstr = MALLOC (MallocdSize);
@@ -475,7 +470,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		for (count=0; count<retGroup->children.n; count ++) {
 			tmpstr = MALLOC(strlen(_c) + 100);
 			sprintf (tmpstr,"new SFNode('%s','%p')",_c, (void*) retGroup->children.p[count]);
-			wantedsize = strlen(tmpstr) + strlen(xstr);
+			wantedsize = (int) (strlen(tmpstr) + strlen(xstr));
 			if (wantedsize > MallocdSize) {
 				MallocdSize = wantedsize +200;
 				xstr = REALLOC (xstr,MallocdSize);
@@ -486,7 +481,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 			FREE_IF_NZ (tmpstr);
 		}
 		strcat (xstr,")");
-		markForDispose(retGroup,FALSE);
+		markForDispose(X3D_NODE(retGroup),FALSE);
 		
 		#ifdef JSVERBOSE
 		printf ("running runscript on :%s:\n",xstr);
@@ -514,16 +509,8 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	SFNodeNative *oldPtr;
 	char *fieldStr,
 		*_costr0;
-	uintptr_t nodarr[200];
 	struct X3D_Node *myptr;
-	int ra;
 	#define myFileSizeLimit 4000
-/* 	char filename[myFileSizeLimit]; */
-/* 	char tfilename [myFileSizeLimit]; */
-	char *tfptr; 
-	char *coptr;
-	char *bfp;
-	int found;
 	int count;
 	int offset;
 	int fromtype;
@@ -536,6 +523,8 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	#ifdef JSVERBOSE
 	printf ("JS start of createVrmlFromURL\n");
 	#endif
+
+printf ("VrmlBrowserCreateVrmlFromURL - unknown if this works with new resource location algorithm... JAS \n");
 
 	/* rval is always zero, so lets just set it */
 	*rval = INT_TO_JSVAL(0);
@@ -631,18 +620,10 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	*/
 
 	/* find a file name that exists. If not, return JS_FALSE */
-/* 	bfp = STRDUP(BrowserFullPath); */
-	/* and strip off the file name, leaving any path */
-/* 	removeFilenameFromPath (bfp); */
-
-/* 	#ifdef JSVERBOSE */
-/* 	printf ("have path now, of :%s:\n",bfp); */
-/* 	#endif */
-
 	res = resource_create_single(_costr0);
 	res->where = myptr;
 	if (myptr->_nodeType == NODE_Group)
-		res->offsetFromWhere = offsetof (struct X3D_Group, children);
+		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
 	else {
 		ConsoleMessage ("Can not determine where to plug values in node of type %s",stringNodeType(myptr->_nodeType));
 		return JS_FALSE;
@@ -655,63 +636,6 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	if (res->status == ress_parsed) {
 		/* Cool :) */
 	}
-
-#if 0
-	/* go through the elements and find which (if any) url exists */	
-	found = FALSE;
-	coptr = _costr0;
-
-	while (!found) {
-		tfptr = tfilename;
-
-		#ifdef JSVERBOSE
-		printf ("start of loop, coptr :%s:\n",coptr);
-		#endif
-
-		if (*coptr == '[') coptr++;
-		while ((*coptr != '\0') && (*coptr == ' ')) coptr++;
-		if (*coptr == '\0') {
-			ConsoleMessage ("javascript: could not find a valid url in %s",_costr0);
-			return JS_FALSE;
-		}
-
-		if (*coptr == '"') {
-			coptr++;
-			/* printf ("have the initial quote string here is %s\n",coptr); */
-			while (*coptr != '"') {
-				*tfptr = *coptr;
-				tfptr++; coptr++;
-			}
-			*tfptr = '\0';
-			#ifdef JSVERBOSE
-			printf ("found string is :%s:\n",tfilename);
-			#endif
-		}
-        	 
-		/* we work in absolute filenames... */
-		makeAbsoluteFileName(filename,bfp,tfilename);
-		
-		if (fileExists(filename,NULL,TRUE)) {
-			/* printf ("file exists, break\n"); */
-			found = TRUE;
-		}
-#ifdef JSVERBOSE
-		ERROR_MSG("nope, file %s does not exist\n", tfilename);
-#endif
-
-		/* skip along to the start of the next name */
-		if (*coptr == '"') coptr++;
-		if (*coptr == ',') coptr++;
-		if (*coptr == ']') coptr++; /* this allows us to error out, above */
-	}
-
-	/* call the parser */
-	/* "save" the old classic parser state, so that names do not cross-pollute */
-	savedParser = globalParser;
-	globalParser = NULL;
-	ra = EAI_CreateVrml("URL",filename,nodarr,200);
-	globalParser = savedParser;
-#endif 
 
 	/* get the field from the beginning of this node as an offset */
 	/* try finding it, maybe with a "set_" or "changed" removed */
@@ -733,7 +657,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	}
 
 	/* did we find the field? */
-	address = ((char *) myptr) + offset;
+	address = offsetPointer_deref (char *, myptr, offset);
 	
 	/*struct X3D_Group *subtree = (struct X3D_Group *) myptr;*/
 	subtree = (struct X3D_Group *) myptr;
@@ -741,26 +665,9 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	/* MBFILES: process the children of myptr loaded by parser */
 	for (count = 1; count < subtree->children.n; count++) {
 		static char dtmp[100];
-		sprintf(dtmp, "%lu", subtree->children.p[count]);
-		getMFNodetype(dtmp, (struct Multi_Node *) address, myptr, 1);
+		sprintf(dtmp, "%p", subtree->children.p[count]);
+		getMFNodetype(X3D_NODE(dtmp), (struct Multi_Node *) address, myptr, 1);
 	}
-
-#if 0
-	/* now go through, and add the nodes to the parent node */
-	for (count = 1; count < ra; count +=2) {
-		char dtmp[100];
-		/* ensure that this node is not NULL */
-		if (nodarr[count] != 0) {
-			sprintf (dtmp,"%lu", (void*) nodarr[count]);
-			/* so, we send in the new node encoded as a string, 
-			   the actual pointer in memory of the MFNode field,
-			   the node pointer containing this field, 
-			   we ALWAYS add this to the field, even if it is a "removeChildren"
-			   and we let the scene graph determine whether it is an add or remove */
-			getMFNodetype (dtmp,(struct Multi_Node *)address, myptr, 1);
-		}
-	}
-#endif
 
 	MARK_EVENT(myptr,offset);
 	return JS_TRUE;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.22 2009/12/12 16:19:21 dug9 Exp $
+$Id: CParse.c,v 1.23 2010/03/01 22:39:49 crc_canada Exp $
 
 ???
 
@@ -103,7 +103,7 @@ bool cParse(void* ptr, unsigned ofs, const char* data) {
 /* Return DEFed node from its name */
 struct X3D_Node* parser_getNodeFromName(const char* name)
 {
-	indexT ind;
+	int ind;
 	/* is globalParser actually not NULL? */
 	if (globalParser == NULL) return NULL;
 
@@ -131,7 +131,7 @@ char* parser_getPROTONameFromNode(struct X3D_Node *node)
 /* Return DEFed name from its node, or NULL if not found */
 char* parser_getNameFromNode(struct X3D_Node *node)
 {
-	indexT ind;
+	int ind;
 	struct Vector *curNameStackTop = stack_top(struct Vector *, globalParser->lexer->userNodeNames);
 
 	/* go through the DEFedNodes, looking for the X3D_Node pointer. If it is found, use that

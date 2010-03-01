@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.h,v 1.7 2009/10/05 15:07:24 crc_canada Exp $
+$Id: JScript.h,v 1.8 2010/03/01 22:39:49 crc_canada Exp $
 
 ???
 
@@ -33,17 +33,17 @@ $Id: JScript.h,v 1.7 2009/10/05 15:07:24 crc_canada Exp $
 #include <system_js.h>
 
 void kill_javascript(void);
-void cleanupDie(uintptr_t num, const char *msg);
+void cleanupDie(int num, const char *msg);
 void JSMaxAlloc(void);
-void JSInit(uintptr_t num);
-void SaveScriptText(uintptr_t num, const char *text);
-void JSInitializeScriptAndFields (uintptr_t num);
-void JSCreateScriptContext(uintptr_t num);
+void JSInit(int num);
+void SaveScriptText(int num, const char *text);
+void JSInitializeScriptAndFields (int num);
+void JSCreateScriptContext(int num);
 
 #ifdef JAVASCRIPTVERBOSE
-int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *fn, int line);
+int ActualrunScript(int num, char *script, jsval *rval, char *fn, int line);
 #else
-int ActualrunScript(uintptr_t num, char *script, jsval *rval);
+int ActualrunScript(int num, char *script, jsval *rval);
 #endif
 
 int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval);

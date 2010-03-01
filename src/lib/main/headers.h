@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.117 2010/02/28 17:22:55 crc_canada Exp $
+$Id: headers.h,v 1.118 2010/03/01 22:39:48 crc_canada Exp $
 
 Global includes.
 
@@ -126,7 +126,7 @@ void Multi_String_print(struct Multi_String *url);
 struct CRjsnameStruct {
         int     	type;
         char    	name[MAXJSVARIABLELENGTH];
-	uintptr_t 	eventInFunction;		/* compiled javascript function... if it is required */
+	void *		eventInFunction;		/* compiled javascript function... if it is required */
 };
 
 
@@ -593,14 +593,6 @@ void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, uintptr_
 void update_node(struct X3D_Node *ptr);
 void update_renderFlag(struct X3D_Node *ptr, int flag);
 
-int JSparamIndex (const char *name, const char *type);
-
-/* setting script eventIns from routing table or EAI */
-void Set_one_MultiElementtype (uintptr_t tn, uintptr_t tptr, void *fn, unsigned len);
-void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
-void mark_script (uintptr_t num);
-
-
 /* structure for rayhits */
 struct currayhit {
 	struct X3D_Node *node; /* What node hit at that distance? */
@@ -611,14 +603,10 @@ struct currayhit {
 
 
 void JSMaxAlloc(void);
-void cleanupDie(uintptr_t num, const char *msg);
 
 
-void setScriptECMAtype(uintptr_t);
-void resetScriptTouchedFlag(int actualscript, int fptr);
 int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
-void setScriptMultiElementtype(uintptr_t);
 void CRoutes_RemoveSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len);
 void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
@@ -645,14 +633,6 @@ void do_first(void);
 void process_eventsProcessed(void);
 
 void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to);
-
-
-extern struct CRscriptStruct *ScriptControl; /* Script invocation parameters */
-extern uintptr_t *scr_act;    /* script active array - defined in CRoutes.c */
-extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
-extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
-void JSCreateScriptContext(uintptr_t num); 
-void JSInitializeScriptAndFields (uintptr_t num);
 
 
 void update_status(char* msg);

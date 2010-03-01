@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.31 2010/02/26 21:48:10 crc_canada Exp $
+$Id: fieldGet.c,v 1.32 2010/03/01 22:39:49 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -55,7 +55,6 @@ Javascript C language binding.
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
 #include "fieldGet.h"
-void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
 
 
 
@@ -117,7 +116,7 @@ void getField_ToJavascript (int num, int fromoffset) {
 
 /******************************************************************************/
 
-void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen) {
+void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen) {
 
 	char scriptline[100];
 	jsval newval;
@@ -165,14 +164,14 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
         case FIELDTYPE_SFString:
 */
 
-void setScriptECMAtype (uintptr_t num) {
-	uintptr_t fn, tn;
+void setScriptECMAtype (int num) {
+	void *fn;
 	int tptr;
 	int len;
-	unsigned int to_counter;
+	int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	fn = (uintptr_t)(CRoutes[num].routeFromNode) + (uintptr_t)(CRoutes[num].fnptr);
+	fn = offsetPointer_deref(void *, CRoutes[num].routeFromNode, CRoutes[num].fnptr);
 	len = CRoutes[num].len;
 
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
@@ -181,15 +180,14 @@ void setScriptECMAtype (uintptr_t num) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
                 myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
 		/* printf ("setScriptECMAtype, myScriptNumber is %d\n",myObj->num); */
-		tn = (uintptr_t) to_ptr->routeToNode;
 		tptr = to_ptr->foffset;
-		set_one_ECMAtype (myObj->num, tptr, JSparamnames[tptr].type, (void *)fn,len);
+		set_one_ECMAtype (myObj->num, tptr, JSparamnames[tptr].type, fn,len);
 	}
 }
 
 
 /* use Javascript to send in one element of an MF. datalen is in number of elements in type. */
-int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen) {
+int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int datalen) {
 	JSContext *cx;
 	JSObject *obj;
 	int elementlen;
@@ -672,11 +670,11 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 
 
 
-int setMFElementtype (uintptr_t num) {
+int setMFElementtype (int num) {
 	void * fn;
-	uintptr_t fptr;
+	int fptr;
 	int len;
-	unsigned int to_counter;
+	int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 	char *pptr;
 	struct Multi_Node *mfp;
@@ -692,7 +690,7 @@ int setMFElementtype (uintptr_t num) {
 	
 	/* we can do arithmetic on character pointers; so we have to cast void *
 	   to char * here */
-	pptr = (char *)fn + fptr;
+	pptr = offsetPointer_deref (char *, fn, fptr);
 
 	len = CRoutes[num].len;
 
@@ -753,7 +751,7 @@ int setMFElementtype (uintptr_t num) {
 /****************************************************************/
 
 /* really do the individual set; used by script routing and EAI sending to a script */
-void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, unsigned dataLen ) {
+void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen ) {
 	char scriptline[100];
 	jsval retval;
 	SFVec3fNative *_privPtr;
@@ -807,13 +805,15 @@ void set_one_MultiElementType (uintptr_t tonode, uintptr_t tnfield, void *Data, 
         case FIELDTYPE_SFRotation:
 */
 
-void setScriptMultiElementtype (uintptr_t num)
+void setScriptMultiElementtype (int num)
 {
-	uintptr_t tptr, fptr;
-	unsigned int len;
-	unsigned int to_counter;
+	int tptr, fptr;
+	int len;
+	int to_counter;
 
-	CRnodeStruct *fn, *to_ptr = NULL;
+	CRnodeStruct *to_ptr = NULL;
+
+	void *fn;
 
 	JSContext *cx;
 	JSObject *obj;
@@ -851,7 +851,7 @@ void setScriptMultiElementtype (uintptr_t num)
 
 		fn = offsetPointer_deref(void*,fn,fptr); /*fn += fptr;*/
 
-		set_one_MultiElementType (myObj->num, tptr, (void*)fn, len);
+		set_one_MultiElementType (myObj->num, tptr, fn, len);
 	}
 }
 
@@ -862,7 +862,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 	double dval;
 	float fl[4];
-	float dl[4];
+	double dl[4];
 	float *fp;
 	int *ip;
 	int ival;
@@ -873,7 +873,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	struct Multi_Color *MCptr;	/* MFColor pointer */
 	char *ptr;			/* used for building up return string */
 	struct Uni_String *svptr;
-	unsigned char *retSFString;
+	char *retSFString;
 
 	int numPerRow;			/* 1, 2, 3 or 4 floats per row of this MF? */
 	int i;
@@ -982,7 +982,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			xx= (uintptr_t *) memptr;
 			svptr = (struct Uni_String *) *xx;
 
-			retSFString = (unsigned char *)svptr->strptr; 
+			retSFString = (char *)svptr->strptr; 
 			sprintf (buf, "%s\n%f\n%d\n\"%s\"",reptype,TickTime,id,retSFString);
 			break;
 		}

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.21 2010/02/26 21:48:12 crc_canada Exp $
+$Id: jsUtils.c,v 1.22 2010/03/01 22:39:49 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -65,7 +65,7 @@ which is the sample application included with the javascript engine.
 static int insetSFStr = FALSE;
 static JSBool reportWarnings = JS_TRUE;
 
-JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	int num;
 	jsval pf;
 	jsval nf;
@@ -149,7 +149,7 @@ JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 /* take an ECMA value in the X3D Scenegraph, and return a jsval with it in */
 /* This is FAST as w deal just with pointers */
-void JS_ECMA_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, jsval *newval) {
+static void JS_ECMA_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, jsval *newval) {
 	float fl;
 	double dl;
 	int il;
@@ -213,7 +213,7 @@ void JS_ECMA_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, j
 
 
 /* take a Javascript  ECMA value and put it in the X3D Scenegraph. */
-void JS_SF_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, jsval *newval) {
+static void JS_SF_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, jsval *newval) {
         SFColorNative *Cptr;
 	SFVec3fNative *V3ptr;
 	SFVec3dNative *V3dptr;
@@ -266,7 +266,7 @@ void JS_SF_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, jsv
 
 
 /* make an MF type from the X3D node. This can be fairly slow... */
-void JS_MF_TO_X3D(JSContext *cx, JSObject * obj, void *Data, int dataType, jsval *newval) {
+static void JS_MF_TO_X3D(JSContext *cx, JSObject * obj, void *Data, int dataType, jsval *newval) {
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("calling JS_MF_TO_X3D on type %s\n",FIELDTYPES[dataType]);
@@ -290,7 +290,7 @@ void JS_MF_TO_X3D(JSContext *cx, JSObject * obj, void *Data, int dataType, jsval
 
 /* take an ECMA value in the X3D Scenegraph, and return a jsval with it in */
 /* This is FAST as w deal just with pointers */
-void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, jsval *newval) {
+void X3D_ECMA_TO_JS(JSContext *cx, void *Data, int datalen, int dataType, jsval *newval) {
 	float fl;
 	double dl;
 	int il;
@@ -369,7 +369,7 @@ void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned datalen, in
 		printf ("X3D_SF_TO_JS, have to run script to make new object: \"%s\"\n",script);
 		#endif
 
-		if (!JS_EvaluateScript(cx, obj, script, strlen(script), FNAME_STUB, LINENO_STUB, &rval)) {
+		if (!JS_EvaluateScript(cx, obj, script, (int) strlen(script), FNAME_STUB, LINENO_STUB, &rval)) {
 			printf ("error creating the new object in X3D_SF_TO_JS\n");
 			return;
 		}
@@ -491,7 +491,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			default: printf ("invalid type in X3D_MF_TO_JS\n"); return;
 		}
 
-		if (!JS_EvaluateScript(cx, obj, script, strlen(script), FNAME_STUB, LINENO_STUB, &rval)) {
+		if (!JS_EvaluateScript(cx, obj, script, (int) strlen(script), FNAME_STUB, LINENO_STUB, &rval)) {
 			printf ("error creating the new object in X3D_MF_TO_JS\n");
 			return;
 		}
@@ -575,7 +575,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 					sprintf (newline,"new SFColor(%f, %f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1], MCptr->p[i].c[2]);	
 				else
 					sprintf (newline,"new SFColor(%f, %f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1], MCptr->p[i].c[2]);	
-				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
 				}
@@ -595,7 +595,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			MCptr = (struct Multi_Vec2f *) Data;
 			for (i=0; i<MCptr->n; i++) {
 				sprintf (newline,"new SFVec2f(%f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1]);	
-				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
 				}
@@ -614,7 +614,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			MCptr = (struct Multi_Rotation*) Data;
 			for (i=0; i<MCptr->n; i++) {
 				sprintf (newline,"new SFRotation(%f, %f, %f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1], MCptr->p[i].c[2], MCptr->p[i].c[3]);	
-				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
 				}
@@ -634,8 +634,8 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			MCptr = (struct Multi_Node *) Data;
 
 			for (i=0; i<MCptr->n; i++) {
-				sprintf (newline,"new SFNode(%u)", (unsigned int) MCptr->p[i]);	
-				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+				sprintf (newline,"new SFNode(%p)", MCptr->p[i]);	
+				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
 				}
@@ -668,7 +668,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 				printf ("X3D_MF_TO_JS, we have a new script to evaluate: \"%s\"\n",newline);
 				#endif
 
-				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
 				}
@@ -700,7 +700,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			}
 			strcat (newline, "))");
 
-			if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+			if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 				printf ("error creating the new object in X3D_MF_TO_JS\n");
 				return;
 			}
@@ -724,7 +724,7 @@ void
 errorReporter(JSContext *context, const char *message, JSErrorReport *report)
 {
 	char *errorReport = 0;
-	size_t len = 0, charPtrSize = sizeof(char *);
+	int len = 0, charPtrSize = (int) sizeof(char *);
 
     if (!report) {
         fprintf(stderr, "%s\n", message);
@@ -736,7 +736,7 @@ errorReporter(JSContext *context, const char *message, JSErrorReport *report)
 		return;
 	}
 
-	len = (strlen(report->filename) + 1) + (strlen(message) + 1);
+	len = (int) ((strlen(report->filename) + 1) + (strlen(message) + 1));
 
 	errorReport = (char *) JS_malloc(context, (len + STRING) * charPtrSize);
 	if (!errorReport) {
@@ -766,8 +766,7 @@ errorReporter(JSContext *context, const char *message, JSErrorReport *report)
 
 
 /* SFNode - find the fieldOffset pointer for this field within this node */
-uintptr_t *getFOP (uintptr_t *handle, const char *str) {
-	struct X3D_Node *node = (struct X3D_Node *)handle;
+static int *getFOP (struct X3D_Node *node, const char *str) {
 	int *fieldOffsetsPtr;
 
 
@@ -776,7 +775,7 @@ uintptr_t *getFOP (uintptr_t *handle, const char *str) {
 		printf ("...getFOP... it is a %s\n",stringNodeType(node->_nodeType));
 		#endif
 
-                fieldOffsetsPtr = NODE_OFFSETS[node->_nodeType];
+                fieldOffsetsPtr = (int *) NODE_OFFSETS[node->_nodeType];
                 /*go thru all field*/
 		/* what we have is a list of 4 numbers, representing:
         		FIELDNAMES__parentResource, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,
@@ -811,7 +810,7 @@ JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	JSString *_idStr;
 	char *_id_c;
         SFNodeNative *ptr;
-	uintptr_t *fieldOffsetsPtr;
+	int *fieldOffsetsPtr;
 	struct X3D_Node *node;
 
 	_idStr = JS_ValueToString(context, id);
@@ -825,7 +824,7 @@ JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
                 printf( "JS_GetPrivate failed in getSFNodeField.\n");
                 return JS_FALSE;
         }
-	node = (struct X3D_Node *) ptr->handle;
+	node = X3D_NODE(ptr->handle);
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("getSFNodeField, got node %u for field %s object %u\n",node,_id_c, obj);
@@ -858,7 +857,7 @@ JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 		case FIELDTYPE_SFTime:
 		case FIELDTYPE_SFInt32:
 		case FIELDTYPE_SFString:
-			X3D_ECMA_TO_JS(context, ((void *)( ((unsigned char *) node) + *(fieldOffsetsPtr+1))),
+			X3D_ECMA_TO_JS(context, offsetPointer_deref (void *, node, *(fieldOffsetsPtr+1)),
 				returnElementLength(*(fieldOffsetsPtr+2)), *(fieldOffsetsPtr+2), vp);
 			break;
 		case FIELDTYPE_SFColor:
@@ -867,7 +866,7 @@ JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFVec3d:
 		case FIELDTYPE_SFRotation:
-			X3D_SF_TO_JS(context, obj, ((void *)( ((unsigned char *) node) + *(fieldOffsetsPtr+1))),
+			X3D_SF_TO_JS(context, obj, offsetPointer_deref (void *, node, *(fieldOffsetsPtr+1)),
 				returnElementLength(*(fieldOffsetsPtr+2)) * returnElementRowSize(*(fieldOffsetsPtr+2)) , *(fieldOffsetsPtr+2), vp);
 			break;
 		case FIELDTYPE_MFColor:
@@ -880,7 +879,7 @@ JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 		case FIELDTYPE_MFNode:
 		case FIELDTYPE_MFRotation:
 		case FIELDTYPE_SFImage:
-			X3D_MF_TO_JS(context, obj, ((void *)( ((unsigned char *) node) + *(fieldOffsetsPtr+1))), *(fieldOffsetsPtr+2), vp, 
+			X3D_MF_TO_JS(context, obj, offsetPointer_deref (void *, node, *(fieldOffsetsPtr+1)), *(fieldOffsetsPtr+2), vp, 
 				(char *)FIELDNAMES[*(fieldOffsetsPtr+0)]);
 			break;
 		default: printf ("unhandled type in getSFNodeField\n");
@@ -898,7 +897,7 @@ JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	char *_id_c;
         SFNodeNative *ptr;
-	uintptr_t *fieldOffsetsPtr;
+	int *fieldOffsetsPtr;
 	struct X3D_Node *node;
 
 	/* get the id field... */
@@ -1024,7 +1023,7 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 			return JS_TRUE;
 		}
 
-                fieldOffsetsPtr = NODE_OFFSETS[ptr->_nodeType];
+                fieldOffsetsPtr = (int *) NODE_OFFSETS[ptr->_nodeType];
                 /*go thru all field*/
 		/* what we have is a list of 4 numbers, representing:
         		FIELDNAMES__parentResource, offsetof (struct X3D_Anchor, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,
@@ -1039,7 +1038,7 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 			/* skip any fieldNames starting with an underscore, as these are "internal" ones */
 			if (FIELDNAMES[*fieldOffsetsPtr][0] != '_') {
 				name = (char *)FIELDNAMES[*fieldOffsetsPtr];
-				rval = INT_TO_JSVAL((int)fieldOffsetsPtr);
+				rval = INT_TO_JSVAL(*fieldOffsetsPtr);
 
 				/* is this an initializeOnly property? */
 				/* lets not do this, ok? 

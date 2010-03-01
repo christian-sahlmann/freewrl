@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.h,v 1.10 2010/03/01 12:32:59 crc_canada Exp $
+$Id: CParseLexer.h,v 1.11 2010/03/01 22:39:49 crc_canada Exp $
 
 Lexer (input of terminal symbols) for CParse
 
@@ -44,7 +44,7 @@ fields are not scoped and therefore stored in a simple vector.
 #ifdef ID_UNDEFINED
 #undef ID_UNDEFINED
 #endif
-#define ID_UNDEFINED	((indexT)-1)
+#define ID_UNDEFINED	-1
 
 #define LEXER_INPUT_STACK_MAX 16
 
@@ -78,7 +78,7 @@ void lexer_destroyIdStack(Stack*);
 
 /* Count of elements to pop off the PROTO vector for scope-out */
 #define lexer_getProtoPopCnt(me) \
- (vector_size(me->userNodeTypesVec)-stack_top(size_t, me->userNodeTypesStack))
+ (vector_size(me->userNodeTypesVec)-stack_top(int, me->userNodeTypesStack))
 
 /* Set input */
 void lexer_fromString (struct VRMLLexer *, char *);
@@ -88,7 +88,7 @@ void lexer_forceStringCleanup (struct VRMLLexer *me);
 #define lexer_eof(me) \
  ((me)->isEof && !(me)->curID)
 
-/* indexT -> char* conversion */
+/* int index -> char* conversion */
 #define lexer_stringUFieldName(me, index, type) \
  vector_get(char*, me->user_##type, index)
 #define lexer_stringUser_initializeOnly(me, index) \
@@ -100,7 +100,7 @@ void lexer_forceStringCleanup (struct VRMLLexer *me);
 #define lexer_stringUser_outputOnly(me, index) \
  lexer_stringUFieldName(me, index, outputOnly)
 /* User field name -> char*, takes care of access mode */
-const char* lexer_stringUser_fieldName(struct VRMLLexer* me, indexT name, indexT mode);
+const char* lexer_stringUser_fieldName(struct VRMLLexer* me, int name, int mode);
 
 /* Skip whitespace and comments. */
 void lexer_skip(struct VRMLLexer*);
@@ -112,12 +112,12 @@ BOOL lexer_setCurID(struct VRMLLexer*);
 void lexer_scopeIn(struct VRMLLexer*);
 void lexer_scopeOut(struct VRMLLexer*);
 void lexer_scopeOut_PROTO(struct VRMLLexer*);
-BOOL lexer_keyword(struct VRMLLexer*, indexT);
-BOOL lexer_specialID(struct VRMLLexer*, indexT* retB, indexT* retU,
- const char**, const indexT, struct Vector*);
-BOOL lexer_specialID_string(struct VRMLLexer*, indexT* retB, indexT* retU,
- const char**, const indexT, struct Vector*, const char*);
-BOOL lexer_defineID(struct VRMLLexer*, indexT*, struct Vector*, BOOL);
+BOOL lexer_keyword(struct VRMLLexer*, int);
+BOOL lexer_specialID(struct VRMLLexer*, int* retB, int* retU,
+ const char**, const int, struct Vector*);
+BOOL lexer_specialID_string(struct VRMLLexer*, int* retB, int* retU,
+ const char**, const int, struct Vector*, const char*);
+BOOL lexer_defineID(struct VRMLLexer*, int*, struct Vector*, BOOL);
 #define lexer_defineNodeName(me, ret) \
  lexer_defineID(me, ret, stack_top(struct Vector*, me->userNodeNames), TRUE)
 #define lexer_defineNodeType(me, ret) \
@@ -130,9 +130,9 @@ BOOL lexer_defineID(struct VRMLLexer*, indexT*, struct Vector*, BOOL);
  lexer_defineID(me, ret, me->user_inputOnly, TRUE)
 #define lexer_define_outputOnly(me, ret) \
  lexer_defineID(me, ret, me->user_outputOnly, TRUE)
-BOOL lexer_initializeOnly(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
+BOOL lexer_initializeOnly(struct VRMLLexer*, int*, int*, int*, int*);
 BOOL lexer_event(struct VRMLLexer*, struct X3D_Node*,
- indexT*, indexT*, indexT*, indexT*, int routeToFrom);
+ int*, int*, int*, int*, int routeToFrom);
 #define lexer_inputOnly(me, node, a, b, c, d) \
  lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_IN)
 #define lexer_outputOnly(me, node, a, b, c, d) \
@@ -146,7 +146,7 @@ BOOL lexer_event(struct VRMLLexer*, struct X3D_Node*,
  lexer_specialID(me, r, NULL, PROTOKEYWORDS, PROTOKEYWORDS_COUNT, NULL)
 #define lexer_fieldType(me, r) \
  lexer_specialID(me, r, NULL, FIELDTYPES, FIELDTYPES_COUNT, NULL)
-indexT lexer_string2id(const char*, const struct Vector*);
+int lexer_string2id(const char*, const struct Vector*);
 #define lexer_nodeName2id(me, str) \
  lexer_string2id(str, stack_top(struct Vector*, me->userNodeNames))
 
@@ -177,7 +177,7 @@ void skipToEndOfOpenCurly(struct VRMLLexer *me, int level);
 void concatAndGiveToLexer(struct VRMLLexer *me, const char *str_a, const char *str_b);
 
 /* other function protos */
-BOOL lexer_field(struct VRMLLexer* me,indexT* retBO, indexT* retBE, indexT* retUO, indexT* retUE);
+BOOL lexer_field(struct VRMLLexer* me,int* retBO, int* retBE, int* retUO, int* retUE);
 
 
 #endif /* __FREEWRL_CPARSE_LEXER_H__ */

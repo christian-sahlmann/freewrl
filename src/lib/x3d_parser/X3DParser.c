@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.63 2010/02/23 18:39:45 crc_canada Exp $
+$Id: X3DParser.c,v 1.64 2010/03/01 22:39:49 crc_canada Exp $
 
 ???
 
@@ -93,6 +93,7 @@ static int in3_3_fieldIndex = INT_ID_UNDEFINED;
 int parentIndex = -1;
 struct X3D_Node *parentStack[PARENTSTACKSIZE];
 
+#ifdef X3DPARSERVERBOSE
 static const char *parserModeStrings[] = {
 		"unused",
 		"PARSING_NODES",
@@ -105,6 +106,7 @@ static const char *parserModeStrings[] = {
 		"PARSING_CONNECT",
 		"PARSING_EXTERNPROTODECLARE",
 		"unused high"};
+#endif
 		
 int currentParserMode = PARSING_NODES;
 
@@ -127,7 +129,7 @@ int freewrl_XML_GetCurrentLineNumber(void) {
 	if (X3DParserRecurseLevel > INT_ID_UNDEFINED)
 	{
 		currentX3DParser = x3dparser[X3DParserRecurseLevel]; /*dont trust current*/
-		return XML_GetCurrentLineNumber(currentX3DParser); 
+		return (int) XML_GetCurrentLineNumber(currentX3DParser); 
 	}
 	return INT_ID_UNDEFINED;
 }
@@ -259,7 +261,7 @@ struct X3D_Node *X3DParser_getNodeFromName(const char *name) {
 
 /* "forget" the DEFs. Keep the table around, though, as the entries will simply be used again. */
 void kill_X3DDefs(void) {
-	int i,j;
+	int i;
 	FREE_IF_NZ(childAttributes);
 
 	if (DEFedNodes != NULL) {
@@ -338,8 +340,6 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 static int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struct Shader_Script *me, int *offs, int *type, int *accessType) {
 
 	struct ScriptFieldDecl* myField;
-	const char** userArr;
-	size_t userCnt;
 	indexT retUO;
 
 	/* initialize */
@@ -450,7 +450,6 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 		/* is this a PROTO expansion? */
 		struct X3D_Group *myg;
 		int myp;
-		int i;
 
 		/* lets go finding; if this is a PROTO expansion, we will have FreeWRL__protoDef != INT_ID_UNDEFINED */
 		myg = X3D_GROUP(node);
@@ -784,7 +783,6 @@ void linkNodeIn(char *where, int lineno) {
 	int coffset;
 	int ctype;
 	int ctmp;
-	uintptr_t *destnode;
 	char *memptr;
 	int myContainer;
 
@@ -948,12 +946,11 @@ void linkNodeIn(char *where, int lineno) {
 			stringNodeType(parentStack[parentIndex]->_nodeType));
 		return;
 	}
-	memptr = (char *)parentStack[parentIndex-1] + coffset;
+	memptr = offsetPointer_deref (char *, parentStack[parentIndex-1],coffset);
 	if (ctype == FIELDTYPE_SFNode) {
 		/* copy over a single memory pointer */
-		destnode = (uintptr_t *) memptr;
-		*destnode = parentStack[parentIndex];
-		ADD_PARENT(X3D_NODE(parentStack[parentIndex]), X3D_NODE(parentStack[parentIndex-1]));
+		memcpy (memptr, &parentStack[parentIndex],sizeof(struct X3D_Node *));
+		ADD_PARENT(parentStack[parentIndex], parentStack[parentIndex-1]);
 	} else {
 		AddRemoveChildren (
 			parentStack[parentIndex-1], /* parent */
@@ -1007,7 +1004,7 @@ printf ("\n");
 */
 	/* are we in a fieldValue "dump" mode? (x3d v3.3 and above?) */
 	if ((in3_3_fieldValue) || (inCDATA)) {
-		appendDataToFieldValue(string,len);
+		appendDataToFieldValue((char *)string,len);
 	}
 
 	/* else, ignore this data */
@@ -1455,7 +1452,6 @@ nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv); */
 					if (offs != INT_ID_UNDEFINED) {
 
 					        struct ScriptParamList *thisEntry;
-        					struct ScriptParamList *nextEntry;
 
         					thisEntry = ScriptControl[myObj->num].paramList;
         					while (thisEntry != NULL) {
@@ -1739,7 +1735,7 @@ int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
 
 	DEBUG_X3DPARSER ("X3DPARSE on :\n%s:\n",inputstring);
 	
-	if (XML_Parse(currentX3DParser, inputstring, strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
+	if (XML_Parse(currentX3DParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
 		fprintf(stderr,
 			"%s at line %" XML_FMT_INT_MOD "u\n",
 			XML_ErrorString(XML_GetErrorCode(currentX3DParser)),

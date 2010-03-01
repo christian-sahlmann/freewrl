@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.h,v 1.9 2010/02/26 19:34:43 sdumoulin Exp $
+$Id: CRoutes.h,v 1.10 2010/03/01 22:39:49 crc_canada Exp $
 
 VRML-parsing routines in C.
 
@@ -39,8 +39,8 @@ typedef struct _CRnodeStruct {
 
 struct CRStruct {
         struct X3D_Node*  routeFromNode;
-        uintptr_t fnptr;
-        unsigned int tonode_count;
+        int fnptr;
+        int tonode_count;
         CRnodeStruct *tonodes;
         int     isActive;
         int     len;
@@ -53,14 +53,16 @@ struct CRStruct {
 extern struct CRStruct *CRoutes;
 
 /* function protos */
-int get_valueChanged_flag (uintptr_t, uintptr_t);
+int get_valueChanged_flag (int, int);
 void getSpecificRoute (int routeNo, struct X3D_Node **fromNode, int *fromOffset, struct X3D_Node **toNode, int *toOffset);
 
-void mark_event (struct X3D_Node *from, size_t fromoffset);
-void mark_event_check (struct X3D_Node *from, size_t fromoffset,char *fn, int line);
+void mark_event (struct X3D_Node *from, int fromoffset);
+void mark_event_check (struct X3D_Node *from, int fromoffset,char *fn, int line);
+void resetScriptTouchedFlag(int actualscript, int fptr);
 
 void CRoutes_js_new (int num,int scriptType);
 extern int max_script_found;
 extern int max_script_found_and_initialized;
+extern int *scr_act;
 
 #endif /* __FREEWRL_CROUTES_H__ */

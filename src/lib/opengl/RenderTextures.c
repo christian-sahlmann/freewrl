@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.24 2010/01/15 22:07:25 crc_canada Exp $
+$Id: RenderTextures.c,v 1.25 2010/03/01 22:39:48 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -81,7 +81,7 @@ static void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
 static int setActiveTexture (int c, GLfloat thisTransparency) 
 {
         struct multiTexParams *paramPtr;
-	float allones[] = {1.0, 1.0, 1.0, 1.0};
+	float allones[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	if (rdr_caps.av_multitexture) {
 	    

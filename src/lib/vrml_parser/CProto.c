@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.41 2010/03/01 12:32:59 crc_canada Exp $
+$Id: CProto.c,v 1.42 2010/03/01 22:39:49 crc_canada Exp $
 
 CProto ???
 
@@ -185,7 +185,7 @@ void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
  struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
 {
  int i;
- size_t len=returnRoutingElementLength(me->type);
+ int len=returnRoutingElementLength(me->type);
  ASSERT(me->mode==PKW_inputOutput || me->mode==PKW_inputOnly);
 
  /* For each script field mapped to this proto field, add a route */
@@ -203,7 +203,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
  struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
 {
  int i;
- size_t len=returnRoutingElementLength(me->type);
+ int len=returnRoutingElementLength(me->type);
 
  ASSERT(me->mode==PKW_inputOutput || me->mode==PKW_outputOnly);
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.50 2010/02/16 21:21:47 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.51 2010/03/01 22:39:49 crc_canada Exp $
 
 ???
 
@@ -253,7 +253,7 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 	int type;
 	int accessType;
 	int nodeOffs;
-	struct ShaderScript **holder; /* not used, only for parameter in getRoutingInfo */
+	struct Shader_Script *holder; /* not used, only for parameter in getRoutingInfo */
 
 
 	#ifdef X3DPARSERVERBOSE
@@ -445,7 +445,7 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 		if (strcmp(fieldDecl_getShaderScriptName(field->fieldDecl),atts[pfInd+1])==0) {
 			/* printf ("parseConnect, routing, have match, value is %s\n",atts[nfInd+1]); */
 			matched=TRUE;
-			generateRoute(myLexer, field, atts[nfInd+1]);
+			generateRoute(myLexer, field, (char *) atts[nfInd+1]);
 		}
 	} 
 
@@ -606,7 +606,7 @@ int i;printf ("X3D_ node name :%s:\n",name);for (i = 0; atts[i]; i += 2) {printf
 
 				rv = DEFNameIndex(atts[1],X3D_NODE(NULL),FALSE);
 				/* printf ("found USE in proto expansion for SFNode, is %u\n",rv); */
-				sprintf (val, "%u",(unsigned int) rv);
+				sprintf (val, "%p",rv);
 				ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = val;
 			} else {
 				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
@@ -956,7 +956,7 @@ void parseProtoInstance (const char **atts) {
 
 	#define OPEN_AND_READ_PROTO \
 		PROTONames[currentProtoInstance].fileDescriptor = fopen (PROTONames[currentProtoInstance].fileName,"r"); \
-		rs = fread(protoInString, 1, PROTONames[currentProtoInstance].charLen, PROTONames[currentProtoInstance].fileDescriptor); \
+		rs = (int) fread(protoInString, 1, PROTONames[currentProtoInstance].charLen, PROTONames[currentProtoInstance].fileDescriptor); \
 		protoInString[rs] = '\0'; /* ensure termination */ \
 		fclose (PROTONames[currentProtoInstance].fileDescriptor); \
 		/* printf ("OPEN AND READ %s returns:%s\n:\n",PROTONames[currentProtoInstance].fileName, protoInString); */ \
@@ -997,10 +997,10 @@ void parseProtoInstance (const char **atts) {
 	for (ind=0; ind<vector_size(myObj->fields); ind++) { \
 		int i; struct ScriptFieldDecl* field; char *fv; \
 		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); \
-		fv = field->ASCIIvalue; /* pointer to ProtoDef value - might be replaced in loop below */ \
+		fv = field->ASCIIvalue;   /* pointer to ProtoDef value - might be replaced in loop below */ \
 		for (i=0; i<CPI.paircount; i++) { \
 			/* printf ("CPI has %s and %s\n",CPI.name[i],CPI.value[i]); */ \
-			if (strcmp(CPI.name[i],fieldDecl_getShaderScriptName(field->fieldDecl))==0) {/* use the value passed in on invocation */ fv=(char *)CPI.value[i];} \
+			if (strcmp(CPI.name[i],fieldDecl_getShaderScriptName(field->fieldDecl))==0) {/* use the value passed in on invocation */ fv=CPI.value[i];} \
 		} \
 		/* JAS if (field->fieldDecl->mode != PKW_initializeOnly) { */ \
 		if (fv != NULL) { \

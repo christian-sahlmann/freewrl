@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.17 2010/01/19 19:18:47 crc_canada Exp $
+$Id: jsVRML_MFClasses.c,v 1.18 2010/03/01 22:39:49 crc_canada Exp $
 
 ???
 
@@ -753,9 +753,9 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 			printf( "JS_GetPrivate failed.\n");
 			return JS_FALSE;
 		}
-		(Vptr->v).c[0] = matrix[12];
-		(Vptr->v).c[1] = matrix[13];
-		(Vptr->v).c[2] = matrix[14];
+		(Vptr->v).c[0] = (float) matrix[12];
+		(Vptr->v).c[1] = (float) matrix[13];
+		(Vptr->v).c[2] = (float) matrix[14];
 		Vptr->valueChanged++;
 	}
 
@@ -786,7 +786,7 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 		quaternion_to_vrmlrot(&quat, &qu[0],&qu[1],&qu[2],&qu[3]);
 
 		/* now copy the values over */
-		for (i=0; i<4; i++) (Rptr->v).c[i] = qu[i];
+		for (i=0; i<4; i++) (Rptr->v).c[i] = (float) qu[i];
 		Rptr->valueChanged = 1;
 	}
 
@@ -800,9 +800,9 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 			printf( "JS_GetPrivate failed.\n");
 			return JS_FALSE;
 		}
-		(Vptr->v).c[0] = l0;
-		(Vptr->v).c[1] = l1;
-		(Vptr->v).c[2] = l2;
+		(Vptr->v).c[0] = (float) l0;
+		(Vptr->v).c[1] = (float) l1;
+		(Vptr->v).c[2] = (float) l2;
 		Vptr->valueChanged = 1;
 	}
 
@@ -1276,8 +1276,8 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 				return JS_FALSE;
 			}
 			if (*vp == JSVAL_VOID) {
-				printf( "VrmlMatrixGetProperty: obj = %u, jsval = %d does not exist!\n",
-					   VERBOSE_OBJ obj, (int) _index);
+				printf( "VrmlMatrixGetProperty: obj = %p, jsval = %d does not exist!\n",
+					   obj, (int) _index);
 				return JS_FALSE;
 			}
 		}
