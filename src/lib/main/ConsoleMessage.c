@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.16 2010/01/21 19:26:27 crc_canada Exp $
+$Id: ConsoleMessage.c,v 1.17 2010/03/01 12:32:58 crc_canada Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -172,7 +172,7 @@ int fwvsnprintf(char *buffer,int buffer_length, const char *fmt, va_list ap)
 				if ((strlen(s) + count) > buffer_length) {
 					char tmpstr[100];
 					int ltc;
-					ltc = strlen(s);
+					ltc = (int) strlen(s);
 					if (ltc>80) ltc=80;
 					strncpy (tmpstr, s, ltc);
 					tmpstr[ltc] = '.'; ltc++;

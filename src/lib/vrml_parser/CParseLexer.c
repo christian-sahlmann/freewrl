@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.32 2010/02/23 18:39:45 crc_canada Exp $
+$Id: CParseLexer.c,v 1.33 2010/03/01 12:32:59 crc_canada Exp $
 
 ???
 
@@ -1345,7 +1345,6 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         indexT mode;
         indexT type;
         struct Multi_String url;
-        int i;
         char *pound;
         char *buffer;
         char emptyString[100];
@@ -1499,7 +1498,7 @@ void skipToEndOfOpenCurly(struct VRMLLexer *me, int level) {
 }
 
 /* concat 2 strings, and tell the lexer to scan from this new string */
-void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b) {
+void concatAndGiveToLexer(struct VRMLLexer *me, const char *str_a, const char *str_b) {
 	char *newstring;
 	size_t len_a=0;
 	size_t len_b=0;

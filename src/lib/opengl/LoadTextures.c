@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.35 2010/02/17 18:03:06 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.36 2010/03/01 12:32:58 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -203,8 +203,8 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
 	size_t		bitsPerComponent;
 
 	 // Get image width, height. Well use the entire image.
-	size_t pixelsWide = CGImageGetWidth(inImage);
-	size_t pixelsHigh = CGImageGetHeight(inImage);
+	int pixelsWide = (int) CGImageGetWidth(inImage);
+	int pixelsHigh = (int) CGImageGetHeight(inImage);
 
 	// Declare the number of bytes per row. Each pixel in the bitmap in this
 	// example is represented by 4 bytes; 8 bits each of red, green, blue, and
@@ -327,8 +327,8 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 	CGImageRef 	image;
 	CFStringRef	path;
 	CFURLRef 	url;
-	size_t 		image_width;
-	size_t 		image_height;
+	int 		image_width;
+	int 		image_height;
 
 	CGContextRef 	cgctx;
 
@@ -380,8 +380,8 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 	CFRelease(url);
 	CFRelease(path);
 
-	image_width = CGImageGetWidth(image);
-	image_height = CGImageGetHeight(image);
+	image_width = (int) CGImageGetWidth(image);
+	image_height = (int) CGImageGetHeight(image);
 
 	/* go through every possible return value and check alpha. 
 		note, in testing, kCGImageAlphaLast and kCGImageAlphaNoneSkipLast

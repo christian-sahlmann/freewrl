@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.c,v 1.11 2010/01/19 19:18:47 crc_canada Exp $
+$Id: LinearAlgebra.c,v 1.12 2010/03/01 12:32:58 crc_canada Exp $
 
 ???
 
@@ -52,7 +52,7 @@ void veccross(struct point_XYZ *c, struct point_XYZ a, struct point_XYZ b)
 
 float veclength( struct point_XYZ p )
 {
-    return sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
+    return (float) sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
 }
 
 
@@ -65,7 +65,7 @@ double vecangle(struct point_XYZ* V1, struct point_XYZ* V2) {
 float calc_angle_between_two_vectors(struct point_XYZ a, struct point_XYZ b)
 {
     float length_a, length_b, scalar, temp;
-    scalar = calc_vector_scalar_product(a,b);
+    scalar = (float) calc_vector_scalar_product(a,b);
     length_a = calc_vector_length(a);
     length_b = calc_vector_length(b);
 
@@ -73,7 +73,7 @@ float calc_angle_between_two_vectors(struct point_XYZ a, struct point_XYZ b)
 
     /* if (scalar == 0) */
     if (APPROX(scalar, 0)) {
-		return M_PI/2;
+		return (float) (M_PI/2.0);
     }
 
     if ( (length_a <= 0)  || (length_b <= 0)){
@@ -87,10 +87,10 @@ float calc_angle_between_two_vectors(struct point_XYZ a, struct point_XYZ b)
     /*acos() appears to be unable to handle 1 and -1  */
     /* fixed to handle border case where temp <=-1.0 for 0.39 JAS */
     if ((temp >= 1) || (temp <= -1)){
-	if (temp < 0.0) return 3.141526;
-	return 0.0;
+	if (temp < 0.0f) return 3.141526f;
+	return 0.0f;
     }
-    return acos(temp);
+    return (float) acos(temp);
 }
 
 /* returns vector length, too */
@@ -134,14 +134,14 @@ float* transformf(float* r, const float* a, const GLDOUBLE* b)
     float tmp[3];  /* JAS*/
 
     if(r != a) { /*protect from self-assignments */
-	r[0] = b[0]*a[0] +b[4]*a[1] +b[8]*a[2] +b[12];
-	r[1] = b[1]*a[0] +b[5]*a[1] +b[9]*a[2] +b[13];
-	r[2] = b[2]*a[0] +b[6]*a[1] +b[10]*a[2] +b[14];
+	r[0] = (float) (b[0]*a[0] +b[4]*a[1] +b[8]*a[2] +b[12]);
+	r[1] = (float) (b[1]*a[0] +b[5]*a[1] +b[9]*a[2] +b[13]);
+	r[2] = (float) (b[2]*a[0] +b[6]*a[1] +b[10]*a[2] +b[14]);
     } else {
 	tmp[0] =a[0]; tmp[1] = a[1]; tmp[2] = a[2]; /* JAS*/
-	r[0] = b[0]*tmp[0] +b[4]*tmp[1] +b[8]*tmp[2] +b[12];
-	r[1] = b[1]*tmp[0] +b[5]*tmp[1] +b[9]*tmp[2] +b[13];
-	r[2] = b[2]*tmp[0] +b[6]*tmp[1] +b[10]*tmp[2] +b[14];
+	r[0] = (float) (b[0]*tmp[0] +b[4]*tmp[1] +b[8]*tmp[2] +b[12]);
+	r[1] = (float) (b[1]*tmp[0] +b[5]*tmp[1] +b[9]*tmp[2] +b[13]);
+	r[2] = (float) (b[2]*tmp[0] +b[6]*tmp[1] +b[10]*tmp[2] +b[14]);
     }
     return r;
 }
@@ -293,6 +293,7 @@ GLDOUBLE* mattranspose(GLDOUBLE* res, GLDOUBLE* m)
 			res[i*4+j] = m[j*4+i];
 		}
 	}
+	return res;
 }
 
 

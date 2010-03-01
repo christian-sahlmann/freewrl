@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.46 2010/02/26 21:48:04 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.47 2010/03/01 12:32:59 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -213,10 +213,10 @@ void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_T
 
 
 void initializeLightTables() {
-        float pos[] = { 0.0, 0.0, 1.0, 0.0 };
-        float dif[] = { 1.0, 1.0, 1.0, 1.0 };
-        float shin[] = { 0.6, 0.6, 0.6, 1.0 };
-        float As[] = { 0.0, 0.0, 0.0, 1.0 };
+        float pos[] = { 0.0f, 0.0f, 1.0f, 0.0f };
+        float dif[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        float shin[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+        float As[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	int i;
         for (i=0; i<8; i++) {
@@ -280,7 +280,7 @@ int cur_hits=0;
 
 /* Collision detection results */
 struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
-struct sFallInfo FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; /* too many to initialize here */
+struct sFallInfo FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; ... too many to initialize here */
 
 /* dimentions of viewer, and "up" vector (for collision detection) */
 struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
@@ -323,16 +323,16 @@ struct currayhit rayHit,rayph,rayHitHyper;
 /* this is used to return the duration of an audioclip to the perl
    side of things. works, but need to figure out all
    references, etc. to bypass this fudge JAS */
-float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
-			      -1.0,-1.0,-1.0,-1.0,-1.0,
-			      -1.0,-1.0,-1.0,-1.0,-1.0,
-			      -1.0,-1.0,-1.0,-1.0,-1.0,
-			      -1.0,-1.0,-1.0,-1.0,-1.0,
-			      -1.0,-1.0,-1.0,-1.0,-1.0,
-			      -1.0,-1.0,-1.0,-1.0,-1.0,
-			      -1.0,-1.0,-1.0,-1.0,-1.0,
-			      -1.0,-1.0,-1.0,-1.0,-1.0,
-			      -1.0,-1.0,-1.0,-1.0,-1.0} ;
+float AC_LastDuration[50]  = {-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
+			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
+			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
+			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
+			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
+			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
+			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
+			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
+			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
+			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f} ;
 
 /* is the sound engine started yet? */
 int SoundEngineStarted = FALSE;
@@ -438,19 +438,19 @@ static int renderLevel = 0;
 
 #define PRINT_NODE(_node, _v)  do {					\
 		if (global_print_opengl_errors && (_global_gl_err != GL_NO_ERROR)) { \
-			printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",(int) _v, \
+			printf("Render_node_v %p (%s) PREP: %p REND: %p CH: %p FIN: %p RAY: %p HYP: %p\n",_v, \
 			       stringNodeType(_node->_nodeType),	\
-			       (int) _v->prep,				\
-			       (int) _v->rend,				\
-			       (int) _v->children,			\
-			       (int) _v->fin,				\
-			       (int) _v->rendray,			\
-			       (int) hypersensitive);			\
+			       _v->prep,				\
+			       _v->rend,				\
+			       _v->children,			\
+			       _v->fin,				\
+			       _v->rendray,			\
+			       hypersensitive);			\
 			printf("Render_state geom %d light %d sens %d\n", \
 			       render_geom,				\
 			       render_light,				\
 			       render_sensitive);			\
-			printf("pchange %d pichange %d vchanged %d\n", _node->_change, _node->_ichange,(int) _v->changed); \
+			printf("pchange %d pichange %d vchanged %p\n", _node->_change, _node->_ichange, _v->changed); \
 		}							\
 	} while (0)
 
@@ -692,8 +692,8 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 
 void
 render_hier(struct X3D_Node *p, int rwhat) {
-	struct point_XYZ upvec = {0,1,0};
-	GLDOUBLE modelMatrix[16];
+	/// not needed now - see below struct point_XYZ upvec = {0,1,0};
+	/// not needed now - see below GLDOUBLE modelMatrix[16];
 #define XXXrender_pre_profile
 #ifdef render_pre_profile
 	/*  profile */
@@ -862,7 +862,7 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 	}
 
 	/* find all the fields of this node */
-	offsetptr = NODE_OFFSETS[node->_nodeType];
+	offsetptr = (int *) NODE_OFFSETS[node->_nodeType];
 
 	/* FIELDNAMES_bboxCenter, offsetof (struct X3D_Group, bboxCenter),  FIELDTYPE_SFVec3f, KW_field, */
 	while (*offsetptr >= 0) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.18 2010/01/15 22:07:26 crc_canada Exp $
+$Id: Polyrep.c,v 1.19 2010/03/01 12:32:59 crc_canada Exp $
 
 ???
 
@@ -48,10 +48,10 @@ $Id: Polyrep.c,v 1.18 2010/01/15 22:07:26 crc_canada Exp $
 
 
 /* reset colors to defaults, if we have to */
-static GLfloat diffuseColor[] = {0.3, 0.3, 0.8,1.0};
-static GLfloat ambientIntensity[] = {0.16, 0.16, 0.16, 1.0}; /*VRML diff*amb defaults */
-static GLfloat specularColor[] = {0.0, 0.0, 0.0, 1.0};
-static GLfloat emissiveColor[] = {0.0, 0.0, 0.0, 1.0};
+static GLfloat diffuseColor[] = {0.3f, 0.3f, 0.8f, 1.0f};
+static GLfloat ambientIntensity[] = {0.16f, 0.16f, 0.16f, 1.0f}; /*VRML diff*amb defaults */
+static GLfloat specularColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
+static GLfloat emissiveColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
 
 
 /* Polyrep rendering, node has a color field, which is an RGB field (not RGBA) and transparency is changing */
@@ -162,7 +162,7 @@ int IFS_face_normals (
 		/* lets decide which normal to choose here, in case of more than 1 triangle.
 		   we choose the triangle with the greatest vector length hoping that it is
 		   the least "degenerate" of them all */
-		this_vl = 0.0;
+		this_vl = 0.0f;
 		facenormals[i].x = 0.0;
 		facenormals[i].y = 0.0;
 		facenormals[i].z = 1.0;
@@ -635,13 +635,13 @@ void Extru_ST_map(
 	int tcoordsize) {
 
 	int x;
-	GLfloat minS = 9999.9;
-	GLfloat maxS = -9999.9;
-	GLfloat minT = 9999.9;
-	GLfloat maxT = -9999.9;
+	GLfloat minS = 9999.9f;
+	GLfloat maxS = -9999.9f;
+	GLfloat minT = 9999.9f;
+	GLfloat maxT = -9999.9f;
 
-	GLfloat Srange = 0.0;
-	GLfloat Trange = 0.0;
+	GLfloat Srange = 0.0f;
+	GLfloat Trange = 0.0f;
 
 	int Point_Zero;	/* the point that all cap tris start at. see comment below */
 
@@ -659,8 +659,8 @@ void Extru_ST_map(
 	Trange = maxT - minT;
 
 	/* I hate divide by zeroes. :-) */
-	if (APPROX(Srange, 0.0)) Srange = 0.001;
-	if (APPROX(Trange, 0.0)) Trange = 0.001;
+	if (APPROX(Srange, 0.0)) Srange = 0.001f;
+	if (APPROX(Trange, 0.0)) Trange = 0.001f;
 
 	/* printf ("minS %f Srange %f minT %f Trange %f\n",minS,Srange,minT,Trange); */
 
@@ -755,7 +755,7 @@ void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
 
 	normalize_vector (&myp);
 
-	dest->c[0] = myp.x; dest->c[1] = myp.y; dest->c[2] = myp.z;
+	dest->c[0] = (float) myp.x; dest->c[1] = (float) myp.y; dest->c[2] = (float) myp.z;
 }
 
 
@@ -967,9 +967,9 @@ void render_ray_polyrep(void *node) {
 		v2.x = point[2][0] - point[0][0];
 		v2.y = point[2][1] - point[0][1];
 		v2.z = point[2][2] - point[0][2];
-		v1len = sqrt(VECSQ(v1)); VECSCALE(v1, 1/v1len);
-		v2len = sqrt(VECSQ(v2)); VECSCALE(v2, 1/v2len);
-		v12pt = VECPT(v1,v2);
+		v1len = (float) sqrt(VECSQ(v1)); VECSCALE(v1, 1/v1len);
+		v2len = (float) sqrt(VECSQ(v2)); VECSCALE(v2, 1/v2len);
+		v12pt = (float) VECPT(v1,v2);
 
 		/* this will get around a divide by zero further on JAS */
 		if (fabs(v12pt-1.0) < 0.00001) continue;
@@ -980,12 +980,11 @@ void render_ray_polyrep(void *node) {
 
 			/* v3 is our normal to the surface */
 			VECCP(v1,v2,v3);
-			v3len = sqrt(VECSQ(v3)); VECSCALE(v3, 1/v3len);
+			v3len = (float) sqrt(VECSQ(v3)); VECSCALE(v3, 1/v3len);
 
-			pt1 = VECPT(t_r1,v3);
-			pt2 = VECPT(t_r2,v3);
-			pt3 = v3.x * point[0][0] + v3.y * point[0][1] +
-				v3.z * point[0][2];
+			pt1 = (float) VECPT(t_r1,v3);
+			pt2 = (float) VECPT(t_r2,v3);
+			pt3 = (float) (v3.x * point[0][0] + v3.y * point[0][1] + v3.z * point[0][2]);
 			/* Now we have (1-r)pt1 + r pt2 - pt3 = 0
 			 * r * (pt1 - pt2) = pt1 - pt3
 			 */
@@ -995,7 +994,7 @@ void render_ray_polyrep(void *node) {
 				float k,l;
 				struct point_XYZ p0h;
 
-			 	tmp2 = (pt1-pt3) / (pt1-pt2);
+			 	tmp2 = (float) ((pt1-pt3) / (pt1-pt2));
 				hitpoint.x = MRATX(tmp2);
 				hitpoint.y = MRATY(tmp2);
 				hitpoint.z = MRATZ(tmp2);
@@ -1004,10 +1003,10 @@ void render_ray_polyrep(void *node) {
 				p0h.x = hitpoint.x - point[0][0];
 				p0h.y = hitpoint.y - point[0][1];
 				p0h.z = hitpoint.z - point[0][2];
-				ra = VECPT(v1, p0h);
-				if(ra < 0) {continue;}
-				rb = VECPT(v2, p0h);
-				if(rb < 0) {continue;}
+				ra = (float) VECPT(v1, p0h);
+				if(ra < 0.0f) {continue;}
+				rb = (float) VECPT(v2, p0h);
+				if(rb < 0.0f) {continue;}
 				/* Now, the condition for the point to
 				 * be inside
 				 * (ka + lb = p)
@@ -1062,12 +1061,12 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		r->streamed = FALSE;
 
 		/* for Collision, default texture generation */
-		r->minVals[0] =  999999.9;
-		r->minVals[1] =  999999.9;
-		r->minVals[2] =  999999.9;
-		r->maxVals[0] =  -999999.9;
-		r->maxVals[1] =  -999999.9;
-		r->maxVals[2] =  -999999.9;
+		r->minVals[0] =  999999.9f;
+		r->minVals[1] =  999999.9f;
+		r->minVals[2] =  999999.9f;
+		r->maxVals[0] =  -999999.9f;
+		r->maxVals[1] =  -999999.9f;
+		r->maxVals[2] =  -999999.9f;
 
 	}
 	r = (struct X3D_PolyRep *)p->_intern;

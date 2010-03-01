@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.40 2010/02/10 20:09:49 crc_canada Exp $
+$Id: CProto.c,v 1.41 2010/03/01 12:32:59 crc_canada Exp $
 
 CProto ???
 
@@ -53,7 +53,7 @@ CProto ???
 
 #define PROTO_CAT(newString) { char *pt = (char *)newString; int len=0; int wlen = 0;\
 		while ((*pt)) {len++; pt++;}; \
-		wlen = fwrite (newString,len,1,pexfile); \
+		wlen = (int) fwrite (newString,len,1,pexfile); \
 		curstringlen += len; } 
 
 #define STARTPROTOGROUP "Group{FreeWRL__protoDef %d FreeWRL_PROTOInterfaceNodes ["
@@ -876,7 +876,7 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 					/* was this possibly a proto expansion? */
 
 					if (initCP != me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]) {
-					printf ("getProtoInvocationField, initCP %u startOfStringPtr %u\n",initCP, me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]); 
+					printf ("getProtoInvocationField, initCP %p startOfStringPtr %p\n",initCP, me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]); 
 printf ("PROTO HEADER - possible proto expansion in header?? \n");
 					}
 
@@ -940,7 +940,7 @@ static int dumpProtoFieldDeclarationNodes(struct VRMLLexer *lex, struct ProtoDef
 		/* fields that are PKW_initializeOnly CAN NOT have routing, so we do not need to take
 		   up valuable memory creating a pocket for the routing values */
 		if (pdecl->mode != PKW_initializeOnly) {
-		writtenlen += fprintf (pexfile, "\tDEF PROTO_%u_%s Metadata%s {\n",
+		writtenlen += fprintf (pexfile, "\tDEF PROTO_%p_%s Metadata%s {\n",
 			thisProto,
 			protoFieldDecl_getStringName(lex,pdecl),
 			stringFieldtypeType(pdecl->type)); 
@@ -1017,7 +1017,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 	while ((*pb != '\0') && (*pb <= ' ')) pb++;
 
 	/* record this body length to help us with MALLOCing when expanding PROTO */
-	me->estimatedBodyLen = strlen(pb) * 2;
+	me->estimatedBodyLen = (int) strlen(pb) * 2;
 
 	lex = newLexer();
 	lexer_fromString(lex,pb);
@@ -1102,7 +1102,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 				int ignore;
 
 				/* see which of float, int32 gobbles up more of the string */
-				cur = lex->nextIn;
+				cur = (char *) lex->nextIn;
 
 				ignore = lexer_float(lex,&tmpfloat);
 				fp = (uintptr_t) lex->nextIn;
@@ -1258,13 +1258,13 @@ static int addProtoUpdateRoute (struct VRMLLexer *me, FILE *routefile, char *fie
 
 	/* is this one accepting routes into the PROTO? */
 	if ((myPF->mode == PKW_inputOutput) || (myPF->mode == PKW_inputOnly)) {
-		retcount += fprintf (routefile,"ROUTE PROTO_%u_%s.valueChanged TO %s%s.%s #Meta route, inputOutput or inputOnly\n",
+		retcount += fprintf (routefile,"ROUTE PROTO_%p_%s.valueChanged TO %s%s.%s #Meta route, inputOutput or inputOnly\n",
 			thisProto,protoNameInHeader,thisID,defName,fieldName);
 	}
 
 	/* is this one accepting routes from the PROTO to the outside world? */
 	if ((myPF->mode == PKW_inputOutput) || (myPF->mode == PKW_outputOnly)) {
-		retcount += fprintf (routefile, "ROUTE %s%s.%s TO PROTO_%u_%s.setValue #Meta route, inputOutput or outputOnly\n",
+		retcount += fprintf (routefile, "ROUTE %s%s.%s TO PROTO_%p_%s.setValue #Meta route, inputOutput or outputOnly\n",
 			thisID,defName,fieldName, thisProto,protoNameInHeader);
 	}
 
@@ -1518,8 +1518,8 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 			if (i<(protoElementCount-2)) {
 				tempEle = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i+1);
 				if ((tempEle != NULL) && (tempEle->isKEYWORD == KW_IS)) {
-					int tl =100;
-					char *newTl = MALLOC(100);
+					size_t tl =100;
+					char *newTl = MALLOC(tl);
 					newTl[0] = '\0';
 
 					/* printf ("next element is an IS \n"); 
@@ -1590,13 +1590,13 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
         OPEN_PROTO_EXPAND_FILE_READ;
 
 	{ int i;
-		i=fread(newProtoText,sizeof(char),curstringlen,pexfile);
+		i=(int) fread(newProtoText,sizeof(char),curstringlen,pexfile);
 		/* printf ("just read in %d, should be %d\n",i,curstringlen); */
 		/* i should == curstringlen, btw */
 		if ((i>0) && (i<=curstringlen)) newProtoText[i] = '\0';
 	}
 	{ int i;
-		i=fread(&newProtoText[curstringlen],sizeof(char),routeSize,routefile);
+		i=(int) fread(&newProtoText[curstringlen],sizeof(char),routeSize,routefile);
 		/* printf ("just read in %d, should be %d\n",i,routeSize); */
 		/* i should == routeSize, btw */
 		if ((i>0) && (i<=routeSize)) newProtoText[i+curstringlen] = '\0';
@@ -1614,7 +1614,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif
 
-	*protoSize = curstringlen + routeSize + strlen(ENDPROTOGROUP);
+	*protoSize = curstringlen + routeSize + (int) strlen(ENDPROTOGROUP);
 	newProtoText[*protoSize] = '\0';
 
 	return newProtoText;
@@ -1633,7 +1633,7 @@ BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto,
 	#endif
 
 	/* make up the def name requested; this will be a unique name */
-	sprintf (thisID,"PROTO_%u_%s",(unsigned int)Proto,fieldName);
+	sprintf (thisID,"PROTO_%p_%s",Proto,fieldName);
 
 	
 	/* ok, now we have a DEF name, lets look it up. */
