@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.12 2010/01/25 00:28:32 dug9 Exp $
+$Id: Collision.c,v 1.13 2010/03/02 16:51:29 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -469,7 +469,7 @@ int helper_poly_clip_cap(struct point_XYZ* clippedpoly, int clippedpolynum, cons
 		}
     }
 
-    if(!stepping) FREE_IF_NZ (ppoly);
+    if(!stepping) {FREE_IF_NZ (ppoly);}
 
     return clippedpolynum;
 }
@@ -696,7 +696,7 @@ void accumulateFallingClimbing(double y1, double y2, double ystep, struct point_
 
 int pointOnPlaneInsidePoly(struct point_XYZ D,struct point_XYZ *p, int num, struct point_XYZ* n )
 {
-	int i,j,overlap,inside;
+	int i,j,inside;
 
 	struct point_XYZ a, b,c,last; //,d,e;
 
@@ -735,7 +735,7 @@ int intersectLineSegmentWithPoly(struct point_XYZ s0,struct point_XYZ s1,double 
 	*/
 	   
 	int hit = 0;
-	double d,t,t1, ndotD;
+	double d,t, ndotD;
 	struct point_XYZ D;
 	/* step1 intersect infinite line with infinite plane */
 	d = -vecdot(&n,&p[0]); /* compute plane constant */
@@ -844,7 +844,7 @@ int get_poly_penetration_disp( double r,struct point_XYZ* p, int num, struct poi
 	*/
 	int hit = 0; 
 	double dr; 
-	struct point_XYZ s0=zero,s1;
+	struct point_XYZ s0=zero;
 	*result = zero;
 	*rmax = 0.0;
 
@@ -902,7 +902,6 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 	GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 	GLdouble astep = -naviinfo.height+naviinfo.step;
-	GLdouble aradius = awidth * .5;
 	
 	result = zero;
 	get_poly_mindisp = 0.0;
@@ -1047,7 +1046,7 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
   the direction  that is needed for them not to intersect any more.
 */
 struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n) {
-    int i,j,overlap;
+    int i,j;
     /* double polydisp; */
     struct point_XYZ result;
 	double tmin[3],tmax[3],rmin[3],rmax[3],q[3];
@@ -1436,7 +1435,7 @@ struct point_XYZ box_disp(double y1, double y2, double ystep, double r,struct po
     struct point_XYZ n[6];
     struct point_XYZ maxdispv = {0,0,0};
 	double maxdisp = 0;
-    struct point_XYZ middle;
+    //struct point_XYZ middle;
     /*draw this up, you will understand: */
     static const int faces[6][4] = {
 	{1,7,2,0},
@@ -1446,7 +1445,7 @@ struct point_XYZ box_disp(double y1, double y2, double ystep, double r,struct po
 	{7,1,5,4},
 	{6,2,7,4}
     };
-    int ci,m;
+    int ci;
 
     for(ci = 0; ci < 8; ci++) p[ci] = p0;
 
@@ -1517,7 +1516,7 @@ void transformMBB(GLdouble *rMBBmin, GLdouble *rMBBmax, GLdouble *matTransform, 
 {
 	/* transform axes aligned minimum bounding box MBB via octo box - will expand as necessary to cover original volume */
 	struct point_XYZ abox[8];
-	int i,j,k,m, overlap;
+	int i,j,k,m;
 	GLdouble p[3],rx,ry,rz;
 
 	/* generate an 8 corner box in shape space to represent the shape collision volume */
@@ -1564,7 +1563,7 @@ int fast_ycylinder_MBB_intersect_shapeSpace(double y1, double y2, double r, GLdo
 	  Issue: caller must invert modelMatrix
 	*/
 	int i;
-	GLdouble p[3], avmin[3], avmax[3], smin[3], smax[3];
+	GLdouble avmin[3], avmax[3];
 
 	/* generate mins and maxes for avatar cylinder in avatar/collision space to represent the avatar collision volume */
 	for(i=0;i<3;i++)
@@ -1894,9 +1893,9 @@ int intersectionHeightOfVerticalLineWithSurfaceElement(double* height, struct po
 		height - if inside, this will be the Y height relative to the origin of the intersection point
 	*/
 	/* step 1 compute the infinite plane through the points p. Use the normal N passed in. */
-	int i,j,overlap,inside;
-	struct point_XYZ D, a, b,c,last; 
-	double t, dd, ndotD; 
+	int overlap;
+	struct point_XYZ D; 
+	double dd, ndotD; 
 	overlap = tmax[0] >= 0.0 && tmin[0] <= 0.0 && tmax[2] >= 0.0 && tmin[2] <= 0.0;
 	if(!overlap) return 0;
 	/* end cheap MBR test */

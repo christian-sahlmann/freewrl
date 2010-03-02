@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.26 2010/02/17 16:22:42 sdumoulin Exp $
+  $Id: pluginUtils.c,v 1.27 2010/03/02 16:51:29 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -126,9 +126,9 @@ static void startNewHTMLWindow(char *url) {
 		
 	/* bounds check here */
 	testlen = 0;
-	if (browser) testlen = strlen(browser);
+	if (browser) testlen = (int) strlen(browser);
 
-	testlen += strlen(url) + 10; 
+	testlen += (int) strlen(url) + 10; 
 	if (testlen > LINELEN) {
 		ConsoleMessage ("Anchor: combination of browser name and file name too long.");
 	} else {
@@ -366,7 +366,7 @@ void URLencod (char *dest, const char *src, int maxlen) {
 #endif
 
 	destctr = 0; /* ensure we dont go over dest length */
-	mylen = strlen(src);
+	mylen = (int) strlen(src);
 	if (mylen == 0) {
 		dest[0]= '\0';
 		return;

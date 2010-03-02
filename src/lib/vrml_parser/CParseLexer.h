@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.h,v 1.11 2010/03/01 22:39:49 crc_canada Exp $
+$Id: CParseLexer.h,v 1.12 2010/03/02 16:51:29 crc_canada Exp $
 
 Lexer (input of terminal symbols) for CParse
 
@@ -51,8 +51,8 @@ fields are not scoped and therefore stored in a simple vector.
 /* This is our lexer-object. */
 struct VRMLLexer
 {
- const char* nextIn;	/* Next input character. */
- const char* startOfStringPtr[LEXER_INPUT_STACK_MAX]; /* beginning address of string, for FREE calls */
+ char* nextIn;	/* Next input character. */
+ char* startOfStringPtr[LEXER_INPUT_STACK_MAX]; /* beginning address of string, for FREE calls */
  char* curID;	/* Currently input but not lexed id. */
  BOOL isEof;	/* Error because of EOF? */
 

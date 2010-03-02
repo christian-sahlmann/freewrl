@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.34 2010/03/01 22:39:49 crc_canada Exp $
+$Id: CParseLexer.c,v 1.35 2010/03/02 16:51:29 crc_canada Exp $
 
 ???
 
@@ -1345,9 +1345,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         int mode;
         int type;
         struct Multi_String url;
-        char *pound;
         char *buffer;
-        char emptyString[100];
         char *testname;
 	resource_item_t *res;
 
@@ -1424,38 +1422,6 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 /* 		resource_destroy(res); */
 	}
 
-#if 0 //MBFILES
-        for (i=0; i< url.n; i++) {
-                /* printf ("trying url %s\n",(url.p[i])->strptr); */
-                pound = strchr((url.p[i])->strptr,'#');
-                if (pound != NULL) {
-                        /* we take the pound character off, BUT USE this variable later */
-                        *pound = '\0';
-                }
-
-                if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
-
-                        buffer = readInputString(testname);
-                        FREE_IF_NZ(testname);
-                        embedEXTERNPROTO(me,myName,buffer,pound);
-
-                        /* ok - we are replacing EXTERNPROTO with PROTO */
-                        me->curID = STRDUP("PROTO");
-                        return;
-                } else {
-                        /* printf ("fileExists returns failure for %s\n",testname); */
-                }
-        }
-
-        FREE_IF_NZ(testname);
-
-        /* print up an error message, then get the next token */
-        strcpy (emptyString, "Not Successful at getting EXTERNPROTO \"");
-        if (strlen(myName) > 100) myName[100] = '\0';
-        strcat (emptyString,myName);
-        strcat (emptyString,"\"");
-        ConsoleMessage("Parse error: %s ", emptyString); fprintf(stderr, "%s\n",emptyString);
-#endif
         /* so, lets continue. Maybe this EXTERNPROTO is never referenced?? */
         lexer_setCurID(me);
         /* printf ("so, curID is :%s: and rest is :%s:\n",me->curID, me->nextIn); */
@@ -1502,8 +1468,8 @@ void concatAndGiveToLexer(struct VRMLLexer *me, const char *str_a, const char *s
 	char *newstring;
 	int len_a=0;
 	int len_b=0;
-	if (str_a != NULL) len_a = strlen(str_a);
-	if (str_b != NULL) len_b = strlen(str_b);
+	if (str_a != NULL) len_a = (int) strlen(str_a);
+	if (str_b != NULL) len_b = (int) strlen(str_b);
 
 	if ((len_a == 0) & (len_b == 0)) {
 		printf ("concatAndGiveToLexer, no input!\n");
