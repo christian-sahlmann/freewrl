@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.36 2010/03/03 15:59:07 crc_canada Exp $
+$Id: CParseLexer.c,v 1.37 2010/03/03 21:12:47 sdumoulin Exp $
 
 ???
 
@@ -1276,7 +1276,7 @@ void embedEXTERNPROTO(struct VRMLLexer *me, const char *myName, char *buffer, ch
                         do {
                                 *cp = ' ';
                                 cp++;
-                                /* printf ("lexer, found comment, current char %d:%c:\n",c,c); */
+                                /* printf ("lexer, found comment, current char %d:%c:\n",cp,cp);  */
                                 /* for those files created by ith VRML97 plugin for LightWave3D v6 from NewTek, Inc
                                    we have added the \r check. JAS */
                         } while((*cp!='\n') && (*cp!= '\r') && (*cp!='\0'));
@@ -1289,7 +1289,7 @@ void embedEXTERNPROTO(struct VRMLLexer *me, const char *myName, char *buffer, ch
         /* find the requested name, or find the first PROTO here */
         if (pound != NULL) {
                 pound++;
-                /* printf ("looking for ID %s\n",pound); */
+                /* printf ("looking for ID %s\n",pound);  */
                 proto=buffer;
 
                 do {
@@ -1298,8 +1298,8 @@ void embedEXTERNPROTO(struct VRMLLexer *me, const char *myName, char *buffer, ch
                         /* is this the PROTO we are looking for? */
                         proto += sizeof ("PROTO");
                         while ((*proto <= ' ') && (*proto != '\0')) proto++;
-                        /* printf ("found PROTO at %s\n",proto); */
-                } while (strncmp(pound,proto,sizeof(pound)) != 0);
+                        /* printf ("found PROTO at %s\n",proto);  */
+                } while (strncmp(pound,proto,strlen(pound)) != 0);
         } else {
                 /* no name requested; find the first PROTO that is not an EXTERNPROTO */
                 proto = buffer;
@@ -1335,7 +1335,7 @@ void embedEXTERNPROTO(struct VRMLLexer *me, const char *myName, char *buffer, ch
         strcat (externProtoPointer," ");
         strcat (externProtoPointer,proto);
 
-printf ("pushing protoexp :%s:\n",externProtoPointer);
+/* printf ("pushing protoexp :%s:\n",externProtoPointer); */
 
 	/* push it on to the lexer input string stack */
 	lexer_fromString(me,externProtoPointer);
@@ -1402,18 +1402,18 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 
 	res = resource_create_multi(&url);
 	resource_identify(root_res, res);
+
+	char *pound;
 	if (res->type != rest_invalid) {
 		if (resource_fetch(res)) {
+ 			pound = strchr(res->request, '#'); 
 			if (resource_load(res)) {
 				s_list_t *l;
-				char *pound;
 				openned_file_t *of;
 				l = res->openned_files;
 				of = ml_elem(l);
 				buffer = of->text;
- 				pound = strchr(buffer, '#'); 
  				embedEXTERNPROTO(me, myName, buffer, pound); 
-				printf("**** VRML EXTERNPROTO:\n%s\n", buffer);
 			}
 		}
 	}

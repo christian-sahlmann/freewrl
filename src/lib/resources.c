@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.25 2010/02/17 14:31:08 crc_canada Exp $
+  $Id: resources.c,v 1.26 2010/03/03 21:12:47 sdumoulin Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -361,6 +361,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
  */
 bool resource_fetch(resource_item_t *res)
 {
+	char* pound;
 	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->request);
 
 	ASSERT(res);
@@ -396,6 +397,13 @@ bool resource_fetch(resource_item_t *res)
 		switch (res->status) {
 		case ress_none:
 		case ress_starts_good:
+			/* SJD If this is a PROTO expansion, need to take of trailing part after # */
+			pound = NULL;
+			pound = strchr(res->parsed_request, '#');
+			if (pound != NULL) {
+				*pound = '\0';
+			}
+				
 			if (do_file_exists(res->parsed_request)) {
 				if (do_file_readable(res->parsed_request)) {
 					res->status = ress_downloaded;
