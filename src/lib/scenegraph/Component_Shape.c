@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.34 2010/02/27 21:02:25 crc_canada Exp $
+$Id: Component_Shape.c,v 1.35 2010/03/03 19:50:26 crc_canada Exp $
 
 X3D Shape Component
 
@@ -441,7 +441,6 @@ void child_Shape (struct X3D_Shape *node) {
 	material_twoSided = NULL;
 	material_oneSided = NULL;
 
-
 	/* a texture and a transparency flag... */
 	textureStackTop = 0; /* will be >=1 if textures found */
 
@@ -578,7 +577,6 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* turn off face culling */
 	DISABLE_CULL_FACE;
-	/* printf ("end of render_Shape\n");  */
 }
 
 

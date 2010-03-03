@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.106 2010/02/26 21:47:57 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.107 2010/03/03 19:50:25 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -619,11 +619,6 @@ bool initialize_GL()
 
 	/* end of ALPHA test */
 	FW_GL_ENABLE(GL_NORMALIZE);
-
-#ifdef TRACK_GL_COLORMATERIAL
-	FW_GL_ENABLE (GL_COLOR_MATERIAL);
-	glColorMaterial (GL_FRONT_AND_BACK, GL_DIFFUSE);
-#endif
 
 	/* for textured appearance add specular highlights as a separate secondary color
 	   redbook p.270, p.455 and http://www.gamedev.net/reference/programming/features/oglch9excerpt/
