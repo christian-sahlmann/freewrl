@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Vector.c,v 1.6 2009/10/05 15:07:24 crc_canada Exp $
+$Id: Vector.c,v 1.7 2010/03/03 15:59:07 crc_canada Exp $
 
 ???
 
@@ -47,7 +47,7 @@ $Id: Vector.c,v 1.6 2009/10/05 15:07:24 crc_canada Exp $
 
 /* Constructor/destructor */
 
-struct Vector* newVector_(size_t elSize, size_t initSize) {
+struct Vector* newVector_(int elSize, int initSize) {
  	struct Vector* ret=MALLOC(sizeof(struct Vector));
  	ASSERT(ret);
  	ret->n=0;
@@ -62,20 +62,20 @@ struct Vector* newVector_(size_t elSize, size_t initSize) {
 }
 
 #ifdef DEBUG_MALLOC
-void deleteVector_(char *file, int line, size_t elSize, struct Vector* me) {
+void deleteVector_(char *file, int line, int elSize, struct Vector* me) {
 #else
-void deleteVector_(size_t elSize, struct Vector* me) {
+void deleteVector_(int elSize, struct Vector* me) {
 #endif
 	ASSERT(me);
 	#ifdef DEBUG_MALLOC
 		printf ("vector, deleting me %x data %x at %s:%d\n",me,me->data,file,line);
 	#endif
-	if(me->data) FREE_IF_NZ(me->data);
+	if(me->data) {FREE_IF_NZ(me->data);}
 	FREE_IF_NZ(me);
 }
 
 /* Ensures there's at least one space free. */
-void vector_ensureSpace_(size_t elSize, struct Vector* me) {
+void vector_ensureSpace_(int elSize, struct Vector* me) {
 	ASSERT(me);
 	if(me->n==me->allocn) {
 		if(me->allocn) me->allocn*=2;
@@ -91,7 +91,7 @@ void vector_ensureSpace_(size_t elSize, struct Vector* me) {
 }
 
 /* Shrinks the vector to allocn==n. */
-void vector_shrink_(size_t elSize, struct Vector* me) {
+void vector_shrink_(int elSize, struct Vector* me) {
 	ASSERT(me);
 	ASSERT(me->allocn>=me->n);
 	if(me->n==me->allocn) return;
@@ -101,7 +101,7 @@ void vector_shrink_(size_t elSize, struct Vector* me) {
 	ASSERT(!me->allocn || me->data);
 }
 
-void* vector_releaseData_(size_t elSize, struct Vector* me) {
+void* vector_releaseData_(int elSize, struct Vector* me) {
 	void* ret;
 
 	vector_shrink_(elSize, me);

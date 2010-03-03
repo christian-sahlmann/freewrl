@@ -41,20 +41,20 @@ struct Vector
 };
 
 /* Constructor/destructor */
-struct Vector* newVector_(size_t elSize, size_t initSize);
+struct Vector* newVector_(int elSize, int initSize);
 #define newVector(type, initSize) \
- newVector_(sizeof(type), initSize)
+ newVector_((int)sizeof(type), initSize)
 
 #ifdef DEBUG_MALLOC
-	void deleteVector_(char *file, int line, size_t elSize, struct Vector*);
-	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,sizeof(type), me)
+	void deleteVector_(char *file, int line, int elSize, struct Vector*);
+	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,(int)sizeof(type), me)
 #else
-	void deleteVector_(size_t elSize, struct Vector*);
-	#define deleteVector(type, me) deleteVector_(sizeof(type), me)
+	void deleteVector_(int elSize, struct Vector*);
+	#define deleteVector(type, me) deleteVector_((int)sizeof(type), me)
 #endif
 
 /* Ensures there's at least one space free. */
-void vector_ensureSpace_(size_t, struct Vector*);
+void vector_ensureSpace_(int, struct Vector*);
 
 /* Element retrieval. */
 #define vector_get(type, me, ind) \
@@ -73,14 +73,14 @@ void vector_ensureSpace_(size_t, struct Vector*);
  (!vector_size(me))
 
 /* Shrink the vector to minimum required space. */
-void vector_shrink_(size_t, struct Vector*);
+void vector_shrink_(int, struct Vector*);
 #define vector_shrink(type, me) \
- vector_shrink_(sizeof(type), me)
+ vector_shrink_((int)sizeof(type), me)
 
 /* Push back operation. */
 #define vector_pushBack(type, me, el) \
  { \
-  vector_ensureSpace_(sizeof(type), me); \
+  vector_ensureSpace_((int)sizeof(type), me); \
   ASSERT(((struct Vector*)me)->n<((struct Vector*)me)->allocn); \
   vector_get(type, me, ((struct Vector*)me)->n)=el; \
   ++((struct Vector*)me)->n; \
@@ -99,9 +99,9 @@ void vector_shrink_(size_t, struct Vector*);
  }
 
 /* Release and get vector data. */
-void* vector_releaseData_(size_t, struct Vector*);
+void* vector_releaseData_(int, struct Vector*);
 #define vector_releaseData(type, me) \
- vector_releaseData_(sizeof(type), me)
+ vector_releaseData_((int)sizeof(type), me)
 
 /* ************************************************************************** */
 /* ************************************ Stack ******************************* */
@@ -112,9 +112,9 @@ typedef struct Vector Stack;
 
 /* Constructor and destructor */
 #define newStack(type) \
- newVector(sizeof(type), 4)
+ newVector((int) sizeof(type), 4)
 #define deleteStack(type, me) \
- deleteVector(sizeof(type), me)
+ deleteVector((int) sizeof(type), me)
 
 /* Push and pop */
 #define stack_push(type, me, el) \

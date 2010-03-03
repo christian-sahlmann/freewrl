@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: PluginSocket.c,v 1.12 2009/10/26 10:51:41 couannette Exp $
+$Id: PluginSocket.c,v 1.13 2010/03/03 15:59:07 crc_canada Exp $
 
 Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
@@ -265,7 +265,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	}
 
 	linecount = 0;
-	linelen = fread (buf,1,2000,infile);
+	linelen = (int) fread (buf,1,2000,infile);
 	/* pluginprint ("verify read, read in %d characters\n",linelen);*/
 	while ((linelen > 0) && (linecount < 5)){
 	/* 	pluginprint ("verify read, read in %d characters\n",linelen);*/
@@ -282,7 +282,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 			return NULL;
 		}
 		linecount ++;
-		linelen = fread (buf,1,2000,infile);
+		linelen = (int) fread (buf,1,2000,infile);
 	}
 	fclose (infile);
 

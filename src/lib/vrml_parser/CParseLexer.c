@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.35 2010/03/02 16:51:29 crc_canada Exp $
+$Id: CParseLexer.c,v 1.36 2010/03/03 15:59:07 crc_canada Exp $
 
 ???
 
@@ -1328,10 +1328,14 @@ void embedEXTERNPROTO(struct VRMLLexer *me, const char *myName, char *buffer, ch
         /* now, insert this PROTO text INTO the stream */
 
 
-        externProtoPointer = MALLOC (sizeof (char) * (strlen (proto)+strlen(myName) +4));
-        strcpy (externProtoPointer,myName);
+        externProtoPointer = MALLOC (sizeof (char) * (strlen (proto)+strlen(myName) +40));
+	externProtoPointer[0]='\0';
+	strcat (externProtoPointer, "PROTO ");
+        strcat (externProtoPointer,myName);
         strcat (externProtoPointer," ");
         strcat (externProtoPointer,proto);
+
+printf ("pushing protoexp :%s:\n",externProtoPointer);
 
 	/* push it on to the lexer input string stack */
 	lexer_fromString(me,externProtoPointer);
@@ -1402,12 +1406,13 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 		if (resource_fetch(res)) {
 			if (resource_load(res)) {
 				s_list_t *l;
+				char *pound;
 				openned_file_t *of;
 				l = res->openned_files;
 				of = ml_elem(l);
 				buffer = of->text;
-/* 				pound = strchr(buffer, '#'); */
-/* 				embedEXTERNPROTO(me, myName, buffer, pound); */
+ 				pound = strchr(buffer, '#'); 
+ 				embedEXTERNPROTO(me, myName, buffer, pound); 
 				printf("**** VRML EXTERNPROTO:\n%s\n", buffer);
 			}
 		}
