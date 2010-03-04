@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.36 2010/03/01 12:32:58 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.37 2010/03/04 21:33:01 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -107,6 +107,8 @@ static void texture_load_from_pixelTexture (struct textureTableIndexStruct* this
 
 	ok = TRUE;
 
+printf ("start of texture_load_from_pixelTexture...\n");
+
 	/* are there enough numbers for the texture? */
 	if (node->image.n < 3) {
 		printf ("PixelTexture, need at least 3 elements, have %d\n",node->image.n);
@@ -115,6 +117,8 @@ static void texture_load_from_pixelTexture (struct textureTableIndexStruct* this
 		wid = *iptr; iptr++;
 		hei = *iptr; iptr++;
 		depth = *iptr; iptr++;
+
+printf ("wid %d hei %d depth %d\n",wid,hei,depth);
 
 		if ((depth < 0) || (depth >4)) {
 			printf ("PixelTexture, depth %d out of range, assuming 1\n",(int) depth);
@@ -140,6 +144,7 @@ static void texture_load_from_pixelTexture (struct textureTableIndexStruct* this
 
 	texture = (unsigned char *)MALLOC (wid*hei*4);
 	this_tex->texdata = texture; /* this will be freed when texture opengl-ized */
+	this_tex->status = TEX_NEEDSBINDING;
 
 	tctr = 0;
 	for (count = 0; count < (wid*hei); count++) {

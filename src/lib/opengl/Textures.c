@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.49 2010/03/04 20:52:30 crc_canada Exp $
+  $Id: Textures.c,v 1.50 2010/03/04 21:33:01 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -65,13 +65,6 @@
 #  include <setjmp.h>
 # endif
 #endif
-
-
-#define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
-                move_texture_to_opengl(myTableIndex); \
-                return;	\
-		}
-
 
 
 /* each block of allocated code contains this... */
@@ -826,8 +819,8 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 /* 		me->OpenGLTexture = MALLOC (sizeof (GLuint) * me->frames); */
 		glGenTextures(1, &me->OpenGLTexture);
 #ifdef TEXVERBOSE
-		printf ("just glGend texture for block %d is %u\n",
-			(int) me, me->OpenGLTexture);
+		printf ("just glGend texture for block %d is %u, type %s\n",
+			(int) me, me->OpenGLTexture,stringNodeType(me->nodeType));
 #endif
 	}
 

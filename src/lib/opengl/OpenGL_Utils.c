@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.108 2010/03/04 20:52:30 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.109 2010/03/04 21:33:01 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -596,7 +596,7 @@ bool initialize_GL()
 	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
 	FW_GL_SHADEMODEL(GL_SMOOTH);
 	FW_GL_DEPTHFUNC(GL_LEQUAL);
-	FW_GL_DEPTHFUNC(GL_LESS);
+	//FW_GL_DEPTHFUNC(GL_LESS);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
 	FW_GL_LINEWIDTH(gl_linewidth);
 	FW_GL_POINTSIZE(gl_linewidth);
