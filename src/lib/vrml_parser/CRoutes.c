@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.59 2010/03/03 15:59:07 crc_canada Exp $
+$Id: CRoutes.c,v 1.60 2010/03/04 20:52:30 crc_canada Exp $
 
 ???
 
@@ -1542,7 +1542,6 @@ void propagate_events() {
 							#ifdef CRVERBOSE
 							printf ("in croutes, mmc len is %d\n",CRoutes[counter].len);
 							#endif
-							printf ("in croutes, mmc len is %d\n",CRoutes[counter].len);
 
 							Multimemcpy (
 								X3D_NODE(to_ptr->routeToNode),
@@ -1855,7 +1854,6 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 	#ifdef CRVERBOSE 
 		printf ("Multimemcpy, fromcount %d tocount %d fromptr %p toptr %p\n",fromcount,tocount,fromptr,toptr); 
 	#endif
-		printf ("Multimemcpy, fromcount %d tocount %d fromptr %p toptr %p\n",fromcount,tocount,fromptr,toptr); 
 
 	/* and do the copy of the data */
 	memcpy (toptr,fromptr,structlen * fromcount);
@@ -1888,8 +1886,6 @@ static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, voi
 			}
 		}
 	}
-
-	printf ("done Multimemcpy!\n");
 }
 
 /* this script value has been looked at, set the touched flag in it to FALSE. */

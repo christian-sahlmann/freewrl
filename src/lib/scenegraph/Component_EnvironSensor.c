@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.9 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Component_EnvironSensor.c,v 1.10 2010/03/04 20:52:30 crc_canada Exp $
 
 X3D Environmental Sensors Component
 
@@ -49,7 +49,7 @@ X3D Environmental Sensors Component
 /* can we do a VisibiltySensor? Only if we have OpenGL support for OcclusionCulling */
 int candoVisibility = TRUE;
 
-void rendVisibilityBox (struct X3D_VisibilitySensor *node);
+static void rendVisibilityBox (struct X3D_VisibilitySensor *node);
 
 PROXIMITYSENSOR(ProximitySensor,center,,);
 
@@ -75,7 +75,7 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 
 		RECORD_DISTANCE
 
-		if (render_blend == VF_Blend) { 
+		if (render_blend) { 
                         #ifdef VISIBILITYOCCLUSION
 
 			BEGINOCCLUSIONQUERY
@@ -93,7 +93,7 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 
 }
 
-void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
+static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	float *pt;
 	float x = ((node->size).c[0])/2;
@@ -109,6 +109,9 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	/* for BoundingBox calculations */
 	setExtent(cx+x, cx-x, cx+y, cx-y, cx+z, cx-z,X3D_NODE(node));
 
+
+	/* printf ("VISIBILITY BOXc vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
 	if NODE_NEEDS_COMPILING {
 		/*  have to regen the shape*/
@@ -140,8 +143,9 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 		*pt++ = cx-x; *pt++ = cy+y; *pt++ = cz-z; *pt++ = cx-x; *pt++ = cy-y; *pt++ = cz-z;
 	}
 
+	FW_GL_DEPTHMASK(FALSE);
 	/* note the ALPHA of zero - totally transparent */
-	glColor4f((float)0.0, (float)1.0, (float)0.0, (float)0.0);
+	glColor4f(0.0f, 1.0f, 0.0f, 0.0f);
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
@@ -149,6 +153,7 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	FW_GL_DRAWARRAYS (GL_QUADS, 0, 24);
+	FW_GL_DEPTHMASK(TRUE);
 }
 
 

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.107 2010/03/03 19:50:22 crc_canada Exp $
+  $Id: MainLoop.c,v 1.108 2010/03/04 20:52:30 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -314,7 +314,7 @@ void EventLoop() {
                 /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
                 /* ConsoleMessage("fps %f tris %d\n",BrowserFPS,trisThisLoop);   */
 
-		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane); */
+		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane);  */
 
                 BrowserStartTime = TickTime;
                 loop_count = 1;
@@ -776,6 +776,7 @@ void setup_projection(int pick, int x, int y)
         /* bounds check */
         if ((fieldofview <= 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
         /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
+
         FW_GLU_PERSPECTIVE(fieldofview, aspect2, nearPlane, farPlane); 
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW);

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.107 2010/03/03 19:50:25 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.108 2010/03/04 20:52:30 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -595,6 +595,7 @@ bool initialize_GL()
         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
 	FW_GL_SHADEMODEL(GL_SMOOTH);
+	FW_GL_DEPTHFUNC(GL_LEQUAL);
 	FW_GL_DEPTHFUNC(GL_LESS);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
 	FW_GL_LINEWIDTH(gl_linewidth);
@@ -611,13 +612,18 @@ bool initialize_GL()
 
 	FW_GL_ENABLE(GL_BLEND);
 	FW_GL_BLENDFUNC(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	//FW_GL_BLENDFUNC(GL_ONE, GL_ONE); wierd colours
+	//FW_GL_BLENDFUNC(GL_SRC, GL_ONE_MINUS_SRC);
 
-	FW_GL_ENABLE(GL_ALPHA_TEST);
-	FW_GL_ALPHAFUNC(GL_GREATER, 0); 
+	//if this is enabled, VisibilitySensors must have an alpha of greater than 0.0
+	//FW_GL_ENABLE(GL_ALPHA_TEST);
+	//FW_GL_ALPHAFUNC(GL_GREATER, 0); 
 
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
 
-	/* end of ALPHA test */
+	FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+
+
 	FW_GL_ENABLE(GL_NORMALIZE);
 
 	/* for textured appearance add specular highlights as a separate secondary color
@@ -1546,7 +1552,11 @@ void startOfLoopNodeUpdates(void) {
 					}
 					X3D_VISIBILITYSENSOR(node)->__occludeCheckCount--;
 					/* VisibilitySensors have a transparent bounding box we have to render */
+
                 			update_renderFlag(node,VF_Blend);
+                			//update_renderFlag(node,VF_Sensitive);
+					//HaveSensitive=TRUE;
+
 				END_NODE
 
 				/* ProximitySensor needs its own flag sent up the chain */

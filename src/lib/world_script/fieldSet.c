@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.38 2010/03/01 22:39:49 crc_canada Exp $
+  $Id: fieldSet.c,v 1.39 2010/03/04 20:52:30 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -690,7 +690,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 		strcat (mychar,"_changed");
 		retval = findFieldInARR(mychar, arr, cnt);
 	}
-	printf ("findRoutedField, mychar %s retval %d\n",mychar,retval);
+	/* printf ("findRoutedField, mychar %s retval %d\n",mychar,retval); */
 	FIELDCHECK (mychar)
 
 

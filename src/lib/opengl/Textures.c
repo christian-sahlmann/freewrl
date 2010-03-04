@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.48 2010/02/28 17:22:55 crc_canada Exp $
+  $Id: Textures.c,v 1.49 2010/03/04 20:52:30 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -152,6 +152,8 @@ int isTextureAlpha(int texno) {
 
 	/* no, have not even started looking at this */
 	/* if (texno == 0) return FALSE; */
+
+//printf ("isTexal, returning FASLE\n"); return FALSE;
 
 	ti = getTableIndex(texno);
 	if (ti->status==TEX_LOADED) {
@@ -1123,6 +1125,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			/* set the texture depth - required for Material diffuseColor selection */
 			if (myTableIndex->hasAlpha) last_texture_type =  TEXTURE_ALPHA;
 			else last_texture_type = TEXTURE_NO_ALPHA;
+//printf ("last_texture_type = TEXTURE_NO_ALPHA now\n"); last_texture_type=TEXTURE_NO_ALPHA;
 	
 			/* if, we have RGB, or RGBA, X3D Spec 17.2.2.3 says ODrgb = IDrgb, ie, the diffuseColor is
 			   ignored. We do this here, because when we do the Material node, we do not know what the

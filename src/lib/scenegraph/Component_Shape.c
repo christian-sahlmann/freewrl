@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.35 2010/03/03 19:50:26 crc_canada Exp $
+$Id: Component_Shape.c,v 1.36 2010/03/04 20:52:30 crc_canada Exp $
 
 X3D Shape Component
 
@@ -433,6 +433,11 @@ void child_Shape (struct X3D_Shape *node) {
 		render_node(tmpN);
 		return;
 	}
+
+	/*
+	if we want to see the bounding box of this shape:
+	drawBBOX(X3D_NODE(node));
+	*/
 
 	/* set up Appearance Properties here */
 	this_textureTransform = NULL;
