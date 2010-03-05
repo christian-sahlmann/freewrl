@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.109 2010/03/04 21:33:01 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.110 2010/03/05 16:16:55 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -446,9 +446,12 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	cnp = cnp/2.0;
 	if (cnp<DEFAULT_NEARPLANE) cnp = DEFAULT_NEARPLANE;
 
-	/* we could (probably should) keep the farPlane at 1.0 and above, but because of an Examine mode 
-	   rotation problem, we will just keep it at 2100 for now. */
 	if (cfp<1.0) cfp = 1.0;	
+	/* if we are moving, or if we have something with zero depth, floating point calculation errors could
+	   give us a geometry that is at (or, over) the far plane. Eg, tests/49.wrl, where we have Text nodes,
+	   can give us this issue; so lets give us a bit of leeway here, too */
+	cfp *= 1.25;
+
 
 	#ifdef VERBOSE
 	printf ("cnp %lf cfp before leaving room for Background %lf\n",cnp,cfp);
