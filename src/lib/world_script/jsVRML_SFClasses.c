@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.21 2010/02/16 21:21:47 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.22 2010/03/05 17:49:08 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -811,7 +811,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			return JS_FALSE;
 		} else {
 			if (!JS_GetProperty(cx, (JSObject *)argv[3], "length", &mv)) {
-				printf( "JS_GetProperty failed for MFInt32 length in SFNodeConstr\n");
+				printf( "JS_GetProperty failed for MFInt32 length in SFImageConstr\n");
 	        		return JS_FALSE;
 			}
 	        	if (expectedSize != JSVAL_TO_INT(mv)) {
@@ -850,6 +850,7 @@ SFImageSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 }
 
 /**********************************************************************************/
+
 
 /* returns a string rep of the pointer to the node in memory */
 JSBool
@@ -1124,8 +1125,22 @@ SFNodeFinalize(JSContext *cx, JSObject *obj)
 	#endif
 
 	REMOVE_ROOT(cx,obj)
+
+	/*so, it appears that recent (2010) versions ofJavascript will give the following error when
+	  the interpreter is shutdown. It appears that sending in the url will cause a SFNode to
+	  be created, even though the normal constructor is not called, eg:
+
+	DEF t Script {
+		url "vrmlscript:
+        		function eventsProcessed () {}
+		"
+	}
+	
+	will cause the following JS_GetPrivate to fail. */
+
+
 	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFNodeFinalize.\n");
+		/* see above printf( "JS_GetPrivate failed in SFNodeFinalize.\n"); */
 		return;
 	} else {
                 FREE_IF_NZ (ptr->X3DString);
