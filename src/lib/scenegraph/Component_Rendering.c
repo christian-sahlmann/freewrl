@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.15 2010/02/27 21:02:25 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.16 2010/03/08 19:26:25 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -40,6 +40,7 @@ X3D Rendering Component
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
+#include "Component_Shape.h"
 
 /* find a bounding box that fits the coord structure. save it in the common-node area for extents.*/
 static void findExtentInCoord (struct X3D_Node *node, int count, struct SFColor* coord) {
@@ -391,6 +392,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 	/* believe it or not - material emissiveColor can affect us... */
 	DEFAULT_COLOUR_POINTER
 
+
         COMPILE_IF_REQUIRED
 
         setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, node->EXTENT_MAX_Y,
@@ -400,7 +402,6 @@ void render_PointSet (struct X3D_PointSet *node) {
 
 	/* is there an emissiveColor here??? */
 	GET_COLOUR_POINTER
-
 
 	if (node->coord) {
 		struct Multi_Vec3f *dtmp;

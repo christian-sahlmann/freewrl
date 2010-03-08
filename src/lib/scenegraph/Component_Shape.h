@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.h,v 1.5 2010/02/27 21:02:25 crc_canada Exp $
+$Id: Component_Shape.h,v 1.6 2010/03/08 19:26:25 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -32,7 +32,8 @@ Proximity sensor macro.
 #define __FREEWRL_SCENEGRAPH_SHAPE_H__
 
 struct matpropstruct {
-	float transparency;
+	float	transparency;
+	GLfloat	emissionColour[3];
 };
 
 extern struct matpropstruct appearanceProperties;

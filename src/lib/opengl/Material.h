@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.h,v 1.4 2010/02/27 21:02:25 crc_canada Exp $
+$Id: Material.h,v 1.5 2010/03/08 19:26:25 crc_canada Exp $
 
 Global includes.
 
@@ -38,7 +38,7 @@ Global includes.
 #define GET_COLOUR_POINTER \
 		/* is there an emissiveColor here??? */ \
 		if (lightingOn) { \
-			thisColor = last_emission; \
+			thisColor = appearanceProperties.emissionColour; \
 		} else { \
 			thisColor = defColor; \
 		}

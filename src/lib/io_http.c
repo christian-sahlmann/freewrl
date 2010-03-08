@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.11 2010/02/17 14:31:08 crc_canada Exp $
+  $Id: io_http.c,v 1.12 2010/03/08 19:26:25 crc_canada Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -292,6 +292,12 @@ char* download_url(const char *url, const char *tmp)
  */
 
 static struct Vector *resStack = NULL;
+
+/* keep the last base resource around, for times when we are making nodes during runtime, eg
+   textures in Background nodes */
+
+static resource_item_t *lastBaseResource = NULL;
+
 void pushInputResource(resource_item_t *url) 
 {
 	DEBUG_MSG("pushInputResource current Resource is %s\n", url->parsed_request);
@@ -306,10 +312,16 @@ void pushInputResource(resource_item_t *url)
 
 void popInputResource() {
 	resource_item_t *cwu;
+
+	/* lets just keep this one around, to see if it is really the bottom of the stack */
+	cwu = stack_top(resource_item_t *, resStack);
+
+	/* pop the stack, and if we are at "nothing" keep the pointer to the last resource */
 	stack_pop((resource_item_t *), resStack);
 
 	if (stack_empty(resStack)) {
-		DEBUG_MSG ("popInputResource, stack now empty\n");
+		DEBUG_MSG ("popInputResource, stack now empty and we have saved the last resource\n");
+		lastBaseResource = cwu;
 	} else {
 		cwu = stack_top(resource_item_t *, resStack);
 		DEBUG_MSG("popInputResource before pop, current Resource is %s\n", cwu->parsed_request);
@@ -325,6 +337,18 @@ resource_item_t *getInputResource()
 		DEBUG_MSG("getInputResource, stack NULL\n");
 		return NULL;
 	}
+
+	/* maybe we are running, and are, say, making up background textures at runtime? */
+	if (stack_empty(resStack)) {
+		if (lastBaseResource == NULL) {
+			ConsoleMessage ("stacking error - looking for input resource, but it is null");
+		} else {
+			DEBUG_MSG("so, returning %s\n",lastBaseResource->parsed_request);
+		}
+		return lastBaseResource;
+	}
+
+
 	cwu = stack_top(resource_item_t *, resStack);
 	DEBUG_MSG("getInputResource current Resource is %u %x %s\n", cwu,cwu,cwu->parsed_request);
 	return stack_top(resource_item_t *, resStack);

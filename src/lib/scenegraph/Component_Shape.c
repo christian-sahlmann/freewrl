@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.36 2010/03/04 20:52:30 crc_canada Exp $
+$Id: Component_Shape.c,v 1.37 2010/03/08 19:26:25 crc_canada Exp $
 
 X3D Shape Component
 
@@ -516,6 +516,9 @@ void child_Shape (struct X3D_Shape *node) {
 				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_SPECULAR, material_oneSided->_scol.c);
 				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_EMISSION, material_oneSided->_ecol.c);
 				FW_GL_MATERIALF(GL_FRONT_AND_BACK, GL_SHININESS,material_oneSided->_shin);
+
+				/* copy the emissive colour over for lines and points */
+				memcpy(appearanceProperties.emissionColour,material_oneSided->_ecol.c, 3*sizeof(float));
 			} else if (material_twoSided != NULL) {
 				GLenum whichFace;
 				float trans;
@@ -530,6 +533,13 @@ void child_Shape (struct X3D_Shape *node) {
 					whichFace=GL_FRONT_AND_BACK;
 				}
 				DO_MAT(material_twoSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
+
+
+				/* Material twosided - emissiveColour for points, lines, etc - lets just set this up; we should remove
+				   the DO_MAT calls above and do a compile-time verification of colours. */
+				appearanceProperties.emissionColour[0] = 0.8;
+				appearanceProperties.emissionColour[1] = 0.8;
+				appearanceProperties.emissionColour[2] = 0.8;
 			} else {
 	
 				if (tryingOcclusionDrawing) {

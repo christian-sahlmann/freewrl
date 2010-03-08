@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.15 2010/03/03 19:50:25 crc_canada Exp $
+$Id: Material.c,v 1.16 2010/03/08 19:26:25 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -46,8 +46,6 @@ GLfloat default_ambient[]  = {0.2f,0.2f,0.2f,1.0f};
 GLfloat default_specular[] = {0.0f,0.0f,0.0f,1.0f};
 GLfloat default_emission[] = {0.0f,0.0f,0.0f,1.0f};
 
-GLfloat last_emission[4];
-
 /* bounds check and do the shininess calculations */
 void do_shininess (GLenum face, float shininess) {
 	/* which should it be? From the spec:
@@ -72,10 +70,6 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 	int i;
 
 	/* for IndexedLineSet, etc, we keep the last emissiveColor around */
-	if (pname == GL_EMISSION)
-		for (i=0; i<4; i++) {
-			last_emission[i] = param[i];
-		}
 	FW_GL_MATERIALFV(face,pname,param);
 }
 
