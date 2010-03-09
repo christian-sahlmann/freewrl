@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.39 2010/03/04 20:52:30 crc_canada Exp $
+  $Id: fieldSet.c,v 1.40 2010/03/09 15:59:54 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -543,9 +543,27 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFInt32); break;}
 		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFTime); break;}
 		case FIELDTYPE_MFNode: {
+				struct X3D_Node *mynode;
+
 				strval = JS_ValueToString(scriptContext, JSglobal_return_val);
 	        		strp = JS_GetStringBytes(strval);
-				getMFNodetype (X3D_NODE(strp),(struct Multi_Node *)memptr,X3D_NODE(tn),extraData); break;
+				
+				/* we will have at least one node here, in an ascii string */
+				while ((*strp > '\0') && (*strp <= ' ')) strp ++;
+				/* are we at a bracket? */
+				if (*strp == '[') strp ++;
+				while ((*strp > '\0') && (*strp <= ' ')) strp ++;
+
+				/* printf ("convertingthe following string to a pointer :%s:\n",strp); */
+
+				mynode = X3D_NODE(atol(strp));
+
+				/* printf ("mynode is %p %d, \n",mynode,mynode);
+				printf ("mynode is %p %d, type %d\n",mynode,mynode,mynode->_nodeType);
+				printf ("calling getMFNodeType now\n"); */
+
+
+				getMFNodetype (mynode,(struct Multi_Node *)memptr,X3D_NODE(tn),extraData); break;
 		}
 		case FIELDTYPE_MFString: {
 			getMFStringtype (scriptContext, (jsval *)JSglobal_return_val,(struct Multi_String *)memptr);

@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.55 2010/02/28 17:22:55 crc_canada Exp $
+  $Id: ProdCon.c,v 1.56 2010/03/09 15:59:54 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -257,6 +257,9 @@ void EAI_killBindables (void) {
 int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *where)
 {
 	resource_item_t *res;
+	char *newString;
+
+	newString = NULL;
 
 	if (strncmp(tp, "URL", 3) == 0) {
 
@@ -267,7 +270,19 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 
 	} else { // all other cases are inline code to parse... let the parser do the job ;P...
 
-		res = resource_create_from_string(inputstring);
+		char *sendIn;
+
+		if (strncmp(inputstring,"#VRML V2.0", 6) == 0) {
+			sendIn = inputstring;
+		} else {
+			newString = MALLOC (strlen(inputstring) + strlen ("#VRML V2.0 utf8\n") + 3);
+			strcpy (newString,"#VRML V2.0 utf8\n");
+			strcat (newString,inputstring);
+			sendIn = newString;
+			/* printf ("EAI_Create, had to append, now :%s:\n",newString); */
+		}
+
+		res = resource_create_from_string(sendIn);
 		res->media_type=resm_vrml;
 		res->parsed_request = EAI_Flag;
 		res->where = where;
@@ -276,6 +291,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 
 	send_resource_to_parser(res);
 	resource_wait(res);
+	FREE_IF_NZ(newString);
 	return (res->status == ress_parsed);
 }
 

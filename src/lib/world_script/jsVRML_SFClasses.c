@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.22 2010/03/05 17:49:08 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.23 2010/03/09 15:59:55 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -869,16 +869,34 @@ SFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 	}
 
 	/* get the string from creation, and return it. */
-#ifdef WANTVRMLSTRING
-	_str = JS_NewStringCopyZ(cx, ptr->X3DString);
-	*rval = STRING_TO_JSVAL(_str);
-#else
+
+	/* used to do: 
 	*rval = INT_TO_JSVAL(ptr->handle);
 	
-#endif
+	but we have 64 bit pointers in OSX now, and ints are 32 bits. so...
+	we convert to a double, and hope that it is still correct (seems to be ok
+	32 and 64 bits - tests/46.wrl will use this path, btw */
+
+	{
+		jsdouble nv;
+		char tmpline[100];
+		sprintf (tmpline,"%ld",ptr->handle);
+
+		/* printf ("pointer to long int :%s:\n",tmpline); */
+
+		nv = strtod(tmpline,NULL);
+		/* printf ("double is %lf\n",nv); */
+
+		/* printf ("nv %lf, handle %lu and %p\n",nv,ptr->handle,ptr->handle); */
+		if (!JS_NewNumberValue(cx, nv, rval)) {
+			ConsoleMessage ("Conversion issue in SFNodeToString");
+		}
+	}
+	
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("SFNodeToString, handle %u ",ptr->handle);
+	printf ("SFNodeToString, handle %p ",ptr->handle);
+	printf ("SFNodeToString, handle as unsignned  %u ",ptr->handle);
 	if (ptr->handle != NULL) {
 		printf (" (%s) ", stringNodeType (((struct X3D_Node *)ptr->handle)->_nodeType));
 	}
@@ -1042,20 +1060,22 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 			_idStr = JS_ValueToString(cx, argv[0]);
 			_id_c = JS_GetStringBytes(_idStr);
+			/* printf ("first string :%s:\n",_id_c); */
+
 			cString = STRDUP(_id_c);
 
 			_idStr = JS_ValueToString(cx, argv[1]);
 			_id_c = JS_GetStringBytes(_idStr);
+			/* printf ("second string :%s:\n",_id_c); */
 
-/*
-			if (sscanf (_id_c,"%d",&newHandle) != 1) {
+			if (sscanf (_id_c,"%p",&newHandle) != 1) {
 				printf ("SFNodeConstr - can not get handle from %s\n",_id_c);
 				return JS_FALSE;
 			}
-*/			newHandle = (struct X3D_Node *) JSVAL_TO_GCTHING(argv[1]);
+/* 			nope, need to do this as a pointer string.. newHandle = (struct X3D_Node *) JSVAL_TO_GCTHING(argv[1]); */
 
 			#ifdef JSVRMLCLASSESVERBOSE
-			printf ("string is :%s: new handle is %d\n",cString,newHandle);
+			printf ("string is :%s: new handle is %p\n",cString,newHandle);
 			#endif
 
 		} else {

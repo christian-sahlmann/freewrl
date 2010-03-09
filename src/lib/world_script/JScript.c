@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.22 2010/03/01 22:39:49 crc_canada Exp $
+$Id: JScript.c,v 1.23 2010/03/09 15:59:54 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -651,7 +651,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 
 	int tlen;
 	float *FloatPtr;
-	struct X3D_Node *VoidPtr;
+	struct X3D_Node **VoidPtr;
 	int *IntPtr;
 	double *DoublePtr;
 	struct Uni_String **SVPtr;
@@ -660,6 +660,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 	int defaultInt[] = {0,0,0,0};
 	double defaultDouble[] = {0.0, 0.0, 0.0, 0.0};
 	struct Uni_String *sptr[1];
+	struct X3D_Node *defaultVoid[] = {NULL,NULL};
 
 	#ifdef JAVASCRIPTVERBOSE
 	printf ("calling InitScriptField from thread %u\n",pthread_self());
@@ -747,10 +748,10 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 			if (kind == PKW_initializeOnly) {
 				switch (type) {
 					case FIELDTYPE_SFImage:
-						VoidPtr = (struct X3D_Node *) (&(value.sfimage)); elements = 1;
+						VoidPtr = (struct X3D_Node **) (&(value.sfimage)); elements = 1;
 						break;
 					case FIELDTYPE_SFNode:
-						VoidPtr = (struct X3D_Node *) (&(value.sfnode)); elements = 1;
+						VoidPtr = (struct X3D_Node **) (&(value.sfnode)); elements = 1;
 						break;
 					case FIELDTYPE_MFColor:
 						FloatPtr = (float *) value.mfcolor.p; elements = value.mfcolor.n;
@@ -798,7 +799,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 						IntPtr = value.mfint32.p; elements = value.mfint32.n;
 						break;
 					case FIELDTYPE_MFNode:
-						VoidPtr = (struct X3D_Node *)(value.mfnode.p); elements = value.mfnode.n;
+						VoidPtr = (struct X3D_Node **)(value.mfnode.p); elements = value.mfnode.n;
 						break;
 					case FIELDTYPE_MFFloat: 
 						FloatPtr = value.mffloat.p; elements = value.mffloat.n;
@@ -823,6 +824,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 					/* Void types */
 					case FIELDTYPE_SFNode:
 					case FIELDTYPE_MFNode:
+						VoidPtr = (struct X3D_Node **) &defaultVoid;
 						break;
 
 					/* Float types */
@@ -927,7 +929,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 						sptr[0] = *SVPtr; SVPtr++;
 						sprintf (thisValue,"\"%s\"",sptr[0]->strptr);
 					} else { /* must be a Void */
-						sprintf (thisValue,"%p", (*VoidPtr)); VoidPtr++;
+						sprintf (thisValue,"%p", VoidPtr[0]); VoidPtr++;
 					}
 					strcat (smallfield, thisValue);
 					if (rowCount < (rows-1)) strcat (smallfield,",");
@@ -937,6 +939,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 				if (eleCount < (elements-1)) strcat (smallfield,",");
 
 			}
+
 
 			if (haveMulti) {
 				strcat (smallfield,")");
