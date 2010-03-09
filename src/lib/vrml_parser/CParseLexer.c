@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.37 2010/03/03 21:12:47 sdumoulin Exp $
+$Id: CParseLexer.c,v 1.38 2010/03/09 22:44:23 dug9 Exp $
 
 ???
 
@@ -1351,6 +1351,8 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         struct Multi_String url;
         char *buffer;
         char *testname;
+		char *pound;
+
 	resource_item_t *res;
 
         testname = (char *)MALLOC (1000);
@@ -1403,7 +1405,6 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 	res = resource_create_multi(&url);
 	resource_identify(root_res, res);
 
-	char *pound;
 	if (res->type != rest_invalid) {
 		if (resource_fetch(res)) {
  			pound = strchr(res->request, '#'); 
