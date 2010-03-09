@@ -1,85 +1,22 @@
 Priority list
 
+For 1.22.8 release:
+Javascript - verify that SFNode params work - eg, setting node.loop=false when node is a USE'd TimeSensor. (ref: gerwinKramer)
+
+
 ============================================================================
 For 1.22.7 release:
 
 General - material and textures, material {} ImageTexture {url "wrew"} will currently not display correctly  - see can.wrl
 
 OSX plugin:
-- init and end properly.
 - url getting
-- mouse,keyboard
-- more than one window at a time
 - embed tag testing
 - object tag testing
-- universal binary.
-
-
-1) ProdCon threading - Mutex lock so that it does not loop continuously.
-	DONE
-2) Imlib2 on OSX - decision as to whether it will be distributed with FreeWRL or not.
-	DONE
-3) Imlib2 on Windows - decision as to whether it will be distributed with FreeWRL or not. 
-	DONE (Doug Sanden)
-4) FreeWRL OSX front end - move Objective-C calls to use newer interface routines.
-	DONE
-5) FreeWRL Windows front end - move to use newer interface routines.
-	In progress - Doug Sanden
-6) Texture threading - Mutex lock so that it does not loop continuously.
-	DONE
-7) generate "blank" texture, and use this until TEX_LOADED flag is set
-	DONE
-
-8) Verify the following nodes for proper URL handling:
-
-	Anchor
-		No action (url = blank) 	DONE
-		go to Viewpoint			DONE (checked both XML and classic encodings)
-		invoke external app (eg, open an html page)	
-			- Standalone OSX	DONE
-			- within Plugin OSX	
-		
-		load a new X3D file
-			- Standalone OSX	DONE
-			- within Plugin OSX
-
-
-	Inline			DONE
-	AudioClip		DONE (needs re-implementing, so current code commented out)
-	ImageTexture		DONE
-	MovieTexture		DONE (needs re-implementing, so current code commented out)
-	PixelTexture		DONE
-	ImageCubeMapTexture
-	Background		DONE
-	TextureBackground	DONE
-	GeoLOD
-	GeoMetaData
-	Script			DONE
-	PackagedShader		DONE
-	ShaderPart		DONE
-	ShaderProgram		DONE
-	VRML1_Texture2		DONE
-
-9) OSX Safari Plugin
-
-10) generate an "intro" x3d image for OSX, for when FreeWRL is started with nothing on command line
-	"/Applications/FreeWRL/blankScreen.wrl" DONE
-
-11) Texture loading; test direct local url, relative local url, http url, file url, etc.
-	local url (eg, url "tests/fff.png")  DONE
-	file url (eg, url "file:///Applications/FreeWRL/fff.png") DONE
-	direct local url (eg, "/Users/john/tests/fff.png") DONE
-	http url (eg, "http://freewrl.sourceforge.net/images/vrmllogo2.0.gif") calls curl; check with proxy server settings correct
 
 12) MultiURL loading - note that, at least for Inlines, only the first url is checked; the rest are not used.
 
-13) OSX standalone frontEnd - changes to code
-	was DONE - Sarah doing more work on it.
-
-
 14) Garbage collection - freeing node resources and associated textures needs verification.
-
-15) resource_identify - verify that parentUrl could be set to non-null. DONE
 
 16) Luis Daiz Mas; add case 'x': {Snapshot(); break;} for single snaps on all platforms.
 
@@ -89,10 +26,6 @@ OSX plugin:
 
 20) Can we fit in any EAI code fixes?
 	Working on Russ Kinter and some of his tests.
-
-
-21) Some alpha textures are not sorted properly - can we fix?
-	- DONE - sort on nearest bounding box vertex now; also re-work alpha blending modes.
 
 22) OpenGL-ES porting:
 	- more shaders for material selections;
@@ -106,9 +39,6 @@ OSX plugin:
     src/lib/InputFunctions.c Have it return TRUE/FALSE depending on success.
 
 ============================================================================
-
-December 22 2009: have code for TextureProperties Node, but verify fields are used properly.
-	DONE.
 
 11/16/2009:
 	(JAS) via Marvin Simkin:
