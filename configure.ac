@@ -350,88 +350,92 @@ case "$TARGET" in
 esac
 
 # Glew
-GLEW_CFLAGS=""
-GLEW_LIBS="-lGLEW"
-AC_ARG_WITH(glew,AS_HELP_STRING([--with-glew=<dir>],[Use glew from here]),[
-                glew=$withval
-                GLEW_CFLAGS="-I$withval/include"
-                GLEW_LIBS="-L$withval/lib -lGLEW"])
+AC_ARG_WITH([glew],AS_HELP_STRING([--with-glew=<dir>],[Use glew from here]),[],[with_glew=check])
 
-case "$glew" in
+case "$with_glew" in
      no) # Do not use GLEW
-     	 AC_MSG_NOTICE([glew disabled.])
-     	 ;;
+	AC_MSG_NOTICE([glew disabled.])
+	;;
      *)  # Search for GLEW
+	if test "x$with_glew" = xcheck; then
+		# do nothing, glew must be found in the regular path
+		GLEW_CFLAGS=""
+		GLEW_LIBS="-lGLEW"
+	else
+	if test "x$with_glew" = xyes; then
+		# do nothing, glew must be found in the regular path
+		GLEW_CFLAGS=""
+		GLEW_LIBS="-lGLEW"
+	else
+		# assign the path specified via --with-glew
+                GLEW_CFLAGS="-I$with_glew/include"
+                GLEW_LIBS="-L$with_glew/lib -lGLEW"
+	fi; fi
 
-  # save global cflags/libs
-  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS
-  # set cflags/libs for this case
-  CPPFLAGS="$CPPFLAGS $GLEW_CFLAGS $GL_CFLAGS"
-  LDFLAGS="$LDFLAGS $GLEW_LIBS $GL_LIBS"
+	# save global cflags/libs
+	oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS;oLIBS=$LIBS
+	# set cflags/libs for this case
+	CPPFLAGS="$CPPFLAGS $GLEW_CFLAGS $GL_CFLAGS"
+	LDFLAGS="$LDFLAGS $GLEW_LIBS $GL_LIBS"
+	AC_CHECK_HEADERS([GL/glew.h], [
+		AC_DEFINE([HAVE_GLEW_H], [], [We have the glew library.])
+		AC_CHECK_LIB([GLEW], [glewInit], [],
+     	  		[AC_MSG_ERROR([glew headers found but glew library not found. Please correct this.])])
+		],[AC_MSG_RESULT([glew not found. FreeWRL will not use it.])])
 
-glew_found=
-AC_CHECK_HEADERS([GL/glew.h], [glew_found=yes;AC_DEFINE([HAVE_GLEW_H], [], [We have the glew library.])],
-     [AC_MSG_RESULT([glew not found. FreeWRL will not use it.])])
-
-case "$glew_found" in
-     yes) AC_CHECK_LIB(GLEW, glewInit, [],
-     	  [AC_MSG_ERROR([glew headers found but glew library not found. Please correct this.])])
-esac
-
-  # restore global cflags/libs
-  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS
-
-AC_SUBST(GLEW_CFLAGS)
-AC_SUBST(GLEW_LIBS)
-
+	# restore global cflags/libs
+	CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS;LIBS=$oLIBS
+	AC_SUBST(GLEW_CFLAGS)
+	AC_SUBST(GLEW_LIBS)
 	;;
 esac
 
-# workaround LIBS appended with -lz, how to prevent this ???
-LIBS=
-
 # JPEG
-AC_ARG_WITH(jpeg,AS_HELP_STRING([--with-jpeg=<dir>],[Use jpeg from here]),[
-                jpeg=$withval
-                JPEG_CFLAGS="-I$withval/include"
-                JPEG_LIBS="-L$withval/lib -ljpeg"])
+AC_ARG_WITH(jpeg,AS_HELP_STRING([--with-jpeg=<dir>],[Use jpeg from here]),[],[with_jpeg=check])
+case "$with_jpeg" in
+    no)
+	AC_MSG_ERROR([libjpeg is a required dependency])
+	;;
+    yes|check)
+	JPEG_CFLAGS=""
+	JPEG_LIBS="-ljpeg"
+	;;
+    *)
+	JPEG_CFLAGS="-I$with_jpeg/include"
+	JPEG_LIBS="-L$with_jpeg/lib -ljpeg"
+	;;
+esac
+# save global cflags/libs
+oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS;oLIBS=$LIBS
+# set cflags/libs for this case
+CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
+LDFLAGS="$LDFLAGS $JPEG_LIBS"
 
-  # save global cflags/libs
-  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS
-  # set cflags/libs for this case
-  CPPFLAGS="$CPPFLAGS $JPEG_CFLAGS"
-  LDFLAGS="$LDFLAGS $JPEG_LIBS"
-
-AC_CHECK_HEADERS(jpeglib.h, [AC_DEFINE(HAVE_JPEGLIB_H)],
+AC_CHECK_HEADERS([jpeglib.h], [AC_DEFINE(HAVE_JPEGLIB_H)],[
      # workaround failed test under mingw
-     AC_TRY_CPP(
-[#include <stdio.h>
+     AC_TRY_CPP([
+#include <stdio.h>
 #undef PACKAGE
 #undef VERSION
-#include <jpeglib.h>],
-	jpeg_ok=yes,
-	jpeg_ok=no)
-      AC_MSG_RESULT($jpeg_ok)
-     )
-AC_CHECK_LIB([jpeg],[jpeg_start_decompress],[],
+#include <jpeglib.h>],[jpeg_ok=yes],[jpeg_ok=no])
+     AC_MSG_RESULT([$jpeg_ok])
+     if test x$jpeg_ok = xno; then
+	AC_MSG_ERROR([libjpeg headers are required])
+     fi])
+AC_CHECK_LIB([jpeg],[jpeg_start_decompress],[],[
      # workaround failed test under mingw
-     AC_TRY_LINK(
-[#include <stdio.h>
+     AC_TRY_LINK([
+#include <stdio.h>
 #include "jpeglib.h"], 
 		 [jpeg_read_raw_data(NULL, NULL, 0)], 
 		 [AC_MSG_RESULT(found)],
 		 [AC_MSG_RESULT(not found)
 		  AC_MSG_ERROR(Couldn't find jpeg stuff in ${withval})])
-     )
-
-  # restore global cflags/libs
-  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS
-
+     ])
+# restore global cflags/libs
+CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS;LIBS=$oLIBS
 AC_SUBST(JPEG_CFLAGS)
 AC_SUBST(JPEG_LIBS)
-
-# workaround LIBS appended with -lz, how to prevent this ???
-LIBS=
 
 # PNG
 PKG_CHECK_MODULES(PNG, libpng)

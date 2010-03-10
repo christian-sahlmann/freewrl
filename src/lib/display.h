@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.61 2010/03/10 15:55:51 istakenv Exp $
+  $Id: display.h,v 1.62 2010/03/10 17:42:51 istakenv Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -70,9 +70,12 @@ extern int ocurse;
 #if !defined (_MSC_VER) && !defined (TARGET_AQUA) /* not aqua and not win32, ie linux */
 #ifdef HAVE_GLEW_H
 #include <GL/glew.h>
-#endif
+#else
 #include <GL/gl.h>
+#include <GL/glu.h>
 #include <GL/glext.h>
+#include <GL/glx.h>
+#endif
 #endif
 
 /* Main initialization function */
