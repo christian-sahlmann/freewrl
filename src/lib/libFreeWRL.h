@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.17 2010/03/10 16:09:23 istakenv Exp $
+  $Id: libFreeWRL.h,v 1.18 2010/03/10 16:18:08 istakenv Exp $
 
   FreeWRL library API (public)
 
@@ -97,7 +97,7 @@ void setEyeDist(const char *optArg);
 void setAnaglyphParameter(const char *optArg);
 void setSideBySide(void);
 void setStereoBufferStyle(int);
-voud initStereoDefaults(void);
+void initStereoDefaults(void);
 
 void setLineWidth(float lwidth);
 void setSnapGif();
