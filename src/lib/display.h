@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.59 2010/02/23 18:39:45 crc_canada Exp $
+  $Id: display.h,v 1.60 2010/03/10 15:39:45 istakenv Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -55,7 +55,7 @@ extern int ocurse;
 #endif /* defined IPHONE */
 #endif /* defined TARGET_AQUA */
 
-#ifdef _MSC_VER //TARGET_WIN32
+#ifdef _MSC_VER /* TARGET_WIN32 */
 #ifndef AQUA
 
 /* Nothing special :P ... */
@@ -65,6 +65,15 @@ extern int ocurse;
 #define ERROR 0
 #endif
 #endif /* TARGET_WIN32 */
+
+
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA) /* not aqua and not win32, ie linux */
+#ifdef HAVE_GLEW_H
+#include <GL/glew.h>
+#endif
+#include <GL/gl.h>
+#include <GL/glext.h>
+#endif
 
 /* Main initialization function */
 int display_initialize();
@@ -414,7 +423,7 @@ void setScreenDim(int wi, int he);
 
 	#endif
 
-	#if defined (TARGET_X11)
+	#if defined (TARGET_X11) || defined (TARGET_MOTIF)
 		#define FW_GL_SWAPBUFFERS glXSwapBuffers(Xdpy,GLwin);
 	#endif
 
