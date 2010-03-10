@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.27 2010/02/27 21:02:27 crc_canada Exp $
+$Id: Viewer.h,v 1.28 2010/03/10 16:09:23 istakenv Exp $
 
 Viewer ???
 
@@ -188,6 +188,8 @@ typedef struct viewer {
 
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
 } X3D_Viewer;
+
+void initStereoDefaults(void);
 
 void viewer_postGLinit_init(void);
 
