@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.64 2010/03/01 22:39:49 crc_canada Exp $
+$Id: X3DParser.c,v 1.65 2010/03/10 04:20:40 dug9 Exp $
 
 ???
 
@@ -1415,6 +1415,7 @@ static void parseAttributes(void) {
 
 	thisNode = parentStack[parentIndex];
 	/* printf  ("parseAttributes..level %d for node type %s\n",parentIndex,stringNodeType(thisNode->_nodeType));  */
+	if(childAttributes[parentIndex])
 	for (ind=0; ind<vector_size(childAttributes[parentIndex]); ind++) {
 		nvp = vector_get(struct nameValuePairs*, childAttributes[parentIndex],ind);
 		/* printf ("	nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue);  */

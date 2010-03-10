@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.51 2010/03/01 22:39:49 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.52 2010/03/10 04:20:40 dug9 Exp $
 
 ???
 
@@ -164,7 +164,10 @@ static void registerProto(const char *name, const char *url) {
 	/* a Proto Expansion (NOT ExternProtoDeclare) will have a local file */
 	CPD.isExternProto = (url != NULL);
 
-	if (!CPD.isExternProto) CPD.fileName = TEMPNAM("/tmp","freewrl_proto"); else CPD.fileName=NULL;
+	if (!CPD.isExternProto) 
+		CPD.fileName = TEMPNAM("/tmp","freewrl_proto"); 
+	else 
+		CPD.fileName=NULL;
 	CPD.fileDescriptor = fopen(CPD.fileName,"w");
 	CPD.charLen =  0;
 	CPD.fileOpen = TRUE;
@@ -337,7 +340,7 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 				} \
 			} \
 			/* printf ("no match, have to create new entty and push it\n"); */ \
-			nvp = MALLOC(sizeof (struct nameValuePairs *)); \
+			nvp = MALLOC(sizeof (struct nameValuePairs)); \
 			nvp->fieldName=STRDUP(atts[nfInd+1]); \
 			nvp->fieldValue=STRDUP(value); \
 			vector_pushBack(struct nameValuePairs*,tos,nvp); \
@@ -467,7 +470,7 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 			CPI.value[i]);  */
 
 		/* printf ("... comparing %s and %s\n",CPI.name[i],atts[pfInd+1]); */
-		if (strcmp(CPI.name[i],atts[pfInd+1])==0) {
+		if (CPI.name[i] && strcmp(CPI.name[i],atts[pfInd+1])==0) {
 			/* printf ("parseConnect, have match, value is %s\n",CPI.value[i]); */
 			/* if there is no value here, just return, as some accessMethods do not have value */
 			if (CPI.value[i]==NULL) return;
@@ -1000,7 +1003,7 @@ void parseProtoInstance (const char **atts) {
 		fv = field->ASCIIvalue;   /* pointer to ProtoDef value - might be replaced in loop below */ \
 		for (i=0; i<CPI.paircount; i++) { \
 			/* printf ("CPI has %s and %s\n",CPI.name[i],CPI.value[i]); */ \
-			if (strcmp(CPI.name[i],fieldDecl_getShaderScriptName(field->fieldDecl))==0) {/* use the value passed in on invocation */ fv=CPI.value[i];} \
+			if (CPI.name[i] && strcmp(CPI.name[i],fieldDecl_getShaderScriptName(field->fieldDecl))==0) {/* use the value passed in on invocation */ fv=CPI.value[i];} \
 		} \
 		/* JAS if (field->fieldDecl->mode != PKW_initializeOnly) { */ \
 		if (fv != NULL) { \
