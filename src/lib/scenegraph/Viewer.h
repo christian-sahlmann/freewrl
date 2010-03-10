@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.28 2010/03/10 16:09:23 istakenv Exp $
+$Id: Viewer.h,v 1.29 2010/03/10 21:29:52 sdumoulin Exp $
 
 Viewer ???
 
@@ -278,6 +278,6 @@ void getCurrentPosInModel (int addInAntiPos);
 void toggle_collision(void);
 void viewer_lastP_clear();
 int getViewerType();
-void avatar2BoundViewpointVerticalAvatar(GLdouble *matA2BVVA, GLdouble *matBVVA2A);
+void avatar2BoundViewpointVerticalAvatar(GLDOUBLE *matA2BVVA, GLDOUBLE *matBVVA2A);
 
 #endif /* __FREEWRL_VIEWER_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.46 2010/02/24 23:13:40 dug9 Exp $
+$Id: Viewer.c,v 1.47 2010/03/10 21:29:52 sdumoulin Exp $
 
 CProto ???
 
@@ -311,7 +311,7 @@ double vecangle2(struct point_XYZ* V1, struct point_XYZ* V2, struct point_XYZ* r
 	vecnormal(rotaxis,&cross);
 	return angle;
 }
-void avatar2BoundViewpointVerticalAvatar(GLdouble *matA2BVVA, GLdouble *matBVVA2A)
+void avatar2BoundViewpointVerticalAvatar(GLDOUBLE *matA2BVVA, GLDOUBLE *matBVVA2A)
 {
 	/* goal: make 2 transform matrices to go back and forth from Avatar A to 
 	   Bound-Viewpoint-Vertical aligned Avatar-centric (no translations or scales - just 2 tilts) coordinates

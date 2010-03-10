@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.62 2010/03/10 17:42:51 istakenv Exp $
+  $Id: display.h,v 1.63 2010/03/10 21:29:52 sdumoulin Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -198,6 +198,7 @@ typedef enum shader_type {
 extern s_renderer_capabilities_t rdr_caps;
 
 #ifdef TARGET_AQUA
+#ifndef IPHONE
 extern CGLContextObj myglobalContext;
 
 
@@ -230,7 +231,7 @@ extern int PaneClipChanged;
 #endif
 
 #include "OpenGL/glu.h"
-
+#endif
 #endif /* defined TARGET_AQUA */
 
 /**
@@ -321,17 +322,7 @@ void getMotifWindowedGLwin(Window *win);
  */
 
 extern GLenum _global_gl_err;
-#ifdef IPHONE
-#define PRINT_GL_ERROR_IF_ANY(_where) if (global_print_opengl_errors) { \
-                                              GLenum _global_gl_err = glGetError(); \
-                                              while (_global_gl_err != GL_NO_ERROR) { \
-						printf ("OpenGL_ES 2.0 error %d (%s), at %s:%d\n",_global_gl_err, _where, __FILE__,__LINE__); \
-                                                _global_gl_err = glGetError(); \
-                                              } \
-                                           } 
-                                      
-#define GL_ERROR_MSG gluErrorString(glGetError())
-#else
+#ifndef IPHONE
 #define PRINT_GL_ERROR_IF_ANY(_where) if (global_print_opengl_errors) { \
                                               GLenum _global_gl_err = glGetError(); \
                                               while (_global_gl_err != GL_NO_ERROR) { \

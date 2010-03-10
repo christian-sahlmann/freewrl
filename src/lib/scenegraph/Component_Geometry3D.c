@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.21 2010/02/27 21:02:25 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.22 2010/03/10 21:29:52 sdumoulin Exp $
 
 X3D Geometry 3D Component
 
@@ -488,10 +488,10 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 	if(FallInfo.walking)
 	{
 		/* cylindrical / popcycle shaped avatar collision volume */
-		GLdouble awidth = naviinfo.width; /*avatar width*/
-		GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-		GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-		GLdouble astep = -naviinfo.height+naviinfo.step;
+		GLDOUBLE awidth = naviinfo.width; /*avatar width*/
+		GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+		GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+		GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 
 		/* the following 2 flags are checked a few levels down, in the triangle/quad intersect avatar code get_poly_disp_2(p, 3, nused) */
 		FallInfo.checkCylinder = 1; /* 1= shape MBB overlaps avatar collision MBB, else 0 */
@@ -502,7 +502,7 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 		   /* I'm getting false negatives - I'll be navigating along and this will start returning here
 			 - possibly why it quits colliding with the terrain and just floats through / falls through terrain mesh
 			 */
-			GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+			GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
 			struct point_XYZ t_orig = {0,0,0};
 			/* lets try and see if we are close - this gives false positives, but it does
 					weed out fairly distant objects */
@@ -520,7 +520,7 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 		if(FallInfo.fastTestMethod==1)
 		{
 		   /*  minimum bounding box MBB test in shape space */
-			GLdouble Collision2Shape[16];
+			GLDOUBLE Collision2Shape[16];
 			double foot = abottom;
 			if(FallInfo.allowClimbing) foot = astep; /* < popcycle shaped avatar collision volume. problem: stem and succulent part intersection are intersected together later so I can't return here if the succulent part is a miss - the stem might intersect */
 			matinverse(Collision2Shape,modelMatrix);
@@ -557,12 +557,12 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 	else
 	{
 		/* examine/fly spherical avatar collision volume */
-		GLdouble awidth = naviinfo.width; /*avatar width - used as avatar sphere radius*/
+		GLDOUBLE awidth = naviinfo.width; /*avatar width - used as avatar sphere radius*/
 		if(FallInfo.fastTestMethod==2 || FallInfo.fastTestMethod == 0)
 			if( !fast_sphere_MBB_intersect_collisionSpace(awidth, modelMatrix, prminvals, prmaxvals )) return 0;
 		if(FallInfo.fastTestMethod == 1 )
 		{
-			GLdouble Collision2Shape[16];
+			GLDOUBLE Collision2Shape[16];
 			matinverse(Collision2Shape,modelMatrix);
 			if( !fast_sphere_MBB_intersect_shapeSpace(awidth, Collision2Shape, prminvals, prmaxvals )) return 0;
 		}
@@ -578,7 +578,7 @@ int avatarCollisionVolumeIntersectMBBf(double *modelMatrix, float *minVals, floa
 {
 	/* converts pr.floats to doubles and re-delegates */
 	int i;
-	GLdouble prminvals[3],prmaxvals[3];
+	GLDOUBLE prminvals[3],prmaxvals[3];
 	for(i=0;i<3;i++)
 	{
 		prminvals[i] = minVals[i]; 
@@ -588,7 +588,7 @@ int avatarCollisionVolumeIntersectMBBf(double *modelMatrix, float *minVals, floa
 }
 
 void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
-	       GLdouble modelMatrix[16];
+	       GLDOUBLE modelMatrix[16];
 	       struct point_XYZ delta = {0,0,0};
 
 	       struct X3D_PolyRep pr;

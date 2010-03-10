@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.19 2010/03/08 19:26:25 crc_canada Exp $
+$Id: Component_Geometry2D.c,v 1.20 2010/03/10 21:29:52 sdumoulin Exp $
 
 X3D Geometry2D  Component
 
@@ -674,7 +674,7 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 
 		   {
 			   /*  minimum bounding box MBB test in avatar/collision space */
-				GLdouble shapeMBBmin[3], shapeMBBmax[3];
+				GLDOUBLE shapeMBBmin[3], shapeMBBmax[3];
 				int i;
 				for(i=0;i<3;i++)
 				{

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.13 2010/03/02 16:51:29 crc_canada Exp $
+$Id: Collision.c,v 1.14 2010/03/10 21:29:52 sdumoulin Exp $
 
 Render the children of nodes.
 
@@ -77,7 +77,7 @@ struct point_XYZ res ={0,0,0};
 /*a constructor */
 #define make_pt(p,xc,yc,zc) { p.x = (xc); p.y = (yc); p.z = (zc); }
 
-int overlapMBBs(GLdouble *MBBmin1, GLdouble *MBBmax1, GLdouble *MBBmin2, GLdouble* MBBmax2)
+int overlapMBBs(GLDOUBLE *MBBmin1, GLDOUBLE *MBBmax1, GLDOUBLE *MBBmin2, GLDOUBLE* MBBmax2)
 {
 	/* test for overlap between two axes aligned minimum bounding boxes MBBs in same space. 
 	   returns true if they overlap
@@ -898,10 +898,10 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
     struct point_XYZ result;
 	int hit,i;
 	double tmin[3],tmax[3]; /* MBB for facet */
-	GLdouble awidth = naviinfo.width; /*avatar width*/
-	GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	GLdouble astep = -naviinfo.height+naviinfo.step;
+	GLDOUBLE awidth = naviinfo.width; /*avatar width*/
+	GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 	
 	result = zero;
 	get_poly_mindisp = 0.0;
@@ -1512,12 +1512,12 @@ int fast_ycylinder_box_intersect(double y1, double y2, double r,struct point_XYZ
     double lefteq = sqrt(y*y + r*r) + sqrt(xs*xs + ys*ys + zs*zs);
     return lefteq*lefteq > vecdot(&pcenter,&pcenter);
 }
-void transformMBB(GLdouble *rMBBmin, GLdouble *rMBBmax, GLdouble *matTransform, GLdouble* inMBBmin, GLdouble* inMBBmax)
+void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax)
 {
 	/* transform axes aligned minimum bounding box MBB via octo box - will expand as necessary to cover original volume */
 	struct point_XYZ abox[8];
 	int i,j,k,m;
-	GLdouble p[3],rx,ry,rz;
+	GLDOUBLE p[3],rx,ry,rz;
 
 	/* generate an 8 corner box in shape space to represent the shape collision volume */
 	m = 0;
@@ -1543,11 +1543,11 @@ void transformMBB(GLdouble *rMBBmin, GLdouble *rMBBmax, GLdouble *matTransform, 
        transform(&abox[m],&abox[m],matTransform);
 
 	/*find the MBB of the transformed octo box */
-	memcpy(rMBBmin,&abox[0],3*sizeof(GLdouble)); //sizeof(struct point_XYZ)); 
-	memcpy(rMBBmax,&abox[0],3*sizeof(GLdouble));
+	memcpy(rMBBmin,&abox[0],3*sizeof(GLDOUBLE)); //sizeof(struct point_XYZ)); 
+	memcpy(rMBBmax,&abox[0],3*sizeof(GLDOUBLE));
 	for(m=1;m<8;m++)
 	{
-		memcpy(p,&abox[m],3*sizeof(GLdouble));
+		memcpy(p,&abox[m],3*sizeof(GLDOUBLE));
 		for(i=0;i<3;i++)
 		{
 			rMBBmin[i] = min(rMBBmin[i],p[i]);
@@ -1555,7 +1555,7 @@ void transformMBB(GLdouble *rMBBmin, GLdouble *rMBBmax, GLdouble *matTransform, 
 		}
 	}
 }
-int fast_ycylinder_MBB_intersect_shapeSpace(double y1, double y2, double r, GLdouble *collision2shape, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax )
+int fast_ycylinder_MBB_intersect_shapeSpace(double y1, double y2, double r, GLDOUBLE *collision2shape, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax )
 { //foot,atop,awidth, Collision2Shape, node->size.c))
 	/* goal: transform avatar collision volume from avatar space to raw shape space, get its enclosing 
 	  axes-aligned minimum bounding box MBB in shape space, and test against raw shape MBB 
@@ -1563,7 +1563,7 @@ int fast_ycylinder_MBB_intersect_shapeSpace(double y1, double y2, double r, GLdo
 	  Issue: caller must invert modelMatrix
 	*/
 	int i;
-	GLdouble avmin[3], avmax[3];
+	GLDOUBLE avmin[3], avmax[3];
 
 	/* generate mins and maxes for avatar cylinder in avatar/collision space to represent the avatar collision volume */
 	for(i=0;i<3;i++)
@@ -1575,7 +1575,7 @@ int fast_ycylinder_MBB_intersect_shapeSpace(double y1, double y2, double r, GLdo
 	transformMBB(avmin,avmax,collision2shape,avmin,avmax);
 	return overlapMBBs(shapeMBBmin,shapeMBBmax,avmin,avmax);
 }
-int fast_ycylinder_MBB_intersect_collisionSpace(double y1, double y2, double r, GLdouble *shape2collision, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax ) 
+int fast_ycylinder_MBB_intersect_collisionSpace(double y1, double y2, double r, GLDOUBLE *shape2collision, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax ) 
 {
 	/* goal: transform shape MBB to avatar/collision space, get its MBB there, and return 1 if the shape MBB intersects 
 	  the avatar cylinderical collision volume MBB 
@@ -1586,7 +1586,7 @@ int fast_ycylinder_MBB_intersect_collisionSpace(double y1, double y2, double r, 
 	 objects I'd rather be doing it in shape space. 
 	*/
 	int i;
-	GLdouble smin[3], smax[3], avmin[3], avmax[3];
+	GLDOUBLE smin[3], smax[3], avmin[3], avmax[3];
 
 	/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
 	for(i=0;i<3;i++)
@@ -1599,13 +1599,13 @@ int fast_ycylinder_MBB_intersect_collisionSpace(double y1, double y2, double r, 
 	transformMBB(smin,smax,shape2collision,shapeMBBmin,shapeMBBmax);
 	return overlapMBBs(avmin,avmax,smin,smax);
 }
-int fast_sphere_MBB_intersect_collisionSpace(double r, GLdouble *shape2collision, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax ) 
+int fast_sphere_MBB_intersect_collisionSpace(double r, GLDOUBLE *shape2collision, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax ) 
 {
 	/* goal: transform shape MBB to avatar/collision space, get its MBB there, and return 1 if the shape MBB intersects 
 	  the avatar spherical collision volume MBB 
 	*/
 	int i;
-	GLdouble smin[3], smax[3], avmin[3], avmax[3];
+	GLDOUBLE smin[3], smax[3], avmin[3], avmax[3];
 
 	/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
 	for(i=0;i<3;i++)
@@ -1616,13 +1616,13 @@ int fast_sphere_MBB_intersect_collisionSpace(double r, GLdouble *shape2collision
 	transformMBB(smin,smax,shape2collision,shapeMBBmin,shapeMBBmax);
 	return overlapMBBs(avmin,avmax,smin,smax);
 }
-int fast_sphere_MBB_intersect_shapeSpace(double r, GLdouble *collision2shape, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax ) 
+int fast_sphere_MBB_intersect_shapeSpace(double r, GLDOUBLE *collision2shape, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax ) 
 {
 	/* goal: transform avatar/collision MBB to shape space, get its MBB there, and return 1 if the shape MBB intersects 
 	  the avatar spherical collision volume MBB 
 	*/
 	int i;
-	GLdouble avmin[3], avmax[3];
+	GLDOUBLE avmin[3], avmax[3];
 
 	/* generate mins and maxes for avatar sphere in shape space to represent the avatar collision volume */
 	for(i=0;i<3;i++)
@@ -2119,8 +2119,8 @@ static int prd_normals_size = 0;
 	  Walk: Bound-Viewpoint-Vertical-aligned Avatar-centric BVVA space.
  flags - 
 */
-//struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLdouble* mat, prflags flags) {
-struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLdouble* mat, prflags flags) {
+//struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags) {
+struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags) {
     int i;
     int maxc;
 

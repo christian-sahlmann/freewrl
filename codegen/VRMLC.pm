@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.38 2010/03/01 22:39:48 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.39 2010/03/10 21:29:52 sdumoulin Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.39  2010/03/10 21:29:52  sdumoulin
+# More IPHONE compile updates
+#
 # Revision 1.38  2010/03/01 22:39:48  crc_canada
 # more 64 bit changes - note that all "integer" data is now ints, not a combo of size_t, unsigned int, etc, just INT.
 #
@@ -1733,8 +1736,8 @@ END_NODE(NodeName)
 #define __FREEWRL_STRUCTS_H__
 
 
-struct point_XYZ {GLdouble x,y,z;};
-struct orient_XYZA {GLdouble x,y,z,a;};
+struct point_XYZ {GLDOUBLE x,y,z;};
+struct orient_XYZA {GLDOUBLE x,y,z,a;};
 
 struct X3D_Virt {
 	void (*prep)(void *);
