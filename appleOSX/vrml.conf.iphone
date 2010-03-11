@@ -70,8 +70,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-framework OpenGLES '.
 		'-arch armv6 '.
 		'-miphoneos-version-min=2.2 '.
-                '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
-		'-lAquaIntLib ',
+                '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ ',
 
 	LDFLAGS2 => '-flat_namespace '.
 		'-undefined error '.
@@ -79,6 +78,5 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
 		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks '.
                 '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
-		'-framework OpenGLES '.
-		'-lAquaIntLib ',
+		'-framework OpenGLES ',
 );
