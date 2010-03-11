@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.56 2010/03/09 15:59:54 crc_canada Exp $
+  $Id: ProdCon.c,v 1.57 2010/03/11 17:56:51 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -354,8 +354,11 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	struct X3D_Group *insert_node;
 	int i;
 	int offsetInNode;
+	int shouldBind;
 
 	/* printf("processing VRML/X3D resource: %s\n", res->request); */
+	shouldBind = FALSE;
+
 
 	/* save the current URL so that any local-url gets are relative to this */
 	pushInputResource(res);
@@ -393,19 +396,13 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 			return FALSE;
 		}
 
+		/* printf ("res %p root_res %p\n",res,root_res); */
+		/* bind ONLY in main - do not bind for Inlines, etc */
 		if (res == root_res) {
-			/* FIXME: try to find a better way to handle this ;P ... */
-		
-			/* FIXME: 
-			   - parser initialization ...
-			   - bindable : should we zero bindable ?
-			*/
-		
-			/* Yes: à priori */
 			kill_bindables();
+			shouldBind = TRUE;
 
 		} else {
-		
 			if (!root_res->complete) {
 				/* Push the parser state : re-entrance here */
 				/* "save" the old classic parser state, so that names do not cross-pollute */
@@ -425,21 +422,23 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 	
 	
-		if (totfognodes != 0) { 
-			for (i=0; i < totfognodes; ++i) send_bind_to(X3D_NODE(fognodes[i]), 0); /* Initialize binding info */
-			setFogBindInRender = fognodes[0];
-		}
-		if (totbacknodes != 0) {
-			for (i=0; i < totbacknodes; ++i) send_bind_to(X3D_NODE(backgroundnodes[i]), 0);  /* Initialize binding info */
-			setBackgroundBindInRender = backgroundnodes[0];
-		}
-		if (totnavnodes != 0) {
-			for (i=0; i < totnavnodes; ++i) send_bind_to(X3D_NODE(navnodes[i]), 0);  /* Initialize binding info */
-			setNavigationBindInRender = navnodes[0];
-		}
-		if (totviewpointnodes != 0) {
-			for (i=0; i < totviewpointnodes; ++i) send_bind_to(X3D_NODE(viewpointnodes[i]), 0);  /* Initialize binding info */
-			setViewpointBindInRender = viewpointnodes[0];
+		if (shouldBind) {
+			if (totfognodes != 0) { 
+				for (i=0; i < totfognodes; ++i) send_bind_to(X3D_NODE(fognodes[i]), 0); /* Initialize binding info */
+				setFogBindInRender = fognodes[0];
+			}
+			if (totbacknodes != 0) {
+				for (i=0; i < totbacknodes; ++i) send_bind_to(X3D_NODE(backgroundnodes[i]), 0);  /* Initialize binding info */
+				setBackgroundBindInRender = backgroundnodes[0];
+			}
+			if (totnavnodes != 0) {
+				for (i=0; i < totnavnodes; ++i) send_bind_to(X3D_NODE(navnodes[i]), 0);  /* Initialize binding info */
+				setNavigationBindInRender = navnodes[0];
+			}
+			if (totviewpointnodes != 0) {
+				for (i=0; i < totviewpointnodes; ++i) send_bind_to(X3D_NODE(viewpointnodes[i]), 0);  /* Initialize binding info */
+				setViewpointBindInRender = viewpointnodes[0];
+			}
 		}
 	
 		/* we either put things at the rootNode (ie, a new world) or we put them as a children to another node */
