@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.110 2010/03/05 16:16:55 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.111 2010/03/11 18:46:51 sdumoulin Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -862,10 +862,14 @@ void fw_glGetDoublev (int ty, double *mat) {
 	switch (ty) {
 		case GL_PROJECTION_MATRIX: dp = FW_ProjectionView[projectionviewTOS]; break;
 		case GL_MODELVIEW_MATRIX: dp = FW_ModelView[modelviewTOS]; break;
+#ifndef IPHONE
 		case GL_TEXTURE_MATRIX: dp = FW_TextureView[textureviewTOS]; break;
+#endif
 		default: { 
 			loadIdentityMatrix(mat); 
+#ifndef IPHONE
 		printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",ty,GL_PROJECTION_MATRIX,GL_MODELVIEW_MATRIX,GL_TEXTURE_MATRIX);
+#endif
 			return;}
 	}
 	memcpy((void *)mat, (void *) dp, sizeof (double) * MATRIX_SIZE);

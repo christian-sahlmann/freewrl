@@ -34,7 +34,7 @@ FREEWRL_CCFLAGS => '-arch '.
     # can also add -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC to display malloc issues.
 
 #     FREEWRL_DEFINE => ' -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -DIPHONE -fno-common -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk',
-    FREEWRL_DEFINE => ' -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DIPHONE -DAQUA -fno-common -arch armv6 -miphoneos-version-min=2.2  -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk',
+    FREEWRL_DEFINE => ' -DHAVE_GETTIMEOFDAY -DXP_UNIX -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DIPHONE -DAQUA -fno-common -arch armv6 -miphoneos-version-min=2.2  -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk',
 
     FREEWRL_INC => '-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/include '.
 		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/include/sys '.
@@ -45,6 +45,8 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-I/opt/local/include '.
 		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib/gcc/arm-apple-darwin9/4.2.1/include '.
 		'-I/Xcode3.1.4/Platforms/iPhoneOS.platform/Developer/usr/lib/gcc/arm-apple-darwin9/4.0.1/include '.
+                '-I/FreeWRL/freewrl/freewrl/JS/js1.8/src '.
+                '-I/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		' ',
 
 ############################################################################
@@ -68,6 +70,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-framework OpenGLES '.
 		'-arch armv6 '.
 		'-miphoneos-version-min=2.2 '.
+                '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		'-lAquaIntLib ',
 
 	LDFLAGS2 => '-flat_namespace '.
@@ -75,6 +78,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-bundle '.
 		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
 		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks '.
+                '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		'-framework OpenGLES '.
 		'-lAquaIntLib ',
 );

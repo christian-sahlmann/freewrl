@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.63 2010/03/10 21:29:52 sdumoulin Exp $
+  $Id: display.h,v 1.64 2010/03/11 18:46:51 sdumoulin Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -553,28 +553,28 @@ void setScreenDim(int wi, int he);
 	#define GLU_END 0
 	#define GLU_TESS_COMBINE_DATA 0
 	#define GLU_TESS_COMBINE 0
-	#define GL_LIGHT1 0
-	#define GL_LIGHT2 0
-	#define GL_LIGHT3 0
-	#define GL_LIGHT4 0
-	#define GL_LIGHT5 0
-	#define GL_LIGHT6 0
-	#define GLU_UNKNOWN 0
+	#define GL_LIGHT1 1
+	#define GL_LIGHT2 2
+	#define GL_LIGHT3 3
+	#define GL_LIGHT4 4
+	#define GL_LIGHT5 5
+	#define GL_LIGHT6 6
+	#define GLU_UNKNOWN 7
 	#define GL_SAMPLES_PASSED 0
-	#define GL_LIGHT0 0
-	#define GL_POSITION 0
-	#define GL_SPECULAR 0
-	#define GL_AMBIENT 0
-	#define GL_SPOT_DIRECTION 0
-	#define GL_POSITION 0
-	#define GL_CONSTANT_ATTENUATION 0
-	#define GL_LINEAR_ATTENUATION 0
-	#define GL_QUADRATIC_ATTENUATION 0
-	#define GL_SPOT_CUTOFF 0
-	#define GL_SPOT_EXPONENT 0
-	#define GL_RGBA8 0
-	#define GL_R 0
-	#define PATH_MAX 0
+	#define GL_LIGHT0 1
+	#define GL_POSITION 2
+	#define GL_SPECULAR 3
+	#define GL_AMBIENT 4
+	#define GL_SPOT_DIRECTION 5
+	#define GL_POSITION 6
+	#define GL_CONSTANT_ATTENUATION 7
+	#define GL_LINEAR_ATTENUATION 8
+	#define GL_QUADRATIC_ATTENUATION 9
+	#define GL_SPOT_CUTOFF 10
+	#define GL_SPOT_EXPONENT 20
+	#define GL_RGBA8 30
+	#define GL_R 40
+	#define PATH_MAX 50
 	#define GL_PREVIOUS 0
 	#define GL_ADD 0
 	#define GL_SUBTRACT 0
@@ -701,24 +701,26 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_POINTSIZE(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_LINE_STIPPLE(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
-	#define CREATE_SHADER(aaa) 0  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define CREATE_SHADER(aaa) 0 
+	#define COMPILE_STATUS 0 
+	#define GET_SHADER_INFO { printf("subbed openglES call at %s: %d\n", __FILE__,__LINE__);} 
 	#define SHADER_SOURCE(aaa, bbb, ccc, ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define COMPILE_SHADER(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define ATTACH_SHADER(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define LINK_SHADER(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
-	#define GET_UNIFORM(aaa, bbb) 0 {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define GET_UNIFORM(aaa, bbb) 0 
 	#define USE_SHADER(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define GLUNIFORM2F(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define GLUNIFORM1I(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define GLUNIFORM4F(aaa,bbb,ccc,ddd,eee) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
-	#define CREATE_PROGRAM 0 {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define CREATE_PROGRAM 0 
 	#define FW_GL_BEGIN_QUERY(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_END_QUERY(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GLU_NEXT_CONTOUR(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GLU_BEGIN_POLYGON(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GLU_END_POLYGON(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
-	#define FW_GLU_NEW_TESS() 0 {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_NEW_TESS() 0
 	#define FW_GL_FOGFV(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_FOGF(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_FOGI(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
