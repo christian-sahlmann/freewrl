@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.h,v 1.8 2010/02/08 19:51:01 crc_canada Exp $
+$Id: Frustum.h,v 1.9 2010/03/12 17:07:57 crc_canada Exp $
 
 Global includes.
 
@@ -43,10 +43,6 @@ Global includes.
 #define OCCLUSION
 #define VISIBILITYOCCLUSION
 #define SHAPEOCCLUSION
-/*
-#define glGenQueries(a,b) glGenQueriesARB(a,b)
-#define glDeleteQueries(a,b) glDeleteQueriesARB(a,b)
-*/
 
 extern GLuint OccQuerySize;
 extern GLint OccResultsAvailable;

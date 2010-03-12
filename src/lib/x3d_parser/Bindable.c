@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.25 2010/03/12 14:36:22 crc_canada Exp $
+$Id: Bindable.c,v 1.26 2010/03/12 17:07:57 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -561,7 +561,7 @@ static void moveBackgroundCentre () {
 	GLDOUBLE sx, sy, sz;
 
 	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);  */
-	FW_GL_SHADE_MODEL(GL_SMOOTH);
+	FW_GL_SHADEMODEL(GL_SMOOTH);
 	FW_GL_PUSH_MATRIX();
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
@@ -856,7 +856,7 @@ void render_Background (struct X3D_Background *node) {
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
 	/* now, display the lists */
-	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
+	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
 	FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours);
 	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
@@ -880,9 +880,9 @@ void render_Background (struct X3D_Background *node) {
         	FW_GL_ENABLE(GL_TEXTURE_2D);
         	FW_GL_COLOR3D(1.0,1.0,1.0);
         	FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
-        	glVertexPointer (3,GL_FLOAT,0,BackgroundVert);
-        	glNormalPointer (GL_FLOAT,0,Backnorms);
-        	glTexCoordPointer (2,GL_FLOAT,0,Backtex);
+        	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,BackgroundVert);
+        	FW_GL_NORMAL_POINTER (GL_FLOAT,0,Backnorms);
+        	FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,Backtex);
 
 		loadBackgroundTextures(node);
 
@@ -926,7 +926,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 
 	/* now, display the lists */
-	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
+	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
 	FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours);
 	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);

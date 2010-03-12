@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.34 2010/03/12 14:36:21 crc_canada Exp $
+$Id: Frustum.c,v 1.35 2010/03/12 17:07:57 crc_canada Exp $
 
 ???
 
@@ -773,7 +773,7 @@ void OcclusionStartofEventLoop() {
 
 				occluderNodePointer = MALLOC (sizeof (void *) * OccQuerySize);
 				OccQueries = MALLOC (sizeof(int) * OccQuerySize);
-	                	glGenQueries(OccQuerySize,OccQueries);
+	                	FW_GL_GENQUERIES(OccQuerySize,OccQueries);
 				OccInitialized = TRUE;
 				for (i=0; i<OccQuerySize; i++) {
 					occluderNodePointer[i] = 0;
@@ -806,14 +806,14 @@ void OcclusionStartofEventLoop() {
 
 			/* possibly previous had zero occluders, lets just not bother deleting for zero */
 			if (OccQuerySize > 0) {
-				glDeleteQueries (OccQuerySize, OccQueries);
-				glFlush();
+				FW_GL_DELETE_QUERIES (OccQuerySize, OccQueries);
+				FW_GL_FLUSH();
 			}
 
 			OccQuerySize = maxOccludersFound + 1000;
 			occluderNodePointer = REALLOC (occluderNodePointer,sizeof (void *) * OccQuerySize);
 			OccQueries = REALLOC (OccQueries,sizeof (int) * OccQuerySize);
-        	        glGenQueries(OccQuerySize,OccQueries);
+        	        FW_GL_GENQUERIES(OccQuerySize,OccQueries);
 			for (i=0; i<OccQuerySize; i++) {
 				occluderNodePointer[i] = 0;
 			}
@@ -842,7 +842,7 @@ void OcclusionCulling ()  {
 
 #ifdef OCCLUSIONVERBOSE
 	GLint query;
-	glGetQueryiv(GL_SAMPLES_PASSED, GL_CURRENT_QUERY, &query);
+	FW_GL_GET_QUERYIV(GL_SAMPLES_PASSED, GL_CURRENT_QUERY, &query);
 	printf ("currentQuery is %d\n",query);
 #endif
 
@@ -897,13 +897,8 @@ void OcclusionCulling ()  {
 
 		/* an Occlusion test will have been run on this one */
 
-#ifdef AQUA
-#ifndef IPHONE
-if (myglobalContext == NULL) printf ("mycontext null before glGetQueryObjectiv\n");
-#endif
-#endif
-		glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
-		PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
+		FW_GL_GETQUERYOBJECTIV(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
+		PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
 
 		#define SLEEP_FOR_QUERY_RESULTS
 		#ifdef SLEEP_FOR_QUERY_RESULTS
@@ -911,8 +906,8 @@ if (myglobalContext == NULL) printf ("mycontext null before glGetQueryObjectiv\n
 		while (OccResultsAvailable == GL_FALSE) {
 			/* printf ("waiting and looping for results - myglobalContext %u\n",myglobalContext);  */
 			usleep(100);
-			glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
-			PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
+			FW_GL_GETQUERYOBJECTIV(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
+			PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
 		}
 		#endif
 
@@ -925,8 +920,8 @@ if (myglobalContext == NULL) printf ("mycontext null before glGetQueryObjectiv\n
 		/* if we are NOT ready; we keep the count going, but we do NOT change the results of VisibilitySensors */
 		if (OccResultsAvailable == GL_FALSE) samples = 10000;  
 			
-	        glGetQueryObjectiv (OccQueries[i], GL_QUERY_RESULT, &samples);
-		PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY");
+	        FW_GL_GETQUERYOBJECTIV (OccQueries[i], GL_QUERY_RESULT, &samples);
+		PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY");
 				
 		#ifdef OCCLUSIONVERBOSE
 		printf ("i %d checkc %d samples %d\n",i,checkCount,samples);
@@ -1007,8 +1002,8 @@ void zeroOcclusion(void) {
                 printf ("checking node %d of %d\n",i, potentialOccluderCount);
 #endif
 
-                glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
-                PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
+                FW_GL_GETQUERYOBJECTIV(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
+                PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
 
                 /* for now, lets loop to see when we get results */
                 while (OccResultsAvailable == GL_FALSE) {
@@ -1016,8 +1011,8 @@ void zeroOcclusion(void) {
                         printf ("zero - waiting and looping for results\n"); 
 #endif
                         usleep(1000);
-                        glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
-                        PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
+                        FW_GL_GETQUERYOBJECTIV(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
+                        PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
                 }
 	}
 #ifdef OCCLUSIONVERBOSE
@@ -1025,8 +1020,8 @@ void zeroOcclusion(void) {
 #endif
 
 	QueryCount = 0;
-	glDeleteQueries (OccQuerySize, OccQueries);
-	glFlush();
+	FW_GL_DELETE_QUERIES (OccQuerySize, OccQueries);
+	FW_GL_FLUSH();
 	
 	OccQuerySize=0;
 	maxOccludersFound = 0;

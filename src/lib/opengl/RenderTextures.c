@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.25 2010/03/01 22:39:48 crc_canada Exp $
+$Id: RenderTextures.c,v 1.26 2010/03/12 17:07:57 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -275,7 +275,7 @@ static void passedInGenTex(GLfloat *genTex) {
 			if (setActiveTexture(c,appearanceProperties.transparency)) {
         			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
-				FW_GL_TEXCOORDPOINTER (2,GL_FLOAT,0,genTex);
+				FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex);
 				FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 			}
 		}
@@ -301,7 +301,7 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 			if (setActiveTexture(c,appearanceProperties.transparency)) {
 	       			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
-				FW_GL_TEXCOORDPOINTER (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+				FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
 				FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 			}
 		}
@@ -335,7 +335,7 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 					if (setActiveTexture(c,appearanceProperties.transparency)) {
         					if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 						FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
-						FW_GL_TEXCOORDPOINTER (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+						FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
 						FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 					}
 				}
@@ -358,7 +358,7 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 			
 				/* do the texture coordinate stuff */
 				if (myTCnode->_nodeType == NODE_TextureCoordinate) {
-					FW_GL_TEXCOORDPOINTER (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
 				} else if (myTCnode->_nodeType == NODE_TextureCoordinateGenerator) {
 					setupTexGen ((struct X3D_TextureCoordinateGenerator*) myTCnode);
 				}

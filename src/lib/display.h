@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.65 2010/03/12 14:36:21 crc_canada Exp $
+  $Id: display.h,v 1.66 2010/03/12 17:07:56 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -344,9 +344,11 @@ void setScreenDim(int wi, int he);
 	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER
 	#define SHADER_SOURCE glShaderSource
 	#define COMPILE_SHADER glCompileShader
-	#define CREATE_PROGRAM glCreateProgram();
+	#define CREATE_SHADER glCreateProgram();
 	#define ATTACH_SHADER glAttachShader
 	#define LINK_SHADER glLinkProgram
+	#define DELETE_SHADER glDeleteShader
+	#define DELETE_PROGRAM glDeleteProgram
 	#define USE_SHADER glUseProgram
 	#define CREATE_SHADER glCreateShader
 	#define GET_SHADER_INFO glGetShaderiv
@@ -371,9 +373,11 @@ void setScreenDim(int wi, int he);
 	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER_ARB
 	#define SHADER_SOURCE glShaderSourceARB
 	#define COMPILE_SHADER glCompileShaderARB
-	#define CREATE_PROGRAM glCreateProgramObjectARB();
+	#define CREATE_SHADER glCreateProgramObjectARB();
 	#define ATTACH_SHADER glAttachObjectARB
 	#define LINK_SHADER glLinkProgramARB
+	#define DELETE_SHADER glDeleteShaderARB
+	#define DELETE_PROGRAM glDeleteProgramARB
 	#define USE_SHADER  glUseProgramObjectARB
 	#define CREATE_SHADER glCreateShaderObjectARB
 	#define GET_SHADER_INFO glGetObjectParameterivARB
@@ -485,12 +489,11 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
 	#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
 	#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
-	#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
+	#define FW_GL_TEXCOORD_POINTER(aaa,bbb,ccc,ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
 	#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
 
 
 	#define GLDOUBLE GLdouble
-	#define FW_GL_SHADE_MODEL(aaa) glShadeModel(aaa)
 	#define FW_GL_FOGFV(aaa, bbb) glFogfv(aaa, bbb)
 	#define FW_GL_FOGF(aaa, bbb) glFogf(aaa, bbb)
 	#define FW_GL_FOGI(aaa, bbb) glFogi(aaa, bbb)
@@ -516,10 +519,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluScaleImage(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
 	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
-	#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
-	#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
-	#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
-	#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
 	
 	#define FW_GL_VERTEX3F(aaa, bbb, ccc) glVertex3f(aaa, bbb, ccc)
 	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) glDrawElements(aaa,bbb,ccc,ddd)
@@ -532,6 +531,23 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_GETFLOATV(aaa,bbb) glGetFloatv(aaa,bbb);
 	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) glColor4f(aaa,bbb,ccc,ddd);
 	#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa);
+	#define FW_GL_FRONTFACE(aaa) glFrontFace(aaa);
+	#define FW_GL_GENLISTS(aaa) glGenLists(aaa)
+	#define FW_GL_GENTEXTURES(aaa,bbb) glGenTextures(aaa,bbb)
+	#define FW_GL_GETBOOLEANV(aaa,bbb) glGetBooleanv(aaa,bbb)
+	#define FW_GL_NEWLIST(aaa,bbb) glNewList(aaa,bbb)
+	#define FW_GL_NORMAL3F(aaa,bbb,ccc) glNormal3f(aaa,bbb,ccc)
+
+	#define FW_GL_READPIXELS(aaa,bbb,ccc,ddd,eee,fff,ggg) glReadPixels(aaa,bbb,ccc,ddd,eee,fff,ggg) 
+	#define FW_GL_TEXIMAGE2D(aaa,bbb,ccc,ddd,eee,fff,ggg,hhh,iii) glTexImage2D(aaa,bbb,ccc,ddd,eee,fff,ggg,hhh,iii)
+	#define FW_GL_TEXPARAMETERF(aaa,bbb,ccc) glTexParameterf(aaa,bbb,ccc)
+	#define FW_GL_TEXPARAMETERI(aaa,bbb,ccc) glTexParameteri(aaa,bbb,ccc)
+	#define FW_GL_TEXPARAMETERFV(aaa,bbb,ccc) glTexParameterfv(aaa,bbb,ccc)
+        #define FW_GL_GETQUERYOBJECTIV(aaa,bbb,ccc) glGetQueryObjectiv(aaa,bbb,ccc)
+	#define FW_GL_GENQUERIES(aaa,bbb) glGenQueries(aaa,bbb)
+	#define FW_GL_DELETE_QUERIES(aaa,bbb) glDeleteQueries(aaa,bbb)
+	
+
 
 
 
@@ -728,7 +744,7 @@ void setScreenDim(int wi, int he);
 	#define GLUNIFORM2F(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define GLUNIFORM1I(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define GLUNIFORM4F(aaa,bbb,ccc,ddd,eee) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
-	#define CREATE_PROGRAM 0 
+	#define CREATE_SHADER 0 
 	#define FW_GL_BEGIN_QUERY(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_END_QUERY(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
@@ -739,11 +755,10 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_FOGFV(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_FOGF(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_FOGI(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
-	#define FW_GL_SHADE_MODEL(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define SET_TEXTURE_UNIT(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_TEXENVI(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_TEXGENI(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
-	#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_TEXCOORD_POINTER(aaa,bbb,ccc,ddd)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_BINDTEXTURE(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_SWAPBUFFERS {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 
@@ -765,10 +780,26 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_COLOR_POINTER(aaa, bbb,ccc,ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_DELETETEXTURES(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_COLOR3FV(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
-	#define FW_GL_GETINTEGERV(aaa,bbb)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GETINTEGERV(aaa,bbb) 0
 	#define FW_GL_LOADMATRIXD(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
-	#define FW_GL_GETFLOATV(aaa,bbb)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GETFLOATV(aaa,bbb)  0
 	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_FRONTFACE(aaa) { printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GENLISTS(aaa) 0
+	#define FW_GL_GENTEXTURES(aaa,bbb) 0
+	#define FW_GL_GETBOOLEANV(aaa,bbb) 0
+	#define FW_GL_NEWLIST(aaa,bbb) { printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_NORMAL3F(aaa,bbb,ccc) { printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_READPIXELS(aaa,bbb,ccc,ddd,eee,fff,ggg) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_TEXIMAGE2D(aaa,bbb,ccc,ddd,eee,fff,ggg,hhh,iii) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_TEXPARAMETERF(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_TEXPARAMETERI(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_TEXPARAMETERFV(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GETQUERYOBJECTIV(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GENQUERIES(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DELETE_QUERIES(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+
+	
 
 #endif /* ifdef IPHONE */
 

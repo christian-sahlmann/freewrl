@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.20 2010/03/12 14:36:22 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.21 2010/03/12 17:07:57 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -642,7 +642,7 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
         int i;
         struct SFColor *points=NULL; int npoints=0;
 	int renderMatOver = FALSE;
-	glPointSize (2);
+	FW_GL_POINTSIZE (2);
 
         if(cSLD->c3Node) {
 		points =  cSLD->c3Node->point.p;

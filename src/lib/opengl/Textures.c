@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.52 2010/03/12 14:36:21 crc_canada Exp $
+  $Id: Textures.c,v 1.53 2010/03/12 17:07:57 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -821,7 +821,7 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	/* we need to get parameters. */	
 	if (me->OpenGLTexture == TEXTURE_INVALID) {
 /* 		me->OpenGLTexture = MALLOC (sizeof (GLuint) * me->frames); */
-		glGenTextures(1, &me->OpenGLTexture);
+		FW_GL_GENTEXTURES (1, &me->OpenGLTexture);
 #ifdef TEXVERBOSE
 		printf ("just glGend texture for block %d is %u, type %s\n",
 			(int) me, me->OpenGLTexture,stringNodeType(me->nodeType));
@@ -956,24 +956,24 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	/* save this to determine whether we need to do material node
 	  within appearance or not */
 		
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Src);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Trc);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, Rrc);
-	glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, generateMipMaps);
-	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_PRIORITY, texPri);
-	glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,(GLfloat *)&borderColour);
-	glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAX_ANISOTROPY_EXT,anisotropicDegree);
+	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Src);
+	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Trc);
+	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, Rrc);
+	FW_GL_TEXPARAMETERI(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, generateMipMaps);
+	FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_PRIORITY, texPri);
+	FW_GL_TEXPARAMETERFV(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,(GLfloat *)&borderColour);
+	FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_MAX_ANISOTROPY_EXT,anisotropicDegree);
 
 	if (compression != GL_NONE) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
-		glHint(GL_TEXTURE_COMPRESSION_HINT, compression);
+		FW_GL_TEXPARAMETERI(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
+		FW_GL_HINT(GL_TEXTURE_COMPRESSION_HINT, compression);
 	}
 	x = me->x;
 	y = me->y;
 
 
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
 	
 	/* NOTE: trying BGRA format from textures */
@@ -1020,7 +1020,7 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 		while (!texOk) {
 			GLint width, height;
 			FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
-			glTexImage2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
+			FW_GL_TEXIMAGE2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
 
 			FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
 			FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
@@ -1046,8 +1046,8 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 			DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
 		}
 
-		glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-		glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
+		FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+		FW_GL_TEXPARAMETERI(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
 
 		if(mytexdata != dest) {FREE_IF_NZ(dest);}
 
@@ -1059,7 +1059,7 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	FREE_IF_NZ (me->texdata);
 
 	/* ensure this data is written to the driver for the rendering context */
-	glFlush();
+	FW_GL_FLUSH();
 
 	/* CGLError err = CGLFlushDrawable(aqtextureContext); */
 

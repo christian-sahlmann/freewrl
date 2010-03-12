@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.12 2010/03/12 14:36:22 crc_canada Exp $
+$Id: Component_EnvironSensor.c,v 1.13 2010/03/12 17:07:57 crc_canada Exp $
 
 X3D Environmental Sensors Component
 
@@ -148,13 +148,11 @@ static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	FW_GL_COLOR4F(0.0f, 1.0f, 0.0f, 0.0f);
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
-	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
+	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *)node->__points);
 	FW_GL_NORMAL_POINTER(GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-#ifndef IPHONE
 	FW_GL_DRAWARRAYS (GL_QUADS, 0, 24);
-#endif
 	FW_GL_DEPTHMASK(TRUE);
 }
 

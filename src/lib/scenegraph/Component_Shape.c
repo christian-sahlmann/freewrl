@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.38 2010/03/12 14:36:22 crc_canada Exp $
+$Id: Component_Shape.c,v 1.39 2010/03/12 17:07:57 crc_canada Exp $
 
 X3D Shape Component
 
@@ -245,7 +245,7 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 			printf ("creating program and attaching\n");
 		#endif
 
-		fillpropCurrentShader = CREATE_PROGRAM;
+		fillpropCurrentShader = CREATE_SHADER;
 		
 		ATTACH_SHADER(fillpropCurrentShader,v);
 		ATTACH_SHADER(fillpropCurrentShader,f);

@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.12 2010/03/12 14:36:22 crc_canada Exp $
+  $Id: statusbarHud.c,v 1.13 2010/03/12 17:07:57 crc_canada Exp $
 
 */
 
@@ -766,13 +766,13 @@ void fwMakeRasterFonts()
 	GLuint fwFontOffset7x14;
 	GLuint fwFontOffset8x15;
 
-   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+   FW_GL_PIXELSTOREI(GL_UNPACK_ALIGNMENT, 1);
    fwFontOffset7x12 = glGenLists (128);
    for(i=0;i<128;i++)
    {
 		ichar = fwLetters7x12[i][0];
 		if( ichar == 255 )break;
-	   glNewList(fwFontOffset7x12 + fwLetters7x12[i][0],GL_COMPILE);
+	   FW_GL_NEWLIST(fwFontOffset7x12 + fwLetters7x12[i][0],GL_COMPILE);
 	   FW_GL_BITMAP((GLsizei)fwLetters7x12[i][1],(GLsizei)fwLetters7x12[i][2],
 		   (GLfloat)fwLetters7x12[i][3],(GLfloat)fwLetters7x12[i][4],
 		   (GLfloat)fwLetters7x12[i][5], (GLfloat)fwLetters7x12[i][6],
@@ -784,7 +784,7 @@ void fwMakeRasterFonts()
    {
 		ichar = fwLetters7x14[i][0];
 		if( ichar == 255 )break;
-	   glNewList(fwFontOffset7x14 + fwLetters7x14[i][0],GL_COMPILE);
+	   FW_GL_NEWLIST(fwFontOffset7x14 + fwLetters7x14[i][0],GL_COMPILE);
 	   FW_GL_BITMAP((GLsizei)fwLetters7x14[i][1],(GLsizei)fwLetters7x14[i][2],
 		   (GLfloat)fwLetters7x14[i][3],(GLfloat)fwLetters7x14[i][4],
 		   (GLfloat)fwLetters7x14[i][5], (GLfloat)fwLetters7x14[i][6],
@@ -796,7 +796,7 @@ void fwMakeRasterFonts()
    {
 		ichar = fwLetters8x15[i][0];
 		if( ichar == 255 )break;
-	   glNewList(fwFontOffset8x15 + fwLetters8x15[i][0],GL_COMPILE);
+	   FW_GL_NEWLIST(fwFontOffset8x15 + fwLetters8x15[i][0],GL_COMPILE);
 	   FW_GL_BITMAP((GLsizei)fwLetters8x15[i][1],(GLsizei)fwLetters8x15[i][2],
 		   (GLfloat)fwLetters8x15[i][3],(GLfloat)fwLetters8x15[i][4],
 		   (GLfloat)fwLetters8x15[i][5], (GLfloat)fwLetters8x15[i][6],
@@ -820,19 +820,19 @@ XY bmWH = {10,15}; /* simple bitmap font from redbook above, width and height in
 void initFont(void)
 {
 	/*initialize raster bitmap font above */
-  // glShadeModel (GL_FLAT);
+  // FW_GL_SHADEMODEL (GL_FLAT);
    fwMakeRasterFonts();
    fontInitialized = 1;
 }
 int bmfontsize = 2; /* 0,1 or 2 */
 void printString(char *s)
 {
-   glPushAttrib (GL_LIST_BIT);
+   FW_GL_PUSHATTRIB(GL_LIST_BIT);
    FW_GL_LISTBASE(fwFontOffset[bmfontsize]);
    bmWH.x = fwFontSize[bmfontsize].x;
    bmWH.y = fwFontSize[bmfontsize].y;
    FW_GL_CALLLISTS(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
-   glPopAttrib ();
+   FW_GL_POPATTRIB();
 }
 
 static int sb_hasString = FALSE;

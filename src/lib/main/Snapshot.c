@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.11 2010/01/21 17:29:12 sdumoulin Exp $
+$Id: Snapshot.c,v 1.12 2010/03/12 17:07:57 crc_canada Exp $
 
 CProto ???
 
@@ -278,18 +278,18 @@ void Snapshot () {
 		buffer = MALLOC (4*screenWidth*screenHeight*sizeof(char));
 	
 		/* grab the data */
-		glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-		glPixelStorei (GL_PACK_ALIGNMENT, 1);
-		glReadPixels (0,0,screenWidth,screenHeight,GL_RGBA,GL_UNSIGNED_BYTE, buffer);
+		FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
+		FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
+		FW_GL_READPIXELS (0,0,screenWidth,screenHeight,GL_RGBA,GL_UNSIGNED_BYTE, buffer);
 	#else	
 		/* Linux, etc, can get by with 3 bytes per pixel */
 		/* MALLOC 3 bytes per pixel */
 		buffer = MALLOC (3*screenWidth*screenHeight*sizeof(char));
 	
 		/* grab the data */
-		glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-		glPixelStorei (GL_PACK_ALIGNMENT, 1);
-		glReadPixels (0,0,screenWidth,screenHeight,GL_RGB,GL_UNSIGNED_BYTE, buffer);
+		FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
+		FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
+		FW_GL_READPIXELS (0,0,screenWidth,screenHeight,GL_RGB,GL_UNSIGNED_BYTE, buffer);
 	#endif
 	
 	/* save this snapshot */

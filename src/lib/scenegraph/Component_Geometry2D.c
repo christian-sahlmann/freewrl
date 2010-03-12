@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.21 2010/03/11 18:46:51 sdumoulin Exp $
+$Id: Component_Geometry2D.c,v 1.22 2010/03/12 17:07:57 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -120,7 +120,7 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 		DO_COLOUR_POINTER
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
+		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points);
         	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		trisThisLoop += node->__numPoints;
@@ -177,7 +177,7 @@ void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 		DO_COLOUR_POINTER
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
+		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points);
         	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		trisThisLoop += node->__numPoints;
@@ -219,7 +219,7 @@ void render_Circle2D (struct X3D_Circle2D *node) {
 
 		
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
+		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points);
         	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		trisThisLoop += node->__numPoints;
@@ -246,7 +246,7 @@ void render_Polyline2D (struct X3D_Polyline2D *node){
 		DO_COLOUR_POINTER
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->lineSegments.p);
+		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->lineSegments.p);
         	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->lineSegments.n);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		trisThisLoop += node->lineSegments.n;
@@ -274,7 +274,7 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->point.p);
+		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->point.p);
         	FW_GL_DRAWARRAYS (GL_POINTS, 0, node->point.n);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		trisThisLoop += node->point.n;
@@ -377,9 +377,9 @@ void render_Disk2D (struct X3D_Disk2D *node){
 		CULL_FACE(node->solid)
 
 		textureDraw_start(NULL,(GLfloat *)node->__texCoords);
-		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
+		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		glNormal3f (0.0f, 0.0f, 1.0f);
+		FW_GL_NORMAL3F (0.0f, 0.0f, 1.0f);
 
 		/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 		if (node->__simpleDisk) {FW_GL_DRAWARRAYS (GL_TRIANGLE_FAN, 0, node->__numPoints);}
@@ -458,9 +458,9 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 		CULL_FACE(node->solid)
 
 		textureDraw_start(NULL,(GLfloat *)node->__texCoords);
-		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->vertices.p);
+		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->vertices.p);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		glNormal3f (0.0f, 0.0f, 1.0f);
+		FW_GL_NORMAL3F (0.0f, 0.0f, 1.0f);
 
 		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->vertices.n);
 
@@ -514,14 +514,12 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	textureDraw_start(NULL,boxtex);
-	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
+	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
 	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-	glNormal3f (0.0f, 0.0f, 1.0f);
+	FW_GL_NORMAL3F (0.0f, 0.0f, 1.0f);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-#ifndef IPHONE
 	FW_GL_DRAWARRAYS (GL_QUADS, 0, 4);
-#endif
 	textureDraw_end();
 	FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 	trisThisLoop += 2;

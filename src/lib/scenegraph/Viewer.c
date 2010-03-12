@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.47 2010/03/10 21:29:52 sdumoulin Exp $
+$Id: Viewer.c,v 1.48 2010/03/12 17:07:57 crc_canada Exp $
 
 CProto ???
 
@@ -1205,23 +1205,23 @@ int initAnaglyphShaders()
 	retval = 1;
 	for(i=0;i<6;i++)
 	{
-		shader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(shader,1,src[i],NULL);
-		glCompileShader(shader);
-		glGetShaderiv(shader,GL_COMPILE_STATUS,&compiled);
+		shader = CREATE_SHADER(GL_FRAGMENT_SHADER);
+		SHADER_SOURCE(shader,1,src[i],NULL);
+		COMPILE_SHADER(shader);
+		GET_SHADER_INFO(shader,GL_COMPILE_STATUS,&compiled);
 		if(!compiled){
 			GLint length;
 			GLchar* log;
-			glGetShaderiv(shader,GL_INFO_LOG_LENGTH,&length);
+			GET_SHADER_INFO(shader,GL_INFO_LOG_LENGTH,&length);
 			log = (GLchar*)malloc(length);
 			glGetShaderInfoLog(shader,length,&length,log);
 			fprintf(stderr,"compile log - '%s\n",log);
 			retval = 0;
 			break;
 		}
-		program = glCreateProgram();
-		glAttachShader(program,shader);
-		glLinkProgram(program);
+		program = CREATE_SHADER;
+		ATTACH_SHADER(program,shader);
+		LINK_SHADER(program);
 
 		glGetProgramiv(program,GL_LINK_STATUS,&linked);
 
@@ -1271,8 +1271,8 @@ void deleteAnaglyphShaders()
 	if(!rdr_caps.have_GL_VERSION_2_0) return;
 	for(i=0;i<6;i++)
 	{
-		glDeleteShader(Viewer.shaders[i]);
-		glDeleteProgram(Viewer.programs[i]);
+		DELETE_SHADER(Viewer.shaders[i]);
+		DELETE_PROGRAM(Viewer.programs[i]);
 	}
 }
 
@@ -1397,7 +1397,7 @@ void viewer_postGLinit_init(void)
 {
 	GLboolean quadbuffer;
 	int type;
-	glGetBooleanv(GL_STEREO,&quadbuffer);
+	FW_GL_GETBOOLEANV(GL_STEREO,&quadbuffer);
 	Viewer.haveQuadbuffer = (quadbuffer == GL_TRUE);
 	Viewer.haveAnaglyphShader = initAnaglyphShaders();
 	updateEyehalf();

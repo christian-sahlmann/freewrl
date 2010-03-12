@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarConsole.c,v 1.3 2010/03/12 14:36:22 crc_canada Exp $
+  $Id: statusbarConsole.c,v 1.4 2010/03/12 17:07:57 crc_canada Exp $
 
 */
 
@@ -369,7 +369,7 @@ void fwMakeRasterFonts()
 	GLuint fwFontOffset7x14;
 	GLuint fwFontOffset8x15;
 
-   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+   FW_GL_PIXELSTOREI(GL_UNPACK_ALIGNMENT, 1);
    fwFontOffset7x12 = FW_GL_GENLISTS (128);
    for(i=0;i<128;i++)
    {
@@ -444,19 +444,19 @@ XY text2screen( int col, int row)
 void initFont(void)
 {
 	/*initialize raster bitmap font above */
-   glShadeModel (GL_FLAT);
+   FW_GL_SHADEMODEL (GL_FLAT);
    fwMakeRasterFonts();
    fontInitialized = 1;
 }
 int bmfontsize = 2; /* 0,1 or 2 */
 void printString(char *s)
 {
-   glPushAttrib (GL_LIST_BIT);
+   FW_GL_PUSHATTRIB(GL_LIST_BIT);
    FW_GL_LISTBASE(fwFontOffset[bmfontsize]);
    bmWH.x = fwFontSize[bmfontsize].x;
    bmWH.y = fwFontSize[bmfontsize].y;
    FW_GL_CALLLISTS(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
-   glPopAttrib ();
+   FW_GL_POPATTRIB();
 }
 
 static int sb_hasString = FALSE;
@@ -639,6 +639,6 @@ void drawStatusBar()
 
 	FW_GL_DEPTHMASK(TRUE);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
-	glFlush();
+	FW_GL_FLUSH();
 
 }

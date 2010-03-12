@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.10 2010/02/27 21:02:25 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.11 2010/03/12 17:07:57 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -179,10 +179,10 @@ void ixxrender_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *node)
 		}
 	}
 	
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	
 	for (i = 0; i < 6; i++) {
-		glTexImage2D(
+		FW_GL_TEXIMAGE2D(
 			cubefaces[i],
 			0,                  // level
 			GL_RGBA8,          // internal format
@@ -194,12 +194,12 @@ void ixxrender_ComposedCubeMapTexture(struct X3D_ComposedCubeMapTexture *node)
 			CubeMap[CUBE_POS_X + i]); // pixel data
 	}
 	
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	
-	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-	glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+	FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+	FW_GL_TEXGENI(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+	FW_GL_TEXGENI(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 	FW_GL_ENABLE(GL_TEXTURE_CUBE_MAP_EXT);
 	FW_GL_ENABLE(GL_TEXTURE_GEN_S);
 	FW_GL_ENABLE(GL_TEXTURE_GEN_T);

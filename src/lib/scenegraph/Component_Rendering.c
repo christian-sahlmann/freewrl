@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.17 2010/03/12 14:36:22 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.18 2010/03/12 17:07:57 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -343,7 +343,7 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	if (node->__segCount > 0) {
 		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
 		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
-		glVertexPointer (3,GL_FLOAT,0,node->__vertices);
+		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,node->__vertices);
 
 		if (node->__colours) {
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
@@ -458,7 +458,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 	/* draw the shape */
 	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 
-	glVertexPointer (3,GL_FLOAT,0,points);
+	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,points);
 	FW_GL_DRAWARRAYS(GL_POINTS,0,npoints);
 
 	/* put things back to normal */
@@ -510,7 +510,7 @@ void render_LineSet (struct X3D_LineSet *node) {
 		}
 		points = getCoordinate(node->coord, "LineSet");
 
-		glVertexPointer (3,GL_FLOAT,0,points->p);
+		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,points->p);
 
 		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
 		indices = node->__vertIndx;

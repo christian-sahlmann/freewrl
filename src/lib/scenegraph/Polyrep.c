@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.21 2010/03/12 14:36:22 crc_canada Exp $
+$Id: Polyrep.c,v 1.22 2010/03/12 17:07:57 crc_canada Exp $
 
 ???
 
@@ -823,7 +823,7 @@ void render_polyrep(void *node) {
 	}
 
 	/*  clockwise or not?*/
-	if (!r->ccw) { glFrontFace(GL_CW); }
+	if (!r->ccw) { FW_GL_FRONTFACE(GL_CW); }
 
 	/*  status bar, text do not have normals*/
 	if (r->normal) FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal);
@@ -843,7 +843,7 @@ void render_polyrep(void *node) {
 	}
 
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-	glVertexPointer(3,GL_FLOAT,0,(GLfloat *) r->actualCoord);
+	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *) r->actualCoord);
 	FW_GL_DRAWELEMENTS(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
 
 	trisThisLoop += r->ntri;
@@ -887,7 +887,7 @@ void render_polyrep(void *node) {
 		textureDraw_end();
 	}
 
-	if (!r->ccw) glFrontFace(GL_CCW);
+	if (!r->ccw) FW_GL_FRONTFACE(GL_CCW);
 }
 
 
