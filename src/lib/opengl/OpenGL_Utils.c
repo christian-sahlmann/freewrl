@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.113 2010/03/12 17:07:57 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.114 2010/03/12 21:00:15 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -203,7 +203,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	inTextPointer = readInputString(inTextFile);
 	if (inTextPointer==NULL) return;
 	
-	(*myShader).myShaderProgram = CREATE_SHADER;
+	(*myShader).myShaderProgram = CREATE_PROGRAM;
 	myProg = (*myShader).myShaderProgram;
 
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);

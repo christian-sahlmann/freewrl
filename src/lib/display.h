@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.66 2010/03/12 17:07:56 crc_canada Exp $
+  $Id: display.h,v 1.67 2010/03/12 21:00:15 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -344,7 +344,8 @@ void setScreenDim(int wi, int he);
 	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER
 	#define SHADER_SOURCE glShaderSource
 	#define COMPILE_SHADER glCompileShader
-	#define CREATE_SHADER glCreateProgram();
+	#define CREATE_PROGRAM glCreateProgram();
+	#define CREATE_SHADER glCreateShader
 	#define ATTACH_SHADER glAttachShader
 	#define LINK_SHADER glLinkProgram
 	#define DELETE_SHADER glDeleteShader
@@ -373,7 +374,8 @@ void setScreenDim(int wi, int he);
 	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER_ARB
 	#define SHADER_SOURCE glShaderSourceARB
 	#define COMPILE_SHADER glCompileShaderARB
-	#define CREATE_SHADER glCreateProgramObjectARB();
+	#define CREATE_PROGRAM glCreateProgramObjectARB();
+	#define CREATE_SHADER glCreateShaderARB
 	#define ATTACH_SHADER glAttachObjectARB
 	#define LINK_SHADER glLinkProgramARB
 	#define DELETE_SHADER glDeleteShaderARB
@@ -475,8 +477,8 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_CLEAR_DEPTH(aaa) glClearDepth(aaa); 
 	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) glFrustum(aaa,bbb,ccc,ddd,eee,fff);
 	#define FW_GL_BLENDFUNC(aaa,bbb) glBlendFunc(aaa,bbb);
-	#define FW_GL_LIGHTFV(aaa,bbb,ccc) fwglLightfv(aaa,bbb,ccc);
-	#define FW_GL_LIGHTF(aaa,bbb,ccc) fwglLightf(aaa,bbb,ccc);
+	#define FW_GL_LIGHTFV(aaa,bbb,ccc) glLightfv(aaa,bbb,ccc);
+	#define FW_GL_LIGHTF(aaa,bbb,ccc) glLightf(aaa,bbb,ccc);
 	#define FW_GL_HINT(aaa,bbb) glHint(aaa,bbb); 
 	#define FW_GL_CLEAR(zzz) glClear(zzz); 
 	#define FW_GL_DEPTHFUNC(zzz) glDepthFunc(zzz); 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.48 2010/03/12 17:07:57 crc_canada Exp $
+$Id: Viewer.c,v 1.49 2010/03/12 21:00:15 crc_canada Exp $
 
 CProto ???
 
@@ -1219,7 +1219,7 @@ int initAnaglyphShaders()
 			retval = 0;
 			break;
 		}
-		program = CREATE_SHADER;
+		program = CREATE_PROGRAM;
 		ATTACH_SHADER(program,shader);
 		LINK_SHADER(program);
 

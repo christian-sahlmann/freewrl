@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.40 2010/03/12 17:07:57 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.41 2010/03/12 21:00:15 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -920,7 +920,7 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 		/* initialization */
 		haveVertShaderText = FALSE;
 		haveFragShaderText = FALSE;
-		myProgram = CREATE_SHADER;
+		myProgram = CREATE_PROGRAM;
 
 		/* can we do shaders at runtime? */
 		CHECK_SHADERS
@@ -957,7 +957,7 @@ void compile_ProgramShader (struct X3D_ProgramShader *node) {
 		/* initialization */
 		haveVertShaderText = FALSE;
 		haveFragShaderText = FALSE;
-		myProgram = CREATE_SHADER;
+		myProgram = CREATE_PROGRAM;
 	
 		CHECK_SHADERS
 		vertShaderSource = MALLOC(sizeof(GLchar*) * node->programs.n); 
