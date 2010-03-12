@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.19 2010/02/27 21:02:25 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.20 2010/03/12 14:36:22 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -660,16 +660,16 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
 		this->numPoints = -1;
 	}
 
-        glBegin(GL_POINTS);
+        FW_GL_BEGIN (GL_POINTS);
         for(i=this->startIndex; i<this->numPoints; i++) {
 		if (renderMatOver) renderSpecificMaterial (i);
-                glVertex3f(
+                FW_GL_VERTEX3F(
                         points[i].c[0],
                         points[i].c[1],
                         points[i].c[2]
                 );
         }
-        glEnd();
+        FW_GL_END();
 }
 
 

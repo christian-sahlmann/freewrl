@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.51 2010/03/11 18:46:51 sdumoulin Exp $
+  $Id: Textures.c,v 1.52 2010/03/12 14:36:21 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -216,7 +216,7 @@ void releaseTexture(struct X3D_Node *node) {
 	ti = getTableIndex(tableIndex);
 	ti->status = TEX_NOTLOADED;
 	if (ti->OpenGLTexture != TEXTURE_INVALID) {
-		glDeleteTextures(1, &ti->OpenGLTexture);
+		FW_GL_DELETETEXTURES(1, &ti->OpenGLTexture);
 		ti->OpenGLTexture = TEXTURE_INVALID;
 /* 		FREE_IF_NZ(ti->OpenGLTexture); */
 	}
@@ -238,7 +238,7 @@ void kill_openGLTextures()
 		for (count = 0; count < 32; count ++) {
 			if (listRunner->entry[count].OpenGLTexture != TEXTURE_INVALID) {
 				DEBUG_TEX("deleting %u\n", listRunner->entry[count].OpenGLTexture);
-				glDeleteTextures(1, &listRunner->entry[count].OpenGLTexture);
+				FW_GL_DELETETEXTURES(1, &listRunner->entry[count].OpenGLTexture);
 				listRunner->entry[count].OpenGLTexture = TEXTURE_INVALID;
 /* 				FREE_IF_NZ (listRunner->entry[count].OpenGLTexture); */
 				listRunner->entry[count].frames = 0;
@@ -951,7 +951,7 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	}
 
 
-	glBindTexture (GL_TEXTURE_2D, me->OpenGLTexture);
+	FW_GL_BINDTEXTURE (GL_TEXTURE_2D, me->OpenGLTexture);
 	
 	/* save this to determine whether we need to do material node
 	  within appearance or not */

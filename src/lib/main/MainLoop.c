@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.108 2010/03/04 20:52:30 crc_canada Exp $
+  $Id: MainLoop.c,v 1.109 2010/03/12 14:36:21 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -268,17 +268,6 @@ void EventLoop() {
         if (BrowserAction) {
                 BrowserAction = doBrowserAction ();
         }
-
-#if defined (TARGET_AQUA)
-#ifndef IPHONE
-	if (myglobalContext == NULL) {
-		printf ("myglobalContext  is NULL in EventLoop, skipping...\n"); 
-		usleep(100000);
-		return;
-	}
-#endif
-#endif
-
 
         /* has the default background changed? */
         if (cc_changed) doglClearColor();
@@ -761,14 +750,10 @@ void setup_projection(int pick, int x, int y)
 #endif
 #endif
 		glViewport(xvp, clipPlane, screenwidth2, screenHeight);
-		/*
-		if (myglobalContext != NULL)
-			aglUpdateContext(myglobalContext);
-		*/
         FW_GL_LOAD_IDENTITY();
         if(pick) {
                 /* picking for mouse events */
-                glGetIntegerv(GL_VIEWPORT,viewPort2);
+                FW_GL_GETINTEGERV(GL_VIEWPORT,viewPort2);
                 FW_GLU_PICK_MATRIX((float)x,(float)viewPort2[3]-y,
                         (float)100,(float)100,viewPort2);
         }
@@ -806,7 +791,7 @@ static void render()
 
 		Viewer.buffer = (unsigned)bufferarray[count]; 
 		Viewer.iside = count;
-		glDrawBuffer((unsigned)bufferarray[count]);
+		FW_GL_DRAWBUFFER((unsigned)bufferarray[count]);
 
         /*  turn lights off, and clear buffer bits*/
 
@@ -845,10 +830,7 @@ static void render()
 	if (!get_headlight()) {
 		lightState(HEADLIGHT_LIGHT,FALSE);
 	}
-/*
-                myglobalContext = CGLGetCurrentContext();
-		CGLSetCurrentContext(myglobalContext);
-*/
+
 	/*  Other lights*/
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, before render_hier");
 	
@@ -873,12 +855,12 @@ static void render()
 			{
 				if (count==0) {
 					glUseProgram(0);
-					glAccum(GL_LOAD,1.0); 
+					FW_GL_ACCUM(GL_LOAD,1.0); 
 				}
 				else if(count==1) {
 					glUseProgram(0);
-					glAccum(GL_ACCUM,1.0); 
-					glAccum(GL_RETURN,1.0);
+					FW_GL_ACCUM(GL_ACCUM,1.0); 
+					FW_GL_ACCUM(GL_RETURN,1.0);
 				}
 			}
 		}

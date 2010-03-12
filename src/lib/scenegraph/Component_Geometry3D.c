@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.23 2010/03/11 18:46:51 sdumoulin Exp $
+$Id: Component_Geometry3D.c,v 1.24 2010/03/12 14:36:22 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -109,7 +109,7 @@ void render_Box (struct X3D_Box *node) {
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	textureDraw_start(NULL,boxtex);
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
-	glNormalPointer (GL_FLOAT,0,boxnorms);
+	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 #ifndef IPHONE
@@ -187,7 +187,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
 
 	if (node->side) {
-		glNormalPointer (GL_FLOAT,0,cylnorms);
+		FW_GL_NORMAL_POINTER (GL_FLOAT,0,cylnorms);
 		textureDraw_start(NULL,cylsidetex);
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
@@ -198,7 +198,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		textureDraw_start(NULL,cylendtex);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		glNormal3f(0.0f,-1.0f,0.0f);
-		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cylbotindx);
+		FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cylbotindx);
 		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		trisThisLoop += CYLDIV+2;
 	}
@@ -207,7 +207,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		textureDraw_start(NULL,cylendtex);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		glNormal3f(0.0f,1.0f,0.0f);
-		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
+		FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
 		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		trisThisLoop += CYLDIV+2;
 	}
@@ -322,14 +322,14 @@ void render_Cone (struct X3D_Cone *node) {
 		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__botpoints);
 		textureDraw_start(NULL,tribottex);
 		glNormal3f(0.0f,-1.0f,0.0f);
-		glDrawElements (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
+		FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
 		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		trisThisLoop += CONEDIV+2;
 	}
 
 	if(node->side) {
 		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__sidepoints);
-		glNormalPointer (GL_FLOAT,0,(GLfloat *)node->__normals);
+		FW_GL_NORMAL_POINTER (GL_FLOAT,0,(GLfloat *)node->__normals);
 		textureDraw_start(NULL,trisidtex);
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
@@ -435,7 +435,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 	textureDraw_start(NULL,spheretex);
 
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
-	glNormalPointer (GL_FLOAT,0,spherenorms);
+	FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);
 
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 	/* for (count = 0; count < SPHDIV; count ++) { */
@@ -789,10 +789,10 @@ int collisionSphere_render(double radius)
 		pts[0] = collisionSphere.pts[collisionSphere.tris[i][0]];
 		pts[1] = collisionSphere.pts[collisionSphere.tris[i][1]];
 		pts[2] = collisionSphere.pts[collisionSphere.tris[i][2]];
-		glBegin(GL_TRIANGLES);
+		FW_GL_BEGIN(GL_TRIANGLES);
 		for(j=0;j<3;j++)
-			glVertex3d(pts[j].x*radius,pts[j].y*radius,pts[j].z*radius);
-		glEnd();
+			FW_GL_VERTEX3D(pts[j].x*radius,pts[j].y*radius,pts[j].z*radius);
+		FW_GL_END();
 	}
 	return 0;
 }
@@ -1168,10 +1168,10 @@ int collisionCone_render(double r, double h)
 		pts[0] = collisionCone.pts[collisionCone.tris[i][0]];
 		pts[1] = collisionCone.pts[collisionCone.tris[i][1]];
 		pts[2] = collisionCone.pts[collisionCone.tris[i][2]];
-		glBegin(GL_TRIANGLES);
+		FW_GL_BEGIN(GL_TRIANGLES);
 		for(j=0;j<3;j++)
-			glVertex3d(pts[j].x*r,pts[j].y*h,pts[j].z*r);
-		glEnd();
+			FW_GL_VERTEX3D(pts[j].x*r,pts[j].y*h,pts[j].z*r);
+		FW_GL_END();
 	}
 	return 0;
 }
@@ -1396,10 +1396,10 @@ int collisionCylinder_render(double r, double h)
 		pts[0] = collisionCylinder.pts[collisionCylinder.tris[i][0]];
 		pts[1] = collisionCylinder.pts[collisionCylinder.tris[i][1]];
 		pts[2] = collisionCylinder.pts[collisionCylinder.tris[i][2]];
-		glBegin(GL_TRIANGLES);
+		FW_GL_BEGIN(GL_TRIANGLES);
 		for(j=0;j<3;j++)
-			glVertex3d(pts[j].x*r,pts[j].y*h,pts[j].z*r);
-		glEnd();
+			FW_GL_VERTEX3D(pts[j].x*r,pts[j].y*h,pts[j].z*r);
+		FW_GL_END();
 	}
 	for(i =0; i < collisionCylinder.nquads; i++)  
 	{ 
@@ -1409,10 +1409,10 @@ int collisionCylinder_render(double r, double h)
 		pts[2] = collisionCylinder.pts[collisionCylinder.quads[i][2]];
 		pts[3] = collisionCylinder.pts[collisionCylinder.quads[i][3]];
 #ifndef IPHONE
-		glBegin(GL_QUADS);
+		FW_GL_BEGIN(GL_QUADS);
 		for(j=0;j<4;j++)
-			glVertex3d(pts[j].x*r,pts[j].y*h,pts[j].z*r);
-		glEnd();
+			FW_GL_VERTEX3D(pts[j].x*r,pts[j].y*h,pts[j].z*r);
+		FW_GL_END();
 #endif
 	}
 	return 0;

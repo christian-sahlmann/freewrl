@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.h,v 1.5 2010/03/08 19:26:25 crc_canada Exp $
+$Id: Material.h,v 1.6 2010/03/12 14:36:21 crc_canada Exp $
 
 Global includes.
 
@@ -43,7 +43,7 @@ Global includes.
 			thisColor = defColor; \
 		}
 
-#define DO_COLOUR_POINTER                glColor3fv (thisColor);
+#define DO_COLOUR_POINTER                FW_GL_COLOR3FV (thisColor);
 
 
 extern GLfloat last_emission[4];

@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.45 2010/03/10 16:09:23 istakenv Exp $
+  $Id: display.c,v 1.46 2010/03/12 14:36:21 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -81,13 +81,6 @@ GLenum _global_gl_err;
 
 #ifndef IPHONE
 CGLContextObj myglobalContext;
-#ifdef OLDCODE
-AGLContext aqglobalContext; 
-
-GLboolean cErr;
-
-GDHandle gGDevice;
-#endif
 
 int ccurse = ACURSE;
 int ocurse = ACURSE;
@@ -95,9 +88,6 @@ int ocurse = ACURSE;
 /* for handling Safari window changes at the top of the display event loop */
 int PaneClipnpx;
 int PaneClipnpy;
-#ifdef OLDCODE
-OLDCODE WindowPtr PaneClipfwWindow;
-#endif
 
 int PaneClipct;
 int PaneClipcb;
@@ -146,31 +136,15 @@ int display_initialize()
 	bind_GLcontext();
 #endif
 #else
-#ifdef OLDCODE
-OLDCODE	if (RUNNINGASPLUGIN) {  // commented out
-OLDCODE         	aglSetCurrentContext(aqglobalContext); 
-OLDCODE	}
-#endif
 #endif /* TARGET_AQUA */
 
 	if (!initialize_GL()) {
 		return FALSE;
 	}
 
-#ifdef OLDCODE
-	/* initialize raster font 
-	   font is just an example picked up with xfontsel...
-	   we handle only XFont here... we'll come with a cross
-	   platform soon :)...
-	 */
-	if (!rf_xfont_init("-*-bitstream vera sans mono-medium-r-*-*-*-120-*-*-*-*-*-*")) {
-		ERROR_MSG("could not initialize raster font\n");
-	}
-#endif
-
 	/* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
 	glGenTextures(1,&defaultBlankTexture);
-	glBindTexture (GL_TEXTURE_2D, defaultBlankTexture);
+	FW_GL_BINDTEXTURE (GL_TEXTURE_2D, defaultBlankTexture);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
@@ -231,10 +205,10 @@ bool initialize_rdr_caps()
 {
 	/* OpenGL is initialized, context is created,
 	   get some info, for later use ...*/
-        rdr_caps.renderer   = (char *) glGetString(GL_RENDERER);
-        rdr_caps.version    = (char *) glGetString(GL_VERSION);
-        rdr_caps.vendor     = (char *) glGetString(GL_VENDOR);
-	rdr_caps.extensions = (char *) glGetString(GL_EXTENSIONS);
+        rdr_caps.renderer   = (char *) FW_GL_GETSTRING(GL_RENDERER);
+        rdr_caps.version    = (char *) FW_GL_GETSTRING(GL_VERSION);
+        rdr_caps.vendor     = (char *) FW_GL_GETSTRING(GL_VENDOR);
+	rdr_caps.extensions = (char *) FW_GL_GETSTRING(GL_EXTENSIONS);
 	/* rdr_caps.version = "1.5.7"; //"1.4.1"; //for testing */
     rdr_caps.versionf = (float) atof(rdr_caps.version); 
 	/* atof technique: http://www.opengl.org/resources/faq/technical/extensions.htm */
@@ -288,11 +262,11 @@ bool initialize_rdr_caps()
 #endif
 
 	/* Max texture size */
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &rdr_caps.max_texture_size);
-	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &rdr_caps.texture_units);
+	FW_GL_GETINTEGERV(GL_MAX_TEXTURE_SIZE, &rdr_caps.max_texture_size);
+	FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &rdr_caps.texture_units);
 
 	/* max supported texturing anisotropicDegree- can be changed in TextureProperties */
-	glGetFloatv (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &rdr_caps.anisotropicDegree);
+	FW_GL_GETFLOATV (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &rdr_caps.anisotropicDegree);
 
 	/* User settings in environment */
 

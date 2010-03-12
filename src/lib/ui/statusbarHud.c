@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.11 2010/02/23 00:44:11 dug9 Exp $
+  $Id: statusbarHud.c,v 1.12 2010/03/12 14:36:22 crc_canada Exp $
 
 */
 
@@ -453,8 +453,8 @@ GLubyte level[] = {
 
 /*fw fixed size bitmap fonts >>>
 first 1: char # 0-127 (ie '!'=33, 'a'=97)
-next 6: glBitmap(width,height,xbo,ybo,xadv,yadv,
-last 7+: glBitmap(,,,,,,const GLubyte *bitmap);
+next 6: FW_GL_BITMAP(width,height,xbo,ybo,xadv,yadv,
+last 7+: FW_GL_BITMAP(,,,,,,const GLubyte *bitmap);
 */
 GLubyte fwLetters7x12[][19] = {
 {32,7,12,0,0,7,0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0},
@@ -773,11 +773,11 @@ void fwMakeRasterFonts()
 		ichar = fwLetters7x12[i][0];
 		if( ichar == 255 )break;
 	   glNewList(fwFontOffset7x12 + fwLetters7x12[i][0],GL_COMPILE);
-	   glBitmap((GLsizei)fwLetters7x12[i][1],(GLsizei)fwLetters7x12[i][2],
+	   FW_GL_BITMAP((GLsizei)fwLetters7x12[i][1],(GLsizei)fwLetters7x12[i][2],
 		   (GLfloat)fwLetters7x12[i][3],(GLfloat)fwLetters7x12[i][4],
 		   (GLfloat)fwLetters7x12[i][5], (GLfloat)fwLetters7x12[i][6],
 		   &fwLetters7x12[i][7]);
-	   glEndList();
+	   FW_GL_ENDLIST();
    }
    fwFontOffset7x14 = glGenLists (128);
    for(i=0;i<128;i++)
@@ -785,11 +785,11 @@ void fwMakeRasterFonts()
 		ichar = fwLetters7x14[i][0];
 		if( ichar == 255 )break;
 	   glNewList(fwFontOffset7x14 + fwLetters7x14[i][0],GL_COMPILE);
-	   glBitmap((GLsizei)fwLetters7x14[i][1],(GLsizei)fwLetters7x14[i][2],
+	   FW_GL_BITMAP((GLsizei)fwLetters7x14[i][1],(GLsizei)fwLetters7x14[i][2],
 		   (GLfloat)fwLetters7x14[i][3],(GLfloat)fwLetters7x14[i][4],
 		   (GLfloat)fwLetters7x14[i][5], (GLfloat)fwLetters7x14[i][6],
 		   &fwLetters7x14[i][7]);
-	   glEndList();
+	   FW_GL_ENDLIST();
    }
    fwFontOffset8x15 = glGenLists (128);
    for(i=0;i<128;i++)
@@ -797,11 +797,11 @@ void fwMakeRasterFonts()
 		ichar = fwLetters8x15[i][0];
 		if( ichar == 255 )break;
 	   glNewList(fwFontOffset8x15 + fwLetters8x15[i][0],GL_COMPILE);
-	   glBitmap((GLsizei)fwLetters8x15[i][1],(GLsizei)fwLetters8x15[i][2],
+	   FW_GL_BITMAP((GLsizei)fwLetters8x15[i][1],(GLsizei)fwLetters8x15[i][2],
 		   (GLfloat)fwLetters8x15[i][3],(GLfloat)fwLetters8x15[i][4],
 		   (GLfloat)fwLetters8x15[i][5], (GLfloat)fwLetters8x15[i][6],
 		   &fwLetters8x15[i][7]);
-	   glEndList();
+	   FW_GL_ENDLIST();
    }
    fwFontOffset[0] = fwFontOffset7x12;
    fwFontOffset[1] = fwFontOffset7x14;
@@ -828,10 +828,10 @@ int bmfontsize = 2; /* 0,1 or 2 */
 void printString(char *s)
 {
    glPushAttrib (GL_LIST_BIT);
-   glListBase(fwFontOffset[bmfontsize]);
+   FW_GL_LISTBASE(fwFontOffset[bmfontsize]);
    bmWH.x = fwFontSize[bmfontsize].x;
    bmWH.y = fwFontSize[bmfontsize].y;
-   glCallLists(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
+   FW_GL_CALLLISTS(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
    glPopAttrib ();
 }
 
@@ -980,7 +980,7 @@ void printTextCursor()
 	rgba[0] = .5f; rgba[1] = .5f; rgba[2] = .5f, rgba[3] = .75f;
 	FW_GL_WINDOWPOS2I(cxy.x,cxy.y);
 	FW_GL_PIXELZOOM(bmWH.x,bmWH.y); 
-	glDrawPixels(1,1,GL_RGBA,GL_FLOAT,rgba);
+	FW_GL_DRAWPIXELS(1,1,GL_RGBA,GL_FLOAT,rgba);
 	//restore
 	FW_GL_PIXELZOOM(1.0f,1.0f);
 }
@@ -1462,7 +1462,7 @@ void renderButtons()
 				rgba[0] = .8f; rgba[1] = .87f; rgba[2] = .97f, rgba[3] = 1.0f;
 				FW_GL_WINDOWPOS2I(butrect[0][i],butrect[1][i]);
 				FW_GL_PIXELZOOM((float)(butrect[2][i]-butrect[0][i]),(float)(butrect[3][i]-butrect[1][i]));
-				glDrawPixels(1,1,GL_RGBA,GL_FLOAT,rgba);
+				FW_GL_DRAWPIXELS(1,1,GL_RGBA,GL_FLOAT,rgba);
 				//restore
 				FW_GL_PIXELZOOM(zoomfactor,zoomfactor); //.5f,.5f);
 			}
@@ -1476,9 +1476,9 @@ void renderButtons()
 			}
 			FW_GL_WINDOWPOS2I(butrect[0][i],butrect[1][i]);
 			if(buttonType==0)
-				glDrawPixels(butts[i][0].x,butts[i][0].y,GL_BGRA,GL_UNSIGNED_BYTE,butts[i][butStatus[i]].texdata);
+				FW_GL_DRAWPIXELS(butts[i][0].x,butts[i][0].y,GL_BGRA,GL_UNSIGNED_BYTE,butts[i][butStatus[i]].texdata);
 			else if(buttonType==1)
-				glBitmap(32,32, 0.0f, 0.0f, 0.0f, 0.0f, bmIcon[i]);
+				FW_GL_BITMAP(32,32, 0.0f, 0.0f, 0.0f, 0.0f, bmIcon[i]);
 
 		}
 	}

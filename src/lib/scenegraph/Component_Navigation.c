@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.29 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.30 2010/03/12 14:36:22 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -82,7 +82,7 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 
 	/* now, lets work on the Viewpoint fieldOfView */
-	glGetIntegerv(GL_VIEWPORT, viewPort);
+	FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
 	if(viewPort[2] > viewPort[3]) {
 		a1=0;
 		fieldofview = node->fieldOfView/3.1415926536*180;

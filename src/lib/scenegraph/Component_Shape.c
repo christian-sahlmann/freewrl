@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.37 2010/03/08 19:26:25 crc_canada Exp $
+$Id: Component_Shape.c,v 1.38 2010/03/12 14:36:22 crc_canada Exp $
 
 X3D Shape Component
 
@@ -68,7 +68,7 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 	if (node->applied) {
 		linePropertySet=TRUE;
 		if (node->linewidthScaleFactor > 1.0) {
-			glLineWidth(node->linewidthScaleFactor);
+			FW_GL_LINEWIDTH(node->linewidthScaleFactor);
 			FW_GL_POINTSIZE(node->linewidthScaleFactor);
 		}
 			
@@ -583,7 +583,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 	if (linePropertySet) {
 		FW_GL_DISABLE (GL_LINE_STIPPLE);
-		glLineWidth(1.0f);
+		FW_GL_LINEWIDTH(1.0f);
 		FW_GL_POINTSIZE(1.0f);
 	}
 

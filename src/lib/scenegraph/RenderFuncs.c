@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.47 2010/03/01 12:32:59 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.48 2010/03/12 14:36:22 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -119,7 +119,7 @@ void restoreLightState(int *ls) {
 
 void fwglLightfv (int light, int pname, GLfloat *params) {
 	/* printf ("glLightfv %d %d %f %f %f %f\n",light,pname,params[0], params[1],params[2],params[3]);  */
-	glLightfv(GL_LIGHT0+light,pname,params);
+	FW_GL_LIGHTFV(GL_LIGHT0+light,pname,params);
 	switch (pname) {
 		case GL_AMBIENT:
 			memcpy ((void *)light_amb[light],(void *)params,sizeof(shaderVec4));
@@ -143,7 +143,7 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 
 void fwglLightf (int light, int pname, GLfloat param) {
 	/* printf ("glLightf %d %d %f\n",light,pname,param);  */
-	glLightf(GL_LIGHT0+light,pname,param);
+	FW_GL_LIGHTF(GL_LIGHT0+light,pname,param);
 	switch (pname) {
 		case GL_CONSTANT_ATTENUATION:
 			light_constAtten[light] = param;
@@ -193,16 +193,16 @@ void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_T
 			break;
 		case noLightNoTextureAppearanceShader:
 			/* send up material selection to shader */
-			glUniform4fv(currentShaderStruct->myMaterialEmission,1,material_oneSided->_ecol.c);
+			GLUNIFORM4FV(currentShaderStruct->myMaterialEmission,1,material_oneSided->_ecol.c);
 			break;
 		case genericHeadlightNoTextureAppearanceShader:
 			/* send up material selection to shader */
 
-			glUniform4fv(currentShaderStruct->myMaterialAmbient,1,material_oneSided->_amb.c);
-			glUniform4fv(currentShaderStruct->myMaterialDiffuse,1,material_oneSided->_dcol.c);
-			glUniform4fv(currentShaderStruct->myMaterialSpecular,1,material_oneSided->_scol.c);
-			glUniform1f(currentShaderStruct->myMaterialShininess,material_oneSided->_shin);
-			glUniform4fv(currentShaderStruct->myMaterialEmission,1,material_oneSided->_ecol.c);
+			GLUNIFORM4FV(currentShaderStruct->myMaterialAmbient,1,material_oneSided->_amb.c);
+			GLUNIFORM4FV(currentShaderStruct->myMaterialDiffuse,1,material_oneSided->_dcol.c);
+			GLUNIFORM4FV(currentShaderStruct->myMaterialSpecular,1,material_oneSided->_scol.c);
+			GLUNIFORM1F(currentShaderStruct->myMaterialShininess,material_oneSided->_shin);
+			GLUNIFORM4FV(currentShaderStruct->myMaterialEmission,1,material_oneSided->_ecol.c);
 			break;
 		default: {}; /* invalid shader here... */
 	}

@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarConsole.c,v 1.2 2010/01/05 21:37:33 crc_canada Exp $
+  $Id: statusbarConsole.c,v 1.3 2010/03/12 14:36:22 crc_canada Exp $
 
 */
 
@@ -56,8 +56,8 @@
 
 /*fw fixed size bitmap fonts >>>
 first 1: char # 0-127 (ie '!'=33, 'a'=97)
-next 6: glBitmap(width,height,xbo,ybo,xadv,yadv,
-last 7+: glBitmap(,,,,,,const GLubyte *bitmap);
+next 6: FW_GL_BITMAP(width,height,xbo,ybo,xadv,yadv,
+last 7+: FW_GL_BITMAP(,,,,,,const GLubyte *bitmap);
 */
 GLubyte fwLetters7x12[][19] = {
 {32,7,12,0,0,7,0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0},
@@ -370,41 +370,41 @@ void fwMakeRasterFonts()
 	GLuint fwFontOffset8x15;
 
    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-   fwFontOffset7x12 = glGenLists (128);
+   fwFontOffset7x12 = FW_GL_GENLISTS (128);
    for(i=0;i<128;i++)
    {
 		ichar = fwLetters7x12[i][0];
 		if( ichar == 255 )break;
-	   glNewList(fwFontOffset7x12 + fwLetters7x12[i][0],GL_COMPILE);
-	   glBitmap((GLsizei)fwLetters7x12[i][1],(GLsizei)fwLetters7x12[i][2],
+	   FW_GL_NEWLIST(fwFontOffset7x12 + fwLetters7x12[i][0],GL_COMPILE);
+	   FW_GL_BITMAP((GLsizei)fwLetters7x12[i][1],(GLsizei)fwLetters7x12[i][2],
 		   (GLfloat)fwLetters7x12[i][3],(GLfloat)fwLetters7x12[i][4],
 		   (GLfloat)fwLetters7x12[i][5], (GLfloat)fwLetters7x12[i][6],
 		   &fwLetters7x12[i][7]);
-	   glEndList();
+	   FW_GL_ENDLIST();
    }
-   fwFontOffset7x14 = glGenLists (128);
+   fwFontOffset7x14 = FW_GL_GENLISTS (128);
    for(i=0;i<128;i++)
    {
 		ichar = fwLetters7x14[i][0];
 		if( ichar == 255 )break;
-	   glNewList(fwFontOffset7x14 + fwLetters7x14[i][0],GL_COMPILE);
-	   glBitmap((GLsizei)fwLetters7x14[i][1],(GLsizei)fwLetters7x14[i][2],
+	   FW_GL_NEWLIST(fwFontOffset7x14 + fwLetters7x14[i][0],GL_COMPILE);
+	   FW_GL_BITMAP((GLsizei)fwLetters7x14[i][1],(GLsizei)fwLetters7x14[i][2],
 		   (GLfloat)fwLetters7x14[i][3],(GLfloat)fwLetters7x14[i][4],
 		   (GLfloat)fwLetters7x14[i][5], (GLfloat)fwLetters7x14[i][6],
 		   &fwLetters7x14[i][7]);
-	   glEndList();
+	   FW_GL_ENDLIST();
    }
-   fwFontOffset8x15 = glGenLists (128);
+   fwFontOffset8x15 = FW_GL_GENLISTS (128);
    for(i=0;i<128;i++)
    {
 		ichar = fwLetters8x15[i][0];
 		if( ichar == 255 )break;
-	   glNewList(fwFontOffset8x15 + fwLetters8x15[i][0],GL_COMPILE);
-	   glBitmap((GLsizei)fwLetters8x15[i][1],(GLsizei)fwLetters8x15[i][2],
+	   FW_GL_NEWLIST(fwFontOffset8x15 + fwLetters8x15[i][0],GL_COMPILE);
+	   FW_GL_BITMAP((GLsizei)fwLetters8x15[i][1],(GLsizei)fwLetters8x15[i][2],
 		   (GLfloat)fwLetters8x15[i][3],(GLfloat)fwLetters8x15[i][4],
 		   (GLfloat)fwLetters8x15[i][5], (GLfloat)fwLetters8x15[i][6],
 		   &fwLetters8x15[i][7]);
-	   glEndList();
+	   FW_GL_ENDLIST();
    }
    fwFontOffset[0] = fwFontOffset7x12;
    fwFontOffset[1] = fwFontOffset7x14;
@@ -452,10 +452,10 @@ int bmfontsize = 2; /* 0,1 or 2 */
 void printString(char *s)
 {
    glPushAttrib (GL_LIST_BIT);
-   glListBase(fwFontOffset[bmfontsize]);
+   FW_GL_LISTBASE(fwFontOffset[bmfontsize]);
    bmWH.x = fwFontSize[bmfontsize].x;
    bmWH.y = fwFontSize[bmfontsize].y;
-   glCallLists(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
+   FW_GL_CALLLISTS(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
    glPopAttrib ();
 }
 
@@ -622,7 +622,7 @@ void drawStatusBar()
 	// you must call drawStatusBar() from render() just before swapbuffers 
 	FW_GL_DEPTHMASK(FALSE);
 	FW_GL_DISABLE(GL_DEPTH_TEST);
-	glColor3f(1.0f,1.0f,1.0f);
+	FW_GL_COLOR3F(1.0f,1.0f,1.0f);
 	//glWindowPos seems to set the bitmap color correctly in windows
 	FW_GL_WINDOWPOS2I(5,0); 
 	if(sb_hasString)

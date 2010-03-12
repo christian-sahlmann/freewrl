@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.64 2010/03/11 18:46:51 sdumoulin Exp $
+  $Id: display.h,v 1.65 2010/03/12 14:36:21 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -489,37 +489,52 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
 
 
-#define GLDOUBLE GLdouble
-#define FW_GL_SHADE_MODEL(aaa) glShadeModel(aaa)
-#define FW_GL_FOGFV(aaa, bbb) glFogfv(aaa, bbb)
-#define FW_GL_FOGF(aaa, bbb) glFogf(aaa, bbb)
-#define FW_GL_FOGI(aaa, bbb) glFogi(aaa, bbb)
-#define FW_GLU_NEW_TESS gluNewTess
-#define FW_GLU_END_POLYGON(aaa) gluEndPolygon(aaa)
-#define FW_GLU_BEGIN_POLYGON(aaa) gluBeginPolygon(aaa)
-#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) gluTessVertex(aaa, bbb, ccc)
-#define FW_GLU_NEXT_CONTOUR(aaa, bbb) gluNextContour(aaa,bbb)
-#define FW_GL_BEGIN_QUERY(aaa, bbb) glBeginQuery(aaa, bbb)
-#define FW_GL_END_QUERY(aaa) glEndQuery(aaa)
-#define FW_GL_LINE_STIPPLE(aaa, bbb) glLineStipple(aaa, bbb)
-#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-#define FW_GL_END() glEnd()
-#define FW_GL_VERTEX3D(aaa, bbb, ccc) glVertex3d(aaa, bbb, ccc)
-#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) glVertexPointer(aaa, bbb, ccc, ddd)
-#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) glNormalPointer(aaa, bbb, ccc)
-#define FW_GL_BEGIN(aaa) glBegin(aaa)
-#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
-#define FW_GL_MATERIALFV(aaa, bbb, ccc) glMaterialfv(aaa, bbb, ccc)
-#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
-#define FW_GL_COLOR3D(aaa, bbb, ccc) glColor3d(aaa, bbb, ccc)
-#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluScaleImage(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
-#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
-#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
-#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
-#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
-#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
+	#define GLDOUBLE GLdouble
+	#define FW_GL_SHADE_MODEL(aaa) glShadeModel(aaa)
+	#define FW_GL_FOGFV(aaa, bbb) glFogfv(aaa, bbb)
+	#define FW_GL_FOGF(aaa, bbb) glFogf(aaa, bbb)
+	#define FW_GL_FOGI(aaa, bbb) glFogi(aaa, bbb)
+	#define FW_GLU_NEW_TESS gluNewTess
+	#define FW_GLU_END_POLYGON(aaa) gluEndPolygon(aaa)
+	#define FW_GLU_BEGIN_POLYGON(aaa) gluBeginPolygon(aaa)
+	#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) gluTessVertex(aaa, bbb, ccc)
+	#define FW_GLU_NEXT_CONTOUR(aaa, bbb) gluNextContour(aaa,bbb)
+	#define FW_GL_BEGIN_QUERY(aaa, bbb) glBeginQuery(aaa, bbb)
+	#define FW_GL_END_QUERY(aaa) glEndQuery(aaa)
+	#define FW_GL_LINE_STIPPLE(aaa, bbb) glLineStipple(aaa, bbb)
+	#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+	#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+	#define FW_GL_END() glEnd()
+	#define FW_GL_VERTEX3D(aaa, bbb, ccc) glVertex3d(aaa, bbb, ccc)
+	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) glVertexPointer(aaa, bbb, ccc, ddd)
+	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) glNormalPointer(aaa, bbb, ccc)
+	#define FW_GL_BEGIN(aaa) glBegin(aaa)
+	#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
+	#define FW_GL_MATERIALFV(aaa, bbb, ccc) glMaterialfv(aaa, bbb, ccc)
+	#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
+	#define FW_GL_COLOR3D(aaa, bbb, ccc) glColor3d(aaa, bbb, ccc)
+	#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluScaleImage(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
+	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
+	#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
+	#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
+	#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
+	#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
+	
+	#define FW_GL_VERTEX3F(aaa, bbb, ccc) glVertex3f(aaa, bbb, ccc)
+	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) glDrawElements(aaa,bbb,ccc,ddd)
+	#define FW_GL_GETSTRING(aaa) glGetString(aaa)
+	#define FW_GL_COLOR_POINTER(aaa, bbb,ccc,ddd) glColorPointer(aaa, bbb,ccc,ddd)
+	#define FW_GL_DELETETEXTURES(aaa,bbb) glDeleteTextures(aaa,bbb);
+	#define FW_GL_COLOR3FV(aaa) glColor3fv(aaa);
+	#define FW_GL_LOADMATRIXD(aaa) glLoadMatrixd(aaa)
+	#define FW_GL_GETINTEGERV(aaa,bbb) glGetIntegerv(aaa,bbb);
+	#define FW_GL_GETFLOATV(aaa,bbb) glGetFloatv(aaa,bbb);
+	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) glColor4f(aaa,bbb,ccc,ddd);
+	#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa);
+
+
+
 #endif /* NDEF IPHONE */
 
 
@@ -731,6 +746,30 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_TEXCOORDPOINTER(aaa,bbb,ccc,ddd)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_BINDTEXTURE(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_SWAPBUFFERS {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+
+
+	#define FW_GL_COLOR_POINTER(aaa, bbb,ccc,ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DELETETEXTURES(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DRAWBUFFER {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DRAWELEMENTS(xxx,yyy,zzz,aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DRAWPIXELS(xxx,yyy,zzz,aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_ENDLIST() {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GETFLOATV(aaa,bbb)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GETINTEGERV(aaa,bbb)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GETSTRING(aaa)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_LISTBASE(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_LOADMATRIX(aaa)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_VERTEX3F(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DRAWELEMENTS(xxx,yyy,zzz,aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GETSTRING(aaa)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_COLOR_POINTER(aaa, bbb,ccc,ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_DELETETEXTURES(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_COLOR3FV(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GETINTEGERV(aaa,bbb)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_LOADMATRIXD(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_GETFLOATV(aaa,bbb)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+
 #endif /* ifdef IPHONE */
 
 #endif /* __LIBFREEWRL_DISPLAY_H__ */

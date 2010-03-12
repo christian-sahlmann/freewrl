@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.16 2010/03/08 19:26:25 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.17 2010/03/12 14:36:22 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -347,7 +347,7 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 
 		if (node->__colours) {
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-			glColorPointer (4,GL_FLOAT,0,node->__colours);
+			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,node->__colours);
 		} else {
 			DO_COLOUR_POINTER
 		}
@@ -356,7 +356,7 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		indices = node->__vertIndx;
 		count  = node->__vertexCount;
 		for (i=0; i<node->__segCount; i++) {
-			glDrawElements(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
+			FW_GL_DRAWELEMENTS(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
 		}
 		/* otherwise we could use
 			glMultiDrawElements ( GL_LINE_STRIP, node->__vertexCount, GL_UNSIGNED_INT,
@@ -446,9 +446,9 @@ void render_PointSet (struct X3D_PointSet *node) {
                 cc = (struct X3D_Color *) node->color;
 		/* is this a Color or ColorRGBA color node? */
                	if (cc->_nodeType == NODE_Color) {
-			glColorPointer (3,GL_FLOAT,0,colors);
+			FW_GL_COLOR_POINTER (3,GL_FLOAT,0,colors);
 		} else {
-			glColorPointer (4,GL_FLOAT,0,colors);
+			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,colors);
 		}
 	} else {
 		DO_COLOUR_POINTER
@@ -501,9 +501,9 @@ void render_LineSet (struct X3D_LineSet *node) {
                 	cc = (struct X3D_Color *) node->color;
 			/* is this a Color or ColorRGBA color node? */
                 	if (cc->_nodeType == NODE_Color) {
-				glColorPointer (3,GL_FLOAT,0,cc->color.p);
+				FW_GL_COLOR_POINTER (3,GL_FLOAT,0,cc->color.p);
 			} else {
-				glColorPointer (4,GL_FLOAT,0,cc->color.p);
+				FW_GL_COLOR_POINTER (4,GL_FLOAT,0,cc->color.p);
 			}
 		} else {
 			DO_COLOUR_POINTER
@@ -516,7 +516,7 @@ void render_LineSet (struct X3D_LineSet *node) {
 		indices = node->__vertIndx;
 		count  = node->vertexCount.p;
 		for (i=0; i<node->__segCount; i++) {
-			glDrawElements(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
+			FW_GL_DRAWELEMENTS(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
 		}
 
 		/* otherwise we could use 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.24 2010/03/11 18:46:51 sdumoulin Exp $
+$Id: Bindable.c,v 1.25 2010/03/12 14:36:22 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -857,7 +857,7 @@ void render_Background (struct X3D_Background *node) {
 
 	/* now, display the lists */
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
-	glColorPointer(3, GL_FLOAT, 0, (GLfloat *)node->__colours);
+	FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours);
 	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
@@ -878,7 +878,7 @@ void render_Background (struct X3D_Background *node) {
 			((node->bottomUrl).n>0)) {
 
         	FW_GL_ENABLE(GL_TEXTURE_2D);
-        	glColor3d(1.0,1.0,1.0);
+        	FW_GL_COLOR3D(1.0,1.0,1.0);
         	FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
         	glVertexPointer (3,GL_FLOAT,0,BackgroundVert);
         	glNormalPointer (GL_FLOAT,0,Backnorms);
@@ -927,7 +927,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 	/* now, display the lists */
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
-	glColorPointer(3, GL_FLOAT, 0, (GLfloat *)node->__colours);
+	FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours);
 	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.111 2010/03/11 18:46:51 sdumoulin Exp $
+  $Id: OpenGL_Utils.c,v 1.112 2010/03/12 14:36:21 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -704,7 +704,7 @@ void fw_glLoadIdentity(void) {
 	/* printf ("fw_glLoadIdentity myMode %d \n",whichMode); */
 
 	loadIdentityMatrix(currentMatrix);
- 	glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIXD(currentMatrix); 
 }
 
 #define PUSHMAT(a,b,c,d) case a: b++; if (b>=c) {b=c-1; printf ("stack overflow, whichmode %d\n",whichMode); } \
@@ -720,7 +720,7 @@ void fw_glPushMatrix(void) {
 		default :printf ("wrong mode in popMatrix\n");
 	}
 
- 	glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIXD(currentMatrix); 
 #undef PUSHMAT
 }
 
@@ -735,7 +735,7 @@ void fw_glPopMatrix(void) {
 		POPMAT (GL_TEXTURE,textureviewTOS,FW_TextureView)
 		default :printf ("wrong mode in popMatrix\n");
 	}
- 	glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIXD(currentMatrix); 
 }
 #undef POPMAT
 
@@ -748,7 +748,7 @@ void fw_glTranslated(double x, double y, double z) {
 	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
 	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
 
- 	glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIXD(currentMatrix); 
 }
 
 void fw_glTranslatef(float x, float y, float z) {
@@ -758,7 +758,7 @@ void fw_glTranslatef(float x, float y, float z) {
 	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
 	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
 
- 	glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIXD(currentMatrix); 
 }
 
 /* perform rotation, assuming that the angle is in radians. */
@@ -791,7 +791,7 @@ void fw_glRotateRad (double angle, double x, double y, double z) {
 
 	matrotate(myMat,angle,x,y,z); 
 	matmultiply(currentMatrix,currentMatrix,myMat); 
- 	glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIXD(currentMatrix); 
 }
 
 /* perform the rotation, assuming that the angle is in degrees */
@@ -833,7 +833,7 @@ void fw_glRotated (double angle, double x, double y, double z) {
 	}
 	matrotate(myMat,radAng,x,y,z); 
 	matmultiply(currentMatrix,currentMatrix,myMat); 
- 	glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIXD(currentMatrix); 
 }
 
 void fw_glRotatef (float a, float x, float y, float z) {
@@ -845,7 +845,7 @@ void fw_glScaled (double x, double y, double z) {
 	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
 	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
 	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
- 	glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIXD(currentMatrix); 
 }
 
 void fw_glScalef (float x, float y, float z) {
@@ -853,7 +853,7 @@ void fw_glScalef (float x, float y, float z) {
 	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
 	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
 	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
- 	glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIXD(currentMatrix); 
 }
 
 void fw_glGetDoublev (int ty, double *mat) {
