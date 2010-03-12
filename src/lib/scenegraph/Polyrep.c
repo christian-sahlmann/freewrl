@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.22 2010/03/12 17:07:57 crc_canada Exp $
+$Id: Polyrep.c,v 1.24 2010/03/12 22:47:37 sdumoulin Exp $
 
 ???
 
@@ -826,8 +826,8 @@ void render_polyrep(void *node) {
 	if (!r->ccw) { FW_GL_FRONTFACE(GL_CW); }
 
 	/*  status bar, text do not have normals*/
-	if (r->normal) FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal);
-	else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
+	if (r->normal) FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal)
+	else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY) 
 
 	/*  textures?*/
 	if (r->GeneratedTexCoords) {

@@ -20,6 +20,7 @@ FREEWRL_CCFLAGS => '-arch '.
 ############################################################################
 # Main defines for OpenGL, freetype
     FREEWRL_LIBS => '-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
+		'-L/FreeWRL/expat-2.0.0 '.
 		'-L/usr/local/lib '.
 		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks/OpenGLES.framework/Libraries '.
 		'-lSystem '.
@@ -65,6 +66,7 @@ FREEWRL_CCFLAGS => '-arch '.
 	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
 		'-isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk'.
+		'-L/FreeWRL/expat-2.0.0 '.
 		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
 		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks '. 
 		'-framework OpenGLES '.
@@ -75,6 +77,7 @@ FREEWRL_CCFLAGS => '-arch '.
 	LDFLAGS2 => '-flat_namespace '.
 		'-undefined error '.
 		'-bundle '.
+		'-L/FreeWRL/expat-2.0.0 '.
 		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
 		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks '.
                 '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
