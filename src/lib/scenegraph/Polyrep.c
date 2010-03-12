@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.24 2010/03/12 22:47:37 sdumoulin Exp $
+$Id: Polyrep.c,v 1.23 2010/03/12 22:47:15 sdumoulin Exp $
 
 ???
 
@@ -31,6 +31,7 @@ $Id: Polyrep.c,v 1.24 2010/03/12 22:47:37 sdumoulin Exp $
 #include <config.h>
 #include <system.h>
 #include <display.h>
+#include "../display.h"
 #include <internal.h>
 
 #include <libFreeWRL.h>
