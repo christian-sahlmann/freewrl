@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.48 2010/03/12 14:36:22 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.49 2010/03/12 21:18:00 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -90,7 +90,7 @@ void lightState(GLint light, int status) {
 	if (light<0) return; /* nextlight will return -1 if too many lights */
 	if (lights[light] != status) {
 		if (status) {
-			/* printf ("light %d on\n",light);  */
+			/* printf ("light %d on\n",light); */
 			FW_GL_ENABLE(GL_LIGHT0+light);
 			lightStatusDirty = TRUE;
 		} else {

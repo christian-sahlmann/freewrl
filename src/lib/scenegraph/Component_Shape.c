@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.40 2010/03/12 21:00:15 crc_canada Exp $
+$Id: Component_Shape.c,v 1.41 2010/03/12 21:18:00 crc_canada Exp $
 
 X3D Shape Component
 
@@ -510,6 +510,8 @@ void child_Shape (struct X3D_Shape *node) {
 			if (material_oneSided != NULL) {
 				/* we have a normal material node */
 				appearanceProperties.transparency = 1.0f - material_oneSided->transparency; /* 1 == solid, 0 = totally transparent */ 
+
+printf ("doing normal material here\n");
 
 				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_DIFFUSE, material_oneSided->_dcol.c); 
 				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_AMBIENT, material_oneSided->_amb.c);
