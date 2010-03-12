@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.49 2010/03/12 21:18:00 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.50 2010/03/12 21:41:17 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -119,7 +119,7 @@ void restoreLightState(int *ls) {
 
 void fwglLightfv (int light, int pname, GLfloat *params) {
 	/* printf ("glLightfv %d %d %f %f %f %f\n",light,pname,params[0], params[1],params[2],params[3]);  */
-	FW_GL_LIGHTFV(GL_LIGHT0+light,pname,params);
+	glLightfv(GL_LIGHT0+light,pname,params);
 	switch (pname) {
 		case GL_AMBIENT:
 			memcpy ((void *)light_amb[light],(void *)params,sizeof(shaderVec4));
@@ -143,7 +143,7 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 
 void fwglLightf (int light, int pname, GLfloat param) {
 	/* printf ("glLightf %d %d %f\n",light,pname,param);  */
-	FW_GL_LIGHTF(GL_LIGHT0+light,pname,param);
+	glLightf(GL_LIGHT0+light,pname,param);
 	switch (pname) {
 		case GL_CONSTANT_ATTENUATION:
 			light_constAtten[light] = param;
