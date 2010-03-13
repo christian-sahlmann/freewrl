@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.69 2010/03/12 22:47:15 sdumoulin Exp $
+  $Id: display.h,v 1.70 2010/03/13 02:10:30 sdumoulin Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -437,6 +437,7 @@ void setScreenDim(int wi, int he);
 	/* Third - common across all platforms				*/
 	/****************************************************************/
 
+	#define FW_GLU_DELETETESS(aaa) gluDeleteTess(aaa)
 	#define FW_GL_GETDOUBLEV(aaa,bbb) glGetDoublev(aaa,bbb);
 	#define FW_GL_LOAD_IDENTITY fw_glLoadIdentity
 	#define FW_GL_MATRIX_MODE(aaa) fw_glMatrixMode(aaa)
@@ -502,6 +503,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_END_POLYGON(aaa) gluEndPolygon(aaa)
 	#define FW_GLU_BEGIN_POLYGON(aaa) gluBeginPolygon(aaa)
 	#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) gluTessVertex(aaa, bbb, ccc)
+	#define FW_GLU_TESS_CALLBACK(aaa, bbb, ccc) gluTessCallback(aaa,bbb,ccc);
 	#define FW_GLU_NEXT_CONTOUR(aaa, bbb) gluNextContour(aaa,bbb)
 	#define FW_GL_BEGIN_QUERY(aaa, bbb) glBeginQuery(aaa, bbb)
 	#define FW_GL_END_QUERY(aaa) glEndQuery(aaa)
@@ -661,6 +663,9 @@ void setScreenDim(int wi, int he);
 	#define GLDOUBLE GLfloat
 	#define GL_MAX_TEXTURE_UNITS 16   // Made this up for now
 	#define GL_MODELVIEW_MATRIX 0	 // Doesn't exist in 2.0, did exist in 1.1
+	#define FW_GLU_DELETETESS(aaa)
+	#define DELETE_SHADER
+	#define DELETE_PROGRAM 
 	#define FW_GL_GETDOUBLEV(aaa,bbb)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_LOAD_IDENTITY(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_MATRIX_MODE(aaa)  {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
@@ -744,9 +749,16 @@ void setScreenDim(int wi, int he);
 	#define GLUNIFORM2F(aaa,bbb,ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define GLUNIFORM1I(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define GLUNIFORM4F(aaa,bbb,ccc,ddd,eee) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+        #define GLUNIFORM1IV {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);} 
+        #define GLUNIFORM1FV {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);} 
+        #define GLUNIFORM1F {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);} 
+        #define GLUNIFORM2FV {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);} 
+        #define GLUNIFORM3FV {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);} 
+        #define GLUNIFORM4FV {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);} 
 	#define FW_GL_BEGIN_QUERY(aaa, bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GL_END_QUERY(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
+	#define FW_GLU_TESS_CALLBACK(aaa, bbb, ccc) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GLU_NEXT_CONTOUR(aaa,bbb) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GLU_BEGIN_POLYGON(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}
 	#define FW_GLU_END_POLYGON(aaa) {printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__);}

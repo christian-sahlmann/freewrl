@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Sound.c,v 1.13 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Component_Sound.c,v 1.14 2010/03/13 02:10:32 sdumoulin Exp $
 
 X3D Sound Component
 
@@ -105,7 +105,7 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
-	gluUnProject (viewport[2]/2,viewport[3]/2,0.0,
+	FW_GLU_UNPROJECT(viewport[2]/2,viewport[3]/2,0.0,
 		mod,proj,viewport, &vec.x,&vec.y,&vec.z);
 	/* printf ("mod %lf %lf %lf proj %lf %lf %lf\n",*/
 	/* mod[12],mod[13],mod[14],proj[12],proj[13],proj[14]);*/
@@ -326,7 +326,7 @@ void render_Sound (struct X3D_Sound *node) {
 
 		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
 		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
-		gluUnProject (viewport[2]/2,viewport[3]/2,0.0,
+		FW_GLU_UNPROJECT(viewport[2]/2,viewport[3]/2,0.0,
 			mod,proj,viewport, &vec.x,&vec.y,&vec.z);
 		/* printf ("mod %lf %lf %lf proj %lf %lf %lf\n",*/
 		/* mod[12],mod[13],mod[14],proj[12],proj[13],proj[14]);*/

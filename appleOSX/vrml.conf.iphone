@@ -72,6 +72,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-framework OpenGLES '.
 		'-arch armv6 '.
 		'-miphoneos-version-min=2.2 '.
+		'-isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk '.
                 '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ ',
 
 	LDFLAGS2 => '-flat_namespace '.
@@ -81,5 +82,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
 		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks '.
                 '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
+		'-isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk '.
+		'-arch armv6 '.
 		'-framework OpenGLES ',
 );

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.110 2010/03/12 17:07:56 crc_canada Exp $
+  $Id: MainLoop.c,v 1.111 2010/03/13 02:10:31 sdumoulin Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -64,6 +64,24 @@
 
 #ifdef AQUA
 #include "../ui/aquaInt.h"
+#endif
+#ifdef IPHONE
+int ccurse;
+int ocurse;
+void  setAquaCursor(int ctype) { };
+#ifdef BAD
+void updateContext();
+float getWidth();
+float getHeight();
+void setMenuButton_collision(int val);
+void setMenuButton_texSize(int size);
+void setMenuStatus(char* stat);
+void setMenuButton_headlight(int val);
+void setMenuFps(float fps);
+int aquaSetConsoleMessage(char* str);
+void setMenuButton_navModes(int type);
+void createAutoReleasePool();
+#endif
 #endif
 
 #include "MainLoop.h"
@@ -1121,7 +1139,7 @@ struct X3D_Node* getRayHit() {
         int i;
 
         if(hpdist >= 0) {
-                gluUnProject(hp.x,hp.y,hp.z,rayHit.modelMatrix,rayHit.projMatrix,viewport,&x,&y,&z);
+                FW_GLU_UNPROJECT(hp.x,hp.y,hp.z,rayHit.modelMatrix,rayHit.projMatrix,viewport,&x,&y,&z);
 
                 /* and save this globally */
                 ray_save_posn.c[0] = (float) x; ray_save_posn.c[1] = (float) y; ray_save_posn.c[2] = (float) z;
@@ -1226,11 +1244,11 @@ static void get_hyperhit() {
         GLDOUBLE projMatrix[16];
 
         FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-        gluUnProject(r1.x, r1.y, r1.z, rayHitHyper.modelMatrix,
+        FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, rayHitHyper.modelMatrix,
                 projMatrix, viewport, &x1, &y1, &z1);
-        gluUnProject(r2.x, r2.y, r2.z, rayHitHyper.modelMatrix,
+        FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, rayHitHyper.modelMatrix,
                 projMatrix, viewport, &x2, &y2, &z2);
-        gluUnProject(hp.x, hp.y, hp.z, rayHit.modelMatrix,
+        FW_GLU_UNPROJECT(hp.x, hp.y, hp.z, rayHit.modelMatrix,
                 projMatrix,viewport, &x3, &y3, &z3);
 
         /* printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f, %f %f %f\n",*/

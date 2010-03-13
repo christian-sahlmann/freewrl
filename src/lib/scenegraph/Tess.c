@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.13 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: Tess.c,v 1.14 2010/03/13 02:10:32 sdumoulin Exp $
 
 ???
 
@@ -191,33 +191,33 @@ void new_tessellation(void) {
 		freewrlDie("Got no memory for Tessellation Object!");
 
 	/* register the CallBackfunctions				*/
-	gluTessCallback(global_tessobj,GLU_BEGIN,(_GLUfuncptr)FW_tess_begin);
-	gluTessCallback(global_tessobj,GLU_EDGE_FLAG,(_GLUfuncptr)FW_tess_edgeflag);
-	gluTessCallback(global_tessobj,GLU_VERTEX,(_GLUfuncptr)FW_IFS_tess_vertex);
-	gluTessCallback(global_tessobj,GLU_TESS_VERTEX,(_GLUfuncptr)FW_IFS_tess_vertex);
-	gluTessCallback(global_tessobj,GLU_ERROR,(_GLUfuncptr)FW_tess_error);
-	gluTessCallback(global_tessobj,GLU_END,(_GLUfuncptr)FW_tess_end);
-	gluTessCallback(global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)FW_tess_combine_data);
-	gluTessCallback(global_tessobj, GLU_TESS_COMBINE,(_GLUfuncptr)FW_tess_combine);
+	FW_GLU_TESS_CALLBACK(global_tessobj,GLU_BEGIN,(_GLUfuncptr)FW_tess_begin);
+	FW_GLU_TESS_CALLBACK(global_tessobj,GLU_EDGE_FLAG,(_GLUfuncptr)FW_tess_edgeflag);
+	FW_GLU_TESS_CALLBACK(global_tessobj,GLU_VERTEX,(_GLUfuncptr)FW_IFS_tess_vertex);
+	FW_GLU_TESS_CALLBACK(global_tessobj,GLU_TESS_VERTEX,(_GLUfuncptr)FW_IFS_tess_vertex);
+	FW_GLU_TESS_CALLBACK(global_tessobj,GLU_ERROR,(_GLUfuncptr)FW_tess_error);
+	FW_GLU_TESS_CALLBACK(global_tessobj,GLU_END,(_GLUfuncptr)FW_tess_end);
+	FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)FW_tess_combine_data);
+	FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_COMBINE,(_GLUfuncptr)FW_tess_combine);
 
 	    /* Unused right now.
-	    gluTessCallback(triang, GLU_TESS_BEGIN, FW_GLU_TESS_BEGIN);
-	    gluTessCallback(triang, GLU_TESS_BEGIN_DATA,FW_GLU_TESS_BEGIN_DATA);
-	    gluTessCallback(triang, GLU_TESS_EDGE_FLAG,FW_GLU_TESS_EDGE_FLAG);
-	    gluTessCallback(triang, GLU_TESS_EDGE_FLAG_DATA,FW_GLU_TESS_EDGE_FLAG_DATA);
-	    gluTessCallback(triang, GLU_TESS_VERTEX,FW_GLU_TESS_VERTEX);
-	    gluTessCallback(triang, GLU_TESS_VERTEX_DATA,FW_GLU_TESS_VERTEX_DATA);
-	    gluTessCallback(triang, GLU_TESS_END,FW_GLU_TESS_END);
-	    gluTessCallback(triang, GLU_TESS_END_DATA,FW_GLU_TESS_END_DATA);
-	    gluTessCallback(triang, tess_combine_DATA,FW_tess_combine_DATA);
-	    gluTessCallback(triang, GLU_TESS_ERROR,FW_GLU_TESS_ERROR);
-	    gluTessCallback(triang, GLU_TESS_ERROR_DATA,FW_GLU_TESS_ERROR_DATA);
+	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_BEGIN, FW_GLU_TESS_BEGIN);
+	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_BEGIN_DATA,FW_GLU_TESS_BEGIN_DATA);
+	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_EDGE_FLAG,FW_GLU_TESS_EDGE_FLAG);
+	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_EDGE_FLAG_DATA,FW_GLU_TESS_EDGE_FLAG_DATA);
+	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_VERTEX,FW_GLU_TESS_VERTEX);
+	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_VERTEX_DATA,FW_GLU_TESS_VERTEX_DATA);
+	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_END,FW_GLU_TESS_END);
+	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_END_DATA,FW_GLU_TESS_END_DATA);
+	    FW_GLU_TESS_CALLBACK(triang, tess_combine_DATA,FW_tess_combine_DATA);
+	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_ERROR,FW_GLU_TESS_ERROR);
+	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_ERROR_DATA,FW_GLU_TESS_ERROR_DATA);
 	    */
 }
 
 /* next function should be called once at the end, but where?	*/
 void destruct_tessellation(void) {
-	gluDeleteTess(global_tessobj);
+	FW_GLU_DELETETESS(global_tessobj);
 	printf("Tessellation Object deleted!\n");
 }
 
