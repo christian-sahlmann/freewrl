@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.23 2010/03/12 22:47:15 sdumoulin Exp $
+$Id: Polyrep.c,v 1.25 2010/03/15 17:12:29 crc_canada Exp $
 
 ???
 
@@ -31,7 +31,6 @@ $Id: Polyrep.c,v 1.23 2010/03/12 22:47:15 sdumoulin Exp $
 #include <config.h>
 #include <system.h>
 #include <display.h>
-#include "../display.h"
 #include <internal.h>
 
 #include <libFreeWRL.h>
@@ -827,8 +826,8 @@ void render_polyrep(void *node) {
 	if (!r->ccw) { FW_GL_FRONTFACE(GL_CW); }
 
 	/*  status bar, text do not have normals*/
-	if (r->normal) FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal)
-	else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY) 
+	if (r->normal) FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal);
+	else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
 
 	/*  textures?*/
 	if (r->GeneratedTexCoords) {
