@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.23 2010/03/09 15:59:55 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.24 2010/03/15 20:27:25 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1018,33 +1018,12 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 			printf ("SFNodeConstr, cstring was NOT an object\n");
 			#endif
 
-			/* is this just an integer, eg, "0" - happens on initialization for SFNodes */
-			if (JSVAL_IS_INT(argv[0])) {
-				newHandle = (struct X3D_Node *) JSVAL_TO_GCTHING(argv[0]);
-				cString = STRDUP("node created in SFNodeConstr");
-			} else {
-				resource_item_t *res;
-
-				/* try compiling this X3D code... */
-				myGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-
-				res = resource_create_from_string(cString);
-				res->where = myGroup;
-				res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
-				send_resource_to_parser(res);
-				resource_wait(res);
-
-				#ifdef JSVRMLCLASSESVERBOSE
-				printf ("SFNodeConstr we have created %d nodes\n",myGroup->children.n);
-				#endif
-	
-				/* we MUST create 1 node here; if not, there is an error */
-				if ((myGroup->children.n) != 1) {
-					printf ("SFNativeNew - created %d nodes, expected 1 only\n",myGroup->children.n);
-					return JS_FALSE;
-				}
-				newHandle =  X3D_NODE( myGroup->children.p[0]);
+			/* lets hope this is an initializer, like "new SFNode("0x100675790") */
+			if (sscanf (cString,"%p",&newHandle) != 1) {
+				ConsoleMessage ("expected pointer for Javascript SFNode constr, got :%s:");
+				newHandle = NULL;
 			}
+			cString = STRDUP("node created in SFNodeConstr");
 		}	
 
 	} else if (argc == 2) {
@@ -1133,6 +1112,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	return JS_TRUE;
 }
 
+#undef JSVRMLCLASSESVERBOSE
 
 
 void

@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.57 2010/03/11 17:56:51 crc_canada Exp $
+  $Id: ProdCon.c,v 1.58 2010/03/15 20:27:25 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -695,19 +695,6 @@ void _inputParseThread(void)
 		/* go through the resource list until it is empty */
 		while (resource_list_to_parse != NULL) {
 			ml_foreach(resource_list_to_parse, parser_process_res(__l));
-#ifdef OLDCODE
-Doug Sanden had problems with the original ml_foreach macro; macro changed, to reflect problem. Doug's fixed
-code is shown here for reference:
-					s_list_t *__l;
-					s_list_t *next;
-					s_list_t *_list = resource_list_to_parse;
-					for(__l=_list;__l!=NULL;)  
-					{
-						next = ml_next(__l); /* get next from __l before action parser_process_res deletes __l */
-						parser_process_res(__l);
-						__l = next;
-					}
-#endif
 		}
 		inputThreadParsing = FALSE;
 

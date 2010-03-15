@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.28 2010/03/01 22:39:49 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.29 2010/03/15 20:27:25 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -628,7 +628,6 @@ printf ("VrmlBrowserCreateVrmlFromURL - unknown if this works with new resource 
 		ConsoleMessage ("Can not determine where to plug values in node of type %s",stringNodeType(myptr->_nodeType));
 		return JS_FALSE;
 	}
-
 
 	send_resource_to_parser(res);
 	resource_wait(res);
