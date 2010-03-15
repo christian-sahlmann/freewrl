@@ -31,7 +31,7 @@ typedef struct { int type; int value; } _intX3D_SFBool;
 typedef struct { int type; float value; } _intX3D_SFFloat;
 typedef struct { int type; double value; } _intX3D_SFTime;
 typedef struct { int type; int value; } _intX3D_SFInt32;
-typedef struct { int type; uintptr_t *adr; } _intX3D_SFNode;
+typedef struct { int type; int adr; } _intX3D_SFNode;
 typedef struct { int type; float r[4]; } _intX3D_SFRotation;
 typedef struct { int type; float c[2]; } _intX3D_SFVec2f;
 typedef struct { int type; double c[2]; } _intX3D_SFVec2d;
@@ -123,7 +123,7 @@ X3DNode *X3D_newMFVec2d();
 
 /* browser section */
 struct _intX3DEventIn {
-	uintptr_t	nodeptr;
+	int		nodeptr;
 	int 		offset;
 	int		datatype;
 	int 		datasize;

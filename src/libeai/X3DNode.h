@@ -38,7 +38,7 @@ typedef struct { int type; int value; } _intX3D_SFBool;
 typedef struct { int type; float value; } _intX3D_SFFloat;
 typedef struct { int type; double value; } _intX3D_SFTime;
 typedef struct { int type; int value; } _intX3D_SFInt32;
-typedef struct { int type; uintptr_t *adr; } _intX3D_SFNode;
+typedef struct { int type; int adr; } _intX3D_SFNode;
 typedef struct { int type; float r[4]; } _intX3D_SFRotation;
 typedef struct { int type; float c[2]; } _intX3D_SFVec2f;
 typedef struct { int type; double c[2]; } _intX3D_SFVec2d;
@@ -109,7 +109,7 @@ typedef union _X3DNode {
 
 
 struct _intX3DEventIn {
-	uintptr_t	nodeptr;
+	int		nodeptr;
 	int 		offset;
 	int		datatype;
 	int 		datasize;
@@ -198,7 +198,7 @@ extern int isSwig;
 int _X3D_countWords(char *ptr);
 char *_X3D_make1StringCommand (char command, char *name);
 char *_X3D_make2StringCommand (char command, char *str1, char *str2);
-char *_X3D_Browser_SendEventType(uintptr_t *adr,char *name, char *evtype);
+char *_X3D_Browser_SendEventType(int adr,char *name, char *evtype);
 char *_X3D_makeShortCommand (char command);
 void _X3D_sendEvent (char command, char *string);
 void _handleFreeWRLcallback(char *command);

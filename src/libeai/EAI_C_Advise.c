@@ -36,8 +36,8 @@ X3DNode *X3D_newSF(int nodetype);
 #define UNLOCK_ADVISE_TABLE printf ("unlocking advise table\n");
 
 struct EAI_ListenerStruct {
-	indexT FreeWRL_RegisterNumber;
-	indexT type;
+	int FreeWRL_RegisterNumber;
+	int type;
 	void *dataArea;
 	void    (*functionHandler)(void *);
 };

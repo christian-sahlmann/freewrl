@@ -222,7 +222,7 @@ void _X3D_setItemSF(X3DNode* node, int item, X3DNode* value)
 			node->X3D_SFString.strptr[item] = (char)((int)v); break;
 		case FIELDTYPE_SFNode:
 			if(item > 0) break;
-			node->X3D_SFNode.adr = (uintptr_t*)(int)v; break; 
+			node->X3D_SFNode.adr = (int)v; break; 
 		case FIELDTYPE_SFRotation:
 			if(item > 3) break;
 			node->X3D_SFRotation.r[item] = (float)v; break;
@@ -281,7 +281,7 @@ X3DNode* _X3D_getItemSF(X3DNode* node, int item)
 			v.i = (int)(char)node->X3D_SFString.strptr[item]; vtype = FIELDTYPE_SFInt32; break;
 		case FIELDTYPE_SFNode:
 			if(item > 0) break;
-			v.i = (int)(uintptr_t*)node->X3D_SFNode.adr; vtype = FIELDTYPE_SFInt32; break; 
+			v.i = (int)node->X3D_SFNode.adr; vtype = FIELDTYPE_SFInt32; break; 
 		case FIELDTYPE_SFRotation:
 			if(item > 3) break;
 			v.f = node->X3D_SFRotation.r[item]; vtype =FIELDTYPE_SFFloat; break;
