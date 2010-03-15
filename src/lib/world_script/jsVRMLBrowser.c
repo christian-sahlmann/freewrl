@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.29 2010/03/15 20:27:25 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.30 2010/03/15 22:20:33 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -519,6 +519,12 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	char *address;
 	struct X3D_Group *subtree;
 	resource_item_t *res = NULL;
+	int fieldInt;
+	int offs;
+	int type;
+	int accessType;
+
+#define JSVERBOSE
 
 	#ifdef JSVERBOSE
 	printf ("JS start of createVrmlFromURL\n");
@@ -568,7 +574,7 @@ printf ("VrmlBrowserCreateVrmlFromURL - unknown if this works with new resource 
 		_str[1] = JSVAL_TO_STRING(argv[2]);
 		fieldStr = JS_GetStringBytes(_str[1]);
 		#ifdef JSVERBOSE
-		printf ("field string is %s\n",fieldStr); 
+		printf ("field string is :%s:\n",fieldStr); 
 		#endif
 	 } else {
 		printf ("Expected a string in createVrmlFromURL\n");
@@ -622,12 +628,21 @@ printf ("VrmlBrowserCreateVrmlFromURL - unknown if this works with new resource 
 	/* find a file name that exists. If not, return JS_FALSE */
 	res = resource_create_single(_costr0);
 	res->where = myptr;
-	if (myptr->_nodeType == NODE_Group)
-		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
-	else {
-		ConsoleMessage ("Can not determine where to plug values in node of type %s",stringNodeType(myptr->_nodeType));
+
+
+	/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
+	fieldInt = findRoutedFieldInFIELDNAMES (myptr, fieldStr, TRUE);
+
+	if (fieldInt >=0) { 
+		findFieldInOFFSETS(myptr->_nodeType, fieldInt, &offs, &type, &accessType);
+	} else {
+		ConsoleMessage ("Can not find field :%s: in nodeType :%s:",fieldStr,stringNodeType(myptr->_nodeType));
 		return JS_FALSE;
 	}
+
+	printf ("type of field %s, accessType %s\n",stringFieldtypeType(type),stringKeywordType(accessType));
+	res->offsetFromWhere = offs;
+	
 
 	send_resource_to_parser(res);
 	resource_wait(res);
@@ -670,6 +685,8 @@ printf ("VrmlBrowserCreateVrmlFromURL - unknown if this works with new resource 
 
 	MARK_EVENT(myptr,offset);
 	return JS_TRUE;
+#undef JSVERBOSE
+
 }
 
 JSBool
