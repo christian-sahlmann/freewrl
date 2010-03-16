@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.30 2010/03/15 22:20:33 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.31 2010/03/16 20:30:25 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -523,14 +523,12 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	int offs;
 	int type;
 	int accessType;
+	struct Multi_String url;
 
-#define JSVERBOSE
 
 	#ifdef JSVERBOSE
 	printf ("JS start of createVrmlFromURL\n");
 	#endif
-
-printf ("VrmlBrowserCreateVrmlFromURL - unknown if this works with new resource location algorithm... JAS \n");
 
 	/* rval is always zero, so lets just set it */
 	*rval = INT_TO_JSVAL(0);
@@ -624,9 +622,15 @@ printf ("VrmlBrowserCreateVrmlFromURL - unknown if this works with new resource 
 		opldPtr		: pointer to a SFNode, with oldPtr->handle as C memory location. 
 		fielsStr	: the field to send this to, eg: addChildren
 	*/
+	
+	url.n = 0;
+	url.p = NULL;
+		
+	/* parse the string, put it into the "url" struct defined here */
+	Parser_scanStringValueToMem(X3D_NODE(&url),0,FIELDTYPE_MFString, _costr0, FALSE);
 
 	/* find a file name that exists. If not, return JS_FALSE */
-	res = resource_create_single(_costr0);
+	res = resource_create_multi(&url);
 	res->where = myptr;
 
 
@@ -640,9 +644,8 @@ printf ("VrmlBrowserCreateVrmlFromURL - unknown if this works with new resource 
 		return JS_FALSE;
 	}
 
-	printf ("type of field %s, accessType %s\n",stringFieldtypeType(type),stringKeywordType(accessType));
+	/* printf ("type of field %s, accessType %s\n",stringFieldtypeType(type),stringKeywordType(accessType)); */
 	res->offsetFromWhere = offs;
-	
 
 	send_resource_to_parser(res);
 	resource_wait(res);
@@ -651,42 +654,8 @@ printf ("VrmlBrowserCreateVrmlFromURL - unknown if this works with new resource 
 		/* Cool :) */
 	}
 
-	/* get the field from the beginning of this node as an offset */
-	/* try finding it, maybe with a "set_" or "changed" removed */
-	myField = findRoutedFieldInFIELDNAMES(myptr,fieldStr,0);
-	if (myField == -1) 
-		myField = findRoutedFieldInFIELDNAMES(myptr,fieldStr,1);
-
-	/* is this a valid X3D field? */
-	if (myField == -1) {
-		printf ("createVrmlFromURL - field %s is not a valid field\n",fieldStr);
-		return JS_FALSE;
-	}
-
-	/* find offsets, etc */
-       	findFieldInOFFSETS(myptr->_nodeType, myField, &offset, &fromtype, &xxx);
-	if (offset == -1) {
-		printf ("createVrmlFromURL - field %s is not a valid field of a node of type %s\n",fieldStr,stringNodeType(myptr->_nodeType));
-		return JS_FALSE;
-	}
-
-	/* did we find the field? */
-	address = offsetPointer_deref (char *, myptr, offset);
-	
-	/*struct X3D_Group *subtree = (struct X3D_Group *) myptr;*/
-	subtree = (struct X3D_Group *) myptr;
-	
-	/* MBFILES: process the children of myptr loaded by parser */
-	for (count = 1; count < subtree->children.n; count++) {
-		static char dtmp[100];
-		sprintf(dtmp, "%p", subtree->children.p[count]);
-		getMFNodetype(X3D_NODE(dtmp), (struct Multi_Node *) address, myptr, 1);
-	}
-
-	MARK_EVENT(myptr,offset);
+	MARK_EVENT(myptr,offs);
 	return JS_TRUE;
-#undef JSVERBOSE
-
 }
 
 JSBool

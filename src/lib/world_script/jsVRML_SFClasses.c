@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.24 2010/03/15 20:27:25 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.25 2010/03/16 20:30:25 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -969,6 +969,7 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	return JS_TRUE;
 }
 
+
 JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	SFNodeNative *newPtr;
 	SFNodeNative *oldPtr;
@@ -1111,8 +1112,6 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 	return JS_TRUE;
 }
-
-#undef JSVRMLCLASSESVERBOSE
 
 
 void

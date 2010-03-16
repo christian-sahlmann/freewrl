@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.22 2010/03/01 22:39:49 crc_canada Exp $
+$Id: jsUtils.c,v 1.23 2010/03/16 20:30:25 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -334,7 +334,7 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, int datalen, int dataType, jsval 
 
 /* take an ECMA value in the X3D Scenegraph, and return a jsval with it in */
 /* this is not so fast; we call a script to make a default type, then we fill it in */
-void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned datalen, int dataType, jsval *newval) {
+static void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned datalen, int dataType, jsval *newval) {
         SFColorNative *Cptr;
 	SFVec3fNative *V3ptr;
 	SFVec3dNative *V3dptr;
@@ -370,7 +370,7 @@ void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned datalen, in
 		#endif
 
 		if (!JS_EvaluateScript(cx, obj, script, (int) strlen(script), FNAME_STUB, LINENO_STUB, &rval)) {
-			printf ("error creating the new object in X3D_SF_TO_JS\n");
+			printf ("error creating the new object in X3D_SF_TO_JS, script :%s:\n",script);
 			return;
 		}
 
@@ -427,7 +427,7 @@ void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned datalen, in
 }
 
 /* make an MF type from the X3D node. This can be fairly slow... */
-void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType, jsval *newval, char *fieldName) {
+static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType, jsval *newval, char *fieldName) {
 	int i;
 	jsval rval;
 	char *script = NULL;
@@ -527,7 +527,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("calling X3D_MF_TO_JS - object is %u\n",*newval);
+	printf ("X3D_MF_TO_JS - object is %u, copying over data\n",*newval);
 	#endif
 
 
@@ -576,7 +576,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 				else
 					sprintf (newline,"new SFColor(%f, %f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1], MCptr->p[i].c[2]);	
 				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
-					printf ("error creating the new object in X3D_MF_TO_JS\n");
+					printf ("error creating the new object in X3D_MF_TO_JS string :%s:\n",newline);
 					return;
 				}
                 		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, xf,
@@ -596,7 +596,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			for (i=0; i<MCptr->n; i++) {
 				sprintf (newline,"new SFVec2f(%f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1]);	
 				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
-					printf ("error creating the new object in X3D_MF_TO_JS\n");
+					printf ("error creating the new object in X3D_MF_TO_JS string :%s:\n",newline);
 					return;
 				}
                 		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, xf,
@@ -615,7 +615,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			for (i=0; i<MCptr->n; i++) {
 				sprintf (newline,"new SFRotation(%f, %f, %f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1], MCptr->p[i].c[2], MCptr->p[i].c[3]);	
 				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
-					printf ("error creating the new object in X3D_MF_TO_JS\n");
+					printf ("error creating the new object in X3D_MF_TO_JS string :%s:\n",newline);
 					return;
 				}
                 		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, xf,
@@ -634,9 +634,12 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			MCptr = (struct Multi_Node *) Data;
 
 			for (i=0; i<MCptr->n; i++) {
-				sprintf (newline,"new SFNode(%p)", MCptr->p[i]);	
+				/* purge out null nodes */
+				if (MCptr->p[i] != NULL) {
+				sprintf (newline,"new SFNode(\"%p\")", MCptr->p[i]);	
+
 				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
-					printf ("error creating the new object in X3D_MF_TO_JS\n");
+					printf ("error creating the new object in X3D_MF_TO_JS string :%s:\n",newline);
 					return;
 				}
                 		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, xf,
@@ -644,6 +647,9 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
                         		printf( "JS_DefineElement failed for arg %u .\n", i);
                         		return;
                 		}
+				} else {
+					/* printf ("X3DMF, ignoring NULL node here \n"); */
+				}
 			}
 		} break;
 
@@ -669,7 +675,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 				#endif
 
 				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
-					printf ("error creating the new object in X3D_MF_TO_JS\n");
+					printf ("error creating the new object in X3D_MF_TO_JS string :%s:\n",newline);
 					return;
 				}
                 		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, xf,
@@ -701,16 +707,18 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			strcat (newline, "))");
 
 			if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, (int) strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
-				printf ("error creating the new object in X3D_MF_TO_JS\n");
+				printf ("error creating the new object in X3D_MF_TO_JS string :%s:\n",newline);
 				return;
 			}
 			*newval = xf; /* save this version */
 		} break;
 		default: {	printf("WARNING: SHOULD NOT BE HERE! %d\n",dataType); }
 	}
+
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("returning from X3D_MF_TO_JS\n");
+	#endif
 }
-
-
 
 void
 reportWarningsOn() { reportWarnings = JS_TRUE; }
@@ -805,8 +813,9 @@ static int *getFOP (struct X3D_Node *node, const char *str) {
 	return NULL;
 }
 
+
 /* getter for SFNode accesses */
-JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 	JSString *_idStr;
 	char *_id_c;
         SFNodeNative *ptr;

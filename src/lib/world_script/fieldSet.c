@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.40 2010/03/09 15:59:54 crc_canada Exp $
+  $Id: fieldSet.c,v 1.41 2010/03/16 20:30:25 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -455,7 +455,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	/* not all files know what a JSContext is, so we just pass it around as a uintptr_t type */
 	scriptContext = (JSContext *) cx;
 
-
+#define SETFIELDVERBOSE
 	#ifdef SETFIELDVERBOSE
 	strval = JS_ValueToString(scriptContext, JSglobal_return_val);
        	strp = JS_GetStringBytes(strval);
@@ -592,6 +592,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	
 	#endif
 }
+#undef SETFIELDVERBOSE
 
 /* find the ASCII string name of this field of this node */
 char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset) {
@@ -802,7 +803,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	float *fl;
 	int *il;
 	double *dl;
-	uintptr_t *nl;
+	struct X3D_Node * *nl;
 
 	double dtmp;
 	jsval mainElement;
@@ -894,7 +895,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	fl = (float *) tn->p;
 	il = (int *) tn->p;
 	dl = (double *) tn->p;
-	nl = (uintptr_t *) tn->p;
+	nl = (struct X3D_Node * *) tn->p;
 	ms = (struct Uni_String * *) tn->p;
 
 	/* go through each element of the main array. */
@@ -940,14 +941,24 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			/* code is pretty much same as SF* values in setField_javascriptEventOut */
 			switch (eletype) {
 			case FIELDTYPE_SFNode: {
-				int xxx;
-				if (RUNNINGONAMD64) printf ("FIELDTYPE_SFNode *may* not work on 64 bit computers...\n");
-				if (!JS_ValueToInt32(cx, mainElement ,&xxx)) {
-					printf ("error\n");
-					*nl=0;
+
+				if (JS_InstanceOf (cx, mainElement, &SFNodeClass, NULL)) {
+					SFNodeNative *_vec;
+
+					/* printf ("yep, this is an SFNode class\n");  */
+				       if ((_vec = (SFNodeNative *)JS_GetPrivate(cx, mainElement)) == NULL) {
+						printf ("error getting native\n");
+						*nl = NULL;
+					} else {
+						/* printf ("have native, handle %p\n",_vec->handle);
+						printf ("and it is a :%s:\n",stringNodeType(_vec->handle->_nodeType)); */
+						*nl = _vec->handle;
+					}
+				} else {
+					printf ("hmm - not an SFNode class\n"); 
+					*nl = NULL;
 				}
-				/* *nl = (uintptr_t * *)xxx; */
-				*nl = (uintptr_t)xxx;
+
 				nl++;
 				break;
 			}
