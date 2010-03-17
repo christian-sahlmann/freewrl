@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.61 2010/03/16 20:30:25 crc_canada Exp $
+$Id: CRoutes.c,v 1.62 2010/03/17 19:09:43 crc_canada Exp $
 
 ???
 
@@ -528,6 +528,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 /*								*/
 /****************************************************************/
 
+
 void AddRemoveChildren (
 		struct X3D_Node *parent,
 		struct Multi_Node *tn,
@@ -687,10 +688,12 @@ void AddRemoveChildren (
 			tn->p = newmal;
 			tn->n = oldlen - num_removed;
 		}
+
 	}
 
 	update_node(parent);
 }
+
 
 /* These events must be run first during the event loop, as they start an event cascade.
    Regsister them with add_first, then call them during the event loop with do_first.    */

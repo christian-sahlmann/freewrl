@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.17 2010/03/09 15:59:54 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.18 2010/03/17 19:09:43 crc_canada Exp $
 
 ???
 
@@ -1030,7 +1030,7 @@ _standardMFGetProperty(JSContext *cx,
 	if (JSVAL_IS_INT(id)) {
 		_index = JSVAL_TO_INT(id);
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("standard get property, index requested %d\n",_index);
+		printf ("standard get property, index requested %d length is %d\n",_index,_length);
 		#endif
 
 		if (_index >= _length) {
@@ -1078,6 +1078,17 @@ _standardMFGetProperty(JSContext *cx,
 				VERBOSE_OBJ obj, (int) _index);
 			return JS_TRUE;
 		}
+	} else if (JSVAL_IS_STRING(id)) {
+		#ifdef JSVRMLCLASSESVERBOSE
+		JSString *_str;
+		char * asciiStr;
+
+		printf ("HAVE STRING HERE!\n");
+		_str = JS_ValueToString(cx, id);
+		asciiStr = JS_GetStringBytes(_str);
+		printf ("we have as a parameter :%s:\n",asciiStr);
+		#endif
+
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("_standardMFGetProperty finishing; element is %u\n",*vp);
@@ -1232,7 +1243,6 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
     return JS_TRUE;
 }
 
-
 JSBool
 doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	JSString *str;
@@ -1273,6 +1283,7 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 		#endif
 		return JS_TRUE;
 	}
+
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("\tdoMFAddProperty:%s id %d NodeType: ",name,id);
 		printJSNodeType(cx,obj);
@@ -1741,6 +1752,13 @@ getAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		_vp_c = JS_GetStringBytes(_vpStr);
 		printf("getAssignProperty: obj = %u, id = \"%s\", vp = %s\n",
 			   VERBOSE_OBJ obj, _id_c, _vp_c);
+	printf ("what is vp? \n");
+	if (JSVAL_IS_OBJECT(*vp)) printf ("is OBJECT\n");
+	if (JSVAL_IS_STRING(*vp)) printf ("is STRING\n");
+	if (JSVAL_IS_INT(*vp)) printf ("is INT\n");
+	if (JSVAL_IS_DOUBLE(*vp)) printf ("is DOUBLE\n");
+
+
 	#endif
 	return JS_TRUE;
 }

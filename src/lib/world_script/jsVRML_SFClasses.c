@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.25 2010/03/16 20:30:25 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.26 2010/03/17 19:09:43 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1177,15 +1177,31 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	/* get the private pointer for this node */
         if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) != NULL) {
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("SFNodeGetProperty, working on node %u, field %s\n",ptr->handle,_id_c);
+		printf ("SFNodeGetProperty, working on node %p, field %s\n",ptr->handle,_id_c);
 		#endif
 
-		JS_DefineSFNodeSpecificProperties (cx, obj, (struct X3D_Node *) ptr->handle);
+		JS_DefineSFNodeSpecificProperties (cx, obj, ptr->handle);
 
-/* can maybe try this to see if the property exists? 
+		/* does the property exist? */
                 if (JS_LookupProperty (cx, obj, _id_c, &rval)) {
-printf ("lookup property returns TRUE\n"); } else {printf ("lookup prop returns FALSE\n");}
-*/
+			if (rval == JSVAL_VOID) {
+				ConsoleMessage ("SFNode - field :%s: does not exist",_id_c);
+				return JS_FALSE;
+			}
+		}
+
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("wondering about rval.. %d. it is a\n",rval);
+		if (JSVAL_IS_INT(rval)) printf ("IS AN INT\n");
+		if (JSVAL_IS_OBJECT(rval)) printf ("IS AN OBJECT\n");
+		if (JSVAL_IS_STRING(rval)) printf ("IS AN STRING\n");
+		if (rval == JSVAL_FALSE) printf ("FALSE\n");
+		if (rval == JSVAL_NULL) printf ("NULL\n");
+		if (rval == JSVAL_ONE) printf ("ONE\n");
+		if (rval == JSVAL_ZERO) printf ("ZERO\n");
+		if (rval == JSVAL_VOID) printf ("VOID\n");
+		if (rval == JSVAL_TRUE) printf ("TRUE\n");
+		#endif
 
 
                 if (JS_GetProperty (cx, obj, _id_c, &rval)) {
@@ -1200,6 +1216,9 @@ printf ("lookup property returns TRUE\n"); } else {printf ("lookup prop returns 
 			#endif
 			return JS_FALSE;
 		}
+	} else {
+		printf ("could not get private for SFNodeGetProperty, field :%s:\n",_id_c);
+		return JS_FALSE;
 	}
 
 	return JS_TRUE;

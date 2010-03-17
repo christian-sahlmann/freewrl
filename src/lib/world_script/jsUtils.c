@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.23 2010/03/16 20:30:25 crc_canada Exp $
+$Id: jsUtils.c,v 1.24 2010/03/17 19:09:43 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -55,6 +55,7 @@ which is the sample application included with the javascript engine.
 
 
 /********************** Javascript to X3D Scenegraph ****************************/
+
 
 /* a SF value has changed in an MF; eg, xx[10] = new SFVec3f(...); */
 /* These values were created below; new SF values to this MF are not accessed here, but in 
@@ -456,8 +457,8 @@ static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType,
 
 
 #ifdef JSVRMLCLASSESVERBOSE
-printf ("X3D_MF_TO_JS - is this already expanded? \n");
-{
+	printf ("X3D_MF_TO_JS - is this already expanded? \n");
+	{
         SFNodeNative *VNptr;
 
         /* get a pointer to the internal private data */
@@ -467,7 +468,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
         }
 	if (VNptr->fieldsExpanded) printf ("FIELDS EXPANDED\n");
 	else printf ("FIELDS NOT EXPANDED\n");
-}
+	}
 #endif
 
 
@@ -504,7 +505,6 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 	printf ("setting parent for %u to %u\n", *newval, obj);
 	#endif
 
-
 	/* ok - if we are setting an MF* field by a thing like myField[10] = new String(); the
 	   set method does not really get called. So, we go up the parental chain until we get
 	   either no parent, or a SFNode. If we get a SFNode, we call the "save this" function
@@ -518,7 +518,8 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 	printf ("telling %u that it is a child \"%s\" of parent %u\n",*newval, fieldName, obj);
 	#endif
 
-	fieldNameAsJSVAL = (jsval)JS_NewStringCopyZ(cx,fieldName);
+	fieldNameAsJSVAL = STRING_TO_JSVAL(JS_NewStringCopyZ(cx,fieldName));
+
         if (!JS_DefineProperty(cx, JSVAL_TO_OBJECT(*newval), "_parentField", fieldNameAsJSVAL, 
 			JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5, JSPROP_READONLY)) {
                 printf("JS_DefineProperty failed for \"%s\" in X3D_MF_TO_JS.\n", fieldName);
@@ -660,7 +661,6 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			jsval xf;
 
 			MCptr = (struct Multi_String *) Data;
-
 			for (i=0; i<MCptr->n; i++) {
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("X3D_MF_TO_JS, working on %d of %d, p %u\n",i, MCptr->n, MCptr->p[i]);
