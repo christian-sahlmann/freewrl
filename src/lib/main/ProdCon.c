@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.58 2010/03/15 20:27:25 crc_canada Exp $
+  $Id: ProdCon.c,v 1.59 2010/03/18 13:46:57 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -460,13 +460,13 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	/* take the nodes from the nRn node, and put them into the place where we have decided to put them */
 	AddRemoveChildren(X3D_NODE(insert_node),
 			  offsetPointer_deref(void*, insert_node, offsetInNode), 
-			  (uintptr_t*)nRn->children.p,
+			  (struct X3D_Node * *)nRn->children.p,
 			  nRn->children.n, 1, __FILE__,__LINE__);
 	
 	/* and, remove them from this nRn node, so that they are not multi-parented */
 	AddRemoveChildren(X3D_NODE(nRn),
 			  (struct Multi_Node *)((char *)nRn + offsetof (struct X3D_Group, children)),
-			  (uintptr_t *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);	
+			  (struct X3D_Node* *)nRn->children.p,nRn->children.n,2,__FILE__,__LINE__);	
 
 	res->complete = TRUE;
 	

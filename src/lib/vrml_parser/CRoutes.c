@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.62 2010/03/17 19:09:43 crc_canada Exp $
+$Id: CRoutes.c,v 1.63 2010/03/18 13:46:58 crc_canada Exp $
 
 ???
 
@@ -532,7 +532,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 void AddRemoveChildren (
 		struct X3D_Node *parent,
 		struct Multi_Node *tn,
-		uintptr_t *nodelist,
+		struct X3D_Node * *nodelist,
 		int len,
 		int ar,
 		char *file,
@@ -540,9 +540,9 @@ void AddRemoveChildren (
 	int oldlen;
 	void *newmal;
 	int num_removed;
-	uintptr_t *remchild;
-	uintptr_t *remptr;
-	uintptr_t *tmpptr;
+	struct X3D_Node * *remchild;
+	struct X3D_Node * *remptr;
+	struct X3D_Node * *tmpptr;
 	int done;
 
 	int counter, c2;
@@ -637,7 +637,7 @@ void AddRemoveChildren (
 		remchild = nodelist;
 		/* printf ("removing, len %d, tn->n %d\n",len,tn->n); */
 		for (c2 = 0; c2 < len; c2++) {
-			remptr = (uintptr_t*) tn->p;
+			remptr = (struct X3D_Node * *) tn->p;
 			done = FALSE;
 
 			for (counter = 0; counter < tn->n; counter ++) {
@@ -668,7 +668,7 @@ void AddRemoveChildren (
 			/* printf ("MALLOCing size of %d\n",(oldlen-num_removed)*sizeof(void *)); */
 			newmal = MALLOC ((oldlen-num_removed)*sizeof(void *));
 			tmpptr = newmal;
-			remptr = (uintptr_t*) tn->p;
+			remptr = (struct X3D_Node * *) tn->p;
 
 			/* go through and copy over anything that is not zero */
 			for (counter = 0; counter < tn->n; counter ++) {

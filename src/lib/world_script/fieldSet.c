@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.42 2010/03/17 19:09:43 crc_canada Exp $
+  $Id: fieldSet.c,v 1.43 2010/03/18 13:46:58 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -1172,7 +1172,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 void getMFNodetype (struct X3D_Node *strp, struct Multi_Node *tn, struct X3D_Node *parent, int ar) {
 	/* now, perform the add/remove */
-	AddRemoveChildren (parent, tn,  (uintptr_t *)(&(strp)), 1, ar,__FILE__,__LINE__);
+	AddRemoveChildren (parent, tn,  &strp, 1, ar,__FILE__,__LINE__);
 }
 
 

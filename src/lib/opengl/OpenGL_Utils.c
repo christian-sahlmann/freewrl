@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.114 2010/03/12 21:00:15 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.115 2010/03/18 13:46:57 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1685,11 +1685,11 @@ void startOfLoopNodeUpdates(void) {
 		/* this node possibly has to do add/remove children? */
 		if (childrenPtr != NULL) {
 			if (addChildren != NULL) {
-				AddRemoveChildren(node,childrenPtr,(uintptr_t *) addChildren->p,addChildren->n,1,__FILE__,__LINE__);
+				AddRemoveChildren(node,childrenPtr,(struct X3D_Node * *) addChildren->p,addChildren->n,1,__FILE__,__LINE__);
 				addChildren->n=0;
 			}
 			if (removeChildren != NULL) {
-				AddRemoveChildren(node,childrenPtr,(uintptr_t *) removeChildren->p,removeChildren->n,2,__FILE__,__LINE__);
+				AddRemoveChildren(node,childrenPtr,(struct X3D_Node * *) removeChildren->p,removeChildren->n,2,__FILE__,__LINE__);
 				removeChildren->n=0;
 			}
 			/* printf ("OpenGL, marking children changed\n"); */
