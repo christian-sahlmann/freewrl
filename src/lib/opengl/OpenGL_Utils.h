@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.18 2010/01/27 21:18:52 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.19 2010/03/22 20:42:00 crc_canada Exp $
 
 Screen snapshot.
 
@@ -57,5 +57,12 @@ void fw_glScaled (double a, double b, double c);
 void fw_glScalef (float a, float b, float c);
 void fw_glGetDoublev (int ty, double *mat);
 
+/* OpenGL-ES specifics for Materials and Vertices */
+void fw_iphone_enableClientState(GLenum aaa);
+void fw_iphone_disableClientState(GLenum aaa);
+void fw_iphone_vertexPointer(GLint aaa,GLenum bbb,GLsizei ccc,const GLvoid *ddd);
+void fw_iphone_normalPointer(GLenum aaa,GLsizei bbb, const GLvoid *ccc);
+void fw_iphone_texcoordPointer(GLint aaa, GLenum bbb ,GLsizei ccc,const GLvoid *ddd);
+void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd);
 
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

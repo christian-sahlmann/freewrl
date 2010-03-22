@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.72 2010/03/22 19:54:02 crc_canada Exp $
+  $Id: display.h,v 1.73 2010/03/22 20:42:00 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -686,6 +686,10 @@ void setScreenDim(int wi, int he);
 	#define GL_TEXTURE_WRAP_R                 0x8072
 	#define GL_QUADS                          0x0007
 	#define GL_QUAD_STRIP                     0x0008
+	#define GL_VERTEX_ARRAY                   0x8074
+	#define GL_NORMAL_ARRAY                   0x8075
+	#define GL_TEXTURE_COORD_ARRAY            0x8078
+	#define GL_COLOR_ARRAY                    0x8076
 
 	/****************************************************************/
 	/*	FUNCTIONS not available in OpenGL-ES 2.0  		*/
@@ -753,21 +757,15 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_COLOR3F(aaa,bbb,ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_ALPHAFUNC(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_ENABLECLIENTSTATE(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_DISABLECLIENTSTATE(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-/*
-	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_SCALE_F(xxx,yyy,zzz) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_SCALE_D(xxx,yyy,zzz) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_LOAD_IDENTITY(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_PUSH_MATRIX(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_POP_MATRIX(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_MATRIX_MODE(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-*/
+
+	#define FW_GL_ENABLECLIENTSTATE(aaa) fw_iphone_enableClientState(aaa)
+	#define FW_GL_DISABLECLIENTSTATE(aaa) fw_iphone_disableClientState(aaa)
+	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) fw_iphone_vertexPointer(aaa,bbb,ccc,ddd)
+	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) fw_iphone_normalPointer(aaa,bbb,ccc)
+	#define FW_GL_TEXCOORD_POINTER(aaa,bbb,ccc,ddd) fw_iphone_texcoordPointer(aaa,bbb,ccc,ddd)
+	#define FW_GL_COLOR_POINTER(aaa, bbb,ccc,ddd) fw_iphone_colorPointer(aaa,bbb,ccc,ddd)
+
+
 	#define FW_GL_GETDOUBLEV(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_PUSH_ATTRIB(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_POP_ATTRIB(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
@@ -776,7 +774,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_COLOR4FV(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_RASTERPOS2I(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_CGLFLUSHDRAWABLE(aaa) GL_FALSE printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) printf("WRONG"); printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
@@ -790,8 +787,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_BEGIN(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_VERTEX3D(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_END() printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) printf("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
@@ -813,12 +808,10 @@ void setScreenDim(int wi, int he);
 	#define SET_TEXTURE_UNIT(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_TEXENVI(aaa,bbb,ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_TEXGENI(aaa,bbb,ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_TEXCOORD_POINTER(aaa,bbb,ccc,ddd)  printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_BINDTEXTURE(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_SWAPBUFFERS printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 
 
-	#define FW_GL_COLOR_POINTER(aaa, bbb,ccc,ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_DRAWBUFFER printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_ENDLIST() printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_GETFLOATV(aaa,bbb)  printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
@@ -826,7 +819,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_GETSTRING(aaa) 0 
 	#define FW_GL_LISTBASE(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_VERTEX3F(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_COLOR_POINTER(aaa, bbb,ccc,ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_COLOR3FV(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_LOADMATRIXD(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.116 2010/03/22 15:14:48 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.117 2010/03/22 20:42:00 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2023,3 +2023,25 @@ static void killNode (int index) {
 	FREE_IF_NZ(memoryTable[index]);
 	memoryTable[index]=NULL;
 }
+
+
+#ifdef IPHONE
+/* OpenGL-ES specifics for Materials and Vertices */
+void fw_iphone_enableClientState(GLenum aaa)
+{ printf  ("called fw_iphone_enableClientState\n");}
+
+void fw_iphone_disableClientState(GLenum aaa)
+{ printf  ("called fw_iphone_disableClientState\n");}
+
+void fw_iphone_vertexPointer(GLint aaa,GLenum bbb,GLsizei ccc,const GLvoid *ddd)
+{ printf  ("called fw_iphone_somethingPointer\n");}
+
+void fw_iphone_normalPointer(GLenum aaa,GLsizei bbb, const GLvoid *ccc)
+{ printf  ("called fw_iphone_somethingPointer\n");}
+
+void fw_iphone_texcoordPointer(GLint aaa, GLenum bbb ,GLsizei ccc,const GLvoid *ddd)
+{ printf  ("called fw_iphone_somethingPointer\n");}
+
+void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd)
+{ printf  ("called fw_iphone_somethingPointer\n");}
+#endif
