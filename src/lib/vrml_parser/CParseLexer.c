@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.38 2010/03/09 22:44:23 dug9 Exp $
+$Id: CParseLexer.c,v 1.39 2010/03/22 15:14:48 crc_canada Exp $
 
 ???
 
@@ -43,7 +43,6 @@ $Id: CParseLexer.c,v 1.38 2010/03/09 22:44:23 dug9 Exp $
 #include "CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
-#include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
 #include "../input/InputFunctions.h"
 #include "../input/EAIHelpers.h"	/* for newASCIIString() */

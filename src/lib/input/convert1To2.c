@@ -32,6 +32,7 @@
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
 #include "../input/EAIHeaders.h"

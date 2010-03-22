@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.41 2010/03/12 21:00:15 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.42 2010/03/22 15:14:48 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -95,6 +95,7 @@ FIELDTYPE_MFVec4d
 #include "../vrml_parser/CParseGeneral.h"
 #include "../lib/scenegraph/Vector.h"
 
+#include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CFieldDecls.h"
 #include "../opengl/OpenGL_Utils.h"

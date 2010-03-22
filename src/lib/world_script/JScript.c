@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.24 2010/03/15 20:27:25 crc_canada Exp $
+$Id: JScript.c,v 1.25 2010/03/22 15:14:48 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -45,12 +45,12 @@ Javascript C language binding.
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 
+#include "JScript.h"
 #include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 #include "jsVRMLBrowser.h"
-#include "JScript.h"
 
 
 /* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
@@ -193,7 +193,7 @@ void JSMaxAlloc() {
 	for (count=JSMaxScript-10; count<JSMaxScript; count++) {
 		scr_act[count]= FALSE;
 		ScriptControl[count].thisScriptType = NOSCRIPT;
-		ScriptControl[count].eventsProcessed = (int) NULL;
+		ScriptControl[count].eventsProcessed = NULL;
 		ScriptControl[count].cx = 0;
 		ScriptControl[count].glob = 0;
 		ScriptControl[count]._initialized = FALSE;
@@ -368,8 +368,8 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 
 
 	/* get context and global object for this script */
-	_context = (JSContext *) ScriptControl[num].cx;
-	_globalObj = (JSObject *)ScriptControl[num].glob;
+	_context = ScriptControl[num].cx;
+	_globalObj = ScriptControl[num].glob;
 
 	#ifdef JAVASCRIPTVERBOSE
 		printf("ActualrunScript script called at %s:%d  num: %d cx %x \"%s\", \n", 
@@ -989,8 +989,8 @@ static int JSaddGlobalECMANativeProperty(int num, const char *name) {
 	jsval rval = INT_TO_JSVAL(0);
 
 	/* get context and global object for this script */
-	_context = (JSContext *) ScriptControl[num].cx;
-	_globalObj = (JSObject *)ScriptControl[num].glob;
+	_context =  ScriptControl[num].cx;
+	_globalObj = ScriptControl[num].glob;
 
 	#ifdef  JAVASCRIPTVERBOSE
 		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
@@ -1010,8 +1010,8 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 	JSObject *_globalObj;
 
 	/* get context and global object for this script */
-	_context = (JSContext *) ScriptControl[num].cx;
-	_globalObj = (JSObject *)ScriptControl[num].glob;
+	_context =  ScriptControl[num].cx;
+	_globalObj = ScriptControl[num].glob;
 
 	#ifdef JAVASCRIPTVERBOSE 
 		printf("addGlobalAssignProperty: cx: %d obj %d name \"%s\", evaluate script \"%s\"\n",

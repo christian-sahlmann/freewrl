@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.33 2010/03/15 20:27:25 crc_canada Exp $
+$Id: fieldGet.c,v 1.34 2010/03/22 15:14:48 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -49,6 +49,7 @@ Javascript C language binding.
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 
+#include "JScript.h"
 #include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"
@@ -126,8 +127,8 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	#endif
 
 	/* get context and global object for this script */
-	cx = (JSContext *) ScriptControl[tonode].cx;
-	obj = (JSObject *)ScriptControl[tonode].glob;
+	cx =  ScriptControl[tonode].cx;
+	obj = ScriptControl[tonode].glob;
 
 	/* set the time for this script */
 	SET_JS_TICKTIME()
@@ -202,8 +203,8 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 	struct Uni_String  **uniptr;
 
 	/* get context and global object for this script */
-	cx = (JSContext *) ScriptControl[tonode].cx;
-	obj = (JSObject *)ScriptControl[tonode].glob;
+	cx =  ScriptControl[tonode].cx;
+	obj = ScriptControl[tonode].glob;
 
 	/* set the TickTime (possibly again) for this context */
 	SET_JS_TICKTIME(FALSE)
@@ -757,8 +758,8 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 	JSObject *obj, *_sfvec3fObj;
 
 	/* get context and global object for this script */
-	cx = (JSContext *) ScriptControl[tonode].cx;
-	obj = (JSObject *)ScriptControl[tonode].glob;
+	cx =  ScriptControl[tonode].cx;
+	obj = ScriptControl[tonode].glob;
 
 	/* set the time for this script */
 	SET_JS_TICKTIME()
@@ -843,8 +844,8 @@ void setScriptMultiElementtype (int num)
 		#endif
 
 		/* get context and global object for this script */
-		cx = (JSContext *) ScriptControl[myObj->num].cx;
-		obj = (JSObject *)ScriptControl[myObj->num].glob;
+		cx =  ScriptControl[myObj->num].cx;
+		obj = ScriptControl[myObj->num].glob;
 
 		fn = offsetPointer_deref(void*,fn,fptr); /*fn += fptr;*/
 

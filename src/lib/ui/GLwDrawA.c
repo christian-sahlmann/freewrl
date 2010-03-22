@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GLwDrawA.c,v 1.4 2009/10/05 15:07:24 crc_canada Exp $
+$Id: GLwDrawA.c,v 1.5 2010/03/22 15:14:48 crc_canada Exp $
 
 ???
 
@@ -40,7 +40,6 @@ $Id: GLwDrawA.c,v 1.4 2009/10/05 15:07:24 crc_canada Exp $
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
-#include "../world_script/CScripts.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"

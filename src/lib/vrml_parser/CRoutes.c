@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.63 2010/03/18 13:46:58 crc_canada Exp $
+$Id: CRoutes.c,v 1.64 2010/03/22 15:14:48 crc_canada Exp $
 
 ???
 
@@ -42,6 +42,7 @@ $Id: CRoutes.c,v 1.63 2010/03/18 13:46:58 crc_canada Exp $
 #include "CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
 #include "CParseParser.h"
@@ -70,7 +71,7 @@ static int thisIntTimeStamp = 1;
 			 case FIELDTYPE_##thistype:  {  \
 				thistype##Native *ptr; \
 				/* printf ("getting private data in GETJSPTR for %p \n",JSglobal_return_val); */ \
-        			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, (JSObject *)JSglobal_return_val)) == NULL) { \
+        			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, JSglobal_return_val)) == NULL) { \
                 			printf( "JS_GetPrivate failed in get_valueChanged_flag\n"); \
                 			return JS_FALSE; \
 				} \
@@ -92,18 +93,18 @@ static int thisIntTimeStamp = 1;
 		jsval mainElement; \
 		int len; \
 		int i; \
-		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
+		if (!JS_GetProperty(cx, JSglobal_return_val, "length", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
 			return FALSE; \
 		} \
 		len = JSVAL_TO_INT(mainElement); \
 		/* go through each element of the main array. */ \
 		for (i = 0; i < len; i++) { \
-			if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
+			if (!JS_GetElement(cx, JSglobal_return_val, i, &mainElement)) { \
 				printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); \
 				return FALSE; \
 			} \
-			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) { \
+			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, mainElement)) == NULL) { \
 				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n"); \
 				return FALSE; \
 			} \
@@ -120,19 +121,19 @@ static int thisIntTimeStamp = 1;
 		int len; \
 		int i; \
 		JSContext *cx; \
-		cx = (JSContext *)ScriptControl[actualscript].cx; \
-		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
+		cx = ScriptControl[actualscript].cx; \
+		if (!JS_GetProperty(cx, JSglobal_return_val, "length", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
 			break; \
 		} \
 		len = JSVAL_TO_INT(mainElement); \
 		/* go through each element of the main array. */ \
 		for (i = 0; i < len; i++) { \
-			if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
+			if (!JS_GetElement(cx, JSglobal_return_val, i, &mainElement)) { \
 				printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); \
 				break; \
 			} \
-			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) { \
+			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, mainElement)) == NULL) { \
 				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n"); \
 				break; \
 			} \
@@ -151,7 +152,7 @@ static int thisIntTimeStamp = 1;
 
 #define GET_ECMA_TOUCHED(thistype) \
 	case FIELDTYPE_SF##thistype: {	\
-				touched = findNameInECMATable((JSContext *) ScriptControl[actualscript].cx,fullname);\
+				touched = findNameInECMATable( ScriptControl[actualscript].cx,fullname);\
 				break;\
 			}
 
@@ -159,7 +160,7 @@ static int thisIntTimeStamp = 1;
 	case FIELDTYPE_MF##thistype: {\
 		jsval mainElement; \
 		/* printf ("GET_ECMA_MF_TOUCHED called on %d\n",JSglobal_return_val);  */ \
-		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
+		if (!JS_GetProperty(cx, JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"MF_ECMA_HAS_changed\" in get_valueChanged_flag\n"); \
 		} /* else printf ("GET_ECMA_MF_TOUCHED MF_ECMA_has_changed is %d for %d %d\n",JSVAL_TO_INT(mainElement),cx,JSglobal_return_val); */  \
 		touched = JSVAL_TO_INT(mainElement);\
@@ -170,10 +171,10 @@ static int thisIntTimeStamp = 1;
 	case FIELDTYPE_##thistype: {\
 		jsval myv = INT_TO_JSVAL(0); \
 		/* printf ("RESET_ECMA_MF_TOUCHED called on %d ",JSglobal_return_val); */ \
-        	if (!JS_SetProperty((JSContext *) ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &myv)) { \
+        	if (!JS_SetProperty( ScriptControl[actualscript].cx, JSglobal_return_val, "MF_ECMA_has_changed", &myv)) { \
         		printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in RESET_ECMA_MF_TOUCHED.\n"); \
         	}\
-                /* if (!JS_GetProperty((JSContext *) ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
+                /* if (!JS_GetProperty( ScriptControl[actualscript].cx, JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
                         printf ("JS_GetProperty failed for \"MF_ECMA_HAS_changed\" in get_valueChanged_flag\n"); \
 		} \
                 printf ("and MF_ECMA_has_changed is %d\n",JSVAL_TO_INT(mainElement)); */\
@@ -182,7 +183,7 @@ static int thisIntTimeStamp = 1;
 
 #define RESET_TOUCHED_TYPE_ECMA(thistype) \
 			case FIELDTYPE_##thistype: { \
-				resetNameInECMATable((JSContext *) ScriptControl[actualscript].cx,JSparamnames[fptr].name); \
+				resetNameInECMATable( ScriptControl[actualscript].cx,JSparamnames[fptr].name); \
 				break; \
 			}
 /* in case Bool was defined above, restore the value */
@@ -421,7 +422,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 
 	touched = FALSE;
 	interpobj = ScriptControl[actualscript].glob;
-	cx = (JSContext *) ScriptControl[actualscript].cx;
+	cx =  ScriptControl[actualscript].cx;
 	fullname = JSparamnames[fptr].name;
 
 	#ifdef CRVERBOSE
@@ -430,7 +431,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 		JSparamnames[fptr].name, FIELDTYPES[JSparamnames[fptr].type]);
 	#endif
 
-	if (!JS_GetProperty(cx, (JSObject *) interpobj ,fullname,&JSglobal_return_val)) {
+	if (!JS_GetProperty(cx,  interpobj ,fullname,&JSglobal_return_val)) {
                	printf ("cant get property for %s\n",fullname);
 		return FALSE;
         } else {
@@ -486,14 +487,14 @@ int get_valueChanged_flag (int fptr, int actualscript) {
                 int len; 
 
 		unsigned CRCCheck = 0;
-                cx = (JSContext *)ScriptControl[actualscript].cx; 
-                if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { 
+                cx = ScriptControl[actualscript].cx; 
+                if (!JS_GetProperty(cx, JSglobal_return_val, "length", &mainElement)) { 
                         printf ("JS_GetProperty failed for length_flag\n"); 
                 } 
                 len = JSVAL_TO_INT(mainElement); 
                 /* go through each element of the main array. */ 
                 for (i = 0; i < len; i++) { 
-                        if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { 
+                        if (!JS_GetElement(cx, JSglobal_return_val, i, &mainElement)) { 
                                 printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); 
                                 break; 
                         } 
@@ -539,28 +540,17 @@ void AddRemoveChildren (
 		int line) {
 	int oldlen;
 	void *newmal;
-	int num_removed;
 	struct X3D_Node * *remchild;
 	struct X3D_Node * *remptr;
 	struct X3D_Node * *tmpptr;
 	int done;
 
+
 	int counter, c2;
 	#ifdef CRVERBOSE
 	
-	printf ("\n start of AddRemoveChildren; parent is a %s at %u %x\n",stringNodeType(parent->_nodeType),parent,parent);
-	printf ("AddRemove, field is %d in from parent offsetof (struct X3D_Group, children) is %d\n",(char *)tn - (char *)parent,
-			offsetof (struct X3D_Group, children));
-	printf ("	and, addChildren offset %d, and removeChildren offset %d\n",
-				offsetof (struct X3D_Group,addChildren),
-				offsetof (struct X3D_Group,removeChildren));
-	printf ("	and, setValue in MetadataMFNode %d, value %d value_changed %d\n",
-				offsetof (struct X3D_MetadataMFNode,setValue),
-				offsetof (struct X3D_MetadataMFNode,value),
-				offsetof (struct X3D_MetadataMFNode,valueChanged));
-
-
-	printf ("AddRemove Children parent %u tn %u, len %d ar %d\n",parent,tn,len,ar);
+	printf ("\n start of AddRemoveChildren; parent is a %s at %p\n",stringNodeType(parent->_nodeType),parent);
+	printf ("AddRemove Children parent %p tn %p, len %d ar %d\n",parent,tn,len,ar);
 	printf ("called at %s:%d\n",file,line);
 	#endif
 
@@ -610,24 +600,31 @@ void AddRemoveChildren (
 
 		/* set up the C structures for this new MFNode addition */
 		FREE_IF_NZ (tn->p);
+		tn->n = oldlen;
 		tn->p = newmal;
 
-		/* copy the new stuff over - note, newmal changes what it points to */
-		newmal = offsetPointer_deref(void *,newmal, sizeof(struct X3D_Node *) * oldlen);
-                memcpy(newmal,nodelist,sizeof(struct X3D_Node *) * len);
+		/* copy the new stuff over - note, tmpptr changes what it points to */
+		tmpptr  = offsetPointer_deref(struct X3D_Node * *,newmal, sizeof(struct X3D_Node *) * oldlen);
 
 		/* tell each node in the nodelist that it has a new parent */
 		for (counter = 0; counter < len; counter++) {
 			#ifdef CRVERBOSE
-			printf ("AddRemove, count %d of %d, node %u parent %u\n",counter, len,nodelist[counter],parent);
+			printf ("AddRemove, count %d of %d, node %p parent %p\n",counter, len,nodelist[counter],parent);
 			#endif
-			ADD_PARENT((void *)nodelist[counter],(void *)parent);
+			if (nodelist[counter] != NULL) {
+				*tmpptr = nodelist[counter];
+				tmpptr ++;
+				tn->n++;
+				ADD_PARENT((void *)nodelist[counter],(void *)parent);
+			} else {
+				/* gosh, we are asking to add a NULL node pointer, lets just skip it... */
+				printf ("AddRemoveChildren, Add, but new node is null; ignoring...\n");
+			}
 		}
-
-		/* and, set the new length */
-		tn->n = len+oldlen;
-
 	} else {
+		int finalLength;
+		int num_removed;
+
 		/* this is a removeChildren */
 
 		/* go through the original array, and "zero" out children that match one of
@@ -635,22 +632,22 @@ void AddRemoveChildren (
 
 		num_removed = 0;
 		remchild = nodelist;
-		/* printf ("removing, len %d, tn->n %d\n",len,tn->n); */
+		/* printf ("removing, len %d, tn->n %d\n",len,tn->n);  */
 		for (c2 = 0; c2 < len; c2++) {
 			remptr = (struct X3D_Node * *) tn->p;
 			done = FALSE;
 
 			for (counter = 0; counter < tn->n; counter ++) {
 				#ifdef CRVERBOSE
-				printf ("remove, comparing %u with %u\n",*remptr, *remchild); 
+				printf ("remove, comparing %p with %p\n",*remptr, *remchild); 
 				#endif
 				if ((*remptr == *remchild) && (!done)) {
 					#ifdef CRVERBOSE
-					printf ("removing this child from this parent\n");
+					printf ("Found it! removing this child from this parent\n");
 					#endif
 
 					remove_parent(X3D_NODE(*remchild),parent);
-					*remptr = 0;  /* "0" can not be a valid memory address */
+					*remptr = NULL;  /* "0" can not be a valid memory address */
 					num_removed ++;
 					done = TRUE; /* remove this child ONLY ONCE - in case it has been added
 							more than once. */
@@ -660,40 +657,62 @@ void AddRemoveChildren (
 			remchild ++;
 		}
 
+
+		finalLength = oldlen - num_removed;
 		#ifdef CRVERBOSE
-		printf ("end of finding, num_removed is %d\n",num_removed);
+		printf ("final length is %d, we have %d in original array\n", finalLength, tn->n);
+		remptr = (struct X3D_Node * *) tn->p;
+		printf ("so, the original array, with zeroed elements is: \n");
+		for (counter = 0; counter < tn->n; counter ++) {
+			printf ("count %d of %d is %p\n",counter,tn->n, *remptr); 
+			remptr ++;
+		}
 		#endif
 
+
 		if (num_removed > 0) {
-			/* printf ("MALLOCing size of %d\n",(oldlen-num_removed)*sizeof(void *)); */
-			newmal = MALLOC ((oldlen-num_removed)*sizeof(void *));
-			tmpptr = newmal;
-			remptr = (struct X3D_Node * *) tn->p;
+			if (finalLength > 0) {
+				newmal = MALLOC (finalLength*sizeof(struct X3D_Node * *));
+				bzero (newmal, (size_t)(finalLength*sizeof(struct X3D_Node * *)));
+				tmpptr = (struct X3D_Node * *) newmal;
+				remptr = (struct X3D_Node * *) tn->p;
 
-			/* go through and copy over anything that is not zero */
-			for (counter = 0; counter < tn->n; counter ++) {
-				/* printf ("count %d is %d\n",counter, *remptr); */
-				if (*remptr != 0) {
-					*tmpptr = *remptr;
-					/* printf ("now, tmpptr %d is %d\n",tmpptr,*tmpptr); */
-					tmpptr ++;
+				/* go through and copy over anything that is not zero */
+				for (counter = 0; counter < tn->n; counter ++) {
+					printf ("count %d is %p\n",counter, *remptr); 
+					if (*remptr != NULL) {
+						*tmpptr = *remptr;
+						printf ("now, tmpptr is %p\n",*tmpptr); 
+						tmpptr ++;
+					}
+					remptr ++;
 				}
-				remptr ++;
-			}
-			/* printf ("done loops, now make data active \n"); */
+				/* printf ("done loops, now make data active \n"); */
 
-			/* now, do the move of data */
-			tn->n = 0;
-			FREE_IF_NZ (tn->p);
-			tn->p = newmal;
-			tn->n = oldlen - num_removed;
+				/* now, do the move of data */
+				tn->n = 0;
+				FREE_IF_NZ (tn->p);
+				tn->p = newmal;
+				tn->n = finalLength;
+			} else {
+				tn->n = 0;
+				FREE_IF_NZ(tn->p);
+			}
+
+			#ifdef CRVERBOSE
+			printf ("so, we have a final array length of %d\n",tn->n);
+			for (counter =0; counter <tn->n; counter ++) {
+				printf ("    element %d is %p\n",counter,tn->p[counter]);
+			}
+			#endif
+
 		}
 
 	}
 
 	update_node(parent);
 }
-
+#undef CRVERBOSE
 
 /* These events must be run first during the event loop, as they start an event cascade.
    Regsister them with add_first, then call them during the event loop with do_first.    */
@@ -1376,7 +1395,7 @@ static void gatherScriptEventOuts(void) {
 			#ifdef CRVERBOSE 
 				printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
 			#endif
-			touched_flag = get_valueChanged_flag(fptr,actualscript);
+			touched_flag = get_valueChanged_flag((int)fptr,actualscript);
 		}
 
 		if (touched_flag!= 0) {
@@ -1592,7 +1611,7 @@ void propagate_events() {
 	for (counter =0; counter <= max_script_found_and_initialized; counter++) {
 		if (scr_act[counter]) {
 			scr_act[counter] = FALSE;
-			CLEANUP_JAVASCRIPT((JSContext *)ScriptControl[counter].cx);
+			CLEANUP_JAVASCRIPT(ScriptControl[counter].cx);
 		}
 	}	
 
@@ -1617,18 +1636,18 @@ void process_eventsProcessed() {
 	jsval retval;
 
 	for (counter = 0; counter <= max_script_found_and_initialized; counter++) {
-		if (ScriptControl[counter].eventsProcessed == 0) {
-			ScriptControl[counter].eventsProcessed = (uintptr_t) JS_CompileScript(
-				(JSContext *) ScriptControl[counter].cx,
-				(JSObject *) ScriptControl[counter].glob,
+		if (ScriptControl[counter].eventsProcessed == NULL) {
+			ScriptControl[counter].eventsProcessed = JS_CompileScript(
+				 ScriptControl[counter].cx,
+				 ScriptControl[counter].glob,
 				"eventsProcessed()", strlen ("eventsProcessed()"),
 				"compile eventsProcessed()", 1);
 
 		}
 
-		if (!JS_ExecuteScript((JSContext *) ScriptControl[counter].cx,
-                                (JSObject *) ScriptControl[counter].glob,
-				(JSScript *) ScriptControl[counter].eventsProcessed, &retval)) {
+		if (!JS_ExecuteScript( ScriptControl[counter].cx,
+                                 ScriptControl[counter].glob,
+				ScriptControl[counter].eventsProcessed, &retval)) {
 #if defined(_MSC_VER)
 			printf ("can not run eventsProcessed() for script %d thread %u\n",counter,(unsigned int)pthread_self().x);
 #else

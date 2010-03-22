@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.24 2010/02/17 18:03:06 crc_canada Exp $
+  $Id: statusbar.c,v 1.25 2010/03/22 15:14:48 crc_canada Exp $
 
 */
 
@@ -39,7 +39,6 @@
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
-#include "../world_script/CScripts.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"

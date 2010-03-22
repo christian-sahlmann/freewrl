@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.12 2010/03/01 22:39:49 crc_canada Exp $
+$Id: jsVRMLClasses.h,v 1.13 2010/03/22 15:14:48 crc_canada Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -99,7 +99,7 @@ of garbage collection */
 	}
 #define RUN_FUNCTION(tnfield) \
 	{jsval zimbo; \
-	if (!JS_ExecuteScript(cx, obj, (JSScript *) JSparamnames[tnfield].eventInFunction, &zimbo)) { \
+	if (!JS_ExecuteScript(cx, obj, JSparamnames[tnfield].eventInFunction, &zimbo)) { \
 		printf ("failed to set parameter for eventIn %s in FreeWRL code %s:%d\n",JSparamnames[tnfield].name,__FILE__,__LINE__); \
 		/* printf ("myThread is %u\n",pthread_self());*/ \
 	}} 

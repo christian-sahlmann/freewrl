@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.16 2010/03/01 22:39:49 crc_canada Exp $
+$Id: CScripts.h,v 1.17 2010/03/22 15:14:48 crc_canada Exp $
 
 Class to wrap a java script for CParser
 
@@ -30,6 +30,44 @@ Class to wrap a java script for CParser
 #ifndef __FREEWRL_CSCRIPTS_H__
 #define __FREEWRL_CSCRIPTS_H__
 
+/* ************************************************************************** */
+/* ************************ Java function name to JSScript mapping  ********* */
+/* ************************************************************************** */
+#define MAXJSVARIABLELENGTH 25  /* variable name length can be this long... */
+/* Some stuff for routing */
+#define FROM_SCRIPT 1
+#define TO_SCRIPT 2
+#define SCRIPT_TO_SCRIPT 3
+
+struct CRjsnameStruct {
+        int     	type;
+        char    	name[MAXJSVARIABLELENGTH];
+	JSScript *	eventInFunction;		/* compiled javascript function... if it is required */
+};
+
+
+/* ************************************************************************** */
+/* ************************ Generic defines/function protos   *************** */
+/* ************************************************************************** */
+extern struct CRjsnameStruct *JSparamnames;
+extern int jsnameindex;
+extern int MAXJSparamNames;
+
+#define JS_GET_PROPERTY_STUB JS_PropertyStub
+/* #define JS_GET_PROPERTY_STUB js_GetPropertyDebug */
+
+#define JS_SET_PROPERTY_STUB1 js_SetPropertyDebug1
+
+/* #define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2  */
+#define JS_SET_PROPERTY_STUB2 JS_PropertyStub
+
+#define JS_SET_PROPERTY_STUB3 js_SetPropertyDebug3 
+#define JS_SET_PROPERTY_STUB4 js_SetPropertyDebug4 
+#define JS_SET_PROPERTY_STUB5 js_SetPropertyDebug5 
+#define JS_SET_PROPERTY_STUB6 js_SetPropertyDebug6 
+#define JS_SET_PROPERTY_STUB7 js_SetPropertyDebug7 
+#define JS_SET_PROPERTY_STUB8 js_SetPropertyDebug8 
+#define JS_SET_PROPERTY_CHECK js_SetPropertyCheck
 
 /* ************************************************************************** */
 /* ************************ Methods used by X3D Parser  ********************* */
@@ -138,9 +176,9 @@ struct CRscriptStruct {
 
 	/* Javascript parameters */
 	int _initialized;			/* this script initialized yet? */
-	void *	cx;			/* JSContext		*/
-	void *	glob;			/* JSGlobals		*/
-	void *eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
+	JSContext *	cx;			/* JSContext		*/
+	JSObject *	glob;			/* JSGlobals		*/
+	JSScript *eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
 	char *scriptText;
 	struct ScriptParamList *paramList;
 	int 		scriptOK;		/* set to TRUE if the script loads ok */

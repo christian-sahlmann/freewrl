@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.42 2010/03/01 22:39:49 crc_canada Exp $
+$Id: CProto.c,v 1.43 2010/03/22 15:14:48 crc_canada Exp $
 
 CProto ???
 
@@ -41,6 +41,7 @@ CProto ???
 #include "CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
 #include "../input/EAIHelpers.h"	/* for newASCIIString() */

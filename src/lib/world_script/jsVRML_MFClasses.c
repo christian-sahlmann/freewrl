@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.20 2010/03/17 19:09:43 crc_canada Exp $
+$Id: jsVRML_MFClasses.c,v 1.21 2010/03/22 15:14:48 crc_canada Exp $
 
 ???
 
@@ -47,6 +47,7 @@ $Id: jsVRML_MFClasses.c,v 1.20 2010/03/17 19:09:43 crc_canada Exp $
 #include "../x3d_parser/Bindable.h"
 #include "../scenegraph/LinearAlgebra.h"
 
+#include "JScript.h"
 #include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"

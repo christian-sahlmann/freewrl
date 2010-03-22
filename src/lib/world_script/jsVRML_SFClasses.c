@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.26 2010/03/17 19:09:43 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.27 2010/03/22 15:14:48 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -50,6 +50,7 @@
 #include "../x3d_parser/Bindable.h"
 #include "../input/InputFunctions.h"
 
+#include "JScript.h"
 #include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.31 2010/03/16 20:30:25 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.32 2010/03/22 15:14:48 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -56,6 +56,8 @@ Javascript C language binding.
 #include "../x3d_parser/Bindable.h"
 #include "../input/EAIHeaders.h"	/* for implicit declarations */
 
+
+#include "JScript.h"
 #include "CScripts.h"
 #include "fieldSet.h"
 #include "jsUtils.h"

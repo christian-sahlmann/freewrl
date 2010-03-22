@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.34 2010/03/01 22:39:48 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.35 2010/03/22 15:14:48 crc_canada Exp $
 
 ???
 
@@ -43,6 +43,7 @@ $Id: EAI_C_CommonFunctions.c,v 1.34 2010/03/01 22:39:48 crc_canada Exp $
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"

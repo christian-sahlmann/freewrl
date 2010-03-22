@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.24 2010/03/17 19:09:43 crc_canada Exp $
+$Id: jsUtils.c,v 1.25 2010/03/22 15:14:48 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -47,6 +47,7 @@ which is the sample application included with the javascript engine.
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 
+#include "JScript.h"
 #include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"

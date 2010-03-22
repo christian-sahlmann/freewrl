@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.53 2010/03/18 13:46:58 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.54 2010/03/22 15:14:48 crc_canada Exp $
 
 ???
 
@@ -43,6 +43,7 @@ $Id: X3DProtoScript.c,v 1.53 2010/03/18 13:46:58 crc_canada Exp $
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
+#include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
 #include "../vrml_parser/CParseParser.h"

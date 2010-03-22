@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.18 2010/03/17 19:09:43 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.19 2010/03/22 15:14:48 crc_canada Exp $
 
 ???
 
@@ -47,6 +47,7 @@ $Id: jsVRMLClasses.c,v 1.18 2010/03/17 19:09:43 crc_canada Exp $
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 
+#include "JScript.h"
 #include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"

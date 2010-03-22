@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.119 2010/03/18 13:46:57 crc_canada Exp $
+$Id: headers.h,v 1.120 2010/03/22 15:14:48 crc_canada Exp $
 
 Global includes.
 
@@ -91,64 +91,16 @@ void Multi_String_print(struct Multi_String *url);
 #define HEADLIGHT_LIGHT 7
 
 
-#define JS_GET_PROPERTY_STUB JS_PropertyStub
-/* #define JS_GET_PROPERTY_STUB js_GetPropertyDebug */
-
-#define JS_SET_PROPERTY_STUB1 js_SetPropertyDebug1
-
-/* #define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2  */
-#define JS_SET_PROPERTY_STUB2 JS_PropertyStub
-
-#define JS_SET_PROPERTY_STUB3 js_SetPropertyDebug3 
-#define JS_SET_PROPERTY_STUB4 js_SetPropertyDebug4 
-#define JS_SET_PROPERTY_STUB5 js_SetPropertyDebug5 
-#define JS_SET_PROPERTY_STUB6 js_SetPropertyDebug6 
-#define JS_SET_PROPERTY_STUB7 js_SetPropertyDebug7 
-#define JS_SET_PROPERTY_STUB8 js_SetPropertyDebug8 
-#define JS_SET_PROPERTY_CHECK js_SetPropertyCheck
-
 #define INT_ID_UNDEFINED -1
 
 /* Size of static array */
 #define ARR_SIZE(arr) (int)(sizeof(arr)/sizeof((arr)[0]))
-
-/* Some stuff for routing */
-#define FROM_SCRIPT 1
-#define TO_SCRIPT 2
-#define SCRIPT_TO_SCRIPT 3
-
-/* Helper to get size of a struct's memer */
-#define sizeof_member(str, var) \
- sizeof(((str*)NULL)->var)
-
-#define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
-
-struct CRjsnameStruct {
-        int     	type;
-        char    	name[MAXJSVARIABLELENGTH];
-	void *		eventInFunction;		/* compiled javascript function... if it is required */
-};
-
-
-extern struct CRjsnameStruct *JSparamnames;
-extern int jsnameindex;
-extern int MAXJSparamNames;
 
 extern char *BrowserName;
 extern char *BrowserFullPath;
 
 /* To allow BOOL for boolean values */
 #define BOOL	int
-
-/* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
-   blows plugins out of the water, because of the XLib threaded call in FrontEnd
-   not working that well... */
-#ifdef AQUA
-#ifdef OLDCODE /* JAS  testing things out */
-	#define DO_MULTI_OPENGL_THREADS //JAS - commented out
-#undef DO_MULTI_OPENGL_THREADS
-#endif
-#endif
 
 /* rendering constants used in SceneGraph, etc. */
 #define VF_Viewpoint 				0x0001

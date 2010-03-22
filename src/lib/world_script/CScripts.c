@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.39 2010/02/02 20:53:19 crc_canada Exp $
+$Id: CScripts.c,v 1.40 2010/03/22 15:14:48 crc_canada Exp $
 
 ???
 
@@ -52,8 +52,8 @@ $Id: CScripts.c,v 1.39 2010/02/02 20:53:19 crc_canada Exp $
 #include "../input/InputFunctions.h"
 #include "../x3d_parser/Bindable.h"
 
-#include "CScripts.h"
 #include "JScript.h"
+#include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"

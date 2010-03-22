@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.56 2010/03/18 13:46:57 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.57 2010/03/22 15:14:48 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -42,6 +42,7 @@ Handle incoming EAI (and java class) events with panache.
 
 #include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
+#include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 
 #include "../input/EAIHeaders.h"
