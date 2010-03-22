@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.27 2010/03/22 15:14:48 crc_canada Exp $
+$Id: Bindable.c,v 1.28 2010/03/22 19:16:01 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -860,9 +860,7 @@ void render_Background (struct X3D_Background *node) {
 	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
-#ifndef IPHONE
 	FW_GL_DRAWARRAYS (GL_QUADS, 0, node->__quadcount);
-#endif
 
 	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
@@ -930,9 +928,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
-#ifndef IPHONE
 	FW_GL_DRAWARRAYS (GL_QUADS, 0, node->__quadcount);
-#endif
 
 	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
