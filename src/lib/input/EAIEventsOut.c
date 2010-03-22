@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsOut.c,v 1.10 2010/02/19 20:51:53 crc_canada Exp $
+$Id: EAIEventsOut.c,v 1.11 2010/03/22 17:07:16 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -67,15 +67,11 @@ void EAIListener () {
 	id = (CRoutesExtra & 0xffffff00) >>8;
 
 	if (eaiverbose) {
-		printf ("Handle listener, id %x type %x extradata %x\n",id,tp,CRoutesExtra);
+		printf ("Handle listener, id %x type %s extradata %x\n",id,stringFieldtypeType(tp),CRoutesExtra);
 	}	
 
-		printf ("Handle listener, id %x type %s extradata %x\n",id,stringFieldtypeType(tp),CRoutesExtra);
 	/* convert the data to string form, for sending to the EAI java client */
 	EAI_Convert_mem_to_ASCII (id,"EV", tp, EAIListenerData, buf);
-
-printf ("done EAI_Convert_mem_to_ASCII here...\n");
-
 
 	/* if this is a MF type, there most likely will be MALLOC'd memory to free... */
 	switch (tp) {

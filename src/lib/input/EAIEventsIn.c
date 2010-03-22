@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.57 2010/03/22 15:14:48 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.58 2010/03/22 17:07:16 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -383,7 +383,6 @@ void EAI_parse_commands () {
 				node = getEAINodeFromTable(tmp_a, tmp_b);
 				offset = getEAIActualOffset(tmp_a, tmp_b);
 
-printf ("registerListener, we have a route coming from %p, nodetype %s\n",node,stringNodeType(node->_nodeType));
 				/* is this a script node? if so, get the actual string name in the table for this one */
 				if (node->_nodeType == NODE_Script) {
 					struct Shader_Script * sp;
@@ -412,11 +411,7 @@ printf ("registerListener, we have a route coming from %p, nodetype %s\n",node,s
 				   the route - the route propagation will copy data to here */
 
 				/* set up the route from this variable to the handle Listener routine */
-/*
-CRoutes_Register(1, from, fromOfs, to,toOfs, type, interpolatorPointer, dir, extraData);
-*/
-
-printf ("going to register route for RegisterListener, have type %d\n",tmp_c);
+				if (eaiverbose)  printf ("going to register route for RegisterListener, have type %d\n",tmp_c); 
 
 				CRoutes_Register  (1,node, offset, X3D_NODE(EAIListenerData), 0, (int) tmp_c,(void *) 
 					&EAIListener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/

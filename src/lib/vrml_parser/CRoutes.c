@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.64 2010/03/22 15:14:48 crc_canada Exp $
+$Id: CRoutes.c,v 1.65 2010/03/22 17:07:16 crc_canada Exp $
 
 ???
 
@@ -679,10 +679,10 @@ void AddRemoveChildren (
 
 				/* go through and copy over anything that is not zero */
 				for (counter = 0; counter < tn->n; counter ++) {
-					printf ("count %d is %p\n",counter, *remptr); 
+					/* printf ("count %d is %p\n",counter, *remptr); */
 					if (*remptr != NULL) {
 						*tmpptr = *remptr;
-						printf ("now, tmpptr is %p\n",*tmpptr); 
+						/* printf ("now, tmpptr is %p\n",*tmpptr);  */
 						tmpptr ++;
 					}
 					remptr ++;
