@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.44 2010/03/22 15:14:48 crc_canada Exp $
+  $Id: fieldSet.c,v 1.45 2010/03/23 17:00:46 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -357,6 +357,8 @@ unsigned int setField_FromEAI (char *ptr) {
 	#ifdef SETFIELDVERBOSE 
 	printf ("setField_FromEAI EAI_SendEvent, event string now is :%s:\n",ptr);
 	#endif
+
+	printf ("setField_FromEAI EAI_SendEvent, event string now is :%s:\n",ptr);
 
 	/* is this a MF node, that has floats or ints, and the set1Value method is called? 	*/
 	/* check out the java external/field/MF*java files for the string "ONEVAL "		*/
