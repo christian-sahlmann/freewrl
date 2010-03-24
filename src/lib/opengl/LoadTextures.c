@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.37 2010/03/04 21:33:01 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.38 2010/03/24 14:39:11 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -33,6 +33,12 @@
 #include <display.h>
 #include <internal.h>
 
+#include "vrml_parser/Structs.h"
+#include "main/ProdCon.h"
+#include "OpenGL_Utils.h"
+#include "Textures.h"
+#include "LoadTextures.h"
+
 #include <list.h>
 #include <resources.h>
 #include <io_files.h>
@@ -41,12 +47,7 @@
 #include <threads.h>
 
 #include <libFreeWRL.h>
-#include "vrml_parser/Structs.h"
-#include "main/ProdCon.h"
 
-#include "OpenGL_Utils.h"
-#include "Textures.h"
-#include "LoadTextures.h"
 #ifdef _MSC_VER
 #include "gdiPlusImageLoader.h"
 #else
@@ -531,13 +532,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		res = resource_create_multi(url);
 		res->media_type = resm_image; /* quick hack */
 
-		resource_identify(parentPath, res); 
-
-		if (resource_fetch(res)) {
-			if (texture_load_from_file(entry, res->actual_file)) {
-				res->status = ress_loaded;
-			}
-		}
+		resource_get_valid_texture_from_multi(entry, parentPath, res);
 
 		if (res->status == ress_loaded) {
 			/* Cool :) */

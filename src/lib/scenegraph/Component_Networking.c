@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.25 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Component_Networking.c,v 1.26 2010/03/24 14:39:11 crc_canada Exp $
 
 X3D Networking Component
 
@@ -34,10 +34,6 @@ X3D Networking Component
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeWRL.h>
-#include <list.h>
-#include <resources.h>
-#include <io_http.h>
 #include "../vrml_parser/Structs.h"
 #include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
@@ -49,6 +45,11 @@ X3D Networking Component
 
 #include "Component_Networking.h"
 #include "Children.h"
+
+#include <libFreeWRL.h>
+#include <list.h>
+#include <resources.h>
+#include <io_http.h>
 
 /* keep track of the Midi nodes. */
 static uintptr_t *MidiNodes = NULL;
@@ -1217,6 +1218,7 @@ void changed_Inline (struct X3D_Inline *node) {
 }
 
 
+/* note that we get the resources in a couple of steps; this tries to keep the scenegraph running */
 void load_Inline (struct X3D_Inline *node) {
 	resource_item_t *res;
 
@@ -1233,10 +1235,13 @@ void load_Inline (struct X3D_Inline *node) {
 				node->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
 			} else {
 				resource_item_t *myres;
+				resource_item_t *parentResource;
+
 				myres = (resource_item_t*)(node->_parentResource);
+				parentResource = (resource_item_t *)(node->_parentResource);
+
 				res = resource_create_multi(&(node->url));
 				res->media_type = resm_unknown;
-				resource_identify(((resource_item_t *)(node->_parentResource)), res);
 				node->__loadstatus = INLINE_FETCHING_RESOURCE;
 				node->__loadResource = res;
 			}
@@ -1244,10 +1249,24 @@ void load_Inline (struct X3D_Inline *node) {
 
 			case INLINE_FETCHING_RESOURCE:
 			res = node->__loadResource;
+			resource_identify(node->_parentResource, res);
+			
+			/* printf ("load_Inline, before resource_fetch, we have type  %s  status %s\n",
+				resourceTypeToString(res->type), resourceStatusToString(res->status)); */
+			
 			resource_fetch(res);
-			if ((res->status == ress_failed) || (res->status == ress_invalid)) {
-				printf ("resource failed to load\n");
-				node->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
+
+			/* printf ("load_Inline, after resource_fetch, we have type  %s  status %s\n",
+				resourceTypeToString(res->type), resourceStatusToString(res->status)); */
+			
+
+			/* do we try the next url in the multi-url? */
+			if ((res->status == ress_failed) && (res->m_request != NULL)) {
+				/* printf ("load_Inline, not found, lets try this again\n");*/
+				res->status = ress_invalid;
+				res->type = rest_multi;
+
+			/* did we get this one? */
 			} else if (res->status == ress_downloaded) {
 				res->media_type = resm_unknown;
 				res->where = X3D_NODE(node);
@@ -1255,6 +1274,13 @@ void load_Inline (struct X3D_Inline *node) {
 				send_resource_to_parser(res);
 				node->__loadstatus = INLINE_PARSING; /* a "do-nothing" approach */
 			} else {
+				if ((res->status == ress_failed) || (res->status == ress_invalid)) {
+					printf ("resource failed to load\n");
+					node->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
+				} else {
+					printf ("resource Inline in invalid state\n");
+					node->__loadstatus = INLINE_STABLE; /* a "do-nothing" approach */
+				}
 			}
 
 			break;

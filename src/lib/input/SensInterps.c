@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.26 2010/02/15 21:45:01 crc_canada Exp $
+$Id: SensInterps.c,v 1.27 2010/03/24 14:39:11 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -38,9 +38,16 @@ Interps are the "EventsProcessed" fields of interpolators.
 
 #include <libFreeWRL.h>
 #include <list.h>
+
+#include "vrml_parser/Structs.h"
+#include "input/InputFunctions.h"
+#include "opengl/Textures.h"            /* for finding a texture url in a multi url */
+#include "opengl/LoadTextures.h"        /* for finding a texture url in a multi url */
+
+
+
 #include <resources.h>
 
-#include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
 #include "../scenegraph/RenderFuncs.h"
 
@@ -403,7 +410,6 @@ void do_OintCoord(void *node) {
 	int thisone, prevone;	/* which keyValues we are interpolating between */
 	int tmp;
 	float interval;		/* where we are between 2 values */
-	struct point_XYZ normalval;	/* different structures for normalization calls */
 	int kpkv; /* keys per key value */
 	int indx;
 	int myKey;
@@ -1669,16 +1675,22 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 
 void locateAudioSource (struct X3D_AudioClip *node) {
 	resource_item_t *res;
+	resource_item_t *parentPath;
 
 	node->__sourceNumber = SoundSourceNumber;
 	SoundSourceNumber++;
 
+	parentPath = (resource_item_t *)(node->_parentResource);
+
 	res = resource_create_multi(&node->url);
+
+	resource_get_valid_url_from_multi(parentPath, res);
+
 	send_resource_to_parser(res);
 	resource_wait(res);
 	
 	if (res->status == ress_loaded) {
-		/* TODO: check into the audio file ??? */
+		/* TODO: check into the audio file ??? check what textures do in resource_get_valid_texture_from_multi */
 		return;
 	}
 

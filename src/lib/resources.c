@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.26 2010/03/03 21:12:47 sdumoulin Exp $
+  $Id: resources.c,v 1.27 2010/03/24 14:39:11 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -34,16 +34,20 @@
 #include <internal.h>
 #include <libFreeWRL.h>
 
+#include "vrml_parser/Structs.h"
+#include "input/InputFunctions.h"
+#include "opengl/Textures.h"		/* for finding a texture url in a multi url */
+#include "opengl/LoadTextures.h"	/* for finding a texture url in a multi url */
+
 #include <list.h>
-#include <resources.h>
 #include <io_files.h>
+#include <resources.h>
 #include <io_http.h>
 #include <threads.h>
 
-#include "vrml_parser/Structs.h"
-#include "input/InputFunctions.h"
 
 #include "zlib.h"
+
 
 static void removeFilenameFromPath (char *path);
 static void possiblyUnzip (openned_file_t *of);
@@ -324,8 +328,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 
 					/* Relative to current dir (we are loading main file/world) */
 					char *cwd;
-					resource_item_t *currentBase;
-
 
                                         cwd = get_current_dir();
 					removeFilenameFromPath(cwd);
@@ -783,6 +785,68 @@ void resource_wait(resource_item_t *res)
 	}
 }
 
+
+
+/* go through, and find the first valid url in a multi-url string */
+void resource_get_valid_url_from_multi(resource_item_t *parentPath, resource_item_t *res) {
+	do {
+		DEBUG_RES("resource_get_valid_url_from_multi, status %s type %s res->m_request %p\n",
+			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
+
+		resource_identify(parentPath, res); 
+
+		/* have this resource, is it a good file? */
+		if (resource_fetch(res)) {
+		}
+
+		/* do we try the next url in the multi-url? */
+		if ((res->status != ress_loaded) && (res->m_request != NULL)) {
+			DEBUG_RES ("not found, lets try this again\n");
+			res->status = ress_invalid; 
+			res->type = rest_multi;
+
+		}
+
+		DEBUG_RES("resource_get_valid_url_from_multi, end  of do-while, status %s type %s res->m_request %p\n",
+			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
+
+	/* go through and try, try again if this one fails. */
+	} while ((res->status != ress_loaded) && (res->m_request != NULL));
+}
+
+
+/* go through, and find the first valid texture url in a multi-url string */
+void resource_get_valid_texture_from_multi(struct textureTableIndexStruct *entry, resource_item_t *parentPath, resource_item_t *res) {
+	do {
+		DEBUG_RES("resource_get_valid_url_from_multi, status %s type %s res->m_request %p\n",
+			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
+
+		resource_identify(parentPath, res); 
+
+		if (resource_fetch(res)) {
+			/* have this resource, is it a good texture? */
+			if (texture_load_from_file(entry, res->actual_file)) {
+				res->status = ress_loaded;
+			}
+		}
+
+		/* do we try the next url in the multi-url? */
+		if ((res->status != ress_loaded) && (res->m_request != NULL)) {
+			DEBUG_RES ("not found, lets try this again\n");
+			res->status = ress_invalid; 
+			res->type = rest_multi;
+
+		}
+
+		DEBUG_RES("resource_get_valid_url_from_multi, end  of do-while, status %s type %s res->m_request %p\n",
+			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
+
+	/* go through and try, try again if this one fails. */
+	} while ((res->status != ress_loaded) && (res->m_request != NULL));
+}
+
+
+
 /**
  *   resource_tree_dump: print the resource tree for debugging.
  */
@@ -964,4 +1028,3 @@ static void possiblyUnzip (openned_file_t *of) {
 		unlink (tempname);
 	}
 }
-
