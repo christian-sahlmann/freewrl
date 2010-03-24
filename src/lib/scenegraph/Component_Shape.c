@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.42 2010/03/12 21:41:17 crc_canada Exp $
+$Id: Component_Shape.c,v 1.43 2010/03/24 16:25:32 crc_canada Exp $
 
 X3D Shape Component
 
@@ -537,20 +537,30 @@ void child_Shape (struct X3D_Shape *node) {
 
 				/* Material twosided - emissiveColour for points, lines, etc - lets just set this up; we should remove
 				   the DO_MAT calls above and do a compile-time verification of colours. */
-				appearanceProperties.emissionColour[0] = 0.8;
-				appearanceProperties.emissionColour[1] = 0.8;
-				appearanceProperties.emissionColour[2] = 0.8;
+				appearanceProperties.emissionColour[0] = 0.8f;
+				appearanceProperties.emissionColour[1] = 0.8f;
+				appearanceProperties.emissionColour[2] = 0.8f;
 			} else {
 	
 				if (tryingOcclusionDrawing) {
+					GLfloat dcol[] = {0.2f, 0.2f, 0.2f, 0.5f};
+					GLfloat blanker[] = {0.0f, 0.0f, 0.0f, 0.5f};
 					/* draw this as a subdued grey */
-					FW_GL_COLOR3F(0.3f,0.3f,0.3f);
+					FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol); 
+					FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_AMBIENT, blanker);
+					FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_SPECULAR, blanker);
+					FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_EMISSION, blanker);
+					FW_GL_MATERIALF(GL_FRONT_AND_BACK, GL_SHININESS,0.0f);
+					memcpy(appearanceProperties.emissionColour,blanker, 3*sizeof(float));
+
+					/* LIGHTING_OFF
+					FW_GL_COLOR3F(0.3f,0.3f,0.3f); */
 				} else {
 					/* no material, so just colour the following shape */ 
 					/* Spec says to disable lighting and set coloUr to 1,1,1 */ 
 					LIGHTING_OFF  
 					FW_GL_COLOR3F(1.0f,1.0f,1.0f); 
-					}
+				}
 		 
 				/* tell the rendering passes that this is just "normal" */ 
 				last_texture_type = NOTEXTURE; 

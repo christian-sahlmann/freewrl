@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.35 2010/03/12 17:07:57 crc_canada Exp $
+$Id: Frustum.c,v 1.36 2010/03/24 16:25:32 crc_canada Exp $
 
 ???
 
@@ -949,10 +949,11 @@ void OcclusionCulling ()  {
 						visSenPtr->__visible =FALSE;
 						visSenPtr->__Samples = 0;
 					}
-				  } else {
+
+				 /* } else {
 					printf ("shape, already have checkCount == OCCCHECKNEXTLOOP, not changing visibility params\n");
 				
-				
+			          */	
 				}
 			}
 		

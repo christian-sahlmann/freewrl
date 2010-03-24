@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.111 2010/03/13 02:10:31 sdumoulin Exp $
+  $Id: MainLoop.c,v 1.112 2010/03/24 16:25:32 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -310,8 +310,6 @@ void EventLoop() {
                        usleep((unsigned)waitsec);
 		}
 #endif
-/* #endif */
-
         }
 
         if (loop_count == 25) {
