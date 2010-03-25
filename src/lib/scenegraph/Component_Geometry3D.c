@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.26 2010/03/25 17:09:00 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.27 2010/03/25 18:40:20 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -778,6 +778,7 @@ void collisionSphere_init(struct X3D_Sphere *node)
 	}
 
 }
+#ifdef DEBUGGING_CODE
 int collisionSphere_render(double radius)
 {
 	/* I needed to verify the collision mesh sphere was good, and it uses triangles, so I drew it the triangle way and it looked good 
@@ -799,6 +800,7 @@ int collisionSphere_render(double radius)
 	}
 	return 0;
 }
+#endif
 
 struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n);
 #define FLOAT_TOLERANCE 0.00000001
@@ -1159,6 +1161,8 @@ void collisionCone_init(struct X3D_Cone *node)
 	collisionCone.smax[1] =  1.0; //h;
 
 }
+
+#ifdef DEBUGGING_CODE
 int collisionCone_render(double r, double h)
 {
 	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
@@ -1178,6 +1182,7 @@ int collisionCone_render(double r, double h)
 	}
 	return 0;
 }
+#endif
 
 void collide_Cone (struct X3D_Cone *node) {
 
@@ -1387,6 +1392,8 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	collisionCylinder.smax[1] =  1.0; //h/2;
 
 }
+
+#ifdef DEBUGGING_CODE
 int collisionCylinder_render(double r, double h)
 {
 	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
@@ -1418,6 +1425,8 @@ int collisionCylinder_render(double r, double h)
 	}
 	return 0;
 }
+#endif
+
 
 void collide_Cylinder (struct X3D_Cylinder *node) {
 	       /*easy access, naviinfo.step unused for sphere collisions */

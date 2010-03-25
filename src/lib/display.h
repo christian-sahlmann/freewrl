@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.73 2010/03/22 20:42:00 crc_canada Exp $
+  $Id: display.h,v 1.74 2010/03/25 18:40:20 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -684,7 +684,6 @@ void setScreenDim(int wi, int he);
 	#define GL_TEXTURE_PRIORITY               0x8066
 	#define GL_TEXTURE_WIDTH                  0x1000
 	#define GL_TEXTURE_WRAP_R                 0x8072
-	#define GL_QUADS                          0x0007
 	#define GL_QUAD_STRIP                     0x0008
 	#define GL_VERTEX_ARRAY                   0x8074
 	#define GL_NORMAL_ARRAY                   0x8075
