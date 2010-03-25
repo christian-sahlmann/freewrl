@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.120 2010/03/22 15:14:48 crc_canada Exp $
+$Id: headers.h,v 1.121 2010/03/25 18:15:10 crc_canada Exp $
 
 Global includes.
 
@@ -636,7 +636,7 @@ extern void loadMultiTexture(struct X3D_MultiTexture *node);
 extern void loadBackgroundTextures (struct X3D_Background *node);
 extern void loadTextureBackgroundTextures (struct X3D_TextureBackground *node);
 extern GLfloat boxtex[], boxnorms[], BackgroundVert[];
-extern GLfloat Backtex[], Backnorms[];
+extern GLfloat Backnorms[];
 
 extern void new_tessellation(void);
 extern void initializePerlThread(void);

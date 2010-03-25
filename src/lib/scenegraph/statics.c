@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statics.c,v 1.9 2010/03/25 17:09:00 crc_canada Exp $
+$Id: statics.c,v 1.10 2010/03/25 18:15:10 crc_canada Exp $
 
 large constant strings; used for rendering.
 
@@ -95,7 +95,7 @@ GLfloat boxtex[] = {
 	F0 F1 F2  F0 F2 F3
 	F1 F2 F3  F1 F3 F0
 	F0 F1 F2  F0 F2 F3
-	0};
+	0.0f};
 
 #undef F0
 #undef F1
@@ -105,21 +105,99 @@ GLfloat boxtex[] = {
 
 
 /* Background and TextureBackground */
-/* faces are quads, (GLfloat)  4 vertices; order: front, (GLfloat)  back, (GLfloat)  top, (GLfloat)  down, (GLfloat)  right, (GLfloat)  left. */
+#ifdef OLDCODE
+#define F0 1.0f, 1.0f,
+#define F1 0.0f, 1.0f,
+#define F2 0.0f, 0.0f,
+#define F3 1.0f, 0.0f,
+
+GLfloat Backtex[] = {
+        F0 F1 F2  F0 F2 F3
+	F3 F0 F1  F2 F3 F1
+	F3 F0 F1  F3 F1 F2	
+	F0 F1 F2  F0 F2 F3
+	F1 F2 F3  F1 F3 F0
+	F0 F1 F2  F0 F2 F3
+	0.0f};
+#undef F0
+#undef F1
+#undef F2
+GLfloat oBacktex[]= {(GLfloat) 0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
+		(GLfloat)     0.99, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat) 
+		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
+		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
+		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
+		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01,
+
+/* junk */
+		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
+		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
+		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
+		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
+		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
+		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
+		0.0f};
+#endif
+
+#define PTF0 0.15f, 0.15f, -0.15f,
+#define PTF1 -0.15f, 0.15f, -0.15f,
+#define PTF2 -0.15f, -0.15f, -0.15f,
+#define PTF3 0.15f, -0.15f, -0.15f,
+#define PTR0 0.15f, 0.15f, 0.15f,
+#define PTR1 -0.15f, 0.15f, 0.15f,
+#define PTR2 -0.15f, -0.15f, 0.15f,
+#define PTR3 0.15f, -0.15f, 0.15f,
+
+GLfloat BackgroundVert[] = {
+        PTF0 PTF1 PTF2  PTF0 PTF2 PTF3 /* front */
+        PTR2 PTR1 PTR0  PTR3 PTR2 PTR0 /* back */
+        PTF0 PTR0 PTR1  PTF0 PTR1 PTF1 /* top   */
+        PTF3 PTF2 PTR2  PTF3 PTR2 PTR3 /* bottom*/
+        PTF0 PTF3 PTR3  PTF0 PTR3 PTR0 /* right*/
+        PTF1 PTR1 PTR2  PTF1 PTR2 PTF2 /* left*/
+	0.0f};
+
+#undef PTF0
+#undef PTF1
+#undef PTF2
+#undef PTF3
+#undef PTR0
+#undef PTR1
+#undef PTR2
+#undef PTR3
+
+/* faces are triangles, vertices; order: front, back, top, down, right, left. */
+#define FT 0, 0, -1,
+#define BK 0, 0, 1,
+#define TP 0, -1, 0,
+#define DN 0, 1, 0,
+#define RT -1, 0, 0,
+#define LT 1, 0, 0,
+
+GLfloat Backnorms[] = {   
+	FT FT FT    FT FT FT
+	BK BK BK    BK BK BK
+	TP TP TP    TP TP TP
+	DN DN DN    DN DN DN
+	RT RT RT    RT RT RT
+	LT LT LT    LT LT LT
+	0};
+
+#undef FT
+#undef BK
+#undef TP
+#undef DN
+#undef RT
+#undef LT
+
+
+#ifdef OLDCODE
 GLfloat Backnorms[] ={0, (GLfloat) 0, (GLfloat) -1, (GLfloat)  0, (GLfloat) 0, (GLfloat) -1, (GLfloat)  0, (GLfloat) 0, (GLfloat) -1, (GLfloat)  0, (GLfloat) 0, (GLfloat) -1, (GLfloat) 
 		(GLfloat) 	0, (GLfloat) 0, (GLfloat) 1, (GLfloat)  0, (GLfloat) 0, (GLfloat) 1, (GLfloat)  0, (GLfloat) 0, (GLfloat) 1, (GLfloat)  0, (GLfloat) 0, (GLfloat) 1, (GLfloat) 
 		(GLfloat) 	0, (GLfloat) 1, (GLfloat) 0, (GLfloat)  0, (GLfloat) 1, (GLfloat) 0, (GLfloat)  0, (GLfloat) 1, (GLfloat) 0, (GLfloat)  0, (GLfloat) 1, (GLfloat) 0, (GLfloat) 
 		(GLfloat) 	0, (GLfloat) -1, (GLfloat) 0, (GLfloat)  0, (GLfloat) -1, (GLfloat) 0, (GLfloat)  0, (GLfloat) -1, (GLfloat) 0, (GLfloat)  0, (GLfloat) -1, (GLfloat) 0, (GLfloat) 
 		(GLfloat) 	1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  1, (GLfloat) 0, (GLfloat) 0, (GLfloat) 
 		(GLfloat) 	-1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  -1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  -1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  -1, (GLfloat) 0, (GLfloat) 0};
-
-GLfloat Backtex[]= {(GLfloat) 0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
-		(GLfloat)     0.99, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat) 
-		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
-		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
-		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01, (GLfloat) 
-		(GLfloat)     0.99, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.99, (GLfloat)  0.01, (GLfloat) 0.01, (GLfloat)  0.99, (GLfloat) 0.01};
-
 
 GLfloat BackgroundVert[] =  {
 		(GLfloat) /* front */
@@ -135,7 +213,7 @@ GLfloat BackgroundVert[] =  {
 		(GLfloat) /* left */
 		(GLfloat) -0.15, (GLfloat)  0.15, (GLfloat)  -0.15, (GLfloat)  -0.15, (GLfloat)  0.15, (GLfloat)  0.15, (GLfloat)  -0.15, (GLfloat)  -0.15, (GLfloat)  0.15, (GLfloat)  -0.15, (GLfloat)  -0.15, (GLfloat)  -0.15
 	};
-
+#endif
 
 
 /*  CYLINDER*/

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.28 2010/03/22 19:16:01 crc_canada Exp $
+$Id: Bindable.c,v 1.29 2010/03/25 18:15:10 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -879,7 +879,7 @@ void render_Background (struct X3D_Background *node) {
         	FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
         	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,BackgroundVert);
         	FW_GL_NORMAL_POINTER (GL_FLOAT,0,Backnorms);
-        	FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,Backtex);
+        	FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,boxtex);
 
 		loadBackgroundTextures(node);
 

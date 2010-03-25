@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.54 2010/03/25 17:09:00 crc_canada Exp $
+  $Id: Textures.c,v 1.55 2010/03/25 18:15:10 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -35,7 +35,6 @@
 
 #include <libFreeWRL.h>
 #include <list.h>
-#include <resources.h>
 
 #include <threads.h>
 
@@ -45,6 +44,7 @@
 #include "../scenegraph/readpng.h"
 #include "../input/InputFunctions.h"
 #include "Textures.h"
+#include <resources.h>
 #include "../opengl/Material.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "../world_script/fieldSet.h"
@@ -426,11 +426,11 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			render_node((void *)thistex);
 		        FW_GL_COLOR3D(1.0,1.0,1.0);
 
-        		textureDraw_start(NULL,Backtex);
+        		textureDraw_start(NULL,boxtex);
         		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
-        		FW_GL_DRAWARRAYS (GL_QUADS, count*4, 4);
+        		FW_GL_DRAWARRAYS (GL_TRIANGLES, count*6, 6);
         		textureDraw_end();
 		}
 	}
@@ -464,11 +464,11 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 				render_node((void *)thistex);
 		                FW_GL_COLOR3D(1.0,1.0,1.0);
 
-        			textureDraw_start(NULL,Backtex);
+        			textureDraw_start(NULL,boxtex);
         			FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         			FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
-        			FW_GL_DRAWARRAYS (GL_QUADS, count*4, 4);
+        			FW_GL_DRAWARRAYS (GL_TRIANGLES, count*6, 6);
         			textureDraw_end();
 			} 
 		}
