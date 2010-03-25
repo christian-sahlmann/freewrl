@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.22 2010/03/12 17:07:57 crc_canada Exp $
+$Id: Component_Geometry2D.c,v 1.23 2010/03/25 17:09:00 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -473,39 +473,50 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 
 /***********************************************************************************/
 
+
 /* this code is remarkably like Box, but with a zero z axis. */
 void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
 	float *pt;
-	void *xx;
+	void *ptr;
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
+
 	MARK_NODE_COMPILED
 
-	xx = NULL;
-
-	/* once MALLOC'd, this never changes size, so is "threadsafe" */
 	/*  MALLOC memory (if possible)*/
-	if (!node->__points) xx = MALLOC (sizeof(struct SFColor)*(4));
+	if (!node->__points) ptr = MALLOC (sizeof(struct SFColor)*(6));
+	else ptr = node->__points;
 
-	/*  now, create points; 4 points per face.*/
-	pt = (float *) xx;
-	/*  front*/
-	*pt++ =  x; *pt++ =  y; *pt++ =  0.0f; *pt++ = -x; *pt++ =  y; *pt++ =  0.0f;
-	*pt++ = -x; *pt++ = -y; *pt++ =  0.0f; *pt++ =  x; *pt++ = -y; *pt++ =  0.0f;
-	if (!node->__points) node->__points =xx;
+	/*  now, create points; 6 points per face.*/
+	pt = (float *) ptr;
+	#define PTF0 *pt++ =  x; *pt++ =  y; *pt++ =  0.0f;
+	#define PTF1 *pt++ = -x; *pt++ =  y; *pt++ =  0.0f;
+	#define PTF2 *pt++ = -x; *pt++ = -y; *pt++ =  0.0f;
+	#define PTF3 *pt++ =  x; *pt++ = -y; *pt++ =  0.0f;
+
+	PTF0 PTF1 PTF2  PTF0 PTF2 PTF3 /* front */
+	/* finished, and have good data */
+	node->__points = ptr;
+
+	#undef PTF0
+	#undef PTF1
+	#undef PTF2
+	#undef PTF3
 }
+
 
 void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
+	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
+	
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
 
 	/* test for <0 of sides */
 	if ((x < 0) || (y < 0)) return;
+
 	COMPILE_IF_REQUIRED
-	
-	/* is it compiled yet? (threading) */
-	if (!node->__points) return;
+	if (!node->__points) return; /* still compiling */
 
 	/* for BoundingBox calculations */
 	setExtent(x,-x,y,-y,0.0f,0.0f,X3D_NODE(node));
@@ -515,17 +526,13 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	textureDraw_start(NULL,boxtex);
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
-	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-	FW_GL_NORMAL3F (0.0f, 0.0f, 1.0f);
+	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	FW_GL_DRAWARRAYS (GL_QUADS, 0, 4);
+	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 6);
 	textureDraw_end();
-	FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 	trisThisLoop += 2;
 }
-
-
 
 /***********************************************************************************/
 

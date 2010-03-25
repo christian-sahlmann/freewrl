@@ -3,6 +3,14 @@ Priority list
 For 1.22.8 release:
 Javascript - verify that SFNode params work - eg, setting node.loop=false when node is a USE'd TimeSensor. (ref: gerwinKramer)
 
+1) TextureCoordinate - stream along with other params; note that if they are DEF/USEd, it causes real problems. see
+gregs' grr-freewrl-1.22.7-pre1-test.
+
+2) have to "update" the following nodes for OpenGL-ES: 2.0
+	- TextureCoordinate;
+	- nodes not using Polyrep;
+	- Polyreps using GL_QUAD*
+
 
 ============================================================================
 For 1.22.7 release:

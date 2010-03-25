@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.25 2010/03/12 17:07:57 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.26 2010/03/25 17:09:00 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -60,37 +60,42 @@ void compile_Box (struct X3D_Box *node) {
 	MARK_NODE_COMPILED
 
 	/*  MALLOC memory (if possible)*/
-	if (!node->__points) ptr = MALLOC (sizeof(struct SFColor)*(24));
+	if (!node->__points) ptr = MALLOC (sizeof(struct SFColor)*(36));
 	else ptr = node->__points;
 
-	/*  now, create points; 4 points per face.*/
+	/*  now, create points; 6 points per face.*/
 	pt = (float *) ptr;
-	/*  front*/
-	*pt++ =  x; *pt++ =  y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
-	*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ =  z;
-	/*  back*/
-	*pt++ =  x; *pt++ = -y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
-	*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ =  x; *pt++ =  y; *pt++ = -z;
-	/*  top*/
-	*pt++ = -x; *pt++ =  y; *pt++ =  z; *pt++ =  x; *pt++ =  y; *pt++ =  z;
-	*pt++ =  x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ =  y; *pt++ = -z;
-	/*  down*/
-	*pt++ = -x; *pt++ = -y; *pt++ = -z; *pt++ =  x; *pt++ = -y; *pt++ = -z;
-	*pt++ =  x; *pt++ = -y; *pt++ =  z; *pt++ = -x; *pt++ = -y; *pt++ =  z;
-	/*  right*/
-	*pt++ =  x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ = -z;
-	*pt++ =  x; *pt++ =  y; *pt++ = -z; *pt++ =  x; *pt++ =  y; *pt++ =  z;
-	/*  left*/
-	*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
-	*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
+#define PTF0 *pt++ =  x; *pt++ =  y; *pt++ =  z;
+#define PTF1 *pt++ = -x; *pt++ =  y; *pt++ =  z;
+#define PTF2 *pt++ = -x; *pt++ = -y; *pt++ =  z;
+#define PTF3 *pt++ =  x; *pt++ = -y; *pt++ =  z;
+#define PTR0 *pt++ =  x; *pt++ =  y; *pt++ =  -z;
+#define PTR1 *pt++ = -x; *pt++ =  y; *pt++ =  -z;
+#define PTR2 *pt++ = -x; *pt++ = -y; *pt++ =  -z;
+#define PTR3 *pt++ =  x; *pt++ = -y; *pt++ =  -z;
+
+
+	PTF0 PTF1 PTF2  PTF0 PTF2 PTF3 /* front */
+	PTR2 PTR1 PTR0  PTR3 PTR2 PTR0 /* back  */
+	PTF0 PTR0 PTR1  PTF0 PTR1 PTF1 /* top   */
+	PTF3 PTF2 PTR2  PTF3 PTR2 PTR3 /* bottom */
+	PTF0 PTF3 PTR3 	PTF0 PTR3 PTR0 /* right */
+	PTF1 PTR1 PTR2  PTF1 PTR2 PTF2 /* left */
 
 	/* finished, and have good data */
 	node->__points = ptr;
 }
+#undef PTF0
+#undef PTF1
+#undef PTF2
+#undef PTR0
+#undef PTR1
+#undef PTR2
 
 void render_Box (struct X3D_Box *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
+	
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
 	float z = ((node->size).c[2])/2;
@@ -112,7 +117,7 @@ void render_Box (struct X3D_Box *node) {
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	FW_GL_DRAWARRAYS (GL_QUADS, 0, 24);
+	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 36);
 	textureDraw_end();
 	trisThisLoop += 24;
 }

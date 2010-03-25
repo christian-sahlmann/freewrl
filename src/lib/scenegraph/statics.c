@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statics.c,v 1.8 2010/02/16 21:21:47 crc_canada Exp $
+$Id: statics.c,v 1.9 2010/03/25 17:09:00 crc_canada Exp $
 
 large constant strings; used for rendering.
 
@@ -41,22 +41,68 @@ large constant strings; used for rendering.
 
 /* BOX */
 
-/* faces are quads, 4 vertices; order: front, back, top, down, right, left. */
+/* faces are triangles, vertices; order: front, back, top, down, right, left. */
+#define FT 0, 0, 1,
+#define BK 0, 0, -1,
+#define TP 0, 1, 0,
+#define DN 0, -1, 0,
+#define RT 1, 0, 0,
+#define LT -1, 0, 0,
 
-GLfloat boxnorms[] = {   0, (GLfloat) 0, (GLfloat) 1, (GLfloat)  0, (GLfloat) 0, (GLfloat) 1, (GLfloat)  0, (GLfloat) 0, (GLfloat) 1, (GLfloat)  0, (GLfloat) 0, (GLfloat) 1, (GLfloat) 
-		(GLfloat) 	0, (GLfloat) 0, (GLfloat) -1, (GLfloat)  0, (GLfloat) 0, (GLfloat) -1, (GLfloat)  0, (GLfloat) 0, (GLfloat) -1, (GLfloat)  0, (GLfloat) 0, (GLfloat) -1, (GLfloat) 
-		(GLfloat) 	0, (GLfloat) 1, (GLfloat) 0, (GLfloat)  0, (GLfloat) 1, (GLfloat) 0, (GLfloat)  0, (GLfloat) 1, (GLfloat) 0, (GLfloat)  0, (GLfloat) 1, (GLfloat) 0, (GLfloat) 
-		(GLfloat) 	0, (GLfloat) -1, (GLfloat) 0, (GLfloat)  0, (GLfloat) -1, (GLfloat) 0, (GLfloat)  0, (GLfloat) -1, (GLfloat) 0, (GLfloat)  0, (GLfloat) -1, (GLfloat) 0, (GLfloat) 
-		(GLfloat) 	1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  1, (GLfloat) 0, (GLfloat) 0, (GLfloat) 
-		(GLfloat) 	-1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  -1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  -1, (GLfloat) 0, (GLfloat) 0, (GLfloat)  -1, (GLfloat) 0, (GLfloat) 0};
+GLfloat boxnorms[] = {   
+	FT FT FT    FT FT FT
+	BK BK BK    BK BK BK
+	TP TP TP    TP TP TP
+	DN DN DN    DN DN DN
+	RT RT RT    RT RT RT
+	LT LT LT    LT LT LT
+	0};
+
+#undef FT
+#undef BK
+#undef TP
+#undef DN
+#undef RT
+#undef LT
 
 /* box texture coordinates */
-GLfloat boxtex[] ={ 1, (GLfloat) 1, (GLfloat)  0, (GLfloat) 1, (GLfloat)  0, (GLfloat) 0, (GLfloat)  1, (GLfloat) 0, (GLfloat) 
-		(GLfloat)     0, (GLfloat) 0, (GLfloat)  1, (GLfloat) 0, (GLfloat)  1, (GLfloat) 1, (GLfloat)  0, (GLfloat) 1, (GLfloat) 
-		(GLfloat)     0, (GLfloat) 0, (GLfloat)  1, (GLfloat) 0, (GLfloat)  1, (GLfloat) 1, (GLfloat)  0, (GLfloat) 1, (GLfloat) 
-		(GLfloat)     0, (GLfloat) 0, (GLfloat)  1, (GLfloat) 0, (GLfloat)  1, (GLfloat) 1, (GLfloat)  0, (GLfloat) 1, (GLfloat) 
-		(GLfloat)     0, (GLfloat) 0, (GLfloat)  1, (GLfloat) 0, (GLfloat)  1, (GLfloat) 1, (GLfloat)  0, (GLfloat) 1, (GLfloat) 
-		(GLfloat)     1, (GLfloat) 0, (GLfloat)  1, (GLfloat) 1, (GLfloat)  0, (GLfloat) 1, (GLfloat)  0, (GLfloat) 0};
+#define F0 1.0f, 1.0f,
+#define F1 0.0f, 1.0f,
+#define F2 0.0f, 0.0f,
+#define F3 1.0f, 0.0f,
+
+/* vertices:
+
+F1-------------F0
+|              |
+|              |
+F2-------------F3
+
+the Rs are just behind the F's. So, we map the u,v to this...  see the compile_Box routine for vertex mapping 
+	
+        PTF0 PTF1 PTF2  PTF0 PTF2 PTF3 front 
+        PTR2 PTR1 PTR0  PTR3 PTR2 PTR0 back 
+        PTF0 PTR0 PTR1  PTF0 PTR1 PTF1 top   
+        PTF3 PTF2 PTR2  PTF3 PTR2 PTR3 bottom
+        PTF0 PTF3 PTR3  PTF0 PTR3 PTR0 right
+        PTF1 PTR1 PTR2  PTF1 PTR2 PTF2 left
+*/
+
+GLfloat boxtex[] = {
+        F0 F1 F2  F0 F2 F3
+	F3 F0 F1  F2 F3 F1
+	F3 F0 F1  F3 F1 F2	
+	F0 F1 F2  F0 F2 F3
+	F1 F2 F3  F1 F3 F0
+	F0 F1 F2  F0 F2 F3
+	0};
+
+#undef F0
+#undef F1
+#undef F2
+#undef F3
+
+
 
 /* Background and TextureBackground */
 /* faces are quads, (GLfloat)  4 vertices; order: front, (GLfloat)  back, (GLfloat)  top, (GLfloat)  down, (GLfloat)  right, (GLfloat)  left. */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.13 2010/03/12 17:07:57 crc_canada Exp $
+$Id: Component_EnvironSensor.c,v 1.14 2010/03/25 17:09:00 crc_canada Exp $
 
 X3D Environmental Sensors Component
 
@@ -115,32 +115,32 @@ static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 
 	if NODE_NEEDS_COMPILING {
 		/*  have to regen the shape*/
-
 		MARK_NODE_COMPILED
 
 		/*  MALLOC memory (if possible)*/
-		if (!node->__points) node->__points = MALLOC (sizeof(struct SFColor)*(24));
+		if (!node->__points) node->__points = MALLOC (sizeof(struct SFColor)*(36));
 
 		/*  now, create points; 4 points per face.*/
 		pt = (float *) node->__points;
-		/*  front*/
-		*pt++ = cx+x; *pt++ = cy+y; *pt++ = cz+z; *pt++ = cx-x; *pt++ = cy+y; *pt++ = cz+z;
-		*pt++ = cx-x; *pt++ = cy-y; *pt++ = cz+z; *pt++ = cx+x; *pt++ = cy-y; *pt++ = cz+z;
-		/*  back*/
-		*pt++ = cx+x; *pt++ = cy-y; *pt++ = cz-z; *pt++ = cx-x; *pt++ = cy-y; *pt++ = cz-z;
-		*pt++ = cx-x; *pt++ = cy+y; *pt++ = cz-z; *pt++ = cx+x; *pt++ = cy+y; *pt++ = cz-z;
-		/*  top*/
-		*pt++ = cx-x; *pt++ = cy+y; *pt++ = cz+z; *pt++ = cx+x; *pt++ = cy+y; *pt++ = cz+z;
-		*pt++ = cx+x; *pt++ = cy+y; *pt++ = cz-z; *pt++ = cx-x; *pt++ = cy+y; *pt++ = cz-z;
-		/*  down*/
-		*pt++ = cx-x; *pt++ = cy-y; *pt++ = cz-z; *pt++ = cx+x; *pt++ = cy-y; *pt++ = cz-z;
-		*pt++ = cx+x; *pt++ = cy-y; *pt++ = cz+z; *pt++ = cx-x; *pt++ = cy-y; *pt++ = cz+z;
-		/*  right*/
-		*pt++ = cx+x; *pt++ = cy-y; *pt++ = cz+z; *pt++ = cx+x; *pt++ = cy-y; *pt++ = cz-z;
-		*pt++ = cx+x; *pt++ = cy+y; *pt++ = cz-z; *pt++ = cx+x; *pt++ = cy+y; *pt++ = cz+z;
-		/*  left*/
-		*pt++ = cx-x; *pt++ = cy-y; *pt++ = cz+z; *pt++ = cx-x; *pt++ = cy+y; *pt++ = cz+z;
-		*pt++ = cx-x; *pt++ = cy+y; *pt++ = cz-z; *pt++ = cx-x; *pt++ = cy-y; *pt++ = cz-z;
+
+		#define PTF0 *pt++ = cx+x; *pt++ = cy+y; *pt++ = cz+z;
+		#define PTF1 *pt++ = cx-x; *pt++ = cy+y; *pt++ = cz+z;
+		#define PTF2 *pt++ = cx-x; *pt++ = cy-y; *pt++ = cz+z;
+		#define PTF3 *pt++ = cx+x; *pt++ = cy-y; *pt++ = cz+z;
+		#define PTR0 *pt++ = cx+x; *pt++ = cy+y; *pt++ = cz-z;
+		#define PTR1 *pt++ = cx-x; *pt++ = cy+y; *pt++ = cz-z;
+		#define PTR2 *pt++ = cx-x; *pt++ = cy-y; *pt++ = cz-z;
+		#define PTR3 *pt++ = cx+x; *pt++ = cy-y; *pt++ = cz-z;
+
+
+		PTF0 PTF1 PTF2  PTF0 PTF2 PTF3 /* front */
+		PTR2 PTR1 PTR0  PTR3 PTR2 PTR0 /* back  */
+		PTF0 PTR0 PTR1  PTF0 PTR1 PTF1 /* top   */
+		PTF3 PTF2 PTR2  PTF3 PTR2 PTR3 /* bottom */
+		PTF0 PTF3 PTR3 	PTF0 PTR3 PTR0 /* right */
+		PTF1 PTR1 PTR2  PTF1 PTR2 PTF2 /* left */
+
+		/* finished, and have good data */
 	}
 
 	FW_GL_DEPTHMASK(FALSE);
@@ -152,7 +152,7 @@ static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	FW_GL_NORMAL_POINTER(GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	FW_GL_DRAWARRAYS (GL_QUADS, 0, 24);
+	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 36);
 	FW_GL_DEPTHMASK(TRUE);
 }
 
