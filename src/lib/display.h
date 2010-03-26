@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.74 2010/03/25 18:40:20 crc_canada Exp $
+  $Id: display.h,v 1.75 2010/03/26 12:39:55 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -514,7 +514,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_VERTEX3D(aaa, bbb, ccc) glVertex3d(aaa, bbb, ccc)
 	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) glVertexPointer(aaa, bbb, ccc, ddd)
 	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) glNormalPointer(aaa, bbb, ccc)
-	#define FW_GL_BEGIN(aaa) glBegin(aaa)
 	#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
 	#define FW_GL_MATERIALFV(aaa, bbb, ccc) glMaterialfv(aaa, bbb, ccc)
 	#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
@@ -783,7 +782,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_COLOR4FV(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_COLOR3F(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_COLOR3D(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_BEGIN(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_VERTEX3D(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_END() printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)

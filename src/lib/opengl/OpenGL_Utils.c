@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.118 2010/03/26 12:23:36 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.119 2010/03/26 12:39:55 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -319,70 +319,70 @@ cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
 /* draw a simple bounding box around an object */
 void drawBBOX(struct X3D_Node *node) {
 #ifndef IPHONE
-	FW_GL_COLOR3F((float)1.0,(float)0.6,(float)0.6);
-
-	/* left group */
-	FW_GL_BEGIN(GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	FW_GL_END();
-	
-	FW_GL_BEGIN (GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	FW_GL_END();
-	
-	FW_GL_BEGIN (GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	FW_GL_END();
-	
-	FW_GL_BEGIN (GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	FW_GL_END();
-	
-	/* right group */
-	FW_GL_BEGIN (GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	FW_GL_END();
-	
-	FW_GL_BEGIN (GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	FW_GL_END();
-	
-	FW_GL_BEGIN (GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	FW_GL_END();
-	
-	FW_GL_BEGIN (GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	FW_GL_END();
-	
-	/* joiners */
-	FW_GL_BEGIN (GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
-	FW_GL_END();
-	
-	FW_GL_BEGIN (GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
-	FW_GL_END();
-	
-	FW_GL_BEGIN (GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
-	FW_GL_END();
-	
-	FW_GL_BEGIN (GL_LINES);
-	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
-	FW_GL_END();
+/* debugging */	FW_GL_COLOR3F((float)1.0,(float)0.6,(float)0.6);
+/* debugging */
+/* debugging */	/* left group */
+/* debugging */	glBegin(GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+/* debugging */	glEnd();
+/* debugging */	
+/* debugging */	glBegin (GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+/* debugging */	glEnd();
+/* debugging */	
+/* debugging */	glBegin (GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+/* debugging */	glEnd();
+/* debugging */	
+/* debugging */	glBegin (GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+/* debugging */	glEnd();
+/* debugging */	
+/* debugging */	/* right group */
+/* debugging */	glBegin (GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+/* debugging */	glEnd();
+/* debugging */	
+/* debugging */	glBegin (GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+/* debugging */	glEnd();
+/* debugging */	
+/* debugging */	glBegin (GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+/* debugging */	glEnd();
+/* debugging */	
+/* debugging */	glBegin (GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+/* debugging */	glEnd();
+/* debugging */	
+/* debugging */	/* joiners */
+/* debugging */	glBegin (GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MIN_Z);
+/* debugging */	glEnd();
+/* debugging */	
+/* debugging */	glBegin (GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MIN_Y, node->EXTENT_MAX_Z);
+/* debugging */	glEnd();
+/* debugging */	
+/* debugging */	glBegin (GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MIN_Z);
+/* debugging */	glEnd();
+/* debugging */	
+/* debugging */	glBegin (GL_LINES);
+/* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+/* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
+/* debugging */	glEnd();
 #endif
 
 }

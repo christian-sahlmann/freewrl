@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.27 2010/03/25 18:40:20 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.28 2010/03/26 12:39:55 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -779,27 +779,27 @@ void collisionSphere_init(struct X3D_Sphere *node)
 
 }
 #ifdef DEBUGGING_CODE
-int collisionSphere_render(double radius)
-{
-	/* I needed to verify the collision mesh sphere was good, and it uses triangles, so I drew it the triangle way and it looked good 
-	   to see it draw, you need to turn on collision and get close to a sphere - then it will initialize and start drawing it.
-	*/
-	int i,j,count,highest;
-	count = 0;
-	highest = 0;
-	for(i =0; i < collisionSphere.ntris; i++)  
-	{ 
-		struct point_XYZ pts[3]; //,a,b,n;
-		pts[0] = collisionSphere.pts[collisionSphere.tris[i][0]];
-		pts[1] = collisionSphere.pts[collisionSphere.tris[i][1]];
-		pts[2] = collisionSphere.pts[collisionSphere.tris[i][2]];
-		FW_GL_BEGIN(GL_TRIANGLES);
-		for(j=0;j<3;j++)
-			FW_GL_VERTEX3D(pts[j].x*radius,pts[j].y*radius,pts[j].z*radius);
-		FW_GL_END();
-	}
-	return 0;
-}
+DEBUGGING_CODEint collisionSphere_render(double radius)
+DEBUGGING_CODE{
+DEBUGGING_CODE	/* I needed to verify the collision mesh sphere was good, and it uses triangles, so I drew it the triangle way and it looked good 
+DEBUGGING_CODE	   to see it draw, you need to turn on collision and get close to a sphere - then it will initialize and start drawing it.
+DEBUGGING_CODE	*/
+DEBUGGING_CODE	int i,j,count,highest;
+DEBUGGING_CODE	count = 0;
+DEBUGGING_CODE	highest = 0;
+DEBUGGING_CODE	for(i =0; i < collisionSphere.ntris; i++)  
+DEBUGGING_CODE	{ 
+DEBUGGING_CODE		struct point_XYZ pts[3]; //,a,b,n;
+DEBUGGING_CODE		pts[0] = collisionSphere.pts[collisionSphere.tris[i][0]];
+DEBUGGING_CODE		pts[1] = collisionSphere.pts[collisionSphere.tris[i][1]];
+DEBUGGING_CODE		pts[2] = collisionSphere.pts[collisionSphere.tris[i][2]];
+DEBUGGING_CODE		FW_GL_BEGIN(GL_TRIANGLES);
+DEBUGGING_CODE		for(j=0;j<3;j++)
+DEBUGGING_CODE			FW_GL_VERTEX3D(pts[j].x*radius,pts[j].y*radius,pts[j].z*radius);
+DEBUGGING_CODE		FW_GL_END();
+DEBUGGING_CODE	}
+DEBUGGING_CODE	return 0;
+DEBUGGING_CODE}
 #endif
 
 struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n);
@@ -1163,25 +1163,25 @@ void collisionCone_init(struct X3D_Cone *node)
 }
 
 #ifdef DEBUGGING_CODE
-int collisionCone_render(double r, double h)
-{
-	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
-	   to see it draw, you need to turn on collision and get close to the mesh object - then it will initialize and start drawing it.
-	*/
-	int i,j;
-	for(i =0; i < collisionCone.ntris; i++)  
-	{ 
-		struct point_XYZ pts[3]; //,a,b,n;
-		pts[0] = collisionCone.pts[collisionCone.tris[i][0]];
-		pts[1] = collisionCone.pts[collisionCone.tris[i][1]];
-		pts[2] = collisionCone.pts[collisionCone.tris[i][2]];
-		FW_GL_BEGIN(GL_TRIANGLES);
-		for(j=0;j<3;j++)
-			FW_GL_VERTEX3D(pts[j].x*r,pts[j].y*h,pts[j].z*r);
-		FW_GL_END();
-	}
-	return 0;
-}
+DEBUGGINGCODEint collisionCone_render(double r, double h)
+DEBUGGINGCODE{
+DEBUGGINGCODE	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
+DEBUGGINGCODE	   to see it draw, you need to turn on collision and get close to the mesh object - then it will initialize and start drawing it.
+DEBUGGINGCODE	*/
+DEBUGGINGCODE	int i,j;
+DEBUGGINGCODE	for(i =0; i < collisionCone.ntris; i++)  
+DEBUGGINGCODE	{ 
+DEBUGGINGCODE		struct point_XYZ pts[3]; //,a,b,n;
+DEBUGGINGCODE		pts[0] = collisionCone.pts[collisionCone.tris[i][0]];
+DEBUGGINGCODE		pts[1] = collisionCone.pts[collisionCone.tris[i][1]];
+DEBUGGINGCODE		pts[2] = collisionCone.pts[collisionCone.tris[i][2]];
+DEBUGGINGCODE		FW_GL_BEGIN(GL_TRIANGLES);
+DEBUGGINGCODE		for(j=0;j<3;j++)
+DEBUGGINGCODE			FW_GL_VERTEX3D(pts[j].x*r,pts[j].y*h,pts[j].z*r);
+DEBUGGINGCODE		FW_GL_END();
+DEBUGGINGCODE	}
+DEBUGGINGCODE	return 0;
+DEBUGGINGCODE}
 #endif
 
 void collide_Cone (struct X3D_Cone *node) {
@@ -1394,37 +1394,37 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 }
 
 #ifdef DEBUGGING_CODE
-int collisionCylinder_render(double r, double h)
-{
-	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
-	   to see it draw, you need to turn on collision and get close to the mesh object - then it will initialize and start drawing it.
-	*/
-	int i,j;
-	for(i =0; i < collisionCylinder.ntris; i++)  
-	{ 
-		struct point_XYZ pts[3]; //,a,b,n;
-		pts[0] = collisionCylinder.pts[collisionCylinder.tris[i][0]];
-		pts[1] = collisionCylinder.pts[collisionCylinder.tris[i][1]];
-		pts[2] = collisionCylinder.pts[collisionCylinder.tris[i][2]];
-		FW_GL_BEGIN(GL_TRIANGLES);
-		for(j=0;j<3;j++)
-			FW_GL_VERTEX3D(pts[j].x*r,pts[j].y*h,pts[j].z*r);
-		FW_GL_END();
-	}
-	for(i =0; i < collisionCylinder.nquads; i++)  
-	{ 
-		struct point_XYZ pts[4]; //,a,b,n;
-		pts[0] = collisionCylinder.pts[collisionCylinder.quads[i][0]];
-		pts[1] = collisionCylinder.pts[collisionCylinder.quads[i][1]];
-		pts[2] = collisionCylinder.pts[collisionCylinder.quads[i][2]];
-		pts[3] = collisionCylinder.pts[collisionCylinder.quads[i][3]];
-		FW_GL_BEGIN(GL_QUADS);
-		for(j=0;j<4;j++)
-			FW_GL_VERTEX3D(pts[j].x*r,pts[j].y*h,pts[j].z*r);
-		FW_GL_END();
-	}
-	return 0;
-}
+DEBUGGING_CODEint collisionCylinder_render(double r, double h)
+DEBUGGING_CODE{
+DEBUGGING_CODE	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
+DEBUGGING_CODE	   to see it draw, you need to turn on collision and get close to the mesh object - then it will initialize and start drawing it.
+DEBUGGING_CODE	*/
+DEBUGGING_CODE	int i,j;
+DEBUGGING_CODE	for(i =0; i < collisionCylinder.ntris; i++)  
+DEBUGGING_CODE	{ 
+DEBUGGING_CODE		struct point_XYZ pts[3]; //,a,b,n;
+DEBUGGING_CODE		pts[0] = collisionCylinder.pts[collisionCylinder.tris[i][0]];
+DEBUGGING_CODE		pts[1] = collisionCylinder.pts[collisionCylinder.tris[i][1]];
+DEBUGGING_CODE		pts[2] = collisionCylinder.pts[collisionCylinder.tris[i][2]];
+DEBUGGING_CODE		FW_GL_BEGIN(GL_TRIANGLES);
+DEBUGGING_CODE		for(j=0;j<3;j++)
+DEBUGGING_CODE			FW_GL_VERTEX3D(pts[j].x*r,pts[j].y*h,pts[j].z*r);
+DEBUGGING_CODE		FW_GL_END();
+DEBUGGING_CODE	}
+DEBUGGING_CODE	for(i =0; i < collisionCylinder.nquads; i++)  
+DEBUGGING_CODE	{ 
+DEBUGGING_CODE		struct point_XYZ pts[4]; //,a,b,n;
+DEBUGGING_CODE		pts[0] = collisionCylinder.pts[collisionCylinder.quads[i][0]];
+DEBUGGING_CODE		pts[1] = collisionCylinder.pts[collisionCylinder.quads[i][1]];
+DEBUGGING_CODE		pts[2] = collisionCylinder.pts[collisionCylinder.quads[i][2]];
+DEBUGGING_CODE		pts[3] = collisionCylinder.pts[collisionCylinder.quads[i][3]];
+DEBUGGING_CODE		FW_GL_BEGIN(GL_QUADS);
+DEBUGGING_CODE		for(j=0;j<4;j++)
+DEBUGGING_CODE			FW_GL_VERTEX3D(pts[j].x*r,pts[j].y*h,pts[j].z*r);
+DEBUGGING_CODE		FW_GL_END();
+DEBUGGING_CODE	}
+DEBUGGING_CODE	return 0;
+DEBUGGING_CODE}
 #endif
 
 
