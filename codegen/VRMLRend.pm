@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.26 2009/12/28 15:57:46 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.27 2010/03/26 18:16:29 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.27  2010/03/26 18:16:29  crc_canada
+# DIS headers put in VRMLNodes.pm
+#
 # Revision 1.26  2009/12/28 15:57:46  crc_canada
 # TextureProperties node now active.
 #
@@ -477,6 +480,14 @@
 	VRML1_Translation	=>children,
 	VRML1_WWWAnchor		=>children,
 	VRML1_WWWInline		=>children,
+
+	DISEntityManager	=>children,
+	DISEntityTypeMapping	=>children,
+	EspduTransform		=>children,
+	ReceiverPdu		=>children,
+	SignalPdu		=>children,
+	TransmitterPdu		=>children,
+
 
 );
 
