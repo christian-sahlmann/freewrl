@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.60 2010/03/22 15:14:48 crc_canada Exp $
+  $Id: ProdCon.c,v 1.61 2010/03/26 12:23:36 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -195,6 +195,7 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 	case IS_TYPE_VRML1: {
 		char *newData = convert1To2(input);
 		ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
+		FREE_IF_NZ(newData);
 	}
 		break;
 	case IS_TYPE_COLLADA:

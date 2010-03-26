@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.117 2010/03/22 20:42:00 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.118 2010/03/26 12:23:36 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -318,6 +318,7 @@ cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
 
 /* draw a simple bounding box around an object */
 void drawBBOX(struct X3D_Node *node) {
+#ifndef IPHONE
 	FW_GL_COLOR3F((float)1.0,(float)0.6,(float)0.6);
 
 	/* left group */
@@ -382,6 +383,7 @@ void drawBBOX(struct X3D_Node *node) {
 	FW_GL_VERTEX3D(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
 	FW_GL_VERTEX3D(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
 	FW_GL_END();
+#endif
 
 }
 

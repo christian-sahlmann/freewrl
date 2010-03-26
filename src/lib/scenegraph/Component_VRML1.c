@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.21 2010/03/12 17:07:57 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.22 2010/03/26 12:23:36 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -653,6 +653,11 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
 		renderMatOver = !((cSLD->mbNode->_Value==VRML1MOD_OVERALL) || (cSLD->mbNode->_Value==VRML1MOD_DEFAULT));
 	}
 
+	/* do we just want to use as many points as we can? */
+	if (this->numPoints == -1) {
+		this->numPoints = npoints - this->startIndex;
+	}
+
 	/* do we have enough points? */
 	if (npoints < (this->startIndex - this->numPoints)) { 
 		printf ("PointSet Error, npoints %d, startIndex %d, numPoints %d, not enough...\n",
@@ -660,16 +665,22 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
 		this->numPoints = -1;
 	}
 
-        FW_GL_BEGIN (GL_POINTS);
-        for(i=this->startIndex; i<this->numPoints; i++) {
-		if (renderMatOver) renderSpecificMaterial (i);
-                FW_GL_VERTEX3F(
-                        points[i].c[0],
-                        points[i].c[1],
-                        points[i].c[2]
-                );
-        }
-        FW_GL_END();
+
+
+	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)points);
+
+
+	/* fast way, and slow way */
+	if (renderMatOver) {
+	        for(i=this->startIndex; i<this->numPoints; i++) {
+			renderSpecificMaterial (i);
+			FW_GL_DRAWARRAYS(GL_POINTS,i,1); 
+		}
+        } else {
+		FW_GL_DRAWARRAYS(GL_POINTS,0,this->numPoints);
+	}
+	FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 }
 
 
