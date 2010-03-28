@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.76 2010/03/28 15:39:43 crc_canada Exp $
+  $Id: display.h,v 1.77 2010/03/28 17:41:12 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -489,7 +489,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_POINTSIZE(aaa) glPointSize(aaa); 
 	#define FW_GL_PIXELSTOREI(aaa,bbb) glPixelStorei(aaa,bbb);
 	#define FW_GL_CGLFLUSHDRAWABLE(aaa) CGLFlushDrawable(aaa)
-	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
+	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
 	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
 	#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
 	#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
@@ -734,6 +734,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_GETBOOLEANV(aaa,bbb) glGetBooleanv(aaa,bbb)
 	#define FW_GL_DELETETEXTURES(aaa,bbb) glDeleteTextures(aaa,bbb);
 	#define FW_GL_LOADMATRIXD(aaa) fw_glLoadMatrixd(aaa)
+	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
 
 
 
@@ -777,7 +778,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_RASTERPOS2I(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_CGLFLUSHDRAWABLE(aaa) GL_FALSE printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) printf("WRONG"); printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_MATERIALF(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_MATERIALFV(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)

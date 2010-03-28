@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.120 2010/03/28 15:39:43 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.121 2010/03/28 17:41:12 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2107,4 +2107,17 @@ for (i=0; i<16;i++) {
 }
 	//glUniformMatrix4fv(PM,1,GL_FALSE,spval);
 	glUniformMatrix4fv(PM,1,GL_FALSE,pvm);
+}
+
+void fw_gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
+{
+   GLdouble xmin, xmax, ymin, ymax;
+
+   ymax = zNear * tan(fovy * M_PI / 360.0);
+   ymin = -ymax;
+   xmin = ymin * aspect;
+   xmax = ymax * aspect;
+
+
+   glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
 }
