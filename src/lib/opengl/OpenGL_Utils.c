@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.119 2010/03/26 12:39:55 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.120 2010/03/28 15:39:43 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -80,6 +80,7 @@ static int tableIndexSize = INT_ID_UNDEFINED;
 static int nextEntry = 0;
 static struct X3D_Node *forgottenNode;
 static void killNode (int index);
+static void fw_glLoadMatrixd(double *val);
 
 /* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 int displayDepth = 24;
@@ -198,7 +199,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	strcpy (inTextFile,pathToShaders);
 	strcat (inTextFile,".vs");
 
-	/* printf ("getAppearanceShader, path %s\n",inTextFile); */
+	printf ("getAppearanceShader, path %s\n",inTextFile); 
 	inTextPointer = readInputString(inTextFile);
 	if (inTextPointer==NULL) return;
 	
@@ -251,6 +252,8 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	(*myShader).lightSpecular = GET_UNIFORM(myProg,"lightSpecular");
 	(*myShader).lightPosition = GET_UNIFORM(myProg,"lightPosition");
 
+	(*myShader).ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
+	(*myShader).ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
 }
 
 
@@ -572,13 +575,17 @@ bool initialize_GL()
         multiLightMultiTextureAppearanceShader:		everything including kitchen sink.
 */
 
-		getAppearanceShader(&rdr_caps.shaderArrays[genericHeadlightNoTextureAppearanceShader], "./shaderReplacement/genericHeadlightNoTextureAppearanceShader");
-		getAppearanceShader(&rdr_caps.shaderArrays[noLightNoTextureAppearanceShader], "./shaderReplacement/noLightNoTextureAppearanceShader");
-		getAppearanceShader(&rdr_caps.shaderArrays[noAppearanceNoMaterialShader], "./shaderReplacement/noAppearanceNoMaterialShader");
-		getAppearanceShader(&rdr_caps.shaderArrays[multiLightNoTextureAppearanceShader], "./shaderReplacement/multiLightNoTextureAppearanceShader");
-		getAppearanceShader(&rdr_caps.shaderArrays[headlightOneTextureAppearanceShader], "./shaderReplacement/headlightOneTextureAppearanceShader");
-		getAppearanceShader(&rdr_caps.shaderArrays[headlightMultiTextureAppearanceShader], "./shaderReplacement/headlightMultiTextureAppearanceShader");
-		getAppearanceShader(&rdr_caps.shaderArrays[multiLightMultiTextureAppearanceShader], "./shaderReplacement/multiLightMultiTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[genericHeadlightNoTextureAppearanceShader], "/Users/johns/Desktop/shaderReplacement/genericHeadlightNoTextureAppearanceShader");
+printf ("read in shader %d matrixes %d %d\n",genericHeadlightNoTextureAppearanceShader,
+			rdr_caps.shaderArrays[genericHeadlightNoTextureAppearanceShader].ModelViewMatrix,
+			rdr_caps.shaderArrays[genericHeadlightNoTextureAppearanceShader].ProjectionMatrix);
+
+		getAppearanceShader(&rdr_caps.shaderArrays[noLightNoTextureAppearanceShader], "/Users/johns/Desktop/shaderReplacement/noLightNoTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[noAppearanceNoMaterialShader], "/Users/johns/Desktop/shaderReplacement/noAppearanceNoMaterialShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[multiLightNoTextureAppearanceShader], "/Users/johns/Desktop/shaderReplacement/multiLightNoTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[headlightOneTextureAppearanceShader], "/Users/johns/Desktop/shaderReplacement/headlightOneTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[headlightMultiTextureAppearanceShader], "/Users/johns/Desktop/shaderReplacement/headlightMultiTextureAppearanceShader");
+		getAppearanceShader(&rdr_caps.shaderArrays[multiLightMultiTextureAppearanceShader], "/Users/johns/Desktop/shaderReplacement/multiLightMultiTextureAppearanceShader");
 
 		/* tell the child_Shape routine to use these shaders, if there is not a user-specified shader */
 		rdr_caps.haveGenericAppearanceShader = TRUE;
@@ -705,7 +712,8 @@ void fw_glLoadIdentity(void) {
 	/* printf ("fw_glLoadIdentity myMode %d \n",whichMode); */
 
 	loadIdentityMatrix(currentMatrix);
- 	FW_GL_LOADMATRIXD(currentMatrix); 
+//	if (!global_use_shaders_when_possible)
+ 		fw_glLoadMatrixd(currentMatrix); 
 }
 
 #define PUSHMAT(a,b,c,d) case a: b++; if (b>=c) {b=c-1; printf ("stack overflow, whichmode %d\n",whichMode); } \
@@ -721,7 +729,8 @@ void fw_glPushMatrix(void) {
 		default :printf ("wrong mode in popMatrix\n");
 	}
 
- 	FW_GL_LOADMATRIXD(currentMatrix); 
+//	if (!global_use_shaders_when_possible)
+ 		fw_glLoadMatrixd(currentMatrix); 
 #undef PUSHMAT
 }
 
@@ -736,7 +745,8 @@ void fw_glPopMatrix(void) {
 		POPMAT (GL_TEXTURE,textureviewTOS,FW_TextureView)
 		default :printf ("wrong mode in popMatrix\n");
 	}
- 	FW_GL_LOADMATRIXD(currentMatrix); 
+//	if (!global_use_shaders_when_possible)
+ 		fw_glLoadMatrixd(currentMatrix); 
 }
 #undef POPMAT
 
@@ -749,7 +759,8 @@ void fw_glTranslated(double x, double y, double z) {
 	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
 	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
 
- 	FW_GL_LOADMATRIXD(currentMatrix); 
+//	if (!global_use_shaders_when_possible)
+ 		fw_glLoadMatrixd(currentMatrix); 
 }
 
 void fw_glTranslatef(float x, float y, float z) {
@@ -759,7 +770,8 @@ void fw_glTranslatef(float x, float y, float z) {
 	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
 	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
 
- 	FW_GL_LOADMATRIXD(currentMatrix); 
+//	if (!global_use_shaders_when_possible)
+ 		fw_glLoadMatrixd(currentMatrix); 
 }
 
 /* perform rotation, assuming that the angle is in radians. */
@@ -792,7 +804,8 @@ void fw_glRotateRad (double angle, double x, double y, double z) {
 
 	matrotate(myMat,angle,x,y,z); 
 	matmultiply(currentMatrix,currentMatrix,myMat); 
- 	FW_GL_LOADMATRIXD(currentMatrix); 
+//	if (!global_use_shaders_when_possible)
+ 		fw_glLoadMatrixd(currentMatrix); 
 }
 
 /* perform the rotation, assuming that the angle is in degrees */
@@ -834,7 +847,8 @@ void fw_glRotated (double angle, double x, double y, double z) {
 	}
 	matrotate(myMat,radAng,x,y,z); 
 	matmultiply(currentMatrix,currentMatrix,myMat); 
- 	FW_GL_LOADMATRIXD(currentMatrix); 
+//	if (!global_use_shaders_when_possible)
+ 		fw_glLoadMatrixd(currentMatrix); 
 }
 
 void fw_glRotatef (float a, float x, float y, float z) {
@@ -846,7 +860,8 @@ void fw_glScaled (double x, double y, double z) {
 	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
 	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
 	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
- 	FW_GL_LOADMATRIXD(currentMatrix); 
+//	if (!global_use_shaders_when_possible)
+ 		fw_glLoadMatrixd(currentMatrix); 
 }
 
 void fw_glScalef (float x, float y, float z) {
@@ -854,7 +869,8 @@ void fw_glScalef (float x, float y, float z) {
 	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
 	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
 	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
- 	FW_GL_LOADMATRIXD(currentMatrix); 
+//	if (!global_use_shaders_when_possible)
+ 		fw_glLoadMatrixd(currentMatrix); 
 }
 
 void fw_glGetDoublev (int ty, double *mat) {
@@ -2047,3 +2063,48 @@ void fw_iphone_texcoordPointer(GLint aaa, GLenum bbb ,GLsizei ccc,const GLvoid *
 void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd)
 { printf  ("called fw_iphone_somethingPointer\n");}
 #endif
+
+static void fw_glLoadMatrixd(double *val) {
+	/* printf ("loading matrix...\n"); */
+	glLoadMatrixd(val);
+}
+
+void sendMatriciesToShader(GLint MM,GLint PM) {
+	float spval[16];
+	int i;
+	float *sp; 
+	double *dp;
+
+float mvm[] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -10, 1};
+float pvm[] = {1.74427, 0, 0, 0, 0, 2.41421, 0, 0, 0, 0, -1.00001, -1, -0, -0, -0.200001, -0};
+
+	printf ("SMTS, %d and %d\n",MM,PM); 
+	
+	/* ModelView first */
+	dp = FW_ModelView[modelviewTOS];
+	sp = spval;
+
+	for (i=0; i<16; i++) {
+		*sp = (float) *dp; 	
+		sp ++; dp ++;
+	}
+
+//for (i=0; i<16;i++) { printf ("ModelView %d: %4.3f %4.3f\n",i,spval[i],mvm[i]); }
+//glUniformMatrix4fv(MM,1,GL_FALSE,mvm);
+
+	glUniformMatrix4fv(MM,1,GL_FALSE,spval);
+
+	/* ProjectionMatrix */
+	sp = spval;
+	dp = FW_ProjectionView[projectionviewTOS];
+
+	for (i=0; i<16; i++) {
+		*sp = (float) *dp; 	
+		sp ++; dp ++;
+	}
+for (i=0; i<16;i++) {
+	printf ("Projection %d: %4.3f %4.3f\n",i,spval[i],pvm[i]);
+}
+	//glUniformMatrix4fv(PM,1,GL_FALSE,spval);
+	glUniformMatrix4fv(PM,1,GL_FALSE,pvm);
+}

@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.75 2010/03/26 12:39:55 crc_canada Exp $
+  $Id: display.h,v 1.76 2010/03/28 15:39:43 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -151,6 +151,8 @@ typedef struct {
 	GLint lightDiffuse;
 	GLint lightSpecular;
 	GLint lightPosition;
+	GLint ModelViewMatrix;
+	GLint ProjectionMatrix;
 } s_shader_capabilities_t;
 
 typedef struct {
@@ -528,7 +530,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_COLOR_POINTER(aaa, bbb,ccc,ddd) glColorPointer(aaa, bbb,ccc,ddd)
 	#define FW_GL_DELETETEXTURES(aaa,bbb) glDeleteTextures(aaa,bbb);
 	#define FW_GL_COLOR3FV(aaa) glColor3fv(aaa);
-	#define FW_GL_LOADMATRIXD(aaa) glLoadMatrixd(aaa)
+	#define FW_GL_LOADMATRIXD(aaa) fw_glLoadMatrixd(aaa)
 	#define FW_GL_GETINTEGERV(aaa,bbb) glGetIntegerv(aaa,bbb);
 	#define FW_GL_GETFLOATV(aaa,bbb) glGetFloatv(aaa,bbb);
 	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) glColor4f(aaa,bbb,ccc,ddd);
@@ -731,6 +733,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_GENTEXTURES(aaa,bbb) glGenTextures(aaa,bbb)
 	#define FW_GL_GETBOOLEANV(aaa,bbb) glGetBooleanv(aaa,bbb)
 	#define FW_GL_DELETETEXTURES(aaa,bbb) glDeleteTextures(aaa,bbb);
+	#define FW_GL_LOADMATRIXD(aaa) fw_glLoadMatrixd(aaa)
 
 
 
@@ -817,7 +820,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_LISTBASE(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_VERTEX3F(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_COLOR3FV(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_LOADMATRIXD(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_GENLISTS(aaa) 0
 	#define FW_GL_NEWLIST(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
