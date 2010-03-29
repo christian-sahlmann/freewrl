@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.122 2010/03/29 13:17:02 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.123 2010/03/29 16:30:47 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -81,6 +81,8 @@ static int nextEntry = 0;
 static struct X3D_Node *forgottenNode;
 static void killNode (int index);
 static void fw_glLoadMatrixd(double *val);
+static void mesa_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ, double *m);
+static void mesa_Ortho(double left, double right, double bottom, double top, double nearZ, double farZ, double *m);
 
 /* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 int displayDepth = 24;
@@ -705,11 +707,13 @@ void fw_glMatrixMode(GLint mode) {
 		default: printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",whichMode, GL_PROJECTION,GL_MODELVIEW,GL_TEXTURE);
 	}
 	/* set the matrix element */
+	/* if (whichMode == GL_PROJECTION) { printf ("switching TO PROJECTION\n"); } else { printf ("switching AWAY from PROJECTION\n"); } */
+
 	glMatrixMode(mode); 
 }
 
 void fw_glLoadIdentity(void) {
-	/* printf ("fw_glLoadIdentity myMode %d \n",whichMode); */
+	/* printf ("	fw_glLoadIdentity myMode %d \n",whichMode); */
 
 	loadIdentityMatrix(currentMatrix);
 	if (!global_use_shaders_when_possible)
@@ -720,7 +724,6 @@ void fw_glLoadIdentity(void) {
 		memcpy ((void *)d[b], (void *)d[b-1],sizeof(double)*16); currentMatrix = d[b]; break;
 
 void fw_glPushMatrix(void) {
-	/* printf ("fw_glPushMatrix\n"); */
 	/* glPushMatrix(); */
 	switch (whichMode) {
 		PUSHMAT (GL_PROJECTION,projectionviewTOS,MAX_SMALL_MATRIX_STACK,FW_ProjectionView)
@@ -728,6 +731,7 @@ void fw_glPushMatrix(void) {
 		PUSHMAT (GL_TEXTURE,textureviewTOS,MAX_SMALL_MATRIX_STACK,FW_TextureView)
 		default :printf ("wrong mode in popMatrix\n");
 	}
+	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPushMatrix tos now %d\n",projectionviewTOS); } */
 
 	if (!global_use_shaders_when_possible)
  		fw_glLoadMatrixd(currentMatrix); 
@@ -737,7 +741,6 @@ void fw_glPushMatrix(void) {
 #define POPMAT(a,b,c) case a: b--; if (b<0) {b=0;printf ("popMatrix, stack underflow, whichMode %d\n",whichMode);} currentMatrix = c[b]; break;
 
 void fw_glPopMatrix(void) {
-	/* printf ("fw_glPopMatrix\n"); */
 	/* glPopMatrix();  */
 	switch (whichMode) {
 		POPMAT(GL_PROJECTION,projectionviewTOS,FW_ProjectionView)
@@ -745,6 +748,8 @@ void fw_glPopMatrix(void) {
 		POPMAT (GL_TEXTURE,textureviewTOS,FW_TextureView)
 		default :printf ("wrong mode in popMatrix\n");
 	}
+	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPopMatrix tos now %d\n",projectionviewTOS); } */
+
 	if (!global_use_shaders_when_possible)
  		fw_glLoadMatrixd(currentMatrix); 
 }
@@ -752,7 +757,7 @@ void fw_glPopMatrix(void) {
 
 
 void fw_glTranslated(double x, double y, double z) {
-	/* printf ("fw_glTranslated %lf %lf %lf\n",x,y,z); */
+	/* printf ("	fw_glTranslated %lf %lf %lf\n",x,y,z); */
 
 	currentMatrix[12] = currentMatrix[0] * x + currentMatrix[4] * y + currentMatrix[8]  * z + currentMatrix[12];
 	currentMatrix[13] = currentMatrix[1] * x + currentMatrix[5] * y + currentMatrix[9]  * z + currentMatrix[13];
@@ -2105,19 +2110,184 @@ float pvm[] = {1.74427, 0, 0, 0, 0, 2.41421, 0, 0, 0, 0, -1.00001, -1, -0, -0, -
 for (i=0; i<16;i++) {
 	printf ("Projection %d: %4.3f %4.3f\n",i,spval[i],pvm[i]);
 }
-	//glUniformMatrix4fv(PM,1,GL_FALSE,spval);
-	glUniformMatrix4fv(PM,1,GL_FALSE,pvm);
+	glUniformMatrix4fv(PM,1,GL_FALSE,spval);
+	//glUniformMatrix4fv(PM,1,GL_FALSE,pvm);
 }
 
-void fw_gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
+void fw_Ortho (double left, double right, double bottom, double top, double nearZ, double farZ) {
+	double *dp;
+	/* do the glOrtho on the top of the stack, and send that along */
+	dp = FW_ProjectionView[projectionviewTOS];
+
+	/* {int i; for (i=0; i<16;i++) { printf ("ModView before  %d: %4.3f \n",i,dp[i]); } */
+	mesa_Ortho(left,right,bottom,top,nearZ,farZ,dp);
+
+	/* {int i; for (i=0; i<16;i++) { printf ("ModView after   %d: %4.3f \n",i,dp[i]); } */
+
+	fw_glLoadMatrixd(dp);
+}
+
+void fw_Frustum (double left, double right, double bottom, double top, double nearZ, double farZ) {
+	double *dp;
+	/* do the glFrsutum on the top of the stack, and send that along */
+	dp = FW_ProjectionView[projectionviewTOS];
+
+	/* {int i; for (i=0; i<16;i++) { printf ("ModView before  %d: %4.3f \n",i,dp[i]); } */
+	mesa_Frustum(left,right,bottom,top,nearZ,farZ,dp);
+
+	/* {int i; for (i=0; i<16;i++) { printf ("ModView after   %d: %4.3f \n",i,dp[i]); }} */
+
+	fw_glLoadMatrixd(dp);
+}
+
+
+void fw_gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar) {
+	GLdouble xmin, xmax, ymin, ymax;
+	double *dp;
+
+	ymax = zNear * tan(fovy * M_PI / 360.0);
+	ymin = -ymax;
+	xmin = ymin * aspect;
+	xmax = ymax * aspect;
+
+	/* printf("	gw_gluPerspective, tos %d\n", projectionviewTOS);  */
+
+	/* do the glFrsutum on the top of the stack, and send that along */
+	dp = FW_ProjectionView[projectionviewTOS];
+
+	/* {int i; for (i=0; i<16;i++) { printf ("ModView before  %d: %4.3f \n",i,dp[i]); } */
+	mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, dp);
+
+	/* {int i; for (i=0; i<16;i++) { printf ("ModView after   %d: %4.3f \n",i,dp[i]); } */
+
+	fw_glLoadMatrixd(dp);
+}
+
+
+/* glFrustum replacement - taken from the MESA source;
+
+ * matrix.c
+ *
+ * Some useful matrix functions.
+ *
+ * Brian Paul
+ * 10 Feb 2004
+ */
+
+/**
+ * Build a glFrustum matrix.
+ */
+static void
+mesa_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ, double *m)
 {
-   GLdouble xmin, xmax, ymin, ymax;
+   double x = (2.0F*nearZ) / (right-left);
+   double y = (2.0F*nearZ) / (top-bottom);
+   double a = (right+left) / (right-left);
+   double b = (top+bottom) / (top-bottom);
+   double c = -(farZ+nearZ) / ( farZ-nearZ);
+   double d = -(2.0F*farZ*nearZ) / (farZ-nearZ);
 
-   ymax = zNear * tan(fovy * M_PI / 360.0);
-   ymin = -ymax;
-   xmin = ymin * aspect;
-   xmax = ymax * aspect;
-
-
-   glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+#define M(row,col)  m[col*4+row]
+   M(0,0) = x;     M(0,1) = 0.0F;  M(0,2) = a;      M(0,3) = 0.0F;
+   M(1,0) = 0.0F;  M(1,1) = y;     M(1,2) = b;      M(1,3) = 0.0F;
+   M(2,0) = 0.0F;  M(2,1) = 0.0F;  M(2,2) = c;      M(2,3) = d;
+   M(3,0) = 0.0F;  M(3,1) = 0.0F;  M(3,2) = -1.0F;  M(3,3) = 0.0F;
+#undef M
 }
+
+
+/**
+ * Build a glOrtho marix.
+ */
+static void
+mesa_Ortho(double left, double right, double bottom, double top, double nearZ, double farZ, double *m)
+{
+#define M(row,col)  m[col*4+row]
+   M(0,0) = 2.0F / (right-left);
+   M(0,1) = 0.0F;
+   M(0,2) = 0.0F;
+   M(0,3) = -(right+left) / (right-left);
+
+   M(1,0) = 0.0F;
+   M(1,1) = 2.0F / (top-bottom);
+   M(1,2) = 0.0F;
+   M(1,3) = -(top+bottom) / (top-bottom);
+
+   M(2,0) = 0.0F;
+   M(2,1) = 0.0F;
+   M(2,2) = -2.0F / (farZ-nearZ);
+   M(2,3) = -(farZ+nearZ) / (farZ-nearZ);
+
+   M(3,0) = 0.0F;
+   M(3,1) = 0.0F;
+   M(3,2) = 0.0F;
+   M(3,3) = 1.0F;
+#undef M
+}
+
+#ifdef NOT_USED_BUT_KEEP
+/**
+ * Decompose a projection matrix to determine original glFrustum or
+ * glOrtho parameters.
+ */
+void
+DecomposeProjection( const double *m,
+                     int *isPerspective,
+                     double *leftOut, double *rightOut,
+                     double *botOut, double *topOut,
+                     double *nearOut, double *farOut)
+{
+   if (m[15] == 0.0) {
+      /* perspective */
+      double p[16];
+      const double x = m[0];  /* 2N / (R-L) */
+      const double y = m[5];  /* 2N / (T-B) */
+      const double a = m[8];  /* (R+L) / (R-L) */
+      const double b = m[9];  /* (T+B) / (T-B) */
+      const double c = m[10]; /* -(F+N) / (F-N) */
+      const double d = m[14]; /* -2FN / (F-N) */
+
+      /* These equations found with simple algebra, knowing the arithmetic
+       * use to set up a typical perspective projection matrix in OpenGL.
+       */
+      const double nearZ = -d / (1.0 - c);
+      const double farZ = (c - 1.0) * nearZ / (c + 1.0);
+      const double left = nearZ * (a - 1.0) / x;
+      const double right = 2.0 * nearZ / x + left;
+      const double bottom = nearZ * (b - 1.0) / y;
+      const double top = 2.0 * nearZ / y + bottom;
+
+      *isPerspective = 1;
+      *leftOut = left;
+      *rightOut = right;
+      *botOut = bottom;
+      *topOut = top;
+      *nearOut = nearZ;
+      *farOut = farZ;
+   }
+   else {
+      /* orthographic */
+      const double x = m[0];  /*  2 / (R-L) */
+      const double y = m[5];  /*  2 / (T-B) */
+      const double z = m[10]; /* -2 / (F-N) */
+      const double a = m[12]; /* -(R+L) / (R-L) */
+      const double b = m[13]; /* -(T+B) / (T-B) */
+      const double c = m[14]; /* -(F+N) / (F-N) */
+      /* again, simple algebra */
+      const double right  = -(a - 1.0) / x;
+      const double left   = right - 2.0 / x;
+      const double top    = -(b - 1.0) / y;
+      const double bottom = top - 2.0 / y;
+      const double farZ   = (c - 1.0) / z;
+      const double nearZ  = farZ + 2.0 / z;
+
+      *isPerspective = 0;
+      *leftOut = left;
+      *rightOut = right;
+      *botOut = bottom;
+      *topOut = top;
+      *nearOut = nearZ;
+      *farOut = farZ;
+   }
+}
+#endif /* NOT_USED_BUT_KEEP */

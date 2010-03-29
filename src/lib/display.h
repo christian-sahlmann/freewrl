@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.78 2010/03/29 00:57:24 couannette Exp $
+  $Id: display.h,v 1.79 2010/03/29 16:30:46 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -472,13 +472,13 @@ void setScreenDim(int wi, int he);
         #define FW_GL_POP_ATTRIB(aaa) glPopAttrib(aaa); 
 	#define FW_GL_WINDOWPOS2I(aaa,bbb) glWindowPos2i(aaa,bbb);
 	#define FW_GL_FLUSH glFlush
-	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) glOrtho(aaa,bbb,ccc,ddd,eee,fff); 
+	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff); 
+	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) fw_Frustum(aaa,bbb,ccc,ddd,eee,fff); 
 	#define FW_GL_RASTERPOS2I(aaa,bbb) glRasterPos2i(aaa,bbb); 
 	#define FW_GL_PIXELZOOM(aaa,bbb) glPixelZoom(aaa,bbb);
         #define FW_GL_LIGHTMODELI(aaa,bbb) glLightModeli(aaa,bbb); 
         #define FW_GL_LIGHTMODELFV(aaa,bbb) glLightModelfv(aaa,bbb); 
 	#define FW_GL_CLEAR_DEPTH(aaa) glClearDepth(aaa); 
-	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) glFrustum(aaa,bbb,ccc,ddd,eee,fff);
 	#define FW_GL_BLENDFUNC(aaa,bbb) glBlendFunc(aaa,bbb);
 	#define FW_GL_LIGHTFV(aaa,bbb,ccc) fwglLightfv(aaa,bbb,ccc);
 	#define FW_GL_LIGHTF(aaa,bbb,ccc) fwglLightf(aaa,bbb,ccc);
@@ -751,7 +751,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_LIGHTFV(aaa,bbb,ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_LIGHTF(aaa,bbb,ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_BLENDFUNC(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_CLEAR_DEPTH(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_LIGHTMODELI(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_LIGHTMODELFV(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
@@ -766,14 +765,14 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) fw_iphone_normalPointer(aaa,bbb,ccc)
 	#define FW_GL_TEXCOORD_POINTER(aaa,bbb,ccc,ddd) fw_iphone_texcoordPointer(aaa,bbb,ccc,ddd)
 	#define FW_GL_COLOR_POINTER(aaa, bbb,ccc,ddd) fw_iphone_colorPointer(aaa,bbb,ccc,ddd)
-
+	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) fw_Frustum(aaa,bbb,ccc,ddd,eee,fff)
+	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff); 
 
 	#define FW_GL_GETDOUBLEV(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_PUSH_ATTRIB(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_POP_ATTRIB(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_WINDOWPOS2I(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_FLUSH() printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_COLOR4FV(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_RASTERPOS2I(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_CGLFLUSHDRAWABLE(aaa) GL_FALSE printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
