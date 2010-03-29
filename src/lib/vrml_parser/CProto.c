@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.43 2010/03/22 15:14:48 crc_canada Exp $
+$Id: CProto.c,v 1.44 2010/03/29 13:17:02 crc_canada Exp $
 
 CProto ???
 
@@ -1029,6 +1029,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 
 
 	while (lex->isEof == FALSE) {
+
 		ele = newProtoElementPointer();
 		toPush = TRUE; /* only put this new element on Vector if it is successful */
 
@@ -1099,43 +1100,46 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 		} else {
 			/* printf ("probably a number, scan along until it is done. :%s:\n",lex->nextIn); */
 			if ((*lex->nextIn == '-') || ((*lex->nextIn >= '0') && (*lex->nextIn <= '9'))) {
-				uintptr_t ip; uintptr_t fp; char *cur;
+				char *cur;
 				int ignore;
+				char *endone; char *endtwo;
+				int length;
 
 				/* see which of float, int32 gobbles up more of the string */
 				cur = (char *) lex->nextIn;
 
 				ignore = lexer_float(lex,&tmpfloat);
-				fp = (uintptr_t) lex->nextIn;
+				endone = (char *)lex->nextIn;
+
 				/* put the next in pointer back to the beginning of the number */
 				lex->nextIn = cur;
 
 
 				ignore = lexer_int32(lex,&tmp32);
-				ip = (uintptr_t) lex->nextIn;
+				endtwo = (char *)lex->nextIn;
 
 				/* put the next in pointer back to the beginning of the number */
 				lex->nextIn = cur;
 
-				ele->stringToken = MALLOC (10);
-				ASSERT (ele->stringToken);
-
-				/* printf ("so we read in from :%s:\n",lex->nextIn); */
-
-				/* now, really scan depending on the type - which one got us further? */
-				/* note that if they are the same, we choose the INT because of expansion
-				   problems if we write an int as a float... (eg, coordinates in an IFS) */
-				if (ip >= fp) {
-					/* printf ("this is an int\n"); */
-					ignore = lexer_int32(lex,&tmp32);
-					sprintf (ele->stringToken,"%d",tmp32);
+				/* which one puts us further into the proto text? */
+				if (endone > endtwo) {
+					lex->nextIn = endone;
 				} else {
-					/* printf ("this is a float\n"); */
-					ignore = lexer_float(lex,&tmpfloat); 
-					sprintf (ele->stringToken,"%f",tmpfloat);
+					lex->nextIn = endtwo;
 				}
 
-			
+				/* how many bytes do we have here? */
+				length = (int) (lex->nextIn-cur);
+				if ((length <0) || (length > 50)) {
+					ConsoleMessage ("Internal error parsing proto - complain bitterly");
+					length = 0;
+				}
+
+				ele->stringToken = MALLOC (length+1);
+				ASSERT (ele->stringToken);
+
+				memcpy(ele->stringToken,cur,(size_t)length);
+				ele->stringToken[length] = '\0';
 			} else {
 				if (*lex->nextIn != '\0') ConsoleMessage ("lexer_setCurID failed on char :%d:\n",*lex->nextIn);
 				lex->nextIn++;
