@@ -1,7 +1,10 @@
 Priority list
 
 For 1.22.8 release:
-Javascript - verify that SFNode params work - eg, setting node.loop=false when node is a USE'd TimeSensor. (ref: gerwinKramer)
+
+4) tests/33.wrl - resizing issue on my (jstewart) work desktop machine - is it reproducable on others?
+
+3) Javascript - verify that SFNode params work - eg, setting node.loop=false when node is a USE'd TimeSensor. (ref: gerwinKramer)
 
 1) TextureCoordinate - stream along with other params; note that if they are DEF/USEd, it causes real problems. see
 gregs' grr-freewrl-1.22.7-pre1-test.
