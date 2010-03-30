@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.51 2010/03/28 15:39:43 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.52 2010/03/30 14:04:29 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -168,6 +168,7 @@ void fwglLightf (int light, int pname, GLfloat param) {
 void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_TwoSidedMaterial *material_twoSided) {
 	shader_type_t whichShader;
 
+#ifdef DO_MANY_DIFFERENT_SHADERS
 	/* no appearance - just grey lighting */
 	whichShader = noAppearanceNoMaterialShader;
 
@@ -181,6 +182,11 @@ void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_T
 	} else if (material_twoSided != NULL) {
 	}
 	/* are we no headlight, noAppearanceNoMaterialShader? */
+#else
+
+	/* just use this shader for now */
+	whichShader = genericHeadlightNoTextureAppearanceShader;
+#endif
 
 
 	currentShaderStruct = &(rdr_caps.shaderArrays[whichShader]);

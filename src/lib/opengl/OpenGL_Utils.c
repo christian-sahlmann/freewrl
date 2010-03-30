@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.123 2010/03/29 16:30:47 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.124 2010/03/30 14:04:29 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -194,6 +194,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	GLuint myFragmentShader= 0;
 	GLuint myProg = 0;
 
+#ifdef READ_SHADER_FROM_FILE
 	if (strlen(pathToShaders) > 1000) return;  /* bounds error */
 	inTextFile = MALLOC(2000);
 
@@ -205,6 +206,55 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	inTextPointer = readInputString(inTextFile);
 	if (inTextPointer==NULL) return;
 	
+#else
+	inTextPointer = 
+		"varying vec4 colour;" \
+		"varying vec4 spec;" \
+		"uniform 	vec4 myMaterialAmbient;" \
+		"uniform 	vec4 myMaterialDiffuse;" \
+		"uniform 	vec4 myMaterialSpecular;" \
+		"uniform 	float myMaterialShininess;" \
+		"uniform 	vec4 myMaterialEmission;" \
+		"uniform		mat4 fw_ModelViewMatrix;" \
+		"uniform		mat4 fw_ProjectionMatrix;" \
+		"uniform int lightState;" \
+		"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {" \
+		"	vec4 myLightAmbient = vec4(0., 0., 0., 1);" \
+		"	vec4 myLightDiffuse = vec4(1., 1., 1., 1.);" \
+		"	vec4 myLightPosition = vec4 (0., 0., 1., 0.);" \
+		"	vec3 norm = normalize (myNormal);" \
+		"	vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
+		"	vec3 viewv = -normalize(myPosition.xyz);" \
+		"	vec3 refl = reflect (-lightv, norm);" \
+		"	vec4 diffuse = max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse;" \
+		"	vec4 ambient = myMaterialAmbient*myLightAmbient;" \
+		"	return clamp(vec3(ambient+diffuse+myMaterialEmission), 0.0, 1.0);" \
+		"}" \
+		"vec4 specularCalculation(in vec3 myNormal, in vec4 myPosition) {" \
+		"	vec4 myLightSpecular = vec4(0.6, 0.6, 0.6, 1.0);" \
+		"	vec4 myLightPosition = vec4 (0., 0., 1., 0.);" \
+		"	vec3 norm = normalize (myNormal);" \
+		"	vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
+		"	vec3 viewv = -normalize(myPosition.xyz);" \
+		"	vec3 refl = reflect (-lightv, norm);" \
+		"	vec4 specular = vec4 (0.0, 0.0, 0.0, 1.0);" \
+		"	if (dot(lightv, viewv) > 0.0) {" \
+		"		specular = pow(max(0.0, dot(viewv, refl))," \
+		"			myMaterialShininess)*myMaterialSpecular*myLightSpecular;" \
+		"	}" \
+		"	return clamp(vec4(specular), 0.0, 1.0);" \
+		"}" \
+		"void main(void) {" \
+		"	vec3 transNorm = vec3(fw_ModelViewMatrix * vec4(gl_Normal,0.0));" \
+		"	/* transNorm = normalize(transNorm); */" \
+		"	vec4 pos = fw_ModelViewMatrix * gl_Vertex;" \
+		"	colour = vec4(ADSLightModel(transNorm, pos),1);" \
+		"	spec = specularCalculation(transNorm,pos);" \
+		"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * gl_Vertex;" \
+		"}" \
+		"";
+
+#endif
 	(*myShader).myShaderProgram = CREATE_PROGRAM;
 	myProg = (*myShader).myShaderProgram;
 
@@ -218,9 +268,13 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 
 		ATTACH_SHADER(myProg, myVertexShader);
 	}
+
+#ifdef READ_SHADER_FROM_FILE
 	FREE_IF_NZ(inTextPointer);
+#endif
 
 
+#ifdef READ_SHADER_FROM_FILE
 	/* get Fragment shader */
 	strcpy (inTextFile,pathToShaders);
 	strcat (inTextFile,".fs");
@@ -228,6 +282,11 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	/* printf ("getAppearanceShader, path %s\n",inTextFile); */
 	inTextPointer = readInputString(inTextFile);
 	if (inTextPointer==NULL) return;
+#else
+
+	inTextPointer = "varying vec4 colour; varying vec4 spec; void main () { gl_FragColor = clamp(colour+spec,0.,1.); }";
+
+#endif
 
 	myFragmentShader = CREATE_SHADER (FRAGMENT_SHADER);
 	SHADER_SOURCE(myFragmentShader, 1, (const GLchar **) &inTextPointer, NULL);
@@ -238,8 +297,10 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	} else {
 		ATTACH_SHADER(myProg, myFragmentShader);
 	}
+#ifdef READ_SHADER_FROM_FILE
 	FREE_IF_NZ(inTextPointer);
 	FREE_IF_NZ(inTextFile);
+#endif
 
 	LINK_SHADER(myProg);
 
@@ -578,9 +639,7 @@ bool initialize_GL()
 */
 
 		getAppearanceShader(&rdr_caps.shaderArrays[genericHeadlightNoTextureAppearanceShader], "/Users/johns/Desktop/shaderReplacement/genericHeadlightNoTextureAppearanceShader");
-printf ("read in shader %d matrixes %d %d\n",genericHeadlightNoTextureAppearanceShader,
-			rdr_caps.shaderArrays[genericHeadlightNoTextureAppearanceShader].ModelViewMatrix,
-			rdr_caps.shaderArrays[genericHeadlightNoTextureAppearanceShader].ProjectionMatrix);
+/* do these later
 
 		getAppearanceShader(&rdr_caps.shaderArrays[noLightNoTextureAppearanceShader], "/Users/johns/Desktop/shaderReplacement/noLightNoTextureAppearanceShader");
 		getAppearanceShader(&rdr_caps.shaderArrays[noAppearanceNoMaterialShader], "/Users/johns/Desktop/shaderReplacement/noAppearanceNoMaterialShader");
@@ -588,6 +647,8 @@ printf ("read in shader %d matrixes %d %d\n",genericHeadlightNoTextureAppearance
 		getAppearanceShader(&rdr_caps.shaderArrays[headlightOneTextureAppearanceShader], "/Users/johns/Desktop/shaderReplacement/headlightOneTextureAppearanceShader");
 		getAppearanceShader(&rdr_caps.shaderArrays[headlightMultiTextureAppearanceShader], "/Users/johns/Desktop/shaderReplacement/headlightMultiTextureAppearanceShader");
 		getAppearanceShader(&rdr_caps.shaderArrays[multiLightMultiTextureAppearanceShader], "/Users/johns/Desktop/shaderReplacement/multiLightMultiTextureAppearanceShader");
+*/
+
 
 		/* tell the child_Shape routine to use these shaders, if there is not a user-specified shader */
 		rdr_caps.haveGenericAppearanceShader = TRUE;
@@ -2080,11 +2141,10 @@ void sendMatriciesToShader(GLint MM,GLint PM) {
 	float *sp; 
 	double *dp;
 
-float mvm[] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -10, 1};
-float pvm[] = {1.74427, 0, 0, 0, 0, 2.41421, 0, 0, 0, 0, -1.00001, -1, -0, -0, -0.200001, -0};
+	// you can use this for testing something at the [0,0,0] position
+	//float mvm[] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -10, 1};
+	//float pvm[] = {1.74427, 0, 0, 0, 0, 2.41421, 0, 0, 0, 0, -1.00001, -1, -0, -0, -0.200001, -0};
 
-	printf ("SMTS, %d and %d\n",MM,PM); 
-	
 	/* ModelView first */
 	dp = FW_ModelView[modelviewTOS];
 	sp = spval;
@@ -2094,8 +2154,8 @@ float pvm[] = {1.74427, 0, 0, 0, 0, 2.41421, 0, 0, 0, 0, -1.00001, -1, -0, -0, -
 		sp ++; dp ++;
 	}
 
-//for (i=0; i<16;i++) { printf ("ModelView %d: %4.3f %4.3f\n",i,spval[i],mvm[i]); }
-//glUniformMatrix4fv(MM,1,GL_FALSE,mvm);
+	//for (i=0; i<16;i++) { printf ("ModelView %d: %4.3f %4.3f\n",i,spval[i],mvm[i]); }
+	//glUniformMatrix4fv(MM,1,GL_FALSE,mvm);
 
 	glUniformMatrix4fv(MM,1,GL_FALSE,spval);
 
@@ -2107,11 +2167,10 @@ float pvm[] = {1.74427, 0, 0, 0, 0, 2.41421, 0, 0, 0, 0, -1.00001, -1, -0, -0, -
 		*sp = (float) *dp; 	
 		sp ++; dp ++;
 	}
-for (i=0; i<16;i++) {
-	printf ("Projection %d: %4.3f %4.3f\n",i,spval[i],pvm[i]);
-}
-	glUniformMatrix4fv(PM,1,GL_FALSE,spval);
+	//for (i=0; i<16;i++) { printf ("Projection %d: %4.3f %4.3f\n",i,spval[i],pvm[i]); }
 	//glUniformMatrix4fv(PM,1,GL_FALSE,pvm);
+
+	glUniformMatrix4fv(PM,1,GL_FALSE,spval);
 }
 
 void fw_Ortho (double left, double right, double bottom, double top, double nearZ, double farZ) {
