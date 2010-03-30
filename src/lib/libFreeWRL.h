@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.18 2010/03/10 16:18:08 istakenv Exp $
+  $Id: libFreeWRL.h,v 1.19 2010/03/30 20:34:38 crc_canada Exp $
 
   FreeWRL library API (public)
 
@@ -43,6 +43,7 @@ typedef struct freewrl_params {
 	*/
 	int width;
 	int height;
+	long int winToEmbedInto;
 	bool fullscreen;
 	bool multithreading;
 	bool eai;
