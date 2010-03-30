@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.79 2010/03/29 16:30:46 crc_canada Exp $
+  $Id: display.h,v 1.80 2010/03/30 19:15:44 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -114,6 +114,7 @@ extern float myFps;
  */
 extern int win_height; /* window */
 extern int win_width;
+extern long int winToEmbedInto;
 extern int fullscreen;
 extern int view_height; /* viewport */
 extern int view_width;

@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.25 2009/12/28 00:54:07 couannette Exp $
+  $Id: options.c,v 1.26 2010/03/30 19:15:44 crc_canada Exp $
 
   FreeWRL command line arguments.
 
@@ -142,6 +142,8 @@ const char * validate_string_arg(const char *optarg)
 
 	{"curl", no_argument, 0, 'C'},
 
+	{"display", required_argument, 0, 'd'}, /* Roberto Gerson */
+
 	{0, 0, 0, 0}
     };
 
@@ -168,15 +170,16 @@ int parseCommandLine (int argc, char **argv)
 {
     int c;
     float ftmp;
+    int ldtmp;
     int option_index = 0;
     int real_option_index;
     const char *real_option_name;
     char *logFileName = NULL;
 
 #if defined(DOSNAPSEQUENCE)
-    static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utCL:";
+    static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utCL:d:";
 #else
-    static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:utCL:";
+    static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:utCL:d:";
 #endif
 
 
@@ -267,6 +270,14 @@ int parseCommandLine (int argc, char **argv)
 	case 'b': /* --big, no argument */
 	    setGeometry_from_cmdline("800x600");
 	    break;
+
+	case 'd': /* --display, required argument int */
+		printf ("Parameter --display = %s\n", optarg);
+		sscanf(optarg,"%ld", &ldtmp);
+		params->winToEmbedInto = ldtmp;
+		break;
+
+
 
 /* General options */
 

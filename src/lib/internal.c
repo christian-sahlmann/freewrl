@@ -1,5 +1,5 @@
 /*
-  $Id: internal.c,v 1.14 2010/02/10 18:36:37 sdumoulin Exp $
+  $Id: internal.c,v 1.15 2010/03/30 19:15:44 crc_canada Exp $
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always
@@ -138,6 +138,7 @@ void fw_perror(FILE *f, const char *format, ...)
 freewrl_params_t fw_params = {
 	/* width */          800,
 	/* height */         600,
+	/* winToEmbedInto */ -1,
 	/* fullscreen */     FALSE,
 	/* multithreading */ TRUE,
 	/* eai */            TRUE,

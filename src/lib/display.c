@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.47 2010/03/12 17:07:56 crc_canada Exp $
+  $Id: display.c,v 1.48 2010/03/30 19:15:44 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -46,6 +46,7 @@ bool display_initialized = FALSE;
 
 int win_height = 0; /* window */
 int win_width = 0;
+long int winToEmbedInto = -1;
 int fullscreen = FALSE;
 int view_height = 0; /* viewport */
 int view_width = 0;
@@ -115,6 +116,7 @@ int display_initialize()
 	fullscreen = fw_params.fullscreen;
 	win_width = fw_params.width;
 	win_height = fw_params.height;
+	winToEmbedInto = fw_params.winToEmbedInto;
 
 #if !defined (TARGET_AQUA)
 	/* make the window, get the OpenGL context */

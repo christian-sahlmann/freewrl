@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.31 2010/02/25 03:29:19 dug9 Exp $
+  $Id: main.c,v 1.32 2010/03/30 19:15:43 crc_canada Exp $
 
   FreeWRL main program.
 
@@ -131,6 +131,7 @@ int main (int argc, char **argv)
     params->height = 400;
     params->eai = FALSE;
     params->fullscreen = FALSE;
+    params->winToEmbedInto = -1;
 	initStereoDefaults();
 
 #if !defined(TARGET_AQUA) /* Aqua front ends do the parsing */
