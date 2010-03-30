@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.27 2010/03/22 15:14:48 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.28 2010/03/30 20:40:35 sdumoulin Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -75,23 +75,23 @@ double MAX(double a, double b, double c) {
 }
 
 void convertRGBtoHSV(double r, double g, double b, double *h, double *s, double *v) {
-	double min, max, delta;
+	double my_min, my_max, delta;
 
-	min = MIN( r, g, b );
-	max = MAX( r, g, b );
-	*v = max;				/* v */
-	delta = max - min;
-	if( max != 0 )
-		*s = delta / max;		/* s */
+	my_min = MIN( r, g, b );
+	my_max = MAX( r, g, b );
+	*v = my_max;				/* v */
+	delta = my_max - my_min;
+	if( my_max != 0 )
+		*s = delta / my_max;		/* s */
 	else {
 		/* r = g = b = 0 */		/* s = 0, v is undefined */
 		*s = 0;
 		*h = -1;
 		return;
 	}
-	if( r == max )
+	if( r == my_max )
 		*h = ( g - b ) / delta;		/* between yellow & magenta */
-	else if( g == max )
+	else if( g == my_max )
 		*h = 2 + ( b - r ) / delta;	/* between cyan & yellow */
 	else
 		*h = 4 + ( r - g ) / delta;	/* between magenta & cyan */

@@ -22,7 +22,7 @@ FREEWRL_CCFLAGS => '-arch '.
     FREEWRL_LIBS => '-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
 		'-L/FreeWRL/expat-2.0.0 '.
 		'-L/usr/local/lib '.
-		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks/OpenGLES.framework/Libraries '.
+		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks/OpenGLES.framework '.
 		'-lSystem '.
 		'-lexpat '.
 		'-lfreetype '.
@@ -65,7 +65,6 @@ FREEWRL_CCFLAGS => '-arch '.
 
 	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
-		'-isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk'.
 		'-L/FreeWRL/expat-2.0.0 '.
 		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
 		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks '. 

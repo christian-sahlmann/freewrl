@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.19 2010/03/30 20:34:38 crc_canada Exp $
+  $Id: libFreeWRL.h,v 1.20 2010/03/30 20:40:35 sdumoulin Exp $
 
   FreeWRL library API (public)
 
@@ -36,6 +36,11 @@ const char *libFreeWRL_get_version();
 /**
  * Initialization
  */
+#ifdef IPHONE
+//int Init(ESContext *esContext);
+//GLuint LoadShader(GLenum type, const char* shaderSrc);
+//void Draw(ESContext* esContext);
+#endif
 typedef struct freewrl_params {
 	/* Put here global parameters, parsed in main program
 	   and needed to initialize libFreeWRL
@@ -48,6 +53,7 @@ typedef struct freewrl_params {
 	bool multithreading;
 	bool eai;
 	bool verbose;
+	long int winToEmbedInto;
 	int collision;	/* do collision detection? */
 
 } freewrl_params_t;

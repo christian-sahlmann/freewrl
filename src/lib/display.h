@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.80 2010/03/30 19:15:44 crc_canada Exp $
+  $Id: display.h,v 1.81 2010/03/30 20:40:35 sdumoulin Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -451,7 +451,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa);
 	#define FW_GL_DEPTHMASK(aaa) glDepthMask(aaa);
 	#define FW_GL_ENABLE(aaa) glEnable(aaa)
-	#define FW_GL_DISABLE(aaa) glDisable(aaa); 
+	#define FW_GL_DISABLE(aaa) glDisable(aaa) 
 	#define FW_GL_ENABLECLIENTSTATE(aaa) glEnableClientState(aaa)
 	#define FW_GL_DISABLECLIENTSTATE(aaa) glDisableClientState(aaa); 
 	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) glDrawArrays(xxx,yyy,zzz)
@@ -726,7 +726,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) glDrawArrays(xxx,yyy,zzz)
 	#define FW_GL_DEPTHMASK(aaa) glDepthMask(aaa);
 	#define FW_GL_ENABLE(aaa) glEnable(aaa)
-	#define FW_GL_DISABLE(aaa) glDisable(aaa); 
+	#define FW_GL_DISABLE(aaa) glDisable(aaa)
 	#define FW_GL_POINTSIZE(aaa) glPointSize(aaa); 
 	#define FW_GL_LINEWIDTH(aaa) glLineWidth(aaa);
 	#define FW_GL_CLEAR(zzz) glClear(zzz); 

@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.27 2010/03/24 14:39:11 crc_canada Exp $
+  $Id: resources.c,v 1.28 2010/03/30 20:40:35 sdumoulin Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -980,6 +980,7 @@ static void removeFilenameFromPath (char *path) {
 
 /* is this a gzipped file? if so, unzip the text and replace the original with this. */
 static void possiblyUnzip (openned_file_t *of) {
+#ifndef IPHONE
 	if (of->text == NULL) return;
 	if (of->text[0] == '\0') return;
 	if (of->text[1] == '\0') return;
@@ -1027,4 +1028,5 @@ static void possiblyUnzip (openned_file_t *of) {
 		FREE_IF_NZ(newFile);
 		unlink (tempname);
 	}
+#endif
 }

@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.32 2010/03/30 19:15:43 crc_canada Exp $
+  $Id: main.c,v 1.33 2010/03/30 20:40:35 sdumoulin Exp $
 
   FreeWRL main program.
 
@@ -68,10 +68,12 @@ int main (int argc, char **argv)
 
     /* first, get the FreeWRL shared lib, and verify the version. */
     libver = libFreeWRL_get_version();
+#ifndef AQUA
     progver = freewrl_get_version();
     if (strcmp(progver, libver)) {
 	ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
     }
+#endif
 #ifdef _MSC_VER
 	/*
 	Set fonts directory

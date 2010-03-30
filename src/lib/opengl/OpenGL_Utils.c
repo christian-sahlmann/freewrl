@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.124 2010/03/30 14:04:29 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.125 2010/03/30 20:40:35 sdumoulin Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2200,8 +2200,8 @@ void fw_Frustum (double left, double right, double bottom, double top, double ne
 }
 
 
-void fw_gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar) {
-	GLdouble xmin, xmax, ymin, ymax;
+void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar) {
+	GLDOUBLE xmin, xmax, ymin, ymax;
 	double *dp;
 
 	ymax = zNear * tan(fovy * M_PI / 360.0);
