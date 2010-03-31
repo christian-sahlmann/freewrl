@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.81 2010/03/30 20:40:35 sdumoulin Exp $
+  $Id: display.h,v 1.82 2010/03/31 16:57:33 sdumoulin Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -735,13 +735,27 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_GENTEXTURES(aaa,bbb) glGenTextures(aaa,bbb)
 	#define FW_GL_GETBOOLEANV(aaa,bbb) glGetBooleanv(aaa,bbb)
 	#define FW_GL_DELETETEXTURES(aaa,bbb) glDeleteTextures(aaa,bbb);
-	#define FW_GL_LOADMATRIXD(aaa) fw_glLoadMatrixd(aaa)
+	#define FW_GL_LOADMATRIXD(aaa) printf("subbed openglES call at %s: %d\n", __FILE__,__LINE__); 
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
 
 
 
 	/****************************************************************/
 	#define FW_GLU_DELETETESS(aaa)
+	#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd) glClearColor(aaa,bbb,ccc,ddd);
+	#define FW_GL_POP_MATRIX(aaa) fw_glPopMatrix()
+	#define FW_GL_PUSH_MATRIX(aaa) fw_glPushMatrix()
+	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) fw_glTranslatef(xxx,yyy,zzz)
+	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) fw_glTranslated(xxx,yyy,zzz)
+	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) \
+		{fw_glRotatef(aaa,xxx,yyy,zzz); \
+		DEBUG_MSG("fw_glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) \
+		{fw_glRotated(aaa,xxx,yyy,zzz); \
+		DEBUG_MSG("fw_glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) fw_glRotateRad(aaa,xxx,yyy,zzz)
+	#define FW_GL_SCALE_F(xxx,yyy,zzz) fw_glScalef(xxx,yyy,zzz)
+	#define FW_GL_SCALE_D(xxx,yyy,zzz) fw_glScaled(xxx,yyy,zzz)
 	#define FW_GL_GETDOUBLEV(aaa,bbb)  printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_LOAD_IDENTITY(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_MATRIX_MODE(aaa)  printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)

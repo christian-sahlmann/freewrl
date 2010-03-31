@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.28 2010/02/10 18:35:10 sdumoulin Exp $
+  $Id: main.c,v 1.29 2010/03/31 16:57:33 sdumoulin Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -98,11 +98,13 @@ void OSX_initializeParameters(const char* initialURL) {
     	OSXparams->eai = FALSE;
     	OSXparams->fullscreen = FALSE;
     } 
+	//printf("in OSX init\n");
     /* start threads, parse initial scene, etc */
    if (!initFreeWRL(OSXparams)) {
 	ERROR_MSG("main: aborting during initialization.\n");
 	exit(1);
    }
+	//printf("after init osx params\n");
 
     fw_params.collision = 1;
 
