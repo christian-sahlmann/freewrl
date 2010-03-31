@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.20 2010/03/30 20:40:35 sdumoulin Exp $
+  $Id: libFreeWRL.h,v 1.21 2010/03/31 01:18:22 crc_canada Exp $
 
   FreeWRL library API (public)
 
@@ -53,7 +53,6 @@ typedef struct freewrl_params {
 	bool multithreading;
 	bool eai;
 	bool verbose;
-	long int winToEmbedInto;
 	int collision;	/* do collision detection? */
 
 } freewrl_params_t;
