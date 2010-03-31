@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.58 2010/03/22 17:07:16 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.59 2010/03/31 19:15:28 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -246,7 +246,6 @@ void EAI_parse_commands () {
 				cNode = (uintptr_t) xtmp;
 
 				EAI_GetType (cNode, ctmp, dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
-
 				sprintf (buf,"RE\n%lf\n%d\n%d %d %d %c %d %s",TickTime,count,(int)ra,(int)rb,(int)rc,(int)rd,
 						scripttype,stringKeywordType(xxx));
 				break;
