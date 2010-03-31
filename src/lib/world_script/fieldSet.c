@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.45 2010/03/23 17:00:46 crc_canada Exp $
+  $Id: fieldSet.c,v 1.46 2010/03/31 18:16:01 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -95,6 +95,8 @@ static char *Multi_Struct_memptr (int type, char *memptr) {
 
 		default: {}
 		}
+if (retval == memptr) printf ("Multi_Struct_memptr, just returning original pointer...\n");
+
 	return retval;
 }
 
@@ -374,9 +376,49 @@ unsigned int setField_FromEAI (char *ptr) {
 
 		/* lets do some bounds checking here. */
 		tcol = (struct Multi_Color *) memptr;
-		if (tcol->n <= valIndex) {
-			printf ("Error, setting 1Value of %d, max in scenegraph is %d\n",valIndex,tcol->n);
-			return FALSE;
+
+		if (valIndex >= tcol->n) {
+			void *nmemptr;
+			int malSize;
+
+			/* expand this array so that we can put the value in */
+			/* 
+			printf ("have to expand MF value, had %d, wanted %d\n",tcol->n, valIndex);
+			printf ("and we have elementLength %d and rowSize %d\n",returnElementLength(datatype) ,returnElementRowSize(datatype));
+			*/
+
+			/* if we want index "5", say, we make it "5+1" long because we are zero based */
+			malSize = (valIndex+1) * returnElementLength(datatype) * returnElementRowSize(datatype); 
+			nmemptr = MALLOC(malSize);
+
+			/* zero the new array - this will give us null holes, maybe */
+			bzero (nmemptr,(size_t)malSize);
+			/* printf ("locked and loaded %d bytes\n",malSize); */
+
+			/* copy the old data over */
+			memcpy (nmemptr,tcol->p, tcol->n * returnElementLength(datatype) * returnElementRowSize(datatype));
+
+			/* printf ("copied over %d bytes from the old school \n",tcol->n * returnElementLength(datatype) * returnElementRowSize(datatype)); */
+
+			/* if this is Strings, then verify that ALL pointers are ok, and point to some string */
+			if (datatype == FIELDTYPE_MFString) {
+				int count;
+				struct Uni_String * *strarr = (struct Uni_String **) nmemptr;
+				for (count = 0; count <=valIndex ; count++) {
+
+					/* is this one NULL? If so, make it into something */
+					if ((*strarr) == NULL) *strarr = newASCIIString (""); /* "created from set1Value" */
+					/* printf ("index %d, the stringis :%s:\n",count,(*strarr)->strptr); */
+					strarr++;
+				}
+			}
+
+			tcol->n = 0;
+			FREE_IF_NZ(tcol->p);
+			tcol->p = nmemptr;
+			tcol->n = valIndex+1;	
+
+			/* printf ("now, we have valIndex %d, tcol->n %d\n",valIndex,tcol->n); */
 		}
 
 
@@ -384,7 +426,6 @@ unsigned int setField_FromEAI (char *ptr) {
 		memptr = Multi_Struct_memptr(datatype, (void *) memptr);
 
 		/* and index into that array; we have the index, and sizes to worry about 	*/
-
 		memptr += valIndex * returnElementLength(datatype) *  returnElementRowSize(datatype);
 
 		/* and change the nodetype to reflect this change */

@@ -1,6 +1,16 @@
 Priority list
 
 For 1.22.8 release:
+7) -best option - can we save this for Phong shading?
+
+6) web pages - verify that ALL of the command line parameters are properly documented.
+
+5) Jan Jardenbergh 
+	- VRML1; FPSudbury.wrl
+	- "On a Mac, after binary install, README : should say: ./FreeWRL.app/Contents/MacOS/FreeWRL tests/10.wrl"
+	- SLERP
+	- Open on OSX - return to same dir as last opened file.
+	- spin option or inertia?
 
 4) tests/33.wrl - resizing issue on my (jstewart) work desktop machine - is it reproducable on others?
 
