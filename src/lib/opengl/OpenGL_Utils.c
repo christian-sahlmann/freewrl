@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.126 2010/03/31 16:57:33 sdumoulin Exp $
+  $Id: OpenGL_Utils.c,v 1.127 2010/04/01 02:38:04 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2132,8 +2132,7 @@ void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd)
 
 static void fw_glLoadMatrixd(double *val) {
 	/* printf ("loading matrix...\n"); */
-	FW_GL_LOADMATRIXD(val);
-	//glLoadMatrixd(val);
+	glLoadMatrixd(val);
 }
 
 void sendMatriciesToShader(GLint MM,GLint PM) {
