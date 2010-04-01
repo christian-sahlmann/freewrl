@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.127 2010/04/01 02:38:04 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.128 2010/04/01 20:50:22 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -217,6 +217,9 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 		"uniform 	vec4 myMaterialEmission;" \
 		"uniform		mat4 fw_ModelViewMatrix;" \
 		"uniform		mat4 fw_ProjectionMatrix;" \
+		"attribute	vec4 fw_Vertex;" \
+		"/* attribute	vec3 fw_Normal;*/" \
+		" " \
 		"uniform int lightState;" \
 		"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {" \
 		"	vec4 myLightAmbient = vec4(0., 0., 0., 1);" \
@@ -245,12 +248,13 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 		"	return clamp(vec4(specular), 0.0, 1.0);" \
 		"}" \
 		"void main(void) {" \
-		"	vec3 transNorm = vec3(fw_ModelViewMatrix * vec4(gl_Normal,0.0));" \
+		"	/* vec3 transNorm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0));*/ " \
+		"	vec3 transNorm = vec3(fw_ModelViewMatrix * vec4 (0,0,1,0)); " \
 		"	/* transNorm = normalize(transNorm); */" \
-		"	vec4 pos = fw_ModelViewMatrix * gl_Vertex;" \
+		"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
 		"	colour = vec4(ADSLightModel(transNorm, pos),1);" \
 		"	spec = specularCalculation(transNorm,pos);" \
-		"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * gl_Vertex;" \
+		"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
 		"}" \
 		"";
 
@@ -317,6 +321,14 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 
 	(*myShader).ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
 	(*myShader).ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
+	(*myShader).Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+	(*myShader).Normals = GET_ATTRIB(myProg,"fw_Normal");
+printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
+(*myShader).Vertices,
+(*myShader).Normals,
+(*myShader).ModelViewMatrix,
+(*myShader).ProjectionMatrix);
+
 }
 
 

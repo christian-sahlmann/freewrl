@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.82 2010/03/31 16:57:33 sdumoulin Exp $
+  $Id: display.h,v 1.83 2010/04/01 20:50:22 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -154,6 +154,8 @@ typedef struct {
 	GLint lightPosition;
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;
+	GLint Vertices;
+	GLint Normals;
 } s_shader_capabilities_t;
 
 typedef struct {
@@ -452,9 +454,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_DEPTHMASK(aaa) glDepthMask(aaa);
 	#define FW_GL_ENABLE(aaa) glEnable(aaa)
 	#define FW_GL_DISABLE(aaa) glDisable(aaa) 
-	#define FW_GL_ENABLECLIENTSTATE(aaa) glEnableClientState(aaa)
-	#define FW_GL_DISABLECLIENTSTATE(aaa) glDisableClientState(aaa); 
-	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) glDrawArrays(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) fw_glTranslatef(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) fw_glTranslated(xxx,yyy,zzz)
 
@@ -495,7 +494,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
 	#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
 	#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
-	#define FW_GL_TEXCOORD_POINTER(aaa,bbb,ccc,ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
 	#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
 
 
@@ -516,8 +514,22 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 	#define FW_GL_END() glEnd()
 	#define FW_GL_VERTEX3D(aaa, bbb, ccc) glVertex3d(aaa, bbb, ccc)
-	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) glVertexPointer(aaa, bbb, ccc, ddd)
-	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) glNormalPointer(aaa, bbb, ccc)
+
+	/* geometry rendering - varies on whether we are using appearance shaders, etc */
+	#define FW_VERTEX_POINTER_TYPE 44354
+	#define FW_NORMAL_POINTER_TYPE 5434
+	#define FW_COLOR_POINTER_TYPE 12453
+	#define FW_TEXCOORD_POINTER_TYPE 67655
+	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
+	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
+	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, bbb, GL_FALSE, ccc); }
+	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
+	#define FW_GL_ENABLECLIENTSTATE(aaa) { sendClientStateToGPU(TRUE,aaa); }
+	#define FW_GL_DISABLECLIENTSTATE(aaa) { sendClientStateToGPU(FALSE,aaa); }
+	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) { sendArraysToGPU(xxx,yyy,zzz); }
+	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) {sendElementsToGPU(aaa,bbb,ccc,ddd); }
+
+
 	#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
 	#define FW_GL_MATERIALFV(aaa, bbb, ccc) glMaterialfv(aaa, bbb, ccc)
 	#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
@@ -527,9 +539,7 @@ void setScreenDim(int wi, int he);
 	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
 	
 	#define FW_GL_VERTEX3F(aaa, bbb, ccc) glVertex3f(aaa, bbb, ccc)
-	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) glDrawElements(aaa,bbb,ccc,ddd)
 	#define FW_GL_GETSTRING(aaa) glGetString(aaa)
-	#define FW_GL_COLOR_POINTER(aaa, bbb,ccc,ddd) glColorPointer(aaa, bbb,ccc,ddd)
 	#define FW_GL_DELETETEXTURES(aaa,bbb) glDeleteTextures(aaa,bbb);
 	#define FW_GL_COLOR3FV(aaa) glColor3fv(aaa);
 	#define FW_GL_LOADMATRIXD(aaa) fw_glLoadMatrixd(aaa)
@@ -730,7 +740,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_POINTSIZE(aaa) glPointSize(aaa); 
 	#define FW_GL_LINEWIDTH(aaa) glLineWidth(aaa);
 	#define FW_GL_CLEAR(zzz) glClear(zzz); 
-	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) glDrawElements(aaa,bbb,ccc,ddd)
 	#define FW_GL_HINT(aaa,bbb) glHint(aaa,bbb); 
 	#define FW_GL_GENTEXTURES(aaa,bbb) glGenTextures(aaa,bbb)
 	#define FW_GL_GETBOOLEANV(aaa,bbb) glGetBooleanv(aaa,bbb)
@@ -774,12 +783,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_ALPHAFUNC(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 
-	#define FW_GL_ENABLECLIENTSTATE(aaa) fw_iphone_enableClientState(aaa)
-	#define FW_GL_DISABLECLIENTSTATE(aaa) fw_iphone_disableClientState(aaa)
-	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) fw_iphone_vertexPointer(aaa,bbb,ccc,ddd)
-	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) fw_iphone_normalPointer(aaa,bbb,ccc)
-	#define FW_GL_TEXCOORD_POINTER(aaa,bbb,ccc,ddd) fw_iphone_texcoordPointer(aaa,bbb,ccc,ddd)
-	#define FW_GL_COLOR_POINTER(aaa, bbb,ccc,ddd) fw_iphone_colorPointer(aaa,bbb,ccc,ddd)
 	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) fw_Frustum(aaa,bbb,ccc,ddd,eee,fff)
 	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff); 
 
