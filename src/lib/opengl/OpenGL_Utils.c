@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.128 2010/04/01 20:50:22 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.129 2010/04/03 20:11:05 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -218,7 +218,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 		"uniform		mat4 fw_ModelViewMatrix;" \
 		"uniform		mat4 fw_ProjectionMatrix;" \
 		"attribute	vec4 fw_Vertex;" \
-		"/* attribute	vec3 fw_Normal;*/" \
+		"attribute	vec3 fw_Normal; " \
 		" " \
 		"uniform int lightState;" \
 		"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {" \
@@ -248,8 +248,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 		"	return clamp(vec4(specular), 0.0, 1.0);" \
 		"}" \
 		"void main(void) {" \
-		"	/* vec3 transNorm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0));*/ " \
-		"	vec3 transNorm = vec3(fw_ModelViewMatrix * vec4 (0,0,1,0)); " \
+		"	vec3 transNorm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
 		"	/* transNorm = normalize(transNorm); */" \
 		"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
 		"	colour = vec4(ADSLightModel(transNorm, pos),1);" \
@@ -288,7 +287,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	if (inTextPointer==NULL) return;
 #else
 
-	inTextPointer = "varying vec4 colour; varying vec4 spec; void main () { gl_FragColor = clamp(colour+spec,0.,1.); }";
+	inTextPointer = "varying vec4 colour; varying vec4 spec; void main () { gl_FragColor = clamp(colour+spec,0.,1.);}";
 
 #endif
 

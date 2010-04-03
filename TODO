@@ -1,6 +1,10 @@
 Priority list
 
 For 1.22.8 release:
+9) Shaders - Viewpoint moves position - is the matrix initialized? Projection Matrix issues.
+
+8) coordinates - should be "short int" because ints do not work for OpenGL-ES.
+
 7) -best option - can we save this for Phong shading?
 
 6) web pages - verify that ALL of the command line parameters are properly documented.

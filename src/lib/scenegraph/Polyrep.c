@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.26 2010/03/30 20:40:35 sdumoulin Exp $
+$Id: Polyrep.c,v 1.27 2010/04/03 20:11:05 crc_canada Exp $
 
 ???
 
@@ -594,7 +594,7 @@ void Extru_tex(
 	int A,
 	int B,
 	int C,
-	int *tcindex,
+	short int *tcindex,
 	int ccw,
 	int tcindexsize) {
 
@@ -629,8 +629,8 @@ void Extru_ST_map(
 	int end,
 	float *Vals,
 	int nsec,
-	int *tcindex,
-	int *cindex,
+	short int *tcindex,
+	short int *cindex,
 	float *GeneratedTexCoords,
 	int tcoordsize) {
 
@@ -844,14 +844,14 @@ void render_polyrep(void *node) {
 
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *) r->actualCoord);
-	FW_GL_DRAWELEMENTS(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
+	FW_GL_DRAWELEMENTS(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_SHORT, r->cindex);
 
 	trisThisLoop += r->ntri;
 
 	#ifdef TEXVERBOSE
 	{
 		int i;
-		int *cin;
+		short int *cin;
 		float *cod;
 		float *tcod;
 		tcod = r->GeneratedTexCoords;

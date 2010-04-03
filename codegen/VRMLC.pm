@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.39 2010/03/10 21:29:52 sdumoulin Exp $
+# $Id: VRMLC.pm,v 1.40 2010/04/03 20:11:05 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.40  2010/04/03 20:11:05  crc_canada
+# More shader work for OpenGL-ES shaders.
+#
 # Revision 1.39  2010/03/10 21:29:52  sdumoulin
 # More IPHONE compile updates
 #
@@ -1770,13 +1773,13 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	int ntri; /* number of triangles */
 	int streamed;	/* is this done the streaming pass? */
 	int alloc_tri; /* number of allocated triangles */
-	int *cindex;   /* triples (per triangle) */
+	short int *cindex;   /* triples (per triangle) */
 	float *actualCoord; /* triples (per point) */
-	int *colindex;   /* triples (per triangle) */
+	short int *colindex;   /* triples (per triangle) */
 	float *color; /* triples or null */
-	int *norindex;
+	short int *norindex;
 	float *normal; /* triples or null */
-        int *tcindex; /* triples or null */
+        short int *tcindex; /* triples or null */
         float *GeneratedTexCoords;	/* triples (per triangle) of texture coords if there is no texCoord node */
 	int tcoordtype; /* type of texture coord node - is this a NODE_TextureCoordGenerator... */
 	GLfloat minVals[3];		/* for collision and default texture coord generation */

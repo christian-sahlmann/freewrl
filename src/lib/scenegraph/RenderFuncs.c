@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.53 2010/04/01 20:50:22 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.54 2010/04/03 20:11:05 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -195,7 +195,6 @@ void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_T
 
 
 	currentShaderStruct = &(rdr_caps.shaderArrays[whichShader]);
-printf ("setCurrentShaderStruct to %p in chooseAppearanceShader\n",currentShaderStruct);
 	globalCurrentShader = currentShaderStruct->myShaderProgram;
 	USE_SHADER(globalCurrentShader);
 
@@ -230,12 +229,10 @@ printf ("setCurrentShaderStruct to %p in chooseAppearanceShader\n",currentShader
 /* send in vertices, normals, etc, etc... to either a shader or via older opengl methods */
 void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer){
 	if (currentShaderStruct != NULL) {
-/*
-printf ("sendAttribToGPU, shader\n");
 		switch (myType) {
 			case FW_NORMAL_POINTER_TYPE:
 				glEnableVertexAttribArray(currentShaderStruct->Normals);
-				glVertexAttribPointer(currentShaderStruct->Normals, dataSize, dataType, normalized, stride, pointer);
+				glVertexAttribPointer(currentShaderStruct->Normals, 3, dataType, normalized, stride, pointer);
 				break;
 			case FW_VERTEX_POINTER_TYPE:
 				glEnableVertexAttribArray(currentShaderStruct->Vertices);
@@ -247,7 +244,6 @@ printf ("sendAttribToGPU, shader\n");
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 		}
-*/
 
 
 	/* not shaders; older style of rendering */
@@ -257,7 +253,7 @@ printf ("sendAttribToGPU, shader\n");
 				glVertexPointer(dataSize, dataType, stride, pointer); 
 				break;
 			case FW_NORMAL_POINTER_TYPE:
-				glNormalPointer(dataSize,stride,pointer);
+				glNormalPointer(dataType,stride,pointer);
 				break;
 			case FW_COLOR_POINTER_TYPE:
 				glColorPointer(dataSize, dataType, stride, pointer); 
@@ -273,7 +269,7 @@ printf ("sendAttribToGPU, shader\n");
 }
 
 void sendClientStateToGPU(int enable, int cap) {
-	if (currentShaderStruct != NULL) {
+	if (global_use_shaders_when_possible) {
 		switch (cap) {
 			case GL_NORMAL_ARRAY:
 				shaderNormalArray = enable;
@@ -288,6 +284,7 @@ void sendClientStateToGPU(int enable, int cap) {
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 		}
+
 	} else {
 		if (enable) glEnableClientState(cap);
 		else glDisableClientState(cap);
@@ -301,37 +298,30 @@ void sendArraysToGPU (int mode, int first, int count) {
 		else glDisableVertexAttribArray(currentShaderStruct->Normals);
 		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
 		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
-printf ("drawArrays %d, count %d\n",first, count);
-	}
 		glDrawArrays(mode,first,count);
+	} else {
+		glDrawArrays(mode,first,count);
+	}
 }
 
-void sendElementsToGPU (int mode, int count, int type, int *indices) {
+void sendElementsToGPU (int mode, int count, int type, short int *indices) {
 	if (currentShaderStruct != NULL) {
-printf ("sendElementsToGPU, doing shader\n");
-/*
 		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
 		else glDisableVertexAttribArray(currentShaderStruct->Normals);
 		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
 		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
+
+/*
+		if (shaderNormalArray) printf ("glEnableVertexAttribArray(currentShaderStruct->Normals);\n");
+		else printf ("glDisableVertexAttribArray(currentShaderStruct->Normals);\n");
+		if (shaderVertexArray) printf ("glEnableVertexAttribArray(currentShaderStruct->Vertices);\n");
+		else printf ("glDisableVertexAttribArray(currentShaderStruct->Vertices);\n");
 */
-	   GLfloat vVertices[] = { -0.3f,  0.3f, 0.0f, 1.0f,  // Position 0
-                           -0.3f, -0.3f, 0.0f, 1.0f, // Position 1
-                            0.3f, -0.3f, 0.0f, 1.0f, // Position 2
-                            0.3f,  0.3f, 0.0f, 1.0f,  // Position 3
-                         };
-   GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
-   glVertexAttribPointer ( currentShaderStruct->Vertices, 4, GL_FLOAT, 
-                           GL_FALSE, 4* sizeof(GLfloat), vVertices );
-printf ("enabling VertexAttribArray %d\n",currentShaderStruct->Vertices);
-glEnableVertexAttribArray(currentShaderStruct->Vertices);
-glDrawArrays(GL_TRIANGLES,0,3);
-//glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
-return;
-
-	}
+		glDrawElements (mode, count, type, indices );
+	} else {
 		glDrawElements(mode,count,type,indices);
+	}
 }
 
 

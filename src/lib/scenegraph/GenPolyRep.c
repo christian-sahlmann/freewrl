@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.18 2010/02/17 18:03:06 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.19 2010/04/03 20:11:05 crc_canada Exp $
 
 ???
 
@@ -170,7 +170,7 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_, float **points
 
 	/* make up coord index */
 	if (this_->_coordIndex.n > 0) {FREE_IF_NZ(this_->_coordIndex.p);}
-	this_->_coordIndex.p = MALLOC (sizeof(int) * nquads * 5);
+	this_->_coordIndex.p = MALLOC (sizeof(short int) * nquads * 5);
 	cindexptr = this_->_coordIndex.p;
 
 	this_->_coordIndex.n = nquads * 5;
@@ -254,7 +254,7 @@ static void checkIndexedTriangleStripSetFields (struct X3D_IndexedTriangleStripS
 	int IndexSize = 0;
 	int xx,yy,zz; /* temporary variables */
 	int fanVertex;
-	int *newIndex;
+	short int *newIndex;
 	int windingOrder; /*TriangleStripSet ordering */
 
 	/* printf ("start of ITSS\n"); */
@@ -264,7 +264,7 @@ static void checkIndexedTriangleStripSetFields (struct X3D_IndexedTriangleStripS
 		node->index.n = 0;
 	}
 
-	newIndex = MALLOC (sizeof(int) * IndexSize);
+	newIndex = MALLOC (sizeof(short int) * IndexSize);
 
 	/* now calculate the indexes */
 	xx=0;
@@ -319,7 +319,7 @@ static void checkIndexedTriangleFanSetFields (struct X3D_IndexedTriangleFanSet *
 	int IndexSize = 0;
 	int xx,yy,zz; /* temporary variables */
 	int fanVertex;
-	int *newIndex;
+	short int *newIndex;
 
 	/* printf ("start of ITFS\n"); */
 	IndexSize = returnIndexedFanStripIndexSize(node->index);
@@ -328,7 +328,7 @@ static void checkIndexedTriangleFanSetFields (struct X3D_IndexedTriangleFanSet *
 		node->index.n = 0;
 	}
 
-	newIndex = MALLOC (sizeof(int) * IndexSize);
+	newIndex = MALLOC (sizeof(short int) * IndexSize);
 	/* now calculate the indexes */
 
 	xx=0;
@@ -373,7 +373,7 @@ static void checkIndexedTriangleFanSetFields (struct X3D_IndexedTriangleFanSet *
 static void checkIndexedTriangleSetFields (struct X3D_IndexedTriangleSet *node) {
 	int IndexSize = 0;
 	int xx,yy,zz; /* temporary variables */
-	int *newIndex;
+	short int *newIndex;
 
 	IndexSize = ((node->index.n) * 4) / 3;
 	if (IndexSize <= 0) {
@@ -381,7 +381,7 @@ static void checkIndexedTriangleSetFields (struct X3D_IndexedTriangleSet *node) 
 		node->index.n = 0;	
 	}
 
-	newIndex = MALLOC (sizeof(int) * IndexSize);
+	newIndex = MALLOC (sizeof(short int) * IndexSize);
 	zz = 0; yy=0;
 	/* printf ("index: "); */
 	for (xx = 0; xx < node->index.n; xx++) {
@@ -427,7 +427,7 @@ static void checkTriangleFanSetFields (struct X3D_TriangleFanSet *node) {
 	}
 
 	/* printf ("IndexSize is %d\n",IndexSize); */
-	node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
+	node->_coordIndex.p = MALLOC (sizeof(short int) * IndexSize);
 	node->_coordIndex.n = IndexSize;
 	IndexSize = 0; /* for assigning the indexes */
 
@@ -473,7 +473,7 @@ static void checkTriangleStripSetFields (struct X3D_TriangleStripSet *node) {
 	}
 
 	/* printf ("IndexSize is %d\n",IndexSize); */
-	node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
+	node->_coordIndex.p = MALLOC (sizeof(short int) * IndexSize);
 	node->_coordIndex.n = IndexSize;
 	IndexSize = 0; /* for assigning the indexes */
 			
@@ -530,7 +530,7 @@ static void checkTriangleSetFields (struct X3D_TriangleSet *node) {
 	/* calculate index size; every "face" ends in -1 */
 	IndexSize = (npoints * 4) / 3;
 	/* printf ("IndexSize is %d\n",IndexSize); */
-	node->_coordIndex.p = MALLOC (sizeof(int) * IndexSize);
+	node->_coordIndex.p = MALLOC (sizeof(short int) * IndexSize);
 	node->_coordIndex.n = IndexSize;
 
 	IndexSize = 0; /* for assigning the indexes */
@@ -577,10 +577,10 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	struct Multi_Int32 *orig_normalIndex = NULL;
 	struct Multi_Int32 *orig_colorIndex = NULL;
 
-	int *cindex;		/* Coordinate Index	*/
+	short int *cindex;		/* Coordinate Index	*/
 	int *colindex;		/* Color Index		*/
-	int *tcindex=0;		/* Tex Coord Index	*/
-	int *norindex;		/* Normals Index	*/
+	short int *tcindex=0;		/* Tex Coord Index	*/
+	short int *norindex;		/* Normals Index	*/
 
 	int normalArraySize = INT_ID_UNDEFINED;	/* bounds checking on normals generated */
 
@@ -933,9 +933,9 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	/* fudge factor - leave space for 1 more triangle just in case we have errors on input */
 	ntri++;
 
-	cindex = rep_->cindex = (int*)MALLOC(sizeof(*(rep_->cindex))*3*(ntri));
-	colindex = rep_->colindex = (int*)MALLOC(sizeof(*(rep_->colindex))*3*(ntri));
-	norindex = rep_->norindex = (int*)MALLOC(sizeof(*(rep_->norindex))*3*ntri);
+	cindex = rep_->cindex = (short int*)MALLOC(sizeof(*(rep_->cindex))*3*(ntri));
+	colindex = rep_->colindex = (short int*)MALLOC(sizeof(*(rep_->colindex))*3*(ntri));
+	norindex = rep_->norindex = (short int*)MALLOC(sizeof(*(rep_->norindex))*3*ntri);
 	
 	/* zero the indexes */
 	bzero (colindex,sizeof(*(rep_->colindex))*3*(ntri));
@@ -950,7 +950,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	}
 
 
-	tcindex = rep_->tcindex = (int*)MALLOC(sizeof(*(rep_->tcindex))*3*(ntri));
+	tcindex = rep_->tcindex = (short int*)MALLOC(sizeof(*(rep_->tcindex))*3*(ntri));
 
 	/* Concave faces - use the OpenGL Triangulator to give us the triangles */
 	tess_vs=(int*)MALLOC(sizeof(*(tess_vs))*(ntri)*3);
@@ -1301,7 +1301,7 @@ void compute_spy_spz(struct point_XYZ *spy, struct point_XYZ *spz, struct SFColo
  ***************************************************************/
 void stream_extrusion_texture_coords (struct X3D_PolyRep *rep_, 
 			float *tcoord, 
-			int *tcindex) {
+			short int *tcindex) {
 
 	int count; 
 	int ind;
@@ -1357,7 +1357,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	struct X3D_PolyRep *rep_=(struct X3D_PolyRep *)node->_intern;/*internal rep, we want to fill*/
 
 	/* the next variables will point at members of *rep		*/
-	int   *cindex;				/* field containing indices into
+	short int   *cindex;				/* field containing indices into
 						   the coord vector. Three together
 						   indicate which points form a
 						   triangle			*/
@@ -1367,10 +1367,10 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	float *tcoord;				/* contains vertices building the
 						   textures as x y z values	*/
 
-	int	*tcindex;			/* field containing texture indices
+	short int	*tcindex;			/* field containing texture indices
 						   for the vertex. 		*/
 
-	int   *norindex; 			/* indices into *normal		*/
+	short int   *norindex; 			/* indices into *normal		*/
 	float *normal; 				/* (filled in a different function)*/
 
 
@@ -1591,10 +1591,10 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 					the whole Extrusion Shape.		*/
 
 	/* get some memory							*/
-	cindex  = rep_->cindex   = (int *)MALLOC(sizeof(*(rep_->cindex))*3*(rep_->ntri));
+	cindex  = rep_->cindex   = (short int *)MALLOC(sizeof(*(rep_->cindex))*3*(rep_->ntri));
 	coord   = rep_->actualCoord    = (float *)MALLOC(sizeof(*(rep_->actualCoord))*(nspi*nsec+max_ncoord_add)*3);
 	normal  = rep_->normal   = (float *)MALLOC(sizeof(*(rep_->normal))*3*(rep_->ntri)*3);
-	norindex= rep_->norindex = (int *)MALLOC(sizeof(*(rep_->norindex))*3*(rep_->ntri));
+	norindex= rep_->norindex = (short int *)MALLOC(sizeof(*(rep_->norindex))*3*(rep_->ntri));
 
 	/* face normals - one face per quad (ie, 2 triangles) 			*/
 	/* have to make sure that if nctri is odd, that we increment by one	*/
@@ -1631,7 +1631,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 			printf ("tcindexsize %d\n",tcindexsize);
 		#endif
 
-		tcindex = (int *)MALLOC(sizeof(*(rep_->tcindex))*tcindexsize);
+		tcindex = (short int *)MALLOC(sizeof(*(rep_->tcindex))*tcindexsize);
 
 		/* keep around cross section info for tex coord mapping */
 		beginVals = (float *)MALLOC(sizeof(float) * 2 * (nsec+1)*100);
