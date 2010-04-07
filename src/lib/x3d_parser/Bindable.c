@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.30 2010/03/25 18:40:20 crc_canada Exp $
+$Id: Bindable.c,v 1.31 2010/04/07 04:07:45 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -107,7 +107,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	svptr = node->type.p;
 
 	/* assume "NONE" is set */
-	for (i=0; i<6; i++) Viewer.oktypes[i] = FALSE;
+	for (i=0; i<7; i++) Viewer.oktypes[i] = FALSE;
 
 
 	/* now, find the ones that are ok */
@@ -134,6 +134,10 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 		if (strcmp(typeptr,"EXFLY") == 0) {
 			Viewer.oktypes[VIEWER_EXFLY] = TRUE;
 			if (i==0) set_viewer_type(VIEWER_EXFLY);
+		}
+		if (strcmp(typeptr,"YAWPITCHZOOM") == 0) {
+			Viewer.oktypes[VIEWER_YAWPITCHZOOM] = TRUE;
+			if (i==0) set_viewer_type(VIEWER_YAWPITCHZOOM);
 		}
 		if (strcmp(typeptr,"ANY") == 0) {
 			Viewer.oktypes[VIEWER_EXAMINE] = TRUE;

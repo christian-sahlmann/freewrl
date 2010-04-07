@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.49 2010/03/12 21:00:15 crc_canada Exp $
+$Id: Viewer.c,v 1.50 2010/04/07 04:07:45 dug9 Exp $
 
 CProto ???
 
@@ -52,6 +52,7 @@ int viewer_initialized = FALSE;
 static X3D_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
 static X3D_Viewer_Examine viewer_examine = { { 0, 0, 0 }, {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
 static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
+static X3D_Viewer_YawPitchZoom viewer_ypz = { { 0, 0, 0 }, 0.0, 0.0,0.0 };
 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
@@ -63,6 +64,7 @@ double nearPlane=DEFAULT_NEARPLANE;                     /* near Clip plane - MAK
 double farPlane=DEFAULT_FARPLANE;                       /* a good default value */
 double backgroundPlane = DEFAULT_BACKGROUNDPLANE;	/* where Background and TextureBackground nodes go */
 GLDOUBLE fieldofview=45.0;
+GLDOUBLE fovZoom = 1.0;
 double calculatedNearPlane = 0.0;
 double calculatedFarPlane = 0.0;
 
@@ -85,6 +87,7 @@ void viewer_default() {
 	Quaternion q_i;
 
 	fieldofview = 45.0;
+	fovZoom = 1.0;
 
 	VPvelocity.x = 0.0; VPvelocity.y = 0.0; VPvelocity.z = 0.0; 
 	Viewer.Pos.x = 0; Viewer.Pos.y = 0; Viewer.Pos.z = 10;
@@ -104,6 +107,7 @@ void viewer_default() {
 	Viewer.walk = &viewer_walk;
 	Viewer.examine = &viewer_examine;
 	Viewer.fly = &viewer_fly;
+	Viewer.ypz = &viewer_ypz;
 
 	set_viewer_type(VIEWER_EXAMINE);
 
@@ -147,6 +151,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		viewer->walk = &viewer_walk;
 		viewer->examine = &viewer_examine;
 		viewer->fly = &viewer_fly;
+		viewer->ypz = &viewer_ypz;
 
 		/* SLERP code for moving between viewpoints */
 		viewer->SLERPing = FALSE;
@@ -237,6 +242,7 @@ void set_viewer_type(const int type) {
 	case VIEWER_EXAMINE:
 	case VIEWER_WALK:
 	case VIEWER_EXFLY:
+	case VIEWER_YAWPITCHZOOM:
 	case VIEWER_FLY:
 		viewer_type = type;
 		break;
@@ -675,6 +681,46 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 printf ("examine->origin %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin.y, examine->Origin.z);
 */
 }
+
+void handle_yawpitchzoom(const int mev, const unsigned int button, float x, float y) {
+	/* handle_examine almost works except we don't want tilt, and we want to zoom */
+	Quaternion qyaw, qpitch, arc;
+	struct point_XYZ py,pp;
+	X3D_Viewer_YawPitchZoom *ypz = Viewer.ypz;
+	double squat_norm;
+	double dyaw,dpitch,dzoom;
+
+	if (mev == ButtonPress) {
+		if (button == 1) {
+			printf("buttonPress 1\n");
+			ypz->ypz0[0] = ypz->ypz[0];
+			ypz->ypz0[1] = ypz->ypz[1];
+			ypz->x = x;
+			ypz->y = y;
+		} else if (button == 3) {
+			printf("buttonPress 3\n");
+			ypz->x = x;
+		}
+	} else if (mev == MotionNotify) {
+		if (button == 1) {
+			dyaw   = (ypz->x - x) * fieldofview*PI/180.0*fovZoom * screenRatio; 
+			dpitch = (ypz->y - y) * fieldofview*PI/180.0*fovZoom;
+			ypz->ypz[0] = ypz->ypz0[0] + dyaw;
+			ypz->ypz[1] = ypz->ypz0[1] + dpitch;
+			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, ypz->ypz[0]);
+			vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,ypz->ypz[1]);
+			quaternion_multiply(&(Viewer.Quat), &qpitch, &qyaw);
+			printf("buttonMotion 1\n");
+		} else if (button == 3) {
+			double d;
+			printf("buttonMotion 3\n");
+			d = (x - ypz->x)*.25 + .5; //sb -1 to 0 or 0 to 1
+			fovZoom = fovZoom * ((d * .125) + (1.0 - d) * 2.0);
+			fovZoom = min(2.0,max(.125,fovZoom)); //ypz->x); //max(min(sqrt(x*x + y*y)/basedist,4.0),.125); 
+		}
+ 	}
+}
+
 /************************************************************************************/
 
 int getViewerType()
@@ -684,8 +730,8 @@ int getViewerType()
 void handle(const int mev, const unsigned int button, const float x, const float y)
 {
 
-	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
-	   VIEWER_STRING(viewer_type), mev, button, x, y); */
+	 printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
+	   VIEWER_STRING(viewer_type), mev, button, x, y); 
 
 	if (button == 2) {
 		return;
@@ -704,6 +750,8 @@ void handle(const int mev, const unsigned int button, const float x, const float
 		break;
 	case VIEWER_FLY:
 		break;
+	case VIEWER_YAWPITCHZOOM:
+		handle_yawpitchzoom(mev,button,((float) x),((float)y));
 	default:
 		break;
 	}
@@ -1087,6 +1135,8 @@ handle_tick()
 		break;
 	case VIEWER_FLY:
 		handle_tick_fly();
+		break;
+	case VIEWER_YAWPITCHZOOM:
 		break;
 	default:
 		break;
@@ -1581,6 +1631,9 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 	Viewer.currentPosInModel.y = vp->position.c[1];
 	Viewer.currentPosInModel.z = vp->position.c[2];
 
+	Viewer.ypz->bindPoint.x = vp->position.c[0];
+	Viewer.ypz->bindPoint.y = vp->position.c[1];
+	Viewer.ypz->bindPoint.z = vp->position.c[2];
 	/* printf ("bind_viewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z);
 	*/
 

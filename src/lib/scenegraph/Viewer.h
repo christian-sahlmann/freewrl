@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.29 2010/03/10 21:29:52 sdumoulin Exp $
+$Id: Viewer.h,v 1.30 2010/04/07 04:07:45 dug9 Exp $
 
 Viewer ???
 
@@ -37,7 +37,8 @@ Viewer ???
 	type == VIEWER_EXAMINE ? "EXAMINE" : ( \
 	type == VIEWER_WALK ? "WALK" : ( \
 	type == VIEWER_EXFLY ? "EXFLY" : ( \
-	type == VIEWER_FLY ? "FLY" : "UNKNOWN")))))
+	type == VIEWER_YAWPITCHZOOM ? "YAWPITCHZOOM" : (\
+	type == VIEWER_FLY ? "FLY" : "UNKNOWN"))))))
 
 #define PRESS "PRESS"
 #define PRESS_LEN 5
@@ -125,6 +126,13 @@ typedef struct viewer_examine {
         double SY;
 } X3D_Viewer_Examine;
 
+typedef struct viewer_ypz {
+	struct point_XYZ bindPoint;
+	double ypz0[3];
+	double ypz[3];
+	float x,y;
+} X3D_Viewer_YawPitchZoom;
+
 typedef struct key {
 	char key;
 	unsigned int hit;
@@ -172,10 +180,11 @@ typedef struct viewer {
 	int iprog[2]; /*which shader program for left vp,right vp 0-5 */
 	/* */
 	unsigned int buffer;
-	int oktypes[6];		/* boolean for types being acceptable. */
+	int oktypes[7];		/* boolean for types being acceptable. */
 	X3D_Viewer_Walk *walk;
 	X3D_Viewer_Examine *examine;
 	X3D_Viewer_Fly *fly;
+	X3D_Viewer_YawPitchZoom *ypz;
 
 	int SLERPing;
 	double startSLERPtime;

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.113 2010/03/30 20:40:35 sdumoulin Exp $
+  $Id: MainLoop.c,v 1.114 2010/04/07 04:07:45 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -898,7 +898,11 @@ void setup_projection(int pick, int x, int y)
 {
 	GLsizei screenwidth2 = screenWidth;
 	GLDOUBLE aspect2 = screenRatio;
+	GLDOUBLE fieldofview2;
 	GLint xvp = 0;
+	fieldofview2 = fieldofview;
+	if(getViewerType()==VIEWER_YAWPITCHZOOM)
+		fieldofview2*=fovZoom;
 	if(Viewer.sidebyside) 
 	{
 		screenwidth2 = (int)((screenwidth2 * .5)+.5);
@@ -935,10 +939,11 @@ void setup_projection(int pick, int x, int y)
         }
 
         /* bounds check */
-        if ((fieldofview <= 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
+        if ((fieldofview2 <= 0.0) || (fieldofview2 > 180.0)) 
+			fieldofview2=45.0;
         /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
 
-        FW_GLU_PERSPECTIVE(fieldofview, aspect2, nearPlane, farPlane); 
+        FW_GLU_PERSPECTIVE(fieldofview2, aspect2, nearPlane, farPlane); 
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
@@ -1119,6 +1124,11 @@ static void get_collisionoffset(double *x, double *y, double *z)
 struct point_XYZ viewer_get_lastP();
 static void render_collisions() {
         struct point_XYZ v;
+		int viewerType;
+		viewerType = getViewerType();
+		if(viewerType == VIEWER_YAWPITCHZOOM) return; //no collisions
+		
+
         CollisionInfo.Offset.x = 0;
         CollisionInfo.Offset.y = 0;
         CollisionInfo.Offset.z = 0;
@@ -1269,6 +1279,7 @@ void do_keyPress(const char kp, int type) {
                                 case 'w': { set_viewer_type (VIEWER_WALK); break; }
                                 case 'd': { set_viewer_type (VIEWER_FLY); break; }
                                 case 'f': { set_viewer_type (VIEWER_EXFLY); break; }
+                                case 'y': { set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
                                 case 'h': { toggle_headlight(); break;}
                                 case '/': { print_viewer(); break; }
 			        case '\\': { dump_scenegraph(); break; }
@@ -1672,8 +1683,8 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
         /* save this one... This allows Sensors to get mouse movements if required. */
         lastMouseEvent = mev;
         /* save the current x and y positions for picking. */
-        currentX = x;
-        currentY = y;
+		currentX = x;
+		currentY = y;
 
 		if( handleStatusbarHud(mev, &clipPlane) )return; /* statusbarHud options screen should swallow mouse clicks */
 

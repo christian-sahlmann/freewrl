@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.121 2010/03/25 18:15:10 crc_canada Exp $
+$Id: headers.h,v 1.122 2010/04/07 04:07:45 dug9 Exp $
 
 Global includes.
 
@@ -478,6 +478,7 @@ void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);
 /* bindable nodes */
 extern GLint viewport[];
 extern GLDOUBLE fieldofview;
+extern GLDOUBLE fovZoom;
 //extern struct point_XYZ ViewerUpvector;
 extern struct sNaviInfo naviinfo;
 extern double defaultExamineDist;

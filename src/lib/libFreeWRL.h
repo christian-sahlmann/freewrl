@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.21 2010/03/31 01:18:22 crc_canada Exp $
+  $Id: libFreeWRL.h,v 1.22 2010/04/07 04:07:45 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -87,6 +87,7 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_WALK 2
 #define VIEWER_EXFLY 3
 #define VIEWER_FLY 4
+#define VIEWER_YAWPITCHZOOM 5
 void set_viewer_type(const int type);
 
 void setTexSize(int requestedsize);
