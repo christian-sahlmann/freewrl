@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.28 2010/03/30 20:40:35 sdumoulin Exp $
+  $Id: resources.c,v 1.29 2010/04/07 13:57:42 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -781,7 +781,7 @@ void resource_wait(resource_item_t *res)
 	TRACE_MSG("resource_wait: starts waiting for res to complete: %s\n", res->request);
 	/* Wait while parser is working */
 	while (!res->complete) {
-		sleep(1);
+		usleep(50); /* thanks dave */
 	}
 }
 
