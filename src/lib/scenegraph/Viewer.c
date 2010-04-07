@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.50 2010/04/07 04:07:45 dug9 Exp $
+$Id: Viewer.c,v 1.51 2010/04/07 13:53:31 dug9 Exp $
 
 CProto ???
 
@@ -683,22 +683,18 @@ printf ("examine->origin %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin
 }
 
 void handle_yawpitchzoom(const int mev, const unsigned int button, float x, float y) {
-	/* handle_examine almost works except we don't want tilt, and we want to zoom */
-	Quaternion qyaw, qpitch, arc;
-	struct point_XYZ py,pp;
+	/* handle_examine almost works except we don't want roll-tilt, and we want to zoom */
+	Quaternion qyaw, qpitch;
 	X3D_Viewer_YawPitchZoom *ypz = Viewer.ypz;
-	double squat_norm;
 	double dyaw,dpitch,dzoom;
 
 	if (mev == ButtonPress) {
 		if (button == 1) {
-			printf("buttonPress 1\n");
 			ypz->ypz0[0] = ypz->ypz[0];
 			ypz->ypz0[1] = ypz->ypz[1];
 			ypz->x = x;
 			ypz->y = y;
 		} else if (button == 3) {
-			printf("buttonPress 3\n");
 			ypz->x = x;
 		}
 	} else if (mev == MotionNotify) {
@@ -710,13 +706,18 @@ void handle_yawpitchzoom(const int mev, const unsigned int button, float x, floa
 			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, ypz->ypz[0]);
 			vrmlrot_to_quaternion(&qpitch,1.0,0.0,0.0,ypz->ypz[1]);
 			quaternion_multiply(&(Viewer.Quat), &qpitch, &qyaw);
-			printf("buttonMotion 1\n");
 		} else if (button == 3) {
-			double d;
-			printf("buttonMotion 3\n");
-			d = (x - ypz->x)*.25 + .5; //sb -1 to 0 or 0 to 1
-			fovZoom = fovZoom * ((d * .125) + (1.0 - d) * 2.0);
-			fovZoom = min(2.0,max(.125,fovZoom)); //ypz->x); //max(min(sqrt(x*x + y*y)/basedist,4.0),.125); 
+			double d, fac;
+			d = (x - ypz->x)*.25;
+			if(d > 0.0)
+				fac = ((d *  2.0) + (1.0 - d) * 1.0);
+			else
+			{
+				d = fabs(d);
+				fac = ((d * .5) + (1.0 - d) * 1.0);
+			}
+			fovZoom = fovZoom * fac;
+			fovZoom = min(2.0,max(.125,fovZoom));  
 		}
  	}
 }
@@ -729,9 +730,8 @@ int getViewerType()
 }
 void handle(const int mev, const unsigned int button, const float x, const float y)
 {
-
-	 printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
-	   VIEWER_STRING(viewer_type), mev, button, x, y); 
+	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
+	   VIEWER_STRING(viewer_type), mev, button, x, y); */
 
 	if (button == 2) {
 		return;
