@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.h,v 1.13 2010/02/24 21:27:18 sdumoulin Exp $
+$Id: CProto.h,v 1.14 2010/04/11 18:48:46 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -90,9 +90,7 @@ struct ProtoFieldDecl
 /* Constructor and destructor */
 struct ProtoFieldDecl* newProtoFieldDecl(indexT, indexT, indexT);
 void deleteProtoFieldDecl(struct ProtoFieldDecl*);
-
-/* Copies */
-struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer*, struct ProtoFieldDecl*);
+int newProtoDefinitionPointer (struct ProtoDefinition *vrmlpd, int xmlpd);
 
 /* Accessors */
 #define protoFieldDecl_getType(me) \
@@ -109,17 +107,6 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer*, struct ProtoFieldD
 #define protoFieldDecl_getDefaultValue(me) \
  ((me)->defaultVal)
 
-
-/* Sets this field's value (copy to destinations) */
-void protoFieldDecl_setValue(struct VRMLLexer*, struct ProtoFieldDecl*, union anyVrml*);
-
-#ifdef OLDCODE
-/* Build a ROUTE from/to this field */
-void protoFieldDecl_routeTo(struct ProtoFieldDecl*,
- struct X3D_Node*, unsigned, int dir, struct VRMLParser*);
-void protoFieldDecl_routeFrom(struct ProtoFieldDecl*,
- struct X3D_Node*, unsigned, int dir, struct VRMLParser*);
-#endif
 
 /* Finish this field - if value is not yet set, use default. */
 #define protoFieldDecl_finish(lex, me) \
@@ -147,8 +134,6 @@ struct ProtoRoute
 };
 
 /* Constructor and destructor */
-struct ProtoRoute* newProtoRoute(struct X3D_Node*, int, struct X3D_Node*, int,
- size_t, int);
 #define protoRoute_copy(me) \
  newProtoRoute((me)->from, (me)->fromOfs, (me)->to, (me)->toOfs, \
  (me)->len, (me)->dir)
@@ -182,10 +167,6 @@ struct ProtoDefinition
  int isCopy;		/* is this the original or a copy? the original keeps the deconstructedProtoBody */
 };
 
-/* Constructor and destructor */
-struct ProtoDefinition* newProtoDefinition();
-void deleteProtoDefinition(struct ProtoDefinition*);
-
 /* Adds a field declaration to the interface */
 #define protoDefinition_addIfaceField(me, field) \
  vector_pushBack(struct ProtoFieldDecl*, (me)->iface, field)
@@ -205,10 +186,6 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition*,
 
 /* Extracts the scene graph out of a ProtoDefinition */
 struct X3D_Group* protoDefinition_extractScene(struct VRMLLexer* lex, struct ProtoDefinition*);
-
-/* Does a recursively deep copy of a node-tree */
-struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer*, struct X3D_Node*,
- struct ProtoDefinition*, struct PointerHash*);
 
 /* ************************************************************************** */
 /* ******************************* PointerHash ****************************** */
@@ -231,15 +208,6 @@ struct PointerHash
  #define POINTER_HASH_SIZE	4321
  struct Vector* data[POINTER_HASH_SIZE];
 };
-
-struct PointerHash* newPointerHash();
-void deletePointerHash(struct PointerHash*);
-
-/* Query the hash */
-struct X3D_Node* pointerHash_get(struct PointerHash*, struct X3D_Node*);
-
-/* Add to the hash */
-void pointerHash_add(struct PointerHash*, struct X3D_Node*, struct X3D_Node*);
 
 /* JAS - make a copy of a script in a PROTO, and give it a new number */
 void registerScriptInPROTO (struct X3D_Script *scr,struct ProtoDefinition* new);
@@ -268,16 +236,12 @@ struct NestedProtoField
    struct ProtoFieldDecl* localField;
 };
 
-void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto);
 struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID);
 void tokenizeProtoBody(struct ProtoDefinition *, char *);
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto, int *protoSize);
 BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, char * thisField, struct X3D_Node **Node);
 
-int newProtoDefinitionPointer (struct ProtoDefinition *vrmlnpd, int xmlpd); 
 struct ProtoDefinition *getVRMLprotoDefinition (struct X3D_Group *me);
-void kill_ProtoDefinitionTable (void);
-int getXMLprotoDefinition (struct X3D_Group *me);
 
 
 #endif /* __FREEWRL_CPROTO_H__ */

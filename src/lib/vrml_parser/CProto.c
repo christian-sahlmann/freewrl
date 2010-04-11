@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.44 2010/03/29 13:17:02 crc_canada Exp $
+$Id: CProto.c,v 1.45 2010/04/11 18:48:46 crc_canada Exp $
 
 CProto ???
 
@@ -109,6 +109,11 @@ CProto ???
 	} else {APPEND_STRINGTOKEN}
 
 static int dumpProtoFieldDeclarationNodes(struct VRMLLexer *me, struct ProtoDefinition *thisProto, FILE *pexfile);
+static struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFieldDecl* me);
+static struct X3D_Node* pointerHash_get(struct PointerHash* me, struct X3D_Node* o);
+static void deletePointerHash(struct PointerHash* me);
+static struct PointerHash* newPointerHash();
+static void pointerHash_add(struct PointerHash* me, struct X3D_Node* o, struct X3D_Node* c);
 
 /* internal sequence number for protos */
 static  indexT latest_protoDefNumber =1;
@@ -130,23 +135,6 @@ static struct ProtoElementPointer* newProtoElementPointer(void) {
 	ret->fabricatedDef = ID_UNDEFINED;
 	return ret;
 }
-
-/* in CFuncs/CProto.h #define deleteProtoElementPointer(me)  */
-#ifdef OLDCODE
-static struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer * me) {
-	struct ProtoElementPointer *ret=MALLOC(sizeof(struct ProtoElementPointer));
-	ASSERT (ret);
-
-	if (me->stringToken != NULL) ret->stringToken = STRDUP(me->stringToken);
-	else ret->stringToken = NULL;
-	ret->isNODE = me->isNODE;
-	ret->isKEYWORD = me->isKEYWORD;
-	ret->terminalSymbol = me->terminalSymbol;	
-	ret->fabricatedDef = me->fabricatedDef;	
-	return ret;
-}
-#endif
-
 
 
 /* ************************************************************************** */
@@ -177,77 +165,9 @@ void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
  FREE_IF_NZ(me);
 }
 
-/* Other members */
-/* ************* */
-
-#ifdef OLDCODE
-/* Routing to/from */
-void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
- struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
-{
- int i;
- int len=returnRoutingElementLength(me->type);
- ASSERT(me->mode==PKW_inputOutput || me->mode==PKW_inputOnly);
-
- /* For each script field mapped to this proto field, add a route */
- for (i=0; i!=vector_size(me->scriptDests); ++i) {
-	struct ScriptFieldInstanceInfo* sfield = vector_get(struct ScriptFieldInstanceInfo*, me->scriptDests, i);
-	struct Shader_Script* toscript = sfield->script;
-	struct ScriptFieldDecl* tosfield = sfield->decl;
-  	/* printf("protoFieldDecl_routeTo: registering route from %p %u to script dest %p %u %d\n", node, ofs, toscript->num, scriptFieldDecl_getRoutingOffset(tosfield), dir); */
-	/* parser_registerRoute, cast the toscript->num so as to get around compiler warnings, it IS NOT a pointer, though */
-	parser_registerRoute(p, node, ofs, (struct X3D_Node *) toscript->num, scriptFieldDecl_getRoutingOffset(tosfield), len);
- }
-}
-
-void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
- struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
-{
- int i;
- int len=returnRoutingElementLength(me->type);
-
- ASSERT(me->mode==PKW_inputOutput || me->mode==PKW_outputOnly);
-
- /* For each script field mapped to this proto field, add a route */
- for (i=0; i!=vector_size(me->scriptDests); ++i) {
-	struct ScriptFieldInstanceInfo* sfield = vector_get(struct ScriptFieldInstanceInfo*, me->scriptDests, i);
-	struct Shader_Script* fromscript = sfield->script;
-	struct ScriptFieldDecl* fromsfield = sfield->decl;
-	/* parser_registerRoute, cast the fromscript->num to get around compiler warnings, but it is NOT a pointer, though */
-	parser_registerRoute(p, (struct X3D_Node *) fromscript->num, scriptFieldDecl_getRoutingOffset(fromsfield), node, ofs, len);
-  	/* printf("protoFieldDecl_routeFrom: registering route from script dest %p %u to %p %u %d\n", fromscript->num, scriptFieldDecl_getRoutingOffset(fromsfield), node, ofs,  dir); */
- }
-}
-#endif
-
 
 /* setValue is at the end, because we need deep-copying there */
 /* copy is at the end, too, because defaultVal needs to be deep-copied. */
-
-/* ************************************************************************** */
-/* ********************************** ProtoRoute **************************** */
-/* ************************************************************************** */
-
-/* Constructor and destructor */
-/* ************************** */
-
-struct ProtoRoute* newProtoRoute(struct X3D_Node* from, int fromOfs,
- struct X3D_Node* to, int toOfs, size_t len, int dir)
-{
- struct ProtoRoute* ret=MALLOC(sizeof(struct ProtoRoute));
- ASSERT(ret);
-
- /* printf("creating new proto route from %p %u to %p %u dir %d\n", from, fromOfs, to, toOfs, dir); */
-
- ret->from=from;
- ret->to=to;
- ret->fromOfs=fromOfs;
- ret->toOfs=toOfs;
- ret->len=len;
- ret->dir=dir;
-
- return ret;
-}
 
 /* ************************************************************************** */
 /* ******************************** ProtoDefinition ************************* */
@@ -287,7 +207,8 @@ struct ProtoDefinition* newProtoDefinition()
  return ret;
 }
 
-void deleteProtoDefinition(struct ProtoDefinition* me) {
+#ifdef OLDCODE
+static void deleteProtoDefinition(struct ProtoDefinition* me) {
 	size_t i;
 
 	for(i=0; i!=vector_size(me->iface); ++i)
@@ -304,6 +225,7 @@ void deleteProtoDefinition(struct ProtoDefinition* me) {
 	FREE_IF_NZ(me->protoName);
 	FREE_IF_NZ (me);
 }
+#endif
 
 /* Other members */
 /* ************* */
@@ -329,7 +251,7 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
 }
 
 /* Copies the PROTO */
-struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct ProtoDefinition* me)
+static struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct ProtoDefinition* me)
 {
 	struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
 	size_t i;
@@ -431,13 +353,14 @@ DEEPCOPY_MFVALUE(lex, vec3d, Vec3d)
 /* ************************************************************************** */
 
 /* Nodes; may be used to update the interface-pointers, too. */
-struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node* node,
+static struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node* node,
  struct ProtoDefinition* new, struct PointerHash* hash)
 {
  struct X3D_Node* ret;
  BOOL myHash=(!hash);
 
-  /* printf("doing a deepcopy of proto with root node %p\n", node); */
+
+ printf("doing a deepcopy of proto with root node %p\n", node);
 
  /* If we get nothing, what can we return? */
  if(!node) return NULL;
@@ -553,31 +476,9 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
 
 /* ************************************************************************** */
 
-/* Set a field's value */
-void protoFieldDecl_setValue(struct VRMLLexer* lex, struct ProtoFieldDecl* me, union anyVrml* val)
-{
- size_t i;
-
- ASSERT(!me->alreadySet);
- me->alreadySet=TRUE;
-printf ("protoFieldDecl_setValue getting called...\n");
-
-if (!vector_empty(me->scriptDests)) {
-
- /* and copy it to the others */
- for(i=0; i!=vector_size(me->scriptDests); ++i)
- {
-	struct ScriptFieldInstanceInfo* sfield = vector_get(struct ScriptFieldInstanceInfo*, me->scriptDests, i);
-	scriptFieldDecl_setFieldValue(sfield->decl, *val);
-	script_addField(sfield->script, sfield->decl);
- }
-}
-}
-
-
 
 /* Copies a fieldDeclaration */
-struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFieldDecl* me)
+static struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFieldDecl* me)
 {
  struct ProtoFieldDecl* ret=newProtoFieldDecl(me->mode, me->type, me->name);
  size_t i;
@@ -648,6 +549,7 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFi
 	#endif
  return ret;
 }
+#undef CPARSERVERBOSE
 
 /* ************************************************************************** */
 /* ******************************* PointerHash ****************************** */
@@ -656,7 +558,7 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFi
 /* Constructor and destructor */
 /* ************************** */
 
-struct PointerHash* newPointerHash()
+static struct PointerHash* newPointerHash()
 {
  struct PointerHash* ret=MALLOC(sizeof(struct PointerHash));
  size_t i;
@@ -668,7 +570,7 @@ struct PointerHash* newPointerHash()
  return ret;
 }
 
-void deletePointerHash(struct PointerHash* me)
+static void deletePointerHash(struct PointerHash* me)
 {
  size_t i;
  for(i=0; i!=POINTER_HASH_SIZE; ++i)
@@ -678,7 +580,7 @@ void deletePointerHash(struct PointerHash* me)
 }
 
 /* Query the hash */
-struct X3D_Node* pointerHash_get(struct PointerHash* me, struct X3D_Node* o)
+static struct X3D_Node* pointerHash_get(struct PointerHash* me, struct X3D_Node* o)
 {
  size_t pos=((unsigned long)o)%POINTER_HASH_SIZE;
  size_t i;
@@ -698,7 +600,7 @@ struct X3D_Node* pointerHash_get(struct PointerHash* me, struct X3D_Node* o)
 }
 
 /* Add to the hash */
-void pointerHash_add(struct PointerHash* me,
+static void pointerHash_add(struct PointerHash* me,
  struct X3D_Node* o, struct X3D_Node* c)
 {
  size_t pos=((unsigned long)o)%POINTER_HASH_SIZE;
@@ -714,21 +616,6 @@ void pointerHash_add(struct PointerHash* me,
 
  vector_pushBack(struct PointerHashEntry, me->data[pos], entry);
 }
-
-
-struct NestedProtoField* newNestedProtoField(struct ProtoFieldDecl* origField, struct ProtoFieldDecl* localField)
-{
- struct NestedProtoField* ret = MALLOC(sizeof(struct NestedProtoField));
- ASSERT(ret);
-
- /* printf("creating nested field %p with values %p %p %p\n", ret, origField, localField, origProto); */
-
- ret->origField=origField;
- ret->localField = localField;
-
- return ret;
-}
-
 
 
 /* for backtracking to see if this field expansion has a proto expansion in it */
@@ -755,40 +642,8 @@ Appearance {material Material {}}]}#END PROTOGROUP
 
 */
 
-void removeProtoFieldFromThis(char *inputCopy) {
-	char *cp;
-	int closeBrackCount = 0;
-	int inName = FALSE;
-
-	/* printf ("removeProtoFieldFromThis, have :%s:\n",inputCopy); */
-	
-	cp = inputCopy + strlen(inputCopy);
-	while (cp > inputCopy) {
-		/* printf ("cp at 1 :%s:\n",cp); */
-		cp --;
-		if (*cp == '}') closeBrackCount++;
-		if (*cp == '{') { closeBrackCount--; *cp = '\0'; }
-
-		if (closeBrackCount == 0) {
-			if (*cp <= ' ') {
-				if (inName) {
-					/* printf ("inName, cp :%s: are we finished? \n",cp); */
-					*cp = '\0';
-					return;
-				} else {
-					*cp = '\0'; 
-				}
-			} else {
-				inName = TRUE;
-				/* printf ("worrying at :%s:\n",inputCopy); */
-			}
-		}		
-	}
-}
-
-
 /* go through a proto invocation, and get the invocation fields (if any) */
-void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto) {
+static void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto) {
 	char *copyPointer;
 	char *initCP;
 	char tmp;
@@ -1732,25 +1587,4 @@ struct ProtoDefinition *getVRMLprotoDefinition (struct X3D_Group *me) {
 	/* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */
 	npd = vector_get(struct protoInsert*,protoDefVec,mpd);
 	return npd->vrmlProtoDef;
-}
-
-int getXMLprotoDefinition (struct X3D_Group *me) {
-	struct protoInsert *npd;
-	int mpd;
-
-	mpd = me->FreeWRL__protoDef;
-	printf ("getXMLProtoDefinition, looking for %d\n",mpd);
-	if (mpd == INT_ID_UNDEFINED) return INT_ID_UNDEFINED;
-	if (mpd >= vector_size(protoDefVec)) {
-		printf ("internal error, can not get proto def %d, out of bounds\n",mpd);
-		return INT_ID_UNDEFINED;
-	}
-	/* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */
-	npd = vector_get(struct protoInsert*,protoDefVec,mpd);
-	return npd->xmlProtoDef;
-}
-
-/* note, this is not right; should kill memory in Vector first */
-void kill_ProtoDefinitionTable (void) {
-	FREE_IF_NZ(protoDefVec);
 }
