@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.17 2010/03/22 15:14:48 crc_canada Exp $
+$Id: CScripts.h,v 1.18 2010/04/11 18:01:31 crc_canada Exp $
 
 Class to wrap a java script for CParser
 
@@ -72,7 +72,6 @@ extern int MAXJSparamNames;
 /* ************************************************************************** */
 /* ************************ Methods used by X3D Parser  ********************* */
 /* ************************************************************************** */
-uintptr_t nextScriptHandle (void);
 void zeroScriptHandles (void);
 struct X3D_Script * protoScript_copy (struct X3D_Script *me);
 

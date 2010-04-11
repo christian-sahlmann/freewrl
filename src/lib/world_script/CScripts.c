@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.40 2010/03/22 15:14:48 crc_canada Exp $
+$Id: CScripts.c,v 1.41 2010/04/11 18:01:31 crc_canada Exp $
 
 ???
 
@@ -36,7 +36,6 @@ $Id: CScripts.c,v 1.40 2010/03/22 15:14:48 crc_canada Exp $
 #include <libFreeWRL.h>
 #include <list.h>
 #include <io_files.h>
-#include <resources.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
@@ -51,6 +50,7 @@ $Id: CScripts.c,v 1.40 2010/03/22 15:14:48 crc_canada Exp $
 #include "../input/SensInterps.h"
 #include "../input/InputFunctions.h"
 #include "../x3d_parser/Bindable.h"
+#include "../opengl/Textures.h"
 
 #include "JScript.h"
 #include "CScripts.h"
@@ -58,6 +58,7 @@ $Id: CScripts.c,v 1.40 2010/03/22 15:14:48 crc_canada Exp $
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 
+#include <resources.h>
 #include <limits.h>
 
 
@@ -183,7 +184,7 @@ void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
 
 void scriptFieldDecl_setFieldASCIIValue(struct ScriptFieldDecl *me, const char *val)
 {
- me->ASCIIvalue=val;
+ me->ASCIIvalue=(char *)val;
 }
 
 
@@ -204,7 +205,7 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 
 
 /* Initialize JSField */
-static void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num) {
+static void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
 	#ifdef CPARSERVERBOSE
 	printf ("scriptFieldDecl_jsFieldInit mode %d\n",me->fieldDecl->mode);
 	#endif
@@ -222,9 +223,9 @@ static void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t nu
 /* ************************** */
 
 /* Next handle to be assinged */
-static uintptr_t handleCnt=0;
+static int handleCnt=0;
 
-uintptr_t nextScriptHandle (void) {uintptr_t retval; retval = handleCnt; handleCnt++; return retval;}
+static int nextScriptHandle (void) {int retval; retval = handleCnt; handleCnt++; return retval;}
 
 /* copy a Script node in a proto. */
 struct X3D_Script * protoScript_copy (struct X3D_Script *me) {
@@ -361,11 +362,10 @@ static char *buffer = NULL;
 static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 {
  size_t i;
- char *filename = NULL;
- char *mypath = NULL;
- char *input_url = NULL;
- int rv, l1, l2;
+ int rv;
  resource_item_t *res;
+
+  rv = FALSE; /* initialize it */
 
  /* strip off whitespace at the beginning JAS */
  while ((*uri<= ' ') && (*uri>0)) uri++;
@@ -434,48 +434,6 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 	 /* failure, FIXME: remove res from root_res... */
 /* 		resource_destroy(res); */
  }
-
-#if 0 //MBFILES
- // Test if this could be a path name
- input_url = getInputURL();
- l1 = strlen(input_url); 
- if ( l1 >= PATH_MAX) {
-     return FALSE;
- }
-
- l2 = strlen(uri);
-
- filename = (char *) MALLOC( l1 + l2 + 1 );
-
- /* get the current parent */
-/*  mypath = STRDUP(input_url); */
-
- /* and strip off the file name, leaving any path */
-/*  removeFilenameFromPath (mypath); */
-
- DEBUG_MSG("********** input url : %s\n", input_url);
- mypath = remove_filename_from_path(input_url);
- DEBUG_MSG("********** without filename : %s\n", mypath);
-
- /* add the two together */
-/*  makeAbsoluteFileName(filename,mypath,(char *)uri); */
-
- sprintf(filename, "%s/%s", mypath, uri);
- DEBUG_MSG("********** filename : %s\n", filename);
-
- /* and see if it exists. If it does, try running script_initCode() on it */
- rv = FALSE;
- if (fileExists(filename,NULL,TRUE)) {
-	buffer = readInputString(filename);
-	rv= (buffer != NULL);
-	if (me!=NULL) rv = script_initCode(me,buffer);
- }
-
- FREE_IF_NZ (filename);
- FREE_IF_NZ (mypath);
-
- return rv;
-#endif
 
  return FALSE;
 }
