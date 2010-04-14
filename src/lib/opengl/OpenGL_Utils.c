@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.129 2010/04/03 20:11:05 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.130 2010/04/14 19:03:32 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -635,6 +635,7 @@ bool initialize_GL()
 #endif
 
 
+#ifndef USE_OLD_OPENGL
 	/* are we using shaders for Appearance, etc? (OpenGL-ES) */
 	if (global_use_shaders_when_possible) {
 /*
@@ -666,6 +667,7 @@ bool initialize_GL()
 	} else {
 		/* put non-shader stuff here eventually */
 	}
+#endif /* USE_OLD_OPENGL */
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	FW_GL_CLEAR_DEPTH(1.0);
@@ -750,12 +752,13 @@ void BackEndLightsOff() {
 	}
 }
 
+
+#ifndef USE_OLD_OPENGL
 /* OpenGL perform matrix state here */
 #define MAX_LARGE_MATRIX_STACK 32	/* depth of stacks */
 #define MAX_SMALL_MATRIX_STACK 2	/* depth of stacks */
 #define MATRIX_SIZE 16		/* 4 x 4 matrix */
 typedef double MATRIX4[MATRIX_SIZE];
-
 
 static MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
 static MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
@@ -766,26 +769,30 @@ static int projectionviewTOS = 0;
 static int textureviewTOS = 0;
 
 static int whichMode = GL_MODELVIEW;
-static double *currentMatrix = (double *)FW_ModelView;
+static double *currentMatrix = FW_ModelView;
 
 
 void fw_glMatrixMode(GLint mode) {
 	whichMode = mode;
+	switch (whichMode) {
+		case GL_PROJECTION: printf ("glMatrixMode(GL_PROJECTION)\n"); break;
+		case GL_MODELVIEW: printf ("glMatrixMode(GL_MODELVIEW)\n"); break;
+		case GL_TEXTURE: printf ("glMatrixMode(GL_TEXTURE)\n"); break;
+	}
+
 	/* printf ("fw_glMatrixMode %d\n",mode); */
 	switch (whichMode) {
-		case GL_PROJECTION: currentMatrix = (double *)FW_ProjectionView[projectionviewTOS]; break;
-		case GL_MODELVIEW: currentMatrix = (double *)FW_ModelView[modelviewTOS]; break;
-		case GL_TEXTURE: currentMatrix = (double *)FW_TextureView[textureviewTOS]; break;
+		case GL_PROJECTION: currentMatrix = &FW_ProjectionView[projectionviewTOS]; break;
+		case GL_MODELVIEW: currentMatrix = &FW_ModelView[modelviewTOS]; break;
+		case GL_TEXTURE: currentMatrix = &FW_TextureView[textureviewTOS]; break;
 		default: printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",whichMode, GL_PROJECTION,GL_MODELVIEW,GL_TEXTURE);
 	}
-	/* set the matrix element */
-	/* if (whichMode == GL_PROJECTION) { printf ("switching TO PROJECTION\n"); } else { printf ("switching AWAY from PROJECTION\n"); } */
 
-	glMatrixMode(mode); 
+	glMatrixMode(mode); /* JAS */
 }
 
 void fw_glLoadIdentity(void) {
-	/* printf ("	fw_glLoadIdentity myMode %d \n",whichMode); */
+	printf ("glLoadIdentity()\n");
 
 	loadIdentityMatrix(currentMatrix);
 	if (!global_use_shaders_when_possible)
@@ -803,7 +810,7 @@ void fw_glPushMatrix(void) {
 		PUSHMAT (GL_TEXTURE,textureviewTOS,MAX_SMALL_MATRIX_STACK,FW_TextureView)
 		default :printf ("wrong mode in popMatrix\n");
 	}
-	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPushMatrix tos now %d\n",projectionviewTOS); } */
+	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPushMatrix tos now %d\n",projectionviewTOS); }  */
 
 	if (!global_use_shaders_when_possible)
  		fw_glLoadMatrixd(currentMatrix); 
@@ -829,7 +836,8 @@ void fw_glPopMatrix(void) {
 
 
 void fw_glTranslated(double x, double y, double z) {
-	/* printf ("	fw_glTranslated %lf %lf %lf\n",x,y,z); */
+	printf ("fw_glTranslated %lf %lf %lf\n",x,y,z);
+	//printf ("translated, currentMatrix %p\n",currentMatrix);
 
 	currentMatrix[12] = currentMatrix[0] * x + currentMatrix[4] * y + currentMatrix[8]  * z + currentMatrix[12];
 	currentMatrix[13] = currentMatrix[1] * x + currentMatrix[5] * y + currentMatrix[9]  * z + currentMatrix[13];
@@ -841,7 +849,7 @@ void fw_glTranslated(double x, double y, double z) {
 }
 
 void fw_glTranslatef(float x, float y, float z) {
-	/* printf ("fw_glTranslatef %f %f %f\n",x,y,z); */
+	printf ("fw_glTranslatef %f %f %f\n",x,y,z);
 	currentMatrix[12] = currentMatrix[0] * x + currentMatrix[4] * y + currentMatrix[8]  * z + currentMatrix[12];
 	currentMatrix[13] = currentMatrix[1] * x + currentMatrix[5] * y + currentMatrix[9]  * z + currentMatrix[13];
 	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
@@ -933,6 +941,9 @@ void fw_glRotatef (float a, float x, float y, float z) {
 }
 
 void fw_glScaled (double x, double y, double z) {
+
+	printf ("glScaled(%5.4lf %5.4lf %5.4lf)\n",x,y,z);
+
 	currentMatrix[0] *= x;   currentMatrix[4] *= y;   currentMatrix[8]  *= z;
 	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
 	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
@@ -942,6 +953,9 @@ void fw_glScaled (double x, double y, double z) {
 }
 
 void fw_glScalef (float x, float y, float z) {
+
+	printf ("glScalef(%5.4f %5.4f %5.4f)\n",x,y,z);
+
 	currentMatrix[0] *= x;   currentMatrix[4] *= y;   currentMatrix[8]  *= z;
 	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
 	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
@@ -950,8 +964,38 @@ void fw_glScalef (float x, float y, float z) {
  		fw_glLoadMatrixd(currentMatrix); 
 }
 
-void fw_glGetDoublev (int ty, double *mat) {
+/* testing... */
+void old_glGetDoublev (int ty, double *mat, char *fn, int ln) {
+	double dp[16];
+	glGetDoublev(ty,dp);
+	
+	switch (ty) {
+		case GL_PROJECTION_MATRIX: printf ("old getDoublev(GL_PROJECTION_MATRIX)\n"); break;
+		case GL_MODELVIEW_MATRIX: printf ("old getDoublev(GL_MODELVIEW_MATRIX)\n"); break;
+		case GL_TEXTURE_MATRIX: printf ("old getDoublev(GL_TEXTURE_MATRIX)\n"); break;
+	}
+	
+{ int i;
+	for (i=0; i<16; i++) {
+		printf ("%4.3lf ",dp[i]);
+
+	}
+	printf ("at %s:%d\n",fn,ln);
+}
+memcpy((void *)mat, (void *) dp, sizeof (double) * MATRIX_SIZE);
+}
+
+
+
+	
+void fw_glGetDoublev (int ty, double *mat, char *fn, int ln) {
 	double *dp;
+	switch (ty) {
+		case GL_PROJECTION_MATRIX: printf ("getDoublev(GL_PROJECTION_MATRIX)\n"); break;
+		case GL_MODELVIEW_MATRIX: printf ("getDoublev(GL_MODELVIEW_MATRIX)\n"); break;
+		case GL_TEXTURE_MATRIX: printf ("getDoublev(GL_TEXTURE_MATRIX)\n"); break;
+	}
+
 
 	switch (ty) {
 		case GL_PROJECTION_MATRIX: dp = FW_ProjectionView[projectionviewTOS]; break;
@@ -967,8 +1011,19 @@ void fw_glGetDoublev (int ty, double *mat) {
 			return;}
 	}
 	memcpy((void *)mat, (void *) dp, sizeof (double) * MATRIX_SIZE);
+
+
+{ int i;
+	for (i=0; i<16; i++) {
+		printf ("%4.3lf ",dp[i]);
+
+	}
+	printf ("at %s:%d\n",fn,ln);
+}
+	
 }
 
+#endif /* #define USE_OLD_OPENGL */
 
 /* for Sarah's front end - should be removed sometime... */
 void kill_rendering() {
@@ -2120,6 +2175,7 @@ static void killNode (int index) {
 }
 
 
+#ifndef USE_OLD_OPENGL
 #ifdef IPHONE
 /* OpenGL-ES specifics for Materials and Vertices */
 void fw_iphone_enableClientState(GLenum aaa)
@@ -2199,11 +2255,15 @@ void fw_Ortho (double left, double right, double bottom, double top, double near
 
 void fw_Frustum (double left, double right, double bottom, double top, double nearZ, double farZ) {
 	double *dp;
+	double ndp[16];
 	/* do the glFrsutum on the top of the stack, and send that along */
+	printf ("fw_Frustum (%lf, %lf, %lf, %lf, %lf, %lf)\n",left,right,bottom,top,nearZ, farZ);
+
 	dp = FW_ProjectionView[projectionviewTOS];
 
 	/* {int i; for (i=0; i<16;i++) { printf ("ModView before  %d: %4.3f \n",i,dp[i]); } */
-	mesa_Frustum(left,right,bottom,top,nearZ,farZ,dp);
+	mesa_Frustum(left,right,bottom,top,nearZ,farZ,ndp);
+	matmultiply(ndp,dp,dp);
 
 	/* {int i; for (i=0; i<16;i++) { printf ("ModView after   %d: %4.3f \n",i,dp[i]); }} */
 
@@ -2211,9 +2271,37 @@ void fw_Frustum (double left, double right, double bottom, double top, double ne
 }
 
 
+/* gluPerspective replacement */
 void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar) {
 	GLDOUBLE xmin, xmax, ymin, ymax;
-	double *dp;
+	GLDOUBLE *dp;
+	GLDOUBLE ndp[16];
+
+	ymax = zNear * tan(fovy * M_PI / 360.0);
+	ymin = -ymax;
+	xmin = ymin * aspect;
+	xmax = ymax * aspect;
+
+	printf("	gw_gluPerspective, tos %d\n", projectionviewTOS); 
+
+	/* do the glFrsutum on the top of the stack, and send that along */
+	dp = FW_ProjectionView[projectionviewTOS];
+
+	{int i; for (i=0; i<16;i++) { printf ("proj before  %d: %4.3f \n",i,dp[i]); }}
+	mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, ndp);
+	matmultiply(ndp,dp,dp);
+
+	 {int i; for (i=0; i<16;i++) { printf ("proj after   %d: %4.3f \n",i,dp[i]); }}
+
+	fw_glLoadMatrixd(dp);
+}
+
+
+/* gluPerspective replacement */
+void old_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar) {
+	GLDOUBLE xmin, xmax, ymin, ymax;
+	GLDOUBLE dp[16];
+	GLDOUBLE ndp[16];
 
 	ymax = zNear * tan(fovy * M_PI / 360.0);
 	ymin = -ymax;
@@ -2222,17 +2310,34 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 
 	/* printf("	gw_gluPerspective, tos %d\n", projectionviewTOS);  */
 
+printf ("start of old_gluPerspective\n");
 	/* do the glFrsutum on the top of the stack, and send that along */
-	dp = FW_ProjectionView[projectionviewTOS];
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX,dp);
 
-	/* {int i; for (i=0; i<16;i++) { printf ("ModView before  %d: %4.3f \n",i,dp[i]); } */
-	mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, dp);
+	{int i; for (i=0; i<16;i++) { printf ("proj before  %d: %4.3f \n",i,dp[i]); }}
+	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX,dp);
+mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, ndp);
+	matmultiply(ndp,dp,dp);
 
-	/* {int i; for (i=0; i<16;i++) { printf ("ModView after   %d: %4.3f \n",i,dp[i]); } */
+	 {int i; for (i=0; i<16;i++) { printf ("proj after   %d: %4.3f \n",i,dp[i]); }}
+}
+/* gluPickMatrix replacement */
+void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height, GLint *vp) {
+printf ("PickMat %lf %lf %lf %lf %d %d %d %d\n",xx,yy,width,height,vp[0], vp[1],vp[2],vp[3]);
 
-	fw_glLoadMatrixd(dp);
+	if ((width < 0.0) || (height < 0.0)) return;
+	/* Translate and scale the picked region to the entire window */
+	FW_GL_TRANSLATE_D((vp[2] - 2.0 * (xx - vp[0])) / width, (vp[3] - 2.0 * (yy - vp[1])) / height, 0.0);
+	FW_GL_SCALE_D(vp[2] / width, vp[3] / height, 1.0);
+
+{ 
+printf ("pick: projection stack %d\n",projectionviewTOS);
+
 }
 
+
+}
 
 /* glFrustum replacement - taken from the MESA source;
 
@@ -2257,7 +2362,9 @@ mesa_Frustum(double left, double right, double bottom, double top, double nearZ,
    double c = -(farZ+nearZ) / ( farZ-nearZ);
    double d = -(2.0F*farZ*nearZ) / (farZ-nearZ);
 
+printf ("mesa_Frustum (%lf, %lf, %lf, %lf, %lf, %lf)\n",left,right,bottom,top,nearZ, farZ);
 #define M(row,col)  m[col*4+row]
+#define M(row,col)  m[col+row*4]
    M(0,0) = x;     M(0,1) = 0.0F;  M(0,2) = a;      M(0,3) = 0.0F;
    M(1,0) = 0.0F;  M(1,1) = y;     M(1,2) = b;      M(1,3) = 0.0F;
    M(2,0) = 0.0F;  M(2,1) = 0.0F;  M(2,2) = c;      M(2,3) = d;
@@ -2295,6 +2402,7 @@ mesa_Ortho(double left, double right, double bottom, double top, double nearZ, d
 #undef M
 }
 
+#endif /* USE_OLD_OPENGL */
 #ifdef NOT_USED_BUT_KEEP
 /**
  * Decompose a projection matrix to determine original glFrustum or

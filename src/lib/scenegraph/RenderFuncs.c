@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.54 2010/04/03 20:11:05 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.55 2010/04/14 19:03:32 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -170,6 +170,7 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	lightParamsDirty = TRUE;
 }
 
+#ifndef USE_OLD_OPENGL
 void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_TwoSidedMaterial *material_twoSided) {
 	shader_type_t whichShader;
 
@@ -304,7 +305,7 @@ void sendArraysToGPU (int mode, int first, int count) {
 	}
 }
 
-void sendElementsToGPU (int mode, int count, int type, short int *indices) {
+void sendElementsToGPU (int mode, int count, int type, int *indices) {
 	if (currentShaderStruct != NULL) {
 		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
 		else glDisableVertexAttribArray(currentShaderStruct->Normals);
@@ -323,6 +324,8 @@ void sendElementsToGPU (int mode, int count, int type, short int *indices) {
 		glDrawElements(mode,count,type,indices);
 	}
 }
+
+#endif /* USE_OLD_OPENGL */
 
 
 void initializeLightTables() {
@@ -491,16 +494,28 @@ void upd_ray() {
 	GLDOUBLE projMatrix[16];
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+/*
+
+{int i; printf ("\n"); 
+printf ("upd_ray, pm %p\n",projMatrix);
+for (i=0; i<16; i++) printf ("%4.3lf ",modelMatrix[i]); printf ("\n"); 
+for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n"); 
+} 
+*/
+
+
 	FW_GLU_UNPROJECT(r1.x,r1.y,r1.z,modelMatrix,projMatrix,viewport,
 		     &t_r1.x,&t_r1.y,&t_r1.z);
 	FW_GLU_UNPROJECT(r2.x,r2.y,r2.z,modelMatrix,projMatrix,viewport,
 		     &t_r2.x,&t_r2.y,&t_r2.z);
 	FW_GLU_UNPROJECT(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
 		     &t_r3.x,&t_r3.y,&t_r3.z);
-/*	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",
+/*
+	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",
 	r1.x,r1.y,r1.z,r2.x,r2.y,r2.z,
 	t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
 */
+
 }
 
 

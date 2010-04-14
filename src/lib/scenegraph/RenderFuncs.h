@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.h,v 1.11 2010/04/03 20:11:05 crc_canada Exp $
+$Id: RenderFuncs.h,v 1.12 2010/04/14 19:03:32 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -52,7 +52,7 @@ void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_T
 void sendAttribToGPU(int myType, int mySize, int  xtype, int normalized, int stride, float *pointer);
 void sendClientStateToGPU(int enable, int cap);
 void sendArraysToGPU (int mode, int first, int count);
-void sendElementsToGPU (int mode, int count, int type, short int *indices);
+void sendElementsToGPU (int mode, int count, int type, int *indices);
 
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

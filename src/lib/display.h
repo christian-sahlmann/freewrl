@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.84 2010/04/06 21:31:30 dug9 Exp $
+  $Id: display.h,v 1.85 2010/04/14 19:03:32 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -444,19 +444,45 @@ void setScreenDim(int wi, int he);
 	/****************************************************************/
 
 	#define FW_GLU_DELETETESS(aaa) gluDeleteTess(aaa)
+
+#define USE_OLD_OPENGL
+#ifdef USE_OLD_OPENGL
+
+	#define FW_GL_PUSH_MATRIX(aaa) glPushMatrix()
+	#define FW_GL_POP_MATRIX(aaa) glPopMatrix()
+
 	#define FW_GL_GETDOUBLEV(aaa,bbb) glGetDoublev(aaa,bbb);
+	#define FW_GL_LOAD_IDENTITY glLoadIdentity
+	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) glTranslatef(xxx,yyy,zzz)
+	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) glTranslated(xxx,yyy,zzz)
+	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) glRotatef(aaa,xxx,yyy,zzz)
+	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) glRotated (aaa,xxx,yyy,zzz)
+	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) glRotated((aaa /3.1415926536*180),xxx,yyy,zzz)
+	#define FW_GL_SCALE_F(xxx,yyy,zzz) glScalef(xxx,yyy,zzz)
+	#define FW_GL_SCALE_D(xxx,yyy,zzz) glScaled(xxx,yyy,zzz)
+        #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
+        #define FW_GL_POP_ATTRIB(aaa) glPopAttrib(aaa); 
+	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) glFrustum(aaa,bbb,ccc,ddd,eee,fff); 
+	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
+	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
+	#define FW_GL_MATRIX_MODE(aaa) glMatrixMode(aaa)
+	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) glOrtho(aaa,bbb,ccc,ddd,eee,fff); 
+
+	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) glVertexPointer( aaa, bbb, ccc, ddd)
+	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) glColorPointer (aaa,bbb,ccc,ddd)
+	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) glNormalPointer(aaa,bbb,ccc)
+	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
+	#define FW_GL_ENABLECLIENTSTATE(aaa) glEnableClientState(aaa)
+	#define FW_GL_DISABLECLIENTSTATE(aaa) glDisableClientState(aaa)
+	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) glDrawArrays(xxx,yyy,zzz)
+	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) glDrawElements(aaa,bbb,ccc,ddd)
+
+#else
+	#define FW_GL_GETDOUBLEV(aaa,bbb) fw_glGetDoublev(aaa,bbb,__FILE__,__LINE__);
 	#define FW_GL_LOAD_IDENTITY fw_glLoadIdentity
-	#define FW_GL_MATRIX_MODE(aaa) fw_glMatrixMode(aaa)
-	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) glViewport(aaa,bbb,ccc,ddd);
-	#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd) glClearColor(aaa,bbb,ccc,ddd);
-	#define FW_GL_COLOR3F(aaa,bbb,ccc) glColor3f(aaa,bbb,ccc);
-	#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa);
-	#define FW_GL_DEPTHMASK(aaa) glDepthMask(aaa);
-	#define FW_GL_ENABLE(aaa) glEnable(aaa)
-	#define FW_GL_DISABLE(aaa) glDisable(aaa) 
+
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) fw_glTranslatef(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) fw_glTranslated(xxx,yyy,zzz)
-
 	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) \
 		{fw_glRotatef(aaa,xxx,yyy,zzz); \
 		DEBUG_MSG("fw_glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
@@ -466,14 +492,41 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) fw_glRotateRad(aaa,xxx,yyy,zzz)
 	#define FW_GL_SCALE_F(xxx,yyy,zzz) fw_glScalef(xxx,yyy,zzz)
 	#define FW_GL_SCALE_D(xxx,yyy,zzz) fw_glScaled(xxx,yyy,zzz)
+        #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
+	#define FW_GL_POP_ATTRIB() glPopAttrib();
+	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) fw_Frustum(aaa,bbb,ccc,ddd,eee,fff); 
+	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
+	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) fw_gluPickMatrix(aaa, bbb, ccc, ddd, eee)
+	#define FW_GL_MATRIX_MODE(aaa) fw_glMatrixMode(aaa)
+	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff); 
+	/* geometry rendering - varies on whether we are using appearance shaders, etc */
+	#define FW_VERTEX_POINTER_TYPE 44354
+	#define FW_NORMAL_POINTER_TYPE 5434
+	#define FW_COLOR_POINTER_TYPE 12453
+	#define FW_TEXCOORD_POINTER_TYPE 67655
+	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
+	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
+	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, bbb, GL_FALSE, ccc); }
+	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
+	#define FW_GL_ENABLECLIENTSTATE(aaa) { sendClientStateToGPU(TRUE,aaa); }
+	#define FW_GL_DISABLECLIENTSTATE(aaa) { sendClientStateToGPU(FALSE,aaa); }
+	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) { sendArraysToGPU(xxx,yyy,zzz); }
+	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) {sendElementsToGPU(aaa,bbb,ccc,ddd); }
+
+#endif
+
+
+	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) glViewport(aaa,bbb,ccc,ddd);
+	#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd) glClearColor(aaa,bbb,ccc,ddd);
+	#define FW_GL_COLOR3F(aaa,bbb,ccc) glColor3f(aaa,bbb,ccc);
+	#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa);
+	#define FW_GL_DEPTHMASK(aaa) glDepthMask(aaa);
+	#define FW_GL_ENABLE(aaa) glEnable(aaa)
+	#define FW_GL_DISABLE(aaa) glDisable(aaa) 
 	#define FW_GL_ALPHAFUNC(aaa,bbb) glAlphaFunc(aaa,bbb); 
         #define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) glScissor(aaa,bbb,ccc,ddd); 
-        #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
-        #define FW_GL_POP_ATTRIB(aaa) glPopAttrib(aaa); 
 	#define FW_GL_WINDOWPOS2I(aaa,bbb) glWindowPos2i(aaa,bbb);
 	#define FW_GL_FLUSH glFlush
-	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff); 
-	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) fw_Frustum(aaa,bbb,ccc,ddd,eee,fff); 
 	#define FW_GL_RASTERPOS2I(aaa,bbb) glRasterPos2i(aaa,bbb); 
 	#define FW_GL_PIXELZOOM(aaa,bbb) glPixelZoom(aaa,bbb);
         #define FW_GL_LIGHTMODELI(aaa,bbb) glLightModeli(aaa,bbb); 
@@ -490,8 +543,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_POINTSIZE(aaa) glPointSize(aaa); 
 	#define FW_GL_PIXELSTOREI(aaa,bbb) glPixelStorei(aaa,bbb);
 	#define FW_GL_CGLFLUSHDRAWABLE(aaa) CGLFlushDrawable(aaa)
-	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
-	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
 	#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
 	#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
 	#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
@@ -514,20 +565,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 	#define FW_GL_END() glEnd()
 	#define FW_GL_VERTEX3D(aaa, bbb, ccc) glVertex3d(aaa, bbb, ccc)
-
-	/* geometry rendering - varies on whether we are using appearance shaders, etc */
-	#define FW_VERTEX_POINTER_TYPE 44354
-	#define FW_NORMAL_POINTER_TYPE 5434
-	#define FW_COLOR_POINTER_TYPE 12453
-	#define FW_TEXCOORD_POINTER_TYPE 67655
-	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
-	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
-	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, bbb, GL_FALSE, ccc); }
-	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
-	#define FW_GL_ENABLECLIENTSTATE(aaa) { sendClientStateToGPU(TRUE,aaa); }
-	#define FW_GL_DISABLECLIENTSTATE(aaa) { sendClientStateToGPU(FALSE,aaa); }
-	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) { sendArraysToGPU(xxx,yyy,zzz); }
-	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) {sendElementsToGPU(aaa,bbb,ccc,ddd); }
 
 
 	#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
@@ -568,10 +605,8 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_DRAWBUFFER(aaa) glDrawBuffer(aaa)
 	#define FW_GL_ENDLIST() glEndList()
 	#define FW_GL_BITMAP(aaa,bbb,ccc,ddd,eee,fff,ggg) glBitmap(aaa,bbb,ccc,ddd,eee,fff,ggg)
-	#define FW_GL_POPATTRIB() glPopAttrib()  /*FW_GL_POP_ATTRIB is defined above wrongly with 1 parameter*/
 	#define FW_GL_CALLLISTS(aaa,bbb,ccc) glCallLists(aaa,bbb,ccc)
 	#define FW_GL_LISTBASE(aaa) glListBase(aaa)
-	#define FW_GL_PUSHATTRIB(aaa) glPushAttrib(aaa)
 	#define FW_GL_DRAWPIXELS(aaa,bbb,ccc,ddd,eee) glDrawPixels(aaa,bbb,ccc,ddd,eee)
 	
 
@@ -753,7 +788,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_GETBOOLEANV(aaa,bbb) glGetBooleanv(aaa,bbb)
 	#define FW_GL_DELETETEXTURES(aaa,bbb) glDeleteTextures(aaa,bbb);
 	#define FW_GL_LOADMATRIXD(aaa) printf("subbed openglES call at %s: %d\n", __FILE__,__LINE__); 
-	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
 
 
 
@@ -773,9 +807,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) fw_glRotateRad(aaa,xxx,yyy,zzz)
 	#define FW_GL_SCALE_F(xxx,yyy,zzz) fw_glScalef(xxx,yyy,zzz)
 	#define FW_GL_SCALE_D(xxx,yyy,zzz) fw_glScaled(xxx,yyy,zzz)
-	#define FW_GL_GETDOUBLEV(aaa,bbb)  printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_LOAD_IDENTITY(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_MATRIX_MODE(aaa)  printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define PRINT_GL_ERROR_IF_ANY(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_PIXELSTOREI(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_SHADEMODEL(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
@@ -791,10 +822,8 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_ALPHAFUNC(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 
-	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) fw_Frustum(aaa,bbb,ccc,ddd,eee,fff)
 	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff); 
 
-	#define FW_GL_GETDOUBLEV(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_PUSH_ATTRIB(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_POP_ATTRIB(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_WINDOWPOS2I(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
@@ -803,7 +832,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_RASTERPOS2I(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_CGLFLUSHDRAWABLE(aaa) GL_FALSE printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) printf("WRONG"); printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_MATERIALF(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_MATERIALFV(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_COLOR_MATERIAL(aaa, bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)

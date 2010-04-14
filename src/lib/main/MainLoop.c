@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.114 2010/04/07 04:07:45 dug9 Exp $
+  $Id: MainLoop.c,v 1.115 2010/04/14 19:03:32 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -173,7 +173,7 @@ struct SensStruct *SensorEvents = 0;
 int num_SensorEvents = 0;
 
 /* Viewport data */
-GLint viewPort2[10];
+static GLint viewPort2[10];
 
 /* screen width and height. */
 int clipPlane = 0;
@@ -920,12 +920,10 @@ void setup_projection(int pick, int x, int y)
 		}
 		/* <<< statusbar hud */
 
-		//printf("should be setting viewport to %d %d\n", screenwidth2, screenHeight);
-		//FW_GL_VIEWPORT(xvp,clipPlane,screenwidth2,screenHeight);
+		FW_GL_VIEWPORT(xvp,clipPlane,screenwidth2,screenHeight);
 #ifdef AQUA
 #if !defined(IPHONE) 
                 myglobalContext = CGLGetCurrentContext();
-		//printf("global context is %u\n", myglobalContext);
 		CGLSetCurrentContext(myglobalContext);
 #endif
 #endif
@@ -934,8 +932,7 @@ void setup_projection(int pick, int x, int y)
         if(pick) {
                 /* picking for mouse events */
                 FW_GL_GETINTEGERV(GL_VIEWPORT,viewPort2);
-                FW_GLU_PICK_MATRIX((float)x,(float)viewPort2[3]-y,
-                        (float)100,(float)100,viewPort2);
+                FW_GLU_PICK_MATRIX((float)x,(float)viewPort2[3]-y, (float)100,(float)100,viewPort2);
         }
 
         /* bounds check */
@@ -944,7 +941,6 @@ void setup_projection(int pick, int x, int y)
         /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
 
         FW_GLU_PERSPECTIVE(fieldofview2, aspect2, nearPlane, farPlane); 
-
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
@@ -1059,7 +1055,6 @@ static void render()
 
 	/* swap the rendering area */
 	FW_GL_SWAPBUFFERS;
-
         PRINT_GL_ERROR_IF_ANY("XEvents::render");
 }
 
@@ -1306,7 +1301,6 @@ void do_keyPress(const char kp, int type) {
 struct X3D_Node* getRayHit() {
         double x,y,z;
         int i;
-
         if(hpdist >= 0) {
                 FW_GLU_UNPROJECT(hp.x,hp.y,hp.z,rayHit.modelMatrix,rayHit.projMatrix,viewport,&x,&y,&z);
 
