@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.h,v 1.14 2010/04/11 18:48:46 crc_canada Exp $
+$Id: CProto.h,v 1.15 2010/04/15 16:52:06 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -91,6 +91,8 @@ struct ProtoFieldDecl
 struct ProtoFieldDecl* newProtoFieldDecl(indexT, indexT, indexT);
 void deleteProtoFieldDecl(struct ProtoFieldDecl*);
 int newProtoDefinitionPointer (struct ProtoDefinition *vrmlpd, int xmlpd);
+struct ProtoDefinition* newProtoDefinition();
+
 
 /* Accessors */
 #define protoFieldDecl_getType(me) \
