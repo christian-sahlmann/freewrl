@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.54 2010/03/22 15:14:48 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.55 2010/04/18 11:28:42 couannette Exp $
 
 ???
 
@@ -131,11 +131,24 @@ void freeProtoMemory () {
 
 	if (PROTONames != NULL) {
 		for (i=0; i<= currentProtoDeclare; i++) {
-			if (PROTONames[i].fileOpen) fclose(PROTONames[i].fileDescriptor); /* should never happen... */
+			
+			if (PROTONames[i].fileName) {
+				if (PROTONames[i].fileOpen) {
+					fclose(PROTONames[i].fileDescriptor); /* should never happen... */
+				} else {
+					WARN_MSG("freeProtoMemory: trying to close openned url in PROTONames. We should use resources.\n");
+				}
+				UNLINK(PROTONames[i].fileName);
+			}
 
 			FREE_IF_NZ (PROTONames[i].definedProtoName);
-			if (PROTONames[i].fileName != NULL) UNLINK (PROTONames[i].fileName);
-			free (PROTONames[i].fileName); /* can not FREE_IF_NZ this one as it's memory is not kept track of by MALLOC */
+
+			/* either this is not a "freeable" memory, so no free can be called,
+			   either this should pass through FREE_IF_NZ / XFREE ...
+
+			   whatever ... we shall handle the case before ...
+			   (relevant info is required where this string is allocated) */
+			XFREE(PROTONames[i].fileName);
 
 		}
 		FREE_IF_NZ(PROTONames);
