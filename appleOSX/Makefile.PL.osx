@@ -80,7 +80,7 @@ if ($ok eq 0) {
 push @inc, $VRML_CONFIG{FREEWRL_INC}, 
 	"-I../src/lib ",
 	" -IOSX_Specific ";
-push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-ljs";
+push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-lFreeWRLjs";
 #JASpush @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-lFreeWRLjs";
 push @ldflags, $VRML_CONFIG{LDFLAGS};
 

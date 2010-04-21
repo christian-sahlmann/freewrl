@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.115 2010/04/14 19:03:32 crc_canada Exp $
+  $Id: MainLoop.c,v 1.116 2010/04/21 17:09:04 sdumoulin Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -105,6 +105,10 @@ typedef struct
 
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;
+
+/* Coordinate screen refresh with aqua */
+static int askForRefresh = FALSE;
+static int refreshOK = FALSE;
 
 /* do we do event propagation, proximity calcs?? */
 static int doEvents = FALSE;
@@ -280,6 +284,9 @@ void EventLoop() {
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
         Cursor cursor;
 #endif
+	while (refreshOK) {
+		usleep(10);
+	}
 
         static int loop_count = 0;
 
@@ -592,6 +599,10 @@ void EventLoop() {
         /* record the TickTime here, for rate setting. We don't do this earlier, as some
            nodes use the lastTime variable */
         lastTime = TickTime;
+	if (askForRefresh) {
+		refreshOK = TRUE;
+		askForRefresh = FALSE;
+	}
 }
 #else
 GLuint LoadShader ( GLenum type, const char *shaderSrc )
@@ -1784,6 +1795,18 @@ void setDisplayed (int state) {
 
 void setEaiVerbose() {
         eaiverbose = TRUE;
+}
+
+void askForRefreshOK() {
+	askForRefresh = TRUE;
+}
+
+int checkRefresh() {
+	return refreshOK;
+}
+
+void resetRefresh() {
+	refreshOK = FALSE;
 }
 
 /* called from the standalone OSX front end and the OSX plugin */

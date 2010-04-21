@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.85 2010/04/14 19:03:32 crc_canada Exp $
+  $Id: display.h,v 1.86 2010/04/21 17:09:04 sdumoulin Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -71,10 +71,12 @@ extern int ocurse;
 #ifdef HAVE_GLEW_H
 #include <GL/glew.h>
 #else
+#ifndef AQUA
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
 #include <GL/glx.h>
+#endif
 #endif
 #endif
 

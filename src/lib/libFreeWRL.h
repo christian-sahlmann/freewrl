@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.22 2010/04/07 04:07:45 dug9 Exp $
+  $Id: libFreeWRL.h,v 1.23 2010/04/21 17:09:04 sdumoulin Exp $
 
   FreeWRL library API (public)
 
@@ -128,5 +128,8 @@ extern char *keypress_string;
 extern int with_libcurl;
 #endif
 
+void askForRefreshOK();
+int checkRefresh();
+void resetRefresh();
 
 #endif /* __LIBFREEWRL_API_H__ */
