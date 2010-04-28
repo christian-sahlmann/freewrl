@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.117 2010/04/28 16:56:26 crc_canada Exp $
+  $Id: MainLoop.c,v 1.118 2010/04/28 20:51:26 sdumoulin Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1812,7 +1812,7 @@ void resetRefresh() {
 /* called from the standalone OSX front end and the OSX plugin */
 void replaceWorldNeeded(char* str)
 {
-	/* printf ("replaceWorldneeded called - file %s\n",str); */
+	//printf ("replaceWorldneeded called - file %s\n",str); 
         AnchorsAnchor = NULL;
         FREE_IF_NZ(OSX_replace_world_from_console);
 	OSX_replace_world_from_console = STRDUP(str);
