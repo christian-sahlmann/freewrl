@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.29 2010/03/31 16:57:33 sdumoulin Exp $
+  $Id: main.c,v 1.30 2010/04/28 17:11:05 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -125,7 +125,8 @@ void OSX_initializeParameters(const char* initialURL) {
 	printf("load failed %s\n", initialURL);
 	ConsoleMessage ("FreeWRL: unknown data on command line: \"%s\"", res->request);
     } else {
-	printf("loaded %s\n", initialURL);
+	/* Success! 
+	printf("loaded %s\n", initialURL); */
 	}
 }
 
