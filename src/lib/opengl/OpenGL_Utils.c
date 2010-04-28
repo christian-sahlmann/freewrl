@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.130 2010/04/14 19:03:32 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.131 2010/04/28 16:56:26 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -36,9 +36,11 @@
 #include <internal.h>
 
 #include <libFreeWRL.h>
-
-
+#include <list.h>
 #include <io_files.h>
+#include <resources.h>
+
+
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../main/ProdCon.h"
@@ -1056,6 +1058,15 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	}
 #endif
 
+	/* make the root_res equal NULL - this throws away all old resource info */
+	/*
+		if (root_res != NULL) {
+			printf ("root_res %p has the following...\n",root_res);
+			resource_dump(root_res);
+		}else {printf ("root_res is null, no need to dump\n");}
+	*/
+
+	root_res = NULL;
 
 	/* mark all rootNode children for Dispose */
 	for (i=0; i<X3D_GROUP(rootNode)->children.n; i++) {

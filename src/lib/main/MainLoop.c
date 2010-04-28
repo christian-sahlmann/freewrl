@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.116 2010/04/21 17:09:04 sdumoulin Exp $
+  $Id: MainLoop.c,v 1.117 2010/04/28 16:56:26 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -337,7 +337,7 @@ void EventLoop() {
 
                 BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
                 setMenuFps((float)BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
-                /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
+                /* printf ("fps %f tris %d, rootnode children %d \n",BrowserFPS,trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
                 /* ConsoleMessage("fps %f tris %d\n",BrowserFPS,trisThisLoop);   */
 
 		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane);  */

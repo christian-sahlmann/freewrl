@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.27 2010/03/02 16:51:29 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.28 2010/04/28 16:56:26 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -155,6 +155,7 @@ static resource_item_t *res = NULL; 	/* If this res is valid, then we can replac
 
 static int urlLoadingStatus() {
 	/* printf ("urlLoadingStatus %s\n",resourceStatusToString(res->status)); */
+	/* printf ("and we have %d children in root.\n",X3D_GROUP(rootNode)->children.n); */
 
 	switch (res->status) {
 		case ress_parsed:
@@ -187,11 +188,9 @@ int doBrowserAction()
 
 	/* is this an Anchor (thus Multi-URL call) or a single url call? */
 	/* OSX frontend and now plugin for loading up a new url does:
-	#ifdef wrwe
 	       AnchorsAnchor = NULL;
 	        FREE_IF_NZ(OSX_replace_world_from_console);
 	        OSX_replace_world_from_console = STRDUP(str);
-	#endif
 	*/
 
 	if (AnchorsAnchor != NULL) {
@@ -241,11 +240,13 @@ int doBrowserAction()
 			return FALSE;
 		} else {
 			
-			/* we want to clean out the old world AND load a new one in */
-			res = resource_create_single (OSX_replace_world_from_console);
 			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
+			/* we want to clean out the old world AND load a new one in */
+			res = resource_create_single (OSX_replace_world_from_console);
+
 			send_resource_to_parser(res);
+
 			waitingForURLtoLoad = TRUE;
 			return TRUE; /* keep the browser ticking along here */
 		}

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.31 2010/04/07 04:07:45 dug9 Exp $
+$Id: Bindable.c,v 1.32 2010/04/28 16:56:26 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -807,7 +807,6 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 		FREE_IF_NZ (node->__colours);
 		node->__points = newPoints;
 		node->__colours = newColors;
-printf ("background, quadcount %d\n",actq);
 		node->__quadcount = actq;
 
 	} else {

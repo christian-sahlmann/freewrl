@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.61 2010/03/26 12:23:36 crc_canada Exp $
+  $Id: ProdCon.c,v 1.62 2010/04/28 16:56:26 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -358,8 +358,9 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	int offsetInNode;
 	int shouldBind;
 
-	/* printf("processing VRML/X3D resource: %s\n", res->request); */
+	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
 	shouldBind = FALSE;
+
 
 
 	/* save the current URL so that any local-url gets are relative to this */
@@ -398,7 +399,10 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 			return FALSE;
 		}
 
-		/* printf ("res %p root_res %p\n",res,root_res); */
+		/* 
+		printf ("res %p root_res %p\n",res,root_res); 
+		*/
+
 		/* bind ONLY in main - do not bind for Inlines, etc */
 		if (res == root_res) {
 			kill_bindables();
