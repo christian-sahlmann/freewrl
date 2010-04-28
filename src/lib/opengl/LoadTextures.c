@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.38 2010/03/24 14:39:11 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.39 2010/04/28 20:44:55 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -234,17 +234,18 @@ colorSpace = CGColorSpaceCreateDeviceRGB();
 		CGRect rect = {{0,0},{pixelsWide, pixelsHigh}};
 		bitmapInfo = kCGImageAlphaNoneSkipLast;
 
-bitmapInfo = kCGImageAlphaPremultipliedFirst |
-                                kCGBitmapByteOrder32Host;
+		bitmapInfo = kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Host;
 
 		/* Allocate memory for image data. This is the destination in memory
 		   where any drawing to the bitmap context will be rendered. */
-		bitmapData = malloc( bitmapByteCount );
+		bitmapData = MALLOC( bitmapByteCount );
+
 		if (bitmapData == NULL) {
 		    fprintf (stderr, "Memory not allocated!");
 		    CGColorSpaceRelease( colorSpace );
 		    return NULL;
 		}
+		bzero (bitmapData, bitmapByteCount);
 	
 		/* Create the bitmap context. We want pre-multiplied ARGB, 8-bits
 		  per component. Regardless of what the source image format is
@@ -440,16 +441,15 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 	printf ("GetWidth %d\n",(int) CGBitmapContextGetWidth(cgctx));
 	#endif
 	
-#undef TEXVERBOSE
 	data = (unsigned char *)CGBitmapContextGetData(cgctx);
 
 	#ifdef TEXVERBOSE
-	if (CGBitmapContextGetWidth(cgctx) < 65) {
+	if (CGBitmapContextGetWidth(cgctx) < 301) {
 		int i;
 
 		printf ("dumping image\n");
 		for (i=0; i<CGBitmapContextGetBytesPerRow(cgctx)*CGBitmapContextGetHeight(cgctx); i++) {
-			printf ("%2x ",data[i]);
+			printf ("index:%d data:%2x\n ",i,data[i]);
 		}
 		printf ("\n");
 	}

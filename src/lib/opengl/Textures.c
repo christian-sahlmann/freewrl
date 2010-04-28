@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.57 2010/04/14 19:03:32 crc_canada Exp $
+  $Id: Textures.c,v 1.58 2010/04/28 20:44:55 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -480,7 +480,7 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 {
     if (NODE_NEEDS_COMPILING) {
 
-	    DEBUG_TEX("FORCE NODE RELOAD: %p %s\n", node, stringNodeType(node->_nodeType));
+	DEBUG_TEX ("FORCE NODE RELOAD: %p %s\n", node, stringNodeType(node->_nodeType));
 
 	/* force a node reload - make it a new texture. Don't change
 	   the parameters for the original number, because if this
@@ -791,7 +791,6 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	GLfloat texPri;
 	struct SFColorRGBA borderColour;
 
-
 	/* initialization */
 	Src = FALSE; Trc = FALSE; Rrc = FALSE;
 	tpNode = NULL;
@@ -1092,7 +1091,8 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	GET_THIS_TEXTURE;
 	myTableIndex = getTableIndex(thisTexture);
 
-	/* printf ("new_bind_image, I am %u, textureStackTop %d, thisTexture is %u status %s\n",
+	/* if (myTableIndex->status != TEX_LOADED)
+	printf ("new_bind_image, I am %u, textureStackTop %d, thisTexture is %u status %s\n",
 		node,textureStackTop,thisTexture,texst(myTableIndex->status));  */
 
 	/* default here; this is just a blank texture */
@@ -1118,6 +1118,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			/* set the texture depth - required for Material diffuseColor selection */
 			if (myTableIndex->hasAlpha) last_texture_type =  TEXTURE_ALPHA;
 			else last_texture_type = TEXTURE_NO_ALPHA;
+
 //printf ("last_texture_type = TEXTURE_NO_ALPHA now\n"); last_texture_type=TEXTURE_NO_ALPHA;
 	
 			/* if, we have RGB, or RGBA, X3D Spec 17.2.2.3 says ODrgb = IDrgb, ie, the diffuseColor is
