@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.86 2010/04/21 17:09:04 sdumoulin Exp $
+  $Id: display.h,v 1.87 2010/04/29 20:10:34 dug9 Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -414,8 +414,8 @@ void setScreenDim(int wi, int he);
 	/****************************************************************/
 
 	#if defined(_MSC_VER)
-		#define FW_GL_PUSH_MATRIX(...) fw_glPushMatrix()
-		#define FW_GL_POP_MATRIX(...) fw_glPopMatrix()
+		#define FW_GL_PUSH_MATRIX(...) glPushMatrix()
+		#define FW_GL_POP_MATRIX(...) glPopMatrix()
 		#define FW_GL_SWAPBUFFERS SwapBuffers(wglGetCurrentDC());
 	#endif
 
@@ -436,7 +436,7 @@ void setScreenDim(int wi, int he);
 	/*	this is the "catch for other OS" here 			*/
 	/****************************************************************/
 
-	#if !defined (FW_GL_PUSH_MATRIX)
+	#if !defined (FW_GL_PUSH_MATRIX) 
 		#define FW_GL_PUSH_MATRIX(aaa) fw_glPushMatrix()
 		#define FW_GL_POP_MATRIX(aaa) fw_glPopMatrix()
 	#endif 
@@ -450,9 +450,10 @@ void setScreenDim(int wi, int he);
 #define USE_OLD_OPENGL
 #ifdef USE_OLD_OPENGL
 
+#ifndef _MSC_VER
 	#define FW_GL_PUSH_MATRIX(aaa) glPushMatrix()
 	#define FW_GL_POP_MATRIX(aaa) glPopMatrix()
-
+#endif
 	#define FW_GL_GETDOUBLEV(aaa,bbb) glGetDoublev(aaa,bbb);
 	#define FW_GL_LOAD_IDENTITY glLoadIdentity
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) glTranslatef(xxx,yyy,zzz)
@@ -463,7 +464,11 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_SCALE_F(xxx,yyy,zzz) glScalef(xxx,yyy,zzz)
 	#define FW_GL_SCALE_D(xxx,yyy,zzz) glScaled(xxx,yyy,zzz)
         #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
+#ifdef _MSC_VER
+	#define FW_GL_POP_ATTRIB(...) glPopAttrib();
+#else
         #define FW_GL_POP_ATTRIB(aaa) glPopAttrib(aaa); 
+#endif
 	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) glFrustum(aaa,bbb,ccc,ddd,eee,fff); 
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
 	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)

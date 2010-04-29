@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.13 2010/03/12 17:07:57 crc_canada Exp $
+  $Id: statusbarHud.c,v 1.14 2010/04/29 20:10:35 dug9 Exp $
 
 */
 
@@ -827,12 +827,12 @@ void initFont(void)
 int bmfontsize = 2; /* 0,1 or 2 */
 void printString(char *s)
 {
-   FW_GL_PUSHATTRIB(GL_LIST_BIT);
+   FW_GL_PUSH_ATTRIB(GL_LIST_BIT);
    FW_GL_LISTBASE(fwFontOffset[bmfontsize]);
    bmWH.x = fwFontSize[bmfontsize].x;
    bmWH.y = fwFontSize[bmfontsize].y;
    FW_GL_CALLLISTS(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
-   FW_GL_POPATTRIB();
+   FW_GL_POP_ATTRIB();
 }
 
 static int sb_hasString = FALSE;
