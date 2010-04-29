@@ -1,8 +1,8 @@
     char * libFreeWRL_get_version()
 	{
-		return "libfreeWRL version 1.22.7";
+		return "libfreeWRL version 1.22.8";
 	}
     char * freewrl_get_version()
 	{
-		return "freeWRL version 1.22.7";
+		return "freeWRL version 1.22.8";
 	}
