@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: autogen.sh,v 1.17 2009/10/30 15:53:48 couannette Exp $
+# $Id: autogen.sh,v 1.18 2010/05/02 10:39:06 couannette Exp $
 #
 
 # options
@@ -10,6 +10,8 @@ debug=0
 trace=0
 plugin=1
 motif=1
+
+run_configure=0
 
 # variables
 cflags=
@@ -161,6 +163,10 @@ autoreconf --force --install
 my_options="$my_options --with-fontsdir=$fontsdir --with-target=$target CFLAGS=$cf LDFLAGS=$lf $@"
 
 echo "Configure options are: $my_options"
-echo "Starting configure..."
 
-./configure $my_options
+if [ $run_configure -eq 1 ] ; then
+    ./configure $my_options
+else
+    echo "Please run configure now."
+fi
+
