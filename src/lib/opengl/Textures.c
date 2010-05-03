@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.58 2010/04/28 20:44:55 crc_canada Exp $
+  $Id: Textures.c,v 1.59 2010/05/03 15:51:18 couannette Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -70,15 +70,15 @@
 /* each block of allocated code contains this... */
 struct textureTableStruct {
 	struct textureTableStruct * next;
-	struct textureTableIndexStruct entry[32];
+	textureTableIndexStruct_s entry[32];
 };
 struct textureTableStruct* readTextureTable = NULL;
 
 static int nextFreeTexture = 0;
 char *workingOnFileName = NULL;
 static void new_bind_image(struct X3D_Node *node, struct multiTexParams *param);
-struct textureTableIndexStruct *getTableIndex(int i);
-struct textureTableIndexStruct* loadThisTexture;
+textureTableIndexStruct_s *getTableIndex(int i);
+textureTableIndexStruct_s* loadThisTexture;
 
 /* current index into loadparams that texture thread is working on */
 int currentlyWorkingOn = -1;
@@ -115,10 +115,10 @@ GLXContext textureContext = NULL;
 #endif
 
 /* function Prototypes */
-int findTextureFile(struct textureTableIndexStruct *entry);
+int findTextureFile(textureTableIndexStruct_s *entry);
 void _textureThread(void);
 
-static void move_texture_to_opengl(struct textureTableIndexStruct*);
+static void move_texture_to_opengl(textureTableIndexStruct_s*);
 struct Uni_String *newASCIIString(char *str);
 
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
@@ -141,7 +141,7 @@ const char *texst(int num)
 
 /* does a texture have alpha?  - pass in a __tableIndex from a MovieTexture, ImageTexture or PixelTexture. */
 int isTextureAlpha(int texno) {
-	struct textureTableIndexStruct *ti;
+	textureTableIndexStruct_s *ti;
 
 	/* no, have not even started looking at this */
 	/* if (texno == 0) return FALSE; */
@@ -163,7 +163,7 @@ int isTextureinitialized() {
 
 /* is this texture loaded? used in LoadSensor */
 int isTextureLoaded(int texno) {
-	struct textureTableIndexStruct *ti;
+	textureTableIndexStruct_s *ti;
 
 	/* no, have not even started looking at this */
 	/* if (texno == 0) return FALSE; */
@@ -188,7 +188,7 @@ int isTextureParsing() {
 void releaseTexture(struct X3D_Node *node) {
 
 	int tableIndex;
-	struct textureTableIndexStruct *ti;
+	textureTableIndexStruct_s *ti;
 
 		if (node->_nodeType == NODE_ImageTexture) {
 			tableIndex  = ((struct X3D_ImageTexture *)node)->__textureTableIndex;
@@ -261,7 +261,7 @@ void kill_openGLTextures()
 
 
 /* find ourselves - given an index, return the struct */
-struct textureTableIndexStruct *getTableIndex(int indx) {
+textureTableIndexStruct_s *getTableIndex(int indx) {
 	int count;
 	int whichBlock;
 	int whichEntry;
@@ -764,7 +764,7 @@ DEF_FINDFIELD(TEXTUREMAGNIFICATIONKEYWORDS)
 DEF_FINDFIELD(TEXTUREBOUNDARYKEYWORDS)
 DEF_FINDFIELD(TEXTURECOMPRESSIONKEYWORDS)
 
-static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
+static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	int rx,ry,sx,sy;
 	int x,y;
 	GLint iformat;
@@ -1085,7 +1085,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
 	struct X3D_VRML1_Texture2 *v1t;
-	struct textureTableIndexStruct *myTableIndex;
+	textureTableIndexStruct_s *myTableIndex;
 	float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
 
 	GET_THIS_TEXTURE;
@@ -1184,7 +1184,7 @@ static void __reallyloadMovieTexture () {
 }
 
 void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex) {
-        struct textureTableIndexStruct *ti;
+        textureTableIndexStruct_s *ti;
 
 /*        if (myIndex  == 0) {
 		printf ("getMovieTextureOpenGLFrames, myIndex is ZERL\n");

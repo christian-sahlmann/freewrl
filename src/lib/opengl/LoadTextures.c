@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.39 2010/04/28 20:44:55 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.40 2010/05/03 15:51:18 couannette Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -73,7 +73,7 @@ GLuint defaultBlankTexture;
  */
 
 #ifdef TEXVERBOSE
-static void texture_dump_entry(struct textureTableIndexStruct *entry)
+static void texture_dump_entry(textureTableIndexStruct_s *entry)
 {
 	DEBUG_TEX("%s\t%p\t%s\n", texst(entry->status), entry, entry->filename);
 }
@@ -93,7 +93,7 @@ static void texture_dump_list()
  *   texture_load_from_pixelTexture: have a PixelTexture node,
  *                           load it now.
  */
-static void texture_load_from_pixelTexture (struct textureTableIndexStruct* this_tex, struct X3D_PixelTexture *node)
+static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex, struct X3D_PixelTexture *node)
 {
 
 /* load a PixelTexture that is stored in the PixelTexture as an MFInt32 */
@@ -188,7 +188,7 @@ printf ("wid %d hei %d depth %d\n",wid,hei,depth);
 /* rewrite MovieTexture loading - for now, just do a blank texture. See:
 	HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 define */
-static void texture_load_from_MovieTexture (struct textureTableIndexStruct* this_tex)
+static void texture_load_from_MovieTexture (textureTableIndexStruct_s* this_tex)
 {
 }
 
@@ -281,7 +281,7 @@ colorSpace = CGColorSpaceCreateDeviceRGB();
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
  */
-bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *filename)
+bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 {
 
 /* WINDOWS */
@@ -485,7 +485,7 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
  * this is almost identical to the one for Inlines, but running
  * in different threads 
  */
-static bool texture_process_entry(struct textureTableIndexStruct *entry)
+static bool texture_process_entry(textureTableIndexStruct_s *entry)
 {
 	resource_item_t *res;
 	struct Multi_String *url;
@@ -532,7 +532,14 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		res = resource_create_multi(url);
 		res->media_type = resm_image; /* quick hack */
 
+		resource_get_valid_url_from_multi(parentPath, res);
+
+		send_resource_to_parser(res);
+		resource_wait(res);
+	
+#if 0 // no texture struct here !
 		resource_get_valid_texture_from_multi(entry, parentPath, res);
+#endif // no texture struct here !
 
 		if (res->status == ress_loaded) {
 			/* Cool :) */
@@ -556,7 +563,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 static void texture_process_list(s_list_t *item)
 {
 	bool remove_it = FALSE;
-	struct textureTableIndexStruct *entry;
+	textureTableIndexStruct_s *entry;
 	
 	if (!item || !item->elem)
 		return;
@@ -590,7 +597,7 @@ static void texture_process_list(s_list_t *item)
 	}
 }
 
-void send_texture_to_loader(struct textureTableIndexStruct *entry)
+void send_texture_to_loader(textureTableIndexStruct_s *entry)
 {
 	/* Lock access to the resource list */
 	pthread_mutex_lock( &mutex_texture_list );

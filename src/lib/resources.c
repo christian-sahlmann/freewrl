@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.30 2010/04/28 16:56:26 crc_canada Exp $
+  $Id: resources.c,v 1.31 2010/05/03 15:51:18 couannette Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -814,9 +814,10 @@ void resource_get_valid_url_from_multi(resource_item_t *parentPath, resource_ite
 	} while ((res->status != ress_loaded) && (res->m_request != NULL));
 }
 
+#if 0 // no texture struct here !
 
 /* go through, and find the first valid texture url in a multi-url string */
-void resource_get_valid_texture_from_multi(struct textureTableIndexStruct *entry, resource_item_t *parentPath, resource_item_t *res) {
+void resource_get_valid_texture_from_multi(textureTableIndexStruct_s *entry, resource_item_t *parentPath, resource_item_t *res) {
 	do {
 		DEBUG_RES("resource_get_valid_url_from_multi, status %s type %s res->m_request %p\n",
 			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
@@ -844,7 +845,7 @@ void resource_get_valid_texture_from_multi(struct textureTableIndexStruct *entry
 	/* go through and try, try again if this one fails. */
 	} while ((res->status != ress_loaded) && (res->m_request != NULL));
 }
-
+#endif // no texture struct here !
 
 
 /**

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.16 2010/04/14 19:03:32 crc_canada Exp $
+$Id: Textures.h,v 1.17 2010/05/03 15:51:17 couannette Exp $
 
 Screen snapshot.
 
@@ -52,8 +52,9 @@ struct textureTableIndexStruct {
         GLint Src;
         GLint Trc;
 };
+typedef struct textureTableIndexStruct textureTableIndexStruct_s;
 
-extern struct textureTableIndexStruct* loadThisTexture;
+extern textureTableIndexStruct_s* loadThisTexture;
 extern GLuint defaultBlankTexture;
 
 /* imageType */

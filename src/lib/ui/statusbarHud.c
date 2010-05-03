@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.14 2010/04/29 20:10:35 dug9 Exp $
+  $Id: statusbarHud.c,v 1.15 2010/05/03 15:51:16 couannette Exp $
 
 */
 
@@ -1215,7 +1215,7 @@ int showButtons =0;
 int nbuts = mbuts;
 int butrect[4][mbuts];
 int butStatus[mbuts];
-struct textureTableIndexStruct butts[mbuts][2];
+textureTableIndexStruct_s butts[mbuts][2];
 char * butFnames[mbuts] = {"walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png"};//"flyEx.png",
 GLubyte *bmIcon[mbuts]; 
 int butsLoaded = 0;
@@ -1223,7 +1223,7 @@ int isOver = -1;
 int iconSize = 32;
 int buttonType = 1; /* 0 = rgba .png 1= .c bitmap (see above) */
 int savePng2dotc = 0; /* if you read png and want to save to a bitmap .c struct, put 1 */
-//bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *filename);
+//bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename);
 
 void initButtons()
 {
@@ -1242,7 +1242,7 @@ void initButtons()
 		/* png icon files (can have transparency) problem: you need to put them in the current working directory*/
 		for(i=0;i<nbuts;i++)
 		  texture_load_from_file(&butts[i][0], butFnames[i]);
-		//bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *filename);
+		//bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename);
 		for(i=0;i<nbuts;i++)
 		{
 			/* compute grayed out (non active) versions */
