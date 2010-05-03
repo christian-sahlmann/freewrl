@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.14 2010/03/30 19:15:44 crc_canada Exp $
+  $Id: fwMotifWindow.c,v 1.15 2010/05/03 11:33:06 couannette Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -145,8 +145,41 @@ void myXtManageChild (int c, Widget child)
 /* see if/when we become iconified - if so, dont bother doing OpenGL stuff */
 void StateWatcher (Widget w, XtPointer unused, XEvent *event, Boolean *cont)
 {
+#ifdef XEVENT_VERBOSE
+    // Used to track down TouchSensor loosing event with Motif (direct X11 is ok)
+    TRACE_MSG("freewrlTopWidget [StateWatch] went through (xm callback): widget %p event %p\n", (void*)w, (void*)event);
+#endif
     if (event->type == MapNotify) setDisplayed (TRUE);
     else if (event->type == UnmapNotify) setDisplayed (FALSE);
+}
+
+void DrawArea_events (Widget w, XtPointer unused, XEvent *event, Boolean *cont)
+{
+#ifdef XEVENT_VERBOSE 
+    // Used to track down TouchSensor loosing event with Motif (direct X11 is ok)
+
+    XWindowAttributes attr;
+    XSetWindowAttributes set_attr;
+
+    TRACE_MSG("DrawArea event went through (xm callback): widget %p event %p\n", (void*)w, (void*)event);
+
+    memset(&attr, 0, sizeof(attr));
+    memset(&set_attr, 0, sizeof(set_attr));
+
+    /* Get window attributes and examine the event mask */
+    XGetWindowAttributes(Xdpy, Xwin, &attr);
+    TRACE_MSG("DrawArea event mask: %lu\n", attr.your_event_mask);
+    if (!(attr.your_event_mask & PointerMotionMask)) {
+	TRACE_MSG("DrawArea window not configured to receive PointerMotionMask...\n");
+    }
+    /* Set event mask to catch mouse motion events */
+    set_attr.event_mask = attr.your_event_mask | PointerMotionMask;
+    XChangeWindowAttributes(Xdpy, Xwin, CWEventMask, &set_attr);
+
+#endif
+
+    /* This event should be passed to FreeWRL (MainLoop) control */
+    handle_Xevents(*event);
 }
 
 /**
@@ -250,7 +283,9 @@ int create_main_window(int argc, char *argv[])
 	
 	/* lets see when this goes iconic */
 	XtAddEventHandler(freewrlTopWidget, StructureNotifyMask, FALSE, StateWatcher, NULL);
-	
+	/* all events for DrawArea should be passed to FreeWRL (MainLoop) control */
+	XtAddEventHandler(freewrlDrawArea, event_mask, False, DrawArea_events, NULL);
+
 	return TRUE;
 }
 
