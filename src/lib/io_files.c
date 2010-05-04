@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.15 2010/02/15 21:45:01 crc_canada Exp $
+  $Id: io_files.c,v 1.16 2010/05/04 12:07:35 couannette Exp $
 
   FreeWRL support library.
   IO with files.
@@ -343,6 +343,7 @@ openned_file_t* load_file(const char *filename)
 {
 	openned_file_t *of = NULL;
 
+	DEBUG_RES("loading file: %s\n", filename);
 #if defined(FW_USE_MMAP)
 #if !defined(_WIN32)
 	/* UNIX mmap */
@@ -355,6 +356,7 @@ openned_file_t* load_file(const char *filename)
 	/* Standard read */
 	of = load_file_read(filename);
 #endif
+	DEBUG_RES("%s loading status: %s\n", filename, BOOL_STR((of!=NULL)));
 	return of;
 }
 

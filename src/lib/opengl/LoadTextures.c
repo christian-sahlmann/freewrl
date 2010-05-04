@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.40 2010/05/03 15:51:18 couannette Exp $
+  $Id: LoadTextures.c,v 1.41 2010/05/04 12:07:35 couannette Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -529,10 +529,16 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	}
 
 	if (url != NULL) {
+#ifdef TEXVERBOSE
+		printf("url: ");
+		Multi_String_print(url);
+		printf("parentPath: ");
+		resource_dump(parentPath);
+#endif
 		res = resource_create_multi(url);
 		res->media_type = resm_image; /* quick hack */
 
-		resource_get_valid_url_from_multi(parentPath, res);
+		//resource_get_valid_url_from_multi(parentPath, res);
 
 		send_resource_to_parser(res);
 		resource_wait(res);
@@ -546,6 +552,10 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 			DEBUG_TEX("%s texture loaded (file downloaded and loaded into memory): we should create the OpenGL texture...\n", res->request);
 			res->complete = TRUE;
 			entry->status = TEX_NEEDSBINDING; /* tell the texture thread to convert data to OpenGL-format */
+			/* file loaded, copy texdata into tex struct */
+			/*FIXME: load file from resource openned file or free it */
+			DEBUG_TEX("really loading texture data from %s into %p\n", res->actual_file, entry);
+			texture_load_from_file(entry, res->actual_file);
 			return TRUE;
 		}
 
