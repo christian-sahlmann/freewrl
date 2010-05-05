@@ -1,12 +1,29 @@
 Source: freewrl
-Section: graphics
+Section: contrib/graphics
 Priority: optional
-Maintainer: Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>
-Build-Depends: debhelper (>= 7), pkg-config, libxxf86vm-dev, libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libglew1.5-dev, libxaw7-dev, libmotif-dev, x11proto-print-dev, libimlib2-dev, libxml2-dev, libexpat1-dev, libmozjs-dev, gcj | java-compiler, iceape-dev
+Maintainer: Debian Multimedia Team <pkg-multimedia@lists.alioth.debian.org>
+Uploaders: Philippe Coval <rzr@gna.org>
+X-Upstream-Maintainer: Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>
+Build-Depends: debhelper (>= 7), pkg-config,
+ x11proto-print-dev, libxxf86vm-dev,
+ libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libglew1.5-dev, 
+ libxaw7-dev,
+ libmotif-dev | lesstif2-dev,
+ libimlib2-dev, libxml2-dev, libexpat1-dev,
+ libmozjs-dev | xulrunner-dev, iceape-dev,
+ gcj | java-compiler
 Standards-Version: 3.8.0
+Homepage: http://freewrl.sourceforge.net
+Vcs-Browser: http://git.debian.org/?p=pkg-multimedia/freewrl.git
+Vcs-Git: git://git.debian.org/git/pkg-multimedia/freewrl.git
 
 Package: freewrl
 Architecture: any
-Depends: libgl1, libglu1, libglew1.5, libxaw7, libmotif3, libimlib2, libxml2, libexpat1, libmozjs1d, java-runtime
+Depends: default-jre | java-runtime, ${shlibs:Depends}, ${misc:Depends}
 Recommends: ttf-bitstream-vera, wget, sox, convert
-Description: FreeWRL X3D/VRML browser 
+Description: X3D/VRML browser for 3D contents
+ It aims to be fully VRML97 compliant,
+ complete with scripting in Perl, Java and Javascript, and EAI
+ .
+ It is written mostly in Perl with some C for library interfaces & rendering,
+ and uses OpenGL (Mesa) for graphics.
