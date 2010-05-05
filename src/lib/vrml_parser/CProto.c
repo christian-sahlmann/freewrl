@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.45 2010/04/11 18:48:46 crc_canada Exp $
+$Id: CProto.c,v 1.46 2010/05/05 12:52:04 davejoubert Exp $
 
 CProto ???
 
@@ -49,6 +49,7 @@ CProto ???
 #include "CParseLexer.h"
 #include "CProto.h"
 
+#define DJ_KEEP_COMPILER_WARNING 0
 
 #undef CPROTOVERBOSE
 
@@ -76,7 +77,9 @@ CProto ???
 				PROTO_CAT("\n"); }  \
 			} 
 
+#if DJ_KEEP_COMPILER_WARNING
 #define APPEND_ENDPROTOGROUP PROTO_CAT (ENDPROTOGROUP);
+#endif
 #define SOMETHING_IN_ISVALUE (strlen(newTl) > 0) 
 #define APPEND_ISVALUE PROTO_CAT (newTl);
 #define APPEND_STARTPROTOGROUP_1 \
@@ -87,6 +90,7 @@ CProto ???
 #define APPEND_STARTPROTOGROUP_2 \
 	PROTO_CAT(PROTOGROUPNUMBER)
 
+#if DJ_KEEP_COMPILER_WARNING
 #define APPEND_IF_NOT_OUTPUTONLY \
 { int coffset, ctype, ckind, field; \
 	printf ("checking to see if node %s has an outputOnly field %s\n",stringNodeType(lastNode->isNODE), ele->stringToken); \
@@ -94,6 +98,7 @@ CProto ???
 	printf ("found coffset %d ctype %d ckind %d\n",coffset, ctype, ckind); \
 	if (ckind != KW_outputOnly) { printf ("APPENDING\n"); APPEND_STRINGTOKEN } else printf ("NOT APPENDING\n"); \
 }
+#endif
 
 #define APPEND_EDITED_STRINGTOKEN \
 	/* if this is an outputOnly field, dont bother printing it. It SHOULD be followed by an \
@@ -298,7 +303,11 @@ static struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struc
 #define DEEPCOPY_sfvec4f(l,v, i, h) v
 #define DEEPCOPY_sfvec3d(l,v, i, h) v
 #define DEEPCOPY_sfvec4d(l,v, i, h) v
+
+#if DJ_KEEP_COMPILER_WARNING
 #define DEEPCOPY_sfvec4d(l,v, i, h) v
+#endif
+
 #define DEEPCOPY_mfvec4f(l,v, i, h) v
 #define DEEPCOPY_mfvec4d(l,v, i, h) v
 #define DEEPCOPY_sfimage(l, v, i, h) v

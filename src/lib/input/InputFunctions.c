@@ -1,5 +1,5 @@
 /*
-  $Id: InputFunctions.c,v 1.16 2010/02/16 21:21:47 crc_canada Exp $
+  $Id: InputFunctions.c,v 1.17 2010/05/05 12:52:04 davejoubert Exp $
 
   FreeWRL support library.
   Input functions (EAI, mouse, keyboard, ...).
@@ -44,9 +44,10 @@
 
 #include "InputFunctions.h"
 
-
+#define DJ_KEEP_COMPILER_WARNING 0
+#if DJ_KEEP_COMPILER_WARNING
 #define READSIZE 2048
-
+#endif
 
 char * stripLocalFileName (char * origName) 
 {
@@ -96,6 +97,8 @@ and handling this with a system call is a pain.
 
 TODO: rework that in smarter way...
 */
+/* Nothing seems to use this anymore... DJ Tue May  4 18:50:55 BST 2010 */
+#if DJ_KEEP_COMPILER_WARNING
 static void localCopy(char *outFile, char *inFile) {
 	FILE *in, *out;
 	char ch;
@@ -136,7 +139,7 @@ static void localCopy(char *outFile, char *inFile) {
 
 	return;
 }
-
+#endif
 
 /* sscanf replacements */
 void scanUnsignedIntoValue(char *sp, size_t *rv) {

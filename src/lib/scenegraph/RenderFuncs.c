@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.55 2010/04/14 19:03:32 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.56 2010/05/05 12:52:04 davejoubert Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -53,9 +53,10 @@
 
 typedef float shaderVec4[4];
 
+#ifndef USE_OLD_OPENGL
 static int shaderNormalArray = FALSE;
 static int shaderVertexArray = FALSE;
-
+#endif
 
 static float light_linAtten[8];
 static float light_constAtten[8];
@@ -74,8 +75,10 @@ static int nextFreeLight = 0;
 /* lights status. Light 7 is the headlight */
 static int lights[8];
 
+#ifndef USE_OLD_OPENGL
 /* which shader is currently selected (general appearance shaders) */
 static s_shader_capabilities_t *currentShaderStruct = NULL;
+#endif
 
 /* should we send light changes along? */
 static bool lightStatusDirty = FALSE;
@@ -822,7 +825,7 @@ void
 render_hier(struct X3D_Node *p, int rwhat) {
 	/// not needed now - see below struct point_XYZ upvec = {0,1,0};
 	/// not needed now - see below GLDOUBLE modelMatrix[16];
-#define XXXrender_pre_profile
+
 #ifdef render_pre_profile
 	/*  profile */
 	double xx,yy,zz,aa,bb,cc,dd,ee,ff;

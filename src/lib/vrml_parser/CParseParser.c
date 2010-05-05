@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.63 2010/03/22 15:14:48 crc_canada Exp $
+  $Id: CParseParser.c,v 1.64 2010/05/05 12:52:04 davejoubert Exp $
 
   ???
 
@@ -61,6 +61,7 @@
 
 #define DEFMEM_INIT_SIZE        16
 
+#define DJ_KEEP_COMPILER_WARNING 0
 
 static int foundInputErrors = 0;
 void resetParseSuccessfullyFlag(void) { foundInputErrors = 0;}
@@ -887,7 +888,10 @@ printf ("parser_protoStatement, FINISHED proto :%s:\n",obj->protoName);
 static BOOL parser_componentStatement(struct VRMLParser* me) {
     int myComponent = INT_ID_UNDEFINED;
     int myLevel = INT_ID_UNDEFINED;
+
+#if DJ_KEEP_COMPILER_WARNING
 #define COMPSTRINGSIZE 20
+#endif
 
     ASSERT(me->lexer);
     lexer_skip(me->lexer);

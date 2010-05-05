@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.15 2010/05/03 11:33:06 couannette Exp $
+  $Id: fwMotifWindow.c,v 1.16 2010/05/05 12:52:04 davejoubert Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -61,6 +61,8 @@ Telephone: +1 613-998-2079\nhttp://www.crc.ca/FreeWRL\n \n \
 Thanks to the Open Source community for all the help received.\n \
 Communications Research Centre\n \
 Ottawa, Ontario, Canada.\nhttp://www.crc.ca"
+
+#define DJ_KEEP_COMPILER_WARNING 0
 
 void setDefaultBackground(int colour);
 
@@ -562,7 +564,9 @@ void removeWidgetFromSelect (Widget parent,
 /* start up the browser, and point it to www.crc.ca/FreeWRL */
 void freewrlHomePopup (Widget w, XtPointer data, XtPointer callData)
 { 
-#define MAXLINE 2000
+#if DJ_KEEP_COMPILER_WARNING
+	#define MAXLINE 2000
+#endif
 	const char *browser;
 	char *sysline;
 	const char pattern[] = "%s http://www.crc.ca/FreeWRL &";

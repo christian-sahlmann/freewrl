@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.32 2010/03/15 17:12:29 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.33 2010/05/05 12:52:04 davejoubert Exp $
 
 X3D Navigation Component
 
@@ -48,6 +48,7 @@ X3D Navigation Component
 #include "Children.h"
 #include "../opengl/OpenGL_Utils.h"
 
+#define DJ_KEEP_COMPILER_WARNING 0
 
 extern struct sCollisionInfo OldCollisionInfo;
 
@@ -204,7 +205,10 @@ void  child_Billboard (struct X3D_Billboard *node) {
 
 
 void changed_Billboard (struct X3D_Billboard *node) {
+		#if DJ_KEEP_COMPILER_WARNING
+		/* this macro expands to int nc = .... */
 		CHILDREN_COUNT
+		#endif
 
 		INITIALIZE_EXTENT
 }

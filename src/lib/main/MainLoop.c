@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.121 2010/05/05 11:28:08 davejoubert Exp $
+  $Id: MainLoop.c,v 1.122 2010/05/05 12:52:04 davejoubert Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -62,6 +62,7 @@
 #include "../opengl/OpenGL_Utils.h"
 #include "../ui/statusbar.h"
 
+#define DJ_KEEP_COMPILER_WARNING 0
 #ifdef AQUA
 #include "../ui/aquaInt.h"
 #endif
@@ -98,7 +99,6 @@ typedef struct
 #endif
 
 #include "MainLoop.h"
-
 
 #define IS_WORLD_LOADED ((root_res != NULL) && (root_res->status == ress_parsed))
 /* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */
@@ -273,8 +273,10 @@ __inline double Time1970sec()
 
 #endif
 
+#if DJ_KEEP_COMPILER_WARNING
 #define TI(_tv) gettimeofdat(&_tv)
 #define TID(_tv) ((double)_tv.tv_sec + (double)_tv.tv_usec/1000000.0)
+#endif
 
 
 /* Main eventloop for FreeWRL!!! */

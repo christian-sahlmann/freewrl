@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.25 2010/03/22 15:14:48 crc_canada Exp $
+  $Id: statusbar.c,v 1.26 2010/05/05 12:52:04 davejoubert Exp $
 
 */
 
@@ -52,12 +52,15 @@
 
 #include "../opengl/RasterFont.h"
 
+#define DJ_KEEP_COMPILER_WARNING 0
 
 #define MAX_BUFFER_SIZE 4096
 static char buffer[MAX_BUFFER_SIZE] = "\0";
 void render_init(void);
 
+#if DJ_KEEP_COMPILER_WARNING
 #define STATUS_LEN 2000
+#endif
 
 /* make sure that on a re-load that we re-init */
 void kill_status (void) {
