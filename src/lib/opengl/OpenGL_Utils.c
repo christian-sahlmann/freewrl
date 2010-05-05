@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.131 2010/04/28 16:56:26 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.132 2010/05/05 12:57:27 davejoubert Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -70,21 +70,27 @@
 
 #include "../x3d_parser/Bindable.h"
 
-
+#define USE_JS_EXPERIMENTAL_CODE 0
 void kill_rendering(void);
 
 /* Node Tracking */
+#if USE_JS_EXPERIMENTAL_CODE
 static void kill_X3DNodes(void);
+#endif
+
 static void createdMemoryTable();
 static void increaseMemoryTable();
 static struct X3D_Node ** memoryTable = NULL;
 static int tableIndexSize = INT_ID_UNDEFINED;
 static int nextEntry = 0;
 static struct X3D_Node *forgottenNode;
+
+#if USE_JS_EXPERIMENTAL_CODE
 static void killNode (int index);
 static void fw_glLoadMatrixd(double *val);
 static void mesa_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ, double *m);
 static void mesa_Ortho(double left, double right, double bottom, double top, double nearZ, double farZ, double *m);
+#endif
 
 /* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 int displayDepth = 24;
@@ -144,6 +150,7 @@ near plane is thus farPlane - highestPeak.
 
 **************************************************************************************/
 
+#if USE_JS_EXPERIMENTAL_CODE
 /* read a file, put it into memory. */
 static char * readInputString(char *fn) {
         char *buffer;
@@ -173,9 +180,10 @@ static char * readInputString(char *fn) {
 	buffer[justread] = '\0';
         return (buffer);
 }
+#endif
 #undef MAXREADSIZE
 
-
+#if USE_JS_EXPERIMENTAL_CODE
 static void shaderErrorLog(GLuint myShader) {
         #ifdef GL_VERSION_2_0
 #define MAX_INFO_LOG_SIZE 512
@@ -186,10 +194,11 @@ static void shaderErrorLog(GLuint myShader) {
                 ConsoleMessage ("Problem compiling shader");
         #endif
 }
+#endif
 
+#if USE_JS_EXPERIMENTAL_CODE
 /* read in shaders and place the resulting shader program in the "whichShader" field if success. */
 static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToShaders) {
-	char *inTextFile;
 	char *inTextPointer;
 	GLint success;
 	GLuint myVertexShader = 0;
@@ -197,6 +206,8 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	GLuint myProg = 0;
 
 #ifdef READ_SHADER_FROM_FILE
+	char *inTextFile;
+
 	if (strlen(pathToShaders) > 1000) return;  /* bounds error */
 	inTextFile = MALLOC(2000);
 
@@ -331,7 +342,7 @@ printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
 (*myShader).ProjectionMatrix);
 
 }
-
+#endif
 
 
 static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
@@ -1888,7 +1899,11 @@ void startOfLoopNodeUpdates(void) {
 
 void markForDispose(struct X3D_Node *node, int recursive){
 	struct Multi_Node* MNode;
+
+	#if USE_JS_EXPERIMENTAL_CODE
 	struct X3D_Node sfnode;
+	#endif
+
 	int *fieldOffsetsPtr;
 	char * fieldPtr;
 
@@ -1987,6 +2002,7 @@ printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
 }
 
 
+#if USE_JS_EXPERIMENTAL_CODE
 /*delete node created*/
 static void killNode (int index) {
 	int j=0;
@@ -2184,7 +2200,7 @@ static void killNode (int index) {
 	FREE_IF_NZ(memoryTable[index]);
 	memoryTable[index]=NULL;
 }
-
+#endif
 
 #ifndef USE_OLD_OPENGL
 #ifdef IPHONE
