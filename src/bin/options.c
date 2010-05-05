@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.26 2010/03/30 19:15:44 crc_canada Exp $
+  $Id: options.c,v 1.27 2010/05/05 08:39:58 davejoubert Exp $
 
   FreeWRL command line arguments.
 
@@ -175,6 +175,7 @@ int parseCommandLine (int argc, char **argv)
     int real_option_index;
     const char *real_option_name;
     char *logFileName = NULL;
+    FILE *fp;
 
 #if defined(DOSNAPSEQUENCE)
     static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utCL:d:";
@@ -405,8 +406,14 @@ int parseCommandLine (int argc, char **argv)
     /* Quick hack: redirect stdout and stderr to logFileName if supplied */
     if (logFileName) {
 	printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);	
-	freopen(logFileName, "a", stdout);
-	freopen(logFileName, "a", stderr);
+	fp = freopen(logFileName, "a", stdout);
+	if (NULL == fp) {
+	    WARN_MSG("WARNING: Unable to reopen stdout to %s\n", logFileName) ;
+	}
+	fp = freopen(logFileName, "a", stderr);
+	if (NULL == fp) {
+	    WARN_MSG("WARNING: Unable to reopen stderr to %s\n", logFileName) ;
+	}
     }
 
     if (optind < argc) {
