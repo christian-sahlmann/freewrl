@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.16 2010/05/05 12:52:04 davejoubert Exp $
+  $Id: fwMotifWindow.c,v 1.17 2010/05/05 13:01:57 davejoubert Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -281,6 +281,7 @@ int create_main_window(int argc, char *argv[])
 	/* now, lets tell the OpenGL window what its dimensions are */
 	
 	XtVaGetValues(freewrlDrawArea, XmNwidth, &width, XmNheight, &height, NULL);
+	/* printf("%s,%d create_main_window %d, %d\n",__FILE__,__LINE__,width,height); */
 	setScreenDim(width,height);
 	
 	/* lets see when this goes iconic */
@@ -526,6 +527,7 @@ void GLArearesize (Widget w, XtPointer data, XtPointer callData)
     Dimension width, height;
 
     XtVaGetValues (w, XmNwidth, &width, XmNheight, &height, NULL);
+    /* printf("%s,%d GLArearesize %d, %d\n",__FILE__,__LINE__,width,height); */
     setScreenDim (width,height);
 }
 
