@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.120 2010/05/03 11:33:06 couannette Exp $
+  $Id: MainLoop.c,v 1.121 2010/05/05 11:28:08 davejoubert Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -785,6 +785,7 @@ void handle_Xevents(XEvent event) {
 //#ifdef HAVE_NOTOOLKIT
                 /* Motif, etc, usually handles this. */
                 case ConfigureNotify:
+			/*  printf("%s,%d ConfigureNotify  %d %d\n",__FILE__,__LINE__,event.xconfigure.width,event.xconfigure.height); */
                         setScreenDim (event.xconfigure.width,event.xconfigure.height);
                         break;
 //#endif

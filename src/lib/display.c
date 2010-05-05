@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.48 2010/03/30 19:15:44 crc_canada Exp $
+  $Id: display.c,v 1.49 2010/05/05 11:28:08 davejoubert Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -184,6 +184,7 @@ void setScreenDim(int wi, int he)
 {
     screenWidth = wi;
     screenHeight = he;
+    /* printf("%s,%d setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); */
 
     if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
     else screenRatio =  screenWidth;
