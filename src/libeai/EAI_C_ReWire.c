@@ -27,7 +27,7 @@
 void _handleReWireCallback (char *buf) {
 	int bus, channel, controllerOrVelocity, controlType, value;
 	
-	if ((*buf) == 'R') buf++; if ((*buf)='W') buf++;
+	if ((*buf) == 'R') buf++; if ((*buf) == 'W') buf++;
 	if (sscanf(buf, "%d %d %d %d %d",&bus,&channel, &controllerOrVelocity, &controlType, &value) != 5) {
 		printf ("handleReWireCallback - failed in sscanf\n");
 	} else {
