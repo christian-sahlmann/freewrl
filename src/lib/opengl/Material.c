@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.16 2010/03/08 19:26:25 crc_canada Exp $
+$Id: Material.c,v 1.17 2010/05/05 11:21:48 davejoubert Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -67,7 +67,7 @@ void do_shininess (GLenum face, float shininess) {
 }
 
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
-	int i;
+	/* unused int i; */
 
 	/* for IndexedLineSet, etc, we keep the last emissiveColor around */
 	FW_GL_MATERIALFV(face,pname,param);

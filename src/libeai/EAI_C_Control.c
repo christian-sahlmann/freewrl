@@ -36,7 +36,9 @@ void X3D_initialize(char *hostname) {
 	struct sockaddr_in serv_addr; 
 	struct hostent *server;
 	int iret1;
-	int iret2;
+	#ifdef WIN32
+		int iret2;
+	#endif
 	int loopCount;
 	int constat;
 	int isMidi = 0;

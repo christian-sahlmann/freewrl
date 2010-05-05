@@ -343,12 +343,14 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 					for(i=istart;i<strlen(temp);i++)
 					{
 						if( temp[i] == '"' )
+						{
 							if( i > 0 )
 							{
 								if( temp[i-1] != '\\' ) start = i+1;  /* the special \" case - ignor as literal */
-							}
-							else
+							} else {
 								start = i+1;
+							}
+						}
 						if( start ) break;
 					}
 					/* find the stopping " */
@@ -625,7 +627,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 	char myline[2048];
 	int count;
 	int i;
-	int ptr;
+	/* unused int ptr; */
 	char tstring[2048];
 	
 	/* sanity check */

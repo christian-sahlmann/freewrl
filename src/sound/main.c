@@ -393,8 +393,6 @@ void process_command () {
 
 
 int main(int argc,char **argv) {
-	int count;
-	char fileRemove[200];
 
 	/* FIXME: argc is minimum 1 since argv[0] contains program's name */
 	if (argc <1) {
@@ -455,6 +453,8 @@ int main(int argc,char **argv) {
 		process_command ();
 	} while (strncmp ("QUIT",msg.msg,4));
 #if 0
+	int count;
+	char fileRemove[200];
 	for (count=0; count<current_max; count++) {
 		sprintf (fileRemove,"/tmp/sound%d.wav",count);
 		/* printf ("unlinking %d\n",count);*/

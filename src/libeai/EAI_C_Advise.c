@@ -155,9 +155,9 @@ void _handleFreeWRLcallback (char *line) {
 #ifndef OLDCODE
 				/* Doug Sanden's code */
                                 char bigbuf[128];
-                                char buf[32];
 
                                 /*
+                                char buf[32];
                                 sprintf(bigbuf,"%d ",EAI_ListenerTable[count].FreeWRL_RegisterNumber);
                                 sprintf(buf,"%lf ",evTime);
                                 strcat(bigbuf,buf);

@@ -1,5 +1,5 @@
 /*
-  $Id: plugin_main.c,v 1.12 2010/01/01 11:29:15 couannette Exp $
+  $Id: plugin_main.c,v 1.13 2010/05/05 11:21:49 davejoubert Exp $
 
   FreeWRL plugin for Mozilla compatible browsers.
   Works in Firefox 1.x - 3.0 on Linux.
@@ -420,6 +420,8 @@ void Run (NPP instance) {
 	char	pipetome[25];
 	char	childFd[25];
 	char	instanceStr[25];
+	FILE *fp;
+	int readSizeThrowAway ;
 
 	XWindowAttributes mywin;
 
@@ -536,8 +538,19 @@ void Run (NPP instance) {
 
 				fflush(stdout);
 				fflush(stderr);
-				freopen(FW_Plugin->logFileName, "a", stdout);
-				freopen(FW_Plugin->logFileName, "a", stderr);
+				fp = freopen(FW_Plugin->logFileName, "a", stdout);
+				if (NULL == fp) {
+					sprintf (debs,
+					 "redirect stdout to %s failed\n", FW_Plugin->logFileName);
+					print_here (debs);
+				}
+				print_here (debs);
+				fp = freopen(FW_Plugin->logFileName, "a", stderr);
+				if (NULL == fp) {
+					sprintf (debs,
+					 "redirect stderr to %s failed\n", FW_Plugin->logFileName);
+					print_here (debs);
+				}
 
 			    	execvp(paramline[0], (char* const *) paramline);
 			}
@@ -554,7 +567,7 @@ void Run (NPP instance) {
 
 	print_here ("after FW_Plugin->freewrl_running call - waiting on pipe");
 
-	read(FW_Plugin->interfacePipe[PIPE_PLUGINSIDE],&FW_Plugin->fwwindow,sizeof(Window));
+	readSizeThrowAway = read(FW_Plugin->interfacePipe[PIPE_PLUGINSIDE],&FW_Plugin->fwwindow,sizeof(Window));
 
 	/*
 	sprintf (debs,"After exec, and after read from pipe, FW window is %p\n",FW_Plugin->fwwindow);
@@ -697,6 +710,7 @@ NPP_New(NPMIMEType pluginType,
 	FW_PluginInstance* FW_Plugin;
 /* 	char factString[60]; */
 	unsigned int err;
+	FILE *fp ;
 
 
 	/* sprintf (debs,"NPP_New, argc %d argn %s  argv %s",argc,argn[0],argv[0]); */
@@ -739,7 +753,12 @@ NPP_New(NPMIMEType pluginType,
 	FW_Plugin->logFileName = NULL;
 
 	gotRequestFromFreeWRL = FALSE;
-	pipe(FW_Plugin->interfacePipe);
+	fp = pipe(FW_Plugin->interfacePipe);
+	if (NULL == fp) {
+		sprintf (debs,
+		 "Pipe connection to FW_Plugin->interfacePipe failed %s,%d\n", __FILE__,__LINE__);
+		print_here (debs);
+	}
 
 	sprintf (debs, "Pipe created, PIPE_FREEWRLSIDE %d PIPE_PLUGINSIDE %d",
 		FW_Plugin->interfacePipe[PIPE_FREEWRLSIDE], 

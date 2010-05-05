@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.28 2010/03/30 20:40:35 sdumoulin Exp $
+  $Id: jsVRML_SFClasses.c,v 1.29 2010/05/05 11:21:49 davejoubert Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -979,7 +979,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	JSString *myStr;
 	char *cString;
 
-	struct X3D_Group *myGroup;
+	/* unused struct X3D_Group *myGroup; */
 
 	ADD_ROOT(cx,obj)
 	newHandle = NULL;

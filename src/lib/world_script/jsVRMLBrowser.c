@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.32 2010/03/22 15:14:48 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.33 2010/05/05 11:21:49 davejoubert Exp $
 
 Javascript C language binding.
 
@@ -513,6 +513,8 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 		*_costr0;
 	struct X3D_Node *myptr;
 	#define myFileSizeLimit 4000
+
+/* DJ Tue May  4 21:25:15 BST 2010 Old stuff, no longer applicable
 	int count;
 	int offset;
 	int fromtype;
@@ -520,6 +522,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	int myField;
 	char *address;
 	struct X3D_Group *subtree;
+*/
 	resource_item_t *res = NULL;
 	int fieldInt;
 	int offs;

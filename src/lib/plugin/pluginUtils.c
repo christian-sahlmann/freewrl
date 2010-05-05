@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.28 2010/04/28 16:56:26 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.29 2010/05/05 11:21:48 davejoubert Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -81,7 +81,7 @@ void killErrantChildren(void) {
 
 static void goToViewpoint(char *vp) {
 	struct X3D_Node *localNode;
-	int tableIndex;
+	/* unused int tableIndex; */
 	int flen;
 
 
@@ -107,7 +107,10 @@ static void goToViewpoint(char *vp) {
 static void startNewHTMLWindow(char *url) {
 	char *browser;
 #define LINELEN 4000
+#define ERRLINELEN 4200
 	char sysline[LINELEN];
+	int sysReturnCode;
+	char syslineFailed[ERRLINELEN];
 	int testlen;
 
 	browser = NULL;
@@ -143,7 +146,11 @@ static void startNewHTMLWindow(char *url) {
 		
 	if (browser) sprintf(sysline, "%s %s &", browser, url);
 	else sprintf(sysline, "open %s &",  url);
-	system (sysline);
+	sysReturnCode = system (sysline);
+	if (sysReturnCode < 0) {
+		sprintf(syslineFailed ,"ERR %s %d system call failed, returned %d. Was: %s\n",__FILE__,__LINE__,sysReturnCode,sysline);
+		ConsoleMessage (syslineFailed);
+	}
 #ifdef AQUA
 	}
 #endif
@@ -407,6 +414,7 @@ void URLencod (char *dest, const char *src, int maxlen) {
 
 void sendXwinToPlugin()
 {
+	int writeSizeThrowAway ;
 	XWindowAttributes mywin;
 
 	/* send the window id back to the plugin parent */
@@ -417,7 +425,7 @@ void sendXwinToPlugin()
 
 	DEBUG_MSG("sendXwinToPlugin: sending Xwin ID back to plugin - %d bytes\n",sizeof (Xwin));
 
-	write (_fw_pipe,&Xwin,sizeof(Xwin));
+	writeSizeThrowAway = write (_fw_pipe,&Xwin,sizeof(Xwin));
 	close (_fw_pipe);
 
 	/* wait for the plugin to change the map_state */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.55 2010/04/18 11:28:42 couannette Exp $
+$Id: X3DProtoScript.c,v 1.56 2010/05/05 11:21:49 davejoubert Exp $
 
 ???
 
@@ -1053,6 +1053,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	char *tmpf;
 	FILE *fileDescriptor;
 	int fdl;
+	int readSizeThrowAway;
 	char uniqueIDstring[20];
 
 
@@ -1151,7 +1152,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	}
 
 	protoInString = MALLOC(fdl+1);
-	fread(protoInString, 1, fdl, fileDescriptor);
+	readSizeThrowAway = fread(protoInString, 1, fdl, fileDescriptor);
 	protoInString[fdl] = '\0';
 
 

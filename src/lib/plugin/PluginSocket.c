@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: PluginSocket.c,v 1.13 2010/03/03 15:59:07 crc_canada Exp $
+$Id: PluginSocket.c,v 1.14 2010/05/05 11:21:48 davejoubert Exp $
 
 Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
@@ -77,6 +77,7 @@ extern double TickTime;
 /* Doug Sandens windows function; lets make it static here for non-windows */
 #if defined(_MSC_VER)
 #else
+#ifdef PLUGINSOCKETVERBOSE
 static struct timeval mytime;
 
 static double Time1970sec(void) {
@@ -84,7 +85,9 @@ static double Time1970sec(void) {
         return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 }
 #endif
+#endif
 
+#ifdef PLUGINSOCKETVERBOSE
 /* prints to a log file if we are running as a plugin */
 static void pluginprint (const char *m, const char *p)
 {
@@ -97,6 +100,7 @@ static void pluginprint (const char *m, const char *p)
 	}
 
 }
+#endif
 
 /* loop about waiting for the Browser to send us some stuff. */
 int waitForData(int sock) {
@@ -146,6 +150,7 @@ int waitForData(int sock) {
 			}
 		}
 	} while (!retval);
+	return 0 ;
 }
 
 void  requestPluginPrint(int to_plugin, const char *msg) {

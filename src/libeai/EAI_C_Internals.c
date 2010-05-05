@@ -88,7 +88,7 @@ void *freewrlSwigThread(void* nada) {
 void freewrlSwigThread(void) {
 #endif
 	const int on=1;
-	int flags;
+	/* unused int flags; */
 	int len;
 
 	struct sockaddr_in servaddr, cliaddr;
@@ -99,13 +99,16 @@ void freewrlSwigThread(void) {
     iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (iResult != 0) {
         X3D_error("WSAStartup failed to load winsock2 ws2_32.dll\n");
-        return NULL;
+        /* return NULL; */
+        return ;
     }
 #endif
 
 	if ((_X3D_FreeWRL_listen_FD= socket(AF_INET, SOCK_STREAM, 0)) < 0) {
               X3D_error("ERROR opening swig socket");
-              return NULL;
+              /* return NULL; */
+              return ;
+		
         }
 	
 	setsockopt(_X3D_FreeWRL_listen_FD, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on));
@@ -121,7 +124,8 @@ void freewrlSwigThread(void) {
 
 	if (listen(_X3D_FreeWRL_listen_FD, 1024) < 0) {
 		X3D_error("ERROR in listen");
-		return NULL;
+		/* return NULL; */
+		return ;
 	}
 
 	len = sizeof(cliaddr);
@@ -131,7 +135,8 @@ void freewrlSwigThread(void) {
 #else
 	_X3D_FreeWRL_Swig_FD = accept((_X3D_FreeWRL_listen_FD), (struct sockaddr*) &cliaddr, (socklen_t *) &len);
 #endif
-	return NULL;
+	/* return NULL; */
+	return ;
 }
 
 /* read in the reply - if it is an RE; it is the reply to an event; if it is an
@@ -208,6 +213,7 @@ static char *sendToFreeWRL(char *callerbuffer, int size, int waitForResponse) {
 	retval = send(_X3D_FreeWRL_FD, callerbuffer, size, 0);
 	if (retval == SOCKET_ERROR ) 
 #else	
+	ptr = NULL;
 	retval = write(_X3D_FreeWRL_FD, callerbuffer, size);
 	if (retval < 0) 
 #endif

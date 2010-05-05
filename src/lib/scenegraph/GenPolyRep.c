@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.20 2010/04/14 19:03:32 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.21 2010/05/05 11:21:49 davejoubert Exp $
 
 ???
 
@@ -1520,7 +1520,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	if (circular && tubular) {
 		beginCap = FALSE; 
 		endCap = FALSE;
-		#if VERBOSE
+		#ifdef VERBOSE
 		printf ("Extrusion, turning off caps \n");
 		#endif
 	}
