@@ -278,6 +278,7 @@ char *convert1To2 (const char *inp)
 {
 	char *retval = NULL;
 	char *dinp, *tptr;
+	int readSizeThrowAway;
 
 	/* sanitize input but copy data before altering it */
 	dinp = tptr = strdup(inp);
@@ -302,7 +303,7 @@ char *convert1To2 (const char *inp)
 		
 		fp = fopen(tempname,"r");
 		retval = MALLOC(written+10);
-		fread(retval,written,1,fp);
+		readSizeThrowAway = fread(retval,written,1,fp);
 		retval[written] = '\0';
 		/* printf ("and have read back in :%s:\n",retval);  */
 
