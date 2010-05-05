@@ -34,6 +34,7 @@ int myBPS;
 
 void streamThisChannel(int source, int bytesToStream, int offset) {
 	SNDFILE *wavfile;
+	int readSizeThrowAway;
 
 	/* //printf ("streamThisChannel %d, bytes %d offset %d\n",source, */
 	/* //		bytesToStream, offset); */
@@ -86,7 +87,7 @@ void streamThisChannel(int source, int bytesToStream, int offset) {
 	/* // read and write here. */
 	if ((readSize) > 0) {
 		/* //printf ("reading/writing %d bytes\n",readSize); */
-		fread(wavfile->data,readSize,1,wavfile->fd);
+		readSizeThrowAway = fread(wavfile->data,readSize,1,wavfile->fd);
 		addToCombiningBuffer(source,readSize,offset);
 	}
 
@@ -101,6 +102,7 @@ void streamThisChannel(int source, int bytesToStream, int offset) {
 
 void streamMoreData(int bytesToStream) {
 	int count;
+	int writeSizeThrowAway;
 
 	if (bytesToStream > MAXBUFSIZE) {bytesToStream = MAXBUFSIZE;
 		/* //printf ("reducing bytesToStream\n"); */
@@ -126,5 +128,5 @@ void streamMoreData(int bytesToStream) {
 		}
 	}
 	/* // Now, stream out the combined data */
-	write (dspFile, CombiningBuffer, bytesToStream);
+	writeSizeThrowAway = write (dspFile, CombiningBuffer, bytesToStream);
 }
