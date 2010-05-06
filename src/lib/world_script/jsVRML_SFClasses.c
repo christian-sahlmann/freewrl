@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.29 2010/05/05 11:21:49 davejoubert Exp $
+  $Id: jsVRML_SFClasses.c,v 1.30 2010/05/06 16:06:09 davejoubert Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -537,7 +537,7 @@ SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 			  uintN argc, jsval *argv, jsval *rval)
 {
 	SFColorRGBANative *ptr;
-	jsdouble pars[3];
+	jsdouble pars[4];
 
 	ADD_ROOT(cx,obj)
 
@@ -881,7 +881,8 @@ SFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 	{
 		jsdouble nv;
 		char tmpline[100];
-		sprintf (tmpline,"%ld",ptr->handle);
+		sprintf (tmpline,"%ld",(long int) ptr->handle);
+		/* sprintf (tmpline,"%ld",ptr->handle); */
 
 		/* printf ("pointer to long int :%s:\n",tmpline); */
 
@@ -3451,7 +3452,7 @@ SFVec4fConstr(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval)
 {
 	SFVec4fNative *ptr;
-	jsdouble pars[3];
+	jsdouble pars[4];
 	
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("start of SFVec4fConstr\n");
@@ -3698,7 +3699,7 @@ SFVec4dConstr(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval)
 {
 	SFVec4dNative *ptr;
-	jsdouble pars[3];
+	jsdouble pars[4];
 	
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("start of SFVec4dConstr\n");
