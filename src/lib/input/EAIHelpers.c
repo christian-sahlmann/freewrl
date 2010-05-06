@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.38 2010/02/26 19:34:42 sdumoulin Exp $
+$Id: EAIHelpers.c,v 1.39 2010/05/06 16:34:17 davejoubert Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -204,7 +204,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 	int ctr;
 	int mynindex = 0;
 
-	if (eaiverbose) printf ("registerEAINodeForAccess - myn %u\n",myn);
+	if (eaiverbose) printf ("registerEAINodeForAccess - myn %lu\n",(unsigned long int) myn);
 	if (myn == NULL) return -1;
 
 	if (EAINodeIndex == NULL) EAINodeIndex = MALLOC(sizeof (struct EAINodeIndexStruct) * MAX_EAI_SAVED_NODES);
@@ -301,7 +301,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	/* make up the name of the Metadata field associated with this one */
 	if (strlen(*fp)>1000) return FALSE;
 
-	sprintf (thisID,"PROTO_%u_%s",myProtoDecl,*fp);
+	sprintf (thisID,"PROTO_%lu_%s",(unsigned long int) myProtoDecl,*fp);
 
 	if (eaiverbose) printf ("looking for name :%s:\n",thisID);
 
@@ -309,8 +309,8 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	if ((*np) == 0) return FALSE;
 
 	if (eaiverbose) {
-		printf ("np is %u\n",*np);
-		printf ("and, found node %u type %s\n",*np, stringNodeType((*np)->_nodeType));
+		printf ("np is %lu\n",(unsigned long int) *np);
+		printf ("and, found node %lu type %s\n",(unsigned long int) *np, stringNodeType((*np)->_nodeType));
 	}
 
 	/* change the fieldName, depending on the direction */
@@ -377,7 +377,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	}
 
 	if (eaiverbose) {
-		printf ("start of EAI_GetType, this is a valid C node %d\n",nodePtr);
+		printf ("start of EAI_GetType, this is a valid C node %lu\n",(unsigned long int) nodePtr);
 		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
 	}	
 
@@ -419,7 +419,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	}
 
 	if (eaiverbose) {
-		printf ("node here is %u\n",nodePtr);
+		printf ("node here is %lu\n",(unsigned long int) nodePtr);
 		printf ("ok, going to try and find field :%s: in a node of type :%s:\n",fieldString,stringNodeType(nodePtr->_nodeType));
 	}
 
@@ -432,13 +432,13 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
        	findFieldInOFFSETS(nodePtr->_nodeType, myField, &myFieldOffs, &ctype, accessType);
 
 	if (eaiverbose) {
-		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %d\n",nodePtr);
+		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %lu\n",(unsigned long int)nodePtr);
 		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
 	}	
 
 
 
-	if (eaiverbose) printf ("EAI_GetType, after findFieldInOFFSETS, have myFieldOffs %d, ctype %d, accessType %d \n",myFieldOffs, ctype, *accessType); 
+	if (eaiverbose) printf ("EAI_GetType, after findFieldInOFFSETS, have myFieldOffs %u, ctype %lu, accessType %lu \n",myFieldOffs, (unsigned long int)ctype, (unsigned long int)*accessType);
 
 	/* is this a Script, or just an invalid field?? */ 
 	if (myFieldOffs <= 0) {

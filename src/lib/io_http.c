@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.12 2010/03/08 19:26:25 crc_canada Exp $
+  $Id: io_http.c,v 1.13 2010/05/06 16:34:17 davejoubert Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -350,6 +350,6 @@ resource_item_t *getInputResource()
 
 
 	cwu = stack_top(resource_item_t *, resStack);
-	DEBUG_MSG("getInputResource current Resource is %u %x %s\n", cwu,cwu,cwu->parsed_request);
+	DEBUG_MSG("getInputResource current Resource is %lu %lx %s\n", (unsigned long int) cwu, (unsigned long int) cwu, cwu->parsed_request);
 	return stack_top(resource_item_t *, resStack);
 }

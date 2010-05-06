@@ -1,5 +1,5 @@
 /*
-  $Id: plugin_main.c,v 1.13 2010/05/05 11:21:49 davejoubert Exp $
+  $Id: plugin_main.c,v 1.14 2010/05/06 16:34:17 davejoubert Exp $
 
   FreeWRL plugin for Mozilla compatible browsers.
   Works in Firefox 1.x - 3.0 on Linux.
@@ -522,7 +522,7 @@ void Run (NPP instance) {
 				sprintf (childFd, "%d", FW_Plugin->interfaceFile[SOCKET_2]);
 
 				/* Instance, so that FreeWRL knows its us... */
-				sprintf (instanceStr, "%u",(uintptr_t) instance);
+				sprintf (instanceStr, "%lu",(unsigned long int) (uintptr_t) instance);
 
 				sprintf (debs,"exec param line is %s %s %s %s %s %s %s %s %s %s %s",
 						paramline[0],paramline[1],paramline[2],paramline[3],
@@ -880,8 +880,8 @@ NPP_URLNotify (NPP instance, const char *url, NPReason reason, void* notifyData)
 		print_here ("NPP_UrlNotify - unknown");
 	}
 
-	sprintf (debs,"NPP_UrlNotify - writing %s (%u bytes) to socket %d",
-		returnBadURL, strlen (returnBadURL) ,FW_Plugin->interfaceFile[SOCKET_1]);
+	sprintf (debs,"NPP_UrlNotify - writing %s (%lu bytes) to socket %d",
+		returnBadURL, (unsigned long int) strlen (returnBadURL) ,FW_Plugin->interfaceFile[SOCKET_1] );
 	print_here(debs);
 	NPN_Status(instance,"FreeWRL: NPP_URLNotify failed");
 
