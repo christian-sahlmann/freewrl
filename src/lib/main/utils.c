@@ -1,5 +1,5 @@
 /*
-  $Id: utils.c,v 1.11 2009/12/17 20:44:56 crc_canada Exp $
+  $Id: utils.c,v 1.12 2010/05/06 07:27:00 couannette Exp $
 
   General utility functions.
 
@@ -182,14 +182,18 @@ printf ("freewrlStrdup, before reservetable\n");
  */
 void Multi_String_print(struct Multi_String *url)
 {
-	if (url && url->p) {
-		int i;
+	if (url) {
+		if (!url->p) {
+			printf("multi url: <empty>");
+		} else {
+			int i;
 
-		printf("multi url: ");
-		for (i = 0; i < url->n; i++) {
-			struct Uni_String *s = url->p[i];
-			printf("[%d] %s", i, s->strptr);
+			printf("multi url: ");
+			for (i = 0; i < url->n; i++) {
+				struct Uni_String *s = url->p[i];
+				printf("[%d] %s", i, s->strptr);
+			}
 		}
+		printf("\n");
 	}
-	printf("\n");
 }

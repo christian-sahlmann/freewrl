@@ -1,3 +1,36 @@
+
+// from LoadTextures.c (may 2010 - MB - cleaning=
+
+
+/* LINUX */
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA)
+    Imlib_Image image;
+
+    image = imlib_load_image_immediately(filename);
+    if (!image) {
+	ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
+	return FALSE;
+    }
+    DEBUG_TEX("load_texture_from_file: Imlib2 succeeded to load image: %s\n", filename);
+
+    imlib_context_set_image(image);
+    imlib_image_flip_vertical(); /* FIXME: do we really need this ? */
+
+    /* store actual filename, status, ... */
+    this_tex->filename = filename;
+    this_tex->hasAlpha = (imlib_image_has_alpha() == 1);
+    this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
+
+    this_tex->frames = 1;
+    this_tex->x = imlib_image_get_width();
+    this_tex->y = imlib_image_get_height();
+
+    this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only(); 
+    return TRUE;
+#endif
+
+
+
 // from textureThread (OSX old code)
 
 #ifdef AQUA

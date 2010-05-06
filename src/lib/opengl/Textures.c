@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.60 2010/05/04 12:07:35 couannette Exp $
+  $Id: Textures.c,v 1.61 2010/05/06 07:27:00 couannette Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -308,8 +308,8 @@ void registerTexture(struct X3D_Node *tmp) {
 		(it->_nodeType == NODE_MovieTexture) || (it->_nodeType == NODE_VRML1_Texture2)) {
 
 		DEBUG_TEX("CREATING TEXTURE NODE: type %d url ", it->_nodeType);
-		/* Multi_String_print(&it->url); */
-		DEBUG_TEX("parent url: %s\n", it->_parentResource);
+		Multi_String_print(&it->url);
+		//DEBUG_TEX("parent url: %s\n", it->_parentResource);
 
 		if ((nextFreeTexture & 0x1f) == 0) {
 
@@ -1100,6 +1100,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 
 	switch (myTableIndex->status) {
 		case TEX_NOTLOADED:
+			DEBUG_TEX("feeding texture %p to texture thread...\n", myTableIndex);
 			send_texture_to_loader(myTableIndex);
 			break;
 

@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.41 2010/05/04 12:07:35 couannette Exp $
+  $Id: LoadTextures.c,v 1.42 2010/05/06 07:27:00 couannette Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -108,7 +108,7 @@ static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex,
 
 	ok = TRUE;
 
-printf ("start of texture_load_from_pixelTexture...\n");
+	DEBUG_TEX ("start of texture_load_from_pixelTexture...\n");
 
 	/* are there enough numbers for the texture? */
 	if (node->image.n < 3) {
@@ -119,7 +119,7 @@ printf ("start of texture_load_from_pixelTexture...\n");
 		hei = *iptr; iptr++;
 		depth = *iptr; iptr++;
 
-printf ("wid %d hei %d depth %d\n",wid,hei,depth);
+		DEBUG_TEX ("wid %d hei %d depth %d\n",wid,hei,depth);
 
 		if ((depth < 0) || (depth >4)) {
 			printf ("PixelTexture, depth %d out of range, assuming 1\n",(int) depth);
@@ -536,8 +536,13 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		resource_dump(parentPath);
 #endif
 		res = resource_create_multi(url);
-		res->media_type = resm_image; /* quick hack */
 
+		/* Setup parent */
+		resource_identify(parentPath, res);
+
+		/* Setup media type */
+		res->media_type = resm_image; /* quick hack */
+		
 		//resource_get_valid_url_from_multi(parentPath, res);
 
 		send_resource_to_parser(res);
@@ -597,13 +602,21 @@ static void texture_process_list(s_list_t *item)
 		remove_it = TRUE;
 		break;
 	}
-	
-	
+		
 	if (remove_it) {
+		/* Lock access to the resource list */
+		pthread_mutex_lock( &mutex_texture_list );
+		
+		/* wait around until we have been signalled */
+		pthread_cond_wait (&texture_list_condition, &mutex_texture_list);
+		
 		texture_dump_list();
 		
 		/* Remove the parsed resource from the list */
 		texture_list = ml_delete_self(texture_list, item);
+
+		/* Unlock the resource list */
+		pthread_mutex_unlock( &mutex_texture_list );
 	}
 }
 
@@ -634,11 +647,16 @@ void _textureThread()
 	/* we wait forever for the data signal to be sent */
 	for (;;) {
 		
-		/* Lock access to the resource list */
-		pthread_mutex_lock( &mutex_texture_list );
+		/*
+		  No need to lock here but later (deeper) 
+		  if we have to remove the item from the list
+		*/
 
-		/* wait around until we have been signalled */
-		pthread_cond_wait (&texture_list_condition, &mutex_texture_list);
+/* 		/\* Lock access to the resource list *\/ */
+/* 		pthread_mutex_lock( &mutex_texture_list ); */
+
+/* 		/\* wait around until we have been signalled *\/ */
+/* 		pthread_cond_wait (&texture_list_condition, &mutex_texture_list); */
 
 
 		TextureParsing = TRUE;
@@ -650,7 +668,7 @@ void _textureThread()
 		
 		TextureParsing = FALSE;
 		
-		/* Unlock the resource list */
-		pthread_mutex_unlock( &mutex_texture_list );
+/* 		/\* Unlock the resource list *\/ */
+/* 		pthread_mutex_unlock( &mutex_texture_list ); */
 	}
 }
