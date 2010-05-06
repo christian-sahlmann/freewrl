@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.49 2010/05/05 11:28:08 davejoubert Exp $
+  $Id: display.c,v 1.50 2010/05/06 00:40:24 davejoubert Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -131,6 +131,8 @@ int display_initialize()
 
 #endif
 
+	if (0 != screenWidth)  win_width  = screenWidth;
+	if (0 != screenHeight) win_height = screenHeight;
 	if (!create_main_window(0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
