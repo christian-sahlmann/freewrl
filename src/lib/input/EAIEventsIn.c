@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.59 2010/03/31 19:15:28 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.60 2010/05/09 16:13:33 davejoubert Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -58,6 +58,7 @@ Handle incoming EAI (and java class) events with panache.
 
 #include <ctype.h> /* FIXME: config armor */
 
+#define hasValidFIELDDEFS 0
 
 #define EAI_BUFFER_CUR EAIbuffer[bufPtr]
 
@@ -66,7 +67,9 @@ struct X3D_Anchor EAI_AnchorNode;
 int waiting_for_anchor = FALSE;
 
 void createLoadURL(char *bufptr);
+#if hasValidFIELDDEFS
 void makeFIELDDEFret(uintptr_t,char *buf,int c);
+#endif
 void handleRoute (char command, char *bufptr, char *buf, int repno);
 void handleGETNODE (char *bufptr, char *buf, int repno);
 void handleGETROUTES (char *bufptr, char *buf, int repno);
@@ -564,7 +567,7 @@ void EAI_parse_commands () {
 
 
 				for (rb = 0; rb < retGroup->children.n; rb++) {
-					sprintf (ctmp,"%ld ", retGroup->children.p[rb]);
+					sprintf (ctmp,"%ld ", (long int) retGroup->children.p[rb]);
 					strcat (buf,ctmp);
 				}
 
@@ -572,12 +575,14 @@ void EAI_parse_commands () {
 				break;
 				}
 
+#if hasValidFIELDDEFS
 			case GETFIELDDEFS: {
 				/* get a list of fields of this node */
 				sscanf (&EAI_BUFFER_CUR,"%u",(unsigned int *) &ra);
 				makeFIELDDEFret(ra,buf,count);
 				break;
 				}
+#endif
 
 			case GETNODEDEFNAME: {
 				/* return a def name for this node. */
@@ -837,7 +842,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	}
 }
 
-
+#if hasValidFIELDDEFS
 /* for a GetFieldTypes command for a node, we return a string giving the field types */
 
 void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
@@ -889,7 +894,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 		np += 5;
 	}
 }
-
+#endif
 
 
 /* EAI, replaceWorld. */
