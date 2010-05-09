@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.29 2010/05/05 11:21:48 davejoubert Exp $
+  $Id: pluginUtils.c,v 1.30 2010/05/09 15:55:25 davejoubert Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -423,7 +423,7 @@ void sendXwinToPlugin()
         XGetWindowAttributes(Xdpy,Xwin, &mywin);
         DEBUG_MSG("sendXwinToPlugin: sendXwin starting, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
 
-	DEBUG_MSG("sendXwinToPlugin: sending Xwin ID back to plugin - %d bytes\n",sizeof (Xwin));
+	DEBUG_MSG("sendXwinToPlugin: sending Xwin ID back to plugin - %lu bytes\n",sizeof (Xwin));
 
 	writeSizeThrowAway = write (_fw_pipe,&Xwin,sizeof(Xwin));
 	close (_fw_pipe);
