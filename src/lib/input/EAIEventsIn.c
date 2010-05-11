@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.60 2010/05/09 16:13:33 davejoubert Exp $
+$Id: EAIEventsIn.c,v 1.61 2010/05/11 00:09:24 davejoubert Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -58,8 +58,6 @@ Handle incoming EAI (and java class) events with panache.
 
 #include <ctype.h> /* FIXME: config armor */
 
-#define hasValidFIELDDEFS 0
-
 #define EAI_BUFFER_CUR EAIbuffer[bufPtr]
 
 /* used for loadURL */
@@ -67,9 +65,7 @@ struct X3D_Anchor EAI_AnchorNode;
 int waiting_for_anchor = FALSE;
 
 void createLoadURL(char *bufptr);
-#if hasValidFIELDDEFS
 void makeFIELDDEFret(uintptr_t,char *buf,int c);
-#endif
 void handleRoute (char command, char *bufptr, char *buf, int repno);
 void handleGETNODE (char *bufptr, char *buf, int repno);
 void handleGETROUTES (char *bufptr, char *buf, int repno);
@@ -225,7 +221,11 @@ void EAI_parse_commands () {
 			case GETNODETYPE: {
 				retint = sscanf(&EAI_BUFFER_CUR,"%d",(int *)(&cNode));
 				if (cNode != 0) {
+					/*
 					boxptr = X3D_NODE(cNode);
+					printf("Code using boxptr is suspect. %s,%d : cNode=%d -> boxptr=%d",__FILE__,__LINE__,cNode,boxptr) ;
+					*/
+        				boxptr = getEAINodeFromTable(cNode,-1);
 					sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,getSAI_X3DNodeType (
 						boxptr->_nodeType));
 				} else {
@@ -235,6 +235,7 @@ void EAI_parse_commands () {
 					
 				break;
 				}
+
 			case GETFIELDTYPE:  {
 				int xtmp;
 
@@ -575,14 +576,12 @@ void EAI_parse_commands () {
 				break;
 				}
 
-#if hasValidFIELDDEFS
 			case GETFIELDDEFS: {
 				/* get a list of fields of this node */
 				sscanf (&EAI_BUFFER_CUR,"%u",(unsigned int *) &ra);
 				makeFIELDDEFret(ra,buf,count);
 				break;
 				}
-#endif
 
 			case GETNODEDEFNAME: {
 				/* return a def name for this node. */
@@ -736,7 +735,11 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 	cptr= parser_getNameFromNode(myNode);
 	IGNORE_IF_FABRICATED_INTERNAL_NAME
 	if (cptr != NULL) {
-		sprintf (buf,"RE\n%f\n%d\n%s %s",TickTime,repno,myNT, cptr);
+		/* Only one of these is right ..... */
+		/* I think it is the first one, because we would have had to know tthe DEF name in the first place. */
+		/* sprintf (buf,"RE\n%f\n%d\n\\"%s\"",TickTime,repno,myNT); */
+		   sprintf (buf,"RE\n%f\n%d\n\"%s\" \"%s\"",TickTime,repno,myNT, cptr);
+		/* sprintf (buf,"RE\n%f\n%d\n\"%s\"",TickTime,repno, cptr); */
 		return;
 	}
 
@@ -842,7 +845,6 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	}
 }
 
-#if hasValidFIELDDEFS
 /* for a GetFieldTypes command for a node, we return a string giving the field types */
 
 void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
@@ -851,9 +853,9 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	int *np;
 	char myline[200];
 
-	boxptr = X3D_NODE(myptr);
-	
-	/* printf ("GETFIELDDEFS, node %d\n",boxptr); */
+	boxptr = getEAINodeFromTable(myptr,-1);
+
+	/* printf ("GETFIELDDEFS, node %u -> %p\n",myptr, boxptr); */
 
 	if (boxptr == 0) {
 		printf ("makeFIELDDEFret have null node here \n");
@@ -863,38 +865,53 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 
 	/* printf ("node type is %s\n",stringNodeType(boxptr->_nodeType)); */
 	
-
-
 	/* how many fields in this node? */
-	np = NODE_OFFSETS[boxptr->_nodeType];
+	np = (int *) NODE_OFFSETS[boxptr->_nodeType];
 	myc = 0;
 	while (*np != -1) {
+/*
+		printf("%s,%d ",__FILE__,__LINE__) ;
+		printf("Field %s , ", stringFieldType(np[0])) ;
+		printf("offset=%d bytes , ", np[1]) ;
+		printf("field_type= %c , ", (char) mapFieldTypeToEAItype(np[2])) ; */ /* See libeai/GeneratedHeaders.h */
+/*
+		printf("Routing=%s , ", stringKeywordType(np[3])) ;
+		printf("Spec=%d\n", np[4]) ;	*/	/* (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33) */
+
 		/* is this a hidden field? */
-		if (strcmp (FIELDNAMES[*np],"_") != 0) {
+		if (0 != strncmp(stringFieldType(np[0]), "_", 1) ) {
 			myc ++; 
 		}
-
 		np +=5;
-
 	}
 
 	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
 
-	sprintf (myline, "%d ",myc);
+/* AFAIK Mon May 10 21:04:48 BST 2010 The EAI no longer passes a count, nor array markers ([]) */
+/*
+	sprintf (myline, "%d [",myc);
 	strcat (buf, myline);
+*/
 
 	/* now go through and get the name, type, keyword */
-	np = NODE_OFFSETS[boxptr->_nodeType];
+	np = (int *) NODE_OFFSETS[boxptr->_nodeType];
 	while (*np != -1) {
-		if (strcmp (FIELDNAMES[*np],"_") != 0) {
+		/* if (strcmp (FIELDNAMES[*np],"_") != 0) { */
+		if (0 != strncmp(stringFieldType(np[0]), "_", 1) ) {
+			/*
 			sprintf (myline,"%s %c %s ",stringFieldType(np[0]), (char) mapFieldTypeToEAItype(np[2]), 
 				stringKeywordType(np[3]));
+			*/
+			sprintf (myline,"\"%s\" ",stringFieldType(np[0])) ;
 			strcat (buf, myline);
 		}
 		np += 5;
 	}
+/*
+	sprintf (myline, "]");
+	strcat (buf, myline);
+*/
 }
-#endif
 
 
 /* EAI, replaceWorld. */
