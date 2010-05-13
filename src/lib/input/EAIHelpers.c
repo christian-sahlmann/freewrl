@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.39 2010/05/06 16:34:17 davejoubert Exp $
+$Id: EAIHelpers.c,v 1.40 2010/05/13 17:17:11 davejoubert Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -59,6 +59,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
+#include "../world_script/fieldGet.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"

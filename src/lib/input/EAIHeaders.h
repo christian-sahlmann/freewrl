@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHeaders.h,v 1.12 2010/03/01 22:39:48 crc_canada Exp $
+$Id: EAIHeaders.h,v 1.13 2010/05/13 17:17:11 davejoubert Exp $
 
 EAI and java CLASS invocation
 
@@ -52,7 +52,7 @@ void EAI_killBindables (void);
 
 /* function prototypes */
 void EAIListener (void);
-void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
+/* void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf); now only in ../world_script/fieldGet.h*/
 unsigned int EAI_SendEvent (char *ptr);
 void EAI_RNewW(char *bufptr);
 void EAI_RW(char *bufptr);

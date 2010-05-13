@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.h,v 1.6 2010/03/01 22:39:49 crc_canada Exp $
+$Id: fieldGet.h,v 1.7 2010/05/13 17:17:11 davejoubert Exp $
 
 Javascript C language binding.
 
@@ -40,5 +40,6 @@ void set_EAI_MFElementtype (int num, int offset, char *pptr, int len);
 void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen);
 void setScriptMultiElementtype (int num);
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
+int UtilEAI_Convert_mem_to_ASCII (                    int type, char *memptr, char *buf);
 
 #endif /* __FREEWRL_FIELDGET_H__ */

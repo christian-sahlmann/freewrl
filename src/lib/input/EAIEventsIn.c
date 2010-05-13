@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.61 2010/05/11 00:09:24 davejoubert Exp $
+$Id: EAIEventsIn.c,v 1.62 2010/05/13 17:17:11 davejoubert Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -44,6 +44,7 @@ Handle incoming EAI (and java class) events with panache.
 #include "../vrml_parser/CParse.h"
 #include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
+#include "../world_script/fieldGet.h"
 
 #include "../input/EAIHeaders.h"
 #include "../world_script/fieldSet.h"
@@ -736,7 +737,7 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 	IGNORE_IF_FABRICATED_INTERNAL_NAME
 	if (cptr != NULL) {
 		/* Only one of these is right ..... */
-		/* I think it is the first one, because we would have had to know tthe DEF name in the first place. */
+		/* I think it is the first one, because we would have had to know the DEF name in the first place. */
 		/* sprintf (buf,"RE\n%f\n%d\n\\"%s\"",TickTime,repno,myNT); */
 		   sprintf (buf,"RE\n%f\n%d\n\"%s\" \"%s\"",TickTime,repno,myNT, cptr);
 		/* sprintf (buf,"RE\n%f\n%d\n\"%s\"",TickTime,repno, cptr); */
@@ -852,10 +853,18 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	int myc;
 	int *np;
 	char myline[200];
+	/* Used for heavy tracing with eaiverbose */
+	char *tmpptr;
+	int  dtmp;
+	char ctmp;
+	char utilBuf[EAIREADSIZE];
+	int errcount;
 
 	boxptr = getEAINodeFromTable(myptr,-1);
 
-	/* printf ("GETFIELDDEFS, node %u -> %p\n",myptr, boxptr); */
+	if (eaiverbose) {
+		printf ("GETFIELDDEFS, node %u -> %p\n",(unsigned int)myptr, boxptr);
+	}
 
 	if (boxptr == 0) {
 		printf ("makeFIELDDEFret have null node here \n");
@@ -863,23 +872,34 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 		return;
 	}
 
-	/* printf ("node type is %s\n",stringNodeType(boxptr->_nodeType)); */
+	printf ("node type is %s\n",stringNodeType(boxptr->_nodeType));
 	
-	/* how many fields in this node? */
+	/* Iterate over all the fields in the node */
 	np = (int *) NODE_OFFSETS[boxptr->_nodeType];
 	myc = 0;
 	while (*np != -1) {
-/*
-		printf("%s,%d ",__FILE__,__LINE__) ;
-		printf("Field %s , ", stringFieldType(np[0])) ;
-		printf("offset=%d bytes , ", np[1]) ;
-		printf("field_type= %c , ", (char) mapFieldTypeToEAItype(np[2])) ; */ /* See libeai/GeneratedHeaders.h */
-/*
-		printf("Routing=%s , ", stringKeywordType(np[3])) ;
-		printf("Spec=%d\n", np[4]) ;	*/	/* (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33) */
-
 		/* is this a hidden field? */
 		if (0 != strncmp(stringFieldType(np[0]), "_", 1) ) {
+			if (eaiverbose) {
+				ctmp = (char) mapFieldTypeToEAItype(np[2]) ;
+				dtmp = mapEAItypeToFieldType(ctmp) ;
+
+				tmpptr = offsetPointer_deref (char *, boxptr,np[1]);
+				printf("%s,%d ",__FILE__,__LINE__) ;
+				printf("Field %d %s , ", myc, stringFieldType(np[0])) ;
+				printf("offset=%d bytes , ", np[1]) ;
+
+				printf("field_type= %c (%d) , ", ctmp , dtmp) ;
+				printf("Routing=%s , ", stringKeywordType(np[3])) ;
+				printf("Spec=%d , ", np[4]) ;	
+
+				errcount = UtilEAI_Convert_mem_to_ASCII (dtmp,tmpptr, utilBuf);
+				if (0 == errcount) {
+					printf ("\t\tValue = %s\n",utilBuf);
+				} else {
+					printf ("\t\tValue = indeterminate....\n");
+				}
+			}
 			myc ++; 
 		}
 		np +=5;

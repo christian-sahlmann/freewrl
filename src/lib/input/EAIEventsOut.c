@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsOut.c,v 1.11 2010/03/22 17:07:16 crc_canada Exp $
+$Id: EAIEventsOut.c,v 1.12 2010/05/13 17:17:11 davejoubert Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -39,6 +39,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../main/headers.h"
 
 #include "../input/EAIHeaders.h"
+#include "../world_script/fieldGet.h"
 
 
 /*****************************************************************

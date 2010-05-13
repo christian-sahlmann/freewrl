@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.34 2010/03/22 15:14:48 crc_canada Exp $
+$Id: fieldGet.c,v 1.35 2010/05/13 17:17:11 davejoubert Exp $
 
 Javascript C language binding.
 
@@ -854,9 +854,24 @@ void setScriptMultiElementtype (int num)
 }
 
 /* convert a number in memory to a printable type. Used to send back EVents, or replies to
-   the Java client program. */
+   the SAI/EAI client program. */
 
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf) {
+
+	char utilBuf[EAIREADSIZE];
+	int errcount;
+
+	errcount = UtilEAI_Convert_mem_to_ASCII (type,memptr, utilBuf);
+	if (0 == errcount) {
+		sprintf (buf,"%s\n%f\n%d\n%s",reptype,TickTime,id, utilBuf);
+	} else {
+		sprintf (buf,"%s\n%f\n%d\n%s",reptype,TickTime,id, "indeterminate....");
+	}
+}
+
+/* Utility routine to convert a value in memory to a printable type. */
+
+int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Returns errcount */
 
 	double dval;
 	float fl[4];
@@ -874,96 +889,99 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	char *retSFString;
 
 	int numPerRow;			/* 1, 2, 3 or 4 floats per row of this MF? */
-	int i;
+	int i, errcount;
 
 	/* used because of endian problems... */
 	int *intptr;
 	intptr = (int *) memptr;
 
+/* printf("%s,%d UtilEAI_Convert_mem_to_ASCII (type=%d , memptr=%p intptr=%p ....)\n",__FILE__,__LINE__,type,memptr,intptr); */
+
+	errcount=0;
 	switch (type) {
 		case FIELDTYPE_SFBool: 	{
 			if (eaiverbose) { 
-			printf ("EAI_SFBOOL - value %d; TRUE %d false %d\n",*intptr,TRUE,FALSE);
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFBOOL - value %d; TRUE %d false %d\n",*intptr,TRUE,FALSE);
 			}
 
-			if (*intptr == 1) sprintf (buf,"%s\n%f\n%d\nTRUE",reptype,TickTime,id);
-			else sprintf (buf,"%s\n%f\n%d\nFALSE",reptype,TickTime,id);
+			if (*intptr == 1) sprintf (buf,"TRUE");
+			else sprintf (buf,"FALSE");
 			break;
 		}
 
 		case FIELDTYPE_SFTime:	{
 			if (eaiverbose) { 
-			printf ("EAI_SFTIME\n");
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFTIME\n");
 			}
 			memcpy(&dval,memptr,sizeof(double));
-			sprintf (buf, "%s\n%f\n%d\n%lf",reptype,TickTime,id,dval);
+			sprintf (buf, "%lf",dval);
 			break;
 		}
 
 		case FIELDTYPE_SFInt32:	{
 			if (eaiverbose) { 
-			printf ("EAI_SFINT32\n");
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFINT32\n");
 			}
 			memcpy(&ival,memptr,sizeof(int));
-			sprintf (buf, "%s\n%f\n%d\n%d",reptype,TickTime,id,ival);
+			sprintf (buf, "%d",ival);
 			break;
 		}
 
 		case FIELDTYPE_SFNode:	{
 			if (eaiverbose) { 
-			printf ("EAI_SFNODE\n");
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFNODE\n");
 			}
 			memcpy((void *)&uval,(void *)memptr,sizeof(void *));
-			sprintf (buf, "%s\n%f\n%d\n%u",reptype,TickTime,id,registerEAINodeForAccess(X3D_NODE(uval)));
+			sprintf (buf, "%u",registerEAINodeForAccess(X3D_NODE(uval)));
 			break;
 		}
 
 		case FIELDTYPE_SFFloat:	{
 			if (eaiverbose) { 
-			printf ("EAI_SFFLOAT\n");
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFFLOAT\n");
 			}
 
 			memcpy(fl,memptr,sizeof(float));
-			sprintf (buf, "%s\n%f\n%d\n%f",reptype,TickTime,id,fl[0]);
+			sprintf (buf, "%f",fl[0]);
 			break;
 		}
 
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFColor:	{
 			if (eaiverbose) { 
-			printf ("EAI_SFCOLOR or EAI_SFVEC3F\n");
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFCOLOR or EAI_SFVEC3F\n");
 			}
 			memcpy(fl,memptr,sizeof(float)*3);
-			sprintf (buf, "%s\n%f\n%d\n%f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2]);
+			sprintf (buf, "%f %f %f",fl[0],fl[1],fl[2]);
 			break;
 		}
 
 		case FIELDTYPE_SFVec3d:	{
 			if (eaiverbose) { 
-			printf ("EAI_SFVEC3D\n");
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFVEC3D\n");
 			}
 			memcpy(dl,memptr,sizeof(double)*3);
-			sprintf (buf, "%s\n%f\n%d\n%lf %lf %lf",reptype,TickTime,id,dl[0],dl[1],dl[2]);
+			sprintf (buf, "%lf %lf %lf",dl[0],dl[1],dl[2]);
 			break;
 		}
 
 		case FIELDTYPE_SFVec2f:	{
 			if (eaiverbose) { 
-			printf ("EAI_SFVEC2F\n");
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFVEC2F\n");
 			}
 			memcpy(fl,memptr,sizeof(float)*2);
-			sprintf (buf, "%s\n%f\n%d\n%f %f",reptype,TickTime,id,fl[0],fl[1]);
+			sprintf (buf, "%f %f",fl[0],fl[1]);
 			break;
 		}
 
 		case FIELDTYPE_SFColorRGBA:
 		case FIELDTYPE_SFRotation:	{
 			if (eaiverbose) { 
-			printf ("EAI_SFROTATION\n");
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFROTATION\n");
 			}
 
 			memcpy(fl,memptr,sizeof(float)*4);
-			sprintf (buf, "%s\n%f\n%d\n%f %f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2],fl[3]);
+			sprintf (buf, "%f %f %f %f",fl[0],fl[1],fl[2],fl[3]);
 			break;
 		}
 
@@ -972,7 +990,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			uintptr_t *xx;
 
 			if (eaiverbose) { 
-			printf ("EAI_SFSTRING\n");
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFSTRING\n");
 			}
 
 			/* get the pointer to the string, do this in a couple of steps... */
@@ -981,30 +999,29 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			svptr = (struct Uni_String *) *xx;
 
 			retSFString = (char *)svptr->strptr; 
-			sprintf (buf, "%s\n%f\n%d\n\"%s\"",reptype,TickTime,id,retSFString);
+			sprintf (buf, "\"%s\"",retSFString);
 			break;
 		}
 
 		case FIELDTYPE_MFString:	{
 			if (eaiverbose) { 
-			printf ("EAI_MFSTRING\n");
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_MFSTRING\n");
 			}
 
 			/* make the Multi_String pointer */
 			MSptr = (struct Multi_String *) memptr;
 
-			/* printf ("EAI_MFString, there are %d strings\n",(*MSptr).n);*/
-			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
+			/* printf ("UtilEAI_Convert_mem_to_ASCII: EAI_MFString, there are %d strings\n",(*MSptr).n);*/
 			ptr = buf + strlen(buf);
 
 			for (row=0; row<(*MSptr).n; row++) {
-        	        	/* printf ("String %d is %s\n",row,(*MSptr).p[row]->strptr);*/
+        	        	/* printf ("UtilEAI_Convert_mem_to_ASCII: String %d is ",row,(*MSptr).p[row]->strptr);*/
 				if (strlen ((*MSptr).p[row]->strptr) == 0) {
 					sprintf (ptr, "\"\" "); /* encode junk for Java side.*/
 				} else {
 					sprintf (ptr, "\"%s\" ",(*MSptr).p[row]->strptr);
 				}
-				/* printf ("buf now is %s\n",buf);*/
+				/* printf ("UtilEAI_Convert_mem_to_ASCII: buf now is ",buf);*/
 				ptr = buf + strlen (buf);
 			}
 
@@ -1015,10 +1032,9 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			MNptr = (struct Multi_Node *) memptr;
 
 			if (eaiverbose) { 
-			printf ("EAI_Convert_mem_to_ASCII: EAI_MFNode, there are %d nodes at %p\n",(*MNptr).n,memptr);
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_MFNode, there are %d nodes at %p\n",(*MNptr).n,memptr);
 			}
 
-			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
 			ptr = buf + strlen(buf);
 
 			for (row=0; row<(*MNptr).n; row++) {
@@ -1031,17 +1047,17 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		case FIELDTYPE_MFInt32: {
 			MCptr = (struct Multi_Color *) memptr;
 			if (eaiverbose) { 
-				printf ("EAI_MFColor, there are %d nodes at %p\n",(*MCptr).n,memptr);
+				printf ("UtilEAI_Convert_mem_to_ASCII: EAI_MFColor, there are %d nodes at %p\n",(*MCptr).n,memptr);
 			}
 
-			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
+			sprintf (buf, "%d \n",(*MCptr).n);
 			ptr = buf + strlen(buf);
 
 			ip = (int *) (*MCptr).p;
 			for (row=0; row<(*MCptr).n; row++) {
 				sprintf (ptr, "%d \n",*ip); 
 				ip++;
-				/* printf ("line %d is %s\n",row,ptr);  */
+				/* printf ("UtilEAI_Convert_mem_to_ASCII: line %d is ",row,ptr);  */
 				ptr = buf + strlen (buf);
 			}
 
@@ -1062,10 +1078,10 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 			MCptr = (struct Multi_Color *) memptr;
 			if (eaiverbose) { 
-				printf ("EAI_MFColor, there are %d nodes at %p\n",(*MCptr).n,memptr);
+				printf ("UtilEAI_Convert_mem_to_ASCII: EAI_MFColor, there are %d nodes at %p\n",(*MCptr).n,memptr);
 			}
 
-			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
+			sprintf (buf, "%d \n",(*MCptr).n);
 			ptr = buf + strlen(buf);
 
 
@@ -1084,18 +1100,20 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 					case 4:
 						sprintf (ptr, "%f %f %f %f \n",fl[0],fl[1],fl[2],fl[3]); break;
 				}
-				/* printf ("line %d is %s\n",row,ptr); */
+				/* printf ("UtilEAI_Convert_mem_to_ASCII: line %d is ",row,ptr); */
 				ptr = buf + strlen (buf);
 			}
 
 			break;
 		}
 		default: {
-			printf ("EAI, type %s not handled yet\n",stringFieldtypeType (type));
+			errcount++;
+			printf ("UtilEAI_Convert_mem_to_ASCII: EAI, type %d (%s) not handled yet\n",type,stringFieldtypeType (type));
 		}
 
 
 /*XXX	case EAI_MFTIME:	{handleptr = &handleEAI_MFTIME_Listener;break;}*/
 	}
+	return errcount ;
 }
 
