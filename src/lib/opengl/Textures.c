@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.61 2010/05/06 07:27:00 couannette Exp $
+  $Id: Textures.c,v 1.62 2010/05/14 16:35:46 couannette Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1111,11 +1111,11 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 
 		case TEX_NEEDSBINDING:
 			DEBUG_TEX("texture loaded into memory... now lets load it into OpenGL...\n");
-                	move_texture_to_opengl(myTableIndex); 
+			move_texture_to_opengl(myTableIndex);
 			break;
 
 		case TEX_LOADED:
-			DEBUG_TEX("now binding to pre-bound tex %u\n", myTableIndex->OpenGLTexture);
+			//DEBUG_TEX("now binding to pre-bound tex %u\n", myTableIndex->OpenGLTexture);
 	
 			/* set the texture depth - required for Material diffuseColor selection */
 			if (myTableIndex->hasAlpha) last_texture_type =  TEXTURE_ALPHA;
