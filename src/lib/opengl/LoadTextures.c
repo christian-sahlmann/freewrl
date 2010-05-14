@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.42 2010/05/06 07:27:00 couannette Exp $
+  $Id: LoadTextures.c,v 1.43 2010/05/14 16:37:55 couannette Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -553,14 +553,17 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 #endif // no texture struct here !
 
 		if (res->status == ress_loaded) {
-			/* Cool :) */
-			DEBUG_TEX("%s texture loaded (file downloaded and loaded into memory): we should create the OpenGL texture...\n", res->request);
+
 			res->complete = TRUE;
-			entry->status = TEX_NEEDSBINDING; /* tell the texture thread to convert data to OpenGL-format */
-			/* file loaded, copy texdata into tex struct */
-			/*FIXME: load file from resource openned file or free it */
+
 			DEBUG_TEX("really loading texture data from %s into %p\n", res->actual_file, entry);
-			texture_load_from_file(entry, res->actual_file);
+
+			if (texture_load_from_file(entry, res->actual_file)) {
+				entry->status = TEX_NEEDSBINDING; /* tell the texture thread to convert data to OpenGL-format */
+			} else {
+				ERROR_MSG("can't load texture: %s (%p)\n", res->actual_file, entry);
+				return FALSE;
+			}
 			return TRUE;
 		}
 
@@ -651,14 +654,6 @@ void _textureThread()
 		  No need to lock here but later (deeper) 
 		  if we have to remove the item from the list
 		*/
-
-/* 		/\* Lock access to the resource list *\/ */
-/* 		pthread_mutex_lock( &mutex_texture_list ); */
-
-/* 		/\* wait around until we have been signalled *\/ */
-/* 		pthread_cond_wait (&texture_list_condition, &mutex_texture_list); */
-
-
 		TextureParsing = TRUE;
 		
 		/* Process all resource list items, whatever status they may have */
@@ -667,8 +662,5 @@ void _textureThread()
 		}
 		
 		TextureParsing = FALSE;
-		
-/* 		/\* Unlock the resource list *\/ */
-/* 		pthread_mutex_unlock( &mutex_texture_list ); */
 	}
 }
