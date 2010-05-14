@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.15 2010/05/14 16:18:11 couannette Exp $
+  $Id: threads.c,v 1.16 2010/05/14 17:54:15 dug9 Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -168,36 +168,11 @@ int fw_thread_id()
 
 	current_thread = pthread_self();
 
-#if 0 /* Doug: if this file compiles with MS you can wipe out the specific block */
-
-/* #ifdef _MSC_VER */
+#ifdef _MSC_VER 
 	if (!current_thread.p) {
-		ERROR_MSG("Critical: pthread_self returned 0\n");
-		return 0;
-	}
-
-	if (current_thread.p == mainThread.p)
-		return 1;
-
-	if (current_thread.p == DispThrd.p)
-		return 2;
-
-	if (current_thread.p == PCthread.p)
-		return 4;
-
-	if (current_thread.p == loadThread.p)
-		return 5;
-
-#ifdef DO_MULTI_OPENGL_THREADS
-	if (current_thread.p == shapeThread.p)
-		return 4;
-#endif
-
-/* #else */
-
-#endif /* end of _MSC_VER block */
-
+#else
 	if (!current_thread) {
+#endif
 		ERROR_MSG("Critical: pthread_self returned 0\n");
 		return 0;
 	}

@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.17 2010/05/05 09:00:35 davejoubert Exp $
+  $Id: io_files.c,v 1.18 2010/05/14 17:54:14 dug9 Exp $
 
   FreeWRL support library.
   IO with files.
@@ -112,9 +112,11 @@ char *get_current_dir()
 			size_t ll;
 			ll = strlen(cwd);
 #ifdef _MSC_VER
-			size_t jj;
-			for( jj=0;jj<ll;jj++)
-				if(cwd[jj] == '\\' ) cwd[jj] = '/';
+			{
+				size_t jj;
+				for( jj=0;jj<ll;jj++)
+					if(cwd[jj] == '\\' ) cwd[jj] = '/';
+			}
 #endif
 			cwd[ll] = '/';  /* put / ending to match posix version which puts local file name on end*/
 			cwd[ll+1] = '\0';
