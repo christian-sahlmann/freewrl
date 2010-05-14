@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.14 2010/02/23 00:44:11 dug9 Exp $
+  $Id: threads.c,v 1.15 2010/05/14 16:18:11 couannette Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -36,14 +36,45 @@
 
 #include <errno.h>
 
+#ifdef FREEWRL_THREAD_COLORIZED
+
+/* Notes on thread ids and colors
+
+   We have 5 threads max: main, display, parse, texture and shape.
+   Each has its thread variable (pthread_t), it's number (1 through 5).
+
+   Each thead has a "name" now (FREEWRL_THREAD_*).
+
+   Now we associate a color for each thread in thread_colors[].
+   The color is an ANSI color code for console output.
+
+   In internal.h/c the code for console output is modified to use
+   the thread color ([F]PRINTF gets the thread id with fw_thread_id()
+   and gets the thread color from the array thread_colors through the 
+   fw_thread_color() function).
+
+*/
+
+static int threads_colors[FREEWRL_MAX_THREADS] = {
+	32, /* main thread is green */
+	36, /* display thread is cyan */
+	35, /* parser thread is purple */
+	33, /* texture thread is brown */
+	34, /* shape thread is blue */
+	/* red color is reserved for important threading functions */
+};
+#define FREEWRL_DEFAULT_COLOR 37 /* white */
+
+#endif /* FREEWRL_THREAD_COLORIZED */
+
 /* Thread global variables */
-pthread_t mainThread;
+pthread_t mainThread; /* main (default) thread */
 
-DEF_THREAD(DispThrd);
+DEF_THREAD(DispThrd); /* display thread */
 
-DEF_THREAD(PCthread);
+DEF_THREAD(PCthread); /* parser thread */
 
-DEF_THREAD(loadThread);
+DEF_THREAD(loadThread); /* texture thread */
 
 /* Thread synchronization global variables */
 
@@ -136,7 +167,10 @@ int fw_thread_id()
 	pthread_t current_thread;
 
 	current_thread = pthread_self();
-#ifdef _MSC_VER
+
+#if 0 /* Doug: if this file compiles with MS you can wipe out the specific block */
+
+/* #ifdef _MSC_VER */
 	if (!current_thread.p) {
 		ERROR_MSG("Critical: pthread_self returned 0\n");
 		return 0;
@@ -159,31 +193,48 @@ int fw_thread_id()
 		return 4;
 #endif
 
-#else
+/* #else */
+
+#endif /* end of _MSC_VER block */
+
 	if (!current_thread) {
 		ERROR_MSG("Critical: pthread_self returned 0\n");
 		return 0;
 	}
 
-	if (current_thread == mainThread)
-		return 1;
+	if (pthread_equal(current_thread, mainThread))
+		return FREEWRL_THREAD_MAIN;
 
-	if (current_thread == DispThrd)
-		return 2;
+	if (pthread_equal(current_thread, DispThrd))
+		return FREEWRL_THREAD_DISPLAY;
 
-	if (current_thread == PCthread)
-		return 4;
+	if (pthread_equal(current_thread, PCthread))
+		return FREEWRL_THREAD_PARSER;
 
-	if (current_thread == loadThread)
-		return 5;
+	if (pthread_equal(current_thread, loadThread))
+		return FREEWRL_THREAD_TEXTURE;
 
 #ifdef DO_MULTI_OPENGL_THREADS
-	if (current_thread == shapeThread)
-		return 4;
+	if (pthread_equal(current_thread, shapeThread))
+		return FREEWRL_THREAD_SHAPE;
 #endif
-#endif
+
+/*#endif*/
 	return -1;
 }
+
+#ifdef FREEWRL_THREAD_COLORIZED
+
+int fw_thread_color(int thread_id)
+{
+	/* id will range from 1 to 5 */
+	if ((thread_id > 0) && (thread_id <= FREEWRL_MAX_THREADS)) {
+		return threads_colors[ thread_id - 1 ];
+	}
+	return FREEWRL_DEFAULT_COLOR;
+}
+
+#endif /* FREEWRL_THREAD_COLORIZED */
 
 void fw_thread_dump()
 {

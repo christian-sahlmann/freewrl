@@ -1,5 +1,5 @@
 /*
-  $Id: threads.h,v 1.6 2009/11/26 20:41:44 crc_canada Exp $
+  $Id: threads.h,v 1.7 2010/05/14 16:18:10 couannette Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -29,6 +29,7 @@
 #ifndef __LIBFREEWRL_THREADS_H__
 #define __LIBFREEWRL_THREADS_H__
 
+
 #ifdef _MSC_VER
 #include <system_threads.h>
 #endif
@@ -45,17 +46,25 @@ int freewrlSystem(const char *string);
  *   5: texture loader
  */
 
-extern pthread_t mainThread;
+#define FREEWRL_MAX_THREADS 5
 
-extern pthread_t DispThrd;
+#define FREEWRL_THREAD_MAIN 1
+#define FREEWRL_THREAD_DISPLAY 2
+#define FREEWRL_THREAD_PARSER 3
+#define FREEWRL_THREAD_TEXTURE 4
 
 #ifdef DO_MULTI_OPENGL_THREADS
-extern pthread_t shapeThread;
+#define FREEWRL_THREAD_SHAPE 5
 #endif
 
-extern pthread_t PCthread;
+extern pthread_t mainThread; /* main (default) thread */
+extern pthread_t DispThrd;   /* display thread */
+extern pthread_t PCthread;   /* parser thread */
+extern pthread_t loadThread; /* texture thread */
+#ifdef DO_MULTI_OPENGL_THREADS
+extern pthread_t shapeThread; /* shape (geometry) thread */
+#endif
 
-extern pthread_t loadThread;
 /**
  *   Gather here all functions that create threads 
  */
@@ -76,6 +85,9 @@ void _textureThread();
 int isTextureinitialized();
 
 int fw_thread_id();
+#ifdef FREEWRL_THREAD_COLORIZED
+int fw_thread_color(int thread_id);
+#endif
 void fw_thread_dump();
 
 #define ENTER_THREAD(_str) trace_enter_thread(_str)

@@ -1,5 +1,5 @@
 /*
-  $Id: internal.c,v 1.15 2010/03/30 19:15:44 crc_canada Exp $
+  $Id: internal.c,v 1.16 2010/05/14 16:18:11 couannette Exp $
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always
@@ -30,11 +30,16 @@
 #include <config.h>
 #include <system.h>
 #include <internal.h>
-
 #include <libFreeWRL.h>
+#include <threads.h>
 
-#include <stdarg.h>
-#include <errno.h>
+#if defined(HAVE_STDARG_H)
+# include <stdarg.h>
+#endif
+
+#if defined(HAVE_ERRNO_H)
+# include <errno.h>
+#endif
 
 #if !defined(HAVE_STRNLEN)
 
@@ -69,8 +74,6 @@ char *__fw_strndup(const char *s, size_t n)
 
 #if !defined(HAVE_GETTIMEOFDAY)
 
-#include <time.h>
-     
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
@@ -126,15 +129,18 @@ void fw_perror(FILE *f, const char *format, ...)
     vfprintf(f, format, ap);
     va_end(ap);
 
-#ifndef AQUA
-    //fprintf(f, "[System error: %s]\n", strerror(e));
+#ifdef HAVE_STRERROR
+    FPRINTF(f, "[System error: %s]\n", strerror(e));
 #else
-    fprintf(f, "[System error: %d]\n", e);
+    FPRINTF(f, "[System error: %d]\n", e);
 #endif
     fflush(f);
 }
 
-/* This can be extended ... */
+/* == Lib FreeWRL parameters ==
+   This can be extended ... 
+*/
+
 freewrl_params_t fw_params = {
 	/* width */          800,
 	/* height */         600,
@@ -144,12 +150,6 @@ freewrl_params_t fw_params = {
 	/* eai */            TRUE,
 	/* verbose */        FALSE,
 };
-
-/*
-moved out of here because the OSX native code does not use main.c JohnS.
-
-moved here. Michel.
-*/
 
 /* Global FreeWRL options (will become profiles ?) */
 
@@ -161,3 +161,44 @@ bool global_print_opengl_errors = FALSE;
 bool global_trace_threads = FALSE;
 bool global_use_shaders_when_possible = FALSE;
 
+#ifdef FREEWRL_THREAD_COLORIZED
+
+/* == Interal printf and fprintf function to output colors ==
+   See threads.c for details.
+*/
+
+int printf_with_colored_threads(const char *format, ...)
+{
+	int ret;
+	va_list args;
+	va_start( args, format );
+
+	printf("\033[22;%im", fw_thread_color(fw_thread_id()));
+	
+	ret = vprintf( format, args );
+
+	printf("\033[22;%im", 39 /* Default color */);
+
+	va_end( args );
+
+	return ret;
+}
+
+int fprintf_with_colored_threads(FILE *stream, const char *format, ...)
+{
+	int ret;
+	va_list args;
+	va_start( args, format );
+
+	fprintf(stream, "\033[22;%im", fw_thread_color(fw_thread_id()));
+	
+	ret = vfprintf( stream, format, args );
+
+	fprintf(stream, "\033[22;%im", 39 /* Default color */);
+
+	va_end( args );
+
+	return ret;
+}
+
+#endif

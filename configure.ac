@@ -58,7 +58,7 @@ export PKG_CONFIG_PATH=$srcdir:$PKG_CONFIG_PATH
 
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([ctype.h dirent.h errno.h fcntl.h getopt.h math.h signal.h sched.h stdbool.h stdio.h stdint.h stdlib.h string.h sys/ioctl.h sys/ipc.h sys/msg.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/wait.h time.h unistd.h limits.h])
+AC_CHECK_HEADERS([ctype.h dirent.h errno.h fcntl.h getopt.h math.h signal.h sched.h stdarg.h stdbool.h stdio.h stdint.h stdlib.h string.h sys/ioctl.h sys/ipc.h sys/msg.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/wait.h time.h unistd.h limits.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIGNAL
@@ -71,7 +71,7 @@ AC_HEADER_STDBOOL
 AC_FUNC_FORK
 AC_PROG_GCC_TRADITIONAL
 dnl AC_FUNC_MALLOC
-AC_CHECK_FUNCS([strchr strrchr strdup strndup getopt getopt_long getopt_long_only malloc calloc realloc usleep gettimeofday])
+AC_CHECK_FUNCS([strchr strrchr strdup strndup strerror getopt getopt_long getopt_long_only malloc calloc realloc usleep gettimeofday])
 
 
 # ====================================================
@@ -104,6 +104,9 @@ AM_CONDITIONAL([OS_MAC],[test "$os_type" = "mac"])
 
 AC_MY_DEFINE_SWITCH([debug],[enable debugging (default=off)],off,FW_DEBUG)
 AM_CONDITIONAL([FW_DEBUG],[test "$sw_debug" != no])
+
+# debug feature: colorized threads
+AC_MY_DEFINE_SWITCH([thread_colorized],[enable colorized thread console output (default=off)],off,FREEWRL_THREAD_COLORIZED)
 
 # Fonts configuration
 AC_ARG_WITH([fontsdir],
