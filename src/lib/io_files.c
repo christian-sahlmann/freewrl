@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.18 2010/05/14 17:54:14 dug9 Exp $
+  $Id: io_files.c,v 1.19 2010/05/16 10:00:12 couannette Exp $
 
   FreeWRL support library.
   IO with files.
@@ -213,7 +213,7 @@ void of_dump(openned_file_t *of)
 	if (of->text) {
 		strncpy(first_ten, of->text, 10);
 	}
-	printf("{%s, %d, %s%s}\n", of->filename, of->fd, (of->text ? &first_ten : "(null)"), (of->text ? "..." : ""));
+	printf("{%s, %d, %s%s}\n", of->filename, of->fd, (of->text ? first_ten : "(null)"), (of->text ? "..." : ""));
 }
 
 /**
