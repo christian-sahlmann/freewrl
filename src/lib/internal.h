@@ -1,5 +1,5 @@
 /*
-  $Id: internal.h,v 1.34 2010/05/14 16:18:11 couannette Exp $
+  $Id: internal.h,v 1.35 2010/05/16 09:40:37 couannette Exp $
 
   FreeWRL support library.
   Library internal declarations.
@@ -228,6 +228,12 @@ void fw_perror(FILE *f, const char *format, ...);
 #define DEBUG_ARGS(...) DEBUG_(PRINTF("TEXT: " __VA_ARGS__))
 #else
 #define DEBUG_ARGS(...)
+#endif
+
+#ifdef XEVENT_VERBOSE
+#define DEBUG_XEV(...) DEBUG_(PRINTF("XEV: " __VA_ARGS__))
+#else
+#define DEBUG_XEV(...)
 #endif
 
 /**
