@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.122 2010/05/05 12:52:04 davejoubert Exp $
+  $Id: MainLoop.c,v 1.123 2010/05/16 09:43:13 couannette Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -362,6 +362,7 @@ void EventLoop() {
                                 /* printf ("handling key %c\n",*keypress_string); */
 #if !defined( AQUA ) && !defined( WIN32 )  /*win32 - don't know whats it is suppsoed to do yet */
 
+				DEBUG_XEV("CMD LINE GEN EVENT: %c\n", *keypress_string);
                                 do_keyPress(*keypress_string,KeyPress);
 #endif
                                 keypress_string++;
@@ -380,6 +381,7 @@ void EventLoop() {
 	/* We are running our own bare window */
 	while (XPending(Xdpy)) {
 	    XNextEvent(Xdpy, &event);
+	    DEBUG_XEV("EVENT through XNextEvent\n");
 	    handle_Xevents(event);
 	}
 #endif
@@ -427,6 +429,7 @@ void EventLoop() {
 		XtDispatchEvent (&event);
 	    }
 #else // clean implementation
+	    DEBUG_XEV("EVENT through XtDispatchEvent\n");
 	    XtDispatchEvent (&event);
 #endif
 	}
@@ -832,6 +835,7 @@ void handle_Xevents(XEvent event) {
                         /* doubt that this is necessary */
                         buf[0]=(char)ks;buf[1]='\0';
 
+			DEBUG_XEV("Key type = %s\n", (event.type == KeyPress ? "KEY PRESS" : "KEY  RELEASE"));
                         do_keyPress((char)ks,event.type);
                         break;
 
