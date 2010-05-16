@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.31 2010/05/03 15:51:18 couannette Exp $
+  $Id: resources.c,v 1.32 2010/05/16 10:01:28 couannette Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -1030,4 +1030,9 @@ static void possiblyUnzip (openned_file_t *of) {
 		unlink (tempname);
 	}
 #endif
+}
+
+bool resource_is_root_loaded()
+{
+	return ((root_res != NULL) && (root_res->status == ress_parsed));
 }

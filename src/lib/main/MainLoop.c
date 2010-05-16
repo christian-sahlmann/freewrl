@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.123 2010/05/16 09:43:13 couannette Exp $
+  $Id: MainLoop.c,v 1.124 2010/05/16 10:01:28 couannette Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -100,8 +100,6 @@ typedef struct
 
 #include "MainLoop.h"
 
-#define IS_WORLD_LOADED ((root_res != NULL) && (root_res->status == ress_parsed))
-/* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */
 
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;
@@ -293,7 +291,7 @@ void EventLoop() {
 
 
         DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
-		     BOOL_STR(isinputThreadParsing()), BOOL_STR(IS_WORLD_LOADED));
+		     BOOL_STR(isinputThreadParsing()), BOOL_STR(resource_is_root_loaded()));
 
         /* should we do events, or maybe a parser is parsing? */
         doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && isInputThreadInitialized();

@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.63 2010/05/05 12:52:04 davejoubert Exp $
+  $Id: ProdCon.c,v 1.64 2010/05/16 10:01:28 couannette Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -154,9 +154,6 @@ static int inputParseInitialized=FALSE;
 
 /* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
 int inputThreadParsing=FALSE;
-
-/* Initial URL loaded -- MB res API */
-#define IS_WORLD_LOADED ((root_res != NULL) && (root_res->status == ress_parsed))
 
 /* /\* Is the initial URL loaded ? Robert Sim *\/ */
 /* int URLLoaded = FALSE; */

@@ -1,5 +1,5 @@
 /*
-  $Id: resources.h,v 1.14 2010/05/03 15:51:18 couannette Exp $
+  $Id: resources.h,v 1.15 2010/05/16 10:01:28 couannette Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -190,6 +190,9 @@ void resource_tree_dump(int level, resource_item_t *root);
 char *resourceStatusToString(int status);
 char *resourceTypeToString(int type);
 char *resourceMediaTypeToString(int type);
+
+/* Initial URL loaded : replace IS_WORLD_LOADED */
+extern bool resource_is_root_loaded();
 
 
 #endif /* __LIBFREEWRL_RESOURCES_H__ */
