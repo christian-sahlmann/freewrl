@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.17 2010/05/05 13:01:57 davejoubert Exp $
+  $Id: fwMotifWindow.c,v 1.18 2010/05/16 09:44:05 couannette Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -181,6 +181,7 @@ void DrawArea_events (Widget w, XtPointer unused, XEvent *event, Boolean *cont)
 #endif
 
     /* This event should be passed to FreeWRL (MainLoop) control */
+    DEBUG_XEV("EVENT through MOTIF\n");
     handle_Xevents(*event);
 }
 
@@ -931,7 +932,6 @@ void createDrawingFrame(void)
 #endif
 
     XtAddCallback (freewrlDrawArea, XmNresizeCallback, GLArearesize, NULL);
-    XtAddCallback (freewrlDrawArea, XmNinputCallback, GLAreainput, NULL);
 
     myXtManageChild(27,freewrlDrawArea);
 
