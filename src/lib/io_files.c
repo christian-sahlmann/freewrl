@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.20 2010/05/17 08:49:19 couannette Exp $
+  $Id: io_files.c,v 1.21 2010/05/17 08:53:53 couannette Exp $
 
   FreeWRL support library.
   IO with files.
@@ -86,7 +86,7 @@ char* concat_path(const char *a, const char *b)
 	lb = strlen(b);
 
 	if (a[la-1] == '/') {
-		tmp = MALLOC(la + lb + 1); /* why 2? room for the slash and the trailing NULL */
+		tmp = MALLOC(la + lb + 1); /* why 1? room for the trailing NULL */
 		sprintf(tmp, "%s%s", a, b);
 	} else {
 		tmp = MALLOC(la + lb + 2); /* why 2? room for the slash and the trailing NULL */
