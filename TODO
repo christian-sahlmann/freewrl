@@ -1,5 +1,14 @@
 Priority list
 
+From Greg Roelofs:
+	1) fix for non-convex "window" bug; (see below)
+	2) fix for lighting model (texture/material/transparency composition); 
+	3) configurable keys for Fly mode; 
+	4) maybe some simple window chrome to select Walk/Fly/Examine mode.  
+	5) It would be cool if the old Cosmo-style grab-and-fling spin mode worked, too.  That
+     	   was very handy for looking at buildings and stuff.
+
+
 For 1.22.8 release:
 9) Shaders - Viewpoint moves position - is the matrix initialized? Projection Matrix issues.
 
