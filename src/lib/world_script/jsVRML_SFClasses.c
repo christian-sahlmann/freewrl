@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.30 2010/05/06 16:06:09 davejoubert Exp $
+  $Id: jsVRML_SFClasses.c,v 1.31 2010/05/22 15:14:02 istakenv Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -971,6 +971,7 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	return JS_TRUE;
 }
 
+/* define JSVRMLCLASSESVERBOSE */
 
 JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	SFNodeNative *newPtr;
@@ -1009,7 +1010,9 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 			#endif
 
         		if ((oldPtr = (SFNodeNative *)JS_GetPrivate(cx, (JSObject *)argv[0])) == NULL) {
+				#ifdef JSVRMLCLASSESVERBOSE
                 		printf( "JS_GetPrivate failed in SFNodeConstr.\n");
+				#endif
                 		return JS_FALSE;
         		}
 
@@ -1021,11 +1024,49 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 			printf ("SFNodeConstr, cstring was NOT an object\n");
 			#endif
 
-			/* lets hope this is an initializer, like "new SFNode("0x100675790") */
-			if (sscanf (cString,"%p",&newHandle) != 1) {
-				ConsoleMessage ("expected pointer for Javascript SFNode constr, got :%s:");
-				newHandle = NULL;
+			/* check if the first character is numeric, if it is then assume a pointer */
+			if (!((cString[0] >= 'A' && cString [0] <= 'Z')||(cString[0] >= 'a' && cString [0] <= 'z'))) {
+				/* lets hope this is an initializer, like "new SFNode("0x100675790") */
+				if (sscanf (cString,"%p",&newHandle) != 1) {
+					ConsoleMessage ("expected pointer for Javascript SFNode constr, got :%s:",cString);
+					newHandle = NULL;
+				#ifdef JSVRMLCLASSESVERBOSE
+					printf ("SFNodeConstr, expected pointer for Javascript SFNode constr, got :%s:\n",cString);
+				} else {
+					printf ("SFNodeConstr, got pointer for Javascript SFNode constr, :%p:\n",newHandle);
+				#endif
+				}
+			} else {
+				/* cannot be an initializer, must parse the string */
+
+				/* try compiling this X3D code... */
+				struct X3D_Group *myGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+				resource_item_t *res = resource_create_from_string(cString);
+				res->where = myGroup;
+				res->media_type = resm_vrml;
+				res->parsed_request = "From the EAI bootcamp of life ";
+				res->offsetFromWhere = offsetof (struct X3D_Group, children);
+				#ifdef JSVRMLCLASSESVERBOSE
+				printf ("SFNodeConstr, sending resource to parser\n");
+				#endif
+				send_resource_to_parser(res);
+				#ifdef JSVRMLCLASSESVERBOSE
+				printf ("SFNodeConstr, waiting on resource\n");
+				#endif
+				resource_wait(res);
+
+				#ifdef JSVRMLCLASSESVERBOSE
+				printf ("SFNodeConstr we have created %d nodes\n",myGroup->children.n);
+				#endif
+
+				/* we MUST create 1 node here; if not, there is an error */
+				if ((myGroup->children.n) != 1) {
+					ConsoleMessage ("SFNativeNew - created %d nodes, expected 1 only\n",myGroup->children.n);
+					return JS_FALSE;
+				}
+				newHandle = (uintptr_t *) myGroup->children.p[0];
 			}
+			
 			cString = STRDUP("node created in SFNodeConstr");
 		}	
 
@@ -1115,6 +1156,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	return JS_TRUE;
 }
 
+/* undef JSVRMLCLASSESVERBOSE */
 
 void
 SFNodeFinalize(JSContext *cx, JSObject *obj)
