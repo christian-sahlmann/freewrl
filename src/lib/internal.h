@@ -1,5 +1,5 @@
 /*
-  $Id: internal.h,v 1.35 2010/05/16 09:40:37 couannette Exp $
+  $Id: internal.h,v 1.36 2010/05/25 20:37:08 istakenv Exp $
 
   FreeWRL support library.
   Library internal declarations.
@@ -29,21 +29,8 @@
 #ifndef __LIBFREEWRL_DECL_H__
 #define __LIBFREEWRL_DECL_H__
 
-
-#ifdef FREEWRL_THREAD_COLORIZED
-
-/* FreeWRL will try to output color is stdout is a terminal */
-#define PRINTF printf_with_colored_threads
-extern int printf_with_colored_threads(const char *format, ...);
-#define FPRINTF fprintf_with_colored_threads
-extern int fprintf_with_colored_threads(FILE *stream, const char *format, ...);
-
-#else  /* FREEWRL_THREAD_COLORIZED */
-
-#define PRINTF printf
-#define FPRINTF fprintf
-
-#endif /* FREEWRL_THREAD_COLORIZED */
+/* #include <config.h> NEVER DO THAT :) -- always include config.h in every .c file :) */
+/* #include "fwdebug.h" /\* <--- this has had to be fixed :) !!! *\/ */
 
 #define BOOL_STR(b) (b ? "TRUE" : "FALSE")
 
@@ -59,179 +46,179 @@ extern int fprintf_with_colored_threads(FILE *stream, const char *format, ...);
 void fw_perror(FILE *f, const char *format, ...);
 
 /* To conform C99 ISO C (do not use GCC extension) */
-#define DEBUG_MSG(...) DEBUG_(FPRINTF(stdout, __VA_ARGS__))
-#define TRACE_MSG(...) DEBUG_(FPRINTF(stdout, __VA_ARGS__))
-#define WARN_MSG(...)  DEBUG_(FPRINTF(stdout, __VA_ARGS__))
-#define ERROR_MSG(...) DEBUG_(FPRINTF(stderr, __VA_ARGS__))
+#define DEBUG_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))
 #define PERROR_MSG(...) DEBUG_(fw_perror(stderr, __VA_ARGS__))
 #ifdef VERBOSE
-#define DEBUG_FW(...) DEBUG_(PRINTF("FW: " __VA_ARGS__))
+#define DEBUG_FW(...) DEBUG_(printf("FW: " __VA_ARGS__))
 #else
 #define DEBUG_FW(...)
 #endif
 #ifdef RESVERBOSE 
-#define DEBUG_RES(...) DEBUG_(PRINTF("RES: " __VA_ARGS__))
+#define DEBUG_RES(...) DEBUG_(printf("RES: " __VA_ARGS__))
 #else
 #define DEBUG_RES(...)
 #endif
 
 #ifdef TEXVERBOSE
-#define DEBUG_TEX(...) DEBUG_(PRINTF("TEXTURE: " __VA_ARGS__))
+#define DEBUG_TEX(...) DEBUG_(printf("TEXTURE: " __VA_ARGS__))
 #else
 #define DEBUG_TEX(...)
 #endif
 
 #ifdef MEMVERBOSE
-#define DEBUG_MEM(...) DEBUG_(PRINTF("MEM: " __VA_ARGS__))
+#define DEBUG_MEM(...) DEBUG_(printf("MEM: " __VA_ARGS__))
 #else
 #define DEBUG_MEM(...)
 #endif
 
 #ifdef CPARSERVERBOSE
-#define DEBUG_CPARSER(...) DEBUG_(PRINTF("CPARSER: " __VA_ARGS__))
+#define DEBUG_CPARSER(...) DEBUG_(printf("CPARSER: " __VA_ARGS__))
 #else
 #define DEBUG_CPARSER(...)
 #endif
 
 #ifdef CPROTOVERBOSE
-#define DEBUG_CPROTO(...) DEBUG_(PRINTF("CPROTO: " __VA_ARGS__))
+#define DEBUG_CPROTO(...) DEBUG_(printf("CPROTO: " __VA_ARGS__))
 #else
 #define DEBUG_CPROTO(...)
 #endif
 
 #ifdef PLUGINSOCKETVERBOSE
-#define DEBUG_PLUGINSOCKET(...) DEBUG_(PRINTF("PLUGINSOCKET: " __VA_ARGS__))
+#define DEBUG_PLUGINSOCKET(...) DEBUG_(printf("PLUGINSOCKET: " __VA_ARGS__))
 #else
 #define DEBUG_PLUGINSOCKET(...)
 #endif
 
 /* FIXME: replace CR with CROUTE for clarity */
 #ifdef CRVERBOSE
-#define DEBUG_CR(...) DEBUG_(PRINTF("CR: " __VA_ARGS__))
+#define DEBUG_CR(...) DEBUG_(printf("CR: " __VA_ARGS__))
 #else
 #define DEBUG_CR(...)
 #endif
 
 /* FIXME: maybe shorten the def here to make it more practical */
 #ifdef JSVRMLCLASSESVERBOSE
-#define DEBUG_JSVRMLCLASSES(...) DEBUG_(PRINTF("JSVRMLCLASSES: " __VA_ARGS__))
+#define DEBUG_JSVRMLCLASSES(...) DEBUG_(printf("JSVRMLCLASSES: " __VA_ARGS__))
 #else
 #define DEBUG_JSVRMLCLASSES(...)
 #endif
 
 #ifdef JAVASCRIPTVERBOSE
-#define DEBUG_JS(...) DEBUG_(PRINTF("JS: " __VA_ARGS__))
+#define DEBUG_JS(...) DEBUG_(printf("JS: " __VA_ARGS__))
 #else
 #define DEBUG_JS(...)
 #endif
 
 #ifdef SETFIELDVERBOSE
-#define DEBUG_SETFIELD(...) DEBUG_(PRINTF("SETFIELD: " __VA_ARGS__))
+#define DEBUG_SETFIELD(...) DEBUG_(printf("SETFIELD: " __VA_ARGS__))
 #else
 #define DEBUG_SETFIELD(...)
 #endif
 
 #ifdef RENDERVERBOSE
-#define DEBUG_RENDER(...) DEBUG_(PRINTF("RENDER: " __VA_ARGS__))
+#define DEBUG_RENDER(...) DEBUG_(printf("RENDER: " __VA_ARGS__))
 #else
 #define DEBUG_RENDER(...)
 #endif
 
 #ifdef CHILDVERBOSE
-#define DEBUG_CHILD(...) DEBUG_(PRINTF("CHILD: " __VA_ARGS__))
+#define DEBUG_CHILD(...) DEBUG_(printf("CHILD: " __VA_ARGS__))
 #else
 #define DEBUG_CHILD(...)
 #endif
 
 /* FIXME: maybe replace SE with SENSOR for clarity */
 #ifdef SEVERBOSE
-#define DEBUG_SE(...) DEBUG_(PRINTF("SE: " __VA_ARGS__))
+#define DEBUG_SE(...) DEBUG_(printf("SE: " __VA_ARGS__))
 #else
 #define DEBUG_SE(...)
 #endif
 
 #ifdef STREAM_POLY_VERBOSE
-#define DEBUG_STREAM_POLY(...) DEBUG_(PRINTF("STREAM_POLY: " __VA_ARGS__))
+#define DEBUG_STREAM_POLY(...) DEBUG_(printf("STREAM_POLY: " __VA_ARGS__))
 #else
 #define DEBUG_STREAM_POLY(...)
 #endif
 
 #ifdef MIDIVERBOSE
-#define DEBUG_MIDI(...) DEBUG_(PRINTF("MIDI: " __VA_ARGS__))
+#define DEBUG_MIDI(...) DEBUG_(printf("MIDI: " __VA_ARGS__))
 #else
 #define DEBUG_MIDI(...)
 #endif
 
 #ifdef OCCLUSIONVERBOSE
-#define DEBUG_OCCLUSION(...) DEBUG_(PRINTF("OCCLUSION: " __VA_ARGS__))
+#define DEBUG_OCCLUSION(...) DEBUG_(printf("OCCLUSION: " __VA_ARGS__))
 #else
 #define DEBUG_OCCLUSION(...)
 #endif
 
 #ifdef FRUSTUMVERBOSE
-#define DEBUG_FRUSTUM(...) DEBUG_(PRINTF("FRUSTUM: " __VA_ARGS__))
+#define DEBUG_FRUSTUM(...) DEBUG_(printf("FRUSTUM: " __VA_ARGS__))
 #else
 #define DEBUG_FRUSTUM(...)
 #endif
 
 #ifdef SHADERVERBOSE
-#define DEBUG_SHADER(...) DEBUG_(PRINTF("SHADER: " __VA_ARGS__))
+#define DEBUG_SHADER(...) DEBUG_(printf("SHADER: " __VA_ARGS__))
 #else
 #define DEBUG_SHADER(...)
 #endif
 
 #ifdef BINDVERBOSE
-#define DEBUG_BIND(...) DEBUG_(PRINTF("BIND: " __VA_ARGS__))
+#define DEBUG_BIND(...) DEBUG_(printf("BIND: " __VA_ARGS__))
 #else
 #define DEBUG_BIND(...)
 #endif
 
 #ifdef X3DPARSERVERBOSE
-#define DEBUG_X3DPARSER(...) DEBUG_(PRINTF("X3DPARSER: " __VA_ARGS__))
+#define DEBUG_X3DPARSER(...) DEBUG_(printf("X3DPARSER: " __VA_ARGS__))
 #else
 #define DEBUG_X3DPARSER(...)
 #endif
 
 /* FIXME: maybe change CAPABILITIES with X3DCAPS */
 #ifdef CAPABILITIESVERBOSE
-#define DEBUG_CAPABILITIES(...) DEBUG_(PRINTF("CAPABILITIES: " __VA_ARGS__))
+#define DEBUG_CAPABILITIES(...) DEBUG_(printf("CAPABILITIES: " __VA_ARGS__))
 #else
 #define DEBUG_CAPABILITIES(...)
 #endif
 
 /* FIXME: does this has to do with SENSOR or SEVERBOSE ? */
 #ifdef SENSVERBOSE
-#define DEBUG_SENS(...) DEBUG_(PRINTF("SENS: " __VA_ARGS__))
+#define DEBUG_SENS(...) DEBUG_(printf("SENS: " __VA_ARGS__))
 #else
 #define DEBUG_SENS(...)
 #endif
 
 #ifdef SOUNDVERBOSE
-#define DEBUG_SOUND(...) DEBUG_(PRINTF("SOUND: " __VA_ARGS__))
+#define DEBUG_SOUND(...) DEBUG_(printf("SOUND: " __VA_ARGS__))
 #else
 #define DEBUG_SOUND(...)
 #endif
 
 #ifdef FILLVERBOSE
-#define DEBUG_FILL(...) DEBUG_(PRINTF("FILL: " __VA_ARGS__))
+#define DEBUG_FILL(...) DEBUG_(printf("FILL: " __VA_ARGS__))
 #else
 #define DEBUG_FILL(...)
 #endif
 
 #ifdef TEXTVERBOSE
-#define DEBUG_TEXT(...) DEBUG_(PRINTF("TEXT: " __VA_ARGS__))
+#define DEBUG_TEXT(...) DEBUG_(printf("TEXT: " __VA_ARGS__))
 #else
 #define DEBUG_TEXT(...)
 #endif
 
 #ifdef ARGSVERBOSE
-#define DEBUG_ARGS(...) DEBUG_(PRINTF("TEXT: " __VA_ARGS__))
+#define DEBUG_ARGS(...) DEBUG_(printf("TEXT: " __VA_ARGS__))
 #else
 #define DEBUG_ARGS(...)
 #endif
 
 #ifdef XEVENT_VERBOSE
-#define DEBUG_XEV(...) DEBUG_(PRINTF("XEV: " __VA_ARGS__))
+#define DEBUG_XEV(...) DEBUG_(printf("XEV: " __VA_ARGS__))
 #else
 #define DEBUG_XEV(...)
 #endif
