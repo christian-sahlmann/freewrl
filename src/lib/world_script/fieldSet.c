@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.46 2010/03/31 18:16:01 crc_canada Exp $
+  $Id: fieldSet.c,v 1.47 2010/05/25 16:52:44 davejoubert Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -90,7 +90,7 @@ static char *Multi_Struct_memptr (int type, char *memptr) {
 		case FIELDTYPE_MFString:
 		case FIELDTYPE_MFVec2f:
 			mp = (struct Multi_Vec3f*) memptr;
-			/* printf ("Multi_Struct_memptr, have multi thing, have %d elements, pointer %u\n",mp->n, mp->p); */
+			/* printf ("Multi_Struct_memptr, have multi thing, have %d elements, pointer %p\n",mp->n, (char *) mp->p); */
 			retval = (char *) (mp->p);
 
 		default: {}
@@ -154,7 +154,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 	struct X3D_Group *group;
 
 	#ifdef SETFIELDVERBOSE
-	printf ("\nsetField_fromJavascript, node %d field %s value %s\n", node, field, value);
+	printf ("\nsetField_fromJavascript, node %p field %s value %s\n", (char*) node, field, value);
 	#endif
 	
 	/* is this a valid field? */
@@ -360,8 +360,6 @@ unsigned int setField_FromEAI (char *ptr) {
 	printf ("setField_FromEAI EAI_SendEvent, event string now is :%s:\n",ptr);
 	#endif
 
-	printf ("setField_FromEAI EAI_SendEvent, event string now is :%s:\n",ptr);
-
 	/* is this a MF node, that has floats or ints, and the set1Value method is called? 	*/
 	/* check out the java external/field/MF*java files for the string "ONEVAL "		*/
 	if (strncmp("ONEVAL ",ptr, strlen("ONEVAL ")) == 0) {
@@ -505,7 +503,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	#ifdef SETFIELDVERBOSE
 	strval = JS_ValueToString(scriptContext, JSglobal_return_val);
        	strp = JS_GetStringBytes(strval);
-	printf ("start of setField_javascriptEventOut, to %d:%d = %d, fieldtype %d string %s\n",tn, tptr, memptr, fieldType, strp);
+	printf ("start of setField_javascriptEventOut, to %ld:%d = %p, fieldtype %d string %s\n",(long)tn, tptr, memptr, fieldType, strp);
 	#endif
 
 
@@ -869,7 +867,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	/* rough check of return value */
 	/* where did this come from? Was it from a script execution, or from an assignment from within a script?? */
 	#ifdef SETFIELDVERBOSE
-	printf ("getJSMultiNumType, JSCreate_global_return_val %u, JSglobal_return_val %u\n",JSCreate_global_return_val, JSglobal_return_val);
+	printf ("getJSMultiNumType, JSCreate_global_return_val %u, JSglobal_return_val %u\n",(unsigned int) JSCreate_global_return_val, (unsigned int) JSglobal_return_val);
 	#endif
 
 	if (JSCreate_global_return_val!= INT_TO_JSVAL(0)) {
@@ -893,7 +891,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	}
 
 	#ifdef SETFIELDVERBOSE
-	printf ("getJSMultiNumType, tn %d dest has  %s size %d\n",tn,stringFieldtypeType(eletype), elesize); 
+	printf ("getJSMultiNumType, tn %p dest has  %s size %d\n",tn,stringFieldtypeType(eletype), elesize); 
 
 	printf("getJSMulitNumType, node type of myJSVal is :");
 	printJSNodeType (cx,myJSVal);
@@ -918,7 +916,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		tn->p = (struct SFColor *)MALLOC ((unsigned)(elesize*len));
 
 		#ifdef SETFIELDVERBOSE 
-		printf ("MALLOCing memory for elesize %d len %d new pointer now is %d\n",elesize,len,tn->p);
+		printf ("MALLOCing memory for elesize %d len %d new pointer now is %p\n",elesize,len,tn->p);
 		#endif
 
 		/* if this is an MFString, we should set each element to a null string */
