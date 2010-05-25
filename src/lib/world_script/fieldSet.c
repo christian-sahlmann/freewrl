@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.47 2010/05/25 16:52:44 davejoubert Exp $
+  $Id: fieldSet.c,v 1.48 2010/05/25 17:06:18 davejoubert Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -57,6 +57,8 @@
 #include "fieldSet.h"
 #include "fieldGet.h"
 
+void dumpOneNode(int myptr);
+void fudgeIfNeeded(int myptr,int myoffset);
 
 /*******************************************************************
 
@@ -269,7 +271,215 @@ static int setField_FromEAI_ToScript(int tonode, int toname,
 	return TRUE;
 }
 
+void fudgeIfNeeded(int myptr,int myoffset){
+	/*
+	 * Problem to solve:
+	 * Before operating on a set_ABC field that is of type multi,
+	 * we should copy across the data from the ABC field,
+	 * because if we do not, ONEVAL will not work.
+	 *
+	 * Method: We have been given myptr and myoffset (by the EAI request).
+	 * We can map the offset to an name like set_ABC, and map set_ABC to ABC
+	 * We can then copy the data from ABC to set_ABC
+	 */
+	struct X3D_Node *boxptr;
+	int *np;
+	int myc = 0;
+	int scanning = 1; /* Early loop exit */
+	int foundSet = 0; /* Did we find set_ABC ? */
+	int foundAlt = 0; /* Did we find set_ABC ? */
 
+	char *setnameIs = NULL ;
+	char *altnameIs = NULL ;
+	int relSet = 0 ; /* RoutingElementLength of set_ABC */
+	int relAlt = 0 ; /* RoutingElementLength of ABC */
+
+	void *sourceNode = NULL;
+	void *destNode = NULL;
+
+	boxptr = getEAINodeFromTable(myptr,-1);
+	#ifdef SETFIELDVERBOSE
+	printf ("%s,%d fudgeIfNeeded node %u -> %p\n",__FILE__,__LINE__, (unsigned int)myptr, boxptr);
+	#endif
+
+	/* Iterate over all the fields in the node because there is no easy way of getting to the name from the offset */
+	np = (int *) NODE_OFFSETS[boxptr->_nodeType];
+	while (scanning && *np != INT_ID_UNDEFINED) {
+		/* We need not skip hidden fields (EAI cannot see them anyway) */
+
+		/* The primary basis of comparison is 'myoffset' because this is
+		 * what the EAI request passed to FreeWRL.
+		*/
+		if (myoffset == np[1]) {
+			#ifdef SETFIELDVERBOSE
+			printf("Field %d %s ", myc, stringFieldType(np[0]));
+			#endif
+			if (0 == strncmp("set_",stringFieldType(np[0]),4)) {
+				int offset=np[1];
+				#ifdef SETFIELDVERBOSE
+				printf(" , Found a set_ ; offset=%d\n",offset);
+				#endif
+
+				/* We do not really need setnameIs (except to calculate altnamesIs
+				 * but we do use it later on just for debugging.
+				*/
+				setnameIs = (char *)stringFieldType(np[0]);
+				altnameIs = setnameIs+4;
+
+				/* Use this as a flag to see if we need to return quickly or not. */
+				foundSet = myc;
+
+				/* This has to be negative and the same as what
+				 * we are going to be copying from. Also, we need
+				 * to pass this to Multimemcpy
+				*/
+				relSet = returnRoutingElementLength(np[2]);
+
+				/* Also needed by Multimemcpy */
+				destNode = offsetPointer_deref(void *, boxptr, offset);
+			} else {
+				#ifdef SETFIELDVERBOSE
+				printf("\n");
+				#endif
+			}
+			scanning = 0;
+		}
+		myc ++; 
+		np +=5;
+	}
+
+	/* If foundSet is zero, then the field name is not set_ABC */
+	if (!foundSet) return;
+
+	#ifdef SETFIELDVERBOSE
+	printf("%s,%d setnameIs=%s , altnameIs=%s foundSet=%d relSet=%d\n",__FILE__,__LINE__,setnameIs,altnameIs,foundSet,relSet);
+	#endif
+
+	/* We now know everything we need to know about the destination;
+	 * find out what we need to know about the source
+	*/
+
+	int f_indx = findFieldInFIELDNAMES(altnameIs);
+	/* Mind, is findFieldInFIELDNAMES any quicker ?
+	 * If hashing is not used, then using strcmp below might be faster
+	 * because we are only comparing a subset, not all the names...
+	*/
+
+	#ifdef SETFIELDVERBOSE
+	printf ("field index %s is %d, it had better not be -1 !! \n",altnameIs,f_indx);
+	#endif
+	myc = 0;
+	scanning = 1;
+	np = (int *) NODE_OFFSETS[boxptr->_nodeType];
+	while (scanning && *np != INT_ID_UNDEFINED) {
+		/* It is now less messy if we skip the hidden fields */
+		if (0 != strncmp(stringFieldType(np[0]), "_", 1) ) {
+			#ifdef SETFIELDVERBOSE
+			printf("Field %d %s", myc, stringFieldType(np[0]));
+			#endif
+
+			/* We need not compare strings, but see comment about findFieldInFIELDNAMES above
+			if (0 == strcmp(altnameIs,stringFieldType(np[0]))) {
+			*/
+			if (f_indx == np[0]) {
+				#ifdef SETFIELDVERBOSE
+				printf(" , Found alternate name, ie %s f_indx=%d offset=%d\n",altnameIs,f_indx,np[1]);
+				#endif
+				foundAlt = myc;
+
+				/* See relSet comment above */
+				relAlt = returnRoutingElementLength(np[2]);
+
+				/* Also needed by Multimemcpy */
+				sourceNode = offsetPointer_deref(void *, boxptr, np[1]);
+				scanning = 0;
+			} else {
+				#ifdef SETFIELDVERBOSE
+				printf("\n");
+				#endif
+			}
+		}
+		myc ++; 
+		np +=5;
+	}
+	if (!foundAlt) return;
+
+	#ifdef SETFIELDVERBOSE
+	printf("%s,%d setnameIs=%s , altnameIs=%s foundAlt=%d relAlt=%d\n",__FILE__,__LINE__,setnameIs,altnameIs,foundAlt,relAlt);
+	#endif
+
+	/* final check for compatibility */
+	if (relAlt == relSet && relSet < 0) {
+		#ifdef SETFIELDVERBOSE
+		printf("%s,%d About to call Multimemcpy (boxptr=%p, boxptr=%p, destNode=%p, sourceNode=%p, relAlt=%d);\n",__FILE__, __LINE__, boxptr, boxptr, destNode, sourceNode, relAlt);
+		#endif
+		Multimemcpy (boxptr, boxptr, destNode, sourceNode, relAlt);
+	} else {
+		return;
+	}
+
+	#ifdef SETFIELDVERBOSE
+	printf("=================================== Fudged %s,%d ==================================\n",__FILE__,__LINE__);
+	dumpOneNode(myptr);
+	printf("====================================== %s,%d ======================================\n",__FILE__,__LINE__);
+	#endif
+
+	return;
+}
+
+void dumpOneNode(int myptr) {
+	struct X3D_Node *boxptr;
+	int myc;
+	int *np;
+
+	char *tmpptr;
+	int  dtmp;
+	char ctmp;
+	char utilBuf[EAIREADSIZE];
+	int errcount;
+
+	boxptr = getEAINodeFromTable(myptr,-1);
+
+	if (eaiverbose) {
+		printf ("GETFIELDDEFS, node %u -> %p\n",(unsigned int)myptr, boxptr);
+	}
+
+	if (boxptr == 0) {
+		printf ("makeFIELDDEFret have null node here \n");
+		return;
+	}
+
+	printf ("node type is %s\n",stringNodeType(boxptr->_nodeType));
+	
+	/* Iterate over all the fields in the node */
+	np = (int *) NODE_OFFSETS[boxptr->_nodeType];
+	myc = 0;
+	while (*np != -1) {
+		/* is this a hidden field? */
+		if (0 != strncmp(stringFieldType(np[0]), "_", 1) ) {
+			ctmp = (char) mapFieldTypeToEAItype(np[2]);
+			dtmp = mapEAItypeToFieldType(ctmp);
+
+			tmpptr = offsetPointer_deref (char *, boxptr,np[1]);
+			printf("%s,%d ",__FILE__,__LINE__);
+			printf("Field %d %s , ", myc, stringFieldType(np[0]));
+			printf("offset=%d bytes , ", np[1]);
+/*
+			printf("field_type= %c (%d) , ", ctmp , dtmp);
+			printf("Routing=%s , ", stringKeywordType(np[3]));
+			printf("Spec=%d , ", np[4]) ;	
+*/
+			errcount = UtilEAI_Convert_mem_to_ASCII (dtmp,tmpptr, utilBuf);
+			if (0 == errcount) {
+				printf ("\t\tValue = %s\n",utilBuf);
+			} else {
+				printf ("\t\tValue = indeterminate....\n");
+			}
+			myc ++; 
+		}
+		np +=5;
+	}
+}
 
 /* an incoming EAI/CLASS event has come in, convert the ASCII characters
  * to an internal representation, and act upon it */
@@ -294,7 +504,7 @@ unsigned int setField_FromEAI (char *ptr) {
 	union anyVrml myAnyValue;
 
 	#ifdef SETFIELDVERBOSE
-	printf ("\nsetField_FromEAI, string :%s:\n",ptr);
+	printf ("%s,%d setField_FromEAI, string :%s:\n",__FILE__,__LINE__,ptr);
 	#endif
 	
 	/* we have an event, get the data properly scanned in from the ASCII string. */
@@ -310,6 +520,9 @@ unsigned int setField_FromEAI (char *ptr) {
 	/* nodeptr, offset */
 	retint=sscanf (ptr, "%d %d %d",&nodeIndex, &fieldIndex, &scripttype);
 	if (retint != 3) ConsoleMessage ("setField_FromEAI: error reading 3 numbers from the string :%s:\n",ptr);
+	#ifdef SETFIELDVERBOSE
+	printf("setField_FromEAI: nodeIndex=%d, fieldIndex=%d, scripttype=%d\n",nodeIndex, fieldIndex, scripttype);
+	#endif
 
 	while ((*ptr) > ' ') ptr++; 	/* node ptr */
 	while ((*ptr) == ' ') ptr++;	/* inter number space(s) */
@@ -323,9 +536,14 @@ unsigned int setField_FromEAI (char *ptr) {
 		int nt;
 		/* get the actual node pointer from this index */
 		np = getEAINodeFromTable(nodeIndex,fieldIndex);
+
+		printf("=================================== Pre op %s,%d ==================================\n",__FILE__,__LINE__);
+		dumpOneNode(nodeIndex);
+		printf("====================================== %s,%d ======================================\n",__FILE__,__LINE__);
+
 		nt = getEAINodeTypeFromTable(nodeIndex);
 
-		 printf ("EAI_SendEvent, type %s, nodeptr (index %d) %u offset %d script type %d ",
+		printf ("EAI_SendEvent, type %s, nodeptr (index %d) %u offset %d script type %d ",
 				 stringFieldtypeType(datatype),nodeIndex, np->_nodeType, fieldIndex, scripttype);
 		printf ("np->_nodeType %s\n",stringNodeType(np->_nodeType));
 
@@ -352,7 +570,7 @@ unsigned int setField_FromEAI (char *ptr) {
 	nodeptr = getEAINodeFromTable(nodeIndex,fieldIndex);
 	myptr = nodeptr;
 
-	/* now, we are at start of data. */
+	/* now, we are at start of the incoming data. */
 	/* lets go to the first non-blank character in the string */
 	while (*ptr == ' ') ptr++;
 
@@ -363,17 +581,30 @@ unsigned int setField_FromEAI (char *ptr) {
 	/* is this a MF node, that has floats or ints, and the set1Value method is called? 	*/
 	/* check out the java external/field/MF*java files for the string "ONEVAL "		*/
 	if (strncmp("ONEVAL ",ptr, strlen("ONEVAL ")) == 0) {
+		#ifdef SETFIELDVERBOSE 
+		printf ("%s,%d This is a ONEVAL operation\n",__FILE__,__LINE__);
+		#endif
+
+		fudgeIfNeeded(nodeIndex,myoffset);
+
 		ptr += strlen ("ONEVAL ");
 
 		/* find out which element the user wants to set - that should be the next number */
 		while (*ptr==' ')ptr++;
 		retint=sscanf (ptr,"%d",&valIndex);
+		#ifdef SETFIELDVERBOSE 
+		printf ("%s,%d Request to set element %d\n",__FILE__,__LINE__,valIndex);
+		#endif
+
 		if (retint != 1) ConsoleMessage ("setField_FromEAI: error reading 1 numbers from the string :%s:\n",ptr);
 		while (*ptr>' ')ptr++; /* past the number */
 		while (*ptr==' ')ptr++;
 
 		/* lets do some bounds checking here. */
 		tcol = (struct Multi_Color *) memptr;
+		#ifdef SETFIELDVERBOSE 
+		printf ("%s,%d now, we have valIndex %d, tcol->n %d\n",__FILE__,__LINE__,valIndex,tcol->n);
+		#endif
 
 		if (valIndex >= tcol->n) {
 			void *nmemptr;
@@ -417,6 +648,10 @@ unsigned int setField_FromEAI (char *ptr) {
 			tcol->n = valIndex+1;	
 
 			/* printf ("now, we have valIndex %d, tcol->n %d\n",valIndex,tcol->n); */
+		} else {
+			#ifdef SETFIELDVERBOSE 
+			printf ("%s,%d Size OK, replacing element %d in %d elements\n",__FILE__,__LINE__,valIndex,tcol->n);
+			#endif
 		}
 
 
@@ -432,6 +667,10 @@ unsigned int setField_FromEAI (char *ptr) {
 		/* For ONEVAL need to pass memptr, not nodeptr */
 		myptr = X3D_NODE(memptr);
 		myoffset = 0;
+	} else {
+		#ifdef SETFIELDVERBOSE 
+		printf ("%s,%d Not a ONEVAL operation\n",__FILE__,__LINE__);
+		#endif
 	}
 
 	/* lets replace the end of the string with a NULL, for parsing purposes */
@@ -456,6 +695,9 @@ unsigned int setField_FromEAI (char *ptr) {
 
 		/* now, send the number of rows along; SFs return 1, MFS return rows */
 		rowCount = returnNumberOfRows(datatype,(union anyVrml *) memptr);
+		#ifdef SETFIELDVERBOSE 
+		printf("%s,%d rowCount=%d\n",__FILE__,__LINE__,rowCount);
+		#endif
 
 		/* inch the type along, to the data pointer */
 		memptr = Multi_Struct_memptr(datatype, memptr);
@@ -473,6 +715,11 @@ unsigned int setField_FromEAI (char *ptr) {
 		/* if anything uses this for routing, tell it that it has changed */
 		MARK_EVENT (X3D_NODE(nodeptr),offset);
 	}
+	#ifdef SETFIELDVERBOSE
+	printf("================================== Post op %s,%d ==================================\n",__FILE__,__LINE__);
+	dumpOneNode(nodeIndex);
+	printf("====================================== %s,%d ======================================\n",__FILE__,__LINE__);
+	#endif
 
 	/* replace the end of the line with a newline */
 	if (eol != NULL) *eol = '\n';
