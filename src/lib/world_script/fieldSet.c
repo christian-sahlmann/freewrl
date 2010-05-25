@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.48 2010/05/25 17:06:18 davejoubert Exp $
+  $Id: fieldSet.c,v 1.49 2010/05/25 17:17:20 davejoubert Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -285,9 +285,9 @@ void fudgeIfNeeded(int myptr,int myoffset){
 	struct X3D_Node *boxptr;
 	int *np;
 	int myc = 0;
-	int scanning = 1; /* Early loop exit */
+	int scanning = TRUE;
 	int foundSet = 0; /* Did we find set_ABC ? */
-	int foundAlt = 0; /* Did we find set_ABC ? */
+	int foundAlt = 0; /* Did we find ABC ? */
 
 	char *setnameIs = NULL ;
 	char *altnameIs = NULL ;
@@ -304,7 +304,7 @@ void fudgeIfNeeded(int myptr,int myoffset){
 
 	/* Iterate over all the fields in the node because there is no easy way of getting to the name from the offset */
 	np = (int *) NODE_OFFSETS[boxptr->_nodeType];
-	while (scanning && *np != INT_ID_UNDEFINED) {
+	while (scanning && (*np != INT_ID_UNDEFINED)) {
 		/* We need not skip hidden fields (EAI cannot see them anyway) */
 
 		/* The primary basis of comparison is 'myoffset' because this is
@@ -342,7 +342,7 @@ void fudgeIfNeeded(int myptr,int myoffset){
 				printf("\n");
 				#endif
 			}
-			scanning = 0;
+			scanning = FALSE;
 		}
 		myc ++; 
 		np +=5;
@@ -369,9 +369,9 @@ void fudgeIfNeeded(int myptr,int myoffset){
 	printf ("field index %s is %d, it had better not be -1 !! \n",altnameIs,f_indx);
 	#endif
 	myc = 0;
-	scanning = 1;
+	scanning = TRUE;
 	np = (int *) NODE_OFFSETS[boxptr->_nodeType];
-	while (scanning && *np != INT_ID_UNDEFINED) {
+	while (scanning && (*np != INT_ID_UNDEFINED)) {
 		/* It is now less messy if we skip the hidden fields */
 		if (0 != strncmp(stringFieldType(np[0]), "_", 1) ) {
 			#ifdef SETFIELDVERBOSE
@@ -392,7 +392,7 @@ void fudgeIfNeeded(int myptr,int myoffset){
 
 				/* Also needed by Multimemcpy */
 				sourceNode = offsetPointer_deref(void *, boxptr, np[1]);
-				scanning = 0;
+				scanning = FALSE;
 			} else {
 				#ifdef SETFIELDVERBOSE
 				printf("\n");
