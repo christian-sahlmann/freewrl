@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.h,v 1.10 2010/03/01 22:39:49 crc_canada Exp $
+$Id: CRoutes.h,v 1.11 2010/05/25 16:57:36 davejoubert Exp $
 
 VRML-parsing routines in C.
 
@@ -59,6 +59,7 @@ void getSpecificRoute (int routeNo, struct X3D_Node **fromNode, int *fromOffset,
 void mark_event (struct X3D_Node *from, int fromoffset);
 void mark_event_check (struct X3D_Node *from, int fromoffset,char *fn, int line);
 void resetScriptTouchedFlag(int actualscript, int fptr);
+void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype);
 
 void CRoutes_js_new (int num,int scriptType);
 extern int max_script_found;

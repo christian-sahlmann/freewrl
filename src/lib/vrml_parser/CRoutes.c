@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.65 2010/03/22 17:07:16 crc_canada Exp $
+$Id: CRoutes.c,v 1.66 2010/05/25 16:57:36 davejoubert Exp $
 
 ???
 
@@ -56,7 +56,7 @@ $Id: CRoutes.c,v 1.65 2010/03/22 17:07:16 crc_canada Exp $
 
 #include "CRoutes.h"
 
-static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype);
+/* static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype); */
 static void sendScriptEventIn(int num);
 static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfsetValue, int *offsetOfvalueChanged);
 
@@ -1774,7 +1774,7 @@ void kill_routing (void) {
 
 
 /* internal variable to copy a C structure's Multi* field */
-static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype) {
+void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype) {
 	size_t structlen;
 	int fromcount, tocount;
 	void *fromptr, *toptr;
