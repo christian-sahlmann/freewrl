@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.49 2010/05/25 17:17:20 davejoubert Exp $
+  $Id: fieldSet.c,v 1.50 2010/05/26 12:53:08 dug9 Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -284,6 +284,7 @@ void fudgeIfNeeded(int myptr,int myoffset){
 	 */
 	struct X3D_Node *boxptr;
 	int *np;
+	int f_indx;
 	int myc = 0;
 	int scanning = TRUE;
 	int foundSet = 0; /* Did we find set_ABC ? */
@@ -359,7 +360,7 @@ void fudgeIfNeeded(int myptr,int myoffset){
 	 * find out what we need to know about the source
 	*/
 
-	int f_indx = findFieldInFIELDNAMES(altnameIs);
+	f_indx = findFieldInFIELDNAMES(altnameIs);
 	/* Mind, is findFieldInFIELDNAMES any quicker ?
 	 * If hashing is not used, then using strcmp below might be faster
 	 * because we are only comparing a subset, not all the names...
