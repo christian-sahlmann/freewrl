@@ -11,7 +11,7 @@
 # Autoconf startup, we define the package's name, and version: 
 # but this is not the program's version, nor the library's version.
 # We also define the maintainer address.
-AC_INIT([freewrl], [1.22.6], [freewrl@crc.ca])
+AC_INIT([freewrl], [1.22.8], [freewrl-help@lists.sourceforge.net])
 
 # Little customization: all autotools derived files go in a sub-directory.
 AC_CONFIG_AUX_DIR([config])
