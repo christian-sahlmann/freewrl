@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: readpng.c,v 1.5 2009/10/05 15:07:24 crc_canada Exp $
+$Id: readpng.c,v 1.6 2010/05/27 14:01:23 istakenv Exp $
 
 FreeWRL now only uses this on Linux machines.
 
@@ -106,7 +106,11 @@ int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight)
      * have used slightly more general png_sig_cmp() function instead */
 
     rv=fread(sig, 1, 8, infile);
+#if ((PNG_LIBPNG_VER_MAJOR == 1) && (PNG_LIBPNG_VER_MINOR < 2))
     if (!png_check_sig(sig, 8))
+#else
+    if (!png_sig_cmp(sig, 0, 8))
+#endif
         return 1;   /* bad signature */
 
 
