@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.35 2009/12/31 10:38:06 couannette Exp $
+# $Id: Makefile.sources,v 1.36 2010/05/28 12:58:46 istakenv Exp $
 #
 # List all source files
 #
@@ -114,6 +114,7 @@ scenegraph/Component_EnvironEffects.c \
 scenegraph/Component_Grouping.c \
 scenegraph/Collision.c \
 scenegraph/Component_Text.c \
+scenegraph/Component_Text.h \
 scenegraph/LinearAlgebra.c \
 scenegraph/Component_Geometry2D.c \
 scenegraph/Vector.h \
@@ -142,6 +143,7 @@ scenegraph/Children.c \
 scenegraph/Children.h \
 scenegraph/Component_Sound.c \
 scenegraph/Component_Geometry3D.c \
+scenegraph/Component_Geometry3D.h \
 scenegraph/Polyrep.h \
 scenegraph/Component_Networking.c \
 scenegraph/Component_Networking.h \
@@ -178,6 +180,7 @@ opengl/RasterFont.h \
 opengl/RasterFont.c \
  \
 ui/aquaInt.h \
+ui/statusbar.h \
  \
 plugin/pluginUtils.c \
 plugin/pluginUtils.h \
