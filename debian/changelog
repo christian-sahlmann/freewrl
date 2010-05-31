@@ -1,11 +1,8 @@
-freewrl (0.0.0-0) UNRELEASED; urgency=low
+freewrl (1.22.8-1) unstable; urgency=low
 
-  * Work in progress : http://rzr.online.fr/q/vrml
-  * Please keep this 0.0.0 entry at top changelog 
-    - for unreleased versions (cvs) 
-    - since each version should be reproductible
+  * FreeWRL released! Version 1.22.8
 
- -- Philippe Coval <rzr@gna.org>  Wed, 05 May 2010 08:55:19 +0200
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Mon, 31 May 2010 11:33:34 +0200
 
 freewrl (1.22.8-0) unstable; urgency=low
 
