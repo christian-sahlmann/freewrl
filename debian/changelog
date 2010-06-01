@@ -1,3 +1,9 @@
+freewrl (1.22.8-2) unstable; urgency=low
+
+  * After a test package (-1) we must increment the debian number, to prevent a mess in clients which have already downloaded and installed the -1 package.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Tue, 01 Jun 2010 10:36:10 +0200
+
 freewrl (1.22.8-1) unstable; urgency=low
 
   * FreeWRL released! Version 1.22.8
