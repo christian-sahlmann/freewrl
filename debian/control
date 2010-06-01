@@ -1,9 +1,7 @@
 Source: freewrl
 Section: contrib/graphics
 Priority: optional
-Maintainer: Debian Multimedia Team <pkg-multimedia@lists.alioth.debian.org>
-Uploaders: Philippe Coval <rzr@gna.org>
-X-Upstream-Maintainer: Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>
+Maintainer: Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>
 Build-Depends: debhelper (>= 7), pkg-config,
  x11proto-print-dev, libxxf86vm-dev,
  libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libglew1.5-dev, 
@@ -14,16 +12,13 @@ Build-Depends: debhelper (>= 7), pkg-config,
  gcj | java-compiler
 Standards-Version: 3.8.0
 Homepage: http://freewrl.sourceforge.net
-Vcs-Browser: http://git.debian.org/?p=pkg-multimedia/freewrl.git
-Vcs-Git: git://git.debian.org/git/pkg-multimedia/freewrl.git
 
 Package: freewrl
 Architecture: any
 Depends: default-jre | java-runtime, ${shlibs:Depends}, ${misc:Depends}
 Recommends: ttf-bitstream-vera, wget, sox, convert
-Description: X3D/VRML browser for 3D contents
- It aims to be fully VRML97 compliant,
- complete with scripting in Perl, Java and Javascript, and EAI
+Description: X3D/VRML browser
+ FreeWRL is a 3D viewer that support VRML and X3D (successor of VRML).
+ It is released as a standalone program (freewrl) and as a Web browser plugin.
  .
- It is written mostly in Perl with some C for library interfaces & rendering,
- and uses OpenGL (Mesa) for graphics.
+ It uses OpenGL for rendering and supports GLSL Shaders.
