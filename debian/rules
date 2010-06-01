@@ -18,6 +18,18 @@ plugin=libFreeWRLplugin.so
 # ditto
 jar=FreeWRL.jar
 
+# From autotools-dev documentation (README.Debian.gz)
+export DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+export DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+# FOR AUTOCONF 2.52 AND NEWER ONLY
+ifeq ($(DEB_BUILD_GNU_TYPE), $(DEB_HOST_GNU_TYPE))
+  confflags += --build $(DEB_HOST_GNU_TYPE)
+else
+  confflags += --build $(DEB_BUILD_GNU_TYPE) --host $(DEB_HOST_GNU_TYPE)
+endif
+
+# My configuration
 CFLAGS = -g
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
@@ -35,10 +47,11 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	if ! test -f ./configure ; then \
-		echo "Creating configure..."; \
-		autoreconf --force --install; \
+		echo "Incomplete package: missing 'configure'"; \
+		return 1; \
 	fi
-	./configure --prefix=/usr \
+	./configure $(confflags) \
+		--prefix=/usr \
 		--with-fontsdir=/usr/share/fonts/truetype/ttf-bitstream-vera \
 		--disable-static \
 		--${my_switch}-dependency-tracking \
