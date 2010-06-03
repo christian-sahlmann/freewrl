@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.13 2010/03/22 15:14:48 crc_canada Exp $
+$Id: jsVRMLClasses.h,v 1.14 2010/06/03 19:38:37 crc_canada Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -988,6 +988,8 @@ extern JSClass MFColorClass;
 extern JSFunctionSpec (MFColorFunctions)[];
 extern JSClass MFFloatClass;
 extern JSFunctionSpec (MFFloatFunctions)[];
+extern JSClass MFBoolClass;
+extern JSFunctionSpec (MFBoolFunctions)[];
 extern JSClass MFInt32Class;
 extern JSFunctionSpec (MFInt32Functions)[];
 extern JSClass MFNodeClass;

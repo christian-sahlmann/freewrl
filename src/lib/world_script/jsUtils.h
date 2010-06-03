@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.h,v 1.9 2010/03/01 22:39:49 crc_canada Exp $
+$Id: jsUtils.h,v 1.10 2010/06/03 19:38:37 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -100,5 +100,14 @@ errorReporter(JSContext *cx,
 void X3D_ECMA_TO_JS(JSContext *cx, void *Data, int datalen, int dataType, jsval *ret);
 JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 
+
+const char *classToString(JSClass *myClass);
+#define CHECK_CLASS(cx,obj,argv,fnString,expClass) \
+printf ("CHECK_CLASS, obj %u, argv %u\n",obj,argv); \
+    	if (!JS_InstanceOf(cx, obj, &expClass, argv)) { \
+		printf ("Javascript Instance problem in '%s' - expected a '%s', got a ", fnString, classToString(&expClass)); \
+		printJSNodeType (cx,obj); \
+		return JS_FALSE; \
+	} 
 
 #endif /* __FREEWRL_JS_UTILS_H__ */

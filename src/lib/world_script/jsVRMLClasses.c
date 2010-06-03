@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.19 2010/03/22 15:14:48 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.20 2010/06/03 19:38:37 crc_canada Exp $
 
 ???
 
@@ -295,9 +295,8 @@ JSFunctionSpec (SFVec2dFunctions)[] = {
 	{"assign", SFVec2dAssign, 0},
 	{0}
 };
+
 #endif /* NEWCLASSES */
-
-
 
 JSClass SFVec4fClass = {
 	"SFVec4f",
@@ -590,6 +589,7 @@ JSFunctionSpec (MFVec3dFunctions)[] = {
 	{"assign", MFVec3dAssign, 0},
 	{0}
 };
+
 #endif /* NEWCLASSES */
 
 JSClass MFNodeClass = {
@@ -814,7 +814,6 @@ JSFunctionSpec (X3DMatrix4Functions)[] = {
 
 #endif /* NEWCLASSES */
 
-
 struct JSLoadPropElement {
 	JSClass *class;
 	void *constr;
@@ -825,42 +824,64 @@ struct JSLoadPropElement {
 
 struct JSLoadPropElement (JSLoadProps) [] = {
 #ifdef NEWCLASSES
-        { &MFVec2dClass, MFVec2dConstr, &MFVec2dFunctions, "__MFVec2d_proto"},
-        { &MFVec3dClass, MFVec3dConstr, &MFVec3dFunctions, "__MFVec3d_proto"},
-        { &SFVec2dClass, SFVec2dConstr, &SFVec2dFunctions, "__SFVec2d_proto"},
-        { &MFBoolClass, MFBoolConstr, &MFBoolFunctions, "__MFBool_proto"},
-        { &MFDoubleClass, MFDoubleConstr, &MFDoubleFunctions, "__MFDouble_proto"},
-        { &MFImageClass, MFImageConstr, &MFImageFunctions, "__MFImage_proto"},
-        { &X3DMatrix3Class, X3DMatrix3Constr, &X3DMatrix3Functions, "__X3DMatrix3_proto"},
-        { &X4DMatrix4Class, X4DMatrix4Constr, &X4DMatrix4Functions, "__X4DMatrix4_proto"},
-#endif
+        { &MFVec2dClass, MFVec2dConstr, &MFVec2dFunctions, "MFVec2dClass"},
+        { &MFVec3dClass, MFVec3dConstr, &MFVec3dFunctions, "MFVec3dClass"},
+        { &SFVec2dClass, SFVec2dConstr, &SFVec2dFunctions, "SFVec2dClass"},
+        { &MFBoolClass, MFBoolConstr, &MFBoolFunctions, "MFBoolClass"},
+        { &MFDoubleClass, MFDoubleConstr, &MFDoubleFunctions, "MFDoubleClass"},
+        { &MFImageClass, MFImageConstr, &MFImageFunctions, "MFImageClass"},
+        { &X3DMatrix3Class, X3DMatrix3Constr, &X3DMatrix3Functions, "X3DMatrix3Class"},
+        { &X4DMatrix4Class, X4DMatrix4Constr, &X4DMatrix4Functions, "X4DMatrix4Class"},
+#endif /* NEWCLASSES */
 
-        { &SFColorClass, SFColorConstr, &SFColorFunctions, "__SFColor_proto"},
-        { &SFVec2fClass, SFVec2fConstr, &SFVec2fFunctions, "__SFVec2f_proto"},
-        { &SFColorRGBAClass, SFColorRGBAConstr, &SFColorRGBAFunctions, "__SFColorRGBA_proto"},
-        { &SFVec3fClass, SFVec3fConstr, &SFVec3fFunctions, "__SFVec3f_proto"},
-        { &SFVec3dClass, SFVec3dConstr, &SFVec3dFunctions, "__SFVec3d_proto"},
-        { &SFRotationClass, SFRotationConstr, &SFRotationFunctions, "__SFRotation_proto"},
-        { &SFNodeClass, SFNodeConstr, &SFNodeFunctions, "__SFNode_proto"},
-        { &MFFloatClass, MFFloatConstr, &MFFloatFunctions, "__MFFloat_proto"},
-        { &MFTimeClass, MFTimeConstr, &MFTimeFunctions, "__MFTime_proto"},
-        { &MFInt32Class, MFInt32Constr, &MFInt32Functions, "__MFInt32_proto"},
-        { &MFColorClass, MFColorConstr, &MFColorFunctions, "__MFColor_proto"},
-        { &MFVec2fClass, MFVec2fConstr, &MFVec2fFunctions, "__MFVec2f_proto"},
+        { &SFColorClass, SFColorConstr, &SFColorFunctions, "SFColorClass"},
+        { &SFVec2fClass, SFVec2fConstr, &SFVec2fFunctions, "SFVec2fClass"},
+        { &SFColorRGBAClass, SFColorRGBAConstr, &SFColorRGBAFunctions, "SFColorRGBAClass"},
+        { &SFVec3fClass, SFVec3fConstr, &SFVec3fFunctions, "SFVec3fClass"},
+        { &SFVec3dClass, SFVec3dConstr, &SFVec3dFunctions, "SFVec3dClass"},
+        { &SFRotationClass, SFRotationConstr, &SFRotationFunctions, "SFRotationClass"},
+        { &SFNodeClass, SFNodeConstr, &SFNodeFunctions, "SFNodeClass"},
+        { &MFFloatClass, MFFloatConstr, &MFFloatFunctions, "MFFloatClass"},
+        { &MFTimeClass, MFTimeConstr, &MFTimeFunctions, "MFTimeClass"},
+        { &MFInt32Class, MFInt32Constr, &MFInt32Functions, "MFInt32Class"},
+        { &MFColorClass, MFColorConstr, &MFColorFunctions, "MFColorClass"},
+        { &MFVec2fClass, MFVec2fConstr, &MFVec2fFunctions, "MFVec2fClass"},
 
-        { &MFVec3fClass, MFVec3fConstr, &MFVec3fFunctions, "__MFVec3f_proto"},
+        { &MFVec3fClass, MFVec3fConstr, &MFVec3fFunctions, "MFVec3fClass"},
 
-        { &SFVec4fClass, SFVec4fConstr, &SFVec4fFunctions, "__SFVec4f_proto"},
-        { &SFVec4dClass, SFVec4dConstr, &SFVec4dFunctions, "__SFVec4d_proto"},
+        { &SFVec4fClass, SFVec4fConstr, &SFVec4fFunctions, "SFVec4fClass"},
+        { &SFVec4dClass, SFVec4dConstr, &SFVec4dFunctions, "SFVec4dClass"},
 
-        { &MFRotationClass, MFRotationConstr, &MFRotationFunctions, "__MFRotation_proto"},
-        { &MFNodeClass, MFNodeConstr, &MFNodeFunctions, "__MFNode_proto"},
-        { &SFImageClass, SFImageConstr, &SFImageFunctions, "__SFImage_proto"},
-/*        { &MFColorRGBAClass, MFColorRGBAConstr, &MFColorRGBAFunctions, "__MFColorRGBA_proto"},*/
-        { &MFStringClass, MFStringConstr, &MFStringFunctions, "__MFString_proto"},
-        { &VrmlMatrixClass, VrmlMatrixConstr, &VrmlMatrixFunctions, "__VrmlMatrix_proto"},
+        { &MFRotationClass, MFRotationConstr, &MFRotationFunctions, "MFRotationClass"},
+        { &MFNodeClass, MFNodeConstr, &MFNodeFunctions, "MFNodeClass"},
+        { &SFImageClass, SFImageConstr, &SFImageFunctions, "SFImageClass"},
+/*        { &MFColorRGBAClass, MFColorRGBAConstr, &MFColorRGBAFunctions, "MFColorRGBAClass"},*/
+        { &MFStringClass, MFStringConstr, &MFStringFunctions, "MFStringClass"},
+        { &VrmlMatrixClass, VrmlMatrixConstr, &VrmlMatrixFunctions, "VrmlMatrixClass"},
         {0}
 };
+
+
+
+/* return the string representation of this class */
+const char *classToString(JSClass *myClass) {
+
+        int i;
+	i = 0;
+
+        /* printf ("class to string starting\n"); */
+
+        /* ok - this is an object, lets find out what class it is */
+        while (JSLoadProps[i].class != NULL) {
+		if (JSLoadProps[i].class == myClass) {
+			/* printf ("found it! it is a %s\n",JSLoadProps[i].id); */
+                        return JSLoadProps[i].id;
+                }
+                i++;
+        }
+	return "class unknown";
+}
+
 /* try and print what an element is in case of error */
 void printJSNodeType (JSContext *context, JSObject *myobj) {
 	int i;
@@ -873,11 +894,12 @@ void printJSNodeType (JSContext *context, JSObject *myobj) {
 	/* ok - this is an object, lets find out what class it is */
 	while (JSLoadProps[i].class != NULL) {
 		if (JS_InstanceOf(context, myobj, JSLoadProps[i].class, NULL)) {
-			printf ("%s\n",JSLoadProps[i].id);
+			printf ("'%s'\n",JSLoadProps[i].id);
 			return;
 		}
 		i++;
 	}
+	printf ("'unknown class'\n");
 }
 
 /* do a simple copy; from, to, and count */

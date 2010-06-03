@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.21 2010/03/22 15:14:48 crc_canada Exp $
+$Id: jsVRML_MFClasses.c,v 1.22 2010/06/03 19:38:37 crc_canada Exp $
 
 ???
 
@@ -68,25 +68,7 @@ JS_MY_Finalize(JSContext *cx, JSObject *obj)
 	void *ptr;
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("finalizing %x\n",obj);
-	if (JS_InstanceOf(cx, obj, &SFVec3fClass, NULL)) { printf ("this is a SFVec3fClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &SFColorClass, NULL)) { printf ("this is a SFColorClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &SFColorRGBAClass, NULL)) { printf ("this is a SFColorRGBAClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &SFImageClass, NULL)) { printf ("this is a SFImageClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &SFRotationClass, NULL)) { printf ("this is a SFRotationClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &SFVec2fClass, NULL)) { printf ("this is a SFVec2fClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &SFVec3fClass, NULL)) { printf ("this is a SFVec3fClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &MFColorClass, NULL)) { printf ("this is a MFColorClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &MFFloatClass, NULL)) { printf ("this is a MFFloatClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &MFInt32Class, NULL)) { printf ("this is a MFInt32Class...\n"); }
-	else if (JS_InstanceOf(cx, obj, &MFNodeClass, NULL)) { printf ("this is a MFNodeClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &MFRotationClass, NULL)) { printf ("this is a MFRotationClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &MFStringClass, NULL)) { printf ("this is a MFStringClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &MFTimeClass, NULL)) { printf ("this is a MFTimeClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &MFRotationClass, NULL)) { printf ("this is a MFRotationClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &MFVec2fClass, NULL)) { printf ("this is a MFVec2fClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &MFVec3fClass, NULL)) { printf ("this is a MFVec3fClass...\n"); }
-	else if (JS_InstanceOf(cx, obj, &VrmlMatrixClass, NULL)) { printf ("this is a VrmlMatrixClass...\n"); }
-	else printf ("this class is unknown???\n");
+	printJSNodeType(cx,obj);
 	#endif
 
 	REMOVE_ROOT(cx,obj)
@@ -136,10 +118,8 @@ MFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 					"JS_ValueToObject failed in MFColorConstr.\n");
 			return JS_FALSE;
 		}
-		if (!JS_InstanceOf(cx, _obj, &SFColorClass, NULL)) {
-			printf( "JS_InstanceOf failed in MFColorConstr.\n");
-			return JS_FALSE;
-		}
+
+		CHECK_CLASS(cx,_obj,NULL,__FUNCTION__,SFColorClass)
 
 		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %u in MFColorConstr.\n", i);
@@ -368,11 +348,9 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 				printf( "JS_ValueToObject failed in MFNodeConstr.\n");
 				return JS_FALSE;
 			}
-			if (!JS_InstanceOf(cx, _obj, &SFNodeClass, NULL)) {
-				printf( "JS_InstanceOf failed in MFNodeConstr.\n");
-				return JS_FALSE;
-			}
-	
+
+			CHECK_CLASS(cx,_obj,argv,__FUNCTION__,SFNodeClass)
+
 			if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed for arg %d in MFNodeConstr.\n", i);
 				return JS_FALSE;
@@ -528,10 +506,8 @@ MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			printf( "JS_ValueToObject failed in MFVec2fConstr.\n");
 			return JS_FALSE;
 		}
-		if (!JS_InstanceOf(cx, _obj, &SFVec2fClass, NULL)) {
-			printf( "JS_InstanceOf failed in MFVec2fConstr.\n");
-			return JS_FALSE;
-		}
+
+		CHECK_CLASS(cx,_obj,NULL,__FUNCTION__,SFVec2fClass)
 
 		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %d in MFVec2fConstr.\n", i);
@@ -593,10 +569,8 @@ MFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			printf( "JS_ValueToObject failed in MFVec3fConstr.\n");
 			return JS_FALSE;
 		}
-		if (!JS_InstanceOf(cx, _obj, &SFVec3fClass, NULL)) {
-			printf( "JS_InstanceOf failed in MFVec3fConstr.\n");
-			return JS_FALSE;
-		}
+
+		CHECK_CLASS(cx,_obj,NULL,__FUNCTION__,SFVec3fClass)
 
 		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %d in MFVec3fConstr.\n", i);
@@ -747,10 +721,8 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 
 	/* translation */
 	if (transObj!=NULL) {
-		if (!JS_InstanceOf(cx, transObj, &SFVec3fClass, NULL)) {
-			printf ("VrmlMatrix:this is not a translation!\n");
-			return JS_FALSE;
-		}
+		CHECK_CLASS(cx,transObj,NULL,__FUNCTION__,SFVec3fClass)
+
 		if ((Vptr = (SFVec3fNative *)JS_GetPrivate(cx, transObj)) == NULL) {
 			printf( "JS_GetPrivate failed.\n");
 			return JS_FALSE;
@@ -763,10 +735,8 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 
 	/* rotation */
 	if (rotObj!=NULL) {
-		if (!JS_InstanceOf(cx, rotObj, &SFRotationClass, NULL)) {
-			printf ("VrmlMatrix:this is not a rotation!\n");
-			return JS_FALSE;
-		}
+
+		CHECK_CLASS(cx,rotObj,NULL,__FUNCTION__,SFRotationClass)
 
 		if ((Rptr = (SFRotationNative*)JS_GetPrivate(cx, rotObj)) == NULL) {
 			printf( "JS_GetPrivate failed.\n");
@@ -794,10 +764,8 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 
 	/* scale */
 	if (scaleObj != NULL) {
-		if (!JS_InstanceOf(cx, scaleObj, &SFVec3fClass, NULL)) {
-			printf ("VrmlMatrix:this is not a scale!\n");
-			return JS_FALSE;
-		}
+		CHECK_CLASS(cx,scaleObj,NULL,__FUNCTION__,SFVec3fClass)
+
 		if ((Vptr = (SFVec3fNative*)JS_GetPrivate(cx, scaleObj)) == NULL) {
 			printf( "JS_GetPrivate failed.\n");
 			return JS_FALSE;
@@ -1342,10 +1310,8 @@ MFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 					"JS_ValueToObject failed in MFRotationConstr.\n");
 			return JS_FALSE;
 		}
-		if (!JS_InstanceOf(cx, _obj, &SFRotationClass, NULL)) {
-			printf( "JS_InstanceOf failed in MFRotationConstr.\n");
-			return JS_FALSE;
-		}
+
+		CHECK_CLASS(cx,_obj,NULL,__FUNCTION__,SFRotationClass)
 
 		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %d in MFRotationConstr.\n", i);

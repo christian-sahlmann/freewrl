@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.25 2010/03/22 15:14:48 crc_canada Exp $
+$Id: jsUtils.c,v 1.26 2010/06/03 19:38:37 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -1158,6 +1158,7 @@ JSBool js_SetPropertyCheck (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 		SET_MF_ECMA_HAS_CHANGED;
 		return JS_TRUE;
 	}
+
 #ifdef NEWCLASSES
 	else if (JS_InstanceOf (cx, obj, &MFBoolClass, NULL)) {
 		SET_MF_ECMA_HAS_CHANGED;
@@ -1175,25 +1176,7 @@ JSBool js_SetPropertyCheck (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 
         #ifdef JSVRMLCLASSESVERBOSE
-        if (JS_InstanceOf(cx, obj, &SFVec3fClass, NULL)) { printf ("this is a SFVec3fClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &SFColorClass, NULL)) { printf ("this is a SFColorClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &SFColorRGBAClass, NULL)) { printf ("this is a SFColorRGBAClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &SFImageClass, NULL)) { printf ("this is a SFImageClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &SFRotationClass, NULL)) { printf ("this is a SFRotationClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &SFVec2fClass, NULL)) { printf ("this is a SFVec2fClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &SFVec3fClass, NULL)) { printf ("this is a SFVec3fClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &MFColorClass, NULL)) { printf ("this is a MFColorClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &MFFloatClass, NULL)) { printf ("this is a MFFloatClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &MFInt32Class, NULL)) { printf ("this is a MFInt32Class...\n"); }
-        else if (JS_InstanceOf(cx, obj, &MFNodeClass, NULL)) { printf ("this is a MFNodeClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &MFRotationClass, NULL)) { printf ("this is a MFRotationClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &MFStringClass, NULL)) { printf ("this is a MFStringClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &MFTimeClass, NULL)) { printf ("this is a MFTimeClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &MFRotationClass, NULL)) { printf ("this is a MFRotationClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &MFVec2fClass, NULL)) { printf ("this is a MFVec2fClass...\n"); }
-        else if (JS_InstanceOf(cx, obj, &VrmlMatrixClass, NULL)) { printf ("this is a VrmlMatrixClass...\n"); }
-        else printf ("this class is unknown???\n");
-	printf ("we do not care about this type in js_SetPropertyCheck\n");
+	printf ("this is a class of "); printJSNodeType (cx,obj);
         #endif
 	
 	return JS_TRUE;
@@ -1401,4 +1384,3 @@ JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval 
 	#endif
 	return JS_TRUE;
 }
-

@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.31 2010/05/22 15:14:02 istakenv Exp $
+  $Id: jsVRML_SFClasses.c,v 1.32 2010/06/03 19:38:37 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -241,18 +241,17 @@ SFColorAssign(JSContext *cx, JSObject *obj,
 		printf( "JS_GetPrivate failed for obj in SFColorAssign.\n");
         return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, obj, &SFColorClass, argv)) {
-		printf( "JS_InstanceOf failed for obj in SFColorAssign.\n");
-        return JS_FALSE;
-	}
+
+
+	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFColorClass) 
+
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 		printf( "JS_ConvertArguments failed in SFColorAssign.\n");
 		return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, _from_obj, &SFColorClass, argv)) {
-		printf( "JS_InstanceOf failed for _from_obj in SFColorAssign.\n");
-        return JS_FALSE;
-    }
+
+	CHECK_CLASS(cx,_from_obj,argv,__FUNCTION__,SFColorClass)
+
 	if ((fptr = (SFColorNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
 		printf( "JS_GetPrivate failed for _from_obj in SFColorAssign.\n");
         return JS_FALSE;
@@ -505,18 +504,16 @@ SFColorRGBAAssign(JSContext *cx, JSObject *obj,
 		printf( "JS_GetPrivate failed for obj in SFColorRGBAAssign.\n");
         return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, obj, &SFColorRGBAClass, argv)) {
-		printf( "JS_InstanceOf failed for obj in SFColorRGBAAssign.\n");
-        return JS_FALSE;
-	}
+
+	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFColorRGBAClass)
+	
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 		printf( "JS_ConvertArguments failed in SFColorRGBAAssign.\n");
 		return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, _from_obj, &SFColorRGBAClass, argv)) {
-		printf( "JS_InstanceOf failed for _from_obj in SFColorRGBAAssign.\n");
-        return JS_FALSE;
-    }
+
+	CHECK_CLASS(cx,_from_obj,argv,__FUNCTION__,SFColorRGBAClass)
+   
 	if ((fptr = (SFColorRGBANative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
 		printf( "JS_GetPrivate failed for _from_obj in SFColorRGBAAssign.\n");
         return JS_FALSE;
@@ -806,19 +803,15 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		#ifdef JSVRMLCLASSESVERBOSE
 		printJSNodeType(cx,argv[3]);
 		#endif
-
-		if (!JS_InstanceOf(cx, (JSObject *)argv[3], &MFInt32Class, NULL)) {
-			printf ("SFImageConstr: expected array element to be an MFInt32 array\n");
+ 
+		CHECK_CLASS(cx,(JSObject *)argv[3],NULL,__FUNCTION__,MFInt32Class)
+		if (!JS_GetProperty(cx, (JSObject *)argv[3], "length", &mv)) {
+			printf( "JS_GetProperty failed for MFInt32 length in SFImageConstr\n");
+	        	return JS_FALSE;
+		}
+	        if (expectedSize != JSVAL_TO_INT(mv)) {
+			printf ("SFImageConstr: expected %d elements in image data, got %d\n",expectedSize, JSVAL_TO_INT(mv));
 			return JS_FALSE;
-		} else {
-			if (!JS_GetProperty(cx, (JSObject *)argv[3], "length", &mv)) {
-				printf( "JS_GetProperty failed for MFInt32 length in SFImageConstr\n");
-	        		return JS_FALSE;
-			}
-	        	if (expectedSize != JSVAL_TO_INT(mv)) {
-				printf ("SFImageConstr: expected %d elements in image data, got %d\n",expectedSize, JSVAL_TO_INT(mv));
-				return JS_FALSE;
-			}
 		}
 	}
 
@@ -920,11 +913,7 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	#endif
 
 	/* are we saving to a SFNode? */
-	if (!JS_InstanceOf(cx, obj, &SFNodeClass, argv)) {
-		printf( "JS_InstanceOf failed for obj in SFNodeAssign.\n");
-                        printJSNodeType(cx,obj);
-	    return JS_FALSE;
-	}
+	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFNodeClass)
 
 	/* get the pointer to the internal stuff */
 	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) == NULL) {
@@ -942,11 +931,8 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 		return JS_FALSE;
 	}
 	if (_from_obj != NULL) {
-		if (!JS_InstanceOf(cx, _from_obj, &SFNodeClass, argv)) {
-			printf( "JS_InstanceOf failed for _from_obj in SFNodeAssign.\n");
-			printJSNodeType(cx,_from_obj); printf ("\n");
-		    return JS_FALSE;
-		}
+		CHECK_CLASS(cx,_from_obj,argv,__FUNCTION__,SFNodeClass)
+
 		if ((fptr = (SFNodeNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
 			printf( "JS_GetPrivate failed for _from_obj in SFNodeAssign.\n");
 		    return JS_FALSE;
@@ -1455,10 +1441,8 @@ SFRotationMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 		printf( "JS_ConvertArguments failed in SFRotationMultiply.\n");
 		return JS_FALSE;
 	}
-	if (!JS_InstanceOf(cx, _multObj, &SFRotationClass, argv)) {
-		printf( "JS_InstanceOf failed in SFRotationMultiply.\n");
-		return JS_FALSE;
-	}
+	CHECK_CLASS(cx,_multObj,argv,__FUNCTION__,SFRotationClass)
+
 	if ((_proto = JS_GetPrototype(cx, _multObj)) == NULL) {
 		printf( "JS_GetPrototype failed in SFRotationMultiply.\n");
 		return JS_FALSE;
@@ -1526,10 +1510,9 @@ SFRotationMultVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 		printf( "JS_ConvertArguments failed in SFRotationMultVec.\n");
 		return JS_FALSE;
 	}
-	if (!JS_InstanceOf(cx, _multObj, &SFVec3fClass, argv)) {
-		printf( "JS_InstanceOf failed in SFRotationMultVec.\n");
-		return JS_FALSE;
-	}
+
+	CHECK_CLASS(cx,_multObj,argv,__FUNCTION__,SFVec3fClass)
+
 	if ((_proto = JS_GetPrototype(cx, _multObj)) == NULL) {
 		printf( "JS_GetPrototype failed in SFRotationMultVec.\n");
 		return JS_FALSE;
@@ -1589,10 +1572,9 @@ SFRotationSetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 		printf( "JS_ConvertArguments failed in SFRotationSetAxis.\n");
 		return JS_FALSE;
 	}
-	if (!JS_InstanceOf(cx, _setAxisObj, &SFVec3fClass, argv)) {
-		printf( "JS_InstanceOf failed in SFRotationSetAxis.\n");
-		return JS_FALSE;
-	}
+
+	CHECK_CLASS(cx,_setAxisObj,argv,__FUNCTION__,SFVec3fClass)
+
 
 	if ((_rot = (SFRotationNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed for obj in SFRotationSetAxis.\n");
@@ -1637,10 +1619,9 @@ SFRotationSlerp(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 		printf( "JS_ConvertArguments failed in SFRotationSlerp.\n");
 		return JS_FALSE;
 	}
-	if (!JS_InstanceOf(cx, _destObj, &SFRotationClass, argv)) {
-		printf( "JS_InstanceOf failed in SFRotationSlerp.\n");
-		return JS_FALSE;
-	}
+
+	CHECK_CLASS(cx,_destObj,argv,__FUNCTION__,SFRotationClass)
+
 
 	/*
 	 * From Annex C, C.6.7.4:
@@ -1750,10 +1731,9 @@ SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		printf( "JS_GetPrivate failed for obj in SFRotationAssign.\n");
         return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, obj, &SFRotationClass, argv)) {
-		printf( "JS_InstanceOf failed for obj in SFRotationAssign.\n");
-        return JS_FALSE;
-	}
+
+	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFRotationClass)
+
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 		printf( "JS_ConvertArguments failed in SFRotationAssign.\n");
 		return JS_FALSE;
@@ -1765,10 +1745,9 @@ SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		*rval = 0;
 	} else {
 
-	    if (!JS_InstanceOf(cx, _from_obj, &SFRotationClass, argv)) {
-			printf( "JS_InstanceOf failed for _from_obj in SFRotationAssign.\n");
-	        return JS_FALSE;
-	    }
+
+		CHECK_CLASS(cx,_from_obj,argv,__FUNCTION__,SFRotationClass)
+
 		if ((fptr = (SFRotationNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
 			printf( "JS_GetPrivate failed for _from_obj in SFRotationAssign.\n");
         	return JS_FALSE;
@@ -1824,10 +1803,9 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		/* two possibilities - SFVec3f/numeric, or SFVec3f/SFVec3f */
 		if (JSVAL_IS_OBJECT(argv[0])) {
 			_ob1 = (JSObject *)argv[0];
-			if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) {
-				printf( "JS_InstanceOf failed for 2 arg format in SFRotationConstr.\n");
-				return JS_FALSE;
-			}
+
+			CHECK_CLASS(cx,_ob1,argv,__FUNCTION__,SFVec3fClass)
+
 			if ((_vec = (SFVec3fNative *)JS_GetPrivate(cx, _ob1)) == NULL) {
 				printf( "JS_GetPrivate failed for arg format \"o d\" in SFRotationConstr.\n");
 				return JS_FALSE;
@@ -1837,10 +1815,9 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			_ob2 = (JSObject *)argv[1];
 
 			v3fv3f = TRUE;
-			if (!JS_InstanceOf(cx, _ob2, &SFVec3fClass, argv)) {
-				printf( "JS_InstanceOf failed for 2 arg (vec3f/vec3f) format in SFRotationConstr.\n");
-				return JS_FALSE;
-			}
+
+			CHECK_CLASS(cx,_ob2,argv,__FUNCTION__,SFVec3fClass)
+
 			if ((_vec2 = (SFVec3fNative *)JS_GetPrivate(cx, _ob2)) == NULL) {
 				printf( "JS_GetPrivate failed for _ob1 in SFRotationConstr.\n");
 				return JS_FALSE;
@@ -2088,11 +2065,8 @@ JSBool SFVec2fGeneric( JSContext *cx, JSObject *obj,
 					printf( "JS_ConvertArguments failed in SFVec2f.\n");
 					return JS_FALSE;
 				}
-				if (!JS_InstanceOf(cx, _paramObj, &SFVec2fClass, argv)) {
-					printf( "SFVec2f - expected a SFVec2f parameter.\n");
-					printJSNodeType (cx,_paramObj);
-					return JS_FALSE;
-				}
+
+				CHECK_CLASS(cx,_paramObj,argv,__FUNCTION__,SFVec2fClass)
 
 				if ((_vec2 = (SFVec2fNative*)JS_GetPrivate(cx, _paramObj)) == NULL) {
 					printf( "JS_GetPrivate failed for _paramObj in SFVec2f.\n");
@@ -2266,18 +2240,16 @@ SFVec2fAssign(JSContext *cx, JSObject *obj,
 		printf( "JS_GetPrivate failed for obj in SFVec2fAssign.\n");
         return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, obj, &SFVec2fClass, argv)) {
-		printf( "JS_InstanceOf failed for obj in SFVec2fAssign.\n");
-        return JS_FALSE;
-	}
+
+	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFVec2fClass)
+
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 		printf( "JS_ConvertArguments failed in SFVec2fAssign.\n");
 		return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, _from_obj, &SFVec2fClass, argv)) {
-		printf( "JS_InstanceOf failed for _from_obj in SFVec2fAssign.\n");
-        return JS_FALSE;
-    }
+
+	CHECK_CLASS(cx,_from_obj,argv,__FUNCTION__,SFVec2fClass)
+
 	if ((fptr = (SFVec2fNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
 		printf( "JS_GetPrivate failed for _from_obj in SFVec2fAssign.\n");
         return JS_FALSE;
@@ -2500,12 +2472,8 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 					printf( "JS_ConvertArguments failed in SFVec3f.\n");
 					return JS_FALSE;
 				}
-				if (!JS_InstanceOf(cx, _paramObj, &SFVec3fClass, argv)) {
-					printf( "SFVec3f - expected a SFVec3f parameter.\n");
-					printJSNodeType (cx,_paramObj);
 
-					return JS_FALSE;
-				}
+				CHECK_CLASS(cx,_paramObj,argv,__FUNCTION__,SFVec3fClass)
 
 				/* get the second object's data */
 				if ((_vec2 = (SFVec3fNative*)JS_GetPrivate(cx, _paramObj)) == NULL) {
@@ -2731,18 +2699,16 @@ SFVec3fAssign(JSContext *cx, JSObject *obj,
 		printf( "JS_GetPrivate failed for obj in SFVec3fAssign.\n");
         return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, obj, &SFVec3fClass, argv)) {
-		printf( "JS_InstanceOf failed for obj in SFVec3fAssign.\n");
-        return JS_FALSE;
-	}
+
+	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFVec3fClass)
+
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 		printf( "JS_ConvertArguments failed in SFVec3fAssign.\n");
 		return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, _from_obj, &SFVec3fClass, argv)) {
-		printf( "JS_InstanceOf failed for _from_obj in SFVec3fAssign.\n");
-        return JS_FALSE;
-    }
+
+	CHECK_CLASS(cx,_from_obj,argv,__FUNCTION__,SFVec3fClass) 
+
 	if ((fptr = (SFVec3fNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
 		printf( "JS_GetPrivate failed for _from_obj in SFVec3fAssign.\n");
         return JS_FALSE;
@@ -2997,12 +2963,8 @@ JSBool SFVec3dGeneric( JSContext *cx, JSObject *obj,
 					printf( "JS_ConvertArguments failed in SFVec3d.\n");
 					return JS_FALSE;
 				}
-				if (!JS_InstanceOf(cx, _paramObj, &SFVec3dClass, argv)) {
-					printf( "SFVec3d - expected a SFVec3d parameter.\n");
-					printJSNodeType (cx,_paramObj);
 
-					return JS_FALSE;
-				}
+				CHECK_CLASS(cx,_paramObj,argv,__FUNCTION__,SFVec3dClass)
 
 				/* get the second object's data */
 				if ((_vec2 = (SFVec3dNative*)JS_GetPrivate(cx, _paramObj)) == NULL) {
@@ -3227,18 +3189,16 @@ SFVec3dAssign(JSContext *cx, JSObject *obj,
 		printf( "JS_GetPrivate failed for obj in SFVec3dAssign.\n");
         return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, obj, &SFVec3dClass, argv)) {
-		printf( "JS_InstanceOf failed for obj in SFVec3dAssign.\n");
-        return JS_FALSE;
-	}
+
+	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFVec3dClass)
+
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 		printf( "JS_ConvertArguments failed in SFVec3dAssign.\n");
 		return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, _from_obj, &SFVec3dClass, argv)) {
-		printf( "JS_InstanceOf failed for _from_obj in SFVec3dAssign.\n");
-        return JS_FALSE;
-    }
+
+	CHECK_CLASS(cx,_from_obj,argv,__FUNCTION__,SFVec3dClass)
+
 	if ((fptr = (SFVec3dNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
 		printf( "JS_GetPrivate failed for _from_obj in SFVec3dAssign.\n");
         return JS_FALSE;
@@ -3458,18 +3418,16 @@ SFVec4fAssign(JSContext *cx, JSObject *obj,
 		printf( "JS_GetPrivate failed for obj in SFVec4fAssign.\n");
         return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, obj, &SFVec4fClass, argv)) {
-		printf( "JS_InstanceOf failed for obj in SFVec4fAssign.\n");
-        return JS_FALSE;
-	}
+
+	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFVec4fClass)
+
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 		printf( "JS_ConvertArguments failed in SFVec4fAssign.\n");
 		return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, _from_obj, &SFVec4fClass, argv)) {
-		printf( "JS_InstanceOf failed for _from_obj in SFVec4fAssign.\n");
-        return JS_FALSE;
-    }
+
+	CHECK_CLASS(cx,_from_obj,argv,__FUNCTION__,SFVec4fClass)
+
 	if ((fptr = (SFVec4fNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
 		printf( "JS_GetPrivate failed for _from_obj in SFVec4fAssign.\n");
         return JS_FALSE;
@@ -3705,18 +3663,16 @@ SFVec4dAssign(JSContext *cx, JSObject *obj,
 		printf( "JS_GetPrivate failed for obj in SFVec4dAssign.\n");
         return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, obj, &SFVec4dClass, argv)) {
-		printf( "JS_InstanceOf failed for obj in SFVec4dAssign.\n");
-        return JS_FALSE;
-	}
+
+	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFVec4dClass)
+
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 		printf( "JS_ConvertArguments failed in SFVec4dAssign.\n");
 		return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, _from_obj, &SFVec4dClass, argv)) {
-		printf( "JS_InstanceOf failed for _from_obj in SFVec4dAssign.\n");
-        return JS_FALSE;
-    }
+
+	CHECK_CLASS(cx,_from_obj,argv,__FUNCTION__,SFVec4dClass)
+
 	if ((fptr = (SFVec4dNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
 		printf( "JS_GetPrivate failed for _from_obj in SFVec4dAssign.\n");
         return JS_FALSE;
