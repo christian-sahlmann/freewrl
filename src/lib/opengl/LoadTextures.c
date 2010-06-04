@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.44 2010/06/04 13:44:47 dug9 Exp $
+  $Id: LoadTextures.c,v 1.45 2010/06/04 19:51:37 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -575,6 +575,7 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	return FALSE;
 }
 
+#ifndef _MSC_VER
 /**
  *   texture_process_list: walk through the list of texture we have to process.
  */
@@ -660,9 +661,118 @@ void _textureThread()
 		while (texture_list != NULL) {
 			ml_foreach(texture_list, texture_process_list(__l));
 		}
-#ifdef _MSC_VER
-		sleep(500);
-#endif
 		TextureParsing = FALSE;
 	}
 }
+
+#else
+/*
+parsing thread --> texture_loading_thread hand-off
+GOAL: texture thread blocks when no textures requested. (rather than sleep(500) and for(;;) )
+IT IS AN ERROR TO CALL (condition signal) before calling (condition wait). 
+So you might have a global variable bool waiting = false.
+1. The threads start, list=null, waiting=false
+2. The texture thread loops to lock_mutex line, checks if list=null, 
+   if so it sets waiting = true, and sets condition wait, and blocks, 
+   waiting for the main thread to give it some texure names
+3. The parsing/main thread goes to schedule a texture. It mutex locks, 
+   list= add new item. it checks if textureloader is waiting, 
+   if so signals condition (which locks momentarily blocks while 
+   other thread does something to the list) then unlock mutex.
+4. The texture thread gets a signal its waiting on. it copies the list and sets it null, 
+   sets waiting =false, and unlocks and does its loading work 
+   (on its copy of the list), and goes back around to 2.
+
+*/
+
+/**
+ *   texture_process_list: walk through the list of texture we have to process.
+ */
+static void texture_process_list(s_list_t *item)
+{
+	bool remove_it = FALSE;
+	textureTableIndexStruct_s *entry;
+	
+	if (!item || !item->elem)
+		return;
+	
+	entry = ml_elem(item);
+	
+	DEBUG_TEX("texture_process_list: %s\n", entry->filename);
+	
+	/* FIXME: it seems there is no case in which we not want to remote it ... */
+
+	switch (entry->status) {
+		
+	case TEX_NOTLOADED:
+		if (texture_process_entry(entry)) {
+			remove_it = TRUE;
+		}
+		break;
+		
+	default:
+		//DEBUG_MSG("Could not process texture entry: %s\n", entry->filename);
+		remove_it = TRUE;
+		break;
+	}
+		
+	if (remove_it) {
+		/* Remove the parsed resource from the list */
+		texture_list = ml_delete_self(texture_list, item);
+	}
+}
+
+s_list_t* texture_request_list = NULL;
+bool loader_waiting = false;
+void send_texture_to_loader(textureTableIndexStruct_s *entry)
+{
+	/* Lock access to the texture_request_list and loader_waiting variables*/
+	pthread_mutex_lock( &mutex_texture_list );
+	
+	/* Add our texture entry */
+	texture_request_list = ml_append(texture_request_list, ml_new(entry));
+
+	if(loader_waiting)
+        /* signal that we have data on resource list */
+        pthread_cond_signal(&texture_list_condition);
+	
+	/* Unlock */
+	pthread_mutex_unlock( &mutex_texture_list );
+}
+
+/**
+ *   _textureThread: work on textures, until the end of time.
+ */
+void _textureThread()
+{
+	ENTER_THREAD("texture loading");
+
+	TextureThreadInitialized = TRUE;
+
+	/* we wait forever for the data signal to be sent */
+	for (;;) {
+		/* Lock access to the texture_request_list and loader_waiting variables*/
+		pthread_mutex_lock( &mutex_texture_list );
+		if(texture_request_list == NULL)
+		{
+			loader_waiting = true;
+			/*block and wait*/
+	        pthread_cond_wait (&texture_list_condition, &mutex_texture_list);
+		}
+		texture_list = texture_request_list;
+		texture_request_list = NULL;
+		loader_waiting = false;
+		/* Unlock  */
+		pthread_mutex_unlock( &mutex_texture_list );
+
+
+		TextureParsing = TRUE;
+		
+		/* Process all resource list items, whatever status they may have */
+		while (texture_list != NULL) {
+			ml_foreach(texture_list, texture_process_list(__l));
+		}
+		TextureParsing = FALSE;
+	}
+}
+#endif
