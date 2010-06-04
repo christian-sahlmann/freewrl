@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.43 2010/05/14 16:37:55 couannette Exp $
+  $Id: LoadTextures.c,v 1.44 2010/06/04 13:44:47 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -660,7 +660,9 @@ void _textureThread()
 		while (texture_list != NULL) {
 			ml_foreach(texture_list, texture_process_list(__l));
 		}
-		
+#ifdef _MSC_VER
+		sleep(500);
+#endif
 		TextureParsing = FALSE;
 	}
 }

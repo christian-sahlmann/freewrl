@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.124 2010/05/16 10:01:28 couannette Exp $
+  $Id: MainLoop.c,v 1.125 2010/06/04 13:44:46 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -300,6 +300,9 @@ void EventLoop() {
 	TickTime = Time1970sec();
 
         /* any scripts to do?? */
+#ifdef _MSC_VER
+		if(doEvents)
+#endif
         INITIALIZE_ANY_SCRIPTS;
 
 
