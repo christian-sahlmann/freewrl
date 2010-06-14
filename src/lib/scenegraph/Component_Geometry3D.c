@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.29 2010/04/06 21:31:30 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.30 2010/06/14 14:59:27 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -602,6 +602,11 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 	       GLDOUBLE modelMatrix[16];
 	       struct point_XYZ delta = {0,0,0};
 
+		#ifdef RENDERVERBOSE
+		struct point_XYZ t_orig = {0,0,0};
+		#endif
+
+
 	       struct X3D_PolyRep pr;
 	       prflags flags = 0;
 	       int change = 0;
@@ -677,7 +682,16 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 				transform collision correction deltas from collision space to avatar space: 
 					- done in Mainloop.c get_collisionoffset() with FallInfo.collision2avatar
 		   */
+
+
 			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+
+
+			#ifdef RENDERVERBOSE
+                           t_orig.x = modelMatrix[12];
+                           t_orig.y = modelMatrix[13];
+                           t_orig.z = modelMatrix[14];
+			#endif
 
 		   /* at this point, whichever method - modelMatrix is Shape2Collision and upvecmat is Collision2Avatar 
 		   - pr.actualCoord - these are Shape space coordinates
@@ -811,9 +825,9 @@ DEBUGGING_CODE}
 struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n);
 #define FLOAT_TOLERANCE 0.00000001
 void collide_Sphere (struct X3D_Sphere *node) {
-	       struct point_XYZ t_orig; /*transformed origin*/
-	       struct point_XYZ p_orig; /*projected transformed origin */
-	       struct point_XYZ n_orig; /*normal(unit length) transformed origin */
+	       struct point_XYZ t_orig = {0,0,0}; /*transformed origin*/
+	       struct point_XYZ p_orig= {0,0,0} ; /*projected transformed origin */
+	       struct point_XYZ n_orig = {0,0,0}; /*normal(unit length) transformed origin */
 	       GLDOUBLE modelMatrix[16];
 	       GLDOUBLE dist2;
 	       struct point_XYZ delta = {0,0,0};
@@ -1205,7 +1219,7 @@ void collide_Cone (struct X3D_Cone *node) {
 	       GLDOUBLE modelMatrix[16];
 	       struct point_XYZ iv = {0,0,0};
 	       struct point_XYZ jv = {0,0,0};
-	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
+	       GLDOUBLE scale = 0.0; /* FIXME: won''t work for non-uniform scales. */
 	       struct point_XYZ t_orig = {0,0,0};
 
 	       struct point_XYZ delta;
@@ -1448,7 +1462,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 	       GLDOUBLE modelMatrix[16];
 	       struct point_XYZ iv = {0,0,0};
 	       struct point_XYZ jv = {0,0,0};
-	       GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
+	       GLDOUBLE scale=0.0; /* FIXME: won''t work for non-uniform scales. */
 	       struct point_XYZ t_orig = {0,0,0};
 
 	       struct point_XYZ delta;
@@ -1564,6 +1578,11 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 	       GLDOUBLE modelMatrix[16];
 	       struct point_XYZ delta = {0,0,0};
 
+		#ifdef RENDERVERBOSE
+		struct point_XYZ t_orig = {0,0,0};
+		#endif
+
+
 	       struct X3D_PolyRep pr;
 	       prflags flags = 0;
 	       int change = 0;
@@ -1589,6 +1608,12 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+
+			#ifdef RENDERVERBOSE
+                           t_orig.x = modelMatrix[12];
+                           t_orig.y = modelMatrix[13];
+                           t_orig.z = modelMatrix[14];
+			#endif
 
 			if(!avatarCollisionVolumeIntersectMBBf(modelMatrix, pr.minVals, pr.maxVals))return;
 
