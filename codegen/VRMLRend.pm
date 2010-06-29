@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.27 2010/03/26 18:16:29 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.28 2010/06/29 22:13:36 davejoubert Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,16 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.28  2010/06/29 22:13:36  davejoubert
+# Implement PickableGroup
+# Modified Files:
+# 	codegen/VRMLC.pm codegen/VRMLNodes.pm codegen/VRMLRend.pm
+# 	src/lib/internal.h src/lib/input/SensInterps.h
+# 	src/lib/scenegraph/Component_Grouping.c
+# 	src/lib/scenegraph/GeneratedCode.c
+# 	src/lib/vrml_parser/NodeFields.h src/lib/vrml_parser/Structs.h
+# 	src/lib/world_script/fieldSet.c src/libeai/GeneratedCode.c
+#
 # Revision 1.27  2010/03/26 18:16:29  crc_canada
 # DIS headers put in VRMLNodes.pm
 #
@@ -243,6 +253,7 @@
 # Arc2D work.
 #.....
 
+# DJTRACK_PICKSENSORS See PointPickSensor
 # used for the X3D Parser only. Return type of node.
 %defaultContainerType = (
 	ContourPolyLine2D 	=>geometry,
@@ -336,6 +347,7 @@
 	NurbsSurface 		=>children,
 	NurbsTextureSurface 	=>children,
 	OrientationInterpolator	=>children,
+	PickableGroup 		=>children,
 	PixelTexture 		=>texture,
 	PlaneSensor 		=>children,
 	PointLight 		=>children,
@@ -633,6 +645,7 @@
 	Group
 	MidiControl
 	MidiKey
+	PickableGroup
 	PointLight
 	SpotLight
 	DirectionalLight
@@ -680,6 +693,7 @@
 	HAnimSite
 	Group
 	StaticGroup
+	PickableGroup
 	Billboard
 	Transform
 	Anchor
@@ -796,6 +810,7 @@
 	GeoLOD
 	LOD
 	Group
+	PickableGroup
         Inline
 	Transform
 	StaticGroup

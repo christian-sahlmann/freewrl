@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.40 2010/03/26 18:16:28 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.41 2010/06/29 22:13:36 davejoubert Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -3046,6 +3046,26 @@ package VRML::NodeType;
 	# testing...
 
 	###################################################################################
+
+	# A PickableGroup node is an X3DGroupingNode that contains children that are marked
+	# as being of a given classification of picking types, as well as the ability to enable or disable picking of the children.
+
+# DJTRACK_PICKSENSORS
+	PickableGroup => new VRML::NodeType("PickableGroup", {
+		addChildren => [MFNode, undef, inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		removeChildren => [MFNode, undef, inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		children => [MFNode, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		objectType => [MFString, ["ALL","NONE","TERRAIN"],inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		pickable => [SFBool, TRUE,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+
+		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
+		FreeWRL__protoDef => [SFInt32, INT_ID_UNDEFINED, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # tell renderer that this is a proto...
+		FreeWRL_PROTOInterfaceNodes =>[MFNode, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_sortedChildren => [MFNode, [], inputOutput, 0],
+	},"X3DGroupingNode"),
 
 	MidiControl =>
 	new VRML::NodeType("MidiControl",

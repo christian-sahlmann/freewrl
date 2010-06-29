@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.34 2010/03/04 20:52:30 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.35 2010/06/29 22:13:36 davejoubert Exp $
 
 X3D Grouping Component
 
@@ -68,6 +68,11 @@ void changed_Transform (struct X3D_Transform *node) {
 
 /* prep_Group - we need this so that distance (and, thus, distance sorting) works for Groups */
 void prep_Group (struct X3D_Group *node) {
+	RECORD_DISTANCE
+}
+/* prep_PickableGroup - we need this so that distance (and, thus, distance sorting) works for PickableGroups */
+void prep_PickableGroup (struct X3D_Group *node) {
+	printf("%s:%d prep_PickableGroup\n",__FILE__,__LINE__);
 	RECORD_DISTANCE
 }
 
@@ -278,6 +283,43 @@ void child_Group (struct X3D_Group *node) {
 	LOCAL_LIGHT_OFF
 }
 
+void child_PickableGroup (struct X3D_Group *node) {
+	printf("%s:%d child_PickableGroup\n",__FILE__,__LINE__);
+	CHILDREN_COUNT
+	LOCAL_LIGHT_SAVE
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+
+	 if (1==1) {
+		int x;
+		struct X3D_Node *xx;
+
+		printf ("child_PickableGroup, this %p rf %x isProto %d\n",node,node->_renderFlags, node->FreeWRL__protoDef);
+		printf ("	..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+			render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+
+		for (x=0; x<nc; x++) {
+			xx = X3D_NODE(node->_sortedChildren.p[x]);
+			printf ("	ch %p type %s dist %f\n",node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+		}
+	}
+
+	/* do we have a DirectionalLight for a child? */
+	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+
+	/* printf ("chld_PickableGroup, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
+		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
+	/* now, just render the non-directionalLight children */
+	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && render_geom) {
+		(node->children).n = 1;
+		normalChildren(node->children);
+		(node->children).n = nc;
+	} else {
+		normalChildren(node->_sortedChildren);
+	}
+
+	LOCAL_LIGHT_OFF
+}
+
 
 void child_Transform (struct X3D_Transform *node) {
 	LOCAL_LIGHT_SAVE
@@ -368,6 +410,13 @@ void changed_StaticGroup (struct X3D_StaticGroup *node) {
 
 
 void changed_Group (struct X3D_Group *node) { 
+	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Group, metadata));
+	MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_Group, children));
+	INITIALIZE_EXTENT;
+}
+
+void changed_PickableGroup (struct X3D_Group *node) { 
+	printf("%s:%d changed_PickableGroup\n",__FILE__,__LINE__);
 	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Group, metadata));
 	MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_Group, children));
 	INITIALIZE_EXTENT;

@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.42 2010/06/29 16:59:44 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.43 2010/06/29 22:13:36 davejoubert Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,16 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.43  2010/06/29 22:13:36  davejoubert
+# Implement PickableGroup
+# Modified Files:
+# 	codegen/VRMLC.pm codegen/VRMLNodes.pm codegen/VRMLRend.pm
+# 	src/lib/internal.h src/lib/input/SensInterps.h
+# 	src/lib/scenegraph/Component_Grouping.c
+# 	src/lib/scenegraph/GeneratedCode.c
+# 	src/lib/vrml_parser/NodeFields.h src/lib/vrml_parser/Structs.h
+# 	src/lib/world_script/fieldSet.c src/libeai/GeneratedCode.c
+#
 # Revision 1.42  2010/06/29 16:59:44  crc_canada
 # Initial VBO work.
 #
@@ -1440,7 +1450,7 @@ sub gen {
 	"	int i;\n".
 	"	if (node==NULL) return; \n".
 	"	if (level == 0) printf (\"starting dump_scene\\n\");\n".
-	"	spacer printf (\"L%d: node type %s\\n\",level,stringNodeType(node->_nodeType));\n".
+	"	spacer printf (\"L%d: node (%p) type %s\\n\",level,node,stringNodeType(node->_nodeType));\n".
 	"	switch (node->_nodeType) {\n";
 
 	for my $node (@sortedNodeList) {

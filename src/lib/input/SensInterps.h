@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.h,v 1.6 2009/10/05 15:07:23 crc_canada Exp $
+$Id: SensInterps.h,v 1.7 2010/06/29 22:13:36 davejoubert Exp $
 
 SensInterps ???
 
@@ -71,6 +71,8 @@ void do_ProximitySensorTick(void *ptr);
 void do_GeoProximitySensorTick(void *ptr);
 void do_MovieTextureTick(void *ptr);
 void do_VisibilitySensorTick(void *ptr);
+/* DJTRACK_PICKSENSORS */
+void do_PickSensorTickDUMMY(void *ptr);
 
 void do_Anchor( void *ptr, int typ, int but1, int over);
 void do_TouchSensor( void *ptr, int typ, int but1, int over);

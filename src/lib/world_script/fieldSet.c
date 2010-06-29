@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.50 2010/05/26 12:53:08 dug9 Exp $
+  $Id: fieldSet.c,v 1.51 2010/06/29 22:13:36 davejoubert Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -57,7 +57,9 @@
 #include "fieldSet.h"
 #include "fieldGet.h"
 
+/* Useful dump routines defined in world_script/field[GS]et.c */
 void dumpOneNode(int myptr);
+void dumpOne_X3D_Node(struct X3D_Node * boxptr);
 void fudgeIfNeeded(int myptr,int myoffset);
 
 /*******************************************************************
@@ -430,6 +432,16 @@ void fudgeIfNeeded(int myptr,int myoffset){
 
 void dumpOneNode(int myptr) {
 	struct X3D_Node *boxptr;
+
+	boxptr = getEAINodeFromTable(myptr,-1);
+
+	if (eaiverbose) {
+		printf ("GETFIELDDEFS, node %u -> %p\n",(unsigned int)myptr, boxptr);
+	}
+	dumpOne_X3D_Node(boxptr) ;
+}
+
+void dumpOne_X3D_Node(struct X3D_Node * boxptr) {
 	int myc;
 	int *np;
 
@@ -438,12 +450,6 @@ void dumpOneNode(int myptr) {
 	char ctmp;
 	char utilBuf[EAIREADSIZE];
 	int errcount;
-
-	boxptr = getEAINodeFromTable(myptr,-1);
-
-	if (eaiverbose) {
-		printf ("GETFIELDDEFS, node %u -> %p\n",(unsigned int)myptr, boxptr);
-	}
 
 	if (boxptr == 0) {
 		printf ("makeFIELDDEFret have null node here \n");
