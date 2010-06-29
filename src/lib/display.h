@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.88 2010/05/03 15:35:22 couannette Exp $
+  $Id: display.h,v 1.89 2010/06/29 16:59:44 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -93,6 +93,14 @@ extern bool display_initialized;
  * TARGET_MOTIF  : ui/fwMotifWindow.c
  * TARGET_WIN32  : ui/fwWindow32.c
  */
+
+/* are we doing Vertex Buffer Objects? (VBOs) for OpenGL? */
+#define VERTEX_VBO 0
+#define NORMAL_VBO 1
+#define TEXTURE_VBO 2
+#define INDEX_VBO 3
+#define COLOR_VBO 4
+#define VBO_COUNT 5
 
 
 int open_display();

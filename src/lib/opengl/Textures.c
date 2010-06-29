@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.62 2010/05/14 16:35:46 couannette Exp $
+  $Id: Textures.c,v 1.63 2010/06/29 16:59:44 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -307,9 +307,8 @@ void registerTexture(struct X3D_Node *tmp) {
 	if ((it->_nodeType == NODE_ImageTexture) || (it->_nodeType == NODE_PixelTexture) ||
 		(it->_nodeType == NODE_MovieTexture) || (it->_nodeType == NODE_VRML1_Texture2)) {
 
-		DEBUG_TEX("CREATING TEXTURE NODE: type %d url ", it->_nodeType);
-		Multi_String_print(&it->url);
-		//DEBUG_TEX("parent url: %s\n", it->_parentResource);
+		DEBUG_TEX("CREATING TEXTURE NODE: type %d\n", it->_nodeType);
+		/* I need to know the texture "url" here... */
 
 		if ((nextFreeTexture & 0x1f) == 0) {
 
@@ -1091,9 +1090,9 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	GET_THIS_TEXTURE;
 	myTableIndex = getTableIndex(thisTexture);
 
-	/* if (myTableIndex->status != TEX_LOADED)
-	printf ("new_bind_image, I am %u, textureStackTop %d, thisTexture is %u status %s\n",
-		node,textureStackTop,thisTexture,texst(myTableIndex->status));  */
+	if (myTableIndex->status != TEX_LOADED)
+	PRINTF ("new_bind_image, I am %u, textureStackTop %d, thisTexture is %u status %s\n",
+		node,textureStackTop,thisTexture,texst(myTableIndex->status));
 
 	/* default here; this is just a blank texture */
 	boundTextureStack[textureStackTop] = defaultBlankTexture;
@@ -1101,12 +1100,15 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	switch (myTableIndex->status) {
 		case TEX_NOTLOADED:
 			DEBUG_TEX("feeding texture %p to texture thread...\n", myTableIndex);
+			myTableIndex->status = TEX_LOADING;
 			send_texture_to_loader(myTableIndex);
 			break;
 
 		case TEX_LOADING:
-			currentlyWorkingOn = thisTexture;
-			loadThisTexture = myTableIndex;
+			DEBUG_TEX("I've to wait for %p...\n", myTableIndex);
+			//usleep(100);
+/* 			currentlyWorkingOn = thisTexture; */
+/* 			loadThisTexture = myTableIndex; */
 			break;
 
 		case TEX_NEEDSBINDING:

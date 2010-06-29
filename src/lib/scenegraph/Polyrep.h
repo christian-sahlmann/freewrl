@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.h,v 1.10 2010/04/14 19:03:32 crc_canada Exp $
+$Id: Polyrep.h,v 1.11 2010/06/29 16:59:44 crc_canada Exp $
 
 Polyrep ???
 
@@ -28,7 +28,6 @@ Polyrep ???
 
 
 #include <config.h>
-/* JAS #include <system.h> */
 #include <display.h>
 #include <internal.h>
 

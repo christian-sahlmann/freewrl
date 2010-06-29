@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.28 2010/04/14 19:03:32 crc_canada Exp $
+$Id: Polyrep.c,v 1.29 2010/06/29 16:59:44 crc_canada Exp $
 
 ???
 
@@ -803,48 +803,137 @@ void render_polyrep(void *node) {
                 renderedNodePtr->EXTENT_MIN_Y, renderedNodePtr->EXTENT_MAX_Z, renderedNodePtr->EXTENT_MIN_Z,
                 renderedNodePtr);
 
+	/*  clockwise or not?*/
+	if (!r->ccw) { FW_GL_FRONTFACE(GL_CW); }
+	
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) {
 		if (!r->isRGBAcolorNode) 
 			if (!APPROX(r->transparency,appearanceProperties.transparency)) {
 				recalculateColorField(r);
 			}
-	
+		
 		LIGHTING_ON
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
-
-                FW_GL_ENABLE(GL_COLOR_MATERIAL);
-                FW_GL_COLOR_MATERIAL(GL_FRONT_AND_BACK, GL_DIFFUSE);
-                FW_GL_COLOR4FV(diffuseColor);
-
+	
+		FW_GL_ENABLE(GL_COLOR_MATERIAL);
+		FW_GL_COLOR_MATERIAL(GL_FRONT_AND_BACK, GL_DIFFUSE);
+		FW_GL_COLOR4FV(diffuseColor);
+	
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 	}
-
-	/*  clockwise or not?*/
-	if (!r->ccw) { FW_GL_FRONTFACE(GL_CW); }
-
+	
 	/*  status bar, text do not have normals*/
-	if (r->normal) {FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal);}
-	else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
-
-	/*  textures?*/
-	if (r->GeneratedTexCoords) {
-			textureDraw_start(NULL,r->GeneratedTexCoords);
-	} else {
-		textureDraw_start(X3D_NODE(node), NULL);
-	}
-
+	if (r->normal) {
+		if (global_use_VBOs) {
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[NORMAL_VBO]);
+			FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
+		} else {
+			FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal);
+		}
+	} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
+	
 	/*  colours?*/
 	if (r->color) {
-		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_COLOR_POINTER(4,GL_FLOAT,0,r->color);
+/*
+			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+			if (global_use_VBOs) {
+				FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
+				glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[COLOR_VBO]);
+			} else {
+				FW_GL_COLOR_POINTER(4,GL_FLOAT,0,r->color);
+			}
+*/
 	}
 
-	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *) r->actualCoord);
-	FW_GL_DRAWELEMENTS(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
+
+	if (!global_use_VBOs) {
+		/*  textures?*/
+		if (r->GeneratedTexCoords) {
+				textureDraw_start(NULL,r->GeneratedTexCoords);
+		} else {
+			textureDraw_start(X3D_NODE(node), NULL);
+		}
+	
+		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *) r->actualCoord);
+		FW_GL_DRAWELEMENTS(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
+	} else {
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[VERTEX_VBO]);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,r->VBO_buffers[INDEX_VBO]);
+		glEnableClientState(GL_VERTEX_ARRAY); // should already be enabled
+
+		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
+		glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT,0);
+
+		/* turn VBOs off for now */
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	}
+#ifdef OLDCODE
+	if (!global_use_VBOs) {
+		/* Do we have any colours? Are textures, if present, not RGB? */
+		if(r->color) {
+			if (!r->isRGBAcolorNode) 
+				if (!APPROX(r->transparency,appearanceProperties.transparency)) {
+					recalculateColorField(r);
+				}
+		
+			LIGHTING_ON
+			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
+	
+	                FW_GL_ENABLE(GL_COLOR_MATERIAL);
+	                FW_GL_COLOR_MATERIAL(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	                FW_GL_COLOR4FV(diffuseColor);
+	
+			do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
+			do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
+			do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
+		}
+	
+		/*  clockwise or not?*/
+		if (!r->ccw) { FW_GL_FRONTFACE(GL_CW); }
+	
+		/*  status bar, text do not have normals*/
+		if (r->normal) {FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal);}
+		else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
+	
+		/*  textures?*/
+		if (r->GeneratedTexCoords) {
+				textureDraw_start(NULL,r->GeneratedTexCoords);
+		} else {
+			textureDraw_start(X3D_NODE(node), NULL);
+		}
+	
+		/*  colours?*/
+		if (r->color) {
+			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+			FW_GL_COLOR_POINTER(4,GL_FLOAT,0,r->color);
+		}
+		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *) r->actualCoord);
+		FW_GL_DRAWELEMENTS(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
+	} else {
+
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[NORMAL_VBO]);
+		glEnableClientState(GL_NORMAL_ARRAY); // should already be enabled
+		FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
+
+
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[VERTEX_VBO]);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,r->VBO_buffers[INDEX_VBO]);
+		glEnableClientState(GL_VERTEX_ARRAY); // should already be enabled
+		glDisableClientState(GL_COLOR_ARRAY); // should already be enabled
+
+		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
+		glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT,0);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	}
+#endif
+
 
 	trisThisLoop += r->ntri;
 
@@ -1057,6 +1146,8 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 	/* first time through; make the intern structure for this polyrep node */
 	if(!p->_intern) {
 
+		int i;
+
 		p->_intern = MALLOC(sizeof(struct X3D_PolyRep));
 
 		r = (struct X3D_PolyRep *)p->_intern;
@@ -1074,6 +1165,14 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		r->maxVals[0] =  -999999.9f;
 		r->maxVals[1] =  -999999.9f;
 		r->maxVals[2] =  -999999.9f;
+
+		for (i=0; i<VBO_COUNT; i++) r->VBO_buffers[i] = 0;
+		if (global_use_VBOs) {
+			printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType));
+			glGenBuffers(VBO_COUNT,r->VBO_buffers);
+			printf ("they are %u %u %u %u\n",r->VBO_buffers[0],r->VBO_buffers[1],r->VBO_buffers[2],r->VBO_buffers[3]);
+		}
+
 
 	}
 	r = (struct X3D_PolyRep *)p->_intern;

@@ -1,5 +1,5 @@
 /*
-  $Id: internal.h,v 1.37 2010/05/25 20:37:34 istakenv Exp $
+  $Id: internal.h,v 1.38 2010/06/29 16:59:44 crc_canada Exp $
 
   FreeWRL support library.
   Library internal declarations.
@@ -374,6 +374,7 @@ extern unsigned global_texture_size;    /* do we manually set up the texture
 extern bool global_print_opengl_errors; /* print OpenGL errors as they come ? */
 
 extern bool global_trace_threads;       /* trace thread creation / switch ... ? */
+extern bool global_use_VBOs;       /* try and use VBOs rather than vertex arrays for geometry */
 
 extern bool global_use_shaders_when_possible; /* Appearance shaders, etc, etc, for OpenGL-ES and OpenGL-3.2 */
 #endif /* __LIBFREEWRL_DECL_H__ */

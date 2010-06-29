@@ -1,5 +1,5 @@
 /*
-  $Id: internal.c,v 1.16 2010/05/14 16:18:11 couannette Exp $
+  $Id: internal.c,v 1.17 2010/06/29 16:59:44 crc_canada Exp $
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always
@@ -159,6 +159,7 @@ bool global_occlusion_disable = FALSE;
 unsigned global_texture_size = 0;
 bool global_print_opengl_errors = FALSE;
 bool global_trace_threads = FALSE;
+bool global_use_VBOs = FALSE;
 bool global_use_shaders_when_possible = FALSE;
 
 #ifdef FREEWRL_THREAD_COLORIZED

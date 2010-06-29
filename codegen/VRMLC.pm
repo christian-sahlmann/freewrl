@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.41 2010/04/14 19:03:32 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.42 2010/06/29 16:59:44 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.42  2010/06/29 16:59:44  crc_canada
+# Initial VBO work.
+#
 # Revision 1.41  2010/04/14 19:03:32  crc_canada
 # backing out OpenGL-ES 2.0 changes.
 #
@@ -1789,6 +1792,7 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	GLfloat maxVals[3];		/* for collision and default texture coord generation */
 	GLfloat transparency;		/* what the transparency value was during compile, put in color array if RGBA colors */
 	int isRGBAcolorNode;		/* color was originally an RGBA, DO NOT re-write if transparency changes */
+	GLuint VBO_buffers[VBO_COUNT];		/* VBO indexen */
 };
 
 /* viewer dimentions (for collision detection) */

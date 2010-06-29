@@ -1,5 +1,5 @@
 /*
-  $Id: utils.c,v 1.12 2010/05/06 07:27:00 couannette Exp $
+  $Id: utils.c,v 1.13 2010/06/29 16:59:44 crc_canada Exp $
 
   General utility functions.
 
@@ -184,16 +184,16 @@ void Multi_String_print(struct Multi_String *url)
 {
 	if (url) {
 		if (!url->p) {
-			printf("multi url: <empty>");
+			PRINTF("multi url: <empty>");
 		} else {
 			int i;
 
-			printf("multi url: ");
+			PRINTF("multi url: ");
 			for (i = 0; i < url->n; i++) {
 				struct Uni_String *s = url->p[i];
-				printf("[%d] %s", i, s->strptr);
+				PRINTF("[%d] %s", i, s->strptr);
 			}
 		}
-		printf("\n");
+		PRINTF("\n");
 	}
 }

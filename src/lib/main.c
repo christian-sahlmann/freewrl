@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.31 2010/04/28 20:51:26 sdumoulin Exp $
+  $Id: main.c,v 1.32 2010/06/29 16:59:44 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -197,6 +197,11 @@ bool initFreeWRL(freewrl_params_t *params)
 		TRACE_MSG("Env: TRACE THREADS enabled.\n");
 	}
 
+	global_use_VBOs = (getenv("FREEWRL_USE_VBOS") != NULL);
+	if (global_use_VBOs) {
+		TRACE_MSG("Env: trying VBOs enabled.\n");
+	}
+
 #ifdef IPHONE
 	global_use_shaders_when_possible = TRUE; /* OpenGL-ES 2.0 requires this */
 #else
@@ -255,6 +260,7 @@ void startFreeWRL(const char *url)
 {
 	/* Give the main argument to the resource handler */
 	resource_push_single_request(url);
+	DEBUG_MSG("request sent to parser thread, main thread joining display thread...\n");
 
 	/* now wait around until something kills this thread. */
 	pthread_join(DispThrd, NULL);

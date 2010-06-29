@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.15 2010/04/14 19:03:32 crc_canada Exp $
+$Id: StreamPoly.c,v 1.16 2010/06/29 16:59:44 crc_canada Exp $
 
 ???
 
@@ -522,6 +522,23 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	/* record the transparency, in case we need to re-do this field */
 	r->transparency = thisTrans;
 	r->isRGBAcolorNode = isRGBA;
+
+	/* send the data to VBOs if required */
+	if (global_use_VBOs) {
+	printf("stream polyrep, uploading vertices to VBO %u and %u\n",r->VBO_buffers[VERTEX_VBO], r->VBO_buffers[INDEX_VBO]);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[NORMAL_VBO]);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColor)*3,newnorms, GL_STATIC_DRAW_ARB);
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColorRGBA)*3,newcolors, GL_STATIC_DRAW_ARB);
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[VERTEX_VBO]);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColor)*3,newpoints, GL_STATIC_DRAW_ARB);
+
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,r->VBO_buffers[INDEX_VBO]);
+	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,sizeof (int)*r->ntri*3,r->cindex,GL_STATIC_DRAW_ARB);
+	}
+
 
 	#ifdef STREAM_POLY_VERBOSE
 	printf ("end spv for %u, extents %f %f, %f %f, %f %f\n",

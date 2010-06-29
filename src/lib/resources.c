@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.32 2010/05/16 10:01:28 couannette Exp $
+  $Id: resources.c,v 1.33 2010/06/29 16:59:44 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -355,7 +355,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		  resourceStatusToString(res->status), res->request, 
 		  res->base, res->parsed_request,
 		  res->parent, (res->parent ? res->parent->base : "N/A"));
-	DEBUG_RES ("\n\n");
 }
 
 /**
@@ -721,7 +720,7 @@ void resource_dump(resource_item_t *res)
 	s_list_t *cf;
 	s_list_t *of;
 
-	printf ("resource_dump: %p\n"
+	PRINTF ("resource_dump: %p\n"
 		  "request: %s\n"
 		  "parsed request: %s\n"
 		  "actual file: %s\n"
@@ -730,19 +729,19 @@ void resource_dump(resource_item_t *res)
 
 	cf = (s_list_t *) res->cached_files;
 	if (cf) {
-		ml_foreach(cf, printf("%s ", (char *) ml_elem(__l)));
+		ml_foreach(cf, PRINTF("%s ", (char *) ml_elem(__l)));
 	} else {
-		printf("none");
+		PRINTF("none");
 	}
-	printf("\nopenned files: ");
+	PRINTF("\nopenned files: ");
 
 	of = (s_list_t *) res->openned_files;
 	if (of) {
-		ml_foreach(of, printf("%s ", (char *) ((openned_file_t *)ml_elem(__l))->filename));
+		ml_foreach(of, PRINTF("%s ", (char *) ((openned_file_t *)ml_elem(__l))->filename));
 	} else {
-		printf("none");
+		PRINTF("none");
 	}
-	printf("\n");
+	PRINTF("\n");
 }
 
 /**

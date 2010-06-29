@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.16 2010/05/14 17:54:15 dug9 Exp $
+  $Id: threads.c,v 1.17 2010/06/29 16:59:44 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -78,11 +78,15 @@ DEF_THREAD(loadThread); /* texture thread */
 
 /* Thread synchronization global variables */
 
+/* Synchronize / exclusion root_res and below */
 pthread_mutex_t mutex_resource_tree = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex_resource_list = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex_texture_list = PTHREAD_MUTEX_INITIALIZER;
 
+/* Synchronize / exclusion : resource queue for parser */
+pthread_mutex_t mutex_resource_list = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t resource_list_condition = PTHREAD_COND_INITIALIZER;
+
+/* Synchronize / exclusion (main<=>texture) */
+pthread_mutex_t mutex_texture_list = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t texture_list_condition = PTHREAD_COND_INITIALIZER;
 
 
@@ -99,6 +103,14 @@ void initializeDisplayThread()
 	fflush(stderr);
 	sync();
 	ASSERT(TEST_NULL_THREAD(DispThrd));
+
+	/* Initialize all mutex/condition variables ... */
+	pthread_mutex_init( &mutex_resource_tree, NULL );
+	pthread_mutex_init( &mutex_resource_list, NULL );
+	pthread_mutex_init( &mutex_texture_list, NULL );
+	pthread_cond_init( &resource_list_condition, NULL );
+	pthread_cond_init( &texture_list_condition, NULL );
+
 	ret = pthread_create(&DispThrd, NULL, (void *) _displayThread, NULL);
 	switch (ret) {
 	case 0: 
@@ -127,8 +139,8 @@ void initializeInputParseThread()
 	fflush(stdout);
 	fflush(stderr);
 
-	pthread_mutex_init( &mutex_resource_tree, NULL );
-	pthread_mutex_init( &mutex_resource_list, NULL );
+/* 	pthread_mutex_init( &mutex_resource_tree, NULL ); */
+/* 	pthread_mutex_init( &mutex_resource_list, NULL ); */
 
 	ASSERT(TEST_NULL_THREAD(PCthread));
 	ret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);
@@ -148,8 +160,6 @@ void initializeTextureThread()
 	/* Synchronize trace/error log... */
 	fflush(stdout);
 	fflush(stderr);
-
-	pthread_mutex_init( &mutex_texture_list, NULL );
 
 	ASSERT(TEST_NULL_THREAD(loadThread));
 	ret = pthread_create(&loadThread, NULL, (void *(*)(void *))&_textureThread, NULL);

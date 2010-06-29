@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.45 2010/06/04 19:51:37 dug9 Exp $
+  $Id: LoadTextures.c,v 1.46 2010/06/29 16:59:44 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -48,6 +48,10 @@
 
 #include <libFreeWRL.h>
 
+/* We do not want to include Struct.h: enormous file :) */
+typedef struct _Multi_String Multi_String;
+void Multi_String_print(struct Multi_String *url);
+
 #ifdef _MSC_VER
 #include "gdiPlusImageLoader.h"
 #else
@@ -75,16 +79,16 @@ GLuint defaultBlankTexture;
 #ifdef TEXVERBOSE
 static void texture_dump_entry(textureTableIndexStruct_s *entry)
 {
-	DEBUG_TEX("%s\t%p\t%s\n", texst(entry->status), entry, entry->filename);
+	DEBUG_MSG("%s\t%p\t%s\n", texst(entry->status), entry, entry->filename);
 }
 #endif
 
-static void texture_dump_list()
+void texture_dump_list()
 {
 #ifdef TEXVERBOSE
-	DEBUG_MSG("Texture wait queue:\n");
+	DEBUG_MSG("TEXTURE: wait queue\n");
 	ml_foreach(texture_list, texture_dump_entry(ml_elem(__l)));
-	DEBUG_MSG(".\n");
+	DEBUG_MSG("TEXTURE: end wait queue\n");
 #endif
 }
 
@@ -530,9 +534,9 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 
 	if (url != NULL) {
 #ifdef TEXVERBOSE
-		printf("url: ");
+		PRINTF("url: ");
 		Multi_String_print(url);
-		printf("parentPath: ");
+		PRINTF("parent resource: \n");
 		resource_dump(parentPath);
 #endif
 		res = resource_create_multi(url);
@@ -542,7 +546,8 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 
 		/* Setup media type */
 		res->media_type = resm_image; /* quick hack */
-		
+
+#if 0//MB 25-05-2010		
 		//resource_get_valid_url_from_multi(parentPath, res);
 
 		send_resource_to_parser(res);
@@ -552,14 +557,15 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		resource_get_valid_texture_from_multi(entry, parentPath, res);
 #endif // no texture struct here !
 
+
 		if (res->status == ress_loaded) {
+#endif
 
-			res->complete = TRUE;
-
+		if (resource_fetch(res)) {
 			DEBUG_TEX("really loading texture data from %s into %p\n", res->actual_file, entry);
-
 			if (texture_load_from_file(entry, res->actual_file)) {
 				entry->status = TEX_NEEDSBINDING; /* tell the texture thread to convert data to OpenGL-format */
+				res->complete = TRUE;
 			} else {
 				ERROR_MSG("can't load texture: %s (%p)\n", res->actual_file, entry);
 				return FALSE;
@@ -589,12 +595,13 @@ static void texture_process_list(s_list_t *item)
 	
 	entry = ml_elem(item);
 	
-	DEBUG_TEX("texture_process_list: %s\n", entry->filename);
+	DEBUG_TEX("texture_process_list: %p (filename: %s)\n", entry, (entry->filename ? entry->filename : "<unknown atm>"));
 	
 	/* FIXME: it seems there is no case in which we not want to remote it ... */
 
 	switch (entry->status) {
-		
+
+	case TEX_LOADING:
 	case TEX_NOTLOADED:
 		if (texture_process_entry(entry)) {
 			remove_it = TRUE;
@@ -602,25 +609,25 @@ static void texture_process_list(s_list_t *item)
 		break;
 		
 	default:
-		//DEBUG_MSG("Could not process texture entry: %s\n", entry->filename);
+		DEBUG_MSG("Could not process texture entry: %p (filename: %s)\n", entry, (entry->filename ? entry->filename : "<unknown atm>"));
 		remove_it = TRUE;
 		break;
 	}
 		
 	if (remove_it) {
+		DEBUG_TEX("Prepare to remove %p from the list...\n", item);
+
 		/* Lock access to the resource list */
 		pthread_mutex_lock( &mutex_texture_list );
-		
-		/* wait around until we have been signalled */
-		pthread_cond_wait (&texture_list_condition, &mutex_texture_list);
-		
-		texture_dump_list();
 		
 		/* Remove the parsed resource from the list */
 		texture_list = ml_delete_self(texture_list, item);
 
 		/* Unlock the resource list */
 		pthread_mutex_unlock( &mutex_texture_list );
+
+		/* What next ? */
+		texture_dump_list();
 	}
 }
 
@@ -631,6 +638,9 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry)
 	
 	/* Add our texture entry */
 	texture_list = ml_append(texture_list, ml_new(entry));
+
+	/* What's in the queue ? */
+	texture_dump_list();
 
         /* signal that we have data on resource list */
         pthread_cond_signal(&texture_list_condition);
