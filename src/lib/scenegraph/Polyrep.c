@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.29 2010/06/29 16:59:44 crc_canada Exp $
+$Id: Polyrep.c,v 1.30 2010/06/29 17:21:40 crc_canada Exp $
 
 ???
 
@@ -75,6 +75,12 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 	}
 	FREE_IF_NZ(r->color);
 	r->color = (float *)newcolors;
+
+	/* VBOs need this re-bound */
+	if (global_use_VBOs) {
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColorRGBA)*3,newcolors, GL_STATIC_DRAW_ARB);
+	}
 }
 
 /* How many faces are in this IndexedFaceSet?			*/
@@ -837,15 +843,13 @@ void render_polyrep(void *node) {
 	
 	/*  colours?*/
 	if (r->color) {
-/*
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 			if (global_use_VBOs) {
-				FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
 				glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[COLOR_VBO]);
+				FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
 			} else {
 				FW_GL_COLOR_POINTER(4,GL_FLOAT,0,r->color);
 			}
-*/
 	}
 
 
