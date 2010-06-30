@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.30 2010/06/14 14:59:27 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.31 2010/06/30 12:57:42 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -238,6 +238,19 @@ void compile_Cone (struct X3D_Cone *node) {
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
 
+
+#define BOTPOT 0
+#define SIDPOT 1
+#define NORMS 2
+#define INDX 3
+
+	if (global_use_VBOs) {
+		if (node->_intern == NULL) {
+			glGenBuffersARB(4,node->__coneVBO.p);
+			//printf ("compile_Cone, vbos are %u %u %u %u\n",node->__coneVBO.p[0],node->__coneVBO.p[1],node->__coneVBO.p[2],node->__coneVBO.p[3]);
+		}
+	}
+
 	/*  MALLOC memory (if possible)*/
 	if (!node->__botpoints) node->__botpoints = MALLOC (sizeof(struct SFColor)*(CONEDIV+3));
 	if (!node->__sidepoints) node->__sidepoints = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
@@ -294,6 +307,25 @@ void compile_Cone (struct X3D_Cone *node) {
 
 	/* ok, finished compiling, finish */
 	node->__normals = ptr;
+
+	if (global_use_VBOs) {
+		extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[BOTPOT]);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct SFColor)*(CONEDIV+3), node->__botpoints, GL_STATIC_DRAW_ARB);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[SIDPOT]);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct SFColor)*3*(CONEDIV+1), node->__sidepoints, GL_STATIC_DRAW_ARB);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[NORMS]);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct SFColor)*3*(CONEDIV+1), node->__normals, GL_STATIC_DRAW_ARB);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[INDX]);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, CONEDIV+2, tribotindx, GL_STATIC_DRAW_ARB);
+		
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+
+		/* no longer needed */
+		FREE_IF_NZ(node->__botpoints);
+		FREE_IF_NZ(node->__sidepoints);
+		FREE_IF_NZ(node->__normals);
+	} 
 }
 
 void render_Cone (struct X3D_Cone *node) {
@@ -309,9 +341,6 @@ void render_Cone (struct X3D_Cone *node) {
 	if ((h < 0) || (r < 0)) {return;}
 	COMPILE_IF_REQUIRED
 
-	/* use normals for threaded compile completed flag */
-	if (!node->__normals) return;
-
 	/* for BoundingBox calculations */
 	setExtent(r,-r,h,-h,r,-r,X3D_NODE(node));
 
@@ -320,29 +349,68 @@ void render_Cone (struct X3D_Cone *node) {
 	/*  OK - we have vertex data, so lets just render it.*/
 	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
 
-	if(node->bottom) {
-		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__botpoints);
-		textureDraw_start(NULL,tribottex);
-		FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
-		FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
-		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-		trisThisLoop += CONEDIV+2;
-	}
+	if (global_use_VBOs) {
+		if(node->bottom) {
+			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[BOTPOT]);
+			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,0);
+			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, node->__coneVBO.p[INDX]);
+			
+			textureDraw_start(NULL,tribottex);
+			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
 
-	if(node->side) {
-		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__sidepoints);
-		FW_GL_NORMAL_POINTER (GL_FLOAT,0,(GLfloat *)node->__normals);
-		textureDraw_start(NULL,trisidtex);
+			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,0);
+			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+			trisThisLoop += CONEDIV+2;
+		}
 
-		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 60);
-		trisThisLoop += 60;
+
+		if(node->side) {
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[SIDPOT]);
+			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,0);
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[NORMS]);
+			FW_GL_NORMAL_POINTER (GL_FLOAT,0,0);
+
+			textureDraw_start(NULL,trisidtex);
+	
+			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+			FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 60);
+			trisThisLoop += 60;
+		}
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	} else {
+		if(node->bottom) {
+			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__botpoints);
+			textureDraw_start(NULL,tribottex);
+			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
+			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
+			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+			trisThisLoop += CONEDIV+2;
+		}
+
+		if(node->side) {
+			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__sidepoints);
+			FW_GL_NORMAL_POINTER (GL_FLOAT,0,(GLfloat *)node->__normals);
+			textureDraw_start(NULL,trisidtex);
+	
+			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+			FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 60);
+			trisThisLoop += 60;
+		}
+
 	}
 
 	textureDraw_end();
 }
+#undef BOTPOT
+#undef SIDPOT
+#undef NORMS
+#undef INDX
 
+
+static GLuint SphereNormVBO = 0;
 
 
 /*******************************************************************************/
@@ -412,6 +480,27 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 	/* finished - for threading */
 	node->__points = ptr;
+
+	if (global_use_VBOs) {
+		if (node->_sideVBO == 0) {
+			glGenBuffersARB(1,&node->_sideVBO);
+		}
+
+		if (SphereNormVBO  == 0) {
+			extern GLfloat spherenorms[];		/*  side normals*/
+			glGenBuffersARB(1,&SphereNormVBO);
+printf ("spherenormvbo %u\n",SphereNormVBO);
+                	glBindBufferARB(GL_ARRAY_BUFFER_ARB, SphereNormVBO);
+                	glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2, 
+					spherenorms, GL_STATIC_DRAW_ARB);
+		}
+ 
+		/* Vertices */
+                glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->_sideVBO);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2, node->__points, GL_STATIC_DRAW_ARB);
+
+                glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	}
 }
 
 
@@ -436,9 +525,16 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 	/*  Display the shape*/
 	textureDraw_start(NULL,spheretex);
+	if (global_use_VBOs) {
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->_sideVBO);
+		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,0);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, SphereNormVBO);
+		FW_GL_NORMAL_POINTER (GL_FLOAT,0,0);
 
-	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
-	FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);
+	} else {
+		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
+		FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);
+	}
 
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 	/* for (count = 0; count < SPHDIV; count ++) { */
@@ -446,6 +542,8 @@ void render_Sphere (struct X3D_Sphere *node) {
 		FW_GL_DRAWARRAYS (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
 		trisThisLoop += (SPHDIV+1) * 4;
 	}
+
+	if (global_use_VBOs) glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	textureDraw_end();
 }
 
@@ -1226,7 +1324,11 @@ void collide_Cone (struct X3D_Cone *node) {
 
 
                 /* is this node initialized? if not, get outta here and do this later */
-                if ((node->__sidepoints == 0)  && (node->__botpoints==0)) return;
+		if (global_use_VBOs) {
+			if (node->__coneVBO.p[0] == 0) return;
+		} else {
+                	if ((node->__sidepoints == 0)  && (node->__botpoints==0)) return;
+		}
 
 	       iv.y = h; jv.y = -h;
 

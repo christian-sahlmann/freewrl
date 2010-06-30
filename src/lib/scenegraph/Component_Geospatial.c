@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.37 2010/03/12 14:36:22 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.38 2010/06/30 12:57:42 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1195,7 +1195,7 @@ void compile_GeoCoordinate (struct X3D_GeoCoordinate * node) {
 	MARK_NODE_COMPILED
 	
 	/* events */
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoCoordinate, metadata))
+	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoCoordinate, metadata)) */
 }
 
 
@@ -1470,7 +1470,7 @@ void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 	MARK_NODE_COMPILED
 	
 	/* events */
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoElevationGrid, metadata))
+	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoElevationGrid, metadata)) */
 
 }
 
@@ -1523,7 +1523,7 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoLocation, metadata))
+	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoLocation, metadata)) */
 
 	INITIALIZE_EXTENT;
 
@@ -1752,7 +1752,7 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoLOD, metadata))
+	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoLOD, metadata)) */
 
 
 	#ifdef VERBOSE
@@ -1891,7 +1891,7 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * node) {
 	MARK_NODE_COMPILED
 
 	/* events */
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoOrigin, metadata))
+	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoOrigin, metadata)) */
 	MARK_SFVEC3D_INOUT_EVENT(node->geoCoords,node->__oldgeoCoords,offsetof (struct X3D_GeoOrigin, geoCoords))
 	MARK_MFSTRING_INOUT_EVENT(node->geoSystem,node->__oldMFString,offsetof (struct X3D_GeoOrigin, geoSystem))
 }
@@ -1926,7 +1926,7 @@ void compile_GeoPositionInterpolator (struct X3D_GeoPositionInterpolator * node)
 	MARK_NODE_COMPILED
 	
 	/* events */
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoPositionInterpolator, metadata))
+	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoPositionInterpolator, metadata)) */
 }
 
 /* PositionInterpolator, ColorInterpolator, GeoPositionInterpolator	*/
@@ -2045,7 +2045,7 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 	MARK_SFVEC3F_INOUT_EVENT(node->size, node->__oldSize,offsetof (struct X3D_GeoProximitySensor, size))
 	
 	/* events */
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoProximitySensor, metadata))
+	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoProximitySensor, metadata)) */
 
 
 	#ifdef VERBOSE
@@ -2166,7 +2166,7 @@ void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * node) {
 	MARK_NODE_COMPILED
 
 	/* events */
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoTouchSensor, metadata))
+	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoTouchSensor, metadata)) */
 
 }
 
@@ -2347,7 +2347,7 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoViewpoint, metadata))
+	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoViewpoint, metadata)) */
 	MARK_SFFLOAT_INOUT_EVENT(node->fieldOfView, node->__oldFieldOfView, offsetof (struct X3D_GeoViewpoint, fieldOfView))
 	MARK_SFBOOL_INOUT_EVENT(node->headlight, node->__oldHeadlight, offsetof (struct X3D_GeoViewpoint, headlight))
 	MARK_SFBOOL_INOUT_EVENT(node->jump, node->__oldJump, offsetof (struct X3D_GeoViewpoint, jump))
@@ -2598,7 +2598,7 @@ void compile_GeoTransform (struct X3D_GeoTransform * node) {
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoTransform, metadata))
+	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoTransform, metadata)) */
 
 
 	#ifdef VERBOSE

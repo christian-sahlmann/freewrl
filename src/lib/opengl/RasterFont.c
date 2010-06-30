@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.9 2010/03/01 12:32:58 crc_canada Exp $
+  $Id: RasterFont.c,v 1.10 2010/06/30 12:57:42 crc_canada Exp $
 
 */
 
@@ -144,7 +144,6 @@ int rf_xfont_init(const char *fontname)
 	myText.maxExtent = 0;
 	myText.lineBounds.n=0; myText.lineBounds.p=0;
 	myText.metadata = NULL;
-	myText.__oldmetadata = 0;
 	myText._defaultContainer = FIELDNAMES_geometry;
 
 	/* create a new FontStyle node here and link it in */
@@ -160,7 +159,6 @@ int rf_xfont_init(const char *fontname)
 	myFont.justify.p = MALLOC (sizeof(struct Uni_String)*1);myFont.justify.p[0] = newASCIIString("BEGIN");myFont.justify.n=1; ;
 	myFont.metadata = NULL;
 	myFont.spacing = 1;
-	myFont.__oldmetadata = 0;
 	myFont.horizontal = TRUE;
 	/* myFont.family.p = MALLOC (sizeof(struct Uni_String)*1);myFont.family.p[0] = newASCIIString("SERIF");myFont.family.n=1; */
 	myFont.family.p = MALLOC (sizeof(struct Uni_String)*1);myFont.family.p[0] = newASCIIString("TYPEWRITER");myFont.family.n=1; ;

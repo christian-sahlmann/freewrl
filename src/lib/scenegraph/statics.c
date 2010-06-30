@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statics.c,v 1.10 2010/03/25 18:15:10 crc_canada Exp $
+$Id: statics.c,v 1.11 2010/06/30 12:57:42 crc_canada Exp $
 
 large constant strings; used for rendering.
 
@@ -293,8 +293,8 @@ GLfloat cylendtex[] = {
 
 /*  CONE*/
 /* indexes for arrays for bottom of cone */
-unsigned char tribotindx[] = {21, (GLfloat) 20, (GLfloat) 19, (GLfloat) 18, (GLfloat) 17, (GLfloat) 16, (GLfloat) 15, (GLfloat) 14, (GLfloat) 13, (GLfloat) 12, (GLfloat) 11, (GLfloat) 
-		(GLfloat) 	10, (GLfloat) 9, (GLfloat) 8, (GLfloat) 7, (GLfloat) 6, (GLfloat) 5, (GLfloat) 4, (GLfloat) 3, (GLfloat) 2, (GLfloat) 1, (GLfloat) 22};
+unsigned char tribotindx[] = {21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 
+			10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 22};
 
 /* texture mapping indexes for bottom of cone */
 /* generated with:

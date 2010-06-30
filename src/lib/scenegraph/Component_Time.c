@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Time.c,v 1.7 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Component_Time.c,v 1.8 2010/06/30 12:57:42 crc_canada Exp $
 
 X3D Time Component
 
@@ -95,7 +95,7 @@ void do_TimeSensorTick ( void *ptr) {
 		&node->isActive, &node->__inittime, &node->startTime,
 		&node->stopTime,node->loop,myDuration, 1.0);
 
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_TimeSensor, metadata))
+	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_TimeSensor, metadata)) */
 
 	/* now process if we have changed states */
 	if (oldstatus != node->isActive) {
