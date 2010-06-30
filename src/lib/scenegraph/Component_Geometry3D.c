@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.31 2010/06/30 12:57:42 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.32 2010/06/30 19:12:48 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -46,6 +46,17 @@ X3D Geometry 3D Component
 #include "LinearAlgebra.h"
 #include "Component_Geometry3D.h"
 
+
+/* used for vertices for VBOs. Note the tc coordinate... */
+struct MyVertex
+ {
+   struct SFColor vert;        //Vertex
+   struct SFColor norm;     //Normal
+   struct SFVec2f tc;         //Texcoord0
+ };
+
+static GLuint SphereIndxVBO = 0;
+static GLuint ConeIndxVBO = 0;
 
 /*******************************************************************************/
 
@@ -238,93 +249,175 @@ void compile_Cone (struct X3D_Cone *node) {
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
 
-
+	
 #define BOTPOT 0
 #define SIDPOT 1
 #define NORMS 2
 #define INDX 3
 
 	if (global_use_VBOs) {
-		if (node->_intern == NULL) {
-			glGenBuffersARB(4,node->__coneVBO.p);
-			//printf ("compile_Cone, vbos are %u %u %u %u\n",node->__coneVBO.p[0],node->__coneVBO.p[1],node->__coneVBO.p[2],node->__coneVBO.p[3]);
+		struct MyVertex coneVert[(CONEDIV+2) * 2];
+		int indx = 0;
+
+
+		if (ConeIndxVBO == 0) {
+			/* have to generate indexes for Cones - all cones will use this array */
+			ushort pindices[(CONEDIV+1)*6];
+			ushort *pind = pindices;
+			int count;
+			int indx;
+
+			indx = 0;
+
+			glGenBuffers(1,&ConeIndxVBO);
+			for (count=1; count<CONEDIV+1; count++) {
+				*pind = count; pind++;
+				*pind = 0; pind++;
+				*pind = count+1; pind++;
+			}
+			for (count=1; count<CONEDIV+1; count++) {
+				*pind = count+2+CONEDIV; pind++;
+				*pind = CONEDIV+2; pind++;
+				*pind = count+3+CONEDIV; pind++;
+			}
+ 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO);
+ 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ushort)*(CONEDIV)*6, pindices, GL_STATIC_DRAW);
+printf ("indexes:\n");
+indx=0;
+for (count=0; count<(CONEDIV)*6; count+=3) {printf ("triangle %d %u %u %u\n",indx,pindices[count],
+pindices[count+1],pindices[count+2]);indx++;}
+
 		}
-	}
 
-	/*  MALLOC memory (if possible)*/
-	if (!node->__botpoints) node->__botpoints = MALLOC (sizeof(struct SFColor)*(CONEDIV+3));
-	if (!node->__sidepoints) node->__sidepoints = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
 
-	/* use normals for compiled flag for threading */
+		if (node->__coneVBO.p[0] == 0) {
+			glGenBuffersARB(4,node->__coneVBO.p);
+			printf ("compile_Cone, vbos are %u %u %u %u\n",node->__coneVBO.p[0],node->__coneVBO.p[1],node->__coneVBO.p[2],node->__coneVBO.p[3]);
+		}
 
-	if (!node->__normals) ptr = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
-	else ptr = node->__normals;
-	
-	/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
-	pt = (struct SFColor *)node->__botpoints;
-	pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
-	for (i=1; i<=CONEDIV; i++) {
-		pt[i].c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
-		pt[i].c[1] = (float) -h;
-		pt[i].c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
-	}
-	/*  and throw another point that is centre of bottom*/
-	pt[CONEDIV+1].c[0] = 0.0f; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0f;
+for (i=0; i<(CONEDIV+1) * 2; i++) {
+coneVert[i].vert.c[0] = 0.0f;
+coneVert[i].vert.c[1] = 10.0f;
+coneVert[i].vert.c[2] = 0.0f;
+			coneVert[i].norm.c[0] = 0.0f; 
+			coneVert[i].norm.c[1] = -1.0f; 
+			coneVert[i].norm.c[2] = 0.0f;
+}
+printf ("initialized conevert 0 to %d\n",(CONEDIV+1) * 2);
 
-	/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
-	memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
+		/* we create two triangle fans - the cone, and the bottom. */
+		/* first, the flat bit on the bottom */
+		coneVert[0].vert.c[0] = 0.0f; coneVert[0].vert.c[1] = (float) -h; coneVert[0].vert.c[2] = 0.0f;
+		coneVert[0].norm.c[0] = 0.0f; coneVert[0].norm.c[1] = -1.0f; coneVert[0].norm.c[2] = 0.0f;
+		coneVert[0].tc.c[0] = 0.5f; coneVert[0].tc.c[1] = 0.5f;
 
-	/*  side triangles. Make 3 seperate points per triangle... makes FW_GL_DRAWARRAYS with normals*/
-	/*  easier to handle.*/
-	/*  rearrange bottom points into this array; top, bottom, left.*/
-	spt = (struct SFColor *)node->__sidepoints;
-	for (i=0; i<CONEDIV; i++) {
-		/*  top point*/
-		spt[i*3].c[0] = 0.0f; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0f;
-		/*  left point*/
-		memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFColor));
-		/* right point*/
-		memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFColor));
-	}
+		for (i=1; i<CONEDIV+2; i++) {
+			coneVert[i].vert.c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
+			coneVert[i].vert.c[1] = (float) -h;
+			coneVert[i].vert.c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
+			coneVert[i].norm.c[0] = 0.0f; 
+			coneVert[i].norm.c[1] = -1.0f; 
+			coneVert[i].norm.c[2] = 0.0f;
+/* generated with:
+        printf ("0.0, (GLfloat)  0.0");
+        for (i=1; i<=20; i++) {
+                a1 = PI * 2 * (i) / 20.0;
+                printf ("%4.3f, (GLfloat)  %4.3f, (GLfloat)  ", (GLfloat) 0.5+0.5*sin(a1), (GLfloat)   0.5+0.5*cos(a1));
+        }
+        printf ("0.5, (GLfloat) 0.5, (GLfloat) 0.5, (GLfloat) 1.0\n");
+*/
+			coneVert[i].tc.c[0] = 0.0f; 
+			coneVert[i].tc.c[1] = 0.0f; 
+		}
 
-	/*  wrap bottom point around once again... ie, final right point = initial left point*/
-	memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFColor));
 
-	/*  Side Normals - note, normals for faces doubled - see MALLOC above*/
-	/*  this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...*/
-	norm = (struct SFColor *)ptr;
-	for (i=0; i<=CONEDIV; i++) {
-		/*  top point*/
-		angle = (float) (PI * 2 * (i+0.5f)) / (float) (CONEDIV);
-		norm[i*3+0].c[0] = (float) sin(angle); norm[i*3+0].c[1] = (float)h/r; norm[i*3+0].c[2] = (float) cos(angle);
-		/* left point*/
-		angle = (float) (PI * 2 * (i+0.0f)) / (float) (CONEDIV);
-		norm[i*3+1].c[0] = (float) sin(angle); norm[i*3+1].c[1] = (float)h/r; norm[i*3+1].c[2] = (float) cos(angle);
-		/*  right point*/
-		angle = (float) (PI * 2 * (i+1.0f)) / (float) (CONEDIV);
-		norm[i*3+2].c[0] = (float) sin(angle); norm[i*3+2].c[1] = (float)h/r; norm[i*3+2].c[2] = (float) cos(angle);
-	}
+		/* now, the sides */
+		coneVert[CONEDIV+2].vert.c[0] = 0.0f; coneVert[CONEDIV+2].vert.c[1] = (float) h; coneVert[CONEDIV+2].vert.c[2] = 0.0f;
+		coneVert[CONEDIV+2].norm.c[0] = 0.0f; coneVert[CONEDIV+2].norm.c[1] = -1.0f; coneVert[CONEDIV+2].norm.c[2] = 0.0f;
+		coneVert[CONEDIV+2].tc.c[0] = 0.5f; coneVert[CONEDIV+2].tc.c[1] = 0.5f;
 
-	/* ok, finished compiling, finish */
-	node->__normals = ptr;
+		for (i=CONEDIV+3; i<=CONEDIV+3+CONEDIV; i++) {
+			coneVert[i].vert.c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
+			coneVert[i].vert.c[1] = (float) -h;
+			coneVert[i].vert.c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
+			coneVert[i].norm.c[0] = 0.0f; 
+			coneVert[i].norm.c[1] = -1.0f; 
+			coneVert[i].norm.c[2] = 0.0f;
+			coneVert[i].tc.c[0] = 0.0f; 
+			coneVert[i].tc.c[1] = 0.0f; 
+		}
+		
+		
 
-	if (global_use_VBOs) {
 		extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[BOTPOT]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct SFColor)*(CONEDIV+3), node->__botpoints, GL_STATIC_DRAW_ARB);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[SIDPOT]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct SFColor)*3*(CONEDIV+1), node->__sidepoints, GL_STATIC_DRAW_ARB);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[NORMS]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct SFColor)*3*(CONEDIV+1), node->__normals, GL_STATIC_DRAW_ARB);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[INDX]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, CONEDIV+2, tribotindx, GL_STATIC_DRAW_ARB);
-		
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, 3*sizeof(struct MyVertex)*(CONEDIV+2)*2, coneVert, GL_STATIC_DRAW_ARB);
+
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 		/* no longer needed */
 		FREE_IF_NZ(node->__botpoints);
 		FREE_IF_NZ(node->__sidepoints);
 		FREE_IF_NZ(node->__normals);
+
+	} else {
+
+		/*  MALLOC memory (if possible)*/
+		if (!node->__botpoints) node->__botpoints = MALLOC (sizeof(struct SFColor)*(CONEDIV+3));
+		if (!node->__sidepoints) node->__sidepoints = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
+
+		/* use normals for compiled flag for threading */
+
+		if (!node->__normals) ptr = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
+		else ptr = node->__normals;
+	
+		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
+		pt = (struct SFColor *)node->__botpoints;
+		pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
+		for (i=1; i<=CONEDIV; i++) {
+			pt[i].c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
+			pt[i].c[1] = (float) -h;
+			pt[i].c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
+		}
+		/*  and throw another point that is centre of bottom*/
+		pt[CONEDIV+1].c[0] = 0.0f; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0f;
+
+		/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
+		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
+
+		/*  side triangles. Make 3 seperate points per triangle... makes FW_GL_DRAWARRAYS with normals*/
+		/*  easier to handle.*/
+		/*  rearrange bottom points into this array; top, bottom, left.*/
+		spt = (struct SFColor *)node->__sidepoints;
+		for (i=0; i<CONEDIV; i++) {
+			/*  top point*/
+			spt[i*3].c[0] = 0.0f; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0f;
+			/*  left point*/
+			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFColor));
+			/* right point*/
+			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFColor));
+		}
+
+		/*  wrap bottom point around once again... ie, final right point = initial left point*/
+		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFColor));
+
+		/*  Side Normals - note, normals for faces doubled - see MALLOC above*/
+		/*  this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...*/
+		norm = (struct SFColor *)ptr;
+		for (i=0; i<=CONEDIV; i++) {
+			/*  top point*/
+			angle = (float) (PI * 2 * (i+0.5f)) / (float) (CONEDIV);
+			norm[i*3+0].c[0] = (float) sin(angle); norm[i*3+0].c[1] = (float)h/r; norm[i*3+0].c[2] = (float) cos(angle);
+			/* left point*/
+			angle = (float) (PI * 2 * (i+0.0f)) / (float) (CONEDIV);
+			norm[i*3+1].c[0] = (float) sin(angle); norm[i*3+1].c[1] = (float)h/r; norm[i*3+1].c[2] = (float) cos(angle);
+			/*  right point*/
+			angle = (float) (PI * 2 * (i+1.0f)) / (float) (CONEDIV);
+			norm[i*3+2].c[0] = (float) sin(angle); norm[i*3+2].c[1] = (float)h/r; norm[i*3+2].c[2] = (float) cos(angle);
+		}
+
+		/* ok, finished compiling, finish */
+		node->__normals = ptr;
 	} 
 }
 
@@ -350,33 +443,26 @@ void render_Cone (struct X3D_Cone *node) {
 	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
 
 	if (global_use_VBOs) {
-		if(node->bottom) {
-			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[BOTPOT]);
-			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,0);
-			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, node->__coneVBO.p[INDX]);
-			
-			textureDraw_start(NULL,tribottex);
-			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
+		// taken from the OpenGL.org website:
+		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,0);
-			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-			trisThisLoop += CONEDIV+2;
-		}
+		glBindBuffer(GL_ARRAY_BUFFER, node->__coneVBO.p[BOTPOT]);
 
 
-		if(node->side) {
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[SIDPOT]);
-			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,0);
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[NORMS]);
-			FW_GL_NORMAL_POINTER (GL_FLOAT,0,0);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glNormalPointer(GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+		glClientActiveTexture(GL_TEXTURE0);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(24));   //The starting point of texcoords, 24 bytes away
 
-			textureDraw_start(NULL,trisidtex);
-	
-			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-			FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 60);
-			trisThisLoop += 60;
-		}
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO);
+#define ARCS 40 
+		glDrawElements(GL_TRIANGLES, 3*ARCS, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));   //The starting point of the IBO
+
+
+
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	} else {
@@ -410,10 +496,13 @@ void render_Cone (struct X3D_Cone *node) {
 #undef INDX
 
 
-static GLuint SphereNormVBO = 0;
-
 
 /*******************************************************************************/
+/* how many triangles in this sphere? SPHDIV strips, each strip
+	has 2 triangles, and each triangles has 3 vertices and there are
+	SPHDIV rows */
+#define SPHDIV 20
+#define TRISINSPHERE (SPHDIV*3* SPHDIV)
 
 
 void compile_Sphere (struct X3D_Sphere *node) {
@@ -430,7 +519,8 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 	/*  make the divisions 20; dont change this, because statics.c values*/
 	/*  will then need recaculating.*/
-	#define SPHDIV 20
+	extern GLfloat spherenorms[];		/*  side normals*/
+	extern float spheretex[];		/*  in CFuncs/statics.c*/
 
 	int count;
 	float rad = node->radius;
@@ -456,58 +546,119 @@ void compile_Sphere (struct X3D_Sphere *node) {
 	INIT_TRIG2(SPHDIV)
 
 	START_TRIG1
-	for(v=0; v<SPHDIV; v++) {
-		float vsin1 = SIN1;
-		float vcos1 = COS1, vsin2,vcos2;
-		UP_TRIG1
-		vsin2 = SIN1;
-		vcos2 = COS1;
-		START_TRIG2
-		for(h=0; h<=SPHDIV; h++) {
-			float hsin1 = SIN2;
-			float hcos1 = COS2;
-			UP_TRIG2
-			pts[count].c[0] = rad * vsin2 * hcos1;
-			pts[count].c[1] = rad * vcos2;
-			pts[count].c[2] = rad * vsin2 * hsin1;
-			count++;
-			pts[count].c[0] = rad * vsin1 * hcos1;
-			pts[count].c[1] = rad * vcos1;
-			pts[count].c[2] = rad * vsin1 * hsin1;
-			count++;
+
+	if (global_use_VBOs) {
+		extern GLfloat spherenorms[];		/*  side normals*/
+		extern float spheretex[];		/*  in CFuncs/statics.c*/
+
+		int myVertexVBOSize = (int) (sizeof(struct SFColor) +
+                                         sizeof(struct SFColor) +
+                                         sizeof(struct SFVec2f)) * SPHDIV * (SPHDIV+1) * 2;
+
+		struct MyVertex *SphVBO = MALLOC(myVertexVBOSize);
+		struct SFColor *myNorms = (struct SFColor*)spherenorms;
+		struct SFVec2f *myTex = (struct SFVec2f*)spheretex;
+
+		if (node->_sideVBO == 0) {
+			glGenBuffers(1,&node->_sideVBO);
 		}
+		for(v=0; v<SPHDIV; v++) {
+			float vsin1 = SIN1;
+			float vcos1 = COS1, vsin2,vcos2;
+			UP_TRIG1
+			vsin2 = SIN1;
+			vcos2 = COS1;
+			START_TRIG2
+			for(h=0; h<=SPHDIV; h++) {
+				float hsin1 = SIN2;
+				float hcos1 = COS2;
+				UP_TRIG2
+				pts[count].c[0] = rad * vsin2 * hcos1;
+				pts[count].c[1] = rad * vcos2;
+				pts[count].c[2] = rad * vsin2 * hsin1;
+				
+				/* copy these points into the MyVertex Sphere VBO */
+				memcpy (SphVBO[count].vert.c, pts[count].c, sizeof (struct SFColor));
+				memcpy (SphVBO[count].norm.c, myNorms[count].c, sizeof (struct SFColor));
+				memcpy (SphVBO[count].tc.c, myTex[count].c, sizeof (struct SFVec2f));
+				count++;
+				pts[count].c[0] = rad * vsin1 * hcos1;
+				pts[count].c[1] = rad * vcos1;
+				pts[count].c[2] = rad * vsin1 * hsin1;
+				/* copy these points into the MyVertex Sphere VBO */
+				memcpy (SphVBO[count].vert.c, pts[count].c, sizeof (struct SFColor));
+				memcpy (SphVBO[count].norm.c, myNorms[count].c, sizeof (struct SFColor));
+				memcpy (SphVBO[count].tc.c, myTex[count].c, sizeof (struct SFVec2f));
+				count++;
+			}
+		}	
+
+ 		glBindBuffer(GL_ARRAY_BUFFER, node->_sideVBO);
+		glBufferData(GL_ARRAY_BUFFER, myVertexVBOSize, SphVBO, GL_STATIC_DRAW);
+
+		if (SphereIndxVBO == 0) {
+			ushort pindices[TRISINSPHERE*2];
+			ushort *pind = pindices;
+			int row;
+			int indx;
+
+			glGenBuffers(1,&SphereIndxVBO);
+			//for (count=0; count<TRISINSPHERE*2; count++) pindices[count]=0;
+			for (row=0; row<SPHDIV; row++) {
+				indx=42*row;
+				for (count = 0; count < SPHDIV*2; count+=2) {
+					*pind = indx; pind++;
+					*pind = indx+1; pind++;
+					*pind = indx+2; pind++;
+					//printf ("wrote %u %u %u\n",indx, indx+1, indx+2);
+					*pind = indx+2; pind++;
+					*pind = indx+1; pind++;
+					*pind = indx+3; pind++;
+					//printf ("wrote %u %u %u\n",indx+2, indx+1, indx+3);
+					indx+=2;
+				}
+			}
+ 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SphereIndxVBO);
+ 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ushort)*TRISINSPHERE*2, pindices, GL_STATIC_DRAW);
+		}
+
+
+		FREE_IF_NZ(SphVBO);
+                glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+
+	} else {
+		for(v=0; v<SPHDIV; v++) {
+			float vsin1 = SIN1;
+			float vcos1 = COS1, vsin2,vcos2;
+			UP_TRIG1
+			vsin2 = SIN1;
+			vcos2 = COS1;
+			START_TRIG2
+			for(h=0; h<=SPHDIV; h++) {
+				float hsin1 = SIN2;
+				float hcos1 = COS2;
+				UP_TRIG2
+				pts[count].c[0] = rad * vsin2 * hcos1;
+				pts[count].c[1] = rad * vcos2;
+				pts[count].c[2] = rad * vsin2 * hsin1;
+				count++;
+				pts[count].c[0] = rad * vsin1 * hcos1;
+				pts[count].c[1] = rad * vcos1;
+				pts[count].c[2] = rad * vsin1 * hsin1;
+				count++;
+			}
+		}	
 	}
 
 	/* finished - for threading */
 	node->__points = ptr;
-
-	if (global_use_VBOs) {
-		if (node->_sideVBO == 0) {
-			glGenBuffersARB(1,&node->_sideVBO);
-		}
-
-		if (SphereNormVBO  == 0) {
-			extern GLfloat spherenorms[];		/*  side normals*/
-			glGenBuffersARB(1,&SphereNormVBO);
-printf ("spherenormvbo %u\n",SphereNormVBO);
-                	glBindBufferARB(GL_ARRAY_BUFFER_ARB, SphereNormVBO);
-                	glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2, 
-					spherenorms, GL_STATIC_DRAW_ARB);
-		}
- 
-		/* Vertices */
-                glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->_sideVBO);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2, node->__points, GL_STATIC_DRAW_ARB);
-
-                glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-	}
 }
 
 
 void render_Sphere (struct X3D_Sphere *node) {
 	/*  make the divisions 20; dont change this, because statics.c values*/
 	/*  will then need recaculating.*/
-	#define SPHDIV 20
+	
 	extern GLfloat spherenorms[];		/*  side normals*/
 	extern float spheretex[];		/*  in CFuncs/statics.c*/
 
@@ -524,26 +675,40 @@ void render_Sphere (struct X3D_Sphere *node) {
 	CULL_FACE(node->solid)
 
 	/*  Display the shape*/
-	textureDraw_start(NULL,spheretex);
-	if (global_use_VBOs) {
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->_sideVBO);
-		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,0);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, SphereNormVBO);
-		FW_GL_NORMAL_POINTER (GL_FLOAT,0,0);
 
+	if (global_use_VBOs) {
+		// taken from the OpenGL.org website:
+		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
+		glBindBuffer(GL_ARRAY_BUFFER, node->_sideVBO);
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glNormalPointer(GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+		glClientActiveTexture(GL_TEXTURE0);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(24));   //The starting point of texcoords, 24 bytes away
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SphereIndxVBO);
+		
+		glDrawElements(GL_TRIANGLES, TRISINSPHERE, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));   //The starting point of the IBO
+
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	} else {
+		textureDraw_start(NULL,spheretex);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
 		FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);
+
+
+		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+		/* for (count = 0; count < SPHDIV; count ++) { */
+		for (count = 0; count < SPHDIV/2; count ++) { 
+			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
+			trisThisLoop += (SPHDIV+1) * 4;
+		}
 	}
 
-	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-	/* for (count = 0; count < SPHDIV; count ++) { */
-	for (count = 0; count < SPHDIV/2; count ++) { 
-		FW_GL_DRAWARRAYS (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
-		trisThisLoop += (SPHDIV+1) * 4;
-	}
-
-	if (global_use_VBOs) glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	textureDraw_end();
 }
 
