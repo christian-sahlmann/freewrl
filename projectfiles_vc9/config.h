@@ -248,6 +248,8 @@ char *getWgetPath();
 #undef int32_t
 #define int32_t long
 
+#define ushort unsigned short
+
 /* Define to rpl_malloc if the replacement function should be used. */
 #undef malloc
 
