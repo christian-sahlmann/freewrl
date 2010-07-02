@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.35 2010/06/29 22:13:36 davejoubert Exp $
+$Id: Component_Grouping.c,v 1.36 2010/07/02 13:52:17 dug9 Exp $
 
 X3D Grouping Component
 
@@ -284,10 +284,10 @@ void child_Group (struct X3D_Group *node) {
 }
 
 void child_PickableGroup (struct X3D_Group *node) {
-	printf("%s:%d child_PickableGroup\n",__FILE__,__LINE__);
 	CHILDREN_COUNT
 	LOCAL_LIGHT_SAVE
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+	printf("%s:%d child_PickableGroup\n",__FILE__,__LINE__);
 
 	 if (1==1) {
 		int x;
