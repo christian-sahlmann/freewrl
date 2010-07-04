@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.132 2010/05/05 12:57:27 davejoubert Exp $
+  $Id: OpenGL_Utils.c,v 1.133 2010/07/04 16:46:13 davejoubert Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1647,6 +1647,14 @@ void startOfLoopNodeUpdates(void) {
 
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Group) 
+				END_NODE
+
+				/* DJTRACK_PICKSENSORS */
+				BEGIN_NODE(PickableGroup) 
+					sortChildren(&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren);
+
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(PickableGroup) 
 				END_NODE
 
 				BEGIN_NODE(Inline) 
