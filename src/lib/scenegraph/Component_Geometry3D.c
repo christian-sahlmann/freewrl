@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.33 2010/07/02 13:52:17 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.34 2010/07/05 20:55:51 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -232,7 +232,6 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 
 
 /*******************************************************************************/
-extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
 
 void compile_Cone (struct X3D_Cone *node) {
 	/*  DO NOT change this define, unless you want to recalculate statics below....*/
@@ -251,107 +250,131 @@ void compile_Cone (struct X3D_Cone *node) {
 	MARK_NODE_COMPILED
 
 	
-#define BOTPOT 0
-#define SIDPOT 1
-#define NORMS 2
-#define INDX 3
-
 	if (global_use_VBOs) {
-		struct MyVertex coneVert[(CONEDIV+2) * 2];
+		struct MyVertex coneVert[CONEDIV * 2 * 3];
 		int indx = 0;
 
-
-		if (ConeIndxVBO == 0) {
-			/* have to generate indexes for Cones - all cones will use this array */
-			ushort pindices[(CONEDIV+1)*6];
-			ushort *pind = pindices;
-			int count;
-			int indx;
-
-			indx = 0;
-
-			glGenBuffers(1,&ConeIndxVBO);
-			for (count=1; count<CONEDIV+1; count++) {
-				*pind = count; pind++;
-				*pind = 0; pind++;
-				*pind = count+1; pind++;
-			}
-			for (count=1; count<CONEDIV+1; count++) {
-				*pind = count+2+CONEDIV; pind++;
-				*pind = CONEDIV+2; pind++;
-				*pind = count+3+CONEDIV; pind++;
-			}
- 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO);
- 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ushort)*(CONEDIV)*6, pindices, GL_STATIC_DRAW);
-printf ("indexes:\n");
-indx=0;
-for (count=0; count<(CONEDIV)*6; count+=3) {printf ("triangle %d %u %u %u\n",indx,pindices[count],
-pindices[count+1],pindices[count+2]);indx++;}
-
+		if (node->__coneVBO == 0) {
+			glGenBuffersARB(1,&node->__coneVBO);
+			printf ("compile_Cone, vbos are %u \n",node->__coneVBO);
 		}
 
-
-		if (node->__coneVBO.p[0] == 0) {
-			glGenBuffersARB(4,node->__coneVBO.p);
-			printf ("compile_Cone, vbos are %u %u %u %u\n",node->__coneVBO.p[0],node->__coneVBO.p[1],node->__coneVBO.p[2],node->__coneVBO.p[3]);
-		}
-
-for (i=0; i<(CONEDIV+1) * 2; i++) {
-coneVert[i].vert.c[0] = 0.0f;
-coneVert[i].vert.c[1] = 10.0f;
-coneVert[i].vert.c[2] = 0.0f;
+		/*
+		for (i=0; i<CONEDIV * 2 *3; i++) {
+			coneVert[i].vert.c[0] = 0.0f;
+			coneVert[i].vert.c[1] = 10.0f;
+			coneVert[i].vert.c[2] = 0.0f;
 			coneVert[i].norm.c[0] = 0.0f; 
 			coneVert[i].norm.c[1] = -1.0f; 
 			coneVert[i].norm.c[2] = 0.0f;
-}
-printf ("initialized conevert 0 to %d\n",(CONEDIV+1) * 2);
+		}
+		*/
+
 
 		/* we create two triangle fans - the cone, and the bottom. */
 		/* first, the flat bit on the bottom */
-		coneVert[0].vert.c[0] = 0.0f; coneVert[0].vert.c[1] = (float) -h; coneVert[0].vert.c[2] = 0.0f;
-		coneVert[0].norm.c[0] = 0.0f; coneVert[0].norm.c[1] = -1.0f; coneVert[0].norm.c[2] = 0.0f;
-		coneVert[0].tc.c[0] = 0.5f; coneVert[0].tc.c[1] = 0.5f;
+		indx=0;
 
-		for (i=1; i<CONEDIV+2; i++) {
-			coneVert[i].vert.c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
-			coneVert[i].vert.c[1] = (float) -h;
-			coneVert[i].vert.c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
-			coneVert[i].norm.c[0] = 0.0f; 
-			coneVert[i].norm.c[1] = -1.0f; 
-			coneVert[i].norm.c[2] = 0.0f;
-/* generated with:
-        printf ("0.0, (GLfloat)  0.0");
-        for (i=1; i<=20; i++) {
-                a1 = PI * 2 * (i) / 20.0;
-                printf ("%4.3f, (GLfloat)  %4.3f, (GLfloat)  ", (GLfloat) 0.5+0.5*sin(a1), (GLfloat)   0.5+0.5*cos(a1));
-        }
-        printf ("0.5, (GLfloat) 0.5, (GLfloat) 0.5, (GLfloat) 1.0\n");
-*/
-			coneVert[i].tc.c[0] = 0.0f; 
-			coneVert[i].tc.c[1] = 0.0f; 
+		if (node->bottom) {
+			for (i=0; i<CONEDIV; i++) {
+				/* triangle #1 */
+				coneVert[indx].vert.c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
+				coneVert[indx].vert.c[1] = (float) -h;
+				coneVert[indx].vert.c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
+				coneVert[indx].norm.c[0] = 0.0f; 
+				coneVert[indx].norm.c[1] = -1.0f; 
+				coneVert[indx].norm.c[2] = 0.0f;
+				indx++;
+	
+				/* triangle #2 - in the centre */
+				coneVert[indx].vert.c[0] = 0.0f;
+				coneVert[indx].vert.c[1] = (float) -h;
+				coneVert[indx].vert.c[2] = 0.0f;
+				coneVert[indx].norm.c[0] = 0.0f; 
+				coneVert[indx].norm.c[1] = -1.0f; 
+				coneVert[indx].norm.c[2] = 0.0f;
+				indx++;
+	
+				/* triangle #3 */
+				coneVert[indx].vert.c[0] = r* (float) sin(PI*2*(i+1)/(float)CONEDIV);
+				coneVert[indx].vert.c[1] = (float) -h;
+				coneVert[indx].vert.c[2] = r* (float) cos(PI*2*(i+1)/(float)CONEDIV);
+				coneVert[indx].norm.c[0] = 0.0f; 
+				coneVert[indx].norm.c[1] = -1.0f; 
+				coneVert[indx].norm.c[2] = 0.0f;
+	/* generated with:
+	        printf ("0.0, (GLfloat)  0.0");
+	        for (i=1; i<=20; i++) {
+	                a1 = PI * 2 * (i) / 20.0;
+	                printf ("%4.3f, (GLfloat)  %4.3f, (GLfloat)  ", (GLfloat) 0.5+0.5*sin(a1), (GLfloat)   0.5+0.5*cos(a1));
+	        }
+	        printf ("0.5, (GLfloat) 0.5, (GLfloat) 0.5, (GLfloat) 1.0\n");
+				coneVert[i].tc.c[0] = 0.0f; 
+				coneVert[i].tc.c[1] = 0.0f; 
+	*/
+				indx++;
+			}
 		}
 
 
 		/* now, the sides */
-		coneVert[CONEDIV+2].vert.c[0] = 0.0f; coneVert[CONEDIV+2].vert.c[1] = (float) h; coneVert[CONEDIV+2].vert.c[2] = 0.0f;
-		coneVert[CONEDIV+2].norm.c[0] = 0.0f; coneVert[CONEDIV+2].norm.c[1] = -1.0f; coneVert[CONEDIV+2].norm.c[2] = 0.0f;
-		coneVert[CONEDIV+2].tc.c[0] = 0.5f; coneVert[CONEDIV+2].tc.c[1] = 0.5f;
+		if (node->side) {
+			for (i=0; i<CONEDIV; i++) {
+				double angle;
 
-		for (i=CONEDIV+3; i<=CONEDIV+3+CONEDIV; i++) {
-			coneVert[i].vert.c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
-			coneVert[i].vert.c[1] = (float) -h;
-			coneVert[i].vert.c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
-			coneVert[i].norm.c[0] = 0.0f; 
-			coneVert[i].norm.c[1] = -1.0f; 
-			coneVert[i].norm.c[2] = 0.0f;
-			coneVert[i].tc.c[0] = 0.0f; 
-			coneVert[i].tc.c[1] = 0.0f; 
+			/*  top point*/
+			/* left point*/
+			/*  right point*/
+				/* triangle #1 */
+				coneVert[indx].vert.c[0] = r* (float) sin(PI*2*(i+1)/(float)CONEDIV);
+				coneVert[indx].vert.c[1] = (float) -h;
+				coneVert[indx].vert.c[2] = r* (float) cos(PI*2*(i+1)/(float)CONEDIV);
+				angle = (float) (PI * 2 * (i+1.0f)) / (float) (CONEDIV);
+				coneVert[indx].norm.c[0] = (float) sin(angle);
+				coneVert[indx].norm.c[1] = (float)h/r;
+				coneVert[indx].norm.c[2] = (float) cos(angle);
+				indx++;
+	
+				/* triangle #2 - in the centre */
+				coneVert[indx].vert.c[0] = 0.0f;
+				coneVert[indx].vert.c[1] = (float) h;
+				coneVert[indx].vert.c[2] = 0.0f;
+				angle = (float) (PI * 2 * (i+0.5f)) / (float) (CONEDIV);
+				coneVert[indx].norm.c[0] = (float) sin(angle); 
+				coneVert[indx].norm.c[1] = (float)h/r;
+				coneVert[indx].norm.c[2] = (float) cos(angle);
+				indx++;
+	
+				/* triangle #3 */
+				coneVert[indx].vert.c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
+				coneVert[indx].vert.c[1] = (float) -h;
+				coneVert[indx].vert.c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
+
+				angle = (float) (PI * 2 * (i+0.0f)) / (float) (CONEDIV);
+				coneVert[indx].norm.c[0] = (float) sin(angle); 
+				coneVert[indx].norm.c[1] = (float)h/r;
+				coneVert[indx].norm.c[2] = (float) cos(angle);
+	/* generated with:
+	        printf ("0.0, (GLfloat)  0.0");
+	        for (i=1; i<=20; i++) {
+	                a1 = PI * 2 * (i) / 20.0;
+	                printf ("%4.3f, (GLfloat)  %4.3f, (GLfloat)  ", (GLfloat) 0.5+0.5*sin(a1), (GLfloat)   0.5+0.5*cos(a1));
+	        }
+	        printf ("0.5, (GLfloat) 0.5, (GLfloat) 0.5, (GLfloat) 1.0\n");
+				coneVert[i].tc.c[0] = 0.0f; 
+				coneVert[i].tc.c[1] = 0.0f; 
+	*/
+				indx++;
+			}
 		}
-		
-		
 
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[BOTPOT]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, 3*sizeof(struct MyVertex)*(CONEDIV+2)*2, coneVert, GL_STATIC_DRAW_ARB);
+		node->__coneTriangles = indx;
+printf ("we have %d triangles in this cone\n",node->__coneTriangles/3);
+
+
+		extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct MyVertex)*indx, coneVert, GL_STATIC_DRAW_ARB);
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
@@ -446,7 +469,7 @@ void render_Cone (struct X3D_Cone *node) {
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-		glBindBuffer(GL_ARRAY_BUFFER, node->__coneVBO.p[BOTPOT]);
+		glBindBuffer(GL_ARRAY_BUFFER, node->__coneVBO);
 
 
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -458,8 +481,12 @@ void render_Cone (struct X3D_Cone *node) {
 		glTexCoordPointer(2, GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(24));   //The starting point of texcoords, 24 bytes away
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO);
+
+/*
 #define ARCS 40 
 		glDrawElements(GL_TRIANGLES, 3*ARCS, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));   //The starting point of the IBO
+*/
+		glDrawArrays(GL_TRIANGLES,0,node->__coneTriangles);
 
 
 
@@ -490,10 +517,6 @@ void render_Cone (struct X3D_Cone *node) {
 
 	textureDraw_end();
 }
-#undef BOTPOT
-#undef SIDPOT
-#undef NORMS
-#undef INDX
 
 
 
@@ -1490,7 +1513,7 @@ void collide_Cone (struct X3D_Cone *node) {
 
                 /* is this node initialized? if not, get outta here and do this later */
 		if (global_use_VBOs) {
-			if (node->__coneVBO.p[0] == 0) return;
+			if (node->__coneVBO == 0) return;
 		} else {
                 	if ((node->__sidepoints == 0)  && (node->__botpoints==0)) return;
 		}

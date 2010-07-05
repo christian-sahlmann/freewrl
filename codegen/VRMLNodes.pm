@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.42 2010/06/30 12:57:42 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.43 2010/07/05 20:55:50 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -577,7 +577,8 @@ package VRML::NodeType;
 		 __sidepoints =>[FreeWRLPTR,0,initializeOnly, 0],
 		 __botpoints =>[FreeWRLPTR,0,initializeOnly, 0],
 		 __normals =>[FreeWRLPTR,0,initializeOnly, 0],
-		__coneVBO =>[MFInt32,[0,0,0,0],initializeOnly,0],
+		__coneVBO =>[SFInt32,0,initializeOnly,0],
+		__coneTriangles =>[SFInt32,0,initializeOnly,0],
 	},"X3DGeometryNode"),
 
 	Cylinder => new VRML::NodeType ("Cylinder", {
