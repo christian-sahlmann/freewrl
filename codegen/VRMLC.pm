@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.43 2010/06/29 22:13:36 davejoubert Exp $
+# $Id: VRMLC.pm,v 1.44 2010/07/05 15:07:08 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.44  2010/07/05 15:07:08  crc_canada
+# add code to ensure that bound Backgrounds, Fog gets rendered when OcclusionCulling enabled, and nodes are within Transforms.
+#
 # Revision 1.43  2010/06/29 22:13:36  davejoubert
 # Implement PickableGroup
 # Modified Files:
@@ -1273,6 +1276,9 @@ sub gen {
 	"#define X3D_SHAPE(node) ((struct X3D_Shape*)node)\n".
 	"#define X3D_VISIBILITYSENSOR(node) ((struct X3D_VisibilitySensor*)node)\n".
 	"#define X3D_BILLBOARD(node) ((struct X3D_Billboard*)node)\n".
+	"#define X3D_BACKGROUND(node) ((struct X3D_Background*)node)\n".
+	"#define X3D_TEXTUREBACKGROUND(node) ((struct X3D_TextureBackground*)node)\n".
+	"#define X3D_FOG(node) ((struct X3D_Fog*)node)\n".
 	"#define X3D_INLINE(node) ((struct X3D_Inline*)node)\n".
 	"#define X3D_SWITCH(node) ((struct X3D_Switch*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".

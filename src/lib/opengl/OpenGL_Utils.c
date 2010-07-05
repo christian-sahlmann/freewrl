@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.133 2010/07/04 16:46:13 davejoubert Exp $
+  $Id: OpenGL_Utils.c,v 1.134 2010/07/05 15:07:12 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1726,6 +1726,21 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(ImageTexture) CHECK_IMAGETEXTURE_TRANSPARENCY END_NODE
 				BEGIN_NODE(PixelTexture) CHECK_PIXELTEXTURE_TRANSPARENCY END_NODE
 				BEGIN_NODE(MovieTexture) CHECK_MOVIETEXTURE_TRANSPARENCY END_NODE
+
+
+				/* Backgrounds, Fog */
+				BEGIN_NODE(Background)
+					if (X3D_BACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+				END_NODE
+
+				BEGIN_NODE(TextureBackground)
+					if (X3D_TEXTUREBACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+				END_NODE
+
+				BEGIN_NODE(Fog)
+					if (X3D_FOG(node)->isBound) update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+				END_NODE
+
 
 				/* VisibilitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (VisibilitySensor)
