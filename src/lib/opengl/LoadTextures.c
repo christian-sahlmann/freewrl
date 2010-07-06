@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.46 2010/06/29 16:59:44 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.47 2010/07/06 16:45:15 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -57,7 +57,6 @@ void Multi_String_print(struct Multi_String *url);
 #else
 #include <Imlib2.h>
 #endif
-
 
 /* is the texture thread up and running yet? */
 int TextureThreadInitialized = FALSE;
@@ -581,101 +580,6 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	return FALSE;
 }
 
-#ifndef _MSC_VER
-/**
- *   texture_process_list: walk through the list of texture we have to process.
- */
-static void texture_process_list(s_list_t *item)
-{
-	bool remove_it = FALSE;
-	textureTableIndexStruct_s *entry;
-	
-	if (!item || !item->elem)
-		return;
-	
-	entry = ml_elem(item);
-	
-	DEBUG_TEX("texture_process_list: %p (filename: %s)\n", entry, (entry->filename ? entry->filename : "<unknown atm>"));
-	
-	/* FIXME: it seems there is no case in which we not want to remote it ... */
-
-	switch (entry->status) {
-
-	case TEX_LOADING:
-	case TEX_NOTLOADED:
-		if (texture_process_entry(entry)) {
-			remove_it = TRUE;
-		}
-		break;
-		
-	default:
-		DEBUG_MSG("Could not process texture entry: %p (filename: %s)\n", entry, (entry->filename ? entry->filename : "<unknown atm>"));
-		remove_it = TRUE;
-		break;
-	}
-		
-	if (remove_it) {
-		DEBUG_TEX("Prepare to remove %p from the list...\n", item);
-
-		/* Lock access to the resource list */
-		pthread_mutex_lock( &mutex_texture_list );
-		
-		/* Remove the parsed resource from the list */
-		texture_list = ml_delete_self(texture_list, item);
-
-		/* Unlock the resource list */
-		pthread_mutex_unlock( &mutex_texture_list );
-
-		/* What next ? */
-		texture_dump_list();
-	}
-}
-
-void send_texture_to_loader(textureTableIndexStruct_s *entry)
-{
-	/* Lock access to the resource list */
-	pthread_mutex_lock( &mutex_texture_list );
-	
-	/* Add our texture entry */
-	texture_list = ml_append(texture_list, ml_new(entry));
-
-	/* What's in the queue ? */
-	texture_dump_list();
-
-        /* signal that we have data on resource list */
-        pthread_cond_signal(&texture_list_condition);
-	
-	/* Unlock the resource list */
-	pthread_mutex_unlock( &mutex_texture_list );
-}
-
-/**
- *   _textureThread: work on textures, until the end of time.
- */
-void _textureThread()
-{
-	ENTER_THREAD("texture loading");
-
-	TextureThreadInitialized = TRUE;
-
-	/* we wait forever for the data signal to be sent */
-	for (;;) {
-		
-		/*
-		  No need to lock here but later (deeper) 
-		  if we have to remove the item from the list
-		*/
-		TextureParsing = TRUE;
-		
-		/* Process all resource list items, whatever status they may have */
-		while (texture_list != NULL) {
-			ml_foreach(texture_list, texture_process_list(__l));
-		}
-		TextureParsing = FALSE;
-	}
-}
-
-#else
 /*
 parsing thread --> texture_loading_thread hand-off
 GOAL: texture thread blocks when no textures requested. (rather than sleep(500) and for(;;) )
@@ -713,7 +617,9 @@ static void texture_process_list(s_list_t *item)
 	/* FIXME: it seems there is no case in which we not want to remote it ... */
 
 	switch (entry->status) {
-		
+	
+	/* JAS - put in the TEX_LOADING flag here - it helps on OSX */
+	case TEX_LOADING:
 	case TEX_NOTLOADED:
 		if (texture_process_entry(entry)) {
 			remove_it = TRUE;
@@ -756,7 +662,6 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry)
 void _textureThread()
 {
 	ENTER_THREAD("texture loading");
-
 	TextureThreadInitialized = TRUE;
 
 	/* we wait forever for the data signal to be sent */
@@ -785,4 +690,5 @@ void _textureThread()
 		TextureParsing = FALSE;
 	}
 }
-#endif
+
+
