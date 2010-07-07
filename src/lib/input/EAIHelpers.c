@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.40 2010/05/13 17:17:11 davejoubert Exp $
+$Id: EAIHelpers.c,v 1.41 2010/07/07 20:52:37 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -302,7 +302,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	/* make up the name of the Metadata field associated with this one */
 	if (strlen(*fp)>1000) return FALSE;
 
-	sprintf (thisID,"PROTO_%lu_%s",(unsigned long int) myProtoDecl,*fp);
+	sprintf (thisID,"PROTO_%p_%s",myProtoDecl,*fp);
 
 	if (eaiverbose) printf ("looking for name :%s:\n",thisID);
 
