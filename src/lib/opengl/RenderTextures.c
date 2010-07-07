@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.26 2010/03/12 17:07:57 crc_canada Exp $
+$Id: RenderTextures.c,v 1.27 2010/07/07 15:49:06 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -53,7 +53,7 @@ struct multiTexParams *textureParameterStack[MAX_MULTITEXTURE];
 
 /* function params */
 static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode);
-static void passedInGenTex(GLfloat *genTex);
+static void passedInGenTex(struct textureVertexInfo *genTex);
 static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode);
 static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode);
 
@@ -172,7 +172,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 	return TRUE;
 }
 
-void textureDraw_start(struct X3D_Node *texC, GLfloat *genTex) {
+void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo* genTex) {
 	struct X3D_TextureCoordinate *myTCnode = NULL;
 
 	#ifdef TEXVERBOSE
@@ -262,26 +262,43 @@ void textureDraw_end(void) {
 /***********************************************************************************/
 
 
-static void passedInGenTex(GLfloat *genTex) {
+static void passedInGenTex(struct textureVertexInfo *genTex) {
 	int c;
 
 	#ifdef TEXVERBOSE
 	printf ("passedInGenTex, using passed in genTex\n");
 	#endif 
  
-	for (c=0; c<textureStackTop; c++) {
-		/* are we ok with this texture yet? */
-		if (boundTextureStack[c]!=0) {
-			if (setActiveTexture(c,appearanceProperties.transparency)) {
-        			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-				FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
-				FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex);
-				FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+	if (genTex->VA_arrays != NULL) {
+		for (c=0; c<textureStackTop; c++) {
+			/* are we ok with this texture yet? */
+			if (boundTextureStack[c]!=0) {
+				if (setActiveTexture(c,appearanceProperties.transparency)) {
+        				if (this_textureTransform) start_textureTransform(this_textureTransform,c);
+					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
+					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->VA_arrays);
+					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+				}
+			}
+		}
+	} else {
+
+		for (c=0; c<textureStackTop; c++) {
+			/* are we ok with this texture yet? */
+			if (boundTextureStack[c]!=0) {
+				if (setActiveTexture(c,appearanceProperties.transparency)) {
+        				if (this_textureTransform) start_textureTransform(this_textureTransform,c);
+					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
+					FW_GL_TEXCOORD_POINTER (genTex->TC_size, 
+						genTex->TC_type,
+						genTex->TC_stride,
+						genTex->TC_pointer);
+					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+				}
 			}
 		}
 	}
 }
-
 
 static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 	int c;

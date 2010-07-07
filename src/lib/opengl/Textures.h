@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.17 2010/05/03 15:51:17 couannette Exp $
+$Id: Textures.h,v 1.18 2010/07/07 15:49:07 crc_canada Exp $
 
 Screen snapshot.
 
@@ -56,6 +56,18 @@ typedef struct textureTableIndexStruct textureTableIndexStruct_s;
 
 extern textureTableIndexStruct_s* loadThisTexture;
 extern GLuint defaultBlankTexture;
+
+/* Vertex Array to Vertex Buffer Object migration - used to have a passedInGenTex() 
+   when we had (for instance) Cone textures - put this as part of the VBO. */
+
+struct textureVertexInfo {
+	GLfloat	*VA_arrays;
+	GLint TC_size; 		/* glTexCoordPointer - size param */
+	GLenum TC_type;		/* glTexCoordPointer - type param */	
+	GLsizei TC_stride;	/* glTexCoordPointer - stride param */
+	GLvoid *TC_pointer;	/* glTexCoordPointer - pointer to first element */
+};
+
 
 /* imageType */
 #define PNGTexture 200
@@ -121,7 +133,7 @@ extern int     *global_tcin;
 extern int     global_tcin_count; 
 extern void 	*global_tcin_lastParent;
 
-extern void textureDraw_start(struct X3D_Node *texC, GLfloat *tex);
+extern void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo *tex);
 extern void textureDraw_end(void);
 
 extern struct X3D_Node *this_textureTransform;  /* do we have some kind of textureTransform? */

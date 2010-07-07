@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.43 2010/07/05 20:55:50 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.44 2010/07/07 15:49:06 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -592,6 +592,8 @@ package VRML::NodeType;
                 __oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		 __points =>[FreeWRLPTR,0,initializeOnly, 0],
 		 __normals =>[FreeWRLPTR,0,initializeOnly, 0],
+		__cylinderVBO =>[SFInt32,0,initializeOnly,0],
+		__cylinderTriangles =>[SFInt32,0,initializeOnly,0],
 	},"X3DGeometryNode"),
 
 	ElevationGrid => new VRML::NodeType("ElevationGrid", {

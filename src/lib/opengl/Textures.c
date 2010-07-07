@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.63 2010/06/29 16:59:44 crc_canada Exp $
+  $Id: Textures.c,v 1.64 2010/07/07 15:49:07 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -381,6 +381,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 	/* initialization */
 	thisurl.n = 0; thisurl.p = NULL;
 	thistex = NULL;
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
 
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */
@@ -425,7 +426,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			render_node((void *)thistex);
 		        FW_GL_COLOR3D(1.0,1.0,1.0);
 
-        		textureDraw_start(NULL,boxtex);
+        		textureDraw_start(NULL,&mtf);
         		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
@@ -439,6 +440,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 	struct X3D_Node *thistex = 0;
 	int count;
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
 
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */
@@ -463,7 +465,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 				render_node((void *)thistex);
 		                FW_GL_COLOR3D(1.0,1.0,1.0);
 
-        			textureDraw_start(NULL,boxtex);
+        			textureDraw_start(NULL,&mtf);
         			FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         			FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
@@ -1091,8 +1093,9 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	myTableIndex = getTableIndex(thisTexture);
 
 	if (myTableIndex->status != TEX_LOADED)
-	PRINTF ("new_bind_image, I am %u, textureStackTop %d, thisTexture is %u status %s\n",
+	DEBUG_TEX("new_bind_image, I am %u, textureStackTop %d, thisTexture is %u status %s\n",
 		node,textureStackTop,thisTexture,texst(myTableIndex->status));
+
 
 	/* default here; this is just a blank texture */
 	boundTextureStack[textureStackTop] = defaultBlankTexture;

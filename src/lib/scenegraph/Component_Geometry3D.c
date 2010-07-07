@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.34 2010/07/05 20:55:51 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.35 2010/07/07 15:49:07 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -56,7 +56,31 @@ struct MyVertex
  };
 
 static GLuint SphereIndxVBO = 0;
-static GLuint ConeIndxVBO = 0;
+/* static GLuint ConeIndxVBO = 0; */
+
+static GLfloat VBO_coneSideTexParams[]={
+	0.55f, 0.525f, 0.50f,
+	0.60f, 0.575f, 0.55f,
+	0.65f, 0.625f, 0.60f,
+	0.70f, 0.675f, 0.65f,
+	0.75f, 0.725f, 0.70f,
+	0.80f, 0.775f, 0.75f,
+	0.85f, 0.825f, 0.80f,
+	0.90f, 0.875f, 0.85f,
+	0.95f, 0.925f, 0.90f,
+	1.00f, 0.975f, 0.95f,
+	0.05f, 0.025f, 0.00f,
+	0.10f, 0.075f, 0.05f,
+	0.15f, 0.125f, 0.10f,
+	0.20f, 0.175f, 0.15f,
+	0.25f, 0.225f, 0.20f,
+	0.30f, 0.275f, 0.25f,
+	0.35f, 0.325f, 0.30f,
+	0.40f, 0.375f, 0.35f,
+	0.45f, 0.425f, 0.40f,
+	0.50f, 0.475f, 0.45f,
+	0.55f, 0.525f, 0.50f
+};
 
 /*******************************************************************************/
 
@@ -107,6 +131,8 @@ void render_Box (struct X3D_Box *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
+
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
 	float z = ((node->size).c[2])/2;
@@ -123,7 +149,7 @@ void render_Box (struct X3D_Box *node) {
 	CULL_FACE(node->solid)
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
-	textureDraw_start(NULL,boxtex);
+	textureDraw_start(NULL,&mtf);
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
@@ -149,34 +175,229 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 	MARK_NODE_COMPILED
 
 
-	/* use node->__points as compile completed flag for threading */
+	/* use VBOS for Cylinders? */
+	if (global_use_VBOs) {
+		struct MyVertex cylVert[CYLDIV * 4 * 3];
+		int indx = 0;
 
-	/*  MALLOC memory (if possible)*/
-	if (!node->__points) tmpptr = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+4));
-	else tmpptr = node->__points;
+		if (node->__cylinderVBO == 0) {
+			glGenBuffersARB(1,(GLuint*) &node->__cylinderVBO);
+		}
 
-	if (!node->__normals) node->__normals = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+1));
+		/* we create two triangle fans - the cone, and the bottom. */
+		/* first, the flat bit on the bottom */
+		indx=0;
 
-	/*  now, create the vertices; this is a quad, so each face = 4 points*/
-	pt = (struct SFColor *) tmpptr;
-	for (i=0; i<CYLDIV; i++) {
-		a1 = (float) (PI*2*i)/(float)CYLDIV;
-		a2 = (float) (PI*2*(i+1))/(float)CYLDIV;
-		pt[i*2+0].c[0] = r* (float) sin(a1);
-		pt[i*2+0].c[1] = (float) h;
-		pt[i*2+0].c[2] = r* (float) cos(a1);
-		pt[i*2+1].c[0] = r*(float) sin(a1);
-		pt[i*2+1].c[1] = (float) -h;
-		pt[i*2+1].c[2] = r*(float) cos(a1);
+		if (node->bottom) {
+			for (i=0; i<CYLDIV; i++) {
+				double angle = PI*2*i/(double)CYLDIV;
+				double next_angle = PI*2*(i+1)/(double)CYLDIV;
+				/* vertex #1 */
+				cylVert[indx].vert.c[0] = r* (float) sin(angle);
+				cylVert[indx].vert.c[1] = (float) -h;
+				cylVert[indx].vert.c[2] = r* (float) cos(angle);
+				cylVert[indx].norm.c[0] = 0.0f; 
+				cylVert[indx].norm.c[1] = -1.0f; 
+				cylVert[indx].norm.c[2] = 0.0f;
+				cylVert[indx].tc.c[0] = 0.5f+0.5f* (float) sin(angle); 
+				cylVert[indx].tc.c[1] = 0.5f+0.5f* (float) cos(angle); 
+				indx++;
+	
+				/* vertex #2 - in the centre */
+				cylVert[indx].vert.c[0] = 0.0f;
+				cylVert[indx].vert.c[1] = (float) -h;
+				cylVert[indx].vert.c[2] = 0.0f;
+				cylVert[indx].norm.c[0] = 0.0f; 
+				cylVert[indx].norm.c[1] = -1.0f; 
+				cylVert[indx].norm.c[2] = 0.0f;
+				cylVert[indx].tc.c[0] = 0.5f; 
+				cylVert[indx].tc.c[1] = 0.5f; 
+				indx++;
+	
+				/* vertex #3 */
+				cylVert[indx].vert.c[0] = r* (float) sin(next_angle);
+				cylVert[indx].vert.c[1] = (float) -h;
+				cylVert[indx].vert.c[2] = r* (float) cos(next_angle);
+				cylVert[indx].norm.c[0] = 0.0f; 
+				cylVert[indx].norm.c[1] = -1.0f; 
+				cylVert[indx].norm.c[2] = 0.0f;
+				cylVert[indx].tc.c[0] = 0.5f+0.5f* (float) sin(next_angle); 
+				cylVert[indx].tc.c[1] = 0.5f+0.5f* (float) cos(next_angle); 
+				indx++;
+			}
+		}
+		if (node->top) {
+			/* same as bottom, but wind'em the other way */
+			for (i=0; i<CYLDIV; i++) {
+				double angle = PI*2*i/(double)CYLDIV;
+				double next_angle = PI*2*(i+1)/(double)CYLDIV;
+				/* vertex #1 */
+				cylVert[indx].vert.c[0] = r* (float) sin(next_angle);
+				cylVert[indx].vert.c[1] = (float) h;
+				cylVert[indx].vert.c[2] = r* (float) cos(next_angle);
+				cylVert[indx].norm.c[0] = 0.0f; 
+				cylVert[indx].norm.c[1] = 1.0f; 
+				cylVert[indx].norm.c[2] = 0.0f;
+				cylVert[indx].tc.c[0] = 0.5f+0.5f* (float) sin(next_angle); 
+				cylVert[indx].tc.c[1] = 0.5f+0.5f* (float) cos(next_angle); 
+				indx++;
+	
+				/* vertex #2 - in the centre */
+				cylVert[indx].vert.c[0] = 0.0f;
+				cylVert[indx].vert.c[1] = (float) h;
+				cylVert[indx].vert.c[2] = 0.0f;
+				cylVert[indx].norm.c[0] = 0.0f; 
+				cylVert[indx].norm.c[1] = 1.0f; 
+				cylVert[indx].norm.c[2] = 0.0f;
+				cylVert[indx].tc.c[0] = 0.5f; 
+				cylVert[indx].tc.c[1] = 0.5f; 
+				indx++;
+	
+				/* vertex #3 */
+				cylVert[indx].vert.c[0] = r* (float) sin(angle);
+				cylVert[indx].vert.c[1] = (float) h;
+				cylVert[indx].vert.c[2] = r* (float) cos(angle);
+				cylVert[indx].norm.c[0] = 0.0f; 
+				cylVert[indx].norm.c[1] = 1.0f; 
+				cylVert[indx].norm.c[2] = 0.0f;
+				cylVert[indx].tc.c[0] = 0.5f+0.5f* (float) sin(angle); 
+				cylVert[indx].tc.c[1] = 0.5f+0.5f* (float) cos(angle); 
+				indx++;
+			}
+		}
+	
+
+
+		/* now, the sides */
+		if (node->side) {
+			for (i=0; i<CYLDIV; i++) {
+				double angle;
+
+				/* Triangle #1 for this segment of the side */
+				/* vertex #1 - bottom right */
+				angle = (double) (PI * 2 * (i+1.0f)) / (double) (CYLDIV);
+				cylVert[indx].vert.c[0] = r* (float) sin(angle);
+				cylVert[indx].vert.c[1] = (float) -h;
+				cylVert[indx].vert.c[2] = r* (float) cos(angle);
+
+				/* note the angle for normals is half way between faces */
+				angle = (double) (PI * 2 * (i+0.5f)) / (double) (CYLDIV);
+				cylVert[indx].norm.c[0] = (float) sin(angle);
+				cylVert[indx].norm.c[1] = 0.0f;
+				cylVert[indx].norm.c[2] = (float) cos(angle);
+
+				/* note that we use the Cone TC array; assume same division */
+				cylVert[indx].tc.c[0] = VBO_coneSideTexParams[i*3+0];
+				cylVert[indx].tc.c[1] = 0.0f; 
+				indx++;
+	
+				/* vertex #2 - top left */
+				angle = (double) (PI * 2 * (i+0.0f)) / (double) (CYLDIV);
+				cylVert[indx].vert.c[0] = r* (float) sin(angle);
+				cylVert[indx].vert.c[1] = (float) h;
+				cylVert[indx].vert.c[2] = r* (float) cos(angle);
+				angle = (double) (PI * 2 * (i-0.5f)) / (double) (CYLDIV);
+				cylVert[indx].norm.c[0] = (float) sin(angle); 
+				cylVert[indx].norm.c[1] = 0.0f;
+				cylVert[indx].norm.c[2] = (float) cos(angle);
+				cylVert[indx].tc.c[0] = VBO_coneSideTexParams[i*3+2];
+				cylVert[indx].tc.c[1] = 1.0f; 
+				indx++;
+	
+				/* vertex #3 - bottom left */
+				angle = (double) (PI * 2 * (i+0.0f)) / (double) (CYLDIV);
+				cylVert[indx].vert.c[0] = r* (float) sin(angle);
+				cylVert[indx].vert.c[1] = (float) -h;
+				cylVert[indx].vert.c[2] = r* (float) cos(angle);
+				angle = (double) (PI * 2 * (i-0.5f)) / (double) (CYLDIV);
+				cylVert[indx].norm.c[0] = (float) sin(angle); 
+				cylVert[indx].norm.c[1] = 0.0f;
+				cylVert[indx].norm.c[2] = (float) cos(angle);
+				cylVert[indx].tc.c[0] = VBO_coneSideTexParams[i*3+2];
+				cylVert[indx].tc.c[1] = 0.0f; 
+				indx++;
+
+				/* Triangle #2 for this segment of the side */
+				/* vertex #1 - bottom right */
+				angle = (double) (PI * 2 * (i+1.0f)) / (double) (CYLDIV);
+				cylVert[indx].vert.c[0] = r* (float) sin(angle);
+				cylVert[indx].vert.c[1] = (float) -h;
+				cylVert[indx].vert.c[2] = r* (float) cos(angle);
+				angle = (double) (PI * 2 * (i+0.5f)) / (double) (CYLDIV);
+				cylVert[indx].norm.c[0] = (float) sin(angle);
+				cylVert[indx].norm.c[1] = 0.0f;
+				cylVert[indx].norm.c[2] = (float) cos(angle);
+				cylVert[indx].tc.c[0] = VBO_coneSideTexParams[i*3+0];
+				cylVert[indx].tc.c[1] = 0.0f;
+				indx++;
+	
+				/* vertex #2 - top right */
+				angle = (double) (PI * 2 * (i+1.0f)) / (double) (CYLDIV);
+				cylVert[indx].vert.c[0] = r* (float) sin(angle);
+				cylVert[indx].vert.c[1] = (float) h;
+				cylVert[indx].vert.c[2] = r* (float) cos(angle);
+				angle = (double) (PI * 2 * (i+0.5f)) / (double) (CYLDIV);
+				cylVert[indx].norm.c[0] = (float) sin(angle); 
+				cylVert[indx].norm.c[1] = 0.0f;
+				cylVert[indx].norm.c[2] = (float) cos(angle);
+				cylVert[indx].tc.c[0] = VBO_coneSideTexParams[i*3+0];
+				cylVert[indx].tc.c[1] = 1.0f; 
+				indx++;
+	
+				/* vertex #3 - top left */
+				angle = (float) (PI * 2 * (i+0.0f)) / (double) (CYLDIV);
+				cylVert[indx].vert.c[0] = r* (float) sin(angle);
+				cylVert[indx].vert.c[1] = (float) h;
+				cylVert[indx].vert.c[2] = r* (float) cos(angle);
+				angle = (double) (PI * 2 * (i-0.5f)) / (double) (CYLDIV);
+				cylVert[indx].norm.c[0] = (float) sin(angle); 
+				cylVert[indx].norm.c[1] = 0.0f;
+				cylVert[indx].norm.c[2] = (float) cos(angle);
+				cylVert[indx].tc.c[0] = VBO_coneSideTexParams[i*3+2];
+				cylVert[indx].tc.c[1] = 1.0f; 
+				indx++;
+			}
+
+		}
+
+		node->__cylinderTriangles = indx;
+
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__cylinderVBO);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct MyVertex)*indx, cylVert, GL_STATIC_DRAW_ARB);
+
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+
+		/* no longer needed */
+	} else {
+		/* use node->__points as compile completed flag for threading */
+	
+		/*  MALLOC memory (if possible)*/
+		if (!node->__points) tmpptr = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+4));
+		else tmpptr = node->__points;
+	
+		if (!node->__normals) node->__normals = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+1));
+	
+		/*  now, create the vertices; this is a quad, so each face = 4 points*/
+		pt = (struct SFColor *) tmpptr;
+		for (i=0; i<CYLDIV; i++) {
+			a1 = (float) (PI*2*i)/(float)CYLDIV;
+			a2 = (float) (PI*2*(i+1))/(float)CYLDIV;
+			pt[i*2+0].c[0] = r* (float) sin(a1);
+			pt[i*2+0].c[1] = (float) h;
+			pt[i*2+0].c[2] = r* (float) cos(a1);
+			pt[i*2+1].c[0] = r*(float) sin(a1);
+			pt[i*2+1].c[1] = (float) -h;
+			pt[i*2+1].c[2] = r*(float) cos(a1);
+		}
+	
+		/*  wrap the points around*/
+		memcpy (&pt[CYLDIV*2].c[0],&pt[0].c[0],sizeof(struct SFColor)*2);
+	
+		/*  center points of top and bottom*/
+		pt[CYLDIV*2+2].c[0] = 0.0f; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0f;
+		pt[CYLDIV*2+3].c[0] = 0.0f; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0f;
+		node->__points = tmpptr;
 	}
-
-	/*  wrap the points around*/
-	memcpy (&pt[CYLDIV*2].c[0],&pt[0].c[0],sizeof(struct SFColor)*2);
-
-	/*  center points of top and bottom*/
-	pt[CYLDIV*2+2].c[0] = 0.0f; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0f;
-	pt[CYLDIV*2+3].c[0] = 0.0f; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0f;
-	node->__points = tmpptr;
 }
 
 void render_Cylinder (struct X3D_Cylinder * node) {
@@ -187,6 +408,8 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	extern GLfloat cylsidetex[];		/*  in CFuncs/statics.c*/
 	float h = (node->height)/2;
 	float r = node->radius;
+	struct textureVertexInfo mtf = {cylsidetex,2,GL_FLOAT,0,NULL};
+
 
 	if ((h < 0) || (r < 0)) {return;}
 
@@ -194,36 +417,65 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	setExtent(r,-r,h,-h,r,-r,X3D_NODE(node));
 
 	COMPILE_IF_REQUIRED
-	if (!node->__points) return;
 
 	CULL_FACE(node->solid)
-	/*  Display the shape*/
-	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
 
-	if (node->side) {
-		FW_GL_NORMAL_POINTER (GL_FLOAT,0,cylnorms);
-		textureDraw_start(NULL,cylsidetex);
+	if (global_use_VBOs) {
+		// taken from the OpenGL.org website:
+		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-		FW_GL_DRAWARRAYS (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
-		trisThisLoop += (CYLDIV+1)*2*2; /* 2 triangles per quad strip */
-	}
-	if(node->bottom) {
-		textureDraw_start(NULL,cylendtex);
-		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
-		FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cylbotindx);
-		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-		trisThisLoop += CYLDIV+2;
-	}
+		glBindBuffer(GL_ARRAY_BUFFER, node->__cylinderVBO);
 
-	if (node->top) {
-		textureDraw_start(NULL,cylendtex);
-		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		FW_GL_NORMAL3F(0.0f,1.0f,0.0f);
-		FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
-		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-		trisThisLoop += CYLDIV+2;
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glNormalPointer(GL_FLOAT, (GLfloat) sizeof(struct MyVertex), BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+
+		/* set up texture drawing for this guy */
+		mtf.VA_arrays = NULL;
+		mtf.TC_size = 2;
+		mtf.TC_type = GL_FLOAT;
+		mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
+		mtf.TC_pointer = BUFFER_OFFSET(24);
+		textureDraw_start(NULL,&mtf);
+		/* glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO); */
+		glDrawArrays(GL_TRIANGLES,0,node->__cylinderTriangles);
+
+		/* turn off */
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+
+	} else {
+		/*  Display the shape*/
+		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
+	
+		if (node->side) {
+			FW_GL_NORMAL_POINTER (GL_FLOAT,0,cylnorms);
+			textureDraw_start(NULL,&mtf);
+	
+			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
+			trisThisLoop += (CYLDIV+1)*2*2; /* 2 triangles per quad strip */
+		}
+		if(node->bottom) {
+			mtf.VA_arrays=cylendtex;
+			textureDraw_start(NULL,&mtf);
+			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
+			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cylbotindx);
+			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+			trisThisLoop += CYLDIV+2;
+		}
+	
+		if (node->top) {
+			mtf.VA_arrays=cylendtex;
+			textureDraw_start(NULL,&mtf);
+			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+			FW_GL_NORMAL3F(0.0f,1.0f,0.0f);
+			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
+			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+			trisThisLoop += CYLDIV+2;
+		}
 	}
 	textureDraw_end();
 
@@ -255,21 +507,8 @@ void compile_Cone (struct X3D_Cone *node) {
 		int indx = 0;
 
 		if (node->__coneVBO == 0) {
-			glGenBuffersARB(1,&node->__coneVBO);
-			printf ("compile_Cone, vbos are %u \n",node->__coneVBO);
+			glGenBuffersARB(1,(GLuint *) &node->__coneVBO);
 		}
-
-		/*
-		for (i=0; i<CONEDIV * 2 *3; i++) {
-			coneVert[i].vert.c[0] = 0.0f;
-			coneVert[i].vert.c[1] = 10.0f;
-			coneVert[i].vert.c[2] = 0.0f;
-			coneVert[i].norm.c[0] = 0.0f; 
-			coneVert[i].norm.c[1] = -1.0f; 
-			coneVert[i].norm.c[2] = 0.0f;
-		}
-		*/
-
 
 		/* we create two triangle fans - the cone, and the bottom. */
 		/* first, the flat bit on the bottom */
@@ -277,41 +516,39 @@ void compile_Cone (struct X3D_Cone *node) {
 
 		if (node->bottom) {
 			for (i=0; i<CONEDIV; i++) {
-				/* triangle #1 */
-				coneVert[indx].vert.c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
+				double angle = PI*2*i/(double)CONEDIV;
+				double next_angle = PI*2*(i+1)/(double)CONEDIV;
+				/* vertex #1 */
+				coneVert[indx].vert.c[0] = r* (float) sin(angle);
 				coneVert[indx].vert.c[1] = (float) -h;
-				coneVert[indx].vert.c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
+				coneVert[indx].vert.c[2] = r* (float) cos(angle);
 				coneVert[indx].norm.c[0] = 0.0f; 
 				coneVert[indx].norm.c[1] = -1.0f; 
 				coneVert[indx].norm.c[2] = 0.0f;
+				coneVert[indx].tc.c[0] = 0.5f+0.5f* (float) sin(angle); 
+				coneVert[indx].tc.c[1] = 0.5f+0.5f* (float) cos(angle); 
 				indx++;
 	
-				/* triangle #2 - in the centre */
+				/* vertex #2 - in the centre */
 				coneVert[indx].vert.c[0] = 0.0f;
 				coneVert[indx].vert.c[1] = (float) -h;
 				coneVert[indx].vert.c[2] = 0.0f;
 				coneVert[indx].norm.c[0] = 0.0f; 
 				coneVert[indx].norm.c[1] = -1.0f; 
 				coneVert[indx].norm.c[2] = 0.0f;
+				coneVert[indx].tc.c[0] = 0.5f; 
+				coneVert[indx].tc.c[1] = 0.5f; 
 				indx++;
 	
-				/* triangle #3 */
-				coneVert[indx].vert.c[0] = r* (float) sin(PI*2*(i+1)/(float)CONEDIV);
+				/* vertex #3 */
+				coneVert[indx].vert.c[0] = r* (float) sin(next_angle);
 				coneVert[indx].vert.c[1] = (float) -h;
-				coneVert[indx].vert.c[2] = r* (float) cos(PI*2*(i+1)/(float)CONEDIV);
+				coneVert[indx].vert.c[2] = r* (float) cos(next_angle);
 				coneVert[indx].norm.c[0] = 0.0f; 
 				coneVert[indx].norm.c[1] = -1.0f; 
 				coneVert[indx].norm.c[2] = 0.0f;
-	/* generated with:
-	        printf ("0.0, (GLfloat)  0.0");
-	        for (i=1; i<=20; i++) {
-	                a1 = PI * 2 * (i) / 20.0;
-	                printf ("%4.3f, (GLfloat)  %4.3f, (GLfloat)  ", (GLfloat) 0.5+0.5*sin(a1), (GLfloat)   0.5+0.5*cos(a1));
-	        }
-	        printf ("0.5, (GLfloat) 0.5, (GLfloat) 0.5, (GLfloat) 1.0\n");
-				coneVert[i].tc.c[0] = 0.0f; 
-				coneVert[i].tc.c[1] = 0.0f; 
-	*/
+				coneVert[indx].tc.c[0] = 0.5f+0.5f* (float) sin(next_angle); 
+				coneVert[indx].tc.c[1] = 0.5f+0.5f* (float) cos(next_angle); 
 				indx++;
 			}
 		}
@@ -319,61 +556,58 @@ void compile_Cone (struct X3D_Cone *node) {
 
 		/* now, the sides */
 		if (node->side) {
+			GLfloat *tcp =  VBO_coneSideTexParams;
+
 			for (i=0; i<CONEDIV; i++) {
 				double angle;
 
-			/*  top point*/
-			/* left point*/
-			/*  right point*/
-				/* triangle #1 */
-				coneVert[indx].vert.c[0] = r* (float) sin(PI*2*(i+1)/(float)CONEDIV);
+				/* vertex #1 */
+				angle = (double) (PI * 2 * (i+1.0f)) / (double) (CONEDIV);
+				coneVert[indx].vert.c[0] = r* (float) sin(angle);
 				coneVert[indx].vert.c[1] = (float) -h;
-				coneVert[indx].vert.c[2] = r* (float) cos(PI*2*(i+1)/(float)CONEDIV);
-				angle = (float) (PI * 2 * (i+1.0f)) / (float) (CONEDIV);
+				coneVert[indx].vert.c[2] = r* (float) cos(angle);
 				coneVert[indx].norm.c[0] = (float) sin(angle);
 				coneVert[indx].norm.c[1] = (float)h/r;
 				coneVert[indx].norm.c[2] = (float) cos(angle);
+
+				angle = (double) (PI * 2 * (i+0.0f)) / (double) (CONEDIV);
+				coneVert[indx].tc.c[0] = *tcp; tcp++;
+				coneVert[indx].tc.c[1] = 0.0f; 
 				indx++;
 	
-				/* triangle #2 - in the centre */
+				/* vertex #2 - in the centre */
+				angle = (float) (PI * 2 * (i+0.5f)) / (double)(CONEDIV);
 				coneVert[indx].vert.c[0] = 0.0f;
 				coneVert[indx].vert.c[1] = (float) h;
 				coneVert[indx].vert.c[2] = 0.0f;
-				angle = (float) (PI * 2 * (i+0.5f)) / (float) (CONEDIV);
 				coneVert[indx].norm.c[0] = (float) sin(angle); 
 				coneVert[indx].norm.c[1] = (float)h/r;
 				coneVert[indx].norm.c[2] = (float) cos(angle);
+
+				coneVert[indx].tc.c[0] = *tcp; tcp++; 
+				coneVert[indx].tc.c[1] = 1.0f;
 				indx++;
 	
-				/* triangle #3 */
-				coneVert[indx].vert.c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
+				/* vertex #3 */
+				angle = (float) (PI * 2 * (i+0.0f)) / (double) (CONEDIV);
+				coneVert[indx].vert.c[0] = r* (float) sin(angle);
 				coneVert[indx].vert.c[1] = (float) -h;
-				coneVert[indx].vert.c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
-
-				angle = (float) (PI * 2 * (i+0.0f)) / (float) (CONEDIV);
-				coneVert[indx].norm.c[0] = (float) sin(angle); 
+				coneVert[indx].vert.c[2] = r* (float) cos(angle);
+				coneVert[indx].norm.c[0] = (float) sin(angle) + 0.5f; 
 				coneVert[indx].norm.c[1] = (float)h/r;
 				coneVert[indx].norm.c[2] = (float) cos(angle);
-	/* generated with:
-	        printf ("0.0, (GLfloat)  0.0");
-	        for (i=1; i<=20; i++) {
-	                a1 = PI * 2 * (i) / 20.0;
-	                printf ("%4.3f, (GLfloat)  %4.3f, (GLfloat)  ", (GLfloat) 0.5+0.5*sin(a1), (GLfloat)   0.5+0.5*cos(a1));
-	        }
-	        printf ("0.5, (GLfloat) 0.5, (GLfloat) 0.5, (GLfloat) 1.0\n");
-				coneVert[i].tc.c[0] = 0.0f; 
-				coneVert[i].tc.c[1] = 0.0f; 
-	*/
+
+				angle = (float) (PI * 2 * (i+1.0f)) / (double) (CONEDIV);
+				coneVert[indx].tc.c[0] = *tcp; tcp++; 
+				coneVert[indx].tc.c[1] = 0.0f; 
 				indx++;
 			}
+
 		}
 
 		node->__coneTriangles = indx;
-printf ("we have %d triangles in this cone\n",node->__coneTriangles/3);
 
-
-		extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, (GLuint) node->__coneVBO);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct MyVertex)*indx, coneVert, GL_STATIC_DRAW_ARB);
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
@@ -451,6 +685,8 @@ void render_Cone (struct X3D_Cone *node) {
 	/*  DO NOT change this define, unless you want to recalculate statics below....*/
 	#define  CONEDIV 20
 
+	struct textureVertexInfo mtf = {tribottex,2,GL_FLOAT,0,NULL};
+
 	float h = (node->height)/2;
 	float r = node->bottomRadius;
 
@@ -471,32 +707,29 @@ void render_Cone (struct X3D_Cone *node) {
 
 		glBindBuffer(GL_ARRAY_BUFFER, node->__coneVBO);
 
-
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		glVertexPointer(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
 		glEnableClientState(GL_NORMAL_ARRAY);
-		glNormalPointer(GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
-		glClientActiveTexture(GL_TEXTURE0);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(24));   //The starting point of texcoords, 24 bytes away
+		glNormalPointer(GL_FLOAT, (GLfloat) sizeof(struct MyVertex), BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO);
-
-/*
-#define ARCS 40 
-		glDrawElements(GL_TRIANGLES, 3*ARCS, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));   //The starting point of the IBO
-*/
+		/* set up texture drawing for this guy */
+		mtf.VA_arrays = NULL;
+		mtf.TC_size = 2;
+		mtf.TC_type = GL_FLOAT;
+		mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
+		mtf.TC_pointer = BUFFER_OFFSET(24);
+		textureDraw_start(NULL,&mtf);
+		/* glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO); */
 		glDrawArrays(GL_TRIANGLES,0,node->__coneTriangles);
 
-
-
+		/* turn off */
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	} else {
 		if(node->bottom) {
 			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__botpoints);
-			textureDraw_start(NULL,tribottex);
+			textureDraw_start(NULL,&mtf);
 			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
 			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
 			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
@@ -506,7 +739,8 @@ void render_Cone (struct X3D_Cone *node) {
 		if(node->side) {
 			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__sidepoints);
 			FW_GL_NORMAL_POINTER (GL_FLOAT,0,(GLfloat *)node->__normals);
-			textureDraw_start(NULL,trisidtex);
+			mtf.VA_arrays = trisidtex;
+			textureDraw_start(NULL,&mtf);
 	
 			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 			FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 60);
@@ -583,7 +817,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 		struct SFVec2f *myTex = (struct SFVec2f*)spheretex;
 
 		if (node->_sideVBO == 0) {
-			glGenBuffers(1,&node->_sideVBO);
+			glGenBuffers(1,(GLuint *) &node->_sideVBO);
 		}
 		for(v=0; v<SPHDIV; v++) {
 			float vsin1 = SIN1;
@@ -616,7 +850,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 			}
 		}	
 
- 		glBindBuffer(GL_ARRAY_BUFFER, node->_sideVBO);
+ 		glBindBuffer(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
 		glBufferData(GL_ARRAY_BUFFER, myVertexVBOSize, SphVBO, GL_STATIC_DRAW);
 
 		if (SphereIndxVBO == 0) {
@@ -685,6 +919,9 @@ void render_Sphere (struct X3D_Sphere *node) {
 	extern GLfloat spherenorms[];		/*  side normals*/
 	extern float spheretex[];		/*  in CFuncs/statics.c*/
 
+	struct textureVertexInfo mtf = {spheretex,2,GL_FLOAT,0,NULL};
+
+
 	float rad = node->radius;
 	int count;
 
@@ -703,15 +940,19 @@ void render_Sphere (struct X3D_Sphere *node) {
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-		glBindBuffer(GL_ARRAY_BUFFER, node->_sideVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
 
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		glVertexPointer(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
 		glEnableClientState(GL_NORMAL_ARRAY);
-		glNormalPointer(GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
-		glClientActiveTexture(GL_TEXTURE0);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(struct MyVertex), BUFFER_OFFSET(24));   //The starting point of texcoords, 24 bytes away
+		glNormalPointer(GL_FLOAT, (GLfloat)  sizeof(struct MyVertex), BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+
+                mtf.VA_arrays = NULL;
+                mtf.TC_size = 2;
+                mtf.TC_type = GL_FLOAT;
+                mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
+                mtf.TC_pointer = BUFFER_OFFSET(24);
+		textureDraw_start(NULL,&mtf);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SphereIndxVBO);
 		
@@ -719,7 +960,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	} else {
-		textureDraw_start(NULL,spheretex);
+		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
 		FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);
 
@@ -1756,9 +1997,6 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 	       struct point_XYZ t_orig = {0,0,0};
 
 	       struct point_XYZ delta;
-
-		/* is this node initialized? if not, get outta here and do this later */
-		if (node->__points == 0) return;
 
 		iv.y = h;
 		jv.y = -h;
