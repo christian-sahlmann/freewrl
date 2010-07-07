@@ -1,9 +1,9 @@
 #!/bin/sh
 
-build javascript
+#build javascript
 cd ../../freewrl/JS/js1.8/src
 ./build64_32.sh
-cp ../../freewrl/JS/js1.8/src/Darwin_DBG.OBJ/libjs.dylib /usr/local/lib/libFreeWRLjs.dylib 
+cp ../../freewrl/JS/js1.8/src/Darwin_DBG.OBJ/libFreeWRLjs.dylib /usr/local/lib/libFreeWRLjs.dylib 
 
 cd ../../../../freex3d/appleOSX/
 
