@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.64 2010/07/07 15:49:07 crc_canada Exp $
+  $Id: Textures.c,v 1.65 2010/07/07 16:06:15 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -379,9 +379,9 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 	int count;
 
 	/* initialization */
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
 	thisurl.n = 0; thisurl.p = NULL;
 	thistex = NULL;
-	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
 
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */

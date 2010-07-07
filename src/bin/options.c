@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.27 2010/05/05 08:39:58 davejoubert Exp $
+  $Id: options.c,v 1.28 2010/07/07 16:06:15 dug9 Exp $
 
   FreeWRL command line arguments.
 
@@ -131,7 +131,7 @@ const char * validate_string_arg(const char *optarg)
 	{"screendist", required_argument, 0, 'r'},
 	{"eyedist", required_argument, 0, 'y'},
 	{"shutter", no_argument, 0, 'u'},
-	{"stereo", no_argument, 0, 't'},
+	{"stereo", required_argument, 0, 't'},
 	{"anaglyph", required_argument, 0, 'A'},
 	{"sidebyside", no_argument, 0, 'B'},
 	{"keypress", required_argument, 0, 'K'},
