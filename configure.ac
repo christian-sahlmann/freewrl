@@ -485,8 +485,8 @@ AC_ARG_WITH([plugintarget],
 # Mozilla plugin install dir
 AC_ARG_WITH([plugindir],
             AS_HELP_STRING([--with-plugindir=DIR],[browser plugin install path @<:@/usr/lib/mozilla/plugins@:>@]),
-            [plugindir="$withval"],			       # user supplied value
-            [plugindir="/usr/lib/mozilla/plugins"])	       # default value
+            [plugindir=$withval],			       # user supplied value
+            [plugindir=$libdir/mozilla/plugins])	       # default value
 
 AC_DEFINE_DIR([PLUGIN_DIR],[plugindir],[Directory where to install browser plugin.])
 

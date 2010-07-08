@@ -56,13 +56,9 @@ AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
 plugin_LTLIBRARIES = libFreeWRLplugin.la
 libFreeWRLplugin_la_LIBTOOLFLAGS = --tag=disable-static
 
-# This makes the plugin installs in /usr/lib/mozilla/plugins...
-# we do not want this for "make distcheck" to pass...
+# This makes the plugin installs in $libdir/mozilla/plugins by default...
 plugindir=$(PLUGIN_DIR)
-# We want plugin installed along libFreeWRL and then
-# if we have the rights to, create a link from /usr/lib/mozilla/plugins
-# to the plugin.
-#plugindir=$(libdir)
+
 libFreeWRLplugin_la_LDFLAGS = -module -avoid-version $(AM_LDFLAGS)
 libFreeWRLplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la $(EXTERNAL_LIBS)
 
@@ -70,12 +66,15 @@ include Makefile.sources
 
 libFreeWRLplugin_la_SOURCES += internal_version.c
 
-register-plugin:
+##
+## This was here in order to attempt to work-around a "make distcheck" issue,
+## and is no longer necessary
+#register-plugin:
 #	mkdir -p $(DESTDIR)$(libdir)
-	mkdir -p $(DESTDIR)$(PLUGIN_DIR)
+#	mkdir -p $(DESTDIR)$(PLUGIN_DIR)
 #	if test -w $(DESTDIR)$(PLUGIN_DIR); then \
 #		cd $(DESTDIR)$(PLUGIN_DIR); \
 #		ln -s $(libdir)/$(FREEWRL_PLUGIN); \
 #	fi
-
-install-exec-am: register-plugin
+#
+#install-exec-am: register-plugin
