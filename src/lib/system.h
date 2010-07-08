@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.22 2010/03/30 20:40:35 sdumoulin Exp $
+$Id: system.h,v 1.23 2010/07/08 17:25:55 istakenv Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -90,7 +90,9 @@ typedef unsigned char _Bool;
 #define FALSE 0
 
 #if HAVE_UNISTD_H
-# include <sys/types.h>
+# if HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+# endif
 # include <unistd.h>
 #endif
 

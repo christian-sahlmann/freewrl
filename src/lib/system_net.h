@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_net.h,v 1.7 2009/10/05 15:07:23 crc_canada Exp $
+$Id: system_net.h,v 1.8 2010/07/08 17:25:55 istakenv Exp $
 
 FreeWRL support library.
 Internal header: network dependencies.
@@ -32,6 +32,13 @@ Internal header: network dependencies.
 #define __LIBFREEWRL_SYSTEM_NET_H__
 
 #if !defined(WIN32)
+
+#if HAVE_SYS_SOCKET_H
+# if HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+# endif
+# include <sys/socket.h>
+#endif
 
 #include <netinet/in.h> 
 #include <sys/msg.h> 
