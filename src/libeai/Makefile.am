@@ -17,7 +17,7 @@ AM_CPPFLAGS += \
                                 $(GL_CFLAGS) \
                                 $(PNG_CFLAGS)
 
-AM_LDFLAGS += \
+EXTERNAL_LIBS = \
                                 $(FREETYPE_LIBS) \
                                 $(JAVASCRIPT_ENGINE_LIBS) \
                                 $(XML_LIBS) \
@@ -32,7 +32,7 @@ if WINDOW_USE_X11
 AM_CPPFLAGS += \
                                 $(X_CFLAGS) \
                                 $(XAW_CFLAGS)
-AM_LDFLAGS += \
+EXTERNAL_LIBS += \
                                 $(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
                                 $(XAW_LIBS)
 endif
@@ -43,7 +43,7 @@ AM_CPPFLAGS += \
                                 $(X_CFLAGS) \
                                 $(XAW_CFLAGS) \
                                 $(MOTIF_CFLAGS)
-AM_LDFLAGS += \
+EXTERNAL_LIBS += \
 				$(X_PRE_LIBS) \
                                 $(MOTIF_LIBS) \
 				$(X_LIBS) $(X_EXTRA_LIBS) \
@@ -92,7 +92,7 @@ AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR) -I$(LIBFREEWRL_SRCDIR)/input
 
 lib_LTLIBRARIES = libFreeWRLEAI.la
 libFreeWRLEAI_la_LDFLAGS = -version-info $(LIBFREEWRLEAI_LTVERSION) $(AM_LDFLAGS)
-libFreeWRLEAI_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la
+libFreeWRLEAI_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la $(EXTERNAL_LIBS)
 libFreeWRLEAIincludedir = $(includedir)/FreeWRLEAI
 
 include Makefile.sources

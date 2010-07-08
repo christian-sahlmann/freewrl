@@ -11,7 +11,7 @@ AM_CPPFLAGS += \
 				$(XAW_CFLAGS) \
 				$(MOTIF_CFLAGS)
 
-AM_LDFLAGS += \
+EXTERNAL_LIBS = \
 				$(X_PRE_LIBS) \
 				$(MOTIF_LIBS) \
 				$(X_LIBS) $(X_EXTRA_LIBS) \
@@ -36,4 +36,4 @@ bin_PROGRAMS = freewrl_msg
 include Makefile.sources
 
 freewrl_msg_SOURCES += internal_version.c
-
+freewrl_msg_LDADD = $(EXTERNAL_LIBS)

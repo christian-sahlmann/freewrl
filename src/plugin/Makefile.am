@@ -11,7 +11,7 @@ include $(top_srcdir)/Makefile.globals
 AM_CPPFLAGS += \
 				$(PLUGIN_CFLAGS)
 
-AM_LDFLAGS += \
+EXTERNAL_LIBS = \
 				$(PLUGIN_LIBS)
 
 
@@ -58,23 +58,24 @@ libFreeWRLplugin_la_LIBTOOLFLAGS = --tag=disable-static
 
 # This makes the plugin installs in /usr/lib/mozilla/plugins...
 # we do not want this for "make distcheck" to pass...
-# plugindir=$(PLUGIN_DIR)
+plugindir=$(PLUGIN_DIR)
 # We want plugin installed along libFreeWRL and then
 # if we have the rights to, create a link from /usr/lib/mozilla/plugins
 # to the plugin.
-plugindir=$(libdir)
+#plugindir=$(libdir)
 libFreeWRLplugin_la_LDFLAGS = -module -avoid-version $(AM_LDFLAGS)
+libFreeWRLplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la $(EXTERNAL_LIBS)
 
 include Makefile.sources
 
 libFreeWRLplugin_la_SOURCES += internal_version.c
 
 register-plugin:
-	mkdir -p $(DESTDIR)$(libdir)
+#	mkdir -p $(DESTDIR)$(libdir)
 	mkdir -p $(DESTDIR)$(PLUGIN_DIR)
-	if test -w $(DESTDIR)$(PLUGIN_DIR); then \
-		cd $(DESTDIR)$(PLUGIN_DIR); \
-		ln -s $(libdir)/$(FREEWRL_PLUGIN); \
-	fi
+#	if test -w $(DESTDIR)$(PLUGIN_DIR); then \
+#		cd $(DESTDIR)$(PLUGIN_DIR); \
+#		ln -s $(libdir)/$(FREEWRL_PLUGIN); \
+#	fi
 
 install-exec-am: register-plugin
