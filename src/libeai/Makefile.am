@@ -11,15 +11,17 @@ include $(top_srcdir)/Makefile.globals
 AM_CPPFLAGS += \
                                 $(PTHREAD_CFLAGS) \
                                 $(FREETYPE_CFLAGS) \
+				$(EXPAT_CFLAGS) \
+                                $(XML_CFLAGS) \
                                 $(JAVASCRIPT_ENGINE_CFLAGS) \
-                                $(XML_CFLAGS) $(EXPAT_CFLAGS) \
                                 $(GL_CFLAGS) \
                                 $(PNG_CFLAGS)
 
 AM_LDFLAGS += \
                                 $(FREETYPE_LIBS) \
                                 $(JAVASCRIPT_ENGINE_LIBS) \
-                                $(XML_LIBS) $(EXPAT_LIBS) \
+                                $(XML_LIBS) \
+				$(EXPAT_LIBS) \
                                 $(GL_LIBS) \
                                 $(JPEG_LIBS) \
                                 $(PNG_LIBS)
@@ -42,9 +44,10 @@ AM_CPPFLAGS += \
                                 $(XAW_CFLAGS) \
                                 $(MOTIF_CFLAGS)
 AM_LDFLAGS += \
-                                $(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
-                                $(XAW_LIBS) \
-                                $(MOTIF_LIBS)
+				$(X_PRE_LIBS) \
+                                $(MOTIF_LIBS) \
+				$(X_LIBS) $(X_EXTRA_LIBS) \
+                                $(XAW_LIBS)
 endif
 
 if OS_MAC

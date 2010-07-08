@@ -12,9 +12,10 @@ AM_CPPFLAGS += \
 				$(MOTIF_CFLAGS)
 
 AM_LDFLAGS += \
-				$(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) \
-				$(XAW_LIBS) \
-				$(MOTIF_LIBS)
+				$(X_PRE_LIBS) \
+				$(MOTIF_LIBS) \
+				$(X_LIBS) $(X_EXTRA_LIBS) \
+				$(XAW_LIBS)
 
 _EV=$(top_srcdir)/versions/MESSAGEMGR
 export
