@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.18 2010/05/16 09:44:05 couannette Exp $
+  $Id: fwMotifWindow.c,v 1.19 2010/07/08 15:27:01 istakenv Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -980,7 +980,7 @@ void frontendUpdateButtons()
         colbutChanged = FALSE;
     }
     if (headbutChanged) {
-        XmToggleButtonSetState (collisionButton,headbut,FALSE);
+        XmToggleButtonSetState (headlightButton,headbut,FALSE);
         headbutChanged = FALSE;
     }
     if (navbutChanged) {
