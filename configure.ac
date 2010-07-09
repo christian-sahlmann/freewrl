@@ -153,7 +153,7 @@ ACX_PTHREAD
 
 # Fix for proper use of --as-needed
 # http://udrepper.livejournal.com/19395.html
-PTHREAD_CFLAGS=$(echo $PTHREAD_CFLAGS|sed -e 's/-pthreads//' -e 's/-pthread//')
+PTHREAD_CFLAGS=$(echo $PTHREAD_CFLAGS|sed -e 's/-pthreads\{0,1\}//')
 PTHREAD_LIBS="$PTHREAD_LIBS -lpthread"
 
 # FreeType (font rendering)
