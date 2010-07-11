@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.25 2010/03/22 15:14:48 crc_canada Exp $
+$Id: JScript.c,v 1.26 2010/07/11 14:34:04 dug9 Exp $
 
 Javascript C language binding.
 
@@ -884,7 +884,20 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 			#endif
 
 			/* make this at least as large as required, then add some more on to the end... */
-			smallfield = MALLOC (rows*((elements*15) + 100));
+			/*
+				example for MFVec2f
+				'new MFVec2f(new SFVec2f(1234.678910,1234.678910),...)'
+				each SF 2 numbers each 10 digits plus new type(,), 15 chars  =35.
+				3 x 15 = 45 (or (rows+1)x(elements*15)+100) 
+				old formula falls short:
+					old formula: smallfield = MALLOC (rows*((elements*15) + 100));
+					example 47 SFVec2fs
+					actual bytes: 47 x 35 bytes = 1645 + 13 for the MF = 1658
+					old formula  2 x ((47*15)+100) = 1610   //thats 48 bytes short and I bomb out
+					new formula  3 x (47*15) + 100 = 2215
+
+			*/
+			smallfield = MALLOC ((rows+1)*(elements*15) + 100);
 
 			/* what is the equivalent SF for this MF?? */
 			if (type != convertToSFType(type)) haveMulti = TRUE;
