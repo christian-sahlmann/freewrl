@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.17 2010/07/12 13:56:07 crc_canada Exp $
+$Id: StreamPoly.c,v 1.18 2010/07/12 19:38:09 crc_canada Exp $
 
 ???
 
@@ -531,14 +531,14 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 			if (r->VBO_buffers[NORMAL_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[NORMAL_VBO]);
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[NORMAL_VBO]);
 			glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColor)*3,r->normal, GL_STATIC_DRAW_ARB);
-			FREE_IF_NZ(r->color);
+			FREE_IF_NZ(r->normal);
 		}
 
 		if (r->color) {
 			if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
 			glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW_ARB);
-			FREE_IF_NZ(r->color);
+			/* DO NOT FREE_IF_NZ(r->color); - recalculateColorFields needs this...*/
 		}
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[VERTEX_VBO]);

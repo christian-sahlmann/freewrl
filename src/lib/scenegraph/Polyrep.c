@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.33 2010/07/12 14:45:52 dug9 Exp $
+$Id: Polyrep.c,v 1.34 2010/07/12 19:38:09 crc_canada Exp $
 
 ???
 
@@ -781,6 +781,7 @@ void render_polyrep(void *node) {
 	struct X3D_Virt *v;
 	struct X3D_Node *renderedNodePtr;
 	struct X3D_PolyRep *r;
+	int hasc;
 
 	v = *(struct X3D_Virt **)node;
 	renderedNodePtr = X3D_NODE(node);
@@ -814,8 +815,10 @@ void render_polyrep(void *node) {
 	/*  clockwise or not?*/
 	if (!r->ccw) { FW_GL_FRONTFACE(GL_CW); }
 	
+	hasc = ((r->VBO_buffers[COLOR_VBO]!=0) || r->color) && (last_texture_type!=TEXTURE_NO_ALPHA);
+
 	/* Do we have any colours? Are textures, if present, not RGB? */
-	if(r->color) {
+	if(hasc){
 		if (!r->isRGBAcolorNode) 
 			if (!APPROX(r->transparency,appearanceProperties.transparency)) {
 				recalculateColorField(r);
@@ -833,35 +836,24 @@ void render_polyrep(void *node) {
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 	}
 	
-	/*  status bar, text do not have normals*/
-	if (global_use_VBOs) {
-		if (r->VBO_buffers[NORMAL_VBO]!=0) {
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[NORMAL_VBO]);
-			FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
-		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
-	} else {
-		if (r->normal) {
-			FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal);
-		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
-	}
-	
-	/*  colours?*/
-	if (r->color) {
-			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-			if (global_use_VBOs) {
-				glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[COLOR_VBO]);
-				FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
-			} else {
-				FW_GL_COLOR_POINTER(4,GL_FLOAT,0,r->color);
-			}
-	}
 
 
 	if (!global_use_VBOs) {
+		/*  status bar, text do not have normals*/
+		if (r->normal) {
+			FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal);
+		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
+	
+		/*  colours?*/
+		if (hasc) {
+			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+			FW_GL_COLOR_POINTER(4,GL_FLOAT,0,r->color);
+		}
+
 		/*  textures?*/
 		if (r->GeneratedTexCoords) {
-				struct textureVertexInfo mtf = {r->GeneratedTexCoords,2,GL_FLOAT,0,NULL};
-				textureDraw_start(NULL,&mtf);
+			struct textureVertexInfo mtf = {r->GeneratedTexCoords,2,GL_FLOAT,0,NULL};
+			textureDraw_start(NULL,&mtf);
 		} else {
 			textureDraw_start(X3D_NODE(node), NULL);
 		}
@@ -872,14 +864,22 @@ void render_polyrep(void *node) {
 
 		/*  put things back to the way they were;*/
 		if (!r->normal) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-		if (r->color) {
+		if (hasc) {
 			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 			FW_GL_DISABLE(GL_COLOR_MATERIAL);
 		}
 	} else {
+		/*  status bar, text do not have normals*/
+		if (r->VBO_buffers[NORMAL_VBO]!=0) {
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[NORMAL_VBO]);
+			FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
+		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
+	
 		/* colours? */
-		if (r->VBO_buffers[COLOR_VBO] != 0) {
-				glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
+		if (hasc) {
+			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
+			FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
 		}
 		/*  textures?*/
 		if (r->VBO_buffers[TEXTURE_VBO] != 0) {
@@ -902,7 +902,7 @@ void render_polyrep(void *node) {
 
 		/*  put things back to the way they were;*/
 		if (r->VBO_buffers[NORMAL_VBO] == 0) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-		if (r->VBO_buffers[COLOR_VBO] != 0) {
+		if (hasc) {
 			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 			FW_GL_DISABLE(GL_COLOR_MATERIAL);
 		}
@@ -1132,7 +1132,6 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		for (i=0; i<VBO_COUNT; i++) r->VBO_buffers[i] = 0;
 		if (global_use_VBOs) {
 			/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
-			printf ("Genning buffers for vertex, index\n");
 			glGenBuffers(1,&r->VBO_buffers[VERTEX_VBO]);
 			glGenBuffers(1,&r->VBO_buffers[INDEX_VBO]);
 

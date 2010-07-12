@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.33 2010/07/12 13:56:07 crc_canada Exp $
+  $Id: main.c,v 1.34 2010/07/12 19:38:09 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -198,11 +198,10 @@ bool initFreeWRL(freewrl_params_t *params)
 	}
 
 	global_use_VBOs = (getenv("FREEWRL_NO_VBOS") == NULL);
+	global_use_VBOs = (getenv("FREEWRL_USE_VBOS") != NULL);
 	if (global_use_VBOs) {
 		TRACE_MSG("Env: trying VBOs enabled.\n");
-printf ("Env: trying VBOs enabled.\n");
 	}
-else {printf ("Env: no VBOS\n");}
 
 	
 #ifdef IPHONE
