@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.11 2010/02/27 21:02:25 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.12 2010/07/12 20:45:26 crc_canada Exp $
 
 X3D Texturing Component
 
@@ -113,8 +113,14 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 
 		if (node->__compiledpoint.n == 0) {
 			node->__compiledpoint.n = global_tcin_count;
-			node->__compiledpoint.p = (struct SFVec2f *) MALLOC (sizeof(float) *2 * global_tcin_count);
+			FREE_IF_NZ(node->__compiledpoint.p);
 		} 
+
+		/* possibly, if we are using VBOs, we might have an issue with freed memory */
+		/* so we do this in 2 steps */
+		if (!node->__compiledpoint.p) {
+			node->__compiledpoint.p = (struct SFVec2f *) MALLOC (sizeof(float) *2 * node->__compiledpoint.n);
+		}
 	
 		fptr = (float *) node->__compiledpoint.p;
 		
@@ -151,7 +157,17 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 			printf ("checking... %d %f %f\n",i,nFp.c[0], nFp.c[1]);
 		}
 		#endif
+
+		/* We doing VBOs? */
+		if (global_use_VBOs) {
+			if (node->__VBO == 0) glGenBuffers(1,&node->__VBO);
+
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB,node->__VBO);
+			glBufferDataARB(GL_ARRAY_BUFFER_ARB,sizeof (float)*2*global_tcin_count, node->__compiledpoint.p, GL_STATIC_DRAW_ARB);
+			FREE_IF_NZ(node->__compiledpoint.p);
+		}
 	}
+
 
 	/* keep this last parent around, so that MAYBE we do not have to re-do the compiled node */
 	node->__lastParent = global_tcin_lastParent;

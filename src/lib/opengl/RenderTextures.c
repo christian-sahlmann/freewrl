@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.27 2010/07/07 15:49:06 crc_canada Exp $
+$Id: RenderTextures.c,v 1.28 2010/07/12 20:45:26 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -315,11 +315,19 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 		/* are we ok with this texture yet? */
 		/* printf ("haveTexCoord, boundTextureStack[c] = %d\n",boundTextureStack[c]); */
 		if (boundTextureStack[c] !=0) {
+
 			if (setActiveTexture(c,appearanceProperties.transparency)) {
 	       			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-				FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
-				FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
-				FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+
+				if (myTCnode->__VBO != 0) {
+                                	struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
+                                	glBindBufferARB(GL_ARRAY_BUFFER_ARB,myTCnode->__VBO);
+					passedInGenTex(&mtf);
+				} else {
+					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
+					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+				}
 			}
 		}
 	}
