@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.31 2010/07/07 15:49:10 crc_canada Exp $
+$Id: Polyrep.c,v 1.32 2010/07/12 13:56:07 crc_canada Exp $
 
 ???
 
@@ -78,8 +78,10 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 
 	/* VBOs need this re-bound */
 	if (global_use_VBOs) {
+		if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColorRGBA)*3,newcolors, GL_STATIC_DRAW_ARB);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW_ARB);
+		FREE_IF_NZ(r->color);
 	}
 }
 
@@ -832,14 +834,16 @@ void render_polyrep(void *node) {
 	}
 	
 	/*  status bar, text do not have normals*/
-	if (r->normal) {
-		if (global_use_VBOs) {
+	if (global_use_VBOs) {
+		if (r->VBO_buffers[NORMAL_VBO]!=0) {
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[NORMAL_VBO]);
 			FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
-		} else {
+		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
+	} else {
+		if (r->normal) {
 			FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal);
-		}
-	} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
+		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
+	}
 	
 	/*  colours?*/
 	if (r->color) {
@@ -865,7 +869,26 @@ void render_polyrep(void *node) {
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *) r->actualCoord);
 		FW_GL_DRAWELEMENTS(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
+
+		/*  put things back to the way they were;*/
+		if (!r->normal) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+		if (r->color) {
+			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+			FW_GL_DISABLE(GL_COLOR_MATERIAL);
+		}
 	} else {
+		/* colours? */
+		if (r->VBO_buffers[COLOR_VBO] != 0) {
+				glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
+		}
+		/*  textures?*/
+		if (r->VBO_buffers[TEXTURE_VBO] != 0) {
+				glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[TEXTURE_VBO]);
+				struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
+				textureDraw_start(NULL,&mtf);
+		} else {
+			textureDraw_start(X3D_NODE(node), NULL);
+		}
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[VERTEX_VBO]);
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,r->VBO_buffers[INDEX_VBO]);
 		glEnableClientState(GL_VERTEX_ARRAY); // should already be enabled
@@ -876,9 +899,19 @@ void render_polyrep(void *node) {
 		/* turn VBOs off for now */
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+
+		/*  put things back to the way they were;*/
+		if (r->VBO_buffers[NORMAL_VBO] == 0) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+		if (r->VBO_buffers[COLOR_VBO] != 0) {
+			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+			FW_GL_DISABLE(GL_COLOR_MATERIAL);
+		}
 	}
 
 	trisThisLoop += r->ntri;
+
+	textureDraw_end();
+	if (!r->ccw) FW_GL_FRONTFACE(GL_CCW);
 
 	#ifdef TEXVERBOSE
 	{
@@ -906,20 +939,7 @@ void render_polyrep(void *node) {
 	}
 	#endif
 
-	/*  put things back to the way they were;*/
-	if (!r->normal) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-	if (r->color) {
-		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_DISABLE(GL_COLOR_MATERIAL);
-		
-	}
-	if (r->GeneratedTexCoords) {
-			textureDraw_end();
-	} else {
-		textureDraw_end();
-	}
 
-	if (!r->ccw) FW_GL_FRONTFACE(GL_CCW);
 }
 
 
@@ -1112,7 +1132,10 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		for (i=0; i<VBO_COUNT; i++) r->VBO_buffers[i] = 0;
 		if (global_use_VBOs) {
 			/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
-			glGenBuffers(VBO_COUNT,r->VBO_buffers);
+			printf ("Genning buffers for vertex, index\n");
+			glGenBuffers(1,&r->VBO_buffers[VERTEX_VBO]);
+			glGenBuffers(1,&r->VBO_buffers[INDEX_VBO]);
+
 			/* printf ("they are %u %u %u %u\n",r->VBO_buffers[0],r->VBO_buffers[1],r->VBO_buffers[2],r->VBO_buffers[3]); */
 		}
 

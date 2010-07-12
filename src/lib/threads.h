@@ -1,5 +1,5 @@
 /*
-  $Id: threads.h,v 1.7 2010/05/14 16:18:10 couannette Exp $
+  $Id: threads.h,v 1.8 2010/07/12 13:56:07 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -29,10 +29,17 @@
 #ifndef __LIBFREEWRL_THREADS_H__
 #define __LIBFREEWRL_THREADS_H__
 
+/* for some reason, OSX now needs this one, too (July 2010) */
+#ifdef AQUA
+#include <system_threads.h>
+#endif
 
 #ifdef _MSC_VER
 #include <system_threads.h>
 #endif
+
+
+
 int freewrlSystem(const char *string);
 
 /**
