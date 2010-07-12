@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.56 2010/05/05 11:21:49 davejoubert Exp $
+$Id: X3DProtoScript.c,v 1.57 2010/07/12 21:08:23 dug9 Exp $
 
 ???
 
@@ -1435,7 +1435,7 @@ static char *getDefaultValuePointer(int type) {
 		case FIELDTYPE_MFRotation   : return "0 0 0 0";
 
 		case FIELDTYPE_SFBool       : 
-		case FIELDTYPE_MFBool       : return "true";
+		case FIELDTYPE_MFBool       : return "false";
 
 		case FIELDTYPE_FreeWRLPTR    :
 		case FIELDTYPE_SFNode        :
@@ -1472,6 +1472,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	int myFieldNumber;
 	const char *myValueString;
 	int myAccessType;
+	int myValueType;
 	struct Shader_Script *myObj;
 	struct ScriptFieldDecl* sdecl;
 	indexT name;
@@ -1639,17 +1640,18 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 		return;
     	}
 
+	myValueType = findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]);
 	/* so, inputOnlys and outputOnlys DO NOT have initialValues, inputOutput and initializeOnly DO */
 	if ((myAccessType == PKW_initializeOnly) || (myAccessType == PKW_inputOutput)) {
 		if (myValueString == NULL) {
-			myValueString = getDefaultValuePointer(myparams[MP_TYPE]);
+			myValueString = getDefaultValuePointer(myValueType); /* myparams[MP_TYPE]); */
 		}
 	}
 				
 
 	/* create a new scriptFieldDecl */
-	sdecl = newScriptFieldDecl(myLexer,(indexT) myAccessType, 
-		findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),  name);
+	sdecl = newScriptFieldDecl(myLexer,(indexT) myAccessType, myValueType, name);
+		/* findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),  name); */
 #ifdef X3DPARSERVERBOSE
 	printf ("created a new script field declaration, it is %u\n",sdecl);
 #endif
