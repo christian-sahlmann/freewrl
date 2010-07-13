@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.67 2010/03/22 15:14:48 crc_canada Exp $
+$Id: X3DParser.c,v 1.68 2010/07/13 21:29:49 dug9 Exp $
 
 ???
 
@@ -56,6 +56,7 @@ $Id: X3DParser.c,v 1.67 2010/03/22 15:14:48 crc_canada Exp $
 #if HAVE_EXPAT_H
 # include <expat.h>
 #endif
+//#define X3DPARSERVERBOSE 1
 
 #define PROTO_MARKER 567000
 
@@ -1383,7 +1384,8 @@ static void saveAttributes(int myNodeType, const char *name, const char** atts) 
 				printf ("copying for field %s defName %s\n",atts[i], atts[i+1]);
 				#endif
 
-				if (fromDEFtable->_nodeType != fromDEFtable->_nodeType) {
+				/* if (fromDEFtable->_nodeType != fromDEFtable->_nodeType) { */
+				if (thisNode->_nodeType != fromDEFtable->_nodeType) {
 					ConsoleMessage ("Warning, line %d DEF/USE mismatch, '%s', %s != %s", LINE,
 						atts[i+1],stringNodeType(fromDEFtable->_nodeType), stringNodeType (thisNode->_nodeType));
 				} else {

@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.34 2010/07/12 14:57:24 dug9 Exp $
+  $Id: main.c,v 1.35 2010/07/13 21:29:49 dug9 Exp $
 
   FreeWRL main program.
 
@@ -112,7 +112,9 @@ int main (int argc, char **argv)
 	}
 	get_current_dir();
 	/* VBO preference - comment out for vbos (vertex buffer objects - a rendering optimization) */
-	/* _putenv("FREEWRL_NO_VBOS=1"); */
+	_putenv("FREEWRL_NO_VBOS=1"); 
+	//_putenv("FREEWRL_USE_VBOS=1");
+
 
 #endif
 
