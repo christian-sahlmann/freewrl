@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.35 2010/07/07 15:49:07 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.36 2010/07/13 19:28:00 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -958,7 +958,9 @@ void render_Sphere (struct X3D_Sphere *node) {
 		
 		glDrawElements(GL_TRIANGLES, TRISINSPHERE, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));   //The starting point of the IBO
 
+		/* turn off */
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	} else {
 		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
