@@ -190,7 +190,7 @@ void tokenizeVRML1_(char *pb) {
 				/* put the next in pointer back to the beginning of the number */
 				lex->nextIn = cur;
 
-				ele->stringToken = MALLOC (10);
+				ele->stringToken = MALLOC (12);
 				ASSERT (ele->stringToken);
 
 				/* printf ("so we read in from :%s:\n",lex->nextIn); */
@@ -292,7 +292,9 @@ char *convert1To2 (const char *inp)
 	retval = NULL;
 
 	/* FIXME: make use of new API */
-	sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
+	retval = tempnam("/tmp","freewrl_tmp");
+	sprintf (tempname, "%s",retval);
+	free(retval); retval = NULL;
 	fp = fopen (tempname,"w");
 	if (fp != NULL) {
 		
