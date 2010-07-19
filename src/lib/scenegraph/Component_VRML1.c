@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.23 2010/05/05 12:52:04 davejoubert Exp $
+$Id: Component_VRML1.c,v 1.24 2010/07/19 20:14:53 istakenv Exp $
 
 X3D VRML1 Component
 
@@ -791,8 +791,8 @@ void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *node) {
 	/* this is like the COMPILE_POLY_IF_REQUIRED(a,b,c,d) macro, with additional steps */
 
 	if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->irep_change) { 
-		
-		copyPointersToVRML1IndexedFaceSet(node);
+		if (cSLD != NULL)
+			copyPointersToVRML1IndexedFaceSet(node);
 		compileNode ((void *)compile_polyrep, node, 
 			node->_coord, node->_color, node->_normal, node->_texCoord);
 	} 
@@ -816,6 +816,7 @@ static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *n
 
 	node->_ILS = ILS; 
 
+	if (cSLD == NULL) { ILS->colorPerVertex = FALSE; } else {
 	if (cSLD->mbNode!=NULL) ILS->colorPerVertex = cSLD->mbNode->_Value==VRML1MOD_PER_VERTEX;
 	else ILS->colorPerVertex = FALSE;
 
@@ -849,7 +850,7 @@ static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *n
 		memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFColor) * cSLD->c3Node->point.n);
 
 		nc->point.n = cSLD->c3Node->point.n;
-	}
+	}}
 
 	/* lets copy over the coordIndex and colorIndex fields */
 	if (node->coordIndex.n>0) {
