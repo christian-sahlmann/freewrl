@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.h,v 1.10 2010/06/03 19:38:37 crc_canada Exp $
+$Id: jsUtils.h,v 1.11 2010/07/19 03:06:04 dug9 Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -103,7 +103,7 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 
 const char *classToString(JSClass *myClass);
 #define CHECK_CLASS(cx,obj,argv,fnString,expClass) \
-printf ("CHECK_CLASS, obj %u, argv %u\n",obj,argv); \
+/* printf ("CHECK_CLASS, obj %u, argv %u\n",obj,argv);*/ \
     	if (!JS_InstanceOf(cx, obj, &expClass, argv)) { \
 		printf ("Javascript Instance problem in '%s' - expected a '%s', got a ", fnString, classToString(&expClass)); \
 		printJSNodeType (cx,obj); \

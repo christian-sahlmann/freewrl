@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.41 2010/04/11 18:01:31 crc_canada Exp $
+$Id: CScripts.c,v 1.42 2010/07/19 03:06:04 dug9 Exp $
 
 ???
 
@@ -205,7 +205,7 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 
 
 /* Initialize JSField */
-static void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
+void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
 	#ifdef CPARSERVERBOSE
 	printf ("scriptFieldDecl_jsFieldInit mode %d\n",me->fieldDecl->mode);
 	#endif

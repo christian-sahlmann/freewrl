@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.68 2010/07/13 21:29:49 dug9 Exp $
+$Id: X3DParser.c,v 1.69 2010/07/19 03:06:04 dug9 Exp $
 
 ???
 
@@ -71,7 +71,18 @@ static struct VRMLLexer *myLexer = NULL;
 static Stack* DEFedNodes = NULL;
 #define MAX_CHILD_ATTRIBUTE_DEPTH 32
 static struct Vector** childAttributes= NULL;
-
+void setChildAttributes(int index,void *ptr)
+{
+	childAttributes[index] = ptr;
+}
+void *getChildAttributes(index)
+{
+	return childAttributes[index];
+}
+void deleteChildAttributes(index)
+{
+	deleteVector (struct nameValuePairs*, childAttributes[index]);
+}
 char *CDATA_Text = NULL;
 static int CDATA_TextMallocSize = 0;
 int CDATA_Text_curlen = 0;
@@ -94,7 +105,7 @@ static int in3_3_fieldIndex = INT_ID_UNDEFINED;
 int parentIndex = -1;
 struct X3D_Node *parentStack[PARENTSTACKSIZE];
 
-#ifdef X3DPARSERVERBOSE
+//#ifdef X3DPARSERVERBOSE
 static const char *parserModeStrings[] = {
 		"unused",
 		"PARSING_NODES",
@@ -107,22 +118,36 @@ static const char *parserModeStrings[] = {
 		"PARSING_CONNECT",
 		"PARSING_EXTERNPROTODECLARE",
 		"unused high"};
-#endif
+//#endif
 		
-int currentParserMode = PARSING_NODES;
+//int currentParserMode = PARSING_NODES;
 
 /* XML parser variables */
 static int X3DParserRecurseLevel = INT_ID_UNDEFINED;
 static XML_Parser x3dparser[PROTOINSTANCE_MAX_LEVELS];
 static XML_Parser currentX3DParser = NULL;
 
-void debugsetParserMode(int newmode, char *fle, int line) {
-	currentParserMode = newmode; 
+static int currentParserMode[PROTOINSTANCE_MAX_LEVELS];
+static int currentParserModeIndex = 0; //INT_ID_UNDEFINED;
+void debugpushParserMode(int newmode, char *fle, int line) {
+	currentParserModeIndex++;
+	currentParserMode[currentParserModeIndex] = newmode; //Q. need 2D [currentParserModeIndex][X3DParserRecurseLevel] or keep using same stack for nested expansions? Same stack for now
 	#ifdef X3DPARSERVERBOSE
-	printf ("setParserMode to mode %s at %s:%d\n",parserModeStrings[newmode],fle,line);
+	printf("pushParserMode index=%d ",currentParserModeIndex);
+	printf (" mode %s at %s:%d\n",parserModeStrings[newmode],fle,line);
 	#endif
 }
-int getParserMode(void) { return currentParserMode; }
+void debugpopParserMode(char *fle, int line)
+{
+	#ifdef X3DPARSERVERBOSE
+	printf("popParserMode index=%d mode %s at %s:%d\n",currentParserModeIndex,parserModeStrings[currentParserMode[currentParserModeIndex]],fle,line);
+	#endif
+	currentParserMode[currentParserModeIndex] = 0;
+	currentParserModeIndex--;
+	if(currentParserModeIndex < 0) 
+	{ConsoleMessage("stack underflow in popParserMode\n");getchar();getchar();getchar();}
+}
+int getParserMode(void) { return currentParserMode[currentParserModeIndex]; }
 
 
 /* get the line number of the current parser for error purposes */
@@ -196,9 +221,15 @@ static void appendDataToFieldValue(char *data, int len) {
 	CDATA_Text[CDATA_Text_curlen]='\0';
 }
 
+void endProtoInstanceFieldTypeNode(const char *name);
+void endProtoInstanceField(const char *name);
 /* we are finished with a 3.3 fieldValue, tie it in */
-static void setFieldValueDataActive(void) {
-	if (!in3_3_fieldValue) printf ("expected this to be in a fieldValue\n");
+static void setFieldValueDataActive(const char* name) {
+	if (!in3_3_fieldValue) 
+		endProtoInstanceField(name);
+	else
+	{
+		//printf ("expected this to be in a fieldValue\n");
 
 	/* if we had a valid field for this node... */
 	if (in3_3_fieldIndex != INT_ID_UNDEFINED) {
@@ -219,6 +250,7 @@ static void setFieldValueDataActive(void) {
 	in3_3_fieldValue = FALSE;
 	CDATA_Text_curlen = 0;
 	in3_3_fieldIndex = INT_ID_UNDEFINED;
+}
 }
 
 
@@ -1161,7 +1193,8 @@ static void parseFieldValue(const char *name, const char **atts) {
 
 static void parseIS() {
 	/* printf ("parseIS mode is %s\n",parserModeStrings[getParserMode()]); */ 
-	setParserMode(PARSING_IS);
+	//setParserMode(PARSING_IS);
+	pushParserMode(PARSING_IS);
 
 }
 
@@ -1169,7 +1202,8 @@ static void parseIS() {
 
 static void endIS() {
 	/* printf ("endIS mode is %s\n",parserModeStrings[getParserMode()]);  */
-	setParserMode(PARSING_NODES);
+	//setParserMode(PARSING_NODES);
+	popParserMode();
 }
 
 
@@ -1179,7 +1213,8 @@ static void endProtoInterfaceTag() {
 		ConsoleMessage ("endProtoInterfaceTag: got a </ProtoInterface> but not parsing one at line %d",LINE);
 	}
 	/* now, a ProtoInterface should be within a ProtoDeclare, so, make the expected mode PARSING_PROTODECLARE */
-	setParserMode(PARSING_PROTODECLARE);
+	//setParserMode(PARSING_PROTODECLARE);
+	popParserMode();
 }
 
 static void endProtoBodyTag(const char *name) {
@@ -1192,7 +1227,8 @@ static void endProtoBodyTag(const char *name) {
 	endDumpProtoBody(name);
 
 	/* now, a ProtoBody should be within a ProtoDeclare, so, make the expected mode PARSING_PROTODECLARE */
-	setParserMode(PARSING_PROTODECLARE);
+	//setParserMode(PARSING_PROTODECLARE);
+	popParserMode();
 }
 
 static void endExternProtoDeclareTag() {
@@ -1200,11 +1236,13 @@ static void endExternProtoDeclareTag() {
 
 	if (getParserMode() != PARSING_EXTERNPROTODECLARE) {
 		ConsoleMessage ("endExternProtoDeclareTag: got a </ExternProtoDeclare> but not parsing one at line %d",LINE);
-		setParserMode(PARSING_EXTERNPROTODECLARE);
+		//setParserMode(PARSING_EXTERNPROTODECLARE);
+		pushParserMode(PARSING_EXTERNPROTODECLARE);
 	}
 	
 	/* we do the DECREMENT_PARENTINDEX here because successful parsing of the included ProtoDeclare leaves it too high */
 	endExternProtoDeclare();
+	popParserMode(); //+
 }
 
 static void endProtoDeclareTag() {
@@ -1212,10 +1250,11 @@ static void endProtoDeclareTag() {
 
 	if (getParserMode() != PARSING_PROTODECLARE) {
 		ConsoleMessage ("endProtoDeclareTag: got a </ProtoDeclare> but not parsing one at line %d",LINE);
-		setParserMode(PARSING_PROTODECLARE);
+		pushParserMode(PARSING_PROTODECLARE);
 	}
 
 	endProtoDeclare();
+	popParserMode();
 }
 
 static void endProtoInstanceField(const char *name) {
@@ -1229,7 +1268,8 @@ static void endProtoInstanceField(const char *name) {
 
 	if (strcmp(name,"ProtoInstance")==0) {
 		/* we should just be assuming that we are parsing regular nodes for the scene graph now */
-		setParserMode(PARSING_NODES);
+		//setParserMode(PARSING_NODES);
+		pushParserMode(PARSING_NODES);
 	
 		protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		protoExpGroup->FreeWRL__protoDef = PROTO_MARKER;
@@ -1253,6 +1293,7 @@ static void endProtoInstanceField(const char *name) {
 			#endif
 	
 		expandProtoInstance(myLexer, protoExpGroup);
+		popParserMode();
 	
 #ifdef X3DPARSERVERBOSE
 		printf ("after expandProtoInstance, my group (%u)has %d children, %d Meta nodes, and is protodef %d\n",
@@ -1271,12 +1312,15 @@ static void endProtoInstanceField(const char *name) {
 			}
 		}
 #endif
-	} else if (strcmp(name,"field")==0) {
-		printf ("endProtoInstanceField, got %s, ignoring it\n",name);
+		popParserMode(); //+ but was something pushed?
+	} else if (strcmp(name,"fieldValue")==0) {
+		/* printf ("endProtoInstanceField, got %s, ignoring it\n",name);*/
+		///BIGPOP
+		endProtoInstanceFieldTypeNode(name);
 	} else {
 		/* this could be something like the ending of shape in the following:
 		   <fieldValue...> <Shape> <Box/> </Shape> </fieldValue> */
-		printf ("endProtoInstanceField, got %s, ignoring it\n",name);
+		printf ("endProtoInstanceField, got %s, ignoring it.\n",name);
 	}
 }
 
@@ -1389,7 +1433,10 @@ static void saveAttributes(int myNodeType, const char *name, const char** atts) 
 					ConsoleMessage ("Warning, line %d DEF/USE mismatch, '%s', %s != %s", LINE,
 						atts[i+1],stringNodeType(fromDEFtable->_nodeType), stringNodeType (thisNode->_nodeType));
 				} else {
+					/* Q. should thisNode.referenceCount be decremented or ??? */
+					thisNode->referenceCount--; //dug9 added but should???
 					thisNode = fromDEFtable;
+					thisNode->referenceCount++; //dug9 added but should???
 					parentStack[parentIndex] = thisNode; 
 					#ifdef X3DPARSERVERBOSE
 					printf ("successful copying for field %s defName %s\n",atts[i], atts[i+1]);
@@ -1403,6 +1450,7 @@ static void saveAttributes(int myNodeType, const char *name, const char** atts) 
 			nvp = MALLOC(sizeof (struct nameValuePairs));
 			nvp->fieldName = STRDUP(atts[i]);
 			nvp->fieldValue=STRDUP(atts[i+1]);
+			nvp->fieldType = 0;
 			vector_pushBack(struct nameValuePairs*, childAttributes[parentIndex], nvp);
 		}
 	}
@@ -1448,7 +1496,7 @@ static void parseAttributes(void) {
 					/* this is a Shader/Script, look through the parameters and see if there is a replacement for value */
 					rv = getRoutingInfo (myLexer, thisNode, &offs, &type, &accessType, &myObj, nvp->fieldName,0);
 					/* printf ("parseAttributes, for fieldName %s value %s have offs %d type %d accessType %d rv %d\n",
-nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv); */
+						nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv); */
 
 
 					/* found the name, if the offset is not INT_ID_UNDEFINED */
@@ -1464,15 +1512,64 @@ nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv); */
 								/* printf ("name MATCH\n");
 								printf ("thisEntry->kind %d type %d value %f\n",
 									thisEntry->kind,thisEntry->type,thisEntry->value); */
-							if ((thisEntry->kind==PKW_initializeOnly) ||
-							    (thisEntry->kind==PKW_inputOutput)) {
-						                if (nvp->fieldValue== NULL) {
-                        					ConsoleMessage ("PROTO connect field, an initializeOnly or inputOut needs an initialValue for name %s",nvp->fieldName);
-                						} else {
-									/* printf ("have to parse fieldValue :%s: and place it into my value\n",nvp->fieldValue);  */
-									Parser_scanStringValueToMem(X3D_NODE(&(thisEntry->value)), 0, 
-										thisEntry->type, nvp->fieldValue, TRUE);
-printf ("done this parsing\n");
+							if ((thisEntry->kind==PKW_initializeOnly) || (thisEntry->kind==PKW_inputOutput)) 
+							{
+				                if (nvp->fieldValue== NULL) {
+                					ConsoleMessage ("PROTO connect field, an initializeOnly or inputOut needs an initialValue for name %s",nvp->fieldName);
+        						} else {
+									if(nvp->fieldType == 0)
+									{
+										/* printf ("have to parse fieldValue :%s: and place it into my value\n",nvp->fieldValue);  */
+										Parser_scanStringValueToMem(X3D_NODE(&(thisEntry->value)), 0, 
+											thisEntry->type, nvp->fieldValue, TRUE);
+									}
+									else if(nvp->fieldType == 1)
+									{
+										/* not currently implemented, but reserved for DEF index style
+										?? itoa(DEF index)
+						                ?? np = getEAINodeFromTable(atoi(value), -1);
+										*/
+									}
+									else if(nvp->fieldType == FIELDTYPE_MFNode)  
+									{
+										/*dug9 added July 18, 2010 
+										  we have an MFNode field already in binary form 
+										  <fieldValue name="Buildings">
+											<Transform USE="House1"/>
+											<Transform USE="House2">
+										   </fieldValue>
+										   the House transforms have been parsed as regular nodes and 
+										   the top level nodes listed in an MFNode
+									    */
+										union anyVrml* av;
+										if(sscanf(nvp->fieldValue,"%p",&av) != 1)
+										{
+											printf ("parseAttributes - can not get handle from %s\n",nvp->fieldValue);
+										}
+										else
+										{
+											/* printf("parseAttributes - got %d mf fields back from pointer %s \n",((struct Multi_Node *)av)->n,nvp->fieldValue);*/
+											if( type == FIELDTYPE_MFNode )
+											{
+												memcpy(&thisEntry->value,av,sizeof(union anyVrml)); 
+											}
+											else if( type == FIELDTYPE_SFNode)
+											{
+												/* down-convert first node in MFNode to SFNode and forget the rest */
+												memcpy(&thisEntry->value,((struct Multi_Node *)av)->p[0],sizeof(struct X3D_Node*));
+												/* could free the rest of the unused MFnodes here if there are some and we were ambitious */
+											}
+											else
+											{
+												//we got an MFNode or SFNode in the ProtoInstance fieldValue
+												//but the expanded proto and Script node don't want it
+												printf("ProtoInstance fieldValue type MFNode or SFNode Proto type %d mismatch\n",type);
+												/* could free all the unused MFnodes here if we were ambitious */
+											}
+											FREE_IF_NZ(av); //size of union anyVrml, malloced elsewhere
+										}
+									}
+									/* printf ("done this parsing\n"); */
 								}
 							}
 
@@ -1489,7 +1586,87 @@ printf ("done this parsing\n");
 				}
 				break;
 
-				default: setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
+				default: 
+					//setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
+					//break;
+					/* experiment for ISing to non-script children fields */
+					//if(nvp->fieldType == 0)
+					//{
+					//	setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
+					//}
+					if(nvp->fieldType == 1)
+					{
+						/* not currently implemented, but reserved for DEF index style
+						?? itoa(DEF index)
+		                ?? np = getEAINodeFromTable(atoi(value), -1);
+						*/
+					}
+					else if(nvp->fieldType == FIELDTYPE_MFNode)  
+					{
+						int foffset;
+						int coffset;
+						int ctype;
+						int ctmp;
+						//union anyVrml* av;
+						struct Multi_Node * mv;
+
+						if(sscanf(nvp->fieldValue,"%p",&mv) != 1)
+						{
+							printf ("parseAttributes - can not get handle from %s\n",nvp->fieldValue);
+						}
+						else
+						{
+							union anyVrml *nst;
+							struct Multi_Node * tn;
+
+							/* is this a valid field? */
+							foffset = findRoutedFieldInFIELDNAMES(thisNode,nvp->fieldName,1);	
+
+							if (foffset < 0) {
+								ConsoleMessage ("field %s is not a valid field of a node %s",nvp->fieldName,stringNodeType(thisNode->_nodeType));
+								printf ("field %s is not a valid field of a node %s\n",nvp->fieldName,stringNodeType(thisNode->_nodeType));
+								return;
+							}
+
+							/* get offsets for this field in this nodeType */
+							#ifdef SETFIELDVERBOSE
+							printf ("getting nodeOffsets for type %s field %s value %s\n",stringNodeType(node->_nodeType),field,value); 
+							#endif
+
+							findFieldInOFFSETS(thisNode->_nodeType, foffset, &coffset, &ctype, &ctmp);
+
+							nst = offsetPointer_deref(union anyVrml *,thisNode,coffset);
+							tn = offsetPointer_deref(struct Multi_Node*,thisNode,coffset);
+							/*printf("parseAttributes - got %d mf fields back from pointer %s \n",mv->n,nvp->fieldValue);*/
+							if( ctype == FIELDTYPE_MFNode )
+							{
+								AddRemoveChildren(thisNode,tn,(struct X3D_Node **)mv->p,mv->n,0,__FILE__,__LINE__);
+							}
+							else if( ctype == FIELDTYPE_SFNode)
+							{
+								/* down-convert first node in MFNode to SFNode and forget the rest */
+								memcpy(nst,mv->p[0],sizeof(struct X3D_Node*));
+								/* could free the rest of the unused MFnodes here if there are some and we were ambitious */
+							}
+							else
+							{
+								//we got an MFNode or SFNode in the ProtoInstance fieldValue
+								//but the expanded proto and Script node don't want it
+								printf("ProtoInstance fieldValue type MFNode or SFNode Proto type %d mismatch\n",ctype);
+								/* could free all the unused MFnodes here if we were ambitious */
+							}
+							FREE_IF_NZ(mv->p); //size of n * (struct X3DNode *)
+							FREE_IF_NZ(mv); //size of union anyVrml
+						}
+
+					}
+					else //if(nvp->fieldType == 0)
+					{
+						//I get -85529292 so some branches arent setting .value or .fieldValue to 0.
+						//printf("Unknown fieldType %d\n",nvp->fieldType);
+						setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
+
+					}
 			}
 		}
 
@@ -1561,7 +1738,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 
 	printf ("startElement name  do not currently handle this one :%s: index %d\n",name,myNodeIndex); 
 }
-
+void endScriptProtoField(); //struct VRMLLexer* myLexer);
 static void XMLCALL endElement(void *unused, const char *name) {
 	int myNodeIndex;
 
@@ -1618,7 +1795,8 @@ static void XMLCALL endElement(void *unused, const char *name) {
 			default: linkNodeIn(__FILE__,__LINE__);
 		}
 		parseAttributes();
-		setParserMode(PARSING_NODES);
+		//setParserMode(PARSING_NODES);
+		//popParserMode();
 
 		if (childAttributes[parentIndex]!=NULL) deleteVector (struct nameValuePairs*, childAttributes[parentIndex]);
 		childAttributes[parentIndex] = NULL;
@@ -1644,11 +1822,14 @@ static void XMLCALL endElement(void *unused, const char *name) {
 			case X3DSP_Scene:
 			case X3DSP_head:
 			case X3DSP_Header:
-			case X3DSP_field:
 			case X3DSP_component:
 			case X3DSP_X3D: break;
+			case X3DSP_field:
+				endScriptProtoField(); //dug9 added July 18,2010
+				break;
 			case X3DSP_fieldValue:
-				setFieldValueDataActive();
+				//endProtoInstanceField(name);
+				setFieldValueDataActive(name);
 				break;
 			
 			/* should never do this: */
@@ -1679,7 +1860,7 @@ static XML_Parser initializeX3DParser () {
 		XML_SetUserData(x3dparser[X3DParserRecurseLevel], &parentIndex);
 	}
 	/* printf ("initializeX3DParser, level %d, parser %u\n",x3dparser[X3DParserRecurseLevel]); */
-
+	pushParserMode(PARSING_NODES);
 	return x3dparser[X3DParserRecurseLevel];
 }
 
@@ -1706,6 +1887,7 @@ static void shutdownX3DParser () {
 	if (X3DParserRecurseLevel > INT_ID_UNDEFINED)
 		currentX3DParser = x3dparser[X3DParserRecurseLevel];
 	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */
+	popParserMode();
 }
 
 int X3DParse (struct X3D_Group* myParent, const char *inputstring) {

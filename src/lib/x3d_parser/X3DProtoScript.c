@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.57 2010/07/12 21:08:23 dug9 Exp $
+$Id: X3DProtoScript.c,v 1.58 2010/07/19 03:06:04 dug9 Exp $
 
 ???
 
@@ -61,7 +61,8 @@ $Id: X3DProtoScript.c,v 1.57 2010/07/12 21:08:23 dug9 Exp $
 static int currentProtoDeclare  = INT_ID_UNDEFINED;
 static int MAXProtos = 0;
 static int curProDecStackInd = 0;
-static int currentProtoInstance = INT_ID_UNDEFINED;
+//static int currentProtoInstance = INT_ID_UNDEFINED;
+static int currentProtoInstance[PROTOINSTANCE_MAX_LEVELS];
 static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono);
 
 #define CPI ProtoInstanceTable[curProtoInsStackInd]
@@ -82,6 +83,7 @@ static int curProtoInsStackInd = -1;
 struct PROTOInstanceEntry {
 	char *name[PROTOINSTANCE_MAX_PARAMS];
 	char *value[PROTOINSTANCE_MAX_PARAMS];
+	int type[PROTOINSTANCE_MAX_PARAMS]; //0-string 1-itoa(DEF index) 10-(FIELDTYPE_SFNODE) union anyVrml* or X3D_Node* 11-(FIELDTYPE_MFNODE) union anyVrml* or Multi_Node*
 	char *defName;
 	int container;
 	int paircount;
@@ -285,7 +287,7 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 
 	
 	/* we have names and fields, lets generate routes for this */
-	myFieldKind = getProtoKind(myLexer,currentProtoInstance,fieldDecl_getShaderScriptName(protoField->fieldDecl));
+	myFieldKind = getProtoKind(myLexer,currentProtoInstance[curProtoInsStackInd],fieldDecl_getShaderScriptName(protoField->fieldDecl));
 
 	/* find the MetaMF/MetaSF node to route to/from to: */
 	sprintf(newname,"%s_%s_%d",fieldDecl_getShaderScriptName(protoField->fieldDecl),FREEWRL_SPECIFIC,CPI.uniqueNumber);
@@ -337,7 +339,7 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 	}
 }
 
-
+#ifdef OLDCODE
 #define REPLACE_CONNECT_VALUE(value) \
 			/* now, we have a match, replace (or push) this onto the params */ \
        			for (nodeind=0; nodeind<vector_size(tos); nodeind++) { \
@@ -359,6 +361,34 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 			nvp->fieldValue=STRDUP(value); \
 			vector_pushBack(struct nameValuePairs*,tos,nvp); \
 			/* printf ("pushed %s=%s to tos\n",nvp->fieldName, nvp->fieldValue); */ \
+			return;
+#endif
+#define REPLACE_CONNECT_VALUE(value,type) \
+			/* now, we have a match, replace (or push) this onto the params */ \
+				for (nodeind=0; nodeind<vector_size(tos); nodeind++) \
+			{ \
+				nvp = vector_get(struct nameValuePairs*, tos,nodeind); \
+				/* printf ("      nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue);*/  \
+				if (nvp!=NULL) \
+				{ \
+					if (strcmp(nvp->fieldName,atts[nfInd+1])==0) \
+					{ \
+						/* we have a field already of this name, replace the value */ \
+						/*printf ("we had %s, now have %s\n",nvp->fieldValue,value); */ \
+						FREE_IF_NZ(nvp->fieldValue); \
+						nvp->fieldValue=STRDUP(value);\
+						nvp->fieldType = type;\
+						return; \
+					} \
+				} \
+			} \
+			/* printf ("no match, have to create new entty and push it\n"); */\
+			nvp = MALLOC(sizeof (struct nameValuePairs)); \
+			nvp->fieldName=STRDUP(atts[nfInd+1]); \
+			nvp->fieldValue=STRDUP(value); \
+			nvp->fieldType = type;\
+			vector_pushBack(struct nameValuePairs*,tos,nvp); \
+			/* printf ("pushed %s=%s to tos\n",nvp->fieldName, nvp->fieldValue);*/ \
 			return;
 
 /*
@@ -450,14 +480,16 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 	}
 
 	/* worry about generating routes to/from this field */
-	/* printf ("parseConnect, currentProto is %d\n",currentProtoInstance); 
-	printf ("	and, we have %s and %s\n",atts[pfInd+1],atts[nfInd+1]);  */
+	/*printf ("parseConnect, currentProto is %d\n",currentProtoInstance[curProtoInsStackInd]); */
+	/* printf ("parseConnect, currentProto is %d\n",curProtoInsStackInd); //curProtoInsStackInd */
+	/* printf ("	and, we have %s and %s\n",atts[pfInd+1],atts[nfInd+1]);  */
 	matched = FALSE;
-	myObj = PROTONames[currentProtoInstance].fieldDefs; 
+	myObj = PROTONames[currentProtoInstance[curProtoInsStackInd]].fieldDefs; 
+	//myObj = PROTONames[curProtoInsStackInd].fieldDefs; 
 	for (ind=0; ind<vector_size(myObj->fields); ind++) { 
 		struct ScriptFieldDecl* field; 
 		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); 
-		/* printf ("ind %d name %s value %s\n", ind, fieldDecl_getShaderScriptName(field->fieldDecl),  field->ASCIIvalue); */
+		/*  printf ("ind %d name %s value %s\n", ind, fieldDecl_getShaderScriptName(field->fieldDecl),  field->ASCIIvalue); */
 
 		if (strcmp(fieldDecl_getShaderScriptName(field->fieldDecl),atts[pfInd+1])==0) {
 			/* printf ("parseConnect, routing, have match, value is %s\n",atts[nfInd+1]); */
@@ -479,25 +511,67 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 
 	/* go through the current ProtoInstance, and see if we can do a match */
 	/* printf ("parseConnect, curProtoInsStackInd %d\n",curProtoInsStackInd);  */
-	for (i=0; i<CPI.paircount; i++) {
-		/* printf ("	index %d is name :%s: value :%s:\n",i,CPI.name[i],
-			CPI.value[i]);  */
-
-		/* printf ("... comparing %s and %s\n",CPI.name[i],atts[pfInd+1]); */
-		if (CPI.name[i] && strcmp(CPI.name[i],atts[pfInd+1])==0) {
+	for (i=0; i<CPI.paircount; i++) 
+	{
+		/* dug9 July 18, 2010 added nvp->fieldType and CPI.type to those two structs 
+		   to help handle SFNode and MFNode fields
+		   Here, just copy over nvp.fieldType = CPI.type. 
+		   type/fieldType: 
+			0-normal string .value (not MFNode or SFNode)
+			1-value=atoi(DEF index of SFNode) reserved not implemented - some related code in EAI
+			11-(FIELDTYPE_MFNode) sprintf(value,%p,pointer to malloced anyVrml holding MFNode) for cases like:
+			   <fieldValue name="Buildings">
+				<Transform USE="House1"/>
+				<Transform USE="House2"/>
+			   </fieldValue>
+		*/
+		/* printf ("	index %d is name :%s: value :%s: type :%d:\n",i,CPI.name[i],CPI.value[i],CPI.type[i]);  
+		 printf ("... comparing %s and %s\n",CPI.name[i],atts[pfInd+1]); */
+		if (CPI.name[i] && strcmp(CPI.name[i],atts[pfInd+1])==0) 
+		{
 			/* printf ("parseConnect, have match, value is %s\n",CPI.value[i]); */
 			/* if there is no value here, just return, as some accessMethods do not have value */
-			if (CPI.value[i]==NULL) return;
+			if (CPI.value[i]==NULL) 
+				return;
 
-			REPLACE_CONNECT_VALUE(CPI.value[i])
-			/* printf ("parseConnect, match completed\n"); */
+			REPLACE_CONNECT_VALUE(CPI.value[i],CPI.type[i])
+//#define REPLACE_CONNECT_VALUE(value) 
+			///* now, we have a match, replace (or push) this onto the params */ 
+   //			for (nodeind=0; nodeind<vector_size(tos); nodeind++) 
+			//{ 
+			//	nvp = vector_get(struct nameValuePairs*, tos,nodeind); 
+			//	 printf ("      nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue);  
+			//	if (nvp!=NULL) 
+			//	{ 
+			//		if (strcmp(nvp->fieldName,atts[nfInd+1])==0) 
+			//		{ 
+			//			/* we have a field already of this name, replace the value */ 
+			//			printf ("we had %s, now have %s\n",nvp->fieldValue,CPI.value[i]);  
+			//			FREE_IF_NZ(nvp->fieldValue); 
+			//			nvp->fieldValue=STRDUP(CPI.value[i]);
+			//			nvp->fieldType = CPI.type[i];
+			//			return; 
+			//		} 
+			//	} 
+			//} 
+			///* printf ("no match, have to create new entty and push it\n"); */
+			//nvp = MALLOC(sizeof (struct nameValuePairs)); 
+			//nvp->fieldName=STRDUP(atts[nfInd+1]); 
+			//nvp->fieldValue=STRDUP(CPI.value[i]); 
+			//nvp->fieldType = CPI.type[i];
+			//vector_pushBack(struct nameValuePairs*,tos,nvp); 
+			// printf ("pushed %s=%s to tos\n",nvp->fieldName, nvp->fieldValue); 
+			//return;
+//<<end REPLACE_CONNECT_VALUE MACRO
+			/*printf ("parseConnect, match completed\n"); */
 		}
 	}
 
 	/* did not find it in the ProtoInstance fields, lets look in the ProtoDeclare */
 	/* printf ("parseConnect, did not find %s in the ProtoInstance, looking for it in ProtoDeclare\n",atts[pfInd+1]); */
 	
-	myObj = PROTONames[currentProtoInstance].fieldDefs; 
+	myObj = PROTONames[currentProtoInstance[curProtoInsStackInd]].fieldDefs; 
+	//myObj = PROTONames[curProtoInsStackInd].fieldDefs; 
 	for (ind=0; ind<vector_size(myObj->fields); ind++) { 
 		struct ScriptFieldDecl* field; 
 		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); 
@@ -508,7 +582,7 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 			/* if there is no value here, just return, as some accessMethods do not have value */
 			if (field->ASCIIvalue==NULL) return;
 
-			REPLACE_CONNECT_VALUE(field->ASCIIvalue)
+			REPLACE_CONNECT_VALUE(field->ASCIIvalue,0)
 			/* printf ("parseConnect, match completed\n"); */
 		}
 	} 
@@ -516,9 +590,28 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 
 void endConnect() {
 	/* printf ("endConnect mode is %s\n",parserModeStrings[getParserMode()]);  */
-	setParserMode(PARSING_NODES);
+	//setParserMode(PARSING_NODES);
+	popParserMode();
 }
 
+/* we want to parse <field><Transform/><Transform/></field> style field values for 
+  SFNode and MFNode field types, and be able to do that recursively 
+  -with a stack- so you can have 
+  <field><ProtoDeclare/><ProtoInstance/></field> or 
+  <field><Script/></field> etc. 
+*/
+typedef struct fieldNodeState
+{
+	int parsingMFSFNode;// 0 - regular string field value, parsed from string,  1 - <field><Transform></field>
+	struct X3D_Node *fieldHolder;// we fool regular parsing by giving it a X3D_Group with children field to populate
+	int fieldHolderInitialized;// 0 no fieldHolder, 1 - after mallocing a X3D_Group for fieldHolder
+	struct ScriptFieldDecl* mfnodeSdecl;// a direct pointer to the script field 
+	int myObj_num;// script number
+}fieldNodeState;
+static struct fieldNodeState fieldNodeParsingState[PROTOINSTANCE_MAX_LEVELS]; 
+void setChildAttributes(int index,void *ptr);
+void *getChildAttributes(index);
+void deleteChildAttributes(index);
 
 void parseProtoInstanceFields(const char *name, const char **atts) {
 	int count;
@@ -532,7 +625,8 @@ void parseProtoInstanceFields(const char *name, const char **atts) {
 	#define INDEX ProtoInstanceTable[curProtoInsStackInd].paircount	
 	#define ZERO_NAME_VALUE_PAIR \
 		ProtoInstanceTable[curProtoInsStackInd].name[INDEX] = NULL; \
-		ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = NULL;
+		ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = NULL;\
+		ProtoInstanceTable[curProtoInsStackInd].type[INDEX] = 0;\
 
 	#define VERIFY_PCAT_LEN(myLen) \
 		if ((myLen + 10) >= picatmalloc) { \
@@ -573,20 +667,48 @@ void parseProtoInstanceFields(const char *name, const char **atts) {
 			if (strcmp("value",atts[count])==0) 
 				ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = STRDUP(atts[count+1]);
 
-			/* did we get both a name and a value? */
-			if ((ProtoInstanceTable[curProtoInsStackInd].name[INDEX] != NULL) &&
-			    (ProtoInstanceTable[curProtoInsStackInd].value[INDEX] != NULL)) {
-				INDEX++;
-				ZERO_NAME_VALUE_PAIR
-			}
 
 			if (INDEX>=PROTOINSTANCE_MAX_PARAMS) {
 				ConsoleMessage ("too many parameters for ProtoInstance, sorry...\n");
 				INDEX=0;
 			}
 		}
+		/* did we get both a name and a value? */
+		if ((ProtoInstanceTable[curProtoInsStackInd].name[INDEX] != NULL) &&
+		    (ProtoInstanceTable[curProtoInsStackInd].value[INDEX] != NULL)) {
+			INDEX++;
+			ZERO_NAME_VALUE_PAIR
+			fieldNodeParsingState[curProtoInsStackInd].parsingMFSFNode = 0;
+		}
+		else if( (ProtoInstanceTable[curProtoInsStackInd].value[INDEX] == NULL) && (ProtoInstanceTable[curProtoInsStackInd].name[INDEX] != NULL))
+		{
+			/* name but no value - could be like this:
+			  <fieldValue name='Buildings'>
+				<Transform USE='House1'/>    <<< trick parser into putting these in a Group node's children field, 
+				<Transform USE='House2'/>    <<< we'll fetch on end element </fieldValue>
+			  </fieldValue>
+			  or like this:
+              <fieldValue name='relay'> <Script USE='CameraRelay'/> </fieldValue>
+			*/
+			////BIGPUSH  added by dug9 July 18,2010
+			fieldNodeParsingState[curProtoInsStackInd].parsingMFSFNode = 1;
+			if(!fieldNodeParsingState[curProtoInsStackInd].fieldHolderInitialized)
+				fieldNodeParsingState[curProtoInsStackInd].fieldHolder = (struct X3D_Node*)createNewX3DNode(NODE_Group);
+			pushParserMode(PARSING_NODES);
+			parentIndex++;
+			parentStack[parentIndex] = fieldNodeParsingState[curProtoInsStackInd].fieldHolder;
+			if (getChildAttributes(parentIndex)!=NULL) deleteChildAttributes(parentIndex); 
+			setChildAttributes(parentIndex,NULL);
+		}
+		else  /* no name or no name and value */
+		{
+			ZERO_NAME_VALUE_PAIR
+		}
 	} else if (strcmp(name,"ProtoInstance") != 0) {
-		/* maybe this is a SFNode value, as in: 
+		/*  dug9 July 18, 2010 - should not come in here now for SFNode/MFNode fieldValues, which are handled above in big push */
+#ifdef OLDCODE
+	   /*  older comments before july 18, 2010:
+		   maybe this is a SFNode value, as in: 
                     <fieldValue name='relay'> <Script USE='CameraRelay'/> </fieldValue>
 
 		  if this IS the case, we will be down here where the atts parameter will be the "USE=CameraRelay" pair
@@ -605,7 +727,7 @@ void parseProtoInstanceFields(const char *name, const char **atts) {
 		  this could be refactored into something like the Script USE= scenario. When I do that, the scene parsing 
 		  does not complete all nodes normally - I get a blank screen.
 		  My guess: in general this should recurse - we should be back parsing nodes to build the value attribute.
-		  June15: John sent the follwoing line
+		  June15,2009: John sent the follwoing line
 int i;printf ("X3D_ node name :%s:\n",name);for (i = 0; atts[i]; i += 2) {printf("field:%s=%s\n", atts[i], atts[i + 1]);}
 		  PROBLEM > atts char** is never NULL. But atts[0] is.
 		*/
@@ -644,11 +766,87 @@ int i;printf ("X3D_ node name :%s:\n",name);for (i = 0; atts[i]; i += 2) {printf
 		/* printf ("NOW ProtoInstance, looking for fieldValue, found string:%s: current name=%s value=%s, index %d\n",name,
 			ProtoInstanceTable[curProtoInsStackInd].name[INDEX], ProtoInstanceTable[curProtoInsStackInd].value[INDEX],INDEX); */
 		INDEX++;
+#endif
 		ZERO_NAME_VALUE_PAIR
 	}
 	#undef INDEX
 }
+void endProtoInstanceFieldTypeNode(const char *name)
+{
+	///BIGPOP
+	if(fieldNodeParsingState[curProtoInsStackInd].parsingMFSFNode == 1)
+	{
+		#define INDEX ProtoInstanceTable[curProtoInsStackInd].paircount	
 
+		struct X3D_Node * kids;
+		parentIndex--;
+		if(X3D_GROUP(fieldNodeParsingState[curProtoInsStackInd].fieldHolder)->children.n > 0)
+		{ 
+			char *myValue;
+			union anyVrml v;
+			int n; 
+			int j;
+			int myValueType;
+			struct Multi_Node *kids;
+			kids = &X3D_GROUP(fieldNodeParsingState[curProtoInsStackInd].fieldHolder)->children; 
+			n = kids->n;
+			/*we don't know from the ProtoInstance fieldValue if it's supposed to be SFNode, MFNode or parsing error 
+			  so we'll be most general here -assume MFNode- and when we get to connecting to the
+			  expanded proto fields, we can get the proper field type then, and down-convert to SFNode 
+			  or -if it's neither SFNode nor MFNode- error out then
+			*/
+			myValueType = FIELDTYPE_MFNode; 
+			if(myValueType ==  FIELDTYPE_MFNode)
+			{
+				/*struct Multi_Node { int n; void * *p; };*/
+				((struct Multi_Node *)&v)->n=n;
+				((struct Multi_Node *)&v)->p=MALLOC(n*sizeof(struct X3D_Node*));
+				for(j=0;j<n;j++)
+				{
+					((struct Multi_Node *)&v)->p[j] = kids->p[j];
+				}
+			}
+			/*else if(myValueType ==  FIELDTYPE_SFNode)
+			{
+				memcpy(&v,kids->p[0],sizeof(struct X3D_Node*)); 
+
+			}*/
+			/*
+			OK we now have an MFNode v. Where to store it? 
+			we'll malloc a spot for it, convert its pointer/address to a string,
+			leave it floating in space with only the string address being passed around 
+			*/
+			{
+				union anyVrml *av;
+				char *val = MALLOC(20);
+				av = MALLOC(sizeof(union anyVrml));
+				memcpy(av,&v,sizeof(union anyVrml)); /* av malloced and holding MFNode/Multi_Node/anyVrml */
+				sprintf (val, "%p",av);
+				ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = val; /* address of MFnode stored in a string[20] ie "025A23C8" */
+				ProtoInstanceTable[curProtoInsStackInd].type[INDEX] = FIELDTYPE_MFNode; 
+			}
+			/*{
+			//test code for address recovery
+			//should get n nodes back
+			union anyVrml *av2;
+			char *val2 = ProtoInstanceTable[curProtoInsStackInd].value[INDEX]; //address stored in a string[20] ie "025A23C8"
+			sscanf(val2,"%p",&av2);
+			printf("got %d mf fields back from pointer %s type %d\n",((struct Multi_Node *)av2)->n,val2,ProtoInstanceTable[curProtoInsStackInd].type[INDEX]);
+			}*/
+			INDEX++;
+			ZERO_NAME_VALUE_PAIR
+
+			/* clean up holder for next time */
+			X3D_GROUP(fieldNodeParsingState[curProtoInsStackInd].fieldHolder)->children.n = 0;
+		}
+		else
+		{
+			ZERO_NAME_VALUE_PAIR
+		}
+		fieldNodeParsingState[curProtoInsStackInd].parsingMFSFNode = 0;
+		popParserMode();
+	}
+}
 
 /***********************************************************************************/
 
@@ -888,14 +1086,15 @@ void parseProtoInstance (const char **atts) {
 	defNameIndex = INT_ID_UNDEFINED;
 	protoTableIndex = 0;
 
-	setParserMode(PARSING_PROTOINSTANCE);
+	//setParserMode(PARSING_PROTOINSTANCE);
+	pushParserMode(PARSING_PROTOINSTANCE);
 	curProtoInsStackInd++;
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("parseProtoInstance, incremented curProtoInsStackInd to %d\n",curProtoInsStackInd);
 	#endif
 
-	currentProtoInstance = INT_ID_UNDEFINED;
+	currentProtoInstance[curProtoInsStackInd] = INT_ID_UNDEFINED;
 	
 
 	for (count = 0; atts[count]; count += 2) {
@@ -945,8 +1144,8 @@ void parseProtoInstance (const char **atts) {
 		for (protoTableIndex = 0; protoTableIndex <= currentProtoDeclare; protoTableIndex ++) {
 			if (!PROTONames[protoTableIndex].isExternProto){
 				if (strcmp(atts[nameIndex],PROTONames[protoTableIndex].definedProtoName) == 0) {
-					currentProtoInstance = protoTableIndex;
-					/* printf ("expanding proto %d\n",currentProtoInstance); */
+					currentProtoInstance[curProtoInsStackInd] = protoTableIndex;
+					/* printf ("expanding proto %d\n",currentProtoInstance[curProtoInsStackInd]); */
 					return;
 				}
 			}
@@ -972,14 +1171,14 @@ void parseProtoInstance (const char **atts) {
 
 
 	#define OPEN_AND_READ_PROTO \
-		PROTONames[currentProtoInstance].fileDescriptor = fopen (PROTONames[currentProtoInstance].fileName,"r"); \
-		rs = (int) fread(protoInString, 1, PROTONames[currentProtoInstance].charLen, PROTONames[currentProtoInstance].fileDescriptor); \
+		PROTONames[currentProtoInstance[curProtoInsStackInd]].fileDescriptor = fopen (PROTONames[currentProtoInstance[curProtoInsStackInd]].fileName,"r"); \
+		rs = (int) fread(protoInString, 1, PROTONames[currentProtoInstance[curProtoInsStackInd]].charLen, PROTONames[currentProtoInstance[curProtoInsStackInd]].fileDescriptor); \
 		protoInString[rs] = '\0'; /* ensure termination */ \
-		fclose (PROTONames[currentProtoInstance].fileDescriptor); \
+		fclose (PROTONames[currentProtoInstance[curProtoInsStackInd]].fileDescriptor); \
 		/* printf ("OPEN AND READ %s returns:%s\n:\n",PROTONames[currentProtoInstance].fileName, protoInString); */ \
-		if (rs != PROTONames[currentProtoInstance].charLen) { \
-			ConsoleMessage ("protoInstance :%s:, expected to read %d, actually read %d\n",PROTONames[currentProtoInstance].definedProtoName,  \
-				PROTONames[currentProtoInstance].charLen,rs); \
+		if (rs != PROTONames[currentProtoInstance[curProtoInsStackInd]].charLen) { \
+			ConsoleMessage ("protoInstance :%s:, expected to read %d, actually read %d\n",PROTONames[currentProtoInstance[curProtoInsStackInd]].definedProtoName,  \
+				PROTONames[currentProtoInstance[curProtoInsStackInd]].charLen,rs); \
 		} 
 
 
@@ -1009,7 +1208,7 @@ void parseProtoInstance (const char **atts) {
 	}
 
 	#define MAKE_PROTO_COPY_FIELDS \
-	myObj = PROTONames[currentProtoInstance].fieldDefs; \
+	myObj = PROTONames[currentProtoInstance[curProtoInsStackInd]].fieldDefs; \
 	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields has %d fields -->\n",vector_size(myObj->fields)); \
 	for (ind=0; ind<vector_size(myObj->fields); ind++) { \
 		int i; struct ScriptFieldDecl* field; char *fv; \
@@ -1017,7 +1216,9 @@ void parseProtoInstance (const char **atts) {
 		fv = field->ASCIIvalue;   /* pointer to ProtoDef value - might be replaced in loop below */ \
 		for (i=0; i<CPI.paircount; i++) { \
 			/* printf ("CPI has %s and %s\n",CPI.name[i],CPI.value[i]); */ \
-			if (CPI.name[i] && strcmp(CPI.name[i],fieldDecl_getShaderScriptName(field->fieldDecl))==0) {/* use the value passed in on invocation */ fv=CPI.value[i];} \
+			if (CPI.name[i] && strcmp(CPI.name[i],fieldDecl_getShaderScriptName(field->fieldDecl))==0) {\
+				/* use the value passed in on invocation */ \
+				fv=CPI.value[i];} \
 		} \
 		/* JAS if (field->fieldDecl->mode != PKW_initializeOnly) { */ \
 		if (fv != NULL) { \
@@ -1066,10 +1267,10 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	fdl = 0;
 
 	/* we tie a unique number to the currentProto */
-	CPI.uniqueNumber = newProtoDefinitionPointer(NULL,currentProtoInstance);
+	CPI.uniqueNumber = newProtoDefinitionPointer(NULL,currentProtoInstance[curProtoInsStackInd]);
 
 	/* first, do we actually have a valid proto here? */
-	if (currentProtoInstance == INT_ID_UNDEFINED) 
+	if (currentProtoInstance[curProtoInsStackInd] == INT_ID_UNDEFINED) 
 		return;
 
 	#ifdef X3DPARSERVERBOSE
@@ -1098,14 +1299,14 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	}
 
 	/* step 1. read in the PROTO text. */
-	psSize = PROTONames[currentProtoInstance].charLen * 10;
+	psSize = PROTONames[currentProtoInstance[curProtoInsStackInd]].charLen * 10;
 
 	if (psSize < 0) {
 		ConsoleMessage ("problem with psSize in expandProtoInstance");
 		return;
 	}
 
-	protoInString = MALLOC(PROTONames[currentProtoInstance].charLen+1);
+	protoInString = MALLOC(PROTONames[currentProtoInstance[curProtoInsStackInd]].charLen+1);
 	protoInString[0] = '\0';
 	curProtoPtr = protoInString;
 
@@ -1136,7 +1337,44 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	}
 	#endif
 
-	MAKE_PROTO_COPY_FIELDS
+	//MAKE_PROTO_COPY_FIELDS
+//MAKE_PROTO_COPY_FIELDS macro >>>>>
+	//#define MAKE_PROTO_COPY_FIELDS 
+	myObj = PROTONames[currentProtoInstance[curProtoInsStackInd]].fieldDefs; 
+	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields has %d fields -->\n",vector_size(myObj->fields)); 
+	for (ind=0; ind<vector_size(myObj->fields); ind++) { 
+		int i; struct ScriptFieldDecl* field; char *fv; 
+		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); 
+		fv = field->ASCIIvalue;   /* pointer to ProtoDef value - might be replaced in loop below */ 
+		for (i=0; i<CPI.paircount; i++) { 
+			/* printf ("CPI has %s and %s\n",CPI.name[i],CPI.value[i]); */ \
+			if (CPI.name[i] && strcmp(CPI.name[i],fieldDecl_getShaderScriptName(field->fieldDecl))==0) {
+				/* use the value passed in on invocation */ 
+				if(field->valueSet)
+					fv=CPI.value[i];
+				else
+					fv=NULL;
+			} 
+		} 
+		/* JAS if (field->fieldDecl->mode != PKW_initializeOnly) { */ 
+		if (fv != NULL) { 
+		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' value='%s'/>\n", 
+			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), 
+			fieldDecl_getShaderScriptName(field->fieldDecl),  
+			FREEWRL_SPECIFIC,  
+			CPI.uniqueNumber, 
+			fv); 
+		} else { 
+		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' />\n", 
+			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), 
+			fieldDecl_getShaderScriptName(field->fieldDecl),  
+			FREEWRL_SPECIFIC,  
+			CPI.uniqueNumber); 
+		/* }  */  } 
+	} 
+	fdl += fprintf (fileDescriptor, "<!-- end of MAKE_PROTO_COPY_FIELDS --> \n");
+//<<<MAKE_PROTO_COPY_FIELDS macro
+
 
 	/* dump the modified string down here */
 	fdl += fprintf(fileDescriptor,"%s",curProtoPtr);
@@ -1302,7 +1540,8 @@ void parseProtoBody (const char **atts) {
 	printf ("start of parseProtoBody\n");
 	#endif
 
-	setParserMode(PARSING_PROTOBODY);
+	//setParserMode(PARSING_PROTOBODY);
+	pushParserMode(PARSING_PROTOBODY);
 }
 
 void parseProtoDeclare (const char **atts) {
@@ -1316,7 +1555,8 @@ void parseProtoDeclare (const char **atts) {
 	currentProtoDeclare++;
 	curProDecStackInd++;
 
-	setParserMode(PARSING_PROTODECLARE);
+	//setParserMode(PARSING_PROTODECLARE);
+	pushParserMode(PARSING_PROTODECLARE);
 	
 	for (count = 0; atts[count]; count += 2) {
 		#ifdef X3DPARSERVERBOSE
@@ -1356,7 +1596,8 @@ void parseExternProtoDeclare (const char **atts) {
 	currentProtoDeclare++;
 	curProDecStackInd++;
 
-	setParserMode(PARSING_EXTERNPROTODECLARE);
+	//setParserMode(PARSING_EXTERNPROTODECLARE);
+	pushParserMode(PARSING_EXTERNPROTODECLARE);
 	
 	for (count = 0; atts[count]; count += 2) {
 		#ifdef X3DPARSERVERBOSE
@@ -1396,7 +1637,8 @@ void parseProtoInterface (const char **atts) {
 	if (getParserMode() != PARSING_PROTODECLARE) {
 		ConsoleMessage ("got a <ProtoInterface>, but not within a <ProtoDeclare>\n");
 	}
-	setParserMode(PARSING_PROTOINTERFACE);
+	//setParserMode(PARSING_PROTOINTERFACE);
+	pushParserMode(PARSING_PROTOINTERFACE);
 }
 
 
@@ -1644,7 +1886,20 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 	/* so, inputOnlys and outputOnlys DO NOT have initialValues, inputOutput and initializeOnly DO */
 	if ((myAccessType == PKW_initializeOnly) || (myAccessType == PKW_inputOutput)) {
 		if (myValueString == NULL) {
-			myValueString = getDefaultValuePointer(myValueType); /* myparams[MP_TYPE]); */
+			if(myValueType==FIELDTYPE_SFNode) 
+			{
+				vrmlNodeT nulval = NULL;
+				memcpy(&defaultVal,nulval,sizeof(vrmlNodeT));
+			}
+			else if(myValueType==FIELDTYPE_MFNode)
+			{
+				((struct Multi_Node *)&defaultVal)->n = 0;
+				((struct Multi_Node *)&defaultVal)->p = NULL;
+			}
+			else
+			{
+				myValueString = getDefaultValuePointer(myValueType); /* myparams[MP_TYPE]); */
+			}
 		}
 	}
 				
@@ -1678,8 +1933,108 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctyp
 
 	/* add this field to the script */
 	script_addField(myObj,sdecl);
+
+	///BIGPUSH added by dug9 July 18,2010
+	/* In Script and ProtoInterface fields, what if the field type is SFNode or MFNode, 
+	   and InitializeOnly or InputOutput? Then child elements of <field> need to be captured -recursively:
+	   <field name='Buildings' ... >
+	      <Transform USE='House1'/>
+		  <Transform>
+			<Shape>
+				<Box/>
+			<Shape>
+		  </Transform>
+		  <Script ...>
+		    <field ...>  <<<<<---------- recursive field within a field
+			  <Transform USE='House2'/>
+		    </field>
+		  </Script>
+		  <ProtoInstance ...>
+		    <fieldValue ..>
+			  <Transform USE="House3"/>
+		    </fieldValue>
+		  </ProtoInstance>
+	   </field>
+	  
+	  Method: we fool the regular PARSING_NODES to put the field values into the children of a Group node
+	   then look in the group node later -on pop/end element (see below)- to see if we got anything
+      To manage recursion, we keep the Group node in an array that uses the same index as the Script / ProtoInterface
+	  And because a proto can have many MFNode fields, we malloc a data structure when we find a field
+    */
+	fieldNodeParsingState[curProtoInsStackInd].parsingMFSFNode = 0;
+	if( ((getParserMode() == PARSING_NODES)||(getParserMode() == PARSING_PROTOINTERFACE)) && (myValueType == FIELDTYPE_SFNode || myValueType == FIELDTYPE_MFNode)  )
+	{
+		if ((myAccessType == PKW_initializeOnly) || (myAccessType == PKW_inputOutput)) 
+		{
+			fieldNodeParsingState[curProtoInsStackInd].parsingMFSFNode = 1;
+			if(!fieldNodeParsingState[curProtoInsStackInd].fieldHolderInitialized)
+				fieldNodeParsingState[curProtoInsStackInd].fieldHolder = (struct X3D_Node*)createNewX3DNode(NODE_Group);
+			X3D_GROUP(fieldNodeParsingState[curProtoInsStackInd].fieldHolder)->children.n = 0;
+			pushParserMode(PARSING_NODES);
+			parentIndex++;
+			parentStack[parentIndex] = fieldNodeParsingState[curProtoInsStackInd].fieldHolder;
+			if (getChildAttributes(parentIndex)!=NULL) deleteChildAttributes(parentIndex); //deleteVector (struct nameValuePairs*, childAttributes[parentIndex]);
+			setChildAttributes(parentIndex,NULL);
+			/* saving sdecl and script index for convenience when we pop/end element- see below */
+			fieldNodeParsingState[curProtoInsStackInd].mfnodeSdecl = sdecl;
+			fieldNodeParsingState[curProtoInsStackInd].myObj_num = myObj->num;
+		}
+	}
 #undef X3DPARSERVERBOSE
 }
+void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
+void endScriptProtoField()  
+{
+	///BIGPOP
+	if(fieldNodeParsingState[curProtoInsStackInd].parsingMFSFNode == 1)
+	{
+		struct X3D_Node * kids;
+		parentIndex--;
+        if(X3D_GROUP(fieldNodeParsingState[curProtoInsStackInd].fieldHolder)->children.n > 0)
+		{ 
+			/* we got something */
+			union anyVrml v;
+			int n; 
+			int j;
+			int myValueType;
+			struct Multi_Node *kids;
+			kids = &X3D_GROUP(fieldNodeParsingState[curProtoInsStackInd].fieldHolder)->children; 
+			n = kids->n;
+			myValueType = fieldDecl_getType(fieldNodeParsingState[curProtoInsStackInd].mfnodeSdecl->fieldDecl);
+			myValueType = FIELDTYPE_MFNode;
+			if(myValueType ==  FIELDTYPE_MFNode)
+			{
+				/*struct Multi_Node { int n; void * *p; };*/
+				((struct Multi_Node *)&v)->n=n;
+				((struct Multi_Node *)&v)->p=MALLOC(n*sizeof(struct X3D_Node*));
+				for(j=0;j<n;j++)
+				{
+					((struct Multi_Node *)&v)->p[j] = kids->p[j];
+					//remove_parent((struct X3D_Node *)kids->p[j], fieldNodeParsingState[curProtoInsStackInd].fieldHolder);
+				}
+			}
+			else if(myValueType ==  FIELDTYPE_SFNode)
+			{
+				/* take the first child as an SFNode */
+				memcpy(&v,kids->p[0],sizeof(struct X3D_Node*)); 
+				//remove_parent((struct X3D_Node *)kids->p[0], fieldNodeParsingState[curProtoInsStackInd].fieldHolder);
+				/* if we were ambitious we would FREE any extra children here */
+			}
+			scriptFieldDecl_setFieldValue(fieldNodeParsingState[curProtoInsStackInd].mfnodeSdecl, v); 
+			scriptFieldDecl_jsFieldInit(fieldNodeParsingState[curProtoInsStackInd].mfnodeSdecl, fieldNodeParsingState[curProtoInsStackInd].myObj_num);
+			/* clean up holder for next time */
+			X3D_GROUP(fieldNodeParsingState[curProtoInsStackInd].fieldHolder)->children.n = 0;
+		}
+		else
+		{
+			//fieldNodeParsingState[curProtoInsStackInd].mfnodeSdecl->value = NULL; default set in start element above
+			fieldNodeParsingState[curProtoInsStackInd].mfnodeSdecl->valueSet = FALSE;
+		}
+		fieldNodeParsingState[curProtoInsStackInd].parsingMFSFNode = 0;
+		popParserMode();
+	}
+}
+
 
 /* we get script text from a number of sources; from the URL field, from CDATA, from a file
    pointed to by the URL field, etc... handle the data in one place */
@@ -1730,7 +2085,7 @@ void initScriptWithScript() {
 	/* finish up here; if we used the CDATA area, set its length to zero */
 	if (myText != NULL) CDATA_Text_curlen=0;
 
-	setParserMode(PARSING_NODES);
+	//supposed to be matched setParserMode(PARSING_NODES);
 	#ifdef X3DPARSERVERBOSE
 	printf ("endElement: got END of script - script should be registered\n");
 	#endif
@@ -1830,7 +2185,8 @@ void endExternProtoDeclare(void) {
 
 		/* now, a ExternProtoDeclare should be within normal nodes; make the expected mode PARSING_NODES, assuming
 		   we don't have nested ExternProtoDeclares  */
-		if (curProDecStackInd == 0) setParserMode(PARSING_NODES);
+		//if (curProDecStackInd == 0) setParserMode(PARSING_NODES);
+		popParserMode();
 
 		if (curProDecStackInd < 0) {
 			ConsoleMessage ("X3D_Parser found too many end ExternProtoDeclares at line %d\n",LINE);
@@ -1866,7 +2222,8 @@ void endProtoDeclare(void) {
 
 		/* now, a ProtoDeclare should be within normal nodes; make the expected mode PARSING_NODES, assuming
 		   we don't have nested ProtoDeclares  */
-		if (curProDecStackInd == 0) setParserMode(PARSING_NODES);
+		//if (curProDecStackInd == 0) setParserMode(PARSING_NODES);
+		//popParserMode(); done in x3dparser.c end tag
 
 		if (curProDecStackInd < 0) {
 			ConsoleMessage ("X3D_Parser found too many end ProtoDeclares at line %d\n",LINE);

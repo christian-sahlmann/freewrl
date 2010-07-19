@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.18 2009/10/29 01:33:10 couannette Exp $
+$Id: X3DParser.h,v 1.19 2010/07/19 03:06:04 dug9 Exp $
 
 X3D parser functions.
 
@@ -34,6 +34,7 @@ X3D parser functions.
 struct nameValuePairs {
         char *fieldName;
         char *fieldValue;
+		int fieldType; //0 string 1 itoa(DEF index) 10 FIELDTYPE_SFNode sprintf %p anyVrml* 11 FIELDTYPE_MFNode sprintf %p anyVrml*
 };
 
 
@@ -71,9 +72,13 @@ struct nameValuePairs {
 int freewrl_XML_GetCurrentLineNumber();
 #define LINE freewrl_XML_GetCurrentLineNumber()
 #define TTY_SPACE {int tty; printf ("%3d ",parentIndex); for (tty = 0; tty < parentIndex; tty++) printf ("  ");}
-extern int getParserMode(void);
-extern void debugsetParserMode(int,char*, int);
-#define setParserMode(xxx) debugsetParserMode(xxx,__FILE__,__LINE__)
+//extern int getParserMode(void);
+//extern void debugsetParserMode(int,char*, int);
+int getParserMode(void);
+void debugpushParserMode(int newmode, char *fle, int line);
+void debugpopParserMode(char *fle, int line);
+#define pushParserMode(xxx) debugpushParserMode(xxx,__FILE__,__LINE__)
+#define popParserMode() debugpopParserMode(__FILE__,__LINE__)
 
 #define PARENTSTACKSIZE 256
 extern int parentIndex;
