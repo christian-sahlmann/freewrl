@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.42 2010/03/22 15:14:48 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.43 2010/07/21 17:47:42 istakenv Exp $
 
 X3D Programmable Shaders Component
 
@@ -794,8 +794,8 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 		myf = curField->fieldDecl;
 
 		#ifdef SHADERVERBOSE
-		printf ("curField %d name %s type %s ",i,curField->name,curField->type);
-		printf ("fieldDecl mode %d (%s) type %d (%s) name %d\n",myf->PKWmode, 
+		DEBUG_SHADER("curField %d contains :%s: ",i,curField->ASCIIvalue);
+		DEBUG_SHADER("fieldDecl mode %d (%s) type %d (%s) name %d\n",myf->PKWmode, 
 			stringPROTOKeywordType(myf->PKWmode), myf->fieldType, stringFieldtypeType(myf->fieldType),myf->lexerNameIndex);
 		#endif
 
@@ -811,7 +811,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 		}
 
 		#ifdef SHADERVERBOSE
-		printf ("trying to get ID for :%s:\n",curField->name);
+		DEBUG_SHADER("trying to get ID for :%s:\n",curField->ASCIIvalue);
 		#endif
 
 		/* do the types of the field variable, and the shader variable match? */
@@ -823,7 +823,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 
 		if ((fieldDecl_getAccessType(myf)==PKW_initializeOnly) || (fieldDecl_getAccessType(myf)==PKW_inputOutput)) {
 			#ifdef SHADERVERBOSE
-			printf ("initializing Shader %d variable %s, type %s\n",myShader, curField->name,stringFieldtypeType(myf->type));
+			DEBUG_SHADER("initializing Shader %d containing :%s:\n",myShader,curField->ASCIIvalue);
 			#endif
 
 			sendValueToShader(curField);
