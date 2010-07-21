@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.24 2010/07/19 20:14:53 istakenv Exp $
+$Id: Component_VRML1.c,v 1.25 2010/07/21 15:18:14 istakenv Exp $
 
 X3D VRML1 Component
 
@@ -167,30 +167,32 @@ static void renderSpecificMaterial (int ind) {
 	ecol[3] = trans;
 
 	if (node->diffuseColor.n>ind)  {
-		for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.p[ind].c[i]; }		
+		for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.p[ind].c[i]; }
 	} else {
-		for (i=0; i<3;i++){ dcol[i] = 0.8f; }		
+		for (i=0; i<3;i++){ dcol[i] = 0.8f; }
 	}
 	do_glMaterialfv(whichFace, GL_DIFFUSE, dcol);
 
 	if (node->ambientColor.n>ind)  {
-		for (i=0; i<3;i++){ dcol[i] *= node->ambientColor.p[ind].c[i]; }		
+		for (i=0; i<3;i++){ dcol[i] *= node->ambientColor.p[ind].c[i]; }
 	} else {
-		for (i=0; i<3;i++){ dcol[i] *= 0.2f; }		
+		for (i=0; i<3;i++){ dcol[i] *= 0.2f; }
 	}
 	do_glMaterialfv(whichFace, GL_AMBIENT, dcol);
 
 	if (node->specularColor.n>ind)  {
-		for (i=0; i<3;i++){ scol[i] = node->specularColor.p[ind].c[i]; }		
+		for (i=0; i<3;i++){ scol[i] = node->specularColor.p[ind].c[i]; }
 	} else {
-		for (i=0; i<3;i++){ scol[i] = 0.0f; }		
+		for (i=0; i<3;i++){ scol[i] = 0.0f; }
 	}
 	do_glMaterialfv(whichFace, GL_SPECULAR, scol);
-		\
+	
+	/* emissionColour needs to be assigned to appearanceProperties, because this is the source
+	   of color info set by X3D rendering funcs (render_IndexedLineSet, etc) */
 	if (node->emissiveColor.n>ind)  {
-		for (i=0; i<3;i++){ ecol[i] = node->emissiveColor.p[ind].c[i]; }		
+		for (i=0; i<3;i++){ appearanceProperties.emissionColour[i] = ecol[i] = node->emissiveColor.p[ind].c[i]; }
 	} else {
-		for (i=0; i<3;i++){ ecol[i] = 0.0f; }		
+		for (i=0; i<3;i++){ appearanceProperties.emissionColour[i] = ecol[i] = 0.0f; }
 	}
 
 	do_glMaterialfv(whichFace, GL_EMISSION, ecol);
@@ -252,9 +254,9 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 	ecol[3] = trans;
 
 	if (node->diffuseColor.n>0)  {
-		for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.p[0].c[i]; }		
+		for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.p[0].c[i]; }
 	} else {
-		for (i=0; i<3;i++){ dcol[i] = 0.8f; }		
+		for (i=0; i<3;i++){ dcol[i] = 0.8f; }
 	}
 	do_glMaterialfv(whichFace, GL_DIFFUSE, dcol);
 
@@ -263,23 +265,25 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 	   set to 0.0 by default; this should make ambientIntensity lighting be zero
 	   via OpenGL lighting equations. */
 	if (node->ambientColor.n>0)  {
-		for (i=0; i<3;i++){ dcol[i] *= node->ambientColor.p[0].c[i]; }		
+		for (i=0; i<3;i++){ dcol[i] *= node->ambientColor.p[0].c[i]; }
 	} else {
-		for (i=0; i<3;i++){ dcol[i] *= 0.2f; }		
+		for (i=0; i<3;i++){ dcol[i] *= 0.2f; }
 	}
 	do_glMaterialfv(whichFace, GL_AMBIENT, dcol);
 
 	if (node->specularColor.n>0)  {
-		for (i=0; i<3;i++){ scol[i] = node->specularColor.p[0].c[i]; }		
+		for (i=0; i<3;i++){ scol[i] = node->specularColor.p[0].c[i]; }
 	} else {
-		for (i=0; i<3;i++){ scol[i] = 0.0f; }		
+		for (i=0; i<3;i++){ scol[i] = 0.0f; }
 	}
 	do_glMaterialfv(whichFace, GL_SPECULAR, scol);
-		\
+
+	/* emissionColour needs to be assigned to appearanceProperties, because this is the source
+	   of color info set by X3D rendering funcs (render_IndexedLineSet, etc) */
 	if (node->emissiveColor.n>0)  {
-		for (i=0; i<3;i++){ ecol[i] = node->emissiveColor.p[0].c[i]; }		
+		for (i=0; i<3;i++){ appearanceProperties.emissionColour[i] = ecol[i] = node->emissiveColor.p[0].c[i]; }
 	} else {
-		for (i=0; i<3;i++){ ecol[i] = 0.0f; }		
+		for (i=0; i<3;i++){ appearanceProperties.emissionColour[i] = ecol[i] = 0.0f; }
 	}
 
 	do_glMaterialfv(whichFace, GL_EMISSION, ecol);
