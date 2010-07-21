@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.44 2010/07/21 20:50:12 istakenv Exp $
+$Id: Component_ProgrammableShaders.c,v 1.45 2010/07/21 22:51:39 dug9 Exp $
 
 X3D Programmable Shaders Component
 
@@ -910,6 +910,7 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 void compile_ComposedShader (struct X3D_ComposedShader *node) {
 	DEBUG_SHADER("called compile_ComposedShader(%p)\n",(void *)node);
 	#ifdef HAVE_SHADERS
+	{
 		/* an array of text pointers, should contain shader source */
 		GLchar **vertShaderSource;
 		GLchar **fragShaderSource;
@@ -945,6 +946,7 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 		LINK_IF_VALID
 
 		MARK_NODE_COMPILED
+	}
 	#endif	
 }
 void compile_ProgramShader (struct X3D_ProgramShader *node) {
