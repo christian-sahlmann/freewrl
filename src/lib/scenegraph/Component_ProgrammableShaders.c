@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.43 2010/07/21 17:47:42 istakenv Exp $
+$Id: Component_ProgrammableShaders.c,v 1.44 2010/07/21 20:50:12 istakenv Exp $
 
 X3D Programmable Shaders Component
 
@@ -908,6 +908,7 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 /*********************************************************************/
 
 void compile_ComposedShader (struct X3D_ComposedShader *node) {
+	DEBUG_SHADER("called compile_ComposedShader(%p)\n",(void *)node);
 	#ifdef HAVE_SHADERS
 		/* an array of text pointers, should contain shader source */
 		GLchar **vertShaderSource;
@@ -918,13 +919,15 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 		int haveVertShaderText; 
 		int haveFragShaderText; 
 
+		/* can we do shaders at runtime? */
+		/* NOTE - need to do this first because no shaders = no CREATE_PROGRAM */
+		CHECK_SHADERS
+
 		/* initialization */
 		haveVertShaderText = FALSE;
 		haveFragShaderText = FALSE;
 		myProgram = CREATE_PROGRAM;
 
-		/* can we do shaders at runtime? */
-		CHECK_SHADERS
 		vertShaderSource = MALLOC(sizeof(GLchar*) * node->parts.n); 
 		fragShaderSource = MALLOC(sizeof(GLchar*) * node->parts.n);
 	
@@ -955,12 +958,15 @@ void compile_ProgramShader (struct X3D_ProgramShader *node) {
 		int haveVertShaderText; 
 		int haveFragShaderText; 
 
+		/* can we do shaders at runtime? */
+		/* NOTE - need to do this first because no shaders = no CREATE_PROGRAM */
+		CHECK_SHADERS
+
 		/* initialization */
 		haveVertShaderText = FALSE;
 		haveFragShaderText = FALSE;
 		myProgram = CREATE_PROGRAM;
 	
-		CHECK_SHADERS
 		vertShaderSource = MALLOC(sizeof(GLchar*) * node->programs.n); 
 		fragShaderSource = MALLOC(sizeof(GLchar*) * node->programs.n);
 	
@@ -992,7 +998,9 @@ void compile_PackagedShader (struct X3D_PackagedShader *node) {
 /*****************************************************************/
 void render_ComposedShader (struct X3D_ComposedShader *node) {
 	#ifdef HAVE_SHADERS
+		DEBUG_RENDER("render_ComposedShader: calling COMPILE_IF_REQUIRED\n");
 		COMPILE_IF_REQUIRED
+		DEBUG_RENDER("render_ComposedShader: calling RUN_IF_VALID\n");
 		RUN_IF_VALID
 	#endif
 }

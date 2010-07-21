@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.56 2010/05/05 12:52:04 davejoubert Exp $
+  $Id: RenderFuncs.c,v 1.57 2010/07/21 20:50:12 istakenv Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -610,7 +610,7 @@ void render_node(struct X3D_Node *node) {
 #ifdef RENDERVERBOSE 
 	printf("%d =========================================NODE RENDERED===================================================\n",renderLevel);
 	printf("%d node %u (%s) , v %u renderFlags %x ",renderLevel, node,stringNodeType(node->_nodeType),v,node->_renderFlags);
-	printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v, v->prep, v->rend, v->children, v->fin,
+	printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v->prep, v->rend, v->children, v->fin,
 	       v->rendray, hypersensitive);
 	printf("%d state: vp %d geom %d light %d sens %d blend %d prox %d col %d ", renderLevel, 
          	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
