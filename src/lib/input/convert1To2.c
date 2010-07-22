@@ -132,15 +132,18 @@ void tokenizeVRML1_(char *pb) {
 	ASSERT(deconstructedProtoBody);
 
 
-	while (lex->isEof == FALSE) {
+	while (lex->isEof == FALSE) 
+	{
 		ele = newProtoElementPointer();
 		toPush = TRUE; /* only put this new element on Vector if it is successful */
 
-		if (lexer_setCurID(lex)) {
+		if (lexer_setCurID(lex)) 
+		{
 			char tmpname[1000];
 			strcpy (tmpname,"VRML1_");
 			strcat (tmpname,lex->curID);
-			if ((ele->isKEYWORD = (indexT) findFieldInVRML1_(tmpname)) == ID_UNDEFINED)  {
+			if ((ele->isKEYWORD = (indexT) findFieldInVRML1_(tmpname)) == ID_UNDEFINED)  
+			{
 				indexT i;
 					
 				/* is this one of the VRML1 keywords that must be quoted? */
@@ -156,8 +159,8 @@ void tokenizeVRML1_(char *pb) {
 				}
 			} 
 			FREE_IF_NZ(lex->curID);
-		/* period not reserved in VRML1, and numbers can start with a period....
-			} else if (lexer_point(lex)) { ele->terminalSymbol = (indexT) '.'; */
+			/* period not reserved in VRML1, and numbers can start with a period....
+				} else if (lexer_point(lex)) { ele->terminalSymbol = (indexT) '.'; */
 
 		} else if (lexer_openCurly(lex)) { ele->terminalSymbol = (indexT) '{';
 		} else if (lexer_closeCurly(lex)) { ele->terminalSymbol = (indexT) '}';
@@ -171,7 +174,8 @@ void tokenizeVRML1_(char *pb) {
 			sprintf (ele->stringToken, "\"%s\"",tmpstring->strptr);
 		} else {
 			/* printf ("probably a number, scan along until it is done. :%s:\n",lex->nextIn); */
-			if ((*lex->nextIn == '.') ||(*lex->nextIn == '-') || ((*lex->nextIn >= '0') && (*lex->nextIn <= '9'))) {
+			if ((*lex->nextIn == '.') ||(*lex->nextIn == '-') || ((*lex->nextIn >= '0') && (*lex->nextIn <= '9'))) 
+			{
 				uintptr_t ip; uintptr_t fp; char *cur;
 				int ignore;
 
@@ -238,40 +242,45 @@ void tokenizeVRML1_(char *pb) {
         protoElementCount = vector_size(deconstructedProtoBody);
         i = 0;
 	
-	written = fprintf (fp,"#VRML V2.0 utf8\n");
-        while (i < protoElementCount) {
-                /* get the current element */
-                ele = vector_get(struct ProtoElementPointer*, deconstructedProtoBody, i);
-		
-                if (ele->isNODE != -1) 
-                        written += fprintf (fp," VRML1_%s 		#NODE\n",stringNodeType(ele->isNODE));
+		written = fprintf (fp,"#VRML V2.0 utf8\n");
+		written += fprintf(fp,"VRML1_Separator 	#kw\n {VRML1children[	#child terminalSymbol\n"); //dug9 scene wrapper idea
+        while (i < protoElementCount) 
+		{
+            /* get the current element */
+            ele = vector_get(struct ProtoElementPointer*, deconstructedProtoBody, i);
+	
+            if (ele->isNODE != -1) 
+                    written += fprintf (fp," VRML1_%s 		#NODE\n",stringNodeType(ele->isNODE));
 
-		/* this is a keyword; lets see if this is a children type node */
-                if (ele->isKEYWORD != -1) {
-                        written += fprintf (fp," %s 	#kw\n",stringVRML1_Type(ele->isKEYWORD));
+			/* this is a keyword; lets see if this is a children type node */
+            if (ele->isKEYWORD != -1) 
+			{
+                written += fprintf (fp," %s 	#kw\n",stringVRML1_Type(ele->isKEYWORD));
 
-			/* find the brackets, as these might need to be changed into a colon */
-			if (ele->isKEYWORD == VRML1_VRML1_Separator) {
-				possiblyChangetoChildren (i+1);
+				/* find the brackets, as these might need to be changed into a colon */
+				if (ele->isKEYWORD == VRML1_VRML1_Separator) 
+				{
+					possiblyChangetoChildren (i+1);
+				}
 			}
-		}
 
-                if (ele->stringToken != NULL) 
-                        written += fprintf (fp," %s 		#string\n",ele->stringToken);
+			if (ele->stringToken != NULL) 
+					written += fprintf (fp," %s 		#string\n",ele->stringToken);
 
-                if (ele->terminalSymbol != -1)  {
-			if (ele->terminalSymbol == START_CHILDREN) {
-                        	written += fprintf (fp," {VRML1children[	#child terminalSymbol\n");
-			} else if (ele->terminalSymbol == END_CHILDREN) {
-                        	written += fprintf (fp," ]}	#child terminalSymbol\n");
-			} else {
-                        	written += fprintf (fp," %c 		#terminalSymbol\n",(char) ele->terminalSymbol);
+			if (ele->terminalSymbol != -1)  
+			{
+				if (ele->terminalSymbol == START_CHILDREN) {
+                    			written += fprintf (fp," {VRML1children[	#child terminalSymbol\n");
+				} else if (ele->terminalSymbol == END_CHILDREN) {
+                    			written += fprintf (fp," ]}	#child terminalSymbol\n");
+				} else {
+                    			written += fprintf (fp," %c 		#terminalSymbol\n",(char) ele->terminalSymbol);
+				}
 			}
+			i++;
 		}
-
-		i++;
+		written += fprintf(fp,"]}	#child terminalSymbol\n"); //dug9 scene wrapper idea
 	}
-}
 }
 
 char *convert1To2 (const char *inp)
@@ -307,7 +316,7 @@ char *convert1To2 (const char *inp)
 		retval = MALLOC(written+10);
 		readSizeThrowAway = fread(retval,written,1,fp);
 		retval[written] = '\0';
-		/* printf ("and have read back in :%s:\n",retval);  */
+		/* printf ("and have read back in :%s:\n",retval); */
 
 		fclose(fp);
 		return retval;
