@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.58 2010/07/19 03:06:04 dug9 Exp $
+$Id: X3DProtoScript.c,v 1.59 2010/07/23 14:45:34 dug9 Exp $
 
 ???
 
@@ -183,7 +183,11 @@ static void registerProto(const char *name, const char *url) {
 	if (!CPD.isExternProto) 
 		CPD.fileName = TEMPNAM("/tmp","freewrl_proto"); 
 	else 
+#ifdef _MSC_VER
+		CPD.fileName= TEMPNAM("/tmp","freewrl_proto"); //tmpnam(NULL); 
+#else
 		CPD.fileName=NULL;
+#endif
 	CPD.fileDescriptor = fopen(CPD.fileName,"w");
 	CPD.charLen =  0;
 	CPD.fileOpen = TRUE;
@@ -1634,7 +1638,7 @@ void parseExternProtoDeclare (const char **atts) {
 
 /* simple sanity check, and change mode */
 void parseProtoInterface (const char **atts) {
-	if (getParserMode() != PARSING_PROTODECLARE) {
+	if (getParserMode() != PARSING_PROTODECLARE && getParserMode() != PARSING_EXTERNPROTODECLARE) {
 		ConsoleMessage ("got a <ProtoInterface>, but not within a <ProtoDeclare>\n");
 	}
 	//setParserMode(PARSING_PROTOINTERFACE);
@@ -1985,7 +1989,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctyp
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
 void endScriptProtoField()  
 {
-	///BIGPOP
+	///BIGPOP 
 	if(fieldNodeParsingState[curProtoInsStackInd].parsingMFSFNode == 1)
 	{
 		struct X3D_Node * kids;
@@ -2102,6 +2106,8 @@ void endExternProtoDeclare(void) {
 	char *buffer;
 	int foundOk;
 	resource_item_t *res;
+	int i;
+	char *emptyString = NULL;
 
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
@@ -2110,9 +2116,9 @@ void endExternProtoDeclare(void) {
 
 	foundOk = FALSE;
 
-	/* printf ("endExternProtoDeclare - now the rubber hits the road\n"); */
+	/* printf ("endExternProtoDeclare - now the rubber hits the road\n");  */
 
-	/* printf ("externProtoName %s\nexternProtoName.url %s/n",CPD.definedProtoName,CPD.url); */
+	/* printf ("externProtoName %s\nexternProtoName.url %s \n",CPD.definedProtoName,CPD.url); */
 	if (CPD.url != NULL) {
 		struct Multi_String url;
 		char *testname;
@@ -2138,7 +2144,7 @@ void endExternProtoDeclare(void) {
 					buffer = of->text;
 /* 				pound = strchr(buffer, '#'); */
 /* 				embedEXTERNPROTO(me, myName, buffer, pound); */
-					printf("**** X3D EXTERNPROTO:\n%s\n", buffer);
+				/*	printf("**** X3D EXTERNPROTO:\n%s\n", buffer); */
 				}
 			}
 		}
@@ -2150,16 +2156,33 @@ void endExternProtoDeclare(void) {
 			res->complete = TRUE;
 			foundOk = TRUE;
 		} else {
+			printf("Ouch ress not loaded\n");
 			/* failure, FIXME: remove res from root_res... */
 /* 		resource_destroy(res); */
 		}
 
-		/* if (buffer != NULL) { 
+		/*
+		 if (buffer != NULL) { 
 			printf ("EPD: just read in %s\n",buffer);
 		}
 		if (pound != NULL) {
 			printf ("EPD, pound is %s\n",pound);
-		} */
+		} 
+		*/
+
+		/* were we successful? */
+		if (!foundOk) {
+			ConsoleMessage ("<ExternProtoDeclare> of name %s not found",CPD.definedProtoName);
+		} else {
+			/* printf ("finding and expanding ExternProtoDeclare %s\n",CPD.definedProtoName);
+			printf ("	pound %s\n",pound);
+			printf ("	currentProtoDeclare %d\n",currentProtoDeclare); */
+			
+			pushParserMode(PARSING_NODES);
+
+			compareExternProtoDeclareWithProto(buffer,pound);
+			popParserMode(); //setParserMode(PARSING_EXTERNPROTODECLARE);
+		}
 
 		/* decrement the protoDeclare stack count. If we are nested, get out of the nesting */
 		#ifdef X3DPARSERVERBOSE
@@ -2186,7 +2209,7 @@ void endExternProtoDeclare(void) {
 		/* now, a ExternProtoDeclare should be within normal nodes; make the expected mode PARSING_NODES, assuming
 		   we don't have nested ExternProtoDeclares  */
 		//if (curProDecStackInd == 0) setParserMode(PARSING_NODES);
-		popParserMode();
+		//popParserMode();
 
 		if (curProDecStackInd < 0) {
 			ConsoleMessage ("X3D_Parser found too many end ExternProtoDeclares at line %d\n",LINE);
