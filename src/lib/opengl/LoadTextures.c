@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.47 2010/07/06 16:45:15 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.48 2010/07/24 02:23:13 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -532,6 +532,7 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	}
 
 	if (url != NULL) {
+		s_list_t *head_of_list;
 #ifdef TEXVERBOSE
 		PRINTF("url: ");
 		Multi_String_print(url);
@@ -539,41 +540,43 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		resource_dump(parentPath);
 #endif
 		res = resource_create_multi(url);
+		/* hold on to the top of the list so we can delete it later */
+		head_of_list = res->m_request;
 
-		/* Setup parent */
-		resource_identify(parentPath, res);
+		/* go through the urls until we have a success, or total failure */
+		do {
+			/* Setup parent */
+			resource_identify(parentPath, res);
 
-		/* Setup media type */
-		res->media_type = resm_image; /* quick hack */
+			/* Setup media type */
+			res->media_type = resm_image; /* quick hack */
 
-#if 0//MB 25-05-2010		
-		//resource_get_valid_url_from_multi(parentPath, res);
-
-		send_resource_to_parser(res);
-		resource_wait(res);
-	
-#if 0 // no texture struct here !
-		resource_get_valid_texture_from_multi(entry, parentPath, res);
-#endif // no texture struct here !
-
-
-		if (res->status == ress_loaded) {
-#endif
-
-		if (resource_fetch(res)) {
-			DEBUG_TEX("really loading texture data from %s into %p\n", res->actual_file, entry);
-			if (texture_load_from_file(entry, res->actual_file)) {
-				entry->status = TEX_NEEDSBINDING; /* tell the texture thread to convert data to OpenGL-format */
-				res->complete = TRUE;
+			if (resource_fetch(res)) {
+				DEBUG_TEX("really loading texture data from %s into %p\n", res->actual_file, entry);
+				if (texture_load_from_file(entry, res->actual_file)) {
+					entry->status = TEX_NEEDSBINDING; /* tell the texture thread to convert data to OpenGL-format */
+					res->complete = TRUE;
+				}
 			} else {
-				ERROR_MSG("can't load texture: %s (%p)\n", res->actual_file, entry);
-				return FALSE;
+				/* we had a problem with that URL, set this so we can try the next */
+				res->type=rest_multi;
 			}
-			return TRUE;
+		} while ((res->status != ress_downloaded) && (res->m_request != NULL));
+
+		/* destroy the m_request, if it exists */
+		if (head_of_list != NULL) {
+			ml_delete_all(head_of_list);
 		}
 
-		ERROR_MSG("Could not load texture: %s\n", entry->filename);
-		return FALSE;
+
+		/* were we successful?? */
+		if (res->status != ress_loaded) {
+
+			ERROR_MSG("Could not load texture: %s\n", entry->filename);
+			return FALSE;
+		} else {
+			return TRUE;
+		}
 	} else {
 		ERROR_MSG("Could not load texture, no URL present\n");
 	}

@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.33 2010/06/29 16:59:44 crc_canada Exp $
+  $Id: resources.c,v 1.34 2010/07/24 02:23:12 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -110,12 +110,14 @@ resource_item_t* resource_create_multi(s_Multi_String_t *request)
 
 	item = XALLOC(resource_item_t);
 	item->request = NULL;
+	item->m_request = NULL;
 	item->type = rest_multi;
 	item->status = ress_invalid;
 
 	/* Convert Mutli_String to a list string */
 	for (i = 0; i < request->n; i++) {
 		char *url = STRDUP(request->p[i]->strptr);
+		/* printf ("putting %s on the list\n",url); */
 		item->m_request = ml_append(item->m_request, ml_new(url));
 	}
 
@@ -225,7 +227,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 			res->request = (char *) l->elem;
 			/* Point to the next... */
 			res->m_request = res->m_request->next;
-			/* FIXME: how to free that list ??? */
 		} else {
 			/* list empty */
 			ERROR_MSG("resource_identify: ERROR: empty multi string as input\n");
@@ -429,6 +430,12 @@ bool resource_fetch(resource_item_t *res)
 		/* Nothing to do */
 		break;
 	}
+	DEBUG_RES ("resource_fetch (end): network=%s type=%s status=%s"
+		  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n", 
+		  BOOL_STR(res->network), resourceTypeToString(res->type), 
+		  resourceStatusToString(res->status), res->request, 
+		  res->base, res->parsed_request,
+		  res->parent, (res->parent ? res->parent->base : "N/A"));
 	return (res->status == ress_downloaded);
 }
 
@@ -812,40 +819,6 @@ void resource_get_valid_url_from_multi(resource_item_t *parentPath, resource_ite
 	/* go through and try, try again if this one fails. */
 	} while ((res->status != ress_loaded) && (res->m_request != NULL));
 }
-
-#if 0 // no texture struct here !
-
-/* go through, and find the first valid texture url in a multi-url string */
-void resource_get_valid_texture_from_multi(textureTableIndexStruct_s *entry, resource_item_t *parentPath, resource_item_t *res) {
-	do {
-		DEBUG_RES("resource_get_valid_url_from_multi, status %s type %s res->m_request %p\n",
-			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
-
-		resource_identify(parentPath, res); 
-
-		if (resource_fetch(res)) {
-			/* have this resource, is it a good texture? */
-			if (texture_load_from_file(entry, res->actual_file)) {
-				res->status = ress_loaded;
-			}
-		}
-
-		/* do we try the next url in the multi-url? */
-		if ((res->status != ress_loaded) && (res->m_request != NULL)) {
-			DEBUG_RES ("not found, lets try this again\n");
-			res->status = ress_invalid; 
-			res->type = rest_multi;
-
-		}
-
-		DEBUG_RES("resource_get_valid_url_from_multi, end  of do-while, status %s type %s res->m_request %p\n",
-			resourceStatusToString(res->status),resourceTypeToString(res->type),res->m_request);
-
-	/* go through and try, try again if this one fails. */
-	} while ((res->status != ress_loaded) && (res->m_request != NULL));
-}
-#endif // no texture struct here !
-
 
 /**
  *   resource_tree_dump: print the resource tree for debugging.
