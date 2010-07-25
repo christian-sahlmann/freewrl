@@ -1,7 +1,8 @@
 Priority list
 
+VBOs - Cylinder collision - __points - get rid of it and use the VBO generated code
+
 From Greg Roelofs:
-	1) fix for non-convex "window" bug; (see below)
 	2) fix for lighting model (texture/material/transparency composition); 
 	3) configurable keys for Fly mode; 
 	4) maybe some simple window chrome to select Walk/Fly/Examine mode.  
@@ -25,8 +26,6 @@ For 1.22.8 release:
 	- Open on OSX - return to same dir as last opened file.
 	- spin option or inertia?
 
-4) tests/33.wrl - resizing issue on my (jstewart) work desktop machine - is it reproducable on others?
-
 3) Javascript - verify that SFNode params work - eg, setting node.loop=false when node is a USE'd TimeSensor. (ref: gerwinKramer)
 
 1) TextureCoordinate - stream along with other params; note that if they are DEF/USEd, it causes real problems. see
@@ -41,14 +40,10 @@ gregs' grr-freewrl-1.22.7-pre1-test.
 ============================================================================
 For 1.22.7 release:
 
-General - material and textures, material {} ImageTexture {url "wrew"} will currently not display correctly  - see can.wrl
-
 OSX plugin:
 - url getting
 - embed tag testing
 - object tag testing
-
-12) MultiURL loading - note that, at least for Inlines, only the first url is checked; the rest are not used.
 
 14) Garbage collection - freeing node resources and associated textures needs verification.
 
@@ -88,20 +83,6 @@ OSX plugin:
 	a) VisibilitySensor gets removed by LOD thus never gets drawn to indicate it is out of the scene;
 	b) Russ says clicking on Cones cause incorrect Viewpoint movement.
 
-09/21/2009:
-        Another IndexedFaceSet bug to put on the list: (from Simon dot Place at googlemail)
-        Shape {
-                geometry IndexedFaceSet {
-                convex FALSE
-                        coord Coordinate {
-                                point [ 2 0 0, 0 2 0, -2 0 0,0 -2 0, 1 0 0,0 -1 0,-1 0 0,0 1 0 ]
-                        }
-                        coordIndex [ 0 1 2 3 0 4 5 6 7 4 ]
-                }
-        }
-        should be a diamond within a diamond.
-
-
 08/07/2009:
         (MB)  Imlib2 can load & decode: gif, jpg, png, tiff, ...
               Implementation is in LoadTextures.c. I'm trying to understand
@@ -113,11 +94,6 @@ OSX plugin:
 08/02/2009:
 	(JAS) shader differences between OSX and Linux; eg:
 	http://freewrl.sf.net/tomasMikulaExample.x3dv
-
-08/02/2009:
-	(JAS) MIDI/C EAI input appears to loose events once in a while. Verify
-	by making townSquare.wrl have wallDelay be set just before clock 
-	tower ding.
 
 07/15/2009: 
 	(JAS) tests/8.wrl - on IanS computer, comes up with: 

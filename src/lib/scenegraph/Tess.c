@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.14 2010/03/13 02:10:32 sdumoulin Exp $
+$Id: Tess.c,v 1.15 2010/07/25 16:51:39 crc_canada Exp $
 
 ???
 
@@ -123,7 +123,8 @@ void CALLBACK FW_IFS_tess_vertex(void *p) {
 void CALLBACK FW_tess_error(GLenum e) {
 	/* Prints out tesselation errors. Older versions of at least MESA would
 	 give errors, so for now at least, lets just ignore them.
-	 printf("FW_tess_error %d: >%s<\n",e,GL_ERROR_MSG); */
+	*/
+	 printf("FW_tess_error %d: >%s<\n",e,GL_ERROR_MSG); 
 }
 
 

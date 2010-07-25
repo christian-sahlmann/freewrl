@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.36 2010/07/13 19:28:00 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.37 2010/07/25 16:51:39 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -367,10 +367,7 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
-		/* no longer needed */
 	} else {
-		/* use node->__points as compile completed flag for threading */
-	
 		/*  MALLOC memory (if possible)*/
 		if (!node->__points) tmpptr = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+4));
 		else tmpptr = node->__points;
@@ -1277,6 +1274,7 @@ void collisionSphere_init(struct X3D_Sphere *node)
 		num points = SPHDIV/2 X [(SPHDIV+1) X 2] = SPHDIV*(SPHDIV+1)
 		num tris = quads x 2 = SPHDIV X SPHDIV 
 	*/
+
 	collisionSphere.npts = SPHDIV*(SPHDIV+1);
 	collisionSphere.pts = malloc(collisionSphere.npts * sizeof(struct point_XYZ));
 	collisionSphere.tpts = malloc(collisionSphere.npts * sizeof(struct point_XYZ));
@@ -1367,101 +1365,99 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 
-		/* are we initialized yet? */
-		if (node->__points==0) return;
-
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-			/* apply radius to generic r=1 sphere */
-			//radscale.x = radscale.y = radscale.z = node->radius;
-			//scale_to_matrix (modelMatrix, &radscale);
-			//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
-			if(FallInfo.walking)
+		/* apply radius to generic r=1 sphere */
+		//radscale.x = radscale.y = radscale.z = node->radius;
+		//scale_to_matrix (modelMatrix, &radscale);
+		//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+
+		if(FallInfo.walking)
+		{
+			/* mesh method */
+
+			int i;
+			double disp;
+			struct point_XYZ n;
+			struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
+			struct point_XYZ radscale;
+			double maxdisp = 0;
+			radscale.x = radscale.y = radscale.z = node->radius;
+			scale_to_matrix (modelMatrix, &radscale);
+			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+
+			if(!collisionSphere.npts) collisionSphere_init(node);
+			if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionSphere.smin,collisionSphere.smax)) return;
+
+			for(i=0;i<collisionSphere.npts;i++)
+				transform(&collisionSphere.tpts[i],&collisionSphere.pts[i],modelMatrix);
+
+			for(i = 0; i < collisionSphere.ntris; i++) 
 			{
-				/* mesh method */
-
-				int i;
-				double disp;
-				struct point_XYZ n;
-				struct point_XYZ a,b, dispv, maxdispv = {0,0,0};
-				struct point_XYZ radscale;
-				double maxdisp = 0;
-				radscale.x = radscale.y = radscale.z = node->radius;
-				scale_to_matrix (modelMatrix, &radscale);
-				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
-
-				if(!collisionSphere.npts) collisionSphere_init(node);
-				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionSphere.smin,collisionSphere.smax)) return;
-
-				for(i=0;i<collisionSphere.npts;i++)
-					transform(&collisionSphere.tpts[i],&collisionSphere.pts[i],modelMatrix);
-
-				for(i = 0; i < collisionSphere.ntris; i++) 
+				/*only clip faces "facing" origin */
+				//if(vecdot(&n[ci],&middle) < 0.) 
 				{
-					/*only clip faces "facing" origin */
-					//if(vecdot(&n[ci],&middle) < 0.) {
-					{
-						struct point_XYZ pts[3];
-						pts[0] = collisionSphere.tpts[collisionSphere.tris[i][0]];
-						pts[1] = collisionSphere.tpts[collisionSphere.tris[i][1]];
-						pts[2] = collisionSphere.tpts[collisionSphere.tris[i][2]];
-						/* compute normal - could compute once in shapespace then transform */
-						VECDIFF(pts[1],pts[0],a);
-						VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
-						veccross(&n,a,b); /* 6 multiplies */
-						vecnormal(&n,&n); 
-						dispv = get_poly_disp_2(pts,3,n);
-					    disp = vecdot(&dispv,&dispv);
-						if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
-							maxdisp = disp;
-							maxdispv = dispv;
-						}
+					struct point_XYZ pts[3];
+					pts[0] = collisionSphere.tpts[collisionSphere.tris[i][0]];
+					pts[1] = collisionSphere.tpts[collisionSphere.tris[i][1]];
+					pts[2] = collisionSphere.tpts[collisionSphere.tris[i][2]];
+					/* compute normal - could compute once in shapespace then transform */
+					VECDIFF(pts[1],pts[0],a);
+					VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
+					veccross(&n,a,b); /* 6 multiplies */
+					vecnormal(&n,&n); 
+					dispv = get_poly_disp_2(pts,3,n);
+					disp = vecdot(&dispv,&dispv);
+					if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
+						maxdisp = disp;
+						maxdispv = dispv;
 					}
 				}
-				delta = maxdispv;
-		        vecscale(&delta,&delta,-1);
 			}
-			else
-			{
-				/* easy analytical sphere-sphere stuff */
-				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			delta = maxdispv;
+		        vecscale(&delta,&delta,-1);
+		}
+		else
+		{
+			/* easy analytical sphere-sphere stuff */
+			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
-			   t_orig.x = modelMatrix[12];
-			   t_orig.y = modelMatrix[13];
-			   t_orig.z = modelMatrix[14];
-			   radius = pow(det3x3(modelMatrix),1./3.) * node->radius;
+			t_orig.x = modelMatrix[12];
+			t_orig.y = modelMatrix[13];
+			t_orig.z = modelMatrix[14];
+			radius = pow(det3x3(modelMatrix),1./3.) * node->radius;
 
-			   /* squared distance to center of sphere (on the y plane)*/
-			   dist2 = t_orig.x * t_orig.x + t_orig.z * t_orig.z;
+			/* squared distance to center of sphere (on the y plane)*/
+			dist2 = t_orig.x * t_orig.x + t_orig.z * t_orig.z;
 
-			   /* easy tests. clip as if sphere was a box */
-			   /*clip with cylinder */
+			/* easy tests. clip as if sphere was a box */
+			/*clip with cylinder */
 
-			   if(dist2 - (radius + awidth) * (radius +awidth) > 0) {
-			   return;
-			   }
-			   /*clip with bottom plane */
-			   if(t_orig.y + radius < abottom) {
-			   return;
-			   }
-			   /*clip with top plane */
-			   if(t_orig.y-radius > atop) {
-			   return;
-			   }
+			if(dist2 - (radius + awidth) * (radius +awidth) > 0) {
+				return;
+			}
+			/*clip with bottom plane */
+			if(t_orig.y + radius < abottom) {
+				return;
+			}
+			/*clip with top plane */
+			if(t_orig.y-radius > atop) {
+				return;
+			}
 
-			   /* project onto (y x t_orig) plane */
-			   p_orig.x = sqrt(dist2);
-			   p_orig.y = t_orig.y;
-			   p_orig.z = 0;
-			   /* we need this to unproject rapidly */
-			   /* n_orig is t_orig.y projected on the y plane, then normalized. */
-			   n_orig.x = t_orig.x;
-			   n_orig.y = 0.0;
-			   n_orig.z = t_orig.z;
-			   VECSCALE(n_orig,1.0/p_orig.x); /*equivalent to vecnormal(n_orig);, but faster */
+			/* project onto (y x t_orig) plane */
+			p_orig.x = sqrt(dist2);
+			p_orig.y = t_orig.y;
+			p_orig.z = 0;
+			/* we need this to unproject rapidly */
+			/* n_orig is t_orig.y projected on the y plane, then normalized. */
+			n_orig.x = t_orig.x;
+			n_orig.y = 0.0;
+			n_orig.z = t_orig.z;
+			VECSCALE(n_orig,1.0/p_orig.x); /*equivalent to vecnormal(n_orig);, but faster */
 			#ifdef RENDERVERBOSE
-	printf ("sphere, p_orig %lf %lf %lf, n_orig %lf %lf %lf\n",p_orig.x, p_orig.y, p_orig.z, n_orig.x, n_orig.y, n_orig.z);
+			printf ("sphere, p_orig %lf %lf %lf, n_orig %lf %lf %lf\n",p_orig.x, p_orig.y, p_orig.z, n_orig.x, n_orig.y, n_orig.z);
 			#endif
 
 			   /* 5 cases : sphere is over, over side, side, under and side, under (relative to y axis) */
@@ -1665,6 +1661,47 @@ void collisionCone_init(struct X3D_Cone *node)
 	if( !APPROX(h,0.0) ) inverseh = 1.0/h;
 	if( !APPROX(r,0.0) ) inverser = 1.0/r;
 
+	if (global_use_VBOs) {
+		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
+		   uses the same algorithm whether running in VBO mode or not */
+		struct SFColor *pt;
+		struct SFColor *spt;			/*  side points*/
+
+		/*  MALLOC memory (if possible)*/
+		node->__botpoints = MALLOC (sizeof(struct SFColor)*(CONEDIV+3));
+		node->__sidepoints = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
+
+		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
+		pt = (struct SFColor *)node->__botpoints;
+		pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
+		for (i=1; i<=CONEDIV; i++) {
+			pt[i].c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
+			pt[i].c[1] = (float) -h;
+			pt[i].c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
+		}
+		/*  and throw another point that is centre of bottom*/
+		pt[CONEDIV+1].c[0] = 0.0f; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0f;
+
+		/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
+		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
+
+		/*  side triangles. Make 3 seperate points per triangle... makes FW_GL_DRAWARRAYS with normals*/
+		/*  easier to handle.*/
+		/*  rearrange bottom points into this array; top, bottom, left.*/
+		spt = (struct SFColor *)node->__sidepoints;
+		for (i=0; i<CONEDIV; i++) {
+			/*  top point*/
+			spt[i*3].c[0] = 0.0f; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0f;
+			/*  left point*/
+			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFColor));
+			/* right point*/
+			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFColor));
+		}
+
+		/*  wrap bottom point around once again... ie, final right point = initial left point*/
+		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFColor));
+	}
+
 	if(node->bottom) {
 		pts = node->__botpoints;
 		for(i=0;i<(CONEDIV+2);i++)
@@ -1708,6 +1745,13 @@ void collisionCone_init(struct X3D_Cone *node)
 	}
 	collisionCone.smin[1] = -1.0; //-h;
 	collisionCone.smax[1] =  1.0; //h;
+	
+	if (global_use_VBOs) {
+		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
+		   uses the same algorithm whether running in VBO mode or not */
+		FREE_IF_NZ(node->__botpoints);
+		FREE_IF_NZ(node->__sidepoints);
+	}
 
 }
 
@@ -1752,7 +1796,6 @@ void collide_Cone (struct X3D_Cone *node) {
 	       struct point_XYZ t_orig = {0,0,0};
 
 	       struct point_XYZ delta;
-
 
                 /* is this node initialized? if not, get outta here and do this later */
 		if (global_use_VBOs) {
@@ -1858,6 +1901,9 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	double h,r,inverseh,inverser;
 	struct SFColor *pts;// = node->__botpoints;
 	
+	/* not initialized yet - wait for next pass */
+	if (!global_use_VBOs) {if (!node->__points) return;}
+
 	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top) 
 	    and GL_QUADS (side)
 
@@ -1884,12 +1930,40 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 
 	tcount = 0;
 	qcount = 0;
-	pts = node->__points;
-	h = (node->height);
+	h = node->height;
 	r = node->radius;
 	inverseh = inverser = 1.0;
 	if(!APPROX(h,0.0)) inverseh = 1.0/h;
 	if(!APPROX(r,0.0)) inverser = 1.0/r;
+
+	if (global_use_VBOs) {
+		float a1, a2;
+		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
+		   uses the same algorithm whether running in VBO mode or not */
+		pts = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+4));
+	
+		/*  now, create the vertices; this is a quad, so each face = 4 points*/
+		for (i=0; i<CYLDIV; i++) {
+			a1 = (float) (PI*2*i)/(float)CYLDIV;
+			a2 = (float) (PI*2*(i+1))/(float)CYLDIV;
+			pts[i*2+0].c[0] = r* (float) sin(a1);
+			pts[i*2+0].c[1] = (float) h;
+			pts[i*2+0].c[2] = r* (float) cos(a1);
+			pts[i*2+1].c[0] = r*(float) sin(a1);
+			pts[i*2+1].c[1] = (float) -h;
+			pts[i*2+1].c[2] = r*(float) cos(a1);
+		}
+	
+		/*  wrap the points around*/
+		memcpy (&pts[CYLDIV*2].c[0],&pts[0].c[0],sizeof(struct SFColor)*2);
+	
+		/*  center points of top and bottom*/
+		pts[CYLDIV*2+2].c[0] = 0.0f; pts[CYLDIV*2+2].c[1] = (float) h; pts[CYLDIV*2+2].c[2] = 0.0f;
+		pts[CYLDIV*2+3].c[0] = 0.0f; pts[CYLDIV*2+3].c[1] = (float)-h; pts[CYLDIV*2+3].c[2] = 0.0f;
+	} else {
+		/* have points via the vertex array */
+		pts = node->__points;
+	}
 
 	for(i=0;i<collisionCylinder.npts;i++)
 	{
@@ -1944,6 +2018,9 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	collisionCylinder.smin[1] = -1.0; //-h/2;
 	collisionCylinder.smax[1] =  1.0; //h/2;
 
+	if (global_use_VBOs) {
+		FREE_IF_NZ(pts);
+	}
 }
 
 #ifdef DEBUGGING_CODE

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.21 2010/05/05 11:21:49 davejoubert Exp $
+$Id: GenPolyRep.c,v 1.22 2010/07/25 16:51:39 crc_canada Exp $
 
 ???
 
@@ -962,11 +962,14 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 	for (this_face=0; this_face<faces; this_face++) {
 		int relative_coord;		/* temp, used if not tesselating	*/
+		int tess_contour_start;		/* tess, for creating contours, maybe	*/
 		int initind = 0;
 		int lastind = 0;  		/* coord indexes 			*/
 
 		global_IFS_Coord_count = 0;
 		relative_coord = 0;
+		tess_contour_start = 0;
+		
 
 		if (!faceok[this_face]) {
 			#ifdef VERBOSE
@@ -1007,13 +1010,39 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 			while (i != -1) {
 				if (!convex) {
-					/*  printf ("\nwhile, i is %d this_coord %d rel coord %d\n",i,this_coord,relative_coord);*/
-					c1 = &(points[i]);
-					tess_v[0] = c1->c[0];
-					tess_v[1] = c1->c[1];
-					tess_v[2] = c1->c[2];
-					tess_vs[relative_coord] = relative_coord;
-					FW_GLU_TESS_VERTEX(global_tessobj,tess_v,&tess_vs[relative_coord++]);
+					int ind;
+					int foundContour = FALSE;
+					/* printf ("\nwhile, i is %d this_coord %d rel coord %d\n",i,this_coord,relative_coord); */
+
+					/* is this a duplicate? if so, start a new contour */
+					for (ind=tess_contour_start; ind<relative_coord; ind++) {
+/*
+						printf ("contour checking, comparing  %d and %d, ind %d\n",
+						orig_coordIndex->p[relative_coord + this_coord],
+						orig_coordIndex->p[ind + this_coord],
+						ind);
+*/
+						if ( orig_coordIndex->p[relative_coord + this_coord] ==
+						  orig_coordIndex->p[ind + this_coord]) {
+							/* printf ("FOUND CONTOUR\n"); */
+							tess_contour_start = relative_coord+1;
+							FW_GLU_NEXT_CONTOUR(global_tessobj,GLU_UNKNOWN);
+							foundContour = TRUE;
+							break;
+						}
+
+					}
+					if (!foundContour) {
+						c1 = &(points[i]);
+						tess_v[0] = c1->c[0];
+						tess_v[1] = c1->c[1];
+						tess_v[2] = c1->c[2];
+						tess_vs[relative_coord] = relative_coord;
+						/* printf ("vertex %f %f %f, index %d\n",tess_v[0], tess_v[1], tess_v[2], tess_vs[relative_coord]); */
+						FW_GLU_TESS_VERTEX(global_tessobj,tess_v,&tess_vs[relative_coord]);
+					}
+					
+					relative_coord++;
 				} else {
 					/* take coordinates and make triangles out of them */
 					global_IFS_Coords[global_IFS_Coord_count++] = initind;
