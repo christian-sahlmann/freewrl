@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.66 2010/05/25 16:57:36 davejoubert Exp $
+$Id: CRoutes.c,v 1.67 2010/07/25 00:36:24 dug9 Exp $
 
 ???
 
@@ -1105,7 +1105,7 @@ static void actually_do_CRoutes_Register() {
 					#ifdef CRVERBOSE
 						printf ("definite duplicate, returning\n");
 					#endif
-					return;
+					continue; //return;
 				} else {
 					/* this is a remove */
 	

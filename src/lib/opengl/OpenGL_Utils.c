@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.134 2010/07/05 15:07:12 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.135 2010/07/25 00:36:24 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1634,6 +1634,10 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(Viewpoint) VIEWPOINT(Viewpoint) END_NODE
 				BEGIN_NODE(GeoViewpoint) VIEWPOINT(GeoViewpoint) END_NODE
 	
+				BEGIN_NODE(NavigationInfo) 
+					render_NavigationInfo ((struct X3D_NavigationInfo *)node);
+				END_NODE
+
 				BEGIN_NODE(StaticGroup)
 					/* we should probably not do this, but... */
 					sortChildren(&X3D_STATICGROUP(node)->children,&X3D_STATICGROUP(node)->_sortedChildren);
@@ -1872,6 +1876,7 @@ void startOfLoopNodeUpdates(void) {
 				/* up_vector is reset after a bind */
 				//if (*setBindPtr==1) reset_upvector();
 				bind_node ((void *)node, &viewpoint_tos,&viewpoint_stack[0]);
+				bind_viewpoint((struct X3D_Viewpoint *)node); //dug9 added July 24, 2009: when you bind, it should set the avatar to the newly bound viewpoint pose and forget any cumulative avatar navigation from the last viewpoint parent
 			}
 			setBindPtr = NULL;
 		}
