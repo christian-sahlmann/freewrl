@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.71 2010/07/23 14:45:34 dug9 Exp $
+$Id: X3DParser.c,v 1.72 2010/07/27 21:08:52 dug9 Exp $
 
 ???
 
@@ -231,26 +231,26 @@ static void setFieldValueDataActive(const char* name) {
 	{
 		//printf ("expected this to be in a fieldValue\n");
 
-	/* if we had a valid field for this node... */
-	if (in3_3_fieldIndex != INT_ID_UNDEFINED) {
+		/* if we had a valid field for this node... */
+		if (in3_3_fieldIndex != INT_ID_UNDEFINED) {
 
 #ifdef X3DPARSERVERBOSE
-		printf ("setFieldValueDataActive field %s, parent is a %s\n",
-			stringFieldType(in3_3_fieldIndex),stringNodeType(parentStack[parentIndex]->_nodeType)); 
+			printf ("setFieldValueDataActive field %s, parent is a %s\n",
+				stringFieldType(in3_3_fieldIndex),stringNodeType(parentStack[parentIndex]->_nodeType)); 
 #endif
 
-		setField_fromJavascript (parentStack[parentIndex], (char *) stringFieldType(in3_3_fieldIndex),
-			CDATA_Text, TRUE);
-	} else {
+			setField_fromJavascript (parentStack[parentIndex], (char *) stringFieldType(in3_3_fieldIndex),
+				CDATA_Text, TRUE);
+		} else {
 
-		printf ("in a end field tag, what should we do here?? \n");
+			printf ("in a end field tag, what should we do here?? \n");
+		}
+
+		/* free data */
+		in3_3_fieldValue = FALSE;
+		CDATA_Text_curlen = 0;
+		in3_3_fieldIndex = INT_ID_UNDEFINED;
 	}
-
-	/* free data */
-	in3_3_fieldValue = FALSE;
-	CDATA_Text_curlen = 0;
-	in3_3_fieldIndex = INT_ID_UNDEFINED;
-}
 }
 
 
@@ -1532,7 +1532,7 @@ static void parseAttributes(void) {
 									}
 									else if(nvp->fieldType == FIELDTYPE_MFNode)  
 									{
-										/*dug9 added July 18, 2010 
+										/*dug9 added July 18, 2010 (search for BIGPUSH / BIGPOP to find where data set)
 										  we have an MFNode field already in binary form 
 										  <fieldValue name="Buildings">
 											<Transform USE="House1"/>
@@ -1640,6 +1640,7 @@ static void parseAttributes(void) {
 							/*printf("parseAttributes - got %d mf fields back from pointer %s \n",mv->n,nvp->fieldValue);*/
 							if( ctype == FIELDTYPE_MFNode )
 							{
+								/* (search for BIGPUSH / BIGPOP to find where data set) */
 								AddRemoveChildren(thisNode,tn,(struct X3D_Node **)mv->p,mv->n,0,__FILE__,__LINE__);
 							}
 							else if( ctype == FIELDTYPE_SFNode)
@@ -1724,7 +1725,8 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 			case X3DSP_Header: parseHeader(atts); break;
 			case X3DSP_X3D: parseX3Dhead(atts); break;
 			case X3DSP_fieldValue:  parseFieldValue(name,atts); break;
-			case X3DSP_field: parseScriptProtoField (myLexer, atts); break;
+			case X3DSP_field: 
+				parseScriptProtoField (myLexer, atts); break;
 			case X3DSP_IS: parseIS(); break;
 			case X3DSP_component: parseComponent(atts); break;
 			case X3DSP_export: parseExport(atts); break;

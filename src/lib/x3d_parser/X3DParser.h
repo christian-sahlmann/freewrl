@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.19 2010/07/19 03:06:04 dug9 Exp $
+$Id: X3DParser.h,v 1.20 2010/07/27 21:08:52 dug9 Exp $
 
 X3D parser functions.
 
@@ -58,6 +58,7 @@ struct nameValuePairs {
 
 #define FREEWRL_SPECIFIC "FrEEWrL_pRotto"
 
+#if (true)
 #define DECREMENT_PARENTINDEX \
         if (parentIndex > 0) { parentIndex--; } else { ConsoleMessage ("X3DParser, line %d stack underflow (source code %s:%d)",LINE,__FILE__,__LINE__); }
 
@@ -66,7 +67,17 @@ struct nameValuePairs {
                 parentIndex++; \
                 parentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
         } else ConsoleMessage ("X3DParser, line %d stack overflow",LINE);
+#else
+#define DECREMENT_PARENTINDEX \
+        if (parentIndex > 0) { parentIndex--; printf("Decrementing parentIndex to %d %s %d\n",parentIndex,__FILE__,__LINE__);} else { ConsoleMessage ("X3DParser, line %d stack underflow (source code %s:%d)",LINE,__FILE__,__LINE__); }
 
+#define INCREMENT_PARENTINDEX \
+        if (parentIndex < (PARENTSTACKSIZE-2))  { \
+                parentIndex++; \
+				printf("Incrementing parentIndex to %d %s %d\n",parentIndex,__FILE__,__LINE__); \
+                parentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
+        } else ConsoleMessage ("X3DParser, line %d stack overflow",LINE);
+#endif
 
 
 int freewrl_XML_GetCurrentLineNumber();
