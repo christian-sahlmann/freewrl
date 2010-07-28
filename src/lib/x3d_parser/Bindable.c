@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.32 2010/04/28 16:56:26 crc_canada Exp $
+$Id: Bindable.c,v 1.33 2010/07/28 00:14:53 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -183,6 +183,21 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		bind_node (node, &background_tos,&background_stack[0]);
 		break;
 
+	case NODE_OrthoViewpoint: 
+		vp = (struct X3D_OrthoViewpoint *) node;
+		vp->set_bind = value;
+		nameptr = vp->description->strptr;
+		setMenuStatus (nameptr);
+
+		bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
+
+		/* up_vector is reset after a bind */
+		if (value==1) {
+			//reset_upvector();
+			bind_viewpoint (vp);
+		}
+		break;
+
 	case NODE_Viewpoint: 
 		vp = (struct X3D_Viewpoint *) node;
 		vp->set_bind = value;
@@ -246,6 +261,7 @@ static size_t setBindofst(void *node) {
 		case NODE_Background: return offsetof(struct X3D_Background, set_bind);
 		case NODE_TextureBackground: return offsetof(struct X3D_TextureBackground, set_bind);
 		case NODE_Viewpoint: return offsetof(struct X3D_Viewpoint, set_bind);
+		case NODE_OrthoViewpoint: return offsetof(struct X3D_Viewpoint, set_bind);
 		case NODE_GeoViewpoint: return offsetof(struct X3D_GeoViewpoint, set_bind);
 		case NODE_Fog: return offsetof(struct X3D_Fog, set_bind);
 		case NODE_NavigationInfo: return offsetof(struct X3D_NavigationInfo, set_bind);
@@ -262,6 +278,7 @@ static size_t bindTimeoffst (struct X3D_Node  *node) {
 		case NODE_Background: return offsetof(struct X3D_Background, bindTime);
 		case NODE_TextureBackground: return offsetof(struct X3D_TextureBackground, bindTime);
 		case NODE_Viewpoint: return offsetof(struct X3D_Viewpoint, bindTime);
+		case NODE_OrthoViewpoint: return offsetof(struct X3D_Viewpoint, bindTime);
 		case NODE_GeoViewpoint: return offsetof(struct X3D_GeoViewpoint, bindTime);
 		case NODE_Fog: return offsetof(struct X3D_Fog, bindTime);
 		case NODE_NavigationInfo: return offsetof(struct X3D_NavigationInfo, bindTime);
@@ -283,6 +300,7 @@ static size_t isboundofst(void *node) {
 		case NODE_Background: return offsetof(struct X3D_Background, isBound);
 		case NODE_TextureBackground: return offsetof(struct X3D_TextureBackground, isBound);
 		case NODE_Viewpoint: return offsetof(struct X3D_Viewpoint, isBound);
+		case NODE_OrthoViewpoint: return offsetof(struct X3D_Viewpoint, isBound);
 		case NODE_GeoViewpoint: return offsetof(struct X3D_GeoViewpoint, isBound);
 		case NODE_Fog: return offsetof(struct X3D_Fog, isBound);
 		case NODE_NavigationInfo: return offsetof(struct X3D_NavigationInfo, isBound);

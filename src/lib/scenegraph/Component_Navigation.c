@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.33 2010/05/05 12:52:04 davejoubert Exp $
+$Id: Component_Navigation.c,v 1.34 2010/07/28 00:14:52 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -93,6 +93,52 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 		fieldofview = a1/3.1415926536*180;
 	}
 	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
+}
+
+
+void prep_OrthoViewpoint (struct X3D_OrthoViewpoint *node) {
+	double a1;
+
+	if (!render_vp) return;
+
+        printf ("prep_OrthoViewpoint: vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+        render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+
+
+	/*  printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
+	 printf ("VP stack %d tos %d\n",viewpoint_tos, viewpoint_stack[viewpoint_tos]); */
+
+	 
+
+	/* check the set_bind eventin to see if it is TRUE or FALSE */
+	/* code to perform binding is now in set_viewpoint. */
+
+	/* we will never get here unless we are told that we are active by the scene graph; actually
+	   doing this test can screw us up, so DO NOT do this test!
+			if(!node->isBound) return;
+	*/
+	
+	/* printf ("Component_Nav, found VP is %d, (%s)\n",node,node->description->strptr); */
+	
+
+	/* perform OrthoViewpoint translations */
+	FW_GL_ROTATE_RADIANS(-node->orientation.c[3],node->orientation.c[0],node->orientation.c[1],
+		node->orientation.c[2]);
+	FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
+
+	/* now, lets work on the OrthoViewpoint fieldOfView */
+	FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
+#ifdef MUST_REWRITE_FOR_ORTHO
+	if(viewPort[2] > viewPort[3]) {
+		a1=0;
+		fieldofview = node->fieldOfView/3.1415926536*180;
+	} else {
+		a1 = node->fieldOfView;
+		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
+		fieldofview = a1/3.1415926536*180;
+	}
+#endif
+	printf ("render_OrthoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView);
 }
 
 /******************************************************************************************/

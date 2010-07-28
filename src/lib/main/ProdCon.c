@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.65 2010/06/29 16:59:44 crc_canada Exp $
+  $Id: ProdCon.c,v 1.66 2010/07/28 00:14:52 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -739,6 +739,7 @@ void registerBindable (struct X3D_Node *node) {
 	/* printf ("registerBindable, on node %d %s\n",node,stringNodeType(node->_nodeType));  */
 	switch (node->_nodeType) {
 		case NODE_Viewpoint:
+		case NODE_OrthoViewpoint:
 		case NODE_GeoViewpoint:
 			viewpointnodes = REALLOC (viewpointnodes, (sizeof(void *)*(totviewpointnodes+1)));
 			viewpointnodes[totviewpointnodes] = node;

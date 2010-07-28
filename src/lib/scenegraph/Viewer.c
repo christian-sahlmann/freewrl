@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.53 2010/05/06 08:43:36 davejoubert Exp $
+$Id: Viewer.c,v 1.54 2010/07/28 00:14:52 crc_canada Exp $
 
 CProto ???
 
@@ -1574,6 +1574,9 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	yd = vp->position.c[1]-vp->centerOfRotation.c[1];
 	zd = vp->position.c[2]-vp->centerOfRotation.c[2];
 	Viewer.Dist = sqrt (xd*xd+yd*yd+zd*zd);
+
+	/* assume Perspective, unless Otrho set */
+	Viewer.ortho=FALSE;
 
 	/* printf ("viewpoint binding distance %f\n",Viewer.Dist);  */
 

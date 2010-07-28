@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.126 2010/06/29 16:59:44 crc_canada Exp $
+  $Id: MainLoop.c,v 1.127 2010/07/28 00:14:52 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -960,12 +960,17 @@ void setup_projection(int pick, int x, int y)
                 FW_GLU_PICK_MATRIX((float)x,(float)viewPort2[3]-y, (float)100,(float)100,viewPort2);
         }
 
-        /* bounds check */
-        if ((fieldofview2 <= 0.0) || (fieldofview2 > 180.0)) 
-			fieldofview2=45.0;
-        /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
+	/* ortho projection or perspective projection? */
+	if (Viewer.ortho) {
+		FW_GL_ORTHO (-1,1,-1,1,nearPlane,farPlane);
+	} else {
+        	/* bounds check */
+        	if ((fieldofview2 <= 0.0) || (fieldofview2 > 180.0)) 
+				fieldofview2=45.0;
+        	/* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
 
-        FW_GLU_PERSPECTIVE(fieldofview2, aspect2, nearPlane, farPlane); 
+        	FW_GLU_PERSPECTIVE(fieldofview2, aspect2, nearPlane, farPlane); 
+	}
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.30 2010/04/07 04:07:45 dug9 Exp $
+$Id: Viewer.h,v 1.31 2010/07/28 00:14:52 crc_canada Exp $
 
 Viewer ???
 
@@ -196,6 +196,9 @@ typedef struct viewer {
 	Quaternion startSLERPbindTimeQuat;
 
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
+
+	/* are we perspective or ortho? */
+	int ortho;
 } X3D_Viewer;
 
 void initStereoDefaults(void);
