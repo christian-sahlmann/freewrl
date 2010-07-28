@@ -8,10 +8,13 @@ Build-Depends: debhelper (>= 7), pkg-config,
  libxaw7-dev,
  libmotif-dev | lesstif2-dev,
  libimlib2-dev, libxml2-dev, libexpat1-dev,
- libmozjs-dev | xulrunner-dev, iceape-dev,
+ libmozjs-dev | xulrunner-dev | iceape-dev,
  gcj | java-compiler
-Standards-Version: 3.8.0
+Standards-Version: 3.8.4
 Homepage: http://freewrl.sourceforge.net
+Vcs-Browser: http://git.debian.org/?p=pkg-multimedia/freewrl.git
+Vcs-Git: git://git.debian.org/git/pkg-multimedia/freewrl.git
+
 
 Package: freewrl
 Architecture: any
