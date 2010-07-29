@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.60 2010/07/27 21:08:52 dug9 Exp $
+$Id: X3DProtoScript.c,v 1.61 2010/07/29 01:05:52 dug9 Exp $
 
 ???
 
@@ -528,6 +528,9 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 				<Transform USE="House1"/>
 				<Transform USE="House2"/>
 			   </fieldValue>
+		   and we use 11 for SFNodes coming from Instance fieldValue, since we don't know they type from the fieldValue.
+		   we use FIELDTYPE_MFNode elsewhere to be general, and here we pass it along, somewhere else, 
+		   it figures out from the Script ISd field type that it should be SF or MF.
 		*/
 		/* printf ("	index %d is name :%s: value :%s: type :%d:\n",i,CPI.name[i],CPI.value[i],CPI.type[i]);  
 		 printf ("... comparing %s and %s\n",CPI.name[i],atts[pfInd+1]); */
@@ -586,7 +589,8 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 			/* if there is no value here, just return, as some accessMethods do not have value */
 			if (field->ASCIIvalue==NULL)
 			{
-				if(field->fieldDecl->fieldType == FIELDTYPE_MFNode && field->valueSet)
+				if((field->fieldDecl->fieldType == FIELDTYPE_MFNode || field->fieldDecl->fieldType == FIELDTYPE_SFNode) 
+					&& field->valueSet)
 				{
 					///BIGPUSH BIGPOP
 					/* assume we're getting an mfnode */
@@ -597,10 +601,10 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 					sprintf (val, "%p",av);
 					REPLACE_CONNECT_VALUE(val,field->fieldDecl->fieldType);
 				}
-				else if(field->fieldDecl->fieldType == FIELDTYPE_SFNode && field->valueSet)
-				{
-					//reserved for SFNode handling
-				}
+				//else if(field->fieldDecl->fieldType == FIELDTYPE_SFNode && field->valueSet)
+				//{
+				//	//reserved for SFNode handling
+				//}
 				else
 					return;
 			}else{
@@ -1937,8 +1941,14 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 		if (myValueString == NULL) {
 			if(myValueType==FIELDTYPE_SFNode) 
 			{
-				vrmlNodeT nulval = NULL;
-				memcpy(&defaultVal,nulval,sizeof(vrmlNodeT));
+				//vrmlNodeT nulval = NULL;
+				struct X3D_Node* nulval = NULL;
+				//struct X3D_Node sfnode;
+				//static vrmlNodeT nulval = NULL;
+				//if(nulval == NULL) nulval = (struct X3D_Node*)createNewX3DNode(NODE_Color);
+				memcpy(&defaultVal,&nulval,sizeof(struct X3D_Node*)); //struct X3D_Node));
+				//((struct Multi_Node *)&defaultVal)->n = 0;
+				//((struct Multi_Node *)&defaultVal)->p = NULL;
 			}
 			else if(myValueType==FIELDTYPE_MFNode)
 			{
@@ -2007,7 +2017,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctyp
 	  
 	  Method: we fool the regular PARSING_NODES to put the field values into the children of a Group node
 	   then look in the group node later -on pop/end element (see below)- to see if we got anything
-      To manage recursion, we keep the Group node in an array
+      To manage recursion, we keep the Group node in an array 
 	  And because a proto can have many MFNode fields, we malloc a data structure when we find a field
     */
 	fieldNodeParsingStateB[parentIndex].parsingMFSFNode = 0;
@@ -2051,7 +2061,7 @@ void endScriptProtoField()
 			kids = &X3D_GROUP(fieldNodeParsingStateB[parentIndex].fieldHolder)->children; 
 			n = kids->n;
 			myValueType = fieldDecl_getType(fieldNodeParsingStateB[parentIndex].mfnodeSdecl->fieldDecl);
-			myValueType = FIELDTYPE_MFNode;
+			//myValueType = FIELDTYPE_MFNode;
 			if(myValueType ==  FIELDTYPE_MFNode)
 			{
 				/*struct Multi_Node { int n; void * *p; };*/
@@ -2065,8 +2075,20 @@ void endScriptProtoField()
 			}
 			else if(myValueType ==  FIELDTYPE_SFNode)
 			{
+				//struct X3D_Node* tmp;
+				//struct X3D_Transform* tmp2;
 				/* take the first child as an SFNode */
-				memcpy(&v,kids->p[0],sizeof(struct X3D_Node*)); 
+				/* basically the anyVrml holds a pointer to the node (and that's all it holds) */
+				//printf("sizeof union anyvrml=%d\n",sizeof(union anyVrml));
+				//printf("sizeof struct x3d_node=%d\n",sizeof(struct X3D_Node));
+				//printf("sizeof struct x3d_transform=%d\n",sizeof(struct X3D_Transform));
+				//printf("element length FIELDTYPE_SFNODE=%d\n", returnElementLength(FIELDTYPE_SFNode));
+
+				//tmp2 = (struct X3D_Transform*)(kids->p[0]);
+				memcpy(&v,&kids->p[0],sizeof(struct X3D_Node*));
+				//tmp = (struct X3D_Node*)*(unsigned int *)&v;
+				//tmp2 = (struct X3D_Transform*)*(unsigned int *)&v;
+				//printf("%d\n",tmp->_nodeType);
 				//remove_parent((struct X3D_Node *)kids->p[0], fieldNodeParsingState[curProtoInsStackInd].fieldHolder);
 				/* if we were ambitious we would FREE any extra children here */
 			}

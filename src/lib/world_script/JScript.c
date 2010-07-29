@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.26 2010/07/11 14:34:04 dug9 Exp $
+$Id: JScript.c,v 1.27 2010/07/29 01:05:52 dug9 Exp $
 
 Javascript C language binding.
 
@@ -634,13 +634,43 @@ void SaveScriptField (int num, indexT kind, indexT type, const char* field, unio
 	newEntry->value = value;
 }
 
-
+char* re_strcat(char *_Dest, char *_Source, int *destLen, int *destDim)
+{
+	/* strcats, but first checks strlen on source and destination
+	   and reallocs if necessary - good when you are doing a lot of strcatting of un-pre-known elements
+	   (Q. is there something for this already?)
+	   _Dest, _Source - as with strcat(_Dest,_Source)
+	   destLen - current cumulative strlen(_Dest)
+	   destDim - current malloc/realloc dimension
+	   Usage example:
+		dstdim = (rows+1)*(elements*15) + 100; //a guess
+		dstlen = 0;
+		smallfield = MALLOC (dstdim+1); //rows+1)*(elements*15) + 100);
+		smallfield[0] = '\0';
+		...
+		for(;;)
+		{
+			...
+			smallfield = re_strcat(smallfield, "new ",&dstlen,&dstdim);
+		...
+		FREE_IF_NZ(smallfield)
+	*/
+	int srclen = strlen(_Source);
+	*destLen = *destLen + srclen;
+	if(*destLen > *destDim -1)
+	{
+		*destDim = *destDim + srclen + 1 + 100;
+		_Dest = realloc(_Dest,*destDim);
+	}
+	_Dest = strcat(_Dest,_Source);
+	return _Dest;
+}
 /* the EventLoop is initializing this field now */
 void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value) {
 	jsval rval;
 	char *smallfield = NULL;
 	char mynewname[400];
-	char thisValue[100];
+	char *thisValue;
 	int rows, elements;
 	char *sftype = NULL;
 
@@ -885,6 +915,12 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 
 			/* make this at least as large as required, then add some more on to the end... */
 			/*
+			Old Approach 
+					step1: compute using guestimate formulas
+					step2: malloc
+					step3: loop through strcat() and hope no overrun 
+				Problem: heap corruption from array overrun - the guestimate has been bad 
+				    a few times in 2010 with MFVec2fs and MFStrings with 42 and 47 elements, strings of varying length
 				example for MFVec2f
 				'new MFVec2f(new SFVec2f(1234.678910,1234.678910),...)'
 				each SF 2 numbers each 10 digits plus new type(,), 15 chars  =35.
@@ -894,72 +930,86 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 					example 47 SFVec2fs
 					actual bytes: 47 x 35 bytes = 1645 + 13 for the MF = 1658
 					old formula  2 x ((47*15)+100) = 1610   //thats 48 bytes short and I bomb out
-					new formula  3 x (47*15) + 100 = 2215
-
+					better formula  3 x (47*15) + 100 = 2215
+			New Approach (July 28, 2010)
+					step1: compute using guestimate formulas
+					step2: malloc
+					step3: loop through and realloc before strcat() if short
 			*/
-			smallfield = MALLOC ((rows+1)*(elements*15) + 100);
-
-			/* what is the equivalent SF for this MF?? */
-			if (type != convertToSFType(type)) haveMulti = TRUE;
-			 else haveMulti = FALSE;
-			
-			/* the sftype is the SF form of either the MF or SF */
-			sftype = STRDUP((char *)FIELDTYPES[convertToSFType(type)]);
-
-			/* SFStrings are Strings */
-			if (strncmp(sftype,"SFString",8)==0) strcpy (sftype,"String");
-
-
-			/* start the string */
-			smallfield[0] = '\0';
-
-			/* is this an MF variable, with SFs in it? */
-			if (haveMulti) {
-				strcat (smallfield, "new ");
-				strcat (smallfield, FIELDTYPES[type]);
-				strcat (smallfield, "(");
-			}
-
-			/* loop through, and put values in */
-			for (eleCount=0; eleCount<elements; eleCount++) {
-				/* ECMA native types can just be passed in... */
-				if (!MFhasECMAtype) {
-					strcat (smallfield, "new ");
-					strcat (smallfield, sftype);
-					strcat (smallfield, "(");
-				}
-
-				/* go through the SF type; SFints will have 1; SFVec3f's will have 3, etc */
-				for (rowCount=0; rowCount<rows; rowCount++ ) {
-					if (IntPtr != NULL) {
-						sprintf (thisValue,"%d",*IntPtr); IntPtr++;
-					} else if (FloatPtr != NULL) {
-						sprintf (thisValue,"%f",*FloatPtr); FloatPtr++;
-					} else if (DoublePtr != NULL) {
-						sprintf (thisValue,"%f",*DoublePtr); DoublePtr++;
-					} else if (SVPtr != NULL) {
-						sptr[0] = *SVPtr; SVPtr++;
-						sprintf (thisValue,"\"%s\"",sptr[0]->strptr);
-					} else { /* must be a Void */
-						/* printf ("sending in a VoidPtr, it is %p\n",VoidPtr[0]);
-						if (VoidPtr[0] != NULL) {printf ("it is a %s type\n",stringNodeType(X3D_NODE(VoidPtr[0])->_nodeType));} */
- 
-						sprintf (thisValue,"\"%p\"", VoidPtr[0]); VoidPtr++;
-					}
-					strcat (smallfield, thisValue);
-					if (rowCount < (rows-1)) strcat (smallfield,",");
-				}
-
-				if (!MFhasECMAtype) strcat (smallfield, ")");
-				if (eleCount < (elements-1)) strcat (smallfield,",");
-
-			}
-
-
-			if (haveMulti) {
-				strcat (smallfield,")");
-			}
+			{
+				int dstlen, dstdim, tdim;
+				tdim = 200;
+				thisValue = MALLOC(tdim+1);
+				dstdim = (rows+1)*(elements*15) + 100; /* a guess */
+				dstlen = 0;
+				smallfield = MALLOC (dstdim+1); //rows+1)*(elements*15) + 100);
+				/* what is the equivalent SF for this MF?? */
+				if (type != convertToSFType(type)) haveMulti = TRUE;
+				 else haveMulti = FALSE;
 				
+				/* the sftype is the SF form of either the MF or SF */
+				sftype = STRDUP((char *)FIELDTYPES[convertToSFType(type)]);
+
+				/* SFStrings are Strings */
+				if (strncmp(sftype,"SFString",8)==0) strcpy (sftype,"String");
+
+
+				/* start the string */
+				smallfield[0] = '\0';
+
+				/* is this an MF variable, with SFs in it? */
+				if (haveMulti) {
+					smallfield = re_strcat(smallfield, "new ",&dstlen,&dstdim);
+					smallfield = re_strcat(smallfield, FIELDTYPES[type],&dstlen,&dstdim);
+					smallfield = re_strcat(smallfield, "(",&dstlen,&dstdim);
+				}
+
+				/* loop through, and put values in */
+				for (eleCount=0; eleCount<elements; eleCount++) {
+					/* ECMA native types can just be passed in... */
+					if (!MFhasECMAtype) {
+						smallfield = re_strcat(smallfield, "new ",&dstlen,&dstdim);
+						smallfield = re_strcat(smallfield, sftype,&dstlen,&dstdim);
+						smallfield = re_strcat(smallfield, "(",&dstlen,&dstdim);
+					}
+
+					/* go through the SF type; SFints will have 1; SFVec3f's will have 3, etc */
+					for (rowCount=0; rowCount<rows; rowCount++ ) {
+						if (IntPtr != NULL) {
+							sprintf (thisValue,"%d",*IntPtr); IntPtr++;
+						} else if (FloatPtr != NULL) {
+							sprintf (thisValue,"%f",*FloatPtr); FloatPtr++;
+						} else if (DoublePtr != NULL) {
+							sprintf (thisValue,"%f",*DoublePtr); DoublePtr++;
+						} else if (SVPtr != NULL) {
+							sptr[0] = *SVPtr; SVPtr++;
+							if(strlen(sptr[0]->strptr)+2 > tdim-1)
+							{	
+								tdim = strlen(sptr[0]->strptr) + 1 + 100;
+								thisValue = realloc(thisValue,tdim);
+							}
+							sprintf (thisValue,"\"%s\"",sptr[0]->strptr);
+						} else { /* must be a Void */
+							/* printf ("sending in a VoidPtr, it is %p\n",VoidPtr[0]);
+							if (VoidPtr[0] != NULL) {printf ("it is a %s type\n",stringNodeType(X3D_NODE(VoidPtr[0])->_nodeType));} */
+							sprintf (thisValue,"\"%p\"", VoidPtr[0]); VoidPtr++;
+						}
+						smallfield = re_strcat(smallfield, thisValue,&dstlen,&dstdim);
+						if (rowCount < (rows-1)) smallfield = re_strcat(smallfield,",",&dstlen,&dstdim);
+					}
+
+					if (!MFhasECMAtype) smallfield = re_strcat(smallfield, ")",&dstlen,&dstdim);
+					if (eleCount < (elements-1)) smallfield = re_strcat(smallfield,",",&dstlen,&dstdim);
+
+				}
+
+
+				if (haveMulti) {
+					smallfield = re_strcat(smallfield,")",&dstlen,&dstdim);
+				}
+				/* printf("dstlen=%d dstdim=%d\n",dstlen,dstdim); */
+				FREE_IF_NZ (thisValue);
+			}
 			/* Warp factor 5, Dr Sulu... */
 			#ifdef JAVASCRIPTVERBOSE 
 			printf ("JScript, for non-ECMA newname %s, sending :%s:\n",mynewname,smallfield); 

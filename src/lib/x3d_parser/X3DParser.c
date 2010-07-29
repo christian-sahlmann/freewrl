@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.72 2010/07/27 21:08:52 dug9 Exp $
+$Id: X3DParser.c,v 1.73 2010/07/29 01:05:52 dug9 Exp $
 
 ???
 
@@ -1530,7 +1530,7 @@ static void parseAttributes(void) {
 						                ?? np = getEAINodeFromTable(atoi(value), -1);
 										*/
 									}
-									else if(nvp->fieldType == FIELDTYPE_MFNode)  
+									else if(nvp->fieldType == FIELDTYPE_MFNode || nvp->fieldType == FIELDTYPE_SFNode )  
 									{
 										/*dug9 added July 18, 2010 (search for BIGPUSH / BIGPOP to find where data set)
 										  we have an MFNode field already in binary form 
@@ -1555,9 +1555,21 @@ static void parseAttributes(void) {
 											}
 											else if( type == FIELDTYPE_SFNode)
 											{
-												/* down-convert first node in MFNode to SFNode and forget the rest */
-												memcpy(&thisEntry->value,((struct Multi_Node *)av)->p[0],sizeof(struct X3D_Node*));
-												/* could free the rest of the unused MFnodes here if there are some and we were ambitious */
+												if(nvp->fieldType == FIELDTYPE_SFNode)
+												{
+													/* this came from the ProtoInterface field where we knew the type */
+													memcpy(&thisEntry->value,av,sizeof(union anyVrml)); 
+												}
+												else if(nvp->fieldType == FIELDTYPE_MFNode)
+												{
+													/* this came from the ProtoInstance fieldValue where did not know the type
+													   and we guessed at MFNode to be most general. But we were wrong in this
+													   case - so down-convert first node in MFNode to SFNode and forget the rest */
+													//struct X3D_Transform *tt = (struct X3D_Transform*)((struct Multi_Node *)av)->p[0];
+													struct X3D_Node *tt = (struct X3D_Node*)((struct Multi_Node *)av)->p[0];
+													memcpy(&thisEntry->value,&tt,sizeof(struct X3D_Node*));
+													/* could free the rest of the unused MFnodes here if there are some and we were ambitious */
+												}
 											}
 											else
 											{
