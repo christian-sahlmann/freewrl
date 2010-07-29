@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.34 2010/07/28 00:14:52 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.35 2010/07/29 14:32:27 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -97,18 +97,16 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 
 
 void prep_OrthoViewpoint (struct X3D_OrthoViewpoint *node) {
-	double a1;
+	int ind;
 
 	if (!render_vp) return;
 
-        printf ("prep_OrthoViewpoint: vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-        render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+	/* printf ("prep_OrthoViewpoint: vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+        render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
 
 
 	/*  printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
 	 printf ("VP stack %d tos %d\n",viewpoint_tos, viewpoint_stack[viewpoint_tos]); */
-
-	 
 
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	/* code to perform binding is now in set_viewpoint. */
@@ -127,18 +125,13 @@ void prep_OrthoViewpoint (struct X3D_OrthoViewpoint *node) {
 	FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 
 	/* now, lets work on the OrthoViewpoint fieldOfView */
-	FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
-#ifdef MUST_REWRITE_FOR_ORTHO
-	if(viewPort[2] > viewPort[3]) {
-		a1=0;
-		fieldofview = node->fieldOfView/3.1415926536*180;
-	} else {
-		a1 = node->fieldOfView;
-		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
-		fieldofview = a1/3.1415926536*180;
+        if (node->fieldOfView.n == 4) {
+                for (ind=0; ind<4; ind++) {
+                        Viewer.orthoField[ind] = (double) node->fieldOfView.p[ind];
+                }
 	}
-#endif
-	printf ("render_OrthoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView);
+
+	/* printf ("render_OrthoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }
 
 /******************************************************************************************/
@@ -402,14 +395,77 @@ void proximity_LOD (struct X3D_LOD *node) {
 
 
 
-#ifdef OLDCODE
-void changed_Inline (struct X3D_Inline *node) {
-printf ("changed_Inline\n");
-		INITIALIZE_EXTENT
-}
-#endif
-
-
 void changed_Collision (struct X3D_Collision *node) {
 		INITIALIZE_EXTENT
 }
+
+/************************************************************************
+ *
+ * ViewpointGroup Node 
+ *
+ ************************************************************************/
+ 
+void changed_ViewpointGroup (struct X3D_ViewpointGroup *node) {
+	struct X3D_ProximitySensor *pn;
+
+	/* check if we need to create the proximity node */
+	if (node->__proxNode == NULL) {
+		/* create proximity */
+		pn = (struct X3D_ProximitySensor *) createNewX3DNode(NODE_ProximitySensor);
+
+		/* any changes needed here?? */
+		node->__proxNode = (void *)pn;
+
+		/* link this in so the VF_Proximity flag will propagate */
+		ADD_PARENT(X3D_NODE(pn),X3D_NODE(node));
+	}
+
+	/* get the Proximity Node */
+	pn = X3D_PROXIMITYSENSOR(node->__proxNode);
+
+	/* copy size, center over */
+	memcpy (&pn->center, &node->center, sizeof (float)*3);
+	memcpy (&pn->size, &node->size, sizeof (float)*3);
+
+	/* enable it */
+	pn->enabled=TRUE;
+
+	/* tell the proximity that it has changed */
+	pn->_change++;
+
+	MARK_NODE_COMPILED
+}
+
+
+void child_ViewpointGroup (struct X3D_ViewpointGroup *node) {
+        int i;
+
+	/* do we have an attached proximity node? If so, we'll be flagged to do
+	   the sensitive pass */
+
+	/* printf ("child_ViewpointGroup, this %u rf %x \n",node,node->_renderFlags);
+	  printf ("       ..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+          render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
+
+	if (render_proximity) {
+		if (node->__proxNode != NULL) {
+			/* printf ("have prox, rendering it\n"); */
+			render_node(X3D_NODE(node->__proxNode));
+
+			/* printf ("prox active %d\n",X3D_PROXIMITYSENSOR(node->__proxNode)->isActive); */
+		}
+
+	}
+
+	if (!render_vp) return;
+
+	/* render the viewpoints - one of these will be active */
+        for(i=0; i<node->children.n; i++) {
+                struct X3D_Node *p = X3D_NODE(node->children.p[i]);
+                if (p != NULL) {
+                        render_node(p);
+                }
+        }
+
+}
+

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.38 2010/06/30 12:57:42 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.39 2010/07/29 14:32:27 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -2429,16 +2429,18 @@ static void calculateViewingSpeed() {
         INITIALIZE_GEOSPATIAL(Viewer.GeoSpatialNode)
 
 
+#ifdef OLDCODE
 #define COMPILE_IF_REQUIRED { struct X3D_Virt *v; \
         if (node->_ichange != node->_change) { \
                 /* printf ("COMP %d %d\n",node->_ichange, node->_change); */ \
                 v = *(struct X3D_Virt **)node; \
                 if (v->compile) { \
                         compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
-                } else {printf ("huh - have COMPIFREQD, but v->compile null for %s\n",stringNodeType(node->_nodeType));} \
+		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s at %s:%d\n",stringNodeType(node->_nodeType),__FILE__,__LINE__);} \
                 } \
                 if (node->_ichange == 0) return; \
         }
+#endif
 
 /*
         COMPILE_IF_REQUIRED
@@ -2496,13 +2498,13 @@ static void calculateViewingSpeed() {
 static void calculateExamineModeDistance(void) {
 extern int doExamineModeDistanceCalculations;
 /*
-	printf ("bind_geoviewpoint - calculateExamineModeDistance\n");
+	printf ("bind_GeoViewpoint - calculateExamineModeDistance\n");
 */
 doExamineModeDistanceCalculations = TRUE;
 
 }
 
-void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
+void bind_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	Quaternion q_i;
 
 	INITIALIZE_GEOSPATIAL(node)
@@ -2511,7 +2513,7 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	/* set Viewer position and orientation */
 
 	#ifdef VERBOSE
-	printf ("bind_geoviewpoint, setting Viewer to %lf %lf %lf orient %f %f %f %f\n",node->__movedPosition.c[0],node->__movedPosition.c[1],
+	printf ("bind_GeoViewpoint, setting Viewer to %lf %lf %lf orient %f %f %f %f\n",node->__movedPosition.c[0],node->__movedPosition.c[1],
 	node->__movedPosition.c[2],node->orientation.c[0],node->orientation.c[1],node->orientation.c[2],
 	node->orientation.c[3]);
 	printf ("	node %u fieldOfView %f\n",node,node->fieldOfView);
@@ -2526,7 +2528,7 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	Viewer.AntiPos.y = node->__movedPosition.c[1];
 	Viewer.AntiPos.z = node->__movedPosition.c[2];
 
-	/* printf ("bind_geoviewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z); */
+	/* printf ("bind_GeoViewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z); */
 
 	vrmlrot_to_quaternion (&Viewer.Quat,node->__movedOrientation.c[0],
 		node->__movedOrientation.c[1],node->__movedOrientation.c[2],node->__movedOrientation.c[3]);

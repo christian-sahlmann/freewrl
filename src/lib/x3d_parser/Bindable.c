@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.33 2010/07/28 00:14:53 crc_canada Exp $
+$Id: Bindable.c,v 1.34 2010/07/29 14:32:27 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -194,7 +194,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		/* up_vector is reset after a bind */
 		if (value==1) {
 			//reset_upvector();
-			bind_viewpoint (vp);
+			bind_OrthoViewpoint (vp);
 		}
 		break;
 
@@ -209,7 +209,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		/* up_vector is reset after a bind */
 		if (value==1) {
 			//reset_upvector();
-			bind_viewpoint (vp);
+			bind_Viewpoint (vp);
 		}
 		break;
 
@@ -224,7 +224,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		/* up_vector is reset after a bind */
 		if (value==1) {
 			//reset_upvector();
-			bind_geoviewpoint (gvp);
+			bind_GeoViewpoint (gvp);
 		}
 		break;
 
@@ -261,7 +261,7 @@ static size_t setBindofst(void *node) {
 		case NODE_Background: return offsetof(struct X3D_Background, set_bind);
 		case NODE_TextureBackground: return offsetof(struct X3D_TextureBackground, set_bind);
 		case NODE_Viewpoint: return offsetof(struct X3D_Viewpoint, set_bind);
-		case NODE_OrthoViewpoint: return offsetof(struct X3D_Viewpoint, set_bind);
+		case NODE_OrthoViewpoint: return offsetof(struct X3D_OrthoViewpoint, set_bind);
 		case NODE_GeoViewpoint: return offsetof(struct X3D_GeoViewpoint, set_bind);
 		case NODE_Fog: return offsetof(struct X3D_Fog, set_bind);
 		case NODE_NavigationInfo: return offsetof(struct X3D_NavigationInfo, set_bind);

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.135 2010/07/25 00:36:24 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.136 2010/07/29 14:32:27 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -492,7 +492,9 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 
 
 	/* verify parameters here */
-	if ((vpnode->_nodeType != NODE_Viewpoint) && (vpnode->_nodeType != NODE_GeoViewpoint)) {
+	if ((vpnode->_nodeType != NODE_Viewpoint) && 
+		(vpnode->_nodeType != NODE_OrthoViewpoint) &&
+		(vpnode->_nodeType != NODE_GeoViewpoint)) {
 		printf ("can not do this node type yet %s, for cpf\n",stringNodeType(vpnode->_nodeType));
 		nearPlane = DEFAULT_NEARPLANE;
 		farPlane = DEFAULT_FARPLANE;
@@ -1632,6 +1634,7 @@ void startOfLoopNodeUpdates(void) {
 				
 				/* maybe this is the current Viewpoint? */
 				BEGIN_NODE(Viewpoint) VIEWPOINT(Viewpoint) END_NODE
+				BEGIN_NODE(OrthoViewpoint) VIEWPOINT(OrthoViewpoint) END_NODE
 				BEGIN_NODE(GeoViewpoint) VIEWPOINT(GeoViewpoint) END_NODE
 	
 				BEGIN_NODE(NavigationInfo) 
@@ -1876,7 +1879,19 @@ void startOfLoopNodeUpdates(void) {
 				/* up_vector is reset after a bind */
 				//if (*setBindPtr==1) reset_upvector();
 				bind_node ((void *)node, &viewpoint_tos,&viewpoint_stack[0]);
-				bind_viewpoint((struct X3D_Viewpoint *)node); //dug9 added July 24, 2009: when you bind, it should set the avatar to the newly bound viewpoint pose and forget any cumulative avatar navigation from the last viewpoint parent
+
+				//dug9 added July 24, 2009: when you bind, it should set the 
+				//avatar to the newly bound viewpoint pose and forget any 
+				// cumulative avatar navigation from the last viewpoint parent
+printf ("binding to node %s\n",stringNodeType(node->_nodeType));
+
+				if (node->_nodeType==NODE_Viewpoint) {
+					bind_Viewpoint((struct X3D_Viewpoint *)node); 
+				} else if (node->_nodeType==NODE_OrthoViewpoint) {
+					bind_OrthoViewpoint((struct X3D_OrthoViewpoint *) node);
+				} else {
+					bind_GeoViewpoint((struct X3D_GeoViewpoint *) node);
+				}
 			}
 			setBindPtr = NULL;
 		}

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.127 2010/07/28 00:14:52 crc_canada Exp $
+  $Id: MainLoop.c,v 1.128 2010/07/29 14:32:27 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -962,7 +962,17 @@ void setup_projection(int pick, int x, int y)
 
 	/* ortho projection or perspective projection? */
 	if (Viewer.ortho) {
-		FW_GL_ORTHO (-1,1,-1,1,nearPlane,farPlane);
+/*
+		printf ("ovf %lf %lf %lf %lf\n", Viewer.orthoField[0],
+				Viewer.orthoField[1],
+				Viewer.orthoField[2],
+				Viewer.orthoField[3]);
+*/
+		FW_GL_ORTHO (Viewer.orthoField[0],
+				Viewer.orthoField[1],
+				Viewer.orthoField[2],
+				Viewer.orthoField[3],
+				nearPlane,farPlane);
 	} else {
         	/* bounds check */
         	if ((fieldofview2 <= 0.0) || (fieldofview2 > 180.0)) 
@@ -1473,57 +1483,180 @@ void setStereoBufferStyle(int itype) /*setXEventStereo()*/
 }
 
 /* go to the first viewpoint */
-void First_ViewPoint() {
-        if (totviewpointnodes>=1) {
+/* ok, is this ViewpointGroup active or not? */
+int vpGroupActive(struct X3D_ViewpointGroup *vp_parent) {
 
-                /* whew, we have other vp nodes */
-                /*
-                if (currboundvpno != 0) {
-                */
-                        /* have to do some work */
-                        send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
-                        currboundvpno = 0;
-                        send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
-                /*
-                }
-                */
+	/* ok, if this is not a ViewpointGroup, we are ok */
+	if (vp_parent->_nodeType != NODE_ViewpointGroup) return TRUE;
+
+	if (vp_parent->__proxNode != NULL) {
+	        /* if size == 0,,0,0 we always do the render */
+	        if ((APPROX(0.0,vp_parent->size.c[0])) && (APPROX(0.0,vp_parent->size.c[1])) && (APPROX(0.0,vp_parent->size.c[2]))) {
+	                printf ("size is zero\n");
+	                return TRUE;
+	        }
+
+		return X3D_PROXIMITYSENSOR(vp_parent->__proxNode)->isActive;
+	}
+	return TRUE;
+}
+
+/* find if there is another valid viewpoint */
+int moreThanOneValidViewpoint( void) {
+	int count;
+
+	if (totviewpointnodes<=1) return FALSE;
+
+	for (count=0; count < totviewpointnodes; count++) {
+		if (count != currboundvpno) {
+			/* ok, we have a viewpoint; is its parent a ViewpointGroup? */
+			if (X3D_NODE(viewpointnodes[count])->_nparents > 0) {
+				struct X3D_Node * vp_parent;
+
+				POSSIBLE_PROTO_EXPANSION(X3D_NODE(viewpointnodes[count])->_parents[0],
+					vp_parent);
+				/* printf ("parent found, it is a %s\n",stringNodeType(vp_parent->_nodeType)); */
+
+				/* sigh, find if the ViewpointGroup is active or not */
+				return vpGroupActive((struct X3D_ViewpointGroup *)vp_parent);
+			}
+		}
+	}
+	return FALSE;
+}
+
+
+/* go to the last viewpoint */
+void Last_ViewPoint() {
+	if (moreThanOneValidViewpoint()) {
+
+		int vp_to_go_to;
+		int ind;
+
+		/* go to the next viewpoint. Possibly, quite possibly, we might
+		   have to skip one or more if they are in a ViewpointGroup that is
+		   out of proxy */
+		vp_to_go_to = totviewpointnodes;	
+		for (ind = 0; ind < totviewpointnodes; ind--) {
+			struct X3D_Node *cn;
+
+			vp_to_go_to--;
+                	if (vp_to_go_to<0) vp_to_go_to=totviewpointnodes-1;
+			POSSIBLE_PROTO_EXPANSION(X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
+
+			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
+			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
+
+			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
+
+                	/* whew, we have other vp nodes */
+                	send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
+                	currboundvpno = vp_to_go_to;
+                	if (currboundvpno>=totviewpointnodes) currboundvpno=0;
+                	send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
+			return;
+			}
+		}
         }
 }
 /* go to the first viewpoint */
-void Last_ViewPoint() {
-        if (totviewpointnodes>=1) {
-                /* whew, we have other vp nodes */
-                /*
-                if (currboundvpno != (totviewpointnodes-1)) {
-                */
-                        /* have to do some work */
-                        send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
-                        currboundvpno = totviewpointnodes-1;
-                        send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
-                /*
-                }
-                */
+void First_ViewPoint() {
+	if (moreThanOneValidViewpoint()) {
+
+		int vp_to_go_to;
+		int ind;
+
+		/* go to the next viewpoint. Possibly, quite possibly, we might
+		   have to skip one or more if they are in a ViewpointGroup that is
+		   out of proxy */
+		vp_to_go_to = -1;	
+		for (ind = 0; ind < totviewpointnodes; ind++) {
+			struct X3D_Node *cn;
+
+			vp_to_go_to++;
+                	if (vp_to_go_to<0) vp_to_go_to=totviewpointnodes-1;
+			POSSIBLE_PROTO_EXPANSION(X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
+
+			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
+			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
+
+			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
+
+                	/* whew, we have other vp nodes */
+                	send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
+                	currboundvpno = vp_to_go_to;
+                	if (currboundvpno>=totviewpointnodes) currboundvpno=0;
+                	send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
+			return;
+			}
+		}
         }
 }
-/* go to the previous viewpoint */
+/* go to the next viewpoint */
 void Prev_ViewPoint() {
-        if (totviewpointnodes>=1) {
-                /* whew, we have other vp nodes */
-                send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
-                currboundvpno--;
-                if (currboundvpno<0) currboundvpno=totviewpointnodes-1;
-                send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
+	if (moreThanOneValidViewpoint()) {
+
+		int vp_to_go_to;
+		int ind;
+
+		/* go to the next viewpoint. Possibly, quite possibly, we might
+		   have to skip one or more if they are in a ViewpointGroup that is
+		   out of proxy */
+		vp_to_go_to = currboundvpno;	
+		for (ind = 0; ind < totviewpointnodes; ind--) {
+			struct X3D_Node *cn;
+
+			vp_to_go_to--;
+                	if (vp_to_go_to<0) vp_to_go_to=totviewpointnodes-1;
+			POSSIBLE_PROTO_EXPANSION(X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
+
+			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
+			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
+
+			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
+
+                	/* whew, we have other vp nodes */
+                	send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
+                	currboundvpno = vp_to_go_to;
+                	if (currboundvpno>=totviewpointnodes) currboundvpno=0;
+                	send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
+			return;
+			}
+		}
         }
 }
 
 /* go to the next viewpoint */
 void Next_ViewPoint() {
-        if (totviewpointnodes>=1) {
-                /* whew, we have other vp nodes */
-                send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
-                currboundvpno++;
-                if (currboundvpno>=totviewpointnodes) currboundvpno=0;
-                send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
+	if (moreThanOneValidViewpoint()) {
+
+		int vp_to_go_to;
+		int ind;
+
+		/* go to the next viewpoint. Possibly, quite possibly, we might
+		   have to skip one or more if they are in a ViewpointGroup that is
+		   out of proxy */
+		vp_to_go_to = currboundvpno;	
+		for (ind = 0; ind < totviewpointnodes; ind++) {
+			struct X3D_Node *cn;
+
+			vp_to_go_to++;
+                	if (vp_to_go_to>=totviewpointnodes) vp_to_go_to=0;
+			POSSIBLE_PROTO_EXPANSION(X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
+
+			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
+			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
+
+			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
+
+                	/* whew, we have other vp nodes */
+                	send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
+                	currboundvpno = vp_to_go_to;
+                	if (currboundvpno>=totviewpointnodes) currboundvpno=0;
+                	send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
+			return;
+			}
+		}
         }
 }
 

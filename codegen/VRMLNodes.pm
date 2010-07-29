@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.47 2010/07/28 00:14:52 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.48 2010/07/29 14:32:27 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -1480,7 +1480,20 @@ package VRML::NodeType;
 		transitionComplete => [SFBool, FALSE, outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		__BGNumber => [SFInt32,-1,initializeOnly, 0], # for ordering backgrounds for binding
-},"X3DBindableNode"),
+	},"X3DBindableNode"),
+
+	ViewpointGroup => new VRML::NodeType("ViewpointGroup", {
+		center => [SFVec3f, [0, 0, 0], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		children => [MFNode, [], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		description => [SFString, "", inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
+		displayed => [SFBool, TRUE, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		retainUserOffsets => [SFBool, FALSE, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		size => [SFVec3f, [0,0,0], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__proxNode=> [SFNode, NULL, inputOutput, "0"],
+	},"X3DGroupingNode"),
+
+
 
 	###################################################################################
 

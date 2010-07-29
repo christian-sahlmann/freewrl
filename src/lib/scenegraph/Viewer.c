@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.54 2010/07/28 00:14:52 crc_canada Exp $
+$Id: Viewer.c,v 1.55 2010/07/29 14:32:27 crc_canada Exp $
 
 CProto ???
 
@@ -156,6 +156,9 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		/* SLERP code for moving between viewpoints */
 		viewer->SLERPing = FALSE;
 		viewer->startSLERPtime = (double)0.0;
+
+		/* Orthographic projections */
+		viewer->ortho = FALSE;
 	}
 
 	resolve_pos();
@@ -1550,49 +1553,50 @@ void increment_pos(struct point_XYZ *vec) {
 	
 }
 
-/* We have a Viewpoint node being bound. (not a GeoViewpoint node) */
-void bind_viewpoint (struct X3D_Viewpoint *vp) {
+/* We have a OrthoViewpoint node being bound. (not a GeoViewpoint node) */
+void bind_OrthoViewpoint (struct X3D_OrthoViewpoint *vp) {
 	Quaternion q_i;
 	float xd, yd,zd;
+	int ind;
 
 	/* SLERPing */
-#define INITIATE_SLERP \
-	Viewer.SLERPing = FALSE; \
-	Viewer.startSLERPtime = TickTime; \
-	memcpy (&Viewer.startSLERPPos, &Viewer.Pos, sizeof (struct point_XYZ)); \
-	memcpy (&Viewer.startSLERPAntiPos, &Viewer.AntiPos, sizeof (struct point_XYZ)); \
-	memcpy (&Viewer.startSLERPQuat, &Viewer.Quat, sizeof (Quaternion)); \
-	memcpy (&Viewer.startSLERPAntiQuat, &Viewer.AntiQuat, sizeof (Quaternion));  \
-	memcpy (&Viewer.startSLERPbindTimeQuat, &Viewer.bindTimeQuat, sizeof (Quaternion)); 
-	
-
 	/* record position BEFORE calculating new Viewpoint position */
 	INITIATE_SLERP
 
 	/* calculate distance between the node position and defined centerOfRotation */
-	xd = vp->position.c[0]-vp->centerOfRotation.c[0];
-	yd = vp->position.c[1]-vp->centerOfRotation.c[1];
-	zd = vp->position.c[2]-vp->centerOfRotation.c[2];
-	Viewer.Dist = sqrt (xd*xd+yd*yd+zd*zd);
+	INITIATE_POSITION
 
 	/* assume Perspective, unless Otrho set */
-	Viewer.ortho=FALSE;
+	Viewer.ortho=TRUE;
+	if (vp->fieldOfView.n == 4) {
+			/* Ortho mapping - glOrtho order left/right/bottom/top
+			   assume X3D says left bottom right top */
+		Viewer.orthoField[0] = (double) vp->fieldOfView.p[0];
+		Viewer.orthoField[1] = (double) vp->fieldOfView.p[2];
+		Viewer.orthoField[2] = (double) vp->fieldOfView.p[1];
+		Viewer.orthoField[3] = (double) vp->fieldOfView.p[3];
+	} else {
+		ERROR_MSG("OrthoViewpoint - fieldOfView must have 4 parameters");
+		Viewer.orthoField[0] = 0.0;
+		Viewer.orthoField[1] = 0.0;
+		Viewer.orthoField[2] = 0.0;
+		Viewer.orthoField[3] = 0.0;
+	}
 
-	/* printf ("viewpoint binding distance %f\n",Viewer.Dist);  */
+	/* printf ("orthoviewpoint binding distance %f\n",Viewer.Dist);  */
 
 	/* since this is not a bind to a GeoViewpoint node... */
 	Viewer.GeoSpatialNode = NULL;
 
 	/* set the examine mode rotation origin */
-	Viewer.examine->Origin.x = vp->centerOfRotation.c[0];
-	Viewer.examine->Origin.y = vp->centerOfRotation.c[1];
-	Viewer.examine->Origin.z = vp->centerOfRotation.c[2];
+	INITIATE_ROTATION_ORIGIN
+
 	/* printf ("BVP, origin %4.3f %4.3f %4.3f\n",Viewer.examine->Origin.x, Viewer.examine->Origin.y, Viewer.examine->Origin.z); */
 
 	/* set Viewer position and orientation */
 
 	/*
-	printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
+	printf ("bind_OrthoViewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
 	vp->position.c[2],vp->orientation.c[0],vp->orientation.c[1],vp->orientation.c[2],
 	vp->orientation.c[3]);
 	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); 
@@ -1625,30 +1629,68 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 	Implication: the user button LEVEL should level out/cancel/zero the bound-viewpoint's orientation field value.
 
 	*/
-	Viewer.Pos.x = vp->position.c[0];
-	Viewer.Pos.y = vp->position.c[1];
-	Viewer.Pos.z = vp->position.c[2];
-	Viewer.AntiPos.x = vp->position.c[0];
-	Viewer.AntiPos.y = vp->position.c[1];
-	Viewer.AntiPos.z = vp->position.c[2];
-	Viewer.currentPosInModel.x = vp->position.c[0];
-	Viewer.currentPosInModel.y = vp->position.c[1];
-	Viewer.currentPosInModel.z = vp->position.c[2];
 
-	Viewer.ypz->bindPoint.x = vp->position.c[0];
-	Viewer.ypz->bindPoint.y = vp->position.c[1];
-	Viewer.ypz->bindPoint.z = vp->position.c[2];
-	/* printf ("bind_viewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z);
+	INITIATE_POSITION_ANTIPOSITION
+	/* printf ("bind_OrthoViewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z);
 	*/
 
-	vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.c[0],
-		vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* dug9 sign change on orientation Jan 18,2010 to accomodate level_to_bound() */
-	vrmlrot_to_quaternion (&Viewer.bindTimeQuat,vp->orientation.c[0],
-		vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */
+	viewer_lastP_clear();
+	resolve_pos();
+}
 
-	vrmlrot_to_quaternion (&q_i,vp->orientation.c[0],
-		vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */
-	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
+/* We have a Viewpoint node being bound. (not a GeoViewpoint node) */
+void bind_Viewpoint (struct X3D_Viewpoint *vp) {
+	Quaternion q_i;
+	float xd, yd,zd;
+
+	/* SLERPing */
+	/* record position BEFORE calculating new Viewpoint position */
+	INITIATE_SLERP
+
+	/* calculate distance between the node position and defined centerOfRotation */
+	INITIATE_POSITION
+
+	/* assume Perspective, unless Otrho set */
+	Viewer.ortho=FALSE;
+
+	/* printf ("viewpoint binding distance %f\n",Viewer.Dist);  */
+
+	/* since this is not a bind to a GeoViewpoint node... */
+	Viewer.GeoSpatialNode = NULL;
+
+	/* set the examine mode rotation origin */
+	INITIATE_ROTATION_ORIGIN
+	/* printf ("BVP, origin %4.3f %4.3f %4.3f\n",Viewer.examine->Origin.x, Viewer.examine->Origin.y, Viewer.examine->Origin.z); */
+
+	/* set Viewer position and orientation */
+	/* 
+	
+	From specs > abstract > architecture > 23.3.5 Viewpoint
+	"When a Viewpoint node is at the top of the stack, the user's view is 
+	conceptually re-parented as a child of the Viewpoint node. All subsequent changes to the Viewpoint node's
+	coordinate system change the user's view (e.g., changes to any ancestor transformation nodes or to 
+	the Viewpoint node's position or orientation fields)."
+	
+	"Navigation types (see 23.3.4 NavigationInfo) that require a definition of a down vector (e.g., terrain following) 
+	shall use the negative Y-axis of the coordinate system of the currently bound Viewpoint node. 
+	Likewise, navigation types that require a definition of an up vector shall use the positive Y-axis of the 
+	coordinate system of the currently bound Viewpoint node. The orientation field of the Viewpoint node does 
+	not affect the definition of the down or up vectors. This allows the author to separate the viewing direction 
+	from the gravity direction."
+
+	concept of transformations Jan3,2010:
+world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar 
+"            < inverse[Transformstack] < "         < [AntiPos,AntiQuat] < avatar 
+	gravity (according to specs): Y-down in the (bound Viewpoint local coords). 
+	The viewpoint node orientation field doesn't count toward specs-gravity.
+	If you want global-gravity, then put your viewpoint node at the scene level, or compute a 
+	per-frame gravity for spherical worlds - see mainloop.c render_collisions.
+
+	Implication: the user button LEVEL should level out/cancel/zero the bound-viewpoint's orientation field value.
+
+	*/
+
+	INITIATE_POSITION_ANTIPOSITION
 
 	viewer_lastP_clear();
 	resolve_pos();
