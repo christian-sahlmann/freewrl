@@ -1,5 +1,5 @@
 /*
-  $Id: capabilitiesHandler.c,v 1.10 2010/02/19 22:01:42 sdumoulin Exp $
+  $Id: capabilitiesHandler.c,v 1.11 2010/07/30 03:58:33 crc_canada Exp $
 
   FreeWRL support library.
   X3D capabilities.
@@ -53,7 +53,7 @@ static const int capabilities[] = {
 	COM_EventUtilities,	1, 	/* May 12, 2009 */
 	COM_Interpolation,	3, 	/* May 12, 2009 */
 	COM_Shaders,	1, 		/* May 12, 2009 */
-	COM_Navigation,	2, 		/* May 12, 2009  */
+	COM_Navigation,	3, 		/* July 29 2010 */
 	COM_Grouping,		3,	/* October 29, 2008 */
 	COM_Texturing,	3, 		/* May 12, 2009 */
 	COM_Geospatial,	2, 		/* May 12, 2009 */

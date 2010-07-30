@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.48 2010/07/29 14:32:27 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.49 2010/07/30 03:58:33 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -1184,6 +1184,8 @@ package VRML::NodeType;
 		top =>[SFNode,NULL,inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		right =>[SFNode,NULL,inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
+		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 	},"X3DEnvironmentTextureNode"),
 
@@ -1193,6 +1195,7 @@ package VRML::NodeType;
 		size => [SFInt32,128,inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 		textureProperties => [SFNode, NULL, initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 	},"X3DEnvironmentTextureNode"),
 
@@ -1201,6 +1204,7 @@ package VRML::NodeType;
 		url => [MFString,[],inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		textureProperties => [SFNode, NULL, initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 	},"X3DEnvironmentTextureNode"),

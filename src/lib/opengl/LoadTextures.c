@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.48 2010/07/24 02:23:13 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.49 2010/07/30 03:58:33 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -529,6 +529,21 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		parentPath = (resource_item_t *)(((struct X3D_VRML1_Texture2 *)entry->scenegraphNode)->_parentResource);
 		break;
 
+	case NODE_ComposedCubeMapTexture:
+printf ("loading ComposedCubeMapTexture...\n");
+		break;
+
+	case NODE_GeneratedCubeMapTexture:
+
+printf ("loading GeneratedCubeMapTexture...\n");
+		break;
+
+	case NODE_ImageCubeMapTexture:
+
+printf ("loading ImageCubeMapTexture...\n");
+		url = & (((struct X3D_ImageCubeMapTexture *)entry->scenegraphNode)->url);
+		parentPath = (resource_item_t *)(((struct X3D_ImageCubeMapTexture *)entry->scenegraphNode)->_parentResource);
+		break;
 	}
 
 	if (url != NULL) {

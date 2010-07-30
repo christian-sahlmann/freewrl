@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.18 2010/07/07 15:49:07 crc_canada Exp $
+$Id: Textures.h,v 1.19 2010/07/30 03:58:33 crc_canada Exp $
 
 Screen snapshot.
 
@@ -82,6 +82,15 @@ struct textureVertexInfo {
                                 thisTexture = pt->__textureTableIndex; \
                         } else if (thisTextureType==NODE_MovieTexture){ \
                                 mt = (struct X3D_MovieTexture*) node; \
+                                thisTexture = mt->__textureTableIndex; \
+                        } else if (thisTextureType==NODE_ImageCubeMapTexture){ \
+                                ict = (struct X3D_ImageCubeMapTexture*) node; \
+                                thisTexture = mt->__textureTableIndex; \
+                        } else if (thisTextureType==NODE_GeneratedCubeMapTexture){ \
+                                gct = (struct X3D_GeneratedCubeMapTexture*) node; \
+                                thisTexture = mt->__textureTableIndex; \
+                        } else if (thisTextureType==NODE_ComposedCubeMapTexture){ \
+                                cct = (struct X3D_ComposedCubeMapTexture*) node; \
                                 thisTexture = mt->__textureTableIndex; \
                         } else if (thisTextureType==NODE_VRML1_Texture2){ \
                                 v1t = (struct X3D_VRML1_Texture2*) node; \

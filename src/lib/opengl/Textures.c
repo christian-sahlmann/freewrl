@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.65 2010/07/07 16:06:15 dug9 Exp $
+  $Id: Textures.c,v 1.66 2010/07/30 03:58:33 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -269,6 +269,7 @@ textureTableIndexStruct_s *getTableIndex(int indx) {
 
 	whichBlock = (indx & 0xffe0) >> 5;
 	whichEntry = indx & 0x1f;
+
 #ifdef TEXVERBOSE
 	printf ("getTableIndex locating table entry %d\n",indx);
 		printf ("whichBlock = %d, wichEntry = %d ",whichBlock, whichEntry);
@@ -302,9 +303,12 @@ void registerTexture(struct X3D_Node *tmp) {
 	int whichEntry;
 
 	it = (struct X3D_ImageTexture *) tmp;
-	/* printf ("registerTexture, found a %s\n",stringNodeType(it->_nodeType)); */
+	/* printf ("registerTexture, found a %s\n",stringNodeType(it->_nodeType));  */
 
 	if ((it->_nodeType == NODE_ImageTexture) || (it->_nodeType == NODE_PixelTexture) ||
+		(it->_nodeType == NODE_GeneratedCubeMapTexture) ||
+		(it->_nodeType == NODE_ComposedCubeMapTexture) ||
+		(it->_nodeType == NODE_ImageCubeMapTexture) ||
 		(it->_nodeType == NODE_MovieTexture) || (it->_nodeType == NODE_VRML1_Texture2)) {
 
 		DEBUG_TEX("CREATING TEXTURE NODE: type %d\n", it->_nodeType);
@@ -345,18 +349,41 @@ void registerTexture(struct X3D_Node *tmp) {
 		currentBlock = readTextureTable;
 		for (count=0; count<whichBlock; count++) currentBlock = currentBlock->next;
 
+		switch (it->_nodeType) {
 		/* save this index in the scene graph node */
-		if (it->_nodeType == NODE_ImageTexture) {
+		case NODE_ImageTexture:
 			it->__textureTableIndex = nextFreeTexture;
-		} else if (it->_nodeType == NODE_PixelTexture) {
+			break;
+		case NODE_PixelTexture:
 			pt = (struct X3D_PixelTexture *) tmp;
 			pt->__textureTableIndex = nextFreeTexture;
-		} else if (it->_nodeType == NODE_MovieTexture) {
+			break;
+		case NODE_MovieTexture:
 			mt = (struct X3D_MovieTexture *) tmp;
 			mt->__textureTableIndex = nextFreeTexture;
-		} else if (it->_nodeType == NODE_VRML1_Texture2) {
+			break;
+		case NODE_VRML1_Texture2:
 			v1t = (struct X3D_VRML1_Texture2 *) tmp;
 			v1t->__textureTableIndex = nextFreeTexture;
+			break;
+		case NODE_ComposedCubeMapTexture:  {
+			struct X3D_ComposedCubeMapTexture *v1t;
+			v1t = (struct X3D_ComposedCubeMapTexture *) tmp;
+			v1t->__textureTableIndex = nextFreeTexture;
+			break;
+		}
+		case NODE_GeneratedCubeMapTexture: {
+			struct X3D_GeneratedCubeMapTexture *v1t;
+			v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
+			v1t->__textureTableIndex = nextFreeTexture;
+			break;
+		}
+		case NODE_ImageCubeMapTexture: {
+			struct X3D_ImageCubeMapTexture *v1t;
+			v1t = (struct X3D_ImageCubeMapTexture *) tmp;
+			v1t->__textureTableIndex = nextFreeTexture;
+			break;
+		}
 		}
 
 		currentBlock->entry[whichEntry].nodeType = it->_nodeType;
@@ -518,6 +545,18 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 		break;
 
 		case NODE_VRML1_Texture2:
+	    		releaseTexture(node); 
+		break;
+
+		case NODE_ComposedCubeMapTexture:
+	    		releaseTexture(node); 
+		break;
+
+		case NODE_GeneratedCubeMapTexture:
+	    		releaseTexture(node); 
+		break;
+
+		case NODE_ImageCubeMapTexture:
 	    		releaseTexture(node); 
 		break;
 
@@ -717,6 +756,9 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 			case NODE_ImageTexture : 
 			case NODE_MovieTexture:
 			case NODE_VRML1_Texture2:
+			case NODE_ComposedCubeMapTexture:
+			case NODE_GeneratedCubeMapTexture:
+			case NODE_ImageCubeMapTexture:
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
 				loadTextureNode (X3D_NODE(nt), paramPtr);
 				break;
@@ -1086,6 +1128,10 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
 	struct X3D_VRML1_Texture2 *v1t;
+	struct X3D_ImageCubeMapTexture *ict;
+	struct X3D_GeneratedCubeMapTexture *gct;
+	struct X3D_ComposedCubeMapTexture *cct;
+
 	textureTableIndexStruct_s *myTableIndex;
 	float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
 
@@ -1095,7 +1141,6 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	if (myTableIndex->status != TEX_LOADED)
 	DEBUG_TEX("new_bind_image, I am %u, textureStackTop %d, thisTexture is %u status %s\n",
 		node,textureStackTop,thisTexture,texst(myTableIndex->status));
-
 
 	/* default here; this is just a blank texture */
 	boundTextureStack[textureStackTop] = defaultBlankTexture;
@@ -1109,9 +1154,6 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 
 		case TEX_LOADING:
 			DEBUG_TEX("I've to wait for %p...\n", myTableIndex);
-			//usleep(100);
-/* 			currentlyWorkingOn = thisTexture; */
-/* 			loadThisTexture = myTableIndex; */
 			break;
 
 		case TEX_NEEDSBINDING:
