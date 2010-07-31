@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.55 2010/07/29 14:32:27 crc_canada Exp $
+$Id: Viewer.c,v 1.56 2010/07/31 23:54:01 dug9 Exp $
 
 CProto ???
 
@@ -568,8 +568,20 @@ printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13]
 	/* printf ("getCurrentPosInModel, so, our place in object-land is %4.2f %4.2f %4.2f\n",
 		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z); */
 }
-
-
+double quadratic(double x,double a,double b,double c)
+{
+	/* y = a*x*x + b*x + c; */
+	return x*x*a + x*b + c;
+}
+double xsign_quadratic(double x,double a,double b,double c)
+{
+	/* y = sign(x)*(a*abs(x)*abs(x) + b*abs(x) + c); */
+	double xSign;
+	//xSign = _copysign(1.0,x); _MSC_VER
+	if(x < 0.0) xSign = -1.0; else xSign = 1.0;
+	x = fabs(x);
+	return xSign*quadratic(x,a,b,c);
+}
 static void handle_walk(const int mev, const unsigned int button, const float x, const float y) {
 /*
  * walk.xd,zd are in a plane parallel to the scene/global horizon.
@@ -577,17 +589,36 @@ static void handle_walk(const int mev, const unsigned int button, const float x,
  * walk.rd is an angle in the global/scene horizontal plane (around vertical axis)
 */
 	X3D_Viewer_Walk *walk = Viewer.walk;
+	double frameRateAdjustment = 1.0;
+	if( BrowserFPS > 0)
+		frameRateAdjustment = 20.0 / BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
+	else
+		frameRateAdjustment = 1.0;
+	
 
 	if (mev == ButtonPress ) {
 		walk->SY = y;
 		walk->SX = x;
 	} else if (mev == MotionNotify) {
 		if (button == 1) {
-			walk->ZD = (y - walk->SY) * Viewer.speed;
-			walk->RD = (x - walk->SX) * 0.1;
+			/* July31,2010 new quadratic speed: allows you slow speed with small mouse motions, or 
+			   fast speeds with large mouse motions. The .05, 5.0 etc are tuning parameters - I tinkered / experimented
+			   using the townsite scene http://dug9.users.sourceforge.net/townsite.zip
+			   which has the default navigationInfo speed (1.0) and is to geographic scale in meters.
+			   If the tuning params don't work for you please fix/iterate/re-tune/change back/put a switch
+			   I find them amply speedy, maybe yaw a bit too fast 
+			   dug9: button 1 ZD: .05 5.0 0.0  RD: .1 .5 0.0
+				     button 3 XD: 5.0 10.0 0.0 YD: 5.0 10.0 0.0
+			*/
+			walk->ZD = xsign_quadratic(y - walk->SY,.05,5.0,0.0)*Viewer.speed * frameRateAdjustment;
+			walk->RD = xsign_quadratic(x - walk->SX,0.1,0.5,0.0)*frameRateAdjustment;
+			//walk->ZD = (y - walk->SY) * Viewer.speed;
+			//walk->RD = (x - walk->SX) * 0.1;
 		} else if (button == 3) {
-			walk->XD = (x - walk->SX) * Viewer.speed;
-			walk->YD = -(y - walk->SY) * Viewer.speed;
+			walk->XD =  xsign_quadratic(x - walk->SX,5.0,10.0,0.0)*Viewer.speed * frameRateAdjustment;
+			walk->YD = -xsign_quadratic(y - walk->SY,5.0,10.0,0.0)*Viewer.speed * frameRateAdjustment;
+			//walk->XD = (x - walk->SX) * Viewer.speed;
+			//walk->YD = -(y - walk->SY) * Viewer.speed;
 		}
 	} else if (mev == ButtonRelease) {
 		if (button == 1) {
