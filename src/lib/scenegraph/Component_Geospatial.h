@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.h,v 1.11 2010/04/14 19:03:32 crc_canada Exp $
+$Id: Component_Geospatial.h,v 1.12 2010/07/31 18:37:39 dug9 Exp $
 
 Proximity sensor macro.
 
@@ -46,9 +46,10 @@ void proximity_##type (struct X3D_##type *node) { \
 	static const struct point_XYZ zvec = {0,0,-0.05}; \
 	static const struct point_XYZ zpvec = {0,0,0.05}; \
 	static const struct point_XYZ orig = {0,0,0}; \
-	struct point_XYZ t_zvec, t_yvec, t_orig; \
+	struct point_XYZ t_zvec, t_yvec, t_orig, t_center; \
 	GLDOUBLE modelMatrix[16]; \
 	GLDOUBLE projMatrix[16]; \
+	GLDOUBLE view2prox[16]; \
  \
 	if(!((node->enabled))) return; \
 	initializer1 \
@@ -68,6 +69,8 @@ void proximity_##type (struct X3D_##type *node) { \
 		&t_zvec.x,&t_zvec.y,&t_zvec.z); \
 	FW_GLU_UNPROJECT(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, \
 		&t_yvec.x,&t_yvec.y,&t_yvec.z); \
+	matinverse(view2prox,modelMatrix); \
+    transform(&t_center,&orig, view2prox); \
  \
  \
 	/*printf ("\n"); \
@@ -75,9 +78,9 @@ void proximity_##type (struct X3D_##type *node) { \
 	printf ("unprojected, t_yvec (0,0.05,0) %lf %lf %lf\n",t_yvec.x, t_yvec.y, t_yvec.z); \
 	printf ("unprojected, t_zvec (0,0,-0.05) %lf %lf %lf\n",t_zvec.x, t_zvec.y, t_zvec.z); \
 	*/ \
-	cx = t_orig.x - ((node->center ).c[0]); \
-	cy = t_orig.y - ((node->center ).c[1]); \
-	cz = t_orig.z - ((node->center ).c[2]); \
+	cx = t_center.x - ((node->center ).c[0]); \
+	cy = t_center.y - ((node->center ).c[1]); \
+	cz = t_center.z - ((node->center ).c[2]); \
  \
 	if(((node->size).c[0]) == 0 || ((node->size).c[1]) == 0 || ((node->size).c[2]) == 0) return; \
  \
@@ -90,9 +93,9 @@ void proximity_##type (struct X3D_##type *node) { \
 	(node->__hit) /*cget*/ = 1; \
  \
 	/* Position */ \
-	((node->__t1).c[0]) = (float)t_orig.x; \
-	((node->__t1).c[1]) = (float)t_orig.y; \
-	((node->__t1).c[2]) = (float)t_orig.z; \
+	((node->__t1).c[0]) = (float)t_center.x; \
+	((node->__t1).c[1]) = (float)t_center.y; \
+	((node->__t1).c[2]) = (float)t_center.z; \
  \
 	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */ \
 	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */ \
