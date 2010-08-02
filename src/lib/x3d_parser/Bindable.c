@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.35 2010/08/02 17:51:27 dug9 Exp $
+$Id: Bindable.c,v 1.36 2010/08/02 18:34:41 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -326,8 +326,8 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 
 	bgnode=(struct X3D_Background*) node;
 	/* lets see what kind of node this is... */
-	
-	#ifdef BINDVERBOSE
+
+#ifdef BINDVERBOSE
 	printf ("\nbind_node, we have %d (%s) tos %d \n",bgnode->_nodeType,stringNodeType(bgnode->_nodeType),*tos); 
 	#endif
 
@@ -369,7 +369,11 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 		/* PUSH THIS TO THE TOP OF THE STACK */
 
 		/* are we off the top of the stack? */
-		if (*tos >= (MAX_STACK-2)) return;
+		/*if (*tos >= (MAX_STACK-2)) return;  
+		   dug9: too restrictive. It means you can't have > 20 
+		   different viewpoints/navinfos in your scene.
+		   Better: scroll the stack down. See below.
+		 */
 
 		/* isBound mimics setBind */
 		*isBoundptr = 1;
@@ -418,10 +422,19 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 		}
 		else
 		{
-			*tos = *tos+1;
-			#ifdef BINDVERBOSE
-			printf ("just incremented tos, ptr %x val %d\n",tos,*tos);
-			#endif
+			if (*tos >= (MAX_STACK-2))
+			{
+				/* scroll stack down (oldest bound get scrolled off) */
+				for(i=0;i<(*tos);i++)
+					stack[i] = stack[i+1];
+			}
+			else
+			{
+				*tos = *tos+1;
+				#ifdef BINDVERBOSE
+				printf ("just incremented tos, ptr %x val %d\n",tos,*tos);
+				#endif
+			}
 		}
 
 		newstacktop = stack + *tos;
