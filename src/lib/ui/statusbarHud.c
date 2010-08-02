@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.15 2010/05/03 15:51:16 couannette Exp $
+  $Id: statusbarHud.c,v 1.16 2010/08/02 23:57:31 dug9 Exp $
 
 */
 
@@ -1154,7 +1154,8 @@ void printKeyboardHelp()
 static int showConText = 0;
 s_list_t *conlist;
 int concount;
-void hudSetConsoleMessage(char *buffer)
+#ifdef OLDCODE
+void hudSetConsoleMessage_old(char *buffer)
 {
 	s_list_t* item;
 	/*calling program keeps ownership of buffer and deletes or recycles buffer*/
@@ -1177,11 +1178,70 @@ void hudSetConsoleMessage(char *buffer)
 		concount--;
 	}
 }
+#endif
+void hudSetConsoleMessage(char *buffer)
+{
+	s_list_t* item, *last;
+	/*calling program keeps ownership of buffer and deletes or recycles buffer*/
+	char *buffer2, *line, *ln, *buf;
+	int linelen;
+	int len = strlen(buffer)+1;
+	buffer2 = malloc(len);
+	strncpy(buffer2,buffer,len);
+	/* rule: if you have a \n at the end of your buffer, 
+	then leave here on a new line, else we'll append to your last line*/
+	if(!conlist)
+	{
+		line = malloc(2);
+		line[0] = '\0';
+		last = ml_new(line);
+		conlist = last;
+		concount = 1;
+	}
+	else
+		last = ml_last(conlist);
+	line = last->elem;
+	linelen = strlen(line);
+	buf = buffer2;
+	do
+	{
+		ln = strchr(buf,'\n');
+		if(ln)
+		{ 
+			*ln = '\0';
+		}
+		len = strlen(buf);
+		linelen += len + 1;
+		line = realloc(line,linelen);
+		line = strcat(line,buf); 
+		last->elem = line; /* new address from realloc */
+		if(ln)
+		{	
+			*ln = '\n'; /* restore, in case we need it \n */
+			buf = &ln[1];
+			line = malloc(2);
+			line[0] = '\0';
+			linelen = strlen(line);
+			last = ml_new(line);
+			ml_append(conlist,last);
+			concount++;
+			if( concount > 50 ) // > MAXMESSAGES number of scrolling lines
+			{
+				s_list_t* temp;
+				free((char*)conlist->elem);
+				conlist = ml_delete_self(conlist, conlist); /*delete from top*/
+				concount--;
+			}
+		}
+	}while(ln);
+	free(buffer2);
+}
 
 void printConsoleText()
 {
 	/* ConsoleMessage() comes out as a multi-line history rendered over the scene */
 	int jstart;
+	char* buf;
 	int j = 0;
 	XY xybottom;
 	jstart = j;
@@ -1199,6 +1259,7 @@ void printConsoleText()
 			{
 				XY xy = text2screen(0,j-jstart);
 				FW_GL_WINDOWPOS2I(xy.x,xy.y); 
+				buf = __l->elem;
 				printString(__l->elem); 
 			}
 			j++;
