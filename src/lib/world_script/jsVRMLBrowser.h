@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: jsVRMLBrowser.h,v 1.6 2009/10/05 15:07:24 crc_canada Exp $
+  $Id: jsVRMLBrowser.h,v 1.7 2010/08/02 19:56:03 dug9 Exp $
 
 */
 
@@ -119,6 +119,12 @@ JSBool VrmlBrowserAddRoute(JSContext *cx,
 
 
 JSBool VrmlBrowserPrint(JSContext *cx,
+                        JSObject *obj,
+                        uintN argc,
+                        jsval *argv,
+                        jsval *rval);
+
+JSBool VrmlBrowserPrintln(JSContext *cx,
                         JSObject *obj,
                         uintN argc,
                         jsval *argv,
