@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.c,v 1.16 2010/02/17 18:03:06 crc_canada Exp $
+$Id: quaternion.c,v 1.17 2010/08/02 01:11:25 dug9 Exp $
 
 ???
 
@@ -445,4 +445,38 @@ quaternion_slerp(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, co
 	ret->z = scale0 * q1->z + scale1 * q2_array[2];
 	ret->w = scale0 * q1->w + scale1 * q2_array[3];
 }
+void vrmlrot_normalize(float *ret)
+{
+	float s = ret[0]*ret[0] + ret[1]*ret[1] + ret[2]*ret[2];
+	s = sqrt(s);
+	if( s != 0.0f )
+	{
+		s = 1.0f/s;
+		ret[0] *= s;
+		ret[1] *= s;
+		ret[2] *= s;
+	}
+	else
+	{
+		ret[2] = 1.0f;
+	}
+	ret[3] = fmod(ret[3],acos(-1.0));
+}
 
+void vrmlrot_multiply(float* ret, float *a, float *b) 
+{
+   ret[0] = (b[0] * b[3]) + (a[0] * a[3]);
+   ret[1] = (b[1] * b[3]) + (a[1] * a[3]);
+   ret[2] = (b[2] * b[3]) + (a[2] * a[3]);
+   ret[3] = sqrt(ret[0]*ret[0] + ret[1]*ret[1] + ret[2]*ret[2]);
+   if (ret[3] == 0.0f) 
+   {
+	   ret[0] = 1.0f;
+	   ret[1]=ret[2] = 0.0f;
+	   return;
+   }
+   ret[0] = ret[0]/ret[3];
+   ret[1] = ret[1]/ret[3];
+   ret[2] = ret[2]/ret[3];
+   //vrmlrot_normalize(ret);
+}

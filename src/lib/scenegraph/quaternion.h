@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: quaternion.h,v 1.7 2009/10/05 15:07:24 crc_canada Exp $
+$Id: quaternion.h,v 1.8 2010/08/02 01:11:25 dug9 Exp $
 
 Quaternion ???
 
@@ -142,5 +142,7 @@ quaternion_slerp(Quaternion *ret,
 	  const double t);
 
 void loadIdentityMatrix (double *);
+void vrmlrot_multiply(float* ret, float *a, float *b);
+void vrmlrot_normalize(float *ret);
 
 #endif /* __FREEWRL_QUATERNION_H__ */

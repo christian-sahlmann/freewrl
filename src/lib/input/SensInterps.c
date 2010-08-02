@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.27 2010/03/24 14:39:11 crc_canada Exp $
+$Id: SensInterps.c,v 1.28 2010/08/02 01:11:25 dug9 Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -1578,12 +1578,14 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 	UNUSED(over);
 
 	/* if not enabled, do nothing */
-	if (!node) return;
+	if (!node) 
+		return;
 	if (node->__oldEnabled != node->enabled) {
 		node->__oldEnabled = node->enabled;
 		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_SphereSensor, enabled));
 	}
-	if (!node->enabled) return;
+	if (!node->enabled) 
+		return;
 
 	/* only do something if button1 is pressed */
 	if (!but1) return;
@@ -1606,6 +1608,11 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 		NORM_ORIG_X = CUR_X / RADIUS;
 		NORM_ORIG_Y = CUR_Y / RADIUS;
 		NORM_ORIG_Z = CUR_Z / RADIUS;
+
+		/* norm(offset) ideally this would be done once during parsing 
+		  of crazy SFRotation ie '1 1 -5 .6' in 10.wrl/10.x3d 
+		  I might be getting rounding errors from repeated normalization */
+		vrmlrot_normalize(node->offset.c); 
 
 		/* set isActive true */
 		node->isActive=TRUE;
@@ -1636,6 +1643,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 			printf ("warning, newRad %lf == 0, can not compute\n",newRad);
 			return;
 		}
+		RADIUS = newRad;
 
 		/* save the current norm here */
 		NORM_CUR_X = CUR_X / RADIUS;
@@ -1649,21 +1657,58 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 		normalize_vector(&newA);
 
 		/* clamp the angle to |a| < 1.0 */
+		/* remember A dot B = |A|*|B|*cos(theta_between) or theta_between = acos(A dot B/|A|*|B| ) */
 		dotProd = NORM_ORIG_X * NORM_CUR_X + NORM_ORIG_Y * NORM_CUR_Y + NORM_ORIG_Z * NORM_CUR_Z;
-		if (dotProd > 1.0) dotProd = 1.0;
-		if (dotProd < -1.0) dotProd = -1.0;
-
+		if (dotProd > 1.0) 
+			dotProd = 1.0;
+		if (dotProd < -1.0) 
+			dotProd = -1.0;
+		dotProd = acos(dotProd);
 
 		/* have axis-angle now */
 		/*
 		printf ("newRotation  a %lf - rot -- %lf %lf %lf %lf\n",
-			dotProd, newA.x,newA.y,newA.z,acos(dotProd));
+			dotProd, newA.x,newA.y,newA.z,dotProd);
 		*/
+		if(node->autoOffset)
+		{
+/*
+			if(0)
+			{
+				//Aug 1, 2010 experimental code - stale date: Sept 1
+				struct SFRotation temp, temp2;
+				temp.c[0] = newA.x;
+				temp.c[1] = newA.y;
+				temp.c[2] = newA.z;
+				temp.c[3] = dotProd;
+				vrmlrot_multiply(temp2.c, node->offset.c, temp.c);
+				newA.x = temp2.c[0];
+				newA.y = temp2.c[1];
+				newA.z = temp2.c[2];
+				dotProd = temp2.c[3];
+			}
+			if(1)
+			{
+*/
+				/* copied from the javascript SFRotationMultiply */
+				Quaternion q1, q2, qret;
+				/* convert both rotations into quaternions */
+				vrmlrot_to_quaternion(&q1, (double) newA.x, 
+					(double) newA.y, (double) newA.z, (double) dotProd);
+				vrmlrot_to_quaternion(&q2, (double) node->offset.c[0], 
+					(double) node->offset.c[1], (double) node->offset.c[2], (double) node->offset.c[3]);
+				/* multiply them */
+				quaternion_multiply(&qret,&q1,&q2);
+				/* and return the resultant, as a vrml rotation */
+				quaternion_to_vrmlrot(&qret, &newA.x, &newA.y, &newA.z, &dotProd);
+			/*}*/
+		}
+
 
 		node->rotation_changed.c[0] = (float) newA.x;
 		node->rotation_changed.c[1] = (float) newA.y;
 		node->rotation_changed.c[2] = (float) newA.z;
-		node->rotation_changed.c[3] = (float) acos(dotProd);
+		node->rotation_changed.c[3] = (float) dotProd; //acos(dotProd); done above
 		MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, rotation_changed));
 
 		node->trackPoint_changed.c[0] = NORM_CUR_X;
