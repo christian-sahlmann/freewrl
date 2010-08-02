@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.34 2010/07/29 14:32:27 crc_canada Exp $
+$Id: Bindable.c,v 1.35 2010/08/02 17:51:27 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -313,11 +313,12 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 
 	uintptr_t *oldstacktop;
 	uintptr_t *newstacktop;
+	uintptr_t unbindNode;
 	char *nst;			/* used for pointer maths */
 	unsigned int *setBindptr;	/* this nodes setBind */
 	unsigned int *isBoundptr;	/* this nodes isBound */
 	unsigned int *oldboundptr;	/* previous nodes isBound */
-
+	int i, ioldposition, do_unbind;
 	struct X3D_Background *bgnode;
 	size_t offst;
 
@@ -327,7 +328,7 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 	/* lets see what kind of node this is... */
 	
 	#ifdef BINDVERBOSE
-	printf ("bind_node, we have %d (%s) tos %d \n",bgnode->_nodeType,stringNodeType(bgnode->_nodeType),*tos); 
+	printf ("\nbind_node, we have %d (%s) tos %d \n",bgnode->_nodeType,stringNodeType(bgnode->_nodeType),*tos); 
 	#endif
 
 	
@@ -341,14 +342,19 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 	nst += isboundofst(node);
 	isBoundptr = (unsigned int *) nst;
 
-        if (*isBoundptr && (*setBindptr != 0) ){ *setBindptr = 100; return; } /* It has to be at the top of the stack so return */
+        if (*isBoundptr && (*setBindptr != 0) ){ 
+			#ifdef BINDVERBOSE
+			/*printf("%d already bound\n",(uintptr_t)node);*/
+			#endif
+			*setBindptr = 100; 
+			return; } /* It has to be at the top of the stack so return */
 
 	if (*tos >=0) {oldstacktop = stack + *tos;}
 	else oldstacktop = stack;
 
-	
+
 	#ifdef BINDVERBOSE
-	printf ("\nbind_node, node %d, set_bind %d tos %d\n",node,*setBindptr,*tos); 
+	printf ("bind_node, node %d, set_bind %d tos %d\n",node,*setBindptr,*tos); 
 	printf ("stack %x, oldstacktop %x sizeof usint %x\n",stack, oldstacktop,
 			sizeof(unsigned int));
 	#endif
@@ -385,10 +391,38 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 
 
 		/* set up pointers, increment stack */
-		*tos = *tos+1;
-		#ifdef BINDVERBOSE
-		printf ("just incremented tos, ptr %d val %d\n",tos,*tos);
-		#endif
+		/* is this node somewhere in the stack already? */
+		ioldposition = -1;
+		do_unbind = 1;
+		unbindNode = *oldstacktop;
+		for(i=0;i<=(*tos);i++)
+		{
+			#ifdef BINDVERBOSE
+			printf("%d %d %d\n",stack[i],(uintptr_t)node,i);
+			#endif
+			if(stack[i] == (uintptr_t) node) ioldposition = i;
+		}
+		if(ioldposition > -1)
+		{
+			#ifdef BINDVERBOSE
+			printf("Yes - it is already in the stack at position %d\n",ioldposition);
+			#endif
+			if(ioldposition == *tos)
+				do_unbind = 0; /* already top of stack */
+			else
+			{
+				/* bubble up */
+				for(i=ioldposition;i<(*tos);i++)
+					stack[i] = stack[i+1];
+			}
+		}
+		else
+		{
+			*tos = *tos+1;
+			#ifdef BINDVERBOSE
+			printf ("just incremented tos, ptr %x val %d\n",tos,*tos);
+			#endif
+		}
 
 		newstacktop = stack + *tos;
 		#ifdef BINDVERBOSE
@@ -406,22 +440,26 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 		   top of stack Viewpoint is unbound! */
 
 		#ifdef BINDVERBOSE
-		printf ("before if... *tos %d *oldstacktop %d *newstacktop %d\n",*tos, *oldstacktop, *newstacktop);
+		//printf ("before if... *tos %d *oldstacktop %d *newstacktop %d\n",*tos, *oldstacktop, *newstacktop);
+		printf ("before if... *tos %d *oldstacktop %d *newstacktop %d\n",*tos, unbindNode, *newstacktop);
 		#endif
 
-		if ((*tos >= 1) && (*oldstacktop!=*newstacktop)) {
+		if ((*tos >= 1) && do_unbind ) { // (*oldstacktop!=*newstacktop)) {
 			/* yep... unbind it, and send an event in case anyone cares */
-			oldboundptr = (unsigned int *) (*oldstacktop  + (uintptr_t)isboundofst((void *)*oldstacktop));
+			//oldboundptr = (unsigned int *) (*oldstacktop  + (uintptr_t)isboundofst((void *)*oldstacktop));
+			oldboundptr = (unsigned int *) (unbindNode  + (uintptr_t)isboundofst((void *)unbindNode));
 			*oldboundptr = 0;
 
 			#ifdef BINDVERBOSE
-			printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
+			printf ("....bind_node, in set_bind true, unbinding node %d\n",unbindNode);
 			#endif
 
-			MARK_EVENT (X3D_NODE(*oldstacktop), (unsigned int) isboundofst((void *)*oldstacktop));
+			//MARK_EVENT (X3D_NODE(*oldstacktop), (unsigned int) isboundofst((void *)*oldstacktop));
+			MARK_EVENT (X3D_NODE(unbindNode), (unsigned int) isboundofst((void *)unbindNode));
 
 			/* tell the possible parents of this change */
-			update_node(X3D_NODE(*oldstacktop));
+			//update_node(X3D_NODE(*oldstacktop));
+			update_node(X3D_NODE(unbindNode));
 		}
 	} else {
 		/* POP FROM TOP OF STACK  - if we ARE the top of stack */
