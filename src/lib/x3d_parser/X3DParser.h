@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.20 2010/07/27 21:08:52 dug9 Exp $
+$Id: X3DParser.h,v 1.21 2010/08/03 19:41:12 crc_canada Exp $
 
 X3D parser functions.
 
@@ -58,7 +58,7 @@ struct nameValuePairs {
 
 #define FREEWRL_SPECIFIC "FrEEWrL_pRotto"
 
-#if (true)
+#ifndef VERBOSE
 #define DECREMENT_PARENTINDEX \
         if (parentIndex > 0) { parentIndex--; } else { ConsoleMessage ("X3DParser, line %d stack underflow (source code %s:%d)",LINE,__FILE__,__LINE__); }
 

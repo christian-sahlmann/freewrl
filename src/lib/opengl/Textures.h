@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.19 2010/07/30 03:58:33 crc_canada Exp $
+$Id: Textures.h,v 1.20 2010/08/03 19:41:12 crc_canada Exp $
 
 Screen snapshot.
 
@@ -48,7 +48,7 @@ struct textureTableIndexStruct {
 	char    *filename;
         int x;
         int y;
-        unsigned char *texdata;
+        unsigned char *texdata[6];
         GLint Src;
         GLint Trc;
 };

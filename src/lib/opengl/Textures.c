@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.66 2010/07/30 03:58:33 crc_canada Exp $
+  $Id: Textures.c,v 1.67 2010/08/03 19:41:12 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -327,7 +327,12 @@ void registerTexture(struct X3D_Node *tmp) {
 				newStruct->entry[count].scenegraphNode = NULL;
 				newStruct->entry[count].filename = NULL;
 				newStruct->entry[count].nodeType = 0;
-				newStruct->entry[count].texdata = NULL;
+				newStruct->entry[count].texdata[0] = NULL;
+				newStruct->entry[count].texdata[1] = NULL;
+				newStruct->entry[count].texdata[2] = NULL;
+				newStruct->entry[count].texdata[3] = NULL;
+				newStruct->entry[count].texdata[4] = NULL;
+				newStruct->entry[count].texdata[5] = NULL;
 			}
 			
 			newStruct->next = NULL;
@@ -845,12 +850,12 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 	/* is this texture invalid and NOT caught before here? */
 	/* this is the same as the defaultBlankTexture; the following code should NOT be executed */
-	if (me->texdata == NULL) {
+	if (me->texdata[0] == NULL) {
 		char buff[] = {0x70, 0x70, 0x70, 0xff} ; /* same format as ImageTextures - GL_BGRA here */
 		me->x = 1;
 		me->y = 1;
 		me->hasAlpha = FALSE;
-		me->texdata = MALLOC(4);
+		me->texdata[0] = MALLOC(4);
 		memcpy (me->texdata, buff, 4);
 	}
 
@@ -860,10 +865,12 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	if (me->OpenGLTexture == TEXTURE_INVALID) {
 /* 		me->OpenGLTexture = MALLOC (sizeof (GLuint) * me->frames); */
 		FW_GL_GENTEXTURES (1, &me->OpenGLTexture);
+#define TEXVERBOSE
 #ifdef TEXVERBOSE
 		printf ("just glGend texture for block %d is %u, type %s\n",
 			(int) me, me->OpenGLTexture,stringNodeType(me->nodeType));
 #endif
+#undef TEXVERBOSE
 	}
 
 	/* get the repeatS and repeatT info from the scenegraph node */
@@ -983,7 +990,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	}
 
 	/* a pointer to the tex data. We increment the pointer for movie texures */
-	mytexdata = me->texdata;
+	mytexdata = me->texdata[0];
 	if (mytexdata == NULL) {
 		printf ("mytexdata is null, texture failed, put something here\n");
 	}
@@ -1090,11 +1097,16 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		if(mytexdata != dest) {FREE_IF_NZ(dest);}
 
 		/* we can get rid of the original texture data here */
-		FREE_IF_NZ(me->texdata);
+		FREE_IF_NZ(me->texdata[0]);
 	}
 
 
-	FREE_IF_NZ (me->texdata);
+	FREE_IF_NZ (me->texdata[0]);
+	FREE_IF_NZ (me->texdata[1]);
+	FREE_IF_NZ (me->texdata[2]);
+	FREE_IF_NZ (me->texdata[3]);
+	FREE_IF_NZ (me->texdata[4]);
+	FREE_IF_NZ (me->texdata[5]);
 
 	/* ensure this data is written to the driver for the rendering context */
 	FW_GL_FLUSH();

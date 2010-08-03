@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.16 2010/08/02 23:57:31 dug9 Exp $
+  $Id: statusbarHud.c,v 1.17 2010/08/03 19:41:12 crc_canada Exp $
 
 */
 
@@ -1312,17 +1312,17 @@ void initButtons()
 			h = butts[i][0].y;
 			size = w * h * 4;
 			iconSize = w;
-			butts[i][1].texdata = malloc(size);
-			memcpy(butts[i][1].texdata,butts[i][0].texdata,size);
+			butts[i][1].texdata[0] = malloc(size);
+			memcpy(butts[i][1].texdata[0],butts[i][0].texdata,size);
 			for(j=0;j<butts[i][0].x;j++)
 				for(k=0;k<butts[i][0].y;k++)
 				{
 					g = 0;
 					for(l=0;l<3;l++)
-						g = g + butts[i][0].texdata[j*w*4 + k*4 + l];
+						g = g + butts[i][0].texdata[0][j*w*4 + k*4 + l];
 					g = g / 3;
 					for(l=0;l<3;l++)
-						butts[i][0].texdata[j*w*4 + k*4 + l] = g;
+						butts[i][0].texdata[0][j*w*4 + k*4 + l] = g;
 				}
 		}
 	
@@ -1347,9 +1347,9 @@ void initButtons()
 						{
 							g = 0;
 							for(l=0;l<3;l++)
-								g = g + butts[i][0].texdata[j*w*4 + (k+m)*4 + l];
+								g = g + butts[i][0].texdata[0][j*w*4 + (k+m)*4 + l];
 							g = g / 3;
-							a = butts[i][0].texdata[j*w*4 + (k+m)*4 + 3];
+							a = butts[i][0].texdata[0][j*w*4 + (k+m)*4 + 3];
 							bit = 0;
 							if( a > 127 ) //(float)a/256.0f > .5 ) //simple thresholding at .5 on the alpha channel
 								bit = 1;
@@ -1537,7 +1537,7 @@ void renderButtons()
 			}
 			FW_GL_WINDOWPOS2I(butrect[0][i],butrect[1][i]);
 			if(buttonType==0)
-				FW_GL_DRAWPIXELS(butts[i][0].x,butts[i][0].y,GL_BGRA,GL_UNSIGNED_BYTE,butts[i][butStatus[i]].texdata);
+				FW_GL_DRAWPIXELS(butts[i][0].x,butts[i][0].y,GL_BGRA,GL_UNSIGNED_BYTE,butts[i][butStatus[i]].texdata[0]);
 			else if(buttonType==1)
 				FW_GL_BITMAP(32,32, 0.0f, 0.0f, 0.0f, 0.0f, bmIcon[i]);
 

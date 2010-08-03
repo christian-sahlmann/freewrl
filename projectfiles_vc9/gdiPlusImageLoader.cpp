@@ -21,7 +21,7 @@ struct textureTableIndexStruct {
 	char    *filename;
         int x;
         int y;
-        unsigned char *texdata;
+        unsigned char *texdata[6];
 	// JAS char *pixelData; 
         int Src;
         int Trc;
@@ -41,7 +41,7 @@ int shutdownImageLoader()
    GdiplusShutdown(gdiplusToken);
 	return 0;
 }
-int loadImage(struct textureTableIndexStruct *tti, char *fname)
+int loadImage(struct textureTableIndexStruct *tti, char *fname, int imageCount)
 {
 	/* http://msdn.microsoft.com/en-us/library/ms536298(VS.85).aspx   GDI+ Lockbits example - what this function is based on*/
 	/* http://www.microsoft.com/downloads/details.aspx?FamilyID=6a63ab9c-df12-4d41-933c-be590feaa05a&DisplayLang=en  GDI+ redistributable download - gdiplus.dll 2MB */
@@ -135,7 +135,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    tti->x = bitmapData->Width;
    tti->y = bitmapData->Height;
    tti->frames = 1;
-   tti->texdata = blob; 
+   tti->texdata[imageCount] = blob; 
    if(!blob)
 	   printf("ouch in gdiplus image loader L140 - no image data\n");
    //tti->hasAlpha = Gdiplus::IsAlphaPixelFormat(bitmapData->PixelFormat)?1:0; 
@@ -147,8 +147,8 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    {
       for(UINT col = 0; col < 5; ++col)
       {
-         //printf("%x\n", *(UINT*)&(tti->texdata[(row * bitmapData->Stride / 4 + col)*tti->depth]));
-         printf("%x\n", *(UINT*)&(tti->texdata[(row * tti->x + col)*4])); //tti->depth]));
+         //printf("%x\n", *(UINT*)&(tti->texdata[imageCount][(row * bitmapData->Stride / 4 + col)*tti->depth]));
+         printf("%x\n", *(UINT*)&(tti->texdata[imageCount][(row * tti->x + col)*4])); //tti->depth]));
       }
       printf("- - - - - - - - - - \n");
    }
