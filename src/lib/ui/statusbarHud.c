@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.17 2010/08/03 19:41:12 crc_canada Exp $
+  $Id: statusbarHud.c,v 1.18 2010/08/04 02:14:40 dug9 Exp $
 
 */
 
@@ -1302,7 +1302,7 @@ void initButtons()
 	{
 		/* png icon files (can have transparency) problem: you need to put them in the current working directory*/
 		for(i=0;i<nbuts;i++)
-		  texture_load_from_file(&butts[i][0], butFnames[i]);
+		  texture_load_from_file(&butts[i][0], butFnames[i],0);
 		//bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename);
 		for(i=0;i<nbuts;i++)
 		{

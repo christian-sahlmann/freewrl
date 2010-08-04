@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.50 2010/08/03 19:41:12 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.51 2010/08/04 02:14:40 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -292,7 +292,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename,
 /* WINDOWS */
 #if defined (_MSC_VER)
 	/* return FALSE; // to see the default grey image working first */
-    if (!loadImage(this_tex, filename)) {
+    if (!loadImage(this_tex, filename,imageCount)) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
 		return FALSE;
     }
