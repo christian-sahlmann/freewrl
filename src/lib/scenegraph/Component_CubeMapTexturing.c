@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.12 2010/07/30 03:58:33 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.13 2010/08/04 18:59:50 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -37,6 +37,7 @@ X3D Cubemap Texturing Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Textures.h"
+#include "../scenegraph/Component_Shape.h"
 
 
 /* testing */
@@ -212,9 +213,40 @@ OLDCODE}
 /* end of testing */
 
 void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
-        /* printf ("render_ImageTexture, global Transparency %f\n",appearanceProperties.transparency); */
-        loadTextureNode(X3D_NODE(node),NULL);
-        textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+	int count;
+	struct X3D_Node *thistex = 0;
+
+        /* printf ("render_ComposedCubeMapTexture, global Transparency %f\n",globalappearanceProperties.transparency); */
+	for (count=0; count<6; count++) {
+
+		/* set up the appearanceProperties to indicate a CubeMap */
+		appearanceProperties.cubeFace = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+count;
+
+		/* go through these, back, front, top, bottom, right left */
+		switch (count) {
+			case 4: {POSSIBLE_PROTO_EXPANSION(node->front,thistex);  break;}
+			case 5: {POSSIBLE_PROTO_EXPANSION(node->back,thistex);   break;}
+			case 2: {POSSIBLE_PROTO_EXPANSION(node->top,thistex);    break;}
+			case 3: {POSSIBLE_PROTO_EXPANSION(node->bottom,thistex); break;}
+			case 0: {POSSIBLE_PROTO_EXPANSION(node->right,thistex);  break;}
+			case 1: {POSSIBLE_PROTO_EXPANSION(node->left,thistex);   break;}
+		}
+		if (thistex != 0) {
+			/* we have an image specified for this face */
+			/* the X3D spec says that a X3DTextureNode has to be one of... */
+			if ((thistex->_nodeType == NODE_ImageTexture) ||
+			    (thistex->_nodeType == NODE_PixelTexture) ||
+			    (thistex->_nodeType == NODE_MovieTexture) ||
+			    (thistex->_nodeType == NODE_MultiTexture)) {
+
+				textureStackTop = 0;
+				/* render the proper texture */
+				render_node((void *)thistex);
+			} 
+		}
+	}
+//        loadTextureNode(X3D_NODE(node),NULL);
+//        textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
 
 void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {

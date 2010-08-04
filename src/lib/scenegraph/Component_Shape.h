@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.h,v 1.6 2010/03/08 19:26:25 crc_canada Exp $
+$Id: Component_Shape.h,v 1.7 2010/08/04 18:59:50 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -34,6 +34,7 @@ Proximity sensor macro.
 struct matpropstruct {
 	float	transparency;
 	GLfloat	emissionColour[3];
+	GLint   cubeFace;		/* for cubemapping, if 0, not cube mapping */
 };
 
 extern struct matpropstruct appearanceProperties;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.45 2010/04/14 19:03:32 crc_canada Exp $
+$Id: Component_Shape.c,v 1.46 2010/08/04 18:59:50 crc_canada Exp $
 
 X3D Shape Component
 
@@ -442,6 +442,7 @@ void child_Shape (struct X3D_Shape *node) {
 	this_textureTransform = NULL;
 	linePropertySet=FALSE;
 	appearanceProperties.transparency = MAX_NODE_TRANSPARENCY;  /* 1 == totally solid, 0 = totally transparent */  
+	appearanceProperties.cubeFace = 0; /* assume no CubeMapTexture */
 	material_twoSided = NULL;
 	material_oneSided = NULL;
 

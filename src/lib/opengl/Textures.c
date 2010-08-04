@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.67 2010/08/03 19:41:12 crc_canada Exp $
+  $Id: Textures.c,v 1.68 2010/08/04 18:59:50 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -48,6 +48,7 @@
 #include "../opengl/Material.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "../world_script/fieldSet.h"
+#include "../scenegraph/Component_Shape.h"
 
 #include "LoadTextures.h"
 
@@ -306,9 +307,11 @@ void registerTexture(struct X3D_Node *tmp) {
 	/* printf ("registerTexture, found a %s\n",stringNodeType(it->_nodeType));  */
 
 	if ((it->_nodeType == NODE_ImageTexture) || (it->_nodeType == NODE_PixelTexture) ||
+/* JAS 
 		(it->_nodeType == NODE_GeneratedCubeMapTexture) ||
 		(it->_nodeType == NODE_ComposedCubeMapTexture) ||
 		(it->_nodeType == NODE_ImageCubeMapTexture) ||
+*/ 
 		(it->_nodeType == NODE_MovieTexture) || (it->_nodeType == NODE_VRML1_Texture2)) {
 
 		DEBUG_TEX("CREATING TEXTURE NODE: type %d\n", it->_nodeType);
@@ -327,12 +330,7 @@ void registerTexture(struct X3D_Node *tmp) {
 				newStruct->entry[count].scenegraphNode = NULL;
 				newStruct->entry[count].filename = NULL;
 				newStruct->entry[count].nodeType = 0;
-				newStruct->entry[count].texdata[0] = NULL;
-				newStruct->entry[count].texdata[1] = NULL;
-				newStruct->entry[count].texdata[2] = NULL;
-				newStruct->entry[count].texdata[3] = NULL;
-				newStruct->entry[count].texdata[4] = NULL;
-				newStruct->entry[count].texdata[5] = NULL;
+				newStruct->entry[count].texdata = NULL;
 			}
 			
 			newStruct->next = NULL;
@@ -553,6 +551,7 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 	    		releaseTexture(node); 
 		break;
 
+/* JAS 
 		case NODE_ComposedCubeMapTexture:
 	    		releaseTexture(node); 
 		break;
@@ -564,6 +563,7 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 		case NODE_ImageCubeMapTexture:
 	    		releaseTexture(node); 
 		break;
+*/
 
 		default: {
 			printf ("loadTextureNode, unknown node type %s\n",stringNodeType(node->_nodeType));
@@ -761,9 +761,11 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 			case NODE_ImageTexture : 
 			case NODE_MovieTexture:
 			case NODE_VRML1_Texture2:
+/* JAS 
 			case NODE_ComposedCubeMapTexture:
 			case NODE_GeneratedCubeMapTexture:
 			case NODE_ImageCubeMapTexture:
+*/
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
 				loadTextureNode (X3D_NODE(nt), paramPtr);
 				break;
@@ -827,6 +829,8 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
         GLint compression;
         int generateMipMaps;
 
+	int nurls;
+
 	
 	/* for getting repeatS and repeatT info. */
 	struct X3D_PixelTexture *pt = NULL;
@@ -847,15 +851,16 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	borderColour.c[0]=0.0f;borderColour.c[1]=0.0f;borderColour.c[2]=0.0f;borderColour.c[3]=0.0f;
 	compression = GL_FALSE;
 	borderWidth = 0;
+	nurls=1;
 
 	/* is this texture invalid and NOT caught before here? */
 	/* this is the same as the defaultBlankTexture; the following code should NOT be executed */
-	if (me->texdata[0] == NULL) {
+	if (me->texdata == NULL) {
 		char buff[] = {0x70, 0x70, 0x70, 0xff} ; /* same format as ImageTextures - GL_BGRA here */
 		me->x = 1;
 		me->y = 1;
 		me->hasAlpha = FALSE;
-		me->texdata[0] = MALLOC(4);
+		me->texdata = MALLOC(4);
 		memcpy (me->texdata, buff, 4);
 	}
 
@@ -865,12 +870,10 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	if (me->OpenGLTexture == TEXTURE_INVALID) {
 /* 		me->OpenGLTexture = MALLOC (sizeof (GLuint) * me->frames); */
 		FW_GL_GENTEXTURES (1, &me->OpenGLTexture);
-#define TEXVERBOSE
 #ifdef TEXVERBOSE
 		printf ("just glGend texture for block %d is %u, type %s\n",
 			(int) me, me->OpenGLTexture,stringNodeType(me->nodeType));
 #endif
-#undef TEXVERBOSE
 	}
 
 	/* get the repeatS and repeatT info from the scenegraph node */
@@ -989,8 +992,80 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		}
 	}
 
+
+	/* is this a CubeMap? If so, lets try this... */
+
+	if (appearanceProperties.cubeFace != 0) {
+#ifndef GL_EXT_texture_cube_map
+# define GL_NORMAL_MAP_EXT                   0x8511
+# define GL_REFLECTION_MAP_EXT               0x8512
+# define GL_TEXTURE_CUBE_MAP_EXT             0x8513
+# define GL_TEXTURE_BINDING_CUBE_MAP_EXT     0x8514
+# define GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT  0x8515
+# define GL_TEXTURE_CUBE_MAP_NEGATIVE_X_EXT  0x8516
+# define GL_TEXTURE_CUBE_MAP_POSITIVE_Y_EXT  0x8517
+# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_EXT  0x8518
+# define GL_TEXTURE_CUBE_MAP_POSITIVE_Z_EXT  0x8519
+# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_EXT  0x851A
+# define GL_PROXY_TEXTURE_CUBE_MAP_EXT       0x851B
+# define GL_MAX_CUBE_MAP_TEXTURE_SIZE_EXT    0x851C
+#endif
+
+		unsigned char *dest = mytexdata;
+glEnable(GL_TEXTURE_CUBE_MAP);
+
+	iformat = GL_RGBA; format = GL_BGRA;
+		printf ("appPRop.cubemap %x\n",appearanceProperties.cubeFace);
+/*
+glTexGenfv(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
+glTexGenfv(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
+glTexGenfv(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
+glEnable(GL_TEXTURE_GEN_S);
+glEnable(GL_TEXTURE_GEN_T); 
+glEnable(GL_TEXTURE_GEN_R);
+
+dest = me->texdata;
+rx = me->x;
+ry = me->y;
+
+FW_GL_TEXIMAGE2D(appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+FW_GL_TEXPARAMETERI(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
+
+*/
+
+dest = me->texdata;
+rx = me->x;
+ry = me->y;
+iformat = GL_RGBA; format = GL_BGRA;
+FW_GL_TEXIMAGE2D(appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+printf ("image is %d x %d\n",rx,ry);
+
+FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+FW_GL_TEXGENI(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+FW_GL_TEXGENI(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+/*
+glTexGenfv(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
+glTexGenfv(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
+glTexGenfv(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
+
+*/
+
+FW_GL_ENABLE(GL_TEXTURE_CUBE_MAP_EXT);
+FW_GL_ENABLE(GL_TEXTURE_GEN_S);
+FW_GL_ENABLE(GL_TEXTURE_GEN_T);
+FW_GL_ENABLE(GL_TEXTURE_GEN_R);
+/*
+FW_GL_ENABLE(GL_NORMALIZE);
+*/
+
+
+	}
+
 	/* a pointer to the tex data. We increment the pointer for movie texures */
-	mytexdata = me->texdata[0];
+	mytexdata = me->texdata;
 	if (mytexdata == NULL) {
 		printf ("mytexdata is null, texture failed, put something here\n");
 	}
@@ -1097,16 +1172,11 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		if(mytexdata != dest) {FREE_IF_NZ(dest);}
 
 		/* we can get rid of the original texture data here */
-		FREE_IF_NZ(me->texdata[0]);
+		FREE_IF_NZ(me->texdata);
 	}
 
 
-	FREE_IF_NZ (me->texdata[0]);
-	FREE_IF_NZ (me->texdata[1]);
-	FREE_IF_NZ (me->texdata[2]);
-	FREE_IF_NZ (me->texdata[3]);
-	FREE_IF_NZ (me->texdata[4]);
-	FREE_IF_NZ (me->texdata[5]);
+	FREE_IF_NZ (me->texdata);
 
 	/* ensure this data is written to the driver for the rendering context */
 	FW_GL_FLUSH();
@@ -1140,9 +1210,11 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
 	struct X3D_VRML1_Texture2 *v1t;
+/* JAS 
 	struct X3D_ImageCubeMapTexture *ict;
 	struct X3D_GeneratedCubeMapTexture *gct;
 	struct X3D_ComposedCubeMapTexture *cct;
+*/
 
 	textureTableIndexStruct_s *myTableIndex;
 	float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};

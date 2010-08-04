@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.51 2010/08/04 02:14:40 dug9 Exp $
+  $Id: LoadTextures.c,v 1.52 2010/08/04 18:59:50 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -95,9 +95,8 @@ void texture_dump_list()
 /**
  *   texture_load_from_pixelTexture: have a PixelTexture node,
  *                           load it now.
- *   imageCount - usually 1, but can be 6 for CubeTextures
  */
-static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex, struct X3D_PixelTexture *node, int imageCount)
+static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex, struct X3D_PixelTexture *node)
 {
 
 /* load a PixelTexture that is stored in the PixelTexture as an MFInt32 */
@@ -148,7 +147,7 @@ static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex,
 	this_tex->hasAlpha = ((depth == 2) || (depth == 4));
 
 	texture = (unsigned char *)MALLOC (wid*hei*4);
-	this_tex->texdata[count] = texture; /* this will be freed when texture opengl-ized */
+	this_tex->texdata = texture; /* this will be freed when texture opengl-ized */
 	this_tex->status = TEX_NEEDSBINDING;
 
 	tctr = 0;
@@ -284,15 +283,14 @@ colorSpace = CGColorSpaceCreateDeviceRGB();
 /**
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
- * imageCount usually 1; can be 6 for CubeMap textures
  */
-bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename, int imageCount)
+bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 {
 
 /* WINDOWS */
 #if defined (_MSC_VER)
 	/* return FALSE; // to see the default grey image working first */
-    if (!loadImage(this_tex, filename,imageCount)) {
+    if (!loadImage(this_tex, filename)) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
 		return FALSE;
     }
@@ -325,7 +323,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename,
     this_tex->x = imlib_image_get_width();
     this_tex->y = imlib_image_get_height();
 
-    this_tex->texdata[imageCount] = (unsigned char *) imlib_image_get_data_for_reading_only(); 
+    this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only(); 
     return TRUE;
 #endif
 
@@ -473,7 +471,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename,
 		this_tex->frames = 1;
 		this_tex->x = image_width;
 		this_tex->y = image_height;
-		this_tex->texdata[imageCount] = data;
+		this_tex->texdata = data;
 	}
 
 	CGContextRelease(cgctx);
@@ -493,10 +491,8 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename,
 static bool texture_process_entry(textureTableIndexStruct_s *entry)
 {
 	resource_item_t *res;
-	struct Multi_String *url[6];
+	struct Multi_String *url;
 	resource_item_t *parentPath = NULL;
-	int nurls; 				/* usually 1 for ImageTexture, 6 for some CubeMaps */
-	int count;
 
 	DEBUG_TEX("textureThread - working on %p (%s)\n"
 		  "which is node %p, nodeType %d status %s, opengltex %u, and frames %d\n",
@@ -505,19 +501,17 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		  entry->frames);
 	
 	entry->status = TEX_LOADING;
-	url[0] = NULL;
-	nurls = 0;
+	url = NULL;
 
 	switch (entry->nodeType) {
 
 	case NODE_PixelTexture:
-		texture_load_from_pixelTexture(entry,(struct X3D_PixelTexture *)entry->scenegraphNode,0);
+		texture_load_from_pixelTexture(entry,(struct X3D_PixelTexture *)entry->scenegraphNode);
 		return TRUE;
 		break;
 
 	case NODE_ImageTexture:
-		url[0] = & (((struct X3D_ImageTexture *)entry->scenegraphNode)->url);
-		nurls=1;
+		url = & (((struct X3D_ImageTexture *)entry->scenegraphNode)->url);
 		parentPath = (resource_item_t *)(((struct X3D_ImageTexture *)entry->scenegraphNode)->_parentResource);
 		break;
 
@@ -525,77 +519,60 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		texture_load_from_MovieTexture(entry);
 		return TRUE;
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-		url [0]= & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);
-		nurls=1;
+		url = & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);
 		parentPath = (resource_item_t *)(((struct X3D_MovieTexture *)entry->scenegraphNode)->_parentResource);
 		break;
 #endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 
 	case NODE_VRML1_Texture2:
-		url[0] = & (((struct X3D_VRML1_Texture2 *)entry->scenegraphNode)->filename);
-		nurls=1;
+		url = & (((struct X3D_VRML1_Texture2 *)entry->scenegraphNode)->filename);
 		parentPath = (resource_item_t *)(((struct X3D_VRML1_Texture2 *)entry->scenegraphNode)->_parentResource);
 		break;
 
-	case NODE_ComposedCubeMapTexture:
-printf ("loading ComposedCubeMapTexture...\n");
-		break;
-
-	case NODE_GeneratedCubeMapTexture:
-
-printf ("loading GeneratedCubeMapTexture...\n");
-		break;
-
-	case NODE_ImageCubeMapTexture:
-
-printf ("loading ImageCubeMapTexture...\n");
-		url[0] = & (((struct X3D_ImageCubeMapTexture *)entry->scenegraphNode)->url);
-		nurls=1;
-		parentPath = (resource_item_t *)(((struct X3D_ImageCubeMapTexture *)entry->scenegraphNode)->_parentResource);
-		break;
+	default: {
+		printf ("invalid nodetype given to loadTexture, %s is not valid\n",stringNodeType(entry->nodeType));
 	}
 
-	for (count=0; count<nurls; count++) {
-		if (url[count] != NULL) {
-			s_list_t *head_of_list;
-	#ifdef TEXVERBOSE
-			PRINTF("url: ");
-			Multi_String_print(url[count]);
-			PRINTF("parent resource: \n");
-			resource_dump(parentPath);
-	#endif
-			res = resource_create_multi(url[count]);
-			/* hold on to the top of the list so we can delete it later */
-			head_of_list = res->m_request;
-	
-			/* go through the urls until we have a success, or total failure */
-			do {
-				/* Setup parent */
-				resource_identify(parentPath, res);
-	
-				/* Setup media type */
-				res->media_type = resm_image; /* quick hack */
-	
-				if (resource_fetch(res)) {
-					DEBUG_TEX("really loading texture data from %s into %p\n", res->actual_file, entry);
-					if (texture_load_from_file(entry, res->actual_file,count)) {
-						entry->status = TEX_NEEDSBINDING; /* tell the texture thread to convert data to OpenGL-format */
-						res->complete = TRUE;
-					}
-				} else {
-					/* we had a problem with that URL, set this so we can try the next */
-					res->type=rest_multi;
+	}
+	if (url != NULL) {
+		s_list_t *head_of_list;
+#ifdef TEXVERBOSE
+		PRINTF("url: ");
+		Multi_String_print(url);
+		PRINTF("parent resource: \n");
+		resource_dump(parentPath);
+#endif
+		res = resource_create_multi(url);
+		/* hold on to the top of the list so we can delete it later */
+		head_of_list = res->m_request;
+
+		/* go through the urls until we have a success, or total failure */
+		do {
+			/* Setup parent */
+			resource_identify(parentPath, res);
+
+			/* Setup media type */
+			res->media_type = resm_image; /* quick hack */
+
+			if (resource_fetch(res)) {
+				DEBUG_TEX("really loading texture data from %s into %p\n", res->actual_file, entry);
+				if (texture_load_from_file(entry, res->actual_file)) {
+					entry->status = TEX_NEEDSBINDING; /* tell the texture thread to convert data to OpenGL-format */
+					res->complete = TRUE;
 				}
-			} while ((res->status != ress_downloaded) && (res->m_request != NULL));
-	
-			/* destroy the m_request, if it exists */
-			if (head_of_list != NULL) {
-				ml_delete_all(head_of_list);
+			} else {
+				/* we had a problem with that URL, set this so we can try the next */
+				res->type=rest_multi;
 			}
-	
-		} else {
-			ERROR_MSG("Could not load texture, no URL present\n");
+		} while ((res->status != ress_downloaded) && (res->m_request != NULL));
+
+		/* destroy the m_request, if it exists */
+		if (head_of_list != NULL) {
+			ml_delete_all(head_of_list);
 		}
+
+	} else {
+		ERROR_MSG("Could not load texture, no URL present\n");
 	}
 
 	/* were we successful?? */
