@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.68 2010/08/04 18:59:50 crc_canada Exp $
+  $Id: Textures.c,v 1.69 2010/08/05 18:17:44 uid31638 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -996,73 +996,69 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	/* is this a CubeMap? If so, lets try this... */
 
 	if (appearanceProperties.cubeFace != 0) {
-#ifndef GL_EXT_texture_cube_map
-# define GL_NORMAL_MAP_EXT                   0x8511
-# define GL_REFLECTION_MAP_EXT               0x8512
-# define GL_TEXTURE_CUBE_MAP_EXT             0x8513
-# define GL_TEXTURE_BINDING_CUBE_MAP_EXT     0x8514
-# define GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT  0x8515
-# define GL_TEXTURE_CUBE_MAP_NEGATIVE_X_EXT  0x8516
-# define GL_TEXTURE_CUBE_MAP_POSITIVE_Y_EXT  0x8517
-# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_EXT  0x8518
-# define GL_TEXTURE_CUBE_MAP_POSITIVE_Z_EXT  0x8519
-# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_EXT  0x851A
-# define GL_PROXY_TEXTURE_CUBE_MAP_EXT       0x851B
-# define GL_MAX_CUBE_MAP_TEXTURE_SIZE_EXT    0x851C
-#endif
-
 		unsigned char *dest = mytexdata;
-glEnable(GL_TEXTURE_CUBE_MAP);
+		uint32 *sp, *dp;
 
-	iformat = GL_RGBA; format = GL_BGRA;
-		printf ("appPRop.cubemap %x\n",appearanceProperties.cubeFace);
-/*
-glTexGenfv(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
-glTexGenfv(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
-glTexGenfv(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
-glEnable(GL_TEXTURE_GEN_S);
-glEnable(GL_TEXTURE_GEN_T); 
-glEnable(GL_TEXTURE_GEN_R);
+		int cx,cy;
 
-dest = me->texdata;
-rx = me->x;
-ry = me->y;
+		#ifndef GL_EXT_texture_cube_map
+		# define GL_NORMAL_MAP_EXT                   0x8511
+		# define GL_REFLECTION_MAP_EXT               0x8512
+		# define GL_TEXTURE_CUBE_MAP_EXT             0x8513
+		# define GL_TEXTURE_BINDING_CUBE_MAP_EXT     0x8514
+		# define GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT  0x8515
+		# define GL_TEXTURE_CUBE_MAP_NEGATIVE_X_EXT  0x8516
+		# define GL_TEXTURE_CUBE_MAP_POSITIVE_Y_EXT  0x8517
+		# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_EXT  0x8518
+		# define GL_TEXTURE_CUBE_MAP_POSITIVE_Z_EXT  0x8519
+		# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_EXT  0x851A
+		# define GL_PROXY_TEXTURE_CUBE_MAP_EXT       0x851B
+		# define GL_MAX_CUBE_MAP_TEXTURE_SIZE_EXT    0x851C
+		#endif
 
-FW_GL_TEXIMAGE2D(appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-FW_GL_TEXPARAMETERI(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
-
-*/
-
-dest = me->texdata;
-rx = me->x;
-ry = me->y;
-iformat = GL_RGBA; format = GL_BGRA;
-FW_GL_TEXIMAGE2D(appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-printf ("image is %d x %d\n",rx,ry);
-
-FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-FW_GL_TEXGENI(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-FW_GL_TEXGENI(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-/*
-glTexGenfv(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
-glTexGenfv(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
-glTexGenfv(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP); 
-
-*/
-
-FW_GL_ENABLE(GL_TEXTURE_CUBE_MAP_EXT);
-FW_GL_ENABLE(GL_TEXTURE_GEN_S);
-FW_GL_ENABLE(GL_TEXTURE_GEN_T);
-FW_GL_ENABLE(GL_TEXTURE_GEN_R);
-/*
-FW_GL_ENABLE(GL_NORMALIZE);
-*/
+		iformat = GL_RGBA; format = GL_BGRA;
+		glEnable(GL_TEXTURE_CUBE_MAP);
 
 
-	}
+		/* first image in the ComposedCubeMap, do some setups */
+		if (appearanceProperties.cubeFace == GL_TEXTURE_CUBE_MAP_POSITIVE_X) {
+			FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		}
+
+		rx = me->x;
+		ry = me->y;
+
+		/* flip the image around */
+		dest = MALLOC (4*rx*ry);
+		dp = (uint32 *) dest;
+		sp = (uint32 *) me->texdata;
+
+		for (cx=0; cx<rx; cx++) {
+			memcpy(&dp[(rx-cx-1)*ry],&sp[cx*ry], ry*4);
+		}
+	
+		iformat = GL_RGBA; format = GL_BGRA;
+		FW_GL_TEXIMAGE2D(appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+		//printf ("image is %d x %d\n",rx,ry);
+
+
+		FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+		FW_GL_TEXGENI(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+		FW_GL_TEXGENI(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+
+		/* last thing to do at the end of the setup for the 6th face */
+		if (appearanceProperties.cubeFace == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) {
+			FW_GL_ENABLE(GL_TEXTURE_CUBE_MAP);
+			FW_GL_ENABLE(GL_TEXTURE_GEN_S);
+			FW_GL_ENABLE(GL_TEXTURE_GEN_T);
+			FW_GL_ENABLE(GL_TEXTURE_GEN_R);
+		}
+
+	} else {
 
 	/* a pointer to the tex data. We increment the pointer for movie texures */
 	mytexdata = me->texdata;
@@ -1173,6 +1169,7 @@ FW_GL_ENABLE(GL_NORMALIZE);
 
 		/* we can get rid of the original texture data here */
 		FREE_IF_NZ(me->texdata);
+	}
 	}
 
 

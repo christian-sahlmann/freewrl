@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.46 2010/08/04 18:59:50 crc_canada Exp $
+$Id: Component_Shape.c,v 1.47 2010/08/05 18:17:44 uid31638 Exp $
 
 X3D Shape Component
 
@@ -572,6 +572,17 @@ void child_Shape (struct X3D_Shape *node) {
 		FW_GL_LINEWIDTH(1.0f);
 		FW_GL_POINTSIZE(1.0f);
 	}
+
+	/* were we cubemapping? */
+	if (appearanceProperties.cubeFace !=0) {
+		FW_GL_DISABLE(GL_TEXTURE_CUBE_MAP);
+		FW_GL_DISABLE(GL_TEXTURE_GEN_S);
+		FW_GL_DISABLE(GL_TEXTURE_GEN_T);
+		FW_GL_DISABLE(GL_TEXTURE_GEN_R);
+		appearanceProperties.cubeFace=0;
+	}
+
+
 
 	/* any shader turned on? if so, turn it off */
 	TURN_APPEARANCE_SHADER_OFF;

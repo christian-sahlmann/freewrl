@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.11 2010/05/05 11:21:48 davejoubert Exp $
+$Id: Component_KeyDevice.c,v 1.12 2010/08/05 18:17:44 uid31638 Exp $
 
 X3D Key Device Component
 
@@ -208,7 +208,7 @@ void sendKeyToKeySensor(const char key, int upDown) {
 
 static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 	#define MYN X3D_KEYSENSOR(wsk)
-	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); */
+	/* printf ("sending key %x %u upDown %d (down %d) to keySenors\n",key,key,upDown,KEYDOWN);  */
 	
 	/* if not enabled, do nothing */
 	if (!MYN) return;

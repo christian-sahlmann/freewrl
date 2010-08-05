@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.45 2010/07/21 22:51:39 dug9 Exp $
+$Id: Component_ProgrammableShaders.c,v 1.46 2010/08/05 18:17:44 uid31638 Exp $
 
 X3D Programmable Shaders Component
 
@@ -101,7 +101,6 @@ FIELDTYPE_MFVec4d
 #include "../opengl/OpenGL_Utils.h"
 #include "../opengl/Textures.h"
 #include "Component_ProgrammableShaders.h"
-
 
 /* which shader is running?? */
 GLuint globalCurrentShader = 0;
@@ -330,7 +329,7 @@ static int shader_checkType(struct FieldDecl * myField,
 	/* did we have an error? */
 
 	if (!retval) {
-		ConsoleMessage ("Shader type check fail X3D type not compatible for variable :%s:",ch);
+		ConsoleMessage ("Shader type check: X3D type and shader type not compatible for variable :%s:",ch);
 #ifdef VERBOSE
 	printf ("shaderCheck mode %d (%s) type %d (%s) name %d\n",fieldDecl_getAccessType(myField),
 			stringPROTOKeywordType(fieldDecl_getAccessType(myField)), 
@@ -807,7 +806,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 			if (GET_ATTRIB(myShader,fieldDecl_getShaderScriptName(curField->fieldDecl)) != INT_ID_UNDEFINED)
 			ConsoleMessage ("Shader variable :%s: is declared as an attribute; we can not do much with this",fieldDecl_getShaderScriptName(curField->fieldDecl));
 			else
-			ConsoleMessage ("Shader variable :%s: is not declared",fieldDecl_getShaderScriptName(curField->fieldDecl));
+			ConsoleMessage ("Shader variable :%s: is either not declared or not used in the shader program",fieldDecl_getShaderScriptName(curField->fieldDecl));
 		}
 
 		#ifdef SHADERVERBOSE

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.20 2010/06/03 19:38:37 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.21 2010/08/05 18:17:44 uid31638 Exp $
 
 ???
 
@@ -321,8 +321,8 @@ JSPropertySpec (SFVec4fProperties)[] = {
 
 JSFunctionSpec (SFVec4fFunctions)[] = {
 	/* do not know what functions to use here */
-	{"toString", SFVec4dToString, 0},
-	{"assign", SFVec4dAssign, 0},
+	{"toString", SFVec4fToString, 0},
+	{"assign", SFVec4fAssign, 0},
 	{0}
 };
 
