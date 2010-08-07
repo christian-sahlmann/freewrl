@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.20 2010/02/25 03:29:19 dug9 Exp $
+  $Id: fwWindow32.c,v 1.21 2010/08/07 22:34:11 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -327,6 +327,7 @@ LRESULT CALLBACK PopupWndProc(
     char kp;
     int mev,err;
     int butnum;
+	int updown;
     mev = 0;
     butnum = 0;
     ghWnd = hWnd;
@@ -429,20 +430,25 @@ LRESULT CALLBACK PopupWndProc(
 	PostQuitMessage (0); 
 	break; 
 
-    case WM_KEYDOWN: 
+	case WM_KEYDOWN:
+	case WM_KEYUP: 
+	updown = KeyPress;
+	if(msg==WM_KEYUP) updown = KeyRelease;
+	//kp = (char)wParam; 
 	kp = (char)tolower(wParam);
+	//printf("wParam %d\n",wParam);
 	switch (wParam) { 
 	case VK_LEFT: 
-	    kp = 'j';
+	    kp = 'j';//19;
 	    break; 
 	case VK_RIGHT: 
-	    kp = 'l';
+	    kp = 'l';//20;
 	    break; 
 	case VK_UP: 
-	    kp = 'p';
+	    kp = 'p';//17;
 	    break; 
 	case VK_DOWN: 
-	    kp = ';';
+	    kp =  ';';//18;
 	    break; 
 	case -70:
 	    kp = ';';
@@ -456,7 +462,7 @@ LRESULT CALLBACK PopupWndProc(
 	    DisableFullscreen();
 	    break;
 	} 
-	do_keyPress(kp, KeyPress); 
+	do_keyPress(kp, updown); //KeyPress); 
 	break; /* FIXME: michel */
 
 	/* Mouse events, processed */
