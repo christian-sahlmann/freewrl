@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.69 2010/08/05 18:17:44 uid31638 Exp $
+  $Id: Textures.c,v 1.70 2010/08/07 19:17:30 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -994,7 +994,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 
 	/* is this a CubeMap? If so, lets try this... */
-
+	mytexdata = me->texdata;
 	if (appearanceProperties.cubeFace != 0) {
 		unsigned char *dest = mytexdata;
 		uint32 *sp, *dp;
