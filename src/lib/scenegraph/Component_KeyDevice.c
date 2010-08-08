@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.15 2010/08/08 21:46:14 dug9 Exp $
+$Id: Component_KeyDevice.c,v 1.16 2010/08/08 22:42:27 dug9 Exp $
 
 X3D Key Device Component
 
@@ -229,6 +229,8 @@ char platform2web3dActionKey(char platformKey)
 			key = LEFT_KEY; break;
 		case PRIGHT_KEY:
 			key = RIGHT_KEY; break;
+		case PDEL_KEY:
+			key = DEL_KEY; break;
 		case PALT_KEY:
 			key = ALT_KEY; break;
 		case PCTL_KEY:
@@ -309,10 +311,11 @@ void sendKeyToKeySensor(const char key, int upDown) {
 		printf ("sendKeyToKeySensor, sending key %d to %d of %d\n",key,count,keySinkCurMax);
 		#endif
 
-		if (keySink[count]->_nodeType == NODE_KeySensor && (upDown == KeyPress || upDown==KeyRelease)) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
 #ifdef WIN32
+		if (keySink[count]->_nodeType == NODE_KeySensor && (upDown == KeyPress || upDown==KeyRelease)) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
 		if (keySink[count]->_nodeType == NODE_StringSensor && (upDown == KeyChar) ) sendToSS(keySink[count], (int)key&0xFFFF, upDown);
 #else
+		if (keySink[count]->_nodeType == NODE_KeySensor ) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
 		if (keySink[count]->_nodeType == NODE_StringSensor ) sendToSS(keySink[count], (int)key&0xFFFF, upDown);
 #endif
 	}
@@ -362,6 +365,7 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 		case F10_KEY:
 		case F11_KEY:
 		case F12_KEY:
+		/* no DEL key here*/
 			if (isDown)  {
 				MYN->actionKeyPress = actionKey; //TRUE; 
 				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, actionKeyPress));
@@ -387,7 +391,7 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 			break;
 	    }/*end switch */
 	} else { 
-		/* regular key */
+		/* regular key including RTN */
 		if ((MYN->keyPress->len != 2) || (MYN->keyRelease->len != 2)) {
 			FREE_IF_NZ(MYN->keyPress->strptr);
 			FREE_IF_NZ(MYN->keyRelease->strptr);
@@ -426,10 +430,10 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	if (!MYN->enabled) return;
 	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); */
 
+	actionKey = platform2web3dActionKey(key);
 	#if !defined(AQUA) && !defined(WIN32)
 	/* on Unix, we have to handle control/shift keys ourselves. OSX handles this
 	   by itself */
-	actionKey = platform2web3dActionKey(key);
 	if (actionKey == SFT_KEY) {
 		shiftPressed = (upDown == KEYDOWN);
 		return;
@@ -462,14 +466,14 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	}
 	
 	/* enteredText */
-	if ((MYN->deletionAllowed) && (key==DEL_KEY)) {
+	if ((MYN->deletionAllowed) && (actionKey==DEL_KEY)) {
 		if (MYN->enteredText->len > 1) {
 			MYN->enteredText->len--;
 			MYN->enteredText->strptr[MYN->enteredText->len-1] = '\0';
 			MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
 		}
 	} else {
-		if ((key != RTN_KEY) && (key != DEL_KEY) && (MYN->enteredText->len < MAXSTRINGLEN-1)) {
+		if ((key != RTN_KEY) && (actionKey != DEL_KEY) && (MYN->enteredText->len < MAXSTRINGLEN-1)) {
 			char *mystr = MYN->enteredText->strptr;
 			MYN->enteredText->strptr[MYN->enteredText->len-1] = (char)key;
 			MYN->enteredText->strptr[MYN->enteredText->len] = '\0';
