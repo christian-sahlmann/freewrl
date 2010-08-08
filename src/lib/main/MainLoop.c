@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.129 2010/08/02 01:11:25 dug9 Exp $
+  $Id: MainLoop.c,v 1.130 2010/08/08 17:31:19 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1303,13 +1303,16 @@ void dump_scenegraph()
 void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
 void do_keyPress(const char kp, int type) {
+		int lkp;
         /* does this X3D file have a KeyDevice node? if so, send it to it */
         /* printf("%c%d\n",kp,type); */
         if (KeySensorNodePresent()) {
                 sendKeyToKeySensor(kp,type);
         } else {
                 if (type == KeyPress) {
-                        switch (kp) {
+						lkp = kp;
+						if(kp>='A' && kp <='Z') lkp = tolower(kp);
+                        switch (lkp) {
                                 case 'e': { set_viewer_type (VIEWER_EXAMINE); break; }
                                 case 'w': { set_viewer_type (VIEWER_WALK); break; }
                                 case 'd': { set_viewer_type (VIEWER_FLY); break; }
@@ -1317,8 +1320,8 @@ void do_keyPress(const char kp, int type) {
                                 case 'y': { set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
                                 case 'h': { toggle_headlight(); break;}
                                 case '/': { print_viewer(); break; }
-			        case '\\': { dump_scenegraph(); break; }
-				case '$': resource_tree_dump(0, root_res); break;
+                                case '\\': { dump_scenegraph(); break; }
+                                case '$': resource_tree_dump(0, root_res); break;
                                 case 'q': { if (!RUNNINGASPLUGIN) {
                                                   doQuit();
                                             }

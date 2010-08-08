@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.21 2010/08/07 22:34:11 dug9 Exp $
+  $Id: fwWindow32.c,v 1.22 2010/08/08 17:31:19 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -328,6 +328,10 @@ LRESULT CALLBACK PopupWndProc(
     int mev,err;
     int butnum;
 	int updown;
+static int altState = 0;
+	int altDown;
+	int lkeydata;
+static int shiftState = 0;
     mev = 0;
     butnum = 0;
     ghWnd = hWnd;
@@ -432,38 +436,55 @@ LRESULT CALLBACK PopupWndProc(
 
 	case WM_KEYDOWN:
 	case WM_KEYUP: 
+	lkeydata = lParam;
 	updown = KeyPress;
 	if(msg==WM_KEYUP) updown = KeyRelease;
-	//kp = (char)wParam; 
-	kp = (char)tolower(wParam);
-	//printf("wParam %d\n",wParam);
-	switch (wParam) { 
-	case VK_LEFT: 
-	    kp = 'j';//19;
-	    break; 
-	case VK_RIGHT: 
-	    kp = 'l';//20;
-	    break; 
-	case VK_UP: 
-	    kp = 'p';//17;
-	    break; 
-	case VK_DOWN: 
-	    kp =  ';';//18;
-	    break; 
-	case -70:
-	    kp = ';';
-	case VK_OPEN_BRACKET:
-	    printf("[");
-	    /* width, height, bpp of monitor */
-	    EnableFullscreen(1680,1050,32);
-	    break;
-	case VK_CLOSE_BRACKET:
-	    printf("]");
-	    DisableFullscreen();
-	    break;
+	if(updown==KeyPress)
+		if(lkeydata & 1 << 30) 
+			break; //ignor - its an auto-repeat
+	//altDown = lkeydata & 1 << 29; //alt key is pressed while the current key is pressed
+	//if(altState && !altDown) do_keyPress(VK_MENU, 0);
+	//if(!altState && altDown) do_keyPress(VK_MENU,KeyPress);
+	kp = (char)wParam; 
+	//if(kp >= 'A' && kp <= 'Z' && shiftState ==0 ) kp = (char)tolower(wParam); //the F1 - F12 are small case ie y=121=F1
+	//printf("      wParam %d %x\n",wParam, wParam);
+	//x3d specs http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
+	//section 21.4.1 has a table of KeySensor ActionKey values which we must map to at some point
+	switch (wParam) 
+	{ 
+		//case VK_LEFT: 
+		//	kp = 'j';//19;
+		//	break; 
+		//case VK_RIGHT: 
+		//	kp = 'l';//20;
+		//	break; 
+		//case VK_UP: 
+		//	kp = 'p';//17;
+		//	break; 
+		//case VK_DOWN: 
+		//	kp =  ';';//18;
+		//	break; 
+		case -70:
+			kp = ';';
+			break;
+		case VK_SHIFT: //0x10
+			if(updown==KeyPress) shiftState = 1;
+			if(updown==KeyRelease) shiftState = 0;
+		case VK_CONTROL: //0x11
+		case VK_MENU:  //ALT 0x12 - doesn't work like this: it alters the next key pressed
+			break;
+		case VK_OPEN_BRACKET:
+			printf("[");
+			/* width, height, bpp of monitor */
+			EnableFullscreen(1680,1050,32);
+			break;
+		case VK_CLOSE_BRACKET:
+			printf("]");
+			DisableFullscreen();
+			break;
 	} 
-	do_keyPress(kp, updown); //KeyPress); 
-	break; /* FIXME: michel */
+	do_keyPress(kp, updown); 
+	break; 
 
 	/* Mouse events, processed */
     case WM_LBUTTONDOWN:

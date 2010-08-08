@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.13 2010/08/07 22:34:11 dug9 Exp $
+$Id: Component_KeyDevice.c,v 1.14 2010/08/08 17:31:19 dug9 Exp $
 
 X3D Key Device Component
 
@@ -67,69 +67,179 @@ int ctrlPressed = 0;
 #endif
 
 /* mapped from my Apple OSX keyboard, canadian setup, so here goes... */
-#ifndef AQUA
-#define HOME_KEY 80
-#define PGDN_KEY 86
-#define LEFT_KEY 106
-#define END_KEY 87
-#define UP_KEY 112
-#define RIGHT_KEY 108
-#define PGUP_KEY 85
-#define DOWN_KEY 59
-#define F1_KEY  0xFFBE
-#define F2_KEY  0xFFBF
-#define F3_KEY  0XFFC0
-#define F4_KEY  0XFFC1
-#define F5_KEY  0XFFC2
-#define F6_KEY  0XFFC3
-#define F7_KEY  0XFFC4
-#define F8_KEY  0XFFC5
-#define F9_KEY  0XFFC6
-#define F10_KEY 0XFFC7
-#define F11_KEY 0XFFC8
-#define F12_KEY 0XFFC9
-#define ALT_KEY	0XFFE7
-#define CTL_KEY 0XFFE3
-#define SFT_KEY 0XFFE1
-#define DEL_KEY 0x08
-#define RTN_KEY 13
+#ifdef WIN32
+/* values from WinUser.h */
+#define PHOME_KEY 0x24
+#define PPGDN_KEY 0x22
+#define PLEFT_KEY 0x25
+#define PEND_KEY 0x23
+#define PUP_KEY 0x26
+#define PRIGHT_KEY 0x27
+#define PPGUP_KEY 0x21
+#define PDOWN_KEY 0x28
+#define PF1_KEY  0x70
+#define PF2_KEY  0x71
+#define PF3_KEY  0x72
+#define PF4_KEY  0x73
+#define PF5_KEY  0x74
+#define PF6_KEY  0x75
+#define PF7_KEY  0x76
+#define PF8_KEY  0x77
+#define PF9_KEY  0x78
+#define PF10_KEY 0x79
+#define PF11_KEY 0x7a
+#define PF12_KEY 0x7b
+#define PALT_KEY 0x12
+#define PCTL_KEY 0x11
+#define PSFT_KEY 0x10
+#define PDEL_KEY 0x08
+#define PRTN_KEY 13
+#define KEYDOWN 2
+/* This is implicit; we only ever check KEYDOWN , and assume KEYUP in the else branch */
+	#if 0
+	#define KEYUP	3
+	#endif
+
+#elif AQUA
+#define PHOME_KEY 0x29
+#define PPGDN_KEY 0x2d
+#define PLEFT_KEY 0x02
+#define PEND_KEY  0x3b
+#define PUP_KEY   0x00
+#define PRIGHT_KEY 0x03
+#define PPGUP_KEY 0x2c
+#define PDOWN_KEY 0x01
+#define PF1_KEY  0x4
+#define PF2_KEY  0x5
+#define PF3_KEY  0X6
+#define PF4_KEY  0X7
+#define PF5_KEY  0X8
+#define PF6_KEY  0X9
+#define PF7_KEY  0X10
+#define PF8_KEY  0X11
+#define PF9_KEY  0X12
+#define PF10_KEY 0X13
+#define PF11_KEY 0X14
+#define PF12_KEY 0X15
+#define PALT_KEY	0X0 /* not available on OSX */
+#define PCTL_KEY 0X0 /* not available on OSX */
+#define PSFT_KEY 0X0 /* not available on OSX */
+#define PDEL_KEY 0x7F
+#define PRTN_KEY 13
 #define KEYDOWN 2
 /* This is implicit; we only ever check KEYDOWN , and assume KEYUP in the else branch */
 	#if 0
 	#define KEYUP	3
 	#endif
 #else
-#define HOME_KEY 0x29
-#define PGDN_KEY 0x2d
-#define LEFT_KEY 0x02
-#define END_KEY  0x3b
-#define UP_KEY   0x00
-#define RIGHT_KEY 0x03
-#define PGUP_KEY 0x2c
-#define DOWN_KEY 0x01
-#define F1_KEY  0x4
-#define F2_KEY  0x5
-#define F3_KEY  0X6
-#define F4_KEY  0X7
-#define F5_KEY  0X8
-#define F6_KEY  0X9
-#define F7_KEY  0X10
-#define F8_KEY  0X11
-#define F9_KEY  0X12
-#define F10_KEY 0X13
-#define F11_KEY 0X14
-#define F12_KEY 0X15
-#define ALT_KEY	0X0 /* not available on OSX */
-#define CTL_KEY 0X0 /* not available on OSX */
-#define SFT_KEY 0X0 /* not available on OSX */
-#define DEL_KEY 0x7F
-#define RTN_KEY 13
+#define PHOME_KEY 80
+#define PPGDN_KEY 86
+#define PLEFT_KEY 106
+#define PEND_KEY 87
+#define PUP_KEY 112
+#define PRIGHT_KEY 108
+#define PPGUP_KEY 85
+#define PDOWN_KEY 59
+#define PF1_KEY  0xFFBE
+#define PF2_KEY  0xFFBF
+#define PF3_KEY  0XFFC0
+#define PF4_KEY  0XFFC1
+#define PF5_KEY  0XFFC2
+#define PF6_KEY  0XFFC3
+#define PF7_KEY  0XFFC4
+#define PF8_KEY  0XFFC5
+#define PF9_KEY  0XFFC6
+#define PF10_KEY 0XFFC7
+#define PF11_KEY 0XFFC8
+#define PF12_KEY 0XFFC9
+#define PALT_KEY	0XFFE7
+#define PCTL_KEY 0XFFE3
+#define PSFT_KEY 0XFFE1
+#define PDEL_KEY 0x08
+#define PRTN_KEY 13
 #define KEYDOWN 2
 /* This is implicit; we only ever check KEYDOWN , and assume KEYUP in the else branch */
 	#if 0
 	#define KEYUP	3
 	#endif
 #endif
+/* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
+section 21.4.1 
+Key Value
+Home 13
+End 14
+PGUP 15
+PGDN 16
+UP 17
+DOWN 18
+LEFT 19
+RIGHT 20
+F1-F12  1 to 12
+ALT,CTRL,SHIFT true/false
+*/
+#define F1_KEY  1
+#define F2_KEY  2
+#define F3_KEY  3
+#define F4_KEY  4
+#define F5_KEY  5
+#define F6_KEY  6
+#define F7_KEY  7
+#define F8_KEY  8
+#define F9_KEY  9
+#define F10_KEY 10
+#define F11_KEY 11
+#define F12_KEY 12
+#define HOME_KEY 13
+#define END_KEY  14
+#define PGUP_KEY 15
+#define PGDN_KEY 16
+#define UP_KEY   17
+#define DOWN_KEY 18
+#define LEFT_KEY 19
+#define RIGHT_KEY 20
+#define ALT_KEY	30 /* not available on OSX */
+#define CTL_KEY 31 /* not available on OSX */
+#define SFT_KEY 32 /* not available on OSX */
+#define DEL_KEY 33
+#define RTN_KEY 13
+#define KEYDOWN 2
+
+char platform2web3dActionKey(char platformKey)
+{
+	int key;
+	key = 0; //platformKey;
+	if(platformKey >= PF1_KEY && platformKey <= PF12_KEY)
+		key = platformKey - PF1_KEY + F1_KEY;
+	else 
+		switch(platformKey)
+		{
+		case PHOME_KEY:
+			key = HOME_KEY; break;
+		case PEND_KEY:
+			key = END_KEY; break;
+		case PPGDN_KEY:
+			key = PGDN_KEY; break;
+		case PPGUP_KEY:
+			key = PGUP_KEY; break;
+		case PUP_KEY:
+			key = UP_KEY; break;
+		case PDOWN_KEY:
+			key = DOWN_KEY; break;
+		case PLEFT_KEY:
+			key = LEFT_KEY; break;
+		case PRIGHT_KEY:
+			key = RIGHT_KEY; break;
+		case PALT_KEY:
+			key = ALT_KEY; break;
+		case PCTL_KEY:
+			key = CTL_KEY; break;
+		case PSFT_KEY:
+			key = SFT_KEY; break;
+		default:
+			key = 0;
+		}
+	return key;
+}
 
 
 /* only keep 1 keyDevice node around; we can make a list if that is eventually
@@ -207,6 +317,8 @@ void sendKeyToKeySensor(const char key, int upDown) {
 /*******************************************************/
 
 static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
+	int actionKey;
+	int isDown;
 	#define MYN X3D_KEYSENSOR(wsk)
 	/* printf ("sending key %x %u upDown %d (down %d) to keySenors\n",key,key,upDown,KEYDOWN);  */
 	
@@ -221,7 +333,11 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 		return;
 
 	/* is this an ACTION (tm) key  press or release? */
-	switch (key) {
+	isDown = upDown == KEYDOWN;
+	actionKey = platform2web3dActionKey(key);
+	if(actionKey)
+	{
+	  switch (actionKey) {
 		case HOME_KEY:
 		case PGDN_KEY:
 		case LEFT_KEY:
@@ -242,42 +358,50 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 		case F10_KEY:
 		case F11_KEY:
 		case F12_KEY:
-			if (upDown == KEYDOWN)  {
-				MYN->actionKeyPress = key; //TRUE; 
+			if (isDown)  {
+				MYN->actionKeyPress = actionKey; //TRUE; 
 				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, actionKeyPress));
 			} else {
-				MYN->actionKeyRelease = key; //TRUE;
+				MYN->actionKeyRelease = actionKey; //TRUE;
 				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, actionKeyRelease));
 			}
 			break;
-		default: {
-			if ((MYN->keyPress->len != 2) || (MYN->keyRelease->len != 2)) {
-				FREE_IF_NZ(MYN->keyPress->strptr);
-				FREE_IF_NZ(MYN->keyRelease->strptr);
-				MYN->keyPress = newASCIIString ("a");
-				MYN->keyRelease = newASCIIString ("a");
-			}
-				
-			if (upDown == KEYDOWN) {
-				MYN->keyPress->strptr[0] = (char) (key&0xFF);
-				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, keyPress));
-			} else {
-				MYN->keyRelease->strptr[0] = (char) (key&0xFF);
-				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, keyRelease));
-			}
+		case ALT_KEY:
+			/* now, for some of the other keys, the ones that are modifiers, not ACTION (tm) keys. */
+			MYN->altKey = isDown;
+			MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, altKey));
+			break;
+		case CTL_KEY:
+			MYN->controlKey = isDown;
+			MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, controlKey));
+			break;
+		case SFT_KEY:
+			MYN->shiftKey = isDown;
+			MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, shiftKey));
+			break;
+		default:
+			break;
+	    }/*end switch */
+	} else { 
+		/* regular key */
+		if ((MYN->keyPress->len != 2) || (MYN->keyRelease->len != 2)) {
+			FREE_IF_NZ(MYN->keyPress->strptr);
+			FREE_IF_NZ(MYN->keyRelease->strptr);
+			MYN->keyPress = newASCIIString ("a");
+			MYN->keyRelease = newASCIIString ("a");
+		}
+			
+		if (isDown) {
+			MYN->keyPress->strptr[0] = (char) (key&0xFF);
+			MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, keyPress));
+		} else {
+			MYN->keyRelease->strptr[0] = (char) (key&0xFF);
+			MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, keyRelease));
 		}
 	}
 
-	/* now, for some of the other keys, the ones that are modifiers, not ACTION (tm) keys. */
-	MYN->altKey = key==ALT_KEY;
-	MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, altKey));
-	MYN->controlKey = key==ALT_KEY;
-	MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, controlKey));
-	MYN->shiftKey = key==ALT_KEY;
-	MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, shiftKey));
-
 	/* now, presumably "isActive" means that the key is down... */
-	MYN->isActive = upDown == KEYDOWN;
+	MYN->isActive = isDown;
 	MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, isActive));
 	#undef MYN
 	
