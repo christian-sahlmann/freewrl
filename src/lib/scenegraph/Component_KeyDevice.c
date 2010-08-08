@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.14 2010/08/08 17:31:19 dug9 Exp $
+$Id: Component_KeyDevice.c,v 1.15 2010/08/08 21:46:14 dug9 Exp $
 
 X3D Key Device Component
 
@@ -309,8 +309,12 @@ void sendKeyToKeySensor(const char key, int upDown) {
 		printf ("sendKeyToKeySensor, sending key %d to %d of %d\n",key,count,keySinkCurMax);
 		#endif
 
-		if (keySink[count]->_nodeType == NODE_KeySensor) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
-		if (keySink[count]->_nodeType == NODE_StringSensor) sendToSS(keySink[count], (int)key&0xFFFF, upDown);
+		if (keySink[count]->_nodeType == NODE_KeySensor && (upDown == KeyPress || upDown==KeyRelease)) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
+#ifdef WIN32
+		if (keySink[count]->_nodeType == NODE_StringSensor && (upDown == KeyChar) ) sendToSS(keySink[count], (int)key&0xFFFF, upDown);
+#else
+		if (keySink[count]->_nodeType == NODE_StringSensor ) sendToSS(keySink[count], (int)key&0xFFFF, upDown);
+#endif
 	}
 }
 
@@ -407,6 +411,7 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 	
 }
 static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
+	int actionKey;
 	#define MYN X3D_STRINGSENSOR(wsk)
 	#define MAXSTRINGLEN 512
 
@@ -421,26 +426,26 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	if (!MYN->enabled) return;
 	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); */
 
-	#ifndef AQUA
+	#if !defined(AQUA) && !defined(WIN32)
 	/* on Unix, we have to handle control/shift keys ourselves. OSX handles this
 	   by itself */
-	if (key == SFT_KEY) {
+	actionKey = platform2web3dActionKey(key);
+	if (actionKey == SFT_KEY) {
 		shiftPressed = (upDown == KEYDOWN);
 		return;
 	}
 
 	/* ignore the control key here. OSX will not event let one come this far... */
-	if (key == CTL_KEY) return;
+	if (actionKey == CTL_KEY) return;
+
+	/* we only care about key presses here */
+	if (upDown != KEYDOWN) return;
 
 	/* do the shift of the A-Z keys if shift pressed */
 	if ((key >= 'a') && (key<='z'))
 		if (shiftPressed)
 			key=key-'a'+'A';
 	#endif
-
-	/* we only care about key presses here */
-	/* if (upDown != KEYDOWN) return;  now we care, there are keyRelease events */
-
 
 	/* is this initialized? */
 	if (!MYN->_initialized) {
@@ -453,6 +458,7 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 		MYN->enteredText->strptr[0] = '\0';
 		MYN->finalText->strptr[0] = '\0';
 		MYN->_initialized = TRUE;
+		MYN->isActive = FALSE;
 	}
 	
 	/* enteredText */
@@ -464,6 +470,7 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 		}
 	} else {
 		if ((key != RTN_KEY) && (key != DEL_KEY) && (MYN->enteredText->len < MAXSTRINGLEN-1)) {
+			char *mystr = MYN->enteredText->strptr;
 			MYN->enteredText->strptr[MYN->enteredText->len-1] = (char)key;
 			MYN->enteredText->strptr[MYN->enteredText->len] = '\0';
 			MYN->enteredText->len++;
@@ -491,7 +498,7 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 		MYN->enteredText->len=1;
 		MYN->enteredText->strptr[0] = '\0';
 		MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, finalText));
-		MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
+		/* MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText)); specs say don't gen an event here*/
 
 		MYN->isActive = FALSE;
 		MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, isActive));

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.130 2010/08/08 17:31:19 dug9 Exp $
+  $Id: MainLoop.c,v 1.131 2010/08/08 21:46:14 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1309,9 +1309,13 @@ void do_keyPress(const char kp, int type) {
         if (KeySensorNodePresent()) {
                 sendKeyToKeySensor(kp,type);
         } else {
-                if (type == KeyPress) {
+#ifdef WIN32
+			if(type == KeyChar) {
+#else
+			if (type == KeyPress) {
+#endif
 						lkp = kp;
-						if(kp>='A' && kp <='Z') lkp = tolower(kp);
+						//if(kp>='A' && kp <='Z') lkp = tolower(kp);
                         switch (lkp) {
                                 case 'e': { set_viewer_type (VIEWER_EXAMINE); break; }
                                 case 'w': { set_viewer_type (VIEWER_WALK); break; }
