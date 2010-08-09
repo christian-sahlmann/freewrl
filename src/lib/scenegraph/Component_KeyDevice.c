@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.16 2010/08/08 22:42:27 dug9 Exp $
+$Id: Component_KeyDevice.c,v 1.17 2010/08/09 15:33:35 crc_canada Exp $
 
 X3D Key Device Component
 
@@ -101,14 +101,22 @@ int ctrlPressed = 0;
 	#endif
 
 #elif AQUA
-#define PHOME_KEY 0x29
-#define PPGDN_KEY 0x2d
+
+/* verified August 2010 for OSX - aluminium keyboard, "Canadian English" one. */
+
+/* arrow keysi; between main keys and numeric keypad */
+
 #define PLEFT_KEY 0x02
-#define PEND_KEY  0x3b
-#define PUP_KEY   0x00
 #define PRIGHT_KEY 0x03
-#define PPGUP_KEY 0x2c
 #define PDOWN_KEY 0x01
+#define PUP_KEY   0x00 
+#define PPGUP_KEY 0x2c
+#define PPGDN_KEY 0x2d
+#define PHOME_KEY 0x29
+#define PEND_KEY  0x2b
+
+/* on my aluminum apple keyboard, there is a key labelled "fn" that must be pushed to get the
+function mappings - like a "shift" key */
 #define PF1_KEY  0x4
 #define PF2_KEY  0x5
 #define PF3_KEY  0X6
@@ -117,14 +125,15 @@ int ctrlPressed = 0;
 #define PF6_KEY  0X9
 #define PF7_KEY  0X10
 #define PF8_KEY  0X11
-#define PF9_KEY  0X12
-#define PF10_KEY 0X13
-#define PF11_KEY 0X14
-#define PF12_KEY 0X15
-#define PALT_KEY	0X0 /* not available on OSX */
-#define PCTL_KEY 0X0 /* not available on OSX */
-#define PSFT_KEY 0X0 /* not available on OSX */
-#define PDEL_KEY 0x7F
+#define PF9_KEY  0X12	/* these did not work with the "fn" key modifier */
+#define PF10_KEY 0X13	/* these did not work with the "fn" key modifier */
+#define PF11_KEY 0X14	/* these did not work with the "fn" key modifier */
+#define PF12_KEY 0X15	/* these did not work with the "fn" key modifier */
+
+#define PALT_KEY	0X88 /* JAS */ /* not available on OSX */
+#define PCTL_KEY 0X66 /* JAS */ /* not available on OSX */
+#define PSFT_KEY 0X77 /* JAS */ /* not available on OSX */
+#define PDEL_KEY 0x28 /* JAS - key lavelled "delete", just to the left of the "end" key */
 #define PRTN_KEY 13
 #define KEYDOWN 2
 /* This is implicit; we only ever check KEYDOWN , and assume KEYUP in the else branch */
@@ -207,6 +216,7 @@ ALT,CTRL,SHIFT true/false
 char platform2web3dActionKey(char platformKey)
 {
 	int key;
+
 	key = 0; //platformKey;
 	if(platformKey >= PF1_KEY && platformKey <= PF12_KEY)
 		key = platformKey - PF1_KEY + F1_KEY;
