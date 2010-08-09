@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.19 2010/08/09 17:28:04 crc_canada Exp $
+$Id: Component_KeyDevice.c,v 1.20 2010/08/09 19:02:07 dug9 Exp $
 
 X3D Key Device Component
 
@@ -94,7 +94,7 @@ int ctrlPressed = 0;
 #define PSFT_KEY 0x10
 #define PDEL_KEY 0x08
 #define PRTN_KEY 13
-#define KEYDOWN 2
+#define KEYDOWN 1
 /* This is implicit; we only ever check KEYDOWN , and assume KEYUP in the else branch */
 	#if 0
 	#define KEYUP	3
@@ -214,7 +214,6 @@ ALT,CTRL,SHIFT true/false
 #define SFT_KEY 32 /* not available on OSX */
 #define DEL_KEY 33
 #define RTN_KEY 13
-#define KEYDOWN 2
 
 char platform2web3dActionKey(char platformKey)
 {
@@ -325,12 +324,11 @@ void sendKeyToKeySensor(const char key, int upDown) {
 		#endif
 
 #ifdef WIN32
-		if (keySink[count]->_nodeType == NODE_KeySensor && (upDown == KeyPress || upDown==KeyRelease)) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
-		if (keySink[count]->_nodeType == NODE_StringSensor && (upDown == KeyChar) ) sendToSS(keySink[count], (int)key&0xFFFF, upDown);
+		if (keySink[count]->_nodeType == NODE_KeySensor && (upDown != KeyChar)) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
 #else
 		if (keySink[count]->_nodeType == NODE_KeySensor ) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
-		if (keySink[count]->_nodeType == NODE_StringSensor ) sendToSS(keySink[count], (int)key&0xFFFF, upDown);
 #endif
+		if (keySink[count]->_nodeType == NODE_StringSensor ) sendToSS(keySink[count], (int)key&0xFFFF, upDown);
 	}
 }
 
@@ -353,7 +351,7 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 		return;
 
 	/* is this an ACTION (tm) key  press or release? */
-	isDown = upDown == KEYDOWN;
+	isDown = upDown == KeyPress;
 	actionKey = platform2web3dActionKey(key);
 	if(actionKey)
 	{

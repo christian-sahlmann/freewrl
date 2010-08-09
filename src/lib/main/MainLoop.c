@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.131 2010/08/08 21:46:14 dug9 Exp $
+  $Id: MainLoop.c,v 1.132 2010/08/09 19:02:07 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1302,6 +1302,12 @@ void dump_scenegraph()
 
 void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
+#ifdef WIN32
+#define KEYDOWN 1
+#else
+#define KEYDOWN 2
+#endif
+
 void do_keyPress(const char kp, int type) {
 		int lkp;
         /* does this X3D file have a KeyDevice node? if so, send it to it */
@@ -1309,11 +1315,7 @@ void do_keyPress(const char kp, int type) {
         if (KeySensorNodePresent()) {
                 sendKeyToKeySensor(kp,type);
         } else {
-#ifdef WIN32
-			if(type == KeyChar) {
-#else
-			if (type == KeyPress) {
-#endif
+			if(type == KEYDOWN) {
 						lkp = kp;
 						//if(kp>='A' && kp <='Z') lkp = tolower(kp);
                         switch (lkp) {
