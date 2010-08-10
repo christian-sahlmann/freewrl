@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.28 2010/08/02 01:11:25 dug9 Exp $
+$Id: SensInterps.c,v 1.29 2010/08/10 22:32:00 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -1743,25 +1743,4 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	
 	node->__sourceNumber = BADAUDIOSOURCE;
 
-#if 0 //MBFILES
-	filename = (char*)MALLOC(1000);
-	filename[0] = '\0';
-
-	/* lets make up the path and save it, and make it the global path */
-	/* copy the parent path over */
-	mypath = STRDUP(node->__parenturl->strptr);
-
-	if (getValidFileFromUrl (filename,mypath, &(node->url), NULL)) {
-		/* save local file in the structure, so that it can
-		   be initialized later */
-		node->__localFileName = STRDUP(filename);
-	} else {
-		/* well, no file found */
-		printf ("Audio: could not find audio file :%s:\n",filename);
-		FREE_IF_NZ (filename);
-		node->__sourceNumber = BADAUDIOSOURCE;
-	}
-	FREE_IF_NZ (mypath);
-	FREE_IF_NZ (filename);
-#endif
 }
