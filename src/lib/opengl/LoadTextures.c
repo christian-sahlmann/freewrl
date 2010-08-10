@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.53 2010/08/10 21:15:59 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.54 2010/08/10 22:30:49 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -47,6 +47,7 @@
 #include <threads.h>
 
 #include <libFreeWRL.h>
+
 
 /* We do not want to include Struct.h: enormous file :) */
 typedef struct _Multi_String Multi_String;
@@ -390,92 +391,100 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	CFRelease(url);
 	CFRelease(path);
 
-	image_width = (int) CGImageGetWidth(image);
-	image_height = (int) CGImageGetHeight(image);
-
-	/* go through every possible return value and check alpha. 
-		note, in testing, kCGImageAlphaLast and kCGImageAlphaNoneSkipLast
-		are what got returned - which makes sense for BGRA textures */
-	switch (CGImageGetAlphaInfo(image)) {
-		case kCGImageAlphaNone: hasAlpha = FALSE; break;
-		case kCGImageAlphaPremultipliedLast: hasAlpha = TRUE; break;
-		case kCGImageAlphaPremultipliedFirst: hasAlpha = TRUE; break;
-		case kCGImageAlphaLast: hasAlpha = TRUE; break;
-		case kCGImageAlphaFirst: hasAlpha = TRUE; break;
-		case kCGImageAlphaNoneSkipLast: hasAlpha = FALSE; break;
-		case kCGImageAlphaNoneSkipFirst: hasAlpha = FALSE; break;
-		default: hasAlpha = FALSE; /* should never get here */
-	}
-
-	#ifdef TEXVERBOSE
-	printf ("\nLoadTexture %s\n",filename);
-	printf ("CGImageGetAlphaInfo(image) returns %x\n",CGImageGetAlphaInfo(image));
-	printf ("   kCGImageAlphaNone %x\n",   kCGImageAlphaNone);
-	printf ("   kCGImageAlphaPremultipliedLast %x\n",   kCGImageAlphaPremultipliedLast);
-	printf ("   kCGImageAlphaPremultipliedFirst %x\n",   kCGImageAlphaPremultipliedFirst);
-	printf ("   kCGImageAlphaLast %x\n",   kCGImageAlphaLast);
-	printf ("   kCGImageAlphaFirst %x\n",   kCGImageAlphaFirst);
-	printf ("   kCGImageAlphaNoneSkipLast %x\n",   kCGImageAlphaNoneSkipLast);
-	printf ("   kCGImageAlphaNoneSkipFirst %x\n",   kCGImageAlphaNoneSkipFirst);
-
-	if (hasAlpha) printf ("Image has Alpha channel\n"); else printf ("image - no alpha channel \n");
-
-	printf ("raw image, AlphaInfo %x\n",(int) CGImageGetAlphaInfo(image));
-	printf ("raw image, BitmapInfo %x\n",(int) CGImageGetBitmapInfo(image));
-	printf ("raw image, BitsPerComponent %d\n",(int) CGImageGetBitsPerComponent(image));
-	printf ("raw image, BitsPerPixel %d\n",(int) CGImageGetBitsPerPixel(image));
-	printf ("raw image, BytesPerRow %d\n",(int) CGImageGetBytesPerRow(image));
-	printf ("raw image, ImageHeight %d\n",(int) CGImageGetHeight(image));
-	printf ("raw image, ImageWidth %d\n",(int) CGImageGetWidth(image));
-	#endif
+	/* We were able to load in the image here... */
+	if (image != NULL) {
+		image_width = (int) CGImageGetWidth(image);
+		image_height = (int) CGImageGetHeight(image);
 	
-
-	/* now, lets "draw" this so that we get the exact bit values */
-	cgctx = CreateARGBBitmapContext(image);
-
-	 
-	#ifdef TEXVERBOSE
-	printf ("GetAlphaInfo %x\n",(int) CGBitmapContextGetAlphaInfo(cgctx));
-	printf ("GetBitmapInfo %x\n",(int) CGBitmapContextGetBitmapInfo(cgctx));
-	printf ("GetBitsPerComponent %d\n",(int) CGBitmapContextGetBitsPerComponent(cgctx));
-	printf ("GetBitsPerPixel %d\n",(int) CGBitmapContextGetBitsPerPixel(cgctx));
-	printf ("GetBytesPerRow %d\n",(int) CGBitmapContextGetBytesPerRow(cgctx));
-	printf ("GetHeight %d\n",(int) CGBitmapContextGetHeight(cgctx));
-	printf ("GetWidth %d\n",(int) CGBitmapContextGetWidth(cgctx));
-	#endif
-	
-	data = (unsigned char *)CGBitmapContextGetData(cgctx);
-
-	#ifdef TEXVERBOSE
-	if (CGBitmapContextGetWidth(cgctx) < 301) {
-		int i;
-
-		printf ("dumping image\n");
-		for (i=0; i<CGBitmapContextGetBytesPerRow(cgctx)*CGBitmapContextGetHeight(cgctx); i++) {
-			printf ("index:%d data:%2x\n ",i,data[i]);
+		/* go through every possible return value and check alpha. 
+			note, in testing, kCGImageAlphaLast and kCGImageAlphaNoneSkipLast
+			are what got returned - which makes sense for BGRA textures */
+		switch (CGImageGetAlphaInfo(image)) {
+			case kCGImageAlphaNone: hasAlpha = FALSE; break;
+			case kCGImageAlphaPremultipliedLast: hasAlpha = TRUE; break;
+			case kCGImageAlphaPremultipliedFirst: hasAlpha = TRUE; break;
+			case kCGImageAlphaLast: hasAlpha = TRUE; break;
+			case kCGImageAlphaFirst: hasAlpha = TRUE; break;
+			case kCGImageAlphaNoneSkipLast: hasAlpha = FALSE; break;
+			case kCGImageAlphaNoneSkipFirst: hasAlpha = FALSE; break;
+			default: hasAlpha = FALSE; /* should never get here */
 		}
-		printf ("\n");
+	
+		#ifdef TEXVERBOSE
+		printf ("\nLoadTexture %s\n",filename);
+		printf ("CGImageGetAlphaInfo(image) returns %x\n",CGImageGetAlphaInfo(image));
+		printf ("   kCGImageAlphaNone %x\n",   kCGImageAlphaNone);
+		printf ("   kCGImageAlphaPremultipliedLast %x\n",   kCGImageAlphaPremultipliedLast);
+		printf ("   kCGImageAlphaPremultipliedFirst %x\n",   kCGImageAlphaPremultipliedFirst);
+		printf ("   kCGImageAlphaLast %x\n",   kCGImageAlphaLast);
+		printf ("   kCGImageAlphaFirst %x\n",   kCGImageAlphaFirst);
+		printf ("   kCGImageAlphaNoneSkipLast %x\n",   kCGImageAlphaNoneSkipLast);
+		printf ("   kCGImageAlphaNoneSkipFirst %x\n",   kCGImageAlphaNoneSkipFirst);
+	
+		if (hasAlpha) printf ("Image has Alpha channel\n"); else printf ("image - no alpha channel \n");
+	
+		printf ("raw image, AlphaInfo %x\n",(int) CGImageGetAlphaInfo(image));
+		printf ("raw image, BitmapInfo %x\n",(int) CGImageGetBitmapInfo(image));
+		printf ("raw image, BitsPerComponent %d\n",(int) CGImageGetBitsPerComponent(image));
+		printf ("raw image, BitsPerPixel %d\n",(int) CGImageGetBitsPerPixel(image));
+		printf ("raw image, BytesPerRow %d\n",(int) CGImageGetBytesPerRow(image));
+		printf ("raw image, ImageHeight %d\n",(int) CGImageGetHeight(image));
+		printf ("raw image, ImageWidth %d\n",(int) CGImageGetWidth(image));
+		#endif
+		
+	
+	
+		/* now, lets "draw" this so that we get the exact bit values */
+		cgctx = CreateARGBBitmapContext(image);
+	
+		 
+		#ifdef TEXVERBOSE
+		printf ("GetAlphaInfo %x\n",(int) CGBitmapContextGetAlphaInfo(cgctx));
+		printf ("GetBitmapInfo %x\n",(int) CGBitmapContextGetBitmapInfo(cgctx));
+		printf ("GetBitsPerComponent %d\n",(int) CGBitmapContextGetBitsPerComponent(cgctx));
+		printf ("GetBitsPerPixel %d\n",(int) CGBitmapContextGetBitsPerPixel(cgctx));
+		printf ("GetBytesPerRow %d\n",(int) CGBitmapContextGetBytesPerRow(cgctx));
+		printf ("GetHeight %d\n",(int) CGBitmapContextGetHeight(cgctx));
+		printf ("GetWidth %d\n",(int) CGBitmapContextGetWidth(cgctx));
+		#endif
+		
+		data = (unsigned char *)CGBitmapContextGetData(cgctx);
+	
+		#ifdef TEXVERBOSE
+		if (CGBitmapContextGetWidth(cgctx) < 301) {
+			int i;
+	
+			printf ("dumping image\n");
+			for (i=0; i<CGBitmapContextGetBytesPerRow(cgctx)*CGBitmapContextGetHeight(cgctx); i++) {
+				printf ("index:%d data:%2x\n ",i,data[i]);
+			}
+			printf ("\n");
+		}
+		#endif
+	
+		/* is there possibly an error here, like a file that is not a texture? */
+		if (CGImageGetBitsPerPixel(image) == 0) {
+			ConsoleMessage ("texture file invalid: %s",filename);
+		}
+	
+		if (data != NULL) {
+			this_tex->filename = filename;
+			this_tex->hasAlpha = hasAlpha;
+			this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
+	
+			this_tex->frames = 1;
+			this_tex->x = image_width;
+			this_tex->y = image_height;
+			this_tex->texdata = data;
+		}
+	
+		CGContextRelease(cgctx);
+		return TRUE;
+	} else {
+		/* is this, possibly, a dds file for an ImageCubeMap? */
+		printf ("possibly a DDS...\n");
+
 	}
-	#endif
-
-	/* is there possibly an error here, like a file that is not a texture? */
-	if (CGImageGetBitsPerPixel(image) == 0) {
-		ConsoleMessage ("texture file invalid: %s",filename);
-	}
-
-	if (data != NULL) {
-		this_tex->filename = filename;
-		this_tex->hasAlpha = hasAlpha;
-		this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
-
-		this_tex->frames = 1;
-		this_tex->x = image_width;
-		this_tex->y = image_height;
-		this_tex->texdata = data;
-	}
-
-	CGContextRelease(cgctx);
-	return TRUE;
 #endif
 
 	return FALSE;
