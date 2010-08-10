@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.70 2010/08/07 19:17:30 dug9 Exp $
+  $Id: Textures.c,v 1.71 2010/08/10 21:15:59 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -49,6 +49,7 @@
 #include "../opengl/OpenGL_Utils.h"
 #include "../world_script/fieldSet.h"
 #include "../scenegraph/Component_Shape.h"
+#include "../scenegraph/Component_CubeMapTexturing.h"
 
 #include "LoadTextures.h"
 
@@ -292,9 +293,6 @@ textureTableIndexStruct_s *getTableIndex(int indx) {
 /* worry about threads - do not make anything reallocable */
 void registerTexture(struct X3D_Node *tmp) {
 	struct X3D_ImageTexture *it;
-	struct X3D_PixelTexture *pt;
-	struct X3D_MovieTexture *mt;
-	struct X3D_VRML1_Texture2 *v1t;
 
 	struct textureTableStruct * listRunner;
 	struct textureTableStruct * newStruct;
@@ -307,10 +305,9 @@ void registerTexture(struct X3D_Node *tmp) {
 	/* printf ("registerTexture, found a %s\n",stringNodeType(it->_nodeType));  */
 
 	if ((it->_nodeType == NODE_ImageTexture) || (it->_nodeType == NODE_PixelTexture) ||
-/* JAS 
-		(it->_nodeType == NODE_GeneratedCubeMapTexture) ||
-		(it->_nodeType == NODE_ComposedCubeMapTexture) ||
 		(it->_nodeType == NODE_ImageCubeMapTexture) ||
+/* JAS - still to implement 
+		(it->_nodeType == NODE_GeneratedCubeMapTexture) ||
 */ 
 		(it->_nodeType == NODE_MovieTexture) || (it->_nodeType == NODE_VRML1_Texture2)) {
 
@@ -357,30 +354,29 @@ void registerTexture(struct X3D_Node *tmp) {
 		case NODE_ImageTexture:
 			it->__textureTableIndex = nextFreeTexture;
 			break;
-		case NODE_PixelTexture:
+		case NODE_PixelTexture: {
+			struct X3D_PixelTexture *pt;
 			pt = (struct X3D_PixelTexture *) tmp;
 			pt->__textureTableIndex = nextFreeTexture;
-			break;
-		case NODE_MovieTexture:
+			break; }
+		case NODE_MovieTexture: {
+			struct X3D_MovieTexture *mt;
 			mt = (struct X3D_MovieTexture *) tmp;
 			mt->__textureTableIndex = nextFreeTexture;
-			break;
-		case NODE_VRML1_Texture2:
+			break; }
+		case NODE_VRML1_Texture2: {
+			struct X3D_VRML1_Texture2 *v1t;
 			v1t = (struct X3D_VRML1_Texture2 *) tmp;
 			v1t->__textureTableIndex = nextFreeTexture;
-			break;
-		case NODE_ComposedCubeMapTexture:  {
-			struct X3D_ComposedCubeMapTexture *v1t;
-			v1t = (struct X3D_ComposedCubeMapTexture *) tmp;
-			v1t->__textureTableIndex = nextFreeTexture;
-			break;
-		}
+			break; }
+/* JAS still to implement 
 		case NODE_GeneratedCubeMapTexture: {
 			struct X3D_GeneratedCubeMapTexture *v1t;
 			v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
 			v1t->__textureTableIndex = nextFreeTexture;
 			break;
 		}
+*/
 		case NODE_ImageCubeMapTexture: {
 			struct X3D_ImageCubeMapTexture *v1t;
 			v1t = (struct X3D_ImageCubeMapTexture *) tmp;
@@ -551,19 +547,15 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 	    		releaseTexture(node); 
 		break;
 
-/* JAS 
-		case NODE_ComposedCubeMapTexture:
-	    		releaseTexture(node); 
-		break;
-
+/* JAS - still to implement
 		case NODE_GeneratedCubeMapTexture:
 	    		releaseTexture(node); 
 		break;
 
+*/
 		case NODE_ImageCubeMapTexture:
 	    		releaseTexture(node); 
 		break;
-*/
 
 		default: {
 			printf ("loadTextureNode, unknown node type %s\n",stringNodeType(node->_nodeType));
@@ -761,10 +753,9 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 			case NODE_ImageTexture : 
 			case NODE_MovieTexture:
 			case NODE_VRML1_Texture2:
-/* JAS 
-			case NODE_ComposedCubeMapTexture:
-			case NODE_GeneratedCubeMapTexture:
 			case NODE_ImageCubeMapTexture:
+/* JAS still to implement
+			case NODE_GeneratedCubeMapTexture:
 */
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
 				loadTextureNode (X3D_NODE(nt), paramPtr);
@@ -853,6 +844,8 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	borderWidth = 0;
 	nurls=1;
 
+	/* printf ("move_texture_to_opengl, node of type %s\n",stringNodeType(me->scenegraphNode->_nodeType)); */
+
 	/* is this texture invalid and NOT caught before here? */
 	/* this is the same as the defaultBlankTexture; the following code should NOT be executed */
 	if (me->texdata == NULL) {
@@ -889,6 +882,9 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		mt = (struct X3D_MovieTexture *) me->scenegraphNode;
 		Src = mt->repeatS; Trc = mt->repeatT;
 		tpNode = mt->textureProperties;
+	} else if (me->nodeType == NODE_ImageCubeMapTexture) {
+		struct X3D_ImageCubeMapTexture *mi = (struct X3D_ImageCubeMapTexture *) me->scenegraphNode;
+		tpNode = mi->textureProperties;
 	} else if (me->nodeType == NODE_VRML1_Texture2) {
 		v1t = (struct X3D_VRML1_Texture2 *) me->scenegraphNode;
 		Src = v1t->_wrapS==VRML1MOD_REPEAT;
@@ -975,7 +971,9 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			BOUNDARY_TO_GL(T);
 			BOUNDARY_TO_GL(R);
 		}
-	} if (!haveValidTexturePropertiesNode) {
+	} 
+
+	if (!haveValidTexturePropertiesNode) {
 		/* convert TRUE/FALSE to GL_TRUE/GL_FALSE for wrapS and wrapT */
 		Src = Src ? GL_REPEAT : GL_CLAMP;
 		Trc = Trc ? GL_REPEAT : GL_CLAMP;
@@ -994,7 +992,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 
 	/* is this a CubeMap? If so, lets try this... */
-	mytexdata = me->texdata;
+
 	if (appearanceProperties.cubeFace != 0) {
 		unsigned char *dest = mytexdata;
 		uint32 *sp, *dp;
@@ -1059,121 +1057,139 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		}
 
 	} else {
-
-	/* a pointer to the tex data. We increment the pointer for movie texures */
-	mytexdata = me->texdata;
-	if (mytexdata == NULL) {
-		printf ("mytexdata is null, texture failed, put something here\n");
-	}
-
-
-	FW_GL_BINDTEXTURE (GL_TEXTURE_2D, me->OpenGLTexture);
-	
-	/* save this to determine whether we need to do material node
-	  within appearance or not */
-		
-	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Src);
-	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Trc);
-	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, Rrc);
-	FW_GL_TEXPARAMETERI(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, generateMipMaps);
-	FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_PRIORITY, texPri);
-	FW_GL_TEXPARAMETERFV(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,(GLfloat *)&borderColour);
-	FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_MAX_ANISOTROPY_EXT,anisotropicDegree);
-
-	if (compression != GL_NONE) {
-		FW_GL_TEXPARAMETERI(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
-		FW_GL_HINT(GL_TEXTURE_COMPRESSION_HINT, compression);
-	}
-	x = me->x;
-	y = me->y;
-
-
-	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-
-	
-	/* NOTE: trying BGRA format from textures */
-	iformat = GL_RGBA; format = GL_BGRA;
-	
-	/* do the image. */
-	if(x && y) {
-		int texOk = FALSE;
-		unsigned char *dest = mytexdata;
-
-		/* do we have to do power of two textures? */
-		if (rdr_caps.av_npot_texture) {
-			rx = x; ry = y;
-		} else {
-			/* find a power of two that fits */
-			rx = 1;
-			sx = x;
-			while(sx) {sx /= 2; rx *= 2;}
-			if(rx/2 == x) {rx /= 2;}
-			ry = 1; 
-			sy = y;
-			while(sy) {sy /= 2; ry *= 2;}
-			if(ry/2 == y) {ry /= 2;}
-		}
-
-		if (global_print_opengl_errors) {
-			DEBUG_MSG("initial texture scale to %d %d\n",rx,ry);
-		}
-
-		if(rx != x || ry != y || rx > rdr_caps.max_texture_size || ry > rdr_caps.max_texture_size) {
-			/* do we have texture limits??? */
-			if (rx > rdr_caps.max_texture_size) rx = rdr_caps.max_texture_size;
-			if (ry > rdr_caps.max_texture_size) ry = rdr_caps.max_texture_size;
-		}
-
-		if (global_print_opengl_errors) {
-			DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
-		}
-	
-		/* try this texture on for size, keep scaling down until we can do it */
-		texOk = FALSE;
-		/* all textures are 4 bytes/pixel */
-		dest = (unsigned char *)MALLOC((unsigned) 4 * rx * ry);
-		while (!texOk) {
-			GLint width, height;
-			FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
-			FW_GL_TEXIMAGE2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
-
-			FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
-			FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
-
-			if ((width == 0) || (height == 0)) {
-				rx= rx/2; ry = ry/2;
-				if (global_print_opengl_errors) {
-					DEBUG_MSG("width %d height %d going to try size %d %d, last time %d %d\n",
-						  width, height, rx,ry,x,y);
-				}
-				if ((rx==0) || (ry==0)) {
-				    ConsoleMessage ("out of texture memory");
-				    me->status = TEX_LOADED; /* yeah, right */
-				    return;
-				}
-			} else {
-				texOk = TRUE;
+		/* if we have an ImageCubeMap, we have most likely got a png map; let the
+		   render_ImageCubeMapTexture code unpack the maps from this one png */
+		if (me->nodeType == NODE_ImageCubeMapTexture) {
+			/* this is ok - what is happening is that we have one image, that needs to be 
+			   split up into each face */
+			/* this should print if we are actually working ok
+			if (me->status != TEX_LOADED) {
+				printf ("have ImageCubeMapTexture, but status != TEX_LOADED\n");
 			}
+			*/
+
+			/* call the routine in Component_CubeMapTexturing.c to split this baby apart */
+			unpackImageCubeMap(me);
+			me->status = TEX_LOADED; /* finito */
+		} else {
+
+	
+
+			/* a pointer to the tex data. We increment the pointer for movie texures */
+			mytexdata = me->texdata;
+			if (mytexdata == NULL) {
+				printf ("mytexdata is null, texture failed, put something here\n");
+			}
+		
+		
+			FW_GL_BINDTEXTURE (GL_TEXTURE_2D, me->OpenGLTexture);
+			
+			/* save this to determine whether we need to do material node
+			  within appearance or not */
+				
+			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Src);
+			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Trc);
+			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, Rrc);
+			FW_GL_TEXPARAMETERI(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, generateMipMaps);
+			FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_PRIORITY, texPri);
+			FW_GL_TEXPARAMETERFV(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,(GLfloat *)&borderColour);
+			FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_MAX_ANISOTROPY_EXT,anisotropicDegree);
+		
+			if (compression != GL_NONE) {
+				FW_GL_TEXPARAMETERI(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
+				FW_GL_HINT(GL_TEXTURE_COMPRESSION_HINT, compression);
+			}
+			x = me->x;
+			y = me->y;
+		
+		
+			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+		
+			
+			/* NOTE: trying BGRA format from textures */
+			iformat = GL_RGBA; format = GL_BGRA;
+			
+			/* do the image. */
+			if(x && y) {
+				int texOk = FALSE;
+				unsigned char *dest = mytexdata;
+		
+				/* do we have to do power of two textures? */
+				if (rdr_caps.av_npot_texture) {
+					rx = x; ry = y;
+				} else {
+					/* find a power of two that fits */
+					rx = 1;
+					sx = x;
+					while(sx) {sx /= 2; rx *= 2;}
+					if(rx/2 == x) {rx /= 2;}
+					ry = 1; 
+					sy = y;
+					while(sy) {sy /= 2; ry *= 2;}
+					if(ry/2 == y) {ry /= 2;}
+				}
+		
+				if (global_print_opengl_errors) {
+					DEBUG_MSG("initial texture scale to %d %d\n",rx,ry);
+				}
+		
+				if(rx != x || ry != y || rx > rdr_caps.max_texture_size || ry > rdr_caps.max_texture_size) {
+					/* do we have texture limits??? */
+					if (rx > rdr_caps.max_texture_size) rx = rdr_caps.max_texture_size;
+					if (ry > rdr_caps.max_texture_size) ry = rdr_caps.max_texture_size;
+				}
+		
+				if (global_print_opengl_errors) {
+					DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
+				}
+			
+				/* try this texture on for size, keep scaling down until we can do it */
+				texOk = FALSE;
+				/* all textures are 4 bytes/pixel */
+				dest = (unsigned char *)MALLOC((unsigned) 4 * rx * ry);
+				while (!texOk) {
+					GLint width, height;
+					FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
+					FW_GL_TEXIMAGE2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
+		
+					FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
+					FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
+		
+					if ((width == 0) || (height == 0)) {
+						rx= rx/2; ry = ry/2;
+						if (global_print_opengl_errors) {
+							DEBUG_MSG("width %d height %d going to try size %d %d, last time %d %d\n",
+								  width, height, rx,ry,x,y);
+						}
+						if ((rx==0) || (ry==0)) {
+						    ConsoleMessage ("out of texture memory");
+						    me->status = TEX_LOADED; /* yeah, right */
+						    return;
+						}
+					} else {
+						texOk = TRUE;
+					}
+				}
+		
+		
+				if (global_print_opengl_errors) {
+					DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
+				}
+		
+				FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+				FW_GL_TEXPARAMETERI(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
+		
+				if(mytexdata != dest) {FREE_IF_NZ(dest);}
+			}
+		
+				/* we can get rid of the original texture data here */
+				FREE_IF_NZ(me->texdata);
+		
+		
+			FREE_IF_NZ (me->texdata);
 		}
-
-
-		if (global_print_opengl_errors) {
-			DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
-		}
-
-		FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-		FW_GL_TEXPARAMETERI(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
-
-		if(mytexdata != dest) {FREE_IF_NZ(dest);}
-
-		/* we can get rid of the original texture data here */
-		FREE_IF_NZ(me->texdata);
 	}
-	}
-
-
-	FREE_IF_NZ (me->texdata);
 
 	/* ensure this data is written to the driver for the rendering context */
 	FW_GL_FLUSH();
@@ -1206,11 +1222,10 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	struct X3D_ImageTexture *it;
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
-	struct X3D_VRML1_Texture2 *v1t;
-/* JAS 
 	struct X3D_ImageCubeMapTexture *ict;
+	struct X3D_VRML1_Texture2 *v1t;
+/* JAS still to implement
 	struct X3D_GeneratedCubeMapTexture *gct;
-	struct X3D_ComposedCubeMapTexture *cct;
 */
 
 	textureTableIndexStruct_s *myTableIndex;
@@ -1219,9 +1234,10 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	GET_THIS_TEXTURE;
 	myTableIndex = getTableIndex(thisTexture);
 
-	if (myTableIndex->status != TEX_LOADED)
-	DEBUG_TEX("new_bind_image, I am %u, textureStackTop %d, thisTexture is %u status %s\n",
-		node,textureStackTop,thisTexture,texst(myTableIndex->status));
+	if (myTableIndex->status != TEX_LOADED) {
+		DEBUG_TEX("new_bind_image, I am %p, textureStackTop %d, thisTexture is %d myTableIndex %p status %s\n",
+		node,textureStackTop,thisTexture,myTableIndex, texst(myTableIndex->status));
+	}
 
 	/* default here; this is just a blank texture */
 	boundTextureStack[textureStackTop] = defaultBlankTexture;

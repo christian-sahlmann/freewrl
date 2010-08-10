@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.49 2010/07/30 03:58:33 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.50 2010/08/10 21:15:59 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -1185,7 +1185,6 @@ package VRML::NodeType;
 		right =>[SFNode,NULL,inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
-		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 	},"X3DEnvironmentTextureNode"),
 
@@ -1207,6 +1206,8 @@ package VRML::NodeType;
 		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
+		__subTextures => [MFNode,[],initializeOnly,0],
+		__regenSubTextures => [SFBool,FALSE,initializeOnly,0],
 	},"X3DEnvironmentTextureNode"),
 
 
