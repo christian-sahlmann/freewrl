@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.15 2010/08/10 21:15:59 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.16 2010/08/11 16:43:32 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -40,6 +40,7 @@ X3D Cubemap Texturing Component
 #include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/Component_CubeMapTexturing.h"
 #include "../input/EAIHelpers.h"
+#include <GL/glext.h>
 
 
 /* testing */
@@ -112,6 +113,267 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
  * GeneratedCubeMapTextures
  *
  ****************************************************************************/
+
+
+/* is this a DDS file? If so, get it, and subdivide it. Ignore MIPMAPS for now */
+/* see: http://www.mindcontrol.org/~hplus/graphics/dds-info/MyDDS.cpp */
+/* see: http://msdn.microsoft.com/en-us/library/bb943991.aspx/ */
+
+struct DdsLoadInfo {
+  bool compressed;
+  bool swap;
+  bool palette;
+  unsigned int divSize;
+  unsigned int blockBytes;
+  GLenum internalFormat;
+  GLenum externalFormat;
+  GLenum type;
+};
+
+struct DdsLoadInfo loadInfoDXT1 = {
+  true, false, false, 4, 8, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
+};
+struct DdsLoadInfo loadInfoDXT3 = {
+  true, false, false, 4, 16, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
+};
+struct DdsLoadInfo loadInfoDXT5 = {
+  true, false, false, 4, 16, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
+};
+struct DdsLoadInfo loadInfoBGRA8 = {
+  false, false, false, 1, 4, GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE
+};
+struct DdsLoadInfo loadInfoRGB8 = {
+  false, false, false, 1, 3, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE
+};
+struct DdsLoadInfo loadInfoBGR8 = {
+  false, false, false, 1, 3, GL_RGB8, GL_BGR, GL_UNSIGNED_BYTE
+};
+struct DdsLoadInfo loadInfoBGR5A1 = {
+  false, true, false, 1, 2, GL_RGB5_A1, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV
+};
+struct DdsLoadInfo loadInfoBGR565 = {
+  false, true, false, 1, 2, GL_RGB5, GL_RGB, GL_UNSIGNED_SHORT_5_6_5
+};
+struct DdsLoadInfo loadInfoIndex8 = {
+  false, false, true, 1, 1, GL_RGB8, GL_BGRA, GL_UNSIGNED_BYTE
+};
+
+bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
+	FILE *file;
+	char *buffer;
+	unsigned long fileLen;
+union DDS_header hdr;
+size_t s = 0;
+unsigned int x = 0;
+unsigned int y = 0;
+unsigned int mipMapCount = 0;
+unsigned int size,xSize, ySize;
+
+struct DdsLoadInfo * li;
+
+	printf ("textureIsDDS... node %s, file %s\n",
+		stringNodeType(this_tex->scenegraphNode->_nodeType), filename);
+
+	/* read in file */
+	file = fopen(filename,"rb");
+	if (!file) return FALSE;
+
+	/* have file, read in data */
+
+
+	/* get file length */
+	fseek(file, 0, SEEK_END);
+	fileLen=ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	/* llocate memory */
+	buffer=(char *)MALLOC(fileLen+1);
+	if (!buffer) {
+		fclose(file);
+		return FALSE;
+	}
+
+	/* read file */
+	fread(buffer, fileLen, 1, file);
+	fclose(file);
+
+	/* check to see if this could be a valid DDS file */
+	if (fileLen < sizeof(hdr)) return FALSE;
+
+	/* look at the header, see what kind of a DDS file it might be */
+	memcpy( &hdr, buffer, sizeof(hdr));
+
+	/* does this start off with "DDS " an so on ?? */
+	if ((hdr.dwMagic == DDS_MAGIC) && (hdr.dwSize == 124) &&
+		(hdr.dwFlags & DDSD_PIXELFORMAT) && (hdr.dwFlags & DDSD_CAPS)) {
+		printf ("matched :DDS :\n");
+
+
+printf ("dwFlags %x, DDSD_PIXELFORMAT %x, DDSD_CAPS %x\n",hdr.dwFlags, DDSD_PIXELFORMAT, DDSD_CAPS);
+  xSize = hdr.dwWidth;
+  ySize = hdr.dwHeight;
+printf ("size %d, %d\n",xSize, ySize);
+/*
+  assert( !(xSize & (xSize-1)) );
+  assert( !(ySize & (ySize-1)) );
+*/
+
+/*
+printf ("looking to see what it is...\n");
+printf ("DDPF_FOURCC dwFlags %x mask %x, final %x\n",hdr.sPixelFormat.dwFlags,DDPF_FOURCC,hdr.sPixelFormat.dwFlags & DDPF_FOURCC);
+
+printf ("if it is a dwFourCC, %x and %x\n", hdr.sPixelFormat.dwFourCC ,D3DFMT_DXT1);
+
+printf ("dwFlags %x\n",hdr.sPixelFormat.dwFlags);
+printf ("dwRGBBitCount %d\n",hdr.sPixelFormat.dwRGBBitCount);
+printf ("dwRBitMask %x\n",hdr.sPixelFormat.dwRBitMask);
+printf ("dwGBitMask %x\n",hdr.sPixelFormat.dwGBitMask);
+printf ("dwBBitMask %x\n",hdr.sPixelFormat.dwBBitMask);
+printf ("dwAlphaBitMask %x\n",hdr.sPixelFormat.dwAlphaBitMask);
+printf ("dwFlags and DDPF_ALPHAPIXELS... %x\n",DDPF_ALPHAPIXELS & hdr.sPixelFormat.dwFlags);
+*/
+
+  if( PF_IS_DXT1( hdr.sPixelFormat ) ) {
+    li = &loadInfoDXT1;
+  }
+  else if( PF_IS_DXT3( hdr.sPixelFormat ) ) {
+    li = &loadInfoDXT3;
+  }
+  else if( PF_IS_DXT5( hdr.sPixelFormat ) ) {
+    li = &loadInfoDXT5;
+  }
+  else if( PF_IS_BGRA8( hdr.sPixelFormat ) ) {
+    li = &loadInfoBGRA8;
+  }
+  else if( PF_IS_RGB8( hdr.sPixelFormat ) ) {
+    li = &loadInfoRGB8;
+  }
+  else if( PF_IS_BGR8( hdr.sPixelFormat ) ) {
+    li = &loadInfoBGR8;
+  }
+  else if( PF_IS_BGR5A1( hdr.sPixelFormat ) ) {
+    li = &loadInfoBGR5A1;
+  }
+  else if( PF_IS_BGR565( hdr.sPixelFormat ) ) {
+    li = &loadInfoBGR565;
+  }
+  else if( PF_IS_INDEX8( hdr.sPixelFormat ) ) {
+    li = &loadInfoIndex8;
+  }
+  else {
+printf ("li failure\n");
+return FALSE;
+  }
+
+  //fixme: do cube maps later
+  //fixme: do 3d later
+  x = xSize;
+  y = ySize;
+  mipMapCount = (hdr.dwFlags & DDSD_MIPMAPCOUNT) ? hdr.dwMipMapCount : 1;
+printf ("mipMapCount %d\n",mipMapCount);
+
+  if( li->compressed ) {
+printf ("compressed\n");
+/*
+    size_t size = max( li->divSize, x )/li->divSize * max( li->divSize, y )/li->divSize * li->blockBytes;
+    assert( size == hdr.dwPitchOrLinearSize );
+    assert( hdr.dwFlags & DDSD_LINEARSIZE );
+    unsigned char * data = (unsigned char *)malloc( size );
+    if( !data ) {
+      goto failure;
+    }
+    format = cFormat = li->internalFormat;
+    for( unsigned int ix = 0; ix < mipMapCount; ++ix ) {
+      fread( data, 1, size, f );
+      glCompressedTexImage2D( GL_TEXTURE_2D, ix, li->internalFormat, x, y, 0, size, data );
+      gl->updateError();
+      x = (x+1)>>1;
+      y = (y+1)>>1;
+      size = max( li->divSize, x )/li->divSize * max( li->divSize, y )/li->divSize * li->blockBytes;
+    }
+    free( data );
+*/
+  }
+  else if( li->palette ) {
+printf ("palette\n");
+/*
+    //  currently, we unpack palette into BGRA
+    //  I'm not sure we always get pitch...
+    assert( hdr.dwFlags & DDSD_PITCH );
+    assert( hdr.sPixelFormat.dwRGBBitCount == 8 );
+    size_t size = hdr.dwPitchOrLinearSize * ySize;
+    //  And I'm even less sure we don't get padding on the smaller MIP levels...
+    assert( size == x * y * li->blockBytes );
+    format = li->externalFormat;
+    cFormat = li->internalFormat;
+    unsigned char * data = (unsigned char *)malloc( size );
+    unsigned int palette[ 256 ];
+    unsigned int * unpacked = (unsigned int *)malloc( size*sizeof( unsigned int ) );
+    fread( palette, 4, 256, f );
+    for( unsigned int ix = 0; ix < mipMapCount; ++ix ) {
+      fread( data, 1, size, f );
+      for( unsigned int zz = 0; zz < size; ++zz ) {
+        unpacked[ zz ] = palette[ data[ zz ] ];
+      }
+      glPixelStorei( GL_UNPACK_ROW_LENGTH, y );
+      glTexImage2D( GL_TEXTURE_2D, ix, li->internalFormat, x, y, 0, li->externalFormat, li->type, unpacked );
+      gl->updateError();
+      x = (x+1)>>1;
+      y = (y+1)>>1;
+      size = x * y * li->blockBytes;
+    }
+    free( data );
+    free( unpacked );
+*/  
+  }
+  else {
+    if( li->swap ) {
+printf ("swap\n");
+
+/*
+      glPixelStorei( GL_UNPACK_SWAP_BYTES, GL_TRUE );
+*/
+    }
+    size = x * y * li->blockBytes;
+
+printf ("size is %d\n",size);
+/*
+    format = li->externalFormat;
+    cFormat = li->internalFormat;
+    unsigned char * data = (unsigned char *)malloc( size );
+    //fixme: how are MIP maps stored for 24-bit if pitch != ySize*3 ?
+    for( unsigned int ix = 0; ix < mipMapCount; ++ix ) {
+      fread( data, 1, size, f );
+      glPixelStorei( GL_UNPACK_ROW_LENGTH, y );
+      glTexImage2D( GL_TEXTURE_2D, ix, li->internalFormat, x, y, 0, li->externalFormat, li->type, data );
+      gl->updateError();
+      x = (x+1)>>1;
+      y = (y+1)>>1;
+      size = x * y * li->blockBytes;
+    }
+    free( data );
+    glPixelStorei( GL_UNPACK_SWAP_BYTES, GL_FALSE );
+    gl->updateError();
+*/
+  }
+/*
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapCount-1 );
+  gl->updateError();
+
+  return true;
+
+failure:
+  return false;
+}
+*/
+
+	} else {
+printf ("put in the dummy file here, and call it quits\n");
+	}
+	FREE_IF_NZ(buffer);
+	return FALSE;
+}
+
 
 void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
         /* printf ("render_ImageTexture, global Transparency %f\n",appearanceProperties.transparency); */

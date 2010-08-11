@@ -1,5 +1,5 @@
 /*
-  $Id: InputFunctions.c,v 1.17 2010/05/05 12:52:04 davejoubert Exp $
+  $Id: InputFunctions.c,v 1.18 2010/08/11 16:43:32 crc_canada Exp $
 
   FreeWRL support library.
   Input functions (EAI, mouse, keyboard, ...).
@@ -89,57 +89,6 @@ char* makeFontDirectory()
 	return NULL;
 }
 
-/*
-Simulate a command line "cp".
-We do this, rather than systeming cp, 
-because sometimes we have filenames with spaces, etc, etc 
-and handling this with a system call is a pain.
-
-TODO: rework that in smarter way...
-*/
-/* Nothing seems to use this anymore... DJ Tue May  4 18:50:55 BST 2010 */
-#if DJ_KEEP_COMPILER_WARNING
-static void localCopy(char *outFile, char *inFile) {
-	FILE *in, *out;
-	char ch;
-
-  /* strip any URNs off of the front of these file names */
-  inFile = stripLocalFileName(inFile);
-  outFile = stripLocalFileName(outFile);
-
-  /* 
-	ConsoleMessage ("localCopy: inFile :%s:",inFile);
-	ConsoleMessage ("localCopy: outFile :%s:",outFile);
-  */
-
-  if((in=fopen(inFile, "rb")) == NULL) {
-    ConsoleMessage ("FreeWRL copy: Cannot open input file.");
-  }
-  if((out=fopen(outFile, "wb")) == NULL) {
-    ConsoleMessage ("FreeWRL copy: Cannot open output file.");
-  }
-
-  while(!feof(in)) {
-    ch = getc(in);
-    if(ferror(in)) {
-      ConsoleMessage ("FreeWRL copy: input error.");
-      clearerr(in);
-      break;
-    } else {
-      if(!feof(in)) putc(ch, out);
-      if(ferror(out)) {
-        ConsoleMessage ("FreeWRL copy: output error.");
-        clearerr(out);
-        break;
-      }
-    }
-  }
-  fclose(in);
-  fclose(out);
-
-	return;
-}
-#endif
 
 /* sscanf replacements */
 void scanUnsignedIntoValue(char *sp, size_t *rv) {

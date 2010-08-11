@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.54 2010/08/10 22:30:49 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.55 2010/08/11 16:43:32 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -482,8 +482,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 		return TRUE;
 	} else {
 		/* is this, possibly, a dds file for an ImageCubeMap? */
-		printf ("possibly a DDS...\n");
-
+		return textureIsDDS(this_tex, filename);
 	}
 #endif
 
