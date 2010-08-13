@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.16 2010/08/11 16:43:32 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.17 2010/08/13 01:04:37 dug9 Exp $
 
 X3D Cubemap Texturing Component
 
@@ -33,7 +33,6 @@ X3D Cubemap Texturing Component
 #include <internal.h>
 
 #include <libFreeWRL.h>
-
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Textures.h"
@@ -41,6 +40,7 @@ X3D Cubemap Texturing Component
 #include "../scenegraph/Component_CubeMapTexturing.h"
 #include "../input/EAIHelpers.h"
 #include <GL/glext.h>
+#include "../world_script/JScript.h" /* for uint32 typedef */
 
 
 /* testing */
