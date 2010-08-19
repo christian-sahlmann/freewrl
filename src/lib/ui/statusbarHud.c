@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.20 2010/08/07 19:17:30 dug9 Exp $
+  $Id: statusbarHud.c,v 1.21 2010/08/19 02:20:36 crc_canada Exp $
 
 */
 
@@ -1154,31 +1154,7 @@ void printKeyboardHelp()
 static int showConText = 0;
 s_list_t *conlist;
 int concount;
-#ifdef OLDCODE
-void hudSetConsoleMessage_old(char *buffer)
-{
-	s_list_t* item;
-	/*calling program keeps ownership of buffer and deletes or recycles buffer*/
-	char *buffer2;
-	int len = strlen(buffer)+1;
-	buffer2 = malloc(len);
-	strncpy(buffer2,buffer,len);
-	item = ml_new(buffer2);
-	if(!conlist)
-		conlist = item;
-	else
-		ml_append(conlist,item); /*append to bottom*/
-	concount++;
 
-	if( concount > 50 ) // > MAXMESSAGES number of scrolling lines
-	{
-		s_list_t* temp;
-		free((char*)conlist->elem);
-		conlist = ml_delete_self(conlist, conlist); /*delete from top*/
-		concount--;
-	}
-}
-#endif
 void hudSetConsoleMessage(char *buffer)
 {
 	s_list_t* item, *last;

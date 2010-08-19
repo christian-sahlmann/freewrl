@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.73 2010/07/29 01:05:52 dug9 Exp $
+$Id: X3DParser.c,v 1.74 2010/08/19 02:20:36 crc_canada Exp $
 
 ???
 
@@ -638,132 +638,6 @@ static void parseRoutes (const char **atts) {
 	/* can we register the route? */
 	CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, fromType);
 }
-
-#ifdef OLDCODE
-/* parse normal X3D nodes/fields */
-static void parseNormalX3D(int myNodeType, const char *name, const char** atts) {
-	int i;
-
-	struct X3D_Node *thisNode;
-	struct X3D_Node *fromDEFtable;
-
-	/* semantic check */
-	if ((getParserMode() != PARSING_NODES) && (getParserMode() != PARSING_PROTOBODY)) {
-printf ("hey, we have maybe a Node (%s) in a Script list... line %d: expected parserMode to be PARSING_NODES, got %s\n", 
-			stringNodeType(myNodeType),LINE,
-                                        parserModeStrings[getParserMode()]);
-
-	}
-
-	switch (myNodeType) {
-		case NODE_Script:
-		case NODE_ComposedShader:
-		case NODE_ShaderProgram:
-        	case NODE_PackagedShader: 
-			setParserMode(PARSING_SCRIPT); 
-			#ifdef X3DPARSERVERBOSE
-			printf ("parseNormalX3D, setting to PARSE_SCRIPT for name %s\n",name);
-			#endif
-		break;
-        	default: {}
-        }
-
-
-	/* create this to be a new node */	
-	thisNode = createNewX3DNode(myNodeType);
-	parentStack[parentIndex] = thisNode; 
-
-	#ifdef X3DPARSERVERBOSE
-	TTY_SPACE
-	printf ("parseNormalX3D: for name %s, myNodeType = %d is %u parentInded %d\n",name,myNodeType,thisNode,parentIndex);
-	#endif
-
-	if (myNodeType == NODE_Script) {
-		struct Shader_Script *myObj;
-
-		/* create the Shader_Script for this one */
-		X3D_SCRIPT(thisNode)->__scriptObj=new_Shader_Script(thisNode);
-
-
-		#ifdef X3DPARSERVERBOSE
-		printf ("working through script parentIndex %d\n",parentIndex);
-		#endif
-
-		myObj = X3D_SCRIPT(thisNode)->__scriptObj;
-		JSInit(myObj->num);
-	} else if (myNodeType == NODE_ComposedShader) {
-		X3D_COMPOSEDSHADER(thisNode)->__shaderObj=new_Shader_Script(thisNode);
-	} else if (myNodeType == NODE_ShaderProgram) {
-		X3D_SHADERPROGRAM(thisNode)->__shaderObj=new_Shader_Script(thisNode);
-	} else if (myNodeType == NODE_PackagedShader) {
-		X3D_PACKAGEDSHADER(thisNode)->__shaderObj=new_Shader_Script(thisNode);
-	}
-
-	/* go through the fields, and link them in. SFNode and MFNodes will be handled 
-	 differently - these are usually the result of a different level of parsing,
-	 and the "containerField" value */
-	for (i = 0; atts[i]; i += 2) {
-		#ifdef X3DPARSERVERBOSE
-		if (getParserMode() == PARSING_SCRIPT) {
-			printf ("parsing script decl; have %s %s\n",atts[i], atts[i+1]);
-		}
-		#endif
-
-
-		if (strcmp ("DEF",atts[i]) == 0) {
-			#ifdef X3DPARSERVERBOSE
-			printf ("this is a DEF, name %s\n",atts[i+1]);
-			#endif
-
-			fromDEFtable = DEFNameIndex ((char *)atts[i+1],thisNode, TRUE);
-			if (fromDEFtable != thisNode) {
-				#ifdef X3DPARSERVERBOSE
-				printf ("Warning - line %d duplicate DEF name: \'%s\'\n",LINE,atts[i+1]);
-				#endif
-			}
-
-		} else if (strcmp ("USE",atts[i]) == 0) {
-			#ifdef X3DPARSERVERBOSE
-			printf ("this is a USE, name %s\n",atts[i+1]);
-			#endif
-
-			fromDEFtable = DEFNameIndex ((char *)atts[i+1],thisNode, FALSE);
-			if (fromDEFtable == thisNode) {
-				ConsoleMessage ("Warning - line %d DEF name: \'%s\' not found",LINE,atts[i+1]);
-			} else {
-				#ifdef X3DPARSERVERBOSE
-				printf ("copying for field %s defName %s\n",atts[i], atts[i+1]);
-				#endif
-
-				if (fromDEFtable->_nodeType != fromDEFtable->_nodeType) {
-					ConsoleMessage ("Warning, line %d DEF/USE mismatch, '%s', %s != %s", LINE,
-						atts[i+1],stringNodeType(fromDEFtable->_nodeType), stringNodeType (thisNode->_nodeType));
-				} else {
-					thisNode = fromDEFtable;
-					parentStack[parentIndex] = thisNode; 
-					#ifdef X3DPARSERVERBOSE
-					printf ("successful copying for field %s defName %s\n",atts[i], atts[i+1]);
-					#endif
-
-				}
-			}
-		} else if (strcmp("containerField",atts[i])==0) {
-			indexT tmp;
-			/* printf ("SETTING CONTAINER FIELD TO %s for node of type %s\n",(char *)atts[i+1], stringNodeType(thisNode->_nodeType )); */
-			tmp = findFieldInFIELDNAMES((char *)atts[i+1]);
-			if (tmp == INT_ID_UNDEFINED) {
-				ConsoleMessage ("Error line %d: Can not set containerField to :%s: for node of type :%s:\n", LINE,
-					(char *)atts[i+1], stringNodeType(thisNode->_nodeType ));
-			} else {
-				thisNode->_defaultContainer = tmp;
-			}
-		} else {
-			setField_fromJavascript (thisNode, (char *)atts[i],(char *)atts[i+1], TRUE);
-		}
-	}
-}
-
-#endif
 
 
 /* linkNodeIn - put nodes into parents.

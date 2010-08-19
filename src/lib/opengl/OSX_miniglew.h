@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OSX_miniglew.h,v 1.3 2009/10/29 06:29:40 crc_canada Exp $
+$Id: OSX_miniglew.h,v 1.4 2010/08/19 02:20:36 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: GLEW-style defines for OSX i386, PPC and iPhone dev.
@@ -31,19 +31,5 @@ Internal header: GLEW-style defines for OSX i386, PPC and iPhone dev.
 
 #ifndef __LIBFREEWRL_OSX_GLEW_H__
 #define __LIBFREEWRL_OSX_GLEW_H__
-
-#ifdef OLDCODE
-#ifdef TARGET_AQUA
-
-#include "OpenGL/glu.h"
-#define GLEW_OK TRUE
-
-GLenum glewInit(void);
-extern int GLEW_ARB_occlusion_query;
-extern int GLEW_ARB_multitexture;
-extern int GLEW_ARB_fragment_shader;
-char *glewGetErrorString(GLenum err);
-#endif TARGET_AQUA
-#endif /* OLDCODE */
 
 #endif /* __LIBFREEWRL_OSX_GLEW_H__ */

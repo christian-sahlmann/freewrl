@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.28 2010/06/30 12:57:42 crc_canada Exp $
+$Id: Component_Networking.c,v 1.29 2010/08/19 02:20:36 crc_canada Exp $
 
 X3D Networking Component
 
@@ -370,23 +370,6 @@ static int ReWireNameIndex (char *name) {
 	/* printf ("ReWireNameIndex, new entry at %d\n",ReWireNametableSize); */
 	return ReWireNametableSize;
 }
-
-#ifdef OLDCODE
-static void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
-#define MAXOUTLINE 3000
-	char outline[MAXOUTLINE];
-	printf ("sendCompiledNodeToReWire %d\n",node);
-
-	sprintf (outline,"RWNODE\n%d %d %d %d %d %d %d %d %f %d %d %s\nRW_EOT",
-			node,node->_bus, node->_channel, node->deviceMinVal, node->deviceMaxVal,
-			node->minVal, node->maxVal,node->intValue, node->floatValue, node->useIntValue,
-			node->highResolution,node->controllerType->strptr);
-
-	printf (outline); printf ("\n");
-	EAI_send_string(outline,EAIMIDIlistenfd);
-}
-#endif
-
 
 #if defined(REWIRE_SERVER)
 /* make sure the EAI port is turned on... */

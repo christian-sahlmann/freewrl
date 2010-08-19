@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.46 2010/05/05 12:52:04 davejoubert Exp $
+$Id: CProto.c,v 1.47 2010/08/19 02:20:36 crc_canada Exp $
 
 CProto ???
 
@@ -211,26 +211,6 @@ struct ProtoDefinition* newProtoDefinition()
 
  return ret;
 }
-
-#ifdef OLDCODE
-static void deleteProtoDefinition(struct ProtoDefinition* me) {
-	size_t i;
-
-	for(i=0; i!=vector_size(me->iface); ++i)
-		deleteProtoFieldDecl(vector_get(struct ProtoFieldDecl*, me->iface, i));
-	deleteVector(struct ProtoDefinition*, me->iface);
-
-	for(i=0; i!=vector_size(me->deconstructedProtoBody); ++i) {
-		struct ProtoElementPointer* ele;
-		ele = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i);
-		FREE_IF_NZ(ele->stringToken);
-		FREE_IF_NZ(ele);
-	}
-	if (!me->isCopy) deleteVector(struct ProtoRoute*, me->deconstructedProtoBody);
-	FREE_IF_NZ(me->protoName);
-	FREE_IF_NZ (me);
-}
-#endif
 
 /* Other members */
 /* ************* */

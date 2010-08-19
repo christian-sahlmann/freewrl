@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.22 2010/07/19 18:47:28 istakenv Exp $
+  $Id: io_files.c,v 1.23 2010/08/19 02:20:36 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -200,25 +200,6 @@ bool do_dir_exists(const char *dir)
 	}
 	return FALSE;
 
-#if 0 /* OLD CODE : to be removed (here for future reference) */
-	/*   http://msdn.microsoft.com/en-us/library/kda16keh(VS.80).aspx */
-	struct _finddata_t c_file;
-	intptr_t hFile;
-
-	hFile = _findfirst(dir,&c_file);
-	_findclose(hFile);
-	if( hFile == -1L) {
-		printf("Internal error: directory does not exist: %s\n", dir);
-	} else {
-		if(c_file.attrib == _A_SUBDIR )
-			return TRUE;
-		else if(c_file.attrib == _A_ARCH | _A_RDONLY )
-			return TRUE; /* ie c:/windows/Fonts is 20 + 1 */
-		else
-			printf("Internal error: not a directory: %s\n", dir);
-	}
-	return FALSE;
-#endif
 }
 
 /**
@@ -489,17 +470,6 @@ int freewrlSystem (const char *sysline)
 	int haveXmessage;
 
 
-#if 0
-/* TODO: implement a link list of child processes
-   and a function to display them all (if verbose)
-*/
-	/* make all entries in the child process list = 0 */
-	if (childProcessListInit == FALSE) {
-		memset(childProcess, 0, MAXPROCESSLIST);
-		childProcessListInit = TRUE;
-	}
-#endif
-	
 	/* initialize the paramline... */
 	memset(paramline, 0, sizeof(paramline));
 		
@@ -584,10 +554,6 @@ int freewrlSystem (const char *sysline)
 			/* parent process */
 			/* printf ("freewrlSystem: parent waiting for child %d\n",childProcess[lastchildProcess]); */
 
-#if 0				
-			lastchildProcess++;
-			if (lastchildProcess == MAXPROCESSLIST) lastchildProcess=0;
-#endif			
 			/* do we have to wait around? */
 			if (!waitForChild) {
 				/* printf ("freewrlSystem - do not have to wait around\n"); */

@@ -588,12 +588,8 @@ X3DNode *X3D_newMFString(int num, char array[][STRLEN]){
 	retval->X3D_MFString.p = malloc (sizeof (X3DNode) * num);
 
 	for (i = 0; i < num; i++) {
-#ifndef OLDCODE
 		/* Doug Sanden changes */
 		retval->X3D_MFString.p[i].type = FIELDTYPE_SFString; /*based on pattern above ie vec3f this should be SF */
-#else
-		retval->X3D_MFString.p[i].type = FIELDTYPE_MFString;
-#endif
 		retval->X3D_MFString.p[i].len = strlen(array[i]);
 		retval->X3D_MFString.p[i].strptr = malloc(sizeof(char)*STRLEN);
 		strncpy(retval->X3D_MFString.p[i].strptr, array[i], STRLEN);

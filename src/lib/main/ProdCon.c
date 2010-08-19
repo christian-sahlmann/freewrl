@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.67 2010/08/19 02:05:37 crc_canada Exp $
+  $Id: ProdCon.c,v 1.68 2010/08/19 02:20:36 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -520,53 +520,6 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 	return TRUE;
 }
-
-#ifdef FUNCTION_UNUSED
-/**
- *   parser_process_res_PROTO: this is the final parser (loader) stage, then call the real parser.
- */
-static bool parser_process_res_PROTO(resource_item_t *res)
-{
-	s_list_t *l;
-	openned_file_t *of;
-	struct VRMLLexer *lexer;
-	char *buffer;
-
-	switch (res->type) {
-	case rest_invalid:
-		return FALSE;
-		break;
-
-	case rest_string:
-		buffer = res->request;
-		break;
-	case rest_url:
-	case rest_file:
-	case rest_multi:
-		l = (s_list_t *) res->openned_files;
-		if (!l) {
-			/* error */
-			return FALSE;
-		}
-		
-		of = ml_elem(l);
-		if (!of) {
-			/* error */
-			return FALSE;
-		}
-
-		/* FIXME: finish this */
-		break;
-	}
-
-	lexer = (struct VRMLLexer *) res->where;
-
-	/* note: this may modify buffer */
-	embedEXTERNPROTO(lexer, lexer->curID, buffer, NULL); //pound);
-	/* FIXME: how to get a return value ? */
-	return TRUE;
-}
-#endif /* unused */
 
 /**
  *   parser_process_res_SHADER: this is the final parser (loader) stage, then call the real parser.

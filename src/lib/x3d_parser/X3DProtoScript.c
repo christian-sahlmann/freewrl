@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.61 2010/07/29 01:05:52 dug9 Exp $
+$Id: X3DProtoScript.c,v 1.62 2010/08/19 02:20:36 crc_canada Exp $
 
 ???
 
@@ -343,30 +343,6 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 	}
 }
 
-#ifdef OLDCODE
-#define REPLACE_CONNECT_VALUE(value) \
-			/* now, we have a match, replace (or push) this onto the params */ \
-       			for (nodeind=0; nodeind<vector_size(tos); nodeind++) { \
-               			nvp = vector_get(struct nameValuePairs*, tos,nodeind); \
-				/* printf ("      nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue); */ \
-				if (nvp!=NULL) { \
-					if (strcmp(nvp->fieldName,atts[nfInd+1])==0) { \
-						/* we have a field already of this name, replace the value */ \
-						/* printf ("we had %s, now have %s\n",nvp->fieldValue, value); */ \
-						FREE_IF_NZ(nvp->fieldValue); \
-						nvp->fieldValue=STRDUP(value); \
-						return; \
-					} \
-				} \
-			} \
-			/* printf ("no match, have to create new entty and push it\n"); */ \
-			nvp = MALLOC(sizeof (struct nameValuePairs)); \
-			nvp->fieldName=STRDUP(atts[nfInd+1]); \
-			nvp->fieldValue=STRDUP(value); \
-			vector_pushBack(struct nameValuePairs*,tos,nvp); \
-			/* printf ("pushed %s=%s to tos\n",nvp->fieldName, nvp->fieldValue); */ \
-			return;
-#endif
 #define REPLACE_CONNECT_VALUE(value,type) \
 			/* now, we have a match, replace (or push) this onto the params */ \
 				for (nodeind=0; nodeind<vector_size(tos); nodeind++) \
@@ -735,67 +711,6 @@ void parseProtoInstanceFields(const char *name, const char **atts) {
 		}
 	} else if (strcmp(name,"ProtoInstance") != 0) {
 		/*  dug9 July 18, 2010 - should not come in here now for SFNode/MFNode fieldValues, which are handled above in big push */
-#ifdef OLDCODE
-	   /*  older comments before july 18, 2010:
-		   maybe this is a SFNode value, as in: 
-                    <fieldValue name='relay'> <Script USE='CameraRelay'/> </fieldValue>
-
-		  if this IS the case, we will be down here where the atts parameter will be the "USE=CameraRelay" pair
-		*/
-#ifdef WIN32
-		/* MUFTI points out http://www.web3d.org/x3d/specifications/ISO-IEC-FDIS-19776-1.2-X3DEncodings-XML/Part01/Examples/ShuttlesAndPendulums.x3d
-		   and it bombs in here parsing the ProtoInstance fields with name=Shape and atts=<bad pointer>
-         <fieldValue name='children'>
-           <Shape>
-             <Cylinder height='5'/>
-             <Appearance>
-               <Material diffuseColor='0.8 0.1 0'/>
-              </Appearance>
-            </Shape>
-          </fieldValue>
-		  this could be refactored into something like the Script USE= scenario. When I do that, the scene parsing 
-		  does not complete all nodes normally - I get a blank screen.
-		  My guess: in general this should recurse - we should be back parsing nodes to build the value attribute.
-		  June15,2009: John sent the follwoing line
-int i;printf ("X3D_ node name :%s:\n",name);for (i = 0; atts[i]; i += 2) {printf("field:%s=%s\n", atts[i], atts[i + 1]);}
-		  PROBLEM > atts char** is never NULL. But atts[0] is.
-		*/
-#endif 
-		
-		/* printf ("ProtoInstance, looking for fieldValue, found string:%s: current name=%s value=%s, index %d\n",name,
-			ProtoInstanceTable[curProtoInsStackInd].name[INDEX], ProtoInstanceTable[curProtoInsStackInd].value[INDEX],INDEX); */
-		{
-		}
-		/* allow ONLY USEs here, at least for now? */
- 		if(atts[0] != NULL ){ 
-			if (strcmp("USE",atts[0]) == 0) {
-				struct X3D_Node *rv;
-				char *val = MALLOC(20);
-
-				rv = DEFNameIndex(atts[1],X3D_NODE(NULL),FALSE);
-				/* printf ("found USE in proto expansion for SFNode, is %u\n",rv); */
-				sprintf (val, "%p",rv);
-				ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = val;
-			} else {
-				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
-				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
-				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
-				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
-				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
-				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
-
-				/* just append this, and hope for the best */
-				for (count = 0; atts[count]; count += 2) {
-					PICAT(atts[count],strlen(atts[count]))
-					PICAT("=",1)
-					PICAT(atts[count+1],strlen(atts[count+1]))
-				}
-			}
-		}
-		/* printf ("NOW ProtoInstance, looking for fieldValue, found string:%s: current name=%s value=%s, index %d\n",name,
-			ProtoInstanceTable[curProtoInsStackInd].name[INDEX], ProtoInstanceTable[curProtoInsStackInd].value[INDEX],INDEX); */
-		INDEX++;
-#endif
 		ZERO_NAME_VALUE_PAIR
 	}
 	#undef INDEX
@@ -1815,19 +1730,6 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
 				return;
 			}
 
-#ifdef OLDCODE  //dug9 changed July 27, 2010 to above. We were lucky before if each ProtoDeclare just happened to be within a Group scope (ie Scene)
-			case NODE_Group: {
-				/* make sure we are really in a proto declare */
-				if ((currentProtoDeclare > INT_ID_UNDEFINED) && (currentProtoDeclare < MAXProtos))
-					myObj = CPD.fieldDefs;
-				break; }
-	
-				default: {
-					ConsoleMessage("got an error on parseScriptProtoField, do not know how to handle a %s",
-						stringNodeType(parentStack[parentIndex]->_nodeType));
-					return;
-				}
-#endif OLDCODE 
 		}
 	}
 

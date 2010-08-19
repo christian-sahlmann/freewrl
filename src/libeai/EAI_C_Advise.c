@@ -152,7 +152,6 @@ void _handleFreeWRLcallback (char *line) {
 			EAI_ListenerTable[count].functionHandler(EAI_ListenerTable[count].dataArea);
 		} else {
 			if (_X3D_FreeWRL_Swig_FD) {
-#ifndef OLDCODE
 				/* Doug Sanden's code */
                                 char bigbuf[128];
 
@@ -170,13 +169,6 @@ void _handleFreeWRLcallback (char *line) {
 
                                 /* send(_X3D_FreeWRL_Swig_FD, (const char *) EAI_ListenerTable[count].FreeWRL_RegisterNumber, sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber),0); binary int*/
                                 /*send(_X3D_FreeWRL_Swig_FD, (const char *) EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea),0);*/
-#else
-				char buf[64];
-				sprintf(buf, "%d ", count);
-
-                		write(_X3D_FreeWRL_Swig_FD, buf, strlen(buf));
-                		write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea));
-#endif
 			} else {
 				printf("no socket connected for callbacks!");
 			}

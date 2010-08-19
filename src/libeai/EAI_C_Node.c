@@ -319,16 +319,11 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 		case FIELDTYPE_MFString:
 
 			bzero(ttok, sizeof(ttok));
-#ifndef OLDCODE
 			/* changes from Doug Sanden */
 			temp = strtok(ptr, "\r\n"); /* we will parse manually within "a line" "because we " dont trust blanks */
-#else
-			temp = strtok(ptr, " \r\n");
-#endif
 					
 			j = 0;
 			while (strncmp(temp, "RE_EOT", 6) && (temp != NULL)) {
-#ifndef OLDCODE
 			/* changes from Doug Sanden */
 				/*pre process to get the "" strings*/
 				int start, istart;
@@ -375,51 +370,30 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 					}
 				}while(start && stop);
 			 	temp = strtok(NULL, "\r\n");	
-#else
-				sscanf(temp, "\"%s\"", tstring);
-				len = strlen(tstring);
-				len--;
-				tstring[len] = '\0';
-				strcat(ttok, tstring);
-				strcat(ttok, " ");
-			 	temp = strtok(NULL, " \r\n");	
-				j++;
-#endif
 			}
 
 			value->X3D_MFString.n = j;
 			value->X3D_MFString.p = malloc(j*sizeof(X3DNode));
 
-#ifndef OLDCODE
 			/* changes from Doug Sanden */
 			temp = strtok(ttok, "\r");
-#else
-			temp = strtok(ttok, " ");
-#endif
 			if (temp != NULL) {
 				value->X3D_MFString.p[0].len = strlen(temp);
 				value->X3D_MFString.p[0].strptr = malloc(sizeof(char)*(STRLEN));
 				strncpy(value->X3D_MFString.p[0].strptr, temp, STRLEN);
-#ifndef OLDCODE
 			/* changes from Doug Sanden */
 				value->X3D_MFString.p[0].type = FIELDTYPE_SFString;
-#endif
 			}
 
 			for (i = 1; i < j; i++) {
-#ifndef OLDCODE
 			/* changes from Doug Sanden */
 				temp = strtok(NULL, "\r");
-#else
-				temp = strtok(NULL, " ");
-#endif
 				value->X3D_MFString.p[i].len = strlen(temp);
 				value->X3D_MFString.p[i].strptr = malloc(STRLEN);
 				strncpy(value->X3D_MFString.p[i].strptr, temp, STRLEN);
-#ifndef OLDCODE
+
 				/* changes from Doug Sanden */
 				value->X3D_MFString.p[i].type = FIELDTYPE_SFString;
-#endif
 			}
 			break;
 

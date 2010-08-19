@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.4 2010/03/22 15:14:48 crc_canada Exp $
+$Id: ColladaParser.c,v 1.5 2010/08/19 02:20:36 crc_canada Exp $
 
 ???
 
@@ -171,10 +171,6 @@ static void shutdownColladaParser () {
 
 	/* CDATA text space, free it up */
         FREE_IF_NZ(CDATA_Text);
-#ifdef OLDCODE
-
-        CDATA_TextMallocSize = 0; 
-#endif
 	if (ColladaParserRecurseLevel > INT_ID_UNDEFINED)
 		currentColladaParser = colladaParser[ColladaParserRecurseLevel];
 

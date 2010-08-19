@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.46 2010/08/05 18:17:44 uid31638 Exp $
+$Id: Component_ProgrammableShaders.c,v 1.47 2010/08/19 02:20:36 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -673,38 +673,6 @@ void getField_ToShader(int num) {
 
 
 
-#ifdef OLDCODE
-
-			case FIELDTYPE_SFVec2f:
-				GLUNIFORM2FV(shaderVariable, 1, sourceData);
-				break;
-			case FIELDTYPE_SFVec2d:
-				GLUNIFORM2FV(shaderVariable, 1, sourceData);
-				break;
-
-
-			case FIELDTYPE_SFVec3f:
-			case FIELDTYPE_SFColor:
-				GLUNIFORM3FV(shaderVariable, 1, sourceData);
-				break;
-
-			case FIELDTYPE_SFColorRGBA:
-			case FIELDTYPE_SFRotation:
-			case FIELDTYPE_SFVec4f:
-				GLUNIFORM4FV(shaderVariable, 1, sourceData);
-				break;
-
-			case FIELDTYPE_MFBool:
-			case FIELDTYPE_MFInt32: {
-			struct Multi_Int32 *sd = (struct Multi_Int32 *) sourceData;
-				GLUNIFORM1IV (shaderVariable, sd->n, (int *)sd->p);
-			break; }
-			case FIELDTYPE_MFFloat: {
-			struct Multi_Float *sd = (struct Multi_Float *) sourceData;
-				GLUNIFORM1FV (shaderVariable, sd->n, (int *)sd->p);
-			break; }
-			
-#endif
 			case FIELDTYPE_SFNode:
 			case FIELDTYPE_MFNode:
 			case FIELDTYPE_MFTime:
