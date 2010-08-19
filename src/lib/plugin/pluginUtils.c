@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.33 2010/08/19 12:11:59 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.34 2010/08/19 15:48:10 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -116,7 +116,6 @@ static void startNewHTMLWindow(char *url) {
 
 	browser = NULL;
 
-printf ("start of startNewHTMLWindow\n");
 #ifdef AQUA
 	if (RUNNINGASPLUGIN) {
 		/* printf ("Anchor, running as a plugin - load non-vrml file\n"); */
@@ -149,7 +148,6 @@ printf ("start of startNewHTMLWindow\n");
 
 	if (browser) sprintf(sysline, "%s %s &", browser, url);
 	else sprintf(sysline, "open %s &",  url);
-printf ("going to open via the command :%s:\n",sysline);
 	sysReturnCode = system (sysline);
 	if (sysReturnCode < 0) {
 		sprintf(syslineFailed ,"ERR %s %d system call failed, returned %d. Was: %s\n",__FILE__,__LINE__,sysReturnCode,sysline);
@@ -254,6 +252,9 @@ int doBrowserAction()
 			if (resource_fetch(res)) {
 				/* printf ("really loading anchor from %s\n", res->actual_file); */
 
+				/* we have the file; res->actual_file is the file on the local system; 
+				   res->parsed_request is the file that might be remote */
+
 				if (checkIfX3DVRMLFile(res->actual_file)) {
 					resource_item_t *resToLoad;
 
@@ -270,7 +271,7 @@ int doBrowserAction()
 					return TRUE; /* keep the browser ticking along here */
 				} else {
 					res->complete = TRUE;
-					startNewHTMLWindow(res->actual_file);
+					startNewHTMLWindow(res->parsed_request);
 				}
 			} else {
 				/* we had a problem with that URL, set this so we can try the next */
@@ -347,8 +348,6 @@ static int checkIfX3DVRMLFile(char *fn) {
 bool Anchor_ReplaceWorld(const char *name)
 {
 	resource_item_t *res;
-
-printf ("Anchor_ReplaceWorld - parsing %s\n",name);
 
 	res = resource_create_single(name);
 	res->new_root = TRUE;
