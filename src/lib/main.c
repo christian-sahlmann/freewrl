@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.34 2010/07/12 19:38:09 crc_canada Exp $
+  $Id: main.c,v 1.35 2010/08/19 12:11:59 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -38,6 +38,7 @@
 #include <io_files.h>
 #include <resources.h>
 #include <threads.h>
+#include "main/ProdCon.h"
 
 
 /**
@@ -110,6 +111,10 @@ void OSX_initializeParameters(const char* initialURL) {
 
     /* Give the main argument to the resource handler */
     res = resource_create_single(initialURL);
+    
+    /* tell the new world which viewpoint to go to */
+    givenInitialViewpoint = res->afterPoundCharacters;
+
     send_resource_to_parser(res);
 
     while ((!res->complete) && (res->status != ress_failed) && (res->status != ress_not_loaded)) {

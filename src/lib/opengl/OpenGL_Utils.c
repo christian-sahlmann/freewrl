@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.137 2010/08/19 02:05:37 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.138 2010/08/19 12:11:59 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1887,7 +1887,6 @@ void startOfLoopNodeUpdates(void) {
 				//dug9 added July 24, 2009: when you bind, it should set the 
 				//avatar to the newly bound viewpoint pose and forget any 
 				// cumulative avatar navigation from the last viewpoint parent
-printf ("binding to node %s\n",stringNodeType(node->_nodeType));
 
 				if (node->_nodeType==NODE_Viewpoint) {
 					bind_Viewpoint((struct X3D_Viewpoint *)node); 

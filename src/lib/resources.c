@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.36 2010/08/19 02:05:37 crc_canada Exp $
+  $Id: resources.c,v 1.37 2010/08/19 12:11:59 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -410,6 +410,7 @@ bool resource_fetch(resource_item_t *res)
 					res->status = ress_downloaded;
 					res->actual_file = STRDUP(res->parsed_request);
 					if (pound != NULL) {
+						/* copy the name out, so that Anchors can go to correct Viewpoint */
 						pound ++;
 						res->afterPoundCharacters = STRDUP(pound);
 					}

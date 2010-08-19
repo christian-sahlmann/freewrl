@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.32 2010/08/19 02:20:36 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.33 2010/08/19 12:11:59 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -252,7 +252,7 @@ int doBrowserAction()
 			res->media_type = resm_image; /* quick hack */
 
 			if (resource_fetch(res)) {
-				printf ("really loading anchor from %s\n", res->actual_file);
+				/* printf ("really loading anchor from %s\n", res->actual_file); */
 
 				if (checkIfX3DVRMLFile(res->actual_file)) {
 					resource_item_t *resToLoad;

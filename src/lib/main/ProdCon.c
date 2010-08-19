@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.68 2010/08/19 02:20:36 crc_canada Exp $
+  $Id: ProdCon.c,v 1.69 2010/08/19 12:11:59 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -684,8 +684,6 @@ void _inputParseThread(void)
 
 	/* now, loop here forever, waiting for instructions and obeying them */
 	for (;;) {
-		PRINTF("parser thread waiting...\n");
-
 		/* Process all resource list items, whatever status they may have */
 
 		/* Lock access to the resource list */
@@ -695,7 +693,6 @@ void _inputParseThread(void)
 		pthread_cond_wait (&resource_list_condition, &mutex_resource_list);
 		pthread_mutex_unlock( &mutex_resource_list );
 
-		PRINTF("parser thread active :)\n");
 		inputThreadParsing = TRUE;
 
 		/* go through the resource list until it is empty */
