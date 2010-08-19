@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.30 2010/05/09 15:55:25 davejoubert Exp $
+  $Id: pluginUtils.c,v 1.31 2010/08/19 02:05:37 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -43,6 +43,7 @@
 
 #include "../x3d_parser/Bindable.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../main/ProdCon.h"
 
 #include "pluginUtils.h"
 
@@ -115,6 +116,7 @@ static void startNewHTMLWindow(char *url) {
 
 	browser = NULL;
 
+printf ("start of startNewHTMLWindow\n");
 #ifdef AQUA
 	if (RUNNINGASPLUGIN) {
 		/* printf ("Anchor, running as a plugin - load non-vrml file\n"); */
@@ -144,8 +146,10 @@ static void startNewHTMLWindow(char *url) {
 		freewrlSystem (sysline);
 	}
 		
+
 	if (browser) sprintf(sysline, "%s %s &", browser, url);
 	else sprintf(sysline, "open %s &",  url);
+printf ("going to open via the command :%s:\n",sysline);
 	sysReturnCode = system (sysline);
 	if (sysReturnCode < 0) {
 		sprintf(syslineFailed ,"ERR %s %d system call failed, returned %d. Was: %s\n",__FILE__,__LINE__,sysReturnCode,sysline);
@@ -189,6 +193,8 @@ int doBrowserAction()
 {
 	struct Multi_String Anchor_url;
 	char *description;
+	resource_item_t * parentPath;
+	s_list_t *head_of_list;
 	
 	/* are we in the process of polling for a new X3D URL to load? */
 	if (waitingForURLtoLoad) return urlLoadingStatus();
@@ -209,8 +215,84 @@ int doBrowserAction()
 		/* are we going to load up a new VRML/X3D world, or are we going to just go and load up a new web page ? */
 		if (Anchor_url.n < 0) {
 			/* printf ("have Anchor, empty URL\n"); */
+			AnchorsAnchor = NULL;
 			return FALSE; /* done the action, the url is just not good */
 		} 
+
+		/* first test case - url is ONLY a viewpoint change */
+		if (Anchor_url.p[0]->strptr[0] == '#') {
+			AnchorsAnchor = NULL;
+			goToViewpoint (&(Anchor_url.p[0]->strptr[1]));
+			return TRUE;
+		}
+
+		/* We have a url, lets go and get the first one of them */
+                parentPath = (resource_item_t *)AnchorsAnchor->_parentResource;
+
+		res = resource_create_multi(&AnchorsAnchor->url);
+
+#ifdef TEXVERBOSE
+		PRINTF("url: ");
+		Multi_String_print(&AnchorsAnchor->url);
+		PRINTF("parent resource: \n");
+		resource_dump(parentPath);
+		PRINTF("file resource: \n");
+		resource_dump(res);
+#endif
+
+		/* hold on to the top of the list so we can delete it later */
+		head_of_list = res->m_request;
+
+		/* go through the urls until we have a success, or total failure */
+		do {
+			/* Setup parent */
+			resource_identify(parentPath, res);
+
+			/* Setup media type */
+			res->media_type = resm_image; /* quick hack */
+
+			if (resource_fetch(res)) {
+				printf ("really loading anchor from %s\n", res->actual_file);
+
+				if (checkIfX3DVRMLFile(res->actual_file)) {
+					resource_item_t *resToLoad;
+
+					/* out with the old... */
+					kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+
+					/* tell the new world which viewpoint to go to */
+					givenInitialViewpoint = res->afterPoundCharacters;
+					resToLoad = resource_create_single(res->actual_file);
+
+					/* in with the new... */
+					send_resource_to_parser(resToLoad);
+					waitingForURLtoLoad = TRUE;
+					return TRUE; /* keep the browser ticking along here */
+				} else {
+					res->complete = TRUE;
+					startNewHTMLWindow(res->actual_file);
+				}
+			} else {
+				/* we had a problem with that URL, set this so we can try the next */
+				res->type=rest_multi;
+			}
+		} while ((res->status != ress_downloaded) && (res->m_request != NULL));
+
+		/* destroy the m_request, if it exists */
+		if (head_of_list != NULL) {
+			ml_delete_all(head_of_list);
+		}
+
+		/* were we successful?? */
+		if (res->status != ress_loaded) {
+			ERROR_MSG("Could not load texture: %s\n", entry->filename);
+			return FALSE;
+		}
+
+/*********************************************************/
+
+
+#ifdef OLDCODE
 
 		/* printf ("ok, Anchor first url is :%s:\n",Anchor_url.p[0]->strptr); */
 		if (checkIfX3DVRMLFile(Anchor_url.p[0]->strptr)) {
@@ -235,7 +317,7 @@ int doBrowserAction()
 				startNewHTMLWindow(Anchor_url.p[0]->strptr);
 			}
 		}
-
+#endif
 
 	} else {
 		/* printf ("\nwe have a single replacement here\n"); */
@@ -283,6 +365,7 @@ static int checkIfX3DVRMLFile(char *fn) {
 	}
 	return FALSE;
 }
+
 
 /* we are an Anchor, and we are not running in a browser, and we are
  * trying to do an external VRML or X3D world.

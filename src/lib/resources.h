@@ -1,5 +1,5 @@
 /*
-  $Id: resources.h,v 1.17 2010/07/24 02:23:13 crc_canada Exp $
+  $Id: resources.h,v 1.18 2010/08/19 02:05:37 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -116,6 +116,11 @@ typedef struct resource_item {
 	   - else use own's dir
 	*/
 	char *temp_dir; 
+
+	/* if we have a # character in it (eg, proto, Anchor) we'll have a mallocd bit of 
+	   memory here */
+	char *afterPoundCharacters;
+
 
 /*
  *   Note on temp dir: to improve user experience, each time a temporary

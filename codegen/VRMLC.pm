@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.45 2010/08/10 21:15:59 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.46 2010/08/19 02:05:37 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.46  2010/08/19 02:05:37  crc_canada
+# Work making Anchor load new files, including loading correct viewpoints.
+#
 # Revision 1.45  2010/08/10 21:15:59  crc_canada
 # ImageCubeMapTexture - now works - loads png, jpg, etc, NOT DDS yet.
 #
@@ -1287,6 +1290,7 @@ sub gen {
 	"#define X3D_SWITCH(node) ((struct X3D_Switch*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".
 	"#define X3D_VIEWPOINT(node) ((struct X3D_Viewpoint*)node)\n".
+	"#define X3D_ORTHOVIEWPOINT(node) ((struct X3D_OrthoViewpoint*)node)\n".
 	"#define X3D_LODNODE(node) ((struct X3D_LOD*)node)\n".
 	"#define X3D_TRANSFORM(node) ((struct X3D_Transform*)node)\n".
 	"#define X3D_PROXIMITYSENSOR(node) ((struct X3D_ProximitySensor*)node)\n".

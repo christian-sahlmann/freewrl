@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.35 2010/08/05 18:17:43 uid31638 Exp $
+  $Id: resources.c,v 1.36 2010/08/19 02:05:37 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -76,6 +76,7 @@ resource_item_t* resource_create_single(const char *request)
 	item->request = STRDUP(request);
 	item->type = rest_invalid;
 	item->status = ress_invalid;
+	item->afterPoundCharacters = NULL;
 
 	/* Lock access to the resource tree */
 	pthread_mutex_lock( &mutex_resource_tree );
@@ -113,6 +114,8 @@ resource_item_t* resource_create_multi(s_Multi_String_t *request)
 	item->m_request = NULL;
 	item->type = rest_multi;
 	item->status = ress_invalid;
+	item->afterPoundCharacters = NULL;
+
 
 	/* Convert Mutli_String to a list string */
 	for (i = 0; i < request->n; i++) {
@@ -155,6 +158,7 @@ resource_item_t* resource_create_from_string(const char *string)
 	item->request = STRDUP(string);
 	item->type = rest_string;
 	item->status = ress_loaded;
+	item->afterPoundCharacters = NULL;
 
 	/* Lock access to the resource tree */
 	pthread_mutex_lock( &mutex_resource_tree );
@@ -405,6 +409,10 @@ bool resource_fetch(resource_item_t *res)
 				if (do_file_readable(res->parsed_request)) {
 					res->status = ress_downloaded;
 					res->actual_file = STRDUP(res->parsed_request);
+					if (pound != NULL) {
+						pound ++;
+						res->afterPoundCharacters = STRDUP(pound);
+					}
 				} else {
 					res->status = ress_failed;
 					ERROR_MSG("resource_fetch: wrong permission to read file: %s\n", res->parsed_request);

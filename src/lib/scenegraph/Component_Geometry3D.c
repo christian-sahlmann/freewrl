@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.37 2010/07/25 16:51:39 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.38 2010/08/19 02:05:37 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -1266,6 +1266,7 @@ void collisionSphere_init(struct X3D_Sphere *node)
 	/* for debug int k, biggestNum; */
 	double radinverse;
 	struct SFColor *pts = node->__points;
+
 	/*  re-using the compile_sphere node->__points data which is organized into GL_QUAD_STRIPS
 		my understanding: there are SPHDIV/2 quad strips. Each quadstrip has SPHDIV quads, and enough points to do that many quads
 		without sharing points with other quadstrips. So to make SPHDIV quads, you need 2 rows of SPHDIV+1 points.
@@ -1364,6 +1365,10 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
 	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+
+		/* this sucker initialized yet? */
+		if (node->__points == NULL) return;
+
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);

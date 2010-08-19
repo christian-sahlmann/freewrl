@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.h,v 1.7 2010/02/05 21:41:37 crc_canada Exp $
+  $Id: MainLoop.h,v 1.8 2010/08/19 02:05:37 crc_canada Exp $
 
   FreeWRL support library.
   UI declarations.
@@ -49,5 +49,6 @@ int isTextureParsing();
 /* where this should be ? */
 const char* freewrl_get_browser_program();
 
+void resetSensorEvents(void);
 
 #endif /* __FREEWRL_MAINLOOP_MAIN_H__ */

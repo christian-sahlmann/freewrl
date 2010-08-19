@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ProdCon.h,v 1.6 2009/10/26 10:47:11 couannette Exp $
+$Id: ProdCon.h,v 1.7 2010/08/19 02:05:37 crc_canada Exp $
 
 General functions declarations.
 
@@ -32,6 +32,7 @@ General functions declarations.
 
 
 void registerBindable(struct X3D_Node *);
+extern char *givenInitialViewpoint;
 
 
 #endif /* __FREEWRL_PRODCON_MAIN_H__ */

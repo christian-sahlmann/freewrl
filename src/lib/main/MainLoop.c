@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.132 2010/08/09 19:02:07 dug9 Exp $
+  $Id: MainLoop.c,v 1.133 2010/08/19 02:05:37 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2031,3 +2031,24 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
                 }
         }
 }
+
+
+/* We have a new file to load, lets get rid of the old world sensor events, and run with it */
+void resetSensorEvents(void) {
+
+	if (oldCOS != NULL) 	sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
+       /* remove any display on-screen */
+       sendDescriptionToStatusBar(NULL);
+	CursorOverSensitive=NULL; 
+	oldCOS=NULL;
+	lastMouseEvent = 0;
+	lastPressedOver = NULL;
+	lastOver = NULL;
+	FREE_IF_NZ(SensorEvents);
+	num_SensorEvents = 0;
+
+	/* Cursor - ensure it is not the "sensitive" cursor */
+	ARROW_CURSOR;
+
+}
+

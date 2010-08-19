@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.136 2010/07/29 14:32:27 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.137 2010/08/19 02:05:37 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1070,6 +1070,10 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 		return;
 	}
 #endif
+
+	/* get rid of sensor events */
+	resetSensorEvents();
+
 
 	/* make the root_res equal NULL - this throws away all old resource info */
 	/*

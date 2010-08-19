@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.66 2010/07/28 00:14:52 crc_canada Exp $
+  $Id: ProdCon.c,v 1.67 2010/08/19 02:05:37 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -88,6 +88,7 @@ void *setViewpointBindInRender = NULL;
 void *setFogBindInRender = NULL;
 void *setBackgroundBindInRender = NULL;
 void *setNavigationBindInRender = NULL;
+char *givenInitialViewpoint = NULL;
 
 /*
    ==============================================
@@ -443,8 +444,44 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 				setNavigationBindInRender = navnodes[0];
 			}
 			if (totviewpointnodes != 0) {
+				int whichnode = 0;
 				for (i=0; i < totviewpointnodes; ++i) send_bind_to(X3D_NODE(viewpointnodes[i]), 0);  /* Initialize binding info */
-				setViewpointBindInRender = viewpointnodes[0];
+
+				/* did we have a "#viewpoint" here? */
+				if (givenInitialViewpoint != NULL) {
+					for (i=0; i<totviewpointnodes; i++) {
+						switch ((X3D_NODE(viewpointnodes[i])->_nodeType)) {
+							case NODE_Viewpoint:
+								if (strcmp(givenInitialViewpoint,
+									X3D_VIEWPOINT(viewpointnodes[i])->description->strptr) == 0) {
+									whichnode = i;
+								}
+								break;
+
+
+							case NODE_GeoViewpoint:
+								if (strcmp(givenInitialViewpoint,
+									X3D_GEOVIEWPOINT(viewpointnodes[i])->description->strptr) == 0) {
+									whichnode = i;
+								}
+								break;
+
+							case NODE_OrthoViewpoint:
+								if (strcmp(givenInitialViewpoint,
+									X3D_ORTHOVIEWPOINT(viewpointnodes[i])->description->strptr) == 0) {
+									whichnode = i;
+								}
+								break;
+
+
+						}	
+					}
+
+				} 
+				/* set the initial viewpoint for this file */
+				setViewpointBindInRender = viewpointnodes[whichnode];
+				
+				FREE_IF_NZ(givenInitialViewpoint);
 			}
 		}
 	
