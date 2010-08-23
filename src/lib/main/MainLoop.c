@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.133 2010/08/19 02:05:37 crc_canada Exp $
+  $Id: MainLoop.c,v 1.134 2010/08/23 14:24:33 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1311,7 +1311,7 @@ void sendKeyToKeySensor(const char key, int upDown);
 void do_keyPress(const char kp, int type) {
 		int lkp;
         /* does this X3D file have a KeyDevice node? if so, send it to it */
-        /* printf("%c%d\n",kp,type); */
+	//printf("do_keyPress: %c%d\n",kp,type); 
         if (KeySensorNodePresent()) {
                 sendKeyToKeySensor(kp,type);
         } else {
@@ -1706,6 +1706,7 @@ void _displayThread()
 }
 
 void setLastMouseEvent(int etype) {
+	//printf ("setLastMouseEvent called\n");
         lastMouseEvent = etype;
 }
 
@@ -1843,12 +1844,12 @@ void freewrlDie (const char *format) {
 void handle_aqua(const int mev, const unsigned int button, int x, int y) {
         int count;
 
-         /* printf ("handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d",
-                button, x,y,screenWidth,screenHeight); 
+  /* printf ("handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d",
+                button, x,y,screenWidth,screenHeight);  
         if (mev == ButtonPress) printf ("ButtonPress\n");
         else if (mev == ButtonRelease) printf ("ButtonRelease\n");
         else if (mev == MotionNotify) printf ("MotionNotify\n");
-        else printf ("event %d\n",mev);  */
+        else printf ("event %d\n",mev); */
 
         /* save this one... This allows Sensors to get mouse movements if required. */
         lastMouseEvent = mev;
@@ -1890,9 +1891,9 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
 
 #if !defined(IPHONE) 
 void initGL() {
-        /* printf ("OSX initGL called\n");  */
+        //printf ("OSX initGL called\n"); 
         myglobalContext = CGLGetCurrentContext();
-        /* printf ("initGL call finished - myglobalContext %u\n",myglobalContext); */
+        //printf ("initGL call finished - myglobalContext %u\n",myglobalContext);
 }
 
 int getOffset() {
@@ -1900,13 +1901,13 @@ int getOffset() {
 }
 
 void setCurXY(int cx, int cy) {
-	/* printf ("setCurXY, have %d %d\n",currentX,currentY);  */
+	/* printf ("setCurXY, have %d %d\n",currentX,currentY); */
         currentX = cx;
         currentY = cy;
 }
 
 void setButDown(int button, int value) {
-	/* printf ("old qua code, setButDown...\n"); */
+	/* printf ("setButDown called\n"); */
         ButDown[button] = value;
 }
 
@@ -1986,6 +1987,7 @@ void replaceWorldNeeded(char* str)
 
 /* OSX the Plugin is telling the displayThread to stop and clean everything up */
 void stopRenderingLoop(void) {
+	//printf ("stopRenderingLoop called\n");
 
     	stopDisplayThread();
     	//killErrantChildren();
@@ -1998,6 +2000,7 @@ void stopRenderingLoop(void) {
         AnchorsAnchor = NULL;
         BrowserAction = TRUE;
         FREE_IF_NZ(OSX_replace_world_from_console);
+	// printf ("stopRenderingLoop finished\n");
 }
 
 

@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.35 2010/08/19 12:11:59 crc_canada Exp $
+  $Id: main.c,v 1.36 2010/08/23 14:24:33 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -79,8 +79,11 @@ void OSX_initializeParameters(const char* initialURL) {
     const char *libver, *progver;
     resource_item_t *res;
 
+	//printf ("start of OSX_initializeParameters, initialURL :%s:\n",initialURL);
+
     /* have we been through once already (eg, plugin loading new file)? */
     if (OSXparams == NULL) {
+
     	/* first, get the FreeWRL shared lib, and verify the version. */
 	/*
     	libver = libFreeWRL_get_version();
@@ -89,6 +92,7 @@ void OSX_initializeParameters(const char* initialURL) {
 		ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
     	}
 	*/
+
 
     	/* Before we parse the command line, setup the FreeWRL default parameters */
     	OSXparams = calloc(1, sizeof(freewrl_params_t));
@@ -101,11 +105,13 @@ void OSX_initializeParameters(const char* initialURL) {
     } 
 	//printf("in OSX init\n");
     /* start threads, parse initial scene, etc */
+
    if (!initFreeWRL(OSXparams)) {
 	ERROR_MSG("main: aborting during initialization.\n");
 	exit(1);
    }
 	//printf("after init osx params\n");
+
 
     fw_params.collision = 1;
 
@@ -115,16 +121,25 @@ void OSX_initializeParameters(const char* initialURL) {
     /* tell the new world which viewpoint to go to */
     givenInitialViewpoint = res->afterPoundCharacters;
 
+        /* Cached files: first is actual file to read,
+           other are intermediate: zipped file,
+           file not in good format, ...
+        */
+        char *actual_file;
+        void *cached_files;
+
+
     send_resource_to_parser(res);
 
     while ((!res->complete) && (res->status != ress_failed) && (res->status != ress_not_loaded)) {
-            usleep(50);
+            usleep(500);
     }
 
     /* did this load correctly? */
     if (res->status == ress_not_loaded) {
 	ConsoleMessage ("FreeWRL: Problem loading file \"%s\"", res->request);
     }
+
     if (res->status == ress_failed) {
 	printf("load failed %s\n", initialURL);
 	ConsoleMessage ("FreeWRL: unknown data on command line: \"%s\"", res->request);

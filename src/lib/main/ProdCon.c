@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.69 2010/08/19 12:11:59 crc_canada Exp $
+  $Id: ProdCon.c,v 1.70 2010/08/23 14:24:33 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -83,7 +83,7 @@ int _fw_browser_plugin = 0;
 int _fw_pipe = 0;
 uintptr_t _fw_instance = 0;
 
-/* bind nodes in display loop, NOT in parsing thread */
+/* bind nodes in display loop, NOT in parsing threadthread */
 void *setViewpointBindInRender = NULL;
 void *setFogBindInRender = NULL;
 void *setBackgroundBindInRender = NULL;
@@ -95,7 +95,7 @@ char *givenInitialViewpoint = NULL;
    Explanations for this horrible modification :P
    ==============================================
 
-   There is no reason to stop the main neither the display thread
+   There is no reason to stop the main neither the display 
    while parser is parsing ;)... No reason I see with my little
    knowledge of the code...
 
@@ -106,17 +106,43 @@ char *givenInitialViewpoint = NULL;
 
 */
 
-#if DJ_KEEP_COMPILER_WARNING
-#define PARSER_LOCKING_INIT 
-#define PARSER_FINISHING 
-#define WAIT_WHILE_NO_DATA
-#endif
-#define SEND_TO_PARSER pthread_mutex_lock(&mutex);
-#define UNLOCK pthread_mutex_unlock(&mutex)
-#define WAIT_WHILE_PARSER_BUSY  
+/*******************************/
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t condition = PTHREAD_COND_INITIALIZER;
+/* thread synchronization issues */
+int _P_LOCK_VAR = 0;
+
+#define SEND_TO_PARSER \
+	if (_P_LOCK_VAR==0) { \
+		_P_LOCK_VAR=1; \
+	} \
+	else printf ("SEND_TO_PARSER = flag wrong!\n");
+
+#define PARSER_FINISHING \
+	if (_P_LOCK_VAR==1) { \
+		_P_LOCK_VAR=0; \
+	} \
+	else printf ("PARSER_FINISHING - flag wrong!\n");
+
+#define UNLOCK \
+	pthread_cond_signal(&resource_list_condition); pthread_mutex_unlock(&mutex_resource_list); 
+
+#define WAIT_WHILE_PARSER_BUSY \
+	pthread_mutex_lock(&mutex_resource_list); \
+     	while (_P_LOCK_VAR==1) { pthread_cond_wait(&resource_list_condition, &mutex_resource_list);} 
+
+
+#define WAIT_WHILE_NO_DATA \
+	pthread_mutex_lock(&mutex_resource_list); \
+     	while (_P_LOCK_VAR==0) { pthread_cond_wait(&resource_list_condition, &mutex_resource_list);} 
+
+
+
+
+
+
+
+
+/*******************************/
 
 static s_list_t *resource_list_to_parse = NULL;
 
@@ -317,16 +343,22 @@ void send_resource_to_parser(resource_item_t *res)
 	while (!inputParseInitialized) usleep(50);
 
 	/* Lock access to the resource list */
-	pthread_mutex_lock( &mutex_resource_list );
-
+	WAIT_WHILE_PARSER_BUSY;
+ 
 	/* Add our resource item */
 	resource_list_to_parse = ml_append(resource_list_to_parse, ml_new(res));
 
 	/* signal that we have data on resource list */
-	pthread_cond_signal(&resource_list_condition);
 
+	SEND_TO_PARSER;
 	/* Unlock the resource list */
-	pthread_mutex_unlock( &mutex_resource_list );
+	UNLOCK;
+
+	/* wait for the parser to finish */
+	WAIT_WHILE_PARSER_BUSY;
+	
+	/* grab any data we want */
+	UNLOCK;
 }
 
 void dump_resource_waiting(resource_item_t* res)
@@ -659,9 +691,7 @@ static void parser_process_res(s_list_t *item)
 
 	if (remove_it) {
 		/* Remove the parsed resource from the list */
-		pthread_mutex_lock( &mutex_resource_list );
 		resource_list_to_parse = ml_delete_self(resource_list_to_parse, item);
-		pthread_mutex_unlock( &mutex_resource_list );
 
 		/* What next ? */
 //		dump_parser_wait_queue();
@@ -684,14 +714,7 @@ void _inputParseThread(void)
 
 	/* now, loop here forever, waiting for instructions and obeying them */
 	for (;;) {
-		/* Process all resource list items, whatever status they may have */
-
-		/* Lock access to the resource list */
-		pthread_mutex_lock( &mutex_resource_list );
-
-		/* wait around until we have been signalled */
-		pthread_cond_wait (&resource_list_condition, &mutex_resource_list);
-		pthread_mutex_unlock( &mutex_resource_list );
+		WAIT_WHILE_NO_DATA;
 
 		inputThreadParsing = TRUE;
 
@@ -702,7 +725,8 @@ void _inputParseThread(void)
 		inputThreadParsing = FALSE;
 
 		/* Unlock the resource list */
-		pthread_mutex_unlock( &mutex_resource_list );
+		PARSER_FINISHING;
+		UNLOCK;
 	}
 }
 

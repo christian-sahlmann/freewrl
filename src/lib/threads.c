@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.17 2010/06/29 16:59:44 crc_canada Exp $
+  $Id: threads.c,v 1.18 2010/08/23 14:24:33 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -138,9 +138,6 @@ void initializeInputParseThread()
 	/* Synchronize trace/error log... */
 	fflush(stdout);
 	fflush(stderr);
-
-/* 	pthread_mutex_init( &mutex_resource_tree, NULL ); */
-/* 	pthread_mutex_init( &mutex_resource_list, NULL ); */
 
 	ASSERT(TEST_NULL_THREAD(PCthread));
 	ret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);
