@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.35 2010/08/24 01:06:23 dug9 Exp $
+  $Id: pluginUtils.c,v 1.36 2010/08/24 15:16:42 dug9 Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -299,7 +299,7 @@ int doBrowserAction()
 		if (OSX_replace_world_from_console == NULL) {
 			/* this is just a simple "clean out the old world" */
 			#ifndef AQUA
-			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+			//kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 			#endif
 			return FALSE;
 		} else {
