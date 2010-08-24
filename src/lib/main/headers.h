@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.125 2010/08/10 22:30:49 crc_canada Exp $
+$Id: headers.h,v 1.126 2010/08/24 14:39:03 istakenv Exp $
 
 Global includes.
 
@@ -903,6 +903,7 @@ extern int cc_changed;
 int mapFieldTypeToInernaltype (unsigned int kwIndex);
 void finishEventLoop();
 void resetEventLoop();
+void resetSensorEvents();
 
 /* MIDI stuff... */
 void ReWireRegisterMIDI (char *str);
