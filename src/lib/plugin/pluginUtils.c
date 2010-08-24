@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.34 2010/08/19 15:48:10 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.35 2010/08/24 01:06:23 dug9 Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -167,6 +167,7 @@ static int urlLoadingStatus() {
 	/* printf ("and we have %d children in root.\n",X3D_GROUP(rootNode)->children.n); */
 
 	switch (res->status) {
+		case ress_downloaded:
 		case ress_parsed:
 			EAI_Anchor_Response(TRUE);
 			waitingForURLtoLoad = FALSE;
