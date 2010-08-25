@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.52 2010/08/25 19:50:50 crc_canada Exp $
+  $Id: display.c,v 1.53 2010/08/25 22:37:46 dug9 Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -206,6 +206,10 @@ GLvoid resize_GL(GLsizei width, GLsizei height)
  * On all platforms, when we don't have GLEW, we simulate it.
  * In any case we setup the rdr_capabilities struct.
  */
+#ifdef _MSC_VER
+#define strnstr strncmp
+#define NULL 0
+#endif
 bool initialize_rdr_caps()
 {
 	/* OpenGL is initialized, context is created,
