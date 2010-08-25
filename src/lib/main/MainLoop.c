@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.135 2010/08/24 01:06:23 dug9 Exp $
+  $Id: MainLoop.c,v 1.136 2010/08/25 19:50:50 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -289,7 +289,6 @@ void EventLoop() {
 		usleep(10);
 	}
 
-
         DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
 		     BOOL_STR(isinputThreadParsing()), BOOL_STR(resource_is_root_loaded()));
 
@@ -463,11 +462,10 @@ void EventLoop() {
 			render();
 
         /* handle_mouse events if clicked on a sensitive node */
-		/*printf("nav mode =%d sensitive= %d\n",NavigationMode, HaveSensitive); */
+	/* printf("nav mode =%d sensitive= %d\n",NavigationMode, HaveSensitive);  */
         if (!NavigationMode && HaveSensitive) {
                 setup_projection(TRUE,currentX,currentY);
                 setup_viewpoint();
-                /* original: render_hier(rootNode,VF_Sensitive); */
                 render_hier(rootNode,VF_Sensitive  | VF_Geom); 
                 CursorOverSensitive = getRayHit();
 
@@ -1360,18 +1358,20 @@ struct X3D_Node* getRayHit() {
                    if it exists */
 
                 /* is the sensitive node not NULL? */
-                if (rayHit.node == NULL) return NULL;
+                if (rayHit.hitNode == NULL) return NULL;
         
-                /*
-                printf ("rayhit, we are over a node, have node %u (%s), posn %lf %lf %lf",
-                        rayHit.node,stringNodeType(rayHit.node->_nodeType), x,y,z);
-                printf (" dist %f ",rayHit.node->_dist);
-                */
+                
+		/*
+                printf ("rayhit, we are over a node, have node %p (%s), posn %lf %lf %lf",
+                        rayHit.hitNode,stringNodeType(rayHit.hitNode->_nodeType), x,y,z);
+                printf (" dist %f \n",rayHit.hitNode->_dist);
+		*/
+                
 
                 for (i=0; i<num_SensorEvents; i++) {
-                        if (SensorEvents[i].fromnode == rayHit.node) {
-                                /* printf ("found this node to be sensitive - returning %u\n",rayHit.node); */
-                                return ((struct X3D_Node*) rayHit.node);
+                        if (SensorEvents[i].fromnode == rayHit.hitNode) {
+                                /* printf ("found this node to be sensitive - returning %u\n",rayHit.hitNode); */
+                                return ((struct X3D_Node*) rayHit.hitNode);
                         }
                 }
         }
@@ -1384,6 +1384,7 @@ struct X3D_Node* getRayHit() {
 /* set a node to be sensitive, and record info for this node */
 void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
         void (*myp)(unsigned *);
+	int i;
 
         switch (datanode->_nodeType) {
                 /* sibling sensitive nodes - we have a parent node, and we use it! */
@@ -1399,23 +1400,35 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
                 case NODE_Anchor: myp = (void *)do_Anchor; parentNode = datanode; break;
                 default: return;
         }
-        /* printf ("set_sensitive ,parentNode %d  type %s data %d type %s\n",parentNode,
-                        stringNodeType(parentNode->_nodeType),datanode,stringNodeType (datanode->_nodeType));  */
+        /* printf ("setSensitive parentNode %p  type %s data %p type %s\n",parentNode,
+                        stringNodeType(parentNode->_nodeType),datanode,stringNodeType (datanode->_nodeType)); */
 
-        /* record this sensor event for clicking purposes */
-        SensorEvents = REALLOC(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));
+	/* is this node already here? */
+	/* why would it be duplicate? When we parse, we add children to a temp group, then we
+	   pass things over to a rootNode; we could possibly have this duplicated */
+	for (i=0; i<num_SensorEvents; i++) {
+		if ((SensorEvents[i].fromnode == parentNode) &&
+		    (SensorEvents[i].datanode == datanode) &&
+		    (SensorEvents[i].interpptr == (void *)myp)) {
+			/* printf ("setSensitive, duplicate, returning\n"); */
+			return;
+		}
+	}
 
         if (datanode == 0) {
                 printf ("setSensitive: datastructure is zero for type %s\n",stringNodeType(datanode->_nodeType));
                 return;
         }
 
+        /* record this sensor event for clicking purposes */
+        SensorEvents = REALLOC(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));
+
         /* now, put the function pointer and data pointer into the structure entry */
         SensorEvents[num_SensorEvents].fromnode = parentNode;
         SensorEvents[num_SensorEvents].datanode = datanode;
         SensorEvents[num_SensorEvents].interpptr = (void *)myp;
 
-        /* printf ("saved it in num_SensorEvents %d\n",num_SensorEvents); */
+        /* printf ("saved it in num_SensorEvents %d\n",num_SensorEvents);  */
         num_SensorEvents++;
 }
 
@@ -2045,12 +2058,15 @@ void resetSensorEvents(void) {
 	CursorOverSensitive=NULL; 
 	oldCOS=NULL;
 	lastMouseEvent = 0;
-#ifndef _MSC_VER
+/*JAS #ifndef _MSC_VER */
 	lastPressedOver = NULL;
 	lastOver = NULL;
 	FREE_IF_NZ(SensorEvents);
 	num_SensorEvents = 0;
-#endif
+	hypersensitive = NULL;
+	hyperhit = NULL;
+printf ("set resetSensorEvents to zero\n");
+/*JAS #endif */
 	/* Cursor - ensure it is not the "sensitive" cursor */
 	ARROW_CURSOR;
 
