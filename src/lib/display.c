@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.53 2010/08/25 22:37:46 dug9 Exp $
+  $Id: display.c,v 1.54 2010/08/26 16:33:38 istakenv Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -207,8 +207,11 @@ GLvoid resize_GL(GLsizei width, GLsizei height)
  * In any case we setup the rdr_capabilities struct.
  */
 #ifdef _MSC_VER
-#define strnstr strncmp
-#define NULL 0
+# define strnstr strncmp
+# define NULL 0
+#endif
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
+# define strnstr(aa,bb,cc) strstr(aa,bb)
 #endif
 bool initialize_rdr_caps()
 {
