@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.137 2010/08/25 22:37:46 dug9 Exp $
+  $Id: MainLoop.c,v 1.138 2010/08/26 14:07:33 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2059,15 +2059,12 @@ void resetSensorEvents(void) {
 
 	oldCOS=NULL;
 	lastMouseEvent = 0;
-#ifndef _MSC_VER
 	lastPressedOver = NULL;
-#endif
 	lastOver = NULL;
 	FREE_IF_NZ(SensorEvents);
 	num_SensorEvents = 0;
 	hypersensitive = NULL;
 	hyperhit = NULL;
-printf ("set resetSensorEvents to zero\n");
 	/* Cursor - ensure it is not the "sensitive" cursor */
 	ARROW_CURSOR;
 

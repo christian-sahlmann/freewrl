@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.29 2010/08/10 22:32:00 crc_canada Exp $
+$Id: SensInterps.c,v 1.30 2010/08/26 14:07:33 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -1366,7 +1366,9 @@ void do_Anchor ( void *ptr, int ev, int but1, int over) {
 	UNUSED(but1);
 
 	if (!node) return;
-	if (ev==ButtonPress) {
+	/* try button release, so that we dont get worlds flashing past if 
+	   the user keeps the finger down. :-) if (ev==ButtonPress) { */
+	if (ev==ButtonRelease) {
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
 		AnchorsAnchor = node;
