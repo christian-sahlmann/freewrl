@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.46 2010/08/19 02:05:37 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.47 2010/08/31 15:45:34 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,10 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.47  2010/08/31 15:45:34  crc_canada
+# 1) sortChildren - copy children to internal children field ONLY when required to reduce sorting.
+# 2) rootNode now an X3D_Group, not a void *
+#
 # Revision 1.46  2010/08/19 02:05:37  crc_canada
 # Work making Anchor load new files, including loading correct viewpoints.
 #
@@ -1273,6 +1277,7 @@ sub gen {
 	"struct X3D_Node {\n". $interalNodeCommonFields .  "};\n".
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
+	"#define X3D_PICKABLEGROUP(node) ((struct X3D_PickableGroup*)node)\n".
 	"#define X3D_STATICGROUP(node) ((struct X3D_StaticGroup*)node)\n".
 	"#define X3D_ANCHOR(node) ((struct X3D_Anchor*)node)\n".
 	"#define X3D_COLLISION(node) ((struct X3D_Collision*)node)\n".

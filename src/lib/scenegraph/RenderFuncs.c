@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.58 2010/08/25 19:50:50 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.59 2010/08/31 15:45:35 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -456,7 +456,7 @@ float AC_LastDuration[50]  = {-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
 /* is the sound engine started yet? */
 int SoundEngineStarted = FALSE;
 
-void *rootNode=NULL;	/* scene graph root node */
+struct X3D_Group *rootNode=NULL;	/* scene graph root node */
 void *empty_group=0;
 
 /*******************************************************************************/

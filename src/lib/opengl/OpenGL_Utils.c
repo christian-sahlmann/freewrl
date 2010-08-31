@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.138 2010/08/19 12:11:59 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.139 2010/08/31 15:45:34 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -510,19 +510,19 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 
 		#ifdef VERBOSE
 		printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",
-				X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_X,
-				X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Y,
-				X3D_GROUP(rootNode)->EXTENT_MAX_Z, X3D_GROUP(rootNode)->EXTENT_MIN_Z);
+				rootNode->EXTENT_MAX_X, rootNode->EXTENT_MIN_X,
+				rootNode->EXTENT_MAX_Y, rootNode->EXTENT_MIN_Y,
+				rootNode->EXTENT_MAX_Z, rootNode->EXTENT_MIN_Z);
 		#endif
 		/* make up 8 vertices for our bounding box, and place them within our view */
-		moveAndRotateThisPoint(&bboxPoints[0], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[1], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[2], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[3], X3D_GROUP(rootNode)->EXTENT_MIN_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[4], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[5], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[6], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[7], X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MAX_Y, X3D_GROUP(rootNode)->EXTENT_MAX_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[0], rootNode->EXTENT_MIN_X, rootNode->EXTENT_MIN_Y, rootNode->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[1], rootNode->EXTENT_MIN_X, rootNode->EXTENT_MIN_Y, rootNode->EXTENT_MAX_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[2], rootNode->EXTENT_MIN_X, rootNode->EXTENT_MAX_Y, rootNode->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[3], rootNode->EXTENT_MIN_X, rootNode->EXTENT_MAX_Y, rootNode->EXTENT_MAX_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[4], rootNode->EXTENT_MAX_X, rootNode->EXTENT_MIN_Y, rootNode->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[5], rootNode->EXTENT_MAX_X, rootNode->EXTENT_MIN_Y, rootNode->EXTENT_MAX_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[6], rootNode->EXTENT_MAX_X, rootNode->EXTENT_MAX_Y, rootNode->EXTENT_MIN_Z,MM);
+		moveAndRotateThisPoint(&bboxPoints[7], rootNode->EXTENT_MAX_X, rootNode->EXTENT_MAX_Y, rootNode->EXTENT_MAX_Z,MM);
 	
 		for (ci=0; ci<8; ci++) {
 			#ifdef VERBOSE
@@ -1086,12 +1086,12 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	root_res = NULL;
 
 	/* mark all rootNode children for Dispose */
-	for (i=0; i<X3D_GROUP(rootNode)->children.n; i++) {
-		markForDispose(X3D_GROUP(rootNode)->children.p[i], TRUE);
+	for (i=0; i<rootNode->children.n; i++) {
+		markForDispose(rootNode->children.p[i], TRUE);
 	}
 
 	/* stop rendering */
-	X3D_GROUP(rootNode)->children.n = 0;
+	rootNode->children.n = 0;
 
 	/* close the Console Message system, if required. */
 	closeConsoleMessage();
@@ -1240,7 +1240,14 @@ void increaseMemoryTable(){
 
 /* sort children - use bubble sort with early exit flag */
 /* we use this for z buffer rendering; drawing scene in correct z-buffer order */
-static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh) {
+/* we ONLY sort if:
+	1) the node has changed - this is the "needsCompiling" field;
+	2) the number of children has changed - again, the "needsCompiling" flag should be set,
+		but we enforce it;
+	3) the first pass shows that nodes are out of order 
+*/
+
+static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh, int needsCompiling) {
 	int i,j;
 	int nc;
 	int noswitch;
@@ -1252,19 +1259,25 @@ static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh) {
 	   move around a lot. (Bubblesort is bad when nodes
 	   have to be totally reversed) */
 
+	nc = ch->n;
+
 	/* has this changed size? */
 	if (ch->n != sortedCh->n) {
 		FREE_IF_NZ(sortedCh->p);
 		sortedCh->p = MALLOC (sizeof (void *) * ch->n);
+		needsCompiling = TRUE; /* force this change; should be
+			set anyway */
 	}
 
 	/* copy the nodes over; we will sort the sorted list */
-	nc = ch->n;
-	memcpy (sortedCh->p,ch->p,sizeof (void *) * nc);
-	sortedCh->n = nc;
+
+	if (needsCompiling) {
+		memcpy (sortedCh->p,ch->p,sizeof (void *) * nc);
+		sortedCh->n = nc;
+	}
 
 	#ifdef VERBOSE
-	printf ("sc start, %d, chptr %u\n",nc,ch);
+	printf ("sortChildren start, %d, chptr %u\n",nc,ch);
 	#endif
 
 	if (nc < 2) return;
@@ -1277,9 +1290,9 @@ static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh) {
 			b = X3D_NODE(sortedCh->p[j]);
 
 			/* check to see if a child is NULL - if so, skip it */
-			if ((a != NULL) && (b != NULL)) {
+			if (a && b) {
 				if (a->_dist > b->_dist) {
-					/* printf ("have to switch %d %d\n",i,j);  */
+					/* printf ("sortChildren at %lf, have to switch %d %d\n",TickTime,i,j);  */
 					c = a;
 					sortedCh->p[j-1] = b;
 					sortedCh->p[j] = c;
@@ -1294,7 +1307,7 @@ static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh) {
 	}
 	
 	#ifdef VERBOSE
-	printf ("sortChild returning.\n");
+	printf ("sortChildren returning.\n");
 	for(i=0; i<nc; i++) {
 		b = sortedCh->p[i];
 		if (b)
@@ -1525,7 +1538,7 @@ void startOfLoopNodeUpdates(void) {
 
 	/* sort the rootNode, if it is Not NULL */
 	if (rootNode != NULL) {
-		sortChildren (&X3D_GROUP(rootNode)->children, &X3D_GROUP(rootNode)->_sortedChildren);
+		sortChildren (&rootNode->children, &rootNode->_sortedChildren,ROOTNODE_NEEDS_COMPILING);
 	}
 
 	/* go through the list of nodes, and "work" on any that need work */
@@ -1630,7 +1643,7 @@ void startOfLoopNodeUpdates(void) {
 	
 				/* Anchor is Mouse Sensitive, AND has Children nodes */
 				BEGIN_NODE(Anchor)
-					sortChildren(&X3D_ANCHOR(node)->children,&X3D_ANCHOR(node)->_sortedChildren);
+					sortChildren(&X3D_ANCHOR(node)->children,&X3D_ANCHOR(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 					propagateExtent(X3D_NODE(node));
 					ANCHOR_SENSITIVE(Anchor)
 					CHILDREN_NODE(Anchor)
@@ -1647,14 +1660,14 @@ void startOfLoopNodeUpdates(void) {
 
 				BEGIN_NODE(StaticGroup)
 					/* we should probably not do this, but... */
-					sortChildren(&X3D_STATICGROUP(node)->children,&X3D_STATICGROUP(node)->_sortedChildren);
+					sortChildren(&X3D_STATICGROUP(node)->children,&X3D_STATICGROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
 
 				/* does this one possibly have add/removeChildren? */
 				BEGIN_NODE(Group) 
-					sortChildren(&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren);
+					sortChildren(&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Group) 
@@ -1662,7 +1675,7 @@ void startOfLoopNodeUpdates(void) {
 
 				/* DJTRACK_PICKSENSORS */
 				BEGIN_NODE(PickableGroup) 
-					sortChildren(&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren);
+					sortChildren(&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(PickableGroup) 
@@ -1676,12 +1689,12 @@ void startOfLoopNodeUpdates(void) {
 						}
 						vector_pushBack(struct X3D_Inline *, loadInlines, X3D_INLINE(node));
 					}
-					sortChildren (&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren);
+					sortChildren (&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
 				BEGIN_NODE(Transform) 
-					sortChildren(&X3D_TRANSFORM(node)->children,&X3D_TRANSFORM(node)->_sortedChildren);
+					sortChildren(&X3D_TRANSFORM(node)->children,&X3D_TRANSFORM(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Transform) 
 				END_NODE
@@ -1707,14 +1720,14 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				BEGIN_NODE(Billboard) 
-					sortChildren (&X3D_BILLBOARD(node)->children,&X3D_BILLBOARD(node)->_sortedChildren);
+					sortChildren (&X3D_BILLBOARD(node)->children,&X3D_BILLBOARD(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Billboard) 
                 			update_renderFlag(node,VF_Proximity);
 				END_NODE
 
 				BEGIN_NODE(Collision) 
-					sortChildren (&X3D_COLLISION(node)->children,&X3D_COLLISION(node)->_sortedChildren);
+					sortChildren (&X3D_COLLISION(node)->children,&X3D_COLLISION(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Collision) 
 				END_NODE
@@ -1791,13 +1804,13 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				BEGIN_NODE (GeoTransform)
-					sortChildren(&X3D_GEOTRANSFORM(node)->children,&X3D_GEOTRANSFORM(node)->_sortedChildren);
+					sortChildren(&X3D_GEOTRANSFORM(node)->children,&X3D_GEOTRANSFORM(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(GeoTransform) 
 				END_NODE
 
 				BEGIN_NODE (GeoLocation)
-					sortChildren(&X3D_GEOLOCATION(node)->children,&X3D_GEOLOCATION(node)->_sortedChildren);
+					sortChildren(&X3D_GEOLOCATION(node)->children,&X3D_GEOLOCATION(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(GeoLocation) 
 				END_NODE
@@ -1847,7 +1860,7 @@ void startOfLoopNodeUpdates(void) {
 				/* VRML1 Separator node; we do a bare bones implementation; always assume there are 
 					lights, geometry, and viewpoints here. */
 				BEGIN_NODE(VRML1_Separator) 
-					sortChildren(&VRML1_SEPARATOR(node)->VRML1children,&VRML1_SEPARATOR(node)->_sortedChildren);
+					sortChildren(&VRML1_SEPARATOR(node)->VRML1children,&VRML1_SEPARATOR(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 					propagateExtent(X3D_NODE(node));
 					update_renderFlag(X3D_NODE(node),VF_localLight|VF_Viewpoint|VF_Geom|VF_hasVisibleChildren);
 				END_NODE

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.127 2010/08/25 19:50:50 crc_canada Exp $
+$Id: headers.h,v 1.128 2010/08/31 15:45:34 crc_canada Exp $
 
 Global includes.
 
@@ -191,6 +191,7 @@ node for ANY node that takes something other than a Group */
 
 #define MARK_NODE_COMPILED node->_ichange = node->_change;
 #define NODE_NEEDS_COMPILING (node->_ichange != node->_change)
+#define ROOTNODE_NEEDS_COMPILING (rootNode->_ichange != rootNode->_change)
 /* end of compile simple nodes code */
 
 
@@ -618,7 +619,7 @@ extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data.
 #undef die
 #endif
 
-extern void *rootNode;
+extern struct X3D_Group *rootNode;
 
 extern int isPerlParsing(void);
 /* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */
