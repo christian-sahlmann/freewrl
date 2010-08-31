@@ -1,0 +1,11 @@
+// Grant all permissions to jar file containing our EAI classes:
+grant codeBase "file:${freewrl.lib.dir}/vrml.jar" {
+	permission java.security.AllPermission;
+};
+grant {
+	permission java.net.SocketPermission "127.0.0.1:", "connect,accept,resolve";
+        permission java.lang.RuntimePermission "modifyThreadGroup";
+        permission java.lang.RuntimePermission "modifyThread";
+};
+
+

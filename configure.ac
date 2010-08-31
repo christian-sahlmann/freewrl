@@ -472,6 +472,19 @@ fi
 # do AC_SUBST(MAYBE_SOUND) after checking for existance of soundconv
 
 # ======================================
+# Sound module configuration
+# ======================================
+
+AC_MY_SWITCH(java,[enable building of java classes],off)
+if test x$sw_java = xno; then
+  AC_MSG_NOTICE([Not building java classes])
+  MAYBE_JAVA=
+else
+  MAYBE_JAVA=java
+fi
+# do AC_SUBST(MAYBE_JAVA) after checking for existance of javac
+
+# ======================================
 # Internet browser plugin configuration
 # ======================================
 
@@ -578,6 +591,8 @@ case "$os_type" in
           DEFAULT_UNZIP=unzip
           DEFAULT_WGET=wget
           DEFAULT_IMAGECONVERT=convert
+          DEFAULT_JAVAC=javac
+          DEFAULT_JAR=jar
           ;;
      win32) # Windows defaults
           DEFAULT_BROWSER=
@@ -586,6 +601,8 @@ case "$os_type" in
           DEFAULT_UNZIP=unzip.exe
           DEFAULT_WGET=wget.exe
           DEFAULT_IMAGECONVERT=convert.exe
+          DEFAULT_JAVAC=javac.exe
+          DEFAULT_JAR=jar.exe
           ;;
      *)   # UNIX defaults
           DEFAULT_BROWSER=firefox
@@ -593,6 +610,8 @@ case "$os_type" in
           DEFAULT_UNZIP=unzip
           DEFAULT_WGET=wget
           DEFAULT_IMAGECONVERT=convert
+          DEFAULT_JAVAC=javac
+          DEFAULT_JAR=jar
           ;;
 esac # case $os_type
 
@@ -612,6 +631,21 @@ if test x$MAYBE_SOUND = xsound; then
         ])
 fi
 AC_SUBST([MAYBE_SOUND])
+
+## java compiler check (javac) and archiver check (jar)
+if test x$MAYBE_JAVA = xjava; then
+    AC_MY_HELPERAPP([javac],[JAVAC],[java compiler],[$DEFAULT_JAVAC],[
+	MAYBE_JAVA=
+	AC_MSG_WARN([javac not found -- not building java classes])
+	])
+    if test x$MAYBE_JAVA = xjava; then
+	AC_MY_HELPERAPP([jar],[JAR],[java archiver],[$DEFAULT_JAR],[
+	    MAYBE_JAVA=
+	    AC_MSG_WARN([jar not found -- not building java classes])
+	    ])
+    fi
+fi
+AC_SUBST([MAYBE_JAVA])
 
 ## Unzip check
 AC_MY_HELPERAPP([unzip],[UNZIP],[zip decompressor],[$DEFAULT_UNZIP],[

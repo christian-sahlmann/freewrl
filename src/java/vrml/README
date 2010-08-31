@@ -1,0 +1,9 @@
+EAI is in the "external" directory.
+
+SAI (is this the correct term?) is in this directory.
+
+To compile, please make sure that the CLASSPATH environment
+variable is set to this directory!
+
+
+John Stewart.

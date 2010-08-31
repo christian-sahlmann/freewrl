@@ -1,0 +1,93 @@
+This is the java CLASS protocol; invoked from CFuncs/JavaClass.c. When
+events are run, the java class can request/send info, until a finish
+event is sent.
+
+The protocol below is in flux, best to check the exact code in the
+CFuncs/JavaClass file.
+
+One last note - work is progressing on making EAI and CLASS use most
+of the same functions.
+
+# The protocol between the script processor and the rest of the browser:
+# WARNING:  The protocol is work in progress and may change at any time.
+
+# Format of a request 1 thing per line:
+
+
+# Browser can send
+
+NEWSCRIPT
+__id__
+type
+
+INITIALIZE
+__id__
+__reqid
+
+SENDEVENT
+__id__
+__reqid
+fieldName
+value
+timestamp
+
+EVENTSPROCESSED
+__id__
+__reqid
+
+# This is currently unused, the client has to ask for the current value.
+# Note that SENDEVENT does something similar.
+SETFIELD
+__id__
+fieldName
+value
+
+
+
+# Script can send
+
+# Ask if a field is present:
+GETFIELD
+__id__
+fieldName
+fieldKind (exposedField, field, eventIn, eventOut)
+# The server will immediately answer with
+fieldType (SF...)
+
+# Read value of a field
+READFIELD
+__id__
+fieldName
+# The server will immediately answer with
+value
+
+SENDEVENT
+__id__
+fieldName
+value
+
+CREATEVRML
+vrml
+# The server will immediately answer with
+nodes (in MFNode format)
+
+FINISHED
+__reqid
+
+
+###############################################################
+
+value format (regular expressions):
+
+SFBool:     one byte \000 or \001
+SFColor:    utf utf utf
+SFFloat:    utf (Float.toString())
+SFImage:    int int int byte[]  (length of byte array can be calculated)
+SFInt32:    int
+SFNode:     utf ("VRML::Node=(0x12345678)")
+SFRotation: utf utf utf utf
+SFString:   utf
+SFTime:     utf (Double.toString())
+SFVec2f:    uft utf
+SFVec3f:    utf utf utf
+MFxxx:      int valuer value ... value  (where value encoded as in SFxxx)

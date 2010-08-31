@@ -1,14 +1,15 @@
 # src dir Makefile.am
 #
-# $Id: Makefile.am,v 1.6 2009/02/17 16:08:19 istakenv Exp $
+# $Id: Makefile.am,v 1.7 2010/08/31 15:10:46 istakenv Exp $
 #
 # Conditional build of sub-directories
 
-DIST_SUBDIRS = lib bin plugin sound message libeai
+DIST_SUBDIRS = lib bin java plugin sound message libeai
 SUBDIRS = lib bin 
 
 SUBDIRS+=$(MAYBE_PLUGIN)
 SUBDIRS+=$(MAYBE_LIBEAI)
+SUBDIRS+=$(MAYBE_JAVA)
 
 if OS_LINUX
 SUBDIRS+=$(MAYBE_SOUND)
