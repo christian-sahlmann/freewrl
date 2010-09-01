@@ -472,7 +472,7 @@ fi
 # do AC_SUBST(MAYBE_SOUND) after checking for existance of soundconv
 
 # ======================================
-# Sound module configuration
+# Java configuration
 # ======================================
 
 AC_MY_SWITCH(java,[enable building of java classes],off)
@@ -483,6 +483,16 @@ else
   MAYBE_JAVA=java
 fi
 # do AC_SUBST(MAYBE_JAVA) after checking for existance of javac
+
+# Java classes install dir configuration
+AC_ARG_WITH([javadir],
+            [AS_HELP_STRING([--with-javadir=DIR],
+                           [font path @<:@DATADIR/$PACKAGE/lib@:>@])],
+            [fontsdir=$withval],
+            [fontsdir=$datadir/$PACKAGE/lib])
+
+AC_DEFINE_DIR([JAVA_DIR],[javadir],[Directory for java classes.])
+
 
 # ======================================
 # Internet browser plugin configuration
@@ -699,6 +709,7 @@ src/plugin/Makefile
 src/libeai/Makefile
 src/libeai/libFreeWRLEAI.pc
 src/sound/Makefile
+src/java/Makefile
 src/message/Makefile])
 
 AC_OUTPUT
