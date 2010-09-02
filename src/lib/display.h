@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.89 2010/06/29 16:59:44 crc_canada Exp $
+  $Id: display.h,v 1.90 2010/09/02 19:39:10 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -488,6 +488,8 @@ void setScreenDim(int wi, int he);
 #else
 	#define FW_GL_GETDOUBLEV(aaa,bbb) fw_glGetDoublev(aaa,bbb,__FILE__,__LINE__);
 	#define FW_GL_LOAD_IDENTITY fw_glLoadIdentity
+	#define FW_GL_POP_MATRIX(aaa) fw_glPopMatrix()
+	#define FW_GL_PUSH_MATRIX(aaa) fw_glPushMatrix()
 
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) fw_glTranslatef(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) fw_glTranslated(xxx,yyy,zzz)

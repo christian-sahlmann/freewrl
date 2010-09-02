@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.139 2010/08/31 15:45:34 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.140 2010/09/02 19:39:10 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -87,6 +87,9 @@ static struct X3D_Node *forgottenNode;
 
 #if USE_JS_EXPERIMENTAL_CODE
 static void killNode (int index);
+#endif
+
+#ifndef USE_OLD_OPENGL
 static void fw_glLoadMatrixd(double *val);
 static void mesa_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ, double *m);
 static void mesa_Ortho(double left, double right, double bottom, double top, double nearZ, double farZ, double *m);
@@ -183,7 +186,7 @@ static char * readInputString(char *fn) {
 #endif
 #undef MAXREADSIZE
 
-#if USE_JS_EXPERIMENTAL_CODE
+#ifndef USE_OLD_OPENGL
 static void shaderErrorLog(GLuint myShader) {
         #ifdef GL_VERSION_2_0
 #define MAX_INFO_LOG_SIZE 512
@@ -196,7 +199,7 @@ static void shaderErrorLog(GLuint myShader) {
 }
 #endif
 
-#if USE_JS_EXPERIMENTAL_CODE
+#ifndef USE_OLD_OPENGL
 /* read in shaders and place the resulting shader program in the "whichShader" field if success. */
 static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToShaders) {
 	char *inTextPointer;
