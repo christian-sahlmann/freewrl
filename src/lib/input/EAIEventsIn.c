@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.62 2010/05/13 17:17:11 davejoubert Exp $
+$Id: EAIEventsIn.c,v 1.63 2010/09/04 12:19:14 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -65,12 +65,11 @@ Handle incoming EAI (and java class) events with panache.
 struct X3D_Anchor EAI_AnchorNode;
 int waiting_for_anchor = FALSE;
 
-void createLoadURL(char *bufptr);
-void makeFIELDDEFret(uintptr_t,char *buf,int c);
-void handleRoute (char command, char *bufptr, char *buf, int repno);
-void handleGETNODE (char *bufptr, char *buf, int repno);
-void handleGETROUTES (char *bufptr, char *buf, int repno);
-void handleGETEAINODETYPE (char *bufptr, char *buf, int repno);
+static void makeFIELDDEFret(uintptr_t,int c);
+static void handleRoute (char command, char *bufptr, int repno);
+static void handleGETNODE (char *bufptr, int repno);
+static void handleGETROUTES (char *bufptr, int repno);
+static void handleGETEAINODETYPE (char *bufptr, int repno);
 
 
 /******************************************************************************
@@ -95,7 +94,7 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno);
 static int oldCount=0;
 
 void EAI_parse_commands () {
-	char buf[EAIREADSIZE];	/* return value place*/
+	/* char buf[EAIREADSIZE];*/
 	char ctmp[EAIREADSIZE];	/* temporary character buffer*/
 	char dtmp[EAIREADSIZE];	/* temporary character buffer*/
 	struct X3D_Group *retGroup;
@@ -119,6 +118,10 @@ void EAI_parse_commands () {
 
 	/* initialization */
 	bufPtr = 0;
+
+	/* output buffer - start off with it this size */
+	outBufferLen = EAIREADSIZE;
+	outBuffer = MALLOC(outBufferLen);
 
 	while (EAI_BUFFER_CUR> 0) {
 		if (eaiverbose) {
@@ -166,7 +169,7 @@ void EAI_parse_commands () {
 
 		switch (command) {
 			case GETRENDPROP: {
-				sprintf (buf,"RE\n%f\n%d\n%s %dx%d %d %s %d %f",TickTime,count,
+				sprintf (outBuffer,"RE\n%f\n%d\n%s %dx%d %d %s %d %f",TickTime,count,
 					"SMOOTH",				/* Shading */
 					rdr_caps.max_texture_size, rdr_caps.max_texture_size, 	/* Texture size */	
 					rdr_caps.texture_units,				/* texture units */
@@ -180,42 +183,42 @@ void EAI_parse_commands () {
 				}
 
 			case GETNAME: {
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserName);
+				sprintf (outBuffer,"RE\n%f\n%d\n%s",TickTime,count,BrowserName);
 				break;
 				}
 			case GETVERSION: {
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,libFreeWRL_get_version());
+				sprintf (outBuffer,"RE\n%f\n%d\n%s",TickTime,count,libFreeWRL_get_version());
 				break;
 				}
 			case GETENCODING: {
-				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,currentFileVersion);
+				sprintf (outBuffer,"RE\n%f\n%d\n%d",TickTime,count,currentFileVersion);
 				break;
 				}
 			case GETCURSPEED: {
 				/* get the BrowserSpeed variable updated */
 				getCurrentSpeed();
-				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,BrowserSpeed);
+				sprintf (outBuffer,"RE\n%f\n%d\n%f",TickTime,count,BrowserSpeed);
 				break;
 				}
 			case GETFRAMERATE: {
-				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,BrowserFPS);
+				sprintf (outBuffer,"RE\n%f\n%d\n%f",TickTime,count,BrowserFPS);
 				break;
 				}
 			case GETURL: {
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserFullPath);
+				sprintf (outBuffer,"RE\n%f\n%d\n%s",TickTime,count,BrowserFullPath);
 				break;
 				}
 			case GETNODE:  {
-				handleGETNODE(&EAI_BUFFER_CUR,buf,count);
+				handleGETNODE(&EAI_BUFFER_CUR,count);
 				break;
 			}
 			case GETROUTES:  {
-				handleGETROUTES(&EAI_BUFFER_CUR,buf,count);
+				handleGETROUTES(&EAI_BUFFER_CUR,count);
 				break;
 			}
 
 			case GETEAINODETYPE: {
-				handleGETEAINODETYPE(&EAI_BUFFER_CUR,buf,count);
+				handleGETEAINODETYPE(&EAI_BUFFER_CUR,count);
 				break;
 			}
 
@@ -227,10 +230,10 @@ void EAI_parse_commands () {
 					printf("Code using boxptr is suspect. %s,%d : cNode=%d -> boxptr=%d",__FILE__,__LINE__,cNode,boxptr) ;
 					*/
         				boxptr = getEAINodeFromTable(cNode,-1);
-					sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,getSAI_X3DNodeType (
+					sprintf (outBuffer,"RE\n%f\n%d\n%d",TickTime,count,getSAI_X3DNodeType (
 						boxptr->_nodeType));
 				} else {
-					sprintf (buf,"RE\n%f\n%d\n-1",TickTime,count);
+					sprintf (outBuffer,"RE\n%f\n%d\n-1",TickTime,count);
 				}
 				/* printf ("GETNODETYPE, for node %s, returns %s\n",(&EAI_BUFFER_CUR),buf); */
 					
@@ -251,7 +254,7 @@ void EAI_parse_commands () {
 				cNode = (uintptr_t) xtmp;
 
 				EAI_GetType (cNode, ctmp, dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
-				sprintf (buf,"RE\n%lf\n%d\n%d %d %d %c %d %s",TickTime,count,(int)ra,(int)rb,(int)rc,(int)rd,
+				sprintf (outBuffer,"RE\n%lf\n%d\n%d %d %d %c %d %s",TickTime,count,(int)ra,(int)rb,(int)rc,(int)rd,
 						scripttype,stringKeywordType(xxx));
 				break;
 				}
@@ -276,11 +279,11 @@ void EAI_parse_commands () {
 
 				/* finish this for now - note the pointer math. */
 				bufPtr = EOT+3-EAIbuffer;
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
+				sprintf (outBuffer,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 			case MIDICONTROL: {
-				/* sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count, ReWireMIDIControl(&EAI_BUFFER_CUR)); */
+				/* sprintf (outBuffer,"RE\n%f\n%d\n%d",TickTime,count, ReWireMIDIControl(&EAI_BUFFER_CUR)); */
 				ReWireMIDIControl(&EAI_BUFFER_CUR);
 				break;
 				}
@@ -340,10 +343,10 @@ void EAI_parse_commands () {
 				}
 
 				/* printf ("ok, we are going to return the following number of nodes: %d\n",retGroup->children.n); */
-				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
+				sprintf (outBuffer,"RE\n%f\n%d\n",TickTime,count);
 				for (rb = 0; rb < retGroup->children.n; rb++) {
 					sprintf (ctmp,"%d ", registerEAINodeForAccess(X3D_NODE(retGroup->children.p[rb])));
-					strcat (buf,ctmp);
+					outBufferCat(ctmp);
 				}
 
 				markForDispose(X3D_NODE(retGroup),FALSE);
@@ -374,7 +377,7 @@ void EAI_parse_commands () {
 				/* tell the routing table that this node is updated - used for RegisterListeners */
 				MARK_EVENT(node,getEAIActualOffset(ra,rb));
 
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
+				sprintf (outBuffer,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 			case REGLISTENER: {
@@ -420,7 +423,7 @@ void EAI_parse_commands () {
 				CRoutes_Register  (1,node, offset, X3D_NODE(EAIListenerData), 0, (int) tmp_c,(void *) 
 					&EAIListener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
 
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
+				sprintf (outBuffer,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 
@@ -462,22 +465,22 @@ void EAI_parse_commands () {
 				CRoutes_Register  (0,node, offset, X3D_NODE(EAIListenerData), 0, (int) tmp_c,(void *) 
 					&EAIListener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
 
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
+				sprintf (outBuffer,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 
 			case GETVALUE: {
-				handleEAIGetValue(command, &EAI_BUFFER_CUR,buf,count);
+				handleEAIGetValue(command, &EAI_BUFFER_CUR,count);
 				break;
 				}
 			case REPLACEWORLD:  {
 				EAI_RW(&EAI_BUFFER_CUR);
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
+				sprintf (outBuffer,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 
 			case GETPROTODECL:  {
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,SAI_StrRetCommand ((char) command,&EAI_BUFFER_CUR));
+				sprintf (outBuffer,"RE\n%f\n%d\n%s",TickTime,count,SAI_StrRetCommand ((char) command,&EAI_BUFFER_CUR));
 				break;
 				}
 			case REMPROTODECL: 
@@ -487,13 +490,13 @@ void EAI_parse_commands () {
 				if (eaiverbose) {	
 					printf ("SV int ret command ..%s\n",&EAI_BUFFER_CUR);
 				}	
-				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,
+				sprintf (outBuffer,"RE\n%f\n%d\n%d",TickTime,count,
 					SAI_IntRetCommand ((char) command,&EAI_BUFFER_CUR));
 				break;
 				}
 			case ADDROUTE:
 			case DELETEROUTE:  {
-				handleRoute (command, &EAI_BUFFER_CUR,buf,count);
+				handleRoute (command, &EAI_BUFFER_CUR,count);
 				break;
 				}
 
@@ -510,7 +513,7 @@ void EAI_parse_commands () {
 				if (!strcmp(&EAI_BUFFER_CUR, " LAST")) Last_ViewPoint();
 				if (!strcmp(&EAI_BUFFER_CUR, " PREV")) Prev_ViewPoint();
 
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
+				sprintf (outBuffer,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 			    }
 
@@ -523,7 +526,7 @@ void EAI_parse_commands () {
 
 
 				/* prep the reply... */
-				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
+				sprintf (outBuffer,"RE\n%f\n%d\n",TickTime,count);
 
 				/* now tell the EventLoop that BrowserAction is requested... */
 				AnchorsAnchor = &EAI_AnchorNode;
@@ -544,7 +547,7 @@ void EAI_parse_commands () {
 				}	
 
 				/* set up the beginnings of the return string... */
-				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
+				sprintf (outBuffer,"RE\n%f\n%d\n",TickTime,count);
 	
 				retGroup = createNewX3DNode(NODE_Group);
 				if (command == CREATENODE) {
@@ -556,7 +559,7 @@ void EAI_parse_commands () {
 					if (ctype > -1) {
 						/* yes, use C only to create this node */
 						sprintf (ctmp, "0 %d ",(int) createNewX3DNode(ctype));
-						strcat (buf,ctmp);
+						outBufferCat(ctmp);
 						/* set ra to 0 so that the sprintf below is not used */
 						ra = 0;
 					} else {
@@ -570,7 +573,7 @@ void EAI_parse_commands () {
 
 				for (rb = 0; rb < retGroup->children.n; rb++) {
 					sprintf (ctmp,"%ld ", (long int) retGroup->children.p[rb]);
-					strcat (buf,ctmp);
+					outBufferCat(ctmp);
 				}
 
 				markForDispose(X3D_NODE(retGroup),FALSE);
@@ -580,13 +583,13 @@ void EAI_parse_commands () {
 			case GETFIELDDEFS: {
 				/* get a list of fields of this node */
 				sscanf (&EAI_BUFFER_CUR,"%u",(unsigned int *) &ra);
-				makeFIELDDEFret(ra,buf,count);
+				makeFIELDDEFret(ra,count);
 				break;
 				}
 
 			case GETNODEDEFNAME: {
 				/* return a def name for this node. */
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,
+				sprintf (outBuffer,"RE\n%f\n%d\n%s",TickTime,count,
 					SAI_StrRetCommand ((char) command,&EAI_BUFFER_CUR));
 
 				break;
@@ -594,7 +597,7 @@ void EAI_parse_commands () {
 
 			default: {
 				printf ("unhandled command :%c: %d\n",command,command);
-				strcat (buf, "unknown_EAI_command");
+				outBufferCat( "unknown_EAI_command");
 				break;
 				}
 
@@ -603,11 +606,11 @@ void EAI_parse_commands () {
 		/* send the response - events don't send a reply */
 		/* and, Anchors send a different reply (loadURLS) */
 		if ((command != SENDEVENT) && (command != MIDICONTROL)) {
-			if (command != LOADURL) strcat (buf,"\nRE_EOT");
+			if (command != LOADURL) outBufferCat("\nRE_EOT");
 			if (command != MIDIINFO)
-				EAI_send_string (buf,EAIlistenfd);
+				EAI_send_string (outBuffer,EAIlistenfd);
 			else
-				EAI_send_string(buf, EAIMIDIlistenfd);
+				EAI_send_string(outBuffer, EAIMIDIlistenfd);
 		}
 
 		/* printf ("end of command, remainder %d ",strlen(&EAI_BUFFER_CUR)); */
@@ -620,7 +623,7 @@ void EAI_parse_commands () {
 	}
 }
 
-void handleGETROUTES (char *bufptr, char *buf, int repno) {
+static void handleGETROUTES (char *bufptr, int repno) {
 	int numRoutes;
 	int count;
 	struct X3D_Node *fromNode;
@@ -629,18 +632,18 @@ void handleGETROUTES (char *bufptr, char *buf, int repno) {
 	int toOffset;
 	char  ctmp[200];
 	
-	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
+	sprintf (outBuffer,"RE\n%f\n%d\n",TickTime,repno);
 
 	numRoutes = getRoutesCount();
 
 	if (numRoutes < 2) {
-		strcat (buf,"0");
+		outBufferCat("0");
 		return;
 	}
 
 	/* tell how many routes there are */
 	sprintf (ctmp,"%d ",numRoutes-2);
-	strcat (buf,ctmp);
+	outBufferCat(ctmp);
 
 	/* remember, in the routing table, the first and last entres are invalid, so skip them */
 	for (count = 1; count < (numRoutes-1); count++) {
@@ -651,14 +654,14 @@ void handleGETROUTES (char *bufptr, char *buf, int repno) {
 			(unsigned int) toNode,
 			findFIELDNAMESfromNodeOffset(toNode,toOffset)
 			);
-		strcat (buf,ctmp);
+		outBufferCat(ctmp);
 		/* printf ("route %d is:%s:\n",count,ctmp); */
 	}
 
 	/* printf ("getRoutes returns %s\n",buf); */
 }
 
-void handleGETNODE (char *bufptr, char *buf, int repno) {
+static void handleGETNODE (char *bufptr, int repno) {
 	int retint;
 	char ctmp[200];
 	int mystrlen;
@@ -674,13 +677,13 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 
 	/* is this the SAI asking for the root node? */
 	if (strcmp(ctmp,SYSTEMROOTNODE)) {
-		sprintf (buf,"RE\n%f\n%d\n%d",TickTime,repno, EAI_GetNode(ctmp));
+		sprintf (outBuffer,"RE\n%f\n%d\n%d",TickTime,repno, EAI_GetNode(ctmp));
 	} else {
 		/* yep i this is a call for the rootNode */
-		sprintf (buf,"RE\n%f\n%d\n%d",TickTime,repno, EAI_GetRootNode());
+		sprintf (outBuffer,"RE\n%f\n%d\n%d",TickTime,repno, EAI_GetRootNode());
 	}
 	if (eaiverbose) {	
-		printf ("GETNODE returns %s\n",buf); 
+		printf ("GETNODE returns %s\n",outBuffer); 
 	}	
 }
 
@@ -693,7 +696,7 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 
 
 /* get the actual node type, whether Group, IndexedFaceSet, etc, and its DEF name, if applicapable */
-void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
+static void handleGETEAINODETYPE (char *bufptr, int repno) {
 	int retint;
 	int nodeHandle;
 	struct X3D_Node * myNode;
@@ -707,7 +710,7 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 
 	if (myNode == NULL) {
 		printf ("Internal EAI error, node %d not found\n",nodeHandle);
-		sprintf (buf,"RE\n%f\n%d\n__UNDEFINED __UNDEFINED",TickTime,repno);
+		sprintf (outBuffer,"RE\n%f\n%d\n__UNDEFINED __UNDEFINED",TickTime,repno);
 		return;
 	}
 		
@@ -728,7 +731,7 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 
 
 	if (cptr != NULL) {
-		sprintf (buf,"RE\n%f\n%d\n%s %s",TickTime,repno,myNT, cptr);
+		sprintf (outBuffer,"RE\n%f\n%d\n%s %s",TickTime,repno,myNT, cptr);
 		return;
 	}
 
@@ -738,19 +741,19 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 	if (cptr != NULL) {
 		/* Only one of these is right ..... */
 		/* I think it is the first one, because we would have had to know the DEF name in the first place. */
-		/* sprintf (buf,"RE\n%f\n%d\n\\"%s\"",TickTime,repno,myNT); */
-		   sprintf (buf,"RE\n%f\n%d\n\"%s\" \"%s\"",TickTime,repno,myNT, cptr);
-		/* sprintf (buf,"RE\n%f\n%d\n\"%s\"",TickTime,repno, cptr); */
+		/* sprintf (outBuffer,"RE\n%f\n%d\n\\"%s\"",TickTime,repno,myNT); */
+		   sprintf (outBuffer,"RE\n%f\n%d\n\"%s\" \"%s\"",TickTime,repno,myNT, cptr);
+		/* sprintf (outBuffer,"RE\n%f\n%d\n\"%s\"",TickTime,repno, cptr); */
 		return;
 	}
 
 	/* no, this node is just undefined */
-	sprintf (buf,"RE\n%f\n%d\n%s __UNDEFINED",TickTime,repno,myNT);
+	sprintf (outBuffer,"RE\n%f\n%d\n%s __UNDEFINED",TickTime,repno,myNT);
 }
 
 
 /* add or delete a route */
-void handleRoute (char command, char *bufptr, char *buf, int repno) {
+static void handleRoute (char command, char *bufptr, int repno) {
 	struct X3D_Node *fromNode;
 	struct X3D_Node *toNode;
 	char fieldTemp[2000];
@@ -771,7 +774,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	rv = TRUE;
 
 	/* get ready for the reply */
-	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
+	sprintf (outBuffer,"RE\n%f\n%d\n",TickTime,repno);
 
 	if (eaiverbose) printf ("handleRoute, string %s\n",bufptr);
 	
@@ -840,15 +843,15 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 		if (command == ADDROUTE) CRoutes_RegisterSimple(fromNode,fromOffset,toNode,toOffset,fromfieldType);
 		else CRoutes_RemoveSimple(fromNode,fromOffset,toNode,toOffset,fromfieldType);
 
-		strcat (buf, "0");
+		outBufferCat( "0");
 	} else {
-		strcat (buf, "1");
+		outBufferCat( "1");
 	}
 }
 
 /* for a GetFieldTypes command for a node, we return a string giving the field types */
 
-void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
+static void makeFIELDDEFret(uintptr_t myptr, int repno) {
 	struct X3D_Node *boxptr;
 	int myc;
 	int *np;
@@ -868,7 +871,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 
 	if (boxptr == 0) {
 		printf ("makeFIELDDEFret have null node here \n");
-		sprintf (buf,"RE\n%f\n%d\n0",TickTime,repno);
+		sprintf (outBuffer,"RE\n%f\n%d\n0",TickTime,repno);
 		return;
 	}
 
@@ -905,12 +908,12 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 		np +=5;
 	}
 
-	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
+	sprintf (outBuffer,"RE\n%f\n%d\n",TickTime,repno);
 
 /* AFAIK Mon May 10 21:04:48 BST 2010 The EAI no longer passes a count, nor array markers ([]) */
 /*
 	sprintf (myline, "%d [",myc);
-	strcat (buf, myline);
+	outBufferCat( myline);
 */
 
 	/* now go through and get the name, type, keyword */
@@ -923,13 +926,13 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 				stringKeywordType(np[3]));
 			*/
 			sprintf (myline,"\"%s\" ",stringFieldType(np[0])) ;
-			strcat (buf, myline);
+			outBufferCat( myline);
 		}
 		np += 5;
 	}
 /*
 	sprintf (myline, "]");
-	strcat (buf, myline);
+	outBufferCat( myline);
 */
 }
 

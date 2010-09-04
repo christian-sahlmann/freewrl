@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.h,v 1.16 2010/05/19 23:27:45 davejoubert Exp $
+$Id: EAIHelpers.h,v 1.17 2010/09/04 12:19:15 crc_canada Exp $
 
 EAI Helpers functions
 
@@ -32,6 +32,9 @@ EAI Helpers functions
 
 #include "../vrml_parser/Structs.h"
 
+extern char *outBuffer;
+extern int outBufferLen;
+
 struct Uni_String *newASCIIString(char *str);
 void verify_Uni_String(struct  Uni_String *unis, char *str);
 struct X3D_Node *getEAINodeFromTable(int index, int field);
@@ -41,7 +44,7 @@ int returnElementLength(int type);					/* from EAI_C_CommonFunctions.c */
 int getEAIActualOffset(int node, int field);
 char *getEAIMemoryPointer (int node, int field);
 int registerEAINodeForAccess(struct X3D_Node* myn);
-void handleEAIGetValue (char command, char *bufptr, char *buf, int repno);
+void handleEAIGetValue (char command, char *bufptr, int repno);
 int EAI_GetRootNode(void);
 
 void EAI_GetType(int cNode, char *ctmp, char *dtmp,
@@ -49,6 +52,7 @@ void EAI_GetType(int cNode, char *ctmp, char *dtmp,
 		 uintptr_t *dataLen, int *typeString, unsigned int *scripttype, int *accessType);
 
 int mapToKEYWORDindex(indexT pkwIndex);
+void outBufferCat (char *str);
 
 #endif /* __FREEWRL_EAI_HELPERS_H__ */
 

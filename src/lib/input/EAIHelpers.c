@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.42 2010/09/03 15:37:29 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.43 2010/09/04 12:19:15 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -96,6 +96,13 @@ this union contains fields for every specific type, see CParseGeneral.h for exac
 This struct contains both a node and an ofs field.
 
 ************************************************************************/
+
+/* responses get sent to the connecting program. The outBuffer is the place where
+   these commands are placed */
+
+char *outBuffer = NULL;
+int outBufferLen = 0;
+
 
 
 
@@ -646,7 +653,7 @@ struct X3D_Node *EAI_GetViewpoint(const char *str) {
 
 
 /* we have a GETVALUE command coming in */
-void handleEAIGetValue (char command, char *bufptr, char *buf, int repno) {
+void handleEAIGetValue (char command, char *bufptr, int repno) {
 	struct X3D_Node *myNode;
 	int nodeIndex, fieldIndex, length;
 	char ctmp[4000];
@@ -689,9 +696,9 @@ void handleEAIGetValue (char command, char *bufptr, char *buf, int repno) {
 	}
 
 	if (myParam->invokedPROTOValue != NULL) {
-		sprintf (buf,"RE\n%f\n%d\n%s",TickTime,repno,getEAIInvokedValue(nodeIndex,fieldIndex));	
+		sprintf (outBuffer,"RE\n%f\n%d\n%s",TickTime,repno,getEAIInvokedValue(nodeIndex,fieldIndex));	
 	} else {
-		EAI_Convert_mem_to_ASCII (repno,"RE",mapEAItypeToFieldType(ctmp[0]),getEAIMemoryPointer(nodeIndex,fieldIndex), buf);
+		EAI_Convert_mem_to_ASCII (repno,"RE",mapEAItypeToFieldType(ctmp[0]),getEAIMemoryPointer(nodeIndex,fieldIndex), outBuffer);
 	}
 }
 
@@ -741,4 +748,20 @@ char *eaiPrintCommand (char command) {
 		default:{} ;
 	}
 	return "unknown command...";
+}
+
+
+/* append str to the outbuffer, REALLOC if necessary */
+void outBufferCat (char *str) {
+	int a,b;
+	a = strlen (outBuffer);
+	b = strlen (str);
+
+	/* should we increase the size here? */
+	if ((a+b+2) >= outBufferLen) {
+		outBufferLen = a+b+200; /* give it more space, and a bit more, so maybe
+					   REALLOC does not need to be called all the time */
+		outBuffer = REALLOC(outBuffer, outBufferLen);
+	}
+	strcat (outBuffer, str);
 }
