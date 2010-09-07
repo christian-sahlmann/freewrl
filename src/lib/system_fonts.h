@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_fonts.h,v 1.6 2009/10/05 15:07:23 crc_canada Exp $
+$Id: system_fonts.h,v 1.7 2010/09/07 21:17:32 istakenv Exp $
 
 FreeWRL support library.
 Internal header: fonts dependencies.
@@ -31,6 +31,9 @@ Internal header: fonts dependencies.
 #ifndef __LIBFREEWRL_SYSTEM_FONTS_H__
 #define __LIBFREEWRL_SYSTEM_FONTS_H__
 
+#ifdef HAVE_FONTCONFIG
+#include <fontconfig/fontconfig.h>
+#endif
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

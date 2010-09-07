@@ -17,6 +17,7 @@ AM_CPPFLAGS += \
 				$(ZLIB_CFLAGS) \
 				$(PTHREAD_CFLAGS) \
 				$(FREETYPE_CFLAGS) \
+				$(FONTCONFIG_CFLAGS) \
 				$(EXPAT_CFLAGS) \
 				$(XML_CFLAGS) \
 				$(GL_CFLAGS) \
@@ -30,6 +31,7 @@ EXTERNAL_LIBS = \
 				$(ZLIB_LIBS) \
 				$(PTHREAD_LIBS) \
 				$(FREETYPE_LIBS) \
+				$(FONTCONFIG_LIBS) \
 				$(JAVASCRIPT_ENGINE_LIBS) \
 				$(EXPAT_LIBS) \
 				$(XML_LIBS) \

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.24 2010/04/14 19:03:32 crc_canada Exp $
+$Id: Component_Text.c,v 1.25 2010/09/07 21:17:32 istakenv Exp $
 
 X3D Text Component
 
@@ -261,8 +261,8 @@ int FW_cubicto (FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* u
 
 
 /* make up the font name */
-void FW_make_fontname (int num)
-{
+void FW_make_fontname(int num) {
+    int x;
 /*
     bit:    0       BOLD        (boolean)
     bit:    1       ITALIC      (boolean)
@@ -290,56 +290,141 @@ void FW_make_fontname (int num)
     fonts directory.
 */
 
+    #ifdef HAVE_FONTCONFIG
+    FcPattern *FW_fp=NULL;
+    FcPattern *FW_fm=NULL;
+    FcChar8 *FW_file=NULL;
+    #else
     if (!font_directory) {
         printf("Internal error: no font directory.\n");
         return;
     }
-
     strcpy (thisfontname, font_directory);
+    #endif
+
     switch (num) {
-
-    /* Serif, norm, bold, italic, bold italic */
-    /* no Serif Italic in Vera... */
-    case 0x04: strcat (thisfontname,"/VeraSe.ttf"); break;
-    case 0x05: strcat (thisfontname,"/VeraSeBd.ttf"); break;
-    case 0x06: strcat (thisfontname,"/VeraSe.ttf"); break;
-    case 0x07: strcat (thisfontname,"/VeraSeBd.ttf"); break;
-
-    /*
-      case 0x04: strcat (thisfontname,"/Amrigon.ttf"); break;
-      case 0x05: strcat (thisfontname,"/Amrigob.ttf"); break;
-      case 0x06: strcat (thisfontname,"/Amrigoi.ttf"); break;
-      case 0x07: strcat (thisfontname,"/Amrigobi.ttf"); break;
-    */
-
-    /* Sans, norm, bold, italic, bold italic */
-    case 0x08: strcat (thisfontname,"/Vera.ttf"); break;
-    case 0x09: strcat (thisfontname,"/VeraBd.ttf"); break;
-    case 0x0a: strcat (thisfontname,"/VeraIt.ttf"); break;
-    case 0x0b: strcat (thisfontname,"/VeraBI.ttf"); break;
-
-    /*
-      case 0x08: strcat (thisfontname,"/Baubodn.ttf"); break;
-      case 0x09: strcat (thisfontname,"/Baubodn.ttf"); break;
-      case 0x0a: strcat (thisfontname,"/Baubodi.ttf"); break;
-      case 0x0b: strcat (thisfontname,"/Baubodbi.ttf"); break;
-    */
-
-    /* Typewriter, norm, bold, italic, bold italic */
-    case 0x10: strcat (thisfontname,"/VeraMono.ttf"); break;
-    case 0x11: strcat (thisfontname,"/VeraMoBd.ttf"); break;
-    case 0x12: strcat (thisfontname,"/VeraMoIt.ttf"); break;
-    case 0x13: strcat (thisfontname,"/VeraMoBI.ttf"); break;
-
-    /*
-      case 0x10: strcat (thisfontname,"/Futuran.ttf"); break;
-      case 0x11: strcat (thisfontname,"/Futurab.ttf"); break;
-      case 0x12: strcat (thisfontname,"/Futurabi.ttf"); break;
-      case 0x13: strcat (thisfontname,"/Futurabi.ttf"); break;
-    */
-        
-    default: printf ("dont know how to handle font id %x\n",num);
+    case 0x04:			/* Serif */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",NULL);
+	#else
+	strcat (thisfontname,"/VeraSe.ttf");
+	#endif
+	break; 
+    case 0x05: 			/* Serif Bold */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",NULL);
+	FcPatternAddString(FW_fp,FC_STYLE,"bold");
+	#else
+	strcat (thisfontname,"/VeraSeBd.ttf");
+	#endif
+	break; 
+    case 0x06:			/* Serif Ital */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",NULL);
+	FcPatternAddString(FW_fp,FC_STYLE,"italic");
+	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
+	#else
+	strcat (thisfontname,"/VeraSe.ttf");
+	#endif
+	break;
+    case 0x07:			/* Serif Bold Ital */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",NULL);
+	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
+	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
+	#else
+	strcat (thisfontname,"/VeraSeBd.ttf");
+	#endif
+	break;
+    case 0x08:			/* Sans */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",NULL);
+	#else
+	strcat (thisfontname,"/Vera.ttf");
+	#endif
+	break;
+    case 0x09: 			/* Sans Bold */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",NULL);
+	FcPatternAddString(FW_fp,FC_STYLE,"bold");
+	#else
+	strcat (thisfontname,"/VeraBd.ttf");
+	#endif
+	break; 
+    case 0x0a: 			/* Sans Ital */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",NULL);
+	FcPatternAddString(FW_fp,FC_STYLE,"italic");
+	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
+	#else
+	strcat (thisfontname,"/VeraIt.ttf"); 
+	#endif
+	break; 
+    case 0x0b: 			/* Sans Bold Ital */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",NULL);
+	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
+	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
+	#else
+	strcat (thisfontname,"/VeraBI.ttf"); 
+	#endif
+	break; 
+    case 0x10:			/* Monospace */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",NULL);
+	#else
+	strcat (thisfontname,"/VeraMono.ttf");
+	#endif
+	break; 
+    case 0x11: 			/* Monospace Bold */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",NULL);
+	FcPatternAddString(FW_fp,FC_STYLE,"bold");
+	#else
+	strcat (thisfontname,"/VeraMoBd.ttf"); 
+	#endif
+	break; 
+    case 0x12: /* Monospace Ital */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",NULL);
+	FcPatternAddString(FW_fp,FC_STYLE,"italic");
+	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
+	#else
+	strcat (thisfontname,"/VeraMoIt.ttf"); 
+	#endif
+	break; 
+    case 0x13: /* Monospace Bold Ital */
+	#ifdef HAVE_FONTCONFIG
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",NULL);
+	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
+	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
+	#else
+	strcat (thisfontname,"/VeraMoBI.ttf"); 
+	#endif
+	break; 
+    default:
+	printf ("dont know how to handle font id %x\n",num);
+	return;
     }
+
+    #ifdef HAVE_FONTCONFIG
+    FcConfigSubstitute(0,FW_fp,FcMatchPattern);
+    FcDefaultSubstitute(FW_fp);
+    if (!(FW_fm = FcFontMatch(0,FW_fp,0))) {
+	/* do whatever is done when no match found */
+	printf ("could not find font for id %x\n",num);
+    } else {
+	if (FcPatternGetString(FW_fm,FC_FILE,0,&FW_file) != FcResultMatch) {
+	    printf ("could not find font for id %x\n",num);
+	} else {
+	    /* strcpy didn't work, use strncpy and set the null character by hand */
+	    strncpy(thisfontname,(char *)FW_file,strlen((char *)FW_file));
+	    thisfontname[strlen((char *)FW_file)] = NULL;
+	}
+	FcPatternDestroy(FW_fm);
+    }
+    FcPatternDestroy(FW_fp);
+    #endif
 }
 
 /* initialize the freetype library */
@@ -750,6 +835,7 @@ int open_font()
     FW_outline_interface.shift = 0;
     FW_outline_interface.delta = 0;
 
+#ifndef HAVE_FONTCONFIG
     /* where are the fonts stored? */
     font_directory = makeFontDirectory();
 
@@ -762,6 +848,7 @@ int open_font()
 #endif
         return FALSE;
     }
+#endif
 
     /* lets initialize some things */
     for (len = 0; len < num_fonts; len++) {

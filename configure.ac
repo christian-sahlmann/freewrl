@@ -117,7 +117,6 @@ AC_ARG_WITH([fontsdir],
 
 AC_DEFINE_DIR([FONTS_DIR],[fontsdir],[Directory for fonts.])
 
-
 # ====================================================
 # FreeWRL specific configuration: library checking
 # ====================================================
@@ -158,6 +157,13 @@ PTHREAD_LIBS="$PTHREAD_LIBS -lpthread"
 
 # FreeType (font rendering)
 PKG_CHECK_MODULES(FREETYPE, freetype2)
+
+# Fontconfig [optional]
+AC_MY_SWITCH(fontconfig,[enable fontconfig support],off)
+if test x$sw_fontconfig = xyes; then
+    PKG_CHECK_MODULES(FONTCONFIG, fontconfig, AC_DEFINE(HAVE_FONTCONFIG, 1, [Define if you have fontconfig installed.]))
+fi
+
 
 # libcurl [optional]
 AC_MY_SWITCH(libcurl,[enable libcurl (could be used instead of wget)],off)
