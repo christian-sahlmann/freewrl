@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.25 2010/09/07 21:17:32 istakenv Exp $
+$Id: Component_Text.c,v 1.26 2010/09/07 21:33:06 istakenv Exp $
 
 X3D Text Component
 
@@ -305,14 +305,14 @@ void FW_make_fontname(int num) {
     switch (num) {
     case 0x04:			/* Serif */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	#else
 	strcat (thisfontname,"/VeraSe.ttf");
 	#endif
 	break; 
     case 0x05: 			/* Serif Bold */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"bold");
 	#else
 	strcat (thisfontname,"/VeraSeBd.ttf");
@@ -320,7 +320,7 @@ void FW_make_fontname(int num) {
 	break; 
     case 0x06:			/* Serif Ital */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"italic");
 	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
 	#else
@@ -329,7 +329,7 @@ void FW_make_fontname(int num) {
 	break;
     case 0x07:			/* Serif Bold Ital */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"serif",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
 	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
 	#else
@@ -338,14 +338,14 @@ void FW_make_fontname(int num) {
 	break;
     case 0x08:			/* Sans */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	#else
 	strcat (thisfontname,"/Vera.ttf");
 	#endif
 	break;
     case 0x09: 			/* Sans Bold */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"bold");
 	#else
 	strcat (thisfontname,"/VeraBd.ttf");
@@ -353,7 +353,7 @@ void FW_make_fontname(int num) {
 	break; 
     case 0x0a: 			/* Sans Ital */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"italic");
 	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
 	#else
@@ -362,7 +362,7 @@ void FW_make_fontname(int num) {
 	break; 
     case 0x0b: 			/* Sans Bold Ital */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"sans",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
 	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
 	#else
@@ -371,14 +371,14 @@ void FW_make_fontname(int num) {
 	break; 
     case 0x10:			/* Monospace */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	#else
 	strcat (thisfontname,"/VeraMono.ttf");
 	#endif
 	break; 
     case 0x11: 			/* Monospace Bold */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"bold");
 	#else
 	strcat (thisfontname,"/VeraMoBd.ttf"); 
@@ -386,7 +386,7 @@ void FW_make_fontname(int num) {
 	break; 
     case 0x12: /* Monospace Ital */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"italic");
 	FcPatternAddString(FW_fp,FC_STYLE,"oblique");
 	#else
@@ -395,7 +395,7 @@ void FW_make_fontname(int num) {
 	break; 
     case 0x13: /* Monospace Bold Ital */
 	#ifdef HAVE_FONTCONFIG
-	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",NULL);
+	FW_fp=FcPatternBuild(NULL,FC_FAMILY,FcTypeString,"monospace",FC_OUTLINE,FcTypeBool,FcTrue,NULL);
 	FcPatternAddString(FW_fp,FC_STYLE,"bold italic");
 	FcPatternAddString(FW_fp,FC_STYLE,"bold oblique");
 	#else
