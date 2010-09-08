@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.128 2010/08/31 15:45:34 crc_canada Exp $
+$Id: headers.h,v 1.129 2010/09/08 19:06:47 crc_canada Exp $
 
 Global includes.
 
@@ -399,11 +399,6 @@ extern struct X3D_Text *lastTextNode;
 #define MRATX(a) (t_r1.x + (a)*(t_r2.x-t_r1.x))
 #define MRATY(a) (t_r1.y + (a)*(t_r2.y-t_r1.y))
 #define MRATZ(a) (t_r1.z + (a)*(t_r2.z-t_r1.z))
-/* trat: test if a ratio is reasonable */
-#undef TRAT
-#define TRAT(a) 1
-#undef TRAT
-#define TRAT(a) ((a) > 0 && ((a) < hpdist || hpdist < 0))
 
 /* POLYREP stuff */
 #define POINT_FACES	16 /* give me a point, and it is in up to xx faces */
@@ -644,11 +639,6 @@ extern char *getInputURL(void);
 extern char *lastReadFile; 		/* name last file read in */
 extern int  lightingOn;			/* state of GL_LIGHTING */
 extern int cullFace;			/* state of GL_CULL_FACE */
-extern double hpdist;			/* in VRMLC.pm */
-extern struct point_XYZ hp;			/* in VRMLC.pm */
-extern void *hypersensitive; 		/* in VRMLC.pm */
-extern int hyperhit;			/* in VRMLC.pm */
-extern struct point_XYZ r1, r2;		/* in VRMLC.pm */
 extern struct sCollisionInfo CollisionInfo;
 extern struct sFallInfo FallInfo; /*like sCollisionInfo, except for vertical falls */
 extern GLint smooth_normals;

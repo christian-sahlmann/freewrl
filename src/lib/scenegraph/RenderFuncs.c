@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.59 2010/08/31 15:45:35 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.60 2010/09/08 19:06:47 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -425,7 +425,7 @@ GLint viewport[4] = {-1,-1,2,2};
 /* All in window coordinates */
 
 struct point_XYZ hp, ht1, ht2;
-double hpdist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
+double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 
 /* used to save rayhit and hyperhit for later use by C functions */
 struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
@@ -476,17 +476,17 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 		);
 #endif
 
-	if(rat<0 || (rat>hpdist && hpdist >= 0)) {
+	if(rat<0 || (rat>hitPointDist && hitPointDist >= 0)) {
 		return;
 	}
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
 	FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &hp.x, &hp.y, &hp.z);
-	hpdist = rat;
+	hitPointDist = rat;
 	rayHit=rayph;
 	rayHitHyper=rayph;
 #ifdef RENDERVERBOSE 
-	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hpdist %f\n",hp.x,hp.y,hp.z, rat, hpdist);
+	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hitPointDist %f\n",hp.x,hp.y,hp.z, rat, hitPointDist);
 #endif
 }
 
@@ -842,7 +842,7 @@ render_hier(struct X3D_Node *p, int rwhat) {
 	render_proximity = rwhat & VF_Proximity;
 	render_collision = rwhat & VF_Collision;
 	nextFreeLight = 0;
-	hpdist = -1;
+	hitPointDist = -1;
 
 
 #ifdef render_pre_profile

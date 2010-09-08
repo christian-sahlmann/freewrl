@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.139 2010/08/26 15:37:18 istakenv Exp $
+  $Id: MainLoop.c,v 1.140 2010/09/08 19:06:47 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -48,7 +48,6 @@
 #include "Snapshot.h"
 #include "../scenegraph/LinearAlgebra.h"
 #include "../scenegraph/Collision.h"
-#include "../scenegraph/RenderFuncs.h"
 
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
@@ -61,6 +60,7 @@
 
 #include "../opengl/OpenGL_Utils.h"
 #include "../ui/statusbar.h"
+#include "../scenegraph/RenderFuncs.h"
 
 #define DJ_KEEP_COMPILER_WARNING 0
 #ifdef AQUA
@@ -1348,7 +1348,8 @@ void do_keyPress(const char kp, int type) {
 struct X3D_Node* getRayHit() {
         double x,y,z;
         int i;
-        if(hpdist >= 0) {
+
+        if(hitPointDist >= 0) {
                 FW_GLU_UNPROJECT(hp.x,hp.y,hp.z,rayHit.modelMatrix,rayHit.projMatrix,viewport,&x,&y,&z);
 
                 /* and save this globally */

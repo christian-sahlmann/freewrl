@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.h,v 1.13 2010/08/25 19:50:50 crc_canada Exp $
+$Id: RenderFuncs.h,v 1.14 2010/09/08 19:06:47 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -30,6 +30,9 @@ Proximity sensor macro.
 #ifndef __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__
 #define __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__
 
+/* trat: test if a ratio is reasonable */
+#define TRAT(a) ((a) > 0 && ((a) < hitPointDist || hitPointDist < 0))
+
 /* structure for rayhits */
 struct currayhit {
 	struct X3D_Node *hitNode; /* What node hit at that distance? */
@@ -38,6 +41,12 @@ struct currayhit {
 };
 
 extern struct currayhit rayHit,rayph,rayHitHyper;
+extern double hitPointDist;                   /* in VRMLC.pm */
+extern struct point_XYZ hp;                     /* in VRMLC.pm */
+extern void *hypersensitive;            /* in VRMLC.pm */
+extern int hyperhit;                    /* in VRMLC.pm */
+extern struct point_XYZ r1, r2;         /* in VRMLC.pm */
+
 
 /* function protos */
 int nextlight(void);

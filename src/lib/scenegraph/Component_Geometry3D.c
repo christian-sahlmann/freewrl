@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.38 2010/08/19 02:05:37 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.39 2010/09/08 19:06:47 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -40,6 +40,8 @@ X3D Geometry 3D Component
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Textures.h"
+#include "../scenegraph/RenderFuncs.h"
+
 
 #include "Collision.h"
 #include "Polyrep.h"
