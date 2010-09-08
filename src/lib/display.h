@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.90 2010/09/02 19:39:10 crc_canada Exp $
+  $Id: display.h,v 1.91 2010/09/08 16:27:46 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -472,6 +472,9 @@ void setScreenDim(int wi, int he);
 #endif
 	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) glFrustum(aaa,bbb,ccc,ddd,eee,fff); 
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
+	/* should be able to just do this 
+		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
+	*/
 	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
 	#define FW_GL_MATRIX_MODE(aaa) glMatrixMode(aaa)
 	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) glOrtho(aaa,bbb,ccc,ddd,eee,fff); 
