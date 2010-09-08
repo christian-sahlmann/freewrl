@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.141 2010/09/08 16:27:46 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.142 2010/09/08 17:04:09 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -689,9 +689,8 @@ bool initialize_GL()
 	FW_GL_CLEAR_DEPTH(1.0);
 	FW_GL_CLEAR_COLOR((float)0.0, (float)0.0, (float)1.0, (float)0.0);
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
-	FW_GL_FRUSTUM(-1.0, 1.0, -1.0, 1.0, 1.0, 20);
-	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	FW_GL_LOAD_IDENTITY();
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
 	/* Configure OpenGL for our uses. */
         FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
@@ -2311,10 +2310,21 @@ void sendMatriciesToShader(GLint MM,GLint PM) {
 	glUniformMatrix4fv(PM,1,GL_FALSE,spval);
 }
 
+#endif /* USE_OLD_OPENGL */
+
 void fw_Ortho (double left, double right, double bottom, double top, double nearZ, double farZ) {
-	double *dp;
+	#ifdef USE_OLD_OPENGL
+	GLDOUBLE dp[16];
+	#else
+	GLDOUBLE *dp;
+	#endif
+
 	/* do the glOrtho on the top of the stack, and send that along */
+	#ifdef USE_OLD_OPENGL
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX,dp);
+	#else
 	dp = FW_ProjectionView[projectionviewTOS];
+	#endif
 
 	/* {int i; for (i=0; i<16;i++) { printf ("ModView before  %d: %4.3f \n",i,dp[i]); } */
 	mesa_Ortho(left,right,bottom,top,nearZ,farZ,dp);
@@ -2324,24 +2334,6 @@ void fw_Ortho (double left, double right, double bottom, double top, double near
 	fw_glLoadMatrixd(dp);
 }
 
-void fw_Frustum (double left, double right, double bottom, double top, double nearZ, double farZ) {
-	double *dp;
-	double ndp[16];
-	/* do the glFrsutum on the top of the stack, and send that along */
-	/* printf ("fw_Frustum (%lf, %lf, %lf, %lf, %lf, %lf)\n",left,right,bottom,top,nearZ, farZ); */
-
-	dp = FW_ProjectionView[projectionviewTOS];
-
-	/* {int i; for (i=0; i<16;i++) { printf ("ModView before  %d: %4.3f \n",i,dp[i]); } */
-	mesa_Frustum(left,right,bottom,top,nearZ,farZ,ndp);
-	matmultiply(ndp,dp,dp);
-
-	/* {int i; for (i=0; i<16;i++) { printf ("ModView after   %d: %4.3f \n",i,dp[i]); }} */
-
-	fw_glLoadMatrixd(dp);
-}
-
-#endif /* USE_OLD_OPENGL */
 
 /* gluPerspective replacement */
 void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar) {
@@ -2370,27 +2362,6 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 	matmultiply(ndp,ndp,dp);
 	fw_glLoadMatrixd(ndp);
 }
-
-
-#ifdef OLDCODE
-/* gluPerspective replacement */
-void old_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar) {
-	GLDOUBLE xmin, xmax, ymin, ymax;
-	GLDOUBLE dp[16];
-	GLDOUBLE ndp[16];
-
-	ymax = zNear * tan(fovy * M_PI / 360.0);
-	ymin = -ymax;
-	xmin = ymin * aspect;
-	xmax = ymax * aspect;
-
-	/* do the glFrsutum on the top of the stack, and send that along */
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX,dp);
-	mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, ndp);
-	matmultiply(ndp,ndp,dp);
-	fw_glLoadMatrixd(ndp);
-}
-#endif /* OLDCODE */
 
 
 #ifndef USE_OLD_OPENGL
@@ -2447,7 +2418,6 @@ mesa_Frustum(double left, double right, double bottom, double top, double nearZ,
 #undef M
 }
 
-#ifndef USE_OLD_OPENGL
 /**
  * Build a glOrtho marix.
  */
@@ -2476,71 +2446,3 @@ mesa_Ortho(double left, double right, double bottom, double top, double nearZ, d
    M(3,3) = 1.0F;
 #undef M
 }
-
-#endif /* USE_OLD_OPENGL */
-#ifdef NOT_USED_BUT_KEEP
-/**
- * Decompose a projection matrix to determine original glFrustum or
- * glOrtho parameters.
- */
-void
-DecomposeProjection( const double *m,
-                     int *isPerspective,
-                     double *leftOut, double *rightOut,
-                     double *botOut, double *topOut,
-                     double *nearOut, double *farOut)
-{
-   if (m[15] == 0.0) {
-      /* perspective */
-      double p[16];
-      const double x = m[0];  /* 2N / (R-L) */
-      const double y = m[5];  /* 2N / (T-B) */
-      const double a = m[8];  /* (R+L) / (R-L) */
-      const double b = m[9];  /* (T+B) / (T-B) */
-      const double c = m[10]; /* -(F+N) / (F-N) */
-      const double d = m[14]; /* -2FN / (F-N) */
-
-      /* These equations found with simple algebra, knowing the arithmetic
-       * use to set up a typical perspective projection matrix in OpenGL.
-       */
-      const double nearZ = -d / (1.0 - c);
-      const double farZ = (c - 1.0) * nearZ / (c + 1.0);
-      const double left = nearZ * (a - 1.0) / x;
-      const double right = 2.0 * nearZ / x + left;
-      const double bottom = nearZ * (b - 1.0) / y;
-      const double top = 2.0 * nearZ / y + bottom;
-
-      *isPerspective = 1;
-      *leftOut = left;
-      *rightOut = right;
-      *botOut = bottom;
-      *topOut = top;
-      *nearOut = nearZ;
-      *farOut = farZ;
-   }
-   else {
-      /* orthographic */
-      const double x = m[0];  /*  2 / (R-L) */
-      const double y = m[5];  /*  2 / (T-B) */
-      const double z = m[10]; /* -2 / (F-N) */
-      const double a = m[12]; /* -(R+L) / (R-L) */
-      const double b = m[13]; /* -(T+B) / (T-B) */
-      const double c = m[14]; /* -(F+N) / (F-N) */
-      /* again, simple algebra */
-      const double right  = -(a - 1.0) / x;
-      const double left   = right - 2.0 / x;
-      const double top    = -(b - 1.0) / y;
-      const double bottom = top - 2.0 / y;
-      const double farZ   = (c - 1.0) / z;
-      const double nearZ  = farZ + 2.0 / z;
-
-      *isPerspective = 0;
-      *leftOut = left;
-      *rightOut = right;
-      *botOut = bottom;
-      *topOut = top;
-      *nearOut = nearZ;
-      *farOut = farZ;
-   }
-}
-#endif /* NOT_USED_BUT_KEEP */
