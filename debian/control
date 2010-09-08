@@ -2,13 +2,13 @@ Source: freewrl
 Section: contrib/graphics
 Priority: optional
 Maintainer: Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>
-Build-Depends: debhelper (>= 7), pkg-config, autoconf, aclocal, libtool, build-essential,
+Build-Depends: debhelper (>= 7), build-essential, pkg-config, autoconf, libtool,
  x11proto-print-dev, libxxf86vm-dev,
  libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libglew1.5-dev, 
  libxaw7-dev,
  libmotif-dev | lesstif2-dev,
  libimlib2-dev, libxml2-dev, libexpat1-dev,
- libmozjs-dev | xulrunner-dev | iceape-dev,
+ libxul-dev | libmozjs-dev | xulrunner-dev | iceape-dev,
  gcj | java-compiler
 Standards-Version: 3.8.4
 Homepage: http://freewrl.sourceforge.net

@@ -49,7 +49,7 @@ configure-stamp:
 	if ! test -f ./configure ; then \
 		echo "Incomplete package: missing 'configure'"; \
 		sh ./autogen.sh ; \
-		return 1; \
+		echo "return 1 # TODO"; \
 	fi
 	./configure $(confflags) \
 		--prefix=/usr \
