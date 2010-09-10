@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.92 2010/09/10 17:36:53 crc_canada Exp $
+  $Id: display.h,v 1.93 2010/09/10 23:01:31 dug9 Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -472,8 +472,8 @@ void setScreenDim(int wi, int he);
 #endif
 
 	/* GLU replacement - needs local matrix stacks, plus more code */
-		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
-//		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
+//		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
+		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
 
 
 		#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)

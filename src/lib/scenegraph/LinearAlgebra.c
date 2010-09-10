@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.c,v 1.13 2010/05/05 12:52:04 davejoubert Exp $
+$Id: LinearAlgebra.c,v 1.14 2010/09/10 23:01:32 dug9 Exp $
 
 ???
 
@@ -279,18 +279,23 @@ void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, stru
 }
 
 
-GLDOUBLE* mattranspose(GLDOUBLE* res, GLDOUBLE* m)
+GLDOUBLE* mattranspose(GLDOUBLE* res, GLDOUBLE* mm)
 {
 	GLDOUBLE mcpy[16];
 	int i, j;
+	GLDOUBLE *m;
 
+	m = mm;
 	if(res == m) {
 		memcpy(mcpy,m,sizeof(GLDOUBLE)*16);
 		m = mcpy;
 	}
 
 	for (i = 0; i < 4; i++) {
-		for (j = i + 1; j < 4; j++) {
+		//for (j = i + 1; j < 4; j++) {
+		//	res[i*4+j] = m[j*4+i];
+		//}
+		for (j = 0; j < 4; j++) {
 			res[i*4+j] = m[j*4+i];
 		}
 	}
@@ -298,11 +303,13 @@ GLDOUBLE* mattranspose(GLDOUBLE* res, GLDOUBLE* m)
 }
 
 
-GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* m)
+GLDOUBLE* matinverse(GLDOUBLE* res, GLDOUBLE* mm)
 {
     double Deta;
     GLDOUBLE mcpy[16];
+	GLDOUBLE *m;
 
+	m = mm;
     if(res == m) {
 	memcpy(mcpy,m,sizeof(GLDOUBLE)*16);
 	m = mcpy;
@@ -396,10 +403,14 @@ GLDOUBLE* mattranslate(GLDOUBLE* r, double dx, double dy, double dz)
     return r;
 }
 
-GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n)
+GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn)
 {
     GLDOUBLE tm[16],tn[16];
+	GLDOUBLE *m, *n;
+	int i,j,k;
     /* prevent self-multiplication problems.*/
+	m = mm;
+	n = nn;
     if(r == m) {
 	memcpy(tm,m,sizeof(GLDOUBLE)*16);
 	m = tm;
@@ -408,6 +419,16 @@ GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n)
 	memcpy(tn,n,sizeof(GLDOUBLE)*16);
 	n = tn;
     }
+	/* assume 4x4 homgenous transform */
+	for(i=0;i<4;i++)
+		for(j=0;j<4;j++)
+		{
+			r[i*4+j] = 0.0;
+			for(k=0;k<4;k++)
+				r[i*4+j] += m[i*4+k]*n[k*4+j];
+		}
+	return r;
+	/* this method ignors the perspectives */
     r[0] = m[0]*n[0]+m[4]*n[1]+m[8]*n[2];
     r[4] = m[0]*n[4]+m[4]*n[5]+m[8]*n[6];
     r[8] = m[0]*n[8]+m[4]*n[9]+m[8]*n[10];

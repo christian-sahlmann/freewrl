@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.144 2010/09/10 17:45:35 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.145 2010/09/10 23:01:31 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2495,6 +2495,20 @@ void fw_Ortho (double left, double right, double bottom, double top, double near
 	fw_glLoadMatrixd(dp);
 }
 
+void printmatrix2(GLDOUBLE* mat,char* description ) {
+    int i,j;
+    printf("mat %s {\n",description);
+    for(i = 0; i< 4; i++) {
+		printf("mat [%2d-%2d] = ",i*4,(i*4)+3);
+		for(j=0;j<4;j++) 
+			printf(" %f ",mat[(i*4)+j]);
+			//printf("mat[%d] = %f%s;\n",i,mat[i],i==12 ? " +disp.x" : i==13? " +disp.y" : i==14? " +disp.z" : "");
+		printf("\n");
+    }
+    printf("}\n");
+
+}
+
 
 /* gluPerspective replacement */
 void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar) {
@@ -2506,8 +2520,9 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 	GLDOUBLE *dp;
 	#endif
 	GLDOUBLE ndp[16];
+	GLDOUBLE ndp2[16];
 
-int i;
+int i, method;
 double xxx[16];
 double yyy[16];
     GLdouble m[16];
@@ -2519,6 +2534,8 @@ double yyy[16];
 	xmax = ymax * aspect;
 
 	/* do the glFrsutum on the top of the stack, and send that along */
+	FW_GL_MATRIX_MODE(GL_PROJECTION);
+	//FW_GL_LOAD_IDENTITY();
 	#ifdef USE_OLD_OPENGL
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX,dp);
 	#else
@@ -2526,13 +2543,23 @@ double yyy[16];
 	#endif
 
 	mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, ndp);
-	matmultiply(ndp,ndp,dp);
-	FW_GL_LOADMATRIXD(ndp);
+	mattranspose(ndp2,ndp);
+	//printmatrix2(ndp,"ndp");
+	//printmatrix2(ndp2,"ndp2 = transpose(ndp)");
+	printmatrix2(dp,"dp");
+	matmultiply(ndp,ndp2,dp);
+	//printmatrix2(ndp,"ndp = ndp2*dp");
+	method = 1;
+	if(method==1)
+	  FW_GL_LOADMATRIXD(ndp);
+	//FW_GL_MATRIX_MODE(GL_PROJECTION);
+	//FW_GL_LOADMATRIXD(ndp2);
+
 
 /* testing... */
 {
     double sine, cotangent, deltaZ;
-    double radians = fovy / 2 * M_PI / 180;
+    double radians = fovy / 2.0 * M_PI / 180.0;
 
     deltaZ = zFar - zNear;
     sine = sin(radians);
@@ -2541,7 +2568,7 @@ double yyy[16];
     }
     cotangent = cos(radians) / sine;
 
-	loadIdentityMatrix(&m);
+	loadIdentityMatrix(m); //(&m);
     //__gluMakeIdentityd(&m[0][0]);
     m[0*4+0] = cotangent / aspect;
     m[1*4+1] = cotangent;
@@ -2549,16 +2576,25 @@ double yyy[16];
     m[2*4+3] = -1;
     m[3*4+2] = -2 * zNear * zFar / deltaZ;
     m[3*4+3] = 0;
+	matmultiply(m,m,dp);
+	if(method==2)
+	  FW_GL_LOADMATRIXD(m);
+
     //glMultMatrixd(&m[0][0]);
 }
 
-printf ("fw_gluPerspective, have...\n");
+//printf ("fw_gluPerspective, have...\n");
 
-	gluPerspective(fovy,aspect,zNear,zFar);
+	if(method==3)
+	  gluPerspective(fovy,aspect,zNear,zFar);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX,yyy);
-	for (i=0; i<16;i++) {printf ("%d orig: %5.2lf myPup: %5.2lf gluP: %5.2lf mesa %5.2lf\n",i,dp[i],
-		ndp[i],yyy[i],m[i]); 
-	}
+	printmatrix2(dp,"dp orig");
+	printmatrix2(ndp,"ndp myPup");
+	printmatrix2(yyy,"yyy gluP");
+	printmatrix2(m,"m mesa");
+	//for (i=0; i<16;i++) {printf ("%d orig: %5.2lf myPup: %5.2lf gluP: %5.2lf mesa %5.2lf\n",i,dp[i],
+	//	ndp[i],yyy[i],m[i]); 
+	//}
 
 }
 
@@ -2568,6 +2604,7 @@ printf ("fw_gluPerspective, have...\n");
 void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height, GLint *vp) {
 printf ("PickMat %lf %lf %lf %lf %d %d %d %d\n",xx,yy,width,height,vp[0], vp[1],vp[2],vp[3]);
 
+	//return;
 	if ((width < 0.0) || (height < 0.0)) return;
 	/* Translate and scale the picked region to the entire window */
 	FW_GL_TRANSLATE_D((vp[2] - 2.0 * (xx - vp[0])) / width, (vp[3] - 2.0 * (yy - vp[1])) / height, 0.0);
@@ -2596,8 +2633,9 @@ printf ("PickMat %lf %lf %lf %lf %d %d %d %d\n",xx,yy,width,height,vp[0], vp[1],
 static void
 mesa_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ, double *m)
 {
-   double x = (2.0F*nearZ) / (right-left);
-   double y = (2.0F*nearZ) / (top-bottom);
+ /* http://www.songho.ca/opengl/gl_projectionmatrix.html shows derivation*/
+   double x = (2.0*nearZ) / (right-left);
+   double y = (2.0*nearZ) / (top-bottom);
    double a = (right+left) / (right-left);
    double b = (top+bottom) / (top-bottom);
    double c = -(farZ+nearZ) / ( farZ-nearZ);
