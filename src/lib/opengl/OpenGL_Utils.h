@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.24 2010/04/14 19:03:32 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.25 2010/09/10 17:36:54 crc_canada Exp $
 
 Screen snapshot.
 
@@ -70,9 +70,27 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height, GLint *vp);
 void fw_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ);
 void fw_Ortho(double left, double right, double bottom, double top, double nearZ, double farZ);
+void fw_gluProject( GLdouble objX,
+                         GLdouble objY,
+                         GLdouble objZ,
+                         const GLdouble *model,
+                         const GLdouble *proj,
+                         const GLint *view,
+                         GLdouble* winX,
+                         GLdouble* winY,
+                         GLdouble* winZ );
+void fw_gluUnProject( GLdouble winX,
+                           GLdouble winY,
+                           GLdouble winZ,
+                           const GLdouble *model,
+                           const GLdouble *proj,
+                           const GLint *view,
+                           GLdouble* objX,
+                           GLdouble* objY,
+                           GLdouble* objZ );
 
-void old_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar);
-
+void fw_gluPickMatrix(GLdouble x, GLdouble y, GLdouble deltax, GLdouble deltay,
+                  GLint viewport[4]);
 
 
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

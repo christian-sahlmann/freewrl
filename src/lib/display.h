@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.91 2010/09/08 16:27:46 crc_canada Exp $
+  $Id: display.h,v 1.92 2010/09/10 17:36:53 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -470,12 +470,23 @@ void setScreenDim(int wi, int he);
 #else
         #define FW_GL_POP_ATTRIB(aaa) glPopAttrib(aaa); 
 #endif
-	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) glFrustum(aaa,bbb,ccc,ddd,eee,fff); 
-	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
-	/* should be able to just do this 
-		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
-	*/
-	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
+
+	/* GLU replacement - needs local matrix stacks, plus more code */
+		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
+//		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
+
+
+		#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+//		#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) fw_gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+
+
+		#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+//		#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) fw_gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+
+		#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
+//		#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) fw_gluPickMatrix(aaa, bbb, ccc, ddd, eee)
+
+
 	#define FW_GL_MATRIX_MODE(aaa) glMatrixMode(aaa)
 	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) glOrtho(aaa,bbb,ccc,ddd,eee,fff); 
 
@@ -507,7 +518,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_SCALE_D(xxx,yyy,zzz) fw_glScaled(xxx,yyy,zzz)
         #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
 	#define FW_GL_POP_ATTRIB() glPopAttrib();
-	#define FW_GL_FRUSTUM(aaa,bbb,ccc,ddd,eee,fff) fw_Frustum(aaa,bbb,ccc,ddd,eee,fff); 
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
 	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) fw_gluPickMatrix(aaa, bbb, ccc, ddd, eee)
 	#define FW_GL_MATRIX_MODE(aaa) fw_glMatrixMode(aaa)
@@ -574,8 +584,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_BEGIN_QUERY(aaa, bbb) glBeginQuery(aaa, bbb)
 	#define FW_GL_END_QUERY(aaa) glEndQuery(aaa)
 	#define FW_GL_LINE_STIPPLE(aaa, bbb) glLineStipple(aaa, bbb)
-	#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-	#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 	#define FW_GL_END() glEnd()
 	#define FW_GL_VERTEX3D(aaa, bbb, ccc) glVertex3d(aaa, bbb, ccc)
 
