@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.143 2010/09/10 17:36:54 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.144 2010/09/10 17:45:35 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2527,7 +2527,9 @@ double yyy[16];
 
 	mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, ndp);
 	matmultiply(ndp,ndp,dp);
+	FW_GL_LOADMATRIXD(ndp);
 
+/* testing... */
 {
     double sine, cotangent, deltaZ;
     double radians = fovy / 2 * M_PI / 180;
