@@ -7,11 +7,14 @@ To do/not done yet:
 -  libeai - doug did a port but it was never applied  
 see http://cid-4a0d5f15141a58d5.skydrive.live.com/browse.aspx/GPUGroupX3D/PyEAI/Current > libeai_r122rc2_win32_June1.zip
 -  plugin and sound not attempted
--  snapshot, consoleMessage stubbed out
--  fwWindow32.c has some dead code, fullscreen not properly implemented
+-  snapshot stubbed out
+-  fwWindow32.c fullscreen not properly implemented
 
 
-MSVC compatible libraries - you got them from the link on the windowsbuild page. But where did I get them?
+MSVC compatible libraries - you got them from the link on the windowsbuild page. 
+Then if you cvs check out freewrl\freex3d cvs to your directory 'source' then put the lib and fonts directories in 'source' too.
+
+But where did I get them?
 gdiplus.lib/.dll - .lib seems to be on my system somewhere
 http://www.microsoft.com/downloads/details.aspx?FamilyID=6a63ab9c-df12-4d41-933c-be590feaa05a&DisplayLang=en  GDI+ redistributable download - gdiplus.dll 2MB 
 

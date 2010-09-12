@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.35 2010/07/13 21:29:49 dug9 Exp $
+  $Id: main.c,v 1.36 2010/09/12 19:22:00 dug9 Exp $
 
   FreeWRL main program.
 
@@ -85,7 +85,7 @@ int main (int argc, char **argv)
 		static char *fdir;
 		char *pp = strcpy(malloc(MAX_PATH),argv[0]);
 		PathRemoveFileSpec(pp);
-		PathAppend(pp,"..\\..\\fonts"); 
+		PathAppend(pp,"..\\..\\..\\..\\fonts"); 
 		fdir = malloc(MAX_PATH); 
 		strcpy(fdir,"FREEWRL_FONTS_DIR=");
 		strcat(fdir,pp);

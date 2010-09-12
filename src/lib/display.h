@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.94 2010/09/12 17:14:30 crc_canada Exp $
+  $Id: display.h,v 1.95 2010/09/12 19:22:00 dug9 Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -460,7 +460,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 //	#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) fw_gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 
-	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
+//	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
 //	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) fw_gluPickMatrix(aaa, bbb, ccc, ddd, eee)
 
 
