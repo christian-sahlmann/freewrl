@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.145 2010/09/10 23:01:31 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.146 2010/09/12 17:14:30 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -789,15 +789,18 @@ static double *currentMatrix = FW_ModelView;
 
 void fw_glMatrixMode(GLint mode) {
 	whichMode = mode;
-	/*
+	
+	#ifdef VERBOSE
+	printf ("fw_glMatrixMode, projTOS %d, modTOS %d\n",projectionviewTOS,modelviewTOS);
+
 	switch (whichMode) {
 		case GL_PROJECTION: printf ("glMatrixMode(GL_PROJECTION)\n"); break;
 		case GL_MODELVIEW: printf ("glMatrixMode(GL_MODELVIEW)\n"); break;
 		case GL_TEXTURE: printf ("glMatrixMode(GL_TEXTURE)\n"); break;
 	}
-	*/
-
-	/* printf ("fw_glMatrixMode %d\n",mode); */
+	#endif
+	
+	glMatrixMode(mode); /* JAS - tell OpenGL what the current matrix mode is */
 	switch (whichMode) {
 		case GL_PROJECTION: currentMatrix = &FW_ProjectionView[projectionviewTOS]; break;
 		case GL_MODELVIEW: currentMatrix = &FW_ModelView[modelviewTOS]; break;
@@ -805,12 +808,9 @@ void fw_glMatrixMode(GLint mode) {
 		default: printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",whichMode, GL_PROJECTION,GL_MODELVIEW,GL_TEXTURE);
 	}
 
-	glMatrixMode(mode); /* JAS */
 }
 
 void fw_glLoadIdentity(void) {
-	/* printf ("glLoadIdentity()\n"); */
-
 	loadIdentityMatrix(currentMatrix);
 	if (!global_use_shaders_when_possible)
  		fw_glLoadMatrixd(currentMatrix); 
@@ -820,7 +820,6 @@ void fw_glLoadIdentity(void) {
 		memcpy ((void *)d[b], (void *)d[b-1],sizeof(double)*16); currentMatrix = d[b]; break;
 
 void fw_glPushMatrix(void) {
-	/* glPushMatrix(); */
 	switch (whichMode) {
 		PUSHMAT (GL_PROJECTION,projectionviewTOS,MAX_SMALL_MATRIX_STACK,FW_ProjectionView)
 		PUSHMAT (GL_MODELVIEW,modelviewTOS,MAX_LARGE_MATRIX_STACK,FW_ModelView)
@@ -837,7 +836,6 @@ void fw_glPushMatrix(void) {
 #define POPMAT(a,b,c) case a: b--; if (b<0) {b=0;printf ("popMatrix, stack underflow, whichMode %d\n",whichMode);} currentMatrix = c[b]; break;
 
 void fw_glPopMatrix(void) {
-	/* glPopMatrix();  */
 	switch (whichMode) {
 		POPMAT(GL_PROJECTION,projectionviewTOS,FW_ProjectionView)
 		POPMAT(GL_MODELVIEW,modelviewTOS,FW_ModelView)
@@ -881,6 +879,8 @@ void fw_glRotateRad (double angle, double x, double y, double z) {
 	MATRIX4 myMat;
 	double mag;
 
+	//printf ("fw_glRotateRad %lf %lf %lf %lf modTOS %d projTOS %d\n",angle,x,y,z,modelviewTOS,projectionviewTOS);
+	//printmatrix2(currentMatrix,"in rad");
 	loadIdentityMatrix (myMat);
 
 	/* FIXME - any way we can ensure that the angles are normalized? */
@@ -902,10 +902,15 @@ void fw_glRotateRad (double angle, double x, double y, double z) {
 		vecnormal(&out,&in);
 		x = out.x; y = out.y; z = out.z;
 	}
+	//printf ("rad, normalized axis %lf %lf %lf\n",x,y,z);
 
 
 	matrotate(myMat,angle,x,y,z); 
-	matmultiply(currentMatrix,currentMatrix,myMat); 
+
+	//printmatrix2 (myMat, "rotation matrix");
+	matmultiply(currentMatrix,myMat,currentMatrix); 
+
+	//printmatrix2 (currentMatrix,"currentMatrix after rotate");
 	if (!global_use_shaders_when_possible)
  		fw_glLoadMatrixd(currentMatrix); 
 }
@@ -2544,14 +2549,23 @@ double yyy[16];
 
 	mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, ndp);
 	mattranspose(ndp2,ndp);
+
 	//printmatrix2(ndp,"ndp");
 	//printmatrix2(ndp2,"ndp2 = transpose(ndp)");
-	printmatrix2(dp,"dp");
+	//JAS printmatrix2(dp,"dp");
+
 	matmultiply(ndp,ndp2,dp);
+
 	//printmatrix2(ndp,"ndp = ndp2*dp");
+
 	method = 1;
-	if(method==1)
-	  FW_GL_LOADMATRIXD(ndp);
+	if(method==1) {
+	  	FW_GL_LOADMATRIXD(ndp);
+		#ifndef USE_OLD_OPENGL
+		/* put the matrix back on our matrix stack */
+		memcpy (FW_ProjectionView[projectionviewTOS],ndp,16*sizeof (GLdouble));
+		#endif
+	}
 	//FW_GL_MATRIX_MODE(GL_PROJECTION);
 	//FW_GL_LOADMATRIXD(ndp2);
 
@@ -2588,10 +2602,10 @@ double yyy[16];
 	if(method==3)
 	  gluPerspective(fovy,aspect,zNear,zFar);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX,yyy);
-	printmatrix2(dp,"dp orig");
-	printmatrix2(ndp,"ndp myPup");
-	printmatrix2(yyy,"yyy gluP");
-	printmatrix2(m,"m mesa");
+	//JAS printmatrix2(dp,"dp orig");
+	//JAS printmatrix2(ndp,"ndp myPup");
+	//JAS printmatrix2(yyy,"yyy gluP");
+	//JAS printmatrix2(m,"m mesa");
 	//for (i=0; i<16;i++) {printf ("%d orig: %5.2lf myPup: %5.2lf gluP: %5.2lf mesa %5.2lf\n",i,dp[i],
 	//	ndp[i],yyy[i],m[i]); 
 	//}
@@ -2602,9 +2616,10 @@ double yyy[16];
 
 /* gluPickMatrix replacement */
 void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height, GLint *vp) {
-printf ("PickMat %lf %lf %lf %lf %d %d %d %d\n",xx,yy,width,height,vp[0], vp[1],vp[2],vp[3]);
+	#ifdef VERBOSE
+	printf ("PickMat %lf %lf %lf %lf %d %d %d %d\n",xx,yy,width,height,vp[0], vp[1],vp[2],vp[3]);
+	#endif
 
-	//return;
 	if ((width < 0.0) || (height < 0.0)) return;
 	/* Translate and scale the picked region to the entire window */
 	FW_GL_TRANSLATE_D((vp[2] - 2.0 * (xx - vp[0])) / width, (vp[3] - 2.0 * (yy - vp[1])) / height, 0.0);
