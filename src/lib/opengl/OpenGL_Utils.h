@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.25 2010/09/10 17:36:54 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.26 2010/09/13 20:50:59 crc_canada Exp $
 
 Screen snapshot.
 
@@ -55,8 +55,7 @@ void fw_glRotated (double a, double b, double c, double d);
 void fw_glRotatef (float a, float b, float c, float d);
 void fw_glScaled (double a, double b, double c);
 void fw_glScalef (float a, float b, float c);
-void fw_glGetDoublev (int ty, double *mat, char *fn, int ln);
-void old_glGetDoublev (int ty, double *mat, char *fn, int ln);
+void fw_glGetDoublev (int ty, double *mat);
 
 /* OpenGL-ES specifics for Materials and Vertices */
 void fw_iphone_enableClientState(GLenum aaa);

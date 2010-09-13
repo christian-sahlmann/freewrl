@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.60 2010/09/08 19:06:47 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.61 2010/09/13 20:50:59 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -53,10 +53,8 @@
 
 typedef float shaderVec4[4];
 
-#ifndef USE_OLD_OPENGL
 static int shaderNormalArray = FALSE;
 static int shaderVertexArray = FALSE;
-#endif
 
 static float light_linAtten[8];
 static float light_constAtten[8];
@@ -75,10 +73,8 @@ static int nextFreeLight = 0;
 /* lights status. Light 7 is the headlight */
 static int lights[8];
 
-#ifndef USE_OLD_OPENGL
 /* which shader is currently selected (general appearance shaders) */
 static s_shader_capabilities_t *currentShaderStruct = NULL;
-#endif
 
 /* should we send light changes along? */
 static bool lightStatusDirty = FALSE;
@@ -173,7 +169,6 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	lightParamsDirty = TRUE;
 }
 
-#ifndef USE_OLD_OPENGL
 void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_TwoSidedMaterial *material_twoSided) {
 	shader_type_t whichShader;
 
@@ -327,9 +322,6 @@ void sendElementsToGPU (int mode, int count, int type, int *indices) {
 		glDrawElements(mode,count,type,indices);
 	}
 }
-
-#endif /* USE_OLD_OPENGL */
-
 
 void initializeLightTables() {
         float pos[] = { 0.0f, 0.0f, 1.0f, 0.0f };

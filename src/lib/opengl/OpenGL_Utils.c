@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.146 2010/09/12 17:14:30 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.147 2010/09/13 20:50:58 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -184,7 +184,6 @@ static char * readInputString(char *fn) {
 #endif
 #undef MAXREADSIZE
 
-#ifndef USE_OLD_OPENGL
 static void shaderErrorLog(GLuint myShader) {
         #ifdef GL_VERSION_2_0
 #define MAX_INFO_LOG_SIZE 512
@@ -195,9 +194,7 @@ static void shaderErrorLog(GLuint myShader) {
                 ConsoleMessage ("Problem compiling shader");
         #endif
 }
-#endif
 
-#ifndef USE_OLD_OPENGL
 /* read in shaders and place the resulting shader program in the "whichShader" field if success. */
 static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToShaders) {
 	char *inTextPointer;
@@ -343,7 +340,6 @@ printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
 (*myShader).ProjectionMatrix);
 
 }
-#endif
 
 
 static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
@@ -651,7 +647,6 @@ bool initialize_GL()
 #endif
 
 
-#ifndef USE_OLD_OPENGL
 	/* are we using shaders for Appearance, etc? (OpenGL-ES) */
 	if (global_use_shaders_when_possible) {
 /*
@@ -683,7 +678,6 @@ bool initialize_GL()
 	} else {
 		/* put non-shader stuff here eventually */
 	}
-#endif /* USE_OLD_OPENGL */
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	FW_GL_CLEAR_DEPTH(1.0);
@@ -768,7 +762,6 @@ void BackEndLightsOff() {
 }
 
 
-#ifndef USE_OLD_OPENGL
 /* OpenGL perform matrix state here */
 #define MAX_LARGE_MATRIX_STACK 32	/* depth of stacks */
 #define MAX_SMALL_MATRIX_STACK 2	/* depth of stacks */
@@ -986,7 +979,7 @@ void fw_glScalef (float x, float y, float z) {
  		fw_glLoadMatrixd(currentMatrix); 
 }
 
-void fw_glGetDoublev (int ty, double *mat, char *fn, int ln) {
+void fw_glGetDoublev (int ty, double *mat) {
 	double *dp;
 /*
 	switch (ty) {
@@ -1004,26 +997,12 @@ void fw_glGetDoublev (int ty, double *mat, char *fn, int ln) {
 #endif
 		default: { 
 			loadIdentityMatrix(mat); 
-#ifndef IPHONE
 		printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",ty,GL_PROJECTION_MATRIX,GL_MODELVIEW_MATRIX,GL_TEXTURE_MATRIX);
-#endif
 			return;}
 	}
 	memcpy((void *)mat, (void *) dp, sizeof (double) * MATRIX_SIZE);
-
-/*
-{ int i;
-	for (i=0; i<16; i++) {
-		printf ("%4.3lf ",dp[i]);
-
-	}
-	printf ("at %s:%d\n",fn,ln);
-}
-*/
-	
 }
 
-#endif /* #define USE_OLD_OPENGL */
 
 /* for Sarah's front end - should be removed sometime... */
 void kill_rendering() {
@@ -2246,7 +2225,6 @@ static void killNode (int index) {
 }
 #endif
 
-#ifndef USE_OLD_OPENGL
 #ifdef IPHONE
 /* OpenGL-ES specifics for Materials and Vertices */
 void fw_iphone_enableClientState(GLenum aaa)
@@ -2268,14 +2246,10 @@ void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd)
 { printf  ("called fw_iphone_somethingPointer\n");}
 #endif
 
-#endif /* USE_OLD_OPENGL */
-
 static void fw_glLoadMatrixd(double *val) {
 	/* printf ("loading matrix...\n"); */
 	glLoadMatrixd(val);
 }
-
-#ifndef USE_OLD_OPENGL
 
 void sendMatriciesToShader(GLint MM,GLint PM) {
 	float spval[16];
@@ -2314,9 +2288,6 @@ void sendMatriciesToShader(GLint MM,GLint PM) {
 
 	glUniformMatrix4fv(PM,1,GL_FALSE,spval);
 }
-
-#endif /* USE_OLD_OPENGL */
-
 
 static void __gluMultMatrixVecd(const GLdouble matrix[16], const GLdouble in[4],
                       GLdouble out[4])
@@ -2479,18 +2450,10 @@ void fw_gluUnProject(GLdouble winx, GLdouble winy, GLdouble winz,
 
 
 void fw_Ortho (double left, double right, double bottom, double top, double nearZ, double farZ) {
-	#ifdef USE_OLD_OPENGL
-	GLDOUBLE dp[16];
-	#else
 	GLDOUBLE *dp;
-	#endif
 
 	/* do the glOrtho on the top of the stack, and send that along */
-	#ifdef USE_OLD_OPENGL
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX,dp);
-	#else
 	dp = FW_ProjectionView[projectionviewTOS];
-	#endif
 
 	/* {int i; for (i=0; i<16;i++) { printf ("ModView before  %d: %4.3f \n",i,dp[i]); } */
 	mesa_Ortho(left,right,bottom,top,nearZ,farZ,dp);
@@ -2519,11 +2482,7 @@ void printmatrix2(GLDOUBLE* mat,char* description ) {
 void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar) {
 	GLDOUBLE xmin, xmax, ymin, ymax;
 
-	#ifdef USE_OLD_OPENGL
-	GLDOUBLE dp[16];
-	#else
 	GLDOUBLE *dp;
-	#endif
 	GLDOUBLE ndp[16];
 	GLDOUBLE ndp2[16];
 
@@ -2541,11 +2500,7 @@ double yyy[16];
 	/* do the glFrsutum on the top of the stack, and send that along */
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 	//FW_GL_LOAD_IDENTITY();
-	#ifdef USE_OLD_OPENGL
-	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX,dp);
-	#else
 	dp = FW_ProjectionView[projectionviewTOS];
-	#endif
 
 	mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, ndp);
 	mattranspose(ndp2,ndp);
@@ -2561,14 +2516,9 @@ double yyy[16];
 	method = 1;
 	if(method==1) {
 	  	FW_GL_LOADMATRIXD(ndp);
-		#ifndef USE_OLD_OPENGL
 		/* put the matrix back on our matrix stack */
 		memcpy (FW_ProjectionView[projectionviewTOS],ndp,16*sizeof (GLdouble));
-		#endif
 	}
-	//FW_GL_MATRIX_MODE(GL_PROJECTION);
-	//FW_GL_LOADMATRIXD(ndp2);
-
 
 /* testing... */
 {
@@ -2628,7 +2578,6 @@ void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height,
 }
 
 
-#ifndef USE_OLD_OPENGL
 /* glFrustum replacement - taken from the MESA source;
 
  * matrix.c
@@ -2642,8 +2591,6 @@ void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height,
 /**
  * Build a glFrustum matrix.
  */
-
-#endif
 
 static void
 mesa_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ, double *m)

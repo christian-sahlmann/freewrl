@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.96 2010/09/13 14:56:05 crc_canada Exp $
+  $Id: display.h,v 1.97 2010/09/13 20:50:58 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -465,55 +465,15 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluScaleImage(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 
 
-#undef USE_OLD_OPENGL
-#ifdef USE_OLD_OPENGL
-
-	#define FW_GL_PUSH_MATRIX() glPushMatrix()
-	#define FW_GL_POP_MATRIX() glPopMatrix()
-
-	#define FW_GL_GETDOUBLEV(aaa,bbb) glGetDoublev(aaa,bbb);
-	#define FW_GL_LOAD_IDENTITY glLoadIdentity
-	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) glTranslatef(xxx,yyy,zzz)
-	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) glTranslated(xxx,yyy,zzz)
-	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) glRotatef(aaa,xxx,yyy,zzz)
-	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) glRotated (aaa,xxx,yyy,zzz)
-	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) glRotated((aaa /3.1415926536*180),xxx,yyy,zzz)
-	#define FW_GL_SCALE_F(xxx,yyy,zzz) glScalef(xxx,yyy,zzz)
-	#define FW_GL_SCALE_D(xxx,yyy,zzz) glScaled(xxx,yyy,zzz)
-        #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
-#ifdef _MSC_VER
-	#define FW_GL_POP_ATTRIB(...) glPopAttrib();
-#else
-        #define FW_GL_POP_ATTRIB(aaa) glPopAttrib(aaa); 
-#endif
-
-
-	#define FW_GL_MATRIX_MODE(aaa) glMatrixMode(aaa)
-	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) glOrtho(aaa,bbb,ccc,ddd,eee,fff); 
-
-	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) glVertexPointer( aaa, bbb, ccc, ddd)
-	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) glColorPointer (aaa,bbb,ccc,ddd)
-	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) glNormalPointer(aaa,bbb,ccc)
-	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) glTexCoordPointer(aaa,bbb,ccc,ddd)
-	#define FW_GL_ENABLECLIENTSTATE(aaa) glEnableClientState(aaa)
-	#define FW_GL_DISABLECLIENTSTATE(aaa) glDisableClientState(aaa)
-	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) glDrawArrays(xxx,yyy,zzz)
-	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) glDrawElements(aaa,bbb,ccc,ddd)
-
-#else
-	#define FW_GL_GETDOUBLEV(aaa,bbb) fw_glGetDoublev(aaa,bbb,__FILE__,__LINE__);
+	#define FW_GL_GETDOUBLEV(aaa,bbb) fw_glGetDoublev(aaa,bbb);
 	#define FW_GL_LOAD_IDENTITY fw_glLoadIdentity
 	#define FW_GL_POP_MATRIX(aaa) fw_glPopMatrix()
 	#define FW_GL_PUSH_MATRIX(aaa) fw_glPushMatrix()
 
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) fw_glTranslatef(xxx,yyy,zzz)
 	#define FW_GL_TRANSLATE_D(xxx,yyy,zzz) fw_glTranslated(xxx,yyy,zzz)
-	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) \
-		{fw_glRotatef(aaa,xxx,yyy,zzz); \
-		DEBUG_MSG("fw_glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
-	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) \
-		{fw_glRotated(aaa,xxx,yyy,zzz); \
-		DEBUG_MSG("fw_glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) fw_glRotatef(aaa,xxx,yyy,zzz)
+	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) fw_glRotated(aaa,xxx,yyy,zzz)
 	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) fw_glRotateRad(aaa,xxx,yyy,zzz)
 	#define FW_GL_SCALE_F(xxx,yyy,zzz) fw_glScalef(xxx,yyy,zzz)
 	#define FW_GL_SCALE_D(xxx,yyy,zzz) fw_glScaled(xxx,yyy,zzz)
@@ -521,6 +481,8 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_POP_ATTRIB() glPopAttrib();
 	#define FW_GL_MATRIX_MODE(aaa) fw_glMatrixMode(aaa)
 	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff); 
+
+
 	/* geometry rendering - varies on whether we are using appearance shaders, etc */
 	#define FW_VERTEX_POINTER_TYPE 44354
 	#define FW_NORMAL_POINTER_TYPE 5434
@@ -535,7 +497,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) { sendArraysToGPU(xxx,yyy,zzz); }
 	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) {sendElementsToGPU(aaa,bbb,ccc,ddd); }
 
-#endif
 
 
 	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) glViewport(aaa,bbb,ccc,ddd);

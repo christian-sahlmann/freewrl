@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.47 2010/08/05 18:17:44 uid31638 Exp $
+$Id: Component_Shape.c,v 1.48 2010/09/13 20:50:59 crc_canada Exp $
 
 X3D Shape Component
 
@@ -486,7 +486,6 @@ void child_Shape (struct X3D_Shape *node) {
 	/* if we do NOT have a shader node, do the appearance nodes */
         if (globalCurrentShader == 0) {
 		/* get the generic Appearance Shader up to current state */
-#ifndef USE_OLD_OPENGL
 		if (rdr_caps.haveGenericAppearanceShader) {
 	  		/* printf ("in shaderchoose this %d, nodeType %d\n",node, node->_nodeType);
 	   		   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
@@ -494,7 +493,6 @@ void child_Shape (struct X3D_Shape *node) {
 
 			chooseAppearanceShader(material_oneSided,material_twoSided);
 		} else {
-#endif
 			if (material_oneSided != NULL) {
 				/* we have a normal material node */
 				appearanceProperties.transparency = 1.0f - material_oneSided->transparency; /* 1 == solid, 0 = totally transparent */ 
@@ -541,9 +539,7 @@ void child_Shape (struct X3D_Shape *node) {
 				appearanceProperties.transparency=MAX_NODE_TRANSPARENCY; 
 			}
 
-#ifndef USE_OLD_OPENGL
 		}
-#endif
 	}
 
 
