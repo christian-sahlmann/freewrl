@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.95 2010/09/12 19:22:00 dug9 Exp $
+  $Id: display.h,v 1.96 2010/09/13 14:56:05 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -450,18 +450,19 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_DELETETESS(aaa) gluDeleteTess(aaa)
 
 	/* GLU replacement - needs local matrix stacks, plus more code */
-//	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
+	#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) fw_gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+	#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) fw_gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
+	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) fw_gluPickMatrix(aaa, bbb, ccc, ddd, eee)
 
-
-	#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-//	#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) fw_gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-
-	#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-//	#define FW_GLU_PROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) fw_gluProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
-
-//	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) gluPickMatrix(aaa, bbb, ccc, ddd, eee)
-//	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) fw_gluPickMatrix(aaa, bbb, ccc, ddd, eee)
+	/* GLU replacement -these still need doing */
+	#define FW_GLU_NEW_TESS gluNewTess
+	#define FW_GLU_END_POLYGON(aaa) gluEndPolygon(aaa)
+	#define FW_GLU_BEGIN_POLYGON(aaa) gluBeginPolygon(aaa)
+	#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) gluTessVertex(aaa, bbb, ccc)
+	#define FW_GLU_TESS_CALLBACK(aaa, bbb, ccc) gluTessCallback(aaa,bbb,ccc);
+	#define FW_GLU_NEXT_CONTOUR(aaa, bbb) gluNextContour(aaa,bbb)
+	#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluScaleImage(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 
 
 #undef USE_OLD_OPENGL
@@ -518,7 +519,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_SCALE_D(xxx,yyy,zzz) fw_glScaled(xxx,yyy,zzz)
         #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
 	#define FW_GL_POP_ATTRIB() glPopAttrib();
-	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) fw_gluPickMatrix(aaa, bbb, ccc, ddd, eee)
 	#define FW_GL_MATRIX_MODE(aaa) fw_glMatrixMode(aaa)
 	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff); 
 	/* geometry rendering - varies on whether we are using appearance shaders, etc */
@@ -574,12 +574,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_FOGFV(aaa, bbb) glFogfv(aaa, bbb)
 	#define FW_GL_FOGF(aaa, bbb) glFogf(aaa, bbb)
 	#define FW_GL_FOGI(aaa, bbb) glFogi(aaa, bbb)
-	#define FW_GLU_NEW_TESS gluNewTess
-	#define FW_GLU_END_POLYGON(aaa) gluEndPolygon(aaa)
-	#define FW_GLU_BEGIN_POLYGON(aaa) gluBeginPolygon(aaa)
-	#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) gluTessVertex(aaa, bbb, ccc)
-	#define FW_GLU_TESS_CALLBACK(aaa, bbb, ccc) gluTessCallback(aaa,bbb,ccc);
-	#define FW_GLU_NEXT_CONTOUR(aaa, bbb) gluNextContour(aaa,bbb)
 	#define FW_GL_BEGIN_QUERY(aaa, bbb) glBeginQuery(aaa, bbb)
 	#define FW_GL_END_QUERY(aaa) glEndQuery(aaa)
 	#define FW_GL_LINE_STIPPLE(aaa, bbb) glLineStipple(aaa, bbb)
@@ -591,7 +585,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_MATERIALFV(aaa, bbb, ccc) glMaterialfv(aaa, bbb, ccc)
 	#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
 	#define FW_GL_COLOR3D(aaa, bbb, ccc) glColor3d(aaa, bbb, ccc)
-	#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluScaleImage(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
 	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
 	
