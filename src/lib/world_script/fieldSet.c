@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.52 2010/08/05 18:17:44 uid31638 Exp $
+  $Id: fieldSet.c,v 1.53 2010/09/16 15:48:42 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -745,10 +745,6 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 
 	/* set up a pointer to where to put this stuff */
-/* JAS - was 
-	memptr = (char *)tn;
-	memptr += tptr;
-*/
 	memptr = offsetPointer_deref(char *, tn, tptr);
 
 	/* not all files know what a JSContext is, so we just pass it around as a uintptr_t type */

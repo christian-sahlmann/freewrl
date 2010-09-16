@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.31 2010/08/10 21:15:59 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.32 2010/09/16 15:48:42 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.32  2010/09/16 15:48:42  crc_canada
+# deprecating the "changed_" functions. This does not work well with threading scene graph
+#
 # Revision 1.31  2010/08/10 21:15:59  crc_canada
 # ImageCubeMapTexture - now works - loads png, jpg, etc, NOT DDS yet.
 #
@@ -817,24 +820,26 @@
 # ChangedC - when the fields change, the following code is run before
 # rendering for caching the data.
 #
+# Sept 2010 - obsolete
 #
+
+#JAS Group
+#JAS PickableGroup
+#JAS StaticGroup
+#JAS Switch
+#JAS Inline
+#JAS Billboard
+#JAS Collision
+#JAS LOD
+#JAS HAnimSite
+#JAS Anchor
 
 %ChangedC = map {($_=>1)} qw/
 	GeoLOD
-	LOD
-	Group
 	ViewpointGroup
-	PickableGroup
-        Inline
 	Transform
-	StaticGroup
-	Billboard
-	Anchor
-	Collision
 	GeoTransform
 	GeoLocation
-	HAnimSite
-	Switch
 	ImageCubeMapTexture
 /;
 

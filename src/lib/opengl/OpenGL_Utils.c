@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.147 2010/09/13 20:50:58 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.148 2010/09/16 15:48:42 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1631,6 +1631,14 @@ void startOfLoopNodeUpdates(void) {
 
 				/* does this one possibly have add/removeChildren? */
 				BEGIN_NODE(Group) 
+/*
+printf ("Group %p, set_children.n %d children.n %d addChildren.n %d removeChildren.n %d\n",
+node,
+X3D_GROUP(node)->children.n,
+X3D_GROUP(node)->addChildren.n,
+X3D_GROUP(node)->removeChildren.n);
+*/
+
 					sortChildren(&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING);
 
 					propagateExtent(X3D_NODE(node));

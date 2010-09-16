@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.140 2010/09/08 19:06:47 crc_canada Exp $
+  $Id: MainLoop.c,v 1.141 2010/09/16 15:48:42 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -286,7 +286,7 @@ void EventLoop() {
         Cursor cursor;
 #endif
 	while (refreshOK) {
-		usleep(10);
+		usleep(50);
 	}
 
         DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 

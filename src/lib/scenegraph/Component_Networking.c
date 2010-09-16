@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.29 2010/08/19 02:20:36 crc_canada Exp $
+$Id: Component_Networking.c,v 1.30 2010/09/16 15:48:42 crc_canada Exp $
 
 X3D Networking Component
 
@@ -1198,12 +1198,6 @@ void child_Anchor (struct X3D_Anchor *node) {
 	LOCAL_LIGHT_OFF
 }
 
-void changed_Inline (struct X3D_Inline *node) {
-	/*printf ("changed_Inline\n"); */
-                INITIALIZE_EXTENT
-}
-
-
 /* note that we get the resources in a couple of steps; this tries to keep the scenegraph running */
 void load_Inline (struct X3D_Inline *node) {
 	resource_item_t *res;
@@ -1320,9 +1314,4 @@ void child_Inline (struct X3D_Inline *node) {
 	#endif
 
 	LOCAL_LIGHT_OFF
-}
-
-void changed_Anchor (struct X3D_Anchor *node) {
-	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Anchor, metadata)); */
-	INITIALIZE_EXTENT;
 }

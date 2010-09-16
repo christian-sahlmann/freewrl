@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_HAnim.c,v 1.18 2010/06/30 12:57:42 crc_canada Exp $
+$Id: Component_HAnim.c,v 1.19 2010/09/16 15:48:42 crc_canada Exp $
 
 X3D H-Anim Component
 
@@ -370,9 +370,5 @@ void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
                 );
             }
         }
-}
-
-void changed_HAnimSite (struct X3D_HAnimSite *node) {
-	INITIALIZE_EXTENT
 }
 

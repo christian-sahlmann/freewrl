@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.37 2010/07/29 14:32:27 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.38 2010/09/16 15:48:42 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -404,31 +404,3 @@ void child_Transform (struct X3D_Transform *node) {
 
 	LOCAL_LIGHT_OFF
 }
-
-void changed_StaticGroup (struct X3D_StaticGroup *node) { 
-	INITIALIZE_EXTENT;
-}
-
-
-void changed_Group (struct X3D_Group *node) { 
-	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Group, metadata));
-	MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_Group, children));
-	INITIALIZE_EXTENT;
-}
-
-void changed_PickableGroup (struct X3D_Group *node) { 
-	printf("%s:%d changed_PickableGroup\n",__FILE__,__LINE__);
-	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Group, metadata));
-	MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_Group, children));
-	INITIALIZE_EXTENT;
-}
-
-void changed_Switch (struct X3D_Switch *node) { 
-	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Switch, metadata));
-	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Switch, choice));
-	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Switch, children ));
-	MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_Switch, whichChoice ));
-	INITIALIZE_EXTENT;
-}
-
-

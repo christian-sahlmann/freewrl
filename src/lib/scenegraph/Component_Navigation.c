@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.35 2010/07/29 14:32:27 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.36 2010/09/16 15:48:42 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -243,14 +243,6 @@ void  child_Billboard (struct X3D_Billboard *node) {
 }
 
 
-void changed_Billboard (struct X3D_Billboard *node) {
-		#if DJ_KEEP_COMPILER_WARNING
-		/* this macro expands to int nc = .... */
-		CHILDREN_COUNT
-		#endif
-
-		INITIALIZE_EXTENT
-}
 /******************************************************************************************/
 
 
@@ -324,9 +316,6 @@ void child_Collision (struct X3D_Collision *node) {
 	}
 }
 
-void changed_LOD (struct X3D_LOD *node) {
-}
-
 /* LOD changes between X3D and VRML - level and children fields are "equivalent" */
 void child_LOD (struct X3D_LOD *node) {
         render_node(node->_selected);
@@ -394,10 +383,6 @@ void proximity_LOD (struct X3D_LOD *node) {
 }
 
 
-
-void changed_Collision (struct X3D_Collision *node) {
-		INITIALIZE_EXTENT
-}
 
 /************************************************************************
  *
