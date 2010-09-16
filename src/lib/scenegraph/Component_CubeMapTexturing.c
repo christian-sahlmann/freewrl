@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.17 2010/08/13 01:04:37 dug9 Exp $
+$Id: Component_CubeMapTexturing.c,v 1.18 2010/09/16 18:32:58 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -396,7 +396,7 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
  *
  ****************************************************************************/
 
-void changed_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
+void compile_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 	if (node->__subTextures.n == 0) {
 		int i;
 
@@ -405,20 +405,20 @@ void changed_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 		node->__subTextures.p = MALLOC( 6 * sizeof (struct X3D_PixelTexture *));
 		for (i=0; i<6; i++) {
 			node->__subTextures.p[i] = createNewX3DNode(NODE_PixelTexture);
-			// JAS I dont think this is necessary as you can
-			// not route to this node:  ADD_PARENT(node,node->__subTextures.p[i]);
-			// and it might create an infinite update loop...
 		}
 		node->__subTextures.n=6;
 	}
 
 	/* tell the whole system to re-create the data for these sub-children */
 	node->__regenSubTextures = TRUE;
+	MARK_NODE_COMPILED
 }
 
 
 void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 	int count;
+
+	COMPILE_IF_REQUIRED
 
 	/* do we have to split this CubeMap raw data apart? */
 	if (node->__regenSubTextures) {

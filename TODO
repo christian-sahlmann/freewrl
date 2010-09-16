@@ -1,6 +1,7 @@
 Priority list
 
-Code confusion - remove the "changed_*" calls, put any code in the OpenGL_Utils.c linear traverse functions.
+Changed_* functions removed - check INITIALIZE_EXTENT functioning.
+
 
 VBOs - Cylinder collision - __points - get rid of it and use the VBO generated code
 

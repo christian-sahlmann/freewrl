@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.36 2010/09/16 15:48:42 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.37 2010/09/16 18:32:58 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -390,7 +390,7 @@ void proximity_LOD (struct X3D_LOD *node) {
  *
  ************************************************************************/
  
-void changed_ViewpointGroup (struct X3D_ViewpointGroup *node) {
+void compile_ViewpointGroup (struct X3D_ViewpointGroup *node) {
 	struct X3D_ProximitySensor *pn;
 
 	/* check if we need to create the proximity node */

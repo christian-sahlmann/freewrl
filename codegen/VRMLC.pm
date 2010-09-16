@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.47 2010/08/31 15:45:34 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.48 2010/09/16 18:32:58 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.48  2010/09/16 18:32:58  crc_canada
+# finish removing of "changed_" routines.
+#
 # Revision 1.47  2010/08/31 15:45:34  crc_canada
 # 1) sortChildren - copy children to internal children field ONLY when required to reduce sorting.
 # 2) rootNode now an X3D_Group, not a void *
@@ -456,7 +459,7 @@ sub gen_struct {
 sub get_rendfunc {
 	my($n) = @_;
 	# XXX
-	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Changed Proximity Collision Compile/;
+	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Proximity Collision Compile/;
 	my $comma = "";
 	my $v = "\n";
 
@@ -475,8 +478,6 @@ sub get_rendfunc {
 				$v .= $comma."void fin_".${n}."(struct X3D_".${n}." *);\n";
 			} elsif ($_ eq "Child") {
 				$v .= $comma."void child_".${n}."(struct X3D_".${n}." *);\n";
-			} elsif ($_ eq "Changed") {
-				$v .= $comma."void changed_".${n}."(struct X3D_".${n}." *);\n";
 			} elsif ($_ eq "Proximity") {
 				$v .= $comma."void proximity_".${n}."(struct X3D_".${n}." *);\n";
 			} elsif ($_ eq "Collision") {
@@ -549,8 +550,6 @@ sub get_rendfunc {
 				$v .= $comma."(void *)fin_".${n};
 			} elsif ($_ eq "Child") {
 				$v .= $comma."(void *)child_".${n};
-			} elsif ($_ eq "Changed") {
-				$v .= $comma."(void *)changed_".${n};
 			} elsif ($_ eq "Proximity") {
 				$v .= $comma."(void *)proximity_".${n};
 			} elsif ($_ eq "Collision") {
@@ -1784,11 +1783,9 @@ struct X3D_Virt {
 	void (*fin)(void *);
 	void (*rendray)(void *);
 	void (*mkpolyrep)(void *);
-	void (*changed)(void *);
 	void (*proximity)(void *);
 	void (*collision)(void *);
 	void (*compile)(void *, void *, void *, void *, void *);
-	/* char *name; */
 };
 
 /* a string is stored as a pointer, and a length of that mallocd pointer */

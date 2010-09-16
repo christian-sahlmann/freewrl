@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.61 2010/09/13 20:50:59 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.62 2010/09/16 18:32:58 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -574,7 +574,7 @@ static int renderLevel = 0;
 			       render_geom,				\
 			       render_light,				\
 			       render_sensitive);			\
-			printf("pchange %d pichange %d vchanged %p\n", _node->_change, _node->_ichange, _v->changed); \
+			printf("pchange %d pichange %d \n", _node->_change, _node->_ichange); \
 		}							\
 	} while (0)
 
@@ -607,16 +607,8 @@ void render_node(struct X3D_Node *node) {
 	       v->rendray, hypersensitive);
 	printf("%d state: vp %d geom %d light %d sens %d blend %d prox %d col %d ", renderLevel, 
          	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
-	printf("change %d ichange %d changed %d\n",node->_change, node->_ichange,v->changed);
+	printf("change %d ichange %d \n",node->_change, node->_ichange);
 #endif
-
-	/* call the "changed_" function */
-	if(NODE_NEEDS_COMPILING  && (v->changed != NULL)) {
-		DEBUG_RENDER("rs 1 pch %d pich %d vch %d\n",node->_change,node->_ichange,v->changed);
-		v->changed(node);
-		MARK_NODE_COMPILED;
-		PRINT_GL_ERROR_IF_ANY("change"); PRINT_NODE(node,v);
-	}
 
         /* if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here */ 
         if (render_vp == VF_Viewpoint) { 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.38 2010/09/16 15:48:42 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.39 2010/09/16 18:32:58 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -47,7 +47,7 @@ X3D Grouping Component
 #include "LinearAlgebra.h"
 #include "Children.h"
 
-void changed_Transform (struct X3D_Transform *node) { 
+void compile_Transform (struct X3D_Transform *node) { 
 	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Transform, metadata))
 	INITIALIZE_EXTENT;
 
@@ -64,6 +64,7 @@ void changed_Transform (struct X3D_Transform *node) {
 			node->__do_rotation ||
 			node->__do_scaleO);
 
+	MARK_NODE_COMPILED
 }
 
 /* prep_Group - we need this so that distance (and, thus, distance sorting) works for Groups */
@@ -78,6 +79,8 @@ void prep_PickableGroup (struct X3D_Group *node) {
 
 /* do transforms, calculate the distance */
 void prep_Transform (struct X3D_Transform *node) {
+
+	COMPILE_IF_REQUIRED
 
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */

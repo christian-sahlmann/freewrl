@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.48 2010/09/13 20:50:59 crc_canada Exp $
+$Id: Component_Shape.c,v 1.49 2010/09/16 18:32:58 crc_canada Exp $
 
 X3D Shape Component
 
@@ -402,7 +402,6 @@ void compile_Material (struct X3D_Material *node) {
 
 
 void render_Material (struct X3D_Material *node) {
-
 	COMPILE_IF_REQUIRED
 
 	/* record this node for OpenGL-ES and OpenGL-3.1 operation */
