@@ -11,8 +11,12 @@ see http://cid-4a0d5f15141a58d5.skydrive.live.com/browse.aspx/GPUGroupX3D/PyEAI/
 -  fwWindow32.c fullscreen not properly implemented
 
 
-MSVC compatible libraries - you got them from the link on the windowsbuild page. 
-Then if you cvs check out freewrl\freex3d cvs to your directory 'source' then put the lib and fonts directories in 'source' too.
+MSVC compatible libraries - you got them from the link on the windowsbuild page (or as of sept 16, 2010 http://dug9.users.sourceforge.net/lib_windows.zip)
+Then if you cvs check out freewrl\freex3d cvs to your directory 'source' then put the lib_windows and fonts directories in 'source' too:
+ie 
+c:\source\freewrl ... source code as CVS checked out
+c:\source\fonts
+c:\source\lib_windows
 
 But where did I get them?
 gdiplus.lib/.dll - .lib seems to be on my system somewhere
