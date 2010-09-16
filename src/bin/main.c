@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.36 2010/09/12 19:22:00 dug9 Exp $
+  $Id: main.c,v 1.37 2010/09/16 23:32:42 dug9 Exp $
 
   FreeWRL main program.
 
@@ -83,14 +83,10 @@ int main (int argc, char **argv)
 	{
 		/* we are testing - use local fonts (may be obsolete someday) */
 		static char *fdir;
-		char *pp = strcpy(malloc(MAX_PATH),argv[0]);
-		PathRemoveFileSpec(pp);
-		PathAppend(pp,"..\\..\\..\\..\\fonts"); 
 		fdir = malloc(MAX_PATH); 
 		strcpy(fdir,"FREEWRL_FONTS_DIR=");
-		strcat(fdir,pp);
+		strcat(fdir,"..\\..\\..\\..\\fonts");
 		_putenv( fdir );
-		free(pp);
 	}
 	else
 	{
