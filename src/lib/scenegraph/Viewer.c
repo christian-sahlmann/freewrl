@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.56 2010/07/31 23:54:01 dug9 Exp $
+$Id: Viewer.c,v 1.57 2010/09/20 00:34:18 dug9 Exp $
 
 CProto ???
 
@@ -1327,12 +1327,15 @@ int initAnaglyphShaders()
 	}
 	return retval;
 }
+
+
 int StereoInitializedOnce = 0;
 void initStereoDefaults()
 {
 	/* must call this before getting values from command line in options.c */
 	Viewer.shutterGlasses = 0;
 	Viewer.anaglyph = 0;
+	Viewer.anaglyphMethod = 2; /* 1= use shaders 2= draw gray .It's hardwired here, no way to set from command line or HUD*/
 	Viewer.sidebyside = 0;
 	Viewer.isStereo = 0;
 	if(!StereoInitializedOnce)
@@ -1360,17 +1363,63 @@ void deleteAnaglyphShaders()
 		DELETE_PROGRAM(Viewer.programs[i]);
 	}
 }
+static GLboolean acMask[2][3]; //anaglyphChannelMask
+void setmask(GLboolean *mask,int r, int g, int b)
+{
+	mask[0] = (GLboolean)r;
+	mask[1] = (GLboolean)g;
+	mask[2] = (GLboolean)b;
+}
+void Viewer_anaglyph_setSide(int iside)
+{
+	if( Viewer.anaglyphMethod == 2 )
+	{
+		/* draw in gray */
+		/* and use channel masks */
+		GLboolean t = 1;
+		glColorMask(acMask[iside][0],acMask[iside][1],acMask[iside][2],t);
+	}
+	else if(Viewer.anaglyphMethod == 1)
+	{
+		/* use shaders. textures (images) don't render */
+		USE_SHADER(Viewer.programs[Viewer.iprog[iside]]);
+	}
+}
 
 static char * RGBACM = "RGBACM";
 static int indexRGBACM(int a)
 {
 	return (int) (strchr(RGBACM,a)-RGBACM);
 }
-
-
 void setAnaglyphSideColor(char val, int iside)
 {
 	Viewer.iprog[iside] = indexRGBACM(val);
+	if(Viewer.iprog[iside] == -1 )
+	{
+		printf ("warning, command line anaglyph parameter incorrect - was %s need something like RG\n",val);
+		Viewer.iprog[iside] = iside;
+	}
+	/* used for anaglyphMethod==2 */
+	switch (Viewer.iprog[iside]) {
+		case 0: //'R':
+		   setmask(acMask[iside],1,0,0);
+		   break;
+		case 1: //'G':
+		   setmask(acMask[iside],0,1,0);
+			break;
+		case 2: //'B':
+		   setmask(acMask[iside],0,0,1);
+		  break;
+		case 3: //'A':
+		   setmask(acMask[iside],1,1,0);
+		  break;
+		case 4: //'C':
+		   setmask(acMask[iside],0,1,1);
+		  break;
+		case 5://'M':
+		   setmask(acMask[iside],1,0,1);
+		  break;
+	}
 }
 void setAnaglyphParameter(const char *optArg) {
 /*
@@ -1383,20 +1432,26 @@ void setAnaglyphParameter(const char *optArg) {
 	  printf ("warning, command line anaglyph parameter incorrect - was %s need something like RC\n",optArg);
 	  glasses ="RC";
 	}
-	Viewer.iprog[0] = indexRGBACM(glasses[0]);
-	Viewer.iprog[1] = indexRGBACM(glasses[1]);
-	if(Viewer.iprog[0] == -1 || Viewer.iprog[1] == -1)
-	{
-		printf ("warning, command line anaglyph parameter incorrect - was %s need something like RG\n",optArg);
-		Viewer.iprog[0] = 0;
-		Viewer.iprog[1] = 1;
-	}
-	Viewer.anaglyph = 1;
+	setAnaglyphSideColor(glasses[0],0);
+	setAnaglyphSideColor(glasses[1],1);
+	//Viewer.iprog[0] = indexRGBACM(glasses[0]);
+	//Viewer.iprog[1] = indexRGBACM(glasses[1]);
+	//if(Viewer.iprog[0] == -1 || Viewer.iprog[1] == -1)
+	//{
+	//	printf ("warning, command line anaglyph parameter incorrect - was %s need something like RG\n",optArg);
+	//	Viewer.iprog[0] = 0;
+	//	Viewer.iprog[1] = 1;
+	//}
+	Viewer.anaglyph = 1; /*0=none 1=active */
 	Viewer.shutterGlasses = 0;
 	Viewer.sidebyside = 0;
 	//Viewer.haveAnaglyphShader = 1; do not set until openGL initialized
 	Viewer.isStereo = 1;
 	setStereoBufferStyle(1);
+}
+int usingAnaglyph2()
+{
+	return (Viewer.anaglyph && (Viewer.anaglyphMethod == 2)) ? 2 : 0;
 }
 /* shutter glasses, stereo view  from Mufti@rus */
 /* handle setting shutter from parameters */
@@ -1429,16 +1484,27 @@ void setSideBySide()
 void setAnaglyph()
 {
 	/* called from post_gl_init and hud/options (option.c calls setAnaglyphParameter above) */
-	if(Viewer.haveAnaglyphShader)
+	if(Viewer.anaglyphMethod == 1)
 	{
-		Viewer.anaglyph = 1;
-		Viewer.isStereo = 1;
-		setStereoBufferStyle(1);
+		if(Viewer.haveAnaglyphShader)
+		{
+			Viewer.anaglyph = 1; 
+			Viewer.isStereo = 1;
+			setStereoBufferStyle(1);
+		}
+	}
+	else if(Viewer.anaglyphMethod == 2)
+	{
+			Viewer.anaglyph = 1; 
+			Viewer.isStereo = 1;
+			setStereoBufferStyle(1);
 	}
 }
 void setMono()
 {
 	Viewer.isStereo = 0;
+	if(usingAnaglyph2())
+		glColorMask(1,1,1,1);
 	Viewer.anaglyph = 0;
 	Viewer.sidebyside = 0;
 	Viewer.shutterGlasses = 0;
@@ -1489,14 +1555,15 @@ void viewer_postGLinit_init(void)
 	type = 0;
 	if( Viewer.shutterGlasses ) type = 1;
 	if( Viewer.sidebyside ) type = 2;
-	if( Viewer.anaglyph ) type = 3;
+	if( Viewer.anaglyph ==1 ) type = 3;
 	
-	if(Viewer.anaglyph) 
+	if(Viewer.anaglyph ==1) 
 	{
-		if( !Viewer.haveAnaglyphShader ) 
-		{
-			ConsoleMessage("anaglyph shaders did not initialize - do you have opengl 2.0+ drivers?\n");
-		}
+		if(Viewer.anaglyphMethod == 1)
+			if( !Viewer.haveAnaglyphShader ) 
+			{
+				ConsoleMessage("anaglyph shaders did not initialize - do you have opengl 2.0+ drivers?\n");
+			}
 	}
 	if(Viewer.shutterGlasses)
 	{

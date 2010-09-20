@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.32 2010/07/29 14:32:27 crc_canada Exp $
+$Id: Viewer.h,v 1.33 2010/09/20 00:34:18 dug9 Exp $
 
 Viewer ???
 
@@ -208,7 +208,7 @@ typedef struct viewer {
 	int sidebyside; /*=1 if 2 viewport method*/
 	int shutterGlasses;
 	int haveQuadbuffer;
-	int anaglyph; /* =1 if analglyph is turned on */
+	int anaglyph; /* = 1 if analglyph is turned on */
 	int dominantEye; /* 2D screen cursor picks in which viewport? 0=Left 1=Right */
 	double stereoParameter;
 	double eyehalf;
@@ -216,6 +216,7 @@ typedef struct viewer {
 	double screendist;
 	double eyedist;
 	/*anaglyph...*/
+	int anaglyphMethod; /* 1= use shaders 2= draw gray */
 	int haveAnaglyphShader;
 	int haveVer2;
 	GLuint shaders[6]; /*= {0,0,0,0,0,0};*/
@@ -244,6 +245,8 @@ typedef struct viewer {
 	int ortho;
 	double orthoField[4];
 } X3D_Viewer;
+
+void Viewer_anaglyph_setSide(int iside);
 
 void initStereoDefaults(void);
 

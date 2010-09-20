@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.141 2010/09/16 15:48:42 crc_canada Exp $
+  $Id: MainLoop.c,v 1.142 2010/09/20 00:34:18 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1023,7 +1023,8 @@ static void render()
 				if(count != shutterside) continue;
 			}
 			if(Viewer.anaglyph) //haveAnaglyphShader)
-				USE_SHADER(Viewer.programs[Viewer.iprog[count]]);
+				Viewer_anaglyph_setSide(count);
+				//USE_SHADER(Viewer.programs[Viewer.iprog[count]]);
 			setup_projection(0, 0, 0);
 			if(Viewer.sidebyside && count >0)
 				BackEndClearBuffer(1);
@@ -1066,18 +1067,23 @@ static void render()
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 
 		if (Viewer.isStereo) {
-			if (Viewer.anaglyph) //haveAnaglyphShader) 
-			{
-				if (count==0) {
-					USE_SHADER(0);
-					FW_GL_ACCUM(GL_LOAD,1.0); 
+			if (Viewer.anaglyph)
+				if(Viewer.anaglyphMethod == 1) //haveAnaglyphShader) 
+				{
+					if (count==0) {
+						USE_SHADER(0);
+						FW_GL_ACCUM(GL_LOAD,1.0); 
+					}
+					else if(count==1) {
+						USE_SHADER(0);
+						FW_GL_ACCUM(GL_ACCUM,1.0); 
+						FW_GL_ACCUM(GL_RETURN,1.0);
+					}
 				}
-				else if(count==1) {
-					USE_SHADER(0);
-					FW_GL_ACCUM(GL_ACCUM,1.0); 
-					FW_GL_ACCUM(GL_RETURN,1.0);
+				else if(Viewer.anaglyphMethod == 2)
+				{
+					glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 				}
-			}
 		}
 
 	} /* for loop */

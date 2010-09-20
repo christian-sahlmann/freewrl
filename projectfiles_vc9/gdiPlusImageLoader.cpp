@@ -78,8 +78,21 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 //#define verbose 1
 #ifdef verbose
    printf("bitmap W=%d H=%d\n",bitmap->GetWidth(),bitmap->GetHeight());
-   printf("bitmap format index =%d\n",bitmap->GetPixelFormat()%256);
-   if(Gdiplus::IsAlphaPixelFormat(bitmap->GetPixelFormat()) )
+   /* http://msdn.microsoft.com/en-us/library/ms535387(VS.85).aspx GetPixelFormat
+	  http://msdn.microsoft.com/en-us/library/ms534412(v=VS.85).aspx  pixelFormat constants
+	  http://msdn.microsoft.com/en-us/library/ms534136(v=VS.85).aspx   Image::GetFlags ImageFlagsColorSpaceGRAY      = 0x0040,
+
+   */
+   UINT flags = bitmap->GetFlags();
+   printf("The value of flags, in hexadecimal form, is %x.\n", flags);
+
+   // Is the ColorSpaceRGB flag set?
+   if(flags & ImageFlagsColorSpaceRGB)
+      printf("The ColorSpaceRGB flag is set.\n");
+   else if(flags & ImageFlagsColorSpaceGRAY)
+     printf("The ColorSpaceGRAY flag is set.\n");
+   printf("bitmap format index =%d %d\n",bitmap->GetPixelFormat()%256,bitmap->GetPixelFormat());
+   if(Gdiplus::IsAlphaPixelFormat(bitmap->GetPixelFormat()) ) 
 	   printf("has alpha channel\n");
    else
 	   printf("no alpha channel\n");
@@ -89,6 +102,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 	   printf("not canonical\n");
    printf("Number of bits per pixel %d\n",Gdiplus::GetPixelFormatSize(bitmap->GetPixelFormat()));
 #endif
+#undef verbose
    bool flipVertically = true;
    Rect rect(0,0,bitmap->GetWidth(),bitmap->GetHeight());
    if(flipVertically)

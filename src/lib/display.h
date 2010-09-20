@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.97 2010/09/13 20:50:58 crc_canada Exp $
+  $Id: display.h,v 1.98 2010/09/20 00:34:17 dug9 Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -489,6 +489,7 @@ void setScreenDim(int wi, int he);
 	#define FW_COLOR_POINTER_TYPE 12453
 	#define FW_TEXCOORD_POINTER_TYPE 67655
 	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
+	/* color buffer subject to draw-gray anaglyph before call */
 	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
 	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, bbb, GL_FALSE, ccc); }
 	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
@@ -501,8 +502,6 @@ void setScreenDim(int wi, int he);
 
 	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) glViewport(aaa,bbb,ccc,ddd);
 	#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd) glClearColor(aaa,bbb,ccc,ddd);
-	#define FW_GL_COLOR3F(aaa,bbb,ccc) glColor3f(aaa,bbb,ccc);
-	#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa);
 	#define FW_GL_DEPTHMASK(aaa) glDepthMask(aaa);
 	#define FW_GL_ENABLE(aaa) glEnable(aaa)
 	#define FW_GL_DISABLE(aaa) glDisable(aaa) 
@@ -542,22 +541,49 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_VERTEX3D(aaa, bbb, ccc) glVertex3d(aaa, bbb, ccc)
 
 
-	#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
-	#define FW_GL_MATERIALFV(aaa, bbb, ccc) glMaterialfv(aaa, bbb, ccc)
-	#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
-	#define FW_GL_COLOR3D(aaa, bbb, ccc) glColor3d(aaa, bbb, ccc)
 	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
 	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
 	
 	#define FW_GL_VERTEX3F(aaa, bbb, ccc) glVertex3f(aaa, bbb, ccc)
 	#define FW_GL_GETSTRING(aaa) glGetString(aaa)
 	#define FW_GL_DELETETEXTURES(aaa,bbb) glDeleteTextures(aaa,bbb);
-	#define FW_GL_COLOR3FV(aaa) glColor3fv(aaa);
 	#define FW_GL_LOADMATRIXD(aaa) fw_glLoadMatrixd(aaa)
 	#define FW_GL_GETINTEGERV(aaa,bbb) glGetIntegerv(aaa,bbb);
 	#define FW_GL_GETFLOATV(aaa,bbb) glGetFloatv(aaa,bbb);
-	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) glColor4f(aaa,bbb,ccc,ddd);
-	#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa);
+
+	#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
+	#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
+int usingAnaglyph2();
+//#ifdef ANAGLYPHMETHOD2
+/* color functions subject to draw-gray anaglyph >>  */
+void fwAnaglyphRemapf(float *r2, float *g2, float* b2, float r, float g, float b);
+void fwAnaglyphremapRgbav(unsigned char *rgba,int y,int x);
+void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params);
+void fwglColor3fv(float *rgb);
+void fwglColor4f(float r,float g, float b, float a);
+void fwglColor4fv(float *rgba);
+void fwglColor3d(double r, double g, double b);
+void fwglColor3f(float r, float g, float b);
+	#define FW_GL_MATERIALFV(aaa, bbb, ccc) fwglMaterialfv(aaa, bbb, ccc)
+
+	#define FW_GL_COLOR3F(aaa,bbb,ccc) fwglColor3f(aaa,bbb,ccc);
+	#define FW_GL_COLOR4FV(aaa) fwglColor4fv(aaa);
+	#define FW_GL_COLOR3D(aaa, bbb, ccc) fwglColor3d(aaa, bbb, ccc)
+	#define FW_GL_COLOR3FV(aaa) fwglColor3fv(aaa);
+	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) fwglColor4f(aaa,bbb,ccc,ddd);
+	#define FW_GL_COLOR4FV(aaa) fwglColor4fv(aaa);
+/* << color functions subject to draw-gray anaglyph */
+//#else
+//	#define FW_GL_MATERIALFV(aaa, bbb, ccc) glMaterialfv(aaa, bbb, ccc)
+//
+//	#define FW_GL_COLOR3F(aaa,bbb,ccc) glColor3f(aaa,bbb,ccc);
+//	#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa);
+//	#define FW_GL_COLOR3D(aaa, bbb, ccc) glColor3d(aaa, bbb, ccc)
+//	#define FW_GL_COLOR3FV(aaa) glColor3fv(aaa);
+//	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) glColor4f(aaa,bbb,ccc,ddd);
+//	#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa);
+//#endif
+
 	#define FW_GL_FRONTFACE(aaa) glFrontFace(aaa);
 	#define FW_GL_GENLISTS(aaa) glGenLists(aaa)
 	#define FW_GL_GENTEXTURES(aaa,bbb) glGenTextures(aaa,bbb)

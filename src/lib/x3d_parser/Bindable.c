@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.36 2010/08/02 18:34:41 dug9 Exp $
+$Id: Bindable.c,v 1.37 2010/09/20 00:34:18 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -613,7 +613,15 @@ static void saveBGVert (float *colptr, float *pt,
 		int *vertexno, float *col, double dist,
 		double x, double y, double z) {
 		/* save the colour */
-		memcpy (&colptr[*vertexno*3], col, sizeof(float)*3);
+		float ccc[3];
+		memcpy(ccc,col,sizeof(float)*3);
+		if(usingAnaglyph2())
+		{
+			fwAnaglyphRemapf(&ccc[0], &ccc[1],&ccc[2], ccc[0],ccc[1], ccc[2]);
+			//float gray = .299*ccc[0] + .587*ccc[1] + .114*ccc[2];
+			//ccc[0] = ccc[1] = ccc[2] = gray;
+		}
+		memcpy (&colptr[*vertexno*3], ccc, sizeof(float)*3);
 
 		/* and, save the vertex info */
 		pt[*vertexno*3+0] = (float)(x*dist);

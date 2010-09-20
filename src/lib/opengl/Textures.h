@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.22 2010/08/10 21:15:59 crc_canada Exp $
+$Id: Textures.h,v 1.23 2010/09/20 00:34:18 dug9 Exp $
 
 Screen snapshot.
 
@@ -38,19 +38,19 @@ Screen snapshot.
    each texture has this kind of structure
 */
 struct textureTableIndexStruct {
-	struct	X3D_Node*	scenegraphNode;
-	int			nodeType;
-	int	imageType;
-	int 	status;
-	int 	hasAlpha;
-	GLuint	OpenGLTexture;
-	int	frames;
-	char    *filename;
-        int x;
-        int y;
-        unsigned char *texdata;
-        GLint Src;
-        GLint Trc;
+	struct X3D_Node*	scenegraphNode;
+	int    nodeType;
+	int    imageType;
+	int    status;
+	int    hasAlpha;
+	GLuint OpenGLTexture;
+	int    frames;
+	char   *filename;
+    int    x;
+    int    y;
+    unsigned char *texdata;
+    GLint  Src;
+    GLint  Trc;
 };
 typedef struct textureTableIndexStruct textureTableIndexStruct_s;
 

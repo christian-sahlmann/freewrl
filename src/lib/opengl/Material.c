@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.17 2010/05/05 11:21:48 davejoubert Exp $
+$Id: Material.c,v 1.18 2010/09/20 00:34:18 dug9 Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -65,6 +65,121 @@ void do_shininess (GLenum face, float shininess) {
 
 	FW_GL_MATERIALF(face, GL_SHININESS, (float)shininess);
 }
+void fwAnaglyphRemapf(float *r2, float *g2, float* b2, float r, float g, float b)
+{
+	float gray = .299*r + .587*g + .114*b;
+	*r2 = *g2 = *b2 = gray;
+}
+void fwAnaglyphremapRgbav(unsigned char *rgba,int y,int x)
+{
+	int i,j;
+	/* convert bitmap to grayscale Q. is there a way to use a shader program to do this faster?
+	   Q. if all -win32,osx,linux- marked/flagged images when they are originally grayscale, could we use the 
+	   flag here to skip the conversion to gray?
+	*/
+	for(j=0;j<y;j++)
+	{	
+		for(i=0;i<x;i++)
+		{
+			int igray;
+			unsigned char *rgb = &rgba[(j*x + i)*4]; /* assume RGBA */
+			igray = rgb[0]*76 + rgb[1]*150 + rgb[2]*29; //255 = 76 + 150 + 29
+			igray = igray >> 8; 
+			rgb[0] = rgb[1] = rgb[2] = (unsigned char) igray;
+		}
+	}
+}
+//void fwAnaglyphRemapc(unsigned char *r2, unsigned char *g2, unsigned char *b2, unsigned char r, unsigned char g, unsigned char b)
+//{
+//	//gray = rgb[0]*.299 + rgb[1]*.587 + rgb[2]*.114;
+//	int igray = r*76 + g*150 + b*29; //255 = 76 + 150 + 29
+//	igray = igray >> 8; 
+//	*r2 = *g2 = *b2 = (unsigned char) igray;
+//}
+
+void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
+{
+	if(usingAnaglyph2())
+		switch(pname)
+		{
+			case GL_DIFFUSE:
+			case GL_AMBIENT:
+			case GL_SPECULAR:
+			case GL_EMISSION:
+				{
+					float gray, p2[4];
+					gray = .299*params[0] + .587*params[1] + .114*params[2];
+					p2[0] = p2[1] = p2[2] = gray;
+					p2[3] = params[3];
+					//fwColorRemapf(&p2[0],&p2[1],&p2[2],params[0],params[1],params[2]);
+					glMaterialfv(face,pname,p2); 
+				}
+				break;
+			default:
+				glMaterialfv(face,pname,params);
+		}
+	else
+		glMaterialfv(face,pname,params);
+}
+void fwglColor3fv(float *color)
+{
+	if(usingAnaglyph2())
+	{
+		float gray, ccc[3];
+		memcpy(ccc,color,3*sizeof(float));
+		gray = ccc[0]*.299 + ccc[1]*.587 + ccc[2]*.144;
+		ccc[0] = ccc[1] = ccc[2] = gray;
+		glColor3fv(ccc);
+	}
+	else
+		glColor3fv(color);
+}
+void fwglColor4fv(float *rgba)
+{
+	if(usingAnaglyph2())
+	{
+		float gray, ccc[4];
+		memcpy(ccc,rgba,4*sizeof(float));
+		gray = ccc[0]*.299 + ccc[1]*.587 + ccc[2]*.144;
+		ccc[0] = ccc[1] = ccc[2] = gray;
+		glColor4fv(ccc);
+	}
+	else
+		glColor4fv(rgba);
+}
+void fwglColor3d(double r, double g, double b)
+{
+	if(usingAnaglyph2())
+	{
+		double gray, ccc[3];
+		ccc[0] = r;
+		ccc[1] = g;
+		ccc[2] = b;
+		gray = ccc[0]*.299 + ccc[1]*.587 + ccc[2]*.144;
+		ccc[0] = ccc[1] = ccc[2] = gray;
+		glColor3dv(ccc);
+	}
+	else
+		glColor3d(r,g,b);
+}
+void fwglColor3f(float r, float g, float b)
+{
+	float ccc[3];
+	ccc[0] = r;
+	ccc[1] = g;
+	ccc[2] = b;
+	fwglColor3fv(ccc);
+}
+void fwglColor4f(float r, float g, float b, float a)
+{
+	float ccc[4];
+	ccc[0] = r;
+	ccc[1] = g;
+	ccc[2] = b;
+	ccc[3] = a;
+	fwglColor4fv(ccc);
+}
+
 
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 	/* unused int i; */
