@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.37 2010/09/20 00:34:18 dug9 Exp $
+$Id: Bindable.c,v 1.38 2010/09/21 20:00:25 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -48,6 +48,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../scenegraph/Component_Geospatial.h"
+#include "../scenegraph/RenderFuncs.h"
 
 
 /* Viewport data */

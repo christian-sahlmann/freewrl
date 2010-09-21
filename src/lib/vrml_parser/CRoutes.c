@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.68 2010/09/16 15:48:42 crc_canada Exp $
+$Id: CRoutes.c,v 1.69 2010/09/21 20:00:25 crc_canada Exp $
 
 ???
 
@@ -71,7 +71,7 @@ static int thisIntTimeStamp = 1;
 			 case FIELDTYPE_##thistype:  {  \
 				thistype##Native *ptr; \
 				/* printf ("getting private data in GETJSPTR for %p \n",JSglobal_return_val); */ \
-        			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, JSglobal_return_val)) == NULL) { \
+        			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, (JSObject *)JSglobal_return_val)) == NULL) { \
                 			printf( "JS_GetPrivate failed in get_valueChanged_flag\n"); \
                 			return JS_FALSE; \
 				} \
@@ -93,18 +93,18 @@ static int thisIntTimeStamp = 1;
 		jsval mainElement; \
 		int len; \
 		int i; \
-		if (!JS_GetProperty(cx, JSglobal_return_val, "length", &mainElement)) { \
+		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
 			return FALSE; \
 		} \
 		len = JSVAL_TO_INT(mainElement); \
 		/* go through each element of the main array. */ \
 		for (i = 0; i < len; i++) { \
-			if (!JS_GetElement(cx, JSglobal_return_val, i, &mainElement)) { \
+			if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
 				printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); \
 				return FALSE; \
 			} \
-			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, mainElement)) == NULL) { \
+			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) { \
 				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n"); \
 				return FALSE; \
 			} \
@@ -122,18 +122,18 @@ static int thisIntTimeStamp = 1;
 		int i; \
 		JSContext *cx; \
 		cx = ScriptControl[actualscript].cx; \
-		if (!JS_GetProperty(cx, JSglobal_return_val, "length", &mainElement)) { \
+		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
 			break; \
 		} \
 		len = JSVAL_TO_INT(mainElement); \
 		/* go through each element of the main array. */ \
 		for (i = 0; i < len; i++) { \
-			if (!JS_GetElement(cx, JSglobal_return_val, i, &mainElement)) { \
+			if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
 				printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); \
 				break; \
 			} \
-			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, mainElement)) == NULL) { \
+			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) { \
 				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n"); \
 				break; \
 			} \
@@ -160,7 +160,7 @@ static int thisIntTimeStamp = 1;
 	case FIELDTYPE_MF##thistype: {\
 		jsval mainElement; \
 		/* printf ("GET_ECMA_MF_TOUCHED called on %d\n",JSglobal_return_val);  */ \
-		if (!JS_GetProperty(cx, JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
+		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"MF_ECMA_HAS_changed\" in get_valueChanged_flag\n"); \
 		} /* else printf ("GET_ECMA_MF_TOUCHED MF_ECMA_has_changed is %d for %d %d\n",JSVAL_TO_INT(mainElement),cx,JSglobal_return_val); */  \
 		touched = JSVAL_TO_INT(mainElement);\
@@ -171,10 +171,10 @@ static int thisIntTimeStamp = 1;
 	case FIELDTYPE_##thistype: {\
 		jsval myv = INT_TO_JSVAL(0); \
 		/* printf ("RESET_ECMA_MF_TOUCHED called on %d ",JSglobal_return_val); */ \
-        	if (!JS_SetProperty( ScriptControl[actualscript].cx, JSglobal_return_val, "MF_ECMA_has_changed", &myv)) { \
+        	if (!JS_SetProperty( ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &myv)) { \
         		printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in RESET_ECMA_MF_TOUCHED.\n"); \
         	}\
-                /* if (!JS_GetProperty( ScriptControl[actualscript].cx, JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
+                /* if (!JS_GetProperty( ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
                         printf ("JS_GetProperty failed for \"MF_ECMA_HAS_changed\" in get_valueChanged_flag\n"); \
 		} \
                 printf ("and MF_ECMA_has_changed is %d\n",JSVAL_TO_INT(mainElement)); */\
@@ -416,7 +416,7 @@ void markScriptResults(struct X3D_Node * tn, int tptr, int route, void * tonode)
 
 int get_valueChanged_flag (int fptr, int actualscript) {
 	JSContext *cx;
-	jsval interpobj;
+	JSObject *interpobj;
 	char *fullname;
 	int touched;
 

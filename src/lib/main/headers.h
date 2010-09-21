@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.130 2010/09/21 15:11:36 crc_canada Exp $
+$Id: headers.h,v 1.131 2010/09/21 20:00:25 crc_canada Exp $
 
 Global includes.
 
@@ -301,7 +301,6 @@ extern int HaveSensitive;
 void zeroVisibilityFlag(void);
 void setField_fromJavascript (struct X3D_Node *ptr, char *field, char *value, int isXML);
 unsigned int setField_FromEAI (char *ptr);
-void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fieldType, unsigned len, int extraData, uintptr_t mycx);
 
 #define EXTENTTOBBOX
 #define INITIALIZE_EXTENT        { node->EXTENT_MAX_X = (float) -10000.0; \

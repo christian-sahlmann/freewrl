@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.53 2010/09/16 15:48:42 crc_canada Exp $
+  $Id: fieldSet.c,v 1.54 2010/09/21 20:00:25 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -734,11 +734,10 @@ unsigned int setField_FromEAI (char *ptr) {
 
 }
 
-void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, uintptr_t cx) {
+void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, JSContext *scriptContext) {
         int ival;
         double tval;
         float fl[4];
-	JSContext *scriptContext;
 	char *memptr;
         JSString *strval; /* strings */
 	char *strp;
@@ -746,9 +745,6 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 	/* set up a pointer to where to put this stuff */
 	memptr = offsetPointer_deref(char *, tn, tptr);
-
-	/* not all files know what a JSContext is, so we just pass it around as a uintptr_t type */
-	scriptContext = cx;
 
 	#ifdef SETFIELDVERBOSE
 	strval = JS_ValueToString(scriptContext, JSglobal_return_val);
@@ -1242,11 +1238,11 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			switch (eletype) {
 			case FIELDTYPE_SFNode: {
 
-				if (JS_InstanceOf (cx, mainElement, &SFNodeClass, NULL)) {
+				if (JS_InstanceOf (cx, (JSObject *)mainElement, &SFNodeClass, NULL)) {
 					SFNodeNative *_vec;
 
 					/* printf ("yep, this is an SFNode class\n");  */
-				       if ((_vec = (SFNodeNative *)JS_GetPrivate(cx, mainElement)) == NULL) {
+				       if ((_vec = (SFNodeNative *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) {
 						printf ("error getting native\n");
 						*nl = NULL;
 					} else {

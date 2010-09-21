@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.40 2010/09/16 15:48:42 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.41 2010/09/21 20:00:25 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -41,6 +41,7 @@ X3D Geometry 3D Component
 #include "../opengl/Frustum.h"
 #include "../opengl/Textures.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../opengl/OpenGL_Utils.h"
 
 
 #include "Collision.h"
@@ -401,8 +402,8 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 void render_Cylinder (struct X3D_Cylinder * node) {
 	extern GLfloat cylnorms[];		/*  in CFuncs/statics.c*/
-	extern unsigned char cyltopindx[];	/*  in CFuncs/statics.c*/
-	extern unsigned char cylbotindx[];	/*  in CFuncs/statics.c*/
+	extern int cyltopindx[];	/*  in CFuncs/statics.c*/
+	extern int cylbotindx[];	/*  in CFuncs/statics.c*/
 	extern GLfloat cylendtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat cylsidetex[];		/*  in CFuncs/statics.c*/
 	float h = (node->height)/2;
@@ -477,7 +478,6 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		}
 	}
 	textureDraw_end();
-
 }
 
 
@@ -678,7 +678,7 @@ void compile_Cone (struct X3D_Cone *node) {
 }
 
 void render_Cone (struct X3D_Cone *node) {
-	extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
+	extern int tribotindx[];	/*  in CFuncs/statics.c*/
 	extern float tribottex[];		/*  in CFuncs/statics.c*/
 	extern float trisidtex[];		/*  in CFuncs/statics.c*/
 	/*  DO NOT change this define, unless you want to recalculate statics below....*/
@@ -1640,7 +1640,7 @@ void collisionCone_init(struct X3D_Cone *node)
 	/* for debug int j,k,biggestNum; */
 	double h,r,inverseh,inverser;
 	struct SFColor *pts;// = node->__botpoints;
-	extern unsigned char tribotindx[];
+	extern int tribotindx[];
 	
 	/*  re-using the compile_cone node->__points data which is organized into GL_TRAIANGLE_FAN (bottom) and GL_TRIANGLES (side)
 
@@ -1683,9 +1683,9 @@ void collisionCone_init(struct X3D_Cone *node)
 		pt = (struct SFColor *)node->__botpoints;
 		pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
 		for (i=1; i<=CONEDIV; i++) {
-			pt[i].c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
+			pt[i].c[0] = (float) (r* sin(PI*2*i/(float)CONEDIV));
 			pt[i].c[1] = (float) -h;
-			pt[i].c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
+			pt[i].c[2] = (float) (r* cos(PI*2*i/(float)CONEDIV));
 		}
 		/*  and throw another point that is centre of bottom*/
 		pt[CONEDIV+1].c[0] = 0.0f; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0f;
@@ -1954,12 +1954,12 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 		for (i=0; i<CYLDIV; i++) {
 			a1 = (float) (PI*2*i)/(float)CYLDIV;
 			a2 = (float) (PI*2*(i+1))/(float)CYLDIV;
-			pts[i*2+0].c[0] = r* (float) sin(a1);
+			pts[i*2+0].c[0] = (float) (r* sin(a1));
 			pts[i*2+0].c[1] = (float) h;
-			pts[i*2+0].c[2] = r* (float) cos(a1);
-			pts[i*2+1].c[0] = r*(float) sin(a1);
+			pts[i*2+0].c[2] = (float) (r* cos(a1));
+			pts[i*2+1].c[0] = (float) (r* sin(a1));
 			pts[i*2+1].c[1] = (float) -h;
-			pts[i*2+1].c[2] = r*(float) cos(a1);
+			pts[i*2+1].c[2] = (float) (r* cos(a1));
 		}
 	
 		/*  wrap the points around*/

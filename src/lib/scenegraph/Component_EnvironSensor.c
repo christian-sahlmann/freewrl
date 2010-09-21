@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.14 2010/03/25 17:09:00 crc_canada Exp $
+$Id: Component_EnvironSensor.c,v 1.15 2010/09/21 20:00:25 crc_canada Exp $
 
 X3D Environmental Sensors Component
 
@@ -44,6 +44,7 @@ X3D Environmental Sensors Component
 #include "Component_Geospatial.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../scenegraph/RenderFuncs.h"
 
 
 /* can we do a VisibiltySensor? Only if we have OpenGL support for OcclusionCulling */

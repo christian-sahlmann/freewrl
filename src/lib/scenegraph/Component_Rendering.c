@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.18 2010/03/12 17:07:57 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.19 2010/09/21 20:00:25 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -41,6 +41,7 @@ X3D Rendering Component
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
 #include "Component_Shape.h"
+#include "../scenegraph/RenderFuncs.h"
 
 /* find a bounding box that fits the coord structure. save it in the common-node area for extents.*/
 static void findExtentInCoord (struct X3D_Node *node, int count, struct SFColor* coord) {
@@ -446,9 +447,9 @@ void render_PointSet (struct X3D_PointSet *node) {
                 cc = (struct X3D_Color *) node->color;
 		/* is this a Color or ColorRGBA color node? */
                	if (cc->_nodeType == NODE_Color) {
-			FW_GL_COLOR_POINTER (3,GL_FLOAT,0,colors);
+			FW_GL_COLOR_POINTER (3,GL_FLOAT,0,(float *)colors);
 		} else {
-			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,colors);
+			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,(float *)colors);
 		}
 	} else {
 		DO_COLOUR_POINTER
@@ -458,7 +459,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 	/* draw the shape */
 	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 
-	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,points);
+	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(float *)points);
 	FW_GL_DRAWARRAYS(GL_POINTS,0,npoints);
 
 	/* put things back to normal */
@@ -466,8 +467,6 @@ void render_PointSet (struct X3D_PointSet *node) {
 	if (ncolors>0) {
 		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 	}
-
-
 }
 
 void render_LineSet (struct X3D_LineSet *node) {
@@ -501,16 +500,16 @@ void render_LineSet (struct X3D_LineSet *node) {
                 	cc = (struct X3D_Color *) node->color;
 			/* is this a Color or ColorRGBA color node? */
                 	if (cc->_nodeType == NODE_Color) {
-				FW_GL_COLOR_POINTER (3,GL_FLOAT,0,cc->color.p);
+				FW_GL_COLOR_POINTER (3,GL_FLOAT,0,(float *)cc->color.p);
 			} else {
-				FW_GL_COLOR_POINTER (4,GL_FLOAT,0,cc->color.p);
+				FW_GL_COLOR_POINTER (4,GL_FLOAT,0,(float *)cc->color.p);
 			}
 		} else {
 			DO_COLOUR_POINTER
 		}
 		points = getCoordinate(node->coord, "LineSet");
 
-		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,points->p);
+		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(float *)points->p);
 
 		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
 		indices = node->__vertIndx;
