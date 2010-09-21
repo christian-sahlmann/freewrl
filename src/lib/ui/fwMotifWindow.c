@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.19 2010/07/08 15:27:01 istakenv Exp $
+  $Id: fwMotifWindow.c,v 1.20 2010/09/21 15:11:36 crc_canada Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -108,7 +108,7 @@ Widget consoleTextArea;
 Widget consoleTextWidget;
 Widget about_widget;
 Widget newFileWidget;
-Widget tex128_button, tex256_button, texFull_button, texturesFirstButton, shapeThreadButton;
+Widget tex128_button, tex256_button, texFull_button, texturesFirstButton;
 
 /* colour selection for default background */
 Widget backgroundColourSelector[colourWhite+1];
@@ -791,24 +791,26 @@ void createPreferencesPulldown()
     myXtManageChild (16,texturesFirstButton);
     XmToggleButtonSetState (texturesFirstButton, localtexpri, FALSE);
 
-    /* texture, shape compiling  */
-    myXtManageChild(15,XmCreateSeparator (menupane, "sep1", NULL, 0));
+#ifdef OLDCODE
+// JAS     /* texture, shape compiling  */
+// JAS     myXtManageChild(15,XmCreateSeparator (menupane, "sep1", NULL, 0));
 
-    /* what things can we NOT do if we dont have threads? */
-#ifndef DO_MULTI_OPENGL_THREADS
-    XtSetArg (buttonArgs[buttonArgc], XmNsensitive, FALSE);  buttonArgc++;
-#endif
-    shapeThreadButton = XtCreateManagedWidget("Shape maker uses thread",
-                                              xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-    XtAddCallback(shapeThreadButton, XmNvalueChangedCallback, 
-                  (XtCallbackProc)shapeMaker, NULL);
-#ifndef DO_MULTI_OPENGL_THREADS
-    buttonArgc--;
-#endif
-    myXtManageChild (17,shapeThreadButton);
+// JAS     /* what things can we NOT do if we dont have threads? */
+// JAS #ifndef DO_MULTI_OPENGL_THREADS
+// JAS     XtSetArg (buttonArgs[buttonArgc], XmNsensitive, FALSE);  buttonArgc++;
+// JAS #endif
+// JAS     shapeThreadButton = XtCreateManagedWidget("Shape maker uses thread",
+// JAS                                               xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
+// JAS     XtAddCallback(shapeThreadButton, XmNvalueChangedCallback, 
+// JAS                   (XtCallbackProc)shapeMaker, NULL);
+// JAS #ifndef DO_MULTI_OPENGL_THREADS
+// JAS     buttonArgc--;
+// JAS #endif
+    //JAS myXtManageChild (17,shapeThreadButton);
 
-#ifdef DO_MULTI_OPENGL_THREADS
-    XmToggleButtonSetState (shapeThreadButton, localshapepri, FALSE);
+// JAS #ifdef DO_MULTI_OPENGL_THREADS
+// JAS     XmToggleButtonSetState (shapeThreadButton, localshapepri, FALSE);
+// JAS #endif
 #endif
         
     XtSetArg (args[0], XmNsubMenuId, menupane);
@@ -956,9 +958,6 @@ void setConsoleMessage (char *str)
         }
                 
         /* put the text here */
-#ifdef DO_MULTI_OPENGL_THREADS
-        XmTextInsert (consoleTextArea, strlen(XmTextGetString(consoleTextArea)),str);
-#else
         nl = strlen(str);
         tptr = MALLOC (nl+10);
         strcpy (tptr,str);
@@ -967,7 +966,6 @@ void setConsoleMessage (char *str)
         FREE_IF_NZ (consMsg);
         consMsg = tptr;
         consmsgChanged = TRUE;
-#endif
     }
 }
 
@@ -1003,62 +1001,6 @@ void frontendUpdateButtons()
     }
 }
 
-/* void setMenuButton_collision (int val) */
-/* { */
-/* #ifdef DO_MULTI_OPENGL_THREADS */
-/*     XmToggleButtonSetState (collisionButton,val,FALSE); */
-/* #else */
-/*     colbut = val; */
-/*     colbutChanged = TRUE; */
-                
-/* #endif */
-/* } */
-
-/* void setMenuButton_headlight (int val) */
-/* { */
-/* #ifdef DO_MULTI_OPENGL_THREADS */
-/*     XmToggleButtonSetState (headlightButton,val,FALSE); */
-/* #else */
-/*     headbut = val; */
-/*     headbutChanged = TRUE; */
-                
-/* #endif */
-/* } */
-
-/* void setMenuButton_navModes (int type) */
-/* { */
-/*     fl = FALSE; ex = FALSE; wa = FALSE; */
-/*     switch(type) { */
-/*     case VIEWER_NONE: break; */
-/*     case VIEWER_EXAMINE: ex = TRUE; break; */
-/*     case VIEWER_WALK: wa = TRUE; break; */
-/*     case VIEWER_FLY: fl = TRUE; break; */
-/*     default: break; */
-/*     } */
-/* #ifdef DO_MULTI_OPENGL_THREADS */
-/*     XmToggleButtonSetState (walkButton,wa,FALSE); */
-/*     XmToggleButtonSetState (flyButton,fl,FALSE); */
-/*     XmToggleButtonSetState (examineButton,ex,FALSE); */
-/* #else */
-/*     navbutChanged = TRUE; */
-/* #endif */
-/* } */
-
-/* void setMenuButton_texSize (int size) */
-/* { */
-/*     int val; */
-/*     /\* this is called from the texture thread, so there is not a threading problem here *\/ */
-/*     val = FALSE; */
-/*     /\* set all thread buttons to FALSE *\/ */
-/*     XmToggleButtonSetState (tex128_button, val, FALSE); */
-/*     XmToggleButtonSetState (tex256_button, val, FALSE); */
-/*     XmToggleButtonSetState (texFull_button, val, FALSE); */
-/*     val = TRUE; */
-/*     if (size <= 128) {XmToggleButtonSetState (tex128_button, val, FALSE); */
-/*     } else if (size <=256) {XmToggleButtonSetState (tex256_button, val, FALSE); */
-/*     } else {XmToggleButtonSetState (texFull_button, val, FALSE); } */
-/* } */
-
 #if defined(STATUSBAR_STD)
 void setMessageBar()
 {   
@@ -1075,11 +1017,7 @@ void setMessageBar()
         } else {
             sprintf (fpsstr,"fps: %4.1f Viewpoint: %s",myFps,myMenuStatus);
         }
-#ifdef DO_MULTI_OPENGL_THREADS
-        XmTextSetString(menumessagewindow,fpsstr);
-#else
         msgChanged = TRUE;
-#endif
     }
 
 }

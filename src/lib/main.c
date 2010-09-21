@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.36 2010/08/23 14:24:33 crc_canada Exp $
+  $Id: main.c,v 1.37 2010/09/21 15:11:36 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -255,10 +255,6 @@ bool initFreeWRL(freewrl_params_t *params)
 	   to complete initialization */
 	initializeDisplayThread();
 	
-	/* shape compiler thread - if we can do this */
-#ifdef DO_MULTI_OPENGL_THREADS
-	initializeShapeCompileThread();
-#endif
 	initializeInputParseThread();
 	while (!isInputThreadInitialized()) {
 		usleep(50);

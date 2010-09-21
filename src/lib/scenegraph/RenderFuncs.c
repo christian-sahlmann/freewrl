@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.62 2010/09/16 18:32:58 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.63 2010/09/21 15:11:36 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -362,9 +362,6 @@ int last_texture_type = NOTEXTURE;
 int sound_from_audioclip = 0;
 
 int textures_take_priority = TRUE;
-#ifdef DO_MULTI_OPENGL_THREADS
-int useShapeThreadIfPossible = TRUE;
-#endif
 
 /* for printing warnings about Sound node problems - only print once per invocation */
 int soundWarned = FALSE;

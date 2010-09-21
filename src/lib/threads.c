@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.18 2010/08/23 14:24:33 crc_canada Exp $
+  $Id: threads.c,v 1.19 2010/09/21 15:11:36 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -195,11 +195,6 @@ int fw_thread_id()
 
 	if (pthread_equal(current_thread, loadThread))
 		return FREEWRL_THREAD_TEXTURE;
-
-#ifdef DO_MULTI_OPENGL_THREADS
-	if (pthread_equal(current_thread, shapeThread))
-		return FREEWRL_THREAD_SHAPE;
-#endif
 
 /*#endif*/
 	return -1;

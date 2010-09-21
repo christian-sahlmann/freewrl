@@ -1,5 +1,5 @@
 /*
-  $Id: fwCommonX11.c,v 1.4 2009/12/31 10:40:52 couannette Exp $
+  $Id: fwCommonX11.c,v 1.5 2010/09/21 15:11:36 crc_canada Exp $
 
   FreeWRL support library.
   X11 common functions.
@@ -282,10 +282,6 @@ bool create_GLcontext()
 
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
 
-#ifdef DO_MULTI_OPENGL_THREADS
-	direct_rendering = FALSE;
-#endif
-
 	GLcx = glXCreateContext(Xdpy, Xvi, NULL, direct_rendering);
 	if (!GLcx) {
 		ERROR_MSG("can't create OpenGL context.\n");
@@ -294,7 +290,6 @@ bool create_GLcontext()
 	if (glXIsDirect(Xdpy, GLcx)) {
 		TRACE_MSG("glX: direct rendering enabled\n");
 	}
-#endif
 	return TRUE;
 }
 

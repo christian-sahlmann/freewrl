@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.98 2010/09/20 00:34:17 dug9 Exp $
+  $Id: display.h,v 1.99 2010/09/21 15:11:36 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -237,13 +237,6 @@ extern int PaneClipcl;
 extern int PaneClipwidth;
 extern int PaneClipheight;
 extern int PaneClipChanged;
-
-# if defined(WANT_MULTI_OPENGL_THREADS)
-/* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
-   blows plugins out of the water, because of the XLib threaded call in FrontEnd
-   not working that well... */
-#undef DO_MULTI_OPENGL_THREADS
-#endif
 
 #include "OpenGL/glu.h"
 #endif

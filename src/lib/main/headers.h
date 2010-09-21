@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.129 2010/09/08 19:06:47 crc_canada Exp $
+$Id: headers.h,v 1.130 2010/09/21 15:11:36 crc_canada Exp $
 
 Global includes.
 
@@ -590,8 +590,6 @@ extern int textures_take_priority;
 void setTextures_take_priority (int x);
 extern int useExperimentalParser;
 void setUseCParser (int x);
-extern int useShapeThreadIfPossible;
-void setUseShapeThreadIfPossible(int x);
 
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 

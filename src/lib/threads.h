@@ -1,5 +1,5 @@
 /*
-  $Id: threads.h,v 1.8 2010/07/12 13:56:07 crc_canada Exp $
+  $Id: threads.h,v 1.9 2010/09/21 15:11:36 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -60,17 +60,10 @@ int freewrlSystem(const char *string);
 #define FREEWRL_THREAD_PARSER 3
 #define FREEWRL_THREAD_TEXTURE 4
 
-#ifdef DO_MULTI_OPENGL_THREADS
-#define FREEWRL_THREAD_SHAPE 5
-#endif
-
 extern pthread_t mainThread; /* main (default) thread */
 extern pthread_t DispThrd;   /* display thread */
 extern pthread_t PCthread;   /* parser thread */
 extern pthread_t loadThread; /* texture thread */
-#ifdef DO_MULTI_OPENGL_THREADS
-extern pthread_t shapeThread; /* shape (geometry) thread */
-#endif
 
 /**
  *   Gather here all functions that create threads 

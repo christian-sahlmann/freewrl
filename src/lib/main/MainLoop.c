@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.142 2010/09/20 00:34:18 dug9 Exp $
+  $Id: MainLoop.c,v 1.143 2010/09/21 15:11:36 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1762,9 +1762,7 @@ void setLineWidth(float lwidth) {
 }
 
 void setUseShapeThreadIfPossible(int x) {
-#ifdef DO_MULTI_OPENGL_THREADS
-	useShapeThreadIfPossible = x;
-#endif
+/* this is now unused, and call should be removed from front ends */
 }
 
 void setTextures_take_priority (int x) {
