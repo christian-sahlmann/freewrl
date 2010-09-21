@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.63 2010/09/21 15:11:36 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.64 2010/09/21 15:21:19 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -360,8 +360,6 @@ int last_texture_type = NOTEXTURE;
 /* Sounds can come from AudioClip nodes, or from MovieTexture nodes. Different
    structures on these */
 int sound_from_audioclip = 0;
-
-int textures_take_priority = TRUE;
 
 /* for printing warnings about Sound node problems - only print once per invocation */
 int soundWarned = FALSE;
@@ -873,27 +871,6 @@ render_hier(struct X3D_Node *p, int rwhat) {
 		printf ("render_geom status %f ray %f geom %f\n",bb-aa, cc-bb, dd-cc);
 	}
 #endif
-
-
-	/*get viewpoint result, only for upvector Jan16,2010 not needed now - gravity recomputed in mainloop.c render_collisions on each frame*/
-//	if (render_vp &&
-//	    ViewerUpvector.x == 0 &&
-//	    ViewerUpvector.y == 0 &&
-//	    ViewerUpvector.z == 0) {
-//
-//		/* store up vector for gravity and collision detection for component_grouping/compnent_geospatial #ifdef COLLISIONTRANSFORM
-//			see also mainloop.c render_collisions() which computes gravity matrix for regular collision and terrain following */
-//		/* naviinfo.reset_upvec is set to 1 after a viewpoint change */
-//		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-//		matinverse(modelMatrix,modelMatrix);
-//		transform3x3(&ViewerUpvector,&upvec,modelMatrix); 
-//		printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
-//		
-//#ifdef RENDERVERBOSE 
-//		printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
-//#endif
-//
-//	}
 }
 
 
@@ -905,15 +882,6 @@ render_hier(struct X3D_Node *p, int rwhat) {
 
 void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *Icoord, void *Icolor, void *Inormal, void *ItexCoord) {
 	void *coord; void *color; void *normal; void *texCoord;
-	/* check to see if textures are being parsed right now */
-
-	/* give textures priority over node compiling */
-	if (textures_take_priority) {
-		if (isTextureParsing()==TRUE) {
-			/* printf ("compileNode, textures parsing, returning\n"); */
-			return;
-		}
-	}
 
 	/* are any of these SFNodes PROTOS? If so, get the underlying real node, as PROTOS are handled like Groups. */
 	POSSIBLE_PROTO_EXPANSION(Icoord,coord)

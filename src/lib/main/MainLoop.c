@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.143 2010/09/21 15:11:36 crc_canada Exp $
+  $Id: MainLoop.c,v 1.144 2010/09/21 15:21:18 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1766,7 +1766,7 @@ void setUseShapeThreadIfPossible(int x) {
 }
 
 void setTextures_take_priority (int x) {
-        textures_take_priority = x;
+/* this is now unused, and call should be removed from front ends */
 }
 
 /* set the opengl_has_textureSize. Expect a number that is 0 - use max, or negative. eg,
