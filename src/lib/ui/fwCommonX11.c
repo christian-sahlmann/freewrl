@@ -1,5 +1,5 @@
 /*
-  $Id: fwCommonX11.c,v 1.5 2010/09/21 15:11:36 crc_canada Exp $
+  $Id: fwCommonX11.c,v 1.6 2010/09/21 16:16:05 istakenv Exp $
 
   FreeWRL support library.
   X11 common functions.
@@ -290,6 +290,7 @@ bool create_GLcontext()
 	if (glXIsDirect(Xdpy, GLcx)) {
 		TRACE_MSG("glX: direct rendering enabled\n");
 	}
+#endif
 	return TRUE;
 }
 
