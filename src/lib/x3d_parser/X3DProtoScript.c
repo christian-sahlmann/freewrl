@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.62 2010/08/19 02:20:36 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.63 2010/09/22 16:54:59 crc_canada Exp $
 
 ???
 
@@ -104,7 +104,7 @@ struct PROTOnameStruct {
 };
 static struct PROTOnameStruct *PROTONames = NULL;
 
-//#ifdef X3DPARSERVERBOSE
+#ifdef X3DPARSERVERBOSE
 static const char *parserModeStrings[] = {
                 "unused",
                 "PARSING_NODES",
@@ -117,7 +117,7 @@ static const char *parserModeStrings[] = {
                 "PARSING_CONNECT",
                 "PARSING_EXTERNPROTODECLARE",
                 "unused high"};
-//#endif
+#endif
 
 
 /****************************** PROTOS ***************************************************/
@@ -437,7 +437,9 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 	nfInd=INT_ID_UNDEFINED;
 	pfInd=INT_ID_UNDEFINED;
 
-	/* printf ("\nparseConnect mode is %s\n",parserModeStrings[getParserMode()]);  */
+	#ifdef X3DPARSERVERBOSE
+	printf ("\nparseConnect mode is %s\n",parserModeStrings[getParserMode()]); 
+	#endif
 
 	if (getParserMode() != PARSING_IS) {
 		ConsoleMessage ("parseConnect: got a <connect> but not in a Proto Expansion at line %d",LINE);
@@ -592,8 +594,9 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 }
 
 void endConnect() {
-	/* printf ("endConnect mode is %s\n",parserModeStrings[getParserMode()]);  */
-	//setParserMode(PARSING_NODES);
+	#ifdef X3DPARSERVERBOSE
+	printf ("endConnect mode is %s\n",parserModeStrings[getParserMode()]);
+	#endif
 	popParserMode();
 }
 
@@ -614,9 +617,6 @@ typedef struct fieldNodeState
 }fieldNodeState;
 static struct fieldNodeState fieldNodeParsingStateA[PROTOINSTANCE_MAX_LEVELS]; 
 static struct fieldNodeState fieldNodeParsingStateB[PARENTSTACKSIZE];
-void setChildAttributes(int index,void *ptr);
-void *getChildAttributes(index);
-void deleteChildAttributes(index);
 
 void parseProtoInstanceFields(const char *name, const char **atts) {
 	int count;
@@ -722,11 +722,9 @@ void endProtoInstanceFieldTypeNode(const char *name)
 	{
 		#define INDEX ProtoInstanceTable[curProtoInsStackInd].paircount	
 
-		struct X3D_Node * kids;
 		DECREMENT_PARENTINDEX; //parentIndex--;
 		if(X3D_GROUP(fieldNodeParsingStateA[curProtoInsStackInd].fieldHolder)->children.n > 0)
 		{ 
-			char *myValue;
 			union anyVrml v;
 			int n; 
 			int j;
@@ -1198,7 +1196,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	char *tmpf;
 	FILE *fileDescriptor;
 	int fdl;
-	int readSizeThrowAway;
+	size_t readSizeThrowAway;
 	char uniqueIDstring[20];
 
 
@@ -1950,7 +1948,6 @@ void endScriptProtoField()
 	///BIGPOP 
 	if(fieldNodeParsingStateB[parentIndex-1].parsingMFSFNode == 1)
 	{
-		struct X3D_Node * kids;
 		DECREMENT_PARENTINDEX //parentIndex--;
         if(X3D_GROUP(fieldNodeParsingStateB[parentIndex].fieldHolder)->children.n > 0)
 		{ 
@@ -2080,8 +2077,6 @@ void endExternProtoDeclare(void) {
 	char *buffer;
 	int foundOk;
 	resource_item_t *res;
-	int i;
-	char *emptyString = NULL;
 
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE

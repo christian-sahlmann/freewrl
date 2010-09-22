@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.148 2010/09/16 15:48:42 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.149 2010/09/22 16:54:59 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -777,7 +777,7 @@ static int projectionviewTOS = 0;
 static int textureviewTOS = 0;
 
 static int whichMode = GL_MODELVIEW;
-static double *currentMatrix = FW_ModelView;
+static double *currentMatrix = FW_ModelView[0];
 
 
 void fw_glMatrixMode(GLint mode) {
@@ -795,9 +795,9 @@ void fw_glMatrixMode(GLint mode) {
 	
 	glMatrixMode(mode); /* JAS - tell OpenGL what the current matrix mode is */
 	switch (whichMode) {
-		case GL_PROJECTION: currentMatrix = &FW_ProjectionView[projectionviewTOS]; break;
-		case GL_MODELVIEW: currentMatrix = &FW_ModelView[modelviewTOS]; break;
-		case GL_TEXTURE: currentMatrix = &FW_TextureView[textureviewTOS]; break;
+		case GL_PROJECTION: currentMatrix = (double *) &FW_ProjectionView[projectionviewTOS]; break;
+		case GL_MODELVIEW: currentMatrix = (double *) &FW_ModelView[modelviewTOS]; break;
+		case GL_TEXTURE: currentMatrix = (double *) &FW_TextureView[textureviewTOS]; break;
 		default: printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",whichMode, GL_PROJECTION,GL_MODELVIEW,GL_TEXTURE);
 	}
 
@@ -1349,9 +1349,6 @@ void zeroVisibilityFlag(void) {
 #define ANCHOR_SENSITIVE(thistype) \
 			/* make THIS Sensitive - most nodes make the parents sensitive, Anchors have children...*/ \
 			anchorPtr = (struct X3D_Anchor *)node;
-#ifdef xxx
-			nParents = ((struct X3D_Anchor *)node)->children.n; pp = ((struct X3D_Anchor *)node)->children.p; 
-#endif
 
 #ifdef VIEWPOINT
 #undef VIEWPOINT /* defined for the EAI,SAI, does not concern us uere */
@@ -1950,7 +1947,8 @@ void markForDispose(struct X3D_Node *node, int recursive){
 
 	if (recursive) {
 
-	fieldOffsetsPtr = NODE_OFFSETS[node->_nodeType];
+	/* cast a "const int" to an "int" */
+	fieldOffsetsPtr = (int*) NODE_OFFSETS[node->_nodeType];
 	/*go thru all field*/				
 	while (*fieldOffsetsPtr != -1) {
 		fieldPtr = offsetPointer_deref(char *, node,*(fieldOffsetsPtr+1));
@@ -2494,10 +2492,6 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 	GLDOUBLE ndp[16];
 	GLDOUBLE ndp2[16];
 
-int i, method;
-double xxx[16];
-double yyy[16];
-    GLdouble m[16];
 
 
 	ymax = zNear * tan(fovy * M_PI / 360.0);
@@ -2521,15 +2515,19 @@ double yyy[16];
 
 	//printmatrix2(ndp,"ndp = ndp2*dp");
 
-	method = 1;
-	if(method==1) {
+	/* method = 1; */
+	#define TRY_PERSPECTIVE_METHOD_1
+	#ifdef TRY_PERSPECTIVE_METHOD_1
 	  	FW_GL_LOADMATRIXD(ndp);
 		/* put the matrix back on our matrix stack */
 		memcpy (FW_ProjectionView[projectionviewTOS],ndp,16*sizeof (GLdouble));
-	}
+	#endif
 
+
+	#ifdef TRY_PERSPECTIVE_METHOD_2
 /* testing... */
 {
+	GLdouble m[16];
     double sine, cotangent, deltaZ;
     double radians = fovy / 2.0 * M_PI / 180.0;
 
@@ -2554,7 +2552,12 @@ double yyy[16];
 
     //glMultMatrixd(&m[0][0]);
 }
+	#endif
 
+
+	#ifdef TRY_PERSPECTIVE_METHOD_3
+	{
+	double yyy[16];
 //printf ("fw_gluPerspective, have...\n");
 
 	if(method==3)
@@ -2567,6 +2570,8 @@ double yyy[16];
 	//for (i=0; i<16;i++) {printf ("%d orig: %5.2lf myPup: %5.2lf gluP: %5.2lf mesa %5.2lf\n",i,dp[i],
 	//	ndp[i],yyy[i],m[i]); 
 	//}
+	}
+	#endif
 
 }
 

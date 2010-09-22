@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.21 2010/08/03 19:41:12 crc_canada Exp $
+$Id: X3DParser.h,v 1.22 2010/09/22 16:54:59 crc_canada Exp $
 
 X3D parser functions.
 
@@ -122,5 +122,10 @@ struct X3D_Node *X3DParser_getNodeFromName(const char *name);
 int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, struct Shader_Script **myObj, char *name, int routeTo);
  
 char *X3DParser_getNameFromNode(struct X3D_Node* myNode);
+
+void setChildAttributes(int index,void *ptr);
+void *getChildAttributes(int index);
+void deleteChildAttributes(int index);
+
 
 #endif /*  __FREEWRL_X3D_PARSER_H__ */

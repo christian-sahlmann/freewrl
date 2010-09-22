@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.74 2010/08/19 02:20:36 crc_canada Exp $
+$Id: X3DParser.c,v 1.75 2010/09/22 16:54:59 crc_canada Exp $
 
 ???
 
@@ -75,11 +75,11 @@ void setChildAttributes(int index,void *ptr)
 {
 	childAttributes[index] = ptr;
 }
-void *getChildAttributes(index)
+void *getChildAttributes(int index)
 {
 	return childAttributes[index];
 }
-void deleteChildAttributes(index)
+void deleteChildAttributes(int index)
 {
 	deleteVector (struct nameValuePairs*, childAttributes[index]);
 }
@@ -105,7 +105,7 @@ static int in3_3_fieldIndex = INT_ID_UNDEFINED;
 int parentIndex = -1;
 struct X3D_Node *parentStack[PARENTSTACKSIZE];
 
-//#ifdef X3DPARSERVERBOSE
+#ifdef X3DPARSERVERBOSE
 static const char *parserModeStrings[] = {
 		"unused",
 		"PARSING_NODES",
@@ -118,7 +118,7 @@ static const char *parserModeStrings[] = {
 		"PARSING_CONNECT",
 		"PARSING_EXTERNPROTODECLARE",
 		"unused high"};
-//#endif
+#endif
 		
 //int currentParserMode = PARSING_NODES;
 
@@ -1066,8 +1066,9 @@ static void parseFieldValue(const char *name, const char **atts) {
 
 
 static void parseIS() {
-	/* printf ("parseIS mode is %s\n",parserModeStrings[getParserMode()]); */ 
-	//setParserMode(PARSING_IS);
+	#ifdef X3DPARSERVERBOSE
+	printf ("parseIS mode is %s\n",parserModeStrings[getParserMode()]); 
+	#endif
 	pushParserMode(PARSING_IS);
 
 }
@@ -1075,8 +1076,9 @@ static void parseIS() {
 
 
 static void endIS() {
-	/* printf ("endIS mode is %s\n",parserModeStrings[getParserMode()]);  */
-	//setParserMode(PARSING_NODES);
+	#ifdef X3DPARSERVERBOSE
+	printf ("endIS mode is %s\n",parserModeStrings[getParserMode()]); 
+	#endif
 	popParserMode();
 }
 
@@ -1093,7 +1095,11 @@ static void endProtoInterfaceTag() {
 
 static void endProtoBodyTag(const char *name) {
 	/* ending <ProtoBody> */
-	/* printf ("endProtoBody, mode is %s\n",parserModeStrings[getParserMode()]); */
+	
+	#ifdef X3DPARSERVERBOSE
+	printf ("endProtoBody, mode is %s\n",parserModeStrings[getParserMode()]);
+	#endif
+
 	if (getParserMode() != PARSING_PROTOBODY) {
 		ConsoleMessage ("endProtoBodyTag: got a </ProtoBody> but not parsing one at line %d",LINE);
 	}
@@ -1567,7 +1573,9 @@ static void parseAttributes(void) {
 static void XMLCALL startElement(void *unused, const char *name, const char **atts) {
 	int myNodeIndex;
 
-	DEBUG_X3DPARSER ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]);
+	#ifdef X3DPARSERVERBOSE
+	printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]);
+	#endif
 
 
 	/* are we storing a PROTO body?? */
@@ -1631,7 +1639,9 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	int myNodeIndex;
 
 
-	DEBUG_X3DPARSER ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]); 
+	#ifdef X3DPARSERVERBOSE
+	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]); 
+	#endif
 
 	/* are we storing a PROTO body?? */
 	if (getParserMode() == PARSING_PROTOBODY) {
