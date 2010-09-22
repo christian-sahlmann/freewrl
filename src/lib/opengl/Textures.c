@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.72 2010/09/20 00:34:18 dug9 Exp $
+  $Id: Textures.c,v 1.73 2010/09/22 13:20:22 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -50,7 +50,7 @@
 #include "../world_script/fieldSet.h"
 #include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/Component_CubeMapTexturing.h"
-
+#include "../scenegraph/RenderFuncs.h"
 #include "LoadTextures.h"
 
 #ifdef AQUA

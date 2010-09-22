@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.20 2010/08/09 19:02:07 dug9 Exp $
+$Id: Component_KeyDevice.c,v 1.21 2010/09/22 13:20:22 crc_canada Exp $
 
 X3D Key Device Component
 
@@ -215,7 +215,7 @@ ALT,CTRL,SHIFT true/false
 #define DEL_KEY 33
 #define RTN_KEY 13
 
-char platform2web3dActionKey(char platformKey)
+static char platform2web3dActionKey(int platformKey)
 {
 	int key;
 
@@ -487,7 +487,6 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 		}
 	} else {
 		if ((key != RTN_KEY) && (actionKey != DEL_KEY) && (MYN->enteredText->len < MAXSTRINGLEN-1)) {
-			char *mystr = MYN->enteredText->strptr;
 			MYN->enteredText->strptr[MYN->enteredText->len-1] = (char)key;
 			MYN->enteredText->strptr[MYN->enteredText->len] = '\0';
 			MYN->enteredText->len++;

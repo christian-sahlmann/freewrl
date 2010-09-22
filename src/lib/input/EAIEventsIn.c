@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.63 2010/09/04 12:19:14 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.64 2010/09/22 13:20:22 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -39,7 +39,7 @@ Handle incoming EAI (and java class) events with panache.
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../vrml_parser/CParseLexer.h"
-
+#include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
 #include "../world_script/JScript.h"
@@ -65,7 +65,7 @@ Handle incoming EAI (and java class) events with panache.
 struct X3D_Anchor EAI_AnchorNode;
 int waiting_for_anchor = FALSE;
 
-static void makeFIELDDEFret(uintptr_t,int c);
+static void makeFIELDDEFret(int, int);
 static void handleRoute (char command, char *bufptr, int repno);
 static void handleGETNODE (char *bufptr, int repno);
 static void handleGETROUTES (char *bufptr, int repno);
@@ -101,10 +101,9 @@ void EAI_parse_commands () {
 
 	int count;
 	char command;
-	uintptr_t cNode;
 	uintptr_t bufPtr;		/* where we are in the EAI input buffer */
 	
-	int_t ra,rb,rd;	/* temps*/
+	int ra,rb,rd;	/* temps*/
 	uintptr_t rc;
 	int tmp_a, tmp_b, tmp_c;
 
@@ -223,12 +222,9 @@ void EAI_parse_commands () {
 			}
 
 			case GETNODETYPE: {
-				retint = sscanf(&EAI_BUFFER_CUR,"%d",(int *)(&cNode));
+				int cNode;
+				retint = sscanf(&EAI_BUFFER_CUR,"%d",(&cNode));
 				if (cNode != 0) {
-					/*
-					boxptr = X3D_NODE(cNode);
-					printf("Code using boxptr is suspect. %s,%d : cNode=%d -> boxptr=%d",__FILE__,__LINE__,cNode,boxptr) ;
-					*/
         				boxptr = getEAINodeFromTable(cNode,-1);
 					sprintf (outBuffer,"RE\n%f\n%d\n%d",TickTime,count,getSAI_X3DNodeType (
 						boxptr->_nodeType));
@@ -250,10 +246,7 @@ void EAI_parse_commands () {
 					printf ("GETFIELDTYPE cptr %d %s %s\n",xtmp, ctmp, dtmp);
 				}	
 
-				/* convert this to 64 bit, if required */
-				cNode = (uintptr_t) xtmp;
-
-				EAI_GetType (cNode, ctmp, dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
+				EAI_GetType (xtmp, ctmp, dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
 				sprintf (outBuffer,"RE\n%lf\n%d\n%d %d %d %c %d %s",TickTime,count,(int)ra,(int)rb,(int)rc,(int)rd,
 						scripttype,stringKeywordType(xxx));
 				break;
@@ -359,7 +352,7 @@ void EAI_parse_commands () {
 
 				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
 
-				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %d",(int_t *)&ra,(int_t *)&rb,ctmp,(uintptr_t *)&rc);
+				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %d",&ra,&rb,ctmp,&rc);
 
 				node = getEAINodeFromTable(ra,rb);
 				address = getEAIMemoryPointer (ra,rb);
@@ -582,7 +575,7 @@ void EAI_parse_commands () {
 
 			case GETFIELDDEFS: {
 				/* get a list of fields of this node */
-				sscanf (&EAI_BUFFER_CUR,"%u",(unsigned int *) &ra);
+				sscanf (&EAI_BUFFER_CUR,"%d",&ra);
 				makeFIELDDEFret(ra,count);
 				break;
 				}
@@ -649,9 +642,9 @@ static void handleGETROUTES (char *bufptr, int repno) {
 	for (count = 1; count < (numRoutes-1); count++) {
 		getSpecificRoute (count,&fromNode, &fromOffset, &toNode, &toOffset);
 
-		sprintf (ctmp, "%u %s %u %s ",(unsigned int) fromNode,
+		sprintf (ctmp, "%p %s %p %s ",fromNode,
 			findFIELDNAMESfromNodeOffset(fromNode,fromOffset),
-			(unsigned int) toNode,
+			toNode,
 			findFIELDNAMESfromNodeOffset(toNode,toOffset)
 			);
 		outBufferCat(ctmp);
@@ -851,7 +844,7 @@ static void handleRoute (char command, char *bufptr, int repno) {
 
 /* for a GetFieldTypes command for a node, we return a string giving the field types */
 
-static void makeFIELDDEFret(uintptr_t myptr, int repno) {
+static void makeFIELDDEFret(int myptr, int repno) {
 	struct X3D_Node *boxptr;
 	int myc;
 	int *np;

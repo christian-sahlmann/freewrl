@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.18 2010/09/20 00:34:18 dug9 Exp $
+$Id: Material.c,v 1.19 2010/09/22 13:20:22 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -67,7 +67,7 @@ void do_shininess (GLenum face, float shininess) {
 }
 void fwAnaglyphRemapf(float *r2, float *g2, float* b2, float r, float g, float b)
 {
-	float gray = .299*r + .587*g + .114*b;
+	float gray = .299F*r + .587F*g + .114F*b;
 	*r2 = *g2 = *b2 = gray;
 }
 void fwAnaglyphremapRgbav(unsigned char *rgba,int y,int x)
@@ -108,7 +108,7 @@ void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 			case GL_EMISSION:
 				{
 					float gray, p2[4];
-					gray = .299*params[0] + .587*params[1] + .114*params[2];
+					gray = .299F*params[0] + .587F*params[1] + .114F*params[2];
 					p2[0] = p2[1] = p2[2] = gray;
 					p2[3] = params[3];
 					//fwColorRemapf(&p2[0],&p2[1],&p2[2],params[0],params[1],params[2]);
@@ -127,7 +127,7 @@ void fwglColor3fv(float *color)
 	{
 		float gray, ccc[3];
 		memcpy(ccc,color,3*sizeof(float));
-		gray = ccc[0]*.299 + ccc[1]*.587 + ccc[2]*.144;
+		gray = ccc[0]*.299F + ccc[1]*.587F + ccc[2]*.144F;
 		ccc[0] = ccc[1] = ccc[2] = gray;
 		glColor3fv(ccc);
 	}
@@ -140,7 +140,7 @@ void fwglColor4fv(float *rgba)
 	{
 		float gray, ccc[4];
 		memcpy(ccc,rgba,4*sizeof(float));
-		gray = ccc[0]*.299 + ccc[1]*.587 + ccc[2]*.144;
+		gray = ccc[0]*.299F + ccc[1]*.587F + ccc[2]*.144F;
 		ccc[0] = ccc[1] = ccc[2] = gray;
 		glColor4fv(ccc);
 	}
