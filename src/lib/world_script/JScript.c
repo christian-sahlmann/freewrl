@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.27 2010/07/29 01:05:52 dug9 Exp $
+$Id: JScript.c,v 1.28 2010/09/22 19:40:48 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -634,7 +634,7 @@ void SaveScriptField (int num, indexT kind, indexT type, const char* field, unio
 	newEntry->value = value;
 }
 
-char* re_strcat(char *_Dest, char *_Source, int *destLen, int *destDim)
+static char* re_strcat(char *_Dest, char *_Source, int *destLen, int *destDim)
 {
 	/* strcats, but first checks strlen on source and destination
 	   and reallocs if necessary - good when you are doing a lot of strcatting of un-pre-known elements
@@ -655,7 +655,7 @@ char* re_strcat(char *_Dest, char *_Source, int *destLen, int *destDim)
 		...
 		FREE_IF_NZ(smallfield)
 	*/
-	int srclen = strlen(_Source);
+	int srclen = (int) strlen(_Source);
 	*destLen = *destLen + srclen;
 	if(*destLen > *destDim -1)
 	{
@@ -960,7 +960,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 				/* is this an MF variable, with SFs in it? */
 				if (haveMulti) {
 					smallfield = re_strcat(smallfield, "new ",&dstlen,&dstdim);
-					smallfield = re_strcat(smallfield, FIELDTYPES[type],&dstlen,&dstdim);
+					smallfield = re_strcat(smallfield, (char *)FIELDTYPES[type],&dstlen,&dstdim);
 					smallfield = re_strcat(smallfield, "(",&dstlen,&dstdim);
 				}
 
@@ -985,7 +985,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 							sptr[0] = *SVPtr; SVPtr++;
 							if(strlen(sptr[0]->strptr)+2 > tdim-1)
 							{	
-								tdim = strlen(sptr[0]->strptr) + 1 + 100;
+								tdim = (int) strlen(sptr[0]->strptr) + 1 + 100;
 								thisValue = realloc(thisValue,tdim);
 							}
 							sprintf (thisValue,"\"%s\"",sptr[0]->strptr);

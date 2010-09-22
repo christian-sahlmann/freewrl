@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.32 2010/06/03 19:38:37 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.33 2010/09/22 19:40:48 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -257,8 +257,7 @@ SFColorAssign(JSContext *cx, JSObject *obj,
         return JS_FALSE;
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorAssign: obj = %u, id = \"%s\", from = %u\n",
-			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
+		printf("SFColorAssign: obj = %p, id = \"%s\", from = %p\n", obj, _id_str, _from_obj);
 	#endif
 
     SFColorNativeAssign(ptr, fptr);
@@ -304,8 +303,8 @@ SFColorConstr(JSContext *cx, JSObject *obj,
 		return JS_FALSE;
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorConstr: obj = %u, %u args, %f %f %f\n",
-			   VERBOSE_OBJ obj, argc,
+		printf("SFColorConstr: obj = %p args, %f %f %f\n",
+			   obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
 	
@@ -376,8 +375,8 @@ SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	}
 	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorSetProperty: obj = %u, id = %d, valueChanged = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
+		printf("SFColorSetProperty: obj = %p, id = %d, valueChanged = %d\n",
+			   obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &_val)) {
@@ -519,8 +518,8 @@ SFColorRGBAAssign(JSContext *cx, JSObject *obj,
         return JS_FALSE;
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorRGBAAssign: obj = %u, id = \"%s\", from = %u\n",
-			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
+		printf("SFColorRGBAAssign: obj = %p, id = \"%s\", from = %p\n",
+			   obj, _id_str, _from_obj);
 	#endif
 
     SFColorRGBANativeAssign(ptr, fptr);
@@ -573,8 +572,8 @@ SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 	ptr->valueChanged = 1;
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorRGBAConstr: obj = %u, %u args, %f %f %fi %f\n",
-			   VERBOSE_OBJ obj, argc,
+		printf("SFColorRGBAConstr: obj = %p %u args, %f %f %f %f\n",
+			   obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2],(ptr->v).c[3]);
 	#endif
 	*rval = OBJECT_TO_JSVAL(obj);
@@ -651,8 +650,8 @@ SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	}
 	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorRGBASetProperty: obj = %u, id = %d, valueChanged = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
+		printf("SFColorRGBASetProperty: obj = %p, id = %d, valueChanged = %d\n",
+			   obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &_val)) {
@@ -683,7 +682,7 @@ SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 JSBool
 SFImageToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFImageToString: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+		printf("SFImageToString: obj = %p, %u args\n", obj, argc);
 	#endif
 
 	UNUSED(argc);
@@ -694,7 +693,7 @@ SFImageToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 JSBool
 SFImageAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFImageAssign: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+		printf("SFImageAssign: obj = %p, %u args\n", obj, argc);
 	#endif
 
 	return _standardMFAssign (cx, obj, argc, argv, rval, &SFImageClass,FIELDTYPE_SFImage);
@@ -714,7 +713,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	ADD_ROOT(cx,obj)
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFImageConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+		printf("SFImageConstr: obj = %p, %u args\n", obj, argc);
 	#endif
 
 	/* SFImage really only has the valueChanged flag. */
@@ -938,8 +937,8 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 		    return JS_FALSE;
 		}
 		#ifdef JSVRMLCLASSESVERBOSE
-			printf("SFNodeAssign: obj = %u, id = \"%s\", from = %u\n",
-				   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
+			printf("SFNodeAssign: obj = %p, id = \"%s\", from = %p\n",
+				   obj, _id_str, _from_obj);
 		#endif
 	} else { fptr = NULL; }
 
@@ -1130,11 +1129,11 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	#ifdef JSVRMLCLASSESVERBOSE
 	{
 		if (newHandle == NULL) 
-			printf("end of SFNodeConstr: created obj = %u, argc: %u mem ptr: %d (null pointer) text string: %s\n",
-			   VERBOSE_OBJ obj, argc, newHandle, cString);
+			printf("end of SFNodeConstr: created obj = %p, argc: %u mem ptr: %d (null pointer) text string: %s\n",
+			   obj, argc, newHandle, cString);
 		else 
-			printf("end of SFNodeConstr: created obj = %u, argc: %u mem ptr: %u (%s) text string: %s\n",
-			   VERBOSE_OBJ obj, argc, newHandle, stringNodeType(((struct X3D_Node *) newHandle)->_nodeType),cString);
+			printf("end of SFNodeConstr: created obj = %p, argc: %u mem ptr: %u (%s) text string: %s\n",
+			   obj, argc, newHandle, stringNodeType(((struct X3D_Node *) newHandle)->_nodeType),cString);
 	}
 	#endif
 	*rval = OBJECT_TO_JSVAL(obj);
@@ -1150,7 +1149,7 @@ SFNodeFinalize(JSContext *cx, JSObject *obj)
 	SFNodeNative *ptr;
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFNodeFinalize: obj = %u\n", VERBOSE_OBJ obj);
+		printf("SFNodeFinalize: obj = %p\n", obj);
 	#endif
 
 	REMOVE_ROOT(cx,obj)
@@ -1271,8 +1270,8 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	_val_c = JS_GetStringBytes(_valStr);
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFNodeSetProperty: obj = %u, id = %s, vp = %s\n",
-			   VERBOSE_OBJ obj, _id_c, _val_c);
+		printf("SFNodeSetProperty: obj = %p, id = %s, vp = %s\n",
+			   obj, _id_c, _val_c);
 	#endif
 
 
@@ -1359,8 +1358,8 @@ SFRotationGetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 	(_retNative->v).c[2] = (_rot->v).c[2];
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFRotationGetAxis: obj = %u, result = [%.9g, %.9g, %.9g]\n",
-			   VERBOSE_OBJ obj,
+		printf("SFRotationGetAxis: obj = %p, result = [%.9g, %.9g, %.9g]\n",
+			   obj,
 			   (_retNative->v).c[0],
 			   (_retNative->v).c[1],
 			   (_retNative->v).c[2]);
@@ -1593,8 +1592,8 @@ SFRotationSetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 	*rval = OBJECT_TO_JSVAL(obj);
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFRotationSetAxis: obj = %u, result = [%.9g, %.9g, %.9g, %.9g]\n",
-			   VERBOSE_OBJ obj,
+		printf("SFRotationSetAxis: obj = %p, result = [%.9g, %.9g, %.9g, %.9g]\n",
+			   obj,
 			   (_rot->v).c[0],
 			   (_rot->v).c[1],
 			   (_rot->v).c[2],
@@ -1753,8 +1752,8 @@ SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
         	return JS_FALSE;
 		}
 		#ifdef JSVRMLCLASSESVERBOSE
-			printf("SFRotationAssign: obj = %u, id = \"%s\", from = %u\n",
-				   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
+			printf("SFRotationAssign: obj = %p, id = \"%s\", from = %p\n",
+				   obj, _id_str, _from_obj);
 		#endif
 
 	    SFRotationNativeAssign(ptr, fptr);
@@ -1869,8 +1868,8 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFRotationConstr: obj = %u, %u args, %f %f %f %f\n",
-			   VERBOSE_OBJ obj, argc,
+		printf("SFRotationConstr: obj = %p, %u args, %f %f %f %f\n",
+			   obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2], (ptr->v).c[3]);
 	#endif
 	
@@ -1958,8 +1957,8 @@ SFRotationSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	}
 	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFRotationSetProperty: obj = %u, id = %d, valueChanged = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
+		printf("SFRotationSetProperty: obj = %p, id = %d, valueChanged = %d\n",
+			   obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
@@ -2149,13 +2148,13 @@ JSBool SFVec2fGeneric( JSContext *cx, JSObject *obj,
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	if (retSFVec2f){
-		printf("SFVec2fgeneric: obj = %u, result = [%.9g, %.9g]\n",
-			   VERBOSE_OBJ obj,
+		printf("SFVec2fgeneric: obj = %p, result = [%.9g, %.9g]\n",
+			   obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1]);
 	}
 	if (retNumeric){
-		printf("SFVec2fgeneric: obj = %u, result = %.9g\n",
-			   VERBOSE_OBJ obj, d);
+		printf("SFVec2fgeneric: obj = %p, result = %.9g\n",
+			   obj, d);
 	}
 	#endif
 
@@ -2255,8 +2254,8 @@ SFVec2fAssign(JSContext *cx, JSObject *obj,
         return JS_FALSE;
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec2fAssign: obj = %u, id = \"%s\", from = %u\n",
-			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
+		printf("SFVec2fAssign: obj = %p, id = \"%s\", from = %p\n",
+			   obj, _id_str, _from_obj);
 	#endif
 
     SFVec2fNativeAssign(ptr, fptr);
@@ -2300,8 +2299,8 @@ SFVec2fConstr(JSContext *cx, JSObject *obj,
 		(ptr->v).c[1] = (float) pars[1];
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec2fConstr: obj = %u, %u args, %f %f\n",
-			   VERBOSE_OBJ obj, argc,
+		printf("SFVec2fConstr: obj = %p, %u args, %f %f\n",
+			   obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1]);
 	#endif
 	
@@ -2362,8 +2361,8 @@ SFVec2fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	}
 	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec2fSetProperty: obj = %u, id = %d, valueChanged = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
+		printf("SFVec2fSetProperty: obj = %p, id = %d, valueChanged = %d\n",
+			   obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
@@ -2585,14 +2584,14 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
 	if (retSFVec3f){
-		printf("SFVec3fgeneric: obj = %u, result = [%.9g, %.9g, %.9g]\n",
-			   VERBOSE_OBJ obj,
+		printf("SFVec3fgeneric: obj = %p, result = [%.9g, %.9g, %.9g]\n",
+			   obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1],
 			   (_retNative->v).c[2]);
 	}
 	if (retNumeric){
-		printf("SFVec2fgeneric: obj = %u, result = %.9g\n",
-			   VERBOSE_OBJ obj, d);
+		printf("SFVec2fgeneric: obj = %p, result = %.9g\n",
+			   obj, d);
 	}
 	#endif
 return JS_TRUE;
@@ -2714,8 +2713,8 @@ SFVec3fAssign(JSContext *cx, JSObject *obj,
         return JS_FALSE;
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec3fAssign: obj = %u, id = \"%s\", from = %u\n",
-			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ  _from_obj);
+		printf("SFVec3fAssign: obj = %p, id = \"%s\", from = %p\n",
+			   obj, _id_str, _from_obj);
 	#endif
 
     SFVec3fNativeAssign(ptr, fptr);
@@ -2770,8 +2769,8 @@ SFVec3fConstr(JSContext *cx, JSObject *obj,
 		(ptr->v).c[2] = (float) pars[2];
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec3fConstr: obj = %u, %u args, %f %f %f\n",
-			   VERBOSE_OBJ obj, argc,
+		printf("SFVec3fConstr: obj = %p, %u args, %f %f %f\n",
+			   obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
 	
@@ -2858,8 +2857,8 @@ SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	}
 	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec3fSetProperty: obj = %u, id = %d, valueChanged = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
+		printf("SFVec3fSetProperty: obj = %p, id = %d, valueChanged = %d\n",
+			   obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
@@ -3076,14 +3075,14 @@ JSBool SFVec3dGeneric( JSContext *cx, JSObject *obj,
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
 	if (retSFVec3d){
-		printf("SFVec3dgeneric: obj = %u, result = [%.9g, %.9g, %.9g]\n",
-			   VERBOSE_OBJ obj,
+		printf("SFVec3dgeneric: obj = %p, result = [%.9g, %.9g, %.9g]\n",
+			   obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1],
 			   (_retNative->v).c[2]);
 	}
 	if (retNumeric){
-		printf("SFVec2fgeneric: obj = %u, result = %.9g\n",
-			   VERBOSE_OBJ obj, d);
+		printf("SFVec2fgeneric: obj = %p, result = %.9g\n",
+			   obj, d);
 	}
 	#endif
 return JS_TRUE;
@@ -3204,8 +3203,8 @@ SFVec3dAssign(JSContext *cx, JSObject *obj,
         return JS_FALSE;
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec3dAssign: obj = %u, id = \"%s\", from = %u\n",
-			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ  _from_obj);
+		printf("SFVec3dAssign: obj = %p, id = \"%s\", from = %p\n",
+			   obj, _id_str, _from_obj);
 	#endif
 
     SFVec3dNativeAssign(ptr, fptr);
@@ -3260,8 +3259,8 @@ SFVec3dConstr(JSContext *cx, JSObject *obj,
 		(ptr->v).c[2] = (float) pars[2];
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec3dConstr: obj = %u, %u args, %f %f %f\n",
-			   VERBOSE_OBJ obj, argc,
+		printf("SFVec3dConstr: obj = %p, %u args, %f %f %f\n",
+			   obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
 	
@@ -3348,8 +3347,8 @@ SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	}
 	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec3dSetProperty: obj = %u, id = %d, valueChanged = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
+		printf("SFVec3dSetProperty: obj = %p, id = %d, valueChanged = %d\n",
+			   obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
@@ -3433,8 +3432,8 @@ SFVec4fAssign(JSContext *cx, JSObject *obj,
         return JS_FALSE;
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec4fAssign: obj = %u, id = \"%s\", from = %u\n",
-			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ  _from_obj);
+		printf("SFVec4fAssign: obj = %p, id = \"%s\", from = %p\n",
+			   obj, _id_str, _from_obj);
 	#endif
 
     SFVec4fNativeAssign(ptr, fptr);
@@ -3491,8 +3490,8 @@ SFVec4fConstr(JSContext *cx, JSObject *obj,
 		(ptr->v).c[3] = (float) pars[3];
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec4fConstr: obj = %u, %u args, %f %f %f %f\n",
-			   VERBOSE_OBJ obj, argc,
+		printf("SFVec4fConstr: obj = %p, %u args, %f %f %f %f\n",
+			   obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2], ptr->v.c[3]);
 	#endif
 	
@@ -3589,8 +3588,8 @@ SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	}
 	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec4fSetProperty: obj = %u, id = %d, valueChanged = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
+		printf("SFVec4fSetProperty: obj = %p, id = %d, valueChanged = %d\n",
+			   obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
@@ -3678,8 +3677,8 @@ SFVec4dAssign(JSContext *cx, JSObject *obj,
         return JS_FALSE;
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec4dAssign: obj = %u, id = \"%s\", from = %u\n",
-			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ  _from_obj);
+		printf("SFVec4dAssign: obj = %p, id = \"%s\", from = %p\n",
+			   obj, _id_str, _from_obj);
 	#endif
 
     SFVec4dNativeAssign(ptr, fptr);
@@ -3736,8 +3735,8 @@ SFVec4dConstr(JSContext *cx, JSObject *obj,
 		(ptr->v).c[3] = (float) pars[3];
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec4dConstr: obj = %u, %u args, %f %f %f %f\n",
-			   VERBOSE_OBJ obj, argc,
+		printf("SFVec4dConstr: obj = %p, %u args, %f %f %f %f\n",
+			   obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2], ptr->v.c[3]);
 	#endif
 	
@@ -3834,8 +3833,8 @@ SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	}
 	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec4dSetProperty: obj = %u, id = %d, valueChanged = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
+		printf("SFVec4dSetProperty: obj = %p, id = %d, valueChanged = %d\n",
+			   obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {

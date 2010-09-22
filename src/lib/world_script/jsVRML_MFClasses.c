@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.22 2010/06/03 19:38:37 crc_canada Exp $
+$Id: jsVRML_MFClasses.c,v 1.23 2010/09/22 19:40:48 crc_canada Exp $
 
 ???
 
@@ -108,8 +108,8 @@ MFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("MFColorConstr: obj = %u, %u args\n",
-			   VERBOSE_OBJ obj, argc);
+		printf("MFColorConstr: obj = %p, %u args\n",
+			   obj, argc);
 	#endif
 
 	for (i = 0; i < argc; i++) {
@@ -175,8 +175,7 @@ MFFloatConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("MFFloatConstr: obj = %u, %u args\n",
-			   VERBOSE_OBJ obj, argc);
+		printf("MFFloatConstr: obj = %p, %u args\n", obj, argc);
 	#endif
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToNumber(cx, argv[i], &_d)) {
@@ -251,7 +250,7 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("MFInt32Constr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+		printf("MFInt32Constr: obj = %p, %u args\n", obj, argc);
 	#endif
 
 	/* any values here that we should add in? */
@@ -338,7 +337,7 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("MFNodeConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+		printf("MFNodeConstr: obj = %p, %u args\n", obj, argc);
 	#endif
 
 	for (i = 0; i < argc; i++) {
@@ -433,8 +432,7 @@ MFTimeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("MFTimeConstr: obj = %u, %u args\n",
-			   VERBOSE_OBJ obj, argc);
+		printf("MFTimeConstr: obj = %p, %u args\n", obj, argc);
 	#endif
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToNumber(cx, argv[i], &_d)) {
@@ -497,8 +495,7 @@ MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("MFVec2fConstr: obj = %u, %u args\n",
-			   VERBOSE_OBJ obj, argc);
+		printf("MFVec2fConstr: obj = %p, %u args\n", obj, argc);
 	#endif
 
 	for (i = 0; i < argc; i++) {
@@ -562,7 +559,7 @@ MFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("MFVec3fConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+		printf("MFVec3fConstr: obj = %p, %u args\n", obj, argc);
 	#endif	
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToObject(cx, argv[i], &_obj)) {
@@ -1301,8 +1298,7 @@ MFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("MFRotationConstr: obj = %u, %u args\n",
-			   VERBOSE_OBJ obj, argc);
+		printf("MFRotationConstr: obj = %p, %u args\n", obj, argc);
 	#endif
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToObject(cx, argv[i], &_obj)) {
@@ -1332,7 +1328,7 @@ JSBool
 MFStringAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf("MFStringAddProperty: vp = %u\n", VERBOSE_OBJ obj);
+	printf("MFStringAddProperty: vp = %p\n", obj);
                 if (JSVAL_IS_STRING(*vp)==TRUE) {
 		printf("	is a common string :%s:\n",
                         JS_GetStringBytes(JS_ValueToString(cx, *vp)));
@@ -1346,7 +1342,7 @@ MFStringAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		if (JSVAL_IS_NULL(*vp)) { printf ("	- its a NULL\n");}
 		if (JSVAL_IS_INT(*vp)) { printf ("	- its a INT %d\n",JSVAL_TO_INT(*vp));}
 
-		printf("MFStringAddProperty: id = %u\n", VERBOSE_OBJ obj);
+		printf("MFStringAddProperty: id = %p\n", obj);
                 if (JSVAL_IS_STRING(id)==TRUE) {
 		printf("	is a common string :%s:\n",
                         JS_GetStringBytes(JS_ValueToString(cx, id)));
@@ -1383,7 +1379,7 @@ MFStringGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
     jsval _length_val;
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf("MFStringGetProperty: obj = %u\n", VERBOSE_OBJ obj);
+	printf("MFStringGetProperty: obj = %p\n", obj);
 	#endif
 
     if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
@@ -1429,7 +1425,7 @@ MFStringSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	JSBool rv;
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf("MFStringSetProperty: obj = %u id %d jsval %u\n", VERBOSE_OBJ obj, id, *vp);
+	printf("MFStringSetProperty: obj = %p id %d jsval %u\n", obj, id, *vp);
 
 printf ("MFStringSetProperty, setting vp of type...\n");
 		if (JSVAL_IS_OBJECT(*vp)) { printf ("	- MFStringSetProperty, vp is a OBJECT\n");}
@@ -1464,7 +1460,7 @@ MFStringToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	UNUSED(argc);
 	UNUSED(argv);
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf("MFStringToString: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+	printf("MFStringToString: obj = %p, %u args\n", obj, argc);
 	#endif
 
 
@@ -1535,7 +1531,7 @@ JSBool
 MFStringAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf("MFStringAssign: obj = %u, %u args %d... ", VERBOSE_OBJ obj, argc);
+	printf("MFStringAssign: obj = %p args %d... ", obj, argc);
 	#endif
 	SET_MF_ECMA_HAS_CHANGED
 
@@ -1549,20 +1545,20 @@ JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	#endif
 	return JS_TRUE;
 }
-JSBool MFStringEnumerateProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) { 
+JSBool MFStringEnumerateProperty(JSContext *cx, JSObject *obj) { 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("MFStringEnumerateProperty\n"); 
 	#endif
 	return JS_TRUE;
 }
 
-JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) { 
+JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsval id) { 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("MFStringResolveProperty\n"); 
 	#endif
 	return JS_TRUE;
 }
-JSBool MFStringConvertProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) { 
+JSBool MFStringConvertProperty(JSContext *cx, JSObject *obj, JSType type, jsval *vp) { 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("MFStringConvertProperty\n"); 
 	#endif

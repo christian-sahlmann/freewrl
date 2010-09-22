@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.21 2010/08/05 18:17:44 uid31638 Exp $
+$Id: jsVRMLClasses.c,v 1.22 2010/09/22 19:40:48 crc_canada Exp $
 
 ???
 
@@ -999,8 +999,8 @@ JSBool _standardMFAssign(JSContext *cx,
 	len = JSVAL_TO_INT(val);
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("StandardMFAssign %s: obj = %u, id = \"%s\", from = %u, len = %d\n",stringFieldtypeType(type),
-		VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj, len);
+		printf("StandardMFAssign %s: obj = %p, id = \"%s\", from = %p, len = %d\n",stringFieldtypeType(type),
+		obj, _id_str, _from_obj, len);
 	#endif
 
 	/* copyElements */
@@ -1097,8 +1097,8 @@ _standardMFGetProperty(JSContext *cx,
 			return JS_FALSE;
 		}
 		if (*vp == JSVAL_VOID) {
-			printf( "warning: %d: obj = %u, jsval = %d does not exist!\n",type,
-				VERBOSE_OBJ obj, (int) _index);
+			printf( "warning: %d: obj = %p, jsval = %d does not exist!\n",type,
+				obj, (int) _index);
 			return JS_TRUE;
 		}
 	} else if (JSVAL_IS_STRING(id)) {
@@ -1372,10 +1372,10 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 		printf ("id is %s\n",_c);
 
 		_sstr = JS_ValueToString(cx, *vp);
-		printf ("looking up value for %d %x object %u\n",*vp,*vp,VERBOSE_OBJ obj);
+		printf ("looking up value for %d %x object %p\n",*vp,*vp,obj);
 			_cc = JS_GetStringBytes(_sstr);
-			printf("\tdoMFSetProperty:%d: obj = %u, id = %s, vp = %s\n",type,
-			   VERBOSE_OBJ obj, _c, _cc);
+			printf("\tdoMFSetProperty:%d: obj = %p, id = %s, vp = %s\n",type,
+			   obj, _c, _cc);
 		if (JSVAL_IS_OBJECT(*vp)) { printf ("doMFSet, vp is an OBJECT\n"); }
 		if (JSVAL_IS_PRIMITIVE(*vp)) { printf ("doMFSet, vp is an PRIMITIVE\n"); }
 
@@ -1745,16 +1745,16 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 		*vp = STRING_TO_JSVAL(_newVpStr);
 
 		#ifdef JSVRMLCLASSESVERBOSE
-			printf("setECMANative: have string obj = %u, id = \"%s\", vp = %s\n",
-				   VERBOSE_OBJ obj, _id_c, _new_vp_c);
+			printf("setECMANative: have string obj = %p, id = \"%s\", vp = %s\n",
+				   obj, _id_c, _new_vp_c);
 		#endif
 		FREE_IF_NZ (_new_vp_c);
 	} else {
 		#ifdef JSVRMLCLASSESVERBOSE
 		_vpStr = JS_ValueToString(context, *vp);
 		_vp_c = JS_GetStringBytes(_vpStr);
-		printf("setECMANative: obj = %u, id = \"%s\", vp = %s\n",
-			   VERBOSE_OBJ obj, _id_c, _vp_c);
+		printf("setECMANative: obj = %p, id = \"%s\", vp = %s\n",
+			   obj, _id_c, _vp_c);
 		#endif
 	}
 
@@ -1773,8 +1773,8 @@ getAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		_id_c = JS_GetStringBytes(_idStr);
 		_vpStr = JS_ValueToString(cx, *vp);
 		_vp_c = JS_GetStringBytes(_vpStr);
-		printf("getAssignProperty: obj = %u, id = \"%s\", vp = %s\n",
-			   VERBOSE_OBJ obj, _id_c, _vp_c);
+		printf("getAssignProperty: obj = %p, id = \"%s\", vp = %s\n",
+			   obj, _id_c, _vp_c);
 	printf ("what is vp? \n");
 	if (JSVAL_IS_OBJECT(*vp)) printf ("is OBJECT\n");
 	if (JSVAL_IS_STRING(*vp)) printf ("is STRING\n");
@@ -1813,8 +1813,8 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			return JS_FALSE;
 		}
 		#ifdef JSVRMLCLASSESVERBOSE
-			printf("setAssignProperty: obj = %u, id = \"%s\", from = %ld, to = %ld\n",
-				   VERBOSE_OBJ obj, _id_c, newVal, initVal);
+			printf("setAssignProperty: obj = %p, id = \"%s\", from = %ld, to = %ld\n",
+				   obj, _id_c, newVal, initVal);
 
                 if (JSVAL_IS_OBJECT(initVal)) printf ("initVal is an OBJECT\n");
                 if (JSVAL_IS_STRING(initVal)) printf ("initVal is an STRING\n");
@@ -1860,8 +1860,8 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		#ifdef JSVRMLCLASSESVERBOSE
 			_str = JS_ValueToString(cx, id);
 			_id_c = JS_GetStringBytes(_str);
-			printf("setAssignProperty: obj = %u, id = \"%s\"\n",
-				   VERBOSE_OBJ obj, _id_c);
+			printf("setAssignProperty: obj = %p, id = \"%s\"\n",
+				   obj, _id_c);
 		#endif
 	}
 
