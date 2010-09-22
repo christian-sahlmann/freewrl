@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.25 2010/09/21 20:00:25 crc_canada Exp $
+$Id: Component_Geometry2D.c,v 1.26 2010/09/22 18:36:21 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -47,6 +47,7 @@ X3D Geometry2D  Component
 #include "Component_Geometry3D.h"
 #include "Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../opengl/OpenGL_Utils.h"
 
 #include <float.h>
 

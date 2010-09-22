@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.30 2010/08/26 14:07:33 crc_canada Exp $
+$Id: SensInterps.c,v 1.31 2010/09/22 18:36:21 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -45,7 +45,6 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "opengl/LoadTextures.h"        /* for finding a texture url in a multi url */
 
 
-
 #include <resources.h>
 
 #include "../main/headers.h"
@@ -57,6 +56,7 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/sounds.h"
 #include "../vrml_parser/CRoutes.h"
+#include "../opengl/OpenGL_Utils.h"
 
 #include "SensInterps.h"
 
@@ -1645,7 +1645,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 			printf ("warning, newRad %lf == 0, can not compute\n",newRad);
 			return;
 		}
-		RADIUS = newRad;
+		RADIUS = (float) newRad;
 
 		/* save the current norm here */
 		NORM_CUR_X = CUR_X / RADIUS;

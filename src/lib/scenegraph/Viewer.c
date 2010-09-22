@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.57 2010/09/20 00:34:18 dug9 Exp $
+$Id: Viewer.c,v 1.58 2010/09/22 18:36:21 crc_canada Exp $
 
 CProto ???
 
@@ -52,7 +52,7 @@ int viewer_initialized = FALSE;
 static X3D_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
 static X3D_Viewer_Examine viewer_examine = { { 0, 0, 0 }, {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
 static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
-static X3D_Viewer_YawPitchZoom viewer_ypz = { { 0, 0, 0 },  {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0, 0.0 };
+static X3D_Viewer_YawPitchZoom viewer_ypz = { { 0, 0, 0 },  {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
@@ -1396,7 +1396,7 @@ void setAnaglyphSideColor(char val, int iside)
 	Viewer.iprog[iside] = indexRGBACM(val);
 	if(Viewer.iprog[iside] == -1 )
 	{
-		printf ("warning, command line anaglyph parameter incorrect - was %s need something like RG\n",val);
+		printf ("warning, command line anaglyph parameter incorrect - was %c need something like RG\n",val);
 		Viewer.iprog[iside] = iside;
 	}
 	/* used for anaglyphMethod==2 */
@@ -1655,7 +1655,6 @@ void increment_pos(struct point_XYZ *vec) {
 void bind_OrthoViewpoint (struct X3D_OrthoViewpoint *vp) {
 	Quaternion q_i;
 	float xd, yd,zd;
-	int ind;
 
 	/* SLERPing */
 	/* record position BEFORE calculating new Viewpoint position */
