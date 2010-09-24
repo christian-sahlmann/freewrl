@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.64 2010/05/05 12:52:04 davejoubert Exp $
+  $Id: CParseParser.c,v 1.65 2010/09/24 20:22:05 crc_canada Exp $
 
   ???
 
@@ -239,7 +239,7 @@ BOOL parseType(struct VRMLParser* me, int type,   union anyVrml *defaultVal) {
 
 
 /* put the string value of the PROTO field into the input stream */
-void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, int *outSize) {
+void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, size_t *outSize) {
     struct ProtoFieldDecl* pdecl=NULL;
     /* find the ascii name, and try and find it's protodefinition by type */
 #ifdef CPARSERVERBOSE

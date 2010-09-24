@@ -1,7 +1,7 @@
 /* 
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseParser.h,v 1.19 2010/03/01 22:39:49 crc_canada Exp $
+$Id: CParseParser.h,v 1.20 2010/09/24 20:22:05 crc_canada Exp $
 
 Parser (input of non-terminal symbols) for CParse
 
@@ -128,7 +128,7 @@ void parser_registerRoute(struct VRMLParser*,
 BOOL parseType(struct VRMLParser* me, int type,   union anyVrml *defaultVal);
 
 
-void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, int *outSize);
+void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, size_t *outSize);
 
 void cParseErrorCurID(struct VRMLParser *me, char *str);
 void cParseErrorFieldString(struct VRMLParser *me, char *str1, const char *str2);

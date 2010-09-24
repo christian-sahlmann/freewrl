@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.33 2010/09/22 19:40:48 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.34 2010/09/24 20:22:05 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1030,7 +1030,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 				res->where = myGroup;
 				res->media_type = resm_vrml;
 				res->parsed_request = "From the EAI bootcamp of life ";
-				res->offsetFromWhere = offsetof (struct X3D_Group, children);
+				res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("SFNodeConstr, sending resource to parser\n");
 				#endif
@@ -1049,7 +1049,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 					ConsoleMessage ("SFNativeNew - created %d nodes, expected 1 only\n",myGroup->children.n);
 					return JS_FALSE;
 				}
-				newHandle = (uintptr_t *) myGroup->children.p[0];
+				newHandle = X3D_NODE(myGroup->children.p[0]);
 			}
 			
 			cString = STRDUP("node created in SFNodeConstr");
@@ -1129,11 +1129,11 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	#ifdef JSVRMLCLASSESVERBOSE
 	{
 		if (newHandle == NULL) 
-			printf("end of SFNodeConstr: created obj = %p, argc: %u mem ptr: %d (null pointer) text string: %s\n",
+			printf("end of SFNodeConstr: created obj = %p, argc: %u mem ptr: %p (null pointer) text string: %s\n",
 			   obj, argc, newHandle, cString);
 		else 
-			printf("end of SFNodeConstr: created obj = %p, argc: %u mem ptr: %u (%s) text string: %s\n",
-			   obj, argc, newHandle, stringNodeType(((struct X3D_Node *) newHandle)->_nodeType),cString);
+			printf("end of SFNodeConstr: created obj = %p, argc: %u mem ptr: %p (%s) text string: %s\n",
+			   obj, argc, newHandle, stringNodeType(newHandle->_nodeType),cString);
 	}
 	#endif
 	*rval = OBJECT_TO_JSVAL(obj);

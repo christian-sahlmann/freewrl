@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.37 2010/09/21 15:11:36 crc_canada Exp $
+  $Id: main.c,v 1.38 2010/09/24 20:22:05 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -38,6 +38,7 @@
 #include <io_files.h>
 #include <resources.h>
 #include <threads.h>
+#include "vrml_parser/Structs.h"
 #include "main/ProdCon.h"
 
 
@@ -76,7 +77,9 @@ need to worry about specific structures and calls */
 static freewrl_params_t *OSXparams = NULL;
 
 void OSX_initializeParameters(const char* initialURL) {
+#ifdef OLDCODE
     const char *libver, *progver;
+#endif
     resource_item_t *res;
 
 	//printf ("start of OSX_initializeParameters, initialURL :%s:\n",initialURL);
@@ -84,14 +87,17 @@ void OSX_initializeParameters(const char* initialURL) {
     /* have we been through once already (eg, plugin loading new file)? */
     if (OSXparams == NULL) {
 
+#ifdef OLDCODE
     	/* first, get the FreeWRL shared lib, and verify the version. */
-	/*
-    	libver = libFreeWRL_get_version();
+	
     	progver = freewrl_get_version();
+printf ("progver %s\n",progver);
+    	libver = libFreeWRL_get_version();
+printf ("OSX_initializeParameters, libver %s progver %s\n",libver, progver);
     	if (strcmp(progver, libver)) {
 		ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
     	}
-	*/
+#endif	
 
 
     	/* Before we parse the command line, setup the FreeWRL default parameters */
@@ -120,14 +126,6 @@ void OSX_initializeParameters(const char* initialURL) {
     
     /* tell the new world which viewpoint to go to */
     givenInitialViewpoint = res->afterPoundCharacters;
-
-        /* Cached files: first is actual file to read,
-           other are intermediate: zipped file,
-           file not in good format, ...
-        */
-        char *actual_file;
-        void *cached_files;
-
 
     send_resource_to_parser(res);
 

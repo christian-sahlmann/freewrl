@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.38 2010/09/21 20:00:25 crc_canada Exp $
+$Id: Bindable.c,v 1.39 2010/09/24 20:22:05 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -69,14 +69,6 @@ static int fog_enabled = FALSE;
 
 
 static void saveBGVert (float *colptr, float *pt, int *vertexno, float *col, double dist, double x, double y, double z) ;
-
-/* this is called after a Viewpoint or GeoViewpoint bind. Jan 16, 2010 not necessary now - recomputed on each frame in 
- mainloop.c render_collisions() */
-//void reset_upvector() {
-//    ViewerUpvector.x = 0;
-//    ViewerUpvector.y = 0;
-//    ViewerUpvector.z = 0;
-//}
 
 /* common entry routine for setting avatar size */
 void set_naviWidthHeightStep(double wid, double hei, double step) {
@@ -158,91 +150,72 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 
 /* send a set_bind event from an event to this Bindable node */
 void send_bind_to(struct X3D_Node *node, int value) {
-	struct X3D_Background *bg;
-	struct X3D_TextureBackground *tbg;
-	struct X3D_Fog *fg;
-	struct X3D_NavigationInfo *nv;
-	struct X3D_Viewpoint *vp;
-	struct X3D_GeoViewpoint *gvp;
-	char * nameptr;
-
 	/* printf ("\n%lf: send_bind_to, nodetype %s node %u value %d\n",TickTime,stringNodeType(node->_nodeType),node,value);  */
 
 	switch (node->_nodeType) {
 
-	case NODE_Background: 
-		/* this is node a Background node*/
-		bg = (struct X3D_Background *) node;
+	case NODE_Background:  {
+		struct X3D_Background *bg = (struct X3D_Background *) node;
 		bg->set_bind = value;
 		bind_node (node, &background_tos,&background_stack[0]);
 		break;
+		}
 
-	case NODE_TextureBackground:
-		/* this is a TextureBackground node */
-		tbg = (struct X3D_TextureBackground *) node;
+	case NODE_TextureBackground: {
+		struct X3D_TextureBackground *tbg = (struct X3D_TextureBackground *) node;
 		tbg->set_bind = value;
 		bind_node (node, &background_tos,&background_stack[0]);
 		break;
+		}
 
-	case NODE_OrthoViewpoint: 
-		vp = (struct X3D_OrthoViewpoint *) node;
-		vp->set_bind = value;
-		nameptr = vp->description->strptr;
-		setMenuStatus (nameptr);
-
+	case NODE_OrthoViewpoint: {
+		struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint *) node;
+		ovp->set_bind = value;
+		setMenuStatus(ovp->description->strptr);
 		bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
-
-		/* up_vector is reset after a bind */
 		if (value==1) {
-			//reset_upvector();
-			bind_OrthoViewpoint (vp);
+			bind_OrthoViewpoint (ovp);
 		}
 		break;
+		}
 
-	case NODE_Viewpoint: 
-		vp = (struct X3D_Viewpoint *) node;
+	case NODE_Viewpoint:  {
+		struct X3D_Viewpoint* vp = (struct X3D_Viewpoint *) node;
 		vp->set_bind = value;
-		nameptr = vp->description->strptr;
-		setMenuStatus (nameptr);
-
+		setMenuStatus (vp->description->strptr);
 		bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
-
-		/* up_vector is reset after a bind */
 		if (value==1) {
-			//reset_upvector();
 			bind_Viewpoint (vp);
 		}
 		break;
+		}
 
-	case NODE_GeoViewpoint: 
-		gvp = (struct X3D_GeoViewpoint *) node;
+	case NODE_GeoViewpoint:  {
+		struct X3D_GeoViewpoint *gvp = (struct X3D_GeoViewpoint *) node;
 		gvp->set_bind = value;
-		nameptr = gvp->description->strptr;
-		setMenuStatus (nameptr);
-
+		setMenuStatus (gvp->description->strptr);
 		bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
-
-		/* up_vector is reset after a bind */
 		if (value==1) {
-			//reset_upvector();
 			bind_GeoViewpoint (gvp);
 		}
 		break;
+		}
 
 
-	case NODE_Fog: 
-		fg = (struct X3D_Fog *) node;
+	case NODE_Fog:  {
+		struct X3D_Fog *fg = (struct X3D_Fog *) node;
 		fg->set_bind = value;
 		bind_node (node, &fog_tos,&fog_stack[0]);
 		break;
+		}
 
-	case NODE_NavigationInfo: 
-		nv = (struct X3D_NavigationInfo *) node;
+	case NODE_NavigationInfo:  {
+		struct X3D_NavigationInfo *nv = (struct X3D_NavigationInfo *) node;
 		nv->set_bind = value;
 		bind_node (node, &navi_tos,&navi_stack[0]);
 		if (value==1) set_naviinfo(nv);
-
 		break;
+		}
 
 	default:
 		ConsoleMessage("send_bind_to, cant send a set_bind to %s !!\n",stringNodeType(node->_nodeType));
