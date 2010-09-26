@@ -94,15 +94,14 @@ if (defined $VRML_CONFIG{'USE_JAVA_HOME'})
 	$VRML_CONFIG{JAVA_INST} = $ENV{JAVA_HOME};
 }
 
-#OLDCODE this did not really do anything... both the "front end" and the library got the same version.
-#OLDCODE #put the version to a file that is compiled
-#OLDCODE open OUT, ">../src/lib/JOHNS_lib_version.c" or die ("Couldn't write to JOHNSversion file");
-#OLDCODE my $vers = `cat ../versions/FREEWRL`;
-#OLDCODE $vers =~ s/\s+$//;
-#OLDCODE 
-#OLDCODE print OUT "char *freewrl_get_version(void) { printf (\"calling A\\n\"); return \"",$vers,"\";}";
-#OLDCODE print OUT "char *libFreeWRL_get_version(void) { printf (\"calling B\\n\"); eturn \"",$vers,"\";}";
-#OLDCODE close OUT;
+#put the version to a file that is compiled
+open OUT, ">../src/lib/JOHNS_lib_version.c" or die ("Couldn't write to JOHNSversion file");
+my $vers = `cat ../versions/FREEWRL`;
+$vers =~ s/\s+$//;
+
+print OUT "char *freewrl_get_version(void) { return \"",$vers,"\";}";
+print OUT "char *libFreeWRL_get_version(void) {return \"",$vers,"\";}";
+close OUT;
 
 # print out the CFuncs/vrmlconf.c C header file.
 open OUT, ">OSX_Specific/config.h" or die("Couldn't write to CFuncs/vrmlconf.h");
