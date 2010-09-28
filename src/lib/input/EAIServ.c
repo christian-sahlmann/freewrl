@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.18 2010/02/19 18:09:46 crc_canada Exp $
+$Id: EAIServ.c,v 1.19 2010/09/28 16:26:13 crc_canada Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -158,7 +158,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 			return FALSE;
 		}
 
-		setsockopt ((*EAIsockfd), SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on));
+		setsockopt ((*EAIsockfd), SOL_SOCKET, SO_REUSEADDR, &on, (socklen_t) sizeof(on));
 
 #ifdef WIN32
 		/* int ioctlsocket(SOCKET s,long cmd, u_long* argp);  http://msdn.microsoft.com/en-us/library/ms738573(VS.85).aspx */
@@ -194,7 +194,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	        servaddr.sin_port        = htons(EAIport+socketincrement);
 		/*printf ("binding to socket %d\n",EAIport+socketincrement);*/
 
-	        while (bind((*EAIsockfd), (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+	        while (bind((*EAIsockfd), (struct sockaddr *) &servaddr, (socklen_t) sizeof(servaddr)) < 0) {
 			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		}
@@ -215,7 +215,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 
 	if (((*EAIsockfd) >=0) && ((*EAIlistenfd)<0)) {
 		/* step 4 - accept*/
-		len = sizeof(cliaddr);
+		len = (int) sizeof(cliaddr);
 #ifdef WIN32
 	        if ( ((*EAIlistenfd) = accept((*EAIsockfd), (struct sockaddr *) &cliaddr, (int *)&len)) < 0) {
 #else
@@ -377,7 +377,7 @@ void handle_MIDIEAI() {
 
 
 void EAI_send_string(char *str, int lfd){
-	unsigned int n;
+	size_t n;
 
 	/* add a trailing newline */
 	strcat (str,"\n");
@@ -390,11 +390,11 @@ void EAI_send_string(char *str, int lfd){
 #ifdef WIN32
 	n = send(lfd, str, (unsigned int) strlen(str),0);
 #else
-	n = write (lfd, str, (unsigned int) strlen(str));
+	n = write (lfd, (const void *)str, strlen(str));
 #endif	
 	if (n<strlen(str)) {
 		if (eaiverbose) {
-		printf ("write, expected to write %d, actually wrote %d\n",n,(int)strlen(str));
+		printf ("write, expected to write %d, actually wrote %d\n",(int)n,(int)strlen(str));
 		}
 	}
 	/* printf ("EAI_send_string, wrote %d\n",n); */
@@ -441,7 +441,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 #ifdef WIN32
 			retval = recv((*EAIlistenfd), &bf[(*bfct)],EAIREADSIZE,0);
 #else
-			retval = read ((*EAIlistenfd), &bf[(*bfct)],EAIREADSIZE);
+			retval = (int) read ((*EAIlistenfd), &bf[(*bfct)],EAIREADSIZE);
 #endif
 			if (retval <= 0) {
 				if (eaiverbose) {
@@ -477,7 +477,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 			if (((*bfsz) - (*bfct)) <= EAIREADSIZE) {
 				if (eaiverbose) 
-				printf ("read_EAI_socket: HAVE TO REALLOC INPUT MEMORY:bf %u bfsz %d bfct %d\n",(unsigned)bf,*bfsz, *bfct);  
+				printf ("read_EAI_socket: HAVE TO REALLOC INPUT MEMORY:bf %p bfsz %d bfct %d\n",bf,*bfsz, *bfct);  
 				(*bfsz) += EAIREADSIZE;
 				/* printf ("read_EAI_socket: bfsz now %d\n",*bfsz); */
 				bf = (char *)REALLOC (bf, (unsigned int) (*bfsz));
