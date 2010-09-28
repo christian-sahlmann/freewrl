@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.26 2010/09/07 21:33:06 istakenv Exp $
+$Id: Component_Text.c,v 1.27 2010/09/28 20:40:22 crc_canada Exp $
 
 X3D Text Component
 
@@ -262,7 +262,6 @@ int FW_cubicto (FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* u
 
 /* make up the font name */
 void FW_make_fontname(int num) {
-    int x;
 /*
     bit:    0       BOLD        (boolean)
     bit:    1       ITALIC      (boolean)
