@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.64 2010/09/22 13:20:22 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.65 2010/09/28 17:32:05 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -101,13 +101,13 @@ void EAI_parse_commands () {
 
 	int count;
 	char command;
-	uintptr_t bufPtr;		/* where we are in the EAI input buffer */
+	int bufPtr;		/* where we are in the EAI input buffer */
 	
 	int ra,rb,rd;	/* temps*/
-	uintptr_t rc;
+	int rc;
 	int tmp_a, tmp_b, tmp_c;
 
-	unsigned int scripttype;
+	int scripttype;
 	char *EOT;		/* ptr to End of Text marker*/
 	int retint;		/* used for getting retval for sscanf */
 
@@ -271,7 +271,7 @@ void EAI_parse_commands () {
 				ReWireRegisterMIDI(&EAI_BUFFER_CUR);
 
 				/* finish this for now - note the pointer math. */
-				bufPtr = EOT+3-EAIbuffer;
+				bufPtr = (int) (EOT+3-EAIbuffer);
 				sprintf (outBuffer,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
@@ -301,7 +301,7 @@ void EAI_parse_commands () {
 
 					ra = EAI_CreateVrml("String",(&EAI_BUFFER_CUR),retGroup);
 					/* finish this, note the pointer maths */
-					bufPtr = EOT+3-EAIbuffer;
+					bufPtr = (int) (EOT+3-EAIbuffer);
 				} else {
 /*  					char *filename = (char *)MALLOC(1000); */
 					char *mypath;
@@ -395,7 +395,7 @@ void EAI_parse_commands () {
 					printf ("this is a script node in a REGLISTENER command! %d\n",tmp_b);
 					*/
 
-					node = (struct X3D_Node *)sp->num;
+					node = offsetPointer_deref(struct X3D_Node *,0,sp->num);
 					directionFlag = FROM_SCRIPT;
 				}
 
@@ -403,8 +403,8 @@ void EAI_parse_commands () {
 				ctmp[1]=0;
 
 				if (eaiverbose) 
-					printf ("REGISTERLISTENER from %lu foffset %d fieldlen %d type %s \n",
-						(uintptr_t)node, offset ,tmp_c,ctmp);
+					printf ("REGISTERLISTENER from %p foffset %d fieldlen %d type %s \n",
+						node, offset ,tmp_c,ctmp);
 
 
 				/* put the address of the listener area in a string format for registering
@@ -441,15 +441,15 @@ void EAI_parse_commands () {
 					printf ("this is a script node in a REGLISTENER command! %d\n",tmp_b);
 					*/
 
-					node = (struct X3D_Node *) sp->num;
+					node = offsetPointer_deref(struct X3D_Node *,0,sp->num);
 					directionFlag = FROM_SCRIPT;
 				}
 
 				/* so, count = query id, tmp_a pointer, tmp_b, offset, ctmp[0] type, tmp_c, length*/
 				ctmp[1]=0;
 
-				if (eaiverbose) printf ("UNREGISTERLISTENER from %lu foffset %d fieldlen %d type %s \n",
-						(uintptr_t)node, offset ,tmp_c,ctmp);
+				if (eaiverbose) printf ("UNREGISTERLISTENER from %p foffset %d fieldlen %d type %s \n",
+						node, offset ,tmp_c,ctmp);
 
 
 				/* put the address of the listener area in a string format for registering
@@ -551,7 +551,7 @@ void EAI_parse_commands () {
 					ctype = findFieldInNODES(ctmp);
 					if (ctype > -1) {
 						/* yes, use C only to create this node */
-						sprintf (ctmp, "0 %d ",(int) createNewX3DNode(ctype));
+						sprintf (ctmp, "%ld",(long int) createNewX3DNode(ctype));
 						outBufferCat(ctmp);
 						/* set ra to 0 so that the sprintf below is not used */
 						ra = 0;
@@ -662,7 +662,7 @@ static void handleGETNODE (char *bufptr, int repno) {
 	/*format int seq# COMMAND    string nodename*/
 
 	retint=sscanf (bufptr," %s",ctmp);
-	mystrlen = strlen(ctmp);
+	mystrlen = (int) strlen(ctmp);
 
 	if (eaiverbose) {	
 		printf ("GETNODE %s\n",ctmp); 
@@ -752,11 +752,11 @@ static void handleRoute (char command, char *bufptr, int repno) {
 	char fieldTemp[2000];
 	int fromOffset, toOffset;
 	int adrem;
-	int_t fromfieldType, fromfieldNode, fromretNode, fromretField, fromdataLen;
-	unsigned int fromscripttype;
+	int fromfieldType, fromfieldNode, fromretNode, fromretField, fromdataLen;
+	int fromscripttype;
 	int fromxxx;
-	uintptr_t tofieldNode, toretNode, toretField, todataLen, tofieldType;
-	unsigned int toscripttype;
+	int tofieldNode, toretNode, toretField, todataLen, tofieldType;
+	int toscripttype;
 	int toxxx;
 	char *x;
 	int ftlen;
@@ -814,9 +814,9 @@ static void handleRoute (char command, char *bufptr, int repno) {
 	/* and, get the info for this one */
 	EAI_GetType (tofieldNode, fieldTemp, "inputOnly", &toretNode, &toretField, &todataLen, &tofieldType, &toscripttype, &toxxx);
 
-	if (eaiverbose) printf ("so, we are routing from %u:%u to %u:%u, fieldtypes %u:%u, datalen %u:%u\n",
-		(unsigned int)fromretNode, (unsigned int)toretNode, (unsigned int)fromretField,
-		(unsigned int)toretField, (unsigned int)fromfieldType,(unsigned int)tofieldType, (unsigned)fromdataLen,(unsigned)todataLen);
+	if (eaiverbose) printf ("so, we are routing from %d:%d to %d:%d, fieldtypes %d:%d, datalen %d:%d\n",
+		fromretNode, toretNode, fromretField,
+		toretField, fromfieldType,tofieldType, fromdataLen,todataLen);
 
 	/* are both fieldtypes the same, and are both valid? */
 	rv= ((fromfieldType==tofieldType) &&(fromfieldType != -1));
@@ -829,7 +829,7 @@ static void handleRoute (char command, char *bufptr, int repno) {
 		/* get the C node and field offset for the nodes now */
 		fromNode = (struct X3D_Node*) getEAINodeFromTable(fromretNode,fromretField);
 		toNode = (struct X3D_Node*) getEAINodeFromTable(toretNode,toretField);
-		fromOffset = getEAIActualOffset(fromretNode,fromretField);
+		fromOffset = getEAIActualOffset((int)fromretNode,fromretField);
 		toOffset = getEAIActualOffset(toretNode,toretField);
 
 		/* is this an add or delete route? */
@@ -947,7 +947,7 @@ void EAI_RW(char *str) {
 		i = sscanf (str, "%u",(unsigned int *)&newNode);
 
 		if (i>0) {
-			AddRemoveChildren (rootNode,offsetPointer_deref(void*,rootNode,offsetof (struct X3D_Group, children)),&newNode,1,1,__FILE__,__LINE__);
+			AddRemoveChildren (X3D_NODE(rootNode),offsetPointer_deref(void*,rootNode,offsetof (struct X3D_Group, children)),&newNode,1,1,__FILE__,__LINE__);
 		}
 		while (isdigit(*str)) str++;
 		while (isspace(*str)) str++;

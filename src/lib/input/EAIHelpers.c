@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.43 2010/09/04 12:19:15 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.44 2010/09/28 17:32:05 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -123,7 +123,7 @@ int outBufferLen = 0;
 struct EAINodeParams {
 	struct X3D_Node* thisFieldNodePointer;	/* ok, if this is a PROTO expansion, points to actual node */
 	int fieldOffset;
-	size_t datalen;
+	int datalen;
 	int typeString;
 	int scripttype;
 	char *invokedPROTOValue; 	/* proto field value on invocation (default, or supplied) */
@@ -420,9 +420,9 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	scripttype = 0 - meaning, not to/from a javascript. (see CRoutes.c for values and more info)
 */
 
-void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod, 
-		int *cNodePtr, int *fieldOffset,
-		uintptr_t *dataLen, int *typeString,  unsigned int *scripttype, int *accessType) {
+void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
+                int *cNodePtr, int *fieldOffset,
+                int *dataLen, int *typeString,  int *scripttype, int *accessType) {
 
 	struct EAINodeIndexStruct *me;
 	struct EAINodeParams *newp; 
@@ -523,7 +523,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 
 
 
-	if (eaiverbose) printf ("EAI_GetType, after findFieldInOFFSETS, have myFieldOffs %u, ctype %lu, accessType %lu \n",myFieldOffs, (unsigned long int)ctype, (unsigned long int)*accessType);
+	if (eaiverbose) printf ("EAI_GetType, after findFieldInOFFSETS, have myFieldOffs %u, ctype %d, accessType %d \n",myFieldOffs, ctype, *accessType);
 
 	/* is this a Script, or just an invalid field?? */ 
 	if (myFieldOffs <= 0) {
@@ -612,7 +612,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	*/
 
 	*fieldOffset = vector_size(me->nodeParams)-1; 	/* the entry into this field array for this node */
-	*dataLen = newp->datalen;	/* data len */
+	*dataLen = (int) newp->datalen;	/* data len */
 	*typeString = newp->typeString; /* data type in EAI type */
 	*scripttype =newp->scripttype;
 	*cNodePtr = cNode;	/* keep things with indexes */
@@ -754,8 +754,8 @@ char *eaiPrintCommand (char command) {
 /* append str to the outbuffer, REALLOC if necessary */
 void outBufferCat (char *str) {
 	int a,b;
-	a = strlen (outBuffer);
-	b = strlen (str);
+	a = (int) strlen (outBuffer);
+	b = (int) strlen (str);
 
 	/* should we increase the size here? */
 	if ((a+b+2) >= outBufferLen) {
