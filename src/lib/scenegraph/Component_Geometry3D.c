@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.41 2010/09/21 20:00:25 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.42 2010/09/28 13:19:50 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -402,8 +402,8 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 void render_Cylinder (struct X3D_Cylinder * node) {
 	extern GLfloat cylnorms[];		/*  in CFuncs/statics.c*/
-	extern int cyltopindx[];	/*  in CFuncs/statics.c*/
-	extern int cylbotindx[];	/*  in CFuncs/statics.c*/
+	extern unsigned char cyltopindx[];	/*  in CFuncs/statics.c*/
+	extern unsigned char cylbotindx[];	/*  in CFuncs/statics.c*/
 	extern GLfloat cylendtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat cylsidetex[];		/*  in CFuncs/statics.c*/
 	float h = (node->height)/2;
@@ -462,7 +462,8 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 			textureDraw_start(NULL,&mtf);
 			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
-			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cylbotindx);
+			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
+			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,(int *) cylbotindx);
 			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 			trisThisLoop += CYLDIV+2;
 		}
@@ -472,7 +473,8 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 			textureDraw_start(NULL,&mtf);
 			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 			FW_GL_NORMAL3F(0.0f,1.0f,0.0f);
-			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
+			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
+			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,(int *) cyltopindx);
 			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 			trisThisLoop += CYLDIV+2;
 		}
@@ -566,7 +568,7 @@ void compile_Cone (struct X3D_Cone *node) {
 				coneVert[indx].vert.c[1] = (float) -h;
 				coneVert[indx].vert.c[2] = r* (float) cos(angle);
 				coneVert[indx].norm.c[0] = (float) sin(angle);
-				coneVert[indx].norm.c[1] = (float)h/r;
+				coneVert[indx].norm.c[1] = (float)h/(r*2);
 				coneVert[indx].norm.c[2] = (float) cos(angle);
 
 				angle = (double) (PI * 2 * (i+0.0f)) / (double) (CONEDIV);
@@ -580,7 +582,7 @@ void compile_Cone (struct X3D_Cone *node) {
 				coneVert[indx].vert.c[1] = (float) h;
 				coneVert[indx].vert.c[2] = 0.0f;
 				coneVert[indx].norm.c[0] = (float) sin(angle); 
-				coneVert[indx].norm.c[1] = (float)h/r;
+				coneVert[indx].norm.c[1] = (float)h/(r*2);
 				coneVert[indx].norm.c[2] = (float) cos(angle);
 
 				coneVert[indx].tc.c[0] = *tcp; tcp++; 
@@ -592,8 +594,8 @@ void compile_Cone (struct X3D_Cone *node) {
 				coneVert[indx].vert.c[0] = r* (float) sin(angle);
 				coneVert[indx].vert.c[1] = (float) -h;
 				coneVert[indx].vert.c[2] = r* (float) cos(angle);
-				coneVert[indx].norm.c[0] = (float) sin(angle) + 0.5f; 
-				coneVert[indx].norm.c[1] = (float)h/r;
+				coneVert[indx].norm.c[0] = (float) sin(angle); 
+				coneVert[indx].norm.c[1] = (float)h/(r*2);
 				coneVert[indx].norm.c[2] = (float) cos(angle);
 
 				angle = (float) (PI * 2 * (i+1.0f)) / (double) (CONEDIV);
@@ -678,7 +680,7 @@ void compile_Cone (struct X3D_Cone *node) {
 }
 
 void render_Cone (struct X3D_Cone *node) {
-	extern int tribotindx[];	/*  in CFuncs/statics.c*/
+	extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
 	extern float tribottex[];		/*  in CFuncs/statics.c*/
 	extern float trisidtex[];		/*  in CFuncs/statics.c*/
 	/*  DO NOT change this define, unless you want to recalculate statics below....*/
@@ -730,7 +732,8 @@ void render_Cone (struct X3D_Cone *node) {
 			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__botpoints);
 			textureDraw_start(NULL,&mtf);
 			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
-			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
+			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
+			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,(int *) tribotindx);
 			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 			trisThisLoop += CONEDIV+2;
 		}
@@ -1640,7 +1643,7 @@ void collisionCone_init(struct X3D_Cone *node)
 	/* for debug int j,k,biggestNum; */
 	double h,r,inverseh,inverser;
 	struct SFColor *pts;// = node->__botpoints;
-	extern int tribotindx[];
+	extern unsigned char tribotindx[];
 	
 	/*  re-using the compile_cone node->__points data which is organized into GL_TRAIANGLE_FAN (bottom) and GL_TRIANGLES (side)
 

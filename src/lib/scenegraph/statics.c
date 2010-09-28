@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: statics.c,v 1.13 2010/09/21 20:00:25 crc_canada Exp $
+$Id: statics.c,v 1.14 2010/09/28 13:19:50 crc_canada Exp $
 
 large constant strings; used for rendering.
 
@@ -177,10 +177,10 @@ GLfloat cylnorms[] = { (GLfloat) -0.156, (GLfloat) 0.0, (GLfloat) 0.988, (GLfloa
 	-0.454, (GLfloat) 0.0, (GLfloat) 0.891, (GLfloat)  -0.454, (GLfloat) 0.0, (GLfloat) 0.891, (GLfloat)  -0.156, (GLfloat) 0.0, (GLfloat) 0.988, (GLfloat)  -0.156, (GLfloat) 0.0, (GLfloat) 0.988};
 
 /*  top index into the __points generated array*/
-int cyltopindx[] = { 42, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40};
+unsigned char cyltopindx[] = { 42, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40};
 
 /*  bottom index into the __points generated array*/
-int cylbotindx[] = {43, 41, 39, 37, 35, 33, 31, 29, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1};
+unsigned char cylbotindx[] = {43, 41, 39, 37, 35, 33, 31, 29, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1};
 
 /*  side textures; simply 20 slices of the texture; 2 coords per slice.*/
 /*  for (i=0; i<=20; i++) {*/
@@ -231,7 +231,7 @@ GLfloat cylendtex[] = {
 
 /*  CONE*/
 /* indexes for arrays for bottom of cone */
-int tribotindx[] = {21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 22};
+unsigned char tribotindx[] = {21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 22};
 
 /* texture mapping indexes for bottom of cone */
 /* generated with:
