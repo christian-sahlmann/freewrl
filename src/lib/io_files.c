@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.23 2010/08/19 02:20:36 crc_canada Exp $
+  $Id: io_files.c,v 1.24 2010/09/29 20:11:48 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -103,6 +103,7 @@ char* remove_filename_from_path(const char *path)
 {
 	char *rv = NULL;
 	char *slash;
+
 	slash = strrchr(path, '/');
 	if (slash) {
 #ifdef DEBUG_MALLOC
@@ -113,7 +114,7 @@ printf ("remove_filename_from_path going to copy %d\n", ((int)slash-(int)path)+1
 		*slash = '\0';
 printf ("remove_filename_from_path, returning :%s:\n",rv);
 #else
-		rv = strndup(path, ((int)slash-(int)path)+1);
+		rv = strndup(path, (size_t)slash - (size_t)path + 1);
 #endif
 
 	}

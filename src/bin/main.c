@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.37 2010/09/16 23:32:42 dug9 Exp $
+  $Id: main.c,v 1.38 2010/09/29 20:11:48 crc_canada Exp $
 
   FreeWRL main program.
 
@@ -64,7 +64,10 @@ char *get_current_dir();
 int main (int argc, char **argv)
 {
     char *start_url = NULL;	/* file/url to start FreeWRL with */
-    const char *libver, *progver;
+    const char *libver;
+#ifndef AQUA
+    const char  *progver;
+#endif
 
     /* first, get the FreeWRL shared lib, and verify the version. */
     libver = libFreeWRL_get_version();

@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.65 2010/09/24 20:22:05 crc_canada Exp $
+  $Id: CParseParser.c,v 1.66 2010/09/29 20:11:48 crc_canada Exp $
 
   ???
 
@@ -1575,7 +1575,7 @@ void parser_registerRoute(struct VRMLParser* me,
 }
 
 /* parse a DEF statement. Return a pointer to a vrmlNodeT */
-static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
+static vrmlNodeT parse_KW_DEF(struct VRMLParser *me) {
     int ind = ID_UNDEFINED;
     vrmlNodeT node;
 
@@ -1619,13 +1619,13 @@ static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
 #endif
 
     /* Return a pointer to the node in the variable ret */
-    return (vrmlNodeT*) vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
+    return (vrmlNodeT) vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
 }
 
 
 
 /* parse a USE statement. Return a pointer to a vrmlNodeT */
-static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
+static vrmlNodeT parse_KW_USE(struct VRMLParser *me) {
     int ind;
 
     /* lexer_nodeName is #defined as lexer_specialID(me, NULL, ret, NULL, 0, stack_top(struct Vector*, userNodeNames)) */
@@ -1651,7 +1651,7 @@ static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
     #endif
 
     /* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */
-    return (vrmlNodeT*) vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
+    return (vrmlNodeT) vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
 }
 
 
@@ -1670,13 +1670,14 @@ static BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
 
     /* A DEF-statement? */
     if(lexer_keyword(me->lexer, KW_DEF)) {
-        *ret=parse_KW_DEF(me);
+	vrmlNodeT * node = ret;
+	*node  = parse_KW_DEF(me);
         return TRUE;
     }
 
     /* A USE-statement? */
     if(lexer_keyword(me->lexer, KW_USE)) {
-        *ret=parse_KW_USE(me);
+        *ret= parse_KW_USE(me);
         return TRUE;
     }
 
@@ -2271,7 +2272,7 @@ PARSE_ERROR("Unsupported field for node!")
 
 /* take a USE field, and stuff it into a Multi*type field  - see parser_mf routines below */
 
-static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
+static void stuffDEFUSE(struct Multi_Node *outMF, vrmlNodeT in, int type) {
     /* printf ("stuff_it_in, got vrmlT vector successfully - it is a type of %s\n",stringNodeType(in->_nodeType));
        printf ("stuff_it_in, ret is %d\n",out); */
 
@@ -2280,9 +2281,9 @@ static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
         /* convert the node pointer into the "p" field of a Multi_MFNode */
     case FIELDTYPE_MFNode:
         /*struct Multi_Node { int n; void * *p; };*/
-        ((struct Multi_Node *)out)->n=1;
-        ((struct Multi_Node *)out)->p=MALLOC(sizeof(struct X3D_Node*));
-        ((struct Multi_Node *)out)->p[0] = in;
+        outMF->n=1;
+        outMF->p=MALLOC(sizeof(struct X3D_Node*));
+        outMF->p[0] = in;
         break;
 
     case FIELDTYPE_MFFloat:
@@ -2296,13 +2297,13 @@ static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
     case FIELDTYPE_MFDouble:
     case FIELDTYPE_MFString:
     case FIELDTYPE_MFVec2f:
-    { int localSize;
+    { size_t localSize;
     localSize =  returnRoutingElementLength(convertToSFType(type)); /* converts MF to equiv SF type */
     /* struct Multi_Float { int n; float  *p; }; */
     /* treat these all the same, as the data type is same size */
-    ((struct Multi_Node *)out)->n=1;
-    ((struct Multi_Node *)out)->p=MALLOC(localSize);
-    memcpy (&((struct Multi_Node *)out)->p[0], &in, (size_t) localSize);
+    outMF->n=1;
+    outMF->p=MALLOC(localSize);
+    memcpy (&outMF->p[0], &in, localSize);
     break;
     }
     default: {
@@ -2314,7 +2315,7 @@ static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
 
 /* if we expect to find a MF field, but the user only puts a SF Field, we make up the MF field with
    1 entry, and copy the data over */
-static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
+static void stuffSFintoMF(struct Multi_Node *outMF, vrmlNodeT *inSF, int type) {
     int rsz;
     int elelen;
 
@@ -2323,54 +2324,33 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
     rsz = returnElementRowSize(type);
     elelen = returnElementLength(type);
 
-    /* convert, say, a X3D_something to a struct Multi_Node { int n; int  *p; }; */
-    switch (type) {
-        /* convert the node pointer into the "p" field of a Multi_MFNode */
-    case FIELDTYPE_MFNode: 
-    case FIELDTYPE_MFFloat: 
-    case FIELDTYPE_MFBool: 
-    case FIELDTYPE_MFInt32: 
-    case FIELDTYPE_MFTime: 
-    case FIELDTYPE_MFDouble: 
-    case FIELDTYPE_MFString: 
-        /* treat these all the same, as the data type is same size */
-        ((struct Multi_Node *)out)->n=1;
-        ((struct Multi_Node *)out)->p=MALLOC(sizeof(float));
-        ((struct Multi_Node *)out)->p[0] = (void *)*in;
-        break;
+	/* printf ("stuffSFintoMF - rowsize %d length %d\n",rsz,elelen); */
 
-    case FIELDTYPE_MFVec3f: 
-    case FIELDTYPE_MFRotation: 
-    case FIELDTYPE_MFColor: 
-    case FIELDTYPE_MFColorRGBA: 
-    case FIELDTYPE_MFVec2f: 
+    /* convert, say, a X3D_something to a struct Multi_Node { int n; int  *p; }; */
+        /* convert the node pointer into the "p" field of a Multi_MFNode */
+
         /* struct Multi_Float { int n; float  *p; }; */
         /* struct Multi_Vec3f { int n; struct SFColor  *p; }; */
         /* treat these all the same, as the data type is same size */
 
         /* is the "old" size something other than 1? */
         /* I am not sure when this would ever happen, but one never knows... */
-        if (((struct Multi_Node *)out)->n != 1) {
-            FREE_IF_NZ(((struct Multi_Node *)out)->p);
-            ((struct Multi_Node *)out)->n=1;
-            ((struct Multi_Node *)out)->p=MALLOC(rsz * elelen);
+        if (outMF->n != 1) {
+            FREE_IF_NZ(outMF->p);
+            outMF->n=1;
+            outMF->p=MALLOC(rsz * elelen);
         }
 
         /* { float *ptr; ptr = (float *) in; for (n=0; n<rsz; n++) { printf ("float %d is %f\n",n,*ptr); ptr++; } }  */
 
-        memcpy (((struct Multi_Node *)out)->p, in, rsz * elelen); 
-        break;
-    default: {
-        ConsoleMessage("VRML Parser; stuffSFintoMF, unhandled type");
-    }   
-    }
+        memcpy (outMF->p, inSF, rsz * elelen); 
 }
 
 /* Parse a MF* field */
 #define PARSER_MFFIELD(name, type) \
  static BOOL parser_mf##name##Value(struct VRMLParser* me, void *ret) { \
   struct Vector* vec; \
-  vrmlNodeT *RCX; \
+  vrmlNodeT RCX; \
   struct Multi_##type *rv; \
   RCX = NULL; \
   vec = NULL; \
@@ -2387,7 +2367,7 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
                 RCX=parse_KW_USE(me); \
                 if (RCX == NULL) return FALSE; \
                 /* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
-                stuffDEFUSE(ret, (vrmlNodeT)RCX, FIELDTYPE_MF##type); \
+                stuffDEFUSE(ret, RCX, FIELDTYPE_MF##type); \
                 return TRUE; \
          } \
          \
@@ -2398,7 +2378,7 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
                 if (RCX == NULL) return FALSE; \
                 \
                 /* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
-                stuffDEFUSE(ret, (vrmlNodeT)RCX, FIELDTYPE_MF##type); \
+                stuffDEFUSE(ret, RCX, FIELDTYPE_MF##type); \
                 return TRUE; \
         } \
  }\
@@ -2407,20 +2387,20 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
 /* possibly a SFNodeish type value?? */ \
 if (me->lexer->curID != NULL) { \
         /* printf ("parser_MF, curID was not null (it is %s) me %u lexer %u... lets just parse node\n",me->lexer->curID,me,me->lexer); */ \
-        if (!parser_node(me, (vrmlNodeT*)&RCX, ID_UNDEFINED)) { \
+        if (!parser_node(me, &RCX, ID_UNDEFINED)) { \
                 return FALSE; \
         } \
         if (RCX == NULL) return FALSE; \
         /* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
-        stuffDEFUSE(ret, (vrmlNodeT)RCX, FIELDTYPE_MF##type); \
+        stuffDEFUSE(ret, RCX, FIELDTYPE_MF##type); \
         return TRUE; \
  } \
 /* Just a single value? */ \
 /* NOTE: the XML parser will ALWAYS give this without the brackets */ \
 if((!lexer_openSquare(me->lexer)) && (!(me->parsingX3DfromXML))) { \
         vrml##type##T RCXRet; \
-        /* printf ("parser_MF, not an opensquare, lets just parse node\n"); */ \
-        /* if (!parser_node(me, (vrmlNodeT*)RCXRet, ID_UNDEFINED)) ... */ \
+        /* printf ("parser_MF, not an opensquare, lets just parse node\n");  */ \
+        /* if (!parser_node(me, &RCXRet, ID_UNDEFINED)) ... */ \
         if(!parser_sf##name##Value(me, &RCXRet)) { \
                 return FALSE; \
         } \
@@ -2428,7 +2408,7 @@ if((!lexer_openSquare(me->lexer)) && (!(me->parsingX3DfromXML))) { \
         /* RCX is the return value, if this value IN THE VRML FILE IS ZERO, then this valid parse will fail... */ \
         /* so it is commented out if (RCX == NULL) return FALSE; */ \
         /* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
-        stuffSFintoMF(ret, (uintptr_t *) (&RCXRet), FIELDTYPE_MF##type); \
+        stuffSFintoMF(ret, (vrmlNodeT *)&RCXRet, FIELDTYPE_MF##type); \
         return TRUE; \
 } \
 \

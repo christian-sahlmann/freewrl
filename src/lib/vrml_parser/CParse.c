@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.24 2010/03/22 15:14:48 crc_canada Exp $
+$Id: CParse.c,v 1.25 2010/09/29 20:11:48 crc_canada Exp $
 
 ???
 
@@ -75,7 +75,7 @@ bool cParse(void* ptr, unsigned ofs, const char* data) {
 
 	resetParseSuccessfullyFlag();
 
- 	parser_fromString(parser, data);
+ 	parser_fromString(parser, (char *) data);
  	ASSERT(parser->lexer);
 
  	if(!parser_vrmlScene(parser))
@@ -143,7 +143,7 @@ char* parser_getNameFromNode(struct X3D_Node *node)
 	for (ind=0; ind < vector_size(stack_top(struct Vector*, globalParser->DEFedNodes)); ind++) {
 		/* did we find this index? */
 		if (vector_get(struct X3D_Node*, stack_top(struct Vector*, globalParser->DEFedNodes), ind) == node) {
-			return vector_get (const char*, curNameStackTop, ind);
+			return vector_get (char*, curNameStackTop, ind);
 		}
 	}
 		

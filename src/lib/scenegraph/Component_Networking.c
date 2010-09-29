@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.30 2010/09/16 15:48:42 crc_canada Exp $
+$Id: Component_Networking.c,v 1.31 2010/09/29 20:11:48 crc_canada Exp $
 
 X3D Networking Component
 
@@ -332,11 +332,14 @@ void registerReWireNode(struct X3D_Node *node) {
 	num_MidiNodes++;
 }
 
-/* "forget" the ReWireNames. Keep the table around, though, as the entries will simply be used again. */
-static void kill_ReWireNameTable(void) {
-	ReWireNametableSize = -1;
-	ReWireDevicetableSize = -1;
-}
+
+#ifdef OLDCODE
+OLDCODE/* "forget" the ReWireNames. Keep the table around, though, as the entries will simply be used again. */
+OLDCODEstatic void kill_ReWireNameTable(void) {
+OLDCODE	ReWireNametableSize = -1;
+OLDCODE	ReWireDevicetableSize = -1;
+OLDCODE}
+#endif /* OLDCODE */
 
 /* return a node assoicated with this name. If the name exists, return the previous node. If not, return
 the new node */
