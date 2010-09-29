@@ -287,7 +287,7 @@ char *convert1To2 (const char *inp)
 {
 	char *retval = NULL;
 	char *dinp, *tptr;
-	int readSizeThrowAway;
+	size_t readSizeThrowAway;
 
 	/* sanitize input but copy data before altering it */
 	dinp = tptr = strdup(inp);

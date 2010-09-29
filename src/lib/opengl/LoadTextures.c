@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.57 2010/09/20 00:34:18 dug9 Exp $
+  $Id: LoadTextures.c,v 1.58 2010/09/29 17:34:06 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -38,6 +38,7 @@
 #include "OpenGL_Utils.h"
 #include "Textures.h"
 #include "LoadTextures.h"
+#include "../scenegraph/Component_CubeMapTexturing.h"
 
 #include <list.h>
 #include <resources.h>
@@ -510,6 +511,7 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	
 	entry->status = TEX_LOADING;
 	url = NULL;
+	res = NULL;
 
 	switch (entry->nodeType) {
 
@@ -587,6 +589,10 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	} else {
 		ERROR_MSG("Could not load texture, no URL present\n");
 	}
+
+	/* really not successful */
+	if (res== NULL) return FALSE;
+
 
 	/* were we successful?? */
 	if (res->status != ress_loaded) {

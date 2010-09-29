@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SoundEngineClient.c,v 1.11 2009/10/05 15:07:23 crc_canada Exp $
+$Id: SoundEngineClient.c,v 1.12 2010/09/29 17:34:06 crc_canada Exp $
 
 This is the SoundEngine client code for FreeWRL.
 
@@ -36,6 +36,7 @@ Some of this stuff came from files from "wavplay"  - see information below
 #include <internal.h>
 #include <errno.h>
 #include <libFreeWRL.h>
+#include <signal.h>
 
 #include "../scenegraph/sounds.h"
 
@@ -124,7 +125,7 @@ void Sound_toserver (char *message) {
 #ifndef __APPLE__
         while((xx = msgsnd(msq_toserver, &msg,strlen(msg.msg)+1,IPC_NOWAIT)));
 #else
-	xx = write(server_pipe_fd, &msg, sizeof(msg));
+	xx = (int) write(server_pipe_fd, &msg, sizeof(msg));
 	if (xx > 0)
 		xx = 0;
 #endif
@@ -219,7 +220,7 @@ void SoundEngineInit () {
 		msgctl(msq_toserver,IPC_RMID,NULL);
 		msgctl(msq_fromserver,IPC_RMID,NULL);
 #else
-	fclose((FILE*)client_pipe_fd);
+	close(client_pipe_fd);
 #endif
 		initialized = SOUND_FAILED;
 		return;
@@ -231,7 +232,7 @@ void SoundEngineInit () {
 		msgctl(msq_toserver,IPC_RMID,NULL);
 		msgctl(msq_fromserver,IPC_RMID,NULL);
 #else
-		fclose((FILE*)client_pipe_fd);
+		close(client_pipe_fd);
 #endif
 		initialized = SOUND_FAILED;
 		return;
@@ -282,7 +283,7 @@ void waitformessage () {
 #ifndef __APPLE__
 			xx = msgrcv(msq_fromserver,&msg,128,1,0);
 #else
-	 		xx = read (client_pipe_fd, &msg, sizeof(msg));
+	 		xx = (int) read (client_pipe_fd, &msg, sizeof(msg));
 			if (xx <= 1)
 				xx = 0;
 #endif
@@ -370,12 +371,12 @@ float SoundSourceInit (int num, int loop, double pitch, double start_time, doubl
 	
 	if (url == NULL) {
 		printf ("SoundSourceInit - no file to source \n");
-		return 0.0;
+		return 0.0f;
 	}
 
 	if (strlen(url) > 192) {
 		printf ("SoundSourceInit - url %s is too long\n",url);
-		return 0.0;
+		return 0.0f;
 	}
 
 	#ifdef __APPLE__
@@ -398,7 +399,7 @@ float SoundSourceInit (int num, int loop, double pitch, double start_time, doubl
 
 	if (sscanf (msg.msg,"REGS %d %f",&returnednum,&duration) != 2) {
 		/* something funny happened here */
-		return 1.0;
+		return 1.0f;
 	} else {
 		return duration;
 	}

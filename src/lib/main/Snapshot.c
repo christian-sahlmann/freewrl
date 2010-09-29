@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.12 2010/03/12 17:07:57 crc_canada Exp $
+$Id: Snapshot.c,v 1.13 2010/09/29 17:34:06 crc_canada Exp $
 
 CProto ???
 
@@ -212,10 +212,14 @@ CGContextRef MyCreateBitmapContext(int pixelsWide, int pixelsHigh, unsigned char
 /* get 1 frame; convert if we are doing 1 image at a time */
 void Snapshot () {
 	GLvoid *buffer;
+	DIR *mydir;
+	
+	#ifndef AQUA
 	char sysline[2000];
 	FILE * tmpfile;
-	DIR *mydir;
 	char thisRawFile[2000];
+	#endif
+
 	char thisGoodFile[2000];
 	char *mytmp, *mysnapb;
 
@@ -323,12 +327,12 @@ void Snapshot () {
 			doSnapshot = savedSnapshot;
 	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
 			printf("thisGoodFile is %s\n", thisGoodFile);
-	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
+	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, FALSE);
 		} else {
 			sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,snapGoodCount);
 
 	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
-	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
+	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, FALSE);
 		}
 
 		imageDest = CGImageDestinationCreateWithURL(url, CFSTR("public.png"), 1, NULL);

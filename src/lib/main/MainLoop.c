@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.144 2010/09/21 15:21:18 crc_canada Exp $
+  $Id: MainLoop.c,v 1.145 2010/09/29 17:34:06 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1738,7 +1738,7 @@ void initialize_parser()
 	if (rootNode == NULL) {
 		rootNode = createNewX3DNode (NODE_Group);	
 		/*remove this node from the deleting list*/
-		doNotRegisterThisNodeForDestroy(rootNode);
+		doNotRegisterThisNodeForDestroy(X3D_NODE(rootNode));
 	}
 }
 
@@ -2069,7 +2069,7 @@ void resetSensorEvents(void) {
 	FREE_IF_NZ(SensorEvents);
 	num_SensorEvents = 0;
 	hypersensitive = NULL;
-	hyperhit = NULL;
+	hyperhit = 0;
 	/* Cursor - ensure it is not the "sensitive" cursor */
 /*	ARROW_CURSOR; */
 

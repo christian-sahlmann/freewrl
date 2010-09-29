@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.70 2010/08/23 14:24:33 crc_canada Exp $
+  $Id: ProdCon.c,v 1.71 2010/09/29 17:34:06 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -300,7 +300,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 
 	} else { // all other cases are inline code to parse... let the parser do the job ;P...
 
-		char *sendIn;
+		const char *sendIn;
 
 		if (strncmp(inputstring,"#VRML V2.0", 6) == 0) {
 			sendIn = inputstring;

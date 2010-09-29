@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.36 2010/08/24 15:16:42 dug9 Exp $
+  $Id: pluginUtils.c,v 1.37 2010/09/29 17:34:06 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -44,8 +44,9 @@
 #include "../x3d_parser/Bindable.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../main/ProdCon.h"
-
 #include "pluginUtils.h"
+#include "PluginSocket.h"
+
 
 static int checkIfX3DVRMLFile(char *fn);
 
@@ -106,7 +107,7 @@ static void goToViewpoint(char *vp) {
 }
 
 static void startNewHTMLWindow(char *url) {
-	char *browser;
+	const char *browser;
 #define LINELEN 4000
 #define ERRLINELEN 4200
 	char sysline[LINELEN];
