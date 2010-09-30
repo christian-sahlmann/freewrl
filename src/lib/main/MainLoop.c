@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.146 2010/09/30 18:58:19 davejoubert Exp $
+  $Id: MainLoop.c,v 1.147 2010/09/30 20:09:57 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -295,7 +295,30 @@ void EventLoop() {
         /* should we do events, or maybe a parser is parsing? */
         doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && isInputThreadInitialized();
 
+        /* First time through */
+        if (loop_count == 0) {
+                BrowserStartTime = Time1970sec();
+		TickTime = BrowserStartTime;
+                lastTime = TickTime - 0.01; /* might as well not invoke the usleep below */
+        } else {
+		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
+		   something goes totally wrong */
+#ifndef IPHONE
+		/* we see how long it took to do the last loop; now that the frame rate is synced to the
+		   vertical retrace of the screens, we should not get more than 60-70fps. We calculate the
+		   time here, if it is more than 200fps, we sleep for 1/100th of a second - we should NOT
+		   need this, but in case something goes pear-shaped (british expression, there!) we do not
+		   consume thousands of frames per second */
+
+               waitsec = TickTime - lastTime;
+               if (waitsec < 0.005) {
+                       usleep(10000);
+		}
+#endif
+        }
+
         /* Set the timestamp */
+	lastTime = TickTime;
 	TickTime = Time1970sec();
 
         /* any scripts to do?? */
@@ -315,25 +338,6 @@ void EventLoop() {
 
         OcclusionStartofEventLoop();
         startOfLoopNodeUpdates();
-
-        /* First time through */
-        if (loop_count == 0) {
-                BrowserStartTime = TickTime;
-                lastTime = TickTime;
-        } else {
-		/* calculate how much to wait so that we are running around 100fps. Adjust the constant
-		   in the line below to raise/lower this frame rate */
-		/* NOTE: OSX front end now syncs with the monitor, meaning, this sleep is no longer needed */
-/* Johns - OSX plugin sometimes runs away, so for now, keep this here #ifndef TARGET_AQUA */
-
-#ifndef IPHONE
-               waitsec = 7000.0 + TickTime - lastTime;
-               if (waitsec > 0.0) {
-                       /* printf ("waiting %lf\n",waitsec); */
-                       usleep((unsigned)waitsec);
-		}
-#endif
-        }
 
         if (loop_count == 25) {
 
@@ -606,9 +610,6 @@ void EventLoop() {
 		handle_MIDIEAI();
         }
 
-        /* record the TickTime here, for rate setting. We don't do this earlier, as some
-           nodes use the lastTime variable */
-        lastTime = TickTime;
 	if (askForRefresh) {
 		refreshOK = TRUE;
 		askForRefresh = FALSE;
