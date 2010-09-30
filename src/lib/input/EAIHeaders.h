@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHeaders.h,v 1.14 2010/09/04 12:19:15 crc_canada Exp $
+$Id: EAIHeaders.h,v 1.15 2010/09/30 18:58:19 davejoubert Exp $
 
 EAI and java CLASS invocation
 
@@ -119,6 +119,7 @@ char *eaiPrintCommand (char command);
 #define GETNODETYPE	'k'
 #define MIDIINFO  	'l'
 #define MIDICONTROL  	'm'
+#define DUMPSCENE  	'n'
 
 
 /* command string to get the rootNode - this is a special match... */

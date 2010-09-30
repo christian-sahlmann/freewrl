@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.71 2010/09/29 17:34:06 crc_canada Exp $
+  $Id: ProdCon.c,v 1.72 2010/09/30 18:58:19 davejoubert Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -69,8 +69,6 @@
 #include "../opengl/LoadTextures.h"
 
 #include "ProdCon.h"
-
-#define DJ_KEEP_COMPILER_WARNING 0
 
 /* used by the paser to call back the lexer for EXTERNPROTO */
 void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound);

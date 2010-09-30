@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.145 2010/09/29 17:34:06 crc_canada Exp $
+  $Id: MainLoop.c,v 1.146 2010/09/30 18:58:19 davejoubert Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -62,7 +62,6 @@
 #include "../ui/statusbar.h"
 #include "../scenegraph/RenderFuncs.h"
 
-#define DJ_KEEP_COMPILER_WARNING 0
 #ifdef AQUA
 #include "../ui/aquaInt.h"
 #endif
@@ -271,6 +270,7 @@ __inline double Time1970sec()
 
 #endif
 
+#define DJ_KEEP_COMPILER_WARNING 0
 #if DJ_KEEP_COMPILER_WARNING
 #define TI(_tv) gettimeofdat(&_tv)
 #define TID(_tv) ((double)_tv.tv_sec + (double)_tv.tv_usec/1000000.0)
@@ -1296,11 +1296,11 @@ static void setup_viewpoint() {
 
 }
 
-extern void dump_scene (int level, struct X3D_Node* node); // in GeneratedCode.c
+extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in GeneratedCode.c
 void dump_scenegraph()
 {
 #ifdef FW_DEBUG
-	dump_scene(0, rootNode);
+	dump_scene(stdout, 0, (struct X3D_Node*) rootNode);
 #endif
 }
 

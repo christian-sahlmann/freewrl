@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.38 2010/09/30 16:21:53 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.39 2010/09/30 18:58:19 davejoubert Exp $
 
 X3D Navigation Component
 
@@ -47,8 +47,6 @@ X3D Navigation Component
 #include "../opengl/Frustum.h"
 #include "Children.h"
 #include "../opengl/OpenGL_Utils.h"
-
-#define DJ_KEEP_COMPILER_WARNING 0
 
 extern struct sCollisionInfo OldCollisionInfo;
 

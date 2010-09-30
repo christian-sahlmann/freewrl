@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.65 2010/09/28 17:32:05 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.66 2010/09/30 18:58:19 davejoubert Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -70,6 +70,7 @@ static void handleRoute (char command, char *bufptr, int repno);
 static void handleGETNODE (char *bufptr, int repno);
 static void handleGETROUTES (char *bufptr, int repno);
 static void handleGETEAINODETYPE (char *bufptr, int repno);
+extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in GeneratedCode.c
 
 
 /******************************************************************************
@@ -114,6 +115,11 @@ void EAI_parse_commands () {
 	struct X3D_Node *boxptr;
         int ctype;
 	int xxx;
+
+	char *dumpname ;
+	int dumpfsize ;
+	int dumpInt ;
+	FILE *dumpfd ;
 
 	/* initialization */
 	bufPtr = 0;
@@ -167,6 +173,31 @@ void EAI_parse_commands () {
 		}
 
 		switch (command) {
+			case DUMPSCENE: {
+				int throwAway = 0 ;
+				int sendNameNotFile = 1 ;
+				dumpname = TEMPNAM("/tmp","fwtmp");
+				dumpfd = fopen(dumpname,"w+");
+				dump_scene(dumpfd, 0, (struct X3D_Node*) rootNode);
+				fflush(dumpfd) ;
+				if (sendNameNotFile) {
+					fclose(dumpfd) ;
+					throwAway = sprintf (outBuffer,"RE\n%f\n%d\n%s",TickTime,count,dumpname);
+				} else {
+					dumpfsize = ftell(dumpfd) ;
+					fseek(dumpfd, 0L, SEEK_SET) ;
+
+					outBuffer = REALLOC(outBuffer,dumpfsize+200);
+					dumpInt = sprintf (outBuffer,"RE\n%f\n%d\n",TickTime,count);
+					throwAway = fread(outBuffer+dumpInt, dumpfsize, 1, dumpfd);
+					dumpInt += dumpfsize;
+
+					outBuffer[dumpInt] = '\0';
+					fclose(dumpfd) ;
+					unlink(dumpname) ;
+				}
+				break;
+				}
 			case GETRENDPROP: {
 				sprintf (outBuffer,"RE\n%f\n%d\n%s %dx%d %d %s %d %f",TickTime,count,
 					"SMOOTH",				/* Shading */
