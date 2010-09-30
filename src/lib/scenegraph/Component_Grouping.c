@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.39 2010/09/16 18:32:58 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.40 2010/09/30 16:21:53 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -67,9 +67,32 @@ void compile_Transform (struct X3D_Transform *node) {
 	MARK_NODE_COMPILED
 }
 
+/* we compile the Group so that children are not continuously sorted */
+void compile_Group(struct X3D_Group *node) {
+	MARK_NODE_COMPILED
+}
+
 /* prep_Group - we need this so that distance (and, thus, distance sorting) works for Groups */
 void prep_Group (struct X3D_Group *node) {
+	COMPILE_IF_REQUIRED
 	RECORD_DISTANCE
+
+/*
+printf ("prepGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
+if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
+if ((node->_renderFlags & VF_Geom) == VF_Geom) printf ("VF_Geom ");
+if ((node->_renderFlags & VF_localLight) == VF_localLight) printf ("VF_localLight ");
+if ((node->_renderFlags & VF_Sensitive) == VF_Sensitive) printf ("VF_Sensitive ");
+if ((node->_renderFlags & VF_Blend) == VF_Blend) printf ("VF_Blend ");
+if ((node->_renderFlags & VF_Proximity) == VF_Proximity) printf ("VF_Proximity ");
+if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision ");
+if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
+if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
+if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
+printf ("\n");
+*/
+
+
 }
 /* prep_PickableGroup - we need this so that distance (and, thus, distance sorting) works for PickableGroups */
 void prep_PickableGroup (struct X3D_Group *node) {
@@ -250,6 +273,21 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 void child_Group (struct X3D_Group *node) {
 	CHILDREN_COUNT
 	LOCAL_LIGHT_SAVE
+/*
+printf ("chldGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
+if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
+if ((node->_renderFlags & VF_Geom) == VF_Geom) printf ("VF_Geom ");
+if ((node->_renderFlags & VF_localLight) == VF_localLight) printf ("VF_localLight ");
+if ((node->_renderFlags & VF_Sensitive) == VF_Sensitive) printf ("VF_Sensitive ");
+if ((node->_renderFlags & VF_Blend) == VF_Blend) printf ("VF_Blend ");
+if ((node->_renderFlags & VF_Proximity) == VF_Proximity) printf ("VF_Proximity ");
+if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision ");
+if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
+if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
+if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
+printf ("\n");
+*/
+
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 /*

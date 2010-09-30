@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.37 2010/09/16 18:32:58 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.38 2010/09/30 16:21:53 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -318,6 +318,25 @@ void child_Collision (struct X3D_Collision *node) {
 
 /* LOD changes between X3D and VRML - level and children fields are "equivalent" */
 void child_LOD (struct X3D_LOD *node) {
+
+/*
+if (node->_selected != NULL) {
+struct X3D_Node *selno = X3D_NODE(node->_selected);
+printf ("childLOD %p (root %p), flags %x ",selno,rootNode,selno->_renderFlags);
+if ((selno->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
+if ((selno->_renderFlags & VF_Geom) == VF_Geom) printf ("VF_Geom ");
+if ((selno->_renderFlags & VF_localLight) == VF_localLight) printf ("VF_localLight ");
+if ((selno->_renderFlags & VF_Sensitive) == VF_Sensitive) printf ("VF_Sensitive ");
+if ((selno->_renderFlags & VF_Blend) == VF_Blend) printf ("VF_Blend ");
+if ((selno->_renderFlags & VF_Proximity) == VF_Proximity) printf ("VF_Proximity ");
+if ((selno->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision ");
+if ((selno->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
+if ((selno->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
+if ((selno->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
+printf ("\n");
+}
+*/
+
         render_node(node->_selected);
 }
 

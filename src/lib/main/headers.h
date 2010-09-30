@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.132 2010/09/24 20:27:54 crc_canada Exp $
+$Id: headers.h,v 1.133 2010/09/30 16:21:53 crc_canada Exp $
 
 Global includes.
 
@@ -110,8 +110,10 @@ extern char *BrowserFullPath;
 #define VF_Blend 				0x0010
 #define VF_Proximity 				0x0020
 #define VF_Collision 				0x0040
+#define VF_globalLight				0x0080 
 #define VF_hasVisibleChildren 			0x0100
-#define VF_globalLight				0x0800 
+#define VF_shouldSortChildren			0x0200
+
 
 /* for z depth buffer calculations */
 #define DEFAULT_NEARPLANE 0.1

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.150 2010/09/28 20:40:22 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.151 2010/09/30 16:21:53 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -108,6 +108,8 @@ static pthread_mutex_t  memtablelock = PTHREAD_MUTEX_INITIALIZER;
 */
 
 
+
+#define TURN_OFF_SHOULDSORTCHILDREN node->_renderFlags = node->_renderFlags & (0xFFFF^ VF_shouldSortChildren);
 /******************************************************************/
 /* textureTransforms of all kinds */
 
@@ -1209,7 +1211,7 @@ void increaseMemoryTable(){
 	3) the first pass shows that nodes are out of order 
 */
 
-static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh, int needsCompiling) {
+static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *sortedCh, int needsCompiling, int sortForDistance) {
 	int i,j;
 	int nc;
 	int noswitch;
@@ -1222,6 +1224,12 @@ static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh, in
 	   have to be totally reversed) */
 
 	nc = ch->n;
+
+	/* printf ("sortChildren line %d nc %d ",line,nc);
+		if (sortForDistance) printf ("sortForDistance ");
+		if (needsCompiling) printf ("needsCompiling ");
+		printf ("\n");
+	*/
 
 	/* has this changed size? */
 	if (ch->n != sortedCh->n) {
@@ -1242,7 +1250,11 @@ static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh, in
 	printf ("sortChildren start, %d, chptr %u\n",nc,ch);
 	#endif
 
+	/* do we care about rendering order? */
+	if (!sortForDistance) return;
 	if (nc < 2) return;
+
+	if (sortForDistance) printf ("sortForDistance at %d %lf\n",sortForDistance, TickTime);
 
 	for(i=0; i<nc; i++) {
 		noswitch = TRUE;
@@ -1254,11 +1266,13 @@ static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh, in
 			/* check to see if a child is NULL - if so, skip it */
 			if (a && b) {
 				if (a->_dist > b->_dist) {
-					/* printf ("sortChildren at %lf, have to switch %d %d\n",TickTime,i,j);  */
+					/* printf ("sortChildren at %lf, have to switch %d %d dists %lf %lf\n",TickTime,i,j, 
+a->_dist, b->_dist); */ 
 					c = a;
 					sortedCh->p[j-1] = b;
 					sortedCh->p[j] = c;
 					noswitch = FALSE;
+
 				}
 			}	
 		}
@@ -1315,15 +1329,27 @@ void zeroVisibilityFlag(void) {
 		
 			#ifdef OCCLUSIONVERBOSE
 			if (((node->_renderFlags) & VF_hasVisibleChildren) != 0) {
-			printf ("zeroVisibility - %d is a %s, flags %x\n",i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); 
+			printf ("%lf, zeroVisibility - %d is a %s, flags %x\n",TickTime, i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); 
 			}
 			#endif
 
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasVisibleChildren);
+#ifdef OLDCODE
+			/* remove the blended mode flag, if it exists - maybe the blended node has disappeared? */
+			node->_renderFlags = node->_renderFlags & (0xFFFF^ VF_shouldSortChildren);
+#endif
 			}
 	
 		}		
 	}
+
+#ifdef OLDCODE
+	/* the rootNode is not in the memory table, but do it here, anyway */
+	rootNode->_renderFlags = rootNode->_renderFlags  & (0xFFFF^ VF_shouldSortChildren);
+	rootNode->_renderFlags = rootNode->_renderFlags  & (0xFFFF^ VF_Blend);
+	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_hasVisibleChildren);
+#endif
+
 	UNLOCK_MEMORYTABLE
 }
 
@@ -1417,28 +1443,28 @@ void zeroVisibilityFlag(void) {
 #define  CHECK_MATERIAL_TRANSPARENCY \
 	if (((struct X3D_Material *)node)->transparency > 0.0001) { \
 		/* printf ("node %d MATERIAL HAS TRANSPARENCY of %f \n", node, ((struct X3D_Material *)node)->transparency); */ \
-		update_renderFlag(X3D_NODE(node),VF_Blend);\
+		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
 		have_transparency = TRUE; \
 	}
  
 #define CHECK_IMAGETEXTURE_TRANSPARENCY \
 	if (isTextureAlpha(((struct X3D_ImageTexture *)node)->__textureTableIndex)) { \
 		/* printf ("node %d IMAGETEXTURE HAS TRANSPARENCY\n", node); */ \
-		update_renderFlag(X3D_NODE(node),VF_Blend);\
+		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
 		have_transparency = TRUE; \
 	}
 
 #define CHECK_PIXELTEXTURE_TRANSPARENCY \
 	if (isTextureAlpha(((struct X3D_PixelTexture *)node)->__textureTableIndex)) { \
 		/* printf ("node %d PIXELTEXTURE HAS TRANSPARENCY\n", node); */ \
-		update_renderFlag(X3D_NODE(node),VF_Blend);\
+		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
 		have_transparency = TRUE; \
 	}
 
 #define CHECK_MOVIETEXTURE_TRANSPARENCY \
 	if (isTextureAlpha(((struct X3D_MovieTexture *)node)->__textureTableIndex)) { \
 		/* printf ("node %d MOVIETEXTURE HAS TRANSPARENCY\n", node); */ \
-		update_renderFlag(X3D_NODE(node),VF_Blend);\
+		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
 		have_transparency = TRUE; \
 	}
 
@@ -1494,10 +1520,17 @@ void startOfLoopNodeUpdates(void) {
 			}
 		}
 	}
+	/* turn OFF these flags */
+	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_Sensitive);
+	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_Viewpoint);
+	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_localLight);
+	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_globalLight);
+	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_Blend);
 
 	/* sort the rootNode, if it is Not NULL */
 	if (rootNode != NULL) {
-		sortChildren (&rootNode->children, &rootNode->_sortedChildren,ROOTNODE_NEEDS_COMPILING);
+		sortChildren (__LINE__,&rootNode->children, &rootNode->_sortedChildren,ROOTNODE_NEEDS_COMPILING,rootNode->_renderFlags & VF_shouldSortChildren);
+		rootNode->_renderFlags=rootNode->_renderFlags & (0xFFFF^VF_shouldSortChildren);
 	}
 
 	/* go through the list of nodes, and "work" on any that need work */
@@ -1602,7 +1635,8 @@ void startOfLoopNodeUpdates(void) {
 	
 				/* Anchor is Mouse Sensitive, AND has Children nodes */
 				BEGIN_NODE(Anchor)
-					sortChildren(&X3D_ANCHOR(node)->children,&X3D_ANCHOR(node)->_sortedChildren,NODE_NEEDS_COMPILING);
+					sortChildren (__LINE__,&X3D_ANCHOR(node)->children,&X3D_ANCHOR(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					ANCHOR_SENSITIVE(Anchor)
 					CHILDREN_NODE(Anchor)
@@ -1619,7 +1653,8 @@ void startOfLoopNodeUpdates(void) {
 
 				BEGIN_NODE(StaticGroup)
 					/* we should probably not do this, but... */
-					sortChildren(&X3D_STATICGROUP(node)->children,&X3D_STATICGROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING);
+					sortChildren (__LINE__,&X3D_STATICGROUP(node)->children,&X3D_STATICGROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
@@ -1633,8 +1668,8 @@ X3D_GROUP(node)->children.n,
 X3D_GROUP(node)->addChildren.n,
 X3D_GROUP(node)->removeChildren.n);
 */
-
-					sortChildren(&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING);
+					sortChildren (__LINE__,&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Group) 
@@ -1642,7 +1677,8 @@ X3D_GROUP(node)->removeChildren.n);
 
 				/* DJTRACK_PICKSENSORS */
 				BEGIN_NODE(PickableGroup) 
-					sortChildren(&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING);
+					sortChildren (__LINE__,&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(PickableGroup) 
@@ -1656,12 +1692,17 @@ X3D_GROUP(node)->removeChildren.n);
 						}
 						vector_pushBack(struct X3D_Inline *, loadInlines, X3D_INLINE(node));
 					}
-					sortChildren (&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren,NODE_NEEDS_COMPILING);
+					sortChildren (__LINE__,&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
 				BEGIN_NODE(Transform) 
-					sortChildren(&X3D_TRANSFORM(node)->children,&X3D_TRANSFORM(node)->_sortedChildren,NODE_NEEDS_COMPILING);
+/*
+printf ("Transform node %p, change %d ichange %d\n",node,node->_change, node->_ichange);
+*/
+					sortChildren (__LINE__,&X3D_TRANSFORM(node)->children,&X3D_TRANSFORM(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Transform) 
 				END_NODE
@@ -1687,14 +1728,16 @@ X3D_GROUP(node)->removeChildren.n);
 				END_NODE
 
 				BEGIN_NODE(Billboard) 
-					sortChildren (&X3D_BILLBOARD(node)->children,&X3D_BILLBOARD(node)->_sortedChildren,NODE_NEEDS_COMPILING);
+					sortChildren (__LINE__,&X3D_BILLBOARD(node)->children,&X3D_BILLBOARD(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Billboard) 
                 			update_renderFlag(node,VF_Proximity);
 				END_NODE
 
 				BEGIN_NODE(Collision) 
-					sortChildren (&X3D_COLLISION(node)->children,&X3D_COLLISION(node)->_sortedChildren,NODE_NEEDS_COMPILING);
+					sortChildren (__LINE__,&X3D_COLLISION(node)->children,&X3D_COLLISION(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Collision) 
 				END_NODE
@@ -1745,10 +1788,7 @@ X3D_GROUP(node)->removeChildren.n);
 					X3D_VISIBILITYSENSOR(node)->__occludeCheckCount--;
 					/* VisibilitySensors have a transparent bounding box we have to render */
 
-                			update_renderFlag(node,VF_Blend);
-                			//update_renderFlag(node,VF_Sensitive);
-					//HaveSensitive=TRUE;
-
+                			update_renderFlag(node,VF_Blend & VF_shouldSortChildren);
 				END_NODE
 
 				/* ProximitySensor needs its own flag sent up the chain */
@@ -1771,13 +1811,15 @@ X3D_GROUP(node)->removeChildren.n);
 				END_NODE
 
 				BEGIN_NODE (GeoTransform)
-					sortChildren(&X3D_GEOTRANSFORM(node)->children,&X3D_GEOTRANSFORM(node)->_sortedChildren,NODE_NEEDS_COMPILING);
+					sortChildren (__LINE__,&X3D_GEOTRANSFORM(node)->children,&X3D_GEOTRANSFORM(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(GeoTransform) 
 				END_NODE
 
 				BEGIN_NODE (GeoLocation)
-					sortChildren(&X3D_GEOLOCATION(node)->children,&X3D_GEOLOCATION(node)->_sortedChildren,NODE_NEEDS_COMPILING);
+					sortChildren (__LINE__,&X3D_GEOLOCATION(node)->children,&X3D_GEOLOCATION(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(GeoLocation) 
 				END_NODE
@@ -1827,7 +1869,8 @@ X3D_GROUP(node)->removeChildren.n);
 				/* VRML1 Separator node; we do a bare bones implementation; always assume there are 
 					lights, geometry, and viewpoints here. */
 				BEGIN_NODE(VRML1_Separator) 
-					sortChildren(&VRML1_SEPARATOR(node)->VRML1children,&VRML1_SEPARATOR(node)->_sortedChildren,NODE_NEEDS_COMPILING);
+					sortChildren (__LINE__,&VRML1_SEPARATOR(node)->VRML1children,&VRML1_SEPARATOR(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					update_renderFlag(X3D_NODE(node),VF_localLight|VF_Viewpoint|VF_Geom|VF_hasVisibleChildren);
 				END_NODE
