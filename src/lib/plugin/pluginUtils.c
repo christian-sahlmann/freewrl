@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.37 2010/09/29 17:34:06 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.38 2010/09/30 12:41:39 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -161,13 +161,13 @@ static void startNewHTMLWindow(char *url) {
 
 /* we keep polling here, if we are loading a url...*/
 static int waitingForURLtoLoad = FALSE;
-static resource_item_t *res = NULL; 	/* If this res is valid, then we can replace root_res with it */
+static resource_item_t *plugin_res = NULL; 	/* If this res is valid, then we can replace root_res with it */
 
 static int urlLoadingStatus() {
-	/* printf ("urlLoadingStatus %s\n",resourceStatusToString(res->status)); */
+	/* printf ("urlLoadingStatus %s\n",resourceStatusToString(plugin_res->status)); */
 	/* printf ("and we have %d children in root.\n",X3D_GROUP(rootNode)->children.n); */
 
-	switch (res->status) {
+	switch (plugin_res->status) {
 		case ress_downloaded:
 		case ress_parsed:
 			EAI_Anchor_Response(TRUE);
@@ -229,7 +229,7 @@ int doBrowserAction()
 		/* We have a url, lets go and get the first one of them */
                 parentPath = (resource_item_t *)AnchorsAnchor->_parentResource;
 
-		res = resource_create_multi(&AnchorsAnchor->url);
+		plugin_res = resource_create_multi(&AnchorsAnchor->url);
 
 #ifdef TEXVERBOSE
 		PRINTF("url: ");
@@ -237,49 +237,49 @@ int doBrowserAction()
 		PRINTF("parent resource: \n");
 		resource_dump(parentPath);
 		PRINTF("file resource: \n");
-		resource_dump(res);
+		resource_dump(plugin_res);
 #endif
 
 		/* hold on to the top of the list so we can delete it later */
-		head_of_list = res->m_request;
+		head_of_list = plugin_res->m_request;
 
 		/* go through the urls until we have a success, or total failure */
 		do {
 			/* Setup parent */
-			resource_identify(parentPath, res);
+			resource_identify(parentPath, plugin_res);
 
 			/* Setup media type */
-			res->media_type = resm_image; /* quick hack */
+			plugin_res->media_type = resm_image; /* quick hack */
 
-			if (resource_fetch(res)) {
-				/* printf ("really loading anchor from %s\n", res->actual_file); */
+			if (resource_fetch(plugin_res)) {
+				/* printf ("really loading anchor from %s\n", plugin_res->actual_file); */
 
 				/* we have the file; res->actual_file is the file on the local system; 
-				   res->parsed_request is the file that might be remote */
+				   plugin_res->parsed_request is the file that might be remote */
 
-				if (checkIfX3DVRMLFile(res->actual_file)) {
+				if (checkIfX3DVRMLFile(plugin_res->actual_file)) {
 					resource_item_t *resToLoad;
 
 					/* out with the old... */
 					kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
 					/* tell the new world which viewpoint to go to */
-					givenInitialViewpoint = res->afterPoundCharacters;
-					resToLoad = resource_create_single(res->actual_file);
+					givenInitialViewpoint = plugin_res->afterPoundCharacters;
+					resToLoad = resource_create_single(plugin_res->actual_file);
 
 					/* in with the new... */
 					send_resource_to_parser(resToLoad);
 					waitingForURLtoLoad = TRUE;
 					return TRUE; /* keep the browser ticking along here */
 				} else {
-					res->complete = TRUE;
-					startNewHTMLWindow(res->parsed_request);
+					plugin_res->complete = TRUE;
+					startNewHTMLWindow(plugin_res->parsed_request);
 				}
 			} else {
 				/* we had a problem with that URL, set this so we can try the next */
-				res->type=rest_multi;
+				plugin_res->type=rest_multi;
 			}
-		} while ((res->status != ress_downloaded) && (res->m_request != NULL));
+		} while ((plugin_res->status != ress_downloaded) && (plugin_res->m_request != NULL));
 
 		/* destroy the m_request, if it exists */
 		if (head_of_list != NULL) {
@@ -287,8 +287,8 @@ int doBrowserAction()
 		}
 
 		/* were we successful?? */
-		if (res->status != ress_loaded) {
-			ERROR_MSG("Could not load texture: %s\n", entry->filename);
+		if (plugin_res->status != ress_loaded) {
+			ERROR_MSG("Could not load new world: %s\n", plugin_res->actual_file);
 			return FALSE;
 		}
 
@@ -308,9 +308,9 @@ int doBrowserAction()
 			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
 			/* we want to clean out the old world AND load a new one in */
-			res = resource_create_single (OSX_replace_world_from_console);
+			plugin_res = resource_create_single (OSX_replace_world_from_console);
 
-			send_resource_to_parser(res);
+			send_resource_to_parser(plugin_res);
 
 			waitingForURLtoLoad = TRUE;
 			return TRUE; /* keep the browser ticking along here */
@@ -349,14 +349,14 @@ static int checkIfX3DVRMLFile(char *fn) {
 /* void Anchor_ReplaceWorld (char *name) */
 bool Anchor_ReplaceWorld(const char *name)
 {
-	resource_item_t *res;
+	resource_item_t *AR_res;
 
-	res = resource_create_single(name);
-	res->new_root = TRUE;
-	send_resource_to_parser(res);
-	resource_wait(res);
+	AR_res = resource_create_single(name);
+	AR_res->new_root = TRUE;
+	send_resource_to_parser(AR_res);
+	resource_wait(AR_res);
 
-	if (res->status != ress_loaded) {
+	if (AR_res->status != ress_loaded) {
 		/* FIXME: destroy this new node tree */
 		return FALSE;
 	}
