@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.151 2010/09/30 16:21:53 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.152 2010/10/01 12:01:38 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1253,8 +1253,6 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 	/* do we care about rendering order? */
 	if (!sortForDistance) return;
 	if (nc < 2) return;
-
-	if (sortForDistance) printf ("sortForDistance at %d %lf\n",sortForDistance, TickTime);
 
 	for(i=0; i<nc; i++) {
 		noswitch = TRUE;
