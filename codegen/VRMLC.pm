@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.49 2010/09/30 18:58:19 davejoubert Exp $
+# $Id: VRMLC.pm,v 1.50 2010/10/01 16:23:38 davejoubert Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.50  2010/10/01 16:23:38  davejoubert
+# Used fileno() in file pointer comparision.
+#
 # Revision 1.49  2010/09/30 18:58:19  davejoubert
 # Changes to make dump_scene function in GeneratedCode.c
 # accessible to the outside world via the EAI.
@@ -1484,7 +1487,7 @@ sub gen {
 	"	int i;\n".
         "	char *nodeName;\n".
 	"	#ifdef FW_DEBUG\n\t\tBoolean allFields;\n".
-	"		if (fp == stdout) { allFields = TRUE; } else { allFields = FALSE; }\n".
+	"		if (fileno(fp) == fileno(stdout)) { allFields = TRUE; } else { allFields = FALSE; }\n".
 	"	#else\n\t\tBoolean allFields = FALSE;\n\t#endif\n".
 	"	/* See vi +/double_conditional codegen/VRMLC.pm */\n".
 	"	if (node==NULL) return; \n\n".
