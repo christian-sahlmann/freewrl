@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.72 2010/09/30 18:58:19 davejoubert Exp $
+  $Id: ProdCon.c,v 1.73 2010/10/02 16:33:00 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -455,7 +455,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		/* ACTUALLY CALLS THE PARSER */
 		PARSE_STRING(of->text, nRn);
 	
-		if ((res != root_res) && (!root_res->complete)) {
+		if ((res != root_res) && ((!root_res) ||(!root_res->complete))) {
 			globalParser = savedParser;
 		}
 	

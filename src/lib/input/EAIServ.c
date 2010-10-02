@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.19 2010/09/28 16:26:13 crc_canada Exp $
+$Id: EAIServ.c,v 1.20 2010/10/02 16:33:00 dug9 Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -122,6 +122,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	const int on=1;
 	int flags;
 #ifdef WIN32
+#define socklen_t int
 	int err;
 #endif
 
