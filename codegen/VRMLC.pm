@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.50 2010/10/01 16:23:38 davejoubert Exp $
+# $Id: VRMLC.pm,v 1.51 2010/10/02 06:42:25 davejoubert Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,8 +8,16 @@
 
 #
 # $Log: VRMLC.pm,v $
-# Revision 1.50  2010/10/01 16:23:38  davejoubert
-# Used fileno() in file pointer comparision.
+# Revision 1.51  2010/10/02 06:42:25  davejoubert
+# Pickables. Scan for DJTRACK_PICKSENSORS
+# Modified Files:
+#  	codegen/VRMLC.pm codegen/VRMLNodes.pm codegen/VRMLRend.pm
+#  	src/lib/main/MainLoop.c src/lib/main/headers.h
+#  	src/lib/scenegraph/Component_Geometry3D.c
+#  	src/lib/scenegraph/Component_Grouping.c
+#  	src/lib/scenegraph/Component_Shape.c
+#  	src/lib/scenegraph/GeneratedCode.c
+#  	src/lib/vrml_parser/CRoutes.c
 #
 # Revision 1.49  2010/09/30 18:58:19  davejoubert
 # Changes to make dump_scene function in GeneratedCode.c
@@ -1466,6 +1474,8 @@ sub gen {
 	"	registerX3DNode(tmp);\n".
 	"	/* is this a bindable node? */\n".
 	"	registerBindable(tmp);\n".
+	"	/* is this a pick sensor node? */\n".
+	"	add_picksensor(tmp); /* DJTRACK_PICKSENSORS */\n".
 	"	/* is this a time tick node? */\n".
 	"       add_first(tmp);\n".
 	"       /* possibly a KeySensor node? */\n".
@@ -1505,6 +1515,10 @@ sub gen {
 		push @genFuncs2, "		case NODE_$node : {\n";
 		push @genFuncs2, "			struct X3D_$node *tmp;\n";
 		push @genFuncs2, "			tmp = (struct X3D_$node *) node;\n";
+		if($node eq "PointPickSensor") {
+			push @genFuncs2, "\t\t\tspacer fprintf (fp,\"\\t_nparents (int) %d\\n\",tmp->_nparents); /* DJTRACK_PICKSENSORS */\n";
+			push @genFuncs2, "\t\t\tfor (i=0; i<tmp->_nparents; i++) { spacer fprintf (fp,\"    %d: %p\\n\",i, tmp->_parents[i]); }\n";
+		}
  		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
 
 			my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};

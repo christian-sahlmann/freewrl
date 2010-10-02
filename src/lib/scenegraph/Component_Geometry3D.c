@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.42 2010/09/28 13:19:50 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.43 2010/10/02 06:42:25 davejoubert Exp $
 
 X3D Geometry 3D Component
 
@@ -84,6 +84,10 @@ static GLfloat VBO_coneSideTexParams[]={
 	0.50f, 0.475f, 0.45f,
 	0.55f, 0.525f, 0.50f
 };
+
+/* DJTRACK_PICKSENSORS */
+extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in GeneratedCode.c
+void chainUpPickableTree(struct X3D_Node *shapeNode, struct X3D_Node *chained, int status);
 
 /*******************************************************************************/
 
@@ -978,8 +982,114 @@ void render_Sphere (struct X3D_Sphere *node) {
 	}
 
 	textureDraw_end();
+
+/* DJTRACK_PICKSENSORS */
+	if(active_picksensors()) {
+		struct X3D_Node *chained ;
+		int pickable = FALSE ;
+		chained = (struct X3D_Node *) node ;
+
+		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_inPickableGroup);
+		chainUpPickableTree((struct X3D_Node *) node, chained, -1) ;
+		pickable = (node->_renderFlags & VF_inPickableGroup) ;
+
+		if(pickable) {
+			rewind_picksensors();
+			/* dump_scene(stdout, 0, (struct X3D_Node *)rootNode); */
+			dump_scene(stdout, 0, (struct X3D_Node *)node);
+			while (more_picksensors() == TRUE) {
+				void * XX = get_picksensor();
+				printf("%s,%d render_Sphere %p test PickSensor\n",__FILE__,__LINE__,XX);
+				dump_scene (stdout, 0, XX) ;
+				advance_picksensors();
+			}
+		}
+	}
 }
 
+/* DJTRACK_PICKSENSORS */
+void chainUpPickableTree(struct X3D_Node *shapeNode ,struct X3D_Node *chained , int status) {
+
+	int possibleStatus ;
+	/* status: -1 = indeterminate , 0 = False , 1 = True */
+	/* Valid status transitions:
+		-1 -> 0
+		-1 -> 1
+
+		1 -> 0
+	*/
+
+	/* Special cases:
+		A branch/leaf has more than one parent:
+			Consider the shape unpickable if any parent has pickable as false
+		A pickable group is inside a pickable group
+			Consider the shape unpickable if any pickable group in a chain has pickable as false
+		Pathalogical cases: (According to JAS Jul 2010 these will never happen)
+			Chain A contains a node pointing to Chain B, and B contains a node pointing to Chain A
+			Similarly A --> B , B --> C , C --> A and  ... --> N ... --> N
+			Similarly A --> A but closer to the leaves, ie a self-loop
+	*/
+	/* Invalid status transitions:
+		Cannot become indeterminate
+		0 -> -1
+		1 -> -1 
+
+		Take care of the non-Pathalogical special cases
+		0 -> 1
+	*/
+	/* This will happen if you complete parent X and are going up parent Y */
+	if (status == 0) return ;
+
+	possibleStatus = status ;
+	if (chained->_nodeType == NODE_PickableGroup) {
+		/* OK, we have a PickableGroup and this might change the status flag */
+
+		/* Sorry, I do not have the shorthand for this ;( */
+		struct X3D_PickableGroup *pickNode ;
+		pickNode = (struct X3D_PickableGroup *) chained ;
+		possibleStatus = pickNode->pickable ;
+		
+		if (status == -1) {
+			/* dump_scene (stdout, 0, chained) ; */
+			status = possibleStatus ;
+			if(possibleStatus == 0) {
+				shapeNode->_renderFlags = shapeNode->_renderFlags & (0xFFFF^VF_inPickableGroup);
+				/* No point in going further up this tree, we have gone from -1 -> 0 */
+			} else {
+				shapeNode->_renderFlags = shapeNode->_renderFlags | VF_inPickableGroup;
+				if(0 != chained->_nparents) {
+					int i;
+					for(i=0;i<chained->_nparents;i++) {
+						chainUpPickableTree(shapeNode, chained->_parents[i], status) ;
+					}
+				}
+			}
+		} else {
+			/* The current status is 1 */
+			if(possibleStatus == 0) {
+				shapeNode->_renderFlags = shapeNode->_renderFlags & (0xFFFF^VF_inPickableGroup);
+				/* No point in going further up this tree, we have gone from 1 -> 0 */
+			} else {
+				/* Still 1, so no change to _renderFlags */
+				if(0 != chained->_nparents) {
+					int i;
+					for(i=0;i<chained->_nparents;i++) {
+						chainUpPickableTree(shapeNode, chained->_parents[i], status) ;
+					}
+				}
+			}
+		}
+	} else {
+		if(0 != chained->_nparents) {
+			int i;
+			for(i=0;i<chained->_nparents;i++) {
+				chainUpPickableTree(shapeNode, chained->_parents[i], status) ;
+			}
+		}
+	}
+	return ;
+}
+  
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {
 		//COMPILE_POLY_IF_REQUIRED (node->coord, node->color, node->normal, node->texCoord)
 		//#define COMPILE_POLY_IF_REQUIRED(a,b,c,d) 

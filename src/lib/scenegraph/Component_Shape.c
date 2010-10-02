@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.49 2010/09/16 18:32:58 crc_canada Exp $
+$Id: Component_Shape.c,v 1.50 2010/10/02 06:42:25 davejoubert Exp $
 
 X3D Shape Component
 
@@ -408,6 +408,9 @@ void render_Material (struct X3D_Material *node) {
 	material_oneSided = node;
 }
 
+/* DJTRACK_PICKSENSORS */
+do_PickSensorTickDUMMY(void *ptr) {
+}
 
 void child_Shape (struct X3D_Shape *node) {
 	void *tmpN;

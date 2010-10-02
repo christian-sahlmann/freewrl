@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.40 2010/09/30 16:21:53 crc_canada Exp $
+$Id: Component_Grouping.c,v 1.41 2010/10/02 06:42:25 davejoubert Exp $
 
 X3D Grouping Component
 
@@ -89,15 +89,32 @@ if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision "
 if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
 if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
 if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
+if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup ");
 printf ("\n");
 */
 
 
 }
+/* DJTRACK_PICKSENSORS - modelled on prep_Group above */
 /* prep_PickableGroup - we need this so that distance (and, thus, distance sorting) works for PickableGroups */
 void prep_PickableGroup (struct X3D_Group *node) {
-	printf("%s:%d prep_PickableGroup\n",__FILE__,__LINE__);
+	/* printf("%s:%d prep_PickableGroup\n",__FILE__,__LINE__); */
 	RECORD_DISTANCE
+/*
+printf ("prep_PickableGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
+if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
+if ((node->_renderFlags & VF_Geom) == VF_Geom) printf ("VF_Geom ");
+if ((node->_renderFlags & VF_localLight) == VF_localLight) printf ("VF_localLight ");
+if ((node->_renderFlags & VF_Sensitive) == VF_Sensitive) printf ("VF_Sensitive ");
+if ((node->_renderFlags & VF_Blend) == VF_Blend) printf ("VF_Blend ");
+if ((node->_renderFlags & VF_Proximity) == VF_Proximity) printf ("VF_Proximity ");
+if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision ");
+if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
+if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
+if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
+if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup ");
+printf ("\n");
+*/
 }
 
 /* do transforms, calculate the distance */
@@ -285,6 +302,7 @@ if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision "
 if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
 if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
 if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
+if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup ");
 printf ("\n");
 */
 
@@ -325,13 +343,29 @@ printf ("\n");
 	LOCAL_LIGHT_OFF
 }
 
+/* DJTRACK_PICKSENSORS - modelled on child_Group above */
 void child_PickableGroup (struct X3D_Group *node) {
 	CHILDREN_COUNT
 	LOCAL_LIGHT_SAVE
+/*
+printf ("chldGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
+if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
+if ((node->_renderFlags & VF_Geom) == VF_Geom) printf ("VF_Geom ");
+if ((node->_renderFlags & VF_localLight) == VF_localLight) printf ("VF_localLight ");
+if ((node->_renderFlags & VF_Sensitive) == VF_Sensitive) printf ("VF_Sensitive ");
+if ((node->_renderFlags & VF_Blend) == VF_Blend) printf ("VF_Blend ");
+if ((node->_renderFlags & VF_Proximity) == VF_Proximity) printf ("VF_Proximity ");
+if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision ");
+if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
+if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
+if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
+if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup ");
+printf ("\n");
+*/
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
-	printf("%s:%d child_PickableGroup\n",__FILE__,__LINE__);
+	/* printf("%s:%d child_PickableGroup\n",__FILE__,__LINE__); */
 
-	 if (1==1) {
+	 if (1==0) {
 		int x;
 		struct X3D_Node *xx;
 

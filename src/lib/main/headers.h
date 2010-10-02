@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.133 2010/09/30 16:21:53 crc_canada Exp $
+$Id: headers.h,v 1.134 2010/10/02 06:42:25 davejoubert Exp $
 
 Global includes.
 
@@ -113,6 +113,7 @@ extern char *BrowserFullPath;
 #define VF_globalLight				0x0080 
 #define VF_hasVisibleChildren 			0x0100
 #define VF_shouldSortChildren			0x0200
+#define VF_inPickableGroup			0x0400 /* DJTRACK_PICKSENSORS */
 
 
 /* for z depth buffer calculations */
@@ -572,6 +573,16 @@ int checkNode(struct X3D_Node *node, char *fn, int line);
 
 void do_first(void);
 void process_eventsProcessed(void);
+
+/* DJTRACK_PICKSENSORS */
+void add_picksensor(struct X3D_Node * node);
+void rewind_picksensors();
+void advance_picksensors();
+void activate_picksensors();
+void deactivate_picksensors();
+int active_picksensors();
+int more_picksensors();
+struct X3D_Node* get_picksensor();
 
 void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to);
 
