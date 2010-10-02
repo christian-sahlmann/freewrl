@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.51 2010/10/02 06:42:25 davejoubert Exp $
+# $Id: VRMLC.pm,v 1.52 2010/10/02 14:45:45 dug9 Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.52  2010/10/02 14:45:45  dug9
+# dug9 touchups to get msvc to compile
+#
 # Revision 1.51  2010/10/02 06:42:25  davejoubert
 # Pickables. Scan for DJTRACK_PICKSENSORS
 # Modified Files:
@@ -1491,6 +1494,7 @@ sub gen {
 
 	push @genFuncs2,
 	"/* Dump the scene graph.  */\n".
+	"#define Boolean int\n".
 	"void dump_scene (FILE *fp, int level, struct X3D_Node* node) {\n".
 	"	#define spacer	for (lc=0; lc<level; lc++) fprintf (fp,\"\\t\");\n".
 	"	int lc;\n".
