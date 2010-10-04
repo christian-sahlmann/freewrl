@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.41 2010/10/02 06:42:25 davejoubert Exp $
+$Id: Component_Grouping.c,v 1.42 2010/10/04 02:50:05 dug9 Exp $
 
 X3D Grouping Component
 
@@ -94,27 +94,6 @@ printf ("\n");
 */
 
 
-}
-/* DJTRACK_PICKSENSORS - modelled on prep_Group above */
-/* prep_PickableGroup - we need this so that distance (and, thus, distance sorting) works for PickableGroups */
-void prep_PickableGroup (struct X3D_Group *node) {
-	/* printf("%s:%d prep_PickableGroup\n",__FILE__,__LINE__); */
-	RECORD_DISTANCE
-/*
-printf ("prep_PickableGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
-if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
-if ((node->_renderFlags & VF_Geom) == VF_Geom) printf ("VF_Geom ");
-if ((node->_renderFlags & VF_localLight) == VF_localLight) printf ("VF_localLight ");
-if ((node->_renderFlags & VF_Sensitive) == VF_Sensitive) printf ("VF_Sensitive ");
-if ((node->_renderFlags & VF_Blend) == VF_Blend) printf ("VF_Blend ");
-if ((node->_renderFlags & VF_Proximity) == VF_Proximity) printf ("VF_Proximity ");
-if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision ");
-if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
-if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
-if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
-if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup ");
-printf ("\n");
-*/
 }
 
 /* do transforms, calculate the distance */
@@ -302,7 +281,9 @@ if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision "
 if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
 if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
 if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
+#ifdef DJTRACK_PICKSENSORS
 if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup ");
+#endif
 printf ("\n");
 */
 
@@ -330,59 +311,6 @@ printf ("\n");
 	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
 
 	/* printf ("chld_Group, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
-		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
-	/* now, just render the non-directionalLight children */
-	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && render_geom) {
-		(node->children).n = 1;
-		normalChildren(node->children);
-		(node->children).n = nc;
-	} else {
-		normalChildren(node->_sortedChildren);
-	}
-
-	LOCAL_LIGHT_OFF
-}
-
-/* DJTRACK_PICKSENSORS - modelled on child_Group above */
-void child_PickableGroup (struct X3D_Group *node) {
-	CHILDREN_COUNT
-	LOCAL_LIGHT_SAVE
-/*
-printf ("chldGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
-if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
-if ((node->_renderFlags & VF_Geom) == VF_Geom) printf ("VF_Geom ");
-if ((node->_renderFlags & VF_localLight) == VF_localLight) printf ("VF_localLight ");
-if ((node->_renderFlags & VF_Sensitive) == VF_Sensitive) printf ("VF_Sensitive ");
-if ((node->_renderFlags & VF_Blend) == VF_Blend) printf ("VF_Blend ");
-if ((node->_renderFlags & VF_Proximity) == VF_Proximity) printf ("VF_Proximity ");
-if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision ");
-if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
-if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
-if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
-if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup ");
-printf ("\n");
-*/
-	RETURN_FROM_CHILD_IF_NOT_FOR_ME
-	/* printf("%s:%d child_PickableGroup\n",__FILE__,__LINE__); */
-
-	 if (1==0) {
-		int x;
-		struct X3D_Node *xx;
-
-		printf ("child_PickableGroup, this %p rf %x isProto %d\n",node,node->_renderFlags, node->FreeWRL__protoDef);
-		printf ("	..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-			render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
-
-		for (x=0; x<nc; x++) {
-			xx = X3D_NODE(node->_sortedChildren.p[x]);
-			printf ("	ch %p type %s dist %f\n",node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
-		}
-	}
-
-	/* do we have a DirectionalLight for a child? */
-	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
-
-	/* printf ("chld_PickableGroup, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
 		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
 	/* now, just render the non-directionalLight children */
 	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && render_geom) {
