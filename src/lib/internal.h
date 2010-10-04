@@ -1,5 +1,5 @@
 /*
-  $Id: internal.h,v 1.39 2010/06/29 22:13:36 davejoubert Exp $
+  $Id: internal.h,v 1.40 2010/10/04 02:42:36 dug9 Exp $
 
   FreeWRL support library.
   Library internal declarations.
@@ -236,7 +236,7 @@ void fw_perror(FILE *f, const char *format, ...);
 #define DEBUG_XEV(...)
 #endif
 
-#define DJTRACK_PICKSENSORS 1
+/* #define DJTRACK_PICKSENSORS 1  define this in your build */
 
 /**
  * Those macro get defined only when debugging is enabled
