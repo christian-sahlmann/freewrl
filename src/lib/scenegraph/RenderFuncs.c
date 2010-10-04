@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.65 2010/09/24 20:27:54 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.66 2010/10/04 02:54:32 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -371,6 +371,11 @@ int render_sensitive;
 int render_blend;
 int render_proximity;
 int render_collision;
+#ifdef DJTRACK_PICKSENSORS
+int render_picksensors;
+int render_pickables;
+int	render_allAsPickables;
+#endif
 
 /* texture stuff - see code. Need array because of MultiTextures */
 GLuint boundTextureStack[MAX_MULTITEXTURE];
@@ -550,7 +555,6 @@ void update_node(struct X3D_Node *node) {
  * depending on what we are doing right now.
  */
 
-
 #ifdef RENDERVERBOSE
 static int renderLevel = 0;
 #endif
@@ -596,13 +600,17 @@ void render_node(struct X3D_Node *node) {
 
 	v = *(struct X3D_Virt **)node;
 #ifdef RENDERVERBOSE 
-	printf("%d =========================================NODE RENDERED===================================================\n",renderLevel);
-	printf("%d node %u (%s) , v %u renderFlags %x ",renderLevel, node,stringNodeType(node->_nodeType),v,node->_renderFlags);
-	printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v->prep, v->rend, v->children, v->fin,
-	       v->rendray, hypersensitive);
-	printf("%d state: vp %d geom %d light %d sens %d blend %d prox %d col %d ", renderLevel, 
-         	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
-	printf("change %d ichange %d \n",node->_change, node->_ichange);
+	//printf("%d =========================================NODE RENDERED===================================================\n",renderLevel);
+	{
+		int i;
+		for(i=0;i<renderLevel;i++) printf(" ");
+	}
+	printf("%d node %u (%s) , v %u renderFlags %x \n",renderLevel, node,stringNodeType(node->_nodeType),v,node->_renderFlags);
+	//printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v->prep, v->rend, v->children, v->fin,
+	//       v->rendray, hypersensitive);
+	//printf("%d state: vp %d geom %d light %d sens %d blend %d prox %d col %d ", renderLevel, 
+ //        	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+	//printf("change %d ichange %d \n",node->_change, node->_ichange);
 #endif
 
         /* if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here */ 
@@ -635,12 +643,16 @@ void render_node(struct X3D_Node *node) {
 		}
 		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,v);
 	}
-
+#ifdef DJTRACK_PICKSENSORS
+	if(render_proximity && v->proximity && !(node->_renderFlags & VF_PickingSensor) && !(node->_renderFlags & VF_inPickableGroup)) {
+#else
 	if(render_proximity && v->proximity) {
+#endif
 		DEBUG_RENDER("rs 2a\n");
 		v->proximity(node);
 		PRINT_GL_ERROR_IF_ANY("render_proximity"); PRINT_NODE(node,v);
 	}
+
 
 	if(render_collision && v->collision) {
 		DEBUG_RENDER("rs 2b\n");
@@ -653,7 +665,27 @@ void render_node(struct X3D_Node *node) {
 		v->rend(node);
 		PRINT_GL_ERROR_IF_ANY("render_geom"); PRINT_NODE(node,v);
 	}
-	 
+
+#if DJTRACK_PICKSENSORS
+	if(render_picksensors && (node->_renderFlags & VF_PickingSensor) && v->proximity ) { //v->pick
+		DEBUG_RENDER("rs 4a\n");
+		v->proximity(node); //v->picksensor(node);
+		PRINT_GL_ERROR_IF_ANY("render_picksensors"); PRINT_NODE(node,v);
+	}
+	if(render_pickables && (node->_renderFlags & VF_inPickableGroup)) { 
+		//push_renderingState(VF_inPickableGroup);
+		render_allAsPickables = 1;
+	}
+	if( !strcmp(stringNodeType(node->_nodeType),"Shape") && render_allAsPickables )
+		printf("--shape---\n");
+	if(render_pickables && render_allAsPickables && v->proximity ) { //v->pick
+		DEBUG_RENDER("rs 4b\n");
+		v->proximity(node); //v->pick(node);
+		PRINT_GL_ERROR_IF_ANY("render_pickables"); PRINT_NODE(node,v);
+	}
+#endif
+
+
 	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
 		DEBUG_RENDER("rs 5\n");
 		srg = render_geom;
@@ -675,18 +707,25 @@ void render_node(struct X3D_Node *node) {
 		PRINT_GL_ERROR_IF_ANY("rs 6"); PRINT_NODE(node,v);
 	}
 
-        if((render_sensitive) && (hypersensitive == node)) {
+    if((render_sensitive) && (hypersensitive == node)) {
 		DEBUG_RENDER("rs 7\n");
 		hyper_r1 = t_r1;
 		hyper_r2 = t_r2;
 		hyperhit = 1;
-        }
+    }
 
-        if(v->children) { 
+    if(v->children) { 
 		DEBUG_RENDER("rs 8 - has valid child node pointer\n");
 		v->children(node);
 		PRINT_GL_ERROR_IF_ANY("children"); PRINT_NODE(node,v);
-        }
+    }
+
+#if DJTRACK_PICKSENSORS
+	if(render_pickables && (node->_renderFlags & VF_inPickableGroup)) { 
+		//pop_renderingState(VF_inPickableGroup);
+		render_allAsPickables = 0;
+	}
+#endif
 
 	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
 		DEBUG_RENDER("rs 9\n");
@@ -707,6 +746,10 @@ void render_node(struct X3D_Node *node) {
 	}
 
 #ifdef RENDERVERBOSE 
+	{
+		int i;
+		for(i=0;i<renderLevel;i++)printf(" ");
+	}
 	printf("%d (end render_node)\n",renderLevel);
 	renderLevel--;
 #endif
@@ -820,6 +863,10 @@ render_hier(struct X3D_Group *p, int rwhat) {
 	render_blend = rwhat & VF_Blend;
 	render_proximity = rwhat & VF_Proximity;
 	render_collision = rwhat & VF_Collision;
+#ifdef DJTRACK_PICKSENSORS
+	render_picksensors = rwhat & VF_PickingSensor;
+	render_pickables = rwhat & VF_inPickableGroup;
+#endif
 	nextFreeLight = 0;
 	hitPointDist = -1;
 

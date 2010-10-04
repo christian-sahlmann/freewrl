@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.70 2010/10/02 06:42:25 davejoubert Exp $
+$Id: CRoutes.c,v 1.71 2010/10/04 02:46:46 dug9 Exp $
 
 ???
 
@@ -298,12 +298,6 @@ struct FirstStruct {
 struct FirstStruct *ClockEvents = NULL;
 int num_ClockEvents = 0;
 
-/* DJTRACK_PICKSENSORS */
-struct FirstStruct *PickSensors = NULL;
-int num_PickSensors = 0;
-int curr_PickSensor = 0;
-int active_PickSensors = FALSE;
-/* The PickSensors are used via functions, ie the actual data structures should not be exposed outside this file*/
 
 /* We buffer route registrations, JUST in case a registration comes from executing a route; eg,
 from within a Javascript function invocation createVrmlFromURL call that was invoked by a routing
@@ -720,71 +714,7 @@ void AddRemoveChildren (
 	update_node(parent);
 }
 
-/* DJTRACK_PICKSENSORS */
-void activate_picksensors() { active_PickSensors = TRUE ; }
-void deactivate_picksensors() { active_PickSensors = FALSE ; }
-int  active_picksensors() { return (active_PickSensors && (num_PickSensors > 0)) ; }
-void rewind_picksensors() { curr_PickSensor = 0 ; }
-void advance_picksensors() { curr_PickSensor++; }
-int  more_picksensors() {
-	if (active_PickSensors && curr_PickSensor < num_PickSensors) {
-		return TRUE ;
-	} else {
-		return FALSE ;
-	}
-}
 
-/* DJTRACK_PICKSENSORS */
-void add_picksensor(struct X3D_Node * node) {
-	void (*myp)(void *);
-	int clocktype;
-	int count;
-	
-	if (node == 0) {
-		printf ("error in add_first; somehow the node datastructure is zero \n");
-		return;
-	}
-
-	clocktype = node->_nodeType;
-	/* printf ("add_picksensor for %s\n",stringNodeType(clocktype)); */
-
-	if (NODE_PointPickSensor == clocktype) {
-		printf ("add_picksensor for %s\n",stringNodeType(clocktype));
-		myp =  do_PickSensorTickDUMMY;
-	} else {
-		/* printf ("this is not a type we need to add_first for %s\n",stringNodeType(clocktype)); */
-		return;
-	}
-	PickSensors = (struct FirstStruct *)REALLOC(PickSensors,sizeof (struct FirstStruct) * (num_PickSensors+1));
-	if (PickSensors == 0) {
-		printf ("can not allocate memory for add_first call\n");
-		num_PickSensors = 0;
-	}
-
-	/* does this event exist? */
-	for (count=0; count <num_PickSensors; count ++) {
-		if (PickSensors[count].tonode == node) {
-			/* printf ("add_first, already have %d\n",node); */
-			return;
-		}	
-	}
-
-	/* now, put the function pointer and data pointer into the structure entry */
-	PickSensors[num_PickSensors].interpptr = myp;
-	PickSensors[num_PickSensors].tonode = node;
-
-	num_PickSensors++;
-}
-
-/* DJTRACK_PICKSENSORS */
-struct X3D_Node* get_picksensor() {
-	int this_PickSensor = curr_PickSensor ;
-	if ( active_PickSensors && this_PickSensor < num_PickSensors) {
-		return PickSensors[this_PickSensor].tonode ;
-	} else {
-		return (struct X3D_Node *) NULL ;
-	}
-}
 
 /* These events must be run first during the event loop, as they start an event cascade.
    Regsister them with add_first, then call them during the event loop with do_first.    */

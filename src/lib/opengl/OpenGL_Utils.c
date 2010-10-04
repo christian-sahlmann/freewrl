@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.152 2010/10/01 12:01:38 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.153 2010/10/04 02:55:35 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1673,6 +1673,7 @@ X3D_GROUP(node)->removeChildren.n);
 					CHILDREN_NODE(Group) 
 				END_NODE
 
+#ifdef DJTRACK_PICKSENSORS
 				/* DJTRACK_PICKSENSORS */
 				BEGIN_NODE(PickableGroup) 
 					sortChildren (__LINE__,&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
@@ -1681,6 +1682,12 @@ X3D_GROUP(node)->removeChildren.n);
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(PickableGroup) 
 				END_NODE
+				/* PointPickSensor needs its own flag sent up the chain */
+				BEGIN_NODE (PointPickSensor)
+                			if (X3D_POINTPICKSENSOR(node)->enabled) update_renderFlag(node,VF_PickingSensor);
+				END_NODE
+
+#endif
 
 				BEGIN_NODE(Inline) 
 					if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE) {

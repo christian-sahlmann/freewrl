@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.148 2010/10/02 06:42:25 davejoubert Exp $
+  $Id: MainLoop.c,v 1.149 2010/10/04 02:56:51 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -357,16 +357,18 @@ void EventLoop() {
 
         trisThisLoop = 0;
 
-/* DJTRACK_PICKSENSORS
-        if(slowloop_count == 1009) slowloop_count = 0 ;
-	if ((slowloop_count % 32) == 0) {
-		activate_picksensors() ;
-		printf("slowloop_count = %d, so activate_picksensors at T=%lf\n",slowloop_count, TickTime) ;
-	} else {
-		deactivate_picksensors() ;
-	}
-        slowloop_count++ ;
-*/
+/* DJTRACK_PICKSENSORS */
+//#ifdef DJTRACK_PICKSENSORS
+//        if(slowloop_count == 1009) slowloop_count = 0 ;
+//	if ((slowloop_count % 32) == 0) {
+//		activate_picksensors() ;
+//		printf("slowloop_count = %d, so activate_picksensors at T=%lf\n",slowloop_count, TickTime) ;
+//	} else {
+//		deactivate_picksensors() ;
+//	}
+//        slowloop_count++ ;
+//#endif
+
 
         /* handle any events provided on the command line - Robert Sim */
         if (keypress_string && doEvents) {
@@ -901,6 +903,11 @@ void handle_Xevents(XEvent event) {
 #endif
 
 /* get setup for rendering. */
+#ifdef DJTRACK_PICKSENSORS
+void do_pickSensors();
+int enabled_picksensors();
+#endif
+
 static void render_pre() {
         /* 1. Set up projection */
         setup_projection(FALSE,0,0);
@@ -926,7 +933,24 @@ static void render_pre() {
         }
 
         /* 5. render hierarchy - proximity */
-        if (doEvents) render_hier(rootNode, VF_Proximity);
+        if (doEvents) 
+		{
+			render_hier(rootNode, VF_Proximity);
+#ifdef DJTRACK_PICKSENSORS
+			{
+				/* find pickingSensors, record their world transform and picktargets */
+				save_viewpoint2world();
+				render_hier(rootNode, VF_PickingSensor);
+				if( enabled_picksensors() )
+				{
+					/* find picktargets, transform to world and do pick test and save results */
+					render_hier(rootNode, VF_inPickableGroup);
+					/* record results of picks to picksensor node fields and event outs*/
+					do_pickSensors();
+				}
+			}
+#endif
+		}
 
         PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }

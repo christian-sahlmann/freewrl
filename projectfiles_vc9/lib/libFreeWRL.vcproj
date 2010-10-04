@@ -242,6 +242,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\scenegraph\Component_Picking.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\scenegraph\Component_PointingDevice.c"
 				>
 			</File>
@@ -555,6 +559,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\..\src\lib\scenegraph\Component_Picking.h"
+				>
+			</File>
 			<File
 				RelativePath="..\config.h"
 				>
