@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.52 2010/10/02 14:45:45 dug9 Exp $
+# $Id: VRMLC.pm,v 1.53 2010/10/11 20:47:55 dug9 Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.53  2010/10/11 20:47:55  dug9
+# dug9 for Component_picking added X3D_POINTPICKSENSOR() macro to Structs.h
+#
 # Revision 1.52  2010/10/02 14:45:45  dug9
 # dug9 touchups to get msvc to compile
 #
@@ -1308,6 +1311,7 @@ sub gen {
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
 	"#define X3D_PICKABLEGROUP(node) ((struct X3D_PickableGroup*)node)\n".
+	"#define X3D_POINTPICKSENSOR(node) ((struct X3D_PointPickSensor*)node)\n".
 	"#define X3D_STATICGROUP(node) ((struct X3D_StaticGroup*)node)\n".
 	"#define X3D_ANCHOR(node) ((struct X3D_Anchor*)node)\n".
 	"#define X3D_COLLISION(node) ((struct X3D_Collision*)node)\n".
