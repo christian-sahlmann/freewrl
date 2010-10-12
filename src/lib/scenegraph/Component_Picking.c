@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Picking.c,v 1.2 2010/10/10 20:16:54 dug9 Exp $
+$Id: Component_Picking.c,v 1.3 2010/10/12 00:34:12 dug9 Exp $
 
 X3D Picking Component
 
@@ -482,10 +482,28 @@ struct X3D_Node* get_picksensor() {
 		return (struct X3D_Node *) NULL ;
 	}
 }
+extern int render_picksensors;
+extern int render_pickables;
+void other_PointPickSensor (struct X3D_PointPickSensor *node) 
+{
+	if(render_picksensors)
+		pick_PointPickSensor(node);
+}
+void other_PickableGroup (struct X3D_Group *node) 
+{
+}
+void other_Sphere (struct X3D_Sphere *node) 
+{
+	if(render_pickables)
+		pick_Sphere(node);
+}
+
+
 #else // DJTRACK_PICKSENSORS
 /* PICKSENSOR stubs */
-void pick_Sphere (struct X3D_Sphere *node) {}
-void pick_PointPickSensor (struct X3D_PointPickSensor *node) {}
+void other_PointPickSensor (struct X3D_PointPickSensor *node) {}
+void other_PickableGroup (struct X3D_Group *node) {}
+void other_Sphere (struct X3D_Sphere *node) {}
 void child_PickableGroup (struct X3D_Group *node) {}
 void prep_PickableGroup (struct X3D_Group *node) {}
 void add_picksensor(struct X3D_Node * node) {}

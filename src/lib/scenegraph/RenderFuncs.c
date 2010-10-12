@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.66 2010/10/04 02:54:32 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.67 2010/10/12 00:34:12 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -371,6 +371,7 @@ int render_sensitive;
 int render_blend;
 int render_proximity;
 int render_collision;
+int render_other;
 #ifdef DJTRACK_PICKSENSORS
 int render_picksensors;
 int render_pickables;
@@ -643,17 +644,12 @@ void render_node(struct X3D_Node *node) {
 		}
 		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,v);
 	}
-#ifdef DJTRACK_PICKSENSORS
-	if(render_proximity && v->proximity && !(node->_renderFlags & VF_PickingSensor) && !(node->_renderFlags & VF_inPickableGroup)) {
-#else
 	if(render_proximity && v->proximity) {
-#endif
 		DEBUG_RENDER("rs 2a\n");
 		v->proximity(node);
 		PRINT_GL_ERROR_IF_ANY("render_proximity"); PRINT_NODE(node,v);
 	}
-
-
+	
 	if(render_collision && v->collision) {
 		DEBUG_RENDER("rs 2b\n");
 		v->collision(node);
@@ -666,25 +662,14 @@ void render_node(struct X3D_Node *node) {
 		PRINT_GL_ERROR_IF_ANY("render_geom"); PRINT_NODE(node,v);
 	}
 
+	if(render_other && v->other )
+	{
 #if DJTRACK_PICKSENSORS
-	if(render_picksensors && (node->_renderFlags & VF_PickingSensor) && v->proximity ) { //v->pick
 		DEBUG_RENDER("rs 4a\n");
-		v->proximity(node); //v->picksensor(node);
-		PRINT_GL_ERROR_IF_ANY("render_picksensors"); PRINT_NODE(node,v);
-	}
-	if(render_pickables && (node->_renderFlags & VF_inPickableGroup)) { 
-		//push_renderingState(VF_inPickableGroup);
-		render_allAsPickables = 1;
-	}
-	if( !strcmp(stringNodeType(node->_nodeType),"Shape") && render_allAsPickables )
-		printf("--shape---\n");
-	if(render_pickables && render_allAsPickables && v->proximity ) { //v->pick
-		DEBUG_RENDER("rs 4b\n");
-		v->proximity(node); //v->pick(node);
-		PRINT_GL_ERROR_IF_ANY("render_pickables"); PRINT_NODE(node,v);
-	}
+		v->other(node); //other() is responsible for push_renderingState(VF_inPickableGroup);
+		PRINT_GL_ERROR_IF_ANY("render_other"); PRINT_NODE(node,v);
 #endif
-
+	} //other
 
 	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
 		DEBUG_RENDER("rs 5\n");
@@ -714,18 +699,20 @@ void render_node(struct X3D_Node *node) {
 		hyperhit = 1;
     }
 
+	/* start recursive section */
     if(v->children) { 
 		DEBUG_RENDER("rs 8 - has valid child node pointer\n");
 		v->children(node);
 		PRINT_GL_ERROR_IF_ANY("children"); PRINT_NODE(node,v);
     }
+	/* end recursive section */
 
+	if(render_other && v->other)
+	{
 #if DJTRACK_PICKSENSORS
-	if(render_pickables && (node->_renderFlags & VF_inPickableGroup)) { 
 		//pop_renderingState(VF_inPickableGroup);
-		render_allAsPickables = 0;
-	}
 #endif
+	}
 
 	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
 		DEBUG_RENDER("rs 9\n");
@@ -863,6 +850,7 @@ render_hier(struct X3D_Group *p, int rwhat) {
 	render_blend = rwhat & VF_Blend;
 	render_proximity = rwhat & VF_Proximity;
 	render_collision = rwhat & VF_Collision;
+	render_other = rwhat & VF_Other;
 #ifdef DJTRACK_PICKSENSORS
 	render_picksensors = rwhat & VF_PickingSensor;
 	render_pickables = rwhat & VF_inPickableGroup;

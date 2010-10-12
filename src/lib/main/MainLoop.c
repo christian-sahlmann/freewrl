@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.149 2010/10/04 02:56:51 dug9 Exp $
+  $Id: MainLoop.c,v 1.150 2010/10/12 00:34:12 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -940,11 +940,11 @@ static void render_pre() {
 			{
 				/* find pickingSensors, record their world transform and picktargets */
 				save_viewpoint2world();
-				render_hier(rootNode, VF_PickingSensor);
+				render_hier(rootNode, VF_PickingSensor | VF_Other);
 				if( enabled_picksensors() )
 				{
 					/* find picktargets, transform to world and do pick test and save results */
-					render_hier(rootNode, VF_inPickableGroup);
+					render_hier(rootNode, VF_inPickableGroup | VF_Other );
 					/* record results of picks to picksensor node fields and event outs*/
 					do_pickSensors();
 				}

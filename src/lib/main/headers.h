@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.135 2010/10/04 02:56:51 dug9 Exp $
+$Id: headers.h,v 1.136 2010/10/12 00:34:12 dug9 Exp $
 
 Global includes.
 
@@ -113,9 +113,10 @@ extern char *BrowserFullPath;
 #define VF_globalLight				0x0080 
 #define VF_hasVisibleChildren 			0x0100
 #define VF_shouldSortChildren			0x0200
+#define VF_Other					0x0400
 #ifdef DJTRACK_PICKSENSORS
-#define VF_inPickableGroup			0x0400 /* DJTRACK_PICKSENSORS */
-#define VF_PickingSensor			0x0800 /* DJTRACK_PICKSENSORS */
+#define VF_inPickableGroup			0x0800 /* DJTRACK_PICKSENSORS */
+#define VF_PickingSensor			0x1000 /* DJTRACK_PICKSENSORS */
 #endif
 
 /* for z depth buffer calculations */
@@ -716,7 +717,7 @@ extern double nearPlane, farPlane, screenRatio, backgroundPlane;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 
-extern int render_sensitive,render_vp,render_light,render_proximity,verbose,render_blend,render_geom,render_collision;
+extern int render_sensitive,render_vp,render_light,render_proximity,render_other,verbose,render_blend,render_geom,render_collision;
 
 int SAI_IntRetCommand (char cmnd, const char *fn);
 char * SAI_StrRetCommand (char cmnd, const char *fn);

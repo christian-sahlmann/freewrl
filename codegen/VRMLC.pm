@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.53 2010/10/11 20:47:55 dug9 Exp $
+# $Id: VRMLC.pm,v 1.54 2010/10/12 00:34:12 dug9 Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.54  2010/10/12 00:34:12  dug9
+# dug9 - codegeneration - added *other() virtual function, and assigned pointpicksensor, pickablegroup and sphere to implement it, put stubs for these other() functions for those that don't implement it.
+#
 # Revision 1.53  2010/10/11 20:47:55  dug9
 # dug9 for Component_picking added X3D_POINTPICKSENSOR() macro to Structs.h
 #
@@ -492,7 +495,7 @@ sub gen_struct {
 sub get_rendfunc {
 	my($n) = @_;
 	# XXX
-	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Proximity Collision Compile/;
+	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Proximity Other Collision Compile/;
 	my $comma = "";
 	my $v = "\n";
 
@@ -513,6 +516,8 @@ sub get_rendfunc {
 				$v .= $comma."void child_".${n}."(struct X3D_".${n}." *);\n";
 			} elsif ($_ eq "Proximity") {
 				$v .= $comma."void proximity_".${n}."(struct X3D_".${n}." *);\n";
+			} elsif ($_ eq "Other") {
+				$v .= $comma."void other_".${n}."(struct X3D_".${n}." *);\n";
 			} elsif ($_ eq "Collision") {
 				# some collide_XXX nodes are common
 				if (("ElevationGrid" ne ${n}) &&
@@ -585,6 +590,8 @@ sub get_rendfunc {
 				$v .= $comma."(void *)child_".${n};
 			} elsif ($_ eq "Proximity") {
 				$v .= $comma."(void *)proximity_".${n};
+			} elsif ($_ eq "Other") {
+				$v .= $comma."(void *)other_".${n};
 			} elsif ($_ eq "Collision") {
 				$v .= $comma."(void *)collide_".${n};
 			} elsif ($_ eq "GenPolyRep") {
@@ -1848,6 +1855,7 @@ struct X3D_Virt {
 	void (*rendray)(void *);
 	void (*mkpolyrep)(void *);
 	void (*proximity)(void *);
+	void (*other)(void *);
 	void (*collision)(void *);
 	void (*compile)(void *, void *, void *, void *, void *);
 };
