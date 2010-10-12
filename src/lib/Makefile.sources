@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.36 2010/05/28 12:58:46 istakenv Exp $
+# $Id: Makefile.sources,v 1.37 2010/10/12 19:46:24 istakenv Exp $
 #
 # List all source files
 #
@@ -148,6 +148,8 @@ scenegraph/Polyrep.h \
 scenegraph/Component_Networking.c \
 scenegraph/Component_Networking.h \
 scenegraph/Component_PointingDevice.c \
+scenegraph/Component_Picking.c \
+scenegraph/Component_Picking.h \
 scenegraph/statics.c \
 scenegraph/GenPolyRep.c \
 scenegraph/Component_VRML1.c \
