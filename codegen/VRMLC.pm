@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.54 2010/10/12 00:34:12 dug9 Exp $
+# $Id: VRMLC.pm,v 1.55 2010/10/12 20:01:54 istakenv Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,12 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.55  2010/10/12 20:01:54  istakenv
+# Fixed implicit declaration of add_picksensor in GeneratedCode.c
+#
+# Revision 1.55
+# istakenv - codegeneration - added scenegraph/Component_Picking.h to GeneratedCode.c so that 'add_picksensor()' is not defined implicitly
+#
 # Revision 1.54  2010/10/12 00:34:12  dug9
 # dug9 - codegeneration - added *other() virtual function, and assigned pointpicksensor, pickablegroup and sphere to implement it, put stubs for these other() functions for those that don't implement it.
 #
@@ -672,6 +678,7 @@ sub gen {
 		"#include \"../main/headers.h\" \n".
 		"#include \"../main/ProdCon.h\" \n".
 		"#include \"Component_Networking.h\" \n".
+		"#include \"Component_Picking.h\" \n".
 		"#include \"../list.h\" \n".
 		"#include \"../resources.h\" \n".
 		"#include \"../io_http.h\" \n".
