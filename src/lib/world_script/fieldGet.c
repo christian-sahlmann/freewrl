@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.35 2010/05/13 17:17:11 davejoubert Exp $
+$Id: fieldGet.c,v 1.36 2010/10/12 21:27:46 davejoubert Exp $
 
 Javascript C language binding.
 
@@ -860,6 +860,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 	char utilBuf[EAIREADSIZE];
 	int errcount;
+	memset(utilBuf,'\0',sizeof(utilBuf));
 
 	errcount = UtilEAI_Convert_mem_to_ASCII (type,memptr, utilBuf);
 	if (0 == errcount) {
@@ -1015,13 +1016,13 @@ int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Return
 			ptr = buf + strlen(buf);
 
 			for (row=0; row<(*MSptr).n; row++) {
-        	        	/* printf ("UtilEAI_Convert_mem_to_ASCII: String %d is ",row,(*MSptr).p[row]->strptr);*/
+        	        	/* printf ("UtilEAI_Convert_mem_to_ASCII: String %d is %s\n",row,(*MSptr).p[row]->strptr); */
 				if (strlen ((*MSptr).p[row]->strptr) == 0) {
 					sprintf (ptr, "\"\" "); /* encode junk for Java side.*/
 				} else {
 					sprintf (ptr, "\"%s\" ",(*MSptr).p[row]->strptr);
 				}
-				/* printf ("UtilEAI_Convert_mem_to_ASCII: buf now is ",buf);*/
+				/* printf ("UtilEAI_Convert_mem_to_ASCII: buf now is %s\n",buf); */
 				ptr = buf + strlen (buf);
 			}
 

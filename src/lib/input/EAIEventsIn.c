@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.66 2010/09/30 18:58:19 davejoubert Exp $
+$Id: EAIEventsIn.c,v 1.67 2010/10/12 21:27:46 davejoubert Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -886,6 +886,7 @@ static void makeFIELDDEFret(int myptr, int repno) {
 	char ctmp;
 	char utilBuf[EAIREADSIZE];
 	int errcount;
+	memset(utilBuf,'\0',sizeof(utilBuf));
 
 	boxptr = getEAINodeFromTable(myptr,-1);
 
