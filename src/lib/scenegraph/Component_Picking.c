@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Picking.c,v 1.3 2010/10/12 00:34:12 dug9 Exp $
+$Id: Component_Picking.c,v 1.4 2010/10/13 18:31:52 istakenv Exp $
 
 X3D Picking Component
 
@@ -27,7 +27,6 @@ X3D Picking Component
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifdef DJTRACK_PICKSENSORS
 
 #include <config.h>
 #include <system.h>
@@ -54,6 +53,8 @@ X3D Picking Component
 #include "LinearAlgebra.h"
 #include "Component_Picking.h"
 #include "Children.h"
+
+#ifdef DJTRACK_PICKSENSORS
 
 /* see specifications section 38. Picking Sensor Component */
 
