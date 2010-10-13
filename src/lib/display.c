@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.59 2010/10/13 14:48:53 istakenv Exp $
+  $Id: display.c,v 1.60 2010/10/13 14:55:53 istakenv Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -295,18 +295,12 @@ bool initialize_rdr_caps()
 	}
 
 	/* Special drivers settings */
-	printf("\n\n--%s--\n\n",rdr_caps.renderer);
 	if (
-	strnstr(rdr_caps.renderer, "Intel GMA 9", 11) != NULL ||
-	strstr(rdr_caps.renderer, "Intel(R) 9") != NULL
+	strstr(rdr_caps.renderer, "Intel GMA 9") != NULL ||
+	strstr(rdr_caps.renderer, "Intel(R) 9") != NULL ||
+	strstr(rdr_caps.renderer, "NVIDIA GeForce2") != NULL
 	) {
 		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024;
-		global_use_VBOs = false;
-		printf("\n\n--set global_use_VBOs = false--\n\n");
-	}
-
-	if (strnstr(rdr_caps.renderer, "NVIDIA GeForce2", 15) !=NULL) {
-		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024; 
 		global_use_VBOs = false;
 	}
 
