@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.55 2010/10/12 20:01:54 istakenv Exp $
+# $Id: VRMLC.pm,v 1.56 2010/10/13 19:23:47 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.56  2010/10/13 19:23:47  crc_canada
+# X3D_Virt functions; make a table rather than keeping a list of pointers in EACH scenegraph node.
+#
 # Revision 1.55  2010/10/12 20:01:54  istakenv
 # Fixed implicit declaration of add_picksensor in GeneratedCode.c
 #
@@ -458,7 +461,6 @@ require 'VRMLRend.pm';
 # gen_struct - Generate a node structure, adding fields for
 # internal use
 my $interalNodeCommonFields = 
-               "       struct X3D_Virt *v;\n"         	.
                "       int _renderFlags; /*sensitive, etc */ \n"                  	.
                "       int _hit; \n"                   	.
                "       int _change; \n"                	.
@@ -616,6 +618,7 @@ sub get_rendfunc {
 	}
 	$v .= "};\n";
 
+	# now we have a table of entries
 	return ($f,$v);
 }
 
@@ -1386,17 +1389,28 @@ sub gen {
 
 
 	push @genFuncs1, "/* Virtual tables for each node */\n";
+
 	for(@sortedNodeList) {
 		# print "working on node $_\n";
 		my $no = $VRML::Nodes{$_};
 		my($strret) = gen_struct($_, $no);
 		push @str, $strret;
+
 		my($externdeclare, $vstru) = get_rendfunc($_);
 		push @str, $externdeclare;
+
 		push @genFuncs1, $vstru;
 	}
 	push @genFuncs1, "\n";
 
+	push @genFuncs1, "/* table containing pointers to every virtual struct for each node type */ \n";
+	push @genFuncs1, "struct X3D_Virt* virtTable[] = { \n";
+	push @str, "extern struct X3D_Virt* virtTable[];\n";
+	for(@sortedNodeList) {
+
+		push @genFuncs1, "\t &virt_".$_.",\n";
+	}
+	push @genFuncs1, "\tNULL}; \n\n";
 
 	#####################
 	# create a routine to create a new node type
@@ -1444,8 +1458,8 @@ sub gen {
 	for my $node (@sortedNodeList) {
 		push @genFuncs2,
 			"\t\tcase NODE_$node : {\n\t\t\tstruct X3D_$node * tmp2;\n";
-		push @genFuncs2,
-			"\t\t\ttmp2 = (struct X3D_$node *) tmp;\n\t\t\ttmp2->v = &virt_$node;\n";
+		
+		push @genFuncs2, "\t\t\ttmp2 = (struct X3D_$node *) tmp;\n\t\t\/* ttmp2->v = &virt_$node;*/ \n";
 
 
 		#print "\nnode $node:\n";

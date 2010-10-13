@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.67 2010/10/12 00:34:12 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.68 2010/10/13 19:23:47 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -580,7 +580,11 @@ static int renderLevel = 0;
 
 
 void render_node(struct X3D_Node *node) {
+#ifdef OLDCODE
 	struct X3D_Virt *v;
+#endif
+	struct X3D_Virt *virt;
+
 	int srg = 0;
 	int sch = 0;
 	struct currayhit srh;
@@ -599,7 +603,11 @@ void render_node(struct X3D_Node *node) {
 		return;
 	}
 
+#ifdef OLDCODE
 	v = *(struct X3D_Virt **)node;
+#endif
+	virt = virtTable[node->_nodeType];
+
 #ifdef RENDERVERBOSE 
 	//printf("%d =========================================NODE RENDERED===================================================\n",renderLevel);
 	{
@@ -607,8 +615,8 @@ void render_node(struct X3D_Node *node) {
 		for(i=0;i<renderLevel;i++) printf(" ");
 	}
 	printf("%d node %u (%s) , v %u renderFlags %x \n",renderLevel, node,stringNodeType(node->_nodeType),v,node->_renderFlags);
-	//printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v->prep, v->rend, v->children, v->fin,
-	//       v->rendray, hypersensitive);
+	//printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",virt->prep, virt->rend, virt->children, virt->fin,
+	//       virt->rendray, hypersensitive);
 	//printf("%d state: vp %d geom %d light %d sens %d blend %d prox %d col %d ", renderLevel, 
  //        	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 	//printf("change %d ichange %d \n",node->_change, node->_ichange);
@@ -636,38 +644,38 @@ void render_node(struct X3D_Node *node) {
                 }
         }
 
-	if(v->prep) {
+	if(virt->prep) {
 		DEBUG_RENDER("rs 2\n");
-		v->prep(node);
+		virt->prep(node);
 		if(render_sensitive && !hypersensitive) {
 			upd_ray();
 		}
-		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,v);
+		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,virt);
 	}
-	if(render_proximity && v->proximity) {
+	if(render_proximity && virt->proximity) {
 		DEBUG_RENDER("rs 2a\n");
-		v->proximity(node);
-		PRINT_GL_ERROR_IF_ANY("render_proximity"); PRINT_NODE(node,v);
+		virt->proximity(node);
+		PRINT_GL_ERROR_IF_ANY("render_proximity"); PRINT_NODE(node,virt);
 	}
 	
-	if(render_collision && v->collision) {
+	if(render_collision && virt->collision) {
 		DEBUG_RENDER("rs 2b\n");
-		v->collision(node);
-		PRINT_GL_ERROR_IF_ANY("render_collision"); PRINT_NODE(node,v);
+		virt->collision(node);
+		PRINT_GL_ERROR_IF_ANY("render_collision"); PRINT_NODE(node,virt);
 	}
 
-	if(render_geom && !render_sensitive && v->rend) {
+	if(render_geom && !render_sensitive && virt->rend) {
 		DEBUG_RENDER("rs 3\n");
-		v->rend(node);
-		PRINT_GL_ERROR_IF_ANY("render_geom"); PRINT_NODE(node,v);
+		virt->rend(node);
+		PRINT_GL_ERROR_IF_ANY("render_geom"); PRINT_NODE(node,virt);
 	}
 
-	if(render_other && v->other )
+	if(render_other && virt->other )
 	{
 #if DJTRACK_PICKSENSORS
 		DEBUG_RENDER("rs 4a\n");
-		v->other(node); //other() is responsible for push_renderingState(VF_inPickableGroup);
-		PRINT_GL_ERROR_IF_ANY("render_other"); PRINT_NODE(node,v);
+		virt->other(node); //other() is responsible for push_renderingState(VF_inPickableGroup);
+		PRINT_GL_ERROR_IF_ANY("render_other"); PRINT_NODE(node,virt);
 #endif
 	} //other
 
@@ -683,13 +691,13 @@ void render_node(struct X3D_Node *node) {
 		rayph.hitNode = node;
 		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, rayph.modelMatrix);
 		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, rayph.projMatrix);
-		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,v);
+		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,virt);
 	}
 
-	if(render_geom && render_sensitive && !hypersensitive && v->rendray) {
+	if(render_geom && render_sensitive && !hypersensitive && virt->rendray) {
 		DEBUG_RENDER("rs 6\n");
-		v->rendray(node);
-		PRINT_GL_ERROR_IF_ANY("rs 6"); PRINT_NODE(node,v);
+		virt->rendray(node);
+		PRINT_GL_ERROR_IF_ANY("rs 6"); PRINT_NODE(node,virt);
 	}
 
     if((render_sensitive) && (hypersensitive == node)) {
@@ -700,14 +708,14 @@ void render_node(struct X3D_Node *node) {
     }
 
 	/* start recursive section */
-    if(v->children) { 
+    if(virt->children) { 
 		DEBUG_RENDER("rs 8 - has valid child node pointer\n");
-		v->children(node);
-		PRINT_GL_ERROR_IF_ANY("children"); PRINT_NODE(node,v);
+		virt->children(node);
+		PRINT_GL_ERROR_IF_ANY("children"); PRINT_NODE(node,virt);
     }
 	/* end recursive section */
 
-	if(render_other && v->other)
+	if(render_other && virt->other)
 	{
 #if DJTRACK_PICKSENSORS
 		//pop_renderingState(VF_inPickableGroup);
@@ -723,13 +731,13 @@ void render_node(struct X3D_Node *node) {
 		rayph = srh;
 	}
 
-	if(v->fin) {
+	if(virt->fin) {
 		DEBUG_RENDER("rs A\n");
-		v->fin(node);
-		if(render_sensitive && v == &virt_Transform) {
+		virt->fin(node);
+		if(render_sensitive && virt == &virt_Transform) {
 			upd_ray();
 		}
-		PRINT_GL_ERROR_IF_ANY("fin"); PRINT_NODE(node,v);
+		PRINT_GL_ERROR_IF_ANY("fin"); PRINT_NODE(node,virt);
 	}
 
 #ifdef RENDERVERBOSE 

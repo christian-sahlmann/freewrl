@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.35 2010/09/21 20:00:25 crc_canada Exp $
+$Id: Polyrep.c,v 1.36 2010/10/13 19:23:47 crc_canada Exp $
 
 ???
 
@@ -779,33 +779,33 @@ void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
  ********************************************************************/
 
 void render_polyrep(void *node) {
-	struct X3D_Virt *v;
+	struct X3D_Virt *virt;
 	struct X3D_Node *renderedNodePtr;
-	struct X3D_PolyRep *r;
+	struct X3D_PolyRep *pr;
 	int hasc;
 
-	v = *(struct X3D_Virt **)node;
 	renderedNodePtr = X3D_NODE(node);
-	r = (struct X3D_PolyRep *)renderedNodePtr->_intern;
+	virt = virtTable[renderedNodePtr->_nodeType];
+	pr = (struct X3D_PolyRep *)renderedNodePtr->_intern;
 
 	#ifdef TEXVERBOSE
 	printf ("\nrender_polyrep, _nodeType %s\n",stringNodeType(renderedNodePtr->_nodeType)); 
 	printf ("ntri %d\n",r->ntri);
 	#endif
 
-	if (r->ntri==0) {
+	if (pr->ntri==0) {
 		/* no triangles */
 		return;
 	}
 
-	if (!r->streamed) {
+	if (!pr->streamed) {
 		printf ("render_polyrep, not streamed, returning\n");
 		return;
 	}
 
 	/* save these values for streaming the texture coordinates later */
-	global_tcin = r->tcindex;
-	global_tcin_count = r->ntri*3;
+	global_tcin = pr->tcindex;
+	global_tcin_count = pr->ntri*3;
 	global_tcin_lastParent = node;
 
 	/* we take the geometry here, and push it up the stream. */
@@ -814,15 +814,15 @@ void render_polyrep(void *node) {
                 renderedNodePtr);
 
 	/*  clockwise or not?*/
-	if (!r->ccw) { FW_GL_FRONTFACE(GL_CW); }
+	if (!pr->ccw) { FW_GL_FRONTFACE(GL_CW); }
 	
-	hasc = ((r->VBO_buffers[COLOR_VBO]!=0) || r->color) && (last_texture_type!=TEXTURE_NO_ALPHA);
+	hasc = ((pr->VBO_buffers[COLOR_VBO]!=0) || pr->color) && (last_texture_type!=TEXTURE_NO_ALPHA);
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(hasc){
-		if (!r->isRGBAcolorNode) 
-			if (!APPROX(r->transparency,appearanceProperties.transparency)) {
-				recalculateColorField(r);
+		if (!pr->isRGBAcolorNode) 
+			if (!APPROX(pr->transparency,appearanceProperties.transparency)) {
+				recalculateColorField(pr);
 			}
 		
 		LIGHTING_ON
@@ -841,78 +841,78 @@ void render_polyrep(void *node) {
 
 	if (!global_use_VBOs) {
 		/*  status bar, text do not have normals*/
-		if (r->normal) {
-			FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) r->normal);
+		if (pr->normal) {
+			FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) pr->normal);
 		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
 	
 		/*  colours?*/
 		if (hasc) {
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-			FW_GL_COLOR_POINTER(4,GL_FLOAT,0,r->color);
+			FW_GL_COLOR_POINTER(4,GL_FLOAT,0,pr->color);
 		}
 
 		/*  textures?*/
-		if (r->GeneratedTexCoords) {
-			struct textureVertexInfo mtf = {r->GeneratedTexCoords,2,GL_FLOAT,0,NULL};
+		if (pr->GeneratedTexCoords) {
+			struct textureVertexInfo mtf = {pr->GeneratedTexCoords,2,GL_FLOAT,0,NULL};
 			textureDraw_start(NULL,&mtf);
 		} else {
 			textureDraw_start(X3D_NODE(node), NULL);
 		}
 	
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *) r->actualCoord);
-		FW_GL_DRAWELEMENTS(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
+		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *) pr->actualCoord);
+		FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT, pr->cindex);
 
 		/*  put things back to the way they were;*/
-		if (!r->normal) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+		if (!pr->normal) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		if (hasc) {
 			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 			FW_GL_DISABLE(GL_COLOR_MATERIAL);
 		}
 	} else {
 		/*  status bar, text do not have normals*/
-		if (r->VBO_buffers[NORMAL_VBO]!=0) {
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[NORMAL_VBO]);
+		if (pr->VBO_buffers[NORMAL_VBO]!=0) {
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, pr->VBO_buffers[NORMAL_VBO]);
 			FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
 		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
 	
 		/* colours? */
 		if (hasc) {
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB,pr->VBO_buffers[COLOR_VBO]);
 			FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
 		}
 		/*  textures?*/
-		if (r->VBO_buffers[TEXTURE_VBO] != 0) {
+		if (pr->VBO_buffers[TEXTURE_VBO] != 0) {
 				struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
-				glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[TEXTURE_VBO]);
+				glBindBufferARB(GL_ARRAY_BUFFER_ARB,pr->VBO_buffers[TEXTURE_VBO]);
 				textureDraw_start(NULL,&mtf);
 		} else {
 			textureDraw_start(X3D_NODE(node), NULL);
 		}
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, r->VBO_buffers[VERTEX_VBO]);
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,r->VBO_buffers[INDEX_VBO]);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, pr->VBO_buffers[VERTEX_VBO]);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,pr->VBO_buffers[INDEX_VBO]);
 		glEnableClientState(GL_VERTEX_ARRAY); // should already be enabled
 
 		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
-		glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT,0);
+		glDrawElements(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT,0);
 
 		/* turn VBOs off for now */
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 
 		/*  put things back to the way they were;*/
-		if (r->VBO_buffers[NORMAL_VBO] == 0) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+		if (pr->VBO_buffers[NORMAL_VBO] == 0) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		if (hasc) {
 			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 			FW_GL_DISABLE(GL_COLOR_MATERIAL);
 		}
 	}
 
-	trisThisLoop += r->ntri;
+	trisThisLoop += pr->ntri;
 
 	textureDraw_end();
-	if (!r->ccw) FW_GL_FRONTFACE(GL_CCW);
+	if (!pr->ccw) FW_GL_FRONTFACE(GL_CCW);
 
 	#ifdef TEXVERBOSE
 	{
@@ -920,11 +920,11 @@ void render_polyrep(void *node) {
 		int *cin;
 		float *cod;
 		float *tcod;
-		tcod = r->GeneratedTexCoords;
-		cod = r->actualCoord;
-		cin = r->cindex;
+		tcod = pr->GeneratedTexCoords;
+		cod = pr->actualCoord;
+		cin = pr->cindex;
 		printf ("\n\nrender_polyrep:\n");
-		for (i=0; i<r->ntri*3; i++) {
+		for (i=0; i<pr->ntri*3; i++) {
 			printf ("i %d cindex %d vertex %f %f %f",i,cin[i],
 				cod[cin[i]*3+0],
 				cod[cin[i]*3+1],
@@ -965,7 +965,7 @@ void render_polyrep(void *node) {
  */
 
 void render_ray_polyrep(void *node) {
-	struct X3D_Virt *v;
+	struct X3D_Virt *virt;
 	struct X3D_Node *genericNodePtr;
 	struct X3D_PolyRep *polyRep;
 	int i;
@@ -987,7 +987,7 @@ void render_ray_polyrep(void *node) {
 	ray.z = t_r2.z - t_r1.z;
 
 	genericNodePtr = X3D_NODE(node);
-	v = *(struct X3D_Virt **)node;
+	virt = virtTable[genericNodePtr->_nodeType];
 	
 	/* is this structure still loading? */
 	if (!(genericNodePtr->_intern)) {
@@ -1099,74 +1099,74 @@ void render_ray_polyrep(void *node) {
 }
 
 /* make the internal polyrep structure - this will contain the actual RUNTIME parameters for OpenGL */
-void compile_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
-	struct X3D_Virt *v;
-	struct X3D_Node *p;
-	struct X3D_PolyRep *r;
+void compile_polyrep(void *innode, void *coord, void *color, void *normal, void *texCoord) {
+	struct X3D_Virt *virt;
+	struct X3D_Node *node;
+	struct X3D_PolyRep *polyrep;
 
-	v = *(struct X3D_Virt **)node;
-	p = X3D_NODE(node);
+	node = X3D_NODE(innode);
+	virt = virtTable[node->_nodeType];
 
 	/* first time through; make the intern structure for this polyrep node */
-	if(!p->_intern) {
+	if(!node->_intern) {
 
 		int i;
 
-		p->_intern = MALLOC(sizeof(struct X3D_PolyRep));
+		node->_intern = MALLOC(sizeof(struct X3D_PolyRep));
 
-		r = (struct X3D_PolyRep *)p->_intern;
-		r->ntri = -1;
-		r->cindex = 0; r->actualCoord = 0; r->colindex = 0; r->color = 0;
-		r->norindex = 0; r->normal = 0; r->GeneratedTexCoords = 0;
-		r->tcindex = 0; 
-		r->tcoordtype = 0;
-		r->streamed = FALSE;
+		polyrep = (struct X3D_PolyRep *)node->_intern;
+		polyrep->ntri = -1;
+		polyrep->cindex = 0; polyrep->actualCoord = 0; polyrep->colindex = 0; polyrep->color = 0;
+		polyrep->norindex = 0; polyrep->normal = 0; polyrep->GeneratedTexCoords = 0;
+		polyrep->tcindex = 0; 
+		polyrep->tcoordtype = 0;
+		polyrep->streamed = FALSE;
 
 		/* for Collision, default texture generation */
-		r->minVals[0] =  999999.9f;
-		r->minVals[1] =  999999.9f;
-		r->minVals[2] =  999999.9f;
-		r->maxVals[0] =  -999999.9f;
-		r->maxVals[1] =  -999999.9f;
-		r->maxVals[2] =  -999999.9f;
+		polyrep->minVals[0] =  999999.9f;
+		polyrep->minVals[1] =  999999.9f;
+		polyrep->minVals[2] =  999999.9f;
+		polyrep->maxVals[0] =  -999999.9f;
+		polyrep->maxVals[1] =  -999999.9f;
+		polyrep->maxVals[2] =  -999999.9f;
 
-		for (i=0; i<VBO_COUNT; i++) r->VBO_buffers[i] = 0;
+		for (i=0; i<VBO_COUNT; i++) polyrep->VBO_buffers[i] = 0;
 		if (global_use_VBOs) {
 			/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
-			glGenBuffers(1,&r->VBO_buffers[VERTEX_VBO]);
-			glGenBuffers(1,&r->VBO_buffers[INDEX_VBO]);
+			glGenBuffers(1,&polyrep->VBO_buffers[VERTEX_VBO]);
+			glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);
 
-			/* printf ("they are %u %u %u %u\n",r->VBO_buffers[0],r->VBO_buffers[1],r->VBO_buffers[2],r->VBO_buffers[3]); */
+			/* printf ("they are %u %u %u %u\n",polyrep->VBO_buffers[0],polyrep->VBO_buffers[1],polyrep->VBO_buffers[2],polyrep->VBO_buffers[3]); */
 		}
 
 
 	}
-	r = (struct X3D_PolyRep *)p->_intern;
+	polyrep = (struct X3D_PolyRep *)node->_intern;
 	/* if multithreading, tell the rendering loop that we are regenning this one */
 	/* if singlethreading, this'll be set to TRUE before it is tested	     */
-	r->streamed = FALSE;
+	polyrep->streamed = FALSE;
 
-	FREE_IF_NZ(r->cindex);
-	FREE_IF_NZ(r->actualCoord);
-	FREE_IF_NZ(r->GeneratedTexCoords);
-	FREE_IF_NZ(r->colindex);
-	FREE_IF_NZ(r->color);
-	FREE_IF_NZ(r->norindex);
-	FREE_IF_NZ(r->normal);
-	FREE_IF_NZ(r->tcindex);
+	FREE_IF_NZ(polyrep->cindex);
+	FREE_IF_NZ(polyrep->actualCoord);
+	FREE_IF_NZ(polyrep->GeneratedTexCoords);
+	FREE_IF_NZ(polyrep->colindex);
+	FREE_IF_NZ(polyrep->color);
+	FREE_IF_NZ(polyrep->norindex);
+	FREE_IF_NZ(polyrep->normal);
+	FREE_IF_NZ(polyrep->tcindex);
 
 
 	/* make the node by calling the correct method */
-	v->mkpolyrep(node);
+	virt->mkpolyrep(node);
 
 	/* now, put the generic internal structure into OpenGL arrays for faster rendering */
 	/* if there were errors, then rep->ntri should be 0 */
-	if (r->ntri != 0)
+	if (polyrep->ntri != 0)
 		stream_polyrep(node, coord, color, normal, texCoord);
 
 
 
 	/* and, tell the rendering process that this shape is now compiled */
-	r->irep_change = p->_change;
+	polyrep->irep_change = node->_change;
 }
 

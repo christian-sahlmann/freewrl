@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.42 2010/10/04 02:50:05 dug9 Exp $
+$Id: Component_Grouping.c,v 1.43 2010/10/13 19:23:47 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -48,7 +48,6 @@ X3D Grouping Component
 #include "Children.h"
 
 void compile_Transform (struct X3D_Transform *node) { 
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Transform, metadata))
 	INITIALIZE_EXTENT;
 
 	/* printf ("changed Transform for node %u\n",node); */

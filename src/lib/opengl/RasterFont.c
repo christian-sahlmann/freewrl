@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.10 2010/06/30 12:57:42 crc_canada Exp $
+  $Id: RasterFont.c,v 1.11 2010/10/13 19:23:47 crc_canada Exp $
 
 */
 
@@ -129,7 +129,7 @@ int rf_xfont_init(const char *fontname)
 	/* write zeroes here - we do not want any pointers, parents, etc, etc. */
 	bzero (&myText,sizeof (struct X3D_Text));
 
-	myText.v = &virt_Text;
+	myText._nodeType=NODE_Text;
 	myText.fontStyle = NULL;
 	myText.solid = TRUE;
 	myText.__rendersub = 0;
@@ -150,7 +150,6 @@ int rf_xfont_init(const char *fontname)
 	bzero (&myFont, sizeof (struct X3D_FontStyle));
 
 	myFont._nodeType = NODE_FontStyle; /* needed for scenegraph structure in make_Text */
-	myFont.v = &virt_FontStyle;
 	myFont.language = newASCIIString("");
 	myFont.leftToRight = TRUE;
 	myFont.topToBottom = TRUE;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.136 2010/10/12 00:34:12 dug9 Exp $
+$Id: headers.h,v 1.137 2010/10/13 19:23:47 crc_canada Exp $
 
 Global includes.
 
@@ -166,7 +166,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 #define COMPILE_IF_REQUIRED { struct X3D_Virt *v; \
 	if (node->_ichange != node->_change) { \
-		v = *(struct X3D_Virt **)node; \
+		v = virtTable[node->_nodeType]; \
 		if (v->compile) { \
 			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
 		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s at %s:%d\n",stringNodeType(node->_nodeType),__FILE__,__LINE__);} \
@@ -176,7 +176,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 #define COMPILE_IF_REQUIRED_RETURN_NULL_ON_ERROR { struct X3D_Virt *v; \
 	if (node->_ichange != node->_change) { \
-		v = *(struct X3D_Virt **)node; \
+		v = virtTable[node->_nodeType]; \
 		if (v->compile) { \
 			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
 		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s at %s:%d\n",stringNodeType(node->_nodeType),__FILE__,__LINE__);} \
