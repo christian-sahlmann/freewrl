@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.150 2010/10/12 00:34:12 dug9 Exp $
+  $Id: MainLoop.c,v 1.151 2010/10/18 17:31:21 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -542,6 +542,7 @@ void EventLoop() {
 
                         /* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
                         sendSensorEvents(lastPressedOver,MotionNotify, ButDown[1], TRUE);
+						lastMouseEvent = 0 ; /* Dave's fix */
                 }
 
 
