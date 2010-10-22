@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.68 2010/10/13 19:23:47 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.69 2010/10/22 19:15:19 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -258,6 +258,7 @@ void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int
 				glColorPointer(dataSize, dataType, stride, pointer); 
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
+printf ("sendAttrib, tex, OLD\n");
 				glTexCoordPointer(dataSize, dataType, stride, pointer);
 				break;
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}

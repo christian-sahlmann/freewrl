@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.100 2010/10/13 19:45:26 crc_canada Exp $
+  $Id: display.h,v 1.101 2010/10/22 19:15:19 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -484,7 +484,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
 	/* color buffer subject to draw-gray anaglyph before call */
 	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
-	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, bbb, GL_FALSE, ccc); }
+	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc); }
 	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
 	#define FW_GL_ENABLECLIENTSTATE(aaa) { sendClientStateToGPU(TRUE,aaa); }
 	#define FW_GL_DISABLECLIENTSTATE(aaa) { sendClientStateToGPU(FALSE,aaa); }
