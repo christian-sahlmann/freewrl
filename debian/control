@@ -2,7 +2,9 @@ Source: freewrl
 Section: contrib/graphics
 Priority: optional
 Maintainer: Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>
-Build-Depends: debhelper (>= 7), build-essential, pkg-config, autoconf, libtool,
+Build-Depends: debhelper (>= 7),
+ build-essential,
+ pkg-config, autoconf, automake, libtool,
  x11proto-print-dev, libxxf86vm-dev,
  libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libglew1.5-dev, 
  libxaw7-dev,

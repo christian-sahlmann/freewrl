@@ -1,3 +1,9 @@
+freewrl (1.22.9-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Fri, 22 Oct 2010 16:13:20 +0200
+
 freewrl (1.22.8-2) unstable; urgency=low
 
   * After a test package (-1) we must increment the debian number, to prevent a mess in clients which have already downloaded and installed the -1 package.
