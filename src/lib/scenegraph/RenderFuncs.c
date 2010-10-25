@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.69 2010/10/22 19:15:19 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.70 2010/10/25 16:41:59 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -55,6 +55,8 @@ typedef float shaderVec4[4];
 
 static int shaderNormalArray = FALSE;
 static int shaderVertexArray = FALSE;
+static int shaderColourArray = FALSE;
+static int shaderTextureArray = FALSE;
 
 static float light_linAtten[8];
 static float light_constAtten[8];
@@ -169,13 +171,23 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	lightParamsDirty = TRUE;
 }
 
-void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_TwoSidedMaterial *material_twoSided) {
+/* choose a shader; if requestedShader is not a specific shader, choose one */
+
+void chooseAppearanceShader(shader_type_t requestedShader, 
+	struct X3D_Material *material_oneSided, struct X3D_TwoSidedMaterial *material_twoSided) {
+
 	shader_type_t whichShader;
 
-#ifdef DO_MANY_DIFFERENT_SHADERS
+	/* hmmm - do we want to choose the shader, or use the selected one? */
+	if (requestedShader != letSystemChooseShader) {
+		/* eg, Background node knows which shader it wants */
+		whichShader = requestedShader;
+	} else {
+
 	/* no appearance - just grey lighting */
 	whichShader = noAppearanceNoMaterialShader;
 
+#ifdef CHOOSE_SHADER
 	if (material_oneSided != NULL) {
 		/* is the headlight on? */
 		if (lights[HEADLIGHT_LIGHT]) {
@@ -185,12 +197,11 @@ void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_T
 		}
 	} else if (material_twoSided != NULL) {
 	}
-	/* are we no headlight, noAppearanceNoMaterialShader? */
-#else
-
+#endif
 	/* just use this shader for now */
 	whichShader = genericHeadlightNoTextureAppearanceShader;
-#endif
+	}
+
 
 
 	currentShaderStruct = &(rdr_caps.shaderArrays[whichShader]);
@@ -203,6 +214,8 @@ void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_T
 
 
 	switch (whichShader) {
+		case backgroundSphereShader:
+			break;
 		case noAppearanceNoMaterialShader:
 			break;
 		case noLightNoTextureAppearanceShader:
@@ -218,7 +231,9 @@ void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_T
 			GLUNIFORM1F(currentShaderStruct->myMaterialShininess,material_oneSided->_shin);
 			GLUNIFORM4FV(currentShaderStruct->myMaterialEmission,1,material_oneSided->_ecol.c);
 			break;
-		default: {}; /* invalid shader here... */
+		default: {
+			printf ("chooseAppearanceShader, not handled yet\n");
+		}; 
 	}
 
 	lightParamsDirty = FALSE;
@@ -238,7 +253,12 @@ void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int
 				glVertexAttribPointer(currentShaderStruct->Vertices, dataSize, dataType, normalized, stride, pointer);
 				break;
 			case FW_COLOR_POINTER_TYPE:
+				glEnableVertexAttribArray(currentShaderStruct->Colours);
+				glVertexAttribPointer(currentShaderStruct->Colours, dataSize, dataType, normalized, stride, pointer);
+				break;
 			case FW_TEXCOORD_POINTER_TYPE:
+				glEnableVertexAttribArray(currentShaderStruct->TexCoords);
+				glVertexAttribPointer(currentShaderStruct->TexCoords, dataSize, dataType, normalized, stride, pointer);
 				break;
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
@@ -258,7 +278,6 @@ void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int
 				glColorPointer(dataSize, dataType, stride, pointer); 
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
-printf ("sendAttrib, tex, OLD\n");
 				glTexCoordPointer(dataSize, dataType, stride, pointer);
 				break;
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
@@ -278,8 +297,10 @@ void sendClientStateToGPU(int enable, int cap) {
 				shaderVertexArray = enable;
 				break;
 			case GL_COLOR_ARRAY:
+				shaderColourArray = enable;
+				break;
 			case GL_TEXTURE_COORD_ARRAY:
-				/* XXX */
+				shaderTextureArray = enable;
 				break;
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
@@ -292,12 +313,20 @@ void sendClientStateToGPU(int enable, int cap) {
 }
 
 void sendArraysToGPU (int mode, int first, int count) {
-
 	if (currentShaderStruct != NULL) {
 		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
 		else glDisableVertexAttribArray(currentShaderStruct->Normals);
+
 		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
 		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
+
+		if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
+		else glDisableVertexAttribArray(currentShaderStruct->Colours);
+
+		if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
+		else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
+
+
 		glDrawArrays(mode,first,count);
 	} else {
 		glDrawArrays(mode,first,count);
@@ -308,15 +337,15 @@ void sendElementsToGPU (int mode, int count, int type, int *indices) {
 	if (currentShaderStruct != NULL) {
 		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
 		else glDisableVertexAttribArray(currentShaderStruct->Normals);
+
 		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
 		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
 
-/*
-		if (shaderNormalArray) printf ("glEnableVertexAttribArray(currentShaderStruct->Normals);\n");
-		else printf ("glDisableVertexAttribArray(currentShaderStruct->Normals);\n");
-		if (shaderVertexArray) printf ("glEnableVertexAttribArray(currentShaderStruct->Vertices);\n");
-		else printf ("glDisableVertexAttribArray(currentShaderStruct->Vertices);\n");
-*/
+		if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
+		else glDisableVertexAttribArray(currentShaderStruct->Colours);
+
+		if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
+		else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
 
 		glDrawElements (mode, count, type, indices );
 	} else {

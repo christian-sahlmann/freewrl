@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.60 2010/10/13 14:55:53 istakenv Exp $
+  $Id: display.c,v 1.61 2010/10/25 16:41:59 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -37,6 +37,7 @@
 #include "vrml_parser/Structs.h"
 #include "opengl/Textures.h"
 #include "opengl/RasterFont.h"
+#include "opengl/OpenGL_Utils.h"
 
 #if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
 #include "plugin/pluginUtils.h"

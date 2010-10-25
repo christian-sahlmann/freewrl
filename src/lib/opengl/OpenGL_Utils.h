@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.26 2010/09/13 20:50:59 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.27 2010/10/25 16:41:59 crc_canada Exp $
 
 Screen snapshot.
 
@@ -30,7 +30,73 @@ Screen snapshot.
 #ifndef __FREEWRL_OPENGL_UTILS_H__
 #define __FREEWRL_OPENGL_UTILS_H__
 
+/* OpenGL renderer capabilities */
+typedef struct {
+	GLuint myShaderProgram;
+	GLint myMaterialAmbient;
+	GLint myMaterialDiffuse;
+	GLint myMaterialSpecular;
+	GLint myMaterialShininess;
+	GLint myMaterialEmission;
+	GLint lightState;
+	GLint lightAmbient;
+	GLint lightDiffuse;
+	GLint lightSpecular;
+	GLint lightPosition;
+	GLint ModelViewMatrix;
+	GLint ProjectionMatrix;
+	GLint Vertices;
+	GLint Normals;
+	GLint Colours;
+	GLint TexCoords;
+} s_shader_capabilities_t;
 
+typedef struct {
+
+	const char *renderer; /* replace GL_REN */
+	const char *version;
+	const char *vendor;
+	const char *extensions;
+	float versionf;
+	bool have_GL_VERSION_1_1;
+	bool have_GL_VERSION_1_2;
+	bool have_GL_VERSION_1_3;
+	bool have_GL_VERSION_1_4;
+	bool have_GL_VERSION_1_5;
+	bool have_GL_VERSION_2_0;
+	bool have_GL_VERSION_2_1;
+	bool have_GL_VERSION_3_0;
+
+	bool av_multitexture; /* Multi textures available ? */
+	bool av_glsl_shaders; /* GLSL shaders available ? */ 
+	bool av_npot_texture; /* Non power of 2 textures available ? */
+	bool av_texture_rect; /* Rectangle textures available ? */
+	bool av_occlusion_q;  /* Occlusion query available ? */
+	
+	int texture_units;
+	int max_texture_size;
+	float anisotropicDegree;
+
+	/* for general Appearance Shaders */
+	bool haveGenericAppearanceShader;  /* do immediate mode or shader? */
+	s_shader_capabilities_t shaderArrays[10]; /* one element for each shader_type */
+} s_renderer_capabilities_t;
+
+typedef enum shader_type {
+	letSystemChooseShader,		// special case; instruct FreeWRL to find a shader
+	backgroundSphereShader,
+	backgroundTextureBoxShader,
+	noAppearanceNoMaterialShader,
+	noLightNoTextureAppearanceShader,
+	genericHeadlightNoTextureAppearanceShader,
+	multiLightNoTextureAppearanceShader,
+	headlightOneTextureAppearanceShader,
+	headlightMultiTextureAppearanceShader,
+	multiLightMultiTextureAppearanceShader
+} shader_type_t;
+
+
+extern s_renderer_capabilities_t rdr_caps;
 void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void end_textureTransform (void);
 void markForDispose(struct X3D_Node *node, int recursive);

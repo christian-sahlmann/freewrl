@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.39 2010/09/24 20:22:05 crc_canada Exp $
+$Id: Bindable.c,v 1.40 2010/10/25 16:41:59 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -49,6 +49,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 #include "../scenegraph/Viewer.h"
 #include "../scenegraph/Component_Geospatial.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../scenegraph/Component_ProgrammableShaders.h"
 
 
 /* Viewport data */
@@ -62,7 +63,6 @@ uintptr_t background_stack[MAX_STACK];
 uintptr_t fog_stack[MAX_STACK];
 uintptr_t viewpoint_stack[MAX_STACK];
 uintptr_t navi_stack[MAX_STACK];
-static int forceBackgroundRecompile = FALSE;
 
 /* Background - fog nodes do not affect the background node rendering. */
 static int fog_enabled = FALSE;
@@ -890,14 +890,18 @@ void render_Background (struct X3D_Background *node) {
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
 
-	if (forceBackgroundRecompile || NODE_NEEDS_COMPILING) {
+	if (NODE_NEEDS_COMPILING) {
 		recalculateBackgroundVectors(node);
-		forceBackgroundRecompile = FALSE;
 	}
 
 	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
 	   all geometry fits within the spheres */
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
+
+	/* doing shaders here for spheres? */
+	if (global_use_shaders_when_possible) {
+		chooseAppearanceShader(backgroundSphereShader, NULL, NULL);
+	}
 
 	/* now, display the lists */
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
@@ -910,6 +914,8 @@ void render_Background (struct X3D_Background *node) {
 	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
+
+	TURN_APPEARANCE_SHADER_OFF;
 
 	/* now, for the textures, if they exist */
 	if (((node->backUrl).n>0) ||
@@ -929,6 +935,8 @@ void render_Background (struct X3D_Background *node) {
 		loadBackgroundTextures(node);
 
         	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+
+		TURN_APPEARANCE_SHADER_OFF;
 	}
 	FW_GL_POP_MATRIX();
 

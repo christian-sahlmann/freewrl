@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.51 2010/10/04 02:50:43 dug9 Exp $
+$Id: Component_Shape.c,v 1.52 2010/10/25 16:41:59 crc_canada Exp $
 
 X3D Shape Component
 
@@ -41,6 +41,7 @@ X3D Shape Component
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
 #include "../opengl/Textures.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "Component_ProgrammableShaders.h"
 #include "Component_Shape.h"
 #include "RenderFuncs.h"
@@ -490,7 +491,7 @@ void child_Shape (struct X3D_Shape *node) {
 	   		   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	   			render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
-			chooseAppearanceShader(material_oneSided,material_twoSided);
+			chooseAppearanceShader(letSystemChooseShader, material_oneSided,material_twoSided);
 		} else {
 			if (material_oneSided != NULL) {
 				/* we have a normal material node */

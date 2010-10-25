@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.101 2010/10/22 19:15:19 crc_canada Exp $
+  $Id: display.h,v 1.102 2010/10/25 16:41:59 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -148,69 +148,6 @@ extern int displayDepth;
 
 extern int shutterGlasses; /* shutter glasses, stereo enabled ? */
 extern int quadbuff_stereo_mode; /* quad buffer enabled ? */
-
-/* OpenGL renderer capabilities */
-typedef struct {
-	GLuint myShaderProgram;
-	GLint myMaterialAmbient;
-	GLint myMaterialDiffuse;
-	GLint myMaterialSpecular;
-	GLint myMaterialShininess;
-	GLint myMaterialEmission;
-	GLint lightState;
-	GLint lightAmbient;
-	GLint lightDiffuse;
-	GLint lightSpecular;
-	GLint lightPosition;
-	GLint ModelViewMatrix;
-	GLint ProjectionMatrix;
-	GLint Vertices;
-	GLint Normals;
-} s_shader_capabilities_t;
-
-typedef struct {
-
-	const char *renderer; /* replace GL_REN */
-	const char *version;
-	const char *vendor;
-	const char *extensions;
-	float versionf;
-	bool have_GL_VERSION_1_1;
-	bool have_GL_VERSION_1_2;
-	bool have_GL_VERSION_1_3;
-	bool have_GL_VERSION_1_4;
-	bool have_GL_VERSION_1_5;
-	bool have_GL_VERSION_2_0;
-	bool have_GL_VERSION_2_1;
-	bool have_GL_VERSION_3_0;
-
-	bool av_multitexture; /* Multi textures available ? */
-	bool av_glsl_shaders; /* GLSL shaders available ? */ 
-	bool av_npot_texture; /* Non power of 2 textures available ? */
-	bool av_texture_rect; /* Rectangle textures available ? */
-	bool av_occlusion_q;  /* Occlusion query available ? */
-	
-	int texture_units;
-	int max_texture_size;
-	float anisotropicDegree;
-
-	/* for general Appearance Shaders */
-	bool haveGenericAppearanceShader;  /* do immediate mode or shader? */
-	s_shader_capabilities_t shaderArrays[10]; /* one element for each shader_type */
-} s_renderer_capabilities_t;
-
-typedef enum shader_type {
-	noAppearanceNoMaterialShader,
-	noLightNoTextureAppearanceShader,
-	genericHeadlightNoTextureAppearanceShader,
-	multiLightNoTextureAppearanceShader,
-	headlightOneTextureAppearanceShader,
-	headlightMultiTextureAppearanceShader,
-	multiLightMultiTextureAppearanceShader
-} shader_type_t;
-
-
-extern s_renderer_capabilities_t rdr_caps;
 
 #ifdef TARGET_AQUA
 #ifndef IPHONE
