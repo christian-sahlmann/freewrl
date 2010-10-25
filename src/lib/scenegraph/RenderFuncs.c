@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.71 2010/10/25 17:58:19 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.72 2010/10/25 20:04:12 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -177,29 +177,153 @@ void chooseAppearanceShader(shader_type_t requestedShader,
 	struct X3D_Material *material_oneSided, struct X3D_TwoSidedMaterial *material_twoSided) {
 
 	shader_type_t whichShader;
+	unsigned int selector;
+
 
 	/* hmmm - do we want to choose the shader, or use the selected one? */
 	if (requestedShader != letSystemChooseShader) {
 		/* eg, Background node knows which shader it wants */
 		whichShader = requestedShader;
 	} else {
+/*
+0 0000
+1 0001
+2 0010
+3 0011
+4 0100
+5 0101
+6 0110
+7 0111
+8 1000
+9 1001
+a 1010
+b 1011
+c 1100
+d 1101
+e 1110
+f 1111
 
-		/* no appearance - just grey lighting */
-		whichShader = noAppearanceNoMaterialShader;
+        noAppearanceNoMaterialShader,
+        noLightNoTextureAppearanceShader,
 
-		#ifdef CHOOSE_SHADER
-		if (material_oneSided != NULL) {
-			/* is the headlight on? */
-			if (lights[HEADLIGHT_LIGHT]) {
-				whichShader = genericHeadlightNoTextureAppearanceShader;
-			} else {
-				whichShader = noLightNoTextureAppearanceShader;
-			}
-		} else if (material_twoSided != NULL) {
+        genericHeadlightNoTextureAppearanceShader,
+        multiLightNoTextureAppearanceShader,
+        headlightOneTextureAppearanceShader,
+        headlightMultiTextureAppearanceShader,
+        multiLightMultiTextureAppearanceShader
+
+*/
+
+#define M_ONE_S 	0x01
+#define M_TWO_S 	0x02
+#define M_TEX   	0x04
+#define M_MULTI_TEX 	0x08
+#define M_HEADLIGHT	0x10
+#define M_LIGHTS	0x20
+
+			whichShader = noAppearanceNoMaterialShader;
+
+		selector = 0;
+		if (material_oneSided != NULL) selector |= M_ONE_S;
+		if (material_twoSided != NULL) selector |= M_TWO_S;
+		if (textureStackTop > 0) {
+			if (textureStackTop == 1) selector |= M_TEX;
+			else selector |= M_MULTI_TEX;
 		}
-		#endif
-		/* just use this shader for now */
-		whichShader = genericHeadlightNoTextureAppearanceShader;
+
+		if (lights[HEADLIGHT_LIGHT]) selector |= M_HEADLIGHT;
+		if (nextFreeLight != 0) selector |= M_LIGHTS;
+/*
+printf ("textureStackTop %d ",textureStackTop);
+printf ("one %p two %p ",material_oneSided, material_twoSided);
+printf ("selector %x\n",selector);
+
+if ((selector & M_ONE_S) != 0) printf ("M_ONE_S ");
+if ((selector & M_TWO_S) != 0) printf ("M_TWO_S ");
+if ((selector & M_TEX) != 0) printf ("M_TEX ");
+if ((selector & M_MULTI_TEX) != 0) printf ("M_MULTI_TEX ");
+if ((selector & M_HEADLIGHT) != 0) printf ("M_HEADLIGHT ");
+if ((selector & M_LIGHTS) != 0) printf ("M_LIGHTS ");
+printf ("\n");
+*/
+		switch (selector) {
+			
+			// TEXTURING DISABLED
+
+			case 0:	/* nothing turned on */
+			case M_HEADLIGHT: /* headlight, but nothing else */
+			case (M_HEADLIGHT | M_LIGHTS):
+			case M_LIGHTS:
+				whichShader = noAppearanceNoMaterialShader;
+				break;
+
+			/* we have an appearance, but no lights, no textures... */
+			case M_ONE_S:
+			case M_TWO_S:
+			case (M_ONE_S | M_TWO_S):
+				whichShader = noLightNoTextureAppearanceShader;
+				break;
+
+			/* we have headlight, appearance, and no textures... */
+			case (M_ONE_S | M_HEADLIGHT):
+			case (M_ONE_S | M_TWO_S | M_HEADLIGHT):
+			
+				whichShader = genericHeadlightNoTextureAppearanceShader;
+				break;
+
+			/* we have headlight, other lights, appearance, and no textures... */
+			case (M_ONE_S | M_LIGHTS):
+			case (M_ONE_S | M_TWO_S | M_LIGHTS):
+			case (M_ONE_S | M_LIGHTS | M_HEADLIGHT):
+			case (M_ONE_S | M_TWO_S | M_LIGHTS | M_HEADLIGHT):
+				whichShader = genericHeadlightNoTextureAppearanceShader;
+				break;
+
+			/// TEXTURING ENABLED
+			case (M_HEADLIGHT | M_TEX):
+			case (M_HEADLIGHT | M_TEX | M_ONE_S):
+			case (M_HEADLIGHT | M_TEX | M_TWO_S):
+			case (M_HEADLIGHT | M_TEX | M_ONE_S | M_TWO_S):
+				whichShader = headlightOneTextureAppearanceShader;
+				break;
+	
+			case M_TEX:
+			case (M_TEX | M_ONE_S):
+			case (M_TEX | M_TWO_S):
+			case (M_TEX | M_ONE_S | M_TWO_S):
+
+			case (M_LIGHTS | M_TEX):
+			case (M_LIGHTS | M_TEX | M_ONE_S):
+			case (M_LIGHTS | M_TEX | M_TWO_S):
+			case (M_LIGHTS | M_TEX | M_ONE_S | M_TWO_S):
+			
+			case (M_HEADLIGHT | M_LIGHTS | M_TEX):
+			case (M_HEADLIGHT | M_LIGHTS | M_TEX | M_ONE_S):
+			case (M_HEADLIGHT | M_LIGHTS | M_TEX | M_TWO_S):
+			case (M_HEADLIGHT | M_LIGHTS | M_TEX | M_ONE_S | M_TWO_S):
+				whichShader = multiLightMultiTextureAppearanceShader;			
+				break;
+
+			case (M_HEADLIGHT | M_MULTI_TEX | M_ONE_S):
+			case (M_HEADLIGHT | M_MULTI_TEX | M_TWO_S):
+			case (M_HEADLIGHT | M_MULTI_TEX | M_ONE_S | M_TWO_S):
+				whichShader = headlightMultiTextureAppearanceShader;
+				break;
+
+			default:  {
+				/* catch all - Multi Texture full bore shader */
+				if ((selector & M_MULTI_TEX) == M_MULTI_TEX) {
+					whichShader = multiLightMultiTextureAppearanceShader;
+				} else {
+					printf ("WARNING, shader Selector %x not written yet\n",selector);
+					whichShader = noAppearanceNoMaterialShader;
+				}
+				
+				break;
+			}
+			
+
+		}
 	}
 
 
@@ -223,6 +347,7 @@ void chooseAppearanceShader(shader_type_t requestedShader,
 			/* send up material selection to shader */
 			GLUNIFORM4FV(currentShaderStruct->myMaterialEmission,1,material_oneSided->_ecol.c);
 			break;
+		case headlightOneTextureAppearanceShader: 
 		case genericHeadlightNoTextureAppearanceShader:
 			/* send up material selection to shader */
 
@@ -232,6 +357,13 @@ void chooseAppearanceShader(shader_type_t requestedShader,
 			GLUNIFORM1F(currentShaderStruct->myMaterialShininess,material_oneSided->_shin);
 			GLUNIFORM4FV(currentShaderStruct->myMaterialEmission,1,material_oneSided->_ecol.c);
 			break;
+
+
+
+case multiLightNoTextureAppearanceShader: printf ("  multiLightNoTextureAppearanceShader, not written yet\n"); break;
+case headlightMultiTextureAppearanceShader: printf ("  headlightMultiTextureAppearanceShader, not written yet\n"); break;
+case multiLightMultiTextureAppearanceShader: printf ("  multiLightMultiTextureAppearanceShader not written yet\n"); break;
+
 		default: {
 			printf ("chooseAppearanceShader, not handled yet\n");
 		}; 

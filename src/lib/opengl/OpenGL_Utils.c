@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.156 2010/10/25 17:58:19 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.157 2010/10/25 20:04:12 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -231,6 +231,8 @@ static int getShaderSource (char **vertexSource, char **fragmentSource, shader_t
 	*fragmentSource = NULL;
 
 	switch (whichOne) {
+		case headlightOneTextureAppearanceShader:
+			printf ("warning, headlightOneTextureAppearanceShader not doing textures yet\n");
 		case genericHeadlightNoTextureAppearanceShader: {
 			*fragmentSource = STRDUP (
        				"varying vec4 colour; varying vec4 spec; void main () { gl_FragColor = clamp(colour+spec,0.,1.);}");
@@ -276,10 +278,24 @@ static int getShaderSource (char **vertexSource, char **fragmentSource, shader_t
 			"}" \
 			"void main(void) {" \
 			"	vec3 transNorm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
-			"	/* transNorm = normalize(transNorm); */" \
+			"	/* transNorm = normalize(transNorm); */ " \
 			"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
 			"	colour = vec4(ADSLightModel(transNorm, pos),1);" \
 			"	spec = specularCalculation(transNorm,pos);" \
+			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+			"}");
+			break;
+		}
+
+		/* no material, no appearance, lighting off */
+		case noAppearanceNoMaterialShader: {
+			*fragmentSource = STRDUP (
+				" void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}");
+			*vertexSource  = STRDUP( 
+			"attribute	vec4 fw_Vertex;" \
+			"uniform	mat4 fw_ModelViewMatrix;" \
+			"uniform	mat4 fw_ProjectionMatrix;" \
+			"void main(void) {" \
 			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
 			"}");
 			break;
@@ -296,7 +312,6 @@ static int getShaderSource (char **vertexSource, char **fragmentSource, shader_t
 			"uniform		mat4 fw_ProjectionMatrix;" \
 			"varying	vec4 v_color;" \
 			"void main(void) {" \
-			"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
 			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
 			"	v_color = vec4 (fw_Color,1);" \
 			"}");
@@ -321,6 +336,24 @@ static int getShaderSource (char **vertexSource, char **fragmentSource, shader_t
 			"}");
 			break;
 		}
+
+case         noLightNoTextureAppearanceShader:
+case         multiLightNoTextureAppearanceShader:
+case         headlightMultiTextureAppearanceShader:
+case         multiLightMultiTextureAppearanceShader:
+
+printf ("noLightNoTextureAppearanceShader multiLightNoTextureAppearanceShader headlightMultiTextureAppearanceShader multiLightMultiTextureAppearanceShader not written yet\n");
+
+			*fragmentSource = STRDUP (
+				" void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}");
+			*vertexSource  = STRDUP( 
+			"attribute	vec4 fw_Vertex;" \
+			"uniform	mat4 fw_ModelViewMatrix;" \
+			"uniform	mat4 fw_ProjectionMatrix;" \
+			"void main(void) {" \
+			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+			"}");
+			break;
 
 		default: {
 			printf ("getShaderSource, do not handle %d properly yet\n",whichOne);
