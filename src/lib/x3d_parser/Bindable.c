@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.40 2010/10/25 16:41:59 crc_canada Exp $
+$Id: Bindable.c,v 1.41 2010/10/25 17:58:19 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -932,6 +932,11 @@ void render_Background (struct X3D_Background *node) {
         	FW_GL_NORMAL_POINTER (GL_FLOAT,0,Backnorms);
         	FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,boxtex);
 
+		/* doing shaders here for spheres? */
+		if (global_use_shaders_when_possible) {
+			chooseAppearanceShader(backgroundTextureBoxShader, NULL, NULL);
+		}
+
 		loadBackgroundTextures(node);
 
         	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
@@ -974,6 +979,10 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	   all geometry fits within the spheres */
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
+	/* doing shaders here for spheres? */
+	if (global_use_shaders_when_possible) {
+		chooseAppearanceShader(backgroundSphereShader, NULL, NULL);
+	}
 
 	/* now, display the lists */
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
@@ -986,6 +995,8 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
+	TURN_APPEARANCE_SHADER_OFF;
+
 	/* now, for the textures, if they exist */
 	if ((node->backTexture !=0) ||
 			(node->frontTexture !=0) ||
@@ -994,8 +1005,15 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 			(node->topTexture !=0) ||
 			(node->bottomTexture !=0)) {
 
+		/* doing shaders here for spheres? */
+		if (global_use_shaders_when_possible) {
+			chooseAppearanceShader(backgroundTextureBoxShader, NULL, NULL);
+		}
+
+
 		loadTextureBackgroundTextures(node);
         	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+		TURN_APPEARANCE_SHADER_OFF;
 	}
 
 	/* pushes are done in moveBackgroundCentre */
@@ -1003,5 +1021,4 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 	/* is fog enabled? if so, disable it right now */
 	if (fog_enabled ==TRUE) FW_GL_ENABLE (GL_FOG);
-
 }

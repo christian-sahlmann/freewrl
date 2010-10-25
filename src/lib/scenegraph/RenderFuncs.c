@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.70 2010/10/25 16:41:59 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.71 2010/10/25 17:58:19 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -184,24 +184,23 @@ void chooseAppearanceShader(shader_type_t requestedShader,
 		whichShader = requestedShader;
 	} else {
 
-	/* no appearance - just grey lighting */
-	whichShader = noAppearanceNoMaterialShader;
+		/* no appearance - just grey lighting */
+		whichShader = noAppearanceNoMaterialShader;
 
-#ifdef CHOOSE_SHADER
-	if (material_oneSided != NULL) {
-		/* is the headlight on? */
-		if (lights[HEADLIGHT_LIGHT]) {
-			whichShader = genericHeadlightNoTextureAppearanceShader;
-		} else {
-			whichShader = noLightNoTextureAppearanceShader;
+		#ifdef CHOOSE_SHADER
+		if (material_oneSided != NULL) {
+			/* is the headlight on? */
+			if (lights[HEADLIGHT_LIGHT]) {
+				whichShader = genericHeadlightNoTextureAppearanceShader;
+			} else {
+				whichShader = noLightNoTextureAppearanceShader;
+			}
+		} else if (material_twoSided != NULL) {
 		}
-	} else if (material_twoSided != NULL) {
+		#endif
+		/* just use this shader for now */
+		whichShader = genericHeadlightNoTextureAppearanceShader;
 	}
-#endif
-	/* just use this shader for now */
-	whichShader = genericHeadlightNoTextureAppearanceShader;
-	}
-
 
 
 	currentShaderStruct = &(rdr_caps.shaderArrays[whichShader]);
@@ -215,6 +214,8 @@ void chooseAppearanceShader(shader_type_t requestedShader,
 
 	switch (whichShader) {
 		case backgroundSphereShader:
+			break;
+		case backgroundTextureBoxShader:
 			break;
 		case noAppearanceNoMaterialShader:
 			break;

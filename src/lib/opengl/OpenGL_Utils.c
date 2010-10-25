@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.155 2010/10/25 16:41:59 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.156 2010/10/25 17:58:19 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -285,6 +285,7 @@ static int getShaderSource (char **vertexSource, char **fragmentSource, shader_t
 			break;
 		}
 
+		/* Background, this is the simple shader for doing the sky/ground colours */
 		case backgroundSphereShader: {
 			*fragmentSource = STRDUP (
        				" varying vec4 v_color; void main () {gl_FragColor = v_color;}");
@@ -298,6 +299,25 @@ static int getShaderSource (char **vertexSource, char **fragmentSource, shader_t
 			"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
 			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
 			"	v_color = vec4 (fw_Color,1);" \
+			"}");
+			break;
+		}
+
+		/* background, this is the simple shader for adding textures */
+		case backgroundTextureBoxShader: {
+			*fragmentSource = STRDUP (
+       				" varying vec2 v_texC; uniform sampler2D s_tex; " \
+				" void main () {gl_FragColor = texture2D(s_tex, v_texC);}");
+			*vertexSource  = STRDUP( 
+			"attribute	vec2 fw_TexCoords; " \
+			"attribute	vec4 fw_Vertex;" \
+			"uniform	mat4 fw_ModelViewMatrix;" \
+			"uniform	mat4 fw_ProjectionMatrix;" \
+			"varying	vec2 v_texC;" \
+			"void main(void) {" \
+			"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
+			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+			"	v_texC =fw_TexCoords;" \
 			"}");
 			break;
 		}
@@ -709,6 +729,7 @@ bool initialize_GL()
 
 		getAppearanceShader(genericHeadlightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/genericHeadlightNoTextureAppearanceShader");
 		getAppearanceShader(backgroundSphereShader, "/Users/johns/Desktop/shaderReplacement/backgroundSphereShader");
+		getAppearanceShader(backgroundTextureBoxShader, "/Users/johns/Desktop/shaderReplacement/backgroundTextureBoxShader");
 
 
 		getAppearanceShader(noLightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/noLightNoTextureAppearanceShader");
