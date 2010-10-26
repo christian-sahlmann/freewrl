@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Children.c,v 1.16 2010/05/05 12:52:04 davejoubert Exp $
+$Id: Children.c,v 1.17 2010/10/26 13:40:04 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -41,6 +41,7 @@ Render the children of nodes.
 
 #include "Children.h"
 #include "Collision.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "RenderFuncs.h"
 #include "../opengl/Frustum.h"
 

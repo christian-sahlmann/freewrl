@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.38 2010/09/30 12:41:39 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.39 2010/10/26 13:40:04 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -42,6 +42,7 @@
 #include "../input/EAIHeaders.h"	/* for implicit declarations */
 
 #include "../x3d_parser/Bindable.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../main/ProdCon.h"
 #include "pluginUtils.h"

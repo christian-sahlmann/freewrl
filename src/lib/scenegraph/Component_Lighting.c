@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Lighting.c,v 1.15 2010/02/27 21:02:25 crc_canada Exp $
+$Id: Component_Lighting.c,v 1.16 2010/10/26 13:40:04 crc_canada Exp $
 
 X3D Lighting Component
 
@@ -37,6 +37,7 @@ X3D Lighting Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "RenderFuncs.h"
 #include "../opengl/OpenGL_Utils.h"
 
