@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.157 2010/10/25 20:04:12 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.158 2010/10/28 19:44:56 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -231,8 +231,6 @@ static int getShaderSource (char **vertexSource, char **fragmentSource, shader_t
 	*fragmentSource = NULL;
 
 	switch (whichOne) {
-		case headlightOneTextureAppearanceShader:
-			printf ("warning, headlightOneTextureAppearanceShader not doing textures yet\n");
 		case genericHeadlightNoTextureAppearanceShader: {
 			*fragmentSource = STRDUP (
        				"varying vec4 colour; varying vec4 spec; void main () { gl_FragColor = clamp(colour+spec,0.,1.);}");
@@ -337,12 +335,29 @@ static int getShaderSource (char **vertexSource, char **fragmentSource, shader_t
 			break;
 		}
 
-case         noLightNoTextureAppearanceShader:
+		/* just emissive lights here */
+case         noLightNoTextureAppearanceShader: {
+			*fragmentSource = STRDUP (
+				"varying vec4 emis; void main () {gl_FragColor = emis;}");
+			*vertexSource  = STRDUP( 
+			"varying	vec4 emis;" \
+			"uniform 	vec4 myMaterialEmission;" \
+			"attribute	vec4 fw_Vertex;" \
+			"uniform	mat4 fw_ModelViewMatrix;" \
+			"uniform	mat4 fw_ProjectionMatrix;" \
+			"void main(void) {" \
+			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+			"	emis = myMaterialEmission; " \
+			"}");
+			break;
+		}
+
 case         multiLightNoTextureAppearanceShader:
 case         headlightMultiTextureAppearanceShader:
 case         multiLightMultiTextureAppearanceShader:
+		case headlightOneTextureAppearanceShader:
 
-printf ("noLightNoTextureAppearanceShader multiLightNoTextureAppearanceShader headlightMultiTextureAppearanceShader multiLightMultiTextureAppearanceShader not written yet\n");
+printf ("headlightOneTextureAppearanceShader noLightNoTextureAppearanceShader multiLightNoTextureAppearanceShader headlightMultiTextureAppearanceShader multiLightMultiTextureAppearanceShader not written yet\n");
 
 			*fragmentSource = STRDUP (
 				" void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}");

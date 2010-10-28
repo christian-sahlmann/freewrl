@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.72 2010/10/25 20:04:12 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.73 2010/10/28 19:44:56 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -233,6 +233,7 @@ f 1111
 
 		if (lights[HEADLIGHT_LIGHT]) selector |= M_HEADLIGHT;
 		if (nextFreeLight != 0) selector |= M_LIGHTS;
+
 /*
 printf ("textureStackTop %d ",textureStackTop);
 printf ("one %p two %p ",material_oneSided, material_twoSided);
@@ -246,6 +247,7 @@ if ((selector & M_HEADLIGHT) != 0) printf ("M_HEADLIGHT ");
 if ((selector & M_LIGHTS) != 0) printf ("M_LIGHTS ");
 printf ("\n");
 */
+
 		switch (selector) {
 			
 			// TEXTURING DISABLED
