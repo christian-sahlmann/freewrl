@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.158 2010/10/28 19:44:56 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.159 2010/11/02 20:41:39 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -232,56 +232,147 @@ static int getShaderSource (char **vertexSource, char **fragmentSource, shader_t
 
 	switch (whichOne) {
 		case genericHeadlightNoTextureAppearanceShader: {
-			*fragmentSource = STRDUP (
-       				"varying vec4 colour; varying vec4 spec; void main () { gl_FragColor = clamp(colour+spec,0.,1.);}");
-			*vertexSource  = STRDUP( 
-			"varying vec4 colour;" \
-			"varying vec4 spec;" \
-			"uniform 	vec4 myMaterialAmbient;" \
-			"uniform 	vec4 myMaterialDiffuse;" \
-			"uniform 	vec4 myMaterialSpecular;" \
-			"uniform 	float myMaterialShininess;" \
-			"uniform 	vec4 myMaterialEmission;" \
-			"uniform		mat4 fw_ModelViewMatrix;" \
-			"uniform		mat4 fw_ProjectionMatrix;" \
-			"attribute	vec4 fw_Vertex;" \
-			"attribute	vec3 fw_Normal; " \
-			" " \
-			"uniform int lightState;" \
-			"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {" \
-			"	vec4 myLightAmbient = vec4(0., 0., 0., 1);" \
-			"	vec4 myLightDiffuse = vec4(1., 1., 1., 1.);" \
-			"	vec4 myLightPosition = vec4 (0., 0., 1., 0.);" \
-			"	vec3 norm = normalize (myNormal);" \
-			"	vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
-			"	vec3 viewv = -normalize(myPosition.xyz);" \
-			"	vec3 refl = reflect (-lightv, norm);" \
-			"	vec4 diffuse = max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse;" \
-			"	vec4 ambient = myMaterialAmbient*myLightAmbient;" \
-			"	return clamp(vec3(ambient+diffuse+myMaterialEmission), 0.0, 1.0);" \
-			"}" \
-			"vec4 specularCalculation(in vec3 myNormal, in vec4 myPosition) {" \
-			"	vec4 myLightSpecular = vec4(0.6, 0.6, 0.6, 1.0);" \
-			"	vec4 myLightPosition = vec4 (0., 0., 1., 0.);" \
-			"	vec3 norm = normalize (myNormal);" \
-			"	vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
-			"	vec3 viewv = -normalize(myPosition.xyz);" \
-			"	vec3 refl = reflect (-lightv, norm);" \
-			"	vec4 specular = vec4 (0.0, 0.0, 0.0, 1.0);" \
-			"	if (dot(lightv, viewv) > 0.0) {" \
-			"		specular = pow(max(0.0, dot(viewv, refl))," \
-			"			myMaterialShininess)*myMaterialSpecular*myLightSpecular;" \
-			"	}" \
-			"	return clamp(vec4(specular), 0.0, 1.0);" \
-			"}" \
-			"void main(void) {" \
-			"	vec3 transNorm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
-			"	/* transNorm = normalize(transNorm); */ " \
-			"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
-			"	colour = vec4(ADSLightModel(transNorm, pos),1);" \
-			"	spec = specularCalculation(transNorm,pos);" \
-			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-			"}");
+*vertexSource = STRDUP(
+"/* phong vertex shader */" \
+"varying vec3 Norm;" \
+"varying vec4 Pos;" \
+"uniform		mat4 fw_ModelViewMatrix;" \
+"uniform		mat4 fw_ProjectionMatrix;" \
+"attribute	vec4 fw_Vertex;" \
+"attribute	vec3 fw_Normal; " \
+"" \
+"void main(void) {" \
+"        /* Norm = normalize(gl_NormalMatrix * gl_Normal); */ " \
+"        /* Pos = gl_ModelViewMatrix * gl_Vertex; */ " \
+"        /* gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; */ " \
+" "\
+"       vec3 Norm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
+"       vec4 Pos = fw_ModelViewMatrix * fw_Vertex;" \
+"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+
+"}" );
+
+
+
+*fragmentSource = STRDUP(
+"/*  phong fragment shader  */" \
+" " \
+"varying vec3 Norm;" \
+"varying vec4 Pos;" \
+"" \
+"/*  use ADSLightModel here */" \
+"" \
+"/*  Assumed context: */" \
+"/*  uniform variables gl_LightSource[i] and gl_FrontMaterial are  */" \
+"/*  stubbed with constant values below. These would probably be */" \
+"/*  in parameters for the function if used in an application. */" \
+"/*  */" \
+"/*  variables myNormal and myPosition are passed in; in a vertex */" \
+"/*  shader these would be computed and used directly, while in a  */" \
+"/*  fragment shader these would be set as varying variables by */" \
+"/*  the associated vertex shader */" \
+"/*  */" \
+"/*  the ADS colour is returned from the function. */" \
+"" \
+"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {" \
+"	int i;" \
+"" \
+"/* 	 the group of variables below would normally be taken from */" \
+"/* 	 gl_FrontMaterial components */" \
+"	vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.);" \
+"	vec4 myMaterialAmbient = vec4(1., .5, 0., 1.);" \
+"	vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.);" \
+"	float myMaterialShininess = 80.;" \
+"" \
+"	vec3 norm = normalize (myNormal);" \
+"	vec3 viewv = -normalize(myPosition.xyz);" \
+"	vec4 ambient = vec4(0., 0., 0., 0.);" \
+"	vec4 specular = vec4 (0.0, 0.0, 0.0, 1.0);" \
+"	vec4 diffuse = vec4(0., 0., 0., 1.);" \
+"" \
+"	for (i=0; i<8; i++) {" \
+"/* 		 the group of variables below would normallye taken from gl_LightSource[i] components */" \
+"		vec4 myLightDiffuse = gl_LightSource[i].diffuse;" \
+"		vec4 myLightAmbient = gl_LightSource[i].ambient;" \
+"		vec4 myLightSpecular = gl_LightSource[i].specular;" \
+"		vec4 myLightPosition = gl_LightSource[i].position;" \
+"" \
+"/* 		 normal, light, view, and light reflection vectors */" \
+"		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
+"		vec3 refl = reflect (-lightv, norm);" \
+"" \
+"/* 		 diffuse light computation */" \
+"		diffuse += max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse;" \
+"" \
+"/* 		 ambient light computation */" \
+"		ambient += myMaterialAmbient*myLightAmbient;" \
+"" \
+"/* 		 Specular light computation */" \
+"		if (dot(lightv, viewv) > 0.0) {" \
+"			specular += pow(max(0.0, dot(viewv, refl))," \
+"				myMaterialShininess)*myMaterialSpecular*myLightSpecular;" \
+"		}" \
+"	}" \
+"" \
+"	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0);" \
+"}" \
+"void main () {" \
+"	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); " \
+"}");
+
+
+#ifdef FIRST_TRY
+OLDCODE			*fragmentSource = STRDUP (
+OLDCODE       				"varying vec4 colour; varying vec4 spec; void main () { gl_FragColor = clamp(colour+spec,0.,1.);}");
+OLDCODE			*vertexSource  = STRDUP( 
+OLDCODE			"varying vec4 colour;" \
+OLDCODE			"varying vec4 spec;" \
+OLDCODE			"uniform 	vec4 myMaterialAmbient;" \
+OLDCODE			"uniform 	vec4 myMaterialDiffuse;" \
+OLDCODE			"uniform 	vec4 myMaterialSpecular;" \
+OLDCODE			"uniform 	float myMaterialShininess;" \
+OLDCODE			"uniform 	vec4 myMaterialEmission;" \
+OLDCODE			"uniform		mat4 fw_ModelViewMatrix;" \
+OLDCODE			"uniform		mat4 fw_ProjectionMatrix;" \
+OLDCODE			"attribute	vec4 fw_Vertex;" \
+OLDCODE			"attribute	vec3 fw_Normal; " \
+OLDCODE			" " \
+OLDCODE			"uniform int lightState;" \
+OLDCODE			"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {" \
+OLDCODE			"	vec4 myLightAmbient = vec4(0., 0., 0., 1);" \
+OLDCODE			"	vec4 myLightDiffuse = vec4(1., 1., 1., 1.);" \
+OLDCODE			"	vec4 myLightPosition = vec4 (0., 0., 1., 0.);" \
+OLDCODE			"	vec3 norm = normalize (myNormal);" \
+OLDCODE			"	vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
+OLDCODE			"	vec3 viewv = -normalize(myPosition.xyz);" \
+OLDCODE			"	vec3 refl = reflect (-lightv, norm);" \
+OLDCODE			"	vec4 diffuse = max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse;" \
+OLDCODE			"	vec4 ambient = myMaterialAmbient*myLightAmbient;" \
+OLDCODE			"	return clamp(vec3(ambient+diffuse+myMaterialEmission), 0.0, 1.0);" \
+OLDCODE			"}" \
+OLDCODE			"vec4 specularCalculation(in vec3 myNormal, in vec4 myPosition) {" \
+OLDCODE			"	vec4 myLightSpecular = vec4(0.6, 0.6, 0.6, 1.0);" \
+OLDCODE			"	vec4 myLightPosition = vec4 (0., 0., 1., 0.);" \
+OLDCODE			"	vec3 norm = normalize (myNormal);" \
+OLDCODE			"	vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
+OLDCODE			"	vec3 viewv = -normalize(myPosition.xyz);" \
+OLDCODE			"	vec3 refl = reflect (-lightv, norm);" \
+OLDCODE			"	vec4 specular = vec4 (0.0, 0.0, 0.0, 1.0);" \
+OLDCODE			"	if (dot(lightv, viewv) > 0.0) {" \
+OLDCODE			"		specular = pow(max(0.0, dot(viewv, refl))," \
+OLDCODE			"			myMaterialShininess)*myMaterialSpecular*myLightSpecular;" \
+OLDCODE			"	}" \
+OLDCODE			"	return clamp(vec4(specular), 0.0, 1.0);" \
+OLDCODE			"}" \
+OLDCODE			"void main(void) {" \
+OLDCODE			"	vec3 transNorm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
+OLDCODE			"	/* transNorm = normalize(transNorm); */ " \
+OLDCODE			"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
+OLDCODE			"	colour = vec4(ADSLightModel(transNorm, pos),1);" \
+OLDCODE			"	spec = specularCalculation(transNorm,pos);" \
+OLDCODE			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+OLDCODE			"}");
+#endif
 			break;
 		}
 
