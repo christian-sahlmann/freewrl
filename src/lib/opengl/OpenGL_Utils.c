@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.159 2010/11/02 20:41:39 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.160 2010/11/09 21:10:22 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2712,7 +2712,7 @@ void fw_Ortho (double left, double right, double bottom, double top, double near
 	/* {int i; for (i=0; i<16;i++) { printf ("ModView before  %d: %4.3f \n",i,dp[i]); } */
 	mesa_Ortho(left,right,bottom,top,nearZ,farZ,dp);
 
-	/* {int i; for (i=0; i<16;i++) { printf ("ModView after   %d: %4.3f \n",i,dp[i]); } */
+	/* {int i; for (i=0; i<16;i++) { printf ("ModView after   %d: %4.3f \n",i,dp[i]); } } */
 
 	fw_glLoadMatrixd(dp);
 }

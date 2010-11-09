@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.151 2010/10/18 17:31:21 dug9 Exp $
+  $Id: MainLoop.c,v 1.152 2010/11/09 21:10:21 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -998,17 +998,23 @@ void setup_projection(int pick, int x, int y)
 
 	/* ortho projection or perspective projection? */
 	if (Viewer.ortho) {
-/*
-		printf ("ovf %lf %lf %lf %lf\n", Viewer.orthoField[0],
-				Viewer.orthoField[1],
-				Viewer.orthoField[2],
-				Viewer.orthoField[3]);
-*/
-		FW_GL_ORTHO (Viewer.orthoField[0],
-				Viewer.orthoField[1],
-				Viewer.orthoField[2],
-				Viewer.orthoField[3],
+		double minX, maxX, minY, maxY;
+		double numerator;
+
+		minX = Viewer.orthoField[0];
+		minY = Viewer.orthoField[1];
+		maxX = Viewer.orthoField[2];
+		maxY = Viewer.orthoField[3];
+
+		if (screenHeight != 0) {
+			numerator = (maxY - minY) * ((float) screenWidth) / ((float) screenHeight);
+			maxX = numerator/2.0f; 
+			minX = -(numerator/2.0f);
+		}
+
+		FW_GL_ORTHO (minX, maxX, minY, maxY,
 				nearPlane,farPlane);
+		
 	} else {
         	/* bounds check */
         	if ((fieldofview2 <= 0.0) || (fieldofview2 > 180.0)) 

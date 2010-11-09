@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.102 2010/10/25 16:41:59 crc_canada Exp $
+  $Id: display.h,v 1.103 2010/11/09 21:10:21 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -410,7 +410,7 @@ void setScreenDim(int wi, int he);
         #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
 	#define FW_GL_POP_ATTRIB() glPopAttrib();
 	#define FW_GL_MATRIX_MODE(aaa) fw_glMatrixMode(aaa)
-	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff); 
+	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff);
 
 
 	/* geometry rendering - varies on whether we are using appearance shaders, etc */
