@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.37 2010/10/13 19:45:26 crc_canada Exp $
+$Id: fieldGet.c,v 1.38 2010/11/10 14:25:49 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -207,7 +207,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 	obj = ScriptControl[tonode].glob;
 
 	/* set the TickTime (possibly again) for this context */
-	SET_JS_TICKTIME_FALSE()
+	SET_JS_TICKTIME_RV(FALSE)
 
 	/* make up the name */
 	switch (dataType) {

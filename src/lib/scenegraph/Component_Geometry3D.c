@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.46 2010/10/26 13:40:04 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.47 2010/11/10 14:25:49 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -427,8 +427,8 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 
 		glBindBuffer(GL_ARRAY_BUFFER, node->__cylinderVBO);
 
-		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat) sizeof(struct MyVertex), BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
 
 		/* set up texture drawing for this guy */
 		mtf.VA_arrays = NULL;
@@ -941,8 +941,8 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 		glBindBuffer(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
 
-		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat)  sizeof(struct MyVertex), BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat)  sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
 
                 mtf.VA_arrays = NULL;
                 mtf.TC_size = 2;
@@ -953,7 +953,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SphereIndxVBO);
 		
-		FW_GL_DRAWELEMENTS (GL_TRIANGLES, TRISINSPHERE, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));   //The starting point of the IBO
+		FW_GL_DRAWELEMENTS (GL_TRIANGLES, TRISINSPHERE, GL_UNSIGNED_SHORT, (int *)BUFFER_OFFSET(0));   //The starting point of the IBO
 
 		/* turn off */
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
