@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.66 2010/09/29 20:11:48 crc_canada Exp $
+  $Id: CParseParser.c,v 1.67 2010/11/15 20:46:40 crc_canada Exp $
 
   ???
 
@@ -511,6 +511,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
     struct ProtoFieldDecl* pField=NULL;
     struct ScriptFieldDecl* sdecl=NULL;
     char *startOfField = NULL;
+    int startOfFieldLexerLevel = INT_ID_UNDEFINED;
 
 
 #ifdef CPARSERVERBOSE
@@ -630,6 +631,8 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 
         } else {
             startOfField = (char *)me->lexer->nextIn;
+	    startOfFieldLexerLevel = me->lexer->lexerInputLevel;
+
             if (!parseType(me, type, &defaultVal)) {
                 /* Invalid default value parsed.  Delete the proto or script declaration. */
                 CPARSE_ERROR_CURID("Expected default value for field!");
@@ -705,11 +708,87 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 
         /* copy the ASCII text over and save it as part of the field */
         if (startOfField != NULL) {
-            uintptr_t sz = me->lexer->nextIn-startOfField;
-            FREE_IF_NZ(pdecl->fieldString);
-            pdecl->fieldString = MALLOC (sz + 2);
-            strncpy(pdecl->fieldString,startOfField,sz);
-            pdecl->fieldString[sz]='\0';
+		if (startOfFieldLexerLevel == me->lexer->lexerInputLevel) {
+
+            		size_t sz = (size_t) ((me->lexer->nextIn)-startOfField);
+			/* printf ("non-recursive PROTO interface copy, string size is %d\n", sz); */
+
+        		FREE_IF_NZ(pdecl->fieldString);
+            		pdecl->fieldString = MALLOC (sz + 2);
+            		strncpy(pdecl->fieldString,startOfField,sz);
+            		pdecl->fieldString[sz]='\0';
+	    	} else {
+			int i;
+			size_t sz;
+			char *curStrPtr;
+
+			/* we had a PROTO field come in here; this gets difficult as we have to get different
+			   lexer levels, not do simple "from here to here" string math */
+
+			/* this is what happens:
+			        me->lexerInputLevel ++;
+			        me->startOfStringPtr[me->lexerInputLevel]=str;
+			        me->oldNextIn[me->lexerInputLevel] = me->nextIn; 
+			        me->nextIn=str;
+			*/
+
+			/* the "original" level contains a PROTO call; we skip this one, but the
+			   following code will show how to get it if you wish 
+			sz = (size_t) (me->lexer->oldNextIn[startOfFieldLexerLevel+1] - startOfField);
+			printf ("complex recursive copy of PROTO invocation fields\n");
+			printf ("for level %d, size is %d\n",startOfFieldLexerLevel, sz);
+			*/
+
+			/* we start off with a string of zero length */
+			sz = 0;
+
+			/* we go through any intermediate layers */
+			for (i=startOfFieldLexerLevel+1; i<me->lexer->lexerInputLevel; i++) {
+				printf ("CAUTION: unverified code in recursive PROTO invocations in classic VRML parser\n");
+				printf ("level %d\n",i);
+				printf ("size of this level, %d\n",(int) (me->lexer->oldNextIn[i+1] - me->lexer->startOfStringPtr[i]));
+				sz += (size_t) (me->lexer->oldNextIn[i+1] - me->lexer->startOfStringPtr[i]);
+
+			}
+			/* printf ("final level, size %d\n",(int)(me->lexer->nextIn - me->lexer->startOfStringPtr[me->lexer->lexerInputLevel])); */
+			sz += (size_t)(me->lexer->nextIn - me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);
+
+			/* for good luck, and for the trailing null... */
+			sz += 2;
+
+			/* now, copy over the "stuff" */
+
+			FREE_IF_NZ(pdecl->fieldString);
+			pdecl->fieldString = MALLOC(sz);
+			curStrPtr = pdecl->fieldString;
+
+			/* now, copy the actual strings... */
+			/* first layer */
+			/* if we copy this, we will get the PROTO invocation, so we skip this one
+			sz = (size_t) (me->lexer->oldNextIn[startOfFieldLexerLevel+1] - startOfField);
+			strncpy(curStrPtr, startOfField, sz);
+			curStrPtr += sz;
+			curStrPtr[1] = '\0';
+			printf ("first layer, we have %d len in copied string\n",strlen(pdecl->fieldString));
+			printf ("and, it results in :%s:\n",pdecl->fieldString);
+			*/
+
+			/* and, the intermediate layers... */
+			for (i=startOfFieldLexerLevel+1; i<me->lexer->lexerInputLevel; i++) {
+				sz = (size_t) (me->lexer->oldNextIn[i+1] - me->lexer->startOfStringPtr[i]);
+				strncpy(curStrPtr,me->lexer->startOfStringPtr[i],sz);
+				curStrPtr += sz;
+			}
+	
+			/* and the final level */
+			sz = (size_t)(me->lexer->nextIn - me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);
+			strncpy(curStrPtr,me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],sz);
+			curStrPtr += sz;
+
+			/* trailing null */
+			curStrPtr ++;
+			*curStrPtr = '\0';
+	    }
         }
         #ifdef CPARSERVERBOSE
 	printf ("pdecl->fieldString is :%s:\n",pdecl->fieldString);
@@ -728,6 +807,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 
     return TRUE;
 }
+
 
 /* Parses a protoStatement */
 /* Adds the PROTO name to the userNodeTypesVec list of names.  
