@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.47 2010/08/19 02:20:36 crc_canada Exp $
+$Id: CProto.c,v 1.48 2010/11/15 00:52:05 crc_canada Exp $
 
 CProto ???
 
@@ -49,9 +49,9 @@ CProto ???
 #include "CParseLexer.h"
 #include "CProto.h"
 
-#define DJ_KEEP_COMPILER_WARNING 0
 
-#undef CPROTOVERBOSE
+
+#define DJ_KEEP_COMPILER_WARNING 0
 
 #define PROTO_CAT(newString) { char *pt = (char *)newString; int len=0; int wlen = 0;\
 		while ((*pt)) {len++; pt++;}; \
@@ -473,12 +473,12 @@ static struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct 
  size_t i;
  ret->alreadySet=FALSE;
 
-	#ifdef CPARSERVERBOSE
+	#ifdef CPROTOVERBOSE
 	printf ("\nstart of protoFieldDecl_copy\n");
 	#endif
 
  /* copy over the fieldString */
-	#ifdef CPARSERVERBOSE
+	#ifdef CPROTOVERBOSE
   printf ("protoFieldDecl_copy: copying field string for field... %s\n",me->fieldString); 
 	#endif
  if (me->fieldString != NULL) ret->fieldString = STRDUP(me->fieldString);
@@ -486,7 +486,7 @@ static struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct 
  ret->mode=me->mode;
  ret->type=me->type;
  ret->name=me->name;
-	#ifdef CPARSERVERBOSE
+	#ifdef CPROTOVERBOSE
  printf ("copied mode %s type %s and name %d\n",stringPROTOKeywordType(ret->mode)
 	, stringFieldtypeType(ret->type), ret->name);
  printf ("protoFieldDecl_copy, copied fieldString for proto field\n"); 
@@ -507,7 +507,7 @@ static struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct 
  /* nodes that are of type mode==PKW_initializeOnly || mode==PKW_inputOutput 
 	are copied, nodes that are just inputOnly or outputOnly are ignored */
 
-	#ifdef CPARSERVERBOSE
+	#ifdef CPROTOVERBOSE
 	printf ("protoFieldDecl_copy, copying type %s\n",stringFieldtypeType(me->type));
 	#endif
 
@@ -528,17 +528,16 @@ static struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct 
    		parseError("Unsupported type in defaultValue!");
  		}
 	} else {
-	#ifdef CPARSERVERBOSE
+	#ifdef CPROTOVERBOSE
 	printf ("protoFieldDecl_copy, ignoring this field\n");
 	#endif
 	}
 
-	#ifdef CPARSERVERBOSE
+	#ifdef CPROTOVERBOSE
 	printf ("finished protoFieldDecl_copy\n");
 	#endif
  return ret;
 }
-#undef CPARSERVERBOSE
 
 /* ************************************************************************** */
 /* ******************************* PointerHash ****************************** */
@@ -743,6 +742,9 @@ printf ("PROTO HEADER - possible proto expansion in header?? \n");
 					#endif
 
 				}
+			} else {
+				CPARSE_ERROR_CURID("PROTO field not found in PROTO");
+				return;
 			}
 		}
 		#ifdef CPROTOVERBOSE
@@ -810,37 +812,58 @@ struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct Pro
 	printf ("getProtoFieldDeclaration, for field :%s:\n",thisID);
 	#endif
 
+	/* go through all 4 vectors; it is possible that:
+		PROTOA {field XXX...}
+		PROTOB {inputOutput XXX} 
+	  we have to go through until we find a match, in this example, XXX
+	  could be found in a couple of fieldType arrays.
+	*/
+
+	/* start off with the initializeOnly fieldType */
 	userArr=&vector_get(const char*, me->user_initializeOnly, 0);
 	userCnt=vector_size(me->user_initializeOnly);
 	retUO=findFieldInARR(thisID, userArr, userCnt);
-	if (retUO != ID_UNDEFINED) 
+	if (retUO != ID_UNDEFINED) {
+		/* we found the string in the parser fieldType, lets see if it is here... */
 		ret=protoDefinition_getField(thisProto,retUO,PKW_initializeOnly);
-	else {
-		userArr=&vector_get(const char*, me->user_inputOutput, 0);
-		userCnt=vector_size(me->user_inputOutput);
-		retUO=findFieldInARR(thisID, userArr, userCnt);
-		if (retUO != ID_UNDEFINED) 
-			ret=protoDefinition_getField(thisProto,retUO,PKW_inputOutput);
-		else {
-			userArr=&vector_get(const char*, me->user_inputOnly, 0);
-			userCnt=vector_size(me->user_inputOnly);
-			retUO=findFieldInARR(thisID, userArr, userCnt);
-			if (retUO != ID_UNDEFINED) 
-				ret=protoDefinition_getField(thisProto,retUO,PKW_inputOnly);
-			else {
-				userArr=&vector_get(const char*, me->user_outputOnly, 0);
-				userCnt=vector_size(me->user_outputOnly);
-				retUO=findFieldInARR(thisID, userArr, userCnt);
-				if (retUO != ID_UNDEFINED) ret=protoDefinition_getField(thisProto,retUO,PKW_outputOnly);
-			}
-		}
-	}	
+		/* FOUND IT in here.... */
+		if (ret != NULL) return ret;
+	}
 
-	#ifdef CPROTOVERBOSE
-	printf ("getProtoFieldDeclaration, ret is %u\n",ret);
-	#endif
+	/* look in the inputOutput fields... */
+	userArr=&vector_get(const char*, me->user_inputOutput, 0);
+	userCnt=vector_size(me->user_inputOutput);
+	retUO=findFieldInARR(thisID, userArr, userCnt);
+	if (retUO != ID_UNDEFINED) {
+		/* we found the string in the parser fieldType, lets see if it is here... */
+		ret=protoDefinition_getField(thisProto,retUO,PKW_inputOutput);
+		/* FOUND IT in here.... */
+		if (ret != NULL) return ret;
+	}
 
-	return ret;
+	/* possibly we will get lucky with the inputOnly fields?? */
+	userArr=&vector_get(const char*, me->user_inputOnly, 0);
+	userCnt=vector_size(me->user_inputOnly);
+	retUO=findFieldInARR(thisID, userArr, userCnt);
+	if (retUO != ID_UNDEFINED) {
+		/* we found the string in the parser fieldType, lets see if it is here... */
+		ret=protoDefinition_getField(thisProto,retUO,PKW_inputOnly);
+		/* FOUND IT in here.... */
+		if (ret != NULL) return ret;
+	}
+
+	/* boy, lets hope that this is an outputOnly field... */
+	userArr=&vector_get(const char*, me->user_outputOnly, 0);
+	userCnt=vector_size(me->user_outputOnly);
+	retUO=findFieldInARR(thisID, userArr, userCnt);
+	if (retUO != ID_UNDEFINED) { 
+		ret=protoDefinition_getField(thisProto,retUO,PKW_outputOnly);
+		/* FOUND IT in here.... */
+		if (ret != NULL) return ret;
+	}
+
+	/* return an error, and handle this later */
+	return NULL;
 }
 
 
