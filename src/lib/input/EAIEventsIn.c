@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.68 2010/10/26 13:40:04 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.69 2010/11/15 14:13:09 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -185,12 +185,12 @@ void EAI_parse_commands () {
 					fclose(dumpfd) ;
 					throwAway = sprintf (outBuffer,"RE\n%f\n%d\n%s",TickTime,count,dumpname);
 				} else {
-					dumpfsize = ftell(dumpfd) ;
+					dumpfsize = (int) ftell(dumpfd) ;
 					fseek(dumpfd, 0L, SEEK_SET) ;
 
 					outBuffer = REALLOC(outBuffer,dumpfsize+200);
 					dumpInt = sprintf (outBuffer,"RE\n%f\n%d\n",TickTime,count);
-					throwAway = fread(outBuffer+dumpInt, dumpfsize, 1, dumpfd);
+					throwAway = (int) fread(outBuffer+dumpInt, dumpfsize, 1, dumpfd);
 					dumpInt += dumpfsize;
 
 					outBuffer[dumpInt] = '\0';
