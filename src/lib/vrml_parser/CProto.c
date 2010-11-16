@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.48 2010/11/15 00:52:05 crc_canada Exp $
+$Id: CProto.c,v 1.49 2010/11/16 15:18:50 crc_canada Exp $
 
 CProto ???
 
@@ -1413,7 +1413,8 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 						APPEND_SPACE
 						APPEND_ISVALUE
 
-					} else if (lastNode->isNODE == NODE_Script) {
+					} else if (lastNode != NULL) {
+						if (lastNode->isNODE == NODE_Script) {
 						#ifdef XXX
 						PROTO_CAT ( "# at G\n");
 						#endif
@@ -1421,6 +1422,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 						/* Script nodes NEED the fieldname, even if it is blank, so... */
 						APPEND_STRINGTOKEN
 						APPEND_SPACE
+						}
 					}
 
 					i+=2; /* skip the IS and the field */
