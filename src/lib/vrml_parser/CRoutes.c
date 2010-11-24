@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.71 2010/10/04 02:46:46 dug9 Exp $
+$Id: CRoutes.c,v 1.72 2010/11/24 20:12:12 crc_canada Exp $
 
 ???
 
@@ -1503,6 +1503,11 @@ nodes have eventins/eventouts - have to do the table multiple times
 in this case.
 
 ********************************************************************/
+
+#ifdef CRVERBOSE
+char * BOOL_STRING(int inp) {if (inp)return "true "; else return "false ";}
+#endif
+
 void propagate_events() {
 	int havinterp;
 	int counter;

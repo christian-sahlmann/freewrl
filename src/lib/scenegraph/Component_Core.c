@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Core.c,v 1.7 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Component_Core.c,v 1.8 2010/11/24 20:12:12 crc_canada Exp $
 
 X3D Core Component
 
@@ -180,12 +180,21 @@ void compile_MetadataString (struct X3D_MetadataString *node) {
 		if ((node->setValue.n != 0) || (node->setValue.p != NULL) || (node->valueChanged.n != 0) || (node->valueChanged.p != NULL)) { printf ("PROTO header - initialization set and changed, but not zero??\n");  \
                 node->setValue.n = 0; FREE_IF_NZ(node->setValue.p);  \
                 node->valueChanged.n = 0; FREE_IF_NZ(node->valueChanged.p); } \
+		FREE_IF_NZ (node->setValue.p); \
+		FREE_IF_NZ(node->valueChanged.p); \
+		node->setValue.p = MALLOC(dataSize * node->value.n * elelength); \
+		node->valueChanged.p = MALLOC(dataSize * node->value.n * elelength); \
+		memcpy(node->setValue.p, node->value.p, dataSize * node->value.n * elelength); \
+		memcpy(node->valueChanged.p, node->value.p, dataSize * node->value.n * elelength); \
+                node->setValue.n = node->value.n; \
+                node->valueChanged.n = node->value.n; \
+                MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
 	} \
 	MARK_NODE_COMPILED \
 }
 
 #define CMD_MSFI32(type,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
-        /* printf ("MSFI32:, node %x\n",node); \
+        /* printf ("\nMSFI32:, node %x\n",node); \
         printf ("MSFI32:, nt %s change %d ichange %d\n",stringNodeType(node->_nodeType),node->_change, node->_ichange); */ \
         if META_IS_INITIALIZED { \
                 int count; int changed = FALSE; \
@@ -219,11 +228,21 @@ cptr = (char *)&(node->value); for (count = 0; count < 8; count ++) { printf ("%
         } else { \
                 /* the "value" will hold everything we need */ \
                 /* initialize it, but do not bother doing any routing on it */ \
-		/* printf ("MSFI32: initializing\n"); */ \
+		/* printf ("MSFI32: initializing... %d %p %d %p\n", node->setValue.n, node->setValue.p, node->valueChanged.n, node->valueChanged.p); */ \
 		if ((node->setValue.n != 0) || (node->setValue.p != NULL) || (node->valueChanged.n != 0) || (node->valueChanged.p != NULL)) { printf ("PROTO header - initialization set and changed, but not zero??\n");  \
                 node->setValue.n = 0; FREE_IF_NZ(node->setValue.p);  \
                 node->valueChanged.n = 0; FREE_IF_NZ(node->valueChanged.p); } \
 		/* printf ("MSFI32 - leaving the setValue and ValueChanged pointers to %x %x\n",node->setValue.p, node->valueChanged.p);*/ \
+		/* printf ("MFSI32, making setValue and valueChanged equal to the value on initialization\n"); */ \
+		FREE_IF_NZ (node->setValue.p); \
+		FREE_IF_NZ(node->valueChanged.p); \
+		node->setValue.p = MALLOC(dataSize * node->value.n); \
+		node->valueChanged.p = MALLOC(dataSize * node->value.n); \
+		memcpy(node->setValue.p, node->value.p, dataSize * node->value.n); \
+		memcpy(node->valueChanged.p, node->value.p, dataSize * node->value.n); \
+                node->setValue.n = node->value.n; \
+                node->valueChanged.n = node->value.n; \
+                MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataMF##type, valueChanged)); \
         } \
         MARK_NODE_COMPILED \
         /* printf ("MSFI32: DONE; value %d, value_changed.n %d\n", node->value.n,node->valueChanged.n);  */ \
