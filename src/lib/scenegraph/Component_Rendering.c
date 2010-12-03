@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.21 2010/10/26 13:40:04 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.22 2010/12/03 19:55:21 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -244,7 +244,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		FREE_IF_NZ (node->__colours);
 		node->__colours = MALLOC (sizeof(struct SFColorRGBA)*(nVertices+1));
 		newcolors = (struct SFColorRGBA *) node->__colours;
-			POSSIBLE_PROTO_EXPANSION(node->color,cc)
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Color *, node->color,cc)
                		/* cc = (struct X3D_Color *) node->color; */
                		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
                	        	ConsoleMessage ("make_IndexedLineSet, color node, expected %d got %d\n", NODE_Color, cc->_nodeType);
@@ -422,7 +422,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 
        	if (node->color) {
                	/* cc = (struct X3D_Color *) node->color; */
-		POSSIBLE_PROTO_EXPANSION(node->color,cc)
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Color *, node->color,cc)
                	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
                	        ConsoleMessage ("make_PointSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
                	} else {
@@ -583,7 +583,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
  
        	if (node->color) {
                	/* cc = (struct X3D_Color *) node->color; */
-		POSSIBLE_PROTO_EXPANSION(node->color,cc)
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Color *, node->color,cc)
                	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
                	        ConsoleMessage ("make_LineSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
                	} else {

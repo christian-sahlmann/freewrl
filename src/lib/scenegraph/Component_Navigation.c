@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.39 2010/09/30 18:58:19 davejoubert Exp $
+$Id: Component_Navigation.c,v 1.40 2010/12/03 19:55:21 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -259,7 +259,7 @@ void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 void child_Collision (struct X3D_Collision *node) {
 	CHILDREN_COUNT
 	int i;
-	void *tmpN;
+	struct X3D_Node *tmpN;
 
 	if(render_collision) {
 		/* test against the collide field (vrml) enabled (x3d) and that we actually have a proxy field */
@@ -290,7 +290,7 @@ void child_Collision (struct X3D_Collision *node) {
 
 		}
         	if(node->proxy) {
-			POSSIBLE_PROTO_EXPANSION(node->proxy,tmpN)
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->proxy,tmpN)
                        	render_node(tmpN);
 		}
 

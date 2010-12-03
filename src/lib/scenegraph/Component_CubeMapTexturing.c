@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.19 2010/09/29 17:34:06 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.20 2010/12/03 19:55:21 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -82,16 +82,16 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 
 		/* go through these, right left, top, bottom, back, front */
 		switch (count) {
-			case 2: {POSSIBLE_PROTO_EXPANSION(node->top,thistex);  break;}
-			case 3: {POSSIBLE_PROTO_EXPANSION(node->bottom,thistex);   break;}
+			case 2: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->top,thistex);  break;}
+			case 3: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->bottom,thistex);   break;}
 
-			case 1: {POSSIBLE_PROTO_EXPANSION(node->left,thistex);    break;}
-			case 0: {POSSIBLE_PROTO_EXPANSION(node->right,thistex); break;}
+			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->left,thistex);    break;}
+			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
 
 
 
-			case 4: {POSSIBLE_PROTO_EXPANSION(node->back,thistex);  break;}
-			case 5: {POSSIBLE_PROTO_EXPANSION(node->front,thistex);   break;}
+			case 4: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->back,thistex);  break;}
+			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->front,thistex);   break;}
 		}
 		if (thistex != 0) {
 			/* we have an image specified for this face */
@@ -497,7 +497,7 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 		int x,y;
 		uint32 val;
 		uint32 *tex = (uint32 *) me->texdata;
-		struct X3D_PixelTexture *pt = node->__subTextures.p[count];
+		struct X3D_PixelTexture *pt = X3D_PIXELTEXTURE(node->__subTextures.p[count]);
 		int xSubIndex, ySubIndex;
 		int index;
 

@@ -1,5 +1,5 @@
 #
-# $Id: VRMLFields.pm,v 1.9 2010/02/28 17:22:55 crc_canada Exp $
+# $Id: VRMLFields.pm,v 1.10 2010/12/03 19:55:21 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log: VRMLFields.pm,v $
+# Revision 1.10  2010/12/03 19:55:21  crc_canada
+# changing from "void *" to more specific types.
+#
 # Revision 1.9  2010/02/28 17:22:55  crc_canada
 # more 64 bit conversions
 #
@@ -669,7 +672,7 @@ sub cInitialize {
 ###########################################################
 package VRML::Field::SFNode;
 
-sub ctype {"void *$_[1]"} 
+sub ctype {"struct X3D_Node *$_[1]"} 
 sub cstruct {""}
 
 sub cInitialize {
@@ -1105,12 +1108,6 @@ sub cInitialize {
 	}
 	return $retstr;
 }
-
-
-
-
-
-
 
 
 

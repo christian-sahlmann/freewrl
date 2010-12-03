@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.56 2010/10/13 19:23:47 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.57 2010/12/03 19:55:21 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.57  2010/12/03 19:55:21  crc_canada
+# changing from "void *" to more specific types.
+#
 # Revision 1.56  2010/10/13 19:23:47  crc_canada
 # X3D_Virt functions; make a table rather than keeping a list of pointers in EACH scenegraph node.
 #
@@ -1373,6 +1376,16 @@ sub gen {
 	"#define X3D_GEOLOCATION(node) ((struct X3D_GeoLocation*)node)\n".
 	"#define X3D_GEOTRANSFORM(node) ((struct X3D_GeoTransform*)node)\n".
 	"#define X3D_GEOPROXIMITYSENSOR(node) ((struct X3D_GeoProximitySensor*)node)\n".
+
+	"#define X3D_COLOR(node) ((struct X3D_Color*)node)\n".
+	"#define X3D_COORDINATE(node) ((struct X3D_Coordinate*)node)\n".
+	"#define X3D_NORMAL(node) ((struct X3D_Normal*)node)\n".
+	"#define X3D_TEXTURECOORDINATE(node) ((struct X3D_TextureCoordinate*)node)\n".
+	"#define X3D_IMAGETEXTURE(node) ((struct X3D_ImageTexture*)node)\n".
+	"#define X3D_TEXTUREPROPERTIES(node) ((struct X3D_TextureProperties*)node)\n".
+	"#define X3D_PIXELTEXTURE(node) ((struct X3D_PixelTexture*)node)\n".
+
+
 	"#undef DEBUG_VALIDNODE\n".
 	"#ifdef DEBUG_VALIDNODE	\n".
 	"#define X3D_NODE_CHECK(node) checkNode(node,__FILE__,__LINE__)\n".
@@ -1665,6 +1678,9 @@ sub gen {
 					push @genFuncs2, "\t\t\tspacer fprintf (fp,\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
 						"fprintf (fp,\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1],(tmp->$field.p[i]).c[2],(tmp->$field.p[i]).c[3],(tmp->$field.p[i]).c[4],(tmp->$field.p[i]).c[5],(tmp->$field.p[i]).c[6],(tmp->$field.p[i]).c[7],(tmp->$field.p[i]).c[8]); }\n";
+
+
+
 				} else {
 					print "type $ft not handled yet\n";
 				}

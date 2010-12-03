@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.11 2010/10/13 19:23:47 crc_canada Exp $
+  $Id: RasterFont.c,v 1.12 2010/12/03 19:55:21 crc_canada Exp $
 
 */
 
@@ -163,7 +163,7 @@ int rf_xfont_init(const char *fontname)
 	myFont.family.p = MALLOC (sizeof(struct Uni_String)*1);myFont.family.p[0] = newASCIIString("TYPEWRITER");myFont.family.n=1; ;
 	myFont._defaultContainer = FIELDNAMES_fontStyle;
 
-	myText.fontStyle = &myFont;
+	myText.fontStyle = X3D_NODE(&myFont);
     rf_initialized = TRUE;
     return TRUE;
 }

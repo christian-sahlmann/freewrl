@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.25 2010/07/21 15:18:14 istakenv Exp $
+$Id: Component_VRML1.c,v 1.26 2010/12/03 19:55:21 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -338,7 +338,7 @@ void child_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 void render_VRML1_Cone (struct X3D_VRML1_Cone *node) {
 	if (node->_ILS==NULL) {
 		struct X3D_Cone *sp = createNewX3DNode(NODE_Cone);
-		node->_ILS = sp;
+		node->_ILS = X3D_NODE(sp);
 
 		sp->side = FALSE;
 		sp->bottom = FALSE;
@@ -363,7 +363,7 @@ void render_VRML1_Cone (struct X3D_VRML1_Cone *node) {
 void render_VRML1_Cube (struct X3D_VRML1_Cube *node) {
 	if (node->_ILS==NULL) {
 		struct X3D_Box *sp = createNewX3DNode(NODE_Box);
-		node->_ILS = sp;
+		node->_ILS = X3D_NODE(sp);
 		sp->size.c[0] = node->width;
 		sp->size.c[1] = node->height;
 		sp->size.c[2] = node->depth;
@@ -374,7 +374,7 @@ void render_VRML1_Cube (struct X3D_VRML1_Cube *node) {
 void render_VRML1_Sphere (struct X3D_VRML1_Sphere *node){
 	if (node->_ILS==NULL) {
 		struct X3D_Sphere *sp = createNewX3DNode(NODE_Sphere);
-		node->_ILS = sp;
+		node->_ILS = X3D_NODE(sp);
 		sp->radius = node->radius;
 	}
 	render_node(node->_ILS);
@@ -383,7 +383,7 @@ void render_VRML1_Sphere (struct X3D_VRML1_Sphere *node){
 void render_VRML1_Cylinder (struct X3D_VRML1_Cylinder *node) {
 	if (node->_ILS==NULL) {
 		struct X3D_Cylinder *sp = createNewX3DNode(NODE_Cylinder);
-		node->_ILS = sp;
+		node->_ILS = X3D_NODE(sp);
 
 		sp->side = FALSE;
 		sp->bottom = FALSE;
@@ -734,7 +734,7 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 				node->_color = createNewX3DNode(NODE_Color);
 				ADD_PARENT(node->_color,X3D_NODE(node));
 			}
-			nc = node->_color;
+			nc = X3D_COLOR (node->_color);
 			FREE_IF_NZ(nc->color.p);
 			nc->color.p = MALLOC(sizeof (struct SFColor) * cSLD->matNode->diffuseColor.n);
 			memcpy(nc->color.p, cSLD->matNode->diffuseColor.p, sizeof (struct SFColor) * cSLD->matNode->diffuseColor.n);
@@ -749,7 +749,7 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 			node->_coord = createNewX3DNode(NODE_Coordinate);
 			ADD_PARENT(node->_coord,X3D_NODE(node));
 		}
-		nc = node->_coord;
+		nc = X3D_COORDINATE(node->_coord);
 		FREE_IF_NZ(nc->point.p);
 		nc->point.p = MALLOC(sizeof (struct SFColor) * cSLD->c3Node->point.n);
 		memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFColor) * cSLD->c3Node->point.n);
@@ -764,7 +764,7 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 			node->_normal = createNewX3DNode(NODE_Normal);
 			ADD_PARENT(node->_normal,X3D_NODE(node));
 		}
-		nc = node->_normal;
+		nc = X3D_NORMAL(node->_normal);
 		FREE_IF_NZ(nc->vector.p);
 		nc->vector.p = MALLOC(sizeof (struct SFColor) * cSLD->nNode->vector.n);
 		memcpy(nc->vector.p, cSLD->nNode->vector.p, sizeof (struct SFColor) * cSLD->nNode->vector.n);
@@ -779,7 +779,7 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 			node->_texCoord = createNewX3DNode(NODE_Normal);
 			ADD_PARENT(node->_texCoord,X3D_NODE(node));
 		}
-		nc = node->_texCoord;
+		nc = X3D_TEXTURECOORDINATE(node->_texCoord);
 		FREE_IF_NZ(nc->point.p);
 		nc->point.p = MALLOC(sizeof (struct SFVec2f) * cSLD->tc2Node->point.n);
 		memcpy(nc->point.p, cSLD->tc2Node->point.p, sizeof (struct SFVec2f) * cSLD->tc2Node->point.n);
@@ -818,7 +818,7 @@ static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *n
 
 	struct X3D_IndexedLineSet *ILS = createNewX3DNode(NODE_IndexedLineSet);
 
-	node->_ILS = ILS; 
+	node->_ILS = X3D_NODE(ILS); 
 
 	if (cSLD == NULL) { ILS->colorPerVertex = FALSE; } else {
 	if (cSLD->mbNode!=NULL) ILS->colorPerVertex = cSLD->mbNode->_Value==VRML1MOD_PER_VERTEX;
@@ -833,7 +833,7 @@ static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *n
 				ILS->color = createNewX3DNode(NODE_Color);
 				ADD_PARENT(ILS->color,X3D_NODE(node));
 			}
-			nc = ILS->color;
+			nc = X3D_COLOR(ILS->color);
 			FREE_IF_NZ(nc->color.p);
 			nc->color.p = MALLOC(sizeof (struct SFColor) * cSLD->matNode->emissiveColor.n);
 			memcpy(nc->color.p, cSLD->matNode->emissiveColor.p, sizeof (struct SFColor) * cSLD->matNode->emissiveColor.n);
@@ -848,7 +848,7 @@ static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *n
 			ILS->coord = createNewX3DNode(NODE_Coordinate);
 			ADD_PARENT(ILS->coord,X3D_NODE(node));
 		}
-		nc = ILS->coord;
+		nc = X3D_COORDINATE(ILS->coord);
 		FREE_IF_NZ(nc->point.p);
 		nc->point.p = MALLOC(sizeof (struct SFColor) * cSLD->c3Node->point.n);
 		memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFColor) * cSLD->c3Node->point.n);

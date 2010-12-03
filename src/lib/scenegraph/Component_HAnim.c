@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_HAnim.c,v 1.19 2010/09/16 15:48:42 crc_canada Exp $
+$Id: Component_HAnim.c,v 1.20 2010/12/03 19:55:21 crc_canada Exp $
 
 X3D H-Anim Component
 
@@ -195,8 +195,6 @@ return;
 
 void render_HAnimHumanoid (struct X3D_HAnimHumanoid *node) {
 	/* save the skinCoords and skinNormals for use in following HAnimJoints */
-	POSSIBLE_PROTO_EXPANSION(node->skinCoord,HANimSkinCoord)
-	POSSIBLE_PROTO_EXPANSION(node->skinNormal,HAnimSkinNormal)
 	/* printf ("rendering HAnimHumanoid\n"); */
 }
 

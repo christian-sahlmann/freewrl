@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.27 2010/09/28 20:40:22 crc_canada Exp $
+$Id: Component_Text.c,v 1.28 2010/12/03 19:55:21 crc_canada Exp $
 
 X3D Text Component
 
@@ -979,7 +979,7 @@ void make_Text (struct X3D_Text *node)
         unsigned char *stmp;
 
         /* step 0 - is the FontStyle a proto? */
-        POSSIBLE_PROTO_EXPANSION(node->fontStyle,fsp);
+        POSSIBLE_PROTO_EXPANSION(struct X3D_FontStyle *, node->fontStyle,fsp);
 
         /* fsp = (struct X3D_FontStyle *)node->fontStyle; */
         if (fsp->_nodeType != NODE_FontStyle) {

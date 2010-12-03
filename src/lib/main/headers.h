@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.137 2010/10/13 19:23:47 crc_canada Exp $
+$Id: headers.h,v 1.138 2010/12/03 19:55:21 crc_canada Exp $
 
 Global includes.
 
@@ -186,13 +186,16 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 /* convert a PROTO node (which will be a Group node) into a node. eg, for Materials  - this is a possible child
 node for ANY node that takes something other than a Group */
-#define POSSIBLE_PROTO_EXPANSION(inNode,outNode) \
+
+#define offsetPointer_deref(t, me, offs) ((t)(((char*)(me))+offs))
+
+#define POSSIBLE_PROTO_EXPANSION(type,inNode,outNode) \
 	if (inNode == NULL) outNode = NULL; \
 	else {if (X3D_NODE(inNode)->_nodeType == NODE_Group) { \
 		if (X3D_GROUP(inNode)->children.n>0) { \
-			outNode = X3D_GROUP(inNode)->children.p[0]; \
+			outNode = (type)(X3D_GROUP(inNode)->children.p[0]); \
 		} else outNode = NULL; \
-	} else outNode = inNode; };
+	} else outNode = (type)inNode; };
 
 
 #define MARK_NODE_COMPILED node->_ichange = node->_change;
@@ -919,7 +922,7 @@ void registerX3DNode(struct X3D_Node * node);
 
 void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr);
 
-struct Multi_Vec3f *getCoordinate (void *node, char *str);
+struct Multi_Vec3f *getCoordinate (struct X3D_Node *node, char *str);
 
 void replaceWorldNeeded(char* str);
 

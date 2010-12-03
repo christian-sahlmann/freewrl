@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.52 2010/10/13 19:23:47 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.53 2010/12/03 19:55:21 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -1592,8 +1592,8 @@ package VRML::NodeType;
 			geoSystem => [MFString,["GD","WE"],initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__geoSystem => [MFInt32,[],initializeOnly, 0],
 			__movedValue => [MFVec3d, [], inputOutput, 0],
-			__oldKeyPtr => [SFNode, NULL, outputOnly, 0],
-			__oldKeyValuePtr => [SFNode, NULL, outputOnly, 0],
+			__oldKeyPtr => [MFFloat, NULL, outputOnly, 0],
+			__oldKeyValuePtr => [MFVec3d, NULL, outputOnly, 0],
 					},"X3DInterpolatorNode"),
 
 

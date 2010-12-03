@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.73 2010/10/28 19:44:56 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.74 2010/12/03 19:55:21 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -1092,10 +1092,10 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 	void *coord; void *color; void *normal; void *texCoord;
 
 	/* are any of these SFNodes PROTOS? If so, get the underlying real node, as PROTOS are handled like Groups. */
-	POSSIBLE_PROTO_EXPANSION(Icoord,coord)
-		POSSIBLE_PROTO_EXPANSION(Icolor,color)
-		POSSIBLE_PROTO_EXPANSION(Inormal,normal)
-		POSSIBLE_PROTO_EXPANSION(ItexCoord,texCoord)
+	POSSIBLE_PROTO_EXPANSION(void *, Icoord,coord)
+		POSSIBLE_PROTO_EXPANSION(void *, Icolor,color)
+		POSSIBLE_PROTO_EXPANSION(void *, Inormal,normal)
+		POSSIBLE_PROTO_EXPANSION(void *, ItexCoord,texCoord)
 
 	nodefn(node, coord, color, normal, texCoord);
 }
@@ -1197,12 +1197,12 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 #define X3D_GEOCOORD(node) ((struct X3D_GeoCoordinate*)node)
 
 /* get a coordinate array - (SFVec3f) from either a NODE_Coordinate or NODE_GeoCoordinate */
-struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
+struct Multi_Vec3f *getCoordinate (struct X3D_Node *innode, char *str) {
 	struct X3D_Coordinate * xc;
 	struct X3D_GeoCoordinate *gxc;
 	struct X3D_Node *node;
 
-	POSSIBLE_PROTO_EXPANSION (innode,node)
+	POSSIBLE_PROTO_EXPANSION (struct X3D_Node *, innode,node)
 
 		xc = X3D_COORD(node);
 	/* printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType)); */

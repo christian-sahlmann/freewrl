@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.22 2010/07/25 16:51:39 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.23 2010/12/03 19:55:21 crc_canada Exp $
 
 ???
 
@@ -840,7 +840,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	/* texture coords IndexedFaceSet coords colors and normals */
 	if(co != NULL) {
 		struct Multi_Vec3f *dtmp;
-		dtmp = getCoordinate (co, "make FacedSet");
+		dtmp = getCoordinate (X3D_NODE(co), "make FacedSet");
 		npoints = dtmp->n;
 		points = dtmp->p;
 	}

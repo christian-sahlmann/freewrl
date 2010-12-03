@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.20 2010/09/29 17:34:06 crc_canada Exp $
+$Id: StreamPoly.c,v 1.21 2010/12/03 19:55:21 crc_canada Exp $
 
 ???
 
@@ -316,12 +316,12 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 			/* printf ("nt, parent is of type %s\n",stringNodeType(parent->_nodeType)); */
 			if (parent->_nodeType == NODE_Shape) {
 				struct X3D_Appearance *app;
-                		POSSIBLE_PROTO_EXPANSION(parent->appearance,app)
+                		POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *, parent->appearance,app)
 				/* printf ("appearance is of type %s\n",stringNodeType(app->_nodeType)); */
 				if (app != NULL)  {
 					if (app->_nodeType == NODE_Appearance) {
 						struct X3D_Material *mat;
-                				POSSIBLE_PROTO_EXPANSION(app->material,mat)
+                				POSSIBLE_PROTO_EXPANSION(struct X3D_Material *, app->material,mat)
 						/* printf ("material is of type %s\n",stringNodeType(mat->_nodeType)); */
 
 						if (mat != NULL) {

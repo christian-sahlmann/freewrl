@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.75 2010/09/22 16:54:59 crc_canada Exp $
+$Id: X3DParser.c,v 1.76 2010/12/03 19:55:21 crc_canada Exp $
 
 ???
 
@@ -780,7 +780,7 @@ void linkNodeIn(char *where, int lineno) {
 			/* printf ("WE HAVE PROTODEF %d\n",X3D_GROUP(parentStack[parentIndex])->FreeWRL__protoDef);
 			printf ("GROUP has %d children\n",X3D_GROUP(parentStack[parentIndex])->children.n); */
 			if (X3D_GROUP(parentStack[parentIndex])->children.n>0) {
-				struct X3D_Group *firstCh = X3D_GROUP(parentStack[parentIndex])->children.p[0];
+				struct X3D_Group *firstCh = X3D_GROUP(X3D_GROUP(parentStack[parentIndex])->children.p[0]);
 
 				/* printf ("first child is of type %s\n", stringNodeType(firstCh->_nodeType)); */
 

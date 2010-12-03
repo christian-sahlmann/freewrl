@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.74 2010/09/28 20:40:22 crc_canada Exp $
+  $Id: Textures.c,v 1.75 2010/12/03 19:55:21 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -412,12 +412,12 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */
 		switch (count) {
-			case 0: {thistex = node->__frontTexture;  thisurl = node->frontUrl; break;}
-			case 1: {thistex = node->__backTexture;   thisurl = node->backUrl; break;}
-			case 2: {thistex = node->__topTexture;    thisurl = node->topUrl; break;}
-			case 3: {thistex = node->__bottomTexture; thisurl = node->bottomUrl; break;}
-			case 4: {thistex = node->__rightTexture;  thisurl = node->rightUrl; break;}
-			case 5: {thistex = node->__leftTexture;   thisurl = node->leftUrl; break;}
+			case 0: {thistex = X3D_IMAGETEXTURE(node->__frontTexture);  thisurl = node->frontUrl; break;}
+			case 1: {thistex = X3D_IMAGETEXTURE(node->__backTexture);   thisurl = node->backUrl; break;}
+			case 2: {thistex = X3D_IMAGETEXTURE(node->__topTexture);    thisurl = node->topUrl; break;}
+			case 3: {thistex = X3D_IMAGETEXTURE(node->__bottomTexture); thisurl = node->bottomUrl; break;}
+			case 4: {thistex = X3D_IMAGETEXTURE(node->__rightTexture);  thisurl = node->rightUrl; break;}
+			case 5: {thistex = X3D_IMAGETEXTURE(node->__leftTexture);   thisurl = node->leftUrl; break;}
 		}
 		if (thisurl.n != 0 ) {
 			/* we might have to create a "shadow" node for the image texture */
@@ -437,19 +437,19 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 				thistex->url.n = thisurl.n;
 
 				switch (count) {
-					case 0: {node->__frontTexture = thistex;  break;}
-					case 1: {node->__backTexture = thistex;   break;}
-					case 2: {node->__topTexture = thistex;    break;}
-					case 3: {node->__bottomTexture = thistex; break;}
-					case 4: {node->__rightTexture = thistex;  break;}
-					case 5: {node->__leftTexture = thistex;   break;}
+					case 0: {node->__frontTexture = X3D_NODE(thistex);  break;}
+					case 1: {node->__backTexture = X3D_NODE(thistex);   break;}
+					case 2: {node->__topTexture = X3D_NODE(thistex);    break;}
+					case 3: {node->__bottomTexture = X3D_NODE(thistex); break;}
+					case 4: {node->__rightTexture = X3D_NODE(thistex);  break;}
+					case 5: {node->__leftTexture = X3D_NODE(thistex);   break;}
 				}
 			}
 
 			/* we have an image specified for this face */
 			textureStackTop = 0;
 			/* render the proper texture */
-			render_node((void *)thistex);
+			render_node(X3D_NODE(thistex));
 		        FW_GL_COLOR3D(1.0,1.0,1.0);
 
         		textureDraw_start(NULL,&mtf);
@@ -471,12 +471,12 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */
 		switch (count) {
-			case 0: {POSSIBLE_PROTO_EXPANSION(node->frontTexture,thistex);  break;}
-			case 1: {POSSIBLE_PROTO_EXPANSION(node->backTexture,thistex);   break;}
-			case 2: {POSSIBLE_PROTO_EXPANSION(node->topTexture,thistex);    break;}
-			case 3: {POSSIBLE_PROTO_EXPANSION(node->bottomTexture,thistex); break;}
-			case 4: {POSSIBLE_PROTO_EXPANSION(node->rightTexture,thistex);  break;}
-			case 5: {POSSIBLE_PROTO_EXPANSION(node->leftTexture,thistex);   break;}
+			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->frontTexture,thistex);  break;}
+			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->backTexture,thistex);   break;}
+			case 2: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->topTexture,thistex);    break;}
+			case 3: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->bottomTexture,thistex); break;}
+			case 4: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->rightTexture,thistex);  break;}
+			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->leftTexture,thistex);   break;}
 		}
 		if (thistex != 0) {
 			/* we have an image specified for this face */
@@ -746,7 +746,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 #endif
 
 		/* get the texture */
-		nt = node->texture.p[count];
+		nt = X3D_IMAGETEXTURE(node->texture.p[count]);
 
 		switch (nt->_nodeType) {
 			case NODE_PixelTexture:
@@ -874,18 +874,18 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	if (me->nodeType == NODE_ImageTexture) {
 		it = (struct X3D_ImageTexture *) me->scenegraphNode;
 		Src = it->repeatS; Trc = it->repeatT;
-		tpNode = it->textureProperties;
+		tpNode = X3D_TEXTUREPROPERTIES(it->textureProperties);
 	} else if (me->nodeType == NODE_PixelTexture) {
 		pt = (struct X3D_PixelTexture *) me->scenegraphNode;
 		Src = pt->repeatS; Trc = pt->repeatT;
-		tpNode = pt->textureProperties;
+		tpNode = X3D_TEXTUREPROPERTIES(pt->textureProperties);
 	} else if (me->nodeType == NODE_MovieTexture) {
 		mt = (struct X3D_MovieTexture *) me->scenegraphNode;
 		Src = mt->repeatS; Trc = mt->repeatT;
-		tpNode = mt->textureProperties;
+		tpNode =X3D_TEXTUREPROPERTIES(mt->textureProperties);
 	} else if (me->nodeType == NODE_ImageCubeMapTexture) {
 		struct X3D_ImageCubeMapTexture *mi = (struct X3D_ImageCubeMapTexture *) me->scenegraphNode;
-		tpNode = mi->textureProperties;
+		tpNode = X3D_TEXTUREPROPERTIES(mi->textureProperties);
 	} else if (me->nodeType == NODE_VRML1_Texture2) {
 		v1t = (struct X3D_VRML1_Texture2 *) me->scenegraphNode;
 		Src = v1t->_wrapS==VRML1MOD_REPEAT;

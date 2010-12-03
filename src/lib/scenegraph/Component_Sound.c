@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Sound.c,v 1.14 2010/03/13 02:10:32 sdumoulin Exp $
+$Id: Component_Sound.c,v 1.15 2010/12/03 19:55:21 crc_canada Exp $
 
 X3D Sound Component
 
@@ -255,7 +255,7 @@ void render_Sound (struct X3D_Sound *node) {
 	/* ok, is the source a valid node?? */
 
 	/* might be a PROTO expansion, as in what Adam Nash does... */
-	POSSIBLE_PROTO_EXPANSION(node->source,tmpN)
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->source,tmpN)
 
 	/* did not find a valid source node, even after really looking at a PROTO def */
 	if (tmpN == NULL) return;

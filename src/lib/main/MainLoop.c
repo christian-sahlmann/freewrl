@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.152 2010/11/09 21:10:21 crc_canada Exp $
+  $Id: MainLoop.c,v 1.153 2010/12/03 19:55:21 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1589,7 +1589,7 @@ int moreThanOneValidViewpoint( void) {
 			if (X3D_NODE(viewpointnodes[count])->_nparents > 0) {
 				struct X3D_Node * vp_parent;
 
-				POSSIBLE_PROTO_EXPANSION(X3D_NODE(viewpointnodes[count])->_parents[0],
+				POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, X3D_NODE(viewpointnodes[count])->_parents[0],
 					vp_parent);
 				/* printf ("parent found, it is a %s\n",stringNodeType(vp_parent->_nodeType)); */
 
@@ -1618,7 +1618,7 @@ void Last_ViewPoint() {
 
 			vp_to_go_to--;
                 	if (vp_to_go_to<0) vp_to_go_to=totviewpointnodes-1;
-			POSSIBLE_PROTO_EXPANSION(X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
 
 			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
 			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
@@ -1651,7 +1651,7 @@ void First_ViewPoint() {
 
 			vp_to_go_to++;
                 	if (vp_to_go_to<0) vp_to_go_to=totviewpointnodes-1;
-			POSSIBLE_PROTO_EXPANSION(X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
 
 			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
 			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
@@ -1684,7 +1684,7 @@ void Prev_ViewPoint() {
 
 			vp_to_go_to--;
                 	if (vp_to_go_to<0) vp_to_go_to=totviewpointnodes-1;
-			POSSIBLE_PROTO_EXPANSION(X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
 
 			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
 			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
@@ -1718,7 +1718,7 @@ void Next_ViewPoint() {
 
 			vp_to_go_to++;
                 	if (vp_to_go_to>=totviewpointnodes) vp_to_go_to=0;
-			POSSIBLE_PROTO_EXPANSION(X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, X3D_NODE(viewpointnodes[vp_to_go_to]),cn);
 
 			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
 			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.41 2010/09/16 18:32:58 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.42 2010/12/03 19:55:21 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -240,7 +240,7 @@ Geodetic to Geocentric:
 			/* have to convert to GD or UTM. Go to GD first */ \
  \
 			if (Viewer.GeoSpatialNode != NULL) { \
-        					retractOrigin(Viewer.GeoSpatialNode->geoOrigin, \
+        					retractOrigin((struct X3D_GeoOrigin *)Viewer.GeoSpatialNode->geoOrigin, \
 					&thisField); \
 			} \
          \
@@ -1941,13 +1941,13 @@ void do_GeoPositionInterpolator (void *innode) {
 	MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, geovalue_changed)); 
 
 	/* did the key or keyValue change? */
-	if (node->__oldKeyValuePtr != node->keyValue.p) {
+	if (node->__oldKeyValuePtr.p != node->keyValue.p) {
 		MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, keyValue)); 
-		node->__oldKeyValuePtr = node->keyValue.p;
+		node->__oldKeyValuePtr.p= node->keyValue.p;
 	}
-	if (node->__oldKeyPtr != node->key.p) {
+	if (node->__oldKeyPtr.p != node->key.p) {
 		MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, key)); 
-		node->__oldKeyPtr = node->key.p;
+		node->__oldKeyPtr.p = node->key.p;
 	}
 
 
@@ -2432,7 +2432,7 @@ static void calculateViewingSpeed() {
 			if (Viewer.GeoSpatialNode->__geoSystem.p[0] != GEOSP_GC) {
 		
 /*
-		        	retractOrigin(Viewer.GeoSpatialNode->geoOrigin, &gcCoords);
+		        	retractOrigin((struct X3D_GeoOrigin *)Viewer.GeoSpatialNode->geoOrigin, &gcCoords);
 */
 		
 		        	#ifdef VERBOSE

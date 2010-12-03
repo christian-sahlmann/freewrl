@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.47 2010/08/19 02:20:36 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.48 2010/12/03 19:55:21 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -846,7 +846,7 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 					printf ("runningShader %d, myShader %d\n",globalCurrentShader, X3D_PROGRAMSHADER(node)->__shaderIDS.p[0]);
 					#endif
 
-					struct X3D_ShaderProgram *part = X3D_PROGRAMSHADER(node)->programs.p[i];
+					struct X3D_ShaderProgram *part = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(node)->programs.p[i]);
 
 					#ifdef SHADERVERBOSE
 					printf ("sendInitial, have part %d\n",part);
