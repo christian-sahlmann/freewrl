@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.21 2010/08/19 02:20:36 crc_canada Exp $
+  $Id: statusbarHud.c,v 1.22 2010/12/06 18:39:10 davejoubert Exp $
 
 */
 
@@ -974,7 +974,7 @@ void printTextCursor()
 {
 	XY sxy,txy,cxy;
 	float rgba[4];
-	sxy = mouse2screen(currentX,currentY);
+	sxy = mouse2screen(currentX[0],currentY[0]);
 	txy = screen2text(sxy.x,sxy.y);
 	cxy = text2screen(txy.x,txy.y);
 	rgba[0] = .5f; rgba[1] = .5f; rgba[2] = .5f, rgba[3] = .75f;
@@ -1012,7 +1012,7 @@ void handleOptionPress()
 	int i,opt;
 	XY xys;
 	XY xyt;
-	xys = mouse2screen(currentX,currentY);
+	xys = mouse2screen(currentX[0],currentY[0]);
 	xyt = screen2text(xys.x,xys.y);
 	opt = ' ';
 	if( 0 <= xyt.y && xyt.y < lenOptions )
@@ -1389,8 +1389,8 @@ void handleButtonOver()
 	a) detect a button over and 
 	b) highlight underneath the button*/
 	int i,x,y;
-	x = currentX;
-	y = screenHeight - currentY;
+	x = currentX[0];
+	y = screenHeight - currentY[0];
 	isOver = -1;
 	for(i=0;i<nbuts;i++)
 		if(x > butrect[0][i] && x < butrect[2][i] 
@@ -1409,8 +1409,8 @@ void handleButtonPress()
 	c) set the related option
 	*/
 	int i,j,x,y,oldval;
-	x = currentX;
-	y = screenHeight - currentY;
+	x = currentX[0];
+	y = screenHeight - currentY[0];
 	for(i=0;i<nbuts;i++)
 		if(x > butrect[0][i] && x < butrect[2][i] 
 		&& y > butrect[1][i] && y < butrect[3][i] )
@@ -1550,7 +1550,7 @@ int handleStatusbarHud(int mev, int* clipplane)
 		{
 			clipline = *clipplane;
 			if(showButtons) clipline = 2*(*clipplane);
-			if( screenHeight - currentY < clipline )
+			if( screenHeight - currentY[0] < clipline )
 			{
 				showButtons = 1;
 				handleButtonOver();
@@ -1604,7 +1604,7 @@ H	int handleStatusbarHud(int mev, int* clipplane); //called from handle_aqua or 
 
 	The interface statusbarHud requires other modules to implement to serve it:
 	//already implemented
-MH	int currentX,currentY - mouse coords
+MH	int currentX[0],currentY[0] - mouse coords
 CH	int screenHeight - in pixels
 H	Viewer.(various stereo params)
 	//new requirements for statusbarHud:

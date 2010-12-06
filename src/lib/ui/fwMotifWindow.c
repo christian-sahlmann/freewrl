@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.21 2010/09/21 15:21:19 crc_canada Exp $
+  $Id: fwMotifWindow.c,v 1.22 2010/12/06 18:39:10 davejoubert Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -36,6 +36,8 @@
 #include <threads.h>
 
 #include "../main/MainLoop.h"
+#include "../vrml_parser/Structs.h"
+#include "../opengl/OpenGL_Utils.h"
 
 #include <Xm/MainW.h>
 #include <Xm/RowColumn.h>
@@ -343,6 +345,7 @@ XmString xec_NewString(char *s)
 /* Callbacks */
 void aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData)
 { 
+
     int ac;
     Arg args[10];
     const char *ver;
@@ -1010,7 +1013,8 @@ void frontendUpdateButtons()
     }
 }
 
-#if defined(STATUSBAR_STD)
+/* #if defined(STATUSBAR_STD) */
+#if STATUSBAR_STD
 void setMessageBar()
 {   
     if (menumessagewindow != NULL) {

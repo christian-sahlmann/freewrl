@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.153 2010/12/03 19:55:21 crc_canada Exp $
+  $Id: MainLoop.c,v 1.154 2010/12/06 18:39:10 davejoubert Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -181,9 +181,10 @@ int clipPlane = 0;
 struct X3D_Node* CursorOverSensitive=NULL;      /*  is Cursor over a Sensitive node?*/
 struct X3D_Node* oldCOS=NULL;                   /*  which node was cursor over before this node?*/
 int NavigationMode=FALSE;               /*  are we navigating or sensing?*/
-int ButDown[] = {FALSE,FALSE,FALSE,FALSE,FALSE};
+int ButDown[20][8] = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
 
-int currentX, currentY;                 /*  current mouse position.*/
+int currentX[20], currentY[20];                 /*  current mouse position.*/
+int currentCursor = 0;
 int lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
 struct X3D_Node* lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 struct X3D_Node* lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
@@ -214,6 +215,7 @@ static void setup_projection(int pick, int x, int y);
 static struct X3D_Node*  getRayHit(void);
 static void get_hyperhit(void);
 static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
+
 int isBrowserPlugin = FALSE;
 
 /* libFreeWRL_get_version()
@@ -357,18 +359,8 @@ void EventLoop() {
 
         trisThisLoop = 0;
 
-/* DJTRACK_PICKSENSORS */
-//#ifdef DJTRACK_PICKSENSORS
-//        if(slowloop_count == 1009) slowloop_count = 0 ;
-//	if ((slowloop_count % 32) == 0) {
-//		activate_picksensors() ;
-//		printf("slowloop_count = %d, so activate_picksensors at T=%lf\n",slowloop_count, TickTime) ;
-//	} else {
-//		deactivate_picksensors() ;
-//	}
-//        slowloop_count++ ;
-//#endif
-
+	if(slowloop_count == 1009) slowloop_count = 0 ;
+	slowloop_count++ ;
 
         /* handle any events provided on the command line - Robert Sim */
         if (keypress_string && doEvents) {
@@ -482,7 +474,8 @@ void EventLoop() {
         /* handle_mouse events if clicked on a sensitive node */
 	/* printf("nav mode =%d sensitive= %d\n",NavigationMode, HaveSensitive);  */
         if (!NavigationMode && HaveSensitive) {
-                setup_projection(TRUE,currentX,currentY);
+		currentCursor = 0;
+                setup_projection(TRUE,currentX[currentCursor],currentY[currentCursor]);
                 setup_viewpoint();
                 render_hier(rootNode,VF_Sensitive  | VF_Geom); 
                 CursorOverSensitive = getRayHit();
@@ -492,10 +485,10 @@ void EventLoop() {
                         #ifdef VERBOSE
                         printf ("%lf over changed, lastOver %u cursorOverSensitive %u, butDown1 %d\n",
 				TickTime, (unsigned int) lastOver, (unsigned int) CursorOverSensitive,
-				ButDown[1]);
+				ButDown[currentCursor][1]);
                         #endif
 
-                        if (ButDown[1]==0) {
+                        if (ButDown[currentCursor][1]==0) {
 
                                 /* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
                                    until it gets sensed again. So, we use the lastOverButtonPressed flag to delay 
@@ -520,29 +513,29 @@ void EventLoop() {
 
                 /* did we have a click of button 1? */
 
-                if (ButDown[1] && (lastPressedOver==NULL)) {
+                if (ButDown[currentCursor][1] && (lastPressedOver==NULL)) {
                         /* printf ("Not Navigation and 1 down\n"); */
                         /* send an event of ButtonPress and isOver=true */
                         lastPressedOver = CursorOverSensitive;
-                        sendSensorEvents(lastPressedOver, ButtonPress, ButDown[1], TRUE);
+                        sendSensorEvents(lastPressedOver, ButtonPress, ButDown[currentCursor][1], TRUE);
                 }
 
-                if ((ButDown[1]==0) && lastPressedOver!=NULL) {
+                if ((ButDown[currentCursor][1]==0) && lastPressedOver!=NULL) {
                         /* printf ("Not Navigation and 1 up\n");  */
                         /* send an event of ButtonRelease and isOver=true;
                            an isOver=false event will be sent below if required */
-                        sendSensorEvents(lastPressedOver, ButtonRelease, ButDown[1], TRUE);
+                        sendSensorEvents(lastPressedOver, ButtonRelease, ButDown[currentCursor][1], TRUE);
                         lastPressedOver = NULL;
                 }
 
                 if (lastMouseEvent == MotionNotify) {
                         /* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
                         /* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-                        sendSensorEvents(CursorOverSensitive,MotionNotify, ButDown[1], TRUE);
+                        sendSensorEvents(CursorOverSensitive,MotionNotify, ButDown[currentCursor][1], TRUE);
 
                         /* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-                        sendSensorEvents(lastPressedOver,MotionNotify, ButDown[1], TRUE);
-						lastMouseEvent = 0 ; /* Dave's fix */
+                        sendSensorEvents(lastPressedOver,MotionNotify, ButDown[currentCursor][1], TRUE);
+                	lastMouseEvent = 0 ;
                 }
 
 
@@ -555,8 +548,8 @@ void EventLoop() {
                         /* is this a new node that we are now over?
                            don't change the node pointer if we are clicked down */
                         if ((lastPressedOver==NULL) && (CursorOverSensitive != oldCOS)) {
-                                sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
-                                sendSensorEvents(CursorOverSensitive,MapNotify,ButDown[1], TRUE);
+                                sendSensorEvents(oldCOS,MapNotify,ButDown[currentCursor][1], FALSE);
+                                sendSensorEvents(CursorOverSensitive,MapNotify,ButDown[currentCursor][1], TRUE);
                                 oldCOS=CursorOverSensitive;
                                 sendDescriptionToStatusBar(CursorOverSensitive);
                         }
@@ -570,8 +563,8 @@ void EventLoop() {
                         }
 
                         /* were we over a sensitive node? */
-                        if ((oldCOS!=NULL)  && (ButDown[1]==0)) {
-                                sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
+                        if ((oldCOS!=NULL)  && (ButDown[currentCursor][1]==0)) {
+                                sendSensorEvents(oldCOS,MapNotify,ButDown[currentCursor][1], FALSE);
                                 /* remove any display on-screen */
                                 sendDescriptionToStatusBar(NULL);
                                 oldCOS=NULL;
@@ -594,7 +587,7 @@ void EventLoop() {
                         setAquaCursor(ccurse);
                 }
 #endif
-        }
+        } /* (!NavigationMode && HaveSensitive) */
 
 
         /* handle snapshots */
@@ -861,13 +854,13 @@ void handle_Xevents(XEvent event) {
                         /*  so keep a record.*/
 						if(handleStatusbarHud(event.type, &clipPlane))break;
                         if (event.xbutton.button>=5) break;  /* bounds check*/
-                        ButDown[event.xbutton.button] = (event.type == ButtonPress);
+                        ButDown[currentCursor][event.xbutton.button] = (event.type == ButtonPress);
 
                         /* if we are Not over an enabled sensitive node, and we do NOT
                            already have a button down from a sensitive node... */
                         /* printf("cursoroversensitive is %u lastPressedOver %u\n", CursorOverSensitive,lastPressedOver); */
                         if ((CursorOverSensitive==NULL) && (lastPressedOver==NULL))  {
-                                NavigationMode=ButDown[1] || ButDown[3];
+                                NavigationMode=ButDown[currentCursor][1] || ButDown[currentCursor][3];
                                 handle (event.type,event.xbutton.button,
                                         (float) ((float)event.xbutton.x/screenWidth),
                                         (float) ((float)event.xbutton.y/screenHeight));
@@ -884,14 +877,14 @@ void handle_Xevents(XEvent event) {
                         }
 
                         /*  save the current x and y positions for picking.*/
-                        currentX = event.xbutton.x;
-                        currentY = event.xbutton.y;
+                        currentX[currentCursor] = event.xbutton.x;
+                        currentY[currentCursor] = event.xbutton.y;
                         /* printf("navigationMode is %d\n", NavigationMode); */
 						if(handleStatusbarHud(6, &clipPlane))break;
                         if (NavigationMode) {
                                 /*  find out what the first button down is*/
                                 count = 0;
-                                while ((count < 5) && (!ButDown[count])) count++;
+                                while ((count < 5) && (!ButDown[currentCursor][count])) count++;
                                 if (count == 5) return; /*  no buttons down???*/
 
                                 handle (event.type,(unsigned)count,
@@ -1916,33 +1909,33 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
         /* save this one... This allows Sensors to get mouse movements if required. */
         lastMouseEvent = mev;
         /* save the current x and y positions for picking. */
-		currentX = x;
-		currentY = y;
+		currentX[currentCursor] = x;
+		currentY[currentCursor] = y;
 
 		if( handleStatusbarHud(mev, &clipPlane) )return; /* statusbarHud options screen should swallow mouse clicks */
 
         if ((mev == ButtonPress) || (mev == ButtonRelease)) {
                 /* record which button is down */
-                ButDown[button] = (mev == ButtonPress);
+                ButDown[currentCursor][button] = (mev == ButtonPress);
                 /* if we are Not over an enabled sensitive node, and we do NOT already have a 
                    button down from a sensitive node... */
 
                 if ((CursorOverSensitive ==NULL) && (lastPressedOver ==NULL)) {
-                        NavigationMode=ButDown[1] || ButDown[3];
+                        NavigationMode=ButDown[currentCursor][1] || ButDown[currentCursor][3];
                         handle(mev, button, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
                 }
         }
 
         if (mev == MotionNotify) {
                 /* save the current x and y positions for picking. */
-                // above currentX = x;
-                //currentY = y;
+                // above currentX[currentCursor] = x;
+                //currentY[currentCursor] = y;
 
                 if (NavigationMode) {
                         /* find out what the first button down is */
                         count = 0;
-                        while ((count < 5) && (!ButDown[count])) count++;
-                        if (count == 5) return; /* no buttons down???*/
+                        while ((count < 8) && (!ButDown[currentCursor][count])) count++;
+                        if (count == 8) return; /* no buttons down???*/
 
                         handle (mev, (unsigned) count, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
                 }
@@ -1963,14 +1956,14 @@ int getOffset() {
 }
 
 void setCurXY(int cx, int cy) {
-	/* printf ("setCurXY, have %d %d\n",currentX,currentY); */
-        currentX = cx;
-        currentY = cy;
+	/* printf ("setCurXY, have %d %d\n",currentX[currentCursor],currentY[currentCursor]); */
+        currentX[currentCursor] = cx;
+        currentY[currentCursor] = cy;
 }
 
 void setButDown(int button, int value) {
 	/* printf ("setButDown called\n"); */
-        ButDown[button] = value;
+        ButDown[currentCursor][button] = value;
 }
 
 #endif
@@ -2101,7 +2094,7 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
 /* We have a new file to load, lets get rid of the old world sensor events, and run with it */
 void resetSensorEvents(void) {
 	if (oldCOS != NULL) 	
-		sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
+		sendSensorEvents(oldCOS,MapNotify,ButDown[currentCursor][1], FALSE);
        /* remove any display on-screen */
        sendDescriptionToStatusBar(NULL);
 	CursorOverSensitive=NULL; 

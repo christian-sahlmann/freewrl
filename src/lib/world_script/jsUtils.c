@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.26 2010/06/03 19:38:37 crc_canada Exp $
+$Id: jsUtils.c,v 1.27 2010/12/06 18:39:10 davejoubert Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -54,6 +54,8 @@ which is the sample application included with the javascript engine.
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
 
+extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in GeneratedCode.c
+extern char *parser_getNameFromNode(struct X3D_Node *ptr) ; /* vi +/dump_scene src/lib/scenegraph/GeneratedCode.c */
 
 /********************** Javascript to X3D Scenegraph ****************************/
 
@@ -792,13 +794,14 @@ static int *getFOP (struct X3D_Node *node, const char *str) {
 
                 while (*fieldOffsetsPtr != -1) {
 			#ifdef JSVRMLCLASSESVERBOSE
-                        printf ("getFOP, looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
+                        printf ("getFOP, looking at field %s type %s to match %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)],str); 
 			#endif
-			
+
 			/* skip any fieldNames starting with an underscore, as these are "internal" ones */
+			/* There is in fact nothing in this function that actually enforces this, which is good!! */
 			if (strcmp(str,FIELDNAMES[*fieldOffsetsPtr]) == 0) {
 				#ifdef JSVRMLCLASSESVERBOSE
-				printf ("getFOP, found entry for %s, it is %u\n",str,fieldOffsetsPtr);
+				printf ("getFOP, found entry for %s, it is %u (%p)\n",str,fieldOffsetsPtr,fieldOffsetsPtr);
 				#endif
 				return fieldOffsetsPtr;
 			}
@@ -807,7 +810,6 @@ static int *getFOP (struct X3D_Node *node, const char *str) {
 		}
 
 		/* failed to find field?? */
-		printf ("getFOP, could not find field \"%s\" in nodeType \"%s\"\n", str, stringNodeType(node->_nodeType));
 	} else {
 		printf ("getFOP, passed in X3D node was NULL!\n");
 	}
@@ -838,6 +840,7 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("getSFNodeField, got node %u for field %s object %u\n",node,_id_c, obj);
+	printf ("getSFNodeField, got node %p for field %s object %p\n",node,_id_c, obj);
 	#endif
 
 	if (node == NULL) {
@@ -851,6 +854,7 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval
 		return JS_FALSE;
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("ptr=%p _id_c=%s node=%p node->_nodeType=%d stringNodeType=%s\n",ptr,_id_c,node,node->_nodeType,stringNodeType(node->_nodeType)) ;
 	printf ("getSFNodeField, fieldOffsetsPtr is %d for node %u, field %s\n",fieldOffsetsPtr, ptr->handle, _id_c);
 	#endif
 
@@ -892,7 +896,7 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval
 			X3D_MF_TO_JS(context, obj, offsetPointer_deref (void *, node, *(fieldOffsetsPtr+1)), *(fieldOffsetsPtr+2), vp, 
 				(char *)FIELDNAMES[*(fieldOffsetsPtr+0)]);
 			break;
-		default: printf ("unhandled type in getSFNodeField\n");
+		default: printf ("unhandled type FIELDTYPE_ %d in getSFNodeField\n", *(fieldOffsetsPtr+2)) ;
 		return JS_FALSE;
 	}
 
@@ -1009,10 +1013,24 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 		;
 	char *name;
 	SFNodeNative *nodeNative;
-
+	#ifdef JSVRMLCLASSESVERBOSE
+	char *nodeName;
+	struct X3D_Node *confirmNode;
+	#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("start of JS_DefineSFNodeSpecificProperties... working on node %u object %u\n",ptr,object);
+        nodeName = parser_getNameFromNode(ptr) ; /* vi +/dump_scene src/lib/scenegraph/GeneratedCode.c */
+        if (nodeName == NULL) {
+		printf ("\nStart of JS_DefineSFNodeSpecificProperties for '---' ... working on node %u object %u (%p,%p)\n",ptr,object,ptr,object);
+        } else {
+		printf ("\nStart of JS_DefineSFNodeSpecificProperties for '%s' ... working on node %u object %u (%p,%p)\n",nodeName,ptr,object,ptr,object);
+		confirmNode = parser_getNodeFromName(nodeName);
+        	if (confirmNode == NULL) {
+			printf("RoundTrip failed : ptr (%p) -> nodeName (%s) -----\n",ptr,nodeName) ;
+		} else {
+			printf("RoundTrip OK : ptr (%p) -> nodeName (%s) -> confirmNode (%p)\n",ptr,nodeName,confirmNode) ;
+		}
+        }
 	#endif 
 
 	if (ptr != NULL) {
@@ -1056,7 +1074,7 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 				*/
 
 				#ifdef JSVRMLCLASSESVERBOSE
-				printf ("calling JS_DefineProperty on name %s obj %u, setting getSFNodeField, setSFNodeField\n",name,object);
+				printf ("calling JS_DefineProperty on (context=%p, object=%p, name=%s, rval=%p), setting getSFNodeField, setSFNodeField\n",context,object,name,rval);
 				#endif
 
         			if (!JS_DefineProperty(context, object,  name, rval, getSFNodeField, setSFNodeField, attrs)) {
