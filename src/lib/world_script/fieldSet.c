@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.54 2010/09/21 20:00:25 crc_canada Exp $
+  $Id: fieldSet.c,v 1.55 2010/12/07 18:27:50 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -625,7 +625,7 @@ unsigned int setField_FromEAI (char *ptr) {
 
 			/* if we want index "5", say, we make it "5+1" long because we are zero based */
 			malSize = (valIndex+1) * returnElementLength(datatype) * returnElementRowSize(datatype); 
-			nmemptr = MALLOC(malSize);
+			nmemptr = MALLOC(void *, malSize);
 
 			/* zero the new array - this will give us null holes, maybe */
 			bzero (nmemptr,(size_t)malSize);
@@ -1167,7 +1167,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		/* yep... */
 			/* printf ("old pointer %d\n",tn->p); */
 		FREE_IF_NZ (tn->p);
-		tn->p = (struct SFColor *)MALLOC ((unsigned)(elesize*len));
+		tn->p = MALLOC (struct SFVec3f *, (unsigned)(elesize*len));
 
 		#ifdef SETFIELDVERBOSE 
 		printf ("MALLOCing memory for elesize %d len %d new pointer now is %p\n",elesize,len,tn->p);
@@ -1392,7 +1392,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	if (newlen > oldlen) {
 		oldp = to->p; /* same as svptr, assigned above */
 		to->n = newlen;
-		to->p = (struct Uni_String**)MALLOC(newlen * sizeof(to->p));
+		to->p = MALLOC(struct Uni_String **, newlen * sizeof(to->p));
 		newp = to->p;
 
 		/* copy old values over */
@@ -1406,7 +1406,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		/* zero new entries */
 		for (count = oldlen; count < newlen; count ++) {
 			/* make the new SV */
-			*newp = (struct Uni_String *)MALLOC (sizeof (struct Uni_String));
+			*newp = MALLOC (struct Uni_String *, sizeof (struct Uni_String));
 			
 
 			/* now, make it point to a blank string */

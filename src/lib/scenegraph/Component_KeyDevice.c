@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.21 2010/09/22 13:20:22 crc_canada Exp $
+$Id: Component_KeyDevice.c,v 1.22 2010/12/07 18:27:50 crc_canada Exp $
 
 X3D Key Device Component
 
@@ -468,8 +468,8 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	if (!MYN->_initialized) {
 		FREE_IF_NZ(MYN->enteredText->strptr);
 		FREE_IF_NZ(MYN->finalText->strptr);
-		MYN->enteredText->strptr = MALLOC(MAXSTRINGLEN+1);
-		MYN->finalText->strptr = MALLOC(MAXSTRINGLEN+1);
+		MYN->enteredText->strptr = MALLOC(char *, MAXSTRINGLEN+1);
+		MYN->finalText->strptr = MALLOC(char *, MAXSTRINGLEN+1);
 		MYN->enteredText->len=1;
 		MYN->finalText->len=1;
 		MYN->enteredText->strptr[0] = '\0';

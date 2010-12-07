@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.50 2010/11/24 20:12:12 crc_canada Exp $
+$Id: CProto.c,v 1.51 2010/12/07 18:27:50 crc_canada Exp $
 
 CProto ???
 
@@ -130,7 +130,7 @@ static  indexT nextFabricatedDef=1;
 
 /* Constructor/destructor */
 static struct ProtoElementPointer* newProtoElementPointer(void) {
-	struct ProtoElementPointer *ret=MALLOC(sizeof(struct ProtoElementPointer));
+	struct ProtoElementPointer *ret=MALLOC(struct ProtoElementPointer *, sizeof(struct ProtoElementPointer));
 	ASSERT (ret);
 
 	ret->stringToken = NULL;
@@ -152,7 +152,7 @@ static struct ProtoElementPointer* newProtoElementPointer(void) {
 /* Without default value (event) */
 struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
 {
- struct ProtoFieldDecl* ret=MALLOC(sizeof(struct ProtoFieldDecl));
+ struct ProtoFieldDecl* ret=MALLOC(struct ProtoFieldDecl*, sizeof(struct ProtoFieldDecl));
   /* printf("creating ProtoFieldDecl %p\n", ret);  */
  ret->mode=mode;
  ret->type=type;
@@ -187,7 +187,7 @@ struct ProtoDefinition* newProtoDefinition()
   * forget to mimic any changes to this method there, too!
   */
 
- struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
+ struct ProtoDefinition* ret=MALLOC(struct ProtoDefinition*, sizeof(struct ProtoDefinition));
  ASSERT(ret);
 
  /* printf("creating new ProtoDefinition %u\n", ret);  */
@@ -238,7 +238,7 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
 /* Copies the PROTO */
 static struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct ProtoDefinition* me)
 {
-	struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
+	struct ProtoDefinition* ret=MALLOC(struct ProtoDefinition*, sizeof(struct ProtoDefinition));
 	size_t i;
 
 	ASSERT(ret);
@@ -318,7 +318,7 @@ static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)
   struct Multi_##stype dest; \
 	/* printf ("DEEPCOPY_MFVALUE, src %u, dest count %d\n",src,src.n); */ \
   dest.n=src.n; \
-  dest.p=MALLOC(sizeof(src.p[0])*src.n); \
+  dest.p=MALLOC(void *, sizeof(src.p[0])*src.n); \
   /* int i; for(i=0; i!=src.n; ++i) \
 { printf ("copying MF %d of %d\n",i,src.n); \
    dest.p[i]=DEEPCOPY_sf##type(lex, src.p[i], new, hash); \
@@ -548,7 +548,7 @@ static struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct 
 
 static struct PointerHash* newPointerHash()
 {
- struct PointerHash* ret=MALLOC(sizeof(struct PointerHash));
+ struct PointerHash* ret=MALLOC(struct PointerHash* , sizeof(struct PointerHash));
  size_t i;
  ASSERT(ret);
 
@@ -728,7 +728,7 @@ printf ("PROTO HEADER - possible proto expansion in header?? \n");
 					initCP = (char *) (me->lexer->nextIn);
 					tmp = *initCP; *initCP = '\0';
 					FREE_IF_NZ(pdecl->fieldString); 
-					pdecl->fieldString = MALLOC (3 + strlen(copyPointer));
+					pdecl->fieldString = MALLOC (char *, 3 + strlen(copyPointer));
 					pdecl->fieldString[0] = '\0';
 					strcat (pdecl->fieldString, " ");
 					strcat (pdecl->fieldString,copyPointer);
@@ -966,7 +966,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 
 		} else if (lexer_string(lex,&tmpstring)) { 
 			/* must put the double quotes back on */
-			ele->stringToken = MALLOC (tmpstring->len + 3);
+			ele->stringToken = MALLOC (char *, tmpstring->len + 3);
 			sprintf (ele->stringToken, "\"%s\"",tmpstring->strptr);
 		} else {
 			/* printf ("probably a number, scan along until it is done. :%s:\n",lex->nextIn); */
@@ -1006,7 +1006,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 					length = 0;
 				}
 
-				ele->stringToken = MALLOC (length+1);
+				ele->stringToken = MALLOC (char *, length+1);
 				ASSERT (ele->stringToken);
 
 				memcpy(ele->stringToken,cur,(size_t)length);
@@ -1395,7 +1395,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 				tempEle = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i+1);
 				if ((tempEle != NULL) && (tempEle->isKEYWORD == KW_IS)) {
 					size_t tl =100;
-					char *newTl = MALLOC(tl);
+					char *newTl = MALLOC(char *, tl);
 					newTl[0] = '\0';
 
 					/* printf ("next element is an IS \n"); 
@@ -1462,7 +1462,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 
 	/* read in the expanded PROTO text, and return it. */
 
-	newProtoText = MALLOC(sizeof (char) * (curstringlen + routeSize + strlen(ENDPROTOGROUP) + 10));
+	newProtoText = MALLOC(char *, sizeof (char) * (curstringlen + routeSize + strlen(ENDPROTOGROUP) + 10));
 	newProtoText[0] = '\0';
 
         OPEN_PROTO_EXPAND_FILE_READ;
@@ -1573,7 +1573,7 @@ struct protoInsert {
 };
 
 int newProtoDefinitionPointer (struct ProtoDefinition *vrmlpd, int xmlpd) {
-	struct protoInsert *npd = MALLOC(sizeof (struct protoInsert));
+	struct protoInsert *npd = MALLOC(struct protoInsert *, sizeof (struct protoInsert));
 
 	npd->vrmlProtoDef = vrmlpd;
 	npd->xmlProtoDef = xmlpd;

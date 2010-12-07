@@ -58,7 +58,7 @@ DEF_FINDFIELD(VRML1_)
 DEF_FINDFIELD(VRML1Modifier)
 
 static struct ProtoElementPointer* newProtoElementPointer(void) {
-        struct ProtoElementPointer *ret=MALLOC(sizeof(struct ProtoElementPointer));
+        struct ProtoElementPointer *ret=MALLOC(struct ProtoElementPointer *,sizeof(struct ProtoElementPointer));
         ASSERT (ret);
 
         ret->stringToken = NULL;
@@ -149,7 +149,7 @@ void tokenizeVRML1_(char *pb) {
 				/* is this one of the VRML1 keywords that must be quoted? */
 				i = findFieldInVRML1Modifier(lex->curID);
 				if (i != ID_UNDEFINED) {
-					ele->stringToken = MALLOC(strlen(lex->curID) + 4);
+					ele->stringToken = MALLOC(char *, strlen(lex->curID) + 4);
 					strcpy(ele->stringToken,"\"");
 					strcat(ele->stringToken,lex->curID);
 					strcat(ele->stringToken,"\"");
@@ -170,7 +170,7 @@ void tokenizeVRML1_(char *pb) {
 
 		} else if (lexer_string(lex,&tmpstring)) { 
 			/* must put the double quotes back on */
-			ele->stringToken = MALLOC (tmpstring->len + 3);
+			ele->stringToken = MALLOC (char *, tmpstring->len + 3);
 			sprintf (ele->stringToken, "\"%s\"",tmpstring->strptr);
 		} else {
 			/* printf ("probably a number, scan along until it is done. :%s:\n",lex->nextIn); */
@@ -194,7 +194,7 @@ void tokenizeVRML1_(char *pb) {
 				/* put the next in pointer back to the beginning of the number */
 				lex->nextIn = cur;
 
-				ele->stringToken = MALLOC (12);
+				ele->stringToken = MALLOC (char *, 12);
 				ASSERT (ele->stringToken);
 
 				/* printf ("so we read in from :%s:\n",lex->nextIn); */
@@ -313,7 +313,7 @@ char *convert1To2 (const char *inp)
 		FREE(dinp);
 		
 		fp = fopen(tempname,"r");
-		retval = MALLOC(written+10);
+		retval = MALLOC(char *, written+10);
 		readSizeThrowAway = fread(retval,written,1,fp);
 		retval[written] = '\0';
 		/* printf ("and have read back in :%s:\n",retval); */

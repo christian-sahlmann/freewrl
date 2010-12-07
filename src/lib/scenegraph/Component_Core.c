@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Core.c,v 1.8 2010/11/24 20:12:12 crc_canada Exp $
+$Id: Component_Core.c,v 1.9 2010/12/07 18:27:50 crc_canada Exp $
 
 X3D Core Component
 
@@ -152,7 +152,7 @@ void compile_MetadataString (struct X3D_MetadataString *node) {
 
 /* compare element counts, and pointer values */
 /* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
-#define CMD_MULTI(type,elelength,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+#define CMD_MULTI(mtype, type,elelength,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
 	int count; int changed = FALSE; \
 	if META_IS_INITIALIZED { \
 	if (node->value.n != node->setValue.n) changed = TRUE; else { \
@@ -166,8 +166,8 @@ void compile_MetadataString (struct X3D_MetadataString *node) {
                         /* printf ("MSFL, change hit, freeing pointers %x and %x\n", node->value.p, node->valueChanged.p); */ \
 			FREE_IF_NZ (node->value.p); \
 			FREE_IF_NZ(node->valueChanged.p); \
-			node->value.p = MALLOC(dataSize * node->setValue.n * elelength); \
-			node->valueChanged.p = MALLOC(dataSize * node->setValue.n * elelength); \
+			node->value.p = MALLOC(mtype, dataSize * node->setValue.n * elelength); \
+			node->valueChanged.p = MALLOC(mtype, dataSize * node->setValue.n * elelength); \
 			memcpy(node->value.p, node->setValue.p, dataSize * node->setValue.n * elelength); \
 			memcpy(node->valueChanged.p, node->setValue.p, dataSize * node->setValue.n * elelength); \
                         node->value.n = node->setValue.n; \
@@ -182,8 +182,8 @@ void compile_MetadataString (struct X3D_MetadataString *node) {
                 node->valueChanged.n = 0; FREE_IF_NZ(node->valueChanged.p); } \
 		FREE_IF_NZ (node->setValue.p); \
 		FREE_IF_NZ(node->valueChanged.p); \
-		node->setValue.p = MALLOC(dataSize * node->value.n * elelength); \
-		node->valueChanged.p = MALLOC(dataSize * node->value.n * elelength); \
+		node->setValue.p = MALLOC(mtype, dataSize * node->value.n * elelength); \
+		node->valueChanged.p = MALLOC(mtype, dataSize * node->value.n * elelength); \
 		memcpy(node->setValue.p, node->value.p, dataSize * node->value.n * elelength); \
 		memcpy(node->valueChanged.p, node->value.p, dataSize * node->value.n * elelength); \
                 node->setValue.n = node->value.n; \
@@ -193,7 +193,7 @@ void compile_MetadataString (struct X3D_MetadataString *node) {
 	MARK_NODE_COMPILED \
 }
 
-#define CMD_MSFI32(type,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+#define CMD_MSFI32(mtype, type,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
         /* printf ("\nMSFI32:, node %x\n",node); \
         printf ("MSFI32:, nt %s change %d ichange %d\n",stringNodeType(node->_nodeType),node->_change, node->_ichange); */ \
         if META_IS_INITIALIZED { \
@@ -217,8 +217,8 @@ cptr = (char *)&(node->value); for (count = 0; count < 8; count ++) { printf ("%
                         /* printf ("MSFI32, change hit, freeing pointers %x and %x\n", node->value.p, node->valueChanged.p); */ \
 			FREE_IF_NZ (node->value.p); \
 			FREE_IF_NZ(node->valueChanged.p); \
-			node->value.p = MALLOC(dataSize * node->setValue.n); \
-			node->valueChanged.p = MALLOC(dataSize * node->setValue.n); \
+			node->value.p = MALLOC(mtype, dataSize * node->setValue.n); \
+			node->valueChanged.p = MALLOC(mtype, dataSize * node->setValue.n); \
 			memcpy(node->value.p, node->setValue.p, dataSize * node->setValue.n); \
 			memcpy(node->valueChanged.p, node->setValue.p, dataSize * node->setValue.n); \
                         node->value.n = node->setValue.n; \
@@ -236,8 +236,8 @@ cptr = (char *)&(node->value); for (count = 0; count < 8; count ++) { printf ("%
 		/* printf ("MFSI32, making setValue and valueChanged equal to the value on initialization\n"); */ \
 		FREE_IF_NZ (node->setValue.p); \
 		FREE_IF_NZ(node->valueChanged.p); \
-		node->setValue.p = MALLOC(dataSize * node->value.n); \
-		node->valueChanged.p = MALLOC(dataSize * node->value.n); \
+		node->setValue.p = MALLOC(mtype, dataSize * node->value.n); \
+		node->valueChanged.p = MALLOC(mtype, dataSize * node->value.n); \
 		memcpy(node->setValue.p, node->value.p, dataSize * node->value.n); \
 		memcpy(node->valueChanged.p, node->value.p, dataSize * node->value.n); \
                 node->setValue.n = node->value.n; \
@@ -256,7 +256,7 @@ cptr = (char *)&(node->value); for (count = 0; count < 8; count ++) { printf ("%
 
 /* compare element counts, then individual elements, if the counts are the same */
 /* NOTE - VALUES CAN NOT BE DESTROYED BY THE KILL PROCESSES, AS THESE ARE JUST COPIES OF POINTERS */
-#define CMD_MSFL(type,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
+#define CMD_MSFL(mtype, type,dataSize) void compile_MetadataMF##type (struct X3D_MetadataMF##type *node) { \
 	int count; int changed = FALSE; \
 	if META_IS_INITIALIZED { \
 	if (node->value.n != node->setValue.n) changed = TRUE; else { \
@@ -267,8 +267,8 @@ cptr = (char *)&(node->value); for (count = 0; count < 8; count ++) { printf ("%
                         /* printf ("MSFL, change hit, freeing pointers %x and %x\n", node->value.p, node->valueChanged.p); */ \
 			FREE_IF_NZ (node->value.p); \
 			FREE_IF_NZ(node->valueChanged.p); \
-			node->value.p = MALLOC( dataSize * node->setValue.n); \
-			node->valueChanged.p = MALLOC(dataSize * node->setValue.n); \
+			node->value.p = MALLOC(mtype, dataSize * node->setValue.n); \
+			node->valueChanged.p = MALLOC(mtype, dataSize * node->setValue.n); \
 			memcpy(node->value.p, node->setValue.p, dataSize * node->setValue.n); \
 			memcpy(node->valueChanged.p, node->setValue.p, dataSize * node->setValue.n); \
                         node->value.n = node->setValue.n; \
@@ -307,27 +307,27 @@ CMD_MFL(Matrix3d,9)
 CMD_MFL(Matrix4f,16)
 CMD_MFL(Matrix4d,16)
 
-CMD_MULTI(Rotation,4,sizeof (float))
-CMD_MULTI(Vec2f,2,sizeof (float))
-CMD_MULTI(Vec3f,3,sizeof (float))
-CMD_MULTI(Vec4f,4,sizeof (float))
-CMD_MULTI(Vec2d,2,sizeof (double))
-CMD_MULTI(Vec3d,3,sizeof (double))
-CMD_MULTI(Vec4d,4,sizeof (double))
-CMD_MULTI(Color,3,sizeof (float))
-CMD_MULTI(ColorRGBA,4,sizeof (float))
-CMD_MULTI(Matrix3f,9,sizeof (float))
-CMD_MULTI(Matrix4f,16,sizeof (float))
-CMD_MULTI(Matrix3d,9,sizeof (double))
-CMD_MULTI(Matrix4d,16,sizeof (double))
+CMD_MULTI(struct SFRotation *, Rotation,4,sizeof (float))
+CMD_MULTI(struct SFVec2f *, Vec2f,2,sizeof (float))
+CMD_MULTI(struct SFVec3f *, Vec3f,3,sizeof (float))
+CMD_MULTI(struct SFVec4f *, Vec4f,4,sizeof (float))
+CMD_MULTI(struct SFVec2d *, Vec2d,2,sizeof (double))
+CMD_MULTI(struct SFVec3d *,Vec3d,3,sizeof (double))
+CMD_MULTI(struct SFVec4d *,Vec4d,4,sizeof (double))
+CMD_MULTI(struct SFColor *, Color,3,sizeof (float))
+CMD_MULTI(struct SFColorRGBA *, ColorRGBA,4,sizeof (float))
+CMD_MULTI(struct SFMatrix3f *, Matrix3f,9,sizeof (float))
+CMD_MULTI(struct SFMatrix4f *, Matrix4f,16,sizeof (float))
+CMD_MULTI(struct SFMatrix3d *, Matrix3d,9,sizeof (double))
+CMD_MULTI(struct SFMatrix4d *, Matrix4d,16,sizeof (double))
 
-CMD_MSFI32(Bool, sizeof(int))
-CMD_MSFI32(Int32,sizeof (int))
-CMD_MSFI32(Node,sizeof (void *))
-CMD_MSFL(Time,sizeof (double))
-CMD_MSFL(Float,sizeof (float))
-CMD_MSFL(Double,sizeof (double))
-CMD_MSFI32(String,sizeof (void *))
+CMD_MSFI32(int *, Bool, sizeof(int))
+CMD_MSFI32(int *, Int32,sizeof (int))
+CMD_MSFI32(struct X3D_Node **, Node,sizeof (void *))
+CMD_MSFL(double *, Time,sizeof (double))
+CMD_MSFL(float *, Float,sizeof (float))
+CMD_MSFL(double *, Double,sizeof (double))
+CMD_MSFI32(struct Uni_String **, String,sizeof (void *))
 
 
 void compile_MetadataSFImage (struct X3D_MetadataSFImage *node){ printf ("make compile_Metadata %s\n",stringNodeType(node->_nodeType));}

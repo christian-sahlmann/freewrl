@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.41 2010/10/25 17:58:19 crc_canada Exp $
+$Id: Bindable.c,v 1.42 2010/12/07 18:27:50 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -696,15 +696,15 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
         	if (node->_nodeType == NODE_Background) {
 			MARK_NODE_COMPILED
                 	/* do we have an old background to destroy? */
-                	FREE_IF_NZ (node->__points);
-                	FREE_IF_NZ (node->__colours);
+                	FREE_IF_NZ (node->__points.p);
+                	FREE_IF_NZ (node->__colours.p);
                 	node->__quadcount = 0;
         	} else {
                 	tbnode->_ichange = tbnode->_change; /* mimic MARK_NODE_COMPILED */
 
                 	/* do we have an old background to destroy? */
-                	FREE_IF_NZ (tbnode->__points);
-                	FREE_IF_NZ (tbnode->__colours);
+                	FREE_IF_NZ (tbnode->__points.p);
+                	FREE_IF_NZ (tbnode->__colours.p);
                 	tbnode->__quadcount = 0;
         	}
 		return;
@@ -731,8 +731,8 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 	else if (gndColCt>0) estq += (gndColCt-1) * 20;
 
 	/* now, MALLOC space for new arrays  - 3 points per vertex, 6 per quad. */
-	newPoints = MALLOC (sizeof (GLfloat) * estq * 3 * 6);
-	newColors = MALLOC (sizeof (GLfloat) * estq * 3 * 6);
+	newPoints = MALLOC (GLfloat *, sizeof (GLfloat) * estq * 3 * 6);
+	newColors = MALLOC (GLfloat *, sizeof (GLfloat) * estq * 3 * 6);
 
 	if(skyColCt == 1) {
 		c1 = &skyCol[0];
@@ -854,19 +854,19 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 		MARK_NODE_COMPILED
 
 		/* do we have an old background to destroy? */
-		FREE_IF_NZ (node->__points);
-		FREE_IF_NZ (node->__colours);
-		node->__points = newPoints;
-		node->__colours = newColors;
+		FREE_IF_NZ (node->__points.p);
+		FREE_IF_NZ (node->__colours.p);
+		node->__points.p = (struct SFVec3f *)newPoints;
+		node->__colours.p = (struct SFColor *)newColors;
 		node->__quadcount = actq;
 
 	} else {
 		tbnode->_ichange = tbnode->_change; /* mimic MARK_NODE_COMPILED */
 		/* do we have an old background to destroy? */
-		FREE_IF_NZ (tbnode->__points);
-		FREE_IF_NZ (tbnode->__colours);
-		tbnode->__points = newPoints;
-		tbnode->__colours = newColors;
+		FREE_IF_NZ (tbnode->__points.p);
+		FREE_IF_NZ (tbnode->__colours.p);
+		tbnode->__points.p = (struct SFVec3f *) newPoints;
+		tbnode->__colours.p = (struct SFColor *) newColors;
 		tbnode->__quadcount = actq;
 	}
 }
@@ -904,8 +904,8 @@ void render_Background (struct X3D_Background *node) {
 	}
 
 	/* now, display the lists */
-	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
-	FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours);
+	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
+	FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours.p);
 	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
@@ -985,8 +985,8 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	}
 
 	/* now, display the lists */
-	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
-	FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours);
+	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
+	FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours.p);
 	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 

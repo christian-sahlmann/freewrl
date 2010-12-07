@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.35 2010/08/02 19:55:57 dug9 Exp $
+$Id: jsVRMLBrowser.c,v 1.36 2010/12/07 18:27:50 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -467,10 +467,10 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 
 		/* and, make a string that we can use to create the javascript object */
 		MallocdSize = 200;
-		xstr = MALLOC (MallocdSize);
+		xstr = MALLOC (char *, MallocdSize);
 		strcpy (xstr,"new MFNode(");
 		for (count=0; count<retGroup->children.n; count ++) {
-			tmpstr = MALLOC(strlen(_c) + 100);
+			tmpstr = MALLOC(char *, strlen(_c) + 100);
 			sprintf (tmpstr,"new SFNode('%s','%p')",_c, (void*) retGroup->children.p[count]);
 			wantedsize = (int) (strlen(tmpstr) + strlen(xstr));
 			if (wantedsize > MallocdSize) {

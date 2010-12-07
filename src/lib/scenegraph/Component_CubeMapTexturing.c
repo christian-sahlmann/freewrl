@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.20 2010/12/03 19:55:21 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.21 2010/12/07 18:27:50 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -187,7 +187,7 @@ struct DdsLoadInfo * li;
 	fseek(file, 0, SEEK_SET);
 
 	/* llocate memory */
-	buffer=(char *)MALLOC(fileLen+1);
+	buffer=MALLOC(char *, fileLen+1);
 	if (!buffer) {
 		fclose(file);
 		return FALSE;
@@ -402,7 +402,7 @@ void compile_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 
 		/* printf ("changed_ImageCubeMapTexture - creating sub-textures\n"); */
 		FREE_IF_NZ(node->__subTextures.p); /* should be NULL, checking */
-		node->__subTextures.p = MALLOC( 6 * sizeof (struct X3D_PixelTexture *));
+		node->__subTextures.p = MALLOC(struct X3D_Node  **,  6 * sizeof (struct X3D_PixelTexture *));
 		for (i=0; i<6; i++) {
 			node->__subTextures.p[i] = createNewX3DNode(NODE_PixelTexture);
 		}
@@ -506,7 +506,7 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 		/* create the MFInt32 array for this face in the PixelTexture */
 		FREE_IF_NZ(pt->image.p);
 		pt->image.n = size*size+3;
-		pt->image.p = MALLOC(pt->image.n * sizeof (int));
+		pt->image.p = MALLOC(int *, pt->image.n * sizeof (int));
 		pt->image.p[0] = size;
 		pt->image.p[1] = size;
 		pt->image.p[2] = 4; /* this last one is for RGBA */

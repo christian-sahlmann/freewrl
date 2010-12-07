@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.44 2010/09/28 17:32:05 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.45 2010/12/07 18:27:50 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -279,7 +279,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 	if (myn == NULL) return -1;
 
 	if (EAINodeIndex == NULL) {
-		struct EAINodeIndexStruct *newp = MALLOC (sizeof (struct EAINodeIndexStruct));
+		struct EAINodeIndexStruct *newp = MALLOC (struct EAINodeIndexStruct *, sizeof (struct EAINodeIndexStruct));
 
 		if (eaiverbose) printf ("creating EAINodeIndexVector\n"); 
 		EAINodeIndex = newVector(struct EAINodeIndexStruct*, 512);
@@ -302,7 +302,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 
 	/* did we find this node already? */
 	if (mynindex == 0) {
-		struct EAINodeIndexStruct *newp = MALLOC (sizeof (struct EAINodeIndexStruct));
+		struct EAINodeIndexStruct *newp = MALLOC (struct EAINodeIndexStruct *, sizeof (struct EAINodeIndexStruct));
 
 		newp->actualNodePtr = myn;
 		newp->nodeParams = NULL;
@@ -581,14 +581,14 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 
 	me = vector_get(struct EAINodeIndexStruct *, EAINodeIndex, cNode);
 	if (me->nodeParams == NULL) {
-		struct EAINodeParams *np = MALLOC (sizeof (struct EAINodeParams));
+		struct EAINodeParams *np = MALLOC (struct EAINodeParams *, sizeof (struct EAINodeParams));
 		if (eaiverbose) printf ("creating new field vector for this node\n");
 		me->nodeParams = newVector(struct EAINodeParams*, 4);
 		/* push a dummy one here, as we do not want to return an index of zero */
 		vector_pushBack(struct EAINodeParams *, me->nodeParams, np);
 	}
 
-	newp = MALLOC (sizeof (struct EAINodeParams));
+	newp = MALLOC (struct EAINodeParams *, sizeof (struct EAINodeParams));
 	newp->fieldOffset = myFieldOffs;
 	newp->datalen = ctype;
 	newp->typeString = mapFieldTypeToEAItype(ctype);

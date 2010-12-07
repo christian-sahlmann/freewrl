@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.27 2010/10/26 13:40:04 crc_canada Exp $
+$Id: Component_Geometry2D.c,v 1.28 2010/12/07 18:27:50 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -91,7 +91,7 @@ void compile_##myType (struct X3D_##myType *node){ \
 
 void compile_Arc2D (struct X3D_Arc2D *node) {
        /*  have to regen the shape*/
-	void *tmpptr_a, *tmpptr_b;
+	struct SFVec2f *tmpptr_a, *tmpptr_b;
 	int tmpint;
 
 	MARK_NODE_COMPILED
@@ -101,8 +101,8 @@ void compile_Arc2D (struct X3D_Arc2D *node) {
 
 	/* perform the switch - worry about threading here without locking */
 	node->__numPoints = 0;		/* tell us that it has zero points */
-	tmpptr_b = node->__points;	/* old set of points, for freeing later */
-	node->__points = tmpptr_a;	/* new points */
+	tmpptr_b = node->__points.p;	/* old set of points, for freeing later */
+	node->__points.p = tmpptr_a;	/* new points */
 	node->__numPoints = tmpint;
 	FREE_IF_NZ (tmpptr_b);
 	/* switch completed */
@@ -123,7 +123,7 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 		DO_COLOUR_POINTER
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points);
+		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
         	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		trisThisLoop += node->__numPoints;
@@ -135,7 +135,7 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
 	int xx;
 	char *ct;
-	void *tmpptr_a, *tmpptr_b;
+	struct SFVec2f *tmpptr_a, *tmpptr_b;
 	int tmpint;
 
         /*  have to regen the shape*/
@@ -158,8 +158,8 @@ void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
 
 	/* perform the switch - worry about threading here without locking */
 	node->__numPoints = 0;		/* tell us that it has zero points */
-	tmpptr_b = node->__points;	/* old set of points, for freeing later */
-	node->__points = tmpptr_a;	/* new points */
+	tmpptr_b = node->__points.p;	/* old set of points, for freeing later */
+	node->__points.p = tmpptr_a;	/* new points */
 	node->__numPoints = tmpint;
 	FREE_IF_NZ (tmpptr_b);
 	/* switch completed */
@@ -180,7 +180,7 @@ void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 		DO_COLOUR_POINTER
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points);
+		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
         	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		trisThisLoop += node->__numPoints;
@@ -190,7 +190,7 @@ void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 /***********************************************************************************/
 
 void compile_Circle2D (struct X3D_Circle2D *node) {
-	void *tmpptr_a, *tmpptr_b;
+	struct SFVec2f *tmpptr_a, *tmpptr_b;
 	int tmpint;
 
        /*  have to regen the shape*/
@@ -200,8 +200,8 @@ void compile_Circle2D (struct X3D_Circle2D *node) {
 
 	/* perform the switch - worry about threading here without locking */
 	node->__numPoints = 0;		/* tell us that it has zero points */
-	tmpptr_b = node->__points;	/* old set of points, for freeing later */
-	node->__points = tmpptr_a;	/* new points */
+	tmpptr_b = node->__points.p;	/* old set of points, for freeing later */
+	node->__points.p = tmpptr_a;	/* new points */
 	node->__numPoints = tmpint;
 	FREE_IF_NZ (tmpptr_b);
 	/* switch completed */
@@ -222,7 +222,7 @@ void render_Circle2D (struct X3D_Circle2D *node) {
 
 		
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points);
+		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
         	FW_GL_DRAWARRAYS (GL_LINE_STRIP, 0, node->__numPoints);
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		trisThisLoop += node->__numPoints;
@@ -288,11 +288,11 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 
 void compile_Disk2D (struct X3D_Disk2D *node){
         /*  have to regen the shape*/
-	GLfloat *fp;
+	struct SFVec2f *fp;
 	GLfloat *tp;
-	GLfloat *sfp;
+	struct SFVec2f *sfp;
 	GLfloat *stp;
-	GLfloat *ofp;
+	struct SFVec2f *ofp;
 	GLfloat *otp;
 	int i;
 	GLfloat id;
@@ -315,24 +315,25 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 	/* is this a simple disk, or one with an inner circle cut out? */
 	if (simpleDisc) {
 		tmpint = SEGMENTS_PER_CIRCLE+2;
-		fp = sfp = MALLOC (sizeof(GLfloat) * 2 * (tmpint));
-		tp = stp = MALLOC (sizeof(GLfloat) * 2 * (tmpint));
+		fp = sfp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * (tmpint));
+		tp = stp = MALLOC (GLfloat *, sizeof(GLfloat) * 2 * (tmpint));
 
 		/* initial TriangleFan point */
-		*fp = 0.0f; fp++; *fp = 0.0f; fp++;
+		(*fp).c[0] = 0.0f; (*fp).c[1] = 0.0f; fp++;
 		*tp = 0.5f; tp++; *tp = 0.5f; tp++;
 		id = 2.0f;
 
 		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
-			*fp = node->outerRadius * sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->outerRadius * cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			(*fp).c[0] = node->outerRadius * sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
+			(*fp).c[1] = node->outerRadius * cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
+			fp++;
 			*tp = 0.5f + (sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
 			*tp = 0.5f + (cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
 		}
 	} else {
 		tmpint = (SEGMENTS_PER_CIRCLE+1) * 2;
-		fp = sfp = MALLOC (sizeof(GLfloat) * 2 * tmpint);
-		tp = stp = MALLOC (sizeof(GLfloat) * 2 * tmpint);
+		fp = sfp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * 2 * tmpint);
+		tp = stp = MALLOC (GLfloat *, sizeof(GLfloat) * 2 * tmpint);
 
 
 		/* texture scaling params */
@@ -340,10 +341,12 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 		id = node->outerRadius * 2.0f / node->innerRadius;
 
 		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
-			*fp = node->innerRadius * (float) sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->innerRadius * (float) cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->outerRadius * (float) sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->outerRadius * (float) cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			(*fp).c[0] = node->innerRadius * (float) sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
+			(*fp).c[1] = node->innerRadius * (float) cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
+			fp++;
+			(*fp).c[0] = node->outerRadius * (float) sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
+			(*fp).c[1] = node->outerRadius * (float) cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
+			fp++;
 			*tp = 0.5f + ((float)sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
 			*tp = 0.5f + ((float)cosf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
 			*tp = 0.5f + ((float)sinf((PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
@@ -354,9 +357,9 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 
 	/* compiling done, set up for rendering. thread safe */
 	node->__numPoints = 0;
-	ofp = node->__points;
+	ofp = node->__points.p;
 	otp = node->__texCoords;
-	node->__points = sfp;
+	node->__points.p = sfp;
 	node->__texCoords = stp;
 	node->__simpleDisk = simpleDisc;
 	node->__numPoints = tmpint;
@@ -381,7 +384,7 @@ void render_Disk2D (struct X3D_Disk2D *node){
 		CULL_FACE(node->solid)
 
 		textureDraw_start(NULL,&mtf);
-		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points);
+		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		FW_GL_NORMAL3F (0.0f, 0.0f, 1.0f);
 
@@ -420,7 +423,7 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 
 	/* ok, now if renderer renders (threading) it'll see zero, so we are safe */
 	FREE_IF_NZ (node->__texCoords);
-	node->__texCoords = fp = MALLOC (sizeof (GLfloat) * tmpint * 2);
+	node->__texCoords = fp = MALLOC (GLfloat *, sizeof (GLfloat) * tmpint * 2);
 
 	/* find min/max values for X and Y axes */
 	minY = minX = FLT_MAX;
@@ -482,15 +485,15 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 /* this code is remarkably like Box, but with a zero z axis. */
 void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
 	float *pt;
-	void *ptr;
+	struct SFVec3f *ptr;
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
 
 	MARK_NODE_COMPILED
 
 	/*  MALLOC memory (if possible)*/
-	if (!node->__points) ptr = MALLOC (sizeof(struct SFColor)*(6));
-	else ptr = node->__points;
+	if (!node->__points.p) ptr = MALLOC (struct SFVec3f *,sizeof(struct SFVec3f)*(6));
+	else ptr = node->__points.p;
 
 	/*  now, create points; 6 points per face.*/
 	pt = (float *) ptr;
@@ -501,7 +504,7 @@ void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
 
 	PTF0 PTF1 PTF2  PTF0 PTF2 PTF3 /* front */
 	/* finished, and have good data */
-	node->__points = ptr;
+	node->__points.p = (struct SFVec3f*) ptr;
 
 	#undef PTF0
 	#undef PTF1
@@ -522,7 +525,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	if ((x < 0) || (y < 0)) return;
 
 	COMPILE_IF_REQUIRED
-	if (!node->__points) return; /* still compiling */
+	if (!node->__points.p) return; /* still compiling */
 
 	/* for BoundingBox calculations */
 	setExtent(x,-x,y,-y,0.0f,0.0f,X3D_NODE(node));
@@ -531,7 +534,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	textureDraw_start(NULL,&mtf);
-	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
+	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
@@ -590,7 +593,7 @@ static void *createLines (float start, float end, float radius, int closed, int 
 	if (closed == CHORD) numPoints++;
 	if (closed == PIE) numPoints+=2;
 
-	points = MALLOC (sizeof(float)*numPoints*2);
+	points = MALLOC (float *, sizeof(float)*numPoints*2);
 	fp = points;
 
 	for (i=0; i<arcpoints; i++) {

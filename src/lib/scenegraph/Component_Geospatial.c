@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.42 2010/12/03 19:55:21 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.43 2010/12/07 18:27:50 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -112,7 +112,7 @@ Geodetic to Geocentric:
 
 #define INIT_MF_FROM_SF(myNode, myField) \
 	mIN.n = 1; \
-	mIN.p = MALLOC(sizeof (struct SFVec3d)); \
+	mIN.p = MALLOC(struct SFVec3d *, sizeof (struct SFVec3d)); \
 	mIN.p[0].c[0] = myNode-> myField .c[0];\
 	mIN.p[0].c[1] = myNode-> myField .c[1];\
 	mIN.p[0].c[2] = myNode-> myField .c[2];\
@@ -139,7 +139,7 @@ Geodetic to Geocentric:
 		if (variableInQuestion ->p != NULL) { \
 			FREE_IF_NZ(variableInQuestion->p); \
 		} \
-		variableInQuestion ->p = MALLOC(sizeof (struct SFVec3d) * inCoords->n); \
+		variableInQuestion ->p = MALLOC(struct SFVec3d *, sizeof (struct SFVec3d) * inCoords->n); \
 		variableInQuestion ->n = inCoords->n; \
 	} 
 
@@ -339,7 +339,7 @@ static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double rad
 	/* enough room for output? */
 	if (outc->n < inc->n) {
 		FREE_IF_NZ(outc->p);
-		outc->p = MALLOC(sizeof (struct SFVec3d) * inc->n);
+		outc->p = MALLOC(struct SFVec3d *, sizeof (struct SFVec3d) * inc->n);
 		outc->n = inc->n;
 	}
 	#ifdef VERBOSE
@@ -434,7 +434,7 @@ static void Utm_Gd (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double ra
 	/* enough room for output? */
 	if (outc->n < inc->n) {
 		FREE_IF_NZ(outc->p);
-		outc->p = MALLOC(sizeof (struct SFVec3d) * inc->n);
+		outc->p = MALLOC(struct SFVec3d *, sizeof (struct SFVec3d) * inc->n);
 		outc->n = inc->n;
 	}
 
@@ -703,7 +703,7 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 		if (outCoords->n!=0) {
 			FREE_IF_NZ(outCoords->p);
 		}
-		outCoords->p = MALLOC(sizeof (struct SFVec3d) * inCoords->n);
+		outCoords->p = MALLOC(struct SFVec3d *, sizeof (struct SFVec3d) * inCoords->n);
 		outCoords->n = inCoords->n;
 	}
 
@@ -1038,7 +1038,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 	/* malloc the area required for internal settings, if required */
 	if (srf->p==NULL) {
 		srf->n=4;
-		srf->p=MALLOC(sizeof(int) * 4);
+		srf->p=MALLOC(int *, sizeof(int) * 4);
 	}
 
 	/* set these as defaults */
@@ -1179,7 +1179,7 @@ void compile_GeoCoordinate (struct X3D_GeoCoordinate * node) {
 
 	/* convert the doubles down to floats, because coords are used as floats in FreeWRL. */
 	FREE_IF_NZ(node->__movedCoords.p);
-	node->__movedCoords.p = MALLOC (sizeof (struct SFColor)  * mOUT.n);
+	node->__movedCoords.p = MALLOC (struct SFVec3f *, sizeof (struct SFVec3f)  * mOUT.n);
 	for (i=0; i<mOUT.n; i++) {
 		node->__movedCoords.p[i].c[0] = (float) mOUT.p[i].c[0];
 		node->__movedCoords.p[i].c[1] = (float) mOUT.p[i].c[1];
@@ -1266,21 +1266,21 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 		FREE_IF_NZ(rep->GeneratedTexCoords);
 
 		/* 6 vertices per quad each vertex has a 2-float tex coord mapping */
-		tcoord = rep->GeneratedTexCoords = (float *)MALLOC (sizeof (float) * nquads * 12); 
+		tcoord = rep->GeneratedTexCoords = MALLOC (float *, sizeof (float) * nquads * 12); 
 
 		rep->tcindex=0; /* we will generate our own mapping */
 	}
 
 	/* make up points array */
 	/* a point is a vertex and consists of 3 floats (x,y,z) */
-	newpoints = (float *)MALLOC (sizeof (float) * nz * nx * 3);
+	newpoints = MALLOC (float *, sizeof (float) * nz * nx * 3);
 	 
 	FREE_IF_NZ(rep->actualCoord);
 	rep->actualCoord = (float *)newpoints;
 
 	/* make up coord index */
 	if (node->_coordIndex.n > 0) {FREE_IF_NZ(node->_coordIndex.p);}
-	node->_coordIndex.p = MALLOC (sizeof(int) * nquads * 5);
+	node->_coordIndex.p = MALLOC (int *, sizeof(int) * nquads * 5);
 	cindexptr = node->_coordIndex.p;
 
 	node->_coordIndex.n = nquads * 5;
@@ -1373,7 +1373,7 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 
 	/* initialize arrays used for passing values into/out of the MOVE_TO_ORIGIN(node) values */
 	mIN.n = nx * nz; 
-	mIN.p = (struct SFVec3d *)MALLOC (sizeof (struct SFVec3d) * mIN.n);
+	mIN.p = MALLOC (struct SFVec3d *, sizeof (struct SFVec3d) * mIN.n);
 
         mOUT.n=0; mOUT.p = NULL;
         gdCoords.n=0; gdCoords.p = NULL;
@@ -1639,7 +1639,7 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 				ADD_PARENT(X3D_NODE(node->childNode), X3D_NODE(node)); \
  			}\
 			/* copy over the URL from parent */ \
-			X3D_INLINE(node->childNode)->url.p = MALLOC(sizeof(struct Uni_String)*node->childUrl.n); \
+			X3D_INLINE(node->childNode)->url.p = MALLOC(struct Uni_String **, sizeof(struct Uni_String)*node->childUrl.n); \
 			for (i=0; i<node->childUrl.n; i++) { \
 				/* printf ("copying over url %s\n",node->childUrl.p[i]->strptr); */ \
 				X3D_INLINE(node->childNode)->url.p[i] = newASCIIString(node->childUrl.p[i]->strptr); \

@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.75 2010/12/03 19:55:21 crc_canada Exp $
+  $Id: Textures.c,v 1.76 2010/12/07 18:27:50 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -316,7 +316,7 @@ void registerTexture(struct X3D_Node *tmp) {
 
 		if ((nextFreeTexture & 0x1f) == 0) {
 
-			newStruct = (struct textureTableStruct*) MALLOC (sizeof (struct textureTableStruct));
+			newStruct = MALLOC (struct textureTableStruct*, sizeof (struct textureTableStruct));
 			
 			/* zero out the fields in this new block */
 			for (count = 0; count < 32; count ++) {
@@ -430,7 +430,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 #endif
 
 				/* copy over the urls */
-				thistex->url.p = MALLOC(sizeof (struct Uni_String) * thisurl.n);
+				thistex->url.p = MALLOC(struct Uni_String **, sizeof (struct Uni_String) * thisurl.n);
 				for (i=0; i<thisurl.n; i++) {
 					thistex->url.p[i] = newASCIIString (thisurl.p[i]->strptr);
 				}
@@ -591,7 +591,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		/* alloc fields, if required - only do this once, even if node changes */
 		if (node->__params == 0) {
 			/* printf ("loadMulti, MALLOCing for params\n"); */
-			node->__params = MALLOC (sizeof (struct multiTexParams) * rdr_caps.texture_units);
+			node->__params = MALLOC (void *, sizeof (struct multiTexParams) * rdr_caps.texture_units);
 			paramPtr = (struct multiTexParams*) node->__params;
 
 			/* set defaults for these fields */
@@ -854,7 +854,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		me->x = 1;
 		me->y = 1;
 		me->hasAlpha = FALSE;
-		me->texdata = MALLOC(4);
+		me->texdata = MALLOC(char *, 4);
 		memcpy (me->texdata, buff, 4);
 	}
 
@@ -862,7 +862,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 	/* we need to get parameters. */	
 	if (me->OpenGLTexture == TEXTURE_INVALID) {
-/* 		me->OpenGLTexture = MALLOC (sizeof (GLuint) * me->frames); */
+/* 		me->OpenGLTexture = MALLOC (GLuint *, sizeof (GLuint) * me->frames); */
 		FW_GL_GENTEXTURES (1, &me->OpenGLTexture);
 #ifdef TEXVERBOSE
 		printf ("just glGend texture for block %d is %u, type %s\n",
@@ -1032,7 +1032,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		ry = me->y;
 
 		/* flip the image around */
-		dest = MALLOC (4*rx*ry);
+		dest = MALLOC (unsigned char *, 4*rx*ry);
 		dp = (uint32 *) dest;
 		sp = (uint32 *) me->texdata;
 
@@ -1169,7 +1169,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				/* try this texture on for size, keep scaling down until we can do it */
 				texOk = FALSE;
 				/* all textures are 4 bytes/pixel */
-				dest = (unsigned char *)MALLOC((unsigned) 4 * rx * ry);
+				dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
 				while (!texOk) {
 					GLint width, height;
 					FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);

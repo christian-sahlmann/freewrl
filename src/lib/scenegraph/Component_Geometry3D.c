@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.47 2010/11/10 14:25:49 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.48 2010/12/07 18:27:50 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -54,8 +54,8 @@ X3D Geometry 3D Component
 /* used for vertices for VBOs. Note the tc coordinate... */
 struct MyVertex
  {
-   struct SFColor vert;        //Vertex
-   struct SFColor norm;     //Normal
+   struct SFVec3f vert;        //Vertex
+   struct SFVec3f norm;     //Normal
    struct SFVec2f tc;         //Texcoord0
  };
 
@@ -91,7 +91,7 @@ static GLfloat VBO_coneSideTexParams[]={
 /*  have to regen the shape*/
 void compile_Box (struct X3D_Box *node) {
 	float *pt;
-	void *ptr;
+	struct SFVec3f *ptr;
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
 	float z = ((node->size).c[2])/2;
@@ -99,8 +99,8 @@ void compile_Box (struct X3D_Box *node) {
 	MARK_NODE_COMPILED
 
 	/*  MALLOC memory (if possible)*/
-	if (!node->__points) ptr = MALLOC (sizeof(struct SFColor)*(36));
-	else ptr = node->__points;
+	if (!node->__points.p) ptr = MALLOC (struct SFVec3f *,sizeof(struct SFVec3f)*(36));
+	else ptr = node->__points.p;
 
 	/*  now, create points; 6 points per face.*/
 	pt = (float *) ptr;
@@ -122,7 +122,7 @@ void compile_Box (struct X3D_Box *node) {
 	PTF1 PTR1 PTR2  PTF1 PTR2 PTF2 /* left */
 
 	/* finished, and have good data */
-	node->__points = ptr;
+	node->__points.p = (struct SFVec3f *) ptr;
 }
 #undef PTF0
 #undef PTF1
@@ -145,7 +145,7 @@ void render_Box (struct X3D_Box *node) {
 	if ((x < 0) || (y < 0) || (z < 0)) return;
 
 	COMPILE_IF_REQUIRED
-	if (!node->__points) return; /* still compiling */
+	if (!node->__points.p) return; /* still compiling */
 
 	/* for BoundingBox calculations */
 	setExtent(x,-x,y,-y,z,-z,X3D_NODE(node));
@@ -154,7 +154,7 @@ void render_Box (struct X3D_Box *node) {
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	textureDraw_start(NULL,&mtf);
-	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
+	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
@@ -171,9 +171,9 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 	float h = (node->height)/2;
 	float r = node->radius;
 	int i = 0;
-	struct SFColor *pt;
+	struct SFVec3f *pt;
 	float a1, a2;
-	void *tmpptr;
+	struct SFVec3f *tmpptr;
 
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
@@ -373,13 +373,13 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 	} else {
 		/*  MALLOC memory (if possible)*/
-		if (!node->__points) tmpptr = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+4));
-		else tmpptr = node->__points;
+		if (!node->__points.p) tmpptr = MALLOC(struct SFVec3f *, sizeof(struct SFVec3f)*2*(CYLDIV+4));
+		else tmpptr = node->__points.p;
 	
-		if (!node->__normals) node->__normals = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+1));
+		if (!node->__normals.p) node->__normals.p = MALLOC(struct SFVec3f *, sizeof(struct SFVec3f)*2*(CYLDIV+1));
 	
 		/*  now, create the vertices; this is a quad, so each face = 4 points*/
-		pt = (struct SFColor *) tmpptr;
+		pt = tmpptr;
 		for (i=0; i<CYLDIV; i++) {
 			a1 = (float) (PI*2*i)/(float)CYLDIV;
 			a2 = (float) (PI*2*(i+1))/(float)CYLDIV;
@@ -392,12 +392,12 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 		}
 	
 		/*  wrap the points around*/
-		memcpy (&pt[CYLDIV*2].c[0],&pt[0].c[0],sizeof(struct SFColor)*2);
+		memcpy (&pt[CYLDIV*2].c[0],&pt[0].c[0],sizeof(struct SFVec3f)*2);
 	
 		/*  center points of top and bottom*/
 		pt[CYLDIV*2+2].c[0] = 0.0f; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0f;
 		pt[CYLDIV*2+3].c[0] = 0.0f; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0f;
-		node->__points = tmpptr;
+		node->__points.p = tmpptr;
 	}
 }
 
@@ -446,7 +446,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 
 	} else {
 		/*  Display the shape*/
-		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
+		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 	
 		if (node->side) {
 			FW_GL_NORMAL_POINTER (GL_FLOAT,0,cylnorms);
@@ -493,9 +493,9 @@ void compile_Cone (struct X3D_Cone *node) {
 	float r = node->bottomRadius;
 	float angle;
 	int i;
-	struct SFColor *pt;			/*  bottom points*/
-	struct SFColor *spt;			/*  side points*/
-	struct SFColor *norm;			/*  side normals*/
+	struct SFVec3f *pt;			/*  bottom points*/
+	struct SFVec3f *spt;			/*  side points*/
+	struct SFVec3f *norm;			/*  side normals*/
 	void *ptr;
 
 	/*  have to regen the shape*/
@@ -613,23 +613,23 @@ void compile_Cone (struct X3D_Cone *node) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 		/* no longer needed */
-		FREE_IF_NZ(node->__botpoints);
-		FREE_IF_NZ(node->__sidepoints);
-		FREE_IF_NZ(node->__normals);
+		FREE_IF_NZ(node->__botpoints.p);
+		FREE_IF_NZ(node->__sidepoints.p);
+		FREE_IF_NZ(node->__normals.p);
 
 	} else {
 
 		/*  MALLOC memory (if possible)*/
-		if (!node->__botpoints) node->__botpoints = MALLOC (sizeof(struct SFColor)*(CONEDIV+3));
-		if (!node->__sidepoints) node->__sidepoints = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
+		if (!node->__botpoints.p) node->__botpoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(CONEDIV+3));
+		if (!node->__sidepoints.p) node->__sidepoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*3*(CONEDIV+1));
 
 		/* use normals for compiled flag for threading */
 
-		if (!node->__normals) ptr = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
-		else ptr = node->__normals;
+		if (!node->__normals.p) ptr = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*3*(CONEDIV+1));
+		else ptr = node->__normals.p;
 	
 		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
-		pt = (struct SFColor *)node->__botpoints;
+		pt = node->__botpoints.p;
 		pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
 		for (i=1; i<=CONEDIV; i++) {
 			pt[i].c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
@@ -640,27 +640,27 @@ void compile_Cone (struct X3D_Cone *node) {
 		pt[CONEDIV+1].c[0] = 0.0f; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0f;
 
 		/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
-		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
+		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFVec3f));
 
 		/*  side triangles. Make 3 seperate points per triangle... makes FW_GL_DRAWARRAYS with normals*/
 		/*  easier to handle.*/
 		/*  rearrange bottom points into this array; top, bottom, left.*/
-		spt = (struct SFColor *)node->__sidepoints;
+		spt = node->__sidepoints.p;
 		for (i=0; i<CONEDIV; i++) {
 			/*  top point*/
 			spt[i*3].c[0] = 0.0f; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0f;
 			/*  left point*/
-			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFColor));
+			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFVec3f));
 			/* right point*/
-			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFColor));
+			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFVec3f));
 		}
 
 		/*  wrap bottom point around once again... ie, final right point = initial left point*/
-		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFColor));
+		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFVec3f));
 
 		/*  Side Normals - note, normals for faces doubled - see MALLOC above*/
 		/*  this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...*/
-		norm = (struct SFColor *)ptr;
+		norm = ptr;
 		for (i=0; i<=CONEDIV; i++) {
 			/*  top point*/
 			angle = (float) (PI * 2 * (i+0.5f)) / (float) (CONEDIV);
@@ -674,7 +674,7 @@ void compile_Cone (struct X3D_Cone *node) {
 		}
 
 		/* ok, finished compiling, finish */
-		node->__normals = ptr;
+		node->__normals.p = ptr;
 	} 
 }
 
@@ -726,7 +726,7 @@ void render_Cone (struct X3D_Cone *node) {
 	} else {
 		if(node->bottom) {
 			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__botpoints);
+			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__botpoints.p);
 			textureDraw_start(NULL,&mtf);
 			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
 			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
@@ -736,8 +736,8 @@ void render_Cone (struct X3D_Cone *node) {
 		}
 
 		if(node->side) {
-			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__sidepoints);
-			FW_GL_NORMAL_POINTER (GL_FLOAT,0,(GLfloat *)node->__normals);
+			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__sidepoints.p);
+			FW_GL_NORMAL_POINTER (GL_FLOAT,0,(GLfloat *)node->__normals.p);
 			mtf.VA_arrays = trisidtex;
 			textureDraw_start(NULL,&mtf);
 	
@@ -780,22 +780,22 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 	int count;
 	float rad = node->radius;
-	void *ptr;
+	struct SFVec3f *ptr;
 
 	int v; int h;
 	float t_aa, t_ab, t_sa, t_ca, t_sa1;
 	float t2_aa, t2_ab, t2_sa, t2_ca, t2_sa1;
-	struct SFColor *pts;
+	struct SFVec3f *pts;
 
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
 
 	/*  MALLOC memory (if possible)*/
 	/*  2 vertexes per points. (+1, to loop around and close structure)*/
-	if (!node->__points) ptr = MALLOC (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
-	else ptr = node->__points;
+	if (!node->__points.p) ptr = MALLOC (struct SFVec3f *,sizeof(struct SFVec3f) * SPHDIV * (SPHDIV+1) * 2);
+	else ptr = node->__points.p;
 
-	pts = (struct SFColor *) ptr;
+	pts = ptr;
 	count = 0;
 
 	INIT_TRIG1(SPHDIV)
@@ -807,12 +807,12 @@ void compile_Sphere (struct X3D_Sphere *node) {
 		extern GLfloat spherenorms[];		/*  side normals*/
 		extern float spheretex[];		/*  in CFuncs/statics.c*/
 
-		int myVertexVBOSize = (int) (sizeof(struct SFColor) +
-                                         sizeof(struct SFColor) +
+		int myVertexVBOSize = (int) (sizeof(struct SFVec3f) +
+                                         sizeof(struct SFVec3f) +
                                          sizeof(struct SFVec2f)) * SPHDIV * (SPHDIV+1) * 2;
 
-		struct MyVertex *SphVBO = MALLOC(myVertexVBOSize);
-		struct SFColor *myNorms = (struct SFColor*)spherenorms;
+		struct MyVertex *SphVBO = MALLOC(struct MyVertex *, myVertexVBOSize);
+		struct SFVec3f *myNorms = (struct SFVec3f*)spherenorms;
 		struct SFVec2f *myTex = (struct SFVec2f*)spheretex;
 
 		if (node->_sideVBO == 0) {
@@ -834,16 +834,16 @@ void compile_Sphere (struct X3D_Sphere *node) {
 				pts[count].c[2] = rad * vsin2 * hsin1;
 				
 				/* copy these points into the MyVertex Sphere VBO */
-				memcpy (SphVBO[count].vert.c, pts[count].c, sizeof (struct SFColor));
-				memcpy (SphVBO[count].norm.c, myNorms[count].c, sizeof (struct SFColor));
+				memcpy (SphVBO[count].vert.c, pts[count].c, sizeof (struct SFVec3f));
+				memcpy (SphVBO[count].norm.c, myNorms[count].c, sizeof (struct SFVec3f));
 				memcpy (SphVBO[count].tc.c, myTex[count].c, sizeof (struct SFVec2f));
 				count++;
 				pts[count].c[0] = rad * vsin1 * hcos1;
 				pts[count].c[1] = rad * vcos1;
 				pts[count].c[2] = rad * vsin1 * hsin1;
 				/* copy these points into the MyVertex Sphere VBO */
-				memcpy (SphVBO[count].vert.c, pts[count].c, sizeof (struct SFColor));
-				memcpy (SphVBO[count].norm.c, myNorms[count].c, sizeof (struct SFColor));
+				memcpy (SphVBO[count].vert.c, pts[count].c, sizeof (struct SFVec3f));
+				memcpy (SphVBO[count].norm.c, myNorms[count].c, sizeof (struct SFVec3f));
 				memcpy (SphVBO[count].tc.c, myTex[count].c, sizeof (struct SFVec2f));
 				count++;
 			}
@@ -907,7 +907,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 	}
 
 	/* finished - for threading */
-	node->__points = ptr;
+	node->__points.p = ptr;
 }
 
 
@@ -960,7 +960,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	} else {
 		textureDraw_start(NULL,&mtf);
-		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
+		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 		FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);
 
 
@@ -1294,7 +1294,7 @@ void collisionSphere_init(struct X3D_Sphere *node)
 	int i,j,count;
 	/* for debug int k, biggestNum; */
 	double radinverse;
-	struct SFColor *pts = node->__points;
+	struct SFVec3f *pts = node->__points.p;
 
 	/*  re-using the compile_sphere node->__points data which is organized into GL_QUAD_STRIPS
 		my understanding: there are SPHDIV/2 quad strips. Each quadstrip has SPHDIV quads, and enough points to do that many quads
@@ -1396,7 +1396,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 
 		/* this sucker initialized yet? */
-		if (node->__points == NULL) return;
+		if (node->__points.p == NULL) return;
 
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
@@ -1666,7 +1666,7 @@ void collisionCone_init(struct X3D_Cone *node)
 	int i,count;
 	/* for debug int j,k,biggestNum; */
 	double h,r,inverseh,inverser;
-	struct SFColor *pts;// = node->__botpoints;
+	struct SFVec3f *pts;// = node->__botpoints;
 	extern unsigned char tribotindx[];
 	
 	/*  re-using the compile_cone node->__points data which is organized into GL_TRAIANGLE_FAN (bottom) and GL_TRIANGLES (side)
@@ -1699,15 +1699,15 @@ void collisionCone_init(struct X3D_Cone *node)
 	if (global_use_VBOs) {
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
-		struct SFColor *pt;
-		struct SFColor *spt;			/*  side points*/
+		struct SFVec3f *pt;
+		struct SFVec3f *spt;			/*  side points*/
 
 		/*  MALLOC memory (if possible)*/
-		node->__botpoints = MALLOC (sizeof(struct SFColor)*(CONEDIV+3));
-		node->__sidepoints = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
+		node->__botpoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(CONEDIV+3));
+		node->__sidepoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*3*(CONEDIV+1));
 
 		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
-		pt = (struct SFColor *)node->__botpoints;
+		pt = node->__botpoints.p;
 		pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
 		for (i=1; i<=CONEDIV; i++) {
 			pt[i].c[0] = (float) (r* sin(PI*2*i/(float)CONEDIV));
@@ -1718,27 +1718,27 @@ void collisionCone_init(struct X3D_Cone *node)
 		pt[CONEDIV+1].c[0] = 0.0f; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0f;
 
 		/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
-		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
+		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFVec3f));
 
 		/*  side triangles. Make 3 seperate points per triangle... makes FW_GL_DRAWARRAYS with normals*/
 		/*  easier to handle.*/
 		/*  rearrange bottom points into this array; top, bottom, left.*/
-		spt = (struct SFColor *)node->__sidepoints;
+		spt = node->__sidepoints.p;
 		for (i=0; i<CONEDIV; i++) {
 			/*  top point*/
 			spt[i*3].c[0] = 0.0f; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0f;
 			/*  left point*/
-			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFColor));
+			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFVec3f));
 			/* right point*/
-			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFColor));
+			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFVec3f));
 		}
 
 		/*  wrap bottom point around once again... ie, final right point = initial left point*/
-		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFColor));
+		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFVec3f));
 	}
 
 	if(node->bottom) {
-		pts = node->__botpoints;
+		pts = node->__botpoints.p;
 		for(i=0;i<(CONEDIV+2);i++)
 		{
 			/* points */
@@ -1784,8 +1784,8 @@ void collisionCone_init(struct X3D_Cone *node)
 	if (global_use_VBOs) {
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
-		FREE_IF_NZ(node->__botpoints);
-		FREE_IF_NZ(node->__sidepoints);
+		FREE_IF_NZ(node->__botpoints.p);
+		FREE_IF_NZ(node->__sidepoints.p);
 	}
 
 }
@@ -1836,7 +1836,7 @@ void collide_Cone (struct X3D_Cone *node) {
 		if (global_use_VBOs) {
 			if (node->__coneVBO == 0) return;
 		} else {
-                	if ((node->__sidepoints == 0)  && (node->__botpoints==0)) return;
+                	if ((node->__sidepoints.p == 0)  && (node->__botpoints.p==0)) return;
 		}
 
 	       iv.y = h; jv.y = -h;
@@ -1934,10 +1934,10 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	int i, tcount, qcount;
 	/* for debug - int j,k,biggestNum; */
 	double h,r,inverseh,inverser;
-	struct SFColor *pts;// = node->__botpoints;
+	struct SFVec3f *pts;// = node->__botpoints;
 	
 	/* not initialized yet - wait for next pass */
-	if (!global_use_VBOs) {if (!node->__points) return;}
+	if (!global_use_VBOs) {if (!node->__points.p) return;}
 
 	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top) 
 	    and GL_QUADS (side)
@@ -1975,7 +1975,7 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 		float a1, a2;
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
-		pts = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+4));
+		pts = MALLOC(struct SFVec3f *,sizeof(struct SFVec3f)*2*(CYLDIV+4));
 	
 		/*  now, create the vertices; this is a quad, so each face = 4 points*/
 		for (i=0; i<CYLDIV; i++) {
@@ -1990,14 +1990,14 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 		}
 	
 		/*  wrap the points around*/
-		memcpy (&pts[CYLDIV*2].c[0],&pts[0].c[0],sizeof(struct SFColor)*2);
+		memcpy (&pts[CYLDIV*2].c[0],&pts[0].c[0],sizeof(struct SFVec3f)*2);
 	
 		/*  center points of top and bottom*/
 		pts[CYLDIV*2+2].c[0] = 0.0f; pts[CYLDIV*2+2].c[1] = (float) h; pts[CYLDIV*2+2].c[2] = 0.0f;
 		pts[CYLDIV*2+3].c[0] = 0.0f; pts[CYLDIV*2+3].c[1] = (float)-h; pts[CYLDIV*2+3].c[2] = 0.0f;
 	} else {
 		/* have points via the vertex array */
-		pts = node->__points;
+		pts = node->__points.p;
 	}
 
 	for(i=0;i<collisionCylinder.npts;i++)

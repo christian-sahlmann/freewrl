@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.39 2010/03/22 15:14:48 crc_canada Exp $
+$Id: CParseLexer.c,v 1.40 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -94,7 +94,7 @@ struct VRMLLexer* newLexer()
 {
  int i;
 
- struct VRMLLexer* ret=MALLOC(sizeof(struct VRMLLexer));
+ struct VRMLLexer* ret=MALLOC(struct VRMLLexer *, sizeof(struct VRMLLexer));
 
  ret->nextIn=NULL;
 
@@ -342,7 +342,7 @@ breakIdLoop:
 
  ASSERT(strlen(buf)==(cur-buf));
  ASSERT(!me->curID);
- me->curID=MALLOC(sizeof(char)*(cur-buf+1));
+ me->curID=MALLOC(char *, sizeof(char)*(cur-buf+1));
 
  strcpy(me->curID, buf);
 
@@ -1124,7 +1124,7 @@ BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
  }
 
  /* Set up buffer */
- buf=MALLOC(sizeof(*buf)*bufLen);
+ buf=MALLOC(char *, sizeof(*buf)*bufLen);
  ASSERT(buf);
 
  /* Main processing loop */
@@ -1225,7 +1225,7 @@ int lexer_EXTERNPROTO_mfstringValue(struct VRMLLexer* me, struct Multi_String* r
 
         /* Just a single value? */
         if(!lexer_openSquare(me)) {
-                ret->p=MALLOC(sizeof(vrmlStringT));
+                ret->p=MALLOC(vrmlStringT *, sizeof(vrmlStringT));
                 if(!lexer_sfstringValue(me, (void*)ret->p))
                         return FALSE;
                 ret->n=1;
@@ -1327,7 +1327,7 @@ void embedEXTERNPROTO(struct VRMLLexer *me, const char *myName, char *buffer, ch
         /* now, insert this PROTO text INTO the stream */
 
 
-        externProtoPointer = MALLOC (sizeof (char) * (strlen (proto)+strlen(myName) +40));
+        externProtoPointer = MALLOC (char *, sizeof (char) * (strlen (proto)+strlen(myName) +40));
 	externProtoPointer[0]='\0';
 	strcat (externProtoPointer, "PROTO ");
         strcat (externProtoPointer,myName);
@@ -1354,7 +1354,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 
 	resource_item_t *res;
 
-        testname = (char *)MALLOC (1000);
+        testname = MALLOC (char *, 1000);
 
         /* expect the EXTERNPROTO proto name */
         if (lexer_setCurID(me)) {
@@ -1481,7 +1481,7 @@ void concatAndGiveToLexer(struct VRMLLexer *me, const char *str_a, const char *s
 		return;
 	}
 
-	newstring = MALLOC(sizeof (char) * (len_a + len_b +10));
+	newstring = MALLOC(char *, sizeof (char) * (len_a + len_b +10));
 	newstring[0] = '\0';
 	if (len_a != 0) strcat (newstring,str_a);
 	if (len_b != 0) strcat (newstring,str_b);

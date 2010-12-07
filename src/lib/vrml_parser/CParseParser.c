@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.67 2010/11/15 20:46:40 crc_canada Exp $
+  $Id: CParseParser.c,v 1.68 2010/12/07 18:27:50 crc_canada Exp $
 
   ???
 
@@ -287,7 +287,7 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 /* Constructor and destructor */
 
 struct VRMLParser* newParser(void* ptr, unsigned ofs, int parsingX3DfromXML) {
-    struct VRMLParser* ret=MALLOC(sizeof(struct VRMLParser));
+    struct VRMLParser* ret=MALLOC(struct VRMLParser *, sizeof(struct VRMLParser));
     ret->lexer=newLexer();
     ASSERT(ret->lexer);
     ret->ptr=ptr;
@@ -714,7 +714,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 			/* printf ("non-recursive PROTO interface copy, string size is %d\n", sz); */
 
         		FREE_IF_NZ(pdecl->fieldString);
-            		pdecl->fieldString = MALLOC (sz + 2);
+            		pdecl->fieldString = MALLOC (char *, sz + 2);
             		strncpy(pdecl->fieldString,startOfField,sz);
             		pdecl->fieldString[sz]='\0';
 	    	} else {
@@ -759,7 +759,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 			/* now, copy over the "stuff" */
 
 			FREE_IF_NZ(pdecl->fieldString);
-			pdecl->fieldString = MALLOC(sz);
+			pdecl->fieldString = MALLOC(char *, sz);
 			curStrPtr = pdecl->fieldString;
 
 			/* now, copy the actual strings... */
@@ -930,7 +930,7 @@ static BOOL parser_protoStatement(struct VRMLParser* me)
 #endif
 
         /* copy this proto body */
-        protoBody = MALLOC (bodyLen+10);
+        protoBody = MALLOC (char *, bodyLen+10);
         strncpy (protoBody, startOfBody, bodyLen);
 
         if (bodyLen>0) {
@@ -2362,7 +2362,7 @@ static void stuffDEFUSE(struct Multi_Node *outMF, vrmlNodeT in, int type) {
     case FIELDTYPE_MFNode:
         /*struct Multi_Node { int n; void * *p; };*/
         outMF->n=1;
-        outMF->p=MALLOC(sizeof(struct X3D_Node*));
+        outMF->p=MALLOC(void *, sizeof(struct X3D_Node*));
         outMF->p[0] = in;
         break;
 
@@ -2382,7 +2382,7 @@ static void stuffDEFUSE(struct Multi_Node *outMF, vrmlNodeT in, int type) {
     /* struct Multi_Float { int n; float  *p; }; */
     /* treat these all the same, as the data type is same size */
     outMF->n=1;
-    outMF->p=MALLOC(localSize);
+    outMF->p=MALLOC(void *, localSize);
     memcpy (&outMF->p[0], &in, localSize);
     break;
     }
@@ -2418,7 +2418,7 @@ static void stuffSFintoMF(struct Multi_Node *outMF, vrmlNodeT *inSF, int type) {
         if (outMF->n != 1) {
             FREE_IF_NZ(outMF->p);
             outMF->n=1;
-            outMF->p=MALLOC(rsz * elelen);
+            outMF->p=MALLOC(void *, rsz * elelen);
         }
 
         /* { float *ptr; ptr = (float *) in; for (n=0; n<rsz; n++) { printf ("float %d is %f\n",n,*ptr); ptr++; } }  */
@@ -2688,7 +2688,7 @@ static BOOL parser_sfboolValue(struct VRMLParser* me, void* ret) {
 
 
         rv->n=3+width*height;
-        rv->p=MALLOC(sizeof(int) * rv->n);
+        rv->p=MALLOC(int *, sizeof(int) * rv->n);
         rv->p[0]=width;
         rv->p[1]=height;
         rv->p[2]=depth;

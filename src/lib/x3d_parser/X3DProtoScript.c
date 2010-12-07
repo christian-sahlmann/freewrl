@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.63 2010/09/22 16:54:59 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.64 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -363,7 +363,7 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 				} \
 			} \
 			/* printf ("no match, have to create new entty and push it\n"); */\
-			nvp = MALLOC(sizeof (struct nameValuePairs)); \
+			nvp = MALLOC(struct nameValuePairs *, sizeof (struct nameValuePairs)); \
 			nvp->fieldName=STRDUP(atts[nfInd+1]); \
 			nvp->fieldValue=STRDUP(value); \
 			nvp->fieldType = type;\
@@ -520,34 +520,6 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 				return;
 			///BIGPUSH BIGPOP
 			REPLACE_CONNECT_VALUE(CPI.value[i],CPI.type[i])
-//#define REPLACE_CONNECT_VALUE(value) 
-			///* now, we have a match, replace (or push) this onto the params */ 
-   //			for (nodeind=0; nodeind<vector_size(tos); nodeind++) 
-			//{ 
-			//	nvp = vector_get(struct nameValuePairs*, tos,nodeind); 
-			//	 printf ("      nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue);  
-			//	if (nvp!=NULL) 
-			//	{ 
-			//		if (strcmp(nvp->fieldName,atts[nfInd+1])==0) 
-			//		{ 
-			//			/* we have a field already of this name, replace the value */ 
-			//			printf ("we had %s, now have %s\n",nvp->fieldValue,CPI.value[i]);  
-			//			FREE_IF_NZ(nvp->fieldValue); 
-			//			nvp->fieldValue=STRDUP(CPI.value[i]);
-			//			nvp->fieldType = CPI.type[i];
-			//			return; 
-			//		} 
-			//	} 
-			//} 
-			///* printf ("no match, have to create new entty and push it\n"); */
-			//nvp = MALLOC(sizeof (struct nameValuePairs)); 
-			//nvp->fieldName=STRDUP(atts[nfInd+1]); 
-			//nvp->fieldValue=STRDUP(CPI.value[i]); 
-			//nvp->fieldType = CPI.type[i];
-			//vector_pushBack(struct nameValuePairs*,tos,nvp); 
-			// printf ("pushed %s=%s to tos\n",nvp->fieldName, nvp->fieldValue); 
-			//return;
-//<<end REPLACE_CONNECT_VALUE MACRO
 			/*printf ("parseConnect, match completed\n"); */
 		}
 	}
@@ -573,8 +545,8 @@ void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *t
 					///BIGPUSH BIGPOP
 					/* assume we're getting an mfnode */
 					union anyVrml *av;
-					char *val = MALLOC(20);
-					av = MALLOC(sizeof(union anyVrml));
+					char *val = MALLOC(char *, 20);
+					av = MALLOC(union anyVrml *, sizeof(union anyVrml));
 					memcpy(av,&field->value,sizeof(union anyVrml)); /* av malloced and holding MFNode/Multi_Node/anyVrml */
 					sprintf (val, "%p",av);
 					REPLACE_CONNECT_VALUE(val,field->fieldDecl->fieldType);
@@ -742,7 +714,7 @@ void endProtoInstanceFieldTypeNode(const char *name)
 			{
 				/*struct Multi_Node { int n; void * *p; };*/
 				((struct Multi_Node *)&v)->n=n;
-				((struct Multi_Node *)&v)->p=MALLOC(n*sizeof(struct X3D_Node*));
+				((struct Multi_Node *)&v)->p=MALLOC(struct X3D_Node **, n*sizeof(struct X3D_Node*));
 				for(j=0;j<n;j++)
 				{
 					((struct Multi_Node *)&v)->p[j] = kids->p[j];
@@ -760,8 +732,8 @@ void endProtoInstanceFieldTypeNode(const char *name)
 			*/
 			{
 				union anyVrml *av;
-				char *val = MALLOC(20);
-				av = MALLOC(sizeof(union anyVrml));
+				char *val = MALLOC(char *, 20);
+				av = MALLOC(union anyVrml *, sizeof(union anyVrml));
 				memcpy(av,&v,sizeof(union anyVrml)); /* av malloced and holding MFNode/Multi_Node/anyVrml */
 				sprintf (val, "%p",av);
 				ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = val; /* address of MFnode stored in a string[20] ie "025A23C8" */
@@ -1248,7 +1220,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 		return;
 	}
 
-	protoInString = MALLOC(PROTONames[currentProtoInstance[curProtoInsStackInd]].charLen+1);
+	protoInString = MALLOC(char *, PROTONames[currentProtoInstance[curProtoInsStackInd]].charLen+1);
 	protoInString[0] = '\0';
 	curProtoPtr = protoInString;
 
@@ -1331,7 +1303,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 		return;
 	}
 
-	protoInString = MALLOC(fdl+1);
+	protoInString = MALLOC(char *, fdl+1);
 	readSizeThrowAway = fread(protoInString, 1, fdl, fileDescriptor);
 	protoInString[fdl] = '\0';
 
@@ -1965,7 +1937,7 @@ void endScriptProtoField()
 			{
 				/*struct Multi_Node { int n; void * *p; };*/
 				((struct Multi_Node *)&v)->n=n;
-				((struct Multi_Node *)&v)->p=MALLOC(n*sizeof(struct X3D_Node*));
+				((struct Multi_Node *)&v)->p=MALLOC(struct X3D_Node **, n*sizeof(struct X3D_Node*));
 				for(j=0;j<n;j++)
 				{
 					((struct Multi_Node *)&v)->p[j] = kids->p[j];
@@ -2047,7 +2019,7 @@ void initScriptWithScript() {
 	if (myText != NULL) {
 		struct Multi_String strHolder;
 
-		strHolder.p = MALLOC (sizeof(struct Uni_String)*1);
+		strHolder.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);
 		strHolder.p[0] = newASCIIString(myText);
 		strHolder.n=1; 
 		script_initCodeFromMFUri(myObj, &strHolder);
@@ -2094,7 +2066,7 @@ void endExternProtoDeclare(void) {
 
 		pound = NULL;
 		buffer = NULL;
-		testname = (char *)MALLOC (1000);
+		testname = MALLOC (char *, 1000);
 
 
 		/* change the string of strings into an array of strings */

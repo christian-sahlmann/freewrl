@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.h,v 1.11 2010/06/29 16:59:44 crc_canada Exp $
+$Id: Polyrep.h,v 1.12 2010/12/07 18:27:50 crc_canada Exp $
 
 Polyrep ???
 
@@ -54,14 +54,14 @@ IFS_face_normals(struct point_XYZ *facenormals,
 				 int faces,
 				 int npoints,
 				 int cin,
-				 struct SFColor *points,
+				 struct SFVec3f *points,
 				 struct Multi_Int32 *coordIndex,
 				 int ccw);
 
 void
 IFS_check_normal(struct point_XYZ *facenormals,
 				 int this_face,
-				 struct SFColor *points,
+				 struct SFVec3f *points,
 				 int base,
 				 struct Multi_Int32 *coordIndex,
 				 int ccw);
@@ -115,7 +115,7 @@ void
 do_color_normal_reset(void);
 
 void
-do_glNormal3fv(struct SFColor *dest, GLfloat *param);
+do_glNormal3fv(struct SFVec3f *dest, GLfloat *param);
 
 void stream_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
 void compile_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);

@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.12 2010/12/03 19:55:21 crc_canada Exp $
+  $Id: RasterFont.c,v 1.13 2010/12/07 18:27:50 crc_canada Exp $
 
 */
 
@@ -136,7 +136,7 @@ int rf_xfont_init(const char *fontname)
 	myText.origin.c[0] = 0;myText.origin.c[1] = 0;myText.origin.c[2] = 0;;
 
 	/* give this 1 string */
- myText.string.p = MALLOC (sizeof(struct Uni_String)*1);myText.string.p[0] = newASCIIString("Initial String for Status Line");myText.string.n=1; ;
+ myText.string.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);myText.string.p[0] = newASCIIString("Initial String for Status Line");myText.string.n=1; ;
 
 	
 	myText.textBounds.c[0] = 0;myText.textBounds.c[1] = 0;;
@@ -155,12 +155,12 @@ int rf_xfont_init(const char *fontname)
 	myFont.topToBottom = TRUE;
 	myFont.style = newASCIIString("PLAIN");
 	myFont.size = 20.0f;
-	myFont.justify.p = MALLOC (sizeof(struct Uni_String)*1);myFont.justify.p[0] = newASCIIString("BEGIN");myFont.justify.n=1; ;
+	myFont.justify.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);myFont.justify.p[0] = newASCIIString("BEGIN");myFont.justify.n=1; ;
 	myFont.metadata = NULL;
 	myFont.spacing = 1;
 	myFont.horizontal = TRUE;
-	/* myFont.family.p = MALLOC (sizeof(struct Uni_String)*1);myFont.family.p[0] = newASCIIString("SERIF");myFont.family.n=1; */
-	myFont.family.p = MALLOC (sizeof(struct Uni_String)*1);myFont.family.p[0] = newASCIIString("TYPEWRITER");myFont.family.n=1; ;
+	/* myFont.family.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);myFont.family.p[0] = newASCIIString("SERIF");myFont.family.n=1; */
+	myFont.family.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);myFont.family.p[0] = newASCIIString("TYPEWRITER");myFont.family.n=1; ;
 	myFont._defaultContainer = FIELDNAMES_fontStyle;
 
 	myText.fontStyle = X3D_NODE(&myFont);

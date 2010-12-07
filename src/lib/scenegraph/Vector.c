@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Vector.c,v 1.7 2010/03/03 15:59:07 crc_canada Exp $
+$Id: Vector.c,v 1.8 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -48,11 +48,11 @@ $Id: Vector.c,v 1.7 2010/03/03 15:59:07 crc_canada Exp $
 /* Constructor/destructor */
 
 struct Vector* newVector_(int elSize, int initSize) {
- 	struct Vector* ret=MALLOC(sizeof(struct Vector));
+ 	struct Vector* ret=MALLOC(struct Vector *, sizeof(struct Vector));
  	ASSERT(ret);
  	ret->n=0;
  	ret->allocn=initSize;
- 	ret->data=MALLOC(elSize*ret->allocn);
+ 	ret->data=MALLOC(void *, elSize*ret->allocn);
  	ASSERT(ret->data);
 	#ifdef DEBUG_MALLOC
 		printf ("vector, new  %x, data %x, size %d\n",ret, ret->data, initSize);

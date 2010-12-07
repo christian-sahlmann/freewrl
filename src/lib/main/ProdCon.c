@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.73 2010/10/02 16:33:00 dug9 Exp $
+  $Id: ProdCon.c,v 1.74 2010/12/07 18:27:50 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -303,7 +303,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 		if (strncmp(inputstring,"#VRML V2.0", 6) == 0) {
 			sendIn = inputstring;
 		} else {
-			newString = MALLOC (strlen(inputstring) + strlen ("#VRML V2.0 utf8\n") + 3);
+			newString = MALLOC (char *, strlen(inputstring) + strlen ("#VRML V2.0 utf8\n") + 3);
 			strcpy (newString,"#VRML V2.0 utf8\n");
 			strcat (newString,inputstring);
 			sendIn = newString;

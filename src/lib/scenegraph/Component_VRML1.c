@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.26 2010/12/03 19:55:21 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.27 2010/12/07 18:27:50 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -112,7 +112,7 @@ static indexT separatorLevel = ID_UNDEFINED;
 static struct currentSLDPointer *cSLD = NULL;
 
 static struct currentSLDPointer *new_cSLD(void) {
-	struct currentSLDPointer *retval = MALLOC (sizeof (struct currentSLDPointer));
+	struct currentSLDPointer *retval = MALLOC (struct currentSLDPointer *, sizeof (struct currentSLDPointer));
 	return retval;
 }
 
@@ -648,7 +648,7 @@ void render_VRML1_ShapeHints (struct X3D_VRML1_ShapeHints  *node) {
 
 void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
         int i;
-        struct SFColor *points=NULL; int npoints=0;
+        struct SFVec3f *points=NULL; int npoints=0;
 	int renderMatOver = FALSE;
 	FW_GL_POINTSIZE (2);
 
@@ -736,7 +736,7 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 			}
 			nc = X3D_COLOR (node->_color);
 			FREE_IF_NZ(nc->color.p);
-			nc->color.p = MALLOC(sizeof (struct SFColor) * cSLD->matNode->diffuseColor.n);
+			nc->color.p = MALLOC(struct SFColor *, sizeof (struct SFColor) * cSLD->matNode->diffuseColor.n);
 			memcpy(nc->color.p, cSLD->matNode->diffuseColor.p, sizeof (struct SFColor) * cSLD->matNode->diffuseColor.n);
 			nc->color.n = cSLD->matNode->diffuseColor.n;
 		}
@@ -751,8 +751,8 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 		}
 		nc = X3D_COORDINATE(node->_coord);
 		FREE_IF_NZ(nc->point.p);
-		nc->point.p = MALLOC(sizeof (struct SFColor) * cSLD->c3Node->point.n);
-		memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFColor) * cSLD->c3Node->point.n);
+		nc->point.p = MALLOC(struct SFVec3f *, sizeof (struct SFVec3f) * cSLD->c3Node->point.n);
+		memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFVec3f) * cSLD->c3Node->point.n);
 
 		nc->point.n = cSLD->c3Node->point.n;
 	} else node->_coord=NULL;
@@ -766,8 +766,8 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 		}
 		nc = X3D_NORMAL(node->_normal);
 		FREE_IF_NZ(nc->vector.p);
-		nc->vector.p = MALLOC(sizeof (struct SFColor) * cSLD->nNode->vector.n);
-		memcpy(nc->vector.p, cSLD->nNode->vector.p, sizeof (struct SFColor) * cSLD->nNode->vector.n);
+		nc->vector.p = MALLOC(struct SFVec3f *, sizeof (struct SFVec3f) * cSLD->nNode->vector.n);
+		memcpy(nc->vector.p, cSLD->nNode->vector.p, sizeof (struct SFVec3f) * cSLD->nNode->vector.n);
 
 		nc->vector.n = cSLD->nNode->vector.n;
 	} else node->_normal=NULL;
@@ -781,7 +781,7 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 		}
 		nc = X3D_TEXTURECOORDINATE(node->_texCoord);
 		FREE_IF_NZ(nc->point.p);
-		nc->point.p = MALLOC(sizeof (struct SFVec2f) * cSLD->tc2Node->point.n);
+		nc->point.p = MALLOC(struct SFVec2f *, sizeof (struct SFVec2f) * cSLD->tc2Node->point.n);
 		memcpy(nc->point.p, cSLD->tc2Node->point.p, sizeof (struct SFVec2f) * cSLD->tc2Node->point.n);
 
 		nc->point.n = cSLD->tc2Node->point.n;
@@ -835,7 +835,7 @@ static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *n
 			}
 			nc = X3D_COLOR(ILS->color);
 			FREE_IF_NZ(nc->color.p);
-			nc->color.p = MALLOC(sizeof (struct SFColor) * cSLD->matNode->emissiveColor.n);
+			nc->color.p = MALLOC(struct SFColor *, sizeof (struct SFColor) * cSLD->matNode->emissiveColor.n);
 			memcpy(nc->color.p, cSLD->matNode->emissiveColor.p, sizeof (struct SFColor) * cSLD->matNode->emissiveColor.n);
 			nc->color.n = cSLD->matNode->emissiveColor.n;
 		}
@@ -850,20 +850,20 @@ static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *n
 		}
 		nc = X3D_COORDINATE(ILS->coord);
 		FREE_IF_NZ(nc->point.p);
-		nc->point.p = MALLOC(sizeof (struct SFColor) * cSLD->c3Node->point.n);
-		memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFColor) * cSLD->c3Node->point.n);
+		nc->point.p = MALLOC(struct SFVec3f *, sizeof (struct SFVec3f) * cSLD->c3Node->point.n);
+		memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFVec3f) * cSLD->c3Node->point.n);
 
 		nc->point.n = cSLD->c3Node->point.n;
 	}}
 
 	/* lets copy over the coordIndex and colorIndex fields */
 	if (node->coordIndex.n>0) {
-		ILS->coordIndex.p = MALLOC(node->coordIndex.n*sizeof(int));
+		ILS->coordIndex.p = MALLOC(int *, node->coordIndex.n*sizeof(int));
 		memcpy (ILS->coordIndex.p,node->coordIndex.p,node->coordIndex.n*sizeof(int));
 		ILS->coordIndex.n = node->coordIndex.n;
 	}
 	if (node->materialIndex.n>0) {
-		ILS->colorIndex.p = MALLOC(node->materialIndex.n*sizeof(int));
+		ILS->colorIndex.p = MALLOC(int *, node->materialIndex.n*sizeof(int));
 		memcpy (ILS->colorIndex.p,node->materialIndex.p,node->materialIndex.n*sizeof(int));
 		ILS->colorIndex.n = node->materialIndex.n;
 	}

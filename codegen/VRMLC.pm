@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.57 2010/12/03 19:55:21 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.58 2010/12/07 18:27:49 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,11 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.58  2010/12/07 18:27:49  crc_canada
+# MALLOC changes;
+# some hidden fields now have real types, not FreeWRLPTR;
+# SFVec3f data type made.
+#
 # Revision 1.57  2010/12/03 19:55:21  crc_canada
 # changing from "void *" to more specific types.
 #
@@ -1439,7 +1444,7 @@ sub gen {
 
 	for (@sortedNodeList) {
 		push @genFuncs2,
-			"		case NODE_$_ : {tmp = MALLOC (sizeof (struct X3D_$_)); break;}\n";
+			"		case NODE_$_ : {tmp = MALLOC (struct X3D_$_ *, sizeof (struct X3D_$_)); break;}\n";
 	}
 	push @genFuncs2, "		default: {printf (\"createNewX3DNode = unknown type %d, this will fail\\n\",nt); return NULL;}\n";
 	

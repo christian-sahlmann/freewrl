@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.37 2010/10/26 13:40:04 crc_canada Exp $
+$Id: Polyrep.c,v 1.38 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -65,7 +65,7 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 	/* first, make sure we do not do this over and over... */
 	r->transparency = appearanceProperties.transparency;
 
-	newcolors = (struct SFColorRGBA*)MALLOC (sizeof (struct SFColorRGBA)*r->ntri*3);
+	newcolors = MALLOC (struct SFColorRGBA *, sizeof (struct SFColorRGBA)*r->ntri*3);
 	op = r->color;
 	np = (float *)newcolors;
 
@@ -143,7 +143,7 @@ int IFS_face_normals (
 	int faces,
 	int npoints,
 	int cin,
-	struct SFColor *points,
+	struct SFVec3f *points,
 	struct Multi_Int32 *coordIndex,
 	int ccw) {
 
@@ -152,7 +152,7 @@ int IFS_face_normals (
 	int facectr;
 	int pt_1, pt_2, pt_3;
 	float AC, BC;
-	struct SFColor *c1,*c2,*c3;
+	struct SFVec3f *c1,*c2,*c3;
 	float a[3]; float b[3];
 
 	int retval = FALSE;
@@ -385,7 +385,7 @@ void Extru_check_normal (
 	int ccw) {
 
 	/* only use this after tesselator as we get coord indexes from global var */
-	struct SFColor *c1,*c2,*c3;
+	struct SFVec3f *c1,*c2,*c3;
 	float a[3]; float b[3];
 	int zz1, zz2;
 
@@ -398,9 +398,9 @@ void Extru_check_normal (
 	}
 
 	/* first three coords give us the normal */
- 	c1 = (struct SFColor *) &rep_->actualCoord[3*global_IFS_Coords[0]];
- 	c2 = (struct SFColor *) &rep_->actualCoord[3*global_IFS_Coords[zz1]];
- 	c3 = (struct SFColor *) &rep_->actualCoord[3*global_IFS_Coords[zz2]];
+ 	c1 = (struct SFVec3f *) &rep_->actualCoord[3*global_IFS_Coords[0]];
+ 	c2 = (struct SFVec3f *) &rep_->actualCoord[3*global_IFS_Coords[zz1]];
+ 	c3 = (struct SFVec3f *) &rep_->actualCoord[3*global_IFS_Coords[zz2]];
 
 	/*printf ("Extru_check_normal, coords %d %d %d\n",global_IFS_Coords[0],
 		global_IFS_Coords[1],global_IFS_Coords[2]);
@@ -437,10 +437,10 @@ void Extru_check_normal (
 void IFS_check_normal (
 	struct point_XYZ *facenormals,
 	int this_face,
-	struct SFColor *points, int base,
+	struct SFVec3f *points, int base,
 	struct Multi_Int32 *coordIndex, int ccw) {
 
-	struct SFColor *c1,*c2,*c3;
+	struct SFVec3f *c1,*c2,*c3;
 	float a[3]; float b[3];
 
 
@@ -525,7 +525,7 @@ void Elev_Tri (
 	int *pointfaces,
 	int ccw) {
 
-	struct SFColor *c1,*c2,*c3;
+	struct SFVec3f *c1,*c2,*c3;
 	float a[3]; float b[3];
 	int tmp;
 
@@ -545,9 +545,9 @@ void Elev_Tri (
 
 	/*
 	printf ("Elev_Tri, vertices for vertex_ind %d are:",vertex_ind);
-               c1 = (struct SFColor *) &this_Elev->actualCoord[3*A];
-               c2 = (struct SFColor *) &this_Elev->actualCoord[3*D];
-               c3 = (struct SFColor *) &this_Elev->actualCoord[3*E];
+               c1 = (struct SFVec3f *) &this_Elev->actualCoord[3*A];
+               c2 = (struct SFVec3f *) &this_Elev->actualCoord[3*D];
+               c3 = (struct SFVec3f *) &this_Elev->actualCoord[3*E];
 
 	printf ("\n%f %f %f\n%f %f %f\n%f %f %f\n\n",
 		c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
@@ -557,9 +557,9 @@ void Elev_Tri (
 
 	if (NONORMALS) {
 		/* calculate normal for this triangle */
-                c1 = (struct SFColor *) &this_Elev->actualCoord[3*A];
-                c2 = (struct SFColor *) &this_Elev->actualCoord[3*D];
-                c3 = (struct SFColor *) &this_Elev->actualCoord[3*E];
+                c1 = (struct SFVec3f *) &this_Elev->actualCoord[3*A];
+                c2 = (struct SFVec3f *) &this_Elev->actualCoord[3*D];
+                c3 = (struct SFVec3f *) &this_Elev->actualCoord[3*E];
 
 		/*
 		printf ("calc norms \n%f %f %f\n%f %f %f\n%f %f %f\n",
@@ -756,7 +756,7 @@ void Extru_ST_map(
 }
 
 
-void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
+void do_glNormal3fv(struct SFVec3f *dest, GLfloat *param) {
 	struct point_XYZ myp;
 
 	/* normalize all vectors; even if they are coded into a VRML file */
@@ -1113,7 +1113,7 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, void 
 
 		int i;
 
-		node->_intern = MALLOC(sizeof(struct X3D_PolyRep));
+		node->_intern = MALLOC(struct X3D_PolyRep *, sizeof(struct X3D_PolyRep));
 
 		polyrep = (struct X3D_PolyRep *)node->_intern;
 		polyrep->ntri = -1;

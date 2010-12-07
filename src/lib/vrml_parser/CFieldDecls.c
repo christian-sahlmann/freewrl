@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CFieldDecls.c,v 1.9 2009/11/06 00:09:01 crc_canada Exp $
+$Id: CFieldDecls.c,v 1.10 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -51,7 +51,7 @@ $Id: CFieldDecls.c,v 1.9 2009/11/06 00:09:01 crc_canada Exp $
 
 struct FieldDecl* newFieldDecl(indexT mode, indexT type, indexT name, int JSname, int shv)
 {
- struct FieldDecl* ret=MALLOC(sizeof(struct FieldDecl));
+ struct FieldDecl* ret=MALLOC(struct FieldDecl *, sizeof(struct FieldDecl));
  ret->PKWmode=mode;
  ret->fieldType=type;
  ret->lexerNameIndex=name;

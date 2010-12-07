@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.53 2010/12/03 19:55:21 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.54 2010/12/07 18:27:49 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -528,7 +528,7 @@ package VRML::NodeType;
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		size => [SFVec3f, [2, 2, 2], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 		solid => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__points  =>[FreeWRLPTR,0,initializeOnly, 0],
+		__points  =>[MFVec3f,[],initializeOnly, 0],
 	},"X3DGeometryNode"),
 
 	Cone => new VRML::NodeType ("Cone", {
@@ -538,9 +538,9 @@ package VRML::NodeType;
 		height => [SFFloat, 2.0, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		side => [SFBool, TRUE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		solid => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		 __sidepoints =>[FreeWRLPTR,0,initializeOnly, 0],
-		 __botpoints =>[FreeWRLPTR,0,initializeOnly, 0],
-		 __normals =>[FreeWRLPTR,0,initializeOnly, 0],
+		 __sidepoints =>[MFVec3f,[],initializeOnly, 0],
+		 __botpoints =>[MFVec3f,[],initializeOnly, 0],
+		 __normals =>[MFVec3f,[],initializeOnly, 0],
 		__coneVBO =>[SFInt32,0,initializeOnly,0],
 		__coneTriangles =>[SFInt32,0,initializeOnly,0],
 	},"X3DGeometryNode"),
@@ -553,8 +553,8 @@ package VRML::NodeType;
 		side => [SFBool, TRUE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		solid => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		top => [SFBool, TRUE, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
-		 __points =>[FreeWRLPTR,0,initializeOnly, 0],
-		 __normals =>[FreeWRLPTR,0,initializeOnly, 0],
+		 __points =>[MFVec3f,[],initializeOnly, 0],
+		 __normals =>[MFVec3f,[],initializeOnly, 0],
 		__cylinderVBO =>[SFInt32,0,initializeOnly,0],
 		__cylinderTriangles =>[SFInt32,0,initializeOnly,0],
 	},"X3DGeometryNode"),
@@ -627,7 +627,7 @@ package VRML::NodeType;
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		radius => [SFFloat, 1.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 		solid => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__points =>[FreeWRLPTR,0,initializeOnly, 0],
+		__points =>[MFVec3f,[],initializeOnly, 0],
 		_sideVBO =>[SFInt32, 0, initializeOnly, 0], 
  	},"X3DGeometryNode"),
 
@@ -643,7 +643,7 @@ package VRML::NodeType;
 		endAngle => [SFFloat, 1.5707, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		radius => [SFFloat, 1.0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 		startAngle => [SFFloat, 0.0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__points  =>[FreeWRLPTR,0,initializeOnly, 0],
+		__points  =>[MFVec2f,[],initializeOnly, 0],
 		__numPoints =>[SFInt32,0,initializeOnly, 0],
  	},"X3DGeometryNode"),
 
@@ -654,7 +654,7 @@ package VRML::NodeType;
 	    	radius => [SFFloat, 1.0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 		solid => [SFBool, FALSE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	    	startAngle => [SFFloat, 0.0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__points  =>[FreeWRLPTR,0,initializeOnly, 0],
+		__points  =>[MFVec2f,[],initializeOnly, 0],
 		__numPoints =>[SFInt32,0,initializeOnly, 0],
  	},"X3DGeometryNode"),
 
@@ -662,7 +662,7 @@ package VRML::NodeType;
 	Circle2D => new VRML::NodeType("Circle2D", {
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	    	radius => [SFFloat, 1.0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
-		__points  =>[FreeWRLPTR,0,initializeOnly, 0],
+		__points  =>[MFVec2f,[],initializeOnly, 0],
 		__numPoints =>[SFInt32,0,initializeOnly, 0],
  	},"X3DGeometryNode"),
 
@@ -671,7 +671,7 @@ package VRML::NodeType;
 		innerRadius => [SFFloat, 0.0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		outerRadius => [SFFloat, 1.0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		solid => [SFBool, FALSE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__points  =>[FreeWRLPTR,0,initializeOnly, 0],
+		__points  =>[MFVec2f,[],initializeOnly, 0],
 		__texCoords  =>[FreeWRLPTR,0,initializeOnly, 0],
 		__numPoints =>[SFInt32,0,initializeOnly, 0],
 		__simpleDisk => [SFBool, TRUE,initializeOnly, 0],
@@ -691,7 +691,7 @@ package VRML::NodeType;
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		size => [SFVec2f, [2.0, 2.0], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 		solid => [SFBool, FALSE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__points  =>[FreeWRLPTR,0,initializeOnly, 0],
+		__points  =>[MFVec3f,[],initializeOnly, 0],
 		__numPoints =>[SFInt32,0,initializeOnly, 0],
  	},"X3DGeometryNode"),
 
@@ -1283,7 +1283,7 @@ package VRML::NodeType;
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			 __visible =>[SFInt32,0,initializeOnly, 0], # for Occlusion tests.
 			 __occludeCheckCount =>[SFInt32,-1,initializeOnly, 0], # for Occlusion tests.
-			__points  =>[FreeWRLPTR,0,initializeOnly, 0],	# for Occlude Box.
+			__points  =>[MFVec3f,[],initializeOnly, 0],	# for Occlude Box.
 			__Samples =>[SFInt32,0,initializeOnly, 0],		# Occlude samples from last pass
 			__oldEnabled => [SFBool, TRUE, inputOutput, 0],
 					   },"X3DEnvironmentalSensorNode"),
@@ -1419,8 +1419,8 @@ package VRML::NodeType;
 		isBound => [SFBool, FALSE, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
-		__points =>[FreeWRLPTR,0,initializeOnly, 0],
-		__colours =>[FreeWRLPTR,0,initializeOnly, 0],
+		__points =>[MFVec3f,[],initializeOnly, 0],
+		__colours =>[MFColor,[],initializeOnly, 0],
 		__quadcount => [SFInt32,0,initializeOnly, 0],
 		__BGNumber => [SFInt32,-1,initializeOnly, 0], # for ordering backgrounds for binding
 
@@ -1478,8 +1478,8 @@ package VRML::NodeType;
 		isBound => [SFBool, FALSE, outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
-		__points =>[FreeWRLPTR,0,initializeOnly, 0],
-		__colours =>[FreeWRLPTR,0,initializeOnly, 0],
+		__points =>[MFVec3f,[],initializeOnly, 0],
+		__colours =>[MFVec3f,[],initializeOnly, 0],
 		__quadcount => [SFInt32,0,initializeOnly, 0],
 		__BGNumber => [SFInt32,-1,initializeOnly, 0], # for ordering backgrounds for binding
 

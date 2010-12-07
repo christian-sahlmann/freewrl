@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.69 2010/11/15 14:13:09 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.70 2010/12/07 18:27:50 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -127,7 +127,7 @@ void EAI_parse_commands () {
 
 	/* output buffer - start off with it this size */
 	outBufferLen = EAIREADSIZE;
-	outBuffer = MALLOC(outBufferLen);
+	outBuffer = MALLOC(char *, outBufferLen);
 
 	while (EAI_BUFFER_CUR> 0) {
 		if (eaiverbose) {
@@ -335,7 +335,7 @@ void EAI_parse_commands () {
 					/* finish this, note the pointer maths */
 					bufPtr = (int) (EOT+3-EAIbuffer);
 				} else {
-/*  					char *filename = (char *)MALLOC(1000); */
+/*  					char *filename = MALLOC(char *,1000); */
 					char *mypath;
 
 					/* sanitize this string - remove leading and trailing garbage */
@@ -1011,8 +1011,8 @@ void createLoadURL(char *bufptr) {
 	bufptr--;
 
 	/* MALLOC the sizes required */
-	if (EAI_AnchorNode.url.n > 0) EAI_AnchorNode.url.p = MALLOC(EAI_AnchorNode.url.n * sizeof (struct Uni_String));
-	if (EAI_AnchorNode.parameter.n > 0) EAI_AnchorNode.parameter.p = MALLOC(EAI_AnchorNode.parameter.n * sizeof (struct Uni_String));
+	if (EAI_AnchorNode.url.n > 0) EAI_AnchorNode.url.p = MALLOC(struct Uni_String **, EAI_AnchorNode.url.n * sizeof (struct Uni_String));
+	if (EAI_AnchorNode.parameter.n > 0) EAI_AnchorNode.parameter.p = MALLOC(struct Uni_String **, EAI_AnchorNode.parameter.n * sizeof (struct Uni_String));
 
 	for (count=0; count<EAI_AnchorNode.url.n; count++) {
 		bufptr += strlen(strbrk);

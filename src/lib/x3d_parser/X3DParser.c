@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.76 2010/12/03 19:55:21 crc_canada Exp $
+$Id: X3DParser.c,v 1.77 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -1327,7 +1327,7 @@ static void saveAttributes(int myNodeType, const char *name, const char** atts) 
 
 		/* do all the normal fields when we are ending the node */
 		} else {
-			nvp = MALLOC(sizeof (struct nameValuePairs));
+			nvp = MALLOC(struct nameValuePairs* , sizeof (struct nameValuePairs));
 			nvp->fieldName = STRDUP(atts[i]);
 			nvp->fieldValue=STRDUP(atts[i+1]);
 			nvp->fieldType = 0;
@@ -1796,7 +1796,7 @@ int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
 	if (childAttributes == NULL) {
 		int count;
 		DEBUG_X3DPARSER ("initializing childAttributes stack \n");
-		childAttributes = MALLOC(sizeof(struct Vector*) * MAX_CHILD_ATTRIBUTE_DEPTH);
+		childAttributes = MALLOC(struct Vector**, sizeof(struct Vector*) * MAX_CHILD_ATTRIBUTE_DEPTH);
 		for (count=0; count<MAX_CHILD_ATTRIBUTE_DEPTH; count++) childAttributes[count] = NULL;
 	}
 

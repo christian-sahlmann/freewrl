@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.72 2010/11/24 20:12:12 crc_canada Exp $
+$Id: CRoutes.c,v 1.73 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -594,7 +594,7 @@ void AddRemoveChildren (
 		/* first, set children to 0, in case render thread comes through here */
 		tn->n = 0;
 
-		newmal = MALLOC ((oldlen+len)*sizeof(struct X3D_Node *));
+		newmal = MALLOC (void *, (oldlen+len)*sizeof(struct X3D_Node *));
 
 		/* copy the old stuff over */
 		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
@@ -673,7 +673,7 @@ void AddRemoveChildren (
 
 		if (num_removed > 0) {
 			if (finalLength > 0) {
-				newmal = MALLOC (finalLength*sizeof(struct X3D_Node * *));
+				newmal = MALLOC (void *, finalLength*sizeof(struct X3D_Node * *));
 				bzero (newmal, (size_t)(finalLength*sizeof(struct X3D_Node * *)));
 				tmpptr = (struct X3D_Node * *) newmal;
 				remptr = (struct X3D_Node * *) tn->p;
@@ -986,7 +986,7 @@ void CRoutes_Register(
 	}
 
 
-	newEntry = MALLOC(sizeof (struct CR_RegStruct));
+	newEntry = MALLOC(struct CR_RegStruct *, sizeof (struct CR_RegStruct));
 	newEntry->adrem = adrem;
 	newEntry->from = from;
 	newEntry->fromoffset = fromoffset;
@@ -1033,7 +1033,7 @@ static void actually_do_CRoutes_Register() {
 		if (!CRoutes_Initiated) {
 			/* allocate the CRoutes structure */
 			CRoutes_MAX = 25; /* arbitrary number; max 25 routes to start off with */
-			CRoutes = (struct CRStruct *)MALLOC (sizeof (*CRoutes) * CRoutes_MAX);
+			CRoutes = MALLOC (struct CRStruct *, sizeof (*CRoutes) * CRoutes_MAX);
 	
 			CRoutes[0].routeFromNode = X3D_NODE(0);
 			CRoutes[0].fnptr = 0;
@@ -1161,7 +1161,7 @@ static void actually_do_CRoutes_Register() {
 			CRoutes[insert_here].intTimeStamp = 0;
 		
 			if ((CRoutes[insert_here].tonodes =
-				 (CRnodeStruct *) MALLOC(sizeof(CRnodeStruct))) == NULL) {
+				 MALLOC(CRnodeStruct *, sizeof(CRnodeStruct))) == NULL) {
 				fprintf(stderr, "CRoutes_Register: calloc failed to allocate memory.\n");
 			} else {
 				CRoutes[insert_here].tonode_count = 1;
@@ -1875,7 +1875,7 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 	FREE_IF_NZ (mv3ftn->p);
 
 	/* MALLOC the toptr */
-	mv3ftn->p = (struct SFColor *)MALLOC (structlen*fromcount);
+	mv3ftn->p = MALLOC (struct SFVec3f *, structlen*fromcount);
 	toptr = (void *)mv3ftn->p;
 
 	/* tell the recipient how many elements are here */

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.160 2010/11/09 21:10:22 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.161 2010/12/07 18:27:50 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -171,7 +171,7 @@ static char * readInputString(char *fn) {
         }
 
 
-        buffer =(char *)MALLOC(MAXREADSIZE * sizeof (char));
+        buffer =MALLOC(char *, MAXREADSIZE * sizeof (char));
         justread = fread (buffer,1,MAXREADSIZE,infile);
 	if (justread >= MAXREADSIZE) {
 		ConsoleMessage ("Shader too large for buffer\n");
@@ -206,7 +206,7 @@ static int getShaderSource (char **vertexSource, char **fragmentSource, shader_t
 	*fragmentSource = NULL;
 
 	if (strlen(pathToShaders) > 1000) return;  /* bounds error */
-	inTextFile = MALLOC(2000);
+	inTextFile = MALLOC(char *,2000);
 
 	/* get Vertex shader */
 	strcpy (inTextFile,pathToShaders);
@@ -574,7 +574,7 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 		#endif
 
 		/* initialize the "children" field, if required */
-		if (node->children.p == NULL) node->children.p=MALLOC(sizeof(void *) * 4);
+		if (node->children.p == NULL) node->children.p=MALLOC(void *,sizeof(void *) * 4);
 
 		if (node->__inRange == FALSE) {
 			#ifdef VERBOSE
@@ -1381,7 +1381,7 @@ void createdMemoryTable(){
 	int count;
 
 	tableIndexSize=50;
-	memoryTable = MALLOC(tableIndexSize * sizeof(struct X3D_Node*));
+	memoryTable = MALLOC(struct X3D_Node **, tableIndexSize * sizeof(struct X3D_Node*));
 
 	/* initialize this to a known state */
 	for (count=0; count < tableIndexSize; count++) {
@@ -1440,7 +1440,7 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 	/* has this changed size? */
 	if (ch->n != sortedCh->n) {
 		FREE_IF_NZ(sortedCh->p);
-		sortedCh->p = MALLOC (sizeof (void *) * ch->n);
+		sortedCh->p = MALLOC (void *, sizeof (void *) * ch->n);
 		needsCompiling = TRUE; /* force this change; should be
 			set anyway */
 	}

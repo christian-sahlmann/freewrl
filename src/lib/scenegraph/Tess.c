@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.16 2010/09/29 20:11:48 crc_canada Exp $
+$Id: Tess.c,v 1.17 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -130,7 +130,7 @@ void CALLBACK FW_tess_error(GLenum e) {
 
 
 void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
-	GLDOUBLE *nv = (GLDOUBLE *) MALLOC(sizeof(GLDOUBLE)*3);
+	GLDOUBLE *nv = MALLOC(GLDOUBLE *, sizeof(GLDOUBLE)*3);
 	/* printf("FW_tess_combine data\n"); 
 	 printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
 		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); 
@@ -173,7 +173,7 @@ void verify_global_IFS_Coords(int max) {
 }
 
 void CALLBACK FW_tess_combine (GLDOUBLE c[3], void *d[4], GLfloat w[4], void **out) {
-	GLDOUBLE *nv = (GLDOUBLE *) MALLOC(sizeof(GLDOUBLE)*3);
+	GLDOUBLE *nv = MALLOC(GLDOUBLE *, sizeof(GLDOUBLE)*3);
 	/*printf("FW_tess_combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
 		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); */
 	nv[0] = c[0];

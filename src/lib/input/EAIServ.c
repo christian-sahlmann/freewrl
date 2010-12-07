@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.20 2010/10/02 16:33:00 dug9 Exp $
+$Id: EAIServ.c,v 1.21 2010/12/07 18:27:50 crc_canada Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -244,7 +244,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 		EAIbufcount = 0;
 		EAIbufsize = 2 * EAIREADSIZE; /* initial size*/
 		EBUFFLOCK;
-		EAIbuffer = (char *)MALLOC(EAIbufsize * sizeof (char));
+		EAIbuffer = MALLOC(char *, EAIbufsize * sizeof (char));
 		EBUFFUNLOCK;
 
 		/* zero out the EAIListenerData here, and after every use */

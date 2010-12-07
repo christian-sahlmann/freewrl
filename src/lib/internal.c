@@ -1,5 +1,5 @@
 /*
-  $Id: internal.c,v 1.20 2010/08/31 15:48:22 crc_canada Exp $
+  $Id: internal.c,v 1.21 2010/12/07 18:27:50 crc_canada Exp $
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always
@@ -59,7 +59,7 @@ size_t __fw_strnlen(const char *s, size_t maxlen)
 char *__fw_strndup(const char *s, size_t n)
 {
     size_t len = strnlen(s, n);
-    char *new = MALLOC(len + 1);
+    char *new = MALLOC(char *, len + 1);
     
     if (!new)
 	return NULL;

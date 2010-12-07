@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.36 2010/03/24 16:25:32 crc_canada Exp $
+$Id: Frustum.c,v 1.37 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -771,8 +771,8 @@ void OcclusionStartofEventLoop() {
 				   so we don't have to realloc too much */
 				OccQuerySize = maxOccludersFound + 1000;
 
-				occluderNodePointer = MALLOC (sizeof (void *) * OccQuerySize);
-				OccQueries = MALLOC (sizeof(int) * OccQuerySize);
+				occluderNodePointer = MALLOC (void **, sizeof (void *) * OccQuerySize);
+				OccQueries = MALLOC (GLuint *, sizeof(GLuint) * OccQuerySize);
 	                	FW_GL_GENQUERIES(OccQuerySize,OccQueries);
 				OccInitialized = TRUE;
 				for (i=0; i<OccQuerySize; i++) {

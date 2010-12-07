@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.28 2010/09/22 19:40:48 crc_canada Exp $
+$Id: JScript.c,v 1.29 2010/12/07 18:27:50 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -420,7 +420,7 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 void *SFNodeNativeNew()
 {
 	SFNodeNative *ptr;
-	ptr = (SFNodeNative *) MALLOC(sizeof(*ptr));
+	ptr = MALLOC(SFNodeNative *, sizeof(*ptr));
 
 	/* printf ("SFNodeNativeNew; string len %d handle_len %d\n",vrmlstring_len,handle_len);*/
 
@@ -458,7 +458,7 @@ int SFNodeNativeAssign(void *top, void *fromp)
 void *SFColorRGBANativeNew()
 {
 	SFColorRGBANative *ptr;
-	ptr = (SFColorRGBANative *)MALLOC(sizeof(*ptr));
+	ptr = MALLOC(SFColorRGBANative *, sizeof(*ptr));
 	ptr->valueChanged = 0;
 	return ptr;
 }
@@ -474,7 +474,7 @@ void SFColorRGBANativeAssign(void *top, void *fromp)
 void *SFColorNativeNew()
 {
 	SFColorNative *ptr;
-	ptr = (SFColorNative *)MALLOC(sizeof(*ptr));
+	ptr = MALLOC(SFColorNative *, sizeof(*ptr));
 	ptr->valueChanged = 0;
 	return ptr;
 }
@@ -490,7 +490,7 @@ void SFColorNativeAssign(void *top, void *fromp)
 void *SFImageNativeNew()
 {
 	SFImageNative *ptr;
-	ptr =(SFImageNative *) MALLOC(sizeof(*ptr));
+	ptr =MALLOC(SFImageNative *, sizeof(*ptr));
 	ptr->valueChanged = 0;
 	return ptr;
 }
@@ -508,7 +508,7 @@ void SFImageNativeAssign(void *top, void *fromp)
 void *SFRotationNativeNew()
 {
 	SFRotationNative *ptr;
-	ptr = (SFRotationNative *)MALLOC(sizeof(*ptr));
+	ptr = MALLOC(SFRotationNative *, sizeof(*ptr));
 	ptr->valueChanged = 0;
 	return ptr;
 }
@@ -524,7 +524,7 @@ void SFRotationNativeAssign(void *top, void *fromp)
 void *SFVec2fNativeNew()
 {
 	SFVec2fNative *ptr;
-	ptr = (SFVec2fNative *)MALLOC(sizeof(*ptr));
+	ptr = MALLOC(SFVec2fNative *, sizeof(*ptr));
 	ptr->valueChanged = 0;
 	return ptr;
 }
@@ -539,7 +539,7 @@ void SFVec2fNativeAssign(void *top, void *fromp)
 
 void *SFVec3fNativeNew() {
 	SFVec3fNative *ptr;
-	ptr = (SFVec3fNative *)MALLOC(sizeof(*ptr));
+	ptr = MALLOC(SFVec3fNative *, sizeof(*ptr));
 	ptr->valueChanged = 0;
 	return ptr;
 }
@@ -553,7 +553,7 @@ void SFVec3fNativeAssign(void *top, void *fromp) {
 
 void *SFVec3dNativeNew() {
 	SFVec3dNative *ptr;
-	ptr = (SFVec3dNative *)MALLOC(sizeof(*ptr));
+	ptr = MALLOC(SFVec3dNative *, sizeof(*ptr));
 	ptr->valueChanged = 0;
 	return ptr;
 }
@@ -567,7 +567,7 @@ void SFVec3dNativeAssign(void *top, void *fromp) {
 
 void *SFVec4fNativeNew() {
 	SFVec4fNative *ptr;
-	ptr = (SFVec4fNative *)MALLOC(sizeof(*ptr));
+	ptr = MALLOC(SFVec4fNative *, sizeof(*ptr));
 	ptr->valueChanged = 0;
 	return ptr;
 }
@@ -581,7 +581,7 @@ void SFVec4fNativeAssign(void *top, void *fromp) {
 
 void *SFVec4dNativeNew() {
 	SFVec4dNative *ptr;
-	ptr = (SFVec4dNative *)MALLOC(sizeof(*ptr));
+	ptr = MALLOC(SFVec4dNative *, sizeof(*ptr));
 	ptr->valueChanged = 0;
 	return ptr;
 }
@@ -623,7 +623,7 @@ void SaveScriptField (int num, indexT kind, indexT type, const char* field, unio
 	}
 
 	/* create a new entry and link it in */
-	newEntry = (struct ScriptParamList *) MALLOC (sizeof (struct ScriptParamList));
+	newEntry = MALLOC (struct ScriptParamList *, sizeof (struct ScriptParamList));
 	*nextInsert = newEntry;
 	
 	/* initialize the new entry */
@@ -728,7 +728,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 					} else {
 						tlen = (int) strlen(field) + 20;
 					}
-					smallfield = MALLOC (tlen);
+					smallfield = MALLOC (char *, tlen);
 					smallfield[0] = '\0';
 
 					switch (type) {
@@ -939,10 +939,10 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 			{
 				int dstlen, dstdim, tdim;
 				tdim = 200;
-				thisValue = MALLOC(tdim+1);
+				thisValue = MALLOC(char *, tdim+1);
 				dstdim = (rows+1)*(elements*15) + 100; /* a guess */
 				dstlen = 0;
-				smallfield = MALLOC (dstdim+1); //rows+1)*(elements*15) + 100);
+				smallfield = MALLOC (char *, dstdim+1); //rows+1)*(elements*15) + 100);
 				/* what is the equivalent SF for this MF?? */
 				if (type != convertToSFType(type)) haveMulti = TRUE;
 				 else haveMulti = FALSE;

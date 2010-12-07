@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.22 2010/09/22 19:40:48 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.23 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -1165,7 +1165,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 	}
 
 	buff_size = LARGESTRING;
-	_buff = (char *) MALLOC(buff_size * sizeof(char));
+	_buff = MALLOC(char *, buff_size * sizeof(char));
 	memset(_buff, 0, buff_size);
 
     for (i = 0; i < len; i++) {
@@ -1216,7 +1216,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 			break;
 		}
 
-		_tmp_buff = (char *) MALLOC((tmp_buff_len + 1) * sizeof(char));
+		_tmp_buff = MALLOC(char *, (tmp_buff_len + 1) * sizeof(char));
 		memset(_tmp_buff, 0, tmp_buff_len + 1);
 		memmove(_tmp_buff, _buff, tmp_buff_len);
 		memset(_buff, 0, buff_size);
@@ -1543,7 +1543,7 @@ doMFStringUnquote(JSContext *cx, jsval *vp)
 	#endif
 
 	if (memchr(_buff, '"', _buff_len) != NULL) {
-		_tmp_vpStr = (char *) MALLOC(_buff_len * sizeof(char));
+		_tmp_vpStr = MALLOC(char *, _buff_len * sizeof(char));
 
 		memset(_tmp_vpStr, 0, _buff_len);
 
@@ -1732,7 +1732,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 
 
 		/* len + 3 for '\0' and "..." */
-		_new_vp_c = (char *) MALLOC((len + 3) * sizeof(char));
+		_new_vp_c = MALLOC(char *, (len + 3) * sizeof(char));
 		/* JAS - do NOT prepend/append double quotes to this string*/
 		/* JAS - only for the null terminator*/
 		/* JAS len += 3;*/

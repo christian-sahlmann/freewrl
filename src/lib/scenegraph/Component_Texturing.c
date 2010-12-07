@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.13 2010/09/29 20:11:48 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.14 2010/12/07 18:27:50 crc_canada Exp $
 
 X3D Texturing Component
 
@@ -119,7 +119,7 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 		/* possibly, if we are using VBOs, we might have an issue with freed memory */
 		/* so we do this in 2 steps */
 		if (!node->__compiledpoint.p) {
-			node->__compiledpoint.p = (struct SFVec2f *) MALLOC (sizeof(float) *2 * node->__compiledpoint.n);
+			node->__compiledpoint.p = (struct SFVec2f *) MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * node->__compiledpoint.n);
 		}
 	
 		fptr = (float *) node->__compiledpoint.p;

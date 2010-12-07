@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.43 2010/08/05 18:17:44 uid31638 Exp $
+$Id: CScripts.c,v 1.44 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -79,7 +79,7 @@ const char* JS_PROTOCOLS[]={
 
 struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, indexT type, indexT name)
 {
- struct ScriptFieldDecl* ret=MALLOC(sizeof(struct ScriptFieldDecl));
+ struct ScriptFieldDecl* ret=MALLOC(struct ScriptFieldDecl *, sizeof(struct ScriptFieldDecl));
 
  ASSERT(ret);
 
@@ -115,7 +115,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
 
 /* Create a new ScriptFieldInstanceInfo structure to hold information about script fields that are destinations for IS statements in PROTOs */
 struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDecl* dec, struct Shader_Script* script) {
-	struct ScriptFieldInstanceInfo* ret = MALLOC(sizeof(struct ScriptFieldInstanceInfo));
+	struct ScriptFieldInstanceInfo* ret = MALLOC(struct ScriptFieldInstanceInfo *, sizeof(struct ScriptFieldInstanceInfo));
 	
 	ASSERT(ret);
 
@@ -131,7 +131,7 @@ struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDec
 
 /* Copy a ScriptFieldInstanceInfo structure to a new structure */
 struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldInstanceInfo* me) {
-	struct ScriptFieldInstanceInfo* ret = MALLOC(sizeof(struct ScriptFieldInstanceInfo));
+	struct ScriptFieldInstanceInfo* ret = MALLOC(struct ScriptFieldInstanceInfo *, sizeof(struct ScriptFieldInstanceInfo));
 
 	#ifdef CPARSERVERBOSE
 	printf("copying instanceinfo %p (%p %p) to %p\n", me, me->decl, me->script, ret);
@@ -148,7 +148,7 @@ struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldI
 
 struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct ScriptFieldDecl* me) 
 {
-	struct ScriptFieldDecl* ret = MALLOC(sizeof (struct ScriptFieldDecl));
+	struct ScriptFieldDecl* ret = MALLOC(struct ScriptFieldDecl *, sizeof (struct ScriptFieldDecl));
 	ASSERT(ret);
 
 	#ifdef CPARSERVERBOSE
@@ -246,7 +246,7 @@ void zeroScriptHandles (void) {handleCnt = 0;}
 
 /* this can be a script, or a shader, take your pick */
 struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
- 	struct Shader_Script* ret=MALLOC(sizeof(struct Shader_Script));
+ 	struct Shader_Script* ret=MALLOC(struct Shader_Script *, sizeof(struct Shader_Script));
 
  	ASSERT(ret);
 

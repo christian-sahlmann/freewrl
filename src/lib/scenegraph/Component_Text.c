@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.28 2010/12/03 19:55:21 crc_canada Exp $
+$Id: Component_Text.c,v 1.29 2010/12/07 18:27:50 crc_canada Exp $
 
 X3D Text Component
 
@@ -678,8 +678,8 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
     est_tri = char_count*TESS_MAX_COORDS;
     coordmaxsize=est_tri;
     cindexmaxsize=est_tri;
-    FW_rep_->cindex=(int*)MALLOC(sizeof(*(FW_rep_->cindex))*est_tri);
-    FW_rep_->actualCoord = (float*)MALLOC(sizeof(*(FW_rep_->actualCoord))*est_tri*3);
+    FW_rep_->cindex=MALLOC(int *, sizeof(*(FW_rep_->cindex))*est_tri);
+    FW_rep_->actualCoord = MALLOC(float *, sizeof(*(FW_rep_->actualCoord))*est_tri*3);
 
     if(maxext > 0) {
         double maxlen = 0;
@@ -797,7 +797,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
     }
 
     /* now, generate normals */
-    FW_rep_->normal = (float *)MALLOC(sizeof(*(FW_rep_->normal))*indx_count*3);
+    FW_rep_->normal = MALLOC(float *, sizeof(*(FW_rep_->normal))*indx_count*3);
     for (i = 0; i<(unsigned int)indx_count; i++) {
         FW_rep_->normal[i*3+0] = 0.0f;
         FW_rep_->normal[i*3+1] = 0.0f;
@@ -806,7 +806,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 
     /* do we have texture mapping to do? */
     if (HAVETODOTEXTURES) {
-        FW_rep_->GeneratedTexCoords = (float *)MALLOC(sizeof(*(FW_rep_->GeneratedTexCoords))*(FW_pointctr+1)*3);
+        FW_rep_->GeneratedTexCoords = MALLOC(float *, sizeof(*(FW_rep_->GeneratedTexCoords))*(FW_pointctr+1)*3);
         /* an attempt to try to make this look like the NIST example */
         /* I can't find a standard as to how to map textures to text JAS */
         for (i=0; i<(unsigned int)FW_pointctr; i++) {

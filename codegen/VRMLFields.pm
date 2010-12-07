@@ -1,5 +1,5 @@
 #
-# $Id: VRMLFields.pm,v 1.10 2010/12/03 19:55:21 crc_canada Exp $
+# $Id: VRMLFields.pm,v 1.11 2010/12/07 18:27:49 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -11,6 +11,11 @@
 # SFNode is in Parse.pm
 #
 # $Log: VRMLFields.pm,v $
+# Revision 1.11  2010/12/07 18:27:49  crc_canada
+# MALLOC changes;
+# some hidden fields now have real types, not FreeWRLPTR;
+# SFVec3f data type made.
+#
 # Revision 1.10  2010/12/03 19:55:21  crc_canada
 # changing from "void *" to more specific types.
 #
@@ -169,7 +174,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFBOOL field $field val @{$val} has $count INIT\n";
 
-		$retstr = $restsr . "$field.p = MALLOC (sizeof(int)*$count);\n";
+		$retstr = $restsr . "$field.p = MALLOC (int *, sizeof(int)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			$retstr = $retstr. "\n\t\t\t$field.p[$tmp] = $arline; ";
@@ -221,7 +226,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFCOLOR field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFColor)*$count);\n";
+		$retstr = "$field.p = MALLOC (struct SFColor *, sizeof(struct SFColor)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 3; $whichVal++) {
@@ -275,7 +280,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFROTATION field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFColorRGBA)*$count);\n";
+		$retstr = "$field.p = MALLOC (struct SFColorRGBA *, sizeof(struct SFColorRGBA)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 4; $whichVal++) {
@@ -320,7 +325,7 @@ sub cInitialize {
 	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	if ($count > 0) {
 		#print "MALLOC MFDouble field $field val @{$val} has $count INIT\n";
-		$retstr = $restsr . "$field.p = MALLOC (sizeof(double)*$count);\n";
+		$retstr = $restsr . "$field.p = MALLOC (double *, sizeof(double)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			$retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[tmp];\n";
 		}
@@ -363,7 +368,7 @@ sub cInitialize {
 	#print "MFFLOAT field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFFLOAT field $field val @{$val} has $count INIT\n";
-		$retstr = $restsr . "$field.p = MALLOC (sizeof(float)*$count);\n";
+		$retstr = $restsr . "$field.p = MALLOC (float *, sizeof(float)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			# get the actual value and ensure that it is a float
 			my $av = "@{$val}[tmp]";
@@ -394,7 +399,7 @@ sub cInitialize {
 	if (!defined $val) {print "undefined in SFImage\n"} # inputOnlys, set it to any value
 	my $count = @{$val};
 	#SFImage defaults to 0,0,0\n";
-	return "$field.n=3; $field.p=MALLOC (sizeof(int)*3); $field.p[0] = 0; $field.p[1] = 0; $field.p[2] = 0;";
+	return "$field.n=3; $field.p=MALLOC (int *, sizeof(int)*3); $field.p[0] = 0; $field.p[1] = 0; $field.p[2] = 0;";
 }
 
 
@@ -430,7 +435,7 @@ sub cInitialize {
 	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	if ($count > 0) {
                 #print "MALLOC MFINT32 field $field val @{$val} has $count INIT\n";
-                $retstr = $restsr . "$field.p = MALLOC (sizeof(int)*$count);\n";
+                $retstr = $restsr . "$field.p = MALLOC (int *, sizeof(int)*$count);\n";
                 for ($tmp=0; $tmp<$count; $tmp++) {
                         $retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[tmp];\n";
                 }
@@ -478,7 +483,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFVEC3F field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFMatrix3f)*$count);\n";
+		$retstr = "$field.p = MALLOC (struct SFMatrix3f *, sizeof(struct SFMatrix3f)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 9; $whichVal++) {
@@ -530,7 +535,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFVEC3F field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFMatrix3f)*$count);\n";
+		$retstr = "$field.p = MALLOC (struct SFMatrix3f *, sizeof(struct SFMatrix3f)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 9; $whichVal++) {
@@ -591,7 +596,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFVEC3F field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFMatrix4d)*$count);\n";
+		$retstr = "$field.p = MALLOC (struct SFMatrix4d *, sizeof(struct SFMatrix4d)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 16; $whichVal++) {
@@ -649,7 +654,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFVEC3F field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFMatrix4f)*$count);\n";
+		$retstr = "$field.p = MALLOC (struct SFMatrix4f *, sizeof(struct SFMatrix4f)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 16; $whichVal++) {
@@ -733,7 +738,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFROTATION field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFRotation)*$count);\n";
+		$retstr = "$field.p = MALLOC (struct SFRotation *, sizeof(struct SFRotation)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 4; $whichVal++) {
@@ -777,7 +782,7 @@ sub cInitialize {
 	#print "MFSTRING field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFSTRING field $field val @{$val} has $count INIT\n";
-		$retstr = $restsr . "$field.p = MALLOC (sizeof(struct Uni_String)*$count);";
+		$retstr = $restsr . "$field.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*$count);";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			$retstr = $retstr .  "$field.p[$tmp] = newASCIIString(\"".@{$val}[$tmp]."\");";
 		}
@@ -844,7 +849,7 @@ sub cInitialize {
 	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	#print "MFVec2F field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
-		$retstr = "$field.p = MALLOC (sizeof(struct SFVec2d)*$count);";
+		$retstr = "$field.p = MALLOC (struct SFVec2d *, sizeof(struct SFVec2d)*$count);";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 2; $whichVal++) {
@@ -898,7 +903,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFVec2F field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFVec2f)*$count);";
+		$retstr = "$field.p = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f)*$count);";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 2; $whichVal++) {
@@ -946,7 +951,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFVEC3d field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFVec3d)*$count);\n";
+		$retstr = "$field.p = MALLOC (struct SFVec3d *, sizeof(struct SFVec3d)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 3; $whichVal++) {
@@ -963,8 +968,8 @@ sub cInitialize {
 
 ###########################################################
 package VRML::Field::SFVec3f;
-@ISA=VRML::Field::SFColor;
-sub cstruct {return ""}
+sub cstruct {return "struct SFVec3f { float c[3]; };"}
+sub ctype {return "struct SFVec3f $_[1]"}
 sub cInitialize {
         my ($this,$field,$val) = @_;
         if (!defined $val) {print "undefined in SFVec23\n"} # inputOnlys, set it to any value
@@ -998,7 +1003,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFVEC3F field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFColor)*$count);\n";
+		$retstr = "$field.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 3; $whichVal++) {
@@ -1051,7 +1056,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFVEC4d field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFVec4d)*$count);\n";
+		$retstr = "$field.p = MALLOC (struct SFVec4d *, sizeof(struct SFVec4d)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 4; $whichVal++) {
@@ -1095,7 +1100,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFVEC4f field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = MALLOC (sizeof(struct SFVec4f)*$count);\n";
+		$retstr = "$field.p = MALLOC (struct SFVec4f *, sizeof(struct SFVec4f)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 4; $whichVal++) {

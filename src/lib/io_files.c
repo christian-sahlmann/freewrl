@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.24 2010/09/29 20:11:48 crc_canada Exp $
+  $Id: io_files.c,v 1.25 2010/12/07 18:27:50 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -69,14 +69,14 @@ char* concat_path(const char *a, const char *b)
 		if (!b) return NULL;
 		/* returns "/b" */
 		lb = strlen(b);
-		tmp = MALLOC(2+lb); /* why 2? room for the slash and the trailing NULL */
+		tmp = MALLOC(char *, 2+lb); /* why 2? room for the slash and the trailing NULL */
 		sprintf(tmp, "/%s", b);
 		return tmp;
 	} else {
 		if (!b) {
 			/* returns "a/" */
 			la = strlen(a);
-			tmp = MALLOC(la+2); /* why 2? room for the slash and the trailing NULL */
+			tmp = MALLOC(char *, la+2); /* why 2? room for the slash and the trailing NULL */
 			sprintf(tmp, "%s/", a);
 			return tmp;
 		}
@@ -86,10 +86,10 @@ char* concat_path(const char *a, const char *b)
 	lb = strlen(b);
 
 	if (a[la-1] == '/') {
-		tmp = MALLOC(la + lb + 1); /* why 1? room for the trailing NULL */
+		tmp = MALLOC(char *, la + lb + 1); /* why 1? room for the trailing NULL */
 		sprintf(tmp, "%s%s", a, b);
 	} else {
-		tmp = MALLOC(la + lb + 2); /* why 2? room for the slash and the trailing NULL */
+		tmp = MALLOC(char *, la + lb + 2); /* why 2? room for the slash and the trailing NULL */
 		sprintf(tmp, "%s/%s", a, b);
 	}
 
@@ -124,7 +124,7 @@ printf ("remove_filename_from_path, returning :%s:\n",rv);
 char *get_current_dir()
 {
 	char *cwd , *retvar;
-	cwd = MALLOC(PATH_MAX);
+	cwd = MALLOC(char *, PATH_MAX);
 	retvar = getcwd(cwd, PATH_MAX);
 	if (NULL != retvar) {
 			size_t ll;
@@ -299,7 +299,7 @@ static openned_file_t* load_file_read(const char *filename)
 		return NULL;
 	}
 
-	text = current = MALLOC(ss.st_size +1); /* include space for a null terminating character */
+	text = current = MALLOC(char *, ss.st_size +1); /* include space for a null terminating character */
 	if (!text) {
 		ERROR_MSG("load_file_read: cannot allocate memory to read file %s\n", filename);
 		close(fd);

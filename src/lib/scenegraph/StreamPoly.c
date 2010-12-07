@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.21 2010/12/03 19:55:21 crc_canada Exp $
+$Id: StreamPoly.c,v 1.22 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -45,7 +45,7 @@ $Id: StreamPoly.c,v 1.21 2010/12/03 19:55:21 crc_canada Exp $
 #define NO_TEXCOORD_NODE (r->tcoordtype==0)
 #define MUST_GENERATE_TEXTURES (NO_TCOORD_GEN_IN_SHAPE && NO_TEXCOORD_NODE)
 
-static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep *r, struct SFColor *points, int npoints);
+static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep *r, struct SFVec3f *points, int npoints);
 
 /********************************************************************
 *
@@ -124,9 +124,9 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	int hasc;
 	GLfloat thisTrans;
 
-	struct SFColor *points=0; int npoints=0;
+	struct SFVec3f *points=0; int npoints=0;
 	struct SFColor *colors=0; int ncolors=0;
-	struct SFColor *normals=0; int nnormals=0;
+	struct SFVec3f *normals=0; int nnormals=0;
 	int isRGBA = FALSE;
 
 	struct X3D_Coordinate *xc;
@@ -138,8 +138,8 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	/* new memory locations for new data */
 	int *newcindex;
 	int *newtcindex;
-	struct SFColor *newpoints;
-	struct SFColor *newnorms;
+	struct SFVec3f *newpoints;
+	struct SFVec3f *newnorms;
 	struct SFColorRGBA *newcolors;
 	struct SFColorRGBA *oldColorsRGBA;
 	float *newtc;
@@ -236,7 +236,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 		printf ("mustGenerateTextures, MALLOCing newtc\n");
 		#endif
 
-		newtc = (float *) MALLOC (sizeof (float)*2*r->ntri*3);
+		newtc = MALLOC (float *, sizeof (float)*2*r->ntri*3);
 	} else {
 		newtc = 0;  	/*  unless we have to use it; look for MALLOC below*/
 	}
@@ -244,21 +244,21 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	newcolors=0;	/*  only if we have colours*/
 
 	/* MALLOC required memory */
-	newcindex = (int*)MALLOC (sizeof (int)*r->ntri*3);
-	newtcindex = (int*)MALLOC (sizeof (int)*r->ntri*3);
+	newcindex = MALLOC (int *, sizeof (int)*r->ntri*3);
+	newtcindex = MALLOC (int *, sizeof (int)*r->ntri*3);
 
-	newpoints = (struct SFColor*)MALLOC (sizeof (struct SFColor)*r->ntri*3);
+	newpoints = MALLOC (struct SFVec3f *, sizeof (struct SFVec3f)*r->ntri*3);
 	
 
 	if ((nnormals) || (r->normal)) {
-		newnorms = (struct SFColor*)MALLOC (sizeof (struct SFColor)*r->ntri*3);
+		newnorms = MALLOC (struct SFVec3f *, sizeof (struct SFVec3f)*r->ntri*3);
 	} else newnorms = 0;
 
 
 	/* if we have colours, make up a new structure for them to stream to, and also
 	   copy pointers to ensure that we index through colorRGBAs properly. */
 	if (hasc) {
-		newcolors = (struct SFColorRGBA*)MALLOC (sizeof (struct SFColorRGBA)*r->ntri*3);
+		newcolors = MALLOC (struct SFColorRGBA *, sizeof (struct SFColorRGBA)*r->ntri*3);
 		oldColorsRGBA = (struct SFColorRGBA*) colors;
 	}
 
@@ -572,7 +572,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 
 
 
-static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r, struct SFColor *points, int npoints) {
+static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r, struct SFVec3f *points, int npoints) {
 
 	/* variables used only in this routine */
 	GLfloat Tsize = 0.0f;

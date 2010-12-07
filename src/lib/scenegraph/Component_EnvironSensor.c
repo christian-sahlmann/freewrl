@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.15 2010/09/21 20:00:25 crc_canada Exp $
+$Id: Component_EnvironSensor.c,v 1.16 2010/12/07 18:27:50 crc_canada Exp $
 
 X3D Environmental Sensors Component
 
@@ -119,10 +119,12 @@ static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 		MARK_NODE_COMPILED
 
 		/*  MALLOC memory (if possible)*/
-		if (!node->__points) node->__points = MALLOC (sizeof(struct SFColor)*(36));
+		/* do not worry about the __points.n field; we know the size by default */
+		if (!node->__points.p) node->__points.p = MALLOC (struct SFVec3f*, sizeof(struct SFVec3f)*(36));
+
 
 		/*  now, create points; 4 points per face.*/
-		pt = (float *) node->__points;
+		pt = (float *) node->__points.p;
 
 		#define PTF0 *pt++ = cx+x; *pt++ = cy+y; *pt++ = cz+z;
 		#define PTF1 *pt++ = cx-x; *pt++ = cy+y; *pt++ = cz+z;
@@ -149,7 +151,7 @@ static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	FW_GL_COLOR4F(0.0f, 1.0f, 0.0f, 0.0f);
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
-	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *)node->__points);
+	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 	FW_GL_NORMAL_POINTER(GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.32 2010/10/26 13:40:04 crc_canada Exp $
+$Id: SensInterps.c,v 1.33 2010/12/07 18:27:50 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -251,8 +251,8 @@ void do_OintScalar (void *node) {
 void do_OintNormal(void *node) {
 	struct X3D_NormalInterpolator *px;
 	int kin, kvin/* , counter */;
-	struct SFColor *kVs;
-	struct SFColor *valchanged;
+	struct SFVec3f *kVs;
+	struct SFVec3f *valchanged;
 
 	int thisone, prevone;	/* which keyValues we are interpolating between */
 	int tmp;
@@ -287,7 +287,7 @@ void do_OintNormal(void *node) {
 			FREE_IF_NZ (px->value_changed.p);
 		}
 		px->value_changed.n = kpkv;
-		px->value_changed.p =(struct SFColor*) MALLOC (sizeof (struct SFColor) * kpkv);
+		px->value_changed.p = MALLOC (struct SFVec3f*, sizeof (struct SFVec3f) * kpkv);
 	}
 
 	/* shortcut valchanged; have to put it here because might be reMALLOC'd */
@@ -405,8 +405,8 @@ void do_OintNormal(void *node) {
 void do_OintCoord(void *node) {
 	struct X3D_CoordinateInterpolator *px;
 	int kin, kvin/* , counter */;
-	struct SFColor *kVs;
-	struct SFColor *valchanged;
+	struct SFVec3f *kVs;
+	struct SFVec3f *valchanged;
 
 	int thisone, prevone;	/* which keyValues we are interpolating between */
 	int tmp;
@@ -434,13 +434,13 @@ void do_OintCoord(void *node) {
 	if (kpkv != px->value_changed.n) {
 		#ifdef SEVERBOSE
 		    printf ("refactor valuechanged array. n %d sizeof p %d\n",
-			kpkv,sizeof (struct SFColor) * kpkv);
+			kpkv,sizeof (struct SFVec3f) * kpkv);
 		#endif
 		if (px->value_changed.n != 0) {
 			FREE_IF_NZ (px->value_changed.p);
 		}
 		px->value_changed.n = kpkv;
-		px->value_changed.p =(struct SFColor*) MALLOC (sizeof (struct SFColor) * kpkv);
+		px->value_changed.p = MALLOC (struct SFVec3f*, sizeof (struct SFVec3f) * kpkv);
 	}
 
 	/* shortcut valchanged; have to put it here because might be reMALLOC'd */
@@ -477,7 +477,7 @@ void do_OintCoord(void *node) {
 
 		for (indx = 0; indx < kpkv; indx++) {
 			memcpy ((void *)&valchanged[indx],
-				(void *)&kVs[indx], sizeof (struct SFColor));
+				(void *)&kVs[indx], sizeof (struct SFVec3f));
 			/* JAS valchanged[indx].c[0] = kVs[indx].c[0]; */
 			/* JAS valchanged[indx].c[1] = kVs[indx].c[1]; */
 			/* JAS valchanged[indx].c[2] = kVs[indx].c[2]; */
@@ -493,7 +493,7 @@ void do_OintCoord(void *node) {
 		for (indx = 0; indx < kpkv; indx++) {
 			memcpy ((void *)&valchanged[indx],
 				(void *)&kVs[kvin-kpkv+indx],
-				sizeof (struct SFColor));
+				sizeof (struct SFVec3f));
 		}
 		#ifdef SEVERBOSE
 		printf ("COINT out2 finished\n");
@@ -586,7 +586,7 @@ void do_OintCoord2D(void *node) {
 			FREE_IF_NZ (px->value_changed.p);
 		}
 		px->value_changed.n = kpkv;
-		px->value_changed.p =(struct SFVec2f*) MALLOC (sizeof (struct SFVec2f) * kpkv);
+		px->value_changed.p = MALLOC (struct SFVec2f*, sizeof (struct SFVec2f) * kpkv);
 	}
 
 	/* shortcut valchanged; have to put it here because might be reMALLOC'd */
@@ -809,7 +809,7 @@ void do_ColorInterpolator (void *node) {
 void do_PositionInterpolator (void *node) {
 	struct X3D_PositionInterpolator *px;
 	int kin, kvin, counter, tmp;
-	struct SFColor *kVs; 
+	struct SFVec3f *kVs; 
 
 	if (!node) return;
 	px = (struct X3D_PositionInterpolator *) node;
@@ -821,7 +821,7 @@ void do_PositionInterpolator (void *node) {
 	MARK_EVENT (node, offsetof (struct X3D_PositionInterpolator, value_changed)); 
 
 	#ifdef SEVERBOSE
-		printf("do_PositionInt: Position/Color interp, node %u kin %d kvin %d set_fraction %f\n",
+		printf("do_PositionInt: Position/Vec3f interp, node %u kin %d kvin %d set_fraction %f\n",
 			   node, kin, kvin, px->set_fraction);
 	#endif
 
@@ -837,9 +837,9 @@ void do_PositionInterpolator (void *node) {
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= ((px->key).p[0])) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFColor));
+		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3f));
 	} else if (px->set_fraction >= px->key.p[kin-1]) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFColor));
+		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3f));
 	} else {
 		/* have to go through and find the key before */
 		counter = find_key(kin,((float)(px->set_fraction)),px->key.p);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.36 2010/03/23 17:00:45 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.37 2010/12/07 18:27:50 crc_canada Exp $
 
 ???
 
@@ -86,10 +86,10 @@ struct Uni_String *newASCIIString(char *str) {
 	}
 
 	/* the returning Uni_String is here. Make blank struct */
-	retval = MALLOC (sizeof (struct Uni_String));
+	retval = MALLOC (struct Uni_String *, sizeof (struct Uni_String));
 	len = (int) strlen(str);
 
-	retval->strptr  = MALLOC (sizeof(char) * len+1);
+	retval->strptr  = MALLOC (char *, sizeof(char) * len+1);
 	strncpy(retval->strptr,str,len+1);
 	retval->len = len+1;
 	retval->touched = 1; /* make it 1, to signal that this is a NEW string. */
@@ -116,7 +116,7 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 	if (strcmp(str,unis->strptr)!= 0) {
 		os = unis->strptr;
 		len = strlen(str);
-		ns = MALLOC (len+1);
+		ns = MALLOC (char *,len+1);
 		strncpy(ns,str,len+1);
 		unis->strptr = ns;
 		FREE_IF_NZ (os);
@@ -323,7 +323,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 			size_t len;
 			 /* printf ("have to quote this string\n"); */
 			len = strlen(value);
-			mfstringtmp = MALLOC (sizeof (char *) * len + 10);
+			mfstringtmp = MALLOC (char *, sizeof (char *) * len + 10);
 			memcpy (&mfstringtmp[1],value,len);
 			mfstringtmp[0] = '"';
 			mfstringtmp[len+1] = '"';
