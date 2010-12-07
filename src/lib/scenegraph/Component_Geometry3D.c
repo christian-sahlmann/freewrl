@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.48 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.49 2010/12/07 19:30:10 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -90,7 +90,7 @@ static GLfloat VBO_coneSideTexParams[]={
 
 /*  have to regen the shape*/
 void compile_Box (struct X3D_Box *node) {
-	float *pt;
+	struct SFVec3f *pt;
 	struct SFVec3f *ptr;
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
@@ -103,15 +103,17 @@ void compile_Box (struct X3D_Box *node) {
 	else ptr = node->__points.p;
 
 	/*  now, create points; 6 points per face.*/
-	pt = (float *) ptr;
-#define PTF0 *pt++ =  x; *pt++ =  y; *pt++ =  z;
-#define PTF1 *pt++ = -x; *pt++ =  y; *pt++ =  z;
-#define PTF2 *pt++ = -x; *pt++ = -y; *pt++ =  z;
-#define PTF3 *pt++ =  x; *pt++ = -y; *pt++ =  z;
-#define PTR0 *pt++ =  x; *pt++ =  y; *pt++ =  -z;
-#define PTR1 *pt++ = -x; *pt++ =  y; *pt++ =  -z;
-#define PTR2 *pt++ = -x; *pt++ = -y; *pt++ =  -z;
-#define PTR3 *pt++ =  x; *pt++ = -y; *pt++ =  -z;
+	pt = ptr;
+
+	
+#define PTF0 (*pt).c[0] =  x; (*pt).c[1] =  y; (*pt).c[2] =  z; pt++;
+#define PTF1 (*pt).c[0] = -x; (*pt).c[1] =  y; (*pt).c[2] =  z; pt++;
+#define PTF2 (*pt).c[0] = -x; (*pt).c[1] = -y; (*pt).c[2] =  z; pt++;  
+#define PTF3 (*pt).c[0] =  x; (*pt).c[1] = -y; (*pt).c[2] =  z; pt++;
+#define PTR0 (*pt).c[0] =  x; (*pt).c[1] =  y; (*pt).c[2] =  -z; pt++;
+#define PTR1 (*pt).c[0] = -x; (*pt).c[1] =  y; (*pt).c[2] =  -z; pt++;
+#define PTR2 (*pt).c[0] = -x; (*pt).c[1] = -y; (*pt).c[2] =  -z; pt++;
+#define PTR3 (*pt).c[0] =  x; (*pt).c[1] = -y; (*pt).c[2] =  -z; pt++;
 
 
 	PTF0 PTF1 PTF2  PTF0 PTF2 PTF3 /* front */
@@ -122,7 +124,7 @@ void compile_Box (struct X3D_Box *node) {
 	PTF1 PTR1 PTR2  PTF1 PTR2 PTF2 /* left */
 
 	/* finished, and have good data */
-	node->__points.p = (struct SFVec3f *) ptr;
+	node->__points.p = ptr;
 }
 #undef PTF0
 #undef PTF1
