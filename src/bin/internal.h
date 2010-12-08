@@ -6,7 +6,7 @@
  *
  * Version embedded.
  *
- * $Id: internal.h,v 1.6 2009/12/17 20:44:56 crc_canada Exp $
+ * $Id: internal.h,v 1.7 2010/12/08 13:05:54 crc_canada Exp $
  *
  *******************************************************************/
 
@@ -67,7 +67,7 @@ extern const char *freewrl_get_version();
  */
 #if defined(FW_DEBUG) && defined(DEBUG_MALLOC)
 
-# define MALLOC(_sz) freewrlMalloc(__LINE__,__FILE__,_sz,FALSE)
+# define MALLOC(t,_sz) ((t)freewrlMalloc(__LINE__,__FILE__,_sz,FALSE))
 # define REALLOC(_a,_b) freewrlRealloc(__LINE__,__FILE__,_a,_b) 
 # define FREE(_ptr) freewrlFree(__LINE__,__FILE__,_ptr)
 # define STRDUP(_a) freewrlStrdup(__LINE__,__FILE__,_a)
@@ -88,7 +88,7 @@ void *freewrlStrdup(int line, char *file, char *str);
 
 #else /* defined(FW_DEBUG) && defined(DEBUG_MALLOC) */
 
-# define MALLOC malloc
+# define MALLOC(t,sz) ((t)malloc(sz))
 # define REALLOC realloc
 # define FREE free
 #if defined(_MSC_VER)

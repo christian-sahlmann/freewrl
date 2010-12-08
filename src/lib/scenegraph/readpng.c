@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: readpng.c,v 1.6 2010/05/27 14:01:23 istakenv Exp $
+$Id: readpng.c,v 1.7 2010/12/08 13:05:54 crc_canada Exp $
 
 FreeWRL now only uses this on Linux machines.
 
@@ -214,11 +214,11 @@ uch *readpng_get_image(double display_exponent, int *pChannels, ulg *pRowbytes)
     *pRowbytes = rowbytes = png_get_rowbytes(png_ptr, info_ptr);
     *pChannels = (int)png_get_channels(png_ptr, info_ptr);
 
-    if ((image_data = (uch *)MALLOC(rowbytes*height)) == NULL) {
+    if ((image_data = MALLOC(uch *, rowbytes*height)) == NULL) {
         png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
         return NULL;
     }
-    if ((row_pointers = (png_bytepp)MALLOC(height*sizeof(png_bytep))) == NULL) {
+    if ((row_pointers = MALLOC(png_bytepp, height*sizeof(png_bytep))) == NULL) {
         png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
         FREE_IF_NZ(image_data);
         return NULL;

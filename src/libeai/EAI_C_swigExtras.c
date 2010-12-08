@@ -490,7 +490,7 @@ char * _x3ditoa(int ival, char* bigbuf)
 	int len;
 	sprintf(bigbuf,"%d ",ival); /*note blank separator */
 	len = strlen(bigbuf);
-	retbuf = (char*)MALLOC(len+1);
+	retbuf = MALLOC(char *, len+1);
 	strcpy(retbuf,bigbuf);
 	return retbuf;
 }
@@ -500,7 +500,7 @@ char * _x3dftoa(float fval, char* bigbuf)
 	int len;
 	sprintf(bigbuf,"%f ",fval); /*note blank separator */
 	len = strlen(bigbuf);
-	retbuf = (char*)MALLOC(len+1);
+	retbuf = MALLOC(char *, len+1);
 	strcpy(retbuf,bigbuf);
 	return retbuf;
 }
@@ -510,7 +510,7 @@ char * _x3ddtoa(double dval, char* bigbuf)
 	int len;
 	sprintf(bigbuf,"%f ",dval); /*note blank separator */
 	len = strlen(bigbuf);
-	retbuf = (char*)MALLOC(len+1);
+	retbuf = MALLOC(char *, len+1);
 	strcpy(retbuf,bigbuf);
 	return retbuf;
 }
@@ -520,7 +520,7 @@ char * _x3datoa(char *aval, char* bigbuf)
 	char *retbuf;
 	int len;
 	len = strlen(aval);
-	retbuf = (char*)MALLOC(len+4);
+	retbuf = MALLOC(char *, len+4);
 	sprintf(retbuf,"\"%s\" ",aval);
 	retbuf[len+3] = '\0';
 	return retbuf;
@@ -551,7 +551,7 @@ char * X3D_swigStringFromField(X3DNode* field)
 	else
 		count = count + 1;
 	tokens = (char** )malloc(count*sizeof(char*));
-	/*buf = (char*)MALLOC(500); /*just for 1 token - sf string might be the largest*/
+	/*buf = MALLOC(char *, 500); /*just for 1 token - sf string might be the largest*/
 	switch (type) 
 	{
 	case FIELDTYPE_SFFloat:
@@ -575,7 +575,7 @@ char * X3D_swigStringFromField(X3DNode* field)
 	size = 0;
 	for(i=0;i<count;i++) size = size + strlen(tokens[i]);
 	/* FREE_IF_NZ(buf); */
-	string = MALLOC((size+1)*sizeof(char));
+	string = MALLOC(char *, (size+1)*sizeof(char));
 	string[0] = '\0';
 	for(i=0;i<count;i++)
 	{
@@ -630,7 +630,7 @@ X3DNode* X3D_swigFieldFromString(char* fieldtype, char* values)
 	case FIELDTYPE_MFColor:
 
 		count = getnumtokens(vals,delim);
-		farray = (float*)MALLOC(count*sizeof(float));
+		farray = MALLOC(float *, count*sizeof(float));
 		memcpy(vals,values,len);
 		token = strtok(vals,delim);
 		count  = 0;
@@ -642,9 +642,9 @@ X3DNode* X3D_swigFieldFromString(char* fieldtype, char* values)
 			}
 			token = strtok(NULL,delim);
 		}
-		f2 = (float**)MALLOC(count*sizeof(float*));
-		f3 = (float**)MALLOC(count*sizeof(float*));
-		f4 = (float**)MALLOC(count*sizeof(float*));
+		f2 = MALLOC(float **, count*sizeof(float*));
+		f3 = MALLOC(float **, count*sizeof(float*));
+		f4 = MALLOC(float **, count*sizeof(float*));
 		for(i=0;i<count;i++) 
 		{
 			f2[i] = &farray[i*2];
@@ -693,7 +693,7 @@ X3DNode* X3D_swigFieldFromString(char* fieldtype, char* values)
 	case FIELDTYPE_SFVec2d:
 	case FIELDTYPE_SFVec3d:
 		count = getnumtokens(vals,delim);
-		darray = (double*)MALLOC(count*sizeof(double));
+		darray = MALLOC(double *, count*sizeof(double));
 		memcpy(vals,values,len);
 		token = strtok(vals,delim);
 		count  = 0;
@@ -705,9 +705,9 @@ X3DNode* X3D_swigFieldFromString(char* fieldtype, char* values)
 			}
 			token = strtok(NULL,delim);
 		}
-		d2 = (double**)MALLOC(count*sizeof(double*));
-		d3 = (double**)MALLOC(count*sizeof(double*));
-		d4 = (double**)MALLOC(count*sizeof(double*));
+		d2 = MALLOC(double **, count*sizeof(double*));
+		d3 = MALLOC(double **, count*sizeof(double*));
+		d4 = MALLOC(double **, count*sizeof(double*));
 		for(i=0;i<count;i++) 
 		{
 			d2[i] = &darray[i*2];
@@ -734,7 +734,7 @@ X3DNode* X3D_swigFieldFromString(char* fieldtype, char* values)
 		/*
 		retval->X3D_SFString.type = FIELDTYPE_SFString;
 		len = strlen(values);
-		retval->X3D_SFString.p[count].strptr = MALLOC((len+1)*sizeof(char));
+		retval->X3D_SFString.p[count].strptr = MALLOC(char *, (len+1)*sizeof(char));
 		strncpy(retval->X3D_SFString.p[count].strptr,values,len);
 		retval->X3D_SFString.strptr[len] = '\0';
 		retval->X3D_SFString.len = len;
@@ -750,8 +750,8 @@ X3DNode* X3D_swigFieldFromString(char* fieldtype, char* values)
 			if( vals[i] == '\"' )n++;
 		n = n/2;
 		/*
-		c = (char *)MALLOC(n*STRLEN*sizeof(char));
-		carray = (char **)MALLOC(n*(sizeof(char*)));
+		c = MALLOC(char *, n*STRLEN*sizeof(char));
+		carray = MALLOC(char **, n*(sizeof(char*)));
 		for(i=0;i<n;i++)
 			carray[i] = &c[i*STRLEN];
 		*/
@@ -768,7 +768,7 @@ X3DNode* X3D_swigFieldFromString(char* fieldtype, char* values)
 				{
 					end = i;
 					len = end - start; /* if "Y" start=0,end=2 need a string 2 long for Y and \0. len=end-start= 2-0=2 */
-					retval->X3D_MFString.p[count].strptr = MALLOC(len*sizeof(char));
+					retval->X3D_MFString.p[count].strptr = MALLOC(char *, len*sizeof(char));
 					strncpy(retval->X3D_MFString.p[count].strptr,&vals[start+1],len-1);
 					/*strncpy(carray[count],&vals[start+1],len-1);
 					carray[count][len-1] = '\0';*/

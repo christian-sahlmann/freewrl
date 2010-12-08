@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.29 2010/12/07 18:27:50 crc_canada Exp $
+$Id: JScript.c,v 1.30 2010/12/08 13:05:54 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -645,7 +645,7 @@ static char* re_strcat(char *_Dest, char *_Source, int *destLen, int *destDim)
 	   Usage example:
 		dstdim = (rows+1)*(elements*15) + 100; //a guess
 		dstlen = 0;
-		smallfield = MALLOC (dstdim+1); //rows+1)*(elements*15) + 100);
+		smallfield = MALLOC (char *, dstdim+1); //rows+1)*(elements*15) + 100);
 		smallfield[0] = '\0';
 		...
 		for(;;)
