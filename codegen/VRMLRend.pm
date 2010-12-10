@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.36 2010/10/12 00:34:12 dug9 Exp $
+# $Id: VRMLRend.pm,v 1.37 2010/12/10 17:17:19 davejoubert Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,24 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.37  2010/12/10 17:17:19  davejoubert
+# Add OSC capability to FreeWRL. This update is spread across several files,
+# but the two post important changed are in codegen/VRMLNodes.pm and
+# src/lib/scenegraph/Component_Networking.c
+# Modified Files:
+# 	configure.ac codegen/VRMLC.pm codegen/VRMLNodes.pm
+# 	codegen/VRMLRend.pm src/lib/Makefile.am
+# 	src/lib/Makefile.sources src/lib/main/MainLoop.c
+# 	src/lib/main/MainLoop.h
+# 	src/lib/scenegraph/Component_Networking.c
+# 	src/lib/scenegraph/Component_Networking.h
+# 	src/lib/scenegraph/GeneratedCode.c
+# 	src/lib/vrml_parser/NodeFields.h src/lib/vrml_parser/Structs.h
+# 	src/lib/world_script/jsUtils.c src/libeai/GeneratedCode.c
+# Added Files:
+# 	src/lib/scenegraph/OSCcallbacks.c src/lib/scenegraph/ringbuf.c
+# 	src/lib/scenegraph/ringbuf.h
+#
 # Revision 1.36  2010/10/12 00:34:12  dug9
 # dug9 - codegeneration - added *other() virtual function, and assigned pointpicksensor, pickablegroup and sphere to implement it, put stubs for these other() functions for those that don't implement it.
 #
@@ -286,6 +304,7 @@
 #.....
 
 # DJTRACK_PICKSENSORS See PointPickSensor
+# See WANT_OSC
 # used for the X3D Parser only. Return type of node.
 %defaultContainerType = (
 	ContourPolyLine2D 	=>geometry,
@@ -293,7 +312,7 @@
 	MidiControl		=>children,
 	MidiKey			=>children,
 	PointPickSensor		=>children,
-
+	OSC_Sensor		=>children,
 
 	Arc2D			=>geometry,
 	ArcClose2D		=>geometry,

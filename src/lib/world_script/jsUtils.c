@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.27 2010/12/06 18:39:10 davejoubert Exp $
+$Id: jsUtils.c,v 1.28 2010/12/10 17:17:20 davejoubert Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -54,6 +54,15 @@ which is the sample application included with the javascript engine.
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
 
+#ifdef WANT_OSC
+	#include "../scenegraph/ringbuf.h"
+	#define USE_OSC 1
+	#define TRACK_FIFO_MSG 0
+#else
+	#define USE_OSC 0
+	#define TRACK_FIFO_MSG 0
+#endif
+#define TRY_PROTO_FIX 1
 extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in GeneratedCode.c
 extern char *parser_getNameFromNode(struct X3D_Node *ptr) ; /* vi +/dump_scene src/lib/scenegraph/GeneratedCode.c */
 
@@ -797,19 +806,65 @@ static int *getFOP (struct X3D_Node *node, const char *str) {
                         printf ("getFOP, looking at field %s type %s to match %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)],str); 
 			#endif
 
-			/* skip any fieldNames starting with an underscore, as these are "internal" ones */
-			/* There is in fact nothing in this function that actually enforces this, which is good!! */
-			if (strcmp(str,FIELDNAMES[*fieldOffsetsPtr]) == 0) {
-				#ifdef JSVRMLCLASSESVERBOSE
-				printf ("getFOP, found entry for %s, it is %u (%p)\n",str,fieldOffsetsPtr,fieldOffsetsPtr);
-				#endif
-				return fieldOffsetsPtr;
-			}
+#if TRY_PROTO_FIX
+			if( 0 == strcmp("FreeWRL_PROTOInterfaceNodes",FIELDNAMES[*fieldOffsetsPtr])) {
+
+  				#ifdef JSVRMLCLASSESVERBOSE
+				printf ("%s:%d Mangle %s before trying to match %s\n",__FILE__,__LINE__,FIELDNAMES[*fieldOffsetsPtr],str);
+  				#endif
+				int i ;
+				char *name, *str1, *token;
+				char *saveptr1 = NULL;
+
+				for (i=0; i < X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.n; i++) {
+	       				name = parser_getNameFromNode(X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i]);
+					
+					#ifdef JSVRMLCLASSESVERBOSE
+					dump_scene(stdout,0,X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i]);
+					printf ("%s:%d dummy name=%s\n",__FILE__,__LINE__,name);
+					#endif
+
+					str1 = malloc(1+strlen(name));
+					strcpy(str1,name) ;
+					/* discard Proto_0xnnnnn_*/
+					token = strtok_r(str1, "_", &saveptr1);
+					str1 = NULL;
+					token = strtok_r(str1, "_", &saveptr1);
+					name = saveptr1 ;
+
+					#ifdef JSVRMLCLASSESVERBOSE
+					printf ("%s:%d test indirect match %s %s\n",__FILE__,__LINE__,str,parser_getNameFromNode(X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i])) ;
+					#endif
+					if (strcmp(str,name) == 0) {
+						#ifdef JSVRMLCLASSESVERBOSE
+						printf ("getFOP, found entry for %s, it is %u (%p)\n",str
+							,X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i]
+							,X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i]) ;
+						#endif
+						return X3D_GROUP(node)->FreeWRL_PROTOInterfaceNodes.p[i] ;
+					}
+				}
+			} else {
+#endif
+				/* skip any fieldNames starting with an underscore, as these are "internal" ones */
+				/* There is in fact nothing in this function that actually enforces this, which is good!! */
+				if (strcmp(str,FIELDNAMES[*fieldOffsetsPtr]) == 0) {
+					#ifdef JSVRMLCLASSESVERBOSE
+					printf ("getFOP, found entry for %s, it is %u (%p)\n",str,fieldOffsetsPtr,fieldOffsetsPtr);
+					#endif
+					return fieldOffsetsPtr;
+				}
+#if TRY_PROTO_FIX
+  			}
+#endif
 
 			fieldOffsetsPtr += 5;
 		}
 
 		/* failed to find field?? */
+		#if TRACK_FIFO_MSG
+		printf ("getFOP, could not find field \"%s\" in nodeType \"%s\"\n", str, stringNodeType(node->_nodeType));
+		#endif
 	} else {
 		printf ("getFOP, passed in X3D node was NULL!\n");
 	}
@@ -847,6 +902,104 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval
 		printf ("getSFNodeField, can not set field \"%s\", NODE is NULL!\n",_id_c);
 		return JS_FALSE;
 	}
+#if USE_OSC
+	/* Is this a ring buffer item? */
+	fieldOffsetsPtr = getFOP(ptr->handle,"FIFOsize");
+	if (fieldOffsetsPtr == NULL) {
+		#if TRACK_FIFO_MSG
+		printf("getSFNodeField : This is not a ringBuffer type\n");
+		#endif
+	} else {
+		struct X3D_OSC_Sensor *OSCnode ;
+		OSCnode = (struct X3D_OSC_Sensor *) X3D_NODE(ptr->handle);
+		char *_id_buffer_c = NULL ;
+		RingBuffer * buffer ;
+
+		int iVal ;
+		float fVal ;
+		char * strPtr ;
+
+		#if TRACK_FIFO_MSG
+		printf("getSFNodeField : This could be a ringBuffer type (found FIFOsize)\n");
+		#endif
+
+		if (0 == strcmp(_id_c,"int32Inp")) {
+			#if TRACK_FIFO_MSG
+			printf("getSFNodeField %d : ptr->handle=%p (which corresponds to realnode in scenegraph/Component_Networking.c,314) node=%p see X3D_NODE(ptr->handle)\n",__LINE__,ptr->handle , node);
+			#endif
+			/* fieldOffsetsPtr = getFOP(ptr->handle,_id_buffer_c); */
+			buffer = (RingBuffer *) OSCnode->_int32InpFIFO ;
+			#if TRACK_FIFO_MSG
+			printf("getSFNodeField %d : buffer=%p\n",__LINE__,buffer) ;
+			#endif
+
+			if (!RingBuffer_testEmpty(buffer)) {
+				_id_buffer_c = "_int32InpFIFO" ;
+				iVal = RingBuffer_pullUnion(buffer)->i ;
+				#if TRACK_FIFO_MSG
+				printf("getSFNodeField %d : iVal=%d\n",__LINE__,iVal);
+				#endif
+
+				*vp = INT_TO_JSVAL(iVal) ;
+				return JS_TRUE;
+			} else {
+				#if TRACK_FIFO_MSG
+				printf("but the buffer is empty\n") ;
+				#endif
+			}
+		} else if (0 == strcmp(_id_c,"floatInp")) {
+			#if TRACK_FIFO_MSG
+			printf("getSFNodeField %d : ptr->handle=%p (which corresponds to realnode in scenegraph/Component_Networking.c,314) node=%p see X3D_NODE(ptr->handle)\n",__LINE__,ptr->handle , node);
+			#endif
+			buffer = (RingBuffer *) OSCnode->_floatInpFIFO ;
+			#if TRACK_FIFO_MSG
+			printf("getSFNodeField %d : buffer=%p\n",__LINE__,buffer) ;
+			#endif
+
+			if (!RingBuffer_testEmpty(buffer)) {
+				_id_buffer_c = "_floatInpFIFO" ;
+				fVal = RingBuffer_pullUnion(buffer)->f ;
+				#if TRACK_FIFO_MSG
+				printf("getSFNodeField %d : fVal=%d\n",__LINE__,fVal);
+				#endif
+
+				*vp = DOUBLE_TO_JSVAL(JS_NewDouble(context,(double)fVal));
+				return JS_TRUE;
+			} else {
+				#if TRACK_FIFO_MSG
+				printf("but the buffer is empty\n") ;
+				#endif
+			}
+		} else if (0 == strcmp(_id_c,"stringInp")) {
+			#if TRACK_FIFO_MSG
+			printf("getSFNodeField %d : ptr->handle=%p (which corresponds to realnode in scenegraph/Component_Networking.c,314) node=%p see X3D_NODE(ptr->handle)\n",__LINE__,ptr->handle , node);
+			#endif
+			buffer = (RingBuffer *) OSCnode->_stringInpFIFO ;
+			#if TRACK_FIFO_MSG
+			printf("getSFNodeField %d : buffer=%p\n",__LINE__,buffer) ;
+			#endif
+
+			if (!RingBuffer_testEmpty(buffer)) {
+				_id_buffer_c = "_stringInpFIFO" ;
+				strPtr = (char *) RingBuffer_pullUnion(buffer)->p ;
+				#if TRACK_FIFO_MSG
+				printf("getSFNodeField %d : strPtr=%s\n",__LINE__,strPtr);
+				#endif
+
+				*vp = STRING_TO_JSVAL(JS_NewStringCopyZ(context,strPtr));
+				return JS_TRUE;
+			} else {
+				#if TRACK_FIFO_MSG
+				printf("but the buffer is empty\n") ;
+				#endif
+			}
+		} else {
+			#if TRACK_FIFO_MSG
+			printf("but this variable itself (%s) is not a ring buffer item\n",_id_c) ;
+			#endif
+		}
+	}
+#endif
 
 	/* get the table entry giving the type, offset, etc. of this field in this node */
 	fieldOffsetsPtr = getFOP(ptr->handle,_id_c);
@@ -938,6 +1091,20 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("so then, we have a node of type %s\n",stringNodeType(node->_nodeType));
+	#endif
+
+	#if USE_OSC
+	#ifdef JSVRMLCLASSESVERBOSE
+	/* Is this a ring buffer item? */
+	fieldOffsetsPtr = getFOP(ptr->handle,"FIFOsize");
+	#if TRACK_FIFO_MSG
+	if (fieldOffsetsPtr == NULL) {
+		printf("setSFNodeField : This is not a ringBuffer type\n");
+	} else {
+		printf("setSFNodeField : This is a ringBuffer type\n");
+	}
+	#endif
+	#endif
 	#endif
 
 	/* get the table entry giving the type, offset, etc. of this field in this node */
@@ -1063,8 +1230,46 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
                         printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
 			#endif
 			
-			/* skip any fieldNames starting with an underscore, as these are "internal" ones */
+#if USE_OSC
+			if( 0 == strcmp("FreeWRL_PROTOInterfaceNodes",FIELDNAMES[*fieldOffsetsPtr])) {
+
+				#ifdef JSVRMLCLASSESVERBOSE
+				printf ("%s:%d Mangle %s before calling JS_DefineProperty ....\n",__FILE__,__LINE__,FIELDNAMES[*fieldOffsetsPtr]);
+				#endif
+				int i ;
+				char *str1, *token;
+				char *saveptr1 = NULL;
+
+				for (i=0; i < X3D_GROUP(ptr)->FreeWRL_PROTOInterfaceNodes.n; i++) {
+					rval = INT_TO_JSVAL(*fieldOffsetsPtr);
+        				name = parser_getNameFromNode(X3D_GROUP(ptr)->FreeWRL_PROTOInterfaceNodes.p[i]);
+					
+					#ifdef JSVRMLCLASSESVERBOSE
+					dump_scene(stdout,0,X3D_GROUP(ptr)->FreeWRL_PROTOInterfaceNodes.p[i]);
+					printf ("%s:%d dummy name=%s\n",__FILE__,__LINE__,name);
+					#endif
+
+					str1 = malloc(1+strlen(name));
+					strcpy(str1,name) ;
+					/* discard Proto_0xnnnnn_*/
+					token = strtok_r(str1, "_", &saveptr1);
+					str1 = NULL;
+					token = strtok_r(str1, "_", &saveptr1);
+					name = saveptr1 ;
+
+					#ifdef JSVRMLCLASSESVERBOSE
+					printf ("%s:%d would call JS_DefineProperty on (context=%p, object=%p, name=%s, rval=%p), setting getSFNodeField, setSFNodeField\n",__FILE__,__LINE__,context,object,name,rval);
+					#endif
+					if (!JS_DefineProperty(context, object,  name, rval, getSFNodeField, setSFNodeField, attrs)) {
+						printf("JS_DefineProperty failed for \"%s\" in JS_DefineSFNodeSpecificProperties.\n", name);
+						return JS_FALSE;
+					}
+				}
+			} else if (FIELDNAMES[*fieldOffsetsPtr][0] != '_') {
+#else
 			if (FIELDNAMES[*fieldOffsetsPtr][0] != '_') {
+#endif
+				/* skip any fieldNames starting with an underscore, as these are "internal" ones */
 				name = (char *)FIELDNAMES[*fieldOffsetsPtr];
 				rval = INT_TO_JSVAL(*fieldOffsetsPtr);
 

@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.58 2010/12/07 18:27:49 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.59 2010/12/10 17:17:19 davejoubert Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,24 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.59  2010/12/10 17:17:19  davejoubert
+# Add OSC capability to FreeWRL. This update is spread across several files,
+# but the two post important changed are in codegen/VRMLNodes.pm and
+# src/lib/scenegraph/Component_Networking.c
+# Modified Files:
+# 	configure.ac codegen/VRMLC.pm codegen/VRMLNodes.pm
+# 	codegen/VRMLRend.pm src/lib/Makefile.am
+# 	src/lib/Makefile.sources src/lib/main/MainLoop.c
+# 	src/lib/main/MainLoop.h
+# 	src/lib/scenegraph/Component_Networking.c
+# 	src/lib/scenegraph/Component_Networking.h
+# 	src/lib/scenegraph/GeneratedCode.c
+# 	src/lib/vrml_parser/NodeFields.h src/lib/vrml_parser/Structs.h
+# 	src/lib/world_script/jsUtils.c src/libeai/GeneratedCode.c
+# Added Files:
+# 	src/lib/scenegraph/OSCcallbacks.c src/lib/scenegraph/ringbuf.c
+# 	src/lib/scenegraph/ringbuf.h
+#
 # Revision 1.58  2010/12/07 18:27:49  crc_canada
 # MALLOC changes;
 # some hidden fields now have real types, not FreeWRLPTR;
@@ -708,6 +726,7 @@ sub gen {
 		"#include \"../opengl/Textures.h\" \n".
 		"#include \"Component_CubeMapTexturing.h\" \n".
 		"#include \"Polyrep.h\" \n".
+		"void add_OSCsensor(struct X3D_Node* node); /* WANT_OSC*/\n".
 		"void addNodeToKeySensorList(struct X3D_Node* node);\n".
 		"void collide_genericfaceset (struct X3D_IndexedFaceSet *node );\n".
 		"void make_genericfaceset(struct X3D_IndexedFaceSet *this_);\n".
@@ -1527,6 +1546,8 @@ sub gen {
 	"	registerX3DNode(tmp);\n".
 	"	/* is this a bindable node? */\n".
 	"	registerBindable(tmp);\n".
+	"	/* is this a OSC sensor node? */\n".
+	"	add_OSCsensor(tmp); /* WANT_OSC */\n".
 	"	/* is this a pick sensor node? */\n".
 	"	add_picksensor(tmp); /* DJTRACK_PICKSENSORS */\n".
 	"	/* is this a time tick node? */\n".

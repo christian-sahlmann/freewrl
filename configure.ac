@@ -592,6 +592,16 @@ AM_CONDITIONAL([STATUSBAR_STD], [test "$statusbar" = standard])
 AM_CONDITIONAL([STATUSBAR_HUD], [test "$statusbar" = hud])
 
 # ======================================
+# OSC enable
+# ======================================
+
+AC_MY_SWITCH(osc,[enable building of OSC plugin support],off)
+if test x$sw_osc = xyes; then
+ PKG_CHECK_MODULES(LIBLO, liblo, AC_DEFINE(WANT_OSC,1,[Define if liblo
+ exists and OSC support wanted]), AC_MSG_ERROR([Skipping OSC, no liblo installed]))
+fi
+
+# ======================================
 # FreeWRL helpers programs
 # ======================================
 

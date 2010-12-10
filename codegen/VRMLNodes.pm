@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.54 2010/12/07 18:27:49 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.55 2010/12/10 17:17:19 davejoubert Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2945,6 +2945,65 @@ package VRML::NodeType;
 	# testing...
 
 	###################################################################################
+#
+# Experimental node: OSC_Sensor
+#
+# Theory:
+# You define one or more OSC_Sensor node in your VRML file,
+# and route 'gotEvent' to a JavaScript node which triggers
+# when incoming data is received. Vague plans for a OSC_transmitter.
+#
+# Caveat: Only UDP is supported because that seems to be a hole in liblo.
+# *It defines  lo_server_thread_new_with_proto but does not seem to implement it.*
+#
+# See sample WRL: freewrl/tests/18-OSC-1.wrl
+#
+# listenfor: typical OSC data spec, for example iii
+# filter: typical OSC filter, for example /alpha/beta/gamma
+#
+# handler: You can choose to write your own handler in src/lib/scenegraph/OSCcallbacks.c
+# Uses: You may choose to take 3 incoming delta values and turn it into a vector.
+#	You may want to examine the values and turn a stream of packets into a single gesture
+# 2 handlers are supplied to use 'as is' or to use as a template for your own code:
+# nullOSC_handler - just swallows the callback. This is invoked if handler is undefined (or "")
+# defaultOSC_handler - just puts the data into the FIFOs; invoked if handler is defined as "default"
+#
+# Incoming values are placed into a set of FIFOs. So, if the external agent sent 3 deltas values,
+# all 3 values are placed into the FIFO. So, the dummy values intVal, strVal and fltVal are there
+# merely so that the JavaScript has something to talk about. The actaul Javascript utility routines
+# have been modified to look at FIFOsize. If FIFOsize > 0, then instead of doing a memcpy the
+# utility routines retrieve a single value out of the respective FIFO
+#
+	OSC_Sensor => new VRML::NodeType("OSC_Sensor", {
+
+		enabled => [SFBool, FALSE,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		description => [SFString, "", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		protocol => [SFString, "UDP", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		listenfor => [SFString, "", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		port => [SFInt32, 7000, inputOutput, 0],
+		filter => [SFString, "", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		handler => [SFString, "", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		talksTo => [MFString, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		FIFOsize  => [SFInt32, 64, inputOutput,, 0],
+		int32Inp => [SFInt32, 0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		floatInp => [SFFloat, 0.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		stringInp => [SFString, "", inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		gotEvents => [SFInt32, 0,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+
+		metadata => [SFNode, NULL, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+
+		_talkToNodes => [MFNode, [], inputOutput, 0],
+		_status => [SFInt32, -1, inputOutput, 0],
+		_int32InpFIFO => [FreeWRLPTR,0,initializeOnly, 0],
+		_floatInpFIFO => [FreeWRLPTR,0,initializeOnly, 0],
+		_stringInpFIFO => [FreeWRLPTR,0,initializeOnly, 0],
+		_int32OutFIFO => [FreeWRLPTR,0,initializeOnly, 0],
+		_floatOutFIFO => [FreeWRLPTR,0,initializeOnly, 0],
+		_stringOutFIFO => [FreeWRLPTR,0,initializeOnly, 0],
+		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
+
+	},"X3DNetworkSensorNode"),
+
 
 	# A PickableGroup node is an X3DGroupingNode that contains children that are marked
 	# as being of a given classification of picking types, as well as the ability to enable or disable picking of the children.

@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.37 2010/10/12 19:46:24 istakenv Exp $
+# $Id: Makefile.sources,v 1.38 2010/12/10 17:17:19 davejoubert Exp $
 #
 # List all source files
 #
@@ -145,6 +145,8 @@ scenegraph/Component_Sound.c \
 scenegraph/Component_Geometry3D.c \
 scenegraph/Component_Geometry3D.h \
 scenegraph/Polyrep.h \
+scenegraph/ringbuf.c \
+scenegraph/ringbuf.h \
 scenegraph/Component_Networking.c \
 scenegraph/Component_Networking.h \
 scenegraph/Component_PointingDevice.c \

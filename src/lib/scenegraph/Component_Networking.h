@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.h,v 1.4 2009/12/01 21:34:51 crc_canada Exp $
+$Id: Component_Networking.h,v 1.5 2010/12/10 17:17:19 davejoubert Exp $
 
 Proximity sensor macro.
 
@@ -37,6 +37,7 @@ Proximity sensor macro.
 #define INLINE_STABLE 10
 
 /* function protos */
+void registerOSCNode(struct X3D_Node *node);
 void registerReWireNode(struct X3D_Node *node);
 void load_Inline (struct X3D_Inline *node);
 

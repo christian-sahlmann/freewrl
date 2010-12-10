@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.154 2010/12/06 18:39:10 davejoubert Exp $
+  $Id: MainLoop.c,v 1.155 2010/12/10 17:17:19 davejoubert Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -61,6 +61,11 @@
 #include "../opengl/OpenGL_Utils.h"
 #include "../ui/statusbar.h"
 #include "../scenegraph/RenderFuncs.h"
+#ifdef WANT_OSC
+	#define USE_OSC 1
+#else
+	#define USE_OSC 0
+#endif
 
 #ifdef AQUA
 #include "../ui/aquaInt.h"
@@ -215,6 +220,9 @@ static void setup_projection(int pick, int x, int y);
 static struct X3D_Node*  getRayHit(void);
 static void get_hyperhit(void);
 static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
+#if USE_OSC
+void activate_OSCsensors();
+#endif
 
 int isBrowserPlugin = FALSE;
 
@@ -360,6 +368,17 @@ void EventLoop() {
         trisThisLoop = 0;
 
 	if(slowloop_count == 1009) slowloop_count = 0 ;
+	#if USE_OSC
+	if ((slowloop_count % 256) == 0) {
+		//activate_picksensors() ;
+		/*
+		printf("slowloop_count = %d at T=%lf : lastMouseEvent=%d , MotionNotify=%d\n",slowloop_count, TickTime, lastMouseEvent, MotionNotify) ;
+		*/
+		activate_OSCsensors() ;
+	} else {
+		//deactivate_picksensors() ;
+	}
+	#endif
 	slowloop_count++ ;
 
         /* handle any events provided on the command line - Robert Sim */

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.h,v 1.9 2010/12/06 18:39:10 davejoubert Exp $
+  $Id: MainLoop.h,v 1.10 2010/12/10 17:17:19 davejoubert Exp $
 
   FreeWRL support library.
   UI declarations.
