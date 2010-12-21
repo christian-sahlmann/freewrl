@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.55 2010/12/10 17:17:19 davejoubert Exp $
+# $Id: VRMLNodes.pm,v 1.56 2010/12/21 20:10:33 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -497,6 +497,13 @@ package VRML::NodeType;
 		__visible =>[SFInt32,0,initializeOnly, 0], # for Occlusion tests.
 		__occludeCheckCount =>[SFInt32,-1,initializeOnly, 0], # for Occlusion tests.
 		__Samples =>[SFInt32,-1,initializeOnly, 0],		# Occlude samples from last pass
+
+		_geomShader =>[SFInt32,0,initializeOnly,0], # shaders
+		_fragShader =>[SFInt32,0,initializeOnly,0], # shaders
+		_vertShader =>[SFInt32,0,initializeOnly,0], # shaders
+		_myShader =>[SFInt32,0,initializeOnly,0], # shaders
+
+		
 	},"X3DBoundedObject"),
 
 	TwoSidedMaterial => new VRML::NodeType ("TwoSidedMaterial", {
@@ -2302,7 +2309,7 @@ package VRML::NodeType;
 			language => [SFString, "", initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__initialized => [SFBool, FALSE ,initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__shaderIDS => [MFInt32, [], initializeOnly, 0], 
-			 __shaderObj => [FreeWRLPTR, 0, initializeOnly, 0],
+			 __shaderObj => [SFNode, NULL, initializeOnly, 0],
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	},"X3DShaderNode"),
 
@@ -2332,7 +2339,7 @@ package VRML::NodeType;
 			isSelected => [SFBool, TRUE,outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			isValid => [SFBool, TRUE,outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			language => [SFString,"",initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			 __shaderObj => [FreeWRLPTR, 0, initializeOnly, 0],
+			 __shaderObj => [SFNode, NULL, initializeOnly, 0],
 	}, "X3DProgrammableShaderObject"),
 
 	ProgramShader => new VRML::NodeType("ProgramShader", {
@@ -2357,7 +2364,7 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			url => [MFString, [], inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			type => [SFString,"",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
-			 __shaderObj => [FreeWRLPTR, 0, initializeOnly, 0],
+			 __shaderObj => [SFNode, NULL, initializeOnly, 0],
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 	}, "X3DUrlObject"),
 

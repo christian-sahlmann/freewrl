@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.37 2010/12/10 17:17:19 davejoubert Exp $
+# $Id: VRMLRend.pm,v 1.38 2010/12/21 20:10:33 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.38  2010/12/21 20:10:33  crc_canada
+# some code changes for Geometry Shaders.
+#
 # Revision 1.37  2010/12/10 17:17:19  davejoubert
 # Add OSC capability to FreeWRL. This update is spread across several files,
 # but the two post important changed are in codegen/VRMLNodes.pm and
@@ -774,6 +777,7 @@
 # Compile --
 #
 %CompileC = map {($_=>1)} qw/
+	Shape
 	ImageCubeMap
 	Transform
 	Group

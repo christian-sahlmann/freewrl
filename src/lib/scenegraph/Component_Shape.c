@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.53 2010/12/03 19:55:21 crc_canada Exp $
+$Id: Component_Shape.c,v 1.54 2010/12/21 20:10:33 crc_canada Exp $
 
 X3D Shape Component
 
@@ -410,6 +410,309 @@ void render_Material (struct X3D_Material *node) {
 }
 
 
+#ifdef SHADERS_2011
+
+
+static char FS[] = 
+"varying float LightIntensity; " \
+"uniform vec4 Color; " \
+"void main() { " \
+"        gl_FragColor = vec4( 0.5, 0.5, 1.0, 1. ); " \
+"        /* gl_FragColor = vec4( LightIntensity*Color.rgb, 1. ); */ " \
+"        /* gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0); */ " \
+"}";
+
+static char VS[] = "void main() { gl_Position = gl_Vertex; }";
+
+static char GS[] = 
+"#version 120\n " \
+"#extension GL_EXT_gpu_shader4: enable\n " \
+"#extension GL_EXT_geometry_shader4: enable\n " \
+"\n " \
+"uniform int Level;\n " \
+"\n " \
+"varying float LightIntensity;\n " \
+"\n " \
+"vec3 V0, V01, V02;\n " \
+"\n " \
+"void\n " \
+"ProduceVertex( float s, float t )\n " \
+"{\n " \
+"	const vec3 lightPos = vec3( 0., 10., 0. );\n " \
+"\n " \
+"	vec3 v = V0 + s*V01 + t*V02;\n " \
+"	v = normalize(v);\n " \
+"	vec3 n = v;\n " \
+"	vec3 tnorm = normalize( gl_NormalMatrix * n );	\n " \
+"\n " \
+"	vec4 ECposition = gl_ModelViewMatrix * vec4( (1.0*v), 1. );\n " \
+"	LightIntensity  = dot( normalize(lightPos - ECposition.xyz), tnorm );\n " \
+"	LightIntensity = abs( LightIntensity );\n " \
+"	LightIntensity *= 1.5;\n " \
+"\n " \
+"	gl_Position = gl_ProjectionMatrix * ECposition;\n " \
+"	EmitVertex();\n " \
+"}\n " \
+" \n " \
+"\n " \
+"\n " \
+"void\n " \
+"main()\n " \
+"{ \n " \
+"	V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\n " \
+"	V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\n " \
+"	V0  =   gl_PositionIn[0].xyz;\n " \
+"\n " \
+"	int numLayers = 4;  \n " \
+"\n " \
+"	float dt = 1. / float( numLayers );\n " \
+"\n " \
+"	float t_top = 1.;\n " \
+"\n " \
+"	for( int it = 0; it < numLayers; it++ )\n " \
+"	{\n " \
+"		float t_bot = t_top - dt;\n " \
+"		float smax_top = 1. - t_top;\n " \
+"		float smax_bot = 1. - t_bot;\n " \
+"\n " \
+"		int nums = it + 1;\n " \
+"		float ds_top = smax_top / float( nums - 1 );\n " \
+"		float ds_bot = smax_bot / float( nums );\n " \
+"\n " \
+"		float s_top = 0.;\n " \
+"		float s_bot = 0.;\n " \
+"\n " \
+"		for( int is = 0; is < nums; is++ )\n " \
+"		{\n " \
+"			ProduceVertex( s_bot, t_bot );\n " \
+"			ProduceVertex( s_top, t_top );\n " \
+"			s_top += ds_top;\n " \
+"			s_bot += ds_bot;\n " \
+"		}\n " \
+"\n " \
+"		ProduceVertex( s_bot, t_bot );\n " \
+"		EndPrimitive();\n " \
+"\n " \
+"		t_top = t_bot;\n " \
+"		t_bot -= dt;\n " \
+"	} \n " \
+" }\n ";
+
+
+static const char * vv = VS;
+static const char * ff = FS;
+static const char * gg = GS;
+
+static void shaderErrorLog(GLuint myShader, char *type) {
+        #ifdef GL_VERSION_2_0
+#define MAX_INFO_LOG_SIZE 512
+                GLchar infoLog[MAX_INFO_LOG_SIZE];
+                glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog);
+		if (strlen(infoLog) > 0)
+                	ConsoleMessage ("problem with %s shader: %s",type, infoLog);
+        #else
+                ConsoleMessage ("Problem compiling shader");
+        #endif
+}
+
+
+/* find info on the geometry of this shape */
+static void getGeometryShader (struct X3D_Node *myGeom, int *myShad) {
+	struct X3D_Node *realNode;
+	GLuint sphShadV;
+
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
+
+	if (realNode == NULL) return;
+
+	/* which shapes have an associated Geometry shader? */
+	if (realNode->_nodeType != NODE_Sphere) return;
+
+	sphShadV = (GLuint) (*myShad);
+	if (sphShadV == 0) sphShadV = glCreateShader(GL_GEOMETRY_SHADER_EXT);
+
+	glShaderSource (sphShadV, 1,&gg,NULL);
+	glCompileShader(sphShadV);
+	shaderErrorLog(sphShadV,"GEOMETRY");
+
+	(*myShad) = (int)sphShadV;
+}
+
+/* find info on the appearance of this Shape and create a shader */
+/* 
+	The possible sequence of a properly constructed appearance field is:
+
+	Shape.appearance -> Appearance
+	
+	Appearance.fillProperties 	-> FillProperties
+	Appearance.lineProperties 	-> LineProperties
+	Appearance.material 		-> Material
+					-> TwoSidedMaterial	
+	Appearance.shaders		-> ComposedShader
+	Appearance.shaders		-> PackagedShader
+	Appearance.shaders		-> ProgramShader
+
+	Appearance.texture		-> Texture
+	Appearance.texture		-> MultiTexture
+	Appearance.textureTransform	->
+
+*/
+
+
+static void getAppearanceShaders (struct X3D_Node * myApp, int *myVert, int *myFrag) {	
+	struct X3D_Node *fillPNode;
+	struct X3D_Node *linePNode;
+	struct X3D_Appearance *realNode;
+	struct X3D_Node *materialNode;
+	struct X3D_Node *shaderNode;
+	struct X3D_Node *textureNode;
+	struct X3D_Node *textureTransformNode;
+	GLuint sphShadV;
+	GLuint sphShadF;
+
+
+	/* resolve PROTO, if this is a PROTO... */
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *,myApp,realNode);
+	/* printf ("getAppearanceShader, node type %s\n",stringNodeType(realNode->_nodeType)); */
+
+	if (realNode == NULL) return; /* no Appearance - that is ok */
+
+	/* this should be an appearance... */
+	if (realNode->_nodeType != NODE_Appearance) {
+		printf ("Appearance node expected in Shape appearance field, got :%s:\n",
+			stringNodeType(realNode->_nodeType));
+		return;
+	}
+
+	/* get fields, ensure that we do not get confused by PROTO */
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->fillProperties,fillPNode);
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->lineProperties,linePNode);
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->material,materialNode);
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->texture,textureNode);
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->textureTransform,textureTransformNode);
+
+	/* printf ("getAppearance, fill %p line %p material %p texture %p tt %p\n",
+		fillPNode, linePNode, materialNode, textureNode, textureTransformNode); */
+	
+	if (realNode->shaders.n != 0) {
+		int i;
+		struct X3D_Node *mys;
+
+		printf ("trying to get shaders from Shader node\n");
+		for (i=0; i<realNode->shaders.n; i++) {
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realNode->shaders.p[i],mys);
+			if (mys != NULL) {
+				printf ("Appearance, first node is a %s\n",stringNodeType(mys->_nodeType));
+
+				switch (mys->_nodeType) {
+					case NODE_ComposedShader: {
+					struct X3D_ComposedShader *node = X3D_COMPOSEDSHADER(mys);
+                			COMPILE_IF_REQUIRED
+
+					printf ("composedShader, ids count %d\n",
+						node->__shaderIDS.n);
+					}
+					break;
+					case NODE_PackagedShader:
+					break;
+					case NODE_ProgramShader:
+					break;
+
+					default: {
+					ConsoleMessage ("Appearance Shader difficulty, expected a shader, got a :%s:",
+					stringNodeType(mys->_nodeType));
+					}
+				}
+
+
+			}
+		}
+
+	} else {
+
+		sphShadV = (GLuint) (*myVert);
+		sphShadF = (GLuint) (*myFrag);
+		if (sphShadV == 0) sphShadV = glCreateShader(GL_VERTEX_SHADER);
+		if (sphShadF == 0) sphShadF = glCreateShader(GL_FRAGMENT_SHADER);
+
+		/* vertex shader */
+		glShaderSource (sphShadV, 1,&vv,NULL);
+		glCompileShader(sphShadV);
+		shaderErrorLog(sphShadV,"VERTEX");
+		(*myVert) = (int)sphShadV;
+
+		/* fragment shader */
+		glShaderSource (sphShadF, 1,&ff,NULL);
+		glCompileShader(sphShadF);
+		shaderErrorLog(sphShadF,"FRAGMENT");
+
+		(*myFrag) = (int)sphShadF;
+	}
+}
+
+
+
+
+#endif
+
+
+void compile_Shape (struct X3D_Shape *node) {
+
+#ifdef SHADERS_2011
+	GLuint sphShad;
+
+	sphShad = (GLuint) node->_myShader;
+
+	if (sphShad == 0) {
+		sphShad = glCreateProgram();
+	}
+
+	getGeometryShader(node->geometry,&node->_geomShader);
+	getAppearanceShaders(node->appearance,&node->_vertShader, &node->_fragShader);
+
+	if (node->_geomShader != 0) {
+		printf ("compile_Shape, have geom shader\n");
+		glProgramParameteriEXT (sphShad,GL_GEOMETRY_INPUT_TYPE_EXT,GL_TRIANGLES);
+		glProgramParameteriEXT (sphShad, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLE_STRIP);
+		glProgramParameteriEXT (sphShad, GL_GEOMETRY_VERTICES_OUT_EXT, 1024);
+		glAttachShader(sphShad,(GLuint) (node->_geomShader));
+	}
+
+	glAttachShader(sphShad,(GLuint) (node->_fragShader));
+	glAttachShader(sphShad,(GLuint) (node->_vertShader));
+
+        glLinkProgram(sphShad);
+
+	node->_myShader = (int) sphShad;
+
+printf ("compile shape, shaders %d %d %d\n",node->_geomShader, node->_vertShader, node->_fragShader);
+
+#endif
+
+	MARK_NODE_COMPILED
+
+/*
+        Shape => new VRML::NodeType ("Shape", {
+                appearance => [SFNode, NULL, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                geometry => [SFNode, NULL, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                __visible =>[SFInt32,0,initializeOnly, 0], # for Occlusion tests.
+                __occludeCheckCount =>[SFInt32,-1,initializeOnly, 0], # for Occlusion tests.
+                __Samples =>[SFInt32,-1,initializeOnly, 0],             # Occlude samples from last pass
+
+                _geomShader =>[SFInt32,0,initializeOnly,0], # shaders
+                _fragShader =>[SFInt32,0,initializeOnly,0], # shaders
+                _vertShader =>[SFInt32,0,initializeOnly,0], # shaders
+                _myShader =>[SFInt32,0,initializeOnly,0], # shaders
+
+
+        },"X3DBoundedObject"),
+*/
+}
+
+
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpN;
 	int i;
@@ -417,6 +720,8 @@ void child_Shape (struct X3D_Shape *node) {
 	float ecol[4];
 	float scol[4];
 	float amb;
+
+	COMPILE_IF_REQUIRED
 
 	/* JAS - if not collision, and render_geom is not set, no need to go further */
 	/* printf ("child_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
@@ -437,6 +742,13 @@ void child_Shape (struct X3D_Shape *node) {
 	if we want to see the bounding box of this shape:
 	drawBBOX(X3D_NODE(node));
 	*/
+
+	#ifdef SHADERS_2011
+	if (node->_myShader != 0) {
+		glUseProgram ((GLuint) (node->_myShader));
+	}
+	#endif
+
 
 	/* set up Appearance Properties here */
 	this_textureTransform = NULL;
@@ -585,6 +897,13 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* turn off face culling */
 	DISABLE_CULL_FACE;
+
+	#ifdef SHADERS_2011
+	if (node->_myShader != 0) {
+		glUseProgram(0);
+		/* printf ("turinig shape shader off\n"); */
+	}
+	#endif
 }
 
 

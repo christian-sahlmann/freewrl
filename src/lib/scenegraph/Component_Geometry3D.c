@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.49 2010/12/07 19:30:10 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.50 2010/12/21 20:10:33 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -912,7 +912,81 @@ void compile_Sphere (struct X3D_Sphere *node) {
 	node->__points.p = ptr;
 }
 
+#ifdef SHADERS_2011
+const GLfloat sphTri[] = {
+ 0.0F,  0.0F,   1.0F,    1.0F,  0.0F,   0.0F,   0.0F,   1.0F,  0.0F, 
+ 1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,   1.0F,  0.0F,  
+ 0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,   1.0F,  0.0F, 
+-1.0F,  0.0F,   0.0F,    0.0F,  0.0F,   1.0F,   0.0F,   1.0F,  0.0F, 
+ 0.0F,  0.0F,   1.0F,    1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
+ 1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,  -1.0F,  0.0F, 
+ 0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
+-1.0F,  0.0F,   0.0F,    0.0F,  0.0F,   1.0F,   0.0F,  -1.0F,  0.0F,  
+};
 
+void render_Sphere (struct X3D_Sphere *node) {
+	/*  make the divisions 20; dont change this, because statics.c values*/
+	/*  will then need recaculating.*/
+	
+	extern GLfloat spherenorms[];		/*  side normals*/
+	extern float spheretex[];		/*  in CFuncs/statics.c*/
+
+	struct textureVertexInfo mtf = {spheretex,2,GL_FLOAT,0,NULL};
+
+
+	float rad = node->radius;
+	int count;
+
+	if (rad<=0.0) { return;}
+
+	/* for BoundingBox calculations */
+	setExtent(rad,-rad,rad,-rad,rad,-rad,X3D_NODE(node));
+
+	//COMPILE_IF_REQUIRED
+	//if (sphShad == 0) mkSphShad();
+
+	CULL_FACE(FALSE)
+
+	/*  Display the shape*/
+
+	//glUseProgram(sphShad);
+	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)sphTri);
+
+	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+
+	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+/* XXX */
+	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 24);
+
+
+	// taken from the OpenGL.org website:
+	#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
+//	glBindBuffer(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
+
+//	FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+//	FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat)  sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+
+  //      mtf.VA_arrays = NULL;
+  //      mtf.TC_size = 2;
+  //      mtf.TC_type = GL_FLOAT;
+  //      mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
+  //      mtf.TC_pointer = BUFFER_OFFSET(24);
+	//	textureDraw_start(NULL,&mtf);
+
+//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SphereIndxVBO);
+		
+//	FW_GL_DRAWELEMENTS (GL_TRIANGLES, TRISINSPHERE, GL_UNSIGNED_SHORT, (int *)BUFFER_OFFSET(0));   //The starting point of the IBO
+
+
+	/* turn off */
+	glUseProgram(0);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	//textureDraw_end();
+}
+
+#else 
 void render_Sphere (struct X3D_Sphere *node) {
 	/*  make the divisions 20; dont change this, because statics.c values*/
 	/*  will then need recaculating.*/
@@ -967,7 +1041,6 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-		/* for (count = 0; count < SPHDIV; count ++) { */
 		for (count = 0; count < SPHDIV/2; count ++) { 
 			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
 			trisThisLoop += (SPHDIV+1) * 4;
@@ -1000,8 +1073,9 @@ void render_Sphere (struct X3D_Sphere *node) {
 //		}
 //	}
 //#endif
-
 }
+
+#endif /* SHADERS_2011 */
 
 
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.49 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.50 2010/12/21 20:10:33 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -876,6 +876,7 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 
 void compile_ComposedShader (struct X3D_ComposedShader *node) {
 	DEBUG_SHADER("called compile_ComposedShader(%p)\n",(void *)node);
+	printf("called compile_ComposedShader(%p)\n",(void *)node);
 	#ifdef HAVE_SHADERS
 	{
 		/* an array of text pointers, should contain shader source */
