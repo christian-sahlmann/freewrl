@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.54 2010/12/21 20:10:33 crc_canada Exp $
+$Id: Component_Shape.c,v 1.55 2010/12/21 21:18:50 crc_canada Exp $
 
 X3D Shape Component
 
@@ -579,7 +579,7 @@ static void getAppearanceShaders (struct X3D_Node * myApp, int *myVert, int *myF
 
 	/* this should be an appearance... */
 	if (realNode->_nodeType != NODE_Appearance) {
-		printf ("Appearance node expected in Shape appearance field, got :%s:\n",
+		ConsoleMessage ("Appearance node expected in Shape appearance field, got :%s:\n",
 			stringNodeType(realNode->_nodeType));
 		return;
 	}
@@ -591,6 +591,13 @@ static void getAppearanceShaders (struct X3D_Node * myApp, int *myVert, int *myF
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->texture,textureNode);
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->textureTransform,textureTransformNode);
 
+	/* warning messages, at least here until we get it all implemented */
+	if (fillPNode != NULL) ConsoleMessage ("Shaders_2011: fillProperties not yet supported\n");
+	if (linePNode != NULL) ConsoleMessage ("Shaders_2011: lineProperties not yet supported\n");
+	if (materialNode != NULL) ConsoleMessage ("Shaders_2011: material field not yet supported\n");
+	if (textureNode != NULL) ConsoleMessage ("Shaders_2011: texture field not yet supported\n");
+	if (textureTransformNode != NULL) ConsoleMessage ("Shaders_2011: textureTransform field not yet supported\n");
+
 	/* printf ("getAppearance, fill %p line %p material %p texture %p tt %p\n",
 		fillPNode, linePNode, materialNode, textureNode, textureTransformNode); */
 	
@@ -598,7 +605,7 @@ static void getAppearanceShaders (struct X3D_Node * myApp, int *myVert, int *myF
 		int i;
 		struct X3D_Node *mys;
 
-		printf ("trying to get shaders from Shader node\n");
+		ConsoleMessage ("SHADERS_2011: trying to get shaders from Shader node\n");
 		for (i=0; i<realNode->shaders.n; i++) {
 			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realNode->shaders.p[i],mys);
 			if (mys != NULL) {

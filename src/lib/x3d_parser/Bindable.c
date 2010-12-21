@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.42 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Bindable.c,v 1.43 2010/12/21 21:18:50 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -898,10 +898,12 @@ void render_Background (struct X3D_Background *node) {
 	   all geometry fits within the spheres */
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
-	/* doing shaders here for spheres? */
-	if (global_use_shaders_when_possible) {
-		chooseAppearanceShader(backgroundSphereShader, NULL, NULL);
-	}
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	/* doing shaders here for spheres? */
+OLD_SHADER_CODE	if (global_use_shaders_when_possible) {
+OLD_SHADER_CODE		chooseAppearanceShader(backgroundSphereShader, NULL, NULL);
+OLD_SHADER_CODE	}
+#endif /* OLD_SHADER_CODE */
 
 	/* now, display the lists */
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
@@ -932,10 +934,12 @@ void render_Background (struct X3D_Background *node) {
         	FW_GL_NORMAL_POINTER (GL_FLOAT,0,Backnorms);
         	FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,boxtex);
 
-		/* doing shaders here for spheres? */
-		if (global_use_shaders_when_possible) {
-			chooseAppearanceShader(backgroundTextureBoxShader, NULL, NULL);
-		}
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE		/* doing shaders here for spheres? */
+OLD_SHADER_CODE		if (global_use_shaders_when_possible) {
+OLD_SHADER_CODE			chooseAppearanceShader(backgroundTextureBoxShader, NULL, NULL);
+OLD_SHADER_CODE		}
+#endif /* OLD_SHADER_CODE */
 
 		loadBackgroundTextures(node);
 
@@ -979,10 +983,12 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	   all geometry fits within the spheres */
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
-	/* doing shaders here for spheres? */
-	if (global_use_shaders_when_possible) {
-		chooseAppearanceShader(backgroundSphereShader, NULL, NULL);
-	}
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	/* doing shaders here for spheres? */
+OLD_SHADER_CODE	if (global_use_shaders_when_possible) {
+OLD_SHADER_CODE		chooseAppearanceShader(backgroundSphereShader, NULL, NULL);
+OLD_SHADER_CODE	}
+#endif /* OLD_SHADER_CODE */
 
 	/* now, display the lists */
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
@@ -1005,10 +1011,12 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 			(node->topTexture !=0) ||
 			(node->bottomTexture !=0)) {
 
-		/* doing shaders here for spheres? */
-		if (global_use_shaders_when_possible) {
-			chooseAppearanceShader(backgroundTextureBoxShader, NULL, NULL);
-		}
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE		/* doing shaders here for spheres? */
+OLD_SHADER_CODE		if (global_use_shaders_when_possible) {
+	OLD_SHADER_CODE		chooseAppearanceShader(backgroundTextureBoxShader, NULL, NULL);
+OLD_SHADER_CODE		}
+#endif
 
 
 		loadTextureBackgroundTextures(node);

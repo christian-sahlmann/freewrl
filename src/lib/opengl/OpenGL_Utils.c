@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.161 2010/12/07 18:27:50 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.162 2010/12/21 21:18:50 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -850,40 +850,42 @@ bool initialize_GL()
 #endif
 
 
-	/* are we using shaders for Appearance, etc? (OpenGL-ES) */
-	if (global_use_shaders_when_possible) {
-/*
-	we choose the shader based on the following, so get all the shaders loaded 
-        backgroundSphereShader:				Background node colour sphere
-        backgroundTextureBoxShader:			Background node textures
-
-	noAppearanceNoMaterialShader:			no lighting, no appearance.
-        noLightNoTextureAppearanceShader:		no lights, no textures, only emissive lights.
-        genericHeadlightNoTextureAppearanceShader:	headlight on, no textures.
-        multiLightNoTextureAppearanceShader:		more than headlight on; no textures.
-        headlightOneTextureAppearanceShader:		headlight, no othere lights, one texture.
-        headlightMultiTextureAppearanceShader:		headlight, no other light, multi-texture.
-        multiLightMultiTextureAppearanceShader:		everything including kitchen sink.
-*/
-
-		getAppearanceShader(genericHeadlightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/genericHeadlightNoTextureAppearanceShader");
-		getAppearanceShader(backgroundSphereShader, "/Users/johns/Desktop/shaderReplacement/backgroundSphereShader");
-		getAppearanceShader(backgroundTextureBoxShader, "/Users/johns/Desktop/shaderReplacement/backgroundTextureBoxShader");
-
-
-		getAppearanceShader(noLightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/noLightNoTextureAppearanceShader");
-		getAppearanceShader(noAppearanceNoMaterialShader, "/Users/johns/Desktop/shaderReplacement/noAppearanceNoMaterialShader");
-		getAppearanceShader(multiLightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/multiLightNoTextureAppearanceShader");
-		getAppearanceShader(headlightOneTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/headlightOneTextureAppearanceShader");
-		getAppearanceShader(headlightMultiTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/headlightMultiTextureAppearanceShader");
-		getAppearanceShader(multiLightMultiTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/multiLightMultiTextureAppearanceShader");
-
-
-		/* tell the child_Shape routine to use these shaders, if there is not a user-specified shader */
-		rdr_caps.haveGenericAppearanceShader = TRUE;
-	} else {
-		/* put non-shader stuff here eventually */
-	}
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	/* are we using shaders for Appearance, etc? (OpenGL-ES) */
+OLD_SHADER_CODE	if (global_use_shaders_when_possible) {
+OLD_SHADER_CODE/*
+OLD_SHADER_CODE	we choose the shader based on the following, so get all the shaders loaded 
+OLD_SHADER_CODE        backgroundSphereShader:				Background node colour sphere
+OLD_SHADER_CODE        backgroundTextureBoxShader:			Background node textures
+OLD_SHADER_CODE
+OLD_SHADER_CODE	noAppearanceNoMaterialShader:			no lighting, no appearance.
+OLD_SHADER_CODE        noLightNoTextureAppearanceShader:		no lights, no textures, only emissive lights.
+OLD_SHADER_CODE        genericHeadlightNoTextureAppearanceShader:	headlight on, no textures.
+OLD_SHADER_CODE        multiLightNoTextureAppearanceShader:		more than headlight on; no textures.
+OLD_SHADER_CODE        headlightOneTextureAppearanceShader:		headlight, no othere lights, one texture.
+OLD_SHADER_CODE        headlightMultiTextureAppearanceShader:		headlight, no other light, multi-texture.
+OLD_SHADER_CODE        multiLightMultiTextureAppearanceShader:		everything including kitchen sink.
+OLD_SHADER_CODE*/
+OLD_SHADER_CODE
+OLD_SHADER_CODE		getAppearanceShader(genericHeadlightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/genericHeadlightNoTextureAppearanceShader");
+OLD_SHADER_CODE		getAppearanceShader(backgroundSphereShader, "/Users/johns/Desktop/shaderReplacement/backgroundSphereShader");
+OLD_SHADER_CODE		getAppearanceShader(backgroundTextureBoxShader, "/Users/johns/Desktop/shaderReplacement/backgroundTextureBoxShader");
+OLD_SHADER_CODE
+OLD_SHADER_CODE
+OLD_SHADER_CODE		getAppearanceShader(noLightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/noLightNoTextureAppearanceShader");
+OLD_SHADER_CODE		getAppearanceShader(noAppearanceNoMaterialShader, "/Users/johns/Desktop/shaderReplacement/noAppearanceNoMaterialShader");
+OLD_SHADER_CODE		getAppearanceShader(multiLightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/multiLightNoTextureAppearanceShader");
+OLD_SHADER_CODE		getAppearanceShader(headlightOneTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/headlightOneTextureAppearanceShader");
+OLD_SHADER_CODE		getAppearanceShader(headlightMultiTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/headlightMultiTextureAppearanceShader");
+OLD_SHADER_CODE		getAppearanceShader(multiLightMultiTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/multiLightMultiTextureAppearanceShader");
+OLD_SHADER_CODE
+OLD_SHADER_CODE
+OLD_SHADER_CODE		/* tell the child_Shape routine to use these shaders, if there is not a user-specified shader */
+OLD_SHADER_CODE		rdr_caps.haveGenericAppearanceShader = TRUE;
+OLD_SHADER_CODE	} else {
+OLD_SHADER_CODE		/* put non-shader stuff here eventually */
+OLD_SHADER_CODE	}
+#endif /* OLD_SHADER_CODE */
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	FW_GL_CLEAR_DEPTH(1.0);
@@ -1011,8 +1013,11 @@ void fw_glMatrixMode(GLint mode) {
 
 void fw_glLoadIdentity(void) {
 	loadIdentityMatrix(currentMatrix);
-	if (!global_use_shaders_when_possible)
- 		fw_glLoadMatrixd(currentMatrix); 
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
+#endif /* OLD_SHADER_CODE */
+
+	fw_glLoadMatrixd(currentMatrix); 
 }
 
 #define PUSHMAT(a,b,c,d) case a: b++; if (b>=c) {b=c-1; printf ("stack overflow, whichmode %d\n",whichMode); } \
@@ -1027,7 +1032,10 @@ void fw_glPushMatrix(void) {
 	}
 	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPushMatrix tos now %d\n",projectionviewTOS); }  */
 
-	if (!global_use_shaders_when_possible)
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
+#endif /* OLD_SHADER_CODE */
+
  		fw_glLoadMatrixd(currentMatrix); 
 #undef PUSHMAT
 }
@@ -1043,7 +1051,10 @@ void fw_glPopMatrix(void) {
 	}
 	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPopMatrix tos now %d\n",projectionviewTOS); } */
 
-	if (!global_use_shaders_when_possible)
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
+#endif /* OLD_SHADER_CODE */
+
  		fw_glLoadMatrixd(currentMatrix); 
 }
 #undef POPMAT
@@ -1058,7 +1069,10 @@ void fw_glTranslated(double x, double y, double z) {
 	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
 	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
 
-	if (!global_use_shaders_when_possible)
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
+#endif /* OLD_SHADER_CODE */
+
  		fw_glLoadMatrixd(currentMatrix); 
 }
 
@@ -1069,7 +1083,10 @@ void fw_glTranslatef(float x, float y, float z) {
 	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
 	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
 
-	if (!global_use_shaders_when_possible)
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
+#endif /* OLD_SHADER_CODE */
+
  		fw_glLoadMatrixd(currentMatrix); 
 }
 
@@ -1110,7 +1127,10 @@ void fw_glRotateRad (double angle, double x, double y, double z) {
 	matmultiply(currentMatrix,myMat,currentMatrix); 
 
 	//printmatrix2 (currentMatrix,"currentMatrix after rotate");
-	if (!global_use_shaders_when_possible)
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
+#endif /* OLD_SHADER_CODE */
+
  		fw_glLoadMatrixd(currentMatrix); 
 }
 
@@ -1153,7 +1173,10 @@ void fw_glRotated (double angle, double x, double y, double z) {
 	}
 	matrotate(myMat,radAng,x,y,z); 
 	matmultiply(currentMatrix,currentMatrix,myMat); 
-	if (!global_use_shaders_when_possible)
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
+#endif /* OLD_SHADER_CODE */
+
  		fw_glLoadMatrixd(currentMatrix); 
 }
 
@@ -1169,7 +1192,10 @@ void fw_glScaled (double x, double y, double z) {
 	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
 	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
 	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
-	if (!global_use_shaders_when_possible)
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
+#endif /* OLD_SHADER_CODE */
+
  		fw_glLoadMatrixd(currentMatrix); 
 }
 
@@ -1181,7 +1207,10 @@ void fw_glScalef (float x, float y, float z) {
 	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
 	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
 	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
-	if (!global_use_shaders_when_possible)
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
+#endif /* OLD_SHADER_CODE */
+
  		fw_glLoadMatrixd(currentMatrix); 
 }
 

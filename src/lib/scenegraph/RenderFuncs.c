@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.75 2010/12/07 18:27:50 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.76 2010/12/21 21:18:50 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -53,10 +53,12 @@
 
 typedef float shaderVec4[4];
 
-static int shaderNormalArray = FALSE;
-static int shaderVertexArray = FALSE;
-static int shaderColourArray = FALSE;
-static int shaderTextureArray = FALSE;
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODEstatic int shaderNormalArray = FALSE;
+OLD_SHADER_CODEstatic int shaderVertexArray = FALSE;
+OLD_SHADER_CODEstatic int shaderColourArray = FALSE;
+OLD_SHADER_CODEstatic int shaderTextureArray = FALSE;
+#endif /* OLD_SHADER_CODE */
 
 static float light_linAtten[8];
 static float light_constAtten[8];
@@ -423,69 +425,87 @@ void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int
 }
 
 void sendClientStateToGPU(int enable, int cap) {
-	if (global_use_shaders_when_possible) {
-		switch (cap) {
-			case GL_NORMAL_ARRAY:
-				shaderNormalArray = enable;
-				break;
-			case GL_VERTEX_ARRAY:
-				shaderVertexArray = enable;
-				break;
-			case GL_COLOR_ARRAY:
-				shaderColourArray = enable;
-				break;
-			case GL_TEXTURE_COORD_ARRAY:
-				shaderTextureArray = enable;
-				break;
-
-			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
-		}
-
-	} else {
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (global_use_shaders_when_possible) {
+OLD_SHADER_CODE		switch (cap) {
+OLD_SHADER_CODE			case GL_NORMAL_ARRAY:
+OLD_SHADER_CODE				shaderNormalArray = enable;
+OLD_SHADER_CODE				break;
+OLD_SHADER_CODE			case GL_VERTEX_ARRAY:
+OLD_SHADER_CODE				shaderVertexArray = enable;
+OLD_SHADER_CODE				break;
+OLD_SHADER_CODE			case GL_COLOR_ARRAY:
+OLD_SHADER_CODE				shaderColourArray = enable;
+OLD_SHADER_CODE				break;
+OLD_SHADER_CODE			case GL_TEXTURE_COORD_ARRAY:
+OLD_SHADER_CODE				shaderTextureArray = enable;
+OLD_SHADER_CODE				break;
+OLD_SHADER_CODE
+OLD_SHADER_CODE			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
+OLD_SHADER_CODE		}
+OLD_SHADER_CODE
+OLD_SHADER_CODE	} else {
+#endif /* OLD_SHADER_CODE */
 		if (enable) glEnableClientState(cap);
 		else glDisableClientState(cap);
-	}
+
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	}
+#endif /* OLD_SHADER_CODE */
 }
 
-void sendArraysToGPU (int mode, int first, int count) {
-	if (currentShaderStruct != NULL) {
-		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
-		else glDisableVertexAttribArray(currentShaderStruct->Normals);
+sendArraysToGPU (int mode, int first, int count) {
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (currentShaderStruct != NULL) {
+OLD_SHADER_CODE		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
+OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Normals);
+OLD_SHADER_CODE
+OLD_SHADER_CODE		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
+OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
+OLD_SHADER_CODE
+OLD_SHADER_CODE		if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
+OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Colours);
+OLD_SHADER_CODE
+OLD_SHADER_CODE		if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
+OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
+OLD_SHADER_CODE
+OLD_SHADER_CODE
+OLD_SHADER_CODE		glDrawArrays(mode,first,count);
+OLD_SHADER_CODE	} else {
+#endif /* OLD_SHADER_CODE */
 
-		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
-		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
+	glDrawArrays(mode,first,count);
 
-		if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
-		else glDisableVertexAttribArray(currentShaderStruct->Colours);
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	}
+#endif /* OLD_SHADER_CODE */
 
-		if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
-		else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
-
-
-		glDrawArrays(mode,first,count);
-	} else {
-		glDrawArrays(mode,first,count);
-	}
 }
 
-void sendElementsToGPU (int mode, int count, int type, int *indices) {
-	if (currentShaderStruct != NULL) {
-		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
-		else glDisableVertexAttribArray(currentShaderStruct->Normals);
+sendElementsToGPU (int mode, int count, int type, int *indices) {
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	if (currentShaderStruct != NULL) {
+OLD_SHADER_CODE		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
+OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Normals);
+OLD_SHADER_CODE
+OLD_SHADER_CODE		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
+OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
+OLD_SHADER_CODE
+OLD_SHADER_CODE		if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
+OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Colours);
+OLD_SHADER_CODE
+OLD_SHADER_CODE		if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
+OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
+OLD_SHADER_CODE
+OLD_SHADER_CODE		glDrawElements (mode, count, type, indices );
+OLD_SHADER_CODE	} else {
+#endif /* OLD_SHADER_CODE */
 
-		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
-		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
+	glDrawElements(mode,count,type,indices);
 
-		if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
-		else glDisableVertexAttribArray(currentShaderStruct->Colours);
-
-		if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
-		else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
-
-		glDrawElements (mode, count, type, indices );
-	} else {
-		glDrawElements(mode,count,type,indices);
-	}
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE	}
+#endif /* OLD_SHADER_CODE */
 }
 
 void initializeLightTables() {
