@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.55 2010/12/21 21:18:50 crc_canada Exp $
+$Id: Component_Shape.c,v 1.56 2010/12/22 03:06:12 crc_canada Exp $
 
 X3D Shape Component
 
@@ -804,14 +804,16 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* if we do NOT have a shader node, do the appearance nodes */
         if (globalCurrentShader == 0) {
-		/* get the generic Appearance Shader up to current state */
-		if (rdr_caps.haveGenericAppearanceShader) {
-	  		/* printf ("in shaderchoose this %d, nodeType %d\n",node, node->_nodeType);
-	   		   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	   			render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
-
-			chooseAppearanceShader(letSystemChooseShader, material_oneSided,material_twoSided);
-		} else {
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE		/* get the generic Appearance Shader up to current state */
+OLD_SHADER_CODE		if (rdr_caps.haveGenericAppearanceShader) {
+OLD_SHADER_CODE	  		/* printf ("in shaderchoose this %d, nodeType %d\n",node, node->_nodeType);
+OLD_SHADER_CODE	   		   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+OLD_SHADER_CODE	   			render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
+OLD_SHADER_CODE
+OLD_SHADER_CODE			chooseAppearanceShader(letSystemChooseShader, material_oneSided,material_twoSided);
+OLD_SHADER_CODE		} else {
+#endif /* OLD_SHADER_CODE */
 			if (material_oneSided != NULL) {
 				/* we have a normal material node */
 				appearanceProperties.transparency = 1.0f - material_oneSided->transparency; /* 1 == solid, 0 = totally transparent */ 
@@ -858,7 +860,9 @@ void child_Shape (struct X3D_Shape *node) {
 				appearanceProperties.transparency=MAX_NODE_TRANSPARENCY; 
 			}
 
-		}
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE		}
+#endif /* OLD_SHADER_CODE */
 	}
 
 

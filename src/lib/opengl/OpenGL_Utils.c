@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.162 2010/12/21 21:18:50 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.163 2010/12/22 03:06:12 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -197,198 +197,121 @@ static void shaderErrorLog(GLuint myShader) {
         #endif
 }
 
-static int getShaderSource (char **vertexSource, char **fragmentSource, shader_type_t whichOne, char *pathToShaders) {
-#ifdef READ_SHADER_FROM_FILE
-	char *inTextFile;
-	
-	/* initialize */
-	*vertexSource = NULL;
-	*fragmentSource = NULL;
-
-	if (strlen(pathToShaders) > 1000) return;  /* bounds error */
-	inTextFile = MALLOC(char *,2000);
-
-	/* get Vertex shader */
-	strcpy (inTextFile,pathToShaders);
-	strcat (inTextFile,".vs");
-
-	printf ("getAppearanceShader, path %s\n",inTextFile); 
-	*vertexSource = readInputString(inTextFile);
-	if ((*vertexSource)==NULL) return FALSE;
-	
-	/* get Fragment shader */
-	strcpy (inTextFile,pathToShaders);
-	strcat (inTextFile,".fs");
-
-	/* printf ("getAppearanceShader, path %s\n",inTextFile); */
-	*fragmentSource = readInputString(inTextFile);
-	if (*fragmentSource==NULL) return FALSE;
-
-	FREE_IF_NZ(inTextFile);
-#else
+static int getShaderSource (char **vertexSource, char **fragmentSource, shader_type_t whichOne) {
 	/* initialize */
 	*vertexSource = NULL;
 	*fragmentSource = NULL;
 
 	switch (whichOne) {
-		case genericHeadlightNoTextureAppearanceShader: {
-*vertexSource = STRDUP(
-"/* phong vertex shader */" \
-"varying vec3 Norm;" \
-"varying vec4 Pos;" \
-"uniform		mat4 fw_ModelViewMatrix;" \
-"uniform		mat4 fw_ProjectionMatrix;" \
-"attribute	vec4 fw_Vertex;" \
-"attribute	vec3 fw_Normal; " \
-"" \
-"void main(void) {" \
-"        /* Norm = normalize(gl_NormalMatrix * gl_Normal); */ " \
-"        /* Pos = gl_ModelViewMatrix * gl_Vertex; */ " \
-"        /* gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; */ " \
-" "\
-"       vec3 Norm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
-"       vec4 Pos = fw_ModelViewMatrix * fw_Vertex;" \
-"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
 
-"}" );
-
-
-
-*fragmentSource = STRDUP(
-"/*  phong fragment shader  */" \
-" " \
-"varying vec3 Norm;" \
-"varying vec4 Pos;" \
-"" \
-"/*  use ADSLightModel here */" \
-"" \
-"/*  Assumed context: */" \
-"/*  uniform variables gl_LightSource[i] and gl_FrontMaterial are  */" \
-"/*  stubbed with constant values below. These would probably be */" \
-"/*  in parameters for the function if used in an application. */" \
-"/*  */" \
-"/*  variables myNormal and myPosition are passed in; in a vertex */" \
-"/*  shader these would be computed and used directly, while in a  */" \
-"/*  fragment shader these would be set as varying variables by */" \
-"/*  the associated vertex shader */" \
-"/*  */" \
-"/*  the ADS colour is returned from the function. */" \
-"" \
-"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {" \
-"	int i;" \
-"" \
-"/* 	 the group of variables below would normally be taken from */" \
-"/* 	 gl_FrontMaterial components */" \
-"	vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.);" \
-"	vec4 myMaterialAmbient = vec4(1., .5, 0., 1.);" \
-"	vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.);" \
-"	float myMaterialShininess = 80.;" \
-"" \
-"	vec3 norm = normalize (myNormal);" \
-"	vec3 viewv = -normalize(myPosition.xyz);" \
-"	vec4 ambient = vec4(0., 0., 0., 0.);" \
-"	vec4 specular = vec4 (0.0, 0.0, 0.0, 1.0);" \
-"	vec4 diffuse = vec4(0., 0., 0., 1.);" \
-"" \
-"	for (i=0; i<8; i++) {" \
-"/* 		 the group of variables below would normallye taken from gl_LightSource[i] components */" \
-"		vec4 myLightDiffuse = gl_LightSource[i].diffuse;" \
-"		vec4 myLightAmbient = gl_LightSource[i].ambient;" \
-"		vec4 myLightSpecular = gl_LightSource[i].specular;" \
-"		vec4 myLightPosition = gl_LightSource[i].position;" \
-"" \
-"/* 		 normal, light, view, and light reflection vectors */" \
-"		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
-"		vec3 refl = reflect (-lightv, norm);" \
-"" \
-"/* 		 diffuse light computation */" \
-"		diffuse += max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse;" \
-"" \
-"/* 		 ambient light computation */" \
-"		ambient += myMaterialAmbient*myLightAmbient;" \
-"" \
-"/* 		 Specular light computation */" \
-"		if (dot(lightv, viewv) > 0.0) {" \
-"			specular += pow(max(0.0, dot(viewv, refl))," \
-"				myMaterialShininess)*myMaterialSpecular*myLightSpecular;" \
-"		}" \
-"	}" \
-"" \
-"	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0);" \
-"}" \
-"void main () {" \
-"	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); " \
-"}");
-
-
-#ifdef FIRST_TRY
-OLDCODE			*fragmentSource = STRDUP (
-OLDCODE       				"varying vec4 colour; varying vec4 spec; void main () { gl_FragColor = clamp(colour+spec,0.,1.);}");
-OLDCODE			*vertexSource  = STRDUP( 
-OLDCODE			"varying vec4 colour;" \
-OLDCODE			"varying vec4 spec;" \
-OLDCODE			"uniform 	vec4 myMaterialAmbient;" \
-OLDCODE			"uniform 	vec4 myMaterialDiffuse;" \
-OLDCODE			"uniform 	vec4 myMaterialSpecular;" \
-OLDCODE			"uniform 	float myMaterialShininess;" \
-OLDCODE			"uniform 	vec4 myMaterialEmission;" \
-OLDCODE			"uniform		mat4 fw_ModelViewMatrix;" \
-OLDCODE			"uniform		mat4 fw_ProjectionMatrix;" \
-OLDCODE			"attribute	vec4 fw_Vertex;" \
-OLDCODE			"attribute	vec3 fw_Normal; " \
-OLDCODE			" " \
-OLDCODE			"uniform int lightState;" \
-OLDCODE			"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {" \
-OLDCODE			"	vec4 myLightAmbient = vec4(0., 0., 0., 1);" \
-OLDCODE			"	vec4 myLightDiffuse = vec4(1., 1., 1., 1.);" \
-OLDCODE			"	vec4 myLightPosition = vec4 (0., 0., 1., 0.);" \
-OLDCODE			"	vec3 norm = normalize (myNormal);" \
-OLDCODE			"	vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
-OLDCODE			"	vec3 viewv = -normalize(myPosition.xyz);" \
-OLDCODE			"	vec3 refl = reflect (-lightv, norm);" \
-OLDCODE			"	vec4 diffuse = max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse;" \
-OLDCODE			"	vec4 ambient = myMaterialAmbient*myLightAmbient;" \
-OLDCODE			"	return clamp(vec3(ambient+diffuse+myMaterialEmission), 0.0, 1.0);" \
-OLDCODE			"}" \
-OLDCODE			"vec4 specularCalculation(in vec3 myNormal, in vec4 myPosition) {" \
-OLDCODE			"	vec4 myLightSpecular = vec4(0.6, 0.6, 0.6, 1.0);" \
-OLDCODE			"	vec4 myLightPosition = vec4 (0., 0., 1., 0.);" \
-OLDCODE			"	vec3 norm = normalize (myNormal);" \
-OLDCODE			"	vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
-OLDCODE			"	vec3 viewv = -normalize(myPosition.xyz);" \
-OLDCODE			"	vec3 refl = reflect (-lightv, norm);" \
-OLDCODE			"	vec4 specular = vec4 (0.0, 0.0, 0.0, 1.0);" \
-OLDCODE			"	if (dot(lightv, viewv) > 0.0) {" \
-OLDCODE			"		specular = pow(max(0.0, dot(viewv, refl))," \
-OLDCODE			"			myMaterialShininess)*myMaterialSpecular*myLightSpecular;" \
-OLDCODE			"	}" \
-OLDCODE			"	return clamp(vec4(specular), 0.0, 1.0);" \
-OLDCODE			"}" \
-OLDCODE			"void main(void) {" \
-OLDCODE			"	vec3 transNorm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
-OLDCODE			"	/* transNorm = normalize(transNorm); */ " \
-OLDCODE			"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
-OLDCODE			"	colour = vec4(ADSLightModel(transNorm, pos),1);" \
-OLDCODE			"	spec = specularCalculation(transNorm,pos);" \
-OLDCODE			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-OLDCODE			"}");
-#endif
-			break;
-		}
-
-		/* no material, no appearance, lighting off */
-		case noAppearanceNoMaterialShader: {
-			*fragmentSource = STRDUP (
-				" void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}");
-			*vertexSource  = STRDUP( 
-			"attribute	vec4 fw_Vertex;" \
-			"uniform	mat4 fw_ModelViewMatrix;" \
-			"uniform	mat4 fw_ProjectionMatrix;" \
-			"void main(void) {" \
-			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-			"}");
-			break;
-		}
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE		case genericHeadlightNoTextureAppearanceShader: {
+OLD_SHADER_CODE*vertexSource = STRDUP(
+OLD_SHADER_CODE"/* phong vertex shader */" \
+OLD_SHADER_CODE"varying vec3 Norm;" \
+OLD_SHADER_CODE"varying vec4 Pos;" \
+OLD_SHADER_CODE"uniform		mat4 fw_ModelViewMatrix;" \
+OLD_SHADER_CODE"uniform		mat4 fw_ProjectionMatrix;" \
+OLD_SHADER_CODE"attribute	vec4 fw_Vertex;" \
+OLD_SHADER_CODE"attribute	vec3 fw_Normal; " \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"void main(void) {" \
+OLD_SHADER_CODE"        /* Norm = normalize(gl_NormalMatrix * gl_Normal); */ " \
+OLD_SHADER_CODE"        /* Pos = gl_ModelViewMatrix * gl_Vertex; */ " \
+OLD_SHADER_CODE"        /* gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; */ " \
+OLD_SHADER_CODE" "\
+OLD_SHADER_CODE"       vec3 Norm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
+OLD_SHADER_CODE"       vec4 Pos = fw_ModelViewMatrix * fw_Vertex;" \
+OLD_SHADER_CODE"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+OLD_SHADER_CODE
+OLD_SHADER_CODE"}" );
+OLD_SHADER_CODE
+OLD_SHADER_CODE
+OLD_SHADER_CODE
+OLD_SHADER_CODE*fragmentSource = STRDUP(
+OLD_SHADER_CODE"/*  phong fragment shader  */" \
+OLD_SHADER_CODE" " \
+OLD_SHADER_CODE"varying vec3 Norm;" \
+OLD_SHADER_CODE"varying vec4 Pos;" \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"/*  use ADSLightModel here */" \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"/*  Assumed context: */" \
+OLD_SHADER_CODE"/*  uniform variables gl_LightSource[i] and gl_FrontMaterial are  */" \
+OLD_SHADER_CODE"/*  stubbed with constant values below. These would probably be */" \
+OLD_SHADER_CODE"/*  in parameters for the function if used in an application. */" \
+OLD_SHADER_CODE"/*  */" \
+OLD_SHADER_CODE"/*  variables myNormal and myPosition are passed in; in a vertex */" \
+OLD_SHADER_CODE"/*  shader these would be computed and used directly, while in a  */" \
+OLD_SHADER_CODE"/*  fragment shader these would be set as varying variables by */" \
+OLD_SHADER_CODE"/*  the associated vertex shader */" \
+OLD_SHADER_CODE"/*  */" \
+OLD_SHADER_CODE"/*  the ADS colour is returned from the function. */" \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {" \
+OLD_SHADER_CODE"	int i;" \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"/* 	 the group of variables below would normally be taken from */" \
+OLD_SHADER_CODE"/* 	 gl_FrontMaterial components */" \
+OLD_SHADER_CODE"	vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.);" \
+OLD_SHADER_CODE"	vec4 myMaterialAmbient = vec4(1., .5, 0., 1.);" \
+OLD_SHADER_CODE"	vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.);" \
+OLD_SHADER_CODE"	float myMaterialShininess = 80.;" \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"	vec3 norm = normalize (myNormal);" \
+OLD_SHADER_CODE"	vec3 viewv = -normalize(myPosition.xyz);" \
+OLD_SHADER_CODE"	vec4 ambient = vec4(0., 0., 0., 0.);" \
+OLD_SHADER_CODE"	vec4 specular = vec4 (0.0, 0.0, 0.0, 1.0);" \
+OLD_SHADER_CODE"	vec4 diffuse = vec4(0., 0., 0., 1.);" \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"	for (i=0; i<8; i++) {" \
+OLD_SHADER_CODE"/* 		 the group of variables below would normallye taken from gl_LightSource[i] components */" \
+OLD_SHADER_CODE"		vec4 myLightDiffuse = gl_LightSource[i].diffuse;" \
+OLD_SHADER_CODE"		vec4 myLightAmbient = gl_LightSource[i].ambient;" \
+OLD_SHADER_CODE"		vec4 myLightSpecular = gl_LightSource[i].specular;" \
+OLD_SHADER_CODE"		vec4 myLightPosition = gl_LightSource[i].position;" \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"/* 		 normal, light, view, and light reflection vectors */" \
+OLD_SHADER_CODE"		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
+OLD_SHADER_CODE"		vec3 refl = reflect (-lightv, norm);" \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"/* 		 diffuse light computation */" \
+OLD_SHADER_CODE"		diffuse += max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse;" \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"/* 		 ambient light computation */" \
+OLD_SHADER_CODE"		ambient += myMaterialAmbient*myLightAmbient;" \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"/* 		 Specular light computation */" \
+OLD_SHADER_CODE"		if (dot(lightv, viewv) > 0.0) {" \
+OLD_SHADER_CODE"			specular += pow(max(0.0, dot(viewv, refl))," \
+OLD_SHADER_CODE"				myMaterialShininess)*myMaterialSpecular*myLightSpecular;" \
+OLD_SHADER_CODE"		}" \
+OLD_SHADER_CODE"	}" \
+OLD_SHADER_CODE"" \
+OLD_SHADER_CODE"	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0);" \
+OLD_SHADER_CODE"}" \
+OLD_SHADER_CODE"void main () {" \
+OLD_SHADER_CODE"	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); " \
+OLD_SHADER_CODE"}");
+OLD_SHADER_CODE
+OLD_SHADER_CODE			break;
+OLD_SHADER_CODE		}
+OLD_SHADER_CODE
+OLD_SHADER_CODE		/* no material, no appearance, lighting off */
+OLD_SHADER_CODE		case noAppearanceNoMaterialShader: {
+OLD_SHADER_CODE			*fragmentSource = STRDUP (
+OLD_SHADER_CODE				" void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}");
+OLD_SHADER_CODE			*vertexSource  = STRDUP( 
+OLD_SHADER_CODE			"attribute	vec4 fw_Vertex;" \
+OLD_SHADER_CODE			"uniform	mat4 fw_ModelViewMatrix;" \
+OLD_SHADER_CODE			"uniform	mat4 fw_ProjectionMatrix;" \
+OLD_SHADER_CODE			"void main(void) {" \
+OLD_SHADER_CODE			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+OLD_SHADER_CODE			"}");
+OLD_SHADER_CODE			break;
+OLD_SHADER_CODE		}
+OLD_SHADER_CODE
+#endif /* OLD_SHADER_CODE */
 
 		/* Background, this is the simple shader for doing the sky/ground colours */
 		case backgroundSphereShader: {
@@ -426,54 +349,55 @@ OLDCODE			"}");
 			break;
 		}
 
-		/* just emissive lights here */
-case         noLightNoTextureAppearanceShader: {
-			*fragmentSource = STRDUP (
-				"varying vec4 emis; void main () {gl_FragColor = emis;}");
-			*vertexSource  = STRDUP( 
-			"varying	vec4 emis;" \
-			"uniform 	vec4 myMaterialEmission;" \
-			"attribute	vec4 fw_Vertex;" \
-			"uniform	mat4 fw_ModelViewMatrix;" \
-			"uniform	mat4 fw_ProjectionMatrix;" \
-			"void main(void) {" \
-			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-			"	emis = myMaterialEmission; " \
-			"}");
-			break;
-		}
-
-case         multiLightNoTextureAppearanceShader:
-case         headlightMultiTextureAppearanceShader:
-case         multiLightMultiTextureAppearanceShader:
-		case headlightOneTextureAppearanceShader:
-
-printf ("headlightOneTextureAppearanceShader noLightNoTextureAppearanceShader multiLightNoTextureAppearanceShader headlightMultiTextureAppearanceShader multiLightMultiTextureAppearanceShader not written yet\n");
-
-			*fragmentSource = STRDUP (
-				" void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}");
-			*vertexSource  = STRDUP( 
-			"attribute	vec4 fw_Vertex;" \
-			"uniform	mat4 fw_ModelViewMatrix;" \
-			"uniform	mat4 fw_ProjectionMatrix;" \
-			"void main(void) {" \
-			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-			"}");
-			break;
-
-		default: {
-			printf ("getShaderSource, do not handle %d properly yet\n",whichOne);
-			return FALSE;
-		}
+#ifdef OLD_SHADER_CODE
+OLD_SHADER_CODE		/* just emissive lights here */
+OLD_SHADER_CODEcase         noLightNoTextureAppearanceShader: {
+OLD_SHADER_CODE			*fragmentSource = STRDUP (
+OLD_SHADER_CODE				"varying vec4 emis; void main () {gl_FragColor = emis;}");
+OLD_SHADER_CODE			*vertexSource  = STRDUP( 
+OLD_SHADER_CODE			"varying	vec4 emis;" \
+OLD_SHADER_CODE			"uniform 	vec4 myMaterialEmission;" \
+OLD_SHADER_CODE			"attribute	vec4 fw_Vertex;" \
+OLD_SHADER_CODE			"uniform	mat4 fw_ModelViewMatrix;" \
+OLD_SHADER_CODE			"uniform	mat4 fw_ProjectionMatrix;" \
+OLD_SHADER_CODE			"void main(void) {" \
+OLD_SHADER_CODE			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+OLD_SHADER_CODE			"	emis = myMaterialEmission; " \
+OLD_SHADER_CODE			"}");
+OLD_SHADER_CODE			break;
+OLD_SHADER_CODE		}
+OLD_SHADER_CODE
+OLD_SHADER_CODEcase         multiLightNoTextureAppearanceShader:
+OLD_SHADER_CODEcase         headlightMultiTextureAppearanceShader:
+OLD_SHADER_CODEcase         multiLightMultiTextureAppearanceShader:
+OLD_SHADER_CODE		case headlightOneTextureAppearanceShader:
+OLD_SHADER_CODE
+OLD_SHADER_CODEprintf ("headlightOneTextureAppearanceShader noLightNoTextureAppearanceShader multiLightNoTextureAppearanceShader headlightMultiTextureAppearanceShader multiLightMultiTextureAppearanceShader not written yet\n");
+OLD_SHADER_CODE
+OLD_SHADER_CODE			*fragmentSource = STRDUP (
+OLD_SHADER_CODE				" void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}");
+OLD_SHADER_CODE			*vertexSource  = STRDUP( 
+OLD_SHADER_CODE			"attribute	vec4 fw_Vertex;" \
+OLD_SHADER_CODE			"uniform	mat4 fw_ModelViewMatrix;" \
+OLD_SHADER_CODE			"uniform	mat4 fw_ProjectionMatrix;" \
+OLD_SHADER_CODE			"void main(void) {" \
+OLD_SHADER_CODE			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+OLD_SHADER_CODE			"}");
+OLD_SHADER_CODE			break;
+OLD_SHADER_CODE
+OLD_SHADER_CODE		default: {
+OLD_SHADER_CODE			printf ("getShaderSource, do not handle %d properly yet\n",whichOne);
+OLD_SHADER_CODE			return FALSE;
+OLD_SHADER_CODE		}
+#endif /* OLD_SHADER_CODE */
 	}
 
-#endif
 	return TRUE;
 }
 
 
 /* read in shaders and place the resulting shader program in the "whichShader" field if success. */
-static void getAppearanceShader(shader_type_t whichOne, char *pathToShaders) {
+static void getShader(shader_type_t whichOne) {
 	GLint success;
 	GLuint myVertexShader = 0;
 	GLuint myFragmentShader= 0;
@@ -485,9 +409,9 @@ static void getAppearanceShader(shader_type_t whichOne, char *pathToShaders) {
 	/* pointerize this */
 	myShader = &rdr_caps.shaderArrays[whichOne];
 	
-	printf ("getAppearanceShader called for %d\n",whichOne);
+	printf ("getShader called for %d\n",whichOne);
 
-	if (!getShaderSource (&vertexSource, &fragmentSource, whichOne, pathToShaders)) return;
+	if (!getShaderSource (&vertexSource, &fragmentSource, whichOne)) return;
 
 	(*myShader).myShaderProgram = CREATE_PROGRAM;
 	myProg = (*myShader).myShaderProgram;
@@ -850,6 +774,13 @@ bool initialize_GL()
 #endif
 
 
+	#ifdef SHADERS_2011
+	getShader(backgroundSphereShader);
+	getShader(backgroundTextureBoxShader);
+
+	#endif /* SHADERS_2011 */
+
+
 #ifdef OLD_SHADER_CODE
 OLD_SHADER_CODE	/* are we using shaders for Appearance, etc? (OpenGL-ES) */
 OLD_SHADER_CODE	if (global_use_shaders_when_possible) {
@@ -868,8 +799,6 @@ OLD_SHADER_CODE        multiLightMultiTextureAppearanceShader:		everything inclu
 OLD_SHADER_CODE*/
 OLD_SHADER_CODE
 OLD_SHADER_CODE		getAppearanceShader(genericHeadlightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/genericHeadlightNoTextureAppearanceShader");
-OLD_SHADER_CODE		getAppearanceShader(backgroundSphereShader, "/Users/johns/Desktop/shaderReplacement/backgroundSphereShader");
-OLD_SHADER_CODE		getAppearanceShader(backgroundTextureBoxShader, "/Users/johns/Desktop/shaderReplacement/backgroundTextureBoxShader");
 OLD_SHADER_CODE
 OLD_SHADER_CODE
 OLD_SHADER_CODE		getAppearanceShader(noLightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/noLightNoTextureAppearanceShader");

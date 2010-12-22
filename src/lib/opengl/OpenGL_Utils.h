@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.27 2010/10/25 16:41:59 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.28 2010/12/22 03:06:12 crc_canada Exp $
 
 Screen snapshot.
 
@@ -83,16 +83,19 @@ typedef struct {
 } s_renderer_capabilities_t;
 
 typedef enum shader_type {
+/*
 	letSystemChooseShader,		// special case; instruct FreeWRL to find a shader
+*/
 	backgroundSphereShader,
 	backgroundTextureBoxShader,
-	noAppearanceNoMaterialShader,
+/*	noAppearanceNoMaterialShader,
 	noLightNoTextureAppearanceShader,
 	genericHeadlightNoTextureAppearanceShader,
 	multiLightNoTextureAppearanceShader,
 	headlightOneTextureAppearanceShader,
 	headlightMultiTextureAppearanceShader,
 	multiLightMultiTextureAppearanceShader
+*/
 } shader_type_t;
 
 
