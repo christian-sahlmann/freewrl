@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.28 2010/12/22 03:06:12 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.29 2010/12/22 21:03:44 crc_canada Exp $
 
 Screen snapshot.
 
@@ -77,25 +77,12 @@ typedef struct {
 	int max_texture_size;
 	float anisotropicDegree;
 
-	/* for general Appearance Shaders */
-	bool haveGenericAppearanceShader;  /* do immediate mode or shader? */
-	s_shader_capabilities_t shaderArrays[10]; /* one element for each shader_type */
+	s_shader_capabilities_t backgroundShaderArrays[2]; /* one element for each shader_type */
 } s_renderer_capabilities_t;
 
 typedef enum shader_type {
-/*
-	letSystemChooseShader,		// special case; instruct FreeWRL to find a shader
-*/
 	backgroundSphereShader,
 	backgroundTextureBoxShader,
-/*	noAppearanceNoMaterialShader,
-	noLightNoTextureAppearanceShader,
-	genericHeadlightNoTextureAppearanceShader,
-	multiLightNoTextureAppearanceShader,
-	headlightOneTextureAppearanceShader,
-	headlightMultiTextureAppearanceShader,
-	multiLightMultiTextureAppearanceShader
-*/
 } shader_type_t;
 
 
@@ -103,6 +90,8 @@ extern s_renderer_capabilities_t rdr_caps;
 void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void end_textureTransform (void);
 void markForDispose(struct X3D_Node *node, int recursive);
+
+void getShaderCommonInterfaces (s_shader_capabilities_t *);
 
 void
 BackEndClearBuffer(int);

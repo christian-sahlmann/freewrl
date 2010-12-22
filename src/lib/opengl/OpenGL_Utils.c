@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.163 2010/12/22 03:06:12 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.164 2010/12/22 21:03:44 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -197,7 +197,7 @@ static void shaderErrorLog(GLuint myShader) {
         #endif
 }
 
-static int getShaderSource (char **vertexSource, char **fragmentSource, shader_type_t whichOne) {
+static int getBackgroundShaderSource (char **vertexSource, char **fragmentSource, shader_type_t whichOne) {
 	/* initialize */
 	*vertexSource = NULL;
 	*fragmentSource = NULL;
@@ -396,8 +396,75 @@ OLD_SHADER_CODE		}
 }
 
 
+/* find these names in our shaders */
+void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
+	GLuint myProg = me->myShaderProgram;
+
+	#ifdef DEBUG
+	printf ("getShaderCommonInterfaces, I am program %d\n",myProg);
+	{
+	GLsizei count;
+	GLuint shaders[10];
+	GLint  xxx[10];
+	int i;
+	GLchar sl[3000];
+
+	if (glIsProgram(myProg)) printf ("getShaderCommonInterfaces, %d is a program\n",myProg); else printf ("hmmm - it is not a program!\n");
+	glGetAttachedShaders(myProg,10,&count,shaders);
+	printf ("got %d attached shaders, they are: \n",count);
+	for (i=0; i<count; i++) {
+		GLsizei len;
+
+		printf ("%d\n",shaders[i]);
+		glGetShaderSource(shaders[i],3000,&len,sl);
+		printf ("len %d\n",len);
+		printf ("sl: %s\n",sl);
+	}
+	glGetProgramiv(myProg,GL_LINK_STATUS, xxx); printf ("GL_LINK_STATUS %d\n",xxx[0]);
+	glGetProgramiv(myProg,GL_VALIDATE_STATUS, xxx); printf ("GL_VALIDATE_STATUS %d\n",xxx[0]);
+	glGetProgramiv(myProg,GL_INFO_LOG_LENGTH, xxx); printf ("GL_INFO_LOG_LENGTH_STATUS %d\n",xxx[0]);
+	if (xxx[0] != 0) {
+		#define MAX_INFO_LOG_SIZE 512
+                GLchar infoLog[MAX_INFO_LOG_SIZE];
+                glGetProgramInfoLog(myProg, MAX_INFO_LOG_SIZE, NULL, infoLog);
+		printf ("log: %s\n",infoLog);
+
+
+	}
+	glGetProgramiv(myProg,GL_ACTIVE_ATTRIBUTES, xxx); printf ("GL_ACTIVE_ATTRIBUTES %d\n",xxx[0]);
+	glGetProgramiv(myProg,GL_ACTIVE_UNIFORMS, xxx); printf ("GL_ACTIVE_UNIFORMS %d\n",xxx[0]);
+	}
+	#endif /* DEBUG */
+
+	me->myMaterialAmbient = GET_UNIFORM(myProg,"myMaterialAmbient");
+	me->myMaterialDiffuse = GET_UNIFORM(myProg,"myMaterialDiffuse");
+	me->myMaterialSpecular = GET_UNIFORM(myProg,"myMaterialSpecular");
+	me->myMaterialShininess = GET_UNIFORM(myProg,"myMaterialShininess");
+	me->myMaterialEmission = GET_UNIFORM(myProg,"myMaterialEmission");
+	me->lightState = GET_UNIFORM(myProg,"lightState");
+	me->lightAmbient = GET_UNIFORM(myProg,"lightAmbient");
+	me->lightDiffuse = GET_UNIFORM(myProg,"lightDiffuse");
+	me->lightSpecular = GET_UNIFORM(myProg,"lightSpecular");
+	me->lightPosition = GET_UNIFORM(myProg,"lightPosition");
+
+	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
+	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
+	me->Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
+	me->Colours = GET_ATTRIB(myProg,"fw_Color");
+	me->TexCoords = GET_ATTRIB(myProg,"fw_TexCoords");
+
+	#ifdef DEBUG
+	printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
+		me->Vertices, me->Normals, me->ModelViewMatrix, me->ProjectionMatrix); 
+	#endif
+}
+
+
+
+
 /* read in shaders and place the resulting shader program in the "whichShader" field if success. */
-static void getShader(shader_type_t whichOne) {
+static void getBackgroundShader(shader_type_t whichOne) {
 	GLint success;
 	GLuint myVertexShader = 0;
 	GLuint myFragmentShader= 0;
@@ -407,11 +474,9 @@ static void getShader(shader_type_t whichOne) {
 	char  *fragmentSource;
 
 	/* pointerize this */
-	myShader = &rdr_caps.shaderArrays[whichOne];
+	myShader = &rdr_caps.backgroundShaderArrays[whichOne];
 	
-	printf ("getShader called for %d\n",whichOne);
-
-	if (!getShaderSource (&vertexSource, &fragmentSource, whichOne)) return;
+	if (!getBackgroundShaderSource (&vertexSource, &fragmentSource, whichOne)) return;
 
 	(*myShader).myShaderProgram = CREATE_PROGRAM;
 	myProg = (*myShader).myShaderProgram;
@@ -426,7 +491,6 @@ static void getShader(shader_type_t whichOne) {
 
 		ATTACH_SHADER(myProg, myVertexShader);
 	}
-
 
 
 	/* get Fragment shader */
@@ -445,27 +509,8 @@ static void getShader(shader_type_t whichOne) {
 
 	LINK_SHADER(myProg);
 
-	(*myShader).myMaterialAmbient = GET_UNIFORM(myProg,"myMaterialAmbient");
-	(*myShader).myMaterialDiffuse = GET_UNIFORM(myProg,"myMaterialDiffuse");
-	(*myShader).myMaterialSpecular = GET_UNIFORM(myProg,"myMaterialSpecular");
-	(*myShader).myMaterialShininess = GET_UNIFORM(myProg,"myMaterialShininess");
-	(*myShader).myMaterialEmission = GET_UNIFORM(myProg,"myMaterialEmission");
-	(*myShader).lightState = GET_UNIFORM(myProg,"lightState");
-	(*myShader).lightAmbient = GET_UNIFORM(myProg,"lightAmbient");
-	(*myShader).lightDiffuse = GET_UNIFORM(myProg,"lightDiffuse");
-	(*myShader).lightSpecular = GET_UNIFORM(myProg,"lightSpecular");
-	(*myShader).lightPosition = GET_UNIFORM(myProg,"lightPosition");
 
-	(*myShader).ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
-	(*myShader).ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
-	(*myShader).Vertices = GET_ATTRIB(myProg,"fw_Vertex");
-	(*myShader).Normals = GET_ATTRIB(myProg,"fw_Normal");
-	(*myShader).Colours = GET_ATTRIB(myProg,"fw_Color");
-	(*myShader).TexCoords = GET_ATTRIB(myProg,"fw_TexCoords");
-
-	/*printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
-		(*myShader).Vertices, (*myShader).Normals, (*myShader).ModelViewMatrix, (*myShader).ProjectionMatrix); */
-
+	getShaderCommonInterfaces(myShader);
 }
 
 
@@ -775,8 +820,8 @@ bool initialize_GL()
 
 
 	#ifdef SHADERS_2011
-	getShader(backgroundSphereShader);
-	getShader(backgroundTextureBoxShader);
+	getBackgroundShader(backgroundSphereShader);
+	getBackgroundShader(backgroundTextureBoxShader);
 
 	#endif /* SHADERS_2011 */
 

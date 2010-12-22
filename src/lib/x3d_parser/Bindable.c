@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.44 2010/12/22 03:06:12 crc_canada Exp $
+$Id: Bindable.c,v 1.45 2010/12/22 21:03:44 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -899,7 +899,7 @@ void render_Background (struct X3D_Background *node) {
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
 	#ifdef SHADERS_2011
-	chooseShader(backgroundSphereShader);
+	chooseBackgroundShader(backgroundSphereShader);
 	#endif
 
 	/* now, display the lists */
@@ -915,7 +915,7 @@ void render_Background (struct X3D_Background *node) {
 
 
 	#ifdef SHADERS_2011
-	TURN_APPEARANCE_SHADER_OFF;
+	TURN_GLOBAL_SHADER_OFF;
 	#endif
 
 	/* now, for the textures, if they exist */
@@ -934,7 +934,7 @@ void render_Background (struct X3D_Background *node) {
         	FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,boxtex);
 
 		#ifdef SHADERS_2011
-		chooseShader(backgroundTextureBoxShader);
+		chooseBackgroundShader(backgroundTextureBoxShader);
 		#endif
 
 		loadBackgroundTextures(node);
@@ -942,7 +942,7 @@ void render_Background (struct X3D_Background *node) {
         	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 
 		#ifdef SHADERS_2011
-		TURN_APPEARANCE_SHADER_OFF;
+		TURN_GLOBAL_SHADER_OFF;
 		#endif
 	}
 	FW_GL_POP_MATRIX();
@@ -982,7 +982,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
 	#ifdef SHADERS_2011
-	chooseShader(backgroundSphereShader);
+	chooseBackgroundShader(backgroundSphereShader);
 	#endif
 
 	/* now, display the lists */
@@ -997,7 +997,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
 	#ifdef SHADERS_2011
-	TURN_APPEARANCE_SHADER_OFF;
+	TURN_GLOBAL_SHADER_OFF;
 	#endif
 
 	/* now, for the textures, if they exist */
@@ -1009,7 +1009,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 			(node->bottomTexture !=0)) {
 
 		#ifdef SHADERS_2011
-		chooseShader(backgroundTextureBoxShader);
+		chooseBackgroundShader(backgroundTextureBoxShader);
 		#endif
 
 
@@ -1017,7 +1017,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
         	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 
 		#ifdef SHADERS_2011
-		TURN_APPEARANCE_SHADER_OFF;
+		TURN_GLOBAL_SHADER_OFF;
 		#endif
 	}
 

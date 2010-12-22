@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.77 2010/12/22 03:06:12 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.78 2010/12/22 21:03:44 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -53,12 +53,11 @@
 
 typedef float shaderVec4[4];
 
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODEstatic int shaderNormalArray = FALSE;
-OLD_SHADER_CODEstatic int shaderVertexArray = FALSE;
-OLD_SHADER_CODEstatic int shaderColourArray = FALSE;
-OLD_SHADER_CODEstatic int shaderTextureArray = FALSE;
-#endif /* OLD_SHADER_CODE */
+/* which arrays are enabled, and defaults for each array */
+static int shaderNormalArray = TRUE;
+static int shaderVertexArray = TRUE;
+static int shaderColourArray = FALSE;
+static int shaderTextureArray = FALSE;
 
 static float light_linAtten[8];
 static float light_constAtten[8];
@@ -173,239 +172,76 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	lightParamsDirty = TRUE;
 }
 
-/* choose a shader; if requestedShader is not a specific shader, choose one */
 
-void chooseShader(shader_type_t requestedShader) {
+void turnGlobalShaderOff(void) {
 
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	shader_type_t whichShader;
-OLD_SHADER_CODE	unsigned int selector;
-OLD_SHADER_CODE
-OLD_SHADER_CODE
-OLD_SHADER_CODE	/* hmmm - do we want to choose the shader, or use the selected one? */
-OLD_SHADER_CODE	if (requestedShader != letSystemChooseShader) {
-OLD_SHADER_CODE		/* eg, Background node knows which shader it wants */
-OLD_SHADER_CODE		whichShader = requestedShader;
-OLD_SHADER_CODE	} else {
-OLD_SHADER_CODE/*
-OLD_SHADER_CODE0 0000
-OLD_SHADER_CODE1 0001
-OLD_SHADER_CODE2 0010
-OLD_SHADER_CODE3 0011
-OLD_SHADER_CODE4 0100
-OLD_SHADER_CODE5 0101
-OLD_SHADER_CODE6 0110
-OLD_SHADER_CODE7 0111
-OLD_SHADER_CODE8 1000
-OLD_SHADER_CODE9 1001
-OLD_SHADER_CODEa 1010
-OLD_SHADER_CODEb 1011
-OLD_SHADER_CODEc 1100
-OLD_SHADER_CODEd 1101
-OLD_SHADER_CODEe 1110
-OLD_SHADER_CODEf 1111
-OLD_SHADER_CODE
-OLD_SHADER_CODE        noAppearanceNoMaterialShader,
-OLD_SHADER_CODE        noLightNoTextureAppearanceShader,
-OLD_SHADER_CODE
-OLD_SHADER_CODE        genericHeadlightNoTextureAppearanceShader,
-OLD_SHADER_CODE        multiLightNoTextureAppearanceShader,
-OLD_SHADER_CODE        headlightOneTextureAppearanceShader,
-OLD_SHADER_CODE        headlightMultiTextureAppearanceShader,
-OLD_SHADER_CODE        multiLightMultiTextureAppearanceShader
-OLD_SHADER_CODE
-OLD_SHADER_CODE*/
-OLD_SHADER_CODE
-OLD_SHADER_CODE#define M_ONE_S 	0x01
-OLD_SHADER_CODE#define M_TWO_S 	0x02
-OLD_SHADER_CODE#define M_TEX   	0x04
-OLD_SHADER_CODE#define M_MULTI_TEX 	0x08
-OLD_SHADER_CODE#define M_HEADLIGHT	0x10
-OLD_SHADER_CODE#define M_LIGHTS	0x20
-OLD_SHADER_CODE
-OLD_SHADER_CODE			whichShader = noAppearanceNoMaterialShader;
-OLD_SHADER_CODE
-OLD_SHADER_CODE		selector = 0;
-OLD_SHADER_CODE		if (material_oneSided != NULL) selector |= M_ONE_S;
-OLD_SHADER_CODE		if (material_twoSided != NULL) selector |= M_TWO_S;
-OLD_SHADER_CODE		if (textureStackTop > 0) {
-OLD_SHADER_CODE			if (textureStackTop == 1) selector |= M_TEX;
-OLD_SHADER_CODE			else selector |= M_MULTI_TEX;
-OLD_SHADER_CODE		}
-OLD_SHADER_CODE
-OLD_SHADER_CODE		if (lights[HEADLIGHT_LIGHT]) selector |= M_HEADLIGHT;
-OLD_SHADER_CODE		if (nextFreeLight != 0) selector |= M_LIGHTS;
-OLD_SHADER_CODE
-OLD_SHADER_CODE/*
-OLD_SHADER_CODEprintf ("textureStackTop %d ",textureStackTop);
-OLD_SHADER_CODEprintf ("one %p two %p ",material_oneSided, material_twoSided);
-OLD_SHADER_CODEprintf ("selector %x\n",selector);
-OLD_SHADER_CODE
-OLD_SHADER_CODEif ((selector & M_ONE_S) != 0) printf ("M_ONE_S ");
-OLD_SHADER_CODEif ((selector & M_TWO_S) != 0) printf ("M_TWO_S ");
-OLD_SHADER_CODEif ((selector & M_TEX) != 0) printf ("M_TEX ");
-OLD_SHADER_CODEif ((selector & M_MULTI_TEX) != 0) printf ("M_MULTI_TEX ");
-OLD_SHADER_CODEif ((selector & M_HEADLIGHT) != 0) printf ("M_HEADLIGHT ");
-OLD_SHADER_CODEif ((selector & M_LIGHTS) != 0) printf ("M_LIGHTS ");
-OLD_SHADER_CODEprintf ("\n");
-OLD_SHADER_CODE*/
-OLD_SHADER_CODE
-OLD_SHADER_CODE		switch (selector) {
-OLD_SHADER_CODE			
-OLD_SHADER_CODE			// TEXTURING DISABLED
-OLD_SHADER_CODE
-OLD_SHADER_CODE			case 0:	/* nothing turned on */
-OLD_SHADER_CODE			case M_HEADLIGHT: /* headlight, but nothing else */
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_LIGHTS):
-OLD_SHADER_CODE			case M_LIGHTS:
-OLD_SHADER_CODE				whichShader = noAppearanceNoMaterialShader;
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE
-OLD_SHADER_CODE			/* we have an appearance, but no lights, no textures... */
-OLD_SHADER_CODE			case M_ONE_S:
-OLD_SHADER_CODE			case M_TWO_S:
-OLD_SHADER_CODE			case (M_ONE_S | M_TWO_S):
-OLD_SHADER_CODE				whichShader = noLightNoTextureAppearanceShader;
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE
-OLD_SHADER_CODE			/* we have headlight, appearance, and no textures... */
-OLD_SHADER_CODE			case (M_ONE_S | M_HEADLIGHT):
-OLD_SHADER_CODE			case (M_ONE_S | M_TWO_S | M_HEADLIGHT):
-OLD_SHADER_CODE			
-OLD_SHADER_CODE				whichShader = genericHeadlightNoTextureAppearanceShader;
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE
-OLD_SHADER_CODE			/* we have headlight, other lights, appearance, and no textures... */
-OLD_SHADER_CODE			case (M_ONE_S | M_LIGHTS):
-OLD_SHADER_CODE			case (M_ONE_S | M_TWO_S | M_LIGHTS):
-OLD_SHADER_CODE			case (M_ONE_S | M_LIGHTS | M_HEADLIGHT):
-OLD_SHADER_CODE			case (M_ONE_S | M_TWO_S | M_LIGHTS | M_HEADLIGHT):
-OLD_SHADER_CODE				whichShader = genericHeadlightNoTextureAppearanceShader;
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE
-OLD_SHADER_CODE			/// TEXTURING ENABLED
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_TEX):
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_TEX | M_ONE_S):
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_TEX | M_TWO_S):
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_TEX | M_ONE_S | M_TWO_S):
-OLD_SHADER_CODE				whichShader = headlightOneTextureAppearanceShader;
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE	
-OLD_SHADER_CODE			case M_TEX:
-OLD_SHADER_CODE			case (M_TEX | M_ONE_S):
-OLD_SHADER_CODE			case (M_TEX | M_TWO_S):
-OLD_SHADER_CODE			case (M_TEX | M_ONE_S | M_TWO_S):
-OLD_SHADER_CODE
-OLD_SHADER_CODE			case (M_LIGHTS | M_TEX):
-OLD_SHADER_CODE			case (M_LIGHTS | M_TEX | M_ONE_S):
-OLD_SHADER_CODE			case (M_LIGHTS | M_TEX | M_TWO_S):
-OLD_SHADER_CODE			case (M_LIGHTS | M_TEX | M_ONE_S | M_TWO_S):
-OLD_SHADER_CODE			
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_LIGHTS | M_TEX):
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_LIGHTS | M_TEX | M_ONE_S):
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_LIGHTS | M_TEX | M_TWO_S):
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_LIGHTS | M_TEX | M_ONE_S | M_TWO_S):
-OLD_SHADER_CODE				whichShader = multiLightMultiTextureAppearanceShader;			
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_MULTI_TEX | M_ONE_S):
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_MULTI_TEX | M_TWO_S):
-OLD_SHADER_CODE			case (M_HEADLIGHT | M_MULTI_TEX | M_ONE_S | M_TWO_S):
-OLD_SHADER_CODE				whichShader = headlightMultiTextureAppearanceShader;
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE
-OLD_SHADER_CODE			default:  {
-OLD_SHADER_CODE				/* catch all - Multi Texture full bore shader */
-OLD_SHADER_CODE				if ((selector & M_MULTI_TEX) == M_MULTI_TEX) {
-OLD_SHADER_CODE					whichShader = multiLightMultiTextureAppearanceShader;
-OLD_SHADER_CODE				} else {
-OLD_SHADER_CODE					printf ("WARNING, shader Selector %x not written yet\n",selector);
-OLD_SHADER_CODE					whichShader = noAppearanceNoMaterialShader;
-OLD_SHADER_CODE				}
-OLD_SHADER_CODE				
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE			}
-OLD_SHADER_CODE			
-OLD_SHADER_CODE
-OLD_SHADER_CODE		}
-OLD_SHADER_CODE	}
-OLD_SHADER_CODE
-OLD_SHADER_CODE
-#endif
+	if (globalCurrentShader != 0) {
+		globalCurrentShader = 0;
+		USE_SHADER(0);
+	}
 
-	currentShaderStruct = &(rdr_caps.shaderArrays[requestedShader]);
+	/* set array booleans back to defaults */
+	shaderNormalArray = TRUE;
+	shaderVertexArray = TRUE;
+	shaderColourArray = FALSE;
+	shaderTextureArray = FALSE;
+
+	/* assuming no shader */
+	currentShaderStruct = NULL;
+}
+
+
+
+/* choose a background shader */
+void chooseBackgroundShader(shader_type_t requestedShader) {
+	currentShaderStruct = &(rdr_caps.backgroundShaderArrays[requestedShader]);
 	globalCurrentShader = currentShaderStruct->myShaderProgram;
 	USE_SHADER(globalCurrentShader);
 
+	/* send in the current position and modelview matricies */
+	sendMatriciesToShader(currentShaderStruct->ModelViewMatrix,currentShaderStruct->ProjectionMatrix);
+}
+
+void setCurrentShader(s_shader_capabilities_t *myShader) {
+	currentShaderStruct = myShader;
+
+	globalCurrentShader = currentShaderStruct->myShaderProgram;
+	USE_SHADER(globalCurrentShader);
 
 	/* send in the current position and modelview matricies */
 	sendMatriciesToShader(currentShaderStruct->ModelViewMatrix,currentShaderStruct->ProjectionMatrix);
-
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	switch (whichShader) {
-OLD_SHADER_CODE		case backgroundSphereShader:
-OLD_SHADER_CODE			break;
-OLD_SHADER_CODE		case backgroundTextureBoxShader:
-OLD_SHADER_CODE			break;
-OLD_SHADER_CODE		case noAppearanceNoMaterialShader:
-OLD_SHADER_CODE			break;
-OLD_SHADER_CODE		case noLightNoTextureAppearanceShader:
-OLD_SHADER_CODE			/* send up material selection to shader */
-OLD_SHADER_CODE			GLUNIFORM4FV(currentShaderStruct->myMaterialEmission,1,material_oneSided->_ecol.c);
-OLD_SHADER_CODE			break;
-OLD_SHADER_CODE		case headlightOneTextureAppearanceShader: 
-OLD_SHADER_CODE		case genericHeadlightNoTextureAppearanceShader:
-OLD_SHADER_CODE			/* send up material selection to shader */
-OLD_SHADER_CODE
-OLD_SHADER_CODE			GLUNIFORM4FV(currentShaderStruct->myMaterialAmbient,1,material_oneSided->_amb.c);
-OLD_SHADER_CODE			GLUNIFORM4FV(currentShaderStruct->myMaterialDiffuse,1,material_oneSided->_dcol.c);
-OLD_SHADER_CODE			GLUNIFORM4FV(currentShaderStruct->myMaterialSpecular,1,material_oneSided->_scol.c);
-OLD_SHADER_CODE			GLUNIFORM1F(currentShaderStruct->myMaterialShininess,material_oneSided->_shin);
-OLD_SHADER_CODE			GLUNIFORM4FV(currentShaderStruct->myMaterialEmission,1,material_oneSided->_ecol.c);
-OLD_SHADER_CODE			break;
-OLD_SHADER_CODE
-OLD_SHADER_CODE
-OLD_SHADER_CODE
-OLD_SHADER_CODEcase multiLightNoTextureAppearanceShader: printf ("  multiLightNoTextureAppearanceShader, not written yet\n"); break;
-OLD_SHADER_CODEcase headlightMultiTextureAppearanceShader: printf ("  headlightMultiTextureAppearanceShader, not written yet\n"); break;
-OLD_SHADER_CODEcase multiLightMultiTextureAppearanceShader: printf ("  multiLightMultiTextureAppearanceShader not written yet\n"); break;
-OLD_SHADER_CODE
-OLD_SHADER_CODE		default: {
-OLD_SHADER_CODE			printf ("chooseAppearanceShader, not handled yet\n");
-OLD_SHADER_CODE		}; 
-OLD_SHADER_CODE	}
-OLD_SHADER_CODE
-OLD_SHADER_CODE	lightParamsDirty = FALSE;
-OLD_SHADER_CODE	lightStatusDirty = FALSE;
-#endif /* OLD_SHADER_CODE */
-
 }
+
 
 /* send in vertices, normals, etc, etc... to either a shader or via older opengl methods */
 void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer){
 	if (currentShaderStruct != NULL) {
+printf ("sendAttribToGPU, currentShaderStruct != NULL\n");
+
 		switch (myType) {
 			case FW_NORMAL_POINTER_TYPE:
 				glEnableVertexAttribArray(currentShaderStruct->Normals);
 				glVertexAttribPointer(currentShaderStruct->Normals, 3, dataType, normalized, stride, pointer);
+printf ("enabled Normals, pointer %d\n", currentShaderStruct->Normals);
 				break;
 			case FW_VERTEX_POINTER_TYPE:
 				glEnableVertexAttribArray(currentShaderStruct->Vertices);
 				glVertexAttribPointer(currentShaderStruct->Vertices, dataSize, dataType, normalized, stride, pointer);
+printf ("enabled Vertices, pointer %d\n", currentShaderStruct->Vertices);
 				break;
 			case FW_COLOR_POINTER_TYPE:
 				glEnableVertexAttribArray(currentShaderStruct->Colours);
 				glVertexAttribPointer(currentShaderStruct->Colours, dataSize, dataType, normalized, stride, pointer);
+printf ("enabled Colours, pointer %d\n", currentShaderStruct->Colours);
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
 				glEnableVertexAttribArray(currentShaderStruct->TexCoords);
 				glVertexAttribPointer(currentShaderStruct->TexCoords, dataSize, dataType, normalized, stride, pointer);
+printf ("enabled TexCoords, pointer %d\n", currentShaderStruct->TexCoords);
 				break;
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 		}
-
-
 	/* not shaders; older style of rendering */
 	} else {
 		switch (myType) {
@@ -429,87 +265,75 @@ void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int
 }
 
 void sendClientStateToGPU(int enable, int cap) {
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (global_use_shaders_when_possible) {
-OLD_SHADER_CODE		switch (cap) {
-OLD_SHADER_CODE			case GL_NORMAL_ARRAY:
-OLD_SHADER_CODE				shaderNormalArray = enable;
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE			case GL_VERTEX_ARRAY:
-OLD_SHADER_CODE				shaderVertexArray = enable;
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE			case GL_COLOR_ARRAY:
-OLD_SHADER_CODE				shaderColourArray = enable;
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE			case GL_TEXTURE_COORD_ARRAY:
-OLD_SHADER_CODE				shaderTextureArray = enable;
-OLD_SHADER_CODE				break;
-OLD_SHADER_CODE
-OLD_SHADER_CODE			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
-OLD_SHADER_CODE		}
-OLD_SHADER_CODE
-OLD_SHADER_CODE	} else {
-#endif /* OLD_SHADER_CODE */
+
+	if (currentShaderStruct != NULL) {
+		switch (cap) {
+			case GL_NORMAL_ARRAY:
+				shaderNormalArray = enable;
+printf ("sendClientStateto GPU, shaderNormalArray %d\n",enable);
+				break;
+			case GL_VERTEX_ARRAY:
+				shaderVertexArray = enable;
+printf ("sendClientStateto GPU, shaderVertexArray %d\n",enable);
+				break;
+			case GL_COLOR_ARRAY:
+				shaderColourArray = enable;
+printf ("sendClientStateto GPU, shaderColourArray %d\n",enable);
+				break;
+			case GL_TEXTURE_COORD_ARRAY:
+				shaderTextureArray = enable;
+printf ("sendClientStateto GPU, shaderTextureArray %d\n",enable);
+				break;
+
+			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
+		}
+
+	} else {
 		if (enable) glEnableClientState(cap);
 		else glDisableClientState(cap);
-
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	}
-#endif /* OLD_SHADER_CODE */
+	}
 }
 
 sendArraysToGPU (int mode, int first, int count) {
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (currentShaderStruct != NULL) {
-OLD_SHADER_CODE		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
-OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Normals);
-OLD_SHADER_CODE
-OLD_SHADER_CODE		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
-OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
-OLD_SHADER_CODE
-OLD_SHADER_CODE		if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
-OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Colours);
-OLD_SHADER_CODE
-OLD_SHADER_CODE		if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
-OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
-OLD_SHADER_CODE
-OLD_SHADER_CODE
-OLD_SHADER_CODE		glDrawArrays(mode,first,count);
-OLD_SHADER_CODE	} else {
-#endif /* OLD_SHADER_CODE */
+	if (currentShaderStruct != NULL) {
+printf ("sendArraysToGPU; (true %d) normal %d vertex %d colour %d texture %d\n",TRUE, shaderNormalArray,shaderVertexArray,shaderColourArray,shaderTextureArray);
+		if (currentShaderStruct->Normals > 0) 
+			if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
+			else glDisableVertexAttribArray(currentShaderStruct->Normals);
+
+		if (currentShaderStruct->Vertices > 0) 
+			if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
+			else glDisableVertexAttribArray(currentShaderStruct->Vertices);
+
+		if (currentShaderStruct->Colours > 0) 
+			if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
+			else glDisableVertexAttribArray(currentShaderStruct->Colours);
+
+		if (currentShaderStruct->TexCoords > 0) 
+			if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
+			else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
+	}
 
 	glDrawArrays(mode,first,count);
-
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	}
-#endif /* OLD_SHADER_CODE */
-
 }
 
 sendElementsToGPU (int mode, int count, int type, int *indices) {
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (currentShaderStruct != NULL) {
-OLD_SHADER_CODE		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
-OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Normals);
-OLD_SHADER_CODE
-OLD_SHADER_CODE		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
-OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
-OLD_SHADER_CODE
-OLD_SHADER_CODE		if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
-OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->Colours);
-OLD_SHADER_CODE
-OLD_SHADER_CODE		if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
-OLD_SHADER_CODE		else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
-OLD_SHADER_CODE
-OLD_SHADER_CODE		glDrawElements (mode, count, type, indices );
-OLD_SHADER_CODE	} else {
-#endif /* OLD_SHADER_CODE */
+	if (currentShaderStruct != NULL) {
+printf ("sendElementsToGPU; (true %d) normal %d vertex %d colour %d texture %d\n",TRUE, shaderNormalArray,shaderVertexArray,shaderColourArray,shaderTextureArray);
+		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
+		else glDisableVertexAttribArray(currentShaderStruct->Normals);
+
+		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
+		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
+
+		if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
+		else glDisableVertexAttribArray(currentShaderStruct->Colours);
+
+		if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
+		else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
+	}
 
 	glDrawElements(mode,count,type,indices);
-
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	}
-#endif /* OLD_SHADER_CODE */
 }
 
 void initializeLightTables() {
