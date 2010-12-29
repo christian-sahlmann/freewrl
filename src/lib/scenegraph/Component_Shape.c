@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.59 2010/12/29 16:06:21 crc_canada Exp $
+$Id: Component_Shape.c,v 1.60 2010/12/29 18:11:25 crc_canada Exp $
 
 X3D Shape Component
 
@@ -422,19 +422,20 @@ static char *SVS = "void main() { gl_Position = gl_Vertex; }";
 static char *SFS = " void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}";
 
 static char *vertexShaderForGeomShader =
-"attribute      vec4 fw_Vertex;" \
-"uniform        mat4 fw_ModelViewMatrix;" \
-"uniform        mat4 fw_ProjectionMatrix;" \
-"void main(void) {" \
-"  gl_Position = fw_Vertex;  " \
-"}";
+"attribute      vec4 fw_Vertex; \
+uniform        mat4 fw_ModelViewMatrix; \
+uniform        mat4 fw_ProjectionMatrix; \
+void main(void) { \
+  gl_Position = fw_Vertex; \
+}";
+
 static char *simpleVertexShader =
-"attribute      vec4 fw_Vertex;" \
-"uniform        mat4 fw_ModelViewMatrix;" \
-"uniform        mat4 fw_ProjectionMatrix;" \
-"void main(void) {" \
-"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; " \
-"}";
+"attribute      vec4 fw_Vertex; \
+uniform        mat4 fw_ModelViewMatrix; \
+uniform        mat4 fw_ProjectionMatrix; \
+void main(void) { \
+       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+}";
 
 
 /* this guy needs the fw_Normal written - the SphereShader calculates these things... */
@@ -465,16 +466,16 @@ static char *FS =
 
 
 /* really simple geometry shader */
-static const char *SGS =
+static const char *defaultGeomShader =
 "#version 120\n " \
 "#extension GL_EXT_gpu_shader4: enable\n " \
 "#extension GL_EXT_geometry_shader4: enable\n " \
 "\n " \
-"void main() { for(int i = 0; i < gl_VerticesIn; ++i) { gl_FrontColor = gl_FrontColorIn[i]; gl_Position = gl_PositionIn[i] * vec4(1., 3., 1., 1.); EmitVertex(); } }";
+"void main() { for(int i = 0; i < gl_VerticesIn; ++i) { gl_FrontColor = gl_FrontColorIn[i]; gl_Position = gl_PositionIn[i]; EmitVertex(); } }";
 
 
 
-static const char *GS = 
+static const char *sphereGeomShader = 
 "#version 120\n " \
 "#extension GL_EXT_gpu_shader4: enable\n " \
 "#extension GL_EXT_geometry_shader4: enable\n " \
@@ -626,10 +627,6 @@ static const char *NFS =
 "}";
 
 
-//static const char * vv = NVS;
-//static const char * ff = NFS;
-//static const char * gg = GS;
-
 static void shaderErrorLog(GLuint myShader, char *type) {
 printf ("shaderErrorLog: ");
         #ifdef GL_VERSION_2_0
@@ -656,12 +653,16 @@ static void getGeometryShader (struct X3D_Node *myGeom, GLuint *myShad) {
 	if (realNode == NULL) return;
 
 	/* which shapes have an associated Geometry shader? */
-	if (realNode->_nodeType != NODE_Sphere) return;
+	if (realNode->_nodeType == NODE_Sphere) {
 
 	*myShad = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
-
-printf ("using geom shader GS\n");
-	SHADER_SOURCE (*myShad, 1,&GS,NULL);
+		printf ("using geom shader sphereGeomShader\n");
+		SHADER_SOURCE (*myShad, 1,&sphereGeomShader,NULL);
+	} else if (realNode->_nodeType != NODE_Sphere) {
+		printf ("using geom shader defaultGeomShader\n");
+		SHADER_SOURCE (*myShad, 1,&defaultGeomShader,NULL);
+	}
+	
 	COMPILE_SHADER(*myShad);
         GET_SHADER_INFO(*myShad, COMPILE_STATUS, &success);
         if (!success) {

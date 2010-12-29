@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.51 2010/12/29 14:40:56 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.52 2010/12/29 18:11:25 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -60,7 +60,7 @@ struct MyVertex
  };
 
 static GLuint SphereIndxVBO = 0;
-/* static GLuint ConeIndxVBO = 0; */
+static GLuint SphereGeomVBO = 0; 
 
 static GLfloat VBO_coneSideTexParams[]={
 	0.55f, 0.525f, 0.50f,
@@ -763,6 +763,84 @@ void render_Cone (struct X3D_Cone *node) {
 #define TRISINSPHERE (SPHDIV*3* SPHDIV)
 
 
+#ifdef SHADERS_2011
+const GLfloat sphTri[] = {
+ 0.0F,  0.0F,   1.0F,    1.0F,  0.0F,   0.0F,   0.0F,   1.0F,  0.0F, 
+ 1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,   1.0F,  0.0F,  
+ 0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,   1.0F,  0.0F, 
+-1.0F,  0.0F,   0.0F,    0.0F,  0.0F,   1.0F,   0.0F,   1.0F,  0.0F, 
+ 0.0F,  0.0F,   1.0F,    1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
+ 1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,  -1.0F,  0.0F, 
+ 0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
+-1.0F,  0.0F,   0.0F,    0.0F,  0.0F,   1.0F,   0.0F,  -1.0F,  0.0F,  
+};
+
+void compile_Sphere (struct X3D_Sphere *node) {
+	/*  have to regen the shape*/
+	MARK_NODE_COMPILED
+
+	if (SphereGeomVBO == 0) {
+		glGenBuffers(1,&SphereGeomVBO);
+printf ("creating VBO, sphereGeomVBO is %d\n",SphereGeomVBO);
+ 		glBindBuffer(GL_ARRAY_BUFFER, SphereGeomVBO);
+ 		glBufferData(GL_ARRAY_BUFFER, sizeof(sphTri), sphTri, GL_STATIC_DRAW);
+		printf ("creating VBO, size %d\n",sizeof(sphTri));
+	}
+}
+
+
+void render_Sphere (struct X3D_Sphere *node) {
+	/*  make the divisions 20; dont change this, because statics.c values*/
+	/*  will then need recaculating.*/
+	
+	extern GLfloat spherenorms[];		/*  side normals*/
+	extern float spheretex[];		/*  in CFuncs/statics.c*/
+
+	struct textureVertexInfo mtf = {spheretex,2,GL_FLOAT,0,NULL};
+
+
+	float rad = node->radius;
+	int count;
+
+	if (rad<=0.0) { return;}
+
+	/* for BoundingBox calculations */
+	setExtent(rad,-rad,rad,-rad,rad,-rad,X3D_NODE(node));
+
+	COMPILE_IF_REQUIRED
+
+	CULL_FACE(node->solid)
+
+	/*  Display the shape*/
+	/* vertices */
+	FW_GL_VERTEX_POINTER(3, GL_FLOAT, 0,0);   //The starting point of the VBO, for the vertices
+
+	/* normals, but we only keep this around because the send-to-gpu code expects normals! */
+	FW_GL_NORMAL_POINTER(GL_FLOAT, 0,0);   //The starting point of normals, 12 bytes away
+	
+	glBindBuffer(GL_ARRAY_BUFFER, SphereGeomVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+	//glDisableClientState(GL_COLOR_ARRAY);
+	//glDisableClientState(GL_EDGE_FLAG_ARRAY);
+	//glDisableClientState(GL_FOG_COORD_ARRAY);
+	//glDisableClientState(GL_INDEX_ARRAY);
+	//glDisableClientState(GL_NORMAL_ARRAY);
+	//glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+	//glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	//glEnableClientState(GL_VERTEX_ARRAY);
+	
+	glDrawArrays(GL_TRIANGLES,0,24);
+	
+	/* turn things back to normal settings */
+	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+	/* if you turn this one off, then the internal state might fail... glBindBuffer(GL_ARRAY_BUFFER, 0); */
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+#else  /* NOT SHADERS_2011 */
+
+
 void compile_Sphere (struct X3D_Sphere *node) {
 	#define INIT_TRIG1(div) t_aa = (float) sin(PI/(div)); t_aa *= 2*t_aa; t_ab =(float) -sin(2*PI/(div));
 	#define START_TRIG1 t_sa = 0; t_ca = -1;
@@ -911,59 +989,6 @@ void compile_Sphere (struct X3D_Sphere *node) {
 	/* finished - for threading */
 	node->__points.p = ptr;
 }
-
-#ifdef SHADERS_2011
-const GLfloat sphTri[] = {
- 0.0F,  0.0F,   1.0F,    1.0F,  0.0F,   0.0F,   0.0F,   1.0F,  0.0F, 
- 1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,   1.0F,  0.0F,  
- 0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,   1.0F,  0.0F, 
--1.0F,  0.0F,   0.0F,    0.0F,  0.0F,   1.0F,   0.0F,   1.0F,  0.0F, 
- 0.0F,  0.0F,   1.0F,    1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
- 1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,  -1.0F,  0.0F, 
- 0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
--1.0F,  0.0F,   0.0F,    0.0F,  0.0F,   1.0F,   0.0F,  -1.0F,  0.0F,  
-};
-
-void render_Sphere (struct X3D_Sphere *node) {
-	/*  make the divisions 20; dont change this, because statics.c values*/
-	/*  will then need recaculating.*/
-	
-	extern GLfloat spherenorms[];		/*  side normals*/
-	extern float spheretex[];		/*  in CFuncs/statics.c*/
-
-	struct textureVertexInfo mtf = {spheretex,2,GL_FLOAT,0,NULL};
-
-
-	float rad = node->radius;
-	int count;
-
-	if (rad<=0.0) { return;}
-
-	/* for BoundingBox calculations */
-	setExtent(rad,-rad,rad,-rad,rad,-rad,X3D_NODE(node));
-
-	//COMPILE_IF_REQUIRED
-	//if (sphShad == 0) mkSphShad();
-
-	CULL_FACE(FALSE)
-
-	/*  Display the shape*/
-
-	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)sphTri);
-	FW_GL_NORMAL_POINTER (GL_FLOAT,0,(GLfloat *)sphTri);
-
-	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-
-	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 24);
-
-
-	/* turn off */
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-	//textureDraw_end();
-}
-
-#else 
 void render_Sphere (struct X3D_Sphere *node) {
 	/*  make the divisions 20; dont change this, because statics.c values*/
 	/*  will then need recaculating.*/
