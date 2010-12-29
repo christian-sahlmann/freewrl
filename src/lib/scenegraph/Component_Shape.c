@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.58 2010/12/29 14:40:56 crc_canada Exp $
+$Id: Component_Shape.c,v 1.59 2010/12/29 16:06:21 crc_canada Exp $
 
 X3D Shape Component
 
@@ -420,12 +420,20 @@ static char *SVS = "void main() { gl_Position = gl_Vertex; }";
 
 
 static char *SFS = " void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}";
-static char *SVS =
+
+static char *vertexShaderForGeomShader =
 "attribute      vec4 fw_Vertex;" \
 "uniform        mat4 fw_ModelViewMatrix;" \
 "uniform        mat4 fw_ProjectionMatrix;" \
 "void main(void) {" \
-"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+"  gl_Position = fw_Vertex;  " \
+"}";
+static char *simpleVertexShader =
+"attribute      vec4 fw_Vertex;" \
+"uniform        mat4 fw_ModelViewMatrix;" \
+"uniform        mat4 fw_ProjectionMatrix;" \
+"void main(void) {" \
+"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; " \
 "}";
 
 
@@ -512,7 +520,7 @@ static const char *GS =
 "	V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\n " \
 "	V0  =   gl_PositionIn[0].xyz;\n " \
 "\n " \
-"	int numLayers = 2;  \n " \
+"	int numLayers = 4;  \n " \
 "\n " \
 "	float dt = 1. / float( numLayers );\n " \
 "\n " \
@@ -652,8 +660,8 @@ static void getGeometryShader (struct X3D_Node *myGeom, GLuint *myShad) {
 
 	*myShad = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
 
-printf ("using geom shader SGS\n");
-	SHADER_SOURCE (*myShad, 1,&SGS,NULL);
+printf ("using geom shader GS\n");
+	SHADER_SOURCE (*myShad, 1,&GS,NULL);
 	COMPILE_SHADER(*myShad);
         GET_SHADER_INFO(*myShad, COMPILE_STATUS, &success);
         if (!success) {
@@ -684,7 +692,7 @@ printf ("using geom shader SGS\n");
 */
 
 
-static void getAppearanceShaders (struct X3D_Node * myApp, GLuint *myVert, GLuint *myFrag) {	
+static void getAppearanceShaders (struct X3D_Node * myApp, GLuint *myVert, GLuint *myFrag, int haveGeomShader) {	
 	struct X3D_Node *fillPNode;
 	struct X3D_Node *linePNode;
 	struct X3D_Appearance *realNode;
@@ -728,8 +736,13 @@ static void getAppearanceShaders (struct X3D_Node * myApp, GLuint *myVert, GLuin
 	*myFrag = CREATE_SHADER(GL_FRAGMENT_SHADER);
 
 	/* vertex shader */
-printf ("using vertex shader SVS\n");
-	SHADER_SOURCE(*myVert, 1,&SVS,NULL);
+	if (haveGeomShader) {
+		printf ("using vertex shader vertexShaderForGeomShader\n");
+		SHADER_SOURCE(*myVert, 1,&vertexShaderForGeomShader,NULL);
+	} else {
+		printf ("using vertex shader simpleVertexShader\n");
+		SHADER_SOURCE(*myVert, 1,&simpleVertexShader,NULL);
+	}
 	COMPILE_SHADER(*myVert);
         GET_SHADER_INFO(*myVert, COMPILE_STATUS, &success);
         if (!success) {
@@ -774,7 +787,7 @@ void compile_Shape (struct X3D_Shape *node) {
 	mySTE->myShaderProgram = glCreateProgram();
 
 	getGeometryShader(node->geometry,&geomShad);
-	getAppearanceShaders(node->appearance,&vertShad, &fragShad);
+	getAppearanceShaders(node->appearance,&vertShad, &fragShad, (geomShad != 0));
 
 	if (geomShad != 0) {
 		printf ("compile_Shape, have geom shader\n");
