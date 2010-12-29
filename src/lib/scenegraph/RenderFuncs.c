@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.78 2010/12/22 21:03:44 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.79 2010/12/29 14:40:56 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -216,28 +216,23 @@ void setCurrentShader(s_shader_capabilities_t *myShader) {
 /* send in vertices, normals, etc, etc... to either a shader or via older opengl methods */
 void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer){
 	if (currentShaderStruct != NULL) {
-printf ("sendAttribToGPU, currentShaderStruct != NULL\n");
 
 		switch (myType) {
 			case FW_NORMAL_POINTER_TYPE:
 				glEnableVertexAttribArray(currentShaderStruct->Normals);
 				glVertexAttribPointer(currentShaderStruct->Normals, 3, dataType, normalized, stride, pointer);
-printf ("enabled Normals, pointer %d\n", currentShaderStruct->Normals);
 				break;
 			case FW_VERTEX_POINTER_TYPE:
 				glEnableVertexAttribArray(currentShaderStruct->Vertices);
 				glVertexAttribPointer(currentShaderStruct->Vertices, dataSize, dataType, normalized, stride, pointer);
-printf ("enabled Vertices, pointer %d\n", currentShaderStruct->Vertices);
 				break;
 			case FW_COLOR_POINTER_TYPE:
 				glEnableVertexAttribArray(currentShaderStruct->Colours);
 				glVertexAttribPointer(currentShaderStruct->Colours, dataSize, dataType, normalized, stride, pointer);
-printf ("enabled Colours, pointer %d\n", currentShaderStruct->Colours);
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
 				glEnableVertexAttribArray(currentShaderStruct->TexCoords);
 				glVertexAttribPointer(currentShaderStruct->TexCoords, dataSize, dataType, normalized, stride, pointer);
-printf ("enabled TexCoords, pointer %d\n", currentShaderStruct->TexCoords);
 				break;
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
@@ -270,19 +265,15 @@ void sendClientStateToGPU(int enable, int cap) {
 		switch (cap) {
 			case GL_NORMAL_ARRAY:
 				shaderNormalArray = enable;
-printf ("sendClientStateto GPU, shaderNormalArray %d\n",enable);
 				break;
 			case GL_VERTEX_ARRAY:
 				shaderVertexArray = enable;
-printf ("sendClientStateto GPU, shaderVertexArray %d\n",enable);
 				break;
 			case GL_COLOR_ARRAY:
 				shaderColourArray = enable;
-printf ("sendClientStateto GPU, shaderColourArray %d\n",enable);
 				break;
 			case GL_TEXTURE_COORD_ARRAY:
 				shaderTextureArray = enable;
-printf ("sendClientStateto GPU, shaderTextureArray %d\n",enable);
 				break;
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
@@ -296,20 +287,15 @@ printf ("sendClientStateto GPU, shaderTextureArray %d\n",enable);
 
 sendArraysToGPU (int mode, int first, int count) {
 	if (currentShaderStruct != NULL) {
-printf ("sendArraysToGPU; (true %d) normal %d vertex %d colour %d texture %d\n",TRUE, shaderNormalArray,shaderVertexArray,shaderColourArray,shaderTextureArray);
-		if (currentShaderStruct->Normals > 0) 
 			if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
 			else glDisableVertexAttribArray(currentShaderStruct->Normals);
 
-		if (currentShaderStruct->Vertices > 0) 
 			if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
 			else glDisableVertexAttribArray(currentShaderStruct->Vertices);
 
-		if (currentShaderStruct->Colours > 0) 
 			if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
 			else glDisableVertexAttribArray(currentShaderStruct->Colours);
 
-		if (currentShaderStruct->TexCoords > 0) 
 			if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
 			else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
 	}

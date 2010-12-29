@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.57 2010/12/22 21:03:44 crc_canada Exp $
+$Id: Component_Shape.c,v 1.58 2010/12/29 14:40:56 crc_canada Exp $
 
 X3D Shape Component
 
@@ -412,6 +412,39 @@ void render_Material (struct X3D_Material *node) {
 
 #ifdef SHADERS_2011
 
+/*
+static char *SFS = "void main() { gl_FragColor= vec4( 0.5, 0.5, 1.0, 1. ); } ";
+static char *SVS = "void main() { gl_Position = gl_Vertex; }";
+*/
+
+
+
+static char *SFS = " void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}";
+static char *SVS =
+"attribute      vec4 fw_Vertex;" \
+"uniform        mat4 fw_ModelViewMatrix;" \
+"uniform        mat4 fw_ProjectionMatrix;" \
+"void main(void) {" \
+"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+"}";
+
+
+/* this guy needs the fw_Normal written - the SphereShader calculates these things... */
+static const char *NVS = 
+"/* phong vertex shader */" \
+"varying vec3 Norm;" \
+"varying vec4 Pos;" \
+"uniform		mat4 fw_ModelViewMatrix;" \
+"uniform		mat4 fw_ProjectionMatrix;" \
+"attribute	vec4 fw_Vertex;" \
+"attribute	vec3 fw_Normal; " \
+"" \
+"void main(void) {" \
+"       Norm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
+"       Pos = fw_ModelViewMatrix * fw_Vertex;" \
+"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+"}";
+
 
 static char *FS = 
 "varying float LightIntensity; " \
@@ -422,7 +455,16 @@ static char *FS =
 "        /* gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0); */ " \
 "}";
 
-static char *VS = "void main() { gl_Position = gl_Vertex; }";
+
+/* really simple geometry shader */
+static const char *SGS =
+"#version 120\n " \
+"#extension GL_EXT_gpu_shader4: enable\n " \
+"#extension GL_EXT_geometry_shader4: enable\n " \
+"\n " \
+"void main() { for(int i = 0; i < gl_VerticesIn; ++i) { gl_FrontColor = gl_FrontColorIn[i]; gl_Position = gl_PositionIn[i] * vec4(1., 3., 1., 1.); EmitVertex(); } }";
+
+
 
 static const char *GS = 
 "#version 120\n " \
@@ -434,7 +476,6 @@ static const char *GS =
 "varying float LightIntensity;\n " \
 "uniform		mat4 fw_ModelViewMatrix;" \
 "uniform		mat4 fw_ProjectionMatrix;" \
-"uniform	vec4 fw_Vertex;" \
 "uniform	vec3 fw_Normal; " \
 "\n " \
 "vec3 V0, V01, V02;\n " \
@@ -447,7 +488,11 @@ static const char *GS =
 "	vec3 v = V0 + s*V01 + t*V02;\n " \
 "	v = normalize(v);\n " \
 "	vec3 n = v;\n " \
-"	vec3 tnorm = normalize( gl_NormalMatrix * n );	\n " \
+"	/* calculate a gl_NormalMatrix replacement */ \n " \
+"      /* gl_NormalMatrix is the inverse transpose of the modelview matrix, but as every matrix here needs to be transposed, we end up with {MODELVIEW_MATRIX, INVERSE}. */ \n " \
+"	/* no inverse here... mat4 myNormalMatrix = transpose(inverse(fw_ModelViewMatrix)); */ \n " \
+"	mat3 myNormalMatrix = transpose(mat3x3(fw_ModelViewMatrix)); \n " \
+"	vec3 tnorm = normalize( myNormalMatrix * n );	\n " \
 "\n " \
 "	vec4 ECposition = fw_ModelViewMatrix * vec4( (1.0*v), 1. );\n " \
 "	LightIntensity  = dot( normalize(lightPos - ECposition.xyz), tnorm );\n " \
@@ -467,7 +512,7 @@ static const char *GS =
 "	V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\n " \
 "	V0  =   gl_PositionIn[0].xyz;\n " \
 "\n " \
-"	int numLayers = 4;  \n " \
+"	int numLayers = 2;  \n " \
 "\n " \
 "	float dt = 1. / float( numLayers );\n " \
 "\n " \
@@ -503,21 +548,6 @@ static const char *GS =
 " }\n ";
 
 
-
-static const char *NVS = 
-"/* phong vertex shader */" \
-"varying vec3 Norm;" \
-"varying vec4 Pos;" \
-"uniform		mat4 fw_ModelViewMatrix;" \
-"uniform		mat4 fw_ProjectionMatrix;" \
-"attribute	vec4 fw_Vertex;" \
-"attribute	vec3 fw_Normal; " \
-"" \
-"void main(void) {" \
-"       Norm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
-"       Pos = fw_ModelViewMatrix * fw_Vertex;" \
-"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-"}";
 
 
 
@@ -622,12 +652,14 @@ static void getGeometryShader (struct X3D_Node *myGeom, GLuint *myShad) {
 
 	*myShad = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
 
-	SHADER_SOURCE (*myShad, 1,&GS,NULL);
+printf ("using geom shader SGS\n");
+	SHADER_SOURCE (*myShad, 1,&SGS,NULL);
 	COMPILE_SHADER(*myShad);
         GET_SHADER_INFO(*myShad, COMPILE_STATUS, &success);
         if (!success) {
 		shaderErrorLog(*myShad,"GEOMETRY");
         }
+
 
 }
 
@@ -696,7 +728,8 @@ static void getAppearanceShaders (struct X3D_Node * myApp, GLuint *myVert, GLuin
 	*myFrag = CREATE_SHADER(GL_FRAGMENT_SHADER);
 
 	/* vertex shader */
-	SHADER_SOURCE(*myVert, 1,&NVS,NULL);
+printf ("using vertex shader SVS\n");
+	SHADER_SOURCE(*myVert, 1,&SVS,NULL);
 	COMPILE_SHADER(*myVert);
         GET_SHADER_INFO(*myVert, COMPILE_STATUS, &success);
         if (!success) {
@@ -704,7 +737,8 @@ static void getAppearanceShaders (struct X3D_Node * myApp, GLuint *myVert, GLuin
         }
 
 	/* fragment shader */
-	SHADER_SOURCE(*myFrag, 1,&NFS,NULL);
+printf ("using fragment shader SFS\n");
+	SHADER_SOURCE(*myFrag, 1,&SFS,NULL);
 	COMPILE_SHADER(*myFrag);
         GET_SHADER_INFO(*myFrag, COMPILE_STATUS, &success);
         if (!success) {
@@ -749,6 +783,7 @@ void compile_Shape (struct X3D_Shape *node) {
 		glProgramParameteriEXT (mySTE->myShaderProgram, GL_GEOMETRY_VERTICES_OUT_EXT, 1024);
 		ATTACH_SHADER(mySTE->myShaderProgram,geomShad);
 	}
+
 
 	ATTACH_SHADER(mySTE->myShaderProgram,fragShad);
 	ATTACH_SHADER(mySTE->myShaderProgram,vertShad);
@@ -824,7 +859,6 @@ void child_Shape (struct X3D_Shape *node) {
 	*/
 
 	#ifdef SHADERS_2011
-printf ("node->_shaderTableEntry is %d\n",node->_shaderTableEntry);
 	if (node->_shaderTableEntry != -1) {
         	setCurrentShader (&globalShaders[node->_shaderTableEntry]);
 	}
