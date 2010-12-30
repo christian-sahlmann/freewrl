@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.60 2010/12/29 18:11:25 crc_canada Exp $
+$Id: Component_Shape.c,v 1.61 2010/12/30 20:45:08 crc_canada Exp $
 
 X3D Shape Component
 
@@ -412,68 +412,53 @@ void render_Material (struct X3D_Material *node) {
 
 #ifdef SHADERS_2011
 
-/*
-static char *SFS = "void main() { gl_FragColor= vec4( 0.5, 0.5, 1.0, 1. ); } ";
-static char *SVS = "void main() { gl_Position = gl_Vertex; }";
-*/
+/* Vertex Shaders */
 
-
-
-static char *SFS = " void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}";
-
-static char *vertexShaderForGeomShader =
-"attribute      vec4 fw_Vertex; \
+static char *vertexShaderForSphereGeomShader = " \
+varying vec3 Norm; \
+varying vec4 Pos; \
+attribute      vec4 fw_Vertex; \
+attribute      vec3 fw_Normal; \
 uniform        mat4 fw_ModelViewMatrix; \
 uniform        mat4 fw_ProjectionMatrix; \
 void main(void) { \
+       Norm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); \
+       Pos = fw_ModelViewMatrix * fw_Vertex;  \
   gl_Position = fw_Vertex; \
 }";
 
-static char *simpleVertexShader =
-"attribute      vec4 fw_Vertex; \
+/* vertex shader - phong lighting */
+static char *phongSimpleVertexShader = " \
+varying vec3 Norm; \
+varying vec4 Pos; \
+attribute      vec4 fw_Vertex; \
+attribute      vec3 fw_Normal; \
 uniform        mat4 fw_ModelViewMatrix; \
 uniform        mat4 fw_ProjectionMatrix; \
+uniform        mat3 fw_NormalMatrix; \
 void main(void) { \
+       Norm = normalize(fw_NormalMatrix * fw_Normal); \
+       /* Norm = normalize(gl_NormalMatrix * fw_Normal); */\
+       Pos = fw_ModelViewMatrix * fw_Vertex;  \
        gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
 }";
 
 
-/* this guy needs the fw_Normal written - the SphereShader calculates these things... */
-static const char *NVS = 
-"/* phong vertex shader */" \
-"varying vec3 Norm;" \
-"varying vec4 Pos;" \
-"uniform		mat4 fw_ModelViewMatrix;" \
-"uniform		mat4 fw_ProjectionMatrix;" \
-"attribute	vec4 fw_Vertex;" \
-"attribute	vec3 fw_Normal; " \
-"" \
-"void main(void) {" \
-"       Norm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
-"       Pos = fw_ModelViewMatrix * fw_Vertex;" \
-"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-"}";
 
+/* Geometry Shaders */
 
-static char *FS = 
-"varying float LightIntensity; " \
-"uniform vec4 Color; " \
-"void main() { " \
-"        gl_FragColor = vec4( 0.5, 0.5, 1.0, 1. ); " \
-"        /* gl_FragColor = vec4( LightIntensity*Color.rgb, 1. ); */ " \
-"        /* gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0); */ " \
-"}";
-
-
-/* really simple geometry shader */
-static const char *defaultGeomShader =
-"#version 120\n " \
-"#extension GL_EXT_gpu_shader4: enable\n " \
-"#extension GL_EXT_geometry_shader4: enable\n " \
-"\n " \
-"void main() { for(int i = 0; i < gl_VerticesIn; ++i) { gl_FrontColor = gl_FrontColorIn[i]; gl_Position = gl_PositionIn[i]; EmitVertex(); } }";
-
-
+static const char *passThroughGeomShader = " \
+#version 120 \n \
+#extension GL_EXT_geometry_shader4 : enable \n \
+\n \ 
+void main() { \n \
+  for(int i = 0; i < gl_VerticesIn; ++i) { \n \
+    gl_FrontColor = gl_FrontColorIn[i]; \n \
+    gl_Position = gl_PositionIn[i]; \n \
+    EmitVertex(); \n \
+  } \n \
+} \n \
+";
 
 static const char *sphereGeomShader = 
 "#version 120\n " \
@@ -483,9 +468,11 @@ static const char *sphereGeomShader =
 "uniform int Level;\n " \
 "\n " \
 "varying float LightIntensity;\n " \
+"varying vec3 Norm; \n " \
+"varying vec4 Pos; /* is this the same as gl_Position??  */ \n " \
 "uniform		mat4 fw_ModelViewMatrix;" \
 "uniform		mat4 fw_ProjectionMatrix;" \
-"uniform	vec3 fw_Normal; " \
+"varying	vec3 fw_Normal; " \
 "\n " \
 "vec3 V0, V01, V02;\n " \
 "\n " \
@@ -501,14 +488,15 @@ static const char *sphereGeomShader =
 "      /* gl_NormalMatrix is the inverse transpose of the modelview matrix, but as every matrix here needs to be transposed, we end up with {MODELVIEW_MATRIX, INVERSE}. */ \n " \
 "	/* no inverse here... mat4 myNormalMatrix = transpose(inverse(fw_ModelViewMatrix)); */ \n " \
 "	mat3 myNormalMatrix = transpose(mat3x3(fw_ModelViewMatrix)); \n " \
-"	vec3 tnorm = normalize( myNormalMatrix * n );	\n " \
+"	fw_Normal = normalize( myNormalMatrix * n );	\n " \
 "\n " \
 "	vec4 ECposition = fw_ModelViewMatrix * vec4( (1.0*v), 1. );\n " \
-"	LightIntensity  = dot( normalize(lightPos - ECposition.xyz), tnorm );\n " \
+"	LightIntensity  = dot( normalize(lightPos - ECposition.xyz), fw_Normal );\n " \
 "	LightIntensity = abs( LightIntensity );\n " \
 "	LightIntensity *= 1.5;\n " \
 "\n " \
 "	gl_Position = fw_ProjectionMatrix * ECposition;\n " \
+"	Pos = fw_ProjectionMatrix * ECposition;\n " \
 "	EmitVertex();\n " \
 "}\n " \
 " \n " \
@@ -558,9 +546,80 @@ static const char *sphereGeomShader =
 
 
 
+/* Fragment Shaders */
+static char *FS = 
+"varying float LightIntensity; " \
+"uniform vec4 Color; " \
+"void main() { " \
+"        gl_FragColor = vec4( 0.5, 0.5, 1.0, 1. ); " \
+"        /* gl_FragColor = vec4( LightIntensity*Color.rgb, 1. ); */ " \
+"        /* gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0); */ " \
+"}";
+
+static const char *phongFragmentShader = 
+"#version 120 \n " \
+"#extension GL_EXT_gpu_shader4: enable \n " \
+" \n " \
+"varying vec3 Norm; \n " \
+"varying vec4 Pos; \n " \
+" \n " \
+"// use ADSLightModel here \n " \
+" \n " \
+"// Assumed context: \n " \
+"// uniform variables gl_Lightsource[i] and gl_FrontMaterial are  \n " \
+"// stubbed with constant values below. These would probably be \n " \
+"// in parameters for the function if used in an application. \n " \
+"// \n " \
+"// variables myNormal and myPosition are passed in; in a vertex \n " \
+"// shader these would be computed and used directly, while in a  \n " \
+"// fragment shader these would be set as varying variables by \n " \
+"// the associated vertex shader \n " \
+"// \n " \
+"// the ADS colour is returned from the function. \n " \
+" \n " \
+"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \n " \
+"	// the group of variables below would normallye taken from gl_Lightsource[i] components \n " \
+"	vec4 myLightDiffuse = vec4(1., 1., 1., 1.); \n " \
+"	vec4 myLightAmbient = vec4(0.2, 0.2, 0.2, 0.2); \n " \
+"	vec4 myLightSpecular = vec4(1., 1., 1., 1.); \n " \
+"	vec4 myLightPosition = vec4 (1., 0.5, 0., 1.); \n " \
+" \n " \
+"	// the group of variables below would normally be taken from \n " \
+"	// gl_FrontMaterial components \n " \
+"	vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.); \n " \
+"	vec4 myMaterialAmbient = vec4(1., .5, 0., 1.); \n " \
+"	vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.); \n " \
+"	float myMaterialShininess = 80.; \n " \
+" \n " \
+"	// normal, light, view, and light reflection vectors \n " \
+"	vec3 norm = normalize (myNormal); \n " \
+"	vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \n " \
+"	vec3 viewv = -normalize(myPosition.xyz); \n " \
+"	vec3 refl = reflect (-lightv, norm); \n " \
+" \n " \
+"	// diffuse light computation \n " \
+"	vec4 diffuse = max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse; \n " \
+" \n " \
+"	// ambient light computation \n " \
+"	vec4 ambient = myMaterialAmbient*myLightAmbient; \n " \
+" \n " \
+"	// Specular light computation \n " \
+"	vec4 specular = vec4 (0.0, 0.0, 0.0, 1.0); \n " \
+"	if (dot(lightv, viewv) > 0.0) { \n " \
+"		specular = pow(max(0.0, dot(viewv, refl)), \n " \
+"			myMaterialShininess)*myMaterialSpecular*myLightSpecular; \n " \
+"	} \n " \
+"	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0); \n " \
+"} \n " \
+"void main () { \n " \
+"	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \n " \
+"} \n " ;
 
 
-static const char *NFS = 
+
+
+
+static const char *XphongFragmentShader = 
 "/*  phong fragment shader  */" \
 " " \
 "varying vec3 Norm;" \
@@ -628,7 +687,6 @@ static const char *NFS =
 
 
 static void shaderErrorLog(GLuint myShader, char *type) {
-printf ("shaderErrorLog: ");
         #ifdef GL_VERSION_2_0
 #define MAX_INFO_LOG_SIZE 512
                 GLchar infoLog[MAX_INFO_LOG_SIZE];
@@ -654,22 +712,18 @@ static void getGeometryShader (struct X3D_Node *myGeom, GLuint *myShad) {
 
 	/* which shapes have an associated Geometry shader? */
 	if (realNode->_nodeType == NODE_Sphere) {
-
-	*myShad = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
+		*myShad = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
 		printf ("using geom shader sphereGeomShader\n");
 		SHADER_SOURCE (*myShad, 1,&sphereGeomShader,NULL);
-	} else if (realNode->_nodeType != NODE_Sphere) {
-		printf ("using geom shader defaultGeomShader\n");
-		SHADER_SOURCE (*myShad, 1,&defaultGeomShader,NULL);
 	}
-	
-	COMPILE_SHADER(*myShad);
-        GET_SHADER_INFO(*myShad, COMPILE_STATUS, &success);
-        if (!success) {
-		shaderErrorLog(*myShad,"GEOMETRY");
-        }
 
-
+	if (*myShad != 0) {	
+		COMPILE_SHADER(*myShad);
+        	GET_SHADER_INFO(*myShad, COMPILE_STATUS, &success);
+        	if (!success) {
+			shaderErrorLog(*myShad,"GEOMETRY");
+        	}
+	}
 }
 
 /* find info on the appearance of this Shape and create a shader */
@@ -738,11 +792,11 @@ static void getAppearanceShaders (struct X3D_Node * myApp, GLuint *myVert, GLuin
 
 	/* vertex shader */
 	if (haveGeomShader) {
-		printf ("using vertex shader vertexShaderForGeomShader\n");
-		SHADER_SOURCE(*myVert, 1,&vertexShaderForGeomShader,NULL);
+		printf ("using vertex shader vertexShaderForSphereGeomShader\n");
+		SHADER_SOURCE(*myVert, 1,&vertexShaderForSphereGeomShader,NULL);
 	} else {
-		printf ("using vertex shader simpleVertexShader\n");
-		SHADER_SOURCE(*myVert, 1,&simpleVertexShader,NULL);
+		printf ("using vertex shader phongSimpleVertexShader\n");
+		SHADER_SOURCE(*myVert, 1,&phongSimpleVertexShader,NULL);
 	}
 	COMPILE_SHADER(*myVert);
         GET_SHADER_INFO(*myVert, COMPILE_STATUS, &success);
@@ -751,14 +805,13 @@ static void getAppearanceShaders (struct X3D_Node * myApp, GLuint *myVert, GLuin
         }
 
 	/* fragment shader */
-printf ("using fragment shader SFS\n");
-	SHADER_SOURCE(*myFrag, 1,&SFS,NULL);
+printf ("using fragment shader phongFragmentShader\n");
+	SHADER_SOURCE(*myFrag, 1,&phongFragmentShader,NULL);
 	COMPILE_SHADER(*myFrag);
         GET_SHADER_INFO(*myFrag, COMPILE_STATUS, &success);
         if (!success) {
 		shaderErrorLog(*myFrag,"FRAGMENT");
         }
-
 }
 
 #endif /* SHADERS_2011 */
@@ -819,26 +872,6 @@ void compile_Shape (struct X3D_Shape *node) {
 #endif
 
 	MARK_NODE_COMPILED
-
-/*
-        Shape => new VRML::NodeType ("Shape", {
-                appearance => [SFNode, NULL, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                geometry => [SFNode, NULL, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                __visible =>[SFInt32,0,initializeOnly, 0], # for Occlusion tests.
-                __occludeCheckCount =>[SFInt32,-1,initializeOnly, 0], # for Occlusion tests.
-                __Samples =>[SFInt32,-1,initializeOnly, 0],             # Occlude samples from last pass
-
-                _geomShader =>[SFInt32,0,initializeOnly,0], # shaders
-                _fragShader =>[SFInt32,0,initializeOnly,0], # shaders
-                _vertShader =>[SFInt32,0,initializeOnly,0], # shaders
-                _myShader =>[SFInt32,0,initializeOnly,0], # shaders
-
-
-        },"X3DBoundedObject"),
-*/
 }
 
 
@@ -878,7 +911,6 @@ void child_Shape (struct X3D_Shape *node) {
 	}
 	#endif
 
-
 	/* set up Appearance Properties here */
 	this_textureTransform = NULL;
 	linePropertySet=FALSE;
@@ -889,7 +921,6 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* a texture and a transparency flag... */
 	textureStackTop = 0; /* will be >=1 if textures found */
-
 	/* assume that lighting is enabled. Absence of Material or Appearance
 	   node will turn lighting off; in this case, at the end of Shape, we
 	   have to turn lighting back on again. */

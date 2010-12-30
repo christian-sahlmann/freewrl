@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.164 2010/12/22 21:03:44 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.165 2010/12/30 20:45:08 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -449,6 +449,7 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
 	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
 	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
+	me->NormalMatrix = GET_UNIFORM(myProg,"fw_NormalMatrix");
 	me->Vertices = GET_ATTRIB(myProg,"fw_Vertex");
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
 	me->Colours = GET_ATTRIB(myProg,"fw_Color");
@@ -2508,7 +2509,7 @@ static void fw_glLoadMatrixd(double *val) {
 	glLoadMatrixd(val);
 }
 
-void sendMatriciesToShader(GLint MM,GLint PM) {
+void sendMatriciesToShader(GLint MM,GLint PM, GLint NM) {
 	float spval[16];
 	int i;
 	float *sp; 
@@ -2544,6 +2545,39 @@ void sendMatriciesToShader(GLint MM,GLint PM) {
 	//glUniformMatrix4fv(PM,1,GL_FALSE,pvm);
 
 	glUniformMatrix4fv(PM,1,GL_FALSE,spval);
+
+	/* send in the NormalMatrix */
+	if (NM != -1) {
+		double X1[16];
+		double X2[16];
+		float normMat[9];
+		dp = FW_ModelView[modelviewTOS];
+		memcpy(X2,dp,sizeof(double)*16);
+
+printf ("forcing X2 13,14,15 to zero\n"); X2[12] = 0.0; X2[13] = 0.0; X2[14] = 0.0;
+		matinverse (X1,X2);
+		mattranspose(X2,X1);
+		/* get the 3x3 normal matrix from this guy */
+		normMat[0] = (float) X1[0];
+		normMat[1] = (float) X1[1];
+		normMat[2] = (float) X1[2];
+		
+		normMat[3] = (float) X1[4];
+		normMat[4] = (float) X1[5];
+		normMat[5] = (float) X1[6];
+		
+		normMat[6] = (float) X1[8];
+		normMat[7] = (float) X1[9];
+		normMat[8] = (float) X1[10];
+{int i;
+printf ("normMat: ");
+for (i=0; i<9; i++) {
+printf ("%f ",normMat[i]);
+}printf ("\n");
+}
+
+		glUniformMatrix3fv(NM,1,GL_FALSE,normMat);
+	}
 }
 
 static void __gluMultMatrixVecd(const GLdouble matrix[16], const GLdouble in[4],

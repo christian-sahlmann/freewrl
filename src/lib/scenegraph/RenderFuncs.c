@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.79 2010/12/29 14:40:56 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.80 2010/12/30 20:45:08 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -199,7 +199,8 @@ void chooseBackgroundShader(shader_type_t requestedShader) {
 	USE_SHADER(globalCurrentShader);
 
 	/* send in the current position and modelview matricies */
-	sendMatriciesToShader(currentShaderStruct->ModelViewMatrix,currentShaderStruct->ProjectionMatrix);
+	sendMatriciesToShader(currentShaderStruct->ModelViewMatrix,currentShaderStruct->ProjectionMatrix, 
+		currentShaderStruct->NormalMatrix);
 }
 
 void setCurrentShader(s_shader_capabilities_t *myShader) {
@@ -209,7 +210,8 @@ void setCurrentShader(s_shader_capabilities_t *myShader) {
 	USE_SHADER(globalCurrentShader);
 
 	/* send in the current position and modelview matricies */
-	sendMatriciesToShader(currentShaderStruct->ModelViewMatrix,currentShaderStruct->ProjectionMatrix);
+	sendMatriciesToShader(currentShaderStruct->ModelViewMatrix,currentShaderStruct->ProjectionMatrix, 
+		currentShaderStruct->NormalMatrix);
 }
 
 
@@ -285,7 +287,7 @@ void sendClientStateToGPU(int enable, int cap) {
 	}
 }
 
-sendArraysToGPU (int mode, int first, int count) {
+void sendArraysToGPU (int mode, int first, int count) {
 	if (currentShaderStruct != NULL) {
 			if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
 			else glDisableVertexAttribArray(currentShaderStruct->Normals);
@@ -303,7 +305,7 @@ sendArraysToGPU (int mode, int first, int count) {
 	glDrawArrays(mode,first,count);
 }
 
-sendElementsToGPU (int mode, int count, int type, int *indices) {
+void sendElementsToGPU (int mode, int count, int type, int *indices) {
 	if (currentShaderStruct != NULL) {
 printf ("sendElementsToGPU; (true %d) normal %d vertex %d colour %d texture %d\n",TRUE, shaderNormalArray,shaderVertexArray,shaderColourArray,shaderTextureArray);
 		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);

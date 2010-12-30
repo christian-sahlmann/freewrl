@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.29 2010/12/22 21:03:44 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.30 2010/12/30 20:45:08 crc_canada Exp $
 
 Screen snapshot.
 
@@ -45,6 +45,7 @@ typedef struct {
 	GLint lightPosition;
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;
+	GLint NormalMatrix;
 	GLint Vertices;
 	GLint Normals;
 	GLint Colours;
@@ -122,7 +123,7 @@ void fw_iphone_vertexPointer(GLint aaa,GLenum bbb,GLsizei ccc,const GLvoid *ddd)
 void fw_iphone_normalPointer(GLenum aaa,GLsizei bbb, const GLvoid *ccc);
 void fw_iphone_texcoordPointer(GLint aaa, GLenum bbb ,GLsizei ccc,const GLvoid *ddd);
 void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd);
-void sendMatriciesToShader(GLint MM,GLint PM);
+void sendMatriciesToShader(GLint MM,GLint PM, GLint NM);
 void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar);
 void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height, GLint *vp);
 void fw_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ);
