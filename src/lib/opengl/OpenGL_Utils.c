@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.165 2010/12/30 20:45:08 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.166 2010/12/31 19:47:37 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2547,34 +2547,31 @@ void sendMatriciesToShader(GLint MM,GLint PM, GLint NM) {
 	glUniformMatrix4fv(PM,1,GL_FALSE,spval);
 
 	/* send in the NormalMatrix */
+	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper
+                               		  leftmost 3x3 of gl_ModelViewMatrix */
 	if (NM != -1) {
-		double X1[16];
-		double X2[16];
+		double inverseMV[16];
+		double transInverseMV[16];
+		double MV[16];
 		float normMat[9];
 		dp = FW_ModelView[modelviewTOS];
-		memcpy(X2,dp,sizeof(double)*16);
+		memcpy(MV,dp,sizeof(double)*16);
 
-printf ("forcing X2 13,14,15 to zero\n"); X2[12] = 0.0; X2[13] = 0.0; X2[14] = 0.0;
-		matinverse (X1,X2);
-		mattranspose(X2,X1);
+//printf ("forcing MV 13,14,15 to zero\n"); MV[12] = 0.0; MV[13] = 0.0; MV[14] = 0.0;
+		matinverse (inverseMV,MV);
+		mattranspose(transInverseMV,inverseMV);
 		/* get the 3x3 normal matrix from this guy */
-		normMat[0] = (float) X1[0];
-		normMat[1] = (float) X1[1];
-		normMat[2] = (float) X1[2];
+		normMat[0] = (float) transInverseMV[0];
+		normMat[1] = (float) transInverseMV[1];
+		normMat[2] = (float) transInverseMV[2];
 		
-		normMat[3] = (float) X1[4];
-		normMat[4] = (float) X1[5];
-		normMat[5] = (float) X1[6];
+		normMat[3] = (float) transInverseMV[4];
+		normMat[4] = (float) transInverseMV[5];
+		normMat[5] = (float) transInverseMV[6];
 		
-		normMat[6] = (float) X1[8];
-		normMat[7] = (float) X1[9];
-		normMat[8] = (float) X1[10];
-{int i;
-printf ("normMat: ");
-for (i=0; i<9; i++) {
-printf ("%f ",normMat[i]);
-}printf ("\n");
-}
+		normMat[6] = (float) transInverseMV[8];
+		normMat[7] = (float) transInverseMV[9];
+		normMat[8] = (float) transInverseMV[10];
 
 		glUniformMatrix3fv(NM,1,GL_FALSE,normMat);
 	}

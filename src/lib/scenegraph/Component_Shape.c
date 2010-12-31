@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.61 2010/12/30 20:45:08 crc_canada Exp $
+$Id: Component_Shape.c,v 1.62 2010/12/31 19:47:37 crc_canada Exp $
 
 X3D Shape Component
 
@@ -438,7 +438,6 @@ uniform        mat4 fw_ProjectionMatrix; \
 uniform        mat3 fw_NormalMatrix; \
 void main(void) { \
        Norm = normalize(fw_NormalMatrix * fw_Normal); \
-       /* Norm = normalize(gl_NormalMatrix * fw_Normal); */\
        Pos = fw_ModelViewMatrix * fw_Vertex;  \
        gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
 }";
@@ -469,10 +468,10 @@ static const char *sphereGeomShader =
 "\n " \
 "varying float LightIntensity;\n " \
 "varying vec3 Norm; \n " \
-"varying vec4 Pos; /* is this the same as gl_Position??  */ \n " \
+"varying vec4 Pos; \n " \
 "uniform		mat4 fw_ModelViewMatrix;" \
 "uniform		mat4 fw_ProjectionMatrix;" \
-"varying	vec3 fw_Normal; " \
+"uniform		mat3 fw_NormalMatrix; "\
 "\n " \
 "vec3 V0, V01, V02;\n " \
 "\n " \
@@ -484,24 +483,19 @@ static const char *sphereGeomShader =
 "	vec3 v = V0 + s*V01 + t*V02;\n " \
 "	v = normalize(v);\n " \
 "	vec3 n = v;\n " \
-"	/* calculate a gl_NormalMatrix replacement */ \n " \
-"      /* gl_NormalMatrix is the inverse transpose of the modelview matrix, but as every matrix here needs to be transposed, we end up with {MODELVIEW_MATRIX, INVERSE}. */ \n " \
-"	/* no inverse here... mat4 myNormalMatrix = transpose(inverse(fw_ModelViewMatrix)); */ \n " \
-"	mat3 myNormalMatrix = transpose(mat3x3(fw_ModelViewMatrix)); \n " \
-"	fw_Normal = normalize( myNormalMatrix * n );	\n " \
+"	Norm = normalize( fw_NormalMatrix * n );	\n " \
 "\n " \
 "	vec4 ECposition = fw_ModelViewMatrix * vec4( (1.0*v), 1. );\n " \
-"	LightIntensity  = dot( normalize(lightPos - ECposition.xyz), fw_Normal );\n " \
-"	LightIntensity = abs( LightIntensity );\n " \
-"	LightIntensity *= 1.5;\n " \
+"	/* LightIntensity  = dot( normalize(lightPos - ECposition.xyz), fw_Normal ); */ \n " \
+"	/* LightIntensity  = dot( normalize(lightPos - ECposition.xyz), Norm ); */ \n " \
+"	/* LightIntensity = abs( LightIntensity ); */ \n " \
+"	/* LightIntensity *= 1.5; */ \n " \
 "\n " \
 "	gl_Position = fw_ProjectionMatrix * ECposition;\n " \
 "	Pos = fw_ProjectionMatrix * ECposition;\n " \
 "	EmitVertex();\n " \
 "}\n " \
 " \n " \
-"\n " \
-"\n " \
 "void\n " \
 "main()\n " \
 "{ \n " \
@@ -509,7 +503,7 @@ static const char *sphereGeomShader =
 "	V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\n " \
 "	V0  =   gl_PositionIn[0].xyz;\n " \
 "\n " \
-"	int numLayers = 4;  \n " \
+"	int numLayers = 1;  \n " \
 "\n " \
 "	float dt = 1. / float( numLayers );\n " \
 "\n " \
@@ -544,12 +538,10 @@ static const char *sphereGeomShader =
 "	} \n " \
 " }\n ";
 
-
-
 /* Fragment Shaders */
 static char *FS = 
-"varying float LightIntensity; " \
-"uniform vec4 Color; " \
+"/* varying float LightIntensity;*/ " \
+"/* uniform vec4 Color; */" \
 "void main() { " \
 "        gl_FragColor = vec4( 0.5, 0.5, 1.0, 1. ); " \
 "        /* gl_FragColor = vec4( LightIntensity*Color.rgb, 1. ); */ " \
@@ -807,6 +799,11 @@ static void getAppearanceShaders (struct X3D_Node * myApp, GLuint *myVert, GLuin
 	/* fragment shader */
 printf ("using fragment shader phongFragmentShader\n");
 	SHADER_SOURCE(*myFrag, 1,&phongFragmentShader,NULL);
+
+/*
+printf ("using fragment shader FS\n");
+	SHADER_SOURCE(*myFrag, 1,&FS,NULL);
+*/
 	COMPILE_SHADER(*myFrag);
         GET_SHADER_INFO(*myFrag, COMPILE_STATUS, &success);
         if (!success) {
