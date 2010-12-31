@@ -1,5 +1,5 @@
 /*
-  $Id: internal.c,v 1.22 2010/12/21 21:18:50 crc_canada Exp $
+  $Id: internal.c,v 1.23 2010/12/31 16:28:52 crc_canada Exp $
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always
@@ -159,7 +159,13 @@ bool global_occlusion_disable = FALSE;
 unsigned global_texture_size = 0;
 bool global_print_opengl_errors = FALSE;
 bool global_trace_threads = FALSE;
+
+/* having trouble with VBOs, make false unless otherwise told to do so */
+#ifdef SHADERS_2011
 bool global_use_VBOs = TRUE;
+#else
+bool global_use_VBOs = FALSE;
+#endif /* SHADERS_2011 */
 
 #ifdef OLD_SHADER_CODE
 OLD_SHADER_CODE bool global_use_shaders_when_possible = FALSE;

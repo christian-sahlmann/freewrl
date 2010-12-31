@@ -206,8 +206,8 @@ sub writeMakefileInitialize() {
 	print MK "CC = gcc\n";
 	print MK "JAVAC = javac\n";
 	print MK "INC = $MYINC\n";
-	print MK "DEFINE = $noStackProtector -DSHADERS_2011 $MYDEFINE\n";
-	#print MK "DEFINE = $noStackProtector $MYDEFINE\n";
+	#print MK "DEFINE = $noStackProtector -DSHADERS_2011 $MYDEFINE\n";
+	print MK "DEFINE = $noStackProtector $MYDEFINE\n";
 
 	print MK "FWFLAGS = -V 4.0.1 -c -Wall -O2 -g -pipe -fno-strict-aliasing -fPIC\n";
 	print MK "MYLIBS = $MYLIBS\n";
