@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.30 2010/12/08 13:05:54 crc_canada Exp $
+$Id: JScript.c,v 1.31 2011/01/04 19:50:19 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -62,6 +62,7 @@ Javascript C language binding.
 
 static int JSaddGlobalECMANativeProperty(int num, const char *name);
 static int JSaddGlobalAssignProperty(int num, const char *name, const char *str);
+static void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value);
 
 /*
  * Global JS variables (from Brendan Eichs short embedding tutorial):
@@ -247,7 +248,7 @@ void JSInitializeScriptAndFields (int num) {
 	/* run through fields in order of entry in the X3D file */
         thisEntry = ScriptControl[num].paramList;
         while (thisEntry != NULL) {
-		/* printf ("script field is %s\n",thisEntry->field); */
+		/* printf ("script field is %s\n",thisEntry->field);  */
 		InitScriptField(num, thisEntry->kind, thisEntry->type, thisEntry->field, thisEntry->value);
 
 		/* get the next block; free the current name, current block, and make current = next */
@@ -666,7 +667,7 @@ static char* re_strcat(char *_Dest, char *_Source, int *destLen, int *destDim)
 	return _Dest;
 }
 /* the EventLoop is initializing this field now */
-void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value) {
+static void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value) {
 	jsval rval;
 	char *smallfield = NULL;
 	char mynewname[400];
@@ -717,6 +718,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 		case FIELDTYPE_SFBool:
 		case FIELDTYPE_SFFloat:
 		case FIELDTYPE_SFTime:
+		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFInt32:
 		case FIELDTYPE_SFString: {
 			/* do not care about eventIns */
@@ -726,7 +728,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 					if  (type == FIELDTYPE_SFString) {
 						tlen = (int) strlen(value.sfstring->strptr) + 20;
 					} else {
-						tlen = (int) strlen(field) + 20;
+						tlen = (int) strlen(field) + 400; /* long, in the case of doubles */
 					}
 					smallfield = MALLOC (char *, tlen);
 					smallfield[0] = '\0';
@@ -734,6 +736,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 					switch (type) {
 						case FIELDTYPE_SFFloat: sprintf (smallfield,"%s=%f\n",field,value.sffloat);break;
 						case FIELDTYPE_SFTime: sprintf (smallfield,"%s=%f\n",field,value.sftime);break;
+						case FIELDTYPE_SFDouble: sprintf (smallfield,"%s=%f\n",field,value.sftime);break;
 						case FIELDTYPE_SFInt32: sprintf (smallfield,"%s=%d\n",field,value.sfint32); break;
 						case FIELDTYPE_SFBool: 
 							if (value.sfbool == 1) sprintf (smallfield,"%s=true",field);
@@ -742,6 +745,7 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 						case FIELDTYPE_SFString:  
 							sprintf (smallfield,"%s=\"%s\"\n",field,value.sfstring->strptr); break;
 					}
+
 					if (!ACTUALRUNSCRIPT(num,smallfield,&rval))
 						printf ("huh??? Field initialization script failed %s\n",smallfield);
 				}
@@ -895,12 +899,13 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 					case FIELDTYPE_SFVec3d:
 					case FIELDTYPE_MFTime:
 					case FIELDTYPE_SFTime:
+					case FIELDTYPE_SFDouble:
 					case FIELDTYPE_SFVec4d:
 						DoublePtr = defaultDouble;
 						break;
 						
 					default: {
-						printf ("unhandled type, in InitScriptField %d\n",type);
+						printf ("unhandled type, in InitScriptField part 2 %d\n",type);
 						return;
 					}
 				}

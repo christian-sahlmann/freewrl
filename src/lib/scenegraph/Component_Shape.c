@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.63 2011/01/04 15:43:32 crc_canada Exp $
+$Id: Component_Shape.c,v 1.64 2011/01/04 19:50:19 crc_canada Exp $
 
 X3D Shape Component
 
@@ -586,14 +586,9 @@ vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
 	vec4 ambient = vec4(0., 0., 0., 0.); \
 	vec4 specular = vec4(0., 0., 0., 1.); \
  \
-	/* the group of variables below would normallye taken from gl_Lightsource[i] components */ \
+	/* apply the lights to this material */ \
 	for (i=0; i<8; i++) { \
 		if (lightState[i] == 1) { \
-		/* OLDCODE vec4 myLightDiffuse = vec4(1., 1., 1., 1.); */ \
-		/* OLDCODE vec4 myLightAmbient = vec4(0.2, 0.2, 0.2, 0.2);*/  \
-		/* OLDCODE vec4 myLightSpecular = vec4(1., 1., 1., 1.); */ \
-		/* OLDCODE vec4 myLightPosition = vec4 (1., 0.5, 0., 1.); */ \
-\
 		vec4 myLightDiffuse = gl_LightSource[i].diffuse; \
 		vec4 myLightAmbient = gl_LightSource[i].ambient; \
 		vec4 myLightSpecular = gl_LightSource[i].specular; \

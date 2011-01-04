@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.40 2010/12/07 18:27:50 crc_canada Exp $
+$Id: CParseLexer.c,v 1.41 2011/01/04 19:50:19 crc_canada Exp $
 
 ???
 
@@ -1097,7 +1097,7 @@ BOOL lexer_double(struct VRMLLexer* me, vrmlDoubleT* ret)
 
   if(negExp)
    exp=-exp;
-  *ret*=(float)(pow(10, exp));
+  *ret*=(pow(10, exp));
  }
  LEXER_UNGETINPUT(c)
 

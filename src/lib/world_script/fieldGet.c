@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.38 2010/11/10 14:25:49 crc_canada Exp $
+$Id: fieldGet.c,v 1.39 2011/01/04 19:50:19 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -79,6 +79,7 @@ void getField_ToJavascript (int num, int fromoffset) {
 	case FIELDTYPE_SFBool:
 	case FIELDTYPE_SFFloat:
 	case FIELDTYPE_SFTime:
+	case FIELDTYPE_SFDouble:
 	case FIELDTYPE_SFInt32:
 	case FIELDTYPE_SFString:
 		setScriptECMAtype(num);
@@ -158,6 +159,7 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
         case FIELDTYPE_SFBool:
         case FIELDTYPE_SFFloat:
         case FIELDTYPE_SFTime:
+        case FIELDTYPE_SFDouble:
         case FIELDTYPE_SFInt32:
         case FIELDTYPE_SFString:
 */
@@ -910,6 +912,7 @@ int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Return
 			break;
 		}
 
+		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime:	{
 			if (eaiverbose) { 
 			printf ("UtilEAI_Convert_mem_to_ASCII: EAI_SFTIME\n");

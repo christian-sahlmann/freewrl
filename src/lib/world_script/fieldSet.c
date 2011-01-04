@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.55 2010/12/07 18:27:50 crc_canada Exp $
+  $Id: fieldSet.c,v 1.56 2011/01/04 19:50:19 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -212,6 +212,7 @@ static int setField_FromEAI_ToScript(int tonode, int toname,
         case FIELDTYPE_SFBool:
         case FIELDTYPE_SFFloat:
         case FIELDTYPE_SFTime:
+        case FIELDTYPE_SFDouble:
         case FIELDTYPE_SFInt32:
         case FIELDTYPE_SFString:
 
@@ -796,6 +797,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 			break;
 		}
 
+		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime: {
 			if (!JS_ValueToNumber(scriptContext, JSglobal_return_val,&tval)) tval=0.0;
 			memcpy ((void *)memptr, (void *)&tval,len);
@@ -840,6 +842,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		case FIELDTYPE_MFFloat: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFFloat); break;}
 		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFInt32); break;}
 		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFTime); break;}
+		case FIELDTYPE_MFDouble: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFDouble); break;}
 		case FIELDTYPE_MFNode: {
 				struct X3D_Node *mynode;
 
@@ -1203,6 +1206,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 				*nl = 0; nl++; break;
 			case FIELDTYPE_SFInt32: 
 				*il=0; il++; break;
+			case FIELDTYPE_SFDouble:
 			case FIELDTYPE_SFTime: 
 				*dl=0.0; dl++; break;
 			case FIELDTYPE_SFFloat: 
@@ -1266,6 +1270,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 				il++;
 				break;
 			}
+			case FIELDTYPE_SFDouble:
 			case FIELDTYPE_SFTime: {
 				if (!JS_ValueToNumber(cx, mainElement ,dl)) *dl=0.0;
 				dl++;

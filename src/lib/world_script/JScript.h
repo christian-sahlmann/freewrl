@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.h,v 1.8 2010/03/01 22:39:49 crc_canada Exp $
+$Id: JScript.h,v 1.9 2011/01/04 19:50:19 crc_canada Exp $
 
 ???
 
@@ -68,7 +68,6 @@ void SFVec4fNativeAssign(void *top, void *fromp);
 void * SFVec4dNativeNew(void);
 void SFVec4dNativeAssign(void *top, void *fromp);
 void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value);
-void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value);
 
 
 #endif /* __FREEWRL_JS_JSCRIPT_H__ */

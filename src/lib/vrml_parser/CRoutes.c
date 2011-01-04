@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.73 2010/12/07 18:27:50 crc_canada Exp $
+$Id: CRoutes.c,v 1.74 2011/01/04 19:50:19 crc_canada Exp $
 
 ???
 
@@ -386,6 +386,7 @@ void markScriptResults(struct X3D_Node * tn, int tptr, int route, void * tonode)
 /* FIELDTYPE_SFBool								*/
 /* FIELDTYPE_SFFloat								*/
 /* FIELDTYPE_SFTime								*/
+/* FIELDTYPE_SFDouble								*/
 /* FIELDTYPE_SFString								*/
 /*										*/
 /* check the "touched" flag for non-zero in the private area:			*/
@@ -467,6 +468,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 			GET_ECMA_MF_TOUCHED(Int32)
 			GET_ECMA_MF_TOUCHED(Bool)
 			GET_ECMA_MF_TOUCHED(Time)
+			GET_ECMA_MF_TOUCHED(Double)
 			GET_ECMA_MF_TOUCHED(Float)
 			GET_ECMA_MF_TOUCHED(String)
 
@@ -474,6 +476,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 			GET_ECMA_TOUCHED(Bool) 
 			GET_ECMA_TOUCHED(Float)
 			GET_ECMA_TOUCHED(Time)
+			GET_ECMA_TOUCHED(Double)
 			GET_ECMA_TOUCHED(String)
 			
 			default: {printf ("not handled yet in get_valueChanged_flag %s\n",FIELDTYPES[JSparamnames[fptr].type]);
@@ -1951,6 +1954,7 @@ void resetScriptTouchedFlag(int actualscript, int fptr) {
 		RESET_TOUCHED_TYPE_ECMA (SFBool)
 		RESET_TOUCHED_TYPE_ECMA (SFFloat)
 		RESET_TOUCHED_TYPE_ECMA (SFTime)
+		RESET_TOUCHED_TYPE_ECMA (SFDouble)
 		RESET_TOUCHED_TYPE_ECMA (SFString)
 		RESET_ECMA_MF_TOUCHED(MFInt32)
 		RESET_ECMA_MF_TOUCHED(MFBool) 
