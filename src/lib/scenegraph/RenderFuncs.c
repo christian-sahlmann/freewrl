@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.80 2010/12/30 20:45:08 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.81 2011/01/04 15:43:32 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -74,7 +74,7 @@ static shaderVec4 light_spot[8];
 static int nextFreeLight = 0;
 
 /* lights status. Light 7 is the headlight */
-static int lights[8];
+GLint lightOnOff[8];
 
 /* which shader is currently selected (general appearance shaders) */
 static s_shader_capabilities_t *currentShaderStruct = NULL;
@@ -95,7 +95,7 @@ int nextlight() {
 /* keep track of lighting */
 void lightState(GLint light, int status) {
 	if (light<0) return; /* nextlight will return -1 if too many lights */
-	if (lights[light] != status) {
+	if (lightOnOff[light] != status) {
 		if (status) {
 			/* printf ("light %d on\n",light); */
 			FW_GL_ENABLE(GL_LIGHT0+light);
@@ -105,20 +105,20 @@ void lightState(GLint light, int status) {
 			FW_GL_DISABLE(GL_LIGHT0+light);
 			lightStatusDirty = TRUE;
 		}
-		lights[light]=status;
+		lightOnOff[light]=status;
 	}
 }
 
 /* for local lights, we keep track of what is on and off */
 void saveLightState(int *ls) {
 	int i;
-	for (i=0; i<7; i++) ls[i] = lights[i];
+	for (i=0; i<7; i++) ls[i] = lightOnOff[i];
 } 
 
 void restoreLightState(int *ls) {
 	int i;
 	for (i=0; i<7; i++) {
-		if (ls[i] != lights[i]) {
+		if (ls[i] != lightOnOff[i]) {
 			lightState(i,ls[i]);
 		}
 	}
@@ -199,8 +199,7 @@ void chooseBackgroundShader(shader_type_t requestedShader) {
 	USE_SHADER(globalCurrentShader);
 
 	/* send in the current position and modelview matricies */
-	sendMatriciesToShader(currentShaderStruct->ModelViewMatrix,currentShaderStruct->ProjectionMatrix, 
-		currentShaderStruct->NormalMatrix);
+	sendMatriciesToShader(currentShaderStruct);
 }
 
 void setCurrentShader(s_shader_capabilities_t *myShader) {
@@ -210,8 +209,7 @@ void setCurrentShader(s_shader_capabilities_t *myShader) {
 	USE_SHADER(globalCurrentShader);
 
 	/* send in the current position and modelview matricies */
-	sendMatriciesToShader(currentShaderStruct->ModelViewMatrix,currentShaderStruct->ProjectionMatrix, 
-		currentShaderStruct->NormalMatrix);
+	sendMatriciesToShader(currentShaderStruct);
 }
 
 
@@ -332,7 +330,7 @@ void initializeLightTables() {
 
 	int i;
         for (i=0; i<8; i++) {
-                lights[i] = 9999;
+                lightOnOff[i] = 9999;
                 lightState(i,FALSE);
 
         	FW_GL_LIGHTFV(i, GL_POSITION, pos);

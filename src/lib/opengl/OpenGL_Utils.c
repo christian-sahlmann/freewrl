@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.166 2010/12/31 19:47:37 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.167 2011/01/04 15:43:32 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2509,47 +2509,38 @@ static void fw_glLoadMatrixd(double *val) {
 	glLoadMatrixd(val);
 }
 
-void sendMatriciesToShader(GLint MM,GLint PM, GLint NM) {
+void sendMatriciesToShader(s_shader_capabilities_t *me) {
 	float spval[16];
 	int i;
 	float *sp; 
 	double *dp;
 
-	// you can use this for testing something at the [0,0,0] position
-	//float mvm[] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -10, 1};
-	//float pvm[] = {1.74427, 0, 0, 0, 0, 2.41421, 0, 0, 0, 0, -1.00001, -1, -0, -0, -0.200001, -0};
-
 	/* ModelView first */
 	dp = FW_ModelView[modelviewTOS];
 	sp = spval;
 
+	/* convert double to float */
 	for (i=0; i<16; i++) {
 		*sp = (float) *dp; 	
 		sp ++; dp ++;
 	}
-
-	//for (i=0; i<16;i++) { printf ("ModelView %d: %4.3f %4.3f\n",i,spval[i],mvm[i]); }
-	//glUniformMatrix4fv(MM,1,GL_FALSE,mvm);
-
-	glUniformMatrix4fv(MM,1,GL_FALSE,spval);
+	glUniformMatrix4fv(me->ModelViewMatrix,1,GL_FALSE,spval);
 
 	/* ProjectionMatrix */
 	sp = spval;
 	dp = FW_ProjectionView[projectionviewTOS];
 
+	/* convert double to float */
 	for (i=0; i<16; i++) {
 		*sp = (float) *dp; 	
 		sp ++; dp ++;
 	}
-	//for (i=0; i<16;i++) { printf ("Projection %d: %4.3f %4.3f\n",i,spval[i],pvm[i]); }
-	//glUniformMatrix4fv(PM,1,GL_FALSE,pvm);
-
-	glUniformMatrix4fv(PM,1,GL_FALSE,spval);
+	glUniformMatrix4fv(me->ProjectionMatrix,1,GL_FALSE,spval);
 
 	/* send in the NormalMatrix */
 	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper
                                		  leftmost 3x3 of gl_ModelViewMatrix */
-	if (NM != -1) {
+	if (me->NormalMatrix != -1) {
 		double inverseMV[16];
 		double transInverseMV[16];
 		double MV[16];
@@ -2573,7 +2564,16 @@ void sendMatriciesToShader(GLint MM,GLint PM, GLint NM) {
 		normMat[7] = (float) transInverseMV[9];
 		normMat[8] = (float) transInverseMV[10];
 
-		glUniformMatrix3fv(NM,1,GL_FALSE,normMat);
+		glUniformMatrix3fv(me->NormalMatrix,1,GL_FALSE,normMat);
+	}
+
+	if (me->lightState != -1) {
+		/* for debugging:
+			int i;
+			printf ("sendMAt - sending in lightState ");
+			for (i=0; i<8; i++) printf ("%d:%d ",i,lightOnOff[i]); printf ("\n");
+		*/
+		glUniform1iv(me->lightState,8,lightOnOff);
 	}
 }
 

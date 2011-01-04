@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.62 2010/12/31 19:47:37 crc_canada Exp $
+$Id: Component_Shape.c,v 1.63 2011/01/04 15:43:32 crc_canada Exp $
 
 X3D Shape Component
 
@@ -422,9 +422,11 @@ attribute      vec3 fw_Normal; \
 uniform        mat4 fw_ModelViewMatrix; \
 uniform        mat4 fw_ProjectionMatrix; \
 void main(void) { \
-       Norm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); \
-       Pos = fw_ModelViewMatrix * fw_Vertex;  \
-  gl_Position = fw_Vertex; \
+	/* just pass these through - the geom shader will calculate */ \
+	/* and transform as it creates new vertices */ \
+	Norm = fw_Normal; \
+	Pos = fw_Vertex;  \
+	gl_Position = fw_Vertex; \
 }";
 
 /* vertex shader - phong lighting */
@@ -449,7 +451,7 @@ void main(void) { \
 static const char *passThroughGeomShader = " \
 #version 120 \n \
 #extension GL_EXT_geometry_shader4 : enable \n \
-\n \ 
+\n \
 void main() { \n \
   for(int i = 0; i < gl_VerticesIn; ++i) { \n \
     gl_FrontColor = gl_FrontColorIn[i]; \n \
@@ -492,7 +494,8 @@ static const char *sphereGeomShader =
 "	/* LightIntensity *= 1.5; */ \n " \
 "\n " \
 "	gl_Position = fw_ProjectionMatrix * ECposition;\n " \
-"	Pos = fw_ProjectionMatrix * ECposition;\n " \
+"	/* JAS Pos = fw_ProjectionMatrix * ECposition; */\n " \
+"	Pos = ECposition;\n " \
 "	EmitVertex();\n " \
 "}\n " \
 " \n " \
@@ -503,7 +506,7 @@ static const char *sphereGeomShader =
 "	V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\n " \
 "	V0  =   gl_PositionIn[0].xyz;\n " \
 "\n " \
-"	int numLayers = 1;  \n " \
+"	int numLayers = 10;  \n " \
 "\n " \
 "	float dt = 1. / float( numLayers );\n " \
 "\n " \
@@ -548,64 +551,79 @@ static char *FS =
 "        /* gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0); */ " \
 "}";
 
-static const char *phongFragmentShader = 
-"#version 120 \n " \
-"#extension GL_EXT_gpu_shader4: enable \n " \
-" \n " \
-"varying vec3 Norm; \n " \
-"varying vec4 Pos; \n " \
-" \n " \
-"// use ADSLightModel here \n " \
-" \n " \
-"// Assumed context: \n " \
-"// uniform variables gl_Lightsource[i] and gl_FrontMaterial are  \n " \
-"// stubbed with constant values below. These would probably be \n " \
-"// in parameters for the function if used in an application. \n " \
-"// \n " \
-"// variables myNormal and myPosition are passed in; in a vertex \n " \
-"// shader these would be computed and used directly, while in a  \n " \
-"// fragment shader these would be set as varying variables by \n " \
-"// the associated vertex shader \n " \
-"// \n " \
-"// the ADS colour is returned from the function. \n " \
-" \n " \
-"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \n " \
-"	// the group of variables below would normallye taken from gl_Lightsource[i] components \n " \
-"	vec4 myLightDiffuse = vec4(1., 1., 1., 1.); \n " \
-"	vec4 myLightAmbient = vec4(0.2, 0.2, 0.2, 0.2); \n " \
-"	vec4 myLightSpecular = vec4(1., 1., 1., 1.); \n " \
-"	vec4 myLightPosition = vec4 (1., 0.5, 0., 1.); \n " \
-" \n " \
-"	// the group of variables below would normally be taken from \n " \
-"	// gl_FrontMaterial components \n " \
-"	vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.); \n " \
-"	vec4 myMaterialAmbient = vec4(1., .5, 0., 1.); \n " \
-"	vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.); \n " \
-"	float myMaterialShininess = 80.; \n " \
-" \n " \
-"	// normal, light, view, and light reflection vectors \n " \
-"	vec3 norm = normalize (myNormal); \n " \
-"	vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \n " \
-"	vec3 viewv = -normalize(myPosition.xyz); \n " \
-"	vec3 refl = reflect (-lightv, norm); \n " \
-" \n " \
-"	// diffuse light computation \n " \
-"	vec4 diffuse = max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse; \n " \
-" \n " \
-"	// ambient light computation \n " \
-"	vec4 ambient = myMaterialAmbient*myLightAmbient; \n " \
-" \n " \
-"	// Specular light computation \n " \
-"	vec4 specular = vec4 (0.0, 0.0, 0.0, 1.0); \n " \
-"	if (dot(lightv, viewv) > 0.0) { \n " \
-"		specular = pow(max(0.0, dot(viewv, refl)), \n " \
-"			myMaterialShininess)*myMaterialSpecular*myLightSpecular; \n " \
-"	} \n " \
-"	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0); \n " \
-"} \n " \
-"void main () { \n " \
-"	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \n " \
-"} \n " ;
+static const char *phongFragmentShader =  " \
+#version 120 \n  \
+#extension GL_EXT_gpu_shader4: enable \n  \
+\
+varying vec3 Norm;  \
+varying vec4 Pos;  \
+uniform int lightState[8]; \
+ \
+/* use ADSLightModel here \
+ \
+ Assumed context: \
+ uniform variables gl_Lightsource[i] and gl_FrontMaterial are  \
+ stubbed with constant values below. These would probably be \
+ in parameters for the function if used in an application. \
+ \
+ variables myNormal and myPosition are passed in; in a vertex \
+ shader these would be computed and used directly, while in a \
+ fragment shader these would be set as varying variables by\
+ the associated vertex shader \
+ \
+ the ADS colour is returned from the function. \
+*/  \
+vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
+	int i; \
+	/* the group of variables below would normally be taken from \
+	// gl_FrontMaterial components */ \
+	vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.); \
+	vec4 myMaterialAmbient = vec4(1., .5, 0., 1.); \
+	vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.); \
+	float myMaterialShininess = 80.; \
+ \
+	vec4 diffuse = vec4(0., 0., 0., 0.); \
+	vec4 ambient = vec4(0., 0., 0., 0.); \
+	vec4 specular = vec4(0., 0., 0., 1.); \
+ \
+	/* the group of variables below would normallye taken from gl_Lightsource[i] components */ \
+	for (i=0; i<8; i++) { \
+		if (lightState[i] == 1) { \
+		/* OLDCODE vec4 myLightDiffuse = vec4(1., 1., 1., 1.); */ \
+		/* OLDCODE vec4 myLightAmbient = vec4(0.2, 0.2, 0.2, 0.2);*/  \
+		/* OLDCODE vec4 myLightSpecular = vec4(1., 1., 1., 1.); */ \
+		/* OLDCODE vec4 myLightPosition = vec4 (1., 0.5, 0., 1.); */ \
+\
+		vec4 myLightDiffuse = gl_LightSource[i].diffuse; \
+		vec4 myLightAmbient = gl_LightSource[i].ambient; \
+		vec4 myLightSpecular = gl_LightSource[i].specular; \
+		vec4 myLightPosition = gl_LightSource[i].position; \
+  \
+		/* normal, light, view, and light reflection vectors */ \
+		vec3 norm = normalize (myNormal); \
+		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
+		vec3 viewv = -normalize(myPosition.xyz); \
+		vec3 refl = reflect (-lightv, norm); \
+ \
+		/* diffuse light computation */ \
+		diffuse += max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse; \
+ \
+		/* ambient light computation */ \
+		ambient += myMaterialAmbient*myLightAmbient; \
+ \
+		/* Specular light computation */ \
+		if (dot(lightv, viewv) > 0.0) { \
+			specular += pow(max(0.0, dot(viewv, refl)), \
+				myMaterialShininess)*myMaterialSpecular*myLightSpecular; \
+		} \
+		} \
+	} \
+	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0); \
+} \
+void main () { \
+	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
+} \
+ " ;
 
 
 
@@ -841,7 +859,14 @@ void compile_Shape (struct X3D_Shape *node) {
 	getAppearanceShaders(node->appearance,&vertShad, &fragShad, (geomShad != 0));
 
 	if (geomShad != 0) {
+		GLint n;
 		printf ("compile_Shape, have geom shader\n");
+
+		glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &n);
+		printf ("compile_Shape, geom shader max vertices at start %d\n",n);
+		glGetIntegerv(GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS_EXT, &n);
+		printf ("compile_Shape, geom total output components at start %d\n",n);
+
 		glProgramParameteriEXT (mySTE->myShaderProgram,GL_GEOMETRY_INPUT_TYPE_EXT,GL_TRIANGLES);
 		glProgramParameteriEXT (mySTE->myShaderProgram, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLE_STRIP);
 		glProgramParameteriEXT (mySTE->myShaderProgram, GL_GEOMETRY_VERTICES_OUT_EXT, 1024);
