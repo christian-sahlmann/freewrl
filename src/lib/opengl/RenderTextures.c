@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.30 2010/10/26 13:40:04 crc_canada Exp $
+$Id: RenderTextures.c,v 1.31 2011/01/06 17:57:22 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -257,6 +257,9 @@ void textureDraw_end(void) {
 	}
 
 	/* DISABLE_TEXTURES */
+	/* setting this ENSURES that items, like the HUD, that are not within the normal
+	   rendering path do not try and use textures... */
+	textureStackTop = 0;
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
