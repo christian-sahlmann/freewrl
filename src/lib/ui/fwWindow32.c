@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.23 2010/08/08 21:46:14 dug9 Exp $
+  $Id: fwWindow32.c,v 1.24 2011/01/08 18:30:57 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -465,9 +465,9 @@ static int shiftState = 0;
 		//case VK_DOWN: 
 		//	kp =  ';';//18;
 		//	break; 
-		case -70:
-			kp = ';';
-			break;
+		//case -70:
+		//	kp = ';';
+		//	break;
 		case VK_SHIFT: //0x10
 			if(updown==KeyPress) shiftState = 1;
 			if(updown==KeyRelease) shiftState = 0;
@@ -482,6 +482,9 @@ static int shiftState = 0;
 		case VK_CLOSE_BRACKET:
 			printf("]");
 			DisableFullscreen();
+			break;
+		case VK_OEM_1:
+			kp = ';'; //could be : or ; but tolower won't lowercase it, but returns same character if it can't
 			break;
 		default:
 			///* we aren't using WCHAR so we will translate things like shift-/ to ? */
@@ -500,14 +503,14 @@ static int shiftState = 0;
 			//		kp = k3;
 			//}
 			break;
-	} 
+	}
 	do_keyPress(kp, updown); 
 	break; 
 
 	case WM_CHAR:
 		kp = (char)wParam;
 		do_keyPress(kp,KeyChar);
-
+		break;
 	/* Mouse events, processed */
     case WM_LBUTTONDOWN:
 	button[0] = TRUE;

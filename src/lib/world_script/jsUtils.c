@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.29 2011/01/04 19:50:19 crc_canada Exp $
+$Id: jsUtils.c,v 1.30 2011/01/08 18:30:57 dug9 Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -53,6 +53,9 @@ which is the sample application included with the javascript engine.
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
+#ifdef WIN32
+#include <pthread.h> // win32 needs the strtok_r 
+#endif
 
 #ifdef WANT_OSC
 	#include "../scenegraph/ringbuf.h"

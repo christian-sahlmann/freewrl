@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.155 2010/12/10 17:17:19 davejoubert Exp $
+  $Id: MainLoop.c,v 1.156 2011/01/08 18:30:57 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1363,7 +1363,9 @@ void dump_scenegraph()
 void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
 #ifdef WIN32
-#define KEYDOWN 1
+#define KEYPRESS 1
+#define KEYDOWN 2
+#define KEYUP 3
 #else
 #define KEYDOWN 2
 #endif
@@ -1375,7 +1377,12 @@ void do_keyPress(const char kp, int type) {
         if (KeySensorNodePresent()) {
                 sendKeyToKeySensor(kp,type);
         } else {
-			if(type == KEYDOWN) {
+#ifdef WIN32
+			if(type == KEYPRESS) 
+#else
+			if(type == KEYDOWN) 
+#endif
+			{
 						lkp = kp;
 						//if(kp>='A' && kp <='Z') lkp = tolower(kp);
                         switch (lkp) {
@@ -1398,11 +1405,21 @@ void do_keyPress(const char kp, int type) {
                                 case 'b': {Prev_ViewPoint(); break;}
                                 case 's': {setSnapshot(); break;}
 								case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
-                                default: {handle_key(kp);}
+                                default: 
+#ifdef WIN32
+									break;
+#else
+									{handle_key(kp);}
+#endif
         
                         }
                 } else {
-                        handle_keyrelease(kp);
+#ifdef WIN32
+					if(type == KEYDOWN)
+							{handle_key(kp);}  //keydown for fly
+					if(type == KEYUP)
+#endif
+                        handle_keyrelease(kp); //keyup for fly
                 }
         }
 }
