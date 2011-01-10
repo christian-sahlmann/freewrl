@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.45 2010/12/22 21:03:44 crc_canada Exp $
+$Id: Bindable.c,v 1.46 2011/01/10 20:13:47 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -899,7 +899,7 @@ void render_Background (struct X3D_Background *node) {
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
 	#ifdef SHADERS_2011
-	chooseBackgroundShader(backgroundSphereShader);
+	chooseShader(backgroundSphereShader);
 	#endif
 
 	/* now, display the lists */
@@ -934,7 +934,7 @@ void render_Background (struct X3D_Background *node) {
         	FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,boxtex);
 
 		#ifdef SHADERS_2011
-		chooseBackgroundShader(backgroundTextureBoxShader);
+		chooseShader(backgroundTextureBoxShader);
 		#endif
 
 		loadBackgroundTextures(node);
@@ -982,7 +982,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
 	#ifdef SHADERS_2011
-	chooseBackgroundShader(backgroundSphereShader);
+	chooseShader(backgroundSphereShader);
 	#endif
 
 	/* now, display the lists */
@@ -1009,7 +1009,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 			(node->bottomTexture !=0)) {
 
 		#ifdef SHADERS_2011
-		chooseBackgroundShader(backgroundTextureBoxShader);
+		chooseShader(backgroundTextureBoxShader);
 		#endif
 
 

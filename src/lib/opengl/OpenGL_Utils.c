@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.167 2011/01/04 15:43:32 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.168 2011/01/10 20:13:47 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -186,139 +186,19 @@ static char * readInputString(char *fn) {
 #endif
 #undef MAXREADSIZE
 
-static void shaderErrorLog(GLuint myShader) {
+static void shaderErrorLog(GLuint myShader, char *which) {
         #ifdef GL_VERSION_2_0
 #define MAX_INFO_LOG_SIZE 512
                 GLchar infoLog[MAX_INFO_LOG_SIZE];
                 glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog);
-                ConsoleMessage ("problem with VERTEX shader: %s",infoLog);
+                ConsoleMessage ("problem with %s shader: %s",which, infoLog);
         #else
                 ConsoleMessage ("Problem compiling shader");
         #endif
 }
 
-static int getBackgroundShaderSource (char **vertexSource, char **fragmentSource, shader_type_t whichOne) {
-	/* initialize */
-	*vertexSource = NULL;
-	*fragmentSource = NULL;
-
-	switch (whichOne) {
-
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE		case genericHeadlightNoTextureAppearanceShader: {
-OLD_SHADER_CODE*vertexSource = STRDUP(
-OLD_SHADER_CODE"/* phong vertex shader */" \
-OLD_SHADER_CODE"varying vec3 Norm;" \
-OLD_SHADER_CODE"varying vec4 Pos;" \
-OLD_SHADER_CODE"uniform		mat4 fw_ModelViewMatrix;" \
-OLD_SHADER_CODE"uniform		mat4 fw_ProjectionMatrix;" \
-OLD_SHADER_CODE"attribute	vec4 fw_Vertex;" \
-OLD_SHADER_CODE"attribute	vec3 fw_Normal; " \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"void main(void) {" \
-OLD_SHADER_CODE"        /* Norm = normalize(gl_NormalMatrix * gl_Normal); */ " \
-OLD_SHADER_CODE"        /* Pos = gl_ModelViewMatrix * gl_Vertex; */ " \
-OLD_SHADER_CODE"        /* gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; */ " \
-OLD_SHADER_CODE" "\
-OLD_SHADER_CODE"       vec3 Norm = vec3(fw_ModelViewMatrix * vec4(fw_Normal,0.0)); " \
-OLD_SHADER_CODE"       vec4 Pos = fw_ModelViewMatrix * fw_Vertex;" \
-OLD_SHADER_CODE"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-OLD_SHADER_CODE
-OLD_SHADER_CODE"}" );
-OLD_SHADER_CODE
-OLD_SHADER_CODE
-OLD_SHADER_CODE
-OLD_SHADER_CODE*fragmentSource = STRDUP(
-OLD_SHADER_CODE"/*  phong fragment shader  */" \
-OLD_SHADER_CODE" " \
-OLD_SHADER_CODE"varying vec3 Norm;" \
-OLD_SHADER_CODE"varying vec4 Pos;" \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"/*  use ADSLightModel here */" \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"/*  Assumed context: */" \
-OLD_SHADER_CODE"/*  uniform variables gl_LightSource[i] and gl_FrontMaterial are  */" \
-OLD_SHADER_CODE"/*  stubbed with constant values below. These would probably be */" \
-OLD_SHADER_CODE"/*  in parameters for the function if used in an application. */" \
-OLD_SHADER_CODE"/*  */" \
-OLD_SHADER_CODE"/*  variables myNormal and myPosition are passed in; in a vertex */" \
-OLD_SHADER_CODE"/*  shader these would be computed and used directly, while in a  */" \
-OLD_SHADER_CODE"/*  fragment shader these would be set as varying variables by */" \
-OLD_SHADER_CODE"/*  the associated vertex shader */" \
-OLD_SHADER_CODE"/*  */" \
-OLD_SHADER_CODE"/*  the ADS colour is returned from the function. */" \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {" \
-OLD_SHADER_CODE"	int i;" \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"/* 	 the group of variables below would normally be taken from */" \
-OLD_SHADER_CODE"/* 	 gl_FrontMaterial components */" \
-OLD_SHADER_CODE"	vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.);" \
-OLD_SHADER_CODE"	vec4 myMaterialAmbient = vec4(1., .5, 0., 1.);" \
-OLD_SHADER_CODE"	vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.);" \
-OLD_SHADER_CODE"	float myMaterialShininess = 80.;" \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"	vec3 norm = normalize (myNormal);" \
-OLD_SHADER_CODE"	vec3 viewv = -normalize(myPosition.xyz);" \
-OLD_SHADER_CODE"	vec4 ambient = vec4(0., 0., 0., 0.);" \
-OLD_SHADER_CODE"	vec4 specular = vec4 (0.0, 0.0, 0.0, 1.0);" \
-OLD_SHADER_CODE"	vec4 diffuse = vec4(0., 0., 0., 1.);" \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"	for (i=0; i<8; i++) {" \
-OLD_SHADER_CODE"/* 		 the group of variables below would normallye taken from gl_LightSource[i] components */" \
-OLD_SHADER_CODE"		vec4 myLightDiffuse = gl_LightSource[i].diffuse;" \
-OLD_SHADER_CODE"		vec4 myLightAmbient = gl_LightSource[i].ambient;" \
-OLD_SHADER_CODE"		vec4 myLightSpecular = gl_LightSource[i].specular;" \
-OLD_SHADER_CODE"		vec4 myLightPosition = gl_LightSource[i].position;" \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"/* 		 normal, light, view, and light reflection vectors */" \
-OLD_SHADER_CODE"		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
-OLD_SHADER_CODE"		vec3 refl = reflect (-lightv, norm);" \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"/* 		 diffuse light computation */" \
-OLD_SHADER_CODE"		diffuse += max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse;" \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"/* 		 ambient light computation */" \
-OLD_SHADER_CODE"		ambient += myMaterialAmbient*myLightAmbient;" \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"/* 		 Specular light computation */" \
-OLD_SHADER_CODE"		if (dot(lightv, viewv) > 0.0) {" \
-OLD_SHADER_CODE"			specular += pow(max(0.0, dot(viewv, refl))," \
-OLD_SHADER_CODE"				myMaterialShininess)*myMaterialSpecular*myLightSpecular;" \
-OLD_SHADER_CODE"		}" \
-OLD_SHADER_CODE"	}" \
-OLD_SHADER_CODE"" \
-OLD_SHADER_CODE"	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0);" \
-OLD_SHADER_CODE"}" \
-OLD_SHADER_CODE"void main () {" \
-OLD_SHADER_CODE"	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); " \
-OLD_SHADER_CODE"}");
-OLD_SHADER_CODE
-OLD_SHADER_CODE			break;
-OLD_SHADER_CODE		}
-OLD_SHADER_CODE
-OLD_SHADER_CODE		/* no material, no appearance, lighting off */
-OLD_SHADER_CODE		case noAppearanceNoMaterialShader: {
-OLD_SHADER_CODE			*fragmentSource = STRDUP (
-OLD_SHADER_CODE				" void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}");
-OLD_SHADER_CODE			*vertexSource  = STRDUP( 
-OLD_SHADER_CODE			"attribute	vec4 fw_Vertex;" \
-OLD_SHADER_CODE			"uniform	mat4 fw_ModelViewMatrix;" \
-OLD_SHADER_CODE			"uniform	mat4 fw_ProjectionMatrix;" \
-OLD_SHADER_CODE			"void main(void) {" \
-OLD_SHADER_CODE			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-OLD_SHADER_CODE			"}");
-OLD_SHADER_CODE			break;
-OLD_SHADER_CODE		}
-OLD_SHADER_CODE
-#endif /* OLD_SHADER_CODE */
-
-		/* Background, this is the simple shader for doing the sky/ground colours */
-		case backgroundSphereShader: {
-			*fragmentSource = STRDUP (
-       				" varying vec4 v_color; void main () {gl_FragColor = v_color;}");
-			*vertexSource  = STRDUP( 
-			"attribute	vec3 fw_Color; " \
+static char *backgroundSphereShaderFragment = " varying vec4 v_color; void main () {gl_FragColor = v_color;}";
+static char *backgroundSphereShaderVertex = "attribute	vec3 fw_Color; " \
 			"attribute	vec4 fw_Vertex;" \
 			"uniform		mat4 fw_ModelViewMatrix;" \
 			"uniform		mat4 fw_ProjectionMatrix;" \
@@ -326,16 +206,12 @@ OLD_SHADER_CODE
 			"void main(void) {" \
 			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
 			"	v_color = vec4 (fw_Color,1);" \
-			"}");
-			break;
-		}
+			"}";
 
-		/* background, this is the simple shader for adding textures */
-		case backgroundTextureBoxShader: {
-			*fragmentSource = STRDUP (
+static char *backgroundTextureBoxShaderFragment =
        				" varying vec2 v_texC; uniform sampler2D s_tex; " \
-				" void main () {gl_FragColor = texture2D(s_tex, v_texC);}");
-			*vertexSource  = STRDUP( 
+				" void main () {gl_FragColor = texture2D(s_tex, v_texC);}";
+static char *backgroundTextureBoxShaderVertex =
 			"attribute	vec2 fw_TexCoords; " \
 			"attribute	vec4 fw_Vertex;" \
 			"uniform	mat4 fw_ModelViewMatrix;" \
@@ -345,51 +221,279 @@ OLD_SHADER_CODE
 			"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
 			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
 			"	v_texC =fw_TexCoords;" \
-			"}");
+			"}";
+
+
+/* Vertex Shaders */
+
+static char *vertexShaderForSphereGeomShader = " \
+varying vec3 Norm; \
+varying vec4 Pos; \
+attribute      vec4 fw_Vertex; \
+attribute      vec3 fw_Normal; \
+uniform        mat4 fw_ModelViewMatrix; \
+uniform        mat4 fw_ProjectionMatrix; \
+void main(void) { \
+	/* just pass these through - the geom shader will calculate */ \
+	/* and transform as it creates new vertices */ \
+	Norm = fw_Normal; \
+	Pos = fw_Vertex;  \
+	gl_Position = fw_Vertex; \
+}";
+
+/* vertex shader - phong lighting */
+static char *phongSimpleVertexShader = " \
+varying vec3 Norm; \
+varying vec4 Pos; \
+attribute      vec4 fw_Vertex; \
+attribute      vec3 fw_Normal; \
+uniform        mat4 fw_ModelViewMatrix; \
+uniform        mat4 fw_ProjectionMatrix; \
+uniform        mat3 fw_NormalMatrix; \
+void main(void) { \
+       Norm = normalize(fw_NormalMatrix * fw_Normal); \
+       Pos = fw_ModelViewMatrix * fw_Vertex;  \
+       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+}";
+
+
+
+/* Geometry Shaders */
+
+static const char *passThroughGeomShader = " \
+#version 120 \n \
+#extension GL_EXT_geometry_shader4 : enable \n \
+\n \
+void main() { \n \
+  for(int i = 0; i < gl_VerticesIn; ++i) { \n \
+    gl_FrontColor = gl_FrontColorIn[i]; \n \
+    gl_Position = gl_PositionIn[i]; \n \
+    EmitVertex(); \n \
+  } \n \
+} \n \
+";
+
+static const char *sphereGeomShader = 
+"#version 120\n " \
+"#extension GL_EXT_gpu_shader4: enable\n " \
+"#extension GL_EXT_geometry_shader4: enable\n " \
+"\n " \
+"uniform int Level;\n " \
+"\n " \
+"varying float LightIntensity;\n " \
+"varying vec3 Norm; \n " \
+"varying vec4 Pos; \n " \
+"uniform		mat4 fw_ModelViewMatrix;" \
+"uniform		mat4 fw_ProjectionMatrix;" \
+"uniform		mat3 fw_NormalMatrix; "\
+"\n " \
+"vec3 V0, V01, V02;\n " \
+"\n " \
+"void\n " \
+"ProduceVertex( float s, float t )\n " \
+"{\n " \
+"	const vec3 lightPos = vec3( 0., 10., 0. );\n " \
+"\n " \
+"	vec3 v = V0 + s*V01 + t*V02;\n " \
+"	v = normalize(v);\n " \
+"	vec3 n = v;\n " \
+"	Norm = normalize( fw_NormalMatrix * n );	\n " \
+"\n " \
+"	vec4 ECposition = fw_ModelViewMatrix * vec4( (1.0*v), 1. );\n " \
+"	/* LightIntensity  = dot( normalize(lightPos - ECposition.xyz), fw_Normal ); */ \n " \
+"	/* LightIntensity  = dot( normalize(lightPos - ECposition.xyz), Norm ); */ \n " \
+"	/* LightIntensity = abs( LightIntensity ); */ \n " \
+"	/* LightIntensity *= 1.5; */ \n " \
+"\n " \
+"	gl_Position = fw_ProjectionMatrix * ECposition;\n " \
+"	/* JAS Pos = fw_ProjectionMatrix * ECposition; */\n " \
+"	Pos = ECposition;\n " \
+"	EmitVertex();\n " \
+"}\n " \
+" \n " \
+"void\n " \
+"main()\n " \
+"{ \n " \
+"	V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\n " \
+"	V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\n " \
+"	V0  =   gl_PositionIn[0].xyz;\n " \
+"\n " \
+"	int numLayers = 10;  \n " \
+"\n " \
+"	float dt = 1. / float( numLayers );\n " \
+"\n " \
+"	float t_top = 1.;\n " \
+"\n " \
+"	for( int it = 0; it < numLayers; it++ )\n " \
+"	{\n " \
+"		float t_bot = t_top - dt;\n " \
+"		float smax_top = 1. - t_top;\n " \
+"		float smax_bot = 1. - t_bot;\n " \
+"\n " \
+"		int nums = it + 1;\n " \
+"		float ds_top = smax_top / float( nums - 1 );\n " \
+"		float ds_bot = smax_bot / float( nums );\n " \
+"\n " \
+"		float s_top = 0.;\n " \
+"		float s_bot = 0.;\n " \
+"\n " \
+"		for( int is = 0; is < nums; is++ )\n " \
+"		{\n " \
+"			ProduceVertex( s_bot, t_bot );\n " \
+"			ProduceVertex( s_top, t_top );\n " \
+"			s_top += ds_top;\n " \
+"			s_bot += ds_bot;\n " \
+"		}\n " \
+"\n " \
+"		ProduceVertex( s_bot, t_bot );\n " \
+"		EndPrimitive();\n " \
+"\n " \
+"		t_top = t_bot;\n " \
+"		t_bot -= dt;\n " \
+"	} \n " \
+" }\n ";
+
+/* Fragment Shaders */
+static char *FS = 
+"/* varying float LightIntensity;*/ " \
+"/* uniform vec4 Color; */" \
+"void main() { " \
+"        gl_FragColor = vec4( 0.5, 0.5, 1.0, 1. ); " \
+"        /* gl_FragColor = vec4( LightIntensity*Color.rgb, 1. ); */ " \
+"        /* gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0); */ " \
+"}";
+
+static const char *phongFragmentShader =  " \
+#version 120 \n  \
+#extension GL_EXT_gpu_shader4: enable \n  \
+\
+varying vec3 Norm;  \
+varying vec4 Pos;  \
+uniform int lightState[8]; \
+uniform vec4 myMaterialAmbient; \
+uniform vec4 myMaterialDiffuse; \
+uniform vec4 myMaterialSpecular; \
+uniform float myMaterialShininess; \
+ \
+/* use ADSLightModel here \
+ \
+ Assumed context: \
+ uniform variables gl_Lightsource[i] and gl_FrontMaterial are  \
+ stubbed with constant values below. These would probably be \
+ in parameters for the function if used in an application. \
+ \
+ variables myNormal and myPosition are passed in; in a vertex \
+ shader these would be computed and used directly, while in a \
+ fragment shader these would be set as varying variables by\
+ the associated vertex shader \
+ \
+ the ADS colour is returned from the function. \
+*/  \
+vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
+	int i; \
+	/* the group of variables below would normally be taken from \
+	// gl_FrontMaterial components */ \
+	/* vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.); i*/ \
+	/* JAS vec4 myMaterialAmbient = vec4(1., .5, 0., 1.); */ \
+	/* vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.); */ \
+	/* float myMaterialShininess = 80.; */ \
+ \
+	vec4 diffuse = vec4(0., 0., 0., 0.); \
+	vec4 ambient = vec4(0., 0., 0., 0.); \
+	vec4 specular = vec4(0., 0., 0., 1.); \
+ \
+	/* apply the lights to this material */ \
+	for (i=0; i<8; i++) { \
+		if (lightState[i] == 1) { \
+		vec4 myLightDiffuse = gl_LightSource[i].diffuse; \
+		vec4 myLightAmbient = gl_LightSource[i].ambient; \
+		vec4 myLightSpecular = gl_LightSource[i].specular; \
+		vec4 myLightPosition = gl_LightSource[i].position; \
+  \
+		/* normal, light, view, and light reflection vectors */ \
+		vec3 norm = normalize (myNormal); \
+		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
+		vec3 viewv = -normalize(myPosition.xyz); \
+		vec3 refl = reflect (-lightv, norm); \
+ \
+		/* diffuse light computation */ \
+		diffuse += max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse; \
+ \
+		/* ambient light computation */ \
+		ambient += myMaterialAmbient*myLightAmbient; \
+ \
+		/* Specular light computation */ \
+		if (dot(lightv, viewv) > 0.0) { \
+			specular += pow(max(0.0, dot(viewv, refl)), \
+				myMaterialShininess)*myMaterialSpecular*myLightSpecular; \
+		} \
+		} \
+	} \
+	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0); \
+} \
+void main () { \
+	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
+} \
+ " ;
+
+static char *noAppearanceNoMaterialFragmentShader =
+" void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}";
+
+static char *noAppearanceNoMaterialVertexShader =
+	"attribute      vec4 fw_Vertex;" \
+	"uniform        mat4 fw_ModelViewMatrix;" \
+	"uniform        mat4 fw_ProjectionMatrix;" \
+	"void main(void) {" \
+	"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+	"}";
+
+
+static int getGenericShaderSource (char **vertexSource, char **fragmentSource, char **geometrySource, shader_type_t whichOne) {
+	/* initialize */
+	*vertexSource = NULL;
+	*fragmentSource = NULL;
+	*geometrySource = NULL;
+
+
+	switch (whichOne) {
+		/* Background, this is the simple shader for doing the sky/ground colours */
+		case backgroundSphereShader: {
+			*fragmentSource = STRDUP (backgroundSphereShaderFragment);
+			*vertexSource  = STRDUP(backgroundSphereShaderVertex);
 			break;
 		}
 
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE		/* just emissive lights here */
-OLD_SHADER_CODEcase         noLightNoTextureAppearanceShader: {
-OLD_SHADER_CODE			*fragmentSource = STRDUP (
-OLD_SHADER_CODE				"varying vec4 emis; void main () {gl_FragColor = emis;}");
-OLD_SHADER_CODE			*vertexSource  = STRDUP( 
-OLD_SHADER_CODE			"varying	vec4 emis;" \
-OLD_SHADER_CODE			"uniform 	vec4 myMaterialEmission;" \
-OLD_SHADER_CODE			"attribute	vec4 fw_Vertex;" \
-OLD_SHADER_CODE			"uniform	mat4 fw_ModelViewMatrix;" \
-OLD_SHADER_CODE			"uniform	mat4 fw_ProjectionMatrix;" \
-OLD_SHADER_CODE			"void main(void) {" \
-OLD_SHADER_CODE			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-OLD_SHADER_CODE			"	emis = myMaterialEmission; " \
-OLD_SHADER_CODE			"}");
-OLD_SHADER_CODE			break;
-OLD_SHADER_CODE		}
-OLD_SHADER_CODE
-OLD_SHADER_CODEcase         multiLightNoTextureAppearanceShader:
-OLD_SHADER_CODEcase         headlightMultiTextureAppearanceShader:
-OLD_SHADER_CODEcase         multiLightMultiTextureAppearanceShader:
-OLD_SHADER_CODE		case headlightOneTextureAppearanceShader:
-OLD_SHADER_CODE
-OLD_SHADER_CODEprintf ("headlightOneTextureAppearanceShader noLightNoTextureAppearanceShader multiLightNoTextureAppearanceShader headlightMultiTextureAppearanceShader multiLightMultiTextureAppearanceShader not written yet\n");
-OLD_SHADER_CODE
-OLD_SHADER_CODE			*fragmentSource = STRDUP (
-OLD_SHADER_CODE				" void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}");
-OLD_SHADER_CODE			*vertexSource  = STRDUP( 
-OLD_SHADER_CODE			"attribute	vec4 fw_Vertex;" \
-OLD_SHADER_CODE			"uniform	mat4 fw_ModelViewMatrix;" \
-OLD_SHADER_CODE			"uniform	mat4 fw_ProjectionMatrix;" \
-OLD_SHADER_CODE			"void main(void) {" \
-OLD_SHADER_CODE			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-OLD_SHADER_CODE			"}");
-OLD_SHADER_CODE			break;
-OLD_SHADER_CODE
-OLD_SHADER_CODE		default: {
-OLD_SHADER_CODE			printf ("getShaderSource, do not handle %d properly yet\n",whichOne);
-OLD_SHADER_CODE			return FALSE;
-OLD_SHADER_CODE		}
-#endif /* OLD_SHADER_CODE */
+		/* background, this is the simple shader for adding textures */
+		case backgroundTextureBoxShader: {
+			*fragmentSource = STRDUP (backgroundTextureBoxShaderFragment);
+			*vertexSource = STRDUP( backgroundTextureBoxShaderVertex);
+			break;
+		}
+
+		case genericFullFeaturedShader: {
+			*fragmentSource = STRDUP(phongFragmentShader);
+                	*vertexSource = STRDUP(phongSimpleVertexShader);
+			break;
+		}
+		case noMaterialNoAppearanceShader: {
+			*fragmentSource = STRDUP (noAppearanceNoMaterialFragmentShader);
+			*vertexSource = STRDUP (noAppearanceNoMaterialVertexShader);
+			break;
+		}
+		case genericFullFeaturedSphereShader: {
+			*fragmentSource = STRDUP(phongFragmentShader);
+                	*vertexSource = STRDUP (vertexShaderForSphereGeomShader);
+			*geometrySource = STRDUP (sphereGeomShader);
+printf ("genericFullFeaturedSphereShader, have phongFragmentShader,vertedShaderForSphereGeomShader,sphereGeomShader\n");
+
+			break;
+		}
+
+
+		default: {
+			printf ("getShaderSource, do not handle %d properly yet\n",whichOne);
+			return FALSE;
+		}
 	}
 
 	return TRUE;
@@ -465,29 +569,56 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
 
 /* read in shaders and place the resulting shader program in the "whichShader" field if success. */
-static void getBackgroundShader(shader_type_t whichOne) {
+static void getGenericShader(shader_type_t whichOne) {
 	GLint success;
 	GLuint myVertexShader = 0;
 	GLuint myFragmentShader= 0;
+	GLuint myGeometryShader=0;
 	GLuint myProg = 0;
 	s_shader_capabilities_t *myShader;
 	char *vertexSource;
 	char  *fragmentSource;
+	char *geometrySource;
 
 	/* pointerize this */
 	myShader = &rdr_caps.backgroundShaderArrays[whichOne];
-	
-	if (!getBackgroundShaderSource (&vertexSource, &fragmentSource, whichOne)) return;
-
 	(*myShader).myShaderProgram = CREATE_PROGRAM;
 	myProg = (*myShader).myShaderProgram;
+	
+	if (!getGenericShaderSource (&vertexSource, &fragmentSource, &geometrySource, whichOne)) return;
+
+	/* geometryShader */
+	if (geometrySource != NULL) {
+printf ("have a geometry shader here...\n");
+
+		myGeometryShader = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
+		SHADER_SOURCE(myGeometryShader, 1, (const GLchar **) &geometrySource, NULL);
+		COMPILE_SHADER(myGeometryShader);
+		GET_SHADER_INFO(myGeometryShader, COMPILE_STATUS, &success);
+		if (!success) {
+			shaderErrorLog(myGeometryShader,"GEOMETRY");
+		} else {
+			GLint n;
+
+	                glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &n);
+        	        printf ("compile_Shape, geom shader max vertices at start %d\n",n);
+                	glGetIntegerv(GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS_EXT, &n);
+                	printf ("compile_Shape, geom total output components at start %d\n",n);
+
+                	glProgramParameteriEXT (myProg,GL_GEOMETRY_INPUT_TYPE_EXT,GL_TRIANGLES);
+                	glProgramParameteriEXT (myProg, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLE_STRIP);
+                	glProgramParameteriEXT (myProg, GL_GEOMETRY_VERTICES_OUT_EXT, 1024);
+			ATTACH_SHADER(myProg, myGeometryShader);
+		}
+	}
+
 
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
 	SHADER_SOURCE(myVertexShader, 1, (const GLchar **) &vertexSource, NULL);
 	COMPILE_SHADER(myVertexShader);
 	GET_SHADER_INFO(myVertexShader, COMPILE_STATUS, &success);
 	if (!success) {
-		shaderErrorLog(myVertexShader);
+		shaderErrorLog(myVertexShader,"VERTEX");
 	} else {
 
 		ATTACH_SHADER(myProg, myVertexShader);
@@ -500,15 +631,18 @@ static void getBackgroundShader(shader_type_t whichOne) {
 	COMPILE_SHADER(myFragmentShader);
 	GET_SHADER_INFO(myFragmentShader, COMPILE_STATUS, &success);
 	if (!success) {
-		shaderErrorLog(myFragmentShader);
+		shaderErrorLog(myFragmentShader,"FRAGMENT");
 	} else {
 		ATTACH_SHADER(myProg, myFragmentShader);
 	}
 
+
 	FREE_IF_NZ(vertexSource);
 	FREE_IF_NZ(fragmentSource);
-
+	FREE_IF_NZ(geometrySource);
 	LINK_SHADER(myProg);
+
+
 
 
 	getShaderCommonInterfaces(myShader);
@@ -821,46 +955,21 @@ bool initialize_GL()
 
 
 	#ifdef SHADERS_2011
-	getBackgroundShader(backgroundSphereShader);
-	getBackgroundShader(backgroundTextureBoxShader);
+
+	/* for rendering Background and TextureBackground nodes */
+	getGenericShader(backgroundSphereShader);
+	getGenericShader(backgroundTextureBoxShader);
+
+
+	/* for rendering Polyreps, and other shapes without Geometry and other special shaders */
+        getGenericShader(genericFullFeaturedShader);
+        getGenericShader(noMaterialNoAppearanceShader);
+
+
+	/* nodes with Geometry Shaders */
+        getGenericShader(genericFullFeaturedSphereShader);
 
 	#endif /* SHADERS_2011 */
-
-
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	/* are we using shaders for Appearance, etc? (OpenGL-ES) */
-OLD_SHADER_CODE	if (global_use_shaders_when_possible) {
-OLD_SHADER_CODE/*
-OLD_SHADER_CODE	we choose the shader based on the following, so get all the shaders loaded 
-OLD_SHADER_CODE        backgroundSphereShader:				Background node colour sphere
-OLD_SHADER_CODE        backgroundTextureBoxShader:			Background node textures
-OLD_SHADER_CODE
-OLD_SHADER_CODE	noAppearanceNoMaterialShader:			no lighting, no appearance.
-OLD_SHADER_CODE        noLightNoTextureAppearanceShader:		no lights, no textures, only emissive lights.
-OLD_SHADER_CODE        genericHeadlightNoTextureAppearanceShader:	headlight on, no textures.
-OLD_SHADER_CODE        multiLightNoTextureAppearanceShader:		more than headlight on; no textures.
-OLD_SHADER_CODE        headlightOneTextureAppearanceShader:		headlight, no othere lights, one texture.
-OLD_SHADER_CODE        headlightMultiTextureAppearanceShader:		headlight, no other light, multi-texture.
-OLD_SHADER_CODE        multiLightMultiTextureAppearanceShader:		everything including kitchen sink.
-OLD_SHADER_CODE*/
-OLD_SHADER_CODE
-OLD_SHADER_CODE		getAppearanceShader(genericHeadlightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/genericHeadlightNoTextureAppearanceShader");
-OLD_SHADER_CODE
-OLD_SHADER_CODE
-OLD_SHADER_CODE		getAppearanceShader(noLightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/noLightNoTextureAppearanceShader");
-OLD_SHADER_CODE		getAppearanceShader(noAppearanceNoMaterialShader, "/Users/johns/Desktop/shaderReplacement/noAppearanceNoMaterialShader");
-OLD_SHADER_CODE		getAppearanceShader(multiLightNoTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/multiLightNoTextureAppearanceShader");
-OLD_SHADER_CODE		getAppearanceShader(headlightOneTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/headlightOneTextureAppearanceShader");
-OLD_SHADER_CODE		getAppearanceShader(headlightMultiTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/headlightMultiTextureAppearanceShader");
-OLD_SHADER_CODE		getAppearanceShader(multiLightMultiTextureAppearanceShader, "/Users/johns/Desktop/shaderReplacement/multiLightMultiTextureAppearanceShader");
-OLD_SHADER_CODE
-OLD_SHADER_CODE
-OLD_SHADER_CODE		/* tell the child_Shape routine to use these shaders, if there is not a user-specified shader */
-OLD_SHADER_CODE		rdr_caps.haveGenericAppearanceShader = TRUE;
-OLD_SHADER_CODE	} else {
-OLD_SHADER_CODE		/* put non-shader stuff here eventually */
-OLD_SHADER_CODE	}
-#endif /* OLD_SHADER_CODE */
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	FW_GL_CLEAR_DEPTH(1.0);
@@ -2524,7 +2633,7 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 		*sp = (float) *dp; 	
 		sp ++; dp ++;
 	}
-	glUniformMatrix4fv(me->ModelViewMatrix,1,GL_FALSE,spval);
+	GLUNIFORMMATRIX4FV(me->ModelViewMatrix,1,GL_FALSE,spval);
 
 	/* ProjectionMatrix */
 	sp = spval;
@@ -2535,7 +2644,7 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 		*sp = (float) *dp; 	
 		sp ++; dp ++;
 	}
-	glUniformMatrix4fv(me->ProjectionMatrix,1,GL_FALSE,spval);
+	GLUNIFORMMATRIX4FV(me->ProjectionMatrix,1,GL_FALSE,spval);
 
 	/* send in the NormalMatrix */
 	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper
@@ -2548,7 +2657,6 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 		dp = FW_ModelView[modelviewTOS];
 		memcpy(MV,dp,sizeof(double)*16);
 
-//printf ("forcing MV 13,14,15 to zero\n"); MV[12] = 0.0; MV[13] = 0.0; MV[14] = 0.0;
 		matinverse (inverseMV,MV);
 		mattranspose(transInverseMV,inverseMV);
 		/* get the 3x3 normal matrix from this guy */
@@ -2564,8 +2672,51 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 		normMat[7] = (float) transInverseMV[9];
 		normMat[8] = (float) transInverseMV[10];
 
-		glUniformMatrix3fv(me->NormalMatrix,1,GL_FALSE,normMat);
+		GLUNIFORMMATRIX3FV(me->NormalMatrix,1,GL_FALSE,normMat);
 	}
+
+	/* now go through all of the Uniforms for this shader */
+
+        /* vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.); i*/ \
+        /* JAS vec4 myMaterialAmbient = vec4(1., .5, 0., 1.); */ \
+        /* vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.); */ \
+        /* float myMaterialShininess = 80.; */ \
+
+#define SEND_VEC4(myMat,myVal) \
+	if (me->myMat != -1) { GLUNIFORM4FV(me->myMat,1,myVal);}
+
+#define SEND_FLOAT(myMat,myVal) \
+	if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
+
+float myAmb[] = {1,0, 0.5, 0.0, 1.0};
+float myDif[] = {0.0, 0.5, 0.0, 1.0};
+float mySpec[] = {0.6, 0.6, 0.6, 1.0};
+
+	SEND_VEC4(myMaterialAmbient,myAmb);
+	SEND_VEC4(myMaterialDiffuse,myDif);
+	SEND_VEC4(myMaterialSpecular,mySpec);
+	SEND_FLOAT(myMaterialShininess,80.0);
+/*
+printf ("\n");
+printf ("myShaderProgram = %d\n",me->myShaderProgram);
+printf ("myMaterialAmbient = %d\n",me->myMaterialAmbient);
+printf ("myMaterialDiffuse = %d\n",me->myMaterialDiffuse);
+printf ("myMaterialSpecular = %d\n",me->myMaterialSpecular);
+printf ("myMaterialShininess = %d\n",me->myMaterialShininess);
+printf ("myMaterialEmission = %d\n",me->myMaterialEmission);
+printf ("lightState = %d\n",me->lightState);
+printf ("lightAmbient = %d\n",me->lightAmbient);
+printf ("lightDiffuse = %d\n",me->lightDiffuse);
+printf ("lightSpecular = %d\n",me->lightSpecular);
+printf ("lightPosition = %d\n",me->lightPosition);
+printf ("ModelViewMatrix = %d\n",me->ModelViewMatrix);
+printf ("ProjectionMatrix = %d\n",me->ProjectionMatrix);
+printf ("NormalMatrix = %d\n",me->NormalMatrix);
+printf ("Vertices = %d\n",me->Vertices);
+printf ("Normals = %d\n",me->Normals);
+printf ("Colours = %d\n",me->Colours);
+printf ("TexCoords = %d\n",me->TexCoords);
+*/
 
 	if (me->lightState != -1) {
 		/* for debugging:
@@ -2573,8 +2724,10 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 			printf ("sendMAt - sending in lightState ");
 			for (i=0; i<8; i++) printf ("%d:%d ",i,lightOnOff[i]); printf ("\n");
 		*/
-		glUniform1iv(me->lightState,8,lightOnOff);
+		GLUNIFORM1IV(me->lightState,8,lightOnOff);
 	}
+
+
 }
 
 static void __gluMultMatrixVecd(const GLdouble matrix[16], const GLdouble in[4],

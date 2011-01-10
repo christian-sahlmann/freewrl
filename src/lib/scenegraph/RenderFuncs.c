@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.81 2011/01/04 15:43:32 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.82 2011/01/10 20:13:47 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -192,8 +192,8 @@ void turnGlobalShaderOff(void) {
 
 
 
-/* choose a background shader */
-void chooseBackgroundShader(shader_type_t requestedShader) {
+/* choose a shader for this geometry */
+void chooseShader(shader_type_t requestedShader) {
 	currentShaderStruct = &(rdr_caps.backgroundShaderArrays[requestedShader]);
 	globalCurrentShader = currentShaderStruct->myShaderProgram;
 	USE_SHADER(globalCurrentShader);
@@ -201,17 +201,6 @@ void chooseBackgroundShader(shader_type_t requestedShader) {
 	/* send in the current position and modelview matricies */
 	sendMatriciesToShader(currentShaderStruct);
 }
-
-void setCurrentShader(s_shader_capabilities_t *myShader) {
-	currentShaderStruct = myShader;
-
-	globalCurrentShader = currentShaderStruct->myShaderProgram;
-	USE_SHADER(globalCurrentShader);
-
-	/* send in the current position and modelview matricies */
-	sendMatriciesToShader(currentShaderStruct);
-}
-
 
 /* send in vertices, normals, etc, etc... to either a shader or via older opengl methods */
 void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer){

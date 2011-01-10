@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.64 2011/01/04 19:50:19 crc_canada Exp $
+$Id: Component_Shape.c,v 1.65 2011/01/10 20:13:47 crc_canada Exp $
 
 X3D Shape Component
 
@@ -412,323 +412,26 @@ void render_Material (struct X3D_Material *node) {
 
 #ifdef SHADERS_2011
 
-/* Vertex Shaders */
+#define NO_GEOM_SHADER 0x0000
+#define SPHERE_GEOM_SHADER 0x0100
 
-static char *vertexShaderForSphereGeomShader = " \
-varying vec3 Norm; \
-varying vec4 Pos; \
-attribute      vec4 fw_Vertex; \
-attribute      vec3 fw_Normal; \
-uniform        mat4 fw_ModelViewMatrix; \
-uniform        mat4 fw_ProjectionMatrix; \
-void main(void) { \
-	/* just pass these through - the geom shader will calculate */ \
-	/* and transform as it creates new vertices */ \
-	Norm = fw_Normal; \
-	Pos = fw_Vertex;  \
-	gl_Position = fw_Vertex; \
-}";
-
-/* vertex shader - phong lighting */
-static char *phongSimpleVertexShader = " \
-varying vec3 Norm; \
-varying vec4 Pos; \
-attribute      vec4 fw_Vertex; \
-attribute      vec3 fw_Normal; \
-uniform        mat4 fw_ModelViewMatrix; \
-uniform        mat4 fw_ProjectionMatrix; \
-uniform        mat3 fw_NormalMatrix; \
-void main(void) { \
-       Norm = normalize(fw_NormalMatrix * fw_Normal); \
-       Pos = fw_ModelViewMatrix * fw_Vertex;  \
-       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
-}";
-
-
-
-/* Geometry Shaders */
-
-static const char *passThroughGeomShader = " \
-#version 120 \n \
-#extension GL_EXT_geometry_shader4 : enable \n \
-\n \
-void main() { \n \
-  for(int i = 0; i < gl_VerticesIn; ++i) { \n \
-    gl_FrontColor = gl_FrontColorIn[i]; \n \
-    gl_Position = gl_PositionIn[i]; \n \
-    EmitVertex(); \n \
-  } \n \
-} \n \
-";
-
-static const char *sphereGeomShader = 
-"#version 120\n " \
-"#extension GL_EXT_gpu_shader4: enable\n " \
-"#extension GL_EXT_geometry_shader4: enable\n " \
-"\n " \
-"uniform int Level;\n " \
-"\n " \
-"varying float LightIntensity;\n " \
-"varying vec3 Norm; \n " \
-"varying vec4 Pos; \n " \
-"uniform		mat4 fw_ModelViewMatrix;" \
-"uniform		mat4 fw_ProjectionMatrix;" \
-"uniform		mat3 fw_NormalMatrix; "\
-"\n " \
-"vec3 V0, V01, V02;\n " \
-"\n " \
-"void\n " \
-"ProduceVertex( float s, float t )\n " \
-"{\n " \
-"	const vec3 lightPos = vec3( 0., 10., 0. );\n " \
-"\n " \
-"	vec3 v = V0 + s*V01 + t*V02;\n " \
-"	v = normalize(v);\n " \
-"	vec3 n = v;\n " \
-"	Norm = normalize( fw_NormalMatrix * n );	\n " \
-"\n " \
-"	vec4 ECposition = fw_ModelViewMatrix * vec4( (1.0*v), 1. );\n " \
-"	/* LightIntensity  = dot( normalize(lightPos - ECposition.xyz), fw_Normal ); */ \n " \
-"	/* LightIntensity  = dot( normalize(lightPos - ECposition.xyz), Norm ); */ \n " \
-"	/* LightIntensity = abs( LightIntensity ); */ \n " \
-"	/* LightIntensity *= 1.5; */ \n " \
-"\n " \
-"	gl_Position = fw_ProjectionMatrix * ECposition;\n " \
-"	/* JAS Pos = fw_ProjectionMatrix * ECposition; */\n " \
-"	Pos = ECposition;\n " \
-"	EmitVertex();\n " \
-"}\n " \
-" \n " \
-"void\n " \
-"main()\n " \
-"{ \n " \
-"	V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\n " \
-"	V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\n " \
-"	V0  =   gl_PositionIn[0].xyz;\n " \
-"\n " \
-"	int numLayers = 10;  \n " \
-"\n " \
-"	float dt = 1. / float( numLayers );\n " \
-"\n " \
-"	float t_top = 1.;\n " \
-"\n " \
-"	for( int it = 0; it < numLayers; it++ )\n " \
-"	{\n " \
-"		float t_bot = t_top - dt;\n " \
-"		float smax_top = 1. - t_top;\n " \
-"		float smax_bot = 1. - t_bot;\n " \
-"\n " \
-"		int nums = it + 1;\n " \
-"		float ds_top = smax_top / float( nums - 1 );\n " \
-"		float ds_bot = smax_bot / float( nums );\n " \
-"\n " \
-"		float s_top = 0.;\n " \
-"		float s_bot = 0.;\n " \
-"\n " \
-"		for( int is = 0; is < nums; is++ )\n " \
-"		{\n " \
-"			ProduceVertex( s_bot, t_bot );\n " \
-"			ProduceVertex( s_top, t_top );\n " \
-"			s_top += ds_top;\n " \
-"			s_bot += ds_bot;\n " \
-"		}\n " \
-"\n " \
-"		ProduceVertex( s_bot, t_bot );\n " \
-"		EndPrimitive();\n " \
-"\n " \
-"		t_top = t_bot;\n " \
-"		t_bot -= dt;\n " \
-"	} \n " \
-" }\n ";
-
-/* Fragment Shaders */
-static char *FS = 
-"/* varying float LightIntensity;*/ " \
-"/* uniform vec4 Color; */" \
-"void main() { " \
-"        gl_FragColor = vec4( 0.5, 0.5, 1.0, 1. ); " \
-"        /* gl_FragColor = vec4( LightIntensity*Color.rgb, 1. ); */ " \
-"        /* gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0); */ " \
-"}";
-
-static const char *phongFragmentShader =  " \
-#version 120 \n  \
-#extension GL_EXT_gpu_shader4: enable \n  \
-\
-varying vec3 Norm;  \
-varying vec4 Pos;  \
-uniform int lightState[8]; \
- \
-/* use ADSLightModel here \
- \
- Assumed context: \
- uniform variables gl_Lightsource[i] and gl_FrontMaterial are  \
- stubbed with constant values below. These would probably be \
- in parameters for the function if used in an application. \
- \
- variables myNormal and myPosition are passed in; in a vertex \
- shader these would be computed and used directly, while in a \
- fragment shader these would be set as varying variables by\
- the associated vertex shader \
- \
- the ADS colour is returned from the function. \
-*/  \
-vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
-	int i; \
-	/* the group of variables below would normally be taken from \
-	// gl_FrontMaterial components */ \
-	vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.); \
-	vec4 myMaterialAmbient = vec4(1., .5, 0., 1.); \
-	vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.); \
-	float myMaterialShininess = 80.; \
- \
-	vec4 diffuse = vec4(0., 0., 0., 0.); \
-	vec4 ambient = vec4(0., 0., 0., 0.); \
-	vec4 specular = vec4(0., 0., 0., 1.); \
- \
-	/* apply the lights to this material */ \
-	for (i=0; i<8; i++) { \
-		if (lightState[i] == 1) { \
-		vec4 myLightDiffuse = gl_LightSource[i].diffuse; \
-		vec4 myLightAmbient = gl_LightSource[i].ambient; \
-		vec4 myLightSpecular = gl_LightSource[i].specular; \
-		vec4 myLightPosition = gl_LightSource[i].position; \
-  \
-		/* normal, light, view, and light reflection vectors */ \
-		vec3 norm = normalize (myNormal); \
-		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
-		vec3 viewv = -normalize(myPosition.xyz); \
-		vec3 refl = reflect (-lightv, norm); \
- \
-		/* diffuse light computation */ \
-		diffuse += max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse; \
- \
-		/* ambient light computation */ \
-		ambient += myMaterialAmbient*myLightAmbient; \
- \
-		/* Specular light computation */ \
-		if (dot(lightv, viewv) > 0.0) { \
-			specular += pow(max(0.0, dot(viewv, refl)), \
-				myMaterialShininess)*myMaterialSpecular*myLightSpecular; \
-		} \
-		} \
-	} \
-	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0); \
-} \
-void main () { \
-	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
-} \
- " ;
-
-
-
-
-
-static const char *XphongFragmentShader = 
-"/*  phong fragment shader  */" \
-" " \
-"varying vec3 Norm;" \
-"varying vec4 Pos;" \
-"" \
-"/*  use ADSLightModel here */" \
-"" \
-"/*  Assumed context: */" \
-"/*  uniform variables gl_LightSource[i] and gl_FrontMaterial are  */" \
-"/*  stubbed with constant values below. These would probably be */" \
-"/*  in parameters for the function if used in an application. */" \
-"/*  */" \
-"/*  variables myNormal and myPosition are passed in; in a vertex */" \
-"/*  shader these would be computed and used directly, while in a  */" \
-"/*  fragment shader these would be set as varying variables by */" \
-"/*  the associated vertex shader */" \
-"/*  */" \
-"/*  the ADS colour is returned from the function. */" \
-"" \
-"vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {" \
-"	int i;" \
-"" \
-"/* 	 the group of variables below would normally be taken from */" \
-"/* 	 gl_FrontMaterial components */" \
-"	vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.);" \
-"	vec4 myMaterialAmbient = vec4(1., .5, 0., 1.);" \
-"	vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.);" \
-"	float myMaterialShininess = 80.;" \
-"" \
-"	vec3 norm = normalize (myNormal);" \
-"	vec3 viewv = -normalize(myPosition.xyz);" \
-"	vec4 ambient = vec4(0., 0., 0., 0.);" \
-"	vec4 specular = vec4 (0.0, 0.0, 0.0, 1.0);" \
-"	vec4 diffuse = vec4(0., 0., 0., 1.);" \
-"" \
-"	for (i=0; i<8; i++) {" \
-"/* 		 the group of variables below would normallye taken from gl_LightSource[i] components */" \
-"		vec4 myLightDiffuse = gl_LightSource[i].diffuse;" \
-"		vec4 myLightAmbient = gl_LightSource[i].ambient;" \
-"		vec4 myLightSpecular = gl_LightSource[i].specular;" \
-"		vec4 myLightPosition = gl_LightSource[i].position;" \
-"" \
-"/* 		 normal, light, view, and light reflection vectors */" \
-"		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz);" \
-"		vec3 refl = reflect (-lightv, norm);" \
-"" \
-"/* 		 diffuse light computation */" \
-"		diffuse += max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse;" \
-"" \
-"/* 		 ambient light computation */" \
-"		ambient += myMaterialAmbient*myLightAmbient;" \
-"" \
-"/* 		 Specular light computation */" \
-"		if (dot(lightv, viewv) > 0.0) {" \
-"			specular += pow(max(0.0, dot(viewv, refl))," \
-"				myMaterialShininess)*myMaterialSpecular*myLightSpecular;" \
-"		}" \
-"	}" \
-"" \
-"	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0);" \
-"}" \
-"void main () {" \
-"	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); " \
-"}";
-
-
-static void shaderErrorLog(GLuint myShader, char *type) {
-        #ifdef GL_VERSION_2_0
-#define MAX_INFO_LOG_SIZE 512
-                GLchar infoLog[MAX_INFO_LOG_SIZE];
-                glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog);
-		if (strlen(infoLog) > 0)
-                	ConsoleMessage ("problem with %s shader: %s",type, infoLog);
-        #else
-                ConsoleMessage ("Problem compiling shader");
-        #endif
-}
+#define FULL_APPEARANCE_SHADER 0x0000
 
 
 /* find info on the geometry of this shape */
-static void getGeometryShader (struct X3D_Node *myGeom, GLuint *myShad) {
+static int newGetGeometryShader (struct X3D_Node *myGeom) {
 	struct X3D_Node *realNode;
-	GLint success;
-
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
 
-	*myShad = 0; /* default condition */
+	if (realNode == NULL) return NO_GEOM_SHADER;
 
-	if (realNode == NULL) return;
+	if (realNode->_nodeType == NODE_Sphere) return SPHERE_GEOM_SHADER;
 
-	/* which shapes have an associated Geometry shader? */
-	if (realNode->_nodeType == NODE_Sphere) {
-		*myShad = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
-		printf ("using geom shader sphereGeomShader\n");
-		SHADER_SOURCE (*myShad, 1,&sphereGeomShader,NULL);
-	}
+	return NO_GEOM_SHADER;
+}
 
-	if (*myShad != 0) {	
-		COMPILE_SHADER(*myShad);
-        	GET_SHADER_INFO(*myShad, COMPILE_STATUS, &success);
-        	if (!success) {
-			shaderErrorLog(*myShad,"GEOMETRY");
-        	}
-	}
+static int newGetAppearanceShader (struct X3D_Node *myGeom) {
+	return FULL_APPEARANCE_SHADER;
 }
 
 /* find info on the appearance of this Shape and create a shader */
@@ -751,79 +454,6 @@ static void getGeometryShader (struct X3D_Node *myGeom, GLuint *myShad) {
 
 */
 
-
-static void getAppearanceShaders (struct X3D_Node * myApp, GLuint *myVert, GLuint *myFrag, int haveGeomShader) {	
-	struct X3D_Node *fillPNode;
-	struct X3D_Node *linePNode;
-	struct X3D_Appearance *realNode;
-	struct X3D_Node *materialNode;
-	struct X3D_Node *shaderNode;
-	struct X3D_Node *textureNode;
-	struct X3D_Node *textureTransformNode;
-	GLint success;
-
-	/* resolve PROTO, if this is a PROTO... */
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *,myApp,realNode);
-	/* printf ("getAppearanceShader, node type %s\n",stringNodeType(realNode->_nodeType)); */
-
-	if (realNode == NULL) return; /* no Appearance - that is ok */
-
-	/* this should be an appearance... */
-	if (realNode->_nodeType != NODE_Appearance) {
-		ConsoleMessage ("Appearance node expected in Shape appearance field, got :%s:\n",
-			stringNodeType(realNode->_nodeType));
-		return;
-	}
-
-	/* get fields, ensure that we do not get confused by PROTO */
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->fillProperties,fillPNode);
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->lineProperties,linePNode);
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->material,materialNode);
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->texture,textureNode);
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode->textureTransform,textureTransformNode);
-
-	/* warning messages, at least here until we get it all implemented */
-	if (fillPNode != NULL) ConsoleMessage ("Shaders_2011: fillProperties not yet supported\n");
-	if (linePNode != NULL) ConsoleMessage ("Shaders_2011: lineProperties not yet supported\n");
-	if (materialNode != NULL) ConsoleMessage ("Shaders_2011: material field not yet supported\n");
-	if (textureNode != NULL) ConsoleMessage ("Shaders_2011: texture field not yet supported\n");
-	if (textureTransformNode != NULL) ConsoleMessage ("Shaders_2011: textureTransform field not yet supported\n");
-
-	/* printf ("getAppearance, fill %p line %p material %p texture %p tt %p\n",
-		fillPNode, linePNode, materialNode, textureNode, textureTransformNode); */
-	
-	*myVert = CREATE_SHADER(GL_VERTEX_SHADER);
-	*myFrag = CREATE_SHADER(GL_FRAGMENT_SHADER);
-
-	/* vertex shader */
-	if (haveGeomShader) {
-		printf ("using vertex shader vertexShaderForSphereGeomShader\n");
-		SHADER_SOURCE(*myVert, 1,&vertexShaderForSphereGeomShader,NULL);
-	} else {
-		printf ("using vertex shader phongSimpleVertexShader\n");
-		SHADER_SOURCE(*myVert, 1,&phongSimpleVertexShader,NULL);
-	}
-	COMPILE_SHADER(*myVert);
-        GET_SHADER_INFO(*myVert, COMPILE_STATUS, &success);
-        if (!success) {
-		shaderErrorLog(*myVert,"VERTEX");
-        }
-
-	/* fragment shader */
-printf ("using fragment shader phongFragmentShader\n");
-	SHADER_SOURCE(*myFrag, 1,&phongFragmentShader,NULL);
-
-/*
-printf ("using fragment shader FS\n");
-	SHADER_SOURCE(*myFrag, 1,&FS,NULL);
-*/
-	COMPILE_SHADER(*myFrag);
-        GET_SHADER_INFO(*myFrag, COMPILE_STATUS, &success);
-        if (!success) {
-		shaderErrorLog(*myFrag,"FRAGMENT");
-        }
-}
-
 #endif /* SHADERS_2011 */
 
 /* this should be vectorized, and made global in the rdr_caps, but for now... */
@@ -831,62 +461,29 @@ s_shader_capabilities_t globalShaders[10];
 
 
 void compile_Shape (struct X3D_Shape *node) {
-	s_shader_capabilities_t *mySTE;
 #ifdef SHADERS_2011
-	GLuint geomShad;
-	GLuint fragShad;
-	GLuint vertShad;
-	GLint success;
 
-	/* do we need to find a new shader table entry for this sucker? */
-	if (node->_shaderTableEntry == -1) {
-		printf ("compile_Shape, assuming ste of 0\n");
-		node->_shaderTableEntry = 0;
-	}
+	int whichGeometryShader = -1;
+	int whichAppearanceShader = -1;
+
+	whichGeometryShader = newGetGeometryShader(node->geometry);
+	whichAppearanceShader = newGetAppearanceShader(node->appearance);
+
+
+	switch (whichGeometryShader | whichAppearanceShader) {
+	case SPHERE_GEOM_SHADER | FULL_APPEARANCE_SHADER:
+		node->_shaderTableEntry = genericFullFeaturedSphereShader;
+		break;
+
+	case NO_GEOM_SHADER | FULL_APPEARANCE_SHADER:
+		node->_shaderTableEntry = genericFullFeaturedShader;
+		break;	
 	
-	fragShad = 0; geomShad = 0; vertShad = 0;
-
-	mySTE = &globalShaders[node->_shaderTableEntry];
-
-	mySTE->myShaderProgram = glCreateProgram();
-
-	getGeometryShader(node->geometry,&geomShad);
-	getAppearanceShaders(node->appearance,&vertShad, &fragShad, (geomShad != 0));
-
-	if (geomShad != 0) {
-		GLint n;
-		printf ("compile_Shape, have geom shader\n");
-
-		glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &n);
-		printf ("compile_Shape, geom shader max vertices at start %d\n",n);
-		glGetIntegerv(GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS_EXT, &n);
-		printf ("compile_Shape, geom total output components at start %d\n",n);
-
-		glProgramParameteriEXT (mySTE->myShaderProgram,GL_GEOMETRY_INPUT_TYPE_EXT,GL_TRIANGLES);
-		glProgramParameteriEXT (mySTE->myShaderProgram, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLE_STRIP);
-		glProgramParameteriEXT (mySTE->myShaderProgram, GL_GEOMETRY_VERTICES_OUT_EXT, 1024);
-		ATTACH_SHADER(mySTE->myShaderProgram,geomShad);
+	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
 	}
 
+	#endif /* SHADERS_2011 */
 
-	ATTACH_SHADER(mySTE->myShaderProgram,fragShad);
-	ATTACH_SHADER(mySTE->myShaderProgram,vertShad);
-
-        LINK_SHADER(mySTE->myShaderProgram);
-
-	#ifdef GL_VERSION_2_0
-	#define MAX_INFO_LOG_SIZE 512
-	glGetProgramiv(mySTE->myShaderProgram, GL_LINK_STATUS, &success); 
-	if (!success) { 
-		GLchar infoLog[MAX_INFO_LOG_SIZE]; 
-		glGetProgramInfoLog(mySTE->myShaderProgram, MAX_INFO_LOG_SIZE, NULL, infoLog); 
-		ConsoleMessage ("problem with Shader Program link: %s\n",infoLog); 
-	} 
-	#undef MAX_INFO_LOG_SIZE
-	#endif
-
-	getShaderCommonInterfaces (mySTE);
-#endif
 
 	MARK_NODE_COMPILED
 }
@@ -923,10 +520,14 @@ void child_Shape (struct X3D_Shape *node) {
 	*/
 
 	#ifdef SHADERS_2011
+
 	if (node->_shaderTableEntry != -1) {
-        	setCurrentShader (&globalShaders[node->_shaderTableEntry]);
+        	chooseShader (node->_shaderTableEntry);
 	}
-	#endif
+
+	#endif /* SHADERS_2011 */
+
+
 
 	/* set up Appearance Properties here */
 	this_textureTransform = NULL;
@@ -1037,11 +638,13 @@ void child_Shape (struct X3D_Shape *node) {
 #endif
 	}
 
+
 	/* did the lack of an Appearance or Material node turn lighting off? */
 	LIGHTING_ON;
 
 	/* any FillProperties? */
 	TURN_FILLPROPERTIES_SHADER_OFF;
+
 
 	if (linePropertySet) {
 		FW_GL_DISABLE (GL_LINE_STIPPLE);

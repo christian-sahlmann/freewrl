@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.103 2010/11/09 21:10:21 crc_canada Exp $
+  $Id: display.h,v 1.104 2011/01/10 20:13:47 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -312,6 +312,9 @@ void setScreenDim(int wi, int he);
 	#define GLUNIFORM2FV glUniform2fv
 	#define GLUNIFORM3FV glUniform3fv
 	#define GLUNIFORM4FV glUniform4fv
+	#define GLUNIFORMMATRIX4FV glUniformMatrix4fv
+	#define GLUNIFORMMATRIX3FV glUniformMatrix3fv
+
 #else
 #ifdef GL_VERSION_1_5
 	#define HAVE_SHADERS
@@ -342,6 +345,8 @@ void setScreenDim(int wi, int he);
 	#define GLUNIFORM2FV glUniform2fvARB
 	#define GLUNIFORM3FV glUniform3fvARB
 	#define GLUNIFORM4FV glUniform4fvARB
+	#define GLUNIFORMMATRIX4FV glUniformMatrix4fvARB
+	#define GLUNIFORMMATRIX3FV glUniformMatrix3fvARB
 #endif
 #endif
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.31 2011/01/04 15:43:32 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.32 2011/01/10 20:13:47 crc_canada Exp $
 
 Screen snapshot.
 
@@ -84,6 +84,9 @@ typedef struct {
 typedef enum shader_type {
 	backgroundSphereShader,
 	backgroundTextureBoxShader,
+	genericFullFeaturedShader,
+	noMaterialNoAppearanceShader,
+	genericFullFeaturedSphereShader,
 } shader_type_t;
 
 
