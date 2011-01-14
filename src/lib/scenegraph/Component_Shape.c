@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.65 2011/01/10 20:13:47 crc_canada Exp $
+$Id: Component_Shape.c,v 1.66 2011/01/14 17:30:36 crc_canada Exp $
 
 X3D Shape Component
 
@@ -371,28 +371,47 @@ void compile_Material (struct X3D_Material *node) {
         /* set the transparency here for the material */
         trans = 1.0f - node->transparency;
                 
-        node->_dcol.c[3] = trans;
-        node->_amb.c[3] = trans;
-        node->_scol.c[3] = trans;
-        node->_ecol.c[3] = trans;
+	/* we now keep verified params in a structure that maps to Shaders well...
+		struct gl_MaterialParameters {
+        	        vec4 emission;
+        	        vec4 ambient;
+        	        vec4 diffuse;
+        	        vec4 specular;
+        	        float shininess;
+        	};
+	  which is stored in the _verifiedColor[17] array here.
+	  emission [0]..[3];
+	  ambient [4]..[7];
+	  diffuse [8]..[11];
+	  specular [12]..[15];
+	  shininess [16]
+	  
+*/
+	/* first, put in the transparency */
+        node->_verifiedColor.p[3] = trans;
+        node->_verifiedColor.p[7] = trans;
+        node->_verifiedColor.p[11] = trans;
+        node->_verifiedColor.p[15] = trans;
                 
-	memcpy((void *)node->_dcol.c, node->diffuseColor.c, sizeof (float) * 3);
-        /* for (i=0; i<3;i++){ node->_dcol[i] = node->diffuseColor.c[i]; } */
+	/* DiffuseColor */
+	memcpy((void *)(&node->_verifiedColor.p[8]), node->diffuseColor.c, sizeof (float) * 3);
 
-        for(i=0; i<3; i++) { node->_amb.c[i] = node->_dcol.c[i] * node->ambientIntensity; }
+	/* Ambient  - diffuseColor * ambientIntensity */
+        for(i=0; i<3; i++) { node->_verifiedColor.p[i+4] = node->_verifiedColor.p[i+8] * node->ambientIntensity; }
 
-	/* for (i=0; i<3;i++){ node->_scol[i] = node->specularColor.c[i]; } */
-	memcpy((void *)node->_scol.c, node->specularColor.c, sizeof (float) * 3);
+	/* Specular */
+	memcpy((void *)(&node->_verifiedColor.p[12]), node->specularColor.c, sizeof (float) * 3);
 
-	/* for (i=0; i<3;i++){ node->_ecol[i] = node->emissiveColor.c[i]; } */
-	memcpy((void *)node->_ecol.c, node->emissiveColor.c, sizeof (float) * 3);
+	/* Emissive */
+	memcpy((void *)(&node->_verifiedColor.p[0]), node->emissiveColor.c, sizeof (float) * 3);
 
-        node->_shin = node->shininess * 128.0f;
+	/* Shininess */
+        node->_verifiedColor.p[16] = node->shininess * 128.0f;
 
 #define MAX_SHIN 128.0f
 #define MIN_SHIN 0.01f
-        if ((node->_shin > MAX_SHIN) || (node->_shin < MIN_SHIN)) {
-                if (node->_shin>MAX_SHIN){node->_shin = MAX_SHIN;}else{node->_shin=MIN_SHIN;}
+        if ((node->_verifiedColor.p[16] > MAX_SHIN) || (node->_verifiedColor.p[16] < MIN_SHIN)) {
+                if (node->_verifiedColor.p[16]>MAX_SHIN){node->_verifiedColor.p[16] = MAX_SHIN;}else{node->_verifiedColor.p[16]=MIN_SHIN;}
         }
 #undef MAX_SHIN
 #undef MIN_SHIN
@@ -472,10 +491,12 @@ void compile_Shape (struct X3D_Shape *node) {
 
 	switch (whichGeometryShader | whichAppearanceShader) {
 	case SPHERE_GEOM_SHADER | FULL_APPEARANCE_SHADER:
+printf ("choosing sphere shader\n");
 		node->_shaderTableEntry = genericFullFeaturedSphereShader;
 		break;
 
 	case NO_GEOM_SHADER | FULL_APPEARANCE_SHADER:
+printf ("choosing full, non-geometryshader shader\n");
 		node->_shaderTableEntry = genericFullFeaturedShader;
 		break;	
 	
@@ -488,6 +509,98 @@ void compile_Shape (struct X3D_Shape *node) {
 	MARK_NODE_COMPILED
 }
 
+#ifdef SHADERS_2011
+void child_Shape (struct X3D_Shape *node) {
+	struct X3D_Node *tmpN;
+	int i;
+	float dcol[4];
+	float ecol[4];
+	float scol[4];
+	float amb;
+
+printf ("start of child_Shape\n");
+	COMPILE_IF_REQUIRED
+
+	/* JAS - if not collision, and render_geom is not set, no need to go further */
+	/* printf ("child_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
+
+	if(!(node->geometry)) { return; }
+
+	RECORD_DISTANCE
+
+	if((render_collision) || (render_sensitive)) {
+		/* only need to forward the call to the child */
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,node->geometry,tmpN);
+		render_node(tmpN);
+		return;
+	}
+
+	if (node->_shaderTableEntry == -1) {
+		return;
+	}
+
+/*
+struct fw_MaterialParameters {
+                float emission[4];
+                float ambient[4];
+                float diffuse[4];
+                float specular[4];
+                float shininess;
+        };
+
+*/
+
+struct fw_MaterialParameters defaultMaterials = {
+					{0.0f, 0.0f, 0.0f, 1.0f},
+					{0.0f, 0.0f, 0.0f, 1.0f},
+					{0.0f, 1.0f, 0.0f, 1.0f},
+					{0.0f, 0.0f, 0.0f, 1.0f},
+					80.0f};
+
+	/* copy the material stuff in preparation for copying all to the shader */
+	memcpy (&appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+	memcpy (&appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+
+	if (material_oneSided != NULL) {
+		memcpy (&appearanceProperties.fw_FrontMaterial, material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+		memcpy (&appearanceProperties.fw_BackMaterial, material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+	} else if (material_twoSided != NULL) {
+		memcpy (&appearanceProperties.fw_FrontMaterial, material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
+		memcpy (&appearanceProperties.fw_BackMaterial, material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
+	} else {
+		/* no materials selected.... */
+
+	}
+
+	/* enable the shader for this shape */
+        chooseShader (node->_shaderTableEntry);
+
+	/* now, are we rendering blended nodes or normal nodes?*/
+	if (render_blend == (node->_renderFlags & VF_Blend)) {
+
+		RENDER_MATERIAL_SUBNODES(node->appearance);
+
+		#ifdef SHAPEOCCLUSION
+		BEGINOCCLUSIONQUERY;
+		#endif
+
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
+		render_node(tmpN);
+
+		#ifdef SHAPEOCCLUSION
+		ENDOCCLUSIONQUERY;
+		#endif
+	}
+
+	/* any shader turned on? if so, turn it off */
+	TURN_GLOBAL_SHADER_OFF;
+
+	/* turn off face culling */
+	DISABLE_CULL_FACE;
+}
+
+#else /* ifdef SHADERS_2011 */
 
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpN;
@@ -518,16 +631,6 @@ void child_Shape (struct X3D_Shape *node) {
 	if we want to see the bounding box of this shape:
 	drawBBOX(X3D_NODE(node));
 	*/
-
-	#ifdef SHADERS_2011
-
-	if (node->_shaderTableEntry != -1) {
-        	chooseShader (node->_shaderTableEntry);
-	}
-
-	#endif /* SHADERS_2011 */
-
-
 
 	/* set up Appearance Properties here */
 	this_textureTransform = NULL;
@@ -579,14 +682,30 @@ void child_Shape (struct X3D_Shape *node) {
 				/* we have a normal material node */
 				appearanceProperties.transparency = 1.0f - material_oneSided->transparency; /* 1 == solid, 0 = totally transparent */ 
 
-				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_DIFFUSE, material_oneSided->_dcol.c); 
-				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_AMBIENT, material_oneSided->_amb.c);
-				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_SPECULAR, material_oneSided->_scol.c);
-				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_EMISSION, material_oneSided->_ecol.c);
-				FW_GL_MATERIALF(GL_FRONT_AND_BACK, GL_SHININESS,material_oneSided->_shin);
+	/* we now keep verified params in a structure that maps to Shaders well...
+		struct gl_MaterialParameters {
+        	        vec4 emission;
+        	        vec4 ambient;
+        	        vec4 diffuse;
+        	        vec4 specular;
+        	        float shininess;
+        	};
+	  which is stored in the _verifiedColor[17] array here.
+	  emission [0]..[3];
+	  ambient [4]..[7];
+	  diffuse [8]..[11];
+	  specular [12]..[15];
+	  shininess [16]
+	  
+*/
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_DIFFUSE, &(material_oneSided->_verifiedColor.p[8])); 
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_AMBIENT, &(material_oneSided->_verifiedColor.p[4]));
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_SPECULAR, &(material_oneSided->_verifiedColor.p[12]));
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_EMISSION, &(material_oneSided->_verifiedColor.p[0]));
+				FW_GL_MATERIALF(GL_FRONT_AND_BACK, GL_SHININESS,material_oneSided->_verifiedColor.p[16]);
 
 				/* copy the emissive colour over for lines and points */
-				memcpy(appearanceProperties.emissionColour,material_oneSided->_ecol.c, 3*sizeof(float));
+				memcpy(appearanceProperties.emissionColour,&(material_oneSided->_verifiedColor.p[0]), 3*sizeof(float));
 			} else if (material_twoSided != NULL) {
 				GLenum whichFace;
 				float trans;
@@ -620,24 +739,21 @@ void child_Shape (struct X3D_Shape *node) {
 				/* same with materialProperties.transparency */ 
 				appearanceProperties.transparency=MAX_NODE_TRANSPARENCY; 
 			}
-
 	}
-
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (render_blend == (node->_renderFlags & VF_Blend)) {
 
-#ifdef SHAPEOCCLUSION
+		#ifdef SHAPEOCCLUSION
 		BEGINOCCLUSIONQUERY;
-#endif
+		#endif
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
 		render_node(tmpN);
 
-#ifdef SHAPEOCCLUSION
+		#ifdef SHAPEOCCLUSION
 		ENDOCCLUSIONQUERY;
-#endif
+		#endif
 	}
-
 
 	/* did the lack of an Appearance or Material node turn lighting off? */
 	LIGHTING_ON;
@@ -662,7 +778,6 @@ void child_Shape (struct X3D_Shape *node) {
 	}
 
 
-
 	/* any shader turned on? if so, turn it off */
 	TURN_GLOBAL_SHADER_OFF;
 
@@ -670,7 +785,18 @@ void child_Shape (struct X3D_Shape *node) {
 	DISABLE_CULL_FACE;
 }
 
+#endif /* SHADERS_2011 */
 
+
+#ifdef XXSHADERS_2011
+void child_Appearance (struct X3D_Appearance *node) {
+	struct X3D_Node *tmpN;
+
+printf ("child_Appearance for SHADERS_2011\n");
+
+}
+
+#else /* SHADERS_2011 */
 void child_Appearance (struct X3D_Appearance *node) {
 	struct X3D_Node *tmpN;
 	
@@ -730,5 +856,5 @@ void child_Appearance (struct X3D_Appearance *node) {
 			}
 		}
 	}
-	
 }
+#endif /* not SHADERS_2011 */

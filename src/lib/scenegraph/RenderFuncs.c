@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.82 2011/01/10 20:13:47 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.83 2011/01/14 17:30:36 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -175,6 +175,7 @@ void fwglLightf (int light, int pname, GLfloat param) {
 
 void turnGlobalShaderOff(void) {
 
+// printf ("turnGlobalShaderOff - currentShaderStruct set to NULL\n");
 	if (globalCurrentShader != 0) {
 		globalCurrentShader = 0;
 		USE_SHADER(0);
@@ -194,6 +195,7 @@ void turnGlobalShaderOff(void) {
 
 /* choose a shader for this geometry */
 void chooseShader(shader_type_t requestedShader) {
+
 	currentShaderStruct = &(rdr_caps.backgroundShaderArrays[requestedShader]);
 	globalCurrentShader = currentShaderStruct->myShaderProgram;
 	USE_SHADER(globalCurrentShader);
@@ -203,29 +205,44 @@ void chooseShader(shader_type_t requestedShader) {
 }
 
 /* send in vertices, normals, etc, etc... to either a shader or via older opengl methods */
-void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer){
+void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer, char *file, int line){
+// printf ("sendAttribToGPU, currentShaderStruct %p\n",currentShaderStruct);
 	if (currentShaderStruct != NULL) {
-
 		switch (myType) {
 			case FW_NORMAL_POINTER_TYPE:
+// printf ("glVertexAttribPointer  Normals %d at %s:%d\n",currentShaderStruct->Normals,file,line);
+			if (currentShaderStruct->Normals != -1) {
+// printf ("glEnableVertexAttribArray for %d\n",currentShaderStruct->Normals);
 				glEnableVertexAttribArray(currentShaderStruct->Normals);
 				glVertexAttribPointer(currentShaderStruct->Normals, 3, dataType, normalized, stride, pointer);
+			}
 				break;
 			case FW_VERTEX_POINTER_TYPE:
+// printf ("glVertexAttribPointer  Vertexs %d at %s:%d\n",currentShaderStruct->Vertices,file,line);
+			if (currentShaderStruct->Vertices != -1) {
+// printf ("glEnableVertexAttribArray for %d\n",currentShaderStruct->Normals);
 				glEnableVertexAttribArray(currentShaderStruct->Vertices);
 				glVertexAttribPointer(currentShaderStruct->Vertices, dataSize, dataType, normalized, stride, pointer);
+			}
 				break;
 			case FW_COLOR_POINTER_TYPE:
-				glEnableVertexAttribArray(currentShaderStruct->Colours);
+			if (currentShaderStruct->Colours != -1) {
+// printf ("glVertexAttribPointer  Color\n");
+				//JAS glEnableVertexAttribArray(currentShaderStruct->Colours);
 				glVertexAttribPointer(currentShaderStruct->Colours, dataSize, dataType, normalized, stride, pointer);
+			}
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
-				glEnableVertexAttribArray(currentShaderStruct->TexCoords);
+			if (currentShaderStruct->TexCoords != -1) {
+// printf ("glVertexAttribPointer  TexCoords\n");
+				//JAS glEnableVertexAttribArray(currentShaderStruct->TexCoords);
 				glVertexAttribPointer(currentShaderStruct->TexCoords, dataSize, dataType, normalized, stride, pointer);
+			}
 				break;
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 		}
+
 	/* not shaders; older style of rendering */
 	} else {
 		switch (myType) {
@@ -267,6 +284,13 @@ void sendClientStateToGPU(int enable, int cap) {
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 		}
+/*
+printf ("sendClientStateToGPU: currentShaderStruct %p \n",currentShaderStruct);
+if (shaderNormalArray) printf ("enabling Normal\n"); else printf ("disabling Normal\n");
+if (shaderVertexArray) printf ("enabling Vertex\n"); else printf ("disabling Vertex\n");
+if (shaderColourArray) printf ("enabling Colour\n"); else printf ("disabling Colour\n");
+if (shaderTextureArray) printf ("enabling Texture\n"); else printf ("disabling Texture\n");
+*/
 
 	} else {
 		if (enable) glEnableClientState(cap);
@@ -274,38 +298,80 @@ void sendClientStateToGPU(int enable, int cap) {
 	}
 }
 
+void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
+
+	/*
+	if (target == GL_ARRAY_BUFFER_BINDING) printf ("glBindBuffer, GL_ARRAY_BUFFER_BINDING %d at %s:%d\n",buffer,file,line);
+	else if (target == GL_ARRAY_BUFFER) printf ("glBindBuffer, GL_ARRAY_BUFFER %d at %s:%d\n",buffer,file,line);
+	else if (target == GL_ELEMENT_ARRAY_BUFFER) printf ("glBindBuffer, GL_ELEMENT_ARRAY_BUFFER %d at %s:%d\n",buffer,file,line);
+	else printf ("glBindBuffer, %d %d at %s:%d\n",target,buffer,file,line);
+	*/
+
+	glBindBuffer(target,buffer);
+}
+
+
 void sendArraysToGPU (int mode, int first, int count) {
 	if (currentShaderStruct != NULL) {
+
+
+	if (currentShaderStruct->Normals != -1) {
 			if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
 			else glDisableVertexAttribArray(currentShaderStruct->Normals);
+	}
 
+	if (currentShaderStruct->Vertices != -1) {
 			if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
 			else glDisableVertexAttribArray(currentShaderStruct->Vertices);
+	}
 
+	if (currentShaderStruct->Colours != -1) {
 			if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
 			else glDisableVertexAttribArray(currentShaderStruct->Colours);
+	}
 
+	if (currentShaderStruct->TexCoords != -1) {
 			if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
 			else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
+	} 
+
+/*
+printf ("sendArraysToGPU; currentShaderStruct %p (true %d) normal %d vertex %d colour %d texture %d\n",currentShaderStruct,TRUE, shaderNormalArray,shaderVertexArray,shaderColourArray,shaderTextureArray);
+if (shaderNormalArray) printf ("glEnableVertexAttribArray Normal\n"); else printf ("glDisableVertexAttribArray Normal\n");
+if (shaderVertexArray) printf ("glEnableVertexAttribArray Vertex\n"); else printf ("glDisableVertexAttribArray Vertex\n");
+if (shaderColourArray) printf ("glEnableVertexAttribArray Colour\n"); else printf ("glDisableVertexAttribArray Colour\n");
+if (shaderTextureArray) printf ("glEnableVertexAttribArray Texture\n"); else printf ("glDisableVertexAttribArray Texture\n");
+	printf ("calling glDrawArrays, mode %d, first %d, count %d\n",mode,first,count);
+*/
+
 	}
+
 
 	glDrawArrays(mode,first,count);
 }
 
 void sendElementsToGPU (int mode, int count, int type, int *indices) {
 	if (currentShaderStruct != NULL) {
-printf ("sendElementsToGPU; (true %d) normal %d vertex %d colour %d texture %d\n",TRUE, shaderNormalArray,shaderVertexArray,shaderColourArray,shaderTextureArray);
+
+		if (currentShaderStruct->Normals != -1) {
 		if (shaderNormalArray) glEnableVertexAttribArray(currentShaderStruct->Normals);
 		else glDisableVertexAttribArray(currentShaderStruct->Normals);
+		}
 
+		if (currentShaderStruct->Vertices != -1) {
 		if (shaderVertexArray) glEnableVertexAttribArray(currentShaderStruct->Vertices);
 		else glDisableVertexAttribArray(currentShaderStruct->Vertices);
+		}
 
+		if (currentShaderStruct->Colours != -1) {
 		if (shaderColourArray) glEnableVertexAttribArray(currentShaderStruct->Colours);
 		else glDisableVertexAttribArray(currentShaderStruct->Colours);
+		}
 
+		if (currentShaderStruct->TexCoords != -1) {
 		if (shaderTextureArray) glEnableVertexAttribArray(currentShaderStruct->TexCoords);
 		else glDisableVertexAttribArray(currentShaderStruct->TexCoords);
+		}
 	}
 
 	glDrawElements(mode,count,type,indices);
@@ -568,9 +634,6 @@ static int renderLevel = 0;
 
 
 void render_node(struct X3D_Node *node) {
-#ifdef OLDCODE
-	struct X3D_Virt *v;
-#endif
 	struct X3D_Virt *virt;
 
 	int srg = 0;
@@ -591,9 +654,6 @@ void render_node(struct X3D_Node *node) {
 		return;
 	}
 
-#ifdef OLDCODE
-	v = *(struct X3D_Virt **)node;
-#endif
 	virt = virtTable[node->_nodeType];
 
 #ifdef RENDERVERBOSE 
@@ -602,7 +662,25 @@ void render_node(struct X3D_Node *node) {
 		int i;
 		for(i=0;i<renderLevel;i++) printf(" ");
 	}
-	printf("%d node %u (%s) , v %u renderFlags %x \n",renderLevel, node,stringNodeType(node->_nodeType),v,node->_renderFlags);
+	printf("%d node %u (%s) , v %u renderFlags %x ",renderLevel, node,stringNodeType(node->_nodeType),virt,node->_renderFlags);
+
+	if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf (" VF_Viewpoint");
+	if ((node->_renderFlags & VF_Geom )== VF_Geom) printf (" VF_Geom");
+	if ((node->_renderFlags & VF_localLight )== VF_localLight) printf (" VF_localLight");
+	if ((node->_renderFlags & VF_Sensitive) == VF_Sensitive) printf (" VF_Sensitive");
+	if ((node->_renderFlags & VF_Blend) == VF_Blend) printf (" VF_Blend");
+	if ((node->_renderFlags & VF_Proximity) == VF_Proximity) printf (" VF_Proximity");
+	if ((node->_renderFlags & VF_Collision) == VF_Collision) printf (" VF_Collision");
+	if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf (" VF_globalLight");
+	if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf (" VF_hasVisibleChildren");
+	if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf (" VF_shouldSortChildren");
+	if ((node->_renderFlags & VF_Other) == VF_Other) printf (" VF_Other");
+	/*
+	if ((node->_renderFlags & VF_inPickableGroup == VF_inPickableGroup) printf (" VF_inPickableGroup");
+	if ((node->_renderFlags & VF_PickingSensor == VF_PickingSensor) printf (" VF_PickingSensor");
+	*/
+	printf ("\n");
+
 	//printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",virt->prep, virt->rend, virt->children, virt->fin,
 	//       virt->rendray, hypersensitive);
 	//printf("%d state: vp %d geom %d light %d sens %d blend %d prox %d col %d ", renderLevel, 
@@ -737,6 +815,7 @@ void render_node(struct X3D_Node *node) {
 	renderLevel--;
 #endif
 }
+
 
 /*
  * The following code handles keeping track of the parents of a given

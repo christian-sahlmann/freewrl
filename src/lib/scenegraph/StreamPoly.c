@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.22 2010/12/07 18:27:50 crc_canada Exp $
+$Id: StreamPoly.c,v 1.23 2011/01/14 17:30:36 crc_canada Exp $
 
 ???
 
@@ -529,27 +529,27 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 
 		if (r->normal) {
 			if (r->VBO_buffers[NORMAL_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[NORMAL_VBO]);
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[NORMAL_VBO]);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[NORMAL_VBO]);
 			glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColor)*3,r->normal, GL_STATIC_DRAW_ARB);
 			FREE_IF_NZ(r->normal);
 		}
 
 		if (r->color) {
 			if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
 			glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW_ARB);
 			/* DO NOT FREE_IF_NZ(r->color); - recalculateColorFields needs this...*/
 		}
 
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[VERTEX_VBO]);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[VERTEX_VBO]);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColor)*3,newpoints, GL_STATIC_DRAW_ARB);
 
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,r->VBO_buffers[INDEX_VBO]);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB,r->VBO_buffers[INDEX_VBO]);
 		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,sizeof (int)*r->ntri*3,r->cindex,GL_STATIC_DRAW_ARB);
 
 		if (r->GeneratedTexCoords) {
 			if (r->VBO_buffers[TEXTURE_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[TEXTURE_VBO]);
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[TEXTURE_VBO]);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[TEXTURE_VBO]);
 			glBufferDataARB(GL_ARRAY_BUFFER_ARB,sizeof (float)*2*r->ntri*3,r->GeneratedTexCoords, GL_STATIC_DRAW_ARB);
 			/* finished with these - lets get rid of it */
 			FREE_IF_NZ(r->GeneratedTexCoords);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.31 2011/01/06 17:57:22 crc_canada Exp $
+$Id: RenderTextures.c,v 1.32 2011/01/14 17:30:35 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -326,7 +326,7 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 
 				if (myTCnode->__VBO != 0) {
                                 	struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
-                                	glBindBufferARB(GL_ARRAY_BUFFER_ARB,myTCnode->__VBO);
+                                	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,myTCnode->__VBO);
 					passedInGenTex(&mtf);
 				} else {
 					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.38 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Polyrep.c,v 1.39 2011/01/14 17:30:36 crc_canada Exp $
 
 ???
 
@@ -81,7 +81,7 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 	/* VBOs need this re-bound */
 	if (global_use_VBOs) {
 		if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW_ARB);
 		FREE_IF_NZ(r->color);
 	}
@@ -873,34 +873,34 @@ void render_polyrep(void *node) {
 	} else {
 		/*  status bar, text do not have normals*/
 		if (pr->VBO_buffers[NORMAL_VBO]!=0) {
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, pr->VBO_buffers[NORMAL_VBO]);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, pr->VBO_buffers[NORMAL_VBO]);
 			FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
 		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
 	
 		/* colours? */
 		if (hasc) {
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB,pr->VBO_buffers[COLOR_VBO]);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,pr->VBO_buffers[COLOR_VBO]);
 			FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
 		}
 		/*  textures?*/
 		if (pr->VBO_buffers[TEXTURE_VBO] != 0) {
 				struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
-				glBindBufferARB(GL_ARRAY_BUFFER_ARB,pr->VBO_buffers[TEXTURE_VBO]);
+				FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,pr->VBO_buffers[TEXTURE_VBO]);
 				textureDraw_start(NULL,&mtf);
 		} else {
 			textureDraw_start(X3D_NODE(node), NULL);
 		}
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, pr->VBO_buffers[VERTEX_VBO]);
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,pr->VBO_buffers[INDEX_VBO]);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, pr->VBO_buffers[VERTEX_VBO]);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB,pr->VBO_buffers[INDEX_VBO]);
 		glEnableClientState(GL_VERTEX_ARRAY); // should already be enabled
 
 		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
 		glDrawElements(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT,0);
 
 		/* turn VBOs off for now */
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 
 		/*  put things back to the way they were;*/
 		if (pr->VBO_buffers[NORMAL_VBO] == 0) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);

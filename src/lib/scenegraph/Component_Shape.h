@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.h,v 1.8 2010/12/03 19:55:21 crc_canada Exp $
+$Id: Component_Shape.h,v 1.9 2011/01/14 17:30:36 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -31,7 +31,56 @@ Proximity sensor macro.
 #ifndef __FREEWRL_SCENEGRAPH_SHAPE_H__
 #define __FREEWRL_SCENEGRAPH_SHAPE_H__
 
+
+/*
+struct gl_LightSourceParameters {
+	vec4 ambient; 
+	vec4 diffuse; 
+	vec4 specular; 
+	vec4 position; 
+	vec4 halfVector; 
+	vec3 spotDirection; 
+	float spotExponent; 
+	float spotCutoff; // (range: [0.0,90.0], 180.0)
+	float spotCosCutoff; // (range: [1.0,0.0],-1.0)
+	float constantAttenuation; 
+	float linearAttenuation; 
+	float quadraticAttenuation;	
+};
+	
+uniform gl_LightSourceParameters gl_LightSource[gl_MaxLights];
+	
+struct gl_LightModelParameters {
+	vec4 ambient; 
+};
+	
+uniform gl_LightModelParameters gl_LightModel;
+
+struct gl_MaterialParameters {
+		vec4 emission;   
+		vec4 ambient;    
+		vec4 diffuse;    
+		vec4 specular;   
+		float shininess; 
+	};
+	
+uniform gl_MaterialParameters gl_FrontMaterial;
+uniform gl_MaterialParameters gl_BackMaterial;
+*/
+
+
+struct fw_MaterialParameters {
+		float emission[4];   
+		float ambient[4];    
+		float diffuse[4];    
+		float specular[4];   
+		float shininess; 
+	};
+
 struct matpropstruct {
+	struct fw_MaterialParameters fw_FrontMaterial;
+	struct fw_MaterialParameters fw_BackMaterial;
+
 	float	transparency;
 	GLfloat	emissionColour[3];
 	GLint   cubeFace;		/* for cubemapping, if 0, not cube mapping */

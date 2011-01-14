@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.56 2010/12/21 20:10:33 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.57 2011/01/14 17:30:35 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -481,11 +481,12 @@ package VRML::NodeType;
 		shininess => [SFFloat, 0.2, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		specularColor => [SFColor, [0, 0, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		transparency => [SFFloat, 0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		_dcol => [SFVec4f, [0,0,0,0], inputOutput, 0],
-		_scol => [SFVec4f, [0,0,0,0], inputOutput, 0],
-		_ecol => [SFVec4f, [0,0,0,0], inputOutput, 0],
-		_amb => [SFVec4f, [0,0,0,0], inputOutput, 0],
-		_shin => [SFFloat, 0.2, inputOutput, 0],
+		_verifiedColor => [MFFloat,[
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0],initializeOnly,0], # for making materials shader-friendly
 	},"X3DMaterialNode"),
 
 	Shape => new VRML::NodeType ("Shape", {
@@ -498,10 +499,7 @@ package VRML::NodeType;
 		__occludeCheckCount =>[SFInt32,-1,initializeOnly, 0], # for Occlusion tests.
 		__Samples =>[SFInt32,-1,initializeOnly, 0],		# Occlude samples from last pass
 
-		_geomShader =>[SFInt32,0,initializeOnly,0], # shaders
-		_fragShader =>[SFInt32,0,initializeOnly,0], # shaders
-		_vertShader =>[SFInt32,0,initializeOnly,0], # shaders
-		_myShader =>[SFInt32,0,initializeOnly,0], # shaders
+		_shaderTableEntry =>[SFInt32,0,initializeOnly,0], # shaders
 
 		
 	},"X3DBoundedObject"),
@@ -521,6 +519,18 @@ package VRML::NodeType;
 		separateBackColor =>[SFBool,FALSE,inputOutput, "(SPEC_X3D33)"],
 		specularColor => [SFColor, [0, 0, 0], inputOutput, "(SPEC_X3D33)"],
 		transparency => [SFFloat, 0, inputOutput, "(SPEC_X3D33)"],
+		_verifiedFrontColor => [MFFloat,[
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0],initializeOnly,0], # for making materials shader-friendly
+		_verifiedBackColor => [MFFloat,[
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0],initializeOnly,0], # for making materials shader-friendly
 	},"X3DMaterialNode"),
 
 
@@ -2801,6 +2811,12 @@ package VRML::NodeType;
 		emissiveColor => [MFColor,[[0, 0, 0]],inputOutput,"SPEC_VRML1"],
 		shininess => [MFFloat,0.2,inputOutput,"SPEC_VRML1"],
 		transparency =>[MFFloat,[0],inputOutput,"SPEC_VRML1"],
+		_verifiedColor => [MFFloat,[
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0, 0.0,
+			0.0],initializeOnly,0], # for making materials shader-friendly
 	}, "X3DChildNode"),
 
 	VRML1_MaterialBinding => new VRML::NodeType("VRML1_MaterialBinding", {

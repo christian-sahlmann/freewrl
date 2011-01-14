@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.52 2010/12/29 18:11:25 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.53 2011/01/14 17:30:36 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -133,11 +133,31 @@ void compile_Box (struct X3D_Box *node) {
 #undef PTR1
 #undef PTR2
 
+static int renderCount = 0;
 void render_Box (struct X3D_Box *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	
 	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
+
+printf ("\nstart render_Box\n");
+/*
+#include "Component_Shape.h"
+
+printf ("render_Box, diffuse %f %f %f %f\n",
+appearanceProperties.fw_FrontMaterial.diffuse[0],
+appearanceProperties.fw_FrontMaterial.diffuse[1],
+appearanceProperties.fw_FrontMaterial.diffuse[2],
+appearanceProperties.fw_FrontMaterial.diffuse[3]);
+*/
+
+renderCount ++;
+printf ("renderCount before box compile %d\n",renderCount);
+if (renderCount < 10) {
+return;
+}
+
+
 
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
@@ -149,6 +169,15 @@ void render_Box (struct X3D_Box *node) {
 	COMPILE_IF_REQUIRED
 	if (!node->__points.p) return; /* still compiling */
 
+renderCount ++;
+printf ("renderCount past compile %d\n",renderCount);
+if (renderCount < 20) {
+
+FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
+FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,0);
+printf ("bound buffers to null and returning in render_Box\n");
+return;
+}
 	/* for BoundingBox calculations */
 	setExtent(x,-x,y,-y,z,-z,X3D_NODE(node));
 
@@ -163,6 +192,7 @@ void render_Box (struct X3D_Box *node) {
 	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 36);
 	textureDraw_end();
 	trisThisLoop += 24;
+printf ("end render_Box\n");
 }
 
 
@@ -368,10 +398,10 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 		node->__cylinderTriangles = indx;
 
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__cylinderVBO);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, node->__cylinderVBO);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct MyVertex)*indx, cylVert, GL_STATIC_DRAW_ARB);
 
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
 
 	} else {
 		/*  MALLOC memory (if possible)*/
@@ -427,7 +457,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-		glBindBuffer(GL_ARRAY_BUFFER, node->__cylinderVBO);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__cylinderVBO);
 
 		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
 		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
@@ -439,12 +469,12 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
 		mtf.TC_pointer = BUFFER_OFFSET(24);
 		textureDraw_start(NULL,&mtf);
-		/* glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO); */
+		/* FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO); */
 		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,node->__cylinderTriangles);
 
 		/* turn off */
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 
 	} else {
 		/*  Display the shape*/
@@ -609,10 +639,10 @@ void compile_Cone (struct X3D_Cone *node) {
 
 		node->__coneTriangles = indx;
 
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, (GLuint) node->__coneVBO);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, (GLuint) node->__coneVBO);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct MyVertex)*indx, coneVert, GL_STATIC_DRAW_ARB);
 
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
 
 		/* no longer needed */
 		FREE_IF_NZ(node->__botpoints.p);
@@ -707,7 +737,7 @@ void render_Cone (struct X3D_Cone *node) {
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-		glBindBuffer(GL_ARRAY_BUFFER, node->__coneVBO);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__coneVBO);
 
 		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
 		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
@@ -719,12 +749,11 @@ void render_Cone (struct X3D_Cone *node) {
 		mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
 		mtf.TC_pointer = BUFFER_OFFSET(24);
 		textureDraw_start(NULL,&mtf);
-		/* glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO); */
 		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,node->__coneTriangles);
 
 		/* turn off */
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	} else {
 		if(node->bottom) {
 			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
@@ -781,10 +810,10 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 	if (SphereGeomVBO == 0) {
 		glGenBuffers(1,&SphereGeomVBO);
-printf ("creating VBO, sphereGeomVBO is %d\n",SphereGeomVBO);
- 		glBindBuffer(GL_ARRAY_BUFFER, SphereGeomVBO);
+ 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, SphereGeomVBO);
  		glBufferData(GL_ARRAY_BUFFER, sizeof(sphTri), sphTri, GL_STATIC_DRAW);
 		printf ("creating VBO, size %d\n",sizeof(sphTri));
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
 	}
 }
 
@@ -797,7 +826,6 @@ void render_Sphere (struct X3D_Sphere *node) {
 	extern float spheretex[];		/*  in CFuncs/statics.c*/
 
 	struct textureVertexInfo mtf = {spheretex,2,GL_FLOAT,0,NULL};
-
 
 	float rad = node->radius;
 	int count;
@@ -813,29 +841,34 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 	/*  Display the shape*/
 	/* vertices */
+FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, SphereGeomVBO);
 	FW_GL_VERTEX_POINTER(3, GL_FLOAT, 0,0);   //The starting point of the VBO, for the vertices
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	/* normals, but we only keep this around because the send-to-gpu code expects normals! */
-	FW_GL_NORMAL_POINTER(GL_FLOAT, 0,0);   //The starting point of normals, 12 bytes away
+	//FW_GL_NORMAL_POINTER(GL_FLOAT, 0,0);   //The starting point of normals, 12 bytes away
 	
-	glBindBuffer(GL_ARRAY_BUFFER, SphereGeomVBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-	//glDisableClientState(GL_COLOR_ARRAY);
-	//glDisableClientState(GL_EDGE_FLAG_ARRAY);
-	//glDisableClientState(GL_FOG_COORD_ARRAY);
-	//glDisableClientState(GL_INDEX_ARRAY);
-	//glDisableClientState(GL_NORMAL_ARRAY);
-	//glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-	//glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	//glEnableClientState(GL_VERTEX_ARRAY);
-	
-	glDrawArrays(GL_TRIANGLES,0,24);
-	
+/*
+FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+FW_GL_DISABLECLIENTSTATE(GL_EDGE_FLAG_ARRAY);
+FW_GL_DISABLECLIENTSTATE(GL_FOG_COORD_ARRAY);
+FW_GL_DISABLECLIENTSTATE(GL_INDEX_ARRAY);
+FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
+FW_GL_DISABLECLIENTSTATE(GL_SECONDARY_COLOR_ARRAY);
+FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
+FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+*/
+
+
+glScalef(1.0,1.0,1.0);
+	FW_GL_DRAWARRAYS (GL_TRIANGLES,0,24);
+
 	/* turn things back to normal settings */
 	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-	/* if you turn this one off, then the internal state might fail... glBindBuffer(GL_ARRAY_BUFFER, 0); */
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
+	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,0);
+
 }
 
 #else  /* NOT SHADERS_2011 */
@@ -929,7 +962,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 			}
 		}	
 
- 		glBindBuffer(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
+ 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
 		glBufferData(GL_ARRAY_BUFFER, myVertexVBOSize, SphVBO, GL_STATIC_DRAW);
 
 		if (SphereIndxVBO == 0) {
@@ -954,13 +987,13 @@ void compile_Sphere (struct X3D_Sphere *node) {
 					indx+=2;
 				}
 			}
- 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SphereIndxVBO);
+ 			FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, SphereIndxVBO);
  			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ushort)*TRISINSPHERE*2, pindices, GL_STATIC_DRAW);
 		}
 
 
 		FREE_IF_NZ(SphVBO);
-                glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
 
 	} else {
 		for(v=0; v<SPHDIV; v++) {
@@ -1017,7 +1050,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-		glBindBuffer(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
 
 		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
 		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat)  sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
@@ -1029,13 +1062,13 @@ void render_Sphere (struct X3D_Sphere *node) {
                 mtf.TC_pointer = BUFFER_OFFSET(24);
 		textureDraw_start(NULL,&mtf);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SphereIndxVBO);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, SphereIndxVBO);
 		
 		FW_GL_DRAWELEMENTS (GL_TRIANGLES, TRISINSPHERE, GL_UNSIGNED_SHORT, (int *)BUFFER_OFFSET(0));   //The starting point of the IBO
 
 		/* turn off */
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	} else {
 		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);

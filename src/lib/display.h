@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.104 2011/01/10 20:13:47 crc_canada Exp $
+  $Id: display.h,v 1.105 2011/01/14 17:30:35 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -423,14 +423,16 @@ void setScreenDim(int wi, int he);
 	#define FW_NORMAL_POINTER_TYPE 5434
 	#define FW_COLOR_POINTER_TYPE 12453
 	#define FW_TEXCOORD_POINTER_TYPE 67655
-	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
+	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
 	/* color buffer subject to draw-gray anaglyph before call */
-	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
-	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc); }
-	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd); }
+	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
+	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc,__FILE__,__LINE__); }
+	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
 	#define FW_GL_ENABLECLIENTSTATE(aaa) { sendClientStateToGPU(TRUE,aaa); }
 	#define FW_GL_DISABLECLIENTSTATE(aaa) { sendClientStateToGPU(FALSE,aaa); }
 	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) { sendArraysToGPU(xxx,yyy,zzz); }
+	#define FW_GL_BINDBUFFER(xxx,yyy) {sendBindBufferToGPU(xxx,yyy,__FILE__,__LINE__); }
+	#define FW_GL_VERTEXATTRBPOINTER(a1,a2,a3,a4,a5,a6) {sendVertexAttribsToGPU(a1,a2,a3,a4,a5,a6);}
 	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) {sendElementsToGPU(aaa,bbb,ccc,ddd); }
 
 

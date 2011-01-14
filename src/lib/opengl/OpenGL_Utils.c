@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.168 2011/01/10 20:13:47 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.169 2011/01/14 17:30:35 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -65,6 +65,7 @@
 #include "Textures.h"
 #include "OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../scenegraph/Component_Shape.h"
 
 #include <float.h>
 
@@ -230,13 +231,11 @@ static char *vertexShaderForSphereGeomShader = " \
 varying vec3 Norm; \
 varying vec4 Pos; \
 attribute      vec4 fw_Vertex; \
-attribute      vec3 fw_Normal; \
 uniform        mat4 fw_ModelViewMatrix; \
 uniform        mat4 fw_ProjectionMatrix; \
 void main(void) { \
 	/* just pass these through - the geom shader will calculate */ \
 	/* and transform as it creates new vertices */ \
-	Norm = fw_Normal; \
 	Pos = fw_Vertex;  \
 	gl_Position = fw_Vertex; \
 }";
@@ -259,19 +258,6 @@ void main(void) { \
 
 
 /* Geometry Shaders */
-
-static const char *passThroughGeomShader = " \
-#version 120 \n \
-#extension GL_EXT_geometry_shader4 : enable \n \
-\n \
-void main() { \n \
-  for(int i = 0; i < gl_VerticesIn; ++i) { \n \
-    gl_FrontColor = gl_FrontColorIn[i]; \n \
-    gl_Position = gl_PositionIn[i]; \n \
-    EmitVertex(); \n \
-  } \n \
-} \n \
-";
 
 static const char *sphereGeomShader = 
 "#version 120\n " \
@@ -354,50 +340,31 @@ static const char *sphereGeomShader =
 " }\n ";
 
 /* Fragment Shaders */
-static char *FS = 
-"/* varying float LightIntensity;*/ " \
-"/* uniform vec4 Color; */" \
-"void main() { " \
-"        gl_FragColor = vec4( 0.5, 0.5, 1.0, 1. ); " \
-"        /* gl_FragColor = vec4( LightIntensity*Color.rgb, 1. ); */ " \
-"        /* gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0); */ " \
-"}";
 
 static const char *phongFragmentShader =  " \
 #version 120 \n  \
 #extension GL_EXT_gpu_shader4: enable \n  \
 \
+struct fw_MaterialParameters { \
+                vec4 emission; \
+                vec4 ambient; \
+                vec4 diffuse; \
+                vec4 specular; \
+                float shininess; \
+        }; \
+ \
+uniform fw_MaterialParameters fw_FrontMaterial; \
+uniform fw_MaterialParameters fw_BackMaterial; \
+\
 varying vec3 Norm;  \
 varying vec4 Pos;  \
 uniform int lightState[8]; \
-uniform vec4 myMaterialAmbient; \
-uniform vec4 myMaterialDiffuse; \
-uniform vec4 myMaterialSpecular; \
-uniform float myMaterialShininess; \
  \
 /* use ADSLightModel here \
- \
- Assumed context: \
- uniform variables gl_Lightsource[i] and gl_FrontMaterial are  \
- stubbed with constant values below. These would probably be \
- in parameters for the function if used in an application. \
- \
- variables myNormal and myPosition are passed in; in a vertex \
- shader these would be computed and used directly, while in a \
- fragment shader these would be set as varying variables by\
- the associated vertex shader \
- \
  the ADS colour is returned from the function. \
 */  \
 vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
 	int i; \
-	/* the group of variables below would normally be taken from \
-	// gl_FrontMaterial components */ \
-	/* vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.); i*/ \
-	/* JAS vec4 myMaterialAmbient = vec4(1., .5, 0., 1.); */ \
-	/* vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.); */ \
-	/* float myMaterialShininess = 80.; */ \
- \
 	vec4 diffuse = vec4(0., 0., 0., 0.); \
 	vec4 ambient = vec4(0., 0., 0., 0.); \
 	vec4 specular = vec4(0., 0., 0., 1.); \
@@ -417,15 +384,15 @@ vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
 		vec3 refl = reflect (-lightv, norm); \
  \
 		/* diffuse light computation */ \
-		diffuse += max (0.0, dot(lightv, norm))*myMaterialDiffuse*myLightDiffuse; \
+		diffuse += max (0.0, dot(lightv, norm))*fw_FrontMaterial.diffuse*myLightDiffuse; \
  \
 		/* ambient light computation */ \
-		ambient += myMaterialAmbient*myLightAmbient; \
+		ambient += fw_FrontMaterial.ambient*myLightAmbient; \
  \
 		/* Specular light computation */ \
 		if (dot(lightv, viewv) > 0.0) { \
 			specular += pow(max(0.0, dot(viewv, refl)), \
-				myMaterialShininess)*myMaterialSpecular*myLightSpecular; \
+				fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
 		} \
 		} \
 	} \
@@ -484,8 +451,6 @@ static int getGenericShaderSource (char **vertexSource, char **fragmentSource, c
 			*fragmentSource = STRDUP(phongFragmentShader);
                 	*vertexSource = STRDUP (vertexShaderForSphereGeomShader);
 			*geometrySource = STRDUP (sphereGeomShader);
-printf ("genericFullFeaturedSphereShader, have phongFragmentShader,vertedShaderForSphereGeomShader,sphereGeomShader\n");
-
 			break;
 		}
 
@@ -504,6 +469,7 @@ printf ("genericFullFeaturedSphereShader, have phongFragmentShader,vertedShaderF
 void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	GLuint myProg = me->myShaderProgram;
 
+#define DEBUG
 	#ifdef DEBUG
 	printf ("getShaderCommonInterfaces, I am program %d\n",myProg);
 	{
@@ -514,6 +480,7 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	GLchar sl[3000];
 
 	if (glIsProgram(myProg)) printf ("getShaderCommonInterfaces, %d is a program\n",myProg); else printf ("hmmm - it is not a program!\n");
+/*
 	glGetAttachedShaders(myProg,10,&count,shaders);
 	printf ("got %d attached shaders, they are: \n",count);
 	for (i=0; i<count; i++) {
@@ -524,6 +491,7 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 		printf ("len %d\n",len);
 		printf ("sl: %s\n",sl);
 	}
+*/
 	glGetProgramiv(myProg,GL_LINK_STATUS, xxx); printf ("GL_LINK_STATUS %d\n",xxx[0]);
 	glGetProgramiv(myProg,GL_VALIDATE_STATUS, xxx); printf ("GL_VALIDATE_STATUS %d\n",xxx[0]);
 	glGetProgramiv(myProg,GL_INFO_LOG_LENGTH, xxx); printf ("GL_INFO_LOG_LENGTH_STATUS %d\n",xxx[0]);
@@ -539,12 +507,14 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	glGetProgramiv(myProg,GL_ACTIVE_UNIFORMS, xxx); printf ("GL_ACTIVE_UNIFORMS %d\n",xxx[0]);
 	}
 	#endif /* DEBUG */
+#undef DEBUG
 
-	me->myMaterialAmbient = GET_UNIFORM(myProg,"myMaterialAmbient");
-	me->myMaterialDiffuse = GET_UNIFORM(myProg,"myMaterialDiffuse");
-	me->myMaterialSpecular = GET_UNIFORM(myProg,"myMaterialSpecular");
-	me->myMaterialShininess = GET_UNIFORM(myProg,"myMaterialShininess");
-	me->myMaterialEmission = GET_UNIFORM(myProg,"myMaterialEmission");
+
+	me->myMaterialEmission = GET_UNIFORM(myProg,"fw_FrontMaterial.emission");
+	me->myMaterialDiffuse = GET_UNIFORM(myProg,"fw_FrontMaterial.diffuse");
+	me->myMaterialShininess = GET_UNIFORM(myProg,"fw_FrontMaterial.shininess");
+	me->myMaterialAmbient = GET_UNIFORM(myProg,"fw_FrontMaterial.ambient");
+	me->myMaterialSpecular = GET_UNIFORM(myProg,"fw_FrontMaterial.specular");
 	me->lightState = GET_UNIFORM(myProg,"lightState");
 	me->lightAmbient = GET_UNIFORM(myProg,"lightAmbient");
 	me->lightDiffuse = GET_UNIFORM(myProg,"lightDiffuse");
@@ -559,10 +529,12 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->Colours = GET_ATTRIB(myProg,"fw_Color");
 	me->TexCoords = GET_ATTRIB(myProg,"fw_TexCoords");
 
+#define DEBUG
 	#ifdef DEBUG
 	printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
 		me->Vertices, me->Normals, me->ModelViewMatrix, me->ProjectionMatrix); 
 	#endif
+#undef DEBUG
 }
 
 
@@ -589,7 +561,7 @@ static void getGenericShader(shader_type_t whichOne) {
 
 	/* geometryShader */
 	if (geometrySource != NULL) {
-printf ("have a geometry shader here...\n");
+printf ("getGenericShader - have a geometry shader here...\n");
 
 		myGeometryShader = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
 		SHADER_SOURCE(myGeometryShader, 1, (const GLchar **) &geometrySource, NULL);
@@ -601,9 +573,9 @@ printf ("have a geometry shader here...\n");
 			GLint n;
 
 	                glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &n);
-        	        printf ("compile_Shape, geom shader max vertices at start %d\n",n);
+        	        printf ("compile_geomshader, geom shader max vertices at start %d\n",n);
                 	glGetIntegerv(GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS_EXT, &n);
-                	printf ("compile_Shape, geom total output components at start %d\n",n);
+                	printf ("compile_geomshader, geom total output components at start %d\n",n);
 
                 	glProgramParameteriEXT (myProg,GL_GEOMETRY_INPUT_TYPE_EXT,GL_TRIANGLES);
                 	glProgramParameteriEXT (myProg, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLE_STRIP);
@@ -1097,10 +1069,6 @@ void fw_glMatrixMode(GLint mode) {
 
 void fw_glLoadIdentity(void) {
 	loadIdentityMatrix(currentMatrix);
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
-#endif /* OLD_SHADER_CODE */
-
 	fw_glLoadMatrixd(currentMatrix); 
 }
 
@@ -1116,11 +1084,7 @@ void fw_glPushMatrix(void) {
 	}
 	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPushMatrix tos now %d\n",projectionviewTOS); }  */
 
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
-#endif /* OLD_SHADER_CODE */
-
- 		fw_glLoadMatrixd(currentMatrix); 
+ 	fw_glLoadMatrixd(currentMatrix); 
 #undef PUSHMAT
 }
 
@@ -1135,11 +1099,7 @@ void fw_glPopMatrix(void) {
 	}
 	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPopMatrix tos now %d\n",projectionviewTOS); } */
 
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
-#endif /* OLD_SHADER_CODE */
-
- 		fw_glLoadMatrixd(currentMatrix); 
+ 	fw_glLoadMatrixd(currentMatrix); 
 }
 #undef POPMAT
 
@@ -1153,11 +1113,7 @@ void fw_glTranslated(double x, double y, double z) {
 	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
 	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
 
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
-#endif /* OLD_SHADER_CODE */
-
- 		fw_glLoadMatrixd(currentMatrix); 
+ 	fw_glLoadMatrixd(currentMatrix); 
 }
 
 void fw_glTranslatef(float x, float y, float z) {
@@ -1167,11 +1123,7 @@ void fw_glTranslatef(float x, float y, float z) {
 	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
 	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
 
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
-#endif /* OLD_SHADER_CODE */
-
- 		fw_glLoadMatrixd(currentMatrix); 
+	fw_glLoadMatrixd(currentMatrix); 
 }
 
 /* perform rotation, assuming that the angle is in radians. */
@@ -1211,11 +1163,8 @@ void fw_glRotateRad (double angle, double x, double y, double z) {
 	matmultiply(currentMatrix,myMat,currentMatrix); 
 
 	//printmatrix2 (currentMatrix,"currentMatrix after rotate");
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
-#endif /* OLD_SHADER_CODE */
 
- 		fw_glLoadMatrixd(currentMatrix); 
+	fw_glLoadMatrixd(currentMatrix); 
 }
 
 /* perform the rotation, assuming that the angle is in degrees */
@@ -1257,11 +1206,8 @@ void fw_glRotated (double angle, double x, double y, double z) {
 	}
 	matrotate(myMat,radAng,x,y,z); 
 	matmultiply(currentMatrix,currentMatrix,myMat); 
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
-#endif /* OLD_SHADER_CODE */
 
- 		fw_glLoadMatrixd(currentMatrix); 
+	fw_glLoadMatrixd(currentMatrix); 
 }
 
 void fw_glRotatef (float a, float x, float y, float z) {
@@ -1276,27 +1222,22 @@ void fw_glScaled (double x, double y, double z) {
 	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
 	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
 	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
-#endif /* OLD_SHADER_CODE */
 
- 		fw_glLoadMatrixd(currentMatrix); 
+	fw_glLoadMatrixd(currentMatrix); 
 }
 
 void fw_glScalef (float x, float y, float z) {
 
-//	printf ("glScalef(%5.4f %5.4f %5.4f)\n",x,y,z);
+//      printf ("glScalef(%5.4f %5.4f %5.4f)\n",x,y,z);
 
-	currentMatrix[0] *= x;   currentMatrix[4] *= y;   currentMatrix[8]  *= z;
-	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
-	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
-	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE	if (!global_use_shaders_when_possible)
-#endif /* OLD_SHADER_CODE */
+        currentMatrix[0] *= x;   currentMatrix[4] *= y;   currentMatrix[8]  *= z;
+        currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
+        currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
+        currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
 
- 		fw_glLoadMatrixd(currentMatrix); 
+        fw_glLoadMatrixd(currentMatrix);
 }
+
 
 void fw_glGetDoublev (int ty, double *mat) {
 	double *dp;
@@ -2677,25 +2618,46 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 
 	/* now go through all of the Uniforms for this shader */
 
-        /* vec4 myMaterialDiffuse = vec4(1., .5, 0., 1.); i*/ \
-        /* JAS vec4 myMaterialAmbient = vec4(1., .5, 0., 1.); */ \
-        /* vec4 myMaterialSpecular = vec4(0.6, 0.6, 0.6, 1.); */ \
-        /* float myMaterialShininess = 80.; */ \
-
 #define SEND_VEC4(myMat,myVal) \
 	if (me->myMat != -1) { GLUNIFORM4FV(me->myMat,1,myVal);}
 
 #define SEND_FLOAT(myMat,myVal) \
 	if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
 
-float myAmb[] = {1,0, 0.5, 0.0, 1.0};
-float myDif[] = {0.0, 0.5, 0.0, 1.0};
-float mySpec[] = {0.6, 0.6, 0.6, 1.0};
+/* eventually do this with code blocks in glsl */
 
-	SEND_VEC4(myMaterialAmbient,myAmb);
-	SEND_VEC4(myMaterialDiffuse,myDif);
-	SEND_VEC4(myMaterialSpecular,mySpec);
-	SEND_FLOAT(myMaterialShininess,80.0);
+/*
+printf ("ambient %f %f %f %f\n",
+appearanceProperties.fw_FrontMaterial.ambient[0],
+appearanceProperties.fw_FrontMaterial.ambient[1],
+appearanceProperties.fw_FrontMaterial.ambient[2],
+appearanceProperties.fw_FrontMaterial.ambient[3]);
+printf ("diffuse %f %f %f %f\n",
+appearanceProperties.fw_FrontMaterial.diffuse[0],
+appearanceProperties.fw_FrontMaterial.diffuse[1],
+appearanceProperties.fw_FrontMaterial.diffuse[2],
+appearanceProperties.fw_FrontMaterial.diffuse[3]);
+
+printf ("specular %f %f %f %f\n",
+appearanceProperties.fw_FrontMaterial.specular[0],
+appearanceProperties.fw_FrontMaterial.specular[1],
+appearanceProperties.fw_FrontMaterial.specular[2],
+appearanceProperties.fw_FrontMaterial.specular[3]);
+
+printf ("emission %f %f %f %f\n",
+appearanceProperties.fw_FrontMaterial.emission[0],
+appearanceProperties.fw_FrontMaterial.emission[1],
+appearanceProperties.fw_FrontMaterial.emission[2],
+appearanceProperties.fw_FrontMaterial.emission[3]);
+
+
+printf ("shininess %f \n",appearanceProperties.fw_FrontMaterial.shininess);
+*/
+	SEND_VEC4(myMaterialAmbient,appearanceProperties.fw_FrontMaterial.ambient);
+	SEND_VEC4(myMaterialDiffuse,appearanceProperties.fw_FrontMaterial.diffuse);
+	SEND_VEC4(myMaterialSpecular,appearanceProperties.fw_FrontMaterial.specular);
+	SEND_VEC4(myMaterialEmission,appearanceProperties.fw_FrontMaterial.emission);
+	SEND_FLOAT(myMaterialShininess,appearanceProperties.fw_FrontMaterial.shininess);
 /*
 printf ("\n");
 printf ("myShaderProgram = %d\n",me->myShaderProgram);
