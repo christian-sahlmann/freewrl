@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.66 2011/01/14 17:30:36 crc_canada Exp $
+$Id: Component_Shape.c,v 1.67 2011/01/17 21:48:30 crc_canada Exp $
 
 X3D Shape Component
 
@@ -518,7 +518,6 @@ void child_Shape (struct X3D_Shape *node) {
 	float scol[4];
 	float amb;
 
-printf ("start of child_Shape\n");
 	COMPILE_IF_REQUIRED
 
 	/* JAS - if not collision, and render_geom is not set, no need to go further */

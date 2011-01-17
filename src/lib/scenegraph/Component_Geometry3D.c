@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.53 2011/01/14 17:30:36 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.54 2011/01/17 21:48:30 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -133,14 +133,12 @@ void compile_Box (struct X3D_Box *node) {
 #undef PTR1
 #undef PTR2
 
-static int renderCount = 0;
 void render_Box (struct X3D_Box *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	
 	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
 
-printf ("\nstart render_Box\n");
 /*
 #include "Component_Shape.h"
 
@@ -150,14 +148,6 @@ appearanceProperties.fw_FrontMaterial.diffuse[1],
 appearanceProperties.fw_FrontMaterial.diffuse[2],
 appearanceProperties.fw_FrontMaterial.diffuse[3]);
 */
-
-renderCount ++;
-printf ("renderCount before box compile %d\n",renderCount);
-if (renderCount < 10) {
-return;
-}
-
-
 
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
@@ -169,15 +159,6 @@ return;
 	COMPILE_IF_REQUIRED
 	if (!node->__points.p) return; /* still compiling */
 
-renderCount ++;
-printf ("renderCount past compile %d\n",renderCount);
-if (renderCount < 20) {
-
-FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
-FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,0);
-printf ("bound buffers to null and returning in render_Box\n");
-return;
-}
 	/* for BoundingBox calculations */
 	setExtent(x,-x,y,-y,z,-z,X3D_NODE(node));
 
@@ -192,7 +173,6 @@ return;
 	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 36);
 	textureDraw_end();
 	trisThisLoop += 24;
-printf ("end render_Box\n");
 }
 
 
