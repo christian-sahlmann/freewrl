@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.23 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.24 2011/01/18 14:15:35 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -40,8 +40,8 @@ X3D Rendering Component
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
-#include "Component_Shape.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
 
 /* find a bounding box that fits the coord structure. save it in the common-node area for extents.*/

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.15 2011/01/14 17:30:36 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.16 2011/01/18 14:15:35 crc_canada Exp $
 
 X3D Texturing Component
 
@@ -39,6 +39,7 @@ X3D Texturing Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Textures.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/Component_Shape.h"
 
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.50 2010/12/21 20:10:33 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.51 2011/01/18 14:15:35 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -99,11 +99,10 @@ FIELDTYPE_MFVec4d
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CFieldDecls.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../scenegraph/Component_Shape.h"
 #include "../opengl/Textures.h"
 #include "Component_ProgrammableShaders.h"
 
-/* which shader is running?? */
-GLuint globalCurrentShader = 0;
 static void sendInitialFieldsToShader(struct X3D_Node *);
 
 #define MAX_INFO_LOG_SIZE 512
@@ -119,8 +118,8 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 #define RUN_IF_VALID \
 		if (node->isValid) { \
 			if (node->__shaderIDS.n != 0) { \
-				globalCurrentShader = (GLuint) node->__shaderIDS.p[0]; \
-				USE_SHADER(globalCurrentShader); \
+				appearanceProperties.currentShader = (GLuint) node->__shaderIDS.p[0]; \
+				USE_SHADER(appearanceProperties.currentShader); \
 				if (!node->__initialized) sendInitialFieldsToShader(X3D_NODE(node)); \
 			} \
 		}
@@ -843,7 +842,7 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 					printf ("ProgramShader, activate %d isSelected %d isValid %d TRUE %d FALSE %d\n",
 						X3D_PROGRAMSHADER(node)->activate,X3D_PROGRAMSHADER(node)->isSelected,
 						X3D_PROGRAMSHADER(node)->isValid, TRUE, FALSE);
-					printf ("runningShader %d, myShader %d\n",globalCurrentShader, X3D_PROGRAMSHADER(node)->__shaderIDS.p[0]);
+					printf ("runningShader %d, myShader %d\n",appearanceProperties.currentShader, X3D_PROGRAMSHADER(node)->__shaderIDS.p[0]);
 					#endif
 
 					struct X3D_ShaderProgram *part = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(node)->programs.p[i]);

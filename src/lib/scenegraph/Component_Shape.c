@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.67 2011/01/17 21:48:30 crc_canada Exp $
+$Id: Component_Shape.c,v 1.68 2011/01/18 14:15:35 crc_canada Exp $
 
 X3D Shape Component
 
@@ -676,7 +676,7 @@ void child_Shape (struct X3D_Shape *node) {
 #endif
 
 	/* if we do NOT have a shader node, do the appearance nodes */
-        if (globalCurrentShader == 0) {
+        if (appearanceProperties.currentShader == 0) {
 			if (material_oneSided != NULL) {
 				/* we have a normal material node */
 				appearanceProperties.transparency = 1.0f - material_oneSided->transparency; /* 1 == solid, 0 = totally transparent */ 

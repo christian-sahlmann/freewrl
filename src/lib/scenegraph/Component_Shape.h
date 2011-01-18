@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.h,v 1.9 2011/01/14 17:30:36 crc_canada Exp $
+$Id: Component_Shape.h,v 1.10 2011/01/18 14:15:35 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -78,8 +78,13 @@ struct fw_MaterialParameters {
 	};
 
 struct matpropstruct {
+	/* material properties for current shape */
 	struct fw_MaterialParameters fw_FrontMaterial;
 	struct fw_MaterialParameters fw_BackMaterial;
+
+	/* which shader is active; 0 = no shader active */
+	GLint currentShader; 
+	s_shader_capabilities_t *currentShaderProperties;
 
 	float	transparency;
 	GLfloat	emissionColour[3];

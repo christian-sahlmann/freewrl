@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.21 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.22 2011/01/18 14:15:35 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -36,6 +36,7 @@ X3D Cubemap Texturing Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Textures.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/Component_CubeMapTexturing.h"
 #include "../input/EAIHelpers.h"

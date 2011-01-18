@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.169 2011/01/14 17:30:35 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.170 2011/01/18 14:15:35 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -272,6 +272,8 @@ static const char *sphereGeomShader =
 "uniform		mat4 fw_ModelViewMatrix;" \
 "uniform		mat4 fw_ProjectionMatrix;" \
 "uniform		mat3 fw_NormalMatrix; "\
+"uniform		float sphereRadius; " \
+"uniform		int sphereLayers; " \
 "\n " \
 "vec3 V0, V01, V02;\n " \
 "\n " \
@@ -285,14 +287,9 @@ static const char *sphereGeomShader =
 "	vec3 n = v;\n " \
 "	Norm = normalize( fw_NormalMatrix * n );	\n " \
 "\n " \
-"	vec4 ECposition = fw_ModelViewMatrix * vec4( (1.0*v), 1. );\n " \
-"	/* LightIntensity  = dot( normalize(lightPos - ECposition.xyz), fw_Normal ); */ \n " \
-"	/* LightIntensity  = dot( normalize(lightPos - ECposition.xyz), Norm ); */ \n " \
-"	/* LightIntensity = abs( LightIntensity ); */ \n " \
-"	/* LightIntensity *= 1.5; */ \n " \
+"	vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\n " \
 "\n " \
 "	gl_Position = fw_ProjectionMatrix * ECposition;\n " \
-"	/* JAS Pos = fw_ProjectionMatrix * ECposition; */\n " \
 "	Pos = ECposition;\n " \
 "	EmitVertex();\n " \
 "}\n " \
@@ -304,7 +301,7 @@ static const char *sphereGeomShader =
 "	V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\n " \
 "	V0  =   gl_PositionIn[0].xyz;\n " \
 "\n " \
-"	int numLayers = 10;  \n " \
+"	int numLayers = sphereLayers;  \n " \
 "\n " \
 "	float dt = 1. / float( numLayers );\n " \
 "\n " \
@@ -528,6 +525,11 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
 	me->Colours = GET_ATTRIB(myProg,"fw_Color");
 	me->TexCoords = GET_ATTRIB(myProg,"fw_TexCoords");
+
+	/* for Sphere geometry shader */
+	me->specialUniform1 = GET_UNIFORM(myProg,"sphereRadius");
+	me->specialUniform2 = GET_UNIFORM(myProg,"sphereLayers");
+	printf ("shader specialUniform1 %d\n",me->specialUniform1);
 
 #define DEBUG
 	#ifdef DEBUG

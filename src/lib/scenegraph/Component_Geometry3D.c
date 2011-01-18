@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.54 2011/01/17 21:48:30 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.55 2011/01/18 14:15:35 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -41,8 +41,8 @@ X3D Geometry 3D Component
 #include "../opengl/Frustum.h"
 #include "../opengl/Textures.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
-#include "../opengl/OpenGL_Utils.h"
 
 
 #include "Collision.h"
@@ -773,11 +773,27 @@ void render_Cone (struct X3D_Cone *node) {
 
 
 #ifdef SHADERS_2011
-const GLfloat sphTri[] = {
+
+/* as outlined by Bailey, the top was drawn incorrectly. here are the original vertices:
+const GLfloat origsphTri[] = {
  0.0F,  0.0F,   1.0F,    1.0F,  0.0F,   0.0F,   0.0F,   1.0F,  0.0F, 
  1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,   1.0F,  0.0F,  
  0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,   1.0F,  0.0F, 
 -1.0F,  0.0F,   0.0F,    0.0F,  0.0F,   1.0F,   0.0F,   1.0F,  0.0F, 
+ 0.0F,  0.0F,   1.0F,    1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
+ 1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,  -1.0F,  0.0F, 
+ 0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
+-1.0F,  0.0F,   0.0F,    0.0F,  0.0F,   1.0F,   0.0F,  -1.0F,  0.0F,  
+};
+*/
+
+const GLfloat sphTri[] = {
+ 0.0F,  0.0F,   1.0F,    0.0F,  1.0F,   0.0F,   1.0F,  0.0F,   0.0F, /* switched 2 and 3 */
+ 1.0F,  0.0F,   0.0F,    0.0F,  1.0F,   0.0F,   0.0F,  0.0F,  -1.0F, /* switched 2 and 3 */  
+ 0.0F,  0.0F,  -1.0F,    0.0F,  1.0F,   0.0F,  -1.0F,  0.0F,   0.0F, /* switched 2 and 3 */ 
+-1.0F,  0.0F,   0.0F,    0.0F,  1.0F,   0.0F,   0.0F,  0.0F,   1.0F, /* switched 2 and 3 */
+
+
  0.0F,  0.0F,   1.0F,    1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
  1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,  -1.0F,  0.0F, 
  0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
@@ -801,6 +817,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 void render_Sphere (struct X3D_Sphere *node) {
 	/*  make the divisions 20; dont change this, because statics.c values*/
 	/*  will then need recaculating.*/
+	int myLev = 1;
 	
 	extern GLfloat spherenorms[];		/*  side normals*/
 	extern float spheretex[];		/*  in CFuncs/statics.c*/
@@ -819,29 +836,23 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 	CULL_FACE(node->solid)
 
-	/*  Display the shape*/
+	/* determine how many levels to generate */
+	if (BrowserFPS < 20.0) myLev = 1;
+	else if (BrowserFPS < 30) myLev = 2;
+	else if (BrowserFPS < 50) myLev = 5;
+	else myLev = 10;
+
+	/* send in the radius, Charlie! */
+	GLUNIFORM1F(appearanceProperties.currentShaderProperties->specialUniform1,rad);
+	GLUNIFORM1I(appearanceProperties.currentShaderProperties->specialUniform2,myLev);
+
+
 	/* vertices */
-FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+	FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, SphereGeomVBO);
 	FW_GL_VERTEX_POINTER(3, GL_FLOAT, 0,0);   //The starting point of the VBO, for the vertices
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	/* normals, but we only keep this around because the send-to-gpu code expects normals! */
-	//FW_GL_NORMAL_POINTER(GL_FLOAT, 0,0);   //The starting point of normals, 12 bytes away
-	
-/*
-FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-FW_GL_DISABLECLIENTSTATE(GL_EDGE_FLAG_ARRAY);
-FW_GL_DISABLECLIENTSTATE(GL_FOG_COORD_ARRAY);
-FW_GL_DISABLECLIENTSTATE(GL_INDEX_ARRAY);
-FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
-FW_GL_DISABLECLIENTSTATE(GL_SECONDARY_COLOR_ARRAY);
-FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
-FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
-*/
-
-
-glScalef(1.0,1.0,1.0);
 	FW_GL_DRAWARRAYS (GL_TRIANGLES,0,24);
 
 	/* turn things back to normal settings */
