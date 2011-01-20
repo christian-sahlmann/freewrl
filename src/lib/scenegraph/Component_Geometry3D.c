@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.55 2011/01/18 14:15:35 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.56 2011/01/20 14:38:28 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -138,16 +138,6 @@ void render_Box (struct X3D_Box *node) {
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	
 	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
-
-/*
-#include "Component_Shape.h"
-
-printf ("render_Box, diffuse %f %f %f %f\n",
-appearanceProperties.fw_FrontMaterial.diffuse[0],
-appearanceProperties.fw_FrontMaterial.diffuse[1],
-appearanceProperties.fw_FrontMaterial.diffuse[2],
-appearanceProperties.fw_FrontMaterial.diffuse[3]);
-*/
 
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;

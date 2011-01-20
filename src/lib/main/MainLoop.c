@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.156 2011/01/08 18:30:57 dug9 Exp $
+  $Id: MainLoop.c,v 1.157 2011/01/20 14:38:28 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -202,7 +202,7 @@ int bufferarray[] = {GL_BACK,0};
 double TickTime;
 double lastTime;
 double BrowserStartTime;        /* start of calculating FPS     */
-double BrowserFPS = 0.0;        /* calculated FPS               */
+double BrowserFPS = 100.0;        /* calculated FPS               */
 double BrowserSpeed = 0.0;      /* calculated movement speed    */
 
 int trisThisLoop;

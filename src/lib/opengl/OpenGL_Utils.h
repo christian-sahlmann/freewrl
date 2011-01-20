@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.33 2011/01/18 14:15:35 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.34 2011/01/20 14:38:28 crc_canada Exp $
 
 Screen snapshot.
 
@@ -88,11 +88,21 @@ typedef struct {
 } s_renderer_capabilities_t;
 
 typedef enum shader_type {
+	/* Background shaders */
 	backgroundSphereShader,
 	backgroundTextureBoxShader,
+
+	/* generic (not geometry Shader specific) shaders */
 	genericFullFeaturedShader,
 	noMaterialNoAppearanceShader,
+	twoMaterialGenericShader,
+
+	/* Sphere Geometry Shaders */
+	noMaterialNoAppearanceSphereShader,
 	genericFullFeaturedSphereShader,
+	twoMaterialSphereShader
+
+
 } shader_type_t;
 
 
@@ -133,6 +143,7 @@ void fw_iphone_normalPointer(GLenum aaa,GLsizei bbb, const GLvoid *ccc);
 void fw_iphone_texcoordPointer(GLint aaa, GLenum bbb ,GLsizei ccc,const GLvoid *ddd);
 void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd);
 void sendMatriciesToShader(s_shader_capabilities_t *);
+void sendMaterialsToShader(s_shader_capabilities_t *);
 void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar);
 void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height, GLint *vp);
 void fw_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ);

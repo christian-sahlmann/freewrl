@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.170 2011/01/18 14:15:35 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.171 2011/01/20 14:38:28 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -400,6 +400,68 @@ void main () { \
 } \
  " ;
 
+static const char *phongTwoSidedFragmentShader =  " \
+#version 120 \n  \
+#extension GL_EXT_gpu_shader4: enable \n  \
+\
+struct fw_MaterialParameters { \
+                vec4 emission; \
+                vec4 ambient; \
+                vec4 diffuse; \
+                vec4 specular; \
+                float shininess; \
+        }; \
+ \
+uniform fw_MaterialParameters fw_FrontMaterial; \
+uniform fw_MaterialParameters fw_BackMaterial; \
+\
+varying vec3 Norm;  \
+varying vec4 Pos;  \
+uniform int lightState[8]; \
+ \
+/* use ADSLightModel here \
+ the ADS colour is returned from the function. \
+*/  \
+vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
+	int i; \
+	vec4 diffuse = vec4(0., 0., 0., 0.); \
+	vec4 ambient = vec4(0., 0., 0., 0.); \
+	vec4 specular = vec4(0., 0., 0., 1.); \
+ \
+	/* apply the lights to this material */ \
+	for (i=0; i<8; i++) { \
+		if (lightState[i] == 1) { \
+		vec4 myLightDiffuse = gl_LightSource[i].diffuse; \
+		vec4 myLightAmbient = gl_LightSource[i].ambient; \
+		vec4 myLightSpecular = gl_LightSource[i].specular; \
+		vec4 myLightPosition = gl_LightSource[i].position; \
+  \
+		/* normal, light, view, and light reflection vectors */ \
+		vec3 norm = normalize (myNormal); \
+		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
+		vec3 viewv = -normalize(myPosition.xyz); \
+		vec3 refl = reflect (-lightv, norm); \
+ \
+		/* diffuse light computation */ \
+		diffuse += max (0.0, dot(lightv, norm))*fw_FrontMaterial.diffuse*myLightDiffuse; \
+ \
+		/* ambient light computation */ \
+		ambient += fw_FrontMaterial.ambient*myLightAmbient; \
+ \
+		/* Specular light computation */ \
+		if (dot(lightv, viewv) > 0.0) { \
+			specular += pow(max(0.0, dot(viewv, refl)), \
+				fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
+		} \
+		} \
+	} \
+	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0); \
+} \
+void main () { \
+	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
+} \
+ " ;
+
 static char *noAppearanceNoMaterialFragmentShader =
 " void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}";
 
@@ -422,32 +484,56 @@ static int getGenericShaderSource (char **vertexSource, char **fragmentSource, c
 	switch (whichOne) {
 		/* Background, this is the simple shader for doing the sky/ground colours */
 		case backgroundSphereShader: {
-			*fragmentSource = STRDUP (backgroundSphereShaderFragment);
-			*vertexSource  = STRDUP(backgroundSphereShaderVertex);
+			*fragmentSource = backgroundSphereShaderFragment;
+			*vertexSource  = backgroundSphereShaderVertex;
 			break;
 		}
 
+
 		/* background, this is the simple shader for adding textures */
 		case backgroundTextureBoxShader: {
-			*fragmentSource = STRDUP (backgroundTextureBoxShaderFragment);
-			*vertexSource = STRDUP( backgroundTextureBoxShaderVertex);
+			*fragmentSource = backgroundTextureBoxShaderFragment;
+			*vertexSource = backgroundTextureBoxShaderVertex;
 			break;
 		}
 
 		case genericFullFeaturedShader: {
-			*fragmentSource = STRDUP(phongFragmentShader);
-                	*vertexSource = STRDUP(phongSimpleVertexShader);
+			*fragmentSource = phongFragmentShader;
+                	*vertexSource = phongSimpleVertexShader;
 			break;
 		}
 		case noMaterialNoAppearanceShader: {
-			*fragmentSource = STRDUP (noAppearanceNoMaterialFragmentShader);
-			*vertexSource = STRDUP (noAppearanceNoMaterialVertexShader);
+			*fragmentSource = noAppearanceNoMaterialFragmentShader;
+			*vertexSource = noAppearanceNoMaterialVertexShader;
 			break;
 		}
+		case twoMaterialGenericShader : {
+			*fragmentSource = phongTwoSidedFragmentShader;
+                	*vertexSource = phongSimpleVertexShader;
+			break;
+		}
+
+
+
+		case noMaterialNoAppearanceSphereShader: {
+			*fragmentSource = noAppearanceNoMaterialFragmentShader;
+                	*vertexSource = vertexShaderForSphereGeomShader;
+			*geometrySource = sphereGeomShader;
+			break;
+		}
+
 		case genericFullFeaturedSphereShader: {
-			*fragmentSource = STRDUP(phongFragmentShader);
-                	*vertexSource = STRDUP (vertexShaderForSphereGeomShader);
-			*geometrySource = STRDUP (sphereGeomShader);
+			*fragmentSource = phongFragmentShader;
+                	*vertexSource = vertexShaderForSphereGeomShader;
+			*geometrySource = sphereGeomShader;
+			break;
+		}
+
+
+        	case twoMaterialSphereShader: {
+			*fragmentSource = phongTwoSidedFragmentShader;
+                	*vertexSource = vertexShaderForSphereGeomShader;
+			*geometrySource = sphereGeomShader;
 			break;
 		}
 
@@ -563,8 +649,6 @@ static void getGenericShader(shader_type_t whichOne) {
 
 	/* geometryShader */
 	if (geometrySource != NULL) {
-printf ("getGenericShader - have a geometry shader here...\n");
-
 		myGeometryShader = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
 		SHADER_SOURCE(myGeometryShader, 1, (const GLchar **) &geometrySource, NULL);
 		COMPILE_SHADER(myGeometryShader);
@@ -611,14 +695,7 @@ printf ("getGenericShader - have a geometry shader here...\n");
 	}
 
 
-	FREE_IF_NZ(vertexSource);
-	FREE_IF_NZ(fragmentSource);
-	FREE_IF_NZ(geometrySource);
 	LINK_SHADER(myProg);
-
-
-
-
 	getShaderCommonInterfaces(myShader);
 }
 
@@ -938,10 +1015,14 @@ bool initialize_GL()
 	/* for rendering Polyreps, and other shapes without Geometry and other special shaders */
         getGenericShader(genericFullFeaturedShader);
         getGenericShader(noMaterialNoAppearanceShader);
+	getGenericShader(twoMaterialGenericShader);
+
 
 
 	/* nodes with Geometry Shaders */
         getGenericShader(genericFullFeaturedSphereShader);
+        getGenericShader(noMaterialNoAppearanceSphereShader);
+	getGenericShader(twoMaterialSphereShader);
 
 	#endif /* SHADERS_2011 */
 
@@ -1965,9 +2046,6 @@ X3D_GROUP(node)->removeChildren.n);
 				END_NODE
 
 				BEGIN_NODE(Transform) 
-/*
-printf ("Transform node %p, change %d ichange %d\n",node,node->_change, node->_ichange);
-*/
 					sortChildren (__LINE__,&X3D_TRANSFORM(node)->children,&X3D_TRANSFORM(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
@@ -2618,7 +2696,14 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 		GLUNIFORMMATRIX3FV(me->NormalMatrix,1,GL_FALSE,normMat);
 	}
 
-	/* now go through all of the Uniforms for this shader */
+}
+void sendMaterialsToShader(s_shader_capabilities_t *me) {
+	float spval[16];
+	int i;
+	float *sp; 
+	double *dp;
+
+	/* go through all of the Uniforms for this shader */
 
 #define SEND_VEC4(myMat,myVal) \
 	if (me->myMat != -1) { GLUNIFORM4FV(me->myMat,1,myVal);}
@@ -2627,60 +2712,11 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 	if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
 
 /* eventually do this with code blocks in glsl */
-
-/*
-printf ("ambient %f %f %f %f\n",
-appearanceProperties.fw_FrontMaterial.ambient[0],
-appearanceProperties.fw_FrontMaterial.ambient[1],
-appearanceProperties.fw_FrontMaterial.ambient[2],
-appearanceProperties.fw_FrontMaterial.ambient[3]);
-printf ("diffuse %f %f %f %f\n",
-appearanceProperties.fw_FrontMaterial.diffuse[0],
-appearanceProperties.fw_FrontMaterial.diffuse[1],
-appearanceProperties.fw_FrontMaterial.diffuse[2],
-appearanceProperties.fw_FrontMaterial.diffuse[3]);
-
-printf ("specular %f %f %f %f\n",
-appearanceProperties.fw_FrontMaterial.specular[0],
-appearanceProperties.fw_FrontMaterial.specular[1],
-appearanceProperties.fw_FrontMaterial.specular[2],
-appearanceProperties.fw_FrontMaterial.specular[3]);
-
-printf ("emission %f %f %f %f\n",
-appearanceProperties.fw_FrontMaterial.emission[0],
-appearanceProperties.fw_FrontMaterial.emission[1],
-appearanceProperties.fw_FrontMaterial.emission[2],
-appearanceProperties.fw_FrontMaterial.emission[3]);
-
-
-printf ("shininess %f \n",appearanceProperties.fw_FrontMaterial.shininess);
-*/
 	SEND_VEC4(myMaterialAmbient,appearanceProperties.fw_FrontMaterial.ambient);
 	SEND_VEC4(myMaterialDiffuse,appearanceProperties.fw_FrontMaterial.diffuse);
 	SEND_VEC4(myMaterialSpecular,appearanceProperties.fw_FrontMaterial.specular);
 	SEND_VEC4(myMaterialEmission,appearanceProperties.fw_FrontMaterial.emission);
 	SEND_FLOAT(myMaterialShininess,appearanceProperties.fw_FrontMaterial.shininess);
-/*
-printf ("\n");
-printf ("myShaderProgram = %d\n",me->myShaderProgram);
-printf ("myMaterialAmbient = %d\n",me->myMaterialAmbient);
-printf ("myMaterialDiffuse = %d\n",me->myMaterialDiffuse);
-printf ("myMaterialSpecular = %d\n",me->myMaterialSpecular);
-printf ("myMaterialShininess = %d\n",me->myMaterialShininess);
-printf ("myMaterialEmission = %d\n",me->myMaterialEmission);
-printf ("lightState = %d\n",me->lightState);
-printf ("lightAmbient = %d\n",me->lightAmbient);
-printf ("lightDiffuse = %d\n",me->lightDiffuse);
-printf ("lightSpecular = %d\n",me->lightSpecular);
-printf ("lightPosition = %d\n",me->lightPosition);
-printf ("ModelViewMatrix = %d\n",me->ModelViewMatrix);
-printf ("ProjectionMatrix = %d\n",me->ProjectionMatrix);
-printf ("NormalMatrix = %d\n",me->NormalMatrix);
-printf ("Vertices = %d\n",me->Vertices);
-printf ("Normals = %d\n",me->Normals);
-printf ("Colours = %d\n",me->Colours);
-printf ("TexCoords = %d\n",me->TexCoords);
-*/
 
 	if (me->lightState != -1) {
 		/* for debugging:
@@ -2690,8 +2726,6 @@ printf ("TexCoords = %d\n",me->TexCoords);
 		*/
 		GLUNIFORM1IV(me->lightState,8,lightOnOff);
 	}
-
-
 }
 
 static void __gluMultMatrixVecd(const GLdouble matrix[16], const GLdouble in[4],

@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.84 2011/01/18 14:15:35 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.85 2011/01/20 14:38:28 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -195,7 +195,8 @@ void chooseShader(shader_type_t requestedShader) {
 	USE_SHADER(appearanceProperties.currentShader);
 
 	/* send in the current position and modelview matricies */
-	sendMatriciesToShader(appearanceProperties.currentShaderProperties);
+	sendMatriciesToShader(appearanceProperties.currentShaderProperties); 
+
 }
 
 /* send in vertices, normals, etc, etc... to either a shader or via older opengl methods */
