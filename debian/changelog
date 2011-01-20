@@ -1,3 +1,10 @@
+freewrl (1.22.10-1) unstable; urgency=low
+
+  * New upstream release.
+  * Added fontconfig (--enable, build dep and dep).
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Thu, 20 Jan 2011 10:34:49 +0100
+
 freewrl (1.22.9-1) unstable; urgency=low
 
   * New upstream release.

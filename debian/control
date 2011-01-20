@@ -8,10 +8,11 @@ Build-Depends: debhelper (>= 7),
  x11proto-print-dev, libxxf86vm-dev,
  libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev, libglew1.5-dev, 
  libxaw7-dev,
- libmotif-dev | lesstif2-dev,
+ libmotif-dev (>= 2.3.3),
  libimlib2-dev, libxml2-dev, libexpat1-dev,
  libxul-dev | libmozjs-dev | xulrunner-dev | iceape-dev,
- gcj | java-compiler
+ gcj | java-compiler,
+ libfontconfig1-dev
 Standards-Version: 3.8.4
 Homepage: http://freewrl.sourceforge.net
 Vcs-Browser: http://git.debian.org/?p=pkg-multimedia/freewrl.git
