@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.24 2011/02/11 18:46:25 crc_canada Exp $
+$Id: system.h,v 1.25 2011/02/11 18:47:27 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -52,7 +52,7 @@ Internal header: system dependencies.
 	#undef HAVE_JAVASCRIPT
 #else
 	/* Everything has JavaScript */
-	#undef HAVE_JAVASCRIPT
+	#define HAVE_JAVASCRIPT
 #endif
 
 #if HAVE_STDINT_H
