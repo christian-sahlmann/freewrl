@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.69 2011/01/20 14:38:28 crc_canada Exp $
+$Id: Component_Shape.c,v 1.70 2011/02/11 18:46:25 crc_canada Exp $
 
 X3D Shape Component
 
@@ -63,9 +63,12 @@ static struct X3D_TwoSidedMaterial *material_twoSided;
 static struct X3D_Material *material_oneSided;
  
 void render_LineProperties (struct X3D_LineProperties *node) {
+
+#ifdef IPHONE
+printf ("LineProperties ignored\n");
+#else
 	GLint	factor;
 	GLushort pat;
-
 	if (node->applied) {
 		linePropertySet=TRUE;
 		if (node->linewidthScaleFactor > 1.0) {
@@ -93,6 +96,7 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 			FW_GL_ENABLE(GL_LINE_STIPPLE);
 		}
 	}
+#endif
 }
 
 
@@ -300,6 +304,7 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 
 void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 	int i;
+	float trans;
 
 	/* verify that the numbers are within range */
 	if (node->ambientIntensity < 0.0) node->ambientIntensity=0.0f;
@@ -331,6 +336,74 @@ void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 		if (node->backSpecularColor.c[i] < 0.0) node->backSpecularColor.c[i]=0.0f;
 		if (node->backSpecularColor.c[i] > 1.0) node->backSpecularColor.c[i]=1.0f;
 	}
+
+
+	/* first, put in the transparency */
+	trans = node->transparency;
+        node->_verifiedFrontColor.p[3] = trans;
+        node->_verifiedFrontColor.p[7] = trans;
+        node->_verifiedFrontColor.p[11] = trans;
+        node->_verifiedFrontColor.p[15] = trans;
+	trans = node->backTransparency;
+        node->_verifiedBackColor.p[3] = trans;
+        node->_verifiedBackColor.p[7] = trans;
+        node->_verifiedBackColor.p[11] = trans;
+        node->_verifiedBackColor.p[15] = trans;
+                
+
+	/* DiffuseColor */
+	memcpy((void *)(&node->_verifiedFrontColor.p[8]), node->diffuseColor.c, sizeof (float) * 3);
+
+	/* Ambient  - diffuseFrontColor * ambientIntensity */
+        for(i=0; i<3; i++) { node->_verifiedFrontColor.p[i+4] = node->_verifiedFrontColor.p[i+8] * node->ambientIntensity; }
+
+	/* Specular */
+	memcpy((void *)(&node->_verifiedFrontColor.p[12]), node->specularColor.c, sizeof (float) * 3);
+
+	/* Emissive */
+	memcpy((void *)(&node->_verifiedFrontColor.p[0]), node->emissiveColor.c, sizeof (float) * 3);
+
+	/* Shininess */
+        node->_verifiedFrontColor.p[16] = node->shininess * 128.0f;
+
+#define MAX_SHIN 128.0f
+#define MIN_SHIN 0.01f
+        if ((node->_verifiedFrontColor.p[16] > MAX_SHIN) || (node->_verifiedFrontColor.p[16] < MIN_SHIN)) {
+                if (node->_verifiedFrontColor.p[16]>MAX_SHIN){node->_verifiedFrontColor.p[16] = MAX_SHIN;}else{node->_verifiedFrontColor.p[16]=MIN_SHIN;}
+        }
+#undef MAX_SHIN
+#undef MIN_SHIN
+
+	if (node->separateBackColor) {
+
+		/* DiffuseColor */
+		memcpy((void *)(&node->_verifiedBackColor.p[8]), node->backDiffuseColor.c, sizeof (float) * 3);
+	
+		/* Ambient  - diffuseBackColor * ambientIntensity */
+	        for(i=0; i<3; i++) { node->_verifiedBackColor.p[i+4] = node->_verifiedBackColor.p[i+8] * node->ambientIntensity; }
+	
+		/* Specular */
+		memcpy((void *)(&node->_verifiedBackColor.p[12]), node->backSpecularColor.c, sizeof (float) * 3);
+	
+		/* Emissive */
+		memcpy((void *)(&node->_verifiedBackColor.p[0]), node->backEmissiveColor.c, sizeof (float) * 3);
+	
+		/* Shininess */
+	        node->_verifiedBackColor.p[16] = node->shininess * 128.0f;
+	
+#define MAX_SHIN 128.0f
+#define MIN_SHIN 0.01f
+	        if ((node->_verifiedBackColor.p[16] > MAX_SHIN) || (node->_verifiedBackColor.p[16] < MIN_SHIN)) {
+	                if (node->_verifiedBackColor.p[16]>MAX_SHIN){node->_verifiedBackColor.p[16] = MAX_SHIN;}else{node->_verifiedBackColor.p[16]=MIN_SHIN;}
+	        }
+#undef MAX_SHIN
+#undef MIN_SHIN
+
+	} else {
+		/* just copy the front materials to the back */
+		memcpy(node->_verifiedBackColor.p, node->_verifiedFrontColor.p, sizeof (float) * 17);
+	}
+
 
 
 	MARK_NODE_COMPILED
@@ -437,6 +510,7 @@ void render_Material (struct X3D_Material *node) {
 #define NO_APPEARANCE_SHADER 0x0000
 #define MATERIAL_APPEARANCE_SHADER 0x0001
 #define TWO_MATERIAL_APPEARANCE_SHADER 0x0002
+#define ONE_TEX_APPEARANCE_SHADER 0x004
 
 
 /* find info on the geometry of this shape */
@@ -452,27 +526,44 @@ static int newGetGeometryShader (struct X3D_Node *myGeom) {
 }
 
 static int newGetAppearanceShader (struct X3D_Node *myApp) {
-	struct X3D_Node *realNode1;
-	struct X3D_Appearance *realNode2;
-	struct X3D_Node *realNode3;
+	struct X3D_Appearance *realAppearanceNode;
+	struct X3D_Node *realMaterialNode;
+	struct X3D_Node *realTextureNode;
 
+	int retval = NO_APPEARANCE_SHADER;
+
+printf ("newGetAppearanceShader starting...\n");
 	/* if there is no appearance node... */
-	if (myApp == NULL) return NO_APPEARANCE_SHADER;
+	if (myApp == NULL) return retval;
 
-	/* if the appearance is not an appearance node... */
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myApp,realNode1);
-	if (realNode1->_nodeType != NODE_Appearance) return NO_APPEARANCE_SHADER;
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *,myApp, realAppearanceNode);
+	if (realAppearanceNode->_nodeType != NODE_Appearance) return retval;
 
-	/* if the material field is null ... */
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *,realNode1, realNode2);
-	if (realNode2->material == NULL) return NO_APPEARANCE_SHADER;
+	if (realAppearanceNode->material != NULL) {
+printf ("have material\n");
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->material, realMaterialNode);
+		if (realMaterialNode->_nodeType == NODE_Material) {
+			retval |= MATERIAL_APPEARANCE_SHADER;
+		}
+		if (realMaterialNode->_nodeType == NODE_TwoSidedMaterial) {
+			retval |= TWO_MATERIAL_APPEARANCE_SHADER;
+		}
+	}
 
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realNode2->material, realNode3);
-	if (realNode3->_nodeType == NODE_Material) return MATERIAL_APPEARANCE_SHADER;
-	if (realNode3->_nodeType == NODE_TwoSidedMaterial) return TWO_MATERIAL_APPEARANCE_SHADER;
+	if (realAppearanceNode->texture != NULL) {
+printf ("have texture\n");
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->texture, realTextureNode);
+		if (realTextureNode = NODE_ImageTexture) {
+			retval |= ONE_TEX_APPEARANCE_SHADER;
+		} else {
+			printf ("newGetAppearanceShader, texture field %s not supported yet\n",
+			stringNodeType(realTextureNode->_nodeType));
+		}
+	}
 
-	/* if the material node is not correct, return NO_APPEARANCE_SHADER */
-	return NO_APPEARANCE_SHADER;
+printf ("returning %x\n",retval);
+
+	return retval;
 }
 
 /* find info on the appearance of this Shape and create a shader */
@@ -517,13 +608,18 @@ void compile_Shape (struct X3D_Shape *node) {
 		break;
 
 	case SPHERE_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER:
-		node->_shaderTableEntry = genericFullFeaturedSphereShader;
+		node->_shaderTableEntry = noTexOneMaterialSphereShader;
 		break;
 
 	case SPHERE_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER:
-		node->_shaderTableEntry = twoMaterialSphereShader;
+		node->_shaderTableEntry = noTexTwoMaterialSphereShader;
 		break;
 
+	case SPHERE_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER:
+	case SPHERE_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER:
+printf ("texture, Sphere, one sided material!\n");
+		node->_shaderTableEntry = oneTexOneMaterialSphereShader;
+		break;	
 
 
 	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER:
@@ -531,16 +627,27 @@ void compile_Shape (struct X3D_Shape *node) {
 		break;
 
 	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER:
-		node->_shaderTableEntry = twoMaterialGenericShader;
+		node->_shaderTableEntry = noTexTwoMaterialShader;
 		break;
 
 	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER:
-		node->_shaderTableEntry = genericFullFeaturedShader;
+		node->_shaderTableEntry = noTexOneMaterialShader;
+		break;	
+
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER:
+		node->_shaderTableEntry = oneTexTwoMaterialShader;
+		break;
+
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER:
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER:
+printf ("texture, one sided material!\n");
+		node->_shaderTableEntry = oneTexOneMaterialShader;
 		break;	
 	
 	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
 	}
 
+printf ("compile_Shape, wh1 %x, wapp %x\n",whichGeometryShader, whichAppearanceShader);
 	#endif /* SHADERS_2011 */
 
 
@@ -599,7 +706,6 @@ struct fw_MaterialParameters defaultMaterials = {
 	memcpy (&appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 	memcpy (&appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 
-
 	/* enable the shader for this shape */
         chooseShader (node->_shaderTableEntry);
 
@@ -617,7 +723,6 @@ struct fw_MaterialParameters defaultMaterials = {
 			memcpy (&appearanceProperties.fw_BackMaterial, material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
 		} else {
 			/* no materials selected.... */
-
 		}
 
 		/* send along lighting, material, other visible properties */
@@ -637,6 +742,8 @@ struct fw_MaterialParameters defaultMaterials = {
 
 	/* any shader turned on? if so, turn it off */
 	TURN_GLOBAL_SHADER_OFF;
+	material_twoSided = NULL;
+	material_oneSided = NULL;
 
 	/* turn off face culling */
 	DISABLE_CULL_FACE;

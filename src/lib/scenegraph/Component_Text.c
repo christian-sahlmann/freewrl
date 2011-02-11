@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.29 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Component_Text.c,v 1.30 2011/02/11 18:46:25 crc_canada Exp $
 
 X3D Text Component
 
@@ -28,6 +28,7 @@ X3D Text Component
 ****************************************************************************/
 
 
+#ifndef IPHONE
 
 #include <config.h>
 #include <system.h>
@@ -67,72 +68,71 @@ include FT_GLYPH_H */
 
 
 /* initialize the library with this variable */
-FT_Library library; /* handle to library */
+static FT_Library library; /* handle to library */
 
 #define num_fonts 32
-FT_Face font_face[num_fonts];           /* handle to face object */
-int     font_opened[num_fonts];         /* is this font opened   */
+static FT_Face font_face[num_fonts];           /* handle to face object */
+static int     font_opened[num_fonts];         /* is this font opened   */
 
 
 /* we load so many gliphs into an array for processing */
 #define         MAX_GLYPHS      2048
-int             num_glyphs;
-FT_Glyph        glyphs[MAX_GLYPHS];
-int             cur_glyph;
-int             TextVerbose = 0;
+static FT_Glyph        glyphs[MAX_GLYPHS];
+static int             cur_glyph;
+static int             TextVerbose = FALSE;
 
 
 /* decompose interface func pointer */
-FT_Outline_Funcs FW_outline_interface;
+static FT_Outline_Funcs FW_outline_interface;
 
 
 /* lets store the font paths here */
-char sys_fp[fp_name_len];
-char *font_directory = NULL;
-char thisfontname[fp_name_len];
+#define fp_name_len 256
+static char *font_directory = NULL;
+static char thisfontname[fp_name_len];
 
 /* where are we? */
-double pen_x, pen_y;
+static double pen_x, pen_y;
 
 /* if this is a status bar, put depth different than 0.0 */
 static float TextZdist;
 
-double x_size;          /* size of chars from file */
-double y_size;          /* size of chars from file */
-int   myff;             /* which index into font_face are we using  */
+static double x_size;          /* size of chars from file */
+static double y_size;          /* size of chars from file */
+static int   myff;             /* which index into font_face are we using  */
 
 
 /* for keeping track of tesselated points */
-int FW_RIA[500];        /* pointer to which point is returned by tesselator  */
-int FW_RIA_indx;                        /* index into FW_RIA                         */
-struct X3D_PolyRep *FW_rep_;    /* this is the internal rep of the polyrep           */
-int FW_pointctr;                /* how many points used so far? maps into rep-_coord */
-int indx_count;                 /* maps intp FW_rep_->cindex                         */
-int coordmaxsize;               /* maximum coords before needing to REALLOC          */
-int cindexmaxsize;              /* maximum cindexes before needing to REALLOC        */
+static int FW_RIA[500];        /* pointer to which point is returned by tesselator  */
+static int FW_RIA_indx;                        /* index into FW_RIA                         */
+static struct X3D_PolyRep *FW_rep_;    /* this is the internal rep of the polyrep           */
+static int FW_pointctr;                /* how many points used so far? maps into rep-_coord */
+static int indx_count;                 /* maps intp FW_rep_->cindex                         */
+static int coordmaxsize;               /* maximum coords before needing to REALLOC          */
+static int cindexmaxsize;              /* maximum cindexes before needing to REALLOC        */
 
 
 /* Outline callbacks and global vars */
-int contour_started;
-FT_Vector last_point;
-int FW_Vertex;
+static int contour_started;
+static FT_Vector last_point;
+static int FW_Vertex;
 
 /* flag to determine if we need to call the open_font call */
-int started = FALSE;
+static int started = FALSE;
 
 /* function prototypes */
-void FW_NewVertexPoint(double Vertex_x, double Vertex_y);
-int FW_moveto (FT_Vector* to, void* user);
-int FW_lineto(FT_Vector* to, void* user);
-int FW_conicto(FT_Vector* control, FT_Vector* to, void* user);
-int FW_cubicto(FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* user);
-void FW_make_fontname (int num);
-int FW_init_face(void);
-double FW_extent (int start, int length);
-FT_Error FW_Load_Char(unsigned int idx);
-void FW_draw_outline(FT_OutlineGlyph oglyph);
-void FW_draw_character(FT_Glyph glyph);
-int open_font(void);
+static void FW_NewVertexPoint(double Vertex_x, double Vertex_y);
+static int FW_moveto (FT_Vector* to, void* user);
+static int FW_lineto(FT_Vector* to, void* user);
+static int FW_conicto(FT_Vector* control, FT_Vector* to, void* user);
+static int FW_cubicto(FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* user);
+static void FW_make_fontname (int num);
+static int FW_init_face(void);
+static double FW_extent (int start, int length);
+static FT_Error FW_Load_Char(unsigned int idx);
+static void FW_draw_outline(FT_OutlineGlyph oglyph);
+static void FW_draw_character(FT_Glyph glyph);
+static int open_font(void);
 
 void render_Text (struct X3D_Text * node)
 {
@@ -202,12 +202,15 @@ int FW_moveto (FT_Vector* to, void* user)
     if (TextVerbose)
         printf ("FW_moveto tox %ld toy %ld\n",to->x, to->y);
 
+
+
     return 0;
 }
 
 int FW_lineto (FT_Vector* to, void* user)
 {
     UNUSED(user);
+
 
     if ((last_point.x == to->x) && (last_point.y == to->y)) {
         /* printf ("FW_lineto, early return\n"); */
@@ -221,6 +224,8 @@ int FW_lineto (FT_Vector* to, void* user)
 
     FW_NewVertexPoint(OUT2GL(last_point.x+pen_x), OUT2GL(last_point.y + pen_y));
 
+
+
     return 0;
 }
 
@@ -228,6 +233,8 @@ int FW_lineto (FT_Vector* to, void* user)
 int FW_conicto (FT_Vector* control, FT_Vector* to, void* user)
 {
     FT_Vector ncontrol;
+
+
 
     /* Bezier curve calcs; fairly rough, but makes ok characters */
 
@@ -243,6 +250,8 @@ int FW_conicto (FT_Vector* control, FT_Vector* to, void* user)
 
     FW_lineto (&ncontrol,user);
     FW_lineto (to,user);
+
+
 
     return 0;
 }
@@ -496,21 +505,18 @@ FT_Error  FW_Load_Char(unsigned int idx)
     return error;
 }
 
-void FW_draw_outline (FT_OutlineGlyph oglyph)
+static void FW_draw_outline (FT_OutlineGlyph oglyph)
 {
     int thisptr = 0;
     int retval = 0;
 
-    /* JAS gluTessBeginPolygon(global_tessobj,NULL); */
+    /* gluTessBeginPolygon(global_tessobj,NULL); */
+
     FW_GLU_BEGIN_POLYGON(global_tessobj);
     FW_Vertex = 0;
 
     /* thisptr may possibly be null; I dont think it is use in freetype */
     retval = FT_Outline_Decompose( &oglyph->outline, &FW_outline_interface, &thisptr);
-
-    if (contour_started) {
-         FW_GL_END(); 
-    }
 
     /* gluTessEndPolygon(global_tessobj); */
     FW_GLU_END_POLYGON(global_tessobj);
@@ -520,7 +526,7 @@ void FW_draw_outline (FT_OutlineGlyph oglyph)
 }
 
 /* draw a glyph object */
-void FW_draw_character (FT_Glyph glyph)
+static void FW_draw_character (FT_Glyph glyph)
 {
     if (glyph->format == ft_glyph_format_outline) {
         FW_draw_outline ((FT_OutlineGlyph) glyph);
@@ -622,6 +628,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
     if (TextVerbose) 
         printf ("entering FW_Render_text \n");
 
+
     FW_rep_ = rp;
 
     FW_RIA_indx = 0;            /* index into FW_RIA                                  */
@@ -709,6 +716,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
         FW_GL_ROTATE_D(180.0,0.0,1.0,0.0);
     }
 
+
     for(row = 0; row < numrows; row++) {
         double rowlen;
 
@@ -735,6 +743,8 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
             pen_x = -rowlen;
         }
 
+
+
         for(i=0; i<strlen((const char *)str); i++) {
             /* FT_UInt glyph_index; */
             /* int error; */
@@ -743,8 +753,13 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
             global_IFS_Coord_count = 0;
             FW_RIA_indx = 0;
 
+
             FW_draw_character (glyphs[counter+i]);
+
+
             FT_Done_Glyph (glyphs[counter+i]);
+
+
 
             /* copy over the tesselated coords for the character to
              * the rep structure */
@@ -786,6 +801,8 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
     /* save the triangle count (note, we have a "vertex count", not a "triangle count" */
     FW_rep_->ntri=indx_count/3;
 
+
+
     /* set these variables so they are not uninitialized */
     FW_rep_->ccw=FALSE;
 
@@ -815,6 +832,8 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
             FW_rep_->GeneratedTexCoords[i*3+2] = FW_rep_->actualCoord[i*3+1]*1.66f;
         }
     }
+
+
 
     if (TextVerbose) printf ("exiting FW_Render_text\n");
 }
@@ -1067,9 +1086,11 @@ void make_Text (struct X3D_Text *node)
        printf ("Text, calling FW_rendertext\n");
        call render text - NULL means get the text from the string 
     */
+
     FW_rendertext(((node->string).n),((node->string).p),NULL,
                   ((node->length).n),(double *) ((node->length).p),
                   (node->maxExtent),spacing,size,fsparams,rep_);
 
-    /* printf ("Text, tris = %d\n",rep_->ntri); */
 }
+
+#endif /* IPHONE */

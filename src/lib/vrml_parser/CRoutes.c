@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.74 2011/01/04 19:50:19 crc_canada Exp $
+$Id: CRoutes.c,v 1.75 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -417,6 +417,8 @@ void markScriptResults(struct X3D_Node * tn, int tptr, int route, void * tonode)
 /****************************************************************************/
 
 int get_valueChanged_flag (int fptr, int actualscript) {
+
+#ifdef HAVE_JAVASCRIPT
 	JSContext *cx;
 	JSObject *interpobj;
 	char *fullname;
@@ -520,6 +522,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 
 
 	return touched;
+#endif /* HAVE_JAVASCRIPT */
 }
 
 /****************************************************************/
@@ -1304,6 +1307,7 @@ void mark_event (struct X3D_Node *from, int totalptr) {
 	#endif
 }
 
+#ifdef HAVE_JAVASCRIPT
 /********************************************************************
 
 mark_script - indicate that this script has had an eventIn
@@ -1441,6 +1445,8 @@ static void gatherScriptEventOuts(void) {
 	#endif
 }
 
+#endif /* HAVE_JAVASCRIPT */
+
 
 /* we have a Script/Shader at routing table element %d, send events to it */
 static void sendScriptEventIn(int num) {
@@ -1459,6 +1465,7 @@ static void sendScriptEventIn(int num) {
 
 	if (CRoutes[num].direction_flag == TO_SCRIPT) {
 		for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
+			#if HAVE_JAVASCRIPT
 			struct Shader_Script *myObj;
 			to_ptr = &(CRoutes[num].tonodes[to_counter]);
 			if (to_ptr->routeToNode->_nodeType == NODE_Script) {
@@ -1485,6 +1492,9 @@ static void sendScriptEventIn(int num) {
 			} else {
 				getField_ToShader((int)num);
 			}
+			#else
+				getField_ToShader((int)num);
+			#endif /* HAVE_JAVASCRIPT */
 		}
 	} else {
 		#ifdef CRVERBOSE 
@@ -1612,11 +1622,14 @@ void propagate_events() {
 			}
 		}
 
+		#ifdef HAVE_JAVASCRIPT
 		/* run gatherScriptEventOuts for each active script */
 		gatherScriptEventOuts();
+		#endif
 
 	} while (havinterp==TRUE);
 
+	#ifdef HAVE_JAVASCRIPT
 	/* now, go through and clean up all of the scripts */
 	for (counter =0; counter <= max_script_found_and_initialized; counter++) {
 		if (scr_act[counter]) {
@@ -1624,6 +1637,7 @@ void propagate_events() {
 			CLEANUP_JAVASCRIPT(ScriptControl[counter].cx);
 		}
 	}	
+	#endif /* HAVE_JAVASCRIPT */
 
 	#ifdef CRVERBOSE
 	printf ("done propagate_events\n\n");
@@ -1641,6 +1655,7 @@ function - see section C.4.3 of the spec.
 ********************************************************************/
 /* run the script from within C */
 void process_eventsProcessed() {
+#ifdef HAVE_JAVASCRIPT
 
 	int counter;
 	jsval retval;
@@ -1666,6 +1681,7 @@ void process_eventsProcessed() {
 		}
 
 	}
+#endif /* HAVE_JAVASCRIPT */
 }
 
 /*******************************************************************
@@ -1923,6 +1939,7 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 
 /* this script value has been looked at, set the touched flag in it to FALSE. */
 void resetScriptTouchedFlag(int actualscript, int fptr) {
+#ifdef HAVE_JAVASCRIPT
 
 	#ifdef CRVERBOSE
 	printf ("resetScriptTouchedFlag, name %s type %s script %d, fptr %d\n",JSparamnames[fptr].name, stringFieldtypeType(JSparamnames[fptr].type), actualscript, fptr);
@@ -1966,6 +1983,7 @@ void resetScriptTouchedFlag(int actualscript, int fptr) {
 		default: {printf ("can not reset touched_flag for %s\n",stringFieldtypeType(JSparamnames[fptr].type));
 		}
 	}
+#endif /* HAVE_JAVASCRIPT */
 }
 
 /*********************************************************************************************/

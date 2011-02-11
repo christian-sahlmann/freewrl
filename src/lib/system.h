@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.23 2010/07/08 17:25:55 istakenv Exp $
+$Id: system.h,v 1.24 2011/02/11 18:46:25 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -45,6 +45,15 @@ Internal header: system dependencies.
  * system_threads.h	threading related headers
  * display.h		window system (Aqua/X11/Motif + OpenGL) related headers
  */
+
+
+/* do we have JavaScript? */
+#ifdef IPHONE
+	#undef HAVE_JAVASCRIPT
+#else
+	/* Everything has JavaScript */
+	#undef HAVE_JAVASCRIPT
+#endif
 
 #if HAVE_STDINT_H
 # include <stdint.h>

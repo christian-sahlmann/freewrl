@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.16 2011/01/18 14:15:35 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.17 2011/02/11 18:46:25 crc_canada Exp $
 
 X3D Texturing Component
 
@@ -41,6 +41,7 @@ X3D Texturing Component
 #include "../opengl/Textures.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/Component_Shape.h"
+#include "../scenegraph/RenderFuncs.h"
 
 
 /* verify the TextureCoordinateGenerator node - if the params are ok, then the internal
@@ -168,8 +169,8 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 				node->__VBO = tmp;
 			}
 
-			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,node->__VBO);
-			glBufferDataARB(GL_ARRAY_BUFFER_ARB,sizeof (float)*2*global_tcin_count, node->__compiledpoint.p, GL_STATIC_DRAW_ARB);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,node->__VBO);
+			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*global_tcin_count, node->__compiledpoint.p, GL_STATIC_DRAW);
 			FREE_IF_NZ(node->__compiledpoint.p);
 		}
 	}

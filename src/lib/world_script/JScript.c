@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.31 2011/01/04 19:50:19 crc_canada Exp $
+$Id: JScript.c,v 1.32 2011/02/11 18:46:25 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -25,6 +25,7 @@ Javascript C language binding.
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
+
 
 #include <config.h>
 #include <system.h>
@@ -52,6 +53,31 @@ Javascript C language binding.
 #include "jsVRMLClasses.h"
 #include "jsVRMLBrowser.h"
 
+
+int JSMaxScript = 0;
+/* Script name/type table */
+struct CRjsnameStruct *JSparamnames = NULL;
+int jsnameindex = -1;
+int MAXJSparamNames = 0;
+
+/* Save the text, so that when the script is initialized in the EventLoop thread, it will be there */
+void SaveScriptText(int num, const char *text) {
+
+	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
+	if (num >= JSMaxScript)  {
+		ConsoleMessage ("SaveScriptText: warning, script %d initialization out of order",num);
+		return;
+	}
+	FREE_IF_NZ(ScriptControl[num].scriptText);
+	ScriptControl[num].scriptText = STRDUP(text);
+
+	if (((int)num) > max_script_found) max_script_found = num;
+	/* printf ("SaveScriptText, for script %d scriptText %s\n",text);
+	printf ("SaveScriptText, max_script_found now %d\n",max_script_found); */
+}
+
+
+#ifdef HAVE_JAVASCRIPT
 
 /* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
 #define MAX_RUNTIME_BYTES 0x1000000
@@ -138,11 +164,6 @@ static JSClass globalClass = {
 	JS_FinalizeStub
 };
 
-int JSMaxScript = 0;
-/* Script name/type table */
-struct CRjsnameStruct *JSparamnames = NULL;
-int jsnameindex = -1;
-int MAXJSparamNames = 0;
 
 /* housekeeping routines */
 void kill_javascript(void) {
@@ -215,22 +236,6 @@ void JSInit(int num) {
 	if (num >= JSMaxScript)  {
 		JSMaxAlloc();
 	}
-}
-
-/* Save the text, so that when the script is initialized in the EventLoop thread, it will be there */
-void SaveScriptText(int num, const char *text) {
-
-	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
-	if (num >= JSMaxScript)  {
-		ConsoleMessage ("SaveScriptText: warning, script %d initialization out of order",num);
-		return;
-	}
-	FREE_IF_NZ(ScriptControl[num].scriptText);
-	ScriptControl[num].scriptText = STRDUP(text);
-
-	if (((int)num) > max_script_found) max_script_found = num;
-	/* printf ("SaveScriptText, for script %d scriptText %s\n",text);
-	printf ("SaveScriptText, max_script_found now %d\n",max_script_found); */
 }
 
 void JSInitializeScriptAndFields (int num) {
@@ -1096,3 +1101,5 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 	}
 	return JS_TRUE;
 }
+
+#endif /* HAVE_JAVASCRIPT */

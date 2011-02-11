@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.76 2010/12/07 18:27:50 crc_canada Exp $
+  $Id: Textures.c,v 1.77 2011/02/11 18:46:25 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1045,9 +1045,13 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		//printf ("image is %d x %d\n",rx,ry);
 
 
+#ifdef IPHONE
+printf ("skipping the fwgltexgeni\n");
+#else
 		FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 		FW_GL_TEXGENI(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 		FW_GL_TEXGENI(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+#endif
 
 		/* last thing to do at the end of the setup for the 6th face */
 		if (appearanceProperties.cubeFace == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) {
@@ -1172,6 +1176,9 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
 				while (!texOk) {
 					GLint width, height;
+#ifdef IPHONE
+printf ("skipping some texture stuff\n");
+#else
 					FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
 					FW_GL_TEXIMAGE2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
 		
@@ -1192,6 +1199,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 					} else {
 						texOk = TRUE;
 					}
+#endif
 				}
 		
 		

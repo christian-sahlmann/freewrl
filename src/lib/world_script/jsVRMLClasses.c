@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.23 2010/12/07 18:27:50 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.24 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -26,7 +26,7 @@ $Id: jsVRMLClasses.c,v 1.23 2010/12/07 18:27:50 crc_canada Exp $
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -1867,3 +1867,4 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	return JS_TRUE;
 }
+#endif /* HAVE_JAVASCRIPT */

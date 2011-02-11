@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.139 2010/12/22 21:03:44 crc_canada Exp $
+$Id: headers.h,v 1.140 2011/02/11 18:46:25 crc_canada Exp $
 
 Global includes.
 
@@ -454,10 +454,6 @@ void normalize_ifs_face (float *point_normal,
 /* Text node system fonts. On startup, freewrl checks to see where the fonts
  * are stored
  */
-#define fp_name_len 256
-extern char sys_fp[fp_name_len];
-
-
 extern float AC_LastDuration[];
 
 extern int SoundEngineStarted;

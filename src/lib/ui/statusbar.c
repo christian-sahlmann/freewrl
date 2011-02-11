@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.26 2010/05/05 12:52:04 davejoubert Exp $
+  $Id: statusbar.c,v 1.27 2011/02/11 18:46:25 crc_canada Exp $
 
 */
 
@@ -124,9 +124,16 @@ void drawStatusBar()
 {
 	/* update fps message (maybe extend this with other "text widgets" */
 	/* JAS update_status(NULL); */
+PRINT_GL_ERROR_IF_ANY("XEvents::render start status bar");
+
 
 	rf_xfont_set_color(xf_white);
 	rf_layer2D();
+PRINT_GL_ERROR_IF_ANY("XEvents::render middle status bar");
+
 	rf_printf(15, 15, buffer);
+PRINT_GL_ERROR_IF_ANY("XEvents::render rfprintf status bar");
 	rf_leave_layer2D();
+PRINT_GL_ERROR_IF_ANY("XEvents::render end status bar");
+
 }

@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.105 2011/01/14 17:30:35 crc_canada Exp $
+  $Id: display.h,v 1.106 2011/02/11 18:46:25 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -31,18 +31,178 @@
 #define __LIBFREEWRL_DISPLAY_H__
 
 
+/* generic - OpenGL ES 2.0 does not have doubles */
+#ifdef IPHONE
+	#define GLDOUBLE double
+	#define DOUBLE_MAX fmax
+	#define DOUBLE_MIN fmin
+#else
+	#define GLDOUBLE GLdouble
+	#define DOUBLE_MAX max
+	#define DOUBLE_MIN min
+#endif
+
+#ifdef IPHONE
+	#define PATH_MAX 5000
+
+	/* as we now do our own matrix manipulation, we can change these; note that OpenGL-ES 2.0 does not
+	   have these by default */
+	#define GL_MODELVIEW                   0x1700
+	#define GL_MODELVIEW_MATRIX            0x0BA6
+	#define GL_PROJECTION                  0x1701
+	#define GL_PROJECTION_MATRIX           0x0BA7
+	#define GL_TEXTURE_MATRIX		0x0BA8
+
+	/* same with material properties - we do our own, but need some constants, so... */
+	#define GL_SHININESS                      0x1601
+	#define GL_DIFFUSE                        0x1201
+	#define GL_AMBIENT                        0x1200
+	#define GL_SPECULAR                       0x1202
+	#define GL_EMISSION                       0x1600
+	#define GL_ENABLE_BIT				0x00002000
+	#define GL_LIGHTING                       0x0B50
+	#define GL_COLOR_MATERIAL                 0x0B57
+	#define GL_LIGHT_MODEL_COLOR_CONTROL		0x81F8
+	#define GL_SEPARATE_SPECULAR_COLOR		0x81FA
+	#define GL_LIGHT_MODEL_TWO_SIDE			0x0B52
+	#define GL_LIGHT_MODEL_LOCAL_VIEWER		0x0B51
+	#define GL_LIGHT_MODEL_AMBIENT			0x0B53
+	#define GL_LIGHT0                         0x4000
+
+	/* and, one buffer only, not stereo viewing */
+	#define GL_BACK_LEFT			GL_BACK
+	#define GL_BACK_RIGHT			GL_BACK
+	#define GL_STEREO                         0x0C33
+
+	/* we do not do occlusion queries yet; have to figure this one out */
+	#define GL_QUERY_RESULT                   0x8866
+	#define GL_QUERY_RESULT_AVAILABLE         0x8867
+	#define GL_SAMPLES_PASSED                 0x8914
+
+	/* and, we have shaders, but not OpenGL 2.0, so we just put these here */
+	#define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT  0x83F1
+	#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT  0x83F2
+	#define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  0x83F3
+	#define GL_RGBA8				0x8058
+	#define GL_RGB8					0x8051
+	#define GL_BGR                            0x80E0
+	#define GL_RGB5					0x8050
+
+#define GL_EDGE_FLAG_ARRAY			0x8079
+#define GL_INDEX_ARRAY				0x8077
+#define GL_FOG_COORD_ARRAY                GL_FOG_COORDINATE_ARRAY
+#define GL_SECONDARY_COLOR_ARRAY          0x845E
+	#define GL_LINE_STIPPLE                   0x0B24
+	#define GL_VERTEX_ARRAY                   0x8074
+	#define GL_NORMAL_ARRAY                   0x8075
+	#define GL_TEXTURE_COORD_ARRAY            0x8078
+	#define GL_COLOR_ARRAY                    0x8076
+	#define GL_OBJECT_LINEAR                  0x2401
+	#define GL_EYE_LINEAR                     0x2400
+	#define GL_REFLECTION_MAP                 0x8512
+	#define GL_SPHERE_MAP                     0x2402
+	#define GL_NORMAL_MAP                     0x8511
+	#define GL_S                              0x2000
+	#define GL_TEXTURE_GEN_MODE               0x2500
+	#define GL_T                              0x2001
+	#define GL_TEXTURE_GEN_S                  0x0C60
+	#define GL_TEXTURE_GEN_T                  0x0C61
+	#define GL_TEXTURE_ENV                    0x2300
+	#define GL_TEXTURE_ENV_MODE               0x2200
+	#define GL_MODULATE                       0x2100
+	#define GL_COMBINE                        0x8570
+	#define GL_COMBINE_RGB                    0x8571
+	#define GL_SOURCE0_RGB                    0x8580
+	#define GL_OPERAND0_RGB                   0x8590
+	#define GL_SOURCE1_RGB                    0x8581
+	#define GL_OPERAND1_RGB                   0x8591
+	#define GL_COMBINE_ALPHA                  0x8572
+	#define GL_SOURCE0_ALPHA                  0x8588
+	#define GL_OPERAND0_ALPHA                 0x8598
+	#define GL_RGB_SCALE                      0x8573
+	#define GL_ALPHA_SCALE                    0x0D1C
+	#define GL_SOURCE1_ALPHA                  0x8589
+	#define GL_OPERAND1_ALPHA                 0x8599
+	#define GL_TEXTURE_GEN_S                  0x0C60
+	#define GL_TEXTURE_GEN_T                  0x0C61
+	#define GL_PREVIOUS                       0x8578
+	#define GL_ADD                            0x0104
+	#define GL_SUBTRACT                       0x84E7
+	#define GL_DOT3_RGB                       0x86AE
+	#define GL_ADD_SIGNED                     0x8574
+	#define GL_CLAMP                          0x2900
+	#define GL_CLAMP_TO_BORDER                0x812D
+	#define GL_TEXTURE_WRAP_R                 0x8072
+	#define GL_R                              0x2002
+	#define GL_TEXTURE_GEN_R                  0x0C62
+	#define GL_GENERATE_MIPMAP                0x8191
+	#define GL_TEXTURE_PRIORITY               0x8066
+	#define GL_TEXTURE_BORDER_COLOR           0x1004
+	#define GL_TEXTURE_INTERNAL_FORMAT        0x1003
+	#define GL_COMPRESSED_RGBA                0x84EE
+	#define GL_TEXTURE_COMPRESSION_HINT       0x84EF
+	#define GL_PROXY_TEXTURE_2D               0x8064
+	#define GL_TEXTURE_WIDTH                  0x1000
+	#define GL_TEXTURE_HEIGHT                 0x1001
+	#define GL_POSITION                       0x1203
+	#define GL_SPOT_DIRECTION                 0x1204
+	#define GL_POSITION                       0x1203
+	#define GL_CONSTANT_ATTENUATION           0x1207
+	#define GL_LINEAR_ATTENUATION             0x1208
+	#define GL_QUADRATIC_ATTENUATION          0x1209
+	#define GL_SPOT_CUTOFF                    0x1206
+	#define GL_SPOT_DIRECTION                 0x1204
+	#define GL_POSITION                       0x1203
+	#define GL_CONSTANT_ATTENUATION           0x1207
+	#define GL_LINEAR_ATTENUATION             0x1208
+	#define GL_QUADRATIC_ATTENUATION          0x1209
+	#define GL_SPOT_EXPONENT                  0x1205
+	#define GL_SPOT_CUTOFF                    0x1206
+
+	#define HAVE_SHADERS
+	#define VERTEX_SHADER GL_VERTEX_SHADER
+	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER
+	#define SHADER_SOURCE glShaderSource
+	#define COMPILE_SHADER glCompileShader
+	#define CREATE_PROGRAM glCreateProgram();
+	#define CREATE_SHADER glCreateShader
+	#define ATTACH_SHADER glAttachShader
+	#define LINK_SHADER glLinkProgram
+	#define DELETE_SHADER glDeleteShader
+	#define DELETE_PROGRAM glDeleteProgram
+	#define USE_SHADER(aaa) glUseProgram(aaa)
+	#define VERBOSE_USE_SHADER(aaa) {printf ("glUseShader %d\n",aaa); glUseProgram(aaa);}
+	#define GET_SHADER_INFO glGetShaderiv
+	#define LINK_STATUS GL_LINK_STATUS
+	#define COMPILE_STATUS GL_COMPILE_STATUS
+	#define GET_UNIFORM(aaa,bbb) glGetUniformLocation(aaa,bbb)
+	#define GET_ATTRIB(aaa,bbb) glGetAttribLocation(aaa,bbb)
+	#define GLUNIFORM1I glUniform1i
+	#define GLUNIFORM1F glUniform1f
+	#define GLUNIFORM2F glUniform2f
+	#define GLUNIFORM3F glUniform3f
+	#define GLUNIFORM4F glUniform4f
+	#define GLUNIFORM1IV glUniform1iv
+	#define GLUNIFORM1FV glUniform1fv
+	#define GLUNIFORM2FV glUniform2fv
+	#define GLUNIFORM3FV glUniform3fv
+	#define GLUNIFORM4FV glUniform4fv
+	#define GLUNIFORMMATRIX4FV glUniformMatrix4fv
+	#define GLUNIFORMMATRIX3FV glUniformMatrix3fv
+#endif
 /**
  * Specific platform : Mac
  */
 #ifdef AQUA
 
 #ifdef IPHONE
-#include <OpenGLES/ES2/gl.h>
-#include <OpenGLES/ES2/glext.h>
+#include <ES2/gl.h>
+#include <ES2/glext.h>
 extern int ccurse;
 extern int ocurse;
 #define SCURSE 1
 #define ACURSE 0
+
 
 #define SENSOR_CURSOR ccurse = SCURSE
 #define ARROW_CURSOR  ccurse = ACURSE
@@ -276,8 +436,12 @@ extern GLenum _global_gl_err;
                                                  _global_gl_err = glGetError(); \
                                               } \
                                            } 
-#endif
 #define GL_ERROR_MSG  ((char*) gluErrorString(glGetError()))
+#else
+#define PRINT_GL_ERROR_IF_ANY(_where) 
+#define GL_ERROR_MSG  ((char*) gluErrorString(glGetError()))
+#endif
+
 
 void resetGeometry();
 void setScreenDim(int wi, int he);
@@ -296,7 +460,8 @@ void setScreenDim(int wi, int he);
 	#define LINK_SHADER glLinkProgram
 	#define DELETE_SHADER glDeleteShader
 	#define DELETE_PROGRAM glDeleteProgram
-	#define USE_SHADER glUseProgram
+	#define USE_SHADER(aaa) glUseProgram(aaa)
+	#define VERBOSE_USE_SHADER(aaa) {printf ("glUseShader %d\n",aaa); glUseProgram(aaa);}
 	#define GET_SHADER_INFO glGetShaderiv
 	#define LINK_STATUS GL_LINK_STATUS
 	#define COMPILE_STATUS GL_COMPILE_STATUS
@@ -328,7 +493,7 @@ void setScreenDim(int wi, int he);
 	#define LINK_SHADER glLinkProgramARB
 	#define DELETE_SHADER glDeleteShaderARB
 	#define DELETE_PROGRAM glDeleteProgramARB
-	#define USE_SHADER  glUseProgramObjectARB
+	#define USE_SHADER(aaa) glUseProgramObjectARB(aaa)
 	#define CREATE_SHADER glCreateShaderObjectARB
 	#define GET_SHADER_INFO glGetObjectParameterivARB
 	#define LINK_STATUS GL_OBJECT_LINK_STATUS_ARB
@@ -351,7 +516,6 @@ void setScreenDim(int wi, int he);
 #endif
 
 /* OpenGL-2.x and OpenGL-3.x "desktop" systems calls */
-#ifndef IPHONE
 	/****************************************************************/
 	/* First - any platform specifics to do? 			*/
 	/****************************************************************/
@@ -361,9 +525,14 @@ void setScreenDim(int wi, int he);
 	#endif
 
 	#if defined (TARGET_AQUA)
-		#define FW_GL_SWAPBUFFERS { \
-			CGLError err = FW_GL_CGLFLUSHDRAWABLE(myglobalContext); \
-			if (err != kCGLNoError) printf ("FW_GL_CGLFLUSHDRAWABLE error %d\n",err); }
+		#if defined (IPHONE) 
+
+			#define FW_GL_SWAPBUFFERS /* do nothing for now */
+		#else
+			#define FW_GL_SWAPBUFFERS { \
+				CGLError err = FW_GL_CGLFLUSHDRAWABLE(myglobalContext); \
+				if (err != kCGLNoError) printf ("FW_GL_CGLFLUSHDRAWABLE error %d\n",err); }
+		#endif
 
 	#endif
 
@@ -382,7 +551,6 @@ void setScreenDim(int wi, int he);
 	/* Third - common across all platforms				*/
 	/****************************************************************/
 
-	#define FW_GLU_DELETETESS(aaa) gluDeleteTess(aaa)
 
 	/* GLU replacement - needs local matrix stacks, plus more code */
 	#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
@@ -391,6 +559,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GLU_PICK_MATRIX(aaa, bbb, ccc, ddd, eee) fw_gluPickMatrix(aaa, bbb, ccc, ddd, eee)
 
 	/* GLU replacement -these still need doing */
+	#define FW_GLU_DELETETESS(aaa) gluDeleteTess(aaa)
 	#define FW_GLU_NEW_TESS gluNewTess
 	#define FW_GLU_END_POLYGON(aaa) gluEndPolygon(aaa)
 	#define FW_GLU_BEGIN_POLYGON(aaa) gluBeginPolygon(aaa)
@@ -467,14 +636,12 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
 
 
-	#define GLDOUBLE GLdouble
 	#define FW_GL_FOGFV(aaa, bbb) glFogfv(aaa, bbb)
 	#define FW_GL_FOGF(aaa, bbb) glFogf(aaa, bbb)
 	#define FW_GL_FOGI(aaa, bbb) glFogi(aaa, bbb)
 	#define FW_GL_BEGIN_QUERY(aaa, bbb) glBeginQuery(aaa, bbb)
 	#define FW_GL_END_QUERY(aaa) glEndQuery(aaa)
 	#define FW_GL_LINE_STIPPLE(aaa, bbb) glLineStipple(aaa, bbb)
-	#define FW_GL_END() glEnd()
 	#define FW_GL_VERTEX3D(aaa, bbb, ccc) glVertex3d(aaa, bbb, ccc)
 
 
@@ -491,7 +658,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
 	#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
 int usingAnaglyph2();
-//#ifdef ANAGLYPHMETHOD2
 /* color functions subject to draw-gray anaglyph >>  */
 void fwAnaglyphRemapf(float *r2, float *g2, float* b2, float r, float g, float b);
 void fwAnaglyphremapRgbav(unsigned char *rgba,int y,int x);
@@ -509,17 +675,6 @@ void fwglColor3f(float r, float g, float b);
 	#define FW_GL_COLOR3FV(aaa) fwglColor3fv(aaa);
 	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) fwglColor4f(aaa,bbb,ccc,ddd);
 	#define FW_GL_COLOR4FV(aaa) fwglColor4fv(aaa);
-/* << color functions subject to draw-gray anaglyph */
-//#else
-//	#define FW_GL_MATERIALFV(aaa, bbb, ccc) glMaterialfv(aaa, bbb, ccc)
-//
-//	#define FW_GL_COLOR3F(aaa,bbb,ccc) glColor3f(aaa,bbb,ccc);
-//	#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa);
-//	#define FW_GL_COLOR3D(aaa, bbb, ccc) glColor3d(aaa, bbb, ccc)
-//	#define FW_GL_COLOR3FV(aaa) glColor3fv(aaa);
-//	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) glColor4f(aaa,bbb,ccc,ddd);
-//	#define FW_GL_COLOR4FV(aaa) glColor4fv(aaa);
-//#endif
 
 	#define FW_GL_FRONTFACE(aaa) glFrontFace(aaa);
 	#define FW_GL_GENLISTS(aaa) glGenLists(aaa)
@@ -547,12 +702,13 @@ void fwglColor3f(float r, float g, float b);
 	#define FW_GL_DRAWPIXELS(aaa,bbb,ccc,ddd,eee) glDrawPixels(aaa,bbb,ccc,ddd,eee)
 	
 
-#endif /* NDEF IPHONE */
 
 
 
 
-#ifdef IPHONE
+#ifdef XXXXIPHONE
+
+JAS - pushing for this to be ES2 compatible
 
 /* JAS - Sarah made these up to allow for compiling under OpenGL-ES 2.0. 
 	
@@ -700,7 +856,7 @@ void fwglColor3f(float r, float g, float b);
 	#define GET_ATTRIB(aaa,bbb) glGetAttribLocation(aaa,bbb)
 	#define GET_UNIFORM(aaa,bbb) glGetUniformLocation(aaa,bbb)
 	#define GET_ATTRIB(aaa,bbb) glGetAttribLocation(aaa,bbb)
-	#define USE_SHADER glUseProgram
+	#define USE_SHADER(aaa) glUseProgram(aaa)
 	#define GET_SHADER_INFO glGetShaderiv
 	#define GLUNIFORM1I glUniform1i
 	#define GLUNIFORM1F glUniform1f
@@ -776,7 +932,6 @@ void fwglColor3f(float r, float g, float b);
 	#define FW_GL_COLOR3F(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_COLOR3D(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_VERTEX3D(aaa, bbb, ccc) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define FW_GL_END() printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
@@ -825,6 +980,6 @@ void fwglColor3f(float r, float g, float b);
 
 	
 
-#endif /* ifdef IPHONE */
+#endif /* ifdef XXXIPHONE */
 
 #endif /* __LIBFREEWRL_DISPLAY_H__ */

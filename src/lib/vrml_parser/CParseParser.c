@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.68 2010/12/07 18:27:50 crc_canada Exp $
+  $Id: CParseParser.c,v 1.69 2011/02/11 18:46:25 crc_canada Exp $
 
   ???
 
@@ -1905,7 +1905,11 @@ static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 #ifdef CPARSERVERBOSE
         printf("parser_node: parsing builtin node\n");
 #endif
+
+	#ifdef HAVE_JAVASCRIPT
         struct Shader_Script* script=NULL;
+	#endif
+
         struct Shader_Script* shader=NULL;
                  
         /* Get malloced struct of appropriate X3D_Node type with default values filled in */
@@ -1928,7 +1932,10 @@ static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
                 
         /* Set flag for Shaders/Scripts - these ones can have any number of fields */
 	switch (node->_nodeType) {
+		#ifdef HAVE_JAVASCRIPT
 		case NODE_Script: script=X3D_SCRIPT(node)->__scriptObj; break;
+		#endif
+
 		case NODE_ShaderProgram: shader=X3D_SHADERPROGRAM(node)->__shaderObj; break;
 		case NODE_PackagedShader: shader=X3D_PACKAGEDSHADER(node)->__shaderObj; break;
 		case NODE_ComposedShader: shader=X3D_COMPOSEDSHADER(node)->__shaderObj; break;
@@ -1982,12 +1989,16 @@ static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 #ifdef CPARSERVERBOSE
             printf("parser_node: try parsing Script or Shader field\n");
 #endif
+
+	    #ifdef HAVE_JAVASCRIPT
             if(script && parser_interfaceDeclaration(me, NULL, script)) {
 #ifdef CPARSERVERBOSE
                 printf("parser_node: SCRIPT field parsed\n");
 #endif
                 continue;
             }
+	    #endif
+
             if(shader && parser_interfaceDeclaration(me, NULL, shader)) {
 #ifdef CPARSERVERBOSE
                 printf("parser_node: Shader field parsed\n");
@@ -1997,6 +2008,7 @@ static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
             break;
         }
                 
+	#ifdef HAVE_JAVASCRIPT
         /* Init code for Scripts */
         if(script) {
 #ifdef CPARSERVERBOSE
@@ -2007,6 +2019,7 @@ static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
             printf("parser_node: SCRIPT url parsed\n");
 #endif
         }
+	#endif /* HAVE_JAVASCRIPT */
                 
         /* We must have a node that we've parsed at this point. */
         ASSERT(node);
@@ -2112,7 +2125,10 @@ void parser_specificInitNode(struct X3D_Node* n, struct VRMLParser* me)
    }
 
         /* Scripts get a script object associated to them */
+	#ifdef HAVE_JAVASCRIPT
         NODE_SPECIFIC_INIT(Script, node->__scriptObj=new_Shader_Script(X3D_NODE(node));)
+	#endif
+
         NODE_SPECIFIC_INIT(ShaderProgram, node->__shaderObj=new_Shader_Script(X3D_NODE(node));)
         NODE_SPECIFIC_INIT(PackagedShader, node->__shaderObj=new_Shader_Script(X3D_NODE(node));)
         NODE_SPECIFIC_INIT(ComposedShader, node->__shaderObj=new_Shader_Script(X3D_NODE(node));)

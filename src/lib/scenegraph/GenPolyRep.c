@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.24 2010/12/07 18:27:50 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.25 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -1000,7 +1000,9 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 			/* If we have concave, tesselate! */
 			if (!convex) {
+				#ifndef IPHONE
 				FW_GLU_BEGIN_POLYGON(global_tessobj);
+				#endif /* IPHONE - no tessellation yet */
 			} else {
 				initind = relative_coord++;
 				lastind = relative_coord++;
@@ -1010,6 +1012,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 			while (i != -1) {
 				if (!convex) {
+					#ifndef IPHONE
 					int ind;
 					int foundContour = FALSE;
 					/* printf ("\nwhile, i is %d this_coord %d rel coord %d\n",i,this_coord,relative_coord); */
@@ -1043,6 +1046,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 					}
 					
 					relative_coord++;
+					#endif /* IPHONE - no tessellation yet */
 				} else {
 					/* take coordinates and make triangles out of them */
 					global_IFS_Coords[global_IFS_Coord_count++] = initind;
@@ -1060,6 +1064,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			}
 
 			if (!convex) {
+				#ifndef IPHONE
 				FW_GLU_END_POLYGON(global_tessobj);
 
 				/* Tesselated faces may have a different normal than calculated previously */
@@ -1068,6 +1073,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 				verify_global_IFS_Coords(cin);
 
 				IFS_check_normal (facenormals,this_face,points, this_coord, orig_coordIndex, ccw);
+				#endif /* IPHONE - no tessellation yet */
 			}
 
 
@@ -2274,6 +2280,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 	} else
 	    if(beginCap || endCap) {
+#ifndef IPHONE
 		/* polygons might be concave-> do tessellation			*/
 		/* XXX - no textures yet - Linux Tesselators give me enough headaches;
 		   lets wait until they are all ok before trying texture mapping */
@@ -2352,7 +2359,9 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 		/* get rid of MALLOCd memory  for tess */
 		FREE_IF_NZ (tess_vs);
 
+#endif /* IPHONE - no tessellation yet */
 	    } /* elseif */
+
 	} /* end of block */
 
 	/* if we have tesselated, we MAY have fewer triangles than estimated, so... */

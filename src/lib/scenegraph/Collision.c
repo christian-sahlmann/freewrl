@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.16 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Collision.c,v 1.17 2011/02/11 18:46:25 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -806,12 +806,12 @@ struct point_XYZ get_poly_radialSample_disp(double y1, double y2, double ystep, 
 			s1.x = cos(theta);
 			s1.z = sin(theta);
 			/* quick check of overlap */
-			avmin[0] = min(s0.x,s1.x);
-			avmin[1] = min(s0.y,s1.y);
-			avmin[2] = min(s0.z,s1.z);
-			avmax[0] = max(s0.x,s1.x);
-			avmax[1] = max(s0.y,s1.y);
-			avmax[2] = max(s0.z,s1.z);
+			avmin[0] = DOUBLE_MIN(s0.x,s1.x);
+			avmin[1] = DOUBLE_MIN(s0.y,s1.y);
+			avmin[2] = DOUBLE_MIN(s0.z,s1.z);
+			avmax[0] = DOUBLE_MAX(s0.x,s1.x);
+			avmax[1] = DOUBLE_MAX(s0.y,s1.y);
+			avmax[2] = DOUBLE_MAX(s0.z,s1.z);
 			if( overlapMBBs(avmin,avmax,tmin,tmax) )
 			{
 				hit = intersectLineSegmentWithPoly(s0,s1,r,p,num,n,&dr);
@@ -916,12 +916,12 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 		tmin[2] = tmax[2] = p[0].z;
 		for(i=1;i<num;i++)
 		{
-			tmin[0] = min(tmin[0],p[i].x);
-			tmin[1] = min(tmin[1],p[i].y);
-			tmin[2] = min(tmin[2],p[i].z);
-			tmax[0] = max(tmax[0],p[i].x);
-			tmax[1] = max(tmax[1],p[i].y);
-			tmax[2] = max(tmax[2],p[i].z);
+			tmin[0] = DOUBLE_MIN(tmin[0],p[i].x);
+			tmin[1] = DOUBLE_MIN(tmin[1],p[i].y);
+			tmin[2] = DOUBLE_MIN(tmin[2],p[i].z);
+			tmax[0] = DOUBLE_MAX(tmax[0],p[i].x);
+			tmax[1] = DOUBLE_MAX(tmax[1],p[i].y);
+			tmax[2] = DOUBLE_MAX(tmax[2],p[i].z);
 		}
 
 		/* walking */
@@ -1067,8 +1067,8 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
 		memcpy(q,&p[i],3*sizeof(double));
 		for(j=0;j<3;j++)
 		{
-			tmin[j] = min(tmin[j],q[j]);
-			tmax[j] = max(tmax[j],q[j]);
+			tmin[j] = DOUBLE_MIN(tmin[j],q[j]);
+			tmax[j] = DOUBLE_MAX(tmax[j],q[j]);
 		}
 	}
 	for(i=0;i<3;i++)
@@ -1554,8 +1554,8 @@ void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, 
 		memcpy(p,&abox[m],3*sizeof(GLDOUBLE));
 		for(i=0;i<3;i++)
 		{
-			rMBBmin[i] = min(rMBBmin[i],p[i]);
-			rMBBmax[i] = max(rMBBmax[i],p[i]);
+			rMBBmin[i] = DOUBLE_MIN(rMBBmin[i],p[i]);
+			rMBBmax[i] = DOUBLE_MAX(rMBBmax[i],p[i]);
 		}
 	}
 }
@@ -1957,7 +1957,7 @@ void accumulateFallingClimbing(double y1, double y2, double ystep, struct point_
 					if( FallInfo.isClimb == 0 )
 						FallInfo.hclimb = hhbelowy1; //hh - y1;
 					else
-					    FallInfo.hclimb = max(FallInfo.hclimb,hhbelowy1);
+					    FallInfo.hclimb = DOUBLE_MAX(FallInfo.hclimb,hhbelowy1);
 					FallInfo.isClimb = 1;
 				}
 				/* no stepheight implementation here

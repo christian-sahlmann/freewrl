@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.23 2011/01/14 17:30:36 crc_canada Exp $
+$Id: StreamPoly.c,v 1.24 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -38,6 +38,8 @@ $Id: StreamPoly.c,v 1.23 2011/01/14 17:30:36 crc_canada Exp $
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Textures.h"
+#include "../opengl/OpenGL_Utils.h"
+#include "../scenegraph/RenderFuncs.h"
 
 #include "Polyrep.h"
 
@@ -529,28 +531,28 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 
 		if (r->normal) {
 			if (r->VBO_buffers[NORMAL_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[NORMAL_VBO]);
-			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[NORMAL_VBO]);
-			glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColor)*3,r->normal, GL_STATIC_DRAW_ARB);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[NORMAL_VBO]);
+			glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColor)*3,r->normal, GL_STATIC_DRAW);
 			FREE_IF_NZ(r->normal);
 		}
 
 		if (r->color) {
 			if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);
-			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
-			glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW_ARB);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[COLOR_VBO]);
+			glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW);
 			/* DO NOT FREE_IF_NZ(r->color); - recalculateColorFields needs this...*/
 		}
 
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[VERTEX_VBO]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColor)*3,newpoints, GL_STATIC_DRAW_ARB);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[VERTEX_VBO]);
+		glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColor)*3,newpoints, GL_STATIC_DRAW);
 
-		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB,r->VBO_buffers[INDEX_VBO]);
-		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,sizeof (int)*r->ntri*3,r->cindex,GL_STATIC_DRAW_ARB);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,r->VBO_buffers[INDEX_VBO]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (int)*r->ntri*3,r->cindex,GL_STATIC_DRAW);
 
 		if (r->GeneratedTexCoords) {
 			if (r->VBO_buffers[TEXTURE_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[TEXTURE_VBO]);
-			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[TEXTURE_VBO]);
-			glBufferDataARB(GL_ARRAY_BUFFER_ARB,sizeof (float)*2*r->ntri*3,r->GeneratedTexCoords, GL_STATIC_DRAW_ARB);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[TEXTURE_VBO]);
+			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*r->ntri*3,r->GeneratedTexCoords, GL_STATIC_DRAW);
 			/* finished with these - lets get rid of it */
 			FREE_IF_NZ(r->GeneratedTexCoords);
 		}

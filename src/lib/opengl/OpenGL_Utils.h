@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.34 2011/01/20 14:38:28 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.35 2011/02/11 18:46:25 crc_canada Exp $
 
 Screen snapshot.
 
@@ -33,11 +33,19 @@ Screen snapshot.
 /* OpenGL renderer capabilities */
 typedef struct {
 	GLuint myShaderProgram;
+
 	GLint myMaterialAmbient;
 	GLint myMaterialDiffuse;
 	GLint myMaterialSpecular;
 	GLint myMaterialShininess;
 	GLint myMaterialEmission;
+
+	GLint myMaterialBackAmbient;
+	GLint myMaterialBackDiffuse;
+	GLint myMaterialBackSpecular;
+	GLint myMaterialBackShininess;
+	GLint myMaterialBackEmission;
+
 	GLint lightState;
 	GLint lightAmbient;
 	GLint lightDiffuse;
@@ -93,14 +101,22 @@ typedef enum shader_type {
 	backgroundTextureBoxShader,
 
 	/* generic (not geometry Shader specific) shaders */
-	genericFullFeaturedShader,
 	noMaterialNoAppearanceShader,
-	twoMaterialGenericShader,
+	noTexOneMaterialShader,
+	noTexTwoMaterialShader,
+	oneTexOneMaterialShader,
+	oneTexTwoMaterialShader,
+	complexTexOneMaterialShader,
+	complexTexTwoMaterialShader,
 
 	/* Sphere Geometry Shaders */
 	noMaterialNoAppearanceSphereShader,
-	genericFullFeaturedSphereShader,
-	twoMaterialSphereShader
+	noTexOneMaterialSphereShader,
+	noTexTwoMaterialSphereShader,
+	oneTexOneMaterialSphereShader,
+	oneTexTwoMaterialSphereShader,
+	complexTexOneMaterialSphereShader,
+	complexTexTwoMaterialSphereShader
 
 
 } shader_type_t;
@@ -126,14 +142,14 @@ void fw_glMatrixMode(GLint mode);
 void fw_glLoadIdentity(void);
 void fw_glPushMatrix(void);
 void fw_glPopMatrix(void);
-void fw_glTranslated(double a, double b, double c);
+void fw_glTranslated(GLDOUBLE a, GLDOUBLE b, GLDOUBLE c);
 void fw_glTranslatef(float a, float b, float c);
-void fw_glRotateRad (double a, double b, double c, double d);
-void fw_glRotated (double a, double b, double c, double d);
+void fw_glRotateRad (GLDOUBLE a, GLDOUBLE b, GLDOUBLE c, GLDOUBLE d);
+void fw_glRotated (GLDOUBLE a, GLDOUBLE b, GLDOUBLE c, GLDOUBLE d);
 void fw_glRotatef (float a, float b, float c, float d);
-void fw_glScaled (double a, double b, double c);
+void fw_glScaled (GLDOUBLE a, GLDOUBLE b, GLDOUBLE c);
 void fw_glScalef (float a, float b, float c);
-void fw_glGetDoublev (int ty, double *mat);
+void fw_glGetDoublev (int ty, GLDOUBLE *mat);
 
 /* OpenGL-ES specifics for Materials and Vertices */
 void fw_iphone_enableClientState(GLenum aaa);
@@ -146,28 +162,28 @@ void sendMatriciesToShader(s_shader_capabilities_t *);
 void sendMaterialsToShader(s_shader_capabilities_t *);
 void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar);
 void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height, GLint *vp);
-void fw_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ);
-void fw_Ortho(double left, double right, double bottom, double top, double nearZ, double farZ);
-void fw_gluProject( GLdouble objX,
-                         GLdouble objY,
-                         GLdouble objZ,
-                         const GLdouble *model,
-                         const GLdouble *proj,
+void fw_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ);
+void fw_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ);
+void fw_gluProject( GLDOUBLE objX,
+                         GLDOUBLE objY,
+                         GLDOUBLE objZ,
+                         const GLDOUBLE *model,
+                         const GLDOUBLE *proj,
                          const GLint *view,
-                         GLdouble* winX,
-                         GLdouble* winY,
-                         GLdouble* winZ );
-void fw_gluUnProject( GLdouble winX,
-                           GLdouble winY,
-                           GLdouble winZ,
-                           const GLdouble *model,
-                           const GLdouble *proj,
+                         GLDOUBLE* winX,
+                         GLDOUBLE* winY,
+                         GLDOUBLE* winZ );
+void fw_gluUnProject( GLDOUBLE winX,
+                           GLDOUBLE winY,
+                           GLDOUBLE winZ,
+                           const GLDOUBLE *model,
+                           const GLDOUBLE *proj,
                            const GLint *view,
-                           GLdouble* objX,
-                           GLdouble* objY,
-                           GLdouble* objZ );
+                           GLDOUBLE* objX,
+                           GLDOUBLE* objY,
+                           GLDOUBLE* objZ );
 
-void fw_gluPickMatrix(GLdouble x, GLdouble y, GLdouble deltax, GLdouble deltay,
+void fw_gluPickMatrix(GLDOUBLE x, GLDOUBLE y, GLDOUBLE deltax, GLDOUBLE deltay,
                   GLint viewport[4]);
 
 

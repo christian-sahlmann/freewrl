@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.17 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Tess.c,v 1.18 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -38,6 +38,8 @@ $Id: Tess.c,v 1.17 2010/12/07 18:27:50 crc_canada Exp $
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
+
+#ifndef IPHONE /* OpenGL-ES 2.0 does not have tessellator */
 
 /* JAS */
 #ifdef AQUA
@@ -131,9 +133,10 @@ void CALLBACK FW_tess_error(GLenum e) {
 
 void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
 	GLDOUBLE *nv = MALLOC(GLDOUBLE *, sizeof(GLDOUBLE)*3);
-	/* printf("FW_tess_combine data\n"); 
+	printf("FW_tess_combine data\n"); 
 	 printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
 		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); 
+/*
 	printf ("vertex 0 %lf %lf %lf, 1 %lf %lf %lf, 2 %lf %lf %lf, 3 %lf %lf %lf\n",
 		*d[0]->x,*d[0]->y,*d[0]->z,
 		*d[1]->x,*d[1]->y,*d[1]->z,
@@ -143,7 +146,8 @@ void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], 
 	printf ("d %d %d %d %d\n",d[0],d[1],d[2],d[3]);
 	printf ("d %f %f %f %f\n",*d[0],*d[1],*d[2],*d[3]);
 	printf ("new coord %d\n",nv);
-	*/
+*/
+	
 	nv[0] = c[0];
 	nv[1] = c[1];
 	nv[2] = c[2];
@@ -186,6 +190,19 @@ void CALLBACK FW_tess_combine (GLDOUBLE c[3], void *d[4], GLfloat w[4], void **o
 /* next function has to be called once, after an OpenGL context is made
 	and before tessellation is started			*/
 
+void CALLBACK XXtessA() { printf ("GLU_TESS_BEGIN\n"); }
+void CALLBACK XXtessB() { printf ("GLU_TESS_BEGIN_DATA\n"); }
+void CALLBACK XXtessC() { printf ("GLU_TESS_EDGE\n"); }
+void CALLBACK XXtessD() { printf ("GLU_TESS_EDGE_FLAG_DATA\n"); }
+void CALLBACK XXtessE() { printf ("GLU_TESS_VERTEX\n"); }
+void CALLBACK XXtessF() { printf ("GLU_TESS_VERTEX_DATA\n"); }
+void CALLBACK XXtessG() { printf ("GLU_TESS_END\n"); }
+void CALLBACK XXtessH() { printf ("GLU_TESS_END_DATA\n"); }
+void CALLBACK XXtessI() { printf ("GLU_TESS_COMBINE_DATA\n"); }
+void CALLBACK XXtessJ() { printf ("GLU_TESS_ERROR\n"); }
+void CALLBACK XXtessK() { printf ("GLU_TESS_ERROR_DATA\n"); }
+
+
 void new_tessellation(void) {
 	global_tessobj=FW_GLU_NEW_TESS();
 	if(!global_tessobj)
@@ -201,19 +218,21 @@ void new_tessellation(void) {
 	FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)FW_tess_combine_data);
 	FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_COMBINE,(_GLUfuncptr)FW_tess_combine);
 
-	    /* Unused right now.
-	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_BEGIN, FW_GLU_TESS_BEGIN);
-	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_BEGIN_DATA,FW_GLU_TESS_BEGIN_DATA);
-	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_EDGE_FLAG,FW_GLU_TESS_EDGE_FLAG);
-	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_EDGE_FLAG_DATA,FW_GLU_TESS_EDGE_FLAG_DATA);
-	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_VERTEX,FW_GLU_TESS_VERTEX);
-	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_VERTEX_DATA,FW_GLU_TESS_VERTEX_DATA);
-	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_END,FW_GLU_TESS_END);
-	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_END_DATA,FW_GLU_TESS_END_DATA);
-	    FW_GLU_TESS_CALLBACK(triang, tess_combine_DATA,FW_tess_combine_DATA);
-	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_ERROR,FW_GLU_TESS_ERROR);
-	    FW_GLU_TESS_CALLBACK(triang, GLU_TESS_ERROR_DATA,FW_GLU_TESS_ERROR_DATA);
-	    */
+	    /* Unused right now. */
+/*
+	    FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_BEGIN, (_GLUfuncptr)XXtessA);
+	    FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_BEGIN_DATA,(_GLUfuncptr)XXtessB);
+	    FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_EDGE_FLAG,(_GLUfuncptr)XXtessC);
+	    FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_EDGE_FLAG_DATA,(_GLUfuncptr)XXtessD);
+	    FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_VERTEX,(_GLUfuncptr)XXtessE);
+	    FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_VERTEX_DATA,(_GLUfuncptr)XXtessF);
+	    FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_END,(_GLUfuncptr)XXtessG);
+	    FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_END_DATA,(_GLUfuncptr)XXtessH);
+	    FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)XXtessI);
+	    FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_ERROR,(_GLUfuncptr)XXtessJ);
+	    FW_GLU_TESS_CALLBACK(global_tessobj, GLU_TESS_ERROR_DATA,(_GLUfuncptr)XXtessK);
+*/
+/*	    */
 }
 
 /* next function should be called once at the end, but where?	*/
@@ -223,3 +242,4 @@ void destruct_tessellation(void) {
 }
 
 
+#endif /* IPHONE */

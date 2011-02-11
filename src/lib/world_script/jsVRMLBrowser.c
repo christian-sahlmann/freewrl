@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.36 2010/12/07 18:27:50 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.37 2011/02/11 18:46:25 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -26,7 +26,7 @@ Javascript C language binding.
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -102,11 +102,6 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 	{"getMidiDeviceInfo", VrmlBrowserGetMidiDeviceInfo, 0},
 	{0}
 };
-
-
-/* make up a new parser for parsing from createVrmlFromURL and createVrmlFromString */
-struct VRMLParser* savedParser;
-
 
 
 /* for setting field values to the output of a CreateVrml style of call */
@@ -1101,3 +1096,4 @@ static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *
 
 	return JS_TRUE;
 }
+#endif /* HAVE_JAVASCRIPT */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.33 2011/01/18 14:15:35 crc_canada Exp $
+$Id: RenderTextures.c,v 1.34 2011/02/11 18:46:25 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -60,6 +60,9 @@ static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode);
 
 /* TextureGenerator node? if so, do it */
 static void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
+#ifdef IPHONE
+printf ("skipping setupTexGen\n");
+#else
 	switch (this->__compiledmode) {
 	case GL_OBJECT_LINEAR:
 	case GL_EYE_LINEAR:
@@ -74,6 +77,7 @@ static void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
 	default: {}
 		/* printf ("problem with compiledmode %d\n",this->__compiledmode); */
 	}
+#endif
 }
 
 /* which texture unit are we going to use? is this texture not OFF?? Should we set the
@@ -87,7 +91,12 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 	if (rdr_caps.av_multitexture) {
 	    
 	    if (c != currentTextureUnit) {
+#ifdef IPHONE
+printf ("skipping setActiveTexture\n");
+#else
 		SET_TEXTURE_UNIT(c);
+#endif
+
 		currentTextureUnit = c;
 	    }
 
@@ -123,13 +132,20 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
                 }
 
+#ifdef IPHONE
+printf ("skipping te texenvi\n");
+#else
 		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+#endif
 	} else {
 		paramPtr = textureParameterStack[c];
 
 		/* is this texture unit active? ie is mode something other than "OFF"? */
 		if (paramPtr->texture_env_mode != 0) {
 
+#ifdef IPHONE
+printf ("skipping the texenvi\n");
+#else
 		switch (paramPtr->texture_env_mode) {
 			case GL_MODULATE:
 				FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -163,6 +179,8 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 				FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, paramPtr->operand1_alpha);
 
 			}
+#endif
+
 
 		} else {
 			FW_GL_DISABLE(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
@@ -225,6 +243,8 @@ void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo* genTex) 
 void textureDraw_end(void) {
 	int c;
 
+
+
 #ifdef TEXVERBOSE
 	printf ("start of textureDraw_end\n");
 #endif
@@ -234,7 +254,11 @@ void textureDraw_end(void) {
 	    for (c=0; c<textureStackTop; c++) {
 
 		if (c != currentTextureUnit) {
+#ifdef IPHONE
+printf ("skipping settextureunit\n");
+#else
 			SET_TEXTURE_UNIT(c);
+#endif
 			currentTextureUnit = c;
 		}
 
@@ -325,7 +349,7 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 
 				if (myTCnode->__VBO != 0) {
                                 	struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
-                                	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,myTCnode->__VBO);
+                                	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,myTCnode->__VBO);
 					passedInGenTex(&mtf);
 				} else {
 					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);

@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.56 2011/01/04 19:50:19 crc_canada Exp $
+  $Id: fieldSet.c,v 1.57 2011/02/11 18:46:25 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -150,6 +150,7 @@ static int returnNumberOfRows(int datatype,union anyVrml *memptr) {
 This is used mainly in parsing */
 
 void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, int isXML) {
+#ifdef HAVE_JAVASCRIPT
 	int foffset;
 	int coffset;
 	int ctype;
@@ -193,6 +194,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 	}
 
 	Parser_scanStringValueToMem(node, (size_t) coffset, ctype, value, isXML);
+#endif /* HAVE_JAVASCRIPT */
 }
 
 /* and incoming EAI event has come in, and the destination is an inputOnly field of a script.
@@ -202,6 +204,8 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 
 static int setField_FromEAI_ToScript(int tonode, int toname,
 	int datatype, void *data, unsigned rowcount) {
+
+	#ifdef HAVE_JAVASCRIPT
 	int datalen;
 
 	#ifdef SETFIELDVERBOSE
@@ -270,8 +274,12 @@ static int setField_FromEAI_ToScript(int tonode, int toname,
 			stringFieldtypeType(datatype));
                 }
         }
+	
 
 	return TRUE;
+	#else
+	return FALSE;
+	#endif /* HAVE_JAVASCRIPT */
 }
 
 void fudgeIfNeeded(int myptr,int myoffset){
@@ -692,6 +700,7 @@ unsigned int setField_FromEAI (char *ptr) {
 	/* first, parse the value into the local variable */
 	Parser_scanStringValueToMem(myptr,myoffset,datatype,ptr,FALSE);
 
+	#ifdef HAVE_JAVASCRIPT
 	if (scripttype == EAI_NODETYPE_SCRIPT) {
 		struct Shader_Script * sp;
 		int rowCount;
@@ -712,6 +721,8 @@ unsigned int setField_FromEAI (char *ptr) {
 
 		setField_FromEAI_ToScript(sp->num,offset,datatype,memptr,rowCount);
 	} else {
+	#endif /* HAVE_JAVASCRIPT */
+
 		/* if this is a geometry, make it re-render.
 		   Some nodes (PROTO interface params w/o IS's)
 		   will have an offset of zero, and are thus not
@@ -722,7 +733,10 @@ unsigned int setField_FromEAI (char *ptr) {
 
 		/* if anything uses this for routing, tell it that it has changed */
 		MARK_EVENT (X3D_NODE(nodeptr),offset);
+	#ifdef HAVE_JAVASCRIPT
 	}
+	#endif /* HAVE_JAVASCRIPT */
+
 	#ifdef SETFIELDVERBOSE
 	printf("================================== Post op %s,%d ==================================\n",__FILE__,__LINE__);
 	dumpOneNode(nodeIndex);
@@ -735,6 +749,7 @@ unsigned int setField_FromEAI (char *ptr) {
 
 }
 
+#ifdef HAVE_JAVASCRIPT
 void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, JSContext *scriptContext) {
         int ival;
         double tval;
@@ -893,6 +908,8 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	
 	#endif
 }
+
+#endif /* HAVE_JAVASCRIPT */
 
 /* find the ASCII string name of this field of this node */
 char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset) {
@@ -1088,6 +1105,7 @@ void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype,
 	}
 }
 
+#ifdef HAVE_JAVASCRIPT
 /****************************************************************/
 /* a Jscript is returning a Multi-number type; copy this from 	*/
 /* the Jscript return string to the data structure within the	*/
@@ -1465,6 +1483,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	*/
 	
 }
+#endif /* HAVE_JAVASCRIPT */
 
 
 /************************************************************************/

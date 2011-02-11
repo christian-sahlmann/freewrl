@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.19 2010/09/22 13:20:22 crc_canada Exp $
+$Id: Material.c,v 1.20 2011/02/11 18:46:25 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -48,6 +48,10 @@ GLfloat default_emission[] = {0.0f,0.0f,0.0f,1.0f};
 
 /* bounds check and do the shininess calculations */
 void do_shininess (GLenum face, float shininess) {
+#ifdef IPHONE
+printf ("do_shininess called\n");
+#else
+
 	/* which should it be? From the spec:
 		"Lower shininess values produce soft glows, while higher values result in sharper, smaller highlights."
 	so, we either do 1.0-shininess * 128, or we do shininess * 128... */
@@ -64,7 +68,9 @@ void do_shininess (GLenum face, float shininess) {
 	}
 
 	FW_GL_MATERIALF(face, GL_SHININESS, (float)shininess);
+#endif
 }
+
 void fwAnaglyphRemapf(float *r2, float *g2, float* b2, float r, float g, float b)
 {
 	float gray = .299F*r + .587F*g + .114F*b;
@@ -99,6 +105,9 @@ void fwAnaglyphremapRgbav(unsigned char *rgba,int y,int x)
 
 void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 {
+#ifdef IPHONE
+printf ("fwglMaterialfv called\n");
+#else
 	if(usingAnaglyph2())
 		switch(pname)
 		{
@@ -120,9 +129,14 @@ void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 		}
 	else
 		glMaterialfv(face,pname,params);
+#endif
 }
+
 void fwglColor3fv(float *color)
 {
+#ifdef IPHONE
+printf ("fwglColor3fv called\n");
+#else
 	if(usingAnaglyph2())
 	{
 		float gray, ccc[3];
@@ -133,9 +147,14 @@ void fwglColor3fv(float *color)
 	}
 	else
 		glColor3fv(color);
+#endif
+
 }
 void fwglColor4fv(float *rgba)
 {
+#ifdef IPHONE
+printf ("fwglColor4fv called\n");
+#else
 	if(usingAnaglyph2())
 	{
 		float gray, ccc[4];
@@ -146,9 +165,14 @@ void fwglColor4fv(float *rgba)
 	}
 	else
 		glColor4fv(rgba);
+#endif
+
 }
 void fwglColor3d(double r, double g, double b)
 {
+#ifdef IPHONE
+printf ("fwglColor3d called\n");
+#else
 	if(usingAnaglyph2())
 	{
 		double gray, ccc[3];
@@ -161,6 +185,8 @@ void fwglColor3d(double r, double g, double b)
 	}
 	else
 		glColor3d(r,g,b);
+#endif
+
 }
 void fwglColor3f(float r, float g, float b)
 {

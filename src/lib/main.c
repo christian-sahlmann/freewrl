@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.41 2010/12/21 21:18:50 crc_canada Exp $
+  $Id: main.c,v 1.42 2011/02/11 18:46:25 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -218,6 +218,14 @@ bool initFreeWRL(freewrl_params_t *params)
 
 	if (getenv("FREEWRL_NO_VBOS") != NULL) global_use_VBOs = FALSE; 
 	else if (getenv("FREEWRL_USE_VBOS") != NULL) global_use_VBOs = TRUE;
+
+	if (global_use_VBOs) {
+		printf ("Env: trying VBOs enabled.\n");
+/*
+	} else {
+		printf ("Env: not using VBOs \n");
+*/
+	}
 
 	if (global_use_VBOs) {
 		TRACE_MSG("Env: trying VBOs enabled.\n");

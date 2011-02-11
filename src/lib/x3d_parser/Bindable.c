@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.47 2011/01/14 17:30:36 crc_canada Exp $
+$Id: Bindable.c,v 1.48 2011/02/11 18:46:25 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -499,6 +499,7 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 }
 
 void render_Fog (struct X3D_Fog *node) {
+	#ifndef IPHONE /* this should be handled in material shader */
 	GLDOUBLE mod[16];
 	GLDOUBLE proj[16];
 	GLDOUBLE x,y,z;
@@ -573,6 +574,7 @@ void render_Fog (struct X3D_Fog *node) {
 	fog_enabled = TRUE;
 
 	FW_GL_POP_MATRIX();
+	#endif */ IPHONE this should be handled in material shader */
 }
 
 
@@ -615,7 +617,6 @@ static void moveBackgroundCentre () {
 	GLDOUBLE sx, sy, sz;
 
 	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);  */
-	FW_GL_SHADEMODEL(GL_SMOOTH);
 	FW_GL_PUSH_MATRIX();
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
@@ -884,8 +885,10 @@ void render_Background (struct X3D_Background *node) {
 	/* don't even bother going further if this node is not bound on the top */
 	if(!node->isBound) return;
 
+	#ifndef IPHONE
 	/* is fog enabled? if so, disable it right now */
 	if (fog_enabled ==TRUE) FW_GL_DISABLE (GL_FOG);
+	#endif
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
@@ -900,17 +903,18 @@ void render_Background (struct X3D_Background *node) {
 
 	#ifdef SHADERS_2011
 	chooseShader(backgroundSphereShader);
-        glDisableClientState(GL_COLOR_ARRAY);
-        glDisableClientState(GL_EDGE_FLAG_ARRAY);
-        glDisableClientState(GL_INDEX_ARRAY);
-glDisableClientState(GL_NORMAL_ARRAY);
-        glDisableClientState(GL_FOG_COORD_ARRAY);
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+        FW_GL_DISABLECLIENTSTATE(GL_EDGE_FLAG_ARRAY);
+        FW_GL_DISABLECLIENTSTATE(GL_INDEX_ARRAY);
+	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
+	
+        /* FW_GL_DISABLECLIENTSTATE(GL_FOG_COORD_ARRAY); */
+        FW_GL_DISABLECLIENTSTATE(GL_VERTEX_ARRAY);
+        FW_GL_DISABLECLIENTSTATE(GL_SECONDARY_COLOR_ARRAY);
+        FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
 
-                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
-                FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+                FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 	#endif
 
 	/* now, display the lists */
@@ -922,8 +926,8 @@ glDisableClientState(GL_NORMAL_ARRAY);
 	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
 
                /* turn off */
-                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
-                FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+                FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 
 	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
@@ -963,8 +967,10 @@ glDisableClientState(GL_NORMAL_ARRAY);
 	}
 	FW_GL_POP_MATRIX();
 
+	#ifndef IPHONE
 	/* is fog enabled? if so, disable it right now */
 	if (fog_enabled ==TRUE) FW_GL_ENABLE (GL_FOG);
+	#endif
 
 }
 
@@ -984,7 +990,9 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	if(!node->isBound) return;
 
 	/* is fog enabled? if so, disable it right now */
+	#ifndef IPHONE
 	if (fog_enabled ==TRUE) FW_GL_DISABLE (GL_FOG);
+	#endif
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
@@ -1040,6 +1048,8 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	/* pushes are done in moveBackgroundCentre */
 	FW_GL_POP_MATRIX();
 
+	#ifndef IPHONE
 	/* is fog enabled? if so, disable it right now */
 	if (fog_enabled ==TRUE) FW_GL_ENABLE (GL_FOG);
+	#endif
 }

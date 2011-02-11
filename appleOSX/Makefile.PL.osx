@@ -131,7 +131,9 @@ print OUT "#include <sys/stat.h>\n";
 print OUT "#include <sys/time.h>\n";
 print OUT "#include <dirent.h>\n";
 print OUT "#include <fcntl.h>\n";
+print OUT "#ifndef IPHONE\n";
 print OUT "#include <expat.h>\n";
+print OUT "#endif\n";
 print OUT "#include <internal.h>\n";
 print OUT "#define HAVE_STDINT_H 1\n";
 print OUT "#define HAVE_STDBOOL_H 1\n";
@@ -206,8 +208,8 @@ sub writeMakefileInitialize() {
 	print MK "CC = gcc\n";
 	print MK "JAVAC = javac\n";
 	print MK "INC = $MYINC\n";
-	print MK "DEFINE = $noStackProtector -DSHADERS_2011 $MYDEFINE\n";
-	#print MK "DEFINE = $noStackProtector $MYDEFINE\n";
+	#print MK "DEFINE = $noStackProtector -DSHADERS_2011 $MYDEFINE\n";
+	print MK "DEFINE = $noStackProtector $MYDEFINE\n";
 
 	print MK "FWFLAGS = -V 4.0.1 -c -Wall -O2 -g -pipe -fno-strict-aliasing -fPIC\n";
 	print MK "MYLIBS = $MYLIBS\n";

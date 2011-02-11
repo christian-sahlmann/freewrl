@@ -19,14 +19,14 @@ FREEWRL_CCFLAGS => '-arch '.
 
 ############################################################################
 # Main defines for OpenGL, freetype
-    FREEWRL_LIBS => '-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
+    FREEWRL_LIBS => '-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/usr/lib '.
 		'-L/FreeWRL/expat-2.0.0 '.
 		'-L/usr/local/lib '.
-		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks/OpenGLES.framework '.
+		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/System/Library/Frameworks/OpenGLES.framework '.
 		'-lSystem '.
 		'-lexpat '.
 		'-lfreetype '.
-		' -F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks -framework OpenGLES ',
+		' -F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/System/Library/Frameworks -framework OpenGLES ',
 
     # when building on Leopard 10.5, keep the version at 10.4 - see:
     # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
@@ -34,20 +34,23 @@ FREEWRL_CCFLAGS => '-arch '.
 
     # can also add -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC to display malloc issues.
 
-    FREEWRL_DEFINE => ' -DHAVE_STDARG_H -DHAVE_ERRNO_H  -DHAVE_GETTIMEOFDAY -DXP_UNIX -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DIPHONE -DAQUA -fno-common -arch armv6 -miphoneos-version-min=2.2  -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk',
+    FREEWRL_DEFINE => ' -DHAVE_CTYPE_H -DHAVE_SYS_TYPES_H -DHAVE_UNISTD_H -DHAVE_MATH_H -DHAVE_STDARG_H -DHAVE_ERRNO_H  -DHAVE_GETTIMEOFDAY -DXP_UNIX -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DSHADERS_2011 -DIPHONE -DAQUA -fno-common -arch armv6 -miphoneos-version-min=2.2  -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk',
 
-    FREEWRL_INC => '-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/include '.
-		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/include/sys '.
-		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks/OpenGLES.framework/Headers '.
-		'-I/usr/local/include/freetype2 '.
-		'-I/usr/local/include/freetype2/freetype '.
-		'-I/usr/local/include '.
-		'-I/opt/local/include '.
-		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib/gcc/arm-apple-darwin9/4.2.1/include '.
-		'-I/Xcode3.1.4/Platforms/iPhoneOS.platform/Developer/usr/lib/gcc/arm-apple-darwin9/4.0.1/include '.
+    FREEWRL_INC => 
+		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/usr/include '.
+		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/System/Library/Frameworks/OpenGLES.framework/Headers '.
+		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/usr/lib/gcc/arm-apple-darwin10/4.2.1/include '.
                 '-I/FreeWRL/freewrl/freewrl/JS/js1.8/src '.
                 '-I/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		' ',
+# old lines from the FREEWRL_INC
+#		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/usr/include/sys '.
+#		'-I/usr/local/include/freetype2 '.
+#		'-I/usr/local/include/freetype2/freetype '.
+#		'-I/usr/local/include '.
+#		'-I/opt/local/include '.
+#		'-I/Xcode3.1.4/Platforms/iPhoneOS.platform/Developer/usr/lib/gcc/arm-apple-darwin10/4.2.1/include '.
+
 
 ############################################################################
 # Netscape installation
@@ -65,22 +68,22 @@ FREEWRL_CCFLAGS => '-arch '.
 	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
 		'-L/FreeWRL/expat-2.0.0 '.
-		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
-		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks '. 
+		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/usr/lib '.
+		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/System/Library/Frameworks '. 
 		'-framework OpenGLES '.
 		'-arch armv6 '.
 		'-miphoneos-version-min=2.2 '.
-		'-isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk '.
+		'-isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk '.
                 '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ ',
 
 	LDFLAGS2 => '-flat_namespace '.
 		'-undefined error '.
 		'-bundle '.
 		'-L/FreeWRL/expat-2.0.0 '.
-		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/usr/lib '.
-		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk/System/Library/Frameworks '.
+		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/usr/lib '.
+		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/System/Library/Frameworks '.
                 '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
-		'-isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.2.sdk '.
+		'-isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk '.
 		'-arch armv6 '.
 		'-framework OpenGLES ',
 );

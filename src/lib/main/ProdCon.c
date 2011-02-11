@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.74 2010/12/07 18:27:50 crc_canada Exp $
+  $Id: ProdCon.c,v 1.75 2011/02/11 18:46:25 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -87,6 +87,10 @@ void *setFogBindInRender = NULL;
 void *setBackgroundBindInRender = NULL;
 void *setNavigationBindInRender = NULL;
 char *givenInitialViewpoint = NULL;
+
+/* make up a new parser for parsing from createVrmlFromURL and createVrmlFromString */
+struct VRMLParser* savedParser;
+
 
 /*
    ==============================================

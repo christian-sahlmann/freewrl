@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.59 2010/12/07 18:27:50 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.60 2011/02/11 18:46:25 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -26,6 +26,8 @@
 ****************************************************************************/
 
 
+/* IPHONE - bypass textures for now */
+#ifndef IPHONE
 
 #include <config.h>
 #include <system.h>
@@ -717,3 +719,4 @@ void _textureThread()
 }
 
 
+#endif /* IPHONE */

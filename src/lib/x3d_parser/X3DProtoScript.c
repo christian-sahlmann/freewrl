@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.64 2010/12/07 18:27:50 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.65 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -1967,8 +1967,10 @@ void endScriptProtoField()
 			//		script_addField(myObj,sdecl);
 		   //if (fieldNodeParsingState[curProtoInsStackInd].myObj->ShaderScriptNode->_nodeType==NODE_Script) 
 		   if(fieldNodeParsingStateB[parentIndex].myObj_num > -1)
+			   #ifdef HAVE_JAVASCRIPT
 			   scriptFieldDecl_jsFieldInit(fieldNodeParsingStateB[parentIndex].mfnodeSdecl, fieldNodeParsingStateB[parentIndex].myObj->num);
-			//scriptFieldDecl_jsFieldInit(fieldNodeParsingState[curProtoInsStackInd].mfnodeSdecl, fieldNodeParsingState[curProtoInsStackInd].myObj_num);
+			   #endif
+
 			/* clean up holder for next time */
 			X3D_GROUP(fieldNodeParsingStateB[parentIndex].fieldHolder)->children.n = 0;
 		}
@@ -1983,6 +1985,7 @@ void endScriptProtoField()
 }
 
 
+#ifdef HAVE_JAVASCRIPT
 /* we get script text from a number of sources; from the URL field, from CDATA, from a file
    pointed to by the URL field, etc... handle the data in one place */
 
@@ -2037,6 +2040,7 @@ void initScriptWithScript() {
 	printf ("endElement: got END of script - script should be registered\n");
 	#endif
 }
+#endif /* HAVE_JAVASCRIPT */
 
 void addToProtoCode(const char *name) {
         if (CPD.fileOpen) 

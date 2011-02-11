@@ -6,7 +6,7 @@
  *
  * Program system dependencies.
  *
- * $Id: system.h,v 1.10 2009/10/05 15:07:23 crc_canada Exp $
+ * $Id: system.h,v 1.11 2011/02/11 18:46:25 crc_canada Exp $
  *
  *******************************************************************/
 
@@ -33,7 +33,6 @@
 
 #ifndef __FREEWRL_SYSTEM_H__
 #define __FREEWRL_SYSTEM_H__
-
 
 #if HAVE_STDINT_H
 # include <stdint.h>
@@ -75,7 +74,9 @@ typedef unsigned char _Bool;
 #define FALSE 0
 
 #if HAVE_UNISTD_H
-# include <sys/types.h>
+# if HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+# endif
 # include <unistd.h>
 #endif
 

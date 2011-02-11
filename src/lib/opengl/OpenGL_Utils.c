@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.171 2011/01/20 14:38:28 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.172 2011/02/11 18:46:25 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -90,9 +90,9 @@ static struct X3D_Node *forgottenNode;
 static void killNode (int index);
 #endif
 
-static void mesa_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ, double *m);
-static void fw_glLoadMatrixd(double *val);
-static void mesa_Ortho(double left, double right, double bottom, double top, double nearZ, double farZ, double *m);
+static void mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
+static void fw_glLoadMatrixd(GLDOUBLE *val);
+static void mesa_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 
 /* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 int displayDepth = 24;
@@ -187,6 +187,8 @@ static char * readInputString(char *fn) {
 #endif
 #undef MAXREADSIZE
 
+
+#ifdef SHADERS_2011
 static void shaderErrorLog(GLuint myShader, char *which) {
         #ifdef GL_VERSION_2_0
 #define MAX_INFO_LOG_SIZE 512
@@ -224,119 +226,243 @@ static char *backgroundTextureBoxShaderVertex =
 			"	v_texC =fw_TexCoords;" \
 			"}";
 
+static char *oneTexFragmentShader = " \
+	varying vec2 v_texC; \
+	uniform sampler2D s_tex; \
+	void main () { \
+		gl_FragColor = texture2D(s_tex, v_texC); \
+	}";
+
 
 /* Vertex Shaders */
 
-static char *vertexShaderForSphereGeomShader = " \
-varying vec3 Norm; \
-varying vec4 Pos; \
-attribute      vec4 fw_Vertex; \
-uniform        mat4 fw_ModelViewMatrix; \
-uniform        mat4 fw_ProjectionMatrix; \
-void main(void) { \
-	/* just pass these through - the geom shader will calculate */ \
-	/* and transform as it creates new vertices */ \
-	Pos = fw_Vertex;  \
-	gl_Position = fw_Vertex; \
-}";
+static char *noTexVertexShaderForSphereGeomShader = " \
+	attribute      vec4 fw_Vertex; \
+	uniform        mat4 fw_ModelViewMatrix; \
+	uniform        mat4 fw_ProjectionMatrix; \
+	void main(void) { \
+		/* just pass these through - the geom shader will calculate */ \
+		/* and transform as it creates new vertices */ \
+		gl_Position = fw_Vertex; \
+	}";
+
+static char *oneTexVertexShaderForSphereGeomShader = " \
+	attribute      vec4 fw_Vertex; \
+	uniform        mat4 fw_ModelViewMatrix; \
+	uniform        mat4 fw_ProjectionMatrix; \
+        \
+        attribute vec2 fw_TexCoords; \
+        varying        vec2 v_texCIn; /* goes to v_texCin[3] */ \
+        \
+	void main(void) { \
+		/* just pass these through - the geom shader will calculate */ \
+		/* and transform as it creates new vertices */ \
+		gl_Position = fw_Vertex; \
+               v_texCIn =fw_TexCoords; \
+	}";
 
 /* vertex shader - phong lighting */
 static char *phongSimpleVertexShader = " \
-varying vec3 Norm; \
-varying vec4 Pos; \
-attribute      vec4 fw_Vertex; \
-attribute      vec3 fw_Normal; \
-uniform        mat4 fw_ModelViewMatrix; \
-uniform        mat4 fw_ProjectionMatrix; \
-uniform        mat3 fw_NormalMatrix; \
-void main(void) { \
-       Norm = normalize(fw_NormalMatrix * fw_Normal); \
-       Pos = fw_ModelViewMatrix * fw_Vertex;  \
-       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
-}";
+	varying vec3 Norm; \
+	varying vec4 Pos; \
+	attribute      vec4 fw_Vertex; \
+	attribute      vec3 fw_Normal; \
+	uniform        mat4 fw_ModelViewMatrix; \
+	uniform        mat4 fw_ProjectionMatrix; \
+	uniform        mat3 fw_NormalMatrix; \
+	void main(void) { \
+	       Norm = normalize(fw_NormalMatrix * fw_Normal); \
+	       Pos = fw_ModelViewMatrix * fw_Vertex;  \
+	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+	}";
+
+static char *oneTexVertexShader = " \
+        varying vec3 Norm; \
+        varying vec4 Pos; \
+        attribute      vec4 fw_Vertex; \
+        attribute      vec3 fw_Normal; \
+        uniform        mat4 fw_ModelViewMatrix; \
+        uniform        mat4 fw_ProjectionMatrix; \
+        uniform        mat3 fw_NormalMatrix; \
+        \
+        attribute vec2 fw_TexCoords; \
+        varying        vec2 v_texC; \
+        \
+        void main(void) { \
+               Norm = normalize(fw_NormalMatrix * fw_Normal); \
+               Pos = fw_ModelViewMatrix * fw_Vertex;  \
+               gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+               v_texC =fw_TexCoords; \
+        }";
 
 
 
 /* Geometry Shaders */
 
-static const char *sphereGeomShader = 
-"#version 120\n " \
-"#extension GL_EXT_gpu_shader4: enable\n " \
-"#extension GL_EXT_geometry_shader4: enable\n " \
-"\n " \
-"uniform int Level;\n " \
-"\n " \
-"varying float LightIntensity;\n " \
-"varying vec3 Norm; \n " \
-"varying vec4 Pos; \n " \
-"uniform		mat4 fw_ModelViewMatrix;" \
-"uniform		mat4 fw_ProjectionMatrix;" \
-"uniform		mat3 fw_NormalMatrix; "\
-"uniform		float sphereRadius; " \
-"uniform		int sphereLayers; " \
-"\n " \
-"vec3 V0, V01, V02;\n " \
-"\n " \
-"void\n " \
-"ProduceVertex( float s, float t )\n " \
-"{\n " \
-"	const vec3 lightPos = vec3( 0., 10., 0. );\n " \
-"\n " \
-"	vec3 v = V0 + s*V01 + t*V02;\n " \
-"	v = normalize(v);\n " \
-"	vec3 n = v;\n " \
-"	Norm = normalize( fw_NormalMatrix * n );	\n " \
-"\n " \
-"	vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\n " \
-"\n " \
-"	gl_Position = fw_ProjectionMatrix * ECposition;\n " \
-"	Pos = ECposition;\n " \
-"	EmitVertex();\n " \
-"}\n " \
-" \n " \
-"void\n " \
-"main()\n " \
-"{ \n " \
-"	V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\n " \
-"	V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\n " \
-"	V0  =   gl_PositionIn[0].xyz;\n " \
-"\n " \
-"	int numLayers = sphereLayers;  \n " \
-"\n " \
-"	float dt = 1. / float( numLayers );\n " \
-"\n " \
-"	float t_top = 1.;\n " \
-"\n " \
-"	for( int it = 0; it < numLayers; it++ )\n " \
-"	{\n " \
-"		float t_bot = t_top - dt;\n " \
-"		float smax_top = 1. - t_top;\n " \
-"		float smax_bot = 1. - t_bot;\n " \
-"\n " \
-"		int nums = it + 1;\n " \
-"		float ds_top = smax_top / float( nums - 1 );\n " \
-"		float ds_bot = smax_bot / float( nums );\n " \
-"\n " \
-"		float s_top = 0.;\n " \
-"		float s_bot = 0.;\n " \
-"\n " \
-"		for( int is = 0; is < nums; is++ )\n " \
-"		{\n " \
-"			ProduceVertex( s_bot, t_bot );\n " \
-"			ProduceVertex( s_top, t_top );\n " \
-"			s_top += ds_top;\n " \
-"			s_bot += ds_bot;\n " \
-"		}\n " \
-"\n " \
-"		ProduceVertex( s_bot, t_bot );\n " \
-"		EndPrimitive();\n " \
-"\n " \
-"		t_top = t_bot;\n " \
-"		t_bot -= dt;\n " \
-"	} \n " \
-" }\n ";
+static const char *noTexSphereGeomShader = " \
+#version 120\n \
+#extension GL_EXT_gpu_shader4: enable\n \
+#extension GL_EXT_geometry_shader4: enable\n \
+	\
+	int numLayers;\
+	\
+	varying float LightIntensity;\
+	varying vec3 Norm; \
+	varying vec4 Pos; \
+	uniform		mat4 fw_ModelViewMatrix; \
+	uniform		mat4 fw_ProjectionMatrix; \
+	uniform		mat3 fw_NormalMatrix; \
+	uniform		float sphereRadius; \
+	\
+	vec3 V0, V01, V02;\
+	\
+	void ProduceVertex( float s, float t ) {\
+		const vec3 lightPos = vec3( 0., 10., 0. );\
+		\
+		vec3 v = V0 + s*V01 + t*V02;\
+		v = normalize(v);\
+		vec3 n = v;\
+		Norm = normalize( fw_NormalMatrix * n );	\
+		\
+		vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\
+		\
+		gl_Position = fw_ProjectionMatrix * ECposition;\
+		Pos = ECposition;\
+		EmitVertex();\
+	}\
+	 \
+	void main() { \
+		V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\
+		V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\
+		V0  =   gl_PositionIn[0].xyz;\
+		\
+		/* trying random scaling to perform LOD */ \
+		vec4 distFromViewer = fw_ProjectionMatrix * fw_ModelViewMatrix * vec4 (0., 0., 0., 1.); \
+		float dist = distFromViewer.z * sphereRadius; \
+		if (dist < 20) { numLayers=6; } else { \
+			if (dist < 70) {numLayers=4;} else { \
+				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \ 
+			} \
+		} \
+		float dt = 1. / float( numLayers );\
+		\
+		float t_top = 1.;\
+		\
+		for( int it = 0; it < numLayers; it++ ) {\
+			float t_bot = t_top - dt;\
+			float smax_top = 1. - t_top;\
+			float smax_bot = 1. - t_bot;\
+			\
+			int nums = it + 1;\
+			float ds_top = smax_top / float( nums - 1 );\
+			float ds_bot = smax_bot / float( nums );\
+			\
+			float s_top = 0.;\
+			float s_bot = 0.;\
+			\
+			for( int is = 0; is < nums; is++ ) {\
+				ProduceVertex( s_bot, t_bot );\
+				ProduceVertex( s_top, t_top );\
+				s_top += ds_top;\
+				s_bot += ds_bot;\
+			}\
+			\
+			ProduceVertex( s_bot, t_bot );\
+			EndPrimitive();\
+			\
+			t_top = t_bot;\
+			t_bot -= dt;\
+		} \
+	 }";
 
+
+/* simple texture shader for Sphere Geometry Shader */
+static const char *oneTexSphereGeomShader = " \
+#version 120\n \
+#extension GL_EXT_gpu_shader4: enable\n \
+#extension GL_EXT_geometry_shader4: enable\n \
+	\
+	int numLayers;\
+	\
+	varying float LightIntensity;\
+	varying vec3 Norm; \
+	varying vec4 Pos; \
+	uniform		mat4 fw_ModelViewMatrix; \
+	uniform		mat4 fw_ProjectionMatrix; \
+	uniform		mat3 fw_NormalMatrix; \
+	uniform		float sphereRadius; \
+	varying in vec2 v_texCIn[3]; /* texture coordinates in */ \
+	varying out vec2 v_texC;  /* texture coordinates out */ \
+	\
+	vec3 V0, V01, V02;\
+	vec2 T0, T01, T02; \
+	\
+	void ProduceVertex( float s, float t ) {\
+		const vec3 lightPos = vec3( 0., 10., 0. );\
+		\
+		vec3 v = V0 + s*V01 + t*V02;\
+		v = normalize(v);\
+		vec3 n = v;\
+		Norm = normalize( fw_NormalMatrix * n );	\
+		\
+		vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\
+		\
+		gl_Position = fw_ProjectionMatrix * ECposition;\
+		Pos = ECposition;\
+		v_texC = T0; \
+		EmitVertex();\
+	}\
+	 \
+	void main() { \
+		V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\
+		V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\
+		V0  =   gl_PositionIn[0].xyz;\
+		T0 = v_texCIn[0]; \
+		T01 = v_texCIn[1]; \
+		T02 = v_texCIn[2];  \
+		\
+		/* trying random scaling to perform LOD */ \
+		vec4 distFromViewer = fw_ModelViewMatrix * vec4 (0., 0., 0., 1.); \
+		distFromViewer = fw_ProjectionMatrix * distFromViewer; \
+		float dist = distFromViewer.z * sphereRadius; \
+		if (dist < 20) { numLayers=6; } else { \
+			if (dist < 70) {numLayers=4;} else { \
+				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \ 
+			} \
+		} \
+		float dt = 1. / float( numLayers );\
+		\
+		float t_top = 1.;\
+		\
+		for( int it = 0; it < numLayers; it++ ) {\
+			float t_bot = t_top - dt;\
+			float smax_top = 1. - t_top;\
+			float smax_bot = 1. - t_bot;\
+			\
+			int nums = it + 1;\
+			float ds_top = smax_top / float( nums - 1 );\
+			float ds_bot = smax_bot / float( nums );\
+			\
+			float s_top = 0.;\
+			float s_bot = 0.;\
+			\
+			for( int is = 0; is < nums; is++ ) {\
+				ProduceVertex( s_bot, t_bot );\
+				ProduceVertex( s_top, t_top );\
+				s_top += ds_top;\
+				s_bot += ds_bot;\
+			}\
+			\
+			ProduceVertex( s_bot, t_bot );\
+			EndPrimitive();\
+			\
+			t_top = t_bot;\
+			t_bot -= dt;\
+		} \
+	 }";
 /* Fragment Shaders */
+
+
 
 static const char *phongFragmentShader =  " \
 #version 120 \n  \
@@ -366,6 +492,10 @@ vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
 	vec4 ambient = vec4(0., 0., 0., 0.); \
 	vec4 specular = vec4(0., 0., 0., 1.); \
  \
+	vec3 norm = normalize (myNormal); \
+	vec3 viewv = -normalize(myPosition.xyz); \
+	vec4 emissive = fw_FrontMaterial.emission; \
+\
 	/* apply the lights to this material */ \
 	for (i=0; i<8; i++) { \
 		if (lightState[i] == 1) { \
@@ -375,9 +505,7 @@ vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
 		vec4 myLightPosition = gl_LightSource[i].position; \
   \
 		/* normal, light, view, and light reflection vectors */ \
-		vec3 norm = normalize (myNormal); \
 		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
-		vec3 viewv = -normalize(myPosition.xyz); \
 		vec3 refl = reflect (-lightv, norm); \
  \
 		/* diffuse light computation */ \
@@ -393,7 +521,7 @@ vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
 		} \
 		} \
 	} \
-	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0); \
+	return clamp(vec3(ambient+diffuse+specular+emissive), 0.0, 1.0); \
 } \
 void main () { \
 	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
@@ -427,7 +555,20 @@ vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
 	vec4 diffuse = vec4(0., 0., 0., 0.); \
 	vec4 ambient = vec4(0., 0., 0., 0.); \
 	vec4 specular = vec4(0., 0., 0., 1.); \
+	vec3 viewv = -normalize(myPosition.xyz); \
+	vec3 norm = normalize (myNormal); \
+	vec4 emissive; \
+\
+	bool backFacing = (dot(norm,viewv) < 0.0); \
  \
+	/* back Facing materials - flip the normal */ \
+	if (backFacing) { \
+		norm = -norm; \
+		emissive = fw_BackMaterial.emission;	\
+	} else { \
+		emissive = fw_FrontMaterial.emission;	\
+	} \
+\
 	/* apply the lights to this material */ \
 	for (i=0; i<8; i++) { \
 		if (lightState[i] == 1) { \
@@ -437,25 +578,38 @@ vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
 		vec4 myLightPosition = gl_LightSource[i].position; \
   \
 		/* normal, light, view, and light reflection vectors */ \
-		vec3 norm = normalize (myNormal); \
 		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
-		vec3 viewv = -normalize(myPosition.xyz); \
 		vec3 refl = reflect (-lightv, norm); \
  \
-		/* diffuse light computation */ \
-		diffuse += max (0.0, dot(lightv, norm))*fw_FrontMaterial.diffuse*myLightDiffuse; \
+		if (backFacing) { \
+			/* diffuse light computation */ \
+			diffuse += max (0.0, dot(lightv, norm))*fw_BackMaterial.diffuse*myLightDiffuse; \
  \
-		/* ambient light computation */ \
-		ambient += fw_FrontMaterial.ambient*myLightAmbient; \
+			/* ambient light computation */ \
+			ambient += fw_BackMaterial.ambient*myLightAmbient; \
  \
-		/* Specular light computation */ \
-		if (dot(lightv, viewv) > 0.0) { \
-			specular += pow(max(0.0, dot(viewv, refl)), \
-				fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
+			/* Specular light computation */ \
+			if (dot(lightv, viewv) > 0.0) { \
+				specular += pow(max(0.0, dot(viewv, refl)), \
+					fw_FrontMaterial.shininess)*fw_BackMaterial.specular*myLightSpecular; \
+			} \
+		} else { \
+ \
+			/* diffuse light computation */ \
+			diffuse += max (0.0, dot(lightv, norm))*fw_FrontMaterial.diffuse*myLightDiffuse; \
+ \
+			/* ambient light computation */ \
+			ambient += fw_FrontMaterial.ambient*myLightAmbient; \
+ \
+			/* Specular light computation */ \
+			if (dot(lightv, viewv) > 0.0) { \
+				specular += pow(max(0.0, dot(viewv, refl)), \
+					fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
+			} \
 		} \
 		} \
 	} \
-	return clamp(vec3(ambient+diffuse+specular), 0.0, 1.0); \
+	return clamp(vec3(ambient+diffuse+specular+emissive), 0.0, 1.0); \
 } \
 void main () { \
 	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
@@ -465,13 +619,13 @@ void main () { \
 static char *noAppearanceNoMaterialFragmentShader =
 " void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}";
 
-static char *noAppearanceNoMaterialVertexShader =
-	"attribute      vec4 fw_Vertex;" \
-	"uniform        mat4 fw_ModelViewMatrix;" \
-	"uniform        mat4 fw_ProjectionMatrix;" \
-	"void main(void) {" \
-	"       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-	"}";
+static char *noAppearanceNoMaterialVertexShader = " \
+	attribute      vec4 fw_Vertex; \
+	uniform        mat4 fw_ModelViewMatrix; \
+	uniform        mat4 fw_ProjectionMatrix; \
+	void main(void) { \
+	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+	}";
 
 
 static int getGenericShaderSource (char **vertexSource, char **fragmentSource, char **geometrySource, shader_type_t whichOne) {
@@ -497,7 +651,8 @@ static int getGenericShaderSource (char **vertexSource, char **fragmentSource, c
 			break;
 		}
 
-		case genericFullFeaturedShader: {
+		/* generic polyreps */
+		case noTexOneMaterialShader: {
 			*fragmentSource = phongFragmentShader;
                 	*vertexSource = phongSimpleVertexShader;
 			break;
@@ -507,33 +662,65 @@ static int getGenericShaderSource (char **vertexSource, char **fragmentSource, c
 			*vertexSource = noAppearanceNoMaterialVertexShader;
 			break;
 		}
-		case twoMaterialGenericShader : {
+		case noTexTwoMaterialShader : {
 			*fragmentSource = phongTwoSidedFragmentShader;
                 	*vertexSource = phongSimpleVertexShader;
 			break;
 		}
 
+		case oneTexOneMaterialShader: {
+			*fragmentSource = oneTexFragmentShader;
+                	*vertexSource = oneTexVertexShader;
+			break;
+		}
+
+		/* still to be written */
+		case oneTexTwoMaterialShader:
+		case oneTexTwoMaterialSphereShader: {
+			printf ("warning! shader still to be written at %s:%d\n",__FILE__,__LINE__);
+			return FALSE;
+			break;
+		}
 
 
+
+
+		/* Sphere Geometry shader */
 		case noMaterialNoAppearanceSphereShader: {
 			*fragmentSource = noAppearanceNoMaterialFragmentShader;
-                	*vertexSource = vertexShaderForSphereGeomShader;
-			*geometrySource = sphereGeomShader;
+                	*vertexSource = noTexVertexShaderForSphereGeomShader;
+			*geometrySource = noTexSphereGeomShader;
 			break;
 		}
 
-		case genericFullFeaturedSphereShader: {
+		case noTexOneMaterialSphereShader: {
 			*fragmentSource = phongFragmentShader;
-                	*vertexSource = vertexShaderForSphereGeomShader;
-			*geometrySource = sphereGeomShader;
+                	*vertexSource = noTexVertexShaderForSphereGeomShader;
+			*geometrySource = noTexSphereGeomShader;
 			break;
 		}
 
 
-        	case twoMaterialSphereShader: {
+        	case noTexTwoMaterialSphereShader: {
 			*fragmentSource = phongTwoSidedFragmentShader;
-                	*vertexSource = vertexShaderForSphereGeomShader;
-			*geometrySource = sphereGeomShader;
+                	*vertexSource = noTexVertexShaderForSphereGeomShader;
+			*geometrySource = noTexSphereGeomShader;
+			break;
+		}
+		case oneTexOneMaterialSphereShader: {
+			*fragmentSource = oneTexFragmentShader;
+                	*vertexSource = oneTexVertexShaderForSphereGeomShader;
+			*geometrySource = oneTexSphereGeomShader;
+			break;
+		}
+
+		/* still to be written */
+		case complexTexOneMaterialShader:
+		case complexTexTwoMaterialShader:
+		case complexTexOneMaterialSphereShader:
+		case complexTexTwoMaterialSphereShader: {
+			printf ("warning! shader still to be written at %s:%d\n",__FILE__,__LINE__);
+			return FALSE;
 			break;
 		}
 
@@ -554,16 +741,17 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
 #define DEBUG
 	#ifdef DEBUG
-	printf ("getShaderCommonInterfaces, I am program %d\n",myProg);
 	{
 	GLsizei count;
 	GLuint shaders[10];
 	GLint  xxx[10];
 	int i;
 	GLchar sl[3000];
+/*
+
+	printf ("getShaderCommonInterfaces, I am program %d\n",myProg);
 
 	if (glIsProgram(myProg)) printf ("getShaderCommonInterfaces, %d is a program\n",myProg); else printf ("hmmm - it is not a program!\n");
-/*
 	glGetAttachedShaders(myProg,10,&count,shaders);
 	printf ("got %d attached shaders, they are: \n",count);
 	for (i=0; i<count; i++) {
@@ -574,10 +762,13 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 		printf ("len %d\n",len);
 		printf ("sl: %s\n",sl);
 	}
-*/
+	glGetProgramiv(myProg,GL_INFO_LOG_LENGTH, xxx); printf ("GL_INFO_LOG_LENGTH_STATUS %d\n",xxx[0]);
 	glGetProgramiv(myProg,GL_LINK_STATUS, xxx); printf ("GL_LINK_STATUS %d\n",xxx[0]);
 	glGetProgramiv(myProg,GL_VALIDATE_STATUS, xxx); printf ("GL_VALIDATE_STATUS %d\n",xxx[0]);
-	glGetProgramiv(myProg,GL_INFO_LOG_LENGTH, xxx); printf ("GL_INFO_LOG_LENGTH_STATUS %d\n",xxx[0]);
+	glGetProgramiv(myProg,GL_ACTIVE_ATTRIBUTES, xxx); printf ("GL_ACTIVE_ATTRIBUTES %d\n",xxx[0]);
+	glGetProgramiv(myProg,GL_ACTIVE_UNIFORMS, xxx); printf ("GL_ACTIVE_UNIFORMS %d\n",xxx[0]);
+*/
+	glGetProgramiv(myProg,GL_INFO_LOG_LENGTH, xxx);
 	if (xxx[0] != 0) {
 		#define MAX_INFO_LOG_SIZE 512
                 GLchar infoLog[MAX_INFO_LOG_SIZE];
@@ -586,8 +777,6 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
 
 	}
-	glGetProgramiv(myProg,GL_ACTIVE_ATTRIBUTES, xxx); printf ("GL_ACTIVE_ATTRIBUTES %d\n",xxx[0]);
-	glGetProgramiv(myProg,GL_ACTIVE_UNIFORMS, xxx); printf ("GL_ACTIVE_UNIFORMS %d\n",xxx[0]);
 	}
 	#endif /* DEBUG */
 #undef DEBUG
@@ -598,6 +787,13 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->myMaterialShininess = GET_UNIFORM(myProg,"fw_FrontMaterial.shininess");
 	me->myMaterialAmbient = GET_UNIFORM(myProg,"fw_FrontMaterial.ambient");
 	me->myMaterialSpecular = GET_UNIFORM(myProg,"fw_FrontMaterial.specular");
+
+	me->myMaterialBackEmission = GET_UNIFORM(myProg,"fw_BackMaterial.emission");
+	me->myMaterialBackDiffuse = GET_UNIFORM(myProg,"fw_BackMaterial.diffuse");
+	me->myMaterialBackShininess = GET_UNIFORM(myProg,"fw_BackMaterial.shininess");
+	me->myMaterialBackAmbient = GET_UNIFORM(myProg,"fw_BackMaterial.ambient");
+	me->myMaterialBackSpecular = GET_UNIFORM(myProg,"fw_BackMaterial.specular");
+
 	me->lightState = GET_UNIFORM(myProg,"lightState");
 	me->lightAmbient = GET_UNIFORM(myProg,"lightAmbient");
 	me->lightDiffuse = GET_UNIFORM(myProg,"lightDiffuse");
@@ -614,15 +810,11 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
 	/* for Sphere geometry shader */
 	me->specialUniform1 = GET_UNIFORM(myProg,"sphereRadius");
-	me->specialUniform2 = GET_UNIFORM(myProg,"sphereLayers");
-	printf ("shader specialUniform1 %d\n",me->specialUniform1);
 
-#define DEBUG
 	#ifdef DEBUG
 	printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
 		me->Vertices, me->Normals, me->ModelViewMatrix, me->ProjectionMatrix); 
 	#endif
-#undef DEBUG
 }
 
 
@@ -640,6 +832,26 @@ static void getGenericShader(shader_type_t whichOne) {
 	char  *fragmentSource;
 	char *geometrySource;
 
+printf ("compiling shader: ");
+switch (whichOne) {
+case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
+case backgroundTextureBoxShader: printf ("backgroundTextureBoxShader\n"); break;
+case noTexOneMaterialShader: printf ("noTexOneMaterialShader\n"); break;
+case noMaterialNoAppearanceShader: printf ("noMaterialNoAppearanceShader\n"); break;
+case noTexTwoMaterialShader: printf ("noTexTwoMaterialShader\n"); break;
+case noMaterialNoAppearanceSphereShader: printf ("noMaterialNoAppearanceSphereShader\n"); break;
+case noTexOneMaterialSphereShader: printf ("noTexOneMaterialSphereShader\n"); break;
+case noTexTwoMaterialSphereShader: printf ("noTexTwoMaterialSphereShader\n"); break;
+case oneTexOneMaterialShader: printf ("oneTexOneMaterialShader\n"); break;
+case oneTexTwoMaterialShader: printf ("oneTexTwoMaterialShader\n"); break;
+case oneTexOneMaterialSphereShader: printf ("oneTexOneMaterialSphereShader\n"); break;
+case oneTexTwoMaterialSphereShader: printf ("oneTexTwoMaterialSphereShader\n"); break;
+case complexTexOneMaterialShader: printf ("complexTexOneMaterialShader\n"); break;
+case complexTexTwoMaterialShader: printf ("complexTexTwoMaterialShader\n"); break;
+case complexTexOneMaterialSphereShader: printf ("complexTexOneMaterialSphereShader\n"); break;
+case complexTexTwoMaterialSphereShader: printf ("complexTexTwoMaterialSphereShader\n"); break;
+}
+
 	/* pointerize this */
 	myShader = &rdr_caps.backgroundShaderArrays[whichOne];
 	(*myShader).myShaderProgram = CREATE_PROGRAM;
@@ -649,6 +861,7 @@ static void getGenericShader(shader_type_t whichOne) {
 
 	/* geometryShader */
 	if (geometrySource != NULL) {
+#ifndef IPHONE
 		myGeometryShader = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
 		SHADER_SOURCE(myGeometryShader, 1, (const GLchar **) &geometrySource, NULL);
 		COMPILE_SHADER(myGeometryShader);
@@ -659,15 +872,18 @@ static void getGenericShader(shader_type_t whichOne) {
 			GLint n;
 
 	                glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &n);
-        	        printf ("compile_geomshader, geom shader max vertices at start %d\n",n);
+        	        /* printf ("compile_geomshader, geom shader max vertices at start %d\n",n); */
                 	glGetIntegerv(GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS_EXT, &n);
-                	printf ("compile_geomshader, geom total output components at start %d\n",n);
+                	/* printf ("compile_geomshader, geom total output components at start %d\n",n); */
 
                 	glProgramParameteriEXT (myProg,GL_GEOMETRY_INPUT_TYPE_EXT,GL_TRIANGLES);
                 	glProgramParameteriEXT (myProg, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLE_STRIP);
                 	glProgramParameteriEXT (myProg, GL_GEOMETRY_VERTICES_OUT_EXT, 1024);
 			ATTACH_SHADER(myProg, myGeometryShader);
 		}
+#else
+printf ("HMMM - IPHONE and Geometry shader\n");
+#endif
 	}
 
 
@@ -699,10 +915,11 @@ static void getGenericShader(shader_type_t whichOne) {
 	getShaderCommonInterfaces(myShader);
 }
 
+#endif /* ifdef SHADERS_2011 */
 
 static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 	int oldInRange;
-	double cx,cy,cz;
+	GLDOUBLE cx,cy,cz;
 
 	/* find the length of the line between the moved center and our current viewer position */
 	cx = Viewer.currentPosInModel.x - node->__movedCoords.c[0];
@@ -834,8 +1051,8 @@ void drawBBOX(struct X3D_Node *node) {
 
 static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	struct point_XYZ bboxPoints[8];
-	double cfp = DBL_MIN;
-	double cnp = DBL_MAX;
+	GLDOUBLE cfp = DBL_MIN;
+	GLDOUBLE cnp = DBL_MAX;
 	GLDOUBLE MM[16];
 
 	int ci;
@@ -1013,21 +1230,32 @@ bool initialize_GL()
 
 
 	/* for rendering Polyreps, and other shapes without Geometry and other special shaders */
-        getGenericShader(genericFullFeaturedShader);
         getGenericShader(noMaterialNoAppearanceShader);
-	getGenericShader(twoMaterialGenericShader);
+        getGenericShader(noTexOneMaterialShader);
+	getGenericShader(noTexTwoMaterialShader);
+	getGenericShader(oneTexOneMaterialShader);
+	getGenericShader(oneTexTwoMaterialShader);
+	getGenericShader(complexTexOneMaterialShader);
+	getGenericShader(complexTexTwoMaterialShader);
 
 
 
 	/* nodes with Geometry Shaders */
-        getGenericShader(genericFullFeaturedSphereShader);
         getGenericShader(noMaterialNoAppearanceSphereShader);
-	getGenericShader(twoMaterialSphereShader);
+        getGenericShader(noTexOneMaterialSphereShader);
+	getGenericShader(noTexTwoMaterialSphereShader);
+	getGenericShader(oneTexOneMaterialSphereShader);
+	getGenericShader(oneTexTwoMaterialSphereShader);
+	getGenericShader(complexTexOneMaterialSphereShader);
+	getGenericShader(complexTexTwoMaterialSphereShader);
 
 	#endif /* SHADERS_2011 */
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
+	#ifndef SHADERS_2011
 	FW_GL_CLEAR_DEPTH(1.0);
+	#endif
+
 	FW_GL_CLEAR_COLOR((float)0.0, (float)0.0, (float)1.0, (float)0.0);
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 	FW_GL_LOAD_IDENTITY();
@@ -1037,15 +1265,21 @@ bool initialize_GL()
         FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
+	
+	#ifndef SHADERS_2011
 	FW_GL_SHADEMODEL(GL_SMOOTH);
-	FW_GL_DEPTHFUNC(GL_LEQUAL);
-	//FW_GL_DEPTHFUNC(GL_LESS);
-	FW_GL_ENABLE(GL_DEPTH_TEST);
-	FW_GL_LINEWIDTH(gl_linewidth);
-	FW_GL_POINTSIZE(gl_linewidth);
-
 	FW_GL_HINT(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
 	FW_GL_ENABLE (GL_RESCALE_NORMAL);
+	#endif
+
+	FW_GL_DEPTHFUNC(GL_LEQUAL);
+	FW_GL_ENABLE(GL_DEPTH_TEST);
+	
+	#ifndef IPHONE
+	FW_GL_LINEWIDTH(gl_linewidth);
+	FW_GL_POINTSIZE(gl_linewidth);
+	#endif
+
 
 	/*
      * JAS - ALPHA testing for textures - right now we just use 0/1 alpha
@@ -1064,10 +1298,10 @@ bool initialize_GL()
 
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
 
+	#ifndef SHADERS_2011
 	FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-
-
 	FW_GL_ENABLE(GL_NORMALIZE);
+	#endif
 
 	/* for textured appearance add specular highlights as a separate secondary color
 	   redbook p.270, p.455 and http://www.gamedev.net/reference/programming/features/oglch9excerpt/
@@ -1113,7 +1347,7 @@ void BackEndLightsOff() {
 #define MAX_LARGE_MATRIX_STACK 32	/* depth of stacks */
 #define MAX_SMALL_MATRIX_STACK 2	/* depth of stacks */
 #define MATRIX_SIZE 16		/* 4 x 4 matrix */
-typedef double MATRIX4[MATRIX_SIZE];
+typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
 
 static MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
 static MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
@@ -1124,7 +1358,7 @@ static int projectionviewTOS = 0;
 static int textureviewTOS = 0;
 
 static int whichMode = GL_MODELVIEW;
-static double *currentMatrix = FW_ModelView[0];
+static GLDOUBLE *currentMatrix = FW_ModelView[0];
 
 
 void fw_glMatrixMode(GLint mode) {
@@ -1140,11 +1374,14 @@ void fw_glMatrixMode(GLint mode) {
 	}
 	#endif
 	
+	#ifndef IPHONE
 	glMatrixMode(mode); /* JAS - tell OpenGL what the current matrix mode is */
+	#endif
+
 	switch (whichMode) {
-		case GL_PROJECTION: currentMatrix = (double *) &FW_ProjectionView[projectionviewTOS]; break;
-		case GL_MODELVIEW: currentMatrix = (double *) &FW_ModelView[modelviewTOS]; break;
-		case GL_TEXTURE: currentMatrix = (double *) &FW_TextureView[textureviewTOS]; break;
+		case GL_PROJECTION: currentMatrix = (GLDOUBLE *) &FW_ProjectionView[projectionviewTOS]; break;
+		case GL_MODELVIEW: currentMatrix = (GLDOUBLE *) &FW_ModelView[modelviewTOS]; break;
+		case GL_TEXTURE: currentMatrix = (GLDOUBLE *) &FW_TextureView[textureviewTOS]; break;
 		default: printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",whichMode, GL_PROJECTION,GL_MODELVIEW,GL_TEXTURE);
 	}
 
@@ -1156,7 +1393,7 @@ void fw_glLoadIdentity(void) {
 }
 
 #define PUSHMAT(a,b,c,d) case a: b++; if (b>=c) {b=c-1; printf ("stack overflow, whichmode %d\n",whichMode); } \
-		memcpy ((void *)d[b], (void *)d[b-1],sizeof(double)*16); currentMatrix = d[b]; break;
+		memcpy ((void *)d[b], (void *)d[b-1],sizeof(GLDOUBLE)*16); currentMatrix = d[b]; break;
 
 void fw_glPushMatrix(void) {
 	switch (whichMode) {
@@ -1187,7 +1424,7 @@ void fw_glPopMatrix(void) {
 #undef POPMAT
 
 
-void fw_glTranslated(double x, double y, double z) {
+void fw_glTranslated(GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	//printf ("fw_glTranslated %lf %lf %lf\n",x,y,z);
 	//printf ("translated, currentMatrix %p\n",currentMatrix);
 
@@ -1210,9 +1447,9 @@ void fw_glTranslatef(float x, float y, float z) {
 }
 
 /* perform rotation, assuming that the angle is in radians. */
-void fw_glRotateRad (double angle, double x, double y, double z) {
+void fw_glRotateRad (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	MATRIX4 myMat;
-	double mag;
+	GLDOUBLE mag;
 
 	//printf ("fw_glRotateRad %lf %lf %lf %lf modTOS %d projTOS %d\n",angle,x,y,z,modelviewTOS,projectionviewTOS);
 	//printmatrix2(currentMatrix,"in rad");
@@ -1251,10 +1488,10 @@ void fw_glRotateRad (double angle, double x, double y, double z) {
 }
 
 /* perform the rotation, assuming that the angle is in degrees */
-void fw_glRotated (double angle, double x, double y, double z) {
+void fw_glRotated (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	MATRIX4 myMat;
-	double mag;
-	double radAng;
+	GLDOUBLE mag;
+	GLDOUBLE radAng;
 
 	/* convert angle from degrees to radians */
 	/* FIXME - must try and make up a rotate-radians call to get rid of these incessant conversions */
@@ -1294,10 +1531,10 @@ void fw_glRotated (double angle, double x, double y, double z) {
 }
 
 void fw_glRotatef (float a, float x, float y, float z) {
-	fw_glRotated((double)a, (double)x, (double)y, (double)z);
+	fw_glRotated((GLDOUBLE)a, (GLDOUBLE)x, (GLDOUBLE)y, (GLDOUBLE)z);
 }
 
-void fw_glScaled (double x, double y, double z) {
+void fw_glScaled (GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 
 //	printf ("glScaled(%5.4lf %5.4lf %5.4lf)\n",x,y,z);
 
@@ -1322,8 +1559,8 @@ void fw_glScalef (float x, float y, float z) {
 }
 
 
-void fw_glGetDoublev (int ty, double *mat) {
-	double *dp;
+void fw_glGetDoublev (int ty, GLDOUBLE *mat) {
+	GLDOUBLE *dp;
 /*
 	switch (ty) {
 		case GL_PROJECTION_MATRIX: printf ("getDoublev(GL_PROJECTION_MATRIX)\n"); break;
@@ -1343,7 +1580,7 @@ void fw_glGetDoublev (int ty, double *mat) {
 		printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",ty,GL_PROJECTION_MATRIX,GL_MODELVIEW_MATRIX,GL_TEXTURE_MATRIX);
 			return;}
 	}
-	memcpy((void *)mat, (void *) dp, sizeof (double) * MATRIX_SIZE);
+	memcpy((void *)mat, (void *) dp, sizeof (GLDOUBLE) * MATRIX_SIZE);
 }
 
 
@@ -1428,7 +1665,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 */
 	
 	/* free scripts */
+	#ifdef HAVE_JAVASCRIPT
 	kill_javascript();
+	#endif
 
 
 	/* free EAI */
@@ -2634,22 +2873,24 @@ void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd)
 { printf  ("called fw_iphone_somethingPointer\n");}
 #endif
 
-static void fw_glLoadMatrixd(double *val) {
+static void fw_glLoadMatrixd(GLDOUBLE *val) {
 	/* printf ("loading matrix...\n"); */
+	#ifndef IPHONE
 	glLoadMatrixd(val);
+	#endif
 }
 
 void sendMatriciesToShader(s_shader_capabilities_t *me) {
 	float spval[16];
 	int i;
 	float *sp; 
-	double *dp;
+	GLDOUBLE *dp;
 
 	/* ModelView first */
 	dp = FW_ModelView[modelviewTOS];
 	sp = spval;
 
-	/* convert double to float */
+	/* convert GLDOUBLE to float */
 	for (i=0; i<16; i++) {
 		*sp = (float) *dp; 	
 		sp ++; dp ++;
@@ -2660,7 +2901,7 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 	sp = spval;
 	dp = FW_ProjectionView[projectionviewTOS];
 
-	/* convert double to float */
+	/* convert GLDOUBLE to float */
 	for (i=0; i<16; i++) {
 		*sp = (float) *dp; 	
 		sp ++; dp ++;
@@ -2671,12 +2912,12 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper
                                		  leftmost 3x3 of gl_ModelViewMatrix */
 	if (me->NormalMatrix != -1) {
-		double inverseMV[16];
-		double transInverseMV[16];
-		double MV[16];
+		GLDOUBLE inverseMV[16];
+		GLDOUBLE transInverseMV[16];
+		GLDOUBLE MV[16];
 		float normMat[9];
 		dp = FW_ModelView[modelviewTOS];
-		memcpy(MV,dp,sizeof(double)*16);
+		memcpy(MV,dp,sizeof(GLDOUBLE)*16);
 
 		matinverse (inverseMV,MV);
 		mattranspose(transInverseMV,inverseMV);
@@ -2701,7 +2942,7 @@ void sendMaterialsToShader(s_shader_capabilities_t *me) {
 	float spval[16];
 	int i;
 	float *sp; 
-	double *dp;
+	GLDOUBLE *dp;
 
 	/* go through all of the Uniforms for this shader */
 
@@ -2718,6 +2959,12 @@ void sendMaterialsToShader(s_shader_capabilities_t *me) {
 	SEND_VEC4(myMaterialEmission,appearanceProperties.fw_FrontMaterial.emission);
 	SEND_FLOAT(myMaterialShininess,appearanceProperties.fw_FrontMaterial.shininess);
 
+	SEND_VEC4(myMaterialBackAmbient,appearanceProperties.fw_BackMaterial.ambient);
+	SEND_VEC4(myMaterialBackDiffuse,appearanceProperties.fw_BackMaterial.diffuse);
+	SEND_VEC4(myMaterialBackSpecular,appearanceProperties.fw_BackMaterial.specular);
+	SEND_VEC4(myMaterialBackEmission,appearanceProperties.fw_BackMaterial.emission);
+	SEND_FLOAT(myMaterialBackShininess,appearanceProperties.fw_BackMaterial.shininess);
+
 	if (me->lightState != -1) {
 		/* for debugging:
 			int i;
@@ -2728,8 +2975,8 @@ void sendMaterialsToShader(s_shader_capabilities_t *me) {
 	}
 }
 
-static void __gluMultMatrixVecd(const GLdouble matrix[16], const GLdouble in[4],
-                      GLdouble out[4])
+static void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4],
+                      GLDOUBLE out[4])
 {
     int i;
 
@@ -2744,14 +2991,14 @@ static void __gluMultMatrixVecd(const GLdouble matrix[16], const GLdouble in[4],
 
 
 void fw_gluProject
-(GLdouble objx, GLdouble objy, GLdouble objz, 
-	      const GLdouble modelMatrix[16], 
-	      const GLdouble projMatrix[16],
+(GLDOUBLE objx, GLDOUBLE objy, GLDOUBLE objz, 
+	      const GLDOUBLE modelMatrix[16], 
+	      const GLDOUBLE projMatrix[16],
               const GLint viewport[4],
-	      GLdouble *winx, GLdouble *winy, GLdouble *winz)
+	      GLDOUBLE *winx, GLDOUBLE *winy, GLDOUBLE *winz)
 {
-    double in[4];
-    double out[4];
+    GLDOUBLE in[4];
+    GLDOUBLE out[4];
 
     in[0]=objx;
     in[1]=objy;
@@ -2777,8 +3024,8 @@ void fw_gluProject
     *winz=in[2];
 }
 
-static void __gluMultMatricesd(const GLdouble a[16], const GLdouble b[16],
-                                GLdouble r[16])
+static void __gluMultMatricesd(const GLDOUBLE a[16], const GLDOUBLE b[16],
+                                GLDOUBLE r[16])
 {
     int i, j;
 
@@ -2798,9 +3045,9 @@ static void __gluMultMatricesd(const GLdouble a[16], const GLdouble b[16],
 ** Invert 4x4 matrix.
 ** Contributed by David Moore (See Mesa bug #6748)
 */
-static int __gluInvertMatrixd(const GLdouble m[16], GLdouble invOut[16])
+static int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16])
 {
-    double inv[16], det;
+    GLDOUBLE inv[16], det;
     int i;
 
     inv[0] =   m[5]*m[10]*m[15] - m[5]*m[11]*m[14] - m[9]*m[6]*m[15]
@@ -2850,15 +3097,15 @@ static int __gluInvertMatrixd(const GLdouble m[16], GLdouble invOut[16])
 
 
 
-void fw_gluUnProject(GLdouble winx, GLdouble winy, GLdouble winz,
-		const GLdouble modelMatrix[16], 
-		const GLdouble projMatrix[16],
+void fw_gluUnProject(GLDOUBLE winx, GLDOUBLE winy, GLDOUBLE winz,
+		const GLDOUBLE modelMatrix[16], 
+		const GLDOUBLE projMatrix[16],
                 const GLint viewport[4],
-	        GLdouble *objx, GLdouble *objy, GLdouble *objz)
+	        GLDOUBLE *objx, GLDOUBLE *objy, GLDOUBLE *objz)
 {
-    double finalMatrix[16];
-    double in[4];
-    double out[4];
+    GLDOUBLE finalMatrix[16];
+    GLDOUBLE in[4];
+    GLDOUBLE out[4];
 
     __gluMultMatricesd(modelMatrix, projMatrix, finalMatrix);
     if (!__gluInvertMatrixd(finalMatrix, finalMatrix)) return;
@@ -2888,7 +3135,7 @@ void fw_gluUnProject(GLdouble winx, GLdouble winy, GLdouble winz,
 }
 
 
-void fw_Ortho (double left, double right, double bottom, double top, double nearZ, double farZ) {
+void fw_Ortho (GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ) {
 	GLDOUBLE *dp;
 
 	/* do the glOrtho on the top of the stack, and send that along */
@@ -2953,16 +3200,16 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 	#ifdef TRY_PERSPECTIVE_METHOD_1
 	  	FW_GL_LOADMATRIXD(ndp);
 		/* put the matrix back on our matrix stack */
-		memcpy (FW_ProjectionView[projectionviewTOS],ndp,16*sizeof (GLdouble));
+		memcpy (FW_ProjectionView[projectionviewTOS],ndp,16*sizeof (GLDOUBLE));
 	#endif
 
 
 	#ifdef TRY_PERSPECTIVE_METHOD_2
 /* testing... */
 {
-	GLdouble m[16];
-    double sine, cotangent, deltaZ;
-    double radians = fovy / 2.0 * M_PI / 180.0;
+	GLDOUBLE m[16];
+    GLDOUBLE sine, cotangent, deltaZ;
+    GLDOUBLE radians = fovy / 2.0 * M_PI / 180.0;
 
     deltaZ = zFar - zNear;
     sine = sin(radians);
@@ -2990,7 +3237,7 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 
 	#ifdef TRY_PERSPECTIVE_METHOD_3
 	{
-	double yyy[16];
+	GLDOUBLE yyy[16];
 //printf ("fw_gluPerspective, have...\n");
 
 	if(method==3)
@@ -3039,15 +3286,15 @@ void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height,
  */
 
 static void
-mesa_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ, double *m)
+mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m)
 {
  /* http://www.songho.ca/opengl/gl_projectionmatrix.html shows derivation*/
-   double x = (2.0*nearZ) / (right-left);
-   double y = (2.0*nearZ) / (top-bottom);
-   double a = (right+left) / (right-left);
-   double b = (top+bottom) / (top-bottom);
-   double c = -(farZ+nearZ) / ( farZ-nearZ);
-   double d = -(2.0F*farZ*nearZ) / (farZ-nearZ);
+   GLDOUBLE x = (2.0*nearZ) / (right-left);
+   GLDOUBLE y = (2.0*nearZ) / (top-bottom);
+   GLDOUBLE a = (right+left) / (right-left);
+   GLDOUBLE b = (top+bottom) / (top-bottom);
+   GLDOUBLE c = -(farZ+nearZ) / ( farZ-nearZ);
+   GLDOUBLE d = -(2.0F*farZ*nearZ) / (farZ-nearZ);
 
 	/* printf ("mesa_Frustum (%lf, %lf, %lf, %lf, %lf, %lf)\n",left,right,bottom,top,nearZ, farZ); */
 #define M(row,col)  m[col*4+row]
@@ -3084,7 +3331,7 @@ mesa_Frustum(double left, double right, double bottom, double top, double nearZ,
  * Build a glOrtho marix.
  */
 static void
-mesa_Ortho(double left, double right, double bottom, double top, double nearZ, double farZ, double *m)
+mesa_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m)
 {
 #define M(row,col)  m[col*4+row]
    M(0,0) = 2.0F / (right-left);

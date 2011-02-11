@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.39 2010/10/26 13:40:04 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.40 2011/02/11 18:46:25 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -36,6 +36,7 @@
 #include <list.h>
 #include <io_files.h>
 #include <resources.h>
+#include <signal.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

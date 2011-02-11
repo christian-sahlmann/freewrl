@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.30 2011/01/08 18:30:57 dug9 Exp $
+$Id: jsUtils.c,v 1.31 2011/02/11 18:46:25 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -27,7 +27,7 @@ which is the sample application included with the javascript engine.
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -1614,3 +1614,5 @@ JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval 
 	#endif
 	return JS_TRUE;
 }
+
+#endif /* HAVE_JAVASCRIPT */

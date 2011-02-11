@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.77 2010/12/07 18:27:50 crc_canada Exp $
+$Id: X3DParser.c,v 1.78 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -26,7 +26,8 @@ $Id: X3DParser.c,v 1.77 2010/12/07 18:27:50 crc_canada Exp $
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+/* skip XML parsing for now */
+#ifndef IPHONE
 
 #include <config.h>
 #include <system.h>
@@ -1261,6 +1262,7 @@ static void saveAttributes(int myNodeType, const char *name, const char** atts) 
         parentStack[parentIndex] = thisNode;
 
 	if (myNodeType == NODE_Script) {
+		#ifdef HAVE_JAVASCRIPT
 		struct Shader_Script *myObj;
 
 		/* create the Shader_Script for this one */
@@ -1273,6 +1275,10 @@ static void saveAttributes(int myNodeType, const char *name, const char** atts) 
 
 		myObj = X3D_SCRIPT(thisNode)->__scriptObj;
 		JSInit(myObj->num);
+		#else
+
+			ConsoleMessage ("Javascript not supported\n");
+		#endif
 	} else if (myNodeType == NODE_ComposedShader) {
 		X3D_COMPOSEDSHADER(thisNode)->__shaderObj=new_Shader_Script(thisNode);
 	} else if (myNodeType == NODE_ShaderProgram) {
@@ -1689,7 +1695,9 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		/* printf ("endElement - normalNode :%s:\n",name); */
 		switch (myNodeIndex) {
+			#ifdef HAVE_JAVASCRIPT
 			case NODE_Script: initScriptWithScript(); break;
+			#endif /* HAVE_JAVASCRIPT */
 			default: linkNodeIn(__FILE__,__LINE__);
 		}
 		parseAttributes();
@@ -1830,3 +1838,4 @@ int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
 	return TRUE;
 }
 
+#endif /* IPHONE */

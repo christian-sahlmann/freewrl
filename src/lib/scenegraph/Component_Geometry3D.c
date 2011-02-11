@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.56 2011/01/20 14:38:28 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.57 2011/02/11 18:46:25 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -187,7 +187,7 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 		int indx = 0;
 
 		if (node->__cylinderVBO == 0) {
-			glGenBuffersARB(1,(GLuint*) &node->__cylinderVBO);
+			glGenBuffers(1,(GLuint*) &node->__cylinderVBO);
 		}
 
 		/* we create two triangle fans - the cone, and the bottom. */
@@ -368,10 +368,10 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 		node->__cylinderTriangles = indx;
 
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, node->__cylinderVBO);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct MyVertex)*indx, cylVert, GL_STATIC_DRAW_ARB);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__cylinderVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(struct MyVertex)*indx, cylVert, GL_STATIC_DRAW);
 
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 
 	} else {
 		/*  MALLOC memory (if possible)*/
@@ -413,7 +413,6 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	float r = node->radius;
 	struct textureVertexInfo mtf = {cylsidetex,2,GL_FLOAT,0,NULL};
 
-
 	if ((h < 0) || (r < 0)) {return;}
 
 	/* for BoundingBox calculations */
@@ -443,10 +442,11 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,node->__cylinderTriangles);
 
 		/* turn off */
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
-		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	} else {
+#ifndef IPHONE
 		/*  Display the shape*/
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 	
@@ -479,6 +479,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 			trisThisLoop += CYLDIV+2;
 		}
+#endif /* IPHONE - the above uses GL_QUAD_STRIPs */
 	}
 	textureDraw_end();
 }
@@ -509,7 +510,7 @@ void compile_Cone (struct X3D_Cone *node) {
 		int indx = 0;
 
 		if (node->__coneVBO == 0) {
-			glGenBuffersARB(1,(GLuint *) &node->__coneVBO);
+			glGenBuffers(1,(GLuint *) &node->__coneVBO);
 		}
 
 		/* we create two triangle fans - the cone, and the bottom. */
@@ -609,10 +610,10 @@ void compile_Cone (struct X3D_Cone *node) {
 
 		node->__coneTriangles = indx;
 
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, (GLuint) node->__coneVBO);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(struct MyVertex)*indx, coneVert, GL_STATIC_DRAW_ARB);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->__coneVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(struct MyVertex)*indx, coneVert, GL_STATIC_DRAW);
 
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 
 		/* no longer needed */
 		FREE_IF_NZ(node->__botpoints.p);
@@ -722,9 +723,12 @@ void render_Cone (struct X3D_Cone *node) {
 		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,node->__coneTriangles);
 
 		/* turn off */
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
-		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 	} else {
+#ifdef IPHONE
+printf ("iphone, not vbos ignoring\n");
+#else
 		if(node->bottom) {
 			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__botpoints.p);
@@ -747,6 +751,7 @@ void render_Cone (struct X3D_Cone *node) {
 			trisThisLoop += 60;
 		}
 
+#endif
 	}
 
 	textureDraw_end();
@@ -764,19 +769,6 @@ void render_Cone (struct X3D_Cone *node) {
 
 #ifdef SHADERS_2011
 
-/* as outlined by Bailey, the top was drawn incorrectly. here are the original vertices:
-const GLfloat origsphTri[] = {
- 0.0F,  0.0F,   1.0F,    1.0F,  0.0F,   0.0F,   0.0F,   1.0F,  0.0F, 
- 1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,   1.0F,  0.0F,  
- 0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,   1.0F,  0.0F, 
--1.0F,  0.0F,   0.0F,    0.0F,  0.0F,   1.0F,   0.0F,   1.0F,  0.0F, 
- 0.0F,  0.0F,   1.0F,    1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
- 1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,  -1.0F,  0.0F, 
- 0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
--1.0F,  0.0F,   0.0F,    0.0F,  0.0F,   1.0F,   0.0F,  -1.0F,  0.0F,  
-};
-*/
-
 const GLfloat sphTri[] = {
  0.0F,  0.0F,   1.0F,    0.0F,  1.0F,   0.0F,   1.0F,  0.0F,   0.0F, /* switched 2 and 3 */
  1.0F,  0.0F,   0.0F,    0.0F,  1.0F,   0.0F,   0.0F,  0.0F,  -1.0F, /* switched 2 and 3 */  
@@ -788,6 +780,200 @@ const GLfloat sphTri[] = {
  1.0F,  0.0F,   0.0F,    0.0F,  0.0F,  -1.0F,   0.0F,  -1.0F,  0.0F, 
  0.0F,  0.0F,  -1.0F,   -1.0F,  0.0F,   0.0F,   0.0F,  -1.0F,  0.0F, 
 -1.0F,  0.0F,   0.0F,    0.0F,  0.0F,   1.0F,   0.0F,  -1.0F,  0.0F,  
+};
+
+const GLfloat sphTex[] = {
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+0.0f, 0.0f,
+0.1f, 0.1f,
+0.2f, 0.2f,
+0.3f, 0.3f,
+0.4f, 0.4f,
+0.5f, 0.5f,
+0.6f, 0.6f,
+0.7f, 0.7f,
+0.8f, 0.8f,
+0.9f, 0.9f,
+
 };
 
 void compile_Sphere (struct X3D_Sphere *node) {
@@ -805,14 +991,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 
 void render_Sphere (struct X3D_Sphere *node) {
-	/*  make the divisions 20; dont change this, because statics.c values*/
-	/*  will then need recaculating.*/
-	int myLev = 1;
-	
-	extern GLfloat spherenorms[];		/*  side normals*/
-	extern float spheretex[];		/*  in CFuncs/statics.c*/
-
-	struct textureVertexInfo mtf = {spheretex,2,GL_FLOAT,0,NULL};
+	struct textureVertexInfo mtf = {sphTex,2,GL_FLOAT,0,NULL};
 
 	float rad = node->radius;
 	int count;
@@ -826,15 +1005,8 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 	CULL_FACE(node->solid)
 
-	/* determine how many levels to generate */
-	if (BrowserFPS < 20.0) myLev = 1;
-	else if (BrowserFPS < 30) myLev = 2;
-	else if (BrowserFPS < 50) myLev = 5;
-	else myLev = 10;
-
 	/* send in the radius, Charlie! */
 	GLUNIFORM1F(appearanceProperties.currentShaderProperties->specialUniform1,rad);
-	GLUNIFORM1I(appearanceProperties.currentShaderProperties->specialUniform2,myLev);
 
 
 	/* vertices */
@@ -843,12 +1015,15 @@ void render_Sphere (struct X3D_Sphere *node) {
 	FW_GL_VERTEX_POINTER(3, GL_FLOAT, 0,0);   //The starting point of the VBO, for the vertices
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+	textureDraw_start(NULL,&mtf);
+
 	FW_GL_DRAWARRAYS (GL_TRIANGLES,0,24);
 
 	/* turn things back to normal settings */
 	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,0);
+	textureDraw_end();
 
 }
 
@@ -974,7 +1149,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 
 		FREE_IF_NZ(SphVBO);
-                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
+                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 
 	} else {
 		for(v=0; v<SPHDIV; v++) {
@@ -1048,9 +1223,10 @@ void render_Sphere (struct X3D_Sphere *node) {
 		FW_GL_DRAWELEMENTS (GL_TRIANGLES, TRISINSPHERE, GL_UNSIGNED_SHORT, (int *)BUFFER_OFFSET(0));   //The starting point of the IBO
 
 		/* turn off */
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
-		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 	} else {
+#ifndef IPHONE
 		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 		FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);
@@ -1061,6 +1237,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
 			trisThisLoop += (SPHDIV+1) * 4;
 		}
+#endif /* IPHONE - the above uses GL_QUAD_STRIP */
 	}
 
 	textureDraw_end();
@@ -1465,6 +1642,7 @@ DEBUGGING_CODE		pts[2] = collisionSphere.pts[collisionSphere.tris[i][2]];
 DEBUGGING_CODE		FW_GL_BEGIN(GL_TRIANGLES);
 DEBUGGING_CODE		for(j=0;j<3;j++)
 DEBUGGING_CODE			FW_GL_VERTEX3D(pts[j].x*radius,pts[j].y*radius,pts[j].z*radius);
+DEBUGGING_CODE#define FW_GL_END() glEnd()
 DEBUGGING_CODE		FW_GL_END();
 DEBUGGING_CODE	}
 DEBUGGING_CODE	return 0;
@@ -1713,8 +1891,8 @@ void collide_Box (struct X3D_Box *node) {
 				double shapeMBBmin[3],shapeMBBmax[3];
 				for(i=0;i<3;i++)
 				{
-					shapeMBBmin[i] = min(-(node->size).c[i]*.5,(node->size).c[i]*.5);
-					shapeMBBmax[i] = max(-(node->size).c[i]*.5,(node->size).c[i]*.5);
+					shapeMBBmin[i] = DOUBLE_MIN(-(node->size).c[i]*.5,(node->size).c[i]*.5);
+					shapeMBBmax[i] = DOUBLE_MAX(-(node->size).c[i]*.5,(node->size).c[i]*.5);
 				}
 
 				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, shapeMBBmin,shapeMBBmax)) return;

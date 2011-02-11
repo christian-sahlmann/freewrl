@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.34 2010/09/24 20:22:05 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.35 2011/02/11 18:46:25 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -25,7 +25,7 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -3860,3 +3860,4 @@ SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	}
 	return JS_TRUE;
 }
+#endif /* HAVE_JAVASCRIPT */

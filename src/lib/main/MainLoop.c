@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.157 2011/01/20 14:38:28 crc_canada Exp $
+  $Id: MainLoop.c,v 1.158 2011/02/11 18:46:25 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -336,7 +336,10 @@ void EventLoop() {
 #ifdef _MSC_VER
 		if(doEvents)
 #endif
+
+	#ifdef HAVE_JAVASCRIPT
         INITIALIZE_ANY_SCRIPTS;
+	#endif
 
 
         /* BrowserAction required? eg, anchors, etc */
@@ -1180,7 +1183,7 @@ static void get_collisionoffset(double *x, double *y, double *z)
 				double floatfactor = .1;
 				if(FallInfo.allowClimbing) floatfactor = 0.0; /*popcycle method */
 				if(FallInfo.smoothStep)
-					xyz.y = max(FallInfo.hfall,-FallInfo.fallStep) + naviinfo.height*floatfactor; 
+					xyz.y = DOUBLE_MAX(FallInfo.hfall,-FallInfo.fallStep) + naviinfo.height*floatfactor; 
 				else
 					xyz.y = FallInfo.hfall + naviinfo.height*floatfactor; //.1; 
 				if(FallInfo.verticalOnly)
@@ -1193,7 +1196,7 @@ static void get_collisionoffset(double *x, double *y, double *z)
 			{
 				/* stepping up normally handled by cyclindrical collision, but there are settings to use this climb instead */
 				if(FallInfo.smoothStep)
-					xyz.y = min(FallInfo.hclimb,FallInfo.fallStep);
+					xyz.y = DOUBLE_MIN(FallInfo.hclimb,FallInfo.fallStep);
 				else
 					xyz.y = FallInfo.hclimb; 
 				if(FallInfo.verticalOnly)
@@ -1297,12 +1300,12 @@ static void render_collisions() {
 			{
 				/* precompute MBB/extent etc in collision space for penetration vector */
 				struct point_XYZ pos = {0.0,0.0,0.0};
-				FallInfo.penMin[0] = min(pos.x,lastpos.x);
-				FallInfo.penMin[1] = min(pos.y,lastpos.y);
-				FallInfo.penMin[2] = min(pos.z,lastpos.z);
-				FallInfo.penMax[0] = max(pos.x,lastpos.x);
-				FallInfo.penMax[1] = max(pos.y,lastpos.y);
-				FallInfo.penMax[2] = max(pos.z,lastpos.z);
+				FallInfo.penMin[0] = DOUBLE_MIN(pos.x,lastpos.x);
+				FallInfo.penMin[1] = DOUBLE_MIN(pos.y,lastpos.y);
+				FallInfo.penMin[2] = DOUBLE_MIN(pos.z,lastpos.z);
+				FallInfo.penMax[0] = DOUBLE_MAX(pos.x,lastpos.x);
+				FallInfo.penMax[1] = DOUBLE_MAX(pos.y,lastpos.y);
+				FallInfo.penMax[2] = DOUBLE_MAX(pos.z,lastpos.z);
 				FallInfo.penRadius = plen;
 				vecnormal(&lastpos,&lastpos);
 				FallInfo.penvec = lastpos;

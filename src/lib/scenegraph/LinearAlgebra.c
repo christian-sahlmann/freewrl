@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.c,v 1.14 2010/09/10 23:01:32 dug9 Exp $
+$Id: LinearAlgebra.c,v 1.15 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -26,7 +26,7 @@ $Id: LinearAlgebra.c,v 1.14 2010/09/10 23:01:32 dug9 Exp $
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#include <math.h>
 
 #include <config.h>
 #include <system.h>

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.37 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Frustum.c,v 1.38 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -742,6 +742,8 @@ printf ("render_geom %d, render_blend %d\n",render_geom, render_blend);
 /***************************************************************************/
 
 void OcclusionStartofEventLoop() {
+
+#ifdef OCCLUSION /* do we have hardware for occlusion culling? */
 	int i;
 
 	/* each time through the event loop, we count the occluders. Note, that if, say, a 
@@ -763,6 +765,7 @@ void OcclusionStartofEventLoop() {
 			OccFailed = TRUE;
 		} else {
 	        	if (rdr_caps.av_occlusion_q) {
+		
 				#ifdef OCCLUSIONVERBOSE
 	        	        printf ("OcclusionStartofEventLoop: have OcclusionQuery\n"); 
 				#endif
@@ -830,9 +833,12 @@ void OcclusionStartofEventLoop() {
         glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, &queryCounterBits);
         printf ("queryCounterBits %d\n",queryCounterBits);
         #endif
+#endif /* OCCLUSION */
+
 }
 
 void OcclusionCulling ()  {
+#ifdef OCCLUSION /* do we have hardware for occlusion culling? */
 	int i;
 	struct X3D_Shape *shapePtr;
 	struct X3D_VisibilitySensor *visSenPtr;
@@ -987,10 +993,14 @@ void OcclusionCulling ()  {
 			}
 		}
 	}
+#endif /* OCCLUSION */
 }
 
 /* shut down the occlusion stuff */
 void zeroOcclusion(void) {
+
+#ifdef OCCLUSION /* do we have hardware for occlusion culling? */
+
 	int i;
 	if (OccFailed) return;
 
@@ -1030,4 +1040,5 @@ void zeroOcclusion(void) {
 	potentialOccluderCount = 0;
 	FREE_IF_NZ(OccQueries);
 	FREE_IF_NZ(occluderNodePointer);
+#endif /* OCCLUSION */
 }

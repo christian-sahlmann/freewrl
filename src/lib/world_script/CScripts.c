@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.44 2010/12/07 18:27:50 crc_canada Exp $
+$Id: CScripts.c,v 1.45 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -204,6 +204,7 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 
 
 
+#ifdef HAVE_JAVASCRIPT
 /* Initialize JSField */
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
 	#ifdef CPARSERVERBOSE
@@ -214,6 +215,8 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
  	SaveScriptField(num, fieldDecl_getAccessType(me->fieldDecl), 
 		fieldDecl_getType(me->fieldDecl), fieldDecl_getShaderScriptName(me->fieldDecl), me->value);
 }
+#endif
+
 
 /* ************************************************************************** */
 /* ********************************** Script ******************************** */
@@ -255,6 +258,7 @@ struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
 	ret->ShaderScriptNode = node; 	/* pointer back to the node that this is associated with */
 	ret->num = -1;
 
+	#ifdef HAVE_JAVASCRIPT
 	/* X3D XML protos do not have a node defined when parsed, Shaders and Scripts do */
 	if (node!=NULL) {
 		/* printf ("new_Shader_Script, node %s\n",stringNodeType(node->_nodeType)); */
@@ -267,6 +271,7 @@ struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
 			JSInit(ret->num);
 		}
 	}
+	#endif /* HAVE_JAVASCRIPT */
 
 	/* printf ("new_Shader_Script - num %d, Shader_Script is %u\n",ret->num,ret); */
 
@@ -337,10 +342,13 @@ void script_addField(struct Shader_Script* me, struct ScriptFieldDecl* field)
 #endif
 
 
+ #ifdef HAVE_JAVASCRIPT
  /* only do this for scripts */
  if (me->ShaderScriptNode != NULL) {
    if (me->ShaderScriptNode->_nodeType==NODE_Script) scriptFieldDecl_jsFieldInit(field, me->num);
  }
+ #endif /* HAVE_JAVASCRIPT */
+
 }
 
 /* save the script code, as found in the VRML/X3D URL for this script */

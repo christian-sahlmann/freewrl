@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: PluginSocket.c,v 1.14 2010/05/05 11:21:48 davejoubert Exp $
+$Id: PluginSocket.c,v 1.15 2011/02/11 18:46:25 crc_canada Exp $
 
 Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
@@ -40,20 +40,7 @@ Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-/* #include "../vrml_parser/CParseGeneral.h" */
-/* #include "../scenegraph/Vector.h" */
-/* #include "../vrml_parser/CFieldDecls.h" */
-/* #include "../world_script/CScripts.h" */
-/* #include "../vrml_parser/CParseParser.h" */
-/* #include "../vrml_parser/CParseLexer.h" */
-/* #include "../vrml_parser/CParse.h" */
-
-/* #include <float.h> */
-
 #include "../x3d_parser/Bindable.h"
-/* #include "../scenegraph/Collision.h" */
-/* #include "../scenegraph/quaternion.h" */
-/* #include "../scenegraph/Viewer.h" */
 
 #include "pluginUtils.h"
 #include "PluginSocket.h"

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.5 2010/08/19 02:20:36 crc_canada Exp $
+$Id: ColladaParser.c,v 1.6 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -26,6 +26,8 @@ $Id: ColladaParser.c,v 1.5 2010/08/19 02:20:36 crc_canada Exp $
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+/* IPHONE - right now do not do XML parsing */
+#ifndef IPHONE
 
 
 #include <config.h>
@@ -198,3 +200,4 @@ int ColladaParse (struct X3D_Group* myParent, const char *inputstring) {
 	return TRUE;
 }
 
+#endif /* IPHONE */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.40 2011/01/18 14:15:35 crc_canada Exp $
+$Id: Polyrep.c,v 1.41 2011/02/11 18:46:25 crc_canada Exp $
 
 ???
 
@@ -81,8 +81,8 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 	/* VBOs need this re-bound */
 	if (global_use_VBOs) {
 		if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[COLOR_VBO]);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW_ARB);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[COLOR_VBO]);
+		glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW);
 		FREE_IF_NZ(r->color);
 	}
 }
@@ -830,7 +830,11 @@ void render_polyrep(void *node) {
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
 	
 		FW_GL_ENABLE(GL_COLOR_MATERIAL);
+
+		#ifndef IPHONE
 		FW_GL_COLOR_MATERIAL(GL_FRONT_AND_BACK, GL_DIFFUSE);
+		#endif
+
 		FW_GL_COLOR4FV(diffuseColor);
 	
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
@@ -873,34 +877,34 @@ void render_polyrep(void *node) {
 	} else {
 		/*  status bar, text do not have normals*/
 		if (pr->VBO_buffers[NORMAL_VBO]!=0) {
-			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, pr->VBO_buffers[NORMAL_VBO]);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[NORMAL_VBO]);
 			FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
 		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
 	
 		/* colours? */
 		if (hasc) {
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,pr->VBO_buffers[COLOR_VBO]);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[COLOR_VBO]);
 			FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
 		}
 		/*  textures?*/
 		if (pr->VBO_buffers[TEXTURE_VBO] != 0) {
 				struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
-				FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,pr->VBO_buffers[TEXTURE_VBO]);
+				FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[TEXTURE_VBO]);
 				textureDraw_start(NULL,&mtf);
 		} else {
 			textureDraw_start(X3D_NODE(node), NULL);
 		}
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, pr->VBO_buffers[VERTEX_VBO]);
-		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB,pr->VBO_buffers[INDEX_VBO]);
-		glEnableClientState(GL_VERTEX_ARRAY); // should already be enabled
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[VERTEX_VBO]);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,pr->VBO_buffers[INDEX_VBO]);
+		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY); // should already be enabled
 
 		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
 		glDrawElements(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT,0);
 
 		/* turn VBOs off for now */
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
-		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		/*  put things back to the way they were;*/
 		if (pr->VBO_buffers[NORMAL_VBO] == 0) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);

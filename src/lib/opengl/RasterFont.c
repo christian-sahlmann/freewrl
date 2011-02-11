@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.13 2010/12/07 18:27:50 crc_canada Exp $
+  $Id: RasterFont.c,v 1.14 2011/02/11 18:46:25 crc_canada Exp $
 
 */
 
@@ -69,6 +69,9 @@ void rf_print(const char *text)
 
 void rf_printf(int x, int y, const char *format, ...)
 {
+#ifdef IPHONE
+printf ("skipping the rf_printf\n");
+#else
     va_list ap;
     char xfont_buffer[5000];
 
@@ -79,6 +82,7 @@ void rf_printf(int x, int y, const char *format, ...)
 	}
 	rf_xfont_set_color(xf_white);
     }
+
     va_start(ap, format);
     vsprintf(xfont_buffer, format, ap);
     va_end(ap);
@@ -88,11 +92,16 @@ void rf_printf(int x, int y, const char *format, ...)
     FW_GL_COLOR4FV(xf_colors[xf_color]);
 
     rf_print(xfont_buffer);
+#endif
 }
 
 void rf_layer2D()
 {
+#ifdef IPHONE
+printf ("skipping the push attrib\n");
+#else
     FW_GL_PUSH_ATTRIB(GL_ENABLE_BIT);
+#endif
     FW_GL_DISABLE(GL_DEPTH_TEST);
     FW_GL_DISABLE(GL_CULL_FACE);
     FW_GL_DISABLE(GL_LIGHTING);
@@ -113,7 +122,11 @@ void rf_layer2D()
 
 void rf_leave_layer2D()
 {
+#ifdef IPHONE
+printf ("skipping the popattribhte\n");
+#else
     FW_GL_POP_ATTRIB();
+#endif
 
     FW_GL_MATRIX_MODE(GL_PROJECTION);
     FW_GL_POP_MATRIX();

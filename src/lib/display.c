@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.61 2010/10/25 16:41:59 crc_canada Exp $
+  $Id: display.c,v 1.62 2011/02/11 18:46:25 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -281,7 +281,11 @@ bool initialize_rdr_caps()
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_SIZE, &tmp);
 		rdr_caps.max_texture_size = (int) tmp;
 
+		#ifdef IPHONE
+		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_IMAGE_UNITS, &tmp);
+		#else
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &tmp);
+		#endif
 		rdr_caps.texture_units = (int) tmp;
 	}
 

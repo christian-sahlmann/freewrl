@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.85 2011/01/20 14:38:28 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.86 2011/02/11 18:46:25 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -124,7 +124,12 @@ void restoreLightState(int *ls) {
 
 void fwglLightfv (int light, int pname, GLfloat *params) {
 	/* printf ("glLightfv %d %d %f %f %f %f\n",light,pname,params[0], params[1],params[2],params[3]);  */
+	#ifndef IPHONE
 	glLightfv(GL_LIGHT0+light,pname,params);
+	#else
+	printf ("skipping flLightV here\n");
+	#endif
+
 	switch (pname) {
 		case GL_AMBIENT:
 			memcpy ((void *)light_amb[light],(void *)params,sizeof(shaderVec4));
@@ -148,7 +153,11 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 
 void fwglLightf (int light, int pname, GLfloat param) {
 	/* printf ("glLightf %d %d %f\n",light,pname,param);  */
+	#ifndef IPHONE
 	glLightf(GL_LIGHT0+light,pname,param);
+	#else
+	printf ("skipping glLightf in fwglLightf\n");
+	#endif
 	switch (pname) {
 		case GL_CONSTANT_ATTENUATION:
 			light_constAtten[light] = param;
@@ -201,36 +210,50 @@ void chooseShader(shader_type_t requestedShader) {
 
 /* send in vertices, normals, etc, etc... to either a shader or via older opengl methods */
 void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer, char *file, int line){
-// printf ("sendAttribToGPU, appearanceProperties.currentShaderProperties %p\n",appearanceProperties.currentShaderProperties);
+#ifdef RENDERVERBOSE
+printf ("sendAttribToGPU, appearanceProperties.currentShaderProperties %p\n",appearanceProperties.currentShaderProperties);
 	if (appearanceProperties.currentShaderProperties != NULL) {
 		switch (myType) {
 			case FW_NORMAL_POINTER_TYPE:
-// printf ("glVertexAttribPointer  Normals %d at %s:%d\n",appearanceProperties.currentShaderProperties->Normals,file,line);
+				printf ("glVertexAttribPointer  Normals %d at %s:%d\n",appearanceProperties.currentShaderProperties->Normals,file,line);
+				break;
+			case FW_VERTEX_POINTER_TYPE:
+				printf ("glVertexAttribPointer  Vertexs %d at %s:%d\n",appearanceProperties.currentShaderProperties->Vertices,file,line);
+				break;
+			case FW_COLOR_POINTER_TYPE:
+				printf ("glVertexAttribPointer  Colours %d at %s:%d\n",appearanceProperties.currentShaderProperties->Colours,file,line);
+				break;
+			case FW_TEXCOORD_POINTER_TYPE:
+				printf ("glVertexAttribPointer  TexCoords %d at %s:%d\n",appearanceProperties.currentShaderProperties->TexCoords,file,line);
+				break;
+
+			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
+		}
+#endif
+
+	if (appearanceProperties.currentShaderProperties != NULL) {
+		switch (myType) {
+			case FW_NORMAL_POINTER_TYPE:
 			if (appearanceProperties.currentShaderProperties->Normals != -1) {
-// printf ("glEnableVertexAttribArray for %d\n",appearanceProperties.currentShaderProperties->Normals);
 				glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Normals);
 				glVertexAttribPointer(appearanceProperties.currentShaderProperties->Normals, 3, dataType, normalized, stride, pointer);
 			}
 				break;
 			case FW_VERTEX_POINTER_TYPE:
-// printf ("glVertexAttribPointer  Vertexs %d at %s:%d\n",appearanceProperties.currentShaderProperties->Vertices,file,line);
 			if (appearanceProperties.currentShaderProperties->Vertices != -1) {
-// printf ("glEnableVertexAttribArray for %d\n",appearanceProperties.currentShaderProperties->Normals);
 				glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Vertices);
 				glVertexAttribPointer(appearanceProperties.currentShaderProperties->Vertices, dataSize, dataType, normalized, stride, pointer);
 			}
 				break;
 			case FW_COLOR_POINTER_TYPE:
 			if (appearanceProperties.currentShaderProperties->Colours != -1) {
-// printf ("glVertexAttribPointer  Color\n");
-				//JAS glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Colours);
+				glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Colours);
 				glVertexAttribPointer(appearanceProperties.currentShaderProperties->Colours, dataSize, dataType, normalized, stride, pointer);
 			}
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
 			if (appearanceProperties.currentShaderProperties->TexCoords != -1) {
-// printf ("glVertexAttribPointer  TexCoords\n");
-				//JAS glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
+				glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
 				glVertexAttribPointer(appearanceProperties.currentShaderProperties->TexCoords, dataSize, dataType, normalized, stride, pointer);
 			}
 				break;
@@ -240,6 +263,7 @@ void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int
 
 	/* not shaders; older style of rendering */
 	} else {
+		#ifndef IPHONE
 		switch (myType) {
 			case FW_VERTEX_POINTER_TYPE:
 				glVertexPointer(dataSize, dataType, stride, pointer); 
@@ -255,6 +279,9 @@ void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int
 				break;
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 		}
+		#else
+		printf ("not shaders for pointers\n");
+		#endif
 
 
 	}
@@ -288,8 +315,12 @@ if (shaderTextureArray) printf ("enabling Texture\n"); else printf ("disabling T
 */
 
 	} else {
+		#ifndef IPHONE
 		if (enable) glEnableClientState(cap);
 		else glDisableClientState(cap);
+		#else
+		printf ("sendClientStateToGPU - currentShaderProperties not set\n");
+		#endif
 	}
 }
 
@@ -390,11 +421,15 @@ void initializeLightTables() {
         }
         lightState(HEADLIGHT_LIGHT, TRUE);
 
+	#ifndef IPHONE
         FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
         FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
         FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
         FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
         FW_GL_LIGHTMODELFV(GL_LIGHT_MODEL_AMBIENT,As);
+	#else
+	printf ("skipping light setups\n");
+	#endif
 
 	LIGHTING_INITIALIZE
 
