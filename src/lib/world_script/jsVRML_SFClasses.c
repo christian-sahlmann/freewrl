@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.35 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.36 2011/02/11 19:09:20 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -25,7 +25,6 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -56,6 +55,8 @@
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 #include "JScript.h"
+
+#ifdef HAVE_JAVASCRIPT
 
 /********************************************************/
 /*							*/

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.24 2011/02/11 18:46:25 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.25 2011/02/11 19:09:20 crc_canada Exp $
 
 ???
 
@@ -26,7 +26,6 @@ $Id: jsVRMLClasses.c,v 1.24 2011/02/11 18:46:25 crc_canada Exp $
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -52,6 +51,8 @@ $Id: jsVRMLClasses.c,v 1.24 2011/02/11 18:46:25 crc_canada Exp $
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
+
+#ifdef HAVE_JAVASCRIPT
 
 /********************************************************/
 /*							*/

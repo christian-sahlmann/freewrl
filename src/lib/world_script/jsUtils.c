@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.31 2011/02/11 18:46:25 crc_canada Exp $
+$Id: jsUtils.c,v 1.32 2011/02/11 19:09:19 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -27,7 +27,6 @@ which is the sample application included with the javascript engine.
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -56,6 +55,8 @@ which is the sample application included with the javascript engine.
 #ifdef WIN32
 #include <pthread.h> // win32 needs the strtok_r 
 #endif
+
+#ifdef HAVE_JAVASCRIPT
 
 #ifdef WANT_OSC
 	#include "../scenegraph/ringbuf.h"

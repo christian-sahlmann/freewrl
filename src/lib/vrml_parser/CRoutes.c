@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.75 2011/02/11 18:46:25 crc_canada Exp $
+$Id: CRoutes.c,v 1.76 2011/02/11 19:09:19 crc_canada Exp $
 
 ???
 
@@ -1465,7 +1465,7 @@ static void sendScriptEventIn(int num) {
 
 	if (CRoutes[num].direction_flag == TO_SCRIPT) {
 		for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
-			#if HAVE_JAVASCRIPT
+			#ifdef HAVE_JAVASCRIPT
 			struct Shader_Script *myObj;
 			to_ptr = &(CRoutes[num].tonodes[to_counter]);
 			if (to_ptr->routeToNode->_nodeType == NODE_Script) {

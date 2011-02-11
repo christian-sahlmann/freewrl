@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.37 2011/02/11 18:46:25 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.38 2011/02/11 19:09:19 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -26,7 +26,6 @@ Javascript C language binding.
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -65,6 +64,7 @@ Javascript C language binding.
 #include "jsVRMLClasses.h"
 #include "jsVRMLBrowser.h"
 
+#ifdef HAVE_JAVASCRIPT
 
 static JSClass Browser = {
     "Browser",
