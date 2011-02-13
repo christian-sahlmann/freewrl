@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.24 2011/01/18 14:15:35 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.25 2011/02/13 18:00:20 roelofs Exp $
 
 X3D Rendering Component
 
@@ -175,7 +175,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		if (node->coordIndex.p[i] > maxCoordFound) maxCoordFound = node->coordIndex.p[i];
 	}
 	if (maxCoordFound > npoints) {
-		ConsoleMessage ("IndexedLineSet - not enough coordinates - coordindex contains higher index");
+		ConsoleMessage ("IndexedLineSet - not enough coordinates - coordindex contains higher index\n");
 		return;
 	}
 
@@ -259,7 +259,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 			/* so, we have a color per line segment. Lets check this stuff... */
 			if ((node->colorIndex.n)>0) {
 				if ((node->colorIndex.n) < (node->coordIndex.n)) {
-					ConsoleMessage ("IndexedLineSet - expect more colorIndexes to match coords");
+					ConsoleMessage ("IndexedLineSet - expect more colorIndexes to match coords\n");
 					return;
 				}
 				colorInd = node->colorIndex.p; /*use ColorIndex */
@@ -270,14 +270,14 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 			/* so, we have a color per line segment. Lets check this stuff... */
 			if ((node->colorIndex.n)>0) {
 				if ((node->colorIndex.n) < (nSegments)) {
-					ConsoleMessage ("IndexedLineSet - expect more colorIndexes to match coords");
+					ConsoleMessage ("IndexedLineSet - expect more colorIndexes to match coords\n");
 					return;
 				}
 				colorInd = node->colorIndex.p; /* use ColorIndex */
 			}
 		}
 
-			
+
 		/* go and match colors with vertices */
 		curSeg = 0;
 		for (i=0; i<node->coordIndex.n; i++) {
@@ -289,12 +289,12 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 					curcolor = colorInd[curSeg];
 				}
 
-				if ((curcolor < 0) || (curcolor > cc->color.n)) {
-					ConsoleMessage ("IndexedLineSet, colorIndex %d out of range (0..%d)",
-						curcolor, cc->color.n);
+				if ((curcolor < 0) || (curcolor >= cc->color.n)) {
+					ConsoleMessage ("IndexedLineSet, colorIndex %d (for vertex %d or segment %d) out of range (0..%d)\n",
+						curcolor, i, curSeg, cc->color.n);
 					return;
 				}
-				
+
 
 				oldcolor = (struct SFColorRGBA *) &(cc->color.p[curcolor]);
 
@@ -557,7 +557,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	for  (c=0; c<nvertexc; c++) {
 		totVertexRequired += vertexC[c];
 		if (vertexC[c]<2) {
-			ConsoleMessage ("make_LineSet, we have a vertexCount of %d, must be >=2,",vertexC[c]);
+			ConsoleMessage ("make_LineSet, we have a vertexCount of %d, must be >=2,\n",vertexC[c]);
 			return;
 		}
 	}
@@ -576,7 +576,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
 
 	/* check that we have enough vertexes */
 	if (totVertexRequired > ncoord) {
-		ConsoleMessage ("make_LineSet, not enough points for vertexCount (vertices:%d points:%d)",
+		ConsoleMessage ("make_LineSet, not enough points for vertexCount (vertices:%d points:%d)\n",
 			totVertexRequired, ncoord);
 		return;
 	}
@@ -592,7 +592,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
                	}
 		/* check that we have enough verticies for the Colors */
 		if (totVertexRequired > ncolor) {
-			ConsoleMessage ("make_LineSet, not enough colors for vertexCount (vertices:%d colors:%d)",
+			ConsoleMessage ("make_LineSet, not enough colors for vertexCount (vertices:%d colors:%d)\n",
 				totVertexRequired, ncolor);
 			return;
 		}
