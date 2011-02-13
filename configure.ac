@@ -600,7 +600,7 @@ if test x$sw_osc = xyes; then
     PKG_CHECK_MODULES(LIBLO, liblo, 
         AC_DEFINE([WANT_OSC],[1],
                   [Define if liblo exists and OSC support wanted]),
-                  AC_MSG_ERROR([Skipping OSC, no liblo installed]))
+                  AC_MSG_ERROR([Skipping OSC. No liblo installed.]))
 fi
 
 # ======================================
