@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.65 2011/02/11 18:46:25 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.66 2011/02/14 21:52:59 crc_canada Exp $
 
 ???
 
@@ -26,7 +26,7 @@ $Id: X3DProtoScript.c,v 1.65 2011/02/11 18:46:25 crc_canada Exp $
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#ifndef IPHONE
 
 #include <config.h>
 #include <system.h>
@@ -2207,3 +2207,4 @@ void endProtoDeclare(void) {
 }
 
 
+#endif

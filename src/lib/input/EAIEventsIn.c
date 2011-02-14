@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.70 2010/12/07 18:27:50 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.71 2011/02/14 21:52:59 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -751,7 +751,11 @@ static void handleGETEAINODETYPE (char *bufptr, int repno) {
 	}
 
         /* Try to get X3D node name */
+	#ifdef IPHONE
+	cptr = NULL; /* no xml parsing for now in iphone */
+	#else
 	cptr = X3DParser_getNameFromNode(myNode);
+	#endif
 	IGNORE_IF_FABRICATED_INTERNAL_NAME
 
 

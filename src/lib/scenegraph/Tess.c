@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.18 2011/02/11 18:46:25 crc_canada Exp $
+$Id: Tess.c,v 1.19 2011/02/14 21:52:59 crc_canada Exp $
 
 ???
 
@@ -77,11 +77,15 @@ typedef  void (__stdcall *_GLUfuncptr)();
 GLUtriangulatorObj *global_tessobj;
 #else
 int global_tessobj;
-#endif
 struct X3D_PolyRep *global_tess_polyrep=NULL;
+#endif /* IPHONE */
+#endif /* IPHONE */
+
 int global_IFS_Coords[TESS_MAX_COORDS];
 int global_IFS_Coord_count=0;
 
+
+#ifndef IPHONE /* OpenGL-ES 2.0 does not have tessellator */
 /* and now all the callback functions, which will be called
 	by OpenGL automatically, if the Polygon is specified	*/
 

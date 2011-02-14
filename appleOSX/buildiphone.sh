@@ -1,9 +1,8 @@
 #!/bin/sh
 
-# Make i386 library first
 make distclean
 cp -f vrml.conf.iphone vrml.conf.aqua
-perl Makefile.PL.osx
+perl Makefile.PLStatic.osx
 make install
 
 # Glue the two libraries together and make sure the library has a good name

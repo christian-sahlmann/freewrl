@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.30 2011/02/11 18:46:25 crc_canada Exp $
+$Id: Component_Text.c,v 1.31 2011/02/14 21:52:59 crc_canada Exp $
 
 X3D Text Component
 
@@ -28,11 +28,13 @@ X3D Text Component
 ****************************************************************************/
 
 
-#ifndef IPHONE
-
 #include <config.h>
 #include <system.h>
+
+#ifndef IPHONE
 #include <system_fonts.h>
+#endif /* IPHONE */
+
 #include <display.h>
 #include <internal.h>
 
@@ -48,6 +50,12 @@ X3D Text Component
 #include "LinearAlgebra.h"
 #include "../scenegraph/Tess.h"
 
+
+#ifdef IPHONE
+void collide_Text (struct X3D_Text *me) {printf ("skipping collide_Text on iphone\n");}
+void make_Text (struct X3D_Text *me) {printf ("skipping make_Text on iphone\n");}
+void render_Text (struct X3D_Text *me) {printf ("skipping render_Text on iphone\n");}
+#else
 
 #define XRES 96
 #define YRES 96

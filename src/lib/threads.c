@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.19 2010/09/21 15:11:36 crc_canada Exp $
+  $Id: threads.c,v 1.20 2011/02/14 21:52:59 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -152,6 +152,9 @@ void initializeInputParseThread()
 
 void initializeTextureThread()
 {
+#ifdef IPHONE
+	printf ("skipping initializeTextureThread\n");
+#else
 	int ret;
 
 	/* Synchronize trace/error log... */
@@ -167,6 +170,7 @@ void initializeTextureThread()
 		ERROR_MSG("initializeTextureThread: not enough system resources to create a process for the new thread.");
 		return;
 	}
+#endif /* IPHONE */
 }
 
 int fw_thread_id()

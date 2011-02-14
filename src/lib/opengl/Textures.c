@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.77 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: Textures.c,v 1.78 2011/02/14 21:52:59 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1276,7 +1276,11 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 		case TEX_NOTLOADED:
 			DEBUG_TEX("feeding texture %p to texture thread...\n", myTableIndex);
 			myTableIndex->status = TEX_LOADING;
+#ifdef IPHONE
+printf ("send_texture_to_loader skipping\n");
+#else
 			send_texture_to_loader(myTableIndex);
+#endif
 			break;
 
 		case TEX_LOADING:

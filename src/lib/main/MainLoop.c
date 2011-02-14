@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.159 2011/02/14 18:41:17 crc_canada Exp $
+  $Id: MainLoop.c,v 1.160 2011/02/14 21:52:59 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1783,7 +1783,11 @@ void _displayThread()
 	   make it current to this thread */
 	bind_GLcontext();
 
+	#ifdef IPHONE
+	printf ("skipping new_tess call\n");
+	#else
 	new_tessellation();
+	#endif
 	
 	set_viewer_type(VIEWER_EXAMINE);
 	

@@ -20,13 +20,15 @@ FREEWRL_CCFLAGS => '-arch '.
 ############################################################################
 # Main defines for OpenGL, freetype
     FREEWRL_LIBS => '-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/usr/lib '.
-		'-L/FreeWRL/expat-2.0.0 '.
 		'-L/usr/local/lib '.
 		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/System/Library/Frameworks/OpenGLES.framework '.
 		'-lSystem '.
-		'-lexpat '.
-		'-lfreetype '.
 		' -F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/System/Library/Frameworks -framework OpenGLES ',
+
+# had 
+#		'-L/FreeWRL/expat-2.0.0 '.
+#		'-lexpat '.
+#		'-lfreetype '.
 
     # when building on Leopard 10.5, keep the version at 10.4 - see:
     # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
@@ -67,7 +69,6 @@ FREEWRL_CCFLAGS => '-arch '.
 
 	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
-		'-L/FreeWRL/expat-2.0.0 '.
 		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/usr/lib '.
 		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/System/Library/Frameworks '. 
 		'-framework OpenGLES '.
@@ -76,14 +77,18 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk '.
                 '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ ',
 
+#had 		'-L/FreeWRL/expat-2.0.0 '.
+
+
 	LDFLAGS2 => '-flat_namespace '.
 		'-undefined error '.
 		'-bundle '.
-		'-L/FreeWRL/expat-2.0.0 '.
 		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/usr/lib '.
 		'-F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/System/Library/Frameworks '.
                 '-L/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		'-isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk '.
 		'-arch armv6 '.
 		'-framework OpenGLES ',
+
+#had '-L/FreeWRL/expat-2.0.0 '.
 );
