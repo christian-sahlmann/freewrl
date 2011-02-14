@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.48 2011/02/11 18:46:25 crc_canada Exp $
+$Id: Bindable.c,v 1.49 2011/02/14 21:52:29 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -925,9 +925,11 @@ void render_Background (struct X3D_Background *node) {
 
 	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
 
+	#ifdef SHADERS_2011
                /* turn off */
                 FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
                 FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+	#endif
 
 
 	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
