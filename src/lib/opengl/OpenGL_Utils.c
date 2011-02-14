@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.172 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.173 2011/02/14 18:41:17 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -91,7 +91,16 @@ static void killNode (int index);
 #endif
 
 static void mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
+
+#define DEBUG_FW_LOADMAT
+#ifdef DEBUG_FW_LOADMAT
+static void fw_glLoadMatrixd(GLDOUBLE *val,char *, int);
+#define FW_GL_LOADMATRIX(aaa) fw_glLoadMatrixd(aaa,__FILE__,__LINE__);
+#else
 static void fw_glLoadMatrixd(GLDOUBLE *val);
+#define FW_GL_LOADMATRIX(aaa) fw_glLoadMatrixd(aaa);
+#endif
+
 static void mesa_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 
 /* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
@@ -1389,7 +1398,7 @@ void fw_glMatrixMode(GLint mode) {
 
 void fw_glLoadIdentity(void) {
 	loadIdentityMatrix(currentMatrix);
-	fw_glLoadMatrixd(currentMatrix); 
+	FW_GL_LOADMATRIX(currentMatrix); 
 }
 
 #define PUSHMAT(a,b,c,d) case a: b++; if (b>=c) {b=c-1; printf ("stack overflow, whichmode %d\n",whichMode); } \
@@ -1404,7 +1413,7 @@ void fw_glPushMatrix(void) {
 	}
 	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPushMatrix tos now %d\n",projectionviewTOS); }  */
 
- 	fw_glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIX(currentMatrix); 
 #undef PUSHMAT
 }
 
@@ -1419,7 +1428,7 @@ void fw_glPopMatrix(void) {
 	}
 	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPopMatrix tos now %d\n",projectionviewTOS); } */
 
- 	fw_glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIX(currentMatrix); 
 }
 #undef POPMAT
 
@@ -1433,7 +1442,7 @@ void fw_glTranslated(GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
 	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
 
- 	fw_glLoadMatrixd(currentMatrix); 
+ 	FW_GL_LOADMATRIX(currentMatrix); 
 }
 
 void fw_glTranslatef(float x, float y, float z) {
@@ -1443,7 +1452,7 @@ void fw_glTranslatef(float x, float y, float z) {
 	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
 	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
 
-	fw_glLoadMatrixd(currentMatrix); 
+	FW_GL_LOADMATRIX(currentMatrix); 
 }
 
 /* perform rotation, assuming that the angle is in radians. */
@@ -1484,7 +1493,7 @@ void fw_glRotateRad (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 
 	//printmatrix2 (currentMatrix,"currentMatrix after rotate");
 
-	fw_glLoadMatrixd(currentMatrix); 
+	FW_GL_LOADMATRIX(currentMatrix); 
 }
 
 /* perform the rotation, assuming that the angle is in degrees */
@@ -1527,7 +1536,7 @@ void fw_glRotated (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	matrotate(myMat,radAng,x,y,z); 
 	matmultiply(currentMatrix,currentMatrix,myMat); 
 
-	fw_glLoadMatrixd(currentMatrix); 
+	FW_GL_LOADMATRIX(currentMatrix); 
 }
 
 void fw_glRotatef (float a, float x, float y, float z) {
@@ -1543,7 +1552,7 @@ void fw_glScaled (GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
 	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
 
-	fw_glLoadMatrixd(currentMatrix); 
+	FW_GL_LOADMATRIX(currentMatrix); 
 }
 
 void fw_glScalef (float x, float y, float z) {
@@ -1555,7 +1564,7 @@ void fw_glScalef (float x, float y, float z) {
         currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
         currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
 
-        fw_glLoadMatrixd(currentMatrix);
+        FW_GL_LOADMATRIX(currentMatrix);
 }
 
 
@@ -2873,7 +2882,20 @@ void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd)
 { printf  ("called fw_iphone_somethingPointer\n");}
 #endif
 
-static void fw_glLoadMatrixd(GLDOUBLE *val) {
+
+
+#ifdef DEBUG_FW_LOADMAT
+	static void fw_glLoadMatrixd(GLDOUBLE *val,char *where, int line) {
+	{int i;
+	 for (i=0; i<16; i++) {
+		if (val[i] > 2000.0) printf ("FW_GL_LOADMATRIX, val %d %lf at %s:%d\n",i,val[i],where,line);
+		if (val[i] < -2000.0) printf ("FW_GL_LOADMATRIX, val %d %lf at %s:%d\n",i,val[i],where,line);
+	}
+	}
+#else
+	static void fw_glLoadMatrixd(GLDOUBLE *val) {
+#endif
+
 	/* printf ("loading matrix...\n"); */
 	#ifndef IPHONE
 	glLoadMatrixd(val);
@@ -3141,12 +3163,17 @@ void fw_Ortho (GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLD
 	/* do the glOrtho on the top of the stack, and send that along */
 	dp = FW_ProjectionView[projectionviewTOS];
 
-	/* {int i; for (i=0; i<16;i++) { printf ("ModView before  %d: %4.3f \n",i,dp[i]); } */
+	/* do some bounds checking here */
+	if (right <= left) right = left+1.0;   /* resolve divide by zero possibility */
+	if (top <= bottom) top= bottom+1.0;    /* resolve divide by zero possibility */
+	if (farZ <= nearZ) farZ= nearZ + 2.0;  /* resolve divide by zero possibility */
+
+	/* {int i; for (i=0; i<16;i++) { printf ("ModView before  %d: %4.3f \n",i,dp[i]); } } */
 	mesa_Ortho(left,right,bottom,top,nearZ,farZ,dp);
 
-	/* {int i; for (i=0; i<16;i++) { printf ("ModView after   %d: %4.3f \n",i,dp[i]); } } */
+	 /* {int i; for (i=0; i<16;i++) { printf ("ModView after   %d: %4.3f \n",i,dp[i]); } } */
 
-	fw_glLoadMatrixd(dp);
+	FW_GL_LOADMATRIX(dp);
 }
 
 void printmatrix2(GLDOUBLE* mat,char* description ) {
@@ -3198,7 +3225,7 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 	/* method = 1; */
 	#define TRY_PERSPECTIVE_METHOD_1
 	#ifdef TRY_PERSPECTIVE_METHOD_1
-	  	FW_GL_LOADMATRIXD(ndp);
+	  	FW_GL_LOADMATRIX(ndp);
 		/* put the matrix back on our matrix stack */
 		memcpy (FW_ProjectionView[projectionviewTOS],ndp,16*sizeof (GLDOUBLE));
 	#endif
@@ -3228,7 +3255,7 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
     m[3*4+3] = 0;
 	matmultiply(m,m,dp);
 	if(method==2)
-	  FW_GL_LOADMATRIXD(m);
+	  FW_GL_LOADMATRIX(m);
 
     //glMultMatrixd(&m[0][0]);
 }

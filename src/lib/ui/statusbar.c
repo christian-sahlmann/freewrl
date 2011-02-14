@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.27 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: statusbar.c,v 1.28 2011/02/14 18:41:17 crc_canada Exp $
 
 */
 
@@ -122,18 +122,15 @@ void setup_projection(int pick, int x, int y)
  */
 void drawStatusBar()
 {
-	/* update fps message (maybe extend this with other "text widgets" */
-	/* JAS update_status(NULL); */
-PRINT_GL_ERROR_IF_ANY("XEvents::render start status bar");
+	/* dont do this if we can not display; note that when we start, we can send along
+	   invalid data to the OpenGL drivers when doing ortho calcs */
+	if ((screenWidth > 5) && (screenHeight > 5)) {
+		/* update fps message (maybe extend this with other "text widgets" */
 
+		rf_xfont_set_color(xf_white);
+		rf_layer2D();
 
-	rf_xfont_set_color(xf_white);
-	rf_layer2D();
-PRINT_GL_ERROR_IF_ANY("XEvents::render middle status bar");
-
-	rf_printf(15, 15, buffer);
-PRINT_GL_ERROR_IF_ANY("XEvents::render rfprintf status bar");
-	rf_leave_layer2D();
-PRINT_GL_ERROR_IF_ANY("XEvents::render end status bar");
-
+		rf_printf(15, 15, buffer);
+		rf_leave_layer2D();
+	}
 }

@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.14 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: RasterFont.c,v 1.15 2011/02/14 18:41:17 crc_canada Exp $
 
 */
 
@@ -46,7 +46,8 @@ static bool rf_initialized = FALSE;
 
 static int xf_color = xf_white;
 static vec4f_t xf_colors[3] = { 
-    { 1.0f, 1.0f, 1.0f, 1.0f }, 
+    /* JAS - for testing for Shelley Wachsman - change this line to the one below { 1.0f, 1.0f, 1.0f, 1.0f },  */
+    { 1.0f, 1.0f, 0.0f, 1.0f }, 
     { 0.0f, 0.0f, 0.0f, 1.0f }, 
     { 0.5f, 0.5f, 0.5f, 1.0f } 
 };
@@ -97,6 +98,7 @@ printf ("skipping the rf_printf\n");
 
 void rf_layer2D()
 {
+
 #ifdef IPHONE
 printf ("skipping the push attrib\n");
 #else
@@ -110,6 +112,7 @@ printf ("skipping the push attrib\n");
     FW_GL_MATRIX_MODE(GL_PROJECTION);
     FW_GL_PUSH_MATRIX();
     FW_GL_LOAD_IDENTITY();
+
     FW_GL_ORTHO(0.0, (GLfloat) screenWidth,  // we need a viewport variable: glc.viewport[2],
 	    0.0, (GLfloat) screenHeight, // glc.viewport[3],
 	    -1, 1);

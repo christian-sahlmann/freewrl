@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.158 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: MainLoop.c,v 1.159 2011/02/14 18:41:17 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1323,8 +1323,8 @@ static void render_collisions() {
 		}
         get_collisionoffset(&(v.x), &(v.y), &(v.z));
 
-	/* if (!APPROX(v.x,0.0) || !APPROX(v.y,0.0) || !APPROX(v.z,0.0)) {
-		printf ("MainLoop, rendercollisions, offset %f %f %f\n",v.x,v.y,v.z);
+	 /* if (!APPROX(v.x,0.0) || !APPROX(v.y,0.0) || !APPROX(v.z,0.0)) {
+		printf ("%lf MainLoop, rendercollisions, offset %f %f %f\n",TickTime,v.x,v.y,v.z);
 	} */
 		/* v should be in avatar coordinates*/
         increment_pos(&v);
