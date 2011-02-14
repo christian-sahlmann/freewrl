@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.15 2011/02/14 18:41:17 crc_canada Exp $
+  $Id: RasterFont.c,v 1.16 2011/02/14 18:48:29 crc_canada Exp $
 
 */
 
@@ -46,8 +46,7 @@ static bool rf_initialized = FALSE;
 
 static int xf_color = xf_white;
 static vec4f_t xf_colors[3] = { 
-    /* JAS - for testing for Shelley Wachsman - change this line to the one below { 1.0f, 1.0f, 1.0f, 1.0f },  */
-    { 1.0f, 1.0f, 0.0f, 1.0f }, 
+    { 1.0f, 1.0f, 1.0f, 1.0f }, 
     { 0.0f, 0.0f, 0.0f, 1.0f }, 
     { 0.5f, 0.5f, 0.5f, 1.0f } 
 };
