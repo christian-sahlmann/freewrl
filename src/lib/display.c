@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.63 2011/02/16 17:46:00 crc_canada Exp $
+  $Id: display.c,v 1.64 2011/02/16 18:36:00 dug9 Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -134,8 +134,7 @@ int display_initialize()
 		return FALSE;
 	}
 
-/* Why cant we bind the glContext here in MSC? */
-#ifndef _MSC_VER
+#ifdef _MSC_VER
 	bind_GLcontext();
 #endif
 

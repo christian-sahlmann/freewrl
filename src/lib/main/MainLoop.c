@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.162 2011/02/16 17:46:00 crc_canada Exp $
+  $Id: MainLoop.c,v 1.163 2011/02/16 18:36:00 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1630,11 +1630,6 @@ void initializeRenderSceneUpdateScene() {
 
 	/* Context has been created,
 	   make it current to this thread */
-
-/* why does MSC_VER need to bind glContext here? Others do it in src/lib/display.c */
-#ifdef _MSC_VER
-        bind_GLcontext();
-#endif
 
 	new_tessellation();
 	
