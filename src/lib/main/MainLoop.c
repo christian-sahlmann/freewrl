@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.161 2011/02/15 16:02:36 crc_canada Exp $
+  $Id: MainLoop.c,v 1.162 2011/02/16 17:46:00 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -68,8 +68,12 @@
 #endif
 
 #ifdef AQUA
-#include "../ui/aquaInt.h"
-#endif
+	#include "../ui/aquaInt.h"
+	#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
+	CGLContextObj myglobalContext;
+	#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
+#endif /* AQUA */
+
 #ifdef IPHONE
 int ccurse;
 int ocurse;
@@ -137,7 +141,7 @@ int currentFileVersion = 0;
    have created new scripts during  X3D/VRML parsing. Routing in the
    Display thread may have noted new scripts, but will ignore them
    until   we have told it that the scripts are initialized.  printf
-   ("have scripts to initialize in EventLoop old %d new
+   ("have scripts to initialize in RenderSceneUpdateScene old %d new
    %d\n",max_script_found, max_script_found_and_initialized);
 */
 
@@ -288,7 +292,7 @@ __inline double Time1970sec()
 
 
 /* Main eventloop for FreeWRL!!! */
-void EventLoop() {
+void RenderSceneUpdateScene() {
         static int loop_count = 0;
         static int slowloop_count = 0;
 
@@ -350,7 +354,7 @@ void EventLoop() {
         /* has the default background changed? */
         if (cc_changed) doglClearColor();
 
-        OcclusionStartofEventLoop();
+        OcclusionStartofRenderSceneUpdateScene();
         startOfLoopNodeUpdates();
 
         if (loop_count == 25) {
@@ -1614,10 +1618,9 @@ void Next_ViewPoint() {
         }
 }
 
-/* handle all the displaying and event loop stuff. */
-void _displayThread()
-{
-	ENTER_THREAD("display");
+/* initialization for the OpenGL render, event processing sequence. Should be done in threat that has the OpenGL context */
+void initializeRenderSceneUpdateScene() {
+	printf ("initializeRenderSceneUpdateScene start\n");
 
 	/* Initialize display */
 	if (!display_initialize()) {
@@ -1627,29 +1630,51 @@ void _displayThread()
 
 	/* Context has been created,
 	   make it current to this thread */
-	bind_GLcontext();
 
-	#ifdef IPHONE
-	printf ("skipping new_tess call\n");
-	#else
+/* why does MSC_VER need to bind glContext here? Others do it in src/lib/display.c */
+#ifdef _MSC_VER
+        bind_GLcontext();
+#endif
+
 	new_tessellation();
-	#endif
 	
 	set_viewer_type(VIEWER_EXAMINE);
 	
 	viewer_postGLinit_init();
 
-#ifndef AQUA
+	#ifndef AQUA
 	if (fullscreen) resetGeometry();
-#endif
+	#endif
+
+	printf ("initializeRenderSceneUpdateScene finish\n");
+}
+
+void finalizeRenderSceneUpdateScene() {
+    	kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+}
+
+
+/* iphone front end handles the displayThread internally */
+#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
+/* handle all the displaying and event loop stuff. */
+void _displayThread()
+{
+	ENTER_THREAD("display");
+
+	initializeRenderSceneUpdateScene();
     
 	/* loop and loop, and loop... */
 	while (!quitThread) {
 		//PRINTF("event loop\n");
-		EventLoop();
+		RenderSceneUpdateScene();
 	} 
-    	kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+
+	/* when finished: */
+	finalizeRenderSceneUpdateScene();
+
 }
+#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
+
 
 void setLastMouseEvent(int etype) {
 	//printf ("setLastMouseEvent called\n");
@@ -1933,11 +1958,14 @@ void replaceWorldNeeded(char* str)
 void stopRenderingLoop(void) {
 	//printf ("stopRenderingLoop called\n");
 
+#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
     	stopDisplayThread();
+#endif
+
     	//killErrantChildren();
 	/* lets do an equivalent to replaceWorldNeeded, but with NULL for the new world */
 #ifdef AQUA
-#if !defined(IPHONE) 
+#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD) 
 	myglobalContext = NULL;
 #endif
 #endif

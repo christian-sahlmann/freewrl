@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.62 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: display.c,v 1.63 2011/02/16 17:46:00 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -82,7 +82,6 @@ GLenum _global_gl_err;
 /* display part specific to Mac */
 
 #ifndef IPHONE
-CGLContextObj myglobalContext;
 
 int ccurse = ACURSE;
 int ocurse = ACURSE;
@@ -101,9 +100,6 @@ int PaneClipChanged = FALSE;
 #endif
 #endif
 
-static char blankTexture[] = {0x40, 0x40, 0x40, 0xFF};
-
-
 /**
  *  display_initialize: takes care of all the initialization process, 
  *                      creates the display thread and wait for it to complete
@@ -111,6 +107,7 @@ static char blankTexture[] = {0x40, 0x40, 0x40, 0xFF};
  */
 int display_initialize()
 {
+	printf ("calling display_initialize\n");
 	memset(&rdr_caps, 0, sizeof(rdr_caps));
 
 	/* FreeWRL parameters */
@@ -119,7 +116,6 @@ int display_initialize()
 	win_height = fw_params.height;
 	winToEmbedInto = fw_params.winToEmbedInto;
 
-#if !defined (TARGET_AQUA)
 	/* make the window, get the OpenGL context */
 #ifndef _MSC_VER
 	if (!open_display()) {
@@ -137,22 +133,15 @@ int display_initialize()
 	if (!create_main_window(0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
+
+/* Why cant we bind the glContext here in MSC? */
 #ifndef _MSC_VER
 	bind_GLcontext();
 #endif
-#else
-#endif /* TARGET_AQUA */
 
 	if (!initialize_GL()) {
 		return FALSE;
 	}
-
-	/* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
-	FW_GL_GENTEXTURES (1,&defaultBlankTexture);
-	FW_GL_BINDTEXTURE (GL_TEXTURE_2D, defaultBlankTexture);
-	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
 
 	/* Display full initialized :P cool ! */
 	display_initialized = TRUE;
@@ -164,6 +153,8 @@ int display_initialize()
 		sendXwinToPlugin();
 	}
 #endif
+
+printf ("finished calling open_Display\n");
 
 	return TRUE;
 }

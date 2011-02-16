@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.173 2011/02/14 18:41:17 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.174 2011/02/16 17:46:00 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -92,7 +92,7 @@ static void killNode (int index);
 
 static void mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 
-#define DEBUG_FW_LOADMAT
+#undef DEBUG_FW_LOADMAT
 #ifdef DEBUG_FW_LOADMAT
 static void fw_glLoadMatrixd(GLDOUBLE *val,char *, int);
 #define FW_GL_LOADMATRIX(aaa) fw_glLoadMatrixd(aaa,__FILE__,__LINE__);
@@ -1214,10 +1214,14 @@ void end_textureTransform (void) {
  */
 bool initialize_GL()
 {
-#if defined (TARGET_AQUA) && !defined(IPHONE)
-		/* printf("initialize gl, myglobalcontext is %u", myglobalContext); */
+	char blankTexture[] = {0x40, 0x40, 0x40, 0xFF};
+
+#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
+	#if defined (TARGET_AQUA) 
+		extern CGLContextObj myglobalContext;
                 CGLSetCurrentContext(myglobalContext);
-#endif
+	#endif /* TARGET_AQUA */
+#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 	initialize_rdr_caps();
 
@@ -1330,6 +1334,15 @@ bool initialize_GL()
 
 	do_shininess(GL_FRONT_AND_BACK,(float) 0.2);
 
+        /* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
+        FW_GL_GENTEXTURES (1,&defaultBlankTexture);
+        FW_GL_BINDTEXTURE (GL_TEXTURE_2D, defaultBlankTexture);
+        FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
+
+
+	printf ("initialize_GL returning\n");
 	return TRUE;
 }
 
@@ -2860,28 +2873,6 @@ static void killNode (int index) {
 	memoryTable[index]=NULL;
 }
 #endif
-
-#ifdef IPHONE
-/* OpenGL-ES specifics for Materials and Vertices */
-void fw_iphone_enableClientState(GLenum aaa)
-{ printf  ("called fw_iphone_enableClientState\n");}
-
-void fw_iphone_disableClientState(GLenum aaa)
-{ printf  ("called fw_iphone_disableClientState\n");}
-
-void fw_iphone_vertexPointer(GLint aaa,GLenum bbb,GLsizei ccc,const GLvoid *ddd)
-{ printf  ("called fw_iphone_somethingPointer\n");}
-
-void fw_iphone_normalPointer(GLenum aaa,GLsizei bbb, const GLvoid *ccc)
-{ printf  ("called fw_iphone_somethingPointer\n");}
-
-void fw_iphone_texcoordPointer(GLint aaa, GLenum bbb ,GLsizei ccc,const GLvoid *ddd)
-{ printf  ("called fw_iphone_somethingPointer\n");}
-
-void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd)
-{ printf  ("called fw_iphone_somethingPointer\n");}
-#endif
-
 
 
 #ifdef DEBUG_FW_LOADMAT

@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.20 2011/02/14 21:52:59 crc_canada Exp $
+  $Id: threads.c,v 1.21 2011/02/16 17:46:00 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -104,6 +104,7 @@ void initializeDisplayThread()
 	sync();
 	ASSERT(TEST_NULL_THREAD(DispThrd));
 
+
 	/* Initialize all mutex/condition variables ... */
 	pthread_mutex_init( &mutex_resource_tree, NULL );
 	pthread_mutex_init( &mutex_resource_list, NULL );
@@ -111,6 +112,9 @@ void initializeDisplayThread()
 	pthread_cond_init( &resource_list_condition, NULL );
 	pthread_cond_init( &texture_list_condition, NULL );
 
+
+/* IPHONE handles the display itself */
+#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
 	ret = pthread_create(&DispThrd, NULL, (void *) _displayThread, NULL);
 	switch (ret) {
 	case 0: 
@@ -119,6 +123,8 @@ void initializeDisplayThread()
 		ERROR_MSG("initializeDisplayThread: not enough system resources to create a process for the new thread.");
 		return;
 	}
+#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
+
 
 #if !defined(TARGET_AQUA) && !defined(_MSC_VER) //TARGET_WIN32)
 	if (global_trace_threads) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.38 2011/02/11 19:09:19 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.39 2011/02/16 17:46:00 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -393,7 +393,7 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 			createLoadUrlString(myBuf,myBufSize,_costr[0], _costr[1]);
 			createLoadURL(myBuf);
 
-			/* now tell the EventLoop that BrowserAction is requested... */
+			/* now tell the RenderSceneUpdateScene that BrowserAction is requested... */
 			AnchorsAnchor = &EAI_AnchorNode;
 		}
 		BrowserAction = TRUE;

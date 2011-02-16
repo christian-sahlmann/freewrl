@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.140 2011/02/11 18:46:25 crc_canada Exp $
+$Id: headers.h,v 1.141 2011/02/16 17:46:00 crc_canada Exp $
 
 Global includes.
 
@@ -878,8 +878,6 @@ extern int cc_changed;
 
 /* int mapFieldTypeToInernaltype (indexT kwIndex); msvc has problem perhaps with typedef typdef unsigned int indexT*/
 int mapFieldTypeToInernaltype (unsigned int kwIndex);
-void finishEventLoop();
-void resetEventLoop();
 void resetSensorEvents();
 
 /* MIDI stuff... */

@@ -36,7 +36,7 @@ FREEWRL_CCFLAGS => '-arch '.
 
     # can also add -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC to display malloc issues.
 
-    FREEWRL_DEFINE => ' -DHAVE_CTYPE_H -DHAVE_SYS_TYPES_H -DHAVE_UNISTD_H -DHAVE_MATH_H -DHAVE_STDARG_H -DHAVE_ERRNO_H  -DHAVE_GETTIMEOFDAY -DXP_UNIX -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DSHADERS_2011 -DIPHONE -DAQUA -fno-common -arch armv6 -miphoneos-version-min=2.2  -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk',
+    FREEWRL_DEFINE => ' -DFRONTEND_HANDLES_DISPLAY_THREAD -DHAVE_MEMCPY -DHAVE_CTYPE_H -DHAVE_SYS_TYPES_H -DHAVE_UNISTD_H -DHAVE_MATH_H -DHAVE_STDARG_H -DHAVE_ERRNO_H  -DHAVE_GETTIMEOFDAY -DXP_UNIX -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DSHADERS_2011 -DIPHONE -DAQUA -fno-common -arch armv6 -miphoneos-version-min=2.2  -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk',
 
     FREEWRL_INC => 
 		'-I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/usr/include '.

@@ -1,5 +1,5 @@
 /*
-  $Id: threads.h,v 1.9 2010/09/21 15:11:36 crc_canada Exp $
+  $Id: threads.h,v 1.10 2011/02/16 17:46:00 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -69,8 +69,10 @@ extern pthread_t loadThread; /* texture thread */
  *   Gather here all functions that create threads 
  */
 /* DISPLAY THREAD */
+#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
 void initializeDisplayThread();
 void _displayThread();
+#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 /* PARSER THREAD */
 void initializeInputParseThread();

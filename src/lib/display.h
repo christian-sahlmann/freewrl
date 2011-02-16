@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.106 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: display.h,v 1.107 2011/02/16 17:46:00 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -311,8 +311,6 @@ extern int quadbuff_stereo_mode; /* quad buffer enabled ? */
 
 #ifdef TARGET_AQUA
 #ifndef IPHONE
-extern CGLContextObj myglobalContext;
-
 
 extern int ccurse;
 extern int ocurse;
@@ -525,14 +523,11 @@ void setScreenDim(int wi, int he);
 	#endif
 
 	#if defined (TARGET_AQUA)
-		#if defined (IPHONE) 
-
-			#define FW_GL_SWAPBUFFERS /* do nothing for now */
-		#else
+		#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD) 
 			#define FW_GL_SWAPBUFFERS { \
 				CGLError err = FW_GL_CGLFLUSHDRAWABLE(myglobalContext); \
 				if (err != kCGLNoError) printf ("FW_GL_CGLFLUSHDRAWABLE error %d\n",err); }
-		#endif
+		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 	#endif
 

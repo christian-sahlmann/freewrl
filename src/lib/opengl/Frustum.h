@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.h,v 1.10 2011/02/11 18:46:25 crc_canada Exp $
+$Id: Frustum.h,v 1.11 2011/02/16 17:46:00 crc_canada Exp $
 
 Global includes.
 
@@ -108,7 +108,7 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 void printmatrix(GLDOUBLE* mat);
 void propagateExtent(struct X3D_Node *me);
 void record_ZBufferDistance(struct X3D_Node *node);
-void OcclusionStartofEventLoop(void);
+void OcclusionStartofRenderSceneUpdateScene(void);
 void OcclusionCulling (void);
 void zeroOcclusion(void);
 
