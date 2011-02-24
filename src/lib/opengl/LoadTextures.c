@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.61 2011/02/14 21:52:59 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.62 2011/02/24 16:13:03 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -80,7 +80,6 @@ s_list_t *texture_list = NULL;
 
 #endif /* IPHONE */
 
-/* defaultBlankTexture... */
 GLuint defaultBlankTexture;
 
 /* IPHONE - bypass textures for now */

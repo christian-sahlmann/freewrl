@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.78 2011/02/11 18:46:25 crc_canada Exp $
+$Id: X3DParser.c,v 1.79 2011/02/24 16:13:03 crc_canada Exp $
 
 ???
 
@@ -26,13 +26,15 @@ $Id: X3DParser.c,v 1.78 2011/02/11 18:46:25 crc_canada Exp $
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-/* skip XML parsing for now */
-#ifndef IPHONE
 
 #include <config.h>
 #include <system.h>
 #include <display.h>
 #include <internal.h>
+
+/* skip XML parsing for now */
+#ifndef IPHONE
+
 
 #include <libFreeWRL.h>
 

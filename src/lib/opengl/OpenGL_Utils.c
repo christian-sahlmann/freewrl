@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.174 2011/02/16 17:46:00 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.175 2011/02/24 16:13:03 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -199,7 +199,7 @@ static char * readInputString(char *fn) {
 
 #ifdef SHADERS_2011
 static void shaderErrorLog(GLuint myShader, char *which) {
-        #ifdef GL_VERSION_2_0
+        #if defined  (GL_VERSION_2_0) || defined (IPHONE)
 #define MAX_INFO_LOG_SIZE 512
                 GLchar infoLog[MAX_INFO_LOG_SIZE];
                 glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog);
@@ -209,7 +209,9 @@ static void shaderErrorLog(GLuint myShader, char *which) {
         #endif
 }
 
-static char *backgroundSphereShaderFragment = " varying vec4 v_color; void main () {gl_FragColor = v_color;}";
+static char *backgroundSphereShaderFragment = 
+" varying vec4 v_color; void main () {gl_FragColor = v_color;}";
+
 static char *backgroundSphereShaderVertex = "attribute	vec3 fw_Color; " \
 			"attribute	vec4 fw_Vertex;" \
 			"uniform		mat4 fw_ModelViewMatrix;" \
@@ -309,9 +311,6 @@ static char *oneTexVertexShader = " \
 /* Geometry Shaders */
 
 static const char *noTexSphereGeomShader = " \
-#version 120\n \
-#extension GL_EXT_gpu_shader4: enable\n \
-#extension GL_EXT_geometry_shader4: enable\n \
 	\
 	int numLayers;\
 	\
@@ -387,9 +386,6 @@ static const char *noTexSphereGeomShader = " \
 
 /* simple texture shader for Sphere Geometry Shader */
 static const char *oneTexSphereGeomShader = " \
-#version 120\n \
-#extension GL_EXT_gpu_shader4: enable\n \
-#extension GL_EXT_geometry_shader4: enable\n \
 	\
 	int numLayers;\
 	\
@@ -474,8 +470,6 @@ static const char *oneTexSphereGeomShader = " \
 
 
 static const char *phongFragmentShader =  " \
-#version 120 \n  \
-#extension GL_EXT_gpu_shader4: enable \n  \
 \
 struct fw_MaterialParameters { \
                 vec4 emission; \
@@ -491,6 +485,10 @@ uniform fw_MaterialParameters fw_BackMaterial; \
 varying vec3 Norm;  \
 varying vec4 Pos;  \
 uniform int lightState[8]; \
+uniform vec4 lightAmbient[8]; \
+uniform vec4 lightDiffuse[8]; \
+uniform vec4 lightSpecular[8]; \
+uniform vec4 lightPosition[8]; \
  \
 /* use ADSLightModel here \
  the ADS colour is returned from the function. \
@@ -508,10 +506,10 @@ vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
 	/* apply the lights to this material */ \
 	for (i=0; i<8; i++) { \
 		if (lightState[i] == 1) { \
-		vec4 myLightDiffuse = gl_LightSource[i].diffuse; \
-		vec4 myLightAmbient = gl_LightSource[i].ambient; \
-		vec4 myLightSpecular = gl_LightSource[i].specular; \
-		vec4 myLightPosition = gl_LightSource[i].position; \
+		vec4 myLightDiffuse = lightDiffuse[i]; \
+		vec4 myLightAmbient = lightAmbient[i]; \
+		vec4 myLightSpecular = lightSpecular[i]; \
+		vec4 myLightPosition = lightPosition[i]; \
   \
 		/* normal, light, view, and light reflection vectors */ \
 		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
@@ -538,8 +536,6 @@ void main () { \
  " ;
 
 static const char *phongTwoSidedFragmentShader =  " \
-#version 120 \n  \
-#extension GL_EXT_gpu_shader4: enable \n  \
 \
 struct fw_MaterialParameters { \
                 vec4 emission; \
@@ -555,6 +551,10 @@ uniform fw_MaterialParameters fw_BackMaterial; \
 varying vec3 Norm;  \
 varying vec4 Pos;  \
 uniform int lightState[8]; \
+uniform vec4 lightAmbient[8]; \
+uniform vec4 lightDiffuse[8]; \
+uniform vec4 lightSpecular[8]; \
+uniform vec4 lightPosition[8]; \
  \
 /* use ADSLightModel here \
  the ADS colour is returned from the function. \
@@ -581,10 +581,10 @@ vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
 	/* apply the lights to this material */ \
 	for (i=0; i<8; i++) { \
 		if (lightState[i] == 1) { \
-		vec4 myLightDiffuse = gl_LightSource[i].diffuse; \
-		vec4 myLightAmbient = gl_LightSource[i].ambient; \
-		vec4 myLightSpecular = gl_LightSource[i].specular; \
-		vec4 myLightPosition = gl_LightSource[i].position; \
+		vec4 myLightDiffuse = lightDiffuse[i]; \
+		vec4 myLightAmbient = lightAmbient[i]; \
+		vec4 myLightSpecular = lightSpecular[i]; \
+		vec4 myLightPosition = lightPosition[i]; \
   \
 		/* normal, light, view, and light reflection vectors */ \
 		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
@@ -837,9 +837,9 @@ static void getGenericShader(shader_type_t whichOne) {
 	GLuint myGeometryShader=0;
 	GLuint myProg = 0;
 	s_shader_capabilities_t *myShader;
-	char *vertexSource;
-	char  *fragmentSource;
-	char *geometrySource;
+	char *vertexSource[2];
+	char  *fragmentSource[2];
+	char *geometrySource[2];
 
 printf ("compiling shader: ");
 switch (whichOne) {
@@ -863,16 +863,38 @@ case complexTexTwoMaterialSphereShader: printf ("complexTexTwoMaterialSphereShad
 
 	/* pointerize this */
 	myShader = &rdr_caps.backgroundShaderArrays[whichOne];
-	(*myShader).myShaderProgram = CREATE_PROGRAM;
-	myProg = (*myShader).myShaderProgram;
+	myProg = glCreateProgram(); /* CREATE_PROGRAM */
+	(*myShader).myShaderProgram = myProg;
 	
-	if (!getGenericShaderSource (&vertexSource, &fragmentSource, &geometrySource, whichOne)) return;
+	/* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
+	if (!getGenericShaderSource (&vertexSource[1], &fragmentSource[1], &geometrySource[1], whichOne)) return;
 
+	#ifdef IPHONE
+	vertexSource[0] = "";
+	fragmentSource[0] = " \
+		precision lowp float;\n \
+	";
+	geometrySource[0] = "";
+
+
+	#else
+
+	vertexSource[0] = "";
+	fragmentSource[0] = "";
+	geometrySource[0] = " \
+		#version 120\n \
+		#extension GL_EXT_gpu_shader4: enable\n \
+		#extension GL_EXT_geometry_shader4: enable\n \
+	";
+	#endif
+
+
+	
 	/* geometryShader */
-	if (geometrySource != NULL) {
+	if (geometrySource[1] != NULL) {
 #ifndef IPHONE
 		myGeometryShader = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
-		SHADER_SOURCE(myGeometryShader, 1, (const GLchar **) &geometrySource, NULL);
+		SHADER_SOURCE(myGeometryShader, 2, (const GLchar **) &geometrySource, NULL);
 		COMPILE_SHADER(myGeometryShader);
 		GET_SHADER_INFO(myGeometryShader, COMPILE_STATUS, &success);
 		if (!success) {
@@ -896,8 +918,10 @@ printf ("HMMM - IPHONE and Geometry shader\n");
 	}
 
 
+printf ("shader fragment source %s, %s\n",fragmentSource[0], fragmentSource[1]);
+
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
-	SHADER_SOURCE(myVertexShader, 1, (const GLchar **) &vertexSource, NULL);
+	SHADER_SOURCE(myVertexShader, 2, (const GLchar **) vertexSource, NULL);
 	COMPILE_SHADER(myVertexShader);
 	GET_SHADER_INFO(myVertexShader, COMPILE_STATUS, &success);
 	if (!success) {
@@ -910,7 +934,7 @@ printf ("HMMM - IPHONE and Geometry shader\n");
 
 	/* get Fragment shader */
 	myFragmentShader = CREATE_SHADER (FRAGMENT_SHADER);
-	SHADER_SOURCE(myFragmentShader, 1, (const GLchar **) &fragmentSource, NULL);
+	SHADER_SOURCE(myFragmentShader, 2, (const GLchar **) fragmentSource, NULL);
 	COMPILE_SHADER(myFragmentShader);
 	GET_SHADER_INFO(myFragmentShader, COMPILE_STATUS, &success);
 	if (!success) {
@@ -1333,6 +1357,8 @@ bool initialize_GL()
 	FW_GL_PIXELSTOREI(GL_PACK_ALIGNMENT,1);
 
 	do_shininess(GL_FRONT_AND_BACK,(float) 0.2);
+
+extern GLuint defaultBlankTexture;
 
         /* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
         FW_GL_GENTEXTURES (1,&defaultBlankTexture);

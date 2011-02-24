@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.163 2011/02/16 18:36:00 dug9 Exp $
+  $Id: MainLoop.c,v 1.164 2011/02/24 16:13:03 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1631,7 +1631,9 @@ void initializeRenderSceneUpdateScene() {
 	/* Context has been created,
 	   make it current to this thread */
 
+	#ifndef IPHONE /* temporary to get iphone running */
 	new_tessellation();
+	#endif /* IPHONE */
 	
 	set_viewer_type(VIEWER_EXAMINE);
 	

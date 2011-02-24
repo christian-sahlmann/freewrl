@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.23 2011/02/11 18:46:25 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.24 2011/02/24 16:13:03 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -28,6 +28,9 @@ X3D Cubemap Texturing Component
 
 
 #include <config.h>
+
+#ifndef IPHONE
+
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -535,3 +538,5 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 	/* get rid of the original texture data now */
 	FREE_IF_NZ(me->texdata);
 }
+
+#endif /* IPHONE */

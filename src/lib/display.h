@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.107 2011/02/16 17:46:00 crc_canada Exp $
+  $Id: display.h,v 1.108 2011/02/24 16:13:03 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -196,8 +196,8 @@
 #ifdef AQUA
 
 #ifdef IPHONE
-#include <ES2/gl.h>
-#include <ES2/glext.h>
+#include <OpenGLES/ES2/gl.h>
+#include <OpenGLES/ES2/glext.h>
 extern int ccurse;
 extern int ocurse;
 #define SCURSE 1
@@ -527,6 +527,8 @@ void setScreenDim(int wi, int he);
 			#define FW_GL_SWAPBUFFERS { \
 				CGLError err = FW_GL_CGLFLUSHDRAWABLE(myglobalContext); \
 				if (err != kCGLNoError) printf ("FW_GL_CGLFLUSHDRAWABLE error %d\n",err); }
+		#else
+			#define FW_GL_SWAPBUFFERS /* do nothing */
 		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 	#endif

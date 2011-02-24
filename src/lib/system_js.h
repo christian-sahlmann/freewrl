@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_js.h,v 1.6 2009/10/05 15:07:23 crc_canada Exp $
+$Id: system_js.h,v 1.7 2011/02/24 16:13:03 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: Javascript engine dependencies.
@@ -41,6 +41,25 @@ Internal header: Javascript engine dependencies.
 
 #define JS_HAS_FILE_OBJECT 1 /* workaround warning=>error */
 
+#ifdef IPHONE
+typedef int JSContext;
+typedef int JSObject;
+typedef int JSScript;
+typedef int jsval;
+typedef int JSType;
+typedef int JSClass;
+typedef int JSFunctionSpec;
+typedef int  JSPropertySpec;
+typedef int JSBool;
+typedef int uintN;
+typedef int JSErrorReport;
+
+
+
+/* int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval); */
+#else
+
+
 #ifdef MOZILLA_JS_UNSTABLE_INCLUDES
 # include "../unstable/jsapi.h" /* JS compiler */
 # include "../unstable/jsdbgapi.h" /* JS debugger */
@@ -48,5 +67,7 @@ Internal header: Javascript engine dependencies.
 # include <jsapi.h> /* JS compiler */
 # include <jsdbgapi.h> /* JS debugger */
 #endif
+
+#endif /* IPHONE */
 
 #endif /* __LIBFREEWRL_SYSTEM_JS_H__ */

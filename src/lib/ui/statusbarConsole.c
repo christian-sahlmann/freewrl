@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarConsole.c,v 1.4 2010/03/12 17:07:57 crc_canada Exp $
+  $Id: statusbarConsole.c,v 1.5 2011/02/24 16:13:03 crc_canada Exp $
 
 */
 
@@ -27,6 +27,8 @@
 #include <system.h>
 #include <display.h>
 #include <internal.h>
+
+#ifndef IPHONE
 
 #include <libFreeWRL.h>
 #include <list.h>
@@ -642,3 +644,4 @@ void drawStatusBar()
 	FW_GL_FLUSH();
 
 }
+#endif /* IPHONE */

@@ -1,5 +1,5 @@
 /*
-  $Id: fwBareWindow.c,v 1.12 2010/03/30 19:15:44 crc_canada Exp $
+  $Id: fwBareWindow.c,v 1.13 2011/02/24 16:13:03 crc_canada Exp $
 
   Create X11 window. Manage events.
 
@@ -24,9 +24,10 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
-
 #include <config.h>
+
+#ifndef IPHONE
+
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -132,3 +133,5 @@ int create_main_window(int argc, char *argv[])
 
     return TRUE;
 }
+
+#endif /* IPHONE */

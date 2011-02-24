@@ -22,17 +22,17 @@ FREEWRL_CCFLAGS => '-arch '.
     FREEWRL_LIBS => '-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/usr/lib '.
 		'-L/usr/local/lib '.
 		'-L/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/System/Library/Frameworks/OpenGLES.framework '.
-		'-lSystem '.
 		' -F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/System/Library/Frameworks -framework OpenGLES ',
 
 # had 
 #		'-L/FreeWRL/expat-2.0.0 '.
 #		'-lexpat '.
 #		'-lfreetype '.
+#		'-lSystem '.
 
     # when building on Leopard 10.5, keep the version at 10.4 - see:
     # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
-    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.armv6 also!
 
     # can also add -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC to display malloc issues.
 
@@ -64,7 +64,7 @@ FREEWRL_CCFLAGS => '-arch '.
 
     # when building on Leopard 10.5, keep the version at 10.4 - see:
     # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
-    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.armv6 also!
 
 
 	LDFLAGS => '-flat_namespace '.

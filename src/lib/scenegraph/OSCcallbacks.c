@@ -1,3 +1,7 @@
+#include <config.h>
+
+#ifndef IPHONE
+
 /* DJTRACK_OSCSENSORS */
 
 typedef int (*functions)(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data) ;
@@ -205,3 +209,5 @@ int defaultOSC_handler(const char *path, const char *types, lo_arg **argv, int a
 #define OSCfuncCount  2
 functions OSCcallbacks[OSCfuncCount] = {nullOSC_handler,defaultOSC_handler};
 char *OSCfuncNames[OSCfuncCount] = { "", "default" };
+
+#endif /* IPHONE */

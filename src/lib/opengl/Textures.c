@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.78 2011/02/14 21:52:59 crc_canada Exp $
+  $Id: Textures.c,v 1.79 2011/02/24 16:13:03 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -996,7 +996,11 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 	if (appearanceProperties.cubeFace != 0) {
 		unsigned char *dest = me->texdata;
+		#ifdef IPHONE
+		int *sp, *dp; /* uint32 not defined on iphone?? */
+		#else
 		uint32 *sp, *dp;
+		#endif
 
 		int cx;
 
@@ -1033,8 +1037,13 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 		/* flip the image around */
 		dest = MALLOC (unsigned char *, 4*rx*ry);
+		#ifdef IPHONE
+		dp = dest;
+		sp = me->texdata;
+		#else
 		dp = (uint32 *) dest;
 		sp = (uint32 *) me->texdata;
+		#endif
 
 		for (cx=0; cx<rx; cx++) {
 			memcpy(&dp[(rx-cx-1)*ry],&sp[cx*ry], ry*4);

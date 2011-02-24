@@ -1,5 +1,5 @@
 /*
-  $Id: fwCommonX11.c,v 1.6 2010/09/21 16:16:05 istakenv Exp $
+  $Id: fwCommonX11.c,v 1.7 2011/02/24 16:13:03 crc_canada Exp $
 
   FreeWRL support library.
   X11 common functions.
@@ -25,9 +25,10 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
-
 #include <config.h>
+
+#ifndef IPHONE
+
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -323,3 +324,5 @@ bool bind_GLcontext()
 
 	return TRUE;
 }
+
+#endif /* IPHONE */

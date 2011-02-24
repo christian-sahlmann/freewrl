@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.6 2011/02/11 18:46:25 crc_canada Exp $
+$Id: ColladaParser.c,v 1.7 2011/02/24 16:13:03 crc_canada Exp $
 
 ???
 
@@ -26,11 +26,12 @@ $Id: ColladaParser.c,v 1.6 2011/02/11 18:46:25 crc_canada Exp $
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+#include <config.h>
+
 /* IPHONE - right now do not do XML parsing */
 #ifndef IPHONE
 
 
-#include <config.h>
 #include <system.h>
 #include <display.h>
 #include <internal.h>
