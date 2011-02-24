@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.175 2011/02/24 16:13:03 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.176 2011/02/24 17:17:49 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1357,7 +1357,7 @@ bool initialize_GL()
 	FW_GL_PIXELSTOREI(GL_PACK_ALIGNMENT,1);
 
 	do_shininess(GL_FRONT_AND_BACK,(float) 0.2);
-
+	{
 extern GLuint defaultBlankTexture;
 
         /* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
@@ -1366,7 +1366,7 @@ extern GLuint defaultBlankTexture;
         FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
         FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
-
+	}
 
 	printf ("initialize_GL returning\n");
 	return TRUE;
