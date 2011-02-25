@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.177 2011/02/25 20:25:51 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.178 2011/02/25 21:19:38 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1361,6 +1361,7 @@ bool initialize_GL()
 
 
 	/* nodes with Geometry Shaders */
+	#ifdef HAVE_GEOMETRY_SHADERS
         getGenericShader(noMaterialNoAppearanceSphereShader);
         getGenericShader(noTexOneMaterialSphereShader);
 	getGenericShader(noTexTwoMaterialSphereShader);
@@ -1368,6 +1369,7 @@ bool initialize_GL()
 	getGenericShader(oneTexTwoMaterialSphereShader);
 	getGenericShader(complexTexOneMaterialSphereShader);
 	getGenericShader(complexTexTwoMaterialSphereShader);
+	#endif /* HAVE_GEOMETRY_SHADERS */
 
 	#endif /* SHADERS_2011 */
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.57 2011/02/11 18:46:25 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.58 2011/02/25 21:19:38 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -767,7 +767,7 @@ printf ("iphone, not vbos ignoring\n");
 #define TRISINSPHERE (SPHDIV*3* SPHDIV)
 
 
-#ifdef SHADERS_2011
+#ifdef HAVE_GEOMETRY_SHADERS
 
 const GLfloat sphTri[] = {
  0.0F,  0.0F,   1.0F,    0.0F,  1.0F,   0.0F,   1.0F,  0.0F,   0.0F, /* switched 2 and 3 */
@@ -1027,7 +1027,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 }
 
-#else  /* NOT SHADERS_2011 */
+#else  /* NOT HAVE_GEOMETRY_SHADERS */
 
 
 void compile_Sphere (struct X3D_Sphere *node) {
@@ -1268,7 +1268,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 //#endif
 }
 
-#endif /* SHADERS_2011 */
+#endif /* HAVE_GEOMETRY_SHADERS */
 
 
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {

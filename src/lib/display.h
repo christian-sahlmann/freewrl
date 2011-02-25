@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.109 2011/02/25 20:25:51 crc_canada Exp $
+  $Id: display.h,v 1.110 2011/02/25 21:19:38 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -36,6 +36,7 @@
 	#define GLDOUBLE double
 	#define DOUBLE_MAX fmax
 	#define DOUBLE_MIN fmin
+	#undef HAVE_GEOMETRY_SHADERS
 #else
 	#define GLDOUBLE GLdouble
 	#define DOUBLE_MAX max
