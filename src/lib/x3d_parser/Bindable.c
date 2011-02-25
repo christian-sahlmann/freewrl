@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.49 2011/02/14 21:52:29 crc_canada Exp $
+$Id: Bindable.c,v 1.50 2011/02/25 20:25:51 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -50,6 +50,13 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 #include "../scenegraph/Component_Geospatial.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Component_ProgrammableShaders.h"
+
+/* for Background spheres */
+struct MyVertex
+ {
+   struct SFVec3f vert;    //Vertex
+   struct SFColor col;     //Colour
+ };
 
 
 /* Viewport data */
@@ -735,6 +742,7 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 	newPoints = MALLOC (GLfloat *, sizeof (GLfloat) * estq * 3 * 6);
 	newColors = MALLOC (GLfloat *, sizeof (GLfloat) * estq * 3 * 6);
 
+
 	if(skyColCt == 1) {
 		c1 = &skyCol[0];
 		va1 = 0;
@@ -851,25 +859,70 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 	}
 
 	/* save changes */
+	/* if we are doing shaders, we write the vertex and color info to a VBO, else we keep pointers in the node */
 	if (node->_nodeType == NODE_Background) {
+
 		MARK_NODE_COMPILED
 
 		/* do we have an old background to destroy? */
 		FREE_IF_NZ (node->__points.p);
 		FREE_IF_NZ (node->__colours.p);
+		node->__quadcount = actq;
+		#ifndef SHADERS_2011
+		/* record this info if NOT doing shaders */
 		node->__points.p = (struct SFVec3f *)newPoints;
 		node->__colours.p = (struct SFColor *)newColors;
-		node->__quadcount = actq;
-
+		#endif /* SHADERS_2011 */
 	} else {
 		tbnode->_ichange = tbnode->_change; /* mimic MARK_NODE_COMPILED */
 		/* do we have an old background to destroy? */
 		FREE_IF_NZ (tbnode->__points.p);
 		FREE_IF_NZ (tbnode->__colours.p);
-		tbnode->__points.p = (struct SFVec3f *) newPoints;
-		tbnode->__colours.p = (struct SFColor *) newColors;
 		tbnode->__quadcount = actq;
+		#ifndef SHADERS_2011
+		/* record this info if NOT doing shaders */
+		tbnode->__points.p = (struct SFVec3f *)newPoints;
+		tbnode->__colours.p = (struct SFColor *)newColors;
+		#endif /* SHADERS_2011 */
 	}
+
+
+	#ifdef SHADERS_2011
+	{
+		struct MyVertex *combinedBuffer = MALLOC(GLfloat *, sizeof (struct MyVertex) * actq * 2);
+		int i;
+		float *npp = newPoints;
+		float *ncp = newColors;
+
+
+		if (node->_nodeType == NODE_Background) {
+			if (node->__VBO == 0) glGenBuffers(1,&node->__VBO);
+		} else {
+			if (tbnode->__VBO == 0) glGenBuffers(1,&tbnode->__VBO);
+		}
+
+		/* stream both the vertex and colours together (could have done this above, but
+		   maybe can redo this if we go 100% material shaders */
+		for (i=0; i<actq; i++) {
+			combinedBuffer[i].vert.c[0] = *npp; npp++;
+			combinedBuffer[i].vert.c[1] = *npp; npp++;
+			combinedBuffer[i].vert.c[2] = *npp; npp++;
+			combinedBuffer[i].col.c[0] = *ncp; ncp++;
+			combinedBuffer[i].col.c[1] = *ncp; ncp++;
+			combinedBuffer[i].col.c[2] = *ncp; ncp++;
+		}
+		FREE_IF_NZ(newPoints);
+		FREE_IF_NZ(newColors);
+
+		/* send this data along ... */
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,node->__VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof (struct MyVertex)*actq, combinedBuffer, GL_STATIC_DRAW);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
+
+		/* and, we can free it */
+		FREE_IF_NZ(combinedBuffer);
+	}
+	#endif /* SHADERS_2011 */
 }
 
 void render_Background (struct X3D_Background *node) {
@@ -902,42 +955,37 @@ void render_Background (struct X3D_Background *node) {
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
 	#ifdef SHADERS_2011
-	chooseShader(backgroundSphereShader);
-        FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-        FW_GL_DISABLECLIENTSTATE(GL_EDGE_FLAG_ARRAY);
-        FW_GL_DISABLECLIENTSTATE(GL_INDEX_ARRAY);
-	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
-	
-        /* FW_GL_DISABLECLIENTSTATE(GL_FOG_COORD_ARRAY); */
-        FW_GL_DISABLECLIENTSTATE(GL_VERTEX_ARRAY);
-        FW_GL_DISABLECLIENTSTATE(GL_SECONDARY_COLOR_ARRAY);
-        FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
+		chooseShader(backgroundSphereShader);
 
-                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-                FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-	#endif
+		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
-	/* now, display the lists */
-	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
-	FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours.p);
-	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__VBO);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
+		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		FW_GL_COLOR_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(sizeof(float)*3));   //The starting point of normals, 12 bytes away
 
-	#ifdef SHADERS_2011
-               /* turn off */
-                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-                FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-	#endif
+		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
 
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+		TURN_GLOBAL_SHADER_OFF;
+	#else
 
-	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+		/* now, display the lists */
+		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
+		FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours.p);
+		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
+		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
 
-	#ifdef SHADERS_2011
-	TURN_GLOBAL_SHADER_OFF;
+		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	#endif
 
 	/* now, for the textures, if they exist */
@@ -1007,25 +1055,40 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	   all geometry fits within the spheres */
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
-	#ifdef SHADERS_2011
-	chooseShader(backgroundSphereShader);
-	#endif
-
-	/* now, display the lists */
-	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
-	FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours.p);
-	FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
-
-	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
-
-	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
 	#ifdef SHADERS_2011
-	TURN_GLOBAL_SHADER_OFF;
-	#endif
+		chooseShader(backgroundSphereShader);
 
+		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
+
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__VBO);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
+		FW_GL_COLOR_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(sizeof(float)*3));   //The starting point of normals, 12 bytes away
+
+		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
+
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+		TURN_GLOBAL_SHADER_OFF;
+	#else
+
+		/* now, display the lists */
+		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
+		FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours.p);
+		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
+
+		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
+
+		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+	#endif
 	/* now, for the textures, if they exist */
 	if ((node->backTexture !=0) ||
 			(node->frontTexture !=0) ||

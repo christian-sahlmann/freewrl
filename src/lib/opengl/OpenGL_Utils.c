@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.176 2011/02/24 17:17:49 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.177 2011/02/25 20:25:51 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -219,7 +219,7 @@ static char *backgroundSphereShaderVertex = "attribute	vec3 fw_Color; " \
 			"varying	vec4 v_color;" \
 			"void main(void) {" \
 			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-			"	v_color = vec4 (fw_Color,1);" \
+			"	v_color = vec4 (fw_Color,1); " \
 			"}";
 
 static char *backgroundTextureBoxShaderFragment =
@@ -288,8 +288,8 @@ static char *phongSimpleVertexShader = " \
 	}";
 
 static char *oneTexVertexShader = " \
-        varying vec3 Norm; \
-        varying vec4 Pos; \
+        /* varying vec3 Norm; */ \
+        /* varying vec4 Pos; */ \
         attribute      vec4 fw_Vertex; \
         attribute      vec3 fw_Normal; \
         uniform        mat4 fw_ModelViewMatrix; \
@@ -300,8 +300,8 @@ static char *oneTexVertexShader = " \
         varying        vec2 v_texC; \
         \
         void main(void) { \
-               Norm = normalize(fw_NormalMatrix * fw_Normal); \
-               Pos = fw_ModelViewMatrix * fw_Vertex;  \
+               /* Norm = normalize(fw_NormalMatrix * fw_Normal); */ \
+               /* Pos = fw_ModelViewMatrix * fw_Vertex;  */ \
                gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
                v_texC =fw_TexCoords; \
         }";
@@ -330,12 +330,12 @@ static const char *noTexSphereGeomShader = " \
 		vec3 v = V0 + s*V01 + t*V02;\
 		v = normalize(v);\
 		vec3 n = v;\
-		Norm = normalize( fw_NormalMatrix * n );	\
+		Norm = normalize( fw_NormalMatrix * n ); \
 		\
 		vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\
 		\
 		gl_Position = fw_ProjectionMatrix * ECposition;\
-		Pos = ECposition;\
+		Pos = ECposition; \
 		EmitVertex();\
 	}\
 	 \
@@ -349,7 +349,7 @@ static const char *noTexSphereGeomShader = " \
 		float dist = distFromViewer.z * sphereRadius; \
 		if (dist < 20) { numLayers=6; } else { \
 			if (dist < 70) {numLayers=4;} else { \
-				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \ 
+				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \
 			} \
 		} \
 		float dt = 1. / float( numLayers );\
@@ -383,6 +383,78 @@ static const char *noTexSphereGeomShader = " \
 		} \
 	 }";
 
+static const char *noAppearanceSphereGeomShader = " \
+	\
+	int numLayers;\
+	\
+	varying float LightIntensity;\
+	/* varying vec3 Norm; */ \
+	/* varying vec4 Pos; */ \
+	uniform		mat4 fw_ModelViewMatrix; \
+	uniform		mat4 fw_ProjectionMatrix; \
+	uniform		mat3 fw_NormalMatrix; \
+	uniform		float sphereRadius; \
+	\
+	vec3 V0, V01, V02;\
+	\
+	void ProduceVertex( float s, float t ) {\
+		const vec3 lightPos = vec3( 0., 10., 0. );\
+		\
+		vec3 v = V0 + s*V01 + t*V02;\
+		v = normalize(v);\
+		vec3 n = v;\
+		/* Norm = normalize( fw_NormalMatrix * n ); */ \
+		\
+		vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\
+		\
+		gl_Position = fw_ProjectionMatrix * ECposition;\
+		/* Pos = ECposition; */ \
+		EmitVertex();\
+	}\
+	 \
+	void main() { \
+		V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\
+		V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\
+		V0  =   gl_PositionIn[0].xyz;\
+		\
+		/* trying random scaling to perform LOD */ \
+		vec4 distFromViewer = fw_ProjectionMatrix * fw_ModelViewMatrix * vec4 (0., 0., 0., 1.); \
+		float dist = distFromViewer.z * sphereRadius; \
+		if (dist < 20) { numLayers=6; } else { \
+			if (dist < 70) {numLayers=4;} else { \
+				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \
+			} \
+		} \
+		float dt = 1. / float( numLayers );\
+		\
+		float t_top = 1.;\
+		\
+		for( int it = 0; it < numLayers; it++ ) {\
+			float t_bot = t_top - dt;\
+			float smax_top = 1. - t_top;\
+			float smax_bot = 1. - t_bot;\
+			\
+			int nums = it + 1;\
+			float ds_top = smax_top / float( nums - 1 );\
+			float ds_bot = smax_bot / float( nums );\
+			\
+			float s_top = 0.;\
+			float s_bot = 0.;\
+			\
+			for( int is = 0; is < nums; is++ ) {\
+				ProduceVertex( s_bot, t_bot );\
+				ProduceVertex( s_top, t_top );\
+				s_top += ds_top;\
+				s_bot += ds_bot;\
+			}\
+			\
+			ProduceVertex( s_bot, t_bot );\
+			EndPrimitive();\
+			\
+			t_top = t_bot;\
+			t_bot -= dt;\
+		} \
+	 }";
 
 /* simple texture shader for Sphere Geometry Shader */
 static const char *oneTexSphereGeomShader = " \
@@ -390,8 +462,8 @@ static const char *oneTexSphereGeomShader = " \
 	int numLayers;\
 	\
 	varying float LightIntensity;\
-	varying vec3 Norm; \
-	varying vec4 Pos; \
+	/* varying vec3 Norm; */ \
+	/* varying vec4 Pos; */ \
 	uniform		mat4 fw_ModelViewMatrix; \
 	uniform		mat4 fw_ProjectionMatrix; \
 	uniform		mat3 fw_NormalMatrix; \
@@ -408,12 +480,12 @@ static const char *oneTexSphereGeomShader = " \
 		vec3 v = V0 + s*V01 + t*V02;\
 		v = normalize(v);\
 		vec3 n = v;\
-		Norm = normalize( fw_NormalMatrix * n );	\
+		/* Norm = normalize( fw_NormalMatrix * n ); */	\
 		\
 		vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\
 		\
 		gl_Position = fw_ProjectionMatrix * ECposition;\
-		Pos = ECposition;\
+		/* Pos = ECposition; */ \
 		v_texC = T0; \
 		EmitVertex();\
 	}\
@@ -432,7 +504,7 @@ static const char *oneTexSphereGeomShader = " \
 		float dist = distFromViewer.z * sphereRadius; \
 		if (dist < 20) { numLayers=6; } else { \
 			if (dist < 70) {numLayers=4;} else { \
-				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \ 
+				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \
 			} \
 		} \
 		float dt = 1. / float( numLayers );\
@@ -484,12 +556,18 @@ uniform fw_MaterialParameters fw_BackMaterial; \
 \
 varying vec3 Norm;  \
 varying vec4 Pos;  \
+\
 uniform int lightState[8]; \
+uniform float light_linAtten[8]; \
+uniform float light_constAtten[8]; \
+uniform float light_quadAtten[8]; \
+uniform float lightSpotCut[8]; \
+uniform float lightSpotExp[8]; \
 uniform vec4 lightAmbient[8]; \
 uniform vec4 lightDiffuse[8]; \
-uniform vec4 lightSpecular[8]; \
 uniform vec4 lightPosition[8]; \
- \
+uniform vec4 lightSpecular[8]; \
+\
 /* use ADSLightModel here \
  the ADS colour is returned from the function. \
 */  \
@@ -550,12 +628,18 @@ uniform fw_MaterialParameters fw_BackMaterial; \
 \
 varying vec3 Norm;  \
 varying vec4 Pos;  \
+\
 uniform int lightState[8]; \
+uniform float light_linAtten[8]; \
+uniform float light_constAtten[8]; \
+uniform float light_quadAtten[8]; \
+uniform float lightSpotCut[8]; \
+uniform float lightSpotExp[8]; \
 uniform vec4 lightAmbient[8]; \
 uniform vec4 lightDiffuse[8]; \
-uniform vec4 lightSpecular[8]; \
 uniform vec4 lightPosition[8]; \
- \
+uniform vec4 lightSpecular[8]; \
+\
 /* use ADSLightModel here \
  the ADS colour is returned from the function. \
 */  \
@@ -698,7 +782,7 @@ static int getGenericShaderSource (char **vertexSource, char **fragmentSource, c
 		case noMaterialNoAppearanceSphereShader: {
 			*fragmentSource = noAppearanceNoMaterialFragmentShader;
                 	*vertexSource = noTexVertexShaderForSphereGeomShader;
-			*geometrySource = noTexSphereGeomShader;
+			*geometrySource = noAppearanceSphereGeomShader;
 			break;
 		}
 
@@ -803,11 +887,12 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->myMaterialBackAmbient = GET_UNIFORM(myProg,"fw_BackMaterial.ambient");
 	me->myMaterialBackSpecular = GET_UNIFORM(myProg,"fw_BackMaterial.specular");
 
-	me->lightState = GET_UNIFORM(myProg,"lightState");
-	me->lightAmbient = GET_UNIFORM(myProg,"lightAmbient");
-	me->lightDiffuse = GET_UNIFORM(myProg,"lightDiffuse");
-	me->lightSpecular = GET_UNIFORM(myProg,"lightSpecular");
-	me->lightPosition = GET_UNIFORM(myProg,"lightPosition");
+        me->lightState = GET_UNIFORM(myProg,"lightState");
+        me->lightAmbient = GET_UNIFORM(myProg,"lightAmbient");
+        me->lightDiffuse = GET_UNIFORM(myProg,"lightDiffuse");
+        me->lightSpecular = GET_UNIFORM(myProg,"lightSpecular");
+        me->lightPosition = GET_UNIFORM(myProg,"lightPosition");
+
 
 	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
 	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
@@ -917,8 +1002,6 @@ printf ("HMMM - IPHONE and Geometry shader\n");
 #endif
 	}
 
-
-printf ("shader fragment source %s, %s\n",fragmentSource[0], fragmentSource[1]);
 
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
 	SHADER_SOURCE(myVertexShader, 2, (const GLchar **) vertexSource, NULL);
@@ -3004,14 +3087,7 @@ void sendMaterialsToShader(s_shader_capabilities_t *me) {
 	SEND_VEC4(myMaterialBackEmission,appearanceProperties.fw_BackMaterial.emission);
 	SEND_FLOAT(myMaterialBackShininess,appearanceProperties.fw_BackMaterial.shininess);
 
-	if (me->lightState != -1) {
-		/* for debugging:
-			int i;
-			printf ("sendMAt - sending in lightState ");
-			for (i=0; i<8; i++) printf ("%d:%d ",i,lightOnOff[i]); printf ("\n");
-		*/
-		GLUNIFORM1IV(me->lightState,8,lightOnOff);
-	}
+	if (me->lightState != -1) sendLightInfo(me);
 }
 
 static void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4],

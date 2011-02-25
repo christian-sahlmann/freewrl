@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.35 2011/02/11 18:46:25 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.36 2011/02/25 20:25:51 crc_canada Exp $
 
 Screen snapshot.
 
@@ -47,10 +47,11 @@ typedef struct {
 	GLint myMaterialBackEmission;
 
 	GLint lightState;
-	GLint lightAmbient;
-	GLint lightDiffuse;
-	GLint lightSpecular;
-	GLint lightPosition;
+        GLint lightAmbient;
+        GLint lightDiffuse;
+        GLint lightSpecular;
+        GLint lightPosition;
+
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;
 	GLint NormalMatrix;

@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.88 2011/02/24 16:13:03 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.89 2011/02/25 20:25:51 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -75,7 +75,7 @@ static shaderVec4 light_spot[8];
 static int nextFreeLight = 0;
 
 /* lights status. Light 7 is the headlight */
-GLint lightOnOff[8];
+static GLint lightOnOff[8];
 
 /* should we send light changes along? */
 static bool lightStatusDirty = FALSE;
@@ -123,11 +123,9 @@ void restoreLightState(int *ls) {
 }
 
 void fwglLightfv (int light, int pname, GLfloat *params) {
-	/* printf ("glLightfv %d %d %f %f %f %f\n",light,pname,params[0], params[1],params[2],params[3]);  */
-	#ifndef IPHONE
-	glLightfv(GL_LIGHT0+light,pname,params);
-	#else
-	printf ("skipping flLightV here\n");
+	/* printf ("fwglLightfv %d %d %f %f %f %f\n",light,pname,params[0], params[1],params[2],params[3]);  */
+	#ifndef SHADERS_2011
+		glLightfv(GL_LIGHT0+light,pname,params);
 	#endif
 
 	switch (pname) {
@@ -152,7 +150,7 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 }
 
 void fwglLightf (int light, int pname, GLfloat param) {
-	/* printf ("glLightf %d %d %f\n",light,pname,param);  */
+	printf ("glLightf %d %d %f\n",light,pname,param);
 	#ifndef IPHONE
 	glLightf(GL_LIGHT0+light,pname,param);
 	#else
@@ -179,7 +177,23 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	lightParamsDirty = TRUE;
 }
 
+/* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call */
+void sendLightInfo (s_shader_capabilities_t *me) {
+		/* for debugging:
+			int i;
+			printf ("sendMAt - sending in lightState ");
+			for (i=0; i<8; i++) printf ("%d:%d ",i,lightOnOff[i]); printf ("\n");
+		*/
 
+		/* if one of these are equal to -1, we had an error in the shaders... */
+		GLUNIFORM1IV(me->lightState,8,lightOnOff);
+		GLUNIFORM4FV(me->lightAmbient,8,light_amb);
+		GLUNIFORM4FV(me->lightDiffuse,8,light_dif);
+		GLUNIFORM4FV(me->lightPosition,8,light_pos);
+		GLUNIFORM4FV(me->lightSpecular,8,light_spec);
+	}
+
+/* finished rendering thisshape. */
 void turnGlobalShaderOff(void) {
 	if (appearanceProperties.currentShader != 0) {
 		appearanceProperties.currentShader = 0;
@@ -229,6 +243,7 @@ printf ("sendAttribToGPU, appearanceProperties.currentShaderProperties %p\n",app
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 		}
+	}
 #endif
 
 	if (appearanceProperties.currentShaderProperties != NULL) {
@@ -306,13 +321,14 @@ void sendClientStateToGPU(int enable, int cap) {
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 		}
-/*
+
+#ifdef RENDERVERBOSE
 printf ("sendClientStateToGPU: appearanceProperties.currentShaderProperties %p \n",appearanceProperties.currentShaderProperties);
 if (shaderNormalArray) printf ("enabling Normal\n"); else printf ("disabling Normal\n");
 if (shaderVertexArray) printf ("enabling Vertex\n"); else printf ("disabling Vertex\n");
 if (shaderColourArray) printf ("enabling Colour\n"); else printf ("disabling Colour\n");
 if (shaderTextureArray) printf ("enabling Texture\n"); else printf ("disabling Texture\n");
-*/
+#endif
 
 	} else {
 		#ifndef IPHONE

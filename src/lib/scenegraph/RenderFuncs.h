@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.h,v 1.20 2011/01/14 17:30:36 crc_canada Exp $
+$Id: RenderFuncs.h,v 1.21 2011/02/25 20:25:51 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -77,9 +77,6 @@ extern int BrowserAction;
 extern struct X3D_Anchor *AnchorsAnchor;
 extern char *OSX_replace_world_from_console;
 
-extern GLint lightOnOff[];
-
-
 void lightState(GLint light, int status);
 void saveLightState(int *ls);
 void restoreLightState(int *ls);
@@ -93,5 +90,6 @@ void sendArraysToGPU (int mode, int first, int count);
 void sendBindBufferToGPU (GLenum target, GLuint buffer,char *, int);
 void sendElementsToGPU (int mode, int count, int type, int *indices);
 void render_hier(struct X3D_Group *p, int rwhat);
+void sendLightInfo (s_shader_capabilities_t *me);
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

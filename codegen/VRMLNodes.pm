@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.57 2011/01/14 17:30:35 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.58 2011/02/25 20:25:51 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -1371,7 +1371,6 @@ package VRML::NodeType;
 		retainUserOffsets => [SFBool, FALSE, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bindTime => [SFTime, -1, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isBound => [SFBool, FALSE, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__BGNumber => [SFInt32,-1,initializeOnly, 0], # for ordering backgrounds for binding
 	},"X3DBindableNode"),
 
 	OrthoViewpoint => new VRML::NodeType("OrthoViewpoint", {
@@ -1386,7 +1385,6 @@ package VRML::NodeType;
 		retainUserOffsets => [SFBool, FALSE, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bindTime => [SFTime, -1, outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isBound => [SFBool, FALSE, outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__BGNumber => [SFInt32,-1,initializeOnly, 0], # for ordering backgrounds for binding
 	},"X3DBindableNode"),
 
 
@@ -1404,7 +1402,6 @@ package VRML::NodeType;
 		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		transitionTime => [SFTime, 1.0, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		transitionComplete => [SFBool, FALSE, outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__BGNumber => [SFInt32,-1,initializeOnly, 0], # for ordering backgrounds for binding
 	},"X3DBindableNode"),
 
 	ViewpointGroup => new VRML::NodeType("ViewpointGroup", {
@@ -1439,7 +1436,6 @@ package VRML::NodeType;
 		__points =>[MFVec3f,[],initializeOnly, 0],
 		__colours =>[MFColor,[],initializeOnly, 0],
 		__quadcount => [SFInt32,0,initializeOnly, 0],
-		__BGNumber => [SFInt32,-1,initializeOnly, 0], # for ordering backgrounds for binding
 
 		transparency => [SFFloat, 0.0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
@@ -1457,6 +1453,8 @@ package VRML::NodeType;
 		__bottomTexture=>[SFNode,NULL,inputOutput, 0],
 		__leftTexture=>[SFNode,NULL,inputOutput, 0],
 		__rightTexture=>[SFNode,NULL,inputOutput, 0],
+
+		__VBO=>[SFInt32,0,initializeOnly,0],  # Vertex Buffer Object, if required.
 	},"X3DBackgroundNode"),
 
 
@@ -1469,7 +1467,6 @@ package VRML::NodeType;
 			bindTime => [SFTime, -1, outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			isBound => [SFBool, FALSE, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			__BGNumber => [SFInt32,-1,initializeOnly, 0], # for ordering backgrounds for binding
 					   },"X3DBindableNode"),
 
 	FogCoordinate => new VRML::NodeType("FogCoordinate", {
@@ -1498,7 +1495,7 @@ package VRML::NodeType;
 		__points =>[MFVec3f,[],initializeOnly, 0],
 		__colours =>[MFVec3f,[],initializeOnly, 0],
 		__quadcount => [SFInt32,0,initializeOnly, 0],
-		__BGNumber => [SFInt32,-1,initializeOnly, 0], # for ordering backgrounds for binding
+		__VBO=>[SFInt32,0,initializeOnly,0],  # Vertex Buffer Object, if required.
 
 		frontTexture=>[SFNode,NULL,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		backTexture=>[SFNode,NULL,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -1714,7 +1711,6 @@ package VRML::NodeType;
 			orientation => [SFRotation, [0, 0, 1, 0], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 			position => [SFVec3d,[0, 0, 100000], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			speedFactor => [SFFloat,1.0,initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			__BGNumber => [SFInt32,-1,initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # for ordering backgrounds for binding
 
 			# "compiled" versions of strings above
 			__geoSystem => [MFInt32,[],initializeOnly, 0],
