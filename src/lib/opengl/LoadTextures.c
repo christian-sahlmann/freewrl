@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.62 2011/02/24 16:13:03 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.63 2011/02/27 00:07:32 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -49,10 +49,6 @@
 
 #include <libFreeWRL.h>
 
-/* IPHONE - bypass textures for now */
-#ifndef IPHONE
-
-
 /* We do not want to include Struct.h: enormous file :) */
 typedef struct _Multi_String Multi_String;
 void Multi_String_print(struct Multi_String *url);
@@ -60,10 +56,11 @@ void Multi_String_print(struct Multi_String *url);
 #ifdef _MSC_VER
 #include "gdiPlusImageLoader.h"
 #else
-#include <Imlib2.h>
+	#ifndef IPHONE
+		#include <Imlib2.h>
+	#endif
 #endif
 
-#endif /* IPHONE */
 
 
 /* is the texture thread up and running yet? */
@@ -72,18 +69,10 @@ int TextureThreadInitialized = FALSE;
 /* are we currently active? */
 int TextureParsing = FALSE;
 
-/* IPHONE - bypass textures for now */
-#ifndef IPHONE
-
 /* list of texture table entries to load */
 s_list_t *texture_list = NULL;
 
-#endif /* IPHONE */
-
 GLuint defaultBlankTexture;
-
-/* IPHONE - bypass textures for now */
-#ifndef IPHONE
 
 /* All functions here works with the array of 'textureTableIndexStruct'.
  * In the future we may want to refactor this struct.
@@ -728,6 +717,3 @@ void _textureThread()
 		TextureParsing = FALSE;
 	}
 }
-
-
-#endif /* IPHONE */

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.164 2011/02/24 16:13:03 crc_canada Exp $
+  $Id: MainLoop.c,v 1.165 2011/02/27 00:07:32 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -78,29 +78,6 @@
 int ccurse;
 int ocurse;
 void  setAquaCursor(int ctype) { };
-typedef struct
-{
-   // Handle to a program object
-   GLuint programObject;
-
-} UserData;
-typedef struct
-{
-    GLfloat   m[4][4];
-} ESMatrix;
-
-typedef struct
-{
-   /// Put your user data here...
-   void*       userData;
-
-   /// Window width
-   GLint       width;
-
-   /// Window height
-   GLint       height;
-
-} ESContext;
 
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
@@ -1183,7 +1160,6 @@ static void render_collisions() {
 
 static void setup_viewpoint() {
 	
-	/* GLDOUBLE projMatrix[16]; */
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         FW_GL_LOAD_IDENTITY();
@@ -1192,7 +1168,8 @@ static void setup_viewpoint() {
         render_hier(rootNode, VF_Viewpoint);
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 
-	/*
+	/* 
+	{ GLDOUBLE projMatrix[16]; 
 	fw_glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	printf ("\n");
 	printf ("setup_viewpoint, proj  %lf %lf %lf\n",projMatrix[12],projMatrix[13],projMatrix[14]);
@@ -1201,7 +1178,9 @@ static void setup_viewpoint() {
 	printf ("setup_viewpoint, currentPos %lf %lf %lf\n",        Viewer.currentPosInModel.x, 
 	        Viewer.currentPosInModel.y ,
 	        Viewer.currentPosInModel.z);
+	}
 	*/
+	
 
 }
 

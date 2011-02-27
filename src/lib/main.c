@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.42 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: main.c,v 1.43 2011/02/27 00:07:32 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -78,28 +78,14 @@ need to worry about specific structures and calls */
 static freewrl_params_t *OSXparams = NULL;
 
 void OSX_initializeParameters(const char* initialURL) {
-#ifdef OLDCODE
-    const char *libver, *progver;
-#endif
     resource_item_t *res;
 
-	//printf ("start of OSX_initializeParameters, initialURL :%s:\n",initialURL);
+    #ifdef IPHONE
+	printf ("start of OSX_initializeParameters, initialURL :%s:\n",initialURL);
+    #endif
 
     /* have we been through once already (eg, plugin loading new file)? */
     if (OSXparams == NULL) {
-
-#ifdef OLDCODE
-    	/* first, get the FreeWRL shared lib, and verify the version. */
-	
-    	progver = freewrl_get_version();
-printf ("progver %s\n",progver);
-    	libver = libFreeWRL_get_version();
-printf ("OSX_initializeParameters, libver %s progver %s\n",libver, progver);
-    	if (strcmp(progver, libver)) {
-		ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
-    	}
-#endif	
-
 
     	/* Before we parse the command line, setup the FreeWRL default parameters */
     	OSXparams = calloc(1, sizeof(freewrl_params_t));
@@ -110,14 +96,14 @@ printf ("OSX_initializeParameters, libver %s progver %s\n",libver, progver);
     	OSXparams->eai = FALSE;
     	OSXparams->fullscreen = FALSE;
     } 
-	//printf("in OSX init\n");
+	printf("in OSX init\n");
     /* start threads, parse initial scene, etc */
 
    if (!initFreeWRL(OSXparams)) {
 	ERROR_MSG("main: aborting during initialization.\n");
 	exit(1);
    }
-	//printf("after init osx params\n");
+	printf("after init osx params\n");
 
 
     fw_params.collision = 1;
@@ -125,6 +111,7 @@ printf ("OSX_initializeParameters, libver %s progver %s\n",libver, progver);
     /* Give the main argument to the resource handler */
     res = resource_create_single(initialURL);
     
+
     /* tell the new world which viewpoint to go to */
     givenInitialViewpoint = res->afterPoundCharacters;
 
@@ -220,16 +207,9 @@ bool initFreeWRL(freewrl_params_t *params)
 	else if (getenv("FREEWRL_USE_VBOS") != NULL) global_use_VBOs = TRUE;
 
 	if (global_use_VBOs) {
-		printf ("Env: trying VBOs enabled.\n");
-/*
-	} else {
-		printf ("Env: not using VBOs \n");
-*/
-	}
-
-	if (global_use_VBOs) {
 		TRACE_MSG("Env: trying VBOs enabled.\n");
 	}
+
 
 	/* Check parameters */
 	if (params) {
@@ -253,6 +233,7 @@ bool initFreeWRL(freewrl_params_t *params)
 	   to complete initialization */
 	initializeDisplayThread();
 	
+
 	initializeInputParseThread();
 	while (!isInputThreadInitialized()) {
 		usleep(50);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.58 2011/02/25 21:19:38 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.59 2011/02/27 00:07:32 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -689,7 +689,7 @@ void render_Cone (struct X3D_Cone *node) {
 	#define  CONEDIV 20
 
 	struct textureVertexInfo mtf = {tribottex,2,GL_FLOAT,0,NULL};
-
+				
 	float h = (node->height)/2;
 	float r = node->bottomRadius;
 

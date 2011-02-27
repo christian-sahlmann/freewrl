@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.25 2010/12/07 18:27:50 crc_canada Exp $
+  $Id: io_files.c,v 1.26 2011/02/27 00:07:31 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -274,6 +274,7 @@ static openned_file_t* load_file_read(const char *filename)
 	int fd;
 	char *text, *current;
 
+#ifndef IPHONE
 #ifdef _MSC_VER
 	size_t blocksz, readsz, left2read;
 #else
@@ -339,6 +340,15 @@ static openned_file_t* load_file_read(const char *filename)
 	}
 	/* null terminate this string */
 	text[ss.st_size] = '\0';
+#else
+printf ("io_files.c - faking malloc for file size\n");
+	text = MALLOC(char *, 5000); /* include space for a null terminating character */
+strcpy (text, "#VRML V2.0 utf8\n" \
+"NavigationInfo {headlight TRUE} "\
+"    Background { skyAngle        [ 1.07 1.45 1.52 1.57 ] skyColor        [ 0.00 0.00 0.30 0.00 0.00 0.80 0.45 0.70 0.80 0.70 0.50 0.00 1.00 0.00 0.00 ] groundAngle     1.57 groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ] } " \
+"Shape { appearance Appearance { material Material { emissiveColor 1 1 0} } geometry Cone { } } ");
+
+#endif /* IPHONE */
 	return create_openned_file(filename, fd, text);
 }
 

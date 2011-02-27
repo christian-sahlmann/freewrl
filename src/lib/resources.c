@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.37 2010/08/19 12:11:59 crc_canada Exp $
+  $Id: resources.c,v 1.38 2011/02/27 00:07:32 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -365,6 +365,10 @@ bool resource_fetch(resource_item_t *res)
 	char* pound;
 	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->request);
 
+	#ifdef IPHONE
+	printf ("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->request);
+	#endif
+
 	ASSERT(res);
 
 	switch (res->type) {
@@ -405,6 +409,18 @@ bool resource_fetch(resource_item_t *res)
 				*pound = '\0';
 			}
 				
+#ifdef IPHONE
+{
+char *inpString = "FudgedFileForIPhone";
+
+printf ("rest_file, parsed_request %s\n",res->parsed_request);
+
+printf ("resources - faking the file get here\n");
+res->status = ress_downloaded;
+res->actual_file = STRDUP (inpString);
+printf ("actual_file is :%s:\n",res->actual_file);
+}
+#else
 			if (do_file_exists(res->parsed_request)) {
 				if (do_file_readable(res->parsed_request)) {
 					res->status = ress_downloaded;
@@ -422,6 +438,7 @@ bool resource_fetch(resource_item_t *res)
 				res->status = ress_failed;
 				ERROR_MSG("resource_fetch: can't find file: %s\n", res->parsed_request);
 			}
+#endif
 			break;
 		default:
 			/* error */
@@ -478,6 +495,7 @@ bool resource_load(resource_item_t *res)
 			res->status = ress_not_loaded;
 			ERROR_MSG("resource_load: can't load file: %s\n", res->actual_file);
 		}
+
 		break;
 	
 	case ress_loaded:
