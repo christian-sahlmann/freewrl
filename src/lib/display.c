@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.64 2011/02/16 18:36:00 dug9 Exp $
+  $Id: display.c,v 1.65 2011/02/28 23:40:55 istakenv Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -134,7 +134,7 @@ int display_initialize()
 		return FALSE;
 	}
 
-#ifdef _MSC_VER
+#if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
 	bind_GLcontext();
 #endif
 
