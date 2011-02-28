@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.71 2011/02/25 21:19:38 crc_canada Exp $
+$Id: Component_Shape.c,v 1.72 2011/02/28 19:44:25 crc_canada Exp $
 
 X3D Shape Component
 
@@ -686,17 +686,6 @@ void child_Shape (struct X3D_Shape *node) {
 	if (node->_shaderTableEntry == -1) {
 		return;
 	}
-
-/*
-struct fw_MaterialParameters {
-                float emission[4];
-                float ambient[4];
-                float diffuse[4];
-                float specular[4];
-                float shininess;
-        };
-
-*/
 
 struct fw_MaterialParameters defaultMaterials = {
 					{0.0f, 0.0f, 0.0f, 1.0f}, /* emissiveColor */

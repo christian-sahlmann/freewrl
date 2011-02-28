@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.89 2011/02/25 20:25:51 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.90 2011/02/28 19:44:25 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -179,11 +179,13 @@ void fwglLightf (int light, int pname, GLfloat param) {
 
 /* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call */
 void sendLightInfo (s_shader_capabilities_t *me) {
-		/* for debugging:
+		/* for debugging: */
+/*
 			int i;
 			printf ("sendMAt - sending in lightState ");
 			for (i=0; i<8; i++) printf ("%d:%d ",i,lightOnOff[i]); printf ("\n");
-		*/
+*/
+		
 
 		/* if one of these are equal to -1, we had an error in the shaders... */
 		GLUNIFORM1IV(me->lightState,8,lightOnOff);
@@ -321,7 +323,6 @@ void sendClientStateToGPU(int enable, int cap) {
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 		}
-
 #ifdef RENDERVERBOSE
 printf ("sendClientStateToGPU: appearanceProperties.currentShaderProperties %p \n",appearanceProperties.currentShaderProperties);
 if (shaderNormalArray) printf ("enabling Normal\n"); else printf ("disabling Normal\n");
