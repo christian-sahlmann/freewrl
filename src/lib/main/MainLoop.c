@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.165 2011/02/27 00:07:32 crc_canada Exp $
+  $Id: MainLoop.c,v 1.166 2011/02/28 20:06:23 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1599,7 +1599,7 @@ void Next_ViewPoint() {
 
 /* initialization for the OpenGL render, event processing sequence. Should be done in threat that has the OpenGL context */
 void initializeRenderSceneUpdateScene() {
-	printf ("initializeRenderSceneUpdateScene start\n");
+	/* printf ("initializeRenderSceneUpdateScene start\n"); */
 
 	/* Initialize display */
 	if (!display_initialize()) {
@@ -1622,7 +1622,7 @@ void initializeRenderSceneUpdateScene() {
 	if (fullscreen) resetGeometry();
 	#endif
 
-	printf ("initializeRenderSceneUpdateScene finish\n");
+	/* printf ("initializeRenderSceneUpdateScene finish\n"); */
 }
 
 void finalizeRenderSceneUpdateScene() {

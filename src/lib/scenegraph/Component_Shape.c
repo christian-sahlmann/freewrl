@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.72 2011/02/28 19:44:25 crc_canada Exp $
+$Id: Component_Shape.c,v 1.73 2011/02/28 20:06:23 crc_canada Exp $
 
 X3D Shape Component
 
@@ -535,7 +535,6 @@ static int newGetAppearanceShader (struct X3D_Node *myApp) {
 
 	int retval = NO_APPEARANCE_SHADER;
 
-printf ("newGetAppearanceShader starting...\n");
 	/* if there is no appearance node... */
 	if (myApp == NULL) return retval;
 
@@ -543,7 +542,6 @@ printf ("newGetAppearanceShader starting...\n");
 	if (realAppearanceNode->_nodeType != NODE_Appearance) return retval;
 
 	if (realAppearanceNode->material != NULL) {
-printf ("have material\n");
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->material, realMaterialNode);
 		if (realMaterialNode->_nodeType == NODE_Material) {
 			retval |= MATERIAL_APPEARANCE_SHADER;
@@ -554,7 +552,6 @@ printf ("have material\n");
 	}
 
 	if (realAppearanceNode->texture != NULL) {
-printf ("have texture\n");
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->texture, realTextureNode);
 		if (realTextureNode = NODE_ImageTexture) {
 			retval |= ONE_TEX_APPEARANCE_SHADER;
@@ -564,7 +561,6 @@ printf ("have texture\n");
 		}
 	}
 
-printf ("returning %x\n",retval);
 
 	return retval;
 }
@@ -650,7 +646,6 @@ printf ("texture, one sided material!\n");
 	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
 	}
 
-printf ("compile_Shape, wh1 %x, wapp %x\n",whichGeometryShader, whichAppearanceShader);
 	#endif /* SHADERS_2011 */
 
 
