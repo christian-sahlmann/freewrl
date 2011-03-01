@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.63 2011/02/27 00:07:32 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.64 2011/03/01 15:00:39 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -61,6 +61,21 @@ void Multi_String_print(struct Multi_String *url);
 	#endif
 #endif
 
+
+#if defined (TARGET_AQUA)
+
+#ifdef IPHONE
+#include <CoreFoundation/CoreFoundation.h>
+#include <CoreGraphics/CoreGraphics.h>
+#include <ImageIO/ImageIO.h>
+#else
+#include <Carbon/Carbon.h>
+#include <QuickTime/QuickTime.h>
+#endif /* IPHONE */
+#endif /* TARGET_AQUA */
+
+
+	CGImageRef 	image;
 
 
 /* is the texture thread up and running yet? */
@@ -200,13 +215,17 @@ static void texture_load_from_MovieTexture (textureTableIndexStruct_s* this_tex)
 }
 
 
-#if defined (TARGET_AQUA) && !defined(IPHONE)
+#if defined (TARGET_AQUA)
 /* render from aCGImageRef into a buffer, to get EXACT bits, as a CGImageRef contains only
 estimates. */
 /* from http://developer.apple.com/qa/qa2007/qa1509.html */
 
-static inline double radians (double degrees) {return degrees * M_PI/180;}
+static inline double radians (double degrees) {return degrees * M_PI/180;} 
+
+int XXX;
+
 CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
+
 	CGContextRef    context = NULL;
 	CGColorSpaceRef colorSpace;
 	void *          bitmapData;
@@ -332,11 +351,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 #endif
 
 /* OSX */
-#if defined (TARGET_AQUA) && !defined(IPHONE)
-
-#include <Carbon/Carbon.h>
-#include <QuickTime/QuickTime.h>
-
+#if defined (TARGET_AQUA)
 
 	CGImageRef 	image;
 	CFStringRef	path;
@@ -364,7 +379,12 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	image = NULL;
 	hasAlpha = FALSE;
 
+#ifndef IPHONE
 	path = CFStringCreateWithCString(NULL, filename, kCFStringEncodingUTF8);
+#else
+printf ("skipping call to CFStringCreateWithCString\n");
+#endif /* IPHONE */
+
 	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, 0);
 
 	/* ok, we can define USE_CG_DATA_PROVIDERS or TRY_QUICKTIME...*/
@@ -383,12 +403,16 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 		CloseComponent(gi);
 	}
 #else
-	sourceRef = CGImageSourceCreateWithURL(url,NULL);
+#ifdef IPHONE
 
+printf ("skipping CGImageSourceCreateImageAtIndex\n");
+#else
+	sourceRef = CGImageSourceCreateWithURL(url,NULL);
 	if (sourceRef != NULL) {
 		image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
 		CFRelease (sourceRef);
 	}
+#endif /* IPHONE */
 #endif
 
 	CFRelease(url);

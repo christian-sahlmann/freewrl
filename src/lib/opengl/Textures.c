@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.79 2011/02/24 16:13:03 crc_canada Exp $
+  $Id: Textures.c,v 1.80 2011/03/01 15:00:39 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -96,7 +96,7 @@ void 	*global_tcin_lastParent;
 
 /* # include "CGDirectDisplay.h" */
 
-#ifndef IPHONE
+#ifdef OLDCODE
 CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
                                       kCGLPFAFullScreen,
                                       kCGLPFADoubleBuffer,
@@ -1185,10 +1185,13 @@ printf ("skipping the fwgltexgeni\n");
 				dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
 				while (!texOk) {
 					GLint width, height;
-#ifdef IPHONE
-printf ("skipping some texture stuff\n");
-#else
+
+#ifndef IPHONE
 					FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
+#else
+memcpy (dest, mytexdata, (unsigned) 4 * rx * ry);
+#endif
+
 					FW_GL_TEXIMAGE2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
 		
 					FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
@@ -1208,7 +1211,6 @@ printf ("skipping some texture stuff\n");
 					} else {
 						texOk = TRUE;
 					}
-#endif
 				}
 		
 		
@@ -1285,11 +1287,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 		case TEX_NOTLOADED:
 			DEBUG_TEX("feeding texture %p to texture thread...\n", myTableIndex);
 			myTableIndex->status = TEX_LOADING;
-#ifdef IPHONE
-printf ("send_texture_to_loader skipping\n");
-#else
 			send_texture_to_loader(myTableIndex);
-#endif
 			break;
 
 		case TEX_LOADING:

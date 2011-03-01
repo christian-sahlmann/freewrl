@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.34 2011/02/11 18:46:25 crc_canada Exp $
+$Id: RenderTextures.c,v 1.35 2011/03/01 15:00:39 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -135,8 +135,8 @@ printf ("skipping setActiveTexture\n");
 #ifdef IPHONE
 printf ("skipping te texenvi\n");
 #else
-		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 #endif
+		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	} else {
 		paramPtr = textureParameterStack[c];
 

@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.27 2011/02/28 19:44:25 crc_canada Exp $
+  $Id: io_files.c,v 1.28 2011/03/01 15:00:39 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -346,7 +346,9 @@ printf ("io_files.c - faking malloc for file size\n");
 strcpy (text, "#VRML V2.0 utf8\n" \
 "NavigationInfo {headlight TRUE} "\
 "    Background { skyAngle        [ 1.07 1.45 1.52 1.57 ] skyColor        [ 0.00 0.00 0.30 0.00 0.00 0.80 0.45 0.70 0.80 0.70 0.50 0.00 1.00 0.00 0.00 ] groundAngle     1.57 groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ] } \n" \
-"Shape { appearance Appearance { material Material { diffuseColor 0 1 0} } geometry Cylinder { } } ");
+"#Shape { appearance Appearance { material Material { diffuseColor 0 1 0} } geometry Cylinder { } } \n " \
+"Shape { appearance Appearance { texture PixelTexture { image 2 4 3 0xff0000 0x00ff00 0xff0000 0x00ff00 0xffff00 0x0000ff 0xffff00 0x0000ff } } geometry Box { size 2 4 4 } } \n " \
+);
 
 #endif /* IPHONE */
 	return create_openned_file(filename, fd, text);
