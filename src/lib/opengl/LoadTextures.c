@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.64 2011/03/01 15:00:39 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.65 2011/03/02 15:21:31 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -73,10 +73,6 @@ void Multi_String_print(struct Multi_String *url);
 #include <QuickTime/QuickTime.h>
 #endif /* IPHONE */
 #endif /* TARGET_AQUA */
-
-
-	CGImageRef 	image;
-
 
 /* is the texture thread up and running yet? */
 int TextureThreadInitialized = FALSE;
