@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.28 2011/02/14 18:41:17 crc_canada Exp $
+  $Id: statusbar.c,v 1.29 2011/03/03 14:56:34 crc_canada Exp $
 
 */
 
@@ -122,6 +122,7 @@ void setup_projection(int pick, int x, int y)
  */
 void drawStatusBar()
 {
+#ifndef IPHONE
 	/* dont do this if we can not display; note that when we start, we can send along
 	   invalid data to the OpenGL drivers when doing ortho calcs */
 	if ((screenWidth > 5) && (screenHeight > 5)) {
@@ -133,4 +134,5 @@ void drawStatusBar()
 		rf_printf(15, 15, buffer);
 		rf_leave_layer2D();
 	}
+#endif
 }

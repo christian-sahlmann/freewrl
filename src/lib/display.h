@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.110 2011/02/25 21:19:38 crc_canada Exp $
+  $Id: display.h,v 1.111 2011/03/03 14:56:34 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -427,7 +427,20 @@ void getMotifWindowedGLwin(Window *win);
  */
 
 extern GLenum _global_gl_err;
-#ifndef IPHONE
+#ifdef IPHONE
+#define PRINT_GL_ERROR_IF_ANY(_where) { \
+                                              GLenum _global_gl_err = glGetError(); \
+                                              while (_global_gl_err != GL_NO_ERROR) { \
+						if (_global_gl_err == GL_INVALID_ENUM) {printf ("GL_INVALID_ENUM"); } \
+						else if (_global_gl_err == GL_INVALID_VALUE) {printf ("GL_INVALID_VALUE"); } \
+						else if (_global_gl_err == GL_INVALID_OPERATION) {printf ("GL_INVALID_OPERATION"); } \
+						else if (_global_gl_err == GL_OUT_OF_MEMORY) {printf ("GL_OUT_OF_MEMORY"); } \
+						else printf ("unknown error"); \
+                                                 printf(" here: %s (%s:%d)\n", _where,__FILE__,__LINE__); \
+                                                 _global_gl_err = glGetError(); \
+                                              } \
+                                           } 
+#else
 #define PRINT_GL_ERROR_IF_ANY(_where) if (global_print_opengl_errors) { \
                                               GLenum _global_gl_err = glGetError(); \
                                               while (_global_gl_err != GL_NO_ERROR) { \
@@ -436,9 +449,6 @@ extern GLenum _global_gl_err;
                                                  _global_gl_err = glGetError(); \
                                               } \
                                            } 
-#define GL_ERROR_MSG  ((char*) gluErrorString(glGetError()))
-#else
-#define PRINT_GL_ERROR_IF_ANY(_where) 
 #define GL_ERROR_MSG  ((char*) gluErrorString(glGetError()))
 #endif
 
@@ -647,7 +657,12 @@ void setScreenDim(int wi, int he);
 
 
 	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
+#ifdef IPHONE
+	/* ES 2.0 - set the sampler */
+	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glUniform1i(appearanceProperties.currentShaderProperties->Texture0, aaa); }
+#else
 	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
+#endif
 	
 	#define FW_GL_VERTEX3F(aaa, bbb, ccc) glVertex3f(aaa, bbb, ccc)
 	#define FW_GL_GETSTRING(aaa) glGetString(aaa)

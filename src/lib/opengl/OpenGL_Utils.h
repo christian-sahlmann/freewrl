@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.36 2011/02/25 20:25:51 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.37 2011/03/03 14:56:34 crc_canada Exp $
 
 Screen snapshot.
 
@@ -59,6 +59,8 @@ typedef struct {
 	GLint Normals;
 	GLint Colours;
 	GLint TexCoords;
+	GLint Texture0;
+
 	
 	/* some geom shaders have particular uniforms, eg geom radius */
 	GLint specialUniform1;

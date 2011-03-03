@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.179 2011/02/28 20:06:23 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.180 2011/03/03 14:56:34 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -223,8 +223,8 @@ static char *backgroundSphereShaderVertex = "attribute	vec3 fw_Color; " \
 			"}";
 
 static char *backgroundTextureBoxShaderFragment =
-       				" varying vec2 v_texC; uniform sampler2D s_tex; " \
-				" void main () {gl_FragColor = texture2D(s_tex, v_texC);}";
+       				" varying vec2 v_texC; uniform sampler2D fw_Texture0; " \
+				" void main () {gl_FragColor = texture2D(fw_Texture0, v_texC);}";
 static char *backgroundTextureBoxShaderVertex =
 			"attribute	vec2 fw_TexCoords; " \
 			"attribute	vec4 fw_Vertex;" \
@@ -239,9 +239,9 @@ static char *backgroundTextureBoxShaderVertex =
 
 static char *oneTexFragmentShader = " \
 	varying vec2 v_texC; \
-	uniform sampler2D s_tex; \
+	uniform sampler2D fw_Texture0; \
 	void main () { \
-		gl_FragColor = texture2D(s_tex, v_texC); \
+		gl_FragColor = texture2D(fw_Texture0, v_texC); \
 	}";
 
 
@@ -901,6 +901,7 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
 	me->Colours = GET_ATTRIB(myProg,"fw_Color");
 	me->TexCoords = GET_ATTRIB(myProg,"fw_TexCoords");
+	me->Texture0 = GET_UNIFORM(myProg,"fw_Texture0");
 
 	/* for Sphere geometry shader */
 	me->specialUniform1 = GET_UNIFORM(myProg,"sphereRadius");
@@ -1330,8 +1331,10 @@ bool initialize_GL()
 	#endif /* TARGET_AQUA */
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start");
 	initialize_rdr_caps();
 
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start");
 	initialize_rdr_functions();
 
 	PRINT_GL_ERROR_IF_ANY("initialize_GL start");
@@ -1448,7 +1451,7 @@ bool initialize_GL()
         /* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
         FW_GL_GENTEXTURES (1,&defaultBlankTexture);
         FW_GL_BINDTEXTURE (GL_TEXTURE_2D, defaultBlankTexture);
-        FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
 	}
