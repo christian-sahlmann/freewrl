@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.81 2011/03/03 14:56:34 crc_canada Exp $
+  $Id: Textures.c,v 1.82 2011/03/03 17:58:46 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -113,9 +113,8 @@ struct Uni_String *newASCIIString(char *str);
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
 void readpng_cleanup(int free_image_data);
 
+#ifdef SHADERS_2011
 static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, GLubyte *pixels);
-
-
 static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeight, int *dstWidth, int *dstHeight )
 {
    int x,
@@ -164,9 +163,9 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
          }
 
          // Average results
-         r /= 4.0;
-         g /= 4.0;
-         b /= 4.0;
+         r /= 4.0f;
+         g /= 4.0f;
+         b /= 4.0f;
 
          // Store resulting pixels
          (*dst)[ ( y * (*dstWidth) + x ) * texelSize ] = (GLubyte)( r );
@@ -182,6 +181,26 @@ static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint
 	GLubyte *newImage = NULL;
 	
 
+	/* do we need to ensure GL_RGBA for formats? */
+	/* OpenGL-ES 2.0 only supports RGBA, so lets flip bytes. Note that we do not need to do this in OpenGL 2.x, but,
+	   might as well keep it consistent */
+
+	/* printf ("myTexImage2D, GL_RGBA %d, format %d, internalformat %d\n",GL_RGBA,format,internalformat); */
+	if (format == GL_BGRA) {
+		int i;
+		GLubyte *mp = pixels;
+		/* printf ("converting to GL_RGBA from GL_BGRA\n"); */
+		for (i=0; i<(width*height); i++) {
+			GLubyte tmp;
+			tmp = mp[0]; /* Blue */
+			mp[0] = mp[2]; /* copy Red to Blue */
+			mp[2] = tmp;
+			mp += 4;
+		}
+		/* bytes flipped; it now is a GL_RGBA image */
+		format = GL_RGBA;
+	}
+		
 
 	/* first, base image */
 	FW_GL_TEXIMAGE2D(target,level,internalformat,width,height,border,format,type,pixels);
@@ -214,6 +233,7 @@ static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint
 
 	FREE_IF_NZ(newImage);
 }
+#endif /* SHADERS_2011 */
 
 
 
@@ -944,14 +964,16 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		me->x = 1;
 		me->y = 1;
 		me->hasAlpha = FALSE;
-		me->texdata = MALLOC(char *, 4);
+		me->texdata = MALLOC(unsigned char *, 4);
 		memcpy (me->texdata, buff, 4);
 	}
 
 	/* do we need to convert this to an OpenGL texture stream?*/
 
+#ifdef IPHONE
 printf ("for IPHONE, ensuring packing\n");
 glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+#endif
 
 	/* we need to get parameters. */	
 	if (me->OpenGLTexture == TEXTURE_INVALID) {
@@ -1085,13 +1107,6 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 		}
 	}
 
-#ifdef IPHONE
-printf ("turning of misp\n");
-generateMipMaps = GL_FALSE;
-minFilter = GL_NEAREST;
-#endif
-
-
 	/* is this a CubeMap? If so, lets try this... */
 
 	if (appearanceProperties.cubeFace != 0) {
@@ -1149,18 +1164,14 @@ minFilter = GL_NEAREST;
 			memcpy(&dp[(rx-cx-1)*ry],&sp[cx*ry], ry*4);
 		}
 	
-		iformat = GL_RGBA; format = GL_BGRA;
-		myTexImage2D(generateMipMaps, appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-		//printf ("image is %d x %d\n",rx,ry);
-
-
-#ifdef IPHONE
-printf ("skipping the fwgltexgeni\n");
-#else
-		FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-		FW_GL_TEXGENI(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-		FW_GL_TEXGENI(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-#endif
+		#ifdef SHADERS_2011
+			myTexImage2D(generateMipMaps, appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+		#else
+			FW_GL_TEXIMAGE2D(appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+			FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+			FW_GL_TEXGENI(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+			FW_GL_TEXGENI(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+		#endif /* SHADERS_2011 */
 
 		/* last thing to do at the end of the setup for the 6th face */
 		if (appearanceProperties.cubeFace == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) {
@@ -1245,10 +1256,8 @@ printf ("skipping the fwgltexgeni\n");
 			
 			/* do the image. */
 			if(x && y) {
-				int texOk = FALSE;
 				unsigned char *dest = mytexdata;
 		
-
 				/* do we have to do power of two textures? */
 				if (rdr_caps.av_npot_texture) {
 					rx = x; ry = y;
@@ -1264,10 +1273,6 @@ printf ("skipping the fwgltexgeni\n");
 					if(ry/2 == y) {ry /= 2;}
 				}
 		
-#ifdef IPHONE
-					rx = x; ry = y;
-printf ("removing pot test\n");
-#endif
 				if (global_print_opengl_errors) {
 					DEBUG_MSG("initial texture scale to %d %d\n",rx,ry);
 				}
@@ -1282,50 +1287,74 @@ printf ("removing pot test\n");
 					DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 				}
 			
+
+				#ifdef SHADERS_2011
+				/* it is a power of 2, lets make sure it is square */
+				/* ES 2.0 needs this for cross-platform; do not need to do this for desktops, but
+				   lets just keep things consistent */
+				if (rx != ry) {
+					if (rx>ry)ry=rx;
+					else rx=ry;
+				}
+printf ("debug, texture orig %d x %d, scaling to %d x %d\n", x,y,rx,ry);
+				#endif /* SHADERS_2011 */
+
+
 				/* try this texture on for size, keep scaling down until we can do it */
-				texOk = FALSE;
 				/* all textures are 4 bytes/pixel */
 				dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
-#ifdef IPHONE
-memcpy (dest, mytexdata, (unsigned) 4 * rx * ry);
-format = GL_RGBA; iformat = GL_RGBA;
 
-printf ("rx = %d, ry = %d\n",rx,ry);
+				#ifdef SHADERS_2011
 
-#else
-				while (!texOk) {
-					GLint width, height;
 
-					FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
+printf ("shader - still have to do the scaling, assuming %d != %d and %d != %d\n",x,rx,y,ry);
 
-					myTexImage2D(generateMipMaps, GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
+					memcpy (dest, mytexdata, (unsigned) 4 * rx * ry);
+					printf ("rx = %d, ry = %d\n",rx,ry);
+
+				#else
+					{
+					int texOk = FALSE;
+					texOk = FALSE;
+					while (!texOk) {
+						GLint width, height;
+
+						FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
+
+						FW_GL_TEXIMAGE2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
 		
-					FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
-					FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
+						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
+						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
 		
-					if ((width == 0) || (height == 0)) {
-						rx= rx/2; ry = ry/2;
-						if (global_print_opengl_errors) {
-							DEBUG_MSG("width %d height %d going to try size %d %d, last time %d %d\n",
-								  width, height, rx,ry,x,y);
+						if ((width == 0) || (height == 0)) {
+							rx= rx/2; ry = ry/2;
+							if (global_print_opengl_errors) {
+								DEBUG_MSG("width %d height %d going to try size %d %d, last time %d %d\n",
+									  width, height, rx,ry,x,y);
+							}
+							if ((rx==0) || (ry==0)) {
+							    ConsoleMessage ("out of texture memory");
+							    me->status = TEX_LOADED; /* yeah, right */
+							    return;
+							}
+						} else {
+							texOk = TRUE;
 						}
-						if ((rx==0) || (ry==0)) {
-						    ConsoleMessage ("out of texture memory");
-						    me->status = TEX_LOADED; /* yeah, right */
-						    return;
-						}
-					} else {
-						texOk = TRUE;
 					}
 				}
-#endif /* IPHONE */
+				#endif /* SHADERS_2011 */
 		
 		
 				if (global_print_opengl_errors) {
 					DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
 				}
 		
-				myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+				#ifdef SHADERS_2011
+					myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+				#else
+					FW_GL_TEXPARAMETERI(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, generateMipMaps);
+					FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+				#endif
 
 		
 				if(mytexdata != dest) {FREE_IF_NZ(dest);}
@@ -1341,8 +1370,6 @@ printf ("rx = %d, ry = %d\n",rx,ry);
 
 	/* ensure this data is written to the driver for the rendering context */
 	FW_GL_FLUSH();
-
-	/* CGLError err = CGLFlushDrawable(aqtextureContext); */
 
 	/* and, now, the Texture is loaded */
 	me->status = TEX_LOADED;

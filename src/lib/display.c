@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.65 2011/02/28 23:40:55 istakenv Exp $
+  $Id: display.c,v 1.66 2011/03/03 17:58:46 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -263,6 +263,13 @@ bool initialize_rdr_caps()
 	/* Texture rectangle (x != y) */
 	rdr_caps.av_texture_rect = (strstr (rdr_caps.extensions, "GL_ARB_texture_rectangle") !=0);
 #endif
+
+	/* if we are doing our own shading, force the powers of 2, because otherwise mipmaps are not possible. */
+	#ifdef SHADERS_2011
+		if (rdr_caps.av_npot_texture) printf ("turning off av_npot_texture, even though it is possible\n");
+		rdr_caps.av_npot_texture=FALSE;
+	#endif /* SHADERS_2011 */
+
 
 	/* Max texture size */
 	{
