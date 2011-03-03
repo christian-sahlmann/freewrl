@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.82 2011/03/03 17:58:46 crc_canada Exp $
+  $Id: Textures.c,v 1.83 2011/03/03 20:05:16 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -115,6 +115,54 @@ void readpng_cleanup(int free_image_data);
 
 #ifdef SHADERS_2011
 static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, GLubyte *pixels);
+
+
+/* gluScaleImage replacement */
+void myScaleImage(int srcX,int srcY,int destX,int destY,unsigned char *src, unsigned char *dest) {
+	float XscaleFactor;
+	float YscaleFactor;
+	int ex, yi;
+	uint32 *src32 = (uint32 *)src;
+	uint32 *dest32 = (uint32 *)dest;
+
+printf ("myScaleImage src x %d y %d dest rx %d ry %d\n",srcX,srcY,destX,destY);
+
+
+int i;
+for (i=0; i<(srcX * srcY); i++) {printf ("orig %d %x\n",i,src32[i]);}
+
+	if ((srcX<=0) || (destX<=0) || (srcY<=0) || (destY<=0)) return;
+	if (src == NULL) return;
+	if (dest == NULL) return;
+
+	/* do x direction first */
+	XscaleFactor = ((float)srcX) / ((float)destX);
+printf ("scaleFactor for X is %f\n",XscaleFactor);
+
+	YscaleFactor = ((float)srcY) / ((float)destY);
+printf ("scaleFactor for Y is %f\n",YscaleFactor);
+
+	for (ex=0; ex<destX; ex++) {
+		for (yi=0; yi<destY; yi++) {
+			float fx, fy;
+			int fromx, fromy;
+			int i;
+
+			fx = XscaleFactor * ((float) ex);
+			fy = YscaleFactor * ((float) yi);
+			fromx = (int)(fx);
+			fromy = (int)(fy);
+printf ("fx %f fy %f fromx %d, fromy %d dstx %d dsty %d",fx,fy,fromx, fromy,ex,yi);
+
+			dest32[ex*destY+yi] = src32[fromx*srcY+fromy];
+printf ("src %x dst %x\n", src32[fromx*srcX+fromy], dest32[ex*destY+yi]);
+printf ("  from %d * %d + %d = %d\n",fromx, srcY, fromy,fromx*srcY+fromy);
+		}
+	}
+
+}
+
+
 static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeight, int *dstWidth, int *dstHeight )
 {
    int x,
@@ -1305,13 +1353,7 @@ printf ("debug, texture orig %d x %d, scaling to %d x %d\n", x,y,rx,ry);
 				dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
 
 				#ifdef SHADERS_2011
-
-
-printf ("shader - still have to do the scaling, assuming %d != %d and %d != %d\n",x,rx,y,ry);
-
-					memcpy (dest, mytexdata, (unsigned) 4 * rx * ry);
-					printf ("rx = %d, ry = %d\n",rx,ry);
-
+					myScaleImage(x,y,rx,ry,mytexdata,dest);
 				#else
 					{
 					int texOk = FALSE;
