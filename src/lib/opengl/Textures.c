@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.83 2011/03/03 20:05:16 crc_canada Exp $
+  $Id: Textures.c,v 1.84 2011/03/04 19:38:14 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -116,50 +116,44 @@ void readpng_cleanup(int free_image_data);
 #ifdef SHADERS_2011
 static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, GLubyte *pixels);
 
-
 /* gluScaleImage replacement */
-void myScaleImage(int srcX,int srcY,int destX,int destY,unsigned char *src, unsigned char *dest) {
-	float XscaleFactor;
+
+static void myScaleImage(int srcX,int srcY,int destX,int destY,unsigned char *src, unsigned char *dest) {
 	float YscaleFactor;
-	int ex, yi;
+	float XscaleFactor;
+	int wye, yex;
 	uint32 *src32 = (uint32 *)src;
 	uint32 *dest32 = (uint32 *)dest;
 
-printf ("myScaleImage src x %d y %d dest rx %d ry %d\n",srcX,srcY,destX,destY);
-
-
-int i;
-for (i=0; i<(srcX * srcY); i++) {printf ("orig %d %x\n",i,src32[i]);}
-
-	if ((srcX<=0) || (destX<=0) || (srcY<=0) || (destY<=0)) return;
+	if ((srcY<=0) || (destY<=0) || (srcX<=0) || (destX<=0)) return;
 	if (src == NULL) return;
 	if (dest == NULL) return;
 
+	if ((srcY==destY) && (srcX==destX)) {
+		/* printf ("simple copy\n"); */
+		memcpy (dest,src,srcY*srcX*4); /* assuming FreeWRL-standard RGBA or BGRA textures */
+	}
+
 	/* do x direction first */
-	XscaleFactor = ((float)srcX) / ((float)destX);
-printf ("scaleFactor for X is %f\n",XscaleFactor);
-
 	YscaleFactor = ((float)srcY) / ((float)destY);
-printf ("scaleFactor for Y is %f\n",YscaleFactor);
+	XscaleFactor = ((float)srcX) / ((float)destX);
 
-	for (ex=0; ex<destX; ex++) {
-		for (yi=0; yi<destY; yi++) {
+	for (wye=0; wye<destY; wye++) {
+		for (yex=0; yex<destX; yex++) {
 			float fx, fy;
 			int fromx, fromy;
 			int i;
+			int row, column;
+			int oldIndex;
 
-			fx = XscaleFactor * ((float) ex);
-			fy = YscaleFactor * ((float) yi);
-			fromx = (int)(fx);
-			fromy = (int)(fy);
-printf ("fx %f fy %f fromx %d, fromy %d dstx %d dsty %d",fx,fy,fromx, fromy,ex,yi);
-
-			dest32[ex*destY+yi] = src32[fromx*srcY+fromy];
-printf ("src %x dst %x\n", src32[fromx*srcX+fromy], dest32[ex*destY+yi]);
-printf ("  from %d * %d + %d = %d\n",fromx, srcY, fromy,fromx*srcY+fromy);
+			fx = YscaleFactor * ((float) wye);
+			fy = XscaleFactor * ((float) yex);
+			row = (int)(fx);
+			column = (int)(fy);
+			oldIndex = row * srcX + column; /* so many rows, each row has srcX columns */
+			dest32[wye*destX+yex] = src32[oldIndex];
 		}
 	}
-
 }
 
 
@@ -1344,7 +1338,6 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 					if (rx>ry)ry=rx;
 					else rx=ry;
 				}
-printf ("debug, texture orig %d x %d, scaling to %d x %d\n", x,y,rx,ry);
 				#endif /* SHADERS_2011 */
 
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.73 2011/02/28 20:06:23 crc_canada Exp $
+$Id: Component_Shape.c,v 1.74 2011/03/04 19:38:14 crc_canada Exp $
 
 X3D Shape Component
 
@@ -639,7 +639,6 @@ printf ("texture, Sphere, one sided material!\n");
 
 	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER:
 	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER:
-printf ("texture, one sided material!\n");
 		node->_shaderTableEntry = oneTexOneMaterialShader;
 		break;	
 	
