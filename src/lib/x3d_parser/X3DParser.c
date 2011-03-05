@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.79 2011/02/24 16:13:03 crc_canada Exp $
+$Id: X3DParser.c,v 1.80 2011/03/05 20:27:53 crc_canada Exp $
 
 ???
 
@@ -32,10 +32,6 @@ $Id: X3DParser.c,v 1.79 2011/02/24 16:13:03 crc_canada Exp $
 #include <display.h>
 #include <internal.h>
 
-/* skip XML parsing for now */
-#ifndef IPHONE
-
-
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
@@ -59,6 +55,11 @@ $Id: X3DParser.c,v 1.79 2011/02/24 16:13:03 crc_canada Exp $
 #if HAVE_EXPAT_H
 # include <expat.h>
 #endif
+
+#if HAVE_LIBXML_H
+#include <libxml/parser.h>
+#endif
+
 //#define X3DPARSERVERBOSE 1
 
 #define PROTO_MARKER 567000
@@ -1839,5 +1840,3 @@ int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
 	shutdownX3DParser();
 	return TRUE;
 }
-
-#endif /* IPHONE */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.22 2010/09/22 16:54:59 crc_canada Exp $
+$Id: X3DParser.h,v 1.23 2011/03/05 20:27:53 crc_canada Exp $
 
 X3D parser functions.
 
@@ -40,7 +40,6 @@ struct nameValuePairs {
 
 /* header file for the X3D parser, only items common between the X3DParser files should be here. */
 
-/* FIXME: This should be avoided -- including "expat.h" */
 /*#define X3DPARSERVERBOSE 1*/
 #define PARSING_NODES 1
 #define PARSING_SCRIPT 2
