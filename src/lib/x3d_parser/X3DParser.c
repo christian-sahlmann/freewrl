@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.80 2011/03/05 20:27:53 crc_canada Exp $
+$Id: X3DParser.c,v 1.81 2011/03/08 20:20:49 crc_canada Exp $
 
 ???
 
@@ -54,11 +54,50 @@ $Id: X3DParser.c,v 1.80 2011/03/05 20:27:53 crc_canada Exp $
 
 #if HAVE_EXPAT_H
 # include <expat.h>
+static int inCDATA = FALSE;
+#define XML_CreateParserLevel(aaa)  aaa = XML_ParserCreate(NULL);
+#define XML_ParseFile(aaa,bbb,ccc,ddd) XML_Parse(aaa,bbb,ccc,ddd)
+
 #endif
 
 #if HAVE_LIBXML_H
 #include <libxml/parser.h>
-#endif
+typedef xmlSAXHandler* XML_Parser;
+
+/* for now - fill this in later */
+#define XML_GetCurrentLineNumber(aaa) -1L
+#define XML_ParserFree(aaa) FREE_IF_NZ(aaa)
+#define XML_SetUserData(aaa,bbb)
+#define XML_STATUS_ERROR -1
+#define XML_GetErrorCode(aaa)
+#define XML_ErrorString(aaa) "errors not currently being reported by libxml port"
+
+
+static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen, int recovery) {
+	int notUsed;
+
+	if (xmlSAXUserParseMemory(me, &notUsed, myinput,myinputlen) == 0) return 0;
+	return XML_STATUS_ERROR;
+}
+
+
+/* basic parser stuff */
+#define XML_CreateParserLevel(aaa) \
+	aaa = MALLOC(xmlSAXHandler *, sizeof (xmlSAXHandler)); \
+	bzero (aaa,sizeof(xmlSAXHandler));
+
+/* elements */
+#define XML_SetElementHandler(aaa,bbb,ccc) \
+        aaa->startElement = bbb; \
+        aaa->endElement = ccc; 
+
+/* CDATA handling */
+#define XML_SetDefaultHandler(aaa,bbb) /* this is CDATA related too */
+#define XML_SetCdataSectionHandler(aaa,bbb,ccc) \
+	aaa->cdataBlock = endCDATA;
+
+#endif /* HAVE_LIBXML_H */
+
 
 //#define X3DPARSERVERBOSE 1
 
@@ -69,7 +108,6 @@ $Id: X3DParser.c,v 1.80 2011/03/05 20:27:53 crc_canada Exp $
  #define XMLCALL
 #endif /* XMLCALL */
 
-static int inCDATA = FALSE;
 
 static struct VRMLLexer *myLexer = NULL;
 static Stack* DEFedNodes = NULL;
@@ -123,6 +161,7 @@ static const char *parserModeStrings[] = {
 		"PARSING_EXTERNPROTODECLARE",
 		"unused high"};
 #endif
+#undef X3DPARSERVERBOSE
 		
 //int currentParserMode = PARSING_NODES;
 
@@ -564,7 +603,7 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 	<ROUTE fromField="fraction_changed"  fromNode="TIME0" toField="set_fraction" toNode="COL_INTERP"/>
 */
 
-static void parseRoutes (const char **atts) {
+static void parseRoutes (char **atts) {
 	struct X3D_Node *fromNode = NULL;
 	struct X3D_Node *toNode = NULL;	
 	int fromOffset = INT_ID_UNDEFINED;
@@ -871,8 +910,9 @@ void linkNodeIn(char *where, int lineno) {
 	}
 }
 
-
-static void XMLCALL startCDATA (void *userData) {
+/* Expat and libxml handle data differently */
+#ifdef HAVE_EXPAT_H
+static void XMLCALL startCDATA (void *unused) {
 	if (CDATA_Text_curlen != 0) {
 /*
 		ConsoleMessage ("X3DParser - hmmm, expected CDATA_Text_curlen to be 0, is not");
@@ -888,7 +928,7 @@ printf ("CADAT_Text:%s:\n",CDATA_Text);
 	inCDATA = TRUE;
 }
 
-static void XMLCALL endCDATA (void *userData) {
+static void XMLCALL endCDATA (void *unused) {
         #ifdef X3DPARSERVERBOSE
         printf ("endCDATA, cur index %d\n",CDATA_Text_curlen);
         printf ("endCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getParserMode()]);
@@ -902,11 +942,10 @@ static void XMLCALL endCDATA (void *userData) {
         #ifdef X3DPARSERVERBOSE
         printf ("returning from EndCData\n");
         #endif
-
-
 }
 
-static void XMLCALL handleCDATA (void *userData, const char *string, int len) {
+
+static void XMLCALL handleCDATA (void *unused, const char *string, int len) {
 /*
 	printf ("handleCDATA...(%d)...",len);
 if (inCDATA) printf ("inCDATA..."); else printf ("not inCDATA...");
@@ -921,9 +960,38 @@ printf ("\n");
 	/* else, ignore this data */
 }
 
+#endif /*HAVE_EXPAT_H */
+
+#ifdef HAVE_LIBXML_H
+void endCDATA (void *user_data, const xmlChar *string, int len) {
+	printf ("cdata_element, :%s:\n",string);
+        if (getParserMode() == PARSING_PROTOBODY) {
+                dumpCDATAtoProtoBody (string);
+        } else if (in3_3_fieldValue) {
+		appendDataToFieldValue((char *)string,len);
+	} else {
+		/* most likely we have a script here */
+		#ifdef X3DPARSERVERBOSE
+		printf ("X3DParser, have the following CDATA :%s:\n",string);
+		#endif
+
+		/* copy the CDATA text over to the CDATA_Text string, so that the script can get to it */
+		FREE_IF_NZ(CDATA_Text);
+		CDATA_Text = MALLOC(char *, len+1);
+		CDATA_TextMallocSize = len+1;
+		CDATA_Text_curlen = len;
+
+		memcpy(CDATA_Text,string,CDATA_TextMallocSize*sizeof(char));
+	}
+}
+
+
+
+#endif
+
 
 /* parse a export statement, and send the results along */
-static void parseImport(const char **atts) {
+static void parseImport(char **atts) {
 	int i;
 
         for (i = 0; atts[i]; i += 2) {
@@ -935,7 +1003,7 @@ return;
 
 
 /* parse a export statement, and send the results along */
-static void parseExport(const char **atts) {
+static void parseExport(char **atts) {
 	int i;
         char *nodeToExport = NULL;
         char *alias = NULL;
@@ -950,7 +1018,7 @@ return;
 }
 
 /* parse a component statement, and send the results along */
-static void parseComponent(const char **atts) {
+static void parseComponent(char **atts) {
 	int i;
 	int myComponent = INT_ID_UNDEFINED;
 	int myLevel = INT_ID_UNDEFINED;
@@ -985,7 +1053,7 @@ static void parseComponent(const char **atts) {
 }
 
 /* parse the <X3D profile='Immersive' version='3.0' xm... line */
-static void parseX3Dhead(const char **atts) {
+static void parseX3Dhead(char **atts) {
 	int i;
 	int myProfile = -10000; /* something negative, not INT_ID_UNDEFINED... */
 	int versionIndex = INT_ID_UNDEFINED;
@@ -1014,19 +1082,19 @@ static void parseX3Dhead(const char **atts) {
 	}
 }
 
-static void parseHeader(const char **atts) {
+static void parseHeader(char **atts) {
 	int i;
         for (i = 0; atts[i]; i += 2) {
 		/* printf("parseHeader: field:%s=%s\n", atts[i], atts[i + 1]); */
 	}
 }
-static void parseScene(const char **atts) {
+static void parseScene(char **atts) {
 	int i;
         for (i = 0; atts[i]; i += 2) {
 		/* printf("parseScene: field:%s=%s\n", atts[i], atts[i + 1]); */
 	}
 }
-static void parseMeta(const char **atts) {
+static void parseMeta(char **atts) {
 	int i;
         for (i = 0; atts[i]; i += 2) {
 		/* printf("parseMeta field:%s=%s\n", atts[i], atts[i + 1]); */
@@ -1034,7 +1102,7 @@ static void parseMeta(const char **atts) {
 }
 
 /* we have a fieldValue, should be in a PROTO expansion */
-static void parseFieldValue(const char *name, const char **atts) {
+static void parseFieldValue(const char *name, char **atts) {
 	int i;
 	int nameIndex = INT_ID_UNDEFINED;
 
@@ -1226,7 +1294,7 @@ if so, we will be here for the USE fields.
 
 
 */
-static void saveProtoInstanceFields (const char *name, const char **atts) {
+static void saveProtoInstanceFields (const char *name, char **atts) {
 	#ifdef X3DPARSERVERBOSE
 		printf ("saveProtoInstanceFields, have node :%s:\n",name);
 	#endif
@@ -1252,7 +1320,7 @@ static void saveProtoInstanceFields (const char *name, const char **atts) {
 	}
 
 
-static void saveAttributes(int myNodeType, const char *name, const char** atts) {
+static void saveAttributes(int myNodeType, const char *name, char** atts) {
 	struct nameValuePairs* nvp;
 	int i;
 	struct X3D_Node *thisNode;
@@ -1579,23 +1647,36 @@ static void parseAttributes(void) {
 	}
 }
 
-static void XMLCALL startElement(void *unused, const char *name, const char **atts) {
+static void XMLCALL X3DstartElement(void *unused, const char *name, const char **atts) {
 	int myNodeIndex;
+	char **myAtts;
+	char *blankAtts[] = {NULL,NULL};
 
+	/* libxml passes NULL, while expat passes {0,0}. Make them the same */
+	if (atts == NULL) myAtts = blankAtts;
+	else myAtts = (char **) atts;
+	
 	#ifdef X3DPARSERVERBOSE
 	printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]);
+printf ("startElement, myAtts :%p contents %p\n",myAtts,myAtts[0]);
+{ int i;
+        for (i = 0; myAtts[i]; i += 2) {
+                printf("	X3DStartElement field:%s=%s\n", myAtts[i], atts[i + 1]);
+}}
+
+	printf ("X3DstartElement - finished looking at myAtts\n\n");
 	#endif
 
 
 	/* are we storing a PROTO body?? */
 	if (getParserMode() == PARSING_PROTOBODY) {
-		dumpProtoBody(name,atts);
+		dumpProtoBody(name,myAtts);
 		return;
 	}
 
 	/* maybe we are doing a Proto Instance?? */
 	if (getParserMode() == PARSING_PROTOINSTANCE) {
-		saveProtoInstanceFields(name,atts);
+		saveProtoInstanceFields(name,myAtts);
 		return;
         }
 
@@ -1608,7 +1689,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 		INCREMENT_PARENTINDEX 
 		DEBUG_X3DPARSER ("	creating new vector for parentIndex %d\n",parentIndex); 
 		INCREMENT_CHILDREN_LEVEL
-		saveAttributes(myNodeIndex,name,atts);
+		saveAttributes(myNodeIndex,name,myAtts);
 		return;
 	}
 
@@ -1616,25 +1697,25 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 	myNodeIndex = findFieldInX3DSPECIAL(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		switch (myNodeIndex) {
-			case X3DSP_ProtoDeclare: parseProtoDeclare(atts); break;
-			case X3DSP_ExternProtoDeclare: parseExternProtoDeclare(atts); break;
-			case X3DSP_ProtoBody: parseProtoBody(atts); break;
-			case X3DSP_ProtoInterface: parseProtoInterface(atts); break;
-			case X3DSP_ProtoInstance: parseProtoInstance(atts); break;
-			case X3DSP_ROUTE: parseRoutes(atts); break;
-			case X3DSP_meta: parseMeta(atts); break;
-			case X3DSP_Scene: parseScene(atts); break;
+			case X3DSP_ProtoDeclare: parseProtoDeclare(myAtts); break;
+			case X3DSP_ExternProtoDeclare: parseExternProtoDeclare(myAtts); break;
+			case X3DSP_ProtoBody: parseProtoBody(myAtts); break;
+			case X3DSP_ProtoInterface: parseProtoInterface(myAtts); break;
+			case X3DSP_ProtoInstance: parseProtoInstance(myAtts); break;
+			case X3DSP_ROUTE: parseRoutes(myAtts); break;
+			case X3DSP_meta: parseMeta(myAtts); break;
+			case X3DSP_Scene: parseScene(myAtts); break;
 			case X3DSP_head:
-			case X3DSP_Header: parseHeader(atts); break;
-			case X3DSP_X3D: parseX3Dhead(atts); break;
-			case X3DSP_fieldValue:  parseFieldValue(name,atts); break;
+			case X3DSP_Header: parseHeader(myAtts); break;
+			case X3DSP_X3D: parseX3Dhead(myAtts); break;
+			case X3DSP_fieldValue:  parseFieldValue(name,myAtts); break;
 			case X3DSP_field: 
-				parseScriptProtoField (myLexer, atts); break;
+				parseScriptProtoField (myLexer, myAtts); break;
 			case X3DSP_IS: parseIS(); break;
-			case X3DSP_component: parseComponent(atts); break;
-			case X3DSP_export: parseExport(atts); break;
-			case X3DSP_import: parseImport(atts); break;
-			case X3DSP_connect: parseConnect(myLexer, atts,childAttributes[parentIndex]); break;
+			case X3DSP_component: parseComponent(myAtts); break;
+			case X3DSP_export: parseExport(myAtts); break;
+			case X3DSP_import: parseImport(myAtts); break;
+			case X3DSP_connect: parseConnect(myLexer, myAtts,childAttributes[parentIndex]); break;
 
 			default: printf ("	huh? startElement, X3DSPECIAL, but not handled?? %d, :%s:\n",myNodeIndex,X3DSPECIAL[myNodeIndex]);
 		}
@@ -1644,7 +1725,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 	printf ("startElement name  do not currently handle this one :%s: index %d\n",name,myNodeIndex); 
 }
 void endScriptProtoField(); //struct VRMLLexer* myLexer);
-static void XMLCALL endElement(void *unused, const char *name) {
+static void XMLCALL X3DendElement(void *unused, const char *name) {
 	int myNodeIndex;
 
 
@@ -1754,7 +1835,6 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	#endif
 }
 
-
 static XML_Parser initializeX3DParser () {
 	X3DParserRecurseLevel++;
 
@@ -1762,8 +1842,8 @@ static XML_Parser initializeX3DParser () {
 		ConsoleMessage ("XML_PARSER init: XML file PROTO nested too deep\n");
 		X3DParserRecurseLevel--;
 	} else {
-		x3dparser[X3DParserRecurseLevel] = XML_ParserCreate(NULL);
-		XML_SetElementHandler(x3dparser[X3DParserRecurseLevel], startElement, endElement);
+		XML_CreateParserLevel(x3dparser[X3DParserRecurseLevel]);
+		XML_SetElementHandler(x3dparser[X3DParserRecurseLevel], X3DstartElement, X3DendElement);
 		XML_SetCdataSectionHandler (x3dparser[X3DParserRecurseLevel], startCDATA, endCDATA);
 		XML_SetDefaultHandler (x3dparser[X3DParserRecurseLevel],handleCDATA);
 		XML_SetUserData(x3dparser[X3DParserRecurseLevel], &parentIndex);
@@ -1829,7 +1909,7 @@ int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
 
 	DEBUG_X3DPARSER ("X3DPARSE on :\n%s:\n",inputstring);
 	
-	if (XML_Parse(currentX3DParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
+	if (XML_ParseFile(currentX3DParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
 		fprintf(stderr,
 			"%s at line %" XML_FMT_INT_MOD "u\n",
 			XML_ErrorString(XML_GetErrorCode(currentX3DParser)),

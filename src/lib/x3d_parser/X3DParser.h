@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.23 2011/03/05 20:27:53 crc_canada Exp $
+$Id: X3DParser.h,v 1.24 2011/03/08 20:20:49 crc_canada Exp $
 
 X3D parser functions.
 
@@ -100,20 +100,20 @@ extern int CDATA_Text_curlen;
 /* function protos */
 struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force);
 
-void parseProtoDeclare (const char **atts);
-void parseExternProtoDeclare (const char **atts);
-void parseProtoInterface (const char **atts);
-void parseProtoBody (const char **atts);
-void parseProtoInstance (const char **atts);
-void parseProtoInstanceFields(const char *name, const char **atts);
-void dumpProtoBody (const char *name, const char **atts);
+void parseProtoDeclare (char **atts);
+void parseExternProtoDeclare (char **atts);
+void parseProtoInterface (char **atts);
+void parseProtoBody (char **atts);
+void parseProtoInstance (char **atts);
+void parseProtoInstanceFields(const char *name, char **atts);
+void dumpProtoBody (const char *name, char **atts);
 void dumpCDATAtoProtoBody (char *str);
-void parseScriptProtoField(struct VRMLLexer *, const char **atts);
+void parseScriptProtoField(struct VRMLLexer *, char **atts);
 void expandProtoInstance(struct VRMLLexer *, struct X3D_Group * myGroup);
 void freeProtoMemory (void);
 void kill_X3DProtoScripts(void);
 void linkNodeIn(char *, int);
-void parseConnect(struct VRMLLexer * myLexer, const char **atts, struct Vector *tos);
+void parseConnect(struct VRMLLexer * myLexer, char **atts, struct Vector *tos);
 void endConnect(void);
 void endProtoDeclare(void);
 void endExternProtoDeclare(void);

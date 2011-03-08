@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.7 2011/02/24 16:13:03 crc_canada Exp $
+$Id: ColladaParser.c,v 1.8 2011/03/08 20:20:49 crc_canada Exp $
 
 ???
 
@@ -56,9 +56,53 @@ $Id: ColladaParser.c,v 1.7 2011/02/24 16:13:03 crc_canada Exp $
 
 #include "ColladaParser.h"
 
+
+
 #if HAVE_EXPAT_H
 # include <expat.h>
+static int inCDATA = FALSE;
+#define XML_CreateParserLevel(aaa)  aaa = XML_ParserCreate(NULL);
+#define XML_ParseFile(aaa,bbb,ccc,ddd) XML_Parse(aaa,bbb,ccc,ddd)
+
 #endif
+
+#if HAVE_LIBXML_H
+#include <libxml/parser.h>
+typedef xmlSAXHandler* XML_Parser;
+
+/* for now - fill this in later */
+#define XML_GetCurrentLineNumber(aaa) -1L
+#define XML_ParserFree(aaa) FREE_IF_NZ(aaa)
+#define XML_SetUserData(aaa,bbb)
+#define XML_STATUS_ERROR -1
+#define XML_GetErrorCode(aaa)
+#define XML_ErrorString(aaa) "errors not currently being reported by libxml port"
+
+
+static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen, int recovery) {
+	int notUsed;
+
+	if (xmlSAXUserParseMemory(me, &notUsed, myinput,myinputlen) == 0) return 0;
+	return XML_STATUS_ERROR;
+}
+
+
+/* basic parser stuff */
+#define XML_CreateParserLevel(aaa) \
+	aaa = MALLOC(xmlSAXHandler *, sizeof (xmlSAXHandler)); \
+	bzero (aaa,sizeof(xmlSAXHandler));
+
+/* elements */
+#define XML_SetElementHandler(aaa,bbb,ccc) \
+        aaa->startElement = bbb; \
+        aaa->endElement = ccc; 
+
+/* CDATA handling */
+#define XML_SetDefaultHandler(aaa,bbb) /* this is CDATA related too */
+#define XML_SetCdataSectionHandler(aaa,bbb,ccc) \
+	aaa->cdataBlock = endCDATA;
+
+#endif /* HAVE_LIBXML_H */
 
 #define PROTOINSTANCE_MAX_LEVELS 10
 static XML_Parser colladaParser[PROTOINSTANCE_MAX_LEVELS];
@@ -110,7 +154,7 @@ printf ("\n");
 */
 }
 
-static void XMLCALL startElement(void *unused, const char *name, const char **atts) {
+static void XMLCALL ColladaStartElement(void *unused, const char *name, const char **atts) {
 
 #ifdef COLLADAVERBOSE
 {int i,j; for (j=0; j< indentLevel; j++) printf ("  ");
@@ -125,7 +169,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 	indentLevel++;
 }
 
-static void XMLCALL endElement(void *unused, const char *name) {
+static void XMLCALL ColladaEndElement(void *unused, const char *name) {
 	indentLevel--;
 
 #ifdef COLLADAVERBOSE
@@ -144,8 +188,8 @@ static XML_Parser initializeColladaParser () {
 		ConsoleMessage ("XML_PARSER init: XML file PROTO nested too deep\n");
 		ColladaParserRecurseLevel--;
 	} else {
-		colladaParser[ColladaParserRecurseLevel] = XML_ParserCreate(NULL);
-		XML_SetElementHandler(colladaParser[ColladaParserRecurseLevel], startElement, endElement);
+		XML_CreateParserLevel(colladaParser[ColladaParserRecurseLevel]);
+		XML_SetElementHandler(colladaParser[ColladaParserRecurseLevel], ColladaStartElement, ColladaEndElement);
 		XML_SetCdataSectionHandler (colladaParser[ColladaParserRecurseLevel], startCDATA, endCDATA);
 		XML_SetDefaultHandler (colladaParser[ColladaParserRecurseLevel],handleCDATA);
 		XML_SetUserData(colladaParser[ColladaParserRecurseLevel], &parentIndex);
@@ -189,7 +233,7 @@ int ColladaParse (struct X3D_Group* myParent, const char *inputstring) {
 	INCREMENT_PARENTINDEX
 	colladaParentStack[parentIndex] = X3D_NODE(myParent);
 
-	if (XML_Parse(currentColladaParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
+	if (XML_ParseFile(currentColladaParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
 		fprintf(stderr,
 			"%s at line %" XML_FMT_INT_MOD "u\n",
 			XML_ErrorString(XML_GetErrorCode(currentColladaParser)),

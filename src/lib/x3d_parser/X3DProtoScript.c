@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.66 2011/02/14 21:52:59 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.67 2011/03/08 20:20:49 crc_canada Exp $
 
 ???
 
@@ -424,7 +424,7 @@ will yield:
 
 
 */
-void parseConnect(struct VRMLLexer *myLexer, const char **atts, struct Vector *tos) {
+void parseConnect(struct VRMLLexer *myLexer, char **atts, struct Vector *tos) {
 	int i;
 	struct nameValuePairs *nvp;
 	size_t ind;
@@ -590,7 +590,7 @@ typedef struct fieldNodeState
 static struct fieldNodeState fieldNodeParsingStateA[PROTOINSTANCE_MAX_LEVELS]; 
 static struct fieldNodeState fieldNodeParsingStateB[PARENTSTACKSIZE];
 
-void parseProtoInstanceFields(const char *name, const char **atts) {
+void parseProtoInstanceFields(const char *name, char **atts) {
 	int count;
 	size_t picatindex;
 	size_t picatmalloc;
@@ -765,7 +765,7 @@ void endProtoInstanceFieldTypeNode(const char *name)
 /***********************************************************************************/
 
 
-void dumpProtoBody (const char *name, const char **atts) {
+void dumpProtoBody (const char *name, char **atts) {
 	int count;
 	int inRoute;
 
@@ -985,7 +985,7 @@ void compareExternProtoDeclareWithProto(char *buffer,char *pound) {
 
 
 /* handle a <ProtoInstance> tag */
-void parseProtoInstance (const char **atts) {
+void parseProtoInstance (char **atts) {
 	int count;
 	int nameIndex;
 	int containerIndex;
@@ -1448,7 +1448,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 }
 
 
-void parseProtoBody (const char **atts) {
+void parseProtoBody (char **atts) {
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 	printf ("start of parseProtoBody\n");
@@ -1458,7 +1458,7 @@ void parseProtoBody (const char **atts) {
 	pushParserMode(PARSING_PROTOBODY);
 }
 
-void parseProtoDeclare (const char **atts) {
+void parseProtoDeclare (char **atts) {
 	int count;
 	int nameIndex;
 
@@ -1497,7 +1497,7 @@ void parseProtoDeclare (const char **atts) {
 }
 
 
-void parseExternProtoDeclare (const char **atts) {
+void parseExternProtoDeclare (char **atts) {
 	int count;
 	int nameIndex;
 	int urlIndex;
@@ -1547,7 +1547,7 @@ void parseExternProtoDeclare (const char **atts) {
 
 
 /* simple sanity check, and change mode */
-void parseProtoInterface (const char **atts) {
+void parseProtoInterface (char **atts) {
 	if (getParserMode() != PARSING_PROTODECLARE && getParserMode() != PARSING_EXTERNPROTODECLARE) {
 		ConsoleMessage ("got a <ProtoInterface>, but not within a <ProtoDeclare>\n");
 	}
@@ -1618,7 +1618,7 @@ static char *getDefaultValuePointer(int type) {
 
 
 /* parse a script or proto field. Note that they are in essence the same, just used differently */
-void parseScriptProtoField(struct VRMLLexer* myLexer, const char **atts) {
+void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 	int i;
 	/*
 	uintptr_t myScriptNumber;
