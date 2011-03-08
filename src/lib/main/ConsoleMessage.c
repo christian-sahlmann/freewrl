@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.18 2010/05/05 11:21:47 davejoubert Exp $
+$Id: ConsoleMessage.c,v 1.19 2011/03/08 20:36:55 dug9 Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -66,6 +66,62 @@ void hudSetConsoleMessage(char *buffer);
 	/* for sending text to the System Console */
 	static int logFileOpened = FALSE;
 	char ConsoleLogName[200];
+#endif
+
+#ifdef _MSC_VER
+#include <windows.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <wtypes.h>
+static HANDLE hStdErr = NULL;
+
+void initConsoleH(DWORD pid)
+{
+	hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+	if(!hStdErr)
+	if( !AttachConsole(pid))
+	{
+		DWORD dw = GetLastError();
+		if(dw==ERROR_ACCESS_DENIED)
+			printf("attachconsole access denied\n");
+		else if(dw==ERROR_INVALID_HANDLE)
+			printf("attachconsole invalid handle\n");
+		else if(dw==ERROR_GEN_FAILURE)
+			printf("attachconsole gen failure\n");
+		AllocConsole();
+	}
+	hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+}
+
+static void initConsole(void)
+{
+    BOOL ac;
+	//hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+	if(hStdErr == NULL)
+	{
+		if( !AttachConsole(ATTACH_PARENT_PROCESS))
+		{
+			DWORD dw = GetLastError();
+			if(dw==ERROR_ACCESS_DENIED)
+				printf("attachconsole access denied\n");
+			else if(dw==ERROR_INVALID_HANDLE)
+				printf("attachconsole invalid handle\n");
+			else if(dw==ERROR_GEN_FAILURE)
+				printf("attachconsole gen failure\n");
+			ac = AllocConsole();
+		}
+		hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+	}
+}
+void writeToWin32Console(char *buff)
+{
+    DWORD cWritten;
+    if (hStdErr == NULL)
+        initConsole(); 
+    /* not C console - more low level windows SDK API */
+    WriteConsoleA(hStdErr, buff, strlen(buff),&cWritten, NULL);
+}
+
 #endif
 
 static char FWbuffer [STRING_LENGTH];
@@ -223,7 +279,7 @@ int Console_writeToCRT = 1; /*regular printf*/
 int Console_writeToFile = 0;
 int Console_writeToHud = 0; /*something should change this to 1 if running statusbarHUD or (a gui with no console and) statusbarConsole*/
 int Console_writeToLog = 0;
-
+int Console_writePrimitive = 0;
 int consolefileOpened = 0;
 FILE* consolefile;
 int ConsoleMessage0(const char *fmt, va_list args)  
@@ -249,7 +305,7 @@ int ConsoleMessage0(const char *fmt, va_list args)
 		}
 		retval = vfprintf(consolefile,fmt,args); //fprintf(consolefile,buffer);
 	}
-	if(Console_writeToLog || Console_writeToHud)
+	if(Console_writeToLog || Console_writeToHud || Console_writePrimitive)
 	{
 		char * buffer;
 		int doFree = 0;
@@ -282,6 +338,11 @@ int ConsoleMessage0(const char *fmt, va_list args)
 			writeToLogFile(buffer);
 		if(Console_writeToHud)
 			hudSetConsoleMessage(buffer);
+#ifdef _MSC_VER
+		if(Console_writePrimitive)
+			writeToWin32Console(buffer);
+#endif
+
 		if(doFree) free( buffer ); 
 	}
 	return retval;

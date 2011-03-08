@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.23 2010/04/21 17:09:04 sdumoulin Exp $
+  $Id: libFreeWRL.h,v 1.24 2011/03/08 20:36:55 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -59,7 +59,7 @@ typedef struct freewrl_params {
 
 /* FreeWRL parameters */
 #ifdef _MSC_VER
-freewrl_params_t fw_params;
+extern freewrl_params_t fw_params;
 #else
 extern freewrl_params_t fw_params;
 #endif

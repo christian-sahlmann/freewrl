@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.25 2011/02/24 16:13:03 crc_canada Exp $
+  $Id: fwWindow32.c,v 1.26 2011/03/08 20:36:55 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -75,7 +75,6 @@ void do_keyPress(const char kp, int type);
 static int oldx = 0, oldy = 0;
 extern int shutterGlasses;
 
-int button[5];
 int mouseX, mouseY;
 
 static short gcWheelDelta = 0;
@@ -267,10 +266,12 @@ BOOL bSetupPixelFormat(HDC hdc)
 	} 
  
 	/*  seems to fail stereo gracefully/quietly, allowing you to detect with glGetbooleanv(GL_STEREO,) in shared code
+	*/
 	DescribePixelFormat(hdc, pixelformat, sizeof(PIXELFORMATDESCRIPTOR), ppfd);
+	printf("Depth Bits = %d\n",(int)(ppfd->cDepthBits));
 	if(shutterGlasses > 0)
 		printf("got stereo? = %d\n",(int)(ppfd->dwFlags & PFD_STEREO));
-	*/
+	/**/
 
     if (SetPixelFormat(hdc, pixelformat, ppfd) == FALSE) 
     { 
@@ -518,32 +519,26 @@ static int shiftState = 0;
 		break;
 	/* Mouse events, processed */
     case WM_LBUTTONDOWN:
-	button[0] = TRUE;
 	butnum = 1;
 	mev = ButtonPress;
 	break;
     case WM_MBUTTONDOWN:
-	button[1] = TRUE;
 	butnum = 2;
 	mev = ButtonPress;
 	break;
     case WM_RBUTTONDOWN:
-	button[2] = TRUE;
 	butnum = 3;
 	mev = ButtonPress;
 	break;
     case WM_LBUTTONUP:
-	button[0] = FALSE;
 	butnum = 1;
 	mev = ButtonRelease;
 	break;
     case WM_MBUTTONUP:
-	button[1] = FALSE;
 	butnum = 2;
 	mev = ButtonRelease;
 	break;
     case WM_RBUTTONUP:
-	button[2] = FALSE;
 	butnum = 3;
 	mev = ButtonRelease;
 	break;
@@ -678,7 +673,7 @@ char *getWgetPath()
 /**
  *   create_main_window: setup up Win32 main window and TODO query fullscreen capabilities.
  */
-int create_main_window(int argc, char *argv[])
+int create_main_window0(int argc, char *argv[])
 {
     HINSTANCE hInstance; 
     WNDCLASS wc;
@@ -686,7 +681,7 @@ int create_main_window(int argc, char *argv[])
     RECT rect; 
 
     int nCmdShow = SW_SHOW;
-    printf("starting createWindow32\n");
+    printf("starting createWindow32\n"); 
     /* I suspect hInstance should be get() and passed in from the console program not get() in the dll, but .lib maybe ok */
     hInstance = (HANDLE)GetModuleHandle(NULL); 
     window_title = "FreeWRL";
@@ -759,6 +754,19 @@ int create_main_window(int argc, char *argv[])
     printf("updated window - leaving createwindow\n");
    
     return TRUE;
+}
+int create_main_window(int argc, char *argv[])
+{
+	if( fw_params.winToEmbedInto > 0 )
+	{
+		//if defined(FRONTEND_HANDLES_DISPLAY_THREAD) || defined(command line option with window handle)
+		ghWnd = (HWND)fw_params.winToEmbedInto;
+		create_GLcontext();
+		bind_GLcontext();
+		return TRUE;
+	}
+	else
+		return create_main_window0(argc, argv);
 }
 
 #endif /* IPHONE */
