@@ -23,7 +23,6 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-L/usr/local/lib '.
 		'-L/System/Library/Frameworks/OpenGL.framework/Libraries '.
 		'-lSystem '.
-		'-lexpat '.
 		'-lfreetype '.
 		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -framework ApplicationServices',
 
@@ -44,6 +43,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-I/usr/local/include/freetype2/freetype '.
 		'-I/usr/local/include '.
 		'-I/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include '.
+		'-I/Developer/SDKs/MacOSX10.4u.sdk/usr/include/libxml2 '.
 		'-I/opt/local/include '.
 		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src '.
 		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
