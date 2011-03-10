@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.28 2010/07/07 16:06:15 dug9 Exp $
+  $Id: options.c,v 1.29 2011/03/10 20:13:37 crc_canada Exp $
 
   FreeWRL command line arguments.
 
@@ -287,8 +287,7 @@ int parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'f': /* --fast, no argument */
-	    /* set negative so that the texture thread will pick this up */
-	    setTexSize(-256);
+		/* does nothing right now */
 	    break;
 
 	case 'W': /* --linewidth, required argument: float */

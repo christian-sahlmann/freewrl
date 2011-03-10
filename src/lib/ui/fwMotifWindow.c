@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.24 2011/02/24 16:13:03 crc_canada Exp $
+  $Id: fwMotifWindow.c,v 1.25 2011/03/10 20:13:37 crc_canada Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -87,12 +87,6 @@ int headbut; int headbutChanged = FALSE;
 int fl, ex, wa; int navbutChanged = FALSE;
 int msgChanged = FALSE;
 char *consMsg = NULL; int consmsgChanged = FALSE;
-
-#ifdef OLDCODE
-OLDCODE int localtexpri = TRUE; /* mimics textures_take_priority in CFuncs/RenderFuncs.c */
-OLDCODE int localshapepri = TRUE; /* mimics textures_take_priority in CFuncs/RenderFuncs.c */
-#endif
-
 
 char fpsstr[MAXSTAT+20];
 
@@ -412,37 +406,19 @@ void BackColour(Widget w, XtPointer data, XtPointer callData)
 
 void Tex128(Widget w, XtPointer data, XtPointer callData)
 {
-    setTexSize(-128);
+	/* does nothing right now */
 }
 
 void Tex256(Widget w, XtPointer data, XtPointer callData)
 {
-    setTexSize(-256);
+	/* does nothing right now */
 }
 
 void TexFull(Widget w, XtPointer data, XtPointer callData)
 {
-    setTexSize(0);
+	/* does nothing right now */
 }
 
-
-#ifdef OLDCODE
-OLDCODEvoid texturesFirst(Widget w, XtPointer data, XtPointer callData)
-OLDCODE{
-OLDCODE    /* default is set in CFuncs/RenderFuncs to be TRUE; we need to be in sync */
-OLDCODE    localtexpri = !localtexpri;
-OLDCODE    setTextures_take_priority (localtexpri);
-OLDCODE}
-#endif
-
-#ifdef OLDCODE
-OLDCODEvoid shapeMaker(Widget w, XtPointer data, XtPointer callData)
-OLDCODE{
-OLDCODE    /* default is set in CFuncs/RenderFuncs to be TRUE; we need to be in sync */
-OLDCODE    localshapepri = !localshapepri;
-OLDCODE    setUseShapeThreadIfPossible (localshapepri);
-OLDCODE}
-#endif
 
 /* do we want a message window displaying fps, viewpoint, etc? */
 void toggleMessagebar (Widget w, XtPointer data, XtPointer callData)
@@ -793,38 +769,6 @@ void createPreferencesPulldown()
     }
     XmToggleButtonSetState (backgroundColourSelector[colourBlack], TRUE, FALSE);
 
-#ifdef OLDCODE
-OLDCODE    /* texture, shape compiling  */
-OLDCODE    myXtManageChild(15,XmCreateSeparator (menupane, "sep1", NULL, 0));
-OLDCODE
-OLDCODE    texturesFirstButton = XtCreateManagedWidget("Textures take priority",
-OLDCODE                                                xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-OLDCODE    XtAddCallback(texturesFirstButton, XmNvalueChangedCallback, 
-OLDCODE                  (XtCallbackProc)texturesFirst, NULL);
-OLDCODE    myXtManageChild (16,texturesFirstButton);
-OLDCODE    XmToggleButtonSetState (texturesFirstButton, localtexpri, FALSE);
-OLDCODE
-OLDCODE     /* texture, shape compiling  */
-OLDCODE     myXtManageChild(15,XmCreateSeparator (menupane, "sep1", NULL, 0));
-
-OLDCODE     /* what things can we NOT do if we dont have threads? */
-OLDCODE #ifndef DO_MULTI_OPENGL_THREADS
-OLDCODE     XtSetArg (buttonArgs[buttonArgc], XmNsensitive, FALSE);  buttonArgc++;
-OLDCODE #endif
-OLDCODE     shapeThreadButton = XtCreateManagedWidget("Shape maker uses thread",
-OLDCODE                                               xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-OLDCODE     XtAddCallback(shapeThreadButton, XmNvalueChangedCallback, 
-OLDCODE                   (XtCallbackProc)shapeMaker, NULL);
-OLDCODE #ifndef DO_MULTI_OPENGL_THREADS
-OLDCODE     buttonArgc--;
-OLDCODE #endif
-OLDCODE myXtManageChild (17,shapeThreadButton);
-
-OLDCODE #ifdef DO_MULTI_OPENGL_THREADS
-OLDCODE     XmToggleButtonSetState (shapeThreadButton, localshapepri, FALSE);
-OLDCODE #endif
-#endif
-        
     XtSetArg (args[0], XmNsubMenuId, menupane);
     cascade = XmCreateCascadeButton (menubar, "Preferences", args, 1);
     myXtManageChild (22,cascade);

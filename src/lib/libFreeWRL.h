@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.24 2011/03/08 20:36:55 dug9 Exp $
+  $Id: libFreeWRL.h,v 1.25 2011/03/10 20:13:37 crc_canada Exp $
 
   FreeWRL library API (public)
 
@@ -90,7 +90,6 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_YAWPITCHZOOM 5
 void set_viewer_type(const int type);
 
-void setTexSize(int requestedsize);
 void setGeometry_from_cmdline(const char *gstring);
 void setSnapFile(const char* file);
 void setSnapTmp(const char* file);
