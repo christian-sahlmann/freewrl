@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.c,v 1.29 2011/03/03 14:56:34 crc_canada Exp $
+  $Id: io_files.c,v 1.30 2011/03/10 19:44:46 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -343,6 +343,7 @@ static openned_file_t* load_file_read(const char *filename)
 #else
 printf ("io_files.c - faking malloc for file size\n");
 	text = MALLOC(char *, 5000); /* include space for a null terminating character */
+#ifdef TRY_CLASSIC
 strcpy (text, "#VRML V2.0 utf8\n" \
 "NavigationInfo {headlight TRUE} "\
 "    Background { skyAngle        [ 1.07 1.45 1.52 1.57 ] skyColor        [ 0.00 0.00 0.30 0.00 0.00 0.80 0.45 0.70 0.80 0.70 0.50 0.00 1.00 0.00 0.00 ] groundAngle     1.57 groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ] } \n" \
@@ -351,6 +352,31 @@ strcpy (text, "#VRML V2.0 utf8\n" \
 "Shape { appearance Appearance { texture PixelTexture { image 2 4 3 0xff0000 0x00ff00 0xff0000 0x00ff00 0xffff00 0x0000ff 0xffff00 0x0000ff} } geometry Cylinder {} } \n " \
 "#Shape { appearance Appearance { texture PixelTexture { image 2 3 3 0xff0000 0x00ff00 0xffff00 0x0000ff 0xffff00 0x0000ff} } geometry Cylinder {} } \n " \
 );
+#else
+
+strcpy(text,
+"<?xml version='1.0' encoding='utf-8'?>\n" \
+"<!DOCTYPE X3D PUBLIC\n" \
+"	'http://www.web3D.org/TaskGroups/x3d/translation/x3d-compact.dtd'\n" \
+"	'file://localhost/www.web3D.org/TaskGroups/x3d/translation/x3d-compact.dtd' [\n" \
+" <!ENTITY % BaseLineProfile    'INCLUDE'>\n" \
+" <!ENTITY % CoreProfile        'IGNORE'>\n" \
+" <!ENTITY % DisJavaVrmlProfile 'INCLUDE'>\n" \
+" <!ENTITY % GeoVrmlProfile     'INCLUDE'>\n" \
+" <!ENTITY % HAnimProfile       'INCLUDE'>\n" \
+"]>\n" \
+"<X3D>\n" \
+"   <Scene>\n" \
+"      <Shape>\n" \
+"         <Appearance>\n" \
+"            <Material/>\n" \
+"         </Appearance>\n" \
+"         <Box/>\n" \
+"      </Shape>\n" \
+"   </Scene>\n" \
+"</X3D>\n"); 
+
+#endif /* TRY_CLASSIC */
 
 #endif /* IPHONE */
 	return create_openned_file(filename, fd, text);

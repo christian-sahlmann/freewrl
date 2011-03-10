@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.76 2011/02/14 21:52:59 crc_canada Exp $
+  $Id: ProdCon.c,v 1.77 2011/03/10 19:44:46 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -216,11 +216,7 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 
 	switch (inputFileType) {
 	case IS_TYPE_XML_X3D:
-		#ifdef IPHONE
-		printf ("X3D parser not here yet on iphone\n");
-		#else
 		ret = X3DParse(nRn, input);
-		#endif
 		break;
 	case IS_TYPE_VRML:
 		ret = cParse(nRn,(int) offsetof (struct X3D_Group, children), input);
@@ -234,11 +230,7 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 		break;
 	case IS_TYPE_COLLADA:
 		ConsoleMessage ("Collada not supported yet");
-		#ifdef IPHONE
-		printf ("collada parser not here yet on iphone\n");
-		#else
 		ret = ColladaParse (nRn, input);
-		#endif
 		break;
 	case IS_TYPE_SKETCHUP:
 		ConsoleMessage ("Google Sketchup format not supported yet");
