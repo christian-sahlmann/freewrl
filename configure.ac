@@ -222,36 +222,52 @@ PKG_CHECK_MODULES(XML, libxml-2.0)
 # Expat
 EXPAT_LIBS=-lexpat
 AC_ARG_WITH(expat,AS_HELP_STRING([--with-expat=<dir>],[Use expat from here]),[
-                expat=$withval
-                EXPAT_CFLAGS="-I$withval/include"
-                EXPAT_LIBS="-L$withval/lib $EXPAT_LIBS"])
+		if test "x$withval" != xno ; then
+	                with_expat=yes
+	                EXPAT_CFLAGS="-I$withval/include"
+	                EXPAT_LIBS="-L$withval/lib $EXPAT_LIBS"
+		else
+			AC_MSG_NOTICE([expat support disabled, checking for libxml2 headers instead])
+			with_expat=no
+		fi],[with_expat=check])
 
-  # save global cflags/libs
-  oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS
+# save global cflags/libs
+oCFLAGS=$CFLAGS;oLDFLAGS=$LDFLAGS;oCPPFLAGS=$CPPFLAGS;oLIBS=$LIBS
+
+if test "x$with_expat" != xno ; then
   # set cflags/libs for this case
   CPPFLAGS="$CPPFLAGS $EXPAT_CFLAGS"
   LDFLAGS="$LDFLAGS $EXPAT_LIBS"
 
-AC_CHECK_HEADERS(expat.h, [AC_DEFINE(HAVE_EXPAT_H)],
+  AC_CHECK_HEADERS(expat.h, [AC_DEFINE(HAVE_EXPAT_H)],
      [AC_MSG_ERROR([Can't find expat.h. Please install expat.])])
-AC_CHECK_LIB(expat, XML_ParserCreate, [],
-   [AC_MSG_ERROR([Can't find expat library. Please install expat.])])
+  AC_CHECK_LIB(expat, XML_ParserCreate, [],
+     [AC_MSG_ERROR([Can't find expat library. Please install expat.])])
+else
+  # not using expat so set these to be empty
+  EXPAT_LIBS=
+  EXPAT_CFLAGS=
+  # set cflags/libs for this case
+  CFLAGS="$CFLAGS $XML_CFLAGS"
+  CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
+  LDFLAGS="$LDFLAGS $XML_LIBS"
+  # find libxml/parser.h and set define accordingly
+  AC_CHECK_HEADERS(libxml/parser.h,[AC_DEFINE(HAVE_LIBXML_PARSER_H)],[AC_MSG_ERROR([Could not find headers for libxml2])])
+fi
 
-  # restore global cflags/libs
-  CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS
+# restore global cflags/libs
+CPPFLAGS=$oCPPFLAGS;LDFLAGS=$oLDFLAGS;CFLAGS=$oCFLAGS;LIBS=$oLIBS
 
 AC_SUBST(EXPAT_CFLAGS)
 AC_SUBST(EXPAT_LIBS)
 
-# workaround LIBS appended with -lexpat, how to prevent this ???
-LIBS=
 
 # ===================================
 # Platform specific: windowing system
 # ===================================
 
 AC_ARG_WITH([target],
-        [AS_HELP_STRING([--with-target],[Select target windowing system (x11,motif,aqua,w32)])],
+        [AS_HELP_STRING([--with-target],[Select target windowing system (x11,motif,aqua,win32)])],
         [TARGET=$withval],
         [TARGET=auto])
 

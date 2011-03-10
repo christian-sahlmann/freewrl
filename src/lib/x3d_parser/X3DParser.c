@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.81 2011/03/08 20:20:49 crc_canada Exp $
+$Id: X3DParser.c,v 1.82 2011/03/10 17:47:14 istakenv Exp $
 
 ???
 
@@ -60,7 +60,7 @@ static int inCDATA = FALSE;
 
 #endif
 
-#if HAVE_LIBXML_H
+#if HAVE_LIBXML_PARSER_H
 #include <libxml/parser.h>
 typedef xmlSAXHandler* XML_Parser;
 
@@ -96,7 +96,7 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 #define XML_SetCdataSectionHandler(aaa,bbb,ccc) \
 	aaa->cdataBlock = endCDATA;
 
-#endif /* HAVE_LIBXML_H */
+#endif /* HAVE_LIBXML_PARSER_H */
 
 
 //#define X3DPARSERVERBOSE 1
@@ -962,7 +962,7 @@ printf ("\n");
 
 #endif /*HAVE_EXPAT_H */
 
-#ifdef HAVE_LIBXML_H
+#ifdef HAVE_LIBXML_PARSER_H
 void endCDATA (void *user_data, const xmlChar *string, int len) {
 	printf ("cdata_element, :%s:\n",string);
         if (getParserMode() == PARSING_PROTOBODY) {

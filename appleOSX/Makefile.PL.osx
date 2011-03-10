@@ -137,7 +137,7 @@ print OUT "#define HAVE_STDBOOL_H 1\n";
 print OUT "#define HAVE_UNISTD_H 1\n";
 print OUT "#define HAVE_SYS_WAIT_H 1\n";
 print OUT "#define HAVE_PTHREAD 1\n";
-print OUT "#define HAVE_LIBXML_H 1\n";
+print OUT "#define HAVE_LIBXML_PARSER_H 1\n";
 #print OUT "#define HAVE_EXPAT_H 1\n";
 
 

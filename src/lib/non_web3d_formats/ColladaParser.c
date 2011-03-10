@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.8 2011/03/08 20:20:49 crc_canada Exp $
+$Id: ColladaParser.c,v 1.9 2011/03/10 17:47:14 istakenv Exp $
 
 ???
 
@@ -66,7 +66,7 @@ static int inCDATA = FALSE;
 
 #endif
 
-#if HAVE_LIBXML_H
+#if HAVE_LIBXML_PARSER_H
 #include <libxml/parser.h>
 typedef xmlSAXHandler* XML_Parser;
 
@@ -102,7 +102,7 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 #define XML_SetCdataSectionHandler(aaa,bbb,ccc) \
 	aaa->cdataBlock = endCDATA;
 
-#endif /* HAVE_LIBXML_H */
+#endif /* HAVE_LIBXML_PARSER_H */
 
 #define PROTOINSTANCE_MAX_LEVELS 10
 static XML_Parser colladaParser[PROTOINSTANCE_MAX_LEVELS];
