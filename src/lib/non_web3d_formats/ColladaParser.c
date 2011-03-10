@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.9 2011/03/10 17:47:14 istakenv Exp $
+$Id: ColladaParser.c,v 1.10 2011/03/10 20:26:56 crc_canada Exp $
 
 ???
 
@@ -27,10 +27,6 @@ $Id: ColladaParser.c,v 1.9 2011/03/10 17:47:14 istakenv Exp $
 ****************************************************************************/
 
 #include <config.h>
-
-/* IPHONE - right now do not do XML parsing */
-#ifndef IPHONE
-
 
 #include <system.h>
 #include <display.h>
@@ -244,5 +240,3 @@ int ColladaParse (struct X3D_Group* myParent, const char *inputstring) {
 	shutdownColladaParser();
 	return TRUE;
 }
-
-#endif /* IPHONE */
