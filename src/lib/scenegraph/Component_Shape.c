@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.74 2011/03/04 19:38:14 crc_canada Exp $
+$Id: Component_Shape.c,v 1.75 2011/03/11 15:08:36 dug9 Exp $
 
 X3D Shape Component
 
@@ -680,18 +680,18 @@ void child_Shape (struct X3D_Shape *node) {
 	if (node->_shaderTableEntry == -1) {
 		return;
 	}
-
-struct fw_MaterialParameters defaultMaterials = {
+	{
+		struct fw_MaterialParameters defaultMaterials = {
 					{0.0f, 0.0f, 0.0f, 1.0f}, /* emissiveColor */
 					{0.0f, 0.0f, 0.0f, 1.0f}, /* ambientIntensity */
 					{0.8f, 0.8f, 0.8f, 1.0f}, /* diffuseColor */
 					{0.0f, 0.0f, 0.0f, 1.0f}, /* specularColor */
 					10.0f};                   /* shininess */
 
-	/* copy the material stuff in preparation for copying all to the shader */
-	memcpy (&appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
-	memcpy (&appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
-
+		/* copy the material stuff in preparation for copying all to the shader */
+		memcpy (&appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+		memcpy (&appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+	}
 	/* enable the shader for this shape */
         chooseShader (node->_shaderTableEntry);
 
