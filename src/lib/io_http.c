@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.13 2010/05/06 16:34:17 davejoubert Exp $
+  $Id: io_http.c,v 1.14 2011/03/13 22:30:53 dug9 Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -214,6 +214,94 @@ char* download_url_curl(const char *url, const char *tmp)
 }
 
 #endif
+#if defined(_MSC_VER)
+
+/*
+ms windows native methods WinInet - for clients (like freewrl) 
+http://msdn.microsoft.com/en-us/library/aa385331(VS.85).aspx   C - what I used below
+http://msdn.microsoft.com/en-us/library/sb35xf67.aspx sample browser in C++
+*/
+#include <WinInet.h>
+
+static HINTERNET hWinInet = NULL;
+HINTERNET winInetInit()
+{
+//winInet_h = InternetOpen(
+//  __in  LPCTSTR lpszAgent,
+//  __in  DWORD dwAccessType,
+//  __in  LPCTSTR lpszProxyName,
+//  __in  LPCTSTR lpszProxyBypass,
+//  __in  DWORD dwFlags
+//);
+
+
+	
+   return InternetOpen("freewrl",INTERNET_OPEN_TYPE_DIRECT,NULL,NULL,0); //INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY/*/INTERNET_OPEN_TYPE_PRECONFIG*/,NULL,NULL,0);//INTERNET_FLAG_ASYNC - for callback);
+}
+//#define ERROR_MSG ConsoleMessage
+//#define PERROR_MSG ConsoleMessage
+   /* return the temp file where we got the contents of the URL requested */
+char* download_url_WinInet(const char *url, const char *tmp)
+{
+
+	if(!hWinInet)
+	{
+		hWinInet = winInetInit();
+	}
+	if(!hWinInet) 
+		return NULL;
+	else
+	{
+		DWORD dataLength, len;
+		HINTERNET hOpenUrl=InternetOpenUrl(hWinInet,url,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
+		if (!(hOpenUrl))
+		{
+			ERROR_MSG("Download failed for url %s\n", url);
+			return NULL;
+		}
+		else
+		{
+			char *temp;
+			FILE *file;
+
+			if (tmp) {
+				temp = STRDUP(tmp);
+			} else {
+				temp = tempnam("/tmp", "freewrl_download_XXXXXXXX");
+				if (!temp) {
+					PERROR_MSG("download_url: can't create temporary name.\n");
+					return NULL;	
+				}
+			}
+
+			file = fopen(temp, "wb");
+			if (!file) {
+				free(temp);
+				ERROR_MSG("Cannot create temp file (fopen)\n");
+				return NULL;	
+			}
+
+			dataLength=0;
+			len=0;
+
+			while((InternetQueryDataAvailable(hOpenUrl,&dataLength,0,0))&&(dataLength>0))
+			{
+				void *block = malloc(dataLength);
+				if ((InternetReadFile(hOpenUrl,(void*)block,dataLength,&len))&&(len>0))
+				{
+					fwrite(block,dataLength,1,file);
+				}
+				free(block);
+			}
+			InternetCloseHandle(hOpenUrl); 
+			hOpenUrl=NULL;
+			fclose(file);
+			return temp;
+		}
+    } 
+}
+
+#endif
 
 /**
  *   launch wget to download requested url
@@ -280,7 +368,9 @@ char* download_url(const char *url, const char *tmp)
     } else {
 	    return download_url_wget(url, tmp);
     }
-#else 
+#elif defined(_MSC_VER) 
+	return download_url_WinInet(url,tmp);
+#else
     return download_url_wget(url, tmp);
 #endif
 }
