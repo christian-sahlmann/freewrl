@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.15 2010/12/08 13:05:54 crc_canada Exp $
+$Id: Snapshot.c,v 1.16 2011/03/13 18:01:13 dug9 Exp $
 
 CProto ???
 
@@ -76,12 +76,71 @@ int savedSnapshot = FALSE;
 void saveSnapSequence();
 #endif
 
+static char * grabScreen(int bytesPerPixel, int x, int y, int width, int height)
+{
+	/* copies opengl window pixels into a buffer */
+	int pixelType;
+	char *buffer;
+	if(bytesPerPixel == 3) pixelType = GL_RGB;
+	if(bytesPerPixel == 4) pixelType = GL_RGBA;
+	buffer = MALLOC (GLvoid *, bytesPerPixel*width*height*sizeof(char));
+
+	/* grab the data */
+	FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
+	FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
+	
+	FW_GL_READPIXELS (x,y,width,height,pixelType,GL_UNSIGNED_BYTE, buffer);
+	return buffer;
+}
+
 #if defined( WIN32) || defined (IPHONE)
 /* stubbs for now */
 void setSnapshot() {}
-void Snapshot () {}
 void setSnapGif(){}
 void saveSnapSequence() {}
+#ifndef _MSC_VER
+void Snapshot () {}
+#else
+
+#include <windows.h>
+//#include "Vfw.h" //.avi headers
+void saveSnapshot(char *buffer,int bytesPerPixel,int width, int height)
+{
+	BITMAPINFOHEADER bi; 
+	BITMAPFILEHEADER bmph;
+	FILE *fout = fopen("freewrl_snapshot.bmp","w+b");
+	if(bytesPerPixel == 3) bi.biCompression = BI_RGB;
+	bi.biHeight = height;
+	bi.biWidth = width;
+	bi.biPlanes = 1;
+	bi.biBitCount  = 8 * bytesPerPixel;
+	bi.biSizeImage = bytesPerPixel*bi.biHeight*bi.biWidth;
+	bi.biSize = sizeof(bi);
+
+	memcpy(&bmph.bfType,"BM",2);
+	bmph.bfReserved1 = 0;
+	bmph.bfReserved2 = 0;
+	bmph.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+	bmph.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + bi.biSizeImage;
+	fwrite(&bmph,sizeof(BITMAPFILEHEADER),1,fout);
+	fwrite(&bi,sizeof(BITMAPINFOHEADER),1,fout);
+	fwrite(buffer,bi.biSizeImage,1,fout);
+	fclose(fout);
+}
+void Snapshot () 
+{
+/* going to try just the single snapshot for windows, to .bmp format 
+  (and future: remember .avi holds a sequence of DIBs. A .bmp holds 1 DIB.
+  There’s something in the 2003 platform SDK and online for AVI & RIFF/DIB/BMP
+ http://msdn.microsoft.com/en-us/library/ms706540(v=VS.85).aspx 
+ http://msdn.microsoft.com/en-us/library/ms706415(v=VS.85).aspx  Vfw.h, Vfw32.lib 
+*/
+	char *imgbuf = grabScreen(3,0,0,screenWidth,screenHeight);
+	saveSnapshot(imgbuf,3,screenWidth,screenHeight);
+	FREE(imgbuf);
+}
+#endif 
+
 
 
 #else /*ifdef win32*/
