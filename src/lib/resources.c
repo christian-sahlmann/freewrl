@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.39 2011/03/22 18:52:43 crc_canada Exp $
+  $Id: resources.c,v 1.40 2011/03/22 19:11:17 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -963,10 +963,10 @@ static void removeFilenameFromPath (char *path) {
 /* is this a gzipped file? if so, unzip the text and replace the original with this. */
 static void possiblyUnzip (openned_file_t *of) {
 #ifndef IPHONE
-	if (of->text == NULL) return;
-	if (of->text[0] == '\0') return;
-	if (of->text[1] == '\0') return;
-        if (((unsigned char) of->text[0] == 0x1f) && ((unsigned char) of->text[1] == 0x8b)) {
+	if (of->data == NULL) return;
+	if (of->data[0] == '\0') return;
+	if (of->data[1] == '\0') return;
+        if (((unsigned char) of->data[0] == 0x1f) && ((unsigned char) of->data[1] == 0x8b)) {
 		#define GZIP_BUFF_SIZE 2048
 
 		gzFile *source;
@@ -999,14 +999,14 @@ static void possiblyUnzip (openned_file_t *of) {
 		/* read in the unzipped text... */
 		newFile = load_file((const char *) tempname);
 
-		if (newFile->text == NULL) {
+		if (newFile->data == NULL) {
 			ConsoleMessage ("problem re-reading gunzipped text file");
 			return;
 		}
 
 		/* replace the old text with the unzipped; and clean up */
-		FREE_IF_NZ(of->text);
-		of->text = newFile->text;
+		FREE_IF_NZ(of->data);
+		of->data = newFile->data;
 		FREE_IF_NZ(newFile);
 		unlink (tempname);
 	}
