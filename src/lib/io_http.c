@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.14 2011/03/13 22:30:53 dug9 Exp $
+  $Id: io_http.c,v 1.15 2011/03/22 18:52:43 crc_canada Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -161,14 +161,15 @@ void init_curl()
 }
 
 /* return the temp file where we got the contents of the URL requested */
-char* download_url_curl(const char *url, const char *tmp)
+/* old char* download_url_curl(const char *url, const char *tmp) */
+char* download_url_curl(resource_item_t *res)
 {
     CURLcode success;
     char *temp;
     FILE *file;
 
-    if (tmp) {
-	    temp = STRDUP(tmp);
+    if (res->_temp_dir) {
+	    temp = STRDUP(res->temp_dir);
     } else {
 	    temp = tempnam("/tmp", "freewrl_download_curl_XXXXXXXX");
 	    if (!temp) {
@@ -192,7 +193,7 @@ char* download_url_curl(const char *url, const char *tmp)
       Ask libCurl to download one url at once,
       and to write it to the specified file.
     */
-    curl_easy_setopt(curl_h, CURLOPT_URL, url);
+    curl_easy_setopt(curl_h, CURLOPT_URL, res->parsed_request);
 
     curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, file);
 
@@ -200,12 +201,12 @@ char* download_url_curl(const char *url, const char *tmp)
 
     if (success == 0) {
 #ifdef TRACE_DOWNLOADS
-	TRACE_MSG("Download sucessfull [curl] for url %s\n", url);
+	TRACE_MSG("Download sucessfull [curl] for url %s\n", res->parsed_request);
 #endif
 	fclose(file);
 	return temp;
     } else {
-	ERROR_MSG("Download failed for url %s (%d)\n", url, (int) success);
+	ERROR_MSG("Download failed for url %s (%d)\n", res->-parsed_request, (int) success);
 	fclose(file);
 	unlink(temp);
 	FREE(temp);
@@ -213,7 +214,9 @@ char* download_url_curl(const char *url, const char *tmp)
     }
 }
 
-#endif
+#endif /* HAVE_LIBCURL */
+
+
 #if defined(_MSC_VER)
 
 /*
@@ -241,7 +244,8 @@ HINTERNET winInetInit()
 //#define ERROR_MSG ConsoleMessage
 //#define PERROR_MSG ConsoleMessage
    /* return the temp file where we got the contents of the URL requested */
-char* download_url_WinInet(const char *url, const char *tmp)
+/* char* download_url_WinInet(const char *url, const char *tmp) */
+char* download_url_WinInet(resource_item_t *res)
 {
 
 	if(!hWinInet)
@@ -253,10 +257,10 @@ char* download_url_WinInet(const char *url, const char *tmp)
 	else
 	{
 		DWORD dataLength, len;
-		HINTERNET hOpenUrl=InternetOpenUrl(hWinInet,url,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
+		HINTERNET hOpenUrl=InternetOpenUrl(hWinInet,res->parsed_request,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
 		if (!(hOpenUrl))
 		{
-			ERROR_MSG("Download failed for url %s\n", url);
+			ERROR_MSG("Download failed for url %s\n", res->parsed_request);
 			return NULL;
 		}
 		else
@@ -264,8 +268,8 @@ char* download_url_WinInet(const char *url, const char *tmp)
 			char *temp;
 			FILE *file;
 
-			if (tmp) {
-				temp = STRDUP(tmp);
+			if (res->temp_dir) {
+				temp = STRDUP(res->temp_dir);
 			} else {
 				temp = tempnam("/tmp", "freewrl_download_XXXXXXXX");
 				if (!temp) {
@@ -303,12 +307,19 @@ char* download_url_WinInet(const char *url, const char *tmp)
 
 #endif
 
+/* lets try this...  this should be in the config files */
+#ifdef WGET
+#define HAVE_WGET
+#endif
+
+#ifdef HAVE_WGET
+
 /**
  *   launch wget to download requested url
  *   if tmp is not NULL then use that tempnam
  *   return the temp file where we got the contents of the URL requested
  */
-char* download_url_wget(const char *url, const char *tmp)
+char* download_url_wget(resource_item_t *res)
 {
     char *temp, *wgetcmd;
     int ret;
@@ -323,8 +334,8 @@ char* download_url_wget(const char *url, const char *tmp)
 #endif
 
     // create temp filename
-    if (tmp) {
-	    temp = STRDUP(tmp);
+    if (res->temp_dir) {
+	    temp = STRDUP(res->temp_dir);
     } else {
 	    temp = tempnam("/tmp", "freewrl_download_wget_XXXXXXXX");
 	    if (!temp) {
@@ -336,14 +347,14 @@ char* download_url_wget(const char *url, const char *tmp)
     // create wget command line
     wgetcmd = malloc( strlen(WGET) +
 	                    strlen(WGET_OPTIONS) + 
-	                    strlen(url) +
+	                    strlen(res->parsed_request) +
                             strlen(temp) + 6 +1+1);
 
 #if defined (TARGET_AQUA)
     /* AQUA - we DO NOT have the options, but we can not have the space - it screws the freewrlSystem up */
-    sprintf(wgetcmd, "%s %s %s %s", WGET, url, WGET_OUTPUT_DIRECT, temp);
+    sprintf(wgetcmd, "%s %s %s %s", WGET, res->parsed_request, WGET_OUTPUT_DIRECT, temp);
 #else
-    sprintf(wgetcmd, "%s %s %s %s %s", WGET, WGET_OPTIONS, url, WGET_OUTPUT_DIRECT, temp);
+    sprintf(wgetcmd, "%s %s %s %s %s", WGET, WGET_OPTIONS, res->parsed_request, WGET_OUTPUT_DIRECT, temp);
 #endif
 
     /* printf ("wgetcmd is %s\n",wgetcmd); */
@@ -359,20 +370,46 @@ char* download_url_wget(const char *url, const char *tmp)
     FREE(wgetcmd);
     return temp;
 }
+#endif /* HAVE_WGET */
 
-char* download_url(const char *url, const char *tmp)
+
+/* get the file from the network, UNLESS the front end gets files. Old way - the freewrl 
+   library tries to get files; new way, the front end gets the files from the network. This
+   allows, for instance, the browser plugin to use proxy servers and cache for getting files.
+
+   So, if the FRONTEND_GETS_FILES is set, we simply pass the http:// filename along....
+*/
+
+void download_url(resource_item_t *res)
 {
-#if defined(HAVE_LIBCURL)
-    if (with_libcurl) {
-	    return download_url_curl(url, tmp);
-    } else {
-	    return download_url_wget(url, tmp);
-    }
-#elif defined(_MSC_VER) 
-	return download_url_WinInet(url,tmp);
-#else
-    return download_url_wget(url, tmp);
-#endif
+
+#if defined(FRONTEND_GETS_FILES)
+	res->actual_file = STRDUP(res->parsed_request);
+
+#elif defined(HAVE_LIBCURL)
+	if (with_libcurl) {
+		res->actual_file = download_url_curl(res);
+	} else {
+		res->actual_file = download_url_wget(res);
+	}
+
+#elif defined (HAVE_WGET) 
+	res->actual_file = download_url_wget(res);
+
+
+#elif defined (_MSC_VER)
+	res->actual_file = download_url_WinInet(res);
+#endif 
+
+	/* status indication now */
+	if (res->actual_file) {
+		/* download succeeded */
+		res->status = ress_downloaded;
+	} else {
+		/* download failed */
+		res->status = ress_failed;
+		ERROR_MSG("resource_fetch: download failed for url: %s\n", res->parsed_request);
+	}
 }
 
 /**

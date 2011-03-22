@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.h,v 1.6 2009/11/28 22:46:05 dug9 Exp $
+  $Id: io_files.h,v 1.7 2011/03/22 18:52:43 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -42,7 +42,8 @@ bool do_dir_exists(const char *dir);
 typedef struct openned_file {
 	const char *filename;
 	int fd;
-	char *text;
+	int dataSize;
+	char *data;
 } openned_file_t;
 
 void of_dump(openned_file_t *of);

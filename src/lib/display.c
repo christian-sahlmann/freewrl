@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.67 2011/03/08 20:36:55 dug9 Exp $
+  $Id: display.c,v 1.68 2011/03/22 18:52:43 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -107,7 +107,9 @@ int PaneClipChanged = FALSE;
  */
 int display_initialize()
 {
-	printf ("calling display_initialize\n");
+
+	if (display_initialized) return TRUE;
+
 	memset(&rdr_caps, 0, sizeof(rdr_caps));
 
 	/* FreeWRL parameters */
@@ -153,8 +155,6 @@ int display_initialize()
 		sendXwinToPlugin();
 	}
 #endif
-
-printf ("finished calling open_Display\n");
 
 	return TRUE;
 }
@@ -285,6 +285,8 @@ bool initialize_rdr_caps()
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &tmp);
 		#endif
 		rdr_caps.texture_units = (int) tmp;
+printf ("max_texture_size %d, max_texture_units %d\n",rdr_caps.max_texture_size, rdr_caps.texture_units);
+
 	}
 
 	/* max supported texturing anisotropicDegree- can be changed in TextureProperties */

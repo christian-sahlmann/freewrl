@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.43 2011/02/27 00:07:32 crc_canada Exp $
+  $Id: main.c,v 1.44 2011/03/22 18:52:43 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -80,10 +80,6 @@ static freewrl_params_t *OSXparams = NULL;
 void OSX_initializeParameters(const char* initialURL) {
     resource_item_t *res;
 
-    #ifdef IPHONE
-	printf ("start of OSX_initializeParameters, initialURL :%s:\n",initialURL);
-    #endif
-
     /* have we been through once already (eg, plugin loading new file)? */
     if (OSXparams == NULL) {
 
@@ -96,14 +92,13 @@ void OSX_initializeParameters(const char* initialURL) {
     	OSXparams->eai = FALSE;
     	OSXparams->fullscreen = FALSE;
     } 
-	printf("in OSX init\n");
+
     /* start threads, parse initial scene, etc */
 
    if (!initFreeWRL(OSXparams)) {
 	ERROR_MSG("main: aborting during initialization.\n");
 	exit(1);
    }
-	printf("after init osx params\n");
 
 
     fw_params.collision = 1;
@@ -111,7 +106,6 @@ void OSX_initializeParameters(const char* initialURL) {
     /* Give the main argument to the resource handler */
     res = resource_create_single(initialURL);
     
-
     /* tell the new world which viewpoint to go to */
     givenInitialViewpoint = res->afterPoundCharacters;
 

@@ -1,5 +1,6 @@
+//[s release];
 /*
-  $Id: io_files.c,v 1.30 2011/03/10 19:44:46 crc_canada Exp $
+  $Id: io_files.c,v 1.31 2011/03/22 18:52:43 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -209,10 +210,10 @@ bool do_dir_exists(const char *dir)
 void of_dump(openned_file_t *of)
 {
 	static char first_ten[11];
-	if (of->text) {
-		strncpy(first_ten, of->text, 10);
+	if (of->data) {
+		strncpy(first_ten, of->data, 10);
 	}
-	printf("{%s, %d, %s%s}\n", of->filename, of->fd, (of->text ? first_ten : "(null)"), (of->text ? "..." : ""));
+	printf("{%s, %d, %d, %s%s}\n", of->filename, of->fd, of->dataSize, (of->data ? first_ten : "(null)"), (of->data ? "..." : ""));
 }
 
 /**
@@ -220,14 +221,15 @@ void of_dump(openned_file_t *of)
  *                        and data buffer} into an openned file object.
  *                        Purpose: to be able to close and free all that stuff.
  */
-static openned_file_t* create_openned_file(const char *filename, int fd, char *text)
+static openned_file_t* create_openned_file(const char *filename, int fd, int dataSize, char *data)
 {
 	openned_file_t *of;
 
 	of = XALLOC(openned_file_t);
 	of->filename = filename;
 	of->fd = fd;
-	of->text = text;
+	of->data = data;
+	of->dataSize = dataSize;
 	return of;
 }
 
@@ -274,7 +276,6 @@ static openned_file_t* load_file_read(const char *filename)
 	int fd;
 	char *text, *current;
 
-#ifndef IPHONE
 #ifdef _MSC_VER
 	size_t blocksz, readsz, left2read;
 #else
@@ -340,47 +341,46 @@ static openned_file_t* load_file_read(const char *filename)
 	}
 	/* null terminate this string */
 	text[ss.st_size] = '\0';
-#else
-printf ("io_files.c - faking malloc for file size\n");
-	text = MALLOC(char *, 5000); /* include space for a null terminating character */
-#ifdef TRY_CLASSIC
-strcpy (text, "#VRML V2.0 utf8\n" \
-"NavigationInfo {headlight TRUE} "\
-"    Background { skyAngle        [ 1.07 1.45 1.52 1.57 ] skyColor        [ 0.00 0.00 0.30 0.00 0.00 0.80 0.45 0.70 0.80 0.70 0.50 0.00 1.00 0.00 0.00 ] groundAngle     1.57 groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ] } \n" \
-"#Shape { appearance Appearance { material Material { diffuseColor 0 1 0} } geometry Cylinder { } } \n " \
-"#Shape { appearance Appearance { texture PixelTexture { image 2 2 3 0xff0000 0x00ff00 0xff0000 0x00ff00 } } geometry Cylinder {} } \n " \
-"Shape { appearance Appearance { texture PixelTexture { image 2 4 3 0xff0000 0x00ff00 0xff0000 0x00ff00 0xffff00 0x0000ff 0xffff00 0x0000ff} } geometry Cylinder {} } \n " \
-"#Shape { appearance Appearance { texture PixelTexture { image 2 3 3 0xff0000 0x00ff00 0xffff00 0x0000ff 0xffff00 0x0000ff} } geometry Cylinder {} } \n " \
-);
-#else
 
-strcpy(text,
-"<?xml version='1.0' encoding='utf-8'?>\n" \
-"<!DOCTYPE X3D PUBLIC\n" \
-"	'http://www.web3D.org/TaskGroups/x3d/translation/x3d-compact.dtd'\n" \
-"	'file://localhost/www.web3D.org/TaskGroups/x3d/translation/x3d-compact.dtd' [\n" \
-" <!ENTITY % BaseLineProfile    'INCLUDE'>\n" \
-" <!ENTITY % CoreProfile        'IGNORE'>\n" \
-" <!ENTITY % DisJavaVrmlProfile 'INCLUDE'>\n" \
-" <!ENTITY % GeoVrmlProfile     'INCLUDE'>\n" \
-" <!ENTITY % HAnimProfile       'INCLUDE'>\n" \
-"]>\n" \
-"<X3D>\n" \
-"   <Scene>\n" \
-"      <Shape>\n" \
-"         <Appearance>\n" \
-"            <Material/>\n" \
-"         </Appearance>\n" \
-"         <Box/>\n" \
-"      </Shape>\n" \
-"   </Scene>\n" \
-"</X3D>\n"); 
-
-#endif /* TRY_CLASSIC */
-
-#endif /* IPHONE */
-	return create_openned_file(filename, fd, text);
+	return create_openned_file(filename, fd, ss.st_size+1, text);
 }
+
+#ifdef FRONTEND_GETS_FILES
+static char *fileText = NULL;
+static char *fileName = NULL;
+static int frontendPleaseGetAFile = FALSE;
+static int fileSize = 0;
+
+pthread_mutex_t  getAFileLock = PTHREAD_MUTEX_INITIALIZER;
+#define MUTEX_LOCK_FILE_RETRIEVAL                pthread_mutex_lock(&getAFileLock);
+#define MUTEX_FREE_LOCK_FILE_RETRIEVAL         pthread_mutex_unlock(&getAFileLock);
+
+/* accessor functions */
+/* return the filename of the file we want. */
+
+char *frontEndWantsFileName() {
+	//if (fileName != NULL) printf ("frontEndWantsFileName called - fileName currently %s\n",fileName);
+	return fileName;
+}
+
+/* the front end will send data back this way... */
+/* it is best to malloc and copy the data here, as that way the front end 
+   can manage its buffers as it sees fit */
+
+void frontEndReturningData(unsigned char *dataPointer, int len) {
+	MUTEX_LOCK_FILE_RETRIEVAL
+	fileText = MALLOC (unsigned char *, len);
+	memcpy (fileText, dataPointer, len);
+	fileSize = len;
+	fileName = NULL; /* not freed as only passed by pointer */
+	frontendPleaseGetAFile = FALSE;
+	MUTEX_FREE_LOCK_FILE_RETRIEVAL
+}
+
+#endif
+
+
+
 
 /**
  *   load_file: read file into memory, return the buffer.
@@ -390,6 +390,28 @@ openned_file_t* load_file(const char *filename)
 	openned_file_t *of = NULL;
 
 	DEBUG_RES("loading file: %s\n", filename);
+
+#ifdef FRONTEND_GETS_FILES
+
+	/* the frontend or plugin is going to get this resource */
+	MUTEX_LOCK_FILE_RETRIEVAL
+
+	FREE_IF_NZ(fileText);
+	FREE_IF_NZ(fileName);
+
+	fileName = filename;
+
+	frontendPleaseGetAFile = TRUE;
+
+	MUTEX_FREE_LOCK_FILE_RETRIEVAL
+
+	/* this should be a signal, we SHOULD NOT loop here */
+	while (frontendPleaseGetAFile) {printf ("sleeping until frontend gets our file\n"); usleep(100000);}
+
+	return create_openned_file(filename, NULL, fileSize, fileText);
+#endif
+
+
 #if defined(FW_USE_MMAP)
 #if !defined(_WIN32)
 	/* UNIX mmap */

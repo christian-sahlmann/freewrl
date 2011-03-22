@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.180 2011/03/03 14:56:34 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.181 2011/03/22 18:52:44 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2199,6 +2199,8 @@ void startOfLoopNodeUpdates(void) {
 
 	/* process one inline per loop; do it outside of the lock/unlock memory table */
 	struct Vector *loadInlines;
+
+	if (rootNode == NULL) return; /* nothing to do, and we have not really started yet */
 
 	/* initialization */
 	addChildren = NULL;

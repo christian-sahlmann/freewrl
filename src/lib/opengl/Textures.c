@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.85 2011/03/05 19:17:27 crc_canada Exp $
+  $Id: Textures.c,v 1.86 2011/03/22 18:52:44 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -170,7 +170,7 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
 {
    int x,
        y;
-   int texelSize = 3;
+   int texelSize = 4;
 
    *dstWidth = srcWidth / 2;
    if ( *dstWidth <= 0 )
@@ -191,7 +191,9 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
          int srcIndex[4];
          float r = 0.0f,
                g = 0.0f,
-               b = 0.0f;
+               b = 0.0f,
+	       a = 0.0f;
+
          int sample;
 
         // Compute the offsets for 2x2 grid of pixels in previous
@@ -211,17 +213,20 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
             r += src[srcIndex[sample]];
             g += src[srcIndex[sample] + 1];
             b += src[srcIndex[sample] + 2];
+            a += src[srcIndex[sample] + 2];
          }
 
          // Average results
          r /= 4.0f;
          g /= 4.0f;
          b /= 4.0f;
+         a /= 4.0f;
 
          // Store resulting pixels
          (*dst)[ ( y * (*dstWidth) + x ) * texelSize ] = (GLubyte)( r );
          (*dst)[ ( y * (*dstWidth) + x ) * texelSize + 1] = (GLubyte)( g );
          (*dst)[ ( y * (*dstWidth) + x ) * texelSize + 2] = (GLubyte)( b );
+         (*dst)[ ( y * (*dstWidth) + x ) * texelSize + 3] = (GLubyte)( a );
       }
    }
 }
@@ -1034,6 +1039,9 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 		printf ("just glGend texture for block %d is %u, type %s\n",
 			(int) me, me->OpenGLTexture,stringNodeType(me->nodeType));
 #endif
+
+
+
 	}
 
 	/* get the repeatS and repeatT info from the scenegraph node */
@@ -1057,6 +1065,8 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 		Src = v1t->_wrapS==VRML1MOD_REPEAT;
 		Trc = v1t->_wrapT==VRML1MOD_REPEAT;
 	}
+
+
 
 	/* do we have a TextureProperties node? */
 	if (tpNode) {
@@ -1140,6 +1150,8 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 		}
 	} 
 
+
+
 	if (!haveValidTexturePropertiesNode) {
 		/* convert TRUE/FALSE to GL_TRUE/GL_FALSE for wrapS and wrapT */
 		Src = Src ? GL_REPEAT : GL_CLAMP;
@@ -1157,6 +1169,8 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 			magFilter = GL_LINEAR;
 		}
 	}
+
+
 
 	/* is this a CubeMap? If so, lets try this... */
 
@@ -1211,6 +1225,8 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 		sp = (uint32 *) me->texdata;
 		#endif
 
+
+
 		for (cx=0; cx<rx; cx++) {
 			memcpy(&dp[(rx-cx-1)*ry],&sp[cx*ry], ry*4);
 		}
@@ -1232,7 +1248,11 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 			FW_GL_ENABLE(GL_TEXTURE_GEN_R);
 		}
 
+
+
 	} else {
+
+
 		/* if we have an ImageCubeMap, we have most likely got a png map; let the
 		   render_ImageCubeMapTexture code unpack the maps from this one png */
 		if (me->nodeType == NODE_ImageCubeMapTexture) {
@@ -1278,19 +1298,28 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 				//	}
 				//}
 			}
+
+
 		
 			FW_GL_BINDTEXTURE (GL_TEXTURE_2D, me->OpenGLTexture);
 			
+
+
 			/* save this to determine whether we need to do material node
 			  within appearance or not */
 				
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Src);
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Trc);
+#ifndef IPHONE
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, Rrc);
 			FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_PRIORITY, texPri);
 			FW_GL_TEXPARAMETERFV(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,(GLfloat *)&borderColour);
+#endif /* IPHONE */
+
 			FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_MAX_ANISOTROPY_EXT,anisotropicDegree);
 		
+
+
 			if (compression != GL_NONE) {
 				FW_GL_TEXPARAMETERI(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
 				FW_GL_HINT(GL_TEXTURE_COMPRESSION_HINT, compression);
@@ -1349,10 +1378,11 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 				}
 				#endif /* SHADERS_2011 */
 
-
 				/* try this texture on for size, keep scaling down until we can do it */
 				/* all textures are 4 bytes/pixel */
 				dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
+
+
 
 				#ifdef SHADERS_2011
 					myScaleImage(x,y,rx,ry,mytexdata,dest);
@@ -1370,6 +1400,8 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
 						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
 		
+
+
 						if ((width == 0) || (height == 0)) {
 							rx= rx/2; ry = ry/2;
 							if (global_print_opengl_errors) {
@@ -1388,6 +1420,8 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 				}
 				#endif /* SHADERS_2011 */
 		
+
+
 		
 				if (global_print_opengl_errors) {
 					DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
@@ -1412,11 +1446,15 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 		}
 	}
 
+
+
 	/* ensure this data is written to the driver for the rendering context */
 	FW_GL_FLUSH();
 
 	/* and, now, the Texture is loaded */
 	me->status = TEX_LOADED;
+
+
 }
 
 /**********************************************************************************

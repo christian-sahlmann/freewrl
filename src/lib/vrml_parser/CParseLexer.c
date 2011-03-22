@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.41 2011/01/04 19:50:19 crc_canada Exp $
+$Id: CParseLexer.c,v 1.42 2011/03/22 18:52:44 crc_canada Exp $
 
 ???
 
@@ -1412,7 +1412,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 				openned_file_t *of;
 				l = res->openned_files;
 				of = ml_elem(l);
-				buffer = of->text;
+				buffer = of->data;
  				embedEXTERNPROTO(me, myName, buffer, pound); 
 			}
 		}

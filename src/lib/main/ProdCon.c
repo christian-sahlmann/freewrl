@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.77 2011/03/10 19:44:46 crc_canada Exp $
+  $Id: ProdCon.c,v 1.78 2011/03/22 18:52:44 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -430,7 +430,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 
 	
-		if (!of->text) {
+		if (!of->data) {
 			/* error */
 			return FALSE;
 		}
@@ -457,7 +457,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 	
 		/* ACTUALLY CALLS THE PARSER */
-		PARSE_STRING(of->text, nRn);
+		PARSE_STRING(of->data, nRn);
 	
 		if ((res != root_res) && ((!root_res) ||(!root_res->complete))) {
 			globalParser = savedParser;

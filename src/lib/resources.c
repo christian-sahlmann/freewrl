@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.38 2011/02/27 00:07:32 crc_canada Exp $
+  $Id: resources.c,v 1.39 2011/03/22 18:52:43 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -365,10 +365,6 @@ bool resource_fetch(resource_item_t *res)
 	char* pound;
 	DEBUG_RES("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->request);
 
-	#ifdef IPHONE
-	printf ("fetching resource: %s, %s resource %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status) ,res->request);
-	#endif
-
 	ASSERT(res);
 
 	switch (res->type) {
@@ -382,15 +378,7 @@ bool resource_fetch(resource_item_t *res)
 		switch (res->status) {
 		case ress_none:
 		case ress_starts_good:
-			res->actual_file = download_url(res->parsed_request, res->temp_dir);
-			if (res->actual_file) {
-				/* download succeeded */
-				res->status = ress_downloaded;
-			} else {
-				/* download failed */
-				res->status = ress_failed;
-				ERROR_MSG("resource_fetch: download failed for url: %s\n", res->parsed_request);
-			}
+			download_url(res);
 			break;
 		default:
 			/* error */
@@ -409,18 +397,6 @@ bool resource_fetch(resource_item_t *res)
 				*pound = '\0';
 			}
 				
-#ifdef IPHONE
-{
-char *inpString = "FudgedFileForIPhone";
-
-printf ("rest_file, parsed_request %s\n",res->parsed_request);
-
-printf ("resources - faking the file get here\n");
-res->status = ress_downloaded;
-res->actual_file = STRDUP (inpString);
-printf ("actual_file is :%s:\n",res->actual_file);
-}
-#else
 			if (do_file_exists(res->parsed_request)) {
 				if (do_file_readable(res->parsed_request)) {
 					res->status = ress_downloaded;
@@ -438,7 +414,6 @@ printf ("actual_file is :%s:\n",res->actual_file);
 				res->status = ress_failed;
 				ERROR_MSG("resource_fetch: can't find file: %s\n", res->parsed_request);
 			}
-#endif
 			break;
 		default:
 			/* error */
@@ -467,7 +442,7 @@ bool resource_load(resource_item_t *res)
 {
 	openned_file_t *of = NULL;
 
-	DEBUG_RES("loading resource: %d, %d\n", res->type, res->status);
+	DEBUG_RES("loading resource: %s, %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status));
 	
 	ASSERT(res);
 
@@ -481,6 +456,7 @@ bool resource_load(resource_item_t *res)
 
 	case ress_downloaded:
 		of = load_file(res->actual_file);
+
 		if (of) {
 			res->status = ress_loaded;
 			res->openned_files = ml_append( (s_list_t *) res->openned_files,
@@ -492,9 +468,20 @@ bool resource_load(resource_item_t *res)
 			}
 
 		} else {
+
+#ifdef FRONTEND_GETS_FILES
+			if (frontEndWantsFileName() != NULL) {
+				/* printf ("resource still loading, lets yield here\n"); */
+			} else {
+#endif 
+
+
 			res->status = ress_not_loaded;
 			ERROR_MSG("resource_load: can't load file: %s\n", res->actual_file);
 		}
+#ifdef FRONTEND_GETS_FILES
+			}
+#endif 
 
 		break;
 	
@@ -558,7 +545,7 @@ void resource_identify_type(resource_item_t *res)
 			}
 			/* might this be a gzipped input file? */
 			possiblyUnzip(of);
-			test_it = of->text;
+			test_it = of->data;
 			break;
 		}
 
@@ -593,7 +580,7 @@ char *resource_get_text(resource_item_t *res)
 		s_list_t *l = (s_list_t *) res->openned_files;
 		openned_file_t *of = l->elem;
 		if (of) {
-			return of->text;
+			return of->data;
 		}
 	}
 	return NULL;

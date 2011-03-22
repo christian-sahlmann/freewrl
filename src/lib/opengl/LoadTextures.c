@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.65 2011/03/02 15:21:31 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.66 2011/03/22 18:52:44 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -375,12 +375,21 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	image = NULL;
 	hasAlpha = FALSE;
 
-#ifndef IPHONE
-	path = CFStringCreateWithCString(NULL, filename, kCFStringEncodingUTF8);
-#else
-printf ("skipping call to CFStringCreateWithCString\n");
-#endif /* IPHONE */
+#ifdef FRONTEND_GETS_FILES
+	openned_file_t *myFile = load_file (filename);
 
+	CFDataRef localData = CFDataCreate(NULL,myFile->data,myFile->dataSize);
+	sourceRef = CGImageSourceCreateWithData(localData,NULL);
+	if (sourceRef != NULL) {
+		image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
+		CFRelease (sourceRef);
+	}
+
+	CFRelease(localData);
+
+#else /* FRONTEND_GETS_FILES */
+
+	path = CFStringCreateWithCString(NULL, filename, kCFStringEncodingUTF8);
 	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, 0);
 
 	/* ok, we can define USE_CG_DATA_PROVIDERS or TRY_QUICKTIME...*/
@@ -389,6 +398,7 @@ printf ("skipping call to CFStringCreateWithCString\n");
 		graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs
 	*/
 #ifdef OSX_USE_QUICKTIME
+
 	/* lets let quicktime decide on what to do with this image */
 	err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
 
@@ -398,21 +408,18 @@ printf ("skipping call to CFStringCreateWithCString\n");
 		DisposeHandle (dataRef);
 		CloseComponent(gi);
 	}
-#else
-#ifdef IPHONE
-
-printf ("skipping CGImageSourceCreateImageAtIndex\n");
-#else
+#else /* OSX_USE_QUICKTIME */
 	sourceRef = CGImageSourceCreateWithURL(url,NULL);
 	if (sourceRef != NULL) {
 		image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
 		CFRelease (sourceRef);
 	}
-#endif /* IPHONE */
-#endif
+#endif /* OSX_USE_QUICKTIME */
 
 	CFRelease(url);
 	CFRelease(path);
+
+#endif /* FRONTEND_GETS_FILES */
 
 	/* We were able to load in the image here... */
 	if (image != NULL) {
@@ -473,6 +480,7 @@ printf ("skipping CGImageSourceCreateImageAtIndex\n");
 		
 		data = (unsigned char *)CGBitmapContextGetData(cgctx);
 	
+/*
 		#ifdef TEXVERBOSE
 		if (CGBitmapContextGetWidth(cgctx) < 301) {
 			int i;
@@ -484,6 +492,7 @@ printf ("skipping CGImageSourceCreateImageAtIndex\n");
 			printf ("\n");
 		}
 		#endif
+*/
 	
 		/* is there possibly an error here, like a file that is not a texture? */
 		if (CGImageGetBitsPerPixel(image) == 0) {
