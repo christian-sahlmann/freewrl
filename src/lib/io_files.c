@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.32 2011/03/23 15:32:36 crc_canada Exp $
+  $Id: io_files.c,v 1.33 2011/03/23 20:28:02 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -348,12 +348,14 @@ static openned_file_t* load_file_read(const char *filename)
 #ifdef FRONTEND_GETS_FILES
 static char *fileText = NULL;
 static char *fileName = NULL;
-static int frontendPleaseGetAFile = FALSE;
 static int fileSize = 0;
 
-pthread_mutex_t  getAFileLock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t  getAFileLock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t waitingForFile = PTHREAD_COND_INITIALIZER;
 #define MUTEX_LOCK_FILE_RETRIEVAL                pthread_mutex_lock(&getAFileLock);
 #define MUTEX_FREE_LOCK_FILE_RETRIEVAL         pthread_mutex_unlock(&getAFileLock);
+#define WAIT_FOR_FILE_SIGNAL		pthread_cond_wait(&waitingForFile,&getAFileLock);
+#define SEND_FILE_SIGNAL		pthread_cond_signal(&waitingForFile);
 
 /* accessor functions */
 /* return the filename of the file we want. */
@@ -384,7 +386,10 @@ void frontEndReturningData(unsigned char *dataPointer, int len) {
     fileText[len] = '\0';  /* the string terminator */
     
 	fileName = NULL; /* not freed as only passed by pointer */
-	frontendPleaseGetAFile = FALSE;
+
+	/* got the file, send along a message */
+	SEND_FILE_SIGNAL
+
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
 }
 
@@ -412,12 +417,9 @@ openned_file_t* load_file(const char *filename)
 
 	fileName = filename;
 
-	frontendPleaseGetAFile = TRUE;
+	WAIT_FOR_FILE_SIGNAL
 
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
-
-	/* this should be a signal, we SHOULD NOT loop here */
-	while (frontendPleaseGetAFile) {printf ("sleeping until frontend gets our file\n"); usleep(100000);}
 
 	return create_openned_file(filename, NULL, fileSize, fileText);
 #endif
