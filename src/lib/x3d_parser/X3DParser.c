@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.83 2011/03/23 15:32:36 crc_canada Exp $
+$Id: X3DParser.c,v 1.84 2011/03/23 18:26:02 crc_canada Exp $
 
 ???
 
@@ -65,7 +65,12 @@ static int inCDATA = FALSE;
 typedef xmlSAXHandler* XML_Parser;
 
 /* for now - fill this in later */
+#ifdef IPHONE
 #define XML_GetCurrentLineNumber(aaa) 999
+#else
+#define XML_GetCurrentLineNumber(aaa) 999L
+#endif
+
 #define XML_ParserFree(aaa) FREE_IF_NZ(aaa)
 #define XML_SetUserData(aaa,bbb)
 #define XML_STATUS_ERROR -1
@@ -476,19 +481,19 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 	switch (node->_nodeType) {
 
 	case NODE_Script: {
-		*myObj = X3D_SCRIPT(node)->__scriptObj;
+		*myObj = (struct Shader_Script *) X3D_SCRIPT(node)->__scriptObj;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	case NODE_ComposedShader: {
-		*myObj = X3D_COMPOSEDSHADER(node)->__shaderObj;
+		*myObj = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->__shaderObj;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	case NODE_ShaderProgram: {
-		*myObj = X3D_SHADERPROGRAM(node)->__shaderObj;
+		*myObj = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->__shaderObj;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	case NODE_PackagedShader: {
-		*myObj = X3D_PACKAGEDSHADER(node)->__shaderObj;
+		*myObj = (struct Shader_Script *) X3D_PACKAGEDSHADER(node)->__shaderObj;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	default:
@@ -966,7 +971,7 @@ printf ("\n");
 void endCDATA (void *user_data, const xmlChar *string, int len) {
 	printf ("cdata_element, :%s:\n",string);
         if (getParserMode() == PARSING_PROTOBODY) {
-                dumpCDATAtoProtoBody (string);
+                dumpCDATAtoProtoBody ((char *)string);
         } else if (in3_3_fieldValue) {
 		appendDataToFieldValue((char *)string,len);
 	} else {
@@ -1351,11 +1356,11 @@ static void saveAttributes(int myNodeType, const char *name, char** atts) {
 			ConsoleMessage ("Javascript not supported\n");
 		#endif
 	} else if (myNodeType == NODE_ComposedShader) {
-		X3D_COMPOSEDSHADER(thisNode)->__shaderObj=new_Shader_Script(thisNode);
+		X3D_COMPOSEDSHADER(thisNode)->__shaderObj=X3D_NODE(new_Shader_Script(thisNode));
 	} else if (myNodeType == NODE_ShaderProgram) {
-		X3D_SHADERPROGRAM(thisNode)->__shaderObj=new_Shader_Script(thisNode);
+		X3D_SHADERPROGRAM(thisNode)->__shaderObj=X3D_NODE(new_Shader_Script(thisNode));
 	} else if (myNodeType == NODE_PackagedShader) {
-		X3D_PACKAGEDSHADER(thisNode)->__shaderObj=new_Shader_Script(thisNode);
+		X3D_PACKAGEDSHADER(thisNode)->__shaderObj=X3D_NODE(new_Shader_Script(thisNode));
 	}
 
 

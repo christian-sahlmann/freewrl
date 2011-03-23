@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.42 2011/03/23 15:32:36 crc_canada Exp $
+$Id: Polyrep.c,v 1.43 2011/03/23 18:26:02 crc_canada Exp $
 
 ???
 
@@ -604,7 +604,7 @@ void Extru_tex(
 	int A,
 	int B,
 	int C,
-	int *tcindex,
+	GLuint *tcindex,
 	int ccw,
 	int tcindexsize) {
 
@@ -639,8 +639,8 @@ void Extru_ST_map(
 	int end,
 	float *Vals,
 	int nsec,
-	int *tcindex,
-	int *cindex,
+	GLuint *tcindex,
+	GLuint *cindex,
 	float *GeneratedTexCoords,
 	int tcoordsize) {
 

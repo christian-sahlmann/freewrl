@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.86 2011/03/22 18:52:44 crc_canada Exp $
+  $Id: Textures.c,v 1.87 2011/03/23 18:26:02 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -88,7 +88,7 @@ int currentlyWorkingOn = -1;
 int textureInProcess = -1;
 
 /* for texture remapping in TextureCoordinate nodes */
-int	*global_tcin;
+GLuint	*global_tcin;
 int	global_tcin_count;
 void 	*global_tcin_lastParent;
 

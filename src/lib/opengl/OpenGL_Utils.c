@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.181 2011/03/22 18:52:44 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.182 2011/03/23 18:26:02 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -3067,11 +3067,6 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 
 }
 void sendMaterialsToShader(s_shader_capabilities_t *me) {
-	float spval[16];
-	int i;
-	float *sp; 
-	GLDOUBLE *dp;
-
 	/* go through all of the Uniforms for this shader */
 
 #define SEND_VEC4(myMat,myVal) \

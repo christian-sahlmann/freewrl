@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.23 2010/09/20 00:34:18 dug9 Exp $
+$Id: Textures.h,v 1.24 2011/03/23 18:26:02 crc_canada Exp $
 
 Screen snapshot.
 
@@ -140,7 +140,7 @@ extern int textureStackTop;
 extern struct multiTexParams *textureParameterStack[];
 extern GLuint boundTextureStack[]; /* defined as MAX_MULTITEXTURE in size */
 
-extern int     *global_tcin;
+extern GLuint     *global_tcin;
 extern int     global_tcin_count; 
 extern void 	*global_tcin_lastParent;
 

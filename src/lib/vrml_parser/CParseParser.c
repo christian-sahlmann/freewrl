@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.69 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: CParseParser.c,v 1.70 2011/03/23 18:26:02 crc_canada Exp $
 
   ???
 
@@ -1298,19 +1298,19 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
      					/* We found the event in user_inputOnly or Out */ \
       					/* If this is a Script get the scriptFieldDecl for this event */ \
 					switch (pre##Node->_nodeType) { \
-      					case NODE_Script: pre##ScriptField=script_getField(X3D_SCRIPT(pre##Node)->__scriptObj, pre##UFieldO, PKW_##eventType); break;\
-      					case NODE_ComposedShader: pre##ScriptField=script_getField(X3D_COMPOSEDSHADER(pre##Node)->__shaderObj, pre##UFieldO, PKW_##eventType); break;\
-      					case NODE_ShaderProgram: pre##ScriptField=script_getField(X3D_SHADERPROGRAM(pre##Node)->__shaderObj, pre##UFieldO, PKW_##eventType); break;\
-      					case NODE_PackagedShader: pre##ScriptField=script_getField(X3D_PACKAGEDSHADER(pre##Node)->__shaderObj, pre##UFieldO, PKW_##eventType); break;\
+      					case NODE_Script: pre##ScriptField=script_getField((struct Shader_Script*) (X3D_SCRIPT(pre##Node)->__scriptObj), pre##UFieldO, PKW_##eventType); break;\
+      					case NODE_ComposedShader: pre##ScriptField=script_getField((struct Shader_Script *)(X3D_COMPOSEDSHADER(pre##Node)->__shaderObj), pre##UFieldO, PKW_##eventType); break;\
+      					case NODE_ShaderProgram: pre##ScriptField=script_getField((struct Shader_Script *)(X3D_SHADERPROGRAM(pre##Node)->__shaderObj), pre##UFieldO, PKW_##eventType); break;\
+      					case NODE_PackagedShader: pre##ScriptField=script_getField((struct Shader_Script *)(X3D_PACKAGEDSHADER(pre##Node)->__shaderObj), pre##UFieldO, PKW_##eventType); break;\
 					} \
     				} else { \
     	 				/* We found the event in user_inputOutput */ \
       					/* If this is a Script get the scriptFieldDecl for this event */ \
 					switch (pre##Node->_nodeType) { \
-      					case NODE_Script: pre##ScriptField=script_getField(X3D_SCRIPT(pre##Node)->__scriptObj, pre##UFieldE, PKW_inputOutput); break; \
-      					case NODE_ComposedShader: pre##ScriptField=script_getField(X3D_COMPOSEDSHADER(pre##Node)->__shaderObj, pre##UFieldE, PKW_inputOutput); break; \
-      					case NODE_ShaderProgram: pre##ScriptField=script_getField(X3D_SHADERPROGRAM(pre##Node)->__shaderObj, pre##UFieldE, PKW_inputOutput); break; \
-      					case NODE_PackagedShader: pre##ScriptField=script_getField(X3D_PACKAGEDSHADER(pre##Node)->__shaderObj, pre##UFieldE, PKW_inputOutput); break; \
+      					case NODE_Script: pre##ScriptField=script_getField((struct Shader_Script *)(X3D_SCRIPT(pre##Node)->__scriptObj), pre##UFieldE, PKW_inputOutput); break; \
+      					case NODE_ComposedShader: pre##ScriptField=script_getField((struct Shader_Script *)(X3D_COMPOSEDSHADER(pre##Node)->__shaderObj), pre##UFieldE, PKW_inputOutput); break; \
+      					case NODE_ShaderProgram: pre##ScriptField=script_getField((struct Shader_Script *)(X3D_SHADERPROGRAM(pre##Node)->__shaderObj), pre##UFieldE, PKW_inputOutput); break; \
+      					case NODE_PackagedShader: pre##ScriptField=script_getField((struct Shader_Script *)(X3D_PACKAGEDSHADER(pre##Node)->__shaderObj), pre##UFieldE, PKW_inputOutput); break; \
 					} \
     				} \
     				if(pre##Node->_nodeType==NODE_Script && !pre##ScriptField) \
@@ -1936,9 +1936,9 @@ static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 		case NODE_Script: script=X3D_SCRIPT(node)->__scriptObj; break;
 		#endif
 
-		case NODE_ShaderProgram: shader=X3D_SHADERPROGRAM(node)->__shaderObj; break;
-		case NODE_PackagedShader: shader=X3D_PACKAGEDSHADER(node)->__shaderObj; break;
-		case NODE_ComposedShader: shader=X3D_COMPOSEDSHADER(node)->__shaderObj; break;
+		case NODE_ShaderProgram: shader=(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->__shaderObj); break;
+		case NODE_PackagedShader: shader=(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->__shaderObj); break;
+		case NODE_ComposedShader: shader=(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->__shaderObj); break;
 		default: {}
 	}
         
@@ -2129,9 +2129,9 @@ void parser_specificInitNode(struct X3D_Node* n, struct VRMLParser* me)
         NODE_SPECIFIC_INIT(Script, node->__scriptObj=new_Shader_Script(X3D_NODE(node));)
 	#endif
 
-        NODE_SPECIFIC_INIT(ShaderProgram, node->__shaderObj=new_Shader_Script(X3D_NODE(node));)
-        NODE_SPECIFIC_INIT(PackagedShader, node->__shaderObj=new_Shader_Script(X3D_NODE(node));)
-        NODE_SPECIFIC_INIT(ComposedShader, node->__shaderObj=new_Shader_Script(X3D_NODE(node));)
+        NODE_SPECIFIC_INIT(ShaderProgram, node->__shaderObj=X3D_NODE(new_Shader_Script(X3D_NODE(node)));)
+        NODE_SPECIFIC_INIT(PackagedShader, node->__shaderObj=X3D_NODE(new_Shader_Script(X3D_NODE(node)));)
+        NODE_SPECIFIC_INIT(ComposedShader, node->__shaderObj=X3D_NODE(new_Shader_Script(X3D_NODE(node)));)
 
             }
 }

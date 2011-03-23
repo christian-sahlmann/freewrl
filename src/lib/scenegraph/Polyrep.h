@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.h,v 1.12 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Polyrep.h,v 1.13 2011/03/23 18:26:02 crc_canada Exp $
 
 Polyrep ???
 
@@ -89,7 +89,7 @@ Extru_tex(int vertex_ind,
 		  int A,
 		  int B,
 		  int C,
-		  int *tcindex,
+		  GLuint *tcindex,
 		  int ccw,
 		  int tcindexsize);
 
@@ -99,8 +99,8 @@ void Extru_ST_map(
         int end,
         float *Vals,
         int nsec,
-        int *tcindex,
-        int *cindex,
+        GLuint *tcindex,
+        GLuint *cindex,
         float *GeneratedTexCoords,
         int tcoordsize);
 

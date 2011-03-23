@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.90 2011/02/28 19:44:25 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.91 2011/03/23 18:26:02 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -150,7 +150,7 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 }
 
 void fwglLightf (int light, int pname, GLfloat param) {
-	printf ("glLightf %d %d %f\n",light,pname,param);
+	//printf ("glLightf %d %d %f\n",light,pname,param);
 	#ifndef IPHONE
 	glLightf(GL_LIGHT0+light,pname,param);
 	#else
@@ -189,10 +189,10 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 
 		/* if one of these are equal to -1, we had an error in the shaders... */
 		GLUNIFORM1IV(me->lightState,8,lightOnOff);
-		GLUNIFORM4FV(me->lightAmbient,8,light_amb);
-		GLUNIFORM4FV(me->lightDiffuse,8,light_dif);
-		GLUNIFORM4FV(me->lightPosition,8,light_pos);
-		GLUNIFORM4FV(me->lightSpecular,8,light_spec);
+		GLUNIFORM4FV(me->lightAmbient,8,(float *)light_amb);
+		GLUNIFORM4FV(me->lightDiffuse,8,(float *)light_dif);
+		GLUNIFORM4FV(me->lightPosition,8,(float *)light_pos);
+		GLUNIFORM4FV(me->lightSpecular,8,(float *)light_spec);
 	}
 
 /* finished rendering thisshape. */

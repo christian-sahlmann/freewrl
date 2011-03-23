@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.25 2011/02/11 18:46:25 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.26 2011/03/23 18:26:02 crc_canada Exp $
 
 ???
 
@@ -577,10 +577,10 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	struct Multi_Int32 *orig_normalIndex = NULL;
 	struct Multi_Int32 *orig_colorIndex = NULL;
 
-	int *cindex;		/* Coordinate Index	*/
-	int *colindex;		/* Color Index		*/
-	int *tcindex=0;		/* Tex Coord Index	*/
-	int *norindex;		/* Normals Index	*/
+	GLuint *cindex;		/* Coordinate Index	*/
+	GLuint *colindex;		/* Color Index		*/
+	GLuint *tcindex=0;		/* Tex Coord Index	*/
+	GLuint *norindex;		/* Normals Index	*/
 
 	int normalArraySize = INT_ID_UNDEFINED;	/* bounds checking on normals generated */
 
@@ -933,9 +933,9 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	/* fudge factor - leave space for 1 more triangle just in case we have errors on input */
 	ntri++;
 
-	cindex = rep_->cindex = MALLOC(int *, sizeof(*(rep_->cindex))*3*(ntri));
-	colindex = rep_->colindex = MALLOC(int *, sizeof(*(rep_->colindex))*3*(ntri));
-	norindex = rep_->norindex = MALLOC(int *,sizeof(*(rep_->norindex))*3*ntri);
+	cindex = rep_->cindex = MALLOC(GLuint *, sizeof(*(rep_->cindex))*3*(ntri));
+	colindex = rep_->colindex = MALLOC(GLuint *, sizeof(*(rep_->colindex))*3*(ntri));
+	norindex = rep_->norindex = MALLOC(GLuint *,sizeof(*(rep_->norindex))*3*ntri);
 	
 	/* zero the indexes */
 	bzero (colindex,sizeof(*(rep_->colindex))*3*(ntri));
@@ -950,7 +950,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	}
 
 
-	tcindex = rep_->tcindex = MALLOC(int *, sizeof(*(rep_->tcindex))*3*(ntri));
+	tcindex = rep_->tcindex = MALLOC(GLuint*, sizeof(*(rep_->tcindex))*3*(ntri));
 
 	/* Concave faces - use the OpenGL Triangulator to give us the triangles */
 	tess_vs=MALLOC(int *, sizeof(*(tess_vs))*(ntri)*3);
@@ -1336,7 +1336,7 @@ void compute_spy_spz(struct point_XYZ *spy, struct point_XYZ *spz, struct SFVec3
  ***************************************************************/
 void stream_extrusion_texture_coords (struct X3D_PolyRep *rep_, 
 			float *tcoord, 
-			int *tcindex) {
+			GLuint *tcindex) {
 
 	int count; 
 	int ind;
@@ -1392,7 +1392,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	struct X3D_PolyRep *rep_=(struct X3D_PolyRep *)node->_intern;/*internal rep, we want to fill*/
 
 	/* the next variables will point at members of *rep		*/
-	int   *cindex;				/* field containing indices into
+	GLuint   *cindex;				/* field containing indices into
 						   the coord vector. Three together
 						   indicate which points form a
 						   triangle			*/
@@ -1402,10 +1402,10 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	float *tcoord;				/* contains vertices building the
 						   textures as x y z values	*/
 
-	int	*tcindex;			/* field containing texture indices
+	GLuint	*tcindex;			/* field containing texture indices
 						   for the vertex. 		*/
 
-	int   *norindex; 			/* indices into *normal		*/
+	GLuint   *norindex; 			/* indices into *normal		*/
 	float *normal; 				/* (filled in a different function)*/
 
 
@@ -1626,10 +1626,10 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 					the whole Extrusion Shape.		*/
 
 	/* get some memory							*/
-	cindex  = rep_->cindex   = MALLOC(int *, sizeof(*(rep_->cindex))*3*(rep_->ntri));
+	cindex  = rep_->cindex   = MALLOC(GLuint *, sizeof(*(rep_->cindex))*3*(rep_->ntri));
 	coord   = rep_->actualCoord    = MALLOC(float *, sizeof(*(rep_->actualCoord))*(nspi*nsec+max_ncoord_add)*3);
 	normal  = rep_->normal   = MALLOC(float *, sizeof(*(rep_->normal))*3*(rep_->ntri)*3);
-	norindex= rep_->norindex = MALLOC(int *, sizeof(*(rep_->norindex))*3*(rep_->ntri));
+	norindex= rep_->norindex = MALLOC(GLuint *, sizeof(*(rep_->norindex))*3*(rep_->ntri));
 
 	/* face normals - one face per quad (ie, 2 triangles) 			*/
 	/* have to make sure that if nctri is odd, that we increment by one	*/
@@ -1666,7 +1666,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 			printf ("tcindexsize %d\n",tcindexsize);
 		#endif
 
-		tcindex = MALLOC(int *, sizeof(*(rep_->tcindex))*tcindexsize);
+		tcindex = MALLOC(GLuint *, sizeof(*(rep_->tcindex))*tcindexsize);
 
 		/* keep around cross section info for tex coord mapping */
 		beginVals = MALLOC(float *, sizeof(float) * 2 * (nsec+1)*100);
