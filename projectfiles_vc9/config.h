@@ -229,11 +229,16 @@
 /* Version number of package */
 #undef VERSION
 
+#undef WANT_WGET
+//#define WANT_WGET 1
 /* Path to http fetcher "C:/Program Files/GnuWin32/bin/wget.exe"*/
 #undef WGET
 //#define WGET "wget.exe"
+#ifdef WANT_WGET
 char *getWgetPath();
 #define WGET getWgetPath() 
+//#else WinInet by default
+#endif
 
 
 /* Define to 1 if the X Window System is missing or not being used. */
