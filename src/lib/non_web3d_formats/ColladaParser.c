@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.12 2011/03/22 19:11:17 crc_canada Exp $
+$Id: ColladaParser.c,v 1.13 2011/03/23 17:11:44 dug9 Exp $
 
 ???
 
@@ -56,7 +56,7 @@ $Id: ColladaParser.c,v 1.12 2011/03/22 19:11:17 crc_canada Exp $
 
 #if HAVE_EXPAT_H
 # include <expat.h>
-static int inCDATA = FALSE;
+//static int inCDATA = FALSE;
 #define XML_CreateParserLevel(aaa)  aaa = XML_ParserCreate(NULL);
 #define XML_ParseFile(aaa,bbb,ccc,ddd) XML_Parse(aaa,bbb,ccc,ddd)
 
