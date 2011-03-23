@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.59 2011/02/27 00:07:32 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.60 2011/03/23 19:28:53 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -1272,14 +1272,8 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {
-		//COMPILE_POLY_IF_REQUIRED (node->coord, node->color, node->normal, node->texCoord)
-		//#define COMPILE_POLY_IF_REQUIRED(a,b,c,d) 
-        if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->irep_change) { 
-                        compileNode ((void *)compile_polyrep, node, node->coord, node->color, node->normal, node->texCoord); 
-		} 
+		COMPILE_POLY_IF_REQUIRED (node->coord, node->color, node->normal, node->texCoord)
 		if (!node->_intern) return;
-
-//printf ("render_ifs, solid %d, node %p\n",node->solid,node);
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }
