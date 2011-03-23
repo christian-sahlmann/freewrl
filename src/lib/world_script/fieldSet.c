@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.57 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: fieldSet.c,v 1.58 2011/03/23 15:32:36 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -150,7 +150,6 @@ static int returnNumberOfRows(int datatype,union anyVrml *memptr) {
 This is used mainly in parsing */
 
 void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, int isXML) {
-#ifdef HAVE_JAVASCRIPT
 	int foffset;
 	int coffset;
 	int ctype;
@@ -194,7 +193,6 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 	}
 
 	Parser_scanStringValueToMem(node, (size_t) coffset, ctype, value, isXML);
-#endif /* HAVE_JAVASCRIPT */
 }
 
 /* and incoming EAI event has come in, and the destination is an inputOnly field of a script.

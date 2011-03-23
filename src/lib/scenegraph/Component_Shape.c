@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.75 2011/03/11 15:08:36 dug9 Exp $
+$Id: Component_Shape.c,v 1.76 2011/03/23 15:32:36 crc_canada Exp $
 
 X3D Shape Component
 
@@ -668,6 +668,8 @@ void child_Shape (struct X3D_Shape *node) {
 
 	if(!(node->geometry)) { return; }
 
+PRINT_GL_ERROR_IF_ANY("");
+
 	RECORD_DISTANCE
 
 	if((render_collision) || (render_sensitive)) {
@@ -695,10 +697,16 @@ void child_Shape (struct X3D_Shape *node) {
 	/* enable the shader for this shape */
         chooseShader (node->_shaderTableEntry);
 
+
+PRINT_GL_ERROR_IF_ANY("");
+
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (render_blend == (node->_renderFlags & VF_Blend)) {
 
 		RENDER_MATERIAL_SUBNODES(node->appearance);
+
+
+PRINT_GL_ERROR_IF_ANY("");
 
 		if (material_oneSided != NULL) {
 
@@ -726,6 +734,9 @@ void child_Shape (struct X3D_Shape *node) {
 		#endif
 	}
 
+
+PRINT_GL_ERROR_IF_ANY("");
+
 	/* any shader turned on? if so, turn it off */
 	TURN_GLOBAL_SHADER_OFF;
 	material_twoSided = NULL;
@@ -733,6 +744,9 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* turn off face culling */
 	DISABLE_CULL_FACE;
+
+PRINT_GL_ERROR_IF_ANY("");
+
 }
 
 #else /* ifdef SHADERS_2011 */
@@ -923,15 +937,6 @@ void child_Shape (struct X3D_Shape *node) {
 #endif /* SHADERS_2011 */
 
 
-#ifdef XXSHADERS_2011
-void child_Appearance (struct X3D_Appearance *node) {
-	struct X3D_Node *tmpN;
-
-printf ("child_Appearance for SHADERS_2011\n");
-
-}
-
-#else /* SHADERS_2011 */
 void child_Appearance (struct X3D_Appearance *node) {
 	struct X3D_Node *tmpN;
 	
@@ -992,4 +997,3 @@ void child_Appearance (struct X3D_Appearance *node) {
 		}
 	}
 }
-#endif /* not SHADERS_2011 */

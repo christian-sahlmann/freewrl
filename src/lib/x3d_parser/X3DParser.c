@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.82 2011/03/10 17:47:14 istakenv Exp $
+$Id: X3DParser.c,v 1.83 2011/03/23 15:32:36 crc_canada Exp $
 
 ???
 
@@ -52,7 +52,7 @@ $Id: X3DParser.c,v 1.82 2011/03/10 17:47:14 istakenv Exp $
 #include "X3DParser.h"
 #include "X3DProtoScript.h"
 
-#if HAVE_EXPAT_H
+#ifdef HAVE_EXPAT_H
 # include <expat.h>
 static int inCDATA = FALSE;
 #define XML_CreateParserLevel(aaa)  aaa = XML_ParserCreate(NULL);
@@ -60,12 +60,12 @@ static int inCDATA = FALSE;
 
 #endif
 
-#if HAVE_LIBXML_PARSER_H
+#ifdef HAVE_LIBXML_PARSER_H
 #include <libxml/parser.h>
 typedef xmlSAXHandler* XML_Parser;
 
 /* for now - fill this in later */
-#define XML_GetCurrentLineNumber(aaa) -1L
+#define XML_GetCurrentLineNumber(aaa) 999
 #define XML_ParserFree(aaa) FREE_IF_NZ(aaa)
 #define XML_SetUserData(aaa,bbb)
 #define XML_STATUS_ERROR -1
@@ -987,7 +987,7 @@ void endCDATA (void *user_data, const xmlChar *string, int len) {
 
 
 
-#endif
+#endif /* HAVE_LIBXML_PARSER_H */
 
 
 /* parse a export statement, and send the results along */
@@ -1421,11 +1421,11 @@ static void parseAttributes(void) {
 	struct X3D_Node *thisNode;
 
 	thisNode = parentStack[parentIndex];
-	/* printf  ("parseAttributes..level %d for node type %s\n",parentIndex,stringNodeType(thisNode->_nodeType));  */
+	 /* printf  ("parseAttributes..level %d for node type %s\n",parentIndex,stringNodeType(thisNode->_nodeType));  */
 	if(childAttributes[parentIndex])
 	for (ind=0; ind<vector_size(childAttributes[parentIndex]); ind++) {
 		nvp = vector_get(struct nameValuePairs*, childAttributes[parentIndex],ind);
-		/* printf ("	nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue);  */
+		 /* printf ("	nvp %ld, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue); */
 
 		/* see if we have a containerField here */
 		if (strcmp("containerField",nvp->fieldName)==0) {
@@ -1632,7 +1632,7 @@ static void parseAttributes(void) {
 					}
 					else //if(nvp->fieldType == 0)
 					{
-						//I get -85529292 so some branches arent setting .value or .fieldValue to 0.
+                        //I get -85529292 so some branches arent setting .value or .fieldValue to 0.
 						//printf("Unknown fieldType %d\n",nvp->fieldType);
 						setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 
@@ -1657,16 +1657,16 @@ static void XMLCALL X3DstartElement(void *unused, const char *name, const char *
 	else myAtts = (char **) atts;
 	
 	#ifdef X3DPARSERVERBOSE
-	printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]);
-printf ("startElement, myAtts :%p contents %p\n",myAtts,myAtts[0]);
+	//printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]);
+    printf ("X3DstartElement: %s: atts %p\n",name,atts);
+//printf ("startElement, myAtts :%p contents %p\n",myAtts,myAtts[0]);
 { int i;
         for (i = 0; myAtts[i]; i += 2) {
-                printf("	X3DStartElement field:%s=%s\n", myAtts[i], atts[i + 1]);
+                printf("	      X3DStartElement field:%s=%s\n", myAtts[i], atts[i + 1]);
 }}
 
-	printf ("X3DstartElement - finished looking at myAtts\n\n");
+	//printf ("X3DstartElement - finished looking at myAtts\n\n");
 	#endif
-
 
 	/* are we storing a PROTO body?? */
 	if (getParserMode() == PARSING_PROTOBODY) {
@@ -1683,7 +1683,7 @@ printf ("startElement, myAtts :%p contents %p\n",myAtts,myAtts[0]);
 
 
 	myNodeIndex = findFieldInNODES(name);
-
+    
 	/* is this a "normal" node that can be found in x3d, x3dv and wrl files? */
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		INCREMENT_PARENTINDEX 
@@ -1728,7 +1728,8 @@ void endScriptProtoField(); //struct VRMLLexer* myLexer);
 static void XMLCALL X3DendElement(void *unused, const char *name) {
 	int myNodeIndex;
 
-
+    /* printf ("X3DEndElement for %s\n",name); */
+    
 	#ifdef X3DPARSERVERBOSE
 	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]); 
 	#endif

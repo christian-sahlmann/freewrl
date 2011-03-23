@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.41 2011/02/11 18:46:25 crc_canada Exp $
+$Id: Polyrep.c,v 1.42 2011/03/23 15:32:36 crc_canada Exp $
 
 ???
 
@@ -814,6 +814,7 @@ void render_polyrep(void *node) {
                 renderedNodePtr->EXTENT_MIN_Y, renderedNodePtr->EXTENT_MAX_Z, renderedNodePtr->EXTENT_MIN_Z,
                 renderedNodePtr);
 
+
 	/*  clockwise or not?*/
 	if (!pr->ccw) { FW_GL_FRONTFACE(GL_CW); }
 	
@@ -843,7 +844,7 @@ void render_polyrep(void *node) {
 	}
 	
 
-
+#ifndef IPHONE
 	if (!global_use_VBOs) {
 		/*  status bar, text do not have normals*/
 		if (pr->normal) {
@@ -875,11 +876,16 @@ void render_polyrep(void *node) {
 			FW_GL_DISABLE(GL_COLOR_MATERIAL);
 		}
 	} else {
+#endif /* ndef IPHONE */
+
 		/*  status bar, text do not have normals*/
 		if (pr->VBO_buffers[NORMAL_VBO]!=0) {
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[NORMAL_VBO]);
 			FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
 		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
+
+PRINT_GL_ERROR_IF_ANY("");
+
 	
 		/* colours? */
 		if (hasc) {
@@ -895,12 +901,19 @@ void render_polyrep(void *node) {
 		} else {
 			textureDraw_start(X3D_NODE(node), NULL);
 		}
+
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[VERTEX_VBO]);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,pr->VBO_buffers[INDEX_VBO]);
 		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY); // should already be enabled
-
 		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
-		glDrawElements(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT,0);
+
+#ifdef IPHONE
+		FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_SHORT,0);
+#else
+		FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT,0);
+#endif
+
+PRINT_GL_ERROR_IF_ANY("");
 
 		/* turn VBOs off for now */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
@@ -912,7 +925,11 @@ void render_polyrep(void *node) {
 			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 			FW_GL_DISABLE(GL_COLOR_MATERIAL);
 		}
+#ifndef IPHONE
 	}
+#endif
+
+
 
 	trisThisLoop += pr->ntri;
 
@@ -944,6 +961,8 @@ void render_polyrep(void *node) {
 		}
 	}
 	#endif
+
+PRINT_GL_ERROR_IF_ANY("");
 
 
 }
