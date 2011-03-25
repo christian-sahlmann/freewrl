@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.87 2011/03/23 18:26:02 crc_canada Exp $
+  $Id: Textures.c,v 1.88 2011/03/25 20:52:19 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -113,6 +113,7 @@ struct Uni_String *newASCIIString(char *str);
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
 void readpng_cleanup(int free_image_data);
 
+
 #ifdef SHADERS_2011
 static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, GLubyte *pixels);
 
@@ -126,6 +127,8 @@ then hopefully this will work for them, too */
 #ifndef uint32
 # define uint32 uint32_t
 #endif
+
+
 
 static void myScaleImage(int srcX,int srcY,int destX,int destY,unsigned char *src, unsigned char *dest) {
 	float YscaleFactor;
@@ -970,6 +973,9 @@ DEF_FINDFIELD(TEXTUREMINIFICATIONKEYWORDS)
 DEF_FINDFIELD(TEXTUREMAGNIFICATIONKEYWORDS)
 DEF_FINDFIELD(TEXTUREBOUNDARYKEYWORDS)
 DEF_FINDFIELD(TEXTURECOMPRESSIONKEYWORDS)
+
+
+
 static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	int rx,ry,sx,sy;
 	int x,y;
@@ -1269,8 +1275,6 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 			me->status = TEX_LOADED; /* finito */
 		} else {
 
-	
-
 			/* a pointer to the tex data. We increment the pointer for movie texures */
 			mytexdata = me->texdata;
 			if (mytexdata == NULL) {
@@ -1300,11 +1304,8 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 			}
 
 
-		
 			FW_GL_BINDTEXTURE (GL_TEXTURE_2D, me->OpenGLTexture);
 			
-
-
 			/* save this to determine whether we need to do material node
 			  within appearance or not */
 				
@@ -1318,8 +1319,6 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 
 			FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_MAX_ANISOTROPY_EXT,anisotropicDegree);
 		
-
-
 			if (compression != GL_NONE) {
 				FW_GL_TEXPARAMETERI(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
 				FW_GL_HINT(GL_TEXTURE_COMPRESSION_HINT, compression);
@@ -1378,17 +1377,20 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 				}
 				#endif /* SHADERS_2011 */
 
-				/* try this texture on for size, keep scaling down until we can do it */
-				/* all textures are 4 bytes/pixel */
-				dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
-
-
-
-				#ifdef SHADERS_2011
-					myScaleImage(x,y,rx,ry,mytexdata,dest);
-				#else
-					{
+				/* if scaling is ok... */
+				if ((x==rx) && (y==ry)) {
+					dest = mytexdata;
+				} else {
 					int texOk = FALSE;
+
+					/* try this texture on for size, keep scaling down until we can do it */
+					/* all textures are 4 bytes/pixel */
+					dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
+
+
+					#ifdef SHADERS_2011
+						myScaleImage(x,y,rx,ry,mytexdata,dest);
+					#else
 					texOk = FALSE;
 					while (!texOk) {
 						GLint width, height;
@@ -1400,8 +1402,6 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
 						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
 		
-
-
 						if ((width == 0) || (height == 0)) {
 							rx= rx/2; ry = ry/2;
 							if (global_print_opengl_errors) {
@@ -1419,9 +1419,6 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 					}
 				}
 				#endif /* SHADERS_2011 */
-		
-
-
 		
 				if (global_print_opengl_errors) {
 					DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
@@ -1447,14 +1444,11 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 	}
 
 
-
 	/* ensure this data is written to the driver for the rendering context */
 	FW_GL_FLUSH();
 
 	/* and, now, the Texture is loaded */
 	me->status = TEX_LOADED;
-
-
 }
 
 /**********************************************************************************
