@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.182 2011/03/23 18:26:02 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.183 2011/03/26 19:23:16 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -199,7 +199,7 @@ static char * readInputString(char *fn) {
 
 #ifdef SHADERS_2011
 static void shaderErrorLog(GLuint myShader, char *which) {
-        #if defined  (GL_VERSION_2_0) || defined (IPHONE)
+        #if defined  (GL_VERSION_2_0) || defined (GL_ES_VERSION_2_0)
 #define MAX_INFO_LOG_SIZE 512
                 GLchar infoLog[MAX_INFO_LOG_SIZE];
                 glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog);
@@ -955,7 +955,7 @@ case complexTexTwoMaterialSphereShader: printf ("complexTexTwoMaterialSphereShad
 	/* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
 	if (!getGenericShaderSource (&vertexSource[1], &fragmentSource[1], &geometrySource[1], whichOne)) return;
 
-	#ifdef IPHONE
+	#ifdef GL_ES_VERSION_2_0
 	vertexSource[0] = "";
 	fragmentSource[0] = " \
 		precision lowp float;\n \
@@ -978,7 +978,9 @@ case complexTexTwoMaterialSphereShader: printf ("complexTexTwoMaterialSphereShad
 	
 	/* geometryShader */
 	if (geometrySource[1] != NULL) {
-#ifndef IPHONE
+
+#ifndef GL_ES_VERSION_2_0
+
 		myGeometryShader = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
 		SHADER_SOURCE(myGeometryShader, 2, (const GLchar **) &geometrySource, NULL);
 		COMPILE_SHADER(myGeometryShader);
@@ -999,7 +1001,7 @@ case complexTexTwoMaterialSphereShader: printf ("complexTexTwoMaterialSphereShad
 			ATTACH_SHADER(myProg, myGeometryShader);
 		}
 #else
-printf ("HMMM - IPHONE and Geometry shader\n");
+printf ("HMMM - GL_ES_VERSION_2_0 and Geometry shader\n");
 #endif
 	}
 
@@ -1097,7 +1099,7 @@ cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
 
 /* draw a simple bounding box around an object */
 void drawBBOX(struct X3D_Node *node) {
-#ifndef IPHONE
+#ifndef GL_ES_VERSION_2_0
 /* debugging */	FW_GL_COLOR3F((float)1.0,(float)0.6,(float)0.6);
 /* debugging */
 /* debugging */	/* left group */
@@ -1400,7 +1402,7 @@ bool initialize_GL()
 	FW_GL_DEPTHFUNC(GL_LEQUAL);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
 	
-	#ifndef IPHONE
+	#ifndef GL_ES_VERSION_2_0
 	FW_GL_LINEWIDTH(gl_linewidth);
 	FW_GL_POINTSIZE(gl_linewidth);
 	#endif
@@ -1509,7 +1511,7 @@ void fw_glMatrixMode(GLint mode) {
 	}
 	#endif
 	
-	#ifndef IPHONE
+	#ifndef GL_ES_VERSION_2_0
 	glMatrixMode(mode); /* JAS - tell OpenGL what the current matrix mode is */
 	#endif
 
@@ -1707,7 +1709,7 @@ void fw_glGetDoublev (int ty, GLDOUBLE *mat) {
 	switch (ty) {
 		case GL_PROJECTION_MATRIX: dp = FW_ProjectionView[projectionviewTOS]; break;
 		case GL_MODELVIEW_MATRIX: dp = FW_ModelView[modelviewTOS]; break;
-#ifndef IPHONE
+#ifndef GL_ES_VERSION_2_0
 		case GL_TEXTURE_MATRIX: dp = FW_TextureView[textureviewTOS]; break;
 #endif
 		default: { 
@@ -3003,7 +3005,7 @@ static void killNode (int index) {
 #endif
 
 	/* printf ("loading matrix...\n"); */
-	#ifndef IPHONE
+	#ifndef GL_ES_VERSION_2_0
 	glLoadMatrixd(val);
 	#endif
 }

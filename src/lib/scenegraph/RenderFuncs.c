@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.91 2011/03/23 18:26:02 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.92 2011/03/26 19:23:16 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -151,11 +151,13 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 
 void fwglLightf (int light, int pname, GLfloat param) {
 	//printf ("glLightf %d %d %f\n",light,pname,param);
-	#ifndef IPHONE
-	glLightf(GL_LIGHT0+light,pname,param);
+	#ifndef GL_ES_VERSION_2_0
+
+		glLightf(GL_LIGHT0+light,pname,param);
 	#else
-	printf ("skipping glLightf in fwglLightf\n");
+		printf ("skipping glLightf in fwglLightf\n");
 	#endif
+
 	switch (pname) {
 		case GL_CONSTANT_ATTENUATION:
 			light_constAtten[light] = param;
@@ -280,7 +282,7 @@ printf ("sendAttribToGPU, appearanceProperties.currentShaderProperties %p\n",app
 
 	/* not shaders; older style of rendering */
 	} else {
-		#ifndef IPHONE
+		#ifndef GL_ES_VERSION_2_0
 		switch (myType) {
 			case FW_VERTEX_POINTER_TYPE:
 				glVertexPointer(dataSize, dataType, stride, pointer); 
@@ -332,11 +334,11 @@ if (shaderTextureArray) printf ("enabling Texture\n"); else printf ("disabling T
 #endif
 
 	} else {
-		#ifndef IPHONE
-		if (enable) glEnableClientState(cap);
-		else glDisableClientState(cap);
+		#ifndef GL_ES_VERSION_2_0
+			if (enable) glEnableClientState(cap);
+			else glDisableClientState(cap);
 		#else
-		printf ("sendClientStateToGPU - currentShaderProperties not set\n");
+			printf ("sendClientStateToGPU - currentShaderProperties not set\n");
 		#endif
 	}
 }
@@ -440,7 +442,7 @@ void initializeLightTables() {
         }
         lightState(HEADLIGHT_LIGHT, TRUE);
 
-	#ifndef IPHONE
+	#ifndef GL_ES_VERSION_2_0
         FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
         FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
         FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);

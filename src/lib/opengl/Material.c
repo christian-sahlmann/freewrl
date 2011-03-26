@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.21 2011/03/03 14:56:34 crc_canada Exp $
+$Id: Material.c,v 1.22 2011/03/26 19:23:16 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -48,7 +48,7 @@ GLfloat default_emission[] = {0.0f,0.0f,0.0f,1.0f};
 
 /* bounds check and do the shininess calculations */
 void do_shininess (GLenum face, float shininess) {
-#ifdef IPHONE
+#ifdef GL_ES_VERSION_2_0
 printf ("do_shininess called\n");
 #else
 
@@ -105,7 +105,7 @@ void fwAnaglyphremapRgbav(unsigned char *rgba,int y,int x)
 
 void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 {
-#ifdef IPHONE
+#ifdef GL_ES_VERSION_2_0
 /* printf ("fwglMaterialfv called... %f %f %f\n",params[0],params[1],params[2]); */
 #else
 	if(usingAnaglyph2())
@@ -134,7 +134,7 @@ void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 
 void fwglColor3fv(float *color)
 {
-#ifdef IPHONE
+#ifdef GL_ES_VERSION_2_0
 printf ("fwglColor3fv called\n");
 #else
 	if(usingAnaglyph2())
@@ -152,7 +152,7 @@ printf ("fwglColor3fv called\n");
 }
 void fwglColor4fv(float *rgba)
 {
-#ifdef IPHONE
+#ifdef GL_ES_VERSION_2_0
 printf ("fwglColor4fv called\n");
 #else
 	if(usingAnaglyph2())
@@ -170,7 +170,7 @@ printf ("fwglColor4fv called\n");
 }
 void fwglColor3d(double r, double g, double b)
 {
-#ifdef IPHONE
+#ifdef GL_ES_VERSION_2_0
 printf ("fwglColor3d called\n");
 #else
 	if(usingAnaglyph2())

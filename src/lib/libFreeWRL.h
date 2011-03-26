@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.25 2011/03/10 20:13:37 crc_canada Exp $
+  $Id: libFreeWRL.h,v 1.26 2011/03/26 19:23:16 crc_canada Exp $
 
   FreeWRL library API (public)
 
@@ -28,6 +28,21 @@
 #ifndef __LIBFREEWRL_API_H__
 #define __LIBFREEWRL_API_H__
 
+#ifdef COMPILING_IPHONE_FRONT_END
+	/* Ok, ok, ok. I know. Another definition. But, Objective-C gives lots of
+ 	   errors if the whole file is included, and also, we only need a couple of
+	   definitions to keep the front end as separate from the library as possible... */
+
+	void initializeRenderSceneUpdateScene(void);
+	void OSX_initializeParameters(const char* initialURL);
+	void frontEndReturningData(unsigned char *dataPointer, int len);
+	void setScreenDim(int wi, int he);
+	int display_initialize(void);
+	char *frontEndWantsFileName(void);
+	void RenderSceneUpdateScene(void);
+	
+
+#else /* COMPILING_IPHONE_FRONT_END */
 /**
  * Version embedded
  */
@@ -36,11 +51,6 @@ const char *libFreeWRL_get_version();
 /**
  * Initialization
  */
-#ifdef IPHONE
-//int Init(ESContext *esContext);
-//GLuint LoadShader(GLenum type, const char* shaderSrc);
-//void Draw(ESContext* esContext);
-#endif
 typedef struct freewrl_params {
 	/* Put here global parameters, parsed in main program
 	   and needed to initialize libFreeWRL
@@ -63,6 +73,8 @@ extern freewrl_params_t fw_params;
 #else
 extern freewrl_params_t fw_params;
 #endif
+
+
 
 bool initFreeWRL(freewrl_params_t *params);
 void startFreeWRL(const char *url);
@@ -131,4 +143,5 @@ void askForRefreshOK();
 int checkRefresh();
 void resetRefresh();
 
+#endif /* COMPILING_IPHONE_FRONT_END */
 #endif /* __LIBFREEWRL_API_H__ */

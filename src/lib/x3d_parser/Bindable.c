@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.50 2011/02/25 20:25:51 crc_canada Exp $
+$Id: Bindable.c,v 1.51 2011/03/26 19:23:16 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -506,7 +506,7 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 }
 
 void render_Fog (struct X3D_Fog *node) {
-	#ifndef IPHONE /* this should be handled in material shader */
+	#ifndef GL_ES_VERSION_2_0 /* this should be handled in material shader */
 	GLDOUBLE mod[16];
 	GLDOUBLE proj[16];
 	GLDOUBLE x,y,z;
@@ -581,7 +581,7 @@ void render_Fog (struct X3D_Fog *node) {
 	fog_enabled = TRUE;
 
 	FW_GL_POP_MATRIX();
-	#endif */ IPHONE this should be handled in material shader */
+	#endif */ GL_ES_VERSION_2_0 this should be handled in material shader */
 }
 
 
@@ -938,7 +938,7 @@ void render_Background (struct X3D_Background *node) {
 	/* don't even bother going further if this node is not bound on the top */
 	if(!node->isBound) return;
 
-	#ifndef IPHONE
+	#ifndef GL_ES_VERSION_2_0
 	/* is fog enabled? if so, disable it right now */
 	if (fog_enabled ==TRUE) FW_GL_DISABLE (GL_FOG);
 	#endif
@@ -1017,7 +1017,7 @@ void render_Background (struct X3D_Background *node) {
 	}
 	FW_GL_POP_MATRIX();
 
-	#ifndef IPHONE
+	#ifndef GL_ES_VERSION_2_0
 	/* is fog enabled? if so, disable it right now */
 	if (fog_enabled ==TRUE) FW_GL_ENABLE (GL_FOG);
 	#endif
@@ -1040,7 +1040,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	if(!node->isBound) return;
 
 	/* is fog enabled? if so, disable it right now */
-	#ifndef IPHONE
+	#ifndef GL_ES_VERSION_2_0
 	if (fog_enabled ==TRUE) FW_GL_DISABLE (GL_FOG);
 	#endif
 
@@ -1113,7 +1113,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	/* pushes are done in moveBackgroundCentre */
 	FW_GL_POP_MATRIX();
 
-	#ifndef IPHONE
+	#ifndef GL_ES_VERSION_2_0
 	/* is fog enabled? if so, disable it right now */
 	if (fog_enabled ==TRUE) FW_GL_ENABLE (GL_FOG);
 	#endif

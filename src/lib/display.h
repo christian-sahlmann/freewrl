@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.111 2011/03/03 14:56:34 crc_canada Exp $
+  $Id: display.h,v 1.112 2011/03/26 19:23:16 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -30,9 +30,60 @@
 #ifndef __LIBFREEWRL_DISPLAY_H__
 #define __LIBFREEWRL_DISPLAY_H__
 
+/**
+ * Specific platform : Mac
+ */
+#ifdef AQUA
+
+#ifdef IPHONE
+#include <OpenGLES/ES2/gl.h>
+#include <OpenGLES/ES2/glext.h>
+extern int ccurse;
+extern int ocurse;
+#define SCURSE 1
+#define ACURSE 0
+
+
+#define SENSOR_CURSOR ccurse = SCURSE
+#define ARROW_CURSOR  ccurse = ACURSE
+#else
+
+#include <OpenGL/OpenGL.h>
+#include <OpenGL/CGLTypes.h>
+
+#include <AGL/AGL.h> 
+#endif /* defined IPHONE */
+#endif /* defined TARGET_AQUA */
+
+#ifdef _MSC_VER /* TARGET_WIN32 */
+#ifndef AQUA
+
+/* Nothing special :P ... */
+#include <GL/glew.h>
+#define SENSOR_CURSOR sensor_cursor32();
+#define ARROW_CURSOR arrow_cursor32();
+#define ERROR 0
+#endif
+#endif /* TARGET_WIN32 */
+
+
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA) /* not aqua and not win32, ie linux */
+#ifdef HAVE_GLEW_H
+#include <GL/glew.h>
+#else
+#ifndef AQUA
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
+#include <GL/glx.h>
+#endif
+#endif
+#endif
+
+
 
 /* generic - OpenGL ES 2.0 does not have doubles */
-#ifdef IPHONE
+#ifdef GL_ES_VERSION_2_0
 	#define GLDOUBLE double
 	#define DOUBLE_MAX fmax
 	#define DOUBLE_MIN fmin
@@ -43,7 +94,7 @@
 	#define DOUBLE_MIN min
 #endif
 
-#ifdef IPHONE
+#ifdef GL_ES_VERSION_2_0
 	#define PATH_MAX 5000
 
 	/* as we now do our own matrix manipulation, we can change these; note that OpenGL-ES 2.0 does not
@@ -192,56 +243,6 @@
 	#define GLUNIFORMMATRIX4FV glUniformMatrix4fv
 	#define GLUNIFORMMATRIX3FV glUniformMatrix3fv
 #endif
-/**
- * Specific platform : Mac
- */
-#ifdef AQUA
-
-#ifdef IPHONE
-#include <OpenGLES/ES2/gl.h>
-#include <OpenGLES/ES2/glext.h>
-extern int ccurse;
-extern int ocurse;
-#define SCURSE 1
-#define ACURSE 0
-
-
-#define SENSOR_CURSOR ccurse = SCURSE
-#define ARROW_CURSOR  ccurse = ACURSE
-#else
-
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/CGLTypes.h>
-
-#include <AGL/AGL.h> 
-#endif /* defined IPHONE */
-#endif /* defined TARGET_AQUA */
-
-#ifdef _MSC_VER /* TARGET_WIN32 */
-#ifndef AQUA
-
-/* Nothing special :P ... */
-#include <GL/glew.h>
-#define SENSOR_CURSOR sensor_cursor32();
-#define ARROW_CURSOR arrow_cursor32();
-#define ERROR 0
-#endif
-#endif /* TARGET_WIN32 */
-
-
-#if !defined (_MSC_VER) && !defined (TARGET_AQUA) /* not aqua and not win32, ie linux */
-#ifdef HAVE_GLEW_H
-#include <GL/glew.h>
-#else
-#ifndef AQUA
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
-#include <GL/glx.h>
-#endif
-#endif
-#endif
-
 /* Main initialization function */
 int display_initialize();
 extern bool display_initialized;

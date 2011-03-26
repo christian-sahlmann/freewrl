@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.167 2011/03/10 20:13:37 crc_canada Exp $
+  $Id: MainLoop.c,v 1.168 2011/03/26 19:23:16 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -295,7 +295,7 @@ void RenderSceneUpdateScene() {
         } else {
 		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
 		   something goes totally wrong */
-#ifndef IPHONE
+#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
 		/* we see how long it took to do the last loop; now that the frame rate is synced to the
 		   vertical retrace of the screens, we should not get more than 60-70fps. We calculate the
 		   time here, if it is more than 200fps, we sleep for 1/100th of a second - we should NOT
@@ -306,7 +306,7 @@ void RenderSceneUpdateScene() {
                if (waitsec < 0.005) {
                        usleep(10000);
 		}
-#endif /* IPHONE */
+#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
         }
 
         /* Set the timestamp */
