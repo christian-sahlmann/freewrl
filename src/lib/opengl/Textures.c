@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.88 2011/03/25 20:52:19 crc_canada Exp $
+  $Id: Textures.c,v 1.89 2011/03/28 12:58:47 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -570,6 +570,7 @@ void registerTexture(struct X3D_Node *tmp) {
 /* do TextureBackground textures, if possible */
 void loadBackgroundTextures (struct X3D_Background *node) {
 	struct X3D_ImageTexture *thistex;
+	struct X3D_TextureProperties *thistp;
 	struct Multi_String thisurl;
 	int count;
 
@@ -593,6 +594,16 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			if (thistex == NULL) {
 				int i;
 				thistex = createNewX3DNode(NODE_ImageTexture);
+				thistp = createNewX3DNode (NODE_TextureProperties);
+
+				/* set up TextureProperties, and link it in */
+
+				/* we use the generic TextureProperties - especially the GenerateMipMaps flag... */
+				thistp->generateMipMaps = GL_FALSE; /* default settings, put here to ensure that */
+								/* future changes to the spec do no harm */
+
+				thistex->textureProperties = X3D_NODE(thistp);
+				ADD_PARENT(X3D_NODE(thistp), X3D_NODE(thistex));	
 
 #ifdef TEXVERBOSE
 				printf ("bg, creating shadow texture node url.n = %d\n",thisurl.n);
@@ -633,7 +644,8 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 
 /* do TextureBackground textures, if possible */
 void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
-	struct X3D_Node *thistex = 0;
+	struct X3D_Node *thistex = NULL;
+	struct X3D_TextureProperties *thistp = NULL;
 	int count;
 	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
 
@@ -654,6 +666,31 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 			    (thistex->_nodeType == NODE_PixelTexture) ||
 			    (thistex->_nodeType == NODE_MovieTexture) ||
 			    (thistex->_nodeType == NODE_MultiTexture)) {
+
+				/* if we have no texture properties, add one here to disable mipmapping */
+				switch (thistex->_nodeType) {
+					case NODE_ImageTexture: {
+						if (X3D_IMAGETEXTURE(thistex)->textureProperties == NULL) {
+							thistp = createNewX3DNode (NODE_TextureProperties);
+							X3D_IMAGETEXTURE(thistex)->textureProperties = X3D_NODE(thistp);
+							ADD_PARENT(X3D_NODE(thistp),thistex);
+						}
+						break;
+					}
+
+					case NODE_PixelTexture: {
+						if (X3D_PIXELTEXTURE(thistex)->textureProperties == NULL) {
+							thistp = createNewX3DNode (NODE_TextureProperties);
+							X3D_PIXELTEXTURE(thistex)->textureProperties = X3D_NODE(thistp);
+							ADD_PARENT(X3D_NODE(thistp),thistex);
+						}
+						break;
+					}
+
+					case NODE_MovieTexture:
+					case NODE_MultiTexture:
+					break;
+				};
 
 				textureStackTop = 0;
 				/* render the proper texture */

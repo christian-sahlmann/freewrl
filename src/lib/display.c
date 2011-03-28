@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.69 2011/03/26 19:23:16 crc_canada Exp $
+  $Id: display.c,v 1.70 2011/03/28 12:58:47 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -285,8 +285,6 @@ bool initialize_rdr_caps()
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &tmp);
 		#endif
 		rdr_caps.texture_units = (int) tmp;
-printf ("max_texture_size %d, max_texture_units %d\n",rdr_caps.max_texture_size, rdr_caps.texture_units);
-
 	}
 
 	/* max supported texturing anisotropicDegree- can be changed in TextureProperties */
