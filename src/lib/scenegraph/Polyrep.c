@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.43 2011/03/23 18:26:02 crc_canada Exp $
+$Id: Polyrep.c,v 1.44 2011/03/29 17:00:07 crc_canada Exp $
 
 ???
 
@@ -804,6 +804,7 @@ void render_polyrep(void *node) {
 		return;
 	}
 
+
 	/* save these values for streaming the texture coordinates later */
 	global_tcin = pr->tcindex;
 	global_tcin_count = pr->ntri*3;
@@ -813,7 +814,6 @@ void render_polyrep(void *node) {
         setExtent( renderedNodePtr->EXTENT_MAX_X, renderedNodePtr->EXTENT_MIN_X, renderedNodePtr->EXTENT_MAX_Y,
                 renderedNodePtr->EXTENT_MIN_Y, renderedNodePtr->EXTENT_MAX_Z, renderedNodePtr->EXTENT_MIN_Z,
                 renderedNodePtr);
-
 
 	/*  clockwise or not?*/
 	if (!pr->ccw) { FW_GL_FRONTFACE(GL_CW); }
@@ -830,20 +830,18 @@ void render_polyrep(void *node) {
 		LIGHTING_ON
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
 	
+		#ifndef GL_ES_VERSION_2_0
 		FW_GL_ENABLE(GL_COLOR_MATERIAL);
-
-		#ifndef IPHONE
 		FW_GL_COLOR_MATERIAL(GL_FRONT_AND_BACK, GL_DIFFUSE);
-		#endif
 
 		FW_GL_COLOR4FV(diffuseColor);
+		#endif /* GL_ES_VERSION_2_0 */
 	
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 	}
 	
-
 #ifndef IPHONE
 	if (!global_use_VBOs) {
 		/*  status bar, text do not have normals*/
@@ -878,15 +876,14 @@ void render_polyrep(void *node) {
 	} else {
 #endif /* ndef IPHONE */
 
+PRINT_GL_ERROR_IF_ANY("");
+
 		/*  status bar, text do not have normals*/
 		if (pr->VBO_buffers[NORMAL_VBO]!=0) {
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[NORMAL_VBO]);
 			FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
 		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
 
-PRINT_GL_ERROR_IF_ANY("");
-
-	
 		/* colours? */
 		if (hasc) {
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
@@ -913,27 +910,33 @@ PRINT_GL_ERROR_IF_ANY("");
 		FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT,0);
 #endif
 
-PRINT_GL_ERROR_IF_ANY("");
-
 		/* turn VBOs off for now */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		/*  put things back to the way they were;*/
 		if (pr->VBO_buffers[NORMAL_VBO] == 0) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+
 		if (hasc) {
 			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+
+			#ifndef GL_ES_VERSION_2_0
 			FW_GL_DISABLE(GL_COLOR_MATERIAL);
+			#endif
+
 		}
 #ifndef IPHONE
 	}
 #endif
 
 
-
 	trisThisLoop += pr->ntri;
 
+
 	textureDraw_end();
+
+PRINT_GL_ERROR_IF_ANY("");
+
 	if (!pr->ccw) FW_GL_FRONTFACE(GL_CCW);
 
 	#ifdef TEXVERBOSE
