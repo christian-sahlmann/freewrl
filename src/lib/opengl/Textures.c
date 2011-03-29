@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.89 2011/03/28 12:58:47 crc_canada Exp $
+  $Id: Textures.c,v 1.90 2011/03/29 13:29:12 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1454,8 +1454,9 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 							texOk = TRUE;
 						}
 					}
+                    #endif /* SHADERS_2011 */
 				}
-				#endif /* SHADERS_2011 */
+				
 		
 				if (global_print_opengl_errors) {
 					DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
