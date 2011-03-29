@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.168 2011/03/26 19:23:16 crc_canada Exp $
+  $Id: MainLoop.c,v 1.169 2011/03/29 02:16:34 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -870,14 +870,26 @@ void setup_projection(int pick, int x, int y)
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
 
 }
-
+int EMULATE_MULTITOUCH = 1; 
+void renderCursors();
+typedef struct Touch
+{
+	int button; /*none down=0, LMB =1, MMB=2, RMB=3*/
+	bool isDown; /* false = up, true = down */
+	int mev; /* down/press=4, move/drag=6, up/release=5 */
+	int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
+	float angle; /*some multitouch -like smarttech- track the angle of the finger */
+	int x;
+	int y;
+};
+struct Touch touchlist[20];
 
 /* Render the scene */
 static void render() 
 {
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 
-    int count;
+    int count,i;
 	static double shuttertime;
 	static int shutterside;
 
@@ -979,7 +991,10 @@ static void render()
 	}
 
 #endif
-
+	if(EMULATE_MULTITOUCH)
+		for(i=0;i<20;i++)
+			if(touchlist[i].isDown > 0)
+				cursorDraw(touchlist[i].ID,touchlist[i].x,touchlist[i].y,touchlist[i].angle); 
 	/* status bar, if we have one */
 	drawStatusBar();
 
@@ -1777,8 +1792,10 @@ void freewrlDie (const char *format) {
 
 #if defined(AQUA) || defined(WIN32)
 
+int ntouch =0;
+int currentTouch = -1;
 /* MIMIC what happens in handle_Xevents, but without the X events */
-void handle_aqua(const int mev, const unsigned int button, int x, int y) {
+void handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID) {
         int count;
 
   /* printf ("handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d",
@@ -1793,6 +1810,15 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
         /* save the current x and y positions for picking. */
 		currentX[currentCursor] = x;
 		currentY[currentCursor] = y;
+		touchlist[ID].x = x;
+		touchlist[ID].y = y;
+		touchlist[ID].button = button;
+		touchlist[ID].isDown = (mev == ButtonPress || mev == MotionNotify);
+		touchlist[ID].ID = ID; /*will come in handy if we change from array[] to accordian list*/
+		touchlist[ID].mev = mev;
+		touchlist[ID].angle = 0.0f;
+		currentTouch = ID;
+
 
 		if( handleStatusbarHud(mev, &clipPlane) )return; /* statusbarHud options screen should swallow mouse clicks */
 
@@ -1823,6 +1849,43 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
                 }
         }
 }
+int lastDeltax = 50;
+int lastDeltay = 50;
+int lastxx;
+int lastyy;
+void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
+{
+	/* goal: when MMB draw a slave cursor pinned to last_distance,last_angle from real cursor 
+		Note: if using a RMB+LMB = MMB chord with 2 button mice, you need to emulate in your code
+			and pass in button 2 here, after releasing your single button first ie:
+			handle_aqua(ButtonRelease, 1, x, y); 
+			handle_aqua(ButtonRelease, 3, x, y); 
+	*/
+	if( button == 2 ) 
+	{
+		if( mev == ButtonPress )
+		{
+			lastxx = x - lastDeltax;
+			lastyy = y - lastDeltay;
+		}else if(mev == MotionNotify || mev == ButtonRelease ){
+			lastDeltax = x - lastxx;
+			lastDeltay = y - lastyy;
+		}
+		handle_aqua_multi(mev, 1, x, y, 0);
+		handle_aqua_multi(mev, 1, lastxx, lastyy, 1);
+	}else{
+		/* normal, no need to emulate if there's no MMB or LMB+RMB */
+		handle_aqua_multi(mev,button,x,y,0);
+	}
+}
+/* old function should still work, with single mouse and ID=0 */
+void handle_aqua(const int mev, const unsigned int button, int x, int y) {
+	if(EMULATE_MULTITOUCH)
+		emulate_multitouch(mev,button,x, y);
+	else
+		handle_aqua_multi(mev,button,x,y,0);
+}
+
 #endif
 #ifdef AQUA
 
