@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.38 2010/12/10 17:17:19 davejoubert Exp $
+# $Id: Makefile.sources,v 1.39 2011/03/31 20:49:46 istakenv Exp $
 #
 # List all source files
 #
@@ -185,6 +185,8 @@ opengl/RasterFont.c \
  \
 ui/aquaInt.h \
 ui/statusbar.h \
+ui/CursorDraw.c \
+ui/CursorDraw.h \
  \
 plugin/pluginUtils.c \
 plugin/pluginUtils.h \

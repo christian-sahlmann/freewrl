@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.171 2011/03/31 14:54:51 crc_canada Exp $
+  $Id: MainLoop.c,v 1.172 2011/03/31 20:49:46 istakenv Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -60,6 +60,7 @@
 
 #include "../opengl/OpenGL_Utils.h"
 #include "../ui/statusbar.h"
+#include "../ui/CursorDraw.h"
 #include "../scenegraph/RenderFuncs.h"
 #ifdef WANT_OSC
 	#define USE_OSC 1
