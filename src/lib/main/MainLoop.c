@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.169 2011/03/29 02:16:34 dug9 Exp $
+  $Id: MainLoop.c,v 1.170 2011/03/31 10:35:33 couannette Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1242,6 +1242,7 @@ void do_keyPress(const char kp, int type) {
                                 case '/': { print_viewer(); break; }
                                 case '\\': { dump_scenegraph(); break; }
                                 case '$': resource_tree_dump(0, root_res); break;
+                                case '*': resource_tree_list_files(0, root_res); break;
                                 case 'q': { if (!RUNNINGASPLUGIN) {
                                                   doQuit();
                                             }
