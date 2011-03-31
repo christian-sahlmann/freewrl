@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.40 2011/03/22 19:11:17 crc_canada Exp $
+  $Id: resources.c,v 1.41 2011/03/31 10:32:33 couannette Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -831,6 +831,7 @@ void resource_get_valid_url_from_multi(resource_item_t *parentPath, resource_ite
 
 /**
  *   resource_tree_dump: print the resource tree for debugging.
+ *   NB: call this recursive function with level==0
  */
 void resource_tree_dump(int level, resource_item_t *root)
 {
@@ -840,10 +841,11 @@ void resource_tree_dump(int level, resource_item_t *root)
 	int lc;
 
 	if (root == NULL) return; 
-	if (level == 0) printf("\nstarting dump resources\n\n");
+	if (level == 0) printf("\nResource tree:\n\n");
 	else printf("\n");
 
 	spacer printf("==> request:\t %s\n\n", root->request);
+	spacer printf("this:\t %p\n", root);
 	spacer printf("parent:\t %p\n", root->parent);
 	spacer printf("network:\t %s\n", BOOL_STR(root->network));
 	spacer printf("new_root:\t %s\n", BOOL_STR(root->new_root));
@@ -871,6 +873,22 @@ void resource_tree_dump(int level, resource_item_t *root)
 	ml_foreach(children, resource_tree_dump(level + 1, ml_elem(__l)));
 
 	printf("\n");
+}
+
+/**
+ * resource_tree_list_files: print all the files loaded via resources
+ * (local files or URL resources cached as temporary files).
+ */
+void resource_tree_list_files(int level, resource_item_t *root)
+{
+#define spacer	for (lc=0; lc<level; lc++) printf ("\t");
+	int lc;
+
+	if (root == NULL) return; 
+	if (level == 0) printf("\nResource file list:\n");
+
+	spacer printf("%s\n", root->actual_file);
+	ml_foreach(root->children, resource_tree_list_files(-1, ml_elem(__l)));
 }
 
 char *resourceTypeToString(int type) {
