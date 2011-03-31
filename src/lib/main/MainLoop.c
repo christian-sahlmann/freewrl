@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.170 2011/03/31 10:35:33 couannette Exp $
+  $Id: MainLoop.c,v 1.171 2011/03/31 14:54:51 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -991,10 +991,14 @@ static void render()
 	}
 
 #endif
-	if(EMULATE_MULTITOUCH)
+	if(EMULATE_MULTITOUCH) {
+        int i;
+    
 		for(i=0;i<20;i++)
 			if(touchlist[i].isDown > 0)
 				cursorDraw(touchlist[i].ID,touchlist[i].x,touchlist[i].y,touchlist[i].angle); 
+    }
+    
 	/* status bar, if we have one */
 	drawStatusBar();
 
@@ -1901,6 +1905,8 @@ int getOffset() {
         return (int) offsetof(struct X3D_Group, children);
 }
 
+#endif /* IPHONE */
+
 void setCurXY(int cx, int cy) {
 	/* printf ("setCurXY, have %d %d\n",currentX[currentCursor],currentY[currentCursor]); */
         currentX[currentCursor] = cx;
@@ -1912,7 +1918,7 @@ void setButDown(int button, int value) {
         ButDown[currentCursor][button] = value;
 }
 
-#endif
+
 
 void setIsPlugin() {
 

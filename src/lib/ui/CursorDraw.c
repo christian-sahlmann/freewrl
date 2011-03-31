@@ -184,15 +184,34 @@ void cursorDraw(int ID, int x, int y, float angle)
 	if( ID == 0 )return;
 
 	FW_GL_DEPTHMASK(GL_FALSE);
+
+    #ifndef GL_ES_VERSION_2_0
 	FW_GL_SHADEMODEL(GL_FLAT);
+    #endif /* GL_ES_VERSION_2_0 */
+    
 	FW_GL_DISABLE(GL_DEPTH_TEST);
 	
 	xy = mouse2screen2(x,y);
+
+	/* please note that OpenGL ES and OpenGL-3.x does not have the following; here is
+	   a hint for future work:
+
+	
+		"If you are using OpenGL ES 2.0, you can use framebuffer objects to render to 
+		texture, which is a much better alternative."
+
+	*/
+	#ifndef GL_ES_VERSION_2_0
 	FW_GL_WINDOWPOS2I(xy.x,xy.y);
 	FW_GL_DRAWPIXELS(circleCursor.width,circleCursor.height,GL_BGRA,GL_UNSIGNED_BYTE,circleCursor.pixel_data);
+	#endif /* GL_ES_VERSION_2_0 */
 
 	FW_GL_ENABLE(GL_DEPTH_TEST);
+    
+    #ifndef GL_ES_VERSION_2_0
 	FW_GL_SHADEMODEL(GL_SMOOTH);
+    #endif /* GL_ES_VERSION_2_0 */
+    
 	FW_GL_DEPTHMASK(GL_TRUE);
 	//FW_GL_FLUSH();
 
