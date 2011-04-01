@@ -1,5 +1,5 @@
 /*
-  $Id: plugin_main.c,v 1.15 2011/04/01 02:13:44 couannette Exp $
+  $Id: plugin_main.c,v 1.16 2011/04/01 15:16:23 istakenv Exp $
 
   FreeWRL plugin for Mozilla compatible browsers.
   Works in Firefox 1.x - 3.0 on Linux.
@@ -47,6 +47,10 @@
 
 #include <config.h>
 #include <system.h>
+
+#if defined(HAVE_STDARG_H)
+# include <stdarg.h>
+#endif
 
 #include <plugin_utils.h>
 #include <npapi.h>
