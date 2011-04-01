@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.25 2011/03/10 20:13:37 crc_canada Exp $
+  $Id: fwMotifWindow.c,v 1.26 2011/04/01 02:13:44 couannette Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -202,6 +202,7 @@ int create_main_window(int argc, char *argv[])
 	XtSetArg(initArgs[initArgc], XmNlabelString, XmStringCreate(window_title, XmSTRING_DEFAULT_CHARSET)); initArgc++;
 	XtSetArg(initArgs[initArgc], XmNheight, win_height); initArgc++;
 	XtSetArg(initArgs[initArgc], XmNwidth, win_width); initArgc++;
+	XtSetArg(initArgs[initArgc], XmNmappedWhenManaged, False); initArgc++;
 
 	/**
 	 *   This new initialization sequence let us create the Display and GLX context "à part" from Motif and use the

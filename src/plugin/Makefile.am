@@ -48,7 +48,8 @@ newversion:
 LIBFREEWRL_SRCDIR=$(top_srcdir)/src/lib
 LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
 
-AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
+# I'm removing external dependency from the plugin
+# not needed: AM_CPPFLAGS += -I$(LIBFREEWRL_SRCDIR)
 
 # libtool does not help much here, I'll end using gcc -shared
 # if we don't find a smart way to instruct libtool...
@@ -59,8 +60,10 @@ libFreeWRLplugin_la_LIBTOOLFLAGS = --tag=disable-static
 # This makes the plugin installs in $libdir/mozilla/plugins by default...
 plugindir=$(PLUGIN_DIR)
 
-libFreeWRLplugin_la_LDFLAGS = -module -avoid-version $(AM_LDFLAGS)
-libFreeWRLplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la $(EXTERNAL_LIBS)
+libFreeWRLplugin_la_LDFLAGS = -no-undefined -module -avoid-version $(AM_LDFLAGS)
+# Im' removing external dependency from the plugin
+# not needed: libFreeWRLplugin_la_LIBADD = $(LIBFREEWRL_BUILDDIR)/libFreeWRL.la $(EXTERNAL_LIBS)
+# this last variable would be set with required libs for mozilla
 
 include Makefile.sources
 

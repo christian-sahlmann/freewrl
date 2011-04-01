@@ -1,3 +1,12 @@
+/*
+  $Id: npunix.c,v 1.9 2011/04/01 02:13:44 couannette Exp $
+
+  Original npunix.c from Mozilla.
+  Modified for traces.
+  FreeWRL plugin for Mozilla compatible browsers.
+  Works in Firefox 1.x - 3.0 on Linux.
+
+*/
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -560,3 +569,7 @@ NP_Shutdown(void)
 	NPP_Shutdown();
 	return NPERR_NO_ERROR;
 }
+
+/* Local Variables: */
+/* c-basic-offset: 8 */
+/* End: */

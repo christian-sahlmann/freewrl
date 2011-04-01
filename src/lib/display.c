@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.71 2011/03/31 20:34:14 istakenv Exp $
+  $Id: display.c,v 1.72 2011/04/01 02:13:43 couannette Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -150,11 +150,13 @@ int display_initialize()
 
 	DEBUG_MSG("FreeWRL: running as a plugin: %s\n", BOOL_STR(isBrowserPlugin));
 
-#if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
 	if (RUNNINGASPLUGIN) {
+#if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
 		sendXwinToPlugin();
-	}
 #endif
+	} else {
+		XMapWindow(Xdpy, Xwin);
+	}
 
 	return TRUE;
 }
@@ -363,3 +365,7 @@ void rdr_caps_dump()
 	DEBUG_MSG ("Max texture size      %d\n", rdr_caps.max_texture_size);
 	DEBUG_MSG ("Texture units         %d\n", rdr_caps.texture_units);
 }
+
+/* Local Variables: */
+/* c-basic-offset: 8 */
+/* End: */

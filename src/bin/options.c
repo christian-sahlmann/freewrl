@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.29 2011/03/10 20:13:37 crc_canada Exp $
+  $Id: options.c,v 1.30 2011/04/01 02:13:43 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -170,7 +170,7 @@ int parseCommandLine (int argc, char **argv)
 {
     int c;
     float ftmp;
-    int ldtmp;
+    long int ldtmp;
     int option_index = 0;
     int real_option_index;
     const char *real_option_name;
@@ -404,14 +404,18 @@ int parseCommandLine (int argc, char **argv)
 
     /* Quick hack: redirect stdout and stderr to logFileName if supplied */
     if (logFileName) {
-	printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);	
-	fp = freopen(logFileName, "a", stdout);
-	if (NULL == fp) {
-	    WARN_MSG("WARNING: Unable to reopen stdout to %s\n", logFileName) ;
-	}
-	fp = freopen(logFileName, "a", stderr);
-	if (NULL == fp) {
-	    WARN_MSG("WARNING: Unable to reopen stderr to %s\n", logFileName) ;
+	if (strncasecmp(logFileName, "-", 1) == 0) {
+	    printf("FreeWRL: output to stdout/stderr\n");
+	} else {
+	    printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);	
+	    fp = freopen(logFileName, "a", stdout);
+	    if (NULL == fp) {
+		WARN_MSG("WARNING: Unable to reopen stdout to %s\n", logFileName) ;
+	    }
+	    fp = freopen(logFileName, "a", stderr);
+	    if (NULL == fp) {
+		WARN_MSG("WARNING: Unable to reopen stderr to %s\n", logFileName) ;
+	    }
 	}
     }
 

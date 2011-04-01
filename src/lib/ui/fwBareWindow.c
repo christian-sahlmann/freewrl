@@ -1,5 +1,5 @@
 /*
-  $Id: fwBareWindow.c,v 1.13 2011/02/24 16:13:03 crc_canada Exp $
+  $Id: fwBareWindow.c,v 1.14 2011/04/01 02:13:43 couannette Exp $
 
   Create X11 window. Manage events.
 
@@ -102,9 +102,10 @@ int create_main_window(int argc, char *argv[])
     }
 
 
-
-    XMapWindow(Xdpy, Xwin);
-    XFlush(Xdpy);
+    if (!RUNNINGASPLUGIN) {
+	    XMapWindow(Xdpy, Xwin);
+	    XFlush(Xdpy);
+    }
 		
     if (fullscreen) {
 	XMoveWindow(Xdpy, Xwin, 0, 0);
@@ -135,3 +136,7 @@ int create_main_window(int argc, char *argv[])
 }
 
 #endif /* IPHONE */
+
+/* Local Variables: */
+/* c-basic-offset: 8 */
+/* End: */
