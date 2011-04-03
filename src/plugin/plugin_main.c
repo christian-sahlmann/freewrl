@@ -1,5 +1,5 @@
 /*
-  $Id: plugin_main.c,v 1.16 2011/04/01 15:16:23 istakenv Exp $
+  $Id: plugin_main.c,v 1.17 2011/04/03 10:56:58 couannette Exp $
 
   FreeWRL plugin for Mozilla compatible browsers.
   Works in Firefox 1.x - 3.0 on Linux.
@@ -689,7 +689,7 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value)
 	if (instance)
 		me = (FW_PluginInstance *) instance->pdata;
 
-	PRINT("NPP_GetValue\n");
+	PRINT("NPP_GetValue %u\n", variable);
 
 	switch (variable) {
 	case NPPVpluginNameString:
@@ -709,7 +709,7 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value)
 		break;
 
 	default:
-		err = NPERR_GENERIC_ERROR;
+		err = NPERR_INVALID_PARAM;
 	}
 	return err;
 }
@@ -727,6 +727,10 @@ NPError NPP_Initialize(void) {
     	return NPERR_NO_ERROR;
 }
 
+jref NPP_GetJavaClass( void )
+{
+    return NULL;
+}
 
 /*
 ** NPP_Shutdown is called when your DLL is being unloaded to do any

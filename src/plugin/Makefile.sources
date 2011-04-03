@@ -1,4 +1,4 @@
-libFreeWRLplugin_la_SOURCES = \
+DIST_sources = \
 			plugin_main.c \
 			npunix.c \
 			system.h \

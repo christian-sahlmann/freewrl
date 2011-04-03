@@ -1,11 +1,10 @@
-# Main program: training
-# Uses libtraining in ../lib
-
+# FreeWRL plugin
+#
 
 # Get global variables for Makefile defined by toplevel Makefile.globals
 include $(top_srcdir)/Makefile.globals
 
-# Just add variables tested and checked by troplevel configure
+# Just add variables tested and checked by toplevel configure
 
 # General libraries used with all platforms
 AM_CPPFLAGS += \
@@ -55,6 +54,7 @@ LIBFREEWRL_BUILDDIR=$(top_builddir)/src/lib
 # if we don't find a smart way to instruct libtool...
 
 plugin_LTLIBRARIES = libFreeWRLplugin.la
+
 libFreeWRLplugin_la_LIBTOOLFLAGS = --tag=disable-static
 
 # This makes the plugin installs in $libdir/mozilla/plugins by default...
@@ -66,6 +66,19 @@ libFreeWRLplugin_la_LDFLAGS = -no-undefined -module -avoid-version $(AM_LDFLAGS)
 # this last variable would be set with required libs for mozilla
 
 include Makefile.sources
+
+EXTRA_DIST = $(DIST_sources)
+
+SOURCES_common = plugin_main.c \
+		system.h \
+		plugin_utils.h
+
+libFreeWRLplugin_la_SOURCES = $(SOURCES_common)
+
+# Mozilla UNIX support
+if WINDOW_USE_X11
+libFreeWRLplugin_la_SOURCES += npunix.c
+endif
 
 libFreeWRLplugin_la_SOURCES += internal_version.c
 
