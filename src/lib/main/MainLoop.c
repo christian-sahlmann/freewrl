@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.172 2011/03/31 20:49:46 istakenv Exp $
+  $Id: MainLoop.c,v 1.173 2011/04/04 16:29:55 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -274,6 +274,8 @@ void RenderSceneUpdateScene() {
         static int loop_count = 0;
         static int slowloop_count = 0;
 
+    PRINT_GL_ERROR_IF_ANY("start of renderSceneUpdateScene");
+    
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
         Cursor cursor;
 #endif /* TARGET_X11 or TARGET_MOTIF */
@@ -402,6 +404,8 @@ void RenderSceneUpdateScene() {
 	}
 #endif /* TARGET_X11 */
 
+    
+    PRINT_GL_ERROR_IF_ANY("before xtdispatch");
 #if defined(TARGET_MOTIF)
 	/* any updates to the menu buttons? Because of Linux threading
 	   issues, we try to make all updates come from 1 thread */
@@ -452,6 +456,8 @@ void RenderSceneUpdateScene() {
         /* Viewer move viewpoint */
         handle_tick();
 
+    PRINT_GL_ERROR_IF_ANY("after handle_tick")
+    
         /* setup Projection and activate ProximitySensors */
         if (onScreen) render_pre(); 
 
@@ -461,6 +467,7 @@ void RenderSceneUpdateScene() {
 	/* ensure depth mask turned on here */
 	FW_GL_DEPTHMASK(GL_TRUE);
 
+    PRINT_GL_ERROR_IF_ANY("after depth")
         /* actual rendering */
         if (onScreen)
 			render();
@@ -804,6 +811,9 @@ void setup_projection(int pick, int x, int y)
 	GLDOUBLE aspect2 = screenRatio;
 	GLDOUBLE fieldofview2;
 	GLint xvp = 0;
+    
+    PRINT_GL_ERROR_IF_ANY("XEvents::start of setup_projection");
+    
 	fieldofview2 = fieldofview;
 	if(getViewerType()==VIEWER_YAWPITCHZOOM)
 		fieldofview2*=fovZoom;

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.184 2011/04/04 15:07:58 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.185 2011/04/04 16:29:55 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1334,13 +1334,13 @@ bool initialize_GL()
 	#endif /* TARGET_AQUA */
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start");
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start 1");
 	initialize_rdr_caps();
 
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start");
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start 2");
 	initialize_rdr_functions();
 
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start");
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start 3");
 
 	/* lets make sure everything is sync'd up */
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
@@ -1379,34 +1379,56 @@ bool initialize_GL()
 
 	#endif /* SHADERS_2011 */
 
+    
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start 4");
+    
+
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	#ifndef SHADERS_2011
 	FW_GL_CLEAR_DEPTH(1.0);
 	#endif
+    
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start 5");
+    
 
 	FW_GL_CLEAR_COLOR((float)0.0, (float)0.0, (float)1.0, (float)0.0);
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 	FW_GL_LOAD_IDENTITY();
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
+    
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start 6");
+    
 
 	/* Configure OpenGL for our uses. */
         FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
+    
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start 7");
+    
 	
 	#ifndef SHADERS_2011
 	FW_GL_SHADEMODEL(GL_SMOOTH);
 	FW_GL_HINT(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
 	FW_GL_ENABLE (GL_RESCALE_NORMAL);
 	#endif
+    
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start 8");
+    
 
 	FW_GL_DEPTHFUNC(GL_LEQUAL);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
+    
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start 9");
+    
 	
 	#ifndef GL_ES_VERSION_2_0
 	FW_GL_LINEWIDTH(gl_linewidth);
 	FW_GL_POINTSIZE(gl_linewidth);
 	#endif
+    
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start a");
+    
 
 
 	/*
@@ -1425,6 +1447,9 @@ bool initialize_GL()
 	//FW_GL_ALPHAFUNC(GL_GREATER, 0); 
 
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
+    
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start b");
+    
 
 	#ifndef SHADERS_2011
 	FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
@@ -1437,15 +1462,23 @@ bool initialize_GL()
 	   if we don't have texture we can disable this (less computation)...
 	   but putting this here is already a saving ;)...
 	*/
-
+    
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start c0");
+    
 	/* keep track of light states; initial turn all lights off except for headlight */
 	initializeLightTables();
+    
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start c1");
+    
 
 	/* ensure state of GL_CULL_FACE */
 	CULL_FACE_INITIALIZE;
 
 	FW_GL_PIXELSTOREI(GL_UNPACK_ALIGNMENT,1);
 	FW_GL_PIXELSTOREI(GL_PACK_ALIGNMENT,1);
+    
+	PRINT_GL_ERROR_IF_ANY("initialize_GL start c");
+    
 
 	do_shininess(GL_FRONT_AND_BACK,(float) 0.2);
 	{
@@ -1457,6 +1490,9 @@ bool initialize_GL()
         FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
+        
+        PRINT_GL_ERROR_IF_ANY("initialize_GL start d");
+        
 	}
 
 	return TRUE;

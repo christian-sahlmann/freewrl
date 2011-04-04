@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.72 2011/04/01 02:13:43 couannette Exp $
+  $Id: display.c,v 1.73 2011/04/04 16:29:55 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -110,6 +110,8 @@ int display_initialize()
 
 	if (display_initialized) return TRUE;
 
+    PRINT_GL_ERROR_IF_ANY("start of display_initialize");
+    
 	memset(&rdr_caps, 0, sizeof(rdr_caps));
 
 	/* FreeWRL parameters */
@@ -137,19 +139,31 @@ int display_initialize()
 		return FALSE;
 	}
 
+    PRINT_GL_ERROR_IF_ANY ("display_initialize - before the bind_GLcontext call");
+    
 #if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
 	bind_GLcontext();
 #endif
 
+    PRINT_GL_ERROR_IF_ANY ("display_initialize - before the initialize_GL call");
+
+    
 	if (!initialize_GL()) {
 		return FALSE;
 	}
 
+    PRINT_GL_ERROR_IF_ANY ("display_initialize - after initialize_GL call");
+
+    
 	/* Display full initialized :P cool ! */
 	display_initialized = TRUE;
 
 	DEBUG_MSG("FreeWRL: running as a plugin: %s\n", BOOL_STR(isBrowserPlugin));
 
+    PRINT_GL_ERROR_IF_ANY ("end of display_initialize");
+    
+#ifndef IPHONE
+        
 	if (RUNNINGASPLUGIN) {
 #if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
 		sendXwinToPlugin();
@@ -157,6 +171,7 @@ int display_initialize()
 	} else {
 		XMapWindow(Xdpy, Xwin);
 	}
+#endif /* IPHONE */
 
 	return TRUE;
 }

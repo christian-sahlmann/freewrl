@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.142 2011/03/11 21:37:47 crc_canada Exp $
+$Id: headers.h,v 1.143 2011/04/04 16:29:55 crc_canada Exp $
 
 Global includes.
 
@@ -822,9 +822,15 @@ void do_TimeTrigger (void *node);
 #define ENABLE_CULL_FACE CULL_FACE(1)
 #define CULL_FACE_INITIALIZE cullFace=0; FW_GL_DISABLE(GL_CULL_FACE);
 
-#define LIGHTING_ON if (!lightingOn) {lightingOn=TRUE;FW_GL_ENABLE(GL_LIGHTING);}
-#define LIGHTING_OFF if(lightingOn) {lightingOn=FALSE;FW_GL_DISABLE(GL_LIGHTING);}
-#define LIGHTING_INITIALIZE lightingOn=TRUE; FW_GL_ENABLE(GL_LIGHTING);
+#ifdef GL_ES_VERSION_2_0
+	#define LIGHTING_ON if (!lightingOn) {lightingOn=TRUE;}
+	#define LIGHTING_OFF if(lightingOn) {lightingOn=FALSE;}
+	#define LIGHTING_INITIALIZE lightingOn=TRUE; 
+#else 
+	#define LIGHTING_ON if (!lightingOn) {lightingOn=TRUE;FW_GL_ENABLE(GL_LIGHTING);}
+	#define LIGHTING_OFF if(lightingOn) {lightingOn=FALSE;FW_GL_DISABLE(GL_LIGHTING);}
+	#define LIGHTING_INITIALIZE lightingOn=TRUE; FW_GL_ENABLE(GL_LIGHTING);
+#endif /* GL_ES_VERSION_2_0 */
 
 void zeroAllBindables(void);
 void Next_ViewPoint(void);

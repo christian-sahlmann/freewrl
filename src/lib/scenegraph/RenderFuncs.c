@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.93 2011/04/04 15:07:58 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.94 2011/04/04 16:29:55 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -92,19 +92,31 @@ int nextlight() {
 
 /* keep track of lighting */
 void lightState(GLint light, int status) {
+    PRINT_GL_ERROR_IF_ANY("start lightState");
+    
+    
 	if (light<0) return; /* nextlight will return -1 if too many lights */
 	if (lightOnOff[light] != status) {
 		if (status) {
 			/* printf ("light %d on\n",light); */
+            
+#ifndef GL_ES_VERSION_2_0
 			FW_GL_ENABLE(GL_LIGHT0+light);
+#endif /* GL_ES_VERSION_2_0 */
+            
 			lightStatusDirty = TRUE;
 		} else {
 			/* printf ("light %d off\n",light);  */
+            
+#ifndef GL_ES_VERSION_2_0
 			FW_GL_DISABLE(GL_LIGHT0+light);
+#endif /* GL_ES_VERSION_2_0 */
+            
 			lightStatusDirty = TRUE;
 		}
 		lightOnOff[light]=status;
 	}
+    PRINT_GL_ERROR_IF_ANY("end lightState");
 }
 
 /* for local lights, we keep track of what is on and off */
@@ -124,7 +136,7 @@ void restoreLightState(int *ls) {
 
 void fwglLightfv (int light, int pname, GLfloat *params) {
 	/* printf ("fwglLightfv %d %d %f %f %f %f\n",light,pname,params[0], params[1],params[2],params[3]);  */
-	#ifndef SHADERS_2011
+	#ifndef GL_ES_VERSION_2_0ƒ√
 		glLightfv(GL_LIGHT0+light,pname,params);
 	#endif
 
@@ -454,15 +466,20 @@ void initializeLightTables() {
         float shin[] = { 0.6f, 0.6f, 0.6f, 1.0f };
         float As[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
+    PRINT_GL_ERROR_IF_ANY("start of initializeightTables");
 	int i;
         for (i=0; i<8; i++) {
                 lightOnOff[i] = 9999;
                 lightState(i,FALSE);
-
+            
         	FW_GL_LIGHTFV(i, GL_POSITION, pos);
         	FW_GL_LIGHTFV(i, GL_AMBIENT, As);
         	FW_GL_LIGHTFV(i, GL_DIFFUSE, dif);
         	FW_GL_LIGHTFV(i, GL_SPECULAR, shin);
+            
+
+            
+            PRINT_GL_ERROR_IF_ANY("initizlizeLight2");
         }
         lightState(HEADLIGHT_LIGHT, TRUE);
 
@@ -476,8 +493,10 @@ void initializeLightTables() {
 	printf ("skipping light setups\n");
 	#endif
 
-	LIGHTING_INITIALIZE
+    LIGHTING_INITIALIZE
+	
 
+    PRINT_GL_ERROR_IF_ANY("end initializeLightTables");
 }
 
 

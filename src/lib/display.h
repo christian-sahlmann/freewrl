@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.112 2011/03/26 19:23:16 crc_canada Exp $
+  $Id: display.h,v 1.113 2011/04/04 16:29:55 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -112,8 +112,9 @@ extern int ocurse;
 	#define GL_SPECULAR                       0x1202
 	#define GL_EMISSION                       0x1600
 	#define GL_ENABLE_BIT				0x00002000
+/*
 	#define GL_LIGHTING                       0x0B50
-	#define GL_COLOR_MATERIAL                 0x0B57
+*/
 	#define GL_LIGHT_MODEL_COLOR_CONTROL		0x81F8
 	#define GL_SEPARATE_SPECULAR_COLOR		0x81FA
 	#define GL_LIGHT_MODEL_TWO_SIDE			0x0B52
