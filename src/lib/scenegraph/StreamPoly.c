@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.26 2011/03/23 20:28:02 crc_canada Exp $
+$Id: StreamPoly.c,v 1.27 2011/04/04 15:07:58 crc_canada Exp $
 
 ???
 
@@ -232,6 +232,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	hasc = ((ncolors || r->color) && (last_texture_type!=TEXTURE_NO_ALPHA));
+
 
 	if MUST_GENERATE_TEXTURES {
 		#ifdef STREAM_POLY_VERBOSE
@@ -548,9 +549,10 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,r->VBO_buffers[INDEX_VBO]);
 
-		#ifdef IPHONE
+		#ifdef GL_ES_VERSION_2_0
 		{
-			GLushort *myindicies = MALLOC(GLushort *, r->ntri*3);
+			GLushort *myindicies = MALLOC(GLushort *, sizeof(GLushort) * r->ntri*3);
+
 			int i;
 			GLushort *to = myindicies;
 			unsigned int *from = r->cindex;
@@ -560,17 +562,19 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 			}
 
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*r->ntri*3,myindicies,GL_STATIC_DRAW); /* OpenGL-ES */
-			FREE_IF_NZ(myindicies);
+            FREE_IF_NZ(myindicies);
 		}
 		#else
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (int)*r->ntri*3,r->cindex,GL_STATIC_DRAW); /* regular OpenGL */
 		#endif
+        // Can we free this here, or do we need it later? FREE_IF_NZ(r->cindex);
 
 		if (r->GeneratedTexCoords) {
 			if (r->VBO_buffers[TEXTURE_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[TEXTURE_VBO]);
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[TEXTURE_VBO]);
 			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*r->ntri*3,r->GeneratedTexCoords, GL_STATIC_DRAW);
 			/* finished with these - lets get rid of it */
+            glFlush();            
 			FREE_IF_NZ(r->GeneratedTexCoords);
 		}
 	}

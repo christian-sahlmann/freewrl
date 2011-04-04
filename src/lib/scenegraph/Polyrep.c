@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.44 2011/03/29 17:00:07 crc_canada Exp $
+$Id: Polyrep.c,v 1.45 2011/04/04 15:07:58 crc_canada Exp $
 
 ???
 
@@ -842,7 +842,7 @@ void render_polyrep(void *node) {
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 	}
 	
-#ifndef IPHONE
+#ifndef GL_ES_VERSION_2_0
 	if (!global_use_VBOs) {
 		/*  status bar, text do not have normals*/
 		if (pr->normal) {
@@ -874,7 +874,7 @@ void render_polyrep(void *node) {
 			FW_GL_DISABLE(GL_COLOR_MATERIAL);
 		}
 	} else {
-#endif /* ndef IPHONE */
+#endif /* ndef GL_ES_VERSION_2_0 */
 
 PRINT_GL_ERROR_IF_ANY("");
 
@@ -882,6 +882,7 @@ PRINT_GL_ERROR_IF_ANY("");
 		if (pr->VBO_buffers[NORMAL_VBO]!=0) {
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[NORMAL_VBO]);
 			FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
+            FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
 
 		/* colours? */
@@ -889,7 +890,8 @@ PRINT_GL_ERROR_IF_ANY("");
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[COLOR_VBO]);
 			FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
-		}
+		} else FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+        
 		/*  textures?*/
 		if (pr->VBO_buffers[TEXTURE_VBO] != 0) {
 				struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
@@ -904,7 +906,8 @@ PRINT_GL_ERROR_IF_ANY("");
 		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY); // should already be enabled
 		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
 
-#ifdef IPHONE
+        
+#ifdef GL_ES_VERSION_2_0
 		FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_SHORT,0);
 #else
 		FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT,0);
@@ -925,7 +928,7 @@ PRINT_GL_ERROR_IF_ANY("");
 			#endif
 
 		}
-#ifndef IPHONE
+#ifndef GL_ES_VERSION_2_0
 	}
 #endif
 

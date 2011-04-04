@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.92 2011/03/26 19:23:16 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.93 2011/04/04 15:07:58 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -307,7 +307,6 @@ printf ("sendAttribToGPU, appearanceProperties.currentShaderProperties %p\n",app
 }
 
 void sendClientStateToGPU(int enable, int cap) {
-
 	if (appearanceProperties.currentShaderProperties != NULL) {
 		switch (cap) {
 			case GL_NORMAL_ARRAY:
@@ -382,14 +381,14 @@ void sendArraysToGPU (int mode, int first, int count) {
 			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
 	} 
 
-/*
+
 printf ("sendArraysToGPU; appearanceProperties.currentShaderProperties %p (true %d) normal %d vertex %d colour %d texture %d\n",appearanceProperties.currentShaderProperties,TRUE, shaderNormalArray,shaderVertexArray,shaderColourArray,shaderTextureArray);
 if (shaderNormalArray) printf ("glEnableVertexAttribArray Normal\n"); else printf ("glDisableVertexAttribArray Normal\n");
 if (shaderVertexArray) printf ("glEnableVertexAttribArray Vertex\n"); else printf ("glDisableVertexAttribArray Vertex\n");
 if (shaderColourArray) printf ("glEnableVertexAttribArray Colour\n"); else printf ("glDisableVertexAttribArray Colour\n");
 if (shaderTextureArray) printf ("glEnableVertexAttribArray Texture\n"); else printf ("glDisableVertexAttribArray Texture\n");
 	printf ("calling glDrawArrays, mode %d, first %d, count %d\n",mode,first,count);
-*/
+
 
 	}
 
@@ -398,9 +397,25 @@ if (shaderTextureArray) printf ("glEnableVertexAttribArray Texture\n"); else pri
 }
 
 void sendElementsToGPU (int mode, int count, int type, int *indices) {
+    /* printf ("sendElementsToGPU start\n"); */
+    
 	if (appearanceProperties.currentShaderProperties != NULL) {
 
+        /* printf ("we have Normals %d Vertices %d Colours %d TexCoords %d useShapeColour %d\n",
+                appearanceProperties.currentShaderProperties->Normals,
+                appearanceProperties.currentShaderProperties->Vertices,
+                appearanceProperties.currentShaderProperties->Colours,
+                appearanceProperties.currentShaderProperties->TexCoords,
+		appearanceProperties.currentShaderProperties->useShapeColour);
+if (shaderNormalArray) printf ("shaderNormalArray TRUE\n"); else printf ("shaderNormalArray FALSE\n");        
+        if (shaderVertexArray) printf ("shaderVertexArray TRUE\n"); else printf ("shaderVertexArray FALSE\n");
+        if (shaderColourArray) printf ("shaderColourArray TRUE\n"); else printf ("shaderColourArray FALSE\n");
+if (shaderTextureArray) printf ("shaderTextureArray TRUE\n"); else printf ("shaderTextureArray FALSE\n");               
+         */
+        
+        
 		if (appearanceProperties.currentShaderProperties->Normals != -1) {
+
 		if (shaderNormalArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Normals);
 		else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->Normals);
 		}
@@ -411,17 +426,26 @@ void sendElementsToGPU (int mode, int count, int type, int *indices) {
 		}
 
 		if (appearanceProperties.currentShaderProperties->Colours != -1) {
-		if (shaderColourArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Colours);
-		else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->Colours);
+
+			/* does the shader support Color properties for the shape? */
+			if (appearanceProperties.currentShaderProperties->useShapeColour != -1) {
+				if (shaderColourArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Colours);
+				else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->Colours);
+			}
+			else {
+				printf ("help! shape wants per-vertex colour, but shader does not support it\n");
+			}
 		}
 
 		if (appearanceProperties.currentShaderProperties->TexCoords != -1) {
+
 		if (shaderTextureArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
 		else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
 		}
-	}
 
+	}
 	glDrawElements(mode,count,type,indices);
+    /* printf ("sendElementsToGPU finish\n"); */
 }
 
 void initializeLightTables() {

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.183 2011/03/26 19:23:16 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.184 2011/04/04 15:07:58 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -900,6 +900,7 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->Vertices = GET_ATTRIB(myProg,"fw_Vertex");
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
 	me->Colours = GET_ATTRIB(myProg,"fw_Color");
+	me->useShapeColour = GET_UNIFORM(myProg,"fw_useShapeColour");
 	me->TexCoords = GET_ATTRIB(myProg,"fw_TexCoords");
 	me->Texture0 = GET_UNIFORM(myProg,"fw_Texture0");
 

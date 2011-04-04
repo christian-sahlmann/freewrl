@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.37 2011/03/03 14:56:34 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.38 2011/04/04 15:07:58 crc_canada Exp $
 
 Screen snapshot.
 
@@ -58,6 +58,7 @@ typedef struct {
 	GLint Vertices;
 	GLint Normals;
 	GLint Colours;
+	GLint useShapeColour;
 	GLint TexCoords;
 	GLint Texture0;
 
