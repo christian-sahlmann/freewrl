@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.40 2011/02/11 18:46:25 crc_canada Exp $
+$Id: fieldGet.c,v 1.41 2011/04/05 21:54:20 istakenv Exp $
 
 Javascript C language binding.
 
@@ -414,7 +414,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				/* create a new SFFloat object */
 				
 				fp = (float *)fp_in; 
-				newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
+				JS_NewNumberValue(cx,(double)*fp,&newjsval);
 				fp_in = offsetPointer_deref(float *,fp_in,elementlen);
 
 				/* put this object into the MF class */
@@ -451,7 +451,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				/* create a new SFTime object */
 				
 				fp = (float *)fp_in; 
-				newjsval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)*fp));
+				JS_NewNumberValue(cx,(double)*fp,&newjsval);
 				fp_in = offsetPointer_deref(float *,fp_in,elementlen);
 
 				/* put this object into the MF class */

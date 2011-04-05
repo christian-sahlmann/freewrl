@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.17 2010/11/10 14:25:49 crc_canada Exp $
+$Id: jsVRMLClasses.h,v 1.18 2011/04/05 22:02:29 istakenv Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -80,14 +80,14 @@ of garbage collection */
 
 
 #define SET_JS_TICKTIME_RV(possibleRetVal) { jsval zimbo; \
-        zimbo = DOUBLE_TO_JSVAL(JS_NewDouble(cx, TickTime));  \
+        JS_NewNumberValue(cx, TickTime, &zimbo);  \
         if (!JS_DefineProperty(cx,obj, "__eventInTickTime", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
                 printf( "JS_DefineProperty failed for \"__eventInTickTime\" at %s:%d.\n",__FILE__,__LINE__); \
                 return possibleRetVal; \
         }}
 
 #define SET_JS_TICKTIME() { jsval zimbo; \
-        zimbo = DOUBLE_TO_JSVAL(JS_NewDouble(cx, TickTime));  \
+        JS_NewNumberValue(cx, TickTime, &zimbo);  \
         if (!JS_DefineProperty(cx,obj, "__eventInTickTime", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
                 printf( "JS_DefineProperty failed for \"__eventInTickTime\" at %s:%d.\n",__FILE__,__LINE__); \
                 return; \

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.32 2011/02/11 19:09:19 crc_canada Exp $
+$Id: jsUtils.c,v 1.33 2011/04/05 21:59:00 istakenv Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -321,13 +321,13 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, int datalen, int dataType, jsval 
 
 		case FIELDTYPE_SFFloat:	{
 			memcpy ((void *) &fl, Data, datalen);
-			*newval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)fl));
+			JS_NewNumberValue(cx,(double)fl,newval);
 			break;
 		}
 		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime:	{
 			memcpy ((void *) &dl, Data, datalen);
-			*newval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,dl));
+			JS_NewNumberValue(cx,dl,newval);
 			break;
 		}
 		case FIELDTYPE_SFBool:
@@ -969,7 +969,7 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval
 				printf("getSFNodeField %d : fVal=%d\n",__LINE__,fVal);
 				#endif
 
-				*vp = DOUBLE_TO_JSVAL(JS_NewDouble(context,(double)fVal));
+				JS_NewNumberValue(context,(double)fVal,vp);
 				return JS_TRUE;
 			} else {
 				#if TRACK_FIFO_MSG
