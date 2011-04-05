@@ -206,7 +206,7 @@ fi
 if test x$found_JAVASCRIPT_ENGINE = xmozilla-js; then
   MOZILLA_JS_VERSION
   AX_COMPARE_VERSION([`$PKG_CONFIG --modversion mozilla-js`],[ge],[2.0],[
-    AC_DEFINE(MOZILLA_JS_VERSION,"2.0")
+    AC_DEFINE([MOZILLA_JS_VERSION],[2.0], [Defined if detected mozilla-js is 2 or above])
   ],[LIBMOZJS_INCDIR=`$PKG_CONFIG --variable=includedir mozilla-js 2>/dev/null`
   if (echo $JAVASCRIPT_ENGINE_CFLAGS | egrep '(un)?stable') > /dev/null 2>&1; then
     if test -f $LIBMOZJS_INCDIR/unstable/jsapi.h; then
