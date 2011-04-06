@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.30 2011/04/01 02:13:43 couannette Exp $
+  $Id: options.c,v 1.31 2011/04/06 21:34:31 dug9 Exp $
 
   FreeWRL command line arguments.
 
@@ -193,6 +193,7 @@ int parseCommandLine (int argc, char **argv)
 # if HAVE_GETOPT_LONG
 
 #if defined(_MSC_VER)
+#define strncasecmp _strnicmp
 	for(c=0;c<argc;c++)
 	{
 		printf("argv[%d]=%s\n",c,argv[c]);
