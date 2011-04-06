@@ -63,6 +63,7 @@
 				AdditionalDependencies="dllFreeWRLd.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\glew\lib;..\..\..\..\lib_windows\JS\js1.5\src\Debug;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\expat\Bin\debug;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\png\lib;..\..\..\..\lib_windows\jpeg\lib;..\Debug"
+				AdditionalManifestDependencies=""
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				TargetMachine="1"

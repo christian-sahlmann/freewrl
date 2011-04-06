@@ -61,6 +61,8 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="$(NoInherit)"
 				LinkIncremental="2"
+				GenerateManifest="true"
+				AdditionalManifestDependencies=""
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				SubSystem="2"
@@ -72,7 +74,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalManifestFiles="dllFreeWRL.dll.embed.manifest"
+				EmbedManifest="true"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -191,7 +193,7 @@
 		/>
 		<AssemblyReference
 			RelativePath="..\Debug\libFreeWRL_dotNetwrapper.dll"
-			AssemblyName="libFreeWRL_dotNetwrapper, Version=1.0.4083.20651, processorArchitecture=x86"
+			AssemblyName="libFreeWRL_dotNetwrapper, Version=1.0.4109.21752, processorArchitecture=x86"
 			MinFrameworkVersion="131072"
 		/>
 	</References>

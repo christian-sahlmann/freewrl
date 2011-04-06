@@ -40,7 +40,8 @@
 
 /* Define to 1 if you have the <expat.h> header file. */
 #undef HAVE_EXPAT_H
-#define HAVE_EXPAT_H 1
+//#define HAVE_EXPAT_H 1
+#define HAVE_LIBXML_PARSER_H 1
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H

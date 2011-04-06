@@ -62,10 +62,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libFreeWRLd.lib Glu32.lib glew32.lib Opengl32.lib libexpat.lib libjpeg.lib libpng.lib pthreadVC2d.lib zlib.lib js32d.lib fdlibmd.lib ws2_32.lib freetype239_D.lib shlwapi.lib gdiplus.lib Wininet.lib"
+				AdditionalDependencies="libFreeWRLd.lib Glu32.lib glew32.lib Opengl32.lib libjpeg.lib libpng.lib pthreadVC2d.lib zlib.lib js32d.lib fdlibmd.lib ws2_32.lib freetype239_D.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib"
 				OutputFile="$(OutDir)\$(ProjectName)d.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\glew\lib;..\..\..\..\lib_windows\JS\js1.5\src\Debug;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\expat\Bin\debug;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\png\lib;..\..\..\..\lib_windows\jpeg\lib;..\Debug"
+				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\glew\lib;..\..\..\..\lib_windows\JS\js1.5\src\Debug;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\expat\Bin\debug_hide;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\png\lib;..\..\..\..\lib_windows\jpeg\lib;..\..\..\..\lib_windows\libxml2\lib;..\Debug"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames="MSVCRT"
 				GenerateDebugInformation="true"
