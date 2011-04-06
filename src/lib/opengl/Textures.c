@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.90 2011/03/29 13:29:12 crc_canada Exp $
+  $Id: Textures.c,v 1.91 2011/04/06 20:45:27 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1068,12 +1068,13 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	}
 
 	/* do we need to convert this to an OpenGL texture stream?*/
-
+/*
 #ifdef IPHONE
 printf ("for IPHONE, ensuring packing\n");
 glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 #endif
-
+*/
+ 
 	/* we need to get parameters. */	
 	if (me->OpenGLTexture == TEXTURE_INVALID) {
 /* 		me->OpenGLTexture = MALLOC (GLuint *, sizeof (GLuint) * me->frames); */
