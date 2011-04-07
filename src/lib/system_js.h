@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_js.h,v 1.8 2011/04/07 19:43:22 istakenv Exp $
+$Id: system_js.h,v 1.9 2011/04/07 21:02:49 istakenv Exp $
 
 FreeWRL support library.
 Internal header: Javascript engine dependencies.
@@ -57,7 +57,7 @@ typedef int JSErrorReport;
 
 
 /* int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval); */
-#else /* IPHONE */
+#else
 
 
 #ifdef MOZILLA_JS_UNSTABLE_INCLUDES
@@ -68,10 +68,6 @@ typedef int JSErrorReport;
 # include <jsdbgapi.h> /* JS debugger */
 #endif
 
-#if MOZILLA_JS_VERSION >= 2.0
-# include "js_deprecated.h"
-#endif
-
-#endif /* !IPHONE */
+#endif /* IPHONE */
 
 #endif /* __LIBFREEWRL_SYSTEM_JS_H__ */
