@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.74 2011/04/06 21:34:31 dug9 Exp $
+  $Id: display.c,v 1.75 2011/04/07 16:52:23 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -162,7 +162,7 @@ int display_initialize()
 
     PRINT_GL_ERROR_IF_ANY ("end of display_initialize");
     
-#if !(defined(IPHONE) || defined(_MSC_VER))
+#if !(defined(TARGET_AQUA) || defined(_MSC_VER))
         
 	if (RUNNINGASPLUGIN) {
 #if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
