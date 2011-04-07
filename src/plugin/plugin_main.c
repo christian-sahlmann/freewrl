@@ -1,8 +1,9 @@
-/*
-  $Id: plugin_main.c,v 1.17 2011/04/03 10:56:58 couannette Exp $
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
 
-  FreeWRL plugin for Mozilla compatible browsers.
-  Works in Firefox 1.x - 3.0 on Linux.
+   $Id: plugin_main.c,v 1.18 2011/04/07 12:44:24 couannette Exp $
+   
+   FreeWRL plugin for Mozilla compatible browsers.
+   Works in Firefox 1.x - 3.0 on Linux.
 
 */
 
