@@ -204,7 +204,6 @@ fi
 
 ## Provide a fix for include path for systems with erroneous mozilla-js.pc
 if test x$found_JAVASCRIPT_ENGINE = xmozilla-js; then
-  AC_DEFINE([MOZILLA_JS_VERSION],[`$PKG_CONFIG --modversion mozilla-js`],[mozilla-js version])
   LIBMOZJS_INCDIR=`$PKG_CONFIG --variable=includedir mozilla-js 2>/dev/null`
   if (echo $JAVASCRIPT_ENGINE_CFLAGS | egrep '(un)?stable') > /dev/null 2>&1; then
     if test -f $LIBMOZJS_INCDIR/unstable/jsapi.h; then

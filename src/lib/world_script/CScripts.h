@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.19 2011/01/04 19:50:19 crc_canada Exp $
+$Id: CScripts.h,v 1.20 2011/04/07 19:43:22 istakenv Exp $
 
 Class to wrap a java script for CParser
 
@@ -59,7 +59,11 @@ extern int MAXJSparamNames;
 #define JS_SET_PROPERTY_STUB1 js_SetPropertyDebug1
 
 /* #define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2  */
-#define JS_SET_PROPERTY_STUB2 JS_PropertyStub
+#if defined(MOZILLA_JS_VERSION) && MOZILLA_JS_VERSION >= 2.0
+# define JS_SET_PROPERTY_STUB2 JS_StrictPropertyStub
+#else
+# define JS_SET_PROPERTY_STUB2 JS_PropertyStub
+#endif
 
 #define JS_SET_PROPERTY_STUB3 js_SetPropertyDebug3 
 #define JS_SET_PROPERTY_STUB4 js_SetPropertyDebug4 
