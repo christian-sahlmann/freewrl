@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
 
-   $Id: npunix.c,v 1.11 2011/04/07 12:43:56 couannette Exp $
+   $Id: npunix.c,v 1.12 2011/04/07 13:07:48 couannette Exp $
 
    FreeWRL plugin for Mozilla compatible browsers.
    Works in Firefox 1.x - 3.0 on Linux.
@@ -304,7 +304,7 @@ JRIEnv* NPN_GetJavaEnv()
 #if (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
         return CallNPN_GetJavaEnvProc(gNetscapeFuncs.getJavaEnv);
 #else
-        return (*gNetscapeFuncs.getJavaEnv);
+        return (JRIEnv*) (*gNetscapeFuncs.getJavaEnv);
 #endif
 }
 
