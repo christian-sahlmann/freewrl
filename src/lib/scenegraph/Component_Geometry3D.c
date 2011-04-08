@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.60 2011/03/23 19:28:53 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.61 2011/04/08 15:01:18 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -984,7 +984,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 		glGenBuffers(1,&SphereGeomVBO);
  		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, SphereGeomVBO);
  		glBufferData(GL_ARRAY_BUFFER, sizeof(sphTri), sphTri, GL_STATIC_DRAW);
-		printf ("creating VBO, size %d\n",sizeof(sphTri));
+		/* printf ("creating VBO, size %d\n",sizeof(sphTri)); */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
 	}
 }

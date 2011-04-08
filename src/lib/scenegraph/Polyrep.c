@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.45 2011/04/04 15:07:58 crc_canada Exp $
+$Id: Polyrep.c,v 1.46 2011/04/08 15:01:18 crc_canada Exp $
 
 ???
 
@@ -876,13 +876,11 @@ void render_polyrep(void *node) {
 	} else {
 #endif /* ndef GL_ES_VERSION_2_0 */
 
-PRINT_GL_ERROR_IF_ANY("");
-
 		/*  status bar, text do not have normals*/
 		if (pr->VBO_buffers[NORMAL_VBO]!=0) {
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[NORMAL_VBO]);
 			FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
-            FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+            		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
 
 		/* colours? */

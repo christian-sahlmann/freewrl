@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.38 2011/04/04 15:07:58 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.39 2011/04/08 15:01:18 crc_canada Exp $
 
 Screen snapshot.
 
@@ -58,7 +58,6 @@ typedef struct {
 	GLint Vertices;
 	GLint Normals;
 	GLint Colours;
-	GLint useShapeColour;
 	GLint TexCoords;
 	GLint Texture0;
 
@@ -120,7 +119,14 @@ typedef enum shader_type {
 	oneTexOneMaterialSphereShader,
 	oneTexTwoMaterialSphereShader,
 	complexTexOneMaterialSphereShader,
-	complexTexTwoMaterialSphereShader
+	complexTexTwoMaterialSphereShader,
+
+	/* Shape has Color node */
+	/* noMaterialNoAppearanceColourShader, -same as backgroundSphereShader */
+	noTexTwoMaterialColourShader,
+	noTexOneMaterialColourShader,
+	oneTexTwoMaterialColourShader,
+	oneTexOneMaterialColourShader
 
 
 } shader_type_t;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.51 2011/03/26 19:23:16 crc_canada Exp $
+$Id: Bindable.c,v 1.52 2011/04/08 15:01:18 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -55,7 +55,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 struct MyVertex
  {
    struct SFVec3f vert;    //Vertex
-   struct SFColor col;     //Colour
+   struct SFColorRGBA col;     //Colour
  };
 
 
@@ -903,6 +903,10 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 
 		/* stream both the vertex and colours together (could have done this above, but
 		   maybe can redo this if we go 100% material shaders */
+
+		/* NOTE - we use SFColorRGBA - and set the Alpha to 1 so that we can use the
+		   shader with other nodes with Color fields */
+
 		for (i=0; i<actq; i++) {
 			combinedBuffer[i].vert.c[0] = *npp; npp++;
 			combinedBuffer[i].vert.c[1] = *npp; npp++;
@@ -910,6 +914,7 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 			combinedBuffer[i].col.c[0] = *ncp; ncp++;
 			combinedBuffer[i].col.c[1] = *ncp; ncp++;
 			combinedBuffer[i].col.c[2] = *ncp; ncp++;
+			combinedBuffer[i].col.c[3] = 1.0f;
 		}
 		FREE_IF_NZ(newPoints);
 		FREE_IF_NZ(newColors);
@@ -966,7 +971,7 @@ void render_Background (struct X3D_Background *node) {
 
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-		FW_GL_COLOR_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(sizeof(float)*3));   //The starting point of normals, 12 bytes away
+		FW_GL_COLOR_POINTER(4, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(sizeof(struct SFVec3f)));   //The starting point of Colours, 12 bytes away
 
 		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
 
@@ -1068,7 +1073,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-		FW_GL_COLOR_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(sizeof(float)*3));   //The starting point of normals, 12 bytes away
+		FW_GL_COLOR_POINTER(4, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(sizeof(struct SFVec3f)));   //The starting point of Colours, 12 bytes away
 
 		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.27 2011/04/04 15:07:58 crc_canada Exp $
+$Id: StreamPoly.c,v 1.28 2011/04/08 15:01:18 crc_canada Exp $
 
 ???
 
@@ -98,6 +98,8 @@ static void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA, 
 
 	if (isRGBA) pc = 4; else pc = 3;
 
+	/* if (isRGBA) printf ("do_glColor4fv, isRGBA\n"); else printf ("do_glColor4fv, NOT RGBA, setting alpha to thisTransparency %f\n",thisTransparency); */
+
 	/* parameter checks */
 	for (i=0; i<pc; i++) {
 		if ((param[i] < 0.0) || (param[i] >1.0)) {
@@ -112,8 +114,10 @@ static void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA, 
 	if (isRGBA) {
 		dest->c[3] = param[3];
 	} else {
-		dest->c[3] = thisTransparency;
+		/* we calculate the transparency of the node. VRML 0.0 = fully visible, OpenGL 1.0 = fully visible */
+		dest->c[3] = 1.0f - thisTransparency;
 	}
+	/* printf ("do_glColor4fv, resulting is R %f G %f B %f A %f\n",dest->c[0],dest->c[1],dest->c[2], dest->c[3]); */
 }
 
 
@@ -306,31 +310,31 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	if (MUST_GENERATE_TEXTURES) defaultTextureMap(node, r, points, npoints);
 
 	/* figure out transparency for this node. Go through scene graph, and looksie for it. */
-	thisTrans = 0.0f;
-	/* 
-	printf ("figuring out what the transparency of this node is \n");
-	printf ("nt %s\n",stringNodeType(X3D_NODE(node)->_nodeType));
-	*/
+	thisTrans = 0.0f; /* 0.0 = solid, OpenGL 1.0 = solid, we reverse it when writing buffers */
+	 
+	// printf ("figuring out what the transparency of this node is \n");
+	// printf ("nt %s\n",stringNodeType(X3D_NODE(node)->_nodeType));
+	
 	/* parent[0] should be a NODE_Shape */
 	{ 
 		struct X3D_Shape *parent;
 		if (X3D_NODE(node)->_nparents != 0) {
 			parent = X3D_SHAPE(X3D_NODE(node)->_parents[0]);
-			/* printf ("nt, parent is of type %s\n",stringNodeType(parent->_nodeType)); */
+			// printf ("nt, parent is of type %s\n",stringNodeType(parent->_nodeType)); 
 			if (parent->_nodeType == NODE_Shape) {
 				struct X3D_Appearance *app;
                 		POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *, parent->appearance,app)
-				/* printf ("appearance is of type %s\n",stringNodeType(app->_nodeType)); */
 				if (app != NULL)  {
+					// printf ("appearance is of type %s\n",stringNodeType(app->_nodeType)); 
 					if (app->_nodeType == NODE_Appearance) {
 						struct X3D_Material *mat;
                 				POSSIBLE_PROTO_EXPANSION(struct X3D_Material *, app->material,mat)
-						/* printf ("material is of type %s\n",stringNodeType(mat->_nodeType)); */
 
 						if (mat != NULL) {
+							// printf ("material is of type %s\n",stringNodeType(mat->_nodeType)); 
 							if (mat->_nodeType == NODE_Material) {
 								thisTrans = mat->transparency;
-								/* printf ("Set transparency to %f\n",thisTrans); */
+								// printf ("Set transparency to %f\n",thisTrans);
 							}
 						}
 					}

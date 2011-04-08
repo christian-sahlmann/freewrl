@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.76 2011/03/23 15:32:36 crc_canada Exp $
+$Id: Component_Shape.c,v 1.77 2011/04/08 15:01:18 crc_canada Exp $
 
 X3D Shape Component
 
@@ -442,6 +442,7 @@ void compile_Material (struct X3D_Material *node) {
 	}
 
         /* set the transparency here for the material */
+	/* Remember, VRML/X3D transparency 0.0 = solid; OpenGL 1.0 = solid, so we reverse it... */
         trans = 1.0f - node->transparency;
                 
 	/* we now keep verified params in a structure that maps to Shaders well...
@@ -504,17 +505,69 @@ void render_Material (struct X3D_Material *node) {
 
 #ifdef SHADERS_2011
 
-#define NO_GEOM_SHADER 0x0000
-#define SPHERE_GEOM_SHADER 0x0100
-
+/* Least significant hex digit - appearance */
 #define NO_APPEARANCE_SHADER 0x0000
 #define MATERIAL_APPEARANCE_SHADER 0x0001
 #define TWO_MATERIAL_APPEARANCE_SHADER 0x0002
 #define ONE_TEX_APPEARANCE_SHADER 0x004
 
+/* second least significant hex digit - PolyRep colour present */
+#define NO_COLOUR_SHADER 0x0000
+#define HAVE_COLOUR_SHADER 0x00010
+
+/* third least significant hex digit - do shape geom in shader */
+#define NO_GEOM_SHADER 0x0000
+#define SPHERE_GEOM_SHADER 0x0100
+
+#define CHECK_COLOUR_FIELD(aaa) \
+	case NODE_##aaa: { \
+		struct X3D_##aaa *me = (struct X3D_##aaa *)realNode; \
+		if (me->color == NULL) return NO_COLOUR_SHADER; \
+		else return HAVE_COLOUR_SHADER; \
+		break; \
+	} 
+
+#define CHECK_VRML1_COLOUR_FIELD(aaa) \
+	case NODE_##aaa: { \
+		struct X3D_##aaa *me = (struct X3D_##aaa *)realNode; \
+		if (me->_color == NULL) return NO_COLOUR_SHADER; \
+		else return HAVE_COLOUR_SHADER; \
+		break; \
+	} \
+
+/* Some shapes have Color nodes - if so, then we have other shaders */
+static int getShapeColourShader (struct X3D_Node *myGeom) {
+	struct X3D_Node *realNode;
+
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
+
+	if (realNode == NULL) return NO_GEOM_SHADER;
+
+	/* go through each node type that can have a Color node, and if it is not NULL
+	   we know we have a Color node */
+
+	switch (realNode->_nodeType) {
+		CHECK_COLOUR_FIELD(IndexedFaceSet);
+		CHECK_COLOUR_FIELD(IndexedLineSet);
+		CHECK_COLOUR_FIELD(IndexedTriangleFanSet);
+		CHECK_COLOUR_FIELD(IndexedTriangleSet);
+		CHECK_COLOUR_FIELD(IndexedTriangleStripSet);
+		CHECK_COLOUR_FIELD(LineSet);
+		CHECK_COLOUR_FIELD(PointSet);
+		CHECK_COLOUR_FIELD(TriangleFanSet);
+		CHECK_COLOUR_FIELD(TriangleStripSet);
+		CHECK_COLOUR_FIELD(TriangleSet);
+		CHECK_COLOUR_FIELD(ElevationGrid);
+		CHECK_COLOUR_FIELD(GeoElevationGrid);
+		CHECK_VRML1_COLOUR_FIELD(VRML1_IndexedFaceSet);
+	}
+
+	/* if we are down here, we KNOW we do not have a color field */
+	return NO_COLOUR_SHADER;
+}
 
 /* find info on the geometry of this shape */
-static int newGetGeometryShader (struct X3D_Node *myGeom) {
+static int getGeometryShader (struct X3D_Node *myGeom) {
 	struct X3D_Node *realNode;
 	#ifdef HAVE_GEOMETRY_SHADERS
 
@@ -528,7 +581,7 @@ static int newGetGeometryShader (struct X3D_Node *myGeom) {
 	return NO_GEOM_SHADER;
 }
 
-static int newGetAppearanceShader (struct X3D_Node *myApp) {
+static int getAppearanceShader (struct X3D_Node *myApp) {
 	struct X3D_Appearance *realAppearanceNode;
 	struct X3D_Node *realMaterialNode;
 	struct X3D_Node *realTextureNode;
@@ -553,10 +606,10 @@ static int newGetAppearanceShader (struct X3D_Node *myApp) {
 
 	if (realAppearanceNode->texture != NULL) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->texture, realTextureNode);
-		if (realTextureNode = NODE_ImageTexture) {
+		if (realTextureNode->_nodeType == NODE_ImageTexture) {
 			retval |= ONE_TEX_APPEARANCE_SHADER;
 		} else {
-			printf ("newGetAppearanceShader, texture field %s not supported yet\n",
+			printf ("getAppearanceShader, texture field %s not supported yet\n",
 			stringNodeType(realTextureNode->_nodeType));
 		}
 	}
@@ -596,12 +649,18 @@ void compile_Shape (struct X3D_Shape *node) {
 
 	int whichGeometryShader = -1;
 	int whichAppearanceShader = -1;
+	int whichShapeColorShader = -1;
 
-	whichGeometryShader = newGetGeometryShader(node->geometry);
-	whichAppearanceShader = newGetAppearanceShader(node->appearance);
+	whichGeometryShader = getGeometryShader(node->geometry);
+	whichShapeColorShader = getShapeColourShader(node->geometry);
+	whichAppearanceShader = getAppearanceShader(node->appearance);
 
 
-	switch (whichGeometryShader | whichAppearanceShader) {
+	/* choose the shader. Note that we just "or" the results together */
+
+	switch (whichGeometryShader | whichAppearanceShader | whichShapeColorShader ) {
+
+	/* SECTION 1 - Spheres CAN NOT have colour nodes, we can ignore the ColourShader field */
 	case SPHERE_GEOM_SHADER | NO_APPEARANCE_SHADER:
 		node->_shaderTableEntry = noMaterialNoAppearanceSphereShader;
 		break;
@@ -616,32 +675,65 @@ void compile_Shape (struct X3D_Shape *node) {
 
 	case SPHERE_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER:
 	case SPHERE_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER:
-printf ("texture, Sphere, one sided material!\n");
 		node->_shaderTableEntry = oneTexOneMaterialSphereShader;
 		break;	
 
 
-	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER:
+
+	/* SECTION 2 - No Geom Shaders; No Color node in Shape */
+	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| NO_COLOUR_SHADER:
 		node->_shaderTableEntry = noMaterialNoAppearanceShader;
 		break;
 
-	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER:
+	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
 		node->_shaderTableEntry = noTexTwoMaterialShader;
 		break;
 
-	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER:
+	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
 		node->_shaderTableEntry = noTexOneMaterialShader;
 		break;	
 
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER:
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
 		node->_shaderTableEntry = oneTexTwoMaterialShader;
 		break;
 
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER:
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER:
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
 		node->_shaderTableEntry = oneTexOneMaterialShader;
 		break;	
+
+
 	
+
+	/* SECTION 3 - No Geom Shaders, HAVE Color node in shape */
+	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+printf ("Color node - choosing backgroundSphereShader\n");
+		node->_shaderTableEntry = backgroundSphereShader;
+		break;
+
+	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+printf ("Color node - choosing noTexTwoMaterialColourShader\n");
+		node->_shaderTableEntry = noTexTwoMaterialColourShader;
+		break;
+
+	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+printf ("Color node - choosing noTexOneMaterialColourShader\n");
+		node->_shaderTableEntry = noTexOneMaterialColourShader;
+		break;	
+
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+printf ("Color node - choosing oneTexTwoMaterialColourShader\n");
+		node->_shaderTableEntry = oneTexTwoMaterialColourShader;
+		break;
+
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+printf ("Color node - choosing oneTexOneMaterialColourShader\n");
+		node->_shaderTableEntry = oneTexOneMaterialColourShader;
+		break;	
+	
+
+	/* */
 	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
 	}
 
