@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.58 2011/03/23 15:32:36 crc_canada Exp $
+  $Id: fieldSet.c,v 1.59 2011/04/08 19:20:50 istakenv Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -762,7 +762,11 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 	#ifdef SETFIELDVERBOSE
 	strval = JS_ValueToString(scriptContext, JSglobal_return_val);
+#if JS_VERSION < 185
        	strp = JS_GetStringBytes(strval);
+#else
+	strp = JS_EncodeString(scriptContext,strval);
+#endif
 	printf ("start of setField_javascriptEventOut, to %ld:%d = %p, fieldtype %d string %s\n",(long)tn, tptr, memptr, fieldType, strp);
 	#endif
 
@@ -828,7 +832,11 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		case FIELDTYPE_SFImage: {
 			/* the string should be saved as an SFImage */
 			strval = JS_ValueToString(scriptContext, JSglobal_return_val);
+#if JS_VERSION < 185
 	        	strp = JS_GetStringBytes(strval);
+#else
+	        	strp = JS_EncodeString(scriptContext,strval);
+#endif
 
 			Parser_scanStringValueToMem(tn, tptr, FIELDTYPE_SFImage, strp, FALSE);
 			break;
@@ -839,7 +847,11 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 			uintptr_t *newptr;
 
 			strval = JS_ValueToString(scriptContext, JSglobal_return_val);
-	        	strp = JS_GetStringBytes(strval);
+#if JS_VERSION < 185
+			strp = JS_GetStringBytes(strval);
+#else
+			strp = JS_EncodeString(scriptContext,strval);
+#endif
 
 			/* copy the string over, delete the old one, if need be */
 			/* printf ("fieldSet SFString, tn %d tptr %d offset from struct %d\n",
@@ -860,7 +872,11 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 				struct X3D_Node *mynode;
 
 				strval = JS_ValueToString(scriptContext, JSglobal_return_val);
-	        		strp = JS_GetStringBytes(strval);
+#if JS_VERSION < 185
+				strp = JS_GetStringBytes(strval);
+#else
+				strp = JS_EncodeString(scriptContext,strval);
+#endif
 				
 				/* we will have at least one node here, in an ascii string */
 				while ((*strp > '\0') && (*strp <= ' ')) strp ++;
@@ -1247,7 +1263,12 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			JSString *_tmpStr;
 
 	                _tmpStr = JS_ValueToString(cx, mainElement);
+#if JS_VERSION < 185
 			strp = JS_GetStringBytes(_tmpStr);
+#else
+			strp = JS_EncodeString(cx,_tmpStr);
+#endif
+
 	                printf ("sub element %d is \"%s\" \n",i,strp);  
 
 			if (JSVAL_IS_OBJECT(mainElement)) printf ("sub element %d is an OBJECT\n",i);
@@ -1350,7 +1371,12 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 				JSString *strval;
 	
 	                        strval = JS_ValueToString(cx, mainElement);
+#if JS_VERSION < 185
 	                        strp = JS_GetStringBytes(strval);
+#else
+				strp = JS_EncodeString(cx,strval);
+#endif
+
 	
 				#ifdef SETFIELDVERBOSE
 				printf ("getJSMultiNumType, got string %s\n",strp); 
@@ -1462,7 +1488,11 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 			return;
 		}
 		strval = JS_ValueToString(cx, _v);
+#if JS_VERSION < 185
 		valStr = JS_GetStringBytes(strval);
+#else
+		valStr = JS_EncodeString(cx,strval);
+#endif
 
 		/* printf ("new string %d is %s\n",i,valStr); */
 

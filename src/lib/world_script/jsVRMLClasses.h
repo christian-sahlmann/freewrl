@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.18 2011/04/05 22:02:29 istakenv Exp $
+$Id: jsVRMLClasses.h,v 1.19 2011/04/08 19:20:50 istakenv Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -164,8 +164,8 @@ of garbage collection */
 void JS_MY_Finalize(JSContext *cx, JSObject *obj);
 
 JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval); 
-JSBool doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name); 
-JSBool doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type); 
+JSBool doMFAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, char *name); 
+JSBool doMFSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, int type); 
 JSBool getBrowser(JSContext *context, JSObject *obj, BrowserNative **brow); 
 JSBool doMFStringUnquote(JSContext *cx, jsval *vp);
 
@@ -175,7 +175,7 @@ JSBool doMFStringUnquote(JSContext *cx, jsval *vp);
 JSBool
 globalResolve(JSContext *cx,
 			  JSObject *obj,
-			  jsval id);
+			  jsid id);
 
 JSBool
 loadVrmlClasses(JSContext *context,
@@ -185,20 +185,26 @@ loadVrmlClasses(JSContext *context,
 JSBool
 setECMANative(JSContext *cx,
 			  JSObject *obj,
-			  jsval id,
+			  jsid id,
+#if JS_VERSION >= 185
+			  JSBool strict,
+#endif
 			  jsval *vp);
 
 
 JSBool
 getAssignProperty(JSContext *context,
 				  JSObject *obj,
-				  jsval id,
+				  jsid id,
 				  jsval *vp);
 
 JSBool
 setAssignProperty(JSContext *context,
 				  JSObject *obj,
-				  jsval id,
+				  jsid id,
+#if JS_VERSION >= 185
+				  JSBool strict,
+#endif
 				  jsval *vp);
 
 
@@ -219,10 +225,10 @@ JSBool
 SFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 JSBool
-SFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+SFColorGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
 
 JSBool
-SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+SFColorSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
 
 JSBool
 SFColorRGBAGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
@@ -240,10 +246,10 @@ JSBool
 SFColorRGBAConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 JSBool
-SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
 
 JSBool
-SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
 
 JSBool
 SFImageToString(JSContext *cx,
@@ -270,13 +276,13 @@ SFImageConstr(JSContext *cx,
 JSBool
 SFImageGetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 SFImageSetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 
@@ -306,13 +312,13 @@ void SFNodeFinalize(JSContext *cx, JSObject *obj);
 JSBool
 SFNodeGetProperty(JSContext *cx,
 				  JSObject *obj,
-				  jsval id,
+				  jsid id,
 				  jsval *vp);
 
 JSBool
 SFNodeSetProperty(JSContext *cx,
 				  JSObject *obj,
-				  jsval id,
+				  jsid id,
 				  jsval *vp);
 
 
@@ -383,13 +389,13 @@ SFRotationConstr(JSContext *cx,
 JSBool
 SFRotationGetProperty(JSContext *cx,
 					  JSObject *obj,
-					  jsval id,
+					  jsid id,
 					  jsval *vp);
 
 JSBool
 SFRotationSetProperty(JSContext *cx,
 					  JSObject *obj,
-					  jsval id,
+					  jsid id,
 					  jsval *vp);
 
 
@@ -475,13 +481,13 @@ SFVec2fConstr(JSContext *cx,
 JSBool
 SFVec2fGetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 SFVec2fSetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 
@@ -498,8 +504,8 @@ JSBool SFVec3fSubtract(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 JSBool SFVec3fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-JSBool SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
-JSBool SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+JSBool SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
+JSBool SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
 
 
 JSBool SFVec3dAdd(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
@@ -514,17 +520,17 @@ JSBool SFVec3dSubtract(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 JSBool SFVec3dToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3dAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3dConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-JSBool SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
-JSBool SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+JSBool SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
+JSBool SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
 
 
-JSBool SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
-JSBool SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+JSBool SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
+JSBool SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
 JSBool SFVec4fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec4fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec4fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-JSBool SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
-JSBool SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+JSBool SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
+JSBool SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
 JSBool SFVec4dToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec4dAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec4dConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
@@ -553,19 +559,19 @@ MFColorConstr(JSContext *cx,
 JSBool
 MFColorAddProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 MFColorGetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 MFColorSetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 
@@ -594,19 +600,19 @@ MFFloatConstr(JSContext *cx,
 JSBool
 MFFloatAddProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 MFFloatGetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 MFFloatSetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 
@@ -635,19 +641,19 @@ MFInt32Constr(JSContext *cx,
 JSBool
 MFInt32AddProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 MFInt32GetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 MFInt32SetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 
@@ -675,19 +681,19 @@ MFNodeConstr(JSContext *cx,
 JSBool
 MFNodeAddProperty(JSContext *cx,
 				  JSObject *obj,
-				  jsval id,
+				  jsid id,
 				  jsval *vp);
 
 JSBool
 MFNodeGetProperty(JSContext *cx,
 				  JSObject *obj,
-				  jsval id,
+				  jsid id,
 				  jsval *vp);
 
 JSBool
 MFNodeSetProperty(JSContext *cx,
 				  JSObject *obj,
-				  jsval id,
+				  jsid id,
 				  jsval *vp);
 
 
@@ -716,19 +722,19 @@ MFRotationConstr(JSContext *cx,
 JSBool
 MFRotationGetProperty(JSContext *cx,
 					  JSObject *obj,
-					  jsval id,
+					  jsid id,
 					  jsval *vp);
 
 JSBool
 MFRotationSetProperty(JSContext *cx,
 					  JSObject *obj,
-					  jsval id,
+					  jsid id,
 					  jsval *vp);
 
 JSBool
 MFRotationAddProperty(JSContext *cx,
 					  JSObject *obj,
-					  jsval id,
+					  jsid id,
 					  jsval *vp);
 
 
@@ -757,25 +763,25 @@ MFStringConstr(JSContext *cx,
 JSBool
 MFStringGetProperty(JSContext *cx,
 					JSObject *obj,
-					jsval id,
+					jsid id,
 					jsval *vp);
 
 JSBool
 MFStringSetProperty(JSContext *cx,
 					JSObject *obj,
-					jsval id,
+					jsid id,
 					jsval *vp);
 
 
 JSBool
 MFStringAddProperty(JSContext *cx,
 					JSObject *obj,
-					jsval id,
+					jsid id,
 					jsval *vp);
 
-JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) ;
+JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) ;
 JSBool MFStringEnumerateProperty(JSContext *cx, JSObject *obj) ;
-JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsval id) ;
+JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsid id) ;
 JSBool MFStringConvertProperty(JSContext *cx, JSObject *obj, JSType type, jsval *vp) ;
        
 
@@ -804,19 +810,19 @@ MFTimeConstr(JSContext *cx,
 JSBool
 MFTimeAddProperty(JSContext *cx,
 				  JSObject *obj,
-				  jsval id,
+				  jsid id,
 				  jsval *vp);
 
 JSBool
 MFTimeGetProperty(JSContext *cx,
 				  JSObject *obj,
-				  jsval id,
+				  jsid id,
 				  jsval *vp);
 
 JSBool
 MFTimeSetProperty(JSContext *cx,
 				  JSObject *obj,
-				  jsval id,
+				  jsid id,
 				  jsval *vp);
 
 
@@ -845,19 +851,19 @@ MFVec2fConstr(JSContext *cx,
 JSBool
 MFVec2fAddProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 MFVec2fGetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 MFVec2fSetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 
@@ -886,19 +892,19 @@ MFVec3fConstr(JSContext *cx,
 JSBool
 MFVec3fAddProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 MFVec3fGetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 MFVec3fSetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
@@ -935,23 +941,23 @@ VrmlMatrixConstr(JSContext *cx,
 JSBool
 VrmlMatrixAddProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 VrmlMatrixGetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool
 VrmlMatrixSetProperty(JSContext *cx,
 				   JSObject *obj,
-				   jsval id,
+				   jsid id,
 				   jsval *vp);
 
 JSBool _standardMFAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval, JSClass *myClass, int type);
-JSBool _standardMFGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *makeNewElement, int type);
+JSBool _standardMFGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, char *makeNewElement, int type);
 void printJSNodeType (JSContext *context, JSObject *myobj);
 
 extern JSClass SFColorClass;
@@ -1011,17 +1017,29 @@ extern JSFunctionSpec (MFVec3fFunctions)[];
 extern JSClass VrmlMatrixClass;
 extern JSFunctionSpec (VrmlMatrixFunctions)[];
 
-JSBool js_SetPropertyCheck (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-
+JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+#if JS_VERSION < 185
+JSBool js_SetPropertyCheck (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+#else
+JSBool js_SetPropertyCheck (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+#endif
 
 #endif /*  JS_VRML_CLASSES */

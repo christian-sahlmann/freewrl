@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.39 2011/02/16 17:46:00 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.40 2011/04/08 19:20:50 istakenv Exp $
 
 Javascript C language binding.
 
@@ -331,8 +331,11 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 			return JS_FALSE;
 		}
 		_str = JS_ValueToString(context, argv[0]);
+#if JS_VERSION < 185
 		_costr = JS_GetStringBytes(_str);
-
+#else
+		_costr = JS_EncodeString(context,_str);
+#endif
 		/* sanitize string, for the EAI_RW call (see EAI_RW code) */
 		tptr = _costr;
 		while (*tptr != '\0') {
@@ -380,10 +383,18 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 			return JS_FALSE;
 		}
 		_str[0] = JS_ValueToString(context, argv[0]);
+#if JS_VERSION < 185
 		_costr[0] = JS_GetStringBytes(_str[0]);
+#else
+		_costr[0] = JS_EncodeString(context,_str[0]);
+#endif
 
 		_str[1] = JS_ValueToString(context, argv[1]);
+#if JS_VERSION < 185
 		_costr[1] = JS_GetStringBytes(_str[1]);
+#else
+		_costr[1] = JS_EncodeString(context,_str[1]);
+#endif
 
 		/* we use the EAI code for this - so reformat this for the EAI format */
 		{
@@ -570,7 +581,11 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	/* third parameter should be a string */
 	if (JSVAL_IS_STRING(argv[2])) {
 		_str[1] = JSVAL_TO_STRING(argv[2]);
+#if JS_VERSION < 185
 		fieldStr = JS_GetStringBytes(_str[1]);
+#else
+		fieldStr = JS_EncodeString(context,_str[1]);
+#endif
 		#ifdef JSVERBOSE
 		printf ("field string is :%s:\n",fieldStr); 
 		#endif
@@ -585,7 +600,11 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 	/* get the URL listing as a string */
 	_str[0] = JS_ValueToString(context, argv[0]);
+#if JS_VERSION < 185
 	_costr0 = JS_GetStringBytes(_str[0]);
+#else
+	_costr0 = JS_EncodeString(context,_str[0]);
+#endif
 
 
 	#ifdef JSVERBOSE
@@ -685,7 +704,11 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 	for (count=0; count < argc; count++) {
 		if (JSVAL_IS_STRING(argv[count])) {
 			_str = JSVAL_TO_STRING(argv[count]);
+#if JS_VERSION < 185
 			_id_c = JS_GetStringBytes(_str);
+#else
+			_id_c = JS_EncodeString(context,_str);
+#endif
 			#if defined(AQUA) || defined(_MSC_VER)
 			BrowserPrintConsoleMessage(_id_c); /* statusbar hud */
 			consMsgCount = 0; /* reset the "Maximum" count */
@@ -845,7 +868,11 @@ VrmlBrowserGetMidiDeviceInfo(JSContext *context, JSObject *obj, uintN argc, jsva
 
 	/* parameter should be a string */
 	if (JSVAL_IS_STRING(argv[0])) {
+#if JS_VERSION < 185
 		target = JS_GetStringBytes( JSVAL_TO_STRING(argv[0]));
+#else
+		target = JS_EncodeString(context,JSVAL_TO_STRING(argv[0]));
+#endif
 		#ifdef JSVERBOSE
 		printf ("field string is %s\n",target); 
 		#endif
@@ -925,7 +952,11 @@ int findMidiNumber (JSContext *cx, uintN argc, jsval *argv, int myFn) {
 
 	/* parameters should be a string */
 	if (JSVAL_IS_STRING(argv[0])) {
+#if JS_VERSION < 185
 		targetDevice = JS_GetStringBytes( JSVAL_TO_STRING(argv[0]));
+#else
+		targetDevice = JS_EncodeString(cx,JSVAL_TO_STRING(argv[0]));
+#endif
 		#ifdef JSVERBOSE
 		printf ("field string is %s\n",targetDevice); 
 		#endif
@@ -934,7 +965,11 @@ int findMidiNumber (JSContext *cx, uintN argc, jsval *argv, int myFn) {
 		return -1;
 	}
 	if (JSVAL_IS_STRING(argv[1])) {
+#if JS_VERSION < 185
 		targetController = JS_GetStringBytes( JSVAL_TO_STRING(argv[1]));
+#else
+		targetController = JS_EncodeString(cx,JSVAL_TO_STRING(argv[1]));
+#endif
 		#ifdef JSVERBOSE
 		printf ("field string is %s\n",targetController); 
 		#endif

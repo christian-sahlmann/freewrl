@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.h,v 1.11 2010/07/19 03:06:04 dug9 Exp $
+$Id: jsUtils.h,v 1.12 2011/04/08 19:20:50 istakenv Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -98,8 +98,11 @@ errorReporter(JSContext *cx,
 			  JSErrorReport *report);
 
 void X3D_ECMA_TO_JS(JSContext *cx, void *Data, int datalen, int dataType, jsval *ret);
-JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-
+#if JS_VERSION < 185
+JSBool setSFNodeField (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+#else
+JSBool setSFNodeField (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+#endif
 
 const char *classToString(JSClass *myClass);
 #define CHECK_CLASS(cx,obj,argv,fnString,expClass) \

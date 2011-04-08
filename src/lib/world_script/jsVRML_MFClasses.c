@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.25 2011/02/11 19:09:20 crc_canada Exp $
+$Id: jsVRML_MFClasses.c,v 1.26 2011/04/08 19:20:50 istakenv Exp $
 
 ???
 
@@ -132,18 +132,18 @@ MFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 }
 
 JSBool
-MFColorAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFColorAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFAddProperty(cx, obj, id, vp,"MFColorAddProperty");
 }
 
 JSBool
-MFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFColorGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
 			"_FreeWRL_Internal = new SFColor()", FIELDTYPE_MFColor);
 }
 
 JSBool
-MFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFColorSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFColor);
 }
 
@@ -194,18 +194,18 @@ MFFloatConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 }
 
 JSBool
-MFFloatAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFFloatAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFAddProperty(cx, obj, id, vp,"MFFloatAddProperty");
 }
 
 JSBool
-MFFloatGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFFloatGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
 			"_FreeWRL_Internal = 0.0", FIELDTYPE_MFFloat);
 }
 
 JSBool
-MFFloatSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFFloatSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFFloat);
 }
 
@@ -276,7 +276,7 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 }
 
 JSBool
-MFInt32AddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFInt32AddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of MFInt32AddProperty\n");
 	#endif
@@ -285,7 +285,7 @@ MFInt32AddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 }
 
 JSBool
-MFInt32GetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFInt32GetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of MFInt32GetProperty\n");
 	#endif
@@ -295,7 +295,7 @@ MFInt32GetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 }
 
 JSBool
-MFInt32SetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFInt32SetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of MFInt32SetProperty\n");
 	#endif
@@ -371,7 +371,7 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 }
 
 JSBool
-MFNodeAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFNodeAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("startof MFNODEADDPROPERTY\n");
 	#endif
@@ -379,7 +379,7 @@ MFNodeAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 }
 
 JSBool
-MFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFNodeGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of MFNODEGETPROPERTY obj %d\n");
 	#endif
@@ -389,26 +389,26 @@ MFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 }
 
 JSBool
-MFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFNodeSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	/* printf ("start of MFNODESETPROPERTY obj %d\n",obj); */
 	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFNode);
 }
 
 
 JSBool
-MFTimeAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFTimeAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFAddProperty(cx, obj, id, vp,"MFTimeAddProperty");
 }
 
 JSBool
-MFTimeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFTimeGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
 			 "_FreeWRL_Internal = 0.0",
 			FIELDTYPE_MFTime);
 }
 
 JSBool
-MFTimeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFTimeSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFTime);
 }
 
@@ -461,18 +461,18 @@ MFTimeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 
 
 JSBool
-MFVec2fAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFVec2fAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFAddProperty(cx, obj, id, vp,"MFVec2fAddProperty");
 }
 
 JSBool
-MFVec2fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFVec2fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
 			 "_FreeWRL_Internal = new SFVec2f()",FIELDTYPE_MFVec2f);
 }
 
 JSBool
-MFVec2fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFVec2fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFVec2f);
 }
 
@@ -523,18 +523,18 @@ MFVec2fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 /* MFVec3f */
 JSBool
-MFVec3fAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFVec3fAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFAddProperty(cx, obj, id, vp,"MFVec3fAddProperty");
 }
 
 JSBool
-MFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFVec3fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
 			 "_FreeWRL_Internal = new SFVec3f()",FIELDTYPE_MFVec3f);
 }
 
 JSBool
-MFVec3fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFVec3fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFVec3f);
 }
 
@@ -587,17 +587,14 @@ MFVec3fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 /* VrmlMatrix */
 
 static void _setmatrix (JSContext *cx, JSObject *obj, double *matrix) {
-jsdouble *dp;
+	jsval val;
 	int i;
 	for (i=0; i<16; i++) {
-		jsval val;
 
-		if ((dp = JS_NewDouble(cx, matrix[i])) == NULL) {
+		if (JS_NewNumberValue(cx, matrix[i],&val) == JS_FALSE) {
 			printf ("problem creating id matrix\n");
 			return;
 		}
-
-		val = DOUBLE_TO_JSVAL(dp);
 
 		if (!JS_SetElement(cx, obj, (jsint) i, &val)) {
 			printf( "JS_DefineElement failed for arg %u in VrmlMatrixSetTransform.\n", i);
@@ -1193,16 +1190,15 @@ VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 }
 
 JSBool
-VrmlMatrixAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+VrmlMatrixAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFAddProperty(cx, obj, id, vp,"VrmlMatrixAddProperty");
 }
 
 JSBool
-VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 {
 	int32 _length, _index;
     jsval _length_val;
-	jsdouble zerojsdouble = 0.0;
 
     if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
 		printf( "JS_GetProperty failed for \"length\" in VrmlMatrixGetProperty.\n");
@@ -1232,7 +1228,7 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		_index = JSVAL_TO_INT(id);
 
 		if (_index >= _length) {
-			*vp = DOUBLE_TO_JSVAL(&zerojsdouble);
+			JS_NewNumberValue(cx,0.0,vp);
 			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed in VrmlMatrixGetProperty.\n");
 				return JS_FALSE;
@@ -1256,24 +1252,24 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 }
 
 JSBool
-VrmlMatrixSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+VrmlMatrixSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFSetProperty(cx, obj, id, vp,1000); /* do not have a FIELDTYPE for this */
 }
 
 /* MFRotation */
 JSBool
-MFRotationAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFRotationAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFAddProperty(cx, obj, id, vp,"MFRotationAddProperty");
 }
 
 JSBool
-MFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFRotationGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
 			 "_FreeWRL_Internal = new SFRotation()",FIELDTYPE_MFRotation);
 }
 
 JSBool
-MFRotationSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+MFRotationSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFRotation);
 }
 
@@ -1326,7 +1322,7 @@ MFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 
 /* MFStrings */
 JSBool
-MFStringAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+MFStringAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 {
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf("MFStringAddProperty: vp = %p\n", obj);
@@ -1373,7 +1369,7 @@ MFStringAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 
 JSBool
-MFStringGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+MFStringGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 {
 	JSString *_str;
 	int32 _length, _index;
@@ -1421,7 +1417,7 @@ MFStringGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 }
 
 JSBool
-MFStringSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+MFStringSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 {
 	JSBool rv;
 
@@ -1540,7 +1536,7 @@ MFStringAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 }
 
 /* testing.. */
-JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) { 
+JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) { 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("MFStringDeleteProperty\n"); 
 	#endif
@@ -1553,7 +1549,7 @@ JSBool MFStringEnumerateProperty(JSContext *cx, JSObject *obj) {
 	return JS_TRUE;
 }
 
-JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsval id) { 
+JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsid id) { 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("MFStringResolveProperty\n"); 
 	#endif

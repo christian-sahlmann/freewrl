@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.33 2011/04/05 21:59:00 istakenv Exp $
+$Id: jsUtils.c,v 1.34 2011/04/08 19:20:50 istakenv Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -82,7 +82,11 @@ extern char *parser_getNameFromNode(struct X3D_Node *ptr) ; /* vi +/dump_scene s
 static int insetSFStr = FALSE;
 static JSBool reportWarnings = JS_TRUE;
 
-static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+#if JS_VERSION < 185
+static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
+#else
+static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	int num;
 	jsval pf;
 	jsval nf;
@@ -149,10 +153,18 @@ static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 			nf = OBJECT_TO_JSVAL(me);
 
 			#ifdef JSVRMLCLASSESVERBOSE
+			#if JS_VERSION < 185
 			printf ("parentField is %u \"%s\"\n", pf, JS_GetStringBytes(JSVAL_TO_STRING(pf)));
+			#else
+			printf ("parentField is %u \"%s\"\n", pf, JS_EncodeString(cx,JSVAL_TO_STRING(pf)));
+			#endif
 			#endif
 
-			if (!setSFNodeField (cx, par, pf, &nf)) {
+			if (!setSFNodeField (cx, par, pf,
+#if JS_VERSION >= 185
+			   JS_FALSE,
+#endif
+			   &nf)) {
 				printf ("could not set field of SFNode\n");
 			}
 
@@ -213,7 +225,11 @@ static void JS_ECMA_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int data
         		char *_id_c;
 
         		_idStr = JS_ValueToString(cx, *newval);
+#if JS_VERSION < 185
         		_id_c = JS_GetStringBytes(_idStr);
+#else
+        		_id_c = JS_EncodeString(cx,_idStr);
+#endif
 
 			oldS = (struct Uni_String *) *((uintptr_t *)Data);
 
@@ -879,7 +895,7 @@ static int *getFOP (struct X3D_Node *node, const char *str) {
 
 
 /* getter for SFNode accesses */
-static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsid id, jsval *vp) {
 	JSString *_idStr;
 	char *_id_c;
         SFNodeNative *ptr;
@@ -887,7 +903,11 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval
 	struct X3D_Node *node;
 
 	_idStr = JS_ValueToString(context, id);
+#if JS_VERSION < 185
 	_id_c = JS_GetStringBytes(_idStr);
+#else
+	_id_c = JS_EncodeString(context,_idStr);
+#endif
 	
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("\ngetSFNodeField called on name %s object %u\n",_id_c, obj);
@@ -1068,7 +1088,11 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval
 }
 
 /* setter for SFNode accesses */
-JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+#if JS_VERSION < 185
+JSBool setSFNodeField (JSContext *context, JSObject *obj, jsid id, jsval *vp) {
+#else
+JSBool setSFNodeField (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	char *_id_c;
         SFNodeNative *ptr;
 	int *fieldOffsetsPtr;
@@ -1076,7 +1100,11 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 
 	/* get the id field... */
 
+#if JS_VERSION < 185
 	_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id));
+#else
+	_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id));
+#endif
 	
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("\nsetSFNodeField called on name %s object %u, jsval %u\n",_id_c, obj, *vp);
@@ -1354,18 +1382,29 @@ holding object needs to route to FreeWRL... */
         }
 
 
-
+#if JS_VERSION < 185
 JSBool js_SetPropertyCheck (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+#else
+JSBool js_SetPropertyCheck(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	int num=0;
 
 #ifdef VERBOSE
 	char *_id_c = "(no value in string)";
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(cx,JSVAL_TO_STRING(id)); 
+#endif
         	/* printf ("hmmm...js_SetPropertyCheck called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp); */
 	} else if (JSVAL_IS_DOUBLE(id)) {
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(cx,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("\n...js_SetPropertyCheck called on double %s object %u, jsval %u\n",_id_c, obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
@@ -1416,14 +1455,18 @@ JSBool js_SetPropertyCheck (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 /****************************************************************************/
 
-JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsid id, jsval *vp) {
 	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 	/* get the id field... */
 
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("\n...js_GetPropertyDebug called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
@@ -1435,14 +1478,22 @@ JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *
 	return JS_TRUE;
 }
 
+#if JS_VERSION < 185
 JSBool js_SetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+#else
+JSBool js_SetPropertyDebug (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("\n...js_SetPropertyDebug called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
@@ -1453,14 +1504,23 @@ JSBool js_SetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *
 	#endif
 	return JS_TRUE;
 }
+
+#if JS_VERSION < 185
 JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+#else
+JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("\n...js_SetPropertyDebug1 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
@@ -1471,14 +1531,22 @@ JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsval id, jsval 
 	#endif
 	return JS_TRUE;
 }
+#if JS_VERSION < 185
 JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+#else
+JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("...js_SetPropertyDebug2 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
@@ -1489,14 +1557,22 @@ JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsval id, jsval 
 	#endif
 	return JS_TRUE;
 }
+#if JS_VERSION < 185
 JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+#else
+JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("\n...js_SetPropertyDebug3 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
@@ -1507,14 +1583,22 @@ JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsval id, jsval 
 	#endif
 	return JS_TRUE;
 }
+#if JS_VERSION < 185
 JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+#else
+JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("\n...js_SetPropertyDebug4 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
@@ -1525,14 +1609,22 @@ JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsval id, jsval 
 	#endif
 	return JS_TRUE;
 }
+#if JS_VERSION < 185
 JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+#else
+JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("\n...js_SetPropertyDebug5 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
@@ -1543,14 +1635,22 @@ JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsval id, jsval 
 	#endif
 	return JS_TRUE;
 }
+#if JS_VERSION < 185
 JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+#else
+JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("\n...js_SetPropertyDebug6 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
@@ -1561,14 +1661,22 @@ JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsval id, jsval 
 	#endif
 	return JS_TRUE;
 }
+#if JS_VERSION < 185
 JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+#else
+JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("\n...js_SetPropertyDebug7 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
@@ -1579,14 +1687,22 @@ JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsval id, jsval 
 	#endif
 	return JS_TRUE;
 }
+#if JS_VERSION < 185
 JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+#else
+JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("\n...js_SetPropertyDebug8 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
@@ -1597,14 +1713,22 @@ JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval 
 	#endif
 	return JS_TRUE;
 }
+#if JS_VERSION < 185
 JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
+#else
+JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	#ifdef JSVRMLCLASSESVERBOSE 
 	char *_id_c = "(no value in string)";
 	int num;
 
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+#if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
+#else
+		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
+#endif
         	printf ("\n...js_SetPropertyDebug9 called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
