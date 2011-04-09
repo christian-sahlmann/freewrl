@@ -349,3 +349,54 @@ finished: i.e. for all OpenGL calls.
 
 Basically we can see OpenGL-ES as a subset of OpenGL. But for FreeWRL
 to work correctly OpenGL-ES requires the use of =VBO=.
+
+
+*** An unique function to get/set libFreeWRL variables
+
+**** Purpose
+
+ - all variables visible from outside the library that need an
+   accessor (to trap changes, update other variables, ...)
+
+ - all variables exposed to scripting language or external processes
+   (SAI/EAI) that need an accessor (check type, check value, ...)
+
+**** Variable list
+
+  - window (type is platform specific)
+  - OpenGL window (type is platform specific)
+  - GLX/AGL/WGL context (type is platform specific)
+  - width
+  - height
+  - fullscreen (switch)
+  - eai (switch)
+  - verbose (switch)
+  - collision (switch)
+  - starting url (world base)
+  - viewer mode
+  - snap (switch)
+  - snap directory
+  - snap file pattern
+  - EAI verbose (switch)
+  - screen dist
+  - stereo (switch)
+  - shutter glass (switch)
+  - eye dist
+  - anaglyph
+  - side by side (switch)
+  - stereo buffer mode (switch)
+  - line width
+  - snap gif (not used?)
+  - print shot (can't understand this?)
+  - browser full path (need rework)
+  - pipe and all plugin related variables (I rewriting this)
+  - keypress_string (need rework)
+  - ask for refresh, refresh switch or status (need rework)
+
+**** Implementation
+
+ - a new include file could be created with the list of variables (it
+   will be included in libFreeWRL.h when this step is finished)
+
+ - a new source file could be created with the unique accessor
+   function
