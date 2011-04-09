@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.33 2010/09/20 00:34:18 dug9 Exp $
+$Id: Viewer.h,v 1.34 2011/04/09 00:33:19 davejoubert Exp $
 
 Viewer ???
 
@@ -248,7 +248,7 @@ typedef struct viewer {
 
 void Viewer_anaglyph_setSide(int iside);
 
-void initStereoDefaults(void);
+void fwl_init_StereoDefaults(void);
 
 void viewer_postGLinit_init(void);
 

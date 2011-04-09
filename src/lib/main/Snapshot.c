@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.16 2011/03/13 18:01:13 dug9 Exp $
+$Id: Snapshot.c,v 1.17 2011/04/09 00:33:19 davejoubert Exp $
 
 CProto ???
 
@@ -96,7 +96,7 @@ static char * grabScreen(int bytesPerPixel, int x, int y, int width, int height)
 #if defined( WIN32) || defined (IPHONE)
 /* stubbs for now */
 void setSnapshot() {}
-void setSnapGif(){}
+void fwl_init_SnapGif(){}
 void saveSnapSequence() {}
 #ifndef _MSC_VER
 void Snapshot () {}
@@ -145,12 +145,12 @@ void Snapshot ()
 
 #else /*ifdef win32*/
 
-void setSnapGif()
+void fwl_init_SnapGif()
 {
     snapGif = TRUE;
 }
 
-void setPrintShot() {
+void fwl_init_PrintShot() {
 	doPrintshot = TRUE;
 	savedSnapshot = doSnapshot;
 	doSnapshot = TRUE;
@@ -158,7 +158,7 @@ void setPrintShot() {
 }
 
 /* turn snapshotting on; if sequenced; possibly turn off an convert sequence */
-void setSnapshot() {
+void fwl_toggleSnapshot() {
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
 	if (!doSnapshot) {

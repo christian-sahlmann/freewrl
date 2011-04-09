@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.75 2011/04/07 16:52:23 crc_canada Exp $
+  $Id: display.c,v 1.76 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -101,16 +101,16 @@ int PaneClipChanged = FALSE;
 #endif
 
 /**
- *  display_initialize: takes care of all the initialization process, 
+ *  fwl_display_initialize: takes care of all the initialization process, 
  *                      creates the display thread and wait for it to complete
  *                      the OpenGL initialization and the Window creation.
  */
-int display_initialize()
+int fwl_display_initialize()
 {
 
 	if (display_initialized) return TRUE;
 
-    PRINT_GL_ERROR_IF_ANY("start of display_initialize");
+    PRINT_GL_ERROR_IF_ANY("start of fwl_display_initialize");
     
 	memset(&rdr_caps, 0, sizeof(rdr_caps));
 
@@ -134,25 +134,25 @@ int display_initialize()
 
 	if (0 != screenWidth)  win_width  = screenWidth;
 	if (0 != screenHeight) win_height = screenHeight;
-	setScreenDim(win_width,win_height); /* recompute screenRatio */
+	fwl_setScreenDim(win_width,win_height); /* recompute screenRatio */
 	if (!create_main_window(0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
 
-    PRINT_GL_ERROR_IF_ANY ("display_initialize - before the bind_GLcontext call");
+    PRINT_GL_ERROR_IF_ANY ("fwl_display_initialize - before the bind_GLcontext call");
     
 #if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
 	bind_GLcontext();
 #endif
 
-    PRINT_GL_ERROR_IF_ANY ("display_initialize - before the initialize_GL call");
+    PRINT_GL_ERROR_IF_ANY ("fwl_display_initialize - before the initialize_GL call");
 
     
 	if (!initialize_GL()) {
 		return FALSE;
 	}
 
-    PRINT_GL_ERROR_IF_ANY ("display_initialize - after initialize_GL call");
+    PRINT_GL_ERROR_IF_ANY ("fwl_display_initialize - after initialize_GL call");
 
     
 	/* Display full initialized :P cool ! */
@@ -160,7 +160,7 @@ int display_initialize()
 
 	DEBUG_MSG("FreeWRL: running as a plugin: %s\n", BOOL_STR(isBrowserPlugin));
 
-    PRINT_GL_ERROR_IF_ANY ("end of display_initialize");
+    PRINT_GL_ERROR_IF_ANY ("end of fwl_display_initialize");
     
 #if !(defined(TARGET_AQUA) || defined(_MSC_VER))
         
@@ -177,21 +177,21 @@ int display_initialize()
 }
 
 /**
- *   setGeometry_from_cmdline: scan command line arguments (X11 convention), to
+ *   fv_setGeometry_from_cmdline: scan command line arguments (X11 convention), to
  *                             set up the window dimensions.
  */
-void setGeometry_from_cmdline(const char *gstring)
+void fv_setGeometry_from_cmdline(const char *gstring)
 {
     int c;
     c = sscanf(gstring,"%dx%d+%d+%d", &win_width, &win_height, &xPos, &yPos);
     /* tell OpenGL what the screen dims are */
-    setScreenDim(win_width,win_height);
+    fwl_setScreenDim(win_width,win_height);
 }
 
 /**
- *   setScreenDim: set internal variables for screen sizes, and calculate frustum
+ *   fwl_setScreenDim: set internal variables for screen sizes, and calculate frustum
  */
-void setScreenDim(int wi, int he)
+void fwl_setScreenDim(int wi, int he)
 {
     screenWidth = wi;
     screenHeight = he;

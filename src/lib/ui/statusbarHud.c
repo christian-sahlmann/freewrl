@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.22 2010/12/06 18:39:10 davejoubert Exp $
+  $Id: statusbarHud.c,v 1.23 2011/04/09 00:33:19 davejoubert Exp $
 
 */
 
@@ -1385,7 +1385,7 @@ return;
 }
 void handleButtonOver()
 {
-	/* called from mainloop > handle_aqua to 
+	/* called from mainloop > fwl_handle_aqua to 
 	a) detect a button over and 
 	b) highlight underneath the button*/
 	int i,x,y;
@@ -1453,8 +1453,8 @@ void handleButtonPress()
 				/* prev, next */
 				switch(i)
 				{
-                case 6: {Prev_ViewPoint(); break;}
-                case 7: {Next_ViewPoint(); break;}
+                case 6: {fwl_Prev_ViewPoint(); break;}
+                case 7: {fwl_Next_ViewPoint(); break;}
 				}
 			}
 			else if(i == 3)
@@ -1600,7 +1600,7 @@ M	void setMenuButton_texSize(int size);  // not called or used in my current con
 
 	//new interfaces for statusbarHud you will need to implement stubs for when not using hud:
 C	void setHudConsoleMessage(char *buffer); //call from ConsoleMessageHud.c
-H	int handleStatusbarHud(int mev, int* clipplane); //called from handle_aqua or handle_xevent in mainloop
+H	int handleStatusbarHud(int mev, int* clipplane); //called from fwl_handle_aqua or handle_xevent in mainloop
 
 	The interface statusbarHud requires other modules to implement to serve it:
 	//already implemented

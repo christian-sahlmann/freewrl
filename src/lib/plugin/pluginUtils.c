@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.40 2011/02/11 18:46:25 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.41 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -57,7 +57,7 @@ static int checkIfX3DVRMLFile(char *fn);
  * is take parameters and execl them, in specific formats, to stop
  * people (or, to try to stop) from typing malicious code. */
 
-/* keep a list of children; if one hangs, doQuit will hang, also. */
+/* keep a list of children; if one hangs, fwl_doQuit will hang, also. */
 #ifndef WIN32
 #define MAXPROCESSLIST 128
 pid_t childProcess[MAXPROCESSLIST];

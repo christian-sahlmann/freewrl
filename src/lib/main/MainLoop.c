@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.173 2011/04/04 16:29:55 crc_canada Exp $
+  $Id: MainLoop.c,v 1.174 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -146,7 +146,7 @@ char * keypress_string=NULL;            /* Robert Sim - command line key sequenc
 int keypress_wait_for_settle = 100;     /* JAS - change keypress to wait, then do 1 per loop */
 extern int viewer_initialized;
 
-void Next_ViewPoint(void);              /*  switch to next viewpoint -*/
+/* void Next_ViewPoint(void);  */            /*  switch to next viewpoint -*/
 static void setup_viewpoint();
 static void get_collisionoffset(double *x, double *y, double *z);
 
@@ -194,7 +194,7 @@ int HaveSensitive = FALSE;
 
 /* Function protos */
 static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
-void do_keyPress(char kp, int type);
+/* void fwl_do_keyPress(char kp, int type); Now in lib.h */
 static void render_collisions(void);
 static void render_pre(void);
 static void render(void);
@@ -380,7 +380,7 @@ void RenderSceneUpdateScene() {
 #if !defined( AQUA ) && !defined( WIN32 )  /*win32 - don't know whats it is suppsoed to do yet */
 
 				DEBUG_XEV("CMD LINE GEN EVENT: %c\n", *keypress_string);
-                                do_keyPress(*keypress_string,KeyPress);
+                                fwl_do_keyPress(*keypress_string,KeyPress);
 #endif /* NOT AQUA and NOT WIN32 */
 
                                 keypress_string++;
@@ -448,7 +448,7 @@ void RenderSceneUpdateScene() {
 	/**
 	 *   Win32 event loop
 	 *   gives windows message handler a time slice and 
-	 *   it calls handle_aqua and do_keypress from fwWindow32.c 
+	 *   it calls fwl_handle_aqua and do_keypress from fwWindow32.c 
 	 */
 	doEventsWin32A(); 
 #endif /* _MSC_VER */
@@ -656,7 +656,7 @@ void handle_Xevents(XEvent event) {
                 /* Motif, etc, usually handles this. */
                 case ConfigureNotify:
 			/*  printf("%s,%d ConfigureNotify  %d %d\n",__FILE__,__LINE__,event.xconfigure.width,event.xconfigure.height); */
-                        setScreenDim (event.xconfigure.width,event.xconfigure.height);
+                        fwl_setScreenDim (event.xconfigure.width,event.xconfigure.height);
                         break;
 //#endif
                 case KeyPress:
@@ -701,7 +701,7 @@ void handle_Xevents(XEvent event) {
                         buf[0]=(char)ks;buf[1]='\0';
 
 			DEBUG_XEV("Key type = %s\n", (event.type == KeyPress ? "KEY PRESS" : "KEY  RELEASE"));
-                        do_keyPress((char)ks,event.type);
+                        fwl_do_keyPress((char)ks,event.type);
                         break;
 
                 case ButtonPress:
@@ -1232,10 +1232,10 @@ void sendKeyToKeySensor(const char key, int upDown);
 #define KEYDOWN 2
 #endif
 
-void do_keyPress(const char kp, int type) {
+void fwl_do_keyPress(const char kp, int type) {
 		int lkp;
         /* does this X3D file have a KeyDevice node? if so, send it to it */
-	//printf("do_keyPress: %c%d\n",kp,type); 
+	//printf("fwl_do_keyPress: %c%d\n",kp,type); 
         if (KeySensorNodePresent()) {
                 sendKeyToKeySensor(kp,type);
         } else {
@@ -1259,14 +1259,14 @@ void do_keyPress(const char kp, int type) {
                                 case '$': resource_tree_dump(0, root_res); break;
                                 case '*': resource_tree_list_files(0, root_res); break;
                                 case 'q': { if (!RUNNINGASPLUGIN) {
-                                                  doQuit();
+                                                  fwl_doQuit();
                                             }
                                             break;
                                           }
                                 case 'c': { toggle_collision(); break;}
-                                case 'v': {Next_ViewPoint(); break;}
-                                case 'b': {Prev_ViewPoint(); break;}
-                                case 's': {setSnapshot(); break;}
+                                case 'v': {fwl_Next_ViewPoint(); break;}
+                                case 'b': {fwl_Prev_ViewPoint(); break;}
+                                case 's': {fwl_toggleSnapshot(); break;}
 								case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
                                 default: 
 #ifdef WIN32
@@ -1495,7 +1495,7 @@ int moreThanOneValidViewpoint( void) {
 
 
 /* go to the last viewpoint */
-void Last_ViewPoint() {
+void fwl_Last_ViewPoint() {
 	if (moreThanOneValidViewpoint()) {
 
 		int vp_to_go_to;
@@ -1528,7 +1528,7 @@ void Last_ViewPoint() {
         }
 }
 /* go to the first viewpoint */
-void First_ViewPoint() {
+void fwl_First_ViewPoint() {
 	if (moreThanOneValidViewpoint()) {
 
 		int vp_to_go_to;
@@ -1561,7 +1561,7 @@ void First_ViewPoint() {
         }
 }
 /* go to the next viewpoint */
-void Prev_ViewPoint() {
+void fwl_Prev_ViewPoint() {
 	if (moreThanOneValidViewpoint()) {
 
 		int vp_to_go_to;
@@ -1595,7 +1595,7 @@ void Prev_ViewPoint() {
 }
 
 /* go to the next viewpoint */
-void Next_ViewPoint() {
+void fwl_Next_ViewPoint() {
 	if (moreThanOneValidViewpoint()) {
 
 		int vp_to_go_to;
@@ -1629,11 +1629,11 @@ void Next_ViewPoint() {
 }
 
 /* initialization for the OpenGL render, event processing sequence. Should be done in threat that has the OpenGL context */
-void initializeRenderSceneUpdateScene() {
-	/* printf ("initializeRenderSceneUpdateScene start\n"); */
+void fwl_initializeRenderSceneUpdateScene() {
+	/* printf ("fwl_initializeRenderSceneUpdateScene start\n"); */
 
 	/* Initialize display */
-	if (!display_initialize()) {
+	if (!fwl_display_initialize()) {
 		ERROR_MSG("initFreeWRL: error in display initialization.\n");
 		exit(1);
 	}
@@ -1653,7 +1653,7 @@ void initializeRenderSceneUpdateScene() {
 	if (fullscreen) resetGeometry();
 	#endif
 
-	/* printf ("initializeRenderSceneUpdateScene finish\n"); */
+	/* printf ("fwl_initializeRenderSceneUpdateScene finish\n"); */
 }
 
 void finalizeRenderSceneUpdateScene() {
@@ -1668,7 +1668,7 @@ void _displayThread()
 {
 	ENTER_THREAD("display");
 
-	initializeRenderSceneUpdateScene();
+	fwl_initializeRenderSceneUpdateScene();
     
 	/* loop and loop, and loop... */
 	while (!quitThread) {
@@ -1683,8 +1683,8 @@ void _displayThread()
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 
-void setLastMouseEvent(int etype) {
-	//printf ("setLastMouseEvent called\n");
+void fwl_setLastMouseEvent(int etype) {
+	//printf ("fwl_setLastMouseEvent called\n");
         lastMouseEvent = etype;
 }
 
@@ -1700,7 +1700,7 @@ void initialize_parser()
 	}
 }
 
-void setSnapSeq() {
+void fwl_init_SnapSeq() {
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
         snapsequence = TRUE;
@@ -1715,7 +1715,7 @@ void setWantEAI(int flag) {
         EAIwanted = TRUE;
 }
 
-void setLineWidth(float lwidth) {
+void fwl_set_LineWidth(float lwidth) {
         gl_linewidth = lwidth;
 }
 
@@ -1727,29 +1727,29 @@ void setTextures_take_priority (int x) {
 /* this is now unused, and call should be removed from front ends */
 }
 
-void setKeyString(const char* kstring)
+void fwl_set_KeyString(const char* kstring)
 {
     keypress_string = strdup(kstring);
 }
 
-void setSeqFile(const char* file)
+void fwl_set_SeqFile(const char* file)
 {
 #if defined(DOSNAPSEQUENCE)
     /* need to re-implement this for OSX generating QTVR */
     snapseqB = strdup(file);
     printf("snapseqB is %s\n", snapseqB);
 #else
-    WARN_MSG("Call to setSeqFile when Snapshot Sequence not compiled in.\n");
+    WARN_MSG("Call to fwl_set_SeqFile when Snapshot Sequence not compiled in.\n");
 #endif
 }
 
-void setSnapFile(const char* file)
+void fwl_set_SnapFile(const char* file)
 {
     snapsnapB = strdup(file);
     TRACE_MSG("snapsnapB set to %s\n", snapsnapB);
 }
 
-void setMaxImages(int max)
+void fwl_set_MaxImages(int max)
 {
 #if defined(DOSNAPSEQUENCE)
     /* need to re-implement this for OSX generating QTVR */
@@ -1757,11 +1757,11 @@ void setMaxImages(int max)
 	max = 100;
     maxSnapImages = max;
 #else
-    WARN_MSG("Call to setMaxImages when Snapshot Sequence not compiled in.\n");
+    WARN_MSG("Call to fwl_set_MaxImages when Snapshot Sequence not compiled in.\n");
 #endif
 }
 
-void setSnapTmp(const char* file)
+void fwl_set_SnapTmp(const char* file)
 {
     seqtmp = strdup(file);
     TRACE_MSG("seqtmp set to %s\n", seqtmp);
@@ -1778,7 +1778,7 @@ void outOfMemory(const char *msg) {
 }
 
 /* quit key pressed, or Plugin sends SIGQUIT */
-void doQuit()
+void fwl_doQuit()
 {
     stopDisplayThread();
 
@@ -1802,7 +1802,7 @@ void doQuit()
 
 void freewrlDie (const char *format) {
         ConsoleMessage ("Catastrophic error: %s\n",format);
-        doQuit();
+        fwl_doQuit();
 }
 
 
@@ -1811,10 +1811,10 @@ void freewrlDie (const char *format) {
 int ntouch =0;
 int currentTouch = -1;
 /* MIMIC what happens in handle_Xevents, but without the X events */
-void handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID) {
+void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID) {
         int count;
 
-  /* printf ("handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d",
+  /* printf ("fwl_handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d",
                 button, x,y,screenWidth,screenHeight);  
         if (mev == ButtonPress) printf ("ButtonPress\n");
         else if (mev == ButtonRelease) printf ("ButtonRelease\n");
@@ -1874,8 +1874,8 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 	/* goal: when MMB draw a slave cursor pinned to last_distance,last_angle from real cursor 
 		Note: if using a RMB+LMB = MMB chord with 2 button mice, you need to emulate in your code
 			and pass in button 2 here, after releasing your single button first ie:
-			handle_aqua(ButtonRelease, 1, x, y); 
-			handle_aqua(ButtonRelease, 3, x, y); 
+			fwl_handle_aqua(ButtonRelease, 1, x, y); 
+			fwl_handle_aqua(ButtonRelease, 3, x, y); 
 	*/
 	if( button == 2 ) 
 	{
@@ -1887,19 +1887,19 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 			lastDeltax = x - lastxx;
 			lastDeltay = y - lastyy;
 		}
-		handle_aqua_multi(mev, 1, x, y, 0);
-		handle_aqua_multi(mev, 1, lastxx, lastyy, 1);
+		fwl_handle_aqua_multi(mev, 1, x, y, 0);
+		fwl_handle_aqua_multi(mev, 1, lastxx, lastyy, 1);
 	}else{
 		/* normal, no need to emulate if there's no MMB or LMB+RMB */
-		handle_aqua_multi(mev,button,x,y,0);
+		fwl_handle_aqua_multi(mev,button,x,y,0);
 	}
 }
 /* old function should still work, with single mouse and ID=0 */
-void handle_aqua(const int mev, const unsigned int button, int x, int y) {
+void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 	if(EMULATE_MULTITOUCH)
 		emulate_multitouch(mev,button,x, y);
 	else
-		handle_aqua_multi(mev,button,x,y,0);
+		fwl_handle_aqua_multi(mev,button,x,y,0);
 }
 
 #endif
@@ -1918,14 +1918,14 @@ int getOffset() {
 
 #endif /* IPHONE */
 
-void setCurXY(int cx, int cy) {
-	/* printf ("setCurXY, have %d %d\n",currentX[currentCursor],currentY[currentCursor]); */
+void fwl_setCurXY(int cx, int cy) {
+	/* printf ("fwl_setCurXY, have %d %d\n",currentX[currentCursor],currentY[currentCursor]); */
         currentX[currentCursor] = cx;
         currentY[currentCursor] = cy;
 }
 
-void setButDown(int button, int value) {
-	/* printf ("setButDown called\n"); */
+void fwl_setButDown(int button, int value) {
+	/* printf ("fwl_setButDown called\n"); */
         ButDown[currentCursor][button] = value;
 }
 
@@ -1981,15 +1981,15 @@ void setEaiVerbose() {
         eaiverbose = TRUE;
 }
 
-void askForRefreshOK() {
+void fwl_askForRefreshOK() {
 	askForRefresh = TRUE;
 }
 
-int checkRefresh() {
+int fwl_checkRefresh() {
 	return refreshOK;
 }
 
-void resetRefresh() {
+void fwl_resetRefresh() {
 	refreshOK = FALSE;
 }
 

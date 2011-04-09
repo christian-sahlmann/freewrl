@@ -1,5 +1,5 @@
 /*
-  $Id: main.h,v 1.1 2009/11/23 20:40:57 crc_canada Exp $
+  $Id: main.h,v 1.2 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL support library.
 
@@ -29,6 +29,6 @@
 #ifndef __LIBFREEWRL_SRC_MAIN_H__
 #define __LIBFREEWRL_SRC_MAIN_H__
 
-void OSX_initializeParameters(const char* initialURL);
+/* void OSX_initializeParameters(const char* initialURL); */
 
 #endif /* __LIBFREEWRL_SRC_MAIN_H__ */

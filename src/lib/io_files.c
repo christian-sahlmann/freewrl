@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.33 2011/03/23 20:28:02 crc_canada Exp $
+  $Id: io_files.c,v 1.34 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL support library.
   IO with files.
@@ -369,7 +369,7 @@ char *frontEndWantsFileName() {
 /* it is best to malloc and copy the data here, as that way the front end 
    can manage its buffers as it sees fit */
 
-void frontEndReturningData(unsigned char *dataPointer, int len) {
+void fwl_frontEndReturningData(unsigned char *dataPointer, int len) {
 	MUTEX_LOCK_FILE_RETRIEVAL
     
     /* note the "+1" ....*/

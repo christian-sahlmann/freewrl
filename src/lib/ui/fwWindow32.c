@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.26 2011/03/08 20:36:55 dug9 Exp $
+  $Id: fwWindow32.c,v 1.27 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -30,7 +30,7 @@ HWND  ghWnd;   /* on a hunch I made these static so they are once per program */
 HDC   ghDC; 
 HGLRC ghRC; 
 
-void do_keyPress(const char kp, int type);
+void fwl_do_keyPress(const char kp, int type);
 
 /* from Blender GHOST_SystemWin32.cpp: Key code values not found in winuser.h */
 #ifndef VK_MINUS
@@ -354,7 +354,7 @@ static int shiftState = 0;
 	screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 	screenHeight = rect.bottom;
 	resize_GL(rect.right, rect.bottom); 
-	setScreenDim(rect.right,rect.bottom);
+	fwl_setScreenDim(rect.right,rect.bottom);
 	break; 
 
     case WM_DISPLAYCHANGE:
@@ -384,7 +384,7 @@ static int shiftState = 0;
 	ghDC = 0; 
 	 
 	DestroyWindow (hWnd);
-	doQuit();
+	fwl_doQuit();
 	break; 
 
 	/*
@@ -449,8 +449,8 @@ static int shiftState = 0;
 		if(lkeydata & 1 << 30) 
 			break; //ignor - its an auto-repeat
 	//altDown = lkeydata & 1 << 29; //alt key is pressed while the current key is pressed
-	//if(altState && !altDown) do_keyPress(VK_MENU, 0);
-	//if(!altState && altDown) do_keyPress(VK_MENU,KeyPress);
+	//if(altState && !altDown) fwl_do_keyPress(VK_MENU, 0);
+	//if(!altState && altDown) fwl_do_keyPress(VK_MENU,KeyPress);
 	kp = (char)wParam; 
 	//if(kp >= 'A' && kp <= 'Z' && shiftState ==0 ) kp = (char)tolower(wParam); //the F1 - F12 are small case ie y=121=F1
 	//printf("      wParam %d %x\n",wParam, wParam);
@@ -510,12 +510,12 @@ static int shiftState = 0;
 			//}
 			break;
 	}
-	do_keyPress(kp, updown); 
+	fwl_do_keyPress(kp, updown); 
 	break; 
 
 	case WM_CHAR:
 		kp = (char)wParam;
-		do_keyPress(kp,KeyChar);
+		fwl_do_keyPress(kp,KeyChar);
 		break;
 	/* Mouse events, processed */
     case WM_LBUTTONDOWN:
@@ -577,9 +577,9 @@ static int shiftState = 0;
     }
     if(mev)
     {
-	/*void handle_aqua(const int mev, const unsigned int button, int x, int y);*/
+	/*void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);*/
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
-	handle_aqua(mev,butnum,mouseX,mouseY); /* ,gcWheelDelta); */
+	fwl_handle_aqua(mev,butnum,mouseX,mouseY); /* ,gcWheelDelta); */
     }
     return 0;
 }

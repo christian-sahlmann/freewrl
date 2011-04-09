@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.31 2011/04/06 21:34:31 dug9 Exp $
+  $Id: options.c,v 1.32 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL command line arguments.
 
@@ -39,7 +39,7 @@
 #endif
 
 
-void print_version()
+void fv_print_version()
 {
     const char *libver, *progver;
     
@@ -51,7 +51,7 @@ void print_version()
     printf("   type \"man freewrl\" to view man pages\n\n");
 }
 
-void usage()
+void fv_usage()
 {
     printf( "usage: freewrl [options] <VRML or X3D file|URL>\n\n"
 	    "  -h|--help               This help.\n"
@@ -166,7 +166,7 @@ int find_opt_for_optopt(char c) {
 	return -1;
 }
 
-int parseCommandLine (int argc, char **argv)
+int fv_parseCommandLine (int argc, char **argv)
 {
     int c;
     float ftmp;
@@ -236,12 +236,12 @@ int parseCommandLine (int argc, char **argv)
 	    /* Options handling */
 
 	case 'h': /* --help, no argument */
-	    usage();
+	    fv_usage();
 	    exit(0);
 	    break;
 
 	case 'v': /* --version, no argument */
-	    print_version();
+	    fv_print_version();
 	    exit(0);
 	    break;
 
@@ -265,12 +265,12 @@ int parseCommandLine (int argc, char **argv)
 		ERROR_MSG("Argument missing for option -g/--geometry\n");
 		exit(1);
 	    } else {
-		setGeometry_from_cmdline(optarg);
+		fv_setGeometry_from_cmdline(optarg);
 	    }
 	    break;
 
 	case 'b': /* --big, no argument */
-	    setGeometry_from_cmdline("800x600");
+	    fv_setGeometry_from_cmdline("800x600");
 	    break;
 
 	case 'd': /* --display, required argument int */
@@ -293,7 +293,7 @@ int parseCommandLine (int argc, char **argv)
 
 	case 'W': /* --linewidth, required argument: float */
 	    sscanf(optarg,"%g", &ftmp);
-	    setLineWidth(ftmp);
+	    fwl_set_LineWidth(ftmp);
 	    break;
 
 	case 'Q': /* --nocollision, no argument */
@@ -303,31 +303,31 @@ int parseCommandLine (int argc, char **argv)
 /* Snapshot options */
 
 	case 'p': /* --gif, no argument */
-	    setSnapGif();
+	    fwl_init_SnapGif();
 	    break;
 
 	case 'n': /* --snapfile, required argument: string */
-	    setSnapFile(optarg);
+	    fwl_set_SnapFile(optarg);
 	    break;
 
 	case 'o': /* --snaptmp, required argument: string */
-	    setSnapTmp(optarg);
+	    fwl_set_SnapTmp(optarg);
 	    break;
 
 /* Snapshot sequence options */
 
 #if defined(DOSNAPSEQUENCE)
 	case 'l': /* --seq, no argument */
-	    setSnapSeq();
+	    fwl_init_SnapSeq();
 	    break;
 
 	case 'm': /* --seqfile, required argument: string */
-	    setSeqFile(optarg);
+	    fwl_set_SeqFile(optarg);
 	    break;
 
 	case 'q': /* --maximg, required argument: number */
 	    sscanf(optarg,"%d",&maxSnapImages);
-	    setMaxImages(maxSnapImages);
+	    fwl_set_MaxImages(maxSnapImages);
 	    break;
 #endif
 
@@ -436,3 +436,23 @@ int parseCommandLine (int argc, char **argv)
     return TRUE;
 }
 
+void fv_parseEnvVars()
+{
+	/* Check environment */
+	fwl_set_strictParsing		(getenv("FREEWRL_STRICT_PARSING") != NULL);
+	fwl_set_plugin_print		(getenv("FREEWRL_DO_PLUGIN_PRINT") != NULL);
+	fwl_set_occlusion_disable	(getenv("FREEWRL_NO_GL_ARB_OCCLUSION_QUERY") != NULL);
+	fwl_set_print_opengl_errors	(getenv("FREEWRL_PRINT_OPENGL_ERRORS") != NULL);
+	fwl_set_trace_threads		(getenv("FREEWRL_TRACE_THREADS") != NULL);
+
+	char *env_texture_size = getenv("FREEWRL_TEXTURE_SIZE");
+	if (env_texture_size) {
+		unsigned int local_texture_size ;
+		sscanf(env_texture_size, "%u", &local_texture_size);
+		TRACE_MSG("Env: TEXTURE SIZE %u.\n", local_texture_size);
+		fwl_set_texture_size(local_texture_size);
+	}
+
+	fwl_set_use_VBOs (FALSE);
+	if (getenv("FREEWRL_USE_VBOS") != NULL) fwl_set_use_VBOs(TRUE);
+}

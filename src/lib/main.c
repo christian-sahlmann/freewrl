@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.44 2011/03/22 18:52:43 crc_canada Exp $
+  $Id: main.c,v 1.45 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -77,7 +77,7 @@ need to worry about specific structures and calls */
 
 static freewrl_params_t *OSXparams = NULL;
 
-void OSX_initializeParameters(const char* initialURL) {
+void fwl_OSX_initializeParameters(const char* initialURL) {
     resource_item_t *res;
 
     /* have we been through once already (eg, plugin loading new file)? */
@@ -155,7 +155,6 @@ void setFullPath(const char* file)
 
 bool initFreeWRL(freewrl_params_t *params)
 {
-	char *env_texture_size;
 
 	TRACE_MSG("FreeWRL: initializing...\n");
 
@@ -166,6 +165,11 @@ bool initFreeWRL(freewrl_params_t *params)
         setbuf(stderr,0);
 	
 	/* Check environment */
+/* This should fall away, as env vars are now set from main */
+/*
+	See options.c fv_parseEnvVars
+	char *env_texture_size;
+
 	global_strictParsing = (getenv("FREEWRL_STRICT_PARSING") != NULL);
 	if (global_strictParsing) {
 		TRACE_MSG("Env: STRICT PARSING enabled.\n");
@@ -203,7 +207,7 @@ bool initFreeWRL(freewrl_params_t *params)
 	if (global_use_VBOs) {
 		TRACE_MSG("Env: trying VBOs enabled.\n");
 	}
-
+*/
 
 	/* Check parameters */
 	if (params) {

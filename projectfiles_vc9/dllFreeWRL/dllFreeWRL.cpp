@@ -40,13 +40,13 @@ extern "C"
 {
 #include "libFreeWRL.h"
 //#include <main/headers.h>
-void handle_aqua(const int mev, const unsigned int button, int x, int y);
+void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
 void do_keyPress(const char kp, int type);
 void initializeRenderSceneUpdateScene();
 void RenderSceneUpdateScene();
 void finalizeRenderSceneUpdateScene();
 void resize_GL(int width, int height);
-void setScreenDim(int wi, int he);
+void fwl_setScreenDim(int wi, int he);
 void closeFreeWRL(void);
 void resource_push_single_request(const char *request);
 void initConsoleH(DWORD pid);
@@ -117,7 +117,7 @@ void CdllFreeWRL::onResize(int width,int height){
 	//screenWidth = width; /*used in mainloop render_pre setup_projection*/
 	//screenHeight = height;
 	//resize_GL(width, height); 
-	setScreenDim(width,height);
+	fwl_setScreenDim(width,height);
 	//ConsoleMessage("dll_onResize w=%d h=%d\n",width,height);
 }
 //#define KeyChar         1
@@ -132,10 +132,10 @@ void CdllFreeWRL::onResize(int width,int height){
 
 void CdllFreeWRL::onMouse(int mouseAction,int mouseButton,int x, int y){
 
-	/*void handle_aqua(const int mev, const unsigned int button, int x, int y);*/
+	/*void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);*/
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
-	//handle_aqua(mev,butnum,mouseX,mouseY); 
-	handle_aqua(mouseAction,mouseButton,x,y); 
+	//fwl_handle_aqua(mev,butnum,mouseX,mouseY); 
+	fwl_handle_aqua(mouseAction,mouseButton,x,y); 
 	//ConsoleMessage("%d %d %d %d\r",mouseAction,mouseButton,x,y);
 }
 void CdllFreeWRL::onKey(int keyAction,int keyValue){

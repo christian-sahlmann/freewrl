@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.h,v 1.11 2011/02/16 17:46:00 crc_canada Exp $
+  $Id: MainLoop.h,v 1.12 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL support library.
   UI declarations.
@@ -33,10 +33,12 @@
 extern int currentX[20], currentY[20];
 
 void setDisplayed(int);
+/* Now public
 void First_ViewPoint();
 void Last_ViewPoint();
 void Prev_ViewPoint();
 void Next_ViewPoint();
+*/
 void setTextures_take_priority (int x);
 void setUseShapeThreadIfPossible(int x);
 void toggle_headlight();

@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.26 2011/04/01 02:13:44 couannette Exp $
+  $Id: fwMotifWindow.c,v 1.27 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -284,7 +284,7 @@ int create_main_window(int argc, char *argv[])
 	
 	XtVaGetValues(freewrlDrawArea, XmNwidth, &width, XmNheight, &height, NULL);
 	/* printf("%s,%d create_main_window %d, %d\n",__FILE__,__LINE__,width,height); */
-	setScreenDim(width,height);
+	fwl_setScreenDim(width,height);
 	
 	/* lets see when this goes iconic */
 	XtAddEventHandler(freewrlTopWidget, StructureNotifyMask, FALSE, StateWatcher, NULL);
@@ -369,7 +369,7 @@ void aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData)
 /* quit selected */
 void quitMenuBar (Widget w, XtPointer data, XtPointer callData)
 { 
-    doQuit();
+    fwl_doQuit();
 }
 
 void reloadFile (Widget w, XtPointer data, XtPointer callData)
@@ -379,22 +379,22 @@ void reloadFile (Widget w, XtPointer data, XtPointer callData)
 }
 
 void ViewpointFirst (Widget w, XtPointer data, XtPointer callData) {
-    First_ViewPoint();
+    fwl_First_ViewPoint();
 }
 
 void ViewpointLast (Widget w, XtPointer data, XtPointer callData)
 {
-    Last_ViewPoint();
+    fwl_Last_ViewPoint();
 }
 
 void ViewpointNext (Widget w, XtPointer data, XtPointer callData)
 {
-    Next_ViewPoint();
+    fwl_Next_ViewPoint();
 }
 
 void ViewpointPrev (Widget w, XtPointer data, XtPointer callData)
 {
-    Prev_ViewPoint();
+    fwl_Prev_ViewPoint();
 }
 
 /* selecting default background colours */
@@ -518,7 +518,7 @@ void GLArearesize (Widget w, XtPointer data, XtPointer callData)
 
     XtVaGetValues (w, XmNwidth, &width, XmNheight, &height, NULL);
     /* printf("%s,%d GLArearesize %d, %d\n",__FILE__,__LINE__,width,height); */
-    setScreenDim (width,height);
+    fwl_setScreenDim (width,height);
 }
 
 /* Mouse, keyboard input when focus is in OpenGL window. */

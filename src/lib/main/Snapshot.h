@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.h,v 1.7 2009/10/05 15:07:23 crc_canada Exp $
+$Id: Snapshot.h,v 1.8 2011/04/09 00:33:19 davejoubert Exp $
 
 Screen snapshot.
 
@@ -39,7 +39,7 @@ extern char *snapsnapB;         /* --snapb -single snapshot files               
 extern char *seqtmp;            /* --seqtmp - directory for temp files          */
 extern int snapsequence;	/* --seq - snapshot sequence, not single click	*/
 extern int doSnapshot;		/* are we doing a snapshot?			*/
-void setSnapshot();		/* set a snapshot going				*/
+/* void setSnapshot();	*/	/* set a snapshot going				*/
 void Snapshot();
 #ifdef WIN32   
 /* win32 has abort() in stdlib.h - is that what we want? */

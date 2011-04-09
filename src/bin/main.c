@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.38 2010/09/29 20:11:48 crc_canada Exp $
+  $Id: main.c,v 1.39 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL main program.
 
@@ -44,12 +44,12 @@ freewrl_params_t *params = NULL;
  * Signal handlers 
  */
 static int CaughtSEGV = FALSE;
-void catch_SIGQUIT();
-void catch_SIGSEGV();
+void fv_catch_SIGQUIT();
+void fv_catch_SIGSEGV();
 
 #if !defined(CYGWIN)
-void catch_SIGALRM(int);
-void catch_SIGHUP();
+void fv_catch_SIGALRM(int);
+void fv_catch_SIGHUP();
 #endif
 
 #if defined(_MSC_VER)
@@ -119,13 +119,13 @@ int main (int argc, char **argv)
 
     /* install the signal handlers */
 
-    signal(SIGTERM, (void(*)(int)) catch_SIGQUIT);
-    signal(SIGSEGV, (void(*)(int)) catch_SIGSEGV);
+    signal(SIGTERM, (void(*)(int)) fv_catch_SIGQUIT);
+    signal(SIGSEGV, (void(*)(int)) fv_catch_SIGSEGV);
 
 #if !defined(CYGWIN)
-    signal(SIGQUIT, (void(*)(int)) catch_SIGQUIT);
-    signal(SIGALRM, (void(*)(int)) catch_SIGALRM);
-    signal(SIGHUP,  (void(*)(int)) catch_SIGHUP);
+    signal(SIGQUIT, (void(*)(int)) fv_catch_SIGQUIT);
+    signal(SIGALRM, (void(*)(int)) fv_catch_SIGALRM);
+    signal(SIGHUP,  (void(*)(int)) fv_catch_SIGHUP);
 #endif
 
     /* Before we parse the command line, setup the FreeWRL default parameters */
@@ -137,11 +137,11 @@ int main (int argc, char **argv)
     params->eai = FALSE;
     params->fullscreen = FALSE;
     params->winToEmbedInto = -1;
-	initStereoDefaults();
+	fwl_init_StereoDefaults();
 
 #if !defined(TARGET_AQUA) /* Aqua front ends do the parsing */
     /* parse command line arguments */
-    if (parseCommandLine(argc, argv)) {
+    if (fv_parseCommandLine(argc, argv)) {
 
 	    start_url = argv[optind];
 #ifdef _MSC_VER
@@ -184,6 +184,9 @@ int main (int argc, char **argv)
     /* doug- redirect stdout to a file - works, useful for sending bug reports */
     /*freopen("freopen.txt", "w", stdout ); */
 
+    /* Put env parse here, because this gives systems that do not have env vars the chance to do it their own way. */
+    fv_parseEnvVars();
+
     /* start threads, parse initial scene, etc */
     if (!initFreeWRL(params)) {
 	    ERROR_MSG("main: aborting during initialization.\n");
@@ -196,15 +199,15 @@ int main (int argc, char **argv)
 }
 
 /* SIGQUIT handler - plugin code sends a SIGQUIT... */
-void catch_SIGQUIT() 
+void fv_catch_SIGQUIT() 
 {
     /* ConsoleMessage ("FreeWRL got a sigquit signal"); */
     /* shut up any SIGSEGVs we might get now. */
     CaughtSEGV = TRUE;
-    doQuit();
+    fwl_doQuit();
 }
 
-void catch_SIGSEGV()
+void fv_catch_SIGSEGV()
 {
     if (!CaughtSEGV) {
 	ConsoleMessage ("FreeWRL got a SIGSEGV - can you please mail the file(s) to\n freewrl-09@rogers.com with a valid subject line. Thanks.\n");
@@ -215,13 +218,13 @@ void catch_SIGSEGV()
 
 #if !defined(CYGWIN)
 
-void catch_SIGHUP()
+void fv_catch_SIGHUP()
 {
     /* ConsoleMessage ("FreeWRL got a SIGHUP signal - reloading"); */
     /* MBFILES     Anchor_ReplaceWorld(BrowserFullPath); */
 }
 
-void catch_SIGALRM(int sig)
+void fv_catch_SIGALRM(int sig)
 {
     signal(SIGALRM, SIG_IGN);
 
@@ -234,7 +237,7 @@ void catch_SIGALRM(int sig)
 #else
 	alarm(0);
 #endif
-    signal(SIGALRM, catch_SIGALRM);
+    signal(SIGALRM, fv_catch_SIGALRM);
 }
 
 #endif

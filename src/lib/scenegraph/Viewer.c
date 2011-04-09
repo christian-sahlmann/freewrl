@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.61 2011/02/28 20:06:23 crc_canada Exp $
+$Id: Viewer.c,v 1.62 2011/04/09 00:33:19 davejoubert Exp $
 
 CProto ???
 
@@ -1330,7 +1330,7 @@ int initAnaglyphShaders()
 
 
 int StereoInitializedOnce = 0;
-void initStereoDefaults()
+void fwl_init_StereoDefaults()
 {
 	/* must call this before getting values from command line in options.c */
 	Viewer.shutterGlasses = 0;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.21 2010/12/07 18:27:50 crc_canada Exp $
+$Id: EAIServ.c,v 1.22 2011/04/09 00:33:19 davejoubert Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -462,7 +462,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 				/* And, lets just exit FreeWRL*/
 				printf ("FreeWRL:EAI socket closed, exiting...\n");
-				doQuit();
+				fwl_doQuit();
 			}
 
 			if (eaiverbose) {

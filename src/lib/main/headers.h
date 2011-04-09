@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.143 2011/04/04 16:29:55 crc_canada Exp $
+$Id: headers.h,v 1.144 2011/04/09 00:33:19 davejoubert Exp $
 
 Global includes.
 
@@ -687,12 +687,12 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y);
 #define MapNotify       19
 #endif
 
-extern void setSnapSeq();
+/* extern void setSnapSeq(); */
 extern void setEAIport(int pnum);
-extern void setKeyString(const char *str);
+/* extern void setKeyString(const char *str); */
 extern void setNoCollision();
-extern void setSeqFile(const char* file);
-extern void setMaxImages(int max);
+/* extern void setSeqFile(const char* file); */
+/* extern void setMaxImages(int max); */
 extern void setBrowserFullPath(const char *str);
 extern void setInstance(uintptr_t instance);
 
@@ -833,10 +833,12 @@ void do_TimeTrigger (void *node);
 #endif /* GL_ES_VERSION_2_0 */
 
 void zeroAllBindables(void);
+/* Now public
 void Next_ViewPoint(void);
 void Prev_ViewPoint(void);
 void First_ViewPoint(void);
 void Last_ViewPoint(void);
+*/
 
 int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
                         void *ptr, unsigned ofs, int *complete,

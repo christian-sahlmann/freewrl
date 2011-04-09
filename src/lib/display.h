@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.113 2011/04/04 16:29:55 crc_canada Exp $
+  $Id: display.h,v 1.114 2011/04/09 00:33:19 davejoubert Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -30,6 +30,7 @@
 #ifndef __LIBFREEWRL_DISPLAY_H__
 #define __LIBFREEWRL_DISPLAY_H__
 
+void fv_setGeometry_from_cmdline(const char *gstring);
 /**
  * Specific platform : Mac
  */
@@ -245,7 +246,7 @@ extern int ocurse;
 	#define GLUNIFORMMATRIX3FV glUniformMatrix3fv
 #endif
 /* Main initialization function */
-int display_initialize();
+/* int display_initialize(); */
 extern bool display_initialized;
 #define IS_DISPLAY_INITIALIZED (display_initialized==TRUE)
 
@@ -456,7 +457,7 @@ extern GLenum _global_gl_err;
 
 
 void resetGeometry();
-void setScreenDim(int wi, int he);
+/* void setScreenDim(int wi, int he); */
 
 /* GLSL variables */
 /* Versions 1.5 and above have shaders */
