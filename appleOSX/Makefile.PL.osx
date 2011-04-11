@@ -117,6 +117,7 @@ print OUT "#define HAVE_UNISTD_H 1\n";
 print OUT "#define HAVE_SYS_WAIT_H 1\n";
 print OUT "#define HAVE_PTHREAD 1\n";
 print OUT "#define HAVE_CONFIG_H 1\n";
+print OUT "#define HAVE_GETOPT_H 1\n";
 print OUT "#define BUILDDIR \"$pwd\"\n";
 print OUT "#define FWVER \"",$vers,"\"\n";
 print OUT "#define FREEX3D_MESSAGE_WRAPPER \"/usr/bin/say\"\n";
@@ -258,7 +259,8 @@ sub writeMakefileFinalTargets() {
 }
 
 sub writeVariables () {	
-	my @CFuncsSourceFiles = split (' ',`find ../src  | grep -v OSCcallbacks | grep -v "src/plugin" | grep -v statusbarHud.c | grep -v statusbarConsole.c | grep -v statusbarStub.c | grep -v libeai | grep -v "options.c" | grep -v "npunix" | grep -v "/sound/" | grep -v fwWindow32 | grep -v fwBareWindow | grep -v display_x11 | grep -iv motif | grep -v fwCommonX11 | grep -v win32 | grep "\\.c\$" `);
+	my @CFuncsSourceFiles = split (' ',`find ../src  | grep -v OSCcallbacks | grep -v "src/plugin" | grep -v statusbarHud.c | grep -v statusbarConsole.c | grep -v statusbarStub.c | grep -v libeai | grep -v "npunix" | grep -v "/sound/" | grep -v fwWindow32 | grep -v fwBareWindow | grep -v display_x11 | grep -iv motif | grep -v fwCommonX11 | grep -v win32 | grep "\\.c\$" `);
+	#my @CFuncsSourceFiles = split (' ',`find ../src  | grep -v OSCcallbacks | grep -v "src/plugin" | grep -v statusbarHud.c | grep -v statusbarConsole.c | grep -v statusbarStub.c | grep -v libeai | grep -v "options.c" | grep -v "npunix" | grep -v "/sound/" | grep -v fwWindow32 | grep -v fwBareWindow | grep -v display_x11 | grep -iv motif | grep -v fwCommonX11 | grep -v win32 | grep "\\.c\$" `);
 
 	print MK "\n#CFuncs Make\n";
 	print MK "LIBFWSRCS=";
