@@ -24,6 +24,7 @@
 #include <internal.h>
 
 #include <libFreeWRL.h>
+#include "../vrml_parser/Structs.h"
 #include "main/headers.h"
 #include "vrml_parser/Structs.h"
 #include "scenegraph/Viewer.h"
