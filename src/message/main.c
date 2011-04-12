@@ -24,10 +24,10 @@
  * line get lost.
  */
 
-#if HAVE_CONFIG_H
+/* our defines for this build */
 #  include <config.h>
-#endif
 
+#if !defined(TARGET_AQUA)
 #include "system.h"
 
 #define MESG "something strange happened with\nthe FreeWRL console..."
@@ -35,7 +35,6 @@
 #define MINTITLE "FreeWRL Console:"
 #define MAXLINE 2000
 
-#if !defined(TARGET_AQUA)
 /* Define an application context */
 XtAppContext app_context;
 

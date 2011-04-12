@@ -32,13 +32,10 @@ FREEWRL_CCFLAGS => '-arch '.
 
     # can also add -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC to display malloc issues.
 
-    FREEWRL_DEFINE => ' -DHAVE_STDARG_H -DHAVE_ERRNO_H  -DHAVE_GETTIMEOFDAY -DHAVE_MEMCPY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch ppc -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -DXP_UNIX ',
+    FREEWRL_DEFINE => ' -fno-common -arch ppc -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.6.sdk ',
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.
-		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
-		'-I/System/Library/Frameworks/GLUT.framework/Headers '.
-		'-I/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/Frameworks/CoreGraphics.framework/Versions/A/Headers/ '.
 		'-I/usr/local/include/freetype2 '.
 		'-I/usr/local/include/freetype2/freetype '.
 		'-I/usr/local/include '.

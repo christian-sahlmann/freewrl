@@ -32,19 +32,15 @@ FREEWRL_CCFLAGS => '-arch '.
 
     # can also add -DFW_DEBUG -D_DEBUG -DDEBUG_MALLOC to display malloc issues.
 
-      FREEWRL_DEFINE => ' -Wshorten-64-to-32 -DHAVE_STDARG_H -DHAVE_ERRNO_H  -DHAVE_MEMCPY -DHAVE_GETTIMEOFDAY -DX_DISPLAY_MISSING -DTARGET_AQUA -D_REENTRANT -DAQUA -fno-common -arch x86_64 -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk -DXP_UNIX -DRUNNING_X86_64 ',
+      FREEWRL_DEFINE => ' -Wshorten-64-to-32 -fno-common -arch x86_64 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.6.sdk -DRUNNING_X86_64 ',
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.
-		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
-		'-I/System/Library/Frameworks/GLUT.framework/Headers '.
-		'-I/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/Frameworks/CoreGraphics.framework/Versions/A/Headers/ '.
 		'-I/usr/local/include/freetype2 '.
 		'-I/usr/local/include/freetype2/freetype '.
 		'-I/usr/local/include '.
-		'-I/Developer/SDKs/MacOSX10.5.sdk/usr/include/libxml2 '.
-		'-I/Developer/SDKs/MacOSX10.5.sdk/usr/X11R6/include '.
 		'-I/opt/local/include '.
+		'-I/usr/include/libxml2 '.
 		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src '.
 		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		' ',

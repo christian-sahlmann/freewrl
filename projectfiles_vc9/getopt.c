@@ -27,14 +27,8 @@
 # define _NO_PROTO
 #endif
 
-#ifdef WIN32
-#define HAVE_CONFIG_H 1
-#endif
-
-
-#ifdef HAVE_CONFIG_H
+/* our includes for this build */
 # include <config.h>
-#endif
 
 #if !defined __STDC__ || !__STDC__
 /* This is a separate conditional since some stdc systems
