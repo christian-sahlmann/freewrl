@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.68 2011/03/22 18:52:44 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.69 2011/04/12 19:26:44 crc_canada Exp $
 
 ???
 
@@ -1458,6 +1458,8 @@ void parseProtoBody (char **atts) {
 	pushParserMode(PARSING_PROTOBODY);
 }
 
+#define X3DPARSERVERBOSE
+
 void parseProtoDeclare (char **atts) {
 	int count;
 	int nameIndex;
@@ -1495,6 +1497,7 @@ void parseProtoDeclare (char **atts) {
 		ConsoleMessage ("\"ProtoDeclare\" found, but field \"name\" not found!\n");
 	}
 }
+#undef X3DPARSERVERBOSE
 
 
 void parseExternProtoDeclare (char **atts) {

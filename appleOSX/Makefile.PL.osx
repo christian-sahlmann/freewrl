@@ -112,6 +112,9 @@ print OUT "#define FONTS_DIR \"$VRML_CONFIG{INSTALL_DIR}/freewrl/fonts\"\n";
 # lets write some generated #defines.
 
 
+#debugging MALLOC calls
+#print OUT "#define FW_DEBUG 1\n";
+#print OUT "#define DEBUG_MALLOC 1\n";
 
 print OUT "#define X_DISPLAY_MISSING 1\n";
 print OUT "#define HAVE_STDARG_H 1\n";

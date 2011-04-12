@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.51 2010/12/07 18:27:50 crc_canada Exp $
+$Id: CProto.c,v 1.52 2011/04/12 19:26:44 crc_canada Exp $
 
 CProto ???
 
@@ -705,6 +705,9 @@ static void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefiniti
 					}
 
 					/* printf ("getPRotoInvocationFields, before parseType, nextIn %s\n",me->lexer->nextIn); */
+					/* ensure that if this is an MF type, that the size field is set to zero */
+					bzero (&thisVal,sizeof (union anyVrml));
+
 					if (!parseType(me, pdecl->type, &thisVal)) {
 						#ifdef CPROTOVERBOSE
 						printf ("getProtoInvocationField, parsing error on field value in proto expansion\n");

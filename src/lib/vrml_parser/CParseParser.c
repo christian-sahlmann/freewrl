@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.70 2011/03/23 18:26:02 crc_canada Exp $
+  $Id: CParseParser.c,v 1.71 2011/04/12 19:26:44 crc_canada Exp $
 
   ???
 
@@ -578,6 +578,9 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 #endif
 
         pdecl=newProtoFieldDecl(mode, type, name);
+#ifdef CPARSERVERBOSE
+        printf ("parser_interfaceDeclaration, finished calling newProtoFieldDecl\n");
+#endif
     } else {
 #ifdef CPARSERVERBOSE
         printf ("parser_interfaceDeclaration, calling newScriptFieldDecl\n");
@@ -630,8 +633,13 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 	    }
 
         } else {
+
             startOfField = (char *)me->lexer->nextIn;
 	    startOfFieldLexerLevel = me->lexer->lexerInputLevel;
+
+	    /* set the defaultVal to something - we might have a problem if the parser expects this to be
+		a MF*, and there is "garbage" in there, as it will expect to free it. */
+		bzero (&defaultVal, sizeof (union anyVrml));
 
             if (!parseType(me, type, &defaultVal)) {
                 /* Invalid default value parsed.  Delete the proto or script declaration. */
@@ -808,7 +816,6 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
     return TRUE;
 }
 
-
 /* Parses a protoStatement */
 /* Adds the PROTO name to the userNodeTypesVec list of names.  
    Creates a new protoDefinition structure and adds it to the PROTOs list.
@@ -881,7 +888,6 @@ static BOOL parser_protoStatement(struct VRMLParser* me)
     /* Make sure that the next token is a ']'.  Skip over it. */
     if(!lexer_closeSquare(me->lexer))
         PARSE_ERROR("Expected ] after interface declaration!")
-
 
             /* PROTO body */
             /* Make sure that the next oken is a '{'.  Skip over it. */
@@ -1879,6 +1885,7 @@ static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
                 return FALSE;
             }
                 
+
             /* printf ("curPROTO = NULL: after possible proto expansion, me->lexer->curID :%s: ",me->lexer->curID);
                printf ("curPROTO = NULL: and remainder, me->lexer->nextIn :%s:\n",me->lexer->nextIn); */
 
@@ -1898,7 +1905,7 @@ static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
                     }
         /* JAS - now done by stacked lexer FREE_IF_NZ(newProtoText); */
     }
-        
+
     /* Built-in node */
     /* Node was found in NODES array */
     if(nodeTypeB!=ID_UNDEFINED) {
@@ -2431,7 +2438,10 @@ static void stuffSFintoMF(struct Multi_Node *outMF, vrmlNodeT *inSF, int type) {
 
         /* is the "old" size something other than 1? */
         /* I am not sure when this would ever happen, but one never knows... */
+
+	/* printf ("so, ets see, the outMF has a size of %d\n",outMF->n); */
         if (outMF->n != 1) {
+	    /* printf ("deleting pointer %p\n",outMF->p); */
             FREE_IF_NZ(outMF->p);
             outMF->n=1;
             outMF->p=MALLOC(void *, rsz * elelen);
@@ -2451,9 +2461,9 @@ static void stuffSFintoMF(struct Multi_Node *outMF, vrmlNodeT *inSF, int type) {
   RCX = NULL; \
   vec = NULL; \
   \
-   /* printf ("start of a mfield parse for type %d curID :%s: me %u lexer %u\n",FIELDTYPE_MF##type, me->lexer->curID,me,me->lexer); */ \
-     /* printf ("      str :%s:\n",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);  */ \
-   /* if (me->lexer->curID != NULL) printf ("parser_MF, have %s\n",me->lexer->curID); else printf("parser_MF, NULL\n");  */ \
+   /* printf ("start of a mfield parse for type %s curID :%s: me %u lexer %u\n",FIELDTYPES[FIELDTYPE_MF##type], me->lexer->curID,me,me->lexer); */ \
+   /*  printf ("      str :%s:\n",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);  */ \
+   /* if (me->lexer->curID != NULL) printf ("parser_MF, have %s\n",me->lexer->curID); else printf("parser_MF, NULL\n"); */ \
 \
  if (!(me->parsingX3DfromXML)) { \
           /* is this a USE statement? */ \
@@ -2496,7 +2506,6 @@ if (me->lexer->curID != NULL) { \
 if((!lexer_openSquare(me->lexer)) && (!(me->parsingX3DfromXML))) { \
         vrml##type##T RCXRet; \
         /* printf ("parser_MF, not an opensquare, lets just parse node\n");  */ \
-        /* if (!parser_node(me, &RCXRet, ID_UNDEFINED)) ... */ \
         if(!parser_sf##name##Value(me, &RCXRet)) { \
                 return FALSE; \
         } \
