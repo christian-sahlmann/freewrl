@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.98 2011/04/14 15:59:17 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.99 2011/04/14 17:55:02 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -415,8 +415,8 @@ void sendArraysToGPU (int mode, int first, int count) {
 			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
 	} 
 
-	glDrawArrays(mode,first,count);
 	}
+	glDrawArrays(mode,first,count);
 }
 
 void sendElementsToGPU (int mode, int count, int type, int *indices) {
@@ -467,9 +467,10 @@ void sendElementsToGPU (int mode, int count, int type, int *indices) {
 			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
 		}
 
+	}
+
 	glDrawElements(mode,count,type,indices);
 
-	}
 	#ifdef RENDERVERBOSE
 	printf ("sendElementsToGPU finish\n"); 
 	#endif
