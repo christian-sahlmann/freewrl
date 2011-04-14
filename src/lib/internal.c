@@ -1,5 +1,5 @@
 /*
-  $Id: internal.c,v 1.26 2011/04/14 15:59:17 crc_canada Exp $
+  $Id: internal.c,v 1.27 2011/04/14 19:31:21 crc_canada Exp $
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always
@@ -164,7 +164,7 @@ bool global_trace_threads = FALSE;
 #ifdef SHADERS_2011
 	bool global_use_VBOs = TRUE;
 #else
-	bool global_use_VBOs = TRUE;
+	bool global_use_VBOs = FALSE;
 #endif /* SHADERS_2011 */
 
 /* Set up global environment, usually from environment variables */
