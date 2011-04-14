@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.17 2011/02/11 18:46:25 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.18 2011/04/14 15:59:17 crc_canada Exp $
 
 X3D Texturing Component
 
@@ -168,6 +168,19 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 				glGenBuffers(1,&tmp);
 				node->__VBO = tmp;
 			}
+
+printf ("textureCoordinate, filling in buffer...\n");
+printf ("global_tcin_count %d\n",global_tcin_count);
+printf ("node cp.n %d\n",node->__compiledpoint.n);
+{
+int i;
+float *tp = node->__compiledpoint.p;
+printf ("TC:\n");
+for (i=0; i< global_tcin_count; i++) {
+printf ("       %d: %4.3f ",i,*tp); tp++; printf ("%4.3f\n",*tp); tp++;
+
+}
+}
 
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,node->__VBO);
 			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*global_tcin_count, node->__compiledpoint.p, GL_STATIC_DRAW);

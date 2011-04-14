@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.91 2011/04/06 20:45:27 crc_canada Exp $
+  $Id: Textures.c,v 1.92 2011/04/14 15:59:17 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -216,7 +216,7 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
             r += src[srcIndex[sample]];
             g += src[srcIndex[sample] + 1];
             b += src[srcIndex[sample] + 2];
-            a += src[srcIndex[sample] + 2];
+            a += src[srcIndex[sample] + 3];
          }
 
          // Average results

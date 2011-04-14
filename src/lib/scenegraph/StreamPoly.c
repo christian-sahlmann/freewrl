@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.28 2011/04/08 15:01:18 crc_canada Exp $
+$Id: StreamPoly.c,v 1.29 2011/04/14 15:59:17 crc_canada Exp $
 
 ???
 
@@ -549,7 +549,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 		}
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[VERTEX_VBO]);
-		glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColor)*3,newpoints, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColor)*3,r->actualCoord, GL_STATIC_DRAW);
 
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,r->VBO_buffers[INDEX_VBO]);
 
@@ -566,20 +566,19 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 			}
 
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*r->ntri*3,myindicies,GL_STATIC_DRAW); /* OpenGL-ES */
-            FREE_IF_NZ(myindicies);
+            		FREE_IF_NZ(myindicies);
 		}
 		#else
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (int)*r->ntri*3,r->cindex,GL_STATIC_DRAW); /* regular OpenGL */
 		#endif
-        // Can we free this here, or do we need it later? FREE_IF_NZ(r->cindex);
+        	// Can we free this here, or do we need it later? FREE_IF_NZ(r->cindex);
 
 		if (r->GeneratedTexCoords) {
 			if (r->VBO_buffers[TEXTURE_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[TEXTURE_VBO]);
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[TEXTURE_VBO]);
 			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*r->ntri*3,r->GeneratedTexCoords, GL_STATIC_DRAW);
-			/* finished with these - lets get rid of it */
-            glFlush();            
-			FREE_IF_NZ(r->GeneratedTexCoords);
+			/* finished with these - if we did not use it as a flag later, we could get rid of it */
+			//FREE_IF_NZ(r->GeneratedTexCoords);
 		}
 	}
 

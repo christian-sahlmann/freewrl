@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.46 2011/04/08 15:01:18 crc_canada Exp $
+$Id: Polyrep.c,v 1.47 2011/04/14 15:59:17 crc_canada Exp $
 
 ???
 
@@ -47,7 +47,6 @@ $Id: Polyrep.c,v 1.46 2011/04/08 15:01:18 crc_canada Exp $
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
 #include "Tess.h"
-
 
 /* reset colors to defaults, if we have to */
 static GLfloat diffuseColor[] = {0.3f, 0.3f, 0.8f, 1.0f};
@@ -905,11 +904,18 @@ void render_polyrep(void *node) {
 		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
 
         
+#ifdef OLDCODE
 #ifdef GL_ES_VERSION_2_0
+
 		FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_SHORT,0);
+		//FW_GL_DRAWARRAYS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_SHORT);
 #else
-		FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT,0);
+		// get rid of the indexing FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT,0);
+		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,pr->ntri*3);
 #endif
+#endif /* OLDCODE */
+
+		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,pr->ntri*3);
 
 		/* turn VBOs off for now */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);

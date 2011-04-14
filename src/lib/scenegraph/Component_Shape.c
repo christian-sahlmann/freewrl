@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.77 2011/04/08 15:01:18 crc_canada Exp $
+$Id: Component_Shape.c,v 1.78 2011/04/14 15:59:17 crc_canada Exp $
 
 X3D Shape Component
 
@@ -707,35 +707,57 @@ void compile_Shape (struct X3D_Shape *node) {
 
 	/* SECTION 3 - No Geom Shaders, HAVE Color node in shape */
 	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-printf ("Color node - choosing backgroundSphereShader\n");
 		node->_shaderTableEntry = backgroundSphereShader;
 		break;
 
 	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-printf ("Color node - choosing noTexTwoMaterialColourShader\n");
 		node->_shaderTableEntry = noTexTwoMaterialColourShader;
 		break;
 
 	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-printf ("Color node - choosing noTexOneMaterialColourShader\n");
 		node->_shaderTableEntry = noTexOneMaterialColourShader;
 		break;	
 
 	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-printf ("Color node - choosing oneTexTwoMaterialColourShader\n");
 		node->_shaderTableEntry = oneTexTwoMaterialColourShader;
 		break;
 
 	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
 	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-printf ("Color node - choosing oneTexOneMaterialColourShader\n");
 		node->_shaderTableEntry = oneTexOneMaterialColourShader;
 		break;	
 	
 
-	/* */
 	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
 	}
+
+
+/* debug */
+printf ("shape using shader: ");
+switch (node->_shaderTableEntry) {
+case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
+case backgroundTextureBoxShader: printf ("backgroundTextureBoxShader\n"); break;
+case noTexOneMaterialShader: printf ("noTexOneMaterialShader\n"); break;
+case noMaterialNoAppearanceShader: printf ("noMaterialNoAppearanceShader\n"); break;
+case noTexTwoMaterialShader: printf ("noTexTwoMaterialShader\n"); break;
+case noMaterialNoAppearanceSphereShader: printf ("noMaterialNoAppearanceSphereShader\n"); break;
+case noTexOneMaterialSphereShader: printf ("noTexOneMaterialSphereShader\n"); break;
+case noTexTwoMaterialSphereShader: printf ("noTexTwoMaterialSphereShader\n"); break;
+case oneTexOneMaterialShader: printf ("oneTexOneMaterialShader\n"); break;
+case oneTexTwoMaterialShader: printf ("oneTexTwoMaterialShader\n"); break;
+case oneTexOneMaterialSphereShader: printf ("oneTexOneMaterialSphereShader\n"); break;
+case oneTexTwoMaterialSphereShader: printf ("oneTexTwoMaterialSphereShader\n"); break;
+case complexTexOneMaterialShader: printf ("complexTexOneMaterialShader\n"); break;
+case complexTexTwoMaterialShader: printf ("complexTexTwoMaterialShader\n"); break;
+case complexTexOneMaterialSphereShader: printf ("complexTexOneMaterialSphereShader\n"); break;
+case complexTexTwoMaterialSphereShader: printf ("complexTexTwoMaterialSphereShader\n"); break;
+case noTexTwoMaterialColourShader: printf ("noTexTwoMaterialColourShader\n"); break;
+case noTexOneMaterialColourShader: printf ("noTexOneMaterialColourShader\n"); break;
+case oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); break;
+case oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
+default: {printf ("no ascii equiv\n");}
+}
+
 
 	#endif /* SHADERS_2011 */
 

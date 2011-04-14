@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.36 2011/03/03 14:56:34 crc_canada Exp $
+$Id: RenderTextures.c,v 1.37 2011/04/14 15:59:17 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -88,9 +88,6 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
         struct multiTexParams *paramPtr;
 	float allones[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-
-PRINT_GL_ERROR_IF_ANY("");
-
 	if (rdr_caps.av_multitexture) {
 	    
 	    if (c != currentTextureUnit) {
@@ -109,15 +106,11 @@ PRINT_GL_ERROR_IF_ANY("");
 	    #endif
 	}
 
-PRINT_GL_ERROR_IF_ANY("");
-
 	/* ENABLE_TEXTURES */
 	#ifndef SHADERS_2011
 	FW_GL_ENABLE(GL_TEXTURE_2D);
 	#endif
 
-
-PRINT_GL_ERROR_IF_ANY("");
 
 	/* is this a MultiTexture, or just a "normal" single texture?  When we
 	   bind_image, we store a pointer for the texture parameters. It is
@@ -141,8 +134,6 @@ PRINT_GL_ERROR_IF_ANY("");
 			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
                 }
 
-
-PRINT_GL_ERROR_IF_ANY("");
 
 #ifndef SHADERS_2011
 		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -200,7 +191,7 @@ printf ("skipping the texenvi\n");
 	}
 
 
-PRINT_GL_ERROR_IF_ANY("");
+	PRINT_GL_ERROR_IF_ANY("");
 
 	return TRUE;
 }
@@ -208,17 +199,14 @@ PRINT_GL_ERROR_IF_ANY("");
 void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo* genTex) {
 	struct X3D_TextureCoordinate *myTCnode = NULL;
 
-PRINT_GL_ERROR_IF_ANY("");
-
 	#ifdef TEXVERBOSE
 	printf ("textureDraw_start, textureStackTop %d texture[0] %d\n",textureStackTop,boundTextureStack[0]);
+	printf ("	texC %p, genTex %p\n",texC,genTex);
 	#endif
 
 	/* is this generated textures, like an extrusion or IFS without a texCoord param? */
 	if (texC == NULL) {
-PRINT_GL_ERROR_IF_ANY("");
 		passedInGenTex(genTex);
-PRINT_GL_ERROR_IF_ANY("");
 
 	/* hmmm - maybe this texCoord node exists? */
 	} else {
@@ -237,16 +225,16 @@ PRINT_GL_ERROR_IF_ANY("");
 
 		}
 
-PRINT_GL_ERROR_IF_ANY("");
 		if (myTCnode == NULL) return;
 
 		#ifdef TEXVERBOSE
-		printf ("ok, texC->_nodeType is %d\n",texC->_nodeType);
-		printf ("myTCnode is of type %d\n",myTCnode->_nodeType);
+		printf ("ok, texC->_nodeType is %s\n",stringNodeType(texC->_nodeType));
+		printf ("myTCnode is of type %s\n",stringNodeType(myTCnode->_nodeType));
 		#endif
 
 		if (myTCnode->_nodeType == NODE_TextureCoordinate) {
 			haveTexCoord(myTCnode);
+
 
 		} else if (myTCnode->_nodeType == NODE_MultiTextureCoordinate) {
 			haveMultiTexCoord((struct X3D_MultiTextureCoordinate *)myTCnode);
@@ -256,7 +244,7 @@ PRINT_GL_ERROR_IF_ANY("");
 			haveTexCoordGenerator (myTCnode);
 		}
 	}
-PRINT_GL_ERROR_IF_ANY("");
+	PRINT_GL_ERROR_IF_ANY("");
 }
 
 /* lets disable textures here */
@@ -317,21 +305,15 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	printf ("passedInGenTex, using passed in genTex\n");
 	#endif 
  
-PRINT_GL_ERROR_IF_ANY("");
 	if (genTex->VA_arrays != NULL) {
 		for (c=0; c<textureStackTop; c++) {
 			/* are we ok with this texture yet? */
 			if (boundTextureStack[c]!=0) {
 				if (setActiveTexture(c,appearanceProperties.transparency)) {
-PRINT_GL_ERROR_IF_ANY("");
         				if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-PRINT_GL_ERROR_IF_ANY("");
 					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
-PRINT_GL_ERROR_IF_ANY("");
 					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->VA_arrays);
-PRINT_GL_ERROR_IF_ANY("");
 					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
-PRINT_GL_ERROR_IF_ANY("");
 				}
 			}
 		}
@@ -341,24 +323,20 @@ PRINT_GL_ERROR_IF_ANY("");
 			/* are we ok with this texture yet? */
 			if (boundTextureStack[c]!=0) {
 				if (setActiveTexture(c,appearanceProperties.transparency)) {
-PRINT_GL_ERROR_IF_ANY("");
         				if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-PRINT_GL_ERROR_IF_ANY("");
 					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
-PRINT_GL_ERROR_IF_ANY("");
 					FW_GL_TEXCOORD_POINTER (genTex->TC_size, 
 						genTex->TC_type,
 						genTex->TC_stride,
 						genTex->TC_pointer);
-PRINT_GL_ERROR_IF_ANY("");
 					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
-PRINT_GL_ERROR_IF_ANY("");
 				}
 			}
 		}
 	}
-PRINT_GL_ERROR_IF_ANY("");
+	PRINT_GL_ERROR_IF_ANY("");
 }
+
 
 static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 	int c;
@@ -378,7 +356,6 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 
 			if (setActiveTexture(c,appearanceProperties.transparency)) {
 	       			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-
 				if (myTCnode->__VBO != 0) {
                                 	struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
                                 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,myTCnode->__VBO);
@@ -391,6 +368,7 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 			}
 		}
 	}
+	PRINT_GL_ERROR_IF_ANY("");
 }
 
 static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {

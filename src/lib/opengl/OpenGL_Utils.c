@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.186 2011/04/08 15:01:18 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.187 2011/04/14 15:59:17 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -102,6 +102,7 @@ static void fw_glLoadMatrixd(GLDOUBLE *val);
 #endif
 
 static void mesa_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
+static void getShaderCommonInterfaces (s_shader_capabilities_t *me);
 
 /* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 int displayDepth = 24;
@@ -287,6 +288,10 @@ static char *phongSimpleVertexShader = " \
 	       Pos = fw_ModelViewMatrix * fw_Vertex;  \
 	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
 	}";
+
+
+
+
 
 static char *oneTexVertexShader = " \
         /* varying vec3 Norm; */ \
@@ -613,6 +618,9 @@ void main () { \
 	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
 } \
  " ;
+
+
+
 
 static const char *phongTwoSidedFragmentShader =  " \
 \
@@ -1065,9 +1073,8 @@ static int getGenericShaderSource (char **vertexSource, char **fragmentSource, c
 	return TRUE;
 }
 
-
 /* find these names in our shaders */
-void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
+static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	GLuint myProg = me->myShaderProgram;
 
 	#ifdef DEBUG
@@ -1077,8 +1084,8 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	GLint  xxx[10];
 	int i;
 	GLchar sl[3000];
-/*
 
+	/*
 	printf ("getShaderCommonInterfaces, I am program %d\n",myProg);
 
 	if (glIsProgram(myProg)) printf ("getShaderCommonInterfaces, %d is a program\n",myProg); else printf ("hmmm - it is not a program!\n");
@@ -1150,19 +1157,8 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 }
 
 
-
-/* read in shaders and place the resulting shader program in the "whichShader" field if success. */
-static void getGenericShader(shader_type_t whichOne) {
-	GLint success;
-	GLuint myVertexShader = 0;
-	GLuint myFragmentShader= 0;
-	GLuint myGeometryShader=0;
-	GLuint myProg = 0;
-	s_shader_capabilities_t *myShader;
-	char *vertexSource[2];
-	char  *fragmentSource[2];
-	char *geometrySource[2];
-
+static void printCompilingShader() {
+/*
 printf ("compiling shader: ");
 switch (whichOne) {
 case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
@@ -1185,16 +1181,36 @@ case noTexTwoMaterialColourShader: printf ("noTexTwoMaterialColourShader\n"); br
 case noTexOneMaterialColourShader: printf ("noTexOneMaterialColourShader\n"); break;
 case oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); break;
 case oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
+*/
+
 
 }
+
+
+/* read in shaders and place the resulting shader program in the "whichShader" field if success. */
+static void getGenericShader(shader_type_t whichOne) {
+	GLint success;
+	GLuint myVertexShader = 0;
+	GLuint myFragmentShader= 0;
+	GLuint myGeometryShader=0;
+	GLuint myProg = 0;
+	s_shader_capabilities_t *myShader;
+	char *vertexSource[2];
+	char  *fragmentSource[2];
+	char *geometrySource[2];
 
 	/* pointerize this */
 	myShader = &rdr_caps.backgroundShaderArrays[whichOne];
 	myProg = glCreateProgram(); /* CREATE_PROGRAM */
 	(*myShader).myShaderProgram = myProg;
+
+	/* assume the worst... */
+	(*myShader).compiledOK = FALSE;
 	
 	/* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
-	if (!getGenericShaderSource (&vertexSource[1], &fragmentSource[1], &geometrySource[1], whichOne)) return;
+	if (!getGenericShaderSource (&vertexSource[1], &fragmentSource[1], &geometrySource[1], whichOne)) {
+		return;
+	}
 
 	#ifdef GL_ES_VERSION_2_0
 	vertexSource[0] = "";
@@ -1216,9 +1232,6 @@ case oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); 
 	#endif
 
 
-printf ("ok - going to compile this hsader....\n");
-
-	
 	/* geometryShader */
 	if (geometrySource[1] != NULL) {
 
@@ -1274,8 +1287,8 @@ printf ("HMMM - GL_ES_VERSION_2_0 and Geometry shader\n");
 
 
 	LINK_SHADER(myProg);
-
-printf ("going to get shader common interfaces\n");
+	glGetProgramiv(myProg,GL_LINK_STATUS, &success); 
+	(*myShader).compiledOK = (success == GL_TRUE);
 
 	getShaderCommonInterfaces(myShader);
 }
@@ -3353,6 +3366,13 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 		normMat[6] = (float) transInverseMV[8];
 		normMat[7] = (float) transInverseMV[9];
 		normMat[8] = (float) transInverseMV[10];
+
+/* 
+printf ("NormalMatrix: \n \t%4.3f %4.3f %4.3f\n \t%4.3f %4.3f %4.3f\n \t%4.3f %4.3f %4.3f\n",
+normMat[0],normMat[1],normMat[2],
+normMat[3],normMat[4],normMat[5],
+normMat[6],normMat[7],normMat[8]);
+*/
 
 		GLUNIFORMMATRIX3FV(me->NormalMatrix,1,GL_FALSE,normMat);
 	}

@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.97 2011/04/08 15:01:18 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.98 2011/04/14 15:59:17 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -386,6 +386,14 @@ void sendArraysToGPU (int mode, int first, int count) {
 
 	if (appearanceProperties.currentShaderProperties != NULL) {
 
+		/* if we had a shader compile problem, do not draw */
+		if (!(appearanceProperties.currentShaderProperties->compiledOK)) {
+			#ifdef RENDERVERBOSE
+			printf ("shader compile error\n");
+			#endif
+			return;
+		}
+
 
 	if (appearanceProperties.currentShaderProperties->Normals != -1) {
 			if (shaderNormalArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Normals);
@@ -407,9 +415,8 @@ void sendArraysToGPU (int mode, int first, int count) {
 			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
 	} 
 
-	}
-
 	glDrawArrays(mode,first,count);
+	}
 }
 
 void sendElementsToGPU (int mode, int count, int type, int *indices) {
@@ -418,6 +425,14 @@ void sendElementsToGPU (int mode, int count, int type, int *indices) {
 	#endif
     
 	if (appearanceProperties.currentShaderProperties != NULL) {
+
+		/* if we had a shader compile problem, do not draw */
+		if (!(appearanceProperties.currentShaderProperties->compiledOK)) {
+			#ifdef RENDERVERBOSE
+			printf ("shader compile error\n");
+			#endif
+			return;
+		}
 
 	#ifdef RENDERVERBOSE
         	printf ("we have Normals %d Vertices %d Colours %d TexCoords %d \n",
@@ -452,13 +467,14 @@ void sendElementsToGPU (int mode, int count, int type, int *indices) {
 			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
 		}
 
-	}
 	glDrawElements(mode,count,type,indices);
 
+	}
 	#ifdef RENDERVERBOSE
 	printf ("sendElementsToGPU finish\n"); 
 	#endif
 }
+
 
 void initializeLightTables() {
 	int i;

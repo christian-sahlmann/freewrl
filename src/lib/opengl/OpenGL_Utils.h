@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.39 2011/04/08 15:01:18 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.40 2011/04/14 15:59:17 crc_canada Exp $
 
 Screen snapshot.
 
@@ -32,6 +32,7 @@ Screen snapshot.
 
 /* OpenGL renderer capabilities */
 typedef struct {
+	GLint compiledOK;
 	GLuint myShaderProgram;
 
 	GLint myMaterialAmbient;
@@ -136,8 +137,6 @@ extern s_renderer_capabilities_t rdr_caps;
 void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void end_textureTransform (void);
 void markForDispose(struct X3D_Node *node, int recursive);
-
-void getShaderCommonInterfaces (s_shader_capabilities_t *);
 
 void
 BackEndClearBuffer(int);
