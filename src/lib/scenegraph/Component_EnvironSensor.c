@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.16 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Component_EnvironSensor.c,v 1.17 2011/04/15 15:02:13 crc_canada Exp $
 
 X3D Environmental Sensors Component
 
@@ -44,6 +44,7 @@ X3D Environmental Sensors Component
 #include "Component_Geospatial.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
 
 

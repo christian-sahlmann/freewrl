@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.47 2011/04/14 15:59:17 crc_canada Exp $
+$Id: Polyrep.c,v 1.48 2011/04/15 15:02:13 crc_canada Exp $
 
 ???
 
@@ -902,18 +902,6 @@ void render_polyrep(void *node) {
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,pr->VBO_buffers[INDEX_VBO]);
 		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY); // should already be enabled
 		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
-
-        
-#ifdef OLDCODE
-#ifdef GL_ES_VERSION_2_0
-
-		FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_SHORT,0);
-		//FW_GL_DRAWARRAYS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_SHORT);
-#else
-		// get rid of the indexing FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT,0);
-		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,pr->ntri*3);
-#endif
-#endif /* OLDCODE */
 
 		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,pr->ntri*3);
 

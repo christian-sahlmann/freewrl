@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.43 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.44 2011/04/15 15:02:13 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -52,6 +52,7 @@ X3D Geospatial Component
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
+#include "Component_Shape.h" /* for appearance properties */
 #include "Component_Geospatial.h"
 #include "Children.h"
 

@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.114 2011/04/09 00:33:19 davejoubert Exp $
+  $Id: display.h,v 1.115 2011/04/15 15:02:12 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -94,6 +94,28 @@ extern int ocurse;
 	#define DOUBLE_MAX max
 	#define DOUBLE_MIN min
 #endif
+
+
+/* face culling */
+#ifdef GL_ES_VERSION_2_0
+#define CULL_FACE(v) /* printf ("nodeSolid %d appearanceProperties.cullFace %d GL_FALSE %d FALSE %d\n",v,appearanceProperties.cullFace,GL_FALSE,FALSE); */ \
+                if (v != appearanceProperties.cullFace) {    \
+                        appearanceProperties.cullFace = v; \
+                }
+	#define CULL_FACE_INITIALIZE appearanceProperties.cullFace=FALSE; 
+#else
+#define CULL_FACE(v) /* printf ("nodeSolid %d appearanceProperties.cullFace %d GL_FALSE %d FALSE %d\n",v,appearanceProperties.cullFace,GL_FALSE,FALSE); */ \
+                if (v != appearanceProperties.cullFace) {    \
+                        appearanceProperties.cullFace = v; \
+                        if (appearanceProperties.cullFace == TRUE) {FW_GL_ENABLE(GL_CULL_FACE);}\
+                        else { FW_GL_DISABLE(GL_CULL_FACE);} \
+                }
+	#define CULL_FACE_INITIALIZE appearanceProperties.cullFace=FALSE; FW_GL_DISABLE(GL_CULL_FACE);
+#endif
+
+#define DISABLE_CULL_FACE CULL_FACE(FALSE)
+#define ENABLE_CULL_FACE CULL_FACE(TRUE)
+
 
 #ifdef GL_ES_VERSION_2_0
 	#define PATH_MAX 5000

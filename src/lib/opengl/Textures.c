@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.92 2011/04/14 15:59:17 crc_canada Exp $
+  $Id: Textures.c,v 1.93 2011/04/15 15:02:13 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -392,43 +392,6 @@ void releaseTexture(struct X3D_Node *node) {
 /* 		FREE_IF_NZ(ti->OpenGLTexture); */
 	}
 }
-
-#ifdef OLDCODE
-/* called on "kill oldworld" */
-void kill_openGLTextures() 
-{
-	int count;
-	struct textureTableStruct * listRunner;
-	struct textureTableStruct * tmp;
-	
-	/* remove the OpenGL textures */
-	listRunner = readTextureTable;
-	
-	while (listRunner != NULL) {
-		/* zero out the fields in this new block */
-		for (count = 0; count < 32; count ++) {
-			if (listRunner->entry[count].OpenGLTexture != TEXTURE_INVALID) {
-				DEBUG_TEX("deleting %u\n", listRunner->entry[count].OpenGLTexture);
-				FW_GL_DELETETEXTURES(1, &listRunner->entry[count].OpenGLTexture);
-				listRunner->entry[count].OpenGLTexture = TEXTURE_INVALID;
-/* 				FREE_IF_NZ (listRunner->entry[count].OpenGLTexture); */
-				listRunner->entry[count].frames = 0;
-			}
-		}
-		listRunner = listRunner->next;
-	}
-	
-	/* now, delete the tables themselves */
-	listRunner = readTextureTable;
-	readTextureTable = NULL;
-	nextFreeTexture = 0;
-	while (listRunner != NULL) {
-		tmp = listRunner;
-		listRunner = listRunner->next;
-		FREE_IF_NZ (tmp);
-	}
-}
-#endif
 
 
 /* find ourselves - given an index, return the struct */

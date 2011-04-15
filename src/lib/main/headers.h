@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.144 2011/04/09 00:33:19 davejoubert Exp $
+$Id: headers.h,v 1.145 2011/04/15 15:02:13 crc_canada Exp $
 
 Global includes.
 
@@ -652,10 +652,8 @@ extern int isPerlinitialized(void);
 extern char *getInputURL(void);
 extern char *lastReadFile; 		/* name last file read in */
 extern int  lightingOn;			/* state of GL_LIGHTING */
-extern int cullFace;			/* state of GL_CULL_FACE */
 extern struct sCollisionInfo CollisionInfo;
 extern struct sFallInfo FallInfo; /*like sCollisionInfo, except for vertical falls */
-extern GLint smooth_normals;
 
 extern void xs_init(void);
 
@@ -810,18 +808,6 @@ void do_TimeTrigger (void *node);
 #define NODE_REMOVE_PARENT(a) ADD_PARENT(a,X3D_NODE(ptr))
 
 
-/* OpenGL state cache */
-/* solid shapes, GL_CULL_FACE can be enabled if a shape is Solid */ 
-#define CULL_FACE(v) /* printf ("nodeSolid %d cullFace %d GL_FALSE %d FALSE %d\n",v,cullFace,GL_FALSE,FALSE); */ \
-		if (v != cullFace) {	\
-			cullFace = v; \
-			if (cullFace == 1) {FW_GL_ENABLE(GL_CULL_FACE);}\
-			else { FW_GL_DISABLE(GL_CULL_FACE);} \
-		}
-#define DISABLE_CULL_FACE CULL_FACE(0)
-#define ENABLE_CULL_FACE CULL_FACE(1)
-#define CULL_FACE_INITIALIZE cullFace=0; FW_GL_DISABLE(GL_CULL_FACE);
-
 #ifdef GL_ES_VERSION_2_0
 	#define LIGHTING_ON if (!lightingOn) {lightingOn=TRUE;}
 	#define LIGHTING_OFF if(lightingOn) {lightingOn=FALSE;}
@@ -833,12 +819,6 @@ void do_TimeTrigger (void *node);
 #endif /* GL_ES_VERSION_2_0 */
 
 void zeroAllBindables(void);
-/* Now public
-void Next_ViewPoint(void);
-void Prev_ViewPoint(void);
-void First_ViewPoint(void);
-void Last_ViewPoint(void);
-*/
 
 int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
                         void *ptr, unsigned ofs, int *complete,

@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.99 2011/04/14 17:55:02 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.100 2011/04/15 15:02:13 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -136,7 +136,7 @@ void restoreLightState(int *ls) {
 
 void fwglLightfv (int light, int pname, GLfloat *params) {
 	/* printf ("fwglLightfv %d %d %f %f %f %f\n",light,pname,params[0], params[1],params[2],params[3]);  */
-	#ifndef GL_ES_VERSION_2_0ƒ√
+	#ifndef GL_ES_VERSION_2_0
 		glLightfv(GL_LIGHT0+light,pname,params);
 	#endif
 
@@ -550,9 +550,6 @@ int textureStackTop;
 
 int	have_transparency=FALSE;/* did any Shape have transparent material? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */
-int	cullFace;		/* is GL_CULL_FACE enabled or disabled?		*/
-
-GLint smooth_normals = TRUE; /* do normal generation? */
 
 int cur_hits=0;
 
