@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.45 2011/04/09 00:33:19 davejoubert Exp $
+  $Id: main.c,v 1.46 2011/04/15 15:06:43 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -165,49 +165,55 @@ bool initFreeWRL(freewrl_params_t *params)
         setbuf(stderr,0);
 	
 	/* Check environment */
-/* This should fall away, as env vars are now set from main */
-/*
-	See options.c fv_parseEnvVars
-	char *env_texture_size;
+#ifdef OLDCODE
+OLDCODEDave Joubert added code to set these variables from the front end, not via the library,
+OLDCODEto give more control.
+OLDCODE
+OLDCODE/* This should fall away, as env vars are now set from main */
+OLDCODE/*
+OLDCODE	See options.c fv_parseEnvVars
+OLDCODE	char *env_texture_size;
+OLDCODE
+OLDCODE	global_strictParsing = (getenv("FREEWRL_STRICT_PARSING") != NULL);
+OLDCODE	if (global_strictParsing) {
+OLDCODE		TRACE_MSG("Env: STRICT PARSING enabled.\n");
+OLDCODE	}
+OLDCODE
+OLDCODE	global_plugin_print = (getenv("FREEWRL_DO_PLUGIN_PRINT") != NULL);
+OLDCODE	if (global_plugin_print) {
+OLDCODE		TRACE_MSG("Env: PLUGIN PRINT enabled.\n");
+OLDCODE	}
+OLDCODE
+OLDCODE	global_occlusion_disable = (getenv("FREEWRL_NO_GL_ARB_OCCLUSION_QUERY") != NULL);
+OLDCODE	if (global_occlusion_disable) {
+OLDCODE		TRACE_MSG("Env: OCCLUSION QUERY disabled.\n");
+OLDCODE	}
+OLDCODE
+OLDCODE	env_texture_size = getenv("FREEWRL_TEXTURE_SIZE");
+OLDCODE	if (env_texture_size) {
+OLDCODE		sscanf(env_texture_size, "%u", &global_texture_size);
+OLDCODE		TRACE_MSG("Env: TEXTURE SIZE %u.\n", global_texture_size);
+OLDCODE	}
+OLDCODE
+OLDCODE	global_print_opengl_errors = (getenv("FREEWRL_PRINT_OPENGL_ERRORS") != NULL);
+OLDCODE	if (global_print_opengl_errors) {
+OLDCODE		TRACE_MSG("Env: PRINT OPENGL ERRORS enabled.\n");
+OLDCODE	}
+OLDCODE
+OLDCODE	global_trace_threads = (getenv("FREEWRL_TRACE_THREADS") != NULL);
+OLDCODE	if (global_trace_threads) {
+OLDCODE		TRACE_MSG("Env: TRACE THREADS enabled.\n");
+OLDCODE	}
+OLDCODE
+OLDCODE	if (getenv("FREEWRL_NO_VBOS") != NULL) global_use_VBOs = FALSE; 
+OLDCODE	else if (getenv("FREEWRL_USE_VBOS") != NULL) global_use_VBOs = TRUE;
+OLDCODE
+OLDCODE	if (global_use_VBOs) {
+OLDCODE		TRACE_MSG("Env: trying VBOs enabled.\n");
+OLDCODE	}
+OLDCODE*/
+#endif /* OLDCODE */
 
-	global_strictParsing = (getenv("FREEWRL_STRICT_PARSING") != NULL);
-	if (global_strictParsing) {
-		TRACE_MSG("Env: STRICT PARSING enabled.\n");
-	}
-
-	global_plugin_print = (getenv("FREEWRL_DO_PLUGIN_PRINT") != NULL);
-	if (global_plugin_print) {
-		TRACE_MSG("Env: PLUGIN PRINT enabled.\n");
-	}
-
-	global_occlusion_disable = (getenv("FREEWRL_NO_GL_ARB_OCCLUSION_QUERY") != NULL);
-	if (global_occlusion_disable) {
-		TRACE_MSG("Env: OCCLUSION QUERY disabled.\n");
-	}
-
-	env_texture_size = getenv("FREEWRL_TEXTURE_SIZE");
-	if (env_texture_size) {
-		sscanf(env_texture_size, "%u", &global_texture_size);
-		TRACE_MSG("Env: TEXTURE SIZE %u.\n", global_texture_size);
-	}
-
-	global_print_opengl_errors = (getenv("FREEWRL_PRINT_OPENGL_ERRORS") != NULL);
-	if (global_print_opengl_errors) {
-		TRACE_MSG("Env: PRINT OPENGL ERRORS enabled.\n");
-	}
-
-	global_trace_threads = (getenv("FREEWRL_TRACE_THREADS") != NULL);
-	if (global_trace_threads) {
-		TRACE_MSG("Env: TRACE THREADS enabled.\n");
-	}
-
-	if (getenv("FREEWRL_NO_VBOS") != NULL) global_use_VBOs = FALSE; 
-	else if (getenv("FREEWRL_USE_VBOS") != NULL) global_use_VBOs = TRUE;
-
-	if (global_use_VBOs) {
-		TRACE_MSG("Env: trying VBOs enabled.\n");
-	}
-*/
 
 	/* Check parameters */
 	if (params) {
