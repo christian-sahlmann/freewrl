@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.33 2011/04/11 14:17:37 crc_canada Exp $
+  $Id: options.c,v 1.34 2011/04/16 17:01:06 dug9 Exp $
 
   FreeWRL command line arguments.
 
@@ -447,15 +447,15 @@ void fv_parseEnvVars()
 	fwl_set_occlusion_disable	(getenv("FREEWRL_NO_GL_ARB_OCCLUSION_QUERY") != NULL);
 	fwl_set_print_opengl_errors	(getenv("FREEWRL_PRINT_OPENGL_ERRORS") != NULL);
 	fwl_set_trace_threads		(getenv("FREEWRL_TRACE_THREADS") != NULL);
-
-	char *env_texture_size = getenv("FREEWRL_TEXTURE_SIZE");
-	if (env_texture_size) {
-		unsigned int local_texture_size ;
-		sscanf(env_texture_size, "%u", &local_texture_size);
-		TRACE_MSG("Env: TEXTURE SIZE %u.\n", local_texture_size);
-		fwl_set_texture_size(local_texture_size);
+	{
+		char *env_texture_size = getenv("FREEWRL_TEXTURE_SIZE");
+		if (env_texture_size) {
+			unsigned int local_texture_size ;
+			sscanf(env_texture_size, "%u", &local_texture_size);
+			TRACE_MSG("Env: TEXTURE SIZE %u.\n", local_texture_size);
+			fwl_set_texture_size(local_texture_size);
+		}
 	}
-
 	fwl_set_use_VBOs (FALSE);
 	if (getenv("FREEWRL_USE_VBOS") != NULL) fwl_set_use_VBOs(TRUE);
 }
