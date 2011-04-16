@@ -41,8 +41,9 @@ extern "C"
 #include "libFreeWRL.h"
 //#include <main/headers.h>
 void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
-void do_keyPress(const char kp, int type);
-void initializeRenderSceneUpdateScene();
+//void do_keyPress(const char kp, int type);
+//void initializeRenderSceneUpdateScene();
+void fwl_initializeRenderSceneUpdateScene();
 void RenderSceneUpdateScene();
 void finalizeRenderSceneUpdateScene();
 void resize_GL(int width, int height);
@@ -108,7 +109,8 @@ void CdllFreeWRL::onInit(unsigned long handle,int width, int height){
 	//initStereoDefaults();
 	//startFreeWRL("C:\\source2\\tests\\1.wrl");
 	//swDebugf("after startFreeWRL\n");
-	initializeRenderSceneUpdateScene();
+	//fwl_initializeRenderSceneUpdateScene();
+	fwl_initializeRenderSceneUpdateScene();
 	//swDebugf("after initializeRenderSceneUpdateScene\n");
 	resource_push_single_request("C:\\source2\\tests\\1.wrl");
 
@@ -156,11 +158,11 @@ void CdllFreeWRL::onKey(int keyAction,int keyValue){
 			default:
 				break;
 		}
-		do_keyPress(kp, ka); 
+		fwl_do_keyPress(kp, ka); 
 		break; 
 
 	case KEYPRESS: //WM_CHAR:
-		do_keyPress(kp,ka);
+		fwl_do_keyPress(kp,ka);
 		break;
 	}
 }
