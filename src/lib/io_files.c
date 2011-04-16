@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.34 2011/04/09 00:33:19 davejoubert Exp $
+  $Id: io_files.c,v 1.35 2011/04/16 22:07:34 dug9 Exp $
 
   FreeWRL support library.
   IO with files.
@@ -121,7 +121,15 @@ printf ("remove_filename_from_path, returning :%s:\n",rv);
 	}
 	return rv;
 }
-
+char *strBackslash2fore(char *str)
+{
+#ifdef _MSC_VER
+	int jj;
+	for( jj=0;jj<strlen(str);jj++)
+		if(str[jj] == '\\' ) str[jj] = '/';
+#endif
+	return str;
+}
 char *get_current_dir()
 {
 	char *cwd , *retvar;
@@ -130,6 +138,7 @@ char *get_current_dir()
 	if (NULL != retvar) {
 			size_t ll;
 			ll = strlen(cwd);
+#ifdef OLDCODE
 #ifdef _MSC_VER
 			{
 				size_t jj;
@@ -137,12 +146,15 @@ char *get_current_dir()
 					if(cwd[jj] == '\\' ) cwd[jj] = '/';
 			}
 #endif
+#endif
+			cwd = strBackslash2fore(cwd);
 			cwd[ll] = '/';  /* put / ending to match posix version which puts local file name on end*/
 			cwd[ll+1] = '\0';
 	} else {
 		printf("Unable to establish current working directory in %s,%d errno=%d",__FILE__,__LINE__,errno) ;
 		cwd = "/tmp/" ;
 	}
+	ConsoleMessage("get_current_dir returns[%s]\n",cwd);
 	return cwd;
 }
 

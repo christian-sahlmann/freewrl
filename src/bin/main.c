@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.39 2011/04/09 00:33:19 davejoubert Exp $
+  $Id: main.c,v 1.40 2011/04/16 22:07:34 dug9 Exp $
 
   FreeWRL main program.
 
@@ -55,6 +55,7 @@ void fv_catch_SIGHUP();
 #if defined(_MSC_VER)
 #include <shlwapi.h>
 char *get_current_dir();
+char *strBackslash2fore(char *str);
 
 #endif
 
@@ -88,7 +89,7 @@ int main (int argc, char **argv)
 		static char *fdir;
 		fdir = malloc(MAX_PATH); 
 		strcpy(fdir,"FREEWRL_FONTS_DIR=");
-		strcat(fdir,"..\\..\\..\\..\\fonts");
+		strcat(fdir,"../../../../fonts");
 		_putenv( fdir );
 	}
 	else
@@ -106,7 +107,7 @@ int main (int argc, char **argv)
 		fdir = malloc(MAX_PATH); 
 		strcpy(fdir,"FREEWRL_FONTS_DIR=");
 		strcat(fdir,syspath);
-		strcat(fdir,"\\Fonts");
+		strcat(fdir,"/Fonts");
 		_putenv( fdir );
 	}
 	get_current_dir();
@@ -144,9 +145,21 @@ int main (int argc, char **argv)
     if (fv_parseCommandLine(argc, argv)) {
 
 	    start_url = argv[optind];
+		start_url = strBackslash2fore(start_url);
+
+#ifdef OLDCODE
 #ifdef _MSC_VER
 		//if( start_url )
-		if(1) //
+		if(1)
+		{
+			int jj;
+			//change to forward slashes
+			for(jj=0;jj<strlen(start_url);jj++)
+				if(start_url[jj] == '\\' ) start_url[jj] = '/';
+			printf("working start_url=%s\n",start_url);
+
+		}
+		if(0) //
 		{
 			/* goal - split the url into path and file, then set 
 				set current working directy = path
@@ -177,9 +190,9 @@ int main (int argc, char **argv)
 			printf("working dir=%s start_url=%s\n",path,start_url);
 		}
 #endif
+#endif //OLDCODE
     }
-#endif
-
+#endif 
 
     /* doug- redirect stdout to a file - works, useful for sending bug reports */
     /*freopen("freopen.txt", "w", stdout ); */
