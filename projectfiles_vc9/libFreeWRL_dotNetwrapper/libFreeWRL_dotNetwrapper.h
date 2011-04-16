@@ -1,7 +1,9 @@
 // libFreeWRL_dotNetwrapper.h
 
 #pragma once
-
+#include < stdio.h >
+#include < stdlib.h >
+#include<vcclr.h>
 using namespace System;
 
 using namespace System::Runtime::InteropServices;
@@ -13,8 +15,8 @@ extern int FreeConsole();
 [DllImport("Kernel32.dll")]    
 extern int AttachConsole(UInt32 dwProcessId);
 
-namespace libFreeWRL_dotNetwrapper {
 
+namespace libFreeWRL_dotNetwrapper {
 
 	public ref class FreewrlLib
 	{
@@ -39,6 +41,20 @@ public:
 			// Hide the console window    FreeConsole();
 			//AllocConsole();    
 			Console::WriteLine("Write to the console!");   
+		}
+		void onLoad(String^ Scene_url)
+		{
+
+
+			// ms-help://MS.VSCC.v90/MS.msdnexpress.v90.en/dv_vccore/html/385da01b-5649-4543-8076-e3e251243ff0.htm
+			pin_ptr<const wchar_t> wch = PtrToStringChars(Scene_url);
+					//Scene_url->ToCharArray(); //PtrToStringChars(Scene_url);
+			size_t convertedChars = 0;
+			size_t  sizeInBytes = ((Scene_url->Length + 1) * 2);
+			char *scene_url = (char *)malloc(sizeInBytes);
+
+			if( wcstombs_s(&convertedChars, scene_url, sizeInBytes,	wch, sizeInBytes) == 0)
+				dllfreewrl->onLoad(scene_url); 
 		}
         void onResize(int width,int height)
 		{

@@ -184,6 +184,8 @@ private: System::Void freewrlUC_Shown(System::Object^  sender, System::EventArgs
 				 IntPtr handle = this->Handle; //The value of the Handle property is a Windows HWND
             lblStatus->Text = handle.ToString() + " " + this->Size.Height.ToString() + " " + this->Size.Width.ToString();
             freewrllib->onInit(handle, this->ClientSize.Width,this->ClientSize.Height); //this->Size.Width,this->Size.Height);
+			freewrllib->onLoad("C:/source2/tests/2.x3d");
+
 		 }
 
 private: System::Void freewrlUC_ClientSizeChanged(System::Object^  sender, System::EventArgs^  e) {

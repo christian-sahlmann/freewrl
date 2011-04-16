@@ -99,8 +99,8 @@ void CdllFreeWRL::onInit(unsigned long handle,int width, int height){
 	DWORD pid = GetCurrentProcessId() ;
 	initConsoleH(pid);
 
-	ConsoleMessage("do consoleMessages come out\n");
-	swDebugf("sure");
+	swDebugf("onInit: do consoleMessages come out\n");
+	swDebugf("onInit sure");
 	if (!initFreeWRL(params)) {
 		//ERROR_MSG("main: aborting during initialization.\n");
 		//exit(1);
@@ -109,12 +109,27 @@ void CdllFreeWRL::onInit(unsigned long handle,int width, int height){
 	//initStereoDefaults();
 	//startFreeWRL("C:\\source2\\tests\\1.wrl");
 	//swDebugf("after startFreeWRL\n");
-	//fwl_initializeRenderSceneUpdateScene();
+	//fwl_initializeRenderSceneUpdateScene()
+	swDebugf("onInit: before initializeRenderSceneUpdateScene\n");
 	fwl_initializeRenderSceneUpdateScene();
-	//swDebugf("after initializeRenderSceneUpdateScene\n");
-	resource_push_single_request("C:\\source2\\tests\\1.wrl");
+	swDebugf("onInit: after initializeRenderSceneUpdateScene\n");
+	//resource_push_single_request("C:\\source2\\tests\\1.wrl");
 
 }
+void CdllFreeWRL::onLoad(char* scene_url)
+{
+	swDebugf("onLoad before finalizeRenderSceneUpdateScene\n");
+	//finalizeRenderSceneUpdateScene();
+	swDebugf("onLoad after finalizeRenderSceneUpdateScene\n");
+	fwl_initializeRenderSceneUpdateScene();
+	swDebugf("onLoad after initializeRenderSceneUpdateScene\n");
+	swDebugf("onLoad have url=%s\n",scene_url);
+	resource_push_single_request(scene_url); //"C:\\source2\\tests\\1.wrl");
+	//resource_push_single_request_IE_main_scene(scene_url);
+	swDebugf("onLoad after push_single_request url=%s\n",scene_url);
+
+}
+
 void CdllFreeWRL::onResize(int width,int height){
 	//screenWidth = width; /*used in mainloop render_pre setup_projection*/
 	//screenHeight = height;

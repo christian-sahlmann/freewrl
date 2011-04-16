@@ -28,6 +28,7 @@ public:
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 
 	void onInit(unsigned long handle,int width, int height);
+	void onLoad(char* scene_url);
     void onResize(int height,int width);
     void onMouse(int mouseAction,int mouseButton,int x, int y);
     void onKey(int keyAction,int keyValue);
