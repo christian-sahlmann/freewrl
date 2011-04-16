@@ -52,6 +52,7 @@ void closeFreeWRL(void);
 void resource_push_single_request(const char *request);
 void initConsoleH(DWORD pid);
 extern int Console_writePrimitive;
+char *strBackslash2fore(char *str);
 //extern int screenWidth; /*used in mainloop render_pre setup_projection*/
 //extern int screenHeight;
 
@@ -123,10 +124,12 @@ void CdllFreeWRL::onLoad(char* scene_url)
 	swDebugf("onLoad after finalizeRenderSceneUpdateScene\n");
 	fwl_initializeRenderSceneUpdateScene();
 	swDebugf("onLoad after initializeRenderSceneUpdateScene\n");
-	swDebugf("onLoad have url=%s\n",scene_url);
-	resource_push_single_request(scene_url); //"C:\\source2\\tests\\1.wrl");
+	this->url = strdup(scene_url);
+	this->url = strBackslash2fore(this->url);
+	swDebugf("onLoad have url=[%s]\n",this->url);
+	resource_push_single_request(this->url); //"C:\\source2\\tests\\1.wrl");
 	//resource_push_single_request_IE_main_scene(scene_url);
-	swDebugf("onLoad after push_single_request url=%s\n",scene_url);
+	swDebugf("onLoad after push_single_request url=[%s]\n",this->url);
 
 }
 

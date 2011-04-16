@@ -34,6 +34,8 @@ public:
     void onKey(int keyAction,int keyValue);
     void onTick(int interval);
 	void onClose();
+private:
+	char *url;
 };
 
 extern DLLFREEWRL_API int ndllFreeWRL;
