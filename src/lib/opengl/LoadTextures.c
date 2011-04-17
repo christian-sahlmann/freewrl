@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.67 2011/04/17 17:07:13 dug9 Exp $
+  $Id: LoadTextures.c,v 1.68 2011/04/17 22:47:38 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -303,18 +303,33 @@ colorSpace = CGColorSpaceCreateDeviceRGB();
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
  */
+char* download_file(filename);
+
 bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 {
 
 /* WINDOWS */
 #if defined (_MSC_VER)
-	/* return FALSE; // to see the default grey image working first */
-    if (!loadImage(this_tex, filename)) {
-		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
-		return FALSE;
-    }
-	return TRUE;
+	char *fname;
+	int ret;
 
+#ifdef FRONTEND_GETS_FILES
+	fname = download_file(filename);
+	if(!fname) 
+	{
+		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);
+		return FALSE;
+	}
+#else
+	fname = strdup(filename);
+#endif
+
+	ret = loadImage(this_tex, fname);
+    if (!ret) {
+		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);
+	}
+	free(fname);
+	return (ret != 0);
 
 #endif
 

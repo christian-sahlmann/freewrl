@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.28 2011/04/09 00:33:19 davejoubert Exp $
+  $Id: libFreeWRL.h,v 1.29 2011/04/17 22:47:38 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -39,6 +39,12 @@
 	
 
 #else /* COMPILING_IPHONE_FRONT_END */
+
+#ifdef COMPILING_ACTIVEX_FRONTEND
+	void fwl_initializeRenderSceneUpdateScene(void);
+	char *frontEndWantsFileName(void);
+	void RenderSceneUpdateScene(void);
+#endif
 /**
  * Version embedded
  */
@@ -171,7 +177,9 @@ void fwl_First_ViewPoint(void);
 void fwl_Last_ViewPoint(void);
 
 void fwl_OSX_initializeParameters(const char* initialURL);
+void fwl_resource_push_single_request_IE_main_scene(const char *request);
 void fwl_frontEndReturningData(unsigned char *dataPointer, int len);
+void fwl_frontEndReturningLocalFile(char *localfile, int iret);
 int fwl_display_initialize(void);
 void fwl_setScreenDim(int wi, int he);
 void fwl_setLastMouseEvent(int etype);

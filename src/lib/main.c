@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.46 2011/04/15 15:06:43 crc_canada Exp $
+  $Id: main.c,v 1.47 2011/04/17 22:47:38 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -152,6 +152,73 @@ void setFullPath(const char* file)
     /* ConsoleMessage ("setBrowserFullPath is %s (%d)",BrowserFullPath,strlen(BrowserFullPath));  */
 }
 #endif
+/**
+ *   like resource_push_single_request except for win32/IE/ActiveX load main scene
+ *   win32/InternetExplorer activex control is funny: it doesn't tell you
+ *   it's page url anywhere. so you'll only get url=1.x3d when the page is
+ *   at http://dug9.users.sourceforge.net/web3d/1.x3d  or 
+ *   at c:/source2/tests/1.x3d. But what IE does do is provide a magic function
+ *   URLDownloadToCacheFile(pointer_to_activex_control_instance,url,&localcachefilename,...)
+ *   and it will give you back the localcachfilename which is either
+ *   a) the file path if the url was for a local disk file ie c:/source2/tests/1.x3d OR
+ *   b) the file path of the internet cache downloaded file, which you can open
+ *      like a local file ie fopen()
+ *   you don't have to know which it was -local or http-
+ *   warning: don't delete the file in case it's local. If network, the network cache 
+ *   should delete it automatically after some time.
+ */
+//#include <windows.h>
+//#include "Shlwapi.h"
+char *strForeslash2back(char *str)
+{
+#ifdef _MSC_VER
+	int jj;
+	for( jj=0;jj<strlen(str);jj++)
+		if(str[jj] == '/' ) str[jj] = '\\';
+#endif
+	return str;
+}
+void send_resource_to_parser_async(resource_item_t *res);
+void fwl_resource_push_single_request_IE_main_scene(const char *request)
+{
+	resource_item_t *res;
+	char *c;
+	if (!request)
+		return;
+	ConsoleMessage("before create resource\n");
+	ConsoleMessage("frontend thread ID = %d\n",(int)pthread_self().p);
+
+	res = resource_create_single(request);
+	/*
+	2 possible spoof methods: 
+	a) do resource_identify - need res->parent
+		parent->network = true; (or _Bool true)
+		parent->base = ""
+	b)  skip resource_identify - set:
+		res->type=rest_url 
+		res->network = true 
+		res->status = ress_starts_good
+	*/
+	//method b - skip resource identify
+	res->network = true;
+	res->type = rest_url;
+	res->status = ress_starts_good;
+	res->parsed_request = STRDUP(request);
+	res->base = STRDUP(request);
+	//c = strrchr(res->base,'/');
+	//if(c) *c = '\0';
+	//res->base = strForeslash2back(res->base);
+	//PathRemoveFileSpec(res->base);
+	//res->base = strBackslash2fore(res->base);
+	res->base = NULL;
+	ConsoleMessage("base=[%s] pr=[%s]\n",res->base,res->parsed_request);
+	//removeFilenameFromPath(res->base);
+
+	ConsoleMessage("before send resource to parser\n");
+	send_resource_to_parser_async(res);
+	ConsoleMessage("after send resource to parser res->status=%d\n",(int)res->status);
+
+}
 
 bool initFreeWRL(freewrl_params_t *params)
 {

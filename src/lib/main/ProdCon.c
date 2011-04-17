@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.78 2011/03/22 18:52:44 crc_canada Exp $
+  $Id: ProdCon.c,v 1.79 2011/04/17 22:47:38 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -361,6 +361,41 @@ void send_resource_to_parser(resource_item_t *res)
 	
 	/* grab any data we want */
 	UNLOCK;
+}
+void send_resource_to_parser_async(resource_item_t *res)
+{
+	/* We are not in parser thread, most likely
+	   in main or display thread, and we successfully
+	   parsed a resource request.
+
+	   We send it to parser.
+	*/
+
+	/* Wait for display thread to be fully initialized */
+	while (IS_DISPLAY_INITIALIZED == FALSE) {
+		usleep(50);
+	}
+
+	/* wait for the parser thread to come up to speed */
+	while (!inputParseInitialized) usleep(50);
+
+	/* Lock access to the resource list */
+	WAIT_WHILE_PARSER_BUSY;
+ 
+	/* Add our resource item */
+	resource_list_to_parse = ml_append(resource_list_to_parse, ml_new(res));
+
+	/* signal that we have data on resource list */
+
+	SEND_TO_PARSER;
+	/* Unlock the resource list */
+	UNLOCK;
+
+	/* wait for the parser to finish */
+	//WAIT_WHILE_PARSER_BUSY;
+	
+	/* grab any data we want */
+	//UNLOCK;
 }
 
 void dump_resource_waiting(resource_item_t* res)

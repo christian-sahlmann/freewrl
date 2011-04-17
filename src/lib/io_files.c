@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.35 2011/04/16 22:07:34 dug9 Exp $
+  $Id: io_files.c,v 1.36 2011/04/17 22:47:38 dug9 Exp $
 
   FreeWRL support library.
   IO with files.
@@ -360,6 +360,8 @@ static openned_file_t* load_file_read(const char *filename)
 #ifdef FRONTEND_GETS_FILES
 static char *fileText = NULL;
 static char *fileName = NULL;
+static frontend_return_status = 0;
+static char *localFile = NULL;
 static int fileSize = 0;
 
 static pthread_mutex_t  getAFileLock = PTHREAD_MUTEX_INITIALIZER;
@@ -405,6 +407,24 @@ void fwl_frontEndReturningData(unsigned char *dataPointer, int len) {
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
 }
 
+void fwl_frontEndReturningLocalFile(char *localfile, int iret) {
+	MUTEX_LOCK_FILE_RETRIEVAL
+    ConsoleMessage("frontend got localfile=[%s] iret=%d\n",localfile,iret);
+	fileName = NULL; /* not freed as only passed by pointer */
+	frontend_return_status = 1;
+	if(iret == -1) frontend_return_status = -1;
+	localFile = strBackslash2fore(strdup(localfile));
+	/* got the file, send along a message */
+	SEND_FILE_SIGNAL
+	ConsoleMessage("after signal\n");
+	MUTEX_FREE_LOCK_FILE_RETRIEVAL
+	ConsoleMessage("after unlock\n");
+}
+
+#else
+char *frontEndWantsFileName() {return NULL;}
+void fwl_frontEndReturningData(unsigned char *dataPointer, int len) {}
+void fwl_frontEndReturningLocalFile(char *localfile, int iret) {}
 #endif
 
 
@@ -432,8 +452,12 @@ openned_file_t* load_file(const char *filename)
 	WAIT_FOR_FILE_SIGNAL
 
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
-
-	return create_openned_file(filename, NULL, fileSize, fileText);
+	if(frontend_return_status == 1)
+		return load_file_read(localFile);
+	else if(frontend_return_status == -1)
+		return NULL;
+	else
+		return create_openned_file(filename, NULL, fileSize, fileText);
 #endif
 
 
@@ -452,6 +476,31 @@ openned_file_t* load_file(const char *filename)
 	DEBUG_RES("%s loading status: %s\n", filename, BOOL_STR((of!=NULL)));
 	return of;
 }
+
+#ifdef FRONTEND_GETS_FILES
+/* this is for win32 LoadTextures.c > texture_load_from_file */
+char* download_file(filename)
+{
+	/* the frontend or plugin is going to get this resource */
+	MUTEX_LOCK_FILE_RETRIEVAL
+
+	FREE_IF_NZ(fileText);
+	FREE_IF_NZ(fileName);
+
+	ConsoleMessage("lf_need file from frontend=[%s]\n",filename);
+	ConsoleMessage("load_file thread ID = %d\n",(int)pthread_self().p);
+	fileName = filename;
+	WAIT_FOR_FILE_SIGNAL
+	ConsoleMessage("lf_got file from frontend retstat=%d\n",frontend_return_status);
+	MUTEX_FREE_LOCK_FILE_RETRIEVAL
+	if(frontend_return_status == -1)
+	{
+		return NULL;
+	}
+	return strdup(localFile);
+}
+#endif
+
 
 /**
  *   check the first few lines to see if this is an XMLified file
