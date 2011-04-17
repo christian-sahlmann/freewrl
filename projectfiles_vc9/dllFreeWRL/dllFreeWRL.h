@@ -34,6 +34,9 @@ public:
     void onKey(int keyAction,int keyValue);
     void onTick(int interval);
 	void onClose();
+	char* downloadFileName();
+	void downloadComplete(char *localfile, int iret);
+	void print(char *str);
 private:
 	char *url;
 };

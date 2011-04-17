@@ -127,8 +127,9 @@ void CdllFreeWRL::onLoad(char* scene_url)
 	this->url = strdup(scene_url);
 	this->url = strBackslash2fore(this->url);
 	swDebugf("onLoad have url=[%s]\n",this->url);
-	resource_push_single_request(this->url); //"C:\\source2\\tests\\1.wrl");
-	//resource_push_single_request_IE_main_scene(scene_url);
+	//resource_push_single_request(this->url); //"C:\\source2\\tests\\1.wrl");
+	fwl_resource_push_single_request_IE_main_scene(this->url);
+	//fwl_OSX_initializeParameters("http://freewrl.sourceforge.net/test3.wrl");
 	swDebugf("onLoad after push_single_request url=[%s]\n",this->url);
 
 }
@@ -196,4 +197,16 @@ void CdllFreeWRL::onClose()
 
 	closeFreeWRL();
 	//terminateFreeWRL();
+}
+char* CdllFreeWRL::downloadFileName()
+{
+	return frontEndWantsFileName();
+}
+void CdllFreeWRL::downloadComplete(char *localfile, int iret)
+{
+fwl_frontEndReturningLocalFile(localfile, iret);
+}
+void CdllFreeWRL::print(char *str)
+{
+	swDebugf(str);
 }
