@@ -1,0 +1,50 @@
+// freeWRLAx.idl : type library source for ActiveX Control project.
+
+// This file will be processed by the MIDL compiler tool to
+// produce the type library (freeWRLAx.tlb) that will become a resource in
+// freeWRLAx.ocx.
+
+#include <olectl.h>
+#include <idispids.h>
+
+[ uuid(656FC6F3-9CF2-4674-B332-B2550852E644), version(1.0),
+  helpfile("freeWRLAx.hlp"),
+  helpstring("freeWRLAx ActiveX Control module"),
+  control ]
+library freeWRLAxLib
+{
+	importlib(STDOLE_TLB);
+
+	//  Primary dispatch interface for CfreeWRLCtrl
+
+	[ uuid(C3C32307-89C2-4C1A-B7F1-D561AA0653A3),
+	  helpstring("Dispatch interface for freeWRL Control")]
+	dispinterface _DfreeWRLAx
+	{
+		properties:
+		methods:
+	};
+
+	//  Event dispatch interface for CfreeWRLCtrl
+
+	[ uuid(91DEB0AA-9E7D-43F4-80C4-125C535B30EC),
+	  helpstring("Event interface for freeWRL Control") ]
+	dispinterface _DfreeWRLAxEvents
+	{
+		properties:
+			//  Event interface has no properties
+
+		methods:
+	};
+
+	//  Class information for CfreeWRLCtrl
+
+	[ uuid(582C9301-A2C8-45FC-831B-654DE7F3AF11),
+	  helpstring("freeWRL Control"), control ]
+	coclass freeWRLAx
+	{
+		[default] dispinterface _DfreeWRLAx;
+		[default, source] dispinterface _DfreeWRLAxEvents;
+	};
+
+};
