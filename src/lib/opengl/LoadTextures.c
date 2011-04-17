@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.66 2011/03/22 18:52:44 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.67 2011/04/17 17:07:13 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -591,12 +591,10 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		res = resource_create_multi(url);
 		/* hold on to the top of the list so we can delete it later */
 		head_of_list = res->m_request;
-
 		/* go through the urls until we have a success, or total failure */
 		do {
 			/* Setup parent */
 			resource_identify(parentPath, res);
-
 			/* Setup media type */
 			res->media_type = resm_image; /* quick hack */
 
@@ -626,7 +624,7 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 
 
 	/* were we successful?? */
-	if (res->status != ress_loaded) {
+	if (res->status != ress_downloaded) {
 		ERROR_MSG("Could not load texture: %s\n", entry->filename);
 		return FALSE;
 	} else {
@@ -678,6 +676,11 @@ static void texture_process_list(s_list_t *item)
 	case TEX_NOTLOADED:
 		if (texture_process_entry(entry)) {
 			remove_it = TRUE;
+		}else{
+			remove_it = TRUE; //still remove it 
+			// url doesn't exist (or none of multi-url exist)
+			// no point in trying again, 
+			// you'll just get the same result in a vicious cycle
 		}
 		break;
 		
