@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\lib_windows\JS\js1.5\src;..\..\src\Lib;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\expat\source\lib_hide;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\libxml2\include"
-				PreprocessorDefinitions="W_DEBUG;WIN32;GLEW;_CRT_SECURE_NO_WARNINGS;XP_WIN"
+				PreprocessorDefinitions="W_DEBUG;WIN32;GLEW;_CRT_SECURE_NO_WARNINGS;XP_WIN;COMPILING_ACTIVEX_FRONTEND;FRONTEND_HANDLES_DISPLAY_THREAD;FRONTEND_GETS_FILES"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
