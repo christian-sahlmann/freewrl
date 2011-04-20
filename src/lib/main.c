@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.47 2011/04/17 22:47:38 dug9 Exp $
+  $Id: main.c,v 1.48 2011/04/20 15:20:36 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -41,6 +41,7 @@
 #include "vrml_parser/Structs.h"
 #include "main/ProdCon.h"
 #include "input/InputFunctions.h"
+// JAS #include "x3d_parser/Bindable.h"
 
 
 /**
@@ -80,6 +81,8 @@ static freewrl_params_t *OSXparams = NULL;
 void fwl_OSX_initializeParameters(const char* initialURL) {
     resource_item_t *res;
 
+printf ("start of fwl_OSX_initializeParameters, url %s\n",initialURL);
+
     /* have we been through once already (eg, plugin loading new file)? */
     if (OSXparams == NULL) {
 
@@ -106,8 +109,6 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
     /* Give the main argument to the resource handler */
     res = resource_create_single(initialURL);
     
-    /* tell the new world which viewpoint to go to */
-    givenInitialViewpoint = res->afterPoundCharacters;
 
     send_resource_to_parser(res);
 
@@ -124,9 +125,15 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 	printf("load failed %s\n", initialURL);
 	ConsoleMessage ("FreeWRL: unknown data on command line: \"%s\"", res->request);
     } else {
-	/* Success! 
-	printf("loaded %s\n", initialURL); */
+
+    	/* tell the new world which viewpoint to go to */
+    	if (res->afterPoundCharacters != NULL) {
+		fwl_gotoViewpoint(res->afterPoundCharacters);
+		/* Success! 
+		printf("loaded %s\n", initialURL); */
 	}
+
+    }
 }
 
 /* OSX plugin is telling us the id to refer to */
@@ -186,7 +193,11 @@ void fwl_resource_push_single_request_IE_main_scene(const char *request)
 	if (!request)
 		return;
 	ConsoleMessage("before create resource\n");
+#ifdef AQUA
+	ConsoleMessage("frontend thread ID = %d\n",(int)pthread_self());
+#else
 	ConsoleMessage("frontend thread ID = %d\n",(int)pthread_self().p);
+#endif
 
 	res = resource_create_single(request);
 	/*
