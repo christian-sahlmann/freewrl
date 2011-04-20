@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.48 2011/04/20 15:20:36 crc_canada Exp $
+  $Id: main.c,v 1.49 2011/04/20 23:39:19 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -193,11 +193,7 @@ void fwl_resource_push_single_request_IE_main_scene(const char *request)
 	if (!request)
 		return;
 	ConsoleMessage("before create resource\n");
-#ifdef AQUA
-	ConsoleMessage("frontend thread ID = %d\n",(int)pthread_self());
-#else
 	ConsoleMessage("frontend thread ID = %d\n",(int)pthread_self().p);
-#endif
 
 	res = resource_create_single(request);
 	/*
