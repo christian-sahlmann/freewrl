@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.188 2011/04/15 15:02:13 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.189 2011/04/21 16:40:41 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1657,7 +1657,6 @@ bool initialize_GL()
 	PRINT_GL_ERROR_IF_ANY("initialize_GL start 5");
     
 
-	FW_GL_CLEAR_COLOR((float)0.0, (float)0.0, (float)1.0, (float)0.0);
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 	FW_GL_LOAD_IDENTITY();
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
@@ -1669,7 +1668,7 @@ bool initialize_GL()
         FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
-    
+
 	PRINT_GL_ERROR_IF_ANY("initialize_GL start 7");
     
 	

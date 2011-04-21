@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.41 2011/04/09 00:33:19 davejoubert Exp $
+  $Id: pluginUtils.c,v 1.42 2011/04/21 16:40:41 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -266,7 +266,7 @@ int doBrowserAction()
 					kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
 					/* tell the new world which viewpoint to go to */
-					givenInitialViewpoint = plugin_res->afterPoundCharacters;
+					fwl_gotoViewpoint (plugin_res->afterPoundCharacters);
 					resToLoad = resource_create_single(plugin_res->actual_file);
 
 					/* in with the new... */

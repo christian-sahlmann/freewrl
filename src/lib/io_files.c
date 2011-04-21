@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.36 2011/04/17 22:47:38 dug9 Exp $
+  $Id: io_files.c,v 1.37 2011/04/21 16:40:41 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -477,6 +477,7 @@ openned_file_t* load_file(const char *filename)
 	return of;
 }
 
+#ifdef _WIN32
 #ifdef FRONTEND_GETS_FILES
 /* this is for win32 LoadTextures.c > texture_load_from_file */
 char* download_file(filename)
@@ -488,7 +489,7 @@ char* download_file(filename)
 	FREE_IF_NZ(fileName);
 
 	ConsoleMessage("lf_need file from frontend=[%s]\n",filename);
-	ConsoleMessage("load_file thread ID = %d\n",(int)pthread_self().p);
+    ConsoleMessage("load_file thread ID = %d\n",(int)pthread_self().p);
 	fileName = filename;
 	WAIT_FOR_FILE_SIGNAL
 	ConsoleMessage("lf_got file from frontend retstat=%d\n",frontend_return_status);
@@ -499,7 +500,8 @@ char* download_file(filename)
 	}
 	return strdup(localFile);
 }
-#endif
+#endif /* FRONTEND_GETS_FILES */
+#endif /* _WIN32 */
 
 
 /**

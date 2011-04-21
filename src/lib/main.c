@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.49 2011/04/20 23:39:19 dug9 Exp $
+  $Id: main.c,v 1.50 2011/04/21 16:40:41 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -186,6 +186,8 @@ char *strForeslash2back(char *str)
 	return str;
 }
 void send_resource_to_parser_async(resource_item_t *res);
+
+#ifdef _MSC_VER
 void fwl_resource_push_single_request_IE_main_scene(const char *request)
 {
 	resource_item_t *res;
@@ -224,8 +226,9 @@ void fwl_resource_push_single_request_IE_main_scene(const char *request)
 	ConsoleMessage("before send resource to parser\n");
 	send_resource_to_parser_async(res);
 	ConsoleMessage("after send resource to parser res->status=%d\n",(int)res->status);
-
 }
+#endif /* _MSC_VER */
+
 
 bool initFreeWRL(freewrl_params_t *params)
 {
