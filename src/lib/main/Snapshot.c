@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.18 2011/04/16 17:01:06 dug9 Exp $
+$Id: Snapshot.c,v 1.19 2011/04/23 00:40:11 dug9 Exp $
 
 CProto ???
 
@@ -110,21 +110,45 @@ void saveSnapshot(char *buffer,int bytesPerPixel,int width, int height)
 	BITMAPINFOHEADER bi; 
 	BITMAPFILEHEADER bmph;
 	FILE *fout = fopen("freewrl_snapshot.bmp","w+b");
+
 	if(bytesPerPixel == 3) bi.biCompression = BI_RGB;
 	bi.biHeight = height;
 	bi.biWidth = width;
 	bi.biPlanes = 1;
 	bi.biBitCount  = 8 * bytesPerPixel;
+	bi.biXPelsPerMeter = 0;
+	bi.biYPelsPerMeter = 0;
 	bi.biSizeImage = bytesPerPixel*bi.biHeight*bi.biWidth;
+ // The width must be DWORD aligned unless the bitmap is RLE 
+    // compressed. 
+    //pi.biSizeImage = ((bi.biWidth * 8*bytesPerPixel +31) & ~31) /8
+    //                              * bi.biHeight; 
+
 	bi.biSize = sizeof(bi);
+	bi.biClrUsed = 0;
+	bi.biClrImportant = 0;
+
 
 	memcpy(&bmph.bfType,"BM",2);
 	bmph.bfReserved1 = 0;
 	bmph.bfReserved2 = 0;
-	bmph.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+	bmph.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER); 
 	bmph.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + bi.biSizeImage;
 	fwrite(&bmph,sizeof(BITMAPFILEHEADER),1,fout);
-	fwrite(&bi,sizeof(BITMAPINFOHEADER),1,fout);
+	fwrite(&bi,sizeof(BITMAPINFO),1,fout);
+
+	if(true); //reverse)
+	{
+		//reverse R and B
+		int i;
+		char c;
+		for(i=0;i<bi.biSizeImage;i+=3)
+		{
+			c = buffer[i];
+			buffer[i] = buffer[i+2];
+			buffer[i+2] = c;
+		}
+	}
 	fwrite(buffer,bi.biSizeImage,1,fout);
 	fclose(fout);
 }
@@ -133,6 +157,9 @@ void Snapshot ()
 /* going to try just the single snapshot for windows, to .bmp format 
   (and future: remember .avi holds a sequence of DIBs. A .bmp holds 1 DIB.
   There’s something in the 2003 platform SDK and online for AVI & RIFF/DIB/BMP
+  http://msdn.microsoft.com/en-us/library/dd145119(v=VS.85).aspx storing a bitmap
+  http://msdn.microsoft.com/en-us/library/dd183391(VS.85).aspx  .bmp
+  http://msdn.microsoft.com/en-us/library/aa446563.aspx  sample program
  http://msdn.microsoft.com/en-us/library/ms706540(v=VS.85).aspx 
  http://msdn.microsoft.com/en-us/library/ms706415(v=VS.85).aspx  Vfw.h, Vfw32.lib 
 */
