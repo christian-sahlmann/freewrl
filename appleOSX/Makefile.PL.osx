@@ -81,7 +81,6 @@ push @inc, $VRML_CONFIG{FREEWRL_INC},
 	"-I../src/lib ",
 	" -IOSX_Specific ";
 push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-ljs";
-#JASpush @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-ljs";
 push @ldflags, $VRML_CONFIG{LDFLAGS};
 
 # push build directory, for running standalone
@@ -247,7 +246,7 @@ sub writeMakefileFinalTargets() {
 	
 	if (($JAVAC ne "") && ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
 		print MK "\tinstall -d  \$(INSTALL_DIR)\/freewrl\n";
-		print MK "\tinstall ../../freewrl/java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
+		print MK "\tinstall ../src/java/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
 	}
 	print MK "\tcp -f ./OSX_Specific/freex3d.aquascript /usr/bin/freex3d\n";
 	print MK "\tchmod 755 /usr/bin/freex3d\n";
@@ -310,14 +309,15 @@ sub write_linux_makefile_javascript() {
 
 sub write_linux_makefile_javaClasses() {
 	if ($JAVAC ne "" ) {
-		my @JavaSourceFiles = split (' ',`find ../../freewrl -name "*java" | grep "java\/classes"`);
+		# JAS - simplify this
+		my @JavaSourceFiles = split (' ',`find ../src/java -name "*\.java"`);
 
 		foreach my $fullname (@JavaSourceFiles) {
 			# remove the Java from the front, and the .c from the end.
 			my $nm = $fullname;
 			$nm =~ s/^\.\///; $nm =~ s/.java$/.class/;
 	
-			print MK "$nm:\n	\$(JAVAC) -source 1.3 -deprecation -target 1.1 -classpath ../../freewrl/java/classes $fullname\n";
+			print MK "$nm:\n	\$(JAVAC) -source 1.3 -deprecation -target 1.1 -classpath ../src/java $fullname\n";
 		}
 		
 		print MK "JavaClasses:\t";
@@ -331,7 +331,7 @@ sub write_linux_makefile_javaClasses() {
 		print MK "\n";
 	
 		# make the jar file here
-		print MK "	\$(JAR) -cf ../../freewrl/java/classes/vrml.jar $@ `find ../../freewrl/java/classes/vrml -name *.class`\n";
+		print MK "	\$(JAR) -cf ../src/java/vrml.jar $@ `find ../src/java/vrml -name *.class`\n";
 	}
 }
 
@@ -345,19 +345,19 @@ sub writeMakefileDistclean() {
 		print MK "	rm -f ../../SoundEngine/*o\n";
 		print MK "	rm -f ../../SoundEngine/FreeWRL_SoundServer\n";
 	}
-	print MK "	rm -f ../../freewrl/java/classes/vrml/external/field/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/vrml/field/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/vrml/external/node/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/vrml/external/FreeWRLEAI/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/vrml/external/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/vrml/external/exception/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/vrml/node/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/vrml/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/vrml/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/sai/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/sai/eai/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/org/web3d/x3d/sai/*class\n";
-	print MK "	rm -f ../../freewrl/java/classes/vrml.jar\n";
+	print MK "	rm -f ../src/java/vrml/external/field/*class\n";
+	print MK "	rm -f ../src/java/vrml/field/*class\n";
+	print MK "	rm -f ../src/java/vrml/external/node/*class\n";
+	print MK "	rm -f ../src/java/vrml/external/FreeWRLEAI/*class\n";
+	print MK "	rm -f ../src/java/vrml/external/*class\n";
+	print MK "	rm -f ../src/java/vrml/external/exception/*class\n";
+	print MK "	rm -f ../src/java/vrml/node/*class\n";
+	print MK "	rm -f ../src/java/vrml/*class\n";
+	print MK "	rm -f ../src/java/vrml/*class\n";
+	print MK "	rm -f ../src/java/sai/*class\n";
+	print MK "	rm -f ../src/java/sai/eai/*class\n";
+	print MK "	rm -f ../src/java/org/web3d/x3d/sai/*class\n";
+	print MK "	rm -f ../src/java/vrml.jar\n";
 
 	print MK "	rm -f ../src/bin/*\.o\n";
 	print MK "	rm -f ../src/lib/*\.o\n";
