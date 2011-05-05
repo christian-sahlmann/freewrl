@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.59 2011/04/08 19:20:50 istakenv Exp $
+  $Id: fieldSet.c,v 1.60 2011/05/05 18:29:12 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -194,6 +194,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 
 	Parser_scanStringValueToMem(node, (size_t) coffset, ctype, value, isXML);
 }
+
 
 /* and incoming EAI event has come in, and the destination is an inputOnly field of a script.
    Make It So. This mimics the routing function "getField_ToJavascript" except that we do not

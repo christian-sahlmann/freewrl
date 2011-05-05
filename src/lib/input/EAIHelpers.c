@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.46 2011/02/14 21:52:59 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.47 2011/05/05 18:29:11 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -337,17 +337,13 @@ int EAI_GetNode(const char *str) {
 
 	struct X3D_Node * myNode;
 
+		printf ("EAI_GetNode - getting %s\n",str);
 	if (eaiverbose) {
 		printf ("EAI_GetNode - getting %s\n",str);
 	}	
 	
 	/* Try to get X3D node name */
-	#ifdef IPHONE
-	myNode = NULL; 
-	printf ("X3DParser_getNodeFromName not here yet\n");
-	#else
 	myNode = X3DParser_getNodeFromName(str);
-	#endif
 
 	if (myNode == NULL) {
 		/* Try to get VRML node name */
@@ -526,7 +522,6 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %lu\n",(unsigned long int)nodePtr);
 		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
 	}	
-
 
 
 	if (eaiverbose) printf ("EAI_GetType, after findFieldInOFFSETS, have myFieldOffs %u, ctype %d, accessType %d \n",myFieldOffs, ctype, *accessType);

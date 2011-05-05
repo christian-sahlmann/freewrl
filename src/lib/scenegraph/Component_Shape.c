@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.78 2011/04/14 15:59:17 crc_canada Exp $
+$Id: Component_Shape.c,v 1.79 2011/05/05 18:29:12 crc_canada Exp $
 
 X3D Shape Component
 
@@ -733,6 +733,7 @@ void compile_Shape (struct X3D_Shape *node) {
 
 
 /* debug */
+/* 
 printf ("shape using shader: ");
 switch (node->_shaderTableEntry) {
 case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
@@ -757,6 +758,7 @@ case oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); 
 case oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
 default: {printf ("no ascii equiv\n");}
 }
+*/
 
 
 	#endif /* SHADERS_2011 */
