@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.47 2011/05/05 18:29:11 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.48 2011/05/06 17:27:52 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -337,7 +337,6 @@ int EAI_GetNode(const char *str) {
 
 	struct X3D_Node * myNode;
 
-		printf ("EAI_GetNode - getting %s\n",str);
 	if (eaiverbose) {
 		printf ("EAI_GetNode - getting %s\n",str);
 	}	
