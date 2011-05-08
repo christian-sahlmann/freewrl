@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.44 2011/04/15 15:02:13 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.45 2011/05/08 00:35:53 dug9 Exp $
 
 X3D Geospatial Component
 
@@ -2451,12 +2451,12 @@ static void calculateViewingSpeed() {
 			
 				/* speed is dependent on elevation above WGS84 ellipsoid */
 				Viewer.speed  = fabs(sqrt(gcCoords.c[0]*gcCoords.c[0] + gcCoords.c[1]*gcCoords.c[1] + gcCoords.c[2]*gcCoords.c[2])
-					-GEOSP_WE_A);
+					-GEOSP_WE_A) * Viewer.GeoSpatialNode->speedFactor;
 				if (Viewer.speed < 1.0) Viewer.speed=1.0;
+
 				#ifdef VERBOSE
 				printf ("height above center %f WGS84 ellipsoid is %lf\n",Viewer.speed,GEOSP_WE_A); 
 				#endif
-		
 /*
 				Viewer.speed = fabs(Viewer.speed * Viewer.GeoSpatialNode->speedFactor);
 				if (Viewer.speed < Viewer.GeoSpatialNode->speedFactor) Viewer.speed = Viewer.GeoSpatialNode->speedFactor;
