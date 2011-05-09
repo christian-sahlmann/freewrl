@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.45 2011/05/08 00:35:53 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.46 2011/05/09 23:51:12 dug9 Exp $
 
 X3D Geospatial Component
 
@@ -302,6 +302,25 @@ static double A, F, C, A2, C2, Eps2, Eps21, Eps25, C254, C2DA, CEE,
 /* move ourselves BACK to the from the GeoOrigin */
 static void retractOrigin(struct X3D_GeoOrigin *myGeoOrigin, struct SFVec3d *gcCoords) {
 	if (myGeoOrigin != NULL) {
+		if(myGeoOrigin->rotateYUp == TRUE)
+		{
+			//undo rotation? I need to do a transpose
+			struct SFVec3d t0,t1,t2;
+			t0.c[0] = myGeoOrigin->__reast.c[0];
+			t0.c[1] = myGeoOrigin->__rup.c[0];
+			t0.c[2] = myGeoOrigin->__rsouth.c[0];
+			t1.c[0] = myGeoOrigin->__reast.c[1];
+			t1.c[1] = myGeoOrigin->__rup.c[1];
+			t1.c[2] = myGeoOrigin->__rsouth.c[1];
+			t2.c[0] = myGeoOrigin->__reast.c[2];
+			t2.c[1] = myGeoOrigin->__rup.c[2];
+			t2.c[2] = myGeoOrigin->__rsouth.c[2];
+
+			gcCoords->c[0] = vecdotd(gcCoords->c,t0.c);
+			gcCoords->c[1] = vecdotd(gcCoords->c,t1.c);
+			gcCoords->c[2] = vecdotd(gcCoords->c,t2.c);
+		
+		}
 		gcCoords->c[0] += myGeoOrigin->__movedCoords.c[0];
 		gcCoords->c[1] += myGeoOrigin->__movedCoords.c[1];
 		gcCoords->c[2] += myGeoOrigin->__movedCoords.c[2];
@@ -669,6 +688,71 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 			INIT_MF_FROM_SF(node,geoCoords)
 			moveCoords(&node->__geoSystem, MF_FIELD_IN_OUT);
 			COPY_MF_TO_SF(node, __movedCoords)
+
+			if(node->rotateYUp == TRUE)
+			{
+				int i;
+				//step1 convert 2 auxiliary points in up and southerly direction to xyz
+				struct Multi_Vec3d gdin, gcout;
+				struct SFVec3d east, south, up, temp;
+				gdin.p = MALLOC(struct SFVec3d *,sizeof(struct SFVec3d)*3);
+				for(i=0;i<3;i++)
+				{
+					gdin.p[0].c[i] = gdCoords.p[0].c[i];
+					gdin.p[1].c[i] = gdin.p[0].c[i];
+					gdin.p[2].c[i] = gdin.p[0].c[i];
+				}
+				gdin.p[1].c[2] += 500.0; //higher
+				gdin.p[2].c[0] -= .005; //more southward
+				gdin.n = 3;
+				gcout.n = 0;
+				gcout.p = NULL;
+
+				//#define GEOSP_WE_A	(double)6378137
+				//#define GEOSP_WE_F	(double)298.257223563
+				Gd_Gc(&gdin,&gcout,GEOSP_WE_A,GEOSP_WE_F,1);
+
+				//step 2 use diff vectors to compute up,east,south unit vectors
+				for(i=0;i<3;i++)
+				{
+					up.c[i] = gcout.p[1].c[i] - gcout.p[0].c[i]; //high - low
+					south.c[i] = gcout.p[2].c[i] - gcout.p[0].c[i]; //more south - north
+				}
+				vecnormald(up.c,up.c);
+				vecnormald(south.c,south.c);
+				// east = up x south(ish)
+				veccrossd(east.c,up.c,south.c);
+				// south = east x up
+				veccrossd(south.c,east.c,up.c);
+				vecnormald(east.c,east.c);
+				vecnormald(up.c,up.c);
+				vecnormald(south.c,south.c);
+				//instead of 3 vectors they could be packed into a 3x3 (or rotation) matrix
+				//row1 = east
+				//row2 = up
+				//row3 = south
+				//and applied M x c later ~Line 850 below instead of dotproduct().
+				for(i=0;i<3;i++)
+				{
+					node->__rup.c[i] = up.c[i];
+					node->__reast.c[i] = east.c[i];
+					node->__rsouth.c[i] = south.c[i];
+				}
+				FREE_IF_NZ(gdin.p);
+				FREE_IF_NZ(gcout.p);
+			}else{
+				int i;
+				for(i=0;i<3;i++)
+				{
+					node->__rup.c[i] = 0.0;
+					node->__reast.c[i] = 0.0;
+					node->__rsouth.c[i] = 0.0;
+				}
+				node->__rup.c[1] = 1.0;
+				node->__reast.c[0] = 1.0;
+				node->__rsouth.c[2] = 1.0;
+			}
+
 			#ifdef VERBOSE
 			printf ("initializeGeospatial, __movedCoords %lf %lf %lf, ryup %d, geoSystem %d %d %d %d\n",
 				node->__movedCoords.c[0],
@@ -745,9 +829,21 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 	#endif
 
 	if (myOrigin != NULL) {
+		struct SFVec3d temp;
+
 		outCoords->p[i].c[0] -= myOrigin->__movedCoords.c[0];
 		outCoords->p[i].c[1] -= myOrigin->__movedCoords.c[1];
 		outCoords->p[i].c[2] -= myOrigin->__movedCoords.c[2];
+		if(myOrigin->rotateYUp == TRUE)
+		{
+
+			temp.c[0] = vecdotd(outCoords->p[i].c,myOrigin->__reast.c);
+			temp.c[1] = vecdotd(outCoords->p[i].c,myOrigin->__rup.c);
+			temp.c[2] = vecdotd(outCoords->p[i].c,myOrigin->__rsouth.c);
+			outCoords->p[i].c[0] = temp.c[0];
+			outCoords->p[i].c[1] = temp.c[1];
+			outCoords->p[i].c[2] = temp.c[2];
+		}
 	}
 
 	#ifdef VERBOSE
@@ -1875,9 +1971,35 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * node) {
 	printf ("compiling GeoOrigin\n");
 	#endif
 
-	printf ("compiling GeoOrigin\n");
+	ConsoleMessage ("compiling GeoOrigin\n"); //this doesn't get called - see like 654 in initializeGeospatial()
 	/* INITIALIZE_GEOSPATIAL */
 	COMPILE_GEOSYSTEM(node)
+	if(node->rotateYUp == TRUE)
+	{
+		//step 1 convert XYZ GC back to PLH (or get plh wgs84 ellipsoid somehow)
+		
+		//step 2 convert 2 auxiliary points in up and northerly direction
+		//step 3 use diff vectors to compute up,east,south unit vectors
+		node->__rup.c[0] = 0.0;
+		node->__rup.c[1] = 1.0;
+		node->__rup.c[2] = 0.0;
+		node->__reast.c[0] = 1.0;
+		node->__reast.c[1] = 0.0;
+		node->__reast.c[2] = 0.0;
+		node->__rsouth.c[0] = 0.0;
+		node->__rsouth.c[1] = 0.0;
+		node->__rsouth.c[2] = 1.0;
+	}else{
+		node->__rup.c[0] = 0.0;
+		node->__rup.c[1] = 1.0;
+		node->__rup.c[2] = 0.0;
+		node->__reast.c[0] = 1.0;
+		node->__reast.c[1] = 0.0;
+		node->__reast.c[2] = 0.0;
+		node->__rsouth.c[0] = 0.0;
+		node->__rsouth.c[1] = 0.0;
+		node->__rsouth.c[2] = 1.0;
+	}
 	MARK_NODE_COMPILED
 
 	/* events */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.c,v 1.15 2011/02/11 18:46:25 crc_canada Exp $
+$Id: LinearAlgebra.c,v 1.16 2011/05/09 23:51:12 dug9 Exp $
 
 ???
 
@@ -43,6 +43,39 @@ $Id: LinearAlgebra.c,v 1.15 2011/02/11 18:46:25 crc_canada Exp $
 #define DJ_KEEP_COMPILER_WARNING 0
 
 /* Altenate implemetations available, should merge them eventually */
+
+
+double * veccrossd(double *c, double *a, double *b)
+{
+    c[0] = a[1] * b[2] - a[2] * b[1];
+    c[1] = a[2] * b[0] - a[0] * b[2];
+    c[2] = a[0] * b[1] - a[1] * b[0];
+	return c;
+}
+double veclengthd( double *p )
+{
+	return sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
+}
+double vecdotd(double *a, double *b)
+{
+	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+}
+double* vecscaled(double* r, double* v, double s)
+{
+    r[0] = v[0] * s;
+    r[1] = v[1] * s;
+    r[2] = v[2] * s;
+    return r;
+}
+/* returns vector length, too */
+double vecnormald(double *r, double *v)
+{
+    double ret = sqrt(vecdotd(v,v));
+    /* if(ret == 0.) return 0.; */
+    if (APPROX(ret, 0)) return 0.;
+    vecscaled(r,v,1./ret);
+    return ret;
+}
 
 void veccross(struct point_XYZ *c, struct point_XYZ a, struct point_XYZ b)
 {

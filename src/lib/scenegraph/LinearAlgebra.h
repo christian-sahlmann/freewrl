@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.h,v 1.8 2010/01/12 20:04:47 sdumoulin Exp $
+$Id: LinearAlgebra.h,v 1.9 2011/05/09 23:51:12 dug9 Exp $
 
 Linear algebra.
 
@@ -162,6 +162,13 @@ double vecangle(struct point_XYZ* V1, struct point_XYZ* V2);
 #define calc_vector_product(a,b,c) veccross(c,a,b);
 
 void veccross(struct point_XYZ *c , struct point_XYZ a, struct point_XYZ b);
+
+
+double * veccrossd(double *c, double *a, double *b);
+double veclengthd( double *p );
+double vecdotd(double *a, double *b);
+double* vecscaled(double* r, double* v, double s);
+double vecnormald(double *r, double *v);
 
 
 GLDOUBLE det3x3(GLDOUBLE* data);
