@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EventUtils.c,v 1.8 2010/02/17 18:03:06 crc_canada Exp $
+$Id: Component_EventUtils.c,v 1.9 2011/05/10 13:40:49 crc_canada Exp $
 
 X3D Event Utilities Component
 
@@ -164,16 +164,16 @@ void do_IntegerSequencer (void *node){
 
 	MARK_EVENT (node, offsetof (struct X3D_IntegerSequencer, value_changed));
 
+	#ifdef SEVERBOSE
+		printf ("IntegerSequencer, kin %d kvin %d, sf %f vc %d\n",kin,kvin,px->set_fraction, px->value_changed);
+	#endif
+
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed = (float) 0.0;
+		px->value_changed = 0;
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
-
-	#ifdef SEVERBOSE
-		printf ("IntegerSequencer, kin %d kvin %d, vc %f\n",kin,kvin,px->value_changed);
-	#endif
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= px->key.p[0]) {
@@ -182,12 +182,14 @@ void do_IntegerSequencer (void *node){
 		 px->value_changed = kVs[kvin-1];
 	} else {
 		/* have to go through and find the key before */
-		counter=find_key(kin,(float)(px->set_fraction),px->key.p);
+
+		counter=find_key(kin+1,(float)(px->set_fraction),px->key.p)-1;
+
+		/* bounds check */
+		if (counter >= px->keyValue.n) counter = px->keyValue.n-1;
+
 		px->value_changed =
-			(px->set_fraction - px->key.p[counter-1]) /
-			(px->key.p[counter] - px->key.p[counter-1]) *
-			(kVs[counter] - kVs[counter-1]) +
-			kVs[counter-1];
+			px->keyValue.p[counter];
 	}
 }
 

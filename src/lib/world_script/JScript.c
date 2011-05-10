@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.33 2011/02/16 17:46:00 crc_canada Exp $
+$Id: JScript.c,v 1.34 2011/05/10 13:40:49 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -80,8 +80,8 @@ void SaveScriptText(int num, const char *text) {
 #ifdef HAVE_JAVASCRIPT
 
 /* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
-#define MAX_RUNTIME_BYTES 0x1000000
-/* #define MAX_RUNTIME_BYTES 0x4000000L */
+/* #define MAX_RUNTIME_BYTES 0x1000000 */
+#define MAX_RUNTIME_BYTES 0x4000000L
 /* #define MAX_RUNTIME_BYTES 0xC00000L */
 
 #define STACK_CHUNK_SIZE 8192
@@ -325,6 +325,7 @@ void JSCreateScriptContext(int num) {
 	#endif
 
 	JS_SetErrorReporter(_context, errorReporter);
+
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tJS errror reporter set,\n");
 	#endif
@@ -338,6 +339,7 @@ void JSCreateScriptContext(int num) {
 
 	if (!loadVrmlClasses(_context, _globalObj))
 		freewrlDie("loadVrmlClasses failed");
+
 
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tVRML classes loaded,\n");
@@ -388,6 +390,7 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 		printf ("ActualrunScript - JS_EvaluateScript failed for %s", script);
 		printf ("\n");
 		ConsoleMessage ("ActualrunScript - JS_EvaluateScript failed for %s", script);
+
 		return JS_FALSE;
 	 }
 

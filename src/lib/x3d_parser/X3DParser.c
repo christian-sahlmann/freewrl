@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.84 2011/03/23 18:26:02 crc_canada Exp $
+$Id: X3DParser.c,v 1.85 2011/05/10 13:40:49 crc_canada Exp $
 
 ???
 
@@ -52,15 +52,6 @@ $Id: X3DParser.c,v 1.84 2011/03/23 18:26:02 crc_canada Exp $
 #include "X3DParser.h"
 #include "X3DProtoScript.h"
 
-#ifdef HAVE_EXPAT_H
-# include <expat.h>
-static int inCDATA = FALSE;
-#define XML_CreateParserLevel(aaa)  aaa = XML_ParserCreate(NULL);
-#define XML_ParseFile(aaa,bbb,ccc,ddd) XML_Parse(aaa,bbb,ccc,ddd)
-
-#endif
-
-#ifdef HAVE_LIBXML_PARSER_H
 #include <libxml/parser.h>
 typedef xmlSAXHandler* XML_Parser;
 
@@ -101,7 +92,6 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 #define XML_SetCdataSectionHandler(aaa,bbb,ccc) \
 	aaa->cdataBlock = endCDATA;
 
-#endif /* HAVE_LIBXML_PARSER_H */
 
 
 //#define X3DPARSERVERBOSE 1
@@ -915,61 +905,9 @@ void linkNodeIn(char *where, int lineno) {
 	}
 }
 
-/* Expat and libxml handle data differently */
-#ifdef HAVE_EXPAT_H
-static void XMLCALL startCDATA (void *unused) {
-	if (CDATA_Text_curlen != 0) {
-/*
-		ConsoleMessage ("X3DParser - hmmm, expected CDATA_Text_curlen to be 0, is not");
-		printf ("CDATA_TEXT_CURLEN is %d\n",CDATA_Text_curlen);
-printf ("CADAT_Text:%s:\n",CDATA_Text);
-*/
-		CDATA_Text_curlen = 0;
-	}
 
-	#ifdef X3DPARSERVERBOSE
-	printf ("startCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getParserMode()]);
-	#endif
-	inCDATA = TRUE;
-}
-
-static void XMLCALL endCDATA (void *unused) {
-        #ifdef X3DPARSERVERBOSE
-        printf ("endCDATA, cur index %d\n",CDATA_Text_curlen);
-        printf ("endCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getParserMode()]);
-        #endif
-        inCDATA = FALSE;
-
-        if (getParserMode() == PARSING_PROTOBODY) {
-                dumpCDATAtoProtoBody (CDATA_Text);
-        }
-
-        #ifdef X3DPARSERVERBOSE
-        printf ("returning from EndCData\n");
-        #endif
-}
-
-
-static void XMLCALL handleCDATA (void *unused, const char *string, int len) {
-/*
-	printf ("handleCDATA...(%d)...",len);
-if (inCDATA) printf ("inCDATA..."); else printf ("not inCDATA...");
-if (in3_3_fieldValue) printf ("in3_3_fieldValue..."); else printf ("not in3_3_fieldValue...");
-printf ("\n");
-*/
-	/* are we in a fieldValue "dump" mode? (x3d v3.3 and above?) */
-	if ((in3_3_fieldValue) || (inCDATA)) {
-		appendDataToFieldValue((char *)string,len);
-	}
-
-	/* else, ignore this data */
-}
-
-#endif /*HAVE_EXPAT_H */
-
-#ifdef HAVE_LIBXML_PARSER_H
 void endCDATA (void *user_data, const xmlChar *string, int len) {
-	printf ("cdata_element, :%s:\n",string);
+	/* JAS printf ("cdata_element, :%s:\n",string); */
         if (getParserMode() == PARSING_PROTOBODY) {
                 dumpCDATAtoProtoBody ((char *)string);
         } else if (in3_3_fieldValue) {
@@ -990,9 +928,6 @@ void endCDATA (void *user_data, const xmlChar *string, int len) {
 	}
 }
 
-
-
-#endif /* HAVE_LIBXML_PARSER_H */
 
 
 /* parse a export statement, and send the results along */

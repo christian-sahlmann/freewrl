@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.34 2011/04/08 19:20:50 istakenv Exp $
+$Id: jsUtils.c,v 1.35 2011/05/10 13:40:49 crc_canada Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -767,6 +767,8 @@ errorReporter(JSContext *context, const char *message, JSErrorReport *report)
 {
 	char *errorReport = 0;
 	int len = 0, charPtrSize = (int) sizeof(char *);
+
+printf ("*** errorReporter ***\n");
 
     if (!report) {
         fprintf(stderr, "%s\n", message);
