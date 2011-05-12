@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.47 2011/05/12 02:24:25 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.48 2011/05/12 19:07:21 dug9 Exp $
 
 X3D Geospatial Component
 
@@ -208,11 +208,11 @@ Geodetic to Geocentric:
 #define GEOSP_WE_F	(double)298.257223563
 
 #define ELLIPSOID(typ) \
-	case typ: Gd_Gc(inCoords,outCoords,typ##_A, typ##_F,geoSystem->p[3]); break;
+	case typ: Gd_Gc(inCoords,outCoords,typ##_A, typ##_F,geoSystem->p[3], geoSystem->p[4]); break;
 
 #define UTM_ELLIPSOID(typ) \
 	case typ: Utm_Gd (inCoords, gdCoords, typ##_A, typ##_F, geoSystem->p[3], geoSystem->p[2], TRUE); \
-		  Gd_Gc(gdCoords,outCoords,typ##_A, typ##_F, geoSystem->p[3]); break;
+		  Gd_Gc(gdCoords,outCoords,typ##_A, typ##_F, geoSystem->p[3], geoSystem->p[4]); break;
 
 #define GCC_X gcc->c[0]
 #define GCC_Y gcc->c[1]
@@ -220,6 +220,7 @@ Geodetic to Geocentric:
 #define GDC_LAT gdc->c[0]
 #define GDC_LON gdc->c[1]
 #define GDC_ELE gdc->c[2]
+
 
 #define INITIALIZE_GEOSPATIAL(me) \
 	initializeGeospatial((struct X3D_GeoOrigin **) &me->geoOrigin); 
@@ -290,7 +291,7 @@ static int gcToGdInit = FALSE;
 
 static void compile_geoSystem (int nodeType, struct Multi_String *args, struct Multi_Int32 *srf);
 static void moveCoords(struct Multi_Int32*, struct Multi_Vec3d *, struct Multi_Vec3d *, struct Multi_Vec3d *);
-static void Gd_Gc (struct Multi_Vec3d *, struct Multi_Vec3d *, double, double, int);
+static void Gd_Gc (struct Multi_Vec3d *, struct Multi_Vec3d *, double, double, int, int);
 static void gccToGdc (struct SFVec3d *, struct SFVec3d *); 
 static void calculateViewingSpeed(void);
 
@@ -298,7 +299,65 @@ static void calculateViewingSpeed(void);
 static double A, F, C, A2, C2, Eps2, Eps21, Eps25, C254, C2DA, CEE,
                  CE2, CEEps2, TwoCEE, tem, ARat1, ARat2, BRat1, BRat2, B1,B2,B3,B4,B5;
 
+// http://www.colorado.edu/geography/gcraft/notes/datum/geoid84.html
+char geoid[][36] = {
+//-180 longitude  ---------------------------------------------------------- + 170 longitude
+13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13, //+90 north pole
+3,1,-2,-3,-3,-3,-1,3,1,5,9,11,19,27,31,34,33,34,33,34,28,23,17,13,9,4,4,1,-2,-2,0,2,3,2,1,1, //+80
+2,2,1,-1,-3,-7,-14,-24,-27,-25,-19,3,24,37,47,60,61,58,51,43,29,20,12,5,-2,-10,-14,-12,-10,-14,-12,-6,-2,3,6,4, //+70
+2,9,17,10,13,1,-14,-30,-39,-46,-42,-21,6,29,49,65,60,57,47,41,21,18,14,7,-3,-22,-29,-32,-32,-26,-15,-2,13,17,19,6, //+60
+-8,8,8,1,-11,-19,-16,-18,-22,-35,-40,-26,-12,24,45,63,62,59,47,48,42,28,12,-10,-19,-33,-43,-42,-43,-29,-2,17,23,22,6,2, //+50
+-12,-10,-13,-20,-31,-34,-21,-16,-26,-34,-33,-35,-26,2,33,59,52,51,52,48,35,40,33,-9,-28,-39,-48,-59,-50,-28,3,23,37,18,-1,-11, //+40
+-7,-5,-8,-15,-28,-40,-42,-29,-22,-26,-32,-51,-40,-17,17,31,34,44,36,28,29,17,12,-20,-15,-40,-33,-34,-34,-28,7,29,43,20,4,-6, //+30
+5,10,7,-7,-23,-39,-47,-34,-9,-10,-20,-45,-48,-32,-9,17,25,31,31,26,15,6,1,-29,-44,-61,-67,-59,-36,-11,21,39,49,39,22,10, //+20
+13,12,11,2,-11,-28,-38,-29,-10,3,1,-11,-41,-42,-16,3,17,33,22,23,2,-3,-7,-36,-59,-90,-95,-63,-24,12,53,60,58,46,36,26, //+10
+22,16,17,13,1,-12,-23,-20,-14,-3,14,10,-15,-27,-18,3,12,20,18,12,-13,-9,-28,-49,-62,-89,-102,-63,-9,33,58,73,74,63,50,32, //equator
+36,22,11,6,-1,-8,-10,-8,-11,-9,1,32,4,-18,-13,-9,4,14,12,13,-2,-14,-25,-32,-38,-60,-75,-63,-26,0,35,52,68,76,64,52, //-10
+51,27,10,0,-9,-11,-5,-2,-3,-1,9,35,20,-5,-6,-5,0,13,17,23,21,8,-9,-10,-11,-20,-40,-47,-45,-25,5,23,45,58,57,63, //-20
+46,22,5,-2,-8,-13,-10,-7,-4,1,9,32,16,4,-8,4,12,15,22,27,34,29,14,15,15,7,-9,-25,-37,-39,-23,-14,15,33,34,45, //-30
+21,6,1,-7,-12,-12,-12,-10,-7,-1,8,23,15,-2,-6,6,21,24,18,26,31,33,39,41,30,24,13,-2,-20,-32,-33,-27,-14,-2,5,20, //-40
+-15,-18,-18,-16,-17,-15,-10,-10,-8,-2,6,14,13,3,3,10,20,27,25,26,34,39,45,45,38,39,28,13,-1,-15,-22,-22,-18,-15,-14,-10, //-50
+-45,-43,-37,-32,-30,-26,-23,-22,-16,-10,-2,10,20,20,21,24,22,17,16,19,25,30,35,35,33,30,27,10,-2,-14,-23,-30,-33,-29,-35,-43, //-60
+-61,-60,-61,-55,-49,-44,-38,-31,-25,-16,-6,1,4,5,4,2,6,12,16,16,17,21,20,26,26,22,16,10,-1,-16,-29,-36,-46,-55,-54,-59, //-70
+-53,-54,-55,-52,-48,-42,-38,-38,-29,-26,-26,-24,-23,-21,-19,-16,-12,-8,-4,-1,1,4,4,6,5,4,2,-6,-15,-24,-33,-40,-48,-50,-53,-52, //-80
+-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30,-30 //-90 south pole
+};
 
+static double geoidCorrection(double latitudeDeg, double longitudeDeg)
+{
+	//assumes: GD coords in degrees, -180 to +180 range for longitude, -90 to +90 latitude range
+	//returns: what to add to sea level height to get an ellipsoid height
+	//  - does not add it - you do that in the caller.
+	//  - http://en.wikipedia.org/wiki/Geoid  has a global diagram to check the sign/sense of the correction
+	//benefits: allows you to mix GPS and topographic data in the same scene and have good alignment
+	//usage: put 2 GeoOrigins one for GPS and one for local Topographic in your scene, but set them (initially)
+	//  both the same, and set them both without the 'WGS84' (geoid) geosystem option.
+	//  Apply option 'WGS84' (geoid) option to your topographic data GeoCoordinate GeoSystem (except GeoOrigin).
+	//  Then touch up when viewing them in the same scene by adjusting your local topographic geoOrigin height.
+	int il, ip, il1, ip1;
+	float dl, dp, d00, d01, d10, d11, d;
+	//step 1: find the cell indexes
+	il = (int)(longitudeDeg/10.0) + 18 -1; //longitude cell
+	ip = 18 - ((int)(latitudeDeg/10.0) + 9);  //latitude cell
+	il1 = il + 1;
+	ip1 = ip - 1;
+	if(il1 > 35) il1 = 0;
+	if(ip1 < 0) ip1 = 0;
+	//step 2: compute the corners of the cell 
+	d00 = (float)geoid[ip][il]; //lower left
+	d01 = (float)geoid[ip1][il]; //upper left
+	d10 = (float)geoid[ip][il1]; //lower right
+	d11 = (float)geoid[ip1][il1]; //upper right
+	//step 3: find the position in the cell
+	dl = longitudeDeg - (-180.0 + (float)(il)*10.0);
+	dp = latitudeDeg - (90.0 - (float)(ip)*10.0);
+	//step 4: find the normalized position within the cell range 0-1
+	dl /= 10.0;
+	dp /= 10.0;
+	//step 5: bilinear interpolate from 4 corners to position in cell
+	d = (1.0 - dl)*(1.0 - dp)*d00 + (dl)*(1.0 - dp)*d10 + (1.0-dl)*(dp)*d01 + (dl)*(dp)*d11;
+	return (double)d;
+}
 /* move ourselves BACK to the from the GeoOrigin */
 static void retractOrigin(struct X3D_GeoOrigin *myGeoOrigin, struct SFVec3d *gcCoords) {
 	if (myGeoOrigin != NULL) {
@@ -321,7 +380,7 @@ static void retractOrigin(struct X3D_GeoOrigin *myGeoOrigin, struct SFVec3d *gcC
 
 
 /* convert GD ellipsiod to GC coordinates */
-static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double radius, double eccentricity, int lat_first) {
+static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double radius, double eccentricity, int lat_first, int geoid) {
 	int i;
 	double A = radius;
 	double A2 = radius*radius;
@@ -383,6 +442,8 @@ static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double rad
 		Rn = A / ( (.25 - Eps25 * slat2 + .9999944354799/4) + (.25-Eps25 * slat2)/(.25 - Eps25 * slat2 + .9999944354799/4));
 	
 		RnPh = Rn + ELEVATION_IN;
+		if(geoid)
+			RnPh += geoidCorrection(LATITUDE_IN,LONGITUDE_IN);
 
 		#ifdef VERBOSE
 		printf ("Rn %lf RnPh %lf\n",Rn, RnPh);
@@ -601,6 +662,10 @@ static void moveCoords (struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoo
 				} else {
 					/* just copy the coordinates for the GD temporary return  */
 					memcpy (gdCoords->p, inCoords->p, sizeof (struct SFVec3d) * inCoords->n);
+					//Q. should geoid correction be added, so gd are in ellipsoid heights like GPS? (vs sea level heights)
+					if(geoSystem->p[4] == TRUE)
+						for(i=0;i<gdCoords->n;i++)
+							gdCoords->p[i].c[2] += geoidCorrection(gdCoords->p[i].c[1-geoSystem->p[3]],gdCoords->p[i].c[geoSystem->p[3]]);
 				}
 			break;
 		case GEOSP_GC:
@@ -1093,7 +1158,11 @@ static void GeoOrient (struct X3D_Node *geoOrigin, struct Multi_Int32 *geoSystem
 			2:	UTM zone number, 1..60. INT_ID_UNDEFINED = not specified
 			3:	UTM:	if "S" - value is FALSE, not S, value is TRUE 
 				GD:	if "latitude_first" TRUE, if "longitude_first", FALSE
-				GC:	if "northing_first" TRUE, if "easting_first", FALSE */
+				GC:	if "northing_first" TRUE, if "easting_first", FALSE 
+			4:  GD: TRUE if heights are relative to sea level WGS84 
+					(fw converts to ellipsoid heights using geoid correction, allowing
+					GPS and topographic data to be blended in the same scene)
+				*/
 
 static void compile_geoSystem (int nodeType, struct Multi_String *args, struct Multi_Int32 *srf) {
 	int i;
@@ -1106,8 +1175,8 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 
 	/* malloc the area required for internal settings, if required */
 	if (srf->p==NULL) {
-		srf->n=4;
-		srf->p=MALLOC(int *, sizeof(int) * 4);
+		srf->n=5;
+		srf->p=MALLOC(int *, sizeof(int) * 5);
 	}
 
 	/* set these as defaults */
@@ -1115,6 +1184,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 	srf->p[1] = GEOSP_WE;
 	srf->p[2] = INT_ID_UNDEFINED;
 	srf->p[3] = TRUE;
+	srf->p[4] = FALSE; //geoid - not GC, just GD/UTM
 
 	/* if nothing specified, we just use these defaults */
 	if (args->n==0) return;
@@ -1160,10 +1230,12 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 		/* is there an optional argument? */
 		for (i=0; i<args->n; i++) {
 			/* printf ("geosp_gd, ind %d i am %d string %s\n",i, this_srf_ind,args->p[i]->strptr); */
-                        if (strcmp("latitude_first", args->p[i]->strptr) == 0) {
+			if (strcmp("latitude_first", args->p[i]->strptr) == 0) {
 				srf->p[3] = TRUE;
-                        } else if (strcmp("longitude_first", args->p[i]->strptr) == 0) {
+			} else if (strcmp("longitude_first", args->p[i]->strptr) == 0) {
 				srf->p[3] = FALSE;
+			} else if(strcmp ("WGS84",args->p[i]->strptr) == 0){
+				srf->p[4] = TRUE; //geoid
 			} else {
 				if (i!= this_srf_ind) {
 					indexT tc = findFieldInGEOSPATIAL(args->p[i]->strptr);
@@ -1201,6 +1273,8 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 					sscanf(args->p[i]->strptr,"Z%d",&zone);
 					/* printf ("zone found as %d\n",zone); */
 					srf->p[2] = zone;
+				} else if(strcmp ("WGS84",args->p[i]->strptr) == 0){
+					srf->p[4] = TRUE; //geoid
 				} else { 
 					indexT tc = findFieldInGEOSPATIAL(args->p[i]->strptr);
 					switch (tc) {
