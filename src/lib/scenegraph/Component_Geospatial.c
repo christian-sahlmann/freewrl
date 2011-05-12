@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.46 2011/05/09 23:51:12 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.47 2011/05/12 02:24:25 dug9 Exp $
 
 X3D Geospatial Component
 
@@ -304,22 +304,14 @@ static void retractOrigin(struct X3D_GeoOrigin *myGeoOrigin, struct SFVec3d *gcC
 	if (myGeoOrigin != NULL) {
 		if(myGeoOrigin->rotateYUp == TRUE)
 		{
-			//undo rotation? I need to do a transpose
-			struct SFVec3d t0,t1,t2;
-			t0.c[0] = myGeoOrigin->__reast.c[0];
-			t0.c[1] = myGeoOrigin->__rup.c[0];
-			t0.c[2] = myGeoOrigin->__rsouth.c[0];
-			t1.c[0] = myGeoOrigin->__reast.c[1];
-			t1.c[1] = myGeoOrigin->__rup.c[1];
-			t1.c[2] = myGeoOrigin->__rsouth.c[1];
-			t2.c[0] = myGeoOrigin->__reast.c[2];
-			t2.c[1] = myGeoOrigin->__rup.c[2];
-			t2.c[2] = myGeoOrigin->__rsouth.c[2];
-
-			gcCoords->c[0] = vecdotd(gcCoords->c,t0.c);
-			gcCoords->c[1] = vecdotd(gcCoords->c,t1.c);
-			gcCoords->c[2] = vecdotd(gcCoords->c,t2.c);
-		
+			int i;
+			Quaternion rq;
+			struct SFVec3d temp;
+			vrmlrot_to_quaternion(&rq,myGeoOrigin->__rotyup.c[0], myGeoOrigin->__rotyup.c[1], myGeoOrigin->__rotyup.c[2], myGeoOrigin->__rotyup.c[3]); 
+			//quaternion_multi_rotation(outxyz,&rq,inxyz,8);
+			quaternion_rotation((struct point_XYZ *)temp.c, &rq, (const struct point_XYZ *)gcCoords->c);
+			for(i=0;i<3;i++)
+				gcCoords->c[i] = temp.c[i];
 		}
 		gcCoords->c[0] += myGeoOrigin->__movedCoords.c[0];
 		gcCoords->c[1] += myGeoOrigin->__movedCoords.c[1];
@@ -691,66 +683,38 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 
 			if(node->rotateYUp == TRUE)
 			{
-				int i;
-				//step1 convert 2 auxiliary points in up and southerly direction to xyz
-				struct Multi_Vec3d gdin, gcout;
-				struct SFVec3d east, south, up, temp;
-				gdin.p = MALLOC(struct SFVec3d *,sizeof(struct SFVec3d)*3);
-				for(i=0;i<3;i++)
-				{
-					gdin.p[0].c[i] = gdCoords.p[0].c[i];
-					gdin.p[1].c[i] = gdin.p[0].c[i];
-					gdin.p[2].c[i] = gdin.p[0].c[i];
-				}
-				gdin.p[1].c[2] += 500.0; //higher
-				gdin.p[2].c[0] -= .005; //more southward
-				gdin.n = 3;
-				gcout.n = 0;
-				gcout.p = NULL;
+					struct SFVec4d orient;
+					int i;
+					Quaternion qz,qx,qr;
+					 
+					vrmlrot_to_quaternion (&qz,0.0, 0.0, 1.0, RADIANS_PER_DEGREE*((double)90.0 + gdCoords.p[0].c[1]));
 
-				//#define GEOSP_WE_A	(double)6378137
-				//#define GEOSP_WE_F	(double)298.257223563
-				Gd_Gc(&gdin,&gcout,GEOSP_WE_A,GEOSP_WE_F,1);
+					#ifdef VERBOSE 
+					printf ("GeoOrient qz angle (deg) %lf angle (rad) %lf quat: %lf %lf %lf %lf\n",((double)90.0 + gdCoords->c[1]), 
+						RADIANS_PER_DEGREE*((double)90.0 + gdCoords->c[1]),qz.x, qz.y, qz.z,qz.w);
+					#endif
 
-				//step 2 use diff vectors to compute up,east,south unit vectors
-				for(i=0;i<3;i++)
-				{
-					up.c[i] = gcout.p[1].c[i] - gcout.p[0].c[i]; //high - low
-					south.c[i] = gcout.p[2].c[i] - gcout.p[0].c[i]; //more south - north
-				}
-				vecnormald(up.c,up.c);
-				vecnormald(south.c,south.c);
-				// east = up x south(ish)
-				veccrossd(east.c,up.c,south.c);
-				// south = east x up
-				veccrossd(south.c,east.c,up.c);
-				vecnormald(east.c,east.c);
-				vecnormald(up.c,up.c);
-				vecnormald(south.c,south.c);
-				//instead of 3 vectors they could be packed into a 3x3 (or rotation) matrix
-				//row1 = east
-				//row2 = up
-				//row3 = south
-				//and applied M x c later ~Line 850 below instead of dotproduct().
-				for(i=0;i<3;i++)
-				{
-					node->__rup.c[i] = up.c[i];
-					node->__reast.c[i] = east.c[i];
-					node->__rsouth.c[i] = south.c[i];
-				}
-				FREE_IF_NZ(gdin.p);
-				FREE_IF_NZ(gcout.p);
+					vrmlrot_to_quaternion (&qx,1.0, 0.0, 0.0, RADIANS_PER_DEGREE*((double)180.0 - gdCoords.p[0].c[0]));
+
+					#ifdef VERBOSE 
+					printf ("GeoOrient qx angle (deg) %lf angle (rad) %lf quat: %lf %lf %lf %lf\n",
+						((double)180.0 - gdCoords->c[0]), RADIANS_PER_DEGREE*((double)180.0 - gdCoords->c[0]), qx.x, qx.y, qx.z,qx.w);
+					#endif
+
+					quaternion_add (&qr, &qx, &qz);
+
+					#ifdef VERBOSE
+					printf ("GeoOrient qr %lf %lf %lf %lf\n",qr.x, qr.y, qr.z,qr.w);
+					#endif
+
+					quaternion_to_vrmlrot(&qr, &orient.c[0], &orient.c[1], &orient.c[2], &orient.c[3]);
+					for(i=0;i<4;i++)
+						node->__rotyup.c[i] = orient.c[i];
 			}else{
 				int i;
-				for(i=0;i<3;i++)
-				{
-					node->__rup.c[i] = 0.0;
-					node->__reast.c[i] = 0.0;
-					node->__rsouth.c[i] = 0.0;
-				}
-				node->__rup.c[1] = 1.0;
-				node->__reast.c[0] = 1.0;
-				node->__rsouth.c[2] = 1.0;
+				for(i=0;i<4;i++)
+					node->__rotyup.c[i] = 0.0;
+				node->__rotyup.c[1] = 1.0;
 			}
 
 			#ifdef VERBOSE
@@ -777,6 +741,7 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 		struct Multi_Vec3d *gdCoords) {
 	int i;
 	struct X3D_GeoOrigin * myOrigin;
+	Quaternion rq;
 
 	#ifdef VERBOSE
 	printf ("\nstart of GeoMove... %d coords\n",inCoords->n);
@@ -821,6 +786,7 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 		
 	moveCoords(geoSystem, inCoords, outCoords, gdCoords);
 
+
 	for (i=0; i<outCoords->n; i++) {
 
 	#ifdef VERBOSE
@@ -836,10 +802,12 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 		outCoords->p[i].c[2] -= myOrigin->__movedCoords.c[2];
 		if(myOrigin->rotateYUp == TRUE)
 		{
-
-			temp.c[0] = vecdotd(outCoords->p[i].c,myOrigin->__reast.c);
-			temp.c[1] = vecdotd(outCoords->p[i].c,myOrigin->__rup.c);
-			temp.c[2] = vecdotd(outCoords->p[i].c,myOrigin->__rsouth.c);
+			if(i==0)
+			{
+			vrmlrot_to_quaternion(&rq,myOrigin->__rotyup.c[0], myOrigin->__rotyup.c[1], myOrigin->__rotyup.c[2], -myOrigin->__rotyup.c[3]); 
+			}
+			//quaternion_multi_rotation(outxyz,&rq,inxyz,8);
+			quaternion_rotation((struct point_XYZ *)temp.c, &rq, (const struct point_XYZ *)outCoords->p[i].c);
 			outCoords->p[i].c[0] = temp.c[0];
 			outCoords->p[i].c[1] = temp.c[1];
 			outCoords->p[i].c[2] = temp.c[2];
@@ -1063,23 +1031,27 @@ static void gdToUtm(double latitude, double longitude, int *zone, double *eastin
 }
 
 /* calculate the rotation needed to apply to this position on the GC coordinate location */
-static void GeoOrient (struct Multi_Int32 *geoSystem, struct SFVec3d *gdCoords, struct SFVec4d *orient) {
+static void GeoOrient (struct X3D_Node *geoOrigin, struct Multi_Int32 *geoSystem, struct SFVec3d *gdCoords, struct SFVec4d *orient) {
 	Quaternion qx;
 	Quaternion qz;
 	Quaternion qr;
 
+	orient->c[0] = 0.0; 
+	orient->c[1] = 1.0; 
+	orient->c[2] = 0.0; 
+	orient->c[3] = 0.0; 
 	/* is this a straight GC geoSystem? If so, we do not do any orientation */
 	if (geoSystem->n > 0) {
 		if (geoSystem->p[0] == GEOSP_GC) {
 			#ifdef VERBOSE
 			printf ("GeoOrient - simple GC, so no orient\n");
 			#endif
-			orient->c[0] = 0.0; 
-			orient->c[1] = 1.0; 
-			orient->c[2] = 0.0; 
-			orient->c[3] = 0.0; 
 			return;
 		}
+	}
+	if(geoOrigin)
+	{
+		if(((struct X3D_GeoOrigin*)geoOrigin)->rotateYUp == TRUE) return;
 	}
 
 	#ifdef VERBOSE
@@ -1584,6 +1556,7 @@ void render_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 /************************************************************************/
 
 void compile_GeoLocation (struct X3D_GeoLocation * node) {
+	int i;
 	MF_SF_TEMPS
 
 	#ifdef VERBOSE
@@ -1598,7 +1571,7 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	COPY_MF_TO_SF(node, __movedCoords)
 
 	/* work out the local orientation */
-	GeoOrient(&node->__geoSystem, &gdCoords.p[0], &node->__localOrient);
+	GeoOrient(node->geoOrigin, &node->__geoSystem, &gdCoords.p[0], &node->__localOrient);
 
 	#ifdef VERBOSE
 	printf ("compile_GeoLocation, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCoords.c[0], node->geoCoords.c[1], node->geoCoords.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
@@ -1971,34 +1944,14 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * node) {
 	printf ("compiling GeoOrigin\n");
 	#endif
 
-	ConsoleMessage ("compiling GeoOrigin\n"); //this doesn't get called - see like 654 in initializeGeospatial()
+	ConsoleMessage ("compiling GeoOrigin\n"); //this doesn't get called - see line 654 in initializeGeospatial()
 	/* INITIALIZE_GEOSPATIAL */
 	COMPILE_GEOSYSTEM(node)
-	if(node->rotateYUp == TRUE)
 	{
-		//step 1 convert XYZ GC back to PLH (or get plh wgs84 ellipsoid somehow)
-		
-		//step 2 convert 2 auxiliary points in up and northerly direction
-		//step 3 use diff vectors to compute up,east,south unit vectors
-		node->__rup.c[0] = 0.0;
-		node->__rup.c[1] = 1.0;
-		node->__rup.c[2] = 0.0;
-		node->__reast.c[0] = 1.0;
-		node->__reast.c[1] = 0.0;
-		node->__reast.c[2] = 0.0;
-		node->__rsouth.c[0] = 0.0;
-		node->__rsouth.c[1] = 0.0;
-		node->__rsouth.c[2] = 1.0;
-	}else{
-		node->__rup.c[0] = 0.0;
-		node->__rup.c[1] = 1.0;
-		node->__rup.c[2] = 0.0;
-		node->__reast.c[0] = 1.0;
-		node->__reast.c[1] = 0.0;
-		node->__reast.c[2] = 0.0;
-		node->__rsouth.c[0] = 0.0;
-		node->__rsouth.c[1] = 0.0;
-		node->__rsouth.c[2] = 1.0;
+		int i;
+		for(i=0;i<4;i++)
+			node->__rotyup.c[0] = 0.0;
+		node->__rotyup.c[1] = 1.0;
 	}
 	MARK_NODE_COMPILED
 
@@ -2140,7 +2093,7 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 	COPY_MF_TO_SF(node, __movedCoords)
 
 	/* work out the local orientation */
-	GeoOrient(&node->__geoSystem, &gdCoords.p[0], &node->__localOrient);
+	GeoOrient(node->geoOrigin, &node->__geoSystem, &gdCoords.p[0], &node->__localOrient);
 	#ifdef VERBOSE
 	printf ("compile_GeoProximitySensor, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCenter.c[0], node->geoCenter.c[1], node->geoCenter.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 	printf ("	rotation is %lf %lf %lf %lf\n",
@@ -2406,7 +2359,6 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	Quaternion localQuat;
 	Quaternion relQuat;
 	Quaternion combQuat;
-
 	MF_SF_TEMPS
 
 	#ifdef VERBOSE
@@ -2426,9 +2378,8 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	MOVE_TO_ORIGIN(node)
 	COPY_MF_TO_SF(node, __movedPosition)
 
-
 	/* work out the local orientation and copy doubles to floats */
-	GeoOrient(&node->__geoSystem, &gdCoords.p[0], &localOrient);
+	GeoOrient(node->geoOrigin, &node->__geoSystem, &gdCoords.p[0], &localOrient);
 
 	/* Quaternize the local Geospatial quaternion, and the specified rotation from the GeoViewpoint orientation field */
 	vrmlrot_to_quaternion (&localQuat, localOrient.c[0], localOrient.c[1], localOrient.c[2], localOrient.c[3]);
@@ -2664,7 +2615,7 @@ void compile_GeoTransform (struct X3D_GeoTransform * node) {
 	COPY_MF_TO_SF(node, __movedCoords)
 
 	/* work out the local orientation */
-	GeoOrient(&node->__geoSystem, &gdCoords.p[0], &node->__localOrient);
+	GeoOrient(node->geoOrigin, &node->__geoSystem, &gdCoords.p[0], &node->__localOrient);
 
 	MARK_SFVEC3D_INOUT_EVENT(node->geoCenter, node->__oldGeoCenter,offsetof (struct X3D_GeoTransform, geoCenter))
 	MARK_MFNODE_INOUT_EVENT(node->children, node->__oldChildren, offsetof (struct X3D_GeoTransform, children))
