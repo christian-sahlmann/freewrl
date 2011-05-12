@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.59 2011/05/09 23:53:25 dug9 Exp $
+# $Id: VRMLNodes.pm,v 1.60 2011/05/12 02:20:27 dug9 Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -1738,9 +1738,7 @@ package VRML::NodeType;
 			__movedCoords => [SFVec3d, [0, 0, 0], inputOutput, 0],
 			__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput, 0],
 			__oldMFString => [MFString, [],inputOutput, 0], # the navType
-			__reast => [SFVec3d, [1, 0, 0], inputOutput, 0],
-			__rup => [SFVec3d, [0, 1, 0], inputOutput, 0],
-			__rsouth => [SFVec3d, [0, 0, 1], inputOutput, 0],
+			__rotyup => [SFVec4d, [0, 1, 0, 0], inputOutput, 0],
 			
 					},"X3DChildNode"),
 
