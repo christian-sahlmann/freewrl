@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.50 2011/05/14 16:59:17 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.51 2011/05/14 23:04:20 dug9 Exp $
 
 X3D Geospatial Component
 
@@ -240,12 +240,17 @@ Geodetic to Geocentric:
  \
 		if (node->__geoSystem.p[0] != GEOSP_GC) { \
 			/* have to convert to GD or UTM. Go to GD first */ \
- \
-			if (Viewer.GeoSpatialNode != NULL) { \
-        					retractOrigin((struct X3D_GeoOrigin *)Viewer.GeoSpatialNode->geoOrigin, \
-					&thisField); \
+			bool dugsInterpretationOfSpecs = true; \
+			if(dugsInterpretationOfSpecs) \
+			{ \
+				retractOrigin((struct X3D_GeoOrigin *)node->geoOrigin, \
+						&thisField); \
+			}else{ \
+				if (Viewer.GeoSpatialNode != NULL) { \
+        						retractOrigin((struct X3D_GeoOrigin *)Viewer.GeoSpatialNode->geoOrigin, \
+						&thisField); \
+				} \
 			} \
-         \
  \
 			/* printf ("changed retracted, %lf %lf %lf\n", thisField.c[0], thisField.c[1], thisField.c[2]); */ \
  \
@@ -1743,7 +1748,7 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 		/* TRANSLATION */
 		FW_GL_TRANSLATE_D(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 
-		printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
+		//printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
 
 		FW_GL_ROTATE_RADIANS(node->__localOrient.c[3], node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
 
@@ -2197,7 +2202,151 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 	#endif
 }
 
-	PROXIMITYSENSOR(GeoProximitySensor,__movedCoords,INITIALIZE_GEOSPATIAL(node),COMPILE_IF_REQUIRED)
+	//PROXIMITYSENSOR(GeoProximitySensor,__movedCoords,INITIALIZE_GEOSPATIAL(node),COMPILE_IF_REQUIRED)
+//#define PROXIMITYSENSOR(type,center,initializer1,initializer2) 
+void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) { 
+	/* Viewer pos = t_r2 */ 
+	double cx,cy,cz; 
+	double len; 
+	struct point_XYZ dr1r2; 
+	struct point_XYZ dr2r3; 
+	struct point_XYZ nor1,nor2; 
+	struct point_XYZ ins; 
+	static const struct point_XYZ yvec = {0,0.05,0}; 
+	static const struct point_XYZ zvec = {0,0,-0.05}; 
+	static const struct point_XYZ zpvec = {0,0,0.05}; 
+	static const struct point_XYZ orig = {0,0,0}; 
+	struct point_XYZ t_zvec, t_yvec, t_orig, t_center; 
+	GLDOUBLE modelMatrix[16]; 
+	GLDOUBLE projMatrix[16]; 
+	GLDOUBLE view2prox[16]; 
+ 
+	if(!((node->enabled))) return; 
+	INITIALIZE_GEOSPATIAL(node) 
+	COMPILE_IF_REQUIRED 
+ 
+	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/ 
+	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/ 
+ 
+	/* transforms viewers coordinate space into sensors coordinate space. 
+	 * this gives the orientation of the viewer relative to the sensor. 
+	 */ 
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix); 
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix); 
+	FW_GLU_UNPROJECT(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport, 
+		&t_orig.x,&t_orig.y,&t_orig.z); 
+	FW_GLU_UNPROJECT(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport, 
+		&t_zvec.x,&t_zvec.y,&t_zvec.z); 
+	FW_GLU_UNPROJECT(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, 
+		&t_yvec.x,&t_yvec.y,&t_yvec.z); 
+	matinverse(view2prox,modelMatrix); 
+    transform(&t_center,&orig, view2prox); 
+ 
+ 
+	/*printf ("\n"); 
+	printf ("unprojected, t_orig (0,0,0) %lf %lf %lf\n",t_orig.x, t_orig.y, t_orig.z); 
+	printf ("unprojected, t_yvec (0,0.05,0) %lf %lf %lf\n",t_yvec.x, t_yvec.y, t_yvec.z); 
+	printf ("unprojected, t_zvec (0,0,-0.05) %lf %lf %lf\n",t_zvec.x, t_zvec.y, t_zvec.z); 
+	*/ 
+	cx = t_center.x - ((node->__movedCoords ).c[0]); 
+	cy = t_center.y - ((node->__movedCoords ).c[1]); 
+	cz = t_center.z - ((node->__movedCoords ).c[2]); 
+ 
+	if(((node->size).c[0]) == 0 || ((node->size).c[1]) == 0 || ((node->size).c[2]) == 0) return; 
+ 
+	if(fabs(cx) > ((node->size).c[0])/2 || 
+	   fabs(cy) > ((node->size).c[1])/2 || 
+	   fabs(cz) > ((node->size).c[2])/2) return; 
+	/* printf ("within (Geo)ProximitySensor\n"); */ 
+ 
+	/* Ok, we now have to compute... */ 
+	(node->__hit) /*cget*/ = 1; 
+ 
+	/* Position */ 
+	((node->__t1).c[0]) = (float)t_center.x; 
+	((node->__t1).c[1]) = (float)t_center.y; 
+	((node->__t1).c[2]) = (float)t_center.z; 
+ 
+	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */ 
+	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */ 
+ 
+	/* printf ("      dr1r2 %lf %lf %lf\n",dr1r2.x, dr1r2.y, dr1r2.z); 
+	printf ("      dr2r3 %lf %lf %lf\n",dr2r3.x, dr2r3.y, dr2r3.z); 
+	*/ 
+ 
+	len = sqrt(VECSQ(dr1r2)); VECSCALE(dr1r2,1/len); 
+	len = sqrt(VECSQ(dr2r3)); VECSCALE(dr2r3,1/len); 
+ 
+	/* printf ("scaled dr1r2 %lf %lf %lf\n",dr1r2.x, dr1r2.y, dr1r2.z); 
+	printf ("scaled dr2r3 %lf %lf %lf\n",dr2r3.x, dr2r3.y, dr2r3.z); 
+	*/ 
+ 
+	/* 
+	printf("PROX_INT: (%f %f %f) (%f %f %f) (%f %f %f)\n (%f %f %f) (%f %f %f)\n", 
+		t_orig.x, t_orig.y, t_orig.z, 
+		t_zvec.x, t_zvec.y, t_zvec.z, 
+		t_yvec.x, t_yvec.y, t_yvec.z, 
+		dr1r2.x, dr1r2.y, dr1r2.z, 
+		dr2r3.x, dr2r3.y, dr2r3.z 
+		); 
+	*/ 
+ 
+	if(fabs(VECPT(dr1r2, dr2r3)) > 0.001) { 
+		printf ("Sorry, can't handle unevenly scaled ProximitySensors yet :(" 
+		  "dp: %f v: (%f %f %f) (%f %f %f)\n", VECPT(dr1r2, dr2r3), 
+		  	dr1r2.x,dr1r2.y,dr1r2.z, 
+		  	dr2r3.x,dr2r3.y,dr2r3.z 
+			); 
+		return; 
+	} 
+ 
+ 
+	if(APPROX(dr1r2.z,1.0)) { 
+		/* rotation */ 
+		((node->__t2).c[0]) = (float) 0; 
+		((node->__t2).c[1]) = (float) 0; 
+		((node->__t2).c[2]) = (float) 1; 
+		((node->__t2).c[3]) = (float) atan2(-dr2r3.x,dr2r3.y); 
+	} else if(APPROX(dr2r3.y,1.0)) { 
+		/* rotation */ 
+		((node->__t2).c[0]) = (float) 0; 
+		((node->__t2).c[1]) = (float) 1; 
+		((node->__t2).c[2]) = (float) 0; 
+		((node->__t2).c[3]) = (float) atan2(dr1r2.x,dr1r2.z); 
+	} else { 
+		/* Get the normal vectors of the possible rotation planes */ 
+		nor1 = dr1r2; 
+		nor1.z -= 1.0; 
+		nor2 = dr2r3; 
+		nor2.y -= 1.0; 
+ 
+		/* Now, the intersection of the planes, obviously cp */ 
+		VECCP(nor1,nor2,ins); 
+ 
+		len = sqrt(VECSQ(ins)); VECSCALE(ins,1/len); 
+ 
+		/* the angle */ 
+		VECCP(dr1r2,ins, nor1);
+		VECCP(zpvec, ins, nor2); 
+		len = sqrt(VECSQ(nor1)); VECSCALE(nor1,1/len); 
+		len = sqrt(VECSQ(nor2)); VECSCALE(nor2,1/len); 
+		VECCP(nor1,nor2,ins); 
+ 
+		((node->__t2).c[3]) = (float) -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2)); 
+ 
+		/* rotation  - should normalize sometime... */ 
+		((node->__t2).c[0]) = (float) ins.x; 
+		((node->__t2).c[1]) = (float) ins.y; 
+		((node->__t2).c[2]) = (float) ins.z; 
+	} 
+	/* 
+	printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n", 
+		nor1.x, nor1.y, nor1.z, 
+		nor2.x, nor2.y, nor2.z, 
+		ins.x, ins.y, ins.z 
+	); 
+	*/ 
+} 
 
 
 /* GeoProximitySensor code for ClockTick */
@@ -2764,7 +2913,7 @@ void prep_GeoTransform (struct X3D_GeoTransform *node) {
                 /* GeoTransform TRANSLATION */
                 FW_GL_TRANSLATE_D(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
                 
-                printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
+                //printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
                 
                         
                 FW_GL_ROTATE_RADIANS(node->__localOrient.c[3], node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
