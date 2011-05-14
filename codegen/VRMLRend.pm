@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.38 2010/12/21 20:10:33 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.39 2011/05/14 23:00:00 dug9 Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.39  2011/05/14 23:00:00  dug9
+# dug9 - touch up to get a proximity_GeoProximitySensor virtual table function
+#
 # Revision 1.38  2010/12/21 20:10:33  crc_canada
 # some code changes for Geometry Shaders.
 #
@@ -875,6 +878,7 @@
 	ProximitySensor
 	LOD
 	Billboard
+	GeoProximitySensor
 /;
 
 #######################################################################
