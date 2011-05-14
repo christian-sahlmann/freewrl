@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.49 2011/05/12 19:24:33 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.50 2011/05/14 16:59:17 dug9 Exp $
 
 X3D Geospatial Component
 
@@ -1813,7 +1813,9 @@ static void GeoLODchildren (struct X3D_GeoLOD *node) {
                 node->__childloadstatus = 1;
 	}
 }
-
+//void GeoLODchildren1 (struct X3D_GeoLOD *node) {
+//	GeoLODchildren(node);
+//}
 static void GeoUnLODchildren (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
 
@@ -1828,7 +1830,7 @@ static void GeoUnLODchildren (struct X3D_GeoLOD *node) {
 
 
 static void GeoLODrootUrl (struct X3D_GeoLOD *node) {
-	int load = node->__inRange;
+	int load = node->__inRange == 0; //dug9 it's when you are out of range that you should get the rootnode
 	int i;
 
         /* lets see if we still have to load this one... */
@@ -1838,6 +1840,7 @@ static void GeoLODrootUrl (struct X3D_GeoLOD *node) {
 		#endif
 
 		LOAD_CHILD(__rootUrl, rootUrl)
+
                 node->__rooturlloadstatus = 1;
 	}
 }
@@ -1908,7 +1911,7 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 	node->_renderFlags,
 	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 	#endif
-
+	//ConsoleMessage("glod kids=%d\r",node->children.n);
 	/* for debugging purposes... */
 	if (node->__level == -1) node->__level = geoLodLevel;
 	else if (node->__level != geoLodLevel) {

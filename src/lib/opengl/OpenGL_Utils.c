@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.189 2011/04/21 16:40:41 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.190 2011/05/14 16:59:17 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1296,9 +1296,9 @@ printf ("HMMM - GL_ES_VERSION_2_0 and Geometry shader\n");
 #endif /* ifdef SHADERS_2011 */
 
 static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
-	int oldInRange;
+	int oldInRange, handled;
 	GLDOUBLE cx,cy,cz;
-
+	handled = 0;
 	/* find the length of the line between the moved center and our current viewer position */
 	cx = Viewer.currentPosInModel.x - node->__movedCoords.c[0];
 	cy = Viewer.currentPosInModel.y - node->__movedCoords.c[1];
@@ -1326,11 +1326,10 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 		/* initialize the "children" field, if required */
 		if (node->children.p == NULL) node->children.p=MALLOC(void *,sizeof(void *) * 4);
 
-		if (node->__inRange == FALSE) {
+		if (node->__inRange == TRUE) { //dug9 FALSE) {
 			#ifdef VERBOSE
 			printf ("GeoLOD %u level %d, inRange set to FALSE, range %lf\n",node, node->__level, node->range);
-			#endif
-
+			#endif		
 			node->level_changed = 1;
 			node->children.p[0] = node->__child1Node; 
 			node->children.p[1] = node->__child2Node; 
@@ -1342,7 +1341,17 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 			printf ("GeoLOD %u level %d, inRange set to TRUE range %lf\n",node, node->__level, node->range);
 			#endif
 			node->level_changed = 0;
-			node->children.p[0] = node->rootNode.p[0]; node->children.n = 1;
+			node->children.n = 0;
+			if( node->__rootUrl )
+			{
+				node->children.p[0] = node->__rootUrl;
+				node->children.n = 1;
+			}
+			else if( node->rootNode.p && node->rootNode.p[0] )
+			{
+				node->children.p[0] = node->rootNode.p[0]; 
+				node->children.n = 1;
+			}
 		}
 		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoLOD, level_changed));
 		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoLOD, children));

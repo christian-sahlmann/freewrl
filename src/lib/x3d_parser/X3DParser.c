@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.85 2011/05/10 13:40:49 crc_canada Exp $
+$Id: X3DParser.c,v 1.86 2011/05/14 16:59:17 dug9 Exp $
 
 ???
 
@@ -730,6 +730,7 @@ void linkNodeIn(char *where, int lineno) {
 	int ctmp;
 	char *memptr;
 	int myContainer;
+	int defaultContainer;
 
 	/* did we have a valid node here? Things like ProtoDeclares are NOT valid nodes, and we can ignore them,
 	   because there will be no code associated with them */
@@ -744,7 +745,6 @@ void linkNodeIn(char *where, int lineno) {
 		ConsoleMessage ("linkNodeIn: NULL found in stack");
 		return;
 	}
-
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 /*
@@ -781,10 +781,22 @@ void linkNodeIn(char *where, int lineno) {
 
 	/* where to put this node... */
 	myContainer = parentStack[parentIndex]->_defaultContainer;
+	
+	/* kid swap - any parent nodes -like GeoLOD- that have a children field, but intend 
+	   to put _defaultContainer=FIELDNAMES_children xml child nodes 
+	   into a different field can do it here
+	*/
+	defaultContainer = myContainer;
+	/* GeoLOD - put into rootNode field */
+	if(myContainer == FIELDNAMES_children && parentStack[parentIndex-1]->_nodeType == NODE_GeoLOD)
+	{
+		defaultContainer = FIELDNAMES_rootNode; 
+	}
 
 	/* Link it in; the parent containerField should exist, and should be an SF or MFNode  */
 	findFieldInOFFSETS(parentStack[parentIndex-1]->_nodeType, 
-		parentStack[parentIndex]->_defaultContainer, &coffset, &ctype, &ctmp);
+		defaultContainer, &coffset, &ctype, &ctmp);
+		//parentStack[parentIndex]->_defaultContainer, &coffset, &ctype, &ctmp);
 
 	/* PROTOS - we will have a Group node here */
 	/* first case, assigning a node to a PROTO Group expansion - eg, in the above example, 
@@ -882,6 +894,7 @@ void linkNodeIn(char *where, int lineno) {
 				stringNodeType(parentStack[parentIndex]->_nodeType));
 		}
 	}
+
 
 	/* this will be a MFNode or an SFNode if the marking is ok. */
 	if ((ctype != FIELDTYPE_MFNode) && (ctype != FIELDTYPE_SFNode)) {
