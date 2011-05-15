@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.40 2011/04/16 22:07:34 dug9 Exp $
+  $Id: main.c,v 1.41 2011/05/15 12:26:33 couannette Exp $
 
   FreeWRL main program.
 
@@ -56,7 +56,6 @@ void fv_catch_SIGHUP();
 #include <shlwapi.h>
 char *get_current_dir();
 char *strBackslash2fore(char *str);
-
 #endif
 
 /**
@@ -144,8 +143,13 @@ int main (int argc, char **argv)
     /* parse command line arguments */
     if (fv_parseCommandLine(argc, argv)) {
 
-	    start_url = argv[optind];
-		start_url = strBackslash2fore(start_url);
+	    /* Possible error: argv is a STATIC array
+	       duplicate the string to manipulate it...
+	     */
+	    start_url = strdup(argv[optind]);
+#if defined(_MSC_VER)
+	    start_url = strBackslash2fore(start_url);
+#endif
 
 #ifdef OLDCODE
 #ifdef _MSC_VER
@@ -208,6 +212,7 @@ int main (int argc, char **argv)
 
     /* give control to the library */
     startFreeWRL(start_url);
+    if (start_url) free(start_url); 
     return 0;
 }
 
