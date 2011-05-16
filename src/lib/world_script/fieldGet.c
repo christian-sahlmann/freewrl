@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.42 2011/04/08 19:20:50 istakenv Exp $
+$Id: fieldGet.c,v 1.43 2011/05/16 17:47:08 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -66,11 +66,12 @@ getField_ToJavascript.
 this sends events to scripts that have eventIns defined.
 
 ********************************************************************/
+
 void getField_ToJavascript (int num, int fromoffset) {
 	int ignored;
 
 	#ifdef SETFIELDVERBOSE 
-		printf ("fetField_ToJavascript, from offset %d type %d num=%d\n",
+		printf ("getField_ToJavascript, from offset %d type %d num=%d\n",
 			fromoffset,JSparamnames[fromoffset].type,num);
 	#endif
 
@@ -194,8 +195,8 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 	int elementlen;
 	int x;
 	char scriptline[20000];
-	float *fp, *fp_in=(float *)Data;
-	int *ip;
+	//float *fp, *fp_in=(float *)Data;
+	//int *ip;
 
 	/* for PixelTextures we have: */
 	struct X3D_PixelTexture *mePix;
@@ -218,6 +219,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			JSObject *newMFObject;
 			JSObject *newSFObject;
 			SFRotationNative 	*SFRPptr;
+			float *fp, *fp_in=(float *)Data;
 
 			/* create a new MFRotation object... */
 			newMFObject = JS_ConstructObject(cx, &MFRotationClass, NULL ,JS_GetParent(cx, obj));
@@ -265,6 +267,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			JSObject *newMFObject;
 			JSObject *newSFObject;
 			SFVec3fNative 	*SFRPptr;
+			float *fp, *fp_in=(float *)Data;
 
 			/* create a new MFVec3f object... */
 			newMFObject = JS_ConstructObject(cx, &MFVec3fClass, NULL ,JS_GetParent(cx, obj));
@@ -311,6 +314,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			JSObject *newMFObject;
 			JSObject *newSFObject;
 			SFColorNative 	*SFRPptr;
+			float *fp, *fp_in=(float *)Data;
 
 			/* create a new MFColor object... */
 			newMFObject = JS_ConstructObject(cx, &MFColorClass, NULL ,JS_GetParent(cx, obj));
@@ -357,6 +361,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			JSObject *newMFObject;
 			JSObject *newSFObject;
 			SFVec2fNative 	*SFRPptr;
+			float *fp, *fp_in=(float *)Data;
 
 			/* create a new MFVec2f object... */
 			newMFObject = JS_ConstructObject(cx, &MFVec2fClass, NULL ,JS_GetParent(cx, obj));
@@ -402,6 +407,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_MFFloat: {	
 			JSObject *newMFObject;
 			jsval newjsval;
+			float *fp, *fp_in=(float *)Data;
 			/* create a new MFFloat object... */
 			newMFObject = JS_ConstructObject(cx, &MFFloatClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
@@ -439,6 +445,8 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_MFTime: {	
 			JSObject *newMFObject;
 			jsval newjsval;
+			double *dp, *dp_in=(double *)Data;
+
 			/* create a new MFTime object... */
 			newMFObject = JS_ConstructObject(cx, &MFTimeClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
@@ -447,13 +455,13 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = (int) sizeof (float);
+			elementlen = (int) sizeof (double);
 			for (x=0; x<datalen; x++) {
 				/* create a new SFTime object */
 				
-				fp = (float *)fp_in; 
-				JS_NewNumberValue(cx,(double)*fp,&newjsval);
-				fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				dp = (double *)dp_in; 
+				JS_NewNumberValue(cx,(double)*dp,&newjsval);
+				dp_in = offsetPointer_deref(double *,dp_in,elementlen);
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
@@ -476,6 +484,8 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_MFInt32: {	
 			JSObject *newMFObject;
 			jsval newjsval;
+			int *ip, *ip_in=(int *)Data;
+
 			/* create a new MFInt32 object... */
 			newMFObject = JS_ConstructObject(cx, &MFInt32Class, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
@@ -488,9 +498,9 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			for (x=0; x<datalen; x++) {
 				/* create a new SFInt32 object */
 				
-				ip = (int *)fp_in; 
+				ip = (int *)ip_in; 
 				newjsval = INT_TO_JSVAL(ip);
-				fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				ip_in = offsetPointer_deref(int *,ip_in,elementlen);
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
@@ -513,12 +523,14 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_MFString: {	
 			JSObject *newMFObject;
 			jsval newjsval;
+			struct Uni_String * *ip_in=(struct Uni_String **)Data;
+
 			/* create a new MFString object... */
 			newMFObject = JS_ConstructObject(cx, &MFStringClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
 
 			/* Data points to a Uni_String */
-			uniptr = (struct Uni_String **) fp_in;
+			uniptr = (struct Uni_String **) ip_in;
 
 			/* define the "length" property for this object */ 
 			DEFINE_LENGTH(cx,newMFObject)
@@ -551,6 +563,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_MFNode: {	
 			JSObject *newMFObject;
 			jsval newjsval;
+			double *ip, *ip_in=(double *)Data;
 			/* create a new MFNode object... */
 			newMFObject = JS_ConstructObject(cx, &MFNodeClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
@@ -559,11 +572,11 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			elementlen = (int) sizeof (float);
+			elementlen = (int) sizeof (void *);
 			for (x=0; x<datalen; x++) {
-				ip = (int *)fp_in; 
+				ip = ip_in; 
 				newjsval = INT_TO_JSVAL(ip);
-				fp_in = offsetPointer_deref(float *,fp_in,elementlen);
+				ip_in = offsetPointer_deref(double *,ip_in,elementlen);
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
@@ -587,6 +600,8 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 		case FIELDTYPE_SFImage:	{
 			JSObject *newMFObject;
 			jsval newjsval;
+			double *ip, *ip_in=(double *)Data;
+
 			/* create a new MFNode object... */
 			newMFObject = JS_ConstructObject(cx, &SFImageClass, NULL ,JS_GetParent(cx, obj));
 			ADD_ROOT (cx, newMFObject)
@@ -595,7 +610,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			DEFINE_LENGTH(cx,newMFObject)
 
 			/* fill in private pointer area */
-			mePix = (struct X3D_PixelTexture *) fp_in;
+			mePix = (struct X3D_PixelTexture *) ip_in;
 			if (mePix->_nodeType == NODE_PixelTexture) {
 				image = mePix->image;
 				if (image.n > 2) {
@@ -751,26 +766,17 @@ int setMFElementtype (int num) {
 /* sets a SFVec3f and SFColor in a script 			*/
 /****************************************************************/
 
-/* really do the individual set; used by script routing and EAI sending to a script */
-void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen ) {
+/* get a pointer to the internal data for this object, or return NULL on error */
+void **getInternalDataPointerForJavascriptObject(JSContext *cx, JSObject *obj, int tnfield) {
 	char scriptline[100];
+	void *_privPtr;
+	JSObject *sfObj;
 	jsval retval;
-	SFVec3fNative *_privPtr;
-
-	JSContext *cx;
-	JSObject *obj, *_sfvec3fObj;
-
-	/* get context and global object for this script */
-	cx =  ScriptControl[tonode].cx;
-	obj = ScriptControl[tonode].glob;
-
-	/* set the time for this script */
-	SET_JS_TICKTIME()
 
 	/* get the variable name to hold the incoming value */
 	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[tnfield].name);
 	#ifdef SETFIELDVERBOSE 
-	printf ("set_one_MultiElementType: script %d line %s\n",tonode, scriptline);
+	printf ("getInternalDataPointerForJavascriptObject: line %s\n",scriptline);
 	#endif
 
 	if (!JS_GetProperty(cx,obj,scriptline,&retval))
@@ -779,13 +785,89 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 	if (!JSVAL_IS_OBJECT(retval))
 		printf ("set_one_MultiElementType - not an object\n");
 
-	_sfvec3fObj = JSVAL_TO_OBJECT(retval);
+	sfObj = JSVAL_TO_OBJECT(retval);
 
-	if ((_privPtr = (SFVec3fNative *)JS_GetPrivate(cx, _sfvec3fObj)) == NULL)
+	if ((_privPtr = JS_GetPrivate(cx, sfObj)) == NULL)
 		printf("JS_GetPrivate failed set_one_MultiElementType.\n");
 
+	if (_privPtr == NULL) return NULL;
+
+	/* what kind of class of object is this? */
+
+	/* we look at EVERY kind of native class found in "jsNative.h" even
+	   if it may not be ever used here */
+
+        if (JS_InstanceOf(cx, sfObj, &SFVec3fClass, NULL)) { 
+		SFVec3fNative *me = (SFVec3fNative *)_privPtr;
+		return (void **) &me->v;
+		
+        } else if (JS_InstanceOf(cx, sfObj, &SFVec3dClass, NULL)) { 
+		SFVec3dNative *me = (SFVec3dNative *)_privPtr;
+		return (void **) &me->v;
+		
+        } else if (JS_InstanceOf(cx, sfObj, &SFRotationClass, NULL)) { 
+		SFRotationNative *me = (SFRotationNative *)_privPtr;
+		return (void **) &me->v;
+		
+        } else if (JS_InstanceOf(cx, sfObj, &SFVec2fClass, NULL)) { 
+		SFVec2fNative *me = (SFVec2fNative *)_privPtr;
+		return (void **) &me->v;
+		
+        } else if (JS_InstanceOf(cx, sfObj, &SFColorClass, NULL)) { 
+		SFColorNative *me = (SFColorNative *)_privPtr;
+		return (void **) &me->v;
+		
+        } else if (JS_InstanceOf(cx, sfObj, &SFColorRGBAClass, NULL)) { 
+		SFColorRGBANative *me = (SFColorRGBANative *)_privPtr;
+		return (void **) &me->v;
+		
+        } else if (JS_InstanceOf(cx, sfObj, &SFVec4fClass, NULL)) { 
+		SFVec4fNative *me = (SFVec4fNative *)_privPtr;
+		return (void **) &me->v;
+		
+        } else if (JS_InstanceOf(cx, sfObj, &SFVec4dClass, NULL)) { 
+		SFVec4dNative *me = (SFVec4dNative *)_privPtr;
+		return (void **) &me->v;
+		
+        } else if (JS_InstanceOf(cx, sfObj, &SFNodeClass, NULL)) { 
+		SFNodeNative *me = (SFNodeNative *)_privPtr;
+		//JAS return (void **) &me->v;
+		
+        } else if (JS_InstanceOf(cx, sfObj, &SFImageClass, NULL)) { 
+		SFImageNative *me = (SFImageNative *)_privPtr;
+		//JAS return (void **) &me->v;
+		
+        }
+
+	ConsoleMessage ("getInternalDataPointerForJavascriptObject malfunction");
+
+	return NULL;
+}
+
+
+
+/* really do the individual set; used by script routing and EAI sending to a script */
+void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen ) {
+	char scriptline[100];
+	JSContext *cx;
+	JSObject *obj;
+	void **pp;
+
+	/* get context and global object for this script */
+	cx =  ScriptControl[tonode].cx;
+	obj = ScriptControl[tonode].glob;
+
+	/* set the time for this script */
+	SET_JS_TICKTIME()
+
 	/* copy over the data from the VRML side into the script variable. */
-	memcpy ((void *) &_privPtr->v,Data, dataLen);
+	pp = getInternalDataPointerForJavascriptObject(cx,obj,tnfield);
+
+	if (pp != NULL) {
+		memcpy (pp,Data, dataLen);
+		/* printf ("set_one_MultiElementType, dataLen %d, sizeof(double) %d\n",dataLen, sizeof(double));
+		printf ("and, sending the data to pointer %p\n",pp); */
+	}
 
 	/* is the function compiled yet? */
 	COMPILE_FUNCTION_IF_NEEDED(tnfield)
@@ -797,6 +879,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 
 	RUN_FUNCTION (tnfield)
 }
+
 
 /* setScriptMultiElementtype called by getField_ToJavascript for 
         case FIELDTYPE_SFColor:
@@ -855,6 +938,7 @@ void setScriptMultiElementtype (int num)
 		set_one_MultiElementType (myObj->num, tptr, fn, len);
 	}
 }
+
 
 #endif /* HAVE_JAVASCRIPT */
 

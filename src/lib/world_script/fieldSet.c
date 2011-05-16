@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.60 2011/05/05 18:29:12 crc_canada Exp $
+  $Id: fieldSet.c,v 1.61 2011/05/16 17:47:08 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -770,7 +770,6 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 #endif
 	printf ("start of setField_javascriptEventOut, to %ld:%d = %p, fieldtype %d string %s\n",(long)tn, tptr, memptr, fieldType, strp);
 	#endif
-
 
 #define GETJSVAL_TYPE_A(thistype,field) \
 		case FIELDTYPE_##thistype: { \
