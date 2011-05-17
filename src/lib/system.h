@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.25 2011/02/11 18:47:27 crc_canada Exp $
+$Id: system.h,v 1.26 2011/05/17 13:58:29 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -48,7 +48,7 @@ Internal header: system dependencies.
 
 
 /* do we have JavaScript? */
-#ifdef IPHONE
+#if defined(IPHONE) || defined(_ANDROID)
 	#undef HAVE_JAVASCRIPT
 #else
 	/* Everything has JavaScript */
@@ -79,6 +79,12 @@ char *strchr (), *strrchr ();
 # endif
 #endif
 
+#if _ANDROID
+typedef int bool;
+# define false 0
+# define true 1
+# define __bool_true_false_are_defined 1
+#else
 #if HAVE_STDBOOL_H
 # include <stdbool.h>
 #else
@@ -94,7 +100,10 @@ typedef unsigned char _Bool;
 # define true 1
 # define __bool_true_false_are_defined 1
 #endif
+#endif
 
+#define JS_FALSE 0
+#define JS_TRUE 1
 #define TRUE 1
 #define FALSE 0
 

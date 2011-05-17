@@ -1,6 +1,6 @@
 #include <config.h>
 
-#ifndef IPHONE
+#if !defined(IPHONE) && !defined(_ANDROID)
 
 /* DJTRACK_OSCSENSORS */
 

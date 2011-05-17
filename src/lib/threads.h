@@ -1,5 +1,5 @@
 /*
-  $Id: threads.h,v 1.10 2011/02/16 17:46:00 crc_canada Exp $
+  $Id: threads.h,v 1.11 2011/05/17 13:58:29 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -35,6 +35,10 @@
 #endif
 
 #ifdef _MSC_VER
+#include <system_threads.h>
+#endif
+
+#ifdef _ANDROID
 #include <system_threads.h>
 #endif
 

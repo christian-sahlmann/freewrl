@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.79 2011/05/05 18:29:12 crc_canada Exp $
+$Id: Component_Shape.c,v 1.80 2011/05/17 13:58:29 crc_canada Exp $
 
 X3D Shape Component
 
@@ -64,7 +64,7 @@ static struct X3D_Material *material_oneSided;
  
 void render_LineProperties (struct X3D_LineProperties *node) {
 
-#ifdef IPHONE
+#if defined(IPHONE) || defined(_ANDROID)
 printf ("LineProperties ignored\n");
 #else
 	GLint	factor;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_net.h,v 1.8 2010/07/08 17:25:55 istakenv Exp $
+$Id: system_net.h,v 1.9 2011/05/17 13:58:29 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: network dependencies.
@@ -41,7 +41,11 @@ Internal header: network dependencies.
 #endif
 
 #include <netinet/in.h> 
+#if defined(_ANDROID)
+#include <linux/msg.h>
+#else
 #include <sys/msg.h> 
+#endif
 
 #else
 

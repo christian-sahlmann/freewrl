@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.18 2011/04/04 16:29:55 crc_canada Exp $
+  $Id: RasterFont.c,v 1.19 2011/05/17 13:58:29 crc_canada Exp $
 
 */
 
@@ -69,7 +69,7 @@ void rf_print(const char *text)
 
 void rf_printf(int x, int y, const char *format, ...)
 {
-#ifdef IPHONE
+#if defined(IPHONE) || defined(_ANDROID )
 //printf ("skipping the rf_printf\n");
 #else
     va_list ap;

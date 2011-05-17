@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SoundEngineClient.c,v 1.13 2011/02/11 18:46:25 crc_canada Exp $
+$Id: SoundEngineClient.c,v 1.14 2011/05/17 13:58:29 crc_canada Exp $
 
 This is the SoundEngine client code for FreeWRL.
 
@@ -42,7 +42,7 @@ Some of this stuff came from files from "wavplay"  - see information below
 
 #define SOUNDVERBOSE
 
-#if defined(WIN32) || defined (IPHONE)
+#if defined(WIN32) || defined (IPHONE) || defined(_ANDROID)
 
 void
 Sound_toserver(char *message)

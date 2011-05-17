@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: readpng.c,v 1.8 2011/02/24 16:13:03 crc_canada Exp $
+$Id: readpng.c,v 1.9 2011/05/17 13:58:29 crc_canada Exp $
 
 FreeWRL now only uses this on Linux machines.
 
@@ -29,7 +29,8 @@ FreeWRL now only uses this on Linux machines.
 
 #include <config.h>
 
-#ifndef AQUA
+#if !defined(AQUA) && !defined(_ANDROID)
+
 
 #include <png.h>        /* libpng header; includes zlib.h */
 

@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.115 2011/04/15 15:02:12 crc_canada Exp $
+  $Id: display.h,v 1.116 2011/05/17 13:58:29 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -73,10 +73,30 @@ extern int ocurse;
 #include <GL/glew.h>
 #else
 #ifndef AQUA
+#if !defined(_ANDROID)
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
 #include <GL/glx.h>
+#else
+/* ANDROID NDK */
+//#include <GLES/gl.h>
+//#include <GLES/glext.h>
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+
+typedef char GLchar;
+
+/* lifted from IPHONE defines above to satisy MainLoop.c usage */
+extern int ccurse;
+extern int ocurse;
+#define SCURSE 1
+#define ACURSE 0
+
+#define SENSOR_CURSOR ccurse = SCURSE
+#define ARROW_CURSOR  ccurse = ACURSE
+
+#endif /*ANDROID_NDK*/
 #endif
 #endif
 #endif
@@ -118,7 +138,9 @@ extern int ocurse;
 
 
 #ifdef GL_ES_VERSION_2_0
+#if !defined(PATH_MAX)
 	#define PATH_MAX 5000
+#endif
 
 	/* as we now do our own matrix manipulation, we can change these; note that OpenGL-ES 2.0 does not
 	   have these by default */
@@ -235,7 +257,9 @@ extern int ocurse;
 	#define GL_SPOT_EXPONENT                  0x1205
 	#define GL_SPOT_CUTOFF                    0x1206
 
+//#if !defined(_ANDROID)
 	#define HAVE_SHADERS
+//#endif
 	#define VERTEX_SHADER GL_VERTEX_SHADER
 	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER
 	#define SHADER_SOURCE glShaderSource
@@ -452,7 +476,7 @@ void getMotifWindowedGLwin(Window *win);
  */
 
 extern GLenum _global_gl_err;
-#ifdef IPHONE
+#if defined(IPHONE) || defined(_ANDROID)
 #define PRINT_GL_ERROR_IF_ANY(_where) { \
                                               GLenum _global_gl_err = glGetError(); \
                                               while (_global_gl_err != GL_NO_ERROR) { \
@@ -574,6 +598,10 @@ void resetGeometry();
 
 	#if defined (TARGET_X11) || defined (TARGET_MOTIF)
 		#define FW_GL_SWAPBUFFERS glXSwapBuffers(Xdpy,GLwin);
+	#endif
+	
+	#if defined( _ANDROID )
+		#define FW_GL_SWAPBUFFERS /* nothing */
 	#endif
 
 

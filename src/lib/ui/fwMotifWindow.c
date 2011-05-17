@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.27 2011/04/09 00:33:19 davejoubert Exp $
+  $Id: fwMotifWindow.c,v 1.28 2011/05/17 13:58:29 crc_canada Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 #include <config.h>
-#ifndef IPHONE
+#if !(defined(IPHONE) || defined(_ANDROID))
 
 #include <system.h>
 #include <display.h>

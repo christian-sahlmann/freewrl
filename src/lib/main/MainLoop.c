@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.175 2011/04/20 15:20:36 crc_canada Exp $
+  $Id: MainLoop.c,v 1.176 2011/05/17 13:58:29 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -74,6 +74,12 @@
 	CGLContextObj myglobalContext;
 	#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 #endif /* AQUA */
+
+#if defined(_ANDROID )
+int ccurse;
+int ocurse;
+void  setAquaCursor(int ctype) { };
+#endif
 
 #ifdef IPHONE
 int ccurse;
@@ -573,14 +579,14 @@ void RenderSceneUpdateScene() {
                 }
 
                 /* do we have to change cursor? */
-#if !defined( AQUA ) && !defined( WIN32 )
+#if !defined( AQUA ) && !defined( WIN32 ) && !defined(_ANDROID)
 
 
                 if (cursor != curcursor) {
                         curcursor = cursor;
                         XDefineCursor (Xdpy, GLwin, cursor);
                 }
-#elif defined( WIN32 )
+#elif defined( WIN32 ) || defined(_ANDROID)
 				/*win32 - dont know what goes here */
 #else
                 if (ccurse != ocurse) {
@@ -627,7 +633,7 @@ void RenderSceneUpdateScene() {
 }
 
 
-#if !defined( AQUA ) && !defined( WIN32 )
+#if !defined( AQUA ) && !defined( WIN32 ) && !defined(_ANDROID)
 void handle_Xevents(XEvent event) {
 
         XEvent nextevent;
@@ -1686,7 +1692,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	/* Context has been created,
 	   make it current to this thread */
 
-	#ifndef IPHONE /* temporary to get iphone running */
+	#if !(defined(IPHONE) || defined(_ANDROID))
 	new_tessellation();
 	#endif /* IPHONE */
 	

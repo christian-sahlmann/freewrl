@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.93 2011/04/15 15:02:13 crc_canada Exp $
+  $Id: Textures.c,v 1.94 2011/05/17 13:58:29 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -98,8 +98,9 @@ void 	*global_tcin_lastParent;
 #elif defined(WIN32)
 
 #else
-
+#if !defined(_ANDROID)
 GLXContext textureContext = NULL;
+#endif
 
 #endif
 
@@ -1183,7 +1184,7 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 
 	if (appearanceProperties.cubeFace != 0) {
 		unsigned char *dest = me->texdata;
-		#ifdef IPHONE
+		#if defined(IPHONE) || defined(_ANDROID)
 		int *sp, *dp; /* uint32 not defined on iphone?? */
 		#else
 		uint32 *sp, *dp;
@@ -1224,7 +1225,7 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 
 		/* flip the image around */
 		dest = MALLOC (unsigned char *, 4*rx*ry);
-		#ifdef IPHONE
+		#if defined(IPHONE) || defined(_ANDROID)
 		dp = dest;
 		sp = me->texdata;
 		#else
@@ -1242,9 +1243,11 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 			myTexImage2D(generateMipMaps, appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 		#else
 			FW_GL_TEXIMAGE2D(appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+#if !defined(_ANDROID)
 			FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 			FW_GL_TEXGENI(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 			FW_GL_TEXGENI(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
+#endif
 		#endif /* SHADERS_2011 */
 
 		/* last thing to do at the end of the setup for the 6th face */
@@ -1312,7 +1315,7 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 				
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Src);
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Trc);
-#ifndef IPHONE
+#if !(defined(IPHONE) || defined(_ANDROID))
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, Rrc);
 			FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_PRIORITY, texPri);
 			FW_GL_TEXPARAMETERFV(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,(GLfloat *)&borderColour);
@@ -1396,12 +1399,16 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 					while (!texOk) {
 						GLint width, height;
 
+#if !defined(_ANDROID)
 						FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
+#endif
 
 						FW_GL_TEXIMAGE2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
 		
+#if !defined(_ANDROID)
 						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
 						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
+#endif
 		
 						if ((width == 0) || (height == 0)) {
 							rx= rx/2; ry = ry/2;

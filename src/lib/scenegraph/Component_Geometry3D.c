@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.61 2011/04/08 15:01:18 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.62 2011/05/17 13:58:29 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -446,7 +446,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	} else {
-#ifndef IPHONE
+#if !defined(IPHONE) && !defined(_ANDROID)
 		/*  Display the shape*/
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 	
@@ -726,8 +726,8 @@ void render_Cone (struct X3D_Cone *node) {
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 	} else {
-#ifdef IPHONE
-printf ("iphone, not vbos ignoring\n");
+#if defined(IPHONE) || defined(_ANDROID)
+		printf ("iphone, not vbos ignoring\n");
 #else
 		if(node->bottom) {
 			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
@@ -1226,7 +1226,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 	} else {
-#ifndef IPHONE
+#if !defined(IPHONE) && !defined(_ANDROID)
 		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 		FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);

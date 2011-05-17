@@ -1,5 +1,5 @@
 /*
-  $Id: fwBareWindow.c,v 1.14 2011/04/01 02:13:43 couannette Exp $
+  $Id: fwBareWindow.c,v 1.15 2011/05/17 13:58:29 crc_canada Exp $
 
   Create X11 window. Manage events.
 
@@ -26,7 +26,7 @@
 
 #include <config.h>
 
-#ifndef IPHONE
+#if !(defined(IPHONE) || defined(_ANDROID))
 
 #include <system.h>
 #include <display.h>

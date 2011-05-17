@@ -1,5 +1,5 @@
 /*
-  $Id: fwCommonX11.c,v 1.7 2011/02/24 16:13:03 crc_canada Exp $
+  $Id: fwCommonX11.c,v 1.8 2011/05/17 13:58:29 crc_canada Exp $
 
   FreeWRL support library.
   X11 common functions.
@@ -27,7 +27,7 @@
 
 #include <config.h>
 
-#ifndef IPHONE
+#if !(defined(IPHONE) || defined(_ANDROID))
 
 #include <system.h>
 #include <display.h>

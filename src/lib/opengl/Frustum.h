@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.h,v 1.11 2011/02/16 17:46:00 crc_canada Exp $
+$Id: Frustum.h,v 1.12 2011/05/17 13:58:29 crc_canada Exp $
 
 Global includes.
 
@@ -41,7 +41,7 @@ Global includes.
 #define RECORD_DISTANCE if (render_geom && (!render_blend)) {record_ZBufferDistance (X3D_NODE(node)); }
 
 /* IPHONE - no occlusion queries right now */
-#ifdef IPHONE
+#if defined(IPHONE) || defined(_ANDROID)
 	#undef OCCLUSION
 	#undef VISIBILITYOCCLUSION
 	#undef SHAPEOCCLUSION

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.25 2011/02/27 00:07:32 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.26 2011/05/17 13:58:29 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -73,7 +73,7 @@ X3D Cubemap Texturing Component
  ****************************************************************************/
 
 void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
-#ifndef IPHONE 
+#if !(defined(IPHONE) || defined(_ANRDOID))
 	int count;
 	struct X3D_Node *thistex = 0;
 
@@ -164,7 +164,7 @@ struct DdsLoadInfo loadInfoIndex8 = {
 };
 
 bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
-#ifndef IPHONE 
+#if !(defined(IPHONE) || defined(_ANRDOID))
 
 	FILE *file;
 	char *buffer;
@@ -468,7 +468,7 @@ static int offsets[]={
 
 /* fill in the 6 PixelTextures from the data in the texture */
 void unpackImageCubeMap (textureTableIndexStruct_s* me) {
-#ifndef IPHONE
+	#if !defined(IPHONE) && !defined(_ANDROID)
 	int size;
 	int count;
 

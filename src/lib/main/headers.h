@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.145 2011/04/15 15:02:13 crc_canada Exp $
+$Id: headers.h,v 1.146 2011/05/17 13:58:29 crc_canada Exp $
 
 Global includes.
 
@@ -676,7 +676,7 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 /* mimic X11 events in AQUA and/or WIN32 ; FIXME: establish a cleaner interface for this */
 #define KeyChar         1
-#if defined(AQUA) || defined(WIN32)
+#if defined(AQUA) || defined(WIN32) || defined(_ANDROID)
 #define KeyPress        2
 #define KeyRelease      3
 #define ButtonPress     4

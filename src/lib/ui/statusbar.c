@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.29 2011/03/03 14:56:34 crc_canada Exp $
+  $Id: statusbar.c,v 1.30 2011/05/17 13:58:29 crc_canada Exp $
 
 */
 
@@ -122,7 +122,8 @@ void setup_projection(int pick, int x, int y)
  */
 void drawStatusBar()
 {
-#ifndef IPHONE
+#if !(defined(IPHONE) || defined(_ANDROID))
+
 	/* dont do this if we can not display; note that when we start, we can send along
 	   invalid data to the OpenGL drivers when doing ortho calcs */
 	if ((screenWidth > 5) && (screenHeight > 5)) {

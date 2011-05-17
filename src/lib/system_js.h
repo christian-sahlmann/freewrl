@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_js.h,v 1.9 2011/04/07 21:02:49 istakenv Exp $
+$Id: system_js.h,v 1.10 2011/05/17 13:58:29 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: Javascript engine dependencies.
@@ -41,7 +41,7 @@ Internal header: Javascript engine dependencies.
 
 #define JS_HAS_FILE_OBJECT 1 /* workaround warning=>error */
 
-#ifdef IPHONE
+#if defined(IPHONE) || defined(_ANDROID)
 typedef int JSContext;
 typedef int JSObject;
 typedef int JSScript;
