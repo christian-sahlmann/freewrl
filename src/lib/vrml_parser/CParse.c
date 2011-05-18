@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.25 2010/09/29 20:11:48 crc_canada Exp $
+$Id: CParse.c,v 1.26 2011/05/18 14:42:20 crc_canada Exp $
 
 ???
 
@@ -78,8 +78,23 @@ bool cParse(void* ptr, unsigned ofs, const char* data) {
  	parser_fromString(parser, (char *) data);
  	ASSERT(parser->lexer);
 
- 	if(!parser_vrmlScene(parser))
-  		fprintf(stderr, "Parser found errors.\n");
+ 	if(!parser_vrmlScene(parser)) {
+		int sl = strlen (parser->lexer->nextIn);
+		#define CHARS_TO_RETURN_ERROR_END 200
+		char finalChars[CHARS_TO_RETURN_ERROR_END];
+
+		if (strlen(parser->lexer->nextIn) >= (CHARS_TO_RETURN_ERROR_END-10)) {
+			strncpy(finalChars,parser->lexer->nextIn, CHARS_TO_RETURN_ERROR_END-10);
+			finalChars[CHARS_TO_RETURN_ERROR_END-10] = '.';
+			finalChars[CHARS_TO_RETURN_ERROR_END-9] = '.';
+			finalChars[CHARS_TO_RETURN_ERROR_END-8] = '.';
+			finalChars[CHARS_TO_RETURN_ERROR_END-7] = '.';
+		} else {
+			strcpy (finalChars,parser->lexer->nextIn);
+		}
+
+  		ConsoleMessage ("Parsing complete, but have unrecognized data at end of input:\"%s\"",finalChars);
+	}
 
  	/* printf ("after parsing in cParse, VRMLParser->DEFinedNodes %u\n",parser->DEFedNodes); */
  	/* deleteParser(parser); */

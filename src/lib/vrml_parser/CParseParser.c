@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.72 2011/04/12 20:19:20 crc_canada Exp $
+  $Id: CParseParser.c,v 1.73 2011/05/18 14:42:20 crc_canada Exp $
 
   ???
 
@@ -491,6 +491,7 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
 
     /* We were unable to keep parsing Nodes, ROUTEs, or PROTOs.  Check that this is indeed the end of the file.  If it isn't, 
        there is an error, so we return FALSE. */
+
     return lexer_eof(me->lexer);
 }
 
