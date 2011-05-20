@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.40 2010/12/03 19:55:21 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.41 2011/05/20 20:07:12 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -76,9 +76,54 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	
 
 	/* perform Viewpoint translations */
+/*
+{
+double a,b,c,d;
+printf ("should be to %lf %lf %lf %lf\n",node->orientation.c[0],node->orientation.c[1],
+node->orientation.c[2],node->orientation.c[3]);
+quaternion_to_vrmlrot(&Viewer.prepVPQuat, &a, &b, &c, &d);
+printf ("is to %lf %lf %lf %lf\n",a,b,c,d);
+}
+*/
+/*
 	FW_GL_ROTATE_RADIANS(-node->orientation.c[3],node->orientation.c[0],node->orientation.c[1],
 		node->orientation.c[2]);
+*/
+
+if (Viewer.SLERPing) {
+
+                double tickFrac;
+                Quaternion slerpedDiff;
+
+                struct point_XYZ antipos;
+/*
+printf ("NAV SLERPing...\n");
+//printf ("\t     startSlerpPos %lf %lf %lf\n",Viewer.startSLERPPos.x,Viewer.startSLERPPos.y,Viewer.startSLERPPos.z);
+//printf ("\t     Pos           %lf %lf %lf\n",Viewer.Pos.x,Viewer.Pos.y,Viewer.Pos.z);
+printf ("\t     startSlerpAntiPos %lf %lf %lf\n",Viewer.startSLERPAntiPos.x,Viewer.startSLERPAntiPos.y,Viewer.startSLERPAntiPos.z);
+printf ("\t     AntiPos           %lf %lf %lf\n",Viewer.AntiPos.x,Viewer.AntiPos.y,Viewer.AntiPos.z);
+printf ("\t but we are at %lf %lf %lf\n",
+-node->position.c[0],-node->position.c[1],-node->position.c[2]);
+*/
+
+                /* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
+                tickFrac = TickTime - Viewer.startSLERPtime;
+
+                quaternion_slerp (&slerpedDiff,&Viewer.startSLERPprepVPQuat,&Viewer.prepVPQuat,tickFrac);
+
+                quaternion_togl(&slerpedDiff);
+
+                antipos.x = Viewer.AntiPos.x * tickFrac + (Viewer.startSLERPAntiPos.x * (1.0 - tickFrac));
+                antipos.y = Viewer.AntiPos.y * tickFrac + (Viewer.startSLERPAntiPos.y * (1.0 - tickFrac));
+                antipos.z = Viewer.AntiPos.z * tickFrac + (Viewer.startSLERPAntiPos.z * (1.0 - tickFrac));
+
+	FW_GL_TRANSLATE_D(-antipos.x, -antipos.y, -antipos.z);
+
+} else {
+
+	quaternion_togl(&Viewer.prepVPQuat);
 	FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
+}
 
 	/* now, lets work on the Viewpoint fieldOfView */
 	FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);

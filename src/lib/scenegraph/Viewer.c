@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.62 2011/04/09 00:33:19 davejoubert Exp $
+$Id: Viewer.c,v 1.63 2011/05/20 20:07:12 crc_canada Exp $
 
 CProto ???
 
@@ -50,9 +50,10 @@ static int examineCounter = 5;
 static int viewer_type = VIEWER_NONE;
 int viewer_initialized = FALSE;
 static X3D_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
-static X3D_Viewer_Examine viewer_examine = { { 0, 0, 0 }, {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
+static X3D_Viewer_Examine viewer_examine = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
 static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
-static X3D_Viewer_YawPitchZoom viewer_ypz = { { 0, 0, 0 },  {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
+//static X3D_Viewer_YawPitchZoom viewer_ypz = { { 0, 0, 0 },  {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
+static X3D_Viewer_YawPitchZoom viewer_ypz = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
@@ -96,6 +97,7 @@ void viewer_default() {
 
 	vrmlrot_to_quaternion (&Viewer.Quat,1.0,0.0,0.0,0.0);
 	vrmlrot_to_quaternion (&Viewer.bindTimeQuat,1.0,0.0,0.0,0.0);
+	vrmlrot_to_quaternion (&Viewer.prepVPQuat,0.0,1.0,0.0,3.14);
 	vrmlrot_to_quaternion (&q_i,1.0,0.0,0.0,0.0);
 	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
@@ -140,6 +142,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 
 		vrmlrot_to_quaternion (&Viewer.Quat,1.0,0.0,0.0,0.0);
 		vrmlrot_to_quaternion (&Viewer.bindTimeQuat,1.0,0.0,0.0,0.0);
+		vrmlrot_to_quaternion (&Viewer.prepVPQuat,1.0,0.0,0.0,0.0);
 		vrmlrot_to_quaternion (&q_i,1.0,0.0,0.0,0.0);
 		quaternion_inverse(&(Viewer.AntiQuat),&q_i);
 
@@ -155,7 +158,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 
 		/* SLERP code for moving between viewpoints */
 		viewer->SLERPing = FALSE;
-		viewer->startSLERPtime = (double)0.0;
+		viewer->startSLERPtime = 0.0;
 
 		/* Orthographic projections */
 		viewer->ortho = FALSE;
@@ -412,74 +415,35 @@ void viewer_togl(double fieldofview)
 	if (Viewer.SLERPing) {
 		double tickFrac;
 		Quaternion slerpedDiff;
-		Quaternion tmp;
-		Quaternion origLookatQuat;
-		Quaternion currentLookatQuat;
+		struct point_XYZ pos, antipos;
 
-		printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type));
+/*
+printf ("SLERPing...\n");
+printf ("\t	startSlerpPos %lf %lf %lf\n",Viewer.startSLERPPos.x,Viewer.startSLERPPos.y,Viewer.startSLERPPos.z);
+printf ("\t	Pos           %lf %lf %lf\n",Viewer.Pos.x,Viewer.Pos.y,Viewer.Pos.z);
+printf ("\t	startSlerpAntiPos %lf %lf %lf\n",Viewer.startSLERPAntiPos.x,Viewer.startSLERPAntiPos.y,Viewer.startSLERPAntiPos.z);
+printf ("\t	AntiPos           %lf %lf %lf\n",Viewer.AntiPos.x,Viewer.AntiPos.y,Viewer.AntiPos.z);
+*/
+
+		/* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
 		tickFrac = TickTime - Viewer.startSLERPtime;
-		tickFrac = tickFrac/4.0;
-		printf ("tick frac %lf\n",tickFrac);
+		//tickFrac = tickFrac/4.0;
+		//printf ("tick frac %lf\n",tickFrac); 
 
-/* so, if the old quat*2 and antiquat and the at bind time added together should give us our rotation vector
-into the old world. Lets see: */
-	
+		pos.x = Viewer.Pos.x * tickFrac + (Viewer.startSLERPPos.x * (1.0 - tickFrac));
+		pos.y = Viewer.Pos.y * tickFrac + (Viewer.startSLERPPos.y * (1.0 - tickFrac));
+		pos.z = Viewer.Pos.z * tickFrac + (Viewer.startSLERPPos.z * (1.0 - tickFrac));
+		antipos.x = Viewer.AntiPos.x * tickFrac + (Viewer.startSLERPAntiPos.x * (1.0 - tickFrac));
+		antipos.y = Viewer.AntiPos.y * tickFrac + (Viewer.startSLERPAntiPos.y * (1.0 - tickFrac));
+		antipos.z = Viewer.AntiPos.z * tickFrac + (Viewer.startSLERPAntiPos.z * (1.0 - tickFrac));
 
-		quaternion_add(&tmp,&Viewer.startSLERPAntiQuat, &Viewer.startSLERPQuat);
-		
-		quaternion_add(&origLookatQuat,&tmp, &Viewer.startSLERPbindTimeQuat);
-/*
-		quaternion_add(&origLookatQuat,&tmp, &Viewer.startSLERPAntiQuat);
-*/
+		quaternion_slerp (&slerpedDiff,&Viewer.startSLERPQuat,&Viewer.Quat,tickFrac);
 
-#ifdef VERBOSE
-		{ double x,y,z,a;
-		quaternion_to_vrmlrot (&origLookatQuat,&x,&y,&z,&a);
-		printf ("checking: previous angle: %f %f %f %f\n",x,y,z,a);
-		
-		quaternion_to_vrmlrot (&Viewer.startSLERPQuat,&x,&y,&z,&a);
-printf ("made up from %f %f %f %f and ",x,y,z,a);
-		quaternion_to_vrmlrot (&Viewer.startSLERPAntiQuat,&x,&y,&z,&a);
-printf ("%f %f %f %f \n",x,y,z,a);
-		}
-#endif
-
-		quaternion_add(&tmp,&Viewer.AntiQuat, &Viewer.Quat);
-		quaternion_add(&currentLookatQuat,&tmp, &Viewer.bindTimeQuat);
-/*
-		quaternion_add(&currentLookatQuat,&tmp, &Viewer.AntiQuat);
-*/
-#ifdef VERBOSE
-		{ double x,y,z,a;
-		quaternion_to_vrmlrot (&currentLookatQuat,&x,&y,&z,&a);
-		printf ("checking: now angle: %f %f %f %f\n",x,y,z,a);
-		
-		quaternion_to_vrmlrot (&Viewer.Quat,&x,&y,&z,&a);
-printf ("made up from %f %f %f %f and ",x,y,z,a);
-		quaternion_to_vrmlrot (&Viewer.AntiQuat,&x,&y,&z,&a);
-printf ("%f %f %f %f \n",x,y,z,a);
-		}
-#endif
-
-		quaternion_slerp (&slerpedDiff,&origLookatQuat,&currentLookatQuat,tickFrac);
-		{ double x,y,z,a;
-		quaternion_to_vrmlrot (&slerpedDiff,&x,&y,&z,&a);
-		printf ("slerping: now angle: %f %f %f %f frac %f\n",x,y,z,a,tickFrac);
-		}
-
-
-		/* ok, we know where in the world we were pointing, lets slerp to this... */
 		quaternion_togl(&slerpedDiff);
-
-
-/*
-printf ("quatstart %lf %lf %lf %lf\n",Viewer.startSLERPQuat.x, Viewer.startSLERPQuat.y, Viewer.startSLERPQuat.z, Viewer.startSLERPQuat.w);
-printf ("curquat   %lf %lf %lf %lf\n",Viewer.Quat.x, Viewer.Quat.y, Viewer.Quat.z, Viewer.Quat.w);
-printf ("finquat   %lf %lf %lf %lf\n",qq.x, qq.y, qq.z, qq.w);
-*/
-		FW_GL_TRANSLATE_D(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
-		FW_GL_TRANSLATE_D((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
-		quaternion_togl(&Viewer.AntiQuat);
+		FW_GL_TRANSLATE_D(-pos.x, -pos.y, -pos.z);
+		FW_GL_TRANSLATE_D(antipos.x, antipos.y, antipos.z);
+		quaternion_slerp (&slerpedDiff,&Viewer.startSLERPAntiQuat,&Viewer.AntiQuat,tickFrac);
+		quaternion_togl(&slerpedDiff);
 
 
 		if (tickFrac >= 1.0) Viewer.SLERPing = FALSE;
@@ -488,10 +452,10 @@ printf ("finquat   %lf %lf %lf %lf\n",qq.x, qq.y, qq.z, qq.w);
 		FW_GL_TRANSLATE_D(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
 		FW_GL_TRANSLATE_D((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
 		quaternion_togl(&Viewer.AntiQuat);
+
 	}
 
 	getCurrentPosInModel(TRUE);
-
 }
 
 /* go through the modelMatrix and see where we are. Notes:
@@ -565,9 +529,11 @@ printf ("togl, after inverse, %lf %lf %lf\n",inverseMatrix[12],inverseMatrix[13]
 	}
 
 	
-	/* printf ("getCurrentPosInModel, so, our place in object-land is %4.2f %4.2f %4.2f\n",
-		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z); */
+/* 	printf ("getCurrentPosInModel, so, our place in object-land is %4.2f %4.2f %4.2f\n",
+		Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
+*/
 }
+
 double quadratic(double x,double a,double b,double c)
 {
 	/* y = a*x*x + b*x + c; */
@@ -1656,6 +1622,10 @@ void bind_OrthoViewpoint (struct X3D_OrthoViewpoint *vp) {
 	Quaternion q_i;
 	float xd, yd,zd;
 
+
+	/* did bind_node tell us we could bind this guy? */
+	if (!(vp->isBound)) return;
+
 	/* SLERPing */
 	/* record position BEFORE calculating new Viewpoint position */
 	INITIATE_SLERP
@@ -1694,8 +1664,7 @@ void bind_OrthoViewpoint (struct X3D_OrthoViewpoint *vp) {
 
 	/*
 	printf ("bind_OrthoViewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
-	vp->position.c[2],vp->orientation.c[0],vp->orientation.c[1],vp->orientation.c[2],
-	vp->orientation.c[3]);
+	vp->position.c[2],vp->orientation.c[0],vp->orientation.c[1],vp->orientation.c[2], vp->orientation.c[3]);
 	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); 
 	printf ("	center of rotation %f %f %f\n",vp->centerOfRotation.c[0], vp->centerOfRotation.c[1],vp->centerOfRotation.c[2]);
 	*/
@@ -1740,6 +1709,9 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 	Quaternion q_i;
 	float xd, yd,zd;
 
+	/* did bind_node tell us we could bind this guy? */
+	if (!(vp->isBound)) return;
+
 	/* SLERPing */
 	/* record position BEFORE calculating new Viewpoint position */
 	INITIATE_SLERP
@@ -1757,7 +1729,6 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 
 	/* set the examine mode rotation origin */
 	INITIATE_ROTATION_ORIGIN
-	/* printf ("BVP, origin %4.3f %4.3f %4.3f\n",Viewer.examine->Origin.x, Viewer.examine->Origin.y, Viewer.examine->Origin.z); */
 
 	/* set Viewer position and orientation */
 	/* 

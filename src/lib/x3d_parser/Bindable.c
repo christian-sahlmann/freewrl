@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.52 2011/04/08 15:01:18 crc_canada Exp $
+$Id: Bindable.c,v 1.53 2011/05/20 20:07:12 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -157,7 +157,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 
 /* send a set_bind event from an event to this Bindable node */
 void send_bind_to(struct X3D_Node *node, int value) {
-	/* printf ("\n%lf: send_bind_to, nodetype %s node %u value %d\n",TickTime,stringNodeType(node->_nodeType),node,value);  */
+	//printf ("\n%lf: send_bind_to, nodetype %s node %u value %d\n",TickTime,stringNodeType(node->_nodeType),node,value);  
 
 	switch (node->_nodeType) {
 
@@ -312,7 +312,6 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 	printf ("\nbind_node, we have %d (%s) tos %d \n",bgnode->_nodeType,stringNodeType(bgnode->_nodeType),*tos); 
 	#endif
 
-	
 	/* setup some variables. Use char * as a pointer as it is ok between 32
 	   and 64 bit systems for a pointer arithmetic. */
 	nst = (char *)node;
@@ -332,7 +331,6 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 
 	if (*tos >=0) {oldstacktop = stack + *tos;}
 	else oldstacktop = stack;
-
 
 	#ifdef BINDVERBOSE
 	printf ("bind_node, node %d, set_bind %d tos %d\n",node,*setBindptr,*tos); 
@@ -438,7 +436,7 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 		printf ("before if... *tos %d *oldstacktop %d *newstacktop %d\n",*tos, unbindNode, *newstacktop);
 		#endif
 
-		if ((*tos >= 1) && do_unbind ) { // (*oldstacktop!=*newstacktop)) {
+		if ((*tos >= 1) && do_unbind ) {
 			/* yep... unbind it, and send an event in case anyone cares */
 			//oldboundptr = (unsigned int *) (*oldstacktop  + (uintptr_t)isboundofst((void *)*oldstacktop));
 			oldboundptr = (unsigned int *) (unbindNode  + (uintptr_t)isboundofst((void *)unbindNode));
@@ -475,7 +473,10 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 		#endif
 
 
-		if ((uintptr_t) node != *oldstacktop) return;
+		/* are we the top of the stack? */
+		if ((uintptr_t) node != *oldstacktop) {
+			return;
+		}
 
 		#ifdef BINDVERBOSE
 		printf ("ok, we were TOS, setting %d (%s) to 0\n",node, ((struct X3D_Viewpoint *)node)->description->strptr);

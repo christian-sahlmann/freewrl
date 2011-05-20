@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.191 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.192 2011/05/20 20:07:12 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2402,7 +2402,8 @@ void zeroVisibilityFlag(void) {
 #undef VIEWPOINT /* defined for the EAI,SAI, does not concern us uere */
 #endif
 #define VIEWPOINT(thistype) \
-			setBindPtr = (uintptr_t *) ((uintptr_t)(node) + offsetof (struct X3D_##thistype, set_bind));
+			setBindPtr = (uintptr_t *) ((uintptr_t)(node) + offsetof (struct X3D_##thistype, set_bind)); \
+			if (*setBindPtr == 100) {setBindPtr = NULL; }/* already done */ 
 
 #define CHILDREN_NODE(thistype) \
 			addChildren = NULL; removeChildren = NULL; \
@@ -2932,7 +2933,6 @@ X3D_GROUP(node)->removeChildren.n);
 		if (setBindPtr != NULL) {
 			/* check the set_bind eventin to see if it is TRUE or FALSE */
 			if (*setBindPtr < 100) {
-				/* printf ("Found a vp to modify %d\n",node); */
 				/* up_vector is reset after a bind */
 				//if (*setBindPtr==1) reset_upvector();
 				bind_node ((void *)node, &viewpoint_tos,&viewpoint_stack[0]);

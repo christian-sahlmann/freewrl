@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.51 2011/05/14 23:04:20 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.52 2011/05/20 20:07:12 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -2784,6 +2784,10 @@ doExamineModeDistanceCalculations = TRUE;
 
 void bind_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	Quaternion q_i;
+
+        /* did bind_node tell us we could bind this guy? */
+        if (!(node->isBound)) return;
+
 
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED

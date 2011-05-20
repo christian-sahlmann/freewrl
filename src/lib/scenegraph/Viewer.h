@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.34 2011/04/09 00:33:19 davejoubert Exp $
+$Id: Viewer.h,v 1.35 2011/05/20 20:07:12 crc_canada Exp $
 
 Viewer ???
 
@@ -105,13 +105,15 @@ Viewer ???
 	}
 
 #define INITIATE_SLERP \
-        Viewer.SLERPing = FALSE; \
+        Viewer.SLERPing = TRUE; \
         Viewer.startSLERPtime = TickTime; \
         memcpy (&Viewer.startSLERPPos, &Viewer.Pos, sizeof (struct point_XYZ)); \
         memcpy (&Viewer.startSLERPAntiPos, &Viewer.AntiPos, sizeof (struct point_XYZ)); \
         memcpy (&Viewer.startSLERPQuat, &Viewer.Quat, sizeof (Quaternion)); \
         memcpy (&Viewer.startSLERPAntiQuat, &Viewer.AntiQuat, sizeof (Quaternion));  \
-        memcpy (&Viewer.startSLERPbindTimeQuat, &Viewer.bindTimeQuat, sizeof (Quaternion));
+        memcpy (&Viewer.startSLERPbindTimeQuat, &Viewer.bindTimeQuat, sizeof (Quaternion)); \
+        memcpy (&Viewer.startSLERPprepVPQuat, &Viewer.prepVPQuat, sizeof (Quaternion)); \
+
 
 #define INITIATE_POSITION \
         xd = vp->position.c[0]-vp->centerOfRotation.c[0]; \
@@ -134,16 +136,14 @@ Viewer ???
         Viewer.currentPosInModel.x = vp->position.c[0]; \
         Viewer.currentPosInModel.y = vp->position.c[1]; \
         Viewer.currentPosInModel.z = vp->position.c[2]; \
-	Viewer.ypz->bindPoint.x = vp->position.c[0]; \
-        Viewer.ypz->bindPoint.y = vp->position.c[1]; \
-        Viewer.ypz->bindPoint.z = vp->position.c[2]; \
         vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.c[0], \
                 vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* dug9 sign change on orientation Jan 18,2010 to accomodate level_to_bound() */ \
         vrmlrot_to_quaternion (&Viewer.bindTimeQuat,vp->orientation.c[0], \
                 vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */ \
         vrmlrot_to_quaternion (&q_i,vp->orientation.c[0], \
                 vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */ \
-        quaternion_inverse(&(Viewer.AntiQuat),&q_i); 
+        quaternion_inverse(&(Viewer.AntiQuat),&q_i);  \
+	vrmlrot_to_quaternion(&Viewer.prepVPQuat,vp->orientation.c[0],vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]);
 
 
 /* extern struct point_XYZ ViewerPosition; */
@@ -162,7 +162,6 @@ typedef struct viewer_walk {
 
 typedef struct viewer_examine {
         struct point_XYZ Origin;
-	struct point_XYZ bindPoint;
         Quaternion OQuat;
         Quaternion SQuat;
         double ODist;
@@ -170,7 +169,6 @@ typedef struct viewer_examine {
 } X3D_Viewer_Examine;
 
 typedef struct viewer_ypz {
-	struct point_XYZ bindPoint;
 	double ypz0[3];
 	double ypz[3];
 	float x,y;
@@ -238,6 +236,8 @@ typedef struct viewer {
 	Quaternion startSLERPQuat;
 	Quaternion startSLERPAntiQuat;
 	Quaternion startSLERPbindTimeQuat;
+	Quaternion prepVPQuat;
+	Quaternion startSLERPprepVPQuat;
 
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
 
