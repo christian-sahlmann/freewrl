@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.24 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: statusbarHud.c,v 1.25 2011/05/20 20:49:24 dug9 Exp $
 
 */
 
@@ -1110,8 +1110,8 @@ void handleOptionPress()
 
 
 int osystem = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
-int lenhelp = 26;
-char * keyboardShortcutHelp[26] = {
+int lenhelp = 27;
+char * keyboardShortcutHelp[27] = {
 "EXAMINE Mode",
 "   LMB rotation: MX rotation around Y axis; MY rotation around X axis",
 "   RMB zooms", // On Apple computers with one button mice, press and hold the "control" key, and use your mouse. 
@@ -1137,6 +1137,7 @@ char * keyboardShortcutHelp[26] = {
 "  / Print current viewport local pose", 
 "  h Toggle headlight",
 "  c Toggle collision detection",
+"  x Snapshot",
 "  q Quit browser"
 };
 void printKeyboardHelp()
