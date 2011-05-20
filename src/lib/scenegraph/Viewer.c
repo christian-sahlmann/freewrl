@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.63 2011/05/20 20:07:12 crc_canada Exp $
+$Id: Viewer.c,v 1.64 2011/05/20 21:01:33 crc_canada Exp $
 
 CProto ???
 
@@ -159,6 +159,8 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		/* SLERP code for moving between viewpoints */
 		viewer->SLERPing = FALSE;
 		viewer->startSLERPtime = 0.0;
+		viewer->transitionType = 1; /* assume LINEAR */
+		viewer->transitionTime = 1.0; /* assume 1 second */
 
 		/* Orthographic projections */
 		viewer->ortho = FALSE;
