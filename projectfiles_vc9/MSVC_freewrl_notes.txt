@@ -4,7 +4,11 @@ http://freewrl.sourceforge.net/windowsBuild.html
 
 Updated May 21, 2011
 ACTIVEX CONTROL/PLUGIN NOTES:
-To build the libfreewrl for the ActiveX control (internetExplorer plugin) you need to change the following compiler settings:
+The freewrlAx project is for the ActiveX control, which is the InternetExplorer plugin for freewrl. 
+You need something more than the free express edition of Visual C++ to build it (there are dlls etc it needs for ActiveX controls).
+The project initiator had Visual C++ 2003 Standard Edition kicking around, so that's what it's currently checked in with. 
+And freewrlAx depends on libfreewrl built slightly differently than for the console program (but you can build it with MSVC express).
+To build the libfreewrl for the ActiveX control you need to change the following compiler settings:
 In libfreeWRL > Property Pages > Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions
 change the following:
 COMPILING_ACTIVEX_FRONTEND_no
@@ -17,12 +21,14 @@ FRONTEND_GETS_FILES
 Then when building for everything else, change those back.
 Otherwise the regular freewrl will just exit without showing anything.
 
-TO DO:
+GENERAL WIN32 TO DO:
 To do/not done yet: 
 -  libeai / EAI / SAI   
 -  sound not attempted
 -  fullscreen not properly implemented
 -  Internet Explorer plugin (ActiveX control) is in-process but not complete  
+-  in theory the main program should have the popup window, and call into the library (right now
+   the popup window code is in the library)
 
 ABOUT THE LIBRARIES IN LIB_WINDOWS:
 MSVC compatible libraries - you got them from the link on the windowsbuild page (or as of sept 16, 2010 http://dug9.users.sourceforge.net/lib_windows.zip)
