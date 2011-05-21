@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.116 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: display.h,v 1.117 2011/05/21 19:16:06 daytonavid Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -476,7 +476,7 @@ void getMotifWindowedGLwin(Window *win);
  */
 
 extern GLenum _global_gl_err;
-#if defined(IPHONE) || defined(_ANDROID)
+#if defined(IPHONE)
 #define PRINT_GL_ERROR_IF_ANY(_where) { \
                                               GLenum _global_gl_err = glGetError(); \
                                               while (_global_gl_err != GL_NO_ERROR) { \
@@ -486,6 +486,19 @@ extern GLenum _global_gl_err;
 						else if (_global_gl_err == GL_OUT_OF_MEMORY) {printf ("GL_OUT_OF_MEMORY"); } \
 						else printf ("unknown error"); \
                                                  printf(" here: %s (%s:%d)\n", _where,__FILE__,__LINE__); \
+                                                 _global_gl_err = glGetError(); \
+                                              } \
+                                           } 
+#elif defined(_ANDROID)
+#define PRINT_GL_ERROR_IF_ANY(_where) { \
+                                              GLenum _global_gl_err = glGetError(); \
+                                              while (_global_gl_err != GL_NO_ERROR) { \
+						if (_global_gl_err == GL_INVALID_ENUM) {DROIDDEBUG ("GL_INVALID_ENUM"); } \
+						else if (_global_gl_err == GL_INVALID_VALUE) {DROIDDEBUG("GL_INVALID_VALUE"); } \
+						else if (_global_gl_err == GL_INVALID_OPERATION) {DROIDDEBUG("GL_INVALID_OPERATION"); } \
+						else if (_global_gl_err == GL_OUT_OF_MEMORY) {DROIDDEBUG("GL_OUT_OF_MEMORY"); } \
+						else DROIDDEBUG("unknown error"); \
+                                                 DROIDDEBUG(" here: %s (%s:%d)\n", _where,__FILE__,__LINE__); \
                                                  _global_gl_err = glGetError(); \
                                               } \
                                            } 
