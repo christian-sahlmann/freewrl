@@ -29,6 +29,14 @@ To do/not done yet:
 -  Internet Explorer plugin (ActiveX control) is in-process but not complete  
 -  in theory the main program should have the popup window, and call into the library (right now
    the popup window code is in the library)
+When you build the freewrlAx project, it should 'register' the activex control in the system registry, 
+as the handler for .x3d and .wrl file types and related MIME types. A recent version of the freewrl_launcher 
+has a panel to control / reset what handles what in InternetExplorer, in case you have some other downloads
+handling .x3d and .wrl too.
+(Launcher is a separate source download in SupportFiles at http://sourceforge.net/projects/freewrl/files/freewrl-win32/ 
+or you can use the one that gets installed during binary .msi installation)
+Then to test, you open an html file in internetExplorer that has an embed, object or href with a url.x3d/.wrl.
+
 
 ABOUT THE LIBRARIES IN LIB_WINDOWS:
 MSVC compatible libraries - you got them from the link on the windowsbuild page (or as of sept 16, 2010 http://dug9.users.sourceforge.net/lib_windows.zip)
