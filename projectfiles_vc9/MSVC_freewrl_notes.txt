@@ -2,15 +2,29 @@
 Instructions are posted at:
 http://freewrl.sourceforge.net/windowsBuild.html 
 
+Updated May 21, 2011
+ACTIVEX CONTROL/PLUGIN NOTES:
+To build the libfreewrl for the ActiveX control (internetExplorer plugin) you need to change the following compiler settings:
+In libfreeWRL > Property Pages > Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions
+change the following:
+COMPILING_ACTIVEX_FRONTEND_no
+FRONTEND_HANDLES_DISPLAY_THREAD_no
+FRONTEND_GETS_FILES_no
+to:
+COMPILING_ACTIVEX_FRONTEND
+FRONTEND_HANDLES_DISPLAY_THREAD
+FRONTEND_GETS_FILES
+Then when building for everything else, change those back.
+Otherwise the regular freewrl will just exit without showing anything.
 
+TO DO:
 To do/not done yet: 
--  libeai - doug did a port but it was never applied  
-see http://cid-4a0d5f15141a58d5.skydrive.live.com/browse.aspx/GPUGroupX3D/PyEAI/Current > libeai_r122rc2_win32_June1.zip
--  plugin and sound not attempted
--  snapshot stubbed out
--  fwWindow32.c fullscreen not properly implemented
+-  libeai / EAI / SAI   
+-  sound not attempted
+-  fullscreen not properly implemented
+-  Internet Explorer plugin (ActiveX control) is in-process but not complete  
 
-
+ABOUT THE LIBRARIES IN LIB_WINDOWS:
 MSVC compatible libraries - you got them from the link on the windowsbuild page (or as of sept 16, 2010 http://dug9.users.sourceforge.net/lib_windows.zip)
 Then if you cvs check out freewrl\freex3d cvs to your directory 'source' then put the lib_windows and fonts directories in 'source' too:
 ie 
@@ -22,15 +36,13 @@ But where did I get them?
 gdiplus.lib/.dll - .lib seems to be on my system somewhere
 http://www.microsoft.com/downloads/details.aspx?FamilyID=6a63ab9c-df12-4d41-933c-be590feaa05a&DisplayLang=en  GDI+ redistributable download - gdiplus.dll 2MB 
 
-jpeg - OpenCV (book CD) try:  http://opencv.willowgarage.com/wiki/ and/or http://sourceforge.net/project/showfiles.php?group_id=22870 pre1.1 win
 MSopenGL - my windows system directories, for a msvc 6.0A directory (not sure what it was installed with. Just opengl 2.1)
 zlib - yafaray^ see below
 pthreads - http://sourceware.org/pthreads-win32/
-png - yafaray
 openexr_static - yafaray
 libxml2 - yafaray
 freetype2 - http://freetype.sourceforge.net/index2.html  (has a build directory for VS2008)
 expat - likely: http://sourceforge.net/projects/expat/ which has a 2007 download which is the datestamp on my files
 glew - http://glew.sourceforge.net/  
 JS (javascript) - I got from an older freewrl source .tar and tinkered
-^  www.yafaray.org - has vs2008 .sln files (their server is slow right now)
+^  www.yafaray.org - has vs2008 .sln files 
