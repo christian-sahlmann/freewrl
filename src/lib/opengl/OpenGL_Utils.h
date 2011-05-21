@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.40 2011/04/14 15:59:17 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.41 2011/05/21 19:13:03 daytonavid Exp $
 
 Screen snapshot.
 
@@ -96,7 +96,7 @@ typedef struct {
 	int max_texture_size;
 	float anisotropicDegree;
 
-	s_shader_capabilities_t backgroundShaderArrays[2]; /* one element for each shader_type */
+	s_shader_capabilities_t backgroundShaderArrays[20]; /* one element for each shader_type */
 } s_renderer_capabilities_t;
 
 typedef enum shader_type {
