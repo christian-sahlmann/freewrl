@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.117 2011/05/21 19:16:06 daytonavid Exp $
+  $Id: display.h,v 1.118 2011/05/22 23:51:41 davejoubert Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -476,20 +476,8 @@ void getMotifWindowedGLwin(Window *win);
  */
 
 extern GLenum _global_gl_err;
-#if defined(IPHONE)
-#define PRINT_GL_ERROR_IF_ANY(_where) { \
-                                              GLenum _global_gl_err = glGetError(); \
-                                              while (_global_gl_err != GL_NO_ERROR) { \
-						if (_global_gl_err == GL_INVALID_ENUM) {printf ("GL_INVALID_ENUM"); } \
-						else if (_global_gl_err == GL_INVALID_VALUE) {printf ("GL_INVALID_VALUE"); } \
-						else if (_global_gl_err == GL_INVALID_OPERATION) {printf ("GL_INVALID_OPERATION"); } \
-						else if (_global_gl_err == GL_OUT_OF_MEMORY) {printf ("GL_OUT_OF_MEMORY"); } \
-						else printf ("unknown error"); \
-                                                 printf(" here: %s (%s:%d)\n", _where,__FILE__,__LINE__); \
-                                                 _global_gl_err = glGetError(); \
-                                              } \
-                                           } 
-#elif defined(_ANDROID)
+
+#if defined(_ANDROID)
 #define PRINT_GL_ERROR_IF_ANY(_where) { \
                                               GLenum _global_gl_err = glGetError(); \
                                               while (_global_gl_err != GL_NO_ERROR) { \
@@ -502,6 +490,20 @@ extern GLenum _global_gl_err;
                                                  _global_gl_err = glGetError(); \
                                               } \
                                            } 
+#elif 1
+/* This used to be IPHONE only, but it is best if no code in the library depends on gluErrorString() */
+#define PRINT_GL_ERROR_IF_ANY(_where) { \
+                                              GLenum _global_gl_err = glGetError(); \
+                                              while (_global_gl_err != GL_NO_ERROR) { \
+						if (_global_gl_err == GL_INVALID_ENUM) {printf ("GL_INVALID_ENUM"); } \
+						else if (_global_gl_err == GL_INVALID_VALUE) {printf ("GL_INVALID_VALUE"); } \
+						else if (_global_gl_err == GL_INVALID_OPERATION) {printf ("GL_INVALID_OPERATION"); } \
+						else if (_global_gl_err == GL_OUT_OF_MEMORY) {printf ("GL_OUT_OF_MEMORY"); } \
+						else printf ("unknown error"); \
+                                                 printf(" here: %s (%s:%d)\n", _where,__FILE__,__LINE__); \
+                                                 _global_gl_err = glGetError(); \
+                                              } \
+                                           } 
 #else
 #define PRINT_GL_ERROR_IF_ANY(_where) if (global_print_opengl_errors) { \
                                               GLenum _global_gl_err = glGetError(); \
@@ -511,9 +513,18 @@ extern GLenum _global_gl_err;
                                                  _global_gl_err = glGetError(); \
                                               } \
                                            } 
-#define GL_ERROR_MSG  ((char*) gluErrorString(glGetError()))
 #endif
-
+#if 0
+#define GL_ERROR_MSG  ((char*) gluErrorString(glGetError()))
+#else
+#define GL_ERROR_MSG (\
+	(glGetError() == GL_NO_ERROR)?"":\
+		(glGetError() == GL_INVALID_ENUM)?"GL_INVALID_ENUM":\
+		(glGetError() == GL_INVALID_VALUE)?"GL_INVALID_VALUE":\
+		(glGetError() == GL_INVALID_OPERATION)?"GL_INVALID_OPERATION":\
+		(glGetError() == GL_OUT_OF_MEMORY)?"GL_OUT_OF_MEMORY":\
+		"unknown GL_ERROR")
+#endif
 
 void resetGeometry();
 /* void setScreenDim(int wi, int he); */
