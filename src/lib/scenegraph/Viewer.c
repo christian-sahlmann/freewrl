@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.64 2011/05/20 21:01:33 crc_canada Exp $
+$Id: Viewer.c,v 1.65 2011/05/24 15:35:21 crc_canada Exp $
 
 CProto ???
 
@@ -428,8 +428,7 @@ printf ("\t	AntiPos           %lf %lf %lf\n",Viewer.AntiPos.x,Viewer.AntiPos.y,V
 */
 
 		/* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
-		tickFrac = TickTime - Viewer.startSLERPtime;
-		//tickFrac = tickFrac/4.0;
+		tickFrac = (TickTime - Viewer.startSLERPtime)/Viewer.transitionTime;
 		//printf ("tick frac %lf\n",tickFrac); 
 
 		pos.x = Viewer.Pos.x * tickFrac + (Viewer.startSLERPPos.x * (1.0 - tickFrac));

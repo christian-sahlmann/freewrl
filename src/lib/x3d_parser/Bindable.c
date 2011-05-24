@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.54 2011/05/20 21:01:34 crc_canada Exp $
+$Id: Bindable.c,v 1.55 2011/05/24 15:35:21 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -153,15 +153,17 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 
 	/* transition effects */
 	Viewer.transitionTime = node->transitionTime;
-	/* 	LINEAR  = 1
- 		TELEPORT = 0
-		ANIMATE = 3
-	*/
-	Viewer.transitionType = 1; /* assume LINEAR */
+	/* bounds checking */
+	if (Viewer.transitionTime < 0.0) Viewer.transitionTime = 0.0;
+
+	Viewer.transitionType = VIEWER_TRANSITION_LINEAR; /* assume LINEAR */
 	if (node->transitionType.n > 0) {
-		if (strcmp("LINEAR", node->transitionType.p[0]) == 0) Viewer.transitionType = 1;
-		if (strcmp("TELEPORT", node->transitionType.p[0]) == 0) Viewer.transitionType = 0;
-		if (strcmp("ANIMATE", node->transitionType.p[0]) == 0) Viewer.transitionType = 3;
+		if (strcmp("LINEAR", node->transitionType.p[0]->strptr) == 0) Viewer.transitionType = VIEWER_TRANSITION_LINEAR;
+		else if (strcmp("TELEPORT", node->transitionType.p[0]->strptr) == 0) Viewer.transitionType = VIEWER_TRANSITION_TELEPORT;
+		else if (strcmp("ANIMATE", node->transitionType.p[0]->strptr) == 0) Viewer.transitionType = VIEWER_TRANSITION_ANIMATE;
+		else {
+			ConsoleMessage ("Unknown NavigationInfo transitionType :%s:",node->transitionType.p[0]->strptr);
+		}
 	}
 
 }

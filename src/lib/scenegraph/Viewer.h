@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.36 2011/05/20 21:01:33 crc_canada Exp $
+$Id: Viewer.h,v 1.37 2011/05/24 15:35:21 crc_canada Exp $
 
 Viewer ???
 
@@ -91,6 +91,11 @@ Viewer ???
 #define QUAT_Z_OFFSET 53
 
 
+#define VIEWER_TRANSITION_TELEPORT 0
+#define VIEWER_TRANSITION_LINEAR 1
+#define VIEWER_TRANSITION_ANIMATE 2
+
+
 #define CALCULATE_EXAMINE_DISTANCE \
 	{ \
         	float xd, yd,zd; \
@@ -105,6 +110,7 @@ Viewer ???
 	}
 
 #define INITIATE_SLERP \
+	if (Viewer.transitionType != VIEWER_TRANSITION_TELEPORT) { \
         Viewer.SLERPing = TRUE; \
         Viewer.startSLERPtime = TickTime; \
         memcpy (&Viewer.startSLERPPos, &Viewer.Pos, sizeof (struct point_XYZ)); \
@@ -113,6 +119,7 @@ Viewer ???
         memcpy (&Viewer.startSLERPAntiQuat, &Viewer.AntiQuat, sizeof (Quaternion));  \
         memcpy (&Viewer.startSLERPbindTimeQuat, &Viewer.bindTimeQuat, sizeof (Quaternion)); \
         memcpy (&Viewer.startSLERPprepVPQuat, &Viewer.prepVPQuat, sizeof (Quaternion)); \
+	} else { Viewer.SLERPing = FALSE; }
 
 
 #define INITIATE_POSITION \
