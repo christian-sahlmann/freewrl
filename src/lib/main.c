@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.50 2011/04/21 16:40:41 crc_canada Exp $
+  $Id: main.c,v 1.51 2011/05/24 14:43:23 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -80,8 +80,6 @@ static freewrl_params_t *OSXparams = NULL;
 
 void fwl_OSX_initializeParameters(const char* initialURL) {
     resource_item_t *res;
-
-printf ("start of fwl_OSX_initializeParameters, url %s\n",initialURL);
 
     /* have we been through once already (eg, plugin loading new file)? */
     if (OSXparams == NULL) {

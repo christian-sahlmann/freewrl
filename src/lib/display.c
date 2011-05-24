@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.77 2011/05/17 13:58:28 crc_canada Exp $
+  $Id: display.c,v 1.78 2011/05/24 14:43:23 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -110,8 +110,6 @@ int fwl_display_initialize()
 
 	if (display_initialized) return TRUE;
 
-    PRINT_GL_ERROR_IF_ANY("start of fwl_display_initialize");
-    
 	memset(&rdr_caps, 0, sizeof(rdr_caps));
 
 	/* FreeWRL parameters */
@@ -138,21 +136,17 @@ int fwl_display_initialize()
 	if (!create_main_window(0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
-
-    PRINT_GL_ERROR_IF_ANY ("fwl_display_initialize - before the bind_GLcontext call");
     
 #if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
 	bind_GLcontext();
 #endif
 
-    PRINT_GL_ERROR_IF_ANY ("fwl_display_initialize - before the initialize_GL call");
-
-    
 	if (!initialize_GL()) {
 		return FALSE;
 	}
 
-    PRINT_GL_ERROR_IF_ANY ("fwl_display_initialize - after initialize_GL call");
+    
+	PRINT_GL_ERROR_IF_ANY ("fwl_display_initialize - after initialize_GL call");
 
     
 	/* Display full initialized :P cool ! */
@@ -160,8 +154,6 @@ int fwl_display_initialize()
 
 	DEBUG_MSG("FreeWRL: running as a plugin: %s\n", BOOL_STR(isBrowserPlugin));
 
-    PRINT_GL_ERROR_IF_ANY ("end of fwl_display_initialize");
-    
 #if !(defined(TARGET_AQUA) || defined(_MSC_VER) ||defined(_ANDROID))
         
 	if (RUNNINGASPLUGIN) {

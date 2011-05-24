@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.118 2011/05/22 23:51:41 davejoubert Exp $
+  $Id: display.h,v 1.119 2011/05/24 14:43:23 crc_canada Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -490,7 +490,8 @@ extern GLenum _global_gl_err;
                                                  _global_gl_err = glGetError(); \
                                               } \
                                            } 
-#elif 1
+
+#else
 /* This used to be IPHONE only, but it is best if no code in the library depends on gluErrorString() */
 #define PRINT_GL_ERROR_IF_ANY(_where) { \
                                               GLenum _global_gl_err = glGetError(); \
@@ -504,19 +505,8 @@ extern GLenum _global_gl_err;
                                                  _global_gl_err = glGetError(); \
                                               } \
                                            } 
-#else
-#define PRINT_GL_ERROR_IF_ANY(_where) if (global_print_opengl_errors) { \
-                                              GLenum _global_gl_err = glGetError(); \
-                                              while (_global_gl_err != GL_NO_ERROR) { \
-                                                 char *_str = (char *) gluErrorString(_global_gl_err); \
-                                                 fprintf(stderr, "GL error: %s, here: %s\n", _str, _where); \
-                                                 _global_gl_err = glGetError(); \
-                                              } \
-                                           } 
 #endif
-#if 0
-#define GL_ERROR_MSG  ((char*) gluErrorString(glGetError()))
-#else
+
 #define GL_ERROR_MSG (\
 	(glGetError() == GL_NO_ERROR)?"":\
 		(glGetError() == GL_INVALID_ENUM)?"GL_INVALID_ENUM":\
@@ -524,7 +514,6 @@ extern GLenum _global_gl_err;
 		(glGetError() == GL_INVALID_OPERATION)?"GL_INVALID_OPERATION":\
 		(glGetError() == GL_OUT_OF_MEMORY)?"GL_OUT_OF_MEMORY":\
 		"unknown GL_ERROR")
-#endif
 
 void resetGeometry();
 /* void setScreenDim(int wi, int he); */
