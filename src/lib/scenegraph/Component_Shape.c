@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.80 2011/05/17 13:58:29 crc_canada Exp $
+$Id: Component_Shape.c,v 1.81 2011/05/25 16:47:12 crc_canada Exp $
 
 X3D Shape Component
 
@@ -811,7 +811,7 @@ PRINT_GL_ERROR_IF_ANY("");
 		memcpy (&appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 	}
 	/* enable the shader for this shape */
-        chooseShader (node->_shaderTableEntry);
+        enableGlobalShader (node->_shaderTableEntry);
 
 
 PRINT_GL_ERROR_IF_ANY("");

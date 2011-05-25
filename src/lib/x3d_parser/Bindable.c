@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.55 2011/05/24 15:35:21 crc_canada Exp $
+$Id: Bindable.c,v 1.56 2011/05/25 16:47:12 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -977,7 +977,7 @@ void render_Background (struct X3D_Background *node) {
 	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
 	#ifdef SHADERS_2011
-		chooseShader(backgroundSphereShader);
+		enableGlobalShader(backgroundSphereShader);
 
 		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
@@ -1026,7 +1026,7 @@ void render_Background (struct X3D_Background *node) {
         	FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,boxtex);
 
 		#ifdef SHADERS_2011
-		chooseShader(backgroundTextureBoxShader);
+		enableGlobalShader(backgroundTextureBoxShader);
 		#endif
 
 		loadBackgroundTextures(node);
@@ -1079,7 +1079,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 
 	#ifdef SHADERS_2011
-		chooseShader(backgroundSphereShader);
+		enableGlobalShader(backgroundSphereShader);
 
 		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
@@ -1120,7 +1120,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 			(node->bottomTexture !=0)) {
 
 		#ifdef SHADERS_2011
-		chooseShader(backgroundTextureBoxShader);
+		enableGlobalShader(backgroundTextureBoxShader);
 		#endif
 
 

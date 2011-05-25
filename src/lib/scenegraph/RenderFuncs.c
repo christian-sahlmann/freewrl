@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.100 2011/04/15 15:02:13 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.101 2011/05/25 16:47:12 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -226,8 +226,8 @@ void turnGlobalShaderOff(void) {
 
 
 
-/* choose a shader for this geometry */
-void chooseShader(shader_type_t requestedShader) {
+/* choose and turn on a shader for this geometry */
+void enableGlobalShader(shader_type_t requestedShader) {
 
 	appearanceProperties.currentShaderProperties = &(rdr_caps.backgroundShaderArrays[requestedShader]);
 	appearanceProperties.currentShader = appearanceProperties.currentShaderProperties->myShaderProgram;
