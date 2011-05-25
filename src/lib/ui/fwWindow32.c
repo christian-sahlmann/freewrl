@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.28 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: fwWindow32.c,v 1.29 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -12,7 +12,6 @@
 #include <config.h>
 
 #if !(defined(IPHONE) || defined(_ANDROID))
-
 
 #include <system.h>
 #include <display.h>
@@ -284,12 +283,12 @@ BOOL bSetupPixelFormat(HDC hdc)
 } 
 
 /**
- *   create_GLcontext: create the main OpenGL context.
+ *   fv_create_GLcontext: create the main OpenGL context.
  *                     TODO: finish implementation for Mac and Windows.
  */
-bool create_GLcontext()
+bool fv_create_GLcontext()
 {	
-	fw_thread_dump();
+	fwl_thread_dump();
 	printf("starting createcontext32\n");
 	ghDC = GetDC(ghWnd); 
 	printf("got hdc\n");
@@ -301,13 +300,13 @@ bool create_GLcontext()
 }
 
 /**
- *   bind_GLcontext: attache the OpenGL context to the main window.
+ *   fv_bind_GLcontext: attache the OpenGL context to the main window.
  *                   TODO: finish implementation for Mac and Windows.
  */
-bool bind_GLcontext()
+bool fv_bind_GLcontext()
 {
 	RECT rect;
-	fw_thread_dump();
+	fwl_thread_dump();
 
 	if (wglMakeCurrent(ghDC, ghRC)) {
 		GetClientRect(ghWnd, &rect); 
@@ -346,8 +345,8 @@ static int shiftState = 0;
 
     case WM_CREATE: 
 	printf("wm_create\n");
-	create_GLcontext();
-	bind_GLcontext();
+	fv_create_GLcontext();
+	fv_bind_GLcontext();
 	break; 
  
     case WM_SIZE: 
@@ -608,11 +607,6 @@ int doEventsWin32A()
     return FALSE;
 }
 
-
-void resetGeometry()
-{
-}
-
 void arrow_cursor32()
 {
 	/*
@@ -637,7 +631,7 @@ void sensor_cursor32()
 /**
  *   open_display: setup up Win32.
  */
-int open_display()
+int fv_open_display()
 {
 	/* nothing to do */
 	return TRUE;
@@ -756,14 +750,14 @@ int create_main_window0(int argc, char *argv[])
    
     return TRUE;
 }
-int create_main_window(int argc, char *argv[])
+int fv_create_main_window(int argc, char *argv[])
 {
-	if( fw_params.winToEmbedInto > 0 )
+	if( fv_params.winToEmbedInto > 0 )
 	{
 		//if defined(FRONTEND_HANDLES_DISPLAY_THREAD) || defined(command line option with window handle)
-		ghWnd = (HWND)fw_params.winToEmbedInto;
-		create_GLcontext();
-		bind_GLcontext();
+		ghWnd = (HWND)fv_params.winToEmbedInto;
+		fv_create_GLcontext();
+		fv_bind_GLcontext();
 		return TRUE;
 	}
 	else

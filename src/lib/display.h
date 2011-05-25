@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.119 2011/05/24 14:43:23 crc_canada Exp $
+  $Id: display.h,v 1.120 2011/05/25 19:26:33 davejoubert Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -25,7 +25,13 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#if 1 || defined(HAVE_FV_INLIB)
+#define KEEP_FV_INLIB 1
+#define KEEP_X11_INLIB 1
+#else
+#define KEEP_FV_INLIB 0
+#define KEEP_X11_INLIB 0
+#endif
 
 #ifndef __LIBFREEWRL_DISPLAY_H__
 #define __LIBFREEWRL_DISPLAY_H__
@@ -313,14 +319,16 @@ extern bool display_initialized;
 #define COLOR_VBO 4
 #define VBO_COUNT 5
 
+void fv_setScreenDim(int wi, int he);
 
-int open_display();
-int create_main_window(int argc, char *argv[]);
-bool create_GLcontext();
-bool bind_GLcontext();
+int fv_open_display();
+int fv_display_initialize(void);
+int fv_create_main_window(int argc, char *argv[]);
+bool fv_create_GLcontext();
+bool fv_bind_GLcontext();
 /* end of "virtual" functions */
 
-bool initialize_GL();
+/* OLDCODE: bool fwl_initialize_GL(); is now in lib header */
 bool initialize_rdr_caps();
 void initialize_rdr_functions();
 void rdr_caps_dump();
@@ -609,9 +617,13 @@ void resetGeometry();
 
 	#endif
 
+#if KEEP_X11_INLIB
 	#if defined (TARGET_X11) || defined (TARGET_MOTIF)
 		#define FW_GL_SWAPBUFFERS glXSwapBuffers(Xdpy,GLwin);
 	#endif
+#else
+	#define FW_GL_SWAPBUFFERS /* nothing */
+#endif
 	
 	#if defined( _ANDROID )
 		#define FW_GL_SWAPBUFFERS /* nothing */

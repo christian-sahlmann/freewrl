@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.34 2011/04/16 17:01:06 dug9 Exp $
+  $Id: options.c,v 1.35 2011/05/25 19:26:33 davejoubert Exp $
 
   FreeWRL command line arguments.
 
@@ -97,7 +97,7 @@ void fv_usage()
 	);
 }
 
-const char * validate_string_arg(const char *optarg)
+const char * fv_validate_string_arg(const char *optarg)
 {
     return NULL; /* TODO: implement validate_* functions */
 }
@@ -147,7 +147,7 @@ const char * validate_string_arg(const char *optarg)
 	{0, 0, 0, 0}
     };
 
-int find_opt_for_optopt(char c) {
+int fv_find_opt_for_optopt(char c) {
 	int i;
 	struct option *p;
 
@@ -211,9 +211,9 @@ int fv_parseCommandLine (int argc, char **argv)
 	    break;
 
 	if ((c == '?')) {
-	    real_option_index = find_opt_for_optopt(optopt);
+	    real_option_index = fv_find_opt_for_optopt(optopt);
 	} else {
-	    real_option_index = find_opt_for_optopt(c);
+	    real_option_index = fv_find_opt_for_optopt(c);
 	}
 	if (real_option_index < 0) {
 	    real_option_name = argv[optind-1];
@@ -251,14 +251,14 @@ int fv_parseCommandLine (int argc, char **argv)
 
 #if !defined(TARGET_AQUA)
 #if defined(HAVE_XF86_VMODE)
-	    params->fullscreen = TRUE;
+	    fwl_setp_fullscreen(TRUE);
 #else
 	    printf("\nFullscreen mode is only available when xf86vmode extension is\n"
 		  "supported by your X11 server: i.e. XFree86 version 4 or later,\n"
 		   "Xorg version 1.0 or later.\n"
 		   "Configure should autodetect it for you. If not please report"
 		   "this problem to\n\t " PACKAGE_BUGREPORT "\n");
-	    params->fullscreen = FALSE;
+	    fwl_setp_fullscreen(FALSE);
 #endif /* HAVE_XF86_VMODE */
 #endif /* TARGET_AQUA */
 	    break;
@@ -279,7 +279,7 @@ int fv_parseCommandLine (int argc, char **argv)
 	case 'd': /* --display, required argument int */
 		printf ("Parameter --display = %s\n", optarg);
 		sscanf(optarg,"%ld", &ldtmp);
-		params->winToEmbedInto = ldtmp;
+		fwl_setp_winToEmbedInto(ldtmp);
 		break;
 
 
@@ -287,7 +287,7 @@ int fv_parseCommandLine (int argc, char **argv)
 /* General options */
 
 	case 'e': /* --eai, no argument */
-	    params->eai = TRUE;
+	    fwl_setp_eai(TRUE);
 	    break;
 
 	case 'f': /* --fast, no argument */
@@ -300,7 +300,7 @@ int fv_parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'Q': /* --nocollision, no argument */
-	    params->collision = FALSE;
+	    fwl_setp_collision(FALSE);
 	    break;
 
 /* Snapshot options */
@@ -337,31 +337,31 @@ int fv_parseCommandLine (int argc, char **argv)
 /* Misc options */
 
 	case 'V': /* --eaiverbose, no argument */
-	    setEaiVerbose();
+	    fwl_init_EaiVerbose();
 	    break;
 
 	case 'r': /* --screendist, required argument: float */
-	    setScreenDist(optarg);
+	    fwl_set_ScreenDist(optarg);
 	    break;
 
 	case 'y': /* --eyedist, required argument: float */
-	    setEyeDist(optarg);
+	    fwl_set_EyeDist(optarg);
 	    break;
 
 	case 'u': /* --shutter, no argument */
-	    setShutter();
+	    fwl_init_Shutter();
 	    /*setXEventStereo();*/
 	    break;
 
 	case 't': /* --stereo, required argument: float */
-	    setStereoParameter(optarg);
+	    fwl_set_StereoParameter(optarg);
 	    break;
 	case 'A': /* --anaglyph, required argument: string */
-	    setAnaglyphParameter(optarg);
+	    fwl_set_AnaglyphParameter(optarg);
 	    break;
 
 	case 'B': /* --sidebyside, no argument */
-	    setSideBySide();
+	    fwl_init_SideBySide();
 	    break;
 
 	case 'K': /* --keypress, required argument: string */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.73 2011/04/09 00:33:19 davejoubert Exp $
+$Id: EAIEventsIn.c,v 1.74 2011/05/25 19:26:34 davejoubert Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -553,7 +553,7 @@ void EAI_parse_commands () {
 				/* prep the reply... */
 				sprintf (outBuffer,"RE\n%f\n%d\n",TickTime,count);
 
-				/* now tell the RenderSceneUpdateScene that BrowserAction is requested... */
+				/* now tell the fwl_RenderSceneUpdateScene that BrowserAction is requested... */
 				AnchorsAnchor = &EAI_AnchorNode;
 				BrowserAction = TRUE;
 				break;

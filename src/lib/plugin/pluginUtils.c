@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.42 2011/04/21 16:40:41 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.43 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -474,10 +474,12 @@ void URLencod (char *dest, const char *src, int maxlen) {
 void sendXwinToPlugin()
 {
 	int writeSizeThrowAway ;
-	XWindowAttributes mywin;
 
 	/* send the window id back to the plugin parent */
 	DEBUG_MSG("Executing sendXwinToPlugin...\n");
+
+#if KEEP_X11_INLIB
+	XWindowAttributes mywin;
 
         XGetWindowAttributes(Xdpy,Xwin, &mywin);
         DEBUG_MSG("sendXwinToPlugin: sendXwin starting, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
@@ -504,6 +506,7 @@ void sendXwinToPlugin()
         printf ("sendXwin at end,  mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
         printf ("x %d y %d wid %d height %d\n",mywin.x,mywin.y,mywin.width,mywin.height);
 	#endif
+#endif /* KEEP_X11_INLIB */
 
 }
 #endif

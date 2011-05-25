@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.22 2011/04/09 00:33:19 davejoubert Exp $
+$Id: EAIServ.c,v 1.23 2011/05/25 19:26:34 davejoubert Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -282,7 +282,7 @@ void shutdown_EAI() {
 
 }
 
-void create_EAI()
+void fwl_create_EAI()
 {
         if (eaiverbose) { 
 	printf ("EAISERVER:create_EAI called\n");

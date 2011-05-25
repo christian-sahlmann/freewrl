@@ -1,5 +1,5 @@
 /*
-  $Id: internal.h,v 1.43 2011/01/14 17:30:35 crc_canada Exp $
+  $Id: internal.h,v 1.44 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   Library internal declarations.
@@ -356,7 +356,7 @@ void *freewrlStrdup(int line, char *file, char *str);
 #endif
 
 /* Move those to a better place: */
-void initialize_parser();
+/* OLDCODE: void initialize_parser(); */
 
 /* Global FreeWRL options (will become profiles ?) */
 

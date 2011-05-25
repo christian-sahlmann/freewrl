@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.65 2011/05/24 15:35:21 crc_canada Exp $
+$Id: Viewer.c,v 1.66 2011/05/25 19:26:34 davejoubert Exp $
 
 CProto ???
 
@@ -72,8 +72,8 @@ double calculatedFarPlane = 0.0;
 
 void print_viewer(void);
 unsigned int get_buffer(void);
-int get_headlight(void);
-void toggle_headlight(void);
+int fwl_get_headlight(void);
+void fwl_toggle_headlight(void);
 static void handle_tick_walk(void);
 static void handle_tick_fly(void);
 static void handle_tick_exfly(void);
@@ -193,11 +193,11 @@ set_buffer(const unsigned int buffer,int iside)
 	Viewer.iside = iside;
 }
 */
-int get_headlight() { 
+int fwl_get_headlight() { 
 	return(Viewer.headlight);
 }
 
-void toggle_headlight() {
+void fwl_toggle_headlight() {
 	if (Viewer.headlight == TRUE) {
 		Viewer.headlight = FALSE;
 	} else {
@@ -208,16 +208,16 @@ void toggle_headlight() {
 
 }
 void setNoCollision() {
-        fw_params.collision = 0;
-        setMenuButton_collision(fw_params.collision);
+	fwl_setp_collision(0);
+	setMenuButton_collision(fwl_getp_collision());
 }
 
 int get_collision() { 
-	return fw_params.collision;
+	return fwl_getp_collision();
 }
 void toggle_collision() {
-	fw_params.collision = !fw_params.collision; 
-	setMenuButton_collision(fw_params.collision);
+	fwl_setp_collision(!fwl_getp_collision()); 
+	setMenuButton_collision(fwl_getp_collision());
 }
 
 
@@ -227,6 +227,9 @@ void set_eyehalf(const double eyehalf, const double eyehalfangle) {
 	Viewer.isStereo = 1;
 }
 
+void fwl_set_viewer_type(const int type) {
+	set_viewer_type(type);
+}
 void set_viewer_type(const int type) {
 
 	/* set velocity array to zero again - used only for EAI */
@@ -429,6 +432,7 @@ printf ("\t	AntiPos           %lf %lf %lf\n",Viewer.AntiPos.x,Viewer.AntiPos.y,V
 
 		/* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
 		tickFrac = (TickTime - Viewer.startSLERPtime)/Viewer.transitionTime;
+		//tickFrac = tickFrac/4.0;
 		//printf ("tick frac %lf\n",tickFrac); 
 
 		pos.x = Viewer.Pos.x * tickFrac + (Viewer.startSLERPPos.x * (1.0 - tickFrac));
@@ -1388,7 +1392,7 @@ void setAnaglyphSideColor(char val, int iside)
 		  break;
 	}
 }
-void setAnaglyphParameter(const char *optArg) {
+void fwl_set_AnaglyphParameter(const char *optArg) {
 /*
   NOTE: "const char" means that you wont modify it in the function :)
  */
@@ -1422,7 +1426,7 @@ int usingAnaglyph2()
 }
 /* shutter glasses, stereo view  from Mufti@rus */
 /* handle setting shutter from parameters */
-void setShutter (void)
+void fwl_init_Shutter (void)
 {
 	/* if you put --shutter on the command line, you'll come in here twice: 
 	  first: from options.c but haveQuadbuffer will == 0 because we haven't init gl yet, so don't know
@@ -1442,7 +1446,7 @@ void setShutter (void)
 
 }
 
-void setSideBySide()
+void fwl_init_SideBySide()
 {
 	setStereoBufferStyle(1); 
 	Viewer.isStereo = 1;
@@ -1450,7 +1454,7 @@ void setSideBySide()
 }
 void setAnaglyph()
 {
-	/* called from post_gl_init and hud/options (option.c calls setAnaglyphParameter above) */
+	/* called from post_gl_init and hud/options (option.c calls fwl_set_AnaglyphParameter above) */
 	if(Viewer.anaglyphMethod == 1)
 	{
 		if(Viewer.haveAnaglyphShader)
@@ -1487,8 +1491,8 @@ void setStereo(int type)
 	switch(type)
 	{
 	case 0: {/*setMono()*/;break;}
-	case 1: {setShutter(); break;}
-	case 2: {setSideBySide(); break;}
+	case 1: {fwl_init_Shutter(); break;}
+	case 2: {fwl_init_SideBySide(); break;}
 	case 3: {setAnaglyph(); break;}
 	default: break;
 	}
@@ -1543,7 +1547,7 @@ void viewer_postGLinit_init(void)
 	setStereo(type);
 }
 
-void setStereoParameter (const char *optArg) {
+void fwl_set_StereoParameter (const char *optArg) {
 
 	int i;
 	//if(Viewer.isStereo == 0)
@@ -1554,7 +1558,7 @@ void setStereoParameter (const char *optArg) {
 	else updateEyehalf();
 }
 
-void setEyeDist (const char *optArg) {
+void fwl_set_EyeDist (const char *optArg) {
 	int i;
 	//if(Viewer.isStereo == 0)
 	//	initStereoDefaults();
@@ -1564,7 +1568,7 @@ void setEyeDist (const char *optArg) {
 	else updateEyehalf();
 }
 
-void setScreenDist (const char *optArg) {
+void fwl_set_ScreenDist (const char *optArg) {
 	int i;
 	//if(Viewer.isStereo == 0)
 	//	initStereoDefaults();

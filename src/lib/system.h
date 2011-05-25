@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.26 2011/05/17 13:58:29 crc_canada Exp $
+$Id: system.h,v 1.27 2011/05/25 19:26:34 davejoubert Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -79,7 +79,7 @@ char *strchr (), *strrchr ();
 # endif
 #endif
 
-#if _ANDROID
+#if defined(_ANDROID)
 typedef int bool;
 # define false 0
 # define true 1
@@ -102,8 +102,10 @@ typedef unsigned char _Bool;
 #endif
 #endif
 
+#if defined(_ANDROID)
 #define JS_FALSE 0
 #define JS_TRUE 1
+#endif
 #define TRUE 1
 #define FALSE 0
 

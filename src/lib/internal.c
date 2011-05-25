@@ -1,5 +1,5 @@
 /*
-  $Id: internal.c,v 1.27 2011/04/14 19:31:21 crc_canada Exp $
+  $Id: internal.c,v 1.28 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always
@@ -137,6 +137,7 @@ void fw_perror(FILE *f, const char *format, ...)
     fflush(f);
 }
 
+#if 0
 /* == Lib FreeWRL parameters ==
    This can be extended ... 
 */
@@ -150,6 +151,7 @@ freewrl_params_t fw_params = {
 	/* eai */            TRUE,
 	/* verbose */        FALSE,
 };
+#endif
 
 /* Global FreeWRL options (will become profiles ?) */
 

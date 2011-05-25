@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.34 2011/05/10 13:40:49 crc_canada Exp $
+$Id: JScript.c,v 1.35 2011/05/25 19:26:34 davejoubert Exp $
 
 Javascript C language binding.
 
@@ -60,7 +60,7 @@ struct CRjsnameStruct *JSparamnames = NULL;
 int jsnameindex = -1;
 int MAXJSparamNames = 0;
 
-/* Save the text, so that when the script is initialized in the RenderSceneUpdateScene thread, it will be there */
+/* Save the text, so that when the script is initialized in the fwl_RenderSceneUpdateScene thread, it will be there */
 void SaveScriptText(int num, const char *text) {
 
 	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
@@ -279,7 +279,7 @@ void JSInitializeScriptAndFields (int num) {
 }
 
 /* create the script context for this script. This is called from the thread
-   that handles script calling in the RenderSceneUpdateScene */
+   that handles script calling in the fwl_RenderSceneUpdateScene */
 void JSCreateScriptContext(int num) {
 	jsval rval;
 	JSContext *_context; 	/* these are set here */
@@ -613,7 +613,7 @@ void SFVec4dNativeAssign(void *top, void *fromp) {
 		
 */
 
-/* save this field from the parser; initialize it when the RenderSceneUpdateScene wants to initialize it */
+/* save this field from the parser; initialize it when the fwl_RenderSceneUpdateScene wants to initialize it */
 void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value) {
 	struct ScriptParamList **nextInsert;
 	struct ScriptParamList *newEntry;
@@ -674,7 +674,7 @@ static char* re_strcat(char *_Dest, char *_Source, int *destLen, int *destDim)
 	_Dest = strcat(_Dest,_Source);
 	return _Dest;
 }
-/* the RenderSceneUpdateScene is initializing this field now */
+/* the fwl_RenderSceneUpdateScene is initializing this field now */
 static void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value) {
 	jsval rval;
 	char *smallfield = NULL;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.24 2011/03/23 18:26:02 crc_canada Exp $
+$Id: Textures.h,v 1.25 2011/05/25 19:26:34 davejoubert Exp $
 
 Screen snapshot.
 
@@ -149,7 +149,7 @@ extern void textureDraw_end(void);
 
 extern struct X3D_Node *this_textureTransform;  /* do we have some kind of textureTransform? */
 
-extern int isTextureLoaded(int texno);
+extern int fwl_isTextureLoaded(int texno);
 extern int isTextureAlpha(int n);
 extern int display_status;
 

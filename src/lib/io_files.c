@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.37 2011/04/21 16:40:41 crc_canada Exp $
+  $Id: io_files.c,v 1.38 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   IO with files.
@@ -133,6 +133,8 @@ char *strBackslash2fore(char *str)
 char *get_current_dir()
 {
 	char *cwd , *retvar;
+	char *consoleBuffer;
+	consoleBuffer = MALLOC(char *, 200+PATH_MAX);
 	cwd = MALLOC(char *, PATH_MAX);
 	retvar = getcwd(cwd, PATH_MAX);
 	if (NULL != retvar) {
@@ -154,7 +156,8 @@ char *get_current_dir()
 		printf("Unable to establish current working directory in %s,%d errno=%d",__FILE__,__LINE__,errno) ;
 		cwd = "/tmp/" ;
 	}
-	ConsoleMessage("get_current_dir returns[%s]\n",cwd);
+	sprintf(consoleBuffer ,"get_current_dir returns[%s]\n",cwd);
+	fwl_StringConsoleMessage(consoleBuffer);
 	return cwd;
 }
 
@@ -383,7 +386,7 @@ char *frontEndWantsFileName() {
 /* it is best to malloc and copy the data here, as that way the front end 
    can manage its buffers as it sees fit */
 
-void fwl_frontEndReturningData(unsigned char *dataPointer, int len) {
+void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {
 	MUTEX_LOCK_FILE_RETRIEVAL
     
     /* note the "+1" ....*/
@@ -407,24 +410,27 @@ void fwl_frontEndReturningData(unsigned char *dataPointer, int len) {
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
 }
 
-void fwl_frontEndReturningLocalFile(char *localfile, int iret) {
+void fwg_frontEndReturningLocalFile(char *localfile, int iret) {
+	char *consoleBuffer;
+	consoleBuffer = MALLOC(char *, 200+strlen(localfile));
 	MUTEX_LOCK_FILE_RETRIEVAL
-    ConsoleMessage("frontend got localfile=[%s] iret=%d\n",localfile,iret);
+	sprintf(consoleBuffer ,"frontend got localfile=[%s] iret=%d\n",localfile,iret);
+	fwl_StringConsoleMessage(consoleBuffer);
 	fileName = NULL; /* not freed as only passed by pointer */
 	frontend_return_status = 1;
 	if(iret == -1) frontend_return_status = -1;
 	localFile = strBackslash2fore(strdup(localfile));
 	/* got the file, send along a message */
 	SEND_FILE_SIGNAL
-	ConsoleMessage("after signal\n");
+	fwl_StringConsoleMessage("after signal\n");
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
-	ConsoleMessage("after unlock\n");
+	fwl_StringConsoleMessage("after unlock\n");
 }
 
 #else
 char *frontEndWantsFileName() {return NULL;}
-void fwl_frontEndReturningData(unsigned char *dataPointer, int len) {}
-void fwl_frontEndReturningLocalFile(char *localfile, int iret) {}
+void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {}
+void fwg_frontEndReturningLocalFile(char *localfile, int iret) {}
 #endif
 
 
@@ -482,17 +488,23 @@ openned_file_t* load_file(const char *filename)
 /* this is for win32 LoadTextures.c > texture_load_from_file */
 char* download_file(filename)
 {
+	char *consoleBuffer;
+	consoleBuffer = MALLOC(char *, 200+strlen(filename));
 	/* the frontend or plugin is going to get this resource */
 	MUTEX_LOCK_FILE_RETRIEVAL
 
 	FREE_IF_NZ(fileText);
 	FREE_IF_NZ(fileName);
 
-	ConsoleMessage("lf_need file from frontend=[%s]\n",filename);
-    ConsoleMessage("load_file thread ID = %d\n",(int)pthread_self().p);
+	sprintf(consoleBuffer ,"lf_need file from frontend=[%s]\n",filename);
+	fwl_StringConsoleMessage(consoleBuffer);
+	sprintf(consoleBuffer ,"load_file thread ID = %d\n",(int)pthread_self().p);
+	fwl_StringConsoleMessage(consoleBuffer);
+
 	fileName = filename;
 	WAIT_FOR_FILE_SIGNAL
-	ConsoleMessage("lf_got file from frontend retstat=%d\n",frontend_return_status);
+	sprintf(consoleBuffer ,"lf_got file from frontend retstat=%d\n",frontend_return_status);
+	fwl_StringConsoleMessage(consoleBuffer);
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
 	if(frontend_return_status == -1)
 	{

@@ -620,6 +620,14 @@ if test x$sw_osc = xyes; then
 fi
 
 # ======================================
+# Experimental 2D overlay
+# ======================================
+AC_MY_SWITCH(twodee,[enable building of 2D overlay support],off)
+if test x$sw_twodee = xyes; then
+	AC_DEFINE(WANT_2D_OVER,1,[Install 2D overlay])
+fi
+
+# ======================================
 # FreeWRL helpers programs
 # ======================================
 

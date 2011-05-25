@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.37 2011/05/24 15:35:21 crc_canada Exp $
+$Id: Viewer.h,v 1.38 2011/05/25 19:26:34 davejoubert Exp $
 
 Viewer ???
 
@@ -39,6 +39,7 @@ Viewer ???
 	type == VIEWER_EXFLY ? "EXFLY" : ( \
 	type == VIEWER_YAWPITCHZOOM ? "YAWPITCHZOOM" : (\
 	type == VIEWER_FLY ? "FLY" : "UNKNOWN"))))))
+void set_viewer_type(const int type);
 
 #define PRESS "PRESS"
 #define PRESS_LEN 5
@@ -278,10 +279,10 @@ set_buffer( const unsigned int buffer, int iside);
 */
 
 int
-get_headlight();
+fwl_get_headlight();
 
 void
-toggle_headlight();
+fwl_toggle_headlight();
 
 int
 use_keys(void);

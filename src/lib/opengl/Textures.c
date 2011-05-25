@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.94 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: Textures.c,v 1.95 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -329,12 +329,12 @@ int isTextureAlpha(int texno) {
 
 
 /* is the texture thread initialized yet? */
-int isTextureinitialized() {
+int fwl_isTextureinitialized() {
 	return TextureThreadInitialized;
 }
 
 /* is this texture loaded? used in LoadSensor */
-int isTextureLoaded(int texno) {
+int fwl_isTextureLoaded(int texno) {
 	textureTableIndexStruct_s *ti;
 
 	/* no, have not even started looking at this */
@@ -345,11 +345,11 @@ int isTextureLoaded(int texno) {
 }
 
 /* statusbar uses this to tell user that we are still loading */
-int isTextureParsing() {
+int fwl_isTextureParsing() {
 	/* return currentlyWorkingOn>=0; */
 #ifdef TEXVERBOSE 
     if (textureInProcess > 0) {
-	printf("call to isTextureParsing %d, returning %d\n",
+	printf("call to fwl_isTextureParsing %d, returning %d\n",
 	       textureInProcess,textureInProcess > 0);
     }
 #endif

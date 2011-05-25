@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.51 2011/05/24 14:43:23 crc_canada Exp $
+  $Id: main.c,v 1.52 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -43,6 +43,8 @@
 #include "input/InputFunctions.h"
 // JAS #include "x3d_parser/Bindable.h"
 
+char consoleBuffer[200];
+freewrl_params_t fwl_params;
 
 /**
  * library initialization
@@ -72,42 +74,41 @@ void __attribute__ ((destructor)) libFreeWRL_fini(void)
 
 
 #if defined (TARGET_AQUA)
+#endif
 
 /* put some config stuff here, as that way the Objective-C Standalone OSX front end does not
 need to worry about specific structures and calls */
 
-static freewrl_params_t *OSXparams = NULL;
+/* static freewrl_params_t *OSX_params = NULL; */
+static bool qParamsInit = FALSE ;
 
 void fwl_OSX_initializeParameters(const char* initialURL) {
     resource_item_t *res;
 
-    /* have we been through once already (eg, plugin loading new file)? */
-    if (OSXparams == NULL) {
+printf ("start of fwl_OSX_initializeParameters, url %s\n",initialURL);
 
-    	/* Before we parse the command line, setup the FreeWRL default parameters */
-    	OSXparams = calloc(1, sizeof(freewrl_params_t));
+    /* have we been through once already (eg, plugin loading new file)? */
+    if (!qParamsInit) {
+	fwl_initParams(NULL);
 
     	/* Default values */
-    	OSXparams->width = 600;
-    	OSXparams->height = 400;
-    	OSXparams->eai = FALSE;
-    	OSXparams->fullscreen = FALSE;
+    	fwl_setp_width(600);
+    	fwl_setp_height(400);
+    	fwl_setp_eai(FALSE);
+    	fwl_setp_fullscreen(FALSE);
+    	fwl_setp_collision(1);
     } 
 
     /* start threads, parse initial scene, etc */
 
-   if (!initFreeWRL(OSXparams)) {
+   if (!fwl_initFreeWRL(NULL)) {
 	ERROR_MSG("main: aborting during initialization.\n");
 	exit(1);
    }
 
-
-    fw_params.collision = 1;
-
     /* Give the main argument to the resource handler */
     res = resource_create_single(initialURL);
     
-
     send_resource_to_parser(res);
 
     while ((!res->complete) && (res->status != ress_failed) && (res->status != ress_not_loaded)) {
@@ -116,12 +117,14 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 
     /* did this load correctly? */
     if (res->status == ress_not_loaded) {
-	ConsoleMessage ("FreeWRL: Problem loading file \"%s\"", res->request);
+	sprintf(consoleBuffer , "FreeWRL: Problem loading file \"%s\"", res->request);
+	fwl_StringConsoleMessage(consoleBuffer);
     }
 
     if (res->status == ress_failed) {
 	printf("load failed %s\n", initialURL);
-	ConsoleMessage ("FreeWRL: unknown data on command line: \"%s\"", res->request);
+	sprintf(consoleBuffer , "FreeWRL: unknown data on command line: \"%s\"", res->request);
+	fwl_StringConsoleMessage(consoleBuffer);
     } else {
 
     	/* tell the new world which viewpoint to go to */
@@ -144,7 +147,7 @@ void setInstance (uintptr_t instance) {
 void setFullPath(const char* file) 
 {
 /* turn collision on? 
-    if (!fw_params.collision) {
+    if (!fwl_getp_collision()) {
         char ks = 'c';
         do_keyPress(ks, KeyPress);
     }
@@ -154,9 +157,11 @@ void setFullPath(const char* file)
     file = stripLocalFileName ((char *)file);
     FREE_IF_NZ (BrowserFullPath);
     BrowserFullPath = STRDUP((char *) file);
-    /* ConsoleMessage ("setBrowserFullPath is %s (%d)",BrowserFullPath,strlen(BrowserFullPath));  */
+    /*
+	sprintf(consoleBuffer , "setBrowserFullPath is %s (%d)",BrowserFullPath,strlen(BrowserFullPath));
+	fwl_StringConsoleMessage(consoleBuffer);
+    */
 }
-#endif
 /**
  *   like resource_push_single_request except for win32/IE/ActiveX load main scene
  *   win32/InternetExplorer activex control is funny: it doesn't tell you
@@ -192,8 +197,10 @@ void fwl_resource_push_single_request_IE_main_scene(const char *request)
 	char *c;
 	if (!request)
 		return;
-	ConsoleMessage("before create resource\n");
-	ConsoleMessage("frontend thread ID = %d\n",(int)pthread_self().p);
+
+	fwl_StringConsoleMessage("before create resource\n");
+	sprintf(consoleBuffer ,"frontend thread ID = %d\n",(int)pthread_self().p);
+	fwl_StringConsoleMessage(consoleBuffer);
 
 	res = resource_create_single(request);
 	/*
@@ -218,17 +225,46 @@ void fwl_resource_push_single_request_IE_main_scene(const char *request)
 	//PathRemoveFileSpec(res->base);
 	//res->base = strBackslash2fore(res->base);
 	res->base = NULL;
-	ConsoleMessage("base=[%s] pr=[%s]\n",res->base,res->parsed_request);
+	sprintf(consoleBuffer ,"base=[%s] pr=[%s]\n",res->base,res->parsed_request);
+	fwl_StringConsoleMessage(consoleBuffer);
 	//removeFilenameFromPath(res->base);
 
-	ConsoleMessage("before send resource to parser\n");
+	fwl_StringConsoleMessage("before send resource to parser\n");
 	send_resource_to_parser_async(res);
-	ConsoleMessage("after send resource to parser res->status=%d\n",(int)res->status);
+
+	sprintf(consoleBuffer , "after send resource to parser res->status=%d\n",(int)res->status);
+	fwl_StringConsoleMessage(consoleBuffer);
 }
 #endif /* _MSC_VER */
 
+void fwl_initParams(freewrl_params_t *params)
+{
+	if (params) {
+		DEBUG_MSG("copying application supplied params...\n");
+		memcpy(&fwl_params, params, sizeof(freewrl_params_t));
+	} else {
+		memset(&fwl_params, 0, sizeof(freewrl_params_t));
+	}
+}
+void fwl_setp_width		(int foo)	{ fwl_params.width = foo; }
+void fwl_setp_height		(int foo)	{ fwl_params.height = foo; }
+void fwl_setp_winToEmbedInto	(long int foo)	{ fwl_params.winToEmbedInto = foo; }
+void fwl_setp_fullscreen	(bool foo)	{ fwl_params.fullscreen = foo; }
+void fwl_setp_multithreading	(bool foo)	{ fwl_params.multithreading = foo; }
+void fwl_setp_eai		(bool foo)	{ fwl_params.eai = foo; }
+void fwl_setp_verbose		(bool foo)	{ fwl_params.verbose = foo; }
+void fwl_setp_collision		(int foo)	{ fwl_params.collision = foo; }
 
-bool initFreeWRL(freewrl_params_t *params)
+int	fwl_getp_width		(void)	{ return fwl_params.width; }
+int	fwl_getp_height		(void)	{ return fwl_params.height; }
+long int fwl_getp_winToEmbedInto (void)	{ return fwl_params.winToEmbedInto; }
+bool	fwl_getp_fullscreen	(void)	{ return fwl_params.fullscreen; }
+bool	fwl_getp_multithreading	(void)	{ return fwl_params.multithreading; }
+bool	fwl_getp_eai		(void)	{ return fwl_params.eai; }
+bool	fwl_getp_verbose	(void)	{ return fwl_params.verbose; }
+int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
+
+bool fwl_initFreeWRL(freewrl_params_t *params)
 {
 
 	TRACE_MSG("FreeWRL: initializing...\n");
@@ -293,33 +329,33 @@ OLDCODE*/
 	/* Check parameters */
 	if (params) {
 		DEBUG_MSG("copying application supplied params...\n");
-		memcpy(&fw_params, params, sizeof(freewrl_params_t));
+		memcpy(&fwl_params, params, sizeof(freewrl_params_t));
 	}
 
 	/* do we require EAI? */
-	if (fw_params.eai) {
-		create_EAI();
+	if (fwl_getp_eai()) {
+		fwl_create_EAI();
 	}
 
 
 	/* Initialize parser */
-	initialize_parser();
+	fwl_initialize_parser();
 
 	/* Multithreading ? */
 
 	/* OK the display is now initialized,
 	   create the display thread and wait for it
 	   to complete initialization */
-	initializeDisplayThread();
+	fwl_initializeDisplayThread();
 	
 
-	initializeInputParseThread();
-	while (!isInputThreadInitialized()) {
+	fwl_initializeInputParseThread();
+	while (!fwl_isInputThreadInitialized()) {
 		usleep(50);
 	}
 
-	initializeTextureThread();
-	while (!isTextureinitialized()) {
+	fwl_initializeTextureThread();
+	while (!fwl_isTextureinitialized()) {
 		usleep(50);
 	}
 
@@ -332,10 +368,10 @@ OLDCODE*/
  *                 we call this routine after threads
  *                 initialization.
  */
-void startFreeWRL(const char *url)
+void fwl_startFreeWRL(const char *url)
 {
 	/* Give the main argument to the resource handler */
-	resource_push_single_request(url);
+	fwl_resource_push_single_request(url);
 	DEBUG_MSG("request sent to parser thread, main thread joining display thread...\n");
 
 	/* now wait around until something kills this thread. */

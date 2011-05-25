@@ -1,5 +1,5 @@
 /*
-  $Id: fwCommonX11.c,v 1.8 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: fwCommonX11.c,v 1.9 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   X11 common functions.
@@ -35,6 +35,13 @@
 
 #include <threads.h>
 
+#include <libFreeWRL.h>
+
+Cursor arrowc;
+Cursor sensorc;
+Cursor curcursor;
+
+#if KEEP_X11_INLIB
 
 GLXContext GLcx;
 long event_mask;
@@ -49,10 +56,6 @@ Window GLwin;
 XSetWindowAttributes attr;
 unsigned long mask = 0;
 Atom WM_DELETE_WINDOW;
-
-Cursor arrowc;
-Cursor sensorc;
-Cursor curcursor;
 
 long event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
                     ButtonMotionMask | ButtonReleaseMask |
@@ -80,10 +83,10 @@ static int mode_cmp(const void *pa,const void *pb)
     return b->vdisplay - a->vdisplay;
 }
 
-void switch_to_mode(int i)
+void fv_switch_to_mode(int i)
 {
     if ((!vmode_modes) || (i<0)) {
-	ERROR_MSG("switch_to_mode: no valid mode available.\n");
+	ERROR_MSG("fv_switch_to_mode: no valid mode available.\n");
 	return;
     }
 
@@ -91,7 +94,7 @@ void switch_to_mode(int i)
 
     win_width = vmode_modes[i]->hdisplay;
     win_height = vmode_modes[i]->vdisplay;
-    TRACE_MSG("switch_to_mode: mode selected: %d (%d,%d).\n", 
+    TRACE_MSG("fv_switch_to_mode: mode selected: %d (%d,%d).\n", 
 	  vmode_mode_selected, win_width, win_height);
     XF86VidModeSwitchToMode(Xdpy, Xscreen, vmode_modes[i]);
     XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
@@ -99,9 +102,9 @@ void switch_to_mode(int i)
 #endif /* HAVE_XF86_VMODE */
 
 /**
- *   find_best_visual: use GLX to choose the X11 visual.
+ *   fv_find_best_visual: use GLX to choose the X11 visual.
  */
-XVisualInfo *find_best_visual()
+XVisualInfo *fv_find_best_visual()
 {
 	XVisualInfo *vi = NULL;
 #define DEFAULT_COMPONENT_WEIGHT 5
@@ -140,7 +143,7 @@ XVisualInfo *find_best_visual()
 	return vi;
 }
 
-static int catch_XLIB(Display *disp, XErrorEvent *err)
+static int fv_catch_XLIB(Display *disp, XErrorEvent *err)
 {
 	static int XLIB_errors = 0;
 	static char error_msg[4096];
@@ -163,7 +166,7 @@ static int catch_XLIB(Display *disp, XErrorEvent *err)
 	return 0;
 }
 
-int create_colormap()
+int fv_create_colormap()
 {
 	colormap = XCreateColormap(Xdpy, RootWindow(Xdpy, Xvi->screen),Xvi->visual, AllocNone);
 	return TRUE;
@@ -181,7 +184,7 @@ int create_colormap()
 /* 	setMessageBar(); */
 /* } */
 
-void resetGeometry()
+void fv_resetGeometry()
 {
 #ifdef HAVE_XF86_VMODE
     int oldMode, i;
@@ -207,13 +210,13 @@ void resetGeometry()
 /*======== "VIRTUAL FUNCTIONS" ==============*/
 
 /**
- *   open_display: setup up X11, choose visual, create colomap and query fullscreen capabilities.
+ *   fv_open_display: setup up X11, choose visual, create colomap and query fullscreen capabilities.
  */
-int open_display()
+int fv_open_display()
 {
     char *display;
 
-    fw_thread_dump();
+    fwl_thread_dump();
 
     /* Display */
     XInitThreads();
@@ -228,14 +231,14 @@ int open_display()
     /* start up a XLib error handler to catch issues with FreeWRL. There
        should not be any issues, but, if there are, we'll most likely just
        throw our hands up, and continue */
-    XSetErrorHandler(catch_XLIB); 
+    XSetErrorHandler(fv_catch_XLIB); 
 
     Xscreen = DefaultScreen(Xdpy);
     Xroot_window = RootWindow(Xdpy,Xscreen);
 
     /* Visual */
 
-    Xvi = find_best_visual();
+    Xvi = fv_find_best_visual();
     if(!Xvi) { 
 	    ERROR_MSG("FreeWRL can not find an appropriate visual from GLX\n");
 	    return FALSE;
@@ -255,7 +258,7 @@ int open_display()
 	    }
 	    for (i = 0; i < vmode_nb_modes; i++) {
 		    if (vmode_modes[i]->hdisplay <= win_width && vmode_modes[i]->vdisplay <= win_height) {
-			    switch_to_mode(i);
+			    fv_switch_to_mode(i);
 			    break;
 		    }
 	    }
@@ -264,22 +267,22 @@ int open_display()
 
 
     /* Color map */
-    create_colormap();
+    fv_create_colormap();
 
     return TRUE;
 }
 
-/*=== create_main_window: in fwBareWindow.c or in fwMotifWindow.c */
+/*=== fv_create_main_window: in fwBareWindow.c or in fwMotifWindow.c */
 
 /**
- *   create_GLcontext: create the main OpenGL context.
+ *   fv_create_GLcontext: create the main OpenGL context.
  *                     TODO: finish implementation for Mac and Windows.
  */
-bool create_GLcontext()
+bool fv_create_GLcontext()
 {	
 	int direct_rendering = TRUE;
 
-	fw_thread_dump();
+	fwl_thread_dump();
 
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
 
@@ -296,12 +299,12 @@ bool create_GLcontext()
 }
 
 /**
- *   bind_GLcontext: attache the OpenGL context to the main window.
+ *   fv_bind_GLcontext: attache the OpenGL context to the main window.
  *                   TODO: finish implementation for Mac and Windows.
  */
-bool bind_GLcontext()
+bool fv_bind_GLcontext()
 {
-	fw_thread_dump();
+	fwl_thread_dump();
 
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
 	if (!Xwin) {
@@ -309,7 +312,10 @@ bool bind_GLcontext()
 		return FALSE;
 	}
 	if (!glXMakeCurrent(Xdpy, GLwin, GLcx)) {
-		ERROR_MSG("bind_GLcontext: can't set OpenGL context for this thread %d (glXMakeCurrent: %s).\n", fw_thread_id(), GL_ERROR_MSG);
+/*
+		ERROR_MSG("fv_bind_GLcontext: can't set OpenGL context for this thread %d (glXMakeCurrent: %s).\n", fw_thread_id(), GL_ERROR_MSG);
+*/
+		ERROR_MSG("fv_bind_GLcontext: can't set OpenGL context for this thread %d  , glGetError=%d).\n", fw_thread_id(), glGetError());
 		return FALSE;
 	}
 #endif
@@ -324,5 +330,6 @@ bool bind_GLcontext()
 
 	return TRUE;
 }
+#endif /* KEEP_FV_INLIB */
 
 #endif /* IPHONE */

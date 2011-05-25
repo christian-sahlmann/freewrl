@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.25 2011/05/20 20:49:24 dug9 Exp $
+  $Id: statusbarHud.c,v 1.26 2011/05/25 19:26:34 davejoubert Exp $
 
 */
 
@@ -909,7 +909,7 @@ void initOptionsVal()
 		for(j=0;j<8;j++) optionsVal[i][j] = ' ';
 		optionsVal[i][7] = '\0';
 	}
-	if(fw_params.eai) optionsVal[0][0] = '*';
+	if(fwl_getp_eai()) optionsVal[0][0] = '*';
 	if(Viewer.shutterGlasses) optionsVal[2][0] = '*';
 	if(Viewer.sidebyside) optionsVal[3][0] = '*';
 	if(Viewer.anaglyph) optionsVal[4][0] = '*';
@@ -1029,8 +1029,9 @@ void handleOptionPress()
 	{
 	case 'T': {
 		/* EAI */
+		/* Note, this is actually useless (I suspect) because the EAI would already have started / (or ignored) */
 		printf("toggle EAI");
-	    fw_params.eai = 1 - fw_params.eai;
+		/* fwl_setp_eai(1 - fwl_getp_eai()); */
 		break;}
 	case '1': 
 	case '2': 
@@ -1062,7 +1063,7 @@ void handleOptionPress()
 	case '6': {
 		/* eyebase */
 		printf("set eyebase");
-	    //setEyeDist(optarg);
+	    //fwl_set_EyeDist(optarg);
 		break;}
 	case '7': {
 		/* eyebase */
@@ -1444,7 +1445,7 @@ void handleButtonPress()
 				butStatus[i] = 1 - butStatus[i];
 				switch(i)
 				{
-                    case 4: { toggle_headlight(); break;}
+                    			case 4: { fwl_toggle_headlight(); break;}
 					case 5: { toggle_collision(); break; }
 				}
 			}

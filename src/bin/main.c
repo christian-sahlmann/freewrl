@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.41 2011/05/15 12:26:33 couannette Exp $
+  $Id: main.c,v 1.42 2011/05/25 19:26:33 davejoubert Exp $
 
   FreeWRL main program.
 
@@ -34,11 +34,30 @@
 
 #include "main.h"
 #include "options.h"
+#include <display.h>
+
+/*
+#include <config.h>
+#include <system.h>
+#include <system_threads.h>
+#include <internal.h>
+
+#include <libFreeWRL.h>
+#include <list.h>
+#include <io_files.h>
+#include <resources.h>
+#include <threads.h>
+#include "vrml_parser/Structs.h"
+#include "main/ProdCon.h"
+#include "input/InputFunctions.h"
+*/
 
 /**
  * FreeWRL parameters
  */
-freewrl_params_t *params = NULL;
+/* freewrl_params_t *fv_params = NULL; */
+static freewrl_params_t *fv_params = NULL;
+/*static freewrl_params_t *OSXparams = NULL; */
 
 /**
  * Signal handlers 
@@ -56,6 +75,7 @@ void fv_catch_SIGHUP();
 #include <shlwapi.h>
 char *get_current_dir();
 char *strBackslash2fore(char *str);
+
 #endif
 
 /**
@@ -69,12 +89,22 @@ int main (int argc, char **argv)
     const char  *progver;
 #endif
 
+#if defined(_ANDROID)
+    int tempIsAndroid = 1 ;
+#else
+    int tempIsAndroid = 0 ;
+#endif
+
+    char consoleBuffer[200];
+    fwl_ConsoleSetup(MC_DEF_AQUA , MC_TARGET_AQUA , MC_HAVE_MOTIF , MC_TARGET_MOTIF , MC_MSC_HAVE_VER , tempIsAndroid);
+
     /* first, get the FreeWRL shared lib, and verify the version. */
     libver = libFreeWRL_get_version();
 #ifndef AQUA
     progver = freewrl_get_version();
     if (strcmp(progver, libver)) {
-	ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
+	sprintf(consoleBuffer ,"FreeWRL expected library version %s, got %s...\n",progver, libver);
+	fwl_StringConsoleMessage(consoleBuffer);
     }
 #endif
 #ifdef _MSC_VER
@@ -129,28 +159,27 @@ int main (int argc, char **argv)
 #endif
 
     /* Before we parse the command line, setup the FreeWRL default parameters */
-    params = calloc(1, sizeof(freewrl_params_t));
+    fv_params = calloc(1, sizeof(freewrl_params_t));
 
     /* Default values */
-    params->width = 600;
-    params->height = 400;
-    params->eai = FALSE;
-    params->fullscreen = FALSE;
-    params->winToEmbedInto = -1;
-	fwl_init_StereoDefaults();
+    fv_params->width = 600;
+    fv_params->height = 400;
+    fv_params->eai = FALSE;
+    fv_params->fullscreen = FALSE;
+    fv_params->winToEmbedInto = -1;
+    fv_params->verbose = FALSE;
+    fv_params->collision = 1;
+
+    fwl_init_StereoDefaults();
 
 #if !defined(TARGET_AQUA) /* Aqua front ends do the parsing */
     /* parse command line arguments */
     if (fv_parseCommandLine(argc, argv)) {
 
-	    /* Possible error: argv is a STATIC array
-	       duplicate the string to manipulate it...
-	     */
-	    start_url = strdup(argv[optind]);
-#if defined(_MSC_VER)
+	    start_url = argv[optind];
+#ifdef _MSC_VER
 	    start_url = strBackslash2fore(start_url);
 #endif
-
 #ifdef OLDCODE
 #ifdef _MSC_VER
 		//if( start_url )
@@ -196,7 +225,8 @@ int main (int argc, char **argv)
 #endif
 #endif //OLDCODE
     }
-#endif 
+#endif
+
 
     /* doug- redirect stdout to a file - works, useful for sending bug reports */
     /*freopen("freopen.txt", "w", stdout ); */
@@ -205,21 +235,30 @@ int main (int argc, char **argv)
     fv_parseEnvVars();
 
     /* start threads, parse initial scene, etc */
-    if (!initFreeWRL(params)) {
+    if ( 1 == 1) {
+	/* give control to the library */
+
+	if (!fwl_initFreeWRL(fv_params)) {
 	    ERROR_MSG("main: aborting during initialization.\n");
 	    exit(1);
+	}
+	fwl_startFreeWRL(start_url);
+    } else {
+	/* keep control
+	if (!fv_initFreeWRL(fv_params)) {
+	    ERROR_MSG("main: aborting during initialization.\n");
+	    exit(1);
+	}
+	fv_startFreeWRL(start_url); */
     }
-
-    /* give control to the library */
-    startFreeWRL(start_url);
-    if (start_url) free(start_url); 
     return 0;
 }
+/* #include "src/bin/main-inc.c" */
 
 /* SIGQUIT handler - plugin code sends a SIGQUIT... */
 void fv_catch_SIGQUIT() 
 {
-    /* ConsoleMessage ("FreeWRL got a sigquit signal"); */
+    /* fwl_StringConsoleMessage("FreeWRL got a sigquit signal"); */
     /* shut up any SIGSEGVs we might get now. */
     CaughtSEGV = TRUE;
     fwl_doQuit();
@@ -228,7 +267,8 @@ void fv_catch_SIGQUIT()
 void fv_catch_SIGSEGV()
 {
     if (!CaughtSEGV) {
-	ConsoleMessage ("FreeWRL got a SIGSEGV - can you please mail the file(s) to\n freewrl-09@rogers.com with a valid subject line. Thanks.\n");
+
+        fwl_StringConsoleMessage("FreeWRL got a SIGSEGV - can you please mail the file(s) to\n freewrl-09@rogers.com with a valid subject line. Thanks.\n");
 	CaughtSEGV = TRUE;
     }
     exit(1);
@@ -238,7 +278,7 @@ void fv_catch_SIGSEGV()
 
 void fv_catch_SIGHUP()
 {
-    /* ConsoleMessage ("FreeWRL got a SIGHUP signal - reloading"); */
+    /* fwl_StringConsoleMessage ("FreeWRL got a SIGHUP signal - reloading"); */
     /* MBFILES     Anchor_ReplaceWorld(BrowserFullPath); */
 }
 
@@ -260,3 +300,12 @@ void fv_catch_SIGALRM(int sig)
 
 #endif
 
+#if !KEEP_FV_INLIB
+void fv_setGeometry_from_cmdline(const char *gstring);
+int fv_display_initialize(void);
+void fv_setScreenDim(int wi, int he);
+
+void fv_setGeometry_from_cmdline(const char *gstring) {}
+int fv_display_initialize() {return 0;}
+void fv_setScreenDim(int wi, int he) { fwl_setScreenDim(wi,he); }
+#endif

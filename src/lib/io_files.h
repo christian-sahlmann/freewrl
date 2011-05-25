@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.h,v 1.7 2011/03/22 18:52:43 crc_canada Exp $
+  $Id: io_files.h,v 1.8 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   IO with files.
@@ -28,6 +28,8 @@
 #ifndef __LIBFREEWRL_IO_FILES_H__
 #define __LIBFREEWRL_IO_FILES_H__
 
+void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
+void fwg_frontEndReturningLocalFile(char *localfile, int iret);
 
 /* Path manipulation */
 char* concat_path(const char *a, const char *b);

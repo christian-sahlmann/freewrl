@@ -1,5 +1,5 @@
 /*
-  $Id: main.h,v 1.9 2009/10/26 10:43:15 couannette Exp $
+  $Id: main.h,v 1.10 2011/05/25 19:26:33 davejoubert Exp $
 
   FreeWRL/X3D main program.
   Internal header: helper macros.
@@ -38,5 +38,7 @@ extern int optind;
 
 extern freewrl_params_t *params;
 
+void fv_startFreeWRL(char *start_url);
+bool fv_initFreeWRL(freewrl_params_t *params);
 
 #endif /* __FREEWRL_MAIN_H__ */

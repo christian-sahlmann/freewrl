@@ -1,5 +1,5 @@
 /*
-  $Id: fwBareWindow.c,v 1.15 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: fwBareWindow.c,v 1.16 2011/05/25 19:26:34 davejoubert Exp $
 
   Create X11 window. Manage events.
 
@@ -65,7 +65,7 @@ void openBareMainWindow (int argc, char **argv)
     if (!Xdpy) { fprintf(stderr, "No display!\n");exit(-1);}
 }
 
-int create_main_window(int argc, char *argv[])
+int fv_create_main_window(int argc, char *argv[])
 {
     Window root_ret;
     Window child_ret;

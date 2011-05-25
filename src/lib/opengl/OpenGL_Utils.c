@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.192 2011/05/20 20:07:12 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.193 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -26,12 +26,10 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
-
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
-#include "../threads.h"		/* for isinputThreadParsing() */
+
 #include <display.h>
 #include <internal.h>
 
@@ -126,6 +124,11 @@ static pthread_mutex_t  memtablelock = PTHREAD_MUTEX_INITIALIZER;
 
 /* change the clear colour, selected from the GUI, but do the command in the
    OpenGL thread */
+
+void fwl_set_glClearColor (float red , float green , float blue , float alpha) {
+	cc_red = red; cc_green = green ; cc_blue = blue ; cc_alpha = alpha ;
+	cc_changed = TRUE;
+}
 
 void setglClearColor (float *val) {
 	cc_red = *val; val++;
@@ -1588,9 +1591,9 @@ void end_textureTransform (void) {
 
 
 /**
- *   initializa_GL: initialize GLEW (->rdr caps) and OpenGL initial state
+ *   fwl_initializa_GL: initialize GLEW (->rdr caps) and OpenGL initial state
  */
-bool initialize_GL()
+bool fwl_initialize_GL()
 {
 	char blankTexture[] = {0x40, 0x40, 0x40, 0xFF};
 
@@ -1601,18 +1604,21 @@ bool initialize_GL()
 	#endif /* TARGET_AQUA */
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start 1");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 1");
 	initialize_rdr_caps();
 
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start 2");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 2");
 	initialize_rdr_functions();
 
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start 3");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 3");
 
 	/* lets make sure everything is sync'd up */
+
+#if KEEP_FV_INLIB
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
 	XFlush(Xdpy);
 #endif
+#endif /* KEEP_FV_INLIB */
 
 
 	#ifdef SHADERS_2011
@@ -1655,7 +1661,7 @@ bool initialize_GL()
 	#endif /* SHADERS_2011 */
 
     
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start 4");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 4");
     
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	#ifndef SHADERS_2011
@@ -1666,14 +1672,14 @@ bool initialize_GL()
 	#endif // _ANDROID	
 	#endif
     
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start 5");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 5");
     
 
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 	FW_GL_LOAD_IDENTITY();
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
     
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start 6");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 6");
     
 
 	/* Configure OpenGL for our uses. */
@@ -1681,7 +1687,7 @@ bool initialize_GL()
         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
 
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start 7");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 7");
     
 	
 	#ifndef SHADERS_2011
@@ -1692,13 +1698,13 @@ bool initialize_GL()
 #endif
 	#endif
     
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start 8");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 8");
     
 
 	FW_GL_DEPTHFUNC(GL_LEQUAL);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
     
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start 9");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 9");
     
 	
 	#ifndef GL_ES_VERSION_2_0
@@ -1706,7 +1712,7 @@ bool initialize_GL()
 	FW_GL_POINTSIZE(gl_linewidth);
 	#endif
     
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start a");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start a");
     
 
 
@@ -1727,7 +1733,7 @@ bool initialize_GL()
 
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
     
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start b");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start b");
     
 
 	#ifndef SHADERS_2011
@@ -1744,12 +1750,12 @@ bool initialize_GL()
 	   but putting this here is already a saving ;)...
 	*/
     
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start c0");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start c0");
     
 	/* keep track of light states; initial turn all lights off except for headlight */
 	initializeLightTables();
     
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start c1");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start c1");
     
 
 	/* ensure state of GL_CULL_FACE */
@@ -1758,7 +1764,7 @@ bool initialize_GL()
 	FW_GL_PIXELSTOREI(GL_UNPACK_ALIGNMENT,1);
 	FW_GL_PIXELSTOREI(GL_PACK_ALIGNMENT,1);
     
-	PRINT_GL_ERROR_IF_ANY("initialize_GL start c");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start c");
     
 
 	do_shininess(GL_FRONT_AND_BACK,(float) 0.2);
@@ -1772,7 +1778,7 @@ bool initialize_GL()
         FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
         
-        PRINT_GL_ERROR_IF_ANY("initialize_GL start d");
+        PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start d");
         
 	}
 
@@ -2341,11 +2347,11 @@ void zeroVisibilityFlag(void) {
 
 	
 	/* do not bother doing this if the inputThread is active. */
-	if (isinputThreadParsing()) return;
+	if (fwl_isinputThreadParsing()) return;
  	LOCK_MEMORYTABLE
 
 	/* do we have GL_ARB_occlusion_query, or are we still parsing Textures? */
-	if ((OccFailed) || isTextureParsing()) {
+	if ((OccFailed) || fwl_isTextureParsing()) {
 		/* if we have textures still loading, display all the nodes, so that the textures actually
 		   get put into OpenGL-land. If we are not texture parsing... */
 		/* no, we do not have GL_ARB_occlusion_query, just tell every node that it has visible children 
@@ -2526,7 +2532,7 @@ void startOfLoopNodeUpdates(void) {
 
 
 	/* do not bother doing this if the inputparsing thread is active */
-	if (isinputThreadParsing()) return;
+	if (fwl_isinputThreadParsing()) return;
 
 	LOCK_MEMORYTABLE
 

@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.78 2011/05/24 14:43:23 crc_canada Exp $
+  $Id: display.c,v 1.79 2011/05/25 19:26:33 davejoubert Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -24,7 +24,6 @@
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
-
 
 #include <config.h>
 #include <system.h>
@@ -100,31 +99,34 @@ int PaneClipChanged = FALSE;
 #endif
 #endif
 
+#if KEEP_FV_INLIB
 /**
- *  fwl_display_initialize: takes care of all the initialization process, 
+ *  fv_display_initialize: takes care of all the initialization process, 
  *                      creates the display thread and wait for it to complete
  *                      the OpenGL initialization and the Window creation.
  */
-int fwl_display_initialize()
+int fv_display_initialize()
 {
 
 	if (display_initialized) return TRUE;
 
+    PRINT_GL_ERROR_IF_ANY("start of fv_display_initialize");
+    
 	memset(&rdr_caps, 0, sizeof(rdr_caps));
 
 	/* FreeWRL parameters */
-	fullscreen = fw_params.fullscreen;
-	win_width = fw_params.width;
-	win_height = fw_params.height;
-	winToEmbedInto = fw_params.winToEmbedInto;
+	fullscreen = fwl_getp_fullscreen();
+	win_width = fwl_getp_width();
+	win_height = fwl_getp_height();
+	winToEmbedInto = fwl_getp_winToEmbedInto();
 
 	/* make the window, get the OpenGL context */
 #ifndef _MSC_VER
-	if (!open_display()) {
+	if (!fv_open_display()) {
 		return FALSE;
 	}
 
-	if (!create_GLcontext()) {
+	if (!fv_create_GLcontext()) {
 		return FALSE;
 	}
 
@@ -132,21 +134,30 @@ int fwl_display_initialize()
 
 	if (0 != screenWidth)  win_width  = screenWidth;
 	if (0 != screenHeight) win_height = screenHeight;
-	fwl_setScreenDim(win_width,win_height); /* recompute screenRatio */
-	if (!create_main_window(0 /*argc*/, NULL /*argv*/)) {
+	fv_setScreenDim(win_width,win_height); /* recompute screenRatio */
+	if (!fv_create_main_window(0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
+
+    PRINT_GL_ERROR_IF_ANY ("fv_display_initialize - before the fv_bind_GLcontext call");
     
 #if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
-	bind_GLcontext();
+	fv_bind_GLcontext();
 #endif
 
-	if (!initialize_GL()) {
-		return FALSE;
-	}
+    PRINT_GL_ERROR_IF_ANY ("fv_display_initialize - before the fwl_initialize_GL call");
 
     
-	PRINT_GL_ERROR_IF_ANY ("fwl_display_initialize - after initialize_GL call");
+	if (!fwl_initialize_GL()) {
+		return FALSE;
+	}
+        /* lets make sure everything is sync'd up */
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
+        XFlush(Xdpy);
+#endif
+
+
+    PRINT_GL_ERROR_IF_ANY ("fv_display_initialize - after fwl_initialize_GL call");
 
     
 	/* Display full initialized :P cool ! */
@@ -154,7 +165,9 @@ int fwl_display_initialize()
 
 	DEBUG_MSG("FreeWRL: running as a plugin: %s\n", BOOL_STR(isBrowserPlugin));
 
-#if !(defined(TARGET_AQUA) || defined(_MSC_VER) ||defined(_ANDROID))
+    PRINT_GL_ERROR_IF_ANY ("end of fv_display_initialize");
+    
+#if !(defined(TARGET_AQUA) || defined(_MSC_VER) || defined(_ANDROID))
         
 	if (RUNNINGASPLUGIN) {
 #if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
@@ -177,8 +190,11 @@ void fv_setGeometry_from_cmdline(const char *gstring)
     int c;
     c = sscanf(gstring,"%dx%d+%d+%d", &win_width, &win_height, &xPos, &yPos);
     /* tell OpenGL what the screen dims are */
-    fwl_setScreenDim(win_width,win_height);
+    fv_setScreenDim(win_width,win_height);
 }
+
+void fv_setScreenDim(int wi, int he) { fwl_setScreenDim(wi,he); }
+#endif /* KEEP_FV_INLIB */
 
 /**
  *   fwl_setScreenDim: set internal variables for screen sizes, and calculate frustum
@@ -187,7 +203,7 @@ void fwl_setScreenDim(int wi, int he)
 {
     screenWidth = wi;
     screenHeight = he;
-    /* printf("%s,%d setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); */
+    /* printf("%s,%d fwl_setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); */
 
     if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
     else screenRatio =  screenWidth;

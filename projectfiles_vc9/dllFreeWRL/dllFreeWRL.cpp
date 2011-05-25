@@ -44,12 +44,12 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
 //void do_keyPress(const char kp, int type);
 //void initializeRenderSceneUpdateScene();
 void fwl_initializeRenderSceneUpdateScene();
-void RenderSceneUpdateScene();
+void fwl_RenderSceneUpdateScene();
 void finalizeRenderSceneUpdateScene();
 void resize_GL(int width, int height);
 void fwl_setScreenDim(int wi, int he);
 void closeFreeWRL(void);
-void resource_push_single_request(const char *request);
+void fwl_resource_push_single_request(const char *request);
 void initConsoleH(DWORD pid);
 extern int Console_writePrimitive;
 char *strBackslash2fore(char *str);
@@ -95,39 +95,45 @@ void CdllFreeWRL::onInit(unsigned long handle,int width, int height){
 	params->eai = 0;
 	params->fullscreen = 0;
 	params->winToEmbedInto = (int)handle;
-	swDebugf("Hi just before initFreeWRL\n");
+	swDebugf("Hi just before fwl_initFreeWRL\n");
 	Console_writePrimitive = 1;
 	DWORD pid = GetCurrentProcessId() ;
 	initConsoleH(pid);
 
 	swDebugf("onInit: do consoleMessages come out\n");
 	swDebugf("onInit sure");
-	if (!initFreeWRL(params)) {
+	if (!fwl_initFreeWRL(params)) {
 		//ERROR_MSG("main: aborting during initialization.\n");
 		//exit(1);
 	}
-	swDebugf("after initFreeWRL\n");
+	swDebugf("after fwl_initFreeWRL\n");
 	//initStereoDefaults();
-	//startFreeWRL("C:\\source2\\tests\\1.wrl");
-	//swDebugf("after startFreeWRL\n");
+	//fwl_startFreeWRL("C:\\source2\\tests\\1.wrl");
+	//swDebugf("after fwl_startFreeWRL\n");
 	//fwl_initializeRenderSceneUpdateScene()
+	swDebugf("onInit: before fv_display_initialize\n");
+	fv_display_initialize();
 	swDebugf("onInit: before initializeRenderSceneUpdateScene\n");
 	fwl_initializeRenderSceneUpdateScene();
 	swDebugf("onInit: after initializeRenderSceneUpdateScene\n");
-	//resource_push_single_request("C:\\source2\\tests\\1.wrl");
+	//fwl_resource_push_single_request("C:\\source2\\tests\\1.wrl");
 
 }
 void CdllFreeWRL::onLoad(char* scene_url)
 {
-	swDebugf("onLoad before finalizeRenderSceneUpdateScene\n");
+	//swDebugf("onLoad before finalizeRenderSceneUpdateScene\n");
 	//finalizeRenderSceneUpdateScene();
-	swDebugf("onLoad after finalizeRenderSceneUpdateScene\n");
+	//swDebugf("onLoad after finalizeRenderSceneUpdateScene\n");
+
+	swDebugf("onLoad: before fv_display_initialize\n");
+	fv_display_initialize();
+	swDebugf("onLoad before initializeRenderSceneUpdateScene\n");
 	fwl_initializeRenderSceneUpdateScene();
 	swDebugf("onLoad after initializeRenderSceneUpdateScene\n");
 	this->url = strdup(scene_url);
 	this->url = strBackslash2fore(this->url);
 	swDebugf("onLoad have url=[%s]\n",this->url);
-	//resource_push_single_request(this->url); //"C:\\source2\\tests\\1.wrl");
+	//fwl_resource_push_single_request(this->url); //"C:\\source2\\tests\\1.wrl");
 	fwl_resource_push_single_request_IE_main_scene(this->url);
 	//fwl_OSX_initializeParameters("http://freewrl.sourceforge.net/test3.wrl");
 	swDebugf("onLoad after push_single_request url=[%s]\n",this->url);
@@ -186,7 +192,7 @@ void CdllFreeWRL::onKey(int keyAction,int keyValue){
 	}
 }
 void CdllFreeWRL::onTick(int interval){
-	RenderSceneUpdateScene();
+	fwl_RenderSceneUpdateScene();
 
 }
 void CdllFreeWRL::onClose()

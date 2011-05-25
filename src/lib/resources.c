@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.42 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: resources.c,v 1.43 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -765,9 +765,9 @@ void resource_dump(resource_item_t *res)
 }
 
 /**
- *   resource_push_single_request: easy function to launch a load process (asynchronous).
+ *   fwl_resource_push_single_request: easy function to launch a load process (asynchronous).
  */
-void resource_push_single_request(const char *request)
+void fwl_resource_push_single_request(const char *request)
 {
 	resource_item_t *res;
 

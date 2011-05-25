@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.176 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: MainLoop.c,v 1.177 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -24,7 +24,6 @@
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
-
 
 #include <config.h>
 #include <system.h>
@@ -62,6 +61,9 @@
 #include "../ui/statusbar.h"
 #include "../ui/CursorDraw.h"
 #include "../scenegraph/RenderFuncs.h"
+
+void (*newResetGeometry) (void) = NULL;
+
 #ifdef WANT_OSC
 	#define USE_OSC 1
 #else
@@ -125,7 +127,7 @@ int currentFileVersion = 0;
    have created new scripts during  X3D/VRML parsing. Routing in the
    Display thread may have noted new scripts, but will ignore them
    until   we have told it that the scripts are initialized.  printf
-   ("have scripts to initialize in RenderSceneUpdateScene old %d new
+   ("have scripts to initialize in fwl_RenderSceneUpdateScene old %d new
    %d\n",max_script_found, max_script_found_and_initialized);
 */
 
@@ -276,7 +278,7 @@ __inline double Time1970sec()
 
 
 /* Main eventloop for FreeWRL!!! */
-void RenderSceneUpdateScene() {
+void fwl_RenderSceneUpdateScene() {
         static int loop_count = 0;
         static int slowloop_count = 0;
 
@@ -291,10 +293,10 @@ void RenderSceneUpdateScene() {
 	}
 
         DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
-		     BOOL_STR(isinputThreadParsing()), BOOL_STR(resource_is_root_loaded()));
+		     BOOL_STR(fwl_isinputThreadParsing()), BOOL_STR(resource_is_root_loaded()));
 
         /* should we do events, or maybe a parser is parsing? */
-        doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && isInputThreadInitialized();
+        doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
 
         /* First time through */
         if (loop_count == 0) {
@@ -396,6 +398,7 @@ void RenderSceneUpdateScene() {
                 }
         }
 
+#if KEEP_X11_INLIB
 	/**
 	 *   Merge of Bare X11 and Motif/X11 event handling ...
 	 */
@@ -449,6 +452,7 @@ void RenderSceneUpdateScene() {
 	}
 
 #endif /* TARGET_MOTIF */
+#endif /* KEEP_X11_INLIB */
 
 #if defined(_MSC_VER) 
 	/**
@@ -581,10 +585,11 @@ void RenderSceneUpdateScene() {
                 /* do we have to change cursor? */
 #if !defined( AQUA ) && !defined( WIN32 ) && !defined(_ANDROID)
 
-
                 if (cursor != curcursor) {
                         curcursor = cursor;
+#if KEEP_X11_INLIB
                         XDefineCursor (Xdpy, GLwin, cursor);
+#endif /* KEEP_X11_INLIB */
                 }
 #elif defined( WIN32 ) || defined(_ANDROID)
 				/*win32 - dont know what goes here */
@@ -731,6 +736,7 @@ void handle_Xevents(XEvent event) {
                         break;
 
                 case MotionNotify:
+#if KEEP_X11_INLIB
                         /* printf("got a motion notify\n"); */
                         /*  do we have more motion notify events queued?*/
                         if (XPending(Xdpy)) {
@@ -738,6 +744,7 @@ void handle_Xevents(XEvent event) {
                                 if (nextevent.type==MotionNotify) { break;
                                 }
                         }
+#endif /* KEEP_X11_INLIB */
 
                         /*  save the current x and y positions for picking.*/
                         currentX[currentCursor] = event.xbutton.x;
@@ -776,14 +783,14 @@ static void render_pre() {
         FW_GL_LOAD_IDENTITY();
 
         /*printf("calling get headlight in render_pre\n"); */
-        if (get_headlight()) lightState(HEADLIGHT_LIGHT,TRUE);
+        if (fwl_get_headlight()) lightState(HEADLIGHT_LIGHT,TRUE);
 
 
         /* 3. Viewpoint */
         setup_viewpoint();      /*  need this to render collisions correctly*/
 
         /* 4. Collisions */
-        if (fw_params.collision == 1) {
+        if (fwl_getp_collision == 1) {
                 render_collisions();
                 setup_viewpoint(); /*  update viewer position after collision, to*/
                                    /*  give accurate info to Proximity sensors.*/
@@ -958,7 +965,7 @@ static void render()
 #endif // SHUTTER GLASSES or STEREO	
 
 	/*  turn light #0 off only if it is not a headlight.*/
-	if (!get_headlight()) {
+	if (!fwl_get_headlight()) {
 		lightState(HEADLIGHT_LIGHT,FALSE);
 	}
 
@@ -1259,7 +1266,7 @@ void fwl_do_keyPress(const char kp, int type) {
                                 case 'd': { set_viewer_type (VIEWER_FLY); break; }
                                 case 'f': { set_viewer_type (VIEWER_EXFLY); break; }
                                 case 'y': { set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
-                                case 'h': { toggle_headlight(); break;}
+                                case 'h': { fwl_toggle_headlight(); break;}
                                 case '/': { print_viewer(); break; }
                                 case '\\': { dump_scenegraph(); break; }
                                 case '$': resource_tree_dump(0, root_res); break;
@@ -1683,12 +1690,14 @@ void fwl_Next_ViewPoint() {
 void fwl_initializeRenderSceneUpdateScene() {
 	/* printf ("fwl_initializeRenderSceneUpdateScene start\n"); */
 
+#if KEEP_X11_INLIB
+	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling fwl_initializeRenderSceneUpdateScene */
 	/* Initialize display */
-	if (!fwl_display_initialize()) {
-		ERROR_MSG("initFreeWRL: error in display initialization.\n");
-		exit(1);
+	if (!fv_display_initialize()) {
+	       ERROR_MSG("initFreeWRL: error in display initialization.\n");
+	       exit(1);
 	}
-
+#endif /* KEEP_X11_INLIB */
 	/* Context has been created,
 	   make it current to this thread */
 
@@ -1701,7 +1710,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	viewer_postGLinit_init();
 
 	#ifndef AQUA
-	if (fullscreen) resetGeometry();
+	if (fullscreen && newResetGeometry != NULL) newResetGeometry();
 	#endif
 
 	/* printf ("fwl_initializeRenderSceneUpdateScene finish\n"); */
@@ -1719,12 +1728,21 @@ void _displayThread()
 {
 	ENTER_THREAD("display");
 
+#if KEEP_FV_INLIB
+	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling _displayThread */
+	/* Initialize display */
+	if (!fv_display_initialize()) {
+		ERROR_MSG("initFreeWRL: error in display initialization.\n");
+		exit(1);
+	}
+#endif /* KEEP_FV_INLIB */
+
 	fwl_initializeRenderSceneUpdateScene();
     
 	/* loop and loop, and loop... */
 	while (!quitThread) {
 		//PRINTF("event loop\n");
-		RenderSceneUpdateScene();
+		fwl_RenderSceneUpdateScene();
 	} 
 
 	/* when finished: */
@@ -1739,7 +1757,7 @@ void fwl_setLastMouseEvent(int etype) {
         lastMouseEvent = etype;
 }
 
-void initialize_parser()
+void fwl_initialize_parser()
 {
         quitThread = FALSE;
 
@@ -1837,7 +1855,7 @@ void fwl_doQuit()
 
     /* set geometry to normal size from fullscreen */
 #ifndef AQUA
-    resetGeometry();
+    if (newResetGeometry != NULL) newResetGeometry();
 #endif
 
     /* kill any remaining children */
@@ -2028,7 +2046,7 @@ void setDisplayed (int state) {
         onScreen = state;
 }
 
-void setEaiVerbose() {
+void fwl_init_EaiVerbose() {
         eaiverbose = TRUE;
 }
 

@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.28 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: fwMotifWindow.c,v 1.29 2011/05/25 19:26:34 davejoubert Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -30,6 +30,7 @@
 
 #include <system.h>
 #include <display.h>
+#if KEEP_FV_INLIB
 #include <internal.h>
 
 #include <libFreeWRL.h>
@@ -131,8 +132,8 @@ Arg textArgs[10]; int textArgc = 0;
 
 extern char myMenuStatus[];
 
-void createMenuBar(void);
-void createDrawingFrame(void);
+void fv_createMenuBar(void);
+void fv_createDrawingFrame(void);
 
 
 void myXtManageChild (int c, Widget child)
@@ -155,7 +156,7 @@ void StateWatcher (Widget w, XtPointer unused, XEvent *event, Boolean *cont)
     else if (event->type == UnmapNotify) setDisplayed (FALSE);
 }
 
-void DrawArea_events (Widget w, XtPointer unused, XEvent *event, Boolean *cont)
+void fv_DrawArea_events (Widget w, XtPointer unused, XEvent *event, Boolean *cont)
 {
 #ifdef XEVENT_VERBOSE 
     // Used to track down TouchSensor loosing event with Motif (direct X11 is ok)
@@ -163,7 +164,7 @@ void DrawArea_events (Widget w, XtPointer unused, XEvent *event, Boolean *cont)
     XWindowAttributes attr;
     XSetWindowAttributes set_attr;
 
-    TRACE_MSG("DrawArea event went through (xm callback): widget %p event %p\n", (void*)w, (void*)event);
+    TRACE_MSG("fv_DrawArea event went through (xm callback): widget %p event %p\n", (void*)w, (void*)event);
 
     memset(&attr, 0, sizeof(attr));
     memset(&set_attr, 0, sizeof(set_attr));
@@ -188,7 +189,7 @@ void DrawArea_events (Widget w, XtPointer unused, XEvent *event, Boolean *cont)
 /**
  *   create_main_window: (virtual) create the window with Motif.
  */
-int create_main_window(int argc, char *argv[])
+int fv_create_main_window(int argc, char *argv[])
 {
 	int argc_out = 0;
 	char *argv_out[1] = { NULL };
@@ -237,10 +238,10 @@ int create_main_window(int argc, char *argv[])
 	myXtManageChild(29, mainw);
 	
 	/* Create a menu bar. */
-	createMenuBar();
+	fv_createMenuBar();
 	
 	/* Create a framed drawing area for OpenGL rendering. */
-	createDrawingFrame();
+	fv_createDrawingFrame();
 	
 	/* Set up the application's window layout. */
 	XtVaSetValues(mainw, 
@@ -270,7 +271,7 @@ int create_main_window(int argc, char *argv[])
 	XFlush(XtDisplay(freewrlTopWidget));
 
 	MainWidgetRealized = XtIsRealized(freewrlTopWidget); /*TRUE;*/
-	TRACE_MSG("create_main_window: top widget realized: %s\n", BOOL_STR(MainWidgetRealized));
+	TRACE_MSG("fv_create_main_window: top widget realized: %s\n", BOOL_STR(MainWidgetRealized));
 	
 	/* let the user ask for this one We do it here, again, because on Ubuntu,
 	 * this pops up on startup. Maybe because it has scrollbars, or other internal
@@ -283,13 +284,13 @@ int create_main_window(int argc, char *argv[])
 	/* now, lets tell the OpenGL window what its dimensions are */
 	
 	XtVaGetValues(freewrlDrawArea, XmNwidth, &width, XmNheight, &height, NULL);
-	/* printf("%s,%d create_main_window %d, %d\n",__FILE__,__LINE__,width,height); */
-	fwl_setScreenDim(width,height);
+	/* printf("%s,%d fv_create_main_window %d, %d\n",__FILE__,__LINE__,width,height); */
+	fv_setScreenDim(width,height);
 	
 	/* lets see when this goes iconic */
 	XtAddEventHandler(freewrlTopWidget, StructureNotifyMask, FALSE, StateWatcher, NULL);
 	/* all events for DrawArea should be passed to FreeWRL (MainLoop) control */
-	XtAddEventHandler(freewrlDrawArea, event_mask, False, DrawArea_events, NULL);
+	XtAddEventHandler(freewrlDrawArea, event_mask, False, fv_DrawArea_events, NULL);
 
 	return TRUE;
 }
@@ -338,7 +339,7 @@ XmString xec_NewString(char *s)
 }
 
 /* Callbacks */
-void aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData)
+void fv_aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData)
 { 
 
     int ac;
@@ -367,62 +368,62 @@ void aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData)
 }
 
 /* quit selected */
-void quitMenuBar (Widget w, XtPointer data, XtPointer callData)
+void fv_quitMenuBar (Widget w, XtPointer data, XtPointer callData)
 { 
     fwl_doQuit();
 }
 
-void reloadFile (Widget w, XtPointer data, XtPointer callData)
+void fv_reloadFile (Widget w, XtPointer data, XtPointer callData)
 {
 	ConsoleMessage ("reloading %s", BrowserFullPath);
 	/* FIXME: implement reload function */
 }
 
-void ViewpointFirst (Widget w, XtPointer data, XtPointer callData) {
+void fv_ViewpointFirst (Widget w, XtPointer data, XtPointer callData) {
     fwl_First_ViewPoint();
 }
 
-void ViewpointLast (Widget w, XtPointer data, XtPointer callData)
+void fv_ViewpointLast (Widget w, XtPointer data, XtPointer callData)
 {
     fwl_Last_ViewPoint();
 }
 
-void ViewpointNext (Widget w, XtPointer data, XtPointer callData)
+void fv_ViewpointNext (Widget w, XtPointer data, XtPointer callData)
 {
     fwl_Next_ViewPoint();
 }
 
-void ViewpointPrev (Widget w, XtPointer data, XtPointer callData)
+void fv_ViewpointPrev (Widget w, XtPointer data, XtPointer callData)
 {
     fwl_Prev_ViewPoint();
 }
 
 /* selecting default background colours */
 
-void BackColour(Widget w, XtPointer data, XtPointer callData)
+void fv_BackColour(Widget w, XtPointer data, XtPointer callData)
 {
 	int color = (int) data;
 	setDefaultBackground(color);
 }
 
-void Tex128(Widget w, XtPointer data, XtPointer callData)
+void fv_Tex128(Widget w, XtPointer data, XtPointer callData)
 {
 	/* does nothing right now */
 }
 
-void Tex256(Widget w, XtPointer data, XtPointer callData)
+void fv_Tex256(Widget w, XtPointer data, XtPointer callData)
 {
 	/* does nothing right now */
 }
 
-void TexFull(Widget w, XtPointer data, XtPointer callData)
+void fv_TexFull(Widget w, XtPointer data, XtPointer callData)
 {
 	/* does nothing right now */
 }
 
 
 /* do we want a message window displaying fps, viewpoint, etc? */
-void toggleMessagebar (Widget w, XtPointer data, XtPointer callData)
+void fv_toggleMessagebar (Widget w, XtPointer data, XtPointer callData)
 {
     msgWindowOnscreen = !msgWindowOnscreen; /* keep track of state */
     XmToggleButtonSetState (menumessageButton,msgWindowOnscreen,FALSE); /* display blip if on */
@@ -431,7 +432,7 @@ void toggleMessagebar (Widget w, XtPointer data, XtPointer callData)
 }
 
 /* do we want a console window displaying errors, etc? */
-void toggleConsolebar (Widget w, XtPointer data, XtPointer callData)
+void fv_toggleConsolebar (Widget w, XtPointer data, XtPointer callData)
 {
     consWindowOnscreen = !consWindowOnscreen; /* keep track of state */
     XmToggleButtonSetState (consolemessageButton,consWindowOnscreen,FALSE); /* display blip if on */
@@ -439,38 +440,38 @@ void toggleConsolebar (Widget w, XtPointer data, XtPointer callData)
     else XtUnmanageChild (consoleTextWidget);
 }
 
-void WalkMode (Widget w, XtPointer data, XtPointer callData)
+void fv_WalkMode (Widget w, XtPointer data, XtPointer callData)
 {
-    set_viewer_type (VIEWER_WALK);
+    fwl_set_viewer_type (VIEWER_WALK);
 }
 
-void ExamineMode (Widget w, XtPointer data, XtPointer callData)
+void fv_ExamineMode (Widget w, XtPointer data, XtPointer callData)
 {
-    set_viewer_type (VIEWER_EXAMINE);
+    fwl_set_viewer_type (VIEWER_EXAMINE);
 }
 
-void FlyMode (Widget w, XtPointer data, XtPointer callData)
+void fv_FlyMode (Widget w, XtPointer data, XtPointer callData)
 {
-    set_viewer_type (VIEWER_FLY);
+    fwl_set_viewer_type (VIEWER_FLY);
 }
 
-void Headlight (Widget w, XtPointer data, XtPointer callData)
+void fv_Headlight (Widget w, XtPointer data, XtPointer callData)
 {
-    toggle_headlight();
+    fwl_toggle_headlight();
 }
 
-void Collision (Widget w, XtPointer data, XtPointer callData)
+void fv_Collision (Widget w, XtPointer data, XtPointer callData)
 {
-    fw_params.collision = !fw_params.collision;
+    fwl_setp_collision(!fwl_getp_collision());
 }
 
-void ViewpointStraighten (Widget w, XtPointer data, XtPointer callData)
+void fv_ViewpointStraighten (Widget w, XtPointer data, XtPointer callData)
 {
     printf ("not yet implemented\n");
 }
 
 /* file selection dialog box, ok button pressed */
-void fileSelectPressed (Widget w, XtPointer data, XmFileSelectionBoxCallbackStruct *callData)
+void fv_fileSelectPressed (Widget w, XtPointer data, XmFileSelectionBoxCallbackStruct *callData)
 {
     char *newfile;
 
@@ -485,14 +486,14 @@ void fileSelectPressed (Widget w, XtPointer data, XmFileSelectionBoxCallbackStru
 }
 
 /* file selection dialog box cancel button - just get rid of widget */
-void unManageMe (Widget widget, XtPointer client_data, 
+void fv_unManageMe (Widget widget, XtPointer client_data, 
                  XmFileSelectionBoxCallbackStruct *selection)
 {
     XtUnmanageChild(widget);
 }
 
 /* new file popup - user wants to load a new file */ 
-void newFilePopup(Widget cascade_button, char *text, XmPushButtonCallbackStruct *cbs)
+void fv_newFilePopup(Widget cascade_button, char *text, XmPushButtonCallbackStruct *cbs)
 {
     myXtManageChild(4,newFileWidget);
     XtPopup(XtParent(newFileWidget), XtGrabNone); 
@@ -500,7 +501,7 @@ void newFilePopup(Widget cascade_button, char *text, XmPushButtonCallbackStruct 
 
 #ifdef DOESNOTGETICONICSTATE
 /* resize, configure events */
-void GLAreaexpose (Widget w, XtPointer data, XtPointer callData)
+void fv_GLAreaexpose (Widget w, XtPointer data, XtPointer callData)
 {
     XmDrawingAreaCallbackStruct *cd = (XmDrawingAreaCallbackStruct *) callData;
     switch (cd->reason) {
@@ -511,18 +512,18 @@ void GLAreaexpose (Widget w, XtPointer data, XtPointer callData)
 #endif
 
 /* resize, configure events */
-void GLArearesize (Widget w, XtPointer data, XtPointer callData)
+void fv_GLArearesize (Widget w, XtPointer data, XtPointer callData)
 {
 /*     XmDrawingAreaCallbackStruct *cd = (XmDrawingAreaCallbackStruct *) callData; */
     Dimension width, height;
 
     XtVaGetValues (w, XmNwidth, &width, XmNheight, &height, NULL);
     /* printf("%s,%d GLArearesize %d, %d\n",__FILE__,__LINE__,width,height); */
-    fwl_setScreenDim (width,height);
+    fv_setScreenDim (width,height);
 }
 
 /* Mouse, keyboard input when focus is in OpenGL window. */
-void GLAreainput (Widget w, XtPointer data, XtPointer callData)
+void fv_GLAreainput (Widget w, XtPointer data, XtPointer callData)
 {
     XmDrawingAreaCallbackStruct *cd = (XmDrawingAreaCallbackStruct *) callData;
 
@@ -535,7 +536,7 @@ void GLAreainput (Widget w, XtPointer data, XtPointer callData)
 
 
 /* remove this button from this SelectionBox widget */
-void removeWidgetFromSelect (Widget parent, 
+void fv_removeWidgetFromSelect (Widget parent, 
 #if NeedWidePrototypes
                              unsigned int 
 #else
@@ -554,7 +555,7 @@ void removeWidgetFromSelect (Widget parent,
 }
 
 /* start up the browser, and point it to www.crc.ca/FreeWRL */
-void freewrlHomePopup (Widget w, XtPointer data, XtPointer callData)
+void fv_freewrlHomePopup (Widget w, XtPointer data, XtPointer callData)
 { 
 #if DJ_KEEP_COMPILER_WARNING
 	#define MAXLINE 2000
@@ -620,7 +621,7 @@ printEvent (XEvent event)
 #endif
 
 /* File pulldown menu */
-void createFilePulldown()
+void fv_createFilePulldown()
 {
     Widget menupane, btn, cascade;
 
@@ -637,23 +638,23 @@ void createFilePulldown()
     /* newFileWidget = XmCreateFileSelectionDialog(menubar, "select", args, 1); */
     newFileWidget = XmCreateFileSelectionDialog(mainw, "select", args, 1);        
 
-    XtAddCallback(newFileWidget, XmNokCallback, (XtCallbackProc)fileSelectPressed, NULL);
-    XtAddCallback(newFileWidget, XmNcancelCallback, (XtCallbackProc)unManageMe, NULL);
+    XtAddCallback(newFileWidget, XmNokCallback, (XtCallbackProc)fv_fileSelectPressed, NULL);
+    XtAddCallback(newFileWidget, XmNcancelCallback, (XtCallbackProc)fv_unManageMe, NULL);
     /* delete buttons not wanted */
-    removeWidgetFromSelect(newFileWidget,XmDIALOG_HELP_BUTTON);
+    fv_removeWidgetFromSelect(newFileWidget,XmDIALOG_HELP_BUTTON);
     XtUnmanageChild(newFileWidget);
 
 
     menupane = XmCreatePulldownMenu (menubar, "menupane", NULL, 0);
     btn = XmCreatePushButton (menupane, "Reload", NULL, 0);
-    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)reloadFile, NULL);
+    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)fv_reloadFile, NULL);
     myXtManageChild (5,btn);
     btn = XmCreatePushButton (menupane, "New...", NULL, 0);
-    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)newFilePopup, NULL);
+    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)fv_newFilePopup, NULL);
     myXtManageChild (6,btn);
 
     btn = XmCreatePushButton (menupane, "Quit", NULL, 0);
-    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)quitMenuBar, NULL);
+    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)fv_quitMenuBar, NULL);
     myXtManageChild (7,btn);
     XtSetArg (args[0], XmNsubMenuId, menupane);
     cascade = XmCreateCascadeButton (menubar, "File", args, 1);
@@ -661,7 +662,7 @@ void createFilePulldown()
 }
 
 /* Navigate pulldown menu */
-void createNavigatePulldown()
+void fv_createNavigatePulldown()
 {
     Widget cascade, btn, menupane;
 
@@ -669,16 +670,16 @@ void createNavigatePulldown()
         
     /* Viewpoints */
     btn = XmCreatePushButton (menupane, "First Viewpoint", NULL, 0);
-    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointFirst, NULL);
+    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)fv_ViewpointFirst, NULL);
     myXtManageChild (30,btn);
     btn = XmCreatePushButton (menupane, "Next Viewpoint", NULL, 0);
-    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointNext, NULL);
+    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)fv_ViewpointNext, NULL);
     myXtManageChild (9,btn);
     btn = XmCreatePushButton (menupane, "Prev Viewpoint", NULL, 0);
-    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointPrev, NULL);
+    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)fv_ViewpointPrev, NULL);
     myXtManageChild (10,btn);
     btn = XmCreatePushButton (menupane, "Last Viewpoint", NULL, 0);
-    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointLast, NULL);
+    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)fv_ViewpointLast, NULL);
     myXtManageChild (31,btn);
 
 
@@ -686,15 +687,15 @@ void createNavigatePulldown()
     myXtManageChild(11,XmCreateSeparator (menupane, "sep1", NULL, 0));
 
     walkButton = XtCreateManagedWidget("Walk Mode", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-    XtAddCallback (walkButton, XmNvalueChangedCallback, (XtCallbackProc)WalkMode, NULL);
+    XtAddCallback (walkButton, XmNvalueChangedCallback, (XtCallbackProc)fv_WalkMode, NULL);
     myXtManageChild (12,walkButton);
 
     examineButton = XtCreateManagedWidget("Examine Mode", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-    XtAddCallback (examineButton, XmNvalueChangedCallback, (XtCallbackProc)ExamineMode, NULL);
+    XtAddCallback (examineButton, XmNvalueChangedCallback, (XtCallbackProc)fv_ExamineMode, NULL);
     myXtManageChild (13,examineButton);
 
     flyButton = XtCreateManagedWidget("Fly Mode", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-    XtAddCallback (flyButton, XmNvalueChangedCallback, (XtCallbackProc)FlyMode, NULL);
+    XtAddCallback (flyButton, XmNvalueChangedCallback, (XtCallbackProc)fv_FlyMode, NULL);
     myXtManageChild (14,flyButton);
 
     /* Headlight, Collision */
@@ -703,13 +704,13 @@ void createNavigatePulldown()
     headlightButton = XtCreateManagedWidget("Headlight",
                                             xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
     XtAddCallback(headlightButton, XmNvalueChangedCallback, 
-                  (XtCallbackProc)Headlight, NULL);
+                  (XtCallbackProc)fv_Headlight, NULL);
     myXtManageChild (16,headlightButton);
 
     collisionButton = XtCreateManagedWidget("Collision",
                                             xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
     XtAddCallback(collisionButton, XmNvalueChangedCallback, 
-                  (XtCallbackProc)Collision, NULL);
+                  (XtCallbackProc)fv_Collision, NULL);
     myXtManageChild (17,collisionButton);
         
     /* Straighten */
@@ -717,18 +718,18 @@ void createNavigatePulldown()
     XtSetArg (buttonArgs[buttonArgc], XmNsensitive, FALSE); 
     myXtManageChild(18,XmCreateSeparator (menupane, "sep1", NULL, 0));
     btn = XmCreatePushButton (menupane, "Straighten", buttonArgs, buttonArgc+1); /* NOTE THE +1 here for sensitive */
-    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointStraighten, NULL);
+    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)fv_ViewpointStraighten, NULL);
     myXtManageChild (19,btn);
 
     consolemessageButton = XtCreateManagedWidget("Console Display",
                                                  xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
     XtAddCallback(consolemessageButton, XmNvalueChangedCallback, 
-                  (XtCallbackProc)toggleConsolebar, NULL);
+                  (XtCallbackProc)fv_toggleConsolebar, NULL);
     myXtManageChild (21,consolemessageButton);
     menumessageButton = XtCreateManagedWidget("Message Display",
                                               xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
     XtAddCallback(menumessageButton, XmNvalueChangedCallback, 
-                  (XtCallbackProc)toggleMessagebar, NULL);
+                  (XtCallbackProc)fv_toggleMessagebar, NULL);
     myXtManageChild (20,menumessageButton);
         
     XtSetArg (args[0], XmNsubMenuId, menupane);
@@ -737,7 +738,7 @@ void createNavigatePulldown()
 }
 
 /* Preferences pulldown menu */
-void createPreferencesPulldown()
+void fv_createPreferencesPulldown()
 {
     Widget cascade, menupane;
     int count;
@@ -748,15 +749,15 @@ void createPreferencesPulldown()
     myXtManageChild(11,XmCreateSeparator (menupane, "sep1", NULL, 0));
 
     tex128_button = XtCreateManagedWidget("128x128 Textures", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-    XtAddCallback (tex128_button, XmNvalueChangedCallback, (XtCallbackProc)Tex128, NULL);
+    XtAddCallback (tex128_button, XmNvalueChangedCallback, (XtCallbackProc)fv_Tex128, NULL);
     myXtManageChild (12,tex128_button);
 
     tex256_button = XtCreateManagedWidget("256x256 Textures", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-    XtAddCallback (tex256_button, XmNvalueChangedCallback, (XtCallbackProc)Tex256, NULL);
+    XtAddCallback (tex256_button, XmNvalueChangedCallback, (XtCallbackProc)fv_Tex256, NULL);
     myXtManageChild (13,tex256_button);
 
     texFull_button = XtCreateManagedWidget("Fullsize Textures", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-    XtAddCallback (texFull_button, XmNvalueChangedCallback, (XtCallbackProc)TexFull, NULL);
+    XtAddCallback (texFull_button, XmNvalueChangedCallback, (XtCallbackProc)fv_TexFull, NULL);
     myXtManageChild (14,texFull_button);
 
     /* default Background colour */     
@@ -765,7 +766,7 @@ void createPreferencesPulldown()
     for (count = colourBlack; count <= colourWhite; count++ ){
         backgroundColourSelector[count] = 
             XtCreateManagedWidget(BackString[count], xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-        XtAddCallback (backgroundColourSelector[count], XmNvalueChangedCallback, (XtCallbackProc)BackColour, (XtPointer)count);
+        XtAddCallback (backgroundColourSelector[count], XmNvalueChangedCallback, (XtCallbackProc)fv_BackColour, (XtPointer)count);
         myXtManageChild (40,backgroundColourSelector[count]);
     }
     XmToggleButtonSetState (backgroundColourSelector[colourBlack], TRUE, FALSE);
@@ -775,7 +776,7 @@ void createPreferencesPulldown()
     myXtManageChild (22,cascade);
 }
 
-void createHelpPulldown()
+void fv_createHelpPulldown()
 {
     Widget btn, menupane, cascade;
     int ac;
@@ -794,18 +795,18 @@ void createHelpPulldown()
     */
     XtSetArg(args[ac], XmNmessageAlignment,XmALIGNMENT_CENTER); ac++;
     about_widget = XmCreateInformationDialog(menubar, "about", args, ac);        
-    XtAddCallback(about_widget, XmNokCallback, (XtCallbackProc)unManageMe, NULL);
-    removeWidgetFromSelect (about_widget, XmDIALOG_CANCEL_BUTTON);
+    XtAddCallback(about_widget, XmNokCallback, (XtCallbackProc)fv_unManageMe, NULL);
+    fv_removeWidgetFromSelect (about_widget, XmDIALOG_CANCEL_BUTTON);
     /*
-      causes segfault on Core3 removeWidgetFromSelect (about_widget, XmDIALOG_HELP_BUTTON);
+      causes segfault on Core3 fv_removeWidgetFromSelect (about_widget, XmDIALOG_HELP_BUTTON);
     */
 
 
     btn = XmCreatePushButton (menupane, "About FreeWRL...", NULL, 0);
-    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)aboutFreeWRLpopUp, NULL);
+    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)fv_aboutFreeWRLpopUp, NULL);
     myXtManageChild (23,btn);
     btn = XmCreatePushButton (menupane, "FreeWRL Homepage...", NULL, 0);
-    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)freewrlHomePopup, NULL);
+    XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)fv_freewrlHomePopup, NULL);
     myXtManageChild (24,btn);
 
     XtSetArg (args[0], XmNsubMenuId, menupane);
@@ -814,7 +815,7 @@ void createHelpPulldown()
 }
 
 /**********************************/
-void createMenuBar(void)
+void fv_createMenuBar(void)
 {
     Arg menuArgs[10]; int menuArgc = 0;
 
@@ -841,10 +842,10 @@ void createMenuBar(void)
     XtSetArg(buttonArgs[buttonArgc], XmCVisibleWhenOff, TRUE); buttonArgc++;
     XtSetArg(buttonArgs[buttonArgc],XmNindicatorType,XmN_OF_MANY); buttonArgc++;
 
-    if (!RUNNINGASPLUGIN) createFilePulldown();
-    createNavigatePulldown();
-    createPreferencesPulldown();
-    createHelpPulldown();
+    if (!RUNNINGASPLUGIN) fv_createFilePulldown();
+    fv_createNavigatePulldown();
+    fv_createPreferencesPulldown();
+    fv_createHelpPulldown();
 
 }
 
@@ -852,7 +853,7 @@ void createMenuBar(void)
 /*
   create a frame for FreeWRL, and for messages
 */
-void createDrawingFrame(void)
+void fv_createDrawingFrame(void)
 {
     /* frame holds everything here */
     frame = XtVaCreateManagedWidget("form", xmPanedWindowWidgetClass, mainw, NULL);
@@ -887,10 +888,10 @@ void createDrawingFrame(void)
     freewrlDrawArea = XmCreateDrawingArea (frame, "drawing_a", NULL, 0);
 
 #ifdef DOESNOTGETICONICSTATE
-    XtAddCallback (freewrlDrawArea, XmNexposeCallback, GLAreaexpose, NULL);
+    XtAddCallback (freewrlDrawArea, XmNexposeCallback, fv_GLAreaexpose, NULL);
 #endif
 
-    XtAddCallback (freewrlDrawArea, XmNresizeCallback, GLArearesize, NULL);
+    XtAddCallback (freewrlDrawArea, XmNresizeCallback, fv_GLArearesize, NULL);
 
     myXtManageChild(27,freewrlDrawArea);
 
@@ -968,9 +969,9 @@ void setMessageBar()
             strcat (myMenuStatus, "NONE");
         }
         if ( 
-	    isinputThreadParsing() || 
-	    isTextureParsing() || 
-	    (!isInputThreadInitialized())) {
+	    fwl_isinputThreadParsing() || 
+	    fwl_isTextureParsing() || 
+	    (!fwl_isInputThreadInitialized())) {
             sprintf (fpsstr, "(Loading...)  speed: %4.1f", myFps);
         } else {
             sprintf (fpsstr,"fps: %4.1f Viewpoint: %s",myFps,myMenuStatus);
@@ -998,7 +999,10 @@ void setDefaultBackground(int colour)
     XmToggleButtonSetState (backgroundColourSelector[colour], TRUE, FALSE);
     setglClearColor (&(backgroundColours[colour*3]));
 
+    /* rather use fwl_set_glClearColor (float red , float green , float blue , float alpha); */
+
 }
 
 
 #endif /* IPHONE */
+#endif /* KEEP_FV_INLIB */

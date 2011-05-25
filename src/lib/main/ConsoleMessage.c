@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.20 2011/05/21 19:18:20 daytonavid Exp $
+$Id: ConsoleMessage.c,v 1.21 2011/05/25 19:26:34 davejoubert Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -66,6 +66,23 @@ void hudSetConsoleMessage(char *buffer);
 /* <<< statusbar hud */
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
+
+/* runtime replace DEF_AQUA , TARGET_AQUA , HAVE_MOTIF , TARGET_MOTIF , MC_MSC_HAVE_VER); */
+int setDefAqua = 0;
+int setTargetAqua = 0;
+int setHaveMotif = 0;
+int setTargetMotif = 0;
+int setHaveMscVer = 0;
+int setTargetAndroid = 0;
+void fwl_ConsoleSetup(int DefAqua , int TargetAqua , int HaveMotif , int TargetMotif , int HaveMscVer , int TargetAndroid) {
+	setDefAqua = DefAqua ;
+	setTargetAqua  = TargetAqua ;
+	setHaveMotif  = HaveMotif ;
+	setTargetMotif  = TargetMotif ;
+	setHaveMscVer = HaveMscVer ;
+	setTargetAndroid  = TargetAndroid ;
+}
+int fwl_StringConsoleMessage(char* consoleBuffer) { return ConsoleMessage(consoleBuffer); }
 
 #ifdef AQUA
 	#include <syslog.h> //TODO: configure check
@@ -135,9 +152,7 @@ static char FWbuffer [STRING_LENGTH];
 
 int consMsgCount = 0;
 extern int _fw_browser_plugin;
-#ifndef HAVE_MOTIF
 #define MAXMESSAGES 5 
-#endif
 void closeConsoleMessage() {
 	consMsgCount = 0;
 #ifdef AQUA
@@ -279,6 +294,7 @@ int fwvsnprintf(char *buffer,int buffer_length, const char *fmt, va_list ap)
 	return 1;
 }
 
+
 /* >>> statusbar hud */
 int Console_writeToCRT = 1; /*regular printf*/
 int Console_writeToFile = 0;
@@ -380,20 +396,16 @@ int BrowserPrintConsoleMessage(const char *fmt, ...)
 	/* unused int retval; */
 	va_list args;
 
-#ifndef HAVE_MOTIF
-/* did we have too many messages - don't want to make this into a 
-   denial of service attack! (thanks, Mufti) */
-#ifdef AQUA
-	if (RUNNINGASPLUGIN && consMsgCount > MAXMESSAGES) {
-#else 
-	if (consMsgCount > MAXMESSAGES) {
-#endif
-		if (consMsgCount > (MAXMESSAGES + 5)) return -1;
-		consMsgCount = MAXMESSAGES + 100;
-		return ConsoleMessage("Too many freewrl messages - stopping ConsoleMessage");
-	} 
-	consMsgCount++;
-#endif
+	if(setHaveMotif == 0) {
+	/* did we have too many messages - don't want to make this into a 
+	   denial of service attack! (thanks, Mufti) */
+		if( (setDefAqua == 1 && RUNNINGASPLUGIN && consMsgCount > MAXMESSAGES) || (setDefAqua == 0 && consMsgCount > MAXMESSAGES) ) {
+			if (consMsgCount > (MAXMESSAGES + 5)) return -1;
+			consMsgCount = MAXMESSAGES + 100;
+			return ConsoleMessage("Too many freewrl messages - stopping ConsoleMessage");
+		} 
+		consMsgCount++;
+	}
 	va_start( args, fmt );
 	return ConsoleMessage0(fmt,args);
 }
@@ -441,28 +453,23 @@ int ConsoleMessage(const char *fmt, ...) {
 	#endif
 
 
-	#ifdef HAVE_MOTIF
+	if(setHaveMotif == 1) {
 	FWbuffer[0] = '\n';
 	FWbuffer[1] = '\0';
-	#else
+	} else {
 	FWbuffer[0] = '\0';
-	#endif
+	}
 
-	#ifndef HAVE_MOTIF
+	if(setHaveMotif == 0) {
 	/* did we have too many messages - don't want to make this into a 
 	   denial of service attack! (thanks, Mufti) */
-	#ifdef AQUA
-		if (RUNNINGASPLUGIN && consMsgCount > MAXMESSAGES) {
-	#else 
-		if (consMsgCount > MAXMESSAGES) {
-	#endif
-		if (consMsgCount > (MAXMESSAGES + 5)) return;
-		strcpy(FWbuffer, "Too many freewrl messages - stopping ConsoleMessage");
-		consMsgCount = MAXMESSAGES + 100;
-	} else {
+		if( (setDefAqua == 1 && RUNNINGASPLUGIN && consMsgCount > MAXMESSAGES) || (setDefAqua == 0 && consMsgCount > MAXMESSAGES) ) {
+			if (consMsgCount > (MAXMESSAGES + 5)) return -1;
+			consMsgCount = MAXMESSAGES + 100;
+			return ConsoleMessage("Too many freewrl messages - stopping ConsoleMessage");
+		} 
 		consMsgCount++;
-
-	#endif
+	}
 	
 		va_start(ap, fmt);		 /* must be called before work	 */
 
@@ -574,15 +581,15 @@ printf ("Console message, might be able to print\n"); if (!RUNNINGASPLUGIN) prin
 	}
 #else
 	/* are we running under Motif or Gtk? */
-#if defined(TARGET_MOTIF)
+	if(setTargetMotif == 1) {
 		setConsoleMessage (FWbuffer);
-# else
+	} else {
 		if (RUNNINGASPLUGIN) {
 			freewrlSystem (FWbuffer);
 		} else {
 			printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n");
 		}
-#endif //TARGET_MOTIF
+	}
 
 #endif
 	return count;
