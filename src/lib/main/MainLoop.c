@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.177 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: MainLoop.c,v 1.178 2011/05/26 16:57:53 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -94,6 +94,12 @@ void  setAquaCursor(int ctype) { };
 
 #include "MainLoop.h"
 
+
+/* for mobile devices; what is our intended orientation? */
+/* note; for multi-displays, like browser plugins, this should stay at 0.0
+   for all instantations */
+
+static double viewOrient = 0.0;
 
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;
@@ -780,7 +786,7 @@ static void render_pre() {
         /* 2. Headlight, initialized here where we have the modelview matrix to Identity.
         FIXME: position of light sould actually be offset a little (towards the center)
         when in stereo mode. */
-        FW_GL_LOAD_IDENTITY();
+        // JAS FW_GL_LOAD_IDENTITY();
 
         /*printf("calling get headlight in render_pre\n"); */
         if (fwl_get_headlight()) lightState(HEADLIGHT_LIGHT,TRUE);
@@ -838,23 +844,23 @@ void setup_projection(int pick, int x, int y)
 	}
 
         FW_GL_MATRIX_MODE(GL_PROJECTION);
-		/* >>> statusbar hud */
-		if(clipPlane != 0)
-		{   /* scissor used to prevent mainloop from glClear()ing the statusbar area
-			 which is updated only every 10-25 loops */
-			FW_GL_SCISSOR(0,clipPlane,screenWidth,screenHeight);
-			FW_GL_ENABLE(GL_SCISSOR_TEST);
-		}
-		/* <<< statusbar hud */
+	/* >>> statusbar hud */
+	if(clipPlane != 0)
+	{   /* scissor used to prevent mainloop from glClear()ing the statusbar area
+		 which is updated only every 10-25 loops */
+		FW_GL_SCISSOR(0,clipPlane,screenWidth,screenHeight);
+		FW_GL_ENABLE(GL_SCISSOR_TEST);
+	}
+	/* <<< statusbar hud */
 
-		FW_GL_VIEWPORT(xvp,clipPlane,screenwidth2,screenHeight);
+	FW_GL_VIEWPORT(xvp,clipPlane,screenwidth2,screenHeight);
 #ifdef AQUA
 #if !defined(IPHONE) 
-                myglobalContext = CGLGetCurrentContext();
-		CGLSetCurrentContext(myglobalContext);
+        myglobalContext = CGLGetCurrentContext();
+	CGLSetCurrentContext(myglobalContext);
 #endif
 #endif
-		FW_GL_VIEWPORT(xvp, clipPlane, screenwidth2, screenHeight);
+	FW_GL_VIEWPORT(xvp, clipPlane, screenwidth2, screenHeight);
         FW_GL_LOAD_IDENTITY();
         if(pick) {
                 /* picking for mouse events */
@@ -1200,12 +1206,73 @@ static void render_collisions() {
         increment_pos(&v);
 }
 
+#if defined (IPHONE) || defined (_ANDROID)
+static int currentViewerLandPort = 0;
+static int rotatingCCW = FALSE;
+static double currentViewerAngle = 0.0;
+static double requestedViewerAngle = 0.0;
+#endif // IPHONE and ANDROID
+
 
 static void setup_viewpoint() {
 	
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         FW_GL_LOAD_IDENTITY();
+
+	#if defined (IPHONE) || defined (_ANDROID)
+    
+    // has a change happened? 
+    if (Viewer.orient != currentViewerLandPort) {
+        // 4 possible values; 0, 90, 180, 270
+        // 
+        rotatingCCW = FALSE; // assume, unless told otherwise 
+        switch (currentViewerLandPort) {
+            case 0: {
+                rotatingCCW= (Viewer.orient == 270);
+                break;
+            }
+            case 90: {
+                rotatingCCW = (Viewer.orient == 0);
+                break;
+            }
+                
+            case 180: {
+                rotatingCCW = (Viewer.orient != 270);
+                break;
+            }
+                
+            case 270: {
+                rotatingCCW = (Viewer.orient != 0);
+                break;
+                
+            }
+                
+                
+        }
+        
+        currentViewerLandPort = Viewer.orient;
+        requestedViewerAngle = (double)Viewer.orient;
+        
+    }
+    
+    if (!(APPROX(currentViewerAngle,requestedViewerAngle))) {
+        
+        if (rotatingCCW) {
+            //printf ("ccw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
+            currentViewerAngle -= 10.0;
+            if (currentViewerAngle < -5.0) currentViewerAngle = 360.0;
+        } else {
+            //printf ("cw, cva %lf req %lf\n",currentViewerAngle, requestedViewerAngle);
+            currentViewerAngle +=10.0;
+            if (currentViewerAngle > 365.0) currentViewerAngle = 0.0; 
+        }
+        
+    }
+        FW_GL_ROTATE_D (currentViewerAngle,0.0,0.0,1.0);
+        
+            
+	#endif // IPHONE, ANDROID screen rotate
 
         viewer_togl(fieldofview);
         render_hier(rootNode, VF_Viewpoint);
@@ -1965,6 +2032,44 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 }
 /* old function should still work, with single mouse and ID=0 */
 void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
+	//printf ("fwl_handle_aqua, type %d, screen %d %d, orig x,y %d %d\n",
+      //      mev,screenWidth, screenHeight,x,y);
+
+	// do we have to worry about screen orientations (think mobile devices)
+	#if defined (AQUA) || defined (_ANDROID)
+	{ 
+        // iPhone - with home button on bottom, in portrait mode, 
+        // top left hand corner is x=0, y=0; 
+        // bottom left, 0, 468)
+        // while standard opengl is (0,0) in lower left hand corner...
+        
+		int ox = x;
+		int oy = y;
+		switch (Viewer.orient) {
+			case 0: 
+				x = screenHeight-x;
+                
+				break;
+			case 90: 
+				x = oy;
+				y = ox;
+				break;
+			case 180:
+				x = x;
+				y = -y;
+				break;
+			case 270:
+				x = screenWidth - oy;
+				y = screenHeight - ox;
+				break;
+			default:{}
+
+
+		}
+	}
+
+	#endif
+
 	if(EMULATE_MULTITOUCH)
 		emulate_multitouch(mev,button,x, y);
 	else
@@ -1991,6 +2096,7 @@ void fwl_setCurXY(int cx, int cy) {
 	/* printf ("fwl_setCurXY, have %d %d\n",currentX[currentCursor],currentY[currentCursor]); */
         currentX[currentCursor] = cx;
         currentY[currentCursor] = cy;
+    printf ("fwl_setCurXY, have %x %x\n",cx,cy);
 }
 
 void fwl_setButDown(int button, int value) {
@@ -1999,6 +2105,28 @@ void fwl_setButDown(int button, int value) {
 }
 
 
+/* mobile devices - set screen orientation */
+/* "0" is "normal" orientation; degrees clockwise; note that face up and face down not 
+   coded; assume only landscape/portrait style orientations */
+
+void fwl_setOrientation (int orient) {
+	switch (orient) {
+		case 0: 
+		case 90:
+		case 180:
+		case 270:
+			{
+			Viewer.orient = orient;
+			break;
+		}
+		default: {
+			ConsoleMessage ("invalid orientation %d\n",orient);
+			Viewer.orient = 0;
+		}
+	}
+}
+
+	
 
 void setIsPlugin() {
 

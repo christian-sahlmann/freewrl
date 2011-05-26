@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.38 2011/05/25 19:26:34 davejoubert Exp $
+$Id: Viewer.h,v 1.39 2011/05/26 16:57:53 crc_canada Exp $
 
 Viewer ???
 
@@ -255,6 +255,10 @@ typedef struct viewer {
 	/* are we perspective or ortho? */
 	int ortho;
 	double orthoField[4];
+
+	/* are we normal, or rotated? (makes sense only for mobile devices) */
+	int orient;
+
 } X3D_Viewer;
 
 void Viewer_anaglyph_setSide(int iside);

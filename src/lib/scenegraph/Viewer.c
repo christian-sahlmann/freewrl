@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.66 2011/05/25 19:26:34 davejoubert Exp $
+$Id: Viewer.c,v 1.67 2011/05/26 16:57:53 crc_canada Exp $
 
 CProto ???
 
@@ -164,6 +164,9 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 
 		/* Orthographic projections */
 		viewer->ortho = FALSE;
+
+		/* orientation - 0 is normal */
+		viewer->orient = 0;
 	}
 
 	resolve_pos();
