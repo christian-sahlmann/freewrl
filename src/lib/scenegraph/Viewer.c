@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.67 2011/05/26 16:57:53 crc_canada Exp $
+$Id: Viewer.c,v 1.68 2011/05/27 13:55:44 crc_canada Exp $
 
 CProto ???
 
@@ -44,11 +44,9 @@ CProto ???
 #include "Viewer.h"
 
 
-int doExamineModeDistanceCalculations = FALSE;
 static int examineCounter = 5;
 
-static int viewer_type = VIEWER_NONE;
-int viewer_initialized = FALSE;
+static int viewer_initialized = FALSE;
 static X3D_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
 static X3D_Viewer_Examine viewer_examine = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
 static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
@@ -59,21 +57,6 @@ static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
 static FILE *exfly_in_file;
 
-struct point_XYZ VPvelocity;
-
-double nearPlane=DEFAULT_NEARPLANE;                     /* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
-double farPlane=DEFAULT_FARPLANE;                       /* a good default value */
-double backgroundPlane = DEFAULT_BACKGROUNDPLANE;	/* where Background and TextureBackground nodes go */
-GLDOUBLE fieldofview=45.0;
-GLDOUBLE fovZoom = 1.0;
-double calculatedNearPlane = 0.0;
-double calculatedFarPlane = 0.0;
-
-
-void print_viewer(void);
-unsigned int get_buffer(void);
-int fwl_get_headlight(void);
-void fwl_toggle_headlight(void);
 static void handle_tick_walk(void);
 static void handle_tick_fly(void);
 static void handle_tick_exfly(void);
@@ -81,16 +64,16 @@ static void handle_tick_exfly(void);
 /* used for EAI calls to get the current speed. Not used for general calcs */
 /* we DO NOT return as a float, as some gccs have trouble with this causing segfaults */
 void getCurrentSpeed() {
-	BrowserSpeed = BrowserFPS * (fabs(VPvelocity.x) + fabs(VPvelocity.y) + fabs(VPvelocity.z));
+	BrowserSpeed = BrowserFPS * (fabs(Viewer.VPvelocity.x) + fabs(Viewer.VPvelocity.y) + fabs(Viewer.VPvelocity.z));
 }
 
 void viewer_default() {
 	Quaternion q_i;
 
-	fieldofview = 45.0;
-	fovZoom = 1.0;
+	Viewer.fieldofview = 45.0;
+	Viewer.fovZoom = 1.0;
 
-	VPvelocity.x = 0.0; VPvelocity.y = 0.0; VPvelocity.z = 0.0; 
+	Viewer.VPvelocity.x = 0.0; Viewer.VPvelocity.y = 0.0; Viewer.VPvelocity.z = 0.0; 
 	Viewer.Pos.x = 0; Viewer.Pos.y = 0; Viewer.Pos.z = 10;
 	Viewer.currentPosInModel.x = 0; Viewer.currentPosInModel.y = 0; Viewer.currentPosInModel.z = 10;
 	Viewer.AntiPos.x = 0; Viewer.AntiPos.y = 0; Viewer.AntiPos.z = 0;
@@ -106,12 +89,12 @@ void viewer_default() {
 	setMenuButton_headlight(Viewer.headlight);
 	Viewer.speed = 1.0;
 	Viewer.Dist = 10.0;
-	Viewer.walk = &viewer_walk;
-	Viewer.examine = &viewer_examine;
-	Viewer.fly = &viewer_fly;
-	Viewer.ypz = &viewer_ypz;
+	memcpy (&Viewer.walk, &viewer_walk,sizeof (X3D_Viewer_Walk));
+	memcpy (&Viewer.examine, &viewer_examine, sizeof (X3D_Viewer_Examine));
+	memcpy (&Viewer.fly, &viewer_fly, sizeof (X3D_Viewer_Fly));
+	memcpy (&Viewer.ypz,&viewer_ypz, sizeof (X3D_Viewer_YawPitchZoom));
 
-	set_viewer_type(VIEWER_EXAMINE);
+	fwl_set_viewer_type(VIEWER_EXAMINE);
 
 	//set_eyehalf( Viewer.eyedist/2.0,
 	//	atan2(Viewer.eyedist/2.0,Viewer.screendist)*360.0/(2.0*3.1415926));
@@ -125,15 +108,17 @@ void viewer_default() {
 //#endif
 }
 
+
+
 void viewer_init (X3D_Viewer *viewer, int type) {
 	Quaternion q_i;
-
-	/* what type are we? used for handle events below */
-	viewer_type = type;
 
 	/* if we are brand new, set up our defaults */
 	if (!viewer_initialized) {
 		viewer_initialized = TRUE;
+
+		/* what are we - EXAMINE, FLY, etc... */
+		viewer->type = type;
 
 		viewer->Pos.x = 0; viewer->Pos.y = 0; viewer->Pos.z = 10;
 		viewer->currentPosInModel.x = 0; viewer->currentPosInModel.y = 0; viewer->currentPosInModel.z = 10;
@@ -151,10 +136,11 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		setMenuButton_headlight(viewer->headlight);
 		viewer->speed = 1.0;
 		viewer->Dist = 10.0;
-		viewer->walk = &viewer_walk;
-		viewer->examine = &viewer_examine;
-		viewer->fly = &viewer_fly;
-		viewer->ypz = &viewer_ypz;
+        memcpy (&viewer->walk, &viewer_walk,sizeof (X3D_Viewer_Walk));
+        memcpy (&viewer->examine, &viewer_examine, sizeof (X3D_Viewer_Examine));
+        memcpy (&viewer->fly, &viewer_fly, sizeof (X3D_Viewer_Fly));
+        memcpy (&viewer->ypz,&viewer_ypz, sizeof (X3D_Viewer_YawPitchZoom));
+
 
 		/* SLERP code for moving between viewpoints */
 		viewer->SLERPing = FALSE;
@@ -165,8 +151,19 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		/* Orthographic projections */
 		viewer->ortho = FALSE;
 
+		viewer->doExamineModeDistanceCalculations = FALSE;
+
 		/* orientation - 0 is normal */
 		viewer->orient = 0;
+
+		viewer->nearPlane=DEFAULT_NEARPLANE;                     /* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
+		viewer->farPlane=DEFAULT_FARPLANE;                       /* a good default value */
+		viewer->backgroundPlane = DEFAULT_BACKGROUNDPLANE;       /* where Background and TextureBackground nodes go */
+		viewer->fieldofview=45.0;
+		viewer->fovZoom = 1.0;
+		viewer->calculatedNearPlane = 0.0;
+		viewer->calculatedFarPlane = 0.0;
+
 	}
 
 	resolve_pos();
@@ -182,20 +179,6 @@ print_viewer()
 
 }
 
-unsigned int
-get_buffer()
-{
-	return(Viewer.buffer);
-}
-
-/*
-void
-set_buffer(const unsigned int buffer,int iside)
-{
-	Viewer.buffer = buffer;
-	Viewer.iside = iside;
-}
-*/
 int fwl_get_headlight() { 
 	return(Viewer.headlight);
 }
@@ -231,25 +214,6 @@ void set_eyehalf(const double eyehalf, const double eyehalfangle) {
 }
 
 void fwl_set_viewer_type(const int type) {
-	set_viewer_type(type);
-}
-void set_viewer_type(const int type) {
-
-	/* set velocity array to zero again - used only for EAI */
-	VPvelocity.x=0.0; VPvelocity.y=0.0; VPvelocity.z=0.0;
-
-	/* can the currently bound viewer type handle this */
-	/* if there is no bound viewer, just ignore (happens on initialization) */
-	if (navi_tos != -1)
-		if (Viewer.oktypes[type]==FALSE) {
-			setMenuButton_navModes(viewer_type);
-			return;
-		}
-
-	viewer_init(&Viewer,type);
-
-	/* tell the window menu what we are */
-	setMenuButton_navModes(viewer_type);
 
 	switch(type) {
 	case VIEWER_NONE:
@@ -258,18 +222,35 @@ void set_viewer_type(const int type) {
 	case VIEWER_EXFLY:
 	case VIEWER_YAWPITCHZOOM:
 	case VIEWER_FLY:
-		viewer_type = type;
+		Viewer.type = type;
 		break;
 	default:
-		fprintf(stderr, "Viewer type %d is not supported. See Viewer.h.\n", type);
-		viewer_type = VIEWER_NONE;
+		ConsoleMessage ("Viewer type %d is not supported. See Viewer.h.\n", type);
+		Viewer.type = VIEWER_NONE;
 		break;
 	}
+
+	/* set velocity array to zero again - used only for EAI */
+	Viewer.VPvelocity.x=0.0; Viewer.VPvelocity.y=0.0; Viewer.VPvelocity.z=0.0;
+
+	/* can the currently bound viewer type handle this */
+	/* if there is no bound viewer, just ignore (happens on initialization) */
+	if (navi_tos != -1)
+		if (Viewer.oktypes[type]==FALSE) {
+			setMenuButton_navModes(Viewer.type);
+			return;
+		}
+
+	viewer_init(&Viewer,type);
+
+	/* tell the window menu what we are */
+	setMenuButton_navModes(Viewer.type);
+
 }
 
 
 int use_keys() {
-	if (viewer_type == VIEWER_FLY) {
+	if (Viewer.type == VIEWER_FLY) {
 		return TRUE;
 	}
 	return FALSE;
@@ -281,10 +262,10 @@ void resolve_pos() {
 	struct point_XYZ rot, z_axis = { 0, 0, 1 };
 	Quaternion q_inv;
 	double dist = 0;
-	X3D_Viewer_Examine *examine = Viewer.examine;
+	X3D_Viewer_Examine *examine = &Viewer.examine;
 
 
-	if (viewer_type == VIEWER_EXAMINE) {
+	if (Viewer.type == VIEWER_EXAMINE) {
 		/* my $z = $this->{Quat}->invert->rotate([0,0,1]); */
 		quaternion_inverse(&q_inv, &(Viewer.Quat));
 		quaternion_rotation(&rot, &q_inv, &z_axis);
@@ -433,7 +414,7 @@ printf ("\t	startSlerpAntiPos %lf %lf %lf\n",Viewer.startSLERPAntiPos.x,Viewer.s
 printf ("\t	AntiPos           %lf %lf %lf\n",Viewer.AntiPos.x,Viewer.AntiPos.y,Viewer.AntiPos.z);
 */
 
-		/* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
+		/* printf ("slerping in togl, type %s\n", VIEWER_STRING(Viewer.type)); */
 		tickFrac = (TickTime - Viewer.startSLERPtime)/Viewer.transitionTime;
 		//tickFrac = tickFrac/4.0;
 		//printf ("tick frac %lf\n",tickFrac); 
@@ -473,6 +454,7 @@ printf ("\t	AntiPos           %lf %lf %lf\n",Viewer.AntiPos.x,Viewer.AntiPos.y,V
 	- for X3D Viewpoints, this one adds in the AntiPos; for GeoViewpoints, we do a get after
 	  doing Geo transform and rotation that are integral with the GeoViewpoint node.
 */
+
 
 void getCurrentPosInModel (int addInAntiPos) {
 	struct point_XYZ rp;
@@ -562,7 +544,7 @@ static void handle_walk(const int mev, const unsigned int button, const float x,
  * walk.yd is vertical in the global/scene
  * walk.rd is an angle in the global/scene horizontal plane (around vertical axis)
 */
-	X3D_Viewer_Walk *walk = Viewer.walk;
+	X3D_Viewer_Walk *walk = &Viewer.walk;
 	double frameRateAdjustment = 1.0;
 	if( BrowserFPS > 0)
 		frameRateAdjustment = 20.0 / BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
@@ -620,7 +602,7 @@ static double
 void handle_examine(const int mev, const unsigned int button, float x, float y) {
 	Quaternion q, q_i, arc;
 	struct point_XYZ p = { 0, 0, 0};
-	X3D_Viewer_Examine *examine = Viewer.examine;
+	X3D_Viewer_Examine *examine = &Viewer.examine;
 	double squat_norm;
 
 	p.z=Viewer.Dist;
@@ -693,7 +675,7 @@ printf ("examine->origin %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin
 void handle_yawpitchzoom(const int mev, const unsigned int button, float x, float y) {
 	/* handle_examine almost works except we don't want roll-tilt, and we want to zoom */
 	Quaternion qyaw, qpitch;
-	X3D_Viewer_YawPitchZoom *ypz = Viewer.ypz;
+	X3D_Viewer_YawPitchZoom *ypz = &Viewer.ypz;
 	double dyaw,dpitch;
 	/* unused double dzoom; */
 
@@ -708,8 +690,8 @@ void handle_yawpitchzoom(const int mev, const unsigned int button, float x, floa
 		}
 	} else if (mev == MotionNotify) {
 		if (button == 1) {
-			dyaw   = (ypz->x - x) * fieldofview*PI/180.0*fovZoom * screenRatio; 
-			dpitch = (ypz->y - y) * fieldofview*PI/180.0*fovZoom;
+			dyaw   = (ypz->x - x) * Viewer.fieldofview*PI/180.0*Viewer.fovZoom * screenRatio; 
+			dpitch = (ypz->y - y) * Viewer.fieldofview*PI/180.0*Viewer.fovZoom;
 			ypz->ypz[0] = ypz->ypz0[0] + dyaw;
 			ypz->ypz[1] = ypz->ypz0[1] + dpitch;
 			vrmlrot_to_quaternion(&qyaw, 0.0, 1.0, 0.0, ypz->ypz[0]);
@@ -725,28 +707,25 @@ void handle_yawpitchzoom(const int mev, const unsigned int button, float x, floa
 				d = fabs(d);
 				fac = ((d * .5) + (1.0 - d) * 1.0);
 			}
-			fovZoom = fovZoom * fac;
-			fovZoom = DOUBLE_MIN(2.0,DOUBLE_MAX(.125,fovZoom));  
+			Viewer.fovZoom = Viewer.fovZoom * fac;
+			Viewer.fovZoom = DOUBLE_MIN(2.0,DOUBLE_MAX(.125,Viewer.fovZoom));  
 		}
  	}
 }
 
 /************************************************************************************/
 
-int getViewerType()
-{
-	return viewer_type;
-}
+
 void handle(const int mev, const unsigned int button, const float x, const float y)
 {
 	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
-	   VIEWER_STRING(viewer_type), mev, button, x, y); */
+	   VIEWER_STRING(Viewer.type), mev, button, x, y); */
 
 	if (button == 2) {
 		return;
 	}
 
-	switch(viewer_type) {
+	switch(Viewer.type) {
 	case VIEWER_NONE:
 		break;
 	case VIEWER_EXAMINE:
@@ -770,11 +749,11 @@ void handle(const int mev, const unsigned int button, const float x, const float
 void
 handle_key(const char key)
 {
-	X3D_Viewer_Fly *fly = Viewer.fly;
+	X3D_Viewer_Fly *fly = &Viewer.fly;
 	char _key;
 	int i;
 
-	if (viewer_type == VIEWER_FLY) {
+	if (Viewer.type == VIEWER_FLY) {
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
 
@@ -792,11 +771,11 @@ void
 handle_keyrelease(const char key)
 {
 	/* my($this,$time,$key) = @_; */
-	X3D_Viewer_Fly *fly = Viewer.fly;
+	X3D_Viewer_Fly *fly = &Viewer.fly;
 	char _key;
 	int i;
 
-	if (viewer_type == VIEWER_FLY) {
+	if (Viewer.type == VIEWER_FLY) {
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
 
@@ -860,7 +839,7 @@ struct point_XYZ viewer_get_lastP()
 static void
 handle_tick_walk()
 {
-	X3D_Viewer_Walk *walk = Viewer.walk;
+	X3D_Viewer_Walk *walk = &Viewer.walk;
 	Quaternion q, nq;
 	struct point_XYZ p;
 
@@ -938,8 +917,8 @@ handle_tick_exfly()
 				IN_FILE);
 
 		/* allow the user to continue in default Viewer mode */
-		viewer_type = VIEWER_EXAMINE;
-		setMenuButton_navModes(viewer_type);
+		Viewer.type = VIEWER_EXAMINE;
+		setMenuButton_navModes(Viewer.type);
 		return;
 	}
 	rv = fread(string, sizeof(char), IN_FILE_BYTES, exfly_in_file);
@@ -1040,7 +1019,7 @@ set_action(char *key)
 static void
 handle_tick_fly()
 {
-	X3D_Viewer_Fly *fly = Viewer.fly;
+	X3D_Viewer_Fly *fly = &Viewer.fly;
 	Key ps[KEYS_HANDLED] = KEYMAP;
 	Quaternion q_v, nq = { 1, 0, 0, 0 };
 	struct point_XYZ v;
@@ -1131,7 +1110,7 @@ handle_tick_fly()
 void
 handle_tick()
 {
-	switch(viewer_type) {
+	switch(Viewer.type) {
 	case VIEWER_NONE:
 		break;
 	case VIEWER_EXAMINE:
@@ -1151,7 +1130,7 @@ handle_tick()
 		break;
 	}
 
-	if (doExamineModeDistanceCalculations) {
+	if (Viewer.doExamineModeDistanceCalculations) {
 /*
 		printf ("handle_tick - doing calculations\n");
 */
@@ -1160,7 +1139,7 @@ handle_tick()
 		examineCounter --;
 
 		if (examineCounter < 0) {
-		doExamineModeDistanceCalculations = FALSE;
+		Viewer.doExamineModeDistanceCalculations = FALSE;
 		examineCounter = 5;
 		}
 	}
@@ -1611,7 +1590,7 @@ void increment_pos(struct point_XYZ *vec) {
 	quaternion_rotation(&nv, &q_i, vec);
 
 	/* save velocity calculations for this mode; used for EAI calls only */
-	VPvelocity.x = nv.x; VPvelocity.y = nv.y; VPvelocity.z = nv.z;
+	Viewer.VPvelocity.x = nv.x; Viewer.VPvelocity.y = nv.y; Viewer.VPvelocity.z = nv.z;
 	/* and, act on this change of location. */
 	Viewer.Pos.x += nv.x;  /* Viewer.Pos must be in bound-viewpoint space */
 	Viewer.Pos.y += nv.y; 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.42 2011/05/24 15:35:21 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.43 2011/05/27 13:55:44 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -106,11 +106,11 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
 	if(viewPort[2] > viewPort[3]) {
 		a1=0;
-		fieldofview = node->fieldOfView/3.1415926536*180;
+		Viewer.fieldofview = node->fieldOfView/3.1415926536*180;
 	} else {
 		a1 = node->fieldOfView;
 		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
-		fieldofview = a1/3.1415926536*180;
+		Viewer.fieldofview = a1/3.1415926536*180;
 	}
 	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }

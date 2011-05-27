@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.178 2011/05/26 16:57:53 crc_canada Exp $
+  $Id: MainLoop.c,v 1.179 2011/05/27 13:55:44 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -94,13 +94,6 @@ void  setAquaCursor(int ctype) { };
 
 #include "MainLoop.h"
 
-
-/* for mobile devices; what is our intended orientation? */
-/* note; for multi-displays, like browser plugins, this should stay at 0.0
-   for all instantations */
-
-static double viewOrient = 0.0;
-
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;
 
@@ -158,7 +151,6 @@ int currentFileVersion = 0;
 int quitThread = FALSE;
 char * keypress_string=NULL;            /* Robert Sim - command line key sequence */
 int keypress_wait_for_settle = 100;     /* JAS - change keypress to wait, then do 1 per loop */
-extern int viewer_initialized;
 
 /* void Next_ViewPoint(void);  */            /*  switch to next viewpoint -*/
 static void setup_viewpoint();
@@ -358,7 +350,7 @@ void fwl_RenderSceneUpdateScene() {
                 /* printf ("fps %f tris %d, rootnode children %d \n",BrowserFPS,trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
                 /* ConsoleMessage("fps %f tris %d\n",BrowserFPS,trisThisLoop);   */
 
-		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane);  */
+		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);  */
 
                 BrowserStartTime = TickTime;
                 loop_count = 1;
@@ -833,9 +825,9 @@ void setup_projection(int pick, int x, int y)
     
     PRINT_GL_ERROR_IF_ANY("XEvents::start of setup_projection");
     
-	fieldofview2 = fieldofview;
-	if(getViewerType()==VIEWER_YAWPITCHZOOM)
-		fieldofview2*=fovZoom;
+	fieldofview2 = Viewer.fieldofview;
+	if(Viewer.type==VIEWER_YAWPITCHZOOM)
+		fieldofview2*=Viewer.fovZoom;
 	if(Viewer.sidebyside) 
 	{
 		screenwidth2 = (int)((screenwidth2 * .5)+.5);
@@ -885,7 +877,7 @@ void setup_projection(int pick, int x, int y)
 		}
 
 		FW_GL_ORTHO (minX, maxX, minY, maxY,
-				nearPlane,farPlane);
+				Viewer.nearPlane,Viewer.farPlane);
 		
 	} else {
         	/* bounds check */
@@ -893,7 +885,7 @@ void setup_projection(int pick, int x, int y)
 				fieldofview2=45.0;
         	/* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
 
-        	FW_GLU_PERSPECTIVE(fieldofview2, aspect2, nearPlane, farPlane); 
+        	FW_GLU_PERSPECTIVE(fieldofview2, aspect2, Viewer.nearPlane, Viewer.farPlane); 
 	}
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
@@ -1098,9 +1090,7 @@ static void get_collisionoffset(double *x, double *y, double *z)
 struct point_XYZ viewer_get_lastP();
 static void render_collisions() {
         struct point_XYZ v;
-		int viewerType;
-		viewerType = getViewerType();
-		if(viewerType == VIEWER_YAWPITCHZOOM) return; //no collisions
+		if(Viewer.type == VIEWER_YAWPITCHZOOM) return; //no collisions
 		
 
         CollisionInfo.Offset.x = 0;
@@ -1118,7 +1108,7 @@ static void render_collisions() {
 		*/
 		FallInfo.fallHeight = 100.0; /* when deciding to fall, how far down do you look for a landing surface before giving up and floating */
 		FallInfo.fallStep = 1.0; /* maximum height to fall on one frame */
-		FallInfo.walking = getViewerType() == VIEWER_WALK; //viewer_type == VIEWER_WALK;
+		FallInfo.walking = Viewer.type == VIEWER_WALK; //viewer_type == VIEWER_WALK;
 		FallInfo.canFall = FallInfo.walking; /* && COLLISION (but we wouldn't be in here if not). Will be set to 0 if a climb is found. */
 		FallInfo.hits = 0; /* counter (number of vertical hits) set to zero here once per frame */
 		FallInfo.isFall = 0; /*initialize here once per frame - flags if there's a fall found */
@@ -1274,7 +1264,7 @@ static void setup_viewpoint() {
             
 	#endif // IPHONE, ANDROID screen rotate
 
-        viewer_togl(fieldofview);
+        viewer_togl(Viewer.fieldofview);
         render_hier(rootNode, VF_Viewpoint);
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 
@@ -1328,11 +1318,11 @@ void fwl_do_keyPress(const char kp, int type) {
 						lkp = kp;
 						//if(kp>='A' && kp <='Z') lkp = tolower(kp);
                         switch (lkp) {
-                                case 'e': { set_viewer_type (VIEWER_EXAMINE); break; }
-                                case 'w': { set_viewer_type (VIEWER_WALK); break; }
-                                case 'd': { set_viewer_type (VIEWER_FLY); break; }
-                                case 'f': { set_viewer_type (VIEWER_EXFLY); break; }
-                                case 'y': { set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
+                                case 'e': { fwl_set_viewer_type (VIEWER_EXAMINE); break; }
+                                case 'w': { fwl_set_viewer_type (VIEWER_WALK); break; }
+                                case 'd': { fwl_set_viewer_type (VIEWER_FLY); break; }
+                                case 'f': { fwl_set_viewer_type (VIEWER_EXFLY); break; }
+                                case 'y': { fwl_set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
                                 case 'h': { fwl_toggle_headlight(); break;}
                                 case '/': { print_viewer(); break; }
                                 case '\\': { dump_scenegraph(); break; }
@@ -1772,7 +1762,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	new_tessellation();
 	#endif /* IPHONE */
 	
-	set_viewer_type(VIEWER_EXAMINE);
+	fwl_set_viewer_type(VIEWER_EXAMINE);
 	
 	viewer_postGLinit_init();
 

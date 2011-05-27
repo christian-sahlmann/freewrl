@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.39 2011/05/26 16:57:53 crc_canada Exp $
+$Id: Viewer.h,v 1.40 2011/05/27 13:55:44 crc_canada Exp $
 
 Viewer ???
 
@@ -39,7 +39,7 @@ Viewer ???
 	type == VIEWER_EXFLY ? "EXFLY" : ( \
 	type == VIEWER_YAWPITCHZOOM ? "YAWPITCHZOOM" : (\
 	type == VIEWER_FLY ? "FLY" : "UNKNOWN"))))))
-void set_viewer_type(const int type);
+void fwl_set_viewer_type(const int type);
 
 #define PRESS "PRESS"
 #define PRESS_LEN 5
@@ -231,15 +231,18 @@ typedef struct viewer {
 	/* */
 	unsigned int buffer;
 	int oktypes[7];		/* boolean for types being acceptable. */
-	X3D_Viewer_Walk *walk;
-	X3D_Viewer_Examine *examine;
-	X3D_Viewer_Fly *fly;
-	X3D_Viewer_YawPitchZoom *ypz;
+	X3D_Viewer_Walk walk;
+	X3D_Viewer_Examine examine;
+	X3D_Viewer_Fly fly;
+	X3D_Viewer_YawPitchZoom ypz;
+
+	struct point_XYZ VPvelocity;
 
 	int SLERPing;
 	double startSLERPtime;
 
-	int transitionType;
+	int type; 	/* eg, VIEWER_EXAMINE, etc */
+	int transitionType;   	/* going from one viewpoint to another */
 	double transitionTime;
 
 	struct point_XYZ startSLERPPos;
@@ -252,12 +255,23 @@ typedef struct viewer {
 
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
 
+	int doExamineModeDistanceCalculations;	
+
 	/* are we perspective or ortho? */
 	int ortho;
 	double orthoField[4];
 
 	/* are we normal, or rotated? (makes sense only for mobile devices) */
 	int orient;
+
+	double nearPlane;
+	double farPlane;
+	double backgroundPlane ;
+	GLDOUBLE fieldofview;
+	GLDOUBLE fovZoom ;
+	double calculatedNearPlane ;
+	double calculatedFarPlane ;
+
 
 } X3D_Viewer;
 
@@ -273,14 +287,6 @@ viewer_init(X3D_Viewer *viewer,
 
 void
 print_viewer();
-
-unsigned int
-get_buffer();
-
-/*
-void
-set_buffer( const unsigned int buffer, int iside);
-*/
 
 int
 fwl_get_headlight();
@@ -349,7 +355,6 @@ void getCurrentPosInModel (int addInAntiPos);
 
 void toggle_collision(void);
 void viewer_lastP_clear();
-int getViewerType();
 void avatar2BoundViewpointVerticalAvatar(GLDOUBLE *matA2BVVA, GLDOUBLE *matBVVA2A);
 
 #endif /* __FREEWRL_VIEWER_H__ */

@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.30 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: libFreeWRL.h,v 1.31 2011/05/27 13:55:44 crc_canada Exp $
 
   FreeWRL library API (public)
 
@@ -107,9 +107,7 @@ void terminateFreeWRL();
 int ConsoleMessage(const char *fmt, ...); /* This does not belong here!! */
 //#endif
 
-/* OLDCODE: void create_EAI(); */
 void create_MIDIEAI();
-/* OLDCODE: void doQuit(); */
 
 /* void Anchor_ReplaceWorld(char *name); */
 bool Anchor_ReplaceWorld();
@@ -120,7 +118,6 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_EXFLY 3
 #define VIEWER_FLY 4
 #define VIEWER_YAWPITCHZOOM 5
-/* OLDCODE: void set_viewer_type(const int type); */
 
 /* Hmm.., this is actually a frontend call void fv_setGeometry_from_cmdline(const char *gstring);*/
 /* void setSnapFile(const char* file); */

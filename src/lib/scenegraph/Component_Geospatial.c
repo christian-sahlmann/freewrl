@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.52 2011/05/20 20:07:12 crc_canada Exp $
+$Id: Component_Geospatial.c,v 1.53 2011/05/27 13:55:44 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -2389,7 +2389,7 @@ void do_GeoProximitySensorTick( void *ptr) {
 			#ifdef VERBOSE
 			printf ("do_GeoProximitySensorTick, position changed; it now is %lf %lf %lf\n",node->position_changed.c[0],
 				node->position_changed.c[1], node->position_changed.c[2]);
-			printf ("nearPlane is %lf\n",nearPlane);
+			printf ("nearPlane is %lf\n",Viewer.nearPlane);
 
 			#endif
 
@@ -2405,9 +2405,9 @@ void do_GeoProximitySensorTick( void *ptr) {
 
 			/* then add in the nearPlane, as the way we get the position is via a clipped frustum */
 			/* if we get this via the position_changed field, we have to:
-				node->geoCoord_changed.c[2] += nearPlane;
+				node->geoCoord_changed.c[2] += Viewer.nearPlane;
 			*/
-			node->geoCoord_changed.c[2] += nearPlane;
+			node->geoCoord_changed.c[2] += Viewer.nearPlane;
 			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, geoCoord_changed));
 
 			#ifdef VERBOSE
@@ -2548,7 +2548,7 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 			/* if we get this via the position_changed field, we have to:
 				node->hitGeoCoord_changed.c[2] += nearPlane;
 			*/
-			node->hitGeoCoord_changed.c[2] += nearPlane;
+			node->hitGeoCoord_changed.c[2] += Viewer.nearPlane;
 			MARK_EVENT (ptr, offsetof(struct X3D_GeoTouchSensor, hitGeoCoord_changed));
 
 			#ifdef SENSVERBOSE
@@ -2687,11 +2687,11 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
 	if(viewPort[2] > viewPort[3]) {
 		a1=0;
-		fieldofview = node->fieldOfView/3.1415926536*180;
+		Viewer.fieldofview = node->fieldOfView/3.1415926536*180;
 	} else {
 		a1 = node->fieldOfView;
 		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
-		fieldofview = a1/3.1415926536*180;
+		Viewer.fieldofview = a1/3.1415926536*180;
 	}
 
 	calculateViewingSpeed();
@@ -2774,11 +2774,10 @@ static void calculateViewingSpeed() {
 }
 
 static void calculateExamineModeDistance(void) {
-extern int doExamineModeDistanceCalculations;
 /*
 	printf ("bind_GeoViewpoint - calculateExamineModeDistance\n");
 */
-doExamineModeDistanceCalculations = TRUE;
+Viewer.doExamineModeDistanceCalculations = TRUE;
 
 }
 

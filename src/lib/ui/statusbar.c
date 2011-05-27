@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.31 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: statusbar.c,v 1.32 2011/05/27 13:55:44 crc_canada Exp $
 
 */
 
@@ -108,9 +108,9 @@ void setup_projection(int pick, int x, int y)
         FW_GL_LOAD_IDENTITY();
 
         /* bounds check */
-        if ((fieldofview <= 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
+        if ((Viewer.fieldofview <= 0.0) || (Viewer.fieldofview > 180.0)) Viewer.fieldofview=45.0;
         /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
-        FW_GLU_PERSPECTIVE(fieldofview, aspect2, nearPlane, farPlane); 
+        FW_GLU_PERSPECTIVE(Viewer.fieldofview, aspect2, Viewer.nearPlane, Viewer.farPlane); 
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
