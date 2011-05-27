@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.40 2011/05/27 13:55:44 crc_canada Exp $
+$Id: Viewer.h,v 1.41 2011/05/27 14:59:10 crc_canada Exp $
 
 Viewer ???
 
@@ -130,9 +130,9 @@ void fwl_set_viewer_type(const int type);
         Viewer.Dist = sqrt (xd*xd+yd*yd+zd*zd);
 
 #define INITIATE_ROTATION_ORIGIN \
-        Viewer.examine->Origin.x = vp->centerOfRotation.c[0]; \
-        Viewer.examine->Origin.y = vp->centerOfRotation.c[1]; \
-	Viewer.examine->Origin.z = vp->centerOfRotation.c[2];
+        Viewer.examine.Origin.x = vp->centerOfRotation.c[0]; \
+        Viewer.examine.Origin.y = vp->centerOfRotation.c[1]; \
+	Viewer.examine.Origin.z = vp->centerOfRotation.c[2];
 
 #define INITIATE_POSITION_ANTIPOSITION \
         Viewer.Pos.x = vp->position.c[0]; \

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.34 2011/05/17 13:58:29 crc_canada Exp $
+$Id: Component_Text.c,v 1.35 2011/05/27 14:59:10 crc_canada Exp $
 
 X3D Text Component
 
@@ -44,6 +44,7 @@ X3D Text Component
 #include "../input/InputFunctions.h"
 #include "../main/headers.h"
 #include "../opengl/Textures.h"
+#include "../scenegraph/Viewer.h"
 #include "../opengl/OpenGL_Utils.h"
 
 #include "Collision.h"
@@ -609,11 +610,11 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
         //printf ("fov %f tzd %f \n",(float) fieldofview, (float) TextZdist);
 #else
         /* the equation should be simple, but it did not work. Lets try the following: */
-        if (fieldofview < 12.0f) {
+        if (Viewer.fieldofview < 12.0f) {
             TextZdist = -12.0f;
-        } else if (fieldofview < 46.0f) {
+        } else if (Viewer.fieldofview < 46.0f) {
             TextZdist = -0.2f;
-        } else if (fieldofview  < 120.0f) {
+        } else if (Viewer.fieldofview  < 120.0f) {
             TextZdist = +2.0f;
         } else {
             TextZdist = + 2.88f;

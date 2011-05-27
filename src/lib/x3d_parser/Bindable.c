@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.57 2011/05/27 13:55:44 crc_canada Exp $
+$Id: Bindable.c,v 1.58 2011/05/27 14:59:10 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -974,7 +974,7 @@ void render_Background (struct X3D_Background *node) {
 
 	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
 	   all geometry fits within the spheres */
-	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
+	FW_GL_SCALE_D (Viewer.backgroundPlane, Viewer.backgroundPlane, Viewer.backgroundPlane);
 
 	#ifdef SHADERS_2011
 		enableGlobalShader(backgroundSphereShader);
@@ -1075,7 +1075,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
 	   all geometry fits within the spheres */
-	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
+	FW_GL_SCALE_D (Viewer.backgroundPlane, Viewer.backgroundPlane, Viewer.backgroundPlane);
 
 
 	#ifdef SHADERS_2011
