@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.21 2011/05/25 19:26:34 davejoubert Exp $
+$Id: ConsoleMessage.c,v 1.22 2011/05/28 17:11:42 dug9 Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -92,6 +92,10 @@ int fwl_StringConsoleMessage(char* consoleBuffer) { return ConsoleMessage(consol
 #endif
 
 #ifdef _MSC_VER
+#if _MSC_VER < 1500
+#define HAVE_VSCPRINTF
+#endif
+
 #include <windows.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -100,6 +104,8 @@ static HANDLE hStdErr = NULL;
 
 void initConsoleH(DWORD pid)
 {
+#if _MSC_VER >= 1500
+
 	hStdErr = GetStdHandle(STD_ERROR_HANDLE);
 	if(!hStdErr)
 	if( !AttachConsole(pid))
@@ -114,6 +120,7 @@ void initConsoleH(DWORD pid)
 		AllocConsole();
 	}
 	hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+#endif
 }
 
 static void initConsole(void)
@@ -122,6 +129,10 @@ static void initConsole(void)
 	//hStdErr = GetStdHandle(STD_ERROR_HANDLE);
 	if(hStdErr == NULL)
 	{
+#ifndef ATTACH_PARENT_PROCESS
+#define ATTACH_PARENT_PROCESS ((DWORD)-1)
+#endif
+#if _MSC_VER >= 1500
 		if( !AttachConsole(ATTACH_PARENT_PROCESS))
 		{
 			DWORD dw = GetLastError();
@@ -133,6 +144,7 @@ static void initConsole(void)
 				printf("attachconsole gen failure\n");
 			ac = AllocConsole();
 		}
+#endif
 		hStdErr = GetStdHandle(STD_ERROR_HANDLE);
 	}
 }
@@ -143,6 +155,11 @@ void writeToWin32Console(char *buff)
         initConsole(); 
     /* not C console - more low level windows SDK API */
     WriteConsoleA(hStdErr, buff, strlen(buff),&cWritten, NULL);
+}
+//stub for vc7
+int DEBUG_FPRINTF(const char *fmt, ...)
+{
+	return 0;
 }
 
 #endif
@@ -340,7 +357,8 @@ int ConsoleMessage0(const char *fmt, va_list args)
 		int len;
 		len = _vscprintf( fmt, args ) +1; /* counts only */
 		buffer = malloc( len * sizeof(char) );
-		retval = vsprintf_s( buffer, len, fmt, args ); /*allocates the len you pass in*/
+		retval = vsprintf( buffer, fmt, args );
+		//retval = vsprintf_s( buffer, len, fmt, args ); /*allocates the len you pass in*/
 		doFree = 1;
 #elif HAVE_VASPRINTF
 		/* http://linux.die.net/man/3/vasprintf a GNU extension, not tested */

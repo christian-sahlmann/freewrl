@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.h,v 1.3 2010/02/28 17:22:55 crc_canada Exp $
+$Id: ColladaParser.h,v 1.4 2011/05/28 17:11:42 dug9 Exp $
 
 Collada parser functions.
 
@@ -51,7 +51,7 @@ extern char *CDATA_Text;
 
 extern struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
 
-#define INCREMENT_PARENTINDEX \
+#define INCREMENT_PARENTINDEXC \
         if (parentIndex < (PARENTSTACKSIZE-2))  { \
                 parentIndex++; \
                 colladaParentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \

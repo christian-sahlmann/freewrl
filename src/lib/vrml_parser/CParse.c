@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.26 2011/05/18 14:42:20 crc_canada Exp $
+$Id: CParse.c,v 1.27 2011/05/28 17:11:42 dug9 Exp $
 
 ???
 
@@ -52,7 +52,7 @@ int inWhichParser = 0;
 
 #undef TIMING
 
-bool cParse(void* ptr, unsigned ofs, const char* data) {
+BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 	struct VRMLParser* parser;
 
 	#ifdef TIMING
