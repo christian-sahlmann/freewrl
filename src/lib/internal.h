@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.h,v 1.45 2011/05/28 13:17:55 dug9 Exp $
+$Id: internal.h,v 1.46 2011/05/28 14:02:12 dug9 Exp $
 
 ???
 
@@ -31,7 +31,7 @@ $Id: internal.h,v 1.45 2011/05/28 13:17:55 dug9 Exp $
 #include <config.h>
 #include <system.h>
 #include <display.h>
-#include <internal.h>
+//#include <internal.h>
 
 #include <libFreeWRL.h>
 #include <list.h>
