@@ -63,7 +63,12 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
     size_t convertedChars = 0;
     wchar_t wcstring[newsize];
     //mbstowcs_s(&convertedChars, wcstring, origsize, fname, _TRUNCATE);
+#if _MSC_VER >= 1500
     mbstowcs_s(&convertedChars, wcstring, origsize, fname2, _TRUNCATE);
+#else
+    mbstowcs(wcstring, fname2, MB_CUR_MAX);
+#endif
+
 	free(fname2);
 	Bitmap *bitmap = NULL;
 	Status stat;
