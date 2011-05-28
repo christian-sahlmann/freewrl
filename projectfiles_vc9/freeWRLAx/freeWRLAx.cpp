@@ -301,3 +301,11 @@ STDAPI DllUnregisterServer(void)
 
 	return NOERROR;
 }
+//STDAPI DllCanUnloadNow(void)
+//{
+//	return NOERROR;
+//}
+//STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppv)
+//{
+//	return NOERROR;
+//}

@@ -44,7 +44,7 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
 //void do_keyPress(const char kp, int type);
 //void initializeRenderSceneUpdateScene();
 void fwl_initializeRenderSceneUpdateScene();
-void fwl_RenderSceneUpdateScene();
+//void fwl_RenderSceneUpdateScene();
 void finalizeRenderSceneUpdateScene();
 void resize_GL(int width, int height);
 void fwl_setScreenDim(int wi, int he);
@@ -80,10 +80,12 @@ CdllFreeWRL::CdllFreeWRL()
 	//enum class KeyAction {KEYDOWN,KEYUP,KEYPRESS};
 	//enum class MouseAction {MOUSEMOVE,MOUSEDOWN,MOUSEUP};
 	//enum class MouseButton {LEFT,MIDDLE,RIGHT,NONE};
-
+extern "C"{
+int fv_display_initialize(void);
+//static freewrl_params_t *fv_params;
+}
 void CdllFreeWRL::onInit(unsigned long handle,int width, int height){
-	freewrl_params_t *params;
-	//struct freewrl_params *params;
+	struct freewrl_params *params;
 	//_putenv("FREEWRL_NO_VBOS=1"); 
 	/* Before we parse the command line, setup the FreeWRL default parameters */
 	params = (freewrl_params_t*) malloc( sizeof(freewrl_params_t));
@@ -210,7 +212,7 @@ char* CdllFreeWRL::downloadFileName()
 }
 void CdllFreeWRL::downloadComplete(char *localfile, int iret)
 {
-fwl_frontEndReturningLocalFile(localfile, iret);
+fwg_frontEndReturningLocalFile(localfile, iret);
 }
 void CdllFreeWRL::print(char *str)
 {

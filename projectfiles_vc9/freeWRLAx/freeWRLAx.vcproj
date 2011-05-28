@@ -33,10 +33,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="mfcs71d.lib MSVCRTD.lib dllFreeWRLd.lib"
+				AdditionalDependencies="mfcs71d.lib MSVCRTD.lib dllFreeWRL_vc7.lib"
 				OutputFile="../Debug/freeWRLAx.ocx"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../Debug"
+				AdditionalLibraryDirectories="..\dllFreeWRL_vc7\Debug;../Debug"
 				IgnoreDefaultLibraryNames="mfcs71d.lib;MSVCRTD.lib"
 				ModuleDefinitionFile=".\freeWRLAx.def"
 				GenerateDebugInformation="TRUE"
