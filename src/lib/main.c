@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.53 2011/05/31 04:16:42 daytonavid Exp $
+  $Id: main.c,v 1.54 2011/05/31 04:47:56 daytonavid Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -85,28 +85,27 @@ int fwl_ANDROID_initialize(void)
 	setbuf(stderr,0);
 	
 	/* Initialize parser */
-	initialize_parser();
+	fwl_initialize_parser();
 
 	/* Multithreading ? */
 
 	/* OK the display is now initialized,
 	   create the display thread and wait for it
 	   to complete initialization */
-	initializeDisplayThread();
+	fwl_initializeDisplayThread();
 	
 
-	initializeInputParseThread();
-	while (!isInputThreadInitialized()) {
+	fwl_initializeInputParseThread();
+	while (!fwl_isInputThreadInitialized()) {
 		usleep(50);
 	}
 
-	initializeTextureThread();
-	while (!isTextureinitialized()) {
+	fwl_initializeTextureThread();
+	while (!fwl_isTextureinitialized()) {
 		usleep(50);
 	}
 	
-	fw_params.collision = 1;
-
+	fwl_setp_collision(1);
 
 	return TRUE;
 }
@@ -175,6 +174,8 @@ printf ("start of fwl_OSX_initializeParameters, url %s\n",initialURL);
 
     }
 }
+
+#endif // iPhone
 
 /* OSX plugin is telling us the id to refer to */
 void setInstance (uintptr_t instance) {
