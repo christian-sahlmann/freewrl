@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.180 2011/05/31 04:22:35 daytonavid Exp $
+  $Id: MainLoop.c,v 1.181 2011/05/31 14:42:11 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1919,14 +1919,6 @@ void fwl_set_LineWidth(float lwidth) {
         gl_linewidth = lwidth;
 }
 
-void setUseShapeThreadIfPossible(int x) {
-/* this is now unused, and call should be removed from front ends */
-}
-
-void setTextures_take_priority (int x) {
-/* this is now unused, and call should be removed from front ends */
-}
-
 void fwl_set_KeyString(const char* kstring)
 {
     keypress_string = strdup(kstring);
@@ -2195,7 +2187,6 @@ void fwl_setOrientation (int orient) {
 void setIsPlugin() {
 
         RUNNINGASPLUGIN = TRUE;
-        setUseShapeThreadIfPossible(0);
                 
         // Save local working directory
         /*
@@ -2255,7 +2246,7 @@ void fwl_resetRefresh() {
 }
 
 /* called from the standalone OSX front end and the OSX plugin */
-void replaceWorldNeeded(char* str)
+void fwl_replaceWorldNeeded(char* str)
 {
 	//printf ("replaceWorldneeded called - file %s\n",str); 
         AnchorsAnchor = NULL;

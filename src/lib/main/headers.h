@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.147 2011/05/27 13:55:44 crc_canada Exp $
+$Id: headers.h,v 1.148 2011/05/31 14:42:11 crc_canada Exp $
 
 Global includes.
 
@@ -599,10 +599,6 @@ void setMenuButton_navModes (int type) ;
 void setConsoleMessage(char *stat) ;
 void setMenuFps (float fps) ;
 void setMenuButton_texSize (int size);
-extern int textures_take_priority;
-void setTextures_take_priority (int x);
-extern int useExperimentalParser;
-void setUseCParser (int x);
 
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
@@ -663,7 +659,6 @@ void removeFilenameFromPath (char *path);
 
 int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *node);
 void EAI_Route(char cmnd, const char *tf);
-void EAI_replaceWorld(const char *inputstring);
 
 void handle_EAI(void);
 void handle_MIDIEAI(void);
@@ -673,13 +668,17 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 /* mimic X11 events in AQUA and/or WIN32 ; FIXME: establish a cleaner interface for this */
 #define KeyChar         1
+
 #if defined(AQUA) || defined(WIN32) || defined(_ANDROID)
-#define KeyPress        2
-#define KeyRelease      3
-#define ButtonPress     4
-#define ButtonRelease   5
-#define MotionNotify    6
-#define MapNotify       19
+#ifndef _MIMIC_X11_SCREEN_BUTTONS
+	#define _MIMIC_X11_SCREEN_BUTTONS
+		#define KeyPress        2
+		#define KeyRelease      3
+		#define ButtonPress     4
+		#define ButtonRelease   5
+		#define MotionNotify    6
+		#define MapNotify       19
+	#endif
 #endif
 
 /* extern void setSnapSeq(); */

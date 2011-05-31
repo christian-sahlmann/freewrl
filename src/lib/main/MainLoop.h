@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.h,v 1.13 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: MainLoop.h,v 1.14 2011/05/31 14:42:11 crc_canada Exp $
 
   FreeWRL support library.
   UI declarations.
@@ -39,8 +39,6 @@ void Last_ViewPoint();
 void Prev_ViewPoint();
 void Next_ViewPoint();
 */
-void setTextures_take_priority (int x);
-void setUseShapeThreadIfPossible(int x);
 void fwl_toggle_headlight();
 /* OLDCODE: now in lib header file void RenderSceneUpdateScene(); */
 
