@@ -146,7 +146,7 @@ print OUT "#include <sys/stat.h>\n";
 print OUT "#include <sys/time.h>\n";
 print OUT "#include <dirent.h>\n";
 print OUT "#include <fcntl.h>\n";
-print OUT "#include <internal.h>\n";
+#JAS print OUT "#include <internal.h>\n";
 
 
 findAndPrintUtilities();
