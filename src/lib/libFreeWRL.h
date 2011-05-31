@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.33 2011/05/31 14:42:11 crc_canada Exp $
+  $Id: libFreeWRL.h,v 1.34 2011/05/31 15:32:23 crc_canada Exp $
 
   FreeWRL library API (public)
 
@@ -136,24 +136,8 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_FLY 4
 #define VIEWER_YAWPITCHZOOM 5
 
-/* Hmm.., this is actually a frontend call void fv_setGeometry_from_cmdline(const char *gstring);*/
-/* void setSnapFile(const char* file); */
-/* void setSnapTmp(const char* file); */
-/* void setEaiVerbose(); */
-/* void setScreenDist(const char *optArg); */
-/* void setStereoParameter(const char *optArg); */
-/* void setShutter(void); */
-/* void setXEventStereo(); */
-/* void setEyeDist(const char *optArg); */
-
-/* void setAnaglyphParameter(const char *optArg); */
-/* void setSideBySide(void); */
 void setStereoBufferStyle(int);
-/* void initStereoDefaults(void); */
 
-/* void setLineWidth(float lwidth); */
-/* void setSnapGif(); */
-/* void setPrintShot(); */
 
 /**
  * General variables
