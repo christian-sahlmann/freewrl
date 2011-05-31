@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.43 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: resources.c,v 1.44 2011/05/31 00:52:42 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -53,7 +53,6 @@
 #include "zlib.h"
 
 
-static void removeFilenameFromPath (char *path);
 static void possiblyUnzip (openned_file_t *of);
 
 /**
@@ -941,7 +940,7 @@ char *resourceMediaTypeToString (int mt) {
 #if defined(_MSC_VER) || defined(_ANDROID)
 #define rindex strrchr
 #endif
-static void removeFilenameFromPath (char *path) {
+void removeFilenameFromPath (char *path) {
 	char *slashindex;
 	char *slashDotDotSlash;
 

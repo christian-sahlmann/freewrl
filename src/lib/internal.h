@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.h,v 1.47 2011/05/28 17:11:42 dug9 Exp $
+$Id: internal.h,v 1.48 2011/05/31 00:52:42 crc_canada Exp $
 
 ???
 
@@ -115,7 +115,7 @@ static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, ch
 //#else
 extern int curProtoInsStackInd;
 
-extern struct PROTOInstanceEntry ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
+// JAS extern struct PROTOInstanceEntry ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
 
 /* PROTO table */
 extern struct PROTOnameStruct *PROTONames;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.70 2011/05/28 17:11:42 dug9 Exp $
+$Id: X3DProtoScript.c,v 1.71 2011/05/31 00:52:43 crc_canada Exp $
 
 ???
 
@@ -58,11 +58,11 @@ $Id: X3DProtoScript.c,v 1.70 2011/05/28 17:11:42 dug9 Exp $
 #include "X3DProtoScript.h"
 
 
-static int currentProtoDeclare  = INT_ID_UNDEFINED;
-static int MAXProtos = 0;
-static int curProDecStackInd = 0;
+int currentProtoDeclare  = INT_ID_UNDEFINED;
+int MAXProtos = 0;
+int curProDecStackInd = 0;
 //static int currentProtoInstance = INT_ID_UNDEFINED;
-static int currentProtoInstance[PROTOINSTANCE_MAX_LEVELS];
+int currentProtoInstance[PROTOINSTANCE_MAX_LEVELS];
 static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono);
 
 #define CPI ProtoInstanceTable[curProtoInsStackInd]
@@ -78,7 +78,7 @@ static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, ch
 #define UNIQUE_NUMBER_HOLDER "-fReeWrl-UniqueNumH"
 
 /* ProtoInstance table This table is a dynamic table that is used for keeping track of ProtoInstance field values... */
-static int curProtoInsStackInd = -1;
+int curProtoInsStackInd = -1;
 
 struct PROTOInstanceEntry {
 	char *name[PROTOINSTANCE_MAX_PARAMS];
@@ -102,7 +102,7 @@ struct PROTOnameStruct {
 	int isExternProto;
 	struct Shader_Script *fieldDefs;
 };
-static struct PROTOnameStruct *PROTONames = NULL;
+struct PROTOnameStruct *PROTONames = NULL;
 
 #ifdef X3DPARSERVERBOSE
 static const char *parserModeStrings[] = {
