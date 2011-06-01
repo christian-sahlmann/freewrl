@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.81 2011/05/25 16:47:12 crc_canada Exp $
+$Id: Component_Shape.c,v 1.82 2011/06/01 15:02:21 crc_canada Exp $
 
 X3D Shape Component
 
@@ -47,7 +47,7 @@ X3D Shape Component
 #include "RenderFuncs.h"
 
 
-static int     linePropertySet;  /* line properties -width, etc                  */
+
 
 struct matpropstruct appearanceProperties;
 
@@ -67,6 +67,7 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 #if defined(IPHONE) || defined(_ANDROID)
 printf ("LineProperties ignored\n");
 #else
+static int     linePropertySet;  /* line properties -width, etc                  */
 	GLint	factor;
 	GLushort pat;
 	if (node->applied) {
@@ -568,8 +569,8 @@ static int getShapeColourShader (struct X3D_Node *myGeom) {
 
 /* find info on the geometry of this shape */
 static int getGeometryShader (struct X3D_Node *myGeom) {
-	struct X3D_Node *realNode;
 	#ifdef HAVE_GEOMETRY_SHADERS
+	struct X3D_Node *realNode;
 
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
 
@@ -770,12 +771,7 @@ default: {printf ("no ascii equiv\n");}
 #ifdef SHADERS_2011
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpN;
-	int i;
-	float dcol[4];
-	float ecol[4];
-	float scol[4];
-	float amb;
-
+    
 	COMPILE_IF_REQUIRED
 
 	/* JAS - if not collision, and render_geom is not set, no need to go further */

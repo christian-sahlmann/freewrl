@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.62 2011/05/17 13:58:29 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.63 2011/06/01 15:02:21 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -60,7 +60,10 @@ struct MyVertex
  };
 
 static GLuint SphereIndxVBO = 0;
+
+#ifdef HAVE_GEOMETRY_SHADERS
 static GLuint SphereGeomVBO = 0; 
+#endif /* HAVE_GEOMETRY_SHADERS */
 
 static GLfloat VBO_coneSideTexParams[]={
 	0.55f, 0.525f, 0.50f,
@@ -404,14 +407,21 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 }
 
 void render_Cylinder (struct X3D_Cylinder * node) {
+    
+#if !defined(IPHONE) && !defined(_ANDROID)
 	extern GLfloat cylnorms[];		/*  in CFuncs/statics.c*/
 	extern unsigned char cyltopindx[];	/*  in CFuncs/statics.c*/
 	extern unsigned char cylbotindx[];	/*  in CFuncs/statics.c*/
 	extern GLfloat cylendtex[];		/*  in CFuncs/statics.c*/
+
+#endif /* IPHONE and ANDROID */
+
 	extern GLfloat cylsidetex[];		/*  in CFuncs/statics.c*/
+	struct textureVertexInfo mtf = {cylsidetex,2,GL_FLOAT,0,NULL};    
+
 	float h = (node->height)/2;
 	float r = node->radius;
-	struct textureVertexInfo mtf = {cylsidetex,2,GL_FLOAT,0,NULL};
+
 
 	if ((h < 0) || (r < 0)) {return;}
 
@@ -994,7 +1004,6 @@ void render_Sphere (struct X3D_Sphere *node) {
 	struct textureVertexInfo mtf = {sphTex,2,GL_FLOAT,0,NULL};
 
 	float rad = node->radius;
-	int count;
 
 	if (rad<=0.0) { return;}
 
@@ -1189,7 +1198,6 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 
 	float rad = node->radius;
-	int count;
 
 	if (rad<=0.0) { return;}
 

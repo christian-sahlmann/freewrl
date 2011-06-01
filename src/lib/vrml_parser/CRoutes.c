@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.77 2011/02/24 16:13:03 crc_canada Exp $
+$Id: CRoutes.c,v 1.78 2011/06/01 15:02:21 crc_canada Exp $
 
 ???
 
@@ -522,6 +522,8 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 
 
 	return touched;
+#else
+    return FALSE;
 #endif /* HAVE_JAVASCRIPT */
 }
 
@@ -1450,8 +1452,12 @@ static void gatherScriptEventOuts(void) {
 /* we have a Script/Shader at routing table element %d, send events to it */
 static void sendScriptEventIn(int num) {
 	int to_counter;
+    
+#ifdef HAVE_JAVASCRIPT
 	CRnodeStruct *to_ptr = NULL;
-
+#endif
+    
+    
 	#ifdef CRVERBOSE
 	  printf("----BEGIN-------\nsendScriptEventIn, num %d direction %d\n",num,
 		CRoutes[num].direction_flag);

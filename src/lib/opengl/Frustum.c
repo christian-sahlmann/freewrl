@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.39 2011/02/16 17:46:00 crc_canada Exp $
+$Id: Frustum.c,v 1.40 2011/06/01 15:02:21 crc_canada Exp $
 
 ???
 
@@ -91,13 +91,18 @@ GLuint potentialOccluderCount = 0;
 void ** occluderNodePointer = NULL;
 
 /* older occluder code */
+#ifdef OCCLUSION 
 static int maxOccludersFound = 0;
-GLuint OccQuerySize=0;
 static int QueryCount = 0;
+static int OccInitialized = FALSE;
+#endif
+
+GLuint OccQuerySize=0;
+
 	#ifdef OCCLUSIONVERBOSE
 		static GLint queryCounterBits;
 	#endif
-static int OccInitialized = FALSE;
+
 int OccFailed = FALSE;
 GLint OccResultsAvailable = FALSE;
 

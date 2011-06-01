@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.15 2011/05/31 00:52:42 crc_canada Exp $
+$Id: ColladaParser.c,v 1.16 2011/06/01 15:02:21 crc_canada Exp $
 
 ???
 
@@ -125,7 +125,7 @@ printf ("CADAT_Text:%s:\n",CDATA_Text);
         inCDATA = TRUE;
 }
 
-static void XMLCALL endCDATA (void *userData) {
+static void XMLCALL endCDATA (void *userData, const xmlChar *value, int len) {
         #ifdef COLLADAPARSERVERBOSE
         printf ("endCDATA, cur index %d\n",CDATA_Text_curlen);
         printf ("endCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getParserMode()]);
@@ -149,7 +149,7 @@ printf ("\n");
 */
 }
 
-static void XMLCALL ColladaStartElement(void *unused, const char *name, const char **atts) {
+static void XMLCALL ColladaStartElement(void *unused, const xmlChar *name, const xmlChar **atts) {
 
 #ifdef COLLADAVERBOSE
 {int i,j; for (j=0; j< indentLevel; j++) printf ("  ");
@@ -164,7 +164,7 @@ static void XMLCALL ColladaStartElement(void *unused, const char *name, const ch
 	indentLevel++;
 }
 
-static void XMLCALL ColladaEndElement(void *unused, const char *name) {
+static void XMLCALL ColladaEndElement(void *unused, const xmlChar *name) {
 	indentLevel--;
 
 #ifdef COLLADAVERBOSE

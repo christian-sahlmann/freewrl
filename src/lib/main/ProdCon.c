@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.82 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: ProdCon.c,v 1.83 2011/06/01 15:02:21 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -512,7 +512,6 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 				setNavigationBindInRender = navnodes[0];
 			}
 			if (totviewpointnodes != 0) {
-				int whichnode = 0;
 				for (i=0; i < totviewpointnodes; ++i) send_bind_to(X3D_NODE(viewpointnodes[i]), 0);  /* Initialize binding info */
 
 				/* set the initial viewpoint for this file */

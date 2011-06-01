@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.86 2011/05/14 16:59:17 dug9 Exp $
+$Id: X3DParser.c,v 1.87 2011/06/01 15:02:21 crc_canada Exp $
 
 ???
 
@@ -56,11 +56,8 @@ $Id: X3DParser.c,v 1.86 2011/05/14 16:59:17 dug9 Exp $
 typedef xmlSAXHandler* XML_Parser;
 
 /* for now - fill this in later */
-#ifdef IPHONE
-#define XML_GetCurrentLineNumber(aaa) 999
-#else
-#define XML_GetCurrentLineNumber(aaa) 999L
-#endif
+#define XML_GetCurrentLineNumber(aaa) (int)999
+
 
 #define XML_ParserFree(aaa) FREE_IF_NZ(aaa)
 #define XML_SetUserData(aaa,bbb)
@@ -1273,7 +1270,7 @@ static void saveProtoInstanceFields (const char *name, char **atts) {
 	}
 
 
-static void saveAttributes(int myNodeType, const char *name, char** atts) {
+static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 	struct nameValuePairs* nvp;
 	int i;
 	struct X3D_Node *thisNode;
@@ -1600,10 +1597,11 @@ static void parseAttributes(void) {
 	}
 }
 
-static void XMLCALL X3DstartElement(void *unused, const char *name, const char **atts) {
+static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xmlChar **atts) {
 	int myNodeIndex;
 	char **myAtts;
 	char *blankAtts[] = {NULL,NULL};
+    const char *name = (const char*) iname;  // get around compiler warnings on iPhone, etc...
 
 	/* libxml passes NULL, while expat passes {0,0}. Make them the same */
 	if (atts == NULL) myAtts = blankAtts;
@@ -1642,7 +1640,7 @@ static void XMLCALL X3DstartElement(void *unused, const char *name, const char *
 		INCREMENT_PARENTINDEX 
 		DEBUG_X3DPARSER ("	creating new vector for parentIndex %d\n",parentIndex); 
 		INCREMENT_CHILDREN_LEVEL
-		saveAttributes(myNodeIndex,name,myAtts);
+		saveAttributes(myNodeIndex,(const xmlChar *)name,myAtts);
 		return;
 	}
 
@@ -1678,9 +1676,10 @@ static void XMLCALL X3DstartElement(void *unused, const char *name, const char *
 	printf ("startElement name  do not currently handle this one :%s: index %d\n",name,myNodeIndex); 
 }
 void endScriptProtoField(); //struct VRMLLexer* myLexer);
-static void XMLCALL X3DendElement(void *unused, const char *name) {
-	int myNodeIndex;
 
+static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
+	int myNodeIndex;
+    const char*name = (const char*) iname;
     /* printf ("X3DEndElement for %s\n",name); */
     
 	#ifdef X3DPARSERVERBOSE
@@ -1865,7 +1864,7 @@ int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
 	
 	if (XML_ParseFile(currentX3DParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
 		fprintf(stderr,
-			"%s at line %" XML_FMT_INT_MOD "u\n",
+			"%s at line %d\n",
 			XML_ErrorString(XML_GetErrorCode(currentX3DParser)),
 			XML_GetCurrentLineNumber(currentX3DParser));
 		shutdownX3DParser();

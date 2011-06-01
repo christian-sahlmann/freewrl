@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.23 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: threads.c,v 1.24 2011/06/01 15:02:21 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -96,7 +96,9 @@ void sync(){}
 
 void fwl_initializeDisplayThread()
 {
+#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
 	int ret;
+#endif
 
 	/* Synchronize trace/error log... */
 	fflush(stdout);

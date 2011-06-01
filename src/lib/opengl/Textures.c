@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.95 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: Textures.c,v 1.96 2011/06/01 15:02:21 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -62,7 +62,6 @@
 # if HAVE_JPEGLIB_H
 #undef HAVE_STDLIB_H
 #undef FAR
-#undef HAVE_BOOLEAN
 #  include <jpeglib.h>
 #  include <setjmp.h>
 # endif
@@ -154,8 +153,6 @@ static void myScaleImage(int srcX,int srcY,int destX,int destY,unsigned char *sr
 	for (wye=0; wye<destY; wye++) {
 		for (yex=0; yex<destX; yex++) {
 			float fx, fy;
-			int fromx, fromy;
-			int i;
 			int row, column;
 			int oldIndex;
 
@@ -1184,11 +1181,14 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 
 	if (appearanceProperties.cubeFace != 0) {
 		unsigned char *dest = me->texdata;
-		#if defined(IPHONE) || defined(_ANDROID)
-		int *sp, *dp; /* uint32 not defined on iphone?? */
-		#else
-		uint32 *sp, *dp;
-		#endif
+#ifdef OLDCODE
+OLDCODE		#if defined(IPHONE) || defined(_ANDROID)
+OLDCODE		uint32 *sp, *dp; /* uint32 not defined on iphone?? */
+OLDCODE		#else
+OLDCODE		uint32 *sp, *dp;
+OLDCODE		#endif
+#endif // OLDCODE
+        uint32 *sp, *dp;
 
 		int cx;
 
@@ -1225,13 +1225,17 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 
 		/* flip the image around */
 		dest = MALLOC (unsigned char *, 4*rx*ry);
-		#if defined(IPHONE) || defined(_ANDROID)
-		dp = dest;
-		sp = me->texdata;
-		#else
+#ifdef OLDCODE
+OLDCODE		#if defined(IPHONE) || defined(_ANDROID)
+OLDCODE		dp = (uint32*) dest;
+OLDCODE		sp = (uint32 *)me->texdata;
+OLDCODE		#else
+OLDCODE		dp = (uint32 *) dest;
+OLDCODE		sp = (uint32 *) me->texdata;
+OLDCODE		#endif
+#endif /* OLDCODE */
 		dp = (uint32 *) dest;
-		sp = (uint32 *) me->texdata;
-		#endif
+		sp = (uint32 *) me->texdata;        
 
 
 
@@ -1243,11 +1247,9 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 			myTexImage2D(generateMipMaps, appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 		#else
 			FW_GL_TEXIMAGE2D(appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-#if !defined(_ANDROID)
 			FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 			FW_GL_TEXGENI(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 			FW_GL_TEXGENI(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-#endif
 		#endif /* SHADERS_2011 */
 
 		/* last thing to do at the end of the setup for the 6th face */
@@ -1385,8 +1387,10 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 				if ((x==rx) && (y==ry)) {
 					dest = mytexdata;
 				} else {
+#ifndef SHADERS_2011
 					int texOk = FALSE;
-
+#endif
+                    
 					/* try this texture on for size, keep scaling down until we can do it */
 					/* all textures are 4 bytes/pixel */
 					dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
@@ -1399,16 +1403,11 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 					while (!texOk) {
 						GLint width, height;
 
-#if !defined(_ANDROID)
 						FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
-#endif
-
 						FW_GL_TEXIMAGE2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
-		
-#if !defined(_ANDROID)
 						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
 						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
-#endif
+
 		
 						if ((width == 0) || (height == 0)) {
 							rx= rx/2; ry = ry/2;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.30 2011/05/09 23:51:12 dug9 Exp $
+$Id: StreamPoly.c,v 1.31 2011/06/01 15:02:21 crc_canada Exp $
 
 ???
 
@@ -142,8 +142,8 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 
 
 	/* new memory locations for new data */
-	int *newcindex;
-	int *newtcindex;
+	GLuint *newcindex;
+	GLuint *newtcindex;
 	struct SFVec3f *newpoints;
 	struct SFVec3f *newnorms;
 	struct SFColorRGBA *newcolors;
@@ -268,8 +268,8 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	newcolors=0;	/*  only if we have colours*/
 
 	/* MALLOC required memory */
-	newcindex = MALLOC (int *, sizeof (int)*r->ntri*3);
-	newtcindex = MALLOC (int *, sizeof (int)*r->ntri*3);
+	newcindex = MALLOC (GLuint *, sizeof (int)*r->ntri*3);
+	newtcindex = MALLOC (GLuint *, sizeof (int)*r->ntri*3);
 
 	newpoints = MALLOC (struct SFVec3f *, sizeof (struct SFVec3f)*r->ntri*3);
 	
