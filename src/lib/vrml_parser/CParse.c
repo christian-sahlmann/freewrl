@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.28 2011/06/01 15:02:21 crc_canada Exp $
+$Id: CParse.c,v 1.29 2011/06/02 19:50:49 dug9 Exp $
 
 ???
 
@@ -79,6 +79,7 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
  	ASSERT(parser->lexer);
 
  	if(!parser_vrmlScene(parser)) {
+		int sl = strlen (parser->lexer->nextIn);
 		#define CHARS_TO_RETURN_ERROR_END 200
 		char finalChars[CHARS_TO_RETURN_ERROR_END];
 

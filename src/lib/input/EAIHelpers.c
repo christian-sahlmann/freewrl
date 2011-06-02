@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.48 2011/05/06 17:27:52 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.49 2011/06/02 19:50:43 dug9 Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -100,9 +100,29 @@ This struct contains both a node and an ofs field.
 /* responses get sent to the connecting program. The outBuffer is the place where
    these commands are placed */
 
-char *outBuffer = NULL;
-int outBufferLen = 0;
-
+//char *outBuffer = NULL;
+//int outBufferLen = 0;
+//static struct Vector *EAINodeIndex = NULL;
+typedef struct pEAIHelpers{
+	struct Vector *EAINodeIndex;
+} * ppEAIHelpers;
+void *EAIHelpers_constructor()
+{
+	void *v = malloc(sizeof(struct pEAIHelpers));
+	memset(v,0,sizeof(struct pEAIHelpers));
+	return v;
+}
+void EAIHelpers_init(struct tEAIHelpers* t){
+	//public
+	t->outBuffer = NULL;
+	t->outBufferLen = 0;
+	//private
+	t->prv = EAIHelpers_constructor();
+	{
+		ppEAIHelpers p = (ppEAIHelpers)t->prv;
+		p->EAINodeIndex = NULL;
+	}
+}
 
 
 
@@ -137,7 +157,6 @@ struct EAINodeIndexStruct {
 	//struct EAINodeParams 	params[MAXFIELDSPERNODE];
 	struct Vector*		nodeParams;
 };
-static struct Vector *EAINodeIndex = NULL;
 
 
 
@@ -147,8 +166,8 @@ char *getEAIMemoryPointer (int node, int field) {
 	char *memptr;
 	struct EAINodeIndexStruct *me;
 	struct EAINodeParams *myParam;
-
-	me = vector_get(struct EAINodeIndexStruct *, EAINodeIndex,node);
+	ppEAIHelpers p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
+	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,node);
 	if (me == NULL) {
 		printf ("bad node in getEAIMemoryPointer\n");
 		return NULL;
@@ -183,8 +202,9 @@ static char * getEAIInvokedValue(int node, int field) {
 	/* make sure we are a PROTO */
 	struct EAINodeIndexStruct *me;
 	struct EAINodeParams *myParam;
+	ppEAIHelpers p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
 
-	me = vector_get(struct EAINodeIndexStruct *, EAINodeIndex,node);
+	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,node);
 	if (me == NULL) {
 		printf ("bad node in getEAIInvokedValue\n");
 		return NULL;
@@ -210,8 +230,9 @@ static char * getEAIInvokedValue(int node, int field) {
 int getEAIActualOffset(int node, int field) {
 	struct EAINodeIndexStruct *me;
 	struct EAINodeParams *myParam;
+	ppEAIHelpers p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
 
-	me = vector_get(struct EAINodeIndexStruct *, EAINodeIndex,node);
+	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,node);
 	if (me == NULL) {
 		printf ("bad node in getEAIActualOffset\n");
 		return 0;
@@ -230,8 +251,9 @@ int getEAIActualOffset(int node, int field) {
 /* returns node type - see above for definitions */
 int getEAINodeTypeFromTable(int node) {
 	struct EAINodeIndexStruct *me;
+	ppEAIHelpers p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
 
-	me = vector_get(struct EAINodeIndexStruct *, EAINodeIndex,node);
+	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,node);
 	if (me == NULL) {
 		printf ("bad node in getEAINodeFromTable\n");
 		return 0;
@@ -243,12 +265,13 @@ int getEAINodeTypeFromTable(int node) {
 struct X3D_Node *getEAINodeFromTable(int index, int field) {
 	struct EAINodeIndexStruct *me;
 	struct EAINodeParams *myParam;
+	ppEAIHelpers p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
 
-	me = vector_get(struct EAINodeIndexStruct *, EAINodeIndex,index);
+	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,index);
 
 	if (me==NULL) {
 		printf ("internal EAI error - requesting %d, highest node %d\n",
-			index,vector_size(EAINodeIndex) /* lastNodeRequested */);
+			index,vector_size(p->EAINodeIndex) /* lastNodeRequested */);
 		return NULL;
 	}
 
@@ -274,25 +297,30 @@ struct X3D_Node *getEAINodeFromTable(int index, int field) {
 int registerEAINodeForAccess(struct X3D_Node* myn) {
 	int ctr;
 	int mynindex = 0;
+	int eaiverbose;
+	ppEAIHelpers p;
+	ttglobal tg = gglobal();
+	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+	p = (ppEAIHelpers)tg->EAIHelpers.prv;
 
 	if (eaiverbose) printf ("registerEAINodeForAccess - myn %lu\n",(unsigned long int) myn);
 	if (myn == NULL) return -1;
 
-	if (EAINodeIndex == NULL) {
+	if (p->EAINodeIndex == NULL) {
 		struct EAINodeIndexStruct *newp = MALLOC (struct EAINodeIndexStruct *, sizeof (struct EAINodeIndexStruct));
 
 		if (eaiverbose) printf ("creating EAINodeIndexVector\n"); 
-		EAINodeIndex = newVector(struct EAINodeIndexStruct*, 512);
+		p->EAINodeIndex = newVector(struct EAINodeIndexStruct*, 512);
 		/* push a dummy one here, as we do not want to return an index of zero */
-		vector_pushBack(struct EAINodeIndexStruct *, EAINodeIndex, newp);
+		vector_pushBack(struct EAINodeIndexStruct *, p->EAINodeIndex, newp);
 		
 	}
 
 	/* ok, index zero of the EAINodeIndex is invalid, so we look at 1 to (size) -1 */
-	for (ctr=1; ctr<=vector_size(EAINodeIndex)-1; ctr++) {
+	for (ctr=1; ctr<=vector_size(p->EAINodeIndex)-1; ctr++) {
 		struct EAINodeIndexStruct *me;
 
-		me = vector_get(struct EAINodeIndexStruct *, EAINodeIndex, ctr);
+		me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex, ctr);
 		if (me->actualNodePtr == myn) {
 			if (eaiverbose) printf ("registerEAINodeForAccess - already got node\n");
 			mynindex = ctr;
@@ -313,9 +341,9 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 		else newp->nodeType = EAI_NODETYPE_STANDARD;
 
 		
-		vector_pushBack(struct EAINodeIndexStruct *, EAINodeIndex, newp);
+		vector_pushBack(struct EAINodeIndexStruct *, p->EAINodeIndex, newp);
 
-		mynindex = vector_size(EAINodeIndex) -1;
+		mynindex = vector_size(p->EAINodeIndex) -1;
 
 		if (eaiverbose) printf ("registerEAINodeForAccess returning index %d nt %s, internal type %d\n",mynindex,
 				stringNodeType(myn->_nodeType),newp->nodeType);
@@ -336,7 +364,7 @@ int EAI_GetRootNode(void) {
 int EAI_GetNode(const char *str) {
 
 	struct X3D_Node * myNode;
-
+	int eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 	if (eaiverbose) {
 		printf ("EAI_GetNode - getting %s\n",str);
 	}	
@@ -367,7 +395,8 @@ int mapToKEYWORDindex (indexT pkwIndex) {
 static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char **fp, int direction) {
 	struct ProtoDefinition *myProtoDecl;
 	char thisID[2000];
-	
+	int eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
+
 	/* first, is this node a PROTO? We look at the actual table to determine if it is special or not */
 	if (getEAINodeTypeFromTable(cNode) != EAI_NODETYPE_PROTO) {
 		return TRUE;
@@ -437,7 +466,13 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	int direction;
 	struct X3D_Node* protoBaseNode;
 	int isProtoExpansion = FALSE;
+	int eaiverbose;
+	ppEAIHelpers p;
+	ttglobal tg = gglobal();
+	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+	p = (ppEAIHelpers)tg->EAIHelpers.prv;
 
+	eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 
 	/* see if this is an input or output request from nodes =0, tonodes = 1 */
 	direction=0;
@@ -456,7 +491,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	}
 
 	/* is this a valid C node? if so, lets just get the info... */
-	if ((cNode == 0) || (cNode > vector_size(EAINodeIndex) /* lastNodeRequested */)) {
+	if ((cNode == 0) || (cNode > vector_size(p->EAINodeIndex) /* lastNodeRequested */)) {
 		printf ("THIS IS AN ERROR! CNode is zero!!!\n");
 		*cNodePtr = 0; *fieldOffset = 0; *dataLen = 0; *typeString = 0; *scripttype=0; *accessType=KW_eventIn;
 		return;
@@ -579,7 +614,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 
 	/* save these indexes */
 
-	me = vector_get(struct EAINodeIndexStruct *, EAINodeIndex, cNode);
+	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex, cNode);
 	if (me->nodeParams == NULL) {
 		struct EAINodeParams *np = MALLOC (struct EAINodeParams *, sizeof (struct EAINodeParams));
 		if (eaiverbose) printf ("creating new field vector for this node\n");
@@ -665,7 +700,13 @@ void handleEAIGetValue (char command, char *bufptr, int repno) {
 	int retint;
 	struct EAINodeIndexStruct *me;
 	struct EAINodeParams *myParam;
+	int eaiverbose;
+	ppEAIHelpers p;
+	ttglobal tg = gglobal();
+	eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
+	p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
 
+	eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 
 	if (eaiverbose) printf ("GETVALUE %s \n",bufptr);
 
@@ -678,7 +719,7 @@ void handleEAIGetValue (char command, char *bufptr, int repno) {
 		printf ("handleEAIGetValue - node does not exist!\n");
 		return;
 	}
-	me = vector_get(struct EAINodeIndexStruct *, EAINodeIndex, nodeIndex);
+	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex, nodeIndex);
 
 	if (me==NULL) {
 		printf ("handleEAIGetValue - node does not exist in vector!\n");
@@ -701,9 +742,9 @@ void handleEAIGetValue (char command, char *bufptr, int repno) {
 	}
 
 	if (myParam->invokedPROTOValue != NULL) {
-		sprintf (outBuffer,"RE\n%f\n%d\n%s",TickTime,repno,getEAIInvokedValue(nodeIndex,fieldIndex));	
+		sprintf (tg->EAIHelpers.outBuffer,"RE\n%f\n%d\n%s",TickTime(),repno,getEAIInvokedValue(nodeIndex,fieldIndex));	
 	} else {
-		EAI_Convert_mem_to_ASCII (repno,"RE",mapEAItypeToFieldType(ctmp[0]),getEAIMemoryPointer(nodeIndex,fieldIndex), outBuffer);
+		EAI_Convert_mem_to_ASCII (repno,"RE",mapEAItypeToFieldType(ctmp[0]),getEAIMemoryPointer(nodeIndex,fieldIndex), tg->EAIHelpers.outBuffer);
 	}
 }
 
@@ -759,14 +800,15 @@ char *eaiPrintCommand (char command) {
 /* append str to the outbuffer, REALLOC if necessary */
 void outBufferCat (char *str) {
 	int a,b;
-	a = (int) strlen (outBuffer);
+	struct tEAIHelpers* t = &gglobal()->EAIHelpers;
+	a = (int) strlen (t->outBuffer);
 	b = (int) strlen (str);
 
 	/* should we increase the size here? */
-	if ((a+b+2) >= outBufferLen) {
-		outBufferLen = a+b+200; /* give it more space, and a bit more, so maybe
+	if ((a+b+2) >= t->outBufferLen) {
+		t->outBufferLen = a+b+200; /* give it more space, and a bit more, so maybe
 					   REALLOC does not need to be called all the time */
-		outBuffer = REALLOC(outBuffer, outBufferLen);
+		t->outBuffer = REALLOC(t->outBuffer, t->outBufferLen);
 	}
-	strcat (outBuffer, str);
+	strcat (t->outBuffer, str);
 }

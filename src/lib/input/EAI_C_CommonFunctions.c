@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.37 2010/12/07 18:27:50 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.38 2011/06/02 19:50:43 dug9 Exp $
 
 ???
 
@@ -57,7 +57,24 @@ $Id: EAI_C_CommonFunctions.c,v 1.37 2010/12/07 18:27:50 crc_canada Exp $
 #endif
 
 /* assume eaiverbose is false, unless told otherwise */
-int eaiverbose = FALSE;
+//int eaiverbose = FALSE;
+typedef struct pEAI_C_CommonFunctions{
+	struct VRMLParser *parser; // = NULL;
+}* ppEAI_C_CommonFunctions;
+void *EAI_C_CommonFunctions_constructor()
+{
+	void * v = malloc(sizeof(struct pEAI_C_CommonFunctions));
+	memset(v,0,sizeof(struct pEAI_C_CommonFunctions));
+	return v;
+}
+
+void EAI_C_CommonFunctions_init(struct tEAI_C_CommonFunctions* t){
+	//public
+	t->eaiverbose = FALSE;
+	//private
+	t->prv = EAI_C_CommonFunctions_constructor();
+	//just a pointer - null init ok
+}
 
 #define PST_MF_STRUCT_ELEMENT(type1,type2) \
 	case FIELDTYPE_MF##type1: { \
@@ -80,6 +97,7 @@ int eaiverbose = FALSE;
 struct Uni_String *newASCIIString(char *str) {
 	struct Uni_String *retval;
 	int len;
+	int eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 
 	if (eaiverbose) {
 	printf ("newASCIIString for :%s:\n",str);
@@ -105,6 +123,7 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 	char *ns;
 	char *os;
 	size_t len;
+	int eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 
 	/* bounds checking */
 	if (unis == NULL) {
@@ -258,14 +277,15 @@ int returnElementRowSize (int type) {
 
 }
 
-static struct VRMLParser *parser = NULL;
+//static struct VRMLParser *parser = NULL;
 
 /* from the XML parser, for instance, we can call this on close to delete memory and memory tables */
 void Parser_deleteParserForScanStringValueToMem(void) {
-	if (parser != NULL) {
-		lexer_destroyData(parser->lexer);
-		deleteParser(parser);
-		parser = NULL;
+	ppEAI_C_CommonFunctions p = (ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv;
+	if (p->parser != NULL) {
+		lexer_destroyData(p->parser->lexer);
+		deleteParser(p->parser);
+		p->parser = NULL;
 	}
 }
 
@@ -276,7 +296,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 	char *mfstringtmp = NULL;
 	int oldXMLflag;
 	struct X3D_Node *np;
-	
+	struct VRMLParser *parser = ((ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv)->parser;
 	#ifdef SETFIELDVERBOSE
 	printf ("\nPST, for %s we have %s strlen %lu\n",stringFieldtypeType(ctype), value, strlen(value));
 	#endif

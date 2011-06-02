@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.96 2011/06/01 15:02:21 crc_canada Exp $
+  $Id: Textures.c,v 1.97 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -758,11 +758,11 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		/* alloc fields, if required - only do this once, even if node changes */
 		if (node->__params == 0) {
 			/* printf ("loadMulti, MALLOCing for params\n"); */
-			node->__params = MALLOC (void *, sizeof (struct multiTexParams) * rdr_caps.texture_units);
+			node->__params = MALLOC (void *, sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
 			paramPtr = (struct multiTexParams*) node->__params;
 
 			/* set defaults for these fields */
-			for (count = 0; count < rdr_caps.texture_units; count++) {
+			for (count = 0; count < gglobal()->display.rdr_caps.texture_units; count++) {
 				paramPtr->texture_env_mode  = GL_MODULATE; 
 				paramPtr->combine_rgb = GL_MODULATE;
 				paramPtr->source0_rgb = GL_TEXTURE;
@@ -786,7 +786,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 		/* how many textures can we use? no sense scanning those we cant use */
 		max = node->mode.n; 
-		if (max > rdr_caps.texture_units) max = rdr_caps.texture_units;
+		if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
 
 		/* go through the params, and change string name into a GLint */
 		paramPtr = (struct multiTexParams*) node->__params;
@@ -902,7 +902,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 	/* how many textures can we use? */
 	max = node->texture.n; 
-	if (max > rdr_caps.texture_units) max = rdr_caps.texture_units;
+	if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
 
 	/* go through and get all of the textures */
 	paramPtr = (struct multiTexParams *) node->__params;
@@ -1088,11 +1088,11 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 			memcpy(&borderColour,&(tpNode->borderColor),sizeof(struct SFColorRGBA));
 
 			anisotropicDegree = tpNode->anisotropicDegree;
-			if ((anisotropicDegree < 1.0) || (anisotropicDegree>rdr_caps.anisotropicDegree)) {
+			if ((anisotropicDegree < 1.0) || (anisotropicDegree>gglobal()->display.rdr_caps.anisotropicDegree)) {
 				/* we can be quiet here 
-				   ConsoleMessage ("anisotropicDegree error %f, must be between 1.0 and %f",anisotropicDegree, rdr_caps.anisotropicDegree);
+				   ConsoleMessage ("anisotropicDegree error %f, must be between 1.0 and %f",anisotropicDegree, gglobal()->display.rdr_caps.anisotropicDegree);
 				*/
-				anisotropicDegree = rdr_caps.anisotropicDegree;
+				anisotropicDegree = gglobal()->display.rdr_caps.anisotropicDegree;
 			}			
 
 			borderWidth = tpNode->borderWidth;
@@ -1344,7 +1344,7 @@ OLDCODE		#endif
 				unsigned char *dest = mytexdata;
 		
 				/* do we have to do power of two textures? */
-				if (rdr_caps.av_npot_texture) {
+				if (gglobal()->display.rdr_caps.av_npot_texture) {
 					rx = x; ry = y;
 				} else {
 					/* find a power of two that fits */
@@ -1358,17 +1358,17 @@ OLDCODE		#endif
 					if(ry/2 == y) {ry /= 2;}
 				}
 		
-				if (global_print_opengl_errors) {
+				if (gglobal()->internalc.global_print_opengl_errors) {
 					DEBUG_MSG("initial texture scale to %d %d\n",rx,ry);
 				}
 		
-				if(rx != x || ry != y || rx > rdr_caps.max_texture_size || ry > rdr_caps.max_texture_size) {
+				if(rx != x || ry != y || rx > gglobal()->display.rdr_caps.max_texture_size || ry > gglobal()->display.rdr_caps.max_texture_size) {
 					/* do we have texture limits??? */
-					if (rx > rdr_caps.max_texture_size) rx = rdr_caps.max_texture_size;
-					if (ry > rdr_caps.max_texture_size) ry = rdr_caps.max_texture_size;
+					if (rx > gglobal()->display.rdr_caps.max_texture_size) rx = gglobal()->display.rdr_caps.max_texture_size;
+					if (ry > gglobal()->display.rdr_caps.max_texture_size) ry = gglobal()->display.rdr_caps.max_texture_size;
 				}
 		
-				if (global_print_opengl_errors) {
+				if (gglobal()->internalc.global_print_opengl_errors) {
 					DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 				}
 			
@@ -1411,7 +1411,7 @@ OLDCODE		#endif
 		
 						if ((width == 0) || (height == 0)) {
 							rx= rx/2; ry = ry/2;
-							if (global_print_opengl_errors) {
+							if (gglobal()->internalc.global_print_opengl_errors) {
 								DEBUG_MSG("width %d height %d going to try size %d %d, last time %d %d\n",
 									  width, height, rx,ry,x,y);
 							}
@@ -1428,7 +1428,7 @@ OLDCODE		#endif
 				}
 				
 		
-				if (global_print_opengl_errors) {
+				if (gglobal()->internalc.global_print_opengl_errors) {
 					DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
 				}
 		

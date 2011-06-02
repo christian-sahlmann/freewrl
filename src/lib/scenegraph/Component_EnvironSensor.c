@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.17 2011/04/15 15:02:13 crc_canada Exp $
+$Id: Component_EnvironSensor.c,v 1.18 2011/06/02 19:50:43 dug9 Exp $
 
 X3D Environmental Sensors Component
 
@@ -185,7 +185,7 @@ void do_VisibilitySensorTick (void *ptr) {
                         #endif
 
                         node->isActive = 1;
-                        node->enterTime = TickTime;
+                        node->enterTime = TickTime();
                         MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
                         MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, enterTime));
 
@@ -198,7 +198,7 @@ void do_VisibilitySensorTick (void *ptr) {
                         #endif
 
                         node->isActive = 0;
-                        node->exitTime = TickTime;
+                        node->exitTime = TickTime();
                         MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
                         MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, exitTime));
 		}

@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.19 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: RasterFont.c,v 1.20 2011/06/02 19:50:43 dug9 Exp $
 
 */
 
@@ -113,8 +113,8 @@ void rf_layer2D()
     FW_GL_PUSH_MATRIX();
     FW_GL_LOAD_IDENTITY();
 
-    FW_GL_ORTHO(0.0, (GLfloat) screenWidth,  // we need a viewport variable: glc.viewport[2],
-	    0.0, (GLfloat) screenHeight, // glc.viewport[3],
+    FW_GL_ORTHO(0.0, (GLfloat) gglobal()->display.screenWidth,  // we need a viewport variable: glc.viewport[2],
+	    0.0, (GLfloat) gglobal()->display.screenHeight, // glc.viewport[3],
 	    -1, 1);
     // Faire un FW_GL_POP_MATRIX après ...
     FW_GL_MATRIX_MODE(GL_MODELVIEW);

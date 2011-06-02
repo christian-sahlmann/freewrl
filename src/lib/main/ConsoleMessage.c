@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.22 2011/05/28 17:11:42 dug9 Exp $
+$Id: ConsoleMessage.c,v 1.23 2011/06/02 19:50:43 dug9 Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -55,6 +55,70 @@ for loosing the reference. Also, most if it is found in
 #include "../plugin/pluginUtils.h"
 #include "../plugin/PluginSocket.h"
 
+#define STRING_LENGTH 2000	/* something 'safe'	*/
+
+/* JAS - make the Console Log write to the log app on OSX for all invocations of the library */
+#ifdef AQUA
+	int logFileOpened = FALSE;
+	char ConsoleLogName[200];
+#endif
+
+typedef struct pConsoleMessage{
+	int Console_writeToCRT;// = 1; /*regular printf*/
+	int Console_writeToFile;// = 0;
+	int Console_writeToLog;// = 0;
+	int Console_writePrimitive; //= 0;
+	int consolefileOpened;// = 0;
+	FILE* consolefile;
+	int setDefAqua;// = 0;
+	int setTargetAqua;// = 0;
+	int setHaveMotif;// = 0;
+	int setTargetMotif;// = 0;
+	int setHaveMscVer;// = 0;
+	int setTargetAndroid;// = 0;
+
+#ifdef _MSC_VER
+	HANDLE hStdErr; // = NULL;
+#endif
+	char FWbuffer [STRING_LENGTH];
+
+
+}* ppConsoleMessage;
+void *ConsoleMessage_constructor(){
+	void *v = malloc(sizeof(struct pConsoleMessage));
+	memset(v,0,sizeof(struct pConsoleMessage));
+	return v;
+}
+void ConsoleMessage_init(struct tConsoleMessage *t){
+	//public
+	t->Console_writeToHud; //= 0; /*something should change this to 1 if running statusbarHUD or (a gui with no console and) statusbarConsole*/
+	t->consMsgCount; // = 0;
+	//private
+	t->prv = ConsoleMessage_constructor();
+	{
+		ppConsoleMessage p = (ppConsoleMessage)t->prv;
+		p->Console_writeToCRT = 1; /*regular printf*/
+		p->Console_writeToFile = 0;
+		//p->Console_writeToHud = 0; /*something should change this to 1 if running statusbarHUD or (a gui with no console and) statusbarConsole*/
+		p->Console_writeToLog = 0;
+		p->Console_writePrimitive = 0;
+		p->consolefileOpened = 0;
+		//FILE* consolefile;
+		p->setDefAqua = 0;
+		p->setTargetAqua = 0;
+		p->setHaveMotif = 0;
+		p->setTargetMotif = 0;
+		p->setHaveMscVer = 0;
+		p->setTargetAndroid = 0;
+
+#ifdef _MSC_VER
+		p->hStdErr = NULL;
+#endif
+		//p->FWbuffer [STRING_LENGTH]; null ok
+	}
+}
+
+
 #if defined(_ANDROID)
 #include <jni.h>
 #include <android/log.h>
@@ -65,30 +129,31 @@ for loosing the reference. Also, most if it is found in
 void hudSetConsoleMessage(char *buffer);
 /* <<< statusbar hud */
 
-#define STRING_LENGTH 2000	/* something 'safe'	*/
 
 /* runtime replace DEF_AQUA , TARGET_AQUA , HAVE_MOTIF , TARGET_MOTIF , MC_MSC_HAVE_VER); */
-int setDefAqua = 0;
-int setTargetAqua = 0;
-int setHaveMotif = 0;
-int setTargetMotif = 0;
-int setHaveMscVer = 0;
-int setTargetAndroid = 0;
+//int setDefAqua = 0;
+//int setTargetAqua = 0;
+//int setHaveMotif = 0;
+//int setTargetMotif = 0;
+//int setHaveMscVer = 0;
+//int setTargetAndroid = 0;
 void fwl_ConsoleSetup(int DefAqua , int TargetAqua , int HaveMotif , int TargetMotif , int HaveMscVer , int TargetAndroid) {
-	setDefAqua = DefAqua ;
-	setTargetAqua  = TargetAqua ;
-	setHaveMotif  = HaveMotif ;
-	setTargetMotif  = TargetMotif ;
-	setHaveMscVer = HaveMscVer ;
-	setTargetAndroid  = TargetAndroid ;
+
+	ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
+	p->setDefAqua = DefAqua ;
+	p->setTargetAqua  = TargetAqua ;
+	p->setHaveMotif  = HaveMotif ;
+	p->setTargetMotif  = TargetMotif ;
+	p->setHaveMscVer = HaveMscVer ;
+	p->setTargetAndroid  = TargetAndroid ;
 }
 int fwl_StringConsoleMessage(char* consoleBuffer) { return ConsoleMessage(consoleBuffer); }
 
 #ifdef AQUA
 	#include <syslog.h> //TODO: configure check
 	/* for sending text to the System Console */
-	static int logFileOpened = FALSE;
-	char ConsoleLogName[200];
+	//static int logFileOpened = FALSE;
+	//char ConsoleLogName[200];
 #endif
 
 #ifdef _MSC_VER
@@ -100,14 +165,22 @@ int fwl_StringConsoleMessage(char* consoleBuffer) { return ConsoleMessage(consol
 #include <stdio.h>
 #include <stdarg.h>
 #include <wtypes.h>
-static HANDLE hStdErr = NULL;
-
+//static HANDLE hStdErr = NULL;
+void fwl_setConsole_writePrimitive(int ibool)
+{
+	//this function used by the dll wrapper in win32 for 
+	//some types of applications (not the console program as of Jun1/2011)
+	ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
+	if(ibool) p->Console_writePrimitive = 1;
+	else  p->Console_writePrimitive = 0;
+}
 void initConsoleH(DWORD pid)
 {
+	ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
 #if _MSC_VER >= 1500
 
-	hStdErr = GetStdHandle(STD_ERROR_HANDLE);
-	if(!hStdErr)
+	p->hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+	if(!p->hStdErr)
 	if( !AttachConsole(pid))
 	{
 		DWORD dw = GetLastError();
@@ -119,15 +192,17 @@ void initConsoleH(DWORD pid)
 			printf("attachconsole gen failure\n");
 		AllocConsole();
 	}
-	hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+	p->hStdErr = GetStdHandle(STD_ERROR_HANDLE);
 #endif
 }
 
 static void initConsole(void)
 {
     BOOL ac;
+	ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
+
 	//hStdErr = GetStdHandle(STD_ERROR_HANDLE);
-	if(hStdErr == NULL)
+	if(p->hStdErr == NULL)
 	{
 #ifndef ATTACH_PARENT_PROCESS
 #define ATTACH_PARENT_PROCESS ((DWORD)-1)
@@ -145,16 +220,18 @@ static void initConsole(void)
 			ac = AllocConsole();
 		}
 #endif
-		hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+		p->hStdErr = GetStdHandle(STD_ERROR_HANDLE);
 	}
 }
 void writeToWin32Console(char *buff)
 {
+	ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
+
     DWORD cWritten;
-    if (hStdErr == NULL)
+    if (p->hStdErr == NULL)
         initConsole(); 
     /* not C console - more low level windows SDK API */
-    WriteConsoleA(hStdErr, buff, strlen(buff),&cWritten, NULL);
+    WriteConsoleA(p->hStdErr, buff, strlen(buff),&cWritten, NULL);
 }
 //stub for vc7
 int DEBUG_FPRINTF(const char *fmt, ...)
@@ -164,14 +241,14 @@ int DEBUG_FPRINTF(const char *fmt, ...)
 
 #endif
 
-static char FWbuffer [STRING_LENGTH];
+//static char FWbuffer [STRING_LENGTH];
 
 
-int consMsgCount = 0;
+//int consMsgCount = 0;
 extern int _fw_browser_plugin;
 #define MAXMESSAGES 5 
 void closeConsoleMessage() {
-	consMsgCount = 0;
+	gglobal()->ConsoleMessage.consMsgCount = 0;
 #ifdef AQUA
 	if (logFileOpened) syslog (LOG_ALERT, "FreeWRL loading a new file");
 	logFileOpened = FALSE;
@@ -179,7 +256,6 @@ void closeConsoleMessage() {
 }
 
 #define NEW_CONSOLEMESSAGE_VERSION 1
-//#define OLD_CONSOLEMESSAGE_VERSION 1
 
 #ifdef NEW_CONSOLEMESSAGE_VERSION
 
@@ -313,13 +389,16 @@ int fwvsnprintf(char *buffer,int buffer_length, const char *fmt, va_list ap)
 
 
 /* >>> statusbar hud */
-int Console_writeToCRT = 1; /*regular printf*/
-int Console_writeToFile = 0;
-int Console_writeToHud = 0; /*something should change this to 1 if running statusbarHUD or (a gui with no console and) statusbarConsole*/
-int Console_writeToLog = 0;
-int Console_writePrimitive = 0;
-int consolefileOpened = 0;
-FILE* consolefile;
+//int Console_writeToCRT = 1; /*regular printf*/
+//int Console_writeToFile = 0;
+//int Console_writeToHud = 0; /*something should change this to 1 if running statusbarHUD or (a gui with no console and) statusbarConsole*/
+//int Console_writeToLog = 0;
+//int Console_writePrimitive = 0;
+//int consolefileOpened = 0;
+//FILE* consolefile;
+
+
+
 int ConsoleMessage0(const char *fmt, va_list args)  
 {
 #if defined(_ANDROID)
@@ -327,10 +406,13 @@ int ConsoleMessage0(const char *fmt, va_list args)
 	return 1;
 #else
 	int retval;
+	ppConsoleMessage p;
+	ttglobal tg = gglobal();
+	p = (ppConsoleMessage)tg->ConsoleMessage.prv;
 	retval = 0;
-	//Console_writeToCRT = 0; //test
-	//Console_writeToFile = 1; //test
-	if(Console_writeToCRT) {
+	//p->Console_writeToCRT = 0; //test
+	//p->Console_writeToFile = 1; //test
+	if(p->Console_writeToCRT) {
 		retval = vfprintf(stdout,fmt,args); //printf(buffer);
 #ifdef TARGET_AQUA
 	/* JohnS - we need a carrage return here */
@@ -338,16 +420,16 @@ int ConsoleMessage0(const char *fmt, va_list args)
 #endif
 	}
 
-	if(Console_writeToFile)
+	if(p->Console_writeToFile)
 	{
-		if(!consolefileOpened)
+		if(!p->consolefileOpened)
 		{
-			consolefile = fopen("freewrl_console.txt","w");
-			consolefileOpened = 1;
+			p->consolefile = fopen("freewrl_console.txt","w");
+			p->consolefileOpened = 1;
 		}
-		retval = vfprintf(consolefile,fmt,args); //fprintf(consolefile,buffer);
+		retval = vfprintf(p->consolefile,fmt,args); //fprintf(consolefile,buffer);
 	}
-	if(Console_writeToLog || Console_writeToHud || Console_writePrimitive)
+	if(p->Console_writeToLog || tg->ConsoleMessage.Console_writeToHud || p->Console_writePrimitive)
 	{
 		char * buffer;
 		int doFree = 0;
@@ -372,17 +454,17 @@ int ConsoleMessage0(const char *fmt, va_list args)
 		doFree = 0;
 #else
 		/* and msvc can do this, _msc_ver currently uses. */
-		retval = vsnprintf(FWbuffer,STRING_LENGTH-1,fmt,args); /*hope STRING_LENGTH is long enough, else -1 skip */
+		retval = vsnprintf(p->FWbuffer,STRING_LENGTH-1,fmt,args); /*hope STRING_LENGTH is long enough, else -1 skip */
 		if(retval < 0) return retval;
-		buffer = FWbuffer;
+		buffer = p->FWbuffer;
 		doFree = 0;
 #endif
-		if(Console_writeToLog)
+		if(p->Console_writeToLog)
 			writeToLogFile(buffer);
-		if(Console_writeToHud)
+		if(tg->ConsoleMessage.Console_writeToHud)
 			hudSetConsoleMessage(buffer);
 #ifdef _MSC_VER
-		if(Console_writePrimitive)
+		if(p->Console_writePrimitive)
 			writeToWin32Console(buffer);
 #endif
 
@@ -413,16 +495,19 @@ int BrowserPrintConsoleMessage(const char *fmt, ...)
 	*/
 	/* unused int retval; */
 	va_list args;
+	ppConsoleMessage p;
+	ttglobal tg = gglobal();
+	p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
 
-	if(setHaveMotif == 0) {
+	if(p->setHaveMotif == 0) {
 	/* did we have too many messages - don't want to make this into a 
 	   denial of service attack! (thanks, Mufti) */
-		if( (setDefAqua == 1 && RUNNINGASPLUGIN && consMsgCount > MAXMESSAGES) || (setDefAqua == 0 && consMsgCount > MAXMESSAGES) ) {
-			if (consMsgCount > (MAXMESSAGES + 5)) return -1;
-			consMsgCount = MAXMESSAGES + 100;
+		if( (p->setDefAqua == 1 && RUNNINGASPLUGIN && tg->ConsoleMessage.consMsgCount > MAXMESSAGES) || (p->setDefAqua == 0 && tg->ConsoleMessage.consMsgCount > MAXMESSAGES) ) {
+			if (tg->ConsoleMessage.consMsgCount > (MAXMESSAGES + 5)) return -1;
+			tg->ConsoleMessage.consMsgCount = MAXMESSAGES + 100;
 			return ConsoleMessage("Too many freewrl messages - stopping ConsoleMessage");
 		} 
-		consMsgCount++;
+		tg->ConsoleMessage.consMsgCount++;
 	}
 	va_start( args, fmt );
 	return ConsoleMessage0(fmt,args);
@@ -444,173 +529,174 @@ int BrowserPrintConsoleMessage(const char *fmt, ...)
  **/
 
 #ifdef OLD_CONSOLEMESSAGE_VERSION
-int Console_writeToHud;
-
-int ConsoleMessage(const char *fmt, ...) {
-	va_list ap;
-	char tempbuf[STRING_LENGTH];
-	char format[STRING_LENGTH];
-	int count = 0;
-	int i, j;
-	char c;
-	double d;
-	unsigned u;
-	char *s;
-	void *v;
-	char ConsoleLogName[100];
-
-	/* try to open a file descriptor to the Console Log - on OS X 
-	   this should display the text on the "Console.app" */
-	#ifdef AQUA
-	if (!logFileOpened) {
-		logFileOpened = TRUE;
-		openlog("freewrl", LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
-		setlogmask(LOG_UPTO(LOG_ERR));
-		syslog(LOG_ALERT,"FreeWRL opened Console Log");
-	}
-	#endif
-
-
-	if(setHaveMotif == 1) {
-	FWbuffer[0] = '\n';
-	FWbuffer[1] = '\0';
-	} else {
-	FWbuffer[0] = '\0';
-	}
-
-	if(setHaveMotif == 0) {
-	/* did we have too many messages - don't want to make this into a 
-	   denial of service attack! (thanks, Mufti) */
-		if( (setDefAqua == 1 && RUNNINGASPLUGIN && consMsgCount > MAXMESSAGES) || (setDefAqua == 0 && consMsgCount > MAXMESSAGES) ) {
-			if (consMsgCount > (MAXMESSAGES + 5)) return -1;
-			consMsgCount = MAXMESSAGES + 100;
-			return ConsoleMessage("Too many freewrl messages - stopping ConsoleMessage");
-		} 
-		consMsgCount++;
-	}
-	
-		va_start(ap, fmt);		 /* must be called before work	 */
-
-		while (*fmt) {
-			tempbuf[0] = '\0';
-			for (j = 0; fmt[j] && fmt[j] != '%'; j++) {
-				format[j] = fmt[j];	/* not a format string	*/
-			}
-
-			if (j) {
-				format[j] = '\0';
-				count += sprintf(tempbuf, format);/* printf it verbatim				*/
-				fmt += j;
-			} else {
-				for (j = 0; !isalpha(fmt[j]); j++) {	 /* find end of format specifier */
-					format[j] = fmt[j];
-					if (j && fmt[j] == '%')				/* special case printing '%'		*/
-						break;
-				}
-				format[j] = fmt[j];			/* finish writing specifier		 */
-				format[j + 1] = '\0';			/* don't forget NULL terminator */
-				fmt += j + 1;
-
-				switch (format[j]) {			 /* cases for all specifiers		 */
-				case 'd':
-				case 'i':						/* many use identical actions	 */
-					i = va_arg(ap, int);		 /* process the argument	 */
-					count += sprintf(tempbuf, format, i); /* and printf it		 */
-					break;
-				case 'o':
-				case 'x':
-				case 'X':
-				case 'u':
-					u = va_arg(ap, unsigned);
-					count += sprintf(tempbuf, format, u);
-					break;
-				case 'c':
-					c = (char) va_arg(ap, int);		/* must cast!			 */
-					count += sprintf(tempbuf, format, c);
-					break;
-				case 's':
-					s = va_arg(ap, char *);
-					/* limit string to a certain length */
-					if ((strlen(s) + count) > STRING_LENGTH) {
-						char tmpstr[100];
-						int ltc;
-						ltc = strlen(s);
-						if (ltc>80) ltc=80;
-						strncpy (tmpstr, s, ltc);
-						tmpstr[ltc] = '.'; ltc++;
-						tmpstr[ltc] = '.'; ltc++;
-						tmpstr[ltc] = '.'; ltc++;
-						tmpstr[ltc] = '\0';
-
-						count += sprintf (tempbuf, format, tmpstr);
-					} else count += sprintf(tempbuf, format, s);
-					break;
-				case 'f':
-				case 'e':
-				case 'E':
-				case 'g':
-				case 'G':
-					d = va_arg(ap, double);
-					count += sprintf(tempbuf, format, d);
-					break;
-				case 'p':
-					v = va_arg(ap, void *);
-					count += sprintf(tempbuf, format, v);
-					break;
-				case 'n':
-					count += sprintf(tempbuf, "%d", count);
-					break;
-				case '%':
-					count += sprintf(tempbuf, "%%");
-					break;
-				default:
-					ERROR_MSG("ConsoleMessage: invalid format specifier: %c\n", format[j]);
-				}
-			}
-		if ((strlen(tempbuf) + strlen(FWbuffer)) <
-			(STRING_LENGTH) -10) {
-			strcat (FWbuffer,tempbuf);
-		}
-		}
-	
-		va_end(ap);				/* clean up				 */
-#ifndef HAVE_MOTIF
-	}
-#endif
-
-#ifdef AQUA
-	/* print this to stdio */
-	/* printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n"); */
-
-        if ((strlen(FWbuffer)) < (STRING_LENGTH) -10) {
-		strcat (FWbuffer,"\n");
-	}
-
-	/* print this to the console log */
-	syslog (LOG_ALERT, FWbuffer);
-
-	/* print this to the application console log if running standalone, or speak it if running as a plug in */
-printf ("Console message, might be able to print\n"); if (!RUNNINGASPLUGIN) printf ("not running as plugin\n"); else printf ("runasp\n");
-
-	if (!RUNNINGASPLUGIN) {
-		if (strcmp(FWbuffer, "\n") && strcmp(FWbuffer, "\n\n")) {
-			aquaSetConsoleMessage(FWbuffer);
-		}
-	}
-#else
-	/* are we running under Motif or Gtk? */
-	if(setTargetMotif == 1) {
-		setConsoleMessage (FWbuffer);
-	} else {
-		if (RUNNINGASPLUGIN) {
-			freewrlSystem (FWbuffer);
-		} else {
-			printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n");
-		}
-	}
-
-#endif
-	return count;
-}
+OLDCODEint Console_writeToHud;
+OLDCODE
+OLDCODEint ConsoleMessage(const char *fmt, ...) {
+OLDCODE	va_list ap;
+OLDCODE	char tempbuf[STRING_LENGTH];
+OLDCODE	char format[STRING_LENGTH];
+OLDCODE	int count = 0;
+OLDCODE	int i, j;
+OLDCODE	char c;
+OLDCODE	double d;
+OLDCODE	unsigned u;
+OLDCODE	char *s;
+OLDCODE	void *v;
+OLDCODE	char ConsoleLogName[100];
+OLDCODE	ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
+OLDCODE
+OLDCODE	/* try to open a file descriptor to the Console Log - on OS X 
+OLDCODE	   this should display the text on the "Console.app" */
+OLDCODE	#ifdef AQUA
+OLDCODE	if (!logFileOpened) {
+OLDCODE		logFileOpened = TRUE;
+OLDCODE		openlog("freewrl", LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
+OLDCODE		setlogmask(LOG_UPTO(LOG_ERR));
+OLDCODE		syslog(LOG_ALERT,"FreeWRL opened Console Log");
+OLDCODE	}
+OLDCODE	#endif
+OLDCODE
+OLDCODE
+OLDCODE	if(p->setHaveMotif == 1) {
+OLDCODE	p->FWbuffer[0] = '\n';
+OLDCODE	p->FWbuffer[1] = '\0';
+OLDCODE	} else {
+OLDCODE	p->FWbuffer[0] = '\0';
+OLDCODE	}
+OLDCODE
+OLDCODE	if(p->setHaveMotif == 0) {
+OLDCODE	/* did we have too many messages - don't want to make this into a 
+OLDCODE	   denial of service attack! (thanks, Mufti) */
+OLDCODE		if( (p->setDefAqua == 1 && RUNNINGASPLUGIN && p->consMsgCount > MAXMESSAGES) || (p->setDefAqua == 0 && p->consMsgCount > MAXMESSAGES) ) {
+OLDCODE			if (p->consMsgCount > (MAXMESSAGES + 5)) return -1;
+OLDCODE			p->consMsgCount = MAXMESSAGES + 100;
+OLDCODE			return ConsoleMessage("Too many freewrl messages - stopping ConsoleMessage");
+OLDCODE		} 
+OLDCODE		p->consMsgCount++;
+OLDCODE	}
+OLDCODE	
+OLDCODE		va_start(ap, fmt);		 /* must be called before work	 */
+OLDCODE
+OLDCODE		while (*fmt) {
+OLDCODE			tempbuf[0] = '\0';
+OLDCODE			for (j = 0; fmt[j] && fmt[j] != '%'; j++) {
+OLDCODE				format[j] = fmt[j];	/* not a format string	*/
+OLDCODE			}
+OLDCODE
+OLDCODE			if (j) {
+OLDCODE				format[j] = '\0';
+OLDCODE				count += sprintf(tempbuf, format);/* printf it verbatim				*/
+OLDCODE				fmt += j;
+OLDCODE			} else {
+OLDCODE				for (j = 0; !isalpha(fmt[j]); j++) {	 /* find end of format specifier */
+OLDCODE					format[j] = fmt[j];
+OLDCODE					if (j && fmt[j] == '%')				/* special case printing '%'		*/
+OLDCODE						break;
+OLDCODE				}
+OLDCODE				format[j] = fmt[j];			/* finish writing specifier		 */
+OLDCODE				format[j + 1] = '\0';			/* don't forget NULL terminator */
+OLDCODE				fmt += j + 1;
+OLDCODE
+OLDCODE				switch (format[j]) {			 /* cases for all specifiers		 */
+OLDCODE				case 'd':
+OLDCODE				case 'i':						/* many use identical actions	 */
+OLDCODE					i = va_arg(ap, int);		 /* process the argument	 */
+OLDCODE					count += sprintf(tempbuf, format, i); /* and printf it		 */
+OLDCODE					break;
+OLDCODE				case 'o':
+OLDCODE				case 'x':
+OLDCODE				case 'X':
+OLDCODE				case 'u':
+OLDCODE					u = va_arg(ap, unsigned);
+OLDCODE					count += sprintf(tempbuf, format, u);
+OLDCODE					break;
+OLDCODE				case 'c':
+OLDCODE					c = (char) va_arg(ap, int);		/* must cast!			 */
+OLDCODE					count += sprintf(tempbuf, format, c);
+OLDCODE					break;
+OLDCODE				case 's':
+OLDCODE					s = va_arg(ap, char *);
+OLDCODE					/* limit string to a certain length */
+OLDCODE					if ((strlen(s) + count) > STRING_LENGTH) {
+OLDCODE						char tmpstr[100];
+OLDCODE						int ltc;
+OLDCODE						ltc = strlen(s);
+OLDCODE						if (ltc>80) ltc=80;
+OLDCODE						strncpy (tmpstr, s, ltc);
+OLDCODE						tmpstr[ltc] = '.'; ltc++;
+OLDCODE						tmpstr[ltc] = '.'; ltc++;
+OLDCODE						tmpstr[ltc] = '.'; ltc++;
+OLDCODE						tmpstr[ltc] = '\0';
+OLDCODE
+OLDCODE						count += sprintf (tempbuf, format, tmpstr);
+OLDCODE					} else count += sprintf(tempbuf, format, s);
+OLDCODE					break;
+OLDCODE				case 'f':
+OLDCODE				case 'e':
+OLDCODE				case 'E':
+OLDCODE				case 'g':
+OLDCODE				case 'G':
+OLDCODE					d = va_arg(ap, double);
+OLDCODE					count += sprintf(tempbuf, format, d);
+OLDCODE					break;
+OLDCODE				case 'p':
+OLDCODE					v = va_arg(ap, void *);
+OLDCODE					count += sprintf(tempbuf, format, v);
+OLDCODE					break;
+OLDCODE				case 'n':
+OLDCODE					count += sprintf(tempbuf, "%d", count);
+OLDCODE					break;
+OLDCODE				case '%':
+OLDCODE					count += sprintf(tempbuf, "%%");
+OLDCODE					break;
+OLDCODE				default:
+OLDCODE					ERROR_MSG("ConsoleMessage: invalid format specifier: %c\n", format[j]);
+OLDCODE				}
+OLDCODE			}
+OLDCODE		if ((strlen(tempbuf) + strlen(p->FWbuffer)) <
+OLDCODE			(STRING_LENGTH) -10) {
+OLDCODE			strcat (p->FWbuffer,tempbuf);
+OLDCODE		}
+OLDCODE		}
+OLDCODE	
+OLDCODE		va_end(ap);				/* clean up				 */
+OLDCODE#ifndef HAVE_MOTIF
+OLDCODE	}
+OLDCODE#endif
+OLDCODE
+OLDCODE#ifdef AQUA
+OLDCODE	/* print this to stdio */
+OLDCODE	/* printf (p->FWbuffer); if (p->FWbuffer[strlen(p->FWbuffer-1)] != '\n') printf ("\n"); */
+OLDCODE
+OLDCODE        if ((strlen(p->FWbuffer)) < (STRING_LENGTH) -10) {
+OLDCODE		strcat (p->FWbuffer,"\n");
+OLDCODE	}
+OLDCODE
+OLDCODE	/* print this to the console log */
+OLDCODE	syslog (LOG_ALERT, p->FWbuffer);
+OLDCODE
+OLDCODE	/* print this to the application console log if running standalone, or speak it if running as a plug in */
+OLDCODEprintf ("Console message, might be able to print\n"); if (!RUNNINGASPLUGIN) printf ("not running as plugin\n"); else printf ("runasp\n");
+OLDCODE
+OLDCODE	if (!RUNNINGASPLUGIN) {
+OLDCODE		if (strcmp(p->FWbuffer, "\n") && strcmp(p->FWbuffer, "\n\n")) {
+OLDCODE			aquaSetConsoleMessage(p->FWbuffer);
+OLDCODE		}
+OLDCODE	}
+OLDCODE#else
+OLDCODE	/* are we running under Motif or Gtk? */
+OLDCODE	if(p->setTargetMotif == 1) {
+OLDCODE		setConsoleMessage (p->FWbuffer);
+OLDCODE	} else {
+OLDCODE		if (RUNNINGASPLUGIN) {
+OLDCODE			freewrlSystem (p->FWbuffer);
+OLDCODE		} else {
+OLDCODE			printf (p->FWbuffer); if (FWbuffer[strlen(p->FWbuffer-1)] != '\n') printf ("\n");
+OLDCODE		}
+OLDCODE	}
+OLDCODE
+OLDCODE#endif
+OLDCODE	return count;
+OLDCODE}
 #endif /*ifdef OLD_CONSOLEMESSAGE_VERSION */
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.40 2011/06/01 15:02:21 crc_canada Exp $
+$Id: Frustum.c,v 1.41 2011/06/02 19:50:43 dug9 Exp $
 
 ???
 
@@ -766,10 +766,10 @@ void OcclusionStartofRenderSceneUpdateScene() {
 		printf ("initializing OcclusionCulling...\n");
 		#endif
 		/* do we have an environment variable for this? */
-		if (global_occlusion_disable) {
+		if (gglobal()->internalc.global_occlusion_disable) {
 			OccFailed = TRUE;
 		} else {
-	        	if (rdr_caps.av_occlusion_q) {
+	        	if (gglobal()->display.rdr_caps.av_occlusion_q) {
 		
 				#ifdef OCCLUSIONVERBOSE
 	        	        printf ("OcclusionStartofRenderSceneUpdateScene: have OcclusionQuery\n"); 

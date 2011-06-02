@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.69 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.70 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -716,17 +716,17 @@ bool loader_waiting = false;
 void send_texture_to_loader(textureTableIndexStruct_s *entry)
 {
 	/* Lock access to the texture_request_list and loader_waiting variables*/
-	pthread_mutex_lock( &mutex_texture_list );
+	pthread_mutex_lock( &gglobal()->threads.mutex_texture_list );
 	
 	/* Add our texture entry */
 	texture_request_list = ml_append(texture_request_list, ml_new(entry));
 
 	if(loader_waiting)
         /* signal that we have data on resource list */
-        pthread_cond_signal(&texture_list_condition);
+        pthread_cond_signal(&gglobal()->threads.texture_list_condition);
 	
 	/* Unlock */
-	pthread_mutex_unlock( &mutex_texture_list );
+	pthread_mutex_unlock( &gglobal()->threads.mutex_texture_list );
 }
 
 /**
@@ -740,18 +740,18 @@ void _textureThread()
 	/* we wait forever for the data signal to be sent */
 	for (;;) {
 		/* Lock access to the texture_request_list and loader_waiting variables*/
-		pthread_mutex_lock( &mutex_texture_list );
+		pthread_mutex_lock( &gglobal()->threads.mutex_texture_list );
 		if(texture_request_list == NULL)
 		{
 			loader_waiting = true;
 			/*block and wait*/
-	        pthread_cond_wait (&texture_list_condition, &mutex_texture_list);
+	        pthread_cond_wait (&gglobal()->threads.texture_list_condition, &gglobal()->threads.mutex_texture_list);
 		}
 		texture_list = texture_request_list;
 		texture_request_list = NULL;
 		loader_waiting = false;
 		/* Unlock  */
-		pthread_mutex_unlock( &mutex_texture_list );
+		pthread_mutex_unlock( &gglobal()->threads.mutex_texture_list );
 
 
 		TextureParsing = TRUE;

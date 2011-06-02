@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsOut.c,v 1.12 2010/05/13 17:17:11 davejoubert Exp $
+$Id: EAIEventsOut.c,v 1.13 2011/06/02 19:50:43 dug9 Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -62,6 +62,11 @@ void EAIListener () {
 	int id, tp;
 	char buf[EAIREADSIZE];
 	struct Multi_Node *mfptr;	/* used for freeing memory*/
+	int eaiverbose;
+	//ppEAIServ p;
+	ttglobal tg = gglobal();
+	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+	//p = (ppEAIServ)tg->EAIServ.prv;
 
 	/* get the type and the id.*/
 	tp = CRoutesExtra&0xff;
@@ -72,7 +77,7 @@ void EAIListener () {
 	}	
 
 	/* convert the data to string form, for sending to the EAI java client */
-	EAI_Convert_mem_to_ASCII (id,"EV", tp, EAIListenerData, buf);
+	EAI_Convert_mem_to_ASCII (id,"EV", tp, tg->EAIServ.EAIListenerData, buf);
 
 	/* if this is a MF type, there most likely will be MALLOC'd memory to free... */
 	switch (tp) {
@@ -86,7 +91,7 @@ void EAIListener () {
 		case FIELDTYPE_MFRotation:
 		case FIELDTYPE_MFVec2f:
 		case FIELDTYPE_MFVec3f: {
-			mfptr = (struct Multi_Node *) EAIListenerData;
+			mfptr = (struct Multi_Node *) tg->EAIServ.EAIListenerData;
 			FREE_IF_NZ ((*mfptr).p);
 		}
 		default: {}
@@ -97,7 +102,7 @@ void EAIListener () {
 
 	/* zero the memory for the next time - MultiMemcpy needs this to be zero, otherwise
 	   it might think that the "oldlen" will be non-zero */
-	bzero(&EAIListenerData, sizeof(EAIListenerData));
+	bzero(&tg->EAIServ.EAIListenerData, sizeof(tg->EAIServ.EAIListenerData));
 
 
 	/* append the EV_EOT marker to the end of the string */
@@ -108,7 +113,7 @@ void EAIListener () {
 	}	
 
 	/* send the EV reply */
-	EAI_send_string(buf,EAIlistenfd);
+	EAI_send_string(buf,tg->EAIServ.EAIlistenfd);
 }
 
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.42 2011/05/25 16:47:12 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.43 2011/06/02 19:50:43 dug9 Exp $
 
 Screen snapshot.
 
@@ -135,7 +135,7 @@ typedef struct {
 } s_renderer_capabilities_t;
 
 
-extern s_renderer_capabilities_t rdr_caps;
+//extern s_renderer_capabilities_t rdr_caps;
 void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void end_textureTransform (void);
 void markForDispose(struct X3D_Node *node, int recursive);

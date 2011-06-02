@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.148 2011/05/31 14:42:11 crc_canada Exp $
+$Id: headers.h,v 1.149 2011/06/02 19:50:43 dug9 Exp $
 
 Global includes.
 
@@ -306,7 +306,7 @@ if (!APPROX (node->setField.c[0],node->regField.c[0]) || \
 
 int find_key (int kin, float frac, float *keys);
 void startOfLoopNodeUpdates(void);
-extern int HaveSensitive;
+//extern int HaveSensitive;
 void zeroVisibilityFlag(void);
 void setField_fromJavascript (struct X3D_Node *ptr, char *field, char *value, int isXML);
 unsigned int setField_FromEAI (char *ptr);
@@ -388,7 +388,7 @@ unsigned int setField_FromEAI (char *ptr);
 extern int sound_from_audioclip;
 extern int global_lineProperties;
 extern int global_fillProperties;
-extern float gl_linewidth;
+//extern float gl_linewidth;
 extern int soundWarned;
 extern int cur_hits;
 extern struct point_XYZ hyper_r1,hyper_r2;
@@ -463,11 +463,13 @@ extern int have_transparency;
 
 
 /* current time */
-extern double TickTime;
-extern double lastTime;
+//extern double TickTime;
+//extern double lastTime;
+double TickTime();
+double lastTime();
 
 /* number of triangles this rendering loop */
-extern int trisThisLoop;
+//extern int trisThisLoop;
 
 /* saved rayhit and hyperhit */
 extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
@@ -602,8 +604,8 @@ void setMenuButton_texSize (int size);
 
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
-extern double BrowserFPS;
-extern double BrowserSpeed;
+//extern double BrowserFPS;
+//extern double BrowserSpeed;
 void render_polyrep(void *node);
 
 extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data. */
@@ -635,7 +637,7 @@ extern GLfloat Backnorms[];
 
 extern void new_tessellation(void);
 extern void initializePerlThread(void);
-extern void setWantEAI(int flag);
+//extern void setWantEAI(int flag);
 extern void setPluginPipe(const char *optarg);
 extern void setPluginFD(const char *optarg);
 extern void setPluginInstance(const char *optarg);
@@ -655,7 +657,7 @@ extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
-void removeFilenameFromPath (char *path);
+//void removeFilenameFromPath (char *path);
 
 int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *node);
 void EAI_Route(char cmnd, const char *tf);
@@ -827,13 +829,13 @@ int ConsoleMessage(const char *fmt, ...);
 #define NEW_CONSOLEMESSAGE_VERSION 1
 #ifdef NEW_CONSOLEMESSAGE_VERSION
 int BrowserPrintConsoleMessage(const char *fmt, ...);
-extern int Console_writeToCRT;
-extern int Console_writeToFile;
-extern int Console_writeToHud;
+//extern int Console_writeToCRT;
+//extern int Console_writeToFile;
+//extern int Console_writeToHud;
 #endif
 /* <<< statusbar hud changes */
 void closeConsoleMessage(void);
-extern int consMsgCount;
+//extern int consMsgCount;
 
 void outOfMemory(const char *message);
 
@@ -846,7 +848,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line);
 void kill_clockEvents(void);
 void kill_openGLTextures(void);
 void kill_X3DDefs(void);
-extern int currentFileVersion;
+//extern int currentFileVersion;
 
 int countCommas (char *instr);
 void dirlightChildren(struct Multi_Node ch);

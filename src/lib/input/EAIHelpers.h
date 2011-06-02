@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.h,v 1.19 2010/09/28 17:32:05 crc_canada Exp $
+$Id: EAIHelpers.h,v 1.20 2011/06/02 19:50:43 dug9 Exp $
 
 EAI Helpers functions
 
@@ -32,8 +32,8 @@ EAI Helpers functions
 
 #include "../vrml_parser/Structs.h"
 
-extern char *outBuffer;
-extern int outBufferLen;
+//extern char *outBuffer;
+//extern int outBufferLen;
 
 struct Uni_String *newASCIIString(char *str);
 void verify_Uni_String(struct  Uni_String *unis, char *str);

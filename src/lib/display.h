@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.120 2011/05/25 19:26:33 davejoubert Exp $
+  $Id: display.h,v 1.121 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -299,8 +299,8 @@ extern int ocurse;
 #endif
 /* Main initialization function */
 /* int display_initialize(); */
-extern bool display_initialized;
-#define IS_DISPLAY_INITIALIZED (display_initialized==TRUE)
+//extern bool display_initialized;
+#define IS_DISPLAY_INITIALIZED (gglobal()->display.display_initialized==TRUE)
 
 /**
  * Sort of "virtual" functions
@@ -335,38 +335,38 @@ void rdr_caps_dump();
 void setMessageBar(void);
 void setMenuStatus(char *stat);
 #define MAXSTAT 200
-extern char myMenuStatus[MAXSTAT];
-extern float myFps;
+//extern char myMenuStatus[MAXSTAT];
+//extern float myFps;
 
 /**
  * Main window parameters
  */
-extern int win_height; /* window */
-extern int win_width;
-extern long int winToEmbedInto;
-extern int fullscreen;
-extern int view_height; /* viewport */
-extern int view_width;
-
-extern int screenWidth;
-extern int screenHeight;
-
-extern double screenRatio;
-
-extern char *window_title;
-
-extern int mouse_x;
-extern int mouse_y;
-
-extern int show_mouse;
-
-extern int xPos;
-extern int yPos;
-
+//extern int win_height; /* window */
+//extern int win_width;
+//extern long int winToEmbedInto;
+//extern int fullscreen;
+//extern int view_height; /* viewport */
+//extern int view_width;
+//
+//extern int screenWidth;
+//extern int screenHeight;
+//
+//extern double screenRatio;
+//
+//extern char *window_title;
+//
+//extern int mouse_x;
+//extern int mouse_y;
+//
+//extern int show_mouse;
+//
+//extern int xPos;
+//extern int yPos;
+//
 extern int displayDepth;
-
-extern int shutterGlasses; /* shutter glasses, stereo enabled ? */
-extern int quadbuff_stereo_mode; /* quad buffer enabled ? */
+//
+//extern int shutterGlasses; /* shutter glasses, stereo enabled ? */
+//extern int quadbuff_stereo_mode; /* quad buffer enabled ? */
 
 #ifdef TARGET_AQUA
 #ifndef IPHONE
@@ -483,7 +483,7 @@ void getMotifWindowedGLwin(Window *win);
  * General : all systems
  */
 
-extern GLenum _global_gl_err;
+//extern GLenum _global_gl_err;
 
 #if defined(_ANDROID)
 #define PRINT_GL_ERROR_IF_ANY(_where) { \

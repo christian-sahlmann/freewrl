@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.43 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: pluginUtils.c,v 1.44 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -407,7 +407,7 @@ void URLprint (const char *m, const char *p) {
 		fprintf (tty, "\nplugin restarted\n");
 	}
 
-	fprintf (tty,"%f URLprint: ",TickTime);
+	fprintf (tty,"%f URLprint: ",TickTime());
 	fprintf(tty, m,p);
 	fflush(tty);
 #endif

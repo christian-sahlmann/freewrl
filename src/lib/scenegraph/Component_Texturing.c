@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.19 2011/05/06 17:27:52 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.20 2011/06/02 19:50:43 dug9 Exp $
 
 X3D Texturing Component
 
@@ -161,7 +161,7 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 		#endif
 
 		/* We doing VBOs? */
-		if (global_use_VBOs) {
+		if (gglobal()->internalc.global_use_VBOs) {
 			if (node->__VBO == 0) {
 				GLuint tmp;
 				/* do this in 2 steps to get around 32/64 bit OSX warnings */

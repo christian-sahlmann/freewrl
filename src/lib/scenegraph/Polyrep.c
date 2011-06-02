@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.49 2011/05/27 18:11:50 crc_canada Exp $
+$Id: Polyrep.c,v 1.50 2011/06/02 19:50:43 dug9 Exp $
 
 ???
 
@@ -78,7 +78,7 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 	r->color = (float *)newcolors;
 
 	/* VBOs need this re-bound */
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[COLOR_VBO]);
 		glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW);
@@ -842,7 +842,7 @@ void render_polyrep(void *node) {
 	}
 	
 #ifndef GL_ES_VERSION_2_0
-	if (!global_use_VBOs) {
+	if (!gglobal()->internalc.global_use_VBOs) {
 		/*  status bar, text do not have normals*/
 		if (pr->normal) {
 			FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) pr->normal);
@@ -925,7 +925,7 @@ void render_polyrep(void *node) {
 #endif
 
 
-	trisThisLoop += pr->ntri;
+	gglobal()->Mainloop.trisThisLoop += pr->ntri;
 
 
 	textureDraw_end();
@@ -1153,7 +1153,7 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, void 
 		polyrep->maxVals[2] =  -999999.9f;
 
 		for (i=0; i<VBO_COUNT; i++) polyrep->VBO_buffers[i] = 0;
-		if (global_use_VBOs) {
+		if (gglobal()->internalc.global_use_VBOs) {
 			/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
 			glGenBuffers(1,&polyrep->VBO_buffers[VERTEX_VBO]);
 			glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);

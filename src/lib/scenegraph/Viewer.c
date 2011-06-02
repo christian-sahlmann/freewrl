@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.68 2011/05/27 13:55:44 crc_canada Exp $
+$Id: Viewer.c,v 1.69 2011/06/02 19:50:43 dug9 Exp $
 
 CProto ???
 
@@ -64,7 +64,8 @@ static void handle_tick_exfly(void);
 /* used for EAI calls to get the current speed. Not used for general calcs */
 /* we DO NOT return as a float, as some gccs have trouble with this causing segfaults */
 void getCurrentSpeed() {
-	BrowserSpeed = BrowserFPS * (fabs(Viewer.VPvelocity.x) + fabs(Viewer.VPvelocity.y) + fabs(Viewer.VPvelocity.z));
+	ttglobal tg = gglobal();
+	tg->Mainloop.BrowserSpeed = tg->Mainloop.BrowserFPS * (fabs(Viewer.VPvelocity.x) + fabs(Viewer.VPvelocity.y) + fabs(Viewer.VPvelocity.z));
 }
 
 void viewer_default() {
@@ -415,7 +416,7 @@ printf ("\t	AntiPos           %lf %lf %lf\n",Viewer.AntiPos.x,Viewer.AntiPos.y,V
 */
 
 		/* printf ("slerping in togl, type %s\n", VIEWER_STRING(Viewer.type)); */
-		tickFrac = (TickTime - Viewer.startSLERPtime)/Viewer.transitionTime;
+		tickFrac = (TickTime() - Viewer.startSLERPtime)/Viewer.transitionTime;
 		//tickFrac = tickFrac/4.0;
 		//printf ("tick frac %lf\n",tickFrac); 
 
@@ -544,10 +545,12 @@ static void handle_walk(const int mev, const unsigned int button, const float x,
  * walk.yd is vertical in the global/scene
  * walk.rd is an angle in the global/scene horizontal plane (around vertical axis)
 */
+	ttglobal tg;
 	X3D_Viewer_Walk *walk = &Viewer.walk;
 	double frameRateAdjustment = 1.0;
-	if( BrowserFPS > 0)
-		frameRateAdjustment = 20.0 / BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
+	tg = gglobal();
+	if( tg->Mainloop.BrowserFPS > 0)
+		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
 	else
 		frameRateAdjustment = 1.0;
 	
@@ -690,7 +693,7 @@ void handle_yawpitchzoom(const int mev, const unsigned int button, float x, floa
 		}
 	} else if (mev == MotionNotify) {
 		if (button == 1) {
-			dyaw   = (ypz->x - x) * Viewer.fieldofview*PI/180.0*Viewer.fovZoom * screenRatio; 
+			dyaw   = (ypz->x - x) * Viewer.fieldofview*PI/180.0*Viewer.fovZoom * gglobal()->display.screenRatio; 
 			dpitch = (ypz->y - y) * Viewer.fieldofview*PI/180.0*Viewer.fovZoom;
 			ypz->ypz[0] = ypz->ypz0[0] + dyaw;
 			ypz->ypz[1] = ypz->ypz0[1] + dpitch;
@@ -1027,11 +1030,11 @@ handle_tick_fly()
 	int i;
 
 	if (fly->lasttime < 0) {
-		fly->lasttime = TickTime;
+		fly->lasttime = TickTime();
 		return;
 	} else {
-		time_diff = TickTime - fly->lasttime;
-		fly->lasttime = TickTime;
+		time_diff = TickTime() - fly->lasttime;
+		fly->lasttime = TickTime();
 		if (APPROX(time_diff, 0)) {
 			return;
 		}
@@ -1233,7 +1236,7 @@ int initAnaglyphShaders()
 	};
 
 	const GLchar **src[6];
-	if(!rdr_caps.have_GL_VERSION_2_0) return 0;
+	if(!gglobal()->display.rdr_caps.have_GL_VERSION_2_0) return 0;
 	src[0] = shaderSrc_R;
 	src[1] = shaderSrc_G;
 	src[2] = shaderSrc_B;
@@ -1309,7 +1312,7 @@ void fwl_init_StereoDefaults()
 void deleteAnaglyphShaders()
 {
 	int i;
-	if(!rdr_caps.have_GL_VERSION_2_0) return;
+	if(!gglobal()->display.rdr_caps.have_GL_VERSION_2_0) return;
 	for(i=0;i<6;i++)
 	{
 		DELETE_SHADER(Viewer.shaders[i]);
@@ -1415,12 +1418,12 @@ void fwl_init_Shutter (void)
 	  second: post_gl_init - we'll know haveQuadbuffer which might = 1 (if not it goes into flutter mode)
     */
 
-	shutterGlasses = 2;
+	gglobal()->display.shutterGlasses = 2;
 	Viewer.shutterGlasses = 2;
 	setStereoBufferStyle(1); 
 	if(Viewer.haveQuadbuffer)
 	{
-		shutterGlasses = 1; /* platform specific pixelformat/window initialization code should hint PRF_STEREO */
+		gglobal()->display.shutterGlasses = 1; /* platform specific pixelformat/window initialization code should hint PRF_STEREO */
 		Viewer.shutterGlasses = 1;
 		setStereoBufferStyle(0); 
 	}
@@ -1461,7 +1464,7 @@ void setMono()
 	Viewer.anaglyph = 0;
 	Viewer.sidebyside = 0;
 	Viewer.shutterGlasses = 0;
-	shutterGlasses = 0;
+	gglobal()->display.shutterGlasses = 0;
 }
 
 void setStereo(int type)

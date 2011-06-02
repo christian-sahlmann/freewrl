@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.78 2011/06/01 15:02:21 crc_canada Exp $
+$Id: CRoutes.c,v 1.79 2011/06/02 19:50:49 dug9 Exp $
 
 ???
 
@@ -1442,7 +1442,7 @@ static void gatherScriptEventOuts(void) {
 	}
 
 	#ifdef CRVERBOSE 
-		printf ("%f finished  gatherScriptEventOuts loop\n",TickTime);
+		printf ("%f finished  gatherScriptEventOuts loop\n",TickTime());
 	#endif
 }
 
@@ -1913,7 +1913,9 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 	memcpy (toptr,fromptr,structlen * fromcount);
 
 	/* is this an MFNode or SFNode? */
-	if (toNode != (struct X3D_Node*) EAIListenerData) {
+	{
+	//ppEAIServ p = (ppEAIServ)gglobal()->EAIServ.prv;
+	if (toNode != (struct X3D_Node*) gglobal()->EAIServ.EAIListenerData) {
 		if (multitype==ROUTING_SFNODE) {
 #ifdef CRVERBOSE
 			printf ("got a ROUTING_SFNODE, adding %u to %u\n",(unsigned int) fn, (unsigned int) toNode);
@@ -1939,6 +1941,7 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 				ADD_PARENT(arrptr[count],toNode);
 			}
 		}
+	}
 	}
 }
 

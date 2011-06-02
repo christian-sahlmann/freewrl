@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.83 2011/06/01 15:02:21 crc_canada Exp $
+  $Id: ProdCon.c,v 1.84 2011/06/02 19:50:43 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -125,16 +125,16 @@ int _P_LOCK_VAR = 0;
 	else printf ("PARSER_FINISHING - flag wrong!\n");
 
 #define UNLOCK \
-	pthread_cond_signal(&resource_list_condition); pthread_mutex_unlock(&mutex_resource_list); 
+	pthread_cond_signal(&gglobal()->threads.resource_list_condition); pthread_mutex_unlock(&gglobal()->threads.mutex_resource_list); 
 
 #define WAIT_WHILE_PARSER_BUSY \
-	pthread_mutex_lock(&mutex_resource_list); \
-     	while (_P_LOCK_VAR==1) { pthread_cond_wait(&resource_list_condition, &mutex_resource_list);} 
+	pthread_mutex_lock(&gglobal()->threads.mutex_resource_list); \
+     	while (_P_LOCK_VAR==1) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);} 
 
 
 #define WAIT_WHILE_NO_DATA \
-	pthread_mutex_lock(&mutex_resource_list); \
-     	while (_P_LOCK_VAR==0) { pthread_cond_wait(&resource_list_condition, &mutex_resource_list);} 
+	pthread_mutex_lock(&gglobal()->threads.mutex_resource_list); \
+     	while (_P_LOCK_VAR==0) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);} 
 
 
 
@@ -238,7 +238,7 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 		ConsoleMessage ("KML-KMZ  format not supported yet");
 		break;
 	default: {
-		if (global_strictParsing) { ConsoleMessage ("unknown text as input"); } else {
+		if (gglobal()->internalc.global_strictParsing) { ConsoleMessage ("unknown text as input"); } else {
 			inputFileType = IS_TYPE_VRML;
 			inputFileVersion[0] = 2; /* try VRML V2 */
 			cParse (nRn,(int) offsetof (struct X3D_Group, children), input);
@@ -470,16 +470,16 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 
 		/* 
-		printf ("res %p root_res %p\n",res,root_res); 
+		printf ("res %p root_res %p\n",res,gglobal()->resources.root_res); 
 		*/
 
 		/* bind ONLY in main - do not bind for Inlines, etc */
-		if (res == root_res) {
+		if (res == gglobal()->resources.root_res) {
 			kill_bindables();
 			shouldBind = TRUE;
 
 		} else {
-			if (!root_res->complete) {
+			if (!gglobal()->resources.root_res->complete) {
 				/* Push the parser state : re-entrance here */
 				/* "save" the old classic parser state, so that names do not cross-pollute */
 				savedParser = globalParser;
@@ -493,7 +493,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		/* ACTUALLY CALLS THE PARSER */
 		PARSE_STRING(of->data, nRn);
 	
-		if ((res != root_res) && ((!root_res) ||(!root_res->complete))) {
+		if ((res != gglobal()->resources.root_res) && ((!gglobal()->resources.root_res) ||(!gglobal()->resources.root_res->complete))) {
 			globalParser = savedParser;
 		}
 	

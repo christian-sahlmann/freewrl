@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.181 2011/05/31 14:42:11 crc_canada Exp $
+  $Id: MainLoop.c,v 1.182 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -123,27 +123,183 @@ void  setAquaCursor(int ctype) { };
 
 #include "MainLoop.h"
 
-/* are we displayed, or iconic? */
-static int onScreen = TRUE;
+double TickTime()
+{
+	return gglobal()->Mainloop.TickTime;
+}
+double lastTime()
+{
+	return gglobal()->Mainloop.lastTime;
+}
+/* Sensor table. When clicked, we get back from getRayHit the fromnode,
+        have to look up type and data in order to properly handle it */
+struct SensStruct {
+        struct X3D_Node *fromnode;
+        struct X3D_Node *datanode;
+        void (*interpptr)(void *, int, int, int);
+};
 
-/* Coordinate screen refresh with aqua */
-static int askForRefresh = FALSE;
-static int refreshOK = FALSE;
+typedef struct pMainloop{
+	//browser
+	/* are we displayed, or iconic? */
+	int onScreen;// = TRUE;
 
-/* do we do event propagation, proximity calcs?? */
-static int doEvents = FALSE;
+	/* Coordinate screen refresh with aqua */
+	int askForRefresh;// = FALSE;
+	int refreshOK;// = FALSE;
 
-#ifdef VERBOSE
-static char debs[300];
-#endif
+	/* do we do event propagation, proximity calcs?? */
+	int doEvents;// = FALSE;
 
-char* PluginFullPath;
+	#ifdef VERBOSE
+	char debs[300];
+	#endif
 
-/* linewidth for lines and points - passed in on command line */
-float gl_linewidth = 1.0f;
+	char* PluginFullPath;
+	//
+	int num_SensorEvents;// = 0;
 
-/* what kind of file was just parsed? */
-int currentFileVersion = 0;
+	/* Viewport data */
+	GLint viewPort2[10];
+
+	/* screen width and height. */
+	struct X3D_Node* CursorOverSensitive;//=NULL;      /*  is Cursor over a Sensitive node?*/
+	struct X3D_Node* oldCOS;//=NULL;                   /*  which node was cursor over before this node?*/
+	int NavigationMode;//=FALSE;               /*  are we navigating or sensing?*/
+	int ButDown[20][8];// = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
+
+	int currentCursor;// = 0;
+	int lastMouseEvent;// = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
+	struct X3D_Node* lastPressedOver;// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
+	struct X3D_Node* lastOver;// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
+	int lastOverButtonPressed;// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
+
+	int maxbuffers;// = 1;                     /*  how many active indexes in bufferarray*/
+	int bufferarray[2];// = {GL_BACK,0};
+
+	double BrowserStartTime;        /* start of calculating FPS     */
+
+	int quitThread;// = FALSE;
+	int keypress_wait_for_settle;// = 100;     /* JAS - change keypress to wait, then do 1 per loop */
+	char * keypress_string;//=NULL;            /* Robert Sim - command line key sequence */
+
+	struct SensStruct *SensorEvents;// = 0;
+
+    int loop_count;// = 0;
+    int slowloop_count;// = 0;
+	double waitsec;
+
+	//scene
+	//window
+	//2D_inputdevice
+}* ppMainloop;
+void *Mainloop_constructor(){
+	void *v = malloc(sizeof(struct pMainloop));
+	memset(v,0,sizeof(struct pMainloop));
+	return v;
+}
+void Mainloop_init(struct tMainloop *t){
+	//public
+	/* linewidth for lines and points - passed in on command line */
+	t->gl_linewidth= 1.0f;
+	//t->TickTime;
+	//t->lastTime;
+	t->BrowserFPS = 100.0;        /* calculated FPS               */
+	t->BrowserSpeed = 0.0;      /* calculated movement speed    */
+	t->trisThisLoop = 0;
+
+	/* what kind of file was just parsed? */
+	t->currentFileVersion = 0;
+	/* do we have some sensitive nodes in scene graph? */
+	t->HaveSensitive = FALSE;
+	//t->currentX[20];
+	//t->currentY[20];                 /*  current mouse position.*/
+	t->clipPlane = 0;
+
+	//private
+	t->prv = Mainloop_constructor();
+	{
+		ppMainloop p = (ppMainloop)t->prv;
+		//browser
+		/* are we displayed, or iconic? */
+		p->onScreen = TRUE;
+
+		/* Coordinate screen refresh with aqua */
+		p->askForRefresh = FALSE;
+		p->refreshOK = FALSE;
+
+		/* do we do event propagation, proximity calcs?? */
+		p->doEvents = FALSE;
+
+		#ifdef VERBOSE
+		//static char debs[300];
+		#endif
+
+		//char* PluginFullPath;
+		p->num_SensorEvents = 0;
+
+		/* Viewport data */
+		//p->viewPort2[10];
+
+		/* screen width and height. */
+		p->CursorOverSensitive=NULL;      /*  is Cursor over a Sensitive node?*/
+		p->oldCOS=NULL;                   /*  which node was cursor over before this node?*/
+		p->NavigationMode=FALSE;               /*  are we navigating or sensing?*/
+		//p->ButDown[20][8] = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}}; nulls
+
+		p->currentCursor = 0;
+		p->lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
+		p->lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
+		p->lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
+		p->lastOverButtonPressed = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
+
+		p->maxbuffers = 1;                     /*  how many active indexes in bufferarray*/
+		p->bufferarray[0] = GL_BACK;
+		p->bufferarray[1] = 0;
+		/* current time and other time related stuff */
+		//p->BrowserStartTime;        /* start of calculating FPS     */
+
+		p->quitThread = FALSE;
+		p->keypress_wait_for_settle = 100;     /* JAS - change keypress to wait, then do 1 per loop */
+		p->keypress_string=NULL;            /* Robert Sim - command line key sequence */
+
+		p->SensorEvents = 0;
+
+        p->loop_count = 0;
+        p->slowloop_count = 0;
+		//p->waitsec;
+
+		//scene
+		//window
+		//2D_inputdevice
+
+	}
+}
+
+//true statics:
+int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this across instances would be a problem
+
+///* are we displayed, or iconic? */
+//static int onScreen = TRUE;
+//
+///* Coordinate screen refresh with aqua */
+//static int askForRefresh = FALSE;
+//static int refreshOK = FALSE;
+//
+///* do we do event propagation, proximity calcs?? */
+//static int doEvents = FALSE;
+//
+//#ifdef VERBOSE
+//static char debs[300];
+//#endif
+//
+//char* PluginFullPath;
+//
+///* linewidth for lines and points - passed in on command line */
+//float gl_linewidth = 1.0f;
+//
+///* what kind of file was just parsed? */
+//int currentFileVersion = 0;
 
 /*
    we want to run initialize() from the calling thread. NOTE: if
@@ -177,55 +333,52 @@ int currentFileVersion = 0;
                 if (node != NULL) { send_bind_to(X3D_NODE(node),1); node = NULL; }
 
 
-int quitThread = FALSE;
-char * keypress_string=NULL;            /* Robert Sim - command line key sequence */
-int keypress_wait_for_settle = 100;     /* JAS - change keypress to wait, then do 1 per loop */
 
 /* void Next_ViewPoint(void);  */            /*  switch to next viewpoint -*/
 static void setup_viewpoint();
 static void get_collisionoffset(double *x, double *y, double *z);
 
-/* Sensor table. When clicked, we get back from getRayHit the fromnode,
-        have to look up type and data in order to properly handle it */
-struct SensStruct {
-        struct X3D_Node *fromnode;
-        struct X3D_Node *datanode;
-        void (*interpptr)(void *, int, int, int);
-};
-struct SensStruct *SensorEvents = 0;
-int num_SensorEvents = 0;
-
-/* Viewport data */
-static GLint viewPort2[10];
-
-/* screen width and height. */
-int clipPlane = 0;
-struct X3D_Node* CursorOverSensitive=NULL;      /*  is Cursor over a Sensitive node?*/
-struct X3D_Node* oldCOS=NULL;                   /*  which node was cursor over before this node?*/
-int NavigationMode=FALSE;               /*  are we navigating or sensing?*/
-int ButDown[20][8] = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
-
-int currentX[20], currentY[20];                 /*  current mouse position.*/
-int currentCursor = 0;
-int lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
-struct X3D_Node* lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
-struct X3D_Node* lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
-int lastOverButtonPressed = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
-
-int maxbuffers = 1;                     /*  how many active indexes in bufferarray*/
-int bufferarray[] = {GL_BACK,0};
-
-/* current time and other time related stuff */
-double TickTime;
-double lastTime;
-double BrowserStartTime;        /* start of calculating FPS     */
-double BrowserFPS = 100.0;        /* calculated FPS               */
-double BrowserSpeed = 0.0;      /* calculated movement speed    */
-
-int trisThisLoop;
-
-/* do we have some sensitive nodes in scene graph? */
-int HaveSensitive = FALSE;
+///* Sensor table. When clicked, we get back from getRayHit the fromnode,
+//        have to look up type and data in order to properly handle it */
+//struct SensStruct {
+//        struct X3D_Node *fromnode;
+//        struct X3D_Node *datanode;
+//        void (*interpptr)(void *, int, int, int);
+//};
+//struct SensStruct *SensorEvents = 0;
+//int num_SensorEvents = 0;
+//
+///* Viewport data */
+//static GLint viewPort2[10];
+//
+///* screen width and height. */
+//int clipPlane = 0;
+//struct X3D_Node* CursorOverSensitive=NULL;      /*  is Cursor over a Sensitive node?*/
+//struct X3D_Node* oldCOS=NULL;                   /*  which node was cursor over before this node?*/
+//int NavigationMode=FALSE;               /*  are we navigating or sensing?*/
+//int ButDown[20][8] = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
+//
+//int currentX[20], currentY[20];                 /*  current mouse position.*/
+//int currentCursor = 0;
+//int lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
+//struct X3D_Node* lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
+//struct X3D_Node* lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
+//int lastOverButtonPressed = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
+//
+//int maxbuffers = 1;                     /*  how many active indexes in bufferarray*/
+//int bufferarray[] = {GL_BACK,0};
+//
+///* current time and other time related stuff */
+//double TickTime;
+//double lastTime;
+//double BrowserStartTime;        /* start of calculating FPS     */
+//double BrowserFPS = 100.0;        /* calculated FPS               */
+//double BrowserSpeed = 0.0;      /* calculated movement speed    */
+//
+//int trisThisLoop;
+//
+///* do we have some sensitive nodes in scene graph? */
+//int HaveSensitive = FALSE;
 
 /* Function protos */
 static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
@@ -241,7 +394,6 @@ static void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int sta
 void activate_OSCsensors();
 #endif
 
-int isBrowserPlugin = FALSE;
 
 /* libFreeWRL_get_version()
 
@@ -254,21 +406,23 @@ int isBrowserPlugin = FALSE;
 most things around, just stops display thread, when the user exits a world. */
 static void stopDisplayThread()
 {
-	if (!TEST_NULL_THREAD(DispThrd)) {
-		quitThread = TRUE;
-		pthread_join(DispThrd,NULL);
-		ZERO_THREAD(DispThrd);
+	ttglobal tg = gglobal();
+	if (!TEST_NULL_THREAD(tg->threads.DispThrd)) {
+		((ppMainloop)(tg->Mainloop.prv))->quitThread = TRUE;
+		pthread_join(tg->threads.DispThrd,NULL);
+		ZERO_THREAD(tg->threads.DispThrd);
 	}
 }
 
-static double waitsec;
+//static double waitsec;
 
 #if !defined(_WIN32)
 
-static struct timeval mytime;
+//static struct timeval mytime;
 
 /* Doug Sandens windows function; lets make it static here for non-windows */
 static double Time1970sec(void) {
+		struct timeval mytime;
         gettimeofday(&mytime, NULL);
         return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 }
@@ -297,6 +451,7 @@ __inline double Time1970sec()
 
 #endif
 
+
 #define DJ_KEEP_COMPILER_WARNING 0
 #if DJ_KEEP_COMPILER_WARNING
 #define TI(_tv) gettimeofdat(&_tv)
@@ -306,8 +461,10 @@ __inline double Time1970sec()
 
 /* Main eventloop for FreeWRL!!! */
 void fwl_RenderSceneUpdateScene() {
-        static int loop_count = 0;
-        static int slowloop_count = 0;
+        //static int loop_count = 0;
+        //static int slowloop_count = 0;
+		ttglobal tg = gglobal();
+		ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
     PRINT_GL_ERROR_IF_ANY("start of renderSceneUpdateScene");
     
@@ -360,7 +517,7 @@ void fwl_RenderSceneUpdateScene() {
 	
 #endif
 
-	while (refreshOK) {
+	while (p->refreshOK) {
 		usleep(50);
 	}
 
@@ -368,13 +525,13 @@ void fwl_RenderSceneUpdateScene() {
 		     BOOL_STR(fwl_isinputThreadParsing()), BOOL_STR(resource_is_root_loaded()));
 
         /* should we do events, or maybe a parser is parsing? */
-        doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
+        p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
 
         /* First time through */
-        if (loop_count == 0) {
-                BrowserStartTime = Time1970sec();
-		TickTime = BrowserStartTime;
-                lastTime = TickTime - 0.01; /* might as well not invoke the usleep below */
+        if (p->loop_count == 0) {
+                p->BrowserStartTime = Time1970sec();
+				tg->Mainloop.TickTime = p->BrowserStartTime;
+                tg->Mainloop.lastTime = tg->Mainloop.TickTime - 0.01; /* might as well not invoke the usleep below */
         } else {
 		/* NOTE: front ends now sync with the monitor, meaning, this sleep is no longer needed unless
 		   something goes totally wrong */
@@ -385,20 +542,20 @@ void fwl_RenderSceneUpdateScene() {
 		   need this, but in case something goes pear-shaped (british expression, there!) we do not
 		   consume thousands of frames per second */
 
-               waitsec = TickTime - lastTime;
-               if (waitsec < 0.005) {
+               p->waitsec = TickTime() - lastTime();
+               if (p->waitsec < 0.005) {
                        usleep(10000);
 		}
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
         }
 
         /* Set the timestamp */
-	lastTime = TickTime;
-	TickTime = Time1970sec();
+	tg->Mainloop.lastTime = tg->Mainloop.TickTime;
+	tg->Mainloop.TickTime = Time1970sec();
 
         /* any scripts to do?? */
 #ifdef _MSC_VER
-		if(doEvents)
+		if(p->doEvents)
 #endif /* _MSC_VER */
 
 	#ifdef HAVE_JAVASCRIPT
@@ -417,29 +574,29 @@ void fwl_RenderSceneUpdateScene() {
         OcclusionStartofRenderSceneUpdateScene();
         startOfLoopNodeUpdates();
 
-        if (loop_count == 25) {
+        if (p->loop_count == 25) {
 
-                BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
-                setMenuFps((float)BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
-                /* printf ("fps %f tris %d, rootnode children %d \n",BrowserFPS,trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
-                /* ConsoleMessage("fps %f tris %d\n",BrowserFPS,trisThisLoop);   */
+                tg->Mainloop.BrowserFPS = 25.0 / (TickTime()-p->BrowserStartTime);
+                setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
+                /* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
+                /* ConsoleMessage("fps %f tris %d\n",p->BrowserFPS,p->trisThisLoop);   */
 
 		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);  */
 
-                BrowserStartTime = TickTime;
-                loop_count = 1;
+                p->BrowserStartTime = TickTime();
+                p->loop_count = 1;
         } else {
-                loop_count++;
+                p->loop_count++;
         }
 
-        trisThisLoop = 0;
+        tg->Mainloop.trisThisLoop = 0;
 
-	if(slowloop_count == 1009) slowloop_count = 0 ;
+	if(p->slowloop_count == 1009) p->slowloop_count = 0 ;
 	#if USE_OSC
 	if ((slowloop_count % 256) == 0) {
 		//activate_picksensors() ;
 		/*
-		printf("slowloop_count = %d at T=%lf : lastMouseEvent=%d , MotionNotify=%d\n",slowloop_count, TickTime, lastMouseEvent, MotionNotify) ;
+		printf("slowloop_count = %d at T=%lf : lastMouseEvent=%d , MotionNotify=%d\n",slowloop_count, TickTime(), lastMouseEvent, MotionNotify) ;
 		*/
 		activate_OSCsensors() ;
 	} else {
@@ -447,25 +604,25 @@ void fwl_RenderSceneUpdateScene() {
 	}
 	#endif /* USE_OSC */
 
-	slowloop_count++ ;
+	p->slowloop_count++ ;
 
         /* handle any events provided on the command line - Robert Sim */
-        if (keypress_string && doEvents) {
-                if (keypress_wait_for_settle > 0) {
-                        keypress_wait_for_settle--;
+        if (p->keypress_string && p->doEvents) {
+                if (p->keypress_wait_for_settle > 0) {
+                        p->keypress_wait_for_settle--;
                 } else {
                         /* dont do the null... */
-                        if (*keypress_string) {
-                                /* printf ("handling key %c\n",*keypress_string); */
+                        if (*p->keypress_string) {
+                                /* printf ("handling key %c\n",*p->keypress_string); */
 #if !defined( AQUA ) && !defined( WIN32 )  /*win32 - don't know whats it is suppsoed to do yet */
 
-				DEBUG_XEV("CMD LINE GEN EVENT: %c\n", *keypress_string);
-                                fwl_do_keyPress(*keypress_string,KeyPress);
+				DEBUG_XEV("CMD LINE GEN EVENT: %c\n", *p->keypress_string);
+                                fwl_do_keyPress(*p->keypress_string,KeyPress);
 #endif /* NOT AQUA and NOT WIN32 */
 
-                                keypress_string++;
+                                p->keypress_string++;
                         } else {
-                                keypress_string=NULL;
+                                p->keypress_string=NULL;
                         }
                 }
         }
@@ -541,49 +698,49 @@ void fwl_RenderSceneUpdateScene() {
     PRINT_GL_ERROR_IF_ANY("after handle_tick")
     
         /* setup Projection and activate ProximitySensors */
-        if (onScreen) render_pre(); 
+        if (p->onScreen) render_pre(); 
 
         /* first events (clock ticks, etc) if we have other things to do, yield */
-        if (doEvents) do_first (); else sched_yield();
+        if (p->doEvents) do_first (); else sched_yield();
 
 	/* ensure depth mask turned on here */
 	FW_GL_DEPTHMASK(GL_TRUE);
 
     PRINT_GL_ERROR_IF_ANY("after depth")
         /* actual rendering */
-        if (onScreen)
+        if (p->onScreen)
 			render();
 
         /* handle_mouse events if clicked on a sensitive node */
 	/* printf("nav mode =%d sensitive= %d\n",NavigationMode, HaveSensitive);  */
-        if (!NavigationMode && HaveSensitive) {
-		currentCursor = 0;
-                setup_projection(TRUE,currentX[currentCursor],currentY[currentCursor]);
+        if (!p->NavigationMode && tg->Mainloop.HaveSensitive) {
+		p->currentCursor = 0;
+                setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
                 setup_viewpoint();
                 render_hier(rootNode,VF_Sensitive  | VF_Geom); 
-                CursorOverSensitive = getRayHit();
+                p->CursorOverSensitive = getRayHit();
 
                 /* for nodes that use an "isOver" eventOut... */
-                if (lastOver != CursorOverSensitive) {
+                if (p->lastOver != p->CursorOverSensitive) {
                         #ifdef VERBOSE
                         printf ("%lf over changed, lastOver %u cursorOverSensitive %u, butDown1 %d\n",
-				TickTime, (unsigned int) lastOver, (unsigned int) CursorOverSensitive,
+				TickTime(), (unsigned int) lastOver, (unsigned int) CursorOverSensitive,
 				ButDown[currentCursor][1]);
                         #endif
 
-                        if (ButDown[currentCursor][1]==0) {
+                        if (p->ButDown[p->currentCursor][1]==0) {
 
                                 /* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
                                    until it gets sensed again. So, we use the lastOverButtonPressed flag to delay 
                                    sending this flag by one event loop loop. */
-                                if (!lastOverButtonPressed) {
-                                        sendSensorEvents(lastOver, overMark, 0, FALSE);
-                                        sendSensorEvents(CursorOverSensitive, overMark, 0, TRUE);
-                                        lastOver = CursorOverSensitive;
+                                if (!p->lastOverButtonPressed) {
+                                        sendSensorEvents(p->lastOver, overMark, 0, FALSE);
+                                        sendSensorEvents(p->CursorOverSensitive, overMark, 0, TRUE);
+                                        p->lastOver = p->CursorOverSensitive;
                                 }
-                                lastOverButtonPressed = FALSE;
+                                p->lastOverButtonPressed = FALSE;
                         } else {
-                                lastOverButtonPressed = TRUE;
+                                p->lastOverButtonPressed = TRUE;
                         }
 
                 }
@@ -596,61 +753,61 @@ void fwl_RenderSceneUpdateScene() {
 
                 /* did we have a click of button 1? */
 
-                if (ButDown[currentCursor][1] && (lastPressedOver==NULL)) {
+                if (p->ButDown[p->currentCursor][1] && (p->lastPressedOver==NULL)) {
                         /* printf ("Not Navigation and 1 down\n"); */
                         /* send an event of ButtonPress and isOver=true */
-                        lastPressedOver = CursorOverSensitive;
-                        sendSensorEvents(lastPressedOver, ButtonPress, ButDown[currentCursor][1], TRUE);
+                        p->lastPressedOver = p->CursorOverSensitive;
+                        sendSensorEvents(p->lastPressedOver, ButtonPress, p->ButDown[p->currentCursor][1], TRUE);
                 }
 
-                if ((ButDown[currentCursor][1]==0) && lastPressedOver!=NULL) {
+                if ((p->ButDown[p->currentCursor][1]==0) && p->lastPressedOver!=NULL) {
                         /* printf ("Not Navigation and 1 up\n");  */
                         /* send an event of ButtonRelease and isOver=true;
                            an isOver=false event will be sent below if required */
-                        sendSensorEvents(lastPressedOver, ButtonRelease, ButDown[currentCursor][1], TRUE);
-                        lastPressedOver = NULL;
+                        sendSensorEvents(p->lastPressedOver, ButtonRelease, p->ButDown[p->currentCursor][1], TRUE);
+                        p->lastPressedOver = NULL;
                 }
 
-                if (lastMouseEvent == MotionNotify) {
+                if (p->lastMouseEvent == MotionNotify) {
                         /* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
                         /* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-                        sendSensorEvents(CursorOverSensitive,MotionNotify, ButDown[currentCursor][1], TRUE);
+                        sendSensorEvents(p->CursorOverSensitive,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
 
                         /* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-                        sendSensorEvents(lastPressedOver,MotionNotify, ButDown[currentCursor][1], TRUE);
-                	lastMouseEvent = 0 ;
+                        sendSensorEvents(p->lastPressedOver,MotionNotify, p->ButDown[p->currentCursor][1], TRUE);
+                	p->lastMouseEvent = 0 ;
                 }
 
 
 
                 /* do we need to re-define cursor style?        */
                 /* do we need to send an isOver event?          */
-                if (CursorOverSensitive!= NULL) {
+                if (p->CursorOverSensitive!= NULL) {
 		    SENSOR_CURSOR;
 
                         /* is this a new node that we are now over?
                            don't change the node pointer if we are clicked down */
-                        if ((lastPressedOver==NULL) && (CursorOverSensitive != oldCOS)) {
-                                sendSensorEvents(oldCOS,MapNotify,ButDown[currentCursor][1], FALSE);
-                                sendSensorEvents(CursorOverSensitive,MapNotify,ButDown[currentCursor][1], TRUE);
-                                oldCOS=CursorOverSensitive;
-                                sendDescriptionToStatusBar(CursorOverSensitive);
+                        if ((p->lastPressedOver==NULL) && (p->CursorOverSensitive != p->oldCOS)) {
+                                sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
+                                sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
+                                p->oldCOS=p->CursorOverSensitive;
+                                sendDescriptionToStatusBar(p->CursorOverSensitive);
                         }
 
                 } else {
                         /* hold off on cursor change if dragging a sensor */
-                        if (lastPressedOver!=NULL) {
+                        if (p->lastPressedOver!=NULL) {
 			    SENSOR_CURSOR;
                         } else {
 			    ARROW_CURSOR;
                         }
 
                         /* were we over a sensitive node? */
-                        if ((oldCOS!=NULL)  && (ButDown[currentCursor][1]==0)) {
-                                sendSensorEvents(oldCOS,MapNotify,ButDown[currentCursor][1], FALSE);
+                        if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
+                                sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
                                 /* remove any display on-screen */
                                 sendDescriptionToStatusBar(NULL);
-                                oldCOS=NULL;
+                                p->oldCOS=NULL;
                         }
                 }
 
@@ -676,7 +833,7 @@ void fwl_RenderSceneUpdateScene() {
 
 
         /* handle snapshots */
-        if (doSnapshot) {
+        if (tg->Snapshot.doSnapshot) {
                 Snapshot();
         }
 
@@ -684,7 +841,7 @@ void fwl_RenderSceneUpdateScene() {
         /* do OcclusionCulling, etc */
         OcclusionCulling();
         
-        if (doEvents) {
+        if (p->doEvents) {
                 /* and just parsed nodes needing binding? */
                 SEND_BIND_IF_REQUIRED(setViewpointBindInRender)
                 SEND_BIND_IF_REQUIRED(setFogBindInRender)
@@ -703,9 +860,9 @@ void fwl_RenderSceneUpdateScene() {
 		handle_MIDIEAI();
         }
 
-	if (askForRefresh) {
-		refreshOK = TRUE;
-		askForRefresh = FALSE;
+	if (p->askForRefresh) {
+		p->refreshOK = TRUE;
+		p->askForRefresh = FALSE;
 	}
 }
 
@@ -717,9 +874,11 @@ void handle_Xevents(XEvent event) {
         char buf[10];
         KeySym ks;
         int count;
-
-        lastMouseEvent=event.type;
-
+		ppMainloop p;
+		ttglobal tg = gglobal();
+		p = (ppMainloop)tg->Mainloop.prv;
+        p->lastMouseEvent=event.type;
+		
         #ifdef VERBOSE
         switch (event.type) {
                 case ConfigureNotify: printf ("Event: ConfigureNotify\n"); break;
@@ -792,18 +951,18 @@ void handle_Xevents(XEvent event) {
                         /* printf("got a button press or button release\n"); */
                         /*  if a button is pressed, we should not change state,*/
                         /*  so keep a record.*/
-						if(handleStatusbarHud(event.type, &clipPlane))break;
+						if(handleStatusbarHud(event.type, &tg->Mainloop.clipPlane))break;
                         if (event.xbutton.button>=5) break;  /* bounds check*/
-                        ButDown[currentCursor][event.xbutton.button] = (event.type == ButtonPress);
+                        p->ButDown[p->currentCursor][event.xbutton.button] = (event.type == ButtonPress);
 
                         /* if we are Not over an enabled sensitive node, and we do NOT
                            already have a button down from a sensitive node... */
-                        /* printf("cursoroversensitive is %u lastPressedOver %u\n", CursorOverSensitive,lastPressedOver); */
-                        if ((CursorOverSensitive==NULL) && (lastPressedOver==NULL))  {
-                                NavigationMode=ButDown[currentCursor][1] || ButDown[currentCursor][3];
+						/* printf("cursoroversensitive is %u lastPressedOver %u\n", p->CursorOverSensitive,p->lastPressedOver); */
+                        if ((p->CursorOverSensitive==NULL) && (p->lastPressedOver==NULL))  {
+                                p->NavigationMode=p->ButDown[p->currentCursor][1] || p->ButDown[p->currentCursor][3];
                                 handle (event.type,event.xbutton.button,
-                                        (float) ((float)event.xbutton.x/screenWidth),
-                                        (float) ((float)event.xbutton.y/screenHeight));
+                                        (float) ((float)event.xbutton.x/tg->display.screenWidth),
+                                        (float) ((float)event.xbutton.y/tg->display.screenHeight));
                         }
                         break;
 
@@ -819,19 +978,19 @@ void handle_Xevents(XEvent event) {
 #endif /* KEEP_X11_INLIB */
 
                         /*  save the current x and y positions for picking.*/
-                        currentX[currentCursor] = event.xbutton.x;
-                        currentY[currentCursor] = event.xbutton.y;
+                        tg->Mainloop.currentX[p->currentCursor] = event.xbutton.x;
+                        tg->Mainloop.currentY[p->currentCursor] = event.xbutton.y;
                         /* printf("navigationMode is %d\n", NavigationMode); */
-						if(handleStatusbarHud(6, &clipPlane))break;
-                        if (NavigationMode) {
+						if(handleStatusbarHud(6, &tg->Mainloop.clipPlane))break;
+                        if (p->NavigationMode) {
                                 /*  find out what the first button down is*/
                                 count = 0;
-                                while ((count < 5) && (!ButDown[currentCursor][count])) count++;
+                                while ((count < 5) && (!p->ButDown[p->currentCursor][count])) count++;
                                 if (count == 5) return; /*  no buttons down???*/
 
                                 handle (event.type,(unsigned)count,
-                                        (float)((float)event.xbutton.x/screenWidth),
-                                        (float)((float)event.xbutton.y/screenHeight));
+                                        (float)((float)event.xbutton.x/tg->display.screenWidth),
+                                        (float)((float)event.xbutton.y/tg->display.screenHeight));
                         }
                         break;
         }
@@ -845,6 +1004,8 @@ int enabled_picksensors();
 #endif
 
 static void render_pre() {
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+
         /* 1. Set up projection */
         setup_projection(FALSE,0,0);
 
@@ -862,14 +1023,14 @@ static void render_pre() {
         setup_viewpoint();      /*  need this to render collisions correctly*/
 
         /* 4. Collisions */
-        if (fwl_getp_collision == 1) {
+        if (fwl_getp_collision() == 1) {
                 render_collisions();
                 setup_viewpoint(); /*  update viewer position after collision, to*/
                                    /*  give accurate info to Proximity sensors.*/
         }
 
         /* 5. render hierarchy - proximity */
-        if (doEvents) 
+        if (p->doEvents) 
 		{
 			render_hier(rootNode, VF_Proximity);
 #ifdef DJTRACK_PICKSENSORS
@@ -892,10 +1053,13 @@ static void render_pre() {
 }
 void setup_projection(int pick, int x, int y) 
 {
-	GLsizei screenwidth2 = screenWidth;
-	GLDOUBLE aspect2 = screenRatio;
 	GLDOUBLE fieldofview2;
 	GLint xvp = 0;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	GLsizei screenwidth2 = tg->display.screenWidth;
+	GLDOUBLE aspect2 = tg->display.screenRatio;
+	p = (ppMainloop)tg->Mainloop.prv;
     
     PRINT_GL_ERROR_IF_ANY("XEvents::start of setup_projection");
     
@@ -911,27 +1075,27 @@ void setup_projection(int pick, int x, int y)
 
         FW_GL_MATRIX_MODE(GL_PROJECTION);
 	/* >>> statusbar hud */
-	if(clipPlane != 0)
+	if(tg->Mainloop.clipPlane != 0)
 	{   /* scissor used to prevent mainloop from glClear()ing the statusbar area
 		 which is updated only every 10-25 loops */
-		FW_GL_SCISSOR(0,clipPlane,screenWidth,screenHeight);
+		FW_GL_SCISSOR(0,tg->Mainloop.clipPlane,tg->display.screenWidth,tg->display.screenHeight);
 		FW_GL_ENABLE(GL_SCISSOR_TEST);
 	}
 	/* <<< statusbar hud */
 
-	FW_GL_VIEWPORT(xvp,clipPlane,screenwidth2,screenHeight);
+	FW_GL_VIEWPORT(xvp,tg->Mainloop.clipPlane,screenwidth2,tg->display.screenHeight);
 #ifdef AQUA
 #if !defined(IPHONE) 
         myglobalContext = CGLGetCurrentContext();
 	CGLSetCurrentContext(myglobalContext);
 #endif
 #endif
-	FW_GL_VIEWPORT(xvp, clipPlane, screenwidth2, screenHeight);
+	FW_GL_VIEWPORT(xvp, tg->Mainloop.clipPlane, screenwidth2, tg->display.screenHeight);
         FW_GL_LOAD_IDENTITY();
         if(pick) {
                 /* picking for mouse events */
-                FW_GL_GETINTEGERV(GL_VIEWPORT,viewPort2);
-                FW_GLU_PICK_MATRIX((float)x,(float)viewPort2[3]-y, (float)100,(float)100,viewPort2);
+                FW_GL_GETINTEGERV(GL_VIEWPORT,p->viewPort2);
+                FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]-y, (float)100,(float)100,p->viewPort2);
         }
 
 	/* ortho projection or perspective projection? */
@@ -944,8 +1108,8 @@ void setup_projection(int pick, int x, int y)
 		maxX = Viewer.orthoField[2];
 		maxY = Viewer.orthoField[3];
 
-		if (screenHeight != 0) {
-			numerator = (maxY - minY) * ((float) screenWidth) / ((float) screenHeight);
+		if (tg->display.screenHeight != 0) {
+			numerator = (maxY - minY) * ((float) tg->display.screenWidth) / ((float) tg->display.screenHeight);
 			maxX = numerator/2.0f; 
 			minX = -(numerator/2.0f);
 		}
@@ -988,19 +1152,19 @@ static void render()
     int count,i;
 	static double shuttertime;
 	static int shutterside;
-
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 	/*  profile*/
     /* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
     /* struct timeval mytime;*/
     /* struct timezone tz; unused see man gettimeofday */
 
-    for (count = 0; count < maxbuffers; count++) {
+    for (count = 0; count < p->maxbuffers; count++) {
 
         /*set_buffer((unsigned)bufferarray[count],count); */              /*  in Viewer.c*/
 
-		Viewer.buffer = (unsigned)bufferarray[count]; 
+		Viewer.buffer = (unsigned)p->bufferarray[count]; 
 		Viewer.iside = count;
-		FW_GL_DRAWBUFFER((unsigned)bufferarray[count]);
+		FW_GL_DRAWBUFFER((unsigned)p->bufferarray[count]);
 
         /*  turn lights off, and clear buffer bits*/
 
@@ -1008,9 +1172,9 @@ static void render()
 		{
 			if(Viewer.shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
 			{
-				if(TickTime - shuttertime > 2.0)
+				if(TickTime() - shuttertime > 2.0)
 				{
-					shuttertime = TickTime;
+					shuttertime = TickTime();
 					if(shutterside > 0) shutterside = 0;
 					else shutterside = 1;
 				}
@@ -1264,7 +1428,7 @@ static void render_collisions() {
         get_collisionoffset(&(v.x), &(v.y), &(v.z));
 
 	 /* if (!APPROX(v.x,0.0) || !APPROX(v.y,0.0) || !APPROX(v.z,0.0)) {
-		printf ("%lf MainLoop, rendercollisions, offset %f %f %f\n",TickTime,v.x,v.y,v.z);
+		printf ("%lf MainLoop, rendercollisions, offset %f %f %f\n",TickTime(),v.x,v.y,v.z);
 	} */
 		/* v should be in avatar coordinates*/
         increment_pos(&v);
@@ -1378,6 +1542,7 @@ void sendKeyToKeySensor(const char key, int upDown);
 
 void fwl_do_keyPress(const char kp, int type) {
 		int lkp;
+		ttglobal tg = gglobal();
         /* does this X3D file have a KeyDevice node? if so, send it to it */
 	//printf("fwl_do_keyPress: %c%d\n",kp,type); 
         if (KeySensorNodePresent()) {
@@ -1400,8 +1565,8 @@ void fwl_do_keyPress(const char kp, int type) {
                                 case 'h': { fwl_toggle_headlight(); break;}
                                 case '/': { print_viewer(); break; }
                                 case '\\': { dump_scenegraph(); break; }
-                                case '$': resource_tree_dump(0, root_res); break;
-                                case '*': resource_tree_list_files(0, root_res); break;
+                                case '$': resource_tree_dump(0, tg->resources.root_res); break;
+                                case '*': resource_tree_list_files(0, tg->resources.root_res); break;
                                 case 'q': { if (!RUNNINGASPLUGIN) {
                                                   fwl_doQuit();
                                             }
@@ -1479,6 +1644,7 @@ void fwl_gotoViewpoint (char *findThisOne) {
 struct X3D_Node* getRayHit() {
         double x,y,z;
         int i;
+		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
         if(hitPointDist >= 0) {
                 FW_GLU_UNPROJECT(hp.x,hp.y,hp.z,rayHit.modelMatrix,rayHit.projMatrix,viewport,&x,&y,&z);
@@ -1500,8 +1666,8 @@ struct X3D_Node* getRayHit() {
 		*/
                 
 
-                for (i=0; i<num_SensorEvents; i++) {
-                        if (SensorEvents[i].fromnode == rayHit.hitNode) {
+                for (i=0; i<p->num_SensorEvents; i++) {
+                        if (p->SensorEvents[i].fromnode == rayHit.hitNode) {
                                 /* printf ("found this node to be sensitive - returning %u\n",rayHit.hitNode); */
                                 return ((struct X3D_Node*) rayHit.hitNode);
                         }
@@ -1517,6 +1683,7 @@ struct X3D_Node* getRayHit() {
 void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
         void (*myp)(unsigned *);
 	int i;
+		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
         switch (datanode->_nodeType) {
                 /* sibling sensitive nodes - we have a parent node, and we use it! */
@@ -1538,10 +1705,10 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
 	/* is this node already here? */
 	/* why would it be duplicate? When we parse, we add children to a temp group, then we
 	   pass things over to a rootNode; we could possibly have this duplicated */
-	for (i=0; i<num_SensorEvents; i++) {
-		if ((SensorEvents[i].fromnode == parentNode) &&
-		    (SensorEvents[i].datanode == datanode) &&
-		    (SensorEvents[i].interpptr == (void *)myp)) {
+	for (i=0; i<p->num_SensorEvents; i++) {
+		if ((p->SensorEvents[i].fromnode == parentNode) &&
+		    (p->SensorEvents[i].datanode == datanode) &&
+		    (p->SensorEvents[i].interpptr == (void *)myp)) {
 			/* printf ("setSensitive, duplicate, returning\n"); */
 			return;
 		}
@@ -1553,15 +1720,15 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
         }
 
         /* record this sensor event for clicking purposes */
-        SensorEvents = REALLOC(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));
+        p->SensorEvents = REALLOC(p->SensorEvents,sizeof (struct SensStruct) * (p->num_SensorEvents+1));
 
         /* now, put the function pointer and data pointer into the structure entry */
-        SensorEvents[num_SensorEvents].fromnode = parentNode;
-        SensorEvents[num_SensorEvents].datanode = datanode;
-        SensorEvents[num_SensorEvents].interpptr = (void *)myp;
+        p->SensorEvents[p->num_SensorEvents].fromnode = parentNode;
+        p->SensorEvents[p->num_SensorEvents].datanode = datanode;
+        p->SensorEvents[p->num_SensorEvents].interpptr = (void *)myp;
 
-        /* printf ("saved it in num_SensorEvents %d\n",num_SensorEvents);  */
-        num_SensorEvents++;
+        /* printf ("saved it in num_SensorEvents %d\n",p->num_SensorEvents);  */
+        p->num_SensorEvents++;
 }
 
 /* we have a sensor event changed, look up event and do it */
@@ -1569,16 +1736,17 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
 static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int status) {
         int count;
 		int butStatus2;
+		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
         /* if we are not calling a valid node, dont do anything! */
         if (COS==NULL) return;
 
-        for (count = 0; count < num_SensorEvents; count++) {
-                if (SensorEvents[count].fromnode == COS) {
+        for (count = 0; count < p->num_SensorEvents; count++) {
+                if (p->SensorEvents[count].fromnode == COS) {
 						butStatus2 = butStatus;
                         /* should we set/use hypersensitive mode? */
                         if (ev==ButtonPress) {
-                                hypersensitive = SensorEvents[count].fromnode;
+                                hypersensitive = p->SensorEvents[count].fromnode;
                                 hyperhit = 0;
                         } else if (ev==ButtonRelease) {
                                 hypersensitive = 0;
@@ -1589,7 +1757,7 @@ static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int sta
                         }
 
 
-                        SensorEvents[count].interpptr(SensorEvents[count].datanode, ev,butStatus2, status);
+                        p->SensorEvents[count].interpptr(p->SensorEvents[count].datanode, ev,butStatus2, status);
                         /* return; do not do this, incase more than 1 node uses this, eg,
                                 an Anchor with a child of TouchSensor */
                 }
@@ -1623,19 +1791,20 @@ static void get_hyperhit() {
 /* set stereo buffers, if required */
 void setStereoBufferStyle(int itype) /*setXEventStereo()*/
 {
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 	if(itype==0)
 	{
 		/* quad buffer crystal eyes style */
-		bufferarray[0]=GL_BACK_LEFT;
-		bufferarray[1]=GL_BACK_RIGHT;
-		maxbuffers=2;
+		p->bufferarray[0]=GL_BACK_LEFT;
+		p->bufferarray[1]=GL_BACK_RIGHT;
+		p->maxbuffers=2;
 	}
 	else if(itype==1)
 	{
 		/*sidebyside and anaglyph type*/
-		bufferarray[0]=GL_BACK;
-		bufferarray[1]=GL_BACK;
-		maxbuffers=2;
+		p->bufferarray[0]=GL_BACK;
+		p->bufferarray[1]=GL_BACK;
+		p->maxbuffers=2;
 	}
 }
 
@@ -1819,6 +1988,7 @@ void fwl_Next_ViewPoint() {
 
 /* initialization for the OpenGL render, event processing sequence. Should be done in threat that has the OpenGL context */
 void fwl_initializeRenderSceneUpdateScene() {
+	ttglobal tg = gglobal();
 	/* printf ("fwl_initializeRenderSceneUpdateScene start\n"); */
 
 #if KEEP_X11_INLIB
@@ -1841,7 +2011,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	viewer_postGLinit_init();
 
 	#ifndef AQUA
-	if (fullscreen && newResetGeometry != NULL) newResetGeometry();
+	if (tg->display.fullscreen && newResetGeometry != NULL) newResetGeometry();
 	#endif
 
 	/* printf ("fwl_initializeRenderSceneUpdateScene finish\n"); */
@@ -1869,13 +2039,11 @@ void _displayThread()
 #endif /* KEEP_FV_INLIB */
 
 	fwl_initializeRenderSceneUpdateScene();
-    
 	/* loop and loop, and loop... */
-	while (!quitThread) {
+	while (!((ppMainloop)(gglobal()->Mainloop.prv))->quitThread) {
 		//PRINTF("event loop\n");
 		fwl_RenderSceneUpdateScene();
 	} 
-
 	/* when finished: */
 	finalizeRenderSceneUpdateScene();
 
@@ -1884,13 +2052,14 @@ void _displayThread()
 
 
 void fwl_setLastMouseEvent(int etype) {
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 	//printf ("fwl_setLastMouseEvent called\n");
-        lastMouseEvent = etype;
+        p->lastMouseEvent = etype;
 }
 
 void fwl_initialize_parser()
 {
-        quitThread = FALSE;
+        ((ppMainloop)(gglobal()->Mainloop.prv))->quitThread = FALSE;
 
 	/* create the root node */
 	if (rootNode == NULL) {
@@ -1903,60 +2072,19 @@ void fwl_initialize_parser()
 void fwl_init_SnapSeq() {
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
-        snapsequence = TRUE;
+        set_snapsequence(TRUE);
 #endif
 }
 
-void setEAIport(int pnum) {
-        EAIport = pnum;
-}
-
-void setWantEAI(int flag) {
-        EAIwanted = TRUE;
-}
 
 void fwl_set_LineWidth(float lwidth) {
-        gl_linewidth = lwidth;
+        gglobal()->Mainloop.gl_linewidth = lwidth;
 }
 
 void fwl_set_KeyString(const char* kstring)
 {
-    keypress_string = strdup(kstring);
-}
-
-void fwl_set_SeqFile(const char* file)
-{
-#if defined(DOSNAPSEQUENCE)
-    /* need to re-implement this for OSX generating QTVR */
-    snapseqB = strdup(file);
-    printf("snapseqB is %s\n", snapseqB);
-#else
-    WARN_MSG("Call to fwl_set_SeqFile when Snapshot Sequence not compiled in.\n");
-#endif
-}
-
-void fwl_set_SnapFile(const char* file)
-{
-    snapsnapB = strdup(file);
-    TRACE_MSG("snapsnapB set to %s\n", snapsnapB);
-}
-
-void fwl_set_MaxImages(int max)
-{
-#if defined(DOSNAPSEQUENCE)
-    /* need to re-implement this for OSX generating QTVR */
-    if (max <=0)
-	max = 100;
-    maxSnapImages = max;
-#else
-    WARN_MSG("Call to fwl_set_MaxImages when Snapshot Sequence not compiled in.\n");
-#endif
-}
-
-void fwl_set_SnapTmp(const char* file)
-{
-    seqtmp = strdup(file);
-    TRACE_MSG("seqtmp set to %s\n", seqtmp);
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+    p->keypress_string = strdup(kstring);
 }
 
 /* if we had an exit(EXIT_FAILURE) anywhere in this C code - it means
@@ -2005,19 +2133,22 @@ int currentTouch = -1;
 /* MIMIC what happens in handle_Xevents, but without the X events */
 void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID) {
         int count;
+		ppMainloop p;
+		ttglobal tg = gglobal();
+		p = (ppMainloop)tg->Mainloop.prv;
 
   /* printf ("fwl_handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d",
-                button, x,y,screenWidth,screenHeight);  
+                button, x,y,tg->display.screenWidth,tg->display.screenHeight);  
         if (mev == ButtonPress) printf ("ButtonPress\n");
         else if (mev == ButtonRelease) printf ("ButtonRelease\n");
         else if (mev == MotionNotify) printf ("MotionNotify\n");
         else printf ("event %d\n",mev); */
 
         /* save this one... This allows Sensors to get mouse movements if required. */
-        lastMouseEvent = mev;
+        p->lastMouseEvent = mev;
         /* save the current x and y positions for picking. */
-		currentX[currentCursor] = x;
-		currentY[currentCursor] = y;
+		tg->Mainloop.currentX[p->currentCursor] = x;
+		tg->Mainloop.currentY[p->currentCursor] = y;
 		touchlist[ID].x = x;
 		touchlist[ID].y = y;
 		touchlist[ID].button = button;
@@ -2028,17 +2159,17 @@ void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int 
 		currentTouch = ID;
 
 
-		if( handleStatusbarHud(mev, &clipPlane) )return; /* statusbarHud options screen should swallow mouse clicks */
+		if( handleStatusbarHud(mev, &tg->Mainloop.clipPlane) )return; /* statusbarHud options screen should swallow mouse clicks */
 
         if ((mev == ButtonPress) || (mev == ButtonRelease)) {
                 /* record which button is down */
-                ButDown[currentCursor][button] = (mev == ButtonPress);
+                p->ButDown[p->currentCursor][button] = (mev == ButtonPress);
                 /* if we are Not over an enabled sensitive node, and we do NOT already have a 
                    button down from a sensitive node... */
 
-                if ((CursorOverSensitive ==NULL) && (lastPressedOver ==NULL)) {
-                        NavigationMode=ButDown[currentCursor][1] || ButDown[currentCursor][3];
-                        handle(mev, button, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
+                if ((p->CursorOverSensitive ==NULL) && (p->lastPressedOver ==NULL)) {
+                        p->NavigationMode=p->ButDown[p->currentCursor][1] || p->ButDown[p->currentCursor][3];
+                        handle(mev, button, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
                 }
         }
 
@@ -2047,13 +2178,13 @@ void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int 
                 // above currentX[currentCursor] = x;
                 //currentY[currentCursor] = y;
 
-                if (NavigationMode) {
+                if (p->NavigationMode) {
                         /* find out what the first button down is */
                         count = 0;
-                        while ((count < 8) && (!ButDown[currentCursor][count])) count++;
+                        while ((count < 8) && (!p->ButDown[p->currentCursor][count])) count++;
                         if (count == 8) return; /* no buttons down???*/
 
-                        handle (mev, (unsigned) count, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
+                        handle (mev, (unsigned) count, (float) ((float)x/tg->display.screenWidth), (float) ((float)y/tg->display.screenHeight));
                 }
         }
 }
@@ -2089,7 +2220,7 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 /* old function should still work, with single mouse and ID=0 */
 void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 	//printf ("fwl_handle_aqua, type %d, screen %d %d, orig x,y %d %d\n",
-      //      mev,screenWidth, screenHeight,x,y);
+      //      mev,gglobal()->display.screenWidth, gglobal()->display.screenHeight,x,y);
 
 	// do we have to worry about screen orientations (think mobile devices)
 	#if defined (AQUA) || defined (_ANDROID)
@@ -2098,12 +2229,12 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
         // top left hand corner is x=0, y=0; 
         // bottom left, 0, 468)
         // while standard opengl is (0,0) in lower left hand corner...
-        
+        ttglobal tg = gglobal();
 		int ox = x;
 		int oy = y;
 		switch (Viewer.orient) {
 			case 0: 
-				x = screenHeight-x;
+				x = tg->display.screenHeight-x;
                 
 				break;
 			case 90: 
@@ -2115,8 +2246,8 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 				y = -y;
 				break;
 			case 270:
-				x = screenWidth - oy;
-				y = screenHeight - ox;
+				x = tg->display.screenWidth - oy;
+				y = tg->display.screenHeight - ox;
 				break;
 			default:{}
 
@@ -2149,15 +2280,18 @@ int getOffset() {
 #endif /* IPHONE */
 
 void fwl_setCurXY(int cx, int cy) {
-	/* printf ("fwl_setCurXY, have %d %d\n",currentX[currentCursor],currentY[currentCursor]); */
-        currentX[currentCursor] = cx;
-        currentY[currentCursor] = cy;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	/* printf ("fwl_setCurXY, have %d %d\n",p->currentX[p->currentCursor],p->currentY[p->currentCursor]); */
+        tg->Mainloop.currentX[p->currentCursor] = cx;
+        tg->Mainloop.currentY[p->currentCursor] = cy;
     printf ("fwl_setCurXY, have %x %x\n",cx,cy);
 }
 
 void fwl_setButDown(int button, int value) {
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 	/* printf ("fwl_setButDown called\n"); */
-        ButDown[currentCursor][button] = value;
+        p->ButDown[p->currentCursor][button] = value;
 }
 
 
@@ -2222,27 +2356,33 @@ int aquaPrintVersion() {
 
 /* if we are visible, draw the OpenGL stuff, if not, don not bother */
 void setDisplayed (int state) {
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+
         #ifdef VERBOSE
         if (state) printf ("WE ARE DISPLAYED\n");
         else printf ("we are now iconic\n");
         #endif
-        onScreen = state;
+        p->onScreen = state;
 }
 
 void fwl_init_EaiVerbose() {
-        eaiverbose = TRUE;
+        //eaiverbose = TRUE;
+		gglobal()->EAI_C_CommonFunctions.eaiverbose = TRUE;
 }
 
 void fwl_askForRefreshOK() {
-	askForRefresh = TRUE;
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+	p->askForRefresh = TRUE;
 }
 
 int fwl_checkRefresh() {
-	return refreshOK;
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+	return p->refreshOK;
 }
 
 void fwl_resetRefresh() {
-	refreshOK = FALSE;
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+	p->refreshOK = FALSE;
 }
 
 /* called from the standalone OSX front end and the OSX plugin */
@@ -2281,25 +2421,26 @@ void stopRenderingLoop(void) {
 void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
         int tmp;
         char *ns;
+		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
         if (CursorOverSensitive == NULL) update_status (NULL);
         else {
 
                 ns = NULL;
-                for (tmp=0; tmp<num_SensorEvents; tmp++) {
-                        if (SensorEvents[tmp].fromnode == CursorOverSensitive) {
-                                switch (SensorEvents[tmp].datanode->_nodeType) {
-                                        case NODE_Anchor: ns = ((struct X3D_Anchor *)SensorEvents[tmp].datanode)->description->strptr; break;
-                                        case NODE_PlaneSensor: ns = ((struct X3D_PlaneSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
-                                        case NODE_SphereSensor: ns = ((struct X3D_SphereSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
-                                        case NODE_TouchSensor: ns = ((struct X3D_TouchSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
-                                        case NODE_GeoTouchSensor: ns = ((struct X3D_GeoTouchSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
-                                        case NODE_CylinderSensor: ns = ((struct X3D_CylinderSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
-				default: {printf ("sendDesc; unknown node type %d\n",SensorEvents[tmp].datanode->_nodeType);}
+                for (tmp=0; tmp<p->num_SensorEvents; tmp++) {
+                        if (p->SensorEvents[tmp].fromnode == CursorOverSensitive) {
+                                switch (p->SensorEvents[tmp].datanode->_nodeType) {
+                                        case NODE_Anchor: ns = ((struct X3D_Anchor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
+                                        case NODE_PlaneSensor: ns = ((struct X3D_PlaneSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
+                                        case NODE_SphereSensor: ns = ((struct X3D_SphereSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
+                                        case NODE_TouchSensor: ns = ((struct X3D_TouchSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
+                                        case NODE_GeoTouchSensor: ns = ((struct X3D_GeoTouchSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
+                                        case NODE_CylinderSensor: ns = ((struct X3D_CylinderSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
+				default: {printf ("sendDesc; unknown node type %d\n",p->SensorEvents[tmp].datanode->_nodeType);}
                                 }
                                 /* if there is no description, put the node type on the screen */
                                 if (ns == NULL) {ns = "(over sensitive)";}
-                                else if (ns[0] == '\0') ns = (char *)stringNodeType(SensorEvents[tmp].datanode->_nodeType);
+                                else if (ns[0] == '\0') ns = (char *)stringNodeType(p->SensorEvents[tmp].datanode->_nodeType);
         
                                 /* send this string to the screen */
                                 update_status(ns);
@@ -2311,18 +2452,20 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
 
 /* We have a new file to load, lets get rid of the old world sensor events, and run with it */
 void resetSensorEvents(void) {
-	if (oldCOS != NULL) 	
-		sendSensorEvents(oldCOS,MapNotify,ButDown[currentCursor][1], FALSE);
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+
+	if (p->oldCOS != NULL) 	
+		sendSensorEvents(p->oldCOS,MapNotify,p->ButDown[p->currentCursor][1], FALSE);
        /* remove any display on-screen */
        sendDescriptionToStatusBar(NULL);
-	CursorOverSensitive=NULL; 
+	p->CursorOverSensitive=NULL; 
 
-	oldCOS=NULL;
-	lastMouseEvent = 0;
-	lastPressedOver = NULL;
-	lastOver = NULL;
-	FREE_IF_NZ(SensorEvents);
-	num_SensorEvents = 0;
+	p->oldCOS=NULL;
+	p->lastMouseEvent = 0;
+	p->lastPressedOver = NULL;
+	p->lastOver = NULL;
+	FREE_IF_NZ(p->SensorEvents);
+	p->num_SensorEvents = 0;
 	hypersensitive = NULL;
 	hyperhit = 0;
 	/* Cursor - ensure it is not the "sensitive" cursor */

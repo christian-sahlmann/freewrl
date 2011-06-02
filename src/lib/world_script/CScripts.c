@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.46 2011/03/22 18:52:44 crc_canada Exp $
+$Id: CScripts.c,v 1.47 2011/06/02 19:50:49 dug9 Exp $
 
 ???
 
@@ -408,7 +408,7 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  printf ("script_initCodeFromUri, uri is %s\n", uri); 
 
  res = resource_create_single(uri);
- resource_identify(root_res, res);
+ resource_identify(gglobal()->resources.root_res, res);
  if (res->type != rest_invalid) {
 	 if (resource_fetch(res)) {
 		 if (resource_load(res)) {

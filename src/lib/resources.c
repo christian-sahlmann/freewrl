@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.44 2011/05/31 00:52:42 crc_canada Exp $
+  $Id: resources.c,v 1.45 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -64,7 +64,7 @@ static void possiblyUnzip (openned_file_t *of);
  *   Main path/url will fill the  'base' field = base path
  *   or base url of the world.
  */
-resource_item_t *root_res = NULL;
+//resource_item_t *root_res = NULL;
 
 /**
  *   resource_create_single: create the resource object and add it to the root list.
@@ -82,20 +82,20 @@ resource_item_t* resource_create_single(const char *request)
 	item->afterPoundCharacters = NULL;
 
 	/* Lock access to the resource tree */
-	pthread_mutex_lock( &mutex_resource_tree );
+	pthread_mutex_lock( &gglobal()->threads.mutex_resource_tree );
 
-	if (!root_res) {
+	if (!gglobal()->resources.root_res) {
 		/* This is the first resource we try to load */
-		root_res = item;
+		gglobal()->resources.root_res = item;
 		DEBUG_RES("setting root_res in resource_create_single for file %s\n",request);
 	} else {
 		/* Not the first, so keep it in the main list */
-		root_res->children = ml_append(root_res->children, ml_new(item));
-		item->parent = root_res;
+		gglobal()->resources.root_res->children = ml_append(gglobal()->resources.root_res->children, ml_new(item));
+		item->parent = gglobal()->resources.root_res;
 	}
 
 	/* Unlock the resource tree mutex */
-	pthread_mutex_unlock( &mutex_resource_tree );
+	pthread_mutex_unlock( &gglobal()->threads.mutex_resource_tree );
 
 	return item;
 }
@@ -128,20 +128,20 @@ resource_item_t* resource_create_multi(s_Multi_String_t *request)
 	}
 
 	/* Lock access to the resource tree */
-	pthread_mutex_lock( &mutex_resource_tree );
+	pthread_mutex_lock( &gglobal()->threads.mutex_resource_tree );
 
-	if (!root_res) {
+	if (!gglobal()->resources.root_res) {
 		/* This is the first resource we try to load */
-		root_res = item;
+		gglobal()->resources.root_res = item;
 		DEBUG_RES ("setting root_res in resource_create_multi\n");
 	} else {
 		/* Not the first, so keep it in the main list */
-		root_res->children = ml_append(root_res->children, ml_new(item));
-		item->parent = root_res;
+		gglobal()->resources.root_res->children = ml_append(gglobal()->resources.root_res->children, ml_new(item));
+		item->parent = gglobal()->resources.root_res;
 	}
 
 	/* Unlock the resource tree mutex */
-	pthread_mutex_unlock( &mutex_resource_tree );
+	pthread_mutex_unlock( &gglobal()->threads.mutex_resource_tree );
 
 	return item;
 }
@@ -164,20 +164,20 @@ resource_item_t* resource_create_from_string(const char *string)
 	item->afterPoundCharacters = NULL;
 
 	/* Lock access to the resource tree */
-	pthread_mutex_lock( &mutex_resource_tree );
+	pthread_mutex_lock( &gglobal()->threads.mutex_resource_tree );
 
-	if (!root_res) {
+	if (!gglobal()->resources.root_res) {
 		/* This is the first resource we try to load */
-		root_res = item;
+		gglobal()->resources.root_res = item;
 		printf ("setting root_res in resource_create_from_string\n");
 	} else {
 		/* Not the first, so keep it in the main list */
-		root_res->children = ml_append(root_res->children, ml_new(item));
-		item->parent = root_res;
+		gglobal()->resources.root_res->children = ml_append(gglobal()->resources.root_res->children, ml_new(item));
+		item->parent = gglobal()->resources.root_res;
 	}
 
 	/* Unlock the resource tree mutex */
-	pthread_mutex_unlock( &mutex_resource_tree );
+	pthread_mutex_unlock( &gglobal()->threads.mutex_resource_tree );
 
 	return item;
 }
@@ -727,8 +727,8 @@ void resource_remove_child(resource_item_t *parent, resource_item_t *child)
  */
 void destroy_root_res()
 {
-	resource_destroy(root_res);
-	root_res = NULL;
+	resource_destroy(gglobal()->resources.root_res);
+	gglobal()->resources.root_res = NULL;
 }
 
 /**
@@ -1036,5 +1036,5 @@ static void possiblyUnzip (openned_file_t *of) {
 
 bool resource_is_root_loaded()
 {
-	return ((root_res != NULL) && (root_res->status == ress_parsed));
+	return ((gglobal()->resources.root_res != NULL) && (gglobal()->resources.root_res->status == ress_parsed));
 }

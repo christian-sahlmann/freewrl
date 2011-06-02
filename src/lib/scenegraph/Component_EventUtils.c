@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EventUtils.c,v 1.9 2011/05/10 13:40:49 crc_canada Exp $
+$Id: Component_EventUtils.c,v 1.10 2011/06/02 19:50:43 dug9 Exp $
 
 X3D Event Utilities Component
 
@@ -213,7 +213,7 @@ void do_TimeTrigger (void *node){
 	if (!node) return;
 	px = (struct X3D_TimeTrigger *) node;
 
-	px->triggerTime = TickTime;
+	px->triggerTime = TickTime();
 	MARK_EVENT (node, offsetof (struct X3D_TimeTrigger,triggerTime));
 }
 

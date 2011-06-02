@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.27 2011/05/27 13:55:44 crc_canada Exp $
+  $Id: statusbarHud.c,v 1.28 2011/06/02 19:50:49 dug9 Exp $
 
 */
 
@@ -844,16 +844,16 @@ void render_init(void);
 char messagebar[200];
 void setMessageBar()
 {
-	sprintf(&messagebar[0],"%10f",myFps);
-	sprintf(&messagebar[15],"%s",myMenuStatus);
+	sprintf(&messagebar[0],"%10f",gglobal()->display.myFps);
+	sprintf(&messagebar[15],"%s",gglobal()->display.myMenuStatus);
 }
 void setMenuStatus(char *stat) {
-    strncpy (myMenuStatus, stat, MAXSTAT);
+    strncpy (gglobal()->display.myMenuStatus, stat, MAXSTAT);
     setMessageBar();
 }
 
 void setMenuFps (float fps) {
-    myFps = fps;
+    gglobal()->display.myFps = fps;
     setMessageBar();
 }
 
@@ -952,28 +952,29 @@ XY mouse2screen(int x, int y)
 {
 	XY xy;
 	xy.x = x;
-	xy.y = screenHeight -y;
+	xy.y = gglobal()->display.screenHeight -y;
 	return xy;
 }
 XY screen2text(int x, int y)
 {
 	XY rc;
 	rc.x = x/bmWH.x; //10; 
-	rc.y = (int)((screenHeight -y)/bmWH.y); //15.0 ); 
+	rc.y = (int)((gglobal()->display.screenHeight -y)/bmWH.y); //15.0 ); 
 	return rc;
 }
 XY text2screen( int col, int row)
 {
 	XY xy;
 	xy.x = col*bmWH.x; //10; 
-	xy.y = screenHeight - (row+1)*bmWH.y; //15;
+	xy.y = gglobal()->display.screenHeight - (row+1)*bmWH.y; //15;
 	return xy;
 }
 void printTextCursor()
 {
 	XY sxy,txy,cxy;
 	float rgba[4];
-	sxy = mouse2screen(currentX[0],currentY[0]);
+	ttglobal tg = gglobal();
+	sxy = mouse2screen(tg->Mainloop.currentX[0],tg->Mainloop.currentY[0]);
 	txy = screen2text(sxy.x,sxy.y);
 	cxy = text2screen(txy.x,txy.y);
 	rgba[0] = .5f; rgba[1] = .5f; rgba[2] = .5f, rgba[3] = .75f;
@@ -1011,7 +1012,8 @@ void handleOptionPress()
 	int i,opt;
 	XY xys;
 	XY xyt;
-	xys = mouse2screen(currentX[0],currentY[0]);
+	ttglobal tg = gglobal();
+	xys = mouse2screen(tg->Mainloop.currentX[0],tg->Mainloop.currentY[0]);
 	xyt = screen2text(xys.x,xys.y);
 	opt = ' ';
 	if( 0 <= xyt.y && xyt.y < lenOptions )
@@ -1245,7 +1247,7 @@ void printConsoleText()
 	}
 }
 static int loopcount = 0;
-extern int clipPlane;
+//extern int clipPlane;
 static int hadString = 0;
 
 int showButtons =0;
@@ -1390,8 +1392,9 @@ void handleButtonOver()
 	a) detect a button over and 
 	b) highlight underneath the button*/
 	int i,x,y;
-	x = currentX[0];
-	y = screenHeight - currentY[0];
+	ttglobal tg = gglobal();
+	x = tg->Mainloop.currentX[0];
+	y = tg->display.screenHeight - tg->Mainloop.currentY[0];
 	isOver = -1;
 	for(i=0;i<nbuts;i++)
 		if(x > butrect[0][i] && x < butrect[2][i] 
@@ -1410,8 +1413,9 @@ void handleButtonPress()
 	c) set the related option
 	*/
 	int i,j,x,y,oldval;
-	x = currentX[0];
-	y = screenHeight - currentY[0];
+	ttglobal tg = gglobal();
+	x = tg->Mainloop.currentX[0];
+	y = tg->display.screenHeight - tg->Mainloop.currentY[0];
 	for(i=0;i<nbuts;i++)
 		if(x > butrect[0][i] && x < butrect[2][i] 
 		&& y > butrect[1][i] && y < butrect[3][i] )
@@ -1473,11 +1477,12 @@ void handleButtonPress()
 void renderButtons()
 {
 	/* called from drawStatusBar() to render the user buttons like walk/fly, headlight, collision etc. */
-	int i,loaded;
+	int i,loaded,iwidth;
 	float zoomfactor;
+	ttglobal tg = gglobal();
 	if(!butsLoaded)
 		initButtons();
-	FW_GL_SCISSOR(0,0,screenWidth,clipPlane*2);
+	FW_GL_SCISSOR(0,0,tg->display.screenWidth,tg->Mainloop.clipPlane*2);
 	FW_GL_ENABLE(GL_SCISSOR_TEST);
 	FW_GL_CLEAR_COLOR(.922f,.91f,.844f,1.0f); //windowing gray
 	//glClearColor(.754f,.82f,.93f,1.0f); //193.0f/256.0f,210.0f/256.0f,238.0f/256.0f,1.0f); //windowing blue
@@ -1525,6 +1530,7 @@ void renderButtons()
 }
 int handleStatusbarHud(int mev, int* clipplane)
 {
+	ttglobal tg = gglobal();
     if ((mev == ButtonPress) || (mev == ButtonRelease)) 
 	{
         /* record which button is down */
@@ -1551,7 +1557,7 @@ int handleStatusbarHud(int mev, int* clipplane)
 		{
 			clipline = *clipplane;
 			if(showButtons) clipline = 2*(*clipplane);
-			if( screenHeight - currentY[0] < clipline )
+			if( tg->display.screenHeight - tg->Mainloop.currentY[0] < clipline )
 			{
 				showButtons = 1;
 				handleButtonOver();
@@ -1619,7 +1625,8 @@ M       void toggle_collision()                             //"
 	char *p; 
 	float c[4];
 	int ic[4];
-	Console_writeToHud = 1;
+	ttglobal tg = gglobal();
+	tg->ConsoleMessage.Console_writeToHud = 1;
 	//Console_writeToCRT = 1;
 	//Console_writeToFile = 0;
 	FW_GL_DEPTHMASK(GL_FALSE);
@@ -1634,7 +1641,7 @@ M       void toggle_collision()                             //"
 		if(hadString)
 		{
 			/* clear the status bar because there's nothing to show */
-			FW_GL_SCISSOR(0,0,screenWidth,clipPlane);
+			FW_GL_SCISSOR(0,0,tg->display.screenWidth,tg->Mainloop.clipPlane);
 			FW_GL_ENABLE(GL_SCISSOR_TEST);
 			FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
 			FW_GL_DISABLE(GL_SCISSOR_TEST);
@@ -1658,7 +1665,7 @@ M       void toggle_collision()                             //"
 	/* OK time to update the status bar */
 	if(!fontInitialized) initFont();
 	/* unconditionally clear the statusbar area */
-	FW_GL_SCISSOR(0,0,screenWidth,clipPlane);
+	FW_GL_SCISSOR(0,0,tg->display.screenWidth,tg->Mainloop.clipPlane);
 	FW_GL_ENABLE(GL_SCISSOR_TEST);
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
 	FW_GL_DISABLE(GL_SCISSOR_TEST);

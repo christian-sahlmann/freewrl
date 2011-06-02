@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.43 2011/05/27 13:55:44 crc_canada Exp $
+$Id: Component_Navigation.c,v 1.44 2011/06/02 19:50:43 dug9 Exp $
 
 X3D Navigation Component
 
@@ -84,7 +84,7 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
                 struct point_XYZ antipos;
 
                 /* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
-                tickFrac = (TickTime - Viewer.startSLERPtime)/Viewer.transitionTime;
+                tickFrac = (TickTime() - Viewer.startSLERPtime)/Viewer.transitionTime;
 
                 quaternion_slerp (&slerpedDiff,&Viewer.startSLERPprepVPQuat,&Viewer.prepVPQuat,tickFrac);
 

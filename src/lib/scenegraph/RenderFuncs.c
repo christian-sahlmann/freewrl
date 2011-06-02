@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.101 2011/05/25 16:47:12 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.102 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -229,7 +229,7 @@ void turnGlobalShaderOff(void) {
 /* choose and turn on a shader for this geometry */
 void enableGlobalShader(shader_type_t requestedShader) {
 
-	appearanceProperties.currentShaderProperties = &(rdr_caps.backgroundShaderArrays[requestedShader]);
+	appearanceProperties.currentShaderProperties = &(gglobal()->display.rdr_caps.backgroundShaderArrays[requestedShader]);
 	appearanceProperties.currentShader = appearanceProperties.currentShaderProperties->myShaderProgram;
 	USE_SHADER(appearanceProperties.currentShader);
 
@@ -724,7 +724,7 @@ static int renderLevel = 0;
 #endif
 
 #define PRINT_NODE(_node, _v)  do {					\
-		if (global_print_opengl_errors && (_global_gl_err != GL_NO_ERROR)) { \
+		if (gglobal()->internalc.global_print_opengl_errors && (gglobal()->display._global_gl_err != GL_NO_ERROR)) { \
 			printf("Render_node_v %p (%s) PREP: %p REND: %p CH: %p FIN: %p RAY: %p HYP: %p\n",_v, \
 			       stringNodeType(_node->_nodeType),	\
 			       _v->prep,				\

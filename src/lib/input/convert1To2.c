@@ -41,13 +41,45 @@
 #include "../vrml_parser/CProto.h"
 
 
-static int estimatedBodyLen = -1;
-static struct Vector *deconstructedProtoBody = NULL;
+//static int estimatedBodyLen = -1;
+//static struct Vector *deconstructedProtoBody = NULL;
+//
+//static int protoElementCount = ID_UNDEFINED;
+//static char tempname[1000];
+//static FILE *fp;
+//static int written = 0;
+typedef struct pconvert1To2{
+	int estimatedBodyLen;// = -1;
+	struct Vector *deconstructedProtoBody;// = NULL;
 
-static int protoElementCount = ID_UNDEFINED;
-static char tempname[1000];
-static FILE *fp;
-static int written = 0;
+	int protoElementCount;// = ID_UNDEFINED;
+	char tempname[1000];
+	FILE *fp;
+	int written;// = 0;
+}* ppconvert1To2;
+
+void *convert1To2_constructor()
+{
+	void *v = malloc(sizeof(struct pconvert1To2));
+	memset(v,0,sizeof(struct pconvert1To2));
+	return v;
+}
+void convert1To2_init(struct tconvert1To2* t)
+{
+	//public
+	//private
+	ppconvert1To2 p;
+	t->prv = convert1To2_constructor();
+	p = (ppconvert1To2)t->prv;
+	p->estimatedBodyLen = -1;
+	p->deconstructedProtoBody = NULL;
+
+	p->protoElementCount = ID_UNDEFINED;
+	//t->tempname[1000];
+	//t->fp;
+	p->written = 0;
+}
+
 
 #define DEF_FINDFIELD(arr) \
  int findFieldIn##arr(const char* field) \
@@ -78,13 +110,13 @@ static void possiblyChangetoChildren (int startIndex) {
 	indexT yy;
 	indexT bracketCount;
        	struct ProtoElementPointer* tempEle;
-
+	ppconvert1To2 p = gglobal()->convert1To2.prv;
 	/* did we run off the end? */
-	if (startIndex >= protoElementCount) return;
+	if (startIndex >= p->protoElementCount) return;
 
 	/* this one had better be a "{" */
 	yy = startIndex;
-	tempEle = vector_get(struct ProtoElementPointer*, deconstructedProtoBody, yy);
+	tempEle = vector_get(struct ProtoElementPointer*, p->deconstructedProtoBody, yy);
 	if (tempEle->terminalSymbol != '{') {
 		printf ("did not find an open brace where expected\n");
 		return;
@@ -92,12 +124,12 @@ static void possiblyChangetoChildren (int startIndex) {
 	tempEle->terminalSymbol = START_CHILDREN;
 	bracketCount = 1;
 	while (bracketCount >= 1) {
-		tempEle = vector_get(struct ProtoElementPointer*, deconstructedProtoBody, yy);
+		tempEle = vector_get(struct ProtoElementPointer*, p->deconstructedProtoBody, yy);
 		if (tempEle->terminalSymbol == '{') bracketCount ++;
 		if (tempEle->terminalSymbol == '}') bracketCount --;
 		yy++;
 		/* did we go beyond the last element? */
-		if (yy>protoElementCount) {
+		if (yy>p->protoElementCount) {
 			printf ("did not find matching bracket for child node\n");
 			return;
 		}	
@@ -117,19 +149,20 @@ void tokenizeVRML1_(char *pb) {
 	struct ProtoElementPointer* ele;
 	int toPush;
 	indexT ct = 0;
+	ppconvert1To2 p = gglobal()->convert1To2.prv;
 
 	/* remove spaces at start of string, to help to see if string is empty */
 	while ((*pb != '\0') && (*pb <= ' ')) pb++;
 
 	/* record this body length to help us with MALLOCing when expanding PROTO */
-	estimatedBodyLen = (int) strlen(pb) * 2;
+	p->estimatedBodyLen = (int) strlen(pb) * 2;
 
 	lex = newLexer();
 	lexer_fromString(lex,pb);
 
 	/* make up deconstructedProtoBody here */
- 	deconstructedProtoBody=newVector(struct ProtoElementPointer*, 128);
-	ASSERT(deconstructedProtoBody);
+ 	p->deconstructedProtoBody=newVector(struct ProtoElementPointer*, 128);
+	ASSERT(gglobal()->convert1To2.deconstructedProtoBody);
 
 
 	while (lex->isEof == FALSE) 
@@ -225,7 +258,7 @@ void tokenizeVRML1_(char *pb) {
 		ct ++;
 
 		/* push this element on the vector for the PROTO */
-		if (toPush) vector_pushBack(struct ProtoElementPointer*, deconstructedProtoBody, ele);
+		if (toPush) vector_pushBack(struct ProtoElementPointer*, p->deconstructedProtoBody, ele);
 	}
 	deleteLexer(lex);
 
@@ -239,23 +272,23 @@ void tokenizeVRML1_(char *pb) {
         struct ProtoElementPointer* ele;
 
         /* go through each part of this deconstructedProtoBody, and see what needs doing... */
-        protoElementCount = vector_size(deconstructedProtoBody);
+        p->protoElementCount = vector_size(p->deconstructedProtoBody);
         i = 0;
 	
-		written = fprintf (fp,"#VRML V2.0 utf8\n");
-		written += fprintf(fp,"VRML1_Separator 	#kw\n {VRML1children[	#child terminalSymbol\n"); //dug9 scene wrapper idea
-        while (i < protoElementCount) 
+		p->written = fprintf (p->fp,"#VRML V2.0 utf8\n");
+		p->written += fprintf(p->fp,"VRML1_Separator 	#kw\n {VRML1children[	#child terminalSymbol\n"); //dug9 scene wrapper idea
+        while (i < p->protoElementCount) 
 		{
             /* get the current element */
-            ele = vector_get(struct ProtoElementPointer*, deconstructedProtoBody, i);
+            ele = vector_get(struct ProtoElementPointer*, p->deconstructedProtoBody, i);
 	
             if (ele->isNODE != -1) 
-                    written += fprintf (fp," VRML1_%s 		#NODE\n",stringNodeType(ele->isNODE));
+                    p->written += fprintf (p->fp," VRML1_%s 		#NODE\n",stringNodeType(ele->isNODE));
 
 			/* this is a keyword; lets see if this is a children type node */
             if (ele->isKEYWORD != -1) 
 			{
-                written += fprintf (fp," %s 	#kw\n",stringVRML1_Type(ele->isKEYWORD));
+                p->written += fprintf (p->fp," %s 	#kw\n",stringVRML1_Type(ele->isKEYWORD));
 
 				/* find the brackets, as these might need to be changed into a colon */
 				if (ele->isKEYWORD == VRML1_VRML1_Separator) 
@@ -265,21 +298,21 @@ void tokenizeVRML1_(char *pb) {
 			}
 
 			if (ele->stringToken != NULL) 
-					written += fprintf (fp," %s 		#string\n",ele->stringToken);
+					p->written += fprintf (p->fp," %s 		#string\n",ele->stringToken);
 
 			if (ele->terminalSymbol != -1)  
 			{
 				if (ele->terminalSymbol == START_CHILDREN) {
-                    			written += fprintf (fp," {VRML1children[	#child terminalSymbol\n");
+                    			p->written += fprintf (p->fp," {VRML1children[	#child terminalSymbol\n");
 				} else if (ele->terminalSymbol == END_CHILDREN) {
-                    			written += fprintf (fp," ]}	#child terminalSymbol\n");
+                    			p->written += fprintf (p->fp," ]}	#child terminalSymbol\n");
 				} else {
-                    			written += fprintf (fp," %c 		#terminalSymbol\n",(char) ele->terminalSymbol);
+                    			p->written += fprintf (p->fp," %c 		#terminalSymbol\n",(char) ele->terminalSymbol);
 				}
 			}
 			i++;
 		}
-		written += fprintf(fp,"]}	#child terminalSymbol\n"); //dug9 scene wrapper idea
+		p->written += fprintf(p->fp,"]}	#child terminalSymbol\n"); //dug9 scene wrapper idea
 	}
 }
 
@@ -288,6 +321,7 @@ char *convert1To2 (const char *inp)
 	char *retval = NULL;
 	char *dinp, *tptr;
 	size_t readSizeThrowAway;
+	ppconvert1To2 p = gglobal()->convert1To2.prv;
 
 	/* sanitize input but copy data before altering it */
 	dinp = tptr = strdup(inp);
@@ -302,23 +336,23 @@ char *convert1To2 (const char *inp)
 
 	/* FIXME: make use of new API */
 	retval = tempnam("/tmp","freewrl_tmp");
-	sprintf (tempname, "%s",retval);
+	sprintf (p->tempname, "%s",retval);
 	free(retval); retval = NULL;
-	fp = fopen (tempname,"w");
-	if (fp != NULL) {
+	p->fp = fopen (p->tempname,"w");
+	if (p->fp != NULL) {
 		
 		tokenizeVRML1_(dinp);
-		fclose(fp);
+		fclose(p->fp);
 
 		FREE(dinp);
 		
-		fp = fopen(tempname,"r");
-		retval = MALLOC(char *, written+10);
-		readSizeThrowAway = fread(retval,written,1,fp);
-		retval[written] = '\0';
+		p->fp = fopen(p->tempname,"r");
+		retval = MALLOC(char *, p->written+10);
+		readSizeThrowAway = fread(retval,p->written,1,p->fp);
+		retval[p->written] = '\0';
 		/* printf ("and have read back in :%s:\n",retval); */
 
-		fclose(fp);
+		fclose(p->fp);
 		return retval;
 	}
 	return STRDUP("Shape{geometry Box {}}");

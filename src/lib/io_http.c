@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.15 2011/03/22 18:52:43 crc_canada Exp $
+  $Id: io_http.c,v 1.16 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -40,7 +40,32 @@
 #include <io_http.h>
 #include <threads.h>
 #include "scenegraph/Vector.h"
-
+#if defined(_MSC_VER)
+ #include <WinInet.h>
+#endif
+typedef struct pio_http{
+#ifdef _MSC_VER
+		HINTERNET hWinInet;
+#else
+		void* filler; //=NULL;
+#endif
+		struct Vector *resStack; //=NULL;
+		resource_item_t *lastBaseResource; //=NULL;
+}* ppio_http;
+void *io_http_constructor()
+{
+	void* v = malloc(sizeof(struct pio_http));
+	memset(v,0,sizeof(struct pio_http));
+	return v;
+}
+void io_http_init(struct tio_http* t)
+{
+	//public
+	//private
+	ppio_http p;
+	t->prv = io_http_constructor();
+	//p = (ppio_http)t->prv);
+}
 
 
 /*
@@ -226,7 +251,7 @@ http://msdn.microsoft.com/en-us/library/sb35xf67.aspx sample browser in C++
 */
 #include <WinInet.h>
 
-static HINTERNET hWinInet = NULL;
+//static HINTERNET hWinInet = NULL;
 HINTERNET winInetInit()
 {
 //winInet_h = InternetOpen(
@@ -247,17 +272,17 @@ HINTERNET winInetInit()
 /* char* download_url_WinInet(const char *url, const char *tmp) */
 char* download_url_WinInet(resource_item_t *res)
 {
-
-	if(!hWinInet)
+	ppio_http p = gglobal()->io_http.prv;
+	if(!p->hWinInet)
 	{
-		hWinInet = winInetInit();
+		p->hWinInet = winInetInit();
 	}
-	if(!hWinInet) 
+	if(!p->hWinInet) 
 		return NULL;
 	else
 	{
 		DWORD dataLength, len;
-		HINTERNET hOpenUrl=InternetOpenUrl(hWinInet,res->parsed_request,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
+		HINTERNET hOpenUrl=InternetOpenUrl(p->hWinInet,res->parsed_request,NULL,0,0,0); //INTERNET_FLAG_NO_UI|INTERNET_FLAG_RELOAD/*|INTERNET_FLAG_IGNORE_CERT_CN_INVALID install the cert instead*/,0);
 		if (!(hOpenUrl))
 		{
 			ERROR_MSG("Download failed for url %s\n", res->parsed_request);
@@ -418,39 +443,41 @@ void download_url(resource_item_t *res)
  * this is a Vector; we keep track of n depths.
  */
 
-static struct Vector *resStack = NULL;
+//static struct Vector *resStack = NULL;
 
 /* keep the last base resource around, for times when we are making nodes during runtime, eg
    textures in Background nodes */
 
-static resource_item_t *lastBaseResource = NULL;
+//static resource_item_t *lastBaseResource = NULL;
 
 void pushInputResource(resource_item_t *url) 
 {
+	ppio_http p = gglobal()->io_http.prv;
 	DEBUG_MSG("pushInputResource current Resource is %s\n", url->parsed_request);
 
 	/* push this one */
-	if (resStack==NULL) {
-		resStack = newStack (resource_item_t *);
+	if (p->resStack==NULL) {
+		p->resStack = newStack (resource_item_t *);
 	}
 
-	stack_push (resource_item_t*, resStack, url);
+	stack_push (resource_item_t*, p->resStack, url);
 }
 
 void popInputResource() {
 	resource_item_t *cwu;
+	ppio_http p = gglobal()->io_http.prv;
 
 	/* lets just keep this one around, to see if it is really the bottom of the stack */
-	cwu = stack_top(resource_item_t *, resStack);
+	cwu = stack_top(resource_item_t *, p->resStack);
 
 	/* pop the stack, and if we are at "nothing" keep the pointer to the last resource */
-	stack_pop((resource_item_t *), resStack);
+	stack_pop((resource_item_t *), p->resStack);
 
-	if (stack_empty(resStack)) {
+	if (stack_empty(p->resStack)) {
 		DEBUG_MSG ("popInputResource, stack now empty and we have saved the last resource\n");
-		lastBaseResource = cwu;
+		p->lastBaseResource = cwu;
 	} else {
-		cwu = stack_top(resource_item_t *, resStack);
+		cwu = stack_top(resource_item_t *, p->resStack);
 		DEBUG_MSG("popInputResource before pop, current Resource is %s\n", cwu->parsed_request);
 	}
 }
@@ -458,25 +485,26 @@ void popInputResource() {
 resource_item_t *getInputResource()
 {
 	resource_item_t *cwu;
+	ppio_http p = gglobal()->io_http.prv;
 
 	DEBUG_MSG("getInputResource \n");
-	if (resStack==NULL) {
+	if (p->resStack==NULL) {
 		DEBUG_MSG("getInputResource, stack NULL\n");
 		return NULL;
 	}
 
 	/* maybe we are running, and are, say, making up background textures at runtime? */
-	if (stack_empty(resStack)) {
-		if (lastBaseResource == NULL) {
+	if (stack_empty(p->resStack)) {
+		if (p->lastBaseResource == NULL) {
 			ConsoleMessage ("stacking error - looking for input resource, but it is null");
 		} else {
-			DEBUG_MSG("so, returning %s\n",lastBaseResource->parsed_request);
+			DEBUG_MSG("so, returning %s\n",p->lastBaseResource->parsed_request);
 		}
-		return lastBaseResource;
+		return p->lastBaseResource;
 	}
 
 
-	cwu = stack_top(resource_item_t *, resStack);
+	cwu = stack_top(resource_item_t *, p->resStack);
 	DEBUG_MSG("getInputResource current Resource is %lu %lx %s\n", (unsigned long int) cwu, (unsigned long int) cwu, cwu->parsed_request);
-	return stack_top(resource_item_t *, resStack);
+	return stack_top(resource_item_t *, p->resStack);
 }

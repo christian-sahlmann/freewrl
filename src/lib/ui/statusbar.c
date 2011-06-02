@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.32 2011/05/27 13:55:44 crc_canada Exp $
+  $Id: statusbar.c,v 1.33 2011/06/02 19:50:49 dug9 Exp $
 
 */
 
@@ -93,8 +93,9 @@ int handleStatusbarHud(int mev, int* clipplane)
 { return 0; }
 void setup_projection(int pick, int x, int y) 
 {
-	GLsizei screenwidth2 = screenWidth;
-	GLDOUBLE aspect2 = screenRatio;
+	ttglobal tg = gglobal();
+	GLsizei screenwidth2 = tg->display.screenWidth;
+	GLDOUBLE aspect2 = tg->display.screenRatio;
 	GLint xvp = 0;
 	if(Viewer.sidebyside) 
 	{
@@ -104,7 +105,7 @@ void setup_projection(int pick, int x, int y)
 	}
 
         FW_GL_MATRIX_MODE(GL_PROJECTION);
-	FW_GL_VIEWPORT(0,0,screenwidth2,screenHeight);
+	FW_GL_VIEWPORT(0,0,screenwidth2,tg->display.screenHeight);
         FW_GL_LOAD_IDENTITY();
 
         /* bounds check */
@@ -123,9 +124,10 @@ void setup_projection(int pick, int x, int y)
 void drawStatusBar()
 {
 #if !(defined(IPHONE) || defined(_ANDROID))
+	ttglobal tg = gglobal();
 	/* dont do this if we can not display; note that when we start, we can send along
 	   invalid data to the OpenGL drivers when doing ortho calcs */
-	if ((screenWidth > 5) && (screenHeight > 5)) {
+	if ((tg->display.screenWidth > 5) && (tg->display.screenHeight > 5)) {
 		/* update fps message (maybe extend this with other "text widgets" */
 
 		rf_xfont_set_color(xf_white);

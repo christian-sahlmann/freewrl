@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.59 2011/06/01 15:02:21 crc_canada Exp $
+$Id: Bindable.c,v 1.60 2011/06/02 19:50:49 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -175,7 +175,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 
 /* send a set_bind event from an event to this Bindable node */
 void send_bind_to(struct X3D_Node *node, int value) {
-	//printf ("\n%lf: send_bind_to, nodetype %s node %u value %d\n",TickTime,stringNodeType(node->_nodeType),node,value);  
+	//printf ("\n%lf: send_bind_to, nodetype %s node %u value %d\n",TickTime(),stringNodeType(node->_nodeType),node,value);  
 
 	switch (node->_nodeType) {
 
@@ -386,7 +386,7 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 			double *dp;
 			/* add them as bytes, not pointers. */
 			dp = offsetPointer_deref(double*, node, offst);
-			*dp = TickTime;
+			*dp = TickTime();
 			MARK_EVENT (node, offst);
 		} 
 

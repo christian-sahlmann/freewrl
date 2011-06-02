@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.h,v 1.48 2011/05/31 00:52:42 crc_canada Exp $
+$Id: internal.h,v 1.49 2011/06/02 19:50:43 dug9 Exp $
 
 ???
 
@@ -55,6 +55,7 @@ $Id: internal.h,v 1.48 2011/05/31 00:52:42 crc_canada Exp $
 
 #include "x3d_parser/X3DParser.h"
 #include "x3d_parser/X3DProtoScript.h"
+#include <iglobal.h>
 
 //#ifndef STATIC_ONCE
 //static int currentProtoDeclare  = INT_ID_UNDEFINED;
@@ -67,7 +68,7 @@ extern int currentProtoDeclare;
 extern int MAXProtos;
 extern int curProDecStackInd;
 //static int currentProtoInstance = INT_ID_UNDEFINED;
-extern int currentProtoInstance[PROTOINSTANCE_MAX_LEVELS];
+//extern int currentProtoInstance[PROTOINSTANCE_MAX_LEVELS];
 //#endif
 #define STATIC_ONCE 1
 static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono);
@@ -155,7 +156,8 @@ extern int fprintf_with_colored_threads(FILE *stream, const char *format, ...);
 void fw_perror(FILE *f, const char *format, ...);
 
 /* To conform C99 ISO C (do not use GCC extension) */
-#if defined(_MSC_VER) && _MSC_VER < 1500
+#if defined(_MSC_VER)
+#if _MSC_VER < 1500
 //vc7 cant seem to do the ... thing or the __VAR_ARGS__ thing.
 int DEBUG_FPRINTF(const char *fmt, ...); //almost stubs it out - a function call and return
 #define DEBUG_MSG DEBUG_FPRINTF
@@ -185,10 +187,11 @@ int DEBUG_MSG(const char *fmt, ...)
 	return ret;
 }
 */
-
+#define MSVC_7 1
+#endif
 #endif
 
-#if  !_MSC_VER || _MSC_VER >= 1500
+#if !defined(MSVC_7) // _MSC_VER >= 1500
 #define DEBUG_MSG(...) DEBUG_(FPRINTF(stdout, __VA_ARGS__))
 #define TRACE_MSG(...) DEBUG_(FPRINTF(stdout, __VA_ARGS__))
 #define WARN_MSG(...)  DEBUG_(FPRINTF(stdout, __VA_ARGS__))
@@ -492,22 +495,22 @@ void *freewrlStrdup(int line, char *file, char *str);
 
 /* Global FreeWRL options (will become profiles ?) */
 
-extern bool global_strictParsing;       /* are we doing "strict" parsing, 
-                                           as per FreeX3D, or "loose" parsing, 
-                                           as per FreeWRL ? */
+//extern bool global_strictParsing;       /* are we doing "strict" parsing, 
+//                                           as per FreeX3D, or "loose" parsing, 
+//                                           as per FreeWRL ? */
 
-extern bool global_plugin_print;        /* are we printing messages to a file 
-                                           because we are running as a plugin ? */
+//extern bool global_plugin_print;        /* are we printing messages to a file 
+//                                           because we are running as a plugin ? */
 
-extern bool global_occlusion_disable;   /* do we disable all occlusion query
-				           calls in the renderer ? */
+//extern bool global_occlusion_disable;   /* do we disable all occlusion query
+//				           calls in the renderer ? */
 
-extern unsigned global_texture_size;    /* do we manually set up the texture
-                                           size ? */
+//extern unsigned global_texture_size;    /* do we manually set up the texture
+//                                           size ? */
 
-extern bool global_print_opengl_errors; /* print OpenGL errors as they come ? */
+//extern bool global_print_opengl_errors; /* print OpenGL errors as they come ? */
 
-extern bool global_trace_threads;       /* trace thread creation / switch ... ? */
-extern bool global_use_VBOs;       /* try and use VBOs rather than vertex arrays for geometry */
+//extern bool global_trace_threads;       /* trace thread creation / switch ... ? */
+//extern bool global_use_VBOs;       /* try and use VBOs rather than vertex arrays for geometry */
 
 #endif /* __LIBFREEWRL_DECL_H__ */

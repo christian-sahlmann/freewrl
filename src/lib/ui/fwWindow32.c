@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.30 2011/05/28 17:11:42 dug9 Exp $
+  $Id: fwWindow32.c,v 1.31 2011/06/02 19:50:49 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -73,7 +73,7 @@ void fwl_do_keyPress(const char kp, int type);
 
 
 static int oldx = 0, oldy = 0;
-extern int shutterGlasses;
+//extern int shutterGlasses;
 
 int mouseX, mouseY;
 
@@ -247,7 +247,7 @@ BOOL bSetupPixelFormat(HDC hdc)
     ppfd->nSize = sizeof(PIXELFORMATDESCRIPTOR); 
     ppfd->nVersion = 1; 
     ppfd->dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER; 
-	if(shutterGlasses ==1)
+	if(gglobal()->display.shutterGlasses ==1)
 		ppfd->dwFlags |= PFD_STEREO;
 	ppfd->iLayerType = PFD_MAIN_PLANE;
     ppfd->iPixelType = PFD_TYPE_RGBA; /* PFD_TYPE_COLORINDEX; */
@@ -269,7 +269,7 @@ BOOL bSetupPixelFormat(HDC hdc)
 	*/
 	DescribePixelFormat(hdc, pixelformat, sizeof(PIXELFORMATDESCRIPTOR), ppfd);
 	printf("Depth Bits = %d\n",(int)(ppfd->cDepthBits));
-	if(shutterGlasses > 0)
+	if(gglobal()->display.shutterGlasses > 0)
 		printf("got stereo? = %d\n",(int)(ppfd->dwFlags & PFD_STEREO));
 	/**/
 
@@ -310,8 +310,8 @@ bool fv_bind_GLcontext()
 
 	if (wglMakeCurrent(ghDC, ghRC)) {
 		GetClientRect(ghWnd, &rect); 
-		screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-		screenHeight = rect.bottom;
+		gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
+		gglobal()->display.screenHeight = rect.bottom;
 		return TRUE;
 	}
 
@@ -351,8 +351,8 @@ static int shiftState = 0;
  
     case WM_SIZE: 
 	GetClientRect(hWnd, &rect); 
-	screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-	screenHeight = rect.bottom;
+	gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
+	gglobal()->display.screenHeight = rect.bottom;
 	resize_GL(rect.right, rect.bottom); 
 	fwl_setScreenDim(rect.right,rect.bottom);
 	break; 
@@ -682,7 +682,7 @@ int create_main_window0(int argc, char *argv[])
     printf("starting createWindow32\n"); 
     /* I suspect hInstance should be get() and passed in from the console program not get() in the dll, but .lib maybe ok */
     hInstance = (HANDLE)GetModuleHandle(NULL); 
-    window_title = "FreeWRL";
+    gglobal()->display.window_title = "FreeWRL";
 
 /*  Blender Ghost
     WNDCLASS wc;
@@ -730,8 +730,8 @@ int create_main_window0(int argc, char *argv[])
 			    WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 
 			    CW_USEDEFAULT, 
 			    CW_USEDEFAULT, 
-			    win_width, 
-			    win_height, 
+			    gglobal()->display.win_width, 
+			    gglobal()->display.win_height, 
 			    NULL, 
 			    NULL, 
 			    hInstance, 

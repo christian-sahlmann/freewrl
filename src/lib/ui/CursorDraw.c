@@ -169,7 +169,7 @@ XY mouse2screen2(int x, int y)
 {
 	XY xy;
 	xy.x = x;
-	xy.y = screenHeight -y;
+	xy.y = gglobal()->display.screenHeight -y;
 	return xy;
 }
 

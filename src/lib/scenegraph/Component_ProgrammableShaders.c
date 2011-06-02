@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.52 2011/03/23 18:26:02 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.53 2011/06/02 19:50:43 dug9 Exp $
 
 X3D Programmable Shaders Component
 
@@ -125,7 +125,7 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 		}
 
 #define CHECK_SHADERS \
-	if (!rdr_caps.av_glsl_shaders) { \
+	if (!gglobal()->display.rdr_caps.av_glsl_shaders) { \
 		if (node->isValid) ConsoleMessage ("have an X3D program with shaders, but no shader support on this computer"); \
 		node->isValid = FALSE; \
 		return; \

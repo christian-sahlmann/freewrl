@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.41 2011/05/25 19:26:34 davejoubert Exp $
+$Id: jsVRMLBrowser.c,v 1.42 2011/06/02 19:50:49 dug9 Exp $
 
 Javascript C language binding.
 
@@ -268,7 +268,7 @@ VrmlBrowserGetCurrentSpeed(JSContext *context, JSObject *obj, uintN argc, jsval 
 
 	/* get the variable updated */
 	getCurrentSpeed();
-	sprintf (string,"%f",BrowserSpeed);
+	sprintf (string,"%f",gglobal()->Mainloop.BrowserSpeed);
 	_str = JS_NewStringCopyZ(context,string);
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
@@ -285,7 +285,7 @@ VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj, uintN argc, js
 	UNUSED(argc);
 	UNUSED(argv);
 
-	sprintf (FPSstring,"%6.2f",BrowserFPS);
+	sprintf (FPSstring,"%6.2f",gglobal()->Mainloop.BrowserFPS);
 	_str = JS_NewStringCopyZ(context,FPSstring);
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
@@ -354,7 +354,7 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 
 	return JS_TRUE;
 }
-
+struct X3D_Anchor* get_EAIEventsIn_AnchorNode();
 JSBool
 VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 				   uintN argc, jsval *argv, jsval *rval)
@@ -398,14 +398,14 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 
 		/* we use the EAI code for this - so reformat this for the EAI format */
 		{
-			extern struct X3D_Anchor EAI_AnchorNode;  /* win32 C doesnt like new declarations in the middle of executables - start a new scope {} and put dec at top */
+			//extern struct X3D_Anchor EAI_AnchorNode;  /* win32 C doesnt like new declarations in the middle of executables - start a new scope {} and put dec at top */
 
 			/* make up the URL from what we currently know */
 			createLoadUrlString(myBuf,myBufSize,_costr[0], _costr[1]);
 			createLoadURL(myBuf);
 
 			/* now tell the fwl_RenderSceneUpdateScene that BrowserAction is requested... */
-			AnchorsAnchor = &EAI_AnchorNode;
+			AnchorsAnchor = get_EAIEventsIn_AnchorNode(); //&gglobal()->EAIEventsIn.EAI_AnchorNode;
 		}
 		BrowserAction = TRUE;
 
@@ -711,14 +711,14 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 #endif
 			#if defined(AQUA) || defined(_MSC_VER)
 			BrowserPrintConsoleMessage(_id_c); /* statusbar hud */
-			consMsgCount = 0; /* reset the "Maximum" count */
+			gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 			#else
 				#ifdef HAVE_NOTOOLKIT 
 					printf ("%s", _id_c);
 				#else
 					printf ("%s\n", _id_c);
 					BrowserPrintConsoleMessage(_id_c); /* statusbar hud */
-					consMsgCount = 0; /* reset the "Maximum" count */
+					gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 				#endif
 			#endif
 		} else {
@@ -728,7 +728,7 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 	/* the \n should be done with println below, or in javascript print("\n"); */
 	#if defined(AQUA) 
 	BrowserPrintConsoleMessage("\n"); /* statusbar hud */
-	consMsgCount = 0; /* reset the "Maximum" count */
+	gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 	#elif !defined(_MSC_VER)
 		#ifdef HAVE_NOTOOLKIT
 			printf ("\n");
@@ -743,7 +743,7 @@ VrmlBrowserPrintln(JSContext *context, JSObject *obj, uintN argc, jsval *argv, j
     VrmlBrowserPrint(context,obj,argc,argv,rval);
 	#if defined(AQUA) || defined(_MSC_VER)
 		BrowserPrintConsoleMessage("\n"); /* statusbar hud */
-		consMsgCount = 0; /* reset the "Maximum" count */
+		gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 	#else
 		#ifdef HAVE_NOTOOLKIT
 			printf ("\n");

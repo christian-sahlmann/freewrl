@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.34 2011/05/31 15:32:23 crc_canada Exp $
+  $Id: libFreeWRL.h,v 1.35 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -92,8 +92,8 @@ typedef struct freewrl_params {
 /* extern freewrl_params_t fv_params; */
 /* extern freewrl_params_t fwl_params; */
 /* extern freewrl_params_t OSX_params; */
-
-void fwl_initParams(freewrl_params_t *params) ;
+void *fwl_init_instance();
+void fwl_initParams( freewrl_params_t *params) ;
 
 void fwl_setp_width		(int foo);
 void fwl_setp_height		(int foo);
@@ -151,7 +151,7 @@ extern int _fw_pipe, _fw_FD;
 extern int _fw_browser_plugin;
 extern int isBrowserPlugin;
 extern uintptr_t _fw_instance;
-extern char *keypress_string;
+//extern char *keypress_string;
 
 #ifdef HAVE_LIBCURL
 extern int with_libcurl;

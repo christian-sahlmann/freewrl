@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.63 2011/06/01 15:02:21 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.64 2011/06/02 19:50:43 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -165,7 +165,7 @@ void render_Box (struct X3D_Box *node) {
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 36);
 	textureDraw_end();
-	trisThisLoop += 24;
+	gglobal()->Mainloop.trisThisLoop += 24;
 }
 
 
@@ -185,7 +185,7 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 
 	/* use VBOS for Cylinders? */
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		struct MyVertex cylVert[CYLDIV * 4 * 3];
 		int indx = 0;
 
@@ -432,7 +432,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 
 	CULL_FACE(node->solid)
 
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -466,7 +466,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	
 			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
-			trisThisLoop += (CYLDIV+1)*2*2; /* 2 triangles per quad strip */
+			gglobal()->Mainloop.trisThisLoop += (CYLDIV+1)*2*2; /* 2 triangles per quad strip */
 		}
 		if(node->bottom) {
 			mtf.VA_arrays=cylendtex;
@@ -476,7 +476,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
 			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,(int *) cylbotindx);
 			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-			trisThisLoop += CYLDIV+2;
+			gglobal()->Mainloop.trisThisLoop += CYLDIV+2;
 		}
 	
 		if (node->top) {
@@ -487,7 +487,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
 			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,(int *) cyltopindx);
 			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-			trisThisLoop += CYLDIV+2;
+			gglobal()->Mainloop.trisThisLoop += CYLDIV+2;
 		}
 #endif /* IPHONE - the above uses GL_QUAD_STRIPs */
 	}
@@ -515,7 +515,7 @@ void compile_Cone (struct X3D_Cone *node) {
 	MARK_NODE_COMPILED
 
 	
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		struct MyVertex coneVert[CONEDIV * 2 * 3];
 		int indx = 0;
 
@@ -714,7 +714,7 @@ void render_Cone (struct X3D_Cone *node) {
 	/*  OK - we have vertex data, so lets just render it.*/
 	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
 
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -747,7 +747,7 @@ void render_Cone (struct X3D_Cone *node) {
 			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
 			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,(int *) tribotindx);
 			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-			trisThisLoop += CONEDIV+2;
+			gglobal()->Mainloop.trisThisLoop += CONEDIV+2;
 		}
 
 		if(node->side) {
@@ -758,7 +758,7 @@ void render_Cone (struct X3D_Cone *node) {
 	
 			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 			FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 60);
-			trisThisLoop += 60;
+			gglobal()->Mainloop.trisThisLoop += 60;
 		}
 
 #endif
@@ -1081,7 +1081,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 	START_TRIG1
 
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		extern GLfloat spherenorms[];		/*  side normals*/
 		extern float spheretex[];		/*  in CFuncs/statics.c*/
 
@@ -1210,7 +1210,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 	/*  Display the shape*/
 
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -1243,7 +1243,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 		for (count = 0; count < SPHDIV/2; count ++) { 
 			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
-			trisThisLoop += (SPHDIV+1) * 4;
+			gglobal()->Mainloop.trisThisLoop += (SPHDIV+1) * 4;
 		}
 #endif /* IPHONE - the above uses GL_QUAD_STRIP */
 	}
@@ -1968,7 +1968,7 @@ void collisionCone_init(struct X3D_Cone *node)
 	if( !APPROX(h,0.0) ) inverseh = 1.0/h;
 	if( !APPROX(r,0.0) ) inverser = 1.0/r;
 
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
 		struct SFVec3f *pt;
@@ -2053,7 +2053,7 @@ void collisionCone_init(struct X3D_Cone *node)
 	collisionCone.smin[1] = -1.0; //-h;
 	collisionCone.smax[1] =  1.0; //h;
 	
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
 		FREE_IF_NZ(node->__botpoints.p);
@@ -2105,7 +2105,7 @@ void collide_Cone (struct X3D_Cone *node) {
 	       struct point_XYZ delta;
 
                 /* is this node initialized? if not, get outta here and do this later */
-		if (global_use_VBOs) {
+		if (gglobal()->internalc.global_use_VBOs) {
 			if (node->__coneVBO == 0) return;
 		} else {
                 	if ((node->__sidepoints.p == 0)  && (node->__botpoints.p==0)) return;
@@ -2209,7 +2209,7 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	struct SFVec3f *pts;// = node->__botpoints;
 	
 	/* not initialized yet - wait for next pass */
-	if (!global_use_VBOs) {if (!node->__points.p) return;}
+	if (!gglobal()->internalc.global_use_VBOs) {if (!node->__points.p) return;}
 
 	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top) 
 	    and GL_QUADS (side)
@@ -2243,7 +2243,7 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	if(!APPROX(h,0.0)) inverseh = 1.0/h;
 	if(!APPROX(r,0.0)) inverser = 1.0/r;
 
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		float a1, a2;
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
@@ -2325,7 +2325,7 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	collisionCylinder.smin[1] = -1.0; //-h/2;
 	collisionCylinder.smax[1] =  1.0; //h/2;
 
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		FREE_IF_NZ(pts);
 	}
 }

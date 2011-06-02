@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.194 2011/05/27 13:55:44 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.195 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1203,7 +1203,7 @@ static void getGenericShader(shader_type_t whichOne) {
 	char *geometrySource[2];
 
 	/* pointerize this */
-	myShader = &rdr_caps.backgroundShaderArrays[whichOne];
+	myShader = &gglobal()->display..backgroundShaderArrays[whichOne];
 	myProg = glCreateProgram(); /* CREATE_PROGRAM */
 	(*myShader).myShaderProgram = myProg;
 
@@ -1708,8 +1708,11 @@ bool fwl_initialize_GL()
     
 	
 	#ifndef GL_ES_VERSION_2_0
-	FW_GL_LINEWIDTH(gl_linewidth);
-	FW_GL_POINTSIZE(gl_linewidth);
+	{
+		float gl_linewidth = gglobal()->Mainloop.gl_linewidth;
+		FW_GL_LINEWIDTH(gl_linewidth);
+		FW_GL_POINTSIZE(gl_linewidth);
+	}
 	#endif
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start a");
@@ -2065,11 +2068,11 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#endif
 
 #ifdef VERBOSE
-	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), DispThrd);
+	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), gglobal()->threads.DispThrd);
 #ifdef _MSC_VER
-	if (pthread_self().p != DispThrd.p ) {
+	if (pthread_self().p != gglobal()->threads.DispThrd.p ) {
 #else
-	if (pthread_self() != DispThrd) {
+	if (pthread_self() != gglobal()->threads.DispThrd) {
 #endif
 		ConsoleMessage ("kill_oldWorld must run in the displayThread called at %s:%d\n",file,line);
 		return;
@@ -2082,13 +2085,13 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 
 	/* make the root_res equal NULL - this throws away all old resource info */
 	/*
-		if (root_res != NULL) {
-			printf ("root_res %p has the following...\n",root_res);
-			resource_dump(root_res);
+		if (gglobal()->resources.root_res != NULL) {
+			printf ("root_res %p has the following...\n",gglobal()->resources.root_res);
+			resource_dump(gglobal()->resources.root_res);
 		}else {printf ("root_res is null, no need to dump\n");}
 	*/
 
-	root_res = NULL;
+	gglobal()->resources.root_res = NULL;
 
 	/* mark all rootNode children for Dispose */
 	for (i=0; i<rootNode->children.n; i++) {
@@ -2307,7 +2310,7 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 			/* check to see if a child is NULL - if so, skip it */
 			if (a && b) {
 				if (a->_dist > b->_dist) {
-					/* printf ("sortChildren at %lf, have to switch %d %d dists %lf %lf\n",TickTime,i,j, 
+					/* printf ("sortChildren at %lf, have to switch %d %d dists %lf %lf\n",TickTime(),i,j, 
 a->_dist, b->_dist); */ 
 					c = a;
 					sortedCh->p[j-1] = b;
@@ -2370,7 +2373,7 @@ void zeroVisibilityFlag(void) {
 		
 			#ifdef OCCLUSIONVERBOSE
 			if (((node->_renderFlags) & VF_hasVisibleChildren) != 0) {
-			printf ("%lf, zeroVisibility - %d is a %s, flags %x\n",TickTime, i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); 
+			printf ("%lf, zeroVisibility - %d is a %s, flags %x\n",TickTime(), i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); 
 			}
 			#endif
 
@@ -2527,7 +2530,7 @@ void startOfLoopNodeUpdates(void) {
 	offsetOfChildrenPtr = 0;
 
 	/* assume that we do not have any sensitive nodes at all... */
-	HaveSensitive = FALSE;
+	gglobal()->Mainloop.HaveSensitive = FALSE;
 	have_transparency = FALSE;
 
 
@@ -2922,7 +2925,7 @@ X3D_GROUP(node)->removeChildren.n);
 			}
 
 			/* tell mainloop that we have to do a sensitive pass now */
-			HaveSensitive = TRUE;
+			gglobal()->Mainloop.HaveSensitive = TRUE;
 			nParents = 0;
 		}
 
@@ -2931,7 +2934,7 @@ X3D_GROUP(node)->removeChildren.n);
 			anchorPtr->_renderFlags = anchorPtr->_renderFlags  | VF_Sensitive;
 
 			/* tell mainloop that we have to do a sensitive pass now */
-			HaveSensitive = TRUE;
+			gglobal()->Mainloop.HaveSensitive = TRUE;
 			anchorPtr = NULL;
 		}
 

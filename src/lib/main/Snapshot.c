@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.20 2011/05/25 19:26:34 davejoubert Exp $
+$Id: Snapshot.c,v 1.21 2011/06/02 19:50:43 dug9 Exp $
 
 CProto ???
 
@@ -52,29 +52,168 @@ CProto ???
 #endif
 
 
+///* snapshot stuff */
+//int snapRawCount=0;
+//int snapGoodCount=0;
+//
+//#if defined(DOSNAPSEQUENCE)
+///* need to re-implement this for OSX generating QTVR */
+//int snapsequence=FALSE;		/* --seq - snapshot sequence, not single click  */
+//int maxSnapImages=100; 		/* --maximg command line parameter 		*/
+//char *snapseqB = NULL;		/* --seqb - snap sequence base filename		*/
+//#endif
+//
+//int snapGif = FALSE;		/* --gif save as an animated GIF, not mpg	*/
+//char *snapsnapB = NULL;		/* --snapb -single snapshot files		*/
+//const char default_seqtmp[] = "freewrl_tmp"; /* default value for seqtmp        */
+//char *seqtmp = NULL;		/* --seqtmp - directory for temp files		*/
+//int doSnapshot = FALSE;		/* are we doing a snapshot?			*/
+//int doPrintshot = FALSE; 	/* are we taking a snapshot in order to print? */
+//int savedSnapshot = FALSE;
+
+
+typedef struct pSnapshot{
 /* snapshot stuff */
-int snapRawCount=0;
-int snapGoodCount=0;
+int snapRawCount;//=0;
+int snapGoodCount;//=0;
 
 #if defined(DOSNAPSEQUENCE)
 /* need to re-implement this for OSX generating QTVR */
-int snapsequence=FALSE;		/* --seq - snapshot sequence, not single click  */
-int maxSnapImages=100; 		/* --maximg command line parameter 		*/
-char *snapseqB = NULL;		/* --seqb - snap sequence base filename		*/
+int snapsequence;//=FALSE;		/* --seq - snapshot sequence, not single click  */
+int maxSnapImages;//=100; 		/* --maximg command line parameter 		*/
+char *snapseqB;// = NULL;		/* --seqb - snap sequence base filename		*/
 #endif
 
-int snapGif = FALSE;		/* --gif save as an animated GIF, not mpg	*/
-char *snapsnapB = NULL;		/* --snapb -single snapshot files		*/
-const char default_seqtmp[] = "freewrl_tmp"; /* default value for seqtmp        */
-char *seqtmp = NULL;		/* --seqtmp - directory for temp files		*/
-int doSnapshot = FALSE;		/* are we doing a snapshot?			*/
-int doPrintshot = FALSE; 	/* are we taking a snapshot in order to print? */
-int savedSnapshot = FALSE;
+int snapGif;// = FALSE;		/* --gif save as an animated GIF, not mpg	*/
+char *snapsnapB;// = NULL;		/* --snapb -single snapshot files		*/
+const char *default_seqtmp;// = "freewrl_tmp"; /* default value for seqtmp        */
+char *seqtmp;// = NULL;		/* --seqtmp - directory for temp files		*/
+int doSnapshot;// = FALSE;		/* are we doing a snapshot?			*/
+int doPrintshot;// = FALSE; 	/* are we taking a snapshot in order to print? */
+int savedSnapshot;// = FALSE;
+}* ppSnapshot;
+void* Snapshot_constructor()
+{
+	ppSnapshot p = (ppSnapshot)malloc(sizeof(struct pSnapshot));
+	memset(p,0,sizeof(struct pSnapshot));
+/* snapshot stuff */
+p->snapRawCount=0;
+p->snapGoodCount=0;
 
+#if defined(DOSNAPSEQUENCE)
+/* need to re-implement this for OSX generating QTVR */
+p->snapsequence=FALSE;		/* --seq - snapshot sequence, not single click  */
+p->maxSnapImages=100; 		/* --maximg command line parameter 		*/
+p->snapseqB = NULL;		/* --seqb - snap sequence base filename		*/
+#endif
+
+p->snapGif = FALSE;		/* --gif save as an animated GIF, not mpg	*/
+p->snapsnapB = NULL;		/* --snapb -single snapshot files		*/
+p->default_seqtmp = "freewrl_tmp"; /* default value for seqtmp        */
+p->seqtmp = NULL;		/* --seqtmp - directory for temp files		*/
+p->doSnapshot = FALSE;		/* are we doing a snapshot?			*/
+p->doPrintshot = FALSE; 	/* are we taking a snapshot in order to print? */
+p->savedSnapshot = FALSE;
+return (void*)p;
+}
+//void Snapshot_destructor(void *t)
+//{
+//	struct pSnapshot* tt = (struct tSnapshot*)t;
+//	free(tt);
+//}
+void Snapshot_init(struct tSnapshot* t)
+{
+	t->prv = Snapshot_constructor();
+	t->doSnapshot = FALSE;
+}
+//bool do_Snapshot(){
+//	if( ((struct tSnapshot*)(gglobal()->Snapshot))->doSnapshot )return true;
+//	return false;
+//}
+void set_snapsequence(int on)
+{
+#ifdef DOSNAPSEQUENCE
+	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	p->snapsequence = on;
+#endif
+}
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
 void saveSnapSequence();
 #endif
+
+void fwl_set_SeqFile(const char* file)
+{
+#if defined(DOSNAPSEQUENCE)
+    /* need to re-implement this for OSX generating QTVR */
+	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+    p->snapseqB = strdup(file);
+    printf("snapseqB is %s\n", p->snapseqB);
+#else
+    WARN_MSG("Call to fwl_set_SeqFile when Snapshot Sequence not compiled in.\n");
+#endif
+}
+
+void fwl_set_SnapFile(const char* file)
+{
+	struct pSnapshot* p = (struct pSnapshot*)&gglobal()->Snapshot.prv;
+	p->snapsnapB = strdup(file);
+    TRACE_MSG("snapsnapB set to %s\n", p->snapsnapB);
+}
+
+void fwl_set_MaxImages(int max)
+{
+#if defined(DOSNAPSEQUENCE)
+    /* need to re-implement this for OSX generating QTVR */
+	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+    if (max <=0)
+	max = 100;
+    p->maxSnapImages = max;
+#else
+    WARN_MSG("Call to fwl_set_MaxImages when Snapshot Sequence not compiled in.\n");
+#endif
+}
+//typedef struct tSnapshot* ttSnapshot;
+//typedef struct pSnapshot* ppSnapshot;
+//#define TSNAPSHOT &gglobal()->Snapshot
+//#define PSNAPSHOT (ppSnapshot)&gglobal()->Snapshot.prv
+//typedef tglobal* ttglobal;
+void fwl_set_SnapTmp(const char* file)
+{
+	{
+		ttglobal tg = gglobal();
+		tg->Snapshot.doSnapshot = FALSE;
+		{
+			((ppSnapshot)tg->Snapshot.prv)->seqtmp = strdup(file);
+		}
+		{
+			ppSnapshot p = (ppSnapshot)tg->Snapshot.prv;
+			p->seqtmp = strdup(file);
+			TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
+		}
+
+	}
+	//{
+	//	ttSnapshot t = TSNAPSHOT;
+	//	ppSnapshot p = PSNAPSHOT;
+	//	t->doSnapshot = FALSE;
+	//	p->seqtmp = strdup(file);
+	//	TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
+	//}
+	{
+		struct tSnapshot* t = &gglobal()->Snapshot;
+		struct pSnapshot* p = (struct pSnapshot*)t->prv;
+		p->seqtmp = strdup(file);
+		TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
+	}
+	{
+		struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+		p->seqtmp = strdup(file);
+		TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
+	}
+}
+
+
 
 static char * grabScreen(int bytesPerPixel, int x, int y, int width, int height)
 {
@@ -163,8 +302,8 @@ void Snapshot ()
  http://msdn.microsoft.com/en-us/library/ms706540(v=VS.85).aspx 
  http://msdn.microsoft.com/en-us/library/ms706415(v=VS.85).aspx  Vfw.h, Vfw32.lib 
 */
-	char *imgbuf = grabScreen(3,0,0,screenWidth,screenHeight);
-	saveSnapshot(imgbuf,3,screenWidth,screenHeight);
+	char *imgbuf = grabScreen(3,0,0,gglobal()->display.screenWidth,gglobal()->display.screenHeight);
+	saveSnapshot(imgbuf,3,gglobal()->display.screenWidth,gglobal()->display.screenHeight);
 	FREE(imgbuf);
 }
 #endif 
@@ -175,30 +314,34 @@ void Snapshot ()
 
 void fwl_init_SnapGif()
 {
-    snapGif = TRUE;
+	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+    p->snapGif = TRUE;
 }
 
 void fwl_init_PrintShot() {
-	doPrintshot = TRUE;
-	savedSnapshot = doSnapshot;
-	doSnapshot = TRUE;
+	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	p->doPrintshot = TRUE;
+	p->savedSnapshot = p->doSnapshot;
+	p->doSnapshot = TRUE;
 	printf("setting printshot/ snapshot\n");
 }
 
 /* turn snapshotting on; if sequenced; possibly turn off an convert sequence */
 void fwl_toggleSnapshot() {
+	struct tSnapshot* t = &gglobal()->Snapshot;
+	struct pSnapshot* p = (struct pSnapshot*)t->prv;
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
-	if (!doSnapshot) {
-		doSnapshot = TRUE;
+	if (!t->doSnapshot) {
+		t->doSnapshot = TRUE;
 	} else {
-		if (snapsequence) {
-			doSnapshot = FALSE;
+		if (p->snapsequence) {
+			t->doSnapshot = FALSE;
 			saveSnapSequence();
 		}
 	}
 #else
-	doSnapshot = ! doSnapshot;
+	t->doSnapshot = ! t->doSnapshot;
 #endif
 }
 
@@ -212,19 +355,20 @@ void saveSnapSequence() {
 		char thisRawFile[2000];
 		char thisGoodFile[2000];
 		int xx;
+		struct tSnapshot* t = (struct tSnapshot*)gglobal()->Snapshot;
 	
 		/* make up base names - these may be command line parameters */
-	        if (snapseqB == NULL)  myseqb  = "freewrl.seq";
-	        else myseqb = snapseqB;
-	        if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
-	        else mytmp = seqtmp;
+	        if (p->snapseqB == NULL)  myseqb  = "freewrl.seq";
+	        else myseqb = p->snapseqB;
+	        if (p->seqtmp == NULL)    mytmp   = "freewrl_tmp";
+	        else mytmp = p->seqtmp;
 	
-		snapGoodCount++;
+		t->snapGoodCount++;
 	
-		if (snapGif) {
-			sprintf (thisGoodFile,"%s/%s.%04d.gif",mytmp,myseqb,snapGoodCount);
+		if (t->snapGif) {
+			sprintf (thisGoodFile,"%s/%s.%04d.gif",mytmp,myseqb,p->snapGoodCount);
 		} else {
-			sprintf (thisGoodFile,"%s/%s.%04d.mpg",mytmp,myseqb,snapGoodCount);
+			sprintf (thisGoodFile,"%s/%s.%04d.mpg",mytmp,myseqb,p->snapGoodCount);
 		}
 		/* sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s/%s*rgb %s", */
 	
@@ -232,7 +376,7 @@ void saveSnapSequence() {
 		 movies (e.g. with mencoder) images have to be three-band RGB (in other 
 		 words 24-bits) */
 	sprintf(sysline, "%s -size %dx%d -depth 24 -colorspace RGB +matte -flip %s/%s*rgb %s",
-			CONVERT, screenWidth, screenHeight,mytmp,myseqb,thisGoodFile);
+			CONVERT, gglobal()->display.screenWidth, gglobal()->display.screenHeight,mytmp,myseqb,thisGoodFile);
 	
 		/* printf ("convert line %s\n",sysline); */
 	
@@ -241,11 +385,11 @@ void saveSnapSequence() {
 		}
 		printf ("snapshot is :%s\n",thisGoodFile);
 		/* remove temporary files */
-		for (xx=1; xx <= snapRawCount; xx++) {
+		for (xx=1; xx <= p->snapRawCount; xx++) {
 			sprintf (thisRawFile, "%s/%s.%04d.rgb",mytmp,myseqb,xx);
 			UNLINK (thisRawFile);
 		}
-		snapRawCount=0;
+		t->snapRawCount=0;
 }
 #endif
 
@@ -318,24 +462,27 @@ void Snapshot () {
 	CGRect myBoundingBox; 
 	CGContextRef myBitmapContext;
 	#endif
-	
+	struct tSnapshot* t = &gglobal()->Snapshot;
+	struct pSnapshot* p = (struct pSnapshot*)t->prv;
+
+
 	printf("do Snapshot ... \n");
 	/* make up base names - these may be command line parameters */
 	
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
 
-	if (snapsequence) {
-	        if (snapseqB == NULL)
+	if (p->snapsequence) {
+	        if (p->snapseqB == NULL)
 	                mysnapb  = "freewrl.seq";
 	        else
-	                mysnapb = snapseqB;
+	                mysnapb = p->snapseqB;
 	} else {
 #endif
-	        if (snapsnapB == NULL)
+	        if (p->snapsnapB == NULL)
 	                mysnapb = "freewrl.snap";
 	        else
-	                mysnapb = snapsnapB;
+	                mysnapb = p->snapsnapB;
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
 
@@ -343,8 +490,8 @@ void Snapshot () {
 #endif
 	
 	
-	if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
-	else mytmp = seqtmp;
+	if (p->seqtmp == NULL)    mytmp   = "freewrl_tmp";
+	else mytmp = p->seqtmp;
 	
 	/*does the directory exist? */
 	if ((mydir = opendir(mytmp)) == NULL) {
@@ -359,36 +506,36 @@ void Snapshot () {
 /* need to re-implement this for OSX generating QTVR */
 
 	/* are we sequencing, or just single snapping? */
-	if (!snapsequence) doSnapshot=FALSE;  	/* reset snapshot key */
+	if (!p->snapsequence) p->doSnapshot=FALSE;  	/* reset snapshot key */
 #endif
 
 	
 	#ifdef AQUA	
 		/* OSX needs 32 bits per byte. */
 		/* MALLOC 4 bytes per pixel */
-		buffer = MALLOC (GLvoid *, 4*screenWidth*screenHeight*sizeof(char));
+		buffer = MALLOC (GLvoid *, 4*gglobal()->display.screenWidth*gglobal()->display.screenHeight*sizeof(char));
 	
 		/* grab the data */
 		FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
 		FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
-		FW_GL_READPIXELS (0,0,screenWidth,screenHeight,GL_RGBA,GL_UNSIGNED_BYTE, buffer);
+		FW_GL_READPIXELS (0,0,gglobal()->display.screenWidth,gglobal()->display.screenHeight,GL_RGBA,GL_UNSIGNED_BYTE, buffer);
 	#else	
 		/* Linux, etc, can get by with 3 bytes per pixel */
 		/* MALLOC 3 bytes per pixel */
-		buffer = MALLOC (GLvoid *, 3*screenWidth*screenHeight*sizeof(char));
+		buffer = MALLOC (GLvoid *, 3*gglobal()->display.screenWidth*gglobal()->display.screenHeight*sizeof(char));
 	
 		/* grab the data */
 		FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
 		FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
-		FW_GL_READPIXELS (0,0,screenWidth,screenHeight,GL_RGB,GL_UNSIGNED_BYTE, buffer);
+		FW_GL_READPIXELS (0,0,gglobal()->display.screenWidth,gglobal()->display.screenHeight,GL_RGB,GL_UNSIGNED_BYTE, buffer);
 	#endif
 	
 	/* save this snapshot */
-	snapRawCount ++;
+	p->snapRawCount ++;
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
 
-	if (snapRawCount > maxSnapImages) {
+	if (p->snapRawCount > maxSnapImages) {
 		FREE_IF_NZ (buffer);
 		return;
 	}
@@ -396,8 +543,8 @@ void Snapshot () {
 
 	#ifdef AQUA
 
-		myBoundingBox = CGRectMake (0, 0, screenWidth, screenHeight); 
-		myBitmapContext = MyCreateBitmapContext (screenWidth, screenHeight,buffer); 
+		myBoundingBox = CGRectMake (0, 0, gglobal()->display.screenWidth, gglobal()->display.screenHeight); 
+		myBitmapContext = MyCreateBitmapContext (gglobal()->display.screenWidth, gglobal()->display.screenHeight,buffer); 
 
 		image = CGBitmapContextCreateImage (myBitmapContext); 
 		CGContextDrawImage(myBitmapContext, myBoundingBox, image); 
@@ -407,16 +554,16 @@ void Snapshot () {
 		if (bitmapData) free(bitmapData); 
 
 
-		snapGoodCount++;
-		if (doPrintshot) {
+		p->snapGoodCount++;
+		if (t->doPrintshot) {
 			sprintf (thisGoodFile, "/tmp/FW_print_snap_tmp.png");
-			doPrintshot = FALSE;
-			doSnapshot = savedSnapshot;
+			p->doPrintshot = FALSE;
+			t->doSnapshot = p->savedSnapshot;
 	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
 			printf("thisGoodFile is %s\n", thisGoodFile);
 	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, FALSE);
 		} else {
-			sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,snapGoodCount);
+			sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,t->snapGoodCount);
 
 	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
 	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, FALSE);
@@ -439,7 +586,7 @@ void Snapshot () {
 		CGImageRelease(image); 
 	#else	
 		/* save the file */
-		sprintf (thisRawFile,"%s/%s.%04d.rgb",mytmp,mysnapb,snapRawCount);
+		sprintf (thisRawFile,"%s/%s.%04d.rgb",mytmp,mysnapb,p->snapRawCount);
 		tmpfile = fopen(thisRawFile,"w");
 		if (tmpfile == NULL) {
 			printf ("can not open temp file (%s) for writing\n",thisRawFile);
@@ -447,7 +594,7 @@ void Snapshot () {
 			return;
 		}
 	
-		if (fwrite(buffer, 1, screenHeight*screenWidth*3, tmpfile) <= 0) {
+		if (fwrite(buffer, 1, gglobal()->display.screenHeight*gglobal()->display.screenWidth*3, tmpfile) <= 0) {
 			printf ("error writing snapshot to %s, aborting snapshot\n",thisRawFile);
 			FREE_IF_NZ (buffer);
 			return;
@@ -462,12 +609,12 @@ void Snapshot () {
 /* need to re-implement this for OSX generating QTVR */
 
 		/* now, if we are doing only 1, convert the raw into the good.... */
-		if (!snapsequence) {
+		if (!p->snapsequence) {
 #endif
-			snapGoodCount++;
-			sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,snapGoodCount);
+			t->snapGoodCount++;
+			sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,p->snapGoodCount);
 			sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s %s",
-			IMAGECONVERT,screenWidth, screenHeight,thisRawFile,thisGoodFile);
+			IMAGECONVERT,gglobal()->display.screenWidth, gglobal()->display.screenHeight,thisRawFile,thisGoodFile);
 	
 			if (system (sysline) != 0) {
 				printf ("Freewrl: error running convert line %s\n",sysline);

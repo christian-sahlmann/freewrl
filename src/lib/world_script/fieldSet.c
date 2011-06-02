@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.61 2011/05/16 17:47:08 crc_canada Exp $
+  $Id: fieldSet.c,v 1.62 2011/06/02 19:50:49 dug9 Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -440,7 +440,7 @@ void fudgeIfNeeded(int myptr,int myoffset){
 
 void dumpOneNode(int myptr) {
 	struct X3D_Node *boxptr;
-
+	bool eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 	boxptr = getEAINodeFromTable(myptr,-1);
 
 	if (eaiverbose) {
@@ -1081,7 +1081,7 @@ void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype,
 		#endif
 
 		/* do we care if, maybe, this field is not correct for requested version of FreeWRL? */
-		if (global_strictParsing) {
+		if (gglobal()->internalc.global_strictParsing) {
 			if (inputFileVersion[0] == 2) { /* VRML 2.0 */
 				if ((X3DLevel & SPEC_VRML) == SPEC_VRML) {
 					return; /* field ok */

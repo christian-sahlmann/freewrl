@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.29 2011/06/01 15:02:21 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.30 2011/06/02 19:50:43 dug9 Exp $
 
 ???
 
@@ -549,13 +549,6 @@ static void checkTriangleSetFields (struct X3D_TriangleSet *node) {
 
 
 void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
-
-#if !defined(IPHONE) && !defined(_ANDROID)
-	GLDOUBLE tess_v[3];             /*param.to FW_GLU_TESS_VERTEX()*/
-	struct SFVec3f *c1;
-#endif
-    
-    
 	int cin;
 	int cpv = TRUE;
 	int npv;
@@ -574,7 +567,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int vert_ind = 0;
 	int calc_normind = 0;
 
-    
+	struct SFVec3f *c1;
 	struct SFVec3f *points;
 	struct X3D_PolyRep *rep_ = (struct X3D_PolyRep *)node->_intern;
 	struct SFVec3f *normals;
@@ -597,7 +590,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int	*faceok = NULL;	/*  is this face ok? (ie, not degenerate triangles, etc)*/
 	int	*pointfaces = NULL;
 
-
+	GLDOUBLE tess_v[3];             /*param.to FW_GLU_TESS_VERTEX()*/
 	int *tess_vs = NULL;              /* pointer to space needed */
 
 

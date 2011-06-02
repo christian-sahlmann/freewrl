@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.31 2011/06/01 15:02:21 crc_canada Exp $
+$Id: StreamPoly.c,v 1.32 2011/06/02 19:50:43 dug9 Exp $
 
 ???
 
@@ -552,7 +552,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	r->isRGBAcolorNode = isRGBA;
 
 	/* send the data to VBOs if required */
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		/* printf("stream polyrep, uploading vertices to VBO %u and %u\n",r->VBO_buffers[VERTEX_VBO], r->VBO_buffers[INDEX_VBO]); */
 
 		if (r->normal) {

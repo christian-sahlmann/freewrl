@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.34 2011/05/25 19:26:34 davejoubert Exp $
+$Id: Component_Networking.c,v 1.35 2011/06/02 19:50:43 dug9 Exp $
 
 X3D Networking Component
 
@@ -357,7 +357,7 @@ static void determineMIDIValFromInt (struct X3D_MidiControl *node, int *value, f
 /* send this node out to the ReWire network */
 static void sendNodeToReWire(struct X3D_MidiControl *node) {
 	char buf[200];
-
+	//ppEAIServ p = gglobal()->EAIServ.prv;
 	#ifdef MIDIVERBOSE
 	if (node->controllerPresent) {
 		printf ("sendNodeToReWire - controller present\n");
@@ -392,7 +392,7 @@ static void sendNodeToReWire(struct X3D_MidiControl *node) {
 		printf ("sendNodeToReWire: sending string:%s:\n",buf);
 		#endif
 
-		EAI_send_string(buf,EAIMIDIlistenfd);
+		EAI_send_string(buf,gglobal()->EAIServ.EAIMIDIlistenfd);
 	}	
 }
 
@@ -1007,17 +1007,17 @@ void do_MidiControl (void *this) {
 				if (value != node->_oldintValue) {
 					sendEvent = TRUE;
 					node->_sentVel = node->_vel;   /* this is a Note On */
-					node->pressTime = TickTime;	   /* time button pressed */
+					node->pressTime = TickTime();	   /* time button pressed */
 					#ifdef MIDIVERBOSE
-					printf ("auto Note %d on at %lf\n",value, TickTime);
+					printf ("auto Note %d on at %lf\n",value, TickTime());
 					#endif
 				}
 
 				/* have we timed out? */
 				if (node->pressTime > 0.001) {
-					if (TickTime > (node->pressTime + node->pressLength))  {
+					if (TickTime() > (node->pressTime + node->pressLength))  {
 						#ifdef MIDIVERBOSE
-						printf ("note timed out at %lf, sending note_off for pressTime %lf \n",TickTime, node->pressTime);
+						printf ("note timed out at %lf, sending note_off for pressTime %lf \n",TickTime(), node->pressTime);
 						#endif
 
 						sendEvent = TRUE;
@@ -1032,13 +1032,13 @@ void do_MidiControl (void *this) {
 					value = node->intValue;
 					if (node->buttonPress) {
 						#ifdef MIDIVERBOSE
-						printf ("have ButtonPress at %lf\n",TickTime);
+						printf ("have ButtonPress at %lf\n",TickTime());
 						#endif
 						node->_sentVel = node->_vel;   /* this is a Note On */
-						node->pressTime = TickTime;	   /* time button pressed */
+						node->pressTime = TickTime();	   /* time button pressed */
 					} else {
 						#ifdef MIDIVERBOSE
-						printf ("have ButtonRelease at %lf\n",TickTime);
+						printf ("have ButtonRelease at %lf\n",TickTime());
 						#endif
 						node->_sentVel = -1;		/* this is a Note Off */
 						node->pressTime = (double)0.0;
@@ -1204,13 +1204,13 @@ void ReWireMIDIControl (char *line) {
 						sendEvent = TRUE;
 						if (noteOn) {
 							#ifdef MIDIVERBOSE
-							printf ("have ButtonPress at %lf\n",TickTime);
+							printf ("have ButtonPress at %lf\n",TickTime());
 							#endif
-							node->pressTime = TickTime;	   /* time button pressed */
+							node->pressTime = TickTime();	   /* time button pressed */
 							node->velocity = value;
 						} else {
 							#ifdef MIDIVERBOSE
-							printf ("have ButtonRelease at %lf\n",TickTime);
+							printf ("have ButtonRelease at %lf\n",TickTime());
 							#endif
 							node->pressTime = (double)0.0;
 							/* DO NOT set velocity here - it will be 0 ALWAYS */
@@ -1357,7 +1357,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 		node->progress = (float) 1.0;
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, progress));
 
-		node->loadTime = TickTime;
+		node->loadTime = TickTime();
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, loadTime));
 	}	
 
@@ -1368,7 +1368,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, isActive));
 
 	
-		node->__StartLoadTime = TickTime;
+		node->__StartLoadTime = TickTime();
 	}
 	
 	/* what is our progress? */
@@ -1386,7 +1386,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 		if (node->__StartLoadTime > 0.001) {	/* we have a start Time recorded from the isActive = TRUE */
 		
 			/* ok, we should look at time outs */
-			if ((TickTime - node->__StartLoadTime) > node->timeOut) {
+			if ((TickTime() - node->__StartLoadTime) > node->timeOut) {
 				node->isLoaded = 0;
 				MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, isLoaded));
 

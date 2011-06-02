@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.16 2011/06/01 15:02:21 crc_canada Exp $
+$Id: ColladaParser.c,v 1.17 2011/06/02 19:50:43 dug9 Exp $
 
 ???
 
@@ -103,6 +103,7 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 //#define PROTOINSTANCE_MAX_LEVELS 10
 static XML_Parser colladaParser[PROTOINSTANCE_MAX_LEVELS];
 static XML_Parser currentColladaParser = NULL;
+//static int parentIndex = 0;
 static int ColladaParserRecurseLevel = 0;
 static int inCDATA = FALSE;
 struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];

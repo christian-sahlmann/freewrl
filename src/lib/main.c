@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.54 2011/05/31 04:47:56 daytonavid Exp $
+  $Id: main.c,v 1.55 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -146,7 +146,6 @@ printf ("start of fwl_OSX_initializeParameters, url %s\n",initialURL);
 
     /* Give the main argument to the resource handler */
     res = resource_create_single(initialURL);
-    
     send_resource_to_parser(res);
 
     while ((!res->complete) && (res->status != ress_failed) && (res->status != ress_not_loaded)) {
@@ -304,13 +303,20 @@ bool	fwl_getp_eai		(void)	{ return fwl_params.eai; }
 bool	fwl_getp_verbose	(void)	{ return fwl_params.verbose; }
 int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
 
-bool fwl_initFreeWRL(freewrl_params_t *params)
+ttglobal fwl;
+void* fwl_init_instance()
 {
-
+	//tglobal *fwl;
+	fwl = iglobal_constructor();
+	return (void *)fwl;
+}
+bool fwl_initFreeWRL(freewrl_params_t *params)
+//bool fwl_initFreeWRL(freewrl_params_t *params)
+{
 	TRACE_MSG("FreeWRL: initializing...\n");
 
-	mainThread = pthread_self();
-
+	gglobal()->threads.mainThread = pthread_self();
+	set_thread2global((ttglobal)fwl, gglobal()->threads.mainThread );
 	/* Initialize console (log, error, ...) */
 	setbuf(stdout,0);
         setbuf(stderr,0);
@@ -375,6 +381,8 @@ OLDCODE*/
 	/* do we require EAI? */
 	if (fwl_getp_eai()) {
 		fwl_create_EAI();
+		//	set_thread2global(tglobal* fwl, pthread_t any );
+
 	}
 
 
@@ -387,18 +395,21 @@ OLDCODE*/
 	   create the display thread and wait for it
 	   to complete initialization */
 	fwl_initializeDisplayThread();
-	
+	set_thread2global(fwl,gglobal()->threads.DispThrd );
+
 
 	fwl_initializeInputParseThread();
+	set_thread2global(fwl, gglobal()->threads.PCthread );
+
 	while (!fwl_isInputThreadInitialized()) {
 		usleep(50);
 	}
 
 	fwl_initializeTextureThread();
+	set_thread2global(fwl, gglobal()->threads.loadThread );
 	while (!fwl_isTextureinitialized()) {
 		usleep(50);
 	}
-
 	return TRUE;
 }
 
@@ -415,7 +426,7 @@ void fwl_startFreeWRL(const char *url)
 	DEBUG_MSG("request sent to parser thread, main thread joining display thread...\n");
 
 	/* now wait around until something kills this thread. */
-	pthread_join(DispThrd, NULL);
+	pthread_join(gglobal()->threads.DispThrd, NULL);
 }
 
 /**

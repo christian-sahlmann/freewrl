@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.24 2011/06/01 15:02:21 crc_canada Exp $
+  $Id: threads.c,v 1.25 2011/06/02 19:50:43 dug9 Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -68,26 +68,56 @@ static int threads_colors[FREEWRL_MAX_THREADS] = {
 #endif /* FREEWRL_THREAD_COLORIZED */
 
 /* Thread global variables */
-pthread_t mainThread; /* main (default) thread */
-
-DEF_THREAD(DispThrd); /* display thread */
-
-DEF_THREAD(PCthread); /* parser thread */
-
-DEF_THREAD(loadThread); /* texture thread */
+//pthread_t mainThread; /* main (default) thread */
+//
+//DEF_THREAD(DispThrd); /* display thread */
+//
+//DEF_THREAD(PCthread); /* parser thread */
+//
+//DEF_THREAD(loadThread); /* texture thread */
 
 /* Thread synchronization global variables */
 
+///* Synchronize / exclusion root_res and below */
+//pthread_mutex_t mutex_resource_tree = PTHREAD_MUTEX_INITIALIZER;
+//
+///* Synchronize / exclusion : resource queue for parser */
+//pthread_mutex_t mutex_resource_list = PTHREAD_MUTEX_INITIALIZER;
+//pthread_cond_t resource_list_condition = PTHREAD_COND_INITIALIZER;
+//
+///* Synchronize / exclusion (main<=>texture) */
+//pthread_mutex_t mutex_texture_list = PTHREAD_MUTEX_INITIALIZER;
+//pthread_cond_t texture_list_condition = PTHREAD_COND_INITIALIZER;
+
+void threads_init(struct tthreads* t)
+{
+	//public
+//pthread_t mainThread; /* main (default) thread */
+//t->DispThrd = {NULL,0}; /* display thread */
+//t->PCthread = {NULL,0}; /* parser thread */
+//t->loadThread = {NULL,0}; /* texture thread */
 /* Synchronize / exclusion root_res and below */
-pthread_mutex_t mutex_resource_tree = PTHREAD_MUTEX_INITIALIZER;
+//t->mutex_resource_tree = PTHREAD_MUTEX_INITIALIZER;
+//
+///* Synchronize / exclusion : resource queue for parser */
+//t->mutex_resource_list = PTHREAD_MUTEX_INITIALIZER;
+//t->resource_list_condition = PTHREAD_COND_INITIALIZER;
+//
+///* Synchronize / exclusion (main<=>texture) */
+//t->mutex_texture_list = PTHREAD_MUTEX_INITIALIZER;
+//t->texture_list_condition = PTHREAD_COND_INITIALIZER;
 
+/* Synchronize / exclusion root_res and below */
+	pthread_mutex_init (&t->mutex_resource_tree,NULL); 	// = PTHREAD_MUTEX_INITIALIZER;
 /* Synchronize / exclusion : resource queue for parser */
-pthread_mutex_t mutex_resource_list = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t resource_list_condition = PTHREAD_COND_INITIALIZER;
+	pthread_mutex_init (&t->mutex_resource_list,NULL); // = PTHREAD_MUTEX_INITIALIZER;
+	pthread_cond_init (&t->resource_list_condition,NULL); // = PTHREAD_COND_INITIALIZER; 
+	/* Synchronize / exclusion (main<=>texture) */
+	pthread_mutex_init (&t->mutex_texture_list,NULL); // = PTHREAD_MUTEX_INITIALIZER;
+	pthread_cond_init(&t->texture_list_condition,NULL); // = PTHREAD_COND_INITIALIZER;
 
-/* Synchronize / exclusion (main<=>texture) */
-pthread_mutex_t mutex_texture_list = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t texture_list_condition = PTHREAD_COND_INITIALIZER;
+	//private
+}
 
 
 #ifdef _MSC_VER
@@ -99,25 +129,25 @@ void fwl_initializeDisplayThread()
 #if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
 	int ret;
 #endif
-
+	ttglobal tg = gglobal();
 	/* Synchronize trace/error log... */
 	fflush(stdout);
 	fflush(stderr);
 	sync();
-	ASSERT(TEST_NULL_THREAD(DispThrd));
+	ASSERT(TEST_NULL_THREAD(gglobal()->threads.DispThrd));
 
 
 	/* Initialize all mutex/condition variables ... */
-	pthread_mutex_init( &mutex_resource_tree, NULL );
-	pthread_mutex_init( &mutex_resource_list, NULL );
-	pthread_mutex_init( &mutex_texture_list, NULL );
-	pthread_cond_init( &resource_list_condition, NULL );
-	pthread_cond_init( &texture_list_condition, NULL );
+	pthread_mutex_init( &tg->threads.mutex_resource_tree, NULL );
+	pthread_mutex_init( &tg->threads.mutex_resource_list, NULL );
+	pthread_mutex_init( &tg->threads.mutex_texture_list, NULL );
+	pthread_cond_init( &tg->threads.resource_list_condition, NULL );
+	pthread_cond_init( &tg->threads.texture_list_condition, NULL );
 
 
 /* IPHONE handles the display itself */
 #if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
-	ret = pthread_create(&DispThrd, NULL, (void *) _displayThread, NULL);
+	ret = pthread_create(&tg->threads.DispThrd, NULL, (void *) _displayThread, NULL);
 	switch (ret) {
 	case 0: 
 		break;
@@ -129,7 +159,7 @@ void fwl_initializeDisplayThread()
 
 
 #if !defined(TARGET_AQUA) && !defined(_MSC_VER) //TARGET_WIN32)
-	if (global_trace_threads) {
+	if (gglobal()->internalc.global_trace_threads) {
 		TRACE_MSG("initializeDisplayThread: waiting for display to become initialized...\n");
 		while (IS_DISPLAY_INITIALIZED == FALSE) {
 			usleep(50);
@@ -142,13 +172,14 @@ void fwl_initializeDisplayThread()
 void fwl_initializeInputParseThread()
 {
 	int ret;
+	ttglobal tg = gglobal();
 
 	/* Synchronize trace/error log... */
 	fflush(stdout);
 	fflush(stderr);
 
-	ASSERT(TEST_NULL_THREAD(PCthread));
-	ret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);
+	ASSERT(TEST_NULL_THREAD(tg->threads.PCthread));
+	ret = pthread_create(&tg->threads.PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);
 	switch (ret) {
 	case 0: 
 		break;
@@ -161,13 +192,14 @@ void fwl_initializeInputParseThread()
 void fwl_initializeTextureThread()
 {
 	int ret;
+	ttglobal tg = gglobal();
 
 	/* Synchronize trace/error log... */
 	fflush(stdout);
 	fflush(stderr);
 
-	ASSERT(TEST_NULL_THREAD(loadThread));
-	ret = pthread_create(&loadThread, NULL, (void *(*)(void *))&_textureThread, NULL);
+	ASSERT(TEST_NULL_THREAD(tg->threads.loadThread));
+	ret = pthread_create(&tg->threads.loadThread, NULL, (void *(*)(void *))&_textureThread, NULL);
 	switch (ret) {
 	case 0: 
 		break;
@@ -180,7 +212,7 @@ void fwl_initializeTextureThread()
 int fw_thread_id()
 {
 	pthread_t current_thread;
-
+	ttglobal tg = gglobal();
 	current_thread = pthread_self();
 
 #ifdef _MSC_VER 
@@ -192,16 +224,16 @@ int fw_thread_id()
 		return 0;
 	}
 
-	if (pthread_equal(current_thread, mainThread))
+	if (pthread_equal(current_thread, tg->threads.mainThread))
 		return FREEWRL_THREAD_MAIN;
 
-	if (pthread_equal(current_thread, DispThrd))
+	if (pthread_equal(current_thread, tg->threads.DispThrd))
 		return FREEWRL_THREAD_DISPLAY;
 
-	if (pthread_equal(current_thread, PCthread))
+	if (pthread_equal(current_thread, tg->threads.PCthread))
 		return FREEWRL_THREAD_PARSER;
 
-	if (pthread_equal(current_thread, loadThread))
+	if (pthread_equal(current_thread, tg->threads.loadThread))
 		return FREEWRL_THREAD_TEXTURE;
 
 /*#endif*/
@@ -223,7 +255,7 @@ int fw_thread_color(int thread_id)
 
 void fwl_thread_dump()
 {
-	if (global_trace_threads) {
+	if (gglobal()->internalc.global_trace_threads) {
 		/* Synchronize trace/error log... */
 		fflush(stdout);
 		fflush(stderr);
@@ -233,7 +265,7 @@ void fwl_thread_dump()
 
 void trace_enter_thread(const char *str)
 {
-	if (global_trace_threads) {
+	if (gglobal()->internalc.global_trace_threads) {
 		/* Synchronize trace/error log... */
 		fflush(stdout);
 		fflush(stderr);

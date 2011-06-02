@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.33 2010/12/07 18:27:50 crc_canada Exp $
+$Id: SensInterps.c,v 1.34 2011/06/02 19:50:43 dug9 Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -66,7 +66,26 @@ Interps are the "EventsProcessed" fields of interpolators.
 #define BADAUDIOSOURCE -9999
 
 /* when we get a new sound source, what is the number for this? */
-int SoundSourceNumber = 0;
+//int SoundSourceNumber = 0;
+typedef struct pSenseInterps{
+	int SoundSourceNumber;
+}* ppSenseInterps;
+void *SenseInterps_constructor(){
+	void *v = malloc(sizeof(struct pSenseInterps));
+	memset(v,0,sizeof(struct pSenseInterps));
+	return v;
+}
+void SenseInterps_init(struct tSenseInterps *t)
+{
+	//public
+	//private
+	t->prv = SenseInterps_constructor();
+	{
+		ppSenseInterps p = (ppSenseInterps)t->prv;
+		p->SoundSourceNumber = 0;
+	}
+}
+
 
 /* function prototypes */
 void locateAudioSource (struct X3D_AudioClip *node);
@@ -110,10 +129,10 @@ void do_active_inactive (
 	if (*act == 1) {   /* active - should we stop? */
 		#ifdef SEVERBOSE
 		printf ("is active tick %f startt %f stopt %f\n",
-				TickTime, *startt, *stopt);
+				TickTime(), *startt, *stopt);
 		#endif
 
-		if (TickTime > *stopt) {
+		if (TickTime() > *stopt) {
 			if (*startt >= *stopt) {
 				/* cases 1 and 2 */
 				if (!(loop)) {
@@ -123,18 +142,18 @@ void do_active_inactive (
 					
 					/* if (speed != 0) */
 					if (! APPROX(speed, 0)) {
-					    if (TickTime >= (*startt +
+					    if (TickTime() >= (*startt +
 							fabs(myDuration/speed))) {
 						#ifdef SEVERBOSE
 						printf ("stopping case x\n");
-						printf ("TickTime %f\n",TickTime);
+						printf ("TickTime() %f\n",TickTime());
 						printf ("startt %f\n",*startt);
 						printf ("myDuration %f\n",myDuration);
 						printf ("speed %f\n",speed);
 						#endif
 
 						*act = 0;
-						*stopt = TickTime;
+						*stopt = TickTime();
 					    }
 					}
 				}
@@ -144,19 +163,19 @@ void do_active_inactive (
 				#endif
 
 				*act = 0;
-				*stopt = TickTime;
+				*stopt = TickTime();
 			}
 		}
 	}
 
 	/* immediately process start events; as per spec.  */
 	if (*act == 0) {   /* active - should we start? */
-		/* printf ("is not active TickTime %f startt %f\n",TickTime,*startt); */
+		/* printf ("is not active TickTime %f startt %f\n",TickTime(),*startt); */
 
-		if (TickTime >= *startt) {
+		if (TickTime() >= *startt) {
 			/* We just might need to start running */
 
-			if (TickTime >= *stopt) {
+			if (TickTime() >= *stopt) {
 				/* lets look at the initial conditions; have not had a stoptime
 				event (yet) */
 
@@ -165,7 +184,7 @@ void do_active_inactive (
 						/* VRML standards, table 4.2 case 2 */
 						/* printf ("CASE 2\n"); */
 						/* Umut Sezen's code: */
-						if (!(*startt > 0)) *startt = TickTime;
+						if (!(*startt > 0)) *startt = TickTime();
 						*act = 1;
 					}
 				} else if (*startt >= *stopt) {
@@ -174,7 +193,7 @@ void do_active_inactive (
 						 /* printf ("case 1 here\n"); */
 						/* we should be running VRML standards, table 4.2 case 1 */
 						/* Umut Sezen's code: */
-						if (!(*startt > 0)) *startt = TickTime;
+						if (!(*startt > 0)) *startt = TickTime();
 						*act = 1;
 					}
 				}
@@ -183,7 +202,7 @@ void do_active_inactive (
 				/* we should be running -
 				VRML standards, table 4.2 cases 1 and 2 and 3 */
 				/* Umut Sezen's code: */
-				if (!(*startt > 0)) *startt = TickTime;
+				if (!(*startt > 0)) *startt = TickTime();
 				*act = 1;
 			}
 		}
@@ -949,8 +968,8 @@ void do_Oint4 (void *node) {
 void do_CollisionTick( void *ptr) {
 	struct X3D_Collision *cx = (struct X3D_Collision *)ptr;
         if (cx->__hit == 3) {
-                /* printf ("COLLISION at %f\n",TickTime); */
-                cx->collideTime = TickTime;
+                /* printf ("COLLISION at %f\n",TickTime()); */
+                cx->collideTime = TickTime();
                 MARK_EVENT (ptr, offsetof(struct X3D_Collision, collideTime));
         }
 }
@@ -967,7 +986,7 @@ void do_AudioTick(void *ptr) {
 	/* can we possibly have started yet? */
 	if (!node) return;
 
-	if(TickTime < node->startTime) {
+	if(TickTime() < node->startTime) {
 		return;
 	}
 
@@ -1030,7 +1049,7 @@ void do_ProximitySensorTick( void *ptr) {
 			#endif
 
 			node->isActive = TRUE;
-			node->enterTime = TickTime;
+			node->enterTime = TickTime();
 			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, isActive));
 			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, enterTime));
 		}
@@ -1061,7 +1080,7 @@ void do_ProximitySensorTick( void *ptr) {
 			#endif
 
 			node->isActive = FALSE;
-			node->exitTime = TickTime;
+			node->exitTime = TickTime();
 			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, isActive));
 
 			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, exitTime));
@@ -1086,7 +1105,7 @@ void do_MovieTextureTick( void *ptr) {
 
 	/* can we possibly have started yet? */
 	if (!node) return;
-	if(TickTime < node->startTime) {
+	if(TickTime() < node->startTime) {
 		return;
 	}
 
@@ -1115,7 +1134,7 @@ void do_MovieTextureTick( void *ptr) {
 			lowest = highest-1;
 		}
 		/* calculate what fraction we should be */
- 		myTime = (TickTime - node->startTime) * speed/duration;
+ 		myTime = (TickTime() - node->startTime) * speed/duration;
 		tmpTrunc = (int) myTime;
 		frac = myTime - (float)tmpTrunc;
 
@@ -1163,7 +1182,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 	struct point_XYZ normalval;	/* different structures for normalization calls */
 
 	#ifdef SENSVERBOSE
-	printf ("%lf: TS ",TickTime);
+	printf ("%lf: TS ",TickTime());
 	if (ev==ButtonPress) printf ("ButtonPress ");
 	else if (ev==ButtonRelease) printf ("ButtonRelease ");
 	else if (ev==KeyPress) printf ("KeyPress ");
@@ -1203,7 +1222,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 			printf ("touchSens %u, butPress\n",node);
 			#endif
 
-			node->touchTime = TickTime;
+			node->touchTime = TickTime();
 			MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, touchTime));
 
 		} else if (ev == ButtonRelease) {
@@ -1256,7 +1275,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	UNUSED(over);
 	node = (struct X3D_PlaneSensor *)ptr;
 	#ifdef SENSVERBOSE
-	printf ("%lf: TS ",TickTime);
+	printf ("%lf: TS ",TickTime());
 	if (ev==ButtonPress) printf ("ButtonPress ");
 	else if (ev==ButtonRelease) printf ("ButtonRelease ");
 	else if (ev==KeyPress) printf ("KeyPress ");
@@ -1724,9 +1743,9 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 void locateAudioSource (struct X3D_AudioClip *node) {
 	resource_item_t *res;
 	resource_item_t *parentPath;
-
-	node->__sourceNumber = SoundSourceNumber;
-	SoundSourceNumber++;
+	ppSenseInterps p = (ppSenseInterps)gglobal()->SenseInterps.prv;
+	node->__sourceNumber = p->SoundSourceNumber;
+	p->SoundSourceNumber++;
 
 	parentPath = (resource_item_t *)(node->_parentResource);
 
