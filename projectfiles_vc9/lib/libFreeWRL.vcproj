@@ -378,6 +378,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\iglobal.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\input\InputFunctions.c"
 				>
 			</File>
@@ -577,6 +581,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\lib\main\headers.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\lib\iglobal.h"
 				>
 			</File>
 			<File

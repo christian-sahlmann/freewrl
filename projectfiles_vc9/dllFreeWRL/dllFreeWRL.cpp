@@ -9,7 +9,6 @@
 #include <stdarg.h>
 #include <wtypes.h>
 static HANDLE hStdErr = NULL;
-
 static void
 swInitConsole(void)
 {
@@ -55,6 +54,7 @@ extern int Console_writePrimitive;
 char *strBackslash2fore(char *str);
 //extern int screenWidth; /*used in mainloop render_pre setup_projection*/
 //extern int screenHeight;
+void fwl_setConsole_writePrimitive(int ibool);
 
 }
 
@@ -98,7 +98,8 @@ void CdllFreeWRL::onInit(unsigned long handle,int width, int height){
 	params->fullscreen = 0;
 	params->winToEmbedInto = (int)handle;
 	swDebugf("Hi just before fwl_initFreeWRL\n");
-	Console_writePrimitive = 1;
+	fwl_init_instance(); //before setting any structs we need a struct allocated
+	fwl_setConsole_writePrimitive( 1 );
 	DWORD pid = GetCurrentProcessId() ;
 	initConsoleH(pid);
 
