@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.42 2011/05/25 19:26:33 davejoubert Exp $
+  $Id: main.c,v 1.43 2011/06/02 19:57:51 dug9 Exp $
 
   FreeWRL main program.
 
@@ -96,6 +96,7 @@ int main (int argc, char **argv)
 #endif
 
     char consoleBuffer[200];
+	fwl_init_instance(); //before setting any structs we need a struct allocated
     fwl_ConsoleSetup(MC_DEF_AQUA , MC_TARGET_AQUA , MC_HAVE_MOTIF , MC_TARGET_MOTIF , MC_MSC_HAVE_VER , tempIsAndroid);
 
     /* first, get the FreeWRL shared lib, and verify the version. */
@@ -147,7 +148,7 @@ int main (int argc, char **argv)
 
 #endif
 
-    /* install the signal handlers */
+	/* install the signal handlers */
 
     signal(SIGTERM, (void(*)(int)) fv_catch_SIGQUIT);
     signal(SIGSEGV, (void(*)(int)) fv_catch_SIGSEGV);
@@ -237,7 +238,6 @@ int main (int argc, char **argv)
     /* start threads, parse initial scene, etc */
     if ( 1 == 1) {
 	/* give control to the library */
-
 	if (!fwl_initFreeWRL(fv_params)) {
 	    ERROR_MSG("main: aborting during initialization.\n");
 	    exit(1);

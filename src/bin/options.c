@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.35 2011/05/25 19:26:33 davejoubert Exp $
+  $Id: options.c,v 1.36 2011/06/02 19:57:51 dug9 Exp $
 
   FreeWRL command line arguments.
 
@@ -366,7 +366,7 @@ int fv_parseCommandLine (int argc, char **argv)
 
 	case 'K': /* --keypress, required argument: string */
 	    /* initial string of keypresses once main url is loaded */
-	    keypress_string = optarg; /* ! strdup ! */
+		fwl_set_KeyString(optarg);
 	    break;
 
 /* Internal options */
