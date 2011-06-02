@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.182 2011/06/02 19:50:43 dug9 Exp $
+  $Id: MainLoop.c,v 1.183 2011/06/02 21:21:51 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -596,7 +596,7 @@ void fwl_RenderSceneUpdateScene() {
 	if ((slowloop_count % 256) == 0) {
 		//activate_picksensors() ;
 		/*
-		printf("slowloop_count = %d at T=%lf : lastMouseEvent=%d , MotionNotify=%d\n",slowloop_count, TickTime(), lastMouseEvent, MotionNotify) ;
+		printf("slowloop_count = %d at T=%lf : lastMouseEvent=%d , MotionNotify=%d\n",slowloop_count, TickTime(), p->lastMouseEvent, MotionNotify) ;
 		*/
 		activate_OSCsensors() ;
 	} else {

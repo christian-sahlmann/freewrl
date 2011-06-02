@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.149 2011/06/02 19:50:43 dug9 Exp $
+$Id: headers.h,v 1.150 2011/06/02 21:21:51 dug9 Exp $
 
 Global includes.
 
@@ -657,7 +657,7 @@ extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
-//void removeFilenameFromPath (char *path);
+void removeFilenameFromPath (char *path);
 
 int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *node);
 void EAI_Route(char cmnd, const char *tf);
