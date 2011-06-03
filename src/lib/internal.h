@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.h,v 1.49 2011/06/02 19:50:43 dug9 Exp $
+$Id: internal.h,v 1.50 2011/06/03 17:23:51 davejoubert Exp $
 
 ???
 
@@ -71,7 +71,7 @@ extern int curProDecStackInd;
 //extern int currentProtoInstance[PROTOINSTANCE_MAX_LEVELS];
 //#endif
 #define STATIC_ONCE 1
-static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono);
+/* static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono); */
 
 #define CPI ProtoInstanceTable[curProtoInsStackInd]
 #define CPD PROTONames[currentProtoDeclare]

@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.121 2011/06/02 19:50:43 dug9 Exp $
+  $Id: display.h,v 1.122 2011/06/03 17:23:51 davejoubert Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -334,9 +334,9 @@ void initialize_rdr_functions();
 void rdr_caps_dump();
 void setMessageBar(void);
 void setMenuStatus(char *stat);
-#define MAXSTAT 200
-//extern char myMenuStatus[MAXSTAT];
-//extern float myFps;
+/* OLDCODE #define MAXSTAT 200 */
+/* OLDCODE extern char myMenuStatus[MAXSTAT]; */
+/* OLDCODE extern float myFps; */
 
 /**
  * Main window parameters

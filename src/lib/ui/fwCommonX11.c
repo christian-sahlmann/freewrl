@@ -1,5 +1,5 @@
 /*
-  $Id: fwCommonX11.c,v 1.9 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: fwCommonX11.c,v 1.10 2011/06/03 17:23:51 davejoubert Exp $
 
   FreeWRL support library.
   X11 common functions.
@@ -42,6 +42,12 @@ Cursor sensorc;
 Cursor curcursor;
 
 #if KEEP_X11_INLIB
+
+int win_height; /* window */
+int win_width;
+int fullscreen;
+int shutterGlasses; /* shutter glasses, stereo enabled ? */
+int quadbuff_stereo_mode; /* quad buffer enabled ? */
 
 GLXContext GLcx;
 long event_mask;

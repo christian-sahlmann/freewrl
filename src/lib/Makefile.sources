@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.39 2011/03/31 20:49:46 istakenv Exp $
+# $Id: Makefile.sources,v 1.40 2011/06/03 17:23:51 davejoubert Exp $
 #
 # List all source files
 #
@@ -27,6 +27,8 @@ libFreeWRL_la_SOURCES = \
 			list.c \
 			resources.h \
 			resources.c \
+			iglobal.h \
+			iglobal.c \
  \
 main/headers.h \
 main/MainLoop.c \

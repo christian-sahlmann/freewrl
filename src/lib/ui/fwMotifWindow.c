@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.29 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: fwMotifWindow.c,v 1.30 2011/06/03 17:23:51 davejoubert Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -34,11 +34,21 @@
 #include <internal.h>
 
 #include <libFreeWRL.h>
+
 #include <threads.h>
 
 #include "../main/MainLoop.h"
 #include "../vrml_parser/Structs.h"
 #include "../opengl/OpenGL_Utils.h"
+
+s_renderer_capabilities_t rdr_caps;
+bool initialize_rdr_caps();
+void rdr_caps_dump();
+float myFps;
+int win_height; /* window */
+int win_width;
+long int winToEmbedInto;
+char *window_title;
 
 #include <Xm/MainW.h>
 #include <Xm/RowColumn.h>

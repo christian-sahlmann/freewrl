@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarConsole.c,v 1.6 2011/05/17 13:58:29 crc_canada Exp $
+  $Id: statusbarConsole.c,v 1.7 2011/06/03 17:23:51 davejoubert Exp $
 
 */
 
@@ -481,6 +481,8 @@ void handleButtonOver(){}
 void handleOptionPress(){}
 void handleButtonPress(){}
 
+#define MAXSTAT 200
+char myMenuStatus[MAXSTAT];
 void setMenuButton_collision(int val){}
 void setMenuButton_texSize(int size){}
 void setMenuButton_headlight(int val){}

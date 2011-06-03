@@ -19,6 +19,7 @@ Variable use:
 
 */
 
+#define MAXSTAT 200
 
 #ifndef INSTANCEGLOBAL
 #include "display.h" //for opengl_utils.h which is for rdr_caps
