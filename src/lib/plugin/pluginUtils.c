@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.46 2011/06/03 21:24:19 dug9 Exp $
+  $Id: pluginUtils.c,v 1.47 2011/06/03 23:39:45 dug9 Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -317,7 +317,7 @@ int doBrowserAction()
 
 		/* were we successful?? */
 		if (p->plugin_res->status != ress_loaded) {
-			ERROR_MSG("Could not load new world: %s\n", plugin_res->actual_file);
+			ERROR_MSG("Could not load new world: %s\n", p->plugin_res->actual_file);
 			return FALSE;
 		}
 
