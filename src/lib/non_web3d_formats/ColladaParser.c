@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.18 2011/06/03 01:43:52 dug9 Exp $
+$Id: ColladaParser.c,v 1.19 2011/06/03 19:45:06 crc_canada Exp $
 
 ???
 
@@ -59,15 +59,6 @@ $Id: ColladaParser.c,v 1.18 2011/06/03 01:43:52 dug9 Exp $
                 p->colladaParentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
         } else ConsoleMessage ("ColladaParser, line %d stack overflow",LINE);
 
-#if HAVE_EXPAT_H
-# include <expat.h>
-//static int inCDATA = FALSE;
-#define XML_CreateParserLevel(aaa)  aaa = XML_ParserCreate(NULL);
-#define XML_ParseFile(aaa,bbb,ccc,ddd) XML_Parse(aaa,bbb,ccc,ddd)
-
-#endif
-
-#if HAVE_LIBXML_PARSER_H
 #include <libxml/parser.h>
 typedef xmlSAXHandler* XML_Parser;
 
@@ -102,8 +93,6 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 #define XML_SetDefaultHandler(aaa,bbb) /* this is CDATA related too */
 #define XML_SetCdataSectionHandler(aaa,bbb,ccc) \
 	aaa->cdataBlock = endCDATA;
-
-#endif /* HAVE_LIBXML_PARSER_H */
 
 //#define PROTOINSTANCE_MAX_LEVELS 10
 //static XML_Parser colladaParser[PROTOINSTANCE_MAX_LEVELS];
