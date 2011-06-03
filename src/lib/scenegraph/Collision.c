@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.17 2011/02/11 18:46:25 crc_canada Exp $
+$Id: Collision.c,v 1.18 2011/06/03 22:17:38 dug9 Exp $
 
 Render the children of nodes.
 
@@ -63,20 +63,78 @@ Render the children of nodes.
 
 /*usefull pretty much everywhere*/
 static const struct point_XYZ zero = {0,0,0};
-static struct point_XYZ* clippedPoly1 = NULL;
-static int clippedPoly1Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
-static struct point_XYZ* clippedPoly2 = NULL;
-static int clippedPoly2Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
-static struct point_XYZ* clippedPoly3 = NULL;
-static int clippedPoly3Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
-static struct point_XYZ* clippedPoly4 = NULL;
-static int clippedPoly4Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
-static struct point_XYZ* clippedPoly5 = NULL;
-static int clippedPoly5Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+//static struct point_XYZ* clippedPoly1 = NULL;
+//static int clippedPoly1Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+//static struct point_XYZ* clippedPoly2 = NULL;
+//static int clippedPoly2Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+//static struct point_XYZ* clippedPoly3 = NULL;
+//static int clippedPoly3Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+//static struct point_XYZ* clippedPoly4 = NULL;
+//static int clippedPoly4Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+//static struct point_XYZ* clippedPoly5 = NULL;
+//static int clippedPoly5Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+//
+//
+///* JAS - make return val global, not local for polyrep-disp */
+//struct point_XYZ res ={0,0,0};
 
 
-/* JAS - make return val global, not local for polyrep-disp */
-struct point_XYZ res ={0,0,0};
+typedef struct pcollision{
+	float* prd_newc_floats;// = NULL;
+	int prd_newc_floats_size;// = 0;
+	struct point_XYZ* prd_normals;// = NULL;
+	int prd_normals_size;// = 0;
+	struct point_XYZ* clippedPoly1;// = NULL;
+	int clippedPoly1Size;// = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+	struct point_XYZ* clippedPoly2;// = NULL;
+	int clippedPoly2Size;// = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+	struct point_XYZ* clippedPoly3;// = NULL;
+	int clippedPoly3Size;// = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+	struct point_XYZ* clippedPoly4;// = NULL;
+	int clippedPoly4Size;// = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+	struct point_XYZ* clippedPoly5;// = NULL;
+	int clippedPoly5Size;// = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+
+
+	/* JAS - make return val global, not local for polyrep-disp */
+	struct point_XYZ res;// = {0,0,0};
+	double get_poly_mindisp;
+
+}* ppcollision;
+void *collision_constructor(){
+	void *v = malloc(sizeof(struct pcollision));
+	memset(v,0,sizeof(struct pcollision));
+	return v;
+}
+void collision_init(struct tcollision *t){
+	//public
+	//private
+	t->prv = collision_constructor();
+	{
+		ppcollision p = (ppcollision)t->prv;
+		p->prd_newc_floats = NULL;
+		p->prd_newc_floats_size = 0;
+		p->prd_normals = NULL;
+		p->prd_normals_size = 0;
+		p->clippedPoly1 = NULL;
+		p->clippedPoly1Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+		p->clippedPoly2 = NULL;
+		p->clippedPoly2Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+		p->clippedPoly3 = NULL;
+		p->clippedPoly3Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+		p->clippedPoly4 = NULL;
+		p->clippedPoly4Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+		p->clippedPoly5 = NULL;
+		p->clippedPoly5Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
+
+
+		/* JAS - make return val global, not local for polyrep-disp */
+		// null ok p->res ={0,0,0};
+		//p->get_poly_mindisp;
+
+	}
+}
+
 
 /*a constructor */
 #define make_pt(p,xc,yc,zc) { p.x = (xc); p.y = (yc); p.z = (zc); }
@@ -481,7 +539,7 @@ int helper_poly_clip_cap(struct point_XYZ* clippedpoly, int clippedpolynum, cons
 
 /* yes, global. for speed optimizations. */
 
-double get_poly_mindisp;
+//double get_poly_mindisp;
 
 /*feed a poly, and stats of a cylinder, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more.*/
@@ -492,8 +550,9 @@ struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct poi
     struct point_XYZ result;
 
     int clippedPoly1num = 0;
+	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 
-    get_poly_mindisp = 1E90;
+    pp->get_poly_mindisp = 1E90;
 
 #ifdef DEBUGFACEMASK
     printf("facemask = %d, debugsurface = %d\n",facemask,debugsurface);
@@ -501,10 +560,10 @@ struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct poi
 #endif
 
     /*allocate data */
-    if ((num*5+4)>clippedPoly1Size) 
+    if ((num*5+4)> pp->clippedPoly1Size) 
 	{
-        clippedPoly1 = (struct point_XYZ*) REALLOC(clippedPoly1,sizeof(struct point_XYZ) * (num*5+4));
-        clippedPoly1Size = num*5+4;
+        pp->clippedPoly1 = (struct point_XYZ*) REALLOC(pp->clippedPoly1,sizeof(struct point_XYZ) * (num*5+4));
+        pp->clippedPoly1Size = num*5+4;
     }
 
     /*if normal not specified, calculate it */
@@ -516,9 +575,9 @@ struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct poi
 
     for(i = 0; i < num; i++) 
 	{
-		if(project_on_cylindersurface(&clippedPoly1[clippedPoly1num],weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_y_axis(p[i],p[(i+1)%num])),n,r) &&
-		   clippedPoly1[clippedPoly1num].y < y2 &&
-		   clippedPoly1[clippedPoly1num].y > y1 ) 
+		if(project_on_cylindersurface(&pp->clippedPoly1[clippedPoly1num],weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_y_axis(p[i],p[(i+1)%num])),n,r) &&
+		   pp->clippedPoly1[clippedPoly1num].y < y2 &&
+		   pp->clippedPoly1[clippedPoly1num].y > y1 ) 
 		{
 
 			DEBUGPTSPRINT("intersect_closestpolypoints_on_surface[%d]= %d\n",i,clippedPoly1num);
@@ -530,8 +589,8 @@ struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct poi
     /* if(n.y!= 0.) */
     if(! APPROX(n.y, 0)) 
 	{
-		clippedPoly1num = helper_poly_clip_cap(clippedPoly1, clippedPoly1num, p, num, r, n, y1, 0 /*stepping false*/);
-		clippedPoly1num = helper_poly_clip_cap(clippedPoly1, clippedPoly1num, p, num, r, n, y2, 0 /*stepping false*/);
+		clippedPoly1num = helper_poly_clip_cap(pp->clippedPoly1, clippedPoly1num, p, num, r, n, y1, 0 /*stepping false*/);
+		clippedPoly1num = helper_poly_clip_cap(pp->clippedPoly1, clippedPoly1num, p, num, r, n, y2, 0 /*stepping false*/);
     }
 
     /*find intersections of poly with cylinder side*/
@@ -565,9 +624,9 @@ struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct poi
 				if(dessect3d[1].y < y1) dessect3d[1].y = y1;
 
 				DEBUGPTSPRINT("project_on_cylindersurface_plane(%d)= %d\n",1,clippedPoly1num);
-				clippedPoly1[clippedPoly1num++] = dessect3d[0];
+				pp->clippedPoly1[clippedPoly1num++] = dessect3d[0];
 				DEBUGPTSPRINT("project_on_cylindersurface_plane(%d)= %d\n",2,clippedPoly1num);
-				clippedPoly1[clippedPoly1num++] = dessect3d[1];
+				pp->clippedPoly1[clippedPoly1num++] = dessect3d[1];
 			}
 		}
 		{ /*find intersections on cylinder of polygon points projected on surface */
@@ -584,7 +643,7 @@ struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct poi
 				if(sect.y > y1 && sect.y < y2) 
 				{
 					DEBUGPTSPRINT("intersect_polypoints_on_surface[%d]= %d\n",i,clippedPoly1num);
-					clippedPoly1[clippedPoly1num++] = sect;
+					pp->clippedPoly1[clippedPoly1num++] = sect;
 				}
 			}
 		}
@@ -600,15 +659,15 @@ struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct poi
     /*calculate farthest point from the "n" plane passing through the origin */
     for(i = 0; i < clippedPoly1num; i++) 
 	{
-		double disp = vecdot(&clippedPoly1[i],&n) - polydisp;
-		if(disp < get_poly_mindisp) 
+		double disp = vecdot(&pp->clippedPoly1[i],&n) - polydisp;
+		if(disp < pp->get_poly_mindisp) 
 		{
-			get_poly_mindisp = disp;
+			pp->get_poly_mindisp = disp;
 		}
     }
-    if(get_poly_mindisp <= 0.) 
+    if(pp->get_poly_mindisp <= 0.) 
 	{
-	    vecscale(&result,&n,get_poly_mindisp);
+	    vecscale(&result,&n,pp->get_poly_mindisp);
     } else
 		result = zero;
 
@@ -625,8 +684,9 @@ struct point_XYZ get_poly_step_disp(double y1, double y2, double r, struct point
     double pmax = -1E99;
     struct point_XYZ result;
     int clippedPoly2num = 0;
+	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 
-    get_poly_mindisp = 1E90;
+    pp->get_poly_mindisp = 1E90;
 
 #ifdef DEBUGFACEMASK
     printf("facemask = %d, debugsurface = %d\n",facemask,debugsurface);
@@ -650,11 +710,11 @@ struct point_XYZ get_poly_step_disp(double y1, double y2, double r, struct point
 
 
 	/*allocate data */
-	if ((num*3+4)>clippedPoly2Size) {
-		clippedPoly2 = (struct point_XYZ*) REALLOC(clippedPoly2,sizeof(struct point_XYZ) * (num*3+4));
-		clippedPoly2Size = num*3+4;
+	if ((num*3+4)> pp->clippedPoly2Size) {
+		pp->clippedPoly2 = (struct point_XYZ*) REALLOC(pp->clippedPoly2,sizeof(struct point_XYZ) * (num*3+4));
+		pp->clippedPoly2Size = num*3+4;
 	}
-	clippedPoly2num = helper_poly_clip_cap(clippedPoly2, clippedPoly2num, p, num, r, n, y1, 1 /*stepping true*/ );
+	clippedPoly2num = helper_poly_clip_cap(pp->clippedPoly2, clippedPoly2num, p, num, r, n, y1, 1 /*stepping true*/ );
 
 #ifdef DEBUGPTS
 	for(i=0; i < clippedPoly2num; i++) {
@@ -664,19 +724,19 @@ struct point_XYZ get_poly_step_disp(double y1, double y2, double r, struct point
 
 	/*get maximum*/
 	for(i = 0; i < clippedPoly2num; i++) {
-		if(clippedPoly2[i].y > dmax)
-			dmax = clippedPoly2[i].y;
+		if(pp->clippedPoly2[i].y > dmax)
+			dmax = pp->clippedPoly2[i].y;
 	}
 
     /*diplace only if displacement completely clears polygon*/
     if(dmax > y2)
 		return zero;
 
-    get_poly_mindisp = y1-dmax;
+    pp->get_poly_mindisp = y1-dmax;
 
     if(dmax > y1) {
 		result.x = 0;
-		result.y = get_poly_mindisp;
+		result.y = pp->get_poly_mindisp;
 		result.z = 0;
 		return result;
     } else
@@ -906,9 +966,9 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 	GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 	GLDOUBLE astep = -naviinfo.height+naviinfo.step;
-	
+	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 	result = zero;
-	get_poly_mindisp = 0.0;
+	pp->get_poly_mindisp = 0.0;
 	if(FallInfo.walking)
 	{
 		tmin[0] = tmax[0] = p[0].x;
@@ -970,7 +1030,7 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 		/* fly, examine */
 		result = get_poly_min_disp_with_sphere(awidth, p, num, n);
 	}
-	get_poly_mindisp = vecdot(&result,&result);
+	pp->get_poly_mindisp = vecdot(&result,&result);
 	return result;
 }
 
@@ -981,16 +1041,16 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
     int i;
     double polydisp;
     struct point_XYZ result;
-
+	ppcollision pp = (ppcollision)gglobal()->collision.prv;
     //double get_poly_mindisp;
     int clippedPoly3num = 0;
 
-    get_poly_mindisp = 1E90;
+    pp->get_poly_mindisp = 1E90;
 
     /*allocate data */
-    if ((num+1)>clippedPoly3Size) {
-    	clippedPoly3 = (struct point_XYZ*) REALLOC(clippedPoly3,sizeof(struct point_XYZ) * (num+1));
-	clippedPoly3Size = num+1;
+    if ((num+1)> pp->clippedPoly3Size) {
+    	pp->clippedPoly3 = (struct point_XYZ*) REALLOC(pp->clippedPoly3,sizeof(struct point_XYZ) * (num+1));
+		pp->clippedPoly3Size = num+1;
     }
 
     /*if normal not specified, calculate it */
@@ -1000,7 +1060,7 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
     }
 
     for(i = 0; i < num; i++) {
-	if( project_on_spheresurface(&clippedPoly3[clippedPoly3num],weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_origin(p[i],p[(i+1)%num])),n,r) )
+	if( project_on_spheresurface(&pp->clippedPoly3[clippedPoly3num],weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_origin(p[i],p[(i+1)%num])),n,r) )
 	{
 	    DEBUGPTSPRINT("intersect_closestpolypoints_on_surface[%d]= %d\n",i,clippedPoly3num);
 	    clippedPoly3num++;
@@ -1008,13 +1068,13 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
     }
 
     /*find closest point of polygon plane*/
-    clippedPoly3[clippedPoly3num] = closest_point_of_plane_to_origin(p[0],n);
+    pp->clippedPoly3[clippedPoly3num] = closest_point_of_plane_to_origin(p[0],n);
 
     /*keep if inside*/
-    if(perpendicular_line_passing_inside_poly(clippedPoly3[clippedPoly3num],p, num)) {
+    if(perpendicular_line_passing_inside_poly(pp->clippedPoly3[clippedPoly3num],p, num)) {
 	/*good, project it on surface*/
 
-	vecscale(&clippedPoly3[clippedPoly3num],&clippedPoly3[clippedPoly3num],r/veclength(clippedPoly3[clippedPoly3num]));
+	vecscale(&pp->clippedPoly3[clippedPoly3num],&pp->clippedPoly3[clippedPoly3num],r/veclength(pp->clippedPoly3[clippedPoly3num]));
 
 	DEBUGPTSPRINT("perpendicular_line_passing_inside_poly[%d]= %d\n",0,clippedPoly3num);
 	clippedPoly3num++;
@@ -1032,13 +1092,13 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
 
     /*calculate farthest point from the "n" plane passing through the origin */
     for(i = 0; i < clippedPoly3num; i++) {
-	double disp = vecdot(&clippedPoly3[i],&n) - polydisp;
-	if(disp < get_poly_mindisp) {
-	    get_poly_mindisp = disp;
+	double disp = vecdot(&pp->clippedPoly3[i],&n) - polydisp;
+	if(disp < pp->get_poly_mindisp) {
+	    pp->get_poly_mindisp = disp;
 	}
     }
-    if(get_poly_mindisp <= 0.) {
-	vecscale(&result,&n,get_poly_mindisp);
+    if(pp->get_poly_mindisp <= 0.) {
+	vecscale(&result,&n,pp->get_poly_mindisp);
     } else
 	result = zero;
 
@@ -1056,8 +1116,9 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
 	double tmin[3],tmax[3],rmin[3],rmax[3],q[3];
     double get_poly_mindisp;
     int clippedPoly4num = 0;
+	ppcollision pp = (ppcollision)gglobal()->collision.prv;
     get_poly_mindisp = 1E90;
-	
+
 	/* cheap MBB test */
 	//double tmin[3],tmax[3],rmin[3],rmax[3],q[3];
 	memcpy(tmin,&p[0],3*sizeof(double));
@@ -1087,9 +1148,9 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
 	return zero;
 #endif
     /*allocate data */
-    if ((num+1)>clippedPoly4Size) {
-    	clippedPoly4 = (struct point_XYZ*) REALLOC(clippedPoly4,sizeof(struct point_XYZ) * (num + 1));
-		clippedPoly4Size = num+1;
+    if ((num+1)> pp->clippedPoly4Size) {
+    	pp->clippedPoly4 = (struct point_XYZ*) REALLOC(pp->clippedPoly4,sizeof(struct point_XYZ) * (num + 1));
+		pp->clippedPoly4Size = num+1;
     }
 
     /*if normal not specified, calculate it */
@@ -1100,14 +1161,14 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
 
     for(i = 0; i < num; i++) {
 		DEBUGPTSPRINT("intersect_closestpolypoints_on_surface[%d]= %d\n",i,clippedPoly4num);
-		clippedPoly4[clippedPoly4num++] = weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_origin(p[i],p[(i+1)%num]));
+		pp->clippedPoly4[clippedPoly4num++] = weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_origin(p[i],p[(i+1)%num]));
     }
 
     /*find closest point of polygon plane*/
-    clippedPoly4[clippedPoly4num] = closest_point_of_plane_to_origin(p[0],n);
+    pp->clippedPoly4[clippedPoly4num] = closest_point_of_plane_to_origin(p[0],n);
 
     /*keep if inside*/
-    if(perpendicular_line_passing_inside_poly(clippedPoly4[clippedPoly4num],p, num)) {
+    if(perpendicular_line_passing_inside_poly(pp->clippedPoly4[clippedPoly4num],p, num)) {
 		DEBUGPTSPRINT("perpendicular_line_passing_inside_poly[%d]= %d\n",0,clippedPoly4num);
 		clippedPoly4num++;
 	}
@@ -1124,17 +1185,17 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
     /*calculate the closest point to origin */
     for(i = 0; i < clippedPoly4num; i++) 
 	{
-		/* printf ("get_poly_min_disp_with_sphere, checking against %d %f %f %f",i,clippedPoly4[i].x, 
-		clippedPoly4[i].y,clippedPoly4[i].z); */
+		/* printf ("get_poly_min_disp_with_sphere, checking against %d %f %f %f",i,pp->clippedPoly4[i].x, 
+		pp->clippedPoly4[i].y,pp->clippedPoly4[i].z); */
 
-		double disp = vecdot(&clippedPoly4[i],&clippedPoly4[i]);
+		double disp = vecdot(&pp->clippedPoly4[i],&pp->clippedPoly4[i]);
 
 		/* printf (" disp %lf, get_poly_mindisp %lf\n",disp,get_poly_mindisp); */
 
 		if(disp < get_poly_mindisp) 
 		{
 			get_poly_mindisp = disp;
-			result = clippedPoly4[i];
+			result = pp->clippedPoly4[i];
 		}
     }
     if(get_poly_mindisp <= r*r) 
@@ -1314,8 +1375,9 @@ struct point_XYZ get_line_step_disp(double y1, double y2, double r, struct point
     struct point_XYZ result;
 
     int clippedPoly5num = 0;
+	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 
-    get_poly_mindisp = 1E90;
+    pp->get_poly_mindisp = 1E90;
 
 #ifdef DEBUGFACEMASK
     printf("facemask = %d, debugsurface = %d\n",facemask,debugsurface);
@@ -1326,13 +1388,13 @@ struct point_XYZ get_line_step_disp(double y1, double y2, double r, struct point
 	return zero;
 
     /*allocate data */
-    if ((10)>clippedPoly5Size) {
-        clippedPoly5 = (struct point_XYZ*) REALLOC(clippedPoly5,sizeof(struct point_XYZ) * (10));
-        clippedPoly5Size = 10;
+    if ((10)> pp->clippedPoly5Size) {
+        pp->clippedPoly5 = (struct point_XYZ*) REALLOC(pp->clippedPoly5,sizeof(struct point_XYZ) * (10));
+       pp->clippedPoly5Size = 10;
     }
 
 
-    clippedPoly5num = helper_line_clip_cap(clippedPoly5, clippedPoly5num, p1, p2, r, n, y1,1 );
+    clippedPoly5num = helper_line_clip_cap(pp->clippedPoly5, clippedPoly5num, p1, p2, r, n, y1,1 );
 
 #ifdef DEBUGPTS
     for(i=0; i < clippedPoly5num; i++) {
@@ -1342,19 +1404,19 @@ struct point_XYZ get_line_step_disp(double y1, double y2, double r, struct point
 
     /*get maximum*/
     for(i = 0; i < clippedPoly5num; i++) {
-	if(clippedPoly5[i].y > dmax)
-	    dmax = clippedPoly5[i].y;
+	if(pp->clippedPoly5[i].y > dmax)
+	    dmax = pp->clippedPoly5[i].y;
     }
 
     /*diplace only if displacement completely clears line*/
     if(dmax > y2)
 	return zero;
 
-    get_poly_mindisp = y1-dmax;
+    pp->get_poly_mindisp = y1-dmax;
 
     if(dmax > y1) {
 	result.x = 0;
-	result.y = get_poly_mindisp;
+	result.y = pp->get_poly_mindisp;
 	result.z = 0;
 	return result;
     } else
@@ -2111,10 +2173,13 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
 }
 
 
-static float* prd_newc_floats = NULL;
-static int prd_newc_floats_size = 0;
-static struct point_XYZ* prd_normals = NULL;
-static int prd_normals_size = 0;
+//static float* prd_newc_floats = NULL;
+//static int prd_newc_floats_size = 0;
+//static struct point_XYZ* prd_normals = NULL;
+//static int prd_normals_size = 0;
+
+
+
 
 /*uses sphere displacement, and a cylinder for stepping 
  y1, y2, ystep, r -  (usually abottom, atop, astep, awidth) are from naviiinfo avatar height, step, width 
@@ -2127,9 +2192,10 @@ static int prd_normals_size = 0;
 struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags) {
     int i;
     int maxc;
+	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 
 
-    res.x=0.0; res.y=0.0; res.z=0.0;
+    pp->res.x=0.0; pp->res.y=0.0; pp->res.z=0.0;
     maxc = 0; /*  highest cindex, used to point into prd_newc_floats structure.*/
 
     for(i = 0; i < pr.ntri*3; i++) {
@@ -2137,32 +2203,32 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
     }
 
     /*transform all points from raw shape to viewer(fly) or BVAAC(walk) space */
-    if (maxc>prd_newc_floats_size) {
-		prd_newc_floats = REALLOC(prd_newc_floats,maxc*9*sizeof(float));
-		prd_newc_floats_size = maxc;
+    if (maxc> pp->prd_newc_floats_size) {
+		pp->prd_newc_floats = REALLOC(pp->prd_newc_floats,maxc*9*sizeof(float));
+		pp->prd_newc_floats_size = maxc;
     }
 
 
     for(i = 0; i < pr.ntri*3; i++) {
-	transformf(&prd_newc_floats[pr.cindex[i]*3],&pr.actualCoord[pr.cindex[i]*3],mat);
+	transformf(&pp->prd_newc_floats[pr.cindex[i]*3],&pr.actualCoord[pr.cindex[i]*3],mat);
    }
-   pr.actualCoord = prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
+   pr.actualCoord = pp->prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
 
  
     /*pre-calculate face normals */
-    if (pr.ntri>prd_normals_size) {
-		prd_normals = REALLOC(prd_normals,pr.ntri*sizeof(struct point_XYZ));
-		prd_normals_size = pr.ntri;
+    if (pr.ntri> pp->prd_normals_size) {
+		pp->prd_normals = REALLOC(pp->prd_normals,pr.ntri*sizeof(struct point_XYZ));
+		pp->prd_normals_size = pr.ntri;
     }
 
     for(i = 0; i < pr.ntri; i++) {
-	polynormalf(&prd_normals[i],&pr.actualCoord[pr.cindex[i*3]*3],&pr.actualCoord[pr.cindex[i*3+1]*3],&pr.actualCoord[pr.cindex[i*3+2]*3]);
+	polynormalf(&pp->prd_normals[i],&pr.actualCoord[pr.cindex[i*3]*3],&pr.actualCoord[pr.cindex[i*3+1]*3],&pr.actualCoord[pr.cindex[i*3+2]*3]);
     }
 
-	res = polyrep_disp_rec2(&pr,prd_normals,res,flags); //polyrep_disp_rec(y1,y2,ystep,r,&pr,prd_normals,res,flags);
+	pp->res = polyrep_disp_rec2(&pr,pp->prd_normals,pp->res,flags); //polyrep_disp_rec(y1,y2,ystep,r,&pr,prd_normals,res,flags);
 
     pr.actualCoord = 0;
-    return res;
+    return pp->res;
 }
 
 
@@ -2180,6 +2246,7 @@ struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double ystep, dou
     /* static int recursion_count = 0; */
     int i;
     int frontfacing;
+	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 
     p[0].x = pr->actualCoord[pr->cindex[0]*3]    +dispsum.x;
     p[0].y = pr->actualCoord[pr->cindex[0]*3+1]  +dispsum.y;
@@ -2204,7 +2271,7 @@ struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double ystep, dou
 
 	//dispv = get_poly_disp(y1,y2,ystep, r, p, 3, n);
 	dispv = get_poly_disp_2(p, 3, n);
-	disp = -get_poly_mindisp; /*global variable. was calculated inside poly_normal_disp already. */
+	disp = -pp->get_poly_mindisp; /*global variable. was calculated inside poly_normal_disp already. */
 
 #ifdef DEBUGPTS
 	printf("polyd: (%f,%f,%f) |%f|\n",dispv.x,dispv.y,dispv.z,disp);
@@ -2229,9 +2296,10 @@ struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double ystep, dou
 struct point_XYZ planar_polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags, struct point_XYZ n) {
     int i;
     int maxc;
+	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 
 
-    res.x=0.0; res.y=0.0; res.z=0.0;
+    pp->res.x=0.0; pp->res.y=0.0; pp->res.z=0.0;
     maxc = 0; /*  highest cindex, used to point into newc structure.*/
 
     for(i = 0; i < pr.ntri*3; i++) {
@@ -2239,15 +2307,15 @@ struct point_XYZ planar_polyrep_disp(double y1, double y2, double ystep, double 
     }
 
     /*transform all points to viewer space */
-    if (maxc>prd_newc_floats_size) {
-		prd_newc_floats = REALLOC(prd_newc_floats,maxc*9*sizeof(float));
-		prd_newc_floats_size = maxc;
+    if (maxc> pp->prd_newc_floats_size) {
+		pp->prd_newc_floats = REALLOC(pp->prd_newc_floats,maxc*9*sizeof(float));
+		pp->prd_newc_floats_size = maxc;
     }
 
     for(i = 0; i < pr.ntri*3; i++) {
-	transformf(&prd_newc_floats[pr.cindex[i]*3],&pr.actualCoord[pr.cindex[i]*3],mat);
+	transformf(&pp->prd_newc_floats[pr.cindex[i]*3],&pr.actualCoord[pr.cindex[i]*3],mat);
     }
-    pr.actualCoord = prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
+    pr.actualCoord = pp->prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
 
     /*if normal not speced, calculate it */
     /* if(n.x == 0 && n.y == 0 && n.z == 0.) */
@@ -2255,9 +2323,9 @@ struct point_XYZ planar_polyrep_disp(double y1, double y2, double ystep, double 
 	polynormalf(&n,&pr.actualCoord[pr.cindex[0]*3],&pr.actualCoord[pr.cindex[1]*3],&pr.actualCoord[pr.cindex[2]*3]);
     }
 
-    res = planar_polyrep_disp_rec(y1,y2,ystep,r,&pr,n,res,flags);
+    pp->res = planar_polyrep_disp_rec(y1,y2,ystep,r,&pr,n,pp->res,flags);
 
-    return res;
+    return pp->res;
 }
 
 

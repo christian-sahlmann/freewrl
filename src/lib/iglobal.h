@@ -209,6 +209,9 @@ typedef struct iiglobal //InstanceGlobal
 	struct tpluginUtils{
 		void *prv;
 	}pluginUtils;
+	struct tcollision{
+		void *prv;
+	}collision;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif

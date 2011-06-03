@@ -37,6 +37,7 @@ void RenderTextures_init(struct tRenderTextures *t);
 void Textures_init(struct tTextures *t);
 void PluginSocket_init(struct tPluginSocket *t);
 void pluginUtils_init(struct tpluginUtils *t);
+void collision_init(struct tcollision *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -77,6 +78,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	Textures_init(&iglobal->Textures);
 	PluginSocket_init(&iglobal->PluginSocket);
 	pluginUtils_init(&iglobal->pluginUtils);
+	collision_init(&iglobal->collision);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -85,6 +87,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->collision.prv);
 	FREE_IF_NZ(tg->pluginUtils.prv);
 	FREE_IF_NZ(tg->PluginSocket.prv);
 	FREE_IF_NZ(tg->Textures.prv);
