@@ -5,7 +5,7 @@
 make install
 
 # Glue the two libraries together and make sure the library has a good name
-install_name_tool -id libFreeWRLFunc.dylib libFreeWRLFunc.dylib
-cp libFreeWRLFunc.dylib /usr/local/lib/libFreeWRLFunc.dylib
+install_name_tool -id libFreeX3DFunc.dylib libFreeX3DFunc.dylib
+cp libFreeX3DFunc.dylib /usr/local/lib/libFreeX3DFunc.dylib
 
 

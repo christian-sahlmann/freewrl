@@ -130,7 +130,7 @@ print OUT "#define HAVE_UNISTD_H 1\n";
 print OUT "#define HAVE_SYS_WAIT_H 1\n";
 print OUT "#define HAVE_PTHREAD 1\n";
 print OUT "#define HAVE_GETOPT_H 1\n";
-print OUT "#define HAVE_LIBXML_PARSER_H 1\n";
+print OUT "#define FRONTEND_HANDLES_DISPLAY_THREAD 1\n";
 
 print OUT "#define BUILDDIR \"$pwd\"\n";
 print OUT "#define FWVER \"",$vers,"\"\n";
@@ -215,8 +215,8 @@ sub writeMakefileInitialize() {
 	print MK "CC = gcc\n";
 	print MK "JAVAC = javac\n";
 	print MK "INC = $MYINC\n";
-	print MK "DEFINE = $noStackProtector -DSHADERS_2011 -DHAVE_GEOMETRY_SHADERS $MYDEFINE\n";
-	#print MK "DEFINE = $noStackProtector $MYDEFINE\n";
+	#print MK "DEFINE = $noStackProtector -DSHADERS_2011 -DHAVE_GEOMETRY_SHADERS $MYDEFINE\n";
+	print MK "DEFINE = $noStackProtector $MYDEFINE\n";
 
 	print MK "FWFLAGS = -c -Wall -O2 -g -pipe -fno-strict-aliasing -fPIC\n";
 	print MK "MYLIBS = $MYLIBS\n";
@@ -294,7 +294,7 @@ sub writeMakefileLibFreeWRL() {
 	print MK "\$(LIBFWSRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
 	print MK "libFreeWRL:      \$(LIBFWOBJS)\n";
-	print MK "\t\$(CC) -dynamiclib \$(MYFELIBS) \$(MYLDFLAGS) -o libFreeWRLFunc.dylib  \$(MYLIBS) \$(LIBFWOBJS)\n\n";
+	print MK "\t\$(CC) -dynamiclib \$(MYFELIBS) \$(MYLDFLAGS) -o libFreeX3DFunc.dylib  \$(MYLIBS) \$(LIBFWOBJS)\n\n";
 }
 
 
@@ -339,7 +339,7 @@ sub writeMakefileDistclean() {
 	#############################################################################
 	# Misc targets
 	print MK "\nclean:\n";
-	print MK "	rm -f libFreeWRLFunc.so\n";
+	print MK "	rm -f libFreeX3DFunc.so\n";
 	print MK "	rm -f freewrl\n";
 	if ($VRML_CONFIG{SOUND_ENGINE}) {
 		print MK "	rm -f ../../SoundEngine/*o\n";
@@ -372,7 +372,7 @@ sub writeMakefileDistclean() {
 	print MK "	rm -f ../src/lib/x3d_parser/*\.o\n";
 	print MK "	rm -f ../src/lib/non_web3d_formats/*\.o\n";
 	print MK "	rm -f ../src/message/*\.o\n";
-	print MK "	rm -f /usr/local/lib/libFreeWRLFunc.dylib\n";
+	print MK "	rm -f /usr/local/lib/libFreeX3DFunc.dylib\n";
 
 	# remove other JS directories
 
