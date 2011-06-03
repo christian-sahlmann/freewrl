@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.185 2011/06/03 01:05:46 dug9 Exp $
+  $Id: MainLoop.c,v 1.186 2011/06/03 16:08:14 davejoubert Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1174,12 +1174,13 @@ void renderCursors();
 /* Render the scene */
 static void render() 
 {
-#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+
+#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
     int count,i;
 	static double shuttertime;
 	static int shutterside;
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 	/*  profile*/
     /* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
     /* struct timeval mytime;*/
