@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.196 2011/06/03 15:27:00 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.197 2011/06/03 17:34:05 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -79,10 +79,10 @@ static void kill_X3DNodes(void);
 
 static void createdMemoryTable();
 static void increaseMemoryTable();
-static struct X3D_Node ** memoryTable = NULL;
-static int tableIndexSize = INT_ID_UNDEFINED;
-static int nextEntry = 0;
-static struct X3D_Node *forgottenNode;
+//static struct X3D_Node ** memoryTable = NULL;
+//static int tableIndexSize = INT_ID_UNDEFINED;
+//static int nextEntry = 0;
+//static struct X3D_Node *forgottenNode;
 
 #if USE_JS_EXPERIMENTAL_CODE
 static void killNode (int index);
@@ -102,20 +102,88 @@ static void fw_glLoadMatrixd(GLDOUBLE *val);
 static void mesa_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 static void getShaderCommonInterfaces (s_shader_capabilities_t *me);
 
-/* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
-int displayDepth = 24;
+///* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
+//int displayDepth = 24;
+//
+////static float cc_red = 0.0f, cc_green = 0.0f, cc_blue = 0.0f, cc_alpha = 1.0f;
+//int cc_changed = FALSE;
 
-static float cc_red = 0.0f, cc_green = 0.0f, cc_blue = 0.0f, cc_alpha = 1.0f;
-int cc_changed = FALSE;
-
-static pthread_mutex_t  memtablelock = PTHREAD_MUTEX_INITIALIZER;
-#define LOCK_MEMORYTABLE 		pthread_mutex_lock(&memtablelock);
-#define UNLOCK_MEMORYTABLE		pthread_mutex_unlock(&memtablelock);
+//static pthread_mutex_t  memtablelock = PTHREAD_MUTEX_INITIALIZER;
+#define LOCK_MEMORYTABLE 		pthread_mutex_lock(&p->memtablelock);
+#define UNLOCK_MEMORYTABLE		pthread_mutex_unlock(&p->memtablelock);
 /*
 #define LOCK_MEMORYTABLE 		{printf ("LOCK_MEMORYTABLE at %s:%d\n",__FILE__,__LINE__); pthread_mutex_lock(&memtablelock);}
 #define UNLOCK_MEMORYTABLE		{printf ("UNLOCK_MEMORYTABLE at %s:%d\n",__FILE__,__LINE__); pthread_mutex_unlock(&memtablelock);}
 */
 
+/* OpenGL perform matrix state here */
+#define MAX_LARGE_MATRIX_STACK 32	/* depth of stacks */
+#define MAX_SMALL_MATRIX_STACK 2	/* depth of stacks */
+#define MATRIX_SIZE 16		/* 4 x 4 matrix */
+typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
+
+
+
+typedef struct pOpenGL_Utils{
+	struct X3D_Node ** memoryTable;// = NULL;
+	int tableIndexSize;// = INT_ID_UNDEFINED;
+	int nextEntry;// = 0;
+	struct X3D_Node *forgottenNode;
+	float cc_red, cc_green, cc_blue, cc_alpha;
+	pthread_mutex_t  memtablelock;// = PTHREAD_MUTEX_INITIALIZER;
+	MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
+	MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
+	MATRIX4 FW_TextureView[MAX_SMALL_MATRIX_STACK];
+	 
+	int modelviewTOS;// = 0;
+	int projectionviewTOS;// = 0;
+	int textureviewTOS;// = 0;
+
+	int whichMode;// = GL_MODELVIEW;
+	GLDOUBLE *currentMatrix;// = FW_ModelView[0];
+
+}* ppOpenGL_Utils;
+void *OpenGL_Utils_constructor(){
+	void *v = malloc(sizeof(struct pOpenGL_Utils));
+	memset(v,0,sizeof(struct pOpenGL_Utils));
+	return v;
+}
+void OpenGL_Utils_init(struct tOpenGL_Utils *t)
+{
+	//public
+	/* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
+	t->displayDepth = 24;
+
+	//static float cc_red = 0.0f, cc_green = 0.0f, cc_blue = 0.0f, cc_alpha = 1.0f;
+	t->cc_changed = FALSE;
+
+	//private
+	t->prv = OpenGL_Utils_constructor();
+	{
+		ppOpenGL_Utils p = (ppOpenGL_Utils)t->prv;
+		p->memoryTable = NULL;
+		p->tableIndexSize = INT_ID_UNDEFINED;
+		p->nextEntry = 0;
+		//p->forgottenNode;
+		p->cc_red = 0.0f;
+		p->cc_green = 0.0f;
+		p->cc_blue = 0.0f;
+		p->cc_alpha = 1.0f;
+		//p->memtablelock = PTHREAD_MUTEX_INITIALIZER;
+		pthread_mutex_init(&(p->memtablelock), NULL);
+		p->FW_ModelView[MAX_LARGE_MATRIX_STACK];
+		p->FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
+		p->FW_TextureView[MAX_SMALL_MATRIX_STACK];
+		 
+		p->modelviewTOS = 0;
+		p->projectionviewTOS = 0;
+		p->textureviewTOS = 0;
+
+		p->whichMode = GL_MODELVIEW;
+		p->currentMatrix = p->FW_ModelView[0];
+
+	}
+}
 
 
 #define TURN_OFF_SHOULDSORTCHILDREN node->_renderFlags = node->_renderFlags & (0xFFFF^ VF_shouldSortChildren);
@@ -126,19 +194,25 @@ static pthread_mutex_t  memtablelock = PTHREAD_MUTEX_INITIALIZER;
    OpenGL thread */
 
 void fwl_set_glClearColor (float red , float green , float blue , float alpha) {
-	cc_red = red; cc_green = green ; cc_blue = blue ; cc_alpha = alpha ;
-	cc_changed = TRUE;
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+	p->cc_red = red; p->cc_green = green ; p->cc_blue = blue ; p->cc_alpha = alpha ;
+	tg->OpenGL_Utils.cc_changed = TRUE;
 }
 
 void setglClearColor (float *val) {
-	cc_red = *val; val++;
-	cc_green = *val; val++;
-	cc_blue = *val;
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+	p->cc_red = *val; val++;
+	p->cc_green = *val; val++;
+	p->cc_blue = *val;
 #ifdef AQUA
 	val++;
-	cc_alpha = *val;
+	p->cc_alpha = *val;
 #endif
-	cc_changed = TRUE;
+	tg->OpenGL_Utils.cc_changed = TRUE;
 }        
 
 
@@ -1525,8 +1599,11 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 }
 
 void doglClearColor() {
-	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
-	cc_changed = FALSE;
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+	FW_GL_CLEAR_COLOR(p->cc_red, p->cc_green, p->cc_blue, p->cc_alpha);
+	tg->OpenGL_Utils.cc_changed = FALSE;
 }
 
 /* did we have a TextureTransform in the Appearance node? */
@@ -1596,6 +1673,7 @@ void end_textureTransform (void) {
 bool fwl_initialize_GL()
 {
 	char blankTexture[] = {0x40, 0x40, 0x40, 0xFF};
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 #if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
 	#if defined (TARGET_AQUA) 
@@ -1685,7 +1763,7 @@ bool fwl_initialize_GL()
 	/* Configure OpenGL for our uses. */
         FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
+	FW_GL_CLEAR_COLOR(p->cc_red, p->cc_green, p->cc_blue, p->cc_alpha);
 
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 7");
     
@@ -1807,31 +1885,33 @@ void BackEndLightsOff() {
 }
 
 
-/* OpenGL perform matrix state here */
-#define MAX_LARGE_MATRIX_STACK 32	/* depth of stacks */
-#define MAX_SMALL_MATRIX_STACK 2	/* depth of stacks */
-#define MATRIX_SIZE 16		/* 4 x 4 matrix */
-typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
-
-static MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
-static MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
-static MATRIX4 FW_TextureView[MAX_SMALL_MATRIX_STACK];
- 
-static int modelviewTOS = 0;
-static int projectionviewTOS = 0;
-static int textureviewTOS = 0;
-
-static int whichMode = GL_MODELVIEW;
-static GLDOUBLE *currentMatrix = FW_ModelView[0];
+///* OpenGL perform matrix state here */
+//#define MAX_LARGE_MATRIX_STACK 32	/* depth of stacks */
+//#define MAX_SMALL_MATRIX_STACK 2	/* depth of stacks */
+//#define MATRIX_SIZE 16		/* 4 x 4 matrix */
+//typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
+//
+//static MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
+//static MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
+//static MATRIX4 FW_TextureView[MAX_SMALL_MATRIX_STACK];
+// 
+//static int modelviewTOS = 0;
+//static int projectionviewTOS = 0;
+//static int textureviewTOS = 0;
+//
+//static int whichMode = GL_MODELVIEW;
+//static GLDOUBLE *currentMatrix = FW_ModelView[0];
 
 
 void fw_glMatrixMode(GLint mode) {
-	whichMode = mode;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
+	p->whichMode = mode;
 	
 	#ifdef VERBOSE
-	printf ("fw_glMatrixMode, projTOS %d, modTOS %d\n",projectionviewTOS,modelviewTOS);
+	printf ("fw_glMatrixMode, projTOS %d, modTOS %d\n",p->projectionviewTOS,p->modelviewTOS);
 
-	switch (whichMode) {
+	switch (p->whichMode) {
 		case GL_PROJECTION: printf ("glMatrixMode(GL_PROJECTION)\n"); break;
 		case GL_MODELVIEW: printf ("glMatrixMode(GL_MODELVIEW)\n"); break;
 		case GL_TEXTURE: printf ("glMatrixMode(GL_TEXTURE)\n"); break;
@@ -1842,81 +1922,92 @@ void fw_glMatrixMode(GLint mode) {
 	glMatrixMode(mode); /* JAS - tell OpenGL what the current matrix mode is */
 	#endif
 
-	switch (whichMode) {
-		case GL_PROJECTION: currentMatrix = (GLDOUBLE *) &FW_ProjectionView[projectionviewTOS]; break;
-		case GL_MODELVIEW: currentMatrix = (GLDOUBLE *) &FW_ModelView[modelviewTOS]; break;
-		case GL_TEXTURE: currentMatrix = (GLDOUBLE *) &FW_TextureView[textureviewTOS]; break;
-		default: printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",whichMode, GL_PROJECTION,GL_MODELVIEW,GL_TEXTURE);
+	switch (p->whichMode) {
+		case GL_PROJECTION: p->currentMatrix = (GLDOUBLE *) &p->FW_ProjectionView[p->projectionviewTOS]; break;
+		case GL_MODELVIEW: p->currentMatrix = (GLDOUBLE *) &p->FW_ModelView[p->modelviewTOS]; break;
+		case GL_TEXTURE: p->currentMatrix = (GLDOUBLE *) &p->FW_TextureView[p->textureviewTOS]; break;
+		default: printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",p->whichMode, GL_PROJECTION,GL_MODELVIEW,GL_TEXTURE);
 	}
 
 }
 
 void fw_glLoadIdentity(void) {
-	loadIdentityMatrix(currentMatrix);
-	FW_GL_LOADMATRIX(currentMatrix); 
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
+	loadIdentityMatrix(p->currentMatrix);
+	FW_GL_LOADMATRIX(p->currentMatrix); 
 }
 
-#define PUSHMAT(a,b,c,d) case a: b++; if (b>=c) {b=c-1; printf ("stack overflow, whichmode %d\n",whichMode); } \
-		memcpy ((void *)d[b], (void *)d[b-1],sizeof(GLDOUBLE)*16); currentMatrix = d[b]; break;
+#define PUSHMAT(a,b,c,d) case a: b++; if (b>=c) {b=c-1; printf ("stack overflow, whichmode %d\n",p->whichMode); } \
+		memcpy ((void *)d[b], (void *)d[b-1],sizeof(GLDOUBLE)*16); p->currentMatrix = d[b]; break;
 
 void fw_glPushMatrix(void) {
-	switch (whichMode) {
-		PUSHMAT (GL_PROJECTION,projectionviewTOS,MAX_SMALL_MATRIX_STACK,FW_ProjectionView)
-		PUSHMAT (GL_MODELVIEW,modelviewTOS,MAX_LARGE_MATRIX_STACK,FW_ModelView)
-		PUSHMAT (GL_TEXTURE,textureviewTOS,MAX_SMALL_MATRIX_STACK,FW_TextureView)
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
+	switch (p->whichMode) {
+		PUSHMAT (GL_PROJECTION,p->projectionviewTOS,MAX_SMALL_MATRIX_STACK,p->FW_ProjectionView)
+		PUSHMAT (GL_MODELVIEW,p->modelviewTOS,MAX_LARGE_MATRIX_STACK,p->FW_ModelView)
+		PUSHMAT (GL_TEXTURE,p->textureviewTOS,MAX_SMALL_MATRIX_STACK,p->FW_TextureView)
 		default :printf ("wrong mode in popMatrix\n");
 	}
-	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPushMatrix tos now %d\n",projectionviewTOS); }  */
+	/* if (p->whichMode == GL_PROJECTION) { printf ("	fw_glPushMatrix tos now %d\n",p->projectionviewTOS); }  */
 
- 	FW_GL_LOADMATRIX(currentMatrix); 
+ 	FW_GL_LOADMATRIX(p->currentMatrix); 
 #undef PUSHMAT
 }
 
-#define POPMAT(a,b,c) case a: b--; if (b<0) {b=0;printf ("popMatrix, stack underflow, whichMode %d\n",whichMode);} currentMatrix = c[b]; break;
+#define POPMAT(a,b,c) case a: b--; if (b<0) {b=0;printf ("popMatrix, stack underflow, whichMode %d\n",p->whichMode);} p->currentMatrix = c[b]; break;
 
 void fw_glPopMatrix(void) {
-	switch (whichMode) {
-		POPMAT(GL_PROJECTION,projectionviewTOS,FW_ProjectionView)
-		POPMAT(GL_MODELVIEW,modelviewTOS,FW_ModelView)
-		POPMAT (GL_TEXTURE,textureviewTOS,FW_TextureView)
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
+	switch (p->whichMode) {
+		POPMAT(GL_PROJECTION,p->projectionviewTOS,p->FW_ProjectionView)
+		POPMAT(GL_MODELVIEW,p->modelviewTOS,p->FW_ModelView)
+		POPMAT (GL_TEXTURE,p->textureviewTOS,p->FW_TextureView)
 		default :printf ("wrong mode in popMatrix\n");
 	}
-	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPopMatrix tos now %d\n",projectionviewTOS); } */
+	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPopMatrix tos now %d\n",p->projectionviewTOS); } */
 
- 	FW_GL_LOADMATRIX(currentMatrix); 
+ 	FW_GL_LOADMATRIX(p->currentMatrix); 
 }
 #undef POPMAT
 
 
 void fw_glTranslated(GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
 	//printf ("fw_glTranslated %lf %lf %lf\n",x,y,z);
-	//printf ("translated, currentMatrix %p\n",currentMatrix);
+	//printf ("translated, currentMatrix %p\n",p->currentMatrix);
 
-	currentMatrix[12] = currentMatrix[0] * x + currentMatrix[4] * y + currentMatrix[8]  * z + currentMatrix[12];
-	currentMatrix[13] = currentMatrix[1] * x + currentMatrix[5] * y + currentMatrix[9]  * z + currentMatrix[13];
-	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
-	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
+	p->currentMatrix[12] = p->currentMatrix[0] * x + p->currentMatrix[4] * y + p->currentMatrix[8]  * z + p->currentMatrix[12];
+	p->currentMatrix[13] = p->currentMatrix[1] * x + p->currentMatrix[5] * y + p->currentMatrix[9]  * z + p->currentMatrix[13];
+	p->currentMatrix[14] = p->currentMatrix[2] * x + p->currentMatrix[6] * y + p->currentMatrix[10] * z + p->currentMatrix[14];
+	p->currentMatrix[15] = p->currentMatrix[3] * x + p->currentMatrix[7] * y + p->currentMatrix[11] * z + p->currentMatrix[15];
 
- 	FW_GL_LOADMATRIX(currentMatrix); 
+ 	FW_GL_LOADMATRIX(p->currentMatrix); 
 }
 
 void fw_glTranslatef(float x, float y, float z) {
-	//printf ("fw_glTranslatef %f %f %f\n",x,y,z);
-	currentMatrix[12] = currentMatrix[0] * x + currentMatrix[4] * y + currentMatrix[8]  * z + currentMatrix[12];
-	currentMatrix[13] = currentMatrix[1] * x + currentMatrix[5] * y + currentMatrix[9]  * z + currentMatrix[13];
-	currentMatrix[14] = currentMatrix[2] * x + currentMatrix[6] * y + currentMatrix[10] * z + currentMatrix[14];
-	currentMatrix[15] = currentMatrix[3] * x + currentMatrix[7] * y + currentMatrix[11] * z + currentMatrix[15];
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
-	FW_GL_LOADMATRIX(currentMatrix); 
+	//printf ("fw_glTranslatef %f %f %f\n",x,y,z);
+	p->currentMatrix[12] = p->currentMatrix[0] * x + p->currentMatrix[4] * y + p->currentMatrix[8]  * z + p->currentMatrix[12];
+	p->currentMatrix[13] = p->currentMatrix[1] * x + p->currentMatrix[5] * y + p->currentMatrix[9]  * z + p->currentMatrix[13];
+	p->currentMatrix[14] = p->currentMatrix[2] * x + p->currentMatrix[6] * y + p->currentMatrix[10] * z + p->currentMatrix[14];
+	p->currentMatrix[15] = p->currentMatrix[3] * x + p->currentMatrix[7] * y + p->currentMatrix[11] * z + p->currentMatrix[15];
+
+	FW_GL_LOADMATRIX(p->currentMatrix); 
 }
 
 /* perform rotation, assuming that the angle is in radians. */
 void fw_glRotateRad (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	MATRIX4 myMat;
 	GLDOUBLE mag;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
-	//printf ("fw_glRotateRad %lf %lf %lf %lf modTOS %d projTOS %d\n",angle,x,y,z,modelviewTOS,projectionviewTOS);
-	//printmatrix2(currentMatrix,"in rad");
+	//printf ("fw_glRotateRad %lf %lf %lf %lf modTOS %d projTOS %d\n",angle,x,y,z,p->modelviewTOS,p->projectionviewTOS);
+	//printmatrix2(p->currentMatrix,"in rad");
 	loadIdentityMatrix (myMat);
 
 	/* FIXME - any way we can ensure that the angles are normalized? */
@@ -1944,11 +2035,11 @@ void fw_glRotateRad (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	matrotate(myMat,angle,x,y,z); 
 
 	//printmatrix2 (myMat, "rotation matrix");
-	matmultiply(currentMatrix,myMat,currentMatrix); 
+	matmultiply(p->currentMatrix,myMat,p->currentMatrix); 
 
-	//printmatrix2 (currentMatrix,"currentMatrix after rotate");
+	//printmatrix2 (p->currentMatrix,"currentMatrix after rotate");
 
-	FW_GL_LOADMATRIX(currentMatrix); 
+	FW_GL_LOADMATRIX(p->currentMatrix); 
 }
 
 /* perform the rotation, assuming that the angle is in degrees */
@@ -1956,6 +2047,7 @@ void fw_glRotated (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 	MATRIX4 myMat;
 	GLDOUBLE mag;
 	GLDOUBLE radAng;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	/* convert angle from degrees to radians */
 	/* FIXME - must try and make up a rotate-radians call to get rid of these incessant conversions */
@@ -1989,9 +2081,9 @@ void fw_glRotated (GLDOUBLE angle, GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 		return;
 	}
 	matrotate(myMat,radAng,x,y,z); 
-	matmultiply(currentMatrix,currentMatrix,myMat); 
+	matmultiply(p->currentMatrix,p->currentMatrix,myMat); 
 
-	FW_GL_LOADMATRIX(currentMatrix); 
+	FW_GL_LOADMATRIX(p->currentMatrix); 
 }
 
 void fw_glRotatef (float a, float x, float y, float z) {
@@ -1999,32 +2091,36 @@ void fw_glRotatef (float a, float x, float y, float z) {
 }
 
 void fw_glScaled (GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 //	printf ("glScaled(%5.4lf %5.4lf %5.4lf)\n",x,y,z);
 
-	currentMatrix[0] *= x;   currentMatrix[4] *= y;   currentMatrix[8]  *= z;
-	currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
-	currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
-	currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
+	p->currentMatrix[0] *= x;   p->currentMatrix[4] *= y;   p->currentMatrix[8]  *= z;
+	p->currentMatrix[1] *= x;   p->currentMatrix[5] *= y;   p->currentMatrix[9]  *= z;
+	p->currentMatrix[2] *= x;   p->currentMatrix[6] *= y;   p->currentMatrix[10] *= z;
+	p->currentMatrix[3] *= x;   p->currentMatrix[7] *= y;   p->currentMatrix[11] *= z;
 
-	FW_GL_LOADMATRIX(currentMatrix); 
+	FW_GL_LOADMATRIX(p->currentMatrix); 
 }
 
 void fw_glScalef (float x, float y, float z) {
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 //      printf ("glScalef(%5.4f %5.4f %5.4f)\n",x,y,z);
 
-        currentMatrix[0] *= x;   currentMatrix[4] *= y;   currentMatrix[8]  *= z;
-        currentMatrix[1] *= x;   currentMatrix[5] *= y;   currentMatrix[9]  *= z;
-        currentMatrix[2] *= x;   currentMatrix[6] *= y;   currentMatrix[10] *= z;
-        currentMatrix[3] *= x;   currentMatrix[7] *= y;   currentMatrix[11] *= z;
+        p->currentMatrix[0] *= x;   p->currentMatrix[4] *= y;   p->currentMatrix[8]  *= z;
+        p->currentMatrix[1] *= x;   p->currentMatrix[5] *= y;   p->currentMatrix[9]  *= z;
+        p->currentMatrix[2] *= x;   p->currentMatrix[6] *= y;   p->currentMatrix[10] *= z;
+        p->currentMatrix[3] *= x;   p->currentMatrix[7] *= y;   p->currentMatrix[11] *= z;
 
-        FW_GL_LOADMATRIX(currentMatrix);
+        FW_GL_LOADMATRIX(p->currentMatrix);
 }
 
 
 void fw_glGetDoublev (int ty, GLDOUBLE *mat) {
 	GLDOUBLE *dp;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
 /*
 	switch (ty) {
 		case GL_PROJECTION_MATRIX: printf ("getDoublev(GL_PROJECTION_MATRIX)\n"); break;
@@ -2034,10 +2130,10 @@ void fw_glGetDoublev (int ty, GLDOUBLE *mat) {
 */
 
 	switch (ty) {
-		case GL_PROJECTION_MATRIX: dp = FW_ProjectionView[projectionviewTOS]; break;
-		case GL_MODELVIEW_MATRIX: dp = FW_ModelView[modelviewTOS]; break;
+		case GL_PROJECTION_MATRIX: dp = p->FW_ProjectionView[p->projectionviewTOS]; break;
+		case GL_MODELVIEW_MATRIX: dp = p->FW_ModelView[p->modelviewTOS]; break;
 #ifndef GL_ES_VERSION_2_0
-		case GL_TEXTURE_MATRIX: dp = FW_TextureView[textureviewTOS]; break;
+		case GL_TEXTURE_MATRIX: dp = p->FW_TextureView[p->textureviewTOS]; break;
 #endif
 		default: { 
 			loadIdentityMatrix(mat); 
@@ -2160,18 +2256,19 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 /* for verifying that a memory pointer exists */
 int checkNode(struct X3D_Node *node, char *fn, int line) {
 	int tc;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	if (node == NULL) {
 		printf ("checkNode, node is NULL at %s %d\n",fn,line);
 		return FALSE;
 	}
 
-	if (node == forgottenNode) return TRUE;
+	if (node == p->forgottenNode) return TRUE;
 
 
 	LOCK_MEMORYTABLE
-	for (tc = 0; tc< nextEntry; tc++)
-		if (memoryTable[tc] == node) {
+	for (tc = 0; tc< p->nextEntry; tc++)
+		if (p->memoryTable[tc] == node) {
 			if (node->referenceCount > 0) {
 			UNLOCK_MEMORYTABLE
 			return TRUE;
@@ -2187,13 +2284,15 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 
 
 /*keep track of node created*/
-void registerX3DNode(struct X3D_Node * tmp){	
+void registerX3DNode(struct X3D_Node * tmp){
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
 	LOCK_MEMORYTABLE
 	/* printf("nextEntry=%d	",nextEntry); printf("tableIndexSize=%d \n",tableIndexSize); */
 	/*is table to small give us some leeway in threads */
-	if (nextEntry >= (tableIndexSize-10)){
+	if (p->nextEntry >= (p->tableIndexSize-10)){
 		/*is table exist*/	
-		if (tableIndexSize <= INT_ID_UNDEFINED){
+		if (p->tableIndexSize <= INT_ID_UNDEFINED){
 			createdMemoryTable();		
 		} else {
 			increaseMemoryTable();
@@ -2201,17 +2300,19 @@ void registerX3DNode(struct X3D_Node * tmp){
 	}
 	/*adding node in table*/	
 	/* printf ("registerX3DNode, adding %x at %d\n",tmp,nextEntry); */
-	memoryTable[nextEntry] = tmp;
-	nextEntry+=1;
+	p->memoryTable[p->nextEntry] = tmp;
+	p->nextEntry+=1;
 	UNLOCK_MEMORYTABLE
 }
 
 /*We don't register the first node created for reload reason*/
 void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr){
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
 	LOCK_MEMORYTABLE
-	if(nodePtr==(memoryTable[nextEntry-1])){
-		nextEntry-=1;
-		forgottenNode = nodePtr;
+	if(nodePtr==(p->memoryTable[p->nextEntry-1])){
+		p->nextEntry-=1;
+		p->forgottenNode = nodePtr;
 	}	
 	UNLOCK_MEMORYTABLE
 }
@@ -2219,13 +2320,14 @@ void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr){
 /*creating node table*/
 void createdMemoryTable(){
 	int count;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
-	tableIndexSize=50;
-	memoryTable = MALLOC(struct X3D_Node **, tableIndexSize * sizeof(struct X3D_Node*));
+	p->tableIndexSize=50;
+	p->memoryTable = MALLOC(struct X3D_Node **, p->tableIndexSize * sizeof(struct X3D_Node*));
 
 	/* initialize this to a known state */
-	for (count=0; count < tableIndexSize; count++) {
-		memoryTable[count] = NULL;
+	for (count=0; count < p->tableIndexSize; count++) {
+		p->memoryTable[count] = NULL;
 	}
 }
 
@@ -2233,16 +2335,17 @@ void createdMemoryTable(){
 void increaseMemoryTable(){
 	int count;
 	int oldhigh;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
-	oldhigh = tableIndexSize;
+	oldhigh = p->tableIndexSize;
 
 	
-	tableIndexSize*=2;
-	memoryTable = REALLOC (memoryTable, tableIndexSize * sizeof(struct X3D_Node*) );
+	p->tableIndexSize*=2;
+	p->memoryTable = REALLOC (p->memoryTable, p->tableIndexSize * sizeof(struct X3D_Node*) );
 
 	/* initialize this to a known state */
-	for (count=oldhigh; count < tableIndexSize; count++) {
-		memoryTable[count] = NULL;
+	for (count=oldhigh; count < p->tableIndexSize; count++) {
+		p->memoryTable[count] = NULL;
 	}
 	/* printf("increasing memory table=%d\n",tableIndexSize); */
 }
@@ -2345,6 +2448,7 @@ void zeroVisibilityFlag(void) {
 	struct X3D_Node* node;
 	int i;
 	int ocnum;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	ocnum=-1;
 
@@ -2359,16 +2463,16 @@ void zeroVisibilityFlag(void) {
 		   get put into OpenGL-land. If we are not texture parsing... */
 		/* no, we do not have GL_ARB_occlusion_query, just tell every node that it has visible children 
 		   and hope that, sometime, the user gets a good computer graphics card */
-		for (i=0; i<nextEntry; i++){		
-			node = memoryTable[i];	
+		for (i=0; i<p->nextEntry; i++){		
+			node = p->memoryTable[i];	
 			if (node != NULL) {
 				node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
 			}
 		}	
 	} else {
 		/* we do... lets zero the hasVisibleChildren flag */
-		for (i=0; i<nextEntry; i++){		
-			node = memoryTable[i];		
+		for (i=0; i<p->nextEntry; i++){		
+			node = p->memoryTable[i];		
 			if (node != NULL) {
 		
 			#ifdef OCCLUSIONVERBOSE
@@ -2518,6 +2622,7 @@ void startOfLoopNodeUpdates(void) {
 
 	/* process one inline per loop; do it outside of the lock/unlock memory table */
 	struct Vector *loadInlines;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	if (rootNode == NULL) return; /* nothing to do, and we have not really started yet */
 
@@ -2540,8 +2645,8 @@ void startOfLoopNodeUpdates(void) {
 	LOCK_MEMORYTABLE
 
 	/* go through the node table, and zero any bits of interest */
-	for (i=0; i<nextEntry; i++){		
-		node = memoryTable[i];	
+	for (i=0; i<p->nextEntry; i++){		
+		node = p->memoryTable[i];	
 		if (node != NULL) {
 			/* printf ("%d ref %d\n",i,node->referenceCount); */
 			if (node->referenceCount == 0) {
@@ -2574,8 +2679,8 @@ void startOfLoopNodeUpdates(void) {
 	setBindPtr = NULL;
 	anchorPtr = NULL;
 
-	for (i=0; i<nextEntry; i++){		
-		node = memoryTable[i];	
+	for (i=0; i<p->nextEntry; i++){		
+		node = p->memoryTable[i];	
 		if (node != NULL) 
 		if (node->referenceCount > 0) {
 			switch (node->_nodeType) {
@@ -3331,9 +3436,10 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 	int i;
 	float *sp; 
 	GLDOUBLE *dp;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	/* ModelView first */
-	dp = FW_ModelView[modelviewTOS];
+	dp = p->FW_ModelView[p->modelviewTOS];
 	sp = spval;
 
 	/* convert GLDOUBLE to float */
@@ -3345,7 +3451,7 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 
 	/* ProjectionMatrix */
 	sp = spval;
-	dp = FW_ProjectionView[projectionviewTOS];
+	dp = p->FW_ProjectionView[p->projectionviewTOS];
 
 	/* convert GLDOUBLE to float */
 	for (i=0; i<16; i++) {
@@ -3362,7 +3468,7 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 		GLDOUBLE transInverseMV[16];
 		GLDOUBLE MV[16];
 		float normMat[9];
-		dp = FW_ModelView[modelviewTOS];
+		dp = p->FW_ModelView[p->modelviewTOS];
 		memcpy(MV,dp,sizeof(GLDOUBLE)*16);
 
 		matinverse (inverseMV,MV);
@@ -3578,9 +3684,10 @@ void fw_gluUnProject(GLDOUBLE winx, GLDOUBLE winy, GLDOUBLE winz,
 
 void fw_Ortho (GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ) {
 	GLDOUBLE *dp;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	/* do the glOrtho on the top of the stack, and send that along */
-	dp = FW_ProjectionView[projectionviewTOS];
+	dp = p->FW_ProjectionView[p->projectionviewTOS];
 
 	/* do some bounds checking here */
 	if (right <= left) right = left+1.0;   /* resolve divide by zero possibility */
@@ -3617,6 +3724,7 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 	GLDOUBLE *dp;
 	GLDOUBLE ndp[16];
 	GLDOUBLE ndp2[16];
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 
 
@@ -3628,7 +3736,7 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 	/* do the glFrsutum on the top of the stack, and send that along */
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 	//FW_GL_LOAD_IDENTITY();
-	dp = FW_ProjectionView[projectionviewTOS];
+	dp = p->FW_ProjectionView[p->projectionviewTOS];
 
 	mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, ndp);
 	mattranspose(ndp2,ndp);
@@ -3646,7 +3754,7 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 	#ifdef TRY_PERSPECTIVE_METHOD_1
 	  	FW_GL_LOADMATRIX(ndp);
 		/* put the matrix back on our matrix stack */
-		memcpy (FW_ProjectionView[projectionviewTOS],ndp,16*sizeof (GLDOUBLE));
+		memcpy (p->FW_ProjectionView[p->projectionviewTOS],ndp,16*sizeof (GLDOUBLE));
 	#endif
 
 

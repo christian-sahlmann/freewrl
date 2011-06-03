@@ -31,6 +31,7 @@ void ProdCon_init(struct tProdCon *t);
 void ColladaParser_init(struct tColladaParser *t);
 void Frustum_init(struct tFrustum *t);
 void LoadTextures_init(struct tLoadTextures *t);
+void OpenGL_Utils_init(struct tOpenGL_Utils *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -65,6 +66,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	ColladaParser_init(&iglobal->ColladaParser);
 	Frustum_init(&iglobal->Frustum);
 	LoadTextures_init(&iglobal->LoadTextures);
+	OpenGL_Utils_init(&iglobal->OpenGL_Utils);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -73,6 +75,8 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->OpenGL_Utils.prv);
+	FREE_IF_NZ(tg->LoadTextures.prv);
 	FREE_IF_NZ(tg->Frustum.prv);
 	FREE_IF_NZ(tg->ColladaParser.prv);
 	FREE_IF_NZ(tg->ProdCon.prv);

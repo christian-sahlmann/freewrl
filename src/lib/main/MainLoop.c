@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.186 2011/06/03 16:08:14 davejoubert Exp $
+  $Id: MainLoop.c,v 1.187 2011/06/03 17:34:05 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -596,7 +596,7 @@ void fwl_RenderSceneUpdateScene() {
         }
 
         /* has the default background changed? */
-        if (cc_changed) doglClearColor();
+        if (tg->OpenGL_Utils.cc_changed) doglClearColor();
 
         OcclusionStartofRenderSceneUpdateScene();
         startOfLoopNodeUpdates();

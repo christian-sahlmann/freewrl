@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.122 2011/06/03 17:23:51 davejoubert Exp $
+  $Id: display.h,v 1.123 2011/06/03 17:34:05 dug9 Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -363,7 +363,7 @@ void setMenuStatus(char *stat);
 //extern int xPos;
 //extern int yPos;
 //
-extern int displayDepth;
+//extern int displayDepth;
 //
 //extern int shutterGlasses; /* shutter glasses, stereo enabled ? */
 //extern int quadbuff_stereo_mode; /* quad buffer enabled ? */
