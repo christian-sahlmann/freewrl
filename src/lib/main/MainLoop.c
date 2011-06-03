@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.184 2011/06/03 00:46:13 dug9 Exp $
+  $Id: MainLoop.c,v 1.185 2011/06/03 01:05:46 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -138,6 +138,16 @@ struct SensStruct {
         struct X3D_Node *datanode;
         void (*interpptr)(void *, int, int, int);
 };
+typedef struct Touch
+{
+	int button; /*none down=0, LMB =1, MMB=2, RMB=3*/
+	bool isDown; /* false = up, true = down */
+	int mev; /* down/press=4, move/drag=6, up/release=5 */
+	int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
+	float angle; /*some multitouch -like smarttech- track the angle of the finger */
+	int x;
+	int y;
+};
 
 typedef struct pMainloop{
 	//browser
@@ -192,6 +202,15 @@ typedef struct pMainloop{
 	//scene
 	//window
 	//2D_inputdevice
+	int lastDeltax;// = 50;
+	int lastDeltay;// = 50;
+	int lastxx;
+	int lastyy;
+	int ntouch;// =0;
+	int currentTouch;// = -1;
+	struct Touch touchlist[20];
+	int EMULATE_MULTITOUCH;// = 1; 
+
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = malloc(sizeof(struct pMainloop));
@@ -272,6 +291,14 @@ void Mainloop_init(struct tMainloop *t){
 		//scene
 		//window
 		//2D_inputdevice
+		p->lastDeltax = 50;
+		p->lastDeltay = 50;
+		//p->lastxx;
+		//p->lastyy;
+		p->ntouch =0;
+		p->currentTouch = -1;
+		//p->touchlist[20];
+		p->EMULATE_MULTITOUCH = 1; 
 
 	}
 }
@@ -1130,19 +1157,19 @@ void setup_projection(int pick, int x, int y)
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
 
 }
-int EMULATE_MULTITOUCH = 1; 
 void renderCursors();
-typedef struct Touch
-{
-	int button; /*none down=0, LMB =1, MMB=2, RMB=3*/
-	bool isDown; /* false = up, true = down */
-	int mev; /* down/press=4, move/drag=6, up/release=5 */
-	int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
-	float angle; /*some multitouch -like smarttech- track the angle of the finger */
-	int x;
-	int y;
-};
-struct Touch touchlist[20];
+//typedef struct Touch
+//{
+//	int button; /*none down=0, LMB =1, MMB=2, RMB=3*/
+//	bool isDown; /* false = up, true = down */
+//	int mev; /* down/press=4, move/drag=6, up/release=5 */
+//	int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
+//	float angle; /*some multitouch -like smarttech- track the angle of the finger */
+//	int x;
+//	int y;
+//};
+//struct Touch touchlist[20];
+//int EMULATE_MULTITOUCH = 1; 
 
 /* Render the scene */
 static void render() 
@@ -1251,12 +1278,12 @@ static void render()
 	}
 
 #endif
-	if(EMULATE_MULTITOUCH) {
+	if(p->EMULATE_MULTITOUCH) {
         int i;
     
 		for(i=0;i<20;i++)
-			if(touchlist[i].isDown > 0)
-				cursorDraw(touchlist[i].ID,touchlist[i].x,touchlist[i].y,touchlist[i].angle); 
+			if(p->touchlist[i].isDown > 0)
+				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle); 
     }
     
 	/* status bar, if we have one */
@@ -2135,8 +2162,8 @@ void freewrlDie (const char *format) {
 
 #if defined(AQUA) || defined(WIN32)
 
-int ntouch =0;
-int currentTouch = -1;
+//int ntouch =0;
+//int currentTouch = -1;
 /* MIMIC what happens in handle_Xevents, but without the X events */
 void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID) {
         int count;
@@ -2156,14 +2183,14 @@ void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int 
         /* save the current x and y positions for picking. */
 		tg->Mainloop.currentX[p->currentCursor] = x;
 		tg->Mainloop.currentY[p->currentCursor] = y;
-		touchlist[ID].x = x;
-		touchlist[ID].y = y;
-		touchlist[ID].button = button;
-		touchlist[ID].isDown = (mev == ButtonPress || mev == MotionNotify);
-		touchlist[ID].ID = ID; /*will come in handy if we change from array[] to accordian list*/
-		touchlist[ID].mev = mev;
-		touchlist[ID].angle = 0.0f;
-		currentTouch = ID;
+		p->touchlist[ID].x = x;
+		p->touchlist[ID].y = y;
+		p->touchlist[ID].button = button;
+		p->touchlist[ID].isDown = (mev == ButtonPress || mev == MotionNotify);
+		p->touchlist[ID].ID = ID; /*will come in handy if we change from array[] to accordian list*/
+		p->touchlist[ID].mev = mev;
+		p->touchlist[ID].angle = 0.0f;
+		p->currentTouch = ID;
 
 
 		if( handleStatusbarHud(mev, &tg->Mainloop.clipPlane) )return; /* statusbarHud options screen should swallow mouse clicks */
@@ -2195,10 +2222,10 @@ void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int 
                 }
         }
 }
-int lastDeltax = 50;
-int lastDeltay = 50;
-int lastxx;
-int lastyy;
+//int lastDeltax = 50;
+//int lastDeltay = 50;
+//int lastxx;
+//int lastyy;
 void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 {
 	/* goal: when MMB draw a slave cursor pinned to last_distance,last_angle from real cursor 
@@ -2209,16 +2236,17 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 	*/
 	if( button == 2 ) 
 	{
+		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 		if( mev == ButtonPress )
 		{
-			lastxx = x - lastDeltax;
-			lastyy = y - lastDeltay;
+			p->lastxx = x - p->lastDeltax;
+			p->lastyy = y - p->lastDeltay;
 		}else if(mev == MotionNotify || mev == ButtonRelease ){
-			lastDeltax = x - lastxx;
-			lastDeltay = y - lastyy;
+			p->lastDeltax = x - p->lastxx;
+			p->lastDeltay = y - p->lastyy;
 		}
 		fwl_handle_aqua_multi(mev, 1, x, y, 0);
-		fwl_handle_aqua_multi(mev, 1, lastxx, lastyy, 1);
+		fwl_handle_aqua_multi(mev, 1, p->lastxx, p->lastyy, 1);
 	}else{
 		/* normal, no need to emulate if there's no MMB or LMB+RMB */
 		fwl_handle_aqua_multi(mev,button,x,y,0);
@@ -2226,8 +2254,10 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 }
 /* old function should still work, with single mouse and ID=0 */
 void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
+    ttglobal tg = gglobal();
+
 	//printf ("fwl_handle_aqua, type %d, screen %d %d, orig x,y %d %d\n",
-      //      mev,gglobal()->display.screenWidth, gglobal()->display.screenHeight,x,y);
+      //      mev,tg->display.screenWidth, tg->display.screenHeight,x,y);
 
 	// do we have to worry about screen orientations (think mobile devices)
 	#if defined (AQUA) || defined (_ANDROID)
@@ -2236,7 +2266,6 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
         // top left hand corner is x=0, y=0; 
         // bottom left, 0, 468)
         // while standard opengl is (0,0) in lower left hand corner...
-        ttglobal tg = gglobal();
 		int ox = x;
 		int oy = y;
 		switch (Viewer.orient) {
@@ -2264,7 +2293,7 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 
 	#endif
 
-	if(EMULATE_MULTITOUCH)
+	if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH)
 		emulate_multitouch(mev,button,x, y);
 	else
 		fwl_handle_aqua_multi(mev,button,x,y,0);
