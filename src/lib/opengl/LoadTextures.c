@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.70 2011/06/02 19:50:43 dug9 Exp $
+  $Id: LoadTextures.c,v 1.71 2011/06/03 16:01:15 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -74,16 +74,47 @@ void Multi_String_print(struct Multi_String *url);
 #endif /* IPHONE */
 #endif /* TARGET_AQUA */
 
-/* is the texture thread up and running yet? */
-int TextureThreadInitialized = FALSE;
+///* is the texture thread up and running yet? */
+//int TextureThreadInitialized = FALSE;
 
-/* are we currently active? */
-int TextureParsing = FALSE;
 
-/* list of texture table entries to load */
-s_list_t *texture_list = NULL;
 
-GLuint defaultBlankTexture;
+//GLuint defaultBlankTexture;
+
+typedef struct pLoadTextures{
+	s_list_t* texture_request_list;// = NULL;
+	bool loader_waiting;// = false;
+	/* list of texture table entries to load */
+	s_list_t *texture_list;// = NULL;
+	/* are we currently active? */
+	int TextureParsing; // = FALSE;
+}* ppLoadTextures;
+void *LoadTextures_constructor(){
+	void *v = malloc(sizeof(struct pLoadTextures));
+	memset(v,0,sizeof(struct pLoadTextures));
+	return v;
+}
+void LoadTextures_init(struct tLoadTextures *t)
+{
+	//public
+	/* is the texture thread up and running yet? */
+	t->TextureThreadInitialized = FALSE;
+
+	//private
+	t->prv = LoadTextures_constructor();
+	{
+		ppLoadTextures p = (ppLoadTextures)t->prv;
+		p->texture_request_list = NULL;
+		p->loader_waiting = false;
+		/* list of texture table entries to load */
+		p->texture_list = NULL;
+		/* are we currently active? */
+		p->TextureParsing = FALSE;
+	}
+}
+//s_list_t* texture_request_list = NULL;
+//bool loader_waiting = false;
+
 
 /* All functions here works with the array of 'textureTableIndexStruct'.
  * In the future we may want to refactor this struct.
@@ -674,7 +705,8 @@ static void texture_process_list(s_list_t *item)
 {
 	bool remove_it = FALSE;
 	textureTableIndexStruct_s *entry;
-	
+	ppLoadTextures p = (ppLoadTextures)gglobal()->LoadTextures.prv;
+
 	if (!item || !item->elem)
 		return;
 	
@@ -707,21 +739,20 @@ static void texture_process_list(s_list_t *item)
 		
 	if (remove_it) {
 		/* Remove the parsed resource from the list */
-		texture_list = ml_delete_self(texture_list, item);
+		p->texture_list = ml_delete_self(p->texture_list, item);
 	}
 }
-
-s_list_t* texture_request_list = NULL;
-bool loader_waiting = false;
 void send_texture_to_loader(textureTableIndexStruct_s *entry)
 {
+	ppLoadTextures p = (ppLoadTextures)gglobal()->LoadTextures.prv;
+
 	/* Lock access to the texture_request_list and loader_waiting variables*/
 	pthread_mutex_lock( &gglobal()->threads.mutex_texture_list );
 	
 	/* Add our texture entry */
-	texture_request_list = ml_append(texture_request_list, ml_new(entry));
+	p->texture_request_list = ml_append(p->texture_request_list, ml_new(entry));
 
-	if(loader_waiting)
+	if(p->loader_waiting)
         /* signal that we have data on resource list */
         pthread_cond_signal(&gglobal()->threads.texture_list_condition);
 	
@@ -735,32 +766,39 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry)
 void _textureThread()
 {
 	ENTER_THREAD("texture loading");
-	TextureThreadInitialized = TRUE;
+	{
 
-	/* we wait forever for the data signal to be sent */
-	for (;;) {
-		/* Lock access to the texture_request_list and loader_waiting variables*/
-		pthread_mutex_lock( &gglobal()->threads.mutex_texture_list );
-		if(texture_request_list == NULL)
-		{
-			loader_waiting = true;
-			/*block and wait*/
-	        pthread_cond_wait (&gglobal()->threads.texture_list_condition, &gglobal()->threads.mutex_texture_list);
+		ppLoadTextures p;
+		ttglobal tg = gglobal();
+		p = (ppLoadTextures)tg->LoadTextures.prv;
+
+		tg->LoadTextures.TextureThreadInitialized = TRUE;
+
+		/* we wait forever for the data signal to be sent */
+		for (;;) {
+			/* Lock access to the texture_request_list and loader_waiting variables*/
+			pthread_mutex_lock( &gglobal()->threads.mutex_texture_list );
+			if(p->texture_request_list == NULL)
+			{
+				p->loader_waiting = true;
+				/*block and wait*/
+				pthread_cond_wait (&gglobal()->threads.texture_list_condition, &gglobal()->threads.mutex_texture_list);
+			}
+			p->texture_list = p->texture_request_list;
+			p->texture_request_list = NULL;
+			p->loader_waiting = false;
+			/* Unlock  */
+			pthread_mutex_unlock( &gglobal()->threads.mutex_texture_list );
+
+
+			p->TextureParsing = TRUE;
+			
+			/* Process all resource list items, whatever status they may have */
+			while (p->texture_list != NULL) {
+	//printf ("textureThread running\n");
+				ml_foreach(p->texture_list, texture_process_list(__l));
+			}
+			p->TextureParsing = FALSE;
 		}
-		texture_list = texture_request_list;
-		texture_request_list = NULL;
-		loader_waiting = false;
-		/* Unlock  */
-		pthread_mutex_unlock( &gglobal()->threads.mutex_texture_list );
-
-
-		TextureParsing = TRUE;
-		
-		/* Process all resource list items, whatever status they may have */
-		while (texture_list != NULL) {
-//printf ("textureThread running\n");
-			ml_foreach(texture_list, texture_process_list(__l));
-		}
-		TextureParsing = FALSE;
 	}
 }

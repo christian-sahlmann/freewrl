@@ -175,6 +175,11 @@ typedef struct iiglobal //InstanceGlobal
 		int OccFailed;//. = FALSE;
 		void *prv;
 	} Frustum;
+	struct tLoadTextures{
+		/* is the texture thread up and running yet? */
+		int TextureThreadInitialized;// = FALSE;
+		void *prv;
+	}LoadTextures;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif

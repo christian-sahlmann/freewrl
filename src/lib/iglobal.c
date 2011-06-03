@@ -30,6 +30,7 @@ void Mainloop_init(struct tMainloop *t);
 void ProdCon_init(struct tProdCon *t);
 void ColladaParser_init(struct tColladaParser *t);
 void Frustum_init(struct tFrustum *t);
+void LoadTextures_init(struct tLoadTextures *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -63,6 +64,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	ProdCon_init(&iglobal->ProdCon);
 	ColladaParser_init(&iglobal->ColladaParser);
 	Frustum_init(&iglobal->Frustum);
+	LoadTextures_init(&iglobal->LoadTextures);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
