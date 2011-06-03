@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.h,v 1.8 2009/10/05 15:07:24 crc_canada Exp $
+$Id: Bindable.h,v 1.9 2011/06/03 00:46:13 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 
@@ -37,12 +37,12 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 extern GLint viewPort[];
 
 /* Bindables, Viewpoint, NavigationInfo, Background, TextureBackground and Fog */
-extern void * *fognodes;
-extern void * *backgroundnodes;
-extern void * *navnodes;
-extern void * *viewpointnodes;
-extern int totfognodes, totbacknodes, totnavnodes, totviewpointnodes;
-extern int currboundvpno;
+//extern void * *fognodes;
+//extern void * *backgroundnodes;
+//extern void * *navnodes;
+//extern void * *viewpointnodes;
+//extern int totfognodes, totbacknodes, totnavnodes;//, totviewpointnodes;
+//extern int currboundvpno;
 
 extern int viewpoint_tos;
 extern int background_tos;

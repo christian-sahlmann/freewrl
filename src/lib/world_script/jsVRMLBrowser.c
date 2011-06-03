@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.42 2011/06/02 19:50:49 dug9 Exp $
+$Id: jsVRMLBrowser.c,v 1.43 2011/06/03 00:46:13 dug9 Exp $
 
 Javascript C language binding.
 
@@ -465,10 +465,10 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		#endif
 
 		/* do the call to make the VRML code  - create a new browser just for this string */
-		savedParser = globalParser; globalParser = NULL;
+		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
 		retGroup = createNewX3DNode(NODE_Group);
 		ra = EAI_CreateVrml("String",_c,retGroup);
-		globalParser = savedParser; /* restore it */
+		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
 
 
 		/* and, make a string that we can use to create the javascript object */

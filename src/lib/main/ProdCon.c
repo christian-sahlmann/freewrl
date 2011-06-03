@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.84 2011/06/02 19:50:43 dug9 Exp $
+  $Id: ProdCon.c,v 1.85 2011/06/03 00:46:13 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -73,22 +73,24 @@
 /* used by the paser to call back the lexer for EXTERNPROTO */
 void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound);
 
+//true statics:
 static char *EAI_Flag = "From the EAI bootcamp of life ";
 char* PluginPath = "/private/tmp";
 int PluginLength = 12;
 
+//I think these are Aqua - I'll leave them static pending Aqua guru plugin review:
 int _fw_browser_plugin = 0;
 int _fw_pipe = 0;
 uintptr_t _fw_instance = 0;
 
-/* bind nodes in display loop, NOT in parsing threadthread */
-void *setViewpointBindInRender = NULL;
-void *setFogBindInRender = NULL;
-void *setBackgroundBindInRender = NULL;
-void *setNavigationBindInRender = NULL;
+///* bind nodes in display loop, NOT in parsing threadthread */
+//void *setViewpointBindInRender = NULL;
+//void *setFogBindInRender = NULL;
+//void *setBackgroundBindInRender = NULL;
+//void *setNavigationBindInRender = NULL;
 
 /* make up a new parser for parsing from createVrmlFromURL and createVrmlFromString */
-struct VRMLParser* savedParser;
+//struct VRMLParser* savedParser;
 
 
 /*
@@ -109,18 +111,18 @@ struct VRMLParser* savedParser;
 
 /*******************************/
 
-/* thread synchronization issues */
-int _P_LOCK_VAR = 0;
+///* thread synchronization issues */
+//int _P_LOCK_VAR = 0;
 
 #define SEND_TO_PARSER \
-	if (_P_LOCK_VAR==0) { \
-		_P_LOCK_VAR=1; \
+	if (p->_P_LOCK_VAR==0) { \
+		p->_P_LOCK_VAR=1; \
 	} \
 	else printf ("SEND_TO_PARSER = flag wrong!\n");
 
 #define PARSER_FINISHING \
-	if (_P_LOCK_VAR==1) { \
-		_P_LOCK_VAR=0; \
+	if (p->_P_LOCK_VAR==1) { \
+		p->_P_LOCK_VAR=0; \
 	} \
 	else printf ("PARSER_FINISHING - flag wrong!\n");
 
@@ -129,12 +131,12 @@ int _P_LOCK_VAR = 0;
 
 #define WAIT_WHILE_PARSER_BUSY \
 	pthread_mutex_lock(&gglobal()->threads.mutex_resource_list); \
-     	while (_P_LOCK_VAR==1) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);} 
+     	while (p->_P_LOCK_VAR==1) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);} 
 
 
 #define WAIT_WHILE_NO_DATA \
 	pthread_mutex_lock(&gglobal()->threads.mutex_resource_list); \
-     	while (_P_LOCK_VAR==0) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);} 
+     	while (p->_P_LOCK_VAR==0) { pthread_cond_wait(&gglobal()->threads.resource_list_condition, &gglobal()->threads.mutex_resource_list);} 
 
 
 
@@ -145,7 +147,7 @@ int _P_LOCK_VAR = 0;
 
 /*******************************/
 
-static s_list_t *resource_list_to_parse = NULL;
+//static s_list_t *resource_list_to_parse = NULL;
 
 #define PARSE_STRING(input,where) parser_do_parse_string(input,where)
 
@@ -167,38 +169,108 @@ struct PSStruct {
 bool parser_do_parse_string(const char *input, struct X3D_Group *nRn);
 
 /* Bindables */
-void* *fognodes = NULL;
-void* *backgroundnodes = NULL;
-void* *navnodes = NULL;
-void* *viewpointnodes = NULL;
-int totfognodes = 0;
-int totbacknodes = 0;
-int totnavnodes = 0;
-int totviewpointnodes = 0;
-int currboundvpno=0;
+//void* *fognodes = NULL;
+//void* *backgroundnodes = NULL;
+//void* *navnodes = NULL;
+////void* *viewpointnodes = NULL;
+//int totfognodes = 0;
+//int totbacknodes = 0;
+//int totnavnodes = 0;
+//int totviewpointnodes = 0;
+//int currboundvpno=0;
+typedef struct pProdCon{
+		void* *fognodes;// = NULL;
+		void* *backgroundnodes;// = NULL;
+		void* *navnodes;// = NULL;
+		//void* *viewpointnodes = NULL;
+		int totfognodes;// = 0;
+		int totbacknodes;// = 0;
+		int totnavnodes;// = 0;
+		/* thread synchronization issues */
+		int _P_LOCK_VAR;// = 0;
+		s_list_t *resource_list_to_parse;// = NULL;
+		/* psp is the data structure that holds parameters for the parsing thread */
+		struct PSStruct psp;
+		/* is the inputParse thread created? */
+		int inputParseInitialized; //=FALSE;
 
-/* is the inputParse thread created? */
-static int inputParseInitialized=FALSE;
+		/* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
+		int inputThreadParsing; //=FALSE;
+		int haveParsedCParsed;// = FALSE; 	/* used to tell when we need to call destroyCParserData  as destroyCParserData can segfault otherwise */
 
-/* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
-int inputThreadParsing=FALSE;
+}* ppProdCon;
+void *ProdCon_constructor(){
+	void *v = malloc(sizeof(struct pProdCon));
+	memset(v,0,sizeof(struct pProdCon));
+	return v;
+}
+void ProdCon_init(struct tProdCon *t)
+{
+	//public
+	t->viewpointnodes = NULL;
+	t->totviewpointnodes = 0;
+	t->currboundvpno=0;
+
+	/* bind nodes in display loop, NOT in parsing threadthread */
+	t->setViewpointBindInRender = NULL;
+	t->setFogBindInRender = NULL;
+	t->setBackgroundBindInRender = NULL;
+	t->setNavigationBindInRender = NULL;
+	t->savedParser = NULL; //struct VRMLParser* savedParser;
+
+	//private
+	t->prv = ProdCon_constructor();
+	{
+		ppProdCon p = (ppProdCon)t->prv;
+		p->fognodes = NULL;
+		p->backgroundnodes = NULL;
+		p->navnodes = NULL;
+		p->totfognodes = 0;
+		p->totbacknodes = 0;
+		p->totnavnodes = 0;
+
+		/* thread synchronization issues */
+		p->_P_LOCK_VAR = 0;
+		p->resource_list_to_parse = NULL;
+		/* psp is the data structure that holds parameters for the parsing thread */
+		//p->psp;
+		/* is the inputParse thread created? */
+		p->inputParseInitialized=FALSE;
+		/* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
+		p->inputThreadParsing=FALSE;
+		p->haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
+				   as destroyCParserData can segfault otherwise */
+
+	}
+}
+///* is the inputParse thread created? */
+//static int inputParseInitialized=FALSE;
+//
+///* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
+//int inputThreadParsing=FALSE;
 
 /* /\* Is the initial URL loaded ? Robert Sim *\/ */
 /* int URLLoaded = FALSE; */
 /* int isURLLoaded() { return (URLLoaded && !inputThreadParsing); } */
 
-/* psp is the data structure that holds parameters for the parsing thread */
-struct PSStruct psp;
+///* psp is the data structure that holds parameters for the parsing thread */
+//struct PSStruct psp;
 
-static int haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
-				   as destroyCParserData can segfault otherwise */
+//static int haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
+//				   as destroyCParserData can segfault otherwise */
 
 /* is a parser running? this is a function, because if we need to mutex lock, we
    can do all locking in this file */
-int fwl_isInputThreadInitialized() {return inputParseInitialized;}
+int fwl_isInputThreadInitialized() {
+	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
+	return p->inputParseInitialized;
+}
 
 /* statusbar uses this to tell user that we are still loading */
-int fwl_isinputThreadParsing() {return(inputThreadParsing);}
+int fwl_isinputThreadParsing() {
+	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
+	return(p->inputThreadParsing);
+}
 
 /**
  *   parser_do_parse_string: actually calls the parser.
@@ -206,7 +278,7 @@ int fwl_isinputThreadParsing() {return(inputThreadParsing);}
 bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 {
 	bool ret;
-
+	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
 	ret = FALSE;
 
 	inputFileType = determineFileType(input);
@@ -219,7 +291,7 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 		break;
 	case IS_TYPE_VRML:
 		ret = cParse(nRn,(int) offsetof (struct X3D_Group, children), input);
-		haveParsedCParsed = TRUE;
+		p->haveParsedCParsed = TRUE;
 		break;
 	case IS_TYPE_VRML1: {
 		char *newData = convert1To2(input);
@@ -242,7 +314,7 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 			inputFileType = IS_TYPE_VRML;
 			inputFileVersion[0] = 2; /* try VRML V2 */
 			cParse (nRn,(int) offsetof (struct X3D_Group, children), input);
-			haveParsedCParsed = TRUE; }
+			p->haveParsedCParsed = TRUE; }
 	}
 	}
 	if (!ret) {
@@ -254,18 +326,19 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 /* interface for telling the parser side to forget about everything...  */
 void EAI_killBindables (void) {
 	int complete;
+	ppProdCon p = gglobal()->ProdCon.prv;
 
 	WAIT_WHILE_PARSER_BUSY;
 	complete=0;
-	psp.comp = &complete;
-	psp.type = ZEROBINDABLES;
-	psp.ofs = 0;
-	psp.ptr = NULL;
-	psp.path = NULL;
-	psp.zeroBind = FALSE;
-	psp.bind = FALSE; /* should we issue a set_bind? */
-	psp.inp = NULL;
-	psp.fieldname = NULL;
+	p->psp.comp = &complete;
+	p->psp.type = ZEROBINDABLES;
+	p->psp.ofs = 0;
+	p->psp.ptr = NULL;
+	p->psp.path = NULL;
+	p->psp.zeroBind = FALSE;
+	p->psp.bind = FALSE; /* should we issue a set_bind? */
+	p->psp.inp = NULL;
+	p->psp.fieldname = NULL;
 
 	/* send data to a parser */
 	SEND_TO_PARSER;
@@ -334,6 +407,7 @@ void send_resource_to_parser(resource_item_t *res)
 
 	   We send it to parser.
 	*/
+	ppProdCon p = gglobal()->ProdCon.prv;
 
 	/* Wait for display thread to be fully initialized */
 	while (IS_DISPLAY_INITIALIZED == FALSE) {
@@ -341,13 +415,13 @@ void send_resource_to_parser(resource_item_t *res)
 	}
 
 	/* wait for the parser thread to come up to speed */
-	while (!inputParseInitialized) usleep(50);
+	while (!p->inputParseInitialized) usleep(50);
 
 	/* Lock access to the resource list */
 	WAIT_WHILE_PARSER_BUSY;
  
 	/* Add our resource item */
-	resource_list_to_parse = ml_append(resource_list_to_parse, ml_new(res));
+	p->resource_list_to_parse = ml_append(p->resource_list_to_parse, ml_new(res));
 
 	/* signal that we have data on resource list */
 
@@ -369,6 +443,7 @@ void send_resource_to_parser_async(resource_item_t *res)
 
 	   We send it to parser.
 	*/
+	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
 
 	/* Wait for display thread to be fully initialized */
 	while (IS_DISPLAY_INITIALIZED == FALSE) {
@@ -376,13 +451,13 @@ void send_resource_to_parser_async(resource_item_t *res)
 	}
 
 	/* wait for the parser thread to come up to speed */
-	while (!inputParseInitialized) usleep(50);
+	while (!p->inputParseInitialized) usleep(50);
 
 	/* Lock access to the resource list */
 	WAIT_WHILE_PARSER_BUSY;
  
 	/* Add our resource item */
-	resource_list_to_parse = ml_append(resource_list_to_parse, ml_new(res));
+	p->resource_list_to_parse = ml_append(p->resource_list_to_parse, ml_new(res));
 
 	/* signal that we have data on resource list */
 
@@ -427,6 +502,9 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	int i;
 	int offsetInNode;
 	int shouldBind;
+	ppProdCon p;
+	struct tProdCon *t = &gglobal()->ProdCon;
+	p = (ppProdCon)t->prv;
 
 	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
 	shouldBind = FALSE;
@@ -482,7 +560,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 			if (!gglobal()->resources.root_res->complete) {
 				/* Push the parser state : re-entrance here */
 				/* "save" the old classic parser state, so that names do not cross-pollute */
-				savedParser = globalParser;
+				t->savedParser = (void *)globalParser;
 				globalParser = NULL;
 			}
 		}
@@ -494,28 +572,28 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		PARSE_STRING(of->data, nRn);
 	
 		if ((res != gglobal()->resources.root_res) && ((!gglobal()->resources.root_res) ||(!gglobal()->resources.root_res->complete))) {
-			globalParser = savedParser;
+			globalParser = (struct VRMLParser*)t->savedParser;
 		}
 	
 	
 		if (shouldBind) {
-			if (totfognodes != 0) { 
-				for (i=0; i < totfognodes; ++i) send_bind_to(X3D_NODE(fognodes[i]), 0); /* Initialize binding info */
-				setFogBindInRender = fognodes[0];
+			if (p->totfognodes != 0) { 
+				for (i=0; i < p->totfognodes; ++i) send_bind_to(X3D_NODE(p->fognodes[i]), 0); /* Initialize binding info */
+				t->setFogBindInRender = p->fognodes[0];
 			}
-			if (totbacknodes != 0) {
-				for (i=0; i < totbacknodes; ++i) send_bind_to(X3D_NODE(backgroundnodes[i]), 0);  /* Initialize binding info */
-				setBackgroundBindInRender = backgroundnodes[0];
+			if (p->totbacknodes != 0) {
+				for (i=0; i < p->totbacknodes; ++i) send_bind_to(X3D_NODE(p->backgroundnodes[i]), 0);  /* Initialize binding info */
+				t->setBackgroundBindInRender = p->backgroundnodes[0];
 			}
-			if (totnavnodes != 0) {
-				for (i=0; i < totnavnodes; ++i) send_bind_to(X3D_NODE(navnodes[i]), 0);  /* Initialize binding info */
-				setNavigationBindInRender = navnodes[0];
+			if (p->totnavnodes != 0) {
+				for (i=0; i < p->totnavnodes; ++i) send_bind_to(X3D_NODE(p->navnodes[i]), 0);  /* Initialize binding info */
+				t->setNavigationBindInRender = p->navnodes[0];
 			}
-			if (totviewpointnodes != 0) {
-				for (i=0; i < totviewpointnodes; ++i) send_bind_to(X3D_NODE(viewpointnodes[i]), 0);  /* Initialize binding info */
+			if (t->totviewpointnodes != 0) {
+				for (i=0; i < t->totviewpointnodes; ++i) send_bind_to(X3D_NODE(t->viewpointnodes[i]), 0);  /* Initialize binding info */
 
 				/* set the initial viewpoint for this file */
-				setViewpointBindInRender = viewpointnodes[0];
+				t->setViewpointBindInRender = t->viewpointnodes[0];
 			}
 		}
 	
@@ -606,6 +684,7 @@ static void parser_process_res(s_list_t *item)
 {
 	bool remove_it = FALSE;
 	resource_item_t *res;
+	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
 
 	if (!item || !item->elem)
 		return;
@@ -693,7 +772,7 @@ static void parser_process_res(s_list_t *item)
 
 	if (remove_it) {
 		/* Remove the parsed resource from the list */
-		resource_list_to_parse = ml_delete_self(resource_list_to_parse, item);
+		p->resource_list_to_parse = ml_delete_self(p->resource_list_to_parse, item);
 
 		/* What next ? */
 //		dump_parser_wait_queue();
@@ -709,70 +788,81 @@ static void parser_process_res(s_list_t *item)
 void _inputParseThread(void)
 {
 	ENTER_THREAD("input parser");
+	{
+		ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
 
-	inputParseInitialized = TRUE;
+		p->inputParseInitialized = TRUE;
 
-	viewer_default();
+		viewer_default();
 
-	/* now, loop here forever, waiting for instructions and obeying them */
-	for (;;) {
-		WAIT_WHILE_NO_DATA;
+		/* now, loop here forever, waiting for instructions and obeying them */
 
-		inputThreadParsing = TRUE;
+		for (;;) {
+			WAIT_WHILE_NO_DATA;
 
-		/* go through the resource list until it is empty */
-		while (resource_list_to_parse != NULL) {
-			ml_foreach(resource_list_to_parse, parser_process_res(__l));
+			p->inputThreadParsing = TRUE;
+
+			/* go through the resource list until it is empty */
+			while (p->resource_list_to_parse != NULL) {
+				ml_foreach(p->resource_list_to_parse, parser_process_res(__l));
+			}
+			p->inputThreadParsing = FALSE;
+
+			/* Unlock the resource list */
+			PARSER_FINISHING;
+			UNLOCK;
 		}
-		inputThreadParsing = FALSE;
-
-		/* Unlock the resource list */
-		PARSER_FINISHING;
-		UNLOCK;
 	}
 }
 
 /* for ReplaceWorld (or, just, on start up) forget about previous bindables */
 
 void kill_bindables (void) {
-	totfognodes=0;
-	totbacknodes=0;
-	totnavnodes=0;
-	totviewpointnodes=0;
-	currboundvpno=0;
-	FREE_IF_NZ(fognodes);
-	FREE_IF_NZ(backgroundnodes);
-	FREE_IF_NZ(navnodes);
-	FREE_IF_NZ(viewpointnodes);
+	ppProdCon p;
+	struct tProdCon *t = &gglobal()->ProdCon;
+	p = (ppProdCon)t->prv;
+
+	p->totfognodes=0;
+	p->totbacknodes=0;
+	p->totnavnodes=0;
+	t->totviewpointnodes=0;
+	t->currboundvpno=0;
+	FREE_IF_NZ(p->fognodes);
+	FREE_IF_NZ(p->backgroundnodes);
+	FREE_IF_NZ(p->navnodes);
+	FREE_IF_NZ(t->viewpointnodes);
 }
 
 
 void registerBindable (struct X3D_Node *node) {
+	ppProdCon p;
+	struct tProdCon *t = &gglobal()->ProdCon;
+	p = (ppProdCon)t->prv;
 
 	/* printf ("registerBindable, on node %d %s\n",node,stringNodeType(node->_nodeType));  */
 	switch (node->_nodeType) {
 		case NODE_Viewpoint:
 		case NODE_OrthoViewpoint:
 		case NODE_GeoViewpoint:
-			viewpointnodes = REALLOC (viewpointnodes, (sizeof(void *)*(totviewpointnodes+1)));
-			viewpointnodes[totviewpointnodes] = node;
-			totviewpointnodes ++;
+			t->viewpointnodes = REALLOC (t->viewpointnodes, (sizeof(void *)*(t->totviewpointnodes+1)));
+			t->viewpointnodes[t->totviewpointnodes] = node;
+			t->totviewpointnodes ++;
 			break;
 		case NODE_Background:
 		case NODE_TextureBackground:
-			backgroundnodes = REALLOC (backgroundnodes, (sizeof(void *)*(totbacknodes+1)));
-			backgroundnodes[totbacknodes] = node;
-			totbacknodes ++;
+			p->backgroundnodes = REALLOC (p->backgroundnodes, (sizeof(void *)*(p->totbacknodes+1)));
+			p->backgroundnodes[p->totbacknodes] = node;
+			p->totbacknodes ++;
 			break;
 		case NODE_NavigationInfo:
-			navnodes = REALLOC (navnodes, (sizeof(void *)*(totnavnodes+1)));
-			navnodes[totnavnodes] = node;
-			totnavnodes ++;
+			p->navnodes = REALLOC (p->navnodes, (sizeof(void *)*(p->totnavnodes+1)));
+			p->navnodes[p->totnavnodes] = node;
+			p->totnavnodes ++;
 			break;
 		case NODE_Fog:
-			fognodes = REALLOC (fognodes, (sizeof(void *)*(totfognodes+1)));
-			fognodes[totfognodes] = node;
-			totfognodes ++;
+			p->fognodes = REALLOC (p->fognodes, (sizeof(void *)*(p->totfognodes+1)));
+			p->fognodes[p->totfognodes] = node;
+			p->totfognodes ++;
 			break;
 		default: {
 			/* do nothing with this node */

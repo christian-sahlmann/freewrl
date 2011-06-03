@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.150 2011/06/02 21:21:51 dug9 Exp $
+$Id: headers.h,v 1.151 2011/06/03 00:46:13 dug9 Exp $
 
 Global includes.
 
@@ -821,7 +821,7 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
                         int zeroBind);
 void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *a, void *b, void *c, void *d);
 void destroyCParserData();
-extern struct VRMLParser* savedParser;
+//extern struct VRMLParser* savedParser;
 
 void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex);
 int ConsoleMessage(const char *fmt, ...);
@@ -892,10 +892,10 @@ int X3DParse(struct X3D_Group *parent, const char *inputstring);
 void *createNewX3DNode (int nt);
 
 /* node binding */
-extern void *setViewpointBindInRender;
-extern void *setFogBindInRender;
-extern void *setBackgroundBindInRender;
-extern void *setNavigationBindInRender;
+//extern void *setViewpointBindInRender;
+//extern void *setFogBindInRender;
+//extern void *setBackgroundBindInRender;
+//extern void *setNavigationBindInRender;
 
 char* convert1To2(const char *inp);
 

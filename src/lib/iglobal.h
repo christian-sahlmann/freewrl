@@ -134,6 +134,19 @@ typedef struct iiglobal //InstanceGlobal
 		int currentX[20], currentY[20];                 /*  current mouse position.*/
 		void *prv;
 	} Mainloop;
+	struct tProdCon{
+		void* *viewpointnodes;// = NULL;
+		int totviewpointnodes;// = 0;
+		int currboundvpno;//=0;
+		/* bind nodes in display loop, NOT in parsing threadthread */
+		void *setViewpointBindInRender;// = NULL;
+		void *setFogBindInRender;// = NULL;
+		void *setBackgroundBindInRender;// = NULL;
+		void *setNavigationBindInRender;// = NULL;
+		void *savedParser; //struct VRMLParser* savedParser;
+
+		void *prv;
+	} ProdCon;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif
