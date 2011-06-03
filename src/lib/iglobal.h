@@ -206,6 +206,9 @@ typedef struct iiglobal //InstanceGlobal
 	struct tPluginSocket{
 		void *prv;
 	}PluginSocket;
+	struct tpluginUtils{
+		void *prv;
+	}pluginUtils;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif

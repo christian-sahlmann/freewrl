@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.45 2011/06/03 00:46:13 dug9 Exp $
+  $Id: pluginUtils.c,v 1.46 2011/06/03 21:24:19 dug9 Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -66,6 +66,30 @@ int childProcessListInit = FALSE;
 #else
 #include <process.h>
 #endif
+
+typedef struct ppluginUtils{
+	/* we keep polling here, if we are loading a url...*/
+	int waitingForURLtoLoad;// = FALSE;
+	resource_item_t *plugin_res;// = NULL; 	/* If this res is valid, then we can replace root_res with it */
+}* pppluginUtils;
+void *pluginUtils_constructor(){
+	void *v = malloc(sizeof(struct ppluginUtils));
+	memset(v,0,sizeof(struct ppluginUtils));
+	return v;
+}
+void pluginUtils_init(struct tpluginUtils *t){
+	//public
+	//private
+	t->prv = pluginUtils_constructor();
+	{
+		pppluginUtils p = (pppluginUtils)t->prv;
+		/* we keep polling here, if we are loading a url...*/
+		p->waitingForURLtoLoad = FALSE;
+		p->plugin_res = NULL; 	/* If this res is valid, then we can replace root_res with it */
+	}
+}
+
+
 
 void killErrantChildren(void) {
 #ifndef WIN32
@@ -161,29 +185,31 @@ static void startNewHTMLWindow(char *url) {
 #endif
 }
 
-/* we keep polling here, if we are loading a url...*/
-static int waitingForURLtoLoad = FALSE;
-static resource_item_t *plugin_res = NULL; 	/* If this res is valid, then we can replace root_res with it */
+///* we keep polling here, if we are loading a url...*/
+//static int waitingForURLtoLoad = FALSE;
+//static resource_item_t *plugin_res = NULL; 	/* If this res is valid, then we can replace root_res with it */
 
 static int urlLoadingStatus() {
+	pppluginUtils p = (pppluginUtils)gglobal()->pluginUtils.prv;
+
 	/* printf ("urlLoadingStatus %s\n",resourceStatusToString(plugin_res->status)); */
 	/* printf ("and we have %d children in root.\n",X3D_GROUP(rootNode)->children.n); */
 
-	switch (plugin_res->status) {
+	switch (p->plugin_res->status) {
 		case ress_downloaded:
 		case ress_parsed:
 			EAI_Anchor_Response(TRUE);
-			waitingForURLtoLoad = FALSE;
+			p->waitingForURLtoLoad = FALSE;
 			break;
 		case ress_failed:
 			ConsoleMessage ("Failed to load URL\n");
 			EAI_Anchor_Response(FALSE);
-			waitingForURLtoLoad = FALSE;
+			p->waitingForURLtoLoad = FALSE;
 			break;
 		default: {}
 	}
 
-	return waitingForURLtoLoad;
+	return p->waitingForURLtoLoad;
 }
 
 
@@ -197,9 +223,10 @@ int doBrowserAction()
 	char *description;
 	resource_item_t * parentPath;
 	s_list_t *head_of_list;
+	pppluginUtils p = (pppluginUtils)gglobal()->pluginUtils.prv;
 	
 	/* are we in the process of polling for a new X3D URL to load? */
-	if (waitingForURLtoLoad) return urlLoadingStatus();
+	if (p->waitingForURLtoLoad) return urlLoadingStatus();
 
 	/* is this an Anchor (thus Multi-URL call) or a single url call? */
 	/* OSX frontend and now plugin for loading up a new url does:
@@ -231,7 +258,7 @@ int doBrowserAction()
 		/* We have a url, lets go and get the first one of them */
                 parentPath = (resource_item_t *)AnchorsAnchor->_parentResource;
 
-		plugin_res = resource_create_multi(&AnchorsAnchor->url);
+		p->plugin_res = resource_create_multi(&AnchorsAnchor->url);
 
 #ifdef TEXVERBOSE
 		PRINTF("url: ");
@@ -239,49 +266,49 @@ int doBrowserAction()
 		PRINTF("parent resource: \n");
 		resource_dump(parentPath);
 		PRINTF("file resource: \n");
-		resource_dump(plugin_res);
+		resource_dump(p->plugin_res);
 #endif
 
 		/* hold on to the top of the list so we can delete it later */
-		head_of_list = plugin_res->m_request;
+		head_of_list = p->plugin_res->m_request;
 
 		/* go through the urls until we have a success, or total failure */
 		do {
 			/* Setup parent */
-			resource_identify(parentPath, plugin_res);
+			resource_identify(parentPath, p->plugin_res);
 
 			/* Setup media type */
-			plugin_res->media_type = resm_image; /* quick hack */
+			p->plugin_res->media_type = resm_image; /* quick hack */
 
-			if (resource_fetch(plugin_res)) {
+			if (resource_fetch(p->plugin_res)) {
 				/* printf ("really loading anchor from %s\n", plugin_res->actual_file); */
 
 				/* we have the file; res->actual_file is the file on the local system; 
 				   plugin_res->parsed_request is the file that might be remote */
 
-				if (checkIfX3DVRMLFile(plugin_res->actual_file)) {
+				if (checkIfX3DVRMLFile(p->plugin_res->actual_file)) {
 					resource_item_t *resToLoad;
 
 					/* out with the old... */
 					kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
 					/* tell the new world which viewpoint to go to */
-					fwl_gotoViewpoint (plugin_res->afterPoundCharacters);
-					resToLoad = resource_create_single(plugin_res->actual_file);
+					fwl_gotoViewpoint (p->plugin_res->afterPoundCharacters);
+					resToLoad = resource_create_single(p->plugin_res->actual_file);
 
 					/* in with the new... */
 					send_resource_to_parser(resToLoad);
-					waitingForURLtoLoad = TRUE;
+					p->waitingForURLtoLoad = TRUE;
 					return TRUE; /* keep the browser ticking along here */
 				} else {
-					plugin_res->complete = TRUE;
-					startNewHTMLWindow(plugin_res->parsed_request);
+					p->plugin_res->complete = TRUE;
+					startNewHTMLWindow(p->plugin_res->parsed_request);
 				}
 			} else {
 				/* we had a problem with that URL, set this so we can try the next */
-				plugin_res->type=rest_multi;
+				p->plugin_res->type=rest_multi;
 			}
-		} while ((plugin_res->status != ress_downloaded) && (plugin_res->m_request != NULL));
+		} while ((p->plugin_res->status != ress_downloaded) && (p->plugin_res->m_request != NULL));
 
 		/* destroy the m_request, if it exists */
 		if (head_of_list != NULL) {
@@ -289,7 +316,7 @@ int doBrowserAction()
 		}
 
 		/* were we successful?? */
-		if (plugin_res->status != ress_loaded) {
+		if (p->plugin_res->status != ress_loaded) {
 			ERROR_MSG("Could not load new world: %s\n", plugin_res->actual_file);
 			return FALSE;
 		}
@@ -310,11 +337,11 @@ int doBrowserAction()
 			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
 			/* we want to clean out the old world AND load a new one in */
-			plugin_res = resource_create_single (OSX_replace_world_from_console);
+			p->plugin_res = resource_create_single (OSX_replace_world_from_console);
 
-			send_resource_to_parser(plugin_res);
+			send_resource_to_parser(p->plugin_res);
 
-			waitingForURLtoLoad = TRUE;
+			p->waitingForURLtoLoad = TRUE;
 			return TRUE; /* keep the browser ticking along here */
 		}
 	}
