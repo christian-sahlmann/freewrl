@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.20 2011/06/02 19:50:43 dug9 Exp $
+  $Id: RasterFont.c,v 1.21 2011/06/03 18:30:15 dug9 Exp $
 
 */
 
@@ -37,33 +37,79 @@
 #include "../main/headers.h"
 #include "../input/EAIHelpers.h"
 #include "../scenegraph/Component_Text.h"
-static struct X3D_Text myText;
-static struct X3D_FontStyle myFont;
-struct Uni_String myString;
+//static struct X3D_Text myText;
+//static struct X3D_FontStyle myFont;
+////struct Uni_String myString;
+//
+//
+//static bool rf_initialized = FALSE;
+//
+//static int xf_color = xf_white;
+//static vec4f_t xf_colors[3] = { 
+//    { 1.0f, 1.0f, 1.0f, 1.0f }, 
+//    { 0.0f, 0.0f, 0.0f, 1.0f }, 
+//    { 0.5f, 0.5f, 0.5f, 1.0f } 
+//};
+static vec4f_t static_xf_colors[] = { 
+		{ 1.0f, 1.0f, 1.0f, 1.0f }, 
+		{ 0.0f, 0.0f, 0.0f, 1.0f }, 
+		{ 0.5f, 0.5f, 0.5f, 1.0f }  
+	};
+typedef struct pRasterFont{
+	struct X3D_Text myText;
+	struct X3D_FontStyle myFont;
+	//struct Uni_String myString;
+	bool rf_initialized;//= FALSE;
+	int xf_color;// = xf_white;
+	vec4f_t xf_colors[3]; /* = { 
+		{ 1.0f, 1.0f, 1.0f, 1.0f }, 
+		{ 0.0f, 0.0f, 0.0f, 1.0f }, 
+		{ 0.5f, 0.5f, 0.5f, 1.0f }  
+	};*/
+
+}* ppRasterFont;
+void *RasterFont_constructor(){
+	void *v = malloc(sizeof(struct pRasterFont));
+	memset(v,0,sizeof(struct pRasterFont));
+	return v;
+}
+void RasterFont_init(struct tRasterFont *t){
+	//public
+	//private
+	t->prv = RasterFont_constructor();
+	{
+		ppRasterFont p = (ppRasterFont)t->prv;
+		//p->myText;
+		//p->myFont;
+		//p->myString;
 
 
-static bool rf_initialized = FALSE;
+		p->rf_initialized = FALSE;
 
-static int xf_color = xf_white;
-static vec4f_t xf_colors[3] = { 
-    { 1.0f, 1.0f, 1.0f, 1.0f }, 
-    { 0.0f, 0.0f, 0.0f, 1.0f }, 
-    { 0.5f, 0.5f, 0.5f, 1.0f } 
-};
+		p->xf_color = xf_white;
+		memcpy(p->xf_colors,static_xf_colors,sizeof(static_xf_colors)); 
+		//{ 
+		//	{ 1.0f, 1.0f, 1.0f, 1.0f }, 
+		//	{ 0.0f, 0.0f, 0.0f, 1.0f }, 
+		//	{ 0.5f, 0.5f, 0.5f, 1.0f } 
+		//};
 
+	}
+}
 
 void rf_print(const char *text)
 {
+	ppRasterFont p = (ppRasterFont)gglobal()->RasterFont.prv;
 	/* has text changed? */
-	myText.string.p[0]->touched = 0;
-	verify_Uni_String (myText.string.p[0],(char *)text);
-	if (myText.string.p[0]->touched > 0) {
+	p->myText.string.p[0]->touched = 0;
+	verify_Uni_String (p->myText.string.p[0],(char *)text);
+	if (p->myText.string.p[0]->touched > 0) {
 		/* mark the FontStyle and Text node that things have changed */
-		myText._change++;
-		myFont._change++;
+		p->myText._change++;
+		p->myFont._change++;
 	}
 
-	render_Text (&myText);
+	render_Text (&p->myText);
 }
 
 
@@ -74,8 +120,9 @@ void rf_printf(int x, int y, const char *format, ...)
 #else
     va_list ap;
     char xfont_buffer[5000];
+	ppRasterFont p = (ppRasterFont)gglobal()->RasterFont.prv;
 
-    if (!rf_initialized) {
+    if (!p->rf_initialized) {
 	ERROR_MSG("xfont not initialized !!! initializing with defaults (fixed white)\n");
 	if (!rf_xfont_init("fixed")) {
 		return;
@@ -89,7 +136,7 @@ void rf_printf(int x, int y, const char *format, ...)
 
     FW_GL_RASTERPOS2I(x, y);
 
-    FW_GL_COLOR4FV(xf_colors[xf_color]);
+    FW_GL_COLOR4FV(p->xf_colors[p->xf_color]);
 
     rf_print(xfont_buffer);
 #endif
@@ -141,59 +188,64 @@ int rf_xfont_init(const char *fontname)
 {
 	/* create a new text node, but DO NOT call one of the createNewX3DNode interface, because we only
 		want a holder here, this is NOT a scenegraph node. */
+	ppRasterFont p = (ppRasterFont)gglobal()->RasterFont.prv;
 
 	/* write zeroes here - we do not want any pointers, parents, etc, etc. */
-	bzero (&myText,sizeof (struct X3D_Text));
+	bzero (&p->myText,sizeof (struct X3D_Text));
 
-	myText._nodeType=NODE_Text;
-	myText.fontStyle = NULL;
-	myText.solid = TRUE;
-	myText.__rendersub = 0;
-	myText.origin.c[0] = 0;myText.origin.c[1] = 0;myText.origin.c[2] = 0;;
+	p->myText._nodeType=NODE_Text;
+	p->myText.fontStyle = NULL;
+	p->myText.solid = TRUE;
+	p->myText.__rendersub = 0;
+	p->myText.origin.c[0] = 0;p->myText.origin.c[1] = 0;p->myText.origin.c[2] = 0;;
 
 	/* give this 1 string */
- myText.string.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);myText.string.p[0] = newASCIIString("Initial String for Status Line");myText.string.n=1; ;
+ p->myText.string.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);p->myText.string.p[0] = newASCIIString("Initial String for Status Line");p->myText.string.n=1; ;
 
 	
-	myText.textBounds.c[0] = 0;myText.textBounds.c[1] = 0;;
-	myText.length.n=0; myText.length.p=0;
-	myText.maxExtent = 0;
-	myText.lineBounds.n=0; myText.lineBounds.p=0;
-	myText.metadata = NULL;
-	myText._defaultContainer = FIELDNAMES_geometry;
+	p->myText.textBounds.c[0] = 0;p->myText.textBounds.c[1] = 0;;
+	p->myText.length.n=0; p->myText.length.p=0;
+	p->myText.maxExtent = 0;
+	p->myText.lineBounds.n=0; p->myText.lineBounds.p=0;
+	p->myText.metadata = NULL;
+	p->myText._defaultContainer = FIELDNAMES_geometry;
 
 	/* create a new FontStyle node here and link it in */
-	bzero (&myFont, sizeof (struct X3D_FontStyle));
+	bzero (&p->myFont, sizeof (struct X3D_FontStyle));
 
-	myFont._nodeType = NODE_FontStyle; /* needed for scenegraph structure in make_Text */
-	myFont.language = newASCIIString("");
-	myFont.leftToRight = TRUE;
-	myFont.topToBottom = TRUE;
-	myFont.style = newASCIIString("PLAIN");
-	myFont.size = 20.0f;
-	myFont.justify.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);myFont.justify.p[0] = newASCIIString("BEGIN");myFont.justify.n=1; ;
-	myFont.metadata = NULL;
-	myFont.spacing = 1;
-	myFont.horizontal = TRUE;
-	/* myFont.family.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);myFont.family.p[0] = newASCIIString("SERIF");myFont.family.n=1; */
-	myFont.family.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);myFont.family.p[0] = newASCIIString("TYPEWRITER");myFont.family.n=1; ;
-	myFont._defaultContainer = FIELDNAMES_fontStyle;
+	p->myFont._nodeType = NODE_FontStyle; /* needed for scenegraph structure in make_Text */
+	p->myFont.language = newASCIIString("");
+	p->myFont.leftToRight = TRUE;
+	p->myFont.topToBottom = TRUE;
+	p->myFont.style = newASCIIString("PLAIN");
+	p->myFont.size = 20.0f;
+	p->myFont.justify.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);p->myFont.justify.p[0] = newASCIIString("BEGIN");p->myFont.justify.n=1; ;
+	p->myFont.metadata = NULL;
+	p->myFont.spacing = 1;
+	p->myFont.horizontal = TRUE;
+	/* p->myFont.family.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);p->myFont.family.p[0] = newASCIIString("SERIF");p->myFont.family.n=1; */
+	p->myFont.family.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);p->myFont.family.p[0] = newASCIIString("TYPEWRITER");p->myFont.family.n=1; ;
+	p->myFont._defaultContainer = FIELDNAMES_fontStyle;
 
-	myText.fontStyle = X3D_NODE(&myFont);
-    rf_initialized = TRUE;
+	p->myText.fontStyle = X3D_NODE(&p->myFont);
+    p->rf_initialized = TRUE;
     return TRUE;
 }
 
 void rf_xfont_set_color(e_xfont_color_t index)
 {
+	ppRasterFont p = (ppRasterFont)gglobal()->RasterFont.prv;
+
     ASSERT(index < e_xfont_color_max);
-    xf_color = index;
+    p->xf_color = index;
 }
 
 void rf_xfont_set_usercolor(vec4f_t color)
 {
-    xf_colors[xf_user][0] = color[0];
-    xf_colors[xf_user][1] = color[1];
-    xf_colors[xf_user][2] = color[2];
-    xf_colors[xf_user][3] = color[3];
+	ppRasterFont p = (ppRasterFont)gglobal()->RasterFont.prv;
+
+    p->xf_colors[xf_user][0] = color[0];
+    p->xf_colors[xf_user][1] = color[1];
+    p->xf_colors[xf_user][2] = color[2];
+    p->xf_colors[xf_user][3] = color[3];
 }

@@ -188,6 +188,9 @@ typedef struct iiglobal //InstanceGlobal
 		int cc_changed;// = FALSE;
 		void *prv;
 	}OpenGL_Utils;
+	struct tRasterFont{
+		void *prv;
+	}RasterFont;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif
