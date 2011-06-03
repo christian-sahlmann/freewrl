@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.187 2011/06/03 17:34:05 dug9 Exp $
+  $Id: MainLoop.c,v 1.188 2011/06/03 19:44:10 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -70,12 +70,14 @@ void (*newResetGeometry) (void) = NULL;
 	#define USE_OSC 0
 #endif
 
-#ifdef AQUA
-	#include "../ui/aquaInt.h"
-	#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
-	CGLContextObj myglobalContext;
-	#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
-#endif /* AQUA */
+#ifdef OLDCODE
+OLDCODE#ifdef AQUA
+OLDCODE	#include "../ui/aquaInt.h"
+OLDCODE	#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
+OLDCODE	CGLContextObj myglobalContext;
+OLDCODE	#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
+OLDCODE#endif /* AQUA */
+#endif
 
 #if defined(_ANDROID )
 int ccurse;
@@ -1111,12 +1113,16 @@ void setup_projection(int pick, int x, int y)
 	/* <<< statusbar hud */
 
 	FW_GL_VIEWPORT(xvp,tg->Mainloop.clipPlane,screenwidth2,tg->display.screenHeight);
-#ifdef AQUA
-#if !defined(IPHONE) 
-        myglobalContext = CGLGetCurrentContext();
-	CGLSetCurrentContext(myglobalContext);
-#endif
-#endif
+
+#ifdef OLDCODE
+OLDCODE#ifdef AQUA
+OLDCODE#if !defined(IPHONE) 
+OLDCODE        myglobalContext = CGLGetCurrentContext();
+OLDCODE	CGLSetCurrentContext(myglobalContext);
+OLDCODE#endif
+OLDCODE#endif
+#endif // OLDCODE
+
 	FW_GL_VIEWPORT(xvp, tg->Mainloop.clipPlane, screenwidth2, tg->display.screenHeight);
         FW_GL_LOAD_IDENTITY();
         if(pick) {
@@ -2303,12 +2309,15 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 #endif
 #ifdef AQUA
 
+
 #if !defined(IPHONE) 
-void initGL() {
-        //printf ("OSX initGL called\n"); 
-        myglobalContext = CGLGetCurrentContext();
-        //printf ("initGL call finished - myglobalContext %u\n",myglobalContext);
-}
+#ifdef OLDCODE
+OLDCODEvoid initGL() {
+OLDCODE        //printf ("OSX initGL called\n"); 
+OLDCODE        myglobalContext = CGLGetCurrentContext();
+OLDCODE        //printf ("initGL call finished - myglobalContext %u\n",myglobalContext);
+OLDCODE}
+#endif // OLDCODE
 
 int getOffset() {
         return (int) offsetof(struct X3D_Group, children);
@@ -2407,20 +2416,22 @@ void fwl_init_EaiVerbose() {
 		gglobal()->EAI_C_CommonFunctions.eaiverbose = TRUE;
 }
 
-void fwl_askForRefreshOK() {
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-	p->askForRefresh = TRUE;
-}
-
-int fwl_checkRefresh() {
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-	return p->refreshOK;
-}
-
-void fwl_resetRefresh() {
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-	p->refreshOK = FALSE;
-}
+#ifdef OLDCODE
+OLDCODEvoid fwl_askForRefreshOK() {
+OLDCODE	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+OLDCODE	p->askForRefresh = TRUE;
+OLDCODE}
+OLDCODE
+OLDCODEint fwl_checkRefresh() {
+OLDCODE	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+OLDCODE	return p->refreshOK;
+OLDCODE}
+OLDCODE
+OLDCODEvoid fwl_resetRefresh() {
+OLDCODE	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+OLDCODE	p->refreshOK = FALSE;
+OLDCODE}
+#endif // OLDCODE
 
 /* called from the standalone OSX front end and the OSX plugin */
 void fwl_replaceWorldNeeded(char* str)
@@ -2442,11 +2453,16 @@ void stopRenderingLoop(void) {
 
     	//killErrantChildren();
 	/* lets do an equivalent to replaceWorldNeeded, but with NULL for the new world */
-#ifdef AQUA
-#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD) 
-	myglobalContext = NULL;
-#endif
-#endif
+
+#ifdef OLDCODE
+OLDCODE#ifdef AQUA
+OLDCODE#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD) 
+OLDCODE	myglobalContext = NULL;
+OLDCODE#endif
+OLDCODE#endif
+#endif // OLDCODE
+
+
         AnchorsAnchor = NULL;
         BrowserAction = TRUE;
         FREE_IF_NZ(OSX_replace_world_from_console);
