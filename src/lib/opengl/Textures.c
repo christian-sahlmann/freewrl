@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.99 2011/06/03 19:20:47 dug9 Exp $
+  $Id: Textures.c,v 1.100 2011/06/03 20:06:52 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -73,25 +73,68 @@ struct textureTableStruct {
 	struct textureTableStruct * next;
 	textureTableIndexStruct_s entry[32];
 };
-struct textureTableStruct* readTextureTable = NULL;
-
-static int nextFreeTexture = 0;
-char *workingOnFileName = NULL;
+//struct textureTableStruct* readTextureTable = NULL;
+//
+//static int nextFreeTexture = 0;
+//char *workingOnFileName = NULL;
 static void new_bind_image(struct X3D_Node *node, struct multiTexParams *param);
 textureTableIndexStruct_s *getTableIndex(int i);
-textureTableIndexStruct_s* loadThisTexture;
+//textureTableIndexStruct_s* loadThisTexture;
+//
+///* current index into loadparams that texture thread is working on */
+//int currentlyWorkingOn = -1;
+//
+//int textureInProcess = -1;
 
-/* current index into loadparams that texture thread is working on */
-int currentlyWorkingOn = -1;
+///* for texture remapping in TextureCoordinate nodes */
+//GLuint	*global_tcin;
+//int	global_tcin_count;
+//void 	*global_tcin_lastParent;
+//GLuint defaultBlankTexture;
 
-int textureInProcess = -1;
+typedef struct pTextures{
+	struct textureTableStruct* readTextureTable;// = NULL;
 
-/* for texture remapping in TextureCoordinate nodes */
-GLuint	*global_tcin;
-int	global_tcin_count;
-void 	*global_tcin_lastParent;
-GLuint defaultBlankTexture;
+	int nextFreeTexture;// = 0;
+	textureTableIndexStruct_s* loadThisTexture;
 
+	/* current index into loadparams that texture thread is working on */
+	int currentlyWorkingOn;// = -1;
+
+	int textureInProcess;// = -1;
+
+
+}* ppTextures;
+void *Textures_constructor(){
+	void *v = malloc(sizeof(struct pTextures));
+	memset(v,0,sizeof(struct pTextures));
+	return v;
+}
+void Textures_init(struct tTextures *t){
+	//public
+	/* for texture remapping in TextureCoordinate nodes */
+	//t->global_tcin;
+	//t->global_tcin_count;
+	//t->global_tcin_lastParent;
+	//t->defaultBlankTexture;
+
+	//private
+	t->prv = Textures_constructor();
+	{
+		ppTextures p = (ppTextures)t->prv;
+		p->readTextureTable = NULL;
+
+		p->nextFreeTexture = 0;
+		//p->loadThisTexture;
+
+		/* current index into loadparams that texture thread is working on */
+		p->currentlyWorkingOn = -1;
+
+		p->textureInProcess = -1;
+
+
+	}
+}
 
 #if defined(AQUA) /* for AQUA OS X sharing of OpenGL Contexts */
 
@@ -344,6 +387,8 @@ int fwl_isTextureLoaded(int texno) {
 
 /* statusbar uses this to tell user that we are still loading */
 int fwl_isTextureParsing() {
+	ppTextures p = (ppTextures)gglobal()->Textures.prv;
+
 	/* return currentlyWorkingOn>=0; */
 #ifdef TEXVERBOSE 
     if (textureInProcess > 0) {
@@ -351,7 +396,7 @@ int fwl_isTextureParsing() {
 	       textureInProcess,textureInProcess > 0);
     }
 #endif
-	return textureInProcess >0;
+	return p->textureInProcess >0;
 }
 
 /* this node has changed - if there was a texture, destroy it */
@@ -399,6 +444,7 @@ textureTableIndexStruct_s *getTableIndex(int indx) {
 	int whichBlock;
 	int whichEntry;
 	struct textureTableStruct * currentBlock;
+	ppTextures p = (ppTextures)gglobal()->Textures.prv;
 
 	whichBlock = (indx & 0xffe0) >> 5;
 	whichEntry = indx & 0x1f;
@@ -408,7 +454,7 @@ textureTableIndexStruct_s *getTableIndex(int indx) {
 		printf ("whichBlock = %d, wichEntry = %d ",whichBlock, whichEntry);
 #endif
 
-	currentBlock = readTextureTable;
+	currentBlock = p->readTextureTable;
 	for (count=0; count<whichBlock; count++) currentBlock = currentBlock->next;
 
 #ifdef TEXVERBOSE
@@ -431,6 +477,7 @@ void registerTexture(struct X3D_Node *tmp) {
 	int count;
 	int whichBlock;
 	int whichEntry;
+	ppTextures p = (ppTextures)gglobal()->Textures.prv;
 
 	it = (struct X3D_ImageTexture *) tmp;
 	/* printf ("registerTexture, found a %s\n",stringNodeType(it->_nodeType));  */
@@ -445,7 +492,7 @@ void registerTexture(struct X3D_Node *tmp) {
 		DEBUG_TEX("CREATING TEXTURE NODE: type %d\n", it->_nodeType);
 		/* I need to know the texture "url" here... */
 
-		if ((nextFreeTexture & 0x1f) == 0) {
+		if ((p->nextFreeTexture & 0x1f) == 0) {
 
 			newStruct = MALLOC (struct textureTableStruct*, sizeof (struct textureTableStruct));
 			
@@ -464,8 +511,8 @@ void registerTexture(struct X3D_Node *tmp) {
 			newStruct->next = NULL;
 			
 			/* link this one in */
-			listRunner = readTextureTable;
-			if (listRunner == NULL) readTextureTable = newStruct;
+			listRunner = p->readTextureTable;
+			if (listRunner == NULL) p->readTextureTable = newStruct;
 			else {
 				while (listRunner->next != NULL) 
 					listRunner = listRunner->next;
@@ -474,31 +521,31 @@ void registerTexture(struct X3D_Node *tmp) {
 		}
 
 		/* record the info for this texture. */
-		whichBlock = (nextFreeTexture & 0xffe0) >> 5;
-		whichEntry = nextFreeTexture & 0x1f;
+		whichBlock = (p->nextFreeTexture & 0xffe0) >> 5;
+		whichEntry = p->nextFreeTexture & 0x1f;
 
-		currentBlock = readTextureTable;
+		currentBlock = p->readTextureTable;
 		for (count=0; count<whichBlock; count++) currentBlock = currentBlock->next;
 
 		switch (it->_nodeType) {
 		/* save this index in the scene graph node */
 		case NODE_ImageTexture:
-			it->__textureTableIndex = nextFreeTexture;
+			it->__textureTableIndex = p->nextFreeTexture;
 			break;
 		case NODE_PixelTexture: {
 			struct X3D_PixelTexture *pt;
 			pt = (struct X3D_PixelTexture *) tmp;
-			pt->__textureTableIndex = nextFreeTexture;
+			pt->__textureTableIndex = p->nextFreeTexture;
 			break; }
 		case NODE_MovieTexture: {
 			struct X3D_MovieTexture *mt;
 			mt = (struct X3D_MovieTexture *) tmp;
-			mt->__textureTableIndex = nextFreeTexture;
+			mt->__textureTableIndex = p->nextFreeTexture;
 			break; }
 		case NODE_VRML1_Texture2: {
 			struct X3D_VRML1_Texture2 *v1t;
 			v1t = (struct X3D_VRML1_Texture2 *) tmp;
-			v1t->__textureTableIndex = nextFreeTexture;
+			v1t->__textureTableIndex = p->nextFreeTexture;
 			break; }
 /* JAS still to implement 
 		case NODE_GeneratedCubeMapTexture: {
@@ -511,7 +558,7 @@ void registerTexture(struct X3D_Node *tmp) {
 		case NODE_ImageCubeMapTexture: {
 			struct X3D_ImageCubeMapTexture *v1t;
 			v1t = (struct X3D_ImageCubeMapTexture *) tmp;
-			v1t->__textureTableIndex = nextFreeTexture;
+			v1t->__textureTableIndex = p->nextFreeTexture;
 			break;
 		}
 		}
@@ -525,7 +572,7 @@ void registerTexture(struct X3D_Node *tmp) {
 			(int) currentBlock->entry[1].scenegraphNode);
 #endif
 		/* now, lets increment for the next texture... */
-		nextFreeTexture += 1;
+		p->nextFreeTexture += 1;
 	}
 }
 
@@ -1490,7 +1537,9 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 
 	textureTableIndexStruct_s *myTableIndex;
 	float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
+	ppTextures p;
 	ttglobal tg = gglobal();
+	p = (ppTextures)tg->Textures.prv;
 
 	GET_THIS_TEXTURE;
 	myTableIndex = getTableIndex(thisTexture);
@@ -1501,7 +1550,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	}
 
 	/* default here; this is just a blank texture */
-	boundTextureStack[textureStackTop] = defaultBlankTexture;
+	boundTextureStack[textureStackTop] = tg->Textures.defaultBlankTexture;
 
 	switch (myTableIndex->status) {
 		case TEX_NOTLOADED:
@@ -1557,7 +1606,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			 
 			tg->RenderTextures.textureParameterStack[textureStackTop] = (void*)param; 
 	
-			textureInProcess = -1; /* we have finished the whole process */
+			p->textureInProcess = -1; /* we have finished the whole process */
 			break;
 			
 		case TEX_UNSQUASHED:

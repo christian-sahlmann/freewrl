@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.26 2011/06/03 19:20:48 dug9 Exp $
+$Id: Textures.h,v 1.27 2011/06/03 20:06:52 dug9 Exp $
 
 Screen snapshot.
 
@@ -54,8 +54,8 @@ struct textureTableIndexStruct {
 };
 typedef struct textureTableIndexStruct textureTableIndexStruct_s;
 
-extern textureTableIndexStruct_s* loadThisTexture;
-extern GLuint defaultBlankTexture;
+//extern textureTableIndexStruct_s* loadThisTexture;
+//extern GLuint defaultBlankTexture;
 
 /* Vertex Array to Vertex Buffer Object migration - used to have a passedInGenTex() 
    when we had (for instance) Cone textures - put this as part of the VBO. */
@@ -141,9 +141,9 @@ extern int textureStackTop;
 //extern void *textureParameterStack[];
 extern GLuint boundTextureStack[]; /* defined as MAX_MULTITEXTURE in size */
 
-extern GLuint     *global_tcin;
-extern int     global_tcin_count; 
-extern void 	*global_tcin_lastParent;
+//extern GLuint     *global_tcin;
+//extern int     global_tcin_count; 
+//extern void 	*global_tcin_lastParent;
 
 extern void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo *tex);
 extern void textureDraw_end(void);

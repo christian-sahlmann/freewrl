@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.20 2011/06/02 19:50:43 dug9 Exp $
+$Id: Component_Texturing.c,v 1.21 2011/06/03 20:06:52 dug9 Exp $
 
 X3D Texturing Component
 
@@ -94,7 +94,7 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 	#endif
 
 	float *fptr;
-
+	ttglobal tg = gglobal();
 
 	#ifdef TEXVERBOSE
 	printf ("rendering TextureCoordinate node __compiledpoint %d\n",node->__compiledpoint);
@@ -102,19 +102,19 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 	#endif
 
 	/* is node the statusbar? we should *always* have a global_tcin textureIndex */
-	if (global_tcin == 0) return;
+	if (tg->Textures.global_tcin == 0) return;
 
 	/* note: IF this TextureCoordinate is USEd in more than one node, WE CAN NOT "pre-compile" the
 	   coordinates, because, potentially the order of texture coordinate usage would be different. 
 	   So, in the case where there is more than 1 parent, we have to re-calculate this ordering 
 	   every time a texture is displayed */
 
-	if (NODE_NEEDS_COMPILING || (node->__lastParent != global_tcin_lastParent)) {
+	if (NODE_NEEDS_COMPILING || (node->__lastParent != tg->Textures.global_tcin_lastParent)) {
 
 		MARK_NODE_COMPILED
 
 		if (node->__compiledpoint.n == 0) {
-			node->__compiledpoint.n = global_tcin_count;
+			node->__compiledpoint.n = tg->Textures.global_tcin_count;
 			FREE_IF_NZ(node->__compiledpoint.p);
 		} 
 
@@ -129,8 +129,8 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 		/* ok, we have a bunch of triangles, loop through and stream the texture coords
 		   into a format that matches 1 for 1, the coordinates */
 	
-		for (i=0; i<global_tcin_count; i++) {
-			op = global_tcin[i];
+		for (i=0; i<tg->Textures.global_tcin_count; i++) {
+			op = tg->Textures.global_tcin[i];
 	
 			/* bounds check - is the tex coord greater than the number of points? 	*/
 			/* node should have been checked before hand...				*/
@@ -187,17 +187,17 @@ printf ("       %d: %4.3f ",i,*tp); tp++; printf ("%4.3f\n",*tp); tp++;
 */
 
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,node->__VBO);
-			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*global_tcin_count, node->__compiledpoint.p, GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*tg->Textures.global_tcin_count, node->__compiledpoint.p, GL_STATIC_DRAW);
 			FREE_IF_NZ(node->__compiledpoint.p);
 		}
 	}
 
 
 	/* keep this last parent around, so that MAYBE we do not have to re-do the compiled node */
-	node->__lastParent = global_tcin_lastParent;
+	node->__lastParent = tg->Textures.global_tcin_lastParent;
 
-	if (node->__compiledpoint.n < global_tcin_count) {
-		printf ("TextureCoordinate - problem %d < %d\n",node->__compiledpoint.n,global_tcin_count);
+	if (node->__compiledpoint.n < tg->Textures.global_tcin_count) {
+		printf ("TextureCoordinate - problem %d < %d\n",node->__compiledpoint.n,tg->Textures.global_tcin_count);
 	}
 
 }

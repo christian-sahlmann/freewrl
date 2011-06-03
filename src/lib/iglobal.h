@@ -195,6 +195,14 @@ typedef struct iiglobal //InstanceGlobal
 		void *textureParameterStack[10]; //MAX_MULTITEXTURE];
 		void *prv;
 	}RenderTextures;
+	struct tTextures{
+		/* for texture remapping in TextureCoordinate nodes */
+		GLuint	*global_tcin;
+		int	global_tcin_count;
+		void 	*global_tcin_lastParent;
+		GLuint defaultBlankTexture;
+		void *prv;
+	}Textures;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif
