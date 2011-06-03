@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.17 2011/06/02 19:50:43 dug9 Exp $
+$Id: ColladaParser.c,v 1.18 2011/06/03 01:43:52 dug9 Exp $
 
 ???
 
@@ -53,6 +53,11 @@ $Id: ColladaParser.c,v 1.17 2011/06/02 19:50:43 dug9 Exp $
 #include "ColladaParser.h"
 
 
+#define INCREMENT_PARENTINDEXC \
+        if (parentIndex < (PARENTSTACKSIZE-2))  { \
+                parentIndex++; \
+                p->colladaParentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
+        } else ConsoleMessage ("ColladaParser, line %d stack overflow",LINE);
 
 #if HAVE_EXPAT_H
 # include <expat.h>
@@ -101,14 +106,45 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 #endif /* HAVE_LIBXML_PARSER_H */
 
 //#define PROTOINSTANCE_MAX_LEVELS 10
-static XML_Parser colladaParser[PROTOINSTANCE_MAX_LEVELS];
-static XML_Parser currentColladaParser = NULL;
-//static int parentIndex = 0;
-static int ColladaParserRecurseLevel = 0;
-static int inCDATA = FALSE;
-struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
-static int indentLevel = 0;
+//static XML_Parser colladaParser[PROTOINSTANCE_MAX_LEVELS];
+//static XML_Parser currentColladaParser = NULL;
+////static int parentIndex = 0;
+//static int ColladaParserRecurseLevel = 0;
+//static int inCDATA = FALSE;
+//struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
+//static int indentLevel = 0;
 
+typedef struct pColladaParser{
+	XML_Parser colladaParser[PROTOINSTANCE_MAX_LEVELS];
+	XML_Parser currentColladaParser;// = NULL;
+	//int parentIndex = 0;
+	int ColladaParserRecurseLevel;// = 0;
+	int inCDATA;// = FALSE;
+	struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
+	int indentLevel;// = 0;
+
+}* ppColladaParser;
+void *ColladaParser_constructor(){
+	void *v = malloc(sizeof(struct pColladaParser));
+	memset(v,0,sizeof(struct pColladaParser));
+	return v;
+}
+void ColladaParser_init(struct tColladaParser *t){
+	//public
+	//private
+	t->prv = ColladaParser_constructor();
+	{
+		ppColladaParser p = (ppColladaParser)t->prv;
+		p->colladaParser[PROTOINSTANCE_MAX_LEVELS];
+		p->currentColladaParser = NULL;
+		//static int parentIndex = 0;
+		p->ColladaParserRecurseLevel = 0;
+		p->inCDATA = FALSE;
+		//p->colladaParentStack[PARENTSTACKSIZE];
+		p->indentLevel = 0;
+
+	}
+}
 
 static void XMLCALL startCDATA (void *userData) {
         if (CDATA_Text_curlen != 0) {
@@ -123,7 +159,7 @@ printf ("CADAT_Text:%s:\n",CDATA_Text);
         #ifdef COLLADAPARSERVERBOSE
         printf ("startCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getParserMode()]);
         #endif
-        inCDATA = TRUE;
+        ((ppColladaParser)(gglobal()->ColladaParser.prv))->inCDATA = TRUE;
 }
 
 static void XMLCALL endCDATA (void *userData, const xmlChar *value, int len) {
@@ -131,7 +167,7 @@ static void XMLCALL endCDATA (void *userData, const xmlChar *value, int len) {
         printf ("endCDATA, cur index %d\n",CDATA_Text_curlen);
         printf ("endCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[getParserMode()]);
         #endif
-        inCDATA = FALSE;
+        ((ppColladaParser)(gglobal()->ColladaParser.prv))->inCDATA = FALSE;
 
         /* x3d specific dumpCDATAtoProtoBody (CDATA_Text); */
 
@@ -162,11 +198,11 @@ static void XMLCALL ColladaStartElement(void *unused, const xmlChar *name, const
 }
 #endif
 
-	indentLevel++;
+	((ppColladaParser)(gglobal()->ColladaParser.prv))->indentLevel++;
 }
 
 static void XMLCALL ColladaEndElement(void *unused, const xmlChar *name) {
-	indentLevel--;
+	((ppColladaParser)(gglobal()->ColladaParser.prv))->indentLevel--;
 
 #ifdef COLLADAVERBOSE
 {int i; for (i=0; i< indentLevel; i++) printf ("  ");
@@ -178,58 +214,61 @@ static void XMLCALL ColladaEndElement(void *unused, const xmlChar *name) {
 
 
 static XML_Parser initializeColladaParser () {
-	ColladaParserRecurseLevel++;
+	ppColladaParser p = (ppColladaParser)gglobal()->ColladaParser.prv;
+	p->ColladaParserRecurseLevel++;
 
-	if (ColladaParserRecurseLevel >= PROTOINSTANCE_MAX_LEVELS) {
+	if (p->ColladaParserRecurseLevel >= PROTOINSTANCE_MAX_LEVELS) {
 		ConsoleMessage ("XML_PARSER init: XML file PROTO nested too deep\n");
-		ColladaParserRecurseLevel--;
+		p->ColladaParserRecurseLevel--;
 	} else {
-		XML_CreateParserLevel(colladaParser[ColladaParserRecurseLevel]);
-		XML_SetElementHandler(colladaParser[ColladaParserRecurseLevel], ColladaStartElement, ColladaEndElement);
-		XML_SetCdataSectionHandler (colladaParser[ColladaParserRecurseLevel], startCDATA, endCDATA);
-		XML_SetDefaultHandler (colladaParser[ColladaParserRecurseLevel],handleCDATA);
-		XML_SetUserData(colladaParser[ColladaParserRecurseLevel], &parentIndex);
+		XML_CreateParserLevel(p->colladaParser[p->ColladaParserRecurseLevel]);
+		XML_SetElementHandler(p->colladaParser[p->ColladaParserRecurseLevel], ColladaStartElement, ColladaEndElement);
+		XML_SetCdataSectionHandler (p->colladaParser[p->ColladaParserRecurseLevel], startCDATA, endCDATA);
+		XML_SetDefaultHandler (p->colladaParser[p->ColladaParserRecurseLevel],handleCDATA);
+		XML_SetUserData(p->colladaParser[p->ColladaParserRecurseLevel], &parentIndex);
 	}
 	/* printf ("initializeColladaParser, level %d, parser %u\n",colladaParser[ColladaParserRecurseLevel]); */
 
-	return colladaParser[ColladaParserRecurseLevel];
+	return p->colladaParser[p->ColladaParserRecurseLevel];
 }
 
 static void shutdownColladaParser () {
+	ppColladaParser p = (ppColladaParser)gglobal()->ColladaParser.prv;
 	/* printf ("shutdownColladaParser, recurseLevel %d\n",ColladaParserRecurseLevel); */
-	XML_ParserFree(colladaParser[ColladaParserRecurseLevel]);
-	ColladaParserRecurseLevel--;
+	XML_ParserFree(p->colladaParser[p->ColladaParserRecurseLevel]);
+	p->ColladaParserRecurseLevel--;
 	
 	/* lets free up memory here for possible PROTO variables */
-	if (ColladaParserRecurseLevel == INT_ID_UNDEFINED) {
+	if (p->ColladaParserRecurseLevel == INT_ID_UNDEFINED) {
 		/* if we are at the bottom of the parser call nesting, lets reset parentIndex */
 		parentIndex = 0;
 		/* x3d specific freeProtoMemory (); */
 	}
 
-	if (ColladaParserRecurseLevel < INT_ID_UNDEFINED) {
+	if (p->ColladaParserRecurseLevel < INT_ID_UNDEFINED) {
 		ConsoleMessage ("XML_PARSER close underflow");
-		ColladaParserRecurseLevel = INT_ID_UNDEFINED;
+		p->ColladaParserRecurseLevel = INT_ID_UNDEFINED;
 	}
 
 	/* CDATA text space, free it up */
         FREE_IF_NZ(CDATA_Text);
-	if (ColladaParserRecurseLevel > INT_ID_UNDEFINED)
-		currentColladaParser = colladaParser[ColladaParserRecurseLevel];
+	if (p->ColladaParserRecurseLevel > INT_ID_UNDEFINED)
+		p->currentColladaParser = p->colladaParser[p->ColladaParserRecurseLevel];
 
 	/* printf ("shutdownColladaParser, current ColladaParser %u\n",currentColladaParser); */
 }
 
 int ColladaParse (struct X3D_Group* myParent, const char *inputstring) {
-	currentColladaParser = initializeColladaParser();
+	ppColladaParser p = (ppColladaParser)gglobal()->ColladaParser.prv;
+	p->currentColladaParser = initializeColladaParser();
 
 	/* printf ("X3DParse, current ColladaParser is %u\n",currentColladaParser); */
 
 
 	INCREMENT_PARENTINDEXC
-	colladaParentStack[parentIndex] = X3D_NODE(myParent);
+	p->colladaParentStack[parentIndex] = X3D_NODE(myParent);
 
-	if (XML_ParseFile(currentColladaParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
+	if (XML_ParseFile(p->currentColladaParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
 		fprintf(stderr,
 			"%s at line %" XML_FMT_INT_MOD "u\n",
 			XML_ErrorString(XML_GetErrorCode(currentColladaParser)),

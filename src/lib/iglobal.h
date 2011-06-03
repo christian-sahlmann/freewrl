@@ -147,6 +147,9 @@ typedef struct iiglobal //InstanceGlobal
 
 		void *prv;
 	} ProdCon;
+	struct tColladaParser{
+		void *prv;
+	}ColladaParser;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif

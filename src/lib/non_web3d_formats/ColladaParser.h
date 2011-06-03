@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.h,v 1.4 2011/05/28 17:11:42 dug9 Exp $
+$Id: ColladaParser.h,v 1.5 2011/06/03 01:43:52 dug9 Exp $
 
 Collada parser functions.
 
@@ -49,13 +49,13 @@ int freewrl_XML_GetCurrentLineNumber();
 extern int CDATA_Text_curlen;
 extern char *CDATA_Text;
 
-extern struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
+//extern struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
 
-#define INCREMENT_PARENTINDEXC \
-        if (parentIndex < (PARENTSTACKSIZE-2))  { \
-                parentIndex++; \
-                colladaParentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
-        } else ConsoleMessage ("ColladaParser, line %d stack overflow",LINE);
+//#define INCREMENT_PARENTINDEXC \
+//        if (parentIndex < (PARENTSTACKSIZE-2))  { \
+//                parentIndex++; \
+//                colladaParentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
+//        } else ConsoleMessage ("ColladaParser, line %d stack overflow",LINE);
 
 int ColladaParse (struct X3D_Group* myParent, const char *inputstring);
 

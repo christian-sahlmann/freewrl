@@ -28,6 +28,7 @@ void SenseInterps_init(struct tSenseInterps *t);
 void ConsoleMessage_init(struct tConsoleMessage *t);
 void Mainloop_init(struct tMainloop *t);
 void ProdCon_init(struct tProdCon *t);
+void ColladaParser_init(struct tColladaParser *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -59,6 +60,8 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	ConsoleMessage_init(&iglobal->ConsoleMessage);
 	Mainloop_init(&iglobal->Mainloop);
 	ProdCon_init(&iglobal->ProdCon);
+	ColladaParser_init(&iglobal->ColladaParser);
+
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
 	return iglobal;
@@ -66,6 +69,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->ColladaParser.prv);
 	FREE_IF_NZ(tg->ProdCon.prv);
 	FREE_IF_NZ(tg->Mainloop.prv);
 	FREE_IF_NZ(tg->ConsoleMessage.prv);
