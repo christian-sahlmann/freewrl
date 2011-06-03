@@ -33,6 +33,7 @@ void Frustum_init(struct tFrustum *t);
 void LoadTextures_init(struct tLoadTextures *t);
 void OpenGL_Utils_init(struct tOpenGL_Utils *t);
 void RasterFont_init(struct tRasterFont *t);
+void RenderTextures_init(struct tRenderTextures *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -69,6 +70,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	LoadTextures_init(&iglobal->LoadTextures);
 	OpenGL_Utils_init(&iglobal->OpenGL_Utils);
 	RasterFont_init(&iglobal->RasterFont);
+	RenderTextures_init(&iglobal->RenderTextures);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -77,6 +79,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->RenderTextures.prv);
 	FREE_IF_NZ(tg->RasterFont.prv);
 	FREE_IF_NZ(tg->OpenGL_Utils.prv);
 	FREE_IF_NZ(tg->LoadTextures.prv);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.25 2011/05/25 19:26:34 davejoubert Exp $
+$Id: Textures.h,v 1.26 2011/06/03 19:20:48 dug9 Exp $
 
 Screen snapshot.
 
@@ -137,7 +137,8 @@ struct multiTexParams {
 extern int textureStackTop; 
 
 /* what are the textures, and what are the multitexturing parameters if more than one? */
-extern struct multiTexParams *textureParameterStack[];
+//extern struct multiTexParams *textureParameterStack[];
+//extern void *textureParameterStack[];
 extern GLuint boundTextureStack[]; /* defined as MAX_MULTITEXTURE in size */
 
 extern GLuint     *global_tcin;

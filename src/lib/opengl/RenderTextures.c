@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.39 2011/06/02 19:50:43 dug9 Exp $
+$Id: RenderTextures.c,v 1.40 2011/06/03 19:20:47 dug9 Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -47,9 +47,29 @@ texture enabling - works for single texture, for multitexture.
 #include "Material.h"
 
 
+///* variables for keeping track of status */
+//static int currentTextureUnit = 99;
+//struct multiTexParams *textureParameterStack[MAX_MULTITEXTURE];
+//void *textureParameterStack[MAX_MULTITEXTURE];
+typedef struct pRenderTextures{
 /* variables for keeping track of status */
-static int currentTextureUnit = 99;
-struct multiTexParams *textureParameterStack[MAX_MULTITEXTURE];
+int currentTextureUnit;// = 99;
+
+}* ppRenderTextures;
+void *RenderTextures_constructor(){
+	void *v = malloc(sizeof(struct pRenderTextures));
+	memset(v,0,sizeof(struct pRenderTextures));
+	return v;
+}
+void RenderTextures_init(struct tRenderTextures *t){
+	//t->textureParameterStack[];
+	t->prv = RenderTextures_constructor();
+	{
+		ppRenderTextures p = (ppRenderTextures)t->prv;
+		/* variables for keeping track of status */
+		p->currentTextureUnit = 99;
+	}
+}
 
 
 /* function params */
@@ -87,18 +107,21 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 {
         struct multiTexParams *paramPtr;
 	float allones[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	ppRenderTextures p;
+	ttglobal tg = gglobal();
+	p = (ppRenderTextures)tg->RenderTextures.prv;
 
-	if (gglobal()->display.rdr_caps.av_multitexture) {
+	if (tg->display.rdr_caps.av_multitexture) {
 	    
-	    if (c != currentTextureUnit) {
+	    if (c != p->currentTextureUnit) {
 		SET_TEXTURE_UNIT(c);
-		currentTextureUnit = c;
+		p->currentTextureUnit = c;
 	    }
 
 	} else {
 
 	    // this should be already set
-	    currentTextureUnit = 0;
+	    p->currentTextureUnit = 0;
 	
 	    #ifdef IPHONE
 		/* printf ("forcing texture unit to zero and sending in uniform for shader \n"); */
@@ -116,7 +139,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 	   bind_image, we store a pointer for the texture parameters. It is
 	   NULL, possibly different for MultiTextures */
 
-	if (textureParameterStack[c] == NULL) {
+	if (tg->RenderTextures.textureParameterStack[c] == NULL) {
 		#ifdef TEXVERBOSE
 		printf ("setActiveTexture - simple texture NOT a MultiTexture \n"); 
 		#endif
@@ -140,7 +163,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 #endif /* SHADERS_2011 */
 
 	} else {
-		paramPtr = textureParameterStack[c];
+		paramPtr = (struct multiTexParams *)tg->RenderTextures.textureParameterStack[c];
 
 		/* is this texture unit active? ie is mode something other than "OFF"? */
 		if (paramPtr->texture_env_mode != 0) {
@@ -250,20 +273,21 @@ void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo* genTex) 
 /* lets disable textures here */
 void textureDraw_end(void) {
 	int c;
-
-
+	ppRenderTextures p;
+	ttglobal tg = gglobal();
+	p = (ppRenderTextures)tg->RenderTextures.prv;
 
 #ifdef TEXVERBOSE
 	printf ("start of textureDraw_end\n");
 #endif
 
-	if (gglobal()->display.rdr_caps.av_multitexture) { // test the availability at runtime of multi textures
+	if (tg->display.rdr_caps.av_multitexture) { // test the availability at runtime of multi textures
 
 	    for (c=0; c<textureStackTop; c++) {
 
-		if (c != currentTextureUnit) {
+		if (c != p->currentTextureUnit) {
 			SET_TEXTURE_UNIT(c);
-			currentTextureUnit = c;
+			p->currentTextureUnit = c;
 		}
 
 	        if (this_textureTransform) end_textureTransform();

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.84 2011/06/03 15:27:00 dug9 Exp $
+$Id: Component_Shape.c,v 1.85 2011/06/03 19:20:48 dug9 Exp $
 
 X3D Shape Component
 
@@ -874,6 +874,7 @@ void child_Shape (struct X3D_Shape *node) {
 	float ecol[4];
 	float scol[4];
 	float amb;
+	ttglobal tg = gglobal();
 
 	COMPILE_IF_REQUIRED
 
@@ -920,22 +921,38 @@ void child_Shape (struct X3D_Shape *node) {
 	printf ("child_Shape, material_oneSided %u, textureStackTop %d\n",material_oneSided,textureStackTop);
 	{int i; for (i=0; i<textureStackTop; i++) {
 		printf ("boundTextureStack[%d] is texture %d\n",i,boundTextureStack[i]);
-		if (textureParameterStack[i] == NULL) {
+		if (tg->RenderTextures.textureParameterStack[i] == NULL) {
 			printf ("textureParameterStack empty\n");
 		} else {
-			printf ("	texture_env_mode	 %d\n",textureParameterStack[i]->texture_env_mode);
-			printf ("	combine_rgb		 %d\n",textureParameterStack[i]->combine_rgb);
-			printf ("	source0_rgb		 %d\n",textureParameterStack[i]->source0_rgb);
-			printf ("	operand0_rgb		 %d\n",textureParameterStack[i]->operand0_rgb);
-			printf ("	source1_rgb		 %d\n",textureParameterStack[i]->source1_rgb);
-			printf ("	operand1_rgb		 %d\n",textureParameterStack[i]->operand1_rgb);
-			printf ("	combine_alpha		 %d\n",textureParameterStack[i]->combine_alpha);
-			printf ("	source0_alpha		 %d\n",textureParameterStack[i]->source0_alpha);
-			printf ("	operand0_alpha		 %d\n",textureParameterStack[i]->operand0_alpha);
-			printf ("	source1_alpha		 %d\n",textureParameterStack[i]->source1_alpha);
-			printf ("	operand1_alpha		 %d\n",textureParameterStack[i]->operand1_alpha);
-			printf ("	rgb_scale		 %d\n",textureParameterStack[i]->rgb_scale);
-			printf ("	alpha_scale		 %d\n",textureParameterStack[i]->alpha_scale);
+			struct multiTexParams *tps = (struct multiTexParams *)tg->RenderTextures.textureParameterStack[i];
+			printf ("	texture_env_mode	 %d\n",tps->texture_env_mode);
+			printf ("	combine_rgb		 %d\n",tps->combine_rgb);
+			printf ("	source0_rgb		 %d\n",tps->source0_rgb);
+			printf ("	operand0_rgb		 %d\n",tps->operand0_rgb);
+			printf ("	source1_rgb		 %d\n",tps->source1_rgb);
+			printf ("	operand1_rgb		 %d\n",tps->operand1_rgb);
+			printf ("	combine_alpha		 %d\n",tps->combine_alpha);
+			printf ("	source0_alpha		 %d\n",tps->source0_alpha);
+			printf ("	operand0_alpha		 %d\n",tps->operand0_alpha);
+			printf ("	source1_alpha		 %d\n",tps->source1_alpha);
+			printf ("	operand1_alpha		 %d\n",tps->operand1_alpha);
+			printf ("	rgb_scale		 %d\n",tps->rgb_scale);
+			printf ("	alpha_scale		 %d\n",tps->alpha_scale);
+
+			//printf ("	texture_env_mode	 %d\n",textureParameterStack[i]->texture_env_mode);
+			//printf ("	combine_rgb		 %d\n",textureParameterStack[i]->combine_rgb);
+			//printf ("	source0_rgb		 %d\n",textureParameterStack[i]->source0_rgb);
+			//printf ("	operand0_rgb		 %d\n",textureParameterStack[i]->operand0_rgb);
+			//printf ("	source1_rgb		 %d\n",textureParameterStack[i]->source1_rgb);
+			//printf ("	operand1_rgb		 %d\n",textureParameterStack[i]->operand1_rgb);
+			//printf ("	combine_alpha		 %d\n",textureParameterStack[i]->combine_alpha);
+			//printf ("	source0_alpha		 %d\n",textureParameterStack[i]->source0_alpha);
+			//printf ("	operand0_alpha		 %d\n",textureParameterStack[i]->operand0_alpha);
+			//printf ("	source1_alpha		 %d\n",textureParameterStack[i]->source1_alpha);
+			//printf ("	operand1_alpha		 %d\n",textureParameterStack[i]->operand1_alpha);
+			//printf ("	rgb_scale		 %d\n",textureParameterStack[i]->rgb_scale);
+			//printf ("	alpha_scale		 %d\n",textureParameterStack[i]->alpha_scale);
+
 		}
 	}
 	}

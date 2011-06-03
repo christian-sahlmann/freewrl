@@ -191,6 +191,10 @@ typedef struct iiglobal //InstanceGlobal
 	struct tRasterFont{
 		void *prv;
 	}RasterFont;
+	struct tRenderTextures{
+		void *textureParameterStack[10]; //MAX_MULTITEXTURE];
+		void *prv;
+	}RenderTextures;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif
