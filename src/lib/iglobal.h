@@ -1,3 +1,25 @@
+/*
+The globals have 'private' and 'public' facilities
+1. if the variables are used only in one source file, they go 
+    in a ppFileName struct in Filename.c
+2. if the variables are used in other source files (via extern) then either:
+2a. add getter and setter functions and keep private, or
+2b. add directly to iiglobal struct in iglobal.h, in the struct tFileName sub-struct
+2bi. in this case if its a pointer to a complex type, put as void* in iglobal and 
+     add casting to the code (so iglobal.h doesn't have to #include a bunch of headers)
+ 
+Variable initialization:
+1. for private: in a //private section in FileName_init(..) p->variable = const value
+2. for public: in a //public section in FileName_init(..) t->variable = const value
+ 
+Variable use:
+1. for private: ppFileName p = (ppFileName)gglobal()->FileName.prv;
+-- p->variable = ...
+2. for public:  gglobal()->FileName.variable = ...
+
+*/
+
+
 #ifndef INSTANCEGLOBAL
 #include "display.h" //for opengl_utils.h which is for rdr_caps
 #include "opengl/OpenGL_Utils.h"  //for rdr_caps

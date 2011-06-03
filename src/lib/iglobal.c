@@ -1,16 +1,16 @@
-#include <internal.h>
-#include <config.h>
-#include <system.h>
-#include <system_threads.h>
-#include <internal.h>
-#include <display.h>
-#include <threads.h>
-#include <libFreeWRL.h>
-
-#include "vrml_parser/Structs.h"
-#include "opengl/Textures.h"
-#include "opengl/RasterFont.h"
-#include "opengl/OpenGL_Utils.h"
+#include <internal.h> //needed for opengl_utils.h included in iglobal.h
+//#include <config.h>
+//#include <system.h>
+//#include <system_threads.h>
+//#include <internal.h>
+//#include <display.h>
+//#include <threads.h>
+//#include <libFreeWRL.h>
+//
+//#include "vrml_parser/Structs.h"
+//#include "opengl/Textures.h"
+//#include "opengl/RasterFont.h"
+//#include "opengl/OpenGL_Utils.h"
 #include <iglobal.h>
 
 
