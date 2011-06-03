@@ -203,6 +203,9 @@ typedef struct iiglobal //InstanceGlobal
 		GLuint defaultBlankTexture;
 		void *prv;
 	}Textures;
+	struct tPluginSocket{
+		void *prv;
+	}PluginSocket;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif

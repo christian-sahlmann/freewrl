@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: PluginSocket.c,v 1.16 2011/06/02 19:50:43 dug9 Exp $
+$Id: PluginSocket.c,v 1.17 2011/06/03 20:39:00 dug9 Exp $
 
 Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
@@ -50,15 +50,41 @@ Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 #define FSIGOK
 #endif
 
-pthread_mutex_t mylocker = PTHREAD_MUTEX_INITIALIZER;
+//pthread_mutex_t mylocker = PTHREAD_MUTEX_INITIALIZER;
 
-#define LOCK_PLUGIN_COMMUNICATION pthread_mutex_lock(&mylocker);
-#define UNLOCK_PLUGIN_COMMUNICATION pthread_mutex_unlock(&mylocker);
+#define LOCK_PLUGIN_COMMUNICATION pthread_mutex_lock(&p->mylocker);
+#define UNLOCK_PLUGIN_COMMUNICATION pthread_mutex_unlock(&p->mylocker);
 
-fd_set rfds;
-struct timeval tv;
+//fd_set rfds;
+//struct timeval tv;
+//char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
 
-char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
+typedef struct pPluginSocket{
+	pthread_mutex_t mylocker;// = PTHREAD_MUTEX_INITIALIZER;
+	fd_set rfds;
+	struct timeval tv;
+	char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
+
+}* ppPluginSocket;
+void *PluginSocket_constructor(){
+	void *v = malloc(sizeof(struct pPluginSocket));
+	memset(v,0,sizeof(struct pPluginSocket));
+	return v;
+}
+void PluginSocket_init(struct tPluginSocket *t){
+	//public
+	//private
+	t->prv = PluginSocket_constructor();
+	{
+		ppPluginSocket p = (ppPluginSocket)t->prv;
+		pthread_mutex_init(&(p->mylocker), NULL);
+		//p->rfds;
+		//p->tv;
+		//p->return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
+	}
+}
+
+
 //extern double TickTime;
 double TickTime();
 
@@ -66,9 +92,10 @@ double TickTime();
 #if defined(_MSC_VER)
 #else
 #ifdef PLUGINSOCKETVERBOSE
-static struct timeval mytime;
+//static struct timeval mytime;
 
 static double Time1970sec(void) {
+		struct timeval mytime;
         gettimeofday(&mytime, NULL);
         return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 }
@@ -96,6 +123,7 @@ int waitForData(int sock) {
 	int retval;
 	int count;
 	int totalcount;
+	ppPluginSocket p = (ppPluginSocket)gglobal()->PluginSocket.prv;
 
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("waitForData, socket %d\n",sock);
@@ -112,13 +140,13 @@ int waitForData(int sock) {
 		#endif
 		*/
 
-		tv.tv_sec = 0;
-		tv.tv_usec = 100;
-		FD_ZERO(&rfds);
-		FD_SET(sock, &rfds);
+		p->tv.tv_sec = 0;
+		p->tv.tv_usec = 100;
+		FD_ZERO(&p->rfds);
+		FD_SET(sock, &p->rfds);
 
 		/* wait for the socket. We HAVE to select on "sock+1" - RTFM */
-		retval = select(sock+1, &rfds, NULL, NULL, &tv);
+		retval = select(sock+1, &p->rfds, NULL, NULL, &p->tv);
 
 
 		if (retval) {
@@ -168,6 +196,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	int linelen;
 	char buf[2004];
 	char encodedUrl[2000];
+	ppPluginSocket p = (ppPluginSocket)gglobal()->PluginSocket.prv;
 
 	LOCK_PLUGIN_COMMUNICATION
 
@@ -186,7 +215,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 
 	len = FILENAME_MAX * sizeof(char);
 	memset(request.url, 0, len);
-	memset(return_url, 0, len);
+	memset(p->return_url, 0, len);
 
 	ulen = strlen(encodedUrl) + 1;
 	memmove(request.url, encodedUrl, ulen);
@@ -228,7 +257,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 		return NULL;
 	}
 
-	if (read(to_plugin, (char *) return_url, len) < 0) {
+	if (read(to_plugin, (char *) p->return_url, len) < 0) {
 		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint("read failed in requestUrlfromPlugin","");
 		pluginprint("Testing: error from read -- returned url is %s.\n", return_url);
@@ -244,10 +273,10 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 
 	/* is this a string from URLNotify? (see plugin code for this "special" string) */
 	#define returnErrorString "this file is not to be found on the internet"
-	if (strncmp(return_url,returnErrorString,strlen(returnErrorString)) == 0) return NULL;
+	if (strncmp(p->return_url,returnErrorString,strlen(returnErrorString)) == 0) return NULL;
 
 	/* now, did this request return a text file with a html page indicating 404- not found? */
-	infile = fopen (return_url,"r");
+	infile = fopen (p->return_url,"r");
 	if (infile == NULL) {
 		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint ("requestUrlFromPlugin, file %s could not be opened",return_url);
@@ -283,7 +312,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	UNLOCK_PLUGIN_COMMUNICATION
 
 	/* we must be returning something here */
-	return return_url;
+	return p->return_url;
 }
 
 
@@ -296,6 +325,7 @@ void requestNewWindowfromPlugin(int sockDesc,
 {
 	size_t len = 0, ulen = 0, bytes = 0;
 	urlRequest request;
+	ppPluginSocket p = (ppPluginSocket)gglobal()->PluginSocket.prv;
 
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestNewWindow fromPlugin, getting %s\n",url);
@@ -306,7 +336,7 @@ void requestNewWindowfromPlugin(int sockDesc,
 
 	len = FILENAME_MAX * sizeof(char);
 	memset(request.url, 0, len);
-	memset(return_url, 0, len);
+	memset(p->return_url, 0, len);
 
 	ulen = strlen(url) + 1;
 	memmove(request.url, url, ulen);

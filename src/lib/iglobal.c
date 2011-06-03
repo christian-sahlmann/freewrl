@@ -35,6 +35,7 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t);
 void RasterFont_init(struct tRasterFont *t);
 void RenderTextures_init(struct tRenderTextures *t);
 void Textures_init(struct tTextures *t);
+void PluginSocket_init(struct tPluginSocket *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -73,6 +74,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	RasterFont_init(&iglobal->RasterFont);
 	RenderTextures_init(&iglobal->RenderTextures);
 	Textures_init(&iglobal->Textures);
+	PluginSocket_init(&iglobal->PluginSocket);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -81,6 +83,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->PluginSocket.prv);
 	FREE_IF_NZ(tg->Textures.prv);
 	FREE_IF_NZ(tg->RenderTextures.prv);
 	FREE_IF_NZ(tg->RasterFont.prv);
