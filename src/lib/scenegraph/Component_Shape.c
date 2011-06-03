@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.83 2011/06/02 19:50:43 dug9 Exp $
+$Id: Component_Shape.c,v 1.84 2011/06/03 15:27:00 dug9 Exp $
 
 X3D Shape Component
 
@@ -839,14 +839,14 @@ PRINT_GL_ERROR_IF_ANY("");
 		sendMaterialsToShader(appearanceProperties.currentShaderProperties);
 
 		#ifdef SHAPEOCCLUSION
-		BEGINOCCLUSIONQUERY;
+		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,render_geom); //BEGINOCCLUSIONQUERY;
 		#endif
 
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
 		render_node(tmpN);
 
 		#ifdef SHAPEOCCLUSION
-		ENDOCCLUSIONQUERY;
+		endOcclusionQuery((struct X3D_VisibilitySensor*)node,render_geom); //ENDOCCLUSIONQUERY;
 		#endif
 	}
 
@@ -1010,13 +1010,13 @@ void child_Shape (struct X3D_Shape *node) {
 	if (render_blend == (node->_renderFlags & VF_Blend)) {
 
 		#ifdef SHAPEOCCLUSION
-		BEGINOCCLUSIONQUERY;
+		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,render_geom); //BEGINOCCLUSIONQUERY;
 		#endif
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
 		render_node(tmpN);
 
 		#ifdef SHAPEOCCLUSION
-		ENDOCCLUSIONQUERY;
+		endOcclusionQuery((struct X3D_VisibilitySensor*)node,render_geom); //ENDOCCLUSIONQUERY;
 		#endif
 	}
 

@@ -166,12 +166,15 @@ typedef struct iiglobal //InstanceGlobal
 		void *setBackgroundBindInRender;// = NULL;
 		void *setNavigationBindInRender;// = NULL;
 		void *savedParser; //struct VRMLParser* savedParser;
-
 		void *prv;
 	} ProdCon;
 	struct tColladaParser{
 		void *prv;
 	}ColladaParser;
+	struct tFrustum{
+		int OccFailed;//. = FALSE;
+		void *prv;
+	} Frustum;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.41 2011/06/02 19:50:43 dug9 Exp $
+$Id: Frustum.c,v 1.42 2011/06/03 15:27:00 dug9 Exp $
 
 ???
 
@@ -83,29 +83,117 @@ static void multiply_in_scale(struct point_XYZ *arr, float x, float y, float z, 
 #define OCCSHAPESAMPLESIZE	1	
 
 
-/* Occlusion VisibilitySensor code */
-GLuint *OccQueries = NULL;
+///* Occlusion VisibilitySensor code */
+//GLuint *OccQueries = NULL;
+//
+///* newer occluder code */
+//GLuint potentialOccluderCount = 0;
+//void ** occluderNodePointer = NULL;
+//
+///* older occluder code */
+//#ifdef OCCLUSION 
+//static int maxOccludersFound = 0;
+//static int QueryCount = 0;
+//static int OccInitialized = FALSE;
+//#endif
+//
+//GLuint OccQuerySize=0;
+//
+//	#ifdef OCCLUSIONVERBOSE
+//		static GLint queryCounterBits;
+//	#endif
+//
+//int OccFailed = FALSE;
+//GLint OccResultsAvailable = FALSE;
 
-/* newer occluder code */
-GLuint potentialOccluderCount = 0;
-void ** occluderNodePointer = NULL;
+typedef struct pFrustum{
+	/* Occlusion VisibilitySensor code */
+	GLuint *OccQueries;// = NULL;
 
-/* older occluder code */
-#ifdef OCCLUSION 
-static int maxOccludersFound = 0;
-static int QueryCount = 0;
-static int OccInitialized = FALSE;
-#endif
+	/* newer occluder code */
+	GLuint potentialOccluderCount;// = 0;
+	void ** occluderNodePointer;// = NULL;
 
-GLuint OccQuerySize=0;
-
-	#ifdef OCCLUSIONVERBOSE
-		static GLint queryCounterBits;
+	/* older occluder code */
+	#ifdef OCCLUSION 
+	int maxOccludersFound;// = 0;
+	int QueryCount;// = 0;
+	int OccInitialized;// = FALSE;
 	#endif
 
-int OccFailed = FALSE;
-GLint OccResultsAvailable = FALSE;
+	GLuint OccQuerySize;//=0;
 
+		#ifdef OCCLUSIONVERBOSE
+			GLint queryCounterBits;
+		#endif
+
+	GLint OccResultsAvailable;// = FALSE;
+
+}* ppFrustum;
+void *Frustum_constructor(){
+	void *v = malloc(sizeof(struct pFrustum));
+	memset(v,0,sizeof(struct pFrustum));
+	return v;
+}
+void Frustum_init(struct tFrustum *t){
+	//public
+	t->OccFailed = FALSE;
+	//private
+	t->prv = Frustum_constructor();
+	{
+		ppFrustum p = (ppFrustum)t->prv;
+		/* Occlusion VisibilitySensor code */
+		p->OccQueries = NULL;
+
+		/* newer occluder code */
+		p->potentialOccluderCount = 0;
+		p->occluderNodePointer = NULL;
+
+		/* older occluder code */
+		#ifdef OCCLUSION 
+		p->maxOccludersFound = 0;
+		p->QueryCount = 0;
+		p->OccInitialized = FALSE;
+		#endif
+
+		p->OccQuerySize=0;
+
+			#ifdef OCCLUSIONVERBOSE
+				//p->queryCounterBits;
+			#endif
+
+		p->OccResultsAvailable = FALSE;
+	}
+}
+
+void beginOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
+{
+	ppFrustum p = (ppFrustum)gglobal()->Frustum.prv;
+	if (render_geometry) { 
+		if (p->potentialOccluderCount < p->OccQuerySize) { 
+/* printf ("beginOcclusionQuery, potoc %d occQ %d\n",p->potentialOccluderCount, p->OccQuerySize, node->__occludeCheckCount); */ 
+			if (node->__occludeCheckCount < 0) { 
+				/* printf ("beginOcclusionQuery, query %u, node %s\n",p->potentialOccluderCount, stringNodeType(node->_nodeType)); */ 
+				FW_GL_BEGIN_QUERY(GL_SAMPLES_PASSED, p->OccQueries[p->potentialOccluderCount]); 
+				p->occluderNodePointer[p->potentialOccluderCount] = (void *)node; 
+			} 
+		}
+	} 
+}
+
+void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
+{
+	ppFrustum p = (ppFrustum)gglobal()->Frustum.prv;
+	if (render_geometry) { 
+		if (p->potentialOccluderCount < p->OccQuerySize) { 
+			if (node->__occludeCheckCount < 0) { 
+				/* printf ("glEndQuery node %u\n",node); */ 
+				FW_GL_END_QUERY(GL_SAMPLES_PASSED); 
+				p->potentialOccluderCount++; 
+			} 
+		} 
+	} 
+}
 
 #define PROP_EXTENT_CHECK \
 		if (maxx > geomParent->EXTENT_MAX_X) {geomParent->EXTENT_MAX_X = maxx; touched = TRUE;} \
@@ -750,24 +838,26 @@ void OcclusionStartofRenderSceneUpdateScene() {
 
 #ifdef OCCLUSION /* do we have hardware for occlusion culling? */
 	int i;
-
+	ppFrustum p;
+	ttglobal tg = gglobal();
+	p = (ppFrustum)gglobal()->Frustum.prv;
 	/* each time through the event loop, we count the occluders. Note, that if, say, a 
 	   shape was USED 100 times, that would be 100 occlude queries, BUT ONE SHAPE, thus
 	   there is not an implicit 1:1 mapping between shapes and occlude queries */
 
-	potentialOccluderCount = 0;
+	p->potentialOccluderCount = 0;
 
 	/* did we have a failure here ? */
-	if (OccFailed) return;
+	if (tg->Frustum.OccFailed) return;
 
 	/* have we been through this yet? */
-	if (OccInitialized == FALSE) {
+	if (p->OccInitialized == FALSE) {
 		#ifdef OCCLUSIONVERBOSE
 		printf ("initializing OcclusionCulling...\n");
 		#endif
 		/* do we have an environment variable for this? */
 		if (gglobal()->internalc.global_occlusion_disable) {
-			OccFailed = TRUE;
+			tg->Frustum.OccFailed = TRUE;
 		} else {
 	        	if (gglobal()->display.rdr_caps.av_occlusion_q) {
 		
@@ -777,16 +867,16 @@ void OcclusionStartofRenderSceneUpdateScene() {
 	
 				/* we make the OccQuerySize larger than the maximum number of occluders,
 				   so we don't have to realloc too much */
-				OccQuerySize = maxOccludersFound + 1000;
+				p->OccQuerySize = p->maxOccludersFound + 1000;
 
-				occluderNodePointer = MALLOC (void **, sizeof (void *) * OccQuerySize);
-				OccQueries = MALLOC (GLuint *, sizeof(GLuint) * OccQuerySize);
-	                	FW_GL_GENQUERIES(OccQuerySize,OccQueries);
-				OccInitialized = TRUE;
-				for (i=0; i<OccQuerySize; i++) {
-					occluderNodePointer[i] = 0;
+				p->occluderNodePointer = MALLOC (void **, sizeof (void *) * p->OccQuerySize);
+				p->OccQueries = MALLOC (GLuint *, sizeof(GLuint) * p->OccQuerySize);
+	                	FW_GL_GENQUERIES(p->OccQuerySize,p->OccQueries);
+				p->OccInitialized = TRUE;
+				for (i=0; i<p->OccQuerySize; i++) {
+					p->occluderNodePointer[i] = 0;
 				}
-				QueryCount = maxOccludersFound; /* for queries - we can do this number */
+				p->QueryCount = p->maxOccludersFound; /* for queries - we can do this number */
 				#ifdef OCCLUSIONVERBOSE
 				printf ("QueryCount now %d\n",QueryCount);
 				#endif
@@ -798,7 +888,7 @@ void OcclusionStartofRenderSceneUpdateScene() {
 
 				/* we dont seem to have this extension here at runtime! */
 				/* this happened, eg, on my Core4 AMD64 box with Mesa	*/
-				OccFailed = TRUE;
+				tg->Frustum.OccFailed = TRUE;
 				return;
 			}
 		}
@@ -807,26 +897,26 @@ void OcclusionStartofRenderSceneUpdateScene() {
 
 
 	/* did we find more shapes than before? */
-	if (maxOccludersFound > QueryCount) {
-        	if (maxOccludersFound > OccQuerySize) {
+	if (p->maxOccludersFound > p->QueryCount) {
+        	if (p->maxOccludersFound > p->OccQuerySize) {
         	        /* printf ("have to regen queries\n"); */
-			QueryCount = 0;
+			p->QueryCount = 0;
 
 			/* possibly previous had zero occluders, lets just not bother deleting for zero */
-			if (OccQuerySize > 0) {
-				FW_GL_DELETE_QUERIES (OccQuerySize, OccQueries);
+			if (p->OccQuerySize > 0) {
+				FW_GL_DELETE_QUERIES (p->OccQuerySize, p->OccQueries);
 				FW_GL_FLUSH();
 			}
 
-			OccQuerySize = maxOccludersFound + 1000;
-			occluderNodePointer = REALLOC (occluderNodePointer,sizeof (void *) * OccQuerySize);
-			OccQueries = REALLOC (OccQueries,sizeof (int) * OccQuerySize);
-        	        FW_GL_GENQUERIES(OccQuerySize,OccQueries);
-			for (i=0; i<OccQuerySize; i++) {
-				occluderNodePointer[i] = 0;
+			p->OccQuerySize = p->maxOccludersFound + 1000;
+			p->occluderNodePointer = REALLOC (p->occluderNodePointer,sizeof (void *) * p->OccQuerySize);
+			p->OccQueries = REALLOC (p->OccQueries,sizeof (int) * p->OccQuerySize);
+        	        FW_GL_GENQUERIES(p->OccQuerySize,p->OccQueries);
+			for (i=0; i<p->OccQuerySize; i++) {
+				p->occluderNodePointer[i] = 0;
 			}
 		}
-		QueryCount = maxOccludersFound; /* for queries - we can do this number */
+		p->QueryCount = p->maxOccludersFound; /* for queries - we can do this number */
 		#ifdef OCCLUSIONVERBOSE
 		printf ("QueryCount here is %d\n",QueryCount);
 		#endif
@@ -849,12 +939,16 @@ void OcclusionCulling ()  {
 	struct X3D_VisibilitySensor *visSenPtr;
 	int checkCount;
 	GLint samples;
-
+	ppFrustum p;
+	ttglobal tg = gglobal();
+	p = (ppFrustum)tg->Frustum.prv;
 
 #ifdef OCCLUSIONVERBOSE
+	{
 	GLint query;
 	FW_GL_GET_QUERYIV(GL_SAMPLES_PASSED, GL_CURRENT_QUERY, &query);
 	printf ("currentQuery is %d\n",query);
+	}
 #endif
 
 	visSenPtr = NULL;
@@ -866,7 +960,7 @@ void OcclusionCulling ()  {
 	zeroVisibilityFlag();
 
 	/* Step 1. did we have some problem with Occlusion ? */
-	if (OccFailed) return;
+	if (tg->Frustum.OccFailed) return;
 	 
 	/* Step 2. go through the list of "OccludeCount" nodes, and determine if they are visible. 
 	   If they are not, then, we have to, at some point, make them visible, so that we can test again. */
@@ -878,7 +972,7 @@ void OcclusionCulling ()  {
 	printf ("OcclusionCulling - potentialOccluderCount %d\n",potentialOccluderCount);
 	#endif
 
-	for (i=0; i<potentialOccluderCount; i++) {
+	for (i=0; i<p->potentialOccluderCount; i++) {
 		#ifdef OCCLUSIONVERBOSE
 		printf ("checking node %d of %d\n",i, potentialOccluderCount);
 		#endif
@@ -886,7 +980,7 @@ void OcclusionCulling ()  {
 		checkCount = 0;
 
 		/* get the check count field for this node - see if we did a check of this */
-		shapePtr = X3D_SHAPE(occluderNodePointer[i]);
+		shapePtr = X3D_SHAPE(p->occluderNodePointer[i]);
 		if (shapePtr != NULL) {
 			if (shapePtr->_nodeType == NODE_Shape) {
 				visSenPtr = NULL;
@@ -908,15 +1002,15 @@ void OcclusionCulling ()  {
 
 		/* an Occlusion test will have been run on this one */
 
-		FW_GL_GETQUERYOBJECTIV(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
+		FW_GL_GETQUERYOBJECTIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
 		PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
 
 		#define SLEEP_FOR_QUERY_RESULTS
 		#ifdef SLEEP_FOR_QUERY_RESULTS
 		/* for now, lets loop to see when we get results */
-		while (OccResultsAvailable == GL_FALSE) {
+		while (p->OccResultsAvailable == GL_FALSE) {
 			usleep(100);
-			FW_GL_GETQUERYOBJECTIV(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
+			FW_GL_GETQUERYOBJECTIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
 			PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
 		}
 		#endif
@@ -928,16 +1022,16 @@ void OcclusionCulling ()  {
 
 
 		/* if we are NOT ready; we keep the count going, but we do NOT change the results of VisibilitySensors */
-		if (OccResultsAvailable == GL_FALSE) samples = 10000;  
+		if (p->OccResultsAvailable == GL_FALSE) samples = 10000;  
 			
-	        FW_GL_GETQUERYOBJECTIV (OccQueries[i], GL_QUERY_RESULT, &samples);
+	        FW_GL_GETQUERYOBJECTIV (p->OccQueries[i], GL_QUERY_RESULT, &samples);
 		PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY");
 				
 		#ifdef OCCLUSIONVERBOSE
 		printf ("i %d checkc %d samples %d\n",i,checkCount,samples);
 		#endif
 	
-		if (occluderNodePointer[i] != 0) {
+		if (p->occluderNodePointer[i] != 0) {
 		
 			/* if this is a VisibilitySensor, record the samples */
 			if (visSenPtr != NULL) {
@@ -1006,27 +1100,31 @@ void zeroOcclusion(void) {
 #ifdef OCCLUSION /* do we have hardware for occlusion culling? */
 
 	int i;
-	if (OccFailed) return;
+	ppFrustum p;
+	ttglobal tg = gglobal();
+	p= (ppFrustum)tg->Frustum.prv;
+
+	if (tg->Frustum.OccFailed) return;
 
         #ifdef OCCLUSIONVERBOSE
         printf ("zeroOcclusion - potentialOccluderCount %d\n",potentialOccluderCount);
         #endif
 
-        for (i=0; i<potentialOccluderCount; i++) {
+        for (i=0; i<p->potentialOccluderCount; i++) {
 #ifdef OCCLUSIONVERBOSE
                 printf ("checking node %d of %d\n",i, potentialOccluderCount);
 #endif
 
-                FW_GL_GETQUERYOBJECTIV(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
+                FW_GL_GETQUERYOBJECTIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
                 PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
 
                 /* for now, lets loop to see when we get results */
-                while (OccResultsAvailable == GL_FALSE) {
+                while (p->OccResultsAvailable == GL_FALSE) {
 #ifdef OCCLUSIONVERBOSE
                         printf ("zero - waiting and looping for results\n"); 
 #endif
                         usleep(1000);
-                        FW_GL_GETQUERYOBJECTIV(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
+                        FW_GL_GETQUERYOBJECTIV(p->OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&p->OccResultsAvailable);
                         PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");
                 }
 	}
@@ -1034,15 +1132,15 @@ void zeroOcclusion(void) {
 	printf ("zeroOcclusion - done waiting\n");
 #endif
 
-	QueryCount = 0;
-	FW_GL_DELETE_QUERIES (OccQuerySize, OccQueries);
+	p->QueryCount = 0;
+	FW_GL_DELETE_QUERIES (p->OccQuerySize, p->OccQueries);
 	FW_GL_FLUSH();
 	
-	OccQuerySize=0;
-	maxOccludersFound = 0;
-	OccInitialized = FALSE;
-	potentialOccluderCount = 0;
-	FREE_IF_NZ(OccQueries);
-	FREE_IF_NZ(occluderNodePointer);
+	p->OccQuerySize=0;
+	p->maxOccludersFound = 0;
+	p->OccInitialized = FALSE;
+	p->potentialOccluderCount = 0;
+	FREE_IF_NZ(p->OccQueries);
+	FREE_IF_NZ(p->occluderNodePointer);
 #endif /* OCCLUSION */
 }

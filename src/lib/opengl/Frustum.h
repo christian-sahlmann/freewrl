@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.h,v 1.12 2011/05/17 13:58:29 crc_canada Exp $
+$Id: Frustum.h,v 1.13 2011/06/03 15:27:00 dug9 Exp $
 
 Global includes.
 
@@ -51,15 +51,15 @@ Global includes.
 	#define SHAPEOCCLUSION
 #endif
 
-extern GLuint OccQuerySize;
-extern GLint OccResultsAvailable;
-extern int OccFailed;
-extern int *OccCheckCount;
-extern GLuint *OccQueries;
-extern void * *OccNodes;
+//extern GLuint OccQuerySize;
+//extern GLint OccResultsAvailable;
+//extern int OccFailed;
+//extern int *OccCheckCount;
+//extern GLuint *OccQueries;
+//extern void * *OccNodes;
 int newOcclude(void);
-extern GLuint potentialOccluderCount;
-extern void* *occluderNodePointer;
+//extern GLuint potentialOccluderCount;
+//extern void* *occluderNodePointer;
 
 #ifdef OCCLUSION
 #define OCCLUSIONTEST \
@@ -78,30 +78,33 @@ extern void* *occluderNodePointer;
 #endif
 
 
+void beginOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry);
+void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry);
 
+/*
 #define BEGINOCCLUSIONQUERY \
 	if (render_geom) { \
 		if (potentialOccluderCount < OccQuerySize) { \
-/* printf ("beginOcclusionQuery, potoc %d occQ %d\n",potentialOccluderCount, OccQuerySize, node->__occludeCheckCount); */ \
+ printf ("beginOcclusionQuery, potoc %d occQ %d\n",potentialOccluderCount, OccQuerySize, node->__occludeCheckCount);  \
 			if (node->__occludeCheckCount < 0) { \
-				/* printf ("beginOcclusionQuery, query %u, node %s\n",potentialOccluderCount, stringNodeType(node->_nodeType)); */ \
+				 printf ("beginOcclusionQuery, query %u, node %s\n",potentialOccluderCount, stringNodeType(node->_nodeType));  \
 				FW_GL_BEGIN_QUERY(GL_SAMPLES_PASSED, OccQueries[potentialOccluderCount]); \
 				occluderNodePointer[potentialOccluderCount] = (void *)node; \
 			} \
 		} \
 	} 
 
-
 #define ENDOCCLUSIONQUERY \
 	if (render_geom) { \
 		if (potentialOccluderCount < OccQuerySize) { \
 			if (node->__occludeCheckCount < 0) { \
-				/* printf ("glEndQuery node %u\n",node); */ \
+				 printf ("glEndQuery node %u\n",node);  \
 				FW_GL_END_QUERY(GL_SAMPLES_PASSED); \
 				potentialOccluderCount++; \
 			} \
 		} \
 	} 
+*/
 
 void moveAndRotateThisPoint(struct point_XYZ *mypt, double x, double y, double z, double *MM);
 void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float minz, struct X3D_Node *me);
