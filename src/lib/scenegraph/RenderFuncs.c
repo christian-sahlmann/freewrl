@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.102 2011/06/02 19:50:43 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.103 2011/06/04 17:33:47 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -211,9 +211,9 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 
 /* finished rendering thisshape. */
 void turnGlobalShaderOff(void) {
-	if (appearanceProperties.currentShader != 0) {
-		appearanceProperties.currentShader = 0;
-		appearanceProperties.currentShaderProperties = NULL;
+	if (getAppearanceProperties()->currentShader != 0) {
+		getAppearanceProperties()->currentShader = 0;
+		getAppearanceProperties()->currentShaderProperties = NULL;
 		USE_SHADER(0);
 	}
 
@@ -229,12 +229,12 @@ void turnGlobalShaderOff(void) {
 /* choose and turn on a shader for this geometry */
 void enableGlobalShader(shader_type_t requestedShader) {
 
-	appearanceProperties.currentShaderProperties = &(gglobal()->display.rdr_caps.backgroundShaderArrays[requestedShader]);
-	appearanceProperties.currentShader = appearanceProperties.currentShaderProperties->myShaderProgram;
-	USE_SHADER(appearanceProperties.currentShader);
+	getAppearanceProperties()->currentShaderProperties = &(gglobal()->display.rdr_caps.backgroundShaderArrays[requestedShader]);
+	getAppearanceProperties()->currentShader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
+	USE_SHADER(getAppearanceProperties()->currentShader);
 
 	/* send in the current position and modelview matricies */
-	sendMatriciesToShader(appearanceProperties.currentShaderProperties); 
+	sendMatriciesToShader(getAppearanceProperties()->currentShaderProperties); 
 
 }
 
@@ -243,21 +243,21 @@ void enableGlobalShader(shader_type_t requestedShader) {
 void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer, char *file, int line){
 
 #ifdef RENDERVERBOSE
-printf ("sendAttribToGPU, appearanceProperties.currentShaderProperties %p\n",appearanceProperties.currentShaderProperties);
+printf ("sendAttribToGPU, getAppearanceProperties()->currentShaderProperties %p\n",getAppearanceProperties()->currentShaderProperties);
 printf ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSize,dataType,stride);
-	if (appearanceProperties.currentShaderProperties != NULL) {
+	if (getAppearanceProperties()->currentShaderProperties != NULL) {
 		switch (myType) {
 			case FW_NORMAL_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Normals %d at %s:%d\n",appearanceProperties.currentShaderProperties->Normals,file,line);
+				printf ("glVertexAttribPointer  Normals %d at %s:%d\n",getAppearanceProperties()->currentShaderProperties->Normals,file,line);
 				break;
 			case FW_VERTEX_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Vertexs %d at %s:%d\n",appearanceProperties.currentShaderProperties->Vertices,file,line);
+				printf ("glVertexAttribPointer  Vertexs %d at %s:%d\n",getAppearanceProperties()->currentShaderProperties->Vertices,file,line);
 				break;
 			case FW_COLOR_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Colours %d at %s:%d\n",appearanceProperties.currentShaderProperties->Colours,file,line);
+				printf ("glVertexAttribPointer  Colours %d at %s:%d\n",getAppearanceProperties()->currentShaderProperties->Colours,file,line);
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
-				printf ("glVertexAttribPointer  TexCoords %d at %s:%d\n",appearanceProperties.currentShaderProperties->TexCoords,file,line);
+				printf ("glVertexAttribPointer  TexCoords %d at %s:%d\n",getAppearanceProperties()->currentShaderProperties->TexCoords,file,line);
 				break;
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
@@ -265,30 +265,30 @@ printf ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSize,dataT
 	}
 #endif
 
-	if (appearanceProperties.currentShaderProperties != NULL) {
+	if (getAppearanceProperties()->currentShaderProperties != NULL) {
 		switch (myType) {
 			case FW_NORMAL_POINTER_TYPE:
-			if (appearanceProperties.currentShaderProperties->Normals != -1) {
-				glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Normals);
-				glVertexAttribPointer(appearanceProperties.currentShaderProperties->Normals, 3, dataType, normalized, stride, pointer);
+			if (getAppearanceProperties()->currentShaderProperties->Normals != -1) {
+				glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
+				glVertexAttribPointer(getAppearanceProperties()->currentShaderProperties->Normals, 3, dataType, normalized, stride, pointer);
 			}
 				break;
 			case FW_VERTEX_POINTER_TYPE:
-			if (appearanceProperties.currentShaderProperties->Vertices != -1) {
-				glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Vertices);
-				glVertexAttribPointer(appearanceProperties.currentShaderProperties->Vertices, dataSize, dataType, normalized, stride, pointer);
+			if (getAppearanceProperties()->currentShaderProperties->Vertices != -1) {
+				glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
+				glVertexAttribPointer(getAppearanceProperties()->currentShaderProperties->Vertices, dataSize, dataType, normalized, stride, pointer);
 			}
 				break;
 			case FW_COLOR_POINTER_TYPE:
-			if (appearanceProperties.currentShaderProperties->Colours != -1) {
-				glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Colours);
-				glVertexAttribPointer(appearanceProperties.currentShaderProperties->Colours, dataSize, dataType, normalized, stride, pointer);
+			if (getAppearanceProperties()->currentShaderProperties->Colours != -1) {
+				glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
+				glVertexAttribPointer(getAppearanceProperties()->currentShaderProperties->Colours, dataSize, dataType, normalized, stride, pointer);
 			}
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
-			if (appearanceProperties.currentShaderProperties->TexCoords != -1) {
-				glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
-				glVertexAttribPointer(appearanceProperties.currentShaderProperties->TexCoords, dataSize, dataType, normalized, stride, pointer);
+			if (getAppearanceProperties()->currentShaderProperties->TexCoords != -1) {
+				glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
+				glVertexAttribPointer(getAppearanceProperties()->currentShaderProperties->TexCoords, dataSize, dataType, normalized, stride, pointer);
 			}
 				break;
 
@@ -322,7 +322,7 @@ printf ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSize,dataT
 }
 
 void sendClientStateToGPU(int enable, int cap) {
-	if (appearanceProperties.currentShaderProperties != NULL) {
+	if (getAppearanceProperties()->currentShaderProperties != NULL) {
 		switch (cap) {
 			case GL_NORMAL_ARRAY:
 				shaderNormalArray = enable;
@@ -340,7 +340,7 @@ void sendClientStateToGPU(int enable, int cap) {
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 		}
 #ifdef RENDERVERBOSE
-printf ("sendClientStateToGPU: appearanceProperties.currentShaderProperties %p \n",appearanceProperties.currentShaderProperties);
+printf ("sendClientStateToGPU: getAppearanceProperties()->currentShaderProperties %p \n",getAppearanceProperties()->currentShaderProperties);
 if (shaderNormalArray) printf ("enabling Normal\n"); else printf ("disabling Normal\n");
 if (shaderVertexArray) printf ("enabling Vertex\n"); else printf ("disabling Vertex\n");
 if (shaderColourArray) printf ("enabling Colour\n"); else printf ("disabling Colour\n");
@@ -374,8 +374,8 @@ void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 
 void sendArraysToGPU (int mode, int first, int count) {
 	#ifdef RENDERVERBOSE
-	printf ("sendArraysToGPU; appearanceProperties.currentShaderProperties %p (true %d) normal %d vertex %d colour %d texture %d\n",
-	appearanceProperties.currentShaderProperties,TRUE, shaderNormalArray,shaderVertexArray,shaderColourArray,shaderTextureArray);
+	printf ("sendArraysToGPU; getAppearanceProperties()->currentShaderProperties %p (true %d) normal %d vertex %d colour %d texture %d\n",
+	getAppearanceProperties()->currentShaderProperties,TRUE, shaderNormalArray,shaderVertexArray,shaderColourArray,shaderTextureArray);
 	if (shaderNormalArray) printf ("glEnableVertexAttribArray Normal\n"); else printf ("glDisableVertexAttribArray Normal\n");
 	if (shaderVertexArray) printf ("glEnableVertexAttribArray Vertex\n"); else printf ("glDisableVertexAttribArray Vertex\n");
 	if (shaderColourArray) printf ("glEnableVertexAttribArray Colour\n"); else printf ("glDisableVertexAttribArray Colour\n");
@@ -384,10 +384,10 @@ void sendArraysToGPU (int mode, int first, int count) {
 	#endif
 
 
-	if (appearanceProperties.currentShaderProperties != NULL) {
+	if (getAppearanceProperties()->currentShaderProperties != NULL) {
 
 		/* if we had a shader compile problem, do not draw */
-		if (!(appearanceProperties.currentShaderProperties->compiledOK)) {
+		if (!(getAppearanceProperties()->currentShaderProperties->compiledOK)) {
 			#ifdef RENDERVERBOSE
 			printf ("shader compile error\n");
 			#endif
@@ -395,24 +395,24 @@ void sendArraysToGPU (int mode, int first, int count) {
 		}
 
 
-	if (appearanceProperties.currentShaderProperties->Normals != -1) {
-			if (shaderNormalArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Normals);
-			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->Normals);
+	if (getAppearanceProperties()->currentShaderProperties->Normals != -1) {
+			if (shaderNormalArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
+			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
 	}
 
-	if (appearanceProperties.currentShaderProperties->Vertices != -1) {
-			if (shaderVertexArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Vertices);
-			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->Vertices);
+	if (getAppearanceProperties()->currentShaderProperties->Vertices != -1) {
+			if (shaderVertexArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
+			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
 	}
 
-	if (appearanceProperties.currentShaderProperties->Colours != -1) {
-			if (shaderColourArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Colours);
-			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->Colours);
+	if (getAppearanceProperties()->currentShaderProperties->Colours != -1) {
+			if (shaderColourArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
+			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
 	}
 
-	if (appearanceProperties.currentShaderProperties->TexCoords != -1) {
-			if (shaderTextureArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
-			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
+	if (getAppearanceProperties()->currentShaderProperties->TexCoords != -1) {
+			if (shaderTextureArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
+			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
 	} 
 
 	}
@@ -424,10 +424,10 @@ void sendElementsToGPU (int mode, int count, int type, int *indices) {
 	printf ("sendElementsToGPU start\n"); 
 	#endif
     
-	if (appearanceProperties.currentShaderProperties != NULL) {
+	if (getAppearanceProperties()->currentShaderProperties != NULL) {
 
 		/* if we had a shader compile problem, do not draw */
-		if (!(appearanceProperties.currentShaderProperties->compiledOK)) {
+		if (!(getAppearanceProperties()->currentShaderProperties->compiledOK)) {
 			#ifdef RENDERVERBOSE
 			printf ("shader compile error\n");
 			#endif
@@ -436,10 +436,10 @@ void sendElementsToGPU (int mode, int count, int type, int *indices) {
 
 	#ifdef RENDERVERBOSE
         	printf ("we have Normals %d Vertices %d Colours %d TexCoords %d \n",
-                appearanceProperties.currentShaderProperties->Normals,
-                appearanceProperties.currentShaderProperties->Vertices,
-                appearanceProperties.currentShaderProperties->Colours,
-                appearanceProperties.currentShaderProperties->TexCoords);
+                getAppearanceProperties()->currentShaderProperties->Normals,
+                getAppearanceProperties()->currentShaderProperties->Vertices,
+                getAppearanceProperties()->currentShaderProperties->Colours,
+                getAppearanceProperties()->currentShaderProperties->TexCoords);
 		if (shaderNormalArray) printf ("shaderNormalArray TRUE\n"); else printf ("shaderNormalArray FALSE\n");        
 	        if (shaderVertexArray) printf ("shaderVertexArray TRUE\n"); else printf ("shaderVertexArray FALSE\n");
 	        if (shaderColourArray) printf ("shaderColourArray TRUE\n"); else printf ("shaderColourArray FALSE\n");
@@ -447,24 +447,24 @@ void sendElementsToGPU (int mode, int count, int type, int *indices) {
 	#endif
         
         
-		if (appearanceProperties.currentShaderProperties->Normals != -1) {
-			if (shaderNormalArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Normals);
-			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->Normals);
+		if (getAppearanceProperties()->currentShaderProperties->Normals != -1) {
+			if (shaderNormalArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
+			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
 		}
 
-		if (appearanceProperties.currentShaderProperties->Vertices != -1) {
-			if (shaderVertexArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Vertices);
-			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->Vertices);
+		if (getAppearanceProperties()->currentShaderProperties->Vertices != -1) {
+			if (shaderVertexArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
+			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
 		}
 
-		if (appearanceProperties.currentShaderProperties->Colours != -1) {
-			if (shaderColourArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->Colours);
-			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->Colours);
+		if (getAppearanceProperties()->currentShaderProperties->Colours != -1) {
+			if (shaderColourArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
+			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
 		}
 
-		if (appearanceProperties.currentShaderProperties->TexCoords != -1) {
-			if (shaderTextureArray) glEnableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
-			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
+		if (getAppearanceProperties()->currentShaderProperties->TexCoords != -1) {
+			if (shaderTextureArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
+			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
 		}
 
 	}

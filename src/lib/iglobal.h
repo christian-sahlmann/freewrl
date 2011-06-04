@@ -239,6 +239,10 @@ typedef struct iiglobal //InstanceGlobal
 		void *prv;
 	}Component_Picking;
 #endif
+	struct tComponent_Shape{
+		void *prv;
+	}Component_Shape;
+
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif

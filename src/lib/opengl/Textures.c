@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.100 2011/06/03 20:06:52 dug9 Exp $
+  $Id: Textures.c,v 1.101 2011/06/04 17:33:47 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1227,7 +1227,7 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 
 	/* is this a CubeMap? If so, lets try this... */
 
-	if (appearanceProperties.cubeFace != 0) {
+	if (getAppearanceProperties()->cubeFace != 0) {
 		unsigned char *dest = me->texdata;
 #ifdef OLDCODE
 OLDCODE		#if defined(IPHONE) || defined(_ANDROID)
@@ -1260,7 +1260,7 @@ OLDCODE		#endif
 
 
 		/* first image in the ComposedCubeMap, do some setups */
-		if (appearanceProperties.cubeFace == GL_TEXTURE_CUBE_MAP_POSITIVE_X) {
+		if (getAppearanceProperties()->cubeFace == GL_TEXTURE_CUBE_MAP_POSITIVE_X) {
 			FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -1292,16 +1292,16 @@ OLDCODE		#endif
 		}
 	
 		#ifdef SHADERS_2011
-			myTexImage2D(generateMipMaps, appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+			myTexImage2D(generateMipMaps, getAppearanceProperties()->cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 		#else
-			FW_GL_TEXIMAGE2D(appearanceProperties.cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+			FW_GL_TEXIMAGE2D(getAppearanceProperties()->cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 			FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 			FW_GL_TEXGENI(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 			FW_GL_TEXGENI(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
 		#endif /* SHADERS_2011 */
 
 		/* last thing to do at the end of the setup for the 6th face */
-		if (appearanceProperties.cubeFace == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) {
+		if (getAppearanceProperties()->cubeFace == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) {
 			FW_GL_ENABLE(GL_TEXTURE_CUBE_MAP);
 			FW_GL_ENABLE(GL_TEXTURE_GEN_S);
 			FW_GL_ENABLE(GL_TEXTURE_GEN_T);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.28 2011/02/11 18:46:25 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.29 2011/06/04 17:33:47 dug9 Exp $
 
 X3D VRML1 Component
 
@@ -160,7 +160,7 @@ static void renderSpecificMaterial (int ind) {
 
 	if (trans<0.0f) trans = MIN_NODE_TRANSPARENCY;
 	if (trans>=0.999999f) trans = MAX_NODE_TRANSPARENCY;
-	appearanceProperties.transparency = 1.0f - trans;
+	getAppearanceProperties()->transparency = 1.0f - trans;
 
 	dcol[3] = trans;
 	scol[3] = trans;
@@ -190,9 +190,9 @@ static void renderSpecificMaterial (int ind) {
 	/* emissionColour needs to be assigned to appearanceProperties, because this is the source
 	   of color info set by X3D rendering funcs (render_IndexedLineSet, etc) */
 	if (node->emissiveColor.n>ind)  {
-		for (i=0; i<3;i++){ appearanceProperties.emissionColour[i] = ecol[i] = node->emissiveColor.p[ind].c[i]; }
+		for (i=0; i<3;i++){ getAppearanceProperties()->emissionColour[i] = ecol[i] = node->emissiveColor.p[ind].c[i]; }
 	} else {
-		for (i=0; i<3;i++){ appearanceProperties.emissionColour[i] = ecol[i] = 0.0f; }
+		for (i=0; i<3;i++){ getAppearanceProperties()->emissionColour[i] = ecol[i] = 0.0f; }
 	}
 
 	do_glMaterialfv(whichFace, GL_EMISSION, ecol);
@@ -206,7 +206,7 @@ void prep_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 	/* printf ("prepSep %u\n",node); */
 
 	/* lets set the transparency param to 1.0 here, it can be overridden later */
-	appearanceProperties.transparency = MAX_NODE_TRANSPARENCY;
+	getAppearanceProperties()->transparency = MAX_NODE_TRANSPARENCY;
 
 	/* lets push on to the stack... */
 	separatorLevel++;
@@ -247,7 +247,7 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 
 	if (trans<0.0) trans = MIN_NODE_TRANSPARENCY;
 	if (trans>=0.999999) trans = MAX_NODE_TRANSPARENCY;
-	appearanceProperties.transparency = 1.0f - trans;
+	getAppearanceProperties()->transparency = 1.0f - trans;
 
 	dcol[3] = trans;
 	scol[3] = trans;
@@ -281,9 +281,9 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 	/* emissionColour needs to be assigned to appearanceProperties, because this is the source
 	   of color info set by X3D rendering funcs (render_IndexedLineSet, etc) */
 	if (node->emissiveColor.n>0)  {
-		for (i=0; i<3;i++){ appearanceProperties.emissionColour[i] = ecol[i] = node->emissiveColor.p[0].c[i]; }
+		for (i=0; i<3;i++){ getAppearanceProperties()->emissionColour[i] = ecol[i] = node->emissiveColor.p[0].c[i]; }
 	} else {
-		for (i=0; i<3;i++){ appearanceProperties.emissionColour[i] = ecol[i] = 0.0f; }
+		for (i=0; i<3;i++){ getAppearanceProperties()->emissionColour[i] = ecol[i] = 0.0f; }
 	}
 
 	do_glMaterialfv(whichFace, GL_EMISSION, ecol);

@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.124 2011/06/03 19:32:50 crc_canada Exp $
+  $Id: display.h,v 1.125 2011/06/04 17:33:47 dug9 Exp $
 
   FreeWRL support library.
   Display global definitions for all architectures.
@@ -124,19 +124,19 @@ extern int ocurse;
 
 /* face culling */
 #ifdef GL_ES_VERSION_2_0
-#define CULL_FACE(v) /* printf ("nodeSolid %d appearanceProperties.cullFace %d GL_FALSE %d FALSE %d\n",v,appearanceProperties.cullFace,GL_FALSE,FALSE); */ \
-                if (v != appearanceProperties.cullFace) {    \
-                        appearanceProperties.cullFace = v; \
+#define CULL_FACE(v) /* printf ("nodeSolid %d getAppearanceProperties()->cullFace %d GL_FALSE %d FALSE %d\n",v,getAppearanceProperties()->cullFace,GL_FALSE,FALSE); */ \
+                if (v != getAppearanceProperties()->cullFace) {    \
+                        getAppearanceProperties()->cullFace = v; \
                 }
-	#define CULL_FACE_INITIALIZE appearanceProperties.cullFace=FALSE; 
+	#define CULL_FACE_INITIALIZE getAppearanceProperties()->cullFace=FALSE; 
 #else
-#define CULL_FACE(v) /* printf ("nodeSolid %d appearanceProperties.cullFace %d GL_FALSE %d FALSE %d\n",v,appearanceProperties.cullFace,GL_FALSE,FALSE); */ \
-                if (v != appearanceProperties.cullFace) {    \
-                        appearanceProperties.cullFace = v; \
-                        if (appearanceProperties.cullFace == TRUE) {FW_GL_ENABLE(GL_CULL_FACE);}\
+#define CULL_FACE(v) /* printf ("nodeSolid %d getAppearanceProperties()->cullFace %d GL_FALSE %d FALSE %d\n",v,getAppearanceProperties()->cullFace,GL_FALSE,FALSE); */ \
+                if (v != getAppearanceProperties()->cullFace) {    \
+                        getAppearanceProperties()->cullFace = v; \
+                        if (getAppearanceProperties()->cullFace == TRUE) {FW_GL_ENABLE(GL_CULL_FACE);}\
                         else { FW_GL_DISABLE(GL_CULL_FACE);} \
                 }
-	#define CULL_FACE_INITIALIZE appearanceProperties.cullFace=FALSE; FW_GL_DISABLE(GL_CULL_FACE);
+	#define CULL_FACE_INITIALIZE getAppearanceProperties()->cullFace=FALSE; FW_GL_DISABLE(GL_CULL_FACE);
 #endif
 
 #define DISABLE_CULL_FACE CULL_FACE(FALSE)
@@ -741,7 +741,7 @@ OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
 #ifdef IPHONE
 	/* ES 2.0 - set the sampler */
-	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glUniform1i(appearanceProperties.currentShaderProperties->Texture0, aaa); }
+	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glUniform1i(getAppearanceProperties()->currentShaderProperties->Texture0, aaa); }
 #else
 	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
 #endif

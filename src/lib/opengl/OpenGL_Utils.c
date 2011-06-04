@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.199 2011/06/03 20:06:52 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.200 2011/06/04 17:33:47 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -3511,17 +3511,17 @@ void sendMaterialsToShader(s_shader_capabilities_t *me) {
 	if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
 
 /* eventually do this with code blocks in glsl */
-	SEND_VEC4(myMaterialAmbient,appearanceProperties.fw_FrontMaterial.ambient);
-	SEND_VEC4(myMaterialDiffuse,appearanceProperties.fw_FrontMaterial.diffuse);
-	SEND_VEC4(myMaterialSpecular,appearanceProperties.fw_FrontMaterial.specular);
-	SEND_VEC4(myMaterialEmission,appearanceProperties.fw_FrontMaterial.emission);
-	SEND_FLOAT(myMaterialShininess,appearanceProperties.fw_FrontMaterial.shininess);
+	SEND_VEC4(myMaterialAmbient,getAppearanceProperties()->fw_FrontMaterial.ambient);
+	SEND_VEC4(myMaterialDiffuse,getAppearanceProperties()->fw_FrontMaterial.diffuse);
+	SEND_VEC4(myMaterialSpecular,getAppearanceProperties()->fw_FrontMaterial.specular);
+	SEND_VEC4(myMaterialEmission,getAppearanceProperties()->fw_FrontMaterial.emission);
+	SEND_FLOAT(myMaterialShininess,getAppearanceProperties()->fw_FrontMaterial.shininess);
 
-	SEND_VEC4(myMaterialBackAmbient,appearanceProperties.fw_BackMaterial.ambient);
-	SEND_VEC4(myMaterialBackDiffuse,appearanceProperties.fw_BackMaterial.diffuse);
-	SEND_VEC4(myMaterialBackSpecular,appearanceProperties.fw_BackMaterial.specular);
-	SEND_VEC4(myMaterialBackEmission,appearanceProperties.fw_BackMaterial.emission);
-	SEND_FLOAT(myMaterialBackShininess,appearanceProperties.fw_BackMaterial.shininess);
+	SEND_VEC4(myMaterialBackAmbient,getAppearanceProperties()->fw_BackMaterial.ambient);
+	SEND_VEC4(myMaterialBackDiffuse,getAppearanceProperties()->fw_BackMaterial.diffuse);
+	SEND_VEC4(myMaterialBackSpecular,getAppearanceProperties()->fw_BackMaterial.specular);
+	SEND_VEC4(myMaterialBackEmission,getAppearanceProperties()->fw_BackMaterial.emission);
+	SEND_FLOAT(myMaterialBackShininess,getAppearanceProperties()->fw_BackMaterial.shininess);
 
 	if (me->lightState != -1) sendLightInfo(me);
 }

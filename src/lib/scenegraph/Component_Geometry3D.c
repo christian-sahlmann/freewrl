@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.66 2011/06/04 13:40:50 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.67 2011/06/04 17:33:47 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -1040,7 +1040,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 	CULL_FACE(node->solid)
 
 	/* send in the radius, Charlie! */
-	GLUNIFORM1F(appearanceProperties.currentShaderProperties->specialUniform1,rad);
+	GLUNIFORM1F(getAppearanceProperties()->currentShaderProperties->specialUniform1,rad);
 
 
 	/* vertices */

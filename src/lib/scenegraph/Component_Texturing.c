@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.21 2011/06/03 20:06:52 dug9 Exp $
+$Id: Component_Texturing.c,v 1.22 2011/06/04 17:33:47 dug9 Exp $
 
 X3D Texturing Component
 
@@ -208,7 +208,7 @@ void render_PixelTexture (struct X3D_PixelTexture *node) {
 }
 
 void render_ImageTexture (struct X3D_ImageTexture *node) {
-	/* printf ("render_ImageTexture, global Transparency %f\n",appearanceProperties.transparency); */
+	/* printf ("render_ImageTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
 	loadTextureNode(X3D_NODE(node),NULL);
 	textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }

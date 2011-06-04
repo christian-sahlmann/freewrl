@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.85 2011/06/03 19:20:48 dug9 Exp $
+$Id: Component_Shape.c,v 1.86 2011/06/04 17:33:47 dug9 Exp $
 
 X3D Shape Component
 
@@ -47,21 +47,91 @@ X3D Shape Component
 #include "RenderFuncs.h"
 
 
-static int     linePropertySet;  /* line properties -width, etc                  */
+//static int     linePropertySet;  /* line properties -width, etc                  */
+//
+//struct matpropstruct appearanceProperties;
+//
+///* this is for the FillProperties node */
+//static GLuint fillpropCurrentShader = 0;
+//
+///* pointer for a TextureTransform type of node */
+//struct X3D_Node *  this_textureTransform;  /* do we have some kind of textureTransform? */
+//
+///* for doing shader material properties */
+//static struct X3D_TwoSidedMaterial *material_twoSided;
+//static struct X3D_Material *material_oneSided;
+// 
 
-struct matpropstruct appearanceProperties;
 
-/* this is for the FillProperties node */
-static GLuint fillpropCurrentShader = 0;
+typedef struct pComponent_Shape{
 
-/* pointer for a TextureTransform type of node */
-struct X3D_Node *  this_textureTransform;  /* do we have some kind of textureTransform? */
+	int     linePropertySet;  /* line properties -width, etc                  */
 
+	struct matpropstruct appearanceProperties;
 
-/* for doing shader material properties */
-static struct X3D_TwoSidedMaterial *material_twoSided;
-static struct X3D_Material *material_oneSided;
- 
+	/* this is for the FillProperties node */
+	GLuint fillpropCurrentShader;// = 0;
+
+	/* pointer for a TextureTransform type of node */
+	struct X3D_Node *  this_textureTransform;  /* do we have some kind of textureTransform? */
+
+	/* for doing shader material properties */
+	struct X3D_TwoSidedMaterial *material_twoSided;
+	struct X3D_Material *material_oneSided;
+	int fpshaderloaded;// = FALSE; 
+	GLint hatchColour;
+	GLint hatchPercent;
+	GLint filledBool;
+	GLint hatchedBool;
+	GLint algorithm;
+
+}* ppComponent_Shape;
+void *Component_Shape_constructor(){
+	void *v = malloc(sizeof(struct pComponent_Shape));
+	memset(v,0,sizeof(struct pComponent_Shape));
+	return v;
+}
+void Component_Shape_init(struct tComponent_Shape *t){
+	//public
+	//private
+	t->prv = Component_Shape_constructor();
+	{
+		ppComponent_Shape p = (ppComponent_Shape)t->prv;
+		//p->linePropertySet;  /* line properties -width, etc                  */
+
+		//p->appearanceProperties;
+
+		/* this is for the FillProperties node */
+		p->fillpropCurrentShader = 0;
+
+		/* pointer for a TextureTransform type of node */
+		//p->this_textureTransform;  /* do we have some kind of textureTransform? */
+
+		/* for doing shader material properties */
+		//p->material_twoSided;
+		//p->material_oneSided;
+		p->fpshaderloaded = FALSE; 
+		//p->fhatchColour;
+		//p->fhatchPercent;
+		//p->ffilledBool;
+		//p->fhatchedBool;
+		//p->falgorithm;
+	}
+}
+//ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+
+//getters
+struct matpropstruct *getAppearanceProperties(){
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+
+	return &p->appearanceProperties;
+}
+
+struct X3D_Node *getThis_textureTransform(){
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+	return p->this_textureTransform;
+}
+
 void render_LineProperties (struct X3D_LineProperties *node) {
 
 #if defined(IPHONE) || defined(_ANDROID)
@@ -69,8 +139,11 @@ printf ("LineProperties ignored\n");
 #else
 	GLint	factor;
 	GLushort pat;
+
 	if (node->applied) {
-		linePropertySet=TRUE;
+		ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+
+		p->linePropertySet=TRUE;
 		if (node->linewidthScaleFactor > 1.0) {
 			FW_GL_LINEWIDTH(node->linewidthScaleFactor);
 			FW_GL_POINTSIZE(node->linewidthScaleFactor);
@@ -100,12 +173,12 @@ printf ("LineProperties ignored\n");
 }
 
 
-static int fpshaderloaded = FALSE; 
-static GLint hatchColour;
-static GLint hatchPercent;
-static GLint filledBool;
-static GLint hatchedBool;
-static GLint algorithm;
+//static int fpshaderloaded = FALSE; 
+//static GLint hatchColour;
+//static GLint hatchPercent;
+//static GLint filledBool;
+//static GLint hatchedBool;
+//static GLint algorithm;
 
 void render_FillProperties (struct X3D_FillProperties *node) {
 	GLfloat hatchX;
@@ -113,8 +186,9 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 	GLint algor;
 	GLint hatched;
 	GLint filled;
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 
-	if (!fpshaderloaded) {
+	if (!p->fpshaderloaded) {
 		const char *vs = "\
 			/* \n\
 			  Shader source from \n\
@@ -250,35 +324,35 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 			printf ("creating program and attaching\n");
 		#endif
 
-		fillpropCurrentShader = CREATE_PROGRAM;
+		p->fillpropCurrentShader = CREATE_PROGRAM;
 		
-		ATTACH_SHADER(fillpropCurrentShader,v);
-		ATTACH_SHADER(fillpropCurrentShader,f);
+		ATTACH_SHADER(p->fillpropCurrentShader,v);
+		ATTACH_SHADER(p->fillpropCurrentShader,f);
 	
 		#ifdef FILLVERBOSE
 			printf ("linking program\n");
 		#endif
 
 
-		LINK_SHADER(fillpropCurrentShader);
+		LINK_SHADER(p->fillpropCurrentShader);
 
 		#ifdef FILLVERBOSE
 			printf ("getting shader vars\n");
 		#endif
 
-		hatchColour = GET_UNIFORM(fillpropCurrentShader,"HatchColour");
-		hatchPercent = GET_UNIFORM(fillpropCurrentShader,"HatchPct");
-		filledBool = GET_UNIFORM(fillpropCurrentShader,"filled");
-		hatchedBool = GET_UNIFORM(fillpropCurrentShader,"hatched");
-		algorithm = GET_UNIFORM(fillpropCurrentShader,"algorithm");
+		p->hatchColour = GET_UNIFORM(p->fillpropCurrentShader,"HatchColour");
+		p->hatchPercent = GET_UNIFORM(p->fillpropCurrentShader,"HatchPct");
+		p->filledBool = GET_UNIFORM(p->fillpropCurrentShader,"filled");
+		p->hatchedBool = GET_UNIFORM(p->fillpropCurrentShader,"hatched");
+		p->algorithm = GET_UNIFORM(p->fillpropCurrentShader,"algorithm");
 		#ifdef FILLVERBOSE
-			printf ("hatchColour %d hatchPercent %d filledbool %d hatchedbool %d algor %d\n",hatchColour,hatchPercent,filledBool,hatchedBool,algor);
+			printf ("hatchColour %d hatchPercent %d filledbool %d hatchedbool %d algor %d\n",p->hatchColour,p->hatchPercent,p->filledBool,p->hatchedBool,p->algor);
 		#endif
 
 
-		fpshaderloaded = TRUE;
+		p->fpshaderloaded = TRUE;
 	}
-	USE_SHADER(fillpropCurrentShader);
+	USE_SHADER(p->fillpropCurrentShader);
 
 
 	hatchX = 0.80f; hatchY = 0.80f;
@@ -295,11 +369,11 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 			node->hatched = FALSE;
 		}
 	}
-	GLUNIFORM2F(hatchPercent,hatchX, hatchY);
-	GLUNIFORM1I(filledBool,filled);
-	GLUNIFORM1I(hatchedBool,hatched);
-	GLUNIFORM1I(algorithm,algor);
-	GLUNIFORM4F(hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0f);
+	GLUNIFORM2F(p->hatchPercent,hatchX, hatchY);
+	GLUNIFORM1I(p->filledBool,filled);
+	GLUNIFORM1I(p->hatchedBool,hatched);
+	GLUNIFORM1I(p->algorithm,algor);
+	GLUNIFORM4F(p->hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0f);
 }
 
 void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
@@ -412,9 +486,12 @@ void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 void render_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 	
 	COMPILE_IF_REQUIRED
+	{
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 
 	/* record this node for OpenGL-ES and OpenGL-3.1 operation */
-	material_twoSided = node;
+	p->material_twoSided = node;
+	}
 }
 
 
@@ -497,9 +574,12 @@ void compile_Material (struct X3D_Material *node) {
 
 void render_Material (struct X3D_Material *node) {
 	COMPILE_IF_REQUIRED
+	{
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 
 	/* record this node for OpenGL-ES and OpenGL-3.1 operation */
-	material_oneSided = node;
+	p->material_oneSided = node;
+	}
 }
 
 
@@ -641,7 +721,7 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 #endif /* SHADERS_2011 */
 
 /* this should be vectorized, and made global in the rdr_caps, but for now... */
-s_shader_capabilities_t globalShaders[10];
+//s_shader_capabilities_t globalShaders[10];
 
 
 void compile_Shape (struct X3D_Shape *node) {
@@ -807,8 +887,8 @@ PRINT_GL_ERROR_IF_ANY("");
 					10.0f};                   /* shininess */
 
 		/* copy the material stuff in preparation for copying all to the shader */
-		memcpy (&appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
-		memcpy (&appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+		memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+		memcpy (&p->getAppearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 	}
 	/* enable the shader for this shape */
         enableGlobalShader (node->_shaderTableEntry);
@@ -826,17 +906,17 @@ PRINT_GL_ERROR_IF_ANY("");
 
 		if (material_oneSided != NULL) {
 
-			memcpy (&appearanceProperties.fw_FrontMaterial, material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
-			memcpy (&appearanceProperties.fw_BackMaterial, material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_FrontMaterial, material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_BackMaterial, material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
 		} else if (material_twoSided != NULL) {
-			memcpy (&appearanceProperties.fw_FrontMaterial, material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
-			memcpy (&appearanceProperties.fw_BackMaterial, material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_FrontMaterial, material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_BackMaterial, material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
 		} else {
 			/* no materials selected.... */
 		}
 
 		/* send along lighting, material, other visible properties */
-		sendMaterialsToShader(appearanceProperties.currentShaderProperties);
+		sendMaterialsToShader(p->appearanceProperties.currentShaderProperties);
 
 		#ifdef SHAPEOCCLUSION
 		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,render_geom); //BEGINOCCLUSIONQUERY;
@@ -874,6 +954,8 @@ void child_Shape (struct X3D_Shape *node) {
 	float ecol[4];
 	float scol[4];
 	float amb;
+	ppComponent_Shape p;
+
 	ttglobal tg = gglobal();
 
 	COMPILE_IF_REQUIRED
@@ -897,14 +979,15 @@ void child_Shape (struct X3D_Shape *node) {
 	if we want to see the bounding box of this shape:
 	drawBBOX(X3D_NODE(node));
 	*/
+	p = (ppComponent_Shape)tg->Component_Shape.prv;
 
 	/* set up Appearance Properties here */
-	this_textureTransform = NULL;
-	linePropertySet=FALSE;
-	appearanceProperties.transparency = MAX_NODE_TRANSPARENCY;  /* 1 == totally solid, 0 = totally transparent */  
-	appearanceProperties.cubeFace = 0; /* assume no CubeMapTexture */
-	material_twoSided = NULL;
-	material_oneSided = NULL;
+	p->this_textureTransform = NULL;
+	p->linePropertySet=FALSE;
+	p->appearanceProperties.transparency = MAX_NODE_TRANSPARENCY;  /* 1 == totally solid, 0 = totally transparent */  
+	p->appearanceProperties.cubeFace = 0; /* assume no CubeMapTexture */
+	p->material_twoSided = NULL;
+	p->material_oneSided = NULL;
 
 	/* a texture and a transparency flag... */
 	textureStackTop = 0; /* will be >=1 if textures found */
@@ -959,10 +1042,10 @@ void child_Shape (struct X3D_Shape *node) {
 #endif
 
 	/* if we do NOT have a shader node, do the appearance nodes */
-        if (appearanceProperties.currentShader == 0) {
-			if (material_oneSided != NULL) {
+        if (p->appearanceProperties.currentShader == 0) {
+			if (p->material_oneSided != NULL) {
 				/* we have a normal material node */
-				appearanceProperties.transparency = 1.0f - material_oneSided->transparency; /* 1 == solid, 0 = totally transparent */ 
+				p->appearanceProperties.transparency = 1.0f - p->material_oneSided->transparency; /* 1 == solid, 0 = totally transparent */ 
 
 	/* we now keep verified params in a structure that maps to Shaders well...
 		struct gl_MaterialParameters {
@@ -980,35 +1063,35 @@ void child_Shape (struct X3D_Shape *node) {
 	  shininess [16]
 	  
 */
-				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_DIFFUSE, &(material_oneSided->_verifiedColor.p[8])); 
-				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_AMBIENT, &(material_oneSided->_verifiedColor.p[4]));
-				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_SPECULAR, &(material_oneSided->_verifiedColor.p[12]));
-				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_EMISSION, &(material_oneSided->_verifiedColor.p[0]));
-				FW_GL_MATERIALF(GL_FRONT_AND_BACK, GL_SHININESS,material_oneSided->_verifiedColor.p[16]);
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_DIFFUSE, &(p->material_oneSided->_verifiedColor.p[8])); 
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_AMBIENT, &(p->material_oneSided->_verifiedColor.p[4]));
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_SPECULAR, &(p->material_oneSided->_verifiedColor.p[12]));
+				FW_GL_MATERIALFV(GL_FRONT_AND_BACK, GL_EMISSION, &(p->material_oneSided->_verifiedColor.p[0]));
+				FW_GL_MATERIALF(GL_FRONT_AND_BACK, GL_SHININESS,p->material_oneSided->_verifiedColor.p[16]);
 
 				/* copy the emissive colour over for lines and points */
-				memcpy(appearanceProperties.emissionColour,&(material_oneSided->_verifiedColor.p[0]), 3*sizeof(float));
-			} else if (material_twoSided != NULL) {
+				memcpy(p->appearanceProperties.emissionColour,&(p->material_oneSided->_verifiedColor.p[0]), 3*sizeof(float));
+			} else if (p->material_twoSided != NULL) {
 				GLenum whichFace;
 				float trans;
 		
 				/* we have a two sided material here */
 				/* first, do back */
-				if (material_twoSided->separateBackColor) {
+				if (p->material_twoSided->separateBackColor) {
 					whichFace = GL_BACK;
-					DO_MAT(material_twoSided,backDiffuseColor,backEmissiveColor,backShininess,backAmbientIntensity,backSpecularColor,backTransparency)
+					DO_MAT(p->material_twoSided,backDiffuseColor,backEmissiveColor,backShininess,backAmbientIntensity,backSpecularColor,backTransparency)
 					whichFace = GL_FRONT;
 				} else {
 					whichFace=GL_FRONT_AND_BACK;
 				}
-				DO_MAT(material_twoSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
+				DO_MAT(p->material_twoSided,diffuseColor,emissiveColor,shininess,ambientIntensity,specularColor,transparency)
 
 
 				/* Material twosided - emissiveColour for points, lines, etc - lets just set this up; we should remove
 				   the DO_MAT calls above and do a compile-time verification of colours. */
-				appearanceProperties.emissionColour[0] = 0.8f;
-				appearanceProperties.emissionColour[1] = 0.8f;
-				appearanceProperties.emissionColour[2] = 0.8f;
+				p->appearanceProperties.emissionColour[0] = 0.8f;
+				p->appearanceProperties.emissionColour[1] = 0.8f;
+				p->appearanceProperties.emissionColour[2] = 0.8f;
 			} else {
 	
 				/* no material, so just colour the following shape */ 
@@ -1019,7 +1102,7 @@ void child_Shape (struct X3D_Shape *node) {
 				/* tell the rendering passes that this is just "normal" */ 
 				last_texture_type = NOTEXTURE; 
 				/* same with materialProperties.transparency */ 
-				appearanceProperties.transparency=MAX_NODE_TRANSPARENCY; 
+				p->appearanceProperties.transparency=MAX_NODE_TRANSPARENCY; 
 			}
 	}
 
@@ -1044,19 +1127,19 @@ void child_Shape (struct X3D_Shape *node) {
 	TURN_FILLPROPERTIES_SHADER_OFF;
 
 
-	if (linePropertySet) {
+	if (p->linePropertySet) {
 		FW_GL_DISABLE (GL_LINE_STIPPLE);
 		FW_GL_LINEWIDTH(1.0f);
 		FW_GL_POINTSIZE(1.0f);
 	}
 
 	/* were we cubemapping? */
-	if (appearanceProperties.cubeFace !=0) {
+	if (p->appearanceProperties.cubeFace !=0) {
 		FW_GL_DISABLE(GL_TEXTURE_CUBE_MAP);
 		FW_GL_DISABLE(GL_TEXTURE_GEN_S);
 		FW_GL_DISABLE(GL_TEXTURE_GEN_T);
 		FW_GL_DISABLE(GL_TEXTURE_GEN_R);
-		appearanceProperties.cubeFace=0;
+		p->appearanceProperties.cubeFace=0;
 	}
 
 
@@ -1097,9 +1180,10 @@ void child_Appearance (struct X3D_Appearance *node) {
 	if(node->texture) {
 		/* we have to do a glPush, then restore, later */
 		/* glPushAttrib(GL_ENABLE_BIT); */
-		
+		ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+
 		/* is there a TextureTransform? if no texture, fugutaboutit */
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->textureTransform,this_textureTransform);
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->textureTransform,p->this_textureTransform);
 		
 		/* now, render the texture */
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->texture,tmpN);

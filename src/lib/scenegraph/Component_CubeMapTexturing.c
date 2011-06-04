@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.26 2011/05/17 13:58:29 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.27 2011/06/04 17:33:47 dug9 Exp $
 
 X3D Cubemap Texturing Component
 
@@ -81,7 +81,7 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 	for (count=0; count<6; count++) {
 
 		/* set up the appearanceProperties to indicate a CubeMap */
-		appearanceProperties.cubeFace = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+count;
+		getAppearanceProperties()->cubeFace = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+count;
 
 		/* go through these, right left, top, bottom, back, front */
 		switch (count) {
@@ -383,7 +383,7 @@ printf ("put in the dummy file here, and call it quits\n");
 
 
 void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
-        /* printf ("render_ImageTexture, global Transparency %f\n",appearanceProperties.transparency); */
+        /* printf ("render_ImageTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
         loadTextureNode(X3D_NODE(node),NULL);
         textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
@@ -438,7 +438,7 @@ void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 		for (count=0; count<6; count++) {
 
 			/* set up the appearanceProperties to indicate a CubeMap */
-			appearanceProperties.cubeFace = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+count;
+			getAppearanceProperties()->cubeFace = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+count;
 
 			/* go through these, back, front, top, bottom, right left */
 			render_node(node->__subTextures.p[count]);
