@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.36 2011/06/04 15:03:50 dug9 Exp $
+$Id: Component_Networking.c,v 1.37 2011/06/04 15:13:32 dug9 Exp $
 
 X3D Networking Component
 
@@ -98,6 +98,10 @@ typedef struct pComponent_Networking{
 	//struct ReWireDeviceStruct *ReWireDevices;// = 0;
 	//int ReWireDevicetableSize;// = -1;
 	int MAXReWireDevices;// = 0;
+#if defined(REWIRE_SERVER)
+	/* make sure the EAI port is turned on... */
+	int requestToStartEAIdone;// = FALSE;
+#endif
 
 }* ppComponent_Networking;
 void *Component_Networking_constructor(){
@@ -123,6 +127,10 @@ void Component_Networking_init(struct tComponent_Networking *t){
 		p->MAXReWireNameNames = 0;
 
 		p->MAXReWireDevices = 0;
+#if defined(REWIRE_SERVER)
+/* make sure the EAI port is turned on... */
+p->requestToStartEAIdone = FALSE;
+#endif
 
 	}
 }
@@ -677,17 +685,18 @@ static int ReWireNameIndex (char *name) {
 	return t.ReWireNametableSize;
 }
 
-#if defined(REWIRE_SERVER)
-/* make sure the EAI port is turned on... */
-static int requestToStartEAIdone = FALSE;
-#endif
+//#if defined(REWIRE_SERVER)
+///* make sure the EAI port is turned on... */
+//static int requestToStartEAIdone = FALSE;
+//#endif
 
 static void midiStartEAI() {
 #if !defined(REWIRE_SERVER)
     ConsoleMessage("MIDI disabled at compile time.\n");
 #else
 	char myline[2000];
-	if (!requestToStartEAIdone) {
+	ppComponent_Networking p = (ppComponent_Networking)gglobal()->Component_Networking.prv;
+	if (!p->requestToStartEAIdone) {
 		if (strlen(REWIRE_SERVER) > 1000) return; /* bounds check this compile time value */
 
 		printf ("MidiControl - turning EAI on\n");
@@ -699,7 +708,7 @@ static void midiStartEAI() {
 			ConsoleMessage (myline);
 		}
 	}
-	requestToStartEAIdone = TRUE;
+	p->requestToStartEAIdone = TRUE;
 #endif
 }
 
