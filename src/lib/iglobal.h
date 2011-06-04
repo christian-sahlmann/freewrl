@@ -242,6 +242,9 @@ typedef struct iiglobal //InstanceGlobal
 	struct tComponent_Shape{
 		void *prv;
 	}Component_Shape;
+	struct tComponent_Text{
+		void *prv;
+	}Component_Text;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1
