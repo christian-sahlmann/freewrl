@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.29 2011/06/04 17:33:47 dug9 Exp $
+$Id: Component_VRML1.c,v 1.30 2011/06/04 18:50:02 dug9 Exp $
 
 X3D VRML1 Component
 
@@ -107,9 +107,32 @@ struct currentSLDPointer {
 	struct X3D_VRML1_ShapeHints  *shNode;
 };
 
-static struct Vector *separatorVector = NULL;
-static indexT separatorLevel = ID_UNDEFINED;
-static struct currentSLDPointer *cSLD = NULL;
+//static struct Vector *separatorVector = NULL;
+//static indexT separatorLevel = ID_UNDEFINED;
+//static struct currentSLDPointer *cSLD = NULL;
+
+typedef struct pComponent_VRML1{
+	struct Vector *separatorVector;// = NULL;
+	indexT separatorLevel;// = ID_UNDEFINED;
+	struct currentSLDPointer *cSLD;// = NULL;
+}* ppComponent_VRML1;
+void *Component_VRML1_constructor(){
+	void *v = malloc(sizeof(struct pComponent_VRML1));
+	memset(v,0,sizeof(struct pComponent_VRML1));
+	return v;
+}
+void Component_VRML1_init(struct tComponent_VRML1 *t){
+	//public
+	//private
+	t->prv = Component_VRML1_constructor();
+	{
+		ppComponent_VRML1 p = (ppComponent_VRML1)t->prv;
+		p->separatorVector = NULL;
+		p->separatorLevel = ID_UNDEFINED;
+		p->cSLD = NULL;
+	}
+}
+//	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 
 static struct currentSLDPointer *new_cSLD(void) {
 	struct currentSLDPointer *retval = MALLOC (struct currentSLDPointer *, sizeof (struct currentSLDPointer));
@@ -120,22 +143,22 @@ static struct currentSLDPointer *new_cSLD(void) {
 #define MAX_STACK_LEVELS 32
 #define GET_cSLD \
 	/* bounds check this vector array - if it is off, it is a user input problem */ \
-	if (separatorLevel <0) separatorLevel=0; \
-	if (separatorLevel >=MAX_STACK_LEVELS) separatorLevel=MAX_STACK_LEVELS; \
-	cSLD = vector_get(struct currentSLDPointer*, separatorVector, separatorLevel);
+	if (p->separatorLevel <0) p->separatorLevel=0; \
+	if (p->separatorLevel >=MAX_STACK_LEVELS) p->separatorLevel=MAX_STACK_LEVELS; \
+	p->cSLD = vector_get(struct currentSLDPointer*, p->separatorVector, p->separatorLevel);
 
 #define CLEAN_cSLD \
 	{ \
-	cSLD->matNode = NULL; \
-	cSLD->c3Node = NULL; \
-	cSLD->t2Node = NULL; \
-        cSLD->fsNode = NULL; \
-        cSLD->nbNode = NULL; \
-        cSLD->nNode = NULL; \
-        cSLD->mbNode = NULL; \
-        cSLD->t2tNode = NULL; \
-        cSLD->tc2Node = NULL; \
-        cSLD->shNode = NULL; \
+	p->cSLD->matNode = NULL; \
+	p->cSLD->c3Node = NULL; \
+	p->cSLD->t2Node = NULL; \
+        p->cSLD->fsNode = NULL; \
+        p->cSLD->nbNode = NULL; \
+        p->cSLD->nNode = NULL; \
+        p->cSLD->mbNode = NULL; \
+        p->cSLD->t2tNode = NULL; \
+        p->cSLD->tc2Node = NULL; \
+        p->cSLD->shNode = NULL; \
 	}
 
 /* if the user wants to change materials for IndexedLineSets, IndexedFaceSets or PointSets */
@@ -147,10 +170,11 @@ static void renderSpecificMaterial (int ind) {
 	float scol[4];
 	float trans=(float) 1.0;
 	struct X3D_VRML1_Material *node;
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 
-	if (cSLD == NULL) return;
-	if (cSLD->matNode == NULL) return;
-	node = cSLD->matNode;
+	if (p->cSLD == NULL) return;
+	if (p->cSLD->matNode == NULL) return;
+	node = p->cSLD->matNode;
 
 	#define whichFace GL_FRONT_AND_BACK
 
@@ -203,26 +227,27 @@ static void renderSpecificMaterial (int ind) {
 
 /* do transforms, calculate the distance */
 void prep_VRML1_Separator (struct X3D_VRML1_Separator *node) {
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 	/* printf ("prepSep %u\n",node); */
 
 	/* lets set the transparency param to 1.0 here, it can be overridden later */
 	getAppearanceProperties()->transparency = MAX_NODE_TRANSPARENCY;
 
 	/* lets push on to the stack... */
-	separatorLevel++;
+	p->separatorLevel++;
 	/* do we need to create a new vector stack? */
-	if (separatorVector == NULL) {
+	if (p->separatorVector == NULL) {
 		indexT i;
 		/* printf ("creating new vector list\n"); */
-		separatorVector = newVector (struct currentSLDPointer*, MAX_STACK_LEVELS);
-		ASSERT(separatorVector);
+		p->separatorVector = newVector (struct currentSLDPointer*, MAX_STACK_LEVELS);
+		ASSERT(p->separatorVector);
 		for (i=0; i<MAX_STACK_LEVELS; i++) {
-			cSLD = new_cSLD();
-			vector_pushBack(struct currentSLDPointer*, separatorVector, cSLD);
+			p->cSLD = new_cSLD();
+			vector_pushBack(struct currentSLDPointer*, p->separatorVector, p->cSLD);
 
 		} 
 	}
-	/* printf ("prep - getting level %d\n",separatorLevel); */
+	/* printf ("prep - getting level %d\n",p->separatorLevel); */
 	GET_cSLD;
 	CLEAN_cSLD;
 	FW_GL_PUSH_MATRIX();
@@ -234,11 +259,12 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 	float ecol[4];
 	float scol[4];
 	float trans=1.0f;
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 
 	#define whichFace GL_FRONT_AND_BACK
 
 	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->matNode = node;
+	if (p->cSLD!=NULL) p->cSLD->matNode = node;
 
 
 	/* set the transparency here for the material */
@@ -293,25 +319,26 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 }
 
 void fin_VRML1_Separator (struct X3D_VRML1_Separator *node) {
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 	/* printf ("finSep %u\n",node); */
 	FW_GL_POP_MATRIX();
-	separatorLevel--;
-	if (separatorLevel == ID_UNDEFINED) {
+	p->separatorLevel--;
+	if (p->separatorLevel == ID_UNDEFINED) {
 		/* printf ("CLEAN UP SEP STACK\n"); */
 	} else {
-		/* printf ("getting seplevel %d\n",separatorLevel); */
+		/* printf ("getting seplevel %d\n",p->separatorLevel); */
 		GET_cSLD;
 	}
 
 	/* any simple uses for material, re-do material node */
-	if (cSLD->matNode != NULL) {
-		render_VRML1_Material(cSLD->matNode);
+	if (p->cSLD->matNode != NULL) {
+		render_VRML1_Material(p->cSLD->matNode);
 	}
 
 	/* did we have a textureTransform? */
-	if (cSLD->t2tNode!=NULL) end_textureTransform();
+	if (p->cSLD->t2tNode!=NULL) end_textureTransform();
 
-	if (cSLD->t2Node) FW_GL_DISABLE(GL_TEXTURE_2D);
+	if (p->cSLD->t2Node) FW_GL_DISABLE(GL_TEXTURE_2D);
 } 
 
 void child_VRML1_Separator (struct X3D_VRML1_Separator *node) { 
@@ -578,46 +605,52 @@ void render_VRML1_SpotLight (struct X3D_VRML1_SpotLight *node) {
 
 void render_VRML1_Coordinate3 (struct X3D_VRML1_Coordinate3  *node) {
 	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->c3Node = node;
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
+	if (p->cSLD!=NULL) p->cSLD->c3Node = node;
 }
 
 void render_VRML1_FontStyle (struct X3D_VRML1_FontStyle  *node) {
 	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->fsNode = node;
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
+	if (p->cSLD!=NULL) p->cSLD->fsNode = node;
 }
 
 void render_VRML1_MaterialBinding (struct X3D_VRML1_MaterialBinding  *node) {
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 	if (!node->_initialized) {
 		node->_Value = findFieldInVRML1Modifier(node->value->strptr);
 		node->_initialized = TRUE;
 	}
 
 	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->mbNode = node;
+	if (p->cSLD!=NULL) p->cSLD->mbNode = node;
 }
 
 void render_VRML1_Normal (struct X3D_VRML1_Normal  *node) {
 	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->nNode = node;
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
+	if (p->cSLD!=NULL) p->cSLD->nNode = node;
 }
 
 void render_VRML1_NormalBinding (struct X3D_VRML1_NormalBinding  *node) {
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 	if (!node->_initialized) {
 		node->_Value = findFieldInVRML1Modifier(node->value->strptr);
 		node->_initialized = TRUE;
 	}
 	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->nbNode = node;
+	if (p->cSLD!=NULL) p->cSLD->nbNode = node;
 }
 
 void render_VRML1_Texture2 (struct X3D_VRML1_Texture2  *node) {
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 	if (!node->_initialized) {
 		node->_wrapS = findFieldInVRML1Modifier(node->wrapS->strptr);
 		node->_wrapT = findFieldInVRML1Modifier(node->wrapT->strptr);
 		node->_initialized = TRUE;
 	}
 	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->t2Node = node;
+	if (p->cSLD!=NULL) p->cSLD->t2Node = node;
 	/* printf ("tex2, parent %s, me %s\n",node->__parenturl->strptr, node->filename.p[0]->strptr); */
         loadTextureNode(X3D_NODE(node),NULL);
         textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
@@ -625,17 +658,20 @@ void render_VRML1_Texture2 (struct X3D_VRML1_Texture2  *node) {
 
 void render_VRML1_Texture2Transform (struct X3D_VRML1_Texture2Transform  *node) {
 	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->t2tNode = node;
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
+	if (p->cSLD!=NULL) p->cSLD->t2tNode = node;
 	/* call this, level is zero */
 	start_textureTransform (X3D_NODE(node),0);
 }
 
 void render_VRML1_TextureCoordinate2 (struct X3D_VRML1_TextureCoordinate2  *node) {
 	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->tc2Node = node;
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
+	if (p->cSLD!=NULL) p->cSLD->tc2Node = node;
 }
 
 void render_VRML1_ShapeHints (struct X3D_VRML1_ShapeHints  *node) {
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 	if (!node->_initialized) {
 		node->_vertValue = findFieldInVRML1Modifier(node->vertexOrdering->strptr);
 		node->_typeValue = findFieldInVRML1Modifier(node->shapeType->strptr);
@@ -643,13 +679,14 @@ void render_VRML1_ShapeHints (struct X3D_VRML1_ShapeHints  *node) {
 		node->_initialized = TRUE;
 	}
 	/* save this node pointer */
-	if (cSLD!=NULL) cSLD->shNode = node;
+	if (p->cSLD!=NULL) p->cSLD->shNode = node;
 }
 
 void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
         int i;
         struct SFVec3f *points=NULL; int npoints=0;
 	int renderMatOver = FALSE;
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 
 	#ifdef IPHONE
 	printf ("vrml1 pointset, ignoring pointset\n");
@@ -657,13 +694,13 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
 	FW_GL_POINTSIZE (2);
 	#endif
 
-        if(cSLD->c3Node) {
-		points =  cSLD->c3Node->point.p;
-		npoints = cSLD->c3Node->point.n;
+        if(p->cSLD->c3Node) {
+		points =  p->cSLD->c3Node->point.p;
+		npoints = p->cSLD->c3Node->point.n;
 	}
 		
-	if (cSLD->mbNode != NULL) {
-		renderMatOver = !((cSLD->mbNode->_Value==VRML1MOD_OVERALL) || (cSLD->mbNode->_Value==VRML1MOD_DEFAULT));
+	if (p->cSLD->mbNode != NULL) {
+		renderMatOver = !((p->cSLD->mbNode->_Value==VRML1MOD_OVERALL) || (p->cSLD->mbNode->_Value==VRML1MOD_DEFAULT));
 	}
 
 	/* do we just want to use as many points as we can? */
@@ -704,18 +741,19 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
 
 static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *node) {
 	/* yes, we do have to remake this node */
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 		
 	/* we need to fill in the hidden SFFloats, SFBools here */
-	if (cSLD->shNode != NULL) {
-		node->_solid = cSLD->shNode->_typeValue==VRML1MOD_SOLID;
-		node->_ccw =  cSLD->shNode->_vertValue==VRML1MOD_COUNTERCLOCKWISE;
+	if (p->cSLD->shNode != NULL) {
+		node->_solid = p->cSLD->shNode->_typeValue==VRML1MOD_SOLID;
+		node->_ccw =  p->cSLD->shNode->_vertValue==VRML1MOD_COUNTERCLOCKWISE;
 		/* are we not sure? if not sure, make shape not SOLID so both sides of tris are drawn */
-		if (cSLD->shNode->_vertValue==VRML1MOD_UNKNOWN_ORDERING) {
+		if (p->cSLD->shNode->_vertValue==VRML1MOD_UNKNOWN_ORDERING) {
 			node->_solid = FALSE;
 		}
 		
-		node->_convex = cSLD->shNode->_faceValue == VRML1MOD_CONVEX;
-		node->_creaseAngle = (float) cSLD->shNode->creaseAngle;
+		node->_convex = p->cSLD->shNode->_faceValue == VRML1MOD_CONVEX;
+		node->_creaseAngle = (float) p->cSLD->shNode->creaseAngle;
 	} else {
 		node->_ccw = FALSE;
 		node->_convex = TRUE;
@@ -724,16 +762,16 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 	}
 
 
-	if (cSLD->mbNode!=NULL) node->_cpv = cSLD->mbNode->_Value==VRML1MOD_PER_VERTEX;
+	if (p->cSLD->mbNode!=NULL) node->_cpv = p->cSLD->mbNode->_Value==VRML1MOD_PER_VERTEX;
 	else node->_cpv = FALSE;
 
-	if (cSLD->nbNode!=NULL) node->_npv = cSLD->nbNode->_Value==VRML1MOD_PER_VERTEX;
+	if (p->cSLD->nbNode!=NULL) node->_npv = p->cSLD->nbNode->_Value==VRML1MOD_PER_VERTEX;
 	else node->_npv = FALSE;
 
 	/* do we have a scoped Material node, with more than 1 diffuseColor? */
-	if (cSLD->matNode!= NULL) {
+	if (p->cSLD->matNode!= NULL) {
 		/* if we have more than 1 diffuseColor, we should treat them as a color node */
-		if (cSLD->matNode->diffuseColor.n > 1) {
+		if (p->cSLD->matNode->diffuseColor.n > 1) {
 			struct X3D_Color *nc;
 			if (node->_color==NULL) { 
 				node->_color = createNewX3DNode(NODE_Color);
@@ -741,14 +779,14 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 			}
 			nc = X3D_COLOR (node->_color);
 			FREE_IF_NZ(nc->color.p);
-			nc->color.p = MALLOC(struct SFColor *, sizeof (struct SFColor) * cSLD->matNode->diffuseColor.n);
-			memcpy(nc->color.p, cSLD->matNode->diffuseColor.p, sizeof (struct SFColor) * cSLD->matNode->diffuseColor.n);
-			nc->color.n = cSLD->matNode->diffuseColor.n;
+			nc->color.p = MALLOC(struct SFColor *, sizeof (struct SFColor) * p->cSLD->matNode->diffuseColor.n);
+			memcpy(nc->color.p, p->cSLD->matNode->diffuseColor.p, sizeof (struct SFColor) * p->cSLD->matNode->diffuseColor.n);
+			nc->color.n = p->cSLD->matNode->diffuseColor.n;
 		}
 	} else node->_color=NULL;
 		
 	/* do we have a scoped Coordinate3 node? */
-	if (cSLD->c3Node!= NULL) {
+	if (p->cSLD->c3Node!= NULL) {
 		struct X3D_Coordinate *nc;
 		if (node->_coord==NULL) {
 			node->_coord = createNewX3DNode(NODE_Coordinate);
@@ -756,14 +794,14 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 		}
 		nc = X3D_COORDINATE(node->_coord);
 		FREE_IF_NZ(nc->point.p);
-		nc->point.p = MALLOC(struct SFVec3f *, sizeof (struct SFVec3f) * cSLD->c3Node->point.n);
-		memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFVec3f) * cSLD->c3Node->point.n);
+		nc->point.p = MALLOC(struct SFVec3f *, sizeof (struct SFVec3f) * p->cSLD->c3Node->point.n);
+		memcpy(nc->point.p, p->cSLD->c3Node->point.p, sizeof (struct SFVec3f) * p->cSLD->c3Node->point.n);
 
-		nc->point.n = cSLD->c3Node->point.n;
+		nc->point.n = p->cSLD->c3Node->point.n;
 	} else node->_coord=NULL;
 		
 	/* do we have a Normal node? */
-	if (cSLD->nNode!= NULL) {
+	if (p->cSLD->nNode!= NULL) {
 		struct X3D_Normal *nc;
 		if (node->_normal==NULL) {
 			node->_normal = createNewX3DNode(NODE_Normal);
@@ -771,14 +809,14 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 		}
 		nc = X3D_NORMAL(node->_normal);
 		FREE_IF_NZ(nc->vector.p);
-		nc->vector.p = MALLOC(struct SFVec3f *, sizeof (struct SFVec3f) * cSLD->nNode->vector.n);
-		memcpy(nc->vector.p, cSLD->nNode->vector.p, sizeof (struct SFVec3f) * cSLD->nNode->vector.n);
+		nc->vector.p = MALLOC(struct SFVec3f *, sizeof (struct SFVec3f) * p->cSLD->nNode->vector.n);
+		memcpy(nc->vector.p, p->cSLD->nNode->vector.p, sizeof (struct SFVec3f) * p->cSLD->nNode->vector.n);
 
-		nc->vector.n = cSLD->nNode->vector.n;
+		nc->vector.n = p->cSLD->nNode->vector.n;
 	} else node->_normal=NULL;
 		
 	/* do we have a TextureCoordinate2 node? */
-	if (cSLD->tc2Node!= NULL) {
+	if (p->cSLD->tc2Node!= NULL) {
 		struct X3D_TextureCoordinate *nc;
 		if (node->_texCoord==NULL) {
 			node->_texCoord = createNewX3DNode(NODE_Normal);
@@ -786,10 +824,10 @@ static void copyPointersToVRML1IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *n
 		}
 		nc = X3D_TEXTURECOORDINATE(node->_texCoord);
 		FREE_IF_NZ(nc->point.p);
-		nc->point.p = MALLOC(struct SFVec2f *, sizeof (struct SFVec2f) * cSLD->tc2Node->point.n);
-		memcpy(nc->point.p, cSLD->tc2Node->point.p, sizeof (struct SFVec2f) * cSLD->tc2Node->point.n);
+		nc->point.p = MALLOC(struct SFVec2f *, sizeof (struct SFVec2f) * p->cSLD->tc2Node->point.n);
+		memcpy(nc->point.p, p->cSLD->tc2Node->point.p, sizeof (struct SFVec2f) * p->cSLD->tc2Node->point.n);
 
-		nc->point.n = cSLD->tc2Node->point.n;
+		nc->point.n = p->cSLD->tc2Node->point.n;
 	} else node->_texCoord=NULL;
 }
 
@@ -798,9 +836,10 @@ void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *node) {
 
 	/* if we need to remake this IndexedFaceSet */
 	/* this is like the COMPILE_POLY_IF_REQUIRED(a,b,c,d) macro, with additional steps */
+	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 
 	if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->irep_change) { 
-		if (cSLD != NULL)
+		if (p->cSLD != NULL)
 			copyPointersToVRML1IndexedFaceSet(node);
 		compileNode ((void *)compile_polyrep, node, 
 			node->_coord, node->_color, node->_normal, node->_texCoord);
@@ -820,19 +859,20 @@ and use it here. This might be wrong for VRML1... */
 
 static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *node) {
 	/* yes, we do have to remake this node */
+	ppComponent_VRML1 p;
 
 	struct X3D_IndexedLineSet *ILS = createNewX3DNode(NODE_IndexedLineSet);
-
+	p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 	node->_ILS = X3D_NODE(ILS); 
 
-	if (cSLD == NULL) { ILS->colorPerVertex = FALSE; } else {
-	if (cSLD->mbNode!=NULL) ILS->colorPerVertex = cSLD->mbNode->_Value==VRML1MOD_PER_VERTEX;
+	if (p->cSLD == NULL) { ILS->colorPerVertex = FALSE; } else {
+	if (p->cSLD->mbNode!=NULL) ILS->colorPerVertex = p->cSLD->mbNode->_Value==VRML1MOD_PER_VERTEX;
 	else ILS->colorPerVertex = FALSE;
 
 	/* do we have a scoped Material node, with more than 1 emissiveColor? */
-	if (cSLD->matNode!= NULL) {
+	if (p->cSLD->matNode!= NULL) {
 		/* if we have more than 1 emissiveColor, we should treat them as a color node */
-		if (cSLD->matNode->emissiveColor.n > 1) {
+		if (p->cSLD->matNode->emissiveColor.n > 1) {
 			struct X3D_Color *nc;
 			if (ILS->color==NULL) { 
 				ILS->color = createNewX3DNode(NODE_Color);
@@ -840,14 +880,14 @@ static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *n
 			}
 			nc = X3D_COLOR(ILS->color);
 			FREE_IF_NZ(nc->color.p);
-			nc->color.p = MALLOC(struct SFColor *, sizeof (struct SFColor) * cSLD->matNode->emissiveColor.n);
-			memcpy(nc->color.p, cSLD->matNode->emissiveColor.p, sizeof (struct SFColor) * cSLD->matNode->emissiveColor.n);
-			nc->color.n = cSLD->matNode->emissiveColor.n;
+			nc->color.p = MALLOC(struct SFColor *, sizeof (struct SFColor) * p->cSLD->matNode->emissiveColor.n);
+			memcpy(nc->color.p, p->cSLD->matNode->emissiveColor.p, sizeof (struct SFColor) * p->cSLD->matNode->emissiveColor.n);
+			nc->color.n = p->cSLD->matNode->emissiveColor.n;
 		}
 	}
 		
 	/* do we have a scoped Coordinate3 node? */
-	if (cSLD->c3Node!= NULL) {
+	if (p->cSLD->c3Node!= NULL) {
 		struct X3D_Coordinate *nc;
 		if (ILS->coord==NULL) {
 			ILS->coord = createNewX3DNode(NODE_Coordinate);
@@ -855,10 +895,10 @@ static void copyPointersToVRML1IndexedLineSet(struct X3D_VRML1_IndexedLineSet *n
 		}
 		nc = X3D_COORDINATE(ILS->coord);
 		FREE_IF_NZ(nc->point.p);
-		nc->point.p = MALLOC(struct SFVec3f *, sizeof (struct SFVec3f) * cSLD->c3Node->point.n);
-		memcpy(nc->point.p, cSLD->c3Node->point.p, sizeof (struct SFVec3f) * cSLD->c3Node->point.n);
+		nc->point.p = MALLOC(struct SFVec3f *, sizeof (struct SFVec3f) * p->cSLD->c3Node->point.n);
+		memcpy(nc->point.p, p->cSLD->c3Node->point.p, sizeof (struct SFVec3f) * p->cSLD->c3Node->point.n);
 
-		nc->point.n = cSLD->c3Node->point.n;
+		nc->point.n = p->cSLD->c3Node->point.n;
 	}}
 
 	/* lets copy over the coordIndex and colorIndex fields */

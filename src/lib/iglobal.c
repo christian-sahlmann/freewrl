@@ -47,6 +47,7 @@ void Component_Networking_init(struct tComponent_Networking *t);
 void Component_Picking_init(struct tComponent_Picking *t);
 void Component_Shape_init(struct tComponent_Shape *t);
 void Component_Text_init(struct tComponent_Text *t);
+void Component_VRML1_init(struct tComponent_VRML1 *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -99,6 +100,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 #endif
 	Component_Shape_init(&iglobal->Component_Shape);
 	Component_Text_init(&iglobal->Component_Text);
+	Component_VRML1_init(&iglobal->Component_VRML1);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -108,6 +110,7 @@ void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
 
+	FREE_IF_NZ(tg->Component_VRML1.prv);
 	FREE_IF_NZ(tg->Component_Text.prv);
 	FREE_IF_NZ(tg->Component_Shape.prv);
 #ifdef DJTRACK_PICKSENSORS
