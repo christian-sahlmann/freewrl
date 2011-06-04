@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.188 2011/06/03 19:44:10 crc_canada Exp $
+  $Id: MainLoop.c,v 1.189 2011/06/04 18:24:40 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -68,15 +68,6 @@ void (*newResetGeometry) (void) = NULL;
 	#define USE_OSC 1
 #else
 	#define USE_OSC 0
-#endif
-
-#ifdef OLDCODE
-OLDCODE#ifdef AQUA
-OLDCODE	#include "../ui/aquaInt.h"
-OLDCODE	#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
-OLDCODE	CGLContextObj myglobalContext;
-OLDCODE	#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
-OLDCODE#endif /* AQUA */
 #endif
 
 #if defined(_ANDROID )
@@ -155,10 +146,6 @@ typedef struct pMainloop{
 	//browser
 	/* are we displayed, or iconic? */
 	int onScreen;// = TRUE;
-
-	/* Coordinate screen refresh with aqua */
-	int askForRefresh;// = FALSE;
-	int refreshOK;// = FALSE;
 
 	/* do we do event propagation, proximity calcs?? */
 	int doEvents;// = FALSE;
@@ -245,10 +232,6 @@ void Mainloop_init(struct tMainloop *t){
 		/* are we displayed, or iconic? */
 		p->onScreen = TRUE;
 
-		/* Coordinate screen refresh with aqua */
-		p->askForRefresh = FALSE;
-		p->refreshOK = FALSE;
-
 		/* do we do event propagation, proximity calcs?? */
 		p->doEvents = FALSE;
 
@@ -311,9 +294,6 @@ int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this ac
 ///* are we displayed, or iconic? */
 //static int onScreen = TRUE;
 //
-///* Coordinate screen refresh with aqua */
-//static int askForRefresh = FALSE;
-//static int refreshOK = FALSE;
 //
 ///* do we do event propagation, proximity calcs?? */
 //static int doEvents = FALSE;
@@ -497,6 +477,7 @@ void fwl_RenderSceneUpdateScene() {
 
     PRINT_GL_ERROR_IF_ANY("start of renderSceneUpdateScene");
     
+
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
         Cursor cursor;
 #endif /* TARGET_X11 or TARGET_MOTIF */
@@ -545,10 +526,6 @@ void fwl_RenderSceneUpdateScene() {
 
 	
 #endif
-
-	while (p->refreshOK) {
-		usleep(50);
-	}
 
         DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
 		     BOOL_STR(fwl_isinputThreadParsing()), BOOL_STR(resource_is_root_loaded()));
@@ -888,11 +865,6 @@ void fwl_RenderSceneUpdateScene() {
                 handle_EAI();
 		handle_MIDIEAI();
         }
-
-	if (p->askForRefresh) {
-		p->refreshOK = TRUE;
-		p->askForRefresh = FALSE;
-	}
 }
 
 
@@ -1112,18 +1084,9 @@ void setup_projection(int pick, int x, int y)
 	}
 	/* <<< statusbar hud */
 
-	FW_GL_VIEWPORT(xvp,tg->Mainloop.clipPlane,screenwidth2,tg->display.screenHeight);
-
-#ifdef OLDCODE
-OLDCODE#ifdef AQUA
-OLDCODE#if !defined(IPHONE) 
-OLDCODE        myglobalContext = CGLGetCurrentContext();
-OLDCODE	CGLSetCurrentContext(myglobalContext);
-OLDCODE#endif
-OLDCODE#endif
-#endif // OLDCODE
-
 	FW_GL_VIEWPORT(xvp, tg->Mainloop.clipPlane, screenwidth2, tg->display.screenHeight);
+
+
         FW_GL_LOAD_IDENTITY();
         if(pick) {
                 /* picking for mouse events */
@@ -2307,23 +2270,6 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 }
 
 #endif
-#ifdef AQUA
-
-
-#if !defined(IPHONE) 
-#ifdef OLDCODE
-OLDCODEvoid initGL() {
-OLDCODE        //printf ("OSX initGL called\n"); 
-OLDCODE        myglobalContext = CGLGetCurrentContext();
-OLDCODE        //printf ("initGL call finished - myglobalContext %u\n",myglobalContext);
-OLDCODE}
-#endif // OLDCODE
-
-int getOffset() {
-        return (int) offsetof(struct X3D_Group, children);
-}
-
-#endif /* IPHONE */
 
 void fwl_setCurXY(int cx, int cy) {
 	ttglobal tg = gglobal();
@@ -2393,6 +2339,8 @@ ConsoleMessage ("setIsPlugin, BrowserFullPath :%s:");
         
 }
 
+#ifdef AQUA
+
 int aquaPrintVersion() {
 	printf ("FreeWRL version: %s\n", libFreeWRL_get_version()); 
 	exit(EXIT_SUCCESS);
@@ -2416,23 +2364,6 @@ void fwl_init_EaiVerbose() {
 		gglobal()->EAI_C_CommonFunctions.eaiverbose = TRUE;
 }
 
-#ifdef OLDCODE
-OLDCODEvoid fwl_askForRefreshOK() {
-OLDCODE	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-OLDCODE	p->askForRefresh = TRUE;
-OLDCODE}
-OLDCODE
-OLDCODEint fwl_checkRefresh() {
-OLDCODE	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-OLDCODE	return p->refreshOK;
-OLDCODE}
-OLDCODE
-OLDCODEvoid fwl_resetRefresh() {
-OLDCODE	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
-OLDCODE	p->refreshOK = FALSE;
-OLDCODE}
-#endif // OLDCODE
-
 /* called from the standalone OSX front end and the OSX plugin */
 void fwl_replaceWorldNeeded(char* str)
 {
@@ -2453,15 +2384,6 @@ void stopRenderingLoop(void) {
 
     	//killErrantChildren();
 	/* lets do an equivalent to replaceWorldNeeded, but with NULL for the new world */
-
-#ifdef OLDCODE
-OLDCODE#ifdef AQUA
-OLDCODE#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD) 
-OLDCODE	myglobalContext = NULL;
-OLDCODE#endif
-OLDCODE#endif
-#endif // OLDCODE
-
 
         AnchorsAnchor = NULL;
         BrowserAction = TRUE;
