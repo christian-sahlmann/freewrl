@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.19 2011/06/03 15:27:00 dug9 Exp $
+$Id: Component_EnvironSensor.c,v 1.20 2011/06/04 13:40:50 dug9 Exp $
 
 X3D Environmental Sensors Component
 
@@ -48,9 +48,29 @@ X3D Environmental Sensors Component
 #include "../scenegraph/RenderFuncs.h"
 
 
-/* can we do a VisibiltySensor? Only if we have OpenGL support for OcclusionCulling */
-int candoVisibility = TRUE;
+///* can we do a VisibiltySensor? Only if we have OpenGL support for OcclusionCulling */
+//int candoVisibility = TRUE;
+typedef struct pComponent_EnvironSensor{
+	/* can we do a VisibiltySensor? Only if we have OpenGL support for OcclusionCulling */
+	int candoVisibility;// = TRUE;
 
+}* ppComponent_EnvironSensor;
+void *Component_EnvironSensor_constructor(){
+	void *v = malloc(sizeof(struct pComponent_EnvironSensor));
+	memset(v,0,sizeof(struct pComponent_EnvironSensor));
+	return v;
+}
+void Component_EnvironSensor_init(struct tComponent_EnvironSensor *t){
+	//public
+	//private
+	t->prv = Component_EnvironSensor_constructor();
+	{
+		ppComponent_EnvironSensor p = (ppComponent_EnvironSensor)t->prv;
+		/* can we do a VisibiltySensor? Only if we have OpenGL support for OcclusionCulling */
+		p->candoVisibility = TRUE;
+
+	}
+}
 static void rendVisibilityBox (struct X3D_VisibilitySensor *node);
 
 PROXIMITYSENSOR(ProximitySensor,center,,);
@@ -60,20 +80,21 @@ PROXIMITYSENSOR(ProximitySensor,center,,);
 
 
 void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
-		
+	
 	/* if not enabled, do nothing */
 	if (!node) return;
 	if (!node->enabled) return;
-
-		if (!candoVisibility) return;
-
+	{
+		ppComponent_EnvironSensor p = (ppComponent_EnvironSensor)gglobal()->Component_EnvironSensor.prv;
+		if (!p->candoVisibility) return;
 		/* first time through, if we have a visibility sensor, but do not have the OpenGL ability to
 		   use it, we print up a console message */
 		if (gglobal()->Frustum.OccFailed) {
-			candoVisibility = FALSE;
+			p->candoVisibility = FALSE;
 			ConsoleMessage("VisibilitySensor: OpenGL on this machine does not support GL_ARB_occlusion_query");
 			return;
 		}
+	}
 
 		RECORD_DISTANCE
 

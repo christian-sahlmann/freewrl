@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.23 2011/02/24 16:13:03 crc_canada Exp $
+$Id: Component_KeyDevice.c,v 1.24 2011/06/04 13:40:50 dug9 Exp $
 
 X3D Key Device Component
 
@@ -259,35 +259,61 @@ static char platform2web3dActionKey(int platformKey)
 /* only keep 1 keyDevice node around; we can make a list if that is eventually
 required by the spec. From what I can see, the spec is silent on this regard */
 
-static struct X3D_Node **keySink = NULL;
-static int keySyncMallocLen = 0;
-static int keySinkCurMax = 0;
+//static struct X3D_Node **keySink = NULL;
+//static int keySyncMallocLen = 0;
+//static int keySinkCurMax = 0;
+
+typedef struct pComponent_KeyDevice{
+	struct X3D_Node **keySink;// = NULL;
+	int keySyncMallocLen;// = 0;
+	int keySinkCurMax;// = 0;
+}* ppComponent_KeyDevice;
+void *Component_KeyDevice_constructor(){
+	void *v = malloc(sizeof(struct pComponent_KeyDevice));
+	memset(v,0,sizeof(struct pComponent_KeyDevice));
+	return v;
+}
+void Component_KeyDevice_init(struct tComponent_KeyDevice *t){
+	//public
+	//private
+	t->prv = Component_KeyDevice_constructor();
+	{
+		ppComponent_KeyDevice p = (ppComponent_KeyDevice)t->prv;
+		p->keySink = NULL;
+		p->keySyncMallocLen = 0;
+		p->keySinkCurMax = 0;
+
+	}
+}
+//ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
 
 static void sendToSS(struct X3D_Node *wsk, int key, int upDown);
 static void sendToKS(struct X3D_Node* wsk, int key, int upDown);
 
 static void incrementKeySinkList() {
-	if (keySinkCurMax >= keySyncMallocLen) {
-		keySyncMallocLen += 10; /* arbitrary number */
-		keySink = REALLOC(keySink, sizeof (struct X3D_Node *) * keySyncMallocLen);
+	ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
+	if (p->keySinkCurMax >= p->keySyncMallocLen) {
+		p->keySyncMallocLen += 10; /* arbitrary number */
+		p->keySink = REALLOC(p->keySink, sizeof (struct X3D_Node *) * p->keySyncMallocLen);
 	}
 }
 
 int KeySensorNodePresent() {
 	int count;
+	ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
 
 	/* no KeyDevice node present */
-	if (keySink == NULL) return FALSE;
+	if (p->keySink == NULL) return FALSE;
 
-	for (count=0; count < keySinkCurMax; count++) {
+	for (count=0; count < p->keySinkCurMax; count++) {
 		/* hmmm, there is one, but is it enabled? */
-		/* printf ("ks, checking %d\n",keySink[count]); */
+		/* printf ("ks, checking %d\n",p->keySink[count]); */
 
-		if (keySink[count]->_nodeType == NODE_KeySensor) 
-			if (X3D_KEYSENSOR(keySink[count])->enabled) return TRUE;
+		if (p->keySink[count]->_nodeType == NODE_KeySensor) 
+			if (X3D_KEYSENSOR(p->keySink[count])->enabled) return TRUE;
 
-		if (keySink[count]->_nodeType == NODE_StringSensor) 
-			if (X3D_STRINGSENSOR(keySink[count])->enabled) return TRUE;
+		if (p->keySink[count]->_nodeType == NODE_StringSensor) 
+			if (X3D_STRINGSENSOR(p->keySink[count])->enabled) return TRUE;
 	}
 
 	return FALSE;
@@ -296,17 +322,18 @@ int KeySensorNodePresent() {
 
 void addNodeToKeySensorList(struct X3D_Node* node) {
 	if ((node->_nodeType == NODE_KeySensor) || (node->_nodeType == NODE_StringSensor)) {
+		ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
 		incrementKeySinkList();
-		keySink[keySinkCurMax] = node;
-		keySinkCurMax ++;
+		p->keySink[p->keySinkCurMax] = node;
+		p->keySinkCurMax ++;
 	}
 }
 
 void killKeySensorNodeList() {
-
-	FREE_IF_NZ(keySink);
-	keySyncMallocLen = 0; 
-	keySinkCurMax = 0;
+	ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
+	FREE_IF_NZ(p->keySink);
+	p->keySyncMallocLen = 0; 
+	p->keySinkCurMax = 0;
 
 	#ifndef AQUA
 	shiftPressed = 0;
@@ -316,19 +343,20 @@ void killKeySensorNodeList() {
 
 void sendKeyToKeySensor(const char key, int upDown) {
 	int count;
-	if (keySink == NULL) return;
+	ppComponent_KeyDevice p = (ppComponent_KeyDevice)gglobal()->Component_KeyDevice.prv;
+	if (p->keySink == NULL) return;
 
-	for (count=0; count < keySinkCurMax; count++) {
+	for (count=0; count < p->keySinkCurMax; count++) {
 		#ifdef VERBOSE
-		printf ("sendKeyToKeySensor, sending key %d to %d of %d\n",key,count,keySinkCurMax);
+		printf ("sendKeyToKeySensor, sending key %d to %d of %d\n",key,count,p->keySinkCurMax);
 		#endif
 
 #ifdef WIN32
-		if (keySink[count]->_nodeType == NODE_KeySensor && (upDown != KeyChar)) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
+		if (p->keySink[count]->_nodeType == NODE_KeySensor && (upDown != KeyChar)) sendToKS(p->keySink[count], (int)key&0xFFFF, upDown);
 #else
-		if (keySink[count]->_nodeType == NODE_KeySensor ) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
+		if (p->keySink[count]->_nodeType == NODE_KeySensor ) sendToKS(p->keySink[count], (int)key&0xFFFF, upDown);
 #endif
-		if (keySink[count]->_nodeType == NODE_StringSensor ) sendToSS(keySink[count], (int)key&0xFFFF, upDown);
+		if (p->keySink[count]->_nodeType == NODE_StringSensor ) sendToSS(p->keySink[count], (int)key&0xFFFF, upDown);
 	}
 }
 

@@ -38,6 +38,11 @@ void Textures_init(struct tTextures *t);
 void PluginSocket_init(struct tPluginSocket *t);
 void pluginUtils_init(struct tpluginUtils *t);
 void collision_init(struct tcollision *t);
+void Component_EnvironSensor_init(struct tComponent_EnvironSensor *t);
+void Component_Geometry3D_init(struct tComponent_Geometry3D *t);
+void Component_Geospatial_init(struct tComponent_Geospatial *t);
+void Component_HAnim_init(struct tComponent_HAnim *t);
+void Component_KeyDevice_init(struct tComponent_KeyDevice *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -79,6 +84,11 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	PluginSocket_init(&iglobal->PluginSocket);
 	pluginUtils_init(&iglobal->pluginUtils);
 	collision_init(&iglobal->collision);
+	Component_EnvironSensor_init(&iglobal->Component_EnvironSensor);
+	Component_Geometry3D_init(&iglobal->Component_Geometry3D);
+	Component_Geospatial_init(&iglobal->Component_Geospatial);
+	Component_HAnim_init(&iglobal->Component_HAnim);
+	Component_KeyDevice_init(&iglobal->Component_KeyDevice);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -87,6 +97,11 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->Component_KeyDevice.prv);
+	FREE_IF_NZ(tg->Component_HAnim.prv);
+	FREE_IF_NZ(tg->Component_Geospatial.prv);
+	FREE_IF_NZ(tg->Component_Geometry3D.prv);
+	FREE_IF_NZ(tg->Component_EnvironSensor.prv);
 	FREE_IF_NZ(tg->collision.prv);
 	FREE_IF_NZ(tg->pluginUtils.prv);
 	FREE_IF_NZ(tg->PluginSocket.prv);

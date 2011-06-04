@@ -212,6 +212,22 @@ typedef struct iiglobal //InstanceGlobal
 	struct tcollision{
 		void *prv;
 	}collision;
+	struct tComponent_EnvironSensor{
+		void *prv;
+	}Component_EnvironSensor;
+	struct tComponent_Geometry3D{
+		void *prv;
+	}Component_Geometry3D;
+	struct tComponent_Geospatial{
+		void *prv;
+	}Component_Geospatial;
+	struct tComponent_HAnim{
+		void *prv;
+	}Component_HAnim;
+	struct tComponent_KeyDevice{
+		void *prv;
+	}Component_KeyDevice;
+
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif

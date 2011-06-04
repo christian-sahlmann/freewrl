@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.54 2011/06/02 19:50:43 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.55 2011/06/04 13:40:50 dug9 Exp $
 
 X3D Geospatial Component
 
@@ -290,7 +290,7 @@ Geodetic to Geocentric:
 		} \
 	}
 
-int geoLodLevel = 0;
+//int geoLodLevel = 0;
 
 static int gcToGdInit = FALSE;
 
@@ -303,6 +303,26 @@ static void calculateViewingSpeed(void);
 /* for converting from GC to GD */
 static double A, F, C, A2, C2, Eps2, Eps21, Eps25, C254, C2DA, CEE,
                  CE2, CEEps2, TwoCEE, tem, ARat1, ARat2, BRat1, BRat2, B1,B2,B3,B4,B5;
+
+typedef struct pComponent_Geospatial{
+	int geoLodLevel;// = 0;
+
+}* ppComponent_Geospatial;
+void *Component_Geospatial_constructor(){
+	void *v = malloc(sizeof(struct pComponent_Geospatial));
+	memset(v,0,sizeof(struct pComponent_Geospatial));
+	return v;
+}
+void Component_Geospatial_init(struct tComponent_Geospatial *t){
+	//public
+	//private
+	t->prv = Component_Geospatial_constructor();
+	{
+		ppComponent_Geospatial p = (ppComponent_Geospatial)t->prv;
+		p->geoLodLevel = 0;
+	}
+}
+//ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
 
 // http://www.colorado.edu/geography/gcraft/notes/datum/geoid84.html
 char geoid[][36] = {
@@ -1808,7 +1828,9 @@ static void GeoLODchildren (struct X3D_GeoLOD *node) {
         /* lets see if we still have to load this one... */
         if (((node->__childloadstatus)==0) && (load)) {
 		#ifdef VERBOSE
-		printf ("GeoLODchildren - have to LOAD_CHILD for node %u (level %d)\n",node,geoLodLevel); 
+		ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
+
+		printf ("GeoLODchildren - have to LOAD_CHILD for node %u (level %d)\n",node,p->geoLodLevel); 
 		#endif
 
 		LOAD_CHILD(__child1Node,child1Url)
@@ -1826,7 +1848,8 @@ static void GeoUnLODchildren (struct X3D_GeoLOD *node) {
 
         if (!(load) && ((node->__childloadstatus) != 0)) {
 		#ifdef VERBOSE
-                printf ("GeoLODloadChildren, removing children from node %u level %d\n",node,geoLodLevel);
+			ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
+                printf ("GeoLODloadChildren, removing children from node %u level %d\n",node,p->geoLodLevel);
 		#endif
 
                 node->__childloadstatus = 0;
@@ -1906,28 +1929,30 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 
 void child_GeoLOD (struct X3D_GeoLOD *node) {
         int i;
+	ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
+
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
 
 	#ifdef VERBOSE
 	 printf ("child_GeoLOD %u (level %d), renderFlags %x render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	node,
-	geoLodLevel, 
+	p->geoLodLevel, 
 	node->_renderFlags,
 	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 	#endif
 	//ConsoleMessage("glod kids=%d\r",node->children.n);
 	/* for debugging purposes... */
-	if (node->__level == -1) node->__level = geoLodLevel;
-	else if (node->__level != geoLodLevel) {
-		printf ("hmmm - GeoLOD %p was level %d, now %d\n",node,node->__level, geoLodLevel);
+	if (node->__level == -1) node->__level = p->geoLodLevel;
+	else if (node->__level != p->geoLodLevel) {
+		printf ("hmmm - GeoLOD %p was level %d, now %d\n",node,node->__level, p->geoLodLevel);
 	}
 
 	#ifdef VERBOSE
 	if ( node->__inRange) {
-		printf ("GeoLOD %u (level %d) closer\n",node,geoLodLevel);
+		printf ("GeoLOD %u (level %d) closer\n",node,p->geoLodLevel);
 	} else {
-		printf ("GeoLOD %u (level %d) farther away\n",node,geoLodLevel);
+		printf ("GeoLOD %u (level %d) farther away\n",node,p->geoLodLevel);
 	}
 	#endif
 
@@ -1967,7 +1992,7 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 			
 		}
 	} else {
-		geoLodLevel++;
+		p->geoLodLevel++;
 
 		/* go through 4 kids */
 		GeoLODchildren (node);
@@ -1976,7 +2001,7 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 		GeoUnLODrootUrl (node);
 
 		#ifdef VERBOSE
-		printf ("rendering children at %d, they are: ",geoLodLevel);
+		printf ("rendering children at %d, they are: ",p->geoLodLevel);
 		if (node->child1Url.n>0) printf (" :%s: ",node->child1Url.p[0]->strptr);
 		if (node->child2Url.n>0) printf (" :%s: ",node->child2Url.p[0]->strptr);
 		if (node->child3Url.n>0) printf (" :%s: ",node->child3Url.p[0]->strptr);
@@ -2001,7 +2026,7 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 		if (node->__child2Node != NULL) render_node (node->__child2Node);
 		if (node->__child3Node != NULL) render_node (node->__child3Node);
 		if (node->__child4Node != NULL) render_node (node->__child4Node);
-		geoLodLevel--;
+		p->geoLodLevel--;
 
 	}
 }

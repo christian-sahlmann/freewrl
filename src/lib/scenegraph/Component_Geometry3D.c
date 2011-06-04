@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.65 2011/06/02 21:21:51 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.66 2011/06/04 13:40:50 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -64,6 +64,31 @@ static GLuint SphereIndxVBO = 0;
 #ifdef HAVE_GEOMETRY_SHADERS
 static GLuint SphereGeomVBO = 0; 
 #endif /* HAVE_GEOMETRY_SHADERS */
+
+
+typedef struct pComponent_Geometry3D{
+	int junk; //filler, no variables unless/untill vbos done
+	//SphereGeomVBO ShpereIndxVBO - are these per-instance or sharable?
+}* ppComponent_Geometry3D;
+void *Component_Geometry3D_constructor(){
+	void *v = malloc(sizeof(struct pComponent_Geometry3D));
+	memset(v,0,sizeof(struct pComponent_Geometry3D));
+	return v;
+}
+void Component_Geometry3D_init(struct tComponent_Geometry3D *t){
+	//public
+	//private
+	t->prv = Component_Geometry3D_constructor();
+	{
+		ppComponent_Geometry3D p = (ppComponent_Geometry3D)t->prv;
+	}
+}
+//ppComponent_Geometry3D p = (ppComponent_Geometry3D)gglobal()->Component_Geometry3D.prv;
+
+
+
+
+
 
 static GLfloat VBO_coneSideTexParams[]={
 	0.55f, 0.525f, 0.50f,
@@ -1037,6 +1062,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 }
 
 #else  /* NOT HAVE_GEOMETRY_SHADERS */
+
 
 
 void compile_Sphere (struct X3D_Sphere *node) {
