@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Picking.c,v 1.4 2010/10/13 18:31:52 istakenv Exp $
+$Id: Component_Picking.c,v 1.5 2011/06/04 15:50:04 dug9 Exp $
 
 X3D Picking Component
 
@@ -26,7 +26,6 @@ X3D Picking Component
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
-
 
 #include <config.h>
 #include <system.h>
@@ -53,7 +52,6 @@ X3D Picking Component
 #include "LinearAlgebra.h"
 #include "Component_Picking.h"
 #include "Children.h"
-
 #ifdef DJTRACK_PICKSENSORS
 
 /* see specifications section 38. Picking Sensor Component */
@@ -67,12 +65,48 @@ struct PickStruct {
 
 
 /* DJTRACK_PICKSENSORS */
-struct PickStruct *PickSensors = NULL;
-int num_PickSensors = 0;
-int curr_PickSensor = 0;
-int active_PickSensors = FALSE;
+//struct PickStruct *PickSensors = NULL;
+//int num_PickSensors = 0;
+//int curr_PickSensor = 0;
+//int active_PickSensors = FALSE;
+//
+//GLDOUBLE viewpoint2world[16];
+//int nPickedObjects;
 
-GLDOUBLE viewpoint2world[16];
+
+typedef struct pComponent_Picking{
+	struct PickStruct *PickSensors;// = NULL;
+	int num_PickSensors;// = 0;
+	int curr_PickSensor;// = 0;
+	int active_PickSensors;// = FALSE;
+
+	GLDOUBLE viewpoint2world[16];
+	int nPickedObjects;
+	char strprintbits[33];
+
+}* ppComponent_Picking;
+void *Component_Picking_constructor(){
+	void *v = malloc(sizeof(struct pComponent_Picking));
+	memset(v,0,sizeof(struct pComponent_Picking));
+	return v;
+}
+void Component_Picking_init(struct tComponent_Picking *t){
+	//public
+	//private
+	t->prv = Component_Picking_constructor();
+	{
+		ppComponent_Picking p = (ppComponent_Picking)t->prv;
+		p->PickSensors = NULL;
+		p->num_PickSensors = 0;
+		p->curr_PickSensor = 0;
+		p->active_PickSensors = FALSE;
+
+		//p->viewpoint2world[16];
+		//p->nPickedObjects;
+		//p->strprintbits[33];
+	}
+}
+//ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
 
 /* The PickSensors are used via functions, ie the actual data structures should not be exposed outside this file*/
 
@@ -80,35 +114,37 @@ GLDOUBLE viewpoint2world[16];
    outside of any render_hier call and after initializing viewpoint for the frame */
 void save_viewpoint2world()
 {
-	
-	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, viewpoint2world); 
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->viewpoint2world); 
 
 }
-char strprintbits[33];
+//char strprintbits[33];
 char *printbits(unsigned short ii)
 {
 	unsigned short i,j;
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
 	for(i=0;i<16;i++)
 	{
 		j = (1 << i) & ii;
-		if(j) strprintbits[16-i-1] = '1';
-		else strprintbits[16-i-1] = '0';
+		if(j) p->strprintbits[16-i-1] = '1';
+		else p->strprintbits[16-i-1] = '0';
 	}
-	strprintbits[16] = 0;
-	return strprintbits;
+	p->strprintbits[16] = 0;
+	return p->strprintbits;
 }
 void pick_PointPickSensor (struct X3D_PointPickSensor *node) { 
  
 	int i, index;
-
+	ppComponent_Picking p;
 	if(!((node->enabled))) return; 
+	p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
 	//COMPILE_IF_REQUIRED 
  
 	/* find which one we are in the picksensor table */
 	index = -1;
-	for(i=0;i<num_PickSensors;i++)
+	for(i=0;i<p->num_PickSensors;i++)
 	{
-		if(PickSensors[i].tonode == node)
+		if(p->PickSensors[i].tonode == node)
 		{
 			index = i;
 			break;
@@ -126,7 +162,7 @@ void pick_PointPickSensor (struct X3D_PointPickSensor *node) {
 		GLDOUBLE picksensor2viewpoint[16];
 		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, picksensor2viewpoint); 
 		
-		matmultiply(PickSensors[i].picksensor2world,picksensor2viewpoint,viewpoint2world);
+		matmultiply(p->PickSensors[i].picksensor2world,picksensor2viewpoint,p->viewpoint2world);
 		//matinverse(PickSensors[i].world2picksensor,PickSensors[i].picksensor2world);
 
  		/* loop through target nodes and flag them as targets for the next pass*/
@@ -186,14 +222,14 @@ void do_PickingSensorTick ( void *ptr, int nhits ) {
 	//		sizeof (struct SFRotation));
 	//}
 }
-int nPickedObjects;
 void do_pickSensors()
 {
 	/* called from mainloop > render_pre(), after you have a table of picksensors and pick results. 
 	Loop through them, updating each picksensor 
 	*/
 	int i;
-	for(i=0;i<nPickedObjects;i++)
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
+	for(i=0;i<p->nPickedObjects;i++)
 	{
 		//do_PickingSensorTick ( node, hits, nhits); // void *ptr, int nhits );
 	}
@@ -363,21 +399,36 @@ void chainUpPickableTree(struct X3D_Node *shapeNode ,struct X3D_Node *chained , 
 
 
 /* DJTRACK_PICKSENSORS */
-void activate_picksensors() { active_PickSensors = TRUE ; }
-void deactivate_picksensors() { active_PickSensors = FALSE ; }
+void activate_picksensors() { 
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
+
+	p->active_PickSensors = TRUE ; }
+void deactivate_picksensors() { 
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
+
+	p->active_PickSensors = FALSE ; }
 int enabled_picksensors() 
 {
   int i;
   int someEnabled = FALSE;
-  for(i=0;i<num_PickSensors;i++)
-	  someEnabled = someEnabled || ((struct X3D_PointPickSensor *)(PickSensors[i].tonode))->enabled;
+  ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
+
+  for(i=0;i<p->num_PickSensors;i++)
+	  someEnabled = someEnabled || ((struct X3D_PointPickSensor *)(p->PickSensors[i].tonode))->enabled;
   return someEnabled;
  }
-int  active_picksensors() { return (active_PickSensors && (num_PickSensors > 0)) ; }
-void rewind_picksensors() { curr_PickSensor = 0 ; }
-void advance_picksensors() { curr_PickSensor++; }
+int  active_picksensors() { 
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
+	return (p->active_PickSensors && (p->num_PickSensors > 0)) ; }
+void rewind_picksensors() { 
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
+	p->curr_PickSensor = 0 ; }
+void advance_picksensors() {
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
+	p->curr_PickSensor++; }
 int  more_picksensors() {
-	if (active_PickSensors && curr_PickSensor < num_PickSensors) {
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
+	if (p->active_PickSensors && p->curr_PickSensor < p->num_PickSensors) {
 		return TRUE ;
 	} else {
 		return FALSE ;
@@ -390,9 +441,10 @@ void pick_Sphere (struct X3D_Sphere *node) {
 	GLDOUBLE *picksensor2world;
 	GLDOUBLE radiusSquared;
 	int i,j;
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
 
 	/* this sucker initialized yet? */
-	if (node->__points == NULL) return;
+	if (node->__points.n == 0) return;
 	// check before render_hier if(!num_picksensors) return;
 
 	/* get the transformed position of the Sphere, and the scale-corrected radius. */
@@ -400,10 +452,10 @@ void pick_Sphere (struct X3D_Sphere *node) {
 	matmultiply(shape2world,shape2viewpoint,viewpoint2world);
 	matinverse(world2shape,shape2world);
 
-	for(i=0;i<num_PickSensors;i++)
+	for(i=0;i<p->num_PickSensors;i++)
 	{
-		struct X3D_Node *picksensor = PickSensors[i].tonode;
-		picksensor2world = PickSensors[i].picksensor2world;
+		struct X3D_Node *picksensor = p->PickSensors[i].tonode;
+		picksensor2world = p->PickSensors[i].picksensor2world;
 		matmultiply(shape2picksensor,picksensor2world,world2shape);
 		switch (picksensor->_nodeType) {
 			case NODE_PointPickSensor:  
@@ -437,6 +489,7 @@ void add_picksensor(struct X3D_Node * node) {
 	void (*myp)(void *);
 	int clocktype;
 	int count;
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
 	
 	if (node == 0) {
 		printf ("error in add_first; somehow the node datastructure is zero \n");
@@ -453,32 +506,33 @@ void add_picksensor(struct X3D_Node * node) {
 		/* printf ("this is not a type we need to add_first for %s\n",stringNodeType(clocktype)); */
 		return;
 	}
-	PickSensors = (struct PickStruct *)REALLOC(PickSensors,sizeof (struct PickStruct) * (num_PickSensors+1));
-	if (PickSensors == 0) {
+	p->PickSensors = (struct PickStruct *)REALLOC(p->PickSensors,sizeof (struct PickStruct) * (p->num_PickSensors+1));
+	if (p->PickSensors == 0) {
 		printf ("can not allocate memory for add_first call\n");
-		num_PickSensors = 0;
+		p->num_PickSensors = 0;
 	}
 
 	/* does this event exist? */
-	for (count=0; count <num_PickSensors; count ++) {
-		if (PickSensors[count].tonode == node) {
+	for (count=0; count <p->num_PickSensors; count ++) {
+		if (p->PickSensors[count].tonode == node) {
 			/* printf ("add_first, already have %d\n",node); */
 			return;
 		}	
 	}
 
 	/* now, put the function pointer and data pointer into the structure entry */
-	PickSensors[num_PickSensors].interpptr = myp;
-	PickSensors[num_PickSensors].tonode = node;
+	p->PickSensors[p->num_PickSensors].interpptr = myp;
+	p->PickSensors[p->num_PickSensors].tonode = node;
 
-	num_PickSensors++;
+	p->num_PickSensors++;
 }
 
 /* DJTRACK_PICKSENSORS */
 struct X3D_Node* get_picksensor() {
-	int this_PickSensor = curr_PickSensor ;
-	if ( active_PickSensors && this_PickSensor < num_PickSensors) {
-		return PickSensors[this_PickSensor].tonode ;
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
+	int this_PickSensor = p->curr_PickSensor ;
+	if ( p->active_PickSensors && this_PickSensor < p->num_PickSensors) {
+		return p->PickSensors[this_PickSensor].tonode ;
 	} else {
 		return (struct X3D_Node *) NULL ;
 	}

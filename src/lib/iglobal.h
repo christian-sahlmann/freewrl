@@ -234,7 +234,11 @@ typedef struct iiglobal //InstanceGlobal
 		int ReWireDevicetableSize;
 		void *prv;
 	}Component_Networking;
-
+#ifdef DJTRACK_PICKSENSORS
+	struct tComponent_Picking{
+		void *prv;
+	}Component_Picking;
+#endif
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif
