@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.153 2011/06/04 19:05:42 crc_canada Exp $
+$Id: headers.h,v 1.154 2011/06/04 23:39:12 dug9 Exp $
 
 Global includes.
 
@@ -390,8 +390,8 @@ extern int global_lineProperties;
 extern int global_fillProperties;
 //extern float gl_linewidth;
 extern int soundWarned;
-extern int cur_hits;
-extern struct point_XYZ hyper_r1,hyper_r2;
+//extern int cur_hits;
+//extern struct point_XYZ hyper_r1,hyper_r2;
 
 extern struct X3D_Text *lastTextNode;
 

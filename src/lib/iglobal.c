@@ -50,6 +50,7 @@ void Component_Picking_init(struct tComponent_Picking *t);
 void Component_Shape_init(struct tComponent_Shape *t);
 void Component_Text_init(struct tComponent_Text *t);
 void Component_VRML1_init(struct tComponent_VRML1 *t);
+void RenderFuncs_init(struct tRenderFuncs *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -105,6 +106,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	Component_Shape_init(&iglobal->Component_Shape);
 	Component_Text_init(&iglobal->Component_Text);
 	Component_VRML1_init(&iglobal->Component_VRML1);
+	RenderFuncs_init(&iglobal->RenderFuncs);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -114,6 +116,7 @@ void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
 
+	FREE_IF_NZ(tg->RenderFuncs.prv);
 	FREE_IF_NZ(tg->Component_VRML1.prv);
 	FREE_IF_NZ(tg->Component_Text.prv);
 	FREE_IF_NZ(tg->Component_Shape.prv);

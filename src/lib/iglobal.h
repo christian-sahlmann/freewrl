@@ -251,6 +251,9 @@ iOLDCODE	}Component_Networking;
 	struct tComponent_VRML1{
 		void *prv;
 	}Component_VRML1;
+	struct tRenderFuncs{
+		void *prv;
+	}RenderFuncs;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1

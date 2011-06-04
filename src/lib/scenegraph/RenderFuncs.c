@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.104 2011/06/04 19:05:42 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.105 2011/06/04 23:39:12 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -54,49 +54,129 @@
 
 typedef float shaderVec4[4];
 
-/* which arrays are enabled, and defaults for each array */
-static int shaderNormalArray = TRUE;
-static int shaderVertexArray = TRUE;
-static int shaderColourArray = FALSE;
-static int shaderTextureArray = FALSE;
+///* which arrays are enabled, and defaults for each array */
+//static int shaderNormalArray = TRUE;
+//static int shaderVertexArray = TRUE;
+//static int shaderColourArray = FALSE;
+//static int shaderTextureArray = FALSE;
+//
+//static float light_linAtten[8];
+//static float light_constAtten[8];
+//static float light_quadAtten[8];
+//static float light_spotCut[8];
+//static float light_spotExp[8];
+//static shaderVec4 light_amb[8];
+//static shaderVec4 light_dif[8];
+//static shaderVec4 light_pos[8];
+//static shaderVec4 light_spec[8];
+//static shaderVec4 light_spot[8];
+//
+///* Rearrange to take advantage of headlight when off */
+//static int nextFreeLight = 0;
+//
+///* lights status. Light 7 is the headlight */
+//static GLint lightOnOff[8];
+//
+///* should we send light changes along? */
+//static bool lightStatusDirty = FALSE;
+//static bool lightParamsDirty = FALSE;
+//
 
-static float light_linAtten[8];
-static float light_constAtten[8];
-static float light_quadAtten[8];
-static float light_spotCut[8];
-static float light_spotExp[8];
-static shaderVec4 light_amb[8];
-static shaderVec4 light_dif[8];
-static shaderVec4 light_pos[8];
-static shaderVec4 light_spec[8];
-static shaderVec4 light_spot[8];
 
-/* Rearrange to take advantage of headlight when off */
-static int nextFreeLight = 0;
+typedef struct pRenderFuncs{
+#ifdef RENDERVERBOSE
+	int renderLevel;// = 0;
+#endif
+	/* which arrays are enabled, and defaults for each array */
+	int shaderNormalArray;// = TRUE;
+	int shaderVertexArray;// = TRUE;
+	int shaderColourArray;// = FALSE;
+	int shaderTextureArray;// = FALSE;
 
-/* lights status. Light 7 is the headlight */
-static GLint lightOnOff[8];
+	float light_linAtten[8];
+	float light_constAtten[8];
+	float light_quadAtten[8];
+	float light_spotCut[8];
+	float light_spotExp[8];
+	shaderVec4 light_amb[8];
+	shaderVec4 light_dif[8];
+	shaderVec4 light_pos[8];
+	shaderVec4 light_spec[8];
+	shaderVec4 light_spot[8];
 
-/* should we send light changes along? */
-static bool lightStatusDirty = FALSE;
-static bool lightParamsDirty = FALSE;
+	/* Rearrange to take advantage of headlight when off */
+	int nextFreeLight;// = 0;
+
+	/* lights status. Light 7 is the headlight */
+	GLint lightOnOff[8];
+
+	/* should we send light changes along? */
+	bool lightStatusDirty;// = FALSE;
+	bool lightParamsDirty;// = FALSE;
+	int cur_hits;//=0;
+	void *empty_group;//=0;
+	//struct point_XYZ ht1, ht2; not used
+	struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
+	struct currayhit rayph;
+
+
+}* ppRenderFuncs;
+void *RenderFuncs_constructor(){
+	void *v = malloc(sizeof(struct pRenderFuncs));
+	memset(v,0,sizeof(struct pRenderFuncs));
+	return v;
+}
+void RenderFuncs_init(struct tRenderFuncs *t){
+	//public
+	//private
+	t->prv = RenderFuncs_constructor();
+	{
+		ppRenderFuncs p = (ppRenderFuncs)t->prv;
+#ifdef RENDERVERBOSE
+		p->renderLevel = 0;
+#endif
+		/* which arrays are enabled, and defaults for each array */
+		p->shaderNormalArray = TRUE;
+		p->shaderVertexArray = TRUE;
+		p->shaderColourArray = FALSE;
+		p->shaderTextureArray = FALSE;
+
+
+		/* Rearrange to take advantage of headlight when off */
+		p->nextFreeLight = 0;
+
+
+		/* should we send light changes along? */
+		p->lightStatusDirty = FALSE;
+		p->lightParamsDirty = FALSE;
+		p->cur_hits=0;
+		p->empty_group=0;
+	}
+}
+//	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+
+
+
 
 /* we assume max 8 lights. The max light is the Headlight, so we go through 0-6 for Lights */
 int nextlight() {
-	int rv = nextFreeLight;
-	if(nextFreeLight == 7) { return -1; }
-	nextFreeLight ++;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	int rv = p->nextFreeLight;
+	if(p->nextFreeLight == 7) { return -1; }
+	p->nextFreeLight ++;
 	return rv;
 }
 
 
 /* keep track of lighting */
 void lightState(GLint light, int status) {
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+
     PRINT_GL_ERROR_IF_ANY("start lightState");
     
     
 	if (light<0) return; /* nextlight will return -1 if too many lights */
-	if (lightOnOff[light] != status) {
+	if (p->lightOnOff[light] != status) {
 		if (status) {
 			/* printf ("light %d on\n",light); */
             
@@ -104,7 +184,7 @@ void lightState(GLint light, int status) {
 			FW_GL_ENABLE(GL_LIGHT0+light);
 #endif /* GL_ES_VERSION_2_0 */
             
-			lightStatusDirty = TRUE;
+			p->lightStatusDirty = TRUE;
 		} else {
 			/* printf ("light %d off\n",light);  */
             
@@ -112,9 +192,9 @@ void lightState(GLint light, int status) {
 			FW_GL_DISABLE(GL_LIGHT0+light);
 #endif /* GL_ES_VERSION_2_0 */
             
-			lightStatusDirty = TRUE;
+			p->lightStatusDirty = TRUE;
 		}
-		lightOnOff[light]=status;
+		p->lightOnOff[light]=status;
 	}
     PRINT_GL_ERROR_IF_ANY("end lightState");
 }
@@ -122,19 +202,22 @@ void lightState(GLint light, int status) {
 /* for local lights, we keep track of what is on and off */
 void saveLightState(int *ls) {
 	int i;
-	for (i=0; i<7; i++) ls[i] = lightOnOff[i];
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	for (i=0; i<7; i++) ls[i] = p->lightOnOff[i];
 } 
 
 void restoreLightState(int *ls) {
 	int i;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	for (i=0; i<7; i++) {
-		if (ls[i] != lightOnOff[i]) {
+		if (ls[i] != p->lightOnOff[i]) {
 			lightState(i,ls[i]);
 		}
 	}
 }
 
 void fwglLightfv (int light, int pname, GLfloat *params) {
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	/* printf ("fwglLightfv %d %d %f %f %f %f\n",light,pname,params[0], params[1],params[2],params[3]);  */
 	#ifndef GL_ES_VERSION_2_0
 		glLightfv(GL_LIGHT0+light,pname,params);
@@ -142,26 +225,27 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 
 	switch (pname) {
 		case GL_AMBIENT:
-			memcpy ((void *)light_amb[light],(void *)params,sizeof(shaderVec4));
+			memcpy ((void *)p->light_amb[light],(void *)params,sizeof(shaderVec4));
 			break;
 		case GL_DIFFUSE:
-			memcpy ((void *)light_dif[light],(void *)params,sizeof(shaderVec4));
+			memcpy ((void *)p->light_dif[light],(void *)params,sizeof(shaderVec4));
 			break;
 		case GL_POSITION:
-			memcpy ((void *)light_pos[light],(void *)params,sizeof(shaderVec4));
+			memcpy ((void *)p->light_pos[light],(void *)params,sizeof(shaderVec4));
 			break;
 		case GL_SPECULAR:
-			memcpy ((void *)light_spec[light],(void *)params,sizeof(shaderVec4));
+			memcpy ((void *)p->light_spec[light],(void *)params,sizeof(shaderVec4));
 			break;
 		case GL_SPOT_DIRECTION:
-			memcpy ((void *)light_spot[light],(void *)params,sizeof(shaderVec4));
+			memcpy ((void *)p->light_spot[light],(void *)params,sizeof(shaderVec4));
 			break;
 		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
 	}
-	lightParamsDirty=TRUE;
+	p->lightParamsDirty=TRUE;
 }
 
 void fwglLightf (int light, int pname, GLfloat param) {
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	//printf ("glLightf %d %d %f\n",light,pname,param);
 	#ifndef GL_ES_VERSION_2_0
 
@@ -172,45 +256,47 @@ void fwglLightf (int light, int pname, GLfloat param) {
 
 	switch (pname) {
 		case GL_CONSTANT_ATTENUATION:
-			light_constAtten[light] = param;
+			p->light_constAtten[light] = param;
 			break;
 		case GL_LINEAR_ATTENUATION:
-			light_linAtten[light] = param;
+			p->light_linAtten[light] = param;
 			break;
 		case GL_QUADRATIC_ATTENUATION:
-			light_quadAtten[light] = param;
+			p->light_quadAtten[light] = param;
 			break;
 		case GL_SPOT_CUTOFF:
-			light_spotCut[light] = param;
+			p->light_spotCut[light] = param;
 			break;
 		case GL_SPOT_EXPONENT:
-			light_spotExp[light] = param;
+			p->light_spotExp[light] = param;
 			break;
 		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
 	}
-	lightParamsDirty = TRUE;
+	p->lightParamsDirty = TRUE;
 }
 
 /* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call */
 void sendLightInfo (s_shader_capabilities_t *me) {
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 		/* for debugging: */
 /*
 			int i;
 			printf ("sendMAt - sending in lightState ");
-			for (i=0; i<8; i++) printf ("%d:%d ",i,lightOnOff[i]); printf ("\n");
+			for (i=0; i<8; i++) printf ("%d:%d ",i,p->lightOnOff[i]); printf ("\n");
 */
 		
 
 		/* if one of these are equal to -1, we had an error in the shaders... */
-		GLUNIFORM1IV(me->lightState,8,lightOnOff);
-		GLUNIFORM4FV(me->lightAmbient,8,(float *)light_amb);
-		GLUNIFORM4FV(me->lightDiffuse,8,(float *)light_dif);
-		GLUNIFORM4FV(me->lightPosition,8,(float *)light_pos);
-		GLUNIFORM4FV(me->lightSpecular,8,(float *)light_spec);
+		GLUNIFORM1IV(me->lightState,8,p->lightOnOff);
+		GLUNIFORM4FV(me->lightAmbient,8,(float *)p->light_amb);
+		GLUNIFORM4FV(me->lightDiffuse,8,(float *)p->light_dif);
+		GLUNIFORM4FV(me->lightPosition,8,(float *)p->light_pos);
+		GLUNIFORM4FV(me->lightSpecular,8,(float *)p->light_spec);
 	}
 
 /* finished rendering thisshape. */
 void turnGlobalShaderOff(void) {
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	if (getAppearanceProperties()->currentShader != 0) {
 		getAppearanceProperties()->currentShader = 0;
 		getAppearanceProperties()->currentShaderProperties = NULL;
@@ -218,10 +304,10 @@ void turnGlobalShaderOff(void) {
 	}
 
 	/* set array booleans back to defaults */
-	shaderNormalArray = TRUE;
-	shaderVertexArray = TRUE;
-	shaderColourArray = FALSE;
-	shaderTextureArray = FALSE;
+	p->shaderNormalArray = TRUE;
+	p->shaderVertexArray = TRUE;
+	p->shaderColourArray = FALSE;
+	p->shaderTextureArray = FALSE;
 }
 
 
@@ -322,29 +408,30 @@ printf ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSize,dataT
 }
 
 void sendClientStateToGPU(int enable, int cap) {
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	if (getAppearanceProperties()->currentShaderProperties != NULL) {
 		switch (cap) {
 			case GL_NORMAL_ARRAY:
-				shaderNormalArray = enable;
+				p->shaderNormalArray = enable;
 				break;
 			case GL_VERTEX_ARRAY:
-				shaderVertexArray = enable;
+				p->shaderVertexArray = enable;
 				break;
 			case GL_COLOR_ARRAY:
-				shaderColourArray = enable;
+				p->shaderColourArray = enable;
 				break;
 			case GL_TEXTURE_COORD_ARRAY:
-				shaderTextureArray = enable;
+				p->shaderTextureArray = enable;
 				break;
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 		}
 #ifdef RENDERVERBOSE
 printf ("sendClientStateToGPU: getAppearanceProperties()->currentShaderProperties %p \n",getAppearanceProperties()->currentShaderProperties);
-if (shaderNormalArray) printf ("enabling Normal\n"); else printf ("disabling Normal\n");
-if (shaderVertexArray) printf ("enabling Vertex\n"); else printf ("disabling Vertex\n");
-if (shaderColourArray) printf ("enabling Colour\n"); else printf ("disabling Colour\n");
-if (shaderTextureArray) printf ("enabling Texture\n"); else printf ("disabling Texture\n");
+if (p->shaderNormalArray) printf ("enabling Normal\n"); else printf ("disabling Normal\n");
+if (p->shaderVertexArray) printf ("enabling Vertex\n"); else printf ("disabling Vertex\n");
+if (p->shaderColourArray) printf ("enabling Colour\n"); else printf ("disabling Colour\n");
+if (p->shaderTextureArray) printf ("enabling Texture\n"); else printf ("disabling Texture\n");
 #endif
 
 	} else {
@@ -373,13 +460,14 @@ void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 
 
 void sendArraysToGPU (int mode, int first, int count) {
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	#ifdef RENDERVERBOSE
 	printf ("sendArraysToGPU; getAppearanceProperties()->currentShaderProperties %p (true %d) normal %d vertex %d colour %d texture %d\n",
-	getAppearanceProperties()->currentShaderProperties,TRUE, shaderNormalArray,shaderVertexArray,shaderColourArray,shaderTextureArray);
-	if (shaderNormalArray) printf ("glEnableVertexAttribArray Normal\n"); else printf ("glDisableVertexAttribArray Normal\n");
-	if (shaderVertexArray) printf ("glEnableVertexAttribArray Vertex\n"); else printf ("glDisableVertexAttribArray Vertex\n");
-	if (shaderColourArray) printf ("glEnableVertexAttribArray Colour\n"); else printf ("glDisableVertexAttribArray Colour\n");
-	if (shaderTextureArray) printf ("glEnableVertexAttribArray Texture\n"); else printf ("glDisableVertexAttribArray Texture\n");
+	getAppearanceProperties()->currentShaderProperties,TRUE, p->shaderNormalArray,p->shaderVertexArray,p->shaderColourArray,p->shaderTextureArray);
+	if (p->shaderNormalArray) printf ("glEnableVertexAttribArray Normal\n"); else printf ("glDisableVertexAttribArray Normal\n");
+	if (p->shaderVertexArray) printf ("glEnableVertexAttribArray Vertex\n"); else printf ("glDisableVertexAttribArray Vertex\n");
+	if (p->shaderColourArray) printf ("glEnableVertexAttribArray Colour\n"); else printf ("glDisableVertexAttribArray Colour\n");
+	if (p->shaderTextureArray) printf ("glEnableVertexAttribArray Texture\n"); else printf ("glDisableVertexAttribArray Texture\n");
 	printf ("calling glDrawArrays, mode %d, first %d, count %d\n",mode,first,count);
 	#endif
 
@@ -396,22 +484,22 @@ void sendArraysToGPU (int mode, int first, int count) {
 
 
 	if (getAppearanceProperties()->currentShaderProperties->Normals != -1) {
-			if (shaderNormalArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
+			if (p->shaderNormalArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
 			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
 	}
 
 	if (getAppearanceProperties()->currentShaderProperties->Vertices != -1) {
-			if (shaderVertexArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
+			if (p->shaderVertexArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
 			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
 	}
 
 	if (getAppearanceProperties()->currentShaderProperties->Colours != -1) {
-			if (shaderColourArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
+			if (p->shaderColourArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
 			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
 	}
 
 	if (getAppearanceProperties()->currentShaderProperties->TexCoords != -1) {
-			if (shaderTextureArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
+			if (p->shaderTextureArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
 			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
 	} 
 
@@ -420,6 +508,7 @@ void sendArraysToGPU (int mode, int first, int count) {
 }
 
 void sendElementsToGPU (int mode, int count, int type, int *indices) {
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	#ifdef RENDERVERBOSE
 	printf ("sendElementsToGPU start\n"); 
 	#endif
@@ -440,30 +529,30 @@ void sendElementsToGPU (int mode, int count, int type, int *indices) {
                 getAppearanceProperties()->currentShaderProperties->Vertices,
                 getAppearanceProperties()->currentShaderProperties->Colours,
                 getAppearanceProperties()->currentShaderProperties->TexCoords);
-		if (shaderNormalArray) printf ("shaderNormalArray TRUE\n"); else printf ("shaderNormalArray FALSE\n");        
-	        if (shaderVertexArray) printf ("shaderVertexArray TRUE\n"); else printf ("shaderVertexArray FALSE\n");
-	        if (shaderColourArray) printf ("shaderColourArray TRUE\n"); else printf ("shaderColourArray FALSE\n");
-		if (shaderTextureArray) printf ("shaderTextureArray TRUE\n"); else printf ("shaderTextureArray FALSE\n");               
+		if (p->shaderNormalArray) printf ("p->shaderNormalArray TRUE\n"); else printf ("p->shaderNormalArray FALSE\n");        
+	        if (p->shaderVertexArray) printf ("shaderVertexArray TRUE\n"); else printf ("shaderVertexArray FALSE\n");
+	        if (p->shaderColourArray) printf ("shaderColourArray TRUE\n"); else printf ("shaderColourArray FALSE\n");
+		if (p->shaderTextureArray) printf ("shaderTextureArray TRUE\n"); else printf ("shaderTextureArray FALSE\n");               
 	#endif
         
         
 		if (getAppearanceProperties()->currentShaderProperties->Normals != -1) {
-			if (shaderNormalArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
+			if (p->shaderNormalArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
 			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
 		}
 
 		if (getAppearanceProperties()->currentShaderProperties->Vertices != -1) {
-			if (shaderVertexArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
+			if (p->shaderVertexArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
 			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
 		}
 
 		if (getAppearanceProperties()->currentShaderProperties->Colours != -1) {
-			if (shaderColourArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
+			if (p->shaderColourArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
 			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
 		}
 
 		if (getAppearanceProperties()->currentShaderProperties->TexCoords != -1) {
-			if (shaderTextureArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
+			if (p->shaderTextureArray) glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
 			else glDisableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
 		}
 
@@ -483,11 +572,12 @@ void initializeLightTables() {
         float dif[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         float shin[] = { 0.6f, 0.6f, 0.6f, 1.0f };
         float As[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
       PRINT_GL_ERROR_IF_ANY("start of initializeightTables");
 
 	for(i=0; i<8; i++) {
-                lightOnOff[i] = 9999;
+                p->lightOnOff[i] = 9999;
                 lightState(i,FALSE);
             
         	FW_GL_LIGHTFV(i, GL_POSITION, pos);
@@ -551,7 +641,7 @@ int textureStackTop;
 int	have_transparency=FALSE;/* did any Shape have transparent material? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */
 
-int cur_hits=0;
+//int cur_hits=0;
 
 /* Collision detection results */
 struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
@@ -570,8 +660,9 @@ X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here
 
 struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0};
 struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
-void *hypersensitive = 0; int hyperhit = 0;
-struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
+void *hypersensitive = 0; 
+int hyperhit = 0;
+//struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
 
 GLint viewport[4] = {-1,-1,2,2};
 
@@ -580,7 +671,8 @@ GLint viewport[4] = {-1,-1,2,2};
 
 /* All in window coordinates */
 
-struct point_XYZ hp, ht1, ht2;
+struct point_XYZ hp;
+//static struct point_XYZ ht1, ht2;
 double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 
 /* used to save rayhit and hyperhit for later use by C functions */
@@ -592,7 +684,8 @@ struct X3D_Anchor *AnchorsAnchor = NULL;
 char *OSX_replace_world_from_console = NULL;
 
 
-struct currayhit rayHit,rayph,rayHitHyper;
+//static struct currayhit rayph;
+struct currayhit rayHit,rayHitHyper;
 /* used to test new hits */
 
 /* this is used to return the duration of an audioclip to the perl
@@ -613,7 +706,7 @@ float AC_LastDuration[50]  = {-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
 int SoundEngineStarted = FALSE;
 
 struct X3D_Group *rootNode=NULL;	/* scene graph root node */
-void *empty_group=0;
+//void *empty_group=0;
 
 /*******************************************************************************/
 
@@ -622,6 +715,7 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	    float tx,float ty, char *descr)  {
 	GLDOUBLE modelMatrix[16];
 	GLDOUBLE projMatrix[16];
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
 	/* Real rat-testing */
 #ifdef RENDERVERBOSE
@@ -639,8 +733,8 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
 	FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &hp.x, &hp.y, &hp.z);
 	hitPointDist = rat;
-	rayHit=rayph;
-	rayHitHyper=rayph;
+	rayHit=p->rayph;
+	rayHitHyper=p->rayph;
 #ifdef RENDERVERBOSE 
 	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hitPointDist %f\n",hp.x,hp.y,hp.z, rat, hitPointDist);
 #endif
@@ -683,6 +777,7 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 
 void update_node(struct X3D_Node *node) {
 	int i;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
 #ifdef VERBOSE
 	printf ("update_node for %d %s nparents %d renderflags %x\n",node, stringNodeType(node->_nodeType),node->_nparents, node->_renderFlags); 
@@ -705,7 +800,7 @@ void update_node(struct X3D_Node *node) {
 		struct X3D_Node *n = X3D_NODE(node->_parents[i]);
 		if(n == node) {
 			fprintf(stderr, "Error: self-referential node structure! (node:'%s')\n", stringNodeType(node->_nodeType));
-			node->_parents[i] = empty_group;
+			node->_parents[i] = p->empty_group;
 		} else if( n != 0 ) {
 			update_node(n);
 		}
@@ -719,9 +814,9 @@ void update_node(struct X3D_Node *node) {
  * depending on what we are doing right now.
  */
 
-#ifdef RENDERVERBOSE
-static int renderLevel = 0;
-#endif
+//#ifdef RENDERVERBOSE
+//static int renderLevel = 0;
+//#endif
 
 #define PRINT_NODE(_node, _v)  do {					\
 		if (gglobal()->internalc.global_print_opengl_errors && (gglobal()->display._global_gl_err != GL_NO_ERROR)) { \
@@ -748,6 +843,7 @@ void render_node(struct X3D_Node *node) {
 	int srg = 0;
 	int sch = 0;
 	struct currayhit srh;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
 	X3D_NODE_CHECK(node);
 
@@ -858,14 +954,14 @@ void render_node(struct X3D_Node *node) {
 		DEBUG_RENDER("rs 5\n");
 		srg = render_geom;
 		render_geom = 1;
-		DEBUG_RENDER("CH1 %d: %d\n",node, cur_hits, node->_hit);
-		sch = cur_hits;
-		cur_hits = 0;
+		DEBUG_RENDER("CH1 %d: %d\n",node, p->cur_hits, node->_hit);
+		sch = p->cur_hits;
+		p->cur_hits = 0;
 		/* HP */
-		srh = rayph;
-		rayph.hitNode = node;
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, rayph.modelMatrix);
-		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, rayph.projMatrix);
+		srh = p->rayph;
+		p->rayph.hitNode = node;
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->rayph.modelMatrix);
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, p->rayph.projMatrix);
 		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,virt);
 	}
 
@@ -877,8 +973,8 @@ void render_node(struct X3D_Node *node) {
 
     if((render_sensitive) && (hypersensitive == node)) {
 		DEBUG_RENDER("rs 7\n");
-		hyper_r1 = t_r1;
-		hyper_r2 = t_r2;
+		p->hyper_r1 = t_r1;
+		p->hyper_r2 = t_r2;
 		hyperhit = 1;
     }
 
@@ -900,10 +996,10 @@ void render_node(struct X3D_Node *node) {
 	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
 		DEBUG_RENDER("rs 9\n");
 		render_geom = srg;
-		cur_hits = sch;
-		DEBUG_RENDER("CH3: %d %d\n",cur_hits, node->_hit);
+		p->cur_hits = sch;
+		DEBUG_RENDER("CH3: %d %d\n",p->cur_hits, node->_hit);
 		/* HP */
-		rayph = srh;
+		p->rayph = srh;
 	}
 
 	if(virt->fin) {
@@ -1015,7 +1111,7 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 }
 
 void
-render_hier(struct X3D_Group *p, int rwhat) {
+render_hier(struct X3D_Group *g, int rwhat) {
 	/// not needed now - see below struct point_XYZ upvec = {0,1,0};
 	/// not needed now - see below GLDOUBLE modelMatrix[16];
 
@@ -1025,6 +1121,7 @@ render_hier(struct X3D_Group *p, int rwhat) {
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
 #endif
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
 
 	render_vp = rwhat & VF_Viewpoint;
@@ -1039,7 +1136,7 @@ render_hier(struct X3D_Group *p, int rwhat) {
 	render_picksensors = rwhat & VF_PickingSensor;
 	render_pickables = rwhat & VF_inPickableGroup;
 #endif
-	nextFreeLight = 0;
+	p->nextFreeLight = 0;
 	hitPointDist = -1;
 
 
@@ -1053,14 +1150,14 @@ render_hier(struct X3D_Group *p, int rwhat) {
 	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	   render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
 
-	if (!p) {
+	if (!g) {
 		/* we have no geometry yet, sleep for a tiny bit */
 		usleep(1000);
 		return;
 	}
 
 #ifdef RENDERVERBOSE
-	printf("Render_hier node=%d what=%d\n", p, rwhat);
+	printf("Render_hier node=%d what=%d\n", g, rwhat);
 #endif
 
 #ifdef render_pre_profile
@@ -1081,7 +1178,7 @@ render_hier(struct X3D_Group *p, int rwhat) {
 	}
 #endif
 
-	render_node(X3D_NODE(p));
+	render_node(X3D_NODE(g));
 
 #ifdef render_pre_profile
 	if (render_geom) {
