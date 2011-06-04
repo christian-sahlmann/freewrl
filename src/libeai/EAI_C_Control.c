@@ -41,7 +41,10 @@ void X3D_initialize(char *hostname) {
 	#endif
 	int loopCount;
 	int constat;
-	int isMidi = 0;
+
+#ifdef OLDCODE
+OLDCODE	int isMidi = 0;
+#endif // OLDCODE
 
 	loopCount = 0;
 	while ((_X3D_FreeWRL_FD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -54,10 +57,12 @@ void X3D_initialize(char *hostname) {
 	}
 
 	usleep (10000);	/* let remote end settle down to this interruption */
-	if (!strcmp(hostname, "MIDI")) {
-		isMidi = 1;
-		hostname = "localhost";
-	}
+#ifdef OLDCODE
+OLDCODE	if (!strcmp(hostname, "MIDI")) {
+OLDCODE		isMidi = 1;
+OLDCODE		hostname = "localhost";
+OLDCODE	}
+#endif // OLDCODE
 
 	if (strlen(hostname) == 0) hostname = "localhost";
 
@@ -71,11 +76,16 @@ void X3D_initialize(char *hostname) {
 	bcopy((char *)server->h_addr, 
 		 (char *)&serv_addr.sin_addr.s_addr,
 		 server->h_length);
-	if (isMidi) {
-		serv_addr.sin_port = htons(EAIBASESOCKET + MIDIPORTOFFSET);
-	} else {
+
+#ifdef OLDCODE
+OLDCODE	if (isMidi) {
+OLDCODE		serv_addr.sin_port = htons(EAIBASESOCKET + MIDIPORTOFFSET);
+OLDCODE	} else {
+OLDCODE		serv_addr.sin_port = htons(EAIBASESOCKET);
+OLDCODE	}
+#else
 		serv_addr.sin_port = htons(EAIBASESOCKET);
-	}
+#endif
 
 	loopCount = 0;
 	while ((constat = connect(_X3D_FreeWRL_FD,(struct sockaddr *) &serv_addr,sizeof(serv_addr))) < 0) {

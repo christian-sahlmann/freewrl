@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.60 2011/03/23 18:26:02 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.61 2011/06/04 19:05:42 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.61  2011/06/04 19:05:42  crc_canada
+# comment out MIDI code
+#
 # Revision 1.60  2011/03/23 18:26:02  crc_canada
 # PolyReps now use GLuints for indicies; some compiler warnings removed
 #
@@ -1541,8 +1544,6 @@ sub gen {
 	"	\n".
 	#"	/* is this possibly the text node for the statusbar?? */ \n".
 	#"	if (nt == NODE_Text) lastTextNode = (struct X3D_Text *) tmp; \n".
-	"	/* is this a ReWire node?? */ \n".
-	"	registerReWireNode(tmp); \n".
 	"	/* is this a texture holding node? */\n".
 	"	registerTexture(tmp);\n".
 	"	/* Node Tracking */\n".

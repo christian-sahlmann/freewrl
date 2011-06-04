@@ -211,8 +211,6 @@ int X3DAdvise (X3DEventOut *node, void *fn);
 void _handleReWireCallback(char *buf);
 char mapFieldTypeToEAItype (int st);
 int mapEAItypeToFieldType (char st);
-void sendMIDITableToFreeWRL(char *buf);
-void sendMIDIControlToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value);
 X3DNode* X3D_getValue(X3DEventOut *src);
 void X3D_freeEventIn(X3DEventIn* ev);
 void X3D_freeEventOut(X3DEventOut* ev);

@@ -17,40 +17,41 @@
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
-
-#ifndef REWIRE
-#include "config.h"
-#include "system.h"
-#endif
-#include "EAI_C.h"
-
-void _handleReWireCallback (char *buf) {
-	int bus, channel, controllerOrVelocity, controlType, value;
-	
-	if ((*buf) == 'R') buf++; if ((*buf) == 'W') buf++;
-	if (sscanf(buf, "%d %d %d %d %d",&bus,&channel, &controllerOrVelocity, &controlType, &value) != 5) {
-		printf ("handleReWireCallback - failed in sscanf\n");
-	} else {
-		#ifdef MIDI
-		sendMIDI (bus,channel,controllerOrVelocity,controlType,value);
-		#else
-		printf ("handleReWireCallback - data not sent anywhere\n");
-		#endif
-	}
-}
-
-void sendMIDITableToFreeWRL(char *buf) {
-	char *ptr;
-	/* printf("in sendMIDITableToFreeWRL\n"); */
-        ptr = _X3D_make1StringCommand(MIDIINFO,buf);
-        ptr = _X3D_make1StringCommand(MIDIINFO,buf);
-}
-
-void sendMIDIControlToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value) {
-	/* printf("in sendMIDIControlToFreeWRL\n"); */
-	char *ptr;
-	char line[200];
-	sprintf (line, "%ld %d %d %d %d",relativeSamplePos, bus, channel, controller, value);
-	ptr = _X3D_make1StringCommand(MIDICONTROL,line);
-}
-
+#ifdef OLDCODE
+OLDCODE#ifndef REWIRE
+OLDCODE#include "config.h"
+OLDCODE#include "system.h"
+OLDCODE#endif
+OLDCODE#include "EAI_C.h"
+OLDCODE
+OLDCODEvoid _handleReWireCallback (char *buf) {
+OLDCODE	int bus, channel, controllerOrVelocity, controlType, value;
+OLDCODE	
+OLDCODE	if ((*buf) == 'R') buf++; if ((*buf) == 'W') buf++;
+OLDCODE	if (sscanf(buf, "%d %d %d %d %d",&bus,&channel, &controllerOrVelocity, &controlType, &value) != 5) {
+OLDCODE		printf ("handleReWireCallback - failed in sscanf\n");
+OLDCODE	} else {
+OLDCODE		#ifdef MIDI
+OLDCODE		sendMIDI (bus,channel,controllerOrVelocity,controlType,value);
+OLDCODE		#else
+OLDCODE		printf ("handleReWireCallback - data not sent anywhere\n");
+OLDCODE		#endif
+OLDCODE	}
+OLDCODE}
+OLDCODE
+OLDCODEvoid sendMIDITableToFreeWRL(char *buf) {
+OLDCODE	char *ptr;
+OLDCODE	/* printf("in sendMIDITableToFreeWRL\n"); */
+OLDCODE        ptr = _X3D_make1StringCommand(MIDIINFO,buf);
+OLDCODE        ptr = _X3D_make1StringCommand(MIDIINFO,buf);
+OLDCODE}
+OLDCODE
+OLDCODEvoid sendMIDIControlToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value) {
+OLDCODE	/* printf("in sendMIDIControlToFreeWRL\n"); */
+OLDCODE	char *ptr;
+OLDCODE	char line[200];
+OLDCODE	sprintf (line, "%ld %d %d %d %d",relativeSamplePos, bus, channel, controller, value);
+OLDCODE	ptr = _X3D_make1StringCommand(MIDICONTROL,line);
+OLDCODE}
+OLDCODE
+#endif // OLDCODE

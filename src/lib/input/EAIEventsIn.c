@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.76 2011/06/03 17:34:05 dug9 Exp $
+$Id: EAIEventsIn.c,v 1.77 2011/06/04 19:05:42 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -329,27 +329,29 @@ void EAI_parse_commands () {
 				}
 				break;
 				}
-			case MIDIINFO: {
-				EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
-				/* if we do not have a string yet, we have to do this...*/
-				while (EOT == NULL) {
-					tg->EAIServ.EAIbuffer = read_EAI_socket(tg->EAIServ.EAIbuffer,&tg->EAIServ.EAIbufcount, &tg->EAIServ.EAIbufsize, &tg->EAIServ.EAIlistenfd);
-					EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
-				}
-
-				*EOT = 0; /* take off the EOT marker*/
-				ReWireRegisterMIDI(&EAI_BUFFER_CUR);
-
-				/* finish this for now - note the pointer math. */
-				bufPtr = (int) (EOT+3-tg->EAIServ.EAIbuffer);
-				sprintf (th->outBuffer,"RE\n%f\n%d\n0",TickTime(),count);
-				break;
-				}
-			case MIDICONTROL: {
-				/* sprintf (outBuffer,"RE\n%f\n%d\n%d",TickTime(),count, ReWireMIDIControl(&EAI_BUFFER_CUR)); */
-				ReWireMIDIControl(&EAI_BUFFER_CUR);
-				break;
-				}
+#ifdef OLDCODE
+OLDCODE			case MIDIINFO: {
+OLDCODE				EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
+OLDCODE				/* if we do not have a string yet, we have to do this...*/
+OLDCODE				while (EOT == NULL) {
+OLDCODE					tg->EAIServ.EAIbuffer = read_EAI_socket(tg->EAIServ.EAIbuffer,&tg->EAIServ.EAIbufcount, &tg->EAIServ.EAIbufsize, &tg->EAIServ.EAIlistenfd);
+OLDCODE					EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
+OLDCODE				}
+OLDCODE
+OLDCODE				*EOT = 0; /* take off the EOT marker*/
+OLDCODE				ReWireRegisterMIDI(&EAI_BUFFER_CUR);
+OLDCODE
+OLDCODE				/* finish this for now - note the pointer math. */
+OLDCODE				bufPtr = (int) (EOT+3-tg->EAIServ.EAIbuffer);
+OLDCODE				sprintf (th->outBuffer,"RE\n%f\n%d\n0",TickTime(),count);
+OLDCODE				break;
+OLDCODE				}
+OLDCODE			case MIDICONTROL: {
+OLDCODE				/* sprintf (outBuffer,"RE\n%f\n%d\n%d",TickTime(),count, ReWireMIDIControl(&EAI_BUFFER_CUR)); */
+OLDCODE				ReWireMIDIControl(&EAI_BUFFER_CUR);
+OLDCODE				break;
+OLDCODE				}
+#endif // OLDCODE
 			case CREATEVU:
 			case CREATEVS: {
 				/*format int seq# COMMAND vrml text     string EOT*/
@@ -668,13 +670,20 @@ void EAI_parse_commands () {
 
 		/* send the response - events don't send a reply */
 		/* and, Anchors send a different reply (loadURLS) */
-		if ((command != SENDEVENT) && (command != MIDICONTROL)) {
+#ifdef OLDCODE
+OLDCODE		if ((command != SENDEVENT) && (command != MIDICONTROL)) {
+OLDCODE			if (command != LOADURL) outBufferCat("\nRE_EOT");
+OLDCODE			if (command != MIDIINFO)
+OLDCODE				EAI_send_string (th->outBuffer,tg->EAIServ.EAIlistenfd);
+OLDCODE			else
+OLDCODE				EAI_send_string(th->outBuffer, tg->EAIServ.EAIMIDIlistenfd);
+OLDCODE		}
+#else
+		if (command != SENDEVENT)  {
 			if (command != LOADURL) outBufferCat("\nRE_EOT");
-			if (command != MIDIINFO)
-				EAI_send_string (th->outBuffer,tg->EAIServ.EAIlistenfd);
-			else
-				EAI_send_string(th->outBuffer, tg->EAIServ.EAIMIDIlistenfd);
+			EAI_send_string (th->outBuffer,tg->EAIServ.EAIlistenfd);
 		}
+#endif
 
 		/* printf ("end of command, remainder %d ",strlen(&EAI_BUFFER_CUR)); */
 		/* skip to the next command */

@@ -24,7 +24,11 @@
 #endif
 #include "EAI_C.h"
 
-#define WAIT_FOR_RETVAL ((command!=SENDEVENT) && (command!=MIDICONTROL))
+#ifdef OLDCODE
+OLDCODE #define WAIT_FOR_RETVAL ((command!=SENDEVENT) && (command!=MIDICONTROL))
+#else
+#define WAIT_FOR_RETVAL (command!=SENDEVENT)
+#endif
 
 static pthread_mutex_t eailock = PTHREAD_MUTEX_INITIALIZER;
 #define EAILOCK pthread_mutex_lock(&eailock);
@@ -178,8 +182,10 @@ void freewrlReadThread(void)  {
 				receivedData = TRUE;
 			} else if (strncmp ("EV",readbuffer,2) == 0) {
 					_handleFreeWRLcallback(readbuffer);
-			} else if (strncmp ("RW",readbuffer,2) == 0) {
-				_handleReWireCallback(readbuffer);
+#ifdef OLDCODE
+OLDCODE			} else if (strncmp ("RW",readbuffer,2) == 0) {
+OLDCODE				_handleReWireCallback(readbuffer);
+#endif // OLDCODE
 			} else if (strncmp ("QUIT",readbuffer,4) == 0) {
 				exit(0);
 			} else {

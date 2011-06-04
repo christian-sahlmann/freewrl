@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.103 2011/06/04 17:33:47 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.104 2011/06/04 19:05:42 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -1131,7 +1131,6 @@ void *returnInterpolatorPointer (const char *x) {
 	} else if (strcmp("IntegerTrigger",x)==0) { return (void *)do_IntegerTrigger;
 	} else if (strcmp("IntegerSequencer",x)==0) { return (void *)do_IntegerSequencer;
 	} else if (strcmp("TimeTrigger",x)==0) { return (void *)do_TimeTrigger;
-	} else if (strcmp("MidiControl",x)==0) { return (void *)do_MidiControl;
 	
 	} else {
 		return 0;

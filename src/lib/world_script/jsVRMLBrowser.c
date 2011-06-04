@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.44 2011/06/04 15:03:50 dug9 Exp $
+$Id: jsVRMLBrowser.c,v 1.45 2011/06/04 19:05:42 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -98,8 +98,6 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 	{"deleteRoute", VrmlBrowserDeleteRoute, 0},
 	{"print", VrmlBrowserPrint, 0},
 	{"println", VrmlBrowserPrintln, 0},
-	{"getMidiDeviceList", VrmlBrowserGetMidiDeviceList, 0},
-	{"getMidiDeviceInfo", VrmlBrowserGetMidiDeviceInfo, 0},
 	{0}
 };
 
@@ -765,288 +763,291 @@ VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *arg
 
 /****************************************************************************************/
 
-/* find a name in the ReWireNameTable - this is a read-only operation; 
-   int ReWireNameIndex (char *name) will find it, and add it if it is not there */
-
-static int findEncodedName(char *target) {
-	int encodedName;
-	int ctr;
-	struct ReWireNamenameStruct *ReWireNamenames;
-	struct ReWireDeviceStruct *ReWireDevices;
-	struct tComponent_Networking t = gglobal()->Component_Networking;
-	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
-	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
-	encodedName = -1;
-	#ifdef JSVERBOSE
-	printf ("findEncodedName - looking for %s\n",target);
-	#endif
-
-	for (ctr=0; ctr<=t.ReWireNametableSize; ctr++) {
-		if (strcmp(target,ReWireNamenames[ctr].name)==0) {
-			#ifdef JSVERBOSE
-			printf ("findEncodedName - FOUND IT at %d - it is %s\n",ctr,ReWireNamenames[ctr].name); 
-			#endif
-			encodedName = ctr;
-		}
-	}
-	return encodedName;
-}
-
-/* return an MFString containing all of the devices CURRENTLY defined on the MIDI interface list */
-JSBool
-VrmlBrowserGetMidiDeviceList(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	int i;
-	JSString *_str;
-	JSObject *myObj;
-	int currentDevice = -1;
-	int deviceIndexInList = 0;
-	struct ReWireNamenameStruct *ReWireNamenames;
-	struct ReWireDeviceStruct *ReWireDevices;
-	struct tComponent_Networking t = gglobal()->Component_Networking;
-	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
-	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
-
-
-	if (argc != 0) {
-		printf ("getMidiDeviceList does not take parameters\n");
-		return JS_FALSE;
-	}
-
-	#ifdef JSVERBOSE
-	printf ("VrmlBrowserGetMidiDeviceList - table size %d\n",t.ReWireDevicetableSize);
-	for (i=0; i<t.ReWireDevicetableSize; i++) {
-		printf ("entry %d is name %d :%s: ecname %d :%s:\n",i,
-			ReWireDevices[i].encodedDeviceName, 
-			ReWireNamenames[ReWireDevices[i].encodedDeviceName].name, 
-			ReWireDevices[i].encodedControllerName,
-			ReWireNamenames[ReWireDevices[i].encodedControllerName].name);
-	}
-	#endif
-
-	/* construct the return object */
-        if ((myObj = JS_ConstructObject(context, &MFStringClass, NULL, NULL)) == NULL) {
-                printf( "JS_ConstructObject failed in VrmlBrowserGetMidiDeviceList.\n");
-                return JS_FALSE;
-        }
-
-	/* go through the table, and find encoded names that are unique */
-	for (i=0; i<t.ReWireDevicetableSize; i++) {
-		/* this is a different device than before */
-		if (ReWireDevices[i].encodedDeviceName != currentDevice) {
-			currentDevice = ReWireDevices[i].encodedDeviceName;
-			#ifdef JSVERBOSE
-			printf ("getMidiDeviceList: device %d is %s\n",deviceIndexInList,ReWireNamenames[currentDevice].name);
-			#endif
-
-        		_str = JS_NewStringCopyZ(context,ReWireNamenames[currentDevice].name);
-                	if (!JS_DefineElement(context, myObj, (jsint) deviceIndexInList, STRING_TO_JSVAL(_str),
-				JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB7, JSPROP_ENUMERATE)) {
-                	        printf( "JS_DefineElement failed for arg %d in getMidiDeviceList.\n", i);
-                	        return JS_FALSE;
-			}
-			deviceIndexInList ++; /* next entry */
-                }
-        }
-
-        *rval = OBJECT_TO_JSVAL(myObj);
-        return JS_TRUE;
-}
-
-/* find a MIDI device, (parameter input is a String) and return MFString of controller names */
-/* returns a MFString with 0 entries, if no controller is found */
-JSBool
-VrmlBrowserGetMidiDeviceInfo(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	JSString *_str;
-	JSObject *myObj;
-	char *target;
-	int encodedName;
-	int currentController;
-	int i;
-	int controllerIndexInList = 0;
-	int dummyController;
-	struct ReWireNamenameStruct *ReWireNamenames;
-	struct ReWireDeviceStruct *ReWireDevices;
-	struct tComponent_Networking t = gglobal()->Component_Networking;
-	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
-	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
-
-	#ifdef JSVERBOSE
-	printf ("start of VrmlBrowserGetMidiDeviceInfo\n");
-	#endif
-
-	if (argc != 1) {
-		printf ("getMidiDeviceInfo expects 1 parameter\n");
-		return JS_FALSE;
-	}
-
-	/* parameter should be a string */
-	if (JSVAL_IS_STRING(argv[0])) {
-#if JS_VERSION < 185
-		target = JS_GetStringBytes( JSVAL_TO_STRING(argv[0]));
-#else
-		target = JS_EncodeString(context,JSVAL_TO_STRING(argv[0]));
-#endif
-		#ifdef JSVERBOSE
-		printf ("field string is %s\n",target); 
-		#endif
-	} else {
-		printf ("getMidiDeviceInfo expects parameter to be a string\n");
-		return JS_FALSE;
-	}
-
-	/* what is its index? */
-	encodedName = findEncodedName(target);
-
-	#ifdef JSVERBOSE
-	printf ("VrmlBrowserGetMidiDeviceInfo - table size %d looking for encoded name %d\n",ReWireDevicetableSize,encodedName);
-	for (i=0; i<ReWireDevicetableSize; i++) {
-		if (encodedName == ReWireDevices[i].encodedDeviceName) 
-		printf ("entry %d is name %d :%s: ecname %d :%s:\n",i,
-			ReWireDevices[i].encodedDeviceName, 
-			ReWireNamenames[ReWireDevices[i].encodedDeviceName].name, 
-			ReWireDevices[i].encodedControllerName,
-			ReWireNamenames[ReWireDevices[i].encodedControllerName].name);
-	}
-	#endif
-
-	/* construct the return object */
-        if ((myObj = JS_ConstructObject(context, &MFStringClass, NULL, NULL)) == NULL) {
-                printf( "JS_ConstructObject failed in VrmlBrowserGetMidiDeviceList.\n");
-                return JS_FALSE;
-        }
-        *rval = OBJECT_TO_JSVAL(myObj);
-
-	/* one controller has been added to ensure that we can send notes to a device, without
-	   ANY controllers (table entry must exist, yada, yada, yada... , so skip this one */
-	dummyController = findEncodedName("use_for_buttonPresses");
-
-	/* go through the table, and find controllers associated with this device */
-	for (i=0; i<t.ReWireDevicetableSize; i++) {
-		/* is this our device? */
-		if (encodedName == ReWireDevices[i].encodedDeviceName) {
-			/* it is our device, is it anything but this dummy controller? */
-			if (ReWireDevices[i].encodedControllerName != dummyController) {
-				/* found our device, lets add info on controllers */
-				currentController = ReWireDevices[i].encodedControllerName;
-				#ifdef JSVERBOSE
-				printf ("getMidiDeviceList: controller %d is %s\n",controllerIndexInList,ReWireNamenames[currentController].name);
-				#endif
-	
-	        		_str = JS_NewStringCopyZ(context,ReWireNamenames[currentController].name);
-	                	if (!JS_DefineElement(context, myObj, (jsint) controllerIndexInList, STRING_TO_JSVAL(_str),
-					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB7, JSPROP_ENUMERATE)) {
-	                	        printf( "JS_DefineElement failed for arg %d in getMidiDeviceList.\n", i);
-	                	        return JS_FALSE;
-				}
-				controllerIndexInList ++; /* next entry */
-			}
-                }
-        }
-        *rval = OBJECT_TO_JSVAL(myObj);
-	return JS_TRUE;
-}
-
-#define MIDICONNUM 1
-#define MIDICONMIN 2
-#define MIDICONMAX 3
-
-/* do the guts of the getMidiControllerNumber, ControllerMax and ControllerMin */
-int findMidiNumber (JSContext *cx, uintN argc, jsval *argv, int myFn) {
-	char *targetDevice;
-	char *targetController;
-	int encDev; 
-	int encCha;
-	int i;
-	struct ReWireNamenameStruct *ReWireNamenames;
-	struct ReWireDeviceStruct *ReWireDevices;
-	struct tComponent_Networking t = gglobal()->Component_Networking;
-	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
-	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
-
-	if (argc != 2) {
-		printf ("MidiControllerInfo - require 2 parameters\n");
-		return -1;
-	}
-
-	/* parameters should be a string */
-	if (JSVAL_IS_STRING(argv[0])) {
-#if JS_VERSION < 185
-		targetDevice = JS_GetStringBytes( JSVAL_TO_STRING(argv[0]));
-#else
-		targetDevice = JS_EncodeString(cx,JSVAL_TO_STRING(argv[0]));
-#endif
-		#ifdef JSVERBOSE
-		printf ("field string is %s\n",targetDevice); 
-		#endif
-	} else {
-		printf ("getMidiDeviceInfo expects Device parameter to be a string\n");
-		return -1;
-	}
-	if (JSVAL_IS_STRING(argv[1])) {
-#if JS_VERSION < 185
-		targetController = JS_GetStringBytes( JSVAL_TO_STRING(argv[1]));
-#else
-		targetController = JS_EncodeString(cx,JSVAL_TO_STRING(argv[1]));
-#endif
-		#ifdef JSVERBOSE
-		printf ("field string is %s\n",targetController); 
-		#endif
-	} else {
-		printf ("getMidiDeviceInfo expects Controller parameter to be a string\n");
-		return -1;
-	}
-
-	/* ok, we have 2 strings, lets change these to encoded values */
-	encDev = findEncodedName(targetDevice);
-	encCha = findEncodedName(targetController);
-
-	/* find the entry */
-	for (i=0; i<t.ReWireDevicetableSize; i++) {
-		/* is this our device? */
-		if (encDev == ReWireDevices[i].encodedDeviceName) {
-			/* it is our device, is it anything but this dummy controller? */
-			if (ReWireDevices[i].encodedControllerName == encCha) {
-				/* found it! */
-				#ifdef JSVERBOSE
-				printf ("getMidiControllerInfo: found %s %s\n",targetDevice, targetController);
-				#endif
-				if (myFn == MIDICONNUM)
-					return ReWireDevices[i].controller;
-				else if (myFn == MIDICONMIN)
-					return ReWireDevices[i].cmin;
-				else if (myFn == MIDICONMAX)
-					return ReWireDevices[i].cmax;
-				else {
-					printf ("getMidiControllerInfo, found controller, but can't figure out return\n");
-					return -1;
-				}			
-			}
-                }
-        }
-	return -1;
-} 
-
-/* send in 2 Strings; MIDI Device and controller, returns number on device, or -1 on error */
-JSBool VrmlBrowserGetMidiControllerNumber(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	*rval = INT_TO_JSVAL(findMidiNumber (cx, argc, argv, MIDICONNUM));
-	return JS_TRUE;
-}
-
-/* send in 2 Strings; MIDI Device and controller, returns minimum value, or -1 on error */
-JSBool VrmlBrowserGetMidiControllerMin(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	*rval = INT_TO_JSVAL(findMidiNumber (cx, argc, argv, MIDICONMIN));
-	return JS_TRUE;
-}
-
-/* send in 2 Strings; MIDI Device and controller, returns maximum value, or -1 on error */
-JSBool VrmlBrowserGetMidiControllerMax(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	*rval = INT_TO_JSVAL(findMidiNumber (cx, argc, argv, MIDICONMAX));
-	return JS_TRUE;
-}
-
-
+#ifdef OLDCODE
+OLDCODE/* find a name in the ReWireNameTable - this is a read-only operation; 
+OLDCODE   int ReWireNameIndex (char *name) will find it, and add it if it is not there */
+OLDCODE
+OLDCODEstatic int findEncodedName(char *target) {
+OLDCODE	int encodedName;
+OLDCODE	int ctr;
+OLDCODE	struct ReWireNamenameStruct *ReWireNamenames;
+OLDCODE	struct ReWireDeviceStruct *ReWireDevices;
+OLDCODE	struct tComponent_Networking t = gglobal()->Component_Networking;
+OLDCODE	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+OLDCODE	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
+OLDCODE	encodedName = -1;
+OLDCODE	#ifdef JSVERBOSE
+OLDCODE	printf ("findEncodedName - looking for %s\n",target);
+OLDCODE	#endif
+OLDCODE
+OLDCODE	for (ctr=0; ctr<=t.ReWireNametableSize; ctr++) {
+OLDCODE		if (strcmp(target,ReWireNamenames[ctr].name)==0) {
+OLDCODE			#ifdef JSVERBOSE
+OLDCODE			printf ("findEncodedName - FOUND IT at %d - it is %s\n",ctr,ReWireNamenames[ctr].name); 
+OLDCODE			#endif
+OLDCODE			encodedName = ctr;
+OLDCODE		}
+OLDCODE	}
+OLDCODE	return encodedName;
+OLDCODE}
+OLDCODE
+OLDCODE
+OLDCODE/* return an MFString containing all of the devices CURRENTLY defined on the MIDI interface list */
+OLDCODEJSBool
+OLDCODEVrmlBrowserGetMidiDeviceList(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+OLDCODE{
+OLDCODE	int i;
+OLDCODE	JSString *_str;
+OLDCODE	JSObject *myObj;
+OLDCODE	int currentDevice = -1;
+OLDCODE	int deviceIndexInList = 0;
+OLDCODE	struct ReWireNamenameStruct *ReWireNamenames;
+OLDCODE	struct ReWireDeviceStruct *ReWireDevices;
+OLDCODE	struct tComponent_Networking t = gglobal()->Component_Networking;
+OLDCODE	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+OLDCODE	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
+OLDCODE
+OLDCODE
+OLDCODE	if (argc != 0) {
+OLDCODE		printf ("getMidiDeviceList does not take parameters\n");
+OLDCODE		return JS_FALSE;
+OLDCODE	}
+OLDCODE
+OLDCODE	#ifdef JSVERBOSE
+OLDCODE	printf ("VrmlBrowserGetMidiDeviceList - table size %d\n",t.ReWireDevicetableSize);
+OLDCODE	for (i=0; i<t.ReWireDevicetableSize; i++) {
+OLDCODE		printf ("entry %d is name %d :%s: ecname %d :%s:\n",i,
+OLDCODE			ReWireDevices[i].encodedDeviceName, 
+OLDCODE			ReWireNamenames[ReWireDevices[i].encodedDeviceName].name, 
+OLDCODE			ReWireDevices[i].encodedControllerName,
+OLDCODE			ReWireNamenames[ReWireDevices[i].encodedControllerName].name);
+OLDCODE	}
+OLDCODE	#endif
+OLDCODE
+OLDCODE	/* construct the return object */
+OLDCODE        if ((myObj = JS_ConstructObject(context, &MFStringClass, NULL, NULL)) == NULL) {
+OLDCODE                printf( "JS_ConstructObject failed in VrmlBrowserGetMidiDeviceList.\n");
+OLDCODE                return JS_FALSE;
+OLDCODE        }
+OLDCODE
+OLDCODE	/* go through the table, and find encoded names that are unique */
+OLDCODE	for (i=0; i<t.ReWireDevicetableSize; i++) {
+OLDCODE		/* this is a different device than before */
+OLDCODE		if (ReWireDevices[i].encodedDeviceName != currentDevice) {
+OLDCODE			currentDevice = ReWireDevices[i].encodedDeviceName;
+OLDCODE			#ifdef JSVERBOSE
+OLDCODE			printf ("getMidiDeviceList: device %d is %s\n",deviceIndexInList,ReWireNamenames[currentDevice].name);
+OLDCODE			#endif
+OLDCODE
+OLDCODE        		_str = JS_NewStringCopyZ(context,ReWireNamenames[currentDevice].name);
+OLDCODE                	if (!JS_DefineElement(context, myObj, (jsint) deviceIndexInList, STRING_TO_JSVAL(_str),
+OLDCODE				JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB7, JSPROP_ENUMERATE)) {
+OLDCODE                	        printf( "JS_DefineElement failed for arg %d in getMidiDeviceList.\n", i);
+OLDCODE                	        return JS_FALSE;
+OLDCODE			}
+OLDCODE			deviceIndexInList ++; /* next entry */
+OLDCODE                }
+OLDCODE        }
+OLDCODE
+OLDCODE        *rval = OBJECT_TO_JSVAL(myObj);
+OLDCODE        return JS_TRUE;
+OLDCODE}
+OLDCODE
+OLDCODE/* find a MIDI device, (parameter input is a String) and return MFString of controller names */
+OLDCODE/* returns a MFString with 0 entries, if no controller is found */
+OLDCODEJSBool
+OLDCODEVrmlBrowserGetMidiDeviceInfo(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+OLDCODE{
+OLDCODE	JSString *_str;
+OLDCODE	JSObject *myObj;
+OLDCODE	char *target;
+OLDCODE	int encodedName;
+OLDCODE	int currentController;
+OLDCODE	int i;
+OLDCODE	int controllerIndexInList = 0;
+OLDCODE	int dummyController;
+OLDCODE	struct ReWireNamenameStruct *ReWireNamenames;
+OLDCODE	struct ReWireDeviceStruct *ReWireDevices;
+OLDCODE	struct tComponent_Networking t = gglobal()->Component_Networking;
+OLDCODE	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+OLDCODE	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
+OLDCODE
+OLDCODE	#ifdef JSVERBOSE
+OLDCODE	printf ("start of VrmlBrowserGetMidiDeviceInfo\n");
+OLDCODE	#endif
+OLDCODE
+OLDCODE	if (argc != 1) {
+OLDCODE		printf ("getMidiDeviceInfo expects 1 parameter\n");
+OLDCODE		return JS_FALSE;
+OLDCODE	}
+OLDCODE
+OLDCODE	/* parameter should be a string */
+OLDCODE	if (JSVAL_IS_STRING(argv[0])) {
+OLDCODE#if JS_VERSION < 185
+OLDCODE		target = JS_GetStringBytes( JSVAL_TO_STRING(argv[0]));
+OLDCODE#else
+OLDCODE		target = JS_EncodeString(context,JSVAL_TO_STRING(argv[0]));
+OLDCODE#endif
+OLDCODE		#ifdef JSVERBOSE
+OLDCODE		printf ("field string is %s\n",target); 
+OLDCODE		#endif
+OLDCODE	} else {
+OLDCODE		printf ("getMidiDeviceInfo expects parameter to be a string\n");
+OLDCODE		return JS_FALSE;
+OLDCODE	}
+OLDCODE
+OLDCODE	/* what is its index? */
+OLDCODE	encodedName = findEncodedName(target);
+OLDCODE
+OLDCODE	#ifdef JSVERBOSE
+OLDCODE	printf ("VrmlBrowserGetMidiDeviceInfo - table size %d looking for encoded name %d\n",ReWireDevicetableSize,encodedName);
+OLDCODE	for (i=0; i<ReWireDevicetableSize; i++) {
+OLDCODE		if (encodedName == ReWireDevices[i].encodedDeviceName) 
+OLDCODE		printf ("entry %d is name %d :%s: ecname %d :%s:\n",i,
+OLDCODE			ReWireDevices[i].encodedDeviceName, 
+OLDCODE			ReWireNamenames[ReWireDevices[i].encodedDeviceName].name, 
+OLDCODE			ReWireDevices[i].encodedControllerName,
+OLDCODE			ReWireNamenames[ReWireDevices[i].encodedControllerName].name);
+OLDCODE	}
+OLDCODE	#endif
+OLDCODE
+OLDCODE	/* construct the return object */
+OLDCODE        if ((myObj = JS_ConstructObject(context, &MFStringClass, NULL, NULL)) == NULL) {
+OLDCODE                printf( "JS_ConstructObject failed in VrmlBrowserGetMidiDeviceList.\n");
+OLDCODE                return JS_FALSE;
+OLDCODE        }
+OLDCODE        *rval = OBJECT_TO_JSVAL(myObj);
+OLDCODE
+OLDCODE	/* one controller has been added to ensure that we can send notes to a device, without
+OLDCODE	   ANY controllers (table entry must exist, yada, yada, yada... , so skip this one */
+OLDCODE	dummyController = findEncodedName("use_for_buttonPresses");
+OLDCODE
+OLDCODE	/* go through the table, and find controllers associated with this device */
+OLDCODE	for (i=0; i<t.ReWireDevicetableSize; i++) {
+OLDCODE		/* is this our device? */
+OLDCODE		if (encodedName == ReWireDevices[i].encodedDeviceName) {
+OLDCODE			/* it is our device, is it anything but this dummy controller? */
+OLDCODE			if (ReWireDevices[i].encodedControllerName != dummyController) {
+OLDCODE				/* found our device, lets add info on controllers */
+OLDCODE				currentController = ReWireDevices[i].encodedControllerName;
+OLDCODE				#ifdef JSVERBOSE
+OLDCODE				printf ("getMidiDeviceList: controller %d is %s\n",controllerIndexInList,ReWireNamenames[currentController].name);
+OLDCODE				#endif
+OLDCODE	
+OLDCODE	        		_str = JS_NewStringCopyZ(context,ReWireNamenames[currentController].name);
+OLDCODE	                	if (!JS_DefineElement(context, myObj, (jsint) controllerIndexInList, STRING_TO_JSVAL(_str),
+OLDCODE					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB7, JSPROP_ENUMERATE)) {
+OLDCODE	                	        printf( "JS_DefineElement failed for arg %d in getMidiDeviceList.\n", i);
+OLDCODE	                	        return JS_FALSE;
+OLDCODE				}
+OLDCODE				controllerIndexInList ++; /* next entry */
+OLDCODE			}
+OLDCODE                }
+OLDCODE        }
+OLDCODE        *rval = OBJECT_TO_JSVAL(myObj);
+OLDCODE	return JS_TRUE;
+OLDCODE}
+OLDCODE
+OLDCODE#define MIDICONNUM 1
+OLDCODE#define MIDICONMIN 2
+OLDCODE#define MIDICONMAX 3
+OLDCODE
+OLDCODE/* do the guts of the getMidiControllerNumber, ControllerMax and ControllerMin */
+OLDCODEint findMidiNumber (JSContext *cx, uintN argc, jsval *argv, int myFn) {
+OLDCODE	char *targetDevice;
+OLDCODE	char *targetController;
+OLDCODE	int encDev; 
+OLDCODE	int encCha;
+OLDCODE	int i;
+OLDCODE	struct ReWireNamenameStruct *ReWireNamenames;
+OLDCODE	struct ReWireDeviceStruct *ReWireDevices;
+OLDCODE	struct tComponent_Networking t = gglobal()->Component_Networking;
+OLDCODE	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+OLDCODE	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
+OLDCODE
+OLDCODE	if (argc != 2) {
+OLDCODE		printf ("MidiControllerInfo - require 2 parameters\n");
+OLDCODE		return -1;
+OLDCODE	}
+OLDCODE
+OLDCODE	/* parameters should be a string */
+OLDCODE	if (JSVAL_IS_STRING(argv[0])) {
+OLDCODE#if JS_VERSION < 185
+OLDCODE		targetDevice = JS_GetStringBytes( JSVAL_TO_STRING(argv[0]));
+OLDCODE#else
+OLDCODE		targetDevice = JS_EncodeString(cx,JSVAL_TO_STRING(argv[0]));
+OLDCODE#endif
+OLDCODE		#ifdef JSVERBOSE
+OLDCODE		printf ("field string is %s\n",targetDevice); 
+OLDCODE		#endif
+OLDCODE	} else {
+OLDCODE		printf ("getMidiDeviceInfo expects Device parameter to be a string\n");
+OLDCODE		return -1;
+OLDCODE	}
+OLDCODE	if (JSVAL_IS_STRING(argv[1])) {
+OLDCODE#if JS_VERSION < 185
+OLDCODE		targetController = JS_GetStringBytes( JSVAL_TO_STRING(argv[1]));
+OLDCODE#else
+OLDCODE		targetController = JS_EncodeString(cx,JSVAL_TO_STRING(argv[1]));
+OLDCODE#endif
+OLDCODE		#ifdef JSVERBOSE
+OLDCODE		printf ("field string is %s\n",targetController); 
+OLDCODE		#endif
+OLDCODE	} else {
+OLDCODE		printf ("getMidiDeviceInfo expects Controller parameter to be a string\n");
+OLDCODE		return -1;
+OLDCODE	}
+OLDCODE
+OLDCODE	/* ok, we have 2 strings, lets change these to encoded values */
+OLDCODE	encDev = findEncodedName(targetDevice);
+OLDCODE	encCha = findEncodedName(targetController);
+OLDCODE
+OLDCODE	/* find the entry */
+OLDCODE	for (i=0; i<t.ReWireDevicetableSize; i++) {
+OLDCODE		/* is this our device? */
+OLDCODE		if (encDev == ReWireDevices[i].encodedDeviceName) {
+OLDCODE			/* it is our device, is it anything but this dummy controller? */
+OLDCODE			if (ReWireDevices[i].encodedControllerName == encCha) {
+OLDCODE				/* found it! */
+OLDCODE				#ifdef JSVERBOSE
+OLDCODE				printf ("getMidiControllerInfo: found %s %s\n",targetDevice, targetController);
+OLDCODE				#endif
+OLDCODE				if (myFn == MIDICONNUM)
+OLDCODE					return ReWireDevices[i].controller;
+OLDCODE				else if (myFn == MIDICONMIN)
+OLDCODE					return ReWireDevices[i].cmin;
+OLDCODE				else if (myFn == MIDICONMAX)
+OLDCODE					return ReWireDevices[i].cmax;
+OLDCODE				else {
+OLDCODE					printf ("getMidiControllerInfo, found controller, but can't figure out return\n");
+OLDCODE					return -1;
+OLDCODE				}			
+OLDCODE			}
+OLDCODE                }
+OLDCODE        }
+OLDCODE	return -1;
+OLDCODE} 
+OLDCODE
+OLDCODE/* send in 2 Strings; MIDI Device and controller, returns number on device, or -1 on error */
+OLDCODEJSBool VrmlBrowserGetMidiControllerNumber(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+OLDCODE	*rval = INT_TO_JSVAL(findMidiNumber (cx, argc, argv, MIDICONNUM));
+OLDCODE	return JS_TRUE;
+OLDCODE}
+OLDCODE
+OLDCODE/* send in 2 Strings; MIDI Device and controller, returns minimum value, or -1 on error */
+OLDCODEJSBool VrmlBrowserGetMidiControllerMin(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+OLDCODE	*rval = INT_TO_JSVAL(findMidiNumber (cx, argc, argv, MIDICONMIN));
+OLDCODE	return JS_TRUE;
+OLDCODE}
+OLDCODE
+OLDCODE/* send in 2 Strings; MIDI Device and controller, returns maximum value, or -1 on error */
+OLDCODEJSBool VrmlBrowserGetMidiControllerMax(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+OLDCODE	*rval = INT_TO_JSVAL(findMidiNumber (cx, argc, argv, MIDICONMAX));
+OLDCODE	return JS_TRUE;
+OLDCODE}
+OLDCODE
+OLDCODE
+#endif // OLDCODE
 
 /****************************************************************************************************/
 

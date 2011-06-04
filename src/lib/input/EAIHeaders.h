@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHeaders.h,v 1.16 2011/06/02 19:50:43 dug9 Exp $
+$Id: EAIHeaders.h,v 1.17 2011/06/04 19:05:42 crc_canada Exp $
 
 EAI and java CLASS invocation
 
@@ -118,7 +118,10 @@ char *eaiPrintCommand (char command);
 #define GETROUTES	'j'
 #define GETNODETYPE	'k'
 #define MIDIINFO  	'l'
-#define MIDICONTROL  	'm'
+#ifdef OLDCODE
+OLDCODE #define MIDICONTROL  	'm'
+#endif // OLDCODE
+
 #define DUMPSCENE  	'n'
 
 

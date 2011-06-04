@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.152 2011/06/04 15:03:50 dug9 Exp $
+$Id: headers.h,v 1.153 2011/06/04 19:05:42 crc_canada Exp $
 
 Global includes.
 
@@ -761,32 +761,30 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *this_);
 #define make_GeoElevationGrid make_genericfaceset
 
 
-void prep_MidiControl (struct X3D_MidiControl *node);
-void do_MidiControl (void *node);
-void MIDIRegisterMIDI(char *str);
-/* ReWire device/controller  table */
-struct ReWireDeviceStruct {
-        struct X3D_MidiControl* node;   /* pointer to the node that controls this */
-        int encodedDeviceName;          /* index into ReWireNamenames */
-        int bus;                        /* which MIDI bus this is */
-        int channel;                    /* which MIDI channel on this bus it is */
-        int encodedControllerName;      /* index into ReWireNamenames */
-        int controller;                 /* controller number */
-        int cmin;                       /* minimum value for this controller */
-        int cmax;                       /* maximum value for this controller */
-        int ctype;                      /* controller type TYPE OF FADER control - not used currently */
-};
+#ifdef OLDCODE
+OLDCODE /* MIDI stuff... */
+OLDCODE void ReWireRegisterMIDI (char *str);
+OLDCODE void ReWireMIDIControl(char *str);
 
-/* ReWireName table */
-struct ReWireNamenameStruct {
-        char *name;
-};
-
-//extern struct ReWireNamenameStruct *ReWireNamenames;
-//extern int ReWireNametableSize;
-//extern struct ReWireDeviceStruct *ReWireDevices;
-//extern int ReWireDevicetableSize;
-//extern int MAXReWireDevices;
+OLDCODEvoid MIDIRegisterMIDI(char *str);
+OLDCODE/* ReWire device/controller  table */
+OLDCODEstruct ReWireDeviceStruct {
+OLDCODE        struct X3D_MidiControl* node;   /* pointer to the node that controls this */
+OLDCODE        int encodedDeviceName;          /* index into ReWireNamenames */
+OLDCODE        int bus;                        /* which MIDI bus this is */
+OLDCODE        int channel;                    /* which MIDI channel on this bus it is */
+OLDCODE        int encodedControllerName;      /* index into ReWireNamenames */
+OLDCODE        int controller;                 /* controller number */
+OLDCODE        int cmin;                       /* minimum value for this controller */
+OLDCODE        int cmax;                       /* maximum value for this controller */
+OLDCODE        int ctype;                      /* controller type TYPE OF FADER control - not used currently */
+OLDCODE};
+OLDCODE
+OLDCODE/* ReWireName table */
+OLDCODEstruct ReWireNamenameStruct {
+OLDCODE        char *name;
+OLDCODE};
+#endif // OLDCODE
 
 
 /* Event Utilities Component */
@@ -863,10 +861,6 @@ extern int cc_changed;
 /* int mapFieldTypeToInernaltype (indexT kwIndex); msvc has problem perhaps with typedef typdef unsigned int indexT*/
 int mapFieldTypeToInernaltype (unsigned int kwIndex);
 void resetSensorEvents();
-
-/* MIDI stuff... */
-void ReWireRegisterMIDI (char *str);
-void ReWireMIDIControl(char *str);
 
 
 /* META data, component, profile  stuff */

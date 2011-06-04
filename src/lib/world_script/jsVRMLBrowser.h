@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: jsVRMLBrowser.h,v 1.7 2010/08/02 19:56:03 dug9 Exp $
+  $Id: jsVRMLBrowser.h,v 1.8 2011/06/04 19:05:42 crc_canada Exp $
 
 */
 
@@ -136,17 +136,19 @@ JSBool VrmlBrowserDeleteRoute(JSContext *cx,
                               jsval *argv,
                               jsval *rval);
 
-JSBool VrmlBrowserGetMidiDeviceList(JSContext *cx,
-                                    JSObject *obj,
-                                    uintN argc,
-                                    jsval *argv,
-                                    jsval *rval);
 
-JSBool VrmlBrowserGetMidiDeviceInfo(JSContext *cx,
-                                    JSObject *obj,
-                                    uintN argc,
-                                    jsval *argv,
-                                    jsval *rval);
-
+#ifdef OLDCODE
+OLDCODEJSBool VrmlBrowserGetMidiDeviceList(JSContext *cx,
+OLDCODE                                    JSObject *obj,
+OLDCODE                                    uintN argc,
+OLDCODE                                    jsval *argv,
+OLDCODE                                    jsval *rval);
+OLDCODE
+OLDCODEJSBool VrmlBrowserGetMidiDeviceInfo(JSContext *cx,
+OLDCODE                                    JSObject *obj,
+OLDCODE                                    uintN argc,
+OLDCODE                                    jsval *argv,
+OLDCODE                                    jsval *rval);
+#endif // OLDCODE
 
 #endif /* __FREEWRL_JS_VRML_BROWSER_H__ */

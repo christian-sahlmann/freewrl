@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.39 2011/05/14 23:00:00 dug9 Exp $
+# $Id: VRMLRend.pm,v 1.40 2011/06/04 19:05:42 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.40  2011/06/04 19:05:42  crc_canada
+# comment out MIDI code
+#
 # Revision 1.39  2011/05/14 23:00:00  dug9
 # dug9 - touch up to get a proximity_GeoProximitySensor virtual table function
 #
@@ -315,8 +318,6 @@
 %defaultContainerType = (
 	ContourPolyLine2D 	=>geometry,
 	NurbsTrimmedSurface	=>geometry,
-	MidiControl		=>children,
-	MidiKey			=>children,
 	PointPickSensor		=>children,
 	OSC_Sensor		=>children,
 
@@ -332,7 +333,6 @@
 	Anchor 			=>children,
 	Appearance 		=>appearance,
 	AudioClip 		=>source,
-	AudioControl		=>children,
 	Background 		=>children,
 	Billboard 		=>children,
 	Box 			=>geometry,
@@ -626,7 +626,6 @@
 	GeneratedCubeMapTexture
 	ImageCubeMapTexture
 	Sound 
-	AudioControl
 	AudioClip 
 	DirectionalLight 
 	SpotLight
@@ -704,8 +703,6 @@
 	Transform
 	Billboard
 	Group
-	MidiControl
-	MidiKey
 	PickableGroup
 	PointLight
 	SpotLight

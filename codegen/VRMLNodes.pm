@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.60 2011/05/12 02:20:27 dug9 Exp $
+# $Id: VRMLNodes.pm,v 1.61 2011/06/04 19:05:42 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -795,34 +795,6 @@ package VRML::NodeType;
 		spatialize => [SFBool, FALSE, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	},"X3DSoundSourceNode"),
 	
-	# for testing MIDI sounds
-	AudioControl => new VRML::NodeType("AudioControl", {
-		direction => [SFVec3f, [0, 0, 1], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		intensity => [SFFloat, 1.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		location => [SFVec3f, [0, 0, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		maxBack => [SFFloat, 10.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		maxFront => [SFFloat, 10.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		minBack => [SFFloat, 1.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		minFront => [SFFloat, 1.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		enabled => [SFBool, TRUE, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		source => [SFString, "", inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-
-		isActive => [SFBool, FALSE, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		# need distance, pan position as ints and floats
-		volumeInt32Val => [SFInt32, 0, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		volumeFloatVal => [SFFloat, 0.0, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		panInt32Val => [SFInt32, 0, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		panFloatVal => [SFFloat, 0.0, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		deltaInt32Val => [SFInt32, 0, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		deltaFloatVal => [SFFloat, 0.0, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-
-                metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-
-		# used for determing rate of change of position:
-		__oldLen =>[SFTime, 0.0, initializeOnly, 0],
-		maxDelta => [SFFloat, 10.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__oldEnabled => [SFBool, TRUE, inputOutput, 0],
-	},"X3DSoundSourceNode"),
 
 	###################################################################################
 
@@ -3071,57 +3043,6 @@ package VRML::NodeType;
 		_bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	},"X3DSensorNode"),
 
-	MidiControl =>
-	new VRML::NodeType("MidiControl",
-					{
-			deviceName => [SFString,"",inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],	# "Subtractor 1"
-			channel => [SFInt32,-1,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],		# channel in range 0-16, on MIDI bus
-			controller => [SFString,"",inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],	# "Osc1 Wave"
-			_deviceNameIndex => [SFInt32, -99, initializeOnly, 0],	#  name in name table index
-			_controllerIndex => [SFInt32, -99, initializeOnly, 0],		#  name in name table index
-
-
-			# encoded bus,channel,controller
-			_bus => [SFInt32,-99,initializeOnly, 0],			# internal for efficiency
-			_channel => [SFInt32,-99,initializeOnly, 0],			# internal for efficiency
-			_controller => [SFInt32,-99,initializeOnly, 0],		# internal for efficiency
-
-			deviceMinVal => [SFInt32, 0, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],		# what the device sets
-			deviceMaxVal => [SFInt32, 0, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],		# what the device sets
-
-			velocity => [SFInt32, 100, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],	# velocity field for buttonPress
-									# controller types.
-			_vel => [SFInt32, 100, initializeOnly, 0],			# internal copy of velocity
-			_sentVel => [SFInt32, 100, initializeOnly, 0],		# send this velocity - if <0, noteOff
-
-			minVal => [SFInt32, 0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],		# used to scale floats, and 
-			maxVal => [SFInt32, 10000, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],	# bounds check ints. The resulting
-									# value will be <= maxVal <= deviceMaxVal
-									# and >=minVal >= deviceMinVal
-
-			intValue => [SFInt32, 0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],		# integer value for i/o
-			_oldintValue => [SFInt32, 0, initializeOnly, 0],		# old integer value for i/o
-			floatValue => [SFFloat, 0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],	# float value for i/o
-			useIntValue => [SFBool, TRUE, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],	# which value to use for input
-
-			highResolution => [SFBool, TRUE, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],	# high resolution controller
-			controllerType => [SFString, "Slider", inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],	# "Slider" "ButtonPress"
-			_intControllerType => [SFInt32,999, initializeOnly, 0], 	# use ReWire definitions
-			controllerPresent => [SFBool, FALSE, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],	# TRUE when ReWire is working
-
-			buttonPress => [SFBool,FALSE,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],	# is the key pressed when in "ButtonPress" mode?"
-			_butPr => [SFBool,FALSE,inputOutput, 0],		# used to determine toggle state for buttonPress
-
-			autoButtonPress => [SFBool,TRUE,inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],# send a NoteOn when the int/float 
-									# value changes. if False, send only
-									# when buttonPressed happens.
-			pressLength => [SFFloat, 0.05, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],	# time before noteOff in AutoButtonPress mode.
-			pressTime => [SFTime, 0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],		# when the press went in
-
-			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-
-					}, "X3DNetworkSensorNode"
-					),
 ); 
 
 
