@@ -227,6 +227,13 @@ typedef struct iiglobal //InstanceGlobal
 	struct tComponent_KeyDevice{
 		void *prv;
 	}Component_KeyDevice;
+	struct tComponent_Networking{
+		void *ReWireNamenames;
+		int ReWireNametableSize;
+		void *ReWireDevices;
+		int ReWireDevicetableSize;
+		void *prv;
+	}Component_Networking;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.151 2011/06/03 00:46:13 dug9 Exp $
+$Id: headers.h,v 1.152 2011/06/04 15:03:50 dug9 Exp $
 
 Global includes.
 
@@ -782,11 +782,11 @@ struct ReWireNamenameStruct {
         char *name;
 };
 
-extern struct ReWireNamenameStruct *ReWireNamenames;
-extern int ReWireNametableSize;
-extern struct ReWireDeviceStruct *ReWireDevices;
-extern int ReWireDevicetableSize;
-extern int MAXReWireDevices;
+//extern struct ReWireNamenameStruct *ReWireNamenames;
+//extern int ReWireNametableSize;
+//extern struct ReWireDeviceStruct *ReWireDevices;
+//extern int ReWireDevicetableSize;
+//extern int MAXReWireDevices;
 
 
 /* Event Utilities Component */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.43 2011/06/03 00:46:13 dug9 Exp $
+$Id: jsVRMLBrowser.c,v 1.44 2011/06/04 15:03:50 dug9 Exp $
 
 Javascript C language binding.
 
@@ -771,13 +771,17 @@ VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *arg
 static int findEncodedName(char *target) {
 	int encodedName;
 	int ctr;
-
+	struct ReWireNamenameStruct *ReWireNamenames;
+	struct ReWireDeviceStruct *ReWireDevices;
+	struct tComponent_Networking t = gglobal()->Component_Networking;
+	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
 	encodedName = -1;
 	#ifdef JSVERBOSE
 	printf ("findEncodedName - looking for %s\n",target);
 	#endif
 
-	for (ctr=0; ctr<=ReWireNametableSize; ctr++) {
+	for (ctr=0; ctr<=t.ReWireNametableSize; ctr++) {
 		if (strcmp(target,ReWireNamenames[ctr].name)==0) {
 			#ifdef JSVERBOSE
 			printf ("findEncodedName - FOUND IT at %d - it is %s\n",ctr,ReWireNamenames[ctr].name); 
@@ -797,6 +801,12 @@ VrmlBrowserGetMidiDeviceList(JSContext *context, JSObject *obj, uintN argc, jsva
 	JSObject *myObj;
 	int currentDevice = -1;
 	int deviceIndexInList = 0;
+	struct ReWireNamenameStruct *ReWireNamenames;
+	struct ReWireDeviceStruct *ReWireDevices;
+	struct tComponent_Networking t = gglobal()->Component_Networking;
+	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
+
 
 	if (argc != 0) {
 		printf ("getMidiDeviceList does not take parameters\n");
@@ -804,8 +814,8 @@ VrmlBrowserGetMidiDeviceList(JSContext *context, JSObject *obj, uintN argc, jsva
 	}
 
 	#ifdef JSVERBOSE
-	printf ("VrmlBrowserGetMidiDeviceList - table size %d\n",ReWireDevicetableSize);
-	for (i=0; i<ReWireDevicetableSize; i++) {
+	printf ("VrmlBrowserGetMidiDeviceList - table size %d\n",t.ReWireDevicetableSize);
+	for (i=0; i<t.ReWireDevicetableSize; i++) {
 		printf ("entry %d is name %d :%s: ecname %d :%s:\n",i,
 			ReWireDevices[i].encodedDeviceName, 
 			ReWireNamenames[ReWireDevices[i].encodedDeviceName].name, 
@@ -821,7 +831,7 @@ VrmlBrowserGetMidiDeviceList(JSContext *context, JSObject *obj, uintN argc, jsva
         }
 
 	/* go through the table, and find encoded names that are unique */
-	for (i=0; i<ReWireDevicetableSize; i++) {
+	for (i=0; i<t.ReWireDevicetableSize; i++) {
 		/* this is a different device than before */
 		if (ReWireDevices[i].encodedDeviceName != currentDevice) {
 			currentDevice = ReWireDevices[i].encodedDeviceName;
@@ -856,6 +866,11 @@ VrmlBrowserGetMidiDeviceInfo(JSContext *context, JSObject *obj, uintN argc, jsva
 	int i;
 	int controllerIndexInList = 0;
 	int dummyController;
+	struct ReWireNamenameStruct *ReWireNamenames;
+	struct ReWireDeviceStruct *ReWireDevices;
+	struct tComponent_Networking t = gglobal()->Component_Networking;
+	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
 
 	#ifdef JSVERBOSE
 	printf ("start of VrmlBrowserGetMidiDeviceInfo\n");
@@ -908,7 +923,7 @@ VrmlBrowserGetMidiDeviceInfo(JSContext *context, JSObject *obj, uintN argc, jsva
 	dummyController = findEncodedName("use_for_buttonPresses");
 
 	/* go through the table, and find controllers associated with this device */
-	for (i=0; i<ReWireDevicetableSize; i++) {
+	for (i=0; i<t.ReWireDevicetableSize; i++) {
 		/* is this our device? */
 		if (encodedName == ReWireDevices[i].encodedDeviceName) {
 			/* it is our device, is it anything but this dummy controller? */
@@ -944,6 +959,11 @@ int findMidiNumber (JSContext *cx, uintN argc, jsval *argv, int myFn) {
 	int encDev; 
 	int encCha;
 	int i;
+	struct ReWireNamenameStruct *ReWireNamenames;
+	struct ReWireDeviceStruct *ReWireDevices;
+	struct tComponent_Networking t = gglobal()->Component_Networking;
+	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
 
 	if (argc != 2) {
 		printf ("MidiControllerInfo - require 2 parameters\n");
@@ -983,7 +1003,7 @@ int findMidiNumber (JSContext *cx, uintN argc, jsval *argv, int myFn) {
 	encCha = findEncodedName(targetController);
 
 	/* find the entry */
-	for (i=0; i<ReWireDevicetableSize; i++) {
+	for (i=0; i<t.ReWireDevicetableSize; i++) {
 		/* is this our device? */
 		if (encDev == ReWireDevices[i].encodedDeviceName) {
 			/* it is our device, is it anything but this dummy controller? */

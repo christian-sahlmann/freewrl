@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.35 2011/06/02 19:50:43 dug9 Exp $
+$Id: Component_Networking.c,v 1.36 2011/06/04 15:03:50 dug9 Exp $
 
 X3D Networking Component
 
@@ -72,20 +72,63 @@ X3D Networking Component
 #include "../vrml_parser/CParse.h"
 #endif
 
-
-/* keep track of the Midi nodes. */
-static uintptr_t *MidiNodes = NULL;
-static int num_MidiNodes = 0;
-
 #define BUTTON_PRESS_STRING "use_for_buttonPresses"
 
-struct ReWireNamenameStruct *ReWireNamenames = 0;
-int ReWireNametableSize = -1;
-static int MAXReWireNameNames = 0;
+///* keep track of the Midi nodes. */
+//static uintptr_t *MidiNodes = NULL;
+//static int p->num_MidiNodes = 0;
+//
+//struct ReWireNamenameStruct *ReWireNamenames = 0;
+//int ReWireNametableSize = -1;
+//static int MAXReWireNameNames = 0;
+//
+//struct ReWireDeviceStruct *ReWireDevices = 0;
+//int ReWireDevicetableSize = -1;
+//int MAXReWireDevices = 0;
 
-struct ReWireDeviceStruct *ReWireDevices = 0;
-int ReWireDevicetableSize = -1;
-int MAXReWireDevices = 0;
+typedef struct pComponent_Networking{
+	/* keep track of the Midi nodes. */
+	uintptr_t *MidiNodes;// = NULL;
+	int num_MidiNodes;// = 0;
+
+	//struct ReWireNamenameStruct *ReWireNamenames;// = 0;
+	//int ReWireNametableSize;// = -1;
+	int MAXReWireNameNames;// = 0;
+
+	//struct ReWireDeviceStruct *ReWireDevices;// = 0;
+	//int ReWireDevicetableSize;// = -1;
+	int MAXReWireDevices;// = 0;
+
+}* ppComponent_Networking;
+void *Component_Networking_constructor(){
+	void *v = malloc(sizeof(struct pComponent_Networking));
+	memset(v,0,sizeof(struct pComponent_Networking));
+	return v;
+}
+void Component_Networking_init(struct tComponent_Networking *t){
+	//public
+	t->ReWireDevices = 0;
+	t->ReWireDevicetableSize = -1;
+	t->ReWireNamenames = 0;
+	t->ReWireNametableSize = -1;
+
+	//private
+	t->prv = Component_Networking_constructor();
+	{
+		ppComponent_Networking p = (ppComponent_Networking)t->prv;
+		/* keep track of the Midi nodes. */
+		p->MidiNodes = NULL;
+		p->num_MidiNodes = 0;
+
+		p->MAXReWireNameNames = 0;
+
+		p->MAXReWireDevices = 0;
+
+	}
+}
+//ppComponent_Networking p = (ppComponent_Networking)gglobal()->Component_Networking.prv;
+
+
 
 #if USE_OSC
 /**************** START OF OSC node **************************/
@@ -403,18 +446,28 @@ static int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *inter
 	int *controller, int *cmin, int *cmax, int *ctptr) {
 	int ctr;
 	int match;
+
+	ppComponent_Networking p;
 	int dev = node->_deviceNameIndex;
 	int cont = node->_controllerIndex;
+	struct ReWireNamenameStruct *ReWireNamenames;
+	struct ReWireDeviceStruct *ReWireDevices;
+	struct tComponent_Networking t;
+	ttglobal tg = gglobal();
+	t = tg->Component_Networking;
+	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
+	p = (ppComponent_Networking)tg->Component_Networking.prv;
 
 	#ifdef MIDIVERBOSE
 	printf ("ReWireDeviceIndex, tblsz %d, looking for a device for bus %d channel %d and controller %d\n",
-			ReWireDevicetableSize, *bus,node->channel,*controller);
+			t->ReWireDevicetableSize, *bus,node->channel,*controller);
 	#endif
 	
 	/* is this a duplicate name and type? types have to be same,
 	   name lengths have to be the same, and the strings have to be the same.
 	*/
-	for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
+	for (ctr=0; ctr<=t.ReWireDevicetableSize; ctr++) {
 		#ifdef MIDIVERBOSE
 			printf ("ReWireDeviceIndex: comparing %d %d to %d %d\n",dev,ReWireDevices[ctr].encodedDeviceName,
 			cont, ReWireDevices[ctr].encodedControllerName); 
@@ -489,11 +542,21 @@ static int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *inter
 /* returns TRUE if register goes ok, FALSE if already registered */
 static int ReWireDeviceRegister (int dev, int cont, int bus, int channel, int controller, int cmin, int cmax, int ctptr) {
 	int ctr;
+
+	ppComponent_Networking p;
+	struct ReWireNamenameStruct *ReWireNamenames;
+	struct ReWireDeviceStruct *ReWireDevices;
+	struct tComponent_Networking t;
+	ttglobal tg = gglobal();
+	t = tg->Component_Networking;
+	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
+	p = (ppComponent_Networking)tg->Component_Networking.prv;
 	
 	/* is this a duplicate name and type? types have to be same,
 	   name lengths have to be the same, and the strings have to be the same.
 	*/
-	for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
+	for (ctr=0; ctr<=t.ReWireDevicetableSize; ctr++) {
 		#ifdef MIDIVERBOSE
 			printf ("comparing %d %d to %d %d\n",dev,ReWireDevices[ctr].encodedDeviceName,
 			cont, ReWireDevices[ctr].encodedControllerName); 
@@ -511,26 +574,26 @@ static int ReWireDeviceRegister (int dev, int cont, int bus, int channel, int co
 	}
 
 	/* nope, not duplicate */
-	ReWireDevicetableSize ++;
+	t.ReWireDevicetableSize ++;
 	
 	/* ok, we got a name and a type */
-	if (ReWireDevicetableSize >= MAXReWireDevices) {
+	if (t.ReWireDevicetableSize >= p->MAXReWireDevices) {
 		/* oooh! not enough room at the table */
-		MAXReWireDevices += 1024; /* arbitrary number */
-		ReWireDevices = (struct ReWireDeviceStruct*)REALLOC (ReWireDevices, sizeof(*ReWireDevices) * MAXReWireDevices);
+		p->MAXReWireDevices += 1024; /* arbitrary number */
+		ReWireDevices = (struct ReWireDeviceStruct*)REALLOC (ReWireDevices, sizeof(*ReWireDevices) * p->MAXReWireDevices);
 	}
 	
-	ReWireDevices[ReWireDevicetableSize].bus = bus;
-	ReWireDevices[ReWireDevicetableSize].channel = channel;
-	ReWireDevices[ReWireDevicetableSize].controller = controller;
-	ReWireDevices[ReWireDevicetableSize].cmin = cmin; 
-	ReWireDevices[ReWireDevicetableSize].cmax = cmax;
-	ReWireDevices[ReWireDevicetableSize].ctype = ctptr; /* warning - this is just MIDI_CONTROLLER_FADER... */
-	ReWireDevices[ReWireDevicetableSize].encodedDeviceName = dev;
-	ReWireDevices[ReWireDevicetableSize].encodedControllerName = cont;
-	ReWireDevices[ReWireDevicetableSize].node = NULL;
+	ReWireDevices[t.ReWireDevicetableSize].bus = bus;
+	ReWireDevices[t.ReWireDevicetableSize].channel = channel;
+	ReWireDevices[t.ReWireDevicetableSize].controller = controller;
+	ReWireDevices[t.ReWireDevicetableSize].cmin = cmin; 
+	ReWireDevices[t.ReWireDevicetableSize].cmax = cmax;
+	ReWireDevices[t.ReWireDevicetableSize].ctype = ctptr; /* warning - this is just MIDI_CONTROLLER_FADER... */
+	ReWireDevices[t.ReWireDevicetableSize].encodedDeviceName = dev;
+	ReWireDevices[t.ReWireDevicetableSize].encodedControllerName = cont;
+	ReWireDevices[t.ReWireDevicetableSize].node = NULL;
 	#ifdef MIDIVERBOSE
-		printf ("ReWireDeviceRegister, new entry at %d",ReWireDevicetableSize);
+		printf ("ReWireDeviceRegister, new entry at %d",t.ReWireDevicetableSize);
 		printf ("	Device %s (%d) controller %s (%d) ", ReWireNamenames[dev].name,
 					dev, ReWireNamenames[cont].name, cont);
 		printf ("	bus %d channel %d controller %d cmin %d cmax %d\n",bus, channel, 
@@ -542,6 +605,7 @@ static int ReWireDeviceRegister (int dev, int cont, int bus, int channel, int co
 void registerReWireNode(struct X3D_Node *node) {
 	int count;
 	uintptr_t *myptr;
+	ppComponent_Networking p = (ppComponent_Networking)gglobal()->Component_Networking.prv;
 
 	if (node == 0) {
 		printf ("error in registerReWireNode; somehow the node datastructure is zero \n");
@@ -550,11 +614,11 @@ void registerReWireNode(struct X3D_Node *node) {
 
 	if (node->_nodeType != NODE_MidiControl) return;
 
-	MidiNodes = (uintptr_t *) REALLOC (MidiNodes,sizeof (uintptr_t *) * (num_MidiNodes+1));
-	myptr = MidiNodes;
+	p->MidiNodes = (uintptr_t *) REALLOC (p->MidiNodes,sizeof (uintptr_t *) * (p->num_MidiNodes+1));
+	myptr = p->MidiNodes;
 
 	/* does this event exist? */
-	for (count=0; count <num_MidiNodes; count ++) {
+	for (count=0; count <p->num_MidiNodes; count ++) {
 		if (*myptr == (uintptr_t) node) {
 			printf ("registerReWireNode, already this node\n"); 
 			return;
@@ -566,7 +630,7 @@ void registerReWireNode(struct X3D_Node *node) {
 	/* now, put the function pointer and data pointer into the structure entry */
 	*myptr = (uintptr_t) node;
 
-	num_MidiNodes++;
+	p->num_MidiNodes++;
 }
 
 
@@ -575,12 +639,22 @@ the new node */
 static int ReWireNameIndex (char *name) {
 	int ctr;
 	
+	ppComponent_Networking p;
+	struct ReWireNamenameStruct *ReWireNamenames;
+	struct ReWireDeviceStruct *ReWireDevices;
+	struct tComponent_Networking t;
+	ttglobal tg = gglobal();
+	t = tg->Component_Networking;
+	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
+	p = (ppComponent_Networking)tg->Component_Networking.prv;
+	
 	/* printf ("ReWireNameIndex, looking for %s\n",name); */
 	/* is this a duplicate name and type? types have to be same,
 	   name lengths have to be the same, and the strings have to be the same.
 	*/
-	for (ctr=0; ctr<=ReWireNametableSize; ctr++) {
-		/* printf ("ReWireNameIndex, comparing %s to %s\n",name,ReWireNamenames[ctr].name); */
+	for (ctr=0; ctr<=t.ReWireNametableSize; ctr++) {
+		/* printf ("ReWireNameIndex, comparing %s to %s\n",name,p->ReWireNamenames[ctr].name); */
 		if (strcmp(name,ReWireNamenames[ctr].name)==0) {
 			/* printf ("ReWireNameIndex, FOUND IT at %d\n",ctr); */
 			return ctr;
@@ -589,18 +663,18 @@ static int ReWireNameIndex (char *name) {
 
 	/* nope, not duplicate */
 
-	ReWireNametableSize ++;
+	t.ReWireNametableSize ++;
 
 	/* ok, we got a name and a type */
-	if (ReWireNametableSize >= MAXReWireNameNames) {
+	if (t.ReWireNametableSize >= p->MAXReWireNameNames) {
 		/* oooh! not enough room at the table */
-		MAXReWireNameNames += 1024; /* arbitrary number */
-		ReWireNamenames = (struct ReWireNamenameStruct*)REALLOC (ReWireNamenames, sizeof(*ReWireNamenames) * MAXReWireNameNames);
+		p->MAXReWireNameNames += 1024; /* arbitrary number */
+		ReWireNamenames = (struct ReWireNamenameStruct*)REALLOC (ReWireNamenames, sizeof(*ReWireNamenames) * p->MAXReWireNameNames);
 	}
 
-	ReWireNamenames[ReWireNametableSize].name = STRDUP(name);
-	/* printf ("ReWireNameIndex, new entry at %d\n",ReWireNametableSize); */
-	return ReWireNametableSize;
+	ReWireNamenames[t.ReWireNametableSize].name = STRDUP(name);
+	/* printf ("ReWireNameIndex, new entry at %d\n",t.ReWireNametableSize); */
+	return t.ReWireNametableSize;
 }
 
 #if defined(REWIRE_SERVER)
@@ -865,7 +939,16 @@ void ReWireRegisterMIDI (char *str) {
 
 	int encodedDeviceName = INT_ID_UNDEFINED;
 	int encodedControllerName = INT_ID_UNDEFINED;
-
+	
+	ppComponent_Networking p;
+	struct ReWireNamenameStruct *ReWireNamenames;
+	struct ReWireDeviceStruct *ReWireDevices;
+	struct tComponent_Networking t;
+	ttglobal tg = gglobal();
+	t = tg->Component_Networking;
+	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
+	p = (ppComponent_Networking)tg->Component_Networking.prv;
 
 
 	/*
@@ -887,7 +970,7 @@ void ReWireRegisterMIDI (char *str) {
 	 */	
 
 	/* set the device tables to the starting value. */
-	ReWireDevicetableSize = -1;
+	t.ReWireDevicetableSize = -1;
 
 	#ifdef MIDIVERBOSE
 	printf ("ReWireRegisterMIDI - have string :%s:\n",str);
@@ -919,7 +1002,7 @@ void ReWireRegisterMIDI (char *str) {
 				curChannel, curController, curMin, curMax, curType)) {
 				#ifdef MIDIVERBOSE
 				printf ("ReWireRegisterMIDI, duplicate device for %s %s\n",
-					ReWireNamenames[encodedDeviceName].name, ReWireNamenames[encodedControllerName].name); 
+					p->ReWireNamenames[encodedDeviceName].name, p->ReWireNamenames[encodedControllerName].name); 
 				#endif
 			}
 
@@ -951,7 +1034,7 @@ void ReWireRegisterMIDI (char *str) {
 				curChannel, curController, curMin, curMax, curType)) {
 				#ifdef MIDIVERBOSE
 				printf ("ReWireRegisterMIDI, duplicate device for %s %s\n",
-					ReWireNamenames[encodedDeviceName].name, ReWireNamenames[encodedControllerName].name); 
+					p->ReWireNamenames[encodedDeviceName].name, p->ReWireNamenames[encodedControllerName].name); 
 				#endif
 			}
 
@@ -1082,6 +1165,16 @@ void ReWireMIDIControl (char *line) {
 	int sendEvent;
 	int noteOn;
 
+	ppComponent_Networking p;
+	struct ReWireNamenameStruct *ReWireNamenames;
+	struct ReWireDeviceStruct *ReWireDevices;
+	struct tComponent_Networking t;
+	ttglobal tg = gglobal();
+	t = tg->Component_Networking;
+	ReWireNamenames = (struct ReWireNamenameStruct *)t.ReWireNamenames;
+	ReWireDevices = (struct ReWireDeviceStruct *)t.ReWireDevices;
+	p = (ppComponent_Networking)tg->Component_Networking.prv;
+
 	sendEvent = FALSE;
 	value = 0;
 
@@ -1112,11 +1205,11 @@ void ReWireMIDIControl (char *line) {
 		#ifdef MIDIVERBOSE
 			printf ("ReWireMIDIControl - input timedif %ld bus %d channel %d controller %d value %d\n",
 						timeDiff, bus, channel, controller, value);
-			printf ("ReWireDevicetableSize %d\n",ReWireDevicetableSize);
+			printf ("ReWireDevicetableSize %d\n",t.ReWireDevicetableSize);
 		#endif
 	
 	
-		for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
+		for (ctr=0; ctr<=t.ReWireDevicetableSize; ctr++) {
 			#ifdef REALLYMIDIVERBOSE
 				printf ("	ind %d comparing bus %d:%d channel %d:%d and  controller %d:%d\n", 
 					ctr, bus, ReWireDevices[ctr].bus,
@@ -1163,7 +1256,7 @@ void ReWireMIDIControl (char *line) {
 		if (noteOn) printf ("ReWireMidiControl, have a note ON  channel %d, velocity %d\n",channel,value);
 		else printf ("ReWireMidiControl, have a note OFF channel %d, velocity %d\n",channel,value);
 		#endif
-		for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
+		for (ctr=0; ctr<=t.ReWireDevicetableSize; ctr++) {
 			#ifdef MIDIVERBOSE
 				printf ("	ind %d comparing bus %d:%d channel %d:%d with ecdn %d, eccn %d, cont %d cmin %d cmax %d ctype %d\n", 
 					ctr, bus, ReWireDevices[ctr].bus,
