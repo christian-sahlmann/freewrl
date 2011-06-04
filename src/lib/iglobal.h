@@ -227,13 +227,16 @@ typedef struct iiglobal //InstanceGlobal
 	struct tComponent_KeyDevice{
 		void *prv;
 	}Component_KeyDevice;
-	struct tComponent_Networking{
-		void *ReWireNamenames;
-		int ReWireNametableSize;
-		void *ReWireDevices;
-		int ReWireDevicetableSize;
-		void *prv;
-	}Component_Networking;
+#ifdef OLDCODE
+iOLDCODE	struct tComponent_Networking{
+iOLDCODE		void *ReWireNamenames;
+iOLDCODE		int ReWireNametableSize;
+iOLDCODE		void *ReWireDevices;
+iOLDCODE		int ReWireDevicetableSize;
+iOLDCODE		void *prv;
+iOLDCODE	}Component_Networking;
+#endif // OLDCODE
+
 #ifdef DJTRACK_PICKSENSORS
 	struct tComponent_Picking{
 		void *prv;

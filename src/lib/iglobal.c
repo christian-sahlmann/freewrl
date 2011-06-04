@@ -43,7 +43,9 @@ void Component_Geometry3D_init(struct tComponent_Geometry3D *t);
 void Component_Geospatial_init(struct tComponent_Geospatial *t);
 void Component_HAnim_init(struct tComponent_HAnim *t);
 void Component_KeyDevice_init(struct tComponent_KeyDevice *t);
-void Component_Networking_init(struct tComponent_Networking *t);
+#ifdef OLDCODE
+OLDCODEvoid Component_Networking_init(struct tComponent_Networking *t);
+#endif
 void Component_Picking_init(struct tComponent_Picking *t);
 void Component_Shape_init(struct tComponent_Shape *t);
 void Component_Text_init(struct tComponent_Text *t);
@@ -94,7 +96,9 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	Component_Geospatial_init(&iglobal->Component_Geospatial);
 	Component_HAnim_init(&iglobal->Component_HAnim);
 	Component_KeyDevice_init(&iglobal->Component_KeyDevice);
-	Component_Networking_init(&iglobal->Component_Networking);
+#ifdef OLDCODE
+OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
+#endif // OLDCODE
 #ifdef DJTRACK_PICKSENSORS
 	Component_Picking_init(&iglobal->Component_Picking);
 #endif
@@ -116,7 +120,9 @@ void iglobal_destructor(ttglobal tg)
 #ifdef DJTRACK_PICKSENSORS
 	FREE_IF_NZ(tg->Component_Picking.prv);
 #endif
-	FREE_IF_NZ(tg->Component_Networking.prv);
+#ifdef OLDCODE
+OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
+#endif
 	FREE_IF_NZ(tg->Component_KeyDevice.prv);
 	FREE_IF_NZ(tg->Component_HAnim.prv);
 	FREE_IF_NZ(tg->Component_Geospatial.prv);
