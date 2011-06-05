@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.55 2011/06/02 19:50:43 dug9 Exp $
+  $Id: main.c,v 1.56 2011/06/05 23:03:51 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -395,6 +395,7 @@ OLDCODE*/
 	   create the display thread and wait for it
 	   to complete initialization */
 	fwl_initializeDisplayThread();
+	sleep(50);
 	set_thread2global(fwl,gglobal()->threads.DispThrd );
 
 

@@ -174,7 +174,7 @@ void set_thread2global(ttglobal fwl, pthread_t any )
 	nglobalthreads++;
 }
 
-ttglobal gglobal()
+ttglobal gglobal0()
 {
 	//using Johns threadID method, would:
 	//1. detect the current thread and
@@ -195,10 +195,16 @@ ttglobal gglobal()
 			ifound = 1;
 			break;
 		}
-	if(ifound == 0)
+	return iglobal;
+}
+ttglobal gglobal()
+{
+	ttglobal iglobal = gglobal0();
+	if(iglobal == NULL)
 	{
 		printf("ouch - no state for this thread - hit a key to exit\n");
 		getchar();
+		//let it bomb exit(-1);
 	}
 	return iglobal;
 }

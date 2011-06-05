@@ -261,4 +261,5 @@ iOLDCODE	}Component_Networking;
 ttglobal  iglobal_constructor(); 
 void iglobal_destructor(ttglobal);
 void set_thread2global(ttglobal fwl, pthread_t any );
-ttglobal gglobal(); //gets based on threadID
+ttglobal gglobal(); //gets based on threadID, errors out if no threadID
+ttglobal gglobal0(); //will return null if thread not yet initialized
