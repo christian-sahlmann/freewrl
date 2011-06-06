@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.57 2011/06/06 14:50:14 crc_canada Exp $
+  $Id: main.c,v 1.58 2011/06/06 20:54:52 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -344,7 +344,7 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	   to complete initialization */
 	fwl_initializeDisplayThread();
 
-	sleep(50);
+	usleep(50);
 	set_thread2global(fwl,gglobal()->threads.DispThrd );
 
 #endif //FRONTEND_HANDLES_DISPLAY_THREAD

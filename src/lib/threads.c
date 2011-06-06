@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.28 2011/06/06 19:44:54 dug9 Exp $
+  $Id: threads.c,v 1.29 2011/06/06 20:54:52 dug9 Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -268,7 +268,7 @@ void trace_enter_thread(const char *str)
 	int nloops = 0;
 	ttglobal tg = NULL;
 	while(tg == NULL){
-		sleep(50);
+		usleep(50);
 		tg = gglobal0(); //<< new function ttglobal0() just returns NULL if thread not registered yet
 		nloops++;
 	}
