@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.86 2011/06/03 16:08:14 davejoubert Exp $
+  $Id: ProdCon.c,v 1.87 2011/06/06 21:02:17 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -602,8 +602,8 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	
 		/* we either put things at the rootNode (ie, a new world) or we put them as a children to another node */
 		if (res->where == NULL) {
-			ASSERT(rootNode);
-			insert_node = rootNode;
+			ASSERT(rootNode());
+			insert_node = rootNode();
 			offsetInNode = (int) offsetof(struct X3D_Group, children);
 		} else {
 			insert_node = X3D_GROUP(res->where); /* casting here for compiler */

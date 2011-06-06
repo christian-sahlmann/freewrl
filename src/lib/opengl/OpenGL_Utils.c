@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.200 2011/06/04 17:33:47 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.201 2011/06/06 21:02:17 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1538,7 +1538,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 		return;
 	}	
 
-	if (rootNode == NULL) {
+	if (rootNode() == NULL) {
 		return; /* nothing to display yet */
 	}
 
@@ -1551,15 +1551,17 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 				rootNode->EXTENT_MAX_Z, rootNode->EXTENT_MIN_Z);
 		#endif
 		/* make up 8 vertices for our bounding box, and place them within our view */
-		moveAndRotateThisPoint(&bboxPoints[0], rootNode->EXTENT_MIN_X, rootNode->EXTENT_MIN_Y, rootNode->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[1], rootNode->EXTENT_MIN_X, rootNode->EXTENT_MIN_Y, rootNode->EXTENT_MAX_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[2], rootNode->EXTENT_MIN_X, rootNode->EXTENT_MAX_Y, rootNode->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[3], rootNode->EXTENT_MIN_X, rootNode->EXTENT_MAX_Y, rootNode->EXTENT_MAX_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[4], rootNode->EXTENT_MAX_X, rootNode->EXTENT_MIN_Y, rootNode->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[5], rootNode->EXTENT_MAX_X, rootNode->EXTENT_MIN_Y, rootNode->EXTENT_MAX_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[6], rootNode->EXTENT_MAX_X, rootNode->EXTENT_MAX_Y, rootNode->EXTENT_MIN_Z,MM);
-		moveAndRotateThisPoint(&bboxPoints[7], rootNode->EXTENT_MAX_X, rootNode->EXTENT_MAX_Y, rootNode->EXTENT_MAX_Z,MM);
-	
+		{
+			struct X3D_Group* rn = rootNode();
+			moveAndRotateThisPoint(&bboxPoints[0], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MIN_Z,MM);
+			moveAndRotateThisPoint(&bboxPoints[1], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
+			moveAndRotateThisPoint(&bboxPoints[2], rn->EXTENT_MIN_X, rn->EXTENT_MAX_Y, rn->EXTENT_MIN_Z,MM);
+			moveAndRotateThisPoint(&bboxPoints[3], rn->EXTENT_MIN_X, rn->EXTENT_MAX_Y, rn->EXTENT_MAX_Z,MM);
+			moveAndRotateThisPoint(&bboxPoints[4], rn->EXTENT_MAX_X, rn->EXTENT_MIN_Y, rn->EXTENT_MIN_Z,MM);
+			moveAndRotateThisPoint(&bboxPoints[5], rn->EXTENT_MAX_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
+			moveAndRotateThisPoint(&bboxPoints[6], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MIN_Z,MM);
+			moveAndRotateThisPoint(&bboxPoints[7], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MAX_Z,MM);
+		}
 		for (ci=0; ci<8; ci++) {
 			#ifdef VERBOSE
 			printf ("moved bbox node %d is %4.2f %4.2f %4.2f\n",ci,bboxPoints[ci].x, bboxPoints[ci].y, bboxPoints[ci].z);
@@ -2194,12 +2196,12 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	gglobal()->resources.root_res = NULL;
 
 	/* mark all rootNode children for Dispose */
-	for (i=0; i<rootNode->children.n; i++) {
-		markForDispose(rootNode->children.p[i], TRUE);
+	for (i=0; i<rootNode()->children.n; i++) {
+		markForDispose(rootNode()->children.p[i], TRUE);
 	}
 
 	/* stop rendering */
-	rootNode->children.n = 0;
+	rootNode()->children.n = 0;
 
 	/* close the Console Message system, if required. */
 	closeConsoleMessage();
@@ -2628,7 +2630,7 @@ void startOfLoopNodeUpdates(void) {
 	struct Vector *loadInlines;
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
-	if (rootNode == NULL) return; /* nothing to do, and we have not really started yet */
+	if (rootNode() == NULL) return; /* nothing to do, and we have not really started yet */
 
 	/* initialization */
 	addChildren = NULL;
@@ -2666,16 +2668,18 @@ void startOfLoopNodeUpdates(void) {
 		}
 	}
 	/* turn OFF these flags */
-	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_Sensitive);
-	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_Viewpoint);
-	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_localLight);
-	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_globalLight);
-	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_Blend);
-
+	{
+		struct X3D_Group* rn = rootNode();
+		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_Sensitive);
+		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_Viewpoint);
+		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_localLight);
+		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_globalLight);
+		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_Blend);
+	}
 	/* sort the rootNode, if it is Not NULL */
-	if (rootNode != NULL) {
-		sortChildren (__LINE__,&rootNode->children, &rootNode->_sortedChildren,ROOTNODE_NEEDS_COMPILING,rootNode->_renderFlags & VF_shouldSortChildren);
-		rootNode->_renderFlags=rootNode->_renderFlags & (0xFFFF^VF_shouldSortChildren);
+	if (rootNode() != NULL) {
+		sortChildren (__LINE__,&rootNode()->children, &rootNode()->_sortedChildren,ROOTNODE_NEEDS_COMPILING,rootNode()->_renderFlags & VF_shouldSortChildren);
+		rootNode()->_renderFlags=rootNode()->_renderFlags & (0xFFFF^VF_shouldSortChildren);
 	}
 
 	/* go through the list of nodes, and "work" on any that need work */

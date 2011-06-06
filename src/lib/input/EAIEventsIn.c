@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.77 2011/06/04 19:05:42 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.78 2011/06/06 21:02:17 dug9 Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -216,7 +216,7 @@ void EAI_parse_commands () {
 				int sendNameNotFile = 1 ;
 				dumpname = TEMPNAM("/tmp","fwtmp");
 				dumpfd = fopen(dumpname,"w+");
-				dump_scene(dumpfd, 0, (struct X3D_Node*) rootNode);
+				dump_scene(dumpfd, 0, (struct X3D_Node*) rootNode());
 				fflush(dumpfd) ;
 				if (sendNameNotFile) {
 					fclose(dumpfd) ;
@@ -1043,7 +1043,7 @@ void EAI_RW(char *str) {
 		i = sscanf (str, "%u",(unsigned int *)&newNode);
 
 		if (i>0) {
-			AddRemoveChildren (X3D_NODE(rootNode),offsetPointer_deref(void*,rootNode,offsetof (struct X3D_Group, children)),&newNode,1,1,__FILE__,__LINE__);
+			AddRemoveChildren (X3D_NODE(rootNode()),offsetPointer_deref(void*,rootNode(),offsetof (struct X3D_Group, children)),&newNode,1,1,__FILE__,__LINE__);
 		}
 		while (isdigit(*str)) str++;
 		while (isspace(*str)) str++;

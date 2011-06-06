@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.105 2011/06/04 23:39:12 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.106 2011/06/06 21:02:17 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -118,6 +118,7 @@ typedef struct pRenderFuncs{
 	//struct point_XYZ ht1, ht2; not used
 	struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
 	struct currayhit rayph;
+	struct X3D_Group *rootNode;//=NULL;	/* scene graph root node */
 
 
 }* ppRenderFuncs;
@@ -151,6 +152,8 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->lightParamsDirty = FALSE;
 		p->cur_hits=0;
 		p->empty_group=0;
+		p->rootNode=NULL;	/* scene graph root node */
+
 	}
 }
 //	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
@@ -705,7 +708,17 @@ float AC_LastDuration[50]  = {-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
 /* is the sound engine started yet? */
 int SoundEngineStarted = FALSE;
 
-struct X3D_Group *rootNode=NULL;	/* scene graph root node */
+//struct X3D_Group *_rootNode=NULL;	/* scene graph root node */
+struct X3D_Group *rootNode()
+{
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
+	return p->rootNode;
+}
+void setRootNode(struct X3D_Group *rn)
+{
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	p->rootNode = rn;
+}
 //void *empty_group=0;
 
 /*******************************************************************************/

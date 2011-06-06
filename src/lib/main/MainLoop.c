@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.189 2011/06/04 18:24:40 crc_canada Exp $
+  $Id: MainLoop.c,v 1.190 2011/06/06 21:02:17 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -723,7 +723,7 @@ void fwl_RenderSceneUpdateScene() {
 		p->currentCursor = 0;
                 setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
                 setup_viewpoint();
-                render_hier(rootNode,VF_Sensitive  | VF_Geom); 
+                render_hier(rootNode(),VF_Sensitive  | VF_Geom); 
                 p->CursorOverSensitive = getRayHit();
 
                 /* for nodes that use an "isOver" eventOut... */
@@ -1033,7 +1033,7 @@ static void render_pre() {
         /* 5. render hierarchy - proximity */
         if (p->doEvents) 
 		{
-			render_hier(rootNode, VF_Proximity);
+			render_hier(rootNode(), VF_Proximity);
 #ifdef DJTRACK_PICKSENSORS
 			{
 				/* find pickingSensors, record their world transform and picktargets */
@@ -1205,17 +1205,17 @@ static void render()
 	/*  Other lights*/
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, before render_hier");
 	
-	render_hier(rootNode, VF_globalLight);
+	render_hier(rootNode(), VF_globalLight);
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_globalLight)");
 	
 	/*  4. Nodes (not the blended ones)*/
-	render_hier(rootNode, VF_Geom);
+	render_hier(rootNode(), VF_Geom);
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
 	
 	/*  5. Blended Nodes*/
 	if (have_transparency) {
 		/*  render the blended nodes*/
-		render_hier(rootNode, VF_Geom | VF_Blend);
+		render_hier(rootNode(), VF_Geom | VF_Blend);
 		PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
 	}
 	
@@ -1414,7 +1414,7 @@ static void render_collisions() {
 			}
 		}
 
-        render_hier(rootNode, VF_Collision);
+        render_hier(rootNode(), VF_Collision);
 		if(!FallInfo.isPenetrate) 
 		{
 			/* we don't clear if we just solved a penetration, otherwise we'll get another penetration going back, from the correction.
@@ -1500,7 +1500,7 @@ static void setup_viewpoint() {
 	#endif // IPHONE, ANDROID screen rotate
 
         viewer_togl(Viewer.fieldofview);
-        render_hier(rootNode, VF_Viewpoint);
+        render_hier(rootNode(), VF_Viewpoint);
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 
 	/* 
@@ -2066,10 +2066,10 @@ void fwl_initialize_parser()
         ((ppMainloop)(gglobal()->Mainloop.prv))->quitThread = FALSE;
 
 	/* create the root node */
-	if (rootNode == NULL) {
-		rootNode = createNewX3DNode (NODE_Group);	
+	if (rootNode() == NULL) {
+		setRootNode( createNewX3DNode (NODE_Group) );
 		/*remove this node from the deleting list*/
-		doNotRegisterThisNodeForDestroy(X3D_NODE(rootNode));
+		doNotRegisterThisNodeForDestroy(X3D_NODE(rootNode()));
 	}
 }
 
