@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.106 2011/06/06 21:02:17 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.107 2011/06/06 21:56:14 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -616,12 +616,6 @@ void initializeLightTables() {
 
 int last_texture_type = NOTEXTURE;
 
-/* Sounds can come from AudioClip nodes, or from MovieTexture nodes. Different
-   structures on these */
-int sound_from_audioclip = 0;
-
-/* for printing warnings about Sound node problems - only print once per invocation */
-int soundWarned = FALSE;
 
 int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
 int render_geom;
@@ -691,22 +685,7 @@ char *OSX_replace_world_from_console = NULL;
 struct currayhit rayHit,rayHitHyper;
 /* used to test new hits */
 
-/* this is used to return the duration of an audioclip to the perl
-   side of things. works, but need to figure out all
-   references, etc. to bypass this fudge JAS */
-float AC_LastDuration[50]  = {-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
-			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
-			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
-			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
-			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
-			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
-			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
-			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
-			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
-			      -1.0f,-1.0f,-1.0f,-1.0f,-1.0f} ;
 
-/* is the sound engine started yet? */
-int SoundEngineStarted = FALSE;
 
 //struct X3D_Group *_rootNode=NULL;	/* scene graph root node */
 struct X3D_Group *rootNode()

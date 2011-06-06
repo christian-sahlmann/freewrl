@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.34 2011/06/02 19:50:43 dug9 Exp $
+$Id: SensInterps.c,v 1.35 2011/06/06 21:56:14 dug9 Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -67,22 +67,34 @@ Interps are the "EventsProcessed" fields of interpolators.
 
 /* when we get a new sound source, what is the number for this? */
 //int SoundSourceNumber = 0;
-typedef struct pSenseInterps{
+typedef struct pSensInterps{
 	int SoundSourceNumber;
-}* ppSenseInterps;
-void *SenseInterps_constructor(){
-	void *v = malloc(sizeof(struct pSenseInterps));
-	memset(v,0,sizeof(struct pSenseInterps));
+/* this is used to return the duration of an audioclip to the perl
+   side of things. works, but need to figure out all
+   references, etc. to bypass this fudge JAS */
+	float AC_LastDuration[50];
+}* ppSensInterps;
+void *SensInterps_constructor(){
+	void *v = malloc(sizeof(struct pSensInterps));
+	memset(v,0,sizeof(struct pSensInterps));
 	return v;
 }
-void SenseInterps_init(struct tSenseInterps *t)
+void SensInterps_init(struct tSensInterps *t)
 {
 	//public
 	//private
-	t->prv = SenseInterps_constructor();
+	t->prv = SensInterps_constructor();
 	{
-		ppSenseInterps p = (ppSenseInterps)t->prv;
+		ppSensInterps p = (ppSensInterps)t->prv;
 		p->SoundSourceNumber = 0;
+		/* this is used to return the duration of an audioclip to the perl
+		   side of things. works, but need to figure out all
+		   references, etc. to bypass this fudge JAS */
+		{
+			int i;
+			for(i=0;i<50;i++)
+				p->AC_LastDuration[i]  = -1.0f;
+		}
 	}
 }
 
@@ -96,7 +108,11 @@ double return_Duration (int indx) {
 
 	if (indx < 0)  retval = 1.0;
 	else if (indx > 50) retval = 1.0;
-	else retval = AC_LastDuration[indx];
+	else 
+	{
+		ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
+		retval = p->AC_LastDuration[indx];
+	}
 	return retval;
 }
 
@@ -1743,7 +1759,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 void locateAudioSource (struct X3D_AudioClip *node) {
 	resource_item_t *res;
 	resource_item_t *parentPath;
-	ppSenseInterps p = (ppSenseInterps)gglobal()->SenseInterps.prv;
+	ppSensInterps p = (ppSensInterps)gglobal()->SensInterps.prv;
 	node->__sourceNumber = p->SoundSourceNumber;
 	p->SoundSourceNumber++;
 

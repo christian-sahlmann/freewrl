@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Sound.c,v 1.17 2011/06/04 19:05:42 crc_canada Exp $
+$Id: Component_Sound.c,v 1.18 2011/06/06 21:56:14 dug9 Exp $
 
 X3D Sound Component
 
@@ -42,6 +42,36 @@ X3D Sound Component
 
 #include "LinearAlgebra.h"
 #include "sounds.h"
+
+
+
+typedef struct pComponent_Sound{
+	/* for printing warnings about Sound node problems - only print once per invocation */
+	int soundWarned;// = FALSE;
+}* ppComponent_Sound;
+void *Component_Sound_constructor(){
+	void *v = malloc(sizeof(struct pComponent_Sound));
+	memset(v,0,sizeof(struct pComponent_Sound));
+	return v;
+}
+void Component_Sound_init(struct tComponent_Sound *t){
+	//public
+	/* Sounds can come from AudioClip nodes, or from MovieTexture nodes. Different
+   structures on these */
+	t->sound_from_audioclip= 0;
+
+	/* is the sound engine started yet? */
+	t->SoundEngineStarted = FALSE;
+	//private
+	t->prv = Component_Sound_constructor();
+	{
+		ppComponent_Sound p = (ppComponent_Sound)t->prv;
+		/* for printing warnings about Sound node problems - only print once per invocation */
+		p->soundWarned = FALSE;
+
+	}
+}
+//ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 
 #ifdef OLDCODE
 OLDCODEvoid render_AudioControl (struct X3D_AudioControl *node) {

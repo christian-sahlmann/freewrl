@@ -24,7 +24,7 @@ void EAI_C_CommonFunctions_init(struct tEAI_C_CommonFunctions*);
 void EAIEventsIn_init(struct tEAIEventsIn* t);
 void EAIHelpers_init(struct tEAIHelpers* t);
 void EAIServ_init(struct tEAIServ* t);
-void SenseInterps_init(struct tSenseInterps *t);
+void SensInterps_init(struct tSensInterps *t);
 void ConsoleMessage_init(struct tConsoleMessage *t);
 void Mainloop_init(struct tMainloop *t);
 void ProdCon_init(struct tProdCon *t);
@@ -48,6 +48,7 @@ OLDCODEvoid Component_Networking_init(struct tComponent_Networking *t);
 #endif
 void Component_Picking_init(struct tComponent_Picking *t);
 void Component_Shape_init(struct tComponent_Shape *t);
+void Component_Sound_init(struct tComponent_Sound *t);
 void Component_Text_init(struct tComponent_Text *t);
 void Component_VRML1_init(struct tComponent_VRML1 *t);
 void RenderFuncs_init(struct tRenderFuncs *t);
@@ -78,7 +79,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	EAIEventsIn_init(&iglobal->EAIEventsIn);
 	EAIHelpers_init(&iglobal->EAIHelpers);
 	EAIServ_init(&iglobal->EAIServ);
-	SenseInterps_init(&iglobal->SenseInterps);
+	SensInterps_init(&iglobal->SensInterps);
 	ConsoleMessage_init(&iglobal->ConsoleMessage);
 	Mainloop_init(&iglobal->Mainloop);
 	ProdCon_init(&iglobal->ProdCon);
@@ -104,6 +105,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	Component_Picking_init(&iglobal->Component_Picking);
 #endif
 	Component_Shape_init(&iglobal->Component_Shape);
+	Component_Sound_init(&iglobal->Component_Sound);
 	Component_Text_init(&iglobal->Component_Text);
 	Component_VRML1_init(&iglobal->Component_VRML1);
 	RenderFuncs_init(&iglobal->RenderFuncs);
@@ -115,7 +117,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
-
+	FREE_IF_NZ(tg->Component_Sound.prv);
 	FREE_IF_NZ(tg->RenderFuncs.prv);
 	FREE_IF_NZ(tg->Component_VRML1.prv);
 	FREE_IF_NZ(tg->Component_Text.prv);
@@ -144,7 +146,7 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 	FREE_IF_NZ(tg->ProdCon.prv);
 	FREE_IF_NZ(tg->Mainloop.prv);
 	FREE_IF_NZ(tg->ConsoleMessage.prv);
-	FREE_IF_NZ(tg->SenseInterps.prv);
+	FREE_IF_NZ(tg->SensInterps.prv);
 	FREE_IF_NZ(tg->EAIServ.prv);
 	FREE_IF_NZ(tg->EAIHelpers.prv);
 	FREE_IF_NZ(tg->EAIEventsIn.prv);

@@ -135,9 +135,9 @@ typedef struct iiglobal //InstanceGlobal
 		int	EAIMIDIlistenfd;// = -1;		/* listen on this socket for an incoming connection for MIDI EAI */
 		void *prv;
 	} EAIServ;
-	struct tSenseInterps{
+	struct tSensInterps{
 		void *prv;
-	} SenseInterps;
+	} SensInterps;
 	struct tConsoleMessage{
 		int consMsgCount;
 		int Console_writeToHud;
@@ -245,6 +245,12 @@ iOLDCODE	}Component_Networking;
 	struct tComponent_Shape{
 		void *prv;
 	}Component_Shape;
+	struct tComponent_Sound{
+		int sound_from_audioclip;// = 0;
+		/* is the sound engine started yet? */
+		int SoundEngineStarted;// = FALSE;
+		void *prv;
+	}Component_Sound;
 	struct tComponent_Text{
 		void *prv;
 	}Component_Text;
