@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.190 2011/06/06 21:02:17 dug9 Exp $
+  $Id: MainLoop.c,v 1.191 2011/06/06 22:14:53 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2368,7 +2368,7 @@ void fwl_init_EaiVerbose() {
 void fwl_replaceWorldNeeded(char* str)
 {
 	//printf ("replaceWorldneeded called - file %s\n",str); 
-        AnchorsAnchor = NULL;
+        setAnchorsAnchor( NULL );
         FREE_IF_NZ(OSX_replace_world_from_console);
 	OSX_replace_world_from_console = STRDUP(str);
         BrowserAction = TRUE;
@@ -2385,7 +2385,7 @@ void stopRenderingLoop(void) {
     	//killErrantChildren();
 	/* lets do an equivalent to replaceWorldNeeded, but with NULL for the new world */
 
-        AnchorsAnchor = NULL;
+        setAnchorsAnchor( NULL );
         BrowserAction = TRUE;
         FREE_IF_NZ(OSX_replace_world_from_console);
 	// printf ("stopRenderingLoop finished\n");

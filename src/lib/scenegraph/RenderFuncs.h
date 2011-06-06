@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.h,v 1.24 2011/06/04 17:33:47 dug9 Exp $
+$Id: RenderFuncs.h,v 1.25 2011/06/06 22:14:53 dug9 Exp $
 
 Proximity sensor macro.
 
@@ -82,7 +82,9 @@ int nextlight(void);
 void render_node(struct X3D_Node *node);
 
 extern int BrowserAction;
-extern struct X3D_Anchor *AnchorsAnchor;
+//extern struct X3D_Anchor *AnchorsAnchor;
+struct X3D_Anchor *AnchorsAnchor();
+void setAnchorsAnchor(struct X3D_Anchor* anchor);
 extern char *OSX_replace_world_from_console;
 
 void lightState(GLint light, int status);

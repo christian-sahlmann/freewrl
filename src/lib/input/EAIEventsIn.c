@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.78 2011/06/06 21:02:17 dug9 Exp $
+$Id: EAIEventsIn.c,v 1.79 2011/06/06 22:14:53 dug9 Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -594,7 +594,7 @@ OLDCODE				}
 				sprintf (th->outBuffer,"RE\n%f\n%d\n",TickTime(),count);
 
 				/* now tell the fwl_RenderSceneUpdateScene that BrowserAction is requested... */
-				AnchorsAnchor = get_EAIEventsIn_AnchorNode(); //&tg->EAIEventsIn.EAI_AnchorNode;
+				setAnchorsAnchor( get_EAIEventsIn_AnchorNode()); //&tg->EAIEventsIn.EAI_AnchorNode;
 				BrowserAction = TRUE;
 				break;
 				}

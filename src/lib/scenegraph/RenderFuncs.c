@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.107 2011/06/06 21:56:14 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.108 2011/06/06 22:14:53 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -119,6 +119,7 @@ typedef struct pRenderFuncs{
 	struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
 	struct currayhit rayph;
 	struct X3D_Group *rootNode;//=NULL;	/* scene graph root node */
+	struct X3D_Anchor *AnchorsAnchor;// = NULL;
 
 
 }* ppRenderFuncs;
@@ -153,6 +154,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->cur_hits=0;
 		p->empty_group=0;
 		p->rootNode=NULL;	/* scene graph root node */
+		p->AnchorsAnchor = NULL;
 
 	}
 }
@@ -677,7 +679,18 @@ struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
 /* Any action for the Browser to do? */
 int BrowserAction = FALSE;
-struct X3D_Anchor *AnchorsAnchor = NULL;
+//struct X3D_Anchor *_AnchorsAnchor = NULL;
+struct X3D_Anchor *AnchorsAnchor()
+{
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	return p->AnchorsAnchor;
+}
+void setAnchorsAnchor(struct X3D_Anchor* anchor)
+{
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	p->AnchorsAnchor = anchor;
+}
+
 char *OSX_replace_world_from_console = NULL;
 
 

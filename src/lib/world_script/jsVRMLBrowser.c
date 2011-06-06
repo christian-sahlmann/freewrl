@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.45 2011/06/04 19:05:42 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.46 2011/06/06 22:14:53 dug9 Exp $
 
 Javascript C language binding.
 
@@ -403,7 +403,7 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 			createLoadURL(myBuf);
 
 			/* now tell the fwl_RenderSceneUpdateScene that BrowserAction is requested... */
-			AnchorsAnchor = get_EAIEventsIn_AnchorNode(); //&gglobal()->EAIEventsIn.EAI_AnchorNode;
+			setAnchorsAnchor( get_EAIEventsIn_AnchorNode()); //&gglobal()->EAIEventsIn.EAI_AnchorNode;
 		}
 		BrowserAction = TRUE;
 

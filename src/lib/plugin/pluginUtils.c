@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.47 2011/06/03 23:39:45 dug9 Exp $
+  $Id: pluginUtils.c,v 1.48 2011/06/06 22:14:53 dug9 Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -230,39 +230,39 @@ int doBrowserAction()
 
 	/* is this an Anchor (thus Multi-URL call) or a single url call? */
 	/* OSX frontend and now plugin for loading up a new url does:
-	       AnchorsAnchor = NULL;
+	       setAnchorsAnchor( NULL );
 	        FREE_IF_NZ(OSX_replace_world_from_console);
 	        OSX_replace_world_from_console = STRDUP(str);
 	*/
 
-	if (AnchorsAnchor != NULL) {
-		Anchor_url = AnchorsAnchor->url;
-		description = AnchorsAnchor->description->strptr;
+	if (AnchorsAnchor() != NULL) {
+		Anchor_url = AnchorsAnchor()->url;
+		description = AnchorsAnchor()->description->strptr;
 
 		TRACE_MSG("doBrowserAction: description: %s\n", description);
 
 		/* are we going to load up a new VRML/X3D world, or are we going to just go and load up a new web page ? */
 		if (Anchor_url.n < 0) {
 			/* printf ("have Anchor, empty URL\n"); */
-			AnchorsAnchor = NULL;
+			setAnchorsAnchor( NULL );
 			return FALSE; /* done the action, the url is just not good */
 		} 
 
 		/* first test case - url is ONLY a viewpoint change */
 		if (Anchor_url.p[0]->strptr[0] == '#') {
-			AnchorsAnchor = NULL;
+			setAnchorsAnchor( NULL );
 			goToViewpoint (&(Anchor_url.p[0]->strptr[1]));
 			return TRUE;
 		}
 
 		/* We have a url, lets go and get the first one of them */
-                parentPath = (resource_item_t *)AnchorsAnchor->_parentResource;
+                parentPath = (resource_item_t *)AnchorsAnchor()->_parentResource;
 
-		p->plugin_res = resource_create_multi(&AnchorsAnchor->url);
+		p->plugin_res = resource_create_multi(&AnchorsAnchor()->url);
 
 #ifdef TEXVERBOSE
 		PRINTF("url: ");
-		Multi_String_print(&AnchorsAnchor->url);
+		Multi_String_print(&AnchorsAnchor()->url);
 		PRINTF("parent resource: \n");
 		resource_dump(parentPath);
 		PRINTF("file resource: \n");
