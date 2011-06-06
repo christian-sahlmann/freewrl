@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.79 2011/06/06 22:14:53 dug9 Exp $
+$Id: EAIEventsIn.c,v 1.80 2011/06/06 23:36:10 dug9 Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -595,7 +595,7 @@ OLDCODE				}
 
 				/* now tell the fwl_RenderSceneUpdateScene that BrowserAction is requested... */
 				setAnchorsAnchor( get_EAIEventsIn_AnchorNode()); //&tg->EAIEventsIn.EAI_AnchorNode;
-				BrowserAction = TRUE;
+				tg->RenderFuncs.BrowserAction = TRUE;
 				break;
 				}
 

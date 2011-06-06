@@ -258,6 +258,10 @@ iOLDCODE	}Component_Networking;
 		void *prv;
 	}Component_VRML1;
 	struct tRenderFuncs{
+		char *OSX_replace_world_from_console;
+		/* Any action for the Browser to do? */
+		int BrowserAction;// = FALSE;
+
 		void *prv;
 	}RenderFuncs;
 

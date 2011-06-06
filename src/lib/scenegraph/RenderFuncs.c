@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.108 2011/06/06 22:14:53 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.109 2011/06/06 23:36:11 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -130,6 +130,9 @@ void *RenderFuncs_constructor(){
 }
 void RenderFuncs_init(struct tRenderFuncs *t){
 	//public
+	t->OSX_replace_world_from_console = NULL;
+	t->BrowserAction = FALSE;
+
 	//private
 	t->prv = RenderFuncs_constructor();
 	{
@@ -652,33 +655,32 @@ struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
 /* for alignment of collision cylinder, and gravity (later). */
 //struct point_XYZ ViewerUpvector = {0,0,0};
 
-X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
+//X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
 
-
+//true statics:
+GLint viewport[4] = {-1,-1,2,2};  //doesn't change, used in glu unprojects
 /* These two points define a ray in window coordinates */
-
 struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0};
+
+
 struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
 void *hypersensitive = 0; 
 int hyperhit = 0;
 //struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
 
-GLint viewport[4] = {-1,-1,2,2};
 
 /* These three points define 1. hitpoint 2., 3. two different tangents
  * of the surface at hitpoint (to get transformation correctly */
 
 /* All in window coordinates */
-
 struct point_XYZ hp;
 //static struct point_XYZ ht1, ht2;
 double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
-
 /* used to save rayhit and hyperhit for later use by C functions */
 struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
 /* Any action for the Browser to do? */
-int BrowserAction = FALSE;
+//int BrowserAction = FALSE;
 //struct X3D_Anchor *_AnchorsAnchor = NULL;
 struct X3D_Anchor *AnchorsAnchor()
 {
@@ -691,7 +693,7 @@ void setAnchorsAnchor(struct X3D_Anchor* anchor)
 	p->AnchorsAnchor = anchor;
 }
 
-char *OSX_replace_world_from_console = NULL;
+//char *OSX_replace_world_from_console = NULL;
 
 
 //static struct currayhit rayph;

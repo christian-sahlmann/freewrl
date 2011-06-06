@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.36 2011/06/06 22:14:53 dug9 Exp $
+$Id: SensInterps.c,v 1.37 2011/06/06 23:36:10 dug9 Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -1405,11 +1405,12 @@ void do_Anchor ( void *ptr, int ev, int but1, int over) {
 	/* try button release, so that we dont get worlds flashing past if 
 	   the user keeps the finger down. :-) if (ev==ButtonPress) { */
 	if (ev==ButtonRelease) {
+		ttglobal tg = gglobal();
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
 		setAnchorsAnchor( node );
-		FREE_IF_NZ(OSX_replace_world_from_console);
-		BrowserAction = TRUE;
+		FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+		tg->RenderFuncs.BrowserAction = TRUE;
 	}
 }
 

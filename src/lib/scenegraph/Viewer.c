@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.69 2011/06/02 19:50:43 dug9 Exp $
+$Id: Viewer.c,v 1.70 2011/06/06 23:36:11 dug9 Exp $
 
 CProto ???
 
@@ -56,6 +56,8 @@ static X3D_Viewer_YawPitchZoom viewer_ypz = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
 static FILE *exfly_in_file;
+X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
+
 
 static void handle_tick_walk(void);
 static void handle_tick_fly(void);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.156 2011/06/06 21:56:14 dug9 Exp $
+$Id: headers.h,v 1.157 2011/06/06 23:36:11 dug9 Exp $
 
 Global includes.
 
@@ -478,7 +478,7 @@ extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
 void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);
 
 /* bindable nodes */
-extern GLint viewport[];
+extern GLint viewport[]; //true static
 extern struct sNaviInfo naviinfo;
 extern double defaultExamineDist;
 

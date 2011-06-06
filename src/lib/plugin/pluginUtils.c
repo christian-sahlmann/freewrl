@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.48 2011/06/06 22:14:53 dug9 Exp $
+  $Id: pluginUtils.c,v 1.49 2011/06/06 23:36:11 dug9 Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -223,7 +223,9 @@ int doBrowserAction()
 	char *description;
 	resource_item_t * parentPath;
 	s_list_t *head_of_list;
-	pppluginUtils p = (pppluginUtils)gglobal()->pluginUtils.prv;
+	pppluginUtils p;
+	ttglobal tg = gglobal();
+	p = (pppluginUtils)tg->pluginUtils.prv;
 	
 	/* are we in the process of polling for a new X3D URL to load? */
 	if (p->waitingForURLtoLoad) return urlLoadingStatus();
@@ -231,8 +233,8 @@ int doBrowserAction()
 	/* is this an Anchor (thus Multi-URL call) or a single url call? */
 	/* OSX frontend and now plugin for loading up a new url does:
 	       setAnchorsAnchor( NULL );
-	        FREE_IF_NZ(OSX_replace_world_from_console);
-	        OSX_replace_world_from_console = STRDUP(str);
+	        FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+	        tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
 	*/
 
 	if (AnchorsAnchor() != NULL) {
@@ -326,7 +328,7 @@ int doBrowserAction()
 
 	} else {
 		/* printf ("\nwe have a single replacement here\n"); */
-		if (OSX_replace_world_from_console == NULL) {
+		if (tg->RenderFuncs.OSX_replace_world_from_console == NULL) {
 			/* this is just a simple "clean out the old world" */
 			#ifndef AQUA
 			//kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
@@ -337,7 +339,7 @@ int doBrowserAction()
 			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
 			/* we want to clean out the old world AND load a new one in */
-			p->plugin_res = resource_create_single (OSX_replace_world_from_console);
+			p->plugin_res = resource_create_single (tg->RenderFuncs.OSX_replace_world_from_console);
 
 			send_resource_to_parser(p->plugin_res);
 
