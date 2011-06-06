@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.56 2011/06/05 23:03:51 dug9 Exp $
+  $Id: main.c,v 1.57 2011/06/06 14:50:14 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -122,8 +122,6 @@ static bool qParamsInit = FALSE ;
 
 void fwl_OSX_initializeParameters(const char* initialURL) {
     resource_item_t *res;
-
-printf ("start of fwl_OSX_initializeParameters, url %s\n",initialURL);
 
     /* have we been through once already (eg, plugin loading new file)? */
     if (!qParamsInit) {
@@ -316,61 +314,12 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	TRACE_MSG("FreeWRL: initializing...\n");
 
 	gglobal()->threads.mainThread = pthread_self();
+
 	set_thread2global((ttglobal)fwl, gglobal()->threads.mainThread );
 	/* Initialize console (log, error, ...) */
 	setbuf(stdout,0);
         setbuf(stderr,0);
 	
-	/* Check environment */
-#ifdef OLDCODE
-OLDCODEDave Joubert added code to set these variables from the front end, not via the library,
-OLDCODEto give more control.
-OLDCODE
-OLDCODE/* This should fall away, as env vars are now set from main */
-OLDCODE/*
-OLDCODE	See options.c fv_parseEnvVars
-OLDCODE	char *env_texture_size;
-OLDCODE
-OLDCODE	global_strictParsing = (getenv("FREEWRL_STRICT_PARSING") != NULL);
-OLDCODE	if (global_strictParsing) {
-OLDCODE		TRACE_MSG("Env: STRICT PARSING enabled.\n");
-OLDCODE	}
-OLDCODE
-OLDCODE	global_plugin_print = (getenv("FREEWRL_DO_PLUGIN_PRINT") != NULL);
-OLDCODE	if (global_plugin_print) {
-OLDCODE		TRACE_MSG("Env: PLUGIN PRINT enabled.\n");
-OLDCODE	}
-OLDCODE
-OLDCODE	global_occlusion_disable = (getenv("FREEWRL_NO_GL_ARB_OCCLUSION_QUERY") != NULL);
-OLDCODE	if (global_occlusion_disable) {
-OLDCODE		TRACE_MSG("Env: OCCLUSION QUERY disabled.\n");
-OLDCODE	}
-OLDCODE
-OLDCODE	env_texture_size = getenv("FREEWRL_TEXTURE_SIZE");
-OLDCODE	if (env_texture_size) {
-OLDCODE		sscanf(env_texture_size, "%u", &global_texture_size);
-OLDCODE		TRACE_MSG("Env: TEXTURE SIZE %u.\n", global_texture_size);
-OLDCODE	}
-OLDCODE
-OLDCODE	global_print_opengl_errors = (getenv("FREEWRL_PRINT_OPENGL_ERRORS") != NULL);
-OLDCODE	if (global_print_opengl_errors) {
-OLDCODE		TRACE_MSG("Env: PRINT OPENGL ERRORS enabled.\n");
-OLDCODE	}
-OLDCODE
-OLDCODE	global_trace_threads = (getenv("FREEWRL_TRACE_THREADS") != NULL);
-OLDCODE	if (global_trace_threads) {
-OLDCODE		TRACE_MSG("Env: TRACE THREADS enabled.\n");
-OLDCODE	}
-OLDCODE
-OLDCODE	if (getenv("FREEWRL_NO_VBOS") != NULL) global_use_VBOs = FALSE; 
-OLDCODE	else if (getenv("FREEWRL_USE_VBOS") != NULL) global_use_VBOs = TRUE;
-OLDCODE
-OLDCODE	if (global_use_VBOs) {
-OLDCODE		TRACE_MSG("Env: trying VBOs enabled.\n");
-OLDCODE	}
-OLDCODE*/
-#endif /* OLDCODE */
-
 
 	/* Check parameters */
 	if (params) {
@@ -389,15 +338,16 @@ OLDCODE*/
 	/* Initialize parser */
 	fwl_initialize_parser();
 
-	/* Multithreading ? */
-
+#ifndef FRONTEND_HANDLES_DISPLAY_THREAD
 	/* OK the display is now initialized,
 	   create the display thread and wait for it
 	   to complete initialization */
 	fwl_initializeDisplayThread();
+
 	sleep(50);
 	set_thread2global(fwl,gglobal()->threads.DispThrd );
 
+#endif //FRONTEND_HANDLES_DISPLAY_THREAD
 
 	fwl_initializeInputParseThread();
 	set_thread2global(fwl, gglobal()->threads.PCthread );

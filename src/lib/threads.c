@@ -1,5 +1,5 @@
 /*
-  $Id: threads.c,v 1.26 2011/06/05 23:03:51 dug9 Exp $
+  $Id: threads.c,v 1.27 2011/06/06 14:50:14 crc_canada Exp $
 
   FreeWRL support library.
   Threads & process (fork).
@@ -124,11 +124,10 @@ void threads_init(struct tthreads* t)
 void sync(){}
 #endif
 
+#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
 void fwl_initializeDisplayThread()
 {
-#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
 	int ret;
-#endif
 	ttglobal tg = gglobal();
 	/* Synchronize trace/error log... */
 	fflush(stdout);
@@ -145,8 +144,6 @@ void fwl_initializeDisplayThread()
 	pthread_cond_init( &tg->threads.texture_list_condition, NULL );
 
 
-/* IPHONE handles the display itself */
-#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
 	ret = pthread_create(&tg->threads.DispThrd, NULL, (void *) _displayThread, NULL);
 	switch (ret) {
 	case 0: 
@@ -155,7 +152,6 @@ void fwl_initializeDisplayThread()
 		ERROR_MSG("initializeDisplayThread: not enough system resources to create a process for the new thread.");
 		return;
 	}
-#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 
 #if !defined(TARGET_AQUA) && !defined(_MSC_VER) //TARGET_WIN32)
@@ -167,6 +163,10 @@ void fwl_initializeDisplayThread()
 	}
 #endif
 }
+
+#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
+
+
 
 /* create consumer thread and set the "read only" flag indicating this */
 void fwl_initializeInputParseThread()
@@ -265,15 +265,6 @@ void fwl_thread_dump()
 
 void trace_enter_thread(const char *str)
 {
-	int nloops = 0;
-	ttglobal tg = NULL;
-	while(tg == NULL)
-	{
-		sleep(50);
-		tg = gglobal0();
-		nloops++;
-	}
-	printf("trace_enter_thread spent %d loops\n",nloops);
 	if (gglobal()->internalc.global_trace_threads) {
 		/* Synchronize trace/error log... */
 		fflush(stdout);
