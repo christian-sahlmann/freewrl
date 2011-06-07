@@ -261,6 +261,9 @@ iOLDCODE	}Component_Networking;
 		char *OSX_replace_world_from_console;
 		/* Any action for the Browser to do? */
 		int BrowserAction;// = FALSE;
+		double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
+		/* used to save rayhit and hyperhit for later use by C functions */
+		struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
 		void *prv;
 	}RenderFuncs;

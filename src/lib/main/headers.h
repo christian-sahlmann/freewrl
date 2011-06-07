@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.158 2011/06/07 14:17:03 dug9 Exp $
+$Id: headers.h,v 1.159 2011/06/07 18:11:31 dug9 Exp $
 
 Global includes.
 
@@ -472,7 +472,7 @@ double lastTime();
 //extern int trisThisLoop;
 
 /* saved rayhit and hyperhit */
-extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
+//extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
 
 /* set a node to be sensitive */
 void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);

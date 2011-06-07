@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.193 2011/06/07 14:17:03 dug9 Exp $
+  $Id: MainLoop.c,v 1.194 2011/06/07 18:11:31 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1477,13 +1477,15 @@ void fwl_gotoViewpoint (char *findThisOne) {
 struct X3D_Node* getRayHit() {
         double x,y,z;
         int i;
-		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+		ppMainloop p;
+		ttglobal tg = gglobal();
+		p = (ppMainloop)tg->Mainloop.prv;
 
-        if(hitPointDist >= 0) {
+        if(tg->RenderFuncs.hitPointDist >= 0) {
                 FW_GLU_UNPROJECT(hp.x,hp.y,hp.z,rayHit.modelMatrix,rayHit.projMatrix,viewport,&x,&y,&z);
 
                 /* and save this globally */
-                ray_save_posn.c[0] = (float) x; ray_save_posn.c[1] = (float) y; ray_save_posn.c[2] = (float) z;
+                tg->RenderFuncs.ray_save_posn.c[0] = (float) x; tg->RenderFuncs.ray_save_posn.c[1] = (float) y; tg->RenderFuncs.ray_save_posn.c[2] = (float) z;
 
                 /* we POSSIBLY are over a sensitive node - lets go through the sensitive list, and see
                    if it exists */
@@ -1603,6 +1605,7 @@ static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int sta
 static void get_hyperhit() {
         double x1,y1,z1,x2,y2,z2,x3,y3,z3;
         GLDOUBLE projMatrix[16];
+		ttglobal tg = gglobal();
 
         FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
         FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, rayHitHyper.modelMatrix,
@@ -1616,9 +1619,9 @@ static void get_hyperhit() {
         /*      x1,y1,z1,x2,y2,z2,x3,y3,z3);*/
 
         /* and save this globally */
-        hyp_save_posn.c[0] = (float) x1; hyp_save_posn.c[1] = (float) y1; hyp_save_posn.c[2] = (float) z1;
-        hyp_save_norm.c[0] = (float) x2; hyp_save_norm.c[1] = (float) y2; hyp_save_norm.c[2] = (float) z2;
-        ray_save_posn.c[0] = (float) x3; ray_save_posn.c[1] = (float) y3; ray_save_posn.c[2] = (float) z3;
+        tg->RenderFuncs.hyp_save_posn.c[0] = (float) x1; tg->RenderFuncs.hyp_save_posn.c[1] = (float) y1; tg->RenderFuncs.hyp_save_posn.c[2] = (float) z1;
+        tg->RenderFuncs.hyp_save_norm.c[0] = (float) x2; tg->RenderFuncs.hyp_save_norm.c[1] = (float) y2; tg->RenderFuncs.hyp_save_norm.c[2] = (float) z2;
+        tg->RenderFuncs.ray_save_posn.c[0] = (float) x3; tg->RenderFuncs.ray_save_posn.c[1] = (float) y3; tg->RenderFuncs.ray_save_posn.c[2] = (float) z3;
 }
 
 /* set stereo buffers, if required */

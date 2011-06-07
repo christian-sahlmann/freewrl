@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.37 2011/06/06 23:36:10 dug9 Exp $
+$Id: SensInterps.c,v 1.38 2011/06/07 18:11:30 dug9 Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -1196,7 +1196,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 
 	struct X3D_TouchSensor *node = (struct X3D_TouchSensor *)ptr;
 	struct point_XYZ normalval;	/* different structures for normalization calls */
-
+	ttglobal tg;
 	#ifdef SENSVERBOSE
 	printf ("%lf: TS ",TickTime());
 	if (ev==ButtonPress) printf ("ButtonPress ");
@@ -1219,7 +1219,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_TouchSensor, enabled));
 	}
 	if (!node->enabled) return;
-
+	tg = gglobal();
 	/* isOver state */
 	if ((ev == overMark) && (over != node->isOver)) {
 		#ifdef SENSVERBOSE
@@ -1251,7 +1251,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 
 		/* hitPoint and hitNormal */
 		/* save the current hitPoint for determining if this changes between runs */
-		memcpy ((void *) &node->_oldhitPoint, (void *) &ray_save_posn,sizeof(struct SFColor));
+		memcpy ((void *) &node->_oldhitPoint, (void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
 
 		/* did the hitPoint change between runs? */
 		if ((APPROX(node->_oldhitPoint.c[0],node->hitPoint_changed.c[0])!= TRUE) ||
@@ -1263,9 +1263,9 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		}
 
 		/* have to normalize normal; change it from SFColor to struct point_XYZ. */
-		normalval.x = hyp_save_norm.c[0];
-		normalval.y = hyp_save_norm.c[1];
-		normalval.z = hyp_save_norm.c[2];
+		normalval.x = tg->RenderFuncs.hyp_save_norm.c[0];
+		normalval.y = tg->RenderFuncs.hyp_save_norm.c[1];
+		normalval.z = tg->RenderFuncs.hyp_save_norm.c[2];
 		normalize_vector(&normalval);
 		node->_oldhitNormal.c[0] = (float) normalval.x;
 		node->_oldhitNormal.c[1] = (float) normalval.y;
@@ -1287,7 +1287,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	float mult, nx, ny;
 	struct SFColor tr;
 	int tmp;
-
+	ttglobal tg;
 	UNUSED(over);
 	node = (struct X3D_PlaneSensor *)ptr;
 	#ifdef SENSVERBOSE
@@ -1306,11 +1306,13 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 
 	/* if not enabled, do nothing */
 	if (!node) return;
+
 	if (node->__oldEnabled != node->enabled) {
 		node->__oldEnabled = node->enabled;
 		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_PlaneSensor, enabled));
 	}
 	if (!node->enabled) return;
+	tg = gglobal();
 
 	/* only do something when button pressed */
 	/* if (!but1) return; */
@@ -1318,7 +1320,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	if ((ev==ButtonPress) && but1) {
 		/* record the current position from the saved position */
 		memcpy ((void *) &node->_origPoint,
-			(void *) &ray_save_posn,sizeof(struct SFColor));
+			(void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
 
 		/* set isActive true */
 		node->isActive=TRUE;
@@ -1326,10 +1328,10 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 
 	} else if ((ev==MotionNotify) && (node->isActive) && but1) {
 		/* hyperhit saved in render_hypersensitive phase */
-		mult = (node->_origPoint.c[2] - hyp_save_posn.c[2]) /
-			(hyp_save_norm.c[2]-hyp_save_posn.c[2]);
-		nx = hyp_save_posn.c[0] + mult * (hyp_save_norm.c[0] - hyp_save_posn.c[0]);
-		ny = hyp_save_posn.c[1] + mult * (hyp_save_norm.c[1] - hyp_save_posn.c[1]);
+		mult = (node->_origPoint.c[2] - tg->RenderFuncs.hyp_save_posn.c[2]) /
+			(tg->RenderFuncs.hyp_save_norm.c[2]-tg->RenderFuncs.hyp_save_posn.c[2]);
+		nx = tg->RenderFuncs.hyp_save_posn.c[0] + mult * (tg->RenderFuncs.hyp_save_norm.c[0] - tg->RenderFuncs.hyp_save_posn.c[0]);
+		ny = tg->RenderFuncs.hyp_save_posn.c[1] + mult * (tg->RenderFuncs.hyp_save_norm.c[1] - tg->RenderFuncs.hyp_save_posn.c[1]);
 
 		#ifdef SEVERBOSE
 		printf ("now, mult %f nx %f ny %f op %f %f %f\n",mult,nx,ny,
@@ -1421,6 +1423,7 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 	double det, pos, neg, temp;
 	Quaternion bv, dir1, dir2, tempV;
 	GLDOUBLE modelMatrix[16];
+	ttglobal tg;
 
 	UNUSED(over);
 	
@@ -1434,21 +1437,21 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 
 	/* only do something if the button is pressed */
 	if (!but1) return;
-
+	tg = gglobal();
 
 	if (ev==ButtonPress) {
 		/* record the current position from the saved position */
     		memcpy ((void *) &node->_origPoint,
-			(void *) &ray_save_posn,sizeof(struct SFColor));
+			(void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
 
 		/* set isActive true */
 		node->isActive=TRUE;
 		MARK_EVENT (ptr, offsetof (struct X3D_CylinderSensor, isActive));
 
     		/* record the current Radius */
-		node->_radius = ray_save_posn.c[0] * ray_save_posn.c[0] +
-				ray_save_posn.c[1] * ray_save_posn.c[1] +
-				ray_save_posn.c[2] * ray_save_posn.c[2];
+		node->_radius = tg->RenderFuncs.ray_save_posn.c[0] * tg->RenderFuncs.ray_save_posn.c[0] +
+				tg->RenderFuncs.ray_save_posn.c[1] * tg->RenderFuncs.ray_save_posn.c[1] +
+				tg->RenderFuncs.ray_save_posn.c[2] * tg->RenderFuncs.ray_save_posn.c[2];
 
         	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
      		/*
@@ -1493,7 +1496,7 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 
 	} else if ((ev==MotionNotify) && (node->isActive)) {
 
-		memcpy ((void *) &node->_oldtrackPoint, (void *) &ray_save_posn,sizeof(struct SFColor));
+		memcpy ((void *) &node->_oldtrackPoint, (void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
 		if ((APPROX(node->_oldtrackPoint.c[0],node->trackPoint_changed.c[0])!= TRUE) ||
 			(APPROX(node->_oldtrackPoint.c[1],node->trackPoint_changed.c[1])!= TRUE) ||
 			(APPROX(node->_oldtrackPoint.c[2],node->trackPoint_changed.c[2])!= TRUE)) {
@@ -1504,9 +1507,9 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 
 
 		dir1.w=0;
-  		dir1.x=ray_save_posn.c[0];
+  		dir1.x= tg->RenderFuncs.ray_save_posn.c[0];
   		dir1.y=0;
-  		dir1.z=ray_save_posn.c[2];
+  		dir1.z= tg->RenderFuncs.ray_save_posn.c[2];
 
         	if (node->_dlchange) {
             		radius = 1.0;
@@ -1586,9 +1589,9 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 #define NORM_ORIG_X node->_origNormalizedPoint.c[0]
 #define NORM_ORIG_Y node->_origNormalizedPoint.c[1]
 #define NORM_ORIG_Z node->_origNormalizedPoint.c[2]
-#define CUR_X  ray_save_posn.c[0]
-#define CUR_Y  ray_save_posn.c[1]
-#define CUR_Z  ray_save_posn.c[2]
+#define CUR_X  tg->RenderFuncs.ray_save_posn.c[0]
+#define CUR_Y  tg->RenderFuncs.ray_save_posn.c[1]
+#define CUR_Z  tg->RenderFuncs.ray_save_posn.c[2]
 #define NORM_CUR_X normalizedCurrentPoint.c[0]
 #define NORM_CUR_Y normalizedCurrentPoint.c[1]
 #define NORM_CUR_Z normalizedCurrentPoint.c[2]
@@ -1614,6 +1617,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 	Quaternion q, q2, q_r;
 	double s1,s2,s3,s4;
 */
+	ttglobal tg;
 	UNUSED(over);
 
 	/* if not enabled, do nothing */
@@ -1628,7 +1632,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 
 	/* only do something if button1 is pressed */
 	if (!but1) return;
-
+	tg = gglobal();
 	if (ev==ButtonPress) {
 		/* record the current position from the saved position */
 		ORIG_X = CUR_X;

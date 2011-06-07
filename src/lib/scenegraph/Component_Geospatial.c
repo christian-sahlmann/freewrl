@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.56 2011/06/07 14:17:03 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.57 2011/06/07 18:11:31 dug9 Exp $
 
 X3D Geospatial Component
 
@@ -2493,7 +2493,7 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 
 	struct X3D_GeoTouchSensor *node = (struct X3D_GeoTouchSensor *)ptr;
 	struct point_XYZ normalval;	/* different structures for normalization calls */
-
+	ttglobal tg;
 	COMPILE_IF_REQUIRED
 
 	#ifdef SENSVERBOSE
@@ -2517,7 +2517,7 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_GeoTouchSensor, enabled));
 	}
 	if (!node->enabled) return;
-
+	tg = gglobal();
 	/* isOver state */
 	if ((ev == overMark) && (over != node->isOver)) {
 		#ifdef SENSVERBOSE
@@ -2549,7 +2549,7 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 
 	/* hitPoint and hitNormal */
 	/* save the current hitPoint for determining if this changes between runs */
-	memcpy ((void *) &node->_oldhitPoint, (void *) &ray_save_posn,sizeof(struct SFColor));
+	memcpy ((void *) &node->_oldhitPoint, (void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
 
 	/* did the hitPoint change between runs? */
 	if ((APPROX(node->_oldhitPoint.c[0],node->hitPoint_changed.c[0])!= TRUE) ||
@@ -2587,9 +2587,9 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 	}
 
 	/* have to normalize normal; change it from SFColor to struct point_XYZ. */
-	normalval.x = hyp_save_norm.c[0];
-	normalval.y = hyp_save_norm.c[1];
-	normalval.z = hyp_save_norm.c[2];
+	normalval.x = tg->RenderFuncs.hyp_save_norm.c[0];
+	normalval.y = tg->RenderFuncs.hyp_save_norm.c[1];
+	normalval.z = tg->RenderFuncs.hyp_save_norm.c[2];
 	normalize_vector(&normalval);
 	node->_oldhitNormal.c[0] = (float) normalval.x;
 	node->_oldhitNormal.c[1] = (float) normalval.y;

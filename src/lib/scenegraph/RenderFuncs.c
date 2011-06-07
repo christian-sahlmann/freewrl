@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.110 2011/06/07 14:17:03 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.111 2011/06/07 18:11:31 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -132,6 +132,10 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	//public
 	t->OSX_replace_world_from_console = NULL;
 	t->BrowserAction = FALSE;
+	//	t->hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
+	///* used to save rayhit and hyperhit for later use by C functions */
+	//t->hyp_save_posn;
+	//t->hyp_save_norm;t->ray_save_posn;
 
 	//private
 	t->prv = RenderFuncs_constructor();
@@ -672,9 +676,9 @@ int hyperhit = 0;
 /* All in window coordinates */
 struct point_XYZ hp;
 //static struct point_XYZ ht1, ht2;
-double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
+//double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 /* used to save rayhit and hyperhit for later use by C functions */
-struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
+//struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
 /* Any action for the Browser to do? */
 //int BrowserAction = FALSE;
@@ -719,7 +723,9 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	    float tx,float ty, char *descr)  {
 	GLDOUBLE modelMatrix[16];
 	GLDOUBLE projMatrix[16];
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	ppRenderFuncs p;
+	ttglobal tg = gglobal();
+	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 
 	/* Real rat-testing */
 #ifdef RENDERVERBOSE
@@ -730,17 +736,17 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 		);
 #endif
 
-	if(rat<0 || (rat>hitPointDist && hitPointDist >= 0)) {
+	if(rat<0 || (rat>tg->RenderFuncs.hitPointDist && tg->RenderFuncs.hitPointDist >= 0)) {
 		return;
 	}
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
 	FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &hp.x, &hp.y, &hp.z);
-	hitPointDist = rat;
+	tg->RenderFuncs.hitPointDist = rat;
 	rayHit=p->rayph;
 	rayHitHyper=p->rayph;
 #ifdef RENDERVERBOSE 
-	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hitPointDist %f\n",hp.x,hp.y,hp.z, rat, hitPointDist);
+	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hitPointDist %f\n",hp.x,hp.y,hp.z, rat, tg->RenderFuncs.hitPointDist);
 #endif
 }
 
@@ -1125,7 +1131,9 @@ render_hier(struct X3D_Group *g, int rwhat) {
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
 #endif
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	ppRenderFuncs p;
+	ttglobal tg = gglobal();
+	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 
 
 	render_vp = rwhat & VF_Viewpoint;
@@ -1141,7 +1149,7 @@ render_hier(struct X3D_Group *g, int rwhat) {
 	render_pickables = rwhat & VF_inPickableGroup;
 #endif
 	p->nextFreeLight = 0;
-	hitPointDist = -1;
+	tg->RenderFuncs.hitPointDist = -1;
 
 
 #ifdef render_pre_profile
