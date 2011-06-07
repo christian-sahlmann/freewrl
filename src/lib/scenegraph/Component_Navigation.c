@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.45 2011/06/04 15:03:50 dug9 Exp $
+$Id: Component_Navigation.c,v 1.46 2011/06/07 14:17:03 dug9 Exp $
 
 X3D Navigation Component
 
@@ -286,7 +286,9 @@ void child_Collision (struct X3D_Collision *node) {
 	if(render_collision) {
 		/* test against the collide field (vrml) enabled (x3d) and that we actually have a proxy field */
 		if((node->collide) && (node->enabled) && !(node->proxy)) {
-			struct sCollisionInfo OldCollisionInfo = CollisionInfo;
+			struct sCollisionInfo OldCollisionInfo;
+			struct sCollisionInfo * ci = CollisionInfo();
+			OldCollisionInfo = *ci;
 			for(i=0; i<nc; i++) {
 				void *p = ((node->children).p[i]);
 				#ifdef CHILDVERBOSE
@@ -294,11 +296,11 @@ void child_Collision (struct X3D_Collision *node) {
 				#endif
 				render_node(p);
 			}
-			if((!APPROX(CollisionInfo.Offset.x,
+			if((!APPROX(ci->Offset.x,
 					OldCollisionInfo.Offset.x)) ||
-			   (!APPROX(CollisionInfo.Offset.y,
+			   (!APPROX(ci->Offset.y,
 				   OldCollisionInfo.Offset.y)) ||
-			   (!APPROX(CollisionInfo.Offset.z,
+			   (!APPROX(ci->Offset.z,
 				    OldCollisionInfo.Offset.z))) {
 			/* old code was:
 			if(CollisionInfo.Offset.x != OldCollisionInfo.Offset.x ||

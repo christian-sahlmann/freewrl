@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.109 2011/06/06 23:36:11 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.110 2011/06/07 14:17:03 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -616,11 +616,6 @@ void initializeLightTables() {
 }
 
 
-/* material node usage depends on texture depth; if rgb (depth1) we blend color field
-   and diffusecolor with texture, else, we dont bother with material colors */
-
-int last_texture_type = NOTEXTURE;
-
 
 int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
 int render_geom;
@@ -636,6 +631,11 @@ int render_pickables;
 int	render_allAsPickables;
 #endif
 
+
+/* material node usage depends on texture depth; if rgb (depth1) we blend color field
+   and diffusecolor with texture, else, we dont bother with material colors */
+int last_texture_type = NOTEXTURE;
+
 /* texture stuff - see code. Need array because of MultiTextures */
 GLuint boundTextureStack[MAX_MULTITEXTURE];
 int textureStackTop;
@@ -645,12 +645,9 @@ int	lightingOn;		/* do we need to restore lighting in Shape? */
 
 //int cur_hits=0;
 
-/* Collision detection results */
-struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
-struct sFallInfo FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; ... too many to initialize here */
 
-/* dimentions of viewer, and "up" vector (for collision detection) */
-struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
+///* dimentions of viewer, and "up" vector (for collision detection) */
+//struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
 
 /* for alignment of collision cylinder, and gravity (later). */
 //struct point_XYZ ViewerUpvector = {0,0,0};

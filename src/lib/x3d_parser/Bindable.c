@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.60 2011/06/02 19:50:49 dug9 Exp $
+$Id: Bindable.c,v 1.61 2011/06/07 14:17:03 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -78,6 +78,9 @@ static int fog_enabled = FALSE;
 
 
 static void saveBGVert (float *colptr, float *pt, int *vertexno, float *col, double dist, double x, double y, double z) ;
+
+/* dimentions of viewer, and "up" vector (for collision detection) */
+struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
 
 /* common entry routine for setting avatar size */
 void set_naviWidthHeightStep(double wid, double hei, double step) {

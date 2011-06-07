@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.157 2011/06/06 23:36:11 dug9 Exp $
+$Id: headers.h,v 1.158 2011/06/07 14:17:03 dug9 Exp $
 
 Global includes.
 
@@ -649,8 +649,10 @@ extern int isPerlinitialized(void);
 extern char *getInputURL(void);
 extern char *lastReadFile; 		/* name last file read in */
 extern int  lightingOn;			/* state of GL_LIGHTING */
-extern struct sCollisionInfo CollisionInfo;
-extern struct sFallInfo FallInfo; /*like sCollisionInfo, except for vertical falls */
+//extern struct sCollisionInfo CollisionInfo;
+//extern struct sFallInfo FallInfo; /*like sCollisionInfo, except for vertical falls */
+struct sCollisionInfo* CollisionInfo();
+struct sFallInfo* FallInfo();
 
 extern void xs_init(void);
 

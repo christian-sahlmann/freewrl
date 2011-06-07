@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.36 2011/06/04 18:25:25 dug9 Exp $
+$Id: Component_Text.c,v 1.37 2011/06/07 14:17:03 dug9 Exp $
 
 X3D Text Component
 
@@ -1032,7 +1032,7 @@ void collide_Text (struct X3D_Text *node)
 
     FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-	matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+	matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 	if(!avatarCollisionVolumeIntersectMBBf(modelMatrix,pr.minVals,pr.maxVals) )return;
     delta = planar_polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,PR_DOUBLESIDED,delta); 
@@ -1040,7 +1040,7 @@ void collide_Text (struct X3D_Text *node)
 
     vecscale(&delta,&delta,-1);
 
-    accumulate_disp(&CollisionInfo,delta);
+    accumulate_disp(CollisionInfo(),delta);
 
 #ifdef COLLISIONVERBOSE
     if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.)) {

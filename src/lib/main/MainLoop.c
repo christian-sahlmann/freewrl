@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.192 2011/06/06 23:36:10 dug9 Exp $
+  $Id: MainLoop.c,v 1.193 2011/06/07 14:17:03 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -392,7 +392,7 @@ static void get_collisionoffset(double *x, double *y, double *z);
 /* Function protos */
 static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
 /* void fwl_do_keyPress(char kp, int type); Now in lib.h */
-static void render_collisions(void);
+void render_collisions(int Viewer_type);
 static void render_pre(void);
 static void render(void);
 static void setup_projection(int pick, int x, int y);
@@ -1025,7 +1025,7 @@ static void render_pre() {
 
         /* 4. Collisions */
         if (fwl_getp_collision() == 1) {
-                render_collisions();
+                render_collisions(Viewer.type);
                 setup_viewpoint(); /*  update viewer position after collision, to*/
                                    /*  give accurate info to Proximity sensors.*/
         }
@@ -1264,172 +1264,6 @@ static void render()
         PRINT_GL_ERROR_IF_ANY("XEvents::render");
 }
 
-static void get_collisionoffset(double *x, double *y, double *z)
-{
-		struct point_XYZ xyz;
-        struct point_XYZ res = CollisionInfo.Offset;
-		/* collision.offset should be in collision space coordinates: fly/examine: avatar space, walk: BVVA space */
-        /* uses mean direction, with maximum distance */
-
-		/* xyz is in collision space- fly/examine: avatar space, walk: BVVA space */
-		xyz.x = xyz.y = xyz.z = 0.0;
-
-		if(CollisionInfo.Count > 0 && !APPROX(vecnormal(&res, &res),0.0) )
-				vecscale(&xyz, &res, sqrt(CollisionInfo.Maximum2));
-
-		/* for WALK + collision */
-		if(FallInfo.walking)
-		{
-			if(FallInfo.canFall && FallInfo.isFall ) 
-			{
-				/* canFall == true if we aren't climbing, isFall == true if there's no climb, and there's geom to fall to  */
-				double floatfactor = .1;
-				if(FallInfo.allowClimbing) floatfactor = 0.0; /*popcycle method */
-				if(FallInfo.smoothStep)
-					xyz.y = DOUBLE_MAX(FallInfo.hfall,-FallInfo.fallStep) + naviinfo.height*floatfactor; 
-				else
-					xyz.y = FallInfo.hfall + naviinfo.height*floatfactor; //.1; 
-				if(FallInfo.verticalOnly)
-				{
-					xyz.x = 0.0;
-					xyz.z = 0.0;
-				}
-			}
-			if(FallInfo.isClimb && FallInfo.allowClimbing)
-			{
-				/* stepping up normally handled by cyclindrical collision, but there are settings to use this climb instead */
-				if(FallInfo.smoothStep)
-					xyz.y = DOUBLE_MIN(FallInfo.hclimb,FallInfo.fallStep);
-				else
-					xyz.y = FallInfo.hclimb; 
-				if(FallInfo.verticalOnly)
-				{
-					xyz.x = 0.0;
-					xyz.z = 0.0;
-				}
-			}
-			if(FallInfo.isPenetrate)
-			{
-				/*over-ride everything else*/
-				xyz = FallInfo.pencorrection;
-			}
-		}
-		/* now convert collision-space deltas to avatar space via collision2avatar- fly/examine: identity (do nothing), walk:BVVA2A */
-		transform3x3(&xyz,&xyz,FallInfo.collision2avatar);
-		/* now xyz is in avatar space, ready to be added to avatar viewer.pos */
-		*x = xyz.x;
-		*y = xyz.y;
-		*z = xyz.z;
-		/* another transform possible: from avatar space into navigation space. fly/examine: identity walk: A2BVVA*/
-}
-struct point_XYZ viewer_get_lastP();
-static void render_collisions() {
-        struct point_XYZ v;
-		if(Viewer.type == VIEWER_YAWPITCHZOOM) return; //no collisions
-		
-
-        CollisionInfo.Offset.x = 0;
-        CollisionInfo.Offset.y = 0;
-        CollisionInfo.Offset.z = 0;
-        CollisionInfo.Count = 0;
-        CollisionInfo.Maximum2 = 0.;
-
-		/* popcycle shaped avatar collision volume: ground to stepheight is a ray, stepheight to avatarheight is a cylinder, 
-		   and a sphere on top?
-		   -keeps cyclinder from dragging in terrain mesh, easy to harmonize fall and climb math so not fighting (now a ray both ways)
-		   -2 implementations: analytical cyclinder, sampler
-		   The sampler method intersects line segments radiating from the the avatar axis with shape facets - misses small shapes but good
-		   for walls and floors; intersection math is simple: line intersect plane.
-		*/
-		FallInfo.fallHeight = 100.0; /* when deciding to fall, how far down do you look for a landing surface before giving up and floating */
-		FallInfo.fallStep = 1.0; /* maximum height to fall on one frame */
-		FallInfo.walking = Viewer.type == VIEWER_WALK; //viewer_type == VIEWER_WALK;
-		FallInfo.canFall = FallInfo.walking; /* && COLLISION (but we wouldn't be in here if not). Will be set to 0 if a climb is found. */
-		FallInfo.hits = 0; /* counter (number of vertical hits) set to zero here once per frame */
-		FallInfo.isFall = 0; /*initialize here once per frame - flags if there's a fall found */
-		FallInfo.isClimb = 0; /* initialize here each frame */
-		FallInfo.smoothStep = 1; /* [1] setting - will only fall by fallstep on a frame rather than the full hfall */
-		FallInfo.allowClimbing = 1; /* [0] - setting - 0=climbing done by collision with cyclinder 1=signals popcycle avatar collision volume and allows single-footpoint climbing  */
-		FallInfo.verticalOnly = 0; /* [0] - setting - will completely over-ride/skip cylindrical collision and do only fall/climb */
-		FallInfo.gravityVectorMethod = 1; //[1] - setting -  0=global Y down gravity 1= bound viewpoint Y down gravity as per specs
-		FallInfo.fastTestMethod = 2; //[2] - setting -0=old method - uses fast cylinder test 1= MBB shape space 2= MBB avatar space 3=ignor fast cylinder test and keep going 
-		FallInfo.walkColliderMethod = 3; /* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler */
-		FallInfo.canPenetrate = 1; /* setting - 0= don't check for wall penetration 1= check for wall penetration */
-		FallInfo.isPenetrate = 0; /* set to zero once per loop and will come back 1 if there was a penetration detected and corrected */
-
-		/* at this point we know the navigation mode and the pose of the avatar, and of the boundviewpoint 
-		   so pre-compute some handy matrices for collision calcs - the avatar2collision and back (a tilt matrix for gravity direction)
-		*/
-		if(FallInfo.walking)
-		{
-			if(FallInfo.gravityVectorMethod==1)
-			{
-				/*bound viewpoint vertical aligned gravity as per specs*/
-				avatar2BoundViewpointVerticalAvatar(FallInfo.avatar2collision, FallInfo.collision2avatar);
-			}
-			if(FallInfo.gravityVectorMethod==0)
-			{
-				/* Y-up-world aligned gravity */
-				double modelMatrix[16];
-				struct point_XYZ tupvBoundViewpoint, tupvWorld = {0,1,0};
-				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-				transform3x3(&tupvBoundViewpoint,&tupvWorld,modelMatrix);
-				matrotate2v(FallInfo.avatar2collision,tupvWorld,tupvBoundViewpoint);
-				matrotate2v(FallInfo.collision2avatar,tupvBoundViewpoint,tupvWorld);
-			}
-		}
-		else
-		{
-			/* when flying or examining, no gravity - up is your avatar's up */
-			loadIdentityMatrix(FallInfo.avatar2collision);
-			loadIdentityMatrix(FallInfo.collision2avatar);
-		}
-
-		/* wall penetration detection and correction initialization */
-		if(FallInfo.walking && FallInfo.canPenetrate)
-		{
-			/* set up avatar to last valid avatar position vector in avatar space */
-			double plen = 0.0;
-			struct point_XYZ lastpos;  
-			lastpos = viewer_get_lastP(); /* in viewer/avatar space */
-			transform(&lastpos,&lastpos,FallInfo.avatar2collision); /* convert to collision space */
-			/* if vector length == 0 can't penetrate - don't bother to check */
-			plen = sqrt(vecdot(&lastpos,&lastpos));
-			if(APPROX(plen,0.0))
-				FallInfo.canPenetrate = 0;
-			else
-			{
-				/* precompute MBB/extent etc in collision space for penetration vector */
-				struct point_XYZ pos = {0.0,0.0,0.0};
-				FallInfo.penMin[0] = DOUBLE_MIN(pos.x,lastpos.x);
-				FallInfo.penMin[1] = DOUBLE_MIN(pos.y,lastpos.y);
-				FallInfo.penMin[2] = DOUBLE_MIN(pos.z,lastpos.z);
-				FallInfo.penMax[0] = DOUBLE_MAX(pos.x,lastpos.x);
-				FallInfo.penMax[1] = DOUBLE_MAX(pos.y,lastpos.y);
-				FallInfo.penMax[2] = DOUBLE_MAX(pos.z,lastpos.z);
-				FallInfo.penRadius = plen;
-				vecnormal(&lastpos,&lastpos);
-				FallInfo.penvec = lastpos;
-				FallInfo.pendisp = 0.0; /* used to sort penetration intersections to pick one closest to last valid avatar position */
-			}
-		}
-
-        render_hier(rootNode(), VF_Collision);
-		if(!FallInfo.isPenetrate) 
-		{
-			/* we don't clear if we just solved a penetration, otherwise we'll get another penetration going back, from the correction.
-			   No pen? Then clear here to start over on the next loop.
-			*/
-			viewer_lastP_clear(); 
-		}
-        get_collisionoffset(&(v.x), &(v.y), &(v.z));
-
-	 /* if (!APPROX(v.x,0.0) || !APPROX(v.y,0.0) || !APPROX(v.z,0.0)) {
-		printf ("%lf MainLoop, rendercollisions, offset %f %f %f\n",TickTime(),v.x,v.y,v.z);
-	} */
-		/* v should be in avatar coordinates*/
-        increment_pos(&v);
-}
 
 #if defined (IPHONE) || defined (_ANDROID)
 static int currentViewerLandPort = 0;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.33 2011/06/02 19:50:43 dug9 Exp $
+$Id: Component_Geometry2D.c,v 1.34 2011/06/07 14:17:03 dug9 Exp $
 
 X3D Geometry2D  Component
 
@@ -697,7 +697,7 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 		   {
 			   /*  minimum bounding box MBB test in avatar/collision space */
@@ -720,7 +720,7 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 
 	       vecscale(&delta,&delta,-1);
 
-	       accumulate_disp(&CollisionInfo,delta);
+	       accumulate_disp(CollisionInfo(),delta);
 
 
 		#ifdef COLLISIONVERBOSE

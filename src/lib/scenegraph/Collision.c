@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.18 2011/06/03 22:17:38 dug9 Exp $
+$Id: Collision.c,v 1.19 2011/06/07 14:17:03 dug9 Exp $
 
 Render the children of nodes.
 
@@ -100,6 +100,10 @@ typedef struct pcollision{
 	struct point_XYZ res;// = {0,0,0};
 	double get_poly_mindisp;
 
+	/* Collision detection results */
+	struct sCollisionInfo CollisionInfo;// = { {0,0,0} , 0, 0. };
+	struct sFallInfo FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; ... too many to initialize here */
+
 }* ppcollision;
 void *collision_constructor(){
 	void *v = malloc(sizeof(struct pcollision));
@@ -131,10 +135,27 @@ void collision_init(struct tcollision *t){
 		/* JAS - make return val global, not local for polyrep-disp */
 		// null ok p->res ={0,0,0};
 		//p->get_poly_mindisp;
+		/* Collision detection results */
+		p->CollisionInfo.Count = 0;
+		p->CollisionInfo.Maximum2 = 0.0;
+		p->CollisionInfo.Offset.x = 0.0;
+		p->CollisionInfo.Offset.y = 0.0;
+		p->CollisionInfo.Offset.z = 0.0;
+		//p->FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; ... too many to initialize here */
 
 	}
 }
-
+// ppcollision p = (ppcollision)gglobal()->collision.prv;
+struct sCollisionInfo* CollisionInfo()
+{
+	ppcollision p = (ppcollision)gglobal()->collision.prv;
+	return &p->CollisionInfo;
+}
+struct sFallInfo* FallInfo()
+{
+	ppcollision p = (ppcollision)gglobal()->collision.prv;
+	return &p->FallInfo;
+}
 
 /*a constructor */
 #define make_pt(p,xc,yc,zc) { p.x = (xc); p.y = (yc); p.z = (zc); }
@@ -908,9 +929,11 @@ int get_poly_penetration_disp( double r,struct point_XYZ* p, int num, struct poi
 	*/
 	int hit = 0; 
 	double dr; 
+	struct sFallInfo *fi;
 	struct point_XYZ s0=zero;
 	*result = zero;
 	*rmax = 0.0;
+	fi = FallInfo();
 
 	/*	from FallInfo struct:
 		penvec - unit vector in direction from avatar (0,0,0) toward the last avatar position on the last loop (or more precisely, last time checked)
@@ -918,13 +941,13 @@ int get_poly_penetration_disp( double r,struct point_XYZ* p, int num, struct poi
 		penMin[3],penMax[3] - pre-computed MBB of penvec
 		all coordinates in collision space
 	*/
-	if( overlapMBBs(FallInfo.penMin,FallInfo.penMax,tmin,tmax) )
+	if( overlapMBBs(fi->penMin,fi->penMax,tmin,tmax) )
 	{
 		/* penvec length 1.0 normalized. penRadius can be 0 to 1000+ - how far did you travel/navigate on one loop */
-		hit = intersectLineSegmentWithPoly(s0,FallInfo.penvec,FallInfo.penRadius,p,num,n,&dr);
+		hit = intersectLineSegmentWithPoly(s0,fi->penvec,fi->penRadius,p,num,n,&dr);
 		if(hit)
 		{
-			vecscale(result,&FallInfo.penvec,(dr + r));
+			vecscale(result,&fi->penvec,(dr + r));
 			*rmax = dr;
 		}
 	}
@@ -962,6 +985,7 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
     struct point_XYZ result;
 	int hit,i;
 	double tmin[3],tmax[3]; /* MBB for facet */
+	struct sFallInfo *fi;
 	GLDOUBLE awidth = naviinfo.width; /*avatar width*/
 	GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
@@ -969,7 +993,9 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 	result = zero;
 	pp->get_poly_mindisp = 0.0;
-	if(FallInfo.walking)
+	fi = FallInfo();
+
+	if(fi->walking)
 	{
 		tmin[0] = tmax[0] = p[0].x;
 		tmin[1] = tmax[1] = p[0].y;
@@ -986,27 +1012,27 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 
 		/* walking */
 		hit = 0;
-		if(FallInfo.checkPenetration)
+		if(fi->checkPenetration)
 		{
 			double rmax;
 			struct point_XYZ presult;
 			hit = get_poly_penetration_disp(awidth,p,num,n,tmin,tmax,&presult,&rmax);
 			if(hit) 
 			{
-				FallInfo.isPenetrate = 1;
-				if(rmax > FallInfo.pendisp)
+				fi->isPenetrate = 1;
+				if(rmax > fi->pendisp)
 				{
-					FallInfo.pencorrection = presult;
-					FallInfo.pendisp = rmax;
+					fi->pencorrection = presult;
+					fi->pendisp = rmax;
 				}
 			}
 		}
-		if(FallInfo.checkCylinder && !hit)
+		if(fi->checkCylinder && !hit)
 		{
 			/* the poly normal is jerky with wild displacements. I need a cylinder collision like the sphere. */
 			/* get_poly_normal_disp(y1,y2,r,p,num,n); */
 			/* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler. Jan 15, 2010 Sampler is the best for walking. Sphere works but ducks */
-			switch(FallInfo.walkColliderMethod)
+			switch(fi->walkColliderMethod)
 			{
 				case 0: result = get_poly_min_disp_with_sphere(awidth, p, num, n); break;
 				case 1: result = get_poly_normal_disp(abottom,atop,awidth,p,num,n);break; /*y1-ystep,y2,r,p,num,n); dug9 - for walking should be used instead of sphere: just do this */
@@ -1017,9 +1043,9 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 
 			hit = !(APPROX(result.x, 0) && APPROX(result.y, 0) && APPROX(result.z, 0));
 			if(hit) 
-				FallInfo.canFall = 0; /* rule: don't fall or climb if we are colliding */
+				fi->canFall = 0; /* rule: don't fall or climb if we are colliding */
 		}
-		if(FallInfo.checkFall && !hit)
+		if(fi->checkFall && !hit)
 		{
 			accumulateFallingClimbing(abottom,atop,astep,p,num,n,tmin,tmax); //y1, y2, p, num, n);
 
@@ -1987,7 +2013,9 @@ int intersectionHeightOfVerticalLineWithSurfaceElement(double* height, struct po
 
 void accumulateFallingClimbing(double y1, double y2, double ystep, struct point_XYZ *p, int num, struct point_XYZ nused, double *tmin, double *tmax)
 {
-	if(FallInfo.walking) 
+	struct sFallInfo *fi = FallInfo();
+
+	if(fi->walking) 
 	{
 		/* Goal: Falling - if we're floating above the terrain we'll have no regular collision
 		   so we need special test to see if we should fall. If climbing we nullify any fall.
@@ -2000,27 +2028,27 @@ void accumulateFallingClimbing(double y1, double y2, double ystep, struct point_
 			if( hh < 0.0 )
 			{
 				/* falling */
-				if( hh < y1 && hh > -FallInfo.fallHeight) 
+				if( hh < y1 && hh > -fi->fallHeight) 
 				{
 					/* FALLING */
-					if(FallInfo.hits ==0)
-						FallInfo.hfall = hhbelowy1; //hh - y1;
+					if(fi->hits ==0)
+						fi->hfall = hhbelowy1; //hh - y1;
 					else
-						if(hhbelowy1 > FallInfo.hfall) FallInfo.hfall = hhbelowy1; //hh - y1;
-					FallInfo.hits++;
-					FallInfo.isFall = 1;
+						if(hhbelowy1 > fi->hfall) fi->hfall = hhbelowy1; //hh - y1;
+					fi->hits++;
+					fi->isFall = 1;
 				}else
 				/* regular below / nadir collision - below avatar center but above avatar's feet which are at 0.0 - avatar.height*/
 				if( hh >= y1  ) /* && hh <= (y1-ystep) ) //no step height implementation */
 				{
 					/* CLIMBING. handled elsewhere for displacements, except annihilates any fall*/
-					FallInfo.canFall = 0;
+					fi->canFall = 0;
 
-					if( FallInfo.isClimb == 0 )
-						FallInfo.hclimb = hhbelowy1; //hh - y1;
+					if( fi->isClimb == 0 )
+						fi->hclimb = hhbelowy1; //hh - y1;
 					else
-					    FallInfo.hclimb = DOUBLE_MAX(FallInfo.hclimb,hhbelowy1);
-					FallInfo.isClimb = 1;
+					    fi->hclimb = DOUBLE_MAX(fi->hclimb,hhbelowy1);
+					fi->isClimb = 1;
 				}
 				/* no stepheight implementation here
 				else
@@ -2478,8 +2506,184 @@ struct point_XYZ elevationgrid_disp( double y1, double y2, double ystep, double 
 
 }
 
+///* Collision detection results */
+//struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
+//struct sFallInfo FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; ... too many to initialize here */
 
 
+void get_collisionoffset(double *x, double *y, double *z)
+{
+	struct sCollisionInfo *ci;
+	struct sFallInfo *fi;
+		struct point_XYZ xyz;
+        struct point_XYZ res;
+		ci = CollisionInfo();
+		fi = FallInfo();
+		res = ci->Offset;
+		/* collision.offset should be in collision space coordinates: fly/examine: avatar space, walk: BVVA space */
+        /* uses mean direction, with maximum distance */
+
+		/* xyz is in collision space- fly/examine: avatar space, walk: BVVA space */
+		xyz.x = xyz.y = xyz.z = 0.0;
+
+		if(ci->Count > 0 && !APPROX(vecnormal(&res, &res),0.0) )
+				vecscale(&xyz, &res, sqrt(ci->Maximum2));
+
+		/* for WALK + collision */
+		if(fi->walking)
+		{
+			if(fi->canFall && fi->isFall ) 
+			{
+				/* canFall == true if we aren't climbing, isFall == true if there's no climb, and there's geom to fall to  */
+				double floatfactor = .1;
+				if(fi->allowClimbing) floatfactor = 0.0; /*popcycle method */
+				if(fi->smoothStep)
+					xyz.y = DOUBLE_MAX(fi->hfall,-fi->fallStep) + naviinfo.height*floatfactor; 
+				else
+					xyz.y = fi->hfall + naviinfo.height*floatfactor; //.1; 
+				if(fi->verticalOnly)
+				{
+					xyz.x = 0.0;
+					xyz.z = 0.0;
+				}
+			}
+			if(fi->isClimb && fi->allowClimbing)
+			{
+				/* stepping up normally handled by cyclindrical collision, but there are settings to use this climb instead */
+				if(fi->smoothStep)
+					xyz.y = DOUBLE_MIN(fi->hclimb,fi->fallStep);
+				else
+					xyz.y = fi->hclimb; 
+				if(fi->verticalOnly)
+				{
+					xyz.x = 0.0;
+					xyz.z = 0.0;
+				}
+			}
+			if(fi->isPenetrate)
+			{
+				/*over-ride everything else*/
+				xyz = fi->pencorrection;
+			}
+		}
+		/* now convert collision-space deltas to avatar space via collision2avatar- fly/examine: identity (do nothing), walk:BVVA2A */
+		transform3x3(&xyz,&xyz,fi->collision2avatar);
+		/* now xyz is in avatar space, ready to be added to avatar viewer.pos */
+		*x = xyz.x;
+		*y = xyz.y;
+		*z = xyz.z;
+		/* another transform possible: from avatar space into navigation space. fly/examine: identity walk: A2BVVA*/
+}
+struct point_XYZ viewer_get_lastP();
+void render_collisions(int Viewer_type) {
+        struct point_XYZ v;
+		struct sCollisionInfo *ci;
+		struct sFallInfo *fi;
+		if(Viewer_type == VIEWER_YAWPITCHZOOM) return; //no collisions
+		ci = CollisionInfo();
+		fi = FallInfo();
+        ci->Offset.x = 0;
+        ci->Offset.y = 0;
+        ci->Offset.z = 0;
+        ci->Count = 0;
+        ci->Maximum2 = 0.;
+
+		/* popcycle shaped avatar collision volume: ground to stepheight is a ray, stepheight to avatarheight is a cylinder, 
+		   and a sphere on top?
+		   -keeps cyclinder from dragging in terrain mesh, easy to harmonize fall and climb math so not fighting (now a ray both ways)
+		   -2 implementations: analytical cyclinder, sampler
+		   The sampler method intersects line segments radiating from the the avatar axis with shape facets - misses small shapes but good
+		   for walls and floors; intersection math is simple: line intersect plane.
+		*/
+		fi->fallHeight = 100.0; /* when deciding to fall, how far down do you look for a landing surface before giving up and floating */
+		fi->fallStep = 1.0; /* maximum height to fall on one frame */
+		fi->walking = Viewer_type == VIEWER_WALK; //viewer_type == VIEWER_WALK;
+		fi->canFall = fi->walking; /* && COLLISION (but we wouldn't be in here if not). Will be set to 0 if a climb is found. */
+		fi->hits = 0; /* counter (number of vertical hits) set to zero here once per frame */
+		fi->isFall = 0; /*initialize here once per frame - flags if there's a fall found */
+		fi->isClimb = 0; /* initialize here each frame */
+		fi->smoothStep = 1; /* [1] setting - will only fall by fallstep on a frame rather than the full hfall */
+		fi->allowClimbing = 1; /* [0] - setting - 0=climbing done by collision with cyclinder 1=signals popcycle avatar collision volume and allows single-footpoint climbing  */
+		fi->verticalOnly = 0; /* [0] - setting - will completely over-ride/skip cylindrical collision and do only fall/climb */
+		fi->gravityVectorMethod = 1; //[1] - setting -  0=global Y down gravity 1= bound viewpoint Y down gravity as per specs
+		fi->fastTestMethod = 2; //[2] - setting -0=old method - uses fast cylinder test 1= MBB shape space 2= MBB avatar space 3=ignor fast cylinder test and keep going 
+		fi->walkColliderMethod = 3; /* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler */
+		fi->canPenetrate = 1; /* setting - 0= don't check for wall penetration 1= check for wall penetration */
+		fi->isPenetrate = 0; /* set to zero once per loop and will come back 1 if there was a penetration detected and corrected */
+
+		/* at this point we know the navigation mode and the pose of the avatar, and of the boundviewpoint 
+		   so pre-compute some handy matrices for collision calcs - the avatar2collision and back (a tilt matrix for gravity direction)
+		*/
+		if(fi->walking)
+		{
+			if(fi->gravityVectorMethod==1)
+			{
+				/*bound viewpoint vertical aligned gravity as per specs*/
+				avatar2BoundViewpointVerticalAvatar(fi->avatar2collision, fi->collision2avatar);
+			}
+			if(fi->gravityVectorMethod==0)
+			{
+				/* Y-up-world aligned gravity */
+				double modelMatrix[16];
+				struct point_XYZ tupvBoundViewpoint, tupvWorld = {0,1,0};
+				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+				transform3x3(&tupvBoundViewpoint,&tupvWorld,modelMatrix);
+				matrotate2v(fi->avatar2collision,tupvWorld,tupvBoundViewpoint);
+				matrotate2v(fi->collision2avatar,tupvBoundViewpoint,tupvWorld);
+			}
+		}
+		else
+		{
+			/* when flying or examining, no gravity - up is your avatar's up */
+			loadIdentityMatrix(fi->avatar2collision);
+			loadIdentityMatrix(fi->collision2avatar);
+		}
+
+		/* wall penetration detection and correction initialization */
+		if(fi->walking && fi->canPenetrate)
+		{
+			/* set up avatar to last valid avatar position vector in avatar space */
+			double plen = 0.0;
+			struct point_XYZ lastpos;  
+			lastpos = viewer_get_lastP(); /* in viewer/avatar space */
+			transform(&lastpos,&lastpos,fi->avatar2collision); /* convert to collision space */
+			/* if vector length == 0 can't penetrate - don't bother to check */
+			plen = sqrt(vecdot(&lastpos,&lastpos));
+			if(APPROX(plen,0.0))
+				fi->canPenetrate = 0;
+			else
+			{
+				/* precompute MBB/extent etc in collision space for penetration vector */
+				struct point_XYZ pos = {0.0,0.0,0.0};
+				fi->penMin[0] = DOUBLE_MIN(pos.x,lastpos.x);
+				fi->penMin[1] = DOUBLE_MIN(pos.y,lastpos.y);
+				fi->penMin[2] = DOUBLE_MIN(pos.z,lastpos.z);
+				fi->penMax[0] = DOUBLE_MAX(pos.x,lastpos.x);
+				fi->penMax[1] = DOUBLE_MAX(pos.y,lastpos.y);
+				fi->penMax[2] = DOUBLE_MAX(pos.z,lastpos.z);
+				fi->penRadius = plen;
+				vecnormal(&lastpos,&lastpos);
+				fi->penvec = lastpos;
+				fi->pendisp = 0.0; /* used to sort penetration intersections to pick one closest to last valid avatar position */
+			}
+		}
+
+        render_hier(rootNode(), VF_Collision);
+		if(!fi->isPenetrate) 
+		{
+			/* we don't clear if we just solved a penetration, otherwise we'll get another penetration going back, from the correction.
+			   No pen? Then clear here to start over on the next loop.
+			*/
+			viewer_lastP_clear(); 
+		}
+        get_collisionoffset(&(v.x), &(v.y), &(v.z));
+
+	 /* if (!APPROX(v.x,0.0) || !APPROX(v.y,0.0) || !APPROX(v.z,0.0)) {
+		printf ("%lf MainLoop, rendercollisions, offset %f %f %f\n",TickTime(),v.x,v.y,v.z);
+	} */
+		/* v should be in avatar coordinates*/
+        increment_pos(&v);
+}
 
 
 

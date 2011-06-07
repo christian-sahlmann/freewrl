@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.67 2011/06/04 17:33:47 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.68 2011/06/07 14:17:03 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -1348,7 +1348,8 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 	   prminvals[3],prmaxvals[3] - MBB minimum bounding box or extent of shape, in shape space
 	   the fastTestMethod can be set in mainloop.c render_collisions()
 	*/
-	if(FallInfo.walking)
+	struct sFallInfo* fi = FallInfo();
+	if(fi->walking)
 	{
 		/* cylindrical / popcycle shaped avatar collision volume */
 		GLDOUBLE awidth = naviinfo.width; /*avatar width*/
@@ -1357,10 +1358,10 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 		GLDOUBLE astep = -naviinfo.height+naviinfo.step;
 
 		/* the following 2 flags are checked a few levels down, in the triangle/quad intersect avatar code get_poly_disp_2(p, 3, nused) */
-		FallInfo.checkCylinder = 1; /* 1= shape MBB overlaps avatar collision MBB, else 0 */
-		FallInfo.checkFall = 1;     /* 1= shape MBB overlaps avatar fall/climb line segment else 0 */
-		FallInfo.checkPenetration = 1;
-		if(FallInfo.fastTestMethod==0)
+		fi->checkCylinder = 1; /* 1= shape MBB overlaps avatar collision MBB, else 0 */
+		fi->checkFall = 1;     /* 1= shape MBB overlaps avatar fall/climb line segment else 0 */
+		fi->checkPenetration = 1;
+		if(fi->fastTestMethod==0)
 		{
 		   /* I'm getting false negatives - I'll be navigating along and this will start returning here
 			 - possibly why it quits colliding with the terrain and just floats through / falls through terrain mesh
@@ -1376,43 +1377,43 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 			t_orig.z = modelMatrix[14];
 			scale = pow(det3x3(modelMatrix),1./3.);
 			if(!fast_ycylinder_polyrep_intersect2(abottom,atop,awidth,t_orig,scale,prminvals,prmaxvals)){/*printf("#");*/ return 0;}
-			FallInfo.checkCylinder = 1;
-			FallInfo.checkFall = 0;
-			FallInfo.checkPenetration = 0;
+			fi->checkCylinder = 1;
+			fi->checkFall = 0;
+			fi->checkPenetration = 0;
 		}
-		if(FallInfo.fastTestMethod==1)
+		if(fi->fastTestMethod==1)
 		{
 		   /*  minimum bounding box MBB test in shape space */
 			GLDOUBLE Collision2Shape[16];
 			double foot = abottom;
-			if(FallInfo.allowClimbing) foot = astep; /* < popcycle shaped avatar collision volume. problem: stem and succulent part intersection are intersected together later so I can't return here if the succulent part is a miss - the stem might intersect */
+			if(fi->allowClimbing) foot = astep; /* < popcycle shaped avatar collision volume. problem: stem and succulent part intersection are intersected together later so I can't return here if the succulent part is a miss - the stem might intersect */
 			matinverse(Collision2Shape,modelMatrix);
 			/* do fall/climb bounds test (popcycle stick) */
-			FallInfo.checkFall = FallInfo.canFall;
-			if(FallInfo.checkFall) FallInfo.checkFall = fast_ycylinder_MBB_intersect_shapeSpace(-FallInfo.fallHeight,atop,0.0, Collision2Shape, prminvals, prmaxvals);
+			fi->checkFall = fi->canFall;
+			if(fi->checkFall) fi->checkFall = fast_ycylinder_MBB_intersect_shapeSpace(-fi->fallHeight,atop,0.0, Collision2Shape, prminvals, prmaxvals);
 			/* do collision volume bounds test (popcycle succulent part)*/
-			FallInfo.checkCylinder = fast_ycylinder_MBB_intersect_shapeSpace(foot,atop,awidth, Collision2Shape, prminvals, prmaxvals); 
-			FallInfo.checkPenetration = 0;
-			if( FallInfo.canPenetrate )
-				FallInfo.checkPenetration = overlapMBBs(FallInfo.penMin,FallInfo.penMax,prminvals,prmaxvals);
-			if(!FallInfo.checkCylinder && !FallInfo.checkFall && !FallInfo.checkPenetration){/*printf("@");*/ return 0;} 
+			fi->checkCylinder = fast_ycylinder_MBB_intersect_shapeSpace(foot,atop,awidth, Collision2Shape, prminvals, prmaxvals); 
+			fi->checkPenetration = 0;
+			if( fi->canPenetrate )
+				fi->checkPenetration = overlapMBBs(fi->penMin,fi->penMax,prminvals,prmaxvals);
+			if(!fi->checkCylinder && !fi->checkFall && !fi->checkPenetration){/*printf("@");*/ return 0;} 
 		}
-		if(FallInfo.fastTestMethod==2)
+		if(fi->fastTestMethod==2)
 		{
 		   /*  minimum bounding box MBB test in avatar/collision space */
 			double foot = abottom;
-			if(FallInfo.allowClimbing) foot = astep; /* < popcycle shaped avatar collision volume */
+			if(fi->allowClimbing) foot = astep; /* < popcycle shaped avatar collision volume */
 			/* do fall/climb bounds test (popcycle stick) */
-			FallInfo.checkFall = FallInfo.canFall; /* only do the falling/climbing if we aren't already colliding - colliding over-rules falling/climbing */
-			if(FallInfo.checkFall) FallInfo.checkFall = fast_ycylinder_MBB_intersect_collisionSpace(-FallInfo.fallHeight,atop,0.0, modelMatrix, prminvals, prmaxvals);
+			fi->checkFall = fi->canFall; /* only do the falling/climbing if we aren't already colliding - colliding over-rules falling/climbing */
+			if(fi->checkFall) fi->checkFall = fast_ycylinder_MBB_intersect_collisionSpace(-fi->fallHeight,atop,0.0, modelMatrix, prminvals, prmaxvals);
 			/* do collision volume bounds test (popcycle succulent part)*/
-			FallInfo.checkCylinder = fast_ycylinder_MBB_intersect_collisionSpace(foot,atop,awidth, modelMatrix, prminvals, prmaxvals);
-			FallInfo.checkPenetration = 0;
-			if( FallInfo.canPenetrate )
-				FallInfo.checkPenetration = overlapMBBs(FallInfo.penMin,FallInfo.penMax,prminvals,prmaxvals);
-			if(!FallInfo.checkCylinder && !FallInfo.checkFall && !FallInfo.checkPenetration){/*printf("$");*/ return 0;} 
+			fi->checkCylinder = fast_ycylinder_MBB_intersect_collisionSpace(foot,atop,awidth, modelMatrix, prminvals, prmaxvals);
+			fi->checkPenetration = 0;
+			if( fi->canPenetrate )
+				fi->checkPenetration = overlapMBBs(fi->penMin,fi->penMax,prminvals,prmaxvals);
+			if(!fi->checkCylinder && !fi->checkFall && !fi->checkPenetration){/*printf("$");*/ return 0;} 
 		}
-		if(FallInfo.fastTestMethod==3)
+		if(fi->fastTestMethod==3)
 		{
 		   //skip fast method
 		}
@@ -1421,15 +1422,15 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 	{
 		/* examine/fly spherical avatar collision volume */
 		GLDOUBLE awidth = naviinfo.width; /*avatar width - used as avatar sphere radius*/
-		if(FallInfo.fastTestMethod==2 || FallInfo.fastTestMethod == 0)
+		if(fi->fastTestMethod==2 || fi->fastTestMethod == 0)
 			if( !fast_sphere_MBB_intersect_collisionSpace(awidth, modelMatrix, prminvals, prmaxvals )) return 0;
-		if(FallInfo.fastTestMethod == 1 )
+		if(fi->fastTestMethod == 1 )
 		{
 			GLDOUBLE Collision2Shape[16];
 			matinverse(Collision2Shape,modelMatrix);
 			if( !fast_sphere_MBB_intersect_shapeSpace(awidth, Collision2Shape, prminvals, prmaxvals )) return 0;
 		}
-		if(FallInfo.fastTestMethod==3)
+		if(fi->fastTestMethod==3)
 		{
 		   //skip fast method
 		}
@@ -1536,7 +1537,7 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 		   */
 
 
-			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 
 			#ifdef RENDERVERBOSE
@@ -1556,7 +1557,7 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 			/* lets say you are floating above ground by 3 units + avatar.height 1.75 = 4.75. 
 			Then delta = (0,3,0)*/
 	       vecscale(&delta,&delta,-1);
-	       accumulate_disp(&CollisionInfo,delta); /* we are accumulating in collision space (fly/examine: avatar space, walk: BVVA space) */
+	       accumulate_disp(CollisionInfo(),delta); /* we are accumulating in collision space (fly/examine: avatar space, walk: BVVA space) */
 
 		#ifdef RENDERVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
@@ -1706,7 +1707,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 		//scale_to_matrix (modelMatrix, &radscale);
 		//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
-		if(FallInfo.walking)
+		if(FallInfo()->walking)
 		{
 			/* mesh method */
 
@@ -1718,7 +1719,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 			double maxdisp = 0;
 			radscale.x = radscale.y = radscale.z = node->radius;
 			scale_to_matrix (modelMatrix, &radscale);
-			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			if(!collisionSphere.npts) collisionSphere_init(node);
 			if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionSphere.smin,collisionSphere.smax)) return;
@@ -1754,7 +1755,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 		else
 		{
 			/* easy analytical sphere-sphere stuff */
-			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			t_orig.x = modelMatrix[12];
 			t_orig.y = modelMatrix[13];
@@ -1876,7 +1877,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 			   }
 
 			}
-	       accumulate_disp(&CollisionInfo,delta);
+	       accumulate_disp(CollisionInfo(),delta);
 
 		#ifdef RENDERVERBOSE
 	       if((delta.x != 0. || delta.y != 0. || delta.z != 0.))
@@ -1914,7 +1915,7 @@ void collide_Box (struct X3D_Box *node) {
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 			{
 				int i;
 				double shapeMBBmin[3],shapeMBBmax[3];
@@ -1937,7 +1938,7 @@ void collide_Box (struct X3D_Box *node) {
 
 	       vecscale(&delta,&delta,-1);
 
-	       accumulate_disp(&CollisionInfo,delta);
+	       accumulate_disp(CollisionInfo(),delta);
 
 		#ifdef RENDERVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
@@ -2144,7 +2145,7 @@ void collide_Cone (struct X3D_Cone *node) {
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 			//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
-			if(FallInfo.walking)
+			if(FallInfo()->walking)
 			{
 				/* mesh method */
 				int i;
@@ -2158,7 +2159,7 @@ void collide_Cone (struct X3D_Cone *node) {
 				radscale.x = radscale.z = node->bottomRadius;
 				radscale.y = node->height;
 				scale_to_matrix (modelMatrix, &radscale);
-				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+				matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCone.smin,collisionCone.smax)) return;
 
 
@@ -2191,7 +2192,7 @@ void collide_Cone (struct X3D_Cone *node) {
 			else
 			{
 			   /* values for rapid test */
-				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+				matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			   t_orig.x = modelMatrix[12];
 			   t_orig.y = modelMatrix[13];
@@ -2208,7 +2209,7 @@ void collide_Cone (struct X3D_Cone *node) {
 			}
 	       vecscale(&delta,&delta,-1);
 
-	       accumulate_disp(&CollisionInfo,delta);
+	       accumulate_disp(CollisionInfo(),delta);
 
 		#ifdef RENDERVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
@@ -2418,7 +2419,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 			//matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
-			if(FallInfo.walking)
+			if(FallInfo()->walking)
 			{
 				/* mesh method */
 				int i;
@@ -2431,7 +2432,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 				radscale.x = radscale.z = node->radius;
 				radscale.y = node->height;
 				scale_to_matrix (modelMatrix, &radscale);
-				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+				matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCylinder.smin,collisionCylinder.smax)) return;
 
 				for(i=0;i<collisionCylinder.npts;i++)
@@ -2480,7 +2481,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 			{
 
 			   /* values for rapid test */
-				matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+				matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 			   t_orig.x = modelMatrix[12];
 			   t_orig.y = modelMatrix[13];
 			   t_orig.z = modelMatrix[14];
@@ -2498,7 +2499,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 			}
 	       vecscale(&delta,&delta,-1);
 
-	       accumulate_disp(&CollisionInfo,delta);
+	       accumulate_disp(CollisionInfo(),delta);
 
 		#ifdef RENDERVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
@@ -2548,7 +2549,7 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 	       pr = *((struct X3D_PolyRep*)node->_intern);
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			#ifdef RENDERVERBOSE
                            t_orig.x = modelMatrix[12];
@@ -2562,7 +2563,7 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 
 	       vecscale(&delta,&delta,-1);
 
-	       accumulate_disp(&CollisionInfo,delta);
+	       accumulate_disp(CollisionInfo(),delta);
 
 		#ifdef RENDERVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
