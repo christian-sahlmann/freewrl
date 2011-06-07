@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.20 2011/06/04 13:40:50 dug9 Exp $
+$Id: Component_EnvironSensor.c,v 1.21 2011/06/07 21:44:18 dug9 Exp $
 
 X3D Environmental Sensors Component
 
@@ -98,11 +98,11 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 
 		RECORD_DISTANCE
 
-		if (render_blend) { 
+		if (renderstate()->render_blend) { 
                         #ifdef VISIBILITYOCCLUSION
 
 			//BEGINOCCLUSIONQUERY
-			beginOcclusionQuery(node,render_geom);
+			beginOcclusionQuery(node,renderstate()->render_geom);
 			LIGHTING_OFF
 			DISABLE_CULL_FACE 
 
@@ -112,7 +112,7 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 			LIGHTING_ON
 			
 			//ENDOCCLUSIONQUERY
-			endOcclusionQuery(node,render_geom);
+			endOcclusionQuery(node,renderstate()->render_geom);
                         #endif
 		}
 

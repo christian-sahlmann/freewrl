@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.112 2011/06/07 20:00:59 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.113 2011/06/07 21:44:18 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -121,7 +121,7 @@ typedef struct pRenderFuncs{
 	struct X3D_Group *rootNode;//=NULL;	/* scene graph root node */
 	struct X3D_Anchor *AnchorsAnchor;// = NULL;
 	struct currayhit rayHit,rayHitHyper;
-
+	struct trenderstate renderstate;
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
 	void *v = malloc(sizeof(struct pRenderFuncs));
@@ -623,20 +623,25 @@ void initializeLightTables() {
 
 
 
-int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
-int render_geom;
-int render_light;
-int render_sensitive;
-int render_blend;
-int render_proximity;
-int render_collision;
-int render_other;
-#ifdef DJTRACK_PICKSENSORS
-int render_picksensors;
-int render_pickables;
-int	render_allAsPickables;
-#endif
-
+//int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
+//int render_geom;
+//int render_light;
+//int render_sensitive;
+//int render_blend;
+//int render_proximity;
+//int render_collision;
+//int render_other;
+//#ifdef DJTRACK_PICKSENSORS
+//int render_picksensors;
+//int render_pickables;
+//int	render_allAsPickables;
+//#endif
+//struct trenderstate _renderstate;
+ttrenderstate renderstate()
+{
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	return &p->renderstate;
+}
 
 /* material node usage depends on texture depth; if rgb (depth1) we blend color field
    and diffusecolor with texture, else, we dont bother with material colors */
@@ -848,9 +853,9 @@ void update_node(struct X3D_Node *node) {
 			       _v->rendray,			\
 			       gglobal()->RenderFuncs.hypersensitive);			\
 			printf("Render_state geom %d light %d sens %d\n", \
-			       render_geom,				\
-			       render_light,				\
-			       render_sensitive);			\
+			       renderstate()->render_geom,				\
+			       renderstate()->render_light,				\
+			       renderstate()->render_sensitive);			\
 			printf("pchange %d pichange %d \n", _node->_change, _node->_ichange); \
 		}							\
 	} while (0)
@@ -915,7 +920,7 @@ void render_node(struct X3D_Node *node) {
 #endif
 
         /* if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here */ 
-        if (render_vp == VF_Viewpoint) { 
+        if (renderstate()->render_vp == VF_Viewpoint) { 
                 if ((node->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { 
 #ifdef RENDERVERBOSE
                         printf ("doing Viewpoint, but this  node is not for us - just returning\n"); 
@@ -926,7 +931,7 @@ void render_node(struct X3D_Node *node) {
         }
 
 	/* are we working through global PointLights, DirectionalLights or SpotLights, but none exist from here on down? */
-        if (render_light == VF_globalLight) { 
+        if (renderstate()->render_light == VF_globalLight) { 
                 if ((node->_renderFlags & VF_globalLight) != VF_globalLight) { 
 #ifdef RENDERVERBOSE
                         printf ("doing globalLight, but this  node is not for us - just returning\n"); 
@@ -939,30 +944,30 @@ void render_node(struct X3D_Node *node) {
 	if(virt->prep) {
 		DEBUG_RENDER("rs 2\n");
 		virt->prep(node);
-		if(render_sensitive && !tg->RenderFuncs.hypersensitive) {
+		if(renderstate()->render_sensitive && !tg->RenderFuncs.hypersensitive) {
 			upd_ray();
 		}
 		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,virt);
 	}
-	if(render_proximity && virt->proximity) {
+	if(renderstate()->render_proximity && virt->proximity) {
 		DEBUG_RENDER("rs 2a\n");
 		virt->proximity(node);
 		PRINT_GL_ERROR_IF_ANY("render_proximity"); PRINT_NODE(node,virt);
 	}
 	
-	if(render_collision && virt->collision) {
+	if(renderstate()->render_collision && virt->collision) {
 		DEBUG_RENDER("rs 2b\n");
 		virt->collision(node);
 		PRINT_GL_ERROR_IF_ANY("render_collision"); PRINT_NODE(node,virt);
 	}
 
-	if(render_geom && !render_sensitive && virt->rend) {
+	if(renderstate()->render_geom && !renderstate()->render_sensitive && virt->rend) {
 		DEBUG_RENDER("rs 3\n");
 		virt->rend(node);
 		PRINT_GL_ERROR_IF_ANY("render_geom"); PRINT_NODE(node,virt);
 	}
 
-	if(render_other && virt->other )
+	if(renderstate()->render_other && virt->other )
 	{
 #if DJTRACK_PICKSENSORS
 		DEBUG_RENDER("rs 4a\n");
@@ -971,10 +976,10 @@ void render_node(struct X3D_Node *node) {
 #endif
 	} //other
 
-	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
+	if(renderstate()->render_sensitive && (node->_renderFlags & VF_Sensitive)) {
 		DEBUG_RENDER("rs 5\n");
-		srg = render_geom;
-		render_geom = 1;
+		srg = renderstate()->render_geom;
+		renderstate()->render_geom = 1;
 		DEBUG_RENDER("CH1 %d: %d\n",node, p->cur_hits, node->_hit);
 		sch = p->cur_hits;
 		p->cur_hits = 0;
@@ -986,13 +991,13 @@ void render_node(struct X3D_Node *node) {
 		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,virt);
 	}
 
-	if(render_geom && render_sensitive && !tg->RenderFuncs.hypersensitive && virt->rendray) {
+	if(renderstate()->render_geom && renderstate()->render_sensitive && !tg->RenderFuncs.hypersensitive && virt->rendray) {
 		DEBUG_RENDER("rs 6\n");
 		virt->rendray(node);
 		PRINT_GL_ERROR_IF_ANY("rs 6"); PRINT_NODE(node,virt);
 	}
 
-    if((render_sensitive) && (tg->RenderFuncs.hypersensitive == node)) {
+    if((renderstate()->render_sensitive) && (tg->RenderFuncs.hypersensitive == node)) {
 		DEBUG_RENDER("rs 7\n");
 		p->hyper_r1 = tg->RenderFuncs.t_r1;
 		p->hyper_r2 = tg->RenderFuncs.t_r2;
@@ -1007,16 +1012,16 @@ void render_node(struct X3D_Node *node) {
     }
 	/* end recursive section */
 
-	if(render_other && virt->other)
+	if(renderstate()->render_other && virt->other)
 	{
 #if DJTRACK_PICKSENSORS
 		//pop_renderingState(VF_inPickableGroup);
 #endif
 	}
 
-	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
+	if(renderstate()->render_sensitive && (node->_renderFlags & VF_Sensitive)) {
 		DEBUG_RENDER("rs 9\n");
-		render_geom = srg;
+		renderstate()->render_geom = srg;
 		p->cur_hits = sch;
 		DEBUG_RENDER("CH3: %d %d\n",p->cur_hits, node->_hit);
 		/* HP */
@@ -1026,7 +1031,7 @@ void render_node(struct X3D_Node *node) {
 	if(virt->fin) {
 		DEBUG_RENDER("rs A\n");
 		virt->fin(node);
-		if(render_sensitive && virt == &virt_Transform) {
+		if(renderstate()->render_sensitive && virt == &virt_Transform) {
 			upd_ray();
 		}
 		PRINT_GL_ERROR_IF_ANY("fin"); PRINT_NODE(node,virt);
@@ -1144,27 +1149,28 @@ render_hier(struct X3D_Group *g, int rwhat) {
 #endif
 	ppRenderFuncs p;
 	ttglobal tg = gglobal();
+	ttrenderstate rs;
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	rs = renderstate();
 
-
-	render_vp = rwhat & VF_Viewpoint;
-	render_geom =  rwhat & VF_Geom;
-	render_light = rwhat & VF_globalLight;
-	render_sensitive = rwhat & VF_Sensitive;
-	render_blend = rwhat & VF_Blend;
-	render_proximity = rwhat & VF_Proximity;
-	render_collision = rwhat & VF_Collision;
-	render_other = rwhat & VF_Other;
+	rs->render_vp = rwhat & VF_Viewpoint;
+	rs->render_geom =  rwhat & VF_Geom;
+	rs->render_light = rwhat & VF_globalLight;
+	rs->render_sensitive = rwhat & VF_Sensitive;
+	rs->render_blend = rwhat & VF_Blend;
+	rs->render_proximity = rwhat & VF_Proximity;
+	rs->render_collision = rwhat & VF_Collision;
+	rs->render_other = rwhat & VF_Other;
 #ifdef DJTRACK_PICKSENSORS
-	render_picksensors = rwhat & VF_PickingSensor;
-	render_pickables = rwhat & VF_inPickableGroup;
+	rs->render_picksensors = rwhat & VF_PickingSensor;
+	rs->render_pickables = rwhat & VF_inPickableGroup;
 #endif
 	p->nextFreeLight = 0;
 	tg->RenderFuncs.hitPointDist = -1;
 
 
 #ifdef render_pre_profile
-	if (render_geom) {
+	if (rs->render_geom) {
 		gettimeofday (&mytime,&tz);
 		aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	}
@@ -1184,18 +1190,18 @@ render_hier(struct X3D_Group *g, int rwhat) {
 #endif
 
 #ifdef render_pre_profile
-	if (render_geom) {
+	if (rs->render_geom) {
 		gettimeofday (&mytime,&tz);
 		bb = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	}
 #endif
 
-	if (render_sensitive) {
+	if (rs->render_sensitive) {
 		upd_ray();
 	}
 
 #ifdef render_pre_profile
-	if (render_geom) {
+	if (rs->render_geom) {
 		gettimeofday (&mytime,&tz);
 		cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	}
@@ -1204,7 +1210,7 @@ render_hier(struct X3D_Group *g, int rwhat) {
 	render_node(X3D_NODE(g));
 
 #ifdef render_pre_profile
-	if (render_geom) {
+	if (rs->render_geom) {
 		gettimeofday (&mytime,&tz);
 		dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 		printf ("render_geom status %f ray %f geom %f\n",bb-aa, cc-bb, dd-cc);

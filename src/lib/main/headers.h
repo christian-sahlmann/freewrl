@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.159 2011/06/07 18:11:31 dug9 Exp $
+$Id: headers.h,v 1.160 2011/06/07 21:44:18 dug9 Exp $
 
 Global includes.
 
@@ -74,15 +74,15 @@ void Multi_String_print(struct Multi_String *url);
         if (nc==0) return;      \
         /* should we go down here? */ \
         /* printf ("Group, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom); */ \
-        if (render_blend == VF_Blend) \
+        if (renderstate()->render_blend == VF_Blend) \
                 if ((node->_renderFlags & VF_Blend) != VF_Blend) { \
                         return; \
                 } \
-        if (render_proximity == VF_Proximity) \
+        if (renderstate()->render_proximity == VF_Proximity) \
                 if ((node->_renderFlags & VF_Proximity) != VF_Proximity)  { \
                         return; \
                 } \
-        if (render_light == VF_globalLight) \
+        if (renderstate()->render_light == VF_globalLight) \
                 if ((node->_renderFlags & VF_globalLight) != VF_globalLight)  { \
                         return; \
                 } \
@@ -714,7 +714,16 @@ void freewrlDie(const char *format);
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 
-extern int render_sensitive,render_vp,render_light,render_proximity,render_other,verbose,render_blend,render_geom,render_collision;
+//extern int render_sensitive,render_vp,render_light,render_proximity,render_other,verbose,render_blend,render_geom,render_collision;
+typedef struct trenderstate{
+int render_sensitive,render_vp,render_light,render_proximity,render_other,verbose,render_blend,render_geom,render_collision;
+#ifdef DJTRACK_PICKSENSORS
+int render_picksensors;
+int render_pickables;
+#endif
+}* ttrenderstate;
+//extern struct trenderstate renderstate;
+ttrenderstate renderstate();
 
 int SAI_IntRetCommand (char cmnd, const char *fn);
 char * SAI_StrRetCommand (char cmnd, const char *fn);

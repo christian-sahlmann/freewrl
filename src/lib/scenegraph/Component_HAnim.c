@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_HAnim.c,v 1.21 2011/06/04 13:40:50 dug9 Exp $
+$Id: Component_HAnim.c,v 1.22 2011/06/07 21:44:18 dug9 Exp $
 
 X3D H-Anim Component
 
@@ -87,7 +87,7 @@ return;
 	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
 
-	if(!render_vp) {
+	if(!renderstate()->render_vp) {
 		FW_GL_PUSH_MATRIX();
 
 		/* might we have had a change to a previously ignored value? */
@@ -160,7 +160,7 @@ return;
 	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
 
-	if(!render_vp) {
+	if(!renderstate()->render_vp) {
 		FW_GL_PUSH_MATRIX();
 
 		/* might we have had a change to a previously ignored value? */
@@ -347,7 +347,7 @@ return;
 }
 
 void fin_HAnimSite (struct X3D_HAnimSite * node) {
-        if(!render_vp) {
+        if(!renderstate()->render_vp) {
             FW_GL_POP_MATRIX();
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
@@ -371,7 +371,7 @@ void fin_HAnimSite (struct X3D_HAnimSite * node) {
 }
 
 void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
-        if(!render_vp) {
+        if(!renderstate()->render_vp) {
             FW_GL_POP_MATRIX();
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/

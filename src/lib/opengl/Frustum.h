@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.h,v 1.13 2011/06/03 15:27:00 dug9 Exp $
+$Id: Frustum.h,v 1.14 2011/06/07 21:44:18 dug9 Exp $
 
 Global includes.
 
@@ -38,7 +38,7 @@ Global includes.
 #define EXTENT_MAX_Z _extent[4]
 #define EXTENT_MIN_Z _extent[5]
 
-#define RECORD_DISTANCE if (render_geom && (!render_blend)) {record_ZBufferDistance (X3D_NODE(node)); }
+#define RECORD_DISTANCE if (renderstate()->render_geom && (!renderstate()->render_blend)) {record_ZBufferDistance (X3D_NODE(node)); }
 
 /* IPHONE - no occlusion queries right now */
 #if defined(IPHONE) || defined(_ANDROID)
@@ -64,7 +64,7 @@ int newOcclude(void);
 #ifdef OCCLUSION
 #define OCCLUSIONTEST \
 	/* a value of ZERO means that it HAS visible children - helps with initialization */ \
-        if ((render_geom!=0) | (render_sensitive!=0)) { \
+        if ((renderstate()->render_geom!=0) | (renderstate()->render_sensitive!=0)) { \
 		/* printf ("OCCLUSIONTEST node %d fl %x\n",node, node->_renderFlags & VF_hasVisibleChildren); */ \
                 if ((node->_renderFlags & VF_hasVisibleChildren) == 0) { \
                         /* printf ("WOW - we do NOT need to do this transform but doing it %x!\n",(node->_renderFlags)); \

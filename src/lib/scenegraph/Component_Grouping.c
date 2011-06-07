@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.44 2011/06/07 14:17:03 dug9 Exp $
+$Id: Component_Grouping.c,v 1.45 2011/06/07 21:44:18 dug9 Exp $
 
 X3D Grouping Component
 
@@ -109,7 +109,7 @@ void prep_Transform (struct X3D_Transform *node) {
 	/* do we have any geometry visible, and are we doing anything with geometry? */
 	OCCLUSIONTEST
 
-	if(!render_vp) {
+	if(!renderstate()->render_vp) {
 		/* do we actually have any thing to rotate/translate/scale?? */
 		if (node->__do_anything) {
 
@@ -160,7 +160,7 @@ to NOT do it is here for performance testing reasons, to see if many pushes/pops
 void fin_Transform (struct X3D_Transform *node) {
 	OCCLUSIONTEST
 
-        if(!render_vp) {
+        if(!renderstate()->render_vp) {
             if (node->__do_anything) {
 #ifdef DO_PUSH
 		FW_GL_POP_MATRIX();
@@ -312,7 +312,7 @@ printf ("\n");
 	/* printf ("chld_Group, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
 		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
 	/* now, just render the non-directionalLight children */
-	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && render_geom) {
+	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && renderstate()->render_geom) {
 		(node->children).n = 1;
 		normalChildren(node->children);
 		(node->children).n = nc;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Picking.c,v 1.5 2011/06/04 15:50:04 dug9 Exp $
+$Id: Component_Picking.c,v 1.6 2011/06/07 21:44:18 dug9 Exp $
 
 X3D Picking Component
 
@@ -285,7 +285,9 @@ printf ("\n");
 
 		printf ("child_PickableGroup, this %p rf %x isProto %d\n",node,node->_renderFlags, node->FreeWRL__protoDef);
 		printf ("	..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-			render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+			renderstate()->render_vp,renderstate()->render_geom,renderstate()->render_light,
+			renderstate()->render_sensitive,renderstate()->render_blend,renderstate()->render_proximity,
+			renderstate()->render_collision); 
 
 		for (x=0; x<nc; x++) {
 			xx = X3D_NODE(node->_sortedChildren.p[x]);
@@ -299,7 +301,7 @@ printf ("\n");
 	/* printf ("chld_PickableGroup, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
 		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
 	/* now, just render the non-directionalLight children */
-	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && render_geom) {
+	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && renderstate()->render_geom) {
 		(node->children).n = 1;
 		normalChildren(node->children);
 		(node->children).n = nc;
@@ -537,11 +539,11 @@ struct X3D_Node* get_picksensor() {
 		return (struct X3D_Node *) NULL ;
 	}
 }
-extern int render_picksensors;
-extern int render_pickables;
+//extern int render_picksensors;
+//extern int render_pickables;
 void other_PointPickSensor (struct X3D_PointPickSensor *node) 
 {
-	if(render_picksensors)
+	if(renderstate()->render_picksensors)
 		pick_PointPickSensor(node);
 }
 void other_PickableGroup (struct X3D_Group *node) 
@@ -549,7 +551,7 @@ void other_PickableGroup (struct X3D_Group *node)
 }
 void other_Sphere (struct X3D_Sphere *node) 
 {
-	if(render_pickables)
+	if(renderstate()->render_pickables)
 		pick_Sphere(node);
 }
 

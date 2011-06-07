@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.46 2011/06/07 14:17:03 dug9 Exp $
+$Id: Component_Navigation.c,v 1.47 2011/06/07 21:44:18 dug9 Exp $
 
 X3D Navigation Component
 
@@ -53,7 +53,7 @@ X3D Navigation Component
 void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	double a1;
 
-	if (!render_vp) return;
+	if (!renderstate()->render_vp) return;
 
         /* printf ("prep_Viewpoint: vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
@@ -119,7 +119,7 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 void prep_OrthoViewpoint (struct X3D_OrthoViewpoint *node) {
 	int ind;
 
-	if (!render_vp) return;
+	if (!renderstate()->render_vp) return;
 
 	/* printf ("prep_OrthoViewpoint: vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
@@ -251,7 +251,7 @@ void  child_Billboard (struct X3D_Billboard *node) {
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
-	if (render_geom && (!render_blend)) {
+	if (renderstate()->render_geom && (!renderstate()->render_blend)) {
 		EXTENTTOBBOX
 	}
 
@@ -283,7 +283,7 @@ void child_Collision (struct X3D_Collision *node) {
 	int i;
 	struct X3D_Node *tmpN;
 
-	if(render_collision) {
+	if(renderstate()->render_collision) {
 		/* test against the collide field (vrml) enabled (x3d) and that we actually have a proxy field */
 		if((node->collide) && (node->enabled) && !(node->proxy)) {
 			struct sCollisionInfo OldCollisionInfo;
@@ -473,7 +473,7 @@ void child_ViewpointGroup (struct X3D_ViewpointGroup *node) {
 	  printf ("       ..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
           render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
-	if (render_proximity) {
+	if (renderstate()->render_proximity) {
 		if (node->__proxNode != NULL) {
 			/* printf ("have prox, rendering it\n"); */
 			render_node(X3D_NODE(node->__proxNode));
@@ -483,7 +483,7 @@ void child_ViewpointGroup (struct X3D_ViewpointGroup *node) {
 
 	}
 
-	if (!render_vp) return;
+	if (!renderstate()->render_vp) return;
 
 	/* render the viewpoints - one of these will be active */
         for(i=0; i<node->children.n; i++) {

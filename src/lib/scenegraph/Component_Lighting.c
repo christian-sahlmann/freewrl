@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Lighting.c,v 1.16 2010/10/26 13:40:04 crc_canada Exp $
+$Id: Component_Lighting.c,v 1.17 2011/06/07 21:44:18 dug9 Exp $
 
 X3D Lighting Component
 
@@ -42,7 +42,7 @@ X3D Lighting Component
 #include "../opengl/OpenGL_Utils.h"
 
 #define RETURN_IF_LIGHT_STATE_NOT_US \
-		if (render_light== VF_globalLight) { \
+		if (renderstate()->render_light== VF_globalLight) { \
 			if (!node->global) return;\
 			/* printf ("and this is a global light\n"); */\
 		} else if (node->global) return; \
@@ -85,7 +85,7 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 
 /* global lights  are done before the rendering of geometry */
 void prep_DirectionalLight (struct X3D_DirectionalLight *node) {
-	if (!render_light) return;
+	if (!renderstate()->render_light) return;
 	render_DirectionalLight(node);
 }
 
@@ -140,7 +140,7 @@ void render_PointLight (struct X3D_PointLight *node) {
 /* pointLights are done before the rendering of geometry */
 void prep_PointLight (struct X3D_PointLight *node) {
 
-	if (!render_light) return;
+	if (!renderstate()->render_light) return;
 	/* this will be a global light here... */
 	render_PointLight(node);
 }
@@ -206,6 +206,6 @@ void render_SpotLight(struct X3D_SpotLight *node) {
 }
 /* SpotLights are done before the rendering of geometry */
 void prep_SpotLight (struct X3D_SpotLight *node) {
-	if (!render_light) return;
+	if (!renderstate()->render_light) return;
 	render_SpotLight(node);
 }

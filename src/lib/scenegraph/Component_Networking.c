@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.38 2011/06/04 19:05:42 crc_canada Exp $
+$Id: Component_Networking.c,v 1.39 2011/06/07 21:44:18 dug9 Exp $
 
 X3D Networking Component
 
@@ -1378,7 +1378,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	if (!node->enabled) return;
 
 	/* we only need to look at this during the rendering pass - once per event loop */
-	if (!render_geom) return;
+	if (!renderstate()->render_geom) return;
 
 	/* do we need to re-generate our internal variables? */
 	if NODE_NEEDS_COMPILING {

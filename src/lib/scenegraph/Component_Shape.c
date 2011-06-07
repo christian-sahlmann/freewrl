@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.86 2011/06/04 17:33:47 dug9 Exp $
+$Id: Component_Shape.c,v 1.87 2011/06/07 21:44:18 dug9 Exp $
 
 X3D Shape Component
 
@@ -968,7 +968,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 	RECORD_DISTANCE
 
-	if((render_collision) || (render_sensitive)) {
+	if((renderstate()->render_collision) || (renderstate()->render_sensitive)) {
 		/* only need to forward the call to the child */
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,node->geometry,tmpN);
 		render_node(tmpN);
@@ -1107,16 +1107,16 @@ void child_Shape (struct X3D_Shape *node) {
 	}
 
 	/* now, are we rendering blended nodes or normal nodes?*/
-	if (render_blend == (node->_renderFlags & VF_Blend)) {
+	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
 
 		#ifdef SHAPEOCCLUSION
-		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,render_geom); //BEGINOCCLUSIONQUERY;
+		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
 		#endif
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
 		render_node(tmpN);
 
 		#ifdef SHAPEOCCLUSION
-		endOcclusionQuery((struct X3D_VisibilitySensor*)node,render_geom); //ENDOCCLUSIONQUERY;
+		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;
 		#endif
 	}
 
