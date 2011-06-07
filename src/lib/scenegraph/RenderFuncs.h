@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.h,v 1.27 2011/06/07 18:11:31 dug9 Exp $
+$Id: RenderFuncs.h,v 1.28 2011/06/07 20:00:59 dug9 Exp $
 
 Proximity sensor macro.
 
@@ -69,11 +69,11 @@ struct currayhit {
 	GLDOUBLE projMatrix[16];
 };
 
-extern struct currayhit rayHit,rayph,rayHitHyper;
+//extern struct currayhit rayHit,rayph,rayHitHyper;
 //extern double hitPointDist;                   /* in VRMLC.pm */
-extern struct point_XYZ hp;                     /* in VRMLC.pm */
-extern void *hypersensitive;            /* in VRMLC.pm */
-extern int hyperhit;                    /* in VRMLC.pm */
+//extern struct point_XYZ hp;                     /* in VRMLC.pm */
+//extern void *hypersensitive;            /* in VRMLC.pm */
+//extern int hyperhit;                    /* in VRMLC.pm */
 extern struct point_XYZ r1, r2;         /* in VRMLC.pm */
 
 

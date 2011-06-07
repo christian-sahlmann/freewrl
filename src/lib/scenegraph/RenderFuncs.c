@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.111 2011/06/07 18:11:31 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.112 2011/06/07 20:00:59 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -120,7 +120,7 @@ typedef struct pRenderFuncs{
 	struct currayhit rayph;
 	struct X3D_Group *rootNode;//=NULL;	/* scene graph root node */
 	struct X3D_Anchor *AnchorsAnchor;// = NULL;
-
+	struct currayhit rayHit,rayHitHyper;
 
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
@@ -136,7 +136,8 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	///* used to save rayhit and hyperhit for later use by C functions */
 	//t->hyp_save_posn;
 	//t->hyp_save_norm;t->ray_save_posn;
-
+	t->hypersensitive = 0;
+	t->hyperhit = 0;
 	//private
 	t->prv = RenderFuncs_constructor();
 	{
@@ -162,7 +163,8 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->empty_group=0;
 		p->rootNode=NULL;	/* scene graph root node */
 		p->AnchorsAnchor = NULL;
-
+		t->rayHit = (void *)&p->rayHit;
+		t->rayHitHyper = (void *)&p->rayHitHyper;
 	}
 }
 //	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
@@ -664,9 +666,9 @@ GLint viewport[4] = {-1,-1,2,2};  //doesn't change, used in glu unprojects
 struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0};
 
 
-struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
-void *hypersensitive = 0; 
-int hyperhit = 0;
+//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
+//void *hypersensitive = 0; 
+//int hyperhit = 0;
 //struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
 
 
@@ -674,7 +676,7 @@ int hyperhit = 0;
  * of the surface at hitpoint (to get transformation correctly */
 
 /* All in window coordinates */
-struct point_XYZ hp;
+//struct point_XYZ hp;
 //static struct point_XYZ ht1, ht2;
 //double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 /* used to save rayhit and hyperhit for later use by C functions */
@@ -698,7 +700,7 @@ void setAnchorsAnchor(struct X3D_Anchor* anchor)
 
 
 //static struct currayhit rayph;
-struct currayhit rayHit,rayHitHyper;
+//struct currayhit rayHit,rayHitHyper;
 /* used to test new hits */
 
 
@@ -741,10 +743,10 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	}
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-	FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &hp.x, &hp.y, &hp.z);
+	FW_GLU_PROJECT(cx,cy,cz, modelMatrix, projMatrix, viewport, &tg->RenderFuncs.hp.x, &tg->RenderFuncs.hp.y, &tg->RenderFuncs.hp.z);
 	tg->RenderFuncs.hitPointDist = rat;
-	rayHit=p->rayph;
-	rayHitHyper=p->rayph;
+	p->rayHit=p->rayph;
+	p->rayHitHyper=p->rayph;
 #ifdef RENDERVERBOSE 
 	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hitPointDist %f\n",hp.x,hp.y,hp.z, rat, tg->RenderFuncs.hitPointDist);
 #endif
@@ -753,8 +755,10 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 
 /* Call this when modelview and projection modified */
 void upd_ray() {
+	struct point_XYZ t_r1,t_r2,t_r3;
 	GLDOUBLE modelMatrix[16];
 	GLDOUBLE projMatrix[16];
+	ttglobal tg = gglobal();
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
 /*
@@ -773,6 +777,11 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 		     &t_r2.x,&t_r2.y,&t_r2.z);
 	FW_GLU_UNPROJECT(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
 		     &t_r3.x,&t_r3.y,&t_r3.z);
+
+	VECCOPY(tg->RenderFuncs.t_r1,t_r1);
+	VECCOPY(tg->RenderFuncs.t_r2,t_r2);
+	VECCOPY(tg->RenderFuncs.t_r3,t_r3);
+
 /*
 	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",
 	r1.x,r1.y,r1.z,r2.x,r2.y,r2.z,
@@ -837,7 +846,7 @@ void update_node(struct X3D_Node *node) {
 			       _v->children,			\
 			       _v->fin,				\
 			       _v->rendray,			\
-			       hypersensitive);			\
+			       gglobal()->RenderFuncs.hypersensitive);			\
 			printf("Render_state geom %d light %d sens %d\n", \
 			       render_geom,				\
 			       render_light,				\
@@ -853,7 +862,9 @@ void render_node(struct X3D_Node *node) {
 	int srg = 0;
 	int sch = 0;
 	struct currayhit srh;
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	ppRenderFuncs p;
+	ttglobal tg = gglobal();
+	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 
 	X3D_NODE_CHECK(node);
 
@@ -928,7 +939,7 @@ void render_node(struct X3D_Node *node) {
 	if(virt->prep) {
 		DEBUG_RENDER("rs 2\n");
 		virt->prep(node);
-		if(render_sensitive && !hypersensitive) {
+		if(render_sensitive && !tg->RenderFuncs.hypersensitive) {
 			upd_ray();
 		}
 		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,virt);
@@ -975,17 +986,17 @@ void render_node(struct X3D_Node *node) {
 		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,virt);
 	}
 
-	if(render_geom && render_sensitive && !hypersensitive && virt->rendray) {
+	if(render_geom && render_sensitive && !tg->RenderFuncs.hypersensitive && virt->rendray) {
 		DEBUG_RENDER("rs 6\n");
 		virt->rendray(node);
 		PRINT_GL_ERROR_IF_ANY("rs 6"); PRINT_NODE(node,virt);
 	}
 
-    if((render_sensitive) && (hypersensitive == node)) {
+    if((render_sensitive) && (tg->RenderFuncs.hypersensitive == node)) {
 		DEBUG_RENDER("rs 7\n");
-		p->hyper_r1 = t_r1;
-		p->hyper_r2 = t_r2;
-		hyperhit = 1;
+		p->hyper_r1 = tg->RenderFuncs.t_r1;
+		p->hyper_r2 = tg->RenderFuncs.t_r2;
+		tg->RenderFuncs.hyperhit = 1;
     }
 
 	/* start recursive section */

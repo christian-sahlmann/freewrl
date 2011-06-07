@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.h,v 1.13 2011/03/23 18:26:02 crc_canada Exp $
+$Id: Polyrep.h,v 1.14 2011/06/07 20:00:59 dug9 Exp $
 
 Polyrep ???
 
@@ -39,9 +39,9 @@ Polyrep ???
 
 
 /* transformed ray */
-extern struct point_XYZ t_r1;
-extern struct point_XYZ t_r2;
-extern struct point_XYZ t_r3;
+//extern struct point_XYZ t_r1;
+//extern struct point_XYZ t_r2;
+//extern struct point_XYZ t_r3;
 
 
 

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.194 2011/06/07 18:11:31 dug9 Exp $
+  $Id: MainLoop.c,v 1.195 2011/06/07 20:00:59 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1482,7 +1482,8 @@ struct X3D_Node* getRayHit() {
 		p = (ppMainloop)tg->Mainloop.prv;
 
         if(tg->RenderFuncs.hitPointDist >= 0) {
-                FW_GLU_UNPROJECT(hp.x,hp.y,hp.z,rayHit.modelMatrix,rayHit.projMatrix,viewport,&x,&y,&z);
+			struct currayhit * rh = (struct currayhit *)tg->RenderFuncs.rayHit;
+                FW_GLU_UNPROJECT(tg->RenderFuncs.hp.x,tg->RenderFuncs.hp.y,tg->RenderFuncs.hp.z,rh->modelMatrix,rh->projMatrix,viewport,&x,&y,&z);
 
                 /* and save this globally */
                 tg->RenderFuncs.ray_save_posn.c[0] = (float) x; tg->RenderFuncs.ray_save_posn.c[1] = (float) y; tg->RenderFuncs.ray_save_posn.c[2] = (float) z;
@@ -1491,7 +1492,7 @@ struct X3D_Node* getRayHit() {
                    if it exists */
 
                 /* is the sensitive node not NULL? */
-                if (rayHit.hitNode == NULL) return NULL;
+                if (rh->hitNode == NULL) return NULL;
         
                 
 		/*
@@ -1502,9 +1503,9 @@ struct X3D_Node* getRayHit() {
                 
 
                 for (i=0; i<p->num_SensorEvents; i++) {
-                        if (p->SensorEvents[i].fromnode == rayHit.hitNode) {
+                        if (p->SensorEvents[i].fromnode == rh->hitNode) {
                                 /* printf ("found this node to be sensitive - returning %u\n",rayHit.hitNode); */
-                                return ((struct X3D_Node*) rayHit.hitNode);
+                                return ((struct X3D_Node*) rh->hitNode);
                         }
                 }
         }
@@ -1581,11 +1582,11 @@ static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int sta
 						butStatus2 = butStatus;
                         /* should we set/use hypersensitive mode? */
                         if (ev==ButtonPress) {
-                                hypersensitive = p->SensorEvents[count].fromnode;
-                                hyperhit = 0;
+                                gglobal()->RenderFuncs.hypersensitive = p->SensorEvents[count].fromnode;
+                                gglobal()->RenderFuncs.hyperhit = 0;
                         } else if (ev==ButtonRelease) {
-                                hypersensitive = 0;
-                                hyperhit = 0;
+                                gglobal()->RenderFuncs.hypersensitive = 0;
+                                gglobal()->RenderFuncs.hyperhit = 0;
 								butStatus2 = 1;
                         } else if (ev==MotionNotify) {
                                 get_hyperhit();
@@ -1605,14 +1606,17 @@ static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int sta
 static void get_hyperhit() {
         double x1,y1,z1,x2,y2,z2,x3,y3,z3;
         GLDOUBLE projMatrix[16];
+		struct currayhit *rhh, *rh;
 		ttglobal tg = gglobal();
+		rhh = (struct currayhit *)tg->RenderFuncs.rayHitHyper;
+		rh = (struct currayhit *)tg->RenderFuncs.rayHit;
 
         FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-        FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, rayHitHyper.modelMatrix,
+        FW_GLU_UNPROJECT(r1.x, r1.y, r1.z, rhh->modelMatrix,
                 projMatrix, viewport, &x1, &y1, &z1);
-        FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, rayHitHyper.modelMatrix,
+        FW_GLU_UNPROJECT(r2.x, r2.y, r2.z, rhh->modelMatrix,
                 projMatrix, viewport, &x2, &y2, &z2);
-        FW_GLU_UNPROJECT(hp.x, hp.y, hp.z, rayHit.modelMatrix,
+        FW_GLU_UNPROJECT(tg->RenderFuncs.hp.x, tg->RenderFuncs.hp.y, tg->RenderFuncs.hp.z, rh->modelMatrix,
                 projMatrix,viewport, &x3, &y3, &z3);
 
         /* printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f, %f %f %f\n",*/
@@ -2280,8 +2284,8 @@ void resetSensorEvents(void) {
 	p->lastOver = NULL;
 	FREE_IF_NZ(p->SensorEvents);
 	p->num_SensorEvents = 0;
-	hypersensitive = NULL;
-	hyperhit = 0;
+	gglobal()->RenderFuncs.hypersensitive = NULL;
+	gglobal()->RenderFuncs.hyperhit = 0;
 	/* Cursor - ensure it is not the "sensitive" cursor */
 /*	ARROW_CURSOR; */
 

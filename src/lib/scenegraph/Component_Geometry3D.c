@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.68 2011/06/07 14:17:03 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.69 2011/06/07 20:00:59 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -2579,12 +2579,18 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 
 
 void rendray_Sphere (struct X3D_Sphere *node) {
+	struct point_XYZ t_r1,t_r2,t_r3;
         float r = node->radius;
         /* Center is at zero. t_r1 to t_r2 and t_r1 to zero are the vecs */
-        float tr1sq = (float) VECSQ(t_r1);
+		ttglobal tg = gglobal();
+        float tr1sq;// = (float) VECSQ(t_r1);
         struct point_XYZ dr2r1;
         float dlen;
         float a,b,c,disc;
+		VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+		VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+		VECCOPY(t_r3,tg->RenderFuncs.t_r3);
+        tr1sq = (float) VECSQ(t_r1);
 
         VECDIFF(t_r2,t_r1,dr2r1);
         dlen = (float) VECSQ(dr2r1);
@@ -2624,9 +2630,16 @@ void rendray_Sphere (struct X3D_Sphere *node) {
 
 
 void rendray_Box (struct X3D_Box *node) {
-	float x = ((node->size).c[0])/2;
-	float y = ((node->size).c[1])/2;
-	float z = ((node->size).c[2])/2;
+	float x,y,z;
+	struct point_XYZ t_r1,t_r2,t_r3;
+	ttglobal tg = gglobal();
+	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	VECCOPY(t_r3,tg->RenderFuncs.t_r3);
+
+	x = ((node->size).c[0])/2;
+	y = ((node->size).c[1])/2;
+	z = ((node->size).c[2])/2;
 	/* 1. x=const-plane faces? */
 	if(!XEQ) {
 		float xrat0 = (float) XRAT(x);
@@ -2714,9 +2727,17 @@ void rendray_Box (struct X3D_Box *node) {
 
 
 void rendray_Cylinder (struct X3D_Cylinder *node) {
-        float h = (node->height) /*cget*//2; /* pos and neg dir. */
-        float r = (node->radius) /*cget*/;
-        float y = h;
+
+	float h,r,y;
+	struct point_XYZ t_r1,t_r2,t_r3;
+	ttglobal tg = gglobal();
+	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	VECCOPY(t_r3,tg->RenderFuncs.t_r3);
+
+        h = (node->height) /*cget*//2; /* pos and neg dir. */
+        r = (node->radius) /*cget*/;
+        y = h;
         /* Caps */
         if(!YEQ) {
                 float yrat0 = (float) YRAT(y);
@@ -2767,19 +2788,27 @@ void rendray_Cylinder (struct X3D_Cylinder *node) {
 }
 
 void rendray_Cone (struct X3D_Cone *node) {
-	float h = (node->height) /*cget*//2; /* pos and neg dir. */
-	float y = h;
-	float r = (node->bottomRadius) /*cget*/;
-	float dx = (float) (t_r2.x-t_r1.x); 
-	float dz = (float) (t_r2.z-t_r1.z);
-	float dy = (float) (t_r2.y-t_r1.y);
-	float a = dx*dx + dz*dz - (r*r*dy*dy/(2*h*2*h));
-	float b = (float) (2*(dx*t_r1.x + dz*t_r1.z) +
+
+	float h,y,r,dx,dy,dz,a,b,c,tmp,und;
+	struct point_XYZ t_r1,t_r2,t_r3;
+	ttglobal tg = gglobal();
+	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	VECCOPY(t_r3,tg->RenderFuncs.t_r3);
+
+	h = (node->height) /*cget*//2; /* pos and neg dir. */
+	y = h;
+	r = (node->bottomRadius) /*cget*/;
+	dx = (float) (t_r2.x-t_r1.x); 
+	dz = (float) (t_r2.z-t_r1.z);
+	dy = (float) (t_r2.y-t_r1.y);
+	a = dx*dx + dz*dz - (r*r*dy*dy/(2*h*2*h));
+	b = (float) (2*(dx*t_r1.x + dz*t_r1.z) +
 		2*r*r*dy/(2*h)*(0.5-t_r1.y/(2*h)));
-	float tmp = (float)((0.5-t_r1.y/(2*h)));
-	float c = (float)(t_r1.x * t_r1.x + t_r1.z * t_r1.z)
+	tmp = (float)((0.5-t_r1.y/(2*h)));
+	c = (float)(t_r1.x * t_r1.x + t_r1.z * t_r1.z)
 		- r*r*tmp*tmp;
-	float und;
+	und;
 	b /= a; c /= a;
 	und = b*b - 4*c;
 	/*

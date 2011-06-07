@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.h,v 1.9 2011/05/09 23:51:12 dug9 Exp $
+$Id: LinearAlgebra.h,v 1.10 2011/06/07 20:00:59 dug9 Exp $
 
 Linear algebra.
 
@@ -38,6 +38,7 @@ Linear algebra.
 #define VEC_FROM_CDIFF(a,b,r) {(r).x = (a).c[0]-(b).c[0];(r).y = (a).c[1]-(b).c[1];(r).z = (a).c[2]-(b).c[2];}
 #define VECCP(a,b,c) {(c).x = (a).y*(b).z-(b).y*(a).z; (c).y = -((a).x*(b).z-(b).x*(a).z); (c).z = (a).x*(b).y-(b).x*(a).y;}
 #define VECSCALE(a,c) {(a).x *= c; (a).y *= c; (a).z *= c;}
+#define VECCOPY(a,b) {(a).x = (b).x; (a).y = (b).y; (a).z = (b).z;}
 
 /*special case ; used in Extrusion.GenPolyRep and ElevationGrid.GenPolyRep:
  *	Calc diff vec from 2 coordvecs which must be in the same field 	*/
