@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.38 2011/06/07 16:42:10 istakenv Exp $
+$Id: Component_Text.c,v 1.39 2011/06/07 20:06:12 istakenv Exp $
 
 X3D Text Component
 
@@ -392,13 +392,12 @@ void FW_make_fontname(int num) {
     fonts directory.
 */
 
+    ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
     #ifdef HAVE_FONTCONFIG
     FcPattern *FW_fp=NULL;
     FcPattern *FW_fm=NULL;
     FcChar8 *FW_file=NULL;
-    ppCpmponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
     #else
-	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
     if (!p->font_directory) {
         printf("Internal error: no font directory.\n");
