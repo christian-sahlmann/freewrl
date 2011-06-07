@@ -271,6 +271,15 @@ iOLDCODE	}Component_Networking;
 		void *rayHit;
 		void *rayHitHyper;
 		struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
+		int	lightingOn;		/* do we need to restore lighting in Shape? */
+		int	have_transparency;//=FALSE;/* did any Shape have transparent material? */
+		/* material node usage depends on texture depth; if rgb (depth1) we blend color field
+		   and diffusecolor with texture, else, we dont bother with material colors */
+		int last_texture_type;// = NOTEXTURE;
+		/* texture stuff - see code. Need array because of MultiTextures */
+		GLuint boundTextureStack[10];//MAX_MULTITEXTURE];
+		int textureStackTop;
+
 	}RenderFuncs;
 
 } * ttglobal;

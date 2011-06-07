@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.h,v 1.7 2011/06/04 17:33:47 dug9 Exp $
+$Id: Material.h,v 1.8 2011/06/07 22:45:27 dug9 Exp $
 
 Global includes.
 
@@ -37,7 +37,7 @@ Global includes.
 
 #define GET_COLOUR_POINTER \
 		/* is there an emissiveColor here??? */ \
-		if (lightingOn) { \
+		if (gglobal()->RenderFuncs.lightingOn) { \
 			thisColor = getAppearanceProperties()->emissionColour; \
 		} else { \
 			thisColor = defColor; \

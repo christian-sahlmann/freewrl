@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.32 2011/06/02 19:50:43 dug9 Exp $
+$Id: StreamPoly.c,v 1.33 2011/06/07 22:45:27 dug9 Exp $
 
 ???
 
@@ -252,7 +252,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	#endif
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
-	hasc = ((ncolors || r->color) && (last_texture_type!=TEXTURE_NO_ALPHA));
+	hasc = ((ncolors || r->color) && (gglobal()->RenderFuncs.last_texture_type!=TEXTURE_NO_ALPHA));
 
 
 	if MUST_GENERATE_TEXTURES {

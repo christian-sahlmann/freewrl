@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.22 2011/06/04 17:33:47 dug9 Exp $
+$Id: Component_Texturing.c,v 1.23 2011/06/07 22:45:27 dug9 Exp $
 
 X3D Texturing Component
 
@@ -204,13 +204,13 @@ printf ("       %d: %4.3f ",i,*tp); tp++; printf ("%4.3f\n",*tp); tp++;
 
 void render_PixelTexture (struct X3D_PixelTexture *node) {
 	loadTextureNode(X3D_NODE(node),NULL);
-	textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
 
 void render_ImageTexture (struct X3D_ImageTexture *node) {
 	/* printf ("render_ImageTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
 	loadTextureNode(X3D_NODE(node),NULL);
-	textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
 
 void render_MultiTexture (struct X3D_MultiTexture *node) {
@@ -226,11 +226,11 @@ void render_MovieTexture (struct X3D_MovieTexture *node) {
 	sound_from_audioclip = FALSE;
 
 	loadTextureNode(X3D_NODE(node),NULL);
-	boundTextureStack[textureStackTop] = node->__ctex;
+	gglobal()->RenderFuncs.boundTextureStack[gglobal()->RenderFuncs.textureStackTop] = node->__ctex;
 	/* not multitexture, should have saved to boundTextureStack[0] */
 #else /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 	loadTextureNode(X3D_NODE(node),NULL);
 #endif
 	
-	textureStackTop=1;
+	gglobal()->RenderFuncs.textureStackTop=1;
 }

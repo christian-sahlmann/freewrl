@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.87 2011/06/07 21:44:18 dug9 Exp $
+$Id: Component_Shape.c,v 1.88 2011/06/07 22:45:27 dug9 Exp $
 
 X3D Shape Component
 
@@ -990,7 +990,7 @@ void child_Shape (struct X3D_Shape *node) {
 	p->material_oneSided = NULL;
 
 	/* a texture and a transparency flag... */
-	textureStackTop = 0; /* will be >=1 if textures found */
+	tg->RenderFuncs.textureStackTop = 0; /* will be >=1 if textures found */
 	/* assume that lighting is enabled. Absence of Material or Appearance
 	   node will turn lighting off; in this case, at the end of Shape, we
 	   have to turn lighting back on again. */
@@ -1001,8 +1001,8 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* do the appearance here */
 #ifdef SHAPEVERBOSE
-	printf ("child_Shape, material_oneSided %u, textureStackTop %d\n",material_oneSided,textureStackTop);
-	{int i; for (i=0; i<textureStackTop; i++) {
+	printf ("child_Shape, material_oneSided %u, tg->RenderFuncs.textureStackTop %d\n",material_oneSided,textureStackTop);
+	{int i; for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
 		printf ("boundTextureStack[%d] is texture %d\n",i,boundTextureStack[i]);
 		if (tg->RenderTextures.textureParameterStack[i] == NULL) {
 			printf ("textureParameterStack empty\n");
@@ -1100,7 +1100,7 @@ void child_Shape (struct X3D_Shape *node) {
 				FW_GL_COLOR3F(1.0f,1.0f,1.0f); 
 		 
 				/* tell the rendering passes that this is just "normal" */ 
-				last_texture_type = NOTEXTURE; 
+				tg->RenderFuncs.last_texture_type = NOTEXTURE; 
 				/* same with materialProperties.transparency */ 
 				p->appearanceProperties.transparency=MAX_NODE_TRANSPARENCY; 
 			}
@@ -1157,7 +1157,7 @@ void child_Appearance (struct X3D_Appearance *node) {
 	struct X3D_Node *tmpN;
 	
 	/* initialization */
-	last_texture_type = NOTEXTURE;
+	gglobal()->RenderFuncs.last_texture_type = NOTEXTURE;
 	
 	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
 	   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",

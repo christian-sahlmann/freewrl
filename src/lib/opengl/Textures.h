@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.28 2011/06/04 17:33:47 dug9 Exp $
+$Id: Textures.h,v 1.29 2011/06/07 22:45:27 dug9 Exp $
 
 Screen snapshot.
 
@@ -127,19 +127,19 @@ struct multiTexParams {
 
 
 /* do we have to do textures?? */
-#define HAVETODOTEXTURES (textureStackTop != 0)
+#define HAVETODOTEXTURES (gglobal()->RenderFuncs.textureStackTop != 0)
 
 /* multitexture and single texture handling */
 #define MAX_MULTITEXTURE 10
 
 /* texture stuff - see code. Need array because of MultiTextures */
 /* first, how many textures do we have? 0 -> MAX_MULTITEXTURE */
-extern int textureStackTop; 
+//extern int textureStackTop; 
 
 /* what are the textures, and what are the multitexturing parameters if more than one? */
 //extern struct multiTexParams *textureParameterStack[];
 //extern void *textureParameterStack[];
-extern GLuint boundTextureStack[]; /* defined as MAX_MULTITEXTURE in size */
+//extern GLuint boundTextureStack[]; /* defined as MAX_MULTITEXTURE in size */
 
 //extern GLuint     *global_tcin;
 //extern int     global_tcin_count; 
@@ -161,7 +161,7 @@ extern int display_status;
 #define TEXTURE_NO_ALPHA 1
 #define TEXTURE_ALPHA 2
 
-extern int last_texture_type;
+//extern int last_texture_type;
 void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param);
 
 

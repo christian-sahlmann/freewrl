@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.113 2011/06/07 21:44:18 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.114 2011/06/07 22:45:27 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -138,6 +138,11 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 	//t->hyp_save_norm;t->ray_save_posn;
 	t->hypersensitive = 0;
 	t->hyperhit = 0;
+	t->have_transparency=FALSE;/* did any Shape have transparent material? */
+	/* material node usage depends on texture depth; if rgb (depth1) we blend color field
+	   and diffusecolor with texture, else, we dont bother with material colors */
+	t->last_texture_type = NOTEXTURE;
+
 	//private
 	t->prv = RenderFuncs_constructor();
 	{
@@ -645,14 +650,14 @@ ttrenderstate renderstate()
 
 /* material node usage depends on texture depth; if rgb (depth1) we blend color field
    and diffusecolor with texture, else, we dont bother with material colors */
-int last_texture_type = NOTEXTURE;
+//int last_texture_type = NOTEXTURE;
 
-/* texture stuff - see code. Need array because of MultiTextures */
-GLuint boundTextureStack[MAX_MULTITEXTURE];
-int textureStackTop;
+///* texture stuff - see code. Need array because of MultiTextures */
+//GLuint boundTextureStack[MAX_MULTITEXTURE];
+//int textureStackTop;
 
-int	have_transparency=FALSE;/* did any Shape have transparent material? */
-int	lightingOn;		/* do we need to restore lighting in Shape? */
+//int	have_transparency=FALSE;/* did any Shape have transparent material? */
+//int	lightingOn;		/* do we need to restore lighting in Shape? */
 
 //int cur_hits=0;
 

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.196 2011/06/07 21:44:18 dug9 Exp $
+  $Id: MainLoop.c,v 1.197 2011/06/07 22:45:27 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1144,9 +1144,12 @@ void renderCursors();
 static void render() 
 {
 
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
 
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
+	{
     int count,i;
 	static double shuttertime;
 	static int shutterside;
@@ -1190,7 +1193,7 @@ static void render()
 		else 
 			BackEndClearBuffer(2);
 		BackEndLightsOff();
-
+	}
 #else
 
 	BackEndClearBuffer(2); // no stereo, no shutter glasses: simple clear
@@ -1213,7 +1216,7 @@ static void render()
 	PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
 	
 	/*  5. Blended Nodes*/
-	if (have_transparency) {
+	if (tg->RenderFuncs.have_transparency) {
 		/*  render the blended nodes*/
 		render_hier(rootNode(), VF_Geom | VF_Blend);
 		PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");

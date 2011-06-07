@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.160 2011/06/07 21:44:18 dug9 Exp $
+$Id: headers.h,v 1.161 2011/06/07 22:45:27 dug9 Exp $
 
 Global includes.
 
@@ -459,7 +459,7 @@ void normalize_ifs_face (float *point_normal,
 //extern int SoundEngineStarted;
 
 /* used to determine whether we have transparent materials. */
-extern int have_transparency;
+//extern int have_transparency;
 
 
 /* current time */
@@ -648,7 +648,7 @@ extern int isPerlinitialized(void);
 
 extern char *getInputURL(void);
 extern char *lastReadFile; 		/* name last file read in */
-extern int  lightingOn;			/* state of GL_LIGHTING */
+//extern int  lightingOn;			/* state of GL_LIGHTING */
 //extern struct sCollisionInfo CollisionInfo;
 //extern struct sFallInfo FallInfo; /*like sCollisionInfo, except for vertical falls */
 struct sCollisionInfo* CollisionInfo();
@@ -820,9 +820,9 @@ void do_TimeTrigger (void *node);
 	#define LIGHTING_OFF if(lightingOn) {lightingOn=FALSE;}
 	#define LIGHTING_INITIALIZE lightingOn=TRUE; 
 #else 
-	#define LIGHTING_ON if (!lightingOn) {lightingOn=TRUE;FW_GL_ENABLE(GL_LIGHTING);}
-	#define LIGHTING_OFF if(lightingOn) {lightingOn=FALSE;FW_GL_DISABLE(GL_LIGHTING);}
-	#define LIGHTING_INITIALIZE lightingOn=TRUE; FW_GL_ENABLE(GL_LIGHTING);
+	#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;FW_GL_ENABLE(GL_LIGHTING);}
+	#define LIGHTING_OFF if(gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=FALSE;FW_GL_DISABLE(GL_LIGHTING);}
+	#define LIGHTING_INITIALIZE gglobal()->RenderFuncs.lightingOn=TRUE; FW_GL_ENABLE(GL_LIGHTING);
 #endif /* GL_ES_VERSION_2_0 */
 
 void zeroAllBindables(void);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.27 2011/06/04 17:33:47 dug9 Exp $
+$Id: Component_CubeMapTexturing.c,v 1.28 2011/06/07 22:45:27 dug9 Exp $
 
 X3D Cubemap Texturing Component
 
@@ -104,7 +104,7 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 			    (thistex->_nodeType == NODE_MovieTexture) ||
 			    (thistex->_nodeType == NODE_MultiTexture)) {
 
-				textureStackTop = 0;
+				gglobal()->RenderFuncs.textureStackTop = 0;
 				/* render the proper texture */
 				render_node((void *)thistex);
 			} 
@@ -385,7 +385,7 @@ printf ("put in the dummy file here, and call it quits\n");
 void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
         /* printf ("render_ImageTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
         loadTextureNode(X3D_NODE(node),NULL);
-        textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+        gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
 
 

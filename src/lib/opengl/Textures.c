@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.101 2011/06/04 17:33:47 dug9 Exp $
+  $Id: Textures.c,v 1.102 2011/06/07 22:45:27 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -636,7 +636,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			}
 
 			/* we have an image specified for this face */
-			textureStackTop = 0;
+			gglobal()->RenderFuncs.textureStackTop = 0;
 			/* render the proper texture */
 			render_node(X3D_NODE(thistex));
 		        FW_GL_COLOR3D(1.0,1.0,1.0);
@@ -701,7 +701,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 					break;
 				};
 
-				textureStackTop = 0;
+				gglobal()->RenderFuncs.textureStackTop = 0;
 				/* render the proper texture */
 				render_node((void *)thistex);
 		                FW_GL_COLOR3D(1.0,1.0,1.0);
@@ -987,7 +987,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		   stored in boundTextureStack[textureStackTop]; textureStackTop will be 1
 		   for "normal" textures; at least 1 for MultiTextures. */
 
-        	textureStackTop++;
+        	gglobal()->RenderFuncs.textureStackTop++;
 		paramPtr++;
 
 #ifdef TEXVERBOSE
@@ -1546,11 +1546,11 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 
 	if (myTableIndex->status != TEX_LOADED) {
 		DEBUG_TEX("new_bind_image, I am %p, textureStackTop %d, thisTexture is %d myTableIndex %p status %s\n",
-		node,textureStackTop,thisTexture,myTableIndex, texst(myTableIndex->status));
+		node,tg->RenderFuncs.textureStackTop,thisTexture,myTableIndex, texst(myTableIndex->status));
 	}
 
 	/* default here; this is just a blank texture */
-	boundTextureStack[textureStackTop] = tg->Textures.defaultBlankTexture;
+	tg->RenderFuncs.boundTextureStack[tg->RenderFuncs.textureStackTop] = tg->Textures.defaultBlankTexture;
 
 	switch (myTableIndex->status) {
 		case TEX_NOTLOADED:
@@ -1572,8 +1572,8 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			//DEBUG_TEX("now binding to pre-bound tex %u\n", myTableIndex->OpenGLTexture);
 	
 			/* set the texture depth - required for Material diffuseColor selection */
-			if (myTableIndex->hasAlpha) last_texture_type =  TEXTURE_ALPHA;
-			else last_texture_type = TEXTURE_NO_ALPHA;
+			if (myTableIndex->hasAlpha) tg->RenderFuncs.last_texture_type =  TEXTURE_ALPHA;
+			else tg->RenderFuncs.last_texture_type = TEXTURE_NO_ALPHA;
 
 //printf ("last_texture_type = TEXTURE_NO_ALPHA now\n"); last_texture_type=TEXTURE_NO_ALPHA;
 	
@@ -1593,7 +1593,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 					return;
 				}
 	
-				boundTextureStack[textureStackTop] = myTableIndex->OpenGLTexture;
+				tg->RenderFuncs.boundTextureStack[tg->RenderFuncs.textureStackTop] = myTableIndex->OpenGLTexture;
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 			} else {
 				boundTextureStack[textureStackTop] = 
@@ -1604,7 +1604,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			/* save the texture params for when we go through the MultiTexture stack. Non
 			   MultiTextures should have this textureStackTop as 0 */
 			 
-			tg->RenderTextures.textureParameterStack[textureStackTop] = (void*)param; 
+			tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop] = (void*)param; 
 	
 			p->textureInProcess = -1; /* we have finished the whole process */
 			break;

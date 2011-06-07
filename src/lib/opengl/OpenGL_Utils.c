@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.201 2011/06/06 21:02:17 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.202 2011/06/07 22:45:27 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2588,28 +2588,28 @@ void zeroVisibilityFlag(void) {
 	if (((struct X3D_Material *)node)->transparency > 0.0001) { \
 		/* printf ("node %d MATERIAL HAS TRANSPARENCY of %f \n", node, ((struct X3D_Material *)node)->transparency); */ \
 		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
-		have_transparency = TRUE; \
+		gglobal()->RenderFuncs.have_transparency = TRUE; \
 	}
  
 #define CHECK_IMAGETEXTURE_TRANSPARENCY \
 	if (isTextureAlpha(((struct X3D_ImageTexture *)node)->__textureTableIndex)) { \
 		/* printf ("node %d IMAGETEXTURE HAS TRANSPARENCY\n", node); */ \
 		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
-		have_transparency = TRUE; \
+		gglobal()->RenderFuncs.have_transparency = TRUE; \
 	}
 
 #define CHECK_PIXELTEXTURE_TRANSPARENCY \
 	if (isTextureAlpha(((struct X3D_PixelTexture *)node)->__textureTableIndex)) { \
 		/* printf ("node %d PIXELTEXTURE HAS TRANSPARENCY\n", node); */ \
 		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
-		have_transparency = TRUE; \
+		gglobal()->RenderFuncs.have_transparency = TRUE; \
 	}
 
 #define CHECK_MOVIETEXTURE_TRANSPARENCY \
 	if (isTextureAlpha(((struct X3D_MovieTexture *)node)->__textureTableIndex)) { \
 		/* printf ("node %d MOVIETEXTURE HAS TRANSPARENCY\n", node); */ \
 		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
-		have_transparency = TRUE; \
+		gglobal()->RenderFuncs.have_transparency = TRUE; \
 	}
 
 
@@ -2628,7 +2628,9 @@ void startOfLoopNodeUpdates(void) {
 
 	/* process one inline per loop; do it outside of the lock/unlock memory table */
 	struct Vector *loadInlines;
-	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
 	if (rootNode() == NULL) return; /* nothing to do, and we have not really started yet */
 
@@ -2641,8 +2643,8 @@ void startOfLoopNodeUpdates(void) {
 	offsetOfChildrenPtr = 0;
 
 	/* assume that we do not have any sensitive nodes at all... */
-	gglobal()->Mainloop.HaveSensitive = FALSE;
-	have_transparency = FALSE;
+	tg->Mainloop.HaveSensitive = FALSE;
+	tg->RenderFuncs.have_transparency = FALSE;
 
 
 	/* do not bother doing this if the inputparsing thread is active */
