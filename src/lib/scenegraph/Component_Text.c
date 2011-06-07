@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.37 2011/06/07 14:17:03 dug9 Exp $
+$Id: Component_Text.c,v 1.38 2011/06/07 16:42:10 istakenv Exp $
 
 X3D Text Component
 
@@ -396,6 +396,7 @@ void FW_make_fontname(int num) {
     FcPattern *FW_fp=NULL;
     FcPattern *FW_fm=NULL;
     FcChar8 *FW_file=NULL;
+    ppCpmponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
     #else
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
