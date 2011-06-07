@@ -279,9 +279,10 @@ iOLDCODE	}Component_Networking;
 		/* texture stuff - see code. Need array because of MultiTextures */
 		GLuint boundTextureStack[10];//MAX_MULTITEXTURE];
 		int textureStackTop;
-
 	}RenderFuncs;
-
+	struct tStreamPoly{
+		void *prv;
+	}StreamPoly;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif

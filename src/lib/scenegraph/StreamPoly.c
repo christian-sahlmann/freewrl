@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.33 2011/06/07 22:45:27 dug9 Exp $
+$Id: StreamPoly.c,v 1.34 2011/06/07 23:52:30 dug9 Exp $
 
 ???
 
@@ -76,10 +76,32 @@ static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep *r); //, st
 *********************************************************************/
 
 /* texture generation points... */
-int Sindex;
-int Tindex;
-GLfloat minVals[3];
-GLfloat Ssize;
+//int Sindex;
+//int Tindex;
+//GLfloat minVals[3];
+//GLfloat Ssize;
+
+typedef struct pStreamPoly{
+	int Sindex;
+	int Tindex;
+	GLfloat minVals[3];
+	GLfloat Ssize;
+}* ppStreamPoly;
+void *StreamPoly_constructor(){
+	void *v = malloc(sizeof(struct pStreamPoly));
+	memset(v,0,sizeof(struct pStreamPoly));
+	return v;
+}
+void StreamPoly_init(struct tStreamPoly *t){
+	//public
+	//private
+	t->prv = StreamPoly_constructor();
+	{
+		ppStreamPoly p = (ppStreamPoly)t->prv;
+	}
+}
+//ppStreamPoly p = (ppStreamPoly)gglobal()->StreamPoly.prv;
+
 /*
 static GLfloat maxVals[] = {-99999.9, -999999.9, -99999.0};
 static GLfloat Tsize = 0.0;
@@ -492,8 +514,11 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 			/* default textures */
 			/* we want the S values to range from 0..1, and the
 			   T values to range from 0...S/T */
-			newtc[i*2]   = (newpoints[i].c[Sindex] - minVals[Sindex])/Ssize;
-			newtc[i*2+1] = (newpoints[i].c[Tindex] - minVals[Tindex])/Ssize;
+			ppStreamPoly p = (ppStreamPoly)gglobal()->StreamPoly.prv;
+
+
+			newtc[i*2]   = (newpoints[i].c[p->Sindex] - p->minVals[p->Sindex])/p->Ssize;
+			newtc[i*2+1] = (newpoints[i].c[p->Tindex] - p->minVals[p->Tindex])/p->Ssize;
 		}
 
 		/* calculate maxextents */
@@ -620,6 +645,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 
 
 static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r) { //, struct SFVec3f *points, int npoints) {
+	ppStreamPoly psp = (ppStreamPoly)gglobal()->StreamPoly.prv;
 
 	/* variables used only in this routine */
 	GLfloat Tsize = 0.0f;
@@ -628,11 +654,11 @@ static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r) { //, 
 	GLfloat Zsize = 0.0f;
 
 	/* initialize variables used in other routines in this file. */
-	Sindex = 0; Tindex = 0;
-	Ssize = 0.0f;
-	minVals[0]=r->minVals[0]; 
-	minVals[1]=r->minVals[1]; 
-	minVals[2]=r->minVals[2]; 
+	psp->Sindex = 0; psp->Tindex = 0;
+	psp->Ssize = 0.0f;
+	psp->minVals[0]=r->minVals[0]; 
+	psp->minVals[1]=r->minVals[1]; 
+	psp->minVals[2]=r->minVals[2]; 
 
 	#ifdef STREAM_POLY_VERBOSE
 	printf ("have to gen default textures\n");
@@ -641,27 +667,27 @@ static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r) { //, 
 	if ((p->_nodeType == NODE_IndexedFaceSet) ||(p->_nodeType == NODE_ElevationGrid) || (p->_nodeType == NODE_VRML1_IndexedFaceSet)) {
 
 		/* find the S,T mapping. */
-		Xsize = r->maxVals[0]-minVals[0];
-		Ysize = r->maxVals[1]-minVals[1];
-		Zsize = r->maxVals[2]-minVals[2];
+		Xsize = r->maxVals[0]-psp->minVals[0];
+		Ysize = r->maxVals[1]-psp->minVals[1];
+		Zsize = r->maxVals[2]-psp->minVals[2];
 
 		/* printf ("defaultTextureMap, %f %f %f\n",Xsize,Ysize,Zsize); */
 
 		if ((Xsize >= Ysize) && (Xsize >= Zsize)) {
 			/* X size largest */
-			Ssize = Xsize; Sindex = 0;
-			if (Ysize >= Zsize) { Tsize = Ysize; Tindex = 1;
-			} else { Tsize = Zsize; Tindex = 2; }
+			psp->Ssize = Xsize; psp->Sindex = 0;
+			if (Ysize >= Zsize) { Tsize = Ysize; psp->Tindex = 1;
+			} else { Tsize = Zsize; psp->Tindex = 2; }
 		} else if ((Ysize >= Xsize) && (Ysize >= Zsize)) {
 			/* Y size largest */
-			Ssize = Ysize; Sindex = 1;
-			if (Xsize >= Zsize) { Tsize = Xsize; Tindex = 0;
-			} else { Tsize = Zsize; Tindex = 2; }
+			psp->Ssize = Ysize; psp->Sindex = 1;
+			if (Xsize >= Zsize) { Tsize = Xsize; psp->Tindex = 0;
+			} else { Tsize = Zsize; psp->Tindex = 2; }
 		} else {
 			/* Z is the largest */
-			Ssize = Zsize; Sindex = 2;
-			if (Xsize >= Ysize) { Tsize = Xsize; Tindex = 0;
-			} else { Tsize = Ysize; Tindex = 1; }
+			psp->Ssize = Zsize; psp->Sindex = 2;
+			if (Xsize >= Ysize) { Tsize = Xsize; psp->Tindex = 0;
+			} else { Tsize = Ysize; psp->Tindex = 1; }
 		}
 	}
 }
