@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.31 2011/06/08 00:43:12 istakenv Exp $
+  $Id: fwMotifWindow.c,v 1.32 2011/06/08 17:03:15 istakenv Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -30,7 +30,6 @@
 
 #include <system.h>
 #include <display.h>
-#include <iglobal.h> /* for myMenuStatus */
 #if KEEP_FV_INLIB
 #include <internal.h>
 
