@@ -131,6 +131,7 @@ print OUT "#define HAVE_SYS_WAIT_H 1\n";
 print OUT "#define HAVE_PTHREAD 1\n";
 print OUT "#define HAVE_GETOPT_H 1\n";
 print OUT "#define FRONTEND_HANDLES_DISPLAY_THREAD 1\n";
+print OUT "#define FRONTEND_GETS_FILES 1\n";
 
 print OUT "#define BUILDDIR \"$pwd\"\n";
 print OUT "#define FWVER \"",$vers,"\"\n";

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.197 2011/06/07 22:45:27 dug9 Exp $
+  $Id: MainLoop.c,v 1.198 2011/06/08 19:08:32 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2074,15 +2074,16 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
       //      mev,tg->display.screenWidth, tg->display.screenHeight,x,y);
 
 	// do we have to worry about screen orientations (think mobile devices)
-	#if defined (AQUA) || defined (_ANDROID)
+	#if defined (IPHONE) || defined (_ANDROID)
 	{ 
+
         // iPhone - with home button on bottom, in portrait mode, 
         // top left hand corner is x=0, y=0; 
         // bottom left, 0, 468)
         // while standard opengl is (0,0) in lower left hand corner...
 		int ox = x;
 		int oy = y;
-		switch (Viewer.orient) {
+		switch (Viewer.screenOrientation) {
 			case 0: 
 				x = tg->display.screenHeight-x;
                 
@@ -2142,12 +2143,12 @@ void fwl_setOrientation (int orient) {
 		case 180:
 		case 270:
 			{
-			Viewer.orient = orient;
+			Viewer.screenOrientation = orient;
 			break;
 		}
 		default: {
 			ConsoleMessage ("invalid orientation %d\n",orient);
-			Viewer.orient = 0;
+			Viewer.screenOrientation = 0;
 		}
 	}
 }

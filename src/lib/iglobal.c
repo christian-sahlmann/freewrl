@@ -174,6 +174,7 @@ static struct t2g thread2global[MAXINSTANCES*5];
 static int nglobalthreads = 0;
 void set_thread2global(ttglobal fwl, pthread_t any )
 {
+printf ("set_thread2global, thread %p\n",any);
 	thread2global[nglobalthreads].thread = any;
 	thread2global[nglobalthreads].iglobal = fwl;
 	nglobalthreads++;
@@ -207,6 +208,11 @@ ttglobal gglobal()
 	ttglobal iglobal = gglobal0();
 	if(iglobal == NULL)
 	{
+#ifdef AQUA
+		printf("ouch - no state for this thread -nglobalthreads %d looking for %p\n",nglobalthreads,pthread_self());
+return thread2global[0].thread;
+
+#endif
 		printf("ouch - no state for this thread - hit a key to exit\n");
 		getchar();
 		//let it bomb exit(-1);

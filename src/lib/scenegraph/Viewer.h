@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.42 2011/06/02 19:50:43 dug9 Exp $
+$Id: Viewer.h,v 1.43 2011/06/08 19:08:32 crc_canada Exp $
 
 Viewer ???
 
@@ -262,7 +262,7 @@ typedef struct viewer {
 	double orthoField[4];
 
 	/* are we normal, or rotated? (makes sense only for mobile devices) */
-	int orient;
+	int screenOrientation;
 
 	double nearPlane;
 	double farPlane;
