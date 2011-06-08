@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.202 2011/06/07 22:45:27 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.203 2011/06/08 19:52:19 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1277,7 +1277,7 @@ static void getGenericShader(shader_type_t whichOne) {
 	char *geometrySource[2];
 
 	/* pointerize this */
-	myShader = &gglobal()->display..backgroundShaderArrays[whichOne];
+	myShader = &gglobal()->display.rdr_caps.backgroundShaderArrays[whichOne];
 	myProg = glCreateProgram(); /* CREATE_PROGRAM */
 	(*myShader).myShaderProgram = myProg;
 

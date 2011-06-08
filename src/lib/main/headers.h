@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.161 2011/06/07 22:45:27 dug9 Exp $
+$Id: headers.h,v 1.162 2011/06/08 19:52:19 crc_canada Exp $
 
 Global includes.
 
@@ -816,9 +816,9 @@ void do_TimeTrigger (void *node);
 
 
 #ifdef GL_ES_VERSION_2_0
-	#define LIGHTING_ON if (!lightingOn) {lightingOn=TRUE;}
-	#define LIGHTING_OFF if(lightingOn) {lightingOn=FALSE;}
-	#define LIGHTING_INITIALIZE lightingOn=TRUE; 
+	#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;}
+	#define LIGHTING_OFF if(gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=FALSE;}
+	#define LIGHTING_INITIALIZE gglobal()->RenderFuncs.lightingOn=TRUE;
 #else 
 	#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;FW_GL_ENABLE(GL_LIGHTING);}
 	#define LIGHTING_OFF if(gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=FALSE;FW_GL_DISABLE(GL_LIGHTING);}

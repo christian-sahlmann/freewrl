@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.198 2011/06/08 19:08:32 crc_canada Exp $
+  $Id: MainLoop.c,v 1.199 2011/06/08 19:52:19 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1285,27 +1285,27 @@ static void setup_viewpoint() {
 	#if defined (IPHONE) || defined (_ANDROID)
     
     // has a change happened? 
-    if (Viewer.orient != currentViewerLandPort) {
+    if (Viewer.screenOrientation != currentViewerLandPort) {
         // 4 possible values; 0, 90, 180, 270
         // 
         rotatingCCW = FALSE; // assume, unless told otherwise 
         switch (currentViewerLandPort) {
             case 0: {
-                rotatingCCW= (Viewer.orient == 270);
+                rotatingCCW= (Viewer.screenOrientation == 270);
                 break;
             }
             case 90: {
-                rotatingCCW = (Viewer.orient == 0);
+                rotatingCCW = (Viewer.screenOrientation == 0);
                 break;
             }
                 
             case 180: {
-                rotatingCCW = (Viewer.orient != 270);
+                rotatingCCW = (Viewer.screenOrientation != 270);
                 break;
             }
                 
             case 270: {
-                rotatingCCW = (Viewer.orient != 0);
+                rotatingCCW = (Viewer.screenOrientation != 0);
                 break;
                 
             }
@@ -1313,8 +1313,8 @@ static void setup_viewpoint() {
                 
         }
         
-        currentViewerLandPort = Viewer.orient;
-        requestedViewerAngle = (double)Viewer.orient;
+        currentViewerLandPort = Viewer.screenOrientation;
+        requestedViewerAngle = (double)Viewer.screenOrientation;
         
     }
     

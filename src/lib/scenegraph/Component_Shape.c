@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.88 2011/06/07 22:45:27 dug9 Exp $
+$Id: Component_Shape.c,v 1.89 2011/06/08 19:52:19 crc_canada Exp $
 
 X3D Shape Component
 
@@ -855,6 +855,10 @@ void child_Shape (struct X3D_Shape *node) {
 	float ecol[4];
 	float scol[4];
 	float amb;
+	ppComponent_Shape p;
+        ttglobal tg = gglobal();
+
+
 
 	COMPILE_IF_REQUIRED
 
@@ -868,7 +872,7 @@ PRINT_GL_ERROR_IF_ANY("");
 
 	RECORD_DISTANCE
 
-	if((render_collision) || (render_sensitive)) {
+	if((renderstate()->render_collision) || (renderstate()->render_sensitive)) {
 		/* only need to forward the call to the child */
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,node->geometry,tmpN);
 		render_node(tmpN);
@@ -878,6 +882,7 @@ PRINT_GL_ERROR_IF_ANY("");
 	if (node->_shaderTableEntry == -1) {
 		return;
 	}
+        p = (ppComponent_Shape)tg->Component_Shape.prv;
 	{
 		struct fw_MaterialParameters defaultMaterials = {
 					{0.0f, 0.0f, 0.0f, 1.0f}, /* emissiveColor */
@@ -888,7 +893,7 @@ PRINT_GL_ERROR_IF_ANY("");
 
 		/* copy the material stuff in preparation for copying all to the shader */
 		memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
-		memcpy (&p->getAppearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+		memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 	}
 	/* enable the shader for this shape */
         enableGlobalShader (node->_shaderTableEntry);
@@ -897,20 +902,20 @@ PRINT_GL_ERROR_IF_ANY("");
 PRINT_GL_ERROR_IF_ANY("");
 
 	/* now, are we rendering blended nodes or normal nodes?*/
-	if (render_blend == (node->_renderFlags & VF_Blend)) {
+	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
 
 		RENDER_MATERIAL_SUBNODES(node->appearance);
 
 
 PRINT_GL_ERROR_IF_ANY("");
 
-		if (material_oneSided != NULL) {
+		if (p->material_oneSided != NULL) {
 
-			memcpy (&p->appearanceProperties.fw_FrontMaterial, material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
-			memcpy (&p->appearanceProperties.fw_BackMaterial, material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
-		} else if (material_twoSided != NULL) {
-			memcpy (&p->appearanceProperties.fw_FrontMaterial, material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
-			memcpy (&p->appearanceProperties.fw_BackMaterial, material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+		} else if (p->material_twoSided != NULL) {
+			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
 		} else {
 			/* no materials selected.... */
 		}
@@ -919,14 +924,14 @@ PRINT_GL_ERROR_IF_ANY("");
 		sendMaterialsToShader(p->appearanceProperties.currentShaderProperties);
 
 		#ifdef SHAPEOCCLUSION
-		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,render_geom); //BEGINOCCLUSIONQUERY;
+		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
 		#endif
 
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
 		render_node(tmpN);
 
 		#ifdef SHAPEOCCLUSION
-		endOcclusionQuery((struct X3D_VisibilitySensor*)node,render_geom); //ENDOCCLUSIONQUERY;
+		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;
 		#endif
 	}
 
@@ -935,8 +940,8 @@ PRINT_GL_ERROR_IF_ANY("");
 
 	/* any shader turned on? if so, turn it off */
 	TURN_GLOBAL_SHADER_OFF;
-	material_twoSided = NULL;
-	material_oneSided = NULL;
+	p->material_twoSided = NULL;
+	p->material_oneSided = NULL;
 
 	/* turn off face culling */
 	DISABLE_CULL_FACE;
