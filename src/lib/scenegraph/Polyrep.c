@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.54 2011/06/07 22:45:27 dug9 Exp $
+$Id: Polyrep.c,v 1.55 2011/06/08 22:39:30 dug9 Exp $
 
 ???
 
@@ -387,6 +387,7 @@ void Extru_check_normal (
 	struct SFVec3f *c1,*c2,*c3;
 	float a[3]; float b[3];
 	int zz1, zz2;
+	ttglobal tg = gglobal();
 
 	if (ccw) {
 		zz1 = 1;
@@ -397,9 +398,9 @@ void Extru_check_normal (
 	}
 
 	/* first three coords give us the normal */
- 	c1 = (struct SFVec3f *) &rep_->actualCoord[3*global_IFS_Coords[0]];
- 	c2 = (struct SFVec3f *) &rep_->actualCoord[3*global_IFS_Coords[zz1]];
- 	c3 = (struct SFVec3f *) &rep_->actualCoord[3*global_IFS_Coords[zz2]];
+ 	c1 = (struct SFVec3f *) &rep_->actualCoord[3*tg->Tess.global_IFS_Coords[0]];
+ 	c2 = (struct SFVec3f *) &rep_->actualCoord[3*tg->Tess.global_IFS_Coords[zz1]];
+ 	c3 = (struct SFVec3f *) &rep_->actualCoord[3*tg->Tess.global_IFS_Coords[zz2]];
 
 	/*printf ("Extru_check_normal, coords %d %d %d\n",global_IFS_Coords[0],
 		global_IFS_Coords[1],global_IFS_Coords[2]);
@@ -441,7 +442,7 @@ void IFS_check_normal (
 
 	struct SFVec3f *c1,*c2,*c3;
 	float a[3]; float b[3];
-
+	ttglobal tg = gglobal();
 
 	/* printf ("IFS_check_normal, base %d points %d %d %d\n",base,*/
 	/* 	global_IFS_Coords[0],global_IFS_Coords[1],global_IFS_Coords[2]);*/
@@ -450,13 +451,13 @@ void IFS_check_normal (
 
 
 	/* first three coords give us the normal */
-	c1 = &(points[coordIndex->p[base+global_IFS_Coords[0]]]);
+	c1 = &(points[coordIndex->p[base+tg->Tess.global_IFS_Coords[0]]]);
 	if (ccw) {
-		c2 = &(points[coordIndex->p[base+global_IFS_Coords[1]]]);
-		c3 = &(points[coordIndex->p[base+global_IFS_Coords[2]]]);
+		c2 = &(points[coordIndex->p[base+tg->Tess.global_IFS_Coords[1]]]);
+		c3 = &(points[coordIndex->p[base+tg->Tess.global_IFS_Coords[2]]]);
 	} else {
-		c3 = &(points[coordIndex->p[base+global_IFS_Coords[1]]]);
-		c2 = &(points[coordIndex->p[base+global_IFS_Coords[2]]]);
+		c3 = &(points[coordIndex->p[base+tg->Tess.global_IFS_Coords[1]]]);
+		c2 = &(points[coordIndex->p[base+tg->Tess.global_IFS_Coords[2]]]);
 	}
 
 	a[0] = c2->c[0] - c1->c[0];

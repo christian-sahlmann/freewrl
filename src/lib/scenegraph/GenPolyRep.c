@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.30 2011/06/02 19:50:43 dug9 Exp $
+$Id: GenPolyRep.c,v 1.31 2011/06/08 22:39:30 dug9 Exp $
 
 ???
 
@@ -601,6 +601,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	struct X3D_Normal *nc = NULL;
 	struct X3D_TextureCoordinate *tc = NULL;
 	struct X3D_Coordinate *co = NULL;
+	ttglobal tg = gglobal();
 
 	if (node->_nodeType == NODE_IndexedFaceSet) {
 		if (!checkX3DIndexedFaceSetFields(node)) {
@@ -962,7 +963,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 		int initind = 0;
 		int lastind = 0;  		/* coord indexes 			*/
 
-		global_IFS_Coord_count = 0;
+		tg->Tess.global_IFS_Coord_count = 0;
 		relative_coord = 0;
 		tess_contour_start = 0;
 		
@@ -997,7 +998,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			/* If we have concave, tesselate! */
 			if (!convex) {
 				#if !defined(IPHONE) && !defined(_ANDROID)
-				FW_GLU_BEGIN_POLYGON(global_tessobj);
+				FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
 				#endif /* IPHONE - no tessellation yet */
 			} else {
 				initind = relative_coord++;
@@ -1025,7 +1026,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 						  orig_coordIndex->p[ind + this_coord]) {
 							/* printf ("FOUND CONTOUR\n"); */
 							tess_contour_start = relative_coord+1;
-							FW_GLU_NEXT_CONTOUR(global_tessobj,GLU_UNKNOWN);
+							FW_GLU_NEXT_CONTOUR(tg->Tess.global_tessobj,GLU_UNKNOWN);
 							foundContour = TRUE;
 							break;
 						}
@@ -1038,16 +1039,16 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 						tess_v[2] = c1->c[2];
 						tess_vs[relative_coord] = relative_coord;
 						/* printf ("vertex %f %f %f, index %d\n",tess_v[0], tess_v[1], tess_v[2], tess_vs[relative_coord]); */
-						FW_GLU_TESS_VERTEX(global_tessobj,tess_v,&tess_vs[relative_coord]);
+						FW_GLU_TESS_VERTEX(tg->Tess.global_tessobj,tess_v,&tess_vs[relative_coord]);
 					}
 					
 					relative_coord++;
 					#endif /* IPHONE - no tessellation yet */
 				} else {
 					/* take coordinates and make triangles out of them */
-					global_IFS_Coords[global_IFS_Coord_count++] = initind;
-					global_IFS_Coords[global_IFS_Coord_count++] = lastind;
-					global_IFS_Coords[global_IFS_Coord_count++] = relative_coord;
+					tg->Tess.global_IFS_Coords[tg->Tess.global_IFS_Coord_count++] = initind;
+					tg->Tess.global_IFS_Coords[tg->Tess.global_IFS_Coord_count++] = lastind;
+					tg->Tess.global_IFS_Coords[tg->Tess.global_IFS_Coord_count++] = relative_coord;
 					/* printf ("triangle %d %d %d\n",initind,lastind,relative_coord);*/
 					lastind = relative_coord++;
 				}
@@ -1061,7 +1062,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 			if (!convex) {
 				#if !defined(IPHONE) && !defined(_ANDROID)
-				FW_GLU_END_POLYGON(global_tessobj);
+				FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
 
 				/* Tesselated faces may have a different normal than calculated previously */
 				/* bounds check, once again */
@@ -1074,9 +1075,9 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 
 			/* now store this information for the whole of the polyrep */
-			for (i=0; i<global_IFS_Coord_count; i++) {
+			for (i=0; i<tg->Tess.global_IFS_Coord_count; i++) {
 				/* Triangle Coordinate */
-				cindex [vert_ind] = (orig_coordIndex->p[this_coord+global_IFS_Coords[i]]);
+				cindex [vert_ind] = (orig_coordIndex->p[this_coord+tg->Tess.global_IFS_Coords[i]]);
 
 				/* printf ("vertex  %d  gic %d cindex %d\n",vert_ind,global_IFS_Coords[i],cindex[vert_ind]); */
 
@@ -1085,7 +1086,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 					if (norin) {
 						/* we have a NormalIndex */
 						if (npv) {
-							norindex[vert_ind] = orig_normalIndex->p[this_coord+global_IFS_Coords[i]];
+							norindex[vert_ind] = orig_normalIndex->p[this_coord+tg->Tess.global_IFS_Coords[i]];
 							/*  printf ("norm1, index %d\n",norindex[vert_ind]);*/
 						} else {
 							norindex[vert_ind] = orig_normalIndex->p[this_face];
@@ -1094,7 +1095,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 					} else {
 						/* no normalIndex  - use the coordIndex */
 						if (npv) {
-							norindex[vert_ind] = (orig_coordIndex->p[this_coord+global_IFS_Coords[i]]);
+							norindex[vert_ind] = (orig_coordIndex->p[this_coord+tg->Tess.global_IFS_Coords[i]]);
 							/* printf ("norm3, index %d\n",norindex[vert_ind]);*/
 						} else {
 							norindex[vert_ind] = this_face;
@@ -1133,7 +1134,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 					if (colin) {
 						int tmpI;
 						/* we have a colorIndex */
-						if (cpv) tmpI = this_coord+global_IFS_Coords[i];
+						if (cpv) tmpI = this_coord+tg->Tess.global_IFS_Coords[i];
 						else tmpI = this_face;
 						
 						if (tmpI >= orig_colorIndex->n) {
@@ -1147,7 +1148,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 					} else {
 						/* no colorIndex  - use the coordIndex */
 						if (cpv) {
-							colindex[vert_ind] = (orig_coordIndex->p[this_coord+global_IFS_Coords[i]]);
+							colindex[vert_ind] = (orig_coordIndex->p[this_coord+tg->Tess.global_IFS_Coords[i]]);
 							  /* printf ("col3, index %d\n",colindex[vert_ind]); */
 						} else {
 							colindex[vert_ind] = this_face;
@@ -1160,15 +1161,15 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 				/* Texture Coordinates */
 				if (tcin) {
 					/* bounds checking if we run out of texCoords, just fill in with 0 */
-					if ((this_coord+global_IFS_Coords[i]) < tcin) {
-						tcindex[vert_ind] = orig_texCoordIndex->p[this_coord+global_IFS_Coords[i]];
+					if ((this_coord+tg->Tess.global_IFS_Coords[i]) < tcin) {
+						tcindex[vert_ind] = orig_texCoordIndex->p[this_coord+tg->Tess.global_IFS_Coords[i]];
 					} else {
 						tcindex[vert_ind] = 0;
 					}
 					/* printf ("ntexCoords,tcin,  index %d\n",tcindex[vert_ind]); */
 				} else {
 					/* no texCoordIndex, use the Coord Index */
-					tcindex[vert_ind] = (orig_coordIndex->p[this_coord+global_IFS_Coords[i]]);
+					tcindex[vert_ind] = (orig_coordIndex->p[this_coord+tg->Tess.global_IFS_Coords[i]]);
 					/* printf ("ntexcoords, notcin, vertex %d point %d\n",vert_ind,tcindex[vert_ind]); */
 				}
 
@@ -2286,6 +2287,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 		struct SFVec3f *c1;
 		GLDOUBLE tess_v[3];
 		int endpoint;
+		ttglobal tg = gglobal();
 
 		tess_vs=MALLOC(int *, sizeof(*(tess_vs)) * (nsec - 3 - ncolinear_at_end) * 3);
 
@@ -2295,8 +2297,8 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 
 		if (beginCap) {
-			global_IFS_Coord_count = 0;
-			FW_GLU_BEGIN_POLYGON(global_tessobj);
+			tg->Tess.global_IFS_Coord_count = 0;
+			FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
 				/* printf ("starting tv for x %d of %d\n",x,endpoint);*/
@@ -2306,16 +2308,16 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 				tess_v[0] = c1->c[0]; tess_v[1] = c1->c[1]; tess_v[2] = c1->c[2];
 				tess_vs[x] = x;
-				FW_GLU_TESS_VERTEX(global_tessobj,tess_v,&tess_vs[x]);
+				FW_GLU_TESS_VERTEX(tg->Tess.global_tessobj,tess_v,&tess_vs[x]);
 			}
-			FW_GLU_END_POLYGON(global_tessobj);
+			FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
 			verify_global_IFS_Coords(ntri*3);
 
-			for (x=0; x<global_IFS_Coord_count; x+=3) {
+			for (x=0; x<tg->Tess.global_IFS_Coord_count; x+=3) {
 				/* printf ("now, in 2nd for loop, x %d glob %d\n",x,*/
 				/* 		global_IFS_Coord_count);*/
-	  			Elev_Tri(triind*3, this_face, global_IFS_Coords[x],
-					global_IFS_Coords[x+2], global_IFS_Coords[x+1],
+	  			Elev_Tri(triind*3, this_face, tg->Tess.global_IFS_Coords[x],
+					tg->Tess.global_IFS_Coords[x+2], tg->Tess.global_IFS_Coords[x+1],
 					TRUE , rep_, facenormals, pointfaces,ccw);
 	  			defaultface[triind] = this_face;
 				triind ++;
@@ -2327,21 +2329,21 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 		}
 
 		if (endCap) {
-			global_IFS_Coord_count = 0;
-			FW_GLU_BEGIN_POLYGON(global_tessobj);
+			tg->Tess.global_IFS_Coord_count = 0;
+			FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
 	                	c1 = (struct SFVec3f *) &rep_->actualCoord[3*(x+(nspi-1)*nsec)];
 				tess_v[0] = c1->c[0]; tess_v[1] = c1->c[1]; tess_v[2] = c1->c[2];
 				tess_vs[x] = x+(nspi-1)*nsec;
-				FW_GLU_TESS_VERTEX(global_tessobj,tess_v,&tess_vs[x]);
+				FW_GLU_TESS_VERTEX(tg->Tess.global_tessobj,tess_v,&tess_vs[x]);
 			}
-			FW_GLU_END_POLYGON(global_tessobj);
+			FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
 			verify_global_IFS_Coords(ntri*3);
 
-			for (x=0; x<global_IFS_Coord_count; x+=3) {
-	  			Elev_Tri(triind*3, this_face, global_IFS_Coords[x],
-					global_IFS_Coords[x+1], global_IFS_Coords[x+2],
+			for (x=0; x<tg->Tess.global_IFS_Coord_count; x+=3) {
+	  			Elev_Tri(triind*3, this_face, tg->Tess.global_IFS_Coords[x],
+					tg->Tess.global_IFS_Coords[x+1], tg->Tess.global_IFS_Coords[x+2],
 					TRUE , rep_, facenormals, pointfaces,ccw);
 	  			defaultface[triind] = this_face;
 				triind ++;

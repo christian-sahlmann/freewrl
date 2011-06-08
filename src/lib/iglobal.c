@@ -57,6 +57,7 @@ void Component_Text_init(struct tComponent_Text *t);
 void Component_VRML1_init(struct tComponent_VRML1 *t);
 void RenderFuncs_init(struct tRenderFuncs *t);
 void StreamPoly_init(struct tStreamPoly *t);
+void Tess_init(struct tTess *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -120,6 +121,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	Component_VRML1_init(&iglobal->Component_VRML1);
 	RenderFuncs_init(&iglobal->RenderFuncs);
 	StreamPoly_init(&iglobal->StreamPoly);
+	Tess_init(&iglobal->Tess);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -128,6 +130,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->Tess.prv);
 	FREE_IF_NZ(tg->StreamPoly.prv);
 	FREE_IF_NZ(tg->Component_Sound.prv);
 	FREE_IF_NZ(tg->RenderFuncs.prv);

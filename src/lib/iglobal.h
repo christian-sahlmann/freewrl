@@ -283,6 +283,18 @@ iOLDCODE	}Component_Networking;
 	struct tStreamPoly{
 		void *prv;
 	}StreamPoly;
+	struct tTess{
+		int *global_IFS_Coords;
+		int global_IFS_Coord_count;//=0;
+#if !defined(IPHONE) && !defined(_ANDROID)
+		GLUtriangulatorObj *global_tessobj;
+#else
+		int global_tessobj;
+#endif /* IPHONE */
+
+		void *prv;
+	}Tess;
+
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif
