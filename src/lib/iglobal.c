@@ -49,11 +49,9 @@ OLDCODEvoid Component_Networking_init(struct tComponent_Networking *t);
 void Component_Picking_init(struct tComponent_Picking *t);
 void Component_Shape_init(struct tComponent_Shape *t);
 void Component_Sound_init(struct tComponent_Sound *t);
-
 #if !(defined(IPHONE) || defined(_ANDROID))
 void Component_Text_init(struct tComponent_Text *t);
 #endif
-
 void Component_VRML1_init(struct tComponent_VRML1 *t);
 void RenderFuncs_init(struct tRenderFuncs *t);
 void StreamPoly_init(struct tStreamPoly *t);
@@ -61,6 +59,7 @@ void Tess_init(struct tTess *t);
 void Viewer_init(struct tViewer *t);
 void statusbar_init(struct tstatusbar *t);
 void CParse_init(struct tCParse *t);
+void CParseParser_init(struct tCParseParser *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -125,6 +124,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	Viewer_init(&iglobal->Viewer);
 	statusbar_init(&iglobal->statusbar);
 	CParse_init(&iglobal->CParse);
+	CParseParser_init(&iglobal->CParseParser);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -133,6 +133,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->CParseParser.prv);
 	FREE_IF_NZ(tg->CParse.prv);
 	FREE_IF_NZ(tg->statusbar.prv);
 	FREE_IF_NZ(tg->Viewer.prv);

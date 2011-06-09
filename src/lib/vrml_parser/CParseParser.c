@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.75 2011/06/09 17:15:14 dug9 Exp $
+  $Id: CParseParser.c,v 1.76 2011/06/09 17:51:03 dug9 Exp $
 
   ???
 
@@ -63,9 +63,36 @@
 
 #define DJ_KEEP_COMPILER_WARNING 0
 
-static int foundInputErrors = 0;
-void resetParseSuccessfullyFlag(void) { foundInputErrors = 0;}
-int parsedSuccessfully(void) {return foundInputErrors == 0;}
+typedef struct pCParseParser{
+	char fw_outline[2000];
+	int foundInputErrors;// = 0;
+
+}* ppCParseParser;
+void *CParseParser_constructor(){
+	void *v = malloc(sizeof(struct pCParseParser));
+	memset(v,0,sizeof(struct pCParseParser));
+	return v;
+}
+void CParseParser_init(struct tCParseParser *t){
+	//public
+	//private
+	t->prv = CParseParser_constructor();
+	{
+		ppCParseParser p = (ppCParseParser)t->prv;
+		p->foundInputErrors = 0;
+	}
+}
+	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
+
+//static int foundInputErrors = 0;
+void resetParseSuccessfullyFlag(void) { 
+	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
+	p->foundInputErrors = 0;
+}
+int parsedSuccessfully(void) {
+	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
+	return p->foundInputErrors == 0;
+}
 
 /* Parsing a specific type */
 /* NOTE! We have to keep the order of these function calls the same
@@ -200,7 +227,7 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
 };
 
 /* for error messages */
-char fw_outline[2000];
+//char fw_outline[2000];
 
 
 /* General processing macros */
@@ -1219,6 +1246,7 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
     int toType;
     struct ScriptFieldDecl* toScriptField;
     int temp, tempFE, tempFO, tempTE, tempTO;
+	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
 
     fromOfs = 0;
     fromType = 0;
@@ -1355,15 +1383,15 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
         /* Next token has to be "TO" */
         if(!lexer_keyword(me->lexer, KW_TO)) {
             /* try to make a better error message. */
-            strcpy (fw_outline,"ERROR:ROUTE: Expected \"TO\" found \"");
-            if (me->lexer->curID != NULL) strcat (fw_outline, me->lexer->curID); else strcat (fw_outline, "(EOF)");
-            strcat (fw_outline,"\" ");
-            if (fromNode != NULL) { strcat (fw_outline, " from type:"); strcat (fw_outline, stringNodeType(fromNode->_nodeType)); strcat (fw_outline, " "); }
-            if (fromFieldE != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EXPOSED_FIELD[fromFieldE]); strcat (fw_outline, " "); }
-            if (fromFieldO != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EVENT_OUT[fromFieldO]); strcat (fw_outline, " "); }
+            strcpy (p->fw_outline,"ERROR:ROUTE: Expected \"TO\" found \"");
+            if (me->lexer->curID != NULL) strcat (p->fw_outline, me->lexer->curID); else strcat (p->fw_outline, "(EOF)");
+            strcat (p->fw_outline,"\" ");
+            if (fromNode != NULL) { strcat (p->fw_outline, " from type:"); strcat (p->fw_outline, stringNodeType(fromNode->_nodeType)); strcat (p->fw_outline, " "); }
+            if (fromFieldE != ID_UNDEFINED) { strcat (p->fw_outline, ":"); strcat (p->fw_outline, EXPOSED_FIELD[fromFieldE]); strcat (p->fw_outline, " "); }
+            if (fromFieldO != ID_UNDEFINED) { strcat (p->fw_outline, ":"); strcat (p->fw_outline, EVENT_OUT[fromFieldO]); strcat (p->fw_outline, " "); }
 
             /* PARSE_ERROR("Expected TO in ROUTE-statement!") */
-            CPARSE_ERROR_CURID(fw_outline); 
+            CPARSE_ERROR_CURID(p->fw_outline); 
             PARSER_FINALLY; 
 	    return FALSE; 
         }
@@ -1620,17 +1648,17 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
         /* We can only ROUTE between two equivalent fields.  If the size of one field value is different from the size of the other, we have problems (i.e. can't route SFInt to MFNode) */
         if(fromType!=toType) {
             /* try to make a better error message. */
-            strcpy (fw_outline,"ERROR:Types mismatch in ROUTE: ");
-            if (fromNode != NULL) { strcat (fw_outline, " from type:"); strcat (fw_outline, stringNodeType(fromNode->_nodeType)); strcat (fw_outline, " "); }
-            if (fromFieldE != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EXPOSED_FIELD[fromFieldE]); strcat (fw_outline, " "); }
-            if (fromFieldO != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EVENT_OUT[fromFieldO]); strcat (fw_outline, " "); }
+            strcpy (p->fw_outline,"ERROR:Types mismatch in ROUTE: ");
+            if (fromNode != NULL) { strcat (p->fw_outline, " from type:"); strcat (p->fw_outline, stringNodeType(fromNode->_nodeType)); strcat (p->fw_outline, " "); }
+            if (fromFieldE != ID_UNDEFINED) { strcat (p->fw_outline, ":"); strcat (p->fw_outline, EXPOSED_FIELD[fromFieldE]); strcat (p->fw_outline, " "); }
+            if (fromFieldO != ID_UNDEFINED) { strcat (p->fw_outline, ":"); strcat (p->fw_outline, EVENT_OUT[fromFieldO]); strcat (p->fw_outline, " "); }
 
-            if (toNode != NULL) { strcat (fw_outline, " to type:"); strcat (fw_outline, stringNodeType(toNode->_nodeType)); strcat (fw_outline, " "); }
-            if (toFieldE != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EXPOSED_FIELD[toFieldE]); strcat (fw_outline, " "); }
-            if (toFieldO != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EVENT_IN[toFieldO]); strcat (fw_outline, " "); }
+            if (toNode != NULL) { strcat (p->fw_outline, " to type:"); strcat (p->fw_outline, stringNodeType(toNode->_nodeType)); strcat (p->fw_outline, " "); }
+            if (toFieldE != ID_UNDEFINED) { strcat (p->fw_outline, ":"); strcat (p->fw_outline, EXPOSED_FIELD[toFieldE]); strcat (p->fw_outline, " "); }
+            if (toFieldO != ID_UNDEFINED) { strcat (p->fw_outline, ":"); strcat (p->fw_outline, EVENT_IN[toFieldO]); strcat (p->fw_outline, " "); }
 
             /* PARSE_ERROR(fw_outline) */
-            CPARSE_ERROR_CURID(fw_outline); 
+            CPARSE_ERROR_CURID(p->fw_outline); 
             PARSER_FINALLY; 
 	    return FALSE; 
         }
@@ -2789,6 +2817,7 @@ static BOOL parser_fieldTypeNotParsedYet(struct VRMLParser* me, void* ret) {
 	#define FROMSRC		140
 void cParseErrorCurID(struct VRMLParser *me, char *str) {
 	char fw_outline[OUTLINELEN];
+	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
 
 	if (strlen(str) > FROMSRC) str[FROMSRC] = '\0';
 	strcpy(fw_outline,str);
@@ -2805,7 +2834,7 @@ void cParseErrorCurID(struct VRMLParser *me, char *str) {
 		strcat (fw_outline,"\"");
 	}
 
-	foundInputErrors++;
+	p->foundInputErrors++;
 	ConsoleMessage(fw_outline); 
 }
 
@@ -2813,6 +2842,7 @@ void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) 
 
 	char fw_outline[OUTLINELEN];
 	int str2len = (int) strlen(str2);
+	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
 
 	if (strlen(str) > FROMSRC) str[FROMSRC] = '\0';
 	strcpy(fw_outline,str);
@@ -2828,7 +2858,7 @@ void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) 
 		strcat (fw_outline,"\"");
 	}
 
-	foundInputErrors++;
+	p->foundInputErrors++;
 	ConsoleMessage(fw_outline); 
 }
 

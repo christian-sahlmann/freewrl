@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.43 2011/06/02 19:50:49 dug9 Exp $
+$Id: CParseLexer.c,v 1.44 2011/06/09 17:51:03 dug9 Exp $
 
 ???
 
@@ -51,8 +51,7 @@ $Id: CParseLexer.c,v 1.43 2011/06/02 19:50:49 dug9 Exp $
 #include "CParse.h"
 
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me);
-char *externProtoPointer = NULL;
-
+//char *externProtoPointer = NULL; //not used
 /* Pre- and suffix for exposed events. */
 const char* EXPOSED_EVENT_IN_PRE="set_";
 const char* EXPOSED_EVENT_OUT_SUF="_changed";
@@ -130,7 +129,7 @@ void deleteLexer(struct VRMLLexer* me)
 	#endif
 	 FREE_IF_NZ (me->curID);
  	FREE_IF_NZ (me);
- 	FREE_IF_NZ (externProtoPointer);
+ 	//FREE_IF_NZ (p->externProtoPointer);
 }
 
 

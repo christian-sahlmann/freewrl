@@ -305,6 +305,9 @@ iOLDCODE	}Component_Networking;
 		void* globalParser;
 		void *prv;
 	}CParse;
+	struct tCParseParser{
+		void *prv;
+	}CParseParser;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1
