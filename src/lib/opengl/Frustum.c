@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.42 2011/06/03 15:27:00 dug9 Exp $
+$Id: Frustum.c,v 1.43 2011/06/09 11:38:54 daytonavid Exp $
 
 ???
 
@@ -174,7 +174,9 @@ void beginOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
 /* printf ("beginOcclusionQuery, potoc %d occQ %d\n",p->potentialOccluderCount, p->OccQuerySize, node->__occludeCheckCount); */ 
 			if (node->__occludeCheckCount < 0) { 
 				/* printf ("beginOcclusionQuery, query %u, node %s\n",p->potentialOccluderCount, stringNodeType(node->_nodeType)); */ 
+#if !defined(GL_ES_VERSION_2_0)
 				FW_GL_BEGIN_QUERY(GL_SAMPLES_PASSED, p->OccQueries[p->potentialOccluderCount]); 
+#endif
 				p->occluderNodePointer[p->potentialOccluderCount] = (void *)node; 
 			} 
 		}
@@ -188,7 +190,9 @@ void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
 		if (p->potentialOccluderCount < p->OccQuerySize) { 
 			if (node->__occludeCheckCount < 0) { 
 				/* printf ("glEndQuery node %u\n",node); */ 
+#if !defined( GL_ES_VERSION_2_0 )
 				FW_GL_END_QUERY(GL_SAMPLES_PASSED); 
+#endif
 				p->potentialOccluderCount++; 
 			} 
 		} 

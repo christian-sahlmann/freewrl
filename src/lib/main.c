@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.58 2011/06/06 20:54:52 dug9 Exp $
+  $Id: main.c,v 1.59 2011/06/09 11:38:54 daytonavid Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -78,34 +78,23 @@ void __attribute__ ((destructor)) libFreeWRL_fini(void)
 
 int fwl_ANDROID_initialize(void)
 {
-	mainThread = pthread_self();
 
 	/* Initialize console (log, error, ...) */
 	setbuf(stdout,0);
 	setbuf(stderr,0);
 	
-	/* Initialize parser */
-	fwl_initialize_parser();
-
-	/* Multithreading ? */
-
-	/* OK the display is now initialized,
-	   create the display thread and wait for it
-	   to complete initialization */
-	fwl_initializeDisplayThread();
-	
-
-	fwl_initializeInputParseThread();
-	while (!fwl_isInputThreadInitialized()) {
-		usleep(50);
-	}
-
-	fwl_initializeTextureThread();
-	while (!fwl_isTextureinitialized()) {
-		usleep(50);
-	}
-	
+	fwl_initParams(NULL);
+	fwl_setp_width(480);
+	fwl_setp_height(320);
+	fwl_setp_eai(FALSE);
+	fwl_setp_fullscreen(FALSE);
 	fwl_setp_collision(1);
+		
+	if (!fwl_initFreeWRL(NULL)) {
+		ERROR_MSG("main: aborting during initialization.\n");
+		exit(1);
+	}
+	
 
 	return TRUE;
 }

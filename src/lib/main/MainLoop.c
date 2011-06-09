@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.201 2011/06/09 03:48:25 dug9 Exp $
+  $Id: MainLoop.c,v 1.202 2011/06/09 11:38:54 daytonavid Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -75,34 +75,6 @@ int ccurse;
 int ocurse;
 void  setAquaCursor(int ctype) { };
 
-// Add our own viewport for manipulation
-static int l_user_position = 0;
-static struct SFVec3f l_position;
-static struct X3D_Viewpoint* l_positionVP = NULL;
-
-float mainloop_getPos(float* pPos)
-{
-//	if( l_user_position>0 )
-	{
-		pPos[0] = l_position.c[0];
-		pPos[1] = l_position.c[1];
-		pPos[2] = l_position.c[2];
-	}
-}
-void mainloop_setPos(float posX, float posY, float posZ)
-{
-//	if( l_user_position>0 )
-	{
-		l_position.c[0] = posX;
-		l_position.c[1] = posY;
-		l_position.c[2] = posZ;
-				
-		if( l_positionVP!=NULL )
-		{
-			memcpy (&l_positionVP->position, &l_position,sizeof(struct SFVec3f));
-		}
-	}
-}
 #endif // _ANDROID
 
 #ifdef IPHONE
@@ -481,51 +453,6 @@ void fwl_RenderSceneUpdateScene() {
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
         Cursor cursor;
 #endif /* TARGET_X11 or TARGET_MOTIF */
-
-#if defined(_ANDROID)
-/* add in a Viewpoint node, and make it the bound viewpoint */ 
-	if (rootNode != NULL) {
-        int i;
-        struct X3D_Node * myN;
-
-        /* debugging info */
-//        printf ("rootNode != NULL, %d children\n", rootNode->children.n);
-        for (i=0; i<rootNode->children.n; i++) {
-                myN = X3D_NODE(rootNode->children.p[i]);
-                if (myN != NULL) {
-//                        printf ("node %d is %p, is a %s\n",i, myN, stringNodeType(myN->_nodeType));
-                } else {
-//                        printf ("node %d is null...\n",i);
-                }
-        }
-
-        /* special for Ryan! */
-	/* wait until our scene is loaded, and do this once */
-        if ((rootNode->children.n > 0) && (!l_user_position)) {
-		/* say that we have done this */
-                l_user_position = 1;
-
-		/* put in a position - we can change and memcpy this millions of times */
-                l_position.c[0] = 2.0f;
-                l_position.c[1] = 2.0f;
-                l_position.c[2] = 100.0f;
-
-		/* make the Viewpoint node */
-                l_positionVP = (struct X3D_Viewpoint *) createNewX3DNode (NODE_Viewpoint);
-
-		/* change the Viewpoint position to our position */
-                memcpy (&l_positionVP->position, &l_position,sizeof(struct SFVec3f));
-
-		/* add our node to the scene graph */
-                AddRemoveChildren (X3D_NODE(rootNode),offsetPointer_deref(void*,rootNode,offsetof (struct X3D_Group, children)),&l_positionVP,1,1,__FILE__,__LINE__);
-
-		/* tell the render to make our Viewpoint top of the bindable stack*/
-                setViewpointBindInRender = l_positionVP;
-        }
-	}
-
-	
-#endif
 
         DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
 		     BOOL_STR(fwl_isinputThreadParsing()), BOOL_STR(resource_is_root_loaded()));
@@ -1286,27 +1213,27 @@ static void setup_viewpoint() {
 	#if defined (IPHONE) || defined (_ANDROID)
     
     // has a change happened? 
-    if (Viewer.screenOrientation != currentViewerLandPort) {
+    if (Viewer()->screenOrientation != currentViewerLandPort) {
         // 4 possible values; 0, 90, 180, 270
         // 
         rotatingCCW = FALSE; // assume, unless told otherwise 
         switch (currentViewerLandPort) {
             case 0: {
-                rotatingCCW= (Viewer.screenOrientation == 270);
+                rotatingCCW= (Viewer()->screenOrientation == 270);
                 break;
             }
             case 90: {
-                rotatingCCW = (Viewer.screenOrientation == 0);
+                rotatingCCW = (Viewer()->screenOrientation == 0);
                 break;
             }
                 
             case 180: {
-                rotatingCCW = (Viewer.screenOrientation != 270);
+                rotatingCCW = (Viewer()->screenOrientation != 270);
                 break;
             }
                 
             case 270: {
-                rotatingCCW = (Viewer.screenOrientation != 0);
+                rotatingCCW = (Viewer()->screenOrientation != 0);
                 break;
                 
             }
@@ -1314,8 +1241,8 @@ static void setup_viewpoint() {
                 
         }
         
-        currentViewerLandPort = Viewer.screenOrientation;
-        requestedViewerAngle = (double)Viewer.screenOrientation;
+        currentViewerLandPort = Viewer()->screenOrientation;
+        requestedViewerAngle = (double)Viewer()->screenOrientation;
         
     }
     
