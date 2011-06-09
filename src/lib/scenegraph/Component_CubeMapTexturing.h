@@ -169,7 +169,11 @@ union DDS_header {
       unsigned int    dwReserved;
     }               sCaps;
     unsigned int    dwReserved2;
+#ifdef _MSC_VER
+  };
+#else
   } ddsWholeStruct;
+#endif
   char data[ 128 ];
 };
 
