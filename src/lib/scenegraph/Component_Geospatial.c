@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.58 2011/06/07 21:44:18 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.59 2011/06/09 03:48:26 dug9 Exp $
 
 X3D Geospatial Component
 
@@ -246,8 +246,8 @@ Geodetic to Geocentric:
 				retractOrigin((struct X3D_GeoOrigin *)node->geoOrigin, \
 						&thisField); \
 			}else{ \
-				if (Viewer.GeoSpatialNode != NULL) { \
-        						retractOrigin((struct X3D_GeoOrigin *)Viewer.GeoSpatialNode->geoOrigin, \
+				if (Viewer()->GeoSpatialNode != NULL) { \
+        						retractOrigin((struct X3D_GeoOrigin *)Viewer()->GeoSpatialNode->geoOrigin, \
 						&thisField); \
 				} \
 			} \
@@ -2432,7 +2432,7 @@ void do_GeoProximitySensorTick( void *ptr) {
 			/* if we get this via the position_changed field, we have to:
 				node->geoCoord_changed.c[2] += Viewer.nearPlane;
 			*/
-			node->geoCoord_changed.c[2] += Viewer.nearPlane;
+			node->geoCoord_changed.c[2] += Viewer()->nearPlane;
 			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, geoCoord_changed));
 
 			#ifdef VERBOSE
@@ -2573,7 +2573,7 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 			/* if we get this via the position_changed field, we have to:
 				node->hitGeoCoord_changed.c[2] += nearPlane;
 			*/
-			node->hitGeoCoord_changed.c[2] += Viewer.nearPlane;
+			node->hitGeoCoord_changed.c[2] += Viewer()->nearPlane;
 			MARK_EVENT (ptr, offsetof(struct X3D_GeoTouchSensor, hitGeoCoord_changed));
 
 			#ifdef SENSVERBOSE
@@ -2712,11 +2712,11 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
 	if(viewPort[2] > viewPort[3]) {
 		a1=0;
-		Viewer.fieldofview = node->fieldOfView/3.1415926536*180;
+		Viewer()->fieldofview = node->fieldOfView/3.1415926536*180;
 	} else {
 		a1 = node->fieldOfView;
 		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
-		Viewer.fieldofview = a1/3.1415926536*180;
+		Viewer()->fieldofview = a1/3.1415926536*180;
 	}
 
 	calculateViewingSpeed();
@@ -2732,17 +2732,17 @@ static void calculateViewingSpeed() {
 	struct SFVec3d gdCoords;
 		
 	/* the current position is the GC coordinate */
-	gcCoords.c[0]= Viewer.currentPosInModel.x;
-	gcCoords.c[1] = Viewer.currentPosInModel.y;
-	gcCoords.c[2] = Viewer.currentPosInModel.z;
+	gcCoords.c[0]= Viewer()->currentPosInModel.x;
+	gcCoords.c[1] = Viewer()->currentPosInModel.y;
+	gcCoords.c[2] = Viewer()->currentPosInModel.z;
 		
         #ifdef VERBOSE
         printf ("calculateViewingSpeed, currentPosInModel %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
         #endif
 		
-	if (Viewer.GeoSpatialNode != NULL) {
+	if (Viewer()->GeoSpatialNode != NULL) {
 		/* do we have a valid __geoSystem?? */
-        INITIALIZE_GEOSPATIAL(Viewer.GeoSpatialNode)
+        INITIALIZE_GEOSPATIAL(Viewer()->GeoSpatialNode)
 
 
 /*
@@ -2753,10 +2753,10 @@ static void calculateViewingSpeed() {
 
 
 
-		if (Viewer.GeoSpatialNode->__geoSystem.n>0) {
+		if (Viewer()->GeoSpatialNode->__geoSystem.n>0) {
 			/* is the __geoSystem NOT gc coords? */
 			/* printf ("have a GeoSpatial viewpoint, currently %d\n",Viewer.GeoSpatialNode->__geoSystem.p[0]);  */
-			if (Viewer.GeoSpatialNode->__geoSystem.p[0] != GEOSP_GC) {
+			if (Viewer()->GeoSpatialNode->__geoSystem.p[0] != GEOSP_GC) {
 		
 /*
 		        	retractOrigin((struct X3D_GeoOrigin *)Viewer.GeoSpatialNode->geoOrigin, &gcCoords);
@@ -2776,9 +2776,9 @@ static void calculateViewingSpeed() {
 				#endif
 			
 				/* speed is dependent on elevation above WGS84 ellipsoid */
-				Viewer.speed  = fabs(sqrt(gcCoords.c[0]*gcCoords.c[0] + gcCoords.c[1]*gcCoords.c[1] + gcCoords.c[2]*gcCoords.c[2])
-					-GEOSP_WE_A) * Viewer.GeoSpatialNode->speedFactor;
-				if (Viewer.speed < 1.0) Viewer.speed=1.0;
+				Viewer()->speed  = fabs(sqrt(gcCoords.c[0]*gcCoords.c[0] + gcCoords.c[1]*gcCoords.c[1] + gcCoords.c[2]*gcCoords.c[2])
+					-GEOSP_WE_A) * Viewer()->GeoSpatialNode->speedFactor;
+				if (Viewer()->speed < 1.0) Viewer()->speed=1.0;
 
 				#ifdef VERBOSE
 				printf ("height above center %f WGS84 ellipsoid is %lf\n",Viewer.speed,GEOSP_WE_A); 
@@ -2790,9 +2790,9 @@ static void calculateViewingSpeed() {
 
 				/* set the navigation info - use the GeoVRML algorithms */
 				set_naviWidthHeightStep(
-					Viewer.speed*0.25,
-					Viewer.speed*1.6,
-					Viewer.speed*0.25);
+					Viewer()->speed*0.25,
+					Viewer()->speed*1.6,
+					Viewer()->speed*0.25);
 			}
 		}
 	}
@@ -2802,7 +2802,7 @@ static void calculateExamineModeDistance(void) {
 /*
 	printf ("bind_GeoViewpoint - calculateExamineModeDistance\n");
 */
-Viewer.doExamineModeDistanceCalculations = TRUE;
+Viewer()->doExamineModeDistanceCalculations = TRUE;
 
 }
 
@@ -2825,23 +2825,23 @@ void bind_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	printf ("	node %u fieldOfView %f\n",node,node->fieldOfView);
 	#endif
 
-	Viewer.GeoSpatialNode = node;
+	Viewer()->GeoSpatialNode = node;
 
-	Viewer.Pos.x = node->__movedPosition.c[0];
-	Viewer.Pos.y = node->__movedPosition.c[1];
-	Viewer.Pos.z = node->__movedPosition.c[2];
-	Viewer.AntiPos.x = node->__movedPosition.c[0];
-	Viewer.AntiPos.y = node->__movedPosition.c[1];
-	Viewer.AntiPos.z = node->__movedPosition.c[2];
+	Viewer()->Pos.x = node->__movedPosition.c[0];
+	Viewer()->Pos.y = node->__movedPosition.c[1];
+	Viewer()->Pos.z = node->__movedPosition.c[2];
+	Viewer()->AntiPos.x = node->__movedPosition.c[0];
+	Viewer()->AntiPos.y = node->__movedPosition.c[1];
+	Viewer()->AntiPos.z = node->__movedPosition.c[2];
 
 	/* printf ("bind_GeoViewpoint, pos %f %f %f antipos %f %f %f\n",Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z); */
 
-	vrmlrot_to_quaternion (&Viewer.Quat,node->__movedOrientation.c[0],
+	vrmlrot_to_quaternion (&Viewer()->Quat,node->__movedOrientation.c[0],
 		node->__movedOrientation.c[1],node->__movedOrientation.c[2],node->__movedOrientation.c[3]);
 
 	vrmlrot_to_quaternion (&q_i,node->__movedOrientation.c[0],
 		node->__movedOrientation.c[1],node->__movedOrientation.c[2],node->__movedOrientation.c[3]);
-	quaternion_inverse(&(Viewer.AntiQuat),&q_i);
+	quaternion_inverse(&(Viewer()->AntiQuat),&q_i);
 
 	resolve_pos();
 

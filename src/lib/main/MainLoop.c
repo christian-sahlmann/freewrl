@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.200 2011/06/09 02:04:39 dug9 Exp $
+  $Id: MainLoop.c,v 1.201 2011/06/09 03:48:25 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1025,7 +1025,7 @@ static void render_pre() {
 
         /* 4. Collisions */
         if (fwl_getp_collision() == 1) {
-                render_collisions(Viewer.type);
+                render_collisions(Viewer()->type);
                 setup_viewpoint(); /*  update viewer position after collision, to*/
                                    /*  give accurate info to Proximity sensors.*/
         }
@@ -1057,21 +1057,23 @@ void setup_projection(int pick, int x, int y)
 	GLDOUBLE fieldofview2;
 	GLint xvp = 0;
 	ppMainloop p;
+	X3D_Viewer *viewer;
 	ttglobal tg = gglobal();
 	GLsizei screenwidth2 = tg->display.screenWidth;
 	GLDOUBLE aspect2 = tg->display.screenRatio;
 	p = (ppMainloop)tg->Mainloop.prv;
+	viewer = Viewer();
     
     PRINT_GL_ERROR_IF_ANY("XEvents::start of setup_projection");
     
-	fieldofview2 = Viewer.fieldofview;
-	if(Viewer.type==VIEWER_YAWPITCHZOOM)
-		fieldofview2*=Viewer.fovZoom;
-	if(Viewer.sidebyside) 
+	fieldofview2 = viewer->fieldofview;
+	if(viewer->type==VIEWER_YAWPITCHZOOM)
+		fieldofview2*=viewer->fovZoom;
+	if(viewer->sidebyside) 
 	{
 		screenwidth2 = (int)((screenwidth2 * .5)+.5);
 		aspect2 = aspect2 * .5;
-		if(Viewer.iside == 1) xvp = (GLint)screenwidth2;
+		if(viewer->iside == 1) xvp = (GLint)screenwidth2;
 	}
 
         FW_GL_MATRIX_MODE(GL_PROJECTION);
@@ -1095,14 +1097,14 @@ void setup_projection(int pick, int x, int y)
         }
 
 	/* ortho projection or perspective projection? */
-	if (Viewer.ortho) {
+	if (Viewer()->ortho) {
 		double minX, maxX, minY, maxY;
 		double numerator;
 
-		minX = Viewer.orthoField[0];
-		minY = Viewer.orthoField[1];
-		maxX = Viewer.orthoField[2];
-		maxY = Viewer.orthoField[3];
+		minX = viewer->orthoField[0];
+		minY = viewer->orthoField[1];
+		maxX = viewer->orthoField[2];
+		maxY = viewer->orthoField[3];
 
 		if (tg->display.screenHeight != 0) {
 			numerator = (maxY - minY) * ((float) tg->display.screenWidth) / ((float) tg->display.screenHeight);
@@ -1111,7 +1113,7 @@ void setup_projection(int pick, int x, int y)
 		}
 
 		FW_GL_ORTHO (minX, maxX, minY, maxY,
-				Viewer.nearPlane,Viewer.farPlane);
+				viewer->nearPlane,viewer->farPlane);
 		
 	} else {
         	/* bounds check */
@@ -1119,7 +1121,7 @@ void setup_projection(int pick, int x, int y)
 				fieldofview2=45.0;
         	/* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
 
-        	FW_GLU_PERSPECTIVE(fieldofview2, aspect2, Viewer.nearPlane, Viewer.farPlane); 
+        	FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane); 
 	}
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
@@ -1161,15 +1163,15 @@ static void render()
 
         /*set_buffer((unsigned)bufferarray[count],count); */              /*  in Viewer.c*/
 
-		Viewer.buffer = (unsigned)p->bufferarray[count]; 
-		Viewer.iside = count;
+		Viewer()->buffer = (unsigned)p->bufferarray[count]; 
+		Viewer()->iside = count;
 		FW_GL_DRAWBUFFER((unsigned)p->bufferarray[count]);
 
         /*  turn lights off, and clear buffer bits*/
 
-		if(Viewer.isStereo)
+		if(Viewer()->isStereo)
 		{
-			if(Viewer.shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
+			if(Viewer()->shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
 			{
 				if(TickTime() - shuttertime > 2.0)
 				{
@@ -1179,11 +1181,11 @@ static void render()
 				}
 				if(count != shutterside) continue;
 			}
-			if(Viewer.anaglyph) //haveAnaglyphShader)
+			if(Viewer()->anaglyph) //haveAnaglyphShader)
 				Viewer_anaglyph_setSide(count);
 				//USE_SHADER(Viewer.programs[Viewer.iprog[count]]);
 			setup_projection(0, 0, 0);
-			if(Viewer.sidebyside && count >0)
+			if(Viewer()->sidebyside && count >0)
 				BackEndClearBuffer(1);
 			else
 				BackEndClearBuffer(2);
@@ -1223,9 +1225,9 @@ static void render()
 	
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 
-		if (Viewer.isStereo) {
-			if (Viewer.anaglyph)
-				if(Viewer.anaglyphMethod == 1) //haveAnaglyphShader) 
+		if (Viewer()->isStereo) {
+			if (Viewer()->anaglyph)
+				if(Viewer()->anaglyphMethod == 1) //haveAnaglyphShader) 
 				{
 					if (count==0) {
 						USE_SHADER(0);
@@ -1237,7 +1239,7 @@ static void render()
 						FW_GL_ACCUM(GL_RETURN,1.0);
 					}
 				}
-				else if(Viewer.anaglyphMethod == 2)
+				else if(Viewer()->anaglyphMethod == 2)
 				{
 					glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 				}
@@ -1245,8 +1247,8 @@ static void render()
 
 	} /* for loop */
 
-	if (Viewer.isStereo) {
-		Viewer.iside = Viewer.dominantEye; /*is used later in picking to set the cursor pick box on the (left=0 or right=1) viewport*/
+	if (Viewer()->isStereo) {
+		Viewer()->iside = Viewer()->dominantEye; /*is used later in picking to set the cursor pick box on the (left=0 or right=1) viewport*/
 	}
 
 #endif
@@ -1335,7 +1337,7 @@ static void setup_viewpoint() {
             
 	#endif // IPHONE, ANDROID screen rotate
 
-        viewer_togl(Viewer.fieldofview);
+        viewer_togl(Viewer()->fieldofview);
         render_hier(rootNode(), VF_Viewpoint);
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 
@@ -2142,12 +2144,12 @@ void fwl_setOrientation (int orient) {
 		case 180:
 		case 270:
 			{
-			Viewer.screenOrientation = orient;
+			Viewer()->screenOrientation = orient;
 			break;
 		}
 		default: {
 			ConsoleMessage ("invalid orientation %d\n",orient);
-			Viewer.screenOrientation = 0;
+			Viewer()->screenOrientation = 0;
 		}
 	}
 }

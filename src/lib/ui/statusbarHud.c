@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.28 2011/06/02 19:50:49 dug9 Exp $
+  $Id: statusbarHud.c,v 1.29 2011/06/09 03:48:26 dug9 Exp $
 
 */
 
@@ -910,16 +910,16 @@ void initOptionsVal()
 		optionsVal[i][7] = '\0';
 	}
 	if(fwl_getp_eai()) optionsVal[0][0] = '*';
-	if(Viewer.shutterGlasses) optionsVal[2][0] = '*';
-	if(Viewer.sidebyside) optionsVal[3][0] = '*';
-	if(Viewer.anaglyph) optionsVal[4][0] = '*';
+	if(Viewer()->shutterGlasses) optionsVal[2][0] = '*';
+	if(Viewer()->sidebyside) optionsVal[3][0] = '*';
+	if(Viewer()->anaglyph) optionsVal[4][0] = '*';
 	// Q. what / which can I rely on for the anaglyph color or index?
 	// A. Viewer.iprog[iside={0,1}] = 0-5 for RGBACM  
-	optionsVal[7][Viewer.iprog[0]+1] = RGBACM[Viewer.iprog[0]]; //'R';
-	optionsVal[8][Viewer.iprog[1]+1] = RGBACM[Viewer.iprog[1]]; //'G';
-	sprintf(optionsVal[10],"  %4.3f",Viewer.eyedist); //.eyebase); //.060f);
-	sprintf(optionsVal[12],"  %4.3f",Viewer.screendist); //.6f);
-	sprintf(optionsVal[14],"  %4.3f",Viewer.stereoParameter); //.toein.4f);
+	optionsVal[7][Viewer()->iprog[0]+1] = RGBACM[Viewer()->iprog[0]]; //'R';
+	optionsVal[8][Viewer()->iprog[1]+1] = RGBACM[Viewer()->iprog[1]]; //'G';
+	sprintf(optionsVal[10],"  %4.3f",Viewer()->eyedist); //.eyebase); //.060f);
+	sprintf(optionsVal[12],"  %4.3f",Viewer()->screendist); //.6f);
+	sprintf(optionsVal[14],"  %4.3f",Viewer()->stereoParameter); //.toein.4f);
 
 	optionsLoaded = 1;
 }
@@ -1059,7 +1059,7 @@ void handleOptionPress()
 	case '5': {
 		/* eyebase */
 		printf("reduce eyebase");
-		Viewer.eyedist *= .9;
+		Viewer()->eyedist *= .9;
 		updateEyehalf();
 		break;}
 	case '6': {
@@ -1070,13 +1070,13 @@ void handleOptionPress()
 	case '7': {
 		/* eyebase */
 		printf("increase eyebase");
-		Viewer.eyedist *= 1.1;
+		Viewer()->eyedist *= 1.1;
 		updateEyehalf();
 		break;}
 	case 'D': {
 		/* screendist */
 		printf("reduce screendist");
-		Viewer.screendist *= .9;
+		Viewer()->screendist *= .9;
 		updateEyehalf();
 		break;}
 	case 'E': {
@@ -1086,13 +1086,13 @@ void handleOptionPress()
 	case 'F': {
 		/* screendist */
 		printf("increase screendist");
-		Viewer.screendist *= 1.1;
+		Viewer()->screendist *= 1.1;
 		updateEyehalf();
 		break;}
 	case 'H': {
 		/* toein */
 		printf("reduce toe-in");
-		Viewer.stereoParameter *= .9;
+		Viewer()->stereoParameter *= .9;
 		updateEyehalf();
 		break;}
 	case 'I': {
@@ -1102,7 +1102,7 @@ void handleOptionPress()
 	case 'J': {
 		/* toein */
 		printf("increase toe-in");
-		Viewer.stereoParameter *= 1.1;
+		Viewer()->stereoParameter *= 1.1;
 		updateEyehalf();
 		break;}
 	default: {break;}

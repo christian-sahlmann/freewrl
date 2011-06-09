@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.47 2011/06/07 21:44:18 dug9 Exp $
+$Id: Component_Navigation.c,v 1.48 2011/06/09 03:48:26 dug9 Exp $
 
 X3D Navigation Component
 
@@ -76,7 +76,7 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	
 
 	/* perform Viewpoint translations */
-	if (Viewer.SLERPing) {
+	if (Viewer()->SLERPing) {
 
                 double tickFrac;
                 Quaternion slerpedDiff;
@@ -84,21 +84,21 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
                 struct point_XYZ antipos;
 
                 /* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
-                tickFrac = (TickTime() - Viewer.startSLERPtime)/Viewer.transitionTime;
+                tickFrac = (TickTime() - Viewer()->startSLERPtime)/Viewer()->transitionTime;
 
-                quaternion_slerp (&slerpedDiff,&Viewer.startSLERPprepVPQuat,&Viewer.prepVPQuat,tickFrac);
+                quaternion_slerp (&slerpedDiff,&Viewer()->startSLERPprepVPQuat,&Viewer()->prepVPQuat,tickFrac);
 
                 quaternion_togl(&slerpedDiff);
 
-                antipos.x = Viewer.AntiPos.x * tickFrac + (Viewer.startSLERPAntiPos.x * (1.0 - tickFrac));
-                antipos.y = Viewer.AntiPos.y * tickFrac + (Viewer.startSLERPAntiPos.y * (1.0 - tickFrac));
-                antipos.z = Viewer.AntiPos.z * tickFrac + (Viewer.startSLERPAntiPos.z * (1.0 - tickFrac));
+                antipos.x = Viewer()->AntiPos.x * tickFrac + (Viewer()->startSLERPAntiPos.x * (1.0 - tickFrac));
+                antipos.y = Viewer()->AntiPos.y * tickFrac + (Viewer()->startSLERPAntiPos.y * (1.0 - tickFrac));
+                antipos.z = Viewer()->AntiPos.z * tickFrac + (Viewer()->startSLERPAntiPos.z * (1.0 - tickFrac));
 
 		FW_GL_TRANSLATE_D(-antipos.x, -antipos.y, -antipos.z);
 
 	} else {
 
-		quaternion_togl(&Viewer.prepVPQuat);
+		quaternion_togl(&Viewer()->prepVPQuat);
 		FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 	}
 
@@ -106,11 +106,11 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
 	if(viewPort[2] > viewPort[3]) {
 		a1=0;
-		Viewer.fieldofview = node->fieldOfView/3.1415926536*180;
+		Viewer()->fieldofview = node->fieldOfView/3.1415926536*180;
 	} else {
 		a1 = node->fieldOfView;
 		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
-		Viewer.fieldofview = a1/3.1415926536*180;
+		Viewer()->fieldofview = a1/3.1415926536*180;
 	}
 	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }
@@ -147,7 +147,7 @@ void prep_OrthoViewpoint (struct X3D_OrthoViewpoint *node) {
 	/* now, lets work on the OrthoViewpoint fieldOfView */
         if (node->fieldOfView.n == 4) {
                 for (ind=0; ind<4; ind++) {
-                        Viewer.orthoField[ind] = (double) node->fieldOfView.p[ind];
+                        Viewer()->orthoField[ind] = (double) node->fieldOfView.p[ind];
                 }
 	}
 
@@ -178,7 +178,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	ax.z = node->axisOfRotation.c[2];
 	align = (APPROX(VECSQ(ax),0));
 
-	quaternion_to_vrmlrot(&(Viewer.Quat),
+	quaternion_to_vrmlrot(&(Viewer()->Quat),
 		&(viewer_orient.x), &(viewer_orient.y),
 		&(viewer_orient.z), &(viewer_orient.a));
 

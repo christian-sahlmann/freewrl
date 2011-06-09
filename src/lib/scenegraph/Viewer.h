@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.43 2011/06/08 19:08:32 crc_canada Exp $
+$Id: Viewer.h,v 1.44 2011/06/09 03:48:26 dug9 Exp $
 
 Viewer ???
 
@@ -102,56 +102,56 @@ void fwl_set_viewer_type(const int type);
         	float xd, yd,zd; \
 		double test; \
 	        /* calculate distance between the node position and defined centerOfRotation */ \
-	        xd = (float) Viewer.currentPosInModel.x; \
-	        yd = (float) Viewer.currentPosInModel.y; \
-	        zd = (float) Viewer.currentPosInModel.z; \
+	        xd = (float) p->Viewer.currentPosInModel.x; \
+	        yd = (float) p->Viewer.currentPosInModel.y; \
+	        zd = (float) p->Viewer.currentPosInModel.z; \
 	        test = sqrt (xd*xd+yd*yd+zd*zd); \
 		/* printf ("htw; cur Dist %4.2f, calculated %4.2f at %lf\n", Viewer.Dist, test,TickTime());  */\
-		Viewer.Dist = test; \
+		p->Viewer.Dist = test; \
 	}
 
 #define INITIATE_SLERP \
-	if (Viewer.transitionType != VIEWER_TRANSITION_TELEPORT) { \
-        Viewer.SLERPing = TRUE; \
-        Viewer.startSLERPtime = TickTime(); \
-        memcpy (&Viewer.startSLERPPos, &Viewer.Pos, sizeof (struct point_XYZ)); \
-        memcpy (&Viewer.startSLERPAntiPos, &Viewer.AntiPos, sizeof (struct point_XYZ)); \
-        memcpy (&Viewer.startSLERPQuat, &Viewer.Quat, sizeof (Quaternion)); \
-        memcpy (&Viewer.startSLERPAntiQuat, &Viewer.AntiQuat, sizeof (Quaternion));  \
-        memcpy (&Viewer.startSLERPbindTimeQuat, &Viewer.bindTimeQuat, sizeof (Quaternion)); \
-        memcpy (&Viewer.startSLERPprepVPQuat, &Viewer.prepVPQuat, sizeof (Quaternion)); \
-	} else { Viewer.SLERPing = FALSE; }
+	if (p->Viewer.transitionType != VIEWER_TRANSITION_TELEPORT) { \
+        p->Viewer.SLERPing = TRUE; \
+        p->Viewer.startSLERPtime = TickTime(); \
+        memcpy (&p->Viewer.startSLERPPos, &p->Viewer.Pos, sizeof (struct point_XYZ)); \
+        memcpy (&p->Viewer.startSLERPAntiPos, &p->Viewer.AntiPos, sizeof (struct point_XYZ)); \
+        memcpy (&p->Viewer.startSLERPQuat, &p->Viewer.Quat, sizeof (Quaternion)); \
+        memcpy (&p->Viewer.startSLERPAntiQuat, &p->Viewer.AntiQuat, sizeof (Quaternion));  \
+        memcpy (&p->Viewer.startSLERPbindTimeQuat, &p->Viewer.bindTimeQuat, sizeof (Quaternion)); \
+        memcpy (&p->Viewer.startSLERPprepVPQuat, &p->Viewer.prepVPQuat, sizeof (Quaternion)); \
+	} else { p->Viewer.SLERPing = FALSE; }
 
 
 #define INITIATE_POSITION \
         xd = vp->position.c[0]-vp->centerOfRotation.c[0]; \
         yd = vp->position.c[1]-vp->centerOfRotation.c[1]; \
         zd = vp->position.c[2]-vp->centerOfRotation.c[2]; \
-        Viewer.Dist = sqrt (xd*xd+yd*yd+zd*zd);
+        p->Viewer.Dist = sqrt (xd*xd+yd*yd+zd*zd);
 
 #define INITIATE_ROTATION_ORIGIN \
-        Viewer.examine.Origin.x = vp->centerOfRotation.c[0]; \
-        Viewer.examine.Origin.y = vp->centerOfRotation.c[1]; \
-	Viewer.examine.Origin.z = vp->centerOfRotation.c[2];
+        p->Viewer.examine.Origin.x = vp->centerOfRotation.c[0]; \
+        p->Viewer.examine.Origin.y = vp->centerOfRotation.c[1]; \
+	p->Viewer.examine.Origin.z = vp->centerOfRotation.c[2];
 
 #define INITIATE_POSITION_ANTIPOSITION \
-        Viewer.Pos.x = vp->position.c[0]; \
-        Viewer.Pos.y = vp->position.c[1]; \
-        Viewer.Pos.z = vp->position.c[2]; \
-        Viewer.AntiPos.x = vp->position.c[0]; \
-        Viewer.AntiPos.y = vp->position.c[1]; \
-        Viewer.AntiPos.z = vp->position.c[2]; \
-        Viewer.currentPosInModel.x = vp->position.c[0]; \
-        Viewer.currentPosInModel.y = vp->position.c[1]; \
-        Viewer.currentPosInModel.z = vp->position.c[2]; \
-        vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.c[0], \
+        p->Viewer.Pos.x = vp->position.c[0]; \
+        p->Viewer.Pos.y = vp->position.c[1]; \
+        p->Viewer.Pos.z = vp->position.c[2]; \
+        p->Viewer.AntiPos.x = vp->position.c[0]; \
+        p->Viewer.AntiPos.y = vp->position.c[1]; \
+        p->Viewer.AntiPos.z = vp->position.c[2]; \
+        p->Viewer.currentPosInModel.x = vp->position.c[0]; \
+        p->Viewer.currentPosInModel.y = vp->position.c[1]; \
+        p->Viewer.currentPosInModel.z = vp->position.c[2]; \
+        vrmlrot_to_quaternion (&p->Viewer.Quat,vp->orientation.c[0], \
                 vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* dug9 sign change on orientation Jan 18,2010 to accomodate level_to_bound() */ \
-        vrmlrot_to_quaternion (&Viewer.bindTimeQuat,vp->orientation.c[0], \
+        vrmlrot_to_quaternion (&p->Viewer.bindTimeQuat,vp->orientation.c[0], \
                 vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */ \
         vrmlrot_to_quaternion (&q_i,vp->orientation.c[0], \
                 vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */ \
-        quaternion_inverse(&(Viewer.AntiQuat),&q_i);  \
-	vrmlrot_to_quaternion(&Viewer.prepVPQuat,vp->orientation.c[0],vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]);
+        quaternion_inverse(&(p->Viewer.AntiQuat),&q_i);  \
+	vrmlrot_to_quaternion(&p->Viewer.prepVPQuat,vp->orientation.c[0],vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]);
 
 
 /* extern struct point_XYZ ViewerPosition; */
@@ -343,7 +343,8 @@ void bind_Viewpoint(struct X3D_Viewpoint *node);
 void bind_OrthoViewpoint(struct X3D_OrthoViewpoint *node);
 void bind_GeoViewpoint(struct X3D_GeoViewpoint *node);
 
-extern X3D_Viewer Viewer; /* in VRMLC.pm */
+//extern X3D_Viewer Viewer; /* in VRMLC.pm */
+X3D_Viewer *Viewer();
 
 void viewer_default(void);
 

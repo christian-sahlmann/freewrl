@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.203 2011/06/08 19:52:19 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.204 2011/06/09 03:48:26 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1377,9 +1377,9 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 	GLDOUBLE cx,cy,cz;
 	handled = 0;
 	/* find the length of the line between the moved center and our current viewer position */
-	cx = Viewer.currentPosInModel.x - node->__movedCoords.c[0];
-	cy = Viewer.currentPosInModel.y - node->__movedCoords.c[1];
-	cz = Viewer.currentPosInModel.z - node->__movedCoords.c[2];
+	cx = Viewer()->currentPosInModel.x - node->__movedCoords.c[0];
+	cy = Viewer()->currentPosInModel.y - node->__movedCoords.c[1];
+	cz = Viewer()->currentPosInModel.z - node->__movedCoords.c[2];
 
 	/* printf ("geoLOD, distance between me and center is %lf\n", sqrt (cx*cx + cy*cy + cz*cz)); */
 
@@ -1532,9 +1532,9 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 		(vpnode->_nodeType != NODE_OrthoViewpoint) &&
 		(vpnode->_nodeType != NODE_GeoViewpoint)) {
 		printf ("can not do this node type yet %s, for cpf\n",stringNodeType(vpnode->_nodeType));
-		Viewer.nearPlane = DEFAULT_NEARPLANE;
-		Viewer.farPlane = DEFAULT_FARPLANE;
-		Viewer.backgroundPlane = DEFAULT_BACKGROUNDPLANE;
+		Viewer()->nearPlane = DEFAULT_NEARPLANE;
+		Viewer()->farPlane = DEFAULT_FARPLANE;
+		Viewer()->backgroundPlane = DEFAULT_BACKGROUNDPLANE;
 		return;
 	}	
 
@@ -1589,14 +1589,14 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	#endif
 
 	/* lets use these values; leave room for a Background or TextureBackground node here */
-	Viewer.nearPlane = cnp; 
+	Viewer()->nearPlane = cnp; 
 	/* backgroundPlane goes between the farthest geometry, and the farPlane */
 	if (background_stack[0]!= 0) {
-		Viewer.farPlane = cfp * 10.0;
-		Viewer.backgroundPlane = cfp*5.0;
+		Viewer()->farPlane = cfp * 10.0;
+		Viewer()->backgroundPlane = cfp*5.0;
 	} else {
-		Viewer.farPlane = cfp;
-		Viewer.backgroundPlane = cfp; /* just set it to something */
+		Viewer()->farPlane = cfp;
+		Viewer()->backgroundPlane = cfp; /* just set it to something */
 	}
 }
 
@@ -3114,9 +3114,9 @@ X3D_GROUP(node)->removeChildren.n);
 		calculateNearFarplanes(X3D_NODE(viewpoint_stack[viewpoint_tos]));
 	} else {
 		/* keep these at the defaults, if no viewpoint is present. */
-		Viewer.nearPlane = DEFAULT_NEARPLANE;
-		Viewer.farPlane = DEFAULT_FARPLANE;
-		Viewer.backgroundPlane = DEFAULT_BACKGROUNDPLANE;
+		Viewer()->nearPlane = DEFAULT_NEARPLANE;
+		Viewer()->farPlane = DEFAULT_FARPLANE;
+		Viewer()->backgroundPlane = DEFAULT_BACKGROUNDPLANE;
 	}
 }
 

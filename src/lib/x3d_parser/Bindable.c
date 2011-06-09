@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.62 2011/06/07 21:44:18 dug9 Exp $
+$Id: Bindable.c,v 1.63 2011/06/09 03:48:26 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -98,8 +98,9 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	struct Uni_String **svptr;
 	int i;
 	char *typeptr;
+	X3D_Viewer *viewer = Viewer();
 
-        Viewer.speed = (double) node->speed;
+        viewer->speed = (double) node->speed;
 	if (node->avatarSize.n<2) {
 		printf ("set_naviinfo, avatarSize smaller than expected\n");
 	} else {
@@ -112,7 +113,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	svptr = node->type.p;
 
 	/* assume "NONE" is set */
-	for (i=0; i<7; i++) Viewer.oktypes[i] = FALSE;
+	for (i=0; i<7; i++) viewer->oktypes[i] = FALSE;
 
 
 	/* now, find the ones that are ok */
@@ -121,51 +122,51 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 		typeptr = svptr[i]->strptr;
 
 		if (strcmp(typeptr,"WALK") == 0) {
-			Viewer.oktypes[VIEWER_WALK] = TRUE;
+			viewer->oktypes[VIEWER_WALK] = TRUE;
 			if (i==0) fwl_set_viewer_type(VIEWER_WALK);
 		}
 		if (strcmp(typeptr,"FLY") == 0) {
-			Viewer.oktypes[VIEWER_FLY] = TRUE;
+			viewer->oktypes[VIEWER_FLY] = TRUE;
 			if (i==0) fwl_set_viewer_type(VIEWER_FLY);
 		}
 		if (strcmp(typeptr,"EXAMINE") == 0) {
-			Viewer.oktypes[VIEWER_EXAMINE] = TRUE;
+			viewer->oktypes[VIEWER_EXAMINE] = TRUE;
 			if (i==0) fwl_set_viewer_type(VIEWER_EXAMINE);
 		}
 		if (strcmp(typeptr,"NONE") == 0) {
-			Viewer.oktypes[VIEWER_NONE] = TRUE;
+			viewer->oktypes[VIEWER_NONE] = TRUE;
 			if (i==0) fwl_set_viewer_type(VIEWER_NONE);
 		}
 		if (strcmp(typeptr,"EXFLY") == 0) {
-			Viewer.oktypes[VIEWER_EXFLY] = TRUE;
+			viewer->oktypes[VIEWER_EXFLY] = TRUE;
 			if (i==0) fwl_set_viewer_type(VIEWER_EXFLY);
 		}
 		if (strcmp(typeptr,"YAWPITCHZOOM") == 0) {
-			Viewer.oktypes[VIEWER_YAWPITCHZOOM] = TRUE;
+			viewer->oktypes[VIEWER_YAWPITCHZOOM] = TRUE;
 			if (i==0) fwl_set_viewer_type(VIEWER_YAWPITCHZOOM);
 		}
 		if (strcmp(typeptr,"ANY") == 0) {
-			Viewer.oktypes[VIEWER_EXAMINE] = TRUE;
-			Viewer.oktypes[VIEWER_WALK] = TRUE;
-			Viewer.oktypes[VIEWER_EXFLY] = TRUE;
-			Viewer.oktypes[VIEWER_FLY] = TRUE;
+			viewer->oktypes[VIEWER_EXAMINE] = TRUE;
+			viewer->oktypes[VIEWER_WALK] = TRUE;
+			viewer->oktypes[VIEWER_EXFLY] = TRUE;
+			viewer->oktypes[VIEWER_FLY] = TRUE;
 			if (i==0) fwl_set_viewer_type (VIEWER_WALK); /*  just choose one */
 		}
 	}
-        Viewer.headlight = node->headlight;
+        viewer->headlight = node->headlight;
 	/* tell the menu buttons of the state of this headlight */
 	setMenuButton_headlight(node->headlight);
 
 	/* transition effects */
-	Viewer.transitionTime = node->transitionTime;
+	viewer->transitionTime = node->transitionTime;
 	/* bounds checking */
-	if (Viewer.transitionTime < 0.0) Viewer.transitionTime = 0.0;
+	if (viewer->transitionTime < 0.0) viewer->transitionTime = 0.0;
 
-	Viewer.transitionType = VIEWER_TRANSITION_LINEAR; /* assume LINEAR */
+	viewer->transitionType = VIEWER_TRANSITION_LINEAR; /* assume LINEAR */
 	if (node->transitionType.n > 0) {
-		if (strcmp("LINEAR", node->transitionType.p[0]->strptr) == 0) Viewer.transitionType = VIEWER_TRANSITION_LINEAR;
-		else if (strcmp("TELEPORT", node->transitionType.p[0]->strptr) == 0) Viewer.transitionType = VIEWER_TRANSITION_TELEPORT;
-		else if (strcmp("ANIMATE", node->transitionType.p[0]->strptr) == 0) Viewer.transitionType = VIEWER_TRANSITION_ANIMATE;
+		if (strcmp("LINEAR", node->transitionType.p[0]->strptr) == 0) viewer->transitionType = VIEWER_TRANSITION_LINEAR;
+		else if (strcmp("TELEPORT", node->transitionType.p[0]->strptr) == 0) viewer->transitionType = VIEWER_TRANSITION_TELEPORT;
+		else if (strcmp("ANIMATE", node->transitionType.p[0]->strptr) == 0) viewer->transitionType = VIEWER_TRANSITION_ANIMATE;
 		else {
 			ConsoleMessage ("Unknown NavigationInfo transitionType :%s:",node->transitionType.p[0]->strptr);
 		}
@@ -953,6 +954,7 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 }
 
 void render_Background (struct X3D_Background *node) {
+	X3D_Viewer *viewer = Viewer();
 	/* if we are rendering blended nodes, don't bother with this one */
 	if (renderstate()->render_blend) return;
 
@@ -979,7 +981,7 @@ void render_Background (struct X3D_Background *node) {
 
 	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
 	   all geometry fits within the spheres */
-	FW_GL_SCALE_D (Viewer.backgroundPlane, Viewer.backgroundPlane, Viewer.backgroundPlane);
+	FW_GL_SCALE_D (viewer->backgroundPlane, viewer->backgroundPlane, viewer->backgroundPlane);
 
 	#ifdef SHADERS_2011
 		enableGlobalShader(backgroundSphereShader);
@@ -1053,6 +1055,7 @@ void render_Background (struct X3D_Background *node) {
 
 
 void render_TextureBackground (struct X3D_TextureBackground *node) {
+	X3D_Viewer *viewer = Viewer();
 	/* if we are rendering blended nodes, don't bother with this one */
 	if (renderstate()->render_blend) return;
 
@@ -1080,7 +1083,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
 	   all geometry fits within the spheres */
-	FW_GL_SCALE_D (Viewer.backgroundPlane, Viewer.backgroundPlane, Viewer.backgroundPlane);
+	FW_GL_SCALE_D (viewer->backgroundPlane, viewer->backgroundPlane, viewer->backgroundPlane);
 
 
 	#ifdef SHADERS_2011
