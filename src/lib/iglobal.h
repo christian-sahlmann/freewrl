@@ -294,6 +294,9 @@ iOLDCODE	}Component_Networking;
 
 		void *prv;
 	}Tess;
+	struct tViewer{
+		void *prv;
+	}Viewer;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1

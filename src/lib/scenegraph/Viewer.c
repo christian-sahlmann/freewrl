@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.71 2011/06/08 19:08:32 crc_canada Exp $
+$Id: Viewer.c,v 1.72 2011/06/09 02:04:39 dug9 Exp $
 
 CProto ???
 
@@ -44,19 +44,85 @@ CProto ???
 #include "Viewer.h"
 
 
-static int examineCounter = 5;
-
-static int viewer_initialized = FALSE;
-static X3D_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
-static X3D_Viewer_Examine viewer_examine = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
-static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
-//static X3D_Viewer_YawPitchZoom viewer_ypz = { { 0, 0, 0 },  {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
-static X3D_Viewer_YawPitchZoom viewer_ypz = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
-
-static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
-
-static FILE *exfly_in_file;
+//static int examineCounter = 5;
+//
+//static int viewer_initialized = FALSE;
+//static X3D_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
+//static X3D_Viewer_Examine viewer_examine = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
+//static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
+//static X3D_Viewer_YawPitchZoom viewer_ypz = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
+//
+//static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
+//
+//static FILE *exfly_in_file;
 X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
+
+//true static:
+static Key staticKeyMap[KEYS_HANDLED] = KEYMAP;
+typedef struct pViewer{
+	int examineCounter;// = 5;
+
+	int viewer_initialized;// = FALSE;
+	X3D_Viewer_Walk viewer_walk;// = { 0, 0, 0, 0, 0, 0 };
+	X3D_Viewer_Examine viewer_examine;// = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
+	X3D_Viewer_Fly viewer_fly;// = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
+	X3D_Viewer_YawPitchZoom viewer_ypz;// = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
+
+	int translate[COORD_SYS];// = { 0, 0, 0 };
+	int rotate[COORD_SYS];// = { 0, 0, 0 };
+
+	FILE *exfly_in_file;
+	struct point_XYZ viewer_lastP;
+	int exflyMethod; //0 or 1;  /* could be a user settable option, which kind of exfly to do */
+	int StereoInitializedOnce;//. = 0;
+	GLboolean acMask[2][3]; //anaglyphChannelMask
+
+}* ppViewer;
+void *Viewer_constructor(){
+	void *v = malloc(sizeof(struct pViewer));
+	memset(v,0,sizeof(struct pViewer));
+	return v;
+}
+void Viewer_init(struct tViewer *t){
+	//public
+	//private
+	t->prv = Viewer_constructor();
+	{
+		ppViewer p = (ppViewer)t->prv;
+		p->examineCounter = 5;
+
+		p->viewer_initialized = FALSE;
+		//p->viewer_walk = { 0, 0, 0, 0, 0, 0 };
+		//p->viewer_examine = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
+		{
+			int i;
+			for(i=0;i<KEYS_HANDLED;i++)
+			{
+				p->viewer_fly.Down[i] =  staticKeyMap[i]; // = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
+				p->viewer_fly.WasDown[i] = staticKeyMap[i];
+			}
+			p->viewer_fly.lasttime = -1;
+		}
+		//p->viewer_fly.
+		//p->viewer_ypz = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
+
+		//p->translate[COORD_SYS] = { 0, 0, 0 };
+		//p->rotate[COORD_SYS] = { 0, 0, 0 };
+
+		//p->exfly_in_file;
+		//p->viewer_lastP;
+		#ifdef _MSC_VER
+		p->exflyMethod = 1;  /* could be a user settable option, which kind of exfly to do */
+		#else
+		p->exflyMethod = 0;
+		#endif
+		p->StereoInitializedOnce = 0;
+		//p->acMask[2][3]; //anaglyphChannelMask
+
+	}
+}
+//ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+
 
 
 static void handle_tick_walk(void);
@@ -72,6 +138,7 @@ void getCurrentSpeed() {
 
 void viewer_default() {
 	Quaternion q_i;
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	Viewer.fieldofview = 45.0;
 	Viewer.fovZoom = 1.0;
@@ -92,10 +159,10 @@ void viewer_default() {
 	setMenuButton_headlight(Viewer.headlight);
 	Viewer.speed = 1.0;
 	Viewer.Dist = 10.0;
-	memcpy (&Viewer.walk, &viewer_walk,sizeof (X3D_Viewer_Walk));
-	memcpy (&Viewer.examine, &viewer_examine, sizeof (X3D_Viewer_Examine));
-	memcpy (&Viewer.fly, &viewer_fly, sizeof (X3D_Viewer_Fly));
-	memcpy (&Viewer.ypz,&viewer_ypz, sizeof (X3D_Viewer_YawPitchZoom));
+	memcpy (&Viewer.walk, &p->viewer_walk,sizeof (X3D_Viewer_Walk));
+	memcpy (&Viewer.examine, &p->viewer_examine, sizeof (X3D_Viewer_Examine));
+	memcpy (&Viewer.fly, &p->viewer_fly, sizeof (X3D_Viewer_Fly));
+	memcpy (&Viewer.ypz,&p->viewer_ypz, sizeof (X3D_Viewer_YawPitchZoom));
 
 	fwl_set_viewer_type(VIEWER_EXAMINE);
 
@@ -115,10 +182,11 @@ void viewer_default() {
 
 void viewer_init (X3D_Viewer *viewer, int type) {
 	Quaternion q_i;
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	/* if we are brand new, set up our defaults */
-	if (!viewer_initialized) {
-		viewer_initialized = TRUE;
+	if (!p->viewer_initialized) {
+		p->viewer_initialized = TRUE;
 
 		/* what are we - EXAMINE, FLY, etc... */
 		viewer->type = type;
@@ -139,10 +207,10 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		setMenuButton_headlight(viewer->headlight);
 		viewer->speed = 1.0;
 		viewer->Dist = 10.0;
-        memcpy (&viewer->walk, &viewer_walk,sizeof (X3D_Viewer_Walk));
-        memcpy (&viewer->examine, &viewer_examine, sizeof (X3D_Viewer_Examine));
-        memcpy (&viewer->fly, &viewer_fly, sizeof (X3D_Viewer_Fly));
-        memcpy (&viewer->ypz,&viewer_ypz, sizeof (X3D_Viewer_YawPitchZoom));
+        memcpy (&viewer->walk, &p->viewer_walk,sizeof (X3D_Viewer_Walk));
+        memcpy (&viewer->examine, &p->viewer_examine, sizeof (X3D_Viewer_Examine));
+        memcpy (&viewer->fly, &p->viewer_fly, sizeof (X3D_Viewer_Fly));
+        memcpy (&viewer->ypz,&p->viewer_ypz, sizeof (X3D_Viewer_YawPitchZoom));
 
 
 		/* SLERP code for moving between viewpoints */
@@ -801,20 +869,24 @@ handle_keyrelease(const char key)
    lastQ - quaternion increment from walk_tick which applies to previous lastP:
          if current frame number is i, and lastP is from i-1, then lastQ applies to i-1 lastP
 */
-struct point_XYZ viewer_lastP;
+//struct point_XYZ viewer_lastP;
 void viewer_lastP_clear()
 {
-	viewer_lastP.x = viewer_lastP.y = viewer_lastP.z = 0.0;
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+
+	p->viewer_lastP.x = p->viewer_lastP.y = p->viewer_lastP.z = 0.0;
 }
 void viewer_lastQ_set(Quaternion *lastQ)
 {
-	quaternion_rotation(&viewer_lastP,lastQ,&viewer_lastP); 
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	quaternion_rotation(&p->viewer_lastP,lastQ,&p->viewer_lastP); 
 }
 void viewer_lastP_add(struct point_XYZ *vec) 
 {
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	if(get_collision()) /* fw_params.collision use if(1) to test with toggling_collision */
 	{
-		VECADD(viewer_lastP,*vec);
+		VECADD(p->viewer_lastP,*vec);
 	}
 	else
 		viewer_lastP_clear();
@@ -823,7 +895,9 @@ void viewer_lastP_add(struct point_XYZ *vec)
 struct point_XYZ viewer_get_lastP()
 { 
 	/* returns a vector from avatar to the last avatar location ie on the last loop, in avatar space */
-	struct point_XYZ nv = viewer_lastP;
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+
+	struct point_XYZ nv = p->viewer_lastP;
 	vecscale(&nv,&nv,-1.0); 
 	return nv; 
 }
@@ -889,11 +963,11 @@ handle_tick_walk()
 /* my $string = ""; */
 /* my $inc = 0; */
 /* my $inf = 0; */
-#ifdef _MSC_VER
-static int exflyMethod = 1;  /* could be a user settable option, which kind of exfly to do */
-#else
-static int exflyMethod = 0;
-#endif
+//#ifdef _MSC_VER
+//static int exflyMethod = 1;  /* could be a user settable option, which kind of exfly to do */
+//#else
+//static int exflyMethod = 0;
+//#endif
 static void
 handle_tick_exfly()
 {
@@ -901,6 +975,7 @@ handle_tick_exfly()
 	char string[STRING_SIZE];
 	float px,py,pz,q1,q2,q3,q4;
 	size_t rv; /* unused, but here for compile warnings */
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	memset(string, 0, STRING_SIZE * sizeof(char));
 
@@ -916,7 +991,7 @@ handle_tick_exfly()
 /* 		die "Error reading external sensor input file $in_file\n"; */
 /* 	$inc = sysread ($inf, $string, 100); */
 /* 	close $inf; */
-	if ((exfly_in_file = fopen(IN_FILE, "r")) == NULL) {
+	if ((p->exfly_in_file = fopen(IN_FILE, "r")) == NULL) {
 		fprintf(stderr,
 				"Viewer handle_tick_exfly: could not open %s for read, returning to EXAMINE mode.\nSee the FreeWRL man page for further details on the usage of Fly - External Sensor input mode.\n",
 				IN_FILE);
@@ -926,19 +1001,19 @@ handle_tick_exfly()
 		setMenuButton_navModes(Viewer.type);
 		return;
 	}
-	rv = fread(string, sizeof(char), IN_FILE_BYTES, exfly_in_file);
-	if (ferror(exfly_in_file)) {
+	rv = fread(string, sizeof(char), IN_FILE_BYTES, p->exfly_in_file);
+	if (ferror(p->exfly_in_file)) {
 		fprintf(stderr,
 				"Viewer handle_tick_exfly: error reading from file %s.",
 				IN_FILE);
-		fclose(exfly_in_file);
+		fclose(p->exfly_in_file);
 		return;
 	}
-	fclose(exfly_in_file);
+	fclose(p->exfly_in_file);
 
 /* 	if (length($string)>0) */
 	if ((len = strlen(string)) > 0) {
-		if(exflyMethod == 0)
+		if(p->exflyMethod == 0)
 		{
 			len = sscanf (string, "%f %f %f %f %f %f %f",&px,&py,&pz,
 				&q1,&q2,&q3,&q4);
@@ -954,7 +1029,7 @@ handle_tick_exfly()
 			(Viewer.Quat).x = q2;
 			(Viewer.Quat).y = q3;
 			(Viewer.Quat).z = q4;
-		}else if(exflyMethod == 1){
+		}else if(p->exflyMethod == 1){
 			static int lastbut = 0;
 			int mev, but;
 			len = sscanf (string, "%d %f %f ",&but,&px,&py);
@@ -979,42 +1054,44 @@ handle_tick_exfly()
 void
 set_action(char *key)
 {
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+
 	switch(*key) {
 	case 'a':
-		translate[Z_AXIS] -= 1;
+		p->translate[Z_AXIS] -= 1;
 		break;
 	case 'z':
-		translate[Z_AXIS] += 1;
+		p->translate[Z_AXIS] += 1;
 		break;
 	case 'j':
-		translate[X_AXIS] -= 1;
+		p->translate[X_AXIS] -= 1;
 		break;
 	case 'l':
-		translate[X_AXIS] += 1;
+		p->translate[X_AXIS] += 1;
 		break;
 	case 'p':
-		translate[Y_AXIS] -= 1;
+		p->translate[Y_AXIS] -= 1;
 		break;
 	case ';':
-		translate[Y_AXIS] += 1;
+		p->translate[Y_AXIS] += 1;
 		break;
 	case '8':
-		rotate[X_AXIS] += 1;
+		p->rotate[X_AXIS] += 1;
 		break;
 	case 'k':
-		rotate[X_AXIS] -= 1;
+		p->rotate[X_AXIS] -= 1;
 		break;
 	case 'u':
-		rotate[Y_AXIS] -= 1;
+		p->rotate[Y_AXIS] -= 1;
 		break;
 	case 'o':
-		rotate[Y_AXIS] += 1;
+		p->rotate[Y_AXIS] += 1;
 		break;
 	case '7':
-		rotate[Z_AXIS] -= 1;
+		p->rotate[Z_AXIS] -= 1;
 		break;
 	case '9':
-		rotate[Z_AXIS] += 1;
+		p->rotate[Z_AXIS] += 1;
 		break;
 	default:
 		break;
@@ -1030,6 +1107,7 @@ handle_tick_fly()
 	struct point_XYZ v;
 	double changed = 0, time_diff = -1;
 	int i;
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	if (fly->lasttime < 0) {
 		fly->lasttime = TickTime();
@@ -1052,8 +1130,8 @@ handle_tick_fly()
 		(fly->WasDown[i]).hit = 0;
 	} 
 
-	memset(translate, 0, sizeof(int) * COORD_SYS);
-	memset(rotate, 0, sizeof(int) * COORD_SYS);
+	memset(p->translate, 0, sizeof(int) * COORD_SYS);
+	memset(p->rotate, 0, sizeof(int) * COORD_SYS);
 
 	for (i = 0; i < KEYS_HANDLED; i++) {
 		if ((ps[i]).hit) {
@@ -1067,7 +1145,7 @@ handle_tick_fly()
 	for (i = 0; i < COORD_SYS; i++) {
 		fly->Velocity[i] *= pow(0.06, time_diff);
 
-		fly->Velocity[i] += time_diff * translate[i] * 14.5 * Viewer.speed;
+		fly->Velocity[i] += time_diff * p->translate[i] * 14.5 * Viewer.speed;
 		changed += fly->Velocity[i];
 		/* printf ("vel %d %f\n",i,fly->Velocity[i]); */
 	}
@@ -1081,7 +1159,7 @@ handle_tick_fly()
 	/* angular movement */
 	for (i = 0; i < COORD_SYS; i++) {
 		fly->AVelocity[i] *= pow(0.04, time_diff);
-		fly->AVelocity[i] += time_diff * rotate[i] * 0.025;
+		fly->AVelocity[i] += time_diff * p->rotate[i] * 0.025;
 
 		if (fabs(fly->AVelocity[i]) > 0.8) {
 			fly->AVelocity[i] /= (fabs(fly->AVelocity[i]) / 0.8);
@@ -1136,16 +1214,17 @@ handle_tick()
 	}
 
 	if (Viewer.doExamineModeDistanceCalculations) {
+		ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 /*
 		printf ("handle_tick - doing calculations\n");
 */
 		CALCULATE_EXAMINE_DISTANCE
 		resolve_pos();
-		examineCounter --;
+		p->examineCounter --;
 
-		if (examineCounter < 0) {
+		if (p->examineCounter < 0) {
 		Viewer.doExamineModeDistanceCalculations = FALSE;
-		examineCounter = 5;
+		p->examineCounter = 5;
 		}
 	}
 }
@@ -1287,16 +1366,18 @@ int initAnaglyphShaders()
 }
 
 
-int StereoInitializedOnce = 0;
+//int StereoInitializedOnce = 0;
 void fwl_init_StereoDefaults()
 {
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+
 	/* must call this before getting values from command line in options.c */
 	Viewer.shutterGlasses = 0;
 	Viewer.anaglyph = 0;
 	Viewer.anaglyphMethod = 2; /* 1= use shaders 2= draw gray .It's hardwired here, no way to set from command line or HUD*/
 	Viewer.sidebyside = 0;
 	Viewer.isStereo = 0;
-	if(!StereoInitializedOnce)
+	if(!p->StereoInitializedOnce)
 	{
 		Viewer.eyedist = 0.06;
 		Viewer.screendist = 0.8;
@@ -1306,7 +1387,7 @@ void fwl_init_StereoDefaults()
 		Viewer.iprog[0] = 0; /* left red */
 		Viewer.iprog[1] = 1; /* right green */
 		Viewer.haveQuadbuffer = 0;
-		StereoInitializedOnce = 1;
+		p->StereoInitializedOnce = 1;
 	}
 }
 
@@ -1321,7 +1402,7 @@ void deleteAnaglyphShaders()
 		DELETE_PROGRAM(Viewer.programs[i]);
 	}
 }
-static GLboolean acMask[2][3]; //anaglyphChannelMask
+//static GLboolean acMask[2][3]; //anaglyphChannelMask
 void setmask(GLboolean *mask,int r, int g, int b)
 {
 	mask[0] = (GLboolean)r;
@@ -1330,12 +1411,13 @@ void setmask(GLboolean *mask,int r, int g, int b)
 }
 void Viewer_anaglyph_setSide(int iside)
 {
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	if( Viewer.anaglyphMethod == 2 )
 	{
 		/* draw in gray */
 		/* and use channel masks */
 		GLboolean t = 1;
-		glColorMask(acMask[iside][0],acMask[iside][1],acMask[iside][2],t);
+		glColorMask(p->acMask[iside][0],p->acMask[iside][1],p->acMask[iside][2],t);
 	}
 	else if(Viewer.anaglyphMethod == 1)
 	{
@@ -1343,7 +1425,7 @@ void Viewer_anaglyph_setSide(int iside)
 		USE_SHADER(Viewer.programs[Viewer.iprog[iside]]);
 	}
 }
-
+//true static:
 static char * RGBACM = "RGBACM";
 static int indexRGBACM(int a)
 {
@@ -1351,6 +1433,7 @@ static int indexRGBACM(int a)
 }
 void setAnaglyphSideColor(char val, int iside)
 {
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	Viewer.iprog[iside] = indexRGBACM(val);
 	if(Viewer.iprog[iside] == -1 )
 	{
@@ -1360,22 +1443,22 @@ void setAnaglyphSideColor(char val, int iside)
 	/* used for anaglyphMethod==2 */
 	switch (Viewer.iprog[iside]) {
 		case 0: //'R':
-		   setmask(acMask[iside],1,0,0);
+		   setmask(p->acMask[iside],1,0,0);
 		   break;
 		case 1: //'G':
-		   setmask(acMask[iside],0,1,0);
+		   setmask(p->acMask[iside],0,1,0);
 			break;
 		case 2: //'B':
-		   setmask(acMask[iside],0,0,1);
+		   setmask(p->acMask[iside],0,0,1);
 		  break;
 		case 3: //'A':
-		   setmask(acMask[iside],1,1,0);
+		   setmask(p->acMask[iside],1,1,0);
 		  break;
 		case 4: //'C':
-		   setmask(acMask[iside],0,1,1);
+		   setmask(p->acMask[iside],0,1,1);
 		  break;
 		case 5://'M':
-		   setmask(acMask[iside],1,0,1);
+		   setmask(p->acMask[iside],1,0,1);
 		  break;
 	}
 }

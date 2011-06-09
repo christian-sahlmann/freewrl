@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.199 2011/06/08 19:52:19 crc_canada Exp $
+  $Id: MainLoop.c,v 1.200 2011/06/09 02:04:39 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1143,16 +1143,15 @@ void renderCursors();
 /* Render the scene */
 static void render() 
 {
+    int count,i;
+	static double shuttertime;
+	static int shutterside;
 
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
-	{
-    int count,i;
-	static double shuttertime;
-	static int shutterside;
 	/*  profile*/
     /* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
     /* struct timeval mytime;*/
@@ -1193,7 +1192,7 @@ static void render()
 		else 
 			BackEndClearBuffer(2);
 		BackEndLightsOff();
-	}
+
 #else
 
 	BackEndClearBuffer(2); // no stereo, no shutter glasses: simple clear
